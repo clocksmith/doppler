@@ -1,3 +1,4 @@
+import { ATTENTION_PREFILL_QUERY_TILE_F16KV_VARIANT } from './attention-prefill-query-tile-f16kv-variant.js';
 import { ATTENTION_DECODE_ONLINE_F32_VARIANT } from './attention-decode-online-f32-variant.js';
 import { ATTENTION_DECODE_ONLINE_F16KV_VARIANT } from './attention-decode-online-variant.js';
 import { WGSL_PATCH_VARIANTS } from './wgsl-patch-variants.js';
@@ -640,6 +641,7 @@ override WORKGROUP_SIZE: u32 = 256u;
   },
   ATTENTION_DECODE_ONLINE_F16KV_VARIANT,
   ATTENTION_DECODE_ONLINE_F32_VARIANT,
+  ATTENTION_PREFILL_QUERY_TILE_F16KV_VARIANT,
   {
     id: 'attention-decode-paged-f16kv',
     source: 'src/gpu/kernels/attention_decode_paged_f16.wgsl',

@@ -1,0 +1,86 @@
+{
+  "passed": true,
+  "scope": "Attention operator only; no model or browser qualification",
+  "adapter": {
+    "vendor": "amd",
+    "architecture": "rdna-3",
+    "device": "radeon-8060s-graphics-radv-strix-halo-",
+    "description": "radv: Mesa 26.0.3-1ubuntu1",
+    "subgroupMinSize": 32,
+    "subgroupMaxSize": 64
+  },
+  "cases": [
+    {
+      "T": 1,
+      "S": 1,
+      "bitIdenticalAcrossCacheDtypesAndTiles": true,
+      "maxAbsIndependentReference": 0
+    },
+    {
+      "T": 7,
+      "S": 17,
+      "bitIdenticalAcrossCacheDtypesAndTiles": true,
+      "maxAbsIndependentReference": 5.584406895242644e-09
+    },
+    {
+      "T": 9,
+      "S": 33,
+      "start": 24,
+      "bitIdenticalAcrossCacheDtypesAndTiles": true,
+      "maxAbsIndependentReference": 4.203688379160464e-09
+    },
+    {
+      "T": 33,
+      "S": 33,
+      "softcap": 0.03,
+      "bitIdenticalAcrossCacheDtypesAndTiles": true,
+      "maxAbsIndependentReference": 3.843340564205211e-09
+    },
+    {
+      "T": 17,
+      "S": 64,
+      "start": 47,
+      "window": 16,
+      "bitIdenticalAcrossCacheDtypesAndTiles": true,
+      "maxAbsIndependentReference": 5.82157034731412e-09
+    },
+    {
+      "T": 8,
+      "S": 8,
+      "causal": false,
+      "bitIdenticalAcrossCacheDtypesAndTiles": true,
+      "maxAbsIndependentReference": 6.3004630193597144e-09
+    },
+    {
+      "T": 8,
+      "S": 17,
+      "spanStart": 0,
+      "spanLength": 17,
+      "bitIdenticalAcrossCacheDtypesAndTiles": true,
+      "maxAbsIndependentReference": 5.752700867750482e-09
+    },
+    {
+      "T": 17,
+      "S": 17,
+      "kvStart": 32,
+      "bitIdenticalAcrossCacheDtypesAndTiles": true,
+      "maxAbsIndependentReference": 0
+    },
+    {
+      "T": 17,
+      "S": 33,
+      "start": 24,
+      "pageSize": 8,
+      "bitIdenticalAcrossCacheDtypesAndTiles": true,
+      "maxAbsIndependentReference": 5.342410205194659e-09
+    },
+    {
+      "T": 257,
+      "S": 257,
+      "H": 32,
+      "bitIdenticalAcrossCacheDtypesAndTiles": true,
+      "maxAbsIndependentReference": 4.690584159798561e-09
+    }
+  ],
+  "errors": []
+}

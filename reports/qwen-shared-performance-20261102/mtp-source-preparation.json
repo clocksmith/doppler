@@ -1,0 +1,298 @@
+{
+  "schema": "doppler.qwen-nextn-source-weights/v1",
+  "stage": "prepared-source-inputs-only",
+  "runReady": false,
+  "qualified": false,
+  "source": {
+    "path": "/run/media/x/models/deco-evidence/qwen-economics-20261030/Qwen_Qwen3.6-35B-A3B-Q4_0.gguf",
+    "bytes": 20836243072,
+    "sha256": "52312daa5b2190c1f5723d33c3315c01c55af4206f6c6e6eb63f3d8dd52bb85e",
+    "ggufVersion": 3,
+    "dataOffset": 10990720
+  },
+  "baseLayers": 40,
+  "sourceAuxiliaryLayer": 40,
+  "auxiliaryLayerCount": 1,
+  "sourceMetadata": {
+    "qwen35moe.block_count": 41,
+    "qwen35moe.context_length": 262144,
+    "qwen35moe.embedding_length": 2048,
+    "qwen35moe.attention.head_count": 16,
+    "qwen35moe.attention.head_count_kv": 2,
+    "qwen35moe.rope.freq_base": 10000000.0,
+    "qwen35moe.attention.layer_norm_rms_epsilon": 9.999999974752427e-07,
+    "qwen35moe.expert_count": 256,
+    "qwen35moe.expert_used_count": 8,
+    "qwen35moe.attention.key_length": 256,
+    "qwen35moe.attention.value_length": 256,
+    "qwen35moe.expert_feed_forward_length": 512,
+    "qwen35moe.expert_shared_feed_forward_length": 512,
+    "qwen35moe.ssm.conv_kernel": 4,
+    "qwen35moe.ssm.state_size": 128,
+    "qwen35moe.ssm.group_count": 16,
+    "qwen35moe.ssm.time_step_rank": 32,
+    "qwen35moe.ssm.inner_size": 4096,
+    "qwen35moe.full_attention_interval": 4,
+    "qwen35moe.rope.dimension_count": 64,
+    "qwen35moe.nextn_predict_layers": 1
+  },
+  "tensors": {
+    "blk.40.attn_k.weight": {
+      "ggufDimensions": [
+        2048,
+        512
+      ],
+      "ggmlType": 8,
+      "relativeDataOffset": 19927296512,
+      "sourceByteOffset": 19938287232,
+      "bytes": 1114112,
+      "filename": "blk.40.attn_k.weight.bin",
+      "sha256": "c8e44b473dbd981c6b6728ec836d336b05e145a19eb66284d2bff31aa11efb74",
+      "storageEncoding": "ggml-q8_0"
+    },
+    "blk.40.attn_k_norm.weight": {
+      "ggufDimensions": [
+        256
+      ],
+      "ggmlType": 0,
+      "relativeDataOffset": 19928410624,
+      "sourceByteOffset": 19939401344,
+      "bytes": 1024,
+      "filename": "blk.40.attn_k_norm.weight.bin",
+      "sha256": "ff4dcaa69c46276d3d4de2438de42aefc2ac4636332376d22c7f9c94064bc597",
+      "storageEncoding": "f32-le"
+    },
+    "blk.40.attn_norm.weight": {
+      "ggufDimensions": [
+        2048
+      ],
+      "ggmlType": 0,
+      "relativeDataOffset": 19928411648,
+      "sourceByteOffset": 19939402368,
+      "bytes": 8192,
+      "filename": "blk.40.attn_norm.weight.bin",
+      "sha256": "d19fb0a43d49e4a2690091b383e16e3b005dc11e308cc8ca5f9fdb4f17909a6a",
+      "storageEncoding": "f32-le"
+    },
+    "blk.40.attn_output.weight": {
+      "ggufDimensions": [
+        4096,
+        2048
+      ],
+      "ggmlType": 8,
+      "relativeDataOffset": 19928419840,
+      "sourceByteOffset": 19939410560,
+      "bytes": 8912896,
+      "filename": "blk.40.attn_output.weight.bin",
+      "sha256": "e5ab757ccfe381ccbdcdc2c4bc48054b07358830aa07ae9e2d415b7b931c8aa4",
+      "storageEncoding": "ggml-q8_0"
+    },
+    "blk.40.attn_q.weight": {
+      "ggufDimensions": [
+        2048,
+        8192
+      ],
+      "ggmlType": 8,
+      "relativeDataOffset": 19937332736,
+      "sourceByteOffset": 19948323456,
+      "bytes": 17825792,
+      "filename": "blk.40.attn_q.weight.bin",
+      "sha256": "b903a081e45b6610cb81366728887673e725914b17266e65ba514f5fd3617bf3",
+      "storageEncoding": "ggml-q8_0"
+    },
+    "blk.40.attn_q_norm.weight": {
+      "ggufDimensions": [
+        256
+      ],
+      "ggmlType": 0,
+      "relativeDataOffset": 19955158528,
+      "sourceByteOffset": 19966149248,
+      "bytes": 1024,
+      "filename": "blk.40.attn_q_norm.weight.bin",
+      "sha256": "b4e21f652c5ab87f50be67a49ee984f3d67f7742c1ada7660822cb31f57db13b",
+      "storageEncoding": "f32-le"
+    },
+    "blk.40.attn_v.weight": {
+      "ggufDimensions": [
+        2048,
+        512
+      ],
+      "ggmlType": 8,
+      "relativeDataOffset": 19955159552,
+      "sourceByteOffset": 19966150272,
+      "bytes": 1114112,
+      "filename": "blk.40.attn_v.weight.bin",
+      "sha256": "b0637b63acce38a64542f921c76b0c93cb9c9ebd35b47453d4484b004c458ca8",
+      "storageEncoding": "ggml-q8_0"
+    },
+    "blk.40.ffn_down_exps.weight": {
+      "ggufDimensions": [
+        512,
+        2048,
+        256
+      ],
+      "ggmlType": 8,
+      "relativeDataOffset": 19956273664,
+      "sourceByteOffset": 19967264384,
+      "bytes": 285212672,
+      "filename": "blk.40.ffn_down_exps.weight.bin",
+      "sha256": "5760ff2e55f7a315c550e2e454c8b3484b50ff95e8656702a2b165cc2f7614ee",
+      "storageEncoding": "ggml-q8_0"
+    },
+    "blk.40.ffn_down_shexp.weight": {
+      "ggufDimensions": [
+        512,
+        2048
+      ],
+      "ggmlType": 8,
+      "relativeDataOffset": 20241486336,
+      "sourceByteOffset": 20252477056,
+      "bytes": 1114112,
+      "filename": "blk.40.ffn_down_shexp.weight.bin",
+      "sha256": "a43181eb0de549c5d814320a326ec6bdcaea325288c446195d2345b8da93cdc7",
+      "storageEncoding": "ggml-q8_0"
+    },
+    "blk.40.ffn_gate_exps.weight": {
+      "ggufDimensions": [
+        2048,
+        512,
+        256
+      ],
+      "ggmlType": 8,
+      "relativeDataOffset": 20242600448,
+      "sourceByteOffset": 20253591168,
+      "bytes": 285212672,
+      "filename": "blk.40.ffn_gate_exps.weight.bin",
+      "sha256": "a63b71841847b348f214c4b39d11575959e7b905c8b9980d175db78c8b320453",
+      "storageEncoding": "ggml-q8_0"
+    },
+    "blk.40.ffn_gate_inp.weight": {
+      "ggufDimensions": [
+        2048,
+        256
+      ],
+      "ggmlType": 30,
+      "relativeDataOffset": 20527813120,
+      "sourceByteOffset": 20538803840,
+      "bytes": 1048576,
+      "filename": "blk.40.ffn_gate_inp.weight.bin",
+      "sha256": "ed592b6a2138228dc40dacc96179ce0c657ebd5c55c92476938c4eb0ede9108c",
+      "storageEncoding": "bf16-le"
+    },
+    "blk.40.ffn_gate_inp_shexp.weight": {
+      "ggufDimensions": [
+        2048
+      ],
+      "ggmlType": 30,
+      "relativeDataOffset": 20528861696,
+      "sourceByteOffset": 20539852416,
+      "bytes": 4096,
+      "filename": "blk.40.ffn_gate_inp_shexp.weight.bin",
+      "sha256": "6cf70655851eae34334fc252072d3d872d908b6ea2479ac45676e667ded61c2e",
+      "storageEncoding": "bf16-le"
+    },
+    "blk.40.ffn_gate_shexp.weight": {
+      "ggufDimensions": [
+        2048,
+        512
+      ],
+      "ggmlType": 8,
+      "relativeDataOffset": 20528865792,
+      "sourceByteOffset": 20539856512,
+      "bytes": 1114112,
+      "filename": "blk.40.ffn_gate_shexp.weight.bin",
+      "sha256": "4113eba57e32a9f38d3227dd412def0211e870886a77416c2a39da2649377eff",
+      "storageEncoding": "ggml-q8_0"
+    },
+    "blk.40.ffn_up_exps.weight": {
+      "ggufDimensions": [
+        2048,
+        512,
+        256
+      ],
+      "ggmlType": 8,
+      "relativeDataOffset": 20529979904,
+      "sourceByteOffset": 20540970624,
+      "bytes": 285212672,
+      "filename": "blk.40.ffn_up_exps.weight.bin",
+      "sha256": "f45b42159a89abd0de90481a63cc1a3c22cdbc27b90e0c8d8df90df92c49f878",
+      "storageEncoding": "ggml-q8_0"
+    },
+    "blk.40.ffn_up_shexp.weight": {
+      "ggufDimensions": [
+        2048,
+        512
+      ],
+      "ggmlType": 8,
+      "relativeDataOffset": 20815192576,
+      "sourceByteOffset": 20826183296,
+      "bytes": 1114112,
+      "filename": "blk.40.ffn_up_shexp.weight.bin",
+      "sha256": "9e0fb64f7b94a748e81057209036b9929b7cbc9b7ddad57a7c2c2856967be038",
+      "storageEncoding": "ggml-q8_0"
+    },
+    "blk.40.nextn.eh_proj.weight": {
+      "ggufDimensions": [
+        4096,
+        2048
+      ],
+      "ggmlType": 8,
+      "relativeDataOffset": 20816306688,
+      "sourceByteOffset": 20827297408,
+      "bytes": 8912896,
+      "filename": "blk.40.nextn.eh_proj.weight.bin",
+      "sha256": "03487220d40e35dcf441ba4ea7ee94ce6cfc13e1983b020cdf6ca29decd10854",
+      "storageEncoding": "ggml-q8_0"
+    },
+    "blk.40.nextn.enorm.weight": {
+      "ggufDimensions": [
+        2048
+      ],
+      "ggmlType": 0,
+      "relativeDataOffset": 20825219584,
+      "sourceByteOffset": 20836210304,
+      "bytes": 8192,
+      "filename": "blk.40.nextn.enorm.weight.bin",
+      "sha256": "0a4310389073ed444876ec823dd27ca3029dc30aeb84487a13b6de4b90ed7717",
+      "storageEncoding": "f32-le"
+    },
+    "blk.40.nextn.hnorm.weight": {
+      "ggufDimensions": [
+        2048
+      ],
+      "ggmlType": 0,
+      "relativeDataOffset": 20825227776,
+      "sourceByteOffset": 20836218496,
+      "bytes": 8192,
+      "filename": "blk.40.nextn.hnorm.weight.bin",
+      "sha256": "6dda2c53989ed9a86757bdccf4427ac84f38c85a1850f5fe04ba5fbdfcb20a1b",
+      "storageEncoding": "f32-le"
+    },
+    "blk.40.nextn.shared_head_norm.weight": {
+      "ggufDimensions": [
+        2048
+      ],
+      "ggmlType": 0,
+      "relativeDataOffset": 20825235968,
+      "sourceByteOffset": 20836226688,
+      "bytes": 8192,
+      "filename": "blk.40.nextn.shared_head_norm.weight.bin",
+      "sha256": "5fb1b8b3a994fa6a2adb1fd56d660d2ce2cf317e842a311db19e01ded3d27e1b",
+      "storageEncoding": "f32-le"
+    },
+    "blk.40.post_attention_norm.weight": {
+      "ggufDimensions": [
+        2048
+      ],
+      "ggmlType": 0,
+      "relativeDataOffset": 20825244160,
+      "sourceByteOffset": 20836234880,
+      "bytes": 8192,
+      "filename": "blk.40.post_attention_norm.weight.bin",
+      "sha256": "c0eb303e03d76e7f7636fc7f178f9d5d4d61297d086e90e26d5eadb89700622c",
+      "storageEncoding": "f32-le"
+    }
+  },
+  "copiedBytes": 897955840,
+  "sharedEmbeddingAndHead": "Remain source-bound references to the base model; no duplicate materialization or auxiliary execution implemented here."
+}

@@ -1,0 +1,494 @@
+{
+  "scope": "Opt-in F16-KV specialization of existing F32 query-tile attention; no production profile activation, full-model precision qualification or Pooled advantage.",
+  "generation": "Existing WGSL variant generator preserves one arithmetic/mask/layout owner. Only cache storage reads become F16-to-F32 casts; accumulators and output remain F32.",
+  "shaderSHA256": "f405f1a591e3cbdc3b89fd259e1d095d60c3ad0b49b920fdfbc9329354904bb6",
+  "operatorGate": "prefill-component-policy.json",
+  "operatorEvidence": [
+    "prefill-operator-amd.json",
+    "prefill-operator-metal.json",
+    "prefill-operator-metal-chrome.json"
+  ],
+  "componentTiming": "prefill-operator-timing-amd.json",
+  "fullModelScreen": {
+    "sourceInventory": "/run/media/x/deco-backup/doppler-shared-platform-20261102/source-f16-querytile-26-files.json",
+    "execution": "/run/media/x/deco-backup/doppler-shared-platform-20261102/35b-f16-querytile-screen-30/execution.json",
+    "receipt": "/run/media/x/deco-backup/doppler-shared-platform-20261102/35b-f16-querytile-screen-30/receipt.json",
+    "toyControls": [
+      {
+        "task": "arithmetic",
+        "passed": 3,
+        "attempts": 3
+      },
+      {
+        "task": "code",
+        "passed": 3,
+        "attempts": 3
+      },
+      {
+        "task": "records",
+        "passed": 3,
+        "attempts": 3
+      },
+      {
+        "task": "missing",
+        "passed": 3,
+        "attempts": 3
+      }
+    ],
+    "requests": {
+      "short": [
+        {
+          "repeat": 0,
+          "warmup": true,
+          "completeMs": 1633.8999999985099,
+          "prefillMs": 127.79999999701977,
+          "inputTokens": 28,
+          "outputTokens": 128,
+          "memory": {
+            "used": 20104003236,
+            "pool": {
+              "allocations": 20318,
+              "reuses": 3106,
+              "totalBytesAllocated": 26537207552,
+              "peakBytesAllocated": 20158444800,
+              "currentBytesAllocated": 20017491456,
+              "totalBytesRequested": 26270075392,
+              "peakBytesRequested": 20136834560,
+              "currentBytesRequested": 19999162368,
+              "resources": {
+                "retainedModel": {
+                  "bytes": 19927328768,
+                  "count": 733
+                },
+                "active": {
+                  "bytes": 71858176,
+                  "count": 182
+                },
+                "reusable": {
+                  "bytes": 18304512,
+                  "count": 64
+                },
+                "deferredCleanup": {
+                  "bytes": 66715648,
+                  "count": 59
+                }
+              },
+              "activeBuffers": 915,
+              "pooledBuffers": 64,
+              "budgetMaxBytes": 0,
+              "budgetUtilization": 0,
+              "hitRate": "13.3%"
+            },
+            "kvCache": {
+              "theoretical": 83886080,
+              "allocated": 83886080,
+              "used": 3174400,
+              "efficiency": 0.037841796875,
+              "seqLen": 155,
+              "maxSeqLen": 4096,
+              "layout": "contiguous",
+              "kvDtype": "f16",
+              "counters": {
+                "updateCalls": 0,
+                "gpuUpdateCalls": 0,
+                "recordedGpuUpdateCalls": 320,
+                "tokensWritten": 5550
+              }
+            },
+            "decodeBuffers": {
+              "hiddenBytes": 8192,
+              "intermediateBytes": 2048,
+              "totalBytes": 2625700,
+              "activationDtype": "f32",
+              "workspace": {
+                "buffers": 362,
+                "bytes": 2599076,
+                "bindings": 221,
+                "hits": 1383,
+                "misses": 2595
+              }
+            }
+          },
+          "nativeSpeculation": false
+        },
+        {
+          "repeat": 1,
+          "warmup": false,
+          "completeMs": 1635.2999999970198,
+          "prefillMs": 128.79999999701977,
+          "inputTokens": 28,
+          "outputTokens": 128,
+          "memory": {
+            "used": 20104003236,
+            "pool": {
+              "allocations": 22066,
+              "reuses": 3264,
+              "totalBytesAllocated": 27323710976,
+              "peakBytesAllocated": 20158444800,
+              "currentBytesAllocated": 20017491456,
+              "totalBytesRequested": 27042214144,
+              "peakBytesRequested": 20136834560,
+              "currentBytesRequested": 19999162368,
+              "resources": {
+                "retainedModel": {
+                  "bytes": 19927328768,
+                  "count": 733
+                },
+                "active": {
+                  "bytes": 71858176,
+                  "count": 182
+                },
+                "reusable": {
+                  "bytes": 18304512,
+                  "count": 64
+                },
+                "deferredCleanup": {
+                  "bytes": 66715648,
+                  "count": 59
+                }
+              },
+              "activeBuffers": 915,
+              "pooledBuffers": 64,
+              "budgetMaxBytes": 0,
+              "budgetUtilization": 0,
+              "hitRate": "12.9%"
+            },
+            "kvCache": {
+              "theoretical": 83886080,
+              "allocated": 83886080,
+              "used": 3174400,
+              "efficiency": 0.037841796875,
+              "seqLen": 155,
+              "maxSeqLen": 4096,
+              "layout": "contiguous",
+              "kvDtype": "f16",
+              "counters": {
+                "updateCalls": 0,
+                "gpuUpdateCalls": 0,
+                "recordedGpuUpdateCalls": 340,
+                "tokensWritten": 5840
+              }
+            },
+            "decodeBuffers": {
+              "hiddenBytes": 8192,
+              "intermediateBytes": 2048,
+              "totalBytes": 2625700,
+              "activationDtype": "f32",
+              "workspace": {
+                "buffers": 362,
+                "bytes": 2599076,
+                "bindings": 221,
+                "hits": 1464,
+                "misses": 2735
+              }
+            }
+          },
+          "nativeSpeculation": false
+        },
+        {
+          "repeat": 2,
+          "warmup": false,
+          "completeMs": 1635.5,
+          "prefillMs": 131.69999999552965,
+          "inputTokens": 28,
+          "outputTokens": 128,
+          "memory": {
+            "used": 20104003236,
+            "pool": {
+              "allocations": 23814,
+              "reuses": 3422,
+              "totalBytesAllocated": 28110214400,
+              "peakBytesAllocated": 20158444800,
+              "currentBytesAllocated": 20017491456,
+              "totalBytesRequested": 27814352896,
+              "peakBytesRequested": 20136834560,
+              "currentBytesRequested": 19999162368,
+              "resources": {
+                "retainedModel": {
+                  "bytes": 19927328768,
+                  "count": 733
+                },
+                "active": {
+                  "bytes": 71858176,
+                  "count": 182
+                },
+                "reusable": {
+                  "bytes": 18304512,
+                  "count": 64
+                },
+                "deferredCleanup": {
+                  "bytes": 66715648,
+                  "count": 59
+                }
+              },
+              "activeBuffers": 915,
+              "pooledBuffers": 64,
+              "budgetMaxBytes": 0,
+              "budgetUtilization": 0,
+              "hitRate": "12.6%"
+            },
+            "kvCache": {
+              "theoretical": 83886080,
+              "allocated": 83886080,
+              "used": 3174400,
+              "efficiency": 0.037841796875,
+              "seqLen": 155,
+              "maxSeqLen": 4096,
+              "layout": "contiguous",
+              "kvDtype": "f16",
+              "counters": {
+                "updateCalls": 0,
+                "gpuUpdateCalls": 0,
+                "recordedGpuUpdateCalls": 360,
+                "tokensWritten": 6130
+              }
+            },
+            "decodeBuffers": {
+              "hiddenBytes": 8192,
+              "intermediateBytes": 2048,
+              "totalBytes": 2625700,
+              "activationDtype": "f32",
+              "workspace": {
+                "buffers": 362,
+                "bytes": 2599076,
+                "bindings": 221,
+                "hits": 1545,
+                "misses": 2875
+              }
+            }
+          },
+          "nativeSpeculation": false
+        }
+      ],
+      "long": [
+        {
+          "repeat": 0,
+          "warmup": true,
+          "completeMs": 5212.60000000149,
+          "prefillMs": 3320.7000000029802,
+          "inputTokens": 2287,
+          "outputTokens": 128,
+          "memory": {
+            "used": 20398406820,
+            "pool": {
+              "allocations": 26541,
+              "reuses": 4552,
+              "totalBytesAllocated": 44191281664,
+              "peakBytesAllocated": 23060403712,
+              "currentBytesAllocated": 20311895040,
+              "totalBytesRequested": 43887549952,
+              "peakBytesRequested": 22960577280,
+              "currentBytesRequested": 19999162368,
+              "resources": {
+                "retainedModel": {
+                  "bytes": 19927328768,
+                  "count": 733
+                },
+                "active": {
+                  "bytes": 71858176,
+                  "count": 182
+                },
+                "reusable": {
+                  "bytes": 312708096,
+                  "count": 64
+                },
+                "deferredCleanup": {
+                  "bytes": 64618496,
+                  "count": 58
+                }
+              },
+              "activeBuffers": 915,
+              "pooledBuffers": 64,
+              "budgetMaxBytes": 0,
+              "budgetUtilization": 0,
+              "hitRate": "14.6%"
+            },
+            "kvCache": {
+              "theoretical": 83886080,
+              "allocated": 83886080,
+              "used": 49438720,
+              "efficiency": 0.58935546875,
+              "seqLen": 2414,
+              "maxSeqLen": 4096,
+              "layout": "contiguous",
+              "kvDtype": "f16",
+              "counters": {
+                "updateCalls": 0,
+                "gpuUpdateCalls": 0,
+                "recordedGpuUpdateCalls": 420,
+                "tokensWritten": 29040
+              }
+            },
+            "decodeBuffers": {
+              "hiddenBytes": 8192,
+              "intermediateBytes": 2048,
+              "totalBytes": 2625700,
+              "activationDtype": "f32",
+              "workspace": {
+                "buffers": 362,
+                "bytes": 2599076,
+                "bindings": 221,
+                "hits": 1872,
+                "misses": 3432
+              }
+            }
+          },
+          "nativeSpeculation": false
+        },
+        {
+          "repeat": 1,
+          "warmup": false,
+          "completeMs": 5121.5999999940395,
+          "prefillMs": 3277,
+          "inputTokens": 2287,
+          "outputTokens": 128,
+          "memory": {
+            "used": 20435956900,
+            "pool": {
+              "allocations": 28156,
+              "reuses": 6026,
+              "totalBytesAllocated": 54012446208,
+              "peakBytesAllocated": 23090353408,
+              "currentBytesAllocated": 20349445120,
+              "totalBytesRequested": 53703362048,
+              "peakBytesRequested": 22960577280,
+              "currentBytesRequested": 19999162368,
+              "resources": {
+                "retainedModel": {
+                  "bytes": 19927328768,
+                  "count": 733
+                },
+                "active": {
+                  "bytes": 71858176,
+                  "count": 182
+                },
+                "reusable": {
+                  "bytes": 350258176,
+                  "count": 64
+                },
+                "deferredCleanup": {
+                  "bytes": 64487424,
+                  "count": 57
+                }
+              },
+              "activeBuffers": 915,
+              "pooledBuffers": 64,
+              "budgetMaxBytes": 0,
+              "budgetUtilization": 0,
+              "hitRate": "17.6%"
+            },
+            "kvCache": {
+              "theoretical": 83886080,
+              "allocated": 83886080,
+              "used": 49438720,
+              "efficiency": 0.58935546875,
+              "seqLen": 2414,
+              "maxSeqLen": 4096,
+              "layout": "contiguous",
+              "kvDtype": "f16",
+              "counters": {
+                "updateCalls": 0,
+                "gpuUpdateCalls": 0,
+                "recordedGpuUpdateCalls": 450,
+                "tokensWritten": 51920
+              }
+            },
+            "decodeBuffers": {
+              "hiddenBytes": 8192,
+              "intermediateBytes": 2048,
+              "totalBytes": 2625700,
+              "activationDtype": "f32",
+              "workspace": {
+                "buffers": 362,
+                "bytes": 2599076,
+                "bindings": 221,
+                "hits": 1954,
+                "misses": 3571
+              }
+            }
+          },
+          "nativeSpeculation": false
+        },
+        {
+          "repeat": 2,
+          "warmup": false,
+          "completeMs": 5150.20000000298,
+          "prefillMs": 3278.89999999851,
+          "inputTokens": 2287,
+          "outputTokens": 128,
+          "memory": {
+            "used": 20436210852,
+            "pool": {
+              "allocations": 29662,
+              "reuses": 7609,
+              "totalBytesAllocated": 63278249216,
+              "peakBytesAllocated": 23092784384,
+              "currentBytesAllocated": 20349699072,
+              "totalBytesRequested": 62964083968,
+              "peakBytesRequested": 22960577280,
+              "currentBytesRequested": 19999162368,
+              "resources": {
+                "retainedModel": {
+                  "bytes": 19927328768,
+                  "count": 733
+                },
+                "active": {
+                  "bytes": 71858176,
+                  "count": 182
+                },
+                "reusable": {
+                  "bytes": 350512128,
+                  "count": 64
+                },
+                "deferredCleanup": {
+                  "bytes": 64487424,
+                  "count": 57
+                }
+              },
+              "activeBuffers": 915,
+              "pooledBuffers": 64,
+              "budgetMaxBytes": 0,
+              "budgetUtilization": 0,
+              "hitRate": "20.4%"
+            },
+            "kvCache": {
+              "theoretical": 83886080,
+              "allocated": 83886080,
+              "used": 49438720,
+              "efficiency": 0.58935546875,
+              "seqLen": 2414,
+              "maxSeqLen": 4096,
+              "layout": "contiguous",
+              "kvDtype": "f16",
+              "counters": {
+                "updateCalls": 0,
+                "gpuUpdateCalls": 0,
+                "recordedGpuUpdateCalls": 480,
+                "tokensWritten": 74800
+              }
+            },
+            "decodeBuffers": {
+              "hiddenBytes": 8192,
+              "intermediateBytes": 2048,
+              "totalBytes": 2625700,
+              "activationDtype": "f32",
+              "workspace": {
+                "buffers": 362,
+                "bytes": 2599076,
+                "bindings": 221,
+                "hits": 2036,
+                "misses": 3710
+              }
+            }
+          },
+          "nativeSpeculation": false
+        }
+      ]
+    }
+  },
+  "initializationFailures": [
+    "Config26 and29 retained an explicit flash request while declaring tiled attention; both fail closed. Config30 sets useFlashPrefillAttention=false. No runtime guard changed."
+  ],
+  "status": "in-progress",
+  "disposition": "The F16 attention implementation repairs the prior F16 flash performance loss in this screen: long warm requests fall from8.886/8.893 to5.122/5.150 seconds. Retained F32 controls remain faster on long requests. No combined checkpoint/MTP gain is inferred."
+}

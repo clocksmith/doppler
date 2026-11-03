@@ -1,0 +1,2165 @@
+{
+  "scope": "Three concurrently resident native engines, same prompts and128 output cap; checkpoint-only within-Doppler delta. This residency differs from prior two-engine reports. Cross-engine quality remains unqualified.",
+  "sourceDelta": "Only initial checkpoint copy completion host await removed in candidate; restoration/cleanup waits unchanged.",
+  "sampling": "greedy",
+  "warmupsPerPrompt": 1,
+  "measuredRoundsPerPrompt": 6,
+  "knownLossesRetained": true,
+  "outlierRemoval": false,
+  "tasks": {
+    "short": {
+      "attempts": [
+        {
+          "round": 1,
+          "kind": "doppler",
+          "completeMs": 1681.6000000014901,
+          "firstTokenMs": 148.5,
+          "prefillMs": 138.70000000298023,
+          "outputTokens": 128,
+          "memory": {
+            "used": 20189908132,
+            "pool": {
+              "allocations": 6492,
+              "reuses": 1076,
+              "totalBytesAllocated": 21917612800,
+              "peakBytesAllocated": 20104312064,
+              "currentBytesAllocated": 20019510272,
+              "totalBytesRequested": 21878319104,
+              "peakBytesRequested": 20085209600,
+              "currentBytesRequested": 19999162368,
+              "resources": {
+                "retainedModel": {
+                  "bytes": 19927328768,
+                  "count": 733
+                },
+                "active": {
+                  "bytes": 71858176,
+                  "count": 182
+                },
+                "reusable": {
+                  "bytes": 20323328,
+                  "count": 64
+                },
+                "deferredCleanup": {
+                  "bytes": 66715648,
+                  "count": 59
+                }
+              },
+              "activeBuffers": 915,
+              "pooledBuffers": 64,
+              "budgetMaxBytes": 0,
+              "budgetUtilization": 0,
+              "hitRate": "14.2%"
+            },
+            "kvCache": {
+              "theoretical": 167772160,
+              "allocated": 167772160,
+              "used": 6348800,
+              "efficiency": 0.037841796875,
+              "seqLen": 155,
+              "maxSeqLen": 4096,
+              "layout": "contiguous",
+              "kvDtype": "f32",
+              "counters": {
+                "updateCalls": 0,
+                "gpuUpdateCalls": 0,
+                "recordedGpuUpdateCalls": 100,
+                "tokensWritten": 860
+              }
+            },
+            "decodeBuffers": {
+              "hiddenBytes": 8192,
+              "intermediateBytes": 2048,
+              "totalBytes": 2625700,
+              "activationDtype": "f32",
+              "workspace": {
+                "buffers": 362,
+                "bytes": 2599076,
+                "bindings": 221,
+                "hits": 492,
+                "misses": 1055
+              }
+            }
+          },
+          "stats": {
+            "speculationAttempts": 0,
+            "speculationAccepted": 0,
+            "decodeMode": "batched_gpu"
+          }
+        },
+        {
+          "round": 1,
+          "kind": "candidate",
+          "completeMs": 1700.3999999985099,
+          "firstTokenMs": 151.89999999850988,
+          "prefillMs": 142.59999999403954,
+          "outputTokens": 128,
+          "memory": {
+            "used": 20189908132,
+            "pool": {
+              "allocations": 6492,
+              "reuses": 1076,
+              "totalBytesAllocated": 21917612800,
+              "peakBytesAllocated": 20104312064,
+              "currentBytesAllocated": 20019510272,
+              "totalBytesRequested": 21878319104,
+              "peakBytesRequested": 20085209600,
+              "currentBytesRequested": 19999162368,
+              "resources": {
+                "retainedModel": {
+                  "bytes": 19927328768,
+                  "count": 733
+                },
+                "active": {
+                  "bytes": 71858176,
+                  "count": 182
+                },
+                "reusable": {
+                  "bytes": 20323328,
+                  "count": 64
+                },
+                "deferredCleanup": {
+                  "bytes": 66846720,
+                  "count": 60
+                }
+              },
+              "activeBuffers": 915,
+              "pooledBuffers": 64,
+              "budgetMaxBytes": 0,
+              "budgetUtilization": 0,
+              "hitRate": "14.2%"
+            },
+            "kvCache": {
+              "theoretical": 167772160,
+              "allocated": 167772160,
+              "used": 6348800,
+              "efficiency": 0.037841796875,
+              "seqLen": 155,
+              "maxSeqLen": 4096,
+              "layout": "contiguous",
+              "kvDtype": "f32",
+              "counters": {
+                "updateCalls": 0,
+                "gpuUpdateCalls": 0,
+                "recordedGpuUpdateCalls": 100,
+                "tokensWritten": 860
+              }
+            },
+            "decodeBuffers": {
+              "hiddenBytes": 8192,
+              "intermediateBytes": 2048,
+              "totalBytes": 2625700,
+              "activationDtype": "f32",
+              "workspace": {
+                "buffers": 362,
+                "bytes": 2599076,
+                "bindings": 221,
+                "hits": 492,
+                "misses": 1055
+              }
+            }
+          },
+          "stats": {
+            "speculationAttempts": 0,
+            "speculationAccepted": 0,
+            "decodeMode": "batched_gpu"
+          }
+        },
+        {
+          "round": 1,
+          "kind": "pooled",
+          "completeMs": 1744.5,
+          "firstTokenMs": 144.10000000149012,
+          "prefillMs": 127.89999999850988,
+          "outputTokens": 128,
+          "memory": null,
+          "stats": {
+            "speculationAttempts": null,
+            "speculationAccepted": null,
+            "decodeMode": null,
+            "nativeSpeculation": {
+              "depth": 3,
+              "lookup": false,
+              "proposed": 137,
+              "accepted": 81,
+              "rounds": 46
+            }
+          }
+        },
+        {
+          "round": 2,
+          "kind": "doppler",
+          "completeMs": 1663.6000000014901,
+          "firstTokenMs": 141.30000000447035,
+          "prefillMs": 136.60000000149012,
+          "outputTokens": 128,
+          "memory": {
+            "used": 20189908132,
+            "pool": {
+              "allocations": 8297,
+              "reuses": 1187,
+              "totalBytesAllocated": 22739291136,
+              "peakBytesAllocated": 20104312064,
+              "currentBytesAllocated": 20019510272,
+              "totalBytesRequested": 22685008128,
+              "peakBytesRequested": 20085209600,
+              "currentBytesRequested": 19999162368,
+              "resources": {
+                "retainedModel": {
+                  "bytes": 19927328768,
+                  "count": 733
+                },
+                "active": {
+                  "bytes": 71858176,
+                  "count": 182
+                },
+                "reusable": {
+                  "bytes": 20323328,
+                  "count": 64
+                },
+                "deferredCleanup": {
+                  "bytes": 66715648,
+                  "count": 59
+                }
+              },
+              "activeBuffers": 915,
+              "pooledBuffers": 64,
+              "budgetMaxBytes": 0,
+              "budgetUtilization": 0,
+              "hitRate": "12.5%"
+            },
+            "kvCache": {
+              "theoretical": 167772160,
+              "allocated": 167772160,
+              "used": 6348800,
+              "efficiency": 0.037841796875,
+              "seqLen": 155,
+              "maxSeqLen": 4096,
+              "layout": "contiguous",
+              "kvDtype": "f32",
+              "counters": {
+                "updateCalls": 0,
+                "gpuUpdateCalls": 0,
+                "recordedGpuUpdateCalls": 120,
+                "tokensWritten": 1150
+              }
+            },
+            "decodeBuffers": {
+              "hiddenBytes": 8192,
+              "intermediateBytes": 2048,
+              "totalBytes": 2625700,
+              "activationDtype": "f32",
+              "workspace": {
+                "buffers": 362,
+                "bytes": 2599076,
+                "bindings": 221,
+                "hits": 573,
+                "misses": 1195
+              }
+            }
+          },
+          "stats": {
+            "speculationAttempts": 0,
+            "speculationAccepted": 0,
+            "decodeMode": "batched_gpu"
+          }
+        },
+        {
+          "round": 2,
+          "kind": "candidate",
+          "completeMs": 1675.2000000029802,
+          "firstTokenMs": 144.39999999850988,
+          "prefillMs": 139.40000000596046,
+          "outputTokens": 128,
+          "memory": {
+            "used": 20189908132,
+            "pool": {
+              "allocations": 8297,
+              "reuses": 1187,
+              "totalBytesAllocated": 22739291136,
+              "peakBytesAllocated": 20104312064,
+              "currentBytesAllocated": 20019510272,
+              "totalBytesRequested": 22685008128,
+              "peakBytesRequested": 20085209600,
+              "currentBytesRequested": 19999162368,
+              "resources": {
+                "retainedModel": {
+                  "bytes": 19927328768,
+                  "count": 733
+                },
+                "active": {
+                  "bytes": 71858176,
+                  "count": 182
+                },
+                "reusable": {
+                  "bytes": 20323328,
+                  "count": 64
+                },
+                "deferredCleanup": {
+                  "bytes": 66846720,
+                  "count": 60
+                }
+              },
+              "activeBuffers": 915,
+              "pooledBuffers": 64,
+              "budgetMaxBytes": 0,
+              "budgetUtilization": 0,
+              "hitRate": "12.5%"
+            },
+            "kvCache": {
+              "theoretical": 167772160,
+              "allocated": 167772160,
+              "used": 6348800,
+              "efficiency": 0.037841796875,
+              "seqLen": 155,
+              "maxSeqLen": 4096,
+              "layout": "contiguous",
+              "kvDtype": "f32",
+              "counters": {
+                "updateCalls": 0,
+                "gpuUpdateCalls": 0,
+                "recordedGpuUpdateCalls": 120,
+                "tokensWritten": 1150
+              }
+            },
+            "decodeBuffers": {
+              "hiddenBytes": 8192,
+              "intermediateBytes": 2048,
+              "totalBytes": 2625700,
+              "activationDtype": "f32",
+              "workspace": {
+                "buffers": 362,
+                "bytes": 2599076,
+                "bindings": 221,
+                "hits": 573,
+                "misses": 1195
+              }
+            }
+          },
+          "stats": {
+            "speculationAttempts": 0,
+            "speculationAccepted": 0,
+            "decodeMode": "batched_gpu"
+          }
+        },
+        {
+          "round": 2,
+          "kind": "pooled",
+          "completeMs": 1762.8999999985099,
+          "firstTokenMs": 146.10000000149012,
+          "prefillMs": 130.10000000149012,
+          "outputTokens": 128,
+          "memory": null,
+          "stats": {
+            "speculationAttempts": null,
+            "speculationAccepted": null,
+            "decodeMode": null,
+            "nativeSpeculation": {
+              "depth": 3,
+              "lookup": false,
+              "proposed": 137,
+              "accepted": 81,
+              "rounds": 46
+            }
+          }
+        },
+        {
+          "round": 3,
+          "kind": "doppler",
+          "completeMs": 1673.1999999955297,
+          "firstTokenMs": 142.39999999850988,
+          "prefillMs": 137.60000000149012,
+          "outputTokens": 128,
+          "memory": {
+            "used": 20189908132,
+            "pool": {
+              "allocations": 10102,
+              "reuses": 1298,
+              "totalBytesAllocated": 23560969472,
+              "peakBytesAllocated": 20104312064,
+              "currentBytesAllocated": 20019510272,
+              "totalBytesRequested": 23491697152,
+              "peakBytesRequested": 20085209600,
+              "currentBytesRequested": 19999162368,
+              "resources": {
+                "retainedModel": {
+                  "bytes": 19927328768,
+                  "count": 733
+                },
+                "active": {
+                  "bytes": 71858176,
+                  "count": 182
+                },
+                "reusable": {
+                  "bytes": 20323328,
+                  "count": 64
+                },
+                "deferredCleanup": {
+                  "bytes": 66715648,
+                  "count": 59
+                }
+              },
+              "activeBuffers": 915,
+              "pooledBuffers": 64,
+              "budgetMaxBytes": 0,
+              "budgetUtilization": 0,
+              "hitRate": "11.4%"
+            },
+            "kvCache": {
+              "theoretical": 167772160,
+              "allocated": 167772160,
+              "used": 6348800,
+              "efficiency": 0.037841796875,
+              "seqLen": 155,
+              "maxSeqLen": 4096,
+              "layout": "contiguous",
+              "kvDtype": "f32",
+              "counters": {
+                "updateCalls": 0,
+                "gpuUpdateCalls": 0,
+                "recordedGpuUpdateCalls": 140,
+                "tokensWritten": 1440
+              }
+            },
+            "decodeBuffers": {
+              "hiddenBytes": 8192,
+              "intermediateBytes": 2048,
+              "totalBytes": 2625700,
+              "activationDtype": "f32",
+              "workspace": {
+                "buffers": 362,
+                "bytes": 2599076,
+                "bindings": 221,
+                "hits": 654,
+                "misses": 1335
+              }
+            }
+          },
+          "stats": {
+            "speculationAttempts": 0,
+            "speculationAccepted": 0,
+            "decodeMode": "batched_gpu"
+          }
+        },
+        {
+          "round": 3,
+          "kind": "candidate",
+          "completeMs": 1686.5,
+          "firstTokenMs": 143.40000000596046,
+          "prefillMs": 138.60000000149012,
+          "outputTokens": 128,
+          "memory": {
+            "used": 20189908132,
+            "pool": {
+              "allocations": 10102,
+              "reuses": 1298,
+              "totalBytesAllocated": 23560969472,
+              "peakBytesAllocated": 20104312064,
+              "currentBytesAllocated": 20019510272,
+              "totalBytesRequested": 23491697152,
+              "peakBytesRequested": 20085209600,
+              "currentBytesRequested": 19999162368,
+              "resources": {
+                "retainedModel": {
+                  "bytes": 19927328768,
+                  "count": 733
+                },
+                "active": {
+                  "bytes": 71858176,
+                  "count": 182
+                },
+                "reusable": {
+                  "bytes": 20323328,
+                  "count": 64
+                },
+                "deferredCleanup": {
+                  "bytes": 66846720,
+                  "count": 60
+                }
+              },
+              "activeBuffers": 915,
+              "pooledBuffers": 64,
+              "budgetMaxBytes": 0,
+              "budgetUtilization": 0,
+              "hitRate": "11.4%"
+            },
+            "kvCache": {
+              "theoretical": 167772160,
+              "allocated": 167772160,
+              "used": 6348800,
+              "efficiency": 0.037841796875,
+              "seqLen": 155,
+              "maxSeqLen": 4096,
+              "layout": "contiguous",
+              "kvDtype": "f32",
+              "counters": {
+                "updateCalls": 0,
+                "gpuUpdateCalls": 0,
+                "recordedGpuUpdateCalls": 140,
+                "tokensWritten": 1440
+              }
+            },
+            "decodeBuffers": {
+              "hiddenBytes": 8192,
+              "intermediateBytes": 2048,
+              "totalBytes": 2625700,
+              "activationDtype": "f32",
+              "workspace": {
+                "buffers": 362,
+                "bytes": 2599076,
+                "bindings": 221,
+                "hits": 654,
+                "misses": 1335
+              }
+            }
+          },
+          "stats": {
+            "speculationAttempts": 0,
+            "speculationAccepted": 0,
+            "decodeMode": "batched_gpu"
+          }
+        },
+        {
+          "round": 3,
+          "kind": "pooled",
+          "completeMs": 1720.5999999940395,
+          "firstTokenMs": 144.19999999552965,
+          "prefillMs": 128.29999999701977,
+          "outputTokens": 128,
+          "memory": null,
+          "stats": {
+            "speculationAttempts": null,
+            "speculationAccepted": null,
+            "decodeMode": null,
+            "nativeSpeculation": {
+              "depth": 3,
+              "lookup": false,
+              "proposed": 137,
+              "accepted": 81,
+              "rounds": 46
+            }
+          }
+        },
+        {
+          "round": 4,
+          "kind": "doppler",
+          "completeMs": 1664.6000000014901,
+          "firstTokenMs": 142.40000000596046,
+          "prefillMs": 139.60000000149012,
+          "outputTokens": 128,
+          "memory": {
+            "used": 20189908132,
+            "pool": {
+              "allocations": 11907,
+              "reuses": 1409,
+              "totalBytesAllocated": 24382647808,
+              "peakBytesAllocated": 20104312064,
+              "currentBytesAllocated": 20019510272,
+              "totalBytesRequested": 24298386176,
+              "peakBytesRequested": 20085209600,
+              "currentBytesRequested": 19999162368,
+              "resources": {
+                "retainedModel": {
+                  "bytes": 19927328768,
+                  "count": 733
+                },
+                "active": {
+                  "bytes": 71858176,
+                  "count": 182
+                },
+                "reusable": {
+                  "bytes": 20323328,
+                  "count": 64
+                },
+                "deferredCleanup": {
+                  "bytes": 66715648,
+                  "count": 59
+                }
+              },
+              "activeBuffers": 915,
+              "pooledBuffers": 64,
+              "budgetMaxBytes": 0,
+              "budgetUtilization": 0,
+              "hitRate": "10.6%"
+            },
+            "kvCache": {
+              "theoretical": 167772160,
+              "allocated": 167772160,
+              "used": 6348800,
+              "efficiency": 0.037841796875,
+              "seqLen": 155,
+              "maxSeqLen": 4096,
+              "layout": "contiguous",
+              "kvDtype": "f32",
+              "counters": {
+                "updateCalls": 0,
+                "gpuUpdateCalls": 0,
+                "recordedGpuUpdateCalls": 160,
+                "tokensWritten": 1730
+              }
+            },
+            "decodeBuffers": {
+              "hiddenBytes": 8192,
+              "intermediateBytes": 2048,
+              "totalBytes": 2625700,
+              "activationDtype": "f32",
+              "workspace": {
+                "buffers": 362,
+                "bytes": 2599076,
+                "bindings": 221,
+                "hits": 735,
+                "misses": 1475
+              }
+            }
+          },
+          "stats": {
+            "speculationAttempts": 0,
+            "speculationAccepted": 0,
+            "decodeMode": "batched_gpu"
+          }
+        },
+        {
+          "round": 4,
+          "kind": "candidate",
+          "completeMs": 1675.7999999970198,
+          "firstTokenMs": 142.60000000149012,
+          "prefillMs": 139.79999999701977,
+          "outputTokens": 128,
+          "memory": {
+            "used": 20189908132,
+            "pool": {
+              "allocations": 11907,
+              "reuses": 1409,
+              "totalBytesAllocated": 24382647808,
+              "peakBytesAllocated": 20104312064,
+              "currentBytesAllocated": 20019510272,
+              "totalBytesRequested": 24298386176,
+              "peakBytesRequested": 20085209600,
+              "currentBytesRequested": 19999162368,
+              "resources": {
+                "retainedModel": {
+                  "bytes": 19927328768,
+                  "count": 733
+                },
+                "active": {
+                  "bytes": 71858176,
+                  "count": 182
+                },
+                "reusable": {
+                  "bytes": 20323328,
+                  "count": 64
+                },
+                "deferredCleanup": {
+                  "bytes": 66846720,
+                  "count": 60
+                }
+              },
+              "activeBuffers": 915,
+              "pooledBuffers": 64,
+              "budgetMaxBytes": 0,
+              "budgetUtilization": 0,
+              "hitRate": "10.6%"
+            },
+            "kvCache": {
+              "theoretical": 167772160,
+              "allocated": 167772160,
+              "used": 6348800,
+              "efficiency": 0.037841796875,
+              "seqLen": 155,
+              "maxSeqLen": 4096,
+              "layout": "contiguous",
+              "kvDtype": "f32",
+              "counters": {
+                "updateCalls": 0,
+                "gpuUpdateCalls": 0,
+                "recordedGpuUpdateCalls": 160,
+                "tokensWritten": 1730
+              }
+            },
+            "decodeBuffers": {
+              "hiddenBytes": 8192,
+              "intermediateBytes": 2048,
+              "totalBytes": 2625700,
+              "activationDtype": "f32",
+              "workspace": {
+                "buffers": 362,
+                "bytes": 2599076,
+                "bindings": 221,
+                "hits": 735,
+                "misses": 1475
+              }
+            }
+          },
+          "stats": {
+            "speculationAttempts": 0,
+            "speculationAccepted": 0,
+            "decodeMode": "batched_gpu"
+          }
+        },
+        {
+          "round": 4,
+          "kind": "pooled",
+          "completeMs": 1733.2000000029802,
+          "firstTokenMs": 146.60000000149012,
+          "prefillMs": 131.10000000149012,
+          "outputTokens": 128,
+          "memory": null,
+          "stats": {
+            "speculationAttempts": null,
+            "speculationAccepted": null,
+            "decodeMode": null,
+            "nativeSpeculation": {
+              "depth": 3,
+              "lookup": false,
+              "proposed": 137,
+              "accepted": 81,
+              "rounds": 46
+            }
+          }
+        },
+        {
+          "round": 5,
+          "kind": "doppler",
+          "completeMs": 1656.7999999970198,
+          "firstTokenMs": 136,
+          "prefillMs": 133.19999999552965,
+          "outputTokens": 128,
+          "memory": {
+            "used": 20189908132,
+            "pool": {
+              "allocations": 13712,
+              "reuses": 1520,
+              "totalBytesAllocated": 25204326144,
+              "peakBytesAllocated": 20104312064,
+              "currentBytesAllocated": 20019510272,
+              "totalBytesRequested": 25105075200,
+              "peakBytesRequested": 20085209600,
+              "currentBytesRequested": 19999162368,
+              "resources": {
+                "retainedModel": {
+                  "bytes": 19927328768,
+                  "count": 733
+                },
+                "active": {
+                  "bytes": 71858176,
+                  "count": 182
+                },
+                "reusable": {
+                  "bytes": 20323328,
+                  "count": 64
+                },
+                "deferredCleanup": {
+                  "bytes": 66715648,
+                  "count": 59
+                }
+              },
+              "activeBuffers": 915,
+              "pooledBuffers": 64,
+              "budgetMaxBytes": 0,
+              "budgetUtilization": 0,
+              "hitRate": "10.0%"
+            },
+            "kvCache": {
+              "theoretical": 167772160,
+              "allocated": 167772160,
+              "used": 6348800,
+              "efficiency": 0.037841796875,
+              "seqLen": 155,
+              "maxSeqLen": 4096,
+              "layout": "contiguous",
+              "kvDtype": "f32",
+              "counters": {
+                "updateCalls": 0,
+                "gpuUpdateCalls": 0,
+                "recordedGpuUpdateCalls": 180,
+                "tokensWritten": 2020
+              }
+            },
+            "decodeBuffers": {
+              "hiddenBytes": 8192,
+              "intermediateBytes": 2048,
+              "totalBytes": 2625700,
+              "activationDtype": "f32",
+              "workspace": {
+                "buffers": 362,
+                "bytes": 2599076,
+                "bindings": 221,
+                "hits": 816,
+                "misses": 1615
+              }
+            }
+          },
+          "stats": {
+            "speculationAttempts": 0,
+            "speculationAccepted": 0,
+            "decodeMode": "batched_gpu"
+          }
+        },
+        {
+          "round": 5,
+          "kind": "candidate",
+          "completeMs": 1678.8999999985099,
+          "firstTokenMs": 139.79999999701977,
+          "prefillMs": 136.5,
+          "outputTokens": 128,
+          "memory": {
+            "used": 20189908132,
+            "pool": {
+              "allocations": 13712,
+              "reuses": 1520,
+              "totalBytesAllocated": 25204326144,
+              "peakBytesAllocated": 20104312064,
+              "currentBytesAllocated": 20019510272,
+              "totalBytesRequested": 25105075200,
+              "peakBytesRequested": 20085209600,
+              "currentBytesRequested": 19999162368,
+              "resources": {
+                "retainedModel": {
+                  "bytes": 19927328768,
+                  "count": 733
+                },
+                "active": {
+                  "bytes": 71858176,
+                  "count": 182
+                },
+                "reusable": {
+                  "bytes": 20323328,
+                  "count": 64
+                },
+                "deferredCleanup": {
+                  "bytes": 66846720,
+                  "count": 60
+                }
+              },
+              "activeBuffers": 915,
+              "pooledBuffers": 64,
+              "budgetMaxBytes": 0,
+              "budgetUtilization": 0,
+              "hitRate": "10.0%"
+            },
+            "kvCache": {
+              "theoretical": 167772160,
+              "allocated": 167772160,
+              "used": 6348800,
+              "efficiency": 0.037841796875,
+              "seqLen": 155,
+              "maxSeqLen": 4096,
+              "layout": "contiguous",
+              "kvDtype": "f32",
+              "counters": {
+                "updateCalls": 0,
+                "gpuUpdateCalls": 0,
+                "recordedGpuUpdateCalls": 180,
+                "tokensWritten": 2020
+              }
+            },
+            "decodeBuffers": {
+              "hiddenBytes": 8192,
+              "intermediateBytes": 2048,
+              "totalBytes": 2625700,
+              "activationDtype": "f32",
+              "workspace": {
+                "buffers": 362,
+                "bytes": 2599076,
+                "bindings": 221,
+                "hits": 816,
+                "misses": 1615
+              }
+            }
+          },
+          "stats": {
+            "speculationAttempts": 0,
+            "speculationAccepted": 0,
+            "decodeMode": "batched_gpu"
+          }
+        },
+        {
+          "round": 5,
+          "kind": "pooled",
+          "completeMs": 1735.5,
+          "firstTokenMs": 145.60000000149012,
+          "prefillMs": 129.19999999552965,
+          "outputTokens": 128,
+          "memory": null,
+          "stats": {
+            "speculationAttempts": null,
+            "speculationAccepted": null,
+            "decodeMode": null,
+            "nativeSpeculation": {
+              "depth": 3,
+              "lookup": false,
+              "proposed": 137,
+              "accepted": 81,
+              "rounds": 46
+            }
+          }
+        },
+        {
+          "round": 6,
+          "kind": "doppler",
+          "completeMs": 1670.3999999985099,
+          "firstTokenMs": 149,
+          "prefillMs": 145.60000000149012,
+          "outputTokens": 128,
+          "memory": {
+            "used": 20189908132,
+            "pool": {
+              "allocations": 15517,
+              "reuses": 1631,
+              "totalBytesAllocated": 26026004480,
+              "peakBytesAllocated": 20104312064,
+              "currentBytesAllocated": 20019510272,
+              "totalBytesRequested": 25911764224,
+              "peakBytesRequested": 20085209600,
+              "currentBytesRequested": 19999162368,
+              "resources": {
+                "retainedModel": {
+                  "bytes": 19927328768,
+                  "count": 733
+                },
+                "active": {
+                  "bytes": 71858176,
+                  "count": 182
+                },
+                "reusable": {
+                  "bytes": 20323328,
+                  "count": 64
+                },
+                "deferredCleanup": {
+                  "bytes": 66715648,
+                  "count": 59
+                }
+              },
+              "activeBuffers": 915,
+              "pooledBuffers": 64,
+              "budgetMaxBytes": 0,
+              "budgetUtilization": 0,
+              "hitRate": "9.5%"
+            },
+            "kvCache": {
+              "theoretical": 167772160,
+              "allocated": 167772160,
+              "used": 6348800,
+              "efficiency": 0.037841796875,
+              "seqLen": 155,
+              "maxSeqLen": 4096,
+              "layout": "contiguous",
+              "kvDtype": "f32",
+              "counters": {
+                "updateCalls": 0,
+                "gpuUpdateCalls": 0,
+                "recordedGpuUpdateCalls": 200,
+                "tokensWritten": 2310
+              }
+            },
+            "decodeBuffers": {
+              "hiddenBytes": 8192,
+              "intermediateBytes": 2048,
+              "totalBytes": 2625700,
+              "activationDtype": "f32",
+              "workspace": {
+                "buffers": 362,
+                "bytes": 2599076,
+                "bindings": 221,
+                "hits": 897,
+                "misses": 1755
+              }
+            }
+          },
+          "stats": {
+            "speculationAttempts": 0,
+            "speculationAccepted": 0,
+            "decodeMode": "batched_gpu"
+          }
+        },
+        {
+          "round": 6,
+          "kind": "candidate",
+          "completeMs": 1674.8999999985099,
+          "firstTokenMs": 142.5,
+          "prefillMs": 139.5,
+          "outputTokens": 128,
+          "memory": {
+            "used": 20189908132,
+            "pool": {
+              "allocations": 15517,
+              "reuses": 1631,
+              "totalBytesAllocated": 26026004480,
+              "peakBytesAllocated": 20104312064,
+              "currentBytesAllocated": 20019510272,
+              "totalBytesRequested": 25911764224,
+              "peakBytesRequested": 20085209600,
+              "currentBytesRequested": 19999162368,
+              "resources": {
+                "retainedModel": {
+                  "bytes": 19927328768,
+                  "count": 733
+                },
+                "active": {
+                  "bytes": 71858176,
+                  "count": 182
+                },
+                "reusable": {
+                  "bytes": 20323328,
+                  "count": 64
+                },
+                "deferredCleanup": {
+                  "bytes": 66846720,
+                  "count": 60
+                }
+              },
+              "activeBuffers": 915,
+              "pooledBuffers": 64,
+              "budgetMaxBytes": 0,
+              "budgetUtilization": 0,
+              "hitRate": "9.5%"
+            },
+            "kvCache": {
+              "theoretical": 167772160,
+              "allocated": 167772160,
+              "used": 6348800,
+              "efficiency": 0.037841796875,
+              "seqLen": 155,
+              "maxSeqLen": 4096,
+              "layout": "contiguous",
+              "kvDtype": "f32",
+              "counters": {
+                "updateCalls": 0,
+                "gpuUpdateCalls": 0,
+                "recordedGpuUpdateCalls": 200,
+                "tokensWritten": 2310
+              }
+            },
+            "decodeBuffers": {
+              "hiddenBytes": 8192,
+              "intermediateBytes": 2048,
+              "totalBytes": 2625700,
+              "activationDtype": "f32",
+              "workspace": {
+                "buffers": 362,
+                "bytes": 2599076,
+                "bindings": 221,
+                "hits": 897,
+                "misses": 1755
+              }
+            }
+          },
+          "stats": {
+            "speculationAttempts": 0,
+            "speculationAccepted": 0,
+            "decodeMode": "batched_gpu"
+          }
+        },
+        {
+          "round": 6,
+          "kind": "pooled",
+          "completeMs": 1739.4000000059605,
+          "firstTokenMs": 144.30000000447035,
+          "prefillMs": 128.80000000447035,
+          "outputTokens": 128,
+          "memory": null,
+          "stats": {
+            "speculationAttempts": null,
+            "speculationAccepted": null,
+            "decodeMode": null,
+            "nativeSpeculation": {
+              "depth": 3,
+              "lookup": false,
+              "proposed": 137,
+              "accepted": 81,
+              "rounds": 46
+            }
+          }
+        }
+      ],
+      "checkpointCandidateOverBaselineGeometricRatio": 1.0081380657683299,
+      "bootstrapInterval95": [
+        1.0055038227202688,
+        1.010820117702016
+      ],
+      "meanCompleteMs": {
+        "doppler": 1668.3666666659217,
+        "candidate": 1681.949999999255,
+        "pooled": 1739.3500000002484
+      }
+    },
+    "long": {
+      "attempts": [
+        {
+          "round": 1,
+          "kind": "doppler",
+          "completeMs": 7233.89999999851,
+          "firstTokenMs": 5605.79999999702,
+          "prefillMs": 5601.89999999851,
+          "outputTokens": 128,
+          "memory": {
+            "used": 20514845860,
+            "pool": {
+              "allocations": 20291,
+              "reuses": 3853,
+              "totalBytesAllocated": 53582159104,
+              "peakBytesAllocated": 23087912192,
+              "currentBytesAllocated": 20344448000,
+              "totalBytesRequested": 53449166592,
+              "peakBytesRequested": 22960577280,
+              "currentBytesRequested": 19999162368,
+              "resources": {
+                "retainedModel": {
+                  "bytes": 19927328768,
+                  "count": 733
+                },
+                "active": {
+                  "bytes": 71858176,
+                  "count": 182
+                },
+                "reusable": {
+                  "bytes": 345261056,
+                  "count": 64
+                },
+                "deferredCleanup": {
+                  "bytes": 64487424,
+                  "count": 57
+                }
+              },
+              "activeBuffers": 915,
+              "pooledBuffers": 64,
+              "budgetMaxBytes": 0,
+              "budgetUtilization": 0,
+              "hitRate": "16.0%"
+            },
+            "kvCache": {
+              "theoretical": 167772160,
+              "allocated": 167772160,
+              "used": 98877440,
+              "efficiency": 0.58935546875,
+              "seqLen": 2414,
+              "maxSeqLen": 4096,
+              "layout": "contiguous",
+              "kvDtype": "f32",
+              "counters": {
+                "updateCalls": 0,
+                "gpuUpdateCalls": 0,
+                "recordedGpuUpdateCalls": 290,
+                "tokensWritten": 48100
+              }
+            },
+            "decodeBuffers": {
+              "hiddenBytes": 8192,
+              "intermediateBytes": 2048,
+              "totalBytes": 2625700,
+              "activationDtype": "f32",
+              "workspace": {
+                "buffers": 362,
+                "bytes": 2599076,
+                "bindings": 221,
+                "hits": 1302,
+                "misses": 2455
+              }
+            }
+          },
+          "stats": {
+            "speculationAttempts": 0,
+            "speculationAccepted": 0,
+            "decodeMode": "batched_gpu"
+          }
+        },
+        {
+          "round": 1,
+          "kind": "candidate",
+          "completeMs": 6969.5999999940395,
+          "firstTokenMs": 5359.19999999553,
+          "prefillMs": 5355,
+          "outputTokens": 128,
+          "memory": {
+            "used": 20514845860,
+            "pool": {
+              "allocations": 20291,
+              "reuses": 3853,
+              "totalBytesAllocated": 53582159104,
+              "peakBytesAllocated": 23087912192,
+              "currentBytesAllocated": 20344448000,
+              "totalBytesRequested": 53449166592,
+              "peakBytesRequested": 22960577280,
+              "currentBytesRequested": 19999162368,
+              "resources": {
+                "retainedModel": {
+                  "bytes": 19927328768,
+                  "count": 733
+                },
+                "active": {
+                  "bytes": 71858176,
+                  "count": 182
+                },
+                "reusable": {
+                  "bytes": 345261056,
+                  "count": 64
+                },
+                "deferredCleanup": {
+                  "bytes": 64618496,
+                  "count": 58
+                }
+              },
+              "activeBuffers": 915,
+              "pooledBuffers": 64,
+              "budgetMaxBytes": 0,
+              "budgetUtilization": 0,
+              "hitRate": "16.0%"
+            },
+            "kvCache": {
+              "theoretical": 167772160,
+              "allocated": 167772160,
+              "used": 98877440,
+              "efficiency": 0.58935546875,
+              "seqLen": 2414,
+              "maxSeqLen": 4096,
+              "layout": "contiguous",
+              "kvDtype": "f32",
+              "counters": {
+                "updateCalls": 0,
+                "gpuUpdateCalls": 0,
+                "recordedGpuUpdateCalls": 290,
+                "tokensWritten": 48100
+              }
+            },
+            "decodeBuffers": {
+              "hiddenBytes": 8192,
+              "intermediateBytes": 2048,
+              "totalBytes": 2625700,
+              "activationDtype": "f32",
+              "workspace": {
+                "buffers": 362,
+                "bytes": 2599076,
+                "bindings": 221,
+                "hits": 1302,
+                "misses": 2455
+              }
+            }
+          },
+          "stats": {
+            "speculationAttempts": 0,
+            "speculationAccepted": 0,
+            "decodeMode": "batched_gpu"
+          }
+        },
+        {
+          "round": 1,
+          "kind": "pooled",
+          "completeMs": 5152.19999999553,
+          "firstTokenMs": 3346.5,
+          "prefillMs": 3330.60000000149,
+          "outputTokens": 128,
+          "memory": null,
+          "stats": {
+            "speculationAttempts": null,
+            "speculationAccepted": null,
+            "decodeMode": null,
+            "nativeSpeculation": {
+              "depth": 3,
+              "lookup": false,
+              "proposed": 145,
+              "accepted": 79,
+              "rounds": 49
+            }
+          }
+        },
+        {
+          "round": 2,
+          "kind": "doppler",
+          "completeMs": 5018.60000000149,
+          "firstTokenMs": 3406.6999999955297,
+          "prefillMs": 3403.5,
+          "outputTokens": 128,
+          "memory": {
+            "used": 20517024932,
+            "pool": {
+              "allocations": 21891,
+              "reuses": 5352,
+              "totalBytesAllocated": 62935566592,
+              "peakBytesAllocated": 23087912192,
+              "currentBytesAllocated": 20346627072,
+              "totalBytesRequested": 62796514048,
+              "peakBytesRequested": 22960577280,
+              "currentBytesRequested": 19999162368,
+              "resources": {
+                "retainedModel": {
+                  "bytes": 19927328768,
+                  "count": 733
+                },
+                "active": {
+                  "bytes": 71858176,
+                  "count": 182
+                },
+                "reusable": {
+                  "bytes": 347440128,
+                  "count": 64
+                },
+                "deferredCleanup": {
+                  "bytes": 64487424,
+                  "count": 57
+                }
+              },
+              "activeBuffers": 915,
+              "pooledBuffers": 64,
+              "budgetMaxBytes": 0,
+              "budgetUtilization": 0,
+              "hitRate": "19.6%"
+            },
+            "kvCache": {
+              "theoretical": 167772160,
+              "allocated": 167772160,
+              "used": 98877440,
+              "efficiency": 0.58935546875,
+              "seqLen": 2414,
+              "maxSeqLen": 4096,
+              "layout": "contiguous",
+              "kvDtype": "f32",
+              "counters": {
+                "updateCalls": 0,
+                "gpuUpdateCalls": 0,
+                "recordedGpuUpdateCalls": 320,
+                "tokensWritten": 70980
+              }
+            },
+            "decodeBuffers": {
+              "hiddenBytes": 8192,
+              "intermediateBytes": 2048,
+              "totalBytes": 2625700,
+              "activationDtype": "f32",
+              "workspace": {
+                "buffers": 362,
+                "bytes": 2599076,
+                "bindings": 221,
+                "hits": 1384,
+                "misses": 2594
+              }
+            }
+          },
+          "stats": {
+            "speculationAttempts": 0,
+            "speculationAccepted": 0,
+            "decodeMode": "batched_gpu"
+          }
+        },
+        {
+          "round": 2,
+          "kind": "candidate",
+          "completeMs": 4973,
+          "firstTokenMs": 3353.89999999851,
+          "prefillMs": 3347.7000000029802,
+          "outputTokens": 128,
+          "memory": {
+            "used": 20517024932,
+            "pool": {
+              "allocations": 21891,
+              "reuses": 5352,
+              "totalBytesAllocated": 62935566592,
+              "peakBytesAllocated": 23087912192,
+              "currentBytesAllocated": 20346627072,
+              "totalBytesRequested": 62796514048,
+              "peakBytesRequested": 22960577280,
+              "currentBytesRequested": 19999162368,
+              "resources": {
+                "retainedModel": {
+                  "bytes": 19927328768,
+                  "count": 733
+                },
+                "active": {
+                  "bytes": 71858176,
+                  "count": 182
+                },
+                "reusable": {
+                  "bytes": 347440128,
+                  "count": 64
+                },
+                "deferredCleanup": {
+                  "bytes": 64618496,
+                  "count": 58
+                }
+              },
+              "activeBuffers": 915,
+              "pooledBuffers": 64,
+              "budgetMaxBytes": 0,
+              "budgetUtilization": 0,
+              "hitRate": "19.6%"
+            },
+            "kvCache": {
+              "theoretical": 167772160,
+              "allocated": 167772160,
+              "used": 98877440,
+              "efficiency": 0.58935546875,
+              "seqLen": 2414,
+              "maxSeqLen": 4096,
+              "layout": "contiguous",
+              "kvDtype": "f32",
+              "counters": {
+                "updateCalls": 0,
+                "gpuUpdateCalls": 0,
+                "recordedGpuUpdateCalls": 320,
+                "tokensWritten": 70980
+              }
+            },
+            "decodeBuffers": {
+              "hiddenBytes": 8192,
+              "intermediateBytes": 2048,
+              "totalBytes": 2625700,
+              "activationDtype": "f32",
+              "workspace": {
+                "buffers": 362,
+                "bytes": 2599076,
+                "bindings": 221,
+                "hits": 1384,
+                "misses": 2594
+              }
+            }
+          },
+          "stats": {
+            "speculationAttempts": 0,
+            "speculationAccepted": 0,
+            "decodeMode": "batched_gpu"
+          }
+        },
+        {
+          "round": 2,
+          "kind": "pooled",
+          "completeMs": 5199.30000000447,
+          "firstTokenMs": 3400.2000000029802,
+          "prefillMs": 3371.8000000044703,
+          "outputTokens": 128,
+          "memory": null,
+          "stats": {
+            "speculationAttempts": null,
+            "speculationAccepted": null,
+            "decodeMode": null,
+            "nativeSpeculation": {
+              "depth": 3,
+              "lookup": false,
+              "proposed": 145,
+              "accepted": 79,
+              "rounds": 49
+            }
+          }
+        },
+        {
+          "round": 3,
+          "kind": "doppler",
+          "completeMs": 6909.70000000298,
+          "firstTokenMs": 5294.60000000149,
+          "prefillMs": 5291.19999999553,
+          "outputTokens": 128,
+          "memory": {
+            "used": 20533793956,
+            "pool": {
+              "allocations": 23451,
+              "reuses": 6891,
+              "totalBytesAllocated": 71435087104,
+              "peakBytesAllocated": 23089704192,
+              "currentBytesAllocated": 20363396096,
+              "totalBytesRequested": 71289964288,
+              "peakBytesRequested": 22960577280,
+              "currentBytesRequested": 19999162368,
+              "resources": {
+                "retainedModel": {
+                  "bytes": 19927328768,
+                  "count": 733
+                },
+                "active": {
+                  "bytes": 71858176,
+                  "count": 182
+                },
+                "reusable": {
+                  "bytes": 364209152,
+                  "count": 64
+                },
+                "deferredCleanup": {
+                  "bytes": 64487424,
+                  "count": 57
+                }
+              },
+              "activeBuffers": 915,
+              "pooledBuffers": 64,
+              "budgetMaxBytes": 0,
+              "budgetUtilization": 0,
+              "hitRate": "22.7%"
+            },
+            "kvCache": {
+              "theoretical": 167772160,
+              "allocated": 167772160,
+              "used": 98877440,
+              "efficiency": 0.58935546875,
+              "seqLen": 2414,
+              "maxSeqLen": 4096,
+              "layout": "contiguous",
+              "kvDtype": "f32",
+              "counters": {
+                "updateCalls": 0,
+                "gpuUpdateCalls": 0,
+                "recordedGpuUpdateCalls": 350,
+                "tokensWritten": 93860
+              }
+            },
+            "decodeBuffers": {
+              "hiddenBytes": 8192,
+              "intermediateBytes": 2048,
+              "totalBytes": 2625700,
+              "activationDtype": "f32",
+              "workspace": {
+                "buffers": 362,
+                "bytes": 2599076,
+                "bindings": 221,
+                "hits": 1465,
+                "misses": 2734
+              }
+            }
+          },
+          "stats": {
+            "speculationAttempts": 0,
+            "speculationAccepted": 0,
+            "decodeMode": "batched_gpu"
+          }
+        },
+        {
+          "round": 3,
+          "kind": "candidate",
+          "completeMs": 6011.5,
+          "firstTokenMs": 4403.19999999553,
+          "prefillMs": 4397.29999999702,
+          "outputTokens": 128,
+          "memory": {
+            "used": 20533793956,
+            "pool": {
+              "allocations": 23451,
+              "reuses": 6891,
+              "totalBytesAllocated": 71435087104,
+              "peakBytesAllocated": 23089704192,
+              "currentBytesAllocated": 20363396096,
+              "totalBytesRequested": 71289964288,
+              "peakBytesRequested": 22960577280,
+              "currentBytesRequested": 19999162368,
+              "resources": {
+                "retainedModel": {
+                  "bytes": 19927328768,
+                  "count": 733
+                },
+                "active": {
+                  "bytes": 71858176,
+                  "count": 182
+                },
+                "reusable": {
+                  "bytes": 364209152,
+                  "count": 64
+                },
+                "deferredCleanup": {
+                  "bytes": 64618496,
+                  "count": 58
+                }
+              },
+              "activeBuffers": 915,
+              "pooledBuffers": 64,
+              "budgetMaxBytes": 0,
+              "budgetUtilization": 0,
+              "hitRate": "22.7%"
+            },
+            "kvCache": {
+              "theoretical": 167772160,
+              "allocated": 167772160,
+              "used": 98877440,
+              "efficiency": 0.58935546875,
+              "seqLen": 2414,
+              "maxSeqLen": 4096,
+              "layout": "contiguous",
+              "kvDtype": "f32",
+              "counters": {
+                "updateCalls": 0,
+                "gpuUpdateCalls": 0,
+                "recordedGpuUpdateCalls": 350,
+                "tokensWritten": 93860
+              }
+            },
+            "decodeBuffers": {
+              "hiddenBytes": 8192,
+              "intermediateBytes": 2048,
+              "totalBytes": 2625700,
+              "activationDtype": "f32",
+              "workspace": {
+                "buffers": 362,
+                "bytes": 2599076,
+                "bindings": 221,
+                "hits": 1465,
+                "misses": 2734
+              }
+            }
+          },
+          "stats": {
+            "speculationAttempts": 0,
+            "speculationAccepted": 0,
+            "decodeMode": "batched_gpu"
+          }
+        },
+        {
+          "round": 3,
+          "kind": "pooled",
+          "completeMs": 5184,
+          "firstTokenMs": 3374.5,
+          "prefillMs": 3357.5,
+          "outputTokens": 128,
+          "memory": null,
+          "stats": {
+            "speculationAttempts": null,
+            "speculationAccepted": null,
+            "decodeMode": null,
+            "nativeSpeculation": {
+              "depth": 3,
+              "lookup": false,
+              "proposed": 145,
+              "accepted": 79,
+              "rounds": 49
+            }
+          }
+        },
+        {
+          "round": 4,
+          "kind": "doppler",
+          "completeMs": 4941.30000000447,
+          "firstTokenMs": 3288.10000000149,
+          "prefillMs": 3284.7000000029802,
+          "outputTokens": 128,
+          "memory": {
+            "used": 20550562980,
+            "pool": {
+              "allocations": 24972,
+              "reuses": 8469,
+              "totalBytesAllocated": 79263527168,
+              "peakBytesAllocated": 23089704192,
+              "currentBytesAllocated": 20380165120,
+              "totalBytesRequested": 79112334080,
+              "peakBytesRequested": 22960577280,
+              "currentBytesRequested": 19999162368,
+              "resources": {
+                "retainedModel": {
+                  "bytes": 19927328768,
+                  "count": 733
+                },
+                "active": {
+                  "bytes": 71858176,
+                  "count": 182
+                },
+                "reusable": {
+                  "bytes": 380978176,
+                  "count": 64
+                },
+                "deferredCleanup": {
+                  "bytes": 64487424,
+                  "count": 57
+                }
+              },
+              "activeBuffers": 915,
+              "pooledBuffers": 64,
+              "budgetMaxBytes": 0,
+              "budgetUtilization": 0,
+              "hitRate": "25.3%"
+            },
+            "kvCache": {
+              "theoretical": 167772160,
+              "allocated": 167772160,
+              "used": 98877440,
+              "efficiency": 0.58935546875,
+              "seqLen": 2414,
+              "maxSeqLen": 4096,
+              "layout": "contiguous",
+              "kvDtype": "f32",
+              "counters": {
+                "updateCalls": 0,
+                "gpuUpdateCalls": 0,
+                "recordedGpuUpdateCalls": 380,
+                "tokensWritten": 116740
+              }
+            },
+            "decodeBuffers": {
+              "hiddenBytes": 8192,
+              "intermediateBytes": 2048,
+              "totalBytes": 2625700,
+              "activationDtype": "f32",
+              "workspace": {
+                "buffers": 362,
+                "bytes": 2599076,
+                "bindings": 221,
+                "hits": 1546,
+                "misses": 2874
+              }
+            }
+          },
+          "stats": {
+            "speculationAttempts": 0,
+            "speculationAccepted": 0,
+            "decodeMode": "batched_gpu"
+          }
+        },
+        {
+          "round": 4,
+          "kind": "candidate",
+          "completeMs": 4951.89999999851,
+          "firstTokenMs": 3309.39999999851,
+          "prefillMs": 3303.7000000029802,
+          "outputTokens": 128,
+          "memory": {
+            "used": 20550562980,
+            "pool": {
+              "allocations": 24972,
+              "reuses": 8469,
+              "totalBytesAllocated": 79263527168,
+              "peakBytesAllocated": 23089704192,
+              "currentBytesAllocated": 20380165120,
+              "totalBytesRequested": 79112334080,
+              "peakBytesRequested": 22960577280,
+              "currentBytesRequested": 19999162368,
+              "resources": {
+                "retainedModel": {
+                  "bytes": 19927328768,
+                  "count": 733
+                },
+                "active": {
+                  "bytes": 71858176,
+                  "count": 182
+                },
+                "reusable": {
+                  "bytes": 380978176,
+                  "count": 64
+                },
+                "deferredCleanup": {
+                  "bytes": 64618496,
+                  "count": 58
+                }
+              },
+              "activeBuffers": 915,
+              "pooledBuffers": 64,
+              "budgetMaxBytes": 0,
+              "budgetUtilization": 0,
+              "hitRate": "25.3%"
+            },
+            "kvCache": {
+              "theoretical": 167772160,
+              "allocated": 167772160,
+              "used": 98877440,
+              "efficiency": 0.58935546875,
+              "seqLen": 2414,
+              "maxSeqLen": 4096,
+              "layout": "contiguous",
+              "kvDtype": "f32",
+              "counters": {
+                "updateCalls": 0,
+                "gpuUpdateCalls": 0,
+                "recordedGpuUpdateCalls": 380,
+                "tokensWritten": 116740
+              }
+            },
+            "decodeBuffers": {
+              "hiddenBytes": 8192,
+              "intermediateBytes": 2048,
+              "totalBytes": 2625700,
+              "activationDtype": "f32",
+              "workspace": {
+                "buffers": 362,
+                "bytes": 2599076,
+                "bindings": 221,
+                "hits": 1546,
+                "misses": 2874
+              }
+            }
+          },
+          "stats": {
+            "speculationAttempts": 0,
+            "speculationAccepted": 0,
+            "decodeMode": "batched_gpu"
+          }
+        },
+        {
+          "round": 4,
+          "kind": "pooled",
+          "completeMs": 5219.0999999940395,
+          "firstTokenMs": 3392.5,
+          "prefillMs": 3362.7999999970198,
+          "outputTokens": 128,
+          "memory": null,
+          "stats": {
+            "speculationAttempts": null,
+            "speculationAccepted": null,
+            "decodeMode": null,
+            "nativeSpeculation": {
+              "depth": 3,
+              "lookup": false,
+              "proposed": 145,
+              "accepted": 79,
+              "rounds": 49
+            }
+          }
+        },
+        {
+          "round": 5,
+          "kind": "doppler",
+          "completeMs": 6504,
+          "firstTokenMs": 4891.5,
+          "prefillMs": 4888.39999999851,
+          "outputTokens": 128,
+          "memory": {
+            "used": 20567332004,
+            "pool": {
+              "allocations": 26454,
+              "reuses": 10086,
+              "totalBytesAllocated": 86420886784,
+              "peakBytesAllocated": 23089704192,
+              "currentBytesAllocated": 20396934144,
+              "totalBytesRequested": 86263623424,
+              "peakBytesRequested": 22960577280,
+              "currentBytesRequested": 19999162368,
+              "resources": {
+                "retainedModel": {
+                  "bytes": 19927328768,
+                  "count": 733
+                },
+                "active": {
+                  "bytes": 71858176,
+                  "count": 182
+                },
+                "reusable": {
+                  "bytes": 397747200,
+                  "count": 64
+                },
+                "deferredCleanup": {
+                  "bytes": 64487424,
+                  "count": 57
+                }
+              },
+              "activeBuffers": 915,
+              "pooledBuffers": 64,
+              "budgetMaxBytes": 0,
+              "budgetUtilization": 0,
+              "hitRate": "27.6%"
+            },
+            "kvCache": {
+              "theoretical": 167772160,
+              "allocated": 167772160,
+              "used": 98877440,
+              "efficiency": 0.58935546875,
+              "seqLen": 2414,
+              "maxSeqLen": 4096,
+              "layout": "contiguous",
+              "kvDtype": "f32",
+              "counters": {
+                "updateCalls": 0,
+                "gpuUpdateCalls": 0,
+                "recordedGpuUpdateCalls": 410,
+                "tokensWritten": 139620
+              }
+            },
+            "decodeBuffers": {
+              "hiddenBytes": 8192,
+              "intermediateBytes": 2048,
+              "totalBytes": 2625700,
+              "activationDtype": "f32",
+              "workspace": {
+                "buffers": 362,
+                "bytes": 2599076,
+                "bindings": 221,
+                "hits": 1628,
+                "misses": 3013
+              }
+            }
+          },
+          "stats": {
+            "speculationAttempts": 0,
+            "speculationAccepted": 0,
+            "decodeMode": "batched_gpu"
+          }
+        },
+        {
+          "round": 5,
+          "kind": "candidate",
+          "completeMs": 6149,
+          "firstTokenMs": 4521,
+          "prefillMs": 4509.10000000149,
+          "outputTokens": 128,
+          "memory": {
+            "used": 20567332004,
+            "pool": {
+              "allocations": 26454,
+              "reuses": 10086,
+              "totalBytesAllocated": 86420886784,
+              "peakBytesAllocated": 23089704192,
+              "currentBytesAllocated": 20396934144,
+              "totalBytesRequested": 86263623424,
+              "peakBytesRequested": 22960577280,
+              "currentBytesRequested": 19999162368,
+              "resources": {
+                "retainedModel": {
+                  "bytes": 19927328768,
+                  "count": 733
+                },
+                "active": {
+                  "bytes": 71858176,
+                  "count": 182
+                },
+                "reusable": {
+                  "bytes": 397747200,
+                  "count": 64
+                },
+                "deferredCleanup": {
+                  "bytes": 64618496,
+                  "count": 58
+                }
+              },
+              "activeBuffers": 915,
+              "pooledBuffers": 64,
+              "budgetMaxBytes": 0,
+              "budgetUtilization": 0,
+              "hitRate": "27.6%"
+            },
+            "kvCache": {
+              "theoretical": 167772160,
+              "allocated": 167772160,
+              "used": 98877440,
+              "efficiency": 0.58935546875,
+              "seqLen": 2414,
+              "maxSeqLen": 4096,
+              "layout": "contiguous",
+              "kvDtype": "f32",
+              "counters": {
+                "updateCalls": 0,
+                "gpuUpdateCalls": 0,
+                "recordedGpuUpdateCalls": 410,
+                "tokensWritten": 139620
+              }
+            },
+            "decodeBuffers": {
+              "hiddenBytes": 8192,
+              "intermediateBytes": 2048,
+              "totalBytes": 2625700,
+              "activationDtype": "f32",
+              "workspace": {
+                "buffers": 362,
+                "bytes": 2599076,
+                "bindings": 221,
+                "hits": 1628,
+                "misses": 3013
+              }
+            }
+          },
+          "stats": {
+            "speculationAttempts": 0,
+            "speculationAccepted": 0,
+            "decodeMode": "batched_gpu"
+          }
+        },
+        {
+          "round": 5,
+          "kind": "pooled",
+          "completeMs": 5198.89999999851,
+          "firstTokenMs": 3393.7000000029802,
+          "prefillMs": 3375.60000000149,
+          "outputTokens": 128,
+          "memory": null,
+          "stats": {
+            "speculationAttempts": null,
+            "speculationAccepted": null,
+            "decodeMode": null,
+            "nativeSpeculation": {
+              "depth": 3,
+              "lookup": false,
+              "proposed": 145,
+              "accepted": 79,
+              "rounds": 49
+            }
+          }
+        },
+        {
+          "round": 6,
+          "kind": "doppler",
+          "completeMs": 4908.70000000298,
+          "firstTokenMs": 3289,
+          "prefillMs": 3285.39999999851,
+          "outputTokens": 128,
+          "memory": {
+            "used": 20584092836,
+            "pool": {
+              "allocations": 27897,
+              "reuses": 11742,
+              "totalBytesAllocated": 92907165952,
+              "peakBytesAllocated": 23089704192,
+              "currentBytesAllocated": 20413694976,
+              "totalBytesRequested": 92743832320,
+              "peakBytesRequested": 22960577280,
+              "currentBytesRequested": 19999162368,
+              "resources": {
+                "retainedModel": {
+                  "bytes": 19927328768,
+                  "count": 733
+                },
+                "active": {
+                  "bytes": 71858176,
+                  "count": 182
+                },
+                "reusable": {
+                  "bytes": 414508032,
+                  "count": 64
+                },
+                "deferredCleanup": {
+                  "bytes": 64487424,
+                  "count": 57
+                }
+              },
+              "activeBuffers": 915,
+              "pooledBuffers": 64,
+              "budgetMaxBytes": 0,
+              "budgetUtilization": 0,
+              "hitRate": "29.6%"
+            },
+            "kvCache": {
+              "theoretical": 167772160,
+              "allocated": 167772160,
+              "used": 98877440,
+              "efficiency": 0.58935546875,
+              "seqLen": 2414,
+              "maxSeqLen": 4096,
+              "layout": "contiguous",
+              "kvDtype": "f32",
+              "counters": {
+                "updateCalls": 0,
+                "gpuUpdateCalls": 0,
+                "recordedGpuUpdateCalls": 440,
+                "tokensWritten": 162500
+              }
+            },
+            "decodeBuffers": {
+              "hiddenBytes": 8192,
+              "intermediateBytes": 2048,
+              "totalBytes": 2625700,
+              "activationDtype": "f32",
+              "workspace": {
+                "buffers": 362,
+                "bytes": 2599076,
+                "bindings": 221,
+                "hits": 1709,
+                "misses": 3153
+              }
+            }
+          },
+          "stats": {
+            "speculationAttempts": 0,
+            "speculationAccepted": 0,
+            "decodeMode": "batched_gpu"
+          }
+        },
+        {
+          "round": 6,
+          "kind": "candidate",
+          "completeMs": 4952.80000000447,
+          "firstTokenMs": 3319.2000000029802,
+          "prefillMs": 3313.8000000044703,
+          "outputTokens": 128,
+          "memory": {
+            "used": 20584092836,
+            "pool": {
+              "allocations": 27897,
+              "reuses": 11742,
+              "totalBytesAllocated": 92907165952,
+              "peakBytesAllocated": 23089704192,
+              "currentBytesAllocated": 20413694976,
+              "totalBytesRequested": 92743832320,
+              "peakBytesRequested": 22960577280,
+              "currentBytesRequested": 19999162368,
+              "resources": {
+                "retainedModel": {
+                  "bytes": 19927328768,
+                  "count": 733
+                },
+                "active": {
+                  "bytes": 71858176,
+                  "count": 182
+                },
+                "reusable": {
+                  "bytes": 414508032,
+                  "count": 64
+                },
+                "deferredCleanup": {
+                  "bytes": 64618496,
+                  "count": 58
+                }
+              },
+              "activeBuffers": 915,
+              "pooledBuffers": 64,
+              "budgetMaxBytes": 0,
+              "budgetUtilization": 0,
+              "hitRate": "29.6%"
+            },
+            "kvCache": {
+              "theoretical": 167772160,
+              "allocated": 167772160,
+              "used": 98877440,
+              "efficiency": 0.58935546875,
+              "seqLen": 2414,
+              "maxSeqLen": 4096,
+              "layout": "contiguous",
+              "kvDtype": "f32",
+              "counters": {
+                "updateCalls": 0,
+                "gpuUpdateCalls": 0,
+                "recordedGpuUpdateCalls": 440,
+                "tokensWritten": 162500
+              }
+            },
+            "decodeBuffers": {
+              "hiddenBytes": 8192,
+              "intermediateBytes": 2048,
+              "totalBytes": 2625700,
+              "activationDtype": "f32",
+              "workspace": {
+                "buffers": 362,
+                "bytes": 2599076,
+                "bindings": 221,
+                "hits": 1709,
+                "misses": 3153
+              }
+            }
+          },
+          "stats": {
+            "speculationAttempts": 0,
+            "speculationAccepted": 0,
+            "decodeMode": "batched_gpu"
+          }
+        },
+        {
+          "round": 6,
+          "kind": "pooled",
+          "completeMs": 5204.29999999702,
+          "firstTokenMs": 3406.39999999851,
+          "prefillMs": 3355.39999999851,
+          "outputTokens": 128,
+          "memory": null,
+          "stats": {
+            "speculationAttempts": null,
+            "speculationAccepted": null,
+            "decodeMode": null,
+            "nativeSpeculation": {
+              "depth": 3,
+              "lookup": false,
+              "proposed": 145,
+              "accepted": 79,
+              "rounds": 49
+            }
+          }
+        }
+      ],
+      "checkpointCandidateOverBaselineGeometricRatio": 0.9622892459337645,
+      "bootstrapInterval95": [
+        0.9197132262582739,
+        0.9959790112578091
+      ],
+      "meanCompleteMs": {
+        "doppler": 5919.366666668405,
+        "candidate": 5667.96666666617,
+        "pooled": 5192.966666664928
+      }
+    }
+  },
+  "validityFinding": "Long Doppler timings depend strongly on run order in this three-resident-engine scenario. Preserve all attempts and this known loss; do not fold this into the prior two-engine claim or call removal of the host wait a demonstrated speedup. Cause unestablished.",
+  "disposition": "Do not promote the isolated wait removal: short requests regress. The long mean improves within this three-resident-engine experiment, but timing strongly depends on run order, Pooled remains faster, and this does not establish the same benefit in the prior two-engine scenario. Safe early-close/device-loss ownership remains unimplemented."
+}

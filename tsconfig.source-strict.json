@@ -16,6 +16,7 @@
   },
   "include": [],
   "files": [
+    "src/gpu/kernels/codegen/attention-prefill-query-tile-f16kv-variant.js",
     "src/tooling/browser-harness/benchmark-comparison.js",
     "src/gpu/kernels/moe-grouped.js",
     "src/inference/pipelines/text/moe/grouped-prefill.js",

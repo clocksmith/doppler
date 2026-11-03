@@ -41,6 +41,15 @@
           },
           "identicalOutputTokens": true,
           "retainedOutcome": "Doppler lower measured request time; qualification incomplete"
+        },
+        {
+          "receipt": "checkpoint-experiment.json",
+          "residency": "Three engines simultaneously resident; preserve separately from prior two-engine control",
+          "measuredRounds": 6,
+          "dopplerCompleteMs": 1668.3666666659217,
+          "candidateCompleteMs": 1681.949999999255,
+          "pooledCompleteMs": 1739.3500000002484,
+          "retainedOutcome": "Doppler lower short mean; Pooled lower long mean. Strong long timing order effect; no across-coverage lead."
         }
       ],
       "tuningObservations": [
@@ -51,6 +60,10 @@
         {
           "receipt": "f16-replay-repair.json",
           "disposition": "F16 layout fixed; F16/flash timing screen retains long-prefill loss; unqualified precision path."
+        },
+        {
+          "receipt": "prefill-querytile.json",
+          "disposition": "Tiled F16 cache path improves prior flash screen; F32 remains long-request baseline; precision qualification pending."
         }
       ]
     },
@@ -85,6 +98,15 @@
           },
           "identicalOutputTokens": false,
           "retainedOutcome": "Doppler lower measured request time; qualification incomplete"
+        },
+        {
+          "receipt": "checkpoint-experiment.json",
+          "residency": "Three engines simultaneously resident; preserve separately from prior two-engine control",
+          "measuredRounds": 6,
+          "dopplerCompleteMs": 5919.366666668405,
+          "candidateCompleteMs": 5667.96666666617,
+          "pooledCompleteMs": 5192.966666664928,
+          "retainedOutcome": "Doppler lower short mean; Pooled lower long mean. Strong long timing order effect; no across-coverage lead."
         }
       ],
       "tuningObservations": [
@@ -95,6 +117,10 @@
         {
           "receipt": "f16-replay-repair.json",
           "disposition": "F16 layout fixed; F16/flash timing screen retains long-prefill loss; unqualified precision path."
+        },
+        {
+          "receipt": "prefill-querytile.json",
+          "disposition": "Tiled F16 cache path improves prior flash screen; F32 remains long-request baseline; precision qualification pending."
         }
       ]
     },

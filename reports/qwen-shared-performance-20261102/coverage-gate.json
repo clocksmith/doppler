@@ -102,18 +102,19 @@
       "id": "token-overhead",
       "status": "in-progress",
       "currentReceipt": "rejected-buffer-pool.json",
-      "next": "Retain rejected pooling evidence; investigate command encoding/submission grouping with explicit streaming and recovery semantics."
+      "next": "Pooled readback buffers rejected. Focus on explicit MoE MTP scheduling; do not assume dispatch/readback counts identify recoverable wall time."
     },
     {
       "id": "f16-replay",
       "status": "in-progress",
-      "next": "Layout integration repaired. Diagnose F16 flash prefill loss and freeze justified F16 numerical and held-out quality gates before promotion.",
-      "currentReceipt": "f16-replay-repair.json"
+      "next": "Binding identity repaired and opt-in F16 tiled attention tested; full-model F16 reference/tolerance and held-out quality remain open.",
+      "currentReceipt": "prefill-querytile.json"
     },
     {
       "id": "moe-mtp",
-      "status": "planned",
-      "next": "Declare draft computation and qualify MoE target verification and router/recurrent/KV recovery before measuring real MTP."
+      "status": "in-progress",
+      "next": "20 actual MTP source tensors prepared with per-tensor/source SHA256; auxiliary execution, GPU verification, recovery and measured accepted-token benefit remain unimplemented.",
+      "currentReceipt": "mtp-source-inventory.json"
     },
     {
       "id": "prefill",
@@ -124,6 +125,12 @@
       "id": "coverage-scoreboard",
       "status": "in-progress",
       "next": "Populate finite coverage cells with receipts, known losses, unsupported exclusions and per-precision qualification."
+    },
+    {
+      "id": "checkpoint-host-wait",
+      "status": "in-progress",
+      "currentReceipt": "checkpoint-experiment.json",
+      "next": "Keep current main wait. Diagnostic removal preserves current-consumer state but regresses short requests; do not generalize order-dependent long behavior or change ownership without failure/early-close evidence."
     }
   ],
   "taskQuality": {

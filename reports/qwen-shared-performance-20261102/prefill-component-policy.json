@@ -1,0 +1,27 @@
+{
+  "status": "frozen-before-new-kernel-execution",
+  "scope": "Attention operator only, F32 Q/output/accumulation with F16 KV. No full-model qualification.",
+  "comparisons": [
+    {
+      "reference": "Existing F32 query tile supplied with exactly the same F16-rounded-and-expanded cache values",
+      "gate": "Every output F32 bit identical for the declared geometry/mask cases"
+    },
+    {
+      "reference": "Independent CPU F64 attention on identical Q and rounded cache values",
+      "maxAbs": 1e-06,
+      "maxRel": 1e-05,
+      "application": "Small bounded-magnitude deterministic fixtures only"
+    }
+  ],
+  "requiredCases": [
+    "partial query/key tiles",
+    "nonzero decode-prefix offset",
+    "fully masked queries",
+    "sliding window",
+    "bidirectional span",
+    "noncausal",
+    "GQA 8:1",
+    "paged mapping"
+  ],
+  "sampling": "not applicable to this attention operator; full-model and MTP sampling gates unchanged"
+}

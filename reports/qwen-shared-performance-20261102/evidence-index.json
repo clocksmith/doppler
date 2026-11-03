@@ -143,5 +143,60 @@
     "path": "/run/media/x/deco-backup/doppler-shared-platform-20261102/f16-kv-layout-before-20.log",
     "bytes": 413,
     "sha256": "10b3e99d47b9a03f89698bfca28d403169ae7cdc421ed1fd72e6c84c2a8bb40f"
+  },
+  {
+    "path": "/run/media/x/deco-backup/doppler-shared-platform-20261102/source-f16-querytile-26-files.json",
+    "bytes": 360850,
+    "sha256": "72e614f529e1a5b3b394c9cc3da09ec6a252e1998e505a5170c2a26914e1ab1a"
+  },
+  {
+    "path": "/run/media/x/deco-backup/doppler-shared-platform-20261102/35b-f16-querytile-screen-26/receipt.json",
+    "bytes": 1355,
+    "sha256": "437613f9d25e815845dd8104e1006a3305e7b709e7d65c97911ded99936cc513"
+  },
+  {
+    "path": "/run/media/x/deco-backup/doppler-shared-platform-20261102/35b-f16-querytile-screen-29/receipt.json",
+    "bytes": 1355,
+    "sha256": "1aceed4a1b5496c6b285a5a30736fbd6cfd78848a9187f86c368de879db14533"
+  },
+  {
+    "path": "/run/media/x/deco-backup/doppler-shared-platform-20261102/35b-f16-querytile-screen-30/receipt.json",
+    "bytes": 3448,
+    "sha256": "cd0c2379f0aabde67f6e002e817343718059c8e092b0e2ade1081831680695c9"
+  },
+  {
+    "path": "/run/media/x/deco-backup/doppler-shared-platform-20261102/35b-f16-querytile-screen-30/execution.json",
+    "bytes": 185236,
+    "sha256": "450cd19bdc0672d356b7552f148bfaf98a037443aa848ec9531f40db8e545f2e"
+  },
+  {
+    "path": "/run/media/x/deco-backup/doppler-shared-platform-20261102/experiment-launch-corrections-30.json",
+    "bytes": 452,
+    "sha256": "c0e70aaeb50ecf1012236895c9927f72d39bb11ed4b0740323c13562cad38209"
+  },
+  {
+    "path": "/run/media/x/deco-backup/doppler-shared-platform-20261102/source-checkpoint-no-hostwait-28-files.json",
+    "bytes": 360641,
+    "sha256": "d7c78caa6478107c9130dfd5b5d23dff7dcc7aef24e20cb4da2bcb8777e44f68"
+  },
+  {
+    "path": "/run/media/x/deco-backup/doppler-shared-platform-20261102/35b-checkpoint-state-28/receipt.json",
+    "bytes": 3723,
+    "sha256": "c6aa520185cb7d9edae8bc918a644397b8ac3280efdce3e098a5086c2277d207"
+  },
+  {
+    "path": "/run/media/x/deco-backup/doppler-shared-platform-20261102/35b-checkpoint-pooled-paired-28/execution.json",
+    "bytes": 5719,
+    "sha256": "4a9a24f27eff3bd7e1043ccad15415b403715ce0f62bdf635db29aacba9d712c"
+  },
+  {
+    "path": "/run/media/x/deco-backup/doppler-shared-platform-20261102/35b-checkpoint-pooled-paired-28/receipt.json",
+    "bytes": 7252,
+    "sha256": "8d463aac936db984142fdd94d0cef7300423ed9a6853cbf4b2bf6eb46ccd7042"
+  },
+  {
+    "path": "/run/media/x/deco-backup/doppler-shared-platform-20261102/mtp-source-raw-34/descriptor.json",
+    "bytes": 9561,
+    "sha256": "05faa66e72135d377ce00c88531f9d7d6632f81d05dac853581b957f51121677"
   }
 ]

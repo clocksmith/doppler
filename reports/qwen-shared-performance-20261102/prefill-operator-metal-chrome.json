@@ -1,0 +1,86 @@
+{
+  "passed": true,
+  "scope": "Chrome attention operator cases; no whole-model qualification",
+  "adapter": {
+    "vendor": "apple",
+    "architecture": "metal-3",
+    "device": "unknown",
+    "description": "",
+    "subgroupMinSize": 32,
+    "subgroupMaxSize": 32
+  },
+  "cases": [
+    {
+      "T": 1,
+      "S": 1,
+      "bitIdenticalAcrossCacheDtypesAndTiles": true,
+      "maxAbsIndependentReference": 0
+    },
+    {
+      "T": 7,
+      "S": 17,
+      "bitIdenticalAcrossCacheDtypesAndTiles": true,
+      "maxAbsIndependentReference": 5.906882101502919e-9
+    },
+    {
+      "T": 9,
+      "S": 33,
+      "start": 24,
+      "bitIdenticalAcrossCacheDtypesAndTiles": true,
+      "maxAbsIndependentReference": 4.606974004540965e-9
+    },
+    {
+      "T": 33,
+      "S": 33,
+      "softcap": 0.03,
+      "bitIdenticalAcrossCacheDtypesAndTiles": true,
+      "maxAbsIndependentReference": 4.271948260414771e-9
+    },
+    {
+      "T": 17,
+      "S": 64,
+      "start": 47,
+      "window": 16,
+      "bitIdenticalAcrossCacheDtypesAndTiles": true,
+      "maxAbsIndependentReference": 8.385614074651881e-9
+    },
+    {
+      "T": 8,
+      "S": 8,
+      "causal": false,
+      "bitIdenticalAcrossCacheDtypesAndTiles": true,
+      "maxAbsIndependentReference": 5.740040932150636e-9
+    },
+    {
+      "T": 8,
+      "S": 17,
+      "spanStart": 0,
+      "spanLength": 17,
+      "bitIdenticalAcrossCacheDtypesAndTiles": true,
+      "maxAbsIndependentReference": 5.752700867750482e-9
+    },
+    {
+      "T": 17,
+      "S": 17,
+      "kvStart": 32,
+      "bitIdenticalAcrossCacheDtypesAndTiles": true,
+      "maxAbsIndependentReference": 0
+    },
+    {
+      "T": 17,
+      "S": 33,
+      "start": 24,
+      "pageSize": 8,
+      "bitIdenticalAcrossCacheDtypesAndTiles": true,
+      "maxAbsIndependentReference": 5.675433123464302e-9
+    },
+    {
+      "T": 257,
+      "S": 257,
+      "H": 32,
+      "bitIdenticalAcrossCacheDtypesAndTiles": true,
+      "maxAbsIndependentReference": 3.0449516926975284e-9
+    }
+  ],
+  "errors": []
+}

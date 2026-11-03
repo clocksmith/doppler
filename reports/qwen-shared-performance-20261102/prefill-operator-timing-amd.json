@@ -1,0 +1,145 @@
+{
+  "scope": "Isolated attention operator wall diagnostic on equal half-rounded K/V inputs. Not model performance or frozen full-model precision qualification.",
+  "T": 2048,
+  "H": 16,
+  "D": 256,
+  "KV": 2,
+  "adapter": {
+    "vendor": "amd",
+    "architecture": "rdna-3",
+    "device": "radeon-8060s-graphics-radv-strix-halo-",
+    "description": "radv: Mesa 26.0.3-1ubuntu1",
+    "subgroupMinSize": 32,
+    "subgroupMaxSize": 64
+  },
+  "measurements": [
+    {
+      "repeat": 0,
+      "warmup": true,
+      "which": 0,
+      "completeOperatorMs": 28.416046999999935
+    },
+    {
+      "repeat": 0,
+      "warmup": true,
+      "which": 1,
+      "completeOperatorMs": 334.5604880000001
+    },
+    {
+      "repeat": 0,
+      "warmup": true,
+      "which": 2,
+      "completeOperatorMs": 27.136927000000014
+    },
+    {
+      "repeat": 1,
+      "warmup": false,
+      "which": 1,
+      "completeOperatorMs": 317.024911
+    },
+    {
+      "repeat": 1,
+      "warmup": false,
+      "which": 2,
+      "completeOperatorMs": 19.727347999999893
+    },
+    {
+      "repeat": 1,
+      "warmup": false,
+      "which": 0,
+      "completeOperatorMs": 18.86313899999982
+    },
+    {
+      "repeat": 2,
+      "warmup": false,
+      "which": 2,
+      "completeOperatorMs": 18.990929999999935
+    },
+    {
+      "repeat": 2,
+      "warmup": false,
+      "which": 0,
+      "completeOperatorMs": 25.90183899999988
+    },
+    {
+      "repeat": 2,
+      "warmup": false,
+      "which": 1,
+      "completeOperatorMs": 316.8912990000001
+    },
+    {
+      "repeat": 3,
+      "warmup": false,
+      "which": 0,
+      "completeOperatorMs": 18.28339599999981
+    },
+    {
+      "repeat": 3,
+      "warmup": false,
+      "which": 1,
+      "completeOperatorMs": 314.9762089999999
+    },
+    {
+      "repeat": 3,
+      "warmup": false,
+      "which": 2,
+      "completeOperatorMs": 17.96044800000027
+    },
+    {
+      "repeat": 4,
+      "warmup": false,
+      "which": 1,
+      "completeOperatorMs": 315.1613480000001
+    },
+    {
+      "repeat": 4,
+      "warmup": false,
+      "which": 2,
+      "completeOperatorMs": 30.633367000000362
+    },
+    {
+      "repeat": 4,
+      "warmup": false,
+      "which": 0,
+      "completeOperatorMs": 19.330781000000115
+    },
+    {
+      "repeat": 5,
+      "warmup": false,
+      "which": 2,
+      "completeOperatorMs": 18.713818000000174
+    },
+    {
+      "repeat": 5,
+      "warmup": false,
+      "which": 0,
+      "completeOperatorMs": 18.663253000000168
+    },
+    {
+      "repeat": 5,
+      "warmup": false,
+      "which": 1,
+      "completeOperatorMs": 316.54361400000016
+    },
+    {
+      "repeat": 6,
+      "warmup": false,
+      "which": 0,
+      "completeOperatorMs": 30.25297099999989
+    },
+    {
+      "repeat": 6,
+      "warmup": false,
+      "which": 1,
+      "completeOperatorMs": 317.32986600000004
+    },
+    {
+      "repeat": 6,
+      "warmup": false,
+      "which": 2,
+      "completeOperatorMs": 17.932455000000118
+    }
+  ],
+  "maxAbs": 3.725290298461914e-8,
+  "errors": []
+}

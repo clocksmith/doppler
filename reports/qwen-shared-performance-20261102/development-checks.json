@@ -4,7 +4,7 @@
     "doppler.tests"
   ],
   "intent": "preserved",
-  "boundaryEffects": "F16 KV write binding object identity only; rejected pooling changes removed.",
+  "boundaryEffects": "F16 cache query-tile attention registered as an opt-in variant, generated from the existing F32 owner; no production profile activation or checkpoint-wait change.",
   "checks": [
     {
       "command": "node tests/inference/kv-cache-direct-write.test.js",
@@ -33,6 +33,30 @@
     {
       "command": "npm run package:closure:check",
       "result": "passed;963 runtime JS,351 declarations,509 resources"
+    },
+    {
+      "command": "node tests/gpu/attention-query-tile-f16kv-gpu.test.js",
+      "result": "10 physical cases pass on AMD Node and M3 Node/Metal; same case body passes on M3 Chrome"
+    },
+    {
+      "command": "node tests/kernels/attention-f32-prefill-selection.test.js",
+      "result": "passed; precision, phase and geometry admission remain fail-closed"
+    },
+    {
+      "command": "npm run kernels:codegen:check && npm run kernels:uniforms:check && npm run kernels:registry:check && npm run kernels:digests:check",
+      "result": "passed"
+    },
+    {
+      "command": "npm run kernels:package-digests:check",
+      "result": "passed; registered shader identities match53 configuration files"
+    },
+    {
+      "command": "npm run typecheck:source && npm run source:style:check",
+      "result": "passed;150 strict roots and143 unused-local roots"
+    },
+    {
+      "command": "npm run package:closure:sync && npm run package:closure:check && npm run runtime:closure:sync && npm run runtime:closure:check",
+      "result": "passed;963 runtime JS,351 declarations,510 resources;88-file Capsule closure1152895 source bytes"
     }
   ],
   "unchangedArchitectureFailures": [
@@ -42,7 +66,9 @@
   "physicalAcceptance": [
     "F16 warm initialization and 128-token short request complete after one isolated cache-layout fix",
     "Four retained toy controls pass in three repetitions each; not held-out task qualification",
-    "Pooled readback candidate exact-state/logit regression passes but timing regresses; candidate removed"
+    "Pooled readback candidate exact-state/logit regression passes but timing regresses; candidate removed",
+    "Opt-in F16 query-tile35B Chrome screen completes both prompt lengths and four toy controls; full-model F16 qualification remains open",
+    "Checkpoint diagnostic exact-state gate passes; mixed timing results and three-engine order dependence retained; current main wait unchanged"
   ],
   "ciStatus": "not queried; no new green CI claim"
 }
