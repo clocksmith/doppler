@@ -59,7 +59,7 @@ export function parseManifest(jsonString) {
         filename: shard.filename || shard.fileName || '',
         size: shard.size,
         hash: getExpectedShardHash(shard, manifest.hashAlgorithm),
-        blake3: shard.blake3 || shard.hash,
+        blake3: shard.blake3 || (manifest.hashAlgorithm === 'blake3' ? shard.hash : undefined),
         offset: shard.offset ?? offset,
         hashAlgorithm: shard.hashAlgorithm,
       };

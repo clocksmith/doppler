@@ -604,16 +604,11 @@ export interface PendingFfnNorm {
 }
 
 export interface PipelineStats {
-  /** Whole-token decode program counters (decodeLoop.wholeTokenProgram); dispatches is null until built. */
-  wholeTokenProgram?: {
-    observedSteps: number;
-    replayedTokens: number;
-    restarts: number;
-    invalidations: number;
-    lastInvalidation: string | null;
+  /** Per-generation whole-token counters; dispatches is null until a program is built. */
+  wholeTokenProgram?: import('./generator/whole-token-program.js').WholeTokenProgram['stats'] & {
     dispatches: number | null;
   };
-  /** Wall time of replayed whole-token decode steps, in milliseconds. */
+  /** Per-generation wall time of replayed whole-token decode steps, in milliseconds. */
   wholeTokenProgramWallMs?: number;
   /** Full raw decoding counts when a manifest declares final-answer output semantics. */
   outputUsage?: { rawCharacters: number; rawTokens: number; finalCharacters: number; state: string };

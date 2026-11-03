@@ -97,6 +97,62 @@ fn gemv(@builtin(workgroup_id) group: vec3<u32>, @builtin(num_workgroups) grid: 
     if (thread == 0u && n < u.N) { output[u.c_offset + m * u.N + n] = partial[lane] * u.alpha; }
 }
 
+// Keep the baseline reduction order while reading each block header and high
+// bit byte once per lane. The registered variant uses 32 lanes for each native
+// Q5_K group of 32 values; loop topology is block, group, then the same reduction.
+fn q5k_scale_min(group: u32, first: u32, second: u32, third: u32) -> vec2<u32> {
+    let shift = (group % 4u) * 8u;
+    let a = (first >> shift) & 255u;
+    let b = (second >> shift) & 255u;
+    let c = (third >> shift) & 255u;
+    if (group < 4u) { return vec2<u32>(a & 63u, b & 63u); }
+    return vec2<u32>((c & 15u) | ((a >> 6u) << 4u),
+        (c >> 4u) | ((b >> 6u) << 4u));
+}
+
+@compute @workgroup_size(WORKGROUP_SIZE, 1, 1)
+fn gemv_blockwise(@builtin(workgroup_id) group: vec3<u32>, @builtin(num_workgroups) grid: vec3<u32>,
+        @builtin(local_invocation_index) lane: u32) {
+    let tiles_n = (u.N + COLS_PER_WG - 1u) / COLS_PER_WG;
+    let tile = group.x + group.y * grid.x;
+    let m = tile / tiles_n;
+    if (m >= u.M) { return; }
+    let column = lane / THREADS_PER_COL_GEMV;
+    let thread = lane % THREADS_PER_COL_GEMV;
+    let n = (tile % tiles_n) * COLS_PER_WG + column;
+    var sum = 0.0f;
+    if (n < u.N) {
+        for (var block = 0u; block < u.blocks; block++) {
+            let base = ((u.b_row + n) * u.blocks + block) * BLOCK_BYTES;
+            let scales = unpack2x16float(weights[base / 4u]);
+            let first = weights[base / 4u + 1u];
+            let second = weights[base / 4u + 2u];
+            let third = weights[base / 4u + 3u];
+            let high = q5k_byte(base + 16u + thread);
+            let low = vec4<u32>(q5k_byte(base + 48u + thread),
+                q5k_byte(base + 80u + thread), q5k_byte(base + 112u + thread),
+                q5k_byte(base + 144u + thread));
+            for (var index = 0u; index < 8u; index++) {
+                let scale_min = q5k_scale_min(index, first, second, third);
+                let quant = ((low[index / 2u] >> ((index % 2u) * 4u)) & 15u)
+                    | (((high >> index) & 1u) << 4u);
+                let d = scales.x * f32(scale_min.x);
+                let minimum = scales.y * f32(scale_min.y);
+                let value = d * f32(quant) - minimum;
+                let k = block * BLOCK_VALUES + index * 32u + thread;
+                sum = fma(input[u.a_offset + m * u.K + k], value, sum);
+            }
+        }
+    }
+    partial[lane] = sum;
+    workgroupBarrier();
+    for (var stride = THREADS_PER_COL_GEMV / 2u; stride > 0u; stride /= 2u) {
+        if (thread < stride) { partial[lane] += partial[lane + stride]; }
+        workgroupBarrier();
+    }
+    if (thread == 0u && n < u.N) { output[u.c_offset + m * u.N + n] = partial[lane] * u.alpha; }
+}
+
 @compute @workgroup_size(TILE_SIZE, TILE_SIZE, 1)
 fn prefill(@builtin(workgroup_id) group: vec3<u32>, @builtin(num_workgroups) grid: vec3<u32>,
            @builtin(local_invocation_id) lane: vec3<u32>) {

@@ -49,26 +49,32 @@ try {
       const input = createTensor(upload(values), 'f32', [M + bank, K]);
       const expected = projectReference(values.subarray(bank * K), decoded.subarray(bank * N * K), M, N, K);
       for (const mode of ['immediate', 'recorded']) {
-        const recorder = mode === 'recorded' ? createCommandRecorder('matmul_gguf_pair') : null;
-        const prefix = bank * 4;
-        const output = upload(new Float32Array(M * N + 16).fill(-12345));
-        const options = { outputDtype: 'f32', variant: `${dtype}_pair`, outputBuffer: output,
-          aOffset: bank * K * 4, bOffset: bank * N * K / blockValues * blockBytes, cOffset: prefix * 4 };
-        const result = recorder
-          ? await recordQ40Matmul(recorder, input, weight, M, N, K, options)
-          : await runQ40Matmul(input, weight, M, N, K, options);
-        if (recorder) await recorder.submitAndWait();
-        const actual = new Float32Array(await readBuffer(result.buffer, (M * N + 16) * 4));
-        let maxAbs = 0;
-        for (let i = 0; i < expected.length; i++) {
-          const error = Math.abs(actual[prefix + i] - expected[i]);
-          maxAbs = Math.max(maxAbs, error);
-          assert.ok(Number.isFinite(actual[prefix + i]) && error <= 2e-4 + 2e-5 * Math.abs(expected[i]),
-            `${dtype}/${mode} M=${M} N=${N} K=${K} [${i}] ${actual[prefix + i]} vs ${expected[i]}`);
+        let baselineBits = null;
+        for (const variant of dtype === 'q4_0' ? ['q4_0_pair', 'q4_0_pair_rows2', 'q4_0_pair_rows4'] : [`${dtype}_pair`]) {
+          const recorder = mode === 'recorded' ? createCommandRecorder('matmul_gguf_pair') : null;
+          const prefix = bank * 4;
+          const output = upload(new Float32Array(M * N + 16).fill(-12345));
+          const options = { outputDtype: 'f32', variant, outputBuffer: output,
+            aOffset: bank * K * 4, bOffset: bank * N * K / blockValues * blockBytes, cOffset: prefix * 4 };
+          const result = recorder
+            ? await recordQ40Matmul(recorder, input, weight, M, N, K, options)
+            : await runQ40Matmul(input, weight, M, N, K, options);
+          if (recorder) await recorder.submitAndWait();
+          const actual = new Float32Array(await readBuffer(result.buffer, (M * N + 16) * 4));
+          let maxAbs = 0;
+          for (let i = 0; i < expected.length; i++) {
+            const error = Math.abs(actual[prefix + i] - expected[i]);
+            maxAbs = Math.max(maxAbs, error);
+            assert.ok(Number.isFinite(actual[prefix + i]) && error <= 2e-4 + 2e-5 * Math.abs(expected[i]),
+              `${dtype}/${mode} M=${M} N=${N} K=${K} [${i}] ${actual[prefix + i]} vs ${expected[i]}`);
+          }
+          assert.ok(actual.subarray(0, prefix).every((x) => x === -12345), 'prefix untouched');
+          assert.ok(actual.subarray(prefix + M * N).every((x) => x === -12345), 'tail untouched');
+          const bits = new Uint32Array(actual.buffer);
+          if (baselineBits) assert.deepEqual(bits, baselineBits, `${variant}/${mode} changes projection or guard bits`);
+          else baselineBits = bits;
+          console.log(JSON.stringify({ dtype, variant, M, N, K, bank, mode, maxAbs, rowGroupingBitwiseParity: true }));
         }
-        assert.ok(actual.subarray(0, prefix).every((x) => x === -12345), 'prefix untouched');
-        assert.ok(actual.subarray(prefix + M * N).every((x) => x === -12345), 'tail untouched');
-        console.log(JSON.stringify({ dtype, M, N, K, bank, mode, maxAbs }));
       }
     }
     const oddK = blockValues * 3;

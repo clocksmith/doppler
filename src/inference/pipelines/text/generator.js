@@ -153,6 +153,8 @@ export class PipelineGenerator {
   }
 
   _resetDecodeRuntimeState() {
+    delete this._state.stats.wholeTokenProgram;
+    this._state.stats.wholeTokenProgramWallMs = 0;
     this._state.stats.prefillProfileSteps = [];
     this._state.stats.decodeMode = null;
     this._state.stats.batchGuardReason = null;
