@@ -1,0 +1,18 @@
+{
+  "hypothesis": "Whole-token capture accepts a nonconsecutive observation window after a target-verified lookup step, although affine inference requires a consecutive initial pair. Preserve the compiler contract by retaining a consecutive capture suffix.",
+  "upstreamPositions": [
+    102,
+    104,
+    105,
+    106
+  ],
+  "downstreamError": "rope_qk_bind_group word 4 is not affine in position",
+  "regressionPositions": [
+    10,
+    12,
+    13,
+    14,
+    15
+  ],
+  "scope": "Replay capture validity; no model weights, math, precision, or sampling change."
+}

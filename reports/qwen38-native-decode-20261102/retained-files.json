@@ -1,0 +1,32 @@
+[
+  {
+    "path": "/run/media/x/deco-backup/doppler-shared-platform-20261102/27b-f32-ab-logit-reference-01/long-0-doppler.json",
+    "bytes": 63678775,
+    "sha256": "6cb42b627b2a666061099c2a9d45051436f2909f29c3b662f5aa49e8bac19045"
+  },
+  {
+    "path": "/run/media/x/deco-backup/doppler-shared-platform-20261102/27b-q5k-long-logits-10/long-0-doppler.json",
+    "bytes": 63678855,
+    "sha256": "f011a07f307900ecf0399ac74340ed48e01fe578409ab060137cb342211e0bfa"
+  },
+  {
+    "path": "/run/media/x/deco-backup/doppler-shared-platform-20261102/lookup-whole-gap-before-08.log",
+    "bytes": 1000,
+    "sha256": "3608426ae496f49449c37d297e458adac7185bef470b2225a7dbfe4b43107bbb"
+  },
+  {
+    "path": "/run/media/x/deco-backup/doppler-shared-platform-20261102/lookup-whole-gap-after-08.log",
+    "bytes": 4238,
+    "sha256": "e90e38f1627a2a083f39a2fedb00a777f2dcffeccb5cf46d9eb07bd13a8e69dd"
+  },
+  {
+    "path": "/run/media/x/deco-backup/doppler-shared-platform-20261102/q5k-gap-final-source-checks-10.log",
+    "bytes": 667,
+    "sha256": "c0b1c61ad5d9fb331f6696dbb904633f3dcbff74988913fe9295a93609a68e2b"
+  },
+  {
+    "path": "/run/media/x/deco-backup/doppler-shared-platform-20261102/runtime-closure-refresh-11.log",
+    "bytes": 718,
+    "sha256": "e32d4cba0232f074f9cd728bbda0d15d33496fefac9634dc2c58532496b922b8"
+  }
+]

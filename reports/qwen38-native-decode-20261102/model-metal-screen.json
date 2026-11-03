@@ -1,0 +1,166 @@
+{
+  "scope": "Exploratory serial cohorts with large variance; no whole-model M3 improvement established.",
+  "identical128TokensAcrossSixRuns": true,
+  "observations": [
+    {
+      "variant": "baseline",
+      "observations": [
+        {
+          "repeat": 0,
+          "warmup": true,
+          "completeMs": 104289.29999995232,
+          "prefillMs": 62737.59999990463,
+          "logicalGpuAllocations": {
+            "currentBytes": 16737481552,
+            "peakBytes": 16898110288,
+            "count": 6384,
+            "destroyed": 4038
+          },
+          "wholeTokenProgram": {
+            "observedSteps": 4,
+            "replayedTokens": 122,
+            "replaySubmissions": 122,
+            "batchReadbacks": 122,
+            "restarts": 0,
+            "invalidations": 0,
+            "reused": false,
+            "verifiedAhead": false,
+            "lastInvalidation": null,
+            "dispatches": 934
+          },
+          "decodeMode": "batched_gpu"
+        },
+        {
+          "repeat": 1,
+          "warmup": false,
+          "completeMs": 73880.59999990463,
+          "prefillMs": 5611.599999904633,
+          "logicalGpuAllocations": {
+            "currentBytes": 16722083408,
+            "peakBytes": 16882712144,
+            "count": 8195,
+            "destroyed": 5849
+          },
+          "wholeTokenProgram": {
+            "observedSteps": 0,
+            "replayedTokens": 127,
+            "replaySubmissions": 127,
+            "batchReadbacks": 125,
+            "restarts": 0,
+            "invalidations": 0,
+            "reused": true,
+            "verifiedAhead": true,
+            "lastInvalidation": null,
+            "dispatches": 934
+          },
+          "decodeMode": "batched_gpu"
+        },
+        {
+          "repeat": 2,
+          "warmup": false,
+          "completeMs": 68878.70000004768,
+          "prefillMs": 6567.200000047684,
+          "logicalGpuAllocations": {
+            "currentBytes": 16722083408,
+            "peakBytes": 16882712144,
+            "count": 10189,
+            "destroyed": 7843
+          },
+          "wholeTokenProgram": {
+            "observedSteps": 0,
+            "replayedTokens": 127,
+            "replaySubmissions": 127,
+            "batchReadbacks": 125,
+            "restarts": 0,
+            "invalidations": 0,
+            "reused": true,
+            "verifiedAhead": true,
+            "lastInvalidation": null,
+            "dispatches": 934
+          },
+          "decodeMode": "batched_gpu"
+        }
+      ]
+    },
+    {
+      "variant": "candidate",
+      "observations": [
+        {
+          "repeat": 0,
+          "warmup": true,
+          "completeMs": 97706.20000004768,
+          "prefillMs": 16540.599999904633,
+          "logicalGpuAllocations": {
+            "currentBytes": 16737481552,
+            "peakBytes": 16898110288,
+            "count": 6384,
+            "destroyed": 4038
+          },
+          "wholeTokenProgram": {
+            "observedSteps": 4,
+            "replayedTokens": 122,
+            "replaySubmissions": 122,
+            "batchReadbacks": 122,
+            "restarts": 0,
+            "invalidations": 0,
+            "reused": false,
+            "verifiedAhead": false,
+            "lastInvalidation": null,
+            "dispatches": 934
+          },
+          "decodeMode": "batched_gpu"
+        },
+        {
+          "repeat": 1,
+          "warmup": false,
+          "completeMs": 96563,
+          "prefillMs": 8105.699999809265,
+          "logicalGpuAllocations": {
+            "currentBytes": 16722083408,
+            "peakBytes": 16882712144,
+            "count": 8195,
+            "destroyed": 5849
+          },
+          "wholeTokenProgram": {
+            "observedSteps": 0,
+            "replayedTokens": 127,
+            "replaySubmissions": 127,
+            "batchReadbacks": 125,
+            "restarts": 0,
+            "invalidations": 0,
+            "reused": true,
+            "verifiedAhead": true,
+            "lastInvalidation": null,
+            "dispatches": 934
+          },
+          "decodeMode": "batched_gpu"
+        },
+        {
+          "repeat": 2,
+          "warmup": false,
+          "completeMs": 64826.799999952316,
+          "prefillMs": 7080.400000095367,
+          "logicalGpuAllocations": {
+            "currentBytes": 16722083408,
+            "peakBytes": 16882712144,
+            "count": 10189,
+            "destroyed": 7843
+          },
+          "wholeTokenProgram": {
+            "observedSteps": 0,
+            "replayedTokens": 127,
+            "replaySubmissions": 127,
+            "batchReadbacks": 125,
+            "restarts": 0,
+            "invalidations": 0,
+            "reused": true,
+            "verifiedAhead": true,
+            "lastInvalidation": null,
+            "dispatches": 934
+          },
+          "decodeMode": "batched_gpu"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,97 @@
+{
+  "scope": "F64 source-equation diagnostic of F32 alpha/beta GEMV candidate, F32 KV cache; no acceptance threshold changed",
+  "allPassed": false,
+  "full128BaselineTokenParity": true,
+  "rows": [
+    {
+      "outputIndex": 0,
+      "maxAbs": 0.0008723405747721458,
+      "rms": 0.0001042105555117364,
+      "worstVocabId": 414,
+      "worstGPU": 1.3552987575531006,
+      "worstReference": 1.3561710981278727,
+      "argmaxMatch": true,
+      "passed": true
+    },
+    {
+      "outputIndex": 1,
+      "maxAbs": 0.0010644383241191768,
+      "rms": 7.064228042880282e-05,
+      "worstVocabId": 2450,
+      "worstGPU": 3.452045440673828,
+      "worstReference": 3.450981002349709,
+      "argmaxMatch": true,
+      "passed": false
+    },
+    {
+      "outputIndex": 52,
+      "maxAbs": 0.0007530983417183279,
+      "rms": 6.875557482045373e-05,
+      "worstVocabId": 2961,
+      "worstGPU": 17.869384765625,
+      "worstReference": 17.87013786396672,
+      "argmaxMatch": true,
+      "passed": true
+    },
+    {
+      "outputIndex": 89,
+      "maxAbs": 0.0006074266659652494,
+      "rms": 5.3831074278398136e-05,
+      "worstVocabId": 27335,
+      "worstGPU": 8.553750038146973,
+      "worstReference": 8.554357464812938,
+      "argmaxMatch": true,
+      "passed": true
+    },
+    {
+      "outputIndex": 90,
+      "maxAbs": 0.0005807247274054461,
+      "rms": 7.06751367105246e-05,
+      "worstVocabId": 82926,
+      "worstGPU": 2.0552315711975098,
+      "worstReference": 2.055812295924915,
+      "argmaxMatch": true,
+      "passed": true
+    },
+    {
+      "outputIndex": 121,
+      "maxAbs": 0.0008399318593195204,
+      "rms": 8.252335964937342e-05,
+      "worstVocabId": 272,
+      "worstGPU": 5.462037086486816,
+      "worstReference": 5.461197154627497,
+      "argmaxMatch": true,
+      "passed": true
+    },
+    {
+      "outputIndex": 122,
+      "maxAbs": 0.0018767872398353092,
+      "rms": 7.607126940738728e-05,
+      "worstVocabId": 351,
+      "worstGPU": 5.973986625671387,
+      "worstReference": 5.972109838431551,
+      "argmaxMatch": true,
+      "passed": false
+    },
+    {
+      "outputIndex": 123,
+      "maxAbs": 0.0019830522163655218,
+      "rms": 8.640600939108749e-05,
+      "worstVocabId": 351,
+      "worstGPU": 7.8047776222229,
+      "worstReference": 7.802794570006535,
+      "argmaxMatch": true,
+      "passed": false
+    },
+    {
+      "outputIndex": 127,
+      "maxAbs": 0.0004939786197857288,
+      "rms": 5.8392219931735204e-05,
+      "worstVocabId": 17916,
+      "worstGPU": 4.863351821899414,
+      "worstReference": 4.8638458005192,
+      "argmaxMatch": true,
+      "passed": true
+    }
+  ]
+}

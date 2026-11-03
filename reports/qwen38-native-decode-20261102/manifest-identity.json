@@ -1,0 +1,10 @@
+{
+  "source": "27b-native-01",
+  "derivative": "27b-native-03",
+  "tensorCount": 851,
+  "tensorMapsIdentical": true,
+  "shardBytesIdenticalHardlinks": true,
+  "hashAlgorithm": "sha256",
+  "noSHA256RelabeledAsBLAKE3": true,
+  "manifestSHA256": "69b8c4e9aa0fb148581595d3da8b0cb304a3eb942e1da0a2c7267e73c86662de"
+}

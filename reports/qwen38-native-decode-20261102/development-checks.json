@@ -1,0 +1,93 @@
+[
+  {
+    "command": [
+      "npm",
+      "run",
+      "typecheck:source"
+    ],
+    "exitCode": 0,
+    "seconds": 3.4700403213500977,
+    "log": "q5k-rows-final-check-00.log"
+  },
+  {
+    "command": [
+      "npm",
+      "run",
+      "source:style:check"
+    ],
+    "exitCode": 0,
+    "seconds": 3.2207791805267334,
+    "log": "q5k-rows-final-check-01.log"
+  },
+  {
+    "command": [
+      "npm",
+      "run",
+      "kernels:uniforms:check"
+    ],
+    "exitCode": 0,
+    "seconds": 0.8155472278594971,
+    "log": "q5k-rows-final-check-02.log"
+  },
+  {
+    "command": [
+      "npm",
+      "run",
+      "kernels:registry:check"
+    ],
+    "exitCode": 0,
+    "seconds": 0.5649592876434326,
+    "log": "q5k-rows-final-check-03.log"
+  },
+  {
+    "command": [
+      "npm",
+      "run",
+      "kernels:digests:check"
+    ],
+    "exitCode": 0,
+    "seconds": 0.31455111503601074,
+    "log": "q5k-rows-final-check-04.log"
+  },
+  {
+    "command": [
+      "npm",
+      "run",
+      "kernels:conversion-digests:check",
+      "--",
+      "--file",
+      "src/config/conversion/qwen3/qwen3.8-27b-q4_0-passthrough.json"
+    ],
+    "exitCode": 0,
+    "seconds": 0.2645859718322754,
+    "log": "q5k-rows-final-check-05.log"
+  },
+  {
+    "command": [
+      "node",
+      "tests/formats/rdrr-parsing-contract.test.js"
+    ],
+    "exitCode": 0,
+    "seconds": 0.1640782356262207,
+    "log": "q5k-rows-final-check-06.log"
+  },
+  {
+    "command": [
+      "node",
+      "tests/config/refresh-converted-manifest.test.js"
+    ],
+    "exitCode": 0,
+    "seconds": 0.21410727500915527,
+    "log": "q5k-rows-final-check-07.log"
+  },
+  {
+    "command": [
+      "git",
+      "diff",
+      "--check"
+    ],
+    "exitCode": 0,
+    "seconds": 0.015915870666503906,
+    "log": "q5k-rows-final-check-08.log"
+  }
+]

@@ -1,0 +1,155 @@
+{
+  "scope": "Alternating real Q5_K projection diagnostic only; timestamp instrumentation and repeated same-input buffers. Not model or application throughput.",
+  "fixture": {
+    "sourceTensor": "blk.0.ssm_out.weight",
+    "rows": 5120,
+    "cols": 6144,
+    "weightSHA256": "79114a548adf95441d61ec42d19dbedd5cf5505c31644d6ba1b329db526884ef",
+    "inputSHA256": "130d7ae07557c3436f038eeba65aa82916256a027364c1d004e9206ed118cc2f"
+  },
+  "bitwiseParity": true,
+  "measurements": [
+    {
+      "pair": 0,
+      "variant": "q5k_gemv",
+      "repetitions": 16,
+      "wallMs": 2.9574218749999996,
+      "gpuMs": 2.818048
+    },
+    {
+      "pair": 0,
+      "variant": "q5k_gemv_blockwise",
+      "repetitions": 16,
+      "wallMs": 0.7081093750000012,
+      "gpuMs": 0.630784
+    },
+    {
+      "pair": 1,
+      "variant": "q5k_gemv_blockwise",
+      "repetitions": 16,
+      "wallMs": 0.6840026249999998,
+      "gpuMs": 0.630784
+    },
+    {
+      "pair": 1,
+      "variant": "q5k_gemv",
+      "repetitions": 16,
+      "wallMs": 1.7957421875000001,
+      "gpuMs": 1.744896
+    },
+    {
+      "pair": 2,
+      "variant": "q5k_gemv",
+      "repetitions": 16,
+      "wallMs": 1.7953437499999971,
+      "gpuMs": 1.744896
+    },
+    {
+      "pair": 2,
+      "variant": "q5k_gemv_blockwise",
+      "repetitions": 16,
+      "wallMs": 0.6809088750000001,
+      "gpuMs": 0.630784
+    },
+    {
+      "pair": 3,
+      "variant": "q5k_gemv_blockwise",
+      "repetitions": 16,
+      "wallMs": 0.6794036875000025,
+      "gpuMs": 0.630784
+    },
+    {
+      "pair": 3,
+      "variant": "q5k_gemv",
+      "repetitions": 16,
+      "wallMs": 1.7949166874999989,
+      "gpuMs": 1.744896
+    },
+    {
+      "pair": 4,
+      "variant": "q5k_gemv",
+      "repetitions": 16,
+      "wallMs": 1.8132759999999983,
+      "gpuMs": 1.748992
+    },
+    {
+      "pair": 4,
+      "variant": "q5k_gemv_blockwise",
+      "repetitions": 16,
+      "wallMs": 0.6838073125000008,
+      "gpuMs": 0.626688
+    },
+    {
+      "pair": 5,
+      "variant": "q5k_gemv_blockwise",
+      "repetitions": 16,
+      "wallMs": 0.6819999999999986,
+      "gpuMs": 0.630784
+    },
+    {
+      "pair": 5,
+      "variant": "q5k_gemv",
+      "repetitions": 16,
+      "wallMs": 1.7953567499999998,
+      "gpuMs": 1.748992
+    },
+    {
+      "pair": 6,
+      "variant": "q5k_gemv",
+      "repetitions": 16,
+      "wallMs": 1.8015104374999993,
+      "gpuMs": 1.744896
+    },
+    {
+      "pair": 6,
+      "variant": "q5k_gemv_blockwise",
+      "repetitions": 16,
+      "wallMs": 0.6766275624999984,
+      "gpuMs": 0.630784
+    },
+    {
+      "pair": 7,
+      "variant": "q5k_gemv_blockwise",
+      "repetitions": 16,
+      "wallMs": 0.6759427500000008,
+      "gpuMs": 0.630784
+    },
+    {
+      "pair": 7,
+      "variant": "q5k_gemv",
+      "repetitions": 16,
+      "wallMs": 1.7951328124999968,
+      "gpuMs": 1.744896
+    },
+    {
+      "pair": 8,
+      "variant": "q5k_gemv",
+      "repetitions": 16,
+      "wallMs": 1.7958333750000008,
+      "gpuMs": 1.748992
+    },
+    {
+      "pair": 8,
+      "variant": "q5k_gemv_blockwise",
+      "repetitions": 16,
+      "wallMs": 0.6766953125000015,
+      "gpuMs": 0.630784
+    },
+    {
+      "pair": 9,
+      "variant": "q5k_gemv_blockwise",
+      "repetitions": 16,
+      "wallMs": 0.6763645624999981,
+      "gpuMs": 0.630784
+    },
+    {
+      "pair": 9,
+      "variant": "q5k_gemv",
+      "repetitions": 16,
+      "wallMs": 1.858343750000003,
+      "gpuMs": 1.744896
+    }
+  ],
+  "gpuErrors": [],
+  "shaderSHA256": "5f80d9b6dc82430d566a0385240a334bc9d5684482b242a9188d2ab1d4d4d9e1"
+}

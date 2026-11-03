@@ -1,0 +1,278 @@
+{
+  "scope": "Independent diagnostic decomposition only; no qualification or tolerance change. Prepared workspace disabled explicitly for semantic diagnostics.",
+  "resultFile": "/run/media/x/deco-backup/doppler-shared-platform-20261102/27b-final-norm-diagnostic-02/long-0-doppler.json",
+  "tokenParity128": true,
+  "headTensorSHA256": "2155d6e1f7c5549077438c4760e6e150945dd5e406484b29162dff7b03d05da0",
+  "rows": [
+    {
+      "outputIndex": 0,
+      "preFinalNormVsF64Hidden": {
+        "maxAbs": 0.0011479862087391268,
+        "rms": 0.0002863662127310722,
+        "worstIndex": 3948,
+        "left": 9.102372169494629,
+        "right": 9.10122418328589
+      },
+      "GPUFinalNormVsF64FromSameHidden": {
+        "maxAbs": 1.8976782598656428e-06,
+        "rms": 7.660075765167588e-08,
+        "worstIndex": 671,
+        "left": 32.44105529785156,
+        "right": 32.44105719552982
+      },
+      "GPUHeadVsF64FromSameGPUHeadInput": {
+        "maxAbs": 4.270708906517484e-06,
+        "rms": 5.467315207634644e-07,
+        "worstIndex": 107662,
+        "left": -3.3711695671081543,
+        "right": -3.371165296399248
+      },
+      "GPUHeadVsF64WithOnlyFinalNormCorrected": {
+        "maxAbs": 4.171622444815171e-06,
+        "rms": 5.516828105563406e-07,
+        "worstIndex": 213549,
+        "left": -3.4231979846954346,
+        "right": -3.4231938130729898
+      },
+      "GPUHeadVsEndToEndF64": {
+        "maxAbs": 0.0008723405747721458,
+        "rms": 0.0001042105555117364,
+        "worstIndex": 414,
+        "left": 1.3552987575531006,
+        "right": 1.3561710981278727
+      },
+      "F64HeadFromGPUInputVsEndToEndF64": {
+        "maxAbs": 0.0008714234842623902,
+        "rms": 0.0001042081679979367,
+        "worstIndex": 414,
+        "left": 1.3552996746436103,
+        "right": 1.3561710981278727
+      }
+    },
+    {
+      "outputIndex": 1,
+      "preFinalNormVsF64Hidden": {
+        "maxAbs": 0.0017156302037619753,
+        "rms": 0.00024084798390481969,
+        "worstIndex": 3994,
+        "left": 332.298828125,
+        "right": 332.30054375520376
+      },
+      "GPUFinalNormVsF64FromSameHidden": {
+        "maxAbs": 1.7215184087149282e-06,
+        "rms": 9.55478611960867e-08,
+        "worstIndex": 1089,
+        "left": -22.243772506713867,
+        "right": -22.243774228232276
+      },
+      "GPUHeadVsF64FromSameGPUHeadInput": {
+        "maxAbs": 2.4406478278393706e-06,
+        "rms": 2.8648698059917604e-07,
+        "worstIndex": 158964,
+        "left": -11.294365882873535,
+        "right": -11.294368323521363
+      },
+      "GPUHeadVsF64WithOnlyFinalNormCorrected": {
+        "maxAbs": 3.0774770838348786e-06,
+        "rms": 3.461020796648402e-07,
+        "worstIndex": 158964,
+        "left": -11.294365882873535,
+        "right": -11.294368960350619
+      },
+      "GPUHeadVsEndToEndF64": {
+        "maxAbs": 0.0010644383241191768,
+        "rms": 7.064228042880282e-05,
+        "worstIndex": 2450,
+        "left": 3.452045440673828,
+        "right": 3.450981002349709
+      },
+      "F64HeadFromGPUInputVsEndToEndF64": {
+        "maxAbs": 0.0010644006442777076,
+        "rms": 7.064121756241234e-05,
+        "worstIndex": 2450,
+        "left": 3.4520454029939867,
+        "right": 3.450981002349709
+      }
+    },
+    {
+      "outputIndex": 121,
+      "preFinalNormVsF64Hidden": {
+        "maxAbs": 0.00205789279164037,
+        "rms": 0.00026791710554787654,
+        "worstIndex": 3994,
+        "left": 269.1913757324219,
+        "right": 269.1934336252135
+      },
+      "GPUFinalNormVsF64FromSameHidden": {
+        "maxAbs": 1.1305817526618966e-06,
+        "rms": 7.23867704934506e-08,
+        "worstIndex": 4453,
+        "left": -8.726570129394531,
+        "right": -8.726571259976284
+      },
+      "GPUHeadVsF64FromSameGPUHeadInput": {
+        "maxAbs": 1.9887987443567567e-06,
+        "rms": 2.6330078598209195e-07,
+        "worstIndex": 186356,
+        "left": -7.370024681091309,
+        "right": -7.370022692292564
+      },
+      "GPUHeadVsF64WithOnlyFinalNormCorrected": {
+        "maxAbs": 1.9783053470945333e-06,
+        "rms": 2.905825957880447e-07,
+        "worstIndex": 145263,
+        "left": -7.5081682205200195,
+        "right": -7.508170198825367
+      },
+      "GPUHeadVsEndToEndF64": {
+        "maxAbs": 0.0008399318593195204,
+        "rms": 8.252335964937342e-05,
+        "worstIndex": 272,
+        "left": 5.462037086486816,
+        "right": 5.461197154627497
+      },
+      "F64HeadFromGPUInputVsEndToEndF64": {
+        "maxAbs": 0.0008400626521689603,
+        "rms": 8.252326392119677e-05,
+        "worstIndex": 272,
+        "left": 5.462037217279666,
+        "right": 5.461197154627497
+      }
+    },
+    {
+      "outputIndex": 122,
+      "preFinalNormVsF64Hidden": {
+        "maxAbs": 0.001439235647183068,
+        "rms": 0.00028694409538091337,
+        "worstIndex": 3994,
+        "left": 237.87538146972656,
+        "right": 237.87394223407938
+      },
+      "GPUFinalNormVsF64FromSameHidden": {
+        "maxAbs": 3.794386309152742e-06,
+        "rms": 1.425869297214297e-07,
+        "worstIndex": 1089,
+        "left": -30.388898849487305,
+        "right": -30.388902643873614
+      },
+      "GPUHeadVsF64FromSameGPUHeadInput": {
+        "maxAbs": 1.8227597804454376e-06,
+        "rms": 2.3376092463767908e-07,
+        "worstIndex": 190595,
+        "left": -4.403376579284668,
+        "right": -4.403378402044448
+      },
+      "GPUHeadVsF64WithOnlyFinalNormCorrected": {
+        "maxAbs": 3.460190427517773e-06,
+        "rms": 3.46513889626589e-07,
+        "worstIndex": 17872,
+        "left": 23.771474838256836,
+        "right": 23.771478298447263
+      },
+      "GPUHeadVsEndToEndF64": {
+        "maxAbs": 0.0018767872398353092,
+        "rms": 7.607126940738728e-05,
+        "worstIndex": 351,
+        "left": 5.973986625671387,
+        "right": 5.972109838431551
+      },
+      "F64HeadFromGPUInputVsEndToEndF64": {
+        "maxAbs": 0.001876805846118046,
+        "rms": 7.607283760502835e-05,
+        "worstIndex": 351,
+        "left": 5.9739866442776695,
+        "right": 5.972109838431551
+      }
+    },
+    {
+      "outputIndex": 123,
+      "preFinalNormVsF64Hidden": {
+        "maxAbs": 0.002523869157869285,
+        "rms": 0.00031476068855948273,
+        "worstIndex": 3994,
+        "left": 273.1080017089844,
+        "right": 273.11052557814224
+      },
+      "GPUFinalNormVsF64FromSameHidden": {
+        "maxAbs": 9.246738841284241e-07,
+        "rms": 8.142437177111883e-08,
+        "worstIndex": 795,
+        "left": 11.570318222045898,
+        "right": 11.570317297372014
+      },
+      "GPUHeadVsF64FromSameGPUHeadInput": {
+        "maxAbs": 2.5097764329018446e-06,
+        "rms": 2.4425986462942894e-07,
+        "worstIndex": 176132,
+        "left": -9.441543579101562,
+        "right": -9.44154106932513
+      },
+      "GPUHeadVsF64WithOnlyFinalNormCorrected": {
+        "maxAbs": 2.744046064151462e-06,
+        "rms": 2.6017238899426915e-07,
+        "worstIndex": 7189,
+        "left": 27.49758529663086,
+        "right": 27.497582552584795
+      },
+      "GPUHeadVsEndToEndF64": {
+        "maxAbs": 0.0019830522163655218,
+        "rms": 8.640600939108749e-05,
+        "worstIndex": 351,
+        "left": 7.8047776222229,
+        "right": 7.802794570006535
+      },
+      "F64HeadFromGPUInputVsEndToEndF64": {
+        "maxAbs": 0.001983319037261566,
+        "rms": 8.640569875269156e-05,
+        "worstIndex": 351,
+        "left": 7.804777889043796,
+        "right": 7.802794570006535
+      }
+    },
+    {
+      "outputIndex": 127,
+      "preFinalNormVsF64Hidden": {
+        "maxAbs": 0.0017078771766136924,
+        "rms": 0.00020440704127101198,
+        "worstIndex": 3994,
+        "left": 392.40185546875,
+        "right": 392.4001475915734
+      },
+      "GPUFinalNormVsF64FromSameHidden": {
+        "maxAbs": 1.1875132273075906e-06,
+        "rms": 5.197742754813149e-08,
+        "worstIndex": 3994,
+        "left": 37.82707977294922,
+        "right": 37.82707858543599
+      },
+      "GPUHeadVsF64FromSameGPUHeadInput": {
+        "maxAbs": 2.6364900271858005e-06,
+        "rms": 2.8601370337929086e-07,
+        "worstIndex": 80813,
+        "left": -10.941237449645996,
+        "right": -10.941234813155969
+      },
+      "GPUHeadVsF64WithOnlyFinalNormCorrected": {
+        "maxAbs": 2.9183151966094556e-06,
+        "rms": 3.0474641771844567e-07,
+        "worstIndex": 80813,
+        "left": -10.941237449645996,
+        "right": -10.9412345313308
+      },
+      "GPUHeadVsEndToEndF64": {
+        "maxAbs": 0.0004939786197857288,
+        "rms": 5.8392219931735204e-05,
+        "worstIndex": 17916,
+        "left": 4.863351821899414,
+        "right": 4.8638458005192
+      },
+      "F64HeadFromGPUInputVsEndToEndF64": {
+        "maxAbs": 0.0004943644340906772,
+        "rms": 5.8391030403128214e-05,
+        "worstIndex": 17916,
+        "left": 4.863351436085109,
+        "right": 4.8638458005192
+      }
+    }
+  ]
+}

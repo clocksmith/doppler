@@ -1,0 +1,12 @@
+{
+  "sourceCommit": "1c73a2186a5763f22244696210b4aee260e53b48",
+  "frozenNumericalSource": "source-lookup-gap-08",
+  "frozenSourceMatchesCurrentFiles": true,
+  "inventories": {
+    "source-q5k-blockwise-05-files.json": "07accc083599da9a1128b66f511243e719948cd6a29070d3d59425b2dbef340b",
+    "source-native-rows-06-files.json": "21f79278fbb37d77c652fcfcd070270e3e1107294808f0d5e7bc8522ba5fe293",
+    "source-lookup-gap-08-files.json": "dd58cd5371178266df0ffc51d968b82c0572cba42f463dd8887aa24abae4343e"
+  },
+  "componentAndTimingSource": "source-q5k-blockwise-05",
+  "scopedClaimsOnly": true
+}

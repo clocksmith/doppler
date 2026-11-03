@@ -1,0 +1,225 @@
+{
+  "scope": "Exploratory single-engine cohorts, 28 input and 128 output tokens, native F32 KV/activation execution. One warmup and two measured requests; not statistical Pooled advantage or a task-quality claim.",
+  "identical128TokensAcrossNineRuns": true,
+  "observations": [
+    {
+      "variant": "baseline",
+      "observations": [
+        {
+          "repeat": 0,
+          "warmup": true,
+          "completeMs": 13734,
+          "prefillMs": 1632.5999999977648,
+          "decodeMode": "batched_gpu",
+          "speculationAttempts": 0,
+          "speculationAccepted": 0,
+          "wholeTokenProgram": {
+            "observedSteps": 4,
+            "replayedTokens": 122,
+            "replaySubmissions": 122,
+            "batchReadbacks": 122,
+            "restarts": 0,
+            "invalidations": 0,
+            "reused": false,
+            "verifiedAhead": false,
+            "lastInvalidation": null,
+            "dispatches": 934
+          }
+        },
+        {
+          "repeat": 1,
+          "warmup": false,
+          "completeMs": 12991.70000000298,
+          "prefillMs": 1075.300000000745,
+          "decodeMode": "batched_gpu",
+          "speculationAttempts": 0,
+          "speculationAccepted": 0,
+          "wholeTokenProgram": {
+            "observedSteps": 0,
+            "replayedTokens": 127,
+            "replaySubmissions": 127,
+            "batchReadbacks": 125,
+            "restarts": 0,
+            "invalidations": 0,
+            "reused": true,
+            "verifiedAhead": true,
+            "lastInvalidation": null,
+            "dispatches": 934
+          }
+        },
+        {
+          "repeat": 2,
+          "warmup": false,
+          "completeMs": 13010.5,
+          "prefillMs": 1085.5999999977648,
+          "decodeMode": "batched_gpu",
+          "speculationAttempts": 0,
+          "speculationAccepted": 0,
+          "wholeTokenProgram": {
+            "observedSteps": 0,
+            "replayedTokens": 127,
+            "replaySubmissions": 127,
+            "batchReadbacks": 125,
+            "restarts": 0,
+            "invalidations": 0,
+            "reused": true,
+            "verifiedAhead": true,
+            "lastInvalidation": null,
+            "dispatches": 934
+          }
+        }
+      ]
+    },
+    {
+      "variant": "blockwise",
+      "observations": [
+        {
+          "repeat": 0,
+          "warmup": true,
+          "completeMs": 12096.099999997765,
+          "prefillMs": 1665.3999999985099,
+          "decodeMode": "batched_gpu",
+          "speculationAttempts": 0,
+          "speculationAccepted": 0,
+          "wholeTokenProgram": {
+            "observedSteps": 4,
+            "replayedTokens": 122,
+            "replaySubmissions": 122,
+            "batchReadbacks": 122,
+            "restarts": 0,
+            "invalidations": 0,
+            "reused": false,
+            "verifiedAhead": false,
+            "lastInvalidation": null,
+            "dispatches": 934
+          }
+        },
+        {
+          "repeat": 1,
+          "warmup": false,
+          "completeMs": 11154.20000000298,
+          "prefillMs": 995.1000000014901,
+          "decodeMode": "batched_gpu",
+          "speculationAttempts": 0,
+          "speculationAccepted": 0,
+          "wholeTokenProgram": {
+            "observedSteps": 0,
+            "replayedTokens": 127,
+            "replaySubmissions": 127,
+            "batchReadbacks": 125,
+            "restarts": 0,
+            "invalidations": 0,
+            "reused": true,
+            "verifiedAhead": true,
+            "lastInvalidation": null,
+            "dispatches": 934
+          }
+        },
+        {
+          "repeat": 2,
+          "warmup": false,
+          "completeMs": 11249.79999999702,
+          "prefillMs": 1074.7000000029802,
+          "decodeMode": "batched_gpu",
+          "speculationAttempts": 0,
+          "speculationAccepted": 0,
+          "wholeTokenProgram": {
+            "observedSteps": 0,
+            "replayedTokens": 127,
+            "replaySubmissions": 127,
+            "batchReadbacks": 125,
+            "restarts": 0,
+            "invalidations": 0,
+            "reused": true,
+            "verifiedAhead": true,
+            "lastInvalidation": null,
+            "dispatches": 934
+          }
+        }
+      ]
+    },
+    {
+      "variant": "lookup",
+      "observations": [
+        {
+          "repeat": 0,
+          "warmup": true,
+          "completeMs": 15244.79999999702,
+          "prefillMs": 1686.5999999977648,
+          "decodeMode": "target_verified_lookup",
+          "speculationAttempts": 16,
+          "speculationAccepted": 0,
+          "wholeTokenProgram": {
+            "observedSteps": 17,
+            "replayedTokens": 105,
+            "replaySubmissions": 105,
+            "batchReadbacks": 0,
+            "restarts": 1,
+            "invalidations": 3,
+            "reused": false,
+            "verifiedAhead": false,
+            "lastInvalidation": "position 102 is not the next position 101",
+            "dispatches": 934
+          }
+        },
+        {
+          "repeat": 1,
+          "warmup": false,
+          "completeMs": 14721.900000002235,
+          "prefillMs": 1063.3999999985099,
+          "decodeMode": "target_verified_lookup",
+          "speculationAttempts": 16,
+          "speculationAccepted": 0,
+          "wholeTokenProgram": {
+            "observedSteps": 13,
+            "replayedTokens": 110,
+            "replaySubmissions": 110,
+            "batchReadbacks": 0,
+            "restarts": 1,
+            "invalidations": 3,
+            "reused": true,
+            "verifiedAhead": true,
+            "lastInvalidation": "position 102 is not the next position 101",
+            "dispatches": 934
+          }
+        },
+        {
+          "repeat": 2,
+          "warmup": false,
+          "completeMs": 14615.599999997765,
+          "prefillMs": 1052.5,
+          "decodeMode": "target_verified_lookup",
+          "speculationAttempts": 16,
+          "speculationAccepted": 0,
+          "wholeTokenProgram": {
+            "observedSteps": 13,
+            "replayedTokens": 110,
+            "replaySubmissions": 110,
+            "batchReadbacks": 0,
+            "restarts": 1,
+            "invalidations": 3,
+            "reused": true,
+            "verifiedAhead": true,
+            "lastInvalidation": "position 102 is not the next position 101",
+            "dispatches": 934
+          }
+        }
+      ]
+    }
+  ],
+  "startupScreens": [
+    {
+      "receipt": "27b-f32-ab-logit-reference-01",
+      "loadMs": 142236.19999999925
+    },
+    {
+      "receipt": "27b-gpu-feedback-screen-02",
+      "loadMs": 70395.70000000298
+    },
+    {
+      "receipt": "27b-verified-range-cache-screen-03",
+      "loadMs": 49447.300000000745
+    }
+  ],
+  "startupScope": "Sequential exploratory openings with explicit bounded verification/cache configurations. All SHA256 checks retained."
+}

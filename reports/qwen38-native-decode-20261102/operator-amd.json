@@ -1,0 +1,127 @@
+{
+  "passed": true,
+  "scope": "Q5_K immediate and recorded projections, all scale/min groups, offsets and partial output tiles",
+  "cases": [
+    {
+      "M": 1,
+      "N": 7,
+      "K": 256,
+      "recorded": false,
+      "maxAbs": 5.960464477539063e-08
+    },
+    {
+      "M": 1,
+      "N": 7,
+      "K": 256,
+      "recorded": true,
+      "maxAbs": 5.960464477539063e-08
+    },
+    {
+      "M": 1,
+      "N": 7,
+      "K": 256,
+      "recorded": false,
+      "blockwiseBitwiseParity": true
+    },
+    {
+      "M": 1,
+      "N": 7,
+      "K": 256,
+      "recorded": true,
+      "blockwiseBitwiseParity": true
+    },
+    {
+      "M": 1,
+      "N": 17,
+      "K": 6144,
+      "recorded": false,
+      "maxAbs": 4.76837158203125e-07
+    },
+    {
+      "M": 1,
+      "N": 17,
+      "K": 6144,
+      "recorded": true,
+      "maxAbs": 4.76837158203125e-07
+    },
+    {
+      "M": 1,
+      "N": 17,
+      "K": 6144,
+      "recorded": false,
+      "blockwiseBitwiseParity": true
+    },
+    {
+      "M": 1,
+      "N": 17,
+      "K": 6144,
+      "recorded": true,
+      "blockwiseBitwiseParity": true
+    },
+    {
+      "M": 3,
+      "N": 7,
+      "K": 512,
+      "recorded": false,
+      "maxAbs": 3.5762786865234375e-07
+    },
+    {
+      "M": 3,
+      "N": 7,
+      "K": 512,
+      "recorded": true,
+      "maxAbs": 3.5762786865234375e-07
+    },
+    {
+      "M": 3,
+      "N": 7,
+      "K": 512,
+      "recorded": false,
+      "blockwiseBitwiseParity": true
+    },
+    {
+      "M": 3,
+      "N": 7,
+      "K": 512,
+      "recorded": true,
+      "blockwiseBitwiseParity": true
+    },
+    {
+      "M": 17,
+      "N": 19,
+      "K": 512,
+      "recorded": false,
+      "maxAbs": 8.344650268554688e-07
+    },
+    {
+      "M": 17,
+      "N": 19,
+      "K": 512,
+      "recorded": true,
+      "maxAbs": 8.344650268554688e-07
+    },
+    {
+      "M": 17,
+      "N": 19,
+      "K": 512,
+      "recorded": false,
+      "blockwiseBitwiseParity": true
+    },
+    {
+      "M": 17,
+      "N": 19,
+      "K": 512,
+      "recorded": true,
+      "blockwiseBitwiseParity": true
+    },
+    {
+      "sourceTensor": "blk.0.ssm_out.weight",
+      "reference": "gguf.dequantize Q5_K then NumPy F64 matrix-vector multiplication",
+      "M": 1,
+      "N": 17,
+      "K": 6144,
+      "maxAbs": 3.725290298461914e-08
+    }
+  ],
+  "gpuErrors": []
+}

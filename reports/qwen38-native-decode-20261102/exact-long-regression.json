@@ -1,0 +1,66 @@
+{
+  "passed": true,
+  "scope": "Within-Doppler exact numerical regression. Full-logit observer path, not fast-path timing or independent F64 qualification.",
+  "baseline": "27b-f32-ab-logit-reference-01",
+  "candidate": "27b-q5k-long-logits-10",
+  "same851SourceTensors": true,
+  "identical128GreedyTokens": true,
+  "inputTokens": 2287,
+  "comparedLogits": 2234880,
+  "rows": [
+    {
+      "outputIndex": 0,
+      "count": 248320,
+      "bitwiseIdentical": true,
+      "maxAbs": 0.0
+    },
+    {
+      "outputIndex": 1,
+      "count": 248320,
+      "bitwiseIdentical": true,
+      "maxAbs": 0.0
+    },
+    {
+      "outputIndex": 52,
+      "count": 248320,
+      "bitwiseIdentical": true,
+      "maxAbs": 0.0
+    },
+    {
+      "outputIndex": 89,
+      "count": 248320,
+      "bitwiseIdentical": true,
+      "maxAbs": 0.0
+    },
+    {
+      "outputIndex": 90,
+      "count": 248320,
+      "bitwiseIdentical": true,
+      "maxAbs": 0.0
+    },
+    {
+      "outputIndex": 121,
+      "count": 248320,
+      "bitwiseIdentical": true,
+      "maxAbs": 0.0
+    },
+    {
+      "outputIndex": 122,
+      "count": 248320,
+      "bitwiseIdentical": true,
+      "maxAbs": 0.0
+    },
+    {
+      "outputIndex": 123,
+      "count": 248320,
+      "bitwiseIdentical": true,
+      "maxAbs": 0.0
+    },
+    {
+      "outputIndex": 127,
+      "count": 248320,
+      "bitwiseIdentical": true,
+      "maxAbs": 0.0
+    }
+  ]
+}
