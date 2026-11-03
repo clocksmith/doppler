@@ -8,6 +8,58 @@ async function completeRun(page, prompt) {
   await page.waitForFunction(() => document.querySelector('#output-phase').textContent.startsWith('Complete'));
 }
 
+async function waitForPhase(page, phase) {
+  await page.waitForFunction((expected) => document.querySelector('#output-phase').textContent === expected, phase);
+}
+
+async function branchAt(page, index) {
+  await page.locator(`.token-chip[data-token-index="${index}"]`).click();
+  await page.locator('.token-candidate-branch').first().click();
+}
+
+// Branch replays exact token IDs, keeps the original behind a switcher,
+// reuses an existing alternative, and keeps a cancelled nested branch.
+async function checkBranching(page) {
+  // The answer as read, without the fork switchers' own labels.
+  const streamText = () => page.locator('#token-stream-container').evaluate((element) => {
+    const copy = element.cloneNode(true);
+    copy.querySelectorAll('.branch-switch').forEach((node) => node.remove());
+    return copy.textContent;
+  });
+  await branchAt(page, 1);
+  await waitForPhase(page, 'Branch complete');
+  let call = await page.evaluate(() => __demoContract.calls.at(-1));
+  assert.deepEqual(call.inputTokenIds, [100, 101, 1, 5], 'A branch replays the prompt IDs, the prefix IDs and the chosen ID');
+  assert.equal(call.generation.maxTokens, 254, 'A branch keeps the answer within the output limit');
+  assert.equal(call.policyId, 'demo/guided-quality');
+  assert.match(await streamText(), /Contract 🙂\nAnother line\./);
+  assert.equal(await page.locator('.branch-switch-count').textContent(), '2/2');
+  await page.locator('.branch-switch-btn').first().click();
+  assert.equal(await page.locator('.branch-switch-count').textContent(), '1/2');
+  assert.match(await streamText(), /Contract generation passed\./);
+  assert.match(await page.locator('#output-text').textContent(), /Contract generation passed\./);
+  const calls = await page.evaluate(() => __demoContract.calls.length);
+  await branchAt(page, 1);
+  await waitForPhase(page, 'Showing existing branch');
+  assert.equal(await page.evaluate(() => __demoContract.calls.length), calls, 'An existing alternative is reopened, not regenerated');
+  await page.locator('#branch-all-tokens').check();
+  await page.evaluate(() => { __demoContract.streamNext = true; });
+  await branchAt(page, 2);
+  await page.waitForFunction((count) => __demoContract.calls.length === count + 1, calls);
+  await page.evaluate(() => __demoContract.emitTokens([4]));
+  await page.locator('#stop-btn').click();
+  await waitForPhase(page, 'Branch stopped');
+  call = await page.evaluate(() => __demoContract.calls.at(-1));
+  assert.deepEqual(call.inputTokenIds, [100, 101, 1, 5, 5], 'A nested branch replays its parent branch exactly');
+  assert.equal(await page.locator('.branch-switch').count(), 2, 'Each fork on the shown path keeps a switcher');
+  assert.match(await streamText(), /🙂 🙂\nAnother line\./, 'A stopped branch keeps its partial answer');
+  assert.equal(await page.locator('#export-btn').isDisabled(), true, 'A stopped branch publishes no receipt');
+  await page.locator('.branch-switch').first().locator('.branch-switch-btn').first().click();
+  assert.match(await streamText(), /Contract generation passed\./);
+  assert.equal(await page.locator('#export-btn').isDisabled(), false, 'The original answer republishes its receipt');
+  await page.locator('#branch-all-tokens').uncheck();
+}
+
 async function exportedReport(page) {
   if (!await page.locator('#export-btn').isVisible()) {
     await page.locator('#run-details > summary').click();
@@ -101,8 +153,13 @@ export async function checkDemoControls(page) {
   assert.equal(await page.evaluate(() => __demoContract.calls.at(-1).policyId), 'demo/guided-quality');
   assert.match(await page.locator('#output-toks').textContent(), /Diagnostic timing/);
   assert.equal(await page.locator('#token-inspector-view').isVisible(), true);
+  assert.equal(await page.locator('.token-chip').count(), 2, 'Only tokens below the 50% threshold are branch points');
+  await page.locator('#branch-all-tokens').check();
+  assert.equal(await page.locator('#branch-threshold').isDisabled(), true);
   const colors = await page.locator('.token-chip').evaluateAll(nodes => nodes.map(n => n.style.getPropertyValue('--token-surprisal')));
   assert.ok(Number(colors[1]) > Number(colors[0]), 'A low-probability token is redder than a high-probability token');
+  await page.locator('#branch-all-tokens').uncheck();
+  await checkBranching(page);
   await page.locator('#token-inspector-toggle').uncheck();
   assert.equal(await page.locator('#runtime-notice').isVisible(), false);
 

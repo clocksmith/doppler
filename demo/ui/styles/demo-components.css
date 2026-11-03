@@ -243,7 +243,7 @@
   #app .chat-toolbar-run { margin-left: 0; justify-content: space-between; flex: 1; }
   #app .chat-toolbar-run .chat-run-status { flex-basis: auto; }
   #app .token-stream-container { font-size: 19px; line-height: 1.7; }
-  #app .token-candidate-row { grid-template-columns: 1ch minmax(50px, 1fr) minmax(30px, 1fr) 6ch; gap: 6px; }
+  #app .token-candidate-row { grid-template-columns: 1ch minmax(50px, 1fr) minmax(30px, 1fr) 6ch auto; gap: 6px; }
   #app .token-candidate-bar-bg { display: block; }
   #app .chat-message--user { max-width: 95%; }
   #app .report-bar { align-items: stretch; }
@@ -445,3 +445,10 @@
 }
 
 .inspection-note{font-size:13px;line-height:1.5;color:var(--doppler-muted);margin:8px 0}
+/* Branch controls sit with Send; options appear only while Branch is on. */
+#app .branch-controls { display: inline-flex; flex-wrap: wrap; align-items: center; gap: 4px 12px; margin-right: auto; font-size: 13px; }
+#app .branch-toggle,
+#app .branch-options label { display: inline-flex; align-items: center; gap: 6px; cursor: pointer; white-space: nowrap; }
+#app .branch-options { display: inline-flex; flex-wrap: wrap; align-items: center; gap: 4px 12px; }
+#app .branch-options[hidden] { display: none; }
+#app .branch-options input[type="number"] { width: 6ch; min-height: 28px; padding: 2px 6px; }

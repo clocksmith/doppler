@@ -229,6 +229,13 @@ export interface DopplerModelHandle {
         policyId?: string;
         generation?: DopplerGenerateOptions;
         topKSize?: number;
+        /**
+         * Exact token IDs to prefill instead of tokenizing `prompt`. Generation
+         * starts from cleared attention and recurrent state, so the last ID is
+         * committed and sampling continues after it. Fails if the pipeline did
+         * not prefill exactly these IDs.
+         */
+        inputTokenIds?: number[];
         onEvent?: (event: {
           /** Generated IDs in order, including the first and stop tokens. Decode together to preserve Unicode. */
           type: 'token';
@@ -304,6 +311,8 @@ export interface DopplerModelInspectionReceipt {
   policy: DopplerObservationPolicy;
   fingerprint: DopplerComparisonFingerprint;
   outputText: string;
+  /** Exact IDs prefilled before the first generated token; null when the pipeline does not report them. */
+  inputTokenIds: number[] | null;
   generatedTokenIds: number[];
   wallTimingMs: number;
   performanceRepresentative: boolean;

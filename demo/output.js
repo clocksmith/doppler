@@ -51,7 +51,16 @@ function createEmptyState() {
   return empty;
 }
 
+// Shows a finished answer (the active branch) as formatted text.
+export function setAssistantText(text) {
+  const output = $('output-text');
+  if (!output) return;
+  output.textContent = text;
+  renderChatMarkdown(output, text);
+}
+
 function resetLiveAssistant() {
+  state.branchTree = null;
   const liveMessage = $('live-assistant-message');
   const output = $('output-text');
   if (output) {

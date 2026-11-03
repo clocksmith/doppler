@@ -371,6 +371,9 @@ export async function generateTokenIds(prompt, options = {}) {
 
       return {
         tokenIds,
+        // Exact prefilled IDs, so callers can replay a prefix without
+        // re-tokenizing displayed text.
+        inputTokenIds: [...inputIds],
         stats: this._state.stats,
       };
     } finally {

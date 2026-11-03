@@ -45,14 +45,20 @@ const model = {
     decodeTokenIds(ids) {
       return ids.map((id) => ({ 1: 'Contract', 2: ' generation', 3: ' passed.', 4: '\\nAnother line.', 5: ' 🙂' })[id] ?? '').join('');
     },
+    getStopTokenIds() { return [9]; },
   },
   inspect: {
     async generate(prompt, options = {}) {
-      controls.calls.push({ prompt, policyId: options.policyId, generation: options.generation });
+      controls.calls.push({ prompt, policyId: options.policyId, generation: options.generation, inputTokenIds: options.inputTokenIds ?? null });
       let tokenIds = [];
       controls.emitTokens = (ids) => {
         for (const tokenId of ids) {
-          options.onEvent?.({ type: 'token', tokenId, index: tokenIds.length });
+          // Probability-capturing policies attach the live token record, as the engine does.
+          const token = options.policyId && options.policyId !== 'demo/always-on'
+            ? { index: tokenIds.length, tokenId, text: model.advanced.decodeTokenIds([tokenId]), probability: .95,
+              topCandidates: [{ tokenId, text: model.advanced.decodeTokenIds([tokenId]), probability: .95 }, { tokenId: 5, text: ' 🙂', probability: .1 }] }
+            : null;
+          options.onEvent?.({ type: 'token', tokenId, index: tokenIds.length, ...(token ? { token } : {}) });
           tokenIds.push(tokenId);
         }
       };
@@ -64,7 +70,8 @@ const model = {
           options.generation.signal.addEventListener('abort', () => reject(new DOMException('Stopped', 'AbortError')), { once: true });
         });
       } else {
-        controls.emitTokens(controls.blockNext ? [1] : [1, 2, 3]);
+        // A branch continues after its exact prefix; a new prompt answers in full.
+        controls.emitTokens(controls.blockNext ? [1] : options.inputTokenIds ? [4] : [1, 2, 3]);
       }
       if (controls.blockNext) {
         controls.blockNext = false;
@@ -84,10 +91,11 @@ const model = {
           identity: { execution: { backend: 'mocked-contract' }, adapter: {} },
         },
         outputText: model.advanced.decodeTokenIds(tokenIds),
+        inputTokenIds: options.inputTokenIds ?? [100, 101],
         generatedTokenIds: tokenIds,
         wallTimingMs: 1,
         performanceRepresentative: policy.performanceRepresentative,
-        tokens: policy.id === 'demo/always-on' ? [] : tokenIds.map((tokenId,index) => ({index,tokenId,text:model.advanced.decodeTokenIds([tokenId]),probability:index ? .2 : .95,topCandidates:[{tokenId,text:model.advanced.decodeTokenIds([tokenId]),probability:index ? .2 : .95}]})),
+        tokens: policy.id === 'demo/always-on' ? [] : tokenIds.map((tokenId,index) => ({index,tokenId,text:model.advanced.decodeTokenIds([tokenId]),probability:index ? .2 : .95,topCandidates:[{tokenId,text:model.advanced.decodeTokenIds([tokenId]),probability:index ? .2 : .95},...(tokenId === 5 ? [] : [{tokenId:5,text:' 🙂',probability:.1}])]})),
         quality: policy.id === 'demo/guided-quality' ? { words: [{ text: 'Contract', rollingPerplexity: 2, summedSurprisal: 1, cumulativePerplexity: 2, tokenCount: 1, rollingWindow: { size: 1, unit: 'word' } }] } : null,
         generationEvidence: { stats: { tokensGenerated: 3, prefillTimeMs: 10, decodeTimeMs: 20, decodeTokens: 2, prefillProfileSteps: [], decodeProfileSteps: policy.id === 'demo/deep-xray' ? [{step:1,timings:{rmsnorm:.1,fused_ffn:1.96},totalMs:2.06}] : [], gpuTimeDecodeMs: policy.id === 'demo/deep-xray' ? 2.06 : null } },
       };
@@ -195,14 +203,16 @@ async function main() {
     await page.waitForFunction(() => document.querySelector('#output-phase').textContent === 'Precomputed run');
     assert.match(await page.locator('#recorded-run-note').textContent(), /unchanged model output with a factual error/);
     assert.equal(await page.locator('#token-inspector-view').isVisible(), false);
-    await page.locator('#settings-toggle').click();
     await page.locator('#token-inspector-toggle').check();
-    await page.locator('#settings-toggle').click();
+    await page.locator('#branch-all-tokens').check();
     await page.locator('.token-chip').nth(3).click();
     assert.equal(await page.locator('.token-inspector-badge').textContent(), '" blue"');
     assert.equal(await page.locator('.token-candidates-list').isVisible(), true);
     await page.locator('.token-chip').nth(3).press('ArrowRight');
     assert.equal(await page.locator('.token-inspector-badge').textContent(), '" because"');
+    assert.match(await page.locator('.token-inspector-note').textContent(), /cannot branch/);
+    assert.equal(await page.locator('.token-candidate-branch').first().isDisabled(), true, 'A recorded sample cannot branch');
+    await page.locator('#branch-all-tokens').uncheck();
     if (!await page.locator('#model-select').isVisible()) {
       await page.locator('#settings-toggle').click();
       await page.locator('#model-picker > summary').click();

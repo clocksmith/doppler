@@ -36,6 +36,19 @@ the existing text node at most once per animation frame.
 
 The promise returns the completed inspection receipt, also delivered as
 `{ type: 'inspection-complete', receipt }`. Its `outputText` is authoritative.
+`receipt.inputTokenIds` holds the exact IDs prefilled before the first generated
+token, or `null` when a pipeline does not report them.
+
+To continue from an exact token boundary, pass `inputTokenIds` instead of relying
+on `prompt` tokenization: `model.inspect.generate(prompt, { inputTokenIds })`.
+Every generation starts from cleared attention and recurrent state, so prefilling
+`receipt.inputTokenIds`, the generated IDs before a position and a replacement ID
+restores the state after that replacement and samples what follows; `prompt`
+remains the receipt label. The run fails if the pipeline did not prefill exactly
+those IDs, and the fingerprint's `promptTokenIds` records them. Never rebuild the
+prefix from displayed text, which may tokenize differently. Replay prefills the
+prefix in one pass rather than one token at a time, so numerics may differ
+slightly from the original decode.
 Aborted and failed runs do not emit completion. Callbacks are synchronous; a
 callback exception rejects generation and uses its normal cleanup path. Pass
 an `AbortSignal` through `generation.signal` to cancel, and retain any partial

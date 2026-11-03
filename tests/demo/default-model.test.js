@@ -17,7 +17,9 @@ globalThis.localStorage = { setItem() {}, getItem: () => 'larger-model' };
 let cached = [];
 let fail = false;
 const loads = [];
-dr.listModelDetails = async () => [{ modelId: 'larger-model' }, { modelId: DEFAULT_DEMO_MODEL_ID }];
+// Chat lists only models that declare text generation; fixtures say so explicitly.
+const chat = { modes: ['text'], classification: { tasks: ['generation'] } };
+dr.listModelDetails = async () => [{ modelId: 'larger-model', ...chat }, { modelId: DEFAULT_DEMO_MODEL_ID, ...chat }];
 dr.listPersistentModels = async () => cached;
 dr.load = async (modelId) => {
   loads.push(modelId);

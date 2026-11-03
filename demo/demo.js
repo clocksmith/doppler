@@ -4,7 +4,7 @@ import { reloadActiveModel, setModelCallbacks } from './models.js';
 import { initInput, setRunHandler } from './input.js';
 import { initSettings } from './settings.js';
 import { initReport } from './report.js';
-import { onModelLoaded, runGeneration, stopGeneration, loadSampleInspection, loadIllustrativeExample } from './core.js';
+import { onModelLoaded, runGeneration, stopGeneration, loadSampleInspection, loadIllustrativeExample, syncBranchView } from './core.js';
 import { SAMPLE_INSPECTION_RECEIPT } from './data/sample-inspection.js';
 import { showTokenInspectorView } from './output.js';
 import { state } from './ui/state.js';
@@ -84,16 +84,37 @@ async function init() {
     loadSampleInspection(SAMPLE_INSPECTION_RECEIPT);
     refreshRuntimeNotice();
   });
-  // Wire token inspector toggle
+  // Wire Branch: the toggle records alternatives; threshold and "all tokens"
+  // only change which recorded tokens are offered as branch points.
   const inspectorToggle = $('token-inspector-toggle');
+  const branchOptions = $('branch-options');
+  const branchThreshold = $('branch-threshold');
+  const branchAllTokens = $('branch-all-tokens');
+  const syncBranchControls = () => {
+    if (branchOptions) branchOptions.hidden = !state.tokenInspectorActive;
+    if (branchThreshold) branchThreshold.disabled = state.branchShowAll;
+  };
   if (inspectorToggle) {
     state.tokenInspectorActive = inspectorToggle.checked;
     inspectorToggle.addEventListener('change', () => {
       state.tokenInspectorActive = inspectorToggle.checked;
+      syncBranchControls();
       showTokenInspectorView(state.tokenInspectorActive);
       refreshRuntimeNotice();
     });
   }
+  branchThreshold?.addEventListener('input', () => {
+    const percent = Number(branchThreshold.value);
+    if (!branchThreshold.checkValidity() || !Number.isFinite(percent)) return;
+    state.branchThreshold = percent / 100;
+    syncBranchView();
+  });
+  branchAllTokens?.addEventListener('change', () => {
+    state.branchShowAll = branchAllTokens.checked;
+    syncBranchControls();
+    syncBranchView();
+  });
+  syncBranchControls();
 
   // Init xray (reads URL ?xray= flags, wires the all-panels checkbox)
   setBootStatus('Preparing inspection tools...');

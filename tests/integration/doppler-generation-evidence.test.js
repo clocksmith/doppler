@@ -448,6 +448,47 @@ console.log('doppler-generation-evidence inspection streaming: ok');
 }
 console.log('doppler-generation-evidence probability streaming: ok');
 
+// Branch replay: explicit inputTokenIds reach the pipeline as exact inputIds,
+// receipts record what was prefilled, and a pipeline that does not prefill the
+// requested IDs fails closed instead of silently tokenizing the prompt.
+{
+  let executed;
+  const tokenizer = { type: 'test', digest: 'fixture' };
+  const replayHandle = createModelHandle({
+    ...pipeline,
+    manifest: { ...pipeline.manifest, tokenizer },
+    async generateTokenIds(_prompt, options) {
+      executed = options;
+      options.onLogits?.(new Float32Array([0, 3, 1]), { tokenId: 1, inputTokenCount: 0 });
+      options.onToken?.(1, '[1]');
+      return { tokenIds: [1], inputTokenIds: options.inputIds ? [...options.inputIds] : [9, 8], stats };
+    },
+  }, { modelId: 'replay-test', manifestHash: 'a'.repeat(64) });
+  const plain = await replayHandle.inspect.generate('test', { policyId: 'demo/guided-quality' });
+  assert.deepEqual(plain.inputTokenIds, [9, 8]);
+  assert.equal(executed.inputIds, undefined, 'A text prompt keeps prompt tokenization');
+  const branched = await replayHandle.inspect.generate('test', {
+    policyId: 'demo/guided-quality',
+    inputTokenIds: [9, 8, 1, 2],
+  });
+  assert.deepEqual(executed.inputIds, [9, 8, 1, 2]);
+  assert.deepEqual(branched.inputTokenIds, [9, 8, 1, 2]);
+  assert.deepEqual(branched.fingerprint.identity.promptTokenIds, [9, 8, 1, 2]);
+  assert.equal(branched.tokens.length, branched.generatedTokenIds.length);
+  await assert.rejects(replayHandle.inspect.generate('test', { inputTokenIds: [] }), /non-empty array/);
+  await assert.rejects(replayHandle.inspect.generate('test', { inputTokenIds: [1, -2] }), /inputTokenIds\[1\]/);
+  await assert.rejects(replayHandle.inspect.generate('test', { generation: { inputIds: [1] } }), /options\.inputTokenIds/);
+  const unreported = createModelHandle({
+    ...pipeline,
+    manifest: { ...pipeline.manifest, tokenizer },
+    async generateTokenIds() { return { tokenIds: [1], stats }; },
+  }, { modelId: 'replay-unreported', manifestHash: 'a'.repeat(64) });
+  await assert.rejects(unreported.inspect.generate('test', { inputTokenIds: [3] }),
+    /did not prefill the requested inputTokenIds exactly/);
+  assert.equal((await unreported.inspect.generate('test')).inputTokenIds, null);
+}
+console.log('doppler-generation-evidence exact-prefix replay: ok');
+
 {
   let executed;
   const model = createModelHandle({

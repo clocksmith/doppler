@@ -168,6 +168,9 @@ function resolveInspectionGenerationOptions(options, policy) {
       throw new Error(`Doppler inspection owns generation.${field} through its observation policy.`);
     }
   }
+  if (Object.prototype.hasOwnProperty.call(generation, 'inputIds')) {
+    throw new Error('Doppler inspection takes exact prefix tokens as options.inputTokenIds, not generation.inputIds.');
+  }
   const resolved = { ...generation };
   if (policy.modifiesExecution) {
     resolved.disableCommandBatching = true;
@@ -176,6 +179,22 @@ function resolveInspectionGenerationOptions(options, policy) {
     resolved.profile = true;
   }
   return resolved;
+}
+
+function resolveInspectionInputTokenIds(value) {
+  if (!Array.isArray(value) || value.length === 0) {
+    throw new Error('Doppler inspection inputTokenIds must be a non-empty array of token IDs.');
+  }
+  return value.map((tokenId, index) => {
+    if (!Number.isSafeInteger(tokenId) || tokenId < 0) {
+      throw new Error(`Doppler inspection inputTokenIds[${index}] must be a non-negative safe integer.`);
+    }
+    return tokenId;
+  });
+}
+
+function sameTokenIds(left, right) {
+  return Array.isArray(left) && left.length === right.length && left.every((tokenId, index) => tokenId === right[index]);
 }
 
 function assertActiveAdapterUnchanged(pipeline, expected) {
@@ -194,7 +213,9 @@ export function createModelHandle(pipeline, resolved) {
     `Doppler model.${apiName}()`
   );
 
-  async function generateWithEvidence(prompt, options = {}) {
+  // Inspection also needs the exact token IDs the pipeline prefilled; public
+  // generation evidence keeps its existing shape.
+  async function runEvidenceGeneration(prompt, options = {}) {
     assertSupportedGenerationOptions(options);
     const executionOptions = resolveTextGenerationRequest(options, pipeline.runtimeConfig, pipeline.modelConfig);
     const generationConfig = resolveGenerationConfigEvidence(executionOptions, options);
@@ -202,6 +223,7 @@ export function createModelHandle(pipeline, resolved) {
       assertExecutionMayStart(resolutionPolicy);
       const activeAdapter = getActiveLoRAIdentityForPipeline(pipeline);
       const result = await pipeline.generateTokenIds(prompt, executionOptions);
+      const inputTokenIds = Array.isArray(result?.inputTokenIds) ? Array.from(result.inputTokenIds, Number) : null;
       const tokenIds = Array.from(result?.tokenIds || [], Number);
       const outputText = decodeGeneratedTokens(pipeline, tokenIds);
       const stats = result?.stats || pipeline.getStats?.() || null;
@@ -214,7 +236,7 @@ export function createModelHandle(pipeline, resolved) {
         stats,
       });
       assertActiveAdapterUnchanged(pipeline, activeAdapter);
-      return buildGenerationEvidence({
+      const evidence = await buildGenerationEvidence({
         outputText,
         tokenIds,
         generationConfig,
@@ -227,7 +249,12 @@ export function createModelHandle(pipeline, resolved) {
         stats,
         resolutionPolicy,
       });
+      return { evidence, inputTokenIds };
     });
+  }
+
+  async function generateWithEvidence(prompt, options = {}) {
+    return (await runEvidenceGeneration(prompt, options)).evidence;
   }
 
   async function embedWithEvidence(prompt, options = {}) {
@@ -567,6 +594,13 @@ export function createModelHandle(pipeline, resolved) {
       const policy = resolveObservationPolicy(options.policyId);
       const generationOptions = resolveInspectionGenerationOptions(options, policy);
       assertSupportedGenerationOptions(generationOptions);
+      // Exact replay: every generation starts from cleared attention and
+      // recurrent state, so prefilling these IDs restores the state that
+      // preceded the last one. The prompt remains the receipt's label.
+      const explicitInputTokenIds = options.inputTokenIds == null
+        ? null
+        : resolveInspectionInputTokenIds(options.inputTokenIds);
+      if (explicitInputTokenIds) generationOptions.inputIds = explicitInputTokenIds;
       if (options.onEvent != null && typeof options.onEvent !== 'function') {
         throw new Error('Doppler inspection onEvent must be a function.');
       }
@@ -598,14 +632,20 @@ export function createModelHandle(pipeline, resolved) {
       }
       const startedAt = performance.now();
       let evidence;
+      let inputTokenIds;
       try {
-        evidence = await generateWithEvidence(prompt, generationOptions);
+        ({ evidence, inputTokenIds } = await runEvidenceGeneration(prompt, generationOptions));
         generationOptions.signal?.throwIfAborted();
       } finally {
         streaming = false;
       }
       const completedAt = performance.now();
-      const promptTokenIds = tokenizeText(pipeline, prompt);
+      if (explicitInputTokenIds && !sameTokenIds(inputTokenIds, explicitInputTokenIds)) {
+        throw new Error('Doppler model.inspect.generate: this pipeline did not prefill the requested inputTokenIds exactly.');
+      }
+      // An explicit prefix is the exact model input; text prompts keep their
+      // existing raw-prompt fingerprint so earlier receipts stay comparable.
+      const promptTokenIds = explicitInputTokenIds ?? tokenizeText(pipeline, prompt);
       const tokenRecords = policy.perplexity
         ? buildInspectionTokenRecords(
           evidence.tokenIds,
@@ -638,6 +678,9 @@ export function createModelHandle(pipeline, resolved) {
         policy,
         fingerprint,
         outputText: evidence.outputText,
+        // Exact IDs prefilled before the first generated token; null when the
+        // pipeline does not report them. Branching replays these plus a prefix.
+        inputTokenIds: inputTokenIds ? [...inputTokenIds] : null,
         generatedTokenIds: [...evidence.tokenIds],
         wallTimingMs: completedAt - startedAt,
         performanceRepresentative: policy.performanceRepresentative,

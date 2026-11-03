@@ -23,12 +23,25 @@ completed receipt. Completion reconciles the text with the receipt, then display
 token probabilities, X-Ray evidence, and final timing. Image attachment and live token-rate
 controls are not offered.
 The default is ordinary text with token inspection off and a 256-token output limit.
-Opt-in Token probability colors individual tokens from red (0%) to blue (100%)
-and opens alternatives on click. This measures model surprise, not factual accuracy.
-Token inspection changes execution; its timings are diagnostic. X-Ray is a separate
+Branch, beside Send and off by default, records each generated token's exact ID
+and a bounded set of alternatives. Tokens whose selected probability is below the
+threshold (50% by default) are underlined as branch points, colored red (0%) to
+blue (100%); "all tokens" offers every token. Clicking one lists its alternatives;
+picking one continues the answer from that exact token boundary and keeps the
+original, with a switcher at each fork. Branches can branch again. A branch
+replays the run's exact `inputTokenIds`, the answer's token IDs before the fork,
+and the chosen ID through `model.inspect.generate(prompt, { inputTokenIds })`;
+generation starts from cleared attention and recurrent state, so displayed text
+is never re-tokenized. Replay prefills the prefix in one pass, so its numerics
+can differ slightly from the original token-by-token decode. Fragments of one
+character display together but fork at their first token. Branch changes
+execution (probability capture disables command batching), so its timings are
+diagnostic; Branch off keeps the `demo/always-on` path. Probabilities are model
+likelihoods, not factual accuracy. Recorded and illustrative examples cannot
+branch, and a tree is discarded when the conversation or model changes. X-Ray is a separate
 GPU view with captured step durations and per-kernel totals. Missing measurements
 remain unavailable. Its accumulated-duration waterfall is not an absolute dispatch
-timeline or a GPU-utilization measurement. Disable both inspection controls for
+timeline or a GPU-utilization measurement. Disable Branch and X-Ray for
 `demo/always-on`. Saved X-Ray preferences remain explicit choices.
 Completed assistant messages render inert Markdown;
 word-quality annotations stay attached to their source text. Clear conversation

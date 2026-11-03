@@ -26,6 +26,12 @@ export const state = {
   settingsBusy: false,
   xrayEnabled: false,
   tokenInspectorActive: false,
+  // Branch: the latest answer's exact-token tree, its prompt label and model.
+  branchTree: null,
+  branchPrompt: '',
+  branchModelId: null,
+  branchThreshold: 0.5,
+  branchShowAll: false,
   lastInspection: null,
   lastInferenceStats: null,
   lastRun: null,

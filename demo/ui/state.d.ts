@@ -17,6 +17,13 @@ export interface DemoState {
   modelBusy: boolean;
   settingsBusy: boolean;
   xrayEnabled: boolean;
+  tokenInspectorActive: boolean;
+  branchTree: import('../branches.js').BranchTree | null;
+  branchPrompt: string;
+  branchModelId: string | null;
+  /** Probability (0-1) below which a token is a branch point. */
+  branchThreshold: number;
+  branchShowAll: boolean;
   lastInspection: unknown;
   lastInferenceStats: Record<string, unknown> | null;
   lastRun: unknown;

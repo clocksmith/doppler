@@ -103,3 +103,32 @@
   .token-candidate-row { grid-template-columns: 2ch minmax(60px, 1fr) 6ch; gap: 6px; }
   .token-candidate-bar-bg { display: none; }
 }
+/* Branch: whitespace branch points stay clickable; the chosen alternative is marked. */
+.token-chip--space { display: inline-block; min-width: 0.6em; }
+.token-chip--chosen { font-weight: 600; }
+.branch-switch {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  margin: 0 4px;
+  padding: 0 2px;
+  border: 1px solid var(--doppler-line);
+  border-radius: 999px;
+  font: 12px/1.4 var(--font-mono);
+  vertical-align: 0.1em;
+  white-space: nowrap;
+}
+.branch-switch-btn {
+  appearance: none;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  padding: 0 4px;
+  cursor: pointer;
+}
+.branch-switch-btn:focus-visible { outline: 2px solid #5966d9; outline-offset: 1px; }
+.token-candidate-row { grid-template-columns: 2ch minmax(60px, 1fr) minmax(60px, 2fr) 7ch auto; }
+.token-candidate-current { font-size: 12px; text-align: center; }
+.token-candidate-branch { justify-self: end; }
+.token-inspector-note { margin: 0; font-size: 12px; line-height: 1.5; }

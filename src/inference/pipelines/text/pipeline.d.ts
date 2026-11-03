@@ -87,7 +87,7 @@ export declare class InferencePipeline extends PipelineState {
   generateTokenIds(
     prompt: PromptInput,
     options?: GenerateOptions
-  ): Promise<{ tokenIds: number[]; stats: PipelineStats }>;
+  ): Promise<{ tokenIds: number[]; inputTokenIds: number[]; stats: PipelineStats }>;
 
   resetToSeqLen(seqLen: number): void;
   resetGenerationState(): void;

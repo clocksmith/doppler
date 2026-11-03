@@ -245,9 +245,9 @@
               <span>Model surprise, not accuracy</span>
             </div>
             <!-- Interactive Token Generation Inspector container -->
-            <p id="token-inspection-hint" class="inspection-note" hidden>Run a prompt with Token probability enabled to capture probabilities.</p>
+            <p id="token-inspection-hint" class="inspection-note" hidden>Send a prompt with Branch on to record alternatives.</p>
             <div id="token-inspector-view" class="token-inspector-view" hidden>
-              <p class="inspection-note">Click underlined text for alternatives. Red: 0% → blue: 100% probability; not factual accuracy.</p>
+              <p id="branch-help" class="inspection-note">Underlined: branch points. Click one for alternatives, then Branch to continue from it. Red: 0% → blue: 100% model likelihood, not factual accuracy.</p>
               <div id="token-stream-container" class="token-stream-container"></div>
               <div id="token-inspector-card-container" class="token-inspector-card-container"></div>
             </div>
@@ -268,6 +268,15 @@
           <button id="shuffle-btn" class="btn btn-ghost btn-small" type="button" title="Try another prompt idea">Surprise</button>
         </div>
         <div class="input-actions">
+          <div class="branch-controls">
+            <label class="branch-toggle" for="token-inspector-toggle" title="Record each token's alternatives so you can branch the answer. Changes execution; timings become diagnostic.">
+              <input id="token-inspector-toggle" type="checkbox" aria-describedby="branch-help"> Branch
+            </label>
+            <span id="branch-options" class="branch-options" hidden>
+              <label for="branch-threshold">below <input id="branch-threshold" type="number" min="1" max="100" step="1" value="50" aria-label="Branch threshold percent">%</label>
+              <label for="branch-all-tokens"><input id="branch-all-tokens" type="checkbox"> all tokens</label>
+            </span>
+          </div>
           <button id="run-btn" class="btn btn-primary run-btn" type="button" disabled title="Send a prompt locally">Send</button>
           <button id="stop-btn" class="btn" type="button" hidden>Stop</button>
         </div>
@@ -353,10 +362,6 @@
         <fieldset class="settings-group">
           <legend>Inspection</legend>
           <div class="settings-grid">
-            <label class="inspection-setting" for="token-inspector-toggle">
-              <input id="token-inspector-toggle" type="checkbox">
-              <span><strong>Token probability</strong><small>Color text; click for alternatives. Changes execution.</small></span>
-            </label>
             <label class="inspection-setting" for="xray-toggle-all">
               <input id="xray-toggle-all" type="checkbox">
               <span><strong>X-Ray</strong><small>Show GPU kernels and diagnostic timings.</small></span>
