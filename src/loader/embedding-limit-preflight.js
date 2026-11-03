@@ -1,3 +1,4 @@
+import { ggufBlockBytes, ggufBlockFormat, isGgufBlockDtype, isGgufBlockSourceDtype } from '../formats/gguf/block-storage.js';
 import { getDevice } from '../gpu/device.js';
 import { DTYPE_SIZES } from '../config/schema/index.js';
 import { selectRuleValue } from '../rules/rule-registry.js';
@@ -9,6 +10,8 @@ export const MAX_SPLIT_EMBEDDING_SECTIONS = MAX_SPLIT8_EMBEDDING_SECTIONS;
 export const SPLIT_EMBEDDING_STORAGE_BUFFER_OVERHEAD = 2;
 
 export function getEmbeddingFloatDtype(location, embeddingKernel = null) {
+  // Native packed embeddings keep their source encoding; the historical helper name also covers these.
+  if (isGgufBlockSourceDtype(location?.dtype)) return ggufBlockFormat(location.dtype).variant;
   if (
     String(location?.dtype ?? '').toUpperCase() === 'BF16'
     && embeddingKernel?.kernel === 'gather_bf16.wgsl'
@@ -82,11 +85,12 @@ function estimateEmbeddingTensorBytes(location, embeddingKernel = null, material
     return null;
   }
   const dtype = materializedDtype ?? getEmbeddingFloatDtype(location, embeddingKernel);
-  const bytesPerElement = DTYPE_SIZES[dtype];
+  const packed = isGgufBlockDtype(dtype);
+  const tensorSizeBytes = packed ? ggufBlockBytes(location.shape, dtype) : rows * hidden * DTYPE_SIZES[dtype];
+  const bytesPerElement = packed ? tensorSizeBytes / (rows * hidden) : DTYPE_SIZES[dtype];
   if (!Number.isFinite(bytesPerElement) || bytesPerElement <= 0) {
     return null;
   }
-  const tensorSizeBytes = rows * hidden * bytesPerElement;
   if (!Number.isFinite(tensorSizeBytes) || tensorSizeBytes <= 0) {
     return null;
   }

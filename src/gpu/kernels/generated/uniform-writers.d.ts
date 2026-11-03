@@ -130,6 +130,8 @@ export interface KernelUniformValues {
   "matmul/q8_0_gemv": Parameters<typeof writers0.write_matmul_q4_0_cooperative>[1];
   "matmul/q8_0_prefill": Parameters<typeof writers0.write_matmul_q4_0_cooperative>[1];
   "matmul/q8_0_prefill_tile64": Parameters<typeof writers0.write_matmul_q4_0_cooperative>[1];
+  "matmul/q5k_gemv": Parameters<typeof writers0.write_matmul_q4_0_cooperative>[1];
+  "matmul/q5k_prefill": Parameters<typeof writers0.write_matmul_q4_0_cooperative>[1];
   "matmul/q6k_gemv": Parameters<typeof writers0.write_matmul_q4_0_cooperative>[1];
   "matmul/q6k_prefill": Parameters<typeof writers0.write_matmul_q4_0_cooperative>[1];
   "matmul/q6k_prefill_tile64": Parameters<typeof writers0.write_matmul_q4_0_cooperative>[1];
@@ -200,6 +202,7 @@ export interface KernelUniformValues {
   "attention/decode_gqa_splitk": Parameters<typeof writers0.write_attention_decode_online_f16>[1];
   "attention/decode_gqa_splitk_combine": Parameters<typeof writers0.write_attention_decode_online_f16>[1];
   "attention/prefill_query_tile_f32": Parameters<typeof writers0.write_attention_prefill>[1];
+  "attention/prefill_query_tile16_f32": Parameters<typeof writers0.write_attention_prefill>[1];
   "attention_tiered/decode_tiered_f16": Parameters<typeof writers0.write_attention_tiered_decode_tiered_f16>[1];
   "attention_tiered/decode_tiered_f16kv": Parameters<typeof writers0.write_attention_tiered_decode_tiered_f16>[1];
   "attention_tiered_quant/decode_tiered_int8_f16kv": Parameters<typeof writers0.write_attention_tiered_quant_decode_tiered_int8_f16kv>[1];

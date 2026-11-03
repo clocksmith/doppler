@@ -1,0 +1,510 @@
+{
+  "root": "deco-evidence/doppler-35b-perf",
+  "files": [
+    {
+      "path": "s16-kvbound-baseline/receipt.json",
+      "bytes": 2395,
+      "sha256": "b989ab5fc7aeb400a0b3816531c3b39b2201c99c43a4f9c9d2349ebf0b8ee8f9"
+    },
+    {
+      "path": "s16-kvbound-baseline/execution.json",
+      "bytes": 3198,
+      "sha256": "0045b7375697c7d7abcf9b53333b78828173cecf15b8a4faf1b1b9a08315bcf1"
+    },
+    {
+      "path": "s16-kvbound-baseline/contract.json",
+      "bytes": 4201,
+      "sha256": "84c44dec9725793c959c85a74f96b439acc3466b586b51829ebf6af7d61e1310"
+    },
+    {
+      "path": "s16-kvbound-baseline/doppler-ready.json",
+      "bytes": 1067830,
+      "sha256": "9fbfcbbaf1a0bdb7e327faa7b63caa6ccc95cf1452fbeb6abe4beab570b397ac"
+    },
+    {
+      "path": "s16-kvbound-baseline/records-0-doppler.json",
+      "bytes": 23938,
+      "sha256": "04caf1d72983acbce366fbfa0802fa87e22dc6b00b0f6ef2f8e40803c036ef81"
+    },
+    {
+      "path": "s16-kvbound-baseline/records-1-doppler.json",
+      "bytes": 23963,
+      "sha256": "f8796fa013333dbc4e4fca92ead9dc98d002f5224e5fe85c4b0529d865fdb896"
+    },
+    {
+      "path": "s16-kvbound-baseline/records-2-doppler.json",
+      "bytes": 24013,
+      "sha256": "17e497efb1e890b4b73c8541dfada9c1e92f8baedb76bc6fb0bf8518077c51ff"
+    },
+    {
+      "path": "s16-kvbound-baseline/missing-0-doppler.json",
+      "bytes": 23956,
+      "sha256": "0167eb71e2b1620baf95753e8207b393a29966c54266b9d9e40f1fcedc53a30c"
+    },
+    {
+      "path": "s16-kvbound-baseline/missing-1-doppler.json",
+      "bytes": 23970,
+      "sha256": "0d33c67fb26850475e992f5e0d615a43168d03ef359e695660fe3d854b3f1d64"
+    },
+    {
+      "path": "s16-kvbound-baseline/missing-2-doppler.json",
+      "bytes": 23931,
+      "sha256": "5ee292e48436ab242eeb4edb9ba27828f752bc322cb35ee941999b6143333895"
+    },
+    {
+      "path": "s16-kvbound-baseline/short-0-doppler.json",
+      "bytes": 32596,
+      "sha256": "c5192e4a25282fdfe15ea958d3853a15119c2e8ebc80ea21cb0e1321c1403b82"
+    },
+    {
+      "path": "s16-kvbound-baseline/short-1-doppler.json",
+      "bytes": 32653,
+      "sha256": "2cc9270fc8749364e3265979b877fb236d2e400b6abe5f5dbd2f08a024c4d7cd"
+    },
+    {
+      "path": "s16-kvbound-baseline/short-2-doppler.json",
+      "bytes": 32378,
+      "sha256": "92921148439b44e9622bb9d1140a38f98f5e10230644f6473a9f15fd4aaf5b6b"
+    },
+    {
+      "path": "s16-kvbound-baseline/long-0-doppler.json",
+      "bytes": 55365,
+      "sha256": "6302336490dfec863dd770e1d6e3e7f9a63415e03ba79939f3bf8d0e7d672e5b"
+    },
+    {
+      "path": "s16-kvbound-baseline/long-1-doppler.json",
+      "bytes": 55316,
+      "sha256": "ae3329fc99296b1247b9a620f32ff6d128f1b3e19a4d46390251f721c9891aec"
+    },
+    {
+      "path": "s16-kvbound-baseline/long-2-doppler.json",
+      "bytes": 55321,
+      "sha256": "33bcf30c14a0912544fd096521fd7c5e478b5c49da4ddb0c56a07bee83a90007"
+    },
+    {
+      "path": "s17-kvbound-candidate/receipt.json",
+      "bytes": 2395,
+      "sha256": "1eb90e09975f4de7604bf80b177aa2fbe4181d7aa8bb4ff3eac798d643e38266"
+    },
+    {
+      "path": "s17-kvbound-candidate/execution.json",
+      "bytes": 3234,
+      "sha256": "19d2e1060335dd40bae8e92a1fea4853354ebea3ffdd5b1556647403c3f50edd"
+    },
+    {
+      "path": "s17-kvbound-candidate/contract.json",
+      "bytes": 4201,
+      "sha256": "84c44dec9725793c959c85a74f96b439acc3466b586b51829ebf6af7d61e1310"
+    },
+    {
+      "path": "s17-kvbound-candidate/doppler-ready.json",
+      "bytes": 1067830,
+      "sha256": "56436e330cf987a63724ec4bb0aa20f3fcba4ee3ff7b02e2c59bc74502066de5"
+    },
+    {
+      "path": "s17-kvbound-candidate/records-0-doppler.json",
+      "bytes": 23982,
+      "sha256": "1235c4143f5d16730b5b553ee613bb35068a6e81afde388201233509e1b97755"
+    },
+    {
+      "path": "s17-kvbound-candidate/records-1-doppler.json",
+      "bytes": 23949,
+      "sha256": "b54537bf1f50a4b1ef3598ad01971f76714f88bf27324f206acf929e91975ac9"
+    },
+    {
+      "path": "s17-kvbound-candidate/records-2-doppler.json",
+      "bytes": 24015,
+      "sha256": "abb42026865193333dc2d6394ae57a4a0a6c880334bfc14223e73af0017f672e"
+    },
+    {
+      "path": "s17-kvbound-candidate/missing-0-doppler.json",
+      "bytes": 23983,
+      "sha256": "56929ec9c9c017f5b08653b260230b7c73d0a33c6615219a08502e16bbd0b354"
+    },
+    {
+      "path": "s17-kvbound-candidate/missing-1-doppler.json",
+      "bytes": 23990,
+      "sha256": "0fb40e2a399473ad5c3fd3e687fd7bbbb9833016f1bbe1609c11798d8436ecb8"
+    },
+    {
+      "path": "s17-kvbound-candidate/missing-2-doppler.json",
+      "bytes": 23977,
+      "sha256": "123b8015630c58a0d518074189ad2303676e250dcb98e83fd6f62bb3e99173fe"
+    },
+    {
+      "path": "s17-kvbound-candidate/short-0-doppler.json",
+      "bytes": 32212,
+      "sha256": "5c20b00640273f0bb02a87707753f8368fa2970bcd41d1cac0c6165d0da58769"
+    },
+    {
+      "path": "s17-kvbound-candidate/short-1-doppler.json",
+      "bytes": 32591,
+      "sha256": "6284ae3b5be7d629fa7decf0b2385819f1b9ea90914d154c6dd604373d30caa9"
+    },
+    {
+      "path": "s17-kvbound-candidate/short-2-doppler.json",
+      "bytes": 32679,
+      "sha256": "a7c80ec00121df6b50bcc310d8d021f99f3fafda4aaea5d88e4391b9983d09a9"
+    },
+    {
+      "path": "s17-kvbound-candidate/long-0-doppler.json",
+      "bytes": 55293,
+      "sha256": "4e7d1f48d544e3e2fcbdf409a0bd72d4080502100f76df11a352e72369087872"
+    },
+    {
+      "path": "s17-kvbound-candidate/long-1-doppler.json",
+      "bytes": 55664,
+      "sha256": "d777b06bd14912d5c7699942d0e7ab8911a7d8790a99fdc127555d32c4f90a34"
+    },
+    {
+      "path": "s17-kvbound-candidate/long-2-doppler.json",
+      "bytes": 55182,
+      "sha256": "524a4e65f0c859ae374a15c10dc28537efe366b0e5e44f10b60785e2928fc7fe"
+    },
+    {
+      "path": "s18-prefill-kernels-candidate/receipt.json",
+      "bytes": 2395,
+      "sha256": "333e7dffd85bb777434fcf885f73537169eb06799b988e3ae02f43a0cecd8824"
+    },
+    {
+      "path": "s18-prefill-kernels-candidate/execution.json",
+      "bytes": 3335,
+      "sha256": "58b7010ec5738c4cea5816f6f946f2b8c9084b3f934c204e0468c2b294127cdd"
+    },
+    {
+      "path": "s18-prefill-kernels-candidate/contract.json",
+      "bytes": 4201,
+      "sha256": "84c44dec9725793c959c85a74f96b439acc3466b586b51829ebf6af7d61e1310"
+    },
+    {
+      "path": "s18-prefill-kernels-candidate/doppler-ready.json",
+      "bytes": 1067830,
+      "sha256": "64161d7faac78207e4093f4de6cd6023fb101aba3d3d614697e6dd0802046efb"
+    },
+    {
+      "path": "s18-prefill-kernels-candidate/records-0-doppler.json",
+      "bytes": 23980,
+      "sha256": "2837ed3e6d8cb0b3800ff5e41c5323e74513dd0bff2e181f4a762048927f19ea"
+    },
+    {
+      "path": "s18-prefill-kernels-candidate/records-1-doppler.json",
+      "bytes": 23921,
+      "sha256": "0d7d5a54d8ec69e12d2034c4663f256014050f6682ffe24bddf400f94400a009"
+    },
+    {
+      "path": "s18-prefill-kernels-candidate/records-2-doppler.json",
+      "bytes": 23910,
+      "sha256": "29d29fb62b0941b1450c2d1157b4e1eefc1aed728e3ea3d5e9d1973e95a2c838"
+    },
+    {
+      "path": "s18-prefill-kernels-candidate/missing-0-doppler.json",
+      "bytes": 23906,
+      "sha256": "876481324aa5c29eafd41fd3ad3f905ba3d42fdbf1b0a759a44c5f0dd72e524e"
+    },
+    {
+      "path": "s18-prefill-kernels-candidate/missing-1-doppler.json",
+      "bytes": 23945,
+      "sha256": "4181f94d5dc068e22a9339da2cd337b295cd9d4ed24328dee4d38900004b5e35"
+    },
+    {
+      "path": "s18-prefill-kernels-candidate/missing-2-doppler.json",
+      "bytes": 23964,
+      "sha256": "4cd563e2f55728f6e60cbddbc24e545d70c7f75d5cb6aa419c66f4a5e4aa9a2d"
+    },
+    {
+      "path": "s18-prefill-kernels-candidate/short-0-doppler.json",
+      "bytes": 32613,
+      "sha256": "dd1e72e7b76f26ef4c06a794d9325558c1db233c6b3e8d130ac759e963ebdfdd"
+    },
+    {
+      "path": "s18-prefill-kernels-candidate/short-1-doppler.json",
+      "bytes": 32724,
+      "sha256": "b5216c7ff62fcac0fb277fe51cb721d3a75a68c8c7936ef35858a7df8a72e714"
+    },
+    {
+      "path": "s18-prefill-kernels-candidate/short-2-doppler.json",
+      "bytes": 32460,
+      "sha256": "5af4e9263cdf4807e172917b56f902d47575418554bf81e6bf5276b46da6f10d"
+    },
+    {
+      "path": "s18-prefill-kernels-candidate/long-0-doppler.json",
+      "bytes": 55388,
+      "sha256": "bc6cb9786ec608578415f8403b5dd7110eaaff8dcbd76c402396aa3e972413f8"
+    },
+    {
+      "path": "s18-prefill-kernels-candidate/long-1-doppler.json",
+      "bytes": 55451,
+      "sha256": "8bf4ce5b55dc756e895a48d7e318ffde3a567e9d3cfc3463b01a16d917b8042f"
+    },
+    {
+      "path": "s18-prefill-kernels-candidate/long-2-doppler.json",
+      "bytes": 55304,
+      "sha256": "b65ffc3a4137a5123d7489fe7326c31f68ecde7f771dbbe56432f64bd4caae27"
+    },
+    {
+      "path": "f5-paired-short/receipt.json",
+      "bytes": 8235,
+      "sha256": "16911f7f10ab889730ab4df5da32a88cbb131f22f930965352d9b40cdaf7b351"
+    },
+    {
+      "path": "f5-paired-short/execution.json",
+      "bytes": 3374,
+      "sha256": "f1688463135da772c460da2c606d0af1ac0593a1578255d2df2e0b1b591e0536"
+    },
+    {
+      "path": "f5-paired-short/contract.json",
+      "bytes": 4201,
+      "sha256": "84c44dec9725793c959c85a74f96b439acc3466b586b51829ebf6af7d61e1310"
+    },
+    {
+      "path": "f5-paired-short/doppler-ready.json",
+      "bytes": 1067830,
+      "sha256": "8666cb48065c2d1fe6cbb8607bb80c9d6b56d5a491f4cf4bc4ed6b1b66d9cc34"
+    },
+    {
+      "path": "f5-paired-short/pooled-ready.json",
+      "bytes": 14787169,
+      "sha256": "6116eac0febd7f7f0e57ce3a4afed9a71fc7658022959c670a45fbb03566f76b"
+    },
+    {
+      "path": "f5-paired-short/arithmetic-0-doppler.json",
+      "bytes": 23872,
+      "sha256": "77ad5ff41293252791fbfe2be3ce2a477f28689e0492f273dc35289ea4faf6ef"
+    },
+    {
+      "path": "f5-paired-short/arithmetic-0-pooled.json",
+      "bytes": 869,
+      "sha256": "605f89bc110f49b70873034636cef1f344fdff438b7160a518e3bacf16af5e85"
+    },
+    {
+      "path": "f5-paired-short/arithmetic-1-pooled.json",
+      "bytes": 880,
+      "sha256": "1ca6fd4ba066181295a852b4f9bf6450a35abdd8362a44d0ee14498a4719bca6"
+    },
+    {
+      "path": "f5-paired-short/arithmetic-1-doppler.json",
+      "bytes": 23832,
+      "sha256": "7cc6db9b8699f8003fdfc21959dba6c5d0f6ee64edf2dd3b4ddab497957bd77b"
+    },
+    {
+      "path": "f5-paired-short/arithmetic-2-doppler.json",
+      "bytes": 23855,
+      "sha256": "97a9884aaf39eac38bac8eb9bbd940c0585657e3713fefe1f5eea4e59c43e2ea"
+    },
+    {
+      "path": "f5-paired-short/arithmetic-2-pooled.json",
+      "bytes": 878,
+      "sha256": "ec8293fcc70e39df25fca8b10b5bd92dacadf32a0487153cf49fc93bcd41cad1"
+    },
+    {
+      "path": "f5-paired-short/arithmetic-3-pooled.json",
+      "bytes": 876,
+      "sha256": "6be330533574f441038562da09229b4fa48cf7e96abfe2b946d34d382e46e19d"
+    },
+    {
+      "path": "f5-paired-short/arithmetic-3-doppler.json",
+      "bytes": 23870,
+      "sha256": "796467f43f13a0ecb1aab600bd7f7710b3dc44c054de484b55e5c84979fddf41"
+    },
+    {
+      "path": "f5-paired-short/code-0-doppler.json",
+      "bytes": 24114,
+      "sha256": "6ffaa1fb1a087918430754b23678e52cde5cfbb66665bcbce7421e5280a1f0df"
+    },
+    {
+      "path": "f5-paired-short/code-0-pooled.json",
+      "bytes": 1118,
+      "sha256": "f6c10334397cb5e942eb2a8fe90391931fe5c5d541be88b4ecce2a8c88121b68"
+    },
+    {
+      "path": "f5-paired-short/code-1-pooled.json",
+      "bytes": 1086,
+      "sha256": "4fef7a1073a1d4391b340f47d3d03b5f6c996abdb9dade2fd0a7b4f1a762603d"
+    },
+    {
+      "path": "f5-paired-short/code-1-doppler.json",
+      "bytes": 24068,
+      "sha256": "92270c1e02d96776492a44575308133cad5fefabfcc1b02cfd52cbbaca3c01fd"
+    },
+    {
+      "path": "f5-paired-short/code-2-doppler.json",
+      "bytes": 24132,
+      "sha256": "ee8be13abf150c94fe9f690cab33ac5e0dc4086b3b2255b02dedc8bce0f00ca0"
+    },
+    {
+      "path": "f5-paired-short/code-2-pooled.json",
+      "bytes": 1058,
+      "sha256": "61feeec70af8c79f29ae23dfac725d89ce751d6da9fe382f91449d9f88b16bda"
+    },
+    {
+      "path": "f5-paired-short/code-3-pooled.json",
+      "bytes": 1114,
+      "sha256": "d5b2f15b046f117c07c46151586e5bdc783226bd041305f521d6c9b4520dc8ac"
+    },
+    {
+      "path": "f5-paired-short/code-3-doppler.json",
+      "bytes": 24145,
+      "sha256": "7551353e21d9187fd0a383a61f149deafa7ddeea05052711c130e4ed445e1787"
+    },
+    {
+      "path": "f5-paired-short/records-0-doppler.json",
+      "bytes": 23974,
+      "sha256": "d2f25d6712d3be0150cb349414b150fc84ab7bff416e9d7fb4422c7165ce454d"
+    },
+    {
+      "path": "f5-paired-short/records-0-pooled.json",
+      "bytes": 1005,
+      "sha256": "9bcc57782981be7cd0e6a596b198f2c28d2c2ce82e87dbfec829a56f498aea1d"
+    },
+    {
+      "path": "f5-paired-short/records-1-pooled.json",
+      "bytes": 991,
+      "sha256": "85261edc53cbf0fe5a94a9539053e98106ef926242593355fc97af1df235daf1"
+    },
+    {
+      "path": "f5-paired-short/records-1-doppler.json",
+      "bytes": 24006,
+      "sha256": "e273cd2dc2f655ef11b7653bebd594a8b640d3471f164b8eb70f15018a1db681"
+    },
+    {
+      "path": "f5-paired-short/records-2-doppler.json",
+      "bytes": 24016,
+      "sha256": "6ac105dba83828a072ff8928c43b50e7e8292946abc77ae090afc125c30ed747"
+    },
+    {
+      "path": "f5-paired-short/records-2-pooled.json",
+      "bytes": 1001,
+      "sha256": "b43adebda2ee2ef861b868a8c1471f9afcb9d2884e802f60c601f7426e6d0c92"
+    },
+    {
+      "path": "f5-paired-short/records-3-pooled.json",
+      "bytes": 989,
+      "sha256": "a85c4a3d518ad88024bfcb5f11c17e597277e33b08cc7ca5c4e01c5d0e9bc263"
+    },
+    {
+      "path": "f5-paired-short/records-3-doppler.json",
+      "bytes": 23971,
+      "sha256": "45f3be97c66e025c4afb9d5faaab22cab9c1aad40f9e01af1229c096340ab975"
+    },
+    {
+      "path": "f5-paired-short/missing-0-doppler.json",
+      "bytes": 23988,
+      "sha256": "821a5420c0e1dae24f0021e99162fff9e30484460f7fba2ef9d6fd2dfe8094b4"
+    },
+    {
+      "path": "f5-paired-short/missing-0-pooled.json",
+      "bytes": 977,
+      "sha256": "899ae8d58c581cb10e238d6cb63a19300df3246ab78398aea3b6a13d07510420"
+    },
+    {
+      "path": "f5-paired-short/missing-1-pooled.json",
+      "bytes": 960,
+      "sha256": "6911f5c371876fe4dfbef3bb6a80ab9b02f429da708c81ca3a4fef679aefc834"
+    },
+    {
+      "path": "f5-paired-short/missing-1-doppler.json",
+      "bytes": 23925,
+      "sha256": "3f2f6ccfba733105c1d392239b7a47a181be6134676be184db35eeeb8124eef8"
+    },
+    {
+      "path": "f5-paired-short/missing-2-doppler.json",
+      "bytes": 23988,
+      "sha256": "068a554e6e9da4554c363ddd0d9202791bf145b16ff9612eefa0a9cfdc989f1e"
+    },
+    {
+      "path": "f5-paired-short/missing-2-pooled.json",
+      "bytes": 961,
+      "sha256": "7c1d1c0f78a5e18ce7c8aeca89466a394c926a199c5f895ff24d83227d4c8f53"
+    },
+    {
+      "path": "f5-paired-short/missing-3-pooled.json",
+      "bytes": 962,
+      "sha256": "53133cbca3248ba27b43123145c5ae929fb4bcc4aba21091261e9a92ad821af2"
+    },
+    {
+      "path": "f5-paired-short/missing-3-doppler.json",
+      "bytes": 24000,
+      "sha256": "501221fc02c8a1625d57daf768a18fb0da4b33453d15172b7b979205b5698a20"
+    },
+    {
+      "path": "f5-paired-short/short-0-doppler.json",
+      "bytes": 32405,
+      "sha256": "1125d03685cb1c21a60e90519b9b1ea91ae086ec54dd9f6e31d31a62109c7c30"
+    },
+    {
+      "path": "f5-paired-short/short-0-pooled.json",
+      "bytes": 9420,
+      "sha256": "c956175bb6d858109c6023bf3ce9f460477639d8b6cf3f825bfaf785c34938e2"
+    },
+    {
+      "path": "f5-paired-short/short-1-pooled.json",
+      "bytes": 9544,
+      "sha256": "f71df12d85e193438f6c9731d2f8dc4d7d759e644821dba26d7f106450a97822"
+    },
+    {
+      "path": "f5-paired-short/short-1-doppler.json",
+      "bytes": 32363,
+      "sha256": "762992316013e250b10dbb9aabfc640eab7696511f03ce9c3d0c480b07da72b8"
+    },
+    {
+      "path": "f5-paired-short/short-2-doppler.json",
+      "bytes": 32607,
+      "sha256": "169f546af52b74b69474a171a04659dab48dda2d8221c6dfa02eb8af2fbb6a08"
+    },
+    {
+      "path": "f5-paired-short/short-2-pooled.json",
+      "bytes": 9491,
+      "sha256": "46ef652157b7580686c48bb667e1da42db1fa3d7c54829ade8215840571f7167"
+    },
+    {
+      "path": "f5-paired-short/short-3-pooled.json",
+      "bytes": 9624,
+      "sha256": "605e049e79b28100b8fa423ad4fab34ccb37b5afaaee26fa7f015074ee7bc962"
+    },
+    {
+      "path": "f5-paired-short/short-3-doppler.json",
+      "bytes": 32572,
+      "sha256": "2ec5e3b01d6a1af9cfe963f098cde780bba46bd74fa145f1457163ce21d7df24"
+    },
+    {
+      "path": "f5-paired-short/long-0-doppler.json",
+      "bytes": 55427,
+      "sha256": "52f3888fb30bb6f62ea908b3abdda64a4e9d65335e658e6a9905ed8583d6e322"
+    },
+    {
+      "path": "f5-paired-short/long-0-pooled.json",
+      "bytes": 32254,
+      "sha256": "caede3535c8239e1cd8cbf0dd830d717bdc9fdc6666fbe8ced68429b510f14b3"
+    },
+    {
+      "path": "f5-paired-short/long-1-pooled.json",
+      "bytes": 32117,
+      "sha256": "4d0ea7aa644cbc0cdfe7d7e86b19a5bd5ad2a674f6c6cf4171f15e7598d1d7e4"
+    },
+    {
+      "path": "f5-paired-short/long-1-doppler.json",
+      "bytes": 55473,
+      "sha256": "08d4f55e3823eda4d4fe92a1e7a82942aa74077b27011af4e10985759c35e093"
+    },
+    {
+      "path": "f5-paired-short/long-2-doppler.json",
+      "bytes": 55400,
+      "sha256": "4032a2d05afdb6945dd8cf0adfc044afedf2ed1fe88f5f6de55aaa667c4a68af"
+    },
+    {
+      "path": "f5-paired-short/long-2-pooled.json",
+      "bytes": 32262,
+      "sha256": "435e0d34e2ea428ec18c3bc0bd3c0073c72ca6d763039fa2c00474cb5150440f"
+    },
+    {
+      "path": "f5-paired-short/long-3-pooled.json",
+      "bytes": 32029,
+      "sha256": "9cb7a1c3ae8ecbbec39f796ad9ac7c086b2c86437d5cd9ce5be2ac0a83a47176"
+    },
+    {
+      "path": "f5-paired-short/long-3-doppler.json",
+      "bytes": 55471,
+      "sha256": "6ff27fae1f912dedcf8c92b3fd9a77be88632e28daafb993393fe576a4f44f90"
+    }
+  ]
+}

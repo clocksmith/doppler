@@ -50,7 +50,12 @@ export interface ShardCacheConfigSchema {
 
   /** Minimum requested range size that may use coalesced range-fetch blocks */
   rangeCacheMinBytes: number;
+
+  /** Maximum source bytes buffered for serialized whole-shard verification; 0 keeps incremental verification. Larger shards stream. */
+  verificationBufferBytes: number;
 }
+
+export declare function resolveShardVerificationBufferBytes(value: unknown): number;
 
 /** Default shard cache configuration */
 export declare const DEFAULT_SHARD_CACHE_CONFIG: ShardCacheConfigSchema;

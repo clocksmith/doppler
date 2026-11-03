@@ -79,7 +79,7 @@ export const DEFAULT_RUNTIME_CONFIG = {
       //   recording the next. Required when profile timings are being
       //   resolved and when low-memory constraints demand deterministic
       //   buffer release per chunk.
-      // "async": queue each prefill chunk without waiting — GPU queue ordering
+      // "async": queue prefill chunks up to prefillMaxInFlightChunks — GPU queue ordering
       //   keeps commands correct and deferred cleanup releases tracked
       //   buffers when work completes. Reduces CPU-GPU roundtrips; profile
       //   paths override to sync automatically.
@@ -89,6 +89,9 @@ export const DEFAULT_RUNTIME_CONFIG = {
       // transitions but longer intermediate-buffer lifetime. Default 4 is
       // memory-conservative; profiles with known-safe memory can raise it.
       prefillChunkLayers: 4,
+      // Runtime scheduling bound, including the chunk currently being recorded.
+      // Wait for the oldest submitted chunk before recording beyond this limit.
+      prefillMaxInFlightChunks: 2,
       prefillTokenChunkSize: null,
       skipEmbeddingKVCacheWrites: false,
       // Opt into the flash-attention prefill kernel (head_dim=256, f16 KV,

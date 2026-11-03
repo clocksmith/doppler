@@ -134,6 +134,22 @@ submission and settlement lifecycle. The policy changes neither shader math
 nor reference tolerances; changed packages require their own physical
 qualification. A single oversized dispatch still requires its own bound.
 
+## Prefill submission bounds
+
+`runtime.inference.session.prefillChunkLayers` controls the layers recorded in
+one prefill chunk. In `prefillChunkSubmitMode: "async"`, the runtime-only
+`prefillMaxInFlightChunks` limits outstanding chunks, including the chunk being
+recorded. The schema default is `2`; a positive safe integer is required.
+Before recording beyond this limit, Run waits for the oldest submitted chunk
+and its deferred cleanup. A value of `1` waits at every boundary. Profiling and
+`"sync"` submission retain their existing per-chunk waits.
+
+This bounds queued intermediate-buffer lifetimes without changing shader math,
+token chunking, or model facts. It does not bound one chunk's allocation, resident
+weights, the buffer pool, or total device/process memory. Failure and cancellation
+still settle submitted work before releasing its resources. The resolved runtime
+config records the selected limit; manifests do not own this scheduling field.
+
 ## Warm generation at load
 
 `runtime.shared.kernelWarmup.warmGeneration` (`null` by default) is
@@ -146,6 +162,26 @@ first decode step verifies before replaying. The time is load time (phase
 tokens generated, the stop reason and whether a program is ready. A stop token
 before `maxTokens` is reported, not an error; an invalid policy or a failed
 generation fails the load.
+
+## Whole-token replay windows
+
+With `session.decodeLoop.wholeTokenProgram: true`, `batchSize > 1` and
+`generation.disableMultiTokenDecode: false`, the prepared program can queue
+consecutive greedy steps using GPU token feedback. `batchSize` is a ceiling:
+ordinary token delivery starts the answer, then the window grows with completed
+decode steps, bounded by the configured cap and declared program positions.
+
+This transport requires contiguous whole-model state, no independent convolution
+or active finiteness fallback policy, `stopCheckMode: "batch"`,
+`readbackMode: "sequential"` and `readbackInterval: 1`. Each step starts its own
+readback after submission. Tokens stream in order while later queued steps run;
+the arithmetic and declared pipelines remain unchanged.
+
+The window retains a recurrent/convolution checkpoint. EOS, stop sequences,
+abort, consumer return and delivery errors drain queued work, then restore and
+replay the published prefix when needed. Extra tentative tokens are never
+published. Checkpoint, readback and recovery costs belong to request wall time.
+Cancellation waits for already queued GPU work; the configured window bounds it.
 
 ## Matmul workgroup geometry
 
@@ -280,6 +316,25 @@ Load a request from a URL:
 ```bash
 node src/cli/doppler-cli.js verify --config https://example.org/doppler/verify-gemma.json --json
 ```
+
+## RDRR source verification buffers
+
+`loading.shardCache.verificationBufferBytes` defaults to `0`, retaining
+incremental source verification. A positive safe integer admits complete source
+buffers up to that size for RDRR HTTP range loading through the shared command
+harness. Larger shards still verify incrementally. Buffered verifications are
+serialized within each storage context; failed checks release the queue and
+remain retryable. Complete-byte SHA-256 uses WebCrypto where available, with
+the same declared hash algorithm and expected digest.
+
+The internal `createArtifactStorageContext` and
+`createHttpArtifactStorageContext` constructors accept the same
+`verificationBufferBytes` option explicitly. Direct-source containers reject a
+positive budget because their large-file verification remains incremental. This is loading policy,
+not a manifest inference field, precision change, or permission to skip checks.
+The budget bounds the verifier's source buffer; native crypto may copy its
+input. Full-shard consumers already require a full buffer and verify that exact
+returned buffer regardless of this optional range-verification budget.
 
 ## Change checklist
 

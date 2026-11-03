@@ -1,0 +1,109 @@
+{
+  "parent": "f252dde95c4a5f72a87d51f276b01804bc7af971",
+  "files": [
+    {
+      "path": "src/config/conversion/qwen3/qwen3.8-27b-q4_0-passthrough.json",
+      "sha256": "82c1dddb6d606f44b0c18319e37dadecd488fcf8e7d260ce896a94dd22c568d6"
+    },
+    {
+      "path": "src/config/kernels/kernel-ref-digests.js",
+      "sha256": "8b370f63c3b2b172c4ca92987a8a1a93fd77591804601b14fcc2043fe7090a69"
+    },
+    {
+      "path": "src/config/kernels/registry.json",
+      "sha256": "52b8fb032e3679c2faefcd354eabfdede0194dfd8375362853d98e76dce1a20c"
+    },
+    {
+      "path": "src/config/schema/manifest.schema.d.ts",
+      "sha256": "40ac6c9b51f45a3512e85cabaa156938e605bf4929bd9e162963d4d7f920f9f7"
+    },
+    {
+      "path": "src/config/schema/quantization-defaults.schema.d.ts",
+      "sha256": "3dfc5807968ed6062c9e9b8f39ac12d4484010689fd337731887d42121de63d9"
+    },
+    {
+      "path": "src/converter/quantization-info.js",
+      "sha256": "8d1cf28f71160586fe2593f993f2f62936b8aebba8e87f1adae1da2e530f9a75"
+    },
+    {
+      "path": "src/formats/gguf/block-storage.d.ts",
+      "sha256": "57c5c6f330574dc64d9e072133a61731ac99641095a1269cea065ac79c100edd"
+    },
+    {
+      "path": "src/formats/gguf/quantized-formats.json",
+      "sha256": "315ec2d23a9166993035bdf8ba62ab8ad9c1c9eb25f4cd1693a569adaac698ce"
+    },
+    {
+      "path": "src/gpu/kernels/generated/uniform-writers.d.ts",
+      "sha256": "581772a8c2294ab044aab6640f8780e680b9e87b602af7761c850946a9c0cbf9"
+    },
+    {
+      "path": "src/gpu/kernels/generated/uniform-writers.js",
+      "sha256": "a418c25bc9c6a22139e3609aeffab5e6cf68fdfddf35a84081ce6a6459e3ba2d"
+    },
+    {
+      "path": "src/gpu/kernels/matmul-selection.d.ts",
+      "sha256": "9b86167710e1f07178d99d2f2fcd5e23d84e6e039e15f85594a0bb12cbf320e5"
+    },
+    {
+      "path": "src/gpu/kernels/matmul.d.ts",
+      "sha256": "73fe3328b5061e726fb64c4c9e01fbf77e988563c537d78adcaa9752e4aa3236"
+    },
+    {
+      "path": "src/gpu/kernels/matmul_q5k.wgsl",
+      "sha256": "38fbaa222a482b00676901c50ae4058f87ce0b8762f7f9cf857180f181f71d19"
+    },
+    {
+      "path": "src/gpu/weight-buffer.d.ts",
+      "sha256": "de87a0a9fc5e0745cd36ebd4464627089d3c55850aa3487106f030304d28eee0"
+    },
+    {
+      "path": "src/inference/pipelines/text/ffn/dense-executor.js",
+      "sha256": "e714f76ba3351022c52a3c7846fd34fa19f8fcc8c1dba7e65c6baa46bca731bb"
+    },
+    {
+      "path": "src/loader/embedding-limit-preflight.js",
+      "sha256": "749e2f4284734deff98656092310b5b01bc7115b8bce2e7d73e040b9d2df42b1"
+    },
+    {
+      "path": "src/rules/generated/rule-bundle.json",
+      "sha256": "6258135ae3a803e6c19887cac73868624aeace704013017ca985ba7fb733266a"
+    },
+    {
+      "path": "src/rules/inference/dtype.rules.json",
+      "sha256": "6105bfc2e0463ad6755575623eba1562e244457618232c739760cd2083d0894e"
+    },
+    {
+      "path": "src/rules/kernels/matmul.rules.json",
+      "sha256": "55995d8f7ed39c812de426026d7c1d19f6ddb380e767df209ae91d3cb7c3ca65"
+    },
+    {
+      "path": "src/rules/loader/tensor-loader.rules.json",
+      "sha256": "41689442ac090caa988fabc66007ff70b44529d0b7f6833614a8f62d5d9060f8"
+    },
+    {
+      "path": "src/rules/loader/weights.rules.json",
+      "sha256": "0d5644992d76280caf2669e5a407f9639b7b14176691a5709a0c9a8eec842c5f"
+    },
+    {
+      "path": "src/tooling/source-artifact-adapter.js",
+      "sha256": "bdad8ab5cbd5d0cc75c646649c81ca9a3384660cb1f6008a71b7daf031485c84"
+    },
+    {
+      "path": "tests/config/native-decode-candidate.test.js",
+      "sha256": "b3fc9cf6b1d9f202f4cba729ffe74252aa7b8ade3f304e719c6a2a9e9db5f61b"
+    },
+    {
+      "path": "tests/gpu/q5k-kernels-gpu.test.js",
+      "sha256": "100179d2d579e433711c8a7ca58279d9259c5c86be9fa1a6ac37e36ff4d05c52"
+    },
+    {
+      "path": "tests/loader/embedding-loader-limit.test.js",
+      "sha256": "e7bdd5e25fdfd1b8f86e8b0dbc41ae67386fbc9d23d962ea4dccf1f4b56eed1c"
+    },
+    {
+      "path": "tools/experiments/native-decode-candidate.js",
+      "sha256": "725201fbae409f823ea4952e754c1b2aa47bdf21502823fa069822348b5773ed"
+    }
+  ]
+}

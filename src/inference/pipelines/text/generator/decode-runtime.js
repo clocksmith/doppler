@@ -27,7 +27,7 @@ import { shouldDisableBatchDecodeAfterShortBatch, resolveHotVocabularyBatchDecod
 import { getExperimentalIntentBundleModule, resolveSuppressedSamplingTokenIds } from './text.js';
 import { assertBatchRetryInPlaceAllowed } from './batch-retry-policy.js';
 import { verifyDecodeStepAhead } from './decode.js';
-import { wholeTokenProgramRequested } from './whole-token-lane.js';
+import { wholeTokenProgramRequested, prepareWholeTokenBatch } from './whole-token-lane.js';
 
 function prepareGenerationRuntime(generator, opts, options) {
   generator._resetReplayPrefillRuntimeState();
@@ -441,7 +441,8 @@ export async function* _runDecodeLoop(generatedIds, opts, options, runtime) {
     });
     const initialHotVocabularyBatchDecodeAvailable = resolveCurrentHotVocabularyBatchDecodeAvailable();
     const executionPlan = opts.executionPlan;
-    let useBatchPath = replayPrefillDecode
+    const wholeTokenReplay = wholeTokenProgramRequested(this._state, opts);
+    let useBatchPath = replayPrefillDecode || wholeTokenReplay
       ? false
         : shouldUseBatchDecode({
           batchSize: executionPlan.batchSize,
@@ -499,6 +500,19 @@ export async function* _runDecodeLoop(generatedIds, opts, options, runtime) {
       );
     }
 
+    const batchTokenLimit = (hotVocabularyBatchDecodeAvailable) => resolveMaxBatchDecodeTokens({
+          hasHotVocabularyBatchDecode: hotVocabularyBatchDecodeAvailable,
+          hasGpuSplitPerLayerInputs,
+          hasLinearAttentionLayers: hasLinearLayers,
+          modelId: this._state.modelConfig.modelId ?? executionPlan.kernelPathId,
+          activationDtype: executionPlan.activationDtype,
+          currentSeqLen: this._state.currentSeqLen,
+          maxDecodeTokens: opts.maxTokens,
+          numLayers: this._state.modelConfig.numLayers,
+          hiddenSize: this._state.modelConfig.hiddenSize,
+          configuredMaxBatchDecodeTokens: executionPlan.maxBatchDecodeTokens,
+    });
+
     let rejectedDraftBlocks = 0;
     while (tokensGenerated < opts.maxTokens) {
       if (stopIfAborted()) break;
@@ -535,20 +549,39 @@ export async function* _runDecodeLoop(generatedIds, opts, options, runtime) {
         }
       }
 
+      if (wholeTokenReplay && executionPlan.batchSize > 1 && executionPlan.stopCheckMode === 'batch' && !executionPlan.disableMultiTokenDecode) {
+        const requested = Math.min(executionPlan.batchSize, opts.maxTokens - tokensGenerated);
+        const maximum = batchTokenLimit(hotVocabularyBatchDecodeAvailable);
+        const bounded = maximum == null ? requested : Math.min(requested, maximum);
+        if (maximum != null) this._state.batchingStats.maxBatchTokenCap = Math.max(this._state.batchingStats.maxBatchTokenCap ?? 0, maximum);
+        if (bounded < executionPlan.batchSize) this._state.batchingStats.batchClampCount = (this._state.batchingStats.batchClampCount ?? 0) + 1;
+        const batch = await prepareWholeTokenBatch(this._state, generatedIds, bounded);
+        if (batch) {
+          let stopped = false;
+          const delivered = [];
+          try {
+            for await (const token of batch.tokens) {
+              if (stopIfAborted()) { stopped = true; break; }
+              batch.publish(); generatedIds.push(token); tokensGenerated++;
+              const text = emitMode === 'token' ? '' : decodeToken(token);
+              delivered.push({ id: token, text });
+              yield emitMode === 'token' ? token : text;
+              options.onToken?.(token, text);
+              if (isStopToken(token, stopTokenIds, eosToken)) { this._recordStopReason('stop-token', token); stopped = true; break; }
+              if (matchesStopSequence(this._state.tokenizer, generatedIds, stopSequenceStart, opts.stopSequences, this._state.modelConfig?.reasoningOutput)) {
+                this._recordStopReason('stop-sequence', token); stopped = true; break;
+              }
+            }
+            if (delivered.length) options.onBatch?.(delivered);
+          } finally { await batch.settle(); }
+          if (stopped) break;
+          continue;
+        }
+      }
+
       if (useBatchPath) {
         const remaining = opts.maxTokens - tokensGenerated;
-        const maxBatchDecodeTokens = resolveMaxBatchDecodeTokens({
-          hasHotVocabularyBatchDecode: hotVocabularyBatchDecodeAvailable,
-          hasGpuSplitPerLayerInputs,
-          hasLinearAttentionLayers: hasLinearLayers,
-          modelId: this._state.modelConfig.modelId ?? executionPlan.kernelPathId,
-          activationDtype: executionPlan.activationDtype,
-          currentSeqLen: this._state.currentSeqLen,
-          maxDecodeTokens: opts.maxTokens,
-          numLayers: this._state.modelConfig.numLayers,
-          hiddenSize: this._state.modelConfig.hiddenSize,
-          configuredMaxBatchDecodeTokens: executionPlan.maxBatchDecodeTokens,
-        });
+        const maxBatchDecodeTokens = batchTokenLimit(hotVocabularyBatchDecodeAvailable);
         const requestedBatchTokens = executionPlan.batchSize * intervalBatches;
         const boundedBatchTokens = maxBatchDecodeTokens == null
           ? requestedBatchTokens

@@ -12,7 +12,7 @@ import {
   getOrCreateBindGroupLayout,
   getOrCreatePipelineLayout,
 } from './pipeline-cache.js';
-import { recordDispatch } from './dispatch.js';
+import { assertWorkgroupLimits, recordDispatch } from './dispatch.js';
 import { selectRuleValue } from '../../rules/rule-registry.js';
 import { assertImplicitDtypeTransitionAllowed } from '../../config/dtype-transition-contract.js';
 import { getKernelConfig } from './kernel-configs.js';
@@ -285,8 +285,8 @@ export async function runLinearAttentionCoreGPU(qkvTensor, zTensor, aTensor, bTe
   requireGpuBuffer(layerState?.recurrentStateGPU, 'recurrentStateGPU');
   if (layerState.sourceLayout != null && layerState.sourceLayout !== 'hf' && layerState.sourceLayout !== 'gguf-v1') throw new Error('Unsupported linear-attention source layout.');
   const numTokens = Number(options.numTokens ?? 0);
-  if (!Number.isFinite(numTokens) || numTokens <= 0) {
-    throw new Error('runLinearAttentionCoreGPU requires numTokens > 0.');
+  if (!Number.isSafeInteger(numTokens) || numTokens <= 0) {
+    throw new Error('runLinearAttentionCoreGPU requires numTokens to be a positive safe integer.');
   }
   if (!Number.isFinite(layerState.headVDim) || layerState.headVDim <= 0) {
     throw new Error(`linear_attention requires positive headVDim, got ${layerState.headVDim}.`);
@@ -367,6 +367,12 @@ export async function runLinearAttentionCoreGPU(qkvTensor, zTensor, aTensor, bTe
   if (!pipelines) {
     throw new Error(`linear_attention core failed to resolve pipelines for dtype "${inputDtype}".`);
   }
+
+  const parallelConvWorkgroups = pipelines.parallelConvPipeline && numTokens >= layerState.convKernelSize
+    ? assertWorkgroupLimits(device,
+      [Math.ceil(layerState.convDim / CONV_WORKGROUP_SIZE), numTokens, 1],
+      'linear_attention_parallel_conv')
+    : null;
 
   const convOutSize = numTokens * layerState.convDim * Float32Array.BYTES_PER_ELEMENT;
   const outputSize = numTokens * layerState.valueDim * Float32Array.BYTES_PER_ELEMENT;
@@ -581,8 +587,8 @@ export async function runLinearAttentionCoreGPU(qkvTensor, zTensor, aTensor, bTe
         [Math.ceil(layerState.convDim / CONV_WORKGROUP_SIZE), 1, 1],
         'linear_attention_conv'
       );
-      if (pipelines.parallelConvPipeline && numTokens >= layerState.convKernelSize) recordDispatch(recorder, pipelines.parallelConvPipeline,
-        convBindGroup, [Math.ceil(numTokens * layerState.convDim / CONV_WORKGROUP_SIZE), 1, 1], 'linear_attention_parallel_conv');
+      if (parallelConvWorkgroups) recordDispatch(recorder, pipelines.parallelConvPipeline,
+        convBindGroup, parallelConvWorkgroups, 'linear_attention_parallel_conv');
       recordDispatch(
         recorder,
         pipelines.recurrentPipeline,
@@ -667,10 +673,10 @@ export async function runLinearAttentionCoreGPU(qkvTensor, zTensor, aTensor, bTe
       pass.setPipeline(pipelines.convPipeline);
       pass.setBindGroup(0, convBindGroup);
       pass.dispatchWorkgroups(Math.ceil(layerState.convDim / CONV_WORKGROUP_SIZE), 1, 1);
-      if (pipelines.parallelConvPipeline && numTokens >= layerState.convKernelSize) {
+      if (parallelConvWorkgroups) {
         pass.setPipeline(pipelines.parallelConvPipeline);
         pass.setBindGroup(0, convBindGroup);
-        pass.dispatchWorkgroups(Math.ceil(numTokens * layerState.convDim / CONV_WORKGROUP_SIZE), 1, 1);
+        pass.dispatchWorkgroups(parallelConvWorkgroups[0], parallelConvWorkgroups[1], parallelConvWorkgroups[2]);
       }
       pass.end();
     }

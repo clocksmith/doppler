@@ -1,0 +1,25 @@
+{
+  "scope": "Independent pinned llama.cpp CPU, source-preserving GGUF, F32 KV and teacher forcing. Argmax agreement does not establish full-logit tolerance.",
+  "positions": 124,
+  "mismatches": [
+    {
+      "step": 52,
+      "argmax": 795,
+      "forced": 449,
+      "elapsedSeconds": 144.498
+    },
+    {
+      "step": 89,
+      "argmax": 26946,
+      "forced": 29541,
+      "elapsedSeconds": 158.076
+    },
+    {
+      "step": 90,
+      "argmax": 1472,
+      "forced": 321,
+      "elapsedSeconds": 158.443
+    }
+  ],
+  "allMatched": false
+}

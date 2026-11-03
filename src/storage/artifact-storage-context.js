@@ -2,11 +2,12 @@ import {
   DIRECT_SOURCE_RUNTIME_MODE,
 } from '../formats/source-runtime.js';
 import { createSourceStorageContext } from './source-storage-context.js';
-import { createStreamingHasher } from './shard-manager.js';
+import { computeHash, createStreamingHasher } from './shard-manager.js';
 import { createOpfsStore } from './backends/opfs-store.js';
 import { normalizeModelId } from './normalize-model-id.js';
 import { isNodeRuntime } from '../storage/runtime-env.js';
 import { toArrayBuffer } from '../formats/array-buffer.js';
+import { resolveShardVerificationBufferBytes } from '../config/schema/loading.schema.js';
 
 export const ARTIFACT_FORMAT_RDRR = 'rdrr';
 export const ARTIFACT_FORMAT_DIRECT_SOURCE = 'direct-source';
@@ -199,9 +200,42 @@ function createPathBackedStorageContext(options) {
   const tensorsJsonPath = options?.tensorsJsonPath ?? null;
   const verifyHashes = options?.verifyHashes === true;
   const hashesTrusted = options?.hashesTrusted === true;
+  const verificationBufferBytes = resolveShardVerificationBufferBytes(options?.verificationBufferBytes);
 
   const descriptorByPath = new Map(shardSources.map((entry) => [entry.path, entry]));
   const verifiedSourceTasks = new Map();
+  let bufferedVerificationTail = Promise.resolve();
+
+  function requireSourceHash(descriptor) {
+    const expectedHash = normalizeHashString(
+      descriptor.hash,
+      `artifact shard hash (${descriptor.path})`
+    );
+    if (!expectedHash) {
+      throw new Error(`Artifact shard "${descriptor.path}" is missing a hash digest.`);
+    }
+    return expectedHash;
+  }
+
+  async function readVerifiedSource(descriptor) {
+    const expectedHash = requireSourceHash(descriptor);
+    const payload = await readRange(descriptor.path, 0, descriptor.size);
+    const bytes = toArrayBuffer(payload, `readRange(${descriptor.path})`);
+    if (bytes.byteLength !== descriptor.size) {
+      throw new Error(
+        `Artifact shard short read for verification (${descriptor.path}): `
+        + `expected=${descriptor.size}, got=${bytes.byteLength}.`
+      );
+    }
+    const computedHash = await computeHash(bytes, descriptor.hashAlgorithm);
+    if (computedHash !== expectedHash) {
+      throw new Error(
+        `Artifact shard hash mismatch for ${descriptor.path}. `
+        + `Expected ${expectedHash}, got ${computedHash}.`
+      );
+    }
+    return bytes;
+  }
 
   async function ensureVerifiedSource(sourcePath) {
     if (!verifyHashes || hashesTrusted) {
@@ -214,13 +248,17 @@ function createPathBackedStorageContext(options) {
         if (!descriptor) {
           throw new Error(`Missing artifact shard descriptor for ${sourcePath}.`);
         }
-        const expectedHash = normalizeHashString(
-          descriptor.hash,
-          `artifact shard hash (${sourcePath})`
-        );
-        if (!expectedHash) {
-          throw new Error(`Artifact shard "${sourcePath}" is missing a hash digest.`);
+        if (verificationBufferBytes > 0 && descriptor.size <= verificationBufferBytes) {
+          // Serialize the optional workspace, independently of caller concurrency.
+          // The promise resolves without retaining the verified source buffer.
+          const verification = bufferedVerificationTail.then(async () => {
+            await readVerifiedSource(descriptor);
+          });
+          bufferedVerificationTail = verification.then(() => {}, () => {});
+          await verification;
+          return;
         }
+        const expectedHash = requireSourceHash(descriptor);
         const hasher = await createStreamingHasher(descriptor.hashAlgorithm);
         const totalBytes = normalizePositiveInteger(
           descriptor.size,
@@ -289,6 +327,12 @@ function createPathBackedStorageContext(options) {
     const descriptor = shardSources[index];
     if (!descriptor) {
       throw new Error(`Artifact shard index out of bounds: ${index}`);
+    }
+    if (verifyHashes && !hashesTrusted) {
+      // A complete read already needs this buffer. Verify the bytes returned to
+      // the caller instead of streaming a separate copy and then fetching again.
+      // Range reads keep their bounded streaming verification path.
+      return readVerifiedSource(descriptor);
     }
     return loadShardRange(index, 0, descriptor.size);
   };
@@ -446,6 +490,9 @@ export function createArtifactStorageContext(options = {}) {
   }
 
   if (format === ARTIFACT_FORMAT_DIRECT_SOURCE) {
+    if (resolveShardVerificationBufferBytes(options.verificationBufferBytes) > 0) {
+      throw new Error('verificationBufferBytes is supported only for RDRR shards; direct-source files require streaming verification.');
+    }
     return createSourceStorageContext(options);
   }
 
@@ -462,6 +509,7 @@ export function createArtifactStorageContext(options = {}) {
     tensorsJsonPath: normalizeArtifactPath(manifest.tensorsFile),
     verifyHashes: options.verifyHashes === true,
     hashesTrusted: options.hashesTrusted === true,
+    verificationBufferBytes: options.verificationBufferBytes,
   });
 }
 
@@ -893,5 +941,6 @@ export function createHttpArtifactStorageContext(baseUrl, manifest, options = {}
     readBinary,
     verifyHashes: options.verifyHashes === true
       || (options.verifyHashes !== false && getArtifactFormat(manifest) === ARTIFACT_FORMAT_DIRECT_SOURCE),
+    verificationBufferBytes: options.verificationBufferBytes,
   });
 }

@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { createHash } from 'node:crypto';
+import { createHash, webcrypto } from 'node:crypto';
 import { createSha256Hasher, sha256BytesHex, sha256Hex } from '../../src/formats/sha256.js';
 import { computeSHA256, createStreamingHasher } from '../../src/storage/shards/integrity.js';
 
@@ -96,4 +96,37 @@ const long = createSha256Hasher();
 const native = createHash('sha256');
 for (let i = 0; i < 513; i++) { long.update(chunk); native.update(chunk); }
 assert.equal(long.digestHex(), native.digest('hex'));
+
+// Complete-byte storage hashing uses the native primitive when available,
+// honors borrowed view extents, and never retries a native failure in JS.
+const cryptoDescriptor = Object.getOwnPropertyDescriptor(globalThis, 'crypto');
+let nativeCalls = 0;
+const offsetBytes = Uint8Array.from({ length: 97 }, (_, index) => index).subarray(7, 81);
+try {
+  Object.defineProperty(globalThis, 'crypto', { configurable: true, value: { subtle: {
+    async digest(algorithm, bytes) {
+      nativeCalls++;
+      assert.equal(algorithm, 'SHA-256');
+      assert.equal(bytes.byteLength, offsetBytes.byteLength);
+      return webcrypto.subtle.digest(algorithm, bytes);
+    },
+  } } });
+  assert.equal(await computeSHA256(offsetBytes), reference(offsetBytes));
+  assert.equal(await computeSHA256(offsetBytes.slice().buffer), reference(offsetBytes));
+  assert.equal(nativeCalls, 2);
+  const shared = new Uint8Array(new SharedArrayBuffer(offsetBytes.byteLength));
+  shared.set(offsetBytes);
+  assert.equal(await computeSHA256(shared), reference(offsetBytes));
+  assert.equal(nativeCalls, 2, 'Shared storage is not passed to WebCrypto');
+  Object.defineProperty(globalThis, 'crypto', { configurable: true, value: undefined });
+  assert.equal(await computeSHA256(offsetBytes), reference(offsetBytes));
+  Object.defineProperty(globalThis, 'crypto', { configurable: true, value: { subtle: {
+    digest() { throw new Error('Injected native digest failure'); },
+  } } });
+  await assert.rejects(computeSHA256(offsetBytes), /Injected native digest failure/);
+  await assert.rejects(computeSHA256('invalid'), /Uint8Array/);
+} finally {
+  if (cryptoDescriptor) Object.defineProperty(globalThis, 'crypto', cryptoDescriptor);
+  else delete globalThis.crypto;
+}
 console.log(JSON.stringify({ test: 'sha256-incremental', passed: true, workspace, longInputBytes: chunk.length * 513 }));

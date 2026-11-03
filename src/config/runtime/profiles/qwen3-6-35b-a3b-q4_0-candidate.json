@@ -1,7 +1,7 @@
 {
   "id": "profiles/qwen3-6-35b-a3b-q4_0-candidate",
   "name": "qwen3-6-35b-a3b-q4_0-candidate",
-  "description": "Experimental unchanged GGUF block execution with explicit 256-token prefill chunks queued without per-chunk waits, a whole-token decode program (one command buffer per token, next token encoded ahead) built from per-layer encode-ahead observation steps, and a warm generation at load (pipelines compiled and the program built before the first request; a kept program is verified on decode step 1). Independent full-model numerical and performance gates required. Carries the measured native decode kernel path (inline execution-v1 object).",
+  "description": "Experimental Jupiter AMD Strix Halo 35B profile: unchanged native GGUF blocks, F32 activations/KV, 2048-token prefill chunks and a registered 16-query F32 attention tile requiring 512-invocation workgroups and subgroup_id. Bounded asynchronous submission, whole-token decode replay, 64 MiB source verification and warm generation. Retained numerical equivalence and ten-pair product-format measurements; independent full-model and best-speculative qualification remain separate.",
   "intent": "investigate",
   "compatibleIntents": [
     "investigate",
@@ -22,6 +22,11 @@
         }
       }
     },
+    "loading": {
+      "shardCache": {
+        "verificationBufferBytes": 67108864
+      }
+    },
     "inference": {
       "session": {
         "compute": {
@@ -36,11 +41,11 @@
         "useLinearAttentionFusedDecodeCore": false,
         "useLinearAttentionRegisterPrefill": true,
         "useLinearAttentionRegisterDecode": true,
-        "prefillTokenChunkSize": 256,
+        "prefillTokenChunkSize": 2048,
         "prefillChunkSubmitMode": "async",
         "decodeLoop": {
-          "batchSize": 1,
-          "stopCheckMode": "per-token",
+          "batchSize": 32,
+          "stopCheckMode": "batch",
           "readbackInterval": 1,
           "readbackMode": "sequential",
           "submitLatencyThresholdMs": null,
@@ -58,10 +63,10 @@
         }
       },
       "generation": {
-        "disableMultiTokenDecode": true
+        "disableMultiTokenDecode": false
       },
       "kernelPath": {
-        "id": "qwen-3-6-35b-a3b-text-source-q4_0-af32-native-decode-candidate",
+        "id": "qwen-3-6-35b-a3b-text-source-q4_0-af32-native-decode-candidate-prefill-tile16",
         "name": "Execution inline kernel path",
         "description": "Native GGUF Q4_0 candidate: post-attention norm with the expert and shared router GEMVs in one dispatch, subgroup F32 GEMV linear a-b, cooperative Q-family projections and lm_head, pair shared-slot MoE gate/up with the down projection, slot combine and layer residual in one dispatch, split-K GQA decode attention.",
         "activationDtype": "f32",
@@ -353,7 +358,12 @@
                 "kvDtype": "f32",
                 "activationDtype": "f32"
               },
-              "digest": "sha256:2ae1ec07bf2c901cb94dfeadf9a273aa6d05b1f232a0274ec1170430c6bd13e4"
+              "digest": "sha256:b404819ada11cdb093c0b98f9127cba40f06b2f2c1294748228c2e22c9f98a6e",
+              "constants": {
+                "HEAD_DIM": 256,
+                "WORKGROUP_SIZE": 512,
+                "QUERY_TILE": 16
+              }
             },
             {
               "op": "o_proj",
@@ -815,13 +825,18 @@
                   "op": "rope_k"
                 },
                 {
-                  "digest": "sha256:2ae1ec07bf2c901cb94dfeadf9a273aa6d05b1f232a0274ec1170430c6bd13e4",
+                  "digest": "sha256:b404819ada11cdb093c0b98f9127cba40f06b2f2c1294748228c2e22c9f98a6e",
                   "entry": "main",
                   "kernel": "attention_prefill_query_tile_f32.wgsl",
                   "op": "attention",
                   "precision": {
                     "activationDtype": "f32",
                     "kvDtype": "f32"
+                  },
+                  "constants": {
+                    "HEAD_DIM": 256,
+                    "WORKGROUP_SIZE": 512,
+                    "QUERY_TILE": 16
                   }
                 },
                 {
@@ -987,13 +1002,13 @@
                   "op": "moe_grouped_gu",
                   "kernel": "moe_grouped_matmul_f32.wgsl",
                   "entry": "main",
-                  "digest": "sha256:d81a2572b31a4adfbb441bf069882d6d8470c18c91c0fa0ba9aff18b1626461d"
+                  "digest": "sha256:50e3319f37de6d4e777c4fad1b094784a03e84ed50dbd8b0b21497a3c9adb432"
                 },
                 {
                   "op": "moe_grouped_down",
                   "kernel": "moe_grouped_matmul_f32.wgsl",
                   "entry": "main",
-                  "digest": "sha256:d81a2572b31a4adfbb441bf069882d6d8470c18c91c0fa0ba9aff18b1626461d"
+                  "digest": "sha256:50e3319f37de6d4e777c4fad1b094784a03e84ed50dbd8b0b21497a3c9adb432"
                 }
               ]
             }
@@ -1305,13 +1320,18 @@
                   "op": "rope_k"
                 },
                 {
-                  "digest": "sha256:2ae1ec07bf2c901cb94dfeadf9a273aa6d05b1f232a0274ec1170430c6bd13e4",
+                  "digest": "sha256:b404819ada11cdb093c0b98f9127cba40f06b2f2c1294748228c2e22c9f98a6e",
                   "entry": "main",
                   "kernel": "attention_prefill_query_tile_f32.wgsl",
                   "op": "attention",
                   "precision": {
                     "activationDtype": "f32",
                     "kvDtype": "f32"
+                  },
+                  "constants": {
+                    "HEAD_DIM": 256,
+                    "WORKGROUP_SIZE": 512,
+                    "QUERY_TILE": 16
                   }
                 },
                 {
@@ -1461,13 +1481,13 @@
                   "op": "moe_grouped_gu",
                   "kernel": "moe_grouped_matmul_f32.wgsl",
                   "entry": "main",
-                  "digest": "sha256:d81a2572b31a4adfbb441bf069882d6d8470c18c91c0fa0ba9aff18b1626461d"
+                  "digest": "sha256:50e3319f37de6d4e777c4fad1b094784a03e84ed50dbd8b0b21497a3c9adb432"
                 },
                 {
                   "op": "moe_grouped_down",
                   "kernel": "moe_grouped_matmul_f32.wgsl",
                   "entry": "main",
-                  "digest": "sha256:d81a2572b31a4adfbb441bf069882d6d8470c18c91c0fa0ba9aff18b1626461d"
+                  "digest": "sha256:50e3319f37de6d4e777c4fad1b094784a03e84ed50dbd8b0b21497a3c9adb432"
                 }
               ]
             }
@@ -1772,13 +1792,18 @@
                   "op": "rope_k"
                 },
                 {
-                  "digest": "sha256:2ae1ec07bf2c901cb94dfeadf9a273aa6d05b1f232a0274ec1170430c6bd13e4",
+                  "digest": "sha256:b404819ada11cdb093c0b98f9127cba40f06b2f2c1294748228c2e22c9f98a6e",
                   "entry": "main",
                   "kernel": "attention_prefill_query_tile_f32.wgsl",
                   "op": "attention",
                   "precision": {
                     "activationDtype": "f32",
                     "kvDtype": "f32"
+                  },
+                  "constants": {
+                    "HEAD_DIM": 256,
+                    "WORKGROUP_SIZE": 512,
+                    "QUERY_TILE": 16
                   }
                 },
                 {
@@ -1944,13 +1969,13 @@
                   "op": "moe_grouped_gu",
                   "kernel": "moe_grouped_matmul_f32.wgsl",
                   "entry": "main",
-                  "digest": "sha256:d81a2572b31a4adfbb441bf069882d6d8470c18c91c0fa0ba9aff18b1626461d"
+                  "digest": "sha256:50e3319f37de6d4e777c4fad1b094784a03e84ed50dbd8b0b21497a3c9adb432"
                 },
                 {
                   "op": "moe_grouped_down",
                   "kernel": "moe_grouped_matmul_f32.wgsl",
                   "entry": "main",
-                  "digest": "sha256:d81a2572b31a4adfbb441bf069882d6d8470c18c91c0fa0ba9aff18b1626461d"
+                  "digest": "sha256:50e3319f37de6d4e777c4fad1b094784a03e84ed50dbd8b0b21497a3c9adb432"
                 }
               ]
             }
@@ -2267,13 +2292,18 @@
                   "op": "rope_k"
                 },
                 {
-                  "digest": "sha256:2ae1ec07bf2c901cb94dfeadf9a273aa6d05b1f232a0274ec1170430c6bd13e4",
+                  "digest": "sha256:b404819ada11cdb093c0b98f9127cba40f06b2f2c1294748228c2e22c9f98a6e",
                   "entry": "main",
                   "kernel": "attention_prefill_query_tile_f32.wgsl",
                   "op": "attention",
                   "precision": {
                     "activationDtype": "f32",
                     "kvDtype": "f32"
+                  },
+                  "constants": {
+                    "HEAD_DIM": 256,
+                    "WORKGROUP_SIZE": 512,
+                    "QUERY_TILE": 16
                   }
                 },
                 {
@@ -2439,13 +2469,13 @@
                   "op": "moe_grouped_gu",
                   "kernel": "moe_grouped_matmul_f32.wgsl",
                   "entry": "main",
-                  "digest": "sha256:d81a2572b31a4adfbb441bf069882d6d8470c18c91c0fa0ba9aff18b1626461d"
+                  "digest": "sha256:50e3319f37de6d4e777c4fad1b094784a03e84ed50dbd8b0b21497a3c9adb432"
                 },
                 {
                   "op": "moe_grouped_down",
                   "kernel": "moe_grouped_matmul_f32.wgsl",
                   "entry": "main",
-                  "digest": "sha256:d81a2572b31a4adfbb441bf069882d6d8470c18c91c0fa0ba9aff18b1626461d"
+                  "digest": "sha256:50e3319f37de6d4e777c4fad1b094784a03e84ed50dbd8b0b21497a3c9adb432"
                 }
               ]
             }
@@ -2756,13 +2786,18 @@
                   "op": "rope_k"
                 },
                 {
-                  "digest": "sha256:2ae1ec07bf2c901cb94dfeadf9a273aa6d05b1f232a0274ec1170430c6bd13e4",
+                  "digest": "sha256:b404819ada11cdb093c0b98f9127cba40f06b2f2c1294748228c2e22c9f98a6e",
                   "entry": "main",
                   "kernel": "attention_prefill_query_tile_f32.wgsl",
                   "op": "attention",
                   "precision": {
                     "activationDtype": "f32",
                     "kvDtype": "f32"
+                  },
+                  "constants": {
+                    "HEAD_DIM": 256,
+                    "WORKGROUP_SIZE": 512,
+                    "QUERY_TILE": 16
                   }
                 },
                 {
@@ -2928,13 +2963,13 @@
                   "op": "moe_grouped_gu",
                   "kernel": "moe_grouped_matmul_f32.wgsl",
                   "entry": "main",
-                  "digest": "sha256:d81a2572b31a4adfbb441bf069882d6d8470c18c91c0fa0ba9aff18b1626461d"
+                  "digest": "sha256:50e3319f37de6d4e777c4fad1b094784a03e84ed50dbd8b0b21497a3c9adb432"
                 },
                 {
                   "op": "moe_grouped_down",
                   "kernel": "moe_grouped_matmul_f32.wgsl",
                   "entry": "main",
-                  "digest": "sha256:d81a2572b31a4adfbb441bf069882d6d8470c18c91c0fa0ba9aff18b1626461d"
+                  "digest": "sha256:50e3319f37de6d4e777c4fad1b094784a03e84ed50dbd8b0b21497a3c9adb432"
                 }
               ]
             }
@@ -3248,13 +3283,18 @@
                   "op": "rope_k"
                 },
                 {
-                  "digest": "sha256:2ae1ec07bf2c901cb94dfeadf9a273aa6d05b1f232a0274ec1170430c6bd13e4",
+                  "digest": "sha256:b404819ada11cdb093c0b98f9127cba40f06b2f2c1294748228c2e22c9f98a6e",
                   "entry": "main",
                   "kernel": "attention_prefill_query_tile_f32.wgsl",
                   "op": "attention",
                   "precision": {
                     "activationDtype": "f32",
                     "kvDtype": "f32"
+                  },
+                  "constants": {
+                    "HEAD_DIM": 256,
+                    "WORKGROUP_SIZE": 512,
+                    "QUERY_TILE": 16
                   }
                 },
                 {
@@ -3404,13 +3444,13 @@
                   "op": "moe_grouped_gu",
                   "kernel": "moe_grouped_matmul_f32.wgsl",
                   "entry": "main",
-                  "digest": "sha256:d81a2572b31a4adfbb441bf069882d6d8470c18c91c0fa0ba9aff18b1626461d"
+                  "digest": "sha256:50e3319f37de6d4e777c4fad1b094784a03e84ed50dbd8b0b21497a3c9adb432"
                 },
                 {
                   "op": "moe_grouped_down",
                   "kernel": "moe_grouped_matmul_f32.wgsl",
                   "entry": "main",
-                  "digest": "sha256:d81a2572b31a4adfbb441bf069882d6d8470c18c91c0fa0ba9aff18b1626461d"
+                  "digest": "sha256:50e3319f37de6d4e777c4fad1b094784a03e84ed50dbd8b0b21497a3c9adb432"
                 }
               ]
             }
@@ -3728,13 +3768,18 @@
                   "op": "rope_k"
                 },
                 {
-                  "digest": "sha256:2ae1ec07bf2c901cb94dfeadf9a273aa6d05b1f232a0274ec1170430c6bd13e4",
+                  "digest": "sha256:b404819ada11cdb093c0b98f9127cba40f06b2f2c1294748228c2e22c9f98a6e",
                   "entry": "main",
                   "kernel": "attention_prefill_query_tile_f32.wgsl",
                   "op": "attention",
                   "precision": {
                     "activationDtype": "f32",
                     "kvDtype": "f32"
+                  },
+                  "constants": {
+                    "HEAD_DIM": 256,
+                    "WORKGROUP_SIZE": 512,
+                    "QUERY_TILE": 16
                   }
                 },
                 {
@@ -3884,13 +3929,13 @@
                   "op": "moe_grouped_gu",
                   "kernel": "moe_grouped_matmul_f32.wgsl",
                   "entry": "main",
-                  "digest": "sha256:d81a2572b31a4adfbb441bf069882d6d8470c18c91c0fa0ba9aff18b1626461d"
+                  "digest": "sha256:50e3319f37de6d4e777c4fad1b094784a03e84ed50dbd8b0b21497a3c9adb432"
                 },
                 {
                   "op": "moe_grouped_down",
                   "kernel": "moe_grouped_matmul_f32.wgsl",
                   "entry": "main",
-                  "digest": "sha256:d81a2572b31a4adfbb441bf069882d6d8470c18c91c0fa0ba9aff18b1626461d"
+                  "digest": "sha256:50e3319f37de6d4e777c4fad1b094784a03e84ed50dbd8b0b21497a3c9adb432"
                 }
               ]
             }
@@ -4208,13 +4253,18 @@
                   "op": "rope_k"
                 },
                 {
-                  "digest": "sha256:2ae1ec07bf2c901cb94dfeadf9a273aa6d05b1f232a0274ec1170430c6bd13e4",
+                  "digest": "sha256:b404819ada11cdb093c0b98f9127cba40f06b2f2c1294748228c2e22c9f98a6e",
                   "entry": "main",
                   "kernel": "attention_prefill_query_tile_f32.wgsl",
                   "op": "attention",
                   "precision": {
                     "activationDtype": "f32",
                     "kvDtype": "f32"
+                  },
+                  "constants": {
+                    "HEAD_DIM": 256,
+                    "WORKGROUP_SIZE": 512,
+                    "QUERY_TILE": 16
                   }
                 },
                 {
@@ -4364,13 +4414,13 @@
                   "op": "moe_grouped_gu",
                   "kernel": "moe_grouped_matmul_f32.wgsl",
                   "entry": "main",
-                  "digest": "sha256:d81a2572b31a4adfbb441bf069882d6d8470c18c91c0fa0ba9aff18b1626461d"
+                  "digest": "sha256:50e3319f37de6d4e777c4fad1b094784a03e84ed50dbd8b0b21497a3c9adb432"
                 },
                 {
                   "op": "moe_grouped_down",
                   "kernel": "moe_grouped_matmul_f32.wgsl",
                   "entry": "main",
-                  "digest": "sha256:d81a2572b31a4adfbb441bf069882d6d8470c18c91c0fa0ba9aff18b1626461d"
+                  "digest": "sha256:50e3319f37de6d4e777c4fad1b094784a03e84ed50dbd8b0b21497a3c9adb432"
                 }
               ]
             }

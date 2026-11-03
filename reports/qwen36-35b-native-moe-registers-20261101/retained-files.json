@@ -1,0 +1,800 @@
+{
+  "root": "deco-evidence/doppler-35b-perf",
+  "files": [
+    {
+      "path": "s29-native-moe-registers-screen/arithmetic-0-candidate.json",
+      "bytes": 23907,
+      "sha256": "d5d7d3c8a6a4044de68b13a4aa07d950df7d2c8c2ade01be88fcf6c065979d74"
+    },
+    {
+      "path": "s29-native-moe-registers-screen/arithmetic-0-doppler.json",
+      "bytes": 23858,
+      "sha256": "38014eb73ff69fa3b3c0f029322f303b56b0655591c48a69487632793eb6d3b3"
+    },
+    {
+      "path": "s29-native-moe-registers-screen/arithmetic-1-candidate.json",
+      "bytes": 23911,
+      "sha256": "d535e242519579caba2d60a2a8e12b3fdb9f194ab1596fc37822e5e9f8b0cfc8"
+    },
+    {
+      "path": "s29-native-moe-registers-screen/arithmetic-1-doppler.json",
+      "bytes": 23895,
+      "sha256": "3a856a84c242ca6cf3a09acea463abf8e365a88ad952b3ecbcd00e4d0b5cab8f"
+    },
+    {
+      "path": "s29-native-moe-registers-screen/arithmetic-2-candidate.json",
+      "bytes": 23845,
+      "sha256": "c58265c9f32a712bf9111ace4ea258de37a89150c5110c4972466502cd35b9ec"
+    },
+    {
+      "path": "s29-native-moe-registers-screen/arithmetic-2-doppler.json",
+      "bytes": 23841,
+      "sha256": "df8a90c7f10f4515dfc8ec9bfbdbe3ec129b519f71d9bfa104e2bfdabc903a5d"
+    },
+    {
+      "path": "s29-native-moe-registers-screen/arithmetic-3-candidate.json",
+      "bytes": 23878,
+      "sha256": "d5822c970164d020fa849d6baed565cbc9126aa47d9a1e91a28e5daf0e0f9c4c"
+    },
+    {
+      "path": "s29-native-moe-registers-screen/arithmetic-3-doppler.json",
+      "bytes": 23752,
+      "sha256": "ec604663e2d0a8eef946718d606ea4e4c911272984f37958b9631b91f505b095"
+    },
+    {
+      "path": "s29-native-moe-registers-screen/candidate-live.log",
+      "bytes": 17702,
+      "sha256": "aa8df12f7214180d5e6098a2e799a57a5666948d461ad9fe212970c3f279f79b"
+    },
+    {
+      "path": "s29-native-moe-registers-screen/candidate-logs.json",
+      "bytes": 18820,
+      "sha256": "39052aa50b9a0755e562a0a04bf362b496cc804a128f0e09711927e828f7bd2f"
+    },
+    {
+      "path": "s29-native-moe-registers-screen/candidate-ready.json",
+      "bytes": 1068139,
+      "sha256": "e0da5c88d2e2c56c4f070d14b77504a7c10ae086d8b4c21bf28871d3020d845a"
+    },
+    {
+      "path": "s29-native-moe-registers-screen/code-0-candidate.json",
+      "bytes": 24113,
+      "sha256": "7127b86476fca484cf271438c7bd2c97480578b28ab242efd5e2563dee0e4fa9"
+    },
+    {
+      "path": "s29-native-moe-registers-screen/code-0-doppler.json",
+      "bytes": 24107,
+      "sha256": "63c70915449717da9fd3e1414e4c7e5db5d4d7dc4ae04c3cfd1dce14e8c101fe"
+    },
+    {
+      "path": "s29-native-moe-registers-screen/code-1-candidate.json",
+      "bytes": 24099,
+      "sha256": "3efb6a285c5a203c9271184dac19278ba63a00d85de29cc5ad6b0cf0221ba70c"
+    },
+    {
+      "path": "s29-native-moe-registers-screen/code-1-doppler.json",
+      "bytes": 24116,
+      "sha256": "1d1b11e19dce28cc38bcdcfb47325b9c991ad276e61152d7256a044f4a9b009f"
+    },
+    {
+      "path": "s29-native-moe-registers-screen/code-2-candidate.json",
+      "bytes": 24097,
+      "sha256": "2e863386ad80752b62abc035b600b2ea435637ee50840926cf05137a11617308"
+    },
+    {
+      "path": "s29-native-moe-registers-screen/code-2-doppler.json",
+      "bytes": 24095,
+      "sha256": "7fa743421838282f2f792ab4389e12f83eff4398b4f21bf3fa818025da7fe8d9"
+    },
+    {
+      "path": "s29-native-moe-registers-screen/code-3-candidate.json",
+      "bytes": 24077,
+      "sha256": "b51f10ee53bfc50438deb34bb725183bb3a75635322ed13d2b9d09995022fc6c"
+    },
+    {
+      "path": "s29-native-moe-registers-screen/code-3-doppler.json",
+      "bytes": 24101,
+      "sha256": "1d8a942efb5bbde8b4bb511a776ead4ca7ab44900443d0004b94900242ff5091"
+    },
+    {
+      "path": "s29-native-moe-registers-screen/contract.json",
+      "bytes": 4201,
+      "sha256": "84c44dec9725793c959c85a74f96b439acc3466b586b51829ebf6af7d61e1310"
+    },
+    {
+      "path": "s29-native-moe-registers-screen/doppler-live.log",
+      "bytes": 17702,
+      "sha256": "434738f396c85a78b57a40358c51bcbd432a89ba4eb7948c6e6e0b6abcfc3af8"
+    },
+    {
+      "path": "s29-native-moe-registers-screen/doppler-logs.json",
+      "bytes": 18820,
+      "sha256": "56e0b65b1c38426efb5be1ab41d80d67dda150db0b8f65564cbd8aba912416da"
+    },
+    {
+      "path": "s29-native-moe-registers-screen/doppler-ready.json",
+      "bytes": 1068137,
+      "sha256": "9686bd4af9e32abb52ea8591029ac447fb735007a54373d3793687e24a740ea9"
+    },
+    {
+      "path": "s29-native-moe-registers-screen/executed-source/pooled-equal-weights/probe-server.js",
+      "bytes": 2809,
+      "sha256": "e4f853f7303067ef94f88dc6bc928e98cc8e9eb51c5ff6a3cfeac49c050da480"
+    },
+    {
+      "path": "s29-native-moe-registers-screen/executed-source/pooled-equal-weights/shared-input.js",
+      "bytes": 678,
+      "sha256": "d32f3bc1fc37018f7b18f902da3882b9326bd5a85dd5cc5603a53f524be19b20"
+    },
+    {
+      "path": "s29-native-moe-registers-screen/executed-source/qwen-economics/browser.js",
+      "bytes": 39721,
+      "sha256": "9f8eaaa0ae9f4a05a644d5ec81d8838d568f8f673bea94d9ce26dbf32b0cb916"
+    },
+    {
+      "path": "s29-native-moe-registers-screen/executed-source/qwen-economics/compare-reference-moe.py",
+      "bytes": 6114,
+      "sha256": "160a2024eecfc048403bd59a87321d8f7c0ec0b5e703de4529f11dc307a42281"
+    },
+    {
+      "path": "s29-native-moe-registers-screen/executed-source/qwen-economics/economics.js",
+      "bytes": 3613,
+      "sha256": "f3b81ecb8f093dbee844266ec07184f6f8eaa2cf816b46e77039b6fd89962b85"
+    },
+    {
+      "path": "s29-native-moe-registers-screen/executed-source/qwen-economics/normalize-reference-manifest.js",
+      "bytes": 625,
+      "sha256": "33098441a851ffe562c26ab67ea7bd45aa63eeba39ba2c1b5793ea90e7f7c513"
+    },
+    {
+      "path": "s29-native-moe-registers-screen/executed-source/qwen-economics/run.js",
+      "bytes": 12298,
+      "sha256": "019b3ef277539276afb9df2fe4f0b8252af36d22f1205047d654cbbf6e896b40"
+    },
+    {
+      "path": "s29-native-moe-registers-screen/executed-source/qwen-economics/sample-resources.py",
+      "bytes": 3078,
+      "sha256": "aa7feb6a71bc75ac950824f5a6853ad07e397846afc85f760a2ee42908395d9f"
+    },
+    {
+      "path": "s29-native-moe-registers-screen/executed-source/qwen-economics/summarize.js",
+      "bytes": 2907,
+      "sha256": "6b8f91fa9b395d6d82d7ae73670ee5dc947e2464c6d7bd3576327ec9cec6cc2a"
+    },
+    {
+      "path": "s29-native-moe-registers-screen/execution.json",
+      "bytes": 5031,
+      "sha256": "d66cb29a37ce1e40a68567d4ea6061e40bf3a39854ef7c873f0c1e85dd61da70"
+    },
+    {
+      "path": "s29-native-moe-registers-screen/long-0-candidate.json",
+      "bytes": 55300,
+      "sha256": "9abf409653d3c570de08c3a8670e5b8102abe87f3675a895b237a677cbf8be34"
+    },
+    {
+      "path": "s29-native-moe-registers-screen/long-0-doppler.json",
+      "bytes": 55453,
+      "sha256": "f03061a0c2ed1fe99c1ff79d70b62db699921b638f5ba92128121d9017bad6b2"
+    },
+    {
+      "path": "s29-native-moe-registers-screen/long-1-candidate.json",
+      "bytes": 55457,
+      "sha256": "7f72bd07faf16cd02b588e9837b709a8f25af0855b71f60ddc73d634634f5d13"
+    },
+    {
+      "path": "s29-native-moe-registers-screen/long-1-doppler.json",
+      "bytes": 55523,
+      "sha256": "4e4d0b3934cdeccd6a450916a3baea31c0850f893194f56b5d26592becf24414"
+    },
+    {
+      "path": "s29-native-moe-registers-screen/long-2-candidate.json",
+      "bytes": 55392,
+      "sha256": "074b98ac4b5c2d571b86c687e93aeea324220921c7a8b05850464f38d7ff0085"
+    },
+    {
+      "path": "s29-native-moe-registers-screen/long-2-doppler.json",
+      "bytes": 55314,
+      "sha256": "9e403c35080d6abc6949360285b25ebb44972348cffc4bb21a49a2b38a76d35b"
+    },
+    {
+      "path": "s29-native-moe-registers-screen/long-3-candidate.json",
+      "bytes": 55490,
+      "sha256": "bbe8de29fc224b1327c43454fc0f285b7cbe09c48bb8d84a26a0bde923dc1f03"
+    },
+    {
+      "path": "s29-native-moe-registers-screen/long-3-doppler.json",
+      "bytes": 55331,
+      "sha256": "64af3e9201942566da50af783c8c2b8ce925aafec38921bdbbaeff93eabf4d1f"
+    },
+    {
+      "path": "s29-native-moe-registers-screen/missing-0-candidate.json",
+      "bytes": 23994,
+      "sha256": "f375ec559ee2339be463273bf364bd0f64d730607bd0abdff8177bad0fa0bc4e"
+    },
+    {
+      "path": "s29-native-moe-registers-screen/missing-0-doppler.json",
+      "bytes": 23913,
+      "sha256": "37250b545672242e1ca00072e4609d4b69986fe5d2921b4a636a53d0b0920f00"
+    },
+    {
+      "path": "s29-native-moe-registers-screen/missing-1-candidate.json",
+      "bytes": 23960,
+      "sha256": "102ac273c0d22ecc2c90566e2794810a4b4fccdf320c20cd1a17a4bd8c3e248c"
+    },
+    {
+      "path": "s29-native-moe-registers-screen/missing-1-doppler.json",
+      "bytes": 23909,
+      "sha256": "9be4817e70b6c95cf7d2841534dbda1496ab3c67aa30ad32f0da944e42655fa0"
+    },
+    {
+      "path": "s29-native-moe-registers-screen/missing-2-candidate.json",
+      "bytes": 23894,
+      "sha256": "0a5f2850b08eed950c0de27041b5d83627447ba7ba1a2942c6e4d973d05a3bee"
+    },
+    {
+      "path": "s29-native-moe-registers-screen/missing-2-doppler.json",
+      "bytes": 23924,
+      "sha256": "7005041c594b11421b770112ca3fc45afc1e1babf2d3902fc45f6cb8cbec445f"
+    },
+    {
+      "path": "s29-native-moe-registers-screen/missing-3-candidate.json",
+      "bytes": 23969,
+      "sha256": "22fe0dc58aff6f653769ed2381e7d6ca7c66152777e2e90985aa7e86565da9f3"
+    },
+    {
+      "path": "s29-native-moe-registers-screen/missing-3-doppler.json",
+      "bytes": 23966,
+      "sha256": "44bd7dcd30f6ef82cb6804d51158ad4af92a26e1585da2b16be910d3703791ba"
+    },
+    {
+      "path": "s29-native-moe-registers-screen/receipt.json",
+      "bytes": 8379,
+      "sha256": "c7247c6555acbb892121cec4c225756a65f62b5d59225cc5a55b7990736fa820"
+    },
+    {
+      "path": "s29-native-moe-registers-screen/records-0-candidate.json",
+      "bytes": 23979,
+      "sha256": "ac633cff2db51f4b244193081475618b26d403847f17812b75c769364b3d77cb"
+    },
+    {
+      "path": "s29-native-moe-registers-screen/records-0-doppler.json",
+      "bytes": 24013,
+      "sha256": "f721b3199537eef36bcd2ec3a9a7037e6c2d4d32a47472fe78a813aee15171d7"
+    },
+    {
+      "path": "s29-native-moe-registers-screen/records-1-candidate.json",
+      "bytes": 23998,
+      "sha256": "dfeffead1ced5cbee7dd392734633512307129e7b029713d34f67d894ce2391c"
+    },
+    {
+      "path": "s29-native-moe-registers-screen/records-1-doppler.json",
+      "bytes": 24000,
+      "sha256": "fbeb84a2acb184add78438c62ba4784a4c91aa87941ba3699174d1198468d0b9"
+    },
+    {
+      "path": "s29-native-moe-registers-screen/records-2-candidate.json",
+      "bytes": 24013,
+      "sha256": "ee48423b57dc71c3c3d7b64a64eb8583cfa91b7f470f12615a344cd911549a01"
+    },
+    {
+      "path": "s29-native-moe-registers-screen/records-2-doppler.json",
+      "bytes": 23987,
+      "sha256": "c617627715fc96c497e249ad6e45bc7566caef8414e6a025ded1bcaaa1ab008a"
+    },
+    {
+      "path": "s29-native-moe-registers-screen/records-3-candidate.json",
+      "bytes": 23979,
+      "sha256": "0750bea8ad3b713d0b5496b09e636853a10f81d31ea7703e64112a701e9afadc"
+    },
+    {
+      "path": "s29-native-moe-registers-screen/records-3-doppler.json",
+      "bytes": 23966,
+      "sha256": "6d0f0609b13126786b644e7209d6d485556772165f218f98ebd834efef21ad06"
+    },
+    {
+      "path": "s29-native-moe-registers-screen/short-0-candidate.json",
+      "bytes": 32399,
+      "sha256": "ee8092a7c272296516f896ece0ef097f3fb19979f0724c25b8bbe83e8a1935e4"
+    },
+    {
+      "path": "s29-native-moe-registers-screen/short-0-doppler.json",
+      "bytes": 32535,
+      "sha256": "cb4f373eef74455febfbd430314c2ece3d6b15df6fdb781c7b8a2f128ecf058e"
+    },
+    {
+      "path": "s29-native-moe-registers-screen/short-1-candidate.json",
+      "bytes": 32358,
+      "sha256": "6b86209139fa9af89512a686680128bf51bd4d0ed5e7082bed0b280f6eed0e3d"
+    },
+    {
+      "path": "s29-native-moe-registers-screen/short-1-doppler.json",
+      "bytes": 32388,
+      "sha256": "d34b0826fd6e8e75b2c50b3ff7bf9ef86c7613902e9edddc392dabe1867d5d46"
+    },
+    {
+      "path": "s29-native-moe-registers-screen/short-2-candidate.json",
+      "bytes": 32739,
+      "sha256": "32057970ac08dc104c3d45ef6731b4a73af2ae4413c3bca0e8228a0a677733fd"
+    },
+    {
+      "path": "s29-native-moe-registers-screen/short-2-doppler.json",
+      "bytes": 32505,
+      "sha256": "1805c82c3712e0e3ab936445574ce1315557ac2834294b816c194b47f1a3fbaa"
+    },
+    {
+      "path": "s29-native-moe-registers-screen/short-3-candidate.json",
+      "bytes": 32484,
+      "sha256": "924776fc89c75db09391121cbfb29cdc37f46664024720abac0f97e4c0836026"
+    },
+    {
+      "path": "s29-native-moe-registers-screen/short-3-doppler.json",
+      "bytes": 32626,
+      "sha256": "a4f7a0820d9826c50c87d75100de13a06333bbcf4e5ca4db37e366fe991b2194"
+    },
+    {
+      "path": "p15-native-registers-component/receipt.json",
+      "bytes": 2005,
+      "sha256": "eb2a811ef500415bf594c449559f38b901800a97cffb87bef667caef17740628"
+    },
+    {
+      "path": "p15b-native-registers-tail-component/receipt.json",
+      "bytes": 3119,
+      "sha256": "53c1fe34b5034b32a7e26901b5779afe21dcc1c652f6197ea18d8cde6a85ec48"
+    },
+    {
+      "path": "n14-conv-grid-chunk-boundaries/candidate-live.log",
+      "bytes": 15877,
+      "sha256": "5cb13e8cddb56ffa27a1822335fc2f276946b9a9c057df39a0134ee77592b04b"
+    },
+    {
+      "path": "n14-conv-grid-chunk-boundaries/candidate-logs.json",
+      "bytes": 16755,
+      "sha256": "07a2a026f00f4251a9f248c85e12991f99c6b9226622373df3b89fd55ddffa6f"
+    },
+    {
+      "path": "n14-conv-grid-chunk-boundaries/candidate-ready.json",
+      "bytes": 1068131,
+      "sha256": "b86456a361943443288943d0e8a59a879f23091df2708a02017bc52f9d6a9f75"
+    },
+    {
+      "path": "n14-conv-grid-chunk-boundaries/contract.json",
+      "bytes": 188393,
+      "sha256": "2c1f59093b51b83e5112f5b03d5bee434dfcc7b1ce95823133e70d913237fb9f"
+    },
+    {
+      "path": "n14-conv-grid-chunk-boundaries/doppler-live.log",
+      "bytes": 15954,
+      "sha256": "8b46f8cdffd51e83b05eb96c05b3d38dd707442fb2893253de43bfc5a9be6d45"
+    },
+    {
+      "path": "n14-conv-grid-chunk-boundaries/doppler-logs.json",
+      "bytes": 16842,
+      "sha256": "7171c846793056926c0ec794d1907fc23b264d0a07b1c0a25504a7f3b2710068"
+    },
+    {
+      "path": "n14-conv-grid-chunk-boundaries/doppler-ready.json",
+      "bytes": 1068137,
+      "sha256": "43b0486e5603cd1daf5604ed7f016d900c5bda3cb1c01fd30d66d71ab8503b10"
+    },
+    {
+      "path": "n14-conv-grid-chunk-boundaries/executed-source/pooled-equal-weights/probe-server.js",
+      "bytes": 2809,
+      "sha256": "e4f853f7303067ef94f88dc6bc928e98cc8e9eb51c5ff6a3cfeac49c050da480"
+    },
+    {
+      "path": "n14-conv-grid-chunk-boundaries/executed-source/pooled-equal-weights/shared-input.js",
+      "bytes": 678,
+      "sha256": "d32f3bc1fc37018f7b18f902da3882b9326bd5a85dd5cc5603a53f524be19b20"
+    },
+    {
+      "path": "n14-conv-grid-chunk-boundaries/executed-source/qwen-economics/browser.js",
+      "bytes": 40062,
+      "sha256": "18c12e40933979f7bbca36683c339e11bd09d8ac265f5975839d481903e924ec"
+    },
+    {
+      "path": "n14-conv-grid-chunk-boundaries/executed-source/qwen-economics/compare-reference-moe.py",
+      "bytes": 6114,
+      "sha256": "160a2024eecfc048403bd59a87321d8f7c0ec0b5e703de4529f11dc307a42281"
+    },
+    {
+      "path": "n14-conv-grid-chunk-boundaries/executed-source/qwen-economics/economics.js",
+      "bytes": 3613,
+      "sha256": "f3b81ecb8f093dbee844266ec07184f6f8eaa2cf816b46e77039b6fd89962b85"
+    },
+    {
+      "path": "n14-conv-grid-chunk-boundaries/executed-source/qwen-economics/normalize-reference-manifest.js",
+      "bytes": 625,
+      "sha256": "33098441a851ffe562c26ab67ea7bd45aa63eeba39ba2c1b5793ea90e7f7c513"
+    },
+    {
+      "path": "n14-conv-grid-chunk-boundaries/executed-source/qwen-economics/run.js",
+      "bytes": 12298,
+      "sha256": "019b3ef277539276afb9df2fe4f0b8252af36d22f1205047d654cbbf6e896b40"
+    },
+    {
+      "path": "n14-conv-grid-chunk-boundaries/executed-source/qwen-economics/sample-resources.py",
+      "bytes": 3078,
+      "sha256": "aa7feb6a71bc75ac950824f5a6853ad07e397846afc85f760a2ee42908395d9f"
+    },
+    {
+      "path": "n14-conv-grid-chunk-boundaries/executed-source/qwen-economics/summarize.js",
+      "bytes": 2907,
+      "sha256": "6b8f91fa9b395d6d82d7ae73670ee5dc947e2464c6d7bd3576327ec9cec6cc2a"
+    },
+    {
+      "path": "n14-conv-grid-chunk-boundaries/execution.json",
+      "bytes": 4951,
+      "sha256": "aa739047e083d1903ff225ef3b8ee3ac001e882c851eb57803025256b68be127"
+    },
+    {
+      "path": "n14-conv-grid-chunk-boundaries/prefix-33-0-doppler.json",
+      "bytes": 1554,
+      "sha256": "21d9f21baa262700ea4c9e5b5833dce14b013ba933ca3674456c53cf73da32e1"
+    },
+    {
+      "path": "n14-conv-grid-chunk-boundaries/receipt.json",
+      "bytes": 2604,
+      "sha256": "75822e74ae606cc67cfefb7c58533a972674504b1e76320a55a4ec8ac967357d"
+    },
+    {
+      "path": "n15-conv-grid-chunk-boundaries/candidate-live.log",
+      "bytes": 16866,
+      "sha256": "7411106e5b653f1232eb20abd059bfa78e75c8ec21e5bac6ac3b5673b6264aac"
+    },
+    {
+      "path": "n15-conv-grid-chunk-boundaries/candidate-logs.json",
+      "bytes": 17874,
+      "sha256": "1f1ce30e658b9e15da363195e17c008e30df168e01eae87e988ad32afa121262"
+    },
+    {
+      "path": "n15-conv-grid-chunk-boundaries/candidate-ready.json",
+      "bytes": 1068143,
+      "sha256": "cba9bad3cc72922bfa2882cc572fb1ce9b4968dcc10a0d92930a08bc8d94da84"
+    },
+    {
+      "path": "n15-conv-grid-chunk-boundaries/contract.json",
+      "bytes": 188393,
+      "sha256": "2c1f59093b51b83e5112f5b03d5bee434dfcc7b1ce95823133e70d913237fb9f"
+    },
+    {
+      "path": "n15-conv-grid-chunk-boundaries/doppler-live.log",
+      "bytes": 16787,
+      "sha256": "a44c28464c652702862a6b92aaf59ea94266f8af59fcf8409ff983a941cb2e2d"
+    },
+    {
+      "path": "n15-conv-grid-chunk-boundaries/doppler-logs.json",
+      "bytes": 17790,
+      "sha256": "9b929c699cee2ce2f675cbda404e609b31836ece7f254c6bb8c6511d785a0263"
+    },
+    {
+      "path": "n15-conv-grid-chunk-boundaries/doppler-ready.json",
+      "bytes": 1068139,
+      "sha256": "986e04631a3fc3da659798b4831f6b7afca712274e29b9c64d9a8e9bd8ca2455"
+    },
+    {
+      "path": "n15-conv-grid-chunk-boundaries/executed-source/pooled-equal-weights/probe-server.js",
+      "bytes": 2809,
+      "sha256": "e4f853f7303067ef94f88dc6bc928e98cc8e9eb51c5ff6a3cfeac49c050da480"
+    },
+    {
+      "path": "n15-conv-grid-chunk-boundaries/executed-source/pooled-equal-weights/shared-input.js",
+      "bytes": 678,
+      "sha256": "d32f3bc1fc37018f7b18f902da3882b9326bd5a85dd5cc5603a53f524be19b20"
+    },
+    {
+      "path": "n15-conv-grid-chunk-boundaries/executed-source/qwen-economics/browser.js",
+      "bytes": 40062,
+      "sha256": "18c12e40933979f7bbca36683c339e11bd09d8ac265f5975839d481903e924ec"
+    },
+    {
+      "path": "n15-conv-grid-chunk-boundaries/executed-source/qwen-economics/compare-reference-moe.py",
+      "bytes": 6114,
+      "sha256": "160a2024eecfc048403bd59a87321d8f7c0ec0b5e703de4529f11dc307a42281"
+    },
+    {
+      "path": "n15-conv-grid-chunk-boundaries/executed-source/qwen-economics/economics.js",
+      "bytes": 3613,
+      "sha256": "f3b81ecb8f093dbee844266ec07184f6f8eaa2cf816b46e77039b6fd89962b85"
+    },
+    {
+      "path": "n15-conv-grid-chunk-boundaries/executed-source/qwen-economics/normalize-reference-manifest.js",
+      "bytes": 625,
+      "sha256": "33098441a851ffe562c26ab67ea7bd45aa63eeba39ba2c1b5793ea90e7f7c513"
+    },
+    {
+      "path": "n15-conv-grid-chunk-boundaries/executed-source/qwen-economics/run.js",
+      "bytes": 12298,
+      "sha256": "019b3ef277539276afb9df2fe4f0b8252af36d22f1205047d654cbbf6e896b40"
+    },
+    {
+      "path": "n15-conv-grid-chunk-boundaries/executed-source/qwen-economics/sample-resources.py",
+      "bytes": 3078,
+      "sha256": "aa7feb6a71bc75ac950824f5a6853ad07e397846afc85f760a2ee42908395d9f"
+    },
+    {
+      "path": "n15-conv-grid-chunk-boundaries/executed-source/qwen-economics/summarize.js",
+      "bytes": 2907,
+      "sha256": "6b8f91fa9b395d6d82d7ae73670ee5dc947e2464c6d7bd3576327ec9cec6cc2a"
+    },
+    {
+      "path": "n15-conv-grid-chunk-boundaries/execution.json",
+      "bytes": 5186,
+      "sha256": "d51804361a7513e7557fb094ad15b4f70c0b57b91ef499524bf00a110312efce"
+    },
+    {
+      "path": "n15-conv-grid-chunk-boundaries/prefix-1023-0-candidate.json",
+      "bytes": 7088734,
+      "sha256": "247479217cf487ab3c2605a99e6c605713ba22962668168d58ec81cf2f650d76"
+    },
+    {
+      "path": "n15-conv-grid-chunk-boundaries/prefix-1023-0-doppler.json",
+      "bytes": 7088670,
+      "sha256": "37021c9b6510c4c174b2e2408b65f2a55dabe09eb834fcad49462e7ed2f74d9d"
+    },
+    {
+      "path": "n15-conv-grid-chunk-boundaries/prefix-1024-0-candidate.json",
+      "bytes": 7075929,
+      "sha256": "d784aaf8236ae5ba37f2e07bcc2f0d4fc90360b3cf10ec424389da51be9f3b73"
+    },
+    {
+      "path": "n15-conv-grid-chunk-boundaries/prefix-1024-0-doppler.json",
+      "bytes": 7075879,
+      "sha256": "e6c54c8d634213f68c17c5a2fb5a1539346206f46a8b8b296dbbfa42c66e81d2"
+    },
+    {
+      "path": "n15-conv-grid-chunk-boundaries/prefix-1025-0-candidate.json",
+      "bytes": 7072149,
+      "sha256": "97d076e1f6c4d6f615676b415aa5f269efbb5c1cb0fd10f83f15d0227c1fdf45"
+    },
+    {
+      "path": "n15-conv-grid-chunk-boundaries/prefix-1025-0-doppler.json",
+      "bytes": 7072841,
+      "sha256": "faee659b0318324b2aa487fd69dd873eb008fa6cd8cbc1f28207a378cbbb820b"
+    },
+    {
+      "path": "n15-conv-grid-chunk-boundaries/prefix-2047-0-candidate.json",
+      "bytes": 7068972,
+      "sha256": "c4dd6c0f73e0f5ff0501f58dc1d635d49c5863673bb88a898884fd7195377d47"
+    },
+    {
+      "path": "n15-conv-grid-chunk-boundaries/prefix-2047-0-doppler.json",
+      "bytes": 7068872,
+      "sha256": "2dad2ff2853d675fa9daebd264e2a73c1293be9e252a98aa2e40d147352d4f33"
+    },
+    {
+      "path": "n15-conv-grid-chunk-boundaries/prefix-2048-0-candidate.json",
+      "bytes": 7072634,
+      "sha256": "be2a9864b5bdabd5e10fccc6152d43b3b5dc2e0709feb034184338b7305b6518"
+    },
+    {
+      "path": "n15-conv-grid-chunk-boundaries/prefix-2048-0-doppler.json",
+      "bytes": 7072568,
+      "sha256": "c66de57599306ea6cc057d33f53669157266425a298aa32580d79c8264505e40"
+    },
+    {
+      "path": "n15-conv-grid-chunk-boundaries/prefix-2049-0-candidate.json",
+      "bytes": 7083187,
+      "sha256": "57ec809bc818f5725cc7a836fd4c249f0e87e215f74f92ee923f94b24794f476"
+    },
+    {
+      "path": "n15-conv-grid-chunk-boundaries/prefix-2049-0-doppler.json",
+      "bytes": 7083150,
+      "sha256": "8cac04812ca3a012d45a0742abc4c328650d5796c4ebd0c4c3a26dbe622a09ab"
+    },
+    {
+      "path": "n15-conv-grid-chunk-boundaries/prefix-255-0-candidate.json",
+      "bytes": 7106363,
+      "sha256": "7d4cf7143acfa2100aba140bc3ec64a6a95a55d67654e80e9226b42b1a8d04cb"
+    },
+    {
+      "path": "n15-conv-grid-chunk-boundaries/prefix-255-0-doppler.json",
+      "bytes": 7106388,
+      "sha256": "e165b92eb5ecc36562efd04b9e8a32602d2bb3e02491de8479bdf1b7b0e9c840"
+    },
+    {
+      "path": "n15-conv-grid-chunk-boundaries/prefix-256-0-candidate.json",
+      "bytes": 7103903,
+      "sha256": "7ddb89dcdaefea678ceaa47b55c463195a7e3cd72d39c2a1a722b2a08a825c0a"
+    },
+    {
+      "path": "n15-conv-grid-chunk-boundaries/prefix-256-0-doppler.json",
+      "bytes": 7103907,
+      "sha256": "12d9349b2b2067d2ca3b63281b76e11a01cf1908f6325db5e1723af9b886ce71"
+    },
+    {
+      "path": "n15-conv-grid-chunk-boundaries/prefix-257-0-candidate.json",
+      "bytes": 7095373,
+      "sha256": "f14d4023a543a0c5bb632641bb37855aee3f2453d09767deebcfeb1d0059a1be"
+    },
+    {
+      "path": "n15-conv-grid-chunk-boundaries/prefix-257-0-doppler.json",
+      "bytes": 7095045,
+      "sha256": "165caf4759d6ce27e10cebcb4252557e42aa6cb085268cb109afb38b28487494"
+    },
+    {
+      "path": "n15-conv-grid-chunk-boundaries/prefix-33-0-candidate.json",
+      "bytes": 7093549,
+      "sha256": "147e94ac4c2bac7b424cd870501d7c0c947e0cfa680a9fb10099e4ea46204ad7"
+    },
+    {
+      "path": "n15-conv-grid-chunk-boundaries/prefix-33-0-doppler.json",
+      "bytes": 7093551,
+      "sha256": "2cc35e16ddabbf09688a36d3ce1c308f28943b3c009668431f085691142bf192"
+    },
+    {
+      "path": "n15-conv-grid-chunk-boundaries/prefix-511-0-candidate.json",
+      "bytes": 7072831,
+      "sha256": "a593f57a3a2f3ccbe36debd9a987161c0fa7aa8e07470e77d5065670f30c8ffc"
+    },
+    {
+      "path": "n15-conv-grid-chunk-boundaries/prefix-511-0-doppler.json",
+      "bytes": 7072798,
+      "sha256": "116961881ef31521f9a0e34533ccde9a3914313b0dfd9923cd4cef22d19299c0"
+    },
+    {
+      "path": "n15-conv-grid-chunk-boundaries/prefix-512-0-candidate.json",
+      "bytes": 7051485,
+      "sha256": "a748310f0083f3c3d65b429a9dd3c6c40dab8803b559884f1c034832bbab3a3c"
+    },
+    {
+      "path": "n15-conv-grid-chunk-boundaries/prefix-512-0-doppler.json",
+      "bytes": 7051468,
+      "sha256": "64b1d0fce2601158842c8c13d7db257c71ab98e625c41fc6808a35c493fe335a"
+    },
+    {
+      "path": "n15-conv-grid-chunk-boundaries/prefix-513-0-candidate.json",
+      "bytes": 7059420,
+      "sha256": "1a0833acc3c4b5699738a2353dc3dfb2d385c21058bf7d3f4b822ce0eebfcf75"
+    },
+    {
+      "path": "n15-conv-grid-chunk-boundaries/prefix-513-0-doppler.json",
+      "bytes": 7058298,
+      "sha256": "7a2f7589f4128b59df1e277edcca1c263145cf1d8745736aa688ca9521410a12"
+    },
+    {
+      "path": "n15-conv-grid-chunk-boundaries/receipt.json",
+      "bytes": 4778,
+      "sha256": "473d563d452297333e111eabe5a9948007968bfc51aa2fe511ac32f3abf26d9d"
+    },
+    {
+      "path": "n16-native-registers-chunk-boundaries/candidate-live.log",
+      "bytes": 16866,
+      "sha256": "39fb7a20a0eae7af68f1e8599a2aba091b1878e94a9c0742a1f20af04477ca82"
+    },
+    {
+      "path": "n16-native-registers-chunk-boundaries/candidate-logs.json",
+      "bytes": 17874,
+      "sha256": "a9d6e65b1414c51de276263aa9c5250de5b59aa940e6fa85da3d005b2bfbb309"
+    },
+    {
+      "path": "n16-native-registers-chunk-boundaries/candidate-ready.json",
+      "bytes": 1068143,
+      "sha256": "1e257cf3f58c9eb2bb8e595b6c30d699beb1ad9381efb39a2da5166d7c6bf1ef"
+    },
+    {
+      "path": "n16-native-registers-chunk-boundaries/contract.json",
+      "bytes": 188393,
+      "sha256": "2c1f59093b51b83e5112f5b03d5bee434dfcc7b1ce95823133e70d913237fb9f"
+    },
+    {
+      "path": "n16-native-registers-chunk-boundaries/executed-source/pooled-equal-weights/probe-server.js",
+      "bytes": 2809,
+      "sha256": "e4f853f7303067ef94f88dc6bc928e98cc8e9eb51c5ff6a3cfeac49c050da480"
+    },
+    {
+      "path": "n16-native-registers-chunk-boundaries/executed-source/pooled-equal-weights/shared-input.js",
+      "bytes": 678,
+      "sha256": "d32f3bc1fc37018f7b18f902da3882b9326bd5a85dd5cc5603a53f524be19b20"
+    },
+    {
+      "path": "n16-native-registers-chunk-boundaries/executed-source/qwen-economics/browser.js",
+      "bytes": 40062,
+      "sha256": "18c12e40933979f7bbca36683c339e11bd09d8ac265f5975839d481903e924ec"
+    },
+    {
+      "path": "n16-native-registers-chunk-boundaries/executed-source/qwen-economics/compare-reference-moe.py",
+      "bytes": 6114,
+      "sha256": "160a2024eecfc048403bd59a87321d8f7c0ec0b5e703de4529f11dc307a42281"
+    },
+    {
+      "path": "n16-native-registers-chunk-boundaries/executed-source/qwen-economics/economics.js",
+      "bytes": 3613,
+      "sha256": "f3b81ecb8f093dbee844266ec07184f6f8eaa2cf816b46e77039b6fd89962b85"
+    },
+    {
+      "path": "n16-native-registers-chunk-boundaries/executed-source/qwen-economics/normalize-reference-manifest.js",
+      "bytes": 625,
+      "sha256": "33098441a851ffe562c26ab67ea7bd45aa63eeba39ba2c1b5793ea90e7f7c513"
+    },
+    {
+      "path": "n16-native-registers-chunk-boundaries/executed-source/qwen-economics/run.js",
+      "bytes": 12298,
+      "sha256": "019b3ef277539276afb9df2fe4f0b8252af36d22f1205047d654cbbf6e896b40"
+    },
+    {
+      "path": "n16-native-registers-chunk-boundaries/executed-source/qwen-economics/sample-resources.py",
+      "bytes": 3078,
+      "sha256": "aa7feb6a71bc75ac950824f5a6853ad07e397846afc85f760a2ee42908395d9f"
+    },
+    {
+      "path": "n16-native-registers-chunk-boundaries/executed-source/qwen-economics/summarize.js",
+      "bytes": 2907,
+      "sha256": "6b8f91fa9b395d6d82d7ae73670ee5dc947e2464c6d7bd3576327ec9cec6cc2a"
+    },
+    {
+      "path": "n16-native-registers-chunk-boundaries/execution.json",
+      "bytes": 5310,
+      "sha256": "f8e4ae24f3014ff7bf528625184037410a6c399c2cab771ad45e943aa45747b6"
+    },
+    {
+      "path": "n16-native-registers-chunk-boundaries/prefix-1023-0-candidate.json",
+      "bytes": 7088718,
+      "sha256": "819437160c44e0ae2acd5f45afb8272a28351512ad322e688af8ca4587e35535"
+    },
+    {
+      "path": "n16-native-registers-chunk-boundaries/prefix-1024-0-candidate.json",
+      "bytes": 7075927,
+      "sha256": "ca17e3b151927fa716a4134e81de88cabf86fbeec359f08d8c5f8361da48d18f"
+    },
+    {
+      "path": "n16-native-registers-chunk-boundaries/prefix-1025-0-candidate.json",
+      "bytes": 7072145,
+      "sha256": "2d3cdd64ccebd5313392594588b0332be4664c4a9549a687ecc4f2cbe2869800"
+    },
+    {
+      "path": "n16-native-registers-chunk-boundaries/prefix-2047-0-candidate.json",
+      "bytes": 7068949,
+      "sha256": "99ff8d91730b41306ec6f12613a09f32ad66fd0be65312276ce132d4954ed9da"
+    },
+    {
+      "path": "n16-native-registers-chunk-boundaries/prefix-2048-0-candidate.json",
+      "bytes": 7072566,
+      "sha256": "36109f1326df41358758da98f720c7f6d653a8916a1e77083de92d5e8489cf41"
+    },
+    {
+      "path": "n16-native-registers-chunk-boundaries/prefix-2049-0-candidate.json",
+      "bytes": 7083169,
+      "sha256": "45a0ee6d36a73ac4d1a5eb1f057d08fa8c9a5b2a562047ca4ad5ca761f755097"
+    },
+    {
+      "path": "n16-native-registers-chunk-boundaries/prefix-255-0-candidate.json",
+      "bytes": 7106406,
+      "sha256": "a3f560b451f49a1d7bbf988242d1ee18d142ac61fb36a2e0372f9f38da323120"
+    },
+    {
+      "path": "n16-native-registers-chunk-boundaries/prefix-256-0-candidate.json",
+      "bytes": 7103887,
+      "sha256": "9895833b5495d6ea986d9af9688824e6ed733e04e195741447b901350d6f820b"
+    },
+    {
+      "path": "n16-native-registers-chunk-boundaries/prefix-257-0-candidate.json",
+      "bytes": 7095401,
+      "sha256": "a562c79ecc2eb5351ede46e9e69a5fe2e1275ffab53707fa850df439061d581f"
+    },
+    {
+      "path": "n16-native-registers-chunk-boundaries/prefix-33-0-candidate.json",
+      "bytes": 7093577,
+      "sha256": "21c3fa42cf45a74365dde0b6dff2a334398190ea342ae6893981c788e28ddf22"
+    },
+    {
+      "path": "n16-native-registers-chunk-boundaries/prefix-511-0-candidate.json",
+      "bytes": 7072809,
+      "sha256": "ba01540e1160c736fedb1d5063d4e9430db708f7149455e8dd7999fc4398238e"
+    },
+    {
+      "path": "n16-native-registers-chunk-boundaries/prefix-512-0-candidate.json",
+      "bytes": 7051471,
+      "sha256": "74f0117b5bb844bb117a2c17d3baa329c35ac62837b8a9e890b5db24bb15ad32"
+    },
+    {
+      "path": "n16-native-registers-chunk-boundaries/prefix-513-0-candidate.json",
+      "bytes": 7059385,
+      "sha256": "bcb62e9b13f2f31898a106223448a8fd982c1239eb84876a329eb21c079976d8"
+    },
+    {
+      "path": "n16-native-registers-chunk-boundaries/receipt.json",
+      "bytes": 2558,
+      "sha256": "df6d0983a935642da6e833e9ca528099d84edf301b0bc7650d0153d59ca10b70"
+    }
+  ]
+}

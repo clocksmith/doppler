@@ -1,0 +1,36 @@
+{
+  "root": "deco-evidence/doppler-35b-startup-20261101",
+  "format": "gzip tar; source directory contents at archive root; original symlinks preserved where present",
+  "files": [
+    {
+      "path": "source-archives/s19-source.tar.gz",
+      "bytes": 19729906,
+      "sha256": "c402490ae6860e3b1dd79375c5a5a90d228e082200783a0a5fd12e1ae1b0313d"
+    },
+    {
+      "path": "source-archives/s20-source.tar.gz",
+      "bytes": 20318238,
+      "sha256": "3a810841de8cf5588a89c46f4a9e17d6f00f2e7d0405e2b9dfc1be0385366a29"
+    },
+    {
+      "path": "source-archives/s21-source.tar.gz",
+      "bytes": 20319419,
+      "sha256": "e9dc5d2d50d6133d3ed2db445d7b9e01b2ebe30765df14b53af19a5b8c773c6d"
+    },
+    {
+      "path": "source-archives/s22-source.tar.gz",
+      "bytes": 20328773,
+      "sha256": "a04b46ac68cb47ac50eea96c10334e97b739c065a262c3fdcad7edcfd7092b34"
+    },
+    {
+      "path": "source-archives/f6-source.tar.gz",
+      "bytes": 20327733,
+      "sha256": "b9b5333582cc9b6b7fd871db0108e9675faaae3b53849e60d137ad4ba6cbba94"
+    },
+    {
+      "path": "source-archives/f7-source.tar.gz",
+      "bytes": 19738853,
+      "sha256": "4650f6a88e7e849f4bd2af508fa62f3e5a6d355a8b2c901da0bd7bf17649b446"
+    }
+  ]
+}

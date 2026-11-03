@@ -265,6 +265,7 @@ export function createHarnessShardStorageContext(modelUrl, manifest, log, option
       rangeCacheBlockBytes: runtimeConfig?.loading?.shardCache?.rangeCacheBlockBytes,
       rangeCacheMaxBytes: runtimeConfig?.loading?.shardCache?.rangeCacheMaxBytes,
       rangeCacheMinBytes: runtimeConfig?.loading?.shardCache?.rangeCacheMinBytes,
+      verificationBufferBytes: runtimeConfig?.loading?.shardCache?.verificationBufferBytes,
     });
     if (httpContext) {
       log?.('Using HTTP range artifact storage context');

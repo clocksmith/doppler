@@ -45,3 +45,12 @@ export declare function verifyWholeTokenProgramAhead(
   token: number,
   runRecordedDry: (attach: ((recorder: CommandRecorder | null) => void) | null) => Promise<unknown>
 ): Promise<boolean>;
+
+/** The configured batch size is a ceiling; windows ramp with completed decode steps.
+ * Tentative GPU results. The consumer publishes a prefix, then always settles in finally. */
+export interface WholeTokenBatch {
+  readonly tokens: AsyncIterable<number>;
+  publish(): void;
+  settle(): Promise<void>;
+}
+export declare function prepareWholeTokenBatch(state: PipelineState, currentIds: number[], requestedCount: number): Promise<WholeTokenBatch | null>;

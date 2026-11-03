@@ -1,0 +1,100 @@
+{
+  "scope": "Four frozen toy controls only. One model/prompt arithmetic error is shared by all three engines. Not full-model qualification.",
+  "llamaSource": "f4884293809b5227d7307140a942f1bc4176a603",
+  "referenceContainer": "base-only-reference-byte-preservation.json in retained evidence root",
+  "rows": [
+    {
+      "task": "arithmetic",
+      "expected": "42",
+      "dopplerText": "42",
+      "pooledText": "42",
+      "llamaText": "42",
+      "dopplerTokens": [
+        19,
+        17,
+        248046
+      ],
+      "pooledTokens": [
+        19,
+        17,
+        248046
+      ],
+      "llamaTokens": [
+        19,
+        17,
+        248046
+      ],
+      "threeWayTokenParity": true,
+      "accepted": true
+    },
+    {
+      "task": "code",
+      "expected": "26",
+      "dopplerText": "22",
+      "pooledText": "22",
+      "llamaText": "22",
+      "dopplerTokens": [
+        17,
+        17,
+        248046
+      ],
+      "pooledTokens": [
+        17,
+        17,
+        248046
+      ],
+      "llamaTokens": [
+        17,
+        17,
+        248046
+      ],
+      "threeWayTokenParity": true,
+      "accepted": false
+    },
+    {
+      "task": "records",
+      "expected": "Bea",
+      "dopplerText": "Bea",
+      "pooledText": "Bea",
+      "llamaText": "Bea",
+      "dopplerTokens": [
+        3320,
+        64,
+        248046
+      ],
+      "pooledTokens": [
+        3320,
+        64,
+        248046
+      ],
+      "llamaTokens": [
+        3320,
+        64,
+        248046
+      ],
+      "threeWayTokenParity": true,
+      "accepted": true
+    },
+    {
+      "task": "missing",
+      "expected": "UNKNOWN",
+      "dopplerText": "UNKNOWN",
+      "pooledText": "UNKNOWN",
+      "llamaText": "UNKNOWN",
+      "dopplerTokens": [
+        49649,
+        248046
+      ],
+      "pooledTokens": [
+        49649,
+        248046
+      ],
+      "llamaTokens": [
+        49649,
+        248046
+      ],
+      "threeWayTokenParity": true,
+      "accepted": true
+    }
+  ]
+}

@@ -1,0 +1,14 @@
+{
+  "platform": "darwin-arm64",
+  "hardware": "Apple M3 24GB",
+  "node": "v22.20.0",
+  "webgpu": "0.4.0",
+  "providerArgs": "backend=metal,enable-dawn-features=allow_unsafe_apis",
+  "runtimeSource": "source-native-current-03",
+  "scope": "Physical crafted and real Q5_K operator cases only; not full-model or speed qualification",
+  "exitCode": 0,
+  "logSHA256": "99857577f59b21581d2cf6287746c6313aab9b121db03cea03620dff0c119052",
+  "shaderSHA256": "38fbaa222a482b00676901c50ae4058f87ce0b8762f7f9cf857180f181f71d19",
+  "testSHA256": "100179d2d579e433711c8a7ca58279d9259c5c86be9fa1a6ac37e36ff4d05c52",
+  "finishedAt": "2026-11-02T22:13:05.870628+00:00"
+}

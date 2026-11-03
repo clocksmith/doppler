@@ -1,9 +1,15 @@
 import type { InputSpan } from './prefix-embedding.js';
 
 export interface PrefillPolicyState {
-  runtimeConfig?: { inference?: { session?: { prefillTokenChunkSize?: number | null } } };
+  runtimeConfig?: { inference?: { session?: {
+    prefillTokenChunkSize?: number | null;
+    prefillMaxInFlightChunks?: number;
+  } } };
   modelConfig?: { sessionSettings?: { prefillTokenChunkSize?: number | null } } | null;
+  kvCache?: { layout?: string; hasGPUCache?(): boolean } | null;
 }
+
+export declare function resolvePrefillMaxInFlightChunks(state: PrefillPolicyState): number;
 
 export declare function resolveEffectivePrefillTokenChunkSize(
   state: PrefillPolicyState
@@ -30,7 +36,7 @@ export interface PrefillCallShape {
  * non-final chunk). A prompt that fits one token chunk is one direct call and keeps batching.
  */
 export declare function shouldDisablePrefillCommandBatching(
-  state: Record<string, unknown>,
+  state: PrefillPolicyState,
   opts: Record<string, unknown>,
   multimodalBidirectionalSpan: InputSpan | null,
   call: PrefillCallShape

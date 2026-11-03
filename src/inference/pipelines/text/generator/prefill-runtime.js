@@ -26,7 +26,7 @@ import { hasLinearAttentionLayers, resetLinearAttentionSequence } from '../linea
 import { preparePerLayerInputs } from '../per-layer-inputs.js';
 import { getActivationRepresentation } from './activation-storage.js';
 import { createTensor, tensorElementBytes } from '../../../../gpu/tensor.js';
-import { releasePerLayerInputBuffer, shouldDisablePrefillCommandBatching } from './prefill-policy.js';
+import { releasePerLayerInputBuffer, resolvePrefillMaxInFlightChunks, shouldDisablePrefillCommandBatching } from './prefill-policy.js';
 import { logPrefillCacheState, probePrefillEmbedding, tracePrefillEmbeddingIds } from './prefill-observation.js';
 import {
   normalizePrefixEmbeddingOverride,
@@ -579,18 +579,23 @@ export async function _prefill(inputIds, opts) {
             );
             // Chunk boundary exists only to bound intermediate buffer lifetime.
             // When the runtime opts into async chunk submit AND profile timings
-            // are not being collected, skip the CPU-GPU wait: queue order is
+            // are not being collected, overlap within the runtime queue bound: queue order is
             // preserved across submits and queue-owned cleanup releases
             // tracked buffers when GPU work completes. Retain each recorder
-            // to observe completion failures before returning. Profile runs keep the
+            // until completion to observe failures. Profile runs keep the
             // sync path because resolveProfileTimings requires the submitted
             // work to be done.
             const chunkSubmitMode = resolvePrefillChunkSubmitMode(this._state.runtimeConfig, this._state.modelConfig);
             const chunkSubmitStart = performance.now();
             recordPrefillRecorderStats(this._state, currentRecorder);
             if (chunkSubmitMode === 'async' && !opts.profile) {
+              const maxInFlightChunks = resolvePrefillMaxInFlightChunks(this._state);
               currentRecorder.submit({ cleanup: 'queue' });
               submittedChunks.push(currentRecorder);
+              if (submittedChunks.length >= maxInFlightChunks) {
+                await submittedChunks[0].completeDeferredCleanup();
+                submittedChunks.shift();
+              }
             } else {
               await currentRecorder.submitAndWait();
               await recordProfile(currentRecorder);

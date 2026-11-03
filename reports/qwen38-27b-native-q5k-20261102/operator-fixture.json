@@ -1,0 +1,13 @@
+{
+  "rows": 17,
+  "cols": 6144,
+  "sourceTensor": "blk.0.ssm_out.weight",
+  "sourceFile": "/run/media/x/models/deco-evidence/qwen-economics-20261030/Qwen3.8-27B-Q4_0.gguf",
+  "sourceOffset": 1974456160,
+  "reference": "gguf.dequantize Q5_K then NumPy F64 matrix-vector multiplication",
+  "files": {
+    "weights.bin": "610111e52578d0bb1fc1246c91c828d1cb04d70fd8b1a2d4c4ba55aee25f8097",
+    "input.bin": "130d7ae07557c3436f038eeba65aa82916256a027364c1d004e9206ed118cc2f",
+    "expected.bin": "96b71e35057162298a575d1f9411ae8f5eb743a62d92e839dab3cf379f01b9c0"
+  }
+}

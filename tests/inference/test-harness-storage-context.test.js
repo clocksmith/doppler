@@ -3,6 +3,8 @@ import os from 'node:os';
 import path from 'node:path';
 import fs from 'node:fs/promises';
 import { pathToFileURL } from 'node:url';
+import { createHash } from 'node:crypto';
+import { getRuntimeConfig, setRuntimeConfig, snapshotRuntimeConfig } from '../../src/config/runtime.js';
 
 import {
   createHarnessShardStorageContext,
@@ -53,6 +55,35 @@ const manifest = {
   assert.equal(typeof storageContext.loadShard, 'function');
   assert.equal(typeof storageContext.loadShardRange, 'function');
   assert.equal(typeof storageContext.streamShardRange, 'function');
+}
+
+// The shared HTTP harness consumes the resolved verification budget instead of
+// silently leaving the runtime field unused. A multi-chunk source distinguishes
+// buffered verification from the incremental path.
+{
+  const originalConfig = snapshotRuntimeConfig(getRuntimeConfig());
+  const originalFetch = globalThis.fetch;
+  const bytes = Uint8Array.from({ length: 4 * 1024 * 1024 + 73 }, (_, index) => index % 251);
+  const ranges = [];
+  try {
+    setRuntimeConfig({ loading: { shardCache: { verifyHashes: true, verificationBufferBytes: bytes.length } } });
+    globalThis.fetch = async (_url, options) => {
+      const [, startText, endText] = /^bytes=(\d+)-(\d+)$/.exec(options.headers.Range);
+      const start = Number(startText), end = Number(endText);
+      ranges.push([start, end]);
+      return { ok: true, status: 206, arrayBuffer: async () => bytes.slice(start, end + 1).buffer };
+    };
+    const context = createHarnessShardStorageContext('https://example.com/model', {
+      modelId: 'harness-buffered-verification', hashAlgorithm: 'sha256', shards: [
+        { filename: 'weights.bin', size: bytes.length, hash: createHash('sha256').update(bytes).digest('hex') },
+      ],
+    }, null, { loadMode: 'http' });
+    assert.deepEqual(new Uint8Array(await context.loadShardRange(0, 5, 3)), bytes.slice(5, 8));
+    assert.deepEqual(ranges, [[0, bytes.length - 1], [5, 7]]);
+  } finally {
+    globalThis.fetch = originalFetch;
+    setRuntimeConfig(originalConfig);
+  }
 }
 
 console.log('test-harness-storage-context.test: ok');

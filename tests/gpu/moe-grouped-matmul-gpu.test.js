@@ -124,6 +124,9 @@ try {
   await check({ variant: 'native_f32', op: 'moe_grouped_gu', format: 0, tokens: 21, topK: 4, experts: 6, K: 512, N: 128 });
   await check({ variant: 'native_f32', op: 'moe_grouped_down', format: 1, tokens: 21, topK: 4, experts: 6, K: 288, N: 256 });
   await check({ variant: 'native_f32', op: 'moe_grouped_gu', format: 2, tokens: 9, topK: 3, experts: 4, K: 256, N: 96 });
+  // Odd block counts exercise native half-word alignment across row boundaries.
+  await check({ variant: 'native_f32', op: 'moe_grouped_gu', format: 0, tokens: 9, topK: 3, experts: 5, K: 288, N: 96 });
+  await check({ variant: 'native_f32', op: 'moe_grouped_gu', format: 2, tokens: 9, topK: 3, experts: 5, K: 288, N: 96 });
   assert.deepEqual(errors, []);
   console.log('moe-grouped-matmul-gpu.test: ok');
 } finally {

@@ -1,0 +1,1052 @@
+{
+  "claimGrade": false,
+  "scope": "Jupiter physical browser/WebGPU product-format diagnostics; Qwen3.6-35B-A3B source Q4_0. No speculation. F32 Doppler activations/KV versus native F16 Pooled KV; common-weight independent numerical qualification remains open.",
+  "analysis": {
+    "claimGrade": false,
+    "nativePrefillBoundary": {
+      "pooled": "prefillTokens(promptIds.slice(0, -1)); final prompt token is processed in first forwardTokenIds call",
+      "doppler": "_prefillPromptToLogits covers the complete prompt through logits; token sampling/delivery follows"
+    },
+    "nativePrefillComparable": false,
+    "dir": "/run/media/x/deco-backup/doppler-perf-20261102/attention-tile16-pooled-final",
+    "complete": true,
+    "referenceGate": null,
+    "loadMs": {
+      "doppler": 86710.4,
+      "pooled": 91265
+    },
+    "quality": [
+      {
+        "task": "arithmetic",
+        "kind": "pooled",
+        "pass": true
+      },
+      {
+        "task": "arithmetic",
+        "kind": "doppler",
+        "pass": true
+      },
+      {
+        "task": "arithmetic",
+        "kind": "doppler",
+        "pass": true
+      },
+      {
+        "task": "arithmetic",
+        "kind": "pooled",
+        "pass": true
+      },
+      {
+        "task": "arithmetic",
+        "kind": "pooled",
+        "pass": true
+      },
+      {
+        "task": "arithmetic",
+        "kind": "doppler",
+        "pass": true
+      },
+      {
+        "task": "arithmetic",
+        "kind": "doppler",
+        "pass": true
+      },
+      {
+        "task": "arithmetic",
+        "kind": "pooled",
+        "pass": true
+      },
+      {
+        "task": "arithmetic",
+        "kind": "pooled",
+        "pass": true
+      },
+      {
+        "task": "arithmetic",
+        "kind": "doppler",
+        "pass": true
+      },
+      {
+        "task": "arithmetic",
+        "kind": "doppler",
+        "pass": true
+      },
+      {
+        "task": "arithmetic",
+        "kind": "pooled",
+        "pass": true
+      },
+      {
+        "task": "arithmetic",
+        "kind": "pooled",
+        "pass": true
+      },
+      {
+        "task": "arithmetic",
+        "kind": "doppler",
+        "pass": true
+      },
+      {
+        "task": "arithmetic",
+        "kind": "doppler",
+        "pass": true
+      },
+      {
+        "task": "arithmetic",
+        "kind": "pooled",
+        "pass": true
+      },
+      {
+        "task": "arithmetic",
+        "kind": "pooled",
+        "pass": true
+      },
+      {
+        "task": "arithmetic",
+        "kind": "doppler",
+        "pass": true
+      },
+      {
+        "task": "arithmetic",
+        "kind": "doppler",
+        "pass": true
+      },
+      {
+        "task": "arithmetic",
+        "kind": "pooled",
+        "pass": true
+      },
+      {
+        "task": "arithmetic",
+        "kind": "pooled",
+        "pass": true
+      },
+      {
+        "task": "arithmetic",
+        "kind": "doppler",
+        "pass": true
+      },
+      {
+        "task": "code",
+        "kind": "pooled",
+        "pass": true
+      },
+      {
+        "task": "code",
+        "kind": "doppler",
+        "pass": true
+      },
+      {
+        "task": "code",
+        "kind": "doppler",
+        "pass": true
+      },
+      {
+        "task": "code",
+        "kind": "pooled",
+        "pass": true
+      },
+      {
+        "task": "code",
+        "kind": "pooled",
+        "pass": true
+      },
+      {
+        "task": "code",
+        "kind": "doppler",
+        "pass": true
+      },
+      {
+        "task": "code",
+        "kind": "doppler",
+        "pass": true
+      },
+      {
+        "task": "code",
+        "kind": "pooled",
+        "pass": true
+      },
+      {
+        "task": "code",
+        "kind": "pooled",
+        "pass": true
+      },
+      {
+        "task": "code",
+        "kind": "doppler",
+        "pass": true
+      },
+      {
+        "task": "code",
+        "kind": "doppler",
+        "pass": true
+      },
+      {
+        "task": "code",
+        "kind": "pooled",
+        "pass": true
+      },
+      {
+        "task": "code",
+        "kind": "pooled",
+        "pass": true
+      },
+      {
+        "task": "code",
+        "kind": "doppler",
+        "pass": true
+      },
+      {
+        "task": "code",
+        "kind": "doppler",
+        "pass": true
+      },
+      {
+        "task": "code",
+        "kind": "pooled",
+        "pass": true
+      },
+      {
+        "task": "code",
+        "kind": "pooled",
+        "pass": true
+      },
+      {
+        "task": "code",
+        "kind": "doppler",
+        "pass": true
+      },
+      {
+        "task": "code",
+        "kind": "doppler",
+        "pass": true
+      },
+      {
+        "task": "code",
+        "kind": "pooled",
+        "pass": true
+      },
+      {
+        "task": "code",
+        "kind": "pooled",
+        "pass": true
+      },
+      {
+        "task": "code",
+        "kind": "doppler",
+        "pass": true
+      },
+      {
+        "task": "records",
+        "kind": "pooled",
+        "pass": true
+      },
+      {
+        "task": "records",
+        "kind": "doppler",
+        "pass": true
+      },
+      {
+        "task": "records",
+        "kind": "doppler",
+        "pass": true
+      },
+      {
+        "task": "records",
+        "kind": "pooled",
+        "pass": true
+      },
+      {
+        "task": "records",
+        "kind": "pooled",
+        "pass": true
+      },
+      {
+        "task": "records",
+        "kind": "doppler",
+        "pass": true
+      },
+      {
+        "task": "records",
+        "kind": "doppler",
+        "pass": true
+      },
+      {
+        "task": "records",
+        "kind": "pooled",
+        "pass": true
+      },
+      {
+        "task": "records",
+        "kind": "pooled",
+        "pass": true
+      },
+      {
+        "task": "records",
+        "kind": "doppler",
+        "pass": true
+      },
+      {
+        "task": "records",
+        "kind": "doppler",
+        "pass": true
+      },
+      {
+        "task": "records",
+        "kind": "pooled",
+        "pass": true
+      },
+      {
+        "task": "records",
+        "kind": "pooled",
+        "pass": true
+      },
+      {
+        "task": "records",
+        "kind": "doppler",
+        "pass": true
+      },
+      {
+        "task": "records",
+        "kind": "doppler",
+        "pass": true
+      },
+      {
+        "task": "records",
+        "kind": "pooled",
+        "pass": true
+      },
+      {
+        "task": "records",
+        "kind": "pooled",
+        "pass": true
+      },
+      {
+        "task": "records",
+        "kind": "doppler",
+        "pass": true
+      },
+      {
+        "task": "records",
+        "kind": "doppler",
+        "pass": true
+      },
+      {
+        "task": "records",
+        "kind": "pooled",
+        "pass": true
+      },
+      {
+        "task": "records",
+        "kind": "pooled",
+        "pass": true
+      },
+      {
+        "task": "records",
+        "kind": "doppler",
+        "pass": true
+      },
+      {
+        "task": "missing",
+        "kind": "pooled",
+        "pass": true
+      },
+      {
+        "task": "missing",
+        "kind": "doppler",
+        "pass": true
+      },
+      {
+        "task": "missing",
+        "kind": "doppler",
+        "pass": true
+      },
+      {
+        "task": "missing",
+        "kind": "pooled",
+        "pass": true
+      },
+      {
+        "task": "missing",
+        "kind": "pooled",
+        "pass": true
+      },
+      {
+        "task": "missing",
+        "kind": "doppler",
+        "pass": true
+      },
+      {
+        "task": "missing",
+        "kind": "doppler",
+        "pass": true
+      },
+      {
+        "task": "missing",
+        "kind": "pooled",
+        "pass": true
+      },
+      {
+        "task": "missing",
+        "kind": "pooled",
+        "pass": true
+      },
+      {
+        "task": "missing",
+        "kind": "doppler",
+        "pass": true
+      },
+      {
+        "task": "missing",
+        "kind": "doppler",
+        "pass": true
+      },
+      {
+        "task": "missing",
+        "kind": "pooled",
+        "pass": true
+      },
+      {
+        "task": "missing",
+        "kind": "pooled",
+        "pass": true
+      },
+      {
+        "task": "missing",
+        "kind": "doppler",
+        "pass": true
+      },
+      {
+        "task": "missing",
+        "kind": "doppler",
+        "pass": true
+      },
+      {
+        "task": "missing",
+        "kind": "pooled",
+        "pass": true
+      },
+      {
+        "task": "missing",
+        "kind": "pooled",
+        "pass": true
+      },
+      {
+        "task": "missing",
+        "kind": "doppler",
+        "pass": true
+      },
+      {
+        "task": "missing",
+        "kind": "doppler",
+        "pass": true
+      },
+      {
+        "task": "missing",
+        "kind": "pooled",
+        "pass": true
+      },
+      {
+        "task": "missing",
+        "kind": "pooled",
+        "pass": true
+      },
+      {
+        "task": "missing",
+        "kind": "doppler",
+        "pass": true
+      }
+    ],
+    "tasks": {
+      "short": {
+        "pairs": 10,
+        "engines": {
+          "doppler": {
+            "n": 10,
+            "inputTokens": 28,
+            "outputTokens": [
+              128,
+              128,
+              128,
+              128,
+              128,
+              128,
+              128,
+              128,
+              128,
+              128
+            ],
+            "completeMs": {
+              "mean": 1865.18,
+              "median": 1862.9,
+              "p95": 1897.7,
+              "min": 1835.6,
+              "max": 1908.5
+            },
+            "firstTokenMs": {
+              "mean": 139.77,
+              "median": 138.5,
+              "p95": 150.025,
+              "min": 131.1,
+              "max": 152.5
+            },
+            "decodeMsPerToken": {
+              "mean": 13.5859,
+              "median": 13.5831,
+              "p95": 13.7928,
+              "min": 13.4213,
+              "max": 13.9197
+            },
+            "decodeTokensPerSecondAtMedian": 73.6211,
+            "nativePrefill": {
+              "meanMs": 135.89,
+              "medianMs": 135,
+              "processedPromptTokens": 28,
+              "throughPromptLogits": true,
+              "comparableAcrossEngines": false
+            }
+          },
+          "pooled": {
+            "n": 10,
+            "inputTokens": 28,
+            "outputTokens": [
+              128,
+              128,
+              128,
+              128,
+              128,
+              128,
+              128,
+              128,
+              128,
+              128
+            ],
+            "completeMs": {
+              "mean": 1908.57,
+              "median": 1901.3,
+              "p95": 1939.93,
+              "min": 1884.5,
+              "max": 1952.3
+            },
+            "firstTokenMs": {
+              "mean": 140.42,
+              "median": 141.3,
+              "p95": 141.955,
+              "min": 137.7,
+              "max": 142
+            },
+            "decodeMsPerToken": {
+              "mean": 13.9224,
+              "median": 13.8579,
+              "p95": 14.1742,
+              "min": 13.7394,
+              "max": 14.2606
+            },
+            "decodeTokensPerSecondAtMedian": 72.1611,
+            "nativePrefill": {
+              "meanMs": 125.2,
+              "medianMs": 125.9,
+              "processedPromptTokens": 27,
+              "throughPromptLogits": false,
+              "comparableAcrossEngines": false
+            }
+          }
+        },
+        "paired": {
+          "completeMs": {
+            "ratio": 0.977263,
+            "interval95": [
+              0.972719,
+              0.981128
+            ],
+            "estimator": "mean log paired completeMs ratio",
+            "method": "fixed-prompt stratified percentile bootstrap; LCG seed0x12345678; no outlier removal",
+            "replicates": 10000
+          },
+          "firstTokenMs": {
+            "ratio": 0.994531,
+            "interval95": [
+              0.965282,
+              1.02556
+            ],
+            "estimator": "mean log paired firstTokenMs ratio",
+            "method": "fixed-prompt stratified percentile bootstrap; LCG seed0x12345678; no outlier removal",
+            "replicates": 10000
+          },
+          "decodeMsPerToken": {
+            "ratio": 0.975836,
+            "interval95": [
+              0.970716,
+              0.980078
+            ],
+            "estimator": "mean log paired decodeMsPerToken ratio",
+            "method": "fixed-prompt stratified percentile bootstrap; LCG seed0x12345678; no outlier removal",
+            "replicates": 10000
+          }
+        }
+      },
+      "long": {
+        "pairs": 10,
+        "engines": {
+          "doppler": {
+            "n": 10,
+            "inputTokens": 2287,
+            "outputTokens": [
+              128,
+              128,
+              128,
+              128,
+              128,
+              128,
+              128,
+              128,
+              128,
+              128
+            ],
+            "completeMs": {
+              "mean": 5156.67,
+              "median": 5156.4,
+              "p95": 5183.35,
+              "min": 5120.9,
+              "max": 5191.5
+            },
+            "firstTokenMs": {
+              "mean": 3349.5,
+              "median": 3342.9,
+              "p95": 3384.18,
+              "min": 3322.2,
+              "max": 3393.9
+            },
+            "decodeMsPerToken": {
+              "mean": 14.2297,
+              "median": 14.1992,
+              "p95": 14.3668,
+              "min": 14.1543,
+              "max": 14.3906
+            },
+            "decodeTokensPerSecondAtMedian": 70.4264,
+            "nativePrefill": {
+              "meanMs": 3344.5,
+              "medianMs": 3337.9,
+              "processedPromptTokens": 2287,
+              "throughPromptLogits": true,
+              "comparableAcrossEngines": false
+            }
+          },
+          "pooled": {
+            "n": 10,
+            "inputTokens": 2287,
+            "outputTokens": [
+              128,
+              128,
+              128,
+              128,
+              128,
+              128,
+              128,
+              128,
+              128,
+              128
+            ],
+            "completeMs": {
+              "mean": 5267.74,
+              "median": 5268.55,
+              "p95": 5294.85,
+              "min": 5227.7,
+              "max": 5300.7
+            },
+            "firstTokenMs": {
+              "mean": 3412.73,
+              "median": 3414.05,
+              "p95": 3431.7,
+              "min": 3395,
+              "max": 3438.4
+            },
+            "decodeMsPerToken": {
+              "mean": 14.6064,
+              "median": 14.598,
+              "p95": 14.722,
+              "min": 14.4307,
+              "max": 14.7575
+            },
+            "decodeTokensPerSecondAtMedian": 68.5024,
+            "nativePrefill": {
+              "meanMs": 3396.1,
+              "medianMs": 3397.45,
+              "processedPromptTokens": 2286,
+              "throughPromptLogits": false,
+              "comparableAcrossEngines": false
+            }
+          }
+        },
+        "paired": {
+          "completeMs": {
+            "ratio": 0.978916,
+            "interval95": [
+              0.97619,
+              0.981796
+            ],
+            "estimator": "mean log paired completeMs ratio",
+            "method": "fixed-prompt stratified percentile bootstrap; LCG seed0x12345678; no outlier removal",
+            "replicates": 10000
+          },
+          "firstTokenMs": {
+            "ratio": 0.981462,
+            "interval95": [
+              0.978363,
+              0.98515
+            ],
+            "estimator": "mean log paired firstTokenMs ratio",
+            "method": "fixed-prompt stratified percentile bootstrap; LCG seed0x12345678; no outlier removal",
+            "replicates": 10000
+          },
+          "decodeMsPerToken": {
+            "ratio": 0.974214,
+            "interval95": [
+              0.969833,
+              0.978675
+            ],
+            "estimator": "mean log paired decodeMsPerToken ratio",
+            "method": "fixed-prompt stratified percentile bootstrap; LCG seed0x12345678; no outlier removal",
+            "replicates": 10000
+          }
+        }
+      }
+    },
+    "pairedAllPrompts": {
+      "completeMs": {
+        "ratio": 0.978089,
+        "interval95": [
+          0.975514,
+          0.980506
+        ],
+        "estimator": "equal-prompt mean log paired completeMs ratio",
+        "method": "fixed-prompt stratified percentile bootstrap; LCG seed0x12345678; no outlier removal",
+        "replicates": 10000
+      },
+      "firstTokenMs": {
+        "ratio": 0.987975,
+        "interval95": [
+          0.973652,
+          1.00328
+        ],
+        "estimator": "equal-prompt mean log paired firstTokenMs ratio",
+        "method": "fixed-prompt stratified percentile bootstrap; LCG seed0x12345678; no outlier removal",
+        "replicates": 10000
+      },
+      "decodeMsPerToken": {
+        "ratio": 0.975025,
+        "interval95": [
+          0.971791,
+          0.978154
+        ],
+        "estimator": "equal-prompt mean log paired decodeMsPerToken ratio",
+        "method": "fixed-prompt stratified percentile bootstrap; LCG seed0x12345678; no outlier removal",
+        "replicates": 10000
+      }
+    },
+    "dopplerMemory": {
+      "used": 20600700000,
+      "pool": {
+        "allocations": 89232,
+        "reuses": 27051,
+        "totalBytesAllocated": 127166000000,
+        "peakBytesAllocated": 23090700000,
+        "currentBytesAllocated": 20430300000,
+        "totalBytesRequested": 125976000000,
+        "peakBytesRequested": 22960600000,
+        "currentBytesRequested": 19999200000,
+        "resources": {
+          "retainedModel": {
+            "bytes": 19927300000,
+            "count": 733
+          },
+          "active": {
+            "bytes": 71858200,
+            "count": 182
+          },
+          "reusable": {
+            "bytes": 431113000,
+            "count": 64
+          },
+          "deferredCleanup": {
+            "bytes": 0,
+            "count": 0
+          }
+        },
+        "activeBuffers": 915,
+        "pooledBuffers": 64,
+        "budgetMaxBytes": 0,
+        "budgetUtilization": 0,
+        "hitRate": "23.3%"
+      },
+      "kvCache": {
+        "theoretical": 167772000,
+        "allocated": 167772000,
+        "used": 98877400,
+        "efficiency": 0.589355,
+        "seqLen": 2414,
+        "maxSeqLen": 4096,
+        "layout": "contiguous",
+        "kvDtype": "f32",
+        "counters": {
+          "updateCalls": 0,
+          "gpuUpdateCalls": 0,
+          "recordedGpuUpdateCalls": 1520,
+          "tokensWritten": 273440
+        }
+      },
+      "decodeBuffers": {
+        "hiddenBytes": 8192,
+        "intermediateBytes": 2048,
+        "totalBytes": 2625700,
+        "activationDtype": "f32",
+        "workspace": {
+          "buffers": 362,
+          "bytes": 2599080,
+          "bindings": 221,
+          "hits": 5925,
+          "misses": 10429
+        }
+      }
+    },
+    "pooledMemory": null
+  },
+  "numericalGate": {
+    "passed": true,
+    "absoluteTolerance": 0.001,
+    "relativeTolerance": 0,
+    "comparedLogits": 3724800,
+    "maxAbs": 0,
+    "prefixes": [
+      {
+        "task": "prefix-33",
+        "tokens": 33,
+        "logits": 248320,
+        "maxAbs": 0,
+        "identicalGreedyTokens": true,
+        "passed": true
+      },
+      {
+        "task": "prefix-255",
+        "tokens": 255,
+        "logits": 248320,
+        "maxAbs": 0,
+        "identicalGreedyTokens": true,
+        "passed": true
+      },
+      {
+        "task": "prefix-256",
+        "tokens": 256,
+        "logits": 248320,
+        "maxAbs": 0,
+        "identicalGreedyTokens": true,
+        "passed": true
+      },
+      {
+        "task": "prefix-257",
+        "tokens": 257,
+        "logits": 248320,
+        "maxAbs": 0,
+        "identicalGreedyTokens": true,
+        "passed": true
+      },
+      {
+        "task": "prefix-511",
+        "tokens": 511,
+        "logits": 248320,
+        "maxAbs": 0,
+        "identicalGreedyTokens": true,
+        "passed": true
+      },
+      {
+        "task": "prefix-512",
+        "tokens": 512,
+        "logits": 248320,
+        "maxAbs": 0,
+        "identicalGreedyTokens": true,
+        "passed": true
+      },
+      {
+        "task": "prefix-513",
+        "tokens": 513,
+        "logits": 248320,
+        "maxAbs": 0,
+        "identicalGreedyTokens": true,
+        "passed": true
+      },
+      {
+        "task": "prefix-1023",
+        "tokens": 1023,
+        "logits": 248320,
+        "maxAbs": 0,
+        "identicalGreedyTokens": true,
+        "passed": true
+      },
+      {
+        "task": "prefix-1024",
+        "tokens": 1024,
+        "logits": 248320,
+        "maxAbs": 0,
+        "identicalGreedyTokens": true,
+        "passed": true
+      },
+      {
+        "task": "prefix-1025",
+        "tokens": 1025,
+        "logits": 248320,
+        "maxAbs": 0,
+        "identicalGreedyTokens": true,
+        "passed": true
+      },
+      {
+        "task": "prefix-2047",
+        "tokens": 2047,
+        "logits": 248320,
+        "maxAbs": 0,
+        "identicalGreedyTokens": true,
+        "passed": true
+      },
+      {
+        "task": "prefix-2048",
+        "tokens": 2048,
+        "logits": 248320,
+        "maxAbs": 0,
+        "identicalGreedyTokens": true,
+        "passed": true
+      },
+      {
+        "task": "prefix-2049",
+        "tokens": 2049,
+        "logits": 248320,
+        "maxAbs": 0,
+        "identicalGreedyTokens": true,
+        "passed": true
+      },
+      {
+        "task": "prefix-28",
+        "tokens": 28,
+        "logits": 248320,
+        "maxAbs": 0,
+        "identicalGreedyTokens": true,
+        "passed": true
+      },
+      {
+        "task": "prefix-2287",
+        "tokens": 2287,
+        "logits": 248320,
+        "maxAbs": 0,
+        "identicalGreedyTokens": true,
+        "passed": true
+      }
+    ],
+    "scope": "New implementation versus unchanged prior F32 implementation; not an independent full-model oracle."
+  },
+  "retainedProfileGate": {
+    "passed": true,
+    "effectiveRuntimeIdenticalToPrimary": true,
+    "allSixOutputsIdenticalToPrimary": true,
+    "fourAdmissionTasksPass": true,
+    "gpuErrors": [],
+    "runtimeProfile": "profiles/qwen3-6-35b-a3b-q4_0-candidate",
+    "noKernelPathOrChunkSizeOverlay": true,
+    "sourceTreeAlgorithm": "sha256(compact JSON sorted [relative path, file sha256 or symlink target])",
+    "currentAndConsumedSourceTreeSha256": "ce71ba327d0042777fa9497444166fb8a295c21afaf0341a4878f256fcf674c9"
+  },
+  "componentFixture": {
+    "passed": true,
+    "adapter": {
+      "vendor": "amd",
+      "architecture": "rdna-3",
+      "device": "unknown",
+      "description": "",
+      "subgroupMinSize": 32,
+      "subgroupMaxSize": 64
+    },
+    "cases": [
+      {
+        "T": 1,
+        "S": 1,
+        "H": 8,
+        "bitIdentical": true,
+        "maxAbs": 0
+      },
+      {
+        "T": 7,
+        "S": 17,
+        "H": 8,
+        "bitIdentical": true,
+        "maxAbs": 6.432967099984088e-09
+      },
+      {
+        "T": 9,
+        "S": 33,
+        "H": 8,
+        "start": 24,
+        "bitIdentical": true,
+        "maxAbs": 2.709749540366884e-09
+      },
+      {
+        "T": 33,
+        "S": 33,
+        "H": 8,
+        "bitIdentical": true,
+        "maxAbs": 3.344701691825047e-09
+      },
+      {
+        "T": 17,
+        "S": 64,
+        "H": 8,
+        "start": 47,
+        "window": 16,
+        "bitIdentical": true,
+        "maxAbs": 3.697237778085838e-09
+      },
+      {
+        "T": 8,
+        "S": 8,
+        "H": 8,
+        "causal": false,
+        "bitIdentical": true,
+        "maxAbs": 5.336118719632965e-09
+      },
+      {
+        "T": 8,
+        "S": 17,
+        "H": 8,
+        "spanStart": 0,
+        "spanLength": 17,
+        "bitIdentical": true,
+        "maxAbs": 3.948163174866126e-09
+      },
+      {
+        "T": 17,
+        "S": 17,
+        "H": 8,
+        "start": 0,
+        "kvStart": 32,
+        "bitIdentical": true,
+        "maxAbs": 0
+      },
+      {
+        "T": 257,
+        "S": 257,
+        "H": 32,
+        "bitIdentical": true,
+        "maxAbs": 5.094876751390864e-09
+      }
+    ],
+    "errors": []
+  },
+  "crossEngineIdenticalGeneratedTokens": {
+    "arithmetic": true,
+    "code": true,
+    "records": true,
+    "missing": true,
+    "short": true,
+    "long": false
+  },
+  "attempts": 132,
+  "recordedGpuErrors": 0,
+  "nativePrefillCounterCorrection": "Native prefill counters stop at different input/logit boundaries. Compare firstTokenMs and completeMs; preserve native counters as noncomparable diagnostics. This also applies to earlier runs using the same bound adapter hash."
+}

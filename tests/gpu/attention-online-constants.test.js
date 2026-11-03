@@ -391,4 +391,49 @@ for (const recorded of [false, true]) {
   }
 
 }
+// Registered query tiles must bind their declared launch geometry through both adapters.
+const originalNavigator = Object.getOwnPropertyDescriptor(globalThis, 'navigator');
+Object.defineProperty(globalThis, 'navigator', { configurable: true,
+  value: { gpu: { wgslLanguageFeatures: new Set(['subgroup_id']) } },
+});
+for (const recorded of [false, true]) {
+  for (const [queryTile, workgroupLimit] of [[8, 256], [16, 512]]) {
+    const device = createFakeDevice();
+    device.limits.maxComputeWorkgroupSizeX = workgroupLimit;
+    device.limits.maxComputeInvocationsPerWorkgroup = workgroupLimit;
+    resetRuntimeState(device);
+    setDevice(device, { platformConfig: null, capabilities: {
+      hasF16: true, hasSubgroups: true, wgslLanguageFeatures: ['subgroup_id'],
+      maxWorkgroupSize: workgroupLimit, maxWorkgroupStorageSize: 32768,
+      adapterInfo: { subgroupMinSize: 32, subgroupMaxSize: 64 },
+    } });
+    const tokens = 33, heads = 8, headDim = 256;
+    const tensor = size => ({ dtype: 'f32', buffer: device.createBuffer({ size, usage: GPUBufferUsage.STORAGE }) });
+    const q = tensor(tokens * heads * headDim * 4);
+    const k = tensor(tokens * headDim * 4), v = tensor(tokens * headDim * 4);
+    const recorder = recorded ? new CommandRecorder(device, 'query_tile_geometry') : null;
+    const execute = recorder ? (...args) => recordAttention(recorder, ...args) : runAttention;
+    const executeQueryTile = () => execute(q, k, v, null, heads, headDim, {
+      seqLen: tokens, kvLen: tokens, numKVHeads: 1,
+      kernelPath: { id: 'query_tile_geometry', prefill: { steps: [{ op: 'attention',
+        kernel: 'attention_prefill_query_tile_f32.wgsl', entry: 'main',
+        constants: { HEAD_DIM: headDim, WORKGROUP_SIZE: queryTile * 32, QUERY_TILE: queryTile },
+      }] } },
+    });
+    const output = await executeQueryTile();
+    assert.equal(device.pipelineDescriptors[0].compute.constants.QUERY_TILE, queryTile);
+    assert.equal(device.pipelineDescriptors[0].compute.constants.WORKGROUP_SIZE, queryTile * 32);
+    assert.deepEqual(device.computePasses[0].dispatches,
+      [{ x: Math.ceil(tokens / queryTile) * heads, y: 1, z: 1 }]);
+    recorder?.abort();
+    const { releaseBuffer } = await import('../../src/memory/buffer-pool.js');
+    releaseBuffer(output.buffer);
+    destroyBufferPool();
+    resetUniformCache();
+    clearPipelineCaches();
+    setDevice(null);
+  }
+}
+if (originalNavigator) Object.defineProperty(globalThis, 'navigator', originalNavigator);
+else delete globalThis.navigator;
 console.log('attention-online-constants.test: ok');

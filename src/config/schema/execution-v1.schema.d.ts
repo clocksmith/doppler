@@ -191,10 +191,12 @@ export interface ExecutionV1SessionSchema {
   decodeLoop: ExecutionV1DecodeLoopSchema | null;
   perLayerInputs: ExecutionV1PerLayerInputsSessionSchema;
   speculation: ExecutionV1SelfSpeculationSchema | null;
-  /** "sync" (default): wait each prefill chunk. "async": queue without waiting. */
+  /** "sync" (default): wait each prefill chunk. "async": queue within the runtime in-flight limit. */
   prefillChunkSubmitMode: 'sync' | 'async';
   /** Optional resolved runtime limit on layers retained by one prefill recorder. */
   prefillChunkLayers?: number;
+  /** Runtime-only positive limit on submitted/recording prefill chunks. */
+  prefillMaxInFlightChunks?: number;
   /** Nullable token count for streaming prompt prefill before final logits. */
   prefillTokenChunkSize: number | null;
   /** Skip KV-cache writes for embedding-only hidden-state prefill routes. */

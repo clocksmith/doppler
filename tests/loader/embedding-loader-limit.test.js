@@ -161,6 +161,29 @@ try {
 
   assert.equal(loadTensorCalls, 0);
 
+  // Source-packed embeddings use actual block bytes, not a hypothetical F32 table.
+  destroyBufferPool();
+  setDevice(createTinyStorageLimitDevice({ maxStorageBufferBindingSize: 256, maxBufferSize: 256 }), { platformConfig: null });
+  for (const rows of [8, 16]) {
+    let packedLoads = 0;
+    const reachedLoad = new Error('packed embedding load reached');
+    const context = {
+      tensorLocations: new Map([[embeddingName, { shape: [rows, 32], size: rows * 18,
+        dtype: 'Q4_0', role: 'embedding', group: 'embed', layout: 'row' }]]),
+      gpuBuffers: new Set(), hostHasShaderF16: true, keepF32Weights: true,
+      embeddingKernel: { kernel: 'gather_q4_0.wgsl', entry: 'main' },
+      async loadTensor() { packedLoads++; throw reachedLoad; },
+      shouldStreamLargeWeight: () => false,
+      resolveWeightLayout: location => location.layout,
+    };
+    await assert.rejects(loadEmbeddings(context), error => {
+      if (rows === 8) return error === reachedLoad;
+      assert.equal(error.details.weightLoadFailure.tensorSizeBytes, rows * 18);
+      return /cannot be GPU-resident/.test(error.message);
+    });
+    assert.equal(packedLoads, rows === 8 ? 1 : 0);
+  }
+
   // The selected no-f16 lane requires F32 GPU weights, never CPU row gathering.
   destroyBufferPool();
   setDevice(createTinyStorageLimitDevice({ maxBufferSize: 1024, maxStorageBufferBindingSize: 256 }), { platformConfig: null });

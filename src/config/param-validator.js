@@ -153,6 +153,14 @@ function validateResolvedRuntimeConfig(runtimeConfig) {
   if (session?.prefillTokenChunkSize !== undefined) {
     assertNullablePositiveInt('runtime.inference.session.prefillTokenChunkSize', session.prefillTokenChunkSize);
   }
+  if (session?.prefillMaxInFlightChunks !== undefined) {
+    const limit = session.prefillMaxInFlightChunks;
+    if (!Number.isSafeInteger(limit) || limit <= 0) {
+      throw createDopplerError(ERROR_CODES.CONFIG_INVALID,
+        'DopplerConfigError: runtime.inference.session.prefillMaxInFlightChunks must be a positive safe integer.'
+      );
+    }
+  }
   if (session?.skipEmbeddingKVCacheWrites !== undefined) {
     assertNullableBoolean(
       'runtime.inference.session.skipEmbeddingKVCacheWrites',

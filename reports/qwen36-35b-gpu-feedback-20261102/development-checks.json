@@ -1,0 +1,149 @@
+{
+  "focused": [
+    {
+      "command": [
+        "node",
+        "tests/benchmarks/compute-pass-observer.test.js"
+      ],
+      "exitCode": 0,
+      "log": "/run/media/x/deco-backup/doppler-spec-20261102/release-checks/01.log"
+    },
+    {
+      "command": [
+        "node",
+        "tests/inference/whole-token-program-contract.test.js"
+      ],
+      "exitCode": 0,
+      "log": "/run/media/x/deco-backup/doppler-spec-20261102/release-checks/02.log"
+    },
+    {
+      "command": [
+        "node",
+        "tests/inference/whole-token-program-classify.test.js"
+      ],
+      "exitCode": 0,
+      "log": "/run/media/x/deco-backup/doppler-spec-20261102/release-checks/03.log"
+    },
+    {
+      "command": [
+        "node",
+        "tests/inference/whole-token-batch-recovery.test.js"
+      ],
+      "exitCode": 0,
+      "log": "/run/media/x/deco-backup/doppler-spec-20261102/release-checks/04.log"
+    },
+    {
+      "command": [
+        "node",
+        "tests/inference/generator-whole-token-batch.test.js"
+      ],
+      "exitCode": 0,
+      "log": "/run/media/x/deco-backup/doppler-spec-20261102/release-checks/05.log"
+    },
+    {
+      "command": [
+        "node",
+        "tests/inference/generator-stop-token-parity.test.js"
+      ],
+      "exitCode": 0,
+      "log": "/run/media/x/deco-backup/doppler-spec-20261102/release-checks/06.log"
+    },
+    {
+      "command": [
+        "node",
+        "tests/inference/generator-abort-delivery.test.js"
+      ],
+      "exitCode": 0,
+      "log": "/run/media/x/deco-backup/doppler-spec-20261102/release-checks/07.log"
+    },
+    {
+      "command": [
+        "node",
+        "tests/inference/generator-batch-delivery-errors.test.js"
+      ],
+      "exitCode": 0,
+      "log": "/run/media/x/deco-backup/doppler-spec-20261102/release-checks/08.log"
+    },
+    {
+      "command": [
+        "node",
+        "tests/inference/speculative-state-recovery.test.js"
+      ],
+      "exitCode": 0,
+      "log": "/run/media/x/deco-backup/doppler-spec-20261102/release-checks/09.log"
+    },
+    {
+      "command": [
+        "npm",
+        "run",
+        "typecheck:source"
+      ],
+      "exitCode": 0,
+      "log": "/run/media/x/deco-backup/doppler-spec-20261102/release-checks/10.log"
+    },
+    {
+      "command": [
+        "npm",
+        "run",
+        "source:style:check"
+      ],
+      "exitCode": 0,
+      "log": "/run/media/x/deco-backup/doppler-spec-20261102/release-checks/11.log"
+    },
+    {
+      "command": [
+        "npm",
+        "run",
+        "config:single-source:check"
+      ],
+      "exitCode": 0,
+      "log": "/run/media/x/deco-backup/doppler-spec-20261102/release-checks/12.log"
+    },
+    {
+      "command": [
+        "npm",
+        "run",
+        "onboarding:check"
+      ],
+      "exitCode": 0,
+      "log": "/run/media/x/deco-backup/doppler-spec-20261102/release-checks/13.log"
+    },
+    {
+      "command": [
+        "npm",
+        "run",
+        "inference:boundaries:check"
+      ],
+      "exitCode": 0,
+      "log": "/run/media/x/deco-backup/doppler-spec-20261102/release-checks/14.log"
+    },
+    {
+      "command": [
+        "npm",
+        "run",
+        "exports:parity:check"
+      ],
+      "exitCode": 0,
+      "log": "/run/media/x/deco-backup/doppler-spec-20261102/release-checks/15.log"
+    },
+    {
+      "command": [
+        "npm",
+        "run",
+        "runtime:closure:check"
+      ],
+      "exitCode": 0,
+      "log": "/run/media/x/deco-backup/doppler-spec-20261102/release-checks/16.log"
+    }
+  ],
+  "sourceArchitecture": {
+    "status": "fails on the unchanged baseline too",
+    "currentExitCode": 1,
+    "baselineExitCode": 1,
+    "failures": [
+      "- inference/pipelines/text/generator/prefill-runtime.js: grew beyond reviewed soft-limit ceiling 896 to 898",
+      "- storage/artifact-storage-context.js: grew beyond reviewed soft-limit ceiling 897 to 946"
+    ],
+    "sameFailuresAsParent": true
+  }
+}

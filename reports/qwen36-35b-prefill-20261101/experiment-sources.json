@@ -1,0 +1,375 @@
+{
+  "root": "deco-evidence/doppler-35b-startup-20261101",
+  "files": [
+    {
+      "path": "static-group-bounds/candidate.patch",
+      "bytes": 17302,
+      "sha256": "1d44cb024abb38f004b8f88524164992a9e79b527438564efdcebd95b8ad86dd"
+    },
+    {
+      "path": "static-group-bounds/component-tools/pooled-equal-weights/probe-server.js",
+      "bytes": 2809,
+      "sha256": "e4f853f7303067ef94f88dc6bc928e98cc8e9eb51c5ff6a3cfeac49c050da480"
+    },
+    {
+      "path": "static-group-bounds/component-tools/pooled-equal-weights/shared-input.js",
+      "bytes": 678,
+      "sha256": "d32f3bc1fc37018f7b18f902da3882b9326bd5a85dd5cc5603a53f524be19b20"
+    },
+    {
+      "path": "static-group-bounds/component-tools/qwen-economics/analyze.js",
+      "bytes": 5767,
+      "sha256": "44621d3c5e206d681467893c1874c56aa3692851687ce0f5d557051655eae1fe"
+    },
+    {
+      "path": "static-group-bounds/component-tools/qwen-economics/attribute.py",
+      "bytes": 4063,
+      "sha256": "84430221c45c6b11ecf7f4183fd7a1354bae154b46409a88e8091d29bff68e24"
+    },
+    {
+      "path": "static-group-bounds/component-tools/qwen-economics/browser.js",
+      "bytes": 40121,
+      "sha256": "b9898a5016e8984d8cd7e5a45b37a7d4c4f991eb5bc3724faee6f427a12432ed"
+    },
+    {
+      "path": "static-group-bounds/component-tools/qwen-economics/compare-reference-moe.py",
+      "bytes": 6114,
+      "sha256": "160a2024eecfc048403bd59a87321d8f7c0ec0b5e703de4529f11dc307a42281"
+    },
+    {
+      "path": "static-group-bounds/component-tools/qwen-economics/component-static-bounds-run.js",
+      "bytes": 1412,
+      "sha256": "f5535ec4f5b1fb28dde7151d35868bef9983c40a486820a2d522a91b65d3292b"
+    },
+    {
+      "path": "static-group-bounds/component-tools/qwen-economics/component-static-bounds.js",
+      "bytes": 7354,
+      "sha256": "0b69b3fc5fc9501ae8fb326e402237432e7708823ca54814bac23e0e7b0ca14b"
+    },
+    {
+      "path": "static-group-bounds/component-tools/qwen-economics/economics.js",
+      "bytes": 3613,
+      "sha256": "f3b81ecb8f093dbee844266ec07184f6f8eaa2cf816b46e77039b6fd89962b85"
+    },
+    {
+      "path": "static-group-bounds/component-tools/qwen-economics/normalize-reference-manifest.js",
+      "bytes": 625,
+      "sha256": "33098441a851ffe562c26ab67ea7bd45aa63eeba39ba2c1b5793ea90e7f7c513"
+    },
+    {
+      "path": "static-group-bounds/component-tools/qwen-economics/observe-compute-passes.js",
+      "bytes": 5360,
+      "sha256": "00f2491b63f3f52a5d0946fc42d66888aa306901cc261b56ff24a8e8e5c8df7c"
+    },
+    {
+      "path": "static-group-bounds/component-tools/qwen-economics/report.py",
+      "bytes": 1693,
+      "sha256": "3ac26826c672aead7944cf89b1f14fc5f6aec4fd48745207f91ad5b9215fd2a3"
+    },
+    {
+      "path": "static-group-bounds/component-tools/qwen-economics/run.js",
+      "bytes": 12342,
+      "sha256": "50b3db1dc97610b6ff669df0a07dde74f5935870faad377d7a243a224e07aa63"
+    },
+    {
+      "path": "static-group-bounds/component-tools/qwen-economics/sample-resources.py",
+      "bytes": 3078,
+      "sha256": "aa7feb6a71bc75ac950824f5a6853ad07e397846afc85f760a2ee42908395d9f"
+    },
+    {
+      "path": "static-group-bounds/component-tools/qwen-economics/summarize.js",
+      "bytes": 2907,
+      "sha256": "6b8f91fa9b395d6d82d7ae73670ee5dc947e2464c6d7bd3576327ec9cec6cc2a"
+    },
+    {
+      "path": "static-group-bounds/runtime-source.tar.gz",
+      "bytes": 19742246,
+      "sha256": "43d2bd4474cb670b80a135a44ad5237908a72fbe07fd2b3688e39678c713f4da"
+    },
+    {
+      "path": "static-group-bounds/source-identity.json",
+      "bytes": 528830,
+      "sha256": "0b0052b9706414e15e85c5fcfc82a836c6db4e5ae1f2ec7519c69972fe9e1253"
+    },
+    {
+      "path": "named-group-accumulators/candidate.patch",
+      "bytes": 18436,
+      "sha256": "7f24498f3245ed85ecfde17c7c97770233629265dc151244a91b56f75e2d06d7"
+    },
+    {
+      "path": "named-group-accumulators/component-tools/pooled-equal-weights/probe-server.js",
+      "bytes": 2809,
+      "sha256": "e4f853f7303067ef94f88dc6bc928e98cc8e9eb51c5ff6a3cfeac49c050da480"
+    },
+    {
+      "path": "named-group-accumulators/component-tools/pooled-equal-weights/shared-input.js",
+      "bytes": 678,
+      "sha256": "d32f3bc1fc37018f7b18f902da3882b9326bd5a85dd5cc5603a53f524be19b20"
+    },
+    {
+      "path": "named-group-accumulators/component-tools/qwen-economics/analyze.js",
+      "bytes": 5767,
+      "sha256": "44621d3c5e206d681467893c1874c56aa3692851687ce0f5d557051655eae1fe"
+    },
+    {
+      "path": "named-group-accumulators/component-tools/qwen-economics/attribute.py",
+      "bytes": 4063,
+      "sha256": "84430221c45c6b11ecf7f4183fd7a1354bae154b46409a88e8091d29bff68e24"
+    },
+    {
+      "path": "named-group-accumulators/component-tools/qwen-economics/browser.js",
+      "bytes": 40121,
+      "sha256": "b9898a5016e8984d8cd7e5a45b37a7d4c4f991eb5bc3724faee6f427a12432ed"
+    },
+    {
+      "path": "named-group-accumulators/component-tools/qwen-economics/compare-reference-moe.py",
+      "bytes": 6114,
+      "sha256": "160a2024eecfc048403bd59a87321d8f7c0ec0b5e703de4529f11dc307a42281"
+    },
+    {
+      "path": "named-group-accumulators/component-tools/qwen-economics/component-static-bounds-run.js",
+      "bytes": 1407,
+      "sha256": "6cea02f54b201d2a4fdc189c8adea612594170df8ad54542a0f94789acee8976"
+    },
+    {
+      "path": "named-group-accumulators/component-tools/qwen-economics/component-static-bounds.js",
+      "bytes": 7354,
+      "sha256": "0b69b3fc5fc9501ae8fb326e402237432e7708823ca54814bac23e0e7b0ca14b"
+    },
+    {
+      "path": "named-group-accumulators/component-tools/qwen-economics/economics.js",
+      "bytes": 3613,
+      "sha256": "f3b81ecb8f093dbee844266ec07184f6f8eaa2cf816b46e77039b6fd89962b85"
+    },
+    {
+      "path": "named-group-accumulators/component-tools/qwen-economics/normalize-reference-manifest.js",
+      "bytes": 625,
+      "sha256": "33098441a851ffe562c26ab67ea7bd45aa63eeba39ba2c1b5793ea90e7f7c513"
+    },
+    {
+      "path": "named-group-accumulators/component-tools/qwen-economics/observe-compute-passes.js",
+      "bytes": 5360,
+      "sha256": "00f2491b63f3f52a5d0946fc42d66888aa306901cc261b56ff24a8e8e5c8df7c"
+    },
+    {
+      "path": "named-group-accumulators/component-tools/qwen-economics/report.py",
+      "bytes": 1693,
+      "sha256": "3ac26826c672aead7944cf89b1f14fc5f6aec4fd48745207f91ad5b9215fd2a3"
+    },
+    {
+      "path": "named-group-accumulators/component-tools/qwen-economics/run.js",
+      "bytes": 12342,
+      "sha256": "50b3db1dc97610b6ff669df0a07dde74f5935870faad377d7a243a224e07aa63"
+    },
+    {
+      "path": "named-group-accumulators/component-tools/qwen-economics/sample-resources.py",
+      "bytes": 3078,
+      "sha256": "aa7feb6a71bc75ac950824f5a6853ad07e397846afc85f760a2ee42908395d9f"
+    },
+    {
+      "path": "named-group-accumulators/component-tools/qwen-economics/summarize.js",
+      "bytes": 2907,
+      "sha256": "6b8f91fa9b395d6d82d7ae73670ee5dc947e2464c6d7bd3576327ec9cec6cc2a"
+    },
+    {
+      "path": "named-group-accumulators/runtime-source.tar.gz",
+      "bytes": 19742330,
+      "sha256": "a32dfd38d49d786d75c04292c7ad36ff2a08f9fea06f7388d49d20a1ef18e374"
+    },
+    {
+      "path": "named-group-accumulators-v2/candidate.patch",
+      "bytes": 18996,
+      "sha256": "d07d2e7cf6f93a7028f4d872d118894096ef190311ab00d125609b26df7b0877"
+    },
+    {
+      "path": "named-group-accumulators-v2/component-tools/pooled-equal-weights/probe-server.js",
+      "bytes": 2809,
+      "sha256": "e4f853f7303067ef94f88dc6bc928e98cc8e9eb51c5ff6a3cfeac49c050da480"
+    },
+    {
+      "path": "named-group-accumulators-v2/component-tools/pooled-equal-weights/shared-input.js",
+      "bytes": 678,
+      "sha256": "d32f3bc1fc37018f7b18f902da3882b9326bd5a85dd5cc5603a53f524be19b20"
+    },
+    {
+      "path": "named-group-accumulators-v2/component-tools/qwen-economics/analyze.js",
+      "bytes": 5767,
+      "sha256": "44621d3c5e206d681467893c1874c56aa3692851687ce0f5d557051655eae1fe"
+    },
+    {
+      "path": "named-group-accumulators-v2/component-tools/qwen-economics/attribute.py",
+      "bytes": 4063,
+      "sha256": "84430221c45c6b11ecf7f4183fd7a1354bae154b46409a88e8091d29bff68e24"
+    },
+    {
+      "path": "named-group-accumulators-v2/component-tools/qwen-economics/browser.js",
+      "bytes": 40121,
+      "sha256": "b9898a5016e8984d8cd7e5a45b37a7d4c4f991eb5bc3724faee6f427a12432ed"
+    },
+    {
+      "path": "named-group-accumulators-v2/component-tools/qwen-economics/compare-reference-moe.py",
+      "bytes": 6114,
+      "sha256": "160a2024eecfc048403bd59a87321d8f7c0ec0b5e703de4529f11dc307a42281"
+    },
+    {
+      "path": "named-group-accumulators-v2/component-tools/qwen-economics/component-static-bounds-run.js",
+      "bytes": 1417,
+      "sha256": "11f235842b3618e83fb024675119afc7172cc6517b4cbeff8fda2680201f6e16"
+    },
+    {
+      "path": "named-group-accumulators-v2/component-tools/qwen-economics/component-static-bounds.js",
+      "bytes": 7579,
+      "sha256": "3d911bbfe029b8f385eb20b2ada1c53386946dd3565b315acfd0c6a810e4a7b9"
+    },
+    {
+      "path": "named-group-accumulators-v2/component-tools/qwen-economics/economics.js",
+      "bytes": 3613,
+      "sha256": "f3b81ecb8f093dbee844266ec07184f6f8eaa2cf816b46e77039b6fd89962b85"
+    },
+    {
+      "path": "named-group-accumulators-v2/component-tools/qwen-economics/normalize-reference-manifest.js",
+      "bytes": 625,
+      "sha256": "33098441a851ffe562c26ab67ea7bd45aa63eeba39ba2c1b5793ea90e7f7c513"
+    },
+    {
+      "path": "named-group-accumulators-v2/component-tools/qwen-economics/observe-compute-passes.js",
+      "bytes": 5360,
+      "sha256": "00f2491b63f3f52a5d0946fc42d66888aa306901cc261b56ff24a8e8e5c8df7c"
+    },
+    {
+      "path": "named-group-accumulators-v2/component-tools/qwen-economics/report.py",
+      "bytes": 1693,
+      "sha256": "3ac26826c672aead7944cf89b1f14fc5f6aec4fd48745207f91ad5b9215fd2a3"
+    },
+    {
+      "path": "named-group-accumulators-v2/component-tools/qwen-economics/run.js",
+      "bytes": 12342,
+      "sha256": "50b3db1dc97610b6ff669df0a07dde74f5935870faad377d7a243a224e07aa63"
+    },
+    {
+      "path": "named-group-accumulators-v2/component-tools/qwen-economics/sample-resources.py",
+      "bytes": 3078,
+      "sha256": "aa7feb6a71bc75ac950824f5a6853ad07e397846afc85f760a2ee42908395d9f"
+    },
+    {
+      "path": "named-group-accumulators-v2/component-tools/qwen-economics/summarize.js",
+      "bytes": 2907,
+      "sha256": "6b8f91fa9b395d6d82d7ae73670ee5dc947e2464c6d7bd3576327ec9cec6cc2a"
+    },
+    {
+      "path": "named-group-accumulators-v2/runtime-source.tar.gz",
+      "bytes": 19742287,
+      "sha256": "38eca9a2cd80bd9268b00ab8d50f5a745583168c7114227763f1e7fcc8ad1d8e"
+    },
+    {
+      "path": "all-private-arrays-draft/candidate.patch",
+      "bytes": 24590,
+      "sha256": "f18f86ca4d6d752974c7ca1a742482716cdd8d2b441da20c59d3cc8ba3b0d1e3"
+    },
+    {
+      "path": "all-private-arrays-draft/status.json",
+      "bytes": 137,
+      "sha256": "f3720a749c86abd3b3396d42807664ae8a9e84d1385da991cb5208de0a3b382a"
+    },
+    {
+      "path": "conv-dispatch-repro/diagnosis.json",
+      "bytes": 6226,
+      "sha256": "8d135469e5b4e9730377b490806314a1138c0a32f3d7aeba1bddac856b641d57"
+    },
+    {
+      "path": "conv-grid-fix/candidate.patch",
+      "bytes": 8685,
+      "sha256": "e4de18779dc6a5fdb9b6dce0cd722b1a1ae909c5701918f85540a80aafd3f90d"
+    },
+    {
+      "path": "conv-grid-fix/component-tools/pooled-equal-weights/probe-server.js",
+      "bytes": 2809,
+      "sha256": "e4f853f7303067ef94f88dc6bc928e98cc8e9eb51c5ff6a3cfeac49c050da480"
+    },
+    {
+      "path": "conv-grid-fix/component-tools/pooled-equal-weights/shared-input.js",
+      "bytes": 678,
+      "sha256": "d32f3bc1fc37018f7b18f902da3882b9326bd5a85dd5cc5603a53f524be19b20"
+    },
+    {
+      "path": "conv-grid-fix/component-tools/qwen-economics/analyze.js",
+      "bytes": 5767,
+      "sha256": "44621d3c5e206d681467893c1874c56aa3692851687ce0f5d557051655eae1fe"
+    },
+    {
+      "path": "conv-grid-fix/component-tools/qwen-economics/attribute.py",
+      "bytes": 4063,
+      "sha256": "84430221c45c6b11ecf7f4183fd7a1354bae154b46409a88e8091d29bff68e24"
+    },
+    {
+      "path": "conv-grid-fix/component-tools/qwen-economics/browser.js",
+      "bytes": 40121,
+      "sha256": "b9898a5016e8984d8cd7e5a45b37a7d4c4f991eb5bc3724faee6f427a12432ed"
+    },
+    {
+      "path": "conv-grid-fix/component-tools/qwen-economics/compare-reference-moe.py",
+      "bytes": 6114,
+      "sha256": "160a2024eecfc048403bd59a87321d8f7c0ec0b5e703de4529f11dc307a42281"
+    },
+    {
+      "path": "conv-grid-fix/component-tools/qwen-economics/component-static-bounds-run.js",
+      "bytes": 1366,
+      "sha256": "a133af0c09214b93db590dea7025659f311c6f619e5e339090cebb3cffca1669"
+    },
+    {
+      "path": "conv-grid-fix/component-tools/qwen-economics/component-static-bounds.js",
+      "bytes": 7579,
+      "sha256": "3d911bbfe029b8f385eb20b2ada1c53386946dd3565b315acfd0c6a810e4a7b9"
+    },
+    {
+      "path": "conv-grid-fix/component-tools/qwen-economics/conv-grid.js",
+      "bytes": 1257,
+      "sha256": "c64c9b929b9b9bc35b3ac1865a74ed1db6fbdc4279ea9c4fd153b1bacedb7ed9"
+    },
+    {
+      "path": "conv-grid-fix/component-tools/qwen-economics/economics.js",
+      "bytes": 3613,
+      "sha256": "f3b81ecb8f093dbee844266ec07184f6f8eaa2cf816b46e77039b6fd89962b85"
+    },
+    {
+      "path": "conv-grid-fix/component-tools/qwen-economics/normalize-reference-manifest.js",
+      "bytes": 625,
+      "sha256": "33098441a851ffe562c26ab67ea7bd45aa63eeba39ba2c1b5793ea90e7f7c513"
+    },
+    {
+      "path": "conv-grid-fix/component-tools/qwen-economics/observe-compute-passes.js",
+      "bytes": 5360,
+      "sha256": "00f2491b63f3f52a5d0946fc42d66888aa306901cc261b56ff24a8e8e5c8df7c"
+    },
+    {
+      "path": "conv-grid-fix/component-tools/qwen-economics/report.py",
+      "bytes": 1693,
+      "sha256": "3ac26826c672aead7944cf89b1f14fc5f6aec4fd48745207f91ad5b9215fd2a3"
+    },
+    {
+      "path": "conv-grid-fix/component-tools/qwen-economics/run.js",
+      "bytes": 12342,
+      "sha256": "50b3db1dc97610b6ff669df0a07dde74f5935870faad377d7a243a224e07aa63"
+    },
+    {
+      "path": "conv-grid-fix/component-tools/qwen-economics/sample-resources.py",
+      "bytes": 3078,
+      "sha256": "aa7feb6a71bc75ac950824f5a6853ad07e397846afc85f760a2ee42908395d9f"
+    },
+    {
+      "path": "conv-grid-fix/component-tools/qwen-economics/summarize.js",
+      "bytes": 2907,
+      "sha256": "6b8f91fa9b395d6d82d7ae73670ee5dc947e2464c6d7bd3576327ec9cec6cc2a"
+    },
+    {
+      "path": "conv-grid-fix/source-files.json",
+      "bytes": 1261244,
+      "sha256": "459b5e7420fd46fc240a38bc319dd70d48496cf64c9453f44738b8a0393a83a7"
+    },
+    {
+      "path": "conv-grid-fix/source.tar.gz",
+      "bytes": 19747687,
+      "sha256": "790245a913a239a4ff4a20ccb731a1ee55b230d1f00b1e8c513321e4ff7add82"
+    }
+  ]
+}

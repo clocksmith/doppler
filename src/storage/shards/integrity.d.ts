@@ -23,6 +23,7 @@ export interface TensorIntegrityController {
 export function getHashAlgorithm(): HashAlgorithm | null;
 export function hexToBytes(hex: string): Uint8Array;
 export function computeBlake3(data: Uint8Array | ArrayBuffer): Promise<string>;
+/** Hash complete bytes through WebCrypto where available; otherwise use the same SHA-256 implementation as streaming. Native errors propagate without retry. */
 export function computeSHA256(data: Uint8Array | ArrayBuffer): Promise<string>;
 export function computeHash(data: Uint8Array | ArrayBuffer, algorithm: HashAlgorithm): Promise<string>;
 export function createStreamingHasher(algorithm: HashAlgorithm): Promise<StreamingHasher>;

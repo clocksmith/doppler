@@ -8,7 +8,7 @@
  */
 
 /** Supported weight quantization types */
-export type WeightQuantType = 'f16' | 'f32' | 'q4k' | 'q6k' | 'q8_0';
+export type WeightQuantType = 'f16' | 'f32' | 'q4k' | 'q6k' | 'q5k' | 'q8_0';
 
 /** Supported embedding quantization types */
 export type EmbeddingQuantType = 'f16' | 'f32';

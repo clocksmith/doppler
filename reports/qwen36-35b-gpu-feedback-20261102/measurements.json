@@ -1,0 +1,327 @@
+{
+  "scope": "Native engine product-format request measurements, fixed prompts and caps; no common-weight, independent full-model, commercial quality or economics promotion.",
+  "primary": {
+    "diagnosticOnly": true,
+    "scope": "Jupiter native-engine fixed-request throughput: Qwen3.6-35B-A3B, same source GGUF, prompts, greedy sampling and128-token output caps. Doppler F32 GPU-feedback replay versus Pooled native MTP depth3 with prompt lookup separately off/on. Native executed materializations/KV differ; common-weight independent numerical and broad task-quality qualification remain open.",
+    "tasks": {
+      "short": {
+        "engines": {
+          "doppler": {
+            "n": 10,
+            "inputTokens": 28,
+            "outputTokens": 128,
+            "completeMs": 1679.210000000149,
+            "firstTokenMs": 136.88000000026076,
+            "averageDecodeIntervalMs": 12.144330708660537,
+            "lookupSteps": 0
+          },
+          "pooled": {
+            "n": 10,
+            "inputTokens": 28,
+            "outputTokens": 128,
+            "completeMs": 1719.2700000004843,
+            "firstTokenMs": 143.78999999985098,
+            "averageDecodeIntervalMs": 12.40535433071365,
+            "lookupSteps": 0
+          }
+        },
+        "paired": {
+          "completeMs": {
+            "ratio": 0.9766812226910289,
+            "interval95": [
+              0.9709398191557458,
+              0.9832752741206334
+            ],
+            "estimator": "equal-prompt mean log paired complete-request ratio",
+            "method": "fixed-prompt stratified percentile bootstrap; LCG seed0x12345678; no outlier removal",
+            "replicates": 10000
+          },
+          "firstTokenMs": {
+            "ratio": 0.9515442881259252,
+            "interval95": [
+              0.9353801644347983,
+              0.9696360372853009
+            ],
+            "estimator": "equal-prompt mean log paired complete-request ratio",
+            "method": "fixed-prompt stratified percentile bootstrap; LCG seed0x12345678; no outlier removal",
+            "replicates": 10000
+          }
+        },
+        "crossEngineIdenticalTokens": true
+      },
+      "long": {
+        "engines": {
+          "doppler": {
+            "n": 10,
+            "inputTokens": 2287,
+            "outputTokens": 128,
+            "completeMs": 4978.549999999814,
+            "firstTokenMs": 3353.4599999997763,
+            "averageDecodeIntervalMs": 12.795984251968797,
+            "lookupSteps": 0
+          },
+          "pooled": {
+            "n": 10,
+            "inputTokens": 2287,
+            "outputTokens": 128,
+            "completeMs": 5261.299999999627,
+            "firstTokenMs": 3443.2200000001117,
+            "averageDecodeIntervalMs": 14.315590551177289,
+            "lookupSteps": 0
+          }
+        },
+        "paired": {
+          "completeMs": {
+            "ratio": 0.9462588867632965,
+            "interval95": [
+              0.9435144852687259,
+              0.9490239835401314
+            ],
+            "estimator": "equal-prompt mean log paired complete-request ratio",
+            "method": "fixed-prompt stratified percentile bootstrap; LCG seed0x12345678; no outlier removal",
+            "replicates": 10000
+          },
+          "firstTokenMs": {
+            "ratio": 0.9739278933290731,
+            "interval95": [
+              0.9696123502165396,
+              0.9779983894751452
+            ],
+            "estimator": "equal-prompt mean log paired complete-request ratio",
+            "method": "fixed-prompt stratified percentile bootstrap; LCG seed0x12345678; no outlier removal",
+            "replicates": 10000
+          }
+        },
+        "crossEngineIdenticalTokens": false
+      },
+      "short-lookup": {
+        "engines": {
+          "doppler": {
+            "n": 10,
+            "inputTokens": 28,
+            "outputTokens": 128,
+            "completeMs": 1677.3699999997393,
+            "firstTokenMs": 137.64000000003725,
+            "averageDecodeIntervalMs": 12.123858267714189,
+            "lookupSteps": 0
+          },
+          "pooled": {
+            "n": 10,
+            "inputTokens": 28,
+            "outputTokens": 128,
+            "completeMs": 1793.4399999996647,
+            "firstTokenMs": 143.69999999981374,
+            "averageDecodeIntervalMs": 12.990078740156303,
+            "lookupSteps": 40
+          }
+        },
+        "paired": {
+          "completeMs": {
+            "ratio": 0.9352655139038443,
+            "interval95": [
+              0.9304474402024516,
+              0.9404076486486848
+            ],
+            "estimator": "equal-prompt mean log paired complete-request ratio",
+            "method": "fixed-prompt stratified percentile bootstrap; LCG seed0x12345678; no outlier removal",
+            "replicates": 10000
+          },
+          "firstTokenMs": {
+            "ratio": 0.9569287812367567,
+            "interval95": [
+              0.9330380620160329,
+              0.9838656416658029
+            ],
+            "estimator": "equal-prompt mean log paired complete-request ratio",
+            "method": "fixed-prompt stratified percentile bootstrap; LCG seed0x12345678; no outlier removal",
+            "replicates": 10000
+          }
+        },
+        "crossEngineIdenticalTokens": true
+      },
+      "long-lookup": {
+        "engines": {
+          "doppler": {
+            "n": 10,
+            "inputTokens": 2287,
+            "outputTokens": 128,
+            "completeMs": 4977.06999999974,
+            "firstTokenMs": 3356.9599999995903,
+            "averageDecodeIntervalMs": 12.756771653544481,
+            "lookupSteps": 0
+          },
+          "pooled": {
+            "n": 10,
+            "inputTokens": 2287,
+            "outputTokens": 128,
+            "completeMs": 5360.449999999813,
+            "firstTokenMs": 3455.4299999998884,
+            "averageDecodeIntervalMs": 15.000157480314376,
+            "lookupSteps": 70
+          }
+        },
+        "paired": {
+          "completeMs": {
+            "ratio": 0.9284766529352736,
+            "interval95": [
+              0.9264291204480732,
+              0.9302307680815711
+            ],
+            "estimator": "equal-prompt mean log paired complete-request ratio",
+            "method": "fixed-prompt stratified percentile bootstrap; LCG seed0x12345678; no outlier removal",
+            "replicates": 10000
+          },
+          "firstTokenMs": {
+            "ratio": 0.9715016805452371,
+            "interval95": [
+              0.9672790819538805,
+              0.9753210436343114
+            ],
+            "estimator": "equal-prompt mean log paired complete-request ratio",
+            "method": "fixed-prompt stratified percentile bootstrap; LCG seed0x12345678; no outlier removal",
+            "replicates": 10000
+          }
+        },
+        "crossEngineIdenticalTokens": false
+      }
+    },
+    "combinedCompleteRatio": {
+      "ratio": 0.9464925054761726,
+      "interval95": [
+        0.944407235978659,
+        0.9486924532135419
+      ],
+      "estimator": "equal-prompt mean log paired complete-request ratio",
+      "method": "fixed-prompt stratified percentile bootstrap; LCG seed0x12345678; no outlier removal",
+      "replicates": 10000
+    },
+    "attempts": 176,
+    "qualityAttempts": 88,
+    "exactWithinEngineGreedyParity": true,
+    "gpuErrors": 0,
+    "loadMs": {
+      "doppler": 76515,
+      "pooled": 95268.40000000037
+    },
+    "nativePrefillCounters": "Different token/logit boundaries: Pooled excludes the final prompt token, Doppler includes it. Excluded from cross-engine estimators.",
+    "limitations": [
+      "Native weight materializations and KV dtypes differ.",
+      "Within-Doppler logit gate is not an independent full-model oracle.",
+      "Fixed128-token caps, not natural answer completion.",
+      "Frozen admission tasks do not establish broad matched quality.",
+      "No cold-install, tail-distribution, service, energy or profitability qualification."
+    ]
+  },
+  "tokenDeliveryIntervals": {
+    "short": {
+      "doppler": {
+        "samples": 1270,
+        "meanMs": 12.138425196848047,
+        "p50Ms": 11.699999999254942,
+        "p95Ms": 16.40000000037253,
+        "maxMs": 59.69999999925494,
+        "scope": "Inter-token gaps within these fixed128-token requests, not a production latency-tail qualification."
+      },
+      "pooled": {
+        "samples": 1270,
+        "meanMs": 12.379763779532546,
+        "p50Ms": 0.09999999962747097,
+        "p95Ms": 39.700000000279395,
+        "maxMs": 43.29999999888241,
+        "scope": "Inter-token gaps within these fixed128-token requests, not a production latency-tail qualification."
+      }
+    },
+    "long": {
+      "doppler": {
+        "samples": 1270,
+        "meanMs": 12.789606299213185,
+        "p50Ms": 11.900000000372529,
+        "p95Ms": 17.59999999962747,
+        "maxMs": 52.90000000037253,
+        "scope": "Inter-token gaps within these fixed128-token requests, not a production latency-tail qualification."
+      },
+      "pooled": {
+        "samples": 1270,
+        "meanMs": 14.280314960628454,
+        "p50Ms": 0.09999999962747097,
+        "p95Ms": 42.59999999962747,
+        "maxMs": 66.59999999962747,
+        "scope": "Inter-token gaps within these fixed128-token requests, not a production latency-tail qualification."
+      }
+    },
+    "short-lookup": {
+      "doppler": {
+        "samples": 1270,
+        "meanMs": 12.118031496063285,
+        "p50Ms": 11.699999999254942,
+        "p95Ms": 16.299999999906866,
+        "maxMs": 28.09999999962747,
+        "scope": "Inter-token gaps within these fixed128-token requests, not a production latency-tail qualification."
+      },
+      "pooled": {
+        "samples": 1270,
+        "meanMs": 12.963622047244682,
+        "p50Ms": 0.09999999962747097,
+        "p95Ms": 39.90000000037253,
+        "maxMs": 54.0,
+        "scope": "Inter-token gaps within these fixed128-token requests, not a production latency-tail qualification."
+      }
+    },
+    "long-lookup": {
+      "doppler": {
+        "samples": 1270,
+        "meanMs": 12.750551181103242,
+        "p50Ms": 11.900000000372529,
+        "p95Ms": 17.299999999906866,
+        "maxMs": 51.19999999925494,
+        "scope": "Inter-token gaps within these fixed128-token requests, not a production latency-tail qualification."
+      },
+      "pooled": {
+        "samples": 1270,
+        "meanMs": 14.964173228347923,
+        "p50Ms": 0.09999999962747097,
+        "p95Ms": 42.55499999979511,
+        "maxMs": 50.100000001490116,
+        "scope": "Inter-token gaps within these fixed128-token requests, not a production latency-tail qualification."
+      }
+    }
+  },
+  "numericalStateGate": {
+    "file": "numerical-state-gate.json",
+    "sourceTreeSha256": "c38082ba57e156dbb77f4e882bd8627bc01ff53ff9019e3986e8994bbadee66f"
+  },
+  "primaryIntegrity": {
+    "rejectedRun": "gpu-stream32-pooled-final",
+    "disposition": "Retained, excluded from claim before analysis due observed host CPU verification overlap. No individual samples removed.",
+    "verificationLogWriteTimesUTC": {
+      "01-compute-pass-observer.test.log": "2026-11-02T19:42:11.527949+00:00",
+      "02-whole-token-program-contract.test.log": "2026-11-02T19:42:12.011996+00:00",
+      "03-whole-token-program-classify.test.log": "2026-11-02T19:42:12.422809+00:00",
+      "04-whole-token-batch-recovery.test.log": "2026-11-02T19:42:12.949861+00:00",
+      "05-generator-whole-token-batch.test.log": "2026-11-02T19:42:13.401842+00:00",
+      "06-generator-stop-token-parity.test.log": "2026-11-02T19:42:13.734939+00:00",
+      "07-generator-abort-delivery.test.log": "2026-11-02T19:42:14.086683+00:00",
+      "08-generator-batch-delivery-errors.test.log": "2026-11-02T19:42:14.435829+00:00",
+      "09-speculative-state-recovery.test.log": "2026-11-02T19:42:14.793369+00:00"
+    },
+    "replacement": "gpu-stream32-pooled-qualified",
+    "replacementPairsPerCondition": 10,
+    "sourceAndPoliciesUnchanged": true
+  },
+  "artifactIdentities": {
+    "gguf": {
+      "path": "/run/media/x/models/deco-evidence/qwen-economics-20261030/Qwen_Qwen3.6-35B-A3B-Q4_0.gguf",
+      "sha256": "52312daa5b2190c1f5723d33c3315c01c55af4206f6c6e6eb63f3d8dd52bb85e",
+      "bytes": 20836243072,
+      "mtimeNs": 1793365617210000000
+    },
+    "rdrrManifest": {
+      "path": "/run/media/x/models/deco-evidence/doppler-35b-native/rdrr-q4_0-e12da725/manifest.json",
+      "sha256": "e985e3cdad60d0cb57d84b436161e66ab5b3f6589a168de6f00b4610e5f1fb59",
+      "bytes": 409715
+    },
+    "pooledSourceTreeSha256": "25af64a3542fd9c22be1841c01b98825f3590a8e31767e04896c95f9775cc63f"
+  },
+  "sourceTreeSha256": "c38082ba57e156dbb77f4e882bd8627bc01ff53ff9019e3986e8994bbadee66f",
+  "modelRuntimeProfile": "profiles/qwen3-6-35b-a3b-q4_0-candidate"
+}

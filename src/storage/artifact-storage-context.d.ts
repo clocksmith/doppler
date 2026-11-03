@@ -39,6 +39,7 @@ export interface CreateArtifactStorageContextOptions {
   tensorsJsonPath?: string | null;
   verifyHashes?: boolean;
   hashesTrusted?: boolean;
+  verificationBufferBytes?: number;
 }
 
 export interface ArtifactStorageContext extends SourceStorageContext {
@@ -48,6 +49,7 @@ export interface ArtifactStorageContext extends SourceStorageContext {
 
 export interface CreateHttpArtifactStorageContextOptions {
   verifyHashes?: boolean;
+  verificationBufferBytes?: number;
   rangeCacheBlockBytes?: number;
   rangeCacheMaxBytes?: number;
   rangeCacheMinBytes?: number;

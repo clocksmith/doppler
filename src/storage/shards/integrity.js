@@ -70,6 +70,18 @@ export async function computeBlake3(data) {
 
 export async function computeSHA256(data) {
   const bytes = data instanceof ArrayBuffer ? new Uint8Array(data) : data;
+  if (!(bytes instanceof Uint8Array)) {
+    throw new Error('sha256BytesHex requires a Uint8Array.');
+  }
+  // Complete shards already own their input bytes. WebCrypto hashes those bytes
+  // without running every SHA round on the JS thread. Streaming verification
+  // retains its bounded incremental implementation. Shared storage cannot be a
+  // WebCrypto BufferSource, so it keeps the existing synchronous implementation.
+  const subtle = globalThis.crypto?.subtle;
+  if (typeof subtle?.digest === 'function' && bytes.buffer instanceof ArrayBuffer) {
+    const digest = await subtle.digest('SHA-256', bytes);
+    return bytesToHex(new Uint8Array(digest));
+  }
   return sha256BytesHex(bytes);
 }
 

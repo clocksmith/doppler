@@ -8361,6 +8361,7 @@
        "qwen3/qwen-3-5-0-8b-canonical-f32",
        "qwen3/qwen-3-6-35b-a3b-q4_0-passthrough",
        "qwen3/qwen-3-6-35b-a3b-text-q4k-ehf16-af32",
+       "qwen3/qwen3.8-27b-q4_0-passthrough",
        "runtime/profiles/qwen3-6-35b-a3b-q4_0-candidate",
        "runtime/profiles/qwen3-6-35b-a3b-q4_0-pooled-q8-common-diagnostic"
       ],
@@ -9734,6 +9735,7 @@
       "status": "pinned",
       "inlineConfigs": [
        "qwen3/qwen-3-6-35b-a3b-q4_0-passthrough",
+       "qwen3/qwen3.8-27b-q4_0-passthrough",
        "runtime/profiles/qwen3-6-35b-a3b-q4_0-candidate",
        "runtime/profiles/qwen3-6-35b-a3b-q4_0-pooled-q8-common-diagnostic"
       ],
@@ -9833,7 +9835,7 @@
      },
      "reachability": {
       "status": "pinned",
-      "inlineConfigs": ["qwen3/qwen-3-6-35b-a3b-q4_0-passthrough"],
+      "inlineConfigs": ["qwen3/qwen-3-6-35b-a3b-q4_0-passthrough","qwen3/qwen3.8-27b-q4_0-passthrough"],
       "ruleChains": ["matmul.rules.json#q40Variant"],
       "wgslOnDisk": true
      }
@@ -10032,6 +10034,7 @@
       "status": "pinned",
       "inlineConfigs": [
        "qwen3/qwen-3-6-35b-a3b-q4_0-passthrough",
+       "qwen3/qwen3.8-27b-q4_0-passthrough",
        "runtime/profiles/qwen3-6-35b-a3b-q4_0-candidate",
        "runtime/profiles/qwen3-6-35b-a3b-q4_0-pooled-q8-common-diagnostic"
       ],
@@ -10133,6 +10136,7 @@
       "status": "pinned",
       "inlineConfigs": [
        "qwen3/qwen-3-6-35b-a3b-q4_0-passthrough",
+       "qwen3/qwen3.8-27b-q4_0-passthrough",
        "runtime/profiles/qwen3-6-35b-a3b-q4_0-candidate",
        "runtime/profiles/qwen3-6-35b-a3b-q4_0-pooled-q8-common-diagnostic"
       ],
@@ -10232,7 +10236,7 @@
      },
      "reachability": {
       "status": "pinned",
-      "inlineConfigs": ["qwen3/qwen-3-6-35b-a3b-q4_0-passthrough"],
+      "inlineConfigs": ["qwen3/qwen-3-6-35b-a3b-q4_0-passthrough","qwen3/qwen3.8-27b-q4_0-passthrough"],
       "ruleChains": ["matmul.rules.json#q40Variant"],
       "wgslOnDisk": true
      }
@@ -10429,7 +10433,7 @@
      },
      "reachability": {
       "status": "pinned",
-      "inlineConfigs": ["qwen3/qwen-3-6-35b-a3b-q4_0-passthrough"],
+      "inlineConfigs": ["qwen3/qwen-3-6-35b-a3b-q4_0-passthrough","qwen3/qwen3.8-27b-q4_0-passthrough"],
       "ruleChains": ["matmul.rules.json#q40Variant"],
       "wgslOnDisk": true
      }
@@ -10628,6 +10632,7 @@
       "status": "pinned",
       "inlineConfigs": [
        "qwen3/qwen-3-6-35b-a3b-q4_0-passthrough",
+       "qwen3/qwen3.8-27b-q4_0-passthrough",
        "runtime/profiles/qwen3-6-35b-a3b-q4_0-candidate",
        "runtime/profiles/qwen3-6-35b-a3b-q4_0-pooled-q8-common-diagnostic"
       ],
@@ -10727,7 +10732,7 @@
      },
      "reachability": {
       "status": "pinned",
-      "inlineConfigs": ["qwen3/qwen-3-6-35b-a3b-q4_0-passthrough"],
+      "inlineConfigs": ["qwen3/qwen-3-6-35b-a3b-q4_0-passthrough","qwen3/qwen3.8-27b-q4_0-passthrough"],
       "ruleChains": ["matmul.rules.json#q40Variant"],
       "wgslOnDisk": true
      }
@@ -10832,6 +10837,200 @@
       "wgslOnDisk": true
      }
     },
+    "q5k_gemv": {
+     "wgsl": "matmul_q5k.wgsl",
+     "entryPoint": "gemv",
+     "workgroup": [128,1,1],
+     "requires": [],
+     "bindings": [
+      {
+       "index": 0,
+       "name": "uniforms",
+       "type": "uniform"
+      },
+      {
+       "index": 1,
+       "name": "input",
+       "type": "read-only-storage"
+      },
+      {
+       "index": 2,
+       "name": "weights",
+       "type": "read-only-storage"
+      },
+      {
+       "index": 3,
+       "name": "output",
+       "type": "storage"
+      }
+     ],
+     "uniformsOverride": {
+      "size": 32,
+      "fields": [
+       {
+        "name": "M",
+        "type": "u32",
+        "offset": 0
+       },
+       {
+        "name": "N",
+        "type": "u32",
+        "offset": 4
+       },
+       {
+        "name": "K",
+        "type": "u32",
+        "offset": 8
+       },
+       {
+        "name": "alpha",
+        "type": "f32",
+        "offset": 12
+       },
+       {
+        "name": "blocks",
+        "type": "u32",
+        "offset": 16
+       },
+       {
+        "name": "a_offset",
+        "type": "u32",
+        "offset": 20
+       },
+       {
+        "name": "b_row",
+        "type": "u32",
+        "offset": 24
+       },
+       {
+        "name": "c_offset",
+        "type": "u32",
+        "offset": 28
+       }
+      ]
+     },
+     "weightDtype": "q5k",
+     "outputDtype": "f32",
+     "sharedMemory": 2560,
+     "wgslOverrides": {
+      "WORKGROUP_SIZE": 128,
+      "COLS_PER_WG": 4,
+      "THREADS_PER_COL_GEMV": 32,
+      "TILE_SIZE": 16,
+      "BLOCK_VALUES": 256,
+      "BLOCK_BYTES": 176,
+      "QUANT_FORMAT": 5
+     },
+     "variantMetadata": {
+      "q40Geometry": "gemv",
+      "dispatchGeometry": "column-row-tile",
+      "tileM": 1,
+      "workgroupConstants": ["WORKGROUP_SIZE",null,null]
+     },
+     "reachability": {
+      "status": "pinned",
+      "inlineConfigs": ["qwen3/qwen3.8-27b-q4_0-passthrough"],
+      "ruleChains": ["matmul.rules.json#q40Variant"],
+      "wgslOnDisk": true
+     }
+    },
+    "q5k_prefill": {
+     "wgsl": "matmul_q5k.wgsl",
+     "entryPoint": "prefill",
+     "workgroup": [16,16,1],
+     "requires": [],
+     "bindings": [
+      {
+       "index": 0,
+       "name": "uniforms",
+       "type": "uniform"
+      },
+      {
+       "index": 1,
+       "name": "input",
+       "type": "read-only-storage"
+      },
+      {
+       "index": 2,
+       "name": "weights",
+       "type": "read-only-storage"
+      },
+      {
+       "index": 3,
+       "name": "output",
+       "type": "storage"
+      }
+     ],
+     "uniformsOverride": {
+      "size": 32,
+      "fields": [
+       {
+        "name": "M",
+        "type": "u32",
+        "offset": 0
+       },
+       {
+        "name": "N",
+        "type": "u32",
+        "offset": 4
+       },
+       {
+        "name": "K",
+        "type": "u32",
+        "offset": 8
+       },
+       {
+        "name": "alpha",
+        "type": "f32",
+        "offset": 12
+       },
+       {
+        "name": "blocks",
+        "type": "u32",
+        "offset": 16
+       },
+       {
+        "name": "a_offset",
+        "type": "u32",
+        "offset": 20
+       },
+       {
+        "name": "b_row",
+        "type": "u32",
+        "offset": 24
+       },
+       {
+        "name": "c_offset",
+        "type": "u32",
+        "offset": 28
+       }
+      ]
+     },
+     "weightDtype": "q5k",
+     "outputDtype": "f32",
+     "sharedMemory": 2560,
+     "wgslOverrides": {
+      "WORKGROUP_SIZE": 128,
+      "COLS_PER_WG": 4,
+      "THREADS_PER_COL_GEMV": 32,
+      "TILE_SIZE": 16,
+      "BLOCK_VALUES": 256,
+      "BLOCK_BYTES": 176,
+      "QUANT_FORMAT": 5
+     },
+     "variantMetadata": {
+      "q40Geometry": "tiled",
+      "dispatchGeometry": "column-row-tile",
+      "tileM": 16,
+      "workgroupConstants": ["TILE_SIZE","TILE_SIZE",null]
+     },
+     "reachability": {
+      "status": "pinned",
+      "inlineConfigs": ["qwen3/qwen3.8-27b-q4_0-passthrough"],
+      "ruleChains": ["matmul.rules.json#q40Variant"],
+      "wgslOnDisk": true
+     }
+    },
     "q6k_gemv": {
      "wgsl": "matmul_q4_0.wgsl",
      "entryPoint": "gemv",
@@ -10926,6 +11125,7 @@
       "status": "pinned",
       "inlineConfigs": [
        "qwen3/qwen-3-6-35b-a3b-q4_0-passthrough",
+       "qwen3/qwen3.8-27b-q4_0-passthrough",
        "runtime/profiles/qwen3-6-35b-a3b-q4_0-candidate",
        "runtime/profiles/qwen3-6-35b-a3b-q4_0-pooled-q8-common-diagnostic"
       ],
@@ -11025,7 +11225,7 @@
      },
      "reachability": {
       "status": "pinned",
-      "inlineConfigs": ["qwen3/qwen-3-6-35b-a3b-q4_0-passthrough"],
+      "inlineConfigs": ["qwen3/qwen-3-6-35b-a3b-q4_0-passthrough","qwen3/qwen3.8-27b-q4_0-passthrough"],
       "ruleChains": ["matmul.rules.json#q40Variant"],
       "wgslOnDisk": true
      }
@@ -13530,6 +13730,7 @@
        "qwen3/qwen-3-6-27b-q4k-ehaf16",
        "qwen3/qwen-3-6-35b-a3b-q4_0-passthrough",
        "qwen3/qwen-3-6-35b-a3b-text-q4k-ehf16-af32",
+       "qwen3/qwen3.8-27b-q4_0-passthrough",
        "qwen3/qwen3.8-27b-text-f16-af32",
        "qwen3/qwen3.8-27b-text-q4k-ehaf16"
       ],
@@ -14284,6 +14485,7 @@
        "qwen3/qwen-3-reranker-0-6b-f16-af32",
        "qwen3/qwen-3-reranker-0-6b-f16-true-logit-af32",
        "qwen3/qwen-3-reranker-0-6b-q4k-ehf16-af32",
+       "qwen3/qwen3.8-27b-q4_0-passthrough",
        "qwen3/qwen3.8-27b-text-f16-af32",
        "qwen3/qwen3.8-27b-text-q4k-ehaf16"
       ],
@@ -15635,7 +15837,8 @@
      "workgroup": [256,1,1],
      "wgslOverrides": {
       "HEAD_DIM": 256,
-      "WORKGROUP_SIZE": 256
+      "WORKGROUP_SIZE": 256,
+      "QUERY_TILE": 8
      },
      "requires": ["subgroups"],
      "requiredWgslFeatures": ["subgroup_id"],
@@ -15650,6 +15853,141 @@
       "workgroupConstants": ["WORKGROUP_SIZE",null,null]
      },
      "description": "Opt-in F32 online prefill query tile; component and model qualification pending.",
+     "reachability": {
+      "status": "pinned",
+      "inlineConfigs": [
+       "runtime/profiles/qwen3-6-35b-a3b-q4_0-candidate",
+       "runtime/profiles/qwen3-6-35b-a3b-q4_0-pooled-q8-common-diagnostic"
+      ],
+      "ruleChains": [],
+      "wgslOnDisk": true
+     },
+     "uniformsOverride": {
+      "size": 76,
+      "fields": [
+       {
+        "name": "num_heads",
+        "type": "u32",
+        "offset": 0
+       },
+       {
+        "name": "num_kv_heads",
+        "type": "u32",
+        "offset": 4
+       },
+       {
+        "name": "head_dim",
+        "type": "u32",
+        "offset": 8
+       },
+       {
+        "name": "seq_len",
+        "type": "u32",
+        "offset": 12
+       },
+       {
+        "name": "query_len",
+        "type": "u32",
+        "offset": 16
+       },
+       {
+        "name": "scale",
+        "type": "f32",
+        "offset": 20
+       },
+       {
+        "name": "is_causal",
+        "type": "u32",
+        "offset": 24
+       },
+       {
+        "name": "start_pos",
+        "type": "u32",
+        "offset": 28
+       },
+       {
+        "name": "attn_softcap",
+        "type": "f32",
+        "offset": 32
+       },
+       {
+        "name": "sliding_window",
+        "type": "u32",
+        "offset": 36
+       },
+       {
+        "name": "kv_len_source",
+        "type": "u32",
+        "offset": 40
+       },
+       {
+        "name": "kv_start",
+        "type": "u32",
+        "offset": 44
+       },
+       {
+        "name": "page_size",
+        "type": "u32",
+        "offset": 48
+       },
+       {
+        "name": "kv_layout",
+        "type": "u32",
+        "offset": 52
+       },
+       {
+        "name": "bidirectional_span_start",
+        "type": "u32",
+        "offset": 56
+       },
+       {
+        "name": "bidirectional_span_length",
+        "type": "u32",
+        "offset": 60
+       },
+       {
+        "name": "_pad0",
+        "type": "u32",
+        "offset": 64,
+        "padding": true
+       },
+       {
+        "name": "_pad1",
+        "type": "u32",
+        "offset": 68,
+        "padding": true
+       },
+       {
+        "name": "_pad2",
+        "type": "u32",
+        "offset": 72,
+        "padding": true
+       }
+      ]
+     }
+    },
+    "prefill_query_tile16_f32": {
+     "wgsl": "attention_prefill_query_tile_f32.wgsl",
+     "entryPoint": "main",
+     "workgroup": [512,1,1],
+     "wgslOverrides": {
+      "HEAD_DIM": 256,
+      "WORKGROUP_SIZE": 512,
+      "QUERY_TILE": 16
+     },
+     "requires": ["subgroups"],
+     "requiredWgslFeatures": ["subgroup_id"],
+     "outputDtype": "f32",
+     "variantMetadata": {
+      "tier": "tiled_small",
+      "queryBlockSize": 16,
+      "exactHeadDim": 256,
+      "maxHeadDim": 256,
+      "requiredShared": 16384,
+      "subgroupPartitionLanes": 32,
+      "workgroupConstants": ["WORKGROUP_SIZE",null,null]
+     },
+     "description": "Opt-in F32 online prefill, 16 queries share one key/value tile; requires 512-invocation workgroups.",
      "reachability": {
       "status": "pinned",
       "inlineConfigs": [
@@ -17116,6 +17454,7 @@
        "qwen3/qwen-3-reranker-0-6b-f16-af32",
        "qwen3/qwen-3-reranker-0-6b-f16-true-logit-af32",
        "qwen3/qwen-3-reranker-0-6b-q4k-ehf16-af32",
+       "qwen3/qwen3.8-27b-q4_0-passthrough",
        "qwen3/qwen3.8-27b-text-f16-af32",
        "qwen3/qwen3.8-27b-text-q4k-ehaf16",
        "runtime/profiles/qwen3-6-35b-a3b-q4_0-candidate",
@@ -18582,6 +18921,7 @@
        "qwen3/qwen-3-reranker-0-6b-f16-af32",
        "qwen3/qwen-3-reranker-0-6b-f16-true-logit-af32",
        "qwen3/qwen-3-reranker-0-6b-q4k-ehf16-af32",
+       "qwen3/qwen3.8-27b-q4_0-passthrough",
        "qwen3/qwen3.8-27b-text-f16-af32",
        "qwen3/qwen3.8-27b-text-q4k-ehaf16",
        "runtime/profiles/qwen3-6-35b-a3b-q4_0-candidate",
@@ -18901,6 +19241,7 @@
        "qwen3/qwen-3-reranker-0-6b-f16-af32",
        "qwen3/qwen-3-reranker-0-6b-f16-true-logit-af32",
        "qwen3/qwen-3-reranker-0-6b-q4k-ehf16-af32",
+       "qwen3/qwen3.8-27b-q4_0-passthrough",
        "qwen3/qwen3.8-27b-text-f16-af32",
        "qwen3/qwen3.8-27b-text-q4k-ehaf16",
        "runtime/profiles/qwen3-6-35b-a3b-q4_0-candidate",
@@ -20471,6 +20812,7 @@
       "status": "pinned",
       "inlineConfigs": [
        "qwen3/qwen-3-6-35b-a3b-q4_0-passthrough",
+       "qwen3/qwen3.8-27b-q4_0-passthrough",
        "runtime/profiles/qwen3-6-35b-a3b-q4_0-candidate",
        "runtime/profiles/qwen3-6-35b-a3b-q4_0-pooled-q8-common-diagnostic"
       ],
@@ -20546,6 +20888,7 @@
       "status": "pinned",
       "inlineConfigs": [
        "qwen3/qwen-3-6-35b-a3b-q4_0-passthrough",
+       "qwen3/qwen3.8-27b-q4_0-passthrough",
        "runtime/profiles/qwen3-6-35b-a3b-q4_0-candidate",
        "runtime/profiles/qwen3-6-35b-a3b-q4_0-pooled-q8-common-diagnostic"
       ],
@@ -20621,6 +20964,7 @@
       "status": "pinned",
       "inlineConfigs": [
        "qwen3/qwen-3-6-35b-a3b-q4_0-passthrough",
+       "qwen3/qwen3.8-27b-q4_0-passthrough",
        "runtime/profiles/qwen3-6-35b-a3b-q4_0-candidate",
        "runtime/profiles/qwen3-6-35b-a3b-q4_0-pooled-q8-common-diagnostic"
       ],
@@ -20696,6 +21040,7 @@
       "status": "pinned",
       "inlineConfigs": [
        "qwen3/qwen-3-6-35b-a3b-q4_0-passthrough",
+       "qwen3/qwen3.8-27b-q4_0-passthrough",
        "runtime/profiles/qwen3-6-35b-a3b-q4_0-candidate",
        "runtime/profiles/qwen3-6-35b-a3b-q4_0-pooled-q8-common-diagnostic"
       ],
@@ -20771,6 +21116,7 @@
       "status": "pinned",
       "inlineConfigs": [
        "qwen3/qwen-3-6-35b-a3b-q4_0-passthrough",
+       "qwen3/qwen3.8-27b-q4_0-passthrough",
        "runtime/profiles/qwen3-6-35b-a3b-q4_0-candidate",
        "runtime/profiles/qwen3-6-35b-a3b-q4_0-pooled-q8-common-diagnostic"
       ],
@@ -21187,6 +21533,7 @@
        "qwen3/qwen-3-reranker-0-6b-f16-af32",
        "qwen3/qwen-3-reranker-0-6b-f16-true-logit-af32",
        "qwen3/qwen-3-reranker-0-6b-q4k-ehf16-af32",
+       "qwen3/qwen3.8-27b-q4_0-passthrough",
        "qwen3/qwen3.8-27b-text-f16-af32",
        "qwen3/qwen3.8-27b-text-q4k-ehaf16",
        "runtime/profiles/qwen3-6-35b-a3b-q4_0-candidate",
@@ -23999,6 +24346,7 @@
        "qwen3/qwen-3-reranker-0-6b-f16-af32",
        "qwen3/qwen-3-reranker-0-6b-f16-true-logit-af32",
        "qwen3/qwen-3-reranker-0-6b-q4k-ehf16-af32",
+       "qwen3/qwen3.8-27b-q4_0-passthrough",
        "qwen3/qwen3.8-27b-text-f16-af32",
        "qwen3/qwen3.8-27b-text-q4k-ehaf16",
        "runtime/profiles/qwen3-6-35b-a3b-q4_0-candidate",
@@ -26953,6 +27301,7 @@
       "inlineConfigs": [
        "qwen3/qwen-3-6-35b-a3b-q4_0-passthrough",
        "qwen3/qwen-3-6-35b-a3b-text-q4k-ehf16-af32",
+       "qwen3/qwen3.8-27b-q4_0-passthrough",
        "qwen3/qwen3.8-27b-text-f16-af32",
        "qwen3/qwen3.8-27b-text-q4k-ehaf16"
       ],
@@ -28865,7 +29214,7 @@
      },
      "reachability": {
       "status": "pinned",
-      "inlineConfigs": ["qwen3/qwen-3-6-35b-a3b-q4_0-passthrough"],
+      "inlineConfigs": ["qwen3/qwen-3-6-35b-a3b-q4_0-passthrough","qwen3/qwen3.8-27b-q4_0-passthrough"],
       "ruleChains": ["gated-delta-recurrent.rules.json#scalarVariant"],
       "wgslOnDisk": true
      }

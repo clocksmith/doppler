@@ -1,0 +1,531 @@
+{
+  "parentCommit": "b964bd5bbc990d170da23cdb1a37f29814588ad5",
+  "runtimeSourceSnapshot": "/run/media/x/deco-backup/doppler-spec-20261102/source-gpu-stream32-final",
+  "srcTreeSha256": "c38082ba57e156dbb77f4e882bd8627bc01ff53ff9019e3986e8994bbadee66f",
+  "srcTreeAlgorithm": "SHA256 of canonical sorted compact JSON mapping every tracked src path to {sha256,bytes}, or {symlink:target}; UTF8.",
+  "changedRuntimeBindings": {
+    "src/config/runtime/profiles/qwen3-6-35b-a3b-q4_0-candidate.json": {
+      "sha256": "abdf1844f7b0f3f377ff141d262aaf0d4c108dcb789506f50d964cdbfb76153c",
+      "bytes": 183117
+    },
+    "src/inference/pipelines/text/generator/decode-runtime.js": {
+      "sha256": "03f85e9d303ca6d4100ed3c50502c2ae86b2df5c03e0ef5a91a4ea83b63d5e47",
+      "bytes": 46137
+    },
+    "src/inference/pipelines/text/generator/whole-token-lane.d.ts": {
+      "sha256": "64dc938a0f74e86c423d4b958d1a7a9860d34cb1b5f64b951ad28da2aee97aa7",
+      "bytes": 2383
+    },
+    "src/inference/pipelines/text/generator/whole-token-lane.js": {
+      "sha256": "84e4047ddc9e55b91f509663f0b390c7e976cb955c6669f06ace7a3200bf7e44",
+      "bytes": 19234
+    },
+    "src/inference/pipelines/text/generator/whole-token-program.d.ts": {
+      "sha256": "81de3cec1382e8d8d4e4b2242ec3f75266fc3081349503427b892b98e91c8064",
+      "bytes": 3576
+    },
+    "src/inference/pipelines/text/generator/whole-token-program.js": {
+      "sha256": "973afbb01b63712054609f219175c9fe07312c65157c7a702571fd99b85edb31",
+      "bytes": 35277
+    }
+  },
+  "fullInventory": {
+    "path": "/run/media/x/deco-backup/doppler-spec-20261102/final-source-files.json",
+    "sha256": "d5c8b2cb1cc5e46dbefc974d5e73f75402bfeea1f42fecfccf8c0965e0c6ebba",
+    "bytes": 487167
+  },
+  "pooledSource": {
+    "path": "/home/x/deco/hatch/qwen-economics-20261030/pooled-baseline",
+    "sourceTreeSha256": "25af64a3542fd9c22be1841c01b98825f3590a8e31767e04896c95f9775cc63f",
+    "files": {
+      "engine/autotune.js": {
+        "sha256": "c14e16a3749831abf9c75eff955a2d67fc41c2389b479dfd566cfda93f62f898",
+        "bytes": 4239
+      },
+      "engine/compile.js": {
+        "sha256": "c23da9fec4bed2a7dba84928f4549785cc29f9a64cdfa70fb2eecf09c92d4040",
+        "bytes": 865
+      },
+      "engine/dense.js": {
+        "sha256": "9bed3975d28938cb7aec850b6e7b6f99eeeee4ef7b2b2e73076627a8e3327d2b",
+        "bytes": 60688
+      },
+      "engine/engine.js": {
+        "sha256": "7238b0a128ed98bf5f6cbf32fef19bf82918ff5a7f6b9dbeb3da821c3bc22bba",
+        "bytes": 728
+      },
+      "engine/expert_disk.js": {
+        "sha256": "0ec7043c4a57090df9de3245ac21485219ff3342c43be1628b44aede7b686ee4",
+        "bytes": 3285
+      },
+      "engine/expert_ingest_pool.js": {
+        "sha256": "96df047a624f6f4863b5a5952141113ef31371420691c1d2e26e753a67fbce8e",
+        "bytes": 12011
+      },
+      "engine/expert_opfs.js": {
+        "sha256": "1cd028ff23a0129a3aa8e9095d8dee1d3e32e6849e6c973c5217e45e84059841",
+        "bytes": 31234
+      },
+      "engine/expert_store.js": {
+        "sha256": "9234069058890f19d3427c59ba7c0442ef359a9ee8cb51cf54067c09dcf9dadc",
+        "bytes": 45985
+      },
+      "engine/expert_t1.js": {
+        "sha256": "6c9f90607863f006b18132aae0d1bfc028cbbd74315a92ad4bf70134909baa2c",
+        "bytes": 7931
+      },
+      "engine/generate.js": {
+        "sha256": "9a54254fa0b4db388b1c09418ef83aa96324618883de4d71a4e27eae62812264",
+        "bytes": 23015
+      },
+      "engine/gguf.js": {
+        "sha256": "2069a9e911ab7935c224a8e6f033f6ebc0cc44bf91f571a63bc77da408131de8",
+        "bytes": 59129
+      },
+      "engine/map_kick.js": {
+        "sha256": "dffe461ee5be381e12b1d18535683cd2630d89a46d825e29dfc80d5e93694f6e",
+        "bytes": 2804
+      },
+      "engine/ngram.js": {
+        "sha256": "42e694ddeb44a344d094daf9c2a6278261ff3fa9b7de347022dde757faf99653",
+        "bytes": 23351
+      },
+      "engine/ngram_copy_worker.js": {
+        "sha256": "d8ec90e2e66d722eb847741bf1f15318885635ef8d8e5ec703f791d2b13d775c",
+        "bytes": 9283
+      },
+      "engine/ngram_worker.js": {
+        "sha256": "07cc213e51f9a15f8160004ef5ec526a4d44bcae41c72529b5a04a62323b24fb",
+        "bytes": 5879
+      },
+      "engine/preset.js": {
+        "sha256": "26f075ad8fe760e1a1dd21a91a7eb16cac45d8430aa4c1f071a229fef5e6222a",
+        "bytes": 4921
+      },
+      "engine/qsa.js": {
+        "sha256": "1017fafeb6985dafdd167a533f8c66ac7dd4aba0b36aa66321f413d31a02863f",
+        "bytes": 9946
+      },
+      "engine/quant.js": {
+        "sha256": "d357475a0c323adcff26f90e4f48353c2e227060a42f10a98cb04a0ccfe281dc",
+        "bytes": 1534
+      },
+      "engine/qwen35.js": {
+        "sha256": "2e126c9c401e02f1ee1ab13a522228ef02e663f5973bea17bc7fa2d62faaa064",
+        "bytes": 279816
+      },
+      "engine/qwen4exp.js": {
+        "sha256": "d3432c2c2b4f45deac2909944c2721afab08494cff2595ff5754c6a449b7abc4",
+        "bytes": 48037
+      },
+      "engine/qwen4exp_batch.js": {
+        "sha256": "fd4f6af83bfa5bb51bf53fc83b85104c5a61e7038d3e9e8cbf40017c8e3f876a",
+        "bytes": 53171
+      },
+      "engine/qwen4exp_mem.js": {
+        "sha256": "514dc65cb24149a0f41982aa97f0a2154b7e75e1080e1fe920be6d75bdec60d2",
+        "bytes": 5021
+      },
+      "engine/qwen4exp_qsa.js": {
+        "sha256": "b5dab5b394c31d78c030ab3f091f44deeca7d085eba2cb239badc0124ed1054a",
+        "bytes": 10029
+      },
+      "engine/safetensors.js": {
+        "sha256": "6018e295430c9397e9e768395fa882eaedeebd0f0e5b7a0fa9897d5f932d53b1",
+        "bytes": 4881
+      },
+      "engine/sampling.js": {
+        "sha256": "19aef62f7fc111f2c77b245d3e43bc7a991b12fe29b6588677257f14c543b6c9",
+        "bytes": 142
+      },
+      "engine/selftest.js": {
+        "sha256": "2b538fcd11b524cb8b1030527f4aef9ea611b48617ff4ef9473130e79dc0cfee",
+        "bytes": 12972
+      },
+      "engine/stage_ring.js": {
+        "sha256": "a48f086170b9a14a05adcaa70e1ff53ccf8683cf313dc71c8bd337998fe61615",
+        "bytes": 4004
+      },
+      "engine/tokenizer.js": {
+        "sha256": "a582433e7086e3444f2b1a772ab523d6571f20980c86df6533a241b3d60c5b92",
+        "bytes": 8534
+      },
+      "engine/topk.js": {
+        "sha256": "68e2377e7e6deb468f4c64c17455491d7114491aac832ee2c6efb0c674b70847",
+        "bytes": 5286
+      },
+      "engine/wgsl/attn_dec.js": {
+        "sha256": "84708e0a949aeac997826643a3765b7f83cceb4ab51b1e183e60aa640d4e3a5c",
+        "bytes": 16179
+      },
+      "engine/wgsl/attn_tile.js": {
+        "sha256": "ae11730414679d14147b88f7a4c8c8a4b4ae66df7aaf3dc5a064284b26ece3cd",
+        "bytes": 13267
+      },
+      "engine/wgsl/base.js": {
+        "sha256": "fa6676fb2457de7afbc2c51480eb90844d259aca217dc10ce3c23e4f2042036f",
+        "bytes": 14625
+      },
+      "engine/wgsl/coop.js": {
+        "sha256": "2c552bb7849a272808f8c5779288a3f9b954fab0d0bb65f7a88d4c468bbc6963",
+        "bytes": 26185
+      },
+      "engine/wgsl/dense.js": {
+        "sha256": "e1daf0766e4585d44667a145dc3790497639ae4edba31108fe3f72dae5229a77",
+        "bytes": 17315
+      },
+      "engine/wgsl/f16.js": {
+        "sha256": "d1c1913d95f0efd6fa70d9a50d6f92443b606ca5f6c172e859f7a3a9cf1a39a8",
+        "bytes": 2880
+      },
+      "engine/wgsl/gemm.js": {
+        "sha256": "fc6efacac36b88caad1d8cb351f5494e56ea1a5df75ba236e6c784caf0df9c9f",
+        "bytes": 12868
+      },
+      "engine/wgsl/gemm_sgm.js": {
+        "sha256": "e0c04bbe2799e95ebe40a1b839750b7067a65d48e62d859811392fac00681d5c",
+        "bytes": 16429
+      },
+      "engine/wgsl/gemm_wide.js": {
+        "sha256": "66b29d3d33a122550852b048adadfa3e4cfe91befaf8009ed8d3b33a1805e8e4",
+        "bytes": 18703
+      },
+      "engine/wgsl/layer_fuse.js": {
+        "sha256": "d6fefee8da7487c5954bafceb789dff5cacff3b593d9baaa3baf918aa538d1c5",
+        "bytes": 8661
+      },
+      "engine/wgsl/moe.js": {
+        "sha256": "37b2cf395f540f5b3f24aed3c79af1bd1b91fc292e9e58207d019837f77e5ce9",
+        "bytes": 49187
+      },
+      "engine/wgsl/moe_group.js": {
+        "sha256": "234d61179045e4540cd470fa0b21c70298aae8737f8a69f335c5696a5fd222b7",
+        "bytes": 35975
+      },
+      "engine/wgsl/prune.js": {
+        "sha256": "f0c268697eab3b63dd4d9fc6edde19d9cf4c096a111d337b5bc11d909ccb9201",
+        "bytes": 5629
+      },
+      "engine/wgsl/qsa.js": {
+        "sha256": "0860865c211cced13b599a190389e23fdcd587f851cc28a7b239b14b5a88e162",
+        "bytes": 18523
+      },
+      "engine/wgsl/qwen35.js": {
+        "sha256": "6935edcaff3e0ab2b11c3738230746957d224aaab1c25588bcb033399e8ff8fc",
+        "bytes": 55838
+      },
+      "engine/wgsl/qwen4exp.js": {
+        "sha256": "de8e7bc09f2f7b1ef6882495bf6443f1a6c6c9a64e1e40f9718f609f331f99fe",
+        "bytes": 36498
+      },
+      "engine/wgsl/qwen4exp_batch.js": {
+        "sha256": "147998c9e29e8532fe2b9b04d17fd1e6d5ba2f67ef5580198f5bbfed05e8ea6d",
+        "bytes": 38396
+      },
+      "engine/wgsl/qwen4exp_wide.js": {
+        "sha256": "2aacbee7bc00217fbbb05e5d3adad627383f826e3f061395c52ddd83108b625d",
+        "bytes": 47517
+      },
+      "room/api.js": {
+        "sha256": "b8f0e611f833f9a20b5011ca8736711a1e3635090ee4060966623b977d815ecf",
+        "bytes": 40453
+      },
+      "room/authz.js": {
+        "sha256": "6fc110658ec64313c3c534c33a16cfcb300a42a24bfcaae693d37ddc2575ddec",
+        "bytes": 7543
+      },
+      "room/autoadd.js": {
+        "sha256": "a0539373ce1782fb736fb6d8a517d3f500aa915d9da89633d511d987e36cb0ba",
+        "bytes": 3416
+      },
+      "room/card.js": {
+        "sha256": "fb0e72671bce0fd7ae080cf1e9c8accd488e599832214e3a4ef3d8603de68804",
+        "bytes": 4351
+      },
+      "room/chanauth.js": {
+        "sha256": "ea2db68b01352c63513828df493fe51b3a0c70bf7d4e105712eb2a6d0e5be481",
+        "bytes": 12562
+      },
+      "room/ckpt-store.js": {
+        "sha256": "8b33898f4bdfc56469fa82ed6c07e3f8fc11c3c12d86af404fb020b688dffee4",
+        "bytes": 11942
+      },
+      "room/code-export.js": {
+        "sha256": "31ae1e1d68a1e8403052fa6923c0e0442c85632402f98fe5f421923ac1a082ca",
+        "bytes": 5524
+      },
+      "room/code-ui.js": {
+        "sha256": "62a49e344fe3ed26968c77562377b3250d6c53076ae080ea70d277db6fee78d6",
+        "bytes": 56220
+      },
+      "room/code.js": {
+        "sha256": "149cdac72a42dcdfdbf9ad3e649df26fa5fe393dfaabaa0195b8760392e9b14b",
+        "bytes": 53961
+      },
+      "room/compute.js": {
+        "sha256": "9a09216fdbb64a4108a833ab38ef3d33f8eb53bdd87a4b957b7cb132a6c62c8f",
+        "bytes": 18282
+      },
+      "room/conversation.js": {
+        "sha256": "db6e29ad2a9d1b5783fef8211f09bdde10c023e9e2a317fec2a8ae884fb13c41",
+        "bytes": 15802
+      },
+      "room/convertedcache.js": {
+        "sha256": "c4b610059fdf85ea8baef060152c53e126ab1664500bc030d7025520ad303a2f",
+        "bytes": 20351
+      },
+      "room/ctxpick.js": {
+        "sha256": "6a147f3600c29c36690a143076705033b859f4dd5c623fa2b3be7a80ca78b53e",
+        "bytes": 10569
+      },
+      "room/diskpick-ui.js": {
+        "sha256": "57f0c0f6a38a26fda6a4094536e02f37ca3e5c2dcf1558f121d7a33ade892adb",
+        "bytes": 6507
+      },
+      "room/diskpick.js": {
+        "sha256": "4522333f94a2e12c24d06c01e7f69f2ff701193b7952c886b743df0d09b209af",
+        "bytes": 15988
+      },
+      "room/diskstore.js": {
+        "sha256": "3dea26bbabc8408414e0e9ee8b18e498c342fa025c2a43ad1ff1cb6178ce37a9",
+        "bytes": 2858
+      },
+      "room/draftmodel.js": {
+        "sha256": "4bf8014e0dc746ce392a2c59d24bca376487a0a0ec9820fecea411c8f81175a3",
+        "bytes": 3478
+      },
+      "room/errors.js": {
+        "sha256": "9a7226a8665c424e6e183f4800ccfaf3475045073927de825705a69a1adf9963",
+        "bytes": 6957
+      },
+      "room/flash.js": {
+        "sha256": "a054f8b91a4c0edbed728ac9b3051ff4c43213e30f250bfd4591d06063e84419",
+        "bytes": 26489
+      },
+      "room/flashdisk.js": {
+        "sha256": "0a6729ce16fd9df1f06d27efe7ee85c1fcf658e371a1e90b96225ef6ff915300",
+        "bytes": 34092
+      },
+      "room/flashload.js": {
+        "sha256": "1798858f6212e87f5e3d8e5f5d358243fa4244ef99607bc469044837e50c3374",
+        "bytes": 9682
+      },
+      "room/gpuspeed.js": {
+        "sha256": "3ea111e0303b998ac31859310e202ac352518988a5ad23090419d6eaf1d861ef",
+        "bytes": 1756
+      },
+      "room/gpuwake.js": {
+        "sha256": "6525700e9843b528ce36ad220e4d51133efbed814932733a2d6d2bd7e24455a7",
+        "bytes": 3813
+      },
+      "room/ice.js": {
+        "sha256": "71e9c06f7246447bfc2ea2d4b3b19c730556afcdc316a870ed9e78a4e601ce01",
+        "bytes": 12644
+      },
+      "room/joingate.js": {
+        "sha256": "c09c9d4a2664696692407eb0925caaf02edd57e9dac5596a77cd2f0f0195d276",
+        "bytes": 13265
+      },
+      "room/liveness.js": {
+        "sha256": "64ca1254f3170dd3e4d3684ae28d24628272e15e0605646a2f33f52548125326",
+        "bytes": 10907
+      },
+      "room/loadsteps.js": {
+        "sha256": "7c2b7a9066d8765038f9d7806161999fef1491bdea4cd7bb15e257b77142deed",
+        "bytes": 31395
+      },
+      "room/lookup.js": {
+        "sha256": "561f0a4481415e97511700bddc6f4e637486769b0598b09f41fa2a35fe5b3cba",
+        "bytes": 2157
+      },
+      "room/markdown.js": {
+        "sha256": "1f6871aa969871045c63b5a7d00d953ecdbd1c4e4b9679548038898e881074c6",
+        "bytes": 2471
+      },
+      "room/model-loader.js": {
+        "sha256": "686ce77d57b5231f2dabce3ede272d2fd706aa7c5d9d07f09543aa69fa405d8b",
+        "bytes": 45326
+      },
+      "room/models.js": {
+        "sha256": "3cbf0318133a66f92704dac7660309449ab7d439149956f9acebd0ffe7f629f8",
+        "bytes": 59361
+      },
+      "room/pipeline.js": {
+        "sha256": "c31ff99c2cc68f718e286f6d0fdac456bc03596dfb45e9244c6a596a454e5eb6",
+        "bytes": 28947
+      },
+      "room/plan.js": {
+        "sha256": "71ac490482d5477178b8a9dc753db8049b2a52fb9e4a0b39dfc81df281719857",
+        "bytes": 66500
+      },
+      "room/pledge.js": {
+        "sha256": "54553b542010f063491fe38261a6ac751338c267396b60af09080dd6e41b7ce3",
+        "bytes": 10507
+      },
+      "room/preflight.js": {
+        "sha256": "2f6866343991a8777b611959b6c70fc2f391061777f244f6f9019d11561591ad",
+        "bytes": 3794
+      },
+      "room/qr.js": {
+        "sha256": "d2e1e551e15ee673991d2bd26d5fa3f0616fe9f05ee468a82cde13e05ac52dfb",
+        "bytes": 8570
+      },
+      "room/resume.js": {
+        "sha256": "468049b1bc22a5f1c8d46b1d6c7a97735b10d9adca1d3c22ddcec379799ebf03",
+        "bytes": 7769
+      },
+      "room/sampling.js": {
+        "sha256": "1b541d543c86ee4986d8709ff658b2b7dfc4e410c3ebbd52df777580d3002c54",
+        "bytes": 3592
+      },
+      "room/signal.js": {
+        "sha256": "93e291035beba5e0ffbe91e2d9e00e7ab0ba1770e2f18d1e6cfd78693eca48db",
+        "bytes": 6654
+      },
+      "room/speedo.js": {
+        "sha256": "e39d37c1ac906673ed17d6266115de63487784db104dc91988097a40cb143504",
+        "bytes": 13601
+      },
+      "room/startstop.js": {
+        "sha256": "bc7adb20543bd041af80ba13e30c1cb1b9e5cbd37167d275e9d064ac4b573194",
+        "bytes": 2579
+      },
+      "room/tele.js": {
+        "sha256": "1c5fbde29f9bfdd30896b900c93ebafe70d603283269595d382e30154ca575cc",
+        "bytes": 5804
+      },
+      "room/transport.js": {
+        "sha256": "f90f086fe7a24a1a3c8e8a90c200ce8ddd78a3ce39ef52a60f9fc8ecf7384088",
+        "bytes": 20847
+      },
+      "room/visibility.js": {
+        "sha256": "1fbdd050773230b6293b7d224390ffbe97ee72217a55bfd218692126422d4149",
+        "bytes": 760
+      },
+      "room/weightcache.js": {
+        "sha256": "ee4a49299eb92693006e0b4134b486bb2e3bc0dee9eccddcc6cd851475a57733",
+        "bytes": 3540
+      },
+      "room/wire.js": {
+        "sha256": "6a48a1e950800b4fbbf01a27e0d9965efb73d842dcef14c961a00cb79cbd2fc8",
+        "bytes": 5930
+      },
+      "room/working.js": {
+        "sha256": "c25e93eb299107a9e4c41d219b4368f6e65f25fbd0cc14ad8948d495b2e48242",
+        "bytes": 5037
+      },
+      "harness/agent.js": {
+        "sha256": "686a88e358af092169434ad26ab8d7381ca26dea6df17b3c300cb6abea096a2d",
+        "bytes": 46899
+      },
+      "harness/app-export.js": {
+        "sha256": "512e4884ffd86ac5c30e6078e21f866f9f4e827bb4f051f65d1740b11208b52d",
+        "bytes": 1465
+      },
+      "harness/argfix.js": {
+        "sha256": "32cd3847c39d30ebb531d950720fa8cf0979cdf15373176f3df457996ab58d6d",
+        "bytes": 7579
+      },
+      "harness/cards.js": {
+        "sha256": "3700b2b0551cef74942bf5173e7e595ccf39504e4683b2ed3faecd2e956678f3",
+        "bytes": 3982
+      },
+      "harness/code-prompt.js": {
+        "sha256": "91170179529ff4add9363f2f05eb1cc253a585cd2138e7145abc8bc58705a680",
+        "bytes": 823
+      },
+      "harness/codetools.js": {
+        "sha256": "8f4de5c53bfa4074fd75acbe84c74667fe1b81490516a582feca9ad0ff7f4a2d",
+        "bytes": 19178
+      },
+      "harness/constrain.js": {
+        "sha256": "2db2263967d2752fd841a650b9ac2a9a53a0b6f629937935334fa24a4741e44d",
+        "bytes": 50748
+      },
+      "harness/core-model.js": {
+        "sha256": "5a0059c83be58c29f3db9a54231397847216af31964f56870a10ab5055723830",
+        "bytes": 16321
+      },
+      "harness/diff.js": {
+        "sha256": "514c3b181e3158e8a465db2e62fd7e770bd991f4839afde839716d6e1368f387",
+        "bytes": 2807
+      },
+      "harness/engine-gen.js": {
+        "sha256": "2509e6adf771930b3aa16ff1dc1649df423a623627b71b1623481845f1886423",
+        "bytes": 5754
+      },
+      "harness/engine-model.js": {
+        "sha256": "702032c47264463d4af57de5cf54edb527155acce9b3daa678ed5ba1ba533621",
+        "bytes": 5071
+      },
+      "harness/export.js": {
+        "sha256": "109b685bb9adc1cb397858122056f10078a36cf5d637329a5c28477fca90af01",
+        "bytes": 9965
+      },
+      "harness/jsonschema.js": {
+        "sha256": "607093b67f03fb17ee8d8541a0e7ff026a72dfa1fcb3f43106893aa9e53f0333",
+        "bytes": 19350
+      },
+      "harness/model-common.js": {
+        "sha256": "b3d7f53f280e21a53c8d2b0e5aceff2bd14f2fc33dd5323c2e356a53523bb171",
+        "bytes": 10359
+      },
+      "harness/prefix.js": {
+        "sha256": "253d562346a420992c4ccc136ed9250692b21fa897a99ea8408a98ba81344f1b",
+        "bytes": 2587
+      },
+      "harness/preview-build.js": {
+        "sha256": "847f28fb54bbe2917effa93b61a0d43366c2c04ca3304ef7cbb9c50b8740a759",
+        "bytes": 27034
+      },
+      "harness/preview-frame.js": {
+        "sha256": "fa868c20edc12f7fb3efaf784ea573317f1b9815ccc61359c7d125f07321b731",
+        "bytes": 24833
+      },
+      "harness/preview-sync.js": {
+        "sha256": "f8c956b6a0897690e321bd20f8482d126a2b88142b79ef74efa693bf8a86d935",
+        "bytes": 10458
+      },
+      "harness/preview-tools.js": {
+        "sha256": "bd1d6ba4863acf1d722f5501cc2d45b59e4d296f7f21cfc61f59765a0a459bfd",
+        "bytes": 10088
+      },
+      "harness/preview.js": {
+        "sha256": "29c5a5d75d6db24ced190253956f9dd6d6195967357fed9201b08f34d0f647f0",
+        "bytes": 10564
+      },
+      "harness/projects.js": {
+        "sha256": "ce596d87abbea9a12204ee661f1e30cd6bf732701dbbec0388337fccf74b91bf",
+        "bytes": 5493
+      },
+      "harness/room-model.js": {
+        "sha256": "a080b249c0ad0dfd2675b65bd4166b3b0860f47f5b1d19919380f936c52af890",
+        "bytes": 8844
+      },
+      "harness/run-js.js": {
+        "sha256": "4f82b4cdd6299b13b0f0dcb775e0d7238303d0604abb728e4bd5db3fb721dc70",
+        "bytes": 10723
+      },
+      "harness/sessions.js": {
+        "sha256": "f79ade4b7e80ac5b4b4d1e7ce2839d82369ac692aa6ecbe94b8de896c64ff783",
+        "bytes": 4110
+      },
+      "harness/statecache.js": {
+        "sha256": "6e126b5182621b2b6de383cf1c806a50865bf87280889d85a8f50c8368e3c34b",
+        "bytes": 4818
+      },
+      "harness/templates.js": {
+        "sha256": "67d68ef320beedb2e49e4a589a4a3e1a9ceaa36b297cbae6e4540db3ea128a9b",
+        "bytes": 14883
+      },
+      "harness/tools.js": {
+        "sha256": "e4a6664745da8ca2043f5e964dcefec7bde755d355466a17dcb1e1b86277f97f",
+        "bytes": 38335
+      },
+      "harness/workspace.js": {
+        "sha256": "e5e3e26feb47c43b925b0cc4a6d80c0f4df54fecfefe2b8889e747468d5cf7d0",
+        "bytes": 7623
+      }
+    }
+  }
+}

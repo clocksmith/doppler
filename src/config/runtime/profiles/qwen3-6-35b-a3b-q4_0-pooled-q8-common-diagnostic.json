@@ -343,7 +343,7 @@
                 "kvDtype": "f32",
                 "activationDtype": "f32"
               },
-              "digest": "sha256:2ae1ec07bf2c901cb94dfeadf9a273aa6d05b1f232a0274ec1170430c6bd13e4"
+              "digest": "sha256:b404819ada11cdb093c0b98f9127cba40f06b2f2c1294748228c2e22c9f98a6e"
             },
             {
               "op": "o_proj",
@@ -805,7 +805,7 @@
                   "op": "rope_k"
                 },
                 {
-                  "digest": "sha256:2ae1ec07bf2c901cb94dfeadf9a273aa6d05b1f232a0274ec1170430c6bd13e4",
+                  "digest": "sha256:b404819ada11cdb093c0b98f9127cba40f06b2f2c1294748228c2e22c9f98a6e",
                   "entry": "main",
                   "kernel": "attention_prefill_query_tile_f32.wgsl",
                   "op": "attention",
@@ -977,13 +977,13 @@
                   "op": "moe_grouped_gu",
                   "kernel": "moe_grouped_matmul_f32.wgsl",
                   "entry": "main",
-                  "digest": "sha256:d81a2572b31a4adfbb441bf069882d6d8470c18c91c0fa0ba9aff18b1626461d"
+                  "digest": "sha256:50e3319f37de6d4e777c4fad1b094784a03e84ed50dbd8b0b21497a3c9adb432"
                 },
                 {
                   "op": "moe_grouped_down",
                   "kernel": "moe_grouped_matmul_f32.wgsl",
                   "entry": "main",
-                  "digest": "sha256:d81a2572b31a4adfbb441bf069882d6d8470c18c91c0fa0ba9aff18b1626461d"
+                  "digest": "sha256:50e3319f37de6d4e777c4fad1b094784a03e84ed50dbd8b0b21497a3c9adb432"
                 }
               ]
             }
@@ -1295,7 +1295,7 @@
                   "op": "rope_k"
                 },
                 {
-                  "digest": "sha256:2ae1ec07bf2c901cb94dfeadf9a273aa6d05b1f232a0274ec1170430c6bd13e4",
+                  "digest": "sha256:b404819ada11cdb093c0b98f9127cba40f06b2f2c1294748228c2e22c9f98a6e",
                   "entry": "main",
                   "kernel": "attention_prefill_query_tile_f32.wgsl",
                   "op": "attention",
@@ -1451,13 +1451,13 @@
                   "op": "moe_grouped_gu",
                   "kernel": "moe_grouped_matmul_f32.wgsl",
                   "entry": "main",
-                  "digest": "sha256:d81a2572b31a4adfbb441bf069882d6d8470c18c91c0fa0ba9aff18b1626461d"
+                  "digest": "sha256:50e3319f37de6d4e777c4fad1b094784a03e84ed50dbd8b0b21497a3c9adb432"
                 },
                 {
                   "op": "moe_grouped_down",
                   "kernel": "moe_grouped_matmul_f32.wgsl",
                   "entry": "main",
-                  "digest": "sha256:d81a2572b31a4adfbb441bf069882d6d8470c18c91c0fa0ba9aff18b1626461d"
+                  "digest": "sha256:50e3319f37de6d4e777c4fad1b094784a03e84ed50dbd8b0b21497a3c9adb432"
                 }
               ]
             }
@@ -1762,7 +1762,7 @@
                   "op": "rope_k"
                 },
                 {
-                  "digest": "sha256:2ae1ec07bf2c901cb94dfeadf9a273aa6d05b1f232a0274ec1170430c6bd13e4",
+                  "digest": "sha256:b404819ada11cdb093c0b98f9127cba40f06b2f2c1294748228c2e22c9f98a6e",
                   "entry": "main",
                   "kernel": "attention_prefill_query_tile_f32.wgsl",
                   "op": "attention",
@@ -1934,13 +1934,13 @@
                   "op": "moe_grouped_gu",
                   "kernel": "moe_grouped_matmul_f32.wgsl",
                   "entry": "main",
-                  "digest": "sha256:d81a2572b31a4adfbb441bf069882d6d8470c18c91c0fa0ba9aff18b1626461d"
+                  "digest": "sha256:50e3319f37de6d4e777c4fad1b094784a03e84ed50dbd8b0b21497a3c9adb432"
                 },
                 {
                   "op": "moe_grouped_down",
                   "kernel": "moe_grouped_matmul_f32.wgsl",
                   "entry": "main",
-                  "digest": "sha256:d81a2572b31a4adfbb441bf069882d6d8470c18c91c0fa0ba9aff18b1626461d"
+                  "digest": "sha256:50e3319f37de6d4e777c4fad1b094784a03e84ed50dbd8b0b21497a3c9adb432"
                 }
               ]
             }
@@ -2251,7 +2251,7 @@
                   "op": "rope_k"
                 },
                 {
-                  "digest": "sha256:2ae1ec07bf2c901cb94dfeadf9a273aa6d05b1f232a0274ec1170430c6bd13e4",
+                  "digest": "sha256:b404819ada11cdb093c0b98f9127cba40f06b2f2c1294748228c2e22c9f98a6e",
                   "entry": "main",
                   "kernel": "attention_prefill_query_tile_f32.wgsl",
                   "op": "attention",
@@ -2423,13 +2423,13 @@
                   "op": "moe_grouped_gu",
                   "kernel": "moe_grouped_matmul_f32.wgsl",
                   "entry": "main",
-                  "digest": "sha256:d81a2572b31a4adfbb441bf069882d6d8470c18c91c0fa0ba9aff18b1626461d"
+                  "digest": "sha256:50e3319f37de6d4e777c4fad1b094784a03e84ed50dbd8b0b21497a3c9adb432"
                 },
                 {
                   "op": "moe_grouped_down",
                   "kernel": "moe_grouped_matmul_f32.wgsl",
                   "entry": "main",
-                  "digest": "sha256:d81a2572b31a4adfbb441bf069882d6d8470c18c91c0fa0ba9aff18b1626461d"
+                  "digest": "sha256:50e3319f37de6d4e777c4fad1b094784a03e84ed50dbd8b0b21497a3c9adb432"
                 }
               ]
             }
@@ -2734,7 +2734,7 @@
                   "op": "rope_k"
                 },
                 {
-                  "digest": "sha256:2ae1ec07bf2c901cb94dfeadf9a273aa6d05b1f232a0274ec1170430c6bd13e4",
+                  "digest": "sha256:b404819ada11cdb093c0b98f9127cba40f06b2f2c1294748228c2e22c9f98a6e",
                   "entry": "main",
                   "kernel": "attention_prefill_query_tile_f32.wgsl",
                   "op": "attention",
@@ -2906,13 +2906,13 @@
                   "op": "moe_grouped_gu",
                   "kernel": "moe_grouped_matmul_f32.wgsl",
                   "entry": "main",
-                  "digest": "sha256:d81a2572b31a4adfbb441bf069882d6d8470c18c91c0fa0ba9aff18b1626461d"
+                  "digest": "sha256:50e3319f37de6d4e777c4fad1b094784a03e84ed50dbd8b0b21497a3c9adb432"
                 },
                 {
                   "op": "moe_grouped_down",
                   "kernel": "moe_grouped_matmul_f32.wgsl",
                   "entry": "main",
-                  "digest": "sha256:d81a2572b31a4adfbb441bf069882d6d8470c18c91c0fa0ba9aff18b1626461d"
+                  "digest": "sha256:50e3319f37de6d4e777c4fad1b094784a03e84ed50dbd8b0b21497a3c9adb432"
                 }
               ]
             }
@@ -3226,7 +3226,7 @@
                   "op": "rope_k"
                 },
                 {
-                  "digest": "sha256:2ae1ec07bf2c901cb94dfeadf9a273aa6d05b1f232a0274ec1170430c6bd13e4",
+                  "digest": "sha256:b404819ada11cdb093c0b98f9127cba40f06b2f2c1294748228c2e22c9f98a6e",
                   "entry": "main",
                   "kernel": "attention_prefill_query_tile_f32.wgsl",
                   "op": "attention",
@@ -3382,13 +3382,13 @@
                   "op": "moe_grouped_gu",
                   "kernel": "moe_grouped_matmul_f32.wgsl",
                   "entry": "main",
-                  "digest": "sha256:d81a2572b31a4adfbb441bf069882d6d8470c18c91c0fa0ba9aff18b1626461d"
+                  "digest": "sha256:50e3319f37de6d4e777c4fad1b094784a03e84ed50dbd8b0b21497a3c9adb432"
                 },
                 {
                   "op": "moe_grouped_down",
                   "kernel": "moe_grouped_matmul_f32.wgsl",
                   "entry": "main",
-                  "digest": "sha256:d81a2572b31a4adfbb441bf069882d6d8470c18c91c0fa0ba9aff18b1626461d"
+                  "digest": "sha256:50e3319f37de6d4e777c4fad1b094784a03e84ed50dbd8b0b21497a3c9adb432"
                 }
               ]
             }
@@ -3700,7 +3700,7 @@
                   "op": "rope_k"
                 },
                 {
-                  "digest": "sha256:2ae1ec07bf2c901cb94dfeadf9a273aa6d05b1f232a0274ec1170430c6bd13e4",
+                  "digest": "sha256:b404819ada11cdb093c0b98f9127cba40f06b2f2c1294748228c2e22c9f98a6e",
                   "entry": "main",
                   "kernel": "attention_prefill_query_tile_f32.wgsl",
                   "op": "attention",
@@ -3856,13 +3856,13 @@
                   "op": "moe_grouped_gu",
                   "kernel": "moe_grouped_matmul_f32.wgsl",
                   "entry": "main",
-                  "digest": "sha256:d81a2572b31a4adfbb441bf069882d6d8470c18c91c0fa0ba9aff18b1626461d"
+                  "digest": "sha256:50e3319f37de6d4e777c4fad1b094784a03e84ed50dbd8b0b21497a3c9adb432"
                 },
                 {
                   "op": "moe_grouped_down",
                   "kernel": "moe_grouped_matmul_f32.wgsl",
                   "entry": "main",
-                  "digest": "sha256:d81a2572b31a4adfbb441bf069882d6d8470c18c91c0fa0ba9aff18b1626461d"
+                  "digest": "sha256:50e3319f37de6d4e777c4fad1b094784a03e84ed50dbd8b0b21497a3c9adb432"
                 }
               ]
             }
@@ -4174,7 +4174,7 @@
                   "op": "rope_k"
                 },
                 {
-                  "digest": "sha256:2ae1ec07bf2c901cb94dfeadf9a273aa6d05b1f232a0274ec1170430c6bd13e4",
+                  "digest": "sha256:b404819ada11cdb093c0b98f9127cba40f06b2f2c1294748228c2e22c9f98a6e",
                   "entry": "main",
                   "kernel": "attention_prefill_query_tile_f32.wgsl",
                   "op": "attention",
@@ -4330,13 +4330,13 @@
                   "op": "moe_grouped_gu",
                   "kernel": "moe_grouped_matmul_f32.wgsl",
                   "entry": "main",
-                  "digest": "sha256:d81a2572b31a4adfbb441bf069882d6d8470c18c91c0fa0ba9aff18b1626461d"
+                  "digest": "sha256:50e3319f37de6d4e777c4fad1b094784a03e84ed50dbd8b0b21497a3c9adb432"
                 },
                 {
                   "op": "moe_grouped_down",
                   "kernel": "moe_grouped_matmul_f32.wgsl",
                   "entry": "main",
-                  "digest": "sha256:d81a2572b31a4adfbb441bf069882d6d8470c18c91c0fa0ba9aff18b1626461d"
+                  "digest": "sha256:50e3319f37de6d4e777c4fad1b094784a03e84ed50dbd8b0b21497a3c9adb432"
                 }
               ]
             }

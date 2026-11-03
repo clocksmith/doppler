@@ -1,5 +1,15 @@
 export { releasePerLayerInputBuffer } from './per-layer-buffer.js';
 
+/** @type {typeof import('./prefill-policy.js').resolvePrefillMaxInFlightChunks} */
+export function resolvePrefillMaxInFlightChunks(state) {
+  const limit = state?.runtimeConfig?.inference?.session?.prefillMaxInFlightChunks;
+  if (typeof limit !== 'number' || !Number.isSafeInteger(limit) || limit <= 0) {
+    throw new Error('inference.session.prefillMaxInFlightChunks is required and must be a positive safe integer.');
+  }
+  return limit;
+}
+
+/** @type {typeof import('./prefill-policy.js').resolveEffectivePrefillTokenChunkSize} */
 export function resolveEffectivePrefillTokenChunkSize(state) {
   const runtimeSession = state?.runtimeConfig?.inference?.session;
   const runtimeChunkSize = runtimeSession?.prefillTokenChunkSize;
@@ -13,6 +23,7 @@ export function resolveEffectivePrefillTokenChunkSize(state) {
   return runtimeChunkSize;
 }
 
+/** @type {typeof import('./prefill-policy.js').resolvePrefillTokenChunkSize} */
 export function resolvePrefillTokenChunkSize(state, numTokens) {
   const chunkSize = resolveEffectivePrefillTokenChunkSize(state);
   if (chunkSize === undefined) {
@@ -29,6 +40,7 @@ export function resolvePrefillTokenChunkSize(state, numTokens) {
 // calls that share KV with another chunk call bypass command batching: one continuing a
 // sequence (startPos > 0) or a non-final chunk whose hidden output feeds the next. A prompt
 // that fits one chunk runs as one direct call, the path chunked KV writes must match.
+/** @type {typeof import('./prefill-policy.js').shouldDisablePrefillCommandBatching} */
 export function shouldDisablePrefillCommandBatching(state, opts, multimodalBidirectionalSpan, call) {
   if (!Number.isSafeInteger(call?.startPos) || call.startPos < 0 || typeof call.returnHidden !== 'boolean') {
     throw new Error('shouldDisablePrefillCommandBatching requires the call { startPos, returnHidden }.');

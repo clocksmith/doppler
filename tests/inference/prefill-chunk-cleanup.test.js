@@ -48,6 +48,7 @@ const modules = {
   };`,
   '../layer.js': `export const processLayer = async (layer, input, tokens, prefill, context) => {
     const p = globalThis.prefillChunkProbe;
+    p.layerOrder?.push(layer);
     if (layer === 2 && p.fail) throw Error('layer failed');
     if (layer === 1 && p.controller) p.controller.abort();
     const temporary = p.acquire();
@@ -72,7 +73,7 @@ try {
   const host = { _state: {
     modelConfig: { hiddenSize: 4, vocabSize: 4, numLayers: 3 },
     weights: new Map([['embed', new Float32Array(16)]]), convLayerStates: new Map(), stats: {}, currentSeqLen: 0,
-    useGPU: true, runtimeConfig: { inference: { session: { prefillChunkLayers: 1, prefillChunkSubmitMode: 'async' } }, shared: { debug: { probes: null } } },
+    useGPU: true, runtimeConfig: { inference: { session: { prefillChunkLayers: 1, prefillChunkSubmitMode: 'async', prefillMaxInFlightChunks: 2 } }, shared: { debug: { probes: null } } },
   }, _getEffectiveActivationDtype: () => 'f32' };
   probe.failEmbedding = true;
   await assert.rejects(_prefill.call(host, [1, 2], { _returnGpuLogits: true }), /embedding dispatch failed/);
@@ -105,12 +106,52 @@ try {
     assert.equal(settled, false, 'All submitted work must settle, even after a prefix fails');
     for (const gate of probe.gates.slice(1)) gate.resolve();
     const outcome = await result;
-    assert.match(String(outcome.error), failure === 'layer' ? /layer failed/ : failure === 'cancel' ? /abort/i : /GPU completion failed/);
+    assert.match(String(outcome.error?.cause ?? outcome.error), failure === 'layer' ? /layer failed/ : failure === 'cancel' ? /abort/i : /GPU completion failed/);
     assert.equal(active.size, 0, `${failure} releases all chunk resources`);
   }
   probe.gateCompletion = false;
   probe.fail = false;
   probe.controller = null;
+
+  // A slow GPU must backpressure CPU encoding. Exercise distinct runtime
+  // limits and a longer layer sequence; queue order and eventual cleanup stay intact.
+  host._state.modelConfig.numLayers = 12;
+  for (const limit of [1, 2, 3]) {
+    host._state.runtimeConfig.inference.session.prefillMaxInFlightChunks = limit;
+    probe.gateCompletion = true;
+    probe.gates = [];
+    probe.submissions = 0;
+    probe.layerOrder = [];
+    let settled = false;
+    const result = _prefill.call(host, [1, 2], { _returnGpuLogits: true })
+      .finally(() => { settled = true; });
+    await new Promise(resolve => setImmediate(resolve));
+    assert.equal(probe.submissions, limit, 'Encoding stops at the selected outstanding-chunk limit');
+    await new Promise(resolve => setImmediate(resolve));
+    assert.equal(probe.submissions, limit, 'CPU encoding cannot outrun a stalled queue');
+    let completed = 0;
+    for (let round = 0; round < 24 && !settled; round++) {
+      assert(probe.submissions - completed <= limit, 'Outstanding submissions remain bounded');
+      const oldest = probe.gates[completed++];
+      assert(oldest, 'Each queue submission has a completion fence');
+      oldest.resolve();
+      await new Promise(resolve => setImmediate(resolve));
+    }
+    await result;
+    assert.deepEqual(probe.layerOrder, Array.from({ length: 12 }, (_, index) => index));
+    assert.equal(probe.submissions, 12, 'Backpressure preserves every layer chunk');
+    assert.equal(active.size, 0, 'Bounded submission releases all buffers');
+  }
+  probe.gateCompletion = false;
+  for (const invalid of [0, -1, 1.5, NaN, Infinity, Number.MAX_SAFE_INTEGER + 1, null, undefined]) {
+    host._state.runtimeConfig.inference.session.prefillMaxInFlightChunks = invalid;
+    probe.submissions = 0;
+    await assert.rejects(_prefill.call(host, [1, 2], { _returnGpuLogits: true }), /prefillMaxInFlightChunks.*positive safe integer/);
+    assert.equal(probe.submissions, 0, 'An unresolved or invalid bound fails before async submission');
+    assert.equal(active.size, 0, 'Invalid scheduling config releases recorded resources');
+  }
+  host._state.modelConfig.numLayers = 3;
+  host._state.runtimeConfig.inference.session.prefillMaxInFlightChunks = 2;
   const hidden = await _prefill.call(host, [1, 2], { _returnHidden: true });
   assert(active.has(hidden.currentHiddenBuffer), 'Successful transfer preserves caller ownership');
   await hidden.currentRecorder.submitAndWait();
