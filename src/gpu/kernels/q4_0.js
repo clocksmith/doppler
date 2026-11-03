@@ -75,7 +75,7 @@ async function execute(recorder, input, weights, M, N, K, options) {
   const geometry = config.variantMetadata?.q40Geometry;
   const width = positiveOverride(config.wgslOverrides,'WORKGROUP_SIZE');
   let count;
-  if (geometry === 'pair') {
+  if (geometry === 'pair' || geometry === 'pair-columns') {
     // Aligned block pairs need an even block count per row; vec4 activations need
     // 16-byte activation offsets and K a multiple of 4.
     const rows = positiveOverride(config.wgslOverrides,'ROWS');
@@ -83,7 +83,12 @@ async function execute(recorder, input, weights, M, N, K, options) {
       || width % 8 || (width & (width - 1)) !== 0 || !device.features?.has('subgroups')) {
       throw new Error('Pair GEMV requires Q4_0/Q8_0/Q6_K rows of whole block pairs, at most four rows, 16-byte activations and subgroups.');
     }
-    count = Math.ceil(N / rows) * M;
+    const columns = geometry === 'pair-columns' ? positiveOverride(config.wgslOverrides, 'COLS') : 1;
+    if (geometry === 'pair-columns' && (![0, 2].includes(format.code) || columns > 4
+      || width * columns * 16 > device.limits.maxComputeWorkgroupStorageSize)) {
+      throw new Error('Pair GEMV columns require Q4_0/Q8_0 and supported declared workgroup storage.');
+    }
+    count = Math.ceil(N / rows) * Math.ceil(M / columns);
   } else if (geometry === 'cooperative') {
     const columns = positiveOverride(config.wgslOverrides,'COLS_PER_WG');
     if (columns !== 4 || width % 4 || (width & (width - 1)) !== 0
@@ -92,12 +97,17 @@ async function execute(recorder, input, weights, M, N, K, options) {
       throw new Error('Packed cooperative GEMV requires four rows, power-of-two quarters, and declared 32/256-value blocks.');
     }
     count = Math.ceil(N / columns) * M;
-  } else if (geometry === 'gemv') {
+  } else if (geometry === 'gemv' || geometry === 'gemv-columns') {
     const columns = positiveOverride(config.wgslOverrides,'COLS_PER_WG');
     const threads = positiveOverride(config.wgslOverrides,'THREADS_PER_COL_GEMV');
     if (width !== columns*threads
       || (threads & (threads-1)) !== 0) throw new Error('Q4_0 invalid reduction geometry.');
-    count = Math.ceil(N / columns)*M;
+    const batchRows = geometry === 'gemv-columns' ? positiveOverride(config.wgslOverrides, 'BATCH_ROWS') : 1;
+    if (geometry === 'gemv-columns' && (format.code !== 5 || threads !== 32 || batchRows > 4
+      || width * 20 + positiveOverride(config.wgslOverrides, 'TILE_SIZE') ** 2 * 8 > device.limits.maxComputeWorkgroupStorageSize)) {
+      throw new Error('Q5_K columns require 32 reduction lanes, at most four activation rows and declared workgroup storage.');
+    }
+    count = Math.ceil(N / columns) * Math.ceil(M / batchRows);
   } else if (geometry === 'tiled') {
     const tile = positiveOverride(config.wgslOverrides,'TILE_SIZE');
     count = Math.ceil(N / tile)*Math.ceil(M / tile);

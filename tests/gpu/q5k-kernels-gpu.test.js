@@ -71,7 +71,7 @@ const upload = data => {
   uploadData(buffer, data); return buffer;
 };
 try {
-  for (const [M, N, K] of [[1, 7, 256], [1, 17, 6144], [3, 7, 512], [17, 19, 512]]) {
+  for (const [M, N, K] of [[1, 7, 256], [1, 17, 6144], [3, 7, 512], [4, 19, 512], [5, 19, 512], [7, 19, 2048], [17, 19, 512]]) {
     const packed = fixture(2 * N, K), decoded = decode(packed);
     const input = Float32Array.from({ length: M * K + 4 }, (_, i) => Math.sin(i * 0.13) * 0.1);
     const A = createTensor(upload(input), 'f32', [input.length]);
@@ -98,16 +98,22 @@ try {
     }
     for (const recorded of [false, true]) {
       const results = [];
-      for (const variant of ['q5k_gemv', 'q5k_gemv_blockwise']) {
+      for (const variant of ['q5k_gemv', 'q5k_gemv_blockwise', 'q5k_gemv_blockwise_columns']) {
         const recorder = recorded ? createCommandRecorder('q5k-blockwise-parity') : null;
-        const options = { outputDtype: 'f32', alpha: 0.5, aOffset: 16, bOffset: K / 256 * 176, variant };
+        const guardedOutput = upload(new Float32Array(M * N + 8).fill(-12345));
+        const options = { outputDtype: 'f32', alpha: 0.5, aOffset: 16, bOffset: K / 256 * 176,
+          cOffset: 16, outputBuffer: guardedOutput, variant };
         const out = recorder ? await recordQ40Matmul(recorder, A, B, M, N, K, options)
           : await runQ40Matmul(A, B, M, N, K, options);
-        owned.push(out.buffer); if (recorder) await recorder.submitAndWait();
-        results.push(new Uint32Array(await readBuffer(out.buffer, M * N * 4)));
+        if (recorder) await recorder.submitAndWait();
+        const guarded = new Float32Array(await readBuffer(out.buffer, (M * N + 8) * 4));
+        assert.ok(guarded.subarray(0, 4).every(value => value === -12345), 'Q5_K output prefix changed');
+        assert.ok(guarded.subarray(4 + M * N).every(value => value === -12345), 'Q5_K output tail changed');
+        results.push(new Uint32Array(guarded.buffer, 16, M * N).slice());
       }
       assert.deepEqual(results[1], results[0], `Blockwise Q5_K changed output bits at ${M}/${N}/${K}, recorded=${recorded}`);
-      cases.push({ M, N, K, recorded, blockwiseBitwiseParity: true });
+      assert.deepEqual(results[2], results[0], `Four-row Q5_K changed output bits at ${M}/${N}/${K}, recorded=${recorded}`);
+      cases.push({ M, N, K, recorded, blockwiseBitwiseParity: true, columnsBitwiseParity: true });
     }
     await assert.rejects(runMatmul(A, B, M, N, K, { outputDtype: 'f16' }), /F32/);
     await assert.rejects(runMatmul(A, B, M, N, K, { outputDtype: 'f32', outputBuffer: A.buffer }), /alias|undersized/);

@@ -1,4 +1,6 @@
 export const WGSL_PATCH_VARIANTS = Object.freeze([
+  { id: 'matmul-q5k-columns', source: 'src/gpu/kernels/matmul_q5k.wgsl', target: 'src/gpu/kernels/matmul_q5k_columns.wgsl', patch: 'src/gpu/kernels/codegen/patches/matmul_q5k_columns.from.matmul_q5k.diff' },
+  { id: 'matmul-gguf-pair-columns', source: 'src/gpu/kernels/matmul_gguf_pair_f32.wgsl', target: 'src/gpu/kernels/matmul_gguf_pair_columns_f32.wgsl', patch: 'src/gpu/kernels/codegen/patches/matmul_gguf_pair_columns_f32.from.matmul_gguf_pair_f32.diff' },
   { id: 'moe-shared-slot-down', source: 'src/gpu/kernels/codegen/q4_0_common.wgslinc', target: 'src/gpu/kernels/moe_shared_slot_down_f32.wgsl', patch: 'src/gpu/kernels/codegen/patches/moe_shared_slot_down_f32.from.q4_0_common.diff' },
   { id: 'moe-shared-slot-gu', source: 'src/gpu/kernels/codegen/q4_0_common.wgslinc', target: 'src/gpu/kernels/moe_shared_slot_gu_f32.wgsl', patch: 'src/gpu/kernels/codegen/patches/moe_shared_slot_gu_f32.from.q4_0_common.diff' },
   {

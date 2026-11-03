@@ -1,0 +1,69 @@
+--- a
++++ b
+@@ -21,8 +21,9 @@
+ // AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ // SOFTWARE.
++override BATCH_ROWS: u32 = 4u;
+ override WORKGROUP_SIZE: u32 = 128u;
+ override COLS_PER_WG: u32 = 4u;
+ override THREADS_PER_COL_GEMV: u32 = 32u;
+ override TILE_SIZE: u32 = 16u;
+@@ -109,19 +110,21 @@
+     return vec2<u32>((c & 15u) | ((a >> 6u) << 4u),
+         (c >> 4u) | ((b >> 6u) << 4u));
+ }
+
++var<workgroup> partial_batch: array<vec4<f32>, WORKGROUP_SIZE>;
++
+ @compute @workgroup_size(WORKGROUP_SIZE, 1, 1)
+ fn gemv_blockwise(@builtin(workgroup_id) group: vec3<u32>, @builtin(num_workgroups) grid: vec3<u32>,
+         @builtin(local_invocation_index) lane: u32) {
+     let tiles_n = (u.N + COLS_PER_WG - 1u) / COLS_PER_WG;
+     let tile = group.x + group.y * grid.x;
+-    let m = tile / tiles_n;
+-    if (m >= u.M) { return; }
++    let first_m = (tile / tiles_n) * BATCH_ROWS;
++    if (first_m >= u.M) { return; }
+     let column = lane / THREADS_PER_COL_GEMV;
+     let thread = lane % THREADS_PER_COL_GEMV;
+     let n = (tile % tiles_n) * COLS_PER_WG + column;
+-    var sum = 0.0f;
++    var sum = vec4<f32>(0.0f);
+     if (n < u.N) {
+         for (var block = 0u; block < u.blocks; block++) {
+             let base = ((u.b_row + n) * u.blocks + block) * BLOCK_BYTES;
+             let scales = unpack2x16float(weights[base / 4u]);
+@@ -139,19 +142,27 @@
+                 let d = scales.x * f32(scale_min.x);
+                 let minimum = scales.y * f32(scale_min.y);
+                 let value = d * f32(quant) - minimum;
+                 let k = block * BLOCK_VALUES + index * 32u + thread;
+-                sum = fma(input[u.a_offset + m * u.K + k], value, sum);
++                for (var batch = 0u; batch < BATCH_ROWS; batch++) {
++                    let m = first_m + batch;
++                    if (m < u.M) { sum[batch] = fma(input[u.a_offset + m * u.K + k], value, sum[batch]); }
++                }
+             }
+         }
+     }
+-    partial[lane] = sum;
++    partial_batch[lane] = sum;
+     workgroupBarrier();
+     for (var stride = THREADS_PER_COL_GEMV / 2u; stride > 0u; stride /= 2u) {
+-        if (thread < stride) { partial[lane] += partial[lane + stride]; }
++        if (thread < stride) { partial_batch[lane] += partial_batch[lane + stride]; }
+         workgroupBarrier();
+     }
+-    if (thread == 0u && n < u.N) { output[u.c_offset + m * u.N + n] = partial[lane] * u.alpha; }
++    if (thread == 0u && n < u.N) {
++        for (var batch = 0u; batch < BATCH_ROWS; batch++) {
++            let m = first_m + batch;
++            if (m < u.M) { output[u.c_offset + m * u.N + n] = partial_batch[lane][batch] * u.alpha; }
++        }
++    }
+ }
+
+ @compute @workgroup_size(TILE_SIZE, TILE_SIZE, 1)
+ fn prefill(@builtin(workgroup_id) group: vec3<u32>, @builtin(num_workgroups) grid: vec3<u32>,
