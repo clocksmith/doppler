@@ -1,0 +1,56 @@
+{
+  "startedAt": "2026-11-03T11:35:44.247Z",
+  "scope": "Fixed exploratory native-engine 128-token controls on Qwen3.8-27B. One warmup and one measured pair per prompt. Not a statistical speed claim, matched-materialization proof or accepted-job quality qualification.",
+  "attempts": [
+    {
+      "kind": "doppler",
+      "task": "short",
+      "repeat": 0,
+      "warmup": true,
+      "file": "short-0-doppler.json",
+      "error": null
+    },
+    {
+      "kind": "pooled",
+      "task": "short",
+      "repeat": 0,
+      "warmup": true,
+      "file": "short-0-pooled.json",
+      "error": null
+    },
+    {
+      "kind": "pooled",
+      "task": "short",
+      "repeat": 1,
+      "warmup": false,
+      "file": "short-1-pooled.json",
+      "error": null
+    },
+    {
+      "kind": "doppler",
+      "task": "short",
+      "repeat": 1,
+      "warmup": false,
+      "file": "short-1-doppler.json",
+      "error": null
+    },
+    {
+      "kind": "doppler",
+      "task": "short",
+      "repeat": 2,
+      "warmup": false,
+      "file": "short-2-doppler.json",
+      "error": null
+    },
+    {
+      "kind": "pooled",
+      "task": "short",
+      "repeat": 2,
+      "warmup": false,
+      "file": "short-2-pooled.json",
+      "error": null
+    }
+  ],
+  "finishedAt": "2026-11-03T11:39:19.721Z",
+  "complete": true
+}

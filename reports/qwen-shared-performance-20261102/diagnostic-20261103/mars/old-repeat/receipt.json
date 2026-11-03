@@ -1,0 +1,16 @@
+{
+  "startedAt": "2026-11-03T11:23:58.747Z",
+  "scope": "Diagnostic four-token reproduction, not performance evidence.",
+  "attempts": [
+    {
+      "kind": "doppler",
+      "task": "short",
+      "repeat": 0,
+      "warmup": true,
+      "file": "short-0-doppler.json",
+      "error": null
+    }
+  ],
+  "finishedAt": "2026-11-03T11:25:43.036Z",
+  "complete": true
+}

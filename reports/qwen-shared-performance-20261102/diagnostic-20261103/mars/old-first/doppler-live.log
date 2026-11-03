@@ -1,0 +1,21 @@
+error: Failed to load resource: the server responded with a status of 404 (Not Found)
+log: [315.8ms][Harness] Suite model init: loadMode=http, modelId=qwen3-8-27b-text-source-q4_0-af32, hasModelUrl=yes
+log: [316.7ms][TestHarness] Initializing WebGPU...
+log: [GPU] apple metal-3, f16/subgroups, 4.0GB, submit probe: 2.5ms
+log: [342.0ms][TestHarness] GPU: hasF16=true, hasSubgroups=true
+log: [342.1ms][TestHarness] Fetching manifest...
+log: [350.5ms][TestHarness] Model: transformer
+log: [351.2ms][TestHarness] Using HTTP range artifact storage context
+log: [351.2ms][TestHarness] Creating pipeline...
+log: [Doppler] Log level set to: WARN
+log: [Doppler] Log level set to: INFO
+log: [45671.9ms][TestHarness] Pipeline ready
+log: [Doppler] Log level set to: WARN
+log: TOKEN_PROGRESS {"index":0,"id":2,"elapsedMs":46287.200000047684,"allocations":{"currentBytes":16530590072,"peakBytes":16547465592,"count":1641,"destroyed":390}}
+log: TOKEN_PROGRESS {"index":1,"id":8771,"elapsedMs":54995.09999990463,"allocations":{"currentBytes":16575425640,"peakBytes":16575425640,"count":2610,"destroyed":391}}
+log: TOKEN_PROGRESS {"index":2,"id":7860,"elapsedMs":58278.799999952316,"allocations":{"currentBytes":16575425496,"peakBytes":16615994584,"count":3220,"destroyed":1000}}
+log: TOKEN_PROGRESS {"index":3,"id":21397,"elapsedMs":58810.59999990463,"allocations":{"currentBytes":16575425352,"peakBytes":16615994584,"count":3829,"destroyed":1608}}
+log: [Doppler] Log level set to: INFO
+log: [Doppler] Log level set to: WARN
+log: [Doppler] Log level set to: INFO
+error: [104719.5ms][GPU] Device lost: Device was destroyed., Reason: destroyed

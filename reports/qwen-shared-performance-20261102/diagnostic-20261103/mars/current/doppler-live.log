@@ -1,0 +1,14 @@
+error: Failed to load resource: the server responded with a status of 404 (Not Found)
+log: [280.7ms][Harness] Suite model init: loadMode=http, modelId=qwen3-8-27b-text-source-q4_0-af32, hasModelUrl=yes
+log: [281.6ms][TestHarness] Initializing WebGPU...
+log: [GPU] apple metal-3, f16/subgroups, 4.0GB, submit probe: 1.3ms
+log: [294.3ms][TestHarness] GPU: hasF16=true, hasSubgroups=true
+log: [294.4ms][TestHarness] Fetching manifest...
+log: [301.1ms][TestHarness] Model: transformer
+log: [301.8ms][TestHarness] Using HTTP range artifact storage context
+log: [301.8ms][TestHarness] Creating pipeline...
+log: [Doppler] Log level set to: WARN
+log: [Doppler] Log level set to: INFO
+log: [47284.0ms][TestHarness] Pipeline ready
+log: [Doppler] Log level set to: WARN
+log: TOKEN_PROGRESS {"index":0,"id":2,"elapsedMs":47616.799999952316,"allocations":{"currentBytes":16530590072,"peakBytes":16547465592,"count":1641,"destroyed":390}}

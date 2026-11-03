@@ -1,0 +1,7 @@
+{
+  "startedAt": "2026-11-03T11:20:49.418Z",
+  "scope": "Diagnostic four-token reproduction, not performance evidence.",
+  "attempts": [],
+  "error": "Error: Request exceeded requestTimeoutMs 120000\n    at Timeout.<anonymous> (file:///private/tmp/doppler-mars-20261103-diagnostic/harness/tools/qwen-economics/run.js:27:291)\n    at listOnTimeout (node:internal/timers:588:17)\n    at process.processTimers (node:internal/timers:523:7)",
+  "complete": false
+}

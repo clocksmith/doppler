@@ -1,0 +1,69 @@
+{
+  "kind": "pooled",
+  "loadMs": 104743,
+  "adapter": {
+    "vendor": "amd",
+    "architecture": "rdna-3",
+    "device": "",
+    "description": ""
+  },
+  "features": [
+    "core-features-and-limits"
+  ],
+  "nativeOptions": {
+    "batchCols": 16,
+    "coopRowsB": 1,
+    "draftVocab": 65536,
+    "draftVocabAuto": true,
+    "draftChain": true,
+    "specFuse": true,
+    "hostFuse": true,
+    "kvQ8": false,
+    "moeFuse": true,
+    "moeDnRows": 1,
+    "gpuSample": true,
+    "argmaxWide": true
+  },
+  "executedOptions": {
+    "moeFuse": false,
+    "moeNormRouter": null,
+    "moeGroupPrefill": null,
+    "moeGroupDp4a": false,
+    "prefillDp4a": false,
+    "prefillMath": "f32",
+    "fuseProj": true,
+    "hostFuse": true,
+    "layerFuse": {
+      "dn": false,
+      "conv": false,
+      "kv": false,
+      "comb": false,
+      "norm": false,
+      "pass": false
+    },
+    "gpuSample": true,
+    "argmaxWide": true,
+    "dnNormBA": null,
+    "attnDecode": "v2",
+    "attnFlash": null,
+    "prefillUbatch": null,
+    "mtpBatchFill": true,
+    "mtpBatchRefill": true,
+    "mtpPreDraft": true
+  },
+  "speculation": {
+    "requested": {
+      "depth": 3,
+      "lookup": false
+    },
+    "mtpAvailable": true,
+    "mtpFill": null
+  },
+  "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/146.0.0.0 Safari/537.36",
+  "manifestSummary": {
+    "architecture": "qwen35",
+    "layers": 64
+  },
+  "fullReadyOriginalSha256": "507060829c01f5f5ae2597702c96adb126cdf42a7acf3b0914fe8ae60d06aa7a",
+  "fullReadyOriginalBytes": 14802105
+}

@@ -1,0 +1,16 @@
+{
+  "startedAt": "2026-11-03T11:30:45.257Z",
+  "scope": "Diagnostic four-token reproduction, not performance evidence.",
+  "attempts": [
+    {
+      "kind": "pooled",
+      "task": "short",
+      "repeat": 0,
+      "warmup": true,
+      "file": "short-0-pooled.json",
+      "error": null
+    }
+  ],
+  "finishedAt": "2026-11-03T11:34:01.822Z",
+  "complete": true
+}

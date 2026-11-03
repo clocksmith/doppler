@@ -1,0 +1,100 @@
+{
+  "task": "short",
+  "promptIds": [
+    248045,
+    846,
+    198,
+    7734,
+    264,
+    11346,
+    12654,
+    7873,
+    314,
+    1330,
+    2542,
+    11,
+    7854,
+    539,
+    6813,
+    321,
+    449,
+    15673,
+    13,
+    248046,
+    198,
+    248045,
+    74455,
+    198,
+    248068,
+    271,
+    248069,
+    271
+  ],
+  "tokenIds": [
+    2,
+    8771,
+    7860,
+    21397
+  ],
+  "deliveryMs": [
+    128785.5,
+    130087,
+    130087.30000019073,
+    130089.40000009537
+  ],
+  "chunks": [
+    "#",
+    " Two",
+    " Sum",
+    " Problem"
+  ],
+  "textDeliveryMs": [
+    128787.70000004768,
+    130087.30000019073,
+    130089.40000009537,
+    130089.80000019073
+  ],
+  "firstTokenMs": 128785.5,
+  "firstTextMs": 128787.70000004768,
+  "prefillMs": 122833,
+  "completeMs": 130100.70000004768,
+  "text": "# Two Sum Problem",
+  "qualityPass": null,
+  "stopReason": "max-tokens",
+  "apiSnapshots": null,
+  "apiFinal": null,
+  "profiled": false,
+  "logicalGpuAllocations": {
+    "currentBytes": 17508984844,
+    "peakBytes": 17508984844,
+    "count": 1885,
+    "destroyed": 356
+  },
+  "stats": {
+    "nativeSpeculation": {
+      "depth": 3,
+      "lookup": false,
+      "before": {
+        "drafts": 0,
+        "accepted": 0
+      },
+      "after": {
+        "drafts": 3,
+        "accepted": 2
+      },
+      "steps": [
+        {
+          "K": 3,
+          "viaLookup": false,
+          "lookupDrafts": 0,
+          "returned": 3,
+          "ms": 1299.1000001430511,
+          "pos": 31
+        }
+      ],
+      "semantics": "Native room-style greedy MTP, final returned lookahead may remain pending at the output cap; all GPU completion is timed."
+    }
+  },
+  "memory": null,
+  "gpuErrors": []
+}

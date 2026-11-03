@@ -1,0 +1,111 @@
+{
+  "schema": "qwen-economic-comparison/v1",
+  "scope": "Diagnostic four-token reproduction, not performance evidence.",
+  "shared": {
+    "contextTokens": 4096,
+    "maxNewTokens": 4,
+    "eosTokenIds": [
+      248044,
+      248046
+    ],
+    "sampling": {
+      "temperature": 0,
+      "topK": 1,
+      "topP": 1,
+      "repetitionPenalty": 1
+    },
+    "warmupRuns": 1,
+    "pairsPerPrompt": 2,
+    "speculation": {
+      "policy": "engine-native",
+      "withinEngineGreedyParityRequired": true
+    },
+    "requiredVendor": "apple",
+    "promptFormat": {
+      "before": "<|im_start|>user\n",
+      "after": "<|im_end|>\n<|im_start|>assistant\n<think>\n\n</think>\n\n",
+      "specialTokens": [
+        "<|im_start|>",
+        "<|im_end|>",
+        "<think>",
+        "</think>"
+      ]
+    },
+    "qualityTasks": [
+      {
+        "id": "arithmetic",
+        "text": "What is 17 + 25? Reply with only the number.",
+        "expected": "42"
+      },
+      {
+        "id": "code",
+        "text": "Python code: values = [2, 5, 8]; result = sum(x * 2 for x in values if x > 3). What is result? Reply with only the number.",
+        "expected": "26"
+      },
+      {
+        "id": "records",
+        "text": "Records: Ada=7, Bea=11, Cy=3. Which name has the highest value? Reply with only the name.",
+        "expected": "Bea"
+      },
+      {
+        "id": "missing",
+        "text": "The report says revenue increased. No amount or percentage is given. What is the percentage increase? Reply with only UNKNOWN if it cannot be determined.",
+        "expected": "UNKNOWN"
+      }
+    ],
+    "throughputTasks": [
+      {
+        "id": "short",
+        "text": "Write a detailed Python implementation of two sum, followed by tests and an explanation.",
+        "pooledLookup": false
+      },
+      {
+        "id": "long",
+        "text": "Summarize the following fictional system design, covering storage, failure handling, and fairness.\n",
+        "repeat": "Each worker holds a fixed model identity. Requests preserve their own conversation history. A coordinator rejects unavailable capacity, records cancellations, and retries failed attempts explicitly. Storage caches verified immutable artifacts. A bounded queue keeps competing requesters separate.\n",
+        "repeatCount": 48,
+        "pooledLookup": false
+      },
+      {
+        "id": "short-lookup",
+        "text": "Write a detailed Python implementation of two sum, followed by tests and an explanation.",
+        "pooledLookup": true
+      },
+      {
+        "id": "long-lookup",
+        "text": "Summarize the following fictional system design, covering storage, failure handling, and fairness.\n",
+        "repeat": "Each worker holds a fixed model identity. Requests preserve their own conversation history. A coordinator rejects unavailable capacity, records cancellations, and retries failed attempts explicitly. Storage caches verified immutable artifacts. A bounded queue keeps competing requesters separate.\n",
+        "repeatCount": 48,
+        "pooledLookup": true
+      }
+    ]
+  },
+  "acceptance": {
+    "commonQuality": "Every frozen quality task must match its expected answer in both engines before any common-quality price/performance claim",
+    "commonWeights": "Separate complete actual materialization and numerical receipt required; maximum absolute full-logit difference 0.001, relative tolerance 0, identical prompt and generated token IDs",
+    "timing": "retain failed quality paths as diagnostics; no outlier removal; AB/BA alternation; loading outside warm request clock; retain every native callback and delivered text chunk timestamp",
+    "incomplete": "max-token answers are capacity measurements, not accepted complete answers",
+    "power": "unknown unless synchronized attributable wall measurements exist",
+    "numericalGateRevision": {
+      "date": "2026-10-31",
+      "source": "owner-forwarded analysis",
+      "reason": "At layer 12, token 194 the 8th and 9th router logits differ by 3.58e-6; a valid FP32 reduction reordering flips one expert and full logits drift 0.623 while greedy tokens stay identical, so the 0.001 full-logit gate rejects legitimate reorderings.",
+      "kernelGate": "Per layer, router indices and weights pinned to the reference: maximum absolute error < 1e-3.",
+      "endToEndGate": "Exact greedy token parity against Pooled and the reference on the frozen prompts, plus the logit tolerance on positions whose routes match; count and report route flips with their router-logit margins.",
+      "unchanged": "Every other acceptance field is unchanged."
+    }
+  },
+  "overlays": {
+    "doppler": {
+      "nativeManifest": true,
+      "wholeTokenProgram": false,
+      "batchSize": 1,
+      "disableMultiTokenDecode": true
+    },
+    "pooled": {
+      "nativeRoomPreset": true,
+      "mtpDraftDepth": 3,
+      "promptLookup": false
+    }
+  }
+}

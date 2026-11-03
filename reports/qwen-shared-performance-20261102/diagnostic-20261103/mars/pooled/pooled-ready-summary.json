@@ -1,0 +1,75 @@
+{
+  "kind": "pooled",
+  "loadMs": 63333.10000014305,
+  "adapter": {
+    "vendor": "apple",
+    "architecture": "metal-3",
+    "device": "",
+    "description": ""
+  },
+  "features": [
+    "core-features-and-limits"
+  ],
+  "nativeOptions": {
+    "batchCols": 16,
+    "coopRowsB": 1,
+    "draftVocab": 65536,
+    "draftVocabAuto": true,
+    "draftChain": true,
+    "specFuse": true,
+    "hostFuse": true,
+    "kvQ8": false,
+    "moeFuse": true,
+    "moeDnRows": 1,
+    "gpuSample": true,
+    "argmaxWide": true
+  },
+  "executedOptions": {
+    "moeFuse": false,
+    "moeNormRouter": null,
+    "moeGroupPrefill": null,
+    "moeGroupDp4a": false,
+    "prefillDp4a": false,
+    "prefillMath": "f32",
+    "fuseProj": true,
+    "hostFuse": true,
+    "layerFuse": {
+      "dn": true,
+      "conv": true,
+      "kv": true,
+      "comb": true,
+      "norm": true,
+      "pass": true
+    },
+    "gpuSample": true,
+    "argmaxWide": true,
+    "dnNormBA": null,
+    "attnDecode": "v2",
+    "attnFlash": null,
+    "prefillUbatch": null,
+    "mtpBatchFill": true,
+    "mtpBatchRefill": true,
+    "mtpPreDraft": true
+  },
+  "speculation": {
+    "requested": {
+      "depth": 3,
+      "lookup": false
+    },
+    "mtpAvailable": true,
+    "mtpFill": null
+  },
+  "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/156.0.0.0 Safari/537.36",
+  "logicalGpuAllocations": {
+    "currentBytes": 17191461124,
+    "peakBytes": 17191461124,
+    "count": 1702,
+    "destroyed": 356
+  },
+  "manifestSummary": {
+    "architecture": "qwen35",
+    "layers": 64
+  },
+  "fullReadyOriginalSha256": "93b8095a381c115fa65066a8a325dda250bce39e2c2d6ba0418e2cf9502fc48d",
+  "fullReadyOriginalBytes": 14802266
+}

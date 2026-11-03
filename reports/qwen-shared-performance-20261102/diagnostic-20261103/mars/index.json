@@ -1,0 +1,177 @@
+[
+  {
+    "path": "browser.js.gz",
+    "bytes": 13000,
+    "sha256": "6bdf9190aba38b9447d24cfef3adde06150c247f180e46f8a4c68dab3158808d"
+  },
+  {
+    "path": "contract.json",
+    "bytes": 4878,
+    "sha256": "8a3f2834fe30a9d5937f1d592f47126e985cebd382017343a2f91d4e39bd1b2f"
+  },
+  {
+    "path": "current/current-config.json.gz",
+    "bytes": 12037,
+    "sha256": "c1aee3088c7fe5e8487435d4f167fbf459922d3fdc432b68b65c54e9ee6ea66b"
+  },
+  {
+    "path": "current/doppler-live.log",
+    "bytes": 925,
+    "sha256": "c883429ccb60326f8a85ac504bbb7213a47a3b87599b7c586ed6a2bd9da10af0"
+  },
+  {
+    "path": "current/doppler-ready.json.gz",
+    "bytes": 90708,
+    "sha256": "9cff561fef1022f4e00494594e21ed64f75d05d57639a099b03743f2f66bb0b3"
+  },
+  {
+    "path": "current/memory-samples.jsonl",
+    "bytes": 39370,
+    "sha256": "81cd4ce74b3d8a826a227672c15dd402c30a2ba918282bb20a8f9353e794c9bb"
+  },
+  {
+    "path": "current/receipt.json",
+    "bytes": 460,
+    "sha256": "e3000c771fe8437c5e9a6cf6726b0d7ce094e398e8f3f7dbff0528d831475df3"
+  },
+  {
+    "path": "current-no-program/current-no-program-config.json.gz",
+    "bytes": 12047,
+    "sha256": "03b0c18dcc05edfc27005621930eab9240051db1232c797808f8c7042fddcb5c"
+  },
+  {
+    "path": "current-no-program/doppler-live.log",
+    "bytes": 925,
+    "sha256": "8cd3b4d869cd89e3555d2c3e0b084ab32556fba8d7f1b91af499756c3a6ffc9c"
+  },
+  {
+    "path": "current-no-program/doppler-ready.json.gz",
+    "bytes": 90701,
+    "sha256": "bff253cd996132a402010b1513de54d4faabaae35620ee78783633e394f8df03"
+  },
+  {
+    "path": "current-no-program/memory-samples.jsonl",
+    "bytes": 29513,
+    "sha256": "64072f2e5317661de1d6455f784afffe185193403219942512497a9d974250d0"
+  },
+  {
+    "path": "current-no-program/receipt.json",
+    "bytes": 471,
+    "sha256": "40c29d02aa2581f23ca7aa05aff2fe051cf197270fddd7e5c4bc315d020a3234"
+  },
+  {
+    "path": "diagnose_mars.py",
+    "bytes": 3784,
+    "sha256": "cfb077fd0b35556ba88d53713bdb2c8459f6502f817b635b76138bf388b23e13"
+  },
+  {
+    "path": "diagnose_mars_followup.py",
+    "bytes": 3666,
+    "sha256": "0005c731acd0fd399a65f49a5da036592efe5959c637df5536f75f44a0d31ddd"
+  },
+  {
+    "path": "diagnose_mars_no_program.py",
+    "bytes": 3821,
+    "sha256": "305f549bdb89bdf8b1e0e94f1ba53f93b6f3230be4daab8dbc84a1e295e2c47b"
+  },
+  {
+    "path": "diagnose_mars_pooled.py",
+    "bytes": 3666,
+    "sha256": "6883dacba1fe998018f45c3114c557a02a7e3f2ce628cf3b742dc0d1bbe9d2f0"
+  },
+  {
+    "path": "old-first/doppler-live.log",
+    "bytes": 1626,
+    "sha256": "7b0cd83b1310954bedc56e1bcd79f0a2905c12f7c37dd357ba161cdee15b78ad"
+  },
+  {
+    "path": "old-first/doppler-ready.json.gz",
+    "bytes": 90710,
+    "sha256": "0781061483904319a2eeca37444b6fe1eb57cdf4c80c02a1e62a07847d389644"
+  },
+  {
+    "path": "old-first/memory-samples.jsonl",
+    "bytes": 39370,
+    "sha256": "81cd4ce74b3d8a826a227672c15dd402c30a2ba918282bb20a8f9353e794c9bb"
+  },
+  {
+    "path": "old-first/old-config.json.gz",
+    "bytes": 12029,
+    "sha256": "fdd56e53ab1efb5f5410de50cbd244d85aa54069132e470109bec1cf748cf81b"
+  },
+  {
+    "path": "old-first/receipt.json",
+    "bytes": 366,
+    "sha256": "fa49bf70c6492f8c23101376fe7d66dc994bafd79d4cb6d405954de5d5c8de06"
+  },
+  {
+    "path": "old-first/short-0-doppler.json",
+    "bytes": 33233,
+    "sha256": "ee5ea2213f7eec4c962dabb6278cae99abfbb44969075958b9fd97785b0c9d92"
+  },
+  {
+    "path": "old-repeat/doppler-live.log",
+    "bytes": 1628,
+    "sha256": "36a73641b3be06ace829030417491b2cb8259d1c0c07bf20065bbbdda3b28852"
+  },
+  {
+    "path": "old-repeat/doppler-ready.json.gz",
+    "bytes": 90710,
+    "sha256": "238ebaf6e46b1f7adb845ec04b2c548d6999ccac634c0cdde3c7ded3344c62df"
+  },
+  {
+    "path": "old-repeat/memory-samples.jsonl",
+    "bytes": 15463,
+    "sha256": "7368f00ead5325f38b084b21d53255d6bcbd1eabeb46b75ad4a3019a0669a8ef"
+  },
+  {
+    "path": "old-repeat/old-config.json.gz",
+    "bytes": 12038,
+    "sha256": "bd52494de28cf82fdb825429ab1d67948acebfe67ae76b95a99b92c19bfae957"
+  },
+  {
+    "path": "old-repeat/receipt.json",
+    "bytes": 366,
+    "sha256": "16765d170a1a9632a8134de860b283899722260acfb8746d2e7faab48c5d67af"
+  },
+  {
+    "path": "old-repeat/short-0-doppler.json",
+    "bytes": 33185,
+    "sha256": "dce8960bb27623261c76f13a4ede563949d696e09b2ddae58ceea463fc1667a7"
+  },
+  {
+    "path": "pooled/memory-samples.jsonl",
+    "bytes": 28109,
+    "sha256": "d1b7001e85722f5c6db724ff68d99f6170e54eef3ad1b1d8cd88e69d54985724"
+  },
+  {
+    "path": "pooled/pooled-config.json.gz",
+    "bytes": 12036,
+    "sha256": "fdc55b5115c0db5772e63b22d54ffdbcc95db392e11b13521321354e49b3539f"
+  },
+  {
+    "path": "pooled/pooled-live.log",
+    "bytes": 86,
+    "sha256": "b60011588ee5338ad1044d566d5300bde16d299d27c21899baef8e3906237192"
+  },
+  {
+    "path": "pooled/pooled-ready-summary.json",
+    "bytes": 1732,
+    "sha256": "c21ab3a08fffbe6b59fb6a54432fdccf1fcaf6c8c0b7e1129fbee606dfb5519a"
+  },
+  {
+    "path": "pooled/receipt.json",
+    "bytes": 364,
+    "sha256": "078cfe04d84a5b25d5a51658cfeefbc2a998b782db12240ab0d2797f4c639ff5"
+  },
+  {
+    "path": "pooled/short-0-pooled.json",
+    "bytes": 1690,
+    "sha256": "7e88a197d111844fe295606df2cd05d190fcf5510ef7a22e3877abb034fbae91"
+  },
+  {
+    "path": "runner.js",
+    "bytes": 12622,
+    "sha256": "79751d62fa005a5623041425a0956c8b11c456a6796d1db5299047a913c6eb91"
+  }
+]

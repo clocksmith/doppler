@@ -1,0 +1,22 @@
+error: Failed to load resource: the server responded with a status of 404 (Not Found)
+log: [452.1ms][Harness] Suite model init: loadMode=http, modelId=qwen3-8-27b-text-source-q4_0-af32, hasModelUrl=yes
+log: [453.3ms][TestHarness] Initializing WebGPU...
+log: [GPU] amd rdna-3, f16/subgroups, 4.0GB, submit probe: 6.7ms
+log: [501.4ms][TestHarness] GPU: hasF16=true, hasSubgroups=true
+log: [501.4ms][TestHarness] Fetching manifest...
+log: [513.8ms][TestHarness] Model: transformer
+log: [514.6ms][TestHarness] Using HTTP range artifact storage context
+log: [514.6ms][TestHarness] Creating pipeline...
+log: [Doppler] Log level set to: WARN
+warning: [1227.9ms][Loader] Dense model on discrete GPU - performance limited. Consider MoE model.
+log: [Doppler] Log level set to: INFO
+log: [52079.1ms][TestHarness] Pipeline ready
+log: [Doppler] Log level set to: WARN
+log: [Doppler] Log level set to: INFO
+log: [Doppler] Log level set to: WARN
+log: [Doppler] Log level set to: INFO
+log: [Doppler] Log level set to: WARN
+log: [Doppler] Log level set to: INFO
+log: [Doppler] Log level set to: WARN
+log: [Doppler] Log level set to: INFO
+error: [215294.6ms][GPU] Device lost: Device was destroyed., Reason: destroyed
