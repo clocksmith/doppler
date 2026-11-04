@@ -4573,6 +4573,7 @@
         "tests/gpu/prepared-decode-workspace.test.js",
         "tests/gpu/prepared-normalization-gpu.test.js",
         "tests/gpu/q4_0-kernels-gpu.test.js",
+        "tests/gpu/q4_0-rectangular-prefill-gpu.test.js",
         "tests/gpu/q5k-kernels-gpu.test.js",
         "tests/gpu/readback-utils.test.js",
         "tests/gpu/rep-penalty-rules.test.js",

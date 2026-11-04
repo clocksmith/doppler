@@ -154,6 +154,9 @@ export interface KernelUniformValues {
   "matmul/q5k_cooperative": Parameters<typeof writers0.write_matmul_q4_0_cooperative>[1];
   "matmul/q5k_cooperative_columns": Parameters<typeof writers0.write_matmul_q4_0_cooperative>[1];
   "matmul/q5k_prefill_tile64": Parameters<typeof writers0.write_matmul_q4_0_cooperative>[1];
+  "matmul/q4_0_prefill_tile64x128": Parameters<typeof writers0.write_matmul_q4_0_cooperative>[1];
+  "matmul/q4_0_prefill_tile128": Parameters<typeof writers0.write_matmul_q4_0_cooperative>[1];
+  "matmul/q4_1_prefill_tile128": Parameters<typeof writers0.write_matmul_q4_0_cooperative>[1];
   "fused_ffn/default": Parameters<typeof writers0.write_fused_ffn_default>[1];
   "fused_ffn/multi": Parameters<typeof writers0.write_fused_ffn_default>[1];
   "fused_ffn/f16": Parameters<typeof writers0.write_fused_ffn_default>[1];

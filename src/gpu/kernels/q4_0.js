@@ -120,6 +120,16 @@ async function execute(recorder, input, weights, M, N, K, options) {
   } else if (geometry === 'tiled') {
     const tile = positiveOverride(config.wgslOverrides,'TILE_SIZE');
     count = Math.ceil(N / tile)*Math.ceil(M / tile);
+  } else if (geometry === 'rectangular') {
+    const rows = positiveOverride(config.variantMetadata, 'tileRows');
+    const columns = positiveOverride(config.variantMetadata, 'tileColumns');
+    const sharedBytes = 32 * (rows + columns) * 4;
+    if (![0, 1].includes(format.code) || ![64, 128].includes(rows) || columns !== 128 || width !== 256
+      || config.sharedMemory !== sharedBytes || device.limits.maxComputeInvocationsPerWorkgroup < width
+      || device.limits.maxComputeWorkgroupStorageSize < sharedBytes) {
+      throw new Error('Rectangular GGUF prefill requires declared Q4_0/Q4_1 tiles, 256 invocations and sufficient shared storage.');
+    }
+    count = Math.ceil(N / rows) * Math.ceil(M / columns);
   } else if (geometry === 'tile64') {
     // 64 rows x 64 tokens per 256-invocation workgroup with 16 KiB of staged tiles.
     if (device.limits.maxComputeInvocationsPerWorkgroup < 256 || device.limits.maxComputeWorkgroupStorageSize < 16384) {
