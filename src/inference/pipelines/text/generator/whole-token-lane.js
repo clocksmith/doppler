@@ -2,7 +2,7 @@ import { getDevice } from '../../../../gpu/device.js';
 import { isGreedySampling } from '../../../../rules/greedy-sampling.js';
 import { FINITENESS_RESET_WORDS, FinitenessError, parseFinitenessStatusWords } from '../finiteness-guard-status.js';
 import { advanceDecodeStepCount } from '../tsir-fixture-writer.js';
-import { checkpointLinearAttentionRuntime } from '../linear-attention/state-checkpoint.js';
+import { queueLinearAttentionCheckpoint } from '../linear-attention/state-checkpoint.js';
 import { resolveActiveExecutionPlan } from '../execution-plan.js';
 import { WholeTokenProgram } from './whole-token-program.js';
 
@@ -290,8 +290,10 @@ export async function prepareWholeTokenBatch(state, currentIds, requestedCount) 
   const advancers = lane.advancers ?? [], before = advancers.map(({ owner }) => owner.seqLen);
   const initialSteps = state.decodeStepCount;
   const initialSubmissions = program.stats.replaySubmissions;
+  // Capture precedes decoding on the same ordered queue. Settlement or recovery
+  // completes that work before the saved buffers are released.
   const snapshot = state.linearAttentionRuntime
-    ? await checkpointLinearAttentionRuntime(state.linearAttentionRuntime) : null;
+    ? await queueLinearAttentionCheckpoint(state.linearAttentionRuntime) : null;
   let published = 0, closed = false, checkpointSubmissions = snapshot ? 1 : 0;
   /** @type {number[]} */
   let tokens = [];

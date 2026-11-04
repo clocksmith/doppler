@@ -6,13 +6,15 @@ const savedBuffer = globalThis.GPUBuffer, savedUsage = globalThis.GPUBufferUsage
 globalThis.GPUBuffer = class GPUBuffer { constructor(size) { this.size = size; this.bytes = new Uint8Array(size); } destroy() {} };
 globalThis.GPUBufferUsage = { STORAGE: 128, COPY_SRC: 4, COPY_DST: 8 };
 const allocated = [];
+let completionWaits = 0;
 const device = { createBindGroup() { return {}; }, features: new Set(), limits: { maxBufferSize: 1048576, maxStorageBufferBindingSize: 1048576 },
  createBuffer(d) { const b = new GPUBuffer(d.size); allocated.push(b); return b; },
  createCommandEncoder() { const ops = []; return { copyBufferToBuffer(a,ao,b,bo,n) { ops.push(() => b.bytes.set(a.bytes.subarray(ao,ao+n),bo)); }, finish() { return ops; } }; },
- queue: { submit(commands) { for (const command of commands) for (const op of command) op(); }, async onSubmittedWorkDone() {} } };
+ queue: { submit(commands) { for (const command of commands) for (const op of command) op(); }, async onSubmittedWorkDone() { completionWaits++; } } };
 setDevice(device, { platformConfig: null });
 try {
  for (const scenario of ['full', 'stop-first', 'stop-middle', 'cancel-before-publish', 'execution-error', 'invalid-result', 'replay-error']) {
+  completionWaits = 0;
   const layer = { convStateGPU: new GPUBuffer(4), recurrentStateGPU: new GPUBuffer(4), seqLen: 2, warnedSeqMismatch: false };
   layer.convStateGPU.bytes.fill(7); layer.recurrentStateGPU.bytes.fill(9);
   const kv = { seqLen: 2 }, cache = { layout: 'contiguous', layers: [kv], maxSeqLen: 64,
@@ -23,6 +25,7 @@ try {
   const program = { ready: true, awaitingVerification: false, positionRange: { min: 0, max: 63 }, stats, dispatchCount: 1,
    rejects() { return null; }, resumeAfterRestore(pos) { this.pos = pos; },
    async startBatch(pos, token, count) {
+    assert.equal(completionWaits, 0, 'An ordered checkpoint must not fence the host before token submission');
     const rows = await this.runBatch(pos, token, count);
     return { rows: (async function* () { for (const row of rows) yield row; })(), async settle() {} };
    },
