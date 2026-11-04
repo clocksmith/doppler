@@ -1,0 +1,47 @@
+--- src/gpu/kernels/matmul_q4_0_tile64.wgsl
++++ src/gpu/kernels/matmul_q5k_tile64.wgsl
+@@ -1,3 +1,4 @@
++// Native Q5_K tile64 prefill: stage scale/min/high-bit groups once per four values.
+ // Tiled native GGUF block GEMM for prefill (M > 1). Bindings, uniforms and the block decoder
+ // follow matmul_q4_0.wgsl; the attribution below covers the shared decoder.
+ // Native GGUF blocks remain interleaved; no Pooled split-scale repacking.
+@@ -136,6 +137,27 @@
+         scale * f32(bitcast<i32>(((word >> 16u) & 255u) << 24u) >> 24),
+         scale * f32(bitcast<i32>(((word >> 24u) & 255u) << 24u) >> 24)
+     );
++}
++
++// One native Q5_K group of 32 values; stage four decoded values per lane.
++fn q5k_stage_four(base: u32, group: u32, quarter: u32) -> vec4<f32> {
++    var scale: u32;
++    var minimum: u32;
++    if (group < 4u) {
++        scale = q40_byte(base + 4u + group) & 63u;
++        minimum = q40_byte(base + 8u + group) & 63u;
++    } else {
++        scale = (q40_byte(base + 8u + group) & 15u) | ((q40_byte(base + group) >> 6u) << 4u);
++        minimum = (q40_byte(base + 8u + group) >> 4u) | ((q40_byte(base + 4u + group) >> 6u) << 4u);
++    }
++    let low_word = tile_word(base + 48u + (group / 2u) * 32u + quarter * 4u);
++    let high_word = tile_word(base + 16u + quarter * 4u);
++    let shifts = vec4<u32>(0u, 8u, 16u, 24u);
++    let low = ((vec4<u32>(low_word) >> shifts) >> vec4<u32>((group % 2u) * 4u)) & vec4<u32>(15u);
++    let high = (((vec4<u32>(high_word) >> shifts) >> vec4<u32>(group)) & vec4<u32>(1u)) << vec4<u32>(4u);
++    let d = packed_half(base) * f32(scale);
++    let m = packed_half(base + 2u) * f32(minimum);
++    return d * vec4<f32>(low | high) - vec4<f32>(m);
+ }
+
+ @compute @workgroup_size(256, 1, 1)
+@@ -234,7 +256,10 @@
+             for (var r = 0u; r < 4u; r++) {
+                 let w_row = n0 + rq * 4u + r;
+                 if (live_tile && w_row < u.N) {
+-                    if (QUANT_FORMAT == 2u) {
++                    if (QUANT_FORMAT == 5u) {
++                        let base = ((u.b_row + w_row) * u.blocks + k0 / BLOCK_VALUES) * BLOCK_BYTES;
++                        vals[r] = q5k_stage_four(base, (k0 % BLOCK_VALUES) / 32u, jj);
++                    } else if (QUANT_FORMAT == 2u) {
+                         let base = ((u.b_row + w_row) * u.blocks + block_idx) * BLOCK_BYTES;
+                         let scale = packed_half(base);
+                         let word = tile_word(base + 2u + jj * 4u);

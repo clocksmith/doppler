@@ -71,7 +71,7 @@ const upload = data => {
   uploadData(buffer, data); return buffer;
 };
 try {
-  for (const [M, N, K] of [[1, 7, 256], [1, 17, 6144], [3, 7, 512], [4, 19, 512], [5, 19, 512], [7, 19, 2048], [17, 19, 512]]) {
+  for (const [M, N, K] of [[1, 7, 256], [1, 17, 6144], [3, 7, 512], [4, 19, 512], [5, 19, 512], [7, 19, 2048], [17, 19, 512], [65, 67, 512]]) {
     const packed = fixture(2 * N, K), decoded = decode(packed);
     const input = Float32Array.from({ length: M * K + 4 }, (_, i) => Math.sin(i * 0.13) * 0.1);
     const A = createTensor(upload(input), 'f32', [input.length]);
@@ -116,7 +116,7 @@ try {
       cases.push({ M, N, K, recorded, blockwiseBitwiseParity: true, columnsBitwiseParity: true });
     }
     const cooperative = new Map();
-    for (const recorded of [false, true]) for (const variant of ['q5k_cooperative', 'q5k_cooperative_columns']) {
+    for (const recorded of [false, true]) for (const variant of ['q5k_cooperative', 'q5k_cooperative_columns', 'q5k_prefill_tile64']) {
       const recorder = recorded ? createCommandRecorder('q5k-cooperative-reference') : null;
       const guardedOutput = upload(new Float32Array(M * N + 8).fill(-12345));
       const options = { outputDtype: 'f32', alpha: 0.5, aOffset: 16, bOffset: K / 256 * 176,

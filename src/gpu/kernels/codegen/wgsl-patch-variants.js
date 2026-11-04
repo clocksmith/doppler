@@ -1,5 +1,11 @@
 export const WGSL_PATCH_VARIANTS = Object.freeze([
   {
+    id: 'matmul-q5k-tile64',
+    source: 'src/gpu/kernels/matmul_q4_0_tile64.wgsl',
+    target: 'src/gpu/kernels/matmul_q5k_tile64.wgsl',
+    patch: 'src/gpu/kernels/codegen/patches/matmul_q5k_tile64.from.matmul_q4_0_tile64.diff',
+  },
+  {
     id: 'speculative-accept-gpu-limit',
     source: 'src/gpu/kernels/speculative_accept.wgsl',
     target: 'src/gpu/kernels/speculative_accept_gpu_limit.wgsl',
