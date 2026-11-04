@@ -155,6 +155,7 @@ export const UNIFORM_WRITERS = Object.freeze({
   "matmul/q5k_cooperative_columns": { size: 32, write: writers0.write_matmul_q4_0_cooperative },
   "matmul/q5k_prefill_tile64": { size: 32, write: writers0.write_matmul_q4_0_cooperative },
   "matmul/q4_0_prefill_tile64x128": { size: 32, write: writers0.write_matmul_q4_0_cooperative },
+  "matmul/q4_0_prefill_tile64x128_bounded": { size: 32, write: writers0.write_matmul_q4_0_cooperative },
   "matmul/q4_0_prefill_tile128": { size: 32, write: writers0.write_matmul_q4_0_cooperative },
   "matmul/q4_1_prefill_tile128": { size: 32, write: writers0.write_matmul_q4_0_cooperative },
   "matmul/q4_0_prefill_tile128_bounded": { size: 32, write: writers0.write_matmul_q4_0_cooperative },
