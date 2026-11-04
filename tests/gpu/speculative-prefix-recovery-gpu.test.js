@@ -6,7 +6,7 @@ import { createTensor } from '../../src/gpu/tensor.js';
 import { createCommandRecorder } from '../../src/gpu/command-recorder.js';
 import { runLinearAttentionCoreGPU } from '../../src/gpu/kernels/linear-attention-core.js';
 import { createLinearAttentionRecovery } from '../../src/gpu/kernels/linear-attention-recovery.js';
-import { recordSpeculativeAcceptance, createSpeculativeRecoveryUniform, recordSpeculativeCarry } from '../../src/gpu/kernels/speculative-accept.js';
+import { recordSpeculativeAcceptance, recordSpeculativeAcceptanceFromGPU, createSpeculativeRecoveryUniform, recordSpeculativeCarry } from '../../src/gpu/kernels/speculative-accept.js';
 
 // Physical recovery evidence, not full MTP qualification: retained projection inputs,
 // GPU acceptance and recurrent-prefix recovery share one submission, with no full-logit readback.
@@ -44,9 +44,16 @@ try {
   // Arbitrary objects cannot authorize overwriting a uniform frame with a GPU count.
   const badRecorder = createCommandRecorder('forged_acceptance');
   assert.throws(() => createSpeculativeRecoveryUniform(badRecorder, { buffer: inputs[0].buffer, maxTokens: T }, new ArrayBuffer(64), T), /recorded acceptance/);
+  for (const cap of [null, undefined]) {
+    await assert.rejects(() => recordSpeculativeAcceptanceFromGPU(badRecorder, inputs[0].buffer, inputs[1].buffer, cap,
+      { draftCount: 3, outputLimit: 4, vocabSize: 200, outputBuffer: inputs[2].buffer }), /output cap/);
+  }
+  await assert.rejects(() => recordSpeculativeAcceptanceFromGPU(badRecorder, inputs[0].buffer, inputs[1].buffer, inputs[0].buffer,
+    { draftCount: 3, outputLimit: 4, vocabSize: 200, outputBuffer: inputs[2].buffer }), /must not alias/);
   await badRecorder.abort();
-  for (const register of [false, true]) {
-    for (const [mismatch, limit, invalid] of [[0,4,false], [1,4,false], [2,4,false], [3,4,false], [3,1,false], [3,2,false], [3,4,true]]) {
+  for (const register of [false, true]) for (const capSource of ['cpu', 'gpu']) {
+    const capCases = capSource === 'gpu' ? [[3,0,true], [3,5,true]] : [];
+    for (const [mismatch, limit, invalid] of [[0,4,false], [1,4,false], [2,4,false], [3,4,false], [3,1,false], [3,2,false], [3,4,true], ...capCases]) {
       const count = invalid ? 0 : Math.min(mismatch + 1, limit);
       const reference = makeState(), recovered = makeState();
       if (count > 0) {
@@ -62,11 +69,16 @@ try {
         const drafts = upload(new Uint32Array([10, 11, 12]));
         const targetIDs = [10, 11, 12, 13];
         if (mismatch < 3) targetIDs[mismatch] = 99;
-        if (invalid) targetIDs[3] = 200;
+        if (invalid && limit === 4) targetIDs[3] = 200;
         const result = acquireBuffer(36); owned.push(result);
-        const acceptance = await recordSpeculativeAcceptance(recorder, drafts, upload(new Uint32Array(targetIDs)), {
-          draftCount: 3, outputLimit: limit, vocabSize: 200, outputBuffer: result,
-        });
+        const targets = upload(new Uint32Array(targetIDs));
+        const acceptOptions = { draftCount: 3, outputLimit: capSource === 'gpu' ? 4 : limit, vocabSize: 200, outputBuffer: result };
+        let acceptance;
+        if (capSource === 'gpu') {
+          const cap = upload(new Uint32Array([99]));
+          recorder.getEncoder().copyBufferToBuffer(upload(new Uint32Array([limit])), 0, cap, 0, 4);
+          acceptance = await recordSpeculativeAcceptanceFromGPU(recorder, drafts, targets, cap, acceptOptions);
+        } else acceptance = await recordSpeculativeAcceptance(recorder, drafts, targets, acceptOptions);
         assert.equal(recovery.layerCount, 1);
         await recovery.recordRecover(recorder, acceptance);
         const hiddenRows = Float32Array.from({ length: T * 4 }, (_, i) => i - 5.5);
@@ -91,7 +103,7 @@ try {
           owned.push(continuation.buffer); next.push(await words(continuation.buffer, D));
         }
         assert.deepEqual(next[0], next[1], 'continuation differs');
-        cases.push({ register, mismatch, limit, invalid, recoveredTokens: count, exactStateAndContinuation: true });
+        cases.push({ capSource, register, mismatch, limit, invalid, recoveredTokens: count, exactStateAndContinuation: true });
       } finally {
         recovery.close();
         assert.throws(() => recovery.recordRestore(recorder), /live parent lease/);

@@ -525,4 +525,5 @@ export const UNIFORM_WRITERS = Object.freeze({
   "moe_grouped_down/native_f32": { size: 32, write: writers2.write_moe_grouped_gu_native_f32 },
   "moe_grouped_down/native_f32_ordered": { size: 32, write: writers2.write_moe_grouped_gu_native_f32 },
   "speculative_accept/greedy": { size: 16, write: writers2.write_speculative_accept_greedy },
+  "speculative_accept/greedy_gpu_limit": { size: 16, write: writers2.write_speculative_accept_greedy },
 });

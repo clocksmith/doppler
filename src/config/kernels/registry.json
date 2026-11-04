@@ -35387,6 +35387,46 @@
       "ruleChains": [],
       "wgslOnDisk": true
      }
+    },
+    "greedy_gpu_limit": {
+     "wgsl": "speculative_accept_gpu_limit.wgsl",
+     "entryPoint": "main",
+     "workgroup": [1,1,1],
+     "requires": [],
+     "outputDtype": "u32",
+     "bindings": [
+      {
+       "index": 0,
+       "name": "uniforms",
+       "type": "uniform"
+      },
+      {
+       "index": 1,
+       "name": "drafts",
+       "type": "read-only-storage"
+      },
+      {
+       "index": 2,
+       "name": "targets",
+       "type": "read-only-storage"
+      },
+      {
+       "index": 3,
+       "name": "result",
+       "type": "storage"
+      },
+      {
+       "index": 4,
+       "name": "output_cap",
+       "type": "read-only-storage"
+      }
+     ],
+     "reachability": {
+      "status": "unused",
+      "inlineConfigs": [],
+      "ruleChains": [],
+      "wgslOnDisk": true
+     }
     }
    }
   }

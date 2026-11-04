@@ -1,0 +1,36 @@
+--- a
++++ b
+@@ -1,5 +1,5 @@
+ // Greedy prefix verification of GPU-resident draft and target token IDs.
+-// Header: emitted count, accepted drafts, status (0 success, 1 invalid token), last input row, next token.
++// Header: emitted count, accepted drafts, status (0 success, 1 invalid token or output cap), last input row, next token.
+ struct SpeculativeAcceptParams {
+   draft_count: u32,
+   output_limit: u32,
+@@ -10,12 +10,14 @@
+ @group(0) @binding(1) var<storage, read> drafts: array<u32>;
+ @group(0) @binding(2) var<storage, read> targets: array<u32>;
+ @group(0) @binding(3) var<storage, read_write> result: array<u32>;
++@group(0) @binding(4) var<storage, read> cap: array<u32>;
+ 
+ @compute @workgroup_size(1, 1, 1)
+ fn main() {
+   result[0] = 0u;
+   result[1] = 0u;
+-  result[2] = 0u;
++  let output_limit = cap[0];
++  result[2] = select(0u, 1u, output_limit == 0u || output_limit > params.output_limit);
+   result[3] = 0u;
+   result[4] = 0u;
+   var accepted = 0u;
+@@ -30,8 +32,8 @@
+     }
+   }
+   if (result[2] == 0u) {
+-    result[0] = min(accepted + 1u, params.output_limit);
+-    result[1] = min(accepted, params.output_limit);
++    result[0] = min(accepted + 1u, output_limit);
++    result[1] = min(accepted, output_limit);
+     result[3] = result[0] - 1u;
+     result[4] = targets[result[3]];
+   }

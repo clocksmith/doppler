@@ -1,4 +1,10 @@
 export const WGSL_PATCH_VARIANTS = Object.freeze([
+  {
+    id: 'speculative-accept-gpu-limit',
+    source: 'src/gpu/kernels/speculative_accept.wgsl',
+    target: 'src/gpu/kernels/speculative_accept_gpu_limit.wgsl',
+    patch: 'src/gpu/kernels/codegen/patches/speculative_accept_gpu_limit.from.speculative_accept.diff',
+  },
   { id: 'matmul-f32-row-subgroup', source: 'src/gpu/kernels/matmul_gemv_f32_subgroup.wgsl', target: 'src/gpu/kernels/matmul_f32_row_subgroup.wgsl', patch: 'src/gpu/kernels/codegen/patches/matmul_f32_row_subgroup.from.matmul_gemv_f32_subgroup.diff' },
   { id: 'matmul-q5k-columns', source: 'src/gpu/kernels/matmul_q5k.wgsl', target: 'src/gpu/kernels/matmul_q5k_columns.wgsl', patch: 'src/gpu/kernels/codegen/patches/matmul_q5k_columns.from.matmul_q5k.diff' },
   { id: 'matmul-gguf-pair-columns', source: 'src/gpu/kernels/matmul_gguf_pair_f32.wgsl', target: 'src/gpu/kernels/matmul_gguf_pair_columns_f32.wgsl', patch: 'src/gpu/kernels/codegen/patches/matmul_gguf_pair_columns_f32.from.matmul_gguf_pair_f32.diff' },

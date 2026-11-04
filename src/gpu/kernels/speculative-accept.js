@@ -12,8 +12,11 @@ function requireBuffer(buffer, size, usage, label) {
   }
 }
 
-/** @type {import('./speculative-accept.js').recordSpeculativeAcceptance} */
-export async function recordSpeculativeAcceptance(recorder, drafts, targets, options) {
+/** @param {import('../command-recorder.js').CommandRecorder} recorder
+ * @param {GPUBuffer} drafts @param {GPUBuffer} targets
+ * @param {import('./speculative-accept.js').SpeculativeAcceptanceOptions} options
+ * @param {GPUBuffer | null} outputCap */
+async function recordAcceptance(recorder, drafts, targets, options, outputCap) {
   const { draftCount, outputLimit, vocabSize, outputBuffer } = options;
   const maxTokens = draftCount + 1;
   if (!Number.isSafeInteger(draftCount) || draftCount < 1 || draftCount >= 0xffffffff
@@ -27,12 +30,28 @@ export async function recordSpeculativeAcceptance(recorder, drafts, targets, opt
   if (outputBuffer === drafts || outputBuffer === targets) {
     throw new Error('[Speculative acceptance] Result must not alias either input.');
   }
-  await unifiedKernelWrapper('speculative_accept', recorder, 'greedy', [drafts, targets, outputBuffer], {
+  if (outputCap !== null) {
+    if ([drafts, targets, outputBuffer].includes(outputCap)) throw new Error('[Speculative acceptance] Output cap must not alias inputs or result.');
+  }
+  const bindings = [drafts, targets, outputBuffer];
+  if (outputCap !== null) bindings.push(outputCap);
+  await unifiedKernelWrapper('speculative_accept', recorder, outputCap === null ? 'greedy' : 'greedy_gpu_limit', bindings, {
     draft_count: draftCount, output_limit: outputLimit, vocab_size: vocabSize, _pad: 0,
   }, [1, 1, 1]);
   const result = Object.freeze({ buffer: outputBuffer, maxTokens });
   recordedAcceptances.set(result, { device: recorder.device, buffer: outputBuffer, maxTokens });
   return result;
+}
+
+/** @type {import('./speculative-accept.js').recordSpeculativeAcceptance} */
+export function recordSpeculativeAcceptance(recorder, drafts, targets, options) {
+  return recordAcceptance(recorder, drafts, targets, options, null);
+}
+
+/** @type {import('./speculative-accept.js').recordSpeculativeAcceptanceFromGPU} */
+export async function recordSpeculativeAcceptanceFromGPU(recorder, drafts, targets, outputCap, options) {
+  requireBuffer(outputCap, 4, GPUBufferUsage.STORAGE, 'output cap');
+  return recordAcceptance(recorder, drafts, targets, options, outputCap);
 }
 
 /**

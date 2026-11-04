@@ -16,6 +16,13 @@ export interface SpeculativeAcceptanceOptions {
 export function recordSpeculativeAcceptance(
   recorder: CommandRecorder, drafts: GPUBuffer, targets: GPUBuffer, options: SpeculativeAcceptanceOptions
 ): Promise<SpeculativeAcceptance>;
+/** GPU-resident cap must be in [1, outputLimit]; an invalid cap yields failed status and zero updates.
+ * Enables a captured window to retain its dispatch geometry for final-token or prefix recovery limits.
+ */
+export function recordSpeculativeAcceptanceFromGPU(
+  recorder: CommandRecorder, drafts: GPUBuffer, targets: GPUBuffer, outputCap: GPUBuffer,
+  options: SpeculativeAcceptanceOptions
+): Promise<SpeculativeAcceptance>;
 /** Only accepts an unforgeable receipt from recordSpeculativeAcceptance on this device. */
 export function createSpeculativeRecoveryUniform(
   recorder: CommandRecorder, acceptance: SpeculativeAcceptance, payload: ArrayBuffer, maxTokens: number

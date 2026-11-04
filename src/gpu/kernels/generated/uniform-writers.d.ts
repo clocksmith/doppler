@@ -525,5 +525,6 @@ export interface KernelUniformValues {
   "moe_grouped_down/native_f32": Parameters<typeof writers2.write_moe_grouped_gu_native_f32>[1];
   "moe_grouped_down/native_f32_ordered": Parameters<typeof writers2.write_moe_grouped_gu_native_f32>[1];
   "speculative_accept/greedy": Parameters<typeof writers2.write_speculative_accept_greedy>[1];
+  "speculative_accept/greedy_gpu_limit": Parameters<typeof writers2.write_speculative_accept_greedy>[1];
 }
 export declare const UNIFORM_WRITERS: { readonly [K in keyof KernelUniformValues]: { readonly size: number; readonly write: (view: DataView, values: KernelUniformValues[K], kernel: string) => void } };
