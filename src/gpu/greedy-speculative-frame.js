@@ -7,6 +7,7 @@ import { recordArgmax } from './kernels/sample.js';
 import { recordCheckFinitenessF32 } from './kernels/check-finiteness-f32.js';
 import { createLinearAttentionRecovery } from './kernels/linear-attention-recovery.js';
 import { recordSpeculativeAcceptance, recordSpeculativeCarry } from './kernels/speculative-accept.js';
+import { isGpuBufferInstance } from './weight-buffer.js';
 
 const owners = new WeakSet();
 /** @typedef {import('./command-recorder.js').CommandRecorder} CommandRecorder */
@@ -60,6 +61,13 @@ export async function createGreedySpeculativeSession(options) {
     throw new Error('Greedy frame requires an exclusive owner and bounded declared F32 geometry, seed and limits.');
   }
   assertRows(options.initialHidden, 1, H);
+  if (!Array.isArray(options.refillShapes) || options.refillShapes.length < 1 || options.refillShapes.length > D + 1
+    || options.refillShapes.some(shape => !shape || !Number.isSafeInteger(shape.rows) || shape.rows < 1 || shape.rows > D + 1
+      || !Number.isSafeInteger(shape.width) || shape.width < 1 || !Number.isSafeInteger(shape.rows * shape.width * 4)
+      || shape.rows * shape.width * 4 > device.limits.maxStorageBufferBindingSize)) {
+    throw new Error('Greedy frame requires bounded declared auxiliary refill tensor shapes.');
+  }
+  const refillShapes = options.refillShapes.map(({ rows, width }) => Object.freeze({ rows, width }));
   const workspace = options.usePreparedDecodeWorkspace ? new PreparedDecodeWorkspace(device) : null;
   owners.add(owner);
   let carryHidden, carryToken, busy = false, disposed = false, poisoned = false;
@@ -119,11 +127,14 @@ export async function createGreedySpeculativeSession(options) {
         catch (error) { poisoned = true; throw error; }
         finally { busy = false; }
       };
+      /** @param {Tensor} value */
+      const take = value => {
+        if (isGpuBufferInstance(value?.buffer) && value.buffer !== hidden && value.buffer !== token) recorder.trackTemporaryBuffer(value.buffer);
+      };
       /** @param {Tensor} value @param {number} rows @param {number} width */
       const check = async (value, rows, width) => {
-        assertRows(value, rows, width);
+        take(value); assertRows(value, rows, width);
         if (value.buffer === hidden || value.buffer === token) throw new Error('Frame outputs must not transfer borrowed carry storage.');
-        recorder.trackTemporaryBuffer(value.buffer);
         await recordCheckFinitenessF32(recorder, value.buffer, rows * width, status, 0, 0, options.finitenessAbsThreshold);
       };
       /** @param {Tensor} logits @param {number} rows @param {GPUBuffer} output */
@@ -144,6 +155,7 @@ export async function createGreedySpeculativeSession(options) {
         for (let index = 0; index < D; index++) {
           signal?.throwIfAborted();
           const row = await program.recordDraft(recorder, index ? drafts : token, index ? index - 1 : 0, previous, index);
+          take(row.hidden); take(row.logits);
           await check(row.hidden, 1, H); await check(row.logits, 1, DV);
           await recordArgmax(recorder, row.logits.buffer, DV, { padTokenId: options.padTokenId,
             logitSoftcap: 0, logitsDtype: 'f32', outputBuffer: drafts, outputIndex: index });
@@ -152,6 +164,7 @@ export async function createGreedySpeculativeSession(options) {
         const inputEncoder = recorder.getEncoder();
         inputEncoder.copyBufferToBuffer(token, 0, inputs, 0, 4); inputEncoder.copyBufferToBuffer(drafts, 0, inputs, 4, D * 4);
         const result = await program.recordTarget(recorder, inputs, D + 1);
+        take(result.hidden); take(result.logits);
         await check(result.hidden, D + 1, H); await check(result.logits, D + 1, V);
         targetHidden = result.hidden; await select(result.logits, D + 1, targets);
         const acceptance = await recordSpeculativeAcceptance(recorder, drafts, targets, {
@@ -159,8 +172,9 @@ export async function createGreedySpeculativeSession(options) {
         });
         await recovery.recordRecover(recorder, acceptance);
         const refill = await program.recordRefill(recorder, result.hidden, targets);
-        if (!Array.isArray(refill) || refill.length !== D + 1) throw new Error('Greedy frame requires every auxiliary refill row.');
-        for (const row of refill) await check(row, 1, H);
+        if (Array.isArray(refill)) for (const row of refill) take(row);
+        if (!Array.isArray(refill) || refill.length !== refillShapes.length) throw new Error('Greedy frame requires every declared auxiliary refill tensor.');
+        for (let i = 0; i < refill.length; i++) await check(refill[i], refillShapes[i].rows, refillShapes[i].width);
         await recordSpeculativeCarry(recorder, acceptance, result.hidden, H, hidden, token);
         const feedbackEncoder = recorder.getEncoder();
         feedbackEncoder.copyBufferToBuffer(compact, 0, staging, 0, compactBytes);
