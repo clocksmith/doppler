@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import { setDevice } from '../../src/gpu/device.js';
 import { destroyBufferPool, isBufferActive } from '../../src/memory/buffer-pool.js';
 import { verifySpeculativeTokens } from '../../src/inference/pipelines/text/generator/speculative-runtime.js';
+import { createLinearAttentionCheckpoint } from '../../src/inference/pipelines/text/linear-attention/state-checkpoint.js';
 const savedBuffer = globalThis.GPUBuffer, savedUsage = globalThis.GPUBufferUsage;
 globalThis.GPUBuffer = class GPUBuffer { constructor(size) { this.size = size; this.bytes = new Uint8Array(size); } destroy() {} };
 globalThis.GPUBufferUsage = { STORAGE:128, COPY_SRC:4, COPY_DST:8 };
@@ -12,6 +13,39 @@ const device = { createBindGroup() { return {}; }, features: new Set(), limits:{
  queue: { submit(commands) { for(const command of commands) for(const op of command) op(); }, async onSubmittedWorkDone() {} } };
 setDevice(device,{platformConfig:null});
 try {
+ {
+  const layer={convStateGPU:new GPUBuffer(4),recurrentStateGPU:new GPUBuffer(4),seqLen:2,warnedSeqMismatch:false};
+  layer.convStateGPU.bytes.fill(7);layer.recurrentStateGPU.bytes.fill(9);
+  const runtime={layers:new Map([[0,layer]])},checkpoint=createLinearAttentionCheckpoint(runtime);
+  assert.throws(()=>checkpoint.recordRestore(device.createCommandEncoder()),/no recorded capture/);
+  const allocations=allocated.length;
+  for(const value of [11,23]) {
+   layer.seqLen=value;layer.convStateGPU.bytes.fill(value);layer.recurrentStateGPU.bytes.fill(value+1);
+   const encoder=device.createCommandEncoder();checkpoint.recordCapture(encoder);
+   const changed=new GPUBuffer(4);changed.bytes.fill(99);
+   encoder.copyBufferToBuffer(changed,0,layer.convStateGPU,0,4);
+   encoder.copyBufferToBuffer(changed,0,layer.recurrentStateGPU,0,4);
+   assert.equal(layer.convStateGPU.bytes[0],value,'recording cannot submit tentative commands');
+   device.queue.submit([encoder.finish()]);layer.seqLen=100;layer.warnedSeqMismatch=true;
+   const restore=device.createCommandEncoder();checkpoint.recordRestore(restore);
+   assert.equal(layer.convStateGPU.bytes[0],99,'restoration remains in the owner encoder');
+   device.queue.submit([restore.finish()]);
+   assert.deepEqual([...layer.convStateGPU.bytes],[value,value,value,value]);
+   assert.deepEqual([...layer.recurrentStateGPU.bytes],[value+1,value+1,value+1,value+1]);
+   assert.equal(layer.seqLen,value);assert.equal(allocated.length,allocations,'repeated captures reuse their lease');
+  }
+  const original=layer.convStateGPU;layer.convStateGPU=new GPUBuffer(4);
+  assert.throws(()=>checkpoint.recordRestore(device.createCommandEncoder()),/resources changed/);layer.convStateGPU=original;
+  assert.throws(()=>checkpoint.recordCapture({copyBufferToBuffer(){throw new Error('recording failed');}}),/recording failed/);
+  assert.throws(()=>checkpoint.recordRestore(device.createCommandEncoder()),/no recorded capture/);
+  checkpoint.close();checkpoint.close();assert.throws(()=>checkpoint.recordCapture(device.createCommandEncoder()),/closed/);
+  const createBuffer=device.createBuffer;let allocationsBeforeFailure=0;
+  device.createBuffer=function(descriptor){if(++allocationsBeforeFailure===2)throw new Error('allocation failed');return createBuffer(descriptor);};
+  try {
+   assert.throws(()=>createLinearAttentionCheckpoint({layers:new Map([[0,{...layer,convStateGPU:new GPUBuffer(32768),recurrentStateGPU:new GPUBuffer(65536)}]])}),/allocation failed/);
+  }finally{device.createBuffer=createBuffer;}
+  assert(allocated.every(buffer=>!isBufferActive(buffer)),'partial checkpoint construction releases its buffers');
+ }
  for(const failure of ['none','verification','replay','cancel']) {
   const layer={convStateGPU:new GPUBuffer(4),recurrentStateGPU:new GPUBuffer(4),seqLen:2,warnedSeqMismatch:false};
   layer.convStateGPU.bytes.fill(7); layer.recurrentStateGPU.bytes.fill(9);

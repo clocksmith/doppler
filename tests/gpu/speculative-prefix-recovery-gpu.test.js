@@ -7,6 +7,7 @@ import { createCommandRecorder } from '../../src/gpu/command-recorder.js';
 import { runLinearAttentionCoreGPU } from '../../src/gpu/kernels/linear-attention-core.js';
 import { createLinearAttentionRecovery } from '../../src/gpu/kernels/linear-attention-recovery.js';
 import { recordSpeculativeAcceptance, recordSpeculativeAcceptanceFromGPU, createSpeculativeRecoveryUniform, recordSpeculativeCarry } from '../../src/gpu/kernels/speculative-accept.js';
+import { createLinearAttentionCheckpoint, queueLinearAttentionCheckpoint } from '../../src/inference/pipelines/text/linear-attention/state-checkpoint.js';
 
 // Physical recovery evidence, not full MTP qualification: retained projection inputs,
 // GPU acceptance and recurrent-prefix recovery share one submission, with no full-logit readback.
@@ -51,7 +52,7 @@ try {
   await assert.rejects(() => recordSpeculativeAcceptanceFromGPU(badRecorder, inputs[0].buffer, inputs[1].buffer, inputs[0].buffer,
     { draftCount: 3, outputLimit: 4, vocabSize: 200, outputBuffer: inputs[2].buffer }), /must not alias/);
   await badRecorder.abort();
-  for (const register of [false, true]) for (const capSource of ['cpu', 'gpu']) {
+  for (const checkpointMode of ['recorded', 'queued']) for (const register of [false, true]) for (const capSource of ['cpu', 'gpu']) {
     const capCases = capSource === 'gpu' ? [[3,0,true], [3,5,true]] : [];
     for (const [mismatch, limit, invalid] of [[0,4,false], [1,4,false], [2,4,false], [3,4,false], [3,1,false], [3,2,false], [3,4,true], ...capCases]) {
       const count = invalid ? 0 : Math.min(mismatch + 1, limit);
@@ -61,6 +62,18 @@ try {
         owned.push(output.buffer);
       }
       const recorder = createCommandRecorder('speculative_prefix_recovery');
+      recovered.seqLen = 0; recovered.warnedSeqMismatch = false;
+      const runtime = { layers: new Map([[0, recovered]]) };
+      let checkpoint;
+      if (checkpointMode === 'queued') {
+        let waits = 0; const original = device.queue.onSubmittedWorkDone;
+        device.queue.onSubmittedWorkDone = function(...args) { waits++; return original.apply(this, args); };
+        try { checkpoint = await queueLinearAttentionCheckpoint(runtime); assert.equal(waits, 0); }
+        finally { device.queue.onSubmittedWorkDone = original; }
+      } else {
+        checkpoint = createLinearAttentionCheckpoint(runtime);
+        checkpoint.recordCapture(recorder.getEncoder());
+      }
       const recovery = createLinearAttentionRecovery(recorder, T);
       let submitted = false;
       try {
@@ -103,11 +116,23 @@ try {
           owned.push(continuation.buffer); next.push(await words(continuation.buffer, D));
         }
         assert.deepEqual(next[0], next[1], 'continuation differs');
-        cases.push({ capSource, register, mismatch, limit, invalid, recoveredTokens: count, exactStateAndContinuation: true });
+        const restore = createCommandRecorder('recorded_checkpoint_restore');
+        try {
+          recovered.seqLen = count + 1; recovered.warnedSeqMismatch = true;
+          if (checkpointMode === 'queued') await checkpoint.restore();
+          else { checkpoint.recordRestore(restore.getEncoder()); await restore.submitAndWait(); }
+          assert.equal(recovered.seqLen, 0); assert.equal(recovered.warnedSeqMismatch, false);
+          assert.deepEqual(await words(recovered.convStateGPU, C * window), new Uint32Array(initial.convState.buffer));
+          assert.deepEqual(await words(recovered.recurrentStateGPU, NV * K * V), new Uint32Array(initial.state.buffer));
+        } finally { await restore.abort(); }
+        cases.push({ checkpointMode, capSource, register, mismatch, limit, invalid, recoveredTokens: count, exactStateAndContinuation: true });
       } finally {
         recovery.close();
         assert.throws(() => recovery.recordRestore(recorder), /live parent lease/);
         if (submitted) await recorder.completeDeferredCleanup(); else await recorder.abort();
+        try { await device.queue.onSubmittedWorkDone(); }
+        catch (error) { checkpoint.close(true); throw error; }
+        finally { checkpoint.close(); }
       }
     }
   }
