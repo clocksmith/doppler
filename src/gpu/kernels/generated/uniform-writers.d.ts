@@ -148,6 +148,9 @@ export interface KernelUniformValues {
   "matmul/q6k_pair_columns_wg128_rows1": Parameters<typeof writers0.write_matmul_q4_0_cooperative>[1];
   "matmul/q4_1_block_columns_single": Parameters<typeof writers0.write_matmul_q4_0_cooperative>[1];
   "matmul/q4_1_block_columns": Parameters<typeof writers0.write_matmul_q4_0_cooperative>[1];
+  "matmul/q4_0_pair_columns_hoisted": Parameters<typeof writers0.write_matmul_q4_0_cooperative>[1];
+  "matmul/q8_0_pair_columns_hoisted": Parameters<typeof writers0.write_matmul_q4_0_cooperative>[1];
+  "matmul/q6k_pair_columns_hoisted": Parameters<typeof writers0.write_matmul_q4_0_cooperative>[1];
   "matmul/q5k_cooperative": Parameters<typeof writers0.write_matmul_q4_0_cooperative>[1];
   "matmul/q5k_cooperative_columns": Parameters<typeof writers0.write_matmul_q4_0_cooperative>[1];
   "fused_ffn/default": Parameters<typeof writers0.write_fused_ffn_default>[1];

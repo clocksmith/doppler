@@ -291,6 +291,8 @@ export const KERNEL_REF_CONTENT_DIGESTS = Object.freeze({
   "matmul_gemv_subgroup.wgsl#main_multicol": "e41f94574d5ac54dd2710036da5d5acc643a483b79b2d74b86825efdaaa7438f",
   "matmul_gemv_subgroup.wgsl#main_vec4": "2ea9aea659367210fbf61d922c0d4ee17cdac68ffb506b3bc5516e498071e011",
   "matmul_gemv.wgsl#main": "dc892efc87edc6d5ddaf191b86c1cc41a603352a332023aa0b1fe55d166673d0",
+  "matmul_gguf_columns_hoisted_f32.wgsl#main": "6801462a5a7439da28dd51cf0aa86777786176f2d9a9abe277ccc441d6eb6b13",
+  "matmul_gguf_columns_hoisted_f32.wgsl#main_q6k": "36ec3113cc5e204a02ca4c04ac5d94cc9df102601d259aab381751ad8bb4d53a",
   "matmul_gguf_pair_columns_f32.wgsl#main": "48f9e9cd529e299feb223224886fbe50843fc0a43d44b2bf8051bae6f15dd519",
   "matmul_gguf_pair_columns_f32.wgsl#main_q6k": "ace1474ba95c26ea9e2694202c47c7247bbdc691483190afc480898e094e558c",
   "matmul_gguf_pair_f32.wgsl#main": "66f6c5fbd55400a3a84833478dadc217fbe81bac8b13787b3db687823c88617f",

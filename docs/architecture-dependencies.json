@@ -4505,6 +4505,7 @@
         "tests/gpu/gated-delta-conv-grid-gpu.test.js",
         "tests/gpu/gather-contract.test.js",
         "tests/gpu/gather-dispatch.test.js",
+        "tests/gpu/gguf-column-wave-fold-gpu.test.js",
         "tests/gpu/gguf-linear-attention-gpu.test.js",
         "tests/gpu/gguf-linear-attention-register-decode-gpu.test.js",
         "tests/gpu/greedy-speculative-frame-gpu.test.js",

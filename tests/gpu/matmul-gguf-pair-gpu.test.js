@@ -50,8 +50,8 @@ try {
       const expected = projectReference(values.subarray(bank * K), decoded.subarray(bank * N * K), M, N, K);
       for (const mode of ['immediate', 'recorded']) {
         let baselineBits = null;
-        for (const variant of dtype === 'q4_0' ? ['q4_0_pair', 'q4_0_pair_rows2', 'q4_0_pair_rows4', 'q4_0_pair_columns', 'q4_0_pair_columns_rows4']
-          : dtype === 'q8_0' ? ['q8_0_pair', 'q8_0_pair_columns', 'q8_0_pair_columns_rows4'] : ['q6k_pair', 'q6k_pair_columns', 'q6k_pair_columns_wg128_rows1']) {
+        for (const variant of dtype === 'q4_0' ? ['q4_0_pair', 'q4_0_pair_rows2', 'q4_0_pair_rows4', 'q4_0_pair_columns', 'q4_0_pair_columns_rows4', 'q4_0_pair_columns_hoisted']
+          : dtype === 'q8_0' ? ['q8_0_pair', 'q8_0_pair_columns', 'q8_0_pair_columns_rows4', 'q8_0_pair_columns_hoisted'] : ['q6k_pair', 'q6k_pair_columns', 'q6k_pair_columns_wg128_rows1', 'q6k_pair_columns_hoisted']) {
           const recorder = mode === 'recorded' ? createCommandRecorder('matmul_gguf_pair') : null;
           const prefix = bank * 4;
           const output = upload(new Float32Array(M * N + 16).fill(-12345));

@@ -237,4 +237,10 @@ export const WGSL_PATCH_VARIANTS = Object.freeze([
     target: 'src/gpu/kernels/matmul_q4_1_columns_f32.wgsl',
     patch: 'src/gpu/kernels/codegen/patches/matmul_q4_1_columns_f32.from.matmul_gguf_pair_f32.diff',
   },
+  {
+    id: 'matmul-gguf-columns-hoisted-f32',
+    source: 'src/gpu/kernels/matmul_gguf_pair_f32.wgsl',
+    target: 'src/gpu/kernels/matmul_gguf_columns_hoisted_f32.wgsl',
+    patch: 'src/gpu/kernels/codegen/patches/matmul_gguf_columns_hoisted_f32.from.matmul_gguf_pair_f32.diff',
+  },
 ]);

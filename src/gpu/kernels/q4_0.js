@@ -85,7 +85,8 @@ async function execute(recorder, input, weights, M, N, K, options) {
     }
     const columns = geometry === 'pair-columns' ? positiveOverride(config.wgslOverrides, 'COLS') : 1;
     if (geometry === 'pair-columns' && (![0, 2, 3].includes(format.code) || columns > 4
-      || width * columns * 16 > device.limits.maxComputeWorkgroupStorageSize)) {
+      || typeof config.sharedMemory !== 'number' || !Number.isSafeInteger(config.sharedMemory) || config.sharedMemory <= 0
+      || config.sharedMemory > device.limits.maxComputeWorkgroupStorageSize)) {
       throw new Error('Pair GEMV columns require Q4_0/Q8_0/Q6_K and supported declared workgroup storage.');
     }
     count = Math.ceil(N / rows) * Math.ceil(M / columns);
