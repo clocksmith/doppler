@@ -31,6 +31,8 @@ export interface GreedyFrameTransaction {
 export interface GreedySpeculativeSession {
   /** Borrowed until dispose. Owner must keep these resident through compiled replay and settlement. */
   readonly carry: { readonly hidden: Tensor; readonly token: GPUBuffer };
+  /** New conversation seed on the same owned allocations, only after all transactions settle. */
+  reset(initialHidden: Tensor, initialToken: number): Promise<void>;
   begin(program: GreedyFrameProgram, outputLimit: number, signal?: AbortSignal,
     recording?: GreedyFrameRecording | null): Promise<GreedyFrameTransaction>;
   dispose(): Promise<void>;

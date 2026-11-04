@@ -120,6 +120,7 @@ try {
     try{
       for(let i=0;i<4;i++){
         const transaction=await controller.begin(program,pos,4);
+        await assert.rejects(controller.beginGeneration(initial,7),/live idle/);
         for(const token of transaction.tokens){assert.ok(token<V);transaction.publish();}
         await transaction.settle();pos+=transaction.tokens.length;
         const out=await runLinearAttentionCoreGPU(...inputs,reference,core(register));owned.push(out.buffer);
@@ -152,6 +153,29 @@ try {
         pos+=delivered;assert.equal(actual.seqLen,pos);
         cases.push({controller:true,register,scenario,delivered,exactState:true});
       }
+      // A new conversation retains bindings, but must verify a dry-recorded frame
+      // before replay. Verification must not submit tentative model updates.
+      const before=await bits(actual.recurrentStateGPU);
+      const submit=device.queue.submit;let submits=0;
+      device.queue.submit=function(commands){submits++;return submit.call(this,commands);};
+      try{
+        await controller.beginGeneration(initial,7);assert.equal(submits,1,'Only carry initialization submits');
+        const transaction=await controller.begin(program,pos,4);
+        try{
+          assert.equal(controller.stats.verifiedAhead,true);assert.equal(controller.stats.reused,true);
+          assert.equal(submits,2,'Dry verification does not submit the layer computation');
+        }finally{await transaction.settle();}
+        assert.deepEqual(await bits(actual.recurrentStateGPU),before,'Zero publication restores new generation state');
+        assert.deepEqual(Array.from(await bits(session.carry.token)).slice(0,1),[7]);
+        cases.push({controller:true,register,scenario:'verified-generation-reuse',exactState:true});
+      }finally{device.queue.submit=submit;}
+      // A changed execution identity invalidates reuse before any cached commands run.
+      identity[0]={};
+      await controller.beginGeneration(initial,7);
+      const changed=await controller.begin(program,pos,4);
+      try{assert.equal(controller.ready,false);assert.equal(controller.stats.reused,false);}
+      finally{await changed.settle();}
+      cases.push({controller:true,register,scenario:'changed-plan-reobserved',exactState:true});
     }finally{device.createBuffer=create;await controller.dispose();await controller.dispose();await session.dispose();}
   }
   assert.deepEqual(errors,[]);

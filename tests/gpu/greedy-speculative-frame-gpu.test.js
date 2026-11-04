@@ -56,6 +56,9 @@ try {
     await assert.rejects(() => createGreedySpeculativeSession({ ...sessionOptions({}), refillShapes }), /refill tensor shapes/);
   }
   const allocationSession = await createGreedySpeculativeSession(sessionOptions({}));
+  await assert.rejects(() => allocationSession.reset(allocationSession.carry.hidden, 7), /alias/);
+  await assert.rejects(() => allocationSession.reset(initialHidden, V), /valid seed/);
+  await allocationSession.reset(initialHidden, 7);
   const createBuffer = device.createBuffer, allocated = [], destroyed = new Set();
   device.createBuffer = function (descriptor) {
     if (descriptor.label?.includes('greedy_speculative_frame_feedback')) throw new Error('injected frame allocation failure');
@@ -66,6 +69,14 @@ try {
     await assert.rejects(() => allocationSession.begin({ recordDraft() {}, recordTarget() {}, recordRefill() {}, setPrefix() {} }, 4), /allocation failure/);
     assert.ok(allocated.length > 0); assert.equal(destroyed.size, allocated.length);
   } finally { device.createBuffer = createBuffer; await allocationSession.dispose(); }
+  const failedSeedSession = await createGreedySpeculativeSession(sessionOptions({}));
+  const queueSubmit = device.queue.submit;
+  try {
+    device.queue.submit = () => { throw new Error('injected seed submission failure'); };
+    await assert.rejects(() => failedSeedSession.reset(initialHidden, 7), /injected seed/);
+  } finally { device.queue.submit = queueSubmit; }
+  await assert.rejects(() => failedSeedSession.reset(initialHidden, 7), /idle live session/);
+  await failedSeedSession.dispose();
   for (refillKind of ['hidden', 'kv']) for (draftVocabSize of [16, V]) for (const register of [false, true]) {
     for (const spec of [
       { name: 'all', published: 4 }, { name: 'none', published: 0 }, { name: 'partial1', published: 1 },
@@ -139,6 +150,7 @@ try {
           const transaction = await session.begin(program, spec.limit ?? 4, controller.signal);
           submissionCount = lastRecorder.getStats().submissionCount; assert.equal(submissionCount, 1);
           await assert.rejects(() => session.begin(program, 4), /idle live session/);
+          await assert.rejects(() => session.reset(initialHidden, 7), /idle live session/);
           await assert.rejects(() => session.dispose(), /Settle/);
           const expected = Math.min((spec.mismatch ?? 3) + 1, spec.limit ?? 4);
           assert.deepEqual(transaction.tokens, ids.slice(0, expected));

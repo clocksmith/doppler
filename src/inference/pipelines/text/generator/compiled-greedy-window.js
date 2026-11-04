@@ -38,6 +38,15 @@ export function createCompiledGreedyWindow(options) {
   const controller={
     get ready(){return compiled.ready;},
     get stats(){return {...compiled.stats,privateBytes:compiled.privateBytes};},
+    async beginGeneration(initialHidden, initialToken){
+      if(closed || poisoned || busy)throw new Error('Starting a generation requires a live idle compiled controller.');
+      busy=true;
+      try{
+        await session.reset(initialHidden,initialToken);
+        if(compiled.ready)compiled.beginGeneration();else compiled.invalidate('new generation has no compiled window');
+      }catch(error){poisoned=true;throw error;}
+      finally{busy=false;}
+    },
     async begin(program,position,outputLimit,signal){
       if(closed || poisoned || busy || !Number.isSafeInteger(position) || position<0
         || !Number.isSafeInteger(outputLimit) || outputLimit<1 || outputLimit>D+1
@@ -50,6 +59,11 @@ export function createCompiledGreedyWindow(options) {
       busy=true;
       try{
         uploadData(limitBuffer,new Uint32Array([outputLimit]));
+        if(compiled.awaitingVerification){
+          const stop=Object.freeze({owner:'compiled greedy verification before submission'});
+          await compiled.verifyAhead(position,0,attach=>session.begin(program,D+1,signal,{outputLimitBuffer:limitBuffer,
+            observe(recorder){attach(recorder);recorder.submit=()=>{throw stop;};}}),options.identityOf,options.positionLimits,stop);
+        }
         if(compiled.ready){const reason=compiled.rejects(position,identity);if(reason)compiled.invalidate(reason);}
       }catch(error){busy=false;throw error;}
       if(!compiled.ready){

@@ -23,6 +23,16 @@ function assertRows(tensor, rows, width) {
   }
 }
 
+/** @param {GPUBuffer} hidden @param {GPUBuffer} token @param {Tensor} initialHidden @param {number} initialToken @param {number} hiddenSize */
+async function seedCarry(hidden, token, initialHidden, initialToken, hiddenSize) {
+  const recorder = createCommandRecorder('greedy_frame_initialize');
+  try {
+    uploadData(token, new Uint32Array([initialToken]));
+    recorder.getEncoder().copyBufferToBuffer(initialHidden.buffer, 0, hidden, 0, hiddenSize * 4);
+    await recorder.submitAndWait();
+  } finally { await recorder.abort(); }
+}
+
 /** Allocate one recorder-owned lease; unwind partial allocation before returning.
  * @param {number} depth @param {number} hiddenSize @param {PreparedDecodeWorkspace | null} workspace
  * @param {import('./greedy-speculative-frame.js').GreedyFrameRecording | null} recording */
@@ -77,12 +87,7 @@ export async function createGreedySpeculativeSession(options) {
   let carryHidden, carryToken, busy = false, disposed = false, poisoned = false;
   try {
     carryHidden = acquireBuffer(H * 4); carryToken = acquireBuffer(4);
-    uploadData(carryToken, new Uint32Array([options.initialToken]));
-    const recorder = createCommandRecorder('greedy_frame_initialize');
-    try {
-      recorder.getEncoder().copyBufferToBuffer(options.initialHidden.buffer, 0, carryHidden, 0, H * 4);
-      await recorder.submitAndWait();
-    } finally { await recorder.abort(); }
+    await seedCarry(carryHidden, carryToken, options.initialHidden, options.initialToken, H);
   } catch (error) {
     if (carryHidden) releaseBuffer(carryHidden);
     if (carryToken) releaseBuffer(carryToken);
@@ -92,6 +97,17 @@ export async function createGreedySpeculativeSession(options) {
   /** @type {import('./greedy-speculative-frame.js').GreedySpeculativeSession} */
   const session = {
     carry: Object.freeze({ hidden: createTensor(hidden, 'f32', [1, H]), token }),
+    async reset(initialHidden, initialToken) {
+      if (disposed || poisoned || busy || !Number.isSafeInteger(initialToken) || initialToken < 0 || initialToken >= V) {
+        throw new Error('Resetting greedy carry requires an idle live session and valid seed.');
+      }
+      assertRows(initialHidden, 1, H);
+      if (initialHidden.buffer === hidden || initialHidden.buffer === token) throw new Error('A new greedy seed must not alias its destination carry.');
+      busy = true;
+      try { await seedCarry(hidden, token, initialHidden, initialToken, H); }
+      catch (error) { poisoned = true; throw error; }
+      finally { busy = false; }
+    },
     async begin(program, outputLimit, signal, recording = null) {
       if (disposed || poisoned || busy || !Number.isSafeInteger(outputLimit) || outputLimit < 1 || outputLimit > D + 1
         || typeof program?.recordDraft !== 'function' || typeof program.recordTarget !== 'function'
