@@ -1,0 +1,55 @@
+--- a/src/gpu/kernels/matmul_q4_0_tile128.wgsl
++++ b/src/gpu/kernels/matmul_q4_0_tile128.wgsl
+@@ -239,27 +239,31 @@
+             }
+         }
+         workgroupBarrier();
+-        for (var k = 0u; k < STAGE; k++) {
+-            let w0 = w_tile[k * 32u + row_group * 2u + 0u];
+-            let w1 = w_tile[k * 32u + row_group * 2u + 1u];
+-            let x0 = x_tile[k * 32u + token_group * 2u + 0u];
+-            let x1 = x_tile[k * 32u + token_group * 2u + 1u];
+-            acc0_0 = fma(w0, vec4<f32>(x0.x), acc0_0);
+-            acc0_1 = fma(w1, vec4<f32>(x0.x), acc0_1);
+-            acc1_0 = fma(w0, vec4<f32>(x0.y), acc1_0);
+-            acc1_1 = fma(w1, vec4<f32>(x0.y), acc1_1);
+-            acc2_0 = fma(w0, vec4<f32>(x0.z), acc2_0);
+-            acc2_1 = fma(w1, vec4<f32>(x0.z), acc2_1);
+-            acc3_0 = fma(w0, vec4<f32>(x0.w), acc3_0);
+-            acc3_1 = fma(w1, vec4<f32>(x0.w), acc3_1);
+-            acc4_0 = fma(w0, vec4<f32>(x1.x), acc4_0);
+-            acc4_1 = fma(w1, vec4<f32>(x1.x), acc4_1);
+-            acc5_0 = fma(w0, vec4<f32>(x1.y), acc5_0);
+-            acc5_1 = fma(w1, vec4<f32>(x1.y), acc5_1);
+-            acc6_0 = fma(w0, vec4<f32>(x1.z), acc6_0);
+-            acc6_1 = fma(w1, vec4<f32>(x1.z), acc6_1);
+-            acc7_0 = fma(w0, vec4<f32>(x1.w), acc7_0);
+-            acc7_1 = fma(w1, vec4<f32>(x1.w), acc7_1);
++        // Every invocation still stages tiles and reaches both barriers.
++        // Invalid output groups omit only their private accumulator updates.
++        if (m0 + token_group * 8u < u.M && n0 + row_group * 8u < u.N) {
++            for (var k = 0u; k < STAGE; k++) {
++                let w0 = w_tile[k * 32u + row_group * 2u + 0u];
++                let w1 = w_tile[k * 32u + row_group * 2u + 1u];
++                let x0 = x_tile[k * 32u + token_group * 2u + 0u];
++                let x1 = x_tile[k * 32u + token_group * 2u + 1u];
++                acc0_0 = fma(w0, vec4<f32>(x0.x), acc0_0);
++                acc0_1 = fma(w1, vec4<f32>(x0.x), acc0_1);
++                acc1_0 = fma(w0, vec4<f32>(x0.y), acc1_0);
++                acc1_1 = fma(w1, vec4<f32>(x0.y), acc1_1);
++                acc2_0 = fma(w0, vec4<f32>(x0.z), acc2_0);
++                acc2_1 = fma(w1, vec4<f32>(x0.z), acc2_1);
++                acc3_0 = fma(w0, vec4<f32>(x0.w), acc3_0);
++                acc3_1 = fma(w1, vec4<f32>(x0.w), acc3_1);
++                acc4_0 = fma(w0, vec4<f32>(x1.x), acc4_0);
++                acc4_1 = fma(w1, vec4<f32>(x1.x), acc4_1);
++                acc5_0 = fma(w0, vec4<f32>(x1.y), acc5_0);
++                acc5_1 = fma(w1, vec4<f32>(x1.y), acc5_1);
++                acc6_0 = fma(w0, vec4<f32>(x1.z), acc6_0);
++                acc6_1 = fma(w1, vec4<f32>(x1.z), acc6_1);
++                acc7_0 = fma(w0, vec4<f32>(x1.w), acc7_0);
++                acc7_1 = fma(w1, vec4<f32>(x1.w), acc7_1);
++            }
+         }
+         workgroupBarrier();
+     }

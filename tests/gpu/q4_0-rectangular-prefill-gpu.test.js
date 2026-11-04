@@ -24,7 +24,7 @@ const upload = values => {
 
 try {
   for (const dtype of ['q4_0', 'q4_1']) {
-    const variants = [dtype + '_prefill_tile64', dtype + '_prefill_tile64_bounded', ...(dtype === 'q4_0'
+    const variants = [dtype + '_prefill_tile64', dtype + '_prefill_tile64_bounded', dtype + '_prefill_tile128_bounded', ...(dtype === 'q4_0'
       ? ['q4_0_prefill_tile64x128', 'q4_0_prefill_tile128'] : ['q4_1_prefill_tile128'])];
     for (const [M, N, K] of [[3, 7, 64], [65, 67, 512], [129, 131, 512], [4, 31, 5120]]) {
       const packed = packedFixture(dtype, 2 * N, K);
