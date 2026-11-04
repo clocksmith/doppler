@@ -9,6 +9,7 @@ globalThis.prefillOwnershipProbe = { hidden, released: [], fail: 'logits' };
 const modules = {
   '../../../../gpu/device.js': 'export const getDevice = () => globalThis.prefillOwnershipProbe.device ?? null; export const setTrackSubmits = () => {};',
   '../../../../memory/buffer-pool.js': `export const releaseBuffer = buffer => globalThis.prefillOwnershipProbe.released.push(buffer);
+    export const getBufferRequestedSize = buffer => buffer.size;
     export const getBufferPool = device => { const probe = globalThis.prefillOwnershipProbe; probe.poolDevice = device; return probe.pool; };
     export const acquireBuffer = () => { throw Error('unexpected acquire'); }; export const readBuffer = acquireBuffer;
     export const readBufferSlice = acquireBuffer; export const uploadData = acquireBuffer;`,
@@ -21,7 +22,8 @@ const modules = {
   './session-context.js': 'export const buildLayerContext = () => ({ useGPU: true }); export const debugCheckBuffer = () => {};',
   './logits-config.js': 'export const getLogitsWeights = () => ({}); export const getLogitsConfig = () => ({});',
   '../per-layer-inputs.js': 'export const preparePerLayerInputs = async () => null;',
-  './prefill-observation.js': 'export const probePrefillEmbedding = async () => {}; export const tracePrefillEmbeddingIds = () => {}; export const logPrefillCacheState = () => {};',
+  './prefill-observation.js': `export const probePrefillEmbedding = async () => {}; export const tracePrefillEmbeddingIds = () => {}; export const logPrefillCacheState = () => {};
+    export { snapshotPrefillPhase } from ${JSON.stringify(new URL('./prefill-observation.js', target).href)};`,
 };
 const hooks = registerHooks({ resolve(specifier, context, next) {
   if (context.parentURL === target && modules[specifier]) return { url: `data:text/javascript,${encodeURIComponent(modules[specifier])}`, shortCircuit: true };

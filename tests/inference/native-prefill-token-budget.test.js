@@ -1,12 +1,11 @@
 import assert from 'node:assert/strict';
-import { readFileSync } from 'node:fs';
 import { resolvePrefillTokenChunkSize, shouldDisablePrefillCommandBatching } from '../../src/inference/pipelines/text/generator/prefill-policy.js';
 import { _prefillInputIdsToLogits } from '../../src/inference/pipelines/text/generator/prefill-runtime.js';
 
-const profile = JSON.parse(readFileSync(new URL('../../src/config/runtime/profiles/qwen3-6-35b-a3b-q4_0-candidate.json', import.meta.url)));
-const state = { runtimeConfig: profile.runtime, modelConfig: { sessionSettings: { prefillTokenChunkSize: null } } };
+const state = { runtimeConfig: { inference: { session: { prefillTokenChunkSize: 256 } } },
+  modelConfig: { sessionSettings: { prefillTokenChunkSize: null } } };
 assert.equal(resolvePrefillTokenChunkSize(state, 2287), 256,
-  'native candidate must declare its bounded token work policy rather than inherit disabled chunking');
+  'an explicit runtime token budget overrides manifest-disabled chunking');
 assert.equal(shouldDisablePrefillCommandBatching(state, {}, null, { startPos: 256, returnHidden: false }), true,
   'a chunk continuing the sequence bypasses command batching');
 assert.equal(shouldDisablePrefillCommandBatching(state, {}, null, { startPos: 0, returnHidden: false }), false,

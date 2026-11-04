@@ -28,6 +28,7 @@ probe.device = {
 const poolModule = `
   const p = globalThis.prefillChunkProbe;
   export const acquireBuffer = () => p.acquire();
+  export const getBufferRequestedSize = buffer => buffer.size;
   export const releaseBuffer = buffer => p.active.delete(buffer);
   export const discardBuffer = releaseBuffer;
   export const isBufferActive = buffer => p.active.has(buffer);
@@ -59,7 +60,8 @@ const modules = {
   './session-context.js': 'export const buildLayerContext = () => ({ useGPU: true }); export const debugCheckBuffer = () => {};',
   './logits-config.js': 'export const getLogitsWeights = () => ({}); export const getLogitsConfig = () => ({});',
   '../per-layer-inputs.js': 'export const preparePerLayerInputs = async () => null;',
-  './prefill-observation.js': 'export const probePrefillEmbedding = async () => {}; export const tracePrefillEmbeddingIds = () => {}; export const logPrefillCacheState = () => {};',
+  './prefill-observation.js': `export const probePrefillEmbedding = async () => {}; export const tracePrefillEmbeddingIds = () => {}; export const logPrefillCacheState = () => {};
+    export { snapshotPrefillPhase } from ${JSON.stringify(new URL('./prefill-observation.js', target).href)};`,
 };
 const hooks = registerHooks({ resolve(specifier, context, next) {
   let source;

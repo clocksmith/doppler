@@ -5604,7 +5604,6 @@
         "src/config/runtime.js",
         "src/config/runtime/profiles/qwen-3-reranker-0-6b-metal-stability.json",
         "src/config/runtime/profiles/qwen-3-reranker-0-6b-metal-throughput.json",
-        "src/config/runtime/profiles/qwen3-6-35b-a3b-q4_0-candidate.json",
         "src/config/schema/adapter.schema.js",
         "src/config/schema/backward-registry.schema.js",
         "src/config/schema/benchmark.schema.js",
@@ -6592,7 +6591,6 @@
     "src/config/revocation-registry.json",
     "src/config/runtime/profiles/qwen-3-reranker-0-6b-metal-stability.json",
     "src/config/runtime/profiles/qwen-3-reranker-0-6b-metal-throughput.json",
-    "src/config/runtime/profiles/qwen3-6-35b-a3b-q4_0-candidate.json",
     "src/gpu/greedy-speculative-frame.js",
     "src/gpu/kernels/attention_decode_subgroup.wgsl",
     "src/gpu/kernels/attention_streaming.wgsl",
@@ -7107,13 +7105,13 @@
     {
       "file": "tests/inference/prefill-chunk-cleanup.test.js",
       "kind": "dynamic",
-      "line": 72,
+      "line": 74,
       "expression": "import(target)"
     },
     {
       "file": "tests/inference/prefill-output-ownership.test.js",
       "kind": "dynamic",
-      "line": 31,
+      "line": 33,
       "expression": "import(target)"
     },
     {
