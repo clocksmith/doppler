@@ -127,6 +127,8 @@ export class StepObservation {
     this.uniformBytes = new Map();
     /** Uniform buffers whose contents an observed bind group entry reads. @type {Set<GPUBuffer>} */
     this.boundUniforms = new Set();
+    /** GPU-written uniforms retain buffer identity instead of becoming packed constants. @type {Set<GPUBuffer>} */
+    this.gpuWrittenUniforms = new Set();
     /** Declared token inputs not yet matched to their queue write. @type {{ buffer: GPUBuffer, offset: number }[]} */
     this.pendingTokenInputs = [];
     /** @type {PositionLimit[]} */
@@ -254,6 +256,14 @@ export class StepObservation {
     return full.slice(offset, offset + length);
   }
 
+  /** @param {GPUBuffer} buffer */
+  preserveGpuWrittenUniform(buffer) {
+    if (!isUniform(buffer) || this.gpuWrittenUniforms.has(buffer)) return;
+    const bytes = this.uniformSnapshot(buffer, 0, buffer.size);
+    if (bytes) this.ops.push({ kind: 'write', buffer, offset: 0, bytes, token: false });
+    this.gpuWrittenUniforms.add(buffer);
+  }
+
   /**
    * @param {GPUBindGroup} bindGroup
    * @param {BindGroupDescriptors} descriptors
@@ -268,7 +278,7 @@ export class StepObservation {
         this.problem(`bind group "${desc.label ?? ''}" binds a non-buffer resource`);
         return { binding: entry.binding, other: entry.resource };
       }
-      if (isUniform(bound.buffer)) {
+      if (isUniform(bound.buffer) && !this.gpuWrittenUniforms.has(bound.buffer)) {
         return {
           binding: entry.binding,
           uniform: this.uniformSnapshot(bound.buffer, bound.offset, bound.size),
@@ -368,12 +378,14 @@ function wrapEncoder(observation, descriptors, encoder) {
           const op = /** @type {CopyOp} */ (args.length === 3
             ? { kind: 'copy', src, srcOffset: 0, dst: a, dstOffset: 0, size: b }
             : { kind: 'copy', src, srcOffset: a, dst: b, dstOffset: c, size: d ?? (src.size - /** @type {number} */ (a)) });
+          observation.preserveGpuWrittenUniform(op.dst);
           observation.ops.push(op);
           return target.copyBufferToBuffer(.../** @type {[GPUBuffer, number, GPUBuffer, number, number?]} */ (args));
         };
       }
       if (prop === 'clearBuffer') {
         return (/** @type {GPUBuffer} */ buffer, offset = 0, /** @type {number | undefined} */ size) => {
+          observation.preserveGpuWrittenUniform(buffer);
           observation.ops.push({ kind: 'clear', buffer, offset, size: size ?? (buffer.size - offset) });
           return size === undefined ? target.clearBuffer(buffer, offset) : target.clearBuffer(buffer, offset, size);
         };

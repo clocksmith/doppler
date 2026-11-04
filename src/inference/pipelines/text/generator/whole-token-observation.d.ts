@@ -43,6 +43,7 @@ export declare class StepObservation {
   transient: Set<GPUBuffer>;
   uniformBytes: Map<GPUBuffer, UniformContents>;
   boundUniforms: Set<GPUBuffer>;
+  gpuWrittenUniforms: Set<GPUBuffer>;
   pendingTokenInputs: { buffer: GPUBuffer; offset: number }[];
   limits: PositionLimit[];
   rangeLimit: PositionLimit | null;
@@ -55,6 +56,8 @@ export declare class StepObservation {
   /** Intersection of the declared position ranges; must contain this step's position. */
   range(): PositionLimit;
   uniformSnapshot(buffer: GPUBuffer, offset: number, size: number | null): Uint8Array | null;
+  /** Preserve CPU initialization and GPU copy/clear ordering on the same uniform allocation. */
+  preserveGpuWrittenUniform(buffer: GPUBuffer): void;
   snapshotBindGroup(bindGroup: GPUBindGroup, descriptors: BindGroupDescriptors): ObservedGroup;
 }
 

@@ -117,7 +117,7 @@ function makeModel(device, { kvRows = 64 } = {}) {
 function recordStep(device, recorder, res, pos, token, options) {
   const {
     declareToken = true, kvMax = Infinity, regime = null, uniformBytes = 16, writeToken = true, stepBase = null,
-    dryStop = null,
+    dryStop = null, gpuUniform = null,
   } = options;
   if (declareToken) declareStepContract(recorder, { kind: 'token-input', buffer: res.tokens, offset: 0, count: 1 });
   if (writeToken) device.queue.writeBuffer(res.tokens, 0, new Uint32Array([token]));
@@ -134,6 +134,8 @@ function recordStep(device, recorder, res, pos, token, options) {
       { binding: 2, resource: { buffer: res.out } },
     ],
   });
+  if (gpuUniform === 'copy') recorder.getEncoder().copyBufferToBuffer(res.tokens, 0, res.uniform, 0, 4);
+  if (gpuUniform === 'clear') recorder.getEncoder().clearBuffer(res.uniform, 0, 4);
   recorder.recordDispatch(res.pipeline, group, [1]);
   recorder.getEncoder().copyBufferToBuffer(res.out, 0, res.kv, pos * 4, 4);
   recorder.getEncoder().copyBufferToBuffer(res.out, 0, res.staging, 0, 4);
@@ -180,6 +182,31 @@ async function observeStep(program, device, res, pos, token, options = {}, metho
   assert.equal((await program.run(14, 99))[0], 99 + 14000);
   assert.equal((await program.run(15, 5))[0], 5 + 15000);
   assert.equal(word(res.kv, 15 * 4), 5 + 15000);
+  program.destroy();
+}
+
+// GPU-selected recovery counts must stay in the allocation the GPU writes, rather
+// than a separately packed copy of its CPU initialization. Exercise both lifetimes.
+for (const transient of [false, true]) for (const gpuUniform of ['copy', 'clear']) {
+  const device = makeDevice(), res = makeModel(device), program = new WholeTokenProgram(device);
+  res.pipeline.run = group => {
+    const uniform = group.entries.find(entry => entry.binding === 0).resource;
+    const input = group.entries.find(entry => entry.binding === 1).resource;
+    const output = group.entries.find(entry => entry.binding === 2).resource;
+    const base = uniform.offset ?? 0;
+    new DataView(output.buffer.bytes.buffer).setUint32(0,
+      word(input.buffer) + 1000 * word(uniform.buffer, base) + 10 * word(uniform.buffer, base + 4), true);
+  };
+  const run = async (pos, token) => program.observe(pos, token, async attach => {
+    const recorder = makeRecorder(device); attach(recorder);
+    if (transient) res.uniform = recorder.createTempBuffer(16, U.UNIFORM | U.COPY_DST, 'recovery_params');
+    recordStep(device, recorder, res, pos, token, { gpuUniform, stepBase: 0 });
+    return word(res.staging);
+  }, () => ['gpu-written-uniform']);
+  for (const pos of [10, 11, 12, 13]) assert.equal(await run(pos, 42), (gpuUniform === 'copy' ? 42042 : 42) + 10 * pos);
+  assert.equal(program.ready, true);
+  assert.equal((await program.run(14, 99))[0], (gpuUniform === 'copy' ? 99099 : 99) + 140);
+  assert.equal((await program.run(15, 5))[0], (gpuUniform === 'copy' ? 5005 : 5) + 150);
   program.destroy();
 }
 
