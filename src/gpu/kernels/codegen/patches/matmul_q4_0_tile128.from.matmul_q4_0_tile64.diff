@@ -1,9 +1,6 @@
 --- src/gpu/kernels/matmul_q4_0_tile64.wgsl
 +++ src/gpu/kernels/matmul_q4_0_tile128.wgsl
-@@ -78,18 +78,14 @@
-     return scale * f32(i32(value) - 8);
- }
- 
+@@ -81,9 +81,5 @@
 -// 64 weight rows x 64 token columns per workgroup, 256 invocations, each owning
 -// 4 rows x 4 tokens in registers. Per 32-value K stage the workgroup dequantizes
 -// the weight tile once into workgroup memory (k-major, vec4 over 4 rows) and
@@ -15,73 +12,45 @@
 -const TILE_TOKENS: u32 = 64u;
 +// 128 weight rows x 128 token columns, 256 invocations. Staging reuses each
 +// decoded weight across 128 tokens. Per-output F32 FMA order remains K ascending.
-+// Native Q4_0 and Q4_1 only; registry admission requires 8192 shared bytes.
++// Native Q4_0 and Q4_1 only; registry admission requires 32768 shared bytes.
 +const TILE_ROWS: u32 = 128u;
 +const TILE_TOKENS: u32 = 128u;
- const STAGE: u32 = 32u;
+@@ -91,2 +87,2 @@
 -var<workgroup> w_tile: array<vec4<f32>, STAGE * 16u>;
 -var<workgroup> x_tile: array<vec4<f32>, STAGE * 16u>;
 +var<workgroup> w_tile: array<vec4<f32>, STAGE * 32u>;
 +var<workgroup> x_tile: array<vec4<f32>, STAGE * 32u>;
- 
- fn tile_word(offset: u32) -> u32 {
-     let shift = (offset % 4u) * 8u;
-@@ -139,23 +135,34 @@
- }
- 
- @compute @workgroup_size(256, 1, 1)
+@@ -142,2 +138 @@
 -fn main(@builtin(workgroup_id) group: vec3<u32>, @builtin(num_workgroups) grid: vec3<u32>,
 -        @builtin(local_invocation_index) lane: u32) {
--    let tiles_n = (u.N + TILE_ROWS - 1u) / TILE_ROWS;
--    let tiles_m = (u.M + TILE_TOKENS - 1u) / TILE_TOKENS;
--    let tile = group.x + group.y * grid.x;
--    let live_tile = tile < tiles_n * tiles_m;
--    let n0 = (tile % tiles_n) * TILE_ROWS;
--    let m0 = (tile / tiles_n) * TILE_TOKENS;
--    let row_group = lane % 16u;
--    let token_group = lane / 16u;
++fn main(@builtin(workgroup_id) group: vec3<u32>, @builtin(num_workgroups) grid: vec3<u32>, @builtin(local_invocation_index) lane: u32) {
+@@ -152,4 +147,16 @@
 -    var acc0 = vec4<f32>(0.0);
 -    var acc1 = vec4<f32>(0.0);
 -    var acc2 = vec4<f32>(0.0);
 -    var acc3 = vec4<f32>(0.0);
--    for (var k0 = 0u; k0 < u.K; k0 += STAGE) {
++    var acc0_0 = vec4<f32>(0.0);
++    var acc0_1 = vec4<f32>(0.0);
++    var acc1_0 = vec4<f32>(0.0);
++    var acc1_1 = vec4<f32>(0.0);
++    var acc2_0 = vec4<f32>(0.0);
++    var acc2_1 = vec4<f32>(0.0);
++    var acc3_0 = vec4<f32>(0.0);
++    var acc3_1 = vec4<f32>(0.0);
++    var acc4_0 = vec4<f32>(0.0);
++    var acc4_1 = vec4<f32>(0.0);
++    var acc5_0 = vec4<f32>(0.0);
++    var acc5_1 = vec4<f32>(0.0);
++    var acc6_0 = vec4<f32>(0.0);
++    var acc6_1 = vec4<f32>(0.0);
++    var acc7_0 = vec4<f32>(0.0);
++    var acc7_1 = vec4<f32>(0.0);
+@@ -157,2 +164,2 @@
 -        if (lane >= 128u) {
 -            let xl = lane - 128u;
-+fn main(@builtin(workgroup_id) group: vec3<u32>, @builtin(num_workgroups) grid: vec3<u32>, @builtin(local_invocation_index) lane: u32) {
-+ let tiles_n = (u.N + TILE_ROWS - 1u) / TILE_ROWS;
-+ let tiles_m = (u.M + TILE_TOKENS - 1u) / TILE_TOKENS;
-+ let tile = group.x + group.y * grid.x;
-+ let live_tile = tile < tiles_n * tiles_m;
-+ let n0 = (tile % tiles_n) * TILE_ROWS;
-+ let m0 = (tile / tiles_n) * TILE_TOKENS;
-+ let row_group = lane % 16u;
-+ let token_group = lane / 16u;
-+ var acc0_0 = vec4<f32>(0.0);
-+ var acc0_1 = vec4<f32>(0.0);
-+ var acc1_0 = vec4<f32>(0.0);
-+ var acc1_1 = vec4<f32>(0.0);
-+ var acc2_0 = vec4<f32>(0.0);
-+ var acc2_1 = vec4<f32>(0.0);
-+ var acc3_0 = vec4<f32>(0.0);
-+ var acc3_1 = vec4<f32>(0.0);
-+ var acc4_0 = vec4<f32>(0.0);
-+ var acc4_1 = vec4<f32>(0.0);
-+ var acc5_0 = vec4<f32>(0.0);
-+ var acc5_1 = vec4<f32>(0.0);
-+ var acc6_0 = vec4<f32>(0.0);
-+ var acc6_1 = vec4<f32>(0.0);
-+ var acc7_0 = vec4<f32>(0.0);
-+ var acc7_1 = vec4<f32>(0.0);
-+ for (var k0 = 0u; k0 < u.K; k0 += STAGE) {
 +        if (lane < 256u) {
 +            let xl = lane;
-             let kq = xl % 8u;
-             let cq = xl / 8u;
-             var x0 = vec4<f32>(0.0);
-@@ -183,12 +190,13 @@
-                 }
-             }
-             let k_base = kq * 4u;
+@@ -186,6 +193,7 @@
 -            x_tile[(k_base + 0u) * 16u + cq] = vec4<f32>(x0.x, x1.x, x2.x, x3.x);
 -            x_tile[(k_base + 1u) * 16u + cq] = vec4<f32>(x0.y, x1.y, x2.y, x3.y);
 -            x_tile[(k_base + 2u) * 16u + cq] = vec4<f32>(x0.z, x1.z, x2.z, x3.z);
@@ -95,13 +64,15 @@
 +        }
 +        if (QUANT_FORMAT == 0u || QUANT_FORMAT == 1u) {
 +            if (lane < 128u) {
-                 let rq = lane / 4u;
-                 let jj = lane % 4u;
-                 var lo: array<vec4<f32>, 4>;
-@@ -215,68 +223,121 @@
-                     }
-                 }
-                 let k_lo = jj * 4u;
+@@ -208 +216,2 @@
+-                        } else {
++                        }
++                        else {
+@@ -212 +221,2 @@
+-                    } else {
++                    }
++                    else {
+@@ -218,4 +228,4 @@
 -                w_tile[(k_lo + 0u) * 16u + rq] = vec4<f32>(lo[0].x, lo[1].x, lo[2].x, lo[3].x);
 -                w_tile[(k_lo + 1u) * 16u + rq] = vec4<f32>(lo[0].y, lo[1].y, lo[2].y, lo[3].y);
 -                w_tile[(k_lo + 2u) * 16u + rq] = vec4<f32>(lo[0].z, lo[1].z, lo[2].z, lo[3].z);
@@ -110,7 +81,7 @@
 +                w_tile[(k_lo + 1u) * 32u + rq] = vec4<f32>(lo[0].y, lo[1].y, lo[2].y, lo[3].y);
 +                w_tile[(k_lo + 2u) * 32u + rq] = vec4<f32>(lo[0].z, lo[1].z, lo[2].z, lo[3].z);
 +                w_tile[(k_lo + 3u) * 32u + rq] = vec4<f32>(lo[0].w, lo[1].w, lo[2].w, lo[3].w);
-                 let k_hi = 16u + jj * 4u;
+@@ -223,4 +233,4 @@
 -                w_tile[(k_hi + 0u) * 16u + rq] = vec4<f32>(hi[0].x, hi[1].x, hi[2].x, hi[3].x);
 -                w_tile[(k_hi + 1u) * 16u + rq] = vec4<f32>(hi[0].y, hi[1].y, hi[2].y, hi[3].y);
 -                w_tile[(k_hi + 2u) * 16u + rq] = vec4<f32>(hi[0].z, hi[1].z, hi[2].z, hi[3].z);
@@ -119,7 +90,7 @@
 +                w_tile[(k_hi + 1u) * 32u + rq] = vec4<f32>(hi[0].y, hi[1].y, hi[2].y, hi[3].y);
 +                w_tile[(k_hi + 2u) * 32u + rq] = vec4<f32>(hi[0].z, hi[1].z, hi[2].z, hi[3].z);
 +                w_tile[(k_hi + 3u) * 32u + rq] = vec4<f32>(hi[0].w, hi[1].w, hi[2].w, hi[3].w);
-             }
+@@ -228,32 +237,0 @@
 -        } else {
 -            let rq = lane / 8u;
 -            let jj = lane % 8u;
@@ -152,18 +123,34 @@
 -            w_tile[(k_base + 1u) * 16u + rq] = vec4<f32>(vals[0].y, vals[1].y, vals[2].y, vals[3].y);
 -            w_tile[(k_base + 2u) * 16u + rq] = vec4<f32>(vals[0].z, vals[1].z, vals[2].z, vals[3].z);
 -            w_tile[(k_base + 3u) * 16u + rq] = vec4<f32>(vals[0].w, vals[1].w, vals[2].w, vals[3].w);
-         }
--        workgroupBarrier();
--        for (var k = 0u; k < STAGE; k++) {
+@@ -263,6 +241,20 @@
 -            let w = w_tile[k * 16u + row_group];
 -            let x = x_tile[k * 16u + token_group];
 -            acc0 = fma(w, vec4<f32>(x.x), acc0);
 -            acc1 = fma(w, vec4<f32>(x.y), acc1);
 -            acc2 = fma(w, vec4<f32>(x.z), acc2);
 -            acc3 = fma(w, vec4<f32>(x.w), acc3);
--        }
--        workgroupBarrier();
--    }
++            let w0 = w_tile[k * 32u + row_group * 2u + 0u];
++            let w1 = w_tile[k * 32u + row_group * 2u + 1u];
++            let x0 = x_tile[k * 32u + token_group * 2u + 0u];
++            let x1 = x_tile[k * 32u + token_group * 2u + 1u];
++            acc0_0 = fma(w0, vec4<f32>(x0.x), acc0_0);
++            acc0_1 = fma(w1, vec4<f32>(x0.x), acc0_1);
++            acc1_0 = fma(w0, vec4<f32>(x0.y), acc1_0);
++            acc1_1 = fma(w1, vec4<f32>(x0.y), acc1_1);
++            acc2_0 = fma(w0, vec4<f32>(x0.z), acc2_0);
++            acc2_1 = fma(w1, vec4<f32>(x0.z), acc2_1);
++            acc3_0 = fma(w0, vec4<f32>(x0.w), acc3_0);
++            acc3_1 = fma(w1, vec4<f32>(x0.w), acc3_1);
++            acc4_0 = fma(w0, vec4<f32>(x1.x), acc4_0);
++            acc4_1 = fma(w1, vec4<f32>(x1.x), acc4_1);
++            acc5_0 = fma(w0, vec4<f32>(x1.y), acc5_0);
++            acc5_1 = fma(w1, vec4<f32>(x1.y), acc5_1);
++            acc6_0 = fma(w0, vec4<f32>(x1.z), acc6_0);
++            acc6_1 = fma(w1, vec4<f32>(x1.z), acc6_1);
++            acc7_0 = fma(w0, vec4<f32>(x1.w), acc7_0);
++            acc7_1 = fma(w1, vec4<f32>(x1.w), acc7_1);
+@@ -272,11 +264,212 @@
 -    if (!live_tile) { return; }
 -    let accs = array<vec4<f32>, 4>(acc0, acc1, acc2, acc3);
 -    for (var j = 0u; j < 4u; j++) {
@@ -175,110 +162,215 @@
 -        }
 -    }
 -}
-+ workgroupBarrier();
-+ for (var k = 0u; k < STAGE; k++) {
-+ let w0 = w_tile[k * 32u + row_group * 2u + 0u];
-+ let w1 = w_tile[k * 32u + row_group * 2u + 1u];
-+ let x0 = x_tile[k * 32u + token_group * 2u + 0u];
-+ let x1 = x_tile[k * 32u + token_group * 2u + 1u];
-+ acc0_0 = fma(w0, vec4<f32>(x0.x), acc0_0);
-+ acc0_1 = fma(w1, vec4<f32>(x0.x), acc0_1);
-+ acc1_0 = fma(w0, vec4<f32>(x0.y), acc1_0);
-+ acc1_1 = fma(w1, vec4<f32>(x0.y), acc1_1);
-+ acc2_0 = fma(w0, vec4<f32>(x0.z), acc2_0);
-+ acc2_1 = fma(w1, vec4<f32>(x0.z), acc2_1);
-+ acc3_0 = fma(w0, vec4<f32>(x0.w), acc3_0);
-+ acc3_1 = fma(w1, vec4<f32>(x0.w), acc3_1);
-+ acc4_0 = fma(w0, vec4<f32>(x1.x), acc4_0);
-+ acc4_1 = fma(w1, vec4<f32>(x1.x), acc4_1);
-+ acc5_0 = fma(w0, vec4<f32>(x1.y), acc5_0);
-+ acc5_1 = fma(w1, vec4<f32>(x1.y), acc5_1);
-+ acc6_0 = fma(w0, vec4<f32>(x1.z), acc6_0);
-+ acc6_1 = fma(w1, vec4<f32>(x1.z), acc6_1);
-+ acc7_0 = fma(w0, vec4<f32>(x1.w), acc7_0);
-+ acc7_1 = fma(w1, vec4<f32>(x1.w), acc7_1);
-+ }
-+ workgroupBarrier();
-+ }
-+ if (!live_tile) {return;}
-+ if (m0 + token_group * 8u + 0u < u.M) {
-+ if (n0 + row_group * 8u + 0u < u.N) {output[u.c_offset + (m0 + token_group * 8u + 0u) * u.N + n0 + row_group * 8u + 0u] = acc0_0.x * u.alpha;}
-+ if (n0 + row_group * 8u + 1u < u.N) {output[u.c_offset + (m0 + token_group * 8u + 0u) * u.N + n0 + row_group * 8u + 1u] = acc0_0.y * u.alpha;}
-+ if (n0 + row_group * 8u + 2u < u.N) {output[u.c_offset + (m0 + token_group * 8u + 0u) * u.N + n0 + row_group * 8u + 2u] = acc0_0.z * u.alpha;}
-+ if (n0 + row_group * 8u + 3u < u.N) {output[u.c_offset + (m0 + token_group * 8u + 0u) * u.N + n0 + row_group * 8u + 3u] = acc0_0.w * u.alpha;}
-+ if (n0 + row_group * 8u + 4u < u.N) {output[u.c_offset + (m0 + token_group * 8u + 0u) * u.N + n0 + row_group * 8u + 4u] = acc0_1.x * u.alpha;}
-+ if (n0 + row_group * 8u + 5u < u.N) {output[u.c_offset + (m0 + token_group * 8u + 0u) * u.N + n0 + row_group * 8u + 5u] = acc0_1.y * u.alpha;}
-+ if (n0 + row_group * 8u + 6u < u.N) {output[u.c_offset + (m0 + token_group * 8u + 0u) * u.N + n0 + row_group * 8u + 6u] = acc0_1.z * u.alpha;}
-+ if (n0 + row_group * 8u + 7u < u.N) {output[u.c_offset + (m0 + token_group * 8u + 0u) * u.N + n0 + row_group * 8u + 7u] = acc0_1.w * u.alpha;}
-+ }
-+ if (m0 + token_group * 8u + 1u < u.M) {
-+ if (n0 + row_group * 8u + 0u < u.N) {output[u.c_offset + (m0 + token_group * 8u + 1u) * u.N + n0 + row_group * 8u + 0u] = acc1_0.x * u.alpha;}
-+ if (n0 + row_group * 8u + 1u < u.N) {output[u.c_offset + (m0 + token_group * 8u + 1u) * u.N + n0 + row_group * 8u + 1u] = acc1_0.y * u.alpha;}
-+ if (n0 + row_group * 8u + 2u < u.N) {output[u.c_offset + (m0 + token_group * 8u + 1u) * u.N + n0 + row_group * 8u + 2u] = acc1_0.z * u.alpha;}
-+ if (n0 + row_group * 8u + 3u < u.N) {output[u.c_offset + (m0 + token_group * 8u + 1u) * u.N + n0 + row_group * 8u + 3u] = acc1_0.w * u.alpha;}
-+ if (n0 + row_group * 8u + 4u < u.N) {output[u.c_offset + (m0 + token_group * 8u + 1u) * u.N + n0 + row_group * 8u + 4u] = acc1_1.x * u.alpha;}
-+ if (n0 + row_group * 8u + 5u < u.N) {output[u.c_offset + (m0 + token_group * 8u + 1u) * u.N + n0 + row_group * 8u + 5u] = acc1_1.y * u.alpha;}
-+ if (n0 + row_group * 8u + 6u < u.N) {output[u.c_offset + (m0 + token_group * 8u + 1u) * u.N + n0 + row_group * 8u + 6u] = acc1_1.z * u.alpha;}
-+ if (n0 + row_group * 8u + 7u < u.N) {output[u.c_offset + (m0 + token_group * 8u + 1u) * u.N + n0 + row_group * 8u + 7u] = acc1_1.w * u.alpha;}
-+ }
-+ if (m0 + token_group * 8u + 2u < u.M) {
-+ if (n0 + row_group * 8u + 0u < u.N) {output[u.c_offset + (m0 + token_group * 8u + 2u) * u.N + n0 + row_group * 8u + 0u] = acc2_0.x * u.alpha;}
-+ if (n0 + row_group * 8u + 1u < u.N) {output[u.c_offset + (m0 + token_group * 8u + 2u) * u.N + n0 + row_group * 8u + 1u] = acc2_0.y * u.alpha;}
-+ if (n0 + row_group * 8u + 2u < u.N) {output[u.c_offset + (m0 + token_group * 8u + 2u) * u.N + n0 + row_group * 8u + 2u] = acc2_0.z * u.alpha;}
-+ if (n0 + row_group * 8u + 3u < u.N) {output[u.c_offset + (m0 + token_group * 8u + 2u) * u.N + n0 + row_group * 8u + 3u] = acc2_0.w * u.alpha;}
-+ if (n0 + row_group * 8u + 4u < u.N) {output[u.c_offset + (m0 + token_group * 8u + 2u) * u.N + n0 + row_group * 8u + 4u] = acc2_1.x * u.alpha;}
-+ if (n0 + row_group * 8u + 5u < u.N) {output[u.c_offset + (m0 + token_group * 8u + 2u) * u.N + n0 + row_group * 8u + 5u] = acc2_1.y * u.alpha;}
-+ if (n0 + row_group * 8u + 6u < u.N) {output[u.c_offset + (m0 + token_group * 8u + 2u) * u.N + n0 + row_group * 8u + 6u] = acc2_1.z * u.alpha;}
-+ if (n0 + row_group * 8u + 7u < u.N) {output[u.c_offset + (m0 + token_group * 8u + 2u) * u.N + n0 + row_group * 8u + 7u] = acc2_1.w * u.alpha;}
-+ }
-+ if (m0 + token_group * 8u + 3u < u.M) {
-+ if (n0 + row_group * 8u + 0u < u.N) {output[u.c_offset + (m0 + token_group * 8u + 3u) * u.N + n0 + row_group * 8u + 0u] = acc3_0.x * u.alpha;}
-+ if (n0 + row_group * 8u + 1u < u.N) {output[u.c_offset + (m0 + token_group * 8u + 3u) * u.N + n0 + row_group * 8u + 1u] = acc3_0.y * u.alpha;}
-+ if (n0 + row_group * 8u + 2u < u.N) {output[u.c_offset + (m0 + token_group * 8u + 3u) * u.N + n0 + row_group * 8u + 2u] = acc3_0.z * u.alpha;}
-+ if (n0 + row_group * 8u + 3u < u.N) {output[u.c_offset + (m0 + token_group * 8u + 3u) * u.N + n0 + row_group * 8u + 3u] = acc3_0.w * u.alpha;}
-+ if (n0 + row_group * 8u + 4u < u.N) {output[u.c_offset + (m0 + token_group * 8u + 3u) * u.N + n0 + row_group * 8u + 4u] = acc3_1.x * u.alpha;}
-+ if (n0 + row_group * 8u + 5u < u.N) {output[u.c_offset + (m0 + token_group * 8u + 3u) * u.N + n0 + row_group * 8u + 5u] = acc3_1.y * u.alpha;}
-+ if (n0 + row_group * 8u + 6u < u.N) {output[u.c_offset + (m0 + token_group * 8u + 3u) * u.N + n0 + row_group * 8u + 6u] = acc3_1.z * u.alpha;}
-+ if (n0 + row_group * 8u + 7u < u.N) {output[u.c_offset + (m0 + token_group * 8u + 3u) * u.N + n0 + row_group * 8u + 7u] = acc3_1.w * u.alpha;}
-+ }
-+ if (m0 + token_group * 8u + 4u < u.M) {
-+ if (n0 + row_group * 8u + 0u < u.N) {output[u.c_offset + (m0 + token_group * 8u + 4u) * u.N + n0 + row_group * 8u + 0u] = acc4_0.x * u.alpha;}
-+ if (n0 + row_group * 8u + 1u < u.N) {output[u.c_offset + (m0 + token_group * 8u + 4u) * u.N + n0 + row_group * 8u + 1u] = acc4_0.y * u.alpha;}
-+ if (n0 + row_group * 8u + 2u < u.N) {output[u.c_offset + (m0 + token_group * 8u + 4u) * u.N + n0 + row_group * 8u + 2u] = acc4_0.z * u.alpha;}
-+ if (n0 + row_group * 8u + 3u < u.N) {output[u.c_offset + (m0 + token_group * 8u + 4u) * u.N + n0 + row_group * 8u + 3u] = acc4_0.w * u.alpha;}
-+ if (n0 + row_group * 8u + 4u < u.N) {output[u.c_offset + (m0 + token_group * 8u + 4u) * u.N + n0 + row_group * 8u + 4u] = acc4_1.x * u.alpha;}
-+ if (n0 + row_group * 8u + 5u < u.N) {output[u.c_offset + (m0 + token_group * 8u + 4u) * u.N + n0 + row_group * 8u + 5u] = acc4_1.y * u.alpha;}
-+ if (n0 + row_group * 8u + 6u < u.N) {output[u.c_offset + (m0 + token_group * 8u + 4u) * u.N + n0 + row_group * 8u + 6u] = acc4_1.z * u.alpha;}
-+ if (n0 + row_group * 8u + 7u < u.N) {output[u.c_offset + (m0 + token_group * 8u + 4u) * u.N + n0 + row_group * 8u + 7u] = acc4_1.w * u.alpha;}
-+ }
-+ if (m0 + token_group * 8u + 5u < u.M) {
-+ if (n0 + row_group * 8u + 0u < u.N) {output[u.c_offset + (m0 + token_group * 8u + 5u) * u.N + n0 + row_group * 8u + 0u] = acc5_0.x * u.alpha;}
-+ if (n0 + row_group * 8u + 1u < u.N) {output[u.c_offset + (m0 + token_group * 8u + 5u) * u.N + n0 + row_group * 8u + 1u] = acc5_0.y * u.alpha;}
-+ if (n0 + row_group * 8u + 2u < u.N) {output[u.c_offset + (m0 + token_group * 8u + 5u) * u.N + n0 + row_group * 8u + 2u] = acc5_0.z * u.alpha;}
-+ if (n0 + row_group * 8u + 3u < u.N) {output[u.c_offset + (m0 + token_group * 8u + 5u) * u.N + n0 + row_group * 8u + 3u] = acc5_0.w * u.alpha;}
-+ if (n0 + row_group * 8u + 4u < u.N) {output[u.c_offset + (m0 + token_group * 8u + 5u) * u.N + n0 + row_group * 8u + 4u] = acc5_1.x * u.alpha;}
-+ if (n0 + row_group * 8u + 5u < u.N) {output[u.c_offset + (m0 + token_group * 8u + 5u) * u.N + n0 + row_group * 8u + 5u] = acc5_1.y * u.alpha;}
-+ if (n0 + row_group * 8u + 6u < u.N) {output[u.c_offset + (m0 + token_group * 8u + 5u) * u.N + n0 + row_group * 8u + 6u] = acc5_1.z * u.alpha;}
-+ if (n0 + row_group * 8u + 7u < u.N) {output[u.c_offset + (m0 + token_group * 8u + 5u) * u.N + n0 + row_group * 8u + 7u] = acc5_1.w * u.alpha;}
-+ }
-+ if (m0 + token_group * 8u + 6u < u.M) {
-+ if (n0 + row_group * 8u + 0u < u.N) {output[u.c_offset + (m0 + token_group * 8u + 6u) * u.N + n0 + row_group * 8u + 0u] = acc6_0.x * u.alpha;}
-+ if (n0 + row_group * 8u + 1u < u.N) {output[u.c_offset + (m0 + token_group * 8u + 6u) * u.N + n0 + row_group * 8u + 1u] = acc6_0.y * u.alpha;}
-+ if (n0 + row_group * 8u + 2u < u.N) {output[u.c_offset + (m0 + token_group * 8u + 6u) * u.N + n0 + row_group * 8u + 2u] = acc6_0.z * u.alpha;}
-+ if (n0 + row_group * 8u + 3u < u.N) {output[u.c_offset + (m0 + token_group * 8u + 6u) * u.N + n0 + row_group * 8u + 3u] = acc6_0.w * u.alpha;}
-+ if (n0 + row_group * 8u + 4u < u.N) {output[u.c_offset + (m0 + token_group * 8u + 6u) * u.N + n0 + row_group * 8u + 4u] = acc6_1.x * u.alpha;}
-+ if (n0 + row_group * 8u + 5u < u.N) {output[u.c_offset + (m0 + token_group * 8u + 6u) * u.N + n0 + row_group * 8u + 5u] = acc6_1.y * u.alpha;}
-+ if (n0 + row_group * 8u + 6u < u.N) {output[u.c_offset + (m0 + token_group * 8u + 6u) * u.N + n0 + row_group * 8u + 6u] = acc6_1.z * u.alpha;}
-+ if (n0 + row_group * 8u + 7u < u.N) {output[u.c_offset + (m0 + token_group * 8u + 6u) * u.N + n0 + row_group * 8u + 7u] = acc6_1.w * u.alpha;}
-+ }
-+ if (m0 + token_group * 8u + 7u < u.M) {
-+ if (n0 + row_group * 8u + 0u < u.N) {output[u.c_offset + (m0 + token_group * 8u + 7u) * u.N + n0 + row_group * 8u + 0u] = acc7_0.x * u.alpha;}
-+ if (n0 + row_group * 8u + 1u < u.N) {output[u.c_offset + (m0 + token_group * 8u + 7u) * u.N + n0 + row_group * 8u + 1u] = acc7_0.y * u.alpha;}
-+ if (n0 + row_group * 8u + 2u < u.N) {output[u.c_offset + (m0 + token_group * 8u + 7u) * u.N + n0 + row_group * 8u + 2u] = acc7_0.z * u.alpha;}
-+ if (n0 + row_group * 8u + 3u < u.N) {output[u.c_offset + (m0 + token_group * 8u + 7u) * u.N + n0 + row_group * 8u + 3u] = acc7_0.w * u.alpha;}
-+ if (n0 + row_group * 8u + 4u < u.N) {output[u.c_offset + (m0 + token_group * 8u + 7u) * u.N + n0 + row_group * 8u + 4u] = acc7_1.x * u.alpha;}
-+ if (n0 + row_group * 8u + 5u < u.N) {output[u.c_offset + (m0 + token_group * 8u + 7u) * u.N + n0 + row_group * 8u + 5u] = acc7_1.y * u.alpha;}
-+ if (n0 + row_group * 8u + 6u < u.N) {output[u.c_offset + (m0 + token_group * 8u + 7u) * u.N + n0 + row_group * 8u + 6u] = acc7_1.z * u.alpha;}
-+ if (n0 + row_group * 8u + 7u < u.N) {output[u.c_offset + (m0 + token_group * 8u + 7u) * u.N + n0 + row_group * 8u + 7u] = acc7_1.w * u.alpha;}
-+ }
++    if (!live_tile) {
++        return;
++    }
++    if (m0 + token_group * 8u + 0u < u.M) {
++        if (n0 + row_group * 8u + 0u < u.N) {
++            output[u.c_offset + (m0 + token_group * 8u + 0u) * u.N + n0 + row_group * 8u + 0u] = acc0_0.x * u.alpha;
++        }
++        if (n0 + row_group * 8u + 1u < u.N) {
++            output[u.c_offset + (m0 + token_group * 8u + 0u) * u.N + n0 + row_group * 8u + 1u] = acc0_0.y * u.alpha;
++        }
++        if (n0 + row_group * 8u + 2u < u.N) {
++            output[u.c_offset + (m0 + token_group * 8u + 0u) * u.N + n0 + row_group * 8u + 2u] = acc0_0.z * u.alpha;
++        }
++        if (n0 + row_group * 8u + 3u < u.N) {
++            output[u.c_offset + (m0 + token_group * 8u + 0u) * u.N + n0 + row_group * 8u + 3u] = acc0_0.w * u.alpha;
++        }
++        if (n0 + row_group * 8u + 4u < u.N) {
++            output[u.c_offset + (m0 + token_group * 8u + 0u) * u.N + n0 + row_group * 8u + 4u] = acc0_1.x * u.alpha;
++        }
++        if (n0 + row_group * 8u + 5u < u.N) {
++            output[u.c_offset + (m0 + token_group * 8u + 0u) * u.N + n0 + row_group * 8u + 5u] = acc0_1.y * u.alpha;
++        }
++        if (n0 + row_group * 8u + 6u < u.N) {
++            output[u.c_offset + (m0 + token_group * 8u + 0u) * u.N + n0 + row_group * 8u + 6u] = acc0_1.z * u.alpha;
++        }
++        if (n0 + row_group * 8u + 7u < u.N) {
++            output[u.c_offset + (m0 + token_group * 8u + 0u) * u.N + n0 + row_group * 8u + 7u] = acc0_1.w * u.alpha;
++        }
++    }
++    if (m0 + token_group * 8u + 1u < u.M) {
++        if (n0 + row_group * 8u + 0u < u.N) {
++            output[u.c_offset + (m0 + token_group * 8u + 1u) * u.N + n0 + row_group * 8u + 0u] = acc1_0.x * u.alpha;
++        }
++        if (n0 + row_group * 8u + 1u < u.N) {
++            output[u.c_offset + (m0 + token_group * 8u + 1u) * u.N + n0 + row_group * 8u + 1u] = acc1_0.y * u.alpha;
++        }
++        if (n0 + row_group * 8u + 2u < u.N) {
++            output[u.c_offset + (m0 + token_group * 8u + 1u) * u.N + n0 + row_group * 8u + 2u] = acc1_0.z * u.alpha;
++        }
++        if (n0 + row_group * 8u + 3u < u.N) {
++            output[u.c_offset + (m0 + token_group * 8u + 1u) * u.N + n0 + row_group * 8u + 3u] = acc1_0.w * u.alpha;
++        }
++        if (n0 + row_group * 8u + 4u < u.N) {
++            output[u.c_offset + (m0 + token_group * 8u + 1u) * u.N + n0 + row_group * 8u + 4u] = acc1_1.x * u.alpha;
++        }
++        if (n0 + row_group * 8u + 5u < u.N) {
++            output[u.c_offset + (m0 + token_group * 8u + 1u) * u.N + n0 + row_group * 8u + 5u] = acc1_1.y * u.alpha;
++        }
++        if (n0 + row_group * 8u + 6u < u.N) {
++            output[u.c_offset + (m0 + token_group * 8u + 1u) * u.N + n0 + row_group * 8u + 6u] = acc1_1.z * u.alpha;
++        }
++        if (n0 + row_group * 8u + 7u < u.N) {
++            output[u.c_offset + (m0 + token_group * 8u + 1u) * u.N + n0 + row_group * 8u + 7u] = acc1_1.w * u.alpha;
++        }
++    }
++    if (m0 + token_group * 8u + 2u < u.M) {
++        if (n0 + row_group * 8u + 0u < u.N) {
++            output[u.c_offset + (m0 + token_group * 8u + 2u) * u.N + n0 + row_group * 8u + 0u] = acc2_0.x * u.alpha;
++        }
++        if (n0 + row_group * 8u + 1u < u.N) {
++            output[u.c_offset + (m0 + token_group * 8u + 2u) * u.N + n0 + row_group * 8u + 1u] = acc2_0.y * u.alpha;
++        }
++        if (n0 + row_group * 8u + 2u < u.N) {
++            output[u.c_offset + (m0 + token_group * 8u + 2u) * u.N + n0 + row_group * 8u + 2u] = acc2_0.z * u.alpha;
++        }
++        if (n0 + row_group * 8u + 3u < u.N) {
++            output[u.c_offset + (m0 + token_group * 8u + 2u) * u.N + n0 + row_group * 8u + 3u] = acc2_0.w * u.alpha;
++        }
++        if (n0 + row_group * 8u + 4u < u.N) {
++            output[u.c_offset + (m0 + token_group * 8u + 2u) * u.N + n0 + row_group * 8u + 4u] = acc2_1.x * u.alpha;
++        }
++        if (n0 + row_group * 8u + 5u < u.N) {
++            output[u.c_offset + (m0 + token_group * 8u + 2u) * u.N + n0 + row_group * 8u + 5u] = acc2_1.y * u.alpha;
++        }
++        if (n0 + row_group * 8u + 6u < u.N) {
++            output[u.c_offset + (m0 + token_group * 8u + 2u) * u.N + n0 + row_group * 8u + 6u] = acc2_1.z * u.alpha;
++        }
++        if (n0 + row_group * 8u + 7u < u.N) {
++            output[u.c_offset + (m0 + token_group * 8u + 2u) * u.N + n0 + row_group * 8u + 7u] = acc2_1.w * u.alpha;
++        }
++    }
++    if (m0 + token_group * 8u + 3u < u.M) {
++        if (n0 + row_group * 8u + 0u < u.N) {
++            output[u.c_offset + (m0 + token_group * 8u + 3u) * u.N + n0 + row_group * 8u + 0u] = acc3_0.x * u.alpha;
++        }
++        if (n0 + row_group * 8u + 1u < u.N) {
++            output[u.c_offset + (m0 + token_group * 8u + 3u) * u.N + n0 + row_group * 8u + 1u] = acc3_0.y * u.alpha;
++        }
++        if (n0 + row_group * 8u + 2u < u.N) {
++            output[u.c_offset + (m0 + token_group * 8u + 3u) * u.N + n0 + row_group * 8u + 2u] = acc3_0.z * u.alpha;
++        }
++        if (n0 + row_group * 8u + 3u < u.N) {
++            output[u.c_offset + (m0 + token_group * 8u + 3u) * u.N + n0 + row_group * 8u + 3u] = acc3_0.w * u.alpha;
++        }
++        if (n0 + row_group * 8u + 4u < u.N) {
++            output[u.c_offset + (m0 + token_group * 8u + 3u) * u.N + n0 + row_group * 8u + 4u] = acc3_1.x * u.alpha;
++        }
++        if (n0 + row_group * 8u + 5u < u.N) {
++            output[u.c_offset + (m0 + token_group * 8u + 3u) * u.N + n0 + row_group * 8u + 5u] = acc3_1.y * u.alpha;
++        }
++        if (n0 + row_group * 8u + 6u < u.N) {
++            output[u.c_offset + (m0 + token_group * 8u + 3u) * u.N + n0 + row_group * 8u + 6u] = acc3_1.z * u.alpha;
++        }
++        if (n0 + row_group * 8u + 7u < u.N) {
++            output[u.c_offset + (m0 + token_group * 8u + 3u) * u.N + n0 + row_group * 8u + 7u] = acc3_1.w * u.alpha;
++        }
++    }
++    if (m0 + token_group * 8u + 4u < u.M) {
++        if (n0 + row_group * 8u + 0u < u.N) {
++            output[u.c_offset + (m0 + token_group * 8u + 4u) * u.N + n0 + row_group * 8u + 0u] = acc4_0.x * u.alpha;
++        }
++        if (n0 + row_group * 8u + 1u < u.N) {
++            output[u.c_offset + (m0 + token_group * 8u + 4u) * u.N + n0 + row_group * 8u + 1u] = acc4_0.y * u.alpha;
++        }
++        if (n0 + row_group * 8u + 2u < u.N) {
++            output[u.c_offset + (m0 + token_group * 8u + 4u) * u.N + n0 + row_group * 8u + 2u] = acc4_0.z * u.alpha;
++        }
++        if (n0 + row_group * 8u + 3u < u.N) {
++            output[u.c_offset + (m0 + token_group * 8u + 4u) * u.N + n0 + row_group * 8u + 3u] = acc4_0.w * u.alpha;
++        }
++        if (n0 + row_group * 8u + 4u < u.N) {
++            output[u.c_offset + (m0 + token_group * 8u + 4u) * u.N + n0 + row_group * 8u + 4u] = acc4_1.x * u.alpha;
++        }
++        if (n0 + row_group * 8u + 5u < u.N) {
++            output[u.c_offset + (m0 + token_group * 8u + 4u) * u.N + n0 + row_group * 8u + 5u] = acc4_1.y * u.alpha;
++        }
++        if (n0 + row_group * 8u + 6u < u.N) {
++            output[u.c_offset + (m0 + token_group * 8u + 4u) * u.N + n0 + row_group * 8u + 6u] = acc4_1.z * u.alpha;
++        }
++        if (n0 + row_group * 8u + 7u < u.N) {
++            output[u.c_offset + (m0 + token_group * 8u + 4u) * u.N + n0 + row_group * 8u + 7u] = acc4_1.w * u.alpha;
++        }
++    }
++    if (m0 + token_group * 8u + 5u < u.M) {
++        if (n0 + row_group * 8u + 0u < u.N) {
++            output[u.c_offset + (m0 + token_group * 8u + 5u) * u.N + n0 + row_group * 8u + 0u] = acc5_0.x * u.alpha;
++        }
++        if (n0 + row_group * 8u + 1u < u.N) {
++            output[u.c_offset + (m0 + token_group * 8u + 5u) * u.N + n0 + row_group * 8u + 1u] = acc5_0.y * u.alpha;
++        }
++        if (n0 + row_group * 8u + 2u < u.N) {
++            output[u.c_offset + (m0 + token_group * 8u + 5u) * u.N + n0 + row_group * 8u + 2u] = acc5_0.z * u.alpha;
++        }
++        if (n0 + row_group * 8u + 3u < u.N) {
++            output[u.c_offset + (m0 + token_group * 8u + 5u) * u.N + n0 + row_group * 8u + 3u] = acc5_0.w * u.alpha;
++        }
++        if (n0 + row_group * 8u + 4u < u.N) {
++            output[u.c_offset + (m0 + token_group * 8u + 5u) * u.N + n0 + row_group * 8u + 4u] = acc5_1.x * u.alpha;
++        }
++        if (n0 + row_group * 8u + 5u < u.N) {
++            output[u.c_offset + (m0 + token_group * 8u + 5u) * u.N + n0 + row_group * 8u + 5u] = acc5_1.y * u.alpha;
++        }
++        if (n0 + row_group * 8u + 6u < u.N) {
++            output[u.c_offset + (m0 + token_group * 8u + 5u) * u.N + n0 + row_group * 8u + 6u] = acc5_1.z * u.alpha;
++        }
++        if (n0 + row_group * 8u + 7u < u.N) {
++            output[u.c_offset + (m0 + token_group * 8u + 5u) * u.N + n0 + row_group * 8u + 7u] = acc5_1.w * u.alpha;
++        }
++    }
++    if (m0 + token_group * 8u + 6u < u.M) {
++        if (n0 + row_group * 8u + 0u < u.N) {
++            output[u.c_offset + (m0 + token_group * 8u + 6u) * u.N + n0 + row_group * 8u + 0u] = acc6_0.x * u.alpha;
++        }
++        if (n0 + row_group * 8u + 1u < u.N) {
++            output[u.c_offset + (m0 + token_group * 8u + 6u) * u.N + n0 + row_group * 8u + 1u] = acc6_0.y * u.alpha;
++        }
++        if (n0 + row_group * 8u + 2u < u.N) {
++            output[u.c_offset + (m0 + token_group * 8u + 6u) * u.N + n0 + row_group * 8u + 2u] = acc6_0.z * u.alpha;
++        }
++        if (n0 + row_group * 8u + 3u < u.N) {
++            output[u.c_offset + (m0 + token_group * 8u + 6u) * u.N + n0 + row_group * 8u + 3u] = acc6_0.w * u.alpha;
++        }
++        if (n0 + row_group * 8u + 4u < u.N) {
++            output[u.c_offset + (m0 + token_group * 8u + 6u) * u.N + n0 + row_group * 8u + 4u] = acc6_1.x * u.alpha;
++        }
++        if (n0 + row_group * 8u + 5u < u.N) {
++            output[u.c_offset + (m0 + token_group * 8u + 6u) * u.N + n0 + row_group * 8u + 5u] = acc6_1.y * u.alpha;
++        }
++        if (n0 + row_group * 8u + 6u < u.N) {
++            output[u.c_offset + (m0 + token_group * 8u + 6u) * u.N + n0 + row_group * 8u + 6u] = acc6_1.z * u.alpha;
++        }
++        if (n0 + row_group * 8u + 7u < u.N) {
++            output[u.c_offset + (m0 + token_group * 8u + 6u) * u.N + n0 + row_group * 8u + 7u] = acc6_1.w * u.alpha;
++        }
++    }
++    if (m0 + token_group * 8u + 7u < u.M) {
++        if (n0 + row_group * 8u + 0u < u.N) {
++            output[u.c_offset + (m0 + token_group * 8u + 7u) * u.N + n0 + row_group * 8u + 0u] = acc7_0.x * u.alpha;
++        }
++        if (n0 + row_group * 8u + 1u < u.N) {
++            output[u.c_offset + (m0 + token_group * 8u + 7u) * u.N + n0 + row_group * 8u + 1u] = acc7_0.y * u.alpha;
++        }
++        if (n0 + row_group * 8u + 2u < u.N) {
++            output[u.c_offset + (m0 + token_group * 8u + 7u) * u.N + n0 + row_group * 8u + 2u] = acc7_0.z * u.alpha;
++        }
++        if (n0 + row_group * 8u + 3u < u.N) {
++            output[u.c_offset + (m0 + token_group * 8u + 7u) * u.N + n0 + row_group * 8u + 3u] = acc7_0.w * u.alpha;
++        }
++        if (n0 + row_group * 8u + 4u < u.N) {
++            output[u.c_offset + (m0 + token_group * 8u + 7u) * u.N + n0 + row_group * 8u + 4u] = acc7_1.x * u.alpha;
++        }
++        if (n0 + row_group * 8u + 5u < u.N) {
++            output[u.c_offset + (m0 + token_group * 8u + 7u) * u.N + n0 + row_group * 8u + 5u] = acc7_1.y * u.alpha;
++        }
++        if (n0 + row_group * 8u + 6u < u.N) {
++            output[u.c_offset + (m0 + token_group * 8u + 7u) * u.N + n0 + row_group * 8u + 6u] = acc7_1.z * u.alpha;
++        }
++        if (n0 + row_group * 8u + 7u < u.N) {
++            output[u.c_offset + (m0 + token_group * 8u + 7u) * u.N + n0 + row_group * 8u + 7u] = acc7_1.w * u.alpha;
++        }
++    }
 +}

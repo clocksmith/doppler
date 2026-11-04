@@ -1,0 +1,21 @@
+--- src/gpu/kernels/matmul_q4_0_tile64.wgsl
++++ src/gpu/kernels/matmul_q4_0_tile64_bounded.wgsl
+@@ -262,7 +262,11 @@
+-        for (var k = 0u; k < STAGE; k++) {
+-            let w = w_tile[k * 16u + row_group];
+-            let x = x_tile[k * 16u + token_group];
+-            acc0 = fma(w, vec4<f32>(x.x), acc0);
+-            acc1 = fma(w, vec4<f32>(x.y), acc1);
+-            acc2 = fma(w, vec4<f32>(x.z), acc2);
+-            acc3 = fma(w, vec4<f32>(x.w), acc3);
++        // All threads still stage tiles and reach both barriers.
++        // Threads without a valid output skip only their private arithmetic.
++        if (m0 + token_group * 4u < u.M && n0 + row_group * 4u < u.N) {
++            for (var k = 0u; k < STAGE; k++) {
++                let w = w_tile[k * 16u + row_group];
++                let x = x_tile[k * 16u + token_group];
++                acc0 = fma(w, vec4<f32>(x.x), acc0);
++                acc1 = fma(w, vec4<f32>(x.y), acc1);
++                acc2 = fma(w, vec4<f32>(x.z), acc2);
++                acc3 = fma(w, vec4<f32>(x.w), acc3);
++            }

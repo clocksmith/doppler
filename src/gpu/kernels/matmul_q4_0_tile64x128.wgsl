@@ -82,7 +82,7 @@ fn q40_value(row: u32, k: u32, blocks: u32) -> f32 {
 
 // 64 weight rows x 128 token columns, 256 invocations. Staging reuses each
 // decoded weight across 128 tokens. Per-output F32 FMA order remains K ascending.
-// Native Q4_0 and Q4_1 only; registry admission requires 6144 shared bytes.
+// Native Q4_0 and Q4_1 only; registry admission requires 24576 shared bytes.
 const TILE_ROWS: u32 = 64u;
 const TILE_TOKENS: u32 = 128u;
 const STAGE: u32 = 32u;
@@ -138,23 +138,23 @@ fn unpack_q8_0_word(word: u32, scale: f32) -> vec4<f32> {
 
 @compute @workgroup_size(256, 1, 1)
 fn main(@builtin(workgroup_id) group: vec3<u32>, @builtin(num_workgroups) grid: vec3<u32>, @builtin(local_invocation_index) lane: u32) {
- let tiles_n = (u.N + TILE_ROWS - 1u) / TILE_ROWS;
- let tiles_m = (u.M + TILE_TOKENS - 1u) / TILE_TOKENS;
- let tile = group.x + group.y * grid.x;
- let live_tile = tile < tiles_n * tiles_m;
- let n0 = (tile % tiles_n) * TILE_ROWS;
- let m0 = (tile / tiles_n) * TILE_TOKENS;
- let row_group = lane % 16u;
- let token_group = lane / 16u;
- var acc0_0 = vec4<f32>(0.0);
- var acc1_0 = vec4<f32>(0.0);
- var acc2_0 = vec4<f32>(0.0);
- var acc3_0 = vec4<f32>(0.0);
- var acc4_0 = vec4<f32>(0.0);
- var acc5_0 = vec4<f32>(0.0);
- var acc6_0 = vec4<f32>(0.0);
- var acc7_0 = vec4<f32>(0.0);
- for (var k0 = 0u; k0 < u.K; k0 += STAGE) {
+    let tiles_n = (u.N + TILE_ROWS - 1u) / TILE_ROWS;
+    let tiles_m = (u.M + TILE_TOKENS - 1u) / TILE_TOKENS;
+    let tile = group.x + group.y * grid.x;
+    let live_tile = tile < tiles_n * tiles_m;
+    let n0 = (tile % tiles_n) * TILE_ROWS;
+    let m0 = (tile / tiles_n) * TILE_TOKENS;
+    let row_group = lane % 16u;
+    let token_group = lane / 16u;
+    var acc0_0 = vec4<f32>(0.0);
+    var acc1_0 = vec4<f32>(0.0);
+    var acc2_0 = vec4<f32>(0.0);
+    var acc3_0 = vec4<f32>(0.0);
+    var acc4_0 = vec4<f32>(0.0);
+    var acc5_0 = vec4<f32>(0.0);
+    var acc6_0 = vec4<f32>(0.0);
+    var acc7_0 = vec4<f32>(0.0);
+    for (var k0 = 0u; k0 < u.K; k0 += STAGE) {
         if (lane < 256u) {
             let xl = lane;
             let kq = xl % 8u;
@@ -207,11 +207,13 @@ fn main(@builtin(workgroup_id) group: vec3<u32>, @builtin(num_workgroups) grid: 
                             let min_val = packed_half(base + 2u);
                             lo[r] = unpack_q4_1_lo(word, scale, min_val);
                             hi[r] = unpack_q4_1_hi(word, scale, min_val);
-                        } else {
+                        }
+                        else {
                             lo[r] = unpack_q4_0_lo(word, scale);
                             hi[r] = unpack_q4_0_hi(word, scale);
                         }
-                    } else {
+                    }
+                    else {
                         lo[r] = vec4<f32>(0.0);
                         hi[r] = vec4<f32>(0.0);
                     }
@@ -228,69 +230,135 @@ fn main(@builtin(workgroup_id) group: vec3<u32>, @builtin(num_workgroups) grid: 
                 w_tile[(k_hi + 3u) * 16u + rq] = vec4<f32>(hi[0].w, hi[1].w, hi[2].w, hi[3].w);
             }
         }
- workgroupBarrier();
- for (var k = 0u; k < STAGE; k++) {
- let w0 = w_tile[k * 16u + row_group * 1u + 0u];
- let x0 = x_tile[k * 32u + token_group * 2u + 0u];
- let x1 = x_tile[k * 32u + token_group * 2u + 1u];
- acc0_0 = fma(w0, vec4<f32>(x0.x), acc0_0);
- acc1_0 = fma(w0, vec4<f32>(x0.y), acc1_0);
- acc2_0 = fma(w0, vec4<f32>(x0.z), acc2_0);
- acc3_0 = fma(w0, vec4<f32>(x0.w), acc3_0);
- acc4_0 = fma(w0, vec4<f32>(x1.x), acc4_0);
- acc5_0 = fma(w0, vec4<f32>(x1.y), acc5_0);
- acc6_0 = fma(w0, vec4<f32>(x1.z), acc6_0);
- acc7_0 = fma(w0, vec4<f32>(x1.w), acc7_0);
- }
- workgroupBarrier();
- }
- if (!live_tile) {return;}
- if (m0 + token_group * 8u + 0u < u.M) {
- if (n0 + row_group * 4u + 0u < u.N) {output[u.c_offset + (m0 + token_group * 8u + 0u) * u.N + n0 + row_group * 4u + 0u] = acc0_0.x * u.alpha;}
- if (n0 + row_group * 4u + 1u < u.N) {output[u.c_offset + (m0 + token_group * 8u + 0u) * u.N + n0 + row_group * 4u + 1u] = acc0_0.y * u.alpha;}
- if (n0 + row_group * 4u + 2u < u.N) {output[u.c_offset + (m0 + token_group * 8u + 0u) * u.N + n0 + row_group * 4u + 2u] = acc0_0.z * u.alpha;}
- if (n0 + row_group * 4u + 3u < u.N) {output[u.c_offset + (m0 + token_group * 8u + 0u) * u.N + n0 + row_group * 4u + 3u] = acc0_0.w * u.alpha;}
- }
- if (m0 + token_group * 8u + 1u < u.M) {
- if (n0 + row_group * 4u + 0u < u.N) {output[u.c_offset + (m0 + token_group * 8u + 1u) * u.N + n0 + row_group * 4u + 0u] = acc1_0.x * u.alpha;}
- if (n0 + row_group * 4u + 1u < u.N) {output[u.c_offset + (m0 + token_group * 8u + 1u) * u.N + n0 + row_group * 4u + 1u] = acc1_0.y * u.alpha;}
- if (n0 + row_group * 4u + 2u < u.N) {output[u.c_offset + (m0 + token_group * 8u + 1u) * u.N + n0 + row_group * 4u + 2u] = acc1_0.z * u.alpha;}
- if (n0 + row_group * 4u + 3u < u.N) {output[u.c_offset + (m0 + token_group * 8u + 1u) * u.N + n0 + row_group * 4u + 3u] = acc1_0.w * u.alpha;}
- }
- if (m0 + token_group * 8u + 2u < u.M) {
- if (n0 + row_group * 4u + 0u < u.N) {output[u.c_offset + (m0 + token_group * 8u + 2u) * u.N + n0 + row_group * 4u + 0u] = acc2_0.x * u.alpha;}
- if (n0 + row_group * 4u + 1u < u.N) {output[u.c_offset + (m0 + token_group * 8u + 2u) * u.N + n0 + row_group * 4u + 1u] = acc2_0.y * u.alpha;}
- if (n0 + row_group * 4u + 2u < u.N) {output[u.c_offset + (m0 + token_group * 8u + 2u) * u.N + n0 + row_group * 4u + 2u] = acc2_0.z * u.alpha;}
- if (n0 + row_group * 4u + 3u < u.N) {output[u.c_offset + (m0 + token_group * 8u + 2u) * u.N + n0 + row_group * 4u + 3u] = acc2_0.w * u.alpha;}
- }
- if (m0 + token_group * 8u + 3u < u.M) {
- if (n0 + row_group * 4u + 0u < u.N) {output[u.c_offset + (m0 + token_group * 8u + 3u) * u.N + n0 + row_group * 4u + 0u] = acc3_0.x * u.alpha;}
- if (n0 + row_group * 4u + 1u < u.N) {output[u.c_offset + (m0 + token_group * 8u + 3u) * u.N + n0 + row_group * 4u + 1u] = acc3_0.y * u.alpha;}
- if (n0 + row_group * 4u + 2u < u.N) {output[u.c_offset + (m0 + token_group * 8u + 3u) * u.N + n0 + row_group * 4u + 2u] = acc3_0.z * u.alpha;}
- if (n0 + row_group * 4u + 3u < u.N) {output[u.c_offset + (m0 + token_group * 8u + 3u) * u.N + n0 + row_group * 4u + 3u] = acc3_0.w * u.alpha;}
- }
- if (m0 + token_group * 8u + 4u < u.M) {
- if (n0 + row_group * 4u + 0u < u.N) {output[u.c_offset + (m0 + token_group * 8u + 4u) * u.N + n0 + row_group * 4u + 0u] = acc4_0.x * u.alpha;}
- if (n0 + row_group * 4u + 1u < u.N) {output[u.c_offset + (m0 + token_group * 8u + 4u) * u.N + n0 + row_group * 4u + 1u] = acc4_0.y * u.alpha;}
- if (n0 + row_group * 4u + 2u < u.N) {output[u.c_offset + (m0 + token_group * 8u + 4u) * u.N + n0 + row_group * 4u + 2u] = acc4_0.z * u.alpha;}
- if (n0 + row_group * 4u + 3u < u.N) {output[u.c_offset + (m0 + token_group * 8u + 4u) * u.N + n0 + row_group * 4u + 3u] = acc4_0.w * u.alpha;}
- }
- if (m0 + token_group * 8u + 5u < u.M) {
- if (n0 + row_group * 4u + 0u < u.N) {output[u.c_offset + (m0 + token_group * 8u + 5u) * u.N + n0 + row_group * 4u + 0u] = acc5_0.x * u.alpha;}
- if (n0 + row_group * 4u + 1u < u.N) {output[u.c_offset + (m0 + token_group * 8u + 5u) * u.N + n0 + row_group * 4u + 1u] = acc5_0.y * u.alpha;}
- if (n0 + row_group * 4u + 2u < u.N) {output[u.c_offset + (m0 + token_group * 8u + 5u) * u.N + n0 + row_group * 4u + 2u] = acc5_0.z * u.alpha;}
- if (n0 + row_group * 4u + 3u < u.N) {output[u.c_offset + (m0 + token_group * 8u + 5u) * u.N + n0 + row_group * 4u + 3u] = acc5_0.w * u.alpha;}
- }
- if (m0 + token_group * 8u + 6u < u.M) {
- if (n0 + row_group * 4u + 0u < u.N) {output[u.c_offset + (m0 + token_group * 8u + 6u) * u.N + n0 + row_group * 4u + 0u] = acc6_0.x * u.alpha;}
- if (n0 + row_group * 4u + 1u < u.N) {output[u.c_offset + (m0 + token_group * 8u + 6u) * u.N + n0 + row_group * 4u + 1u] = acc6_0.y * u.alpha;}
- if (n0 + row_group * 4u + 2u < u.N) {output[u.c_offset + (m0 + token_group * 8u + 6u) * u.N + n0 + row_group * 4u + 2u] = acc6_0.z * u.alpha;}
- if (n0 + row_group * 4u + 3u < u.N) {output[u.c_offset + (m0 + token_group * 8u + 6u) * u.N + n0 + row_group * 4u + 3u] = acc6_0.w * u.alpha;}
- }
- if (m0 + token_group * 8u + 7u < u.M) {
- if (n0 + row_group * 4u + 0u < u.N) {output[u.c_offset + (m0 + token_group * 8u + 7u) * u.N + n0 + row_group * 4u + 0u] = acc7_0.x * u.alpha;}
- if (n0 + row_group * 4u + 1u < u.N) {output[u.c_offset + (m0 + token_group * 8u + 7u) * u.N + n0 + row_group * 4u + 1u] = acc7_0.y * u.alpha;}
- if (n0 + row_group * 4u + 2u < u.N) {output[u.c_offset + (m0 + token_group * 8u + 7u) * u.N + n0 + row_group * 4u + 2u] = acc7_0.z * u.alpha;}
- if (n0 + row_group * 4u + 3u < u.N) {output[u.c_offset + (m0 + token_group * 8u + 7u) * u.N + n0 + row_group * 4u + 3u] = acc7_0.w * u.alpha;}
- }
+        workgroupBarrier();
+        for (var k = 0u; k < STAGE; k++) {
+            let w0 = w_tile[k * 16u + row_group * 1u + 0u];
+            let x0 = x_tile[k * 32u + token_group * 2u + 0u];
+            let x1 = x_tile[k * 32u + token_group * 2u + 1u];
+            acc0_0 = fma(w0, vec4<f32>(x0.x), acc0_0);
+            acc1_0 = fma(w0, vec4<f32>(x0.y), acc1_0);
+            acc2_0 = fma(w0, vec4<f32>(x0.z), acc2_0);
+            acc3_0 = fma(w0, vec4<f32>(x0.w), acc3_0);
+            acc4_0 = fma(w0, vec4<f32>(x1.x), acc4_0);
+            acc5_0 = fma(w0, vec4<f32>(x1.y), acc5_0);
+            acc6_0 = fma(w0, vec4<f32>(x1.z), acc6_0);
+            acc7_0 = fma(w0, vec4<f32>(x1.w), acc7_0);
+        }
+        workgroupBarrier();
+    }
+    if (!live_tile) {
+        return;
+    }
+    if (m0 + token_group * 8u + 0u < u.M) {
+        if (n0 + row_group * 4u + 0u < u.N) {
+            output[u.c_offset + (m0 + token_group * 8u + 0u) * u.N + n0 + row_group * 4u + 0u] = acc0_0.x * u.alpha;
+        }
+        if (n0 + row_group * 4u + 1u < u.N) {
+            output[u.c_offset + (m0 + token_group * 8u + 0u) * u.N + n0 + row_group * 4u + 1u] = acc0_0.y * u.alpha;
+        }
+        if (n0 + row_group * 4u + 2u < u.N) {
+            output[u.c_offset + (m0 + token_group * 8u + 0u) * u.N + n0 + row_group * 4u + 2u] = acc0_0.z * u.alpha;
+        }
+        if (n0 + row_group * 4u + 3u < u.N) {
+            output[u.c_offset + (m0 + token_group * 8u + 0u) * u.N + n0 + row_group * 4u + 3u] = acc0_0.w * u.alpha;
+        }
+    }
+    if (m0 + token_group * 8u + 1u < u.M) {
+        if (n0 + row_group * 4u + 0u < u.N) {
+            output[u.c_offset + (m0 + token_group * 8u + 1u) * u.N + n0 + row_group * 4u + 0u] = acc1_0.x * u.alpha;
+        }
+        if (n0 + row_group * 4u + 1u < u.N) {
+            output[u.c_offset + (m0 + token_group * 8u + 1u) * u.N + n0 + row_group * 4u + 1u] = acc1_0.y * u.alpha;
+        }
+        if (n0 + row_group * 4u + 2u < u.N) {
+            output[u.c_offset + (m0 + token_group * 8u + 1u) * u.N + n0 + row_group * 4u + 2u] = acc1_0.z * u.alpha;
+        }
+        if (n0 + row_group * 4u + 3u < u.N) {
+            output[u.c_offset + (m0 + token_group * 8u + 1u) * u.N + n0 + row_group * 4u + 3u] = acc1_0.w * u.alpha;
+        }
+    }
+    if (m0 + token_group * 8u + 2u < u.M) {
+        if (n0 + row_group * 4u + 0u < u.N) {
+            output[u.c_offset + (m0 + token_group * 8u + 2u) * u.N + n0 + row_group * 4u + 0u] = acc2_0.x * u.alpha;
+        }
+        if (n0 + row_group * 4u + 1u < u.N) {
+            output[u.c_offset + (m0 + token_group * 8u + 2u) * u.N + n0 + row_group * 4u + 1u] = acc2_0.y * u.alpha;
+        }
+        if (n0 + row_group * 4u + 2u < u.N) {
+            output[u.c_offset + (m0 + token_group * 8u + 2u) * u.N + n0 + row_group * 4u + 2u] = acc2_0.z * u.alpha;
+        }
+        if (n0 + row_group * 4u + 3u < u.N) {
+            output[u.c_offset + (m0 + token_group * 8u + 2u) * u.N + n0 + row_group * 4u + 3u] = acc2_0.w * u.alpha;
+        }
+    }
+    if (m0 + token_group * 8u + 3u < u.M) {
+        if (n0 + row_group * 4u + 0u < u.N) {
+            output[u.c_offset + (m0 + token_group * 8u + 3u) * u.N + n0 + row_group * 4u + 0u] = acc3_0.x * u.alpha;
+        }
+        if (n0 + row_group * 4u + 1u < u.N) {
+            output[u.c_offset + (m0 + token_group * 8u + 3u) * u.N + n0 + row_group * 4u + 1u] = acc3_0.y * u.alpha;
+        }
+        if (n0 + row_group * 4u + 2u < u.N) {
+            output[u.c_offset + (m0 + token_group * 8u + 3u) * u.N + n0 + row_group * 4u + 2u] = acc3_0.z * u.alpha;
+        }
+        if (n0 + row_group * 4u + 3u < u.N) {
+            output[u.c_offset + (m0 + token_group * 8u + 3u) * u.N + n0 + row_group * 4u + 3u] = acc3_0.w * u.alpha;
+        }
+    }
+    if (m0 + token_group * 8u + 4u < u.M) {
+        if (n0 + row_group * 4u + 0u < u.N) {
+            output[u.c_offset + (m0 + token_group * 8u + 4u) * u.N + n0 + row_group * 4u + 0u] = acc4_0.x * u.alpha;
+        }
+        if (n0 + row_group * 4u + 1u < u.N) {
+            output[u.c_offset + (m0 + token_group * 8u + 4u) * u.N + n0 + row_group * 4u + 1u] = acc4_0.y * u.alpha;
+        }
+        if (n0 + row_group * 4u + 2u < u.N) {
+            output[u.c_offset + (m0 + token_group * 8u + 4u) * u.N + n0 + row_group * 4u + 2u] = acc4_0.z * u.alpha;
+        }
+        if (n0 + row_group * 4u + 3u < u.N) {
+            output[u.c_offset + (m0 + token_group * 8u + 4u) * u.N + n0 + row_group * 4u + 3u] = acc4_0.w * u.alpha;
+        }
+    }
+    if (m0 + token_group * 8u + 5u < u.M) {
+        if (n0 + row_group * 4u + 0u < u.N) {
+            output[u.c_offset + (m0 + token_group * 8u + 5u) * u.N + n0 + row_group * 4u + 0u] = acc5_0.x * u.alpha;
+        }
+        if (n0 + row_group * 4u + 1u < u.N) {
+            output[u.c_offset + (m0 + token_group * 8u + 5u) * u.N + n0 + row_group * 4u + 1u] = acc5_0.y * u.alpha;
+        }
+        if (n0 + row_group * 4u + 2u < u.N) {
+            output[u.c_offset + (m0 + token_group * 8u + 5u) * u.N + n0 + row_group * 4u + 2u] = acc5_0.z * u.alpha;
+        }
+        if (n0 + row_group * 4u + 3u < u.N) {
+            output[u.c_offset + (m0 + token_group * 8u + 5u) * u.N + n0 + row_group * 4u + 3u] = acc5_0.w * u.alpha;
+        }
+    }
+    if (m0 + token_group * 8u + 6u < u.M) {
+        if (n0 + row_group * 4u + 0u < u.N) {
+            output[u.c_offset + (m0 + token_group * 8u + 6u) * u.N + n0 + row_group * 4u + 0u] = acc6_0.x * u.alpha;
+        }
+        if (n0 + row_group * 4u + 1u < u.N) {
+            output[u.c_offset + (m0 + token_group * 8u + 6u) * u.N + n0 + row_group * 4u + 1u] = acc6_0.y * u.alpha;
+        }
+        if (n0 + row_group * 4u + 2u < u.N) {
+            output[u.c_offset + (m0 + token_group * 8u + 6u) * u.N + n0 + row_group * 4u + 2u] = acc6_0.z * u.alpha;
+        }
+        if (n0 + row_group * 4u + 3u < u.N) {
+            output[u.c_offset + (m0 + token_group * 8u + 6u) * u.N + n0 + row_group * 4u + 3u] = acc6_0.w * u.alpha;
+        }
+    }
+    if (m0 + token_group * 8u + 7u < u.M) {
+        if (n0 + row_group * 4u + 0u < u.N) {
+            output[u.c_offset + (m0 + token_group * 8u + 7u) * u.N + n0 + row_group * 4u + 0u] = acc7_0.x * u.alpha;
+        }
+        if (n0 + row_group * 4u + 1u < u.N) {
+            output[u.c_offset + (m0 + token_group * 8u + 7u) * u.N + n0 + row_group * 4u + 1u] = acc7_0.y * u.alpha;
+        }
+        if (n0 + row_group * 4u + 2u < u.N) {
+            output[u.c_offset + (m0 + token_group * 8u + 7u) * u.N + n0 + row_group * 4u + 2u] = acc7_0.z * u.alpha;
+        }
+        if (n0 + row_group * 4u + 3u < u.N) {
+            output[u.c_offset + (m0 + token_group * 8u + 7u) * u.N + n0 + row_group * 4u + 3u] = acc7_0.w * u.alpha;
+        }
+    }
 }

@@ -1,4 +1,5 @@
 export const WGSL_PATCH_VARIANTS = Object.freeze([
+  { id: 'matmul-q4-0-tile64-bounded', source: 'src/gpu/kernels/matmul_q4_0_tile64.wgsl', target: 'src/gpu/kernels/matmul_q4_0_tile64_bounded.wgsl', patch: 'src/gpu/kernels/codegen/patches/matmul_q4_0_tile64_bounded.from.matmul_q4_0_tile64.diff' },
   { id: 'matmul-q4-0-tile128', source: 'src/gpu/kernels/matmul_q4_0_tile64.wgsl', target: 'src/gpu/kernels/matmul_q4_0_tile128.wgsl', patch: 'src/gpu/kernels/codegen/patches/matmul_q4_0_tile128.from.matmul_q4_0_tile64.diff' },
   { id: 'matmul-q4-0-tile64x128', source: 'src/gpu/kernels/matmul_q4_0_tile64.wgsl', target: 'src/gpu/kernels/matmul_q4_0_tile64x128.wgsl', patch: 'src/gpu/kernels/codegen/patches/matmul_q4_0_tile64x128.from.matmul_q4_0_tile64.diff' },
   {

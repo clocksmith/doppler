@@ -157,6 +157,8 @@ export const UNIFORM_WRITERS = Object.freeze({
   "matmul/q4_0_prefill_tile64x128": { size: 32, write: writers0.write_matmul_q4_0_cooperative },
   "matmul/q4_0_prefill_tile128": { size: 32, write: writers0.write_matmul_q4_0_cooperative },
   "matmul/q4_1_prefill_tile128": { size: 32, write: writers0.write_matmul_q4_0_cooperative },
+  "matmul/q4_0_prefill_tile64_bounded": { size: 32, write: writers0.write_matmul_q4_0_cooperative },
+  "matmul/q4_1_prefill_tile64_bounded": { size: 32, write: writers0.write_matmul_q4_0_cooperative },
   "fused_ffn/default": { size: 32, write: writers0.write_fused_ffn_default },
   "fused_ffn/multi": { size: 32, write: writers0.write_fused_ffn_default },
   "fused_ffn/f16": { size: 32, write: writers0.write_fused_ffn_default },
