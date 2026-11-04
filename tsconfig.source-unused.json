@@ -26,6 +26,8 @@
     "src/inference/pipelines/text/generator/decode-readback.js",
     "src/inference/pipelines/text/linear-attention/norm-ab.js",
     "src/inference/pipelines/text/generator/whole-token-program.js",
+    "src/inference/pipelines/text/generator/recorded-step-executor.js",
+    "src/inference/pipelines/text/generator/compiled-greedy-window.js",
     "src/gpu/step-contract.js",
     "src/inference/pipelines/text/generator/whole-token-observation.js",
     "src/inference/pipelines/text/generator/whole-token-template.js",

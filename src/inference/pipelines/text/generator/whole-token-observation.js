@@ -119,6 +119,8 @@ export class StepObservation {
   constructor(pos, token) {
     this.pos = pos;
     this.token = token;
+    /** Borrowed GPU token input for an explicitly declared variable-advance window. @type {GPUBuffer | null} */
+    this.gpuTokenInput = null;
     /** @type {ObservedOp[]} */
     this.ops = [];
     /** @type {Set<GPUBuffer>} */

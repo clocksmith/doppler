@@ -97,10 +97,20 @@ import { isMapRead, U32 } from './whole-token-observation.js';
  * The input token is never inferred from values; its owner declares it.
  * @param {readonly number[]} values
  * @param {readonly number[]} positions
+ * @param {boolean} [variableAdvance] Explicit GPU windows may advance by different positive integer counts.
  * @returns {{ kind: 'const', value: number } | { kind: 'affine', base: number, slope: number, pos0: number } | null}
  */
-export function classifyWord(values, positions) {
+export function classifyWord(values, positions, variableAdvance = false) {
   if (values.every((v) => v === values[0])) return { kind: 'const', value: values[0] };
+  if (variableAdvance) {
+    if (values.length !== positions.length || positions.length < 2
+      || !positions.every(Number.isSafeInteger) || positions[1] <= positions[0]) return null;
+    const slope = (values[1] - values[0]) / (positions[1] - positions[0]);
+    if (!Number.isSafeInteger(slope) || !values.every((value, i) =>
+      Number.isSafeInteger(value) && value >= 0 && value <= 0xffffffff
+      && value === values[0] + slope * (positions[i] - positions[0]))) return null;
+    return { kind: 'affine', base: values[0], slope, pos0: positions[0] };
+  }
   if (positions.length < 2 || positions[1] - positions[0] !== 1) return null;
   const slope = (values[1] - values[0]) | 0;
   for (let i = 2; i < values.length; i++) {
@@ -165,7 +175,7 @@ function classifyBytes(arrays, observations, where) {
         `[WholeTokenProgram] ${where}: word ${i} (${values.join(', ')}) tracks the input token but no operation declared it a token input.`
       );
     }
-    const model = classifyWord(values, positions);
+    const model = classifyWord(values, positions, observations[0].gpuTokenInput !== null);
     if (!model) {
       throw new Error(
         `[WholeTokenProgram] ${where}: word ${i} (${values.join(', ')}) is not affine in the position and no operation declared it.`
@@ -201,6 +211,8 @@ function canonicalBuffers(observation) {
  * @param {StepObservation[]} obs
  */
 export function buildTemplate(obs) {
+  const gpuTokenInput = obs[0].gpuTokenInput;
+  if (obs.some(o => o.gpuTokenInput !== gpuTokenInput)) throw new Error('[WholeTokenProgram] Token input contract changed.');
   const lengths = obs.map((o) => o.ops.length);
   if (lengths.some((n) => n !== lengths[0])) {
     throw new Error(`[WholeTokenProgram] Decode steps recorded ${lengths.join('/')} commands; the structure changes with position.`);
@@ -332,7 +344,7 @@ export function buildTemplate(obs) {
        * @returns {WordModel}
        */
       const offsetModel = (field) => {
-        const model = classifyWord(ops.map((op) => op[field]), obs.map((o) => o.pos));
+        const model = classifyWord(ops.map((op) => op[field]), obs.map((o) => o.pos), gpuTokenInput !== null);
         if (!model) {
           throw new Error(`[WholeTokenProgram] Command ${i} copy ${field} is neither constant nor affine in the position.`);
         }
@@ -373,7 +385,16 @@ export function buildTemplate(obs) {
   if (!readback || !readback.copies.some((c) => c.dstOffset === 0 && c.size === U32)) {
     throw new Error('[WholeTokenProgram] Decode step has no 4-byte sampled-token readback at offset 0.');
   }
-  if (!template.some((step) => step.kind === 'write' && step.dynamic.some((d) => d.model.kind === 'token'))) {
+  const cpuToken = template.some(step => step.kind === 'write' && step.dynamic.some(d => d.model.kind === 'token'));
+  if (gpuTokenInput !== null) {
+    if (cpuToken || obs.some(o => o.transient.has(gpuTokenInput))
+      || template.some(step => step.kind === 'write' && step.key === gpuTokenInput)
+      || !template.some(step => (step.kind === 'copy' && step.src === gpuTokenInput)
+        || ((step.kind === 'dispatch' || step.kind === 'indirect')
+          && step.groups.some(group => group?.entries?.some(entry => entry.key === gpuTokenInput))))) {
+      throw new Error('[WholeTokenProgram] GPU windows require a borrowed resident token input read by their commands, without CPU token writes.');
+    }
+  } else if (!cpuToken) {
     throw new Error('[WholeTokenProgram] No operation declared the decode step\'s input token; the program cannot feed it.');
   }
   // A uniform rewritten each step must reach its dispatches through an observed bind

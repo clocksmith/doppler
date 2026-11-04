@@ -54,3 +54,4 @@ export interface WholeTokenBatch {
   settle(): Promise<void>;
 }
 export declare function prepareWholeTokenBatch(state: PipelineState, currentIds: number[], requestedCount: number): Promise<WholeTokenBatch | null>;
+export { createCompiledGreedyWindow } from './compiled-greedy-window.js';

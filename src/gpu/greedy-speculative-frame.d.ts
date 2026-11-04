@@ -3,6 +3,12 @@ import type { Tensor } from './tensor.js';
 
 export interface GreedyFrameRows { hidden: Tensor; logits: Tensor }
 export interface GreedyFrameRefillShape { readonly rows: number; readonly width: number }
+export interface GreedyFrameRecording {
+  /** Called before any per-frame allocation or command. Must restore observation hooks on every outcome. */
+  observe(recorder: CommandRecorder): void;
+  /** Explicit null retains the CPU cap; otherwise acceptance reads this borrowed scalar GPU buffer. */
+  outputLimitBuffer: GPUBuffer | null;
+}
 export interface GreedyFrameProgram {
   /** Record only. Returned outputs transfer to the frame recorder. */
   recordDraft(recorder: CommandRecorder, tokenIds: GPUBuffer, tokenIndex: number,
@@ -23,7 +29,10 @@ export interface GreedyFrameTransaction {
   settle(): Promise<void>;
 }
 export interface GreedySpeculativeSession {
-  begin(program: GreedyFrameProgram, outputLimit: number, signal?: AbortSignal): Promise<GreedyFrameTransaction>;
+  /** Borrowed until dispose. Owner must keep these resident through compiled replay and settlement. */
+  readonly carry: { readonly hidden: Tensor; readonly token: GPUBuffer };
+  begin(program: GreedyFrameProgram, outputLimit: number, signal?: AbortSignal,
+    recording?: GreedyFrameRecording | null): Promise<GreedyFrameTransaction>;
   dispose(): Promise<void>;
 }
 /** Internal F32, greedy, recurrent-model execution mechanism. Not a public generation API.

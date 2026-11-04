@@ -7,12 +7,25 @@ export interface WholeTokenBatchStream {
 /** Consecutive consistent decode steps observed before a program is built. */
 export declare const WHOLE_TOKEN_OBSERVED_STEPS: number;
 
+/** Explicit GPU-fed window. Word zero of its readback is the emitted token count. */
+export interface GPUWindowInput { readonly tokenInput: GPUBuffer; readonly maxOutputTokens: number }
+export interface GPUWindowExecution {
+  /** Same execution plan and resources as the observed windows. */
+  readonly identity: readonly unknown[];
+  /** Record a rollback checkpoint before any window commands, using the same encoder. */
+  recordPrefix(encoder: GPUCommandEncoder): void;
+  /** Called immediately after successful submission, including when a later map fails. */
+  onSubmitted(): void;
+}
+
 export declare class WholeTokenProgram {
-  constructor(device: GPUDevice);
+  constructor(device: GPUDevice, gpuWindow?: GPUWindowInput | null);
   readonly ready: boolean;
   /** A kept program whose next observed step must match it (verify) before it replays. */
   readonly awaitingVerification: boolean;
   readonly dispatchCount: number;
+  /** Owned replay resources only, excluding borrowed model weights and caches. */
+  readonly privateBytes: number;
   readonly positionRange: { owner: string; min: number; max: number };
   readonly stats: {
     observedSteps: number;
@@ -67,6 +80,10 @@ export declare class WholeTokenProgram {
   /** Drop the built program so the following steps are observed again. */
   invalidate(reason: string): void;
   run(pos: number, token: number): Promise<Uint32Array>;
+  /** Returns untrusted compact feedback. Owner must validate it before publication and recover on failure. */
+  runWindow(pos: number, execution: GPUWindowExecution): Promise<Uint32Array>;
+  /** Supply the final observation's validated count before the first replay. */
+  acceptObservedWindow(pos: number, count: number): void;
   startBatch(pos: number, token: number, count: number): Promise<WholeTokenBatchStream>;
   /** Exact sequential GPU steps; caller must retain a state checkpoint through publication. */
   runBatch(pos: number, token: number, count: number): Promise<Uint32Array[]>;

@@ -1,7 +1,9 @@
 import { isBufferActive } from '../../../../memory/buffer-pool.js';
 import { log } from '../../../../debug/index.js';
 import { StepObservation, observeStep, patchMethod, restorePatches, U32 } from './whole-token-observation.js';
-import { affineLastPosition, buildTemplate, evaluateWord } from './whole-token-template.js';
+import { affineLastPosition, buildTemplate } from './whole-token-template.js';
+import { encodeRecordedStep, writeRecordedStepInputs } from './recorded-step-executor.js';
+import { isNativeGpuBuffer } from '../../../../gpu/buffer-identity.js';
 
 
 // Whole-token decode program (runtime.inference.session.decodeLoop.wholeTokenProgram).
@@ -81,8 +83,17 @@ function sameIdentity(a, b) {
 }
 
 export class WholeTokenProgram {
-  /** @param {GPUDevice} device */
-  constructor(device) {
+  /** @param {GPUDevice} device @param {import('./whole-token-program.js').GPUWindowInput | null} [gpuWindow] */
+  constructor(device, gpuWindow = null) {
+    if (gpuWindow !== null && (!isNativeGpuBuffer(gpuWindow.tokenInput) || gpuWindow.tokenInput.size < U32
+      || (gpuWindow.tokenInput.usage & (GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_SRC | GPUBufferUsage.COPY_DST))
+        !== (GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_SRC | GPUBufferUsage.COPY_DST)
+      || !Number.isSafeInteger(gpuWindow.maxOutputTokens) || gpuWindow.maxOutputTokens < 1 || gpuWindow.maxOutputTokens > 33)) {
+      throw new Error('[WholeTokenProgram] GPU windows require a resident copyable token input and bounded output count.');
+    }
+    this.gpuWindow = gpuWindow === null ? null : Object.freeze({ ...gpuWindow });
+    this.windowInFlight = false;
+    this.windowNeedsRestore = false;
     this.device = device;
     /** @type {BindGroupDescriptors} */
     this.descriptors = new WeakMap();
@@ -129,6 +140,8 @@ export class WholeTokenProgram {
     return { observedSteps: 0, replayedTokens: 0, replaySubmissions: 0, batchReadbacks: 0, restarts: 0, invalidations: 0, reused: false, verifiedAhead: false,
       lastInvalidation: /** @type {string | null} */ (null) };
   }
+
+  get privateBytes() { return this.owned.reduce((bytes, buffer) => bytes + buffer.size, 0); }
 
   #watchBindGroups() {
     const device = this.device;
@@ -270,6 +283,7 @@ export class WholeTokenProgram {
    */
   async #capture(pos, token, run, identityOf, limits) {
     const observation = new StepObservation(pos, token);
+    observation.gpuTokenInput = this.gpuWindow?.tokenInput ?? null;
     /** @type {(() => void) | null} */
     let stop = null;
     const attach = (/** @type {CommandRecorder | null} */ recorder) => {
@@ -315,7 +329,7 @@ export class WholeTokenProgram {
       this.#build();
       this.basis = this.observations;
       this.observations = [];
-      this.nextPos = observation.pos + 1;
+      this.nextPos = this.gpuWindow ? null : observation.pos + 1;
     }
   }
 
@@ -330,7 +344,8 @@ export class WholeTokenProgram {
     let max = Infinity;
     let count = 0;
     for (let i = obs.length - 1; i >= 0; i--) {
-      if (i + 1 < obs.length && obs[i + 1].pos !== obs[i].pos + 1) break;
+      if (i + 1 < obs.length && (this.gpuWindow
+        ? obs[i + 1].pos <= obs[i].pos : obs[i + 1].pos !== obs[i].pos + 1)) break;
       const range = /** @type {PositionLimit} */ (obs[i].rangeLimit);
       if (!sameIdentity(obs[i].identity, newest.identity)) break;
       const nextMin = Math.max(min, range.min);
@@ -528,74 +543,6 @@ export class WholeTokenProgram {
   }
 
   /**
-   * @param {number} pos
-   * @param {number} stagingIndex
-   * @param {{ staging: GPUBuffer, offset: number, feedback: GPUBuffer | null, saveFeedback: GPUBuffer } | null} batch
-   * @returns {EncodedToken}
-   */
-  #encode(pos, stagingIndex, batch = null) {
-    const encoder = this.device.createCommandEncoder({ label: `whole_token_${pos}` });
-    /** @type {GPUComputePassEncoder | null} */
-    let pass = null;
-    /** @type {GPUComputePipeline | null} */
-    let lastPipeline = null;
-    if (batch?.feedback) {
-      for (const field of this.dynamicUniformWords) {
-        if (field.model.kind === 'token') encoder.copyBufferToBuffer(batch.feedback, 0, this.uniformBuffer, field.index * U32, U32);
-      }
-      for (const write of this.writes) {
-        for (const field of write.dynamic) {
-          if (field.model.kind === 'token') encoder.copyBufferToBuffer(batch.feedback, 0, write.buffer, write.offset + field.word * U32, U32);
-        }
-      }
-    }
-    for (const step of this.steps) {
-      if (step.kind === 'copy' || step.kind === 'clear') {
-        if (pass) { pass.end(); pass = null; lastPipeline = null; }
-        if (step.kind === 'copy') {
-          encoder.copyBufferToBuffer(step.src, evaluateWord(step.srcOffset, pos, 0), step.dst,
-            evaluateWord(step.dstOffset, pos, 0), step.size);
-        }
-        else encoder.clearBuffer(step.buffer, step.offset, step.size);
-        continue;
-      }
-      if (!pass) pass = encoder.beginComputePass({ label: 'whole_token_pass' });
-      if (step.pipeline !== lastPipeline) { pass.setPipeline(step.pipeline); lastPipeline = step.pipeline; }
-      for (let g = 0; g < step.groups.length; g++) if (step.groups[g]) pass.setBindGroup(g, step.groups[g]);
-      if (step.kind === 'dispatch') pass.dispatchWorkgroups(step.workgroups[0], step.workgroups[1], step.workgroups[2]);
-      else pass.dispatchWorkgroupsIndirect(step.indirect, step.indirectOffset);
-    }
-    if (pass) pass.end();
-    const staging = batch?.staging ?? this.staging[stagingIndex];
-    if (batch?.saveFeedback) {
-      const sample = this.readback.find(copy => copy.dstOffset === 0);
-      if (!sample || sample.size < U32) throw new Error('[WholeTokenProgram] Missing declared sampled-token readback.');
-      encoder.copyBufferToBuffer(sample.src, sample.srcOffset, batch.saveFeedback, 0, U32);
-    }
-    for (const c of this.readback) encoder.copyBufferToBuffer(c.src, c.srcOffset, staging, (batch?.offset ?? 0) + c.dstOffset, c.size);
-    return { pos, staging, commandBuffer: encoder.finish() };
-  }
-
-  /**
-   * @param {number} pos
-   * @param {number} token
-   */
-  #writeInputs(pos, token) {
-    const queue = this.device.queue;
-    if (this.dynamicUniformWords.length > 0) {
-      for (const { index, model } of this.dynamicUniformWords) this.uniformWords[index] = evaluateWord(model, pos, token);
-      queue.writeBuffer(this.uniformBuffer, 0, this.uniformMirror, 0, this.dynamicUniformBytes);
-    }
-    for (const write of this.writes) {
-      if (write.dynamic.length > 0) {
-        const words = new Uint32Array(write.bytes.buffer, write.bytes.byteOffset, write.bytes.byteLength / U32);
-        for (const { word, model } of write.dynamic) words[word] = evaluateWord(model, pos, token);
-      }
-      queue.writeBuffer(write.buffer, write.offset, write.bytes);
-    }
-  }
-
-  /**
    * Run one token at `pos` whose input token id is `token`. Returns the readback words:
    * word 0 is the sampled token id, later words are the step's other readback copies.
    * @param {number} pos
@@ -603,17 +550,18 @@ export class WholeTokenProgram {
    * @returns {Promise<Uint32Array>}
    */
   async run(pos, token) {
+    if (this.gpuWindow) throw new Error('[WholeTokenProgram] GPU windows must use runWindow.');
     if (!this.ready) throw new Error('[WholeTokenProgram] Program is not built.');
     if (pos !== this.nextPos) throw new Error(`[WholeTokenProgram] Expected position ${this.nextPos}, got ${pos}.`);
     const pending = this.pending && this.pending.pos === pos ? this.pending : null;
     this.pending = null;
-    const job = pending ?? this.#encode(pos, this.stagingIndex);
-    this.#writeInputs(pos, token);
+    const job = pending ?? encodeRecordedStep(this, pos, this.stagingIndex);
+    writeRecordedStepInputs(this, pos, token);
     this.device.queue.writeBuffer(job.staging, 0, NO_TOKEN);
     this.device.queue.submit([job.commandBuffer]); this.stats.replaySubmissions++;
     const mapped = job.staging.mapAsync(GPUMapMode.READ, 0, this.staging[0].size);
     this.stagingIndex = this.staging.indexOf(job.staging) ^ 1;
-    this.pending = this.#encode(pos + 1, this.stagingIndex);
+    this.pending = encodeRecordedStep(this, pos + 1, this.stagingIndex);
     await mapped;
     const words = new Uint32Array(job.staging.getMappedRange(0, this.staging[0].size)).slice();
     job.staging.unmap();
@@ -623,6 +571,46 @@ export class WholeTokenProgram {
     this.nextPos = pos + 1;
     this.stats.replayedTokens++;
     return words;
+  }
+
+  /** One GPU-fed window, without predicting the next position or publishing tokens.
+   * Caller validates the remaining feedback and retains a checkpoint through publication.
+   * @param {number} pos @param {import('./whole-token-program.js').GPUWindowExecution} execution */
+  async runWindow(pos, execution) {
+    if (!this.gpuWindow || !this.ready || this.awaitingVerification || pos !== this.nextPos
+      || this.windowInFlight || this.windowNeedsRestore
+      || pos < this.positionRange.min || pos > this.positionRange.max
+      || !Array.isArray(execution?.identity) || this.rejects(pos, execution.identity) !== null
+      || typeof execution.recordPrefix !== 'function' || typeof execution.onSubmitted !== 'function') {
+      throw new Error('[WholeTokenProgram] GPU window requires a ready matching cursor and explicit checkpoint/submission ports.');
+    }
+    this.windowInFlight = true;
+    let staging;
+    let mapped = false;
+    try {
+      const job = encodeRecordedStep(this, pos, this.stagingIndex, null, execution.recordPrefix);
+      staging = job.staging;
+      writeRecordedStepInputs(this, pos, 0);
+      this.device.queue.writeBuffer(staging, 0, NO_TOKEN);
+      this.device.queue.submit([job.commandBuffer]); this.stats.replaySubmissions++;
+      this.windowNeedsRestore = true; execution.onSubmitted();
+      await staging.mapAsync(GPUMapMode.READ); mapped = true;
+      const words = new Uint32Array(staging.getMappedRange()).slice(), count = words[0];
+      if (count < 1 || count > this.gpuWindow.maxOutputTokens) throw new Error('[WholeTokenProgram] GPU window wrote an invalid output count.');
+      this.nextPos = pos + count; this.stats.replayedTokens += count;
+      this.windowNeedsRestore = false;
+      return words;
+    } finally { if (mapped) staging?.unmap(); this.windowInFlight = false; }
+  }
+
+  /** Advance only the final observed window used to build this GPU program.
+   * @param {number} pos @param {number} count */
+  acceptObservedWindow(pos, count) {
+    if (!this.gpuWindow || !this.ready || this.nextPos !== null || this.basis.at(-1)?.pos !== pos
+      || !Number.isSafeInteger(count) || count < 1 || count > this.gpuWindow.maxOutputTokens) {
+      throw new Error('[WholeTokenProgram] Expected the bounded output count of the final observed GPU window.');
+    }
+    this.nextPos = pos + count;
   }
 
   /**
@@ -635,6 +623,7 @@ export class WholeTokenProgram {
    * @returns {Promise<import('./whole-token-program.js').WholeTokenBatchStream>}
    */
   async startBatch(pos, token, count) {
+    if (this.gpuWindow) throw new Error('[WholeTokenProgram] GPU windows cannot use sequential token batches.');
     if (!this.ready || pos !== this.nextPos) throw new Error('[WholeTokenProgram] Batch cursor does not match a ready program.');
     if (!Number.isSafeInteger(count) || count < 1 || !Number.isSafeInteger(pos + count - 1)
       || pos < this.positionRange.min || pos + count - 1 > this.positionRange.max) {
@@ -662,9 +651,9 @@ export class WholeTokenProgram {
           usage: GPUBufferUsage.MAP_READ | GPUBufferUsage.COPY_DST });
         buffers.push(staging);
         this.device.queue.writeBuffer(staging, 0, NO_TOKEN);
-        const job = this.#encode(pos + index, 0, { staging, offset: 0,
+        const job = encodeRecordedStep(this, pos + index, 0, { staging, offset: 0,
           feedback: index ? feedback : null, saveFeedback: feedback });
-        this.#writeInputs(pos + index, index ? 0 : token);
+        writeRecordedStepInputs(this, pos + index, index ? 0 : token);
         this.device.queue.submit([job.commandBuffer]); this.stats.replaySubmissions++; submitted = true;
         reads.push(staging.mapAsync(GPUMapMode.READ, 0, size).then(() => {
           this.stats.batchReadbacks++;
@@ -713,10 +702,10 @@ export class WholeTokenProgram {
   /** Cursor change is legal only after the owning state checkpoint was restored.
    * @param {number} pos */
   resumeAfterRestore(pos) {
-    if (!this.ready || !Number.isSafeInteger(pos) || pos < this.positionRange.min || pos > this.positionRange.max) {
+    if (this.windowInFlight || !this.ready || !Number.isSafeInteger(pos) || pos < this.positionRange.min || pos > this.positionRange.max) {
       throw new Error('[WholeTokenProgram] Restored cursor is outside the prepared program.');
     }
-    this.pending = null; this.nextPos = pos;
+    this.pending = null; this.nextPos = pos; this.windowNeedsRestore = false;
   }
 
   #unwatch() {
@@ -735,6 +724,7 @@ export class WholeTokenProgram {
   }
 
   destroy() {
+    if (this.windowInFlight) throw new Error('[WholeTokenProgram] Settle the submitted GPU window before destroying it.');
     this.#unwatch();
     this.#release();
   }

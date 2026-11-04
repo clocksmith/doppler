@@ -39,6 +39,7 @@ export declare class StepObservation {
   constructor(pos: number, token: number);
   pos: number;
   token: number;
+  gpuTokenInput: GPUBuffer | null;
   ops: ObservedOp[];
   transient: Set<GPUBuffer>;
   uniformBytes: Map<GPUBuffer, UniformContents>;

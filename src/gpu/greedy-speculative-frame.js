@@ -6,7 +6,7 @@ import { acquireBuffer, releaseBuffer, discardBuffer, uploadData } from '../memo
 import { recordArgmax } from './kernels/sample.js';
 import { recordCheckFinitenessF32 } from './kernels/check-finiteness-f32.js';
 import { createLinearAttentionRecovery } from './kernels/linear-attention-recovery.js';
-import { recordSpeculativeAcceptance, recordSpeculativeCarry } from './kernels/speculative-accept.js';
+import { recordSpeculativeAcceptance, recordSpeculativeAcceptanceFromGPU, recordSpeculativeCarry } from './kernels/speculative-accept.js';
 import { isGpuBufferInstance } from './weight-buffer.js';
 
 const owners = new WeakSet();
@@ -24,15 +24,19 @@ function assertRows(tensor, rows, width) {
 }
 
 /** Allocate one recorder-owned lease; unwind partial allocation before returning.
- * @param {number} depth @param {number} hiddenSize @param {PreparedDecodeWorkspace | null} workspace */
-async function createFrameResources(depth, hiddenSize, workspace) {
+ * @param {number} depth @param {number} hiddenSize @param {PreparedDecodeWorkspace | null} workspace
+ * @param {import('./greedy-speculative-frame.js').GreedyFrameRecording | null} recording */
+async function createFrameResources(depth, hiddenSize, workspace, recording) {
   const recorder = createCommandRecorder('greedy_speculative_frame', { recordLabels: false, recordDispatches: false });
   recorder.decodeWorkspace = workspace;
-  const recovery = createLinearAttentionRecovery(recorder, depth + 1);
+  /** @type {ReturnType<typeof createLinearAttentionRecovery> | undefined} */
+  let recovery;
   /** @param {number} bytes @param {string} label @param {number} [usage] */
   const make = (bytes, label, usage = GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_SRC | GPUBufferUsage.COPY_DST) =>
     recorder.createTempBuffer(bytes, usage, label);
   try {
+    recording?.observe(recorder);
+    recovery = createLinearAttentionRecovery(recorder, depth + 1);
     const compactBytes = (depth + 6) * 4;
     return { recorder, recovery, make, compactBytes, drafts: make(depth * 4, 'drafts'),
       targets: make((depth + 1) * 4, 'targets'), inputs: make((depth + 1) * 4, 'inputs'),
@@ -40,7 +44,7 @@ async function createFrameResources(depth, hiddenSize, workspace) {
       savedHidden: make(hiddenSize * 4, 'saved_hidden'), savedToken: make(4, 'saved_token'),
       staging: make(compactBytes + 16, 'feedback', GPUBufferUsage.MAP_READ | GPUBufferUsage.COPY_DST) };
   } catch (error) {
-    recovery.close();
+    recovery?.close();
     try { await recorder.abort(); }
     catch (cleanup) { throw new AggregateError([error, cleanup], 'Frame allocation and cleanup failed.'); }
     throw error;
@@ -87,15 +91,18 @@ export async function createGreedySpeculativeSession(options) {
   const hidden = carryHidden, token = carryToken;
   /** @type {import('./greedy-speculative-frame.js').GreedySpeculativeSession} */
   const session = {
-    async begin(program, outputLimit, signal) {
+    carry: Object.freeze({ hidden: createTensor(hidden, 'f32', [1, H]), token }),
+    async begin(program, outputLimit, signal, recording = null) {
       if (disposed || poisoned || busy || !Number.isSafeInteger(outputLimit) || outputLimit < 1 || outputLimit > D + 1
         || typeof program?.recordDraft !== 'function' || typeof program.recordTarget !== 'function'
-        || typeof program.recordRefill !== 'function' || typeof program.setPrefix !== 'function') {
+        || typeof program.recordRefill !== 'function' || typeof program.setPrefix !== 'function'
+        || (recording !== null && (typeof recording.observe !== 'function'
+          || (recording.outputLimitBuffer !== null && !isGpuBufferInstance(recording.outputLimitBuffer))))) {
         throw new Error('Greedy frame requires an idle live session, bounded output and complete recording/settlement ports.');
       }
       signal?.throwIfAborted(); busy = true;
       let frame;
-      try { frame = await createFrameResources(D, H, workspace); } catch (error) { busy = false; throw error; }
+      try { frame = await createFrameResources(D, H, workspace, recording); } catch (error) { busy = false; throw error; }
       const { recorder, recovery, make, compactBytes, drafts, targets, inputs, compact, status, savedHidden, savedToken, staging } = frame;
       let submitted = false, mapped = false;
       /** @type {Tensor} */
@@ -167,9 +174,10 @@ export async function createGreedySpeculativeSession(options) {
         take(result.hidden); take(result.logits);
         await check(result.hidden, D + 1, H); await check(result.logits, D + 1, V);
         targetHidden = result.hidden; await select(result.logits, D + 1, targets);
-        const acceptance = await recordSpeculativeAcceptance(recorder, drafts, targets, {
-          draftCount: D, outputLimit, vocabSize: V, outputBuffer: compact,
-        });
+        const acceptanceOptions = { draftCount: D, outputLimit, vocabSize: V, outputBuffer: compact };
+        const acceptance = recording?.outputLimitBuffer
+          ? await recordSpeculativeAcceptanceFromGPU(recorder, drafts, targets, recording.outputLimitBuffer, acceptanceOptions)
+          : await recordSpeculativeAcceptance(recorder, drafts, targets, acceptanceOptions);
         await recovery.recordRecover(recorder, acceptance);
         const refill = await program.recordRefill(recorder, result.hidden, targets);
         if (Array.isArray(refill)) for (const row of refill) take(row);
@@ -177,7 +185,8 @@ export async function createGreedySpeculativeSession(options) {
         for (let i = 0; i < refill.length; i++) await check(refill[i], refillShapes[i].rows, refillShapes[i].width);
         await recordSpeculativeCarry(recorder, acceptance, result.hidden, H, hidden, token);
         const feedbackEncoder = recorder.getEncoder();
-        feedbackEncoder.copyBufferToBuffer(compact, 0, staging, 0, compactBytes);
+        feedbackEncoder.copyBufferToBuffer(compact, 0, staging, 0, 4);
+        feedbackEncoder.copyBufferToBuffer(compact, 4, staging, 4, compactBytes - 4);
         feedbackEncoder.copyBufferToBuffer(status, 0, staging, compactBytes, 16);
         signal?.throwIfAborted(); recorder.submit({ cleanup: 'deferred' }); submitted = true;
         await staging.mapAsync(GPUMapMode.READ); mapped = true;

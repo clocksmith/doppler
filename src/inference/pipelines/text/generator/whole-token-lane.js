@@ -364,3 +364,6 @@ export async function prepareWholeTokenBatch(state, currentIds, requestedCount) 
     throw error;
   }
 }
+// Recorded generation mechanisms share this lane owner; each caller supplies its
+// declared execution program and retains exclusive model/cache ownership.
+export { createCompiledGreedyWindow } from './compiled-greedy-window.js';

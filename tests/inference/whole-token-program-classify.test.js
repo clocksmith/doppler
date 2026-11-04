@@ -21,6 +21,14 @@ assert.deepEqual(classifyWord([1024, 1536, 2048, 2560, 0], [40, 41, 42, 43, 38])
 assert.equal(classifyWord([41, 42, 43, 44, 72], [40, 41, 42, 43, 70]), null);
 assert.equal(classifyWord([10, 11, 12, 13, 1], [10, 11, 12, 13, 31]), null);
 
+// Explicit GPU windows can advance by one to four tokens. Their scalar controls
+// must follow exact integer lines, without inferred fractions or u32 wrapping.
+assert.deepEqual(classifyWord([100,120,130,160], [10,12,13,16], true), { kind:'affine', base:100, slope:10, pos0:10 });
+assert.equal(classifyWord([100,121,130,160], [10,12,13,16], true), null);
+assert.equal(classifyWord([100,120,130,161], [10,12,13,16], true), null);
+assert.equal(classifyWord([0xfffffffe,0,1,2], [10,12,13,14], true), null);
+assert.equal(classifyWord([100,120,130,160], [10,10,13,16], true), null);
+
 // Affine words and copy offsets bound the positions a program may run.
 const kvOffset = { kind: 'affine', base: 40 * 1024, slope: 1024, pos0: 40 };
 // A 64-row buffer of 1024-byte rows takes a 1024-byte copy at rows 0..63.

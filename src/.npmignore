@@ -793,6 +793,7 @@ inference/pipelines/text/generator/activation-storage.d.ts
 inference/pipelines/text/generator/attention-lifecycle.d.ts
 inference/pipelines/text/generator/batch-retry-policy.d.ts
 inference/pipelines/text/generator/capsule-generation.d.ts
+inference/pipelines/text/generator/compiled-greedy-window.d.ts
 inference/pipelines/text/generator/decode-components.d.ts
 inference/pipelines/text/generator/decode-readback.d.ts
 inference/pipelines/text/generator/decode-runtime.d.ts
@@ -806,6 +807,7 @@ inference/pipelines/text/generator/prefill-policy.d.ts
 inference/pipelines/text/generator/prefill-runtime.d.ts
 inference/pipelines/text/generator/prefix-embedding.d.ts
 inference/pipelines/text/generator/prompt-input.d.ts
+inference/pipelines/text/generator/recorded-step-executor.d.ts
 inference/pipelines/text/generator/recorder-stats.d.ts
 inference/pipelines/text/generator/recovery.d.ts
 inference/pipelines/text/generator/session-context.d.ts

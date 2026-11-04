@@ -45,6 +45,8 @@
     "src/config/layer-partition-plan.js",
     "src/config/ordered-resident-qualification.js",
     "src/inference/pipelines/text/generator/whole-token-program.js",
+    "src/inference/pipelines/text/generator/recorded-step-executor.js",
+    "src/inference/pipelines/text/generator/compiled-greedy-window.js",
     "src/inference/pipelines/text/generator/activation-storage.js",
     "src/inference/pipelines/text/generator/batch-retry-policy.js",
     "src/inference/pipelines/text/generator/decode-components.js",

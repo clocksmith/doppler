@@ -450,4 +450,80 @@ for (const transient of [false, true]) for (const gpuUniform of ['copy', 'clear'
   program.destroy();
 }
 
+// Explicit GPU windows retain their input on the device and advance by validated
+// count feedback. The ordinary CPU-token and sequential-step guards stay intact.
+{
+  const previousBuffer = globalThis.GPUBuffer;
+  globalThis.GPUBuffer = class GPUBuffer {};
+  const device = makeDevice(), res = makeModel(device), identity = ['gpu-window'];
+  Object.setPrototypeOf(res.tokens, GPUBuffer.prototype);
+  res.tokens.usage |= U.COPY_SRC;
+  res.out = makeBuffer('window-output', 8, U.STORAGE | U.COPY_SRC);
+  res.staging = makeBuffer('window-feedback', 8, U.MAP_READ | U.COPY_DST);
+  let invalidCount = false;
+  res.pipeline.run = group => {
+    const input = group.entries.find(e => e.binding === 1).resource.buffer;
+    const uniform = group.entries.find(e => e.binding === 0).resource;
+    const output = group.entries.find(e => e.binding === 2).resource.buffer;
+    const pos = word(uniform.buffer, uniform.offset ?? 0);
+    new Uint32Array(output.bytes.buffer).set([invalidCount ? 0 : pos % 3 + 1, word(input) + pos * 1000]);
+  };
+  assert.throws(() => new WholeTokenProgram(device, { tokenInput:res.tokens, maxOutputTokens:0 }), /bounded output/);
+  const program = new WholeTokenProgram(device, { tokenInput:res.tokens, maxOutputTokens:4 });
+  device.queue.writeBuffer(res.tokens,0,new Uint32Array([42]));
+  const observe = pos => program.observe(pos,0,async attach => {
+    const recorder=makeRecorder(device);attach(recorder);
+    declareStepContract(recorder,{kind:'position-range',owner:'window capacity',min:0,max:40});
+    device.queue.writeBuffer(res.uniform,0,new Uint32Array([pos,0,0,0]));
+    const group=device.createBindGroup({layout:res.layout,entries:[
+      {binding:0,resource:{buffer:res.uniform}},{binding:1,resource:{buffer:res.tokens}},{binding:2,resource:{buffer:res.out}},
+    ]});
+    recorder.recordDispatch(res.pipeline,group,[1]);
+    recorder.getEncoder().copyBufferToBuffer(res.out,4,res.tokens,0,4);
+    recorder.getEncoder().copyBufferToBuffer(res.out,0,res.kv,pos*4,4);
+    recorder.getEncoder().copyBufferToBuffer(res.out,0,res.staging,0,4);
+    recorder.getEncoder().copyBufferToBuffer(res.out,4,res.staging,4,4);
+    recorder.submit();return word(res.staging);
+  },()=>identity);
+  try {
+    for(const pos of [10,12,13,16])await observe(pos);
+    assert.equal(program.ready,true);
+    await assert.rejects(program.run(18,1),/must use runWindow/);
+    await assert.rejects(program.runBatch(18,1,2),/cannot use sequential/);
+    assert.throws(()=>program.acceptObservedWindow(16,0),/bounded output count/);
+    program.acceptObservedWindow(16,2);
+    assert.throws(()=>program.acceptObservedWindow(16,2),/bounded output count/);
+    const saved=makeBuffer('checkpoint',4,U.COPY_SRC|U.COPY_DST);
+    let submitted=0;
+    const ports={identity,recordPrefix:encoder=>encoder.copyBufferToBuffer(res.tokens,0,saved,0,4),onSubmitted:()=>submitted++};
+    const before=word(res.tokens), result=await program.runWindow(18,ports);
+    assert.equal(word(saved),before,'Checkpoint precedes all tentative window commands');
+    assert.deepEqual(Array.from(result),[1,before+18000]);
+    assert.equal(submitted,1);assert.equal(program.rejects(19,identity),null);
+    await assert.rejects(program.runWindow(19,{...ports,identity:['changed-plan']}),/ready matching cursor/);
+    await assert.rejects(program.runWindow(19,{...ports,onSubmitted(){throw new Error('injected submission observer');}}),/injected submission observer/);
+    await assert.rejects(program.runWindow(19,ports),/ready matching cursor/);
+    program.resumeAfterRestore(19);
+    device.dropNextSubmit=true;
+    await assert.rejects(program.runWindow(19,ports),/invalid output count/);
+    program.resumeAfterRestore(19);
+    invalidCount=true;
+    await assert.rejects(program.runWindow(19,ports),/invalid output count/);
+    invalidCount=false;program.resumeAfterRestore(19);
+    const staging=program.staging[0], oldMap=staging.mapAsync;
+    staging.mapAsync=async()=>{throw new Error('injected map failure');};
+    await assert.rejects(program.runWindow(19,ports),/injected map failure/);
+    staging.mapAsync=oldMap;program.resumeAfterRestore(19);
+    let release;
+    staging.mapAsync=()=>new Promise(resolve=>{release=resolve;});
+    const pending=program.runWindow(19,ports);
+    await assert.rejects(program.runWindow(19,ports),/ready matching cursor/);
+    assert.throws(()=>program.resumeAfterRestore(19),/Restored cursor/);
+    assert.throws(()=>program.destroy(),/Settle the submitted/);
+    release();await pending;staging.mapAsync=oldMap;
+    assert.equal(program.rejects(21,identity),null);
+    await assert.rejects(program.runWindow(41,ports),/ready matching cursor/);
+  } finally {program.destroy();globalThis.GPUBuffer=previousBuffer;}
+}
+
 console.log('whole-token-program-contract.test: ok');

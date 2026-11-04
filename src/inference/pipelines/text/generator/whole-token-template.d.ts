@@ -31,7 +31,8 @@ export interface TransientInfo { size: number; usage: number }
  */
 export declare function classifyWord(
   values: readonly number[],
-  positions: readonly number[]
+  positions: readonly number[],
+  variableAdvance?: boolean
 ): { kind: 'const'; value: number } | { kind: 'affine'; base: number; slope: number; pos0: number } | null;
 export declare function evaluateWord(model: WordModel, pos: number, token: number): number;
 /** Last position (from the first observed one on) at which an affine word stays in [lo, hi]. */
