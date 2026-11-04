@@ -1,0 +1,14 @@
+--- src/gpu/kernels/attention_prefill_flash_reduce.wgsl
++++ src/gpu/kernels/attention_prefill_query_splitk_reduce_f32.wgsl
+@@ -13,9 +13,9 @@
+
+ const HEAD_DIM: u32 = 256u;
+ const HEAD_DIM_VECS: u32 = 64u;
+-const BLOCK_SIZE: u32 = 32u;
++override BLOCK_SIZE: u32;
+ const WORKGROUP_SIZE: u32 = 64u;
+-const MAX_KV_SPLITS: u32 = 16u;
++override MAX_KV_SPLITS: u32;
+
+ struct ReduceUniforms {
+     num_heads: u32,

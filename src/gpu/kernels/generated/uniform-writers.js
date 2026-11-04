@@ -224,6 +224,8 @@ export const UNIFORM_WRITERS = Object.freeze({
   "attention/prefill_query_tile16_f32": { size: 76, write: writers0.write_attention_prefill },
   "attention/prefill_query_tile_f16kv": { size: 76, write: writers0.write_attention_prefill },
   "attention/prefill_query_tile16_f16kv": { size: 76, write: writers0.write_attention_prefill },
+  "attention/query_splitk_f32": { size: 76, write: writers0.write_attention_prefill },
+  "attention/query_splitk_reduce_f32": { size: 16, write: writers0.write_attention_prefill_flash_reduce },
   "attention_tiered/decode_tiered_f16": { size: 68, write: writers0.write_attention_tiered_decode_tiered_f16 },
   "attention_tiered/decode_tiered_f16kv": { size: 68, write: writers0.write_attention_tiered_decode_tiered_f16 },
   "attention_tiered_quant/decode_tiered_int8_f16kv": { size: 60, write: writers0.write_attention_tiered_quant_decode_tiered_int8_f16kv },

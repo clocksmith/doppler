@@ -520,6 +520,7 @@ gpu/kernels/attention.d.ts
 gpu/kernels/attention/executors-components.d.ts
 gpu/kernels/attention/executors.d.ts
 gpu/kernels/attention/plan.d.ts
+gpu/kernels/attention/query-splitk.d.ts
 gpu/kernels/backward/adam.d.ts
 gpu/kernels/backward/attention_backward.d.ts
 gpu/kernels/backward/bias_add_backward.d.ts

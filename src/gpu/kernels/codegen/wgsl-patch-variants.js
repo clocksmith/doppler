@@ -1,5 +1,17 @@
 export const WGSL_PATCH_VARIANTS = Object.freeze([
   {
+    id: 'attention-prefill-query-splitk-reduce-f32',
+    source: 'src/gpu/kernels/attention_prefill_flash_reduce.wgsl',
+    target: 'src/gpu/kernels/attention_prefill_query_splitk_reduce_f32.wgsl',
+    patch: 'src/gpu/kernels/codegen/patches/attention_prefill_query_splitk_reduce_f32.from.attention_prefill_flash_reduce.diff',
+  },
+  {
+    id: 'attention-prefill-query-splitk-f32',
+    source: 'src/gpu/kernels/attention_prefill_query_tile_f32.wgsl',
+    target: 'src/gpu/kernels/attention_prefill_query_splitk_f32.wgsl',
+    patch: 'src/gpu/kernels/codegen/patches/attention_prefill_query_splitk_f32.from.attention_prefill_query_tile_f32.diff',
+  },
+  {
     id: 'matmul-q5k-tile64',
     source: 'src/gpu/kernels/matmul_q4_0_tile64.wgsl',
     target: 'src/gpu/kernels/matmul_q5k_tile64.wgsl',

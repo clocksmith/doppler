@@ -38,6 +38,8 @@ export const KERNEL_REF_CONTENT_DIGESTS = Object.freeze({
   "attention_prefill_flash_head256_f16kv.wgsl#main": "dc06506d7adf0d30f551276ca4229197817ca097a4825ee8fd16a0ac2b843c54",
   "attention_prefill_flash_reduce.wgsl#main": "fa2bcae5bd99495e46223753ea15d76eb06ca722751db227696cafa01b741ca7",
   "attention_prefill_partitioned_head256_f16kv.wgsl#main": "d127387e02482ecd6390bca3f1bf82f988868b580c5dd7255a84acd0028588f8",
+  "attention_prefill_query_splitk_f32.wgsl#main": "487a0987056697750e989070367f04dc403852263d7c9ff3d244997b1028d403",
+  "attention_prefill_query_splitk_reduce_f32.wgsl#main": "1ff1ff739ece62c4ff351382c9c11f70777dbec228aa49beeaf240d256ffcf93",
   "attention_prefill_query_tile_f16kv.wgsl#main": "9105a2abddf2cc03c48d345055c4170d24f20e37da6e24f29ef5b40bde179a08",
   "attention_prefill_query_tile_f32.wgsl#main": "b404819ada11cdb093c0b98f9127cba40f06b2f2c1294748228c2e22c9f98a6e",
   "attention_relative.wgsl#main": "11d3efe46e42e2c1957c58a29ac42605a546c5282b0adc44d1f39cc2e4ab9f9d",

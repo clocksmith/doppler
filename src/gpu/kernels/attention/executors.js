@@ -1,3 +1,4 @@
+import { executeQuerySplitK } from './query-splitk.js';
 import { executePairedAttention } from '../paired-attention.js';
 import { getDeviceLimits, getKernelCapabilities } from '../../device.js';
 import { acquireBuffer, releaseBuffer } from '../../../memory/buffer-pool.js';
@@ -254,6 +255,14 @@ export async function executeAttention(
     uniforms: { seqLen, numHeads, headDim, kvLen, numKVHeads },
     workgroups: plan.workgroups, constants: null, extraBindings: null,
   });
+
+  if (getKernelConfig('attention', plan.variant).variantMetadata?.querySplitK === true) {
+    if (mask != null || indirectBuffer != null) throw new Error('[Query split-K] Explicit masks and indirect dispatch are unsupported.');
+    return executeQuerySplitK(recorder, plan.variant, Q, K, V, numHeads, headDim, {
+      seqLen, kvLen, numKVHeads, scale, causal, startPos, outputBuffer, attnSoftcap, slidingWindow,
+      kvLenBuffer, kvStart, kvLayout, kvPageTable, kvPageSize, bidirectionalSpanLength,
+    });
+  }
 
   if (plan.variant === DECODE_GQA_SPLITK_VARIANT) {
     if (bidirectionalSpanLength > 0 || mask != null || indirectBuffer != null || seqLen !== 1

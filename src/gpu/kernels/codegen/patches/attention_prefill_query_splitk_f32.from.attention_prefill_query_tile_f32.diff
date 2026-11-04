@@ -1,0 +1,69 @@
+--- src/gpu/kernels/attention_prefill_query_tile_f32.wgsl
++++ src/gpu/kernels/attention_prefill_query_splitk_f32.wgsl
+@@ -2,11 +2,13 @@
+ // Declared query tiles share one 16-key tile; each query uses a logical 32-lane
+ // subgroup partition, with eight Q/output components per lane. XOR offsets
+ // never cross partitions even when the physical subgroup is 64 lanes wide.
+-// No split-K partials: online (maximum, denominator, accumulator) stays local.
++// Each workgroup owns one declared KV slice; a companion reduction merges its
++// unnormalized accumulator, maximum and denominator in split order.
+
+ enable subgroups;
+
+ override QUERY_TILE: u32;
++override KV_SPLITS: u32;
+ const KEY_TILE: u32 = 16u;
+ const PARTITION_LANES: u32 = 32u;
+ // Registry admission binds HEAD_DIM=256 and WORKGROUP_SIZE=QUERY_TILE*32.
+@@ -46,6 +48,8 @@
+ @group(0) @binding(4) var<storage, read_write> output: array<f32>;
+ @group(0) @binding(5) var<storage, read> kv_len_buffer: array<u32>;
+ @group(0) @binding(6) var<storage, read> page_table: array<u32>;
++@group(0) @binding(7) var<storage, read_write> partial_m: array<f32>;
++@group(0) @binding(8) var<storage, read_write> partial_l: array<f32>;
+
+ fn get_kv_head_idx(query_head_idx: u32) -> u32 {
+     let heads_per_kv = u.num_heads / u.num_kv_heads;
+@@ -134,7 +138,9 @@
+     let valid = query < u.query_len;
+     let kv_head = get_kv_head_idx(head);
+     let kv_len = get_kv_len();
+-    let kv_end = causal_kv_end(query_block, kv_len);
++    let split_length = ((kv_len + KV_SPLITS * KEY_TILE - 1u) / (KV_SPLITS * KEY_TILE)) * KEY_TILE;
++    let split_start = wg_id.y * split_length;
++    let kv_end = min(causal_kv_end(query_block, kv_len), split_start + split_length);
+     var q: array<f32, LANE_REGISTER_CAPACITY>;
+     var acc: array<f32, LANE_REGISTER_CAPACITY>;
+     if (valid) {
+@@ -147,7 +153,7 @@
+     var denominator = 0.0f;
+     // Uniform loop bounds keep both shared-memory barriers and shuffles valid
+     // for tail queries and completely masked rows.
+-    for (var start = 0u; start < kv_end; start += KEY_TILE) {
++    for (var start = split_start; start < kv_end; start += KEY_TILE) {
+         for (var i = local_index; i < KEY_TILE * HEAD_DIM; i += WORKGROUP_SIZE) {
+             let key = start + i / HEAD_DIM;
+             var value = 0.0f;
+@@ -212,11 +218,15 @@
+         workgroupBarrier();
+     }
+     if (valid) {
+-        let base = (query * u.num_heads + head) * HEAD_DIM;
++        let slot = query - query_block * QUERY_TILE;
++        let stats_index = ((query_block * u.num_heads + head) * KV_SPLITS + wg_id.y) * QUERY_TILE + slot;
++        let base = stats_index * HEAD_DIM;
+         for (var d = 0u; d < LANE_REGISTER_CAPACITY; d++) {
+-            var value = 0.0f;
+-            if (denominator > 0.0) { value = acc[d] / denominator; }
+-            output[base + lane + d * PARTITION_LANES] = value;
+-        }
+-    }
+-}
++            output[base + lane + d * PARTITION_LANES] = acc[d];
++        }
++        if (lane == 0u) {
++            partial_m[stats_index] = maximum;
++            partial_l[stats_index] = denominator;
++        }
++    }
++}
