@@ -2,8 +2,8 @@
 // a module. An older registration must be able to update without booting the app.
 // BEGIN GENERATED DEMO SHELL
 const SHELL_MANIFEST_SCHEMA = 'doppler.demo-shell-manifest/v1';
-const SHELL_MANIFEST_DIGEST = 'sha256:f911ae0269778f51ac0f1d3fc6d3a8a5dc0a4c78f07d71af3bd6fbcb6abb00d8';
-const CACHE_NAME = 'doppler-demo-shell-f911ae0269778f51';
+const SHELL_MANIFEST_DIGEST = 'sha256:467f848d3795794a50e95089dbf25ddfb383cb54ce072ebe434cddff91bce377';
+const CACHE_NAME = 'doppler-demo-shell-467f848d3795794a';
 const APP_SHELL = Object.freeze([
   "/demo/assets/pwa/icon-192.png",
   "/demo/assets/pwa/icon-512.png",
@@ -282,6 +282,7 @@ const APP_SHELL = Object.freeze([
   "/src/gpu/device-bindings.js",
   "/src/gpu/device-state.js",
   "/src/gpu/device.js",
+  "/src/gpu/greedy-speculative-frame.js",
   "/src/gpu/kernel-selection-cache.js",
   "/src/gpu/kernel-selection-log.js",
   "/src/gpu/kernel-selector.js",
@@ -290,6 +291,7 @@ const APP_SHELL = Object.freeze([
   "/src/gpu/kernels/attention/executors-components.js",
   "/src/gpu/kernels/attention/executors.js",
   "/src/gpu/kernels/attention/plan.js",
+  "/src/gpu/kernels/attention/query-splitk.js",
   "/src/gpu/kernels/backward/adam.js",
   "/src/gpu/kernels/backward/attention_backward.js",
   "/src/gpu/kernels/backward/bias_add_backward.js",
@@ -322,6 +324,7 @@ const APP_SHELL = Object.freeze([
   "/src/gpu/kernels/bind-group-validation.js",
   "/src/gpu/kernels/cast.js",
   "/src/gpu/kernels/causal_conv1d_silu.js",
+  "/src/gpu/kernels/check-finiteness-f32.js",
   "/src/gpu/kernels/check-finiteness.js",
   "/src/gpu/kernels/check-hot-vocab-stop.js",
   "/src/gpu/kernels/check-stop.js",
@@ -544,6 +547,7 @@ const APP_SHELL = Object.freeze([
   "/src/inference/pipelines/text/generator/attention-lifecycle.js",
   "/src/inference/pipelines/text/generator/batch-retry-policy.js",
   "/src/inference/pipelines/text/generator/capsule-generation.js",
+  "/src/inference/pipelines/text/generator/compiled-greedy-window.js",
   "/src/inference/pipelines/text/generator/decode-components.js",
   "/src/inference/pipelines/text/generator/decode-readback.js",
   "/src/inference/pipelines/text/generator/decode-runtime.js",
@@ -558,6 +562,7 @@ const APP_SHELL = Object.freeze([
   "/src/inference/pipelines/text/generator/prefill-runtime.js",
   "/src/inference/pipelines/text/generator/prefix-embedding.js",
   "/src/inference/pipelines/text/generator/prompt-input.js",
+  "/src/inference/pipelines/text/generator/recorded-step-executor.js",
   "/src/inference/pipelines/text/generator/recorder-stats.js",
   "/src/inference/pipelines/text/generator/recovery.js",
   "/src/inference/pipelines/text/generator/session-context.js",

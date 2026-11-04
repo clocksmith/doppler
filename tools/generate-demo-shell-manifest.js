@@ -43,11 +43,11 @@ const BUDGET_OUTPUT = path.join(ROOT, 'demo', 'generated-shell-budget.json');
 const WORKER_OUTPUT = path.join(ROOT, 'demo', 'sw.js');
 const WORKER_SHELL_START = '// BEGIN GENERATED DEMO SHELL';
 const WORKER_SHELL_END = '// END GENERATED DEMO SHELL';
-// Audited public-host closure: FP8/GGUF loaders, recurrent/MoE and whole-token
-// execution owners already account for 789 modules. The demo GPU-timing
-// presenter and branch tree add two; extracting the existing Node file reader
-// into its own storage owner adds one module without new execution behavior.
-const MAX_MODULES = 792;
+// The audited 792-module shell gains five existing runtime owners: compiled
+// greedy windows, speculative frames, F32 finiteness checks, recorded-step
+// execution and split-K attention. Their source totals 35,378 bytes. Match the
+// reachable closure exactly; removing dependencies must lower this ceiling.
+const MAX_MODULES = 797;
 const MAX_TOTAL_BYTES = 10_000_000;
 const MODULE_ROOTS = [
   'demo/demo.js',
