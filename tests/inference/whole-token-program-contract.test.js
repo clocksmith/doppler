@@ -185,6 +185,16 @@ async function observeStep(program, device, res, pos, token, options = {}, metho
   program.destroy();
 }
 
+// A caller may reuse its identity collection. Mutating it must not rewrite the
+// saved observation and admit commands compiled for the previous plan.
+{
+  const device=makeDevice(),res=makeModel(device),program=new WholeTokenProgram(device),identity=['plan-before'];
+  for(const pos of [10,11,12,13])await observeStep(program,device,res,pos,42,{identity});
+  identity[0]='plan-after';
+  assert.match(program.rejects(14,identity),/execution plan or a bound resource changed/);
+  program.destroy();
+}
+
 // GPU-selected recovery counts must stay in the allocation the GPU writes, rather
 // than a separately packed copy of its CPU initialization. Exercise both lifetimes.
 for (const transient of [false, true]) for (const gpuUniform of ['copy', 'clear']) {

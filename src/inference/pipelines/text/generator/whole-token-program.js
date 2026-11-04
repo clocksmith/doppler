@@ -304,7 +304,7 @@ export class WholeTokenProgram {
     for (const input of observation.pendingTokenInputs) {
       observation.problem(`a token input was declared for "${input.buffer.label ?? ''}" but never written`);
     }
-    observation.identity = identityOf();
+    observation.identity = Object.freeze([...identityOf()]);
     observation.limits.push(...limits);
     observation.rangeLimit = observation.range();
     if (observation.problems.length > 0) {
