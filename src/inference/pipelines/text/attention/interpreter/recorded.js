@@ -63,6 +63,7 @@ import { captureAttentionRefactorReceipt } from '../receipt.js';
 import { applyAttentionQueryScale } from '../query-transform.js';
 import { resolveQueryScale } from '../../../../../config/heterogeneous-attention-contract.js';
 import { enqueueRecordedTensorHealth, shouldTraceRecordedHealth } from '../recorded-health.js';
+import { runQsaIndexedAttention } from '../../indexed-attention/attention-runner.js';
 
 export function resolveDirectF16KVCacheWrite(options) {
   const {
@@ -278,6 +279,10 @@ export async function runRecordedAttentionCore(options) {
         hotLayout: kvState.hotWindow > 0 ? 1 : 0,
       });
     },
+    // qwen4_exp QSA: attend to the indexer's selected rows of the contiguous f16 cache.
+    qsaIndexed: () => runQsaIndexedAttention(recorder, { state, qTensor, cachedKTensor, cachedVTensor, cachedKDtype,
+      cachedVDtype, kvState, numTokens, numHeads, numKVHeads, headDim, attnScale, attnSoftcap, effectiveSlidingWindow,
+      causalForAttention, layerIdx }),
     contiguous: async () => {
       // Prefill fallback: quantized/tiered layouts use raw K/V for prefill, cast to f16 to match kernel path
       let kForAttn = cachedKTensor;

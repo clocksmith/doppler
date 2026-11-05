@@ -1,7 +1,17 @@
 {
   "useFusedQkv": [
-    { "match": { "hasQkvProj": true, "hasQkvSizes": true, "hasLoRA": false }, "value": true },
-    { "match": {}, "value": false }
+    {
+      "match": {
+        "hasQkvProj": true,
+        "hasQkvSizes": true,
+        "hasLoRA": false
+      },
+      "value": true
+    },
+    {
+      "match": {},
+      "value": false
+    }
   ],
   "useFusedOProjResidual": [
     {
@@ -26,9 +36,25 @@
       },
       "value": true
     },
-    { "match": {}, "value": false }
+    {
+      "match": {},
+      "value": false
+    }
   ],
   "attentionKernelVariant": [
+    {
+      "match": {
+        "indexedSelection": true,
+        "kvLayout": "contiguous"
+      },
+      "value": "qsaIndexed"
+    },
+    {
+      "match": {
+        "indexedSelection": true
+      },
+      "value": "qsaIndexedRequiresContiguousKV"
+    },
     {
       "match": {
         "kvLayout": "tiered",
@@ -38,7 +64,12 @@
       },
       "value": "contiguous"
     },
-    { "match": { "kvLayout": "bdpa" }, "value": "bdpa" },
+    {
+      "match": {
+        "kvLayout": "bdpa"
+      },
+      "value": "bdpa"
+    },
     {
       "match": {
         "kvLayout": "contiguous_quantized",
@@ -63,7 +94,15 @@
       },
       "value": "tieredQuant"
     },
-    { "match": { "kvLayout": "tiered" }, "value": "tiered" },
-    { "match": {}, "value": "contiguous" }
+    {
+      "match": {
+        "kvLayout": "tiered"
+      },
+      "value": "tiered"
+    },
+    {
+      "match": {},
+      "value": "contiguous"
+    }
   ]
 }

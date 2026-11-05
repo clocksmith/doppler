@@ -43,6 +43,7 @@ function resolveAttentionImplementation(input) {
     kvLayout: input.kv.layout,
     numTokens: input.geometry.numTokens,
     coldQuantMode: input.kv.coldQuantMode,
+    indexedSelection: input.indexedSelection,
   });
 }
 
@@ -184,6 +185,8 @@ export function resolveAttentionPlan(input = {}) {
       stores: input.sharedKV?.stores === true,
     },
     diffusionGemmaDecoder: input.diffusionGemmaDecoder === true,
+    // QSA-indexed layers attend only to rows selected by the indexer (qwen4_exp).
+    indexedSelection: input.indexedSelection === true,
   };
   const implementation = resolveAttentionImplementation(normalized);
   const planCore = {
@@ -308,6 +311,7 @@ export function resolveAttentionPlanForDispatch(options = {}) {
     diagnosticsEligible: options.diagnosticsEligible === true,
     sharedKV: options.sharedKV,
     diffusionGemmaDecoder: config.diffusionGemmaDecoder === true,
+    indexedSelection: config.indexedSelection === true,
   });
 }
 

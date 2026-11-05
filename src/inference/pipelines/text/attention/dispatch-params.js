@@ -362,6 +362,7 @@ export function buildAttentionDispatchParams(config, state, kTensor, vTensor, kv
     kvLayout: kvState.kvLayout,
     numTokens,
     coldQuantMode: kvState.coldQuantMode,
+    indexedSelection: config.indexedSelection === true,
   });
 
   // Variant-driven overrides
