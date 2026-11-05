@@ -37,6 +37,8 @@ definitions through Python AST. Run each with `python3 -I <script>`.
 | `storage-precision-scan.json` | `storage-precision-scan.py` | measured (2026-11-05, numpy 2.4.4) |
 | `learned-forward-summary-float32.json` | `prepare-learned-forward-reference.py`, `summarize-learned-forward-reference.py` | measured (2026-11-05, torch 2.11.0, x86_64 CPU, learned weights) |
 | `learned-forward-summary-bfloat16.json` | same, `--dtype bfloat16` | measured (2026-11-05, same host) |
+| `artifact-shard-hashes.json` | `verify-shard-hashes.py` | pass (2026-11-05; 1,243 converted shards) |
+| n-gram row digests (below) | `validate-artifact-ngram-reads.js`, `read-source-ngram-rows.py` | pass (2026-11-05; 16,384 rows) |
 
 No retained fixture fails. None of them qualifies Flash-Next or establishes a
 Doppler operator; all use synthetic weights or fixed strings.
@@ -136,6 +138,56 @@ that any threshold must exceed. Against float32, argmax agrees at 98.4% of
 long-input positions and all short-input positions. KL(float32 || bfloat16) at
 the sampled positions is at most 0.030 (mean 0.0042), and logits differ by up
 to 2.76. Teacher-forced accuracy is 90.8% (86.5% sparse).
+
+### Converted artifact (2026-11-05)
+
+The profile `qwen-3-8-flash-next-text-q4k-ehf16-af32` was converted on the
+qualification host from Doppler `1a5428e5` with `--retained-source-files copy`,
+because the models drive is exFAT and cannot hold hard links. The manifest
+SHA-256 is `f807fa1ec89668b3189909e5e405394cdcf9719ca8e3a39fa4794629c82e2180`.
+It lists 1,243 shards with 185,482,224,544 bytes:
+
+- 1,210 packed shards: Q4_K_M experts take 67.50 GiB and the other tensors
+  8.11 GiB.
+- 33 retained source files (shards 1210 to 1242, 104,298,732,704 bytes). They
+  hold the 128 n-gram table tensors as BF16 byte spans.
+
+What is established about the artifact:
+
+- **Expert format.** The previous build recorded
+  `moeConfig.expertFormat: "mixtral"`, and with that format Doppler's MoE path
+  drops the sigmoid-gated shared expert. `1a5428e5` records qwen4_exp in the
+  `qwen3_5` format, with expert and shared-expert widths of 640. The new
+  manifest differs from the previous build's only in `moeConfig` (the format
+  and the two widths), `quantizationInfo.expertsFormat`, the derived identity
+  hashes and `convertedAt`. All 1,243 shard hashes and every tensor location
+  are identical.
+- **Shard bytes.** `verify-shard-hashes.py` re-read every shard file and
+  recomputed its SHA-256. All 1,243 equal the manifest
+  (`artifact-shard-hashes.json`, 228.5 s). The only file the manifest does not
+  list as a shard is `tokenizer.json`, the manifest's bundled tokenizer. It
+  re-serializes the pinned tokenizer, and the two parse to identical JSON.
+- **N-gram rows.** `validate-artifact-ngram-reads.js` reads 16,384 table rows
+  through the runtime path: the manifest tensor map,
+  `ngramTablePartsFromTensorLocations`, `NgramTableReader` and the storage
+  context's `loadShardRange`. The rows come from four seeded 256-token
+  sequences at 16 rows per token, and touch all 33 retained files.
+  `read-source-ngram-rows.py` reads the same addresses from the pinned
+  checkpoint files, locating them only through `checkpoint-headers.json`.
+  Both row streams have SHA-256
+  `ff965d0265d472f0273fade04ce47256cd7a96fadbd1a4e9afe26aeb25b16f67`. This
+  read used the previous build, whose tensor map and shard bytes are identical.
+- **Read timing.** Without hash verification, a 32-token batch read took
+  34 ms at the median. With verification on, the first access to a retained
+  file hashes the whole file (3.1 GiB): 16 rows across 16 files took 192 s.
+- **GPU residency.** Doppler loads a layer's packed `qwen3_5` expert bank
+  (1.41 GiB) on first use and keeps it. This format has no paging; the GPT-OSS
+  pager covers only `gpt-oss`. A full forward pass therefore keeps 75.6 GiB of
+  weights on the GPU before the KV cache and activations. The hyper-connection
+  runtime also rejects layer partitions. The qualification host's amdgpu GTT
+  limit (`ttm pages_limit`) was 61.42 GiB, beside a 0.5 GiB VRAM carve-out, so
+  the artifact cannot run fully resident at that limit. The full-model
+  measurement waits until that limit is raised.
 
 ### PLE layer reference (2026-11-05)
 

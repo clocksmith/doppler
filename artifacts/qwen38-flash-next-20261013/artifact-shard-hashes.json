@@ -1,0 +1,11 @@
+{
+ "schema": "doppler.rdrr-shard-hash-verification/v1",
+ "manifestSha256": "f807fa1ec89668b3189909e5e405394cdcf9719ca8e3a39fa4794629c82e2180",
+ "shards": 1243,
+ "bytes": 185482224544,
+ "mismatches": [],
+ "unlistedFiles": [
+  "tokenizer.json"
+ ],
+ "seconds": 228.5
+}
