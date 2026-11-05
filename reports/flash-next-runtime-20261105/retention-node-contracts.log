@@ -1,0 +1,46 @@
+TAP version 13
+# node-convert-command-surface.test: ok
+# Subtest: tests/integration/node-convert-command-surface.test.js
+ok 1 - tests/integration/node-convert-command-surface.test.js
+  ---
+  duration_ms: 307.722875
+  type: 'test'
+  ...
+# node-converter-atomicity.test: ok
+# Subtest: tests/integration/node-converter-atomicity.test.js
+ok 2 - tests/integration/node-converter-atomicity.test.js
+  ---
+  duration_ms: 190.03675
+  type: 'test'
+  ...
+# node-converter-success-paths.test: ok
+# Subtest: tests/integration/node-converter-success-paths.test.js
+ok 3 - tests/integration/node-converter-success-paths.test.js
+  ---
+  duration_ms: 309.48175
+  type: 'test'
+  ...
+# [182.2ms][Convert] Tensor count (1) seems low for 1-layer architecture (expected at least ~4). Verify source checkpoint is complete.
+# node-converter-surface-errors.test: ok
+# Subtest: tests/integration/node-converter-surface-errors.test.js
+ok 4 - tests/integration/node-converter-surface-errors.test.js
+  ---
+  duration_ms: 248.824958
+  type: 'test'
+  ...
+# conversion-config-materializer.test: ok (6 local fixtures)
+# Subtest: tests/tooling/conversion-config-materializer.test.js
+ok 5 - tests/tooling/conversion-config-materializer.test.js
+  ---
+  duration_ms: 187.967292
+  type: 'test'
+  ...
+1..5
+# tests 5
+# suites 0
+# pass 5
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 317.408709

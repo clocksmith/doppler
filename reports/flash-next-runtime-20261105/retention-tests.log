@@ -1,0 +1,59 @@
+TAP version 13
+# conversion-plan.test: ok
+# Subtest: tests/converter/conversion-plan.test.js
+ok 1 - tests/converter/conversion-plan.test.js
+  ---
+  duration_ms: 211.490833
+  type: 'test'
+  ...
+# core-text-only-filter.test: ok
+# Subtest: tests/converter/core-text-only-filter.test.js
+ok 2 - tests/converter/core-text-only-filter.test.js
+  ---
+  duration_ms: 226.375458
+  type: 'test'
+  ...
+# qwen4-exp-source-buffers.test: ok
+# Subtest: tests/converter/qwen4-exp-source-buffers.test.js
+ok 3 - tests/converter/qwen4-exp-source-buffers.test.js
+  ---
+  duration_ms: 63.315917
+  type: 'test'
+  ...
+# retained source: no-link layout, pin preservation, bounded runtime reads and early rejection passed
+# Subtest: tests/converter/retained-source-preflight.test.js
+ok 4 - tests/converter/retained-source-preflight.test.js
+  ---
+  duration_ms: 224.805042
+  type: 'test'
+  ...
+# retained-source-shards.test: ok
+# Subtest: tests/converter/retained-source-shards.test.js
+ok 5 - tests/converter/retained-source-shards.test.js
+  ---
+  duration_ms: 229.3805
+  type: 'test'
+  ...
+# Flash-Next recipe -> conversion -> manifest -> specialized runtime contracts passed (metadata only)
+# Subtest: tests/integration/flash-next-runtime-profile.test.js
+ok 6 - tests/integration/flash-next-runtime-profile.test.js
+  ---
+  duration_ms: 254.220917
+  type: 'test'
+  ...
+# ngram-table-bindings: bounded row I/O and fail-closed whole-file fallback passed
+# Subtest: tests/loader/ngram-table-bindings.test.js
+ok 7 - tests/loader/ngram-table-bindings.test.js
+  ---
+  duration_ms: 209.901541
+  type: 'test'
+  ...
+1..7
+# tests 7
+# suites 0
+# pass 7
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 264.618542

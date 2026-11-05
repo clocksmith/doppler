@@ -1,0 +1,56 @@
+{
+  "schema": "doppler.retained-source-repair/v1",
+  "baseCommit": "606aebaa67eb515fb5df9e0397b1f30c7462a9a5",
+  "scope": "Preflight source retention before packing; reuse pinned files already nested under an artifact root without links; preserve explicit copy mode with short-write handling and partial-output cleanup. Physical exFAT test uses 32-byte fixture files, not learned model data.",
+  "checks": [
+    {
+      "path": "retention-tests.log",
+      "sha256": "ba565ed5f3f3a8558557213e5ba4571bae23c0756760979d0f7671111e477944"
+    },
+    {
+      "path": "retention-node-contracts.log",
+      "sha256": "d426f1cd8288d01c545680411c6bebbed61e774d23268bbd07640ec9db103446"
+    },
+    {
+      "path": "retention-types.log",
+      "sha256": "f96a3c0e1645fada86b8b36a84ce98acd10e80485c9ba5dd565a0545e064fe14"
+    },
+    {
+      "path": "retention-strict.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "retention-style.log",
+      "sha256": "cd2ee5c4e06559987f2d2b33e5f9292ee2c62d2967adf63d664e8c05ccb81b96"
+    },
+    {
+      "path": "retention-arch.log",
+      "sha256": "f18a09f921fba33ac759573792f20b339f8a9193a726b2c42825039e11dc6421"
+    },
+    {
+      "path": "retention-package.log",
+      "sha256": "630779ffdd17df68d2759d04112fb57b0725710075fa78397d95b7d124f69089"
+    },
+    {
+      "path": "retention-browser.log",
+      "sha256": "ae9601a695b08117b4f498f2db50f7400c28b41e37abf33b902b3f5d173a2296"
+    },
+    {
+      "path": "retention-config.log",
+      "sha256": "dd8a88cbd57b88f748254f8aaade46ae947583aeda298a1dd43f562f8bdb2ef7"
+    },
+    {
+      "path": "retention-exfat.log",
+      "sha256": "0d4051d051a7909c5e45ca3178696d85d6482e92b3e39cfe4ebd23eb7186daf1"
+    },
+    {
+      "path": "retention-package-inventory.json",
+      "sha256": "88415a123049e3bc3cde62f444787ff3be9c04105e5f125c620cb3a973a9a5c5"
+    },
+    {
+      "path": "conversion-exfat-failure.log",
+      "sha256": "eb780bf00a9018a20f176917da5e4b7c4371e656b47cec9143e4e86ff5235c66"
+    }
+  ],
+  "modelStatus": "First conversion failed after all 1163 packed tensors, before a manifest. Another session started explicit-copy retry PID 1384497; user choice between it and the no-copy layout is pending. No second conversion or learned-weight GPU run was started here."
+}

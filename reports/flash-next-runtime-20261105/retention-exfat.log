@@ -1,0 +1,17 @@
+TAP version 13
+# retained source: no-link layout, pin preservation, bounded runtime reads and early rejection passed
+# Subtest: tests/converter/retained-source-preflight.test.js
+ok 1 - tests/converter/retained-source-preflight.test.js
+  ---
+  duration_ms: 264.065128
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 270.672873

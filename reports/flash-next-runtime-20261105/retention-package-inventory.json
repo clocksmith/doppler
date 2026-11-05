@@ -1,0 +1,74 @@
+{
+  "schema": "doppler.package-audit/v1",
+  "baseCommit": "2840c32fcf93f60661d54ddd7e4829d225c94a35",
+  "scope": "Integrated explicit-copy option from 606aebaa and in-root no-link retention, capability preflight, short-write handling and failure cleanup. No model bytes or new source modules.",
+  "baseline": {
+    "entryCount": 1897,
+    "size": 3634838,
+    "unpackedSize": 15522668
+  },
+  "candidate": {
+    "entryCount": 1897,
+    "size": 3635872,
+    "unpackedSize": 15527500
+  },
+  "addedFiles": [],
+  "removedFiles": [],
+  "changedFiles": [
+    {
+      "path": "src/config/schema/conversion.schema.d.ts",
+      "before": 5039,
+      "after": 5474,
+      "sha256": "9f2d0dd67c859ac6ebe141daaa5b00534d01cddc09549ebedb31cf16cd247840"
+    },
+    {
+      "path": "src/config/schema/converter.schema.d.ts",
+      "before": 5497,
+      "after": 5632,
+      "sha256": "62936c77f4aa41ca41246d71c3e4facc324416f43da59028803670322589feae"
+    },
+    {
+      "path": "src/config/schema/converter.schema.js",
+      "before": 6085,
+      "after": 6211,
+      "sha256": "86b8de77b120bb38c1c1b49dab7d475c86944fa468af540be74ea656c715eb24"
+    },
+    {
+      "path": "src/converter/core.js",
+      "before": 32190,
+      "after": 32281,
+      "sha256": "cec976b6b97dccd93138813e7f51d7678bae0205dd6f8c7cc51fbbdbac8f6b9d"
+    },
+    {
+      "path": "src/converter/retained-source-shards.js",
+      "before": 4111,
+      "after": 5012,
+      "sha256": "ec6d0d4da68ff8db6780b2373a2773532b034f8bee436afada6189cd2068b2ff"
+    },
+    {
+      "path": "src/tooling/command-api.d.ts",
+      "before": 9362,
+      "after": 9410,
+      "sha256": "551b17a39d6394e20c9dc94c4235787fdaa4dbd5026497d75491d66e83f276c1"
+    },
+    {
+      "path": "src/tooling/node-converter.js",
+      "before": 34316,
+      "after": 34376,
+      "sha256": "e4bd53261eb5acf04e269dab434641b396b4e77232b9080ddfb731d980b38a31"
+    },
+    {
+      "path": "src/tooling/node-converter/output.js",
+      "before": 10015,
+      "after": 12731,
+      "sha256": "50cd248adc2b7af146a12a5d74dcf544649bd867933349a1852c739306b06448"
+    },
+    {
+      "path": "tools/convert-safetensors-node.js",
+      "before": 8551,
+      "after": 8871,
+      "sha256": "8787b1863bb825fca332774e1efc0c270fdffd5a7fc0f386989995b7778eab3e"
+    }
+  ],
+  "packedCompressionAllowanceBytes": 2158
+}

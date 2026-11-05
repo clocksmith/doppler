@@ -1,0 +1,47 @@
+[convert] 1163/1163 Processing lm_head.weight
+[convert] 1163/1163 Processing lm_head.weight
+[convert] 1163/1163 Processing lm_head.weight
+[convert] 1163/1163 Processing lm_head.weight
+[convert] 1163/1163 Processing lm_head.weight
+[convert] 1163/1163 Processing lm_head.weight
+[convert] 1163/1163 Processing lm_head.weight
+[convert] 1163/1163 Processing lm_head.weight
+[convert] 1163/1163 Processing lm_head.weight
+[convert] 1163/1163 Processing lm_head.weight
+[convert] 1163/1163 Processing lm_head.weight
+[convert] 1163/1163 Processing lm_head.weight
+[convert] 1163/1163 Processing lm_head.weight
+[convert] 1163/1163 Processing lm_head.weight
+[convert] 1163/1163 Processing lm_head.weight
+[convert] 1163/1163 Processing lm_head.weight
+[convert] 1163/1163 Processing lm_head.weight
+[convert] 1163/1163 Processing lm_head.weight
+[convert] 1163/1163 Processing lm_head.weight
+[convert] 1163/1163 Processing lm_head.weight
+[convert] 1163/1163 Processing lm_head.weight
+[convert] 1163/1163 Processing lm_head.weight
+[convert] 1163/1163 Processing lm_head.weight
+[convert] 1163/1163 Processing lm_head.weight
+[convert] 1163/1163 Processing lm_head.weight
+[convert] 1163/1163 Processing lm_head.weight
+[convert] 1163/1163 Processing lm_head.weight
+[convert] 1163/1163 Processing lm_head.weight
+[convert] 1163/1163 Processing lm_head.weight
+[convert] 1163/1163 Processing lm_head.weight
+[convert] 1163/1163 Processing lm_head.weight
+[convert] 1163/1163 Processing lm_head.weight
+[convert] 1163/1163 Processing lm_head.weight
+[convert] 1163/1163 Processing lm_head.weight
+[convert] 1163/1163 Processing lm_head.weight
+[convert] 1163/1163 Processing lm_head.weight
+[convert] 1163/1163 Processing lm_head.weight
+[convert] 1163/1163 Processing lm_head.weight
+[convert] 1163/1163 Processing lm_head.weight
+[convert] 1163/1163 Processing lm_head.weight
+[convert] 1163/1163 Processing lm_head.weight
+[error] ToolingCommandError: EPERM: operation not permitted, link '/run/media/x/models/qwen38-flash-next-de4b8e4d/source/model-00005-of-00131.safetensors' -> '/run/media/x/models/rdrr/qwen-3-8-flash-next-text-q4k-ehf16-af32/shard_01210.bin'
+    at normalizeToToolingCommandError (file:///home/x/src/doppler-fn/src/tooling/command-envelope.js:117:22)
+    at runNodeCommandExecution (file:///home/x/src/doppler-fn/src/tooling/node-command-execution.js:232:11)
+    at async main (file:///home/x/src/doppler-fn/tools/convert-safetensors-node.js:206:20)
+exfat rw,nosuid,nodev,relatime,uid=1000,gid=1000,fmask=0022,dmask=0022,iocharset=utf8,errors=remount-ro
+1b7a336e84eb2b9466b4364a7714e1a209d2303197d605bd08427e23a66e9944  /run/media/x/models/qwen38-flash-next-de4b8e4d/convert/convert-run1.log
