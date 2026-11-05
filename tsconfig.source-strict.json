@@ -186,6 +186,7 @@
     "src/inference/pipelines/text/ngram/ngram-addresses.js",
     "src/inference/pipelines/text/ngram/ngram-table.js",
     "src/gpu/kernels/ple.js",
-    "src/inference/pipelines/text/ngram/ple-layer.js"
+    "src/inference/pipelines/text/ngram/ple-layer.js",
+    "src/inference/pipelines/text/hyper-connection/decoder-layer.js"
   ]
 }

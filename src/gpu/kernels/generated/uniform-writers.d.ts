@@ -541,6 +541,7 @@ export interface KernelUniformValues {
   "hyper_connection_activation/low_rank_silu": Parameters<typeof writers2.write_hyper_connection_activation_low_rank_silu>[1];
   "hyper_connection_activation/mix_sigmoid": Parameters<typeof writers2.write_hyper_connection_activation_low_rank_silu>[1];
   "hyper_connection_activation/inject_gate": Parameters<typeof writers2.write_hyper_connection_activation_low_rank_silu>[1];
+  "hyper_connection_activation/replicate": Parameters<typeof writers2.write_hyper_connection_activation_low_rank_silu>[1];
   "hyper_connection_branch/f32": Parameters<typeof writers2.write_hyper_connection_activation_low_rank_silu>[1];
   "hyper_connection_inject/f32": Parameters<typeof writers2.write_hyper_connection_activation_low_rank_silu>[1];
   "qsa_prepare/f32": Parameters<typeof writers2.write_qsa_prepare_f32>[1];

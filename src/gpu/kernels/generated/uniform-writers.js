@@ -541,6 +541,7 @@ export const UNIFORM_WRITERS = Object.freeze({
   "hyper_connection_activation/low_rank_silu": { size: 16, write: writers2.write_hyper_connection_activation_low_rank_silu },
   "hyper_connection_activation/mix_sigmoid": { size: 16, write: writers2.write_hyper_connection_activation_low_rank_silu },
   "hyper_connection_activation/inject_gate": { size: 16, write: writers2.write_hyper_connection_activation_low_rank_silu },
+  "hyper_connection_activation/replicate": { size: 16, write: writers2.write_hyper_connection_activation_low_rank_silu },
   "hyper_connection_branch/f32": { size: 16, write: writers2.write_hyper_connection_activation_low_rank_silu },
   "hyper_connection_inject/f32": { size: 16, write: writers2.write_hyper_connection_activation_low_rank_silu },
   "qsa_prepare/f32": { size: 16, write: writers2.write_qsa_prepare_f32 },

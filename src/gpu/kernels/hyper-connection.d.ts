@@ -54,3 +54,9 @@ export declare function runHyperConnectionInject(
 export declare function recordHyperConnectionInject(
   recorder: CommandRecorder, streams: Tensor, branch: Tensor, gate: Tensor, options: HyperConnectionStreamOptions
 ): Promise<Tensor>;
+
+/** Entry replication: embeddings [numTokens, streamWidth] -> streams [numTokens, streamCount * streamWidth]. */
+export declare function runHyperConnectionReplicate(embeds: Tensor, options: HyperConnectionStreamOptions): Promise<Tensor>;
+export declare function recordHyperConnectionReplicate(
+  recorder: CommandRecorder, embeds: Tensor, options: HyperConnectionStreamOptions
+): Promise<Tensor>;

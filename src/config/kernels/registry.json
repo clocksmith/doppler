@@ -36647,7 +36647,7 @@
    }
   },
   "hyper_connection_activation": {
-   "description": "qwen4_exp hyper-connection activations: silu(x / streams), sigmoid(x), 2 * sigmoid(x / streams)",
+   "description": "qwen4_exp hyper-connection activations and entry: silu(x / streams), sigmoid(x), 2 * sigmoid(x / streams), stream replication",
    "baseBindings": [
     {
      "index": 0,
@@ -36728,6 +36728,22 @@
     "inject_gate": {
      "wgsl": "hyper_connection_activation.wgsl",
      "entryPoint": "inject_gate",
+     "workgroup": [256,1,1],
+     "requires": [],
+     "outputDtype": "f32",
+     "wgslOverrides": {
+      "WORKGROUP_SIZE": 256
+     },
+     "reachability": {
+      "status": "unused",
+      "inlineConfigs": [],
+      "ruleChains": [],
+      "wgslOnDisk": true
+     }
+    },
+    "replicate": {
+     "wgsl": "hyper_connection_activation.wgsl",
+     "entryPoint": "replicate",
      "workgroup": [256,1,1],
      "requires": [],
      "outputDtype": "f32",

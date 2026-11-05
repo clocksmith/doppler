@@ -32,6 +32,7 @@ definitions through Python AST. Run each with `python3 -I <script>`.
 | `checkpoint-headers.json` | `acquire-checkpoint-headers.py` | pass (2026-11-04; headers and three buffers only) |
 | `qsa-stage-reference.json` | `prepare-qsa-stage-reference.py` | pass (2026-11-05, torch 2.11.0, arm64) |
 | `ple-reference.json` | `prepare-ple-reference.py` | pass (2026-11-05, torch 2.11.0, arm64) |
+| `decoder-composition-reference.json` | `prepare-decoder-composition-reference.py` | pass (2026-11-05, torch 2.11.0, arm64) |
 
 No retained fixture fails. None of them qualifies Flash-Next or establishes a
 Doppler operator; all use synthetic weights or fixed strings.
@@ -375,6 +376,8 @@ The CPU expert execution reference is now in place at full geometry (MoE block a
    CUDA grouped_mm, deepgemm, sonicmoe) can be compared to the eager references
    only there.
 
-No fixture yet covers decoder-layer composition (hyper-connection mixing around attention and MoE),
+`decoder-composition-reference.json` covers decoder-layer composition for layers 0-3 and the root
+mixer with low-rank linear spies in place of attention, linear attention and MoE (composition order
+only; those branches have their own references). No fixture yet covers learned-weight composition,
 the MTP layer or the vision tower. These fixtures allow source preparation to
 proceed during runtime repair without making Flash-Next a dependency for chat.

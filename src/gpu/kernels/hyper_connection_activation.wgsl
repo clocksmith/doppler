@@ -2,10 +2,13 @@
 // low_rank_silu: silu(x / STREAM_COUNT) after the low-rank down projection.
 // mix_sigmoid:   sigmoid(x) after the up projection (per-stream mix weights).
 // inject_gate:   2 * sigmoid(x / STREAM_COUNT) for the branch injection weights.
+// replicate:     streams[t, s, w] = embeds[t, w] (Qwen4ExpTextModel entry,
+//                hidden_states.repeat(1, 1, hc_count)).
 // Division is correctly rounded so any stream count matches source semantics.
 
 override WORKGROUP_SIZE: u32 = 256u;
 override STREAM_COUNT: u32;
+override STREAM_WIDTH: u32 = 1u;  // used by replicate only
 
 struct Uniforms {
     size: u32,
@@ -96,4 +99,12 @@ fn inject_gate(@builtin(global_invocation_id) gid: vec3<u32>) {
     let index = element_index(gid);
     if (index >= u.size) { return; }
     output[index] = 2.0 * sigmoid_refined(divide_refined(input[index], f32(STREAM_COUNT)));
+}
+
+@compute @workgroup_size(WORKGROUP_SIZE, 1, 1)
+fn replicate(@builtin(global_invocation_id) gid: vec3<u32>) {
+    let index = element_index(gid);
+    if (index >= u.size) { return; }
+    let token = index / (STREAM_COUNT * STREAM_WIDTH);
+    output[index] = input[token * STREAM_WIDTH + index % STREAM_WIDTH];
 }

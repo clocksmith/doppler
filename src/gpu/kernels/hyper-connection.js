@@ -170,6 +170,35 @@ async function executeInject(target, streams, branch, gate, options) {
   });
 }
 
+/**
+ * @param {import('../command-recorder.js').CommandRecorder | null} target
+ * @param {import('../tensor.js').Tensor} embeds
+ * @param {import('./hyper-connection.js').HyperConnectionStreamOptions} options
+ */
+async function executeReplicate(target, embeds, options) {
+  const { numTokens, streamCount, streamWidth, outputBuffer = null } = options;
+  const size = validateHyperConnectionGeometry({ numTokens, streamCount, streamWidth });
+  assertF32Tensor(embeds, [numTokens, streamWidth], 'replicate embeddings');
+  assertOutputBuffer(outputBuffer, size * 4, [embeds]);
+  const { columns: stride, grid } = dispatchGrid(target, size, WORKGROUP_SIZE);
+  return withKernelOutput(target, outputBuffer, size * 4, 'hyper_connection_streams', async (output) => {
+    await unifiedKernelWrapper('hyper_connection_activation', target, 'replicate', [embeds, output],
+      { size, dispatch_stride: stride * WORKGROUP_SIZE, _pad0: 0, _pad1: 0 }, grid,
+      { WORKGROUP_SIZE, STREAM_COUNT: streamCount, STREAM_WIDTH: streamWidth });
+    return createTensor(output, 'f32', [numTokens, streamCount * streamWidth], 'hyper_connection_streams');
+  });
+}
+
+/** @type {typeof import('./hyper-connection.js').runHyperConnectionReplicate} */
+export function runHyperConnectionReplicate(embeds, options) {
+  return executeReplicate(null, embeds, options);
+}
+
+/** @type {typeof import('./hyper-connection.js').recordHyperConnectionReplicate} */
+export function recordHyperConnectionReplicate(recorder, embeds, options) {
+  return executeReplicate(recorder, embeds, options);
+}
+
 /** @type {typeof import('./hyper-connection.js').runHyperConnectionNorm} */
 export function runHyperConnectionNorm(input, weight, options) {
   return executeNorm(null, input, weight, options);

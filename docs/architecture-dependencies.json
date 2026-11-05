@@ -5155,6 +5155,8 @@
         "tests/kernels/harness/buffer-utils.js",
         "tests/kernels/harness/index.js",
         "tests/kernels/harness/tolerance.js",
+        "tests/kernels/hyper-connection-decoder-gpu.test.js",
+        "tests/kernels/hyper-connection-decoder-reference.js",
         "tests/kernels/hyper-connection-gpu.test.js",
         "tests/kernels/hyper-connection-reference.js",
         "tests/kernels/hyper-connection-reference.test.js",
@@ -6257,6 +6259,7 @@
         "src/inference/pipelines/text/generator/whole-token-observation.js",
         "src/inference/pipelines/text/generator/whole-token-program.js",
         "src/inference/pipelines/text/generator/whole-token-template.js",
+        "src/inference/pipelines/text/hyper-connection/decoder-layer.js",
         "src/inference/pipelines/text/image-transcription.js",
         "src/inference/pipelines/text/indexed-attention/qsa-cache.js",
         "src/inference/pipelines/text/init-chat-templates.js",
@@ -6670,6 +6673,7 @@
     "src/inference/pipelines/structured/tsv-grammar-mask.js",
     "src/inference/pipelines/text/bdpa-steamroller.js",
     "src/inference/pipelines/text/failure-reduction.js",
+    "src/inference/pipelines/text/hyper-connection/decoder-layer.js",
     "src/inference/pipelines/text/indexed-attention/qsa-cache.js",
     "src/inference/pipelines/text/ngram/ngram-addresses.js",
     "src/inference/pipelines/text/ngram/ngram-table.js",
@@ -7362,6 +7366,12 @@
       "kind": "dynamic",
       "line": 36,
       "expression": "import(target)"
+    },
+    {
+      "file": "tests/kernels/hyper-connection-decoder-gpu.test.js",
+      "kind": "asset",
+      "line": 28,
+      "expression": "new URL(path, import.meta.url)"
     },
     {
       "file": "tests/kernels/kernel-uniform-echo-physical.test.js",
