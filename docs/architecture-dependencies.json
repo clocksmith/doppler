@@ -5171,6 +5171,7 @@
         "tests/kernels/paired-matmul-physical.js",
         "tests/kernels/paired-pointwise-physical.js",
         "tests/kernels/paired-rmsnorm-physical.js",
+        "tests/kernels/ple-layer-gpu.test.js",
         "tests/kernels/q4k-accumulation-diagnostic.js",
         "tests/kernels/q5_0-reference.test.js",
         "tests/kernels/qsa-indexer-gpu.test.js",
@@ -6056,6 +6057,7 @@
         "src/gpu/kernels/paired-split.js",
         "src/gpu/kernels/pipeline-cache.js",
         "src/gpu/kernels/pixel_shuffle.js",
+        "src/gpu/kernels/ple.js",
         "src/gpu/kernels/q4_0.js",
         "src/gpu/kernels/qsa-indexer.js",
         "src/gpu/kernels/qwen_attention_split_q_gate.js",
@@ -6303,6 +6305,7 @@
         "src/inference/pipelines/text/moe/qwen-route-executor.js",
         "src/inference/pipelines/text/ngram/ngram-addresses.js",
         "src/inference/pipelines/text/ngram/ngram-table.js",
+        "src/inference/pipelines/text/ngram/ple-layer.js",
         "src/inference/pipelines/text/normalization-contract.js",
         "src/inference/pipelines/text/operator-events.js",
         "src/inference/pipelines/text/operator-identity.js",
@@ -6652,6 +6655,7 @@
     "src/gpu/kernels/matmul_f16w_f32a_tiled.wgsl",
     "src/gpu/kernels/matmul_q4_0.wgsl",
     "src/gpu/kernels/moe_grouped_matmul_f32.wgsl",
+    "src/gpu/kernels/ple.js",
     "src/gpu/kernels/qsa-indexer.js",
     "src/gpu/kernels/qwen_linear_attention_prepare_paired.wgsl",
     "src/gpu/kernels/rmsnorm_paired.wgsl",
@@ -6669,6 +6673,7 @@
     "src/inference/pipelines/text/indexed-attention/qsa-cache.js",
     "src/inference/pipelines/text/ngram/ngram-addresses.js",
     "src/inference/pipelines/text/ngram/ngram-table.js",
+    "src/inference/pipelines/text/ngram/ple-layer.js",
     "src/inference/pipelines/text/partition-replay.js",
     "src/loader/multi-model-loader.js",
     "src/storage/preflight.js",
@@ -7381,6 +7386,12 @@
       "kind": "asset",
       "line": 14,
       "expression": "new URL(`../../src/gpu/kernels/${program}.wgsl`, import.meta.url)"
+    },
+    {
+      "file": "tests/kernels/ple-layer-gpu.test.js",
+      "kind": "asset",
+      "line": 24,
+      "expression": "new URL(path, import.meta.url)"
     },
     {
       "file": "tests/kernels/qsa-indexer-gpu.test.js",

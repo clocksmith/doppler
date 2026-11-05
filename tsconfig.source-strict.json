@@ -184,6 +184,8 @@
     "src/gpu/kernels/qsa-indexer.js",
     "src/inference/pipelines/text/indexed-attention/qsa-cache.js",
     "src/inference/pipelines/text/ngram/ngram-addresses.js",
-    "src/inference/pipelines/text/ngram/ngram-table.js"
+    "src/inference/pipelines/text/ngram/ngram-table.js",
+    "src/gpu/kernels/ple.js",
+    "src/inference/pipelines/text/ngram/ple-layer.js"
   ]
 }

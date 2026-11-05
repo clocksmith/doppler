@@ -31,6 +31,7 @@ definitions through Python AST. Run each with `python3 -I <script>`.
 | `tokenizer-reference.json` | `check-tokenizer.py` | pass (tokenizers 0.22.2) |
 | `checkpoint-headers.json` | `acquire-checkpoint-headers.py` | pass (2026-11-04; headers and three buffers only) |
 | `qsa-stage-reference.json` | `prepare-qsa-stage-reference.py` | pass (2026-11-05, torch 2.11.0, arm64) |
+| `ple-reference.json` | `prepare-ple-reference.py` | pass (2026-11-05, torch 2.11.0, arm64) |
 
 No retained fixture fails. None of them qualifies Flash-Next or establishes a
 Doppler operator; all use synthetic weights or fixed strings.
@@ -62,6 +63,21 @@ token-times-multiplier products reach about 2^63; exact address arithmetic needs
 Text-only BF16 bytes by category: routed experts 225.00 GiB, n-gram table
 95.37 GiB, other text tensors 9.22 GiB; excluded vision 0.84 GiB and MTP
 4.86 GiB.
+
+### PLE layer reference (2026-11-05)
+
+`prepare-ple-reference.py` runs the unchanged upstream `Qwen4ExpTextPLELayer`
+(with its n-gram embedding and RMSNorm) on dyadic synthetic weights for 24
+tokens with boundary tokens. A row spy replaces the 95 GiB table with
+BF16-exact rows defined by address, so consumers regenerate any row. Token
+history and short-convolution state use an explicit port that follows the
+pinned `update_conv_state` (record_past disabled). The full sequence and the
+chunked schedule 5, 1, 1, 17 produce identical addresses and token history;
+outputs differ by at most 1.7e-6 (F32 batching), and the final convolution
+states are equal. The fixture records addresses, the signed-square-root gate
+input before the sigmoid, every 16th output channel of `gated + conv` (the
+decoder adds the streams), and the final states. Padding masks and learned
+weights are not covered.
 
 ### QSA stage reference and RoPE tables (2026-11-05)
 
@@ -359,7 +375,6 @@ The CPU expert execution reference is now in place at full geometry (MoE block a
    CUDA grouped_mm, deepgemm, sonicmoe) can be compared to the eager references
    only there.
 
-No fixture yet covers the PLE layer (convolution with the n-gram embedding),
-decoder-layer composition (hyper-connection mixing around attention and MoE),
+No fixture yet covers decoder-layer composition (hyper-connection mixing around attention and MoE),
 the MTP layer or the vision tower. These fixtures allow source preparation to
 proceed during runtime repair without making Flash-Next a dependency for chat.

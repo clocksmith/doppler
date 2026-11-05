@@ -489,3 +489,17 @@ export function write_attention_indexed_f16kv(view, values, kernel) {
   view.setUint32(24, 0, true);
   view.setUint32(28, 0, true);
 }
+
+export function write_ple_gate_f32(view, values, kernel) {
+  writeU32(view, 0, values["num_tokens"], kernel, "num_tokens");
+  writeU32(view, 4, values["group_stride"], kernel, "group_stride");
+  writeF32(view, 8, values["divisor"], kernel, "divisor");
+  writeF32(view, 12, values["clamp_min"], kernel, "clamp_min");
+}
+
+export function write_ple_conv_f32(view, values, kernel) {
+  writeU32(view, 0, values["num_tokens"], kernel, "num_tokens");
+  writeU32(view, 4, values["channels"], kernel, "channels");
+  view.setUint32(8, 0, true);
+  view.setUint32(12, 0, true);
+}

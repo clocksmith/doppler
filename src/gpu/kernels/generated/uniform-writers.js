@@ -548,4 +548,6 @@ export const UNIFORM_WRITERS = Object.freeze({
   "qsa_block_scores/f32": { size: 32, write: writers2.write_qsa_block_scores_f32 },
   "qsa_select/u32": { size: 32, write: writers2.write_qsa_select_u32 },
   "attention_indexed/f16kv": { size: 32, write: writers2.write_attention_indexed_f16kv },
+  "ple_gate/f32": { size: 16, write: writers2.write_ple_gate_f32 },
+  "ple_conv/f32": { size: 16, write: writers2.write_ple_conv_f32 },
 });
