@@ -1,3 +1,5 @@
+import { createHyperConnectionSession } from './hyper-connection/session.js';
+import { assertHyperConnectionLoad } from './hyper-connection/sequence-transaction.js';
 export { _initRoPE } from './init-rope.js';
 import { getDevice, initDevice, getKernelCapabilities } from '../../../gpu/device.js';
 import { getUniformCacheStats } from '../../../gpu/uniform-cache.js';
@@ -62,7 +64,6 @@ import {
 } from './pipeline-load-timing.js';
 import { resolveVisionWeightLoader } from '../vision/weight-loading.js';
 import { runWarmGeneration } from './warm-generation.js';
-
 export async function initialize(contexts = {}) {
     this.modelPartition = contexts.partition == null ? null : structuredClone(contexts.partition);
     const { runtimeConfig, sharedDebug } = applyPipelineContexts(this, contexts, {
@@ -86,7 +87,6 @@ export async function initialize(contexts = {}) {
         : JSON.parse(JSON.stringify(contexts.runtimeConfig)));
     applyPipelineDebugConfig(sharedDebug?.pipeline);
     configurePerfGuards(sharedDebug?.perfGuards);
-
     if (!this.gpuContext?.device && typeof globalThis.navigator !== 'undefined' && globalThis.navigator?.gpu) {
       const device = await initDevice();
       if (!device || typeof device !== 'object' || typeof device.createBuffer !== 'function' || !device.queue) {
@@ -98,13 +98,10 @@ export async function initialize(contexts = {}) {
       this.gpuContext = { device };
       this.useGPU = true;
     }
-
     this.emulation = await initEmulation(this.runtimeConfig);
-
     this.debug = sharedDebug?.pipeline?.enabled === true;
     log.debug('Pipeline', 'Initialized', { useGPU: this.useGPU, debug: this.debug });
   }
-
 export async function loadModel(manifest, options = {}) {
     const { signal } = options;
     signal?.throwIfAborted();
@@ -119,11 +116,12 @@ export async function loadModel(manifest, options = {}) {
       this.sampleReadbackBuffer.destroy();
       this.sampleReadbackBuffer = null;
     }
+    await this.hyperConnectionSession?.destroy();
+    this.hyperConnectionSession = null;
     this.linearAttentionRuntime = resetLinearAttentionRuntime(this.linearAttentionRuntime);
     destroyMoERouter(this.moeRouter);
     this.moeRouter = null;
     finishPipelineLoadTimingPhase(pipelineLoadTiming, 'reset', resetStart);
-
     // ========================================================================
     // Config Resolution Passes
     //
@@ -153,10 +151,8 @@ export async function loadModel(manifest, options = {}) {
     //          executionV1State.runtimeInferencePatch.pipeline
     //   Mutates: this.layerPipelinePlan (does not mutate runtimeConfig)
     // ========================================================================
-
     let configResolutionPhase = 0;
     const configResolutionStart = performance.now();
-
     // Phase 1: execution-v1 runtime config
     configResolutionPhase = 1;
     log.debug('Pipeline', `Config resolution phase ${configResolutionPhase}: applyExecutionV1RuntimeConfig`);
@@ -288,6 +284,7 @@ export async function loadModel(manifest, options = {}) {
     configResolutionPhase = 4;
     log.debug('Pipeline', `Config resolution phase ${configResolutionPhase}: _resolveLayerPipeline`);
     this._resolveLayerPipeline();
+    assertHyperConnectionLoad(this);
     log.debug('Pipeline', `Config resolution complete (${configResolutionPhase} phases)`);
 
     const cfg = this.modelConfig;
@@ -410,6 +407,7 @@ export async function loadModel(manifest, options = {}) {
       () => this._initRoPE()
     );
 
+    if (this.modelConfig.hyperConnections) this.hyperConnectionSession = await createHyperConnectionSession(this.modelConfig, this.dopplerLoader, this.kvCache.maxSeqLen);
     // Initialize conv layer states for gated short conv layers (LFM2)
     await timedPipelineLoadPhase(
       pipelineLoadTiming,

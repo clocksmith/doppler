@@ -59,6 +59,10 @@ export interface AdvanceEmbeddingResult {
  * Layer context contains all state needed for layer processing.
  */
 export interface LayerContext {
+  hyperConnectionSession?: import('./hyper-connection/session.js').HyperConnectionSession | null;
+  signal?: AbortSignal;
+  resolvedRuntimeSession?: import('./resolved-runtime-session.js').ResolvedRuntimeSession;
+  observationContext?: import('../../observation-context.js').ObservationContext | null;
   /** Model configuration */
   config: ParsedModelConfig;
   /** Layer weights map */
@@ -263,17 +267,17 @@ export interface KVCacheInterface {
   kvDtype?: 'f16' | 'f32';
 
   /** Get key cache for a layer */
-  getKeyCache(layerIdx: number): GPUBuffer | Float32Array | null;
+  getKeyCache?(layerIdx: number): GPUBuffer | Float32Array | null;
 
   /** Get value cache for a layer */
-  getValueCache(layerIdx: number): GPUBuffer | Float32Array | null;
+  getValueCache?(layerIdx: number): GPUBuffer | Float32Array | null;
 
   /** Update cache for a layer */
   update(
     layerIdx: number,
-    position: number,
     keys: GPUBuffer | Float32Array,
-    values: GPUBuffer | Float32Array
+    values: GPUBuffer | Float32Array,
+    startPos?: number
   ): void;
 
   /** Clear all cached values */
@@ -307,7 +311,7 @@ export interface KVCacheInterface {
   ): void | Promise<void>;
 
   /** Get GPU buffers for a layer */
-  getGPUBuffers?(layerIdx: number): GPUBuffersResult | null;
+  getGPUBuffers?(layerIdx: number): import('../../kv-cache/types.js').GPUBuffersResult | null;
 }
 
 // ============================================================================

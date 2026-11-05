@@ -223,6 +223,7 @@ export async function _prefill(inputIds, opts) {
     );
     context.trainingCapture = opts?._trainingCapture ?? null;
     context.currentTokenIds = inputIds;
+    context.signal = opts.signal;
     context.diffusionGemmaDecoder = opts?._diffusionGemmaDecoder === true;
     context.skipKVCacheWrites = returnHidden
       && opts?._embeddingOnly === true
@@ -412,6 +413,7 @@ export async function _prefill(inputIds, opts) {
       numTokens,
     });
 
+    const residualWidth = config.hyperConnections ? config.hyperConnections.streamCount * config.hiddenSize : config.hiddenSize;
     let currentHiddenBuffer = hiddenStates.buffer;
     let transferred = false;
     let failed = false;
@@ -517,7 +519,7 @@ export async function _prefill(inputIds, opts) {
               `PREFILL_LAYER_${l}_HEALTH`,
               currentHiddenBuffer,
               activationDtype,
-              numTokens * config.hiddenSize, representation
+              numTokens * residualWidth, representation
             );
             currentRecorder = l < config.numLayers - 1
               ? createRecorder('prefill-trace')
@@ -530,8 +532,8 @@ export async function _prefill(inputIds, opts) {
             if (device) {
               if (allowReadback(`pipeline.prefill.layer-${l}`)) {
                 try {
-                  const sampleSize = config.hiddenSize * activationBytes;
-                  const lastTokenOffset = (numTokens - 1) * config.hiddenSize * activationBytes;
+                  const sampleSize = residualWidth * activationBytes;
+                  const lastTokenOffset = (numTokens - 1) * residualWidth * activationBytes;
                   const readback = await readBufferSlice(currentHiddenBuffer, lastTokenOffset, sampleSize);
                   const data = decodeReadback(readback, activationDtype, representation);
                   let min = Infinity;
@@ -599,7 +601,7 @@ export async function _prefill(inputIds, opts) {
               `PREFILL_LAYER_${l}_HEALTH`,
               currentHiddenBuffer,
               activationDtype,
-              numTokens * config.hiddenSize, representation
+              numTokens * residualWidth, representation
             );
             if (tracePrefillEnabled) {
               trace.perf('Prefill chunk submitted', {
@@ -688,8 +690,8 @@ export async function _prefill(inputIds, opts) {
       if (opts.debug) {
         log.debug('Pipeline', `LAYER_LOOP_DONE, currentHiddenBuffer type=${currentHiddenBuffer?.constructor?.name}`);
         if (currentHiddenBuffer && allowReadback('pipeline.prefill.final-hidden')) {
-          const lastTokenOffset = (numTokens - 1) * config.hiddenSize * activationBytes;
-          const sampleSize = config.hiddenSize * activationBytes;
+          const lastTokenOffset = (numTokens - 1) * residualWidth * activationBytes;
+          const sampleSize = residualWidth * activationBytes;
           const data = decodeReadback(
             await readBufferSlice(currentHiddenBuffer, lastTokenOffset, sampleSize),
             activationDtype, representation
@@ -745,7 +747,7 @@ export async function _prefill(inputIds, opts) {
           currentHiddenBuffer,
           numTokens,
           getLogitsWeights(this._state),
-          getLogitsConfig(this._state),
+          getLogitsConfig(this._state, 'prefill'),
           this._state.operatorDiagnostics,
           { applySoftcap: true }
         );
@@ -781,7 +783,7 @@ export async function _prefill(inputIds, opts) {
             currentHiddenBuffer,
             numTokens,
             getLogitsWeights(this._state),
-            getLogitsConfig(this._state),
+            getLogitsConfig(this._state, 'prefill'),
             this._state.useGPU,
             this._state.debugFlags,
             undefined,
@@ -819,7 +821,7 @@ export async function _prefill(inputIds, opts) {
           currentHiddenBuffer,
           numTokens,
           getLogitsWeights(this._state),
-          getLogitsConfig(this._state),
+          getLogitsConfig(this._state, 'prefill'),
           this._state.useGPU,
           this._state.debugFlags,
           undefined,

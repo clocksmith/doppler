@@ -149,6 +149,7 @@ export function buildLayerContext(
     ropeLocalSin: state.ropeLocalSin,
     sharedAttentionState: new Map(),
     linearAttentionRuntime: state.linearAttentionRuntime,
+    hyperConnectionSession: state.hyperConnectionSession,
     convLayerStates: state.convLayerStates,
     weightConfig: getWeightBufferConfig(state),
     debugFlags: resolvedDebugFlags,

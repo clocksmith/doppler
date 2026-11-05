@@ -8,12 +8,13 @@ import { resolveActiveExecutionPlan } from '../execution-plan.js';
 
 export function getLogitsWeights(state) {
   const finalNorm = state.weights.get('final_norm');
+  const hyperConnectionMixer = state.weights.get('hyper_connection_mixer') ?? null;
   const lmHead = state.weights.get('lm_head');
   const lmHeadBias = state.weights.get('lm_head_bias') ?? null;
   const finalNormBias = state.weights.get('final_norm_bias') ?? null;
   if (
-    !finalNorm
-    || !(isGpuBufferInstance(finalNorm) || finalNorm instanceof Float32Array || isWeightBuffer(finalNorm))
+    !state.modelConfig?.hyperConnections && (!finalNorm
+    || !(isGpuBufferInstance(finalNorm) || finalNorm instanceof Float32Array || isWeightBuffer(finalNorm)))
   ) {
     throw new Error('Final norm not found or invalid type');
   }
@@ -35,14 +36,17 @@ export function getLogitsWeights(state) {
   if (finalNormBias !== null && !(finalNormBias instanceof Float32Array)) {
     throw new Error('Final norm bias is not a Float32Array');
   }
-  return { finalNorm, finalNormBias, lmHead, lmHeadBias };
+  if (state.modelConfig?.hyperConnections && (!hyperConnectionMixer || finalNorm)) throw new Error('[HyperConnection] Root mixer must replace the final norm.');
+  return { finalNorm, hyperConnectionMixer, finalNormBias, lmHead, lmHeadBias };
 }
 
-export function getLogitsConfig(state) {
+export function getLogitsConfig(state, executionPhase) {
   const config = state.modelConfig;
   const activeExecutionPlan = resolveActiveExecutionPlan(state);
   const activeKernelPath = activeExecutionPlan.kernelPath ?? state.resolvedKernelPath ?? null;
   return {
+    hyperConnections: config.hyperConnections,
+    executionPhase,
     hiddenSize: config.hiddenSize,
     vocabSize: config.vocabSize,
     normalizationType: config.normalizationType,

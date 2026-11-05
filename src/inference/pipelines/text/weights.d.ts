@@ -23,8 +23,11 @@ export type LayerWeightBuffer = GPUBuffer | WeightBuffer | Float32Array | CpuWei
  * Weights for a single transformer layer.
  */
 export interface LayerWeights {
+  hyperConnections?: import('../../../loader/hyper-connection-loader.js').HyperConnectionLayerWeights['hyperConnections'];
+  qsaIndexer?: import('../../../loader/hyper-connection-loader.js').HyperConnectionLayerWeights['qsaIndexer'];
+  ple?: import('../../../loader/hyper-connection-loader.js').HyperConnectionLayerWeights['ple'];
   // Attention
-  inputNorm: GPUBuffer | Float32Array;
+  inputNorm: GPUBuffer | Float32Array | null;
   inputNormBias?: GPUBuffer | Float32Array | null;
   qProj: LayerWeightBuffer;
   qProjBias?: GPUBuffer | Float32Array | null;

@@ -18,6 +18,7 @@ import { createModelReadSession } from './model-read-session.js';
 import {
   checkFileExistsInBackend,
   getFileSizeInBackend,
+  readFileRangeInBackend,
 } from './shards/index.js';
 import { createStorageWriteStream } from './shards/lifecycle.js';
 import {
@@ -134,16 +135,8 @@ function createShardManager(resources = {}) {
     }
   }
 
-  async function readBackendFileRange(filename, offset = 0, length = null) {
-    const start = Math.max(0, offset);
-    const want = length == null ? null : Math.max(0, length);
-    if (backend && typeof backend.readFileRange === 'function') {
-      return backend.readFileRange(filename, start, want);
-    }
-    const buffer = await backend.readFile(filename);
-    const view = new Uint8Array(buffer);
-    const end = want == null ? view.length : Math.min(view.length, start + want);
-    return view.slice(start, end).buffer;
+  async function readBackendFileRange(filename, offset = 0, length = null, requireRange = false) {
+    return readFileRangeInBackend(backend, filename, offset, length, requireRange);
   }
 
   async function writeShard(shardIndex, data, options = { verify: true }) {
@@ -261,6 +254,7 @@ function createShardManager(resources = {}) {
   async function loadShardRange(shardIndex, offset = 0, length = null, options = { verify: false }) {
     await ensureBackend();
     requireModel();
+    if (options.requireRange && options.verify) throw new Error('Whole-tensor/shard verification is disabled for required bounded reads; supply an authenticated range port.');
 
     const shardInfo = getShardInfo(shardIndex);
     if (!shardInfo) {
@@ -286,7 +280,7 @@ function createShardManager(resources = {}) {
     const want = length == null ? null : Math.max(0, length);
 
     try {
-      return await readBackendFileRange(shardInfo.filename, start, want);
+      return await readBackendFileRange(shardInfo.filename, start, want, options.requireRange === true);
     } catch (error) {
       if (error.name === 'NotFoundError') {
         throw new Error(`Shard ${shardIndex} not found`);

@@ -54,8 +54,8 @@ export class PleConvState {
   async destroy() {
     if (this.destroyed) return;
     this.destroyed = true;
-    await getDevice()?.queue.onSubmittedWorkDone();
-    releaseBuffer(this.buffer);
+    try { await getDevice()?.queue.onSubmittedWorkDone(); }
+    finally { releaseBuffer(this.buffer); }
   }
 }
 
@@ -73,6 +73,8 @@ export async function runPleLayer(target, { streams, rows, weights, state, ngram
     temporaries.push(tensor);
     return tensor;
   };
+  let retainedGate = null;
+  let returned = false;
   const normOptions = { numTokens, streamCount: hyper.streamCount, streamWidth: hyper.streamWidth, eps: ngram.normEps };
   /** @param {import('../../../../gpu/tensor.js').Tensor} input @param {import('../../../../gpu/tensor.js').Tensor} weight */
   const norm = (input, weight) => (recorded
@@ -90,6 +92,7 @@ export async function runPleLayer(target, { streams, rows, weights, state, ngram
     const { gated, gateInput } = recorded
       ? await recordPleGate(target, keyNormed, queryNormed, value, gateOptions)
       : await runPleGate(keyNormed, queryNormed, value, gateOptions);
+    retainedGate = gateInput;
     keep(gated);
     const convInput = keep(await norm(gated, weights.normConv));
     if (state.destroyed || state.epoch !== epoch) fail('the convolution state was reset or destroyed during the layer.');
@@ -97,8 +100,13 @@ export async function runPleLayer(target, { streams, rows, weights, state, ngram
     const output = recorded
       ? await recordPleConv(target, convInput, gated, streams, weights.conv, state.buffer, convOptions)
       : await runPleConv(convInput, gated, streams, weights.conv, state.buffer, convOptions);
+    returned = true;
     return { streams: output, gateInput };
   } finally {
+    if (!returned && retainedGate) {
+      if (recorded) target.trackTemporaryBuffer(retainedGate.buffer);
+      else releaseBuffer(retainedGate.buffer);
+    }
     for (const tensor of temporaries) {
       if (recorded) target.trackTemporaryBuffer(tensor.buffer);
       else releaseBuffer(tensor.buffer);

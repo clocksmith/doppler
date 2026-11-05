@@ -30,6 +30,7 @@ import { isGpuBufferInstance, isWeightBuffer } from '../../../gpu/weight-buffer.
 import { processLayerPlanGPU } from './layer-plan-gpu.js';
 import { isRoPEDisabledForLayer } from '../../../config/heterogeneous-attention-contract.js';
 import { postNormContractMatchesBase } from './normalization-contract.js';
+import { processHyperConnectionLayer } from './hyper-connection/layer-executor.js';
 import {
   applyPerLayerInputBlock,
   debugLayerTensor,
@@ -162,6 +163,7 @@ export async function processLayer(layerIdx, hiddenStates, numTokens, isPrefill,
   const { config, useGPU } = context;
   const { hiddenSize } = config;
   assertSupportedLayerRuntime(layerIdx, config);
+  if (config.hyperConnections && (!useGPU || !isGpuBufferInstance(hiddenStates))) throw new Error('[HyperConnection] GPU execution is required.');
 
   // Debug routing (uses debug-utils)
   logLayer(layerIdx, 'enter', isPrefill, { numTokens });
@@ -185,6 +187,7 @@ export async function processLayer(layerIdx, hiddenStates, numTokens, isPrefill,
 // ============================================================================
 
 export async function processLayerGPU(layerIdx, inputBuffer, numTokens, isPrefill, size, context) {
+  if (context.config.hyperConnections) return processHyperConnectionLayer(layerIdx, inputBuffer, numTokens, isPrefill, context);
   // Debug entry (uses debug-utils)
   logLayer(layerIdx, 'enter', isPrefill, { numTokens });
 

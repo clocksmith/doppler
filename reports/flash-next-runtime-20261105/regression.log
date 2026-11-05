@@ -1,0 +1,284 @@
+TAP version 13
+# hyper-connection-decoder-contracts.test: ok
+# Subtest: tests/config/hyper-connection-decoder-contracts.test.js
+ok 1 - tests/config/hyper-connection-decoder-contracts.test.js
+  ---
+  duration_ms: 63.4875
+  type: 'test'
+  ...
+# qwen4-exp-source-buffers.test: ok
+# Subtest: tests/converter/qwen4-exp-source-buffers.test.js
+ok 2 - tests/converter/qwen4-exp-source-buffers.test.js
+  ---
+  duration_ms: 54.877917
+  type: 'test'
+  ...
+# retained-source-shards.test: ok
+# Subtest: tests/converter/retained-source-shards.test.js
+ok 3 - tests/converter/retained-source-shards.test.js
+  ---
+  duration_ms: 242.260208
+  type: 'test'
+  ...
+# generation-prompt-state-reset.test: ok
+# Subtest: tests/inference/generation-prompt-state-reset.test.js
+ok 4 - tests/inference/generation-prompt-state-reset.test.js
+  ---
+  duration_ms: 526.302834
+  type: 'test'
+  ...
+# generator-prefill-logits-observation.test: ok
+# Subtest: tests/inference/generator-prefill-logits-observation.test.js
+ok 5 - tests/inference/generator-prefill-logits-observation.test.js
+  ---
+  duration_ms: 500.166125
+  type: 'test'
+  ...
+# hyper-connection layer wiring: branch ownership, PLE order, selection and explicit phase passed
+# Subtest: tests/inference/hyper-connection-layer-wiring.test.js
+ok 6 - tests/inference/hyper-connection-layer-wiring.test.js
+  ---
+  duration_ms: 328.377542
+  type: 'test'
+  ...
+# [GPU] apple metal-3, f16/subgroups, 4.0GB, submit probe: 0.7ms
+# [569.5ms][KernelSelect] matmul variant=f32 reason=path_override
+# hyper-connection logits: physical GPU numerical and ownership checks passed
+# Subtest: tests/inference/hyper-connection-logits-gpu.test.js
+ok 7 - tests/inference/hyper-connection-logits-gpu.test.js
+  ---
+  duration_ms: 884.163
+  type: 'test'
+  ...
+# Subtest: partial-layer failure restores KV, recurrent, indexer, n-gram and convolution state together; next call works
+ok 8 - partial-layer failure restores KV, recurrent, indexer, n-gram and convolution state together; next call works
+  ---
+  duration_ms: 6.529583
+  type: 'test'
+  ...
+# Subtest: abort during the operation rolls back before allowing reuse
+ok 9 - abort during the operation rolls back before allowing reuse
+  ---
+  duration_ms: 0.533083
+  type: 'test'
+  ...
+# Subtest: nested prefill chunks share a transaction and a later chunk failure restores the initial prefix
+ok 10 - nested prefill chunks share a transaction and a later chunk failure restores the initial prefix
+  ---
+  duration_ms: 0.2745
+  type: 'test'
+  ...
+# Subtest: late cancellation releases a completed GPU result that was never transferred to the caller
+ok 11 - late cancellation releases a completed GPU result that was never transferred to the caller
+  ---
+  duration_ms: 0.346667
+  type: 'test'
+  ...
+# Subtest: unsupported modes fail before mutation and snapshots fail before replacing KV
+ok 12 - unsupported modes fail before mutation and snapshots fail before replacing KV
+  ---
+  duration_ms: 0.541334
+  type: 'test'
+  ...
+# Subtest: closing waits for a pending row read and repeated closes share that completion
+ok 13 - closing waits for a pending row read and repeated closes share that completion
+  ---
+  duration_ms: 2.193166
+  type: 'test'
+  ...
+# [GPU] apple metal-3, f16/subgroups, 4.0GB, submit probe: 0.9ms
+# logits-bias.test: ok
+# Subtest: tests/inference/logits-bias.test.js
+ok 9 - tests/inference/logits-bias.test.js
+  ---
+  duration_ms: 441.772917
+  type: 'test'
+  ...
+# logits-last-position-phase-contract.test: ok
+# Subtest: tests/inference/logits-last-position-phase-contract.test.js
+ok 10 - tests/inference/logits-last-position-phase-contract.test.js
+  ---
+  duration_ms: 276.284083
+  type: 'test'
+  ...
+# [GPU] apple metal-3, f16/subgroups, 4.0GB, submit probe: 0.7ms
+# [442.7ms][KernelSelect] matmul variant=f32 reason=default
+# logits-output-ownership: GPU checks passed
+# Subtest: tests/inference/logits-output-ownership.test.js
+ok 11 - tests/inference/logits-output-ownership.test.js
+  ---
+  duration_ms: 632.054875
+  type: 'test'
+  ...
+# logits-paired-contract: passed
+# Subtest: tests/inference/logits-paired-contract.test.js
+ok 12 - tests/inference/logits-paired-contract.test.js
+  ---
+  duration_ms: 321.009542
+  type: 'test'
+  ...
+# logits-utils-cleanup.test: ok
+# Subtest: tests/inference/logits-utils-cleanup.test.js
+ok 13 - tests/inference/logits-utils-cleanup.test.js
+  ---
+  duration_ms: 190.520791
+  type: 'test'
+  ...
+# logits-weight-buffer-final-norm.test: ok
+# Subtest: tests/inference/logits-weight-buffer-final-norm.test.js
+ok 14 - tests/inference/logits-weight-buffer-final-norm.test.js
+  ---
+  duration_ms: 238.163875
+  type: 'test'
+  ...
+# pipeline-embedding-fast-path.test: ok
+# Subtest: tests/inference/pipeline-embedding-fast-path.test.js
+ok 15 - tests/inference/pipeline-embedding-fast-path.test.js
+  ---
+  duration_ms: 432.589584
+  type: 'test'
+  ...
+# Subtest: every exposed pipeline method declares ownership
+ok 21 - every exposed pipeline method declares ownership
+  ---
+  duration_ms: 0.88525
+  type: 'test'
+  ...
+# Subtest: ordinary promise functions and wrapped iterators retain one owner through aliases
+ok 22 - ordinary promise functions and wrapped iterators retain one owner through aliases
+  ---
+  duration_ms: 2.154416
+  type: 'test'
+  ...
+# Subtest: embedding batch scheduling releases compatibility scope between explicit execution calls
+ok 23 - embedding batch scheduling releases compatibility scope between explicit execution calls
+  ---
+  duration_ms: 4.304
+  type: 'test'
+  ...
+# Subtest: standalone batch scheduler needs only request and execution ports and honors cancellation
+ok 24 - standalone batch scheduler needs only request and execution ports and honors cancellation
+  ---
+  duration_ms: 0.179291
+  type: 'test'
+  ...
+# Subtest: queued cancellation rejects before another model releases its paused stream, without bypassing its lease
+ok 25 - queued cancellation rejects before another model releases its paused stream, without bypassing its lease
+  ---
+  duration_ms: 30.147417
+  type: 'test'
+  ...
+# Subtest: aborting a paused stream closes it and releases its model context without another consumer pull
+ok 26 - aborting a paused stream closes it and releases its model context without another consumer pull
+  ---
+  duration_ms: 0.561375
+  type: 'test'
+  ...
+# Subtest: unload closes an abandoned paused iterator before draining owned resources
+ok 27 - unload closes an abandoned paused iterator before draining owned resources
+  ---
+  duration_ms: 0.713833
+  type: 'test'
+  ...
+# Subtest: cancellation retains the lease until active work and iterator cleanup settle
+ok 28 - cancellation retains the lease until active work and iterator cleanup settle
+  ---
+  duration_ms: 0.937083
+  type: 'test'
+  ...
+# Subtest: surviving waiters remain FIFO across a cancelled middle waiter
+ok 29 - surviving waiters remain FIFO across a cancelled middle waiter
+  ---
+  duration_ms: 0.477958
+  type: 'test'
+  ...
+# Subtest: shutdown reports background cleanup failure and still unloads under its context
+ok 30 - shutdown reports background cleanup failure and still unloads under its context
+  ---
+  duration_ms: 0.420791
+  type: 'test'
+  ...
+# Subtest: factory loading observes cancellation while waiting for another model scope
+ok 31 - factory loading observes cancellation while waiting for another model scope
+  ---
+  duration_ms: 0.375333
+  type: 'test'
+  ...
+# Subtest: factory preserves construction and cleanup failures
+ok 32 - factory preserves construction and cleanup failures
+  ---
+  duration_ms: 0.155416
+  type: 'test'
+  ...
+# Subtest: shutdown preserves the original unload failure for every caller
+ok 33 - shutdown preserves the original unload failure for every caller
+  ---
+  duration_ms: 0.216792
+  type: 'test'
+  ...
+# Subtest: cleanup that yields retains context until all of its work settles
+ok 34 - cleanup that yields retains context until all of its work settles
+  ---
+  duration_ms: 0.507167
+  type: 'test'
+  ...
+# Subtest: host evidence operations forward cancellation to lease acquisition
+ok 35 - host evidence operations forward cancellation to lease acquisition
+  ---
+  duration_ms: 0.28225
+  type: 'test'
+  ...
+# prefill-chunk-cleanup: passed
+# Subtest: tests/inference/prefill-chunk-cleanup.test.js
+ok 18 - tests/inference/prefill-chunk-cleanup.test.js
+  ---
+  duration_ms: 449.155709
+  type: 'test'
+  ...
+# qsa-cache-lifecycle.test: ok
+# Subtest: tests/inference/qsa-cache-lifecycle.test.js
+ok 19 - tests/inference/qsa-cache-lifecycle.test.js
+  ---
+  duration_ms: 265.106833
+  type: 'test'
+  ...
+# hyper-connection-loading.test: ok (contract doubles; no physical GPU)
+# Subtest: tests/loader/hyper-connection-loading.test.js
+ok 20 - tests/loader/hyper-connection-loading.test.js
+  ---
+  duration_ms: 241.41575
+  type: 'test'
+  ...
+# ngram-table-bindings: bounded row I/O and fail-closed whole-file fallback passed
+# Subtest: tests/loader/ngram-table-bindings.test.js
+ok 21 - tests/loader/ngram-table-bindings.test.js
+  ---
+  duration_ms: 237.158667
+  type: 'test'
+  ...
+# bounded shard range: required range reads cannot materialize a full file or shard
+# Subtest: tests/storage/bounded-shard-range.test.js
+ok 22 - tests/storage/bounded-shard-range.test.js
+  ---
+  duration_ms: 222.745542
+  type: 'test'
+  ...
+# [141.8ms][ShardManager] No persistent storage available (OPFS/IndexedDB); falling back to in-memory storage. Model data will not persist across reloads.
+# [143.7ms][ShardManager] No persistent storage available (OPFS/IndexedDB); falling back to in-memory storage. Model data will not persist across reloads.
+# [144.5ms][ShardManager] No persistent storage available (OPFS/IndexedDB); falling back to in-memory storage. Model data will not persist across reloads.
+# shard-manager-tensor-range-integrity.test: ok
+# Subtest: tests/storage/shard-manager-tensor-range-integrity.test.js
+ok 23 - tests/storage/shard-manager-tensor-range-integrity.test.js
+  ---
+  duration_ms: 158.920791
+  type: 'test'
+  ...
+1..41
+# tests 41
+# suites 0
+# pass 41
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 1222.353917

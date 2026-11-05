@@ -308,14 +308,17 @@ export class InferencePipeline extends PipelineState {
   }
 
   async embed(prompt, options = {}) {
+    if (this.modelConfig?.hyperConnections) throw new Error('[HyperConnection] embed requires complete composite-state support and is not supported.');
     return embedImpl.apply(this, arguments);
   }
 
   async embedBatch(prompts, options = {}) {
+    if (this.modelConfig?.hyperConnections) throw new Error('[HyperConnection] embedBatch requires complete composite-state support and is not supported.');
     return embedBatchImpl.apply(this, arguments);
   }
 
   async encodeSequence(sequence, options = {}) {
+    if (this.modelConfig?.hyperConnections) throw new Error('[HyperConnection] encodeSequence requires complete composite-state support and is not supported.');
     return encodeSequenceImpl.apply(this, arguments);
   }
 
@@ -324,6 +327,7 @@ export class InferencePipeline extends PipelineState {
   // (jpeg/png -> RGBA pixels) belongs to the caller; this method takes
   // already-decoded pixel data.
   async embedImage({ pixels, width, height, softTokenBudget, signal } = {}) {
+    if (this.modelConfig?.hyperConnections) throw new Error('[HyperConnection] embedImage requires complete composite-state support and is not supported.');
     return embedImageImpl.apply(this, arguments);
   }
 
@@ -332,22 +336,27 @@ export class InferencePipeline extends PipelineState {
   // text hidden size in Gemma 4). Decoder responsibility (webm/opus/wav ->
   // Float32 PCM at the model's expected sample rate) belongs to the caller.
   async embedAudio({ audio, signal } = {}) {
+    if (this.modelConfig?.hyperConnections) throw new Error('[HyperConnection] embedAudio requires complete composite-state support and is not supported.');
     return embedAudioImpl.apply(this, arguments);
   }
 
   prefillWithLogits(prompt, options = {}) {
+    if (this.modelConfig?.hyperConnections) throw new Error('[HyperConnection] prefillWithLogits requires complete composite-state support and is not supported.');
     return this.generator.prefillWithLogits(prompt, options);
   }
 
   prefillWithTokenLogits(prompt, tokenIds, options = {}) {
+    if (this.modelConfig?.hyperConnections) throw new Error('[HyperConnection] prefillWithTokenLogits requires complete composite-state support and is not supported.');
     return this.generator.prefillWithTokenLogits(prompt, tokenIds, options);
   }
 
   prefillWithTokenLogitsFromKV(prefix, prompt, tokenIds, options = {}) {
+    if (this.modelConfig?.hyperConnections) throw new Error('[HyperConnection] prefillWithTokenLogitsFromKV requires complete composite-state support and is not supported.');
     return this.generator.prefillWithTokenLogitsFromKV(prefix, prompt, tokenIds, options);
   }
 
   applyKVCacheSnapshot(snapshot) {
+    if (this.modelConfig?.hyperConnections) throw new Error('[HyperConnection] Prefix KV snapshots do not include the complete decoder state and are not supported.');
     this.kvCache = snapshot.cache.clone();
     if (this.useGPU && this.kvCache) {
       const device = getDevice();
@@ -372,6 +381,7 @@ export class InferencePipeline extends PipelineState {
   }
 
   generateWithPrefixKV(prefix, prompt, options = {}) {
+    if (this.modelConfig?.hyperConnections) throw new Error('[HyperConnection] generateWithPrefixKV requires complete composite-state support and is not supported.');
     return this.generator.generateWithPrefixKV(prefix, prompt, options);
   }
 
@@ -507,6 +517,8 @@ export class InferencePipeline extends PipelineState {
     };
     await cleanup(() => destroyEmulation(emulation));
     await cleanup(() => cache?.destroy());
+    await cleanup(() => this.hyperConnectionSession?.destroy());
+    this.hyperConnectionSession = null;
     await cleanup(() => this.releaseGPUResources());
     const ropeLease = this.ropeFrequencyLease;
     this.ropeFrequencyLease = null;
@@ -528,6 +540,7 @@ export class InferencePipeline extends PipelineState {
   }
 
   setLoRAAdapter(adapter) {
+    if (this.modelConfig?.hyperConnections) throw new Error('[HyperConnection] LoRA is not supported.');
     if (this.isGenerating) throw new Error('Cannot change LoRA adapter while generation is in progress.');
     if (this.isLoaded === false) throw new Error('Cannot change LoRA adapter on an unloaded pipeline.');
     assertBundledAdapterAuthorized(adapter);
@@ -539,6 +552,7 @@ export class InferencePipeline extends PipelineState {
   }
 
   reset() {
+    this.hyperConnectionSession?.reset();
     this.kvCache?.clear();
     this.linearAttentionRuntime = resetLinearAttentionSequence(this.linearAttentionRuntime);
     this.currentSeqLen = 0;
@@ -562,6 +576,7 @@ export class InferencePipeline extends PipelineState {
   }
 
   resetForBatch() {
+    this.hyperConnectionSession?.reset();
     this.kvCache?.clear();
     this.linearAttentionRuntime = resetLinearAttentionSequence(this.linearAttentionRuntime);
     this.currentSeqLen = 0;

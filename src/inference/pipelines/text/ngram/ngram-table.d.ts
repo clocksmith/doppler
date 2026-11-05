@@ -86,7 +86,4 @@ export interface NgramTableTensorLocation {
  * `${tensorPrefix}.shard_<k>.weight`, sources are shard indices for
  * loadShardRange. Fails unless the parts tile [0, rows) exactly.
  */
-export declare function ngramTablePartsFromTensorLocations(
-  tensorLocations: ReadonlyMap<string, NgramTableTensorLocation | { [key: string]: unknown }>,
-  options: { tensorPrefix: string; rows: number; rowWidth: number }
-): NgramTablePart[];
+export { ngramTablePartsFromTensorLocations } from '../../../../loader/ngram-table-bindings.js';

@@ -76,7 +76,7 @@ export interface AttentionConfig {
   /** Token IDs for the current micro-batch (required by BDPA KV ingestion). */
   tokenIds?: number[] | null;
   /** Kernel path override for attention dispatch. */
-  kernelPath?: Record<string, unknown> | null;
+  kernelPath?: import('../../../../config/schema/kernel-path.schema.js').KernelPathSchema | null;
   /** Disable RoPE for this layer (e.g., non-rotary attention). */
   disableRoPE?: boolean;
 }
@@ -85,6 +85,10 @@ export interface AttentionConfig {
  * Attention state passed between operations.
  */
 export interface AttentionState {
+  stats?: import('../types.js').LayerContext['stats'];
+  debugProbes?: import('../types.js').LayerContext['debugProbes'];
+  operatorDiagnostics?: import('../types.js').LayerContext['operatorDiagnostics'];
+  qsa?: import('../hyper-connection/session.js').PreparedQsaSelection | null;
   ropeFreqsCos: GPUBuffer | null;
   ropeFreqsSin: GPUBuffer | null;
   kvCache: KVCacheInterface;

@@ -53,6 +53,7 @@ export interface LinearAttentionRuntime {
 }
 
 export interface RunLinearAttentionLayerOptions {
+  operatorDiagnostics?: import('./types.js').LayerContext['operatorDiagnostics'];
   runtimeSession?: Pick<import('../../../config/schema/execution-v1.schema.js').ExecutionV1SessionSchema, 'useLinearAttentionRegisterPrefill' | 'useLinearAttentionRegisterDecode' | 'useLinearAttentionFusedDecodeCore' | 'useLinearAttentionABProjectionFusion' | 'useLinearAttentionQKVZProjectionFusion'>;
   layerIdx: number;
   numTokens: number;

@@ -16,6 +16,7 @@ export class PipelineState {
     };
 
     this.convLayerStates = new Map();
+    this.hyperConnectionSession = null;
 
     this.moeRouter = null;
 

@@ -237,6 +237,7 @@ export declare const DEFAULT_PERF_GUARDS_CONFIG: PerfGuardsConfigSchema;
 /** Pipeline probe stages */
 export type ProbeStage =
   | 'embed_out'
+  | 'layer_in'
   // Attention stages (per-layer)
   | 'attn_input'      // Input to attention (after residual from previous layer)
   | 'attn_normed'     // After input RMSNorm

@@ -825,7 +825,6 @@
     "src/storage/registry.js",
     "src/storage/reports.js",
     "src/storage/shard-manager.js",
-    "src/storage/shards/index.js",
     "src/storage/shards/integrity.js",
     "src/storage/shards/lifecycle.js",
     "src/storage/source-artifact-store.js",

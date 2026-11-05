@@ -13,6 +13,7 @@ export interface ShardWriteResult {
 }
 
 export interface ShardReadOptions {
+  requireRange?: boolean;
   verify?: boolean;
   tensorId?: string | null;
 }

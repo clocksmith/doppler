@@ -1,3 +1,4 @@
+import { assertHyperConnectionOperation } from '../hyper-connection/sequence-transaction.js';
 import { lookupDraft, verifySpeculativeTokens } from './speculative-runtime.js';
 import { markDiagnosticSequenceStep } from './diagnostic-sequence.js';
 import { isGPUSamplingAvailable } from '../../../../gpu/kernels/sample.js';
@@ -30,6 +31,7 @@ import { verifyDecodeStepAhead } from './decode.js';
 import { wholeTokenProgramRequested, prepareWholeTokenBatch } from './whole-token-lane.js';
 
 function prepareGenerationRuntime(generator, opts, options) {
+  assertHyperConnectionOperation(generator._state, opts);
   generator._resetReplayPrefillRuntimeState();
   generator._state.isGenerating = true;
   generator._resetDecodeRuntimeState();

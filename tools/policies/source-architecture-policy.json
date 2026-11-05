@@ -466,7 +466,7 @@
       "extractTo": ["storage/download/transport.js"]
     },
     "storage/shard-manager.js": {
-      "reviewedLines": 793,
+      "reviewedLines": 787,
       "debtAuthorization": "sha256:66797cdee28d91342930af4179ca9cc290da31cdd7634bce1786aaabe1a6fc4f",
       "reason": "Reuse existing integrity and byte access for scoped handles and an outer compatibility default without duplicating integrity algorithms.",
       "extractTo": ["storage/model-read-session.js", "storage/shards/integrity.js"]

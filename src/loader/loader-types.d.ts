@@ -215,6 +215,8 @@ export type ShardLoadPriority = 'high' | 'low';
  */
 export interface ShardLoadOptions {
   priority?: ShardLoadPriority;
+  /** Reject a range request rather than materializing a whole custom shard. */
+  requireRange?: boolean;
 }
 
 /**

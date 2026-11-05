@@ -1,3 +1,4 @@
+/** @param {import('./index.js').TensorLocation} location */
 function resolveTensorPrimarySpans(location) {
   if (Array.isArray(location?.spans) && location.spans.length > 0) {
     return location.spans.map((span) => ({
@@ -13,6 +14,7 @@ function resolveTensorPrimarySpans(location) {
   }];
 }
 
+/** @type {typeof import('./index.js').isRequestedRangeInsideTensor} */
 export function isRequestedRangeInsideTensor(location, shardIndex, offset, length) {
   const start = Math.max(
     0,
@@ -31,10 +33,12 @@ export function isRequestedRangeInsideTensor(location, shardIndex, offset, lengt
   });
 }
 
+/** @type {typeof import('./index.js').checkFileExistsInBackend} */
 export async function checkFileExistsInBackend(storageBackend, filename) {
   return (await getFileSizeInBackend(storageBackend, filename)) !== null;
 }
 
+/** @type {typeof import('./index.js').getFileSizeInBackend} */
 export async function getFileSizeInBackend(storageBackend, filename) {
   if (!storageBackend || typeof storageBackend !== 'object') {
     throw new Error('getFileSizeInBackend requires a storage backend object.');
@@ -57,4 +61,16 @@ export async function getFileSizeInBackend(storageBackend, filename) {
     }
     throw error;
   }
+}
+
+/** @type {typeof import('./index.js').readFileRangeInBackend} */
+export async function readFileRangeInBackend(storageBackend, filename, offset, length, requireRange) {
+  const start = Math.max(0, offset);
+  const want = length == null ? null : Math.max(0, length);
+  if (typeof storageBackend.readFileRange === 'function') return storageBackend.readFileRange(filename, start, want);
+  if (requireRange) throw new Error('A bounded backend range reader is required; whole-file fallback is disabled.');
+  const buffer = await storageBackend.readFile(filename);
+  const view = new Uint8Array(buffer);
+  const end = want == null ? view.length : Math.min(view.length, start + want);
+  return view.slice(start, end).buffer;
 }

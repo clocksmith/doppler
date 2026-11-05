@@ -1,3 +1,4 @@
+import { mixHyperConnectionLogitsInput } from '../hyper-connection/logits-input.js';
 import { createImmediateResourceScope } from '../../../resource-scope.js';
 
 
@@ -200,7 +201,7 @@ export async function computeLogits(
     );
   }
 
-  if (!finalNorm || !lmHead) {
+  if ((!finalNorm && !config.hyperConnections) || !lmHead) {
     throw new Error('[Logits] Final norm and LM head weights are required.');
   }
 
@@ -297,127 +298,134 @@ export async function computeLogits(
       elementStrideBytes: config.activationElementStrideBytes,
     });
 
-    // 2. Apply the manifest-owned final normalization.
-
-    let normWeightBuffer;
+    const phase = config.executionPhase ?? (numTokens === 1 ? 'decode' : 'prefill');
+    let stableKernelPath = config.kernelPath ?? null;
+    let forceStableF32Logits = false;
+    let normWeightBuffer = null;
     let normWeightBufferOwned = false;
-    if (getNormWeightBuffer) {
-      normWeightBuffer = getNormWeightBuffer(finalNorm, 'final_norm_w');
+    let finalNormTensor;
+    if (config.hyperConnections) {
+      finalNormTensor = await ownTensor(mixHyperConnectionLogitsInput(null, inputBuffer, numTokens, weights, config));
     } else {
-      const resolvedFinalNorm = resolveFinalNormGpuBuffer(finalNorm, device, 'final_norm_w');
-      normWeightBuffer = resolvedFinalNorm.buffer;
-      normWeightBufferOwned = resolvedFinalNorm.owned;
-      if (normWeightBufferOwned) resources.register(normWeightBuffer, 'final_norm_w');
-    }
+      // 2. Apply the manifest-owned final normalization.
 
-    const inputTensor = createLogitsInputTensor(inputBuffer, inputDtype, numTokens, config);
+      if (getNormWeightBuffer) {
+        normWeightBuffer = getNormWeightBuffer(finalNorm, 'final_norm_w');
+      } else {
+        const resolvedFinalNorm = resolveFinalNormGpuBuffer(finalNorm, device, 'final_norm_w');
+        normWeightBuffer = resolvedFinalNorm.buffer;
+        normWeightBufferOwned = resolvedFinalNorm.owned;
+        if (normWeightBufferOwned) resources.register(normWeightBuffer, 'final_norm_w');
+      }
 
-    // Debug: Check hidden state before final norm
-    if (!debugFlags.finalNormDebugDone && debugCheckBuffer) {
-      debugFlags.finalNormDebugDone = true;
-      await debugCheckBuffer(inputBuffer, 'Before final norm', numTokens, hiddenSize, inputTensor);
-      await debugCheckBuffer(normWeightBuffer, 'Final norm weights', 1, hiddenSize, config.activationPrecision === 'two-f32'
-        ? { dtype: requireWeightDtype(finalNorm, 'paired final norm observation') } : undefined);
-    }
+      const inputTensor = createLogitsInputTensor(inputBuffer, inputDtype, numTokens, config);
 
-    // Wrap input buffer as Tensor for RMSNorm
-    await traceTensorHealth('LOGITS_INPUT_HEALTH', inputTensor, numTokens * hiddenSize);
-    const phase = numTokens === 1 ? 'decode' : 'prefill';
-    const kernelPath = config.kernelPath ?? null;
-    const finalNormPrecision = getKernelPathStepPrecision('final_norm', 'postLayer', phase, 0, kernelPath);
-    const hasExplicitFinalNormPrecision = finalNormPrecision?.inputDtype != null || finalNormPrecision?.outputDtype != null;
-    const forceStableF32Logits = !hasExplicitFinalNormPrecision && (
-      config.normalizationType === 'layernorm'
-      || shouldForceStableF32Logits(config, inputDtype)
-    );
-    const stableKernelPath = forceStableF32Logits
-      ? createStableF32LogitsKernelPath(kernelPath)
-      : kernelPath;
-    let normInputTensor = inputTensor;
-    let normInputBufferOwned = false;
-    if (forceStableF32Logits) {
-      assertImplicitDtypeTransitionAllowed({
-        executionPolicies: config.executionPolicies ?? null,
-        fromDtype: inputTensor.dtype,
-        toDtype: 'f32',
-        op: 'logits_final_norm',
-        detail: 'Stable logits mode would widen activations implicitly before final RMSNorm.',
-      });
-      normInputTensor = await ownTensor(castF16ToF32(inputTensor));
-      normInputBufferOwned = true;
-    } else {
-      const finalNormInputDtype = resolvePostLayerStepDtype('final_norm', phase, stableKernelPath, inputTensor.dtype, 'inputDtype');
-      normInputTensor = finalNormInputDtype !== inputTensor.dtype
-        ? await ownTensor(coerceTensorDtype(inputTensor, finalNormInputDtype, {
+      // Debug: Check hidden state before final norm
+      if (!debugFlags.finalNormDebugDone && debugCheckBuffer) {
+        debugFlags.finalNormDebugDone = true;
+        await debugCheckBuffer(inputBuffer, 'Before final norm', numTokens, hiddenSize, inputTensor);
+        await debugCheckBuffer(normWeightBuffer, 'Final norm weights', 1, hiddenSize, config.activationPrecision === 'two-f32'
+          ? { dtype: requireWeightDtype(finalNorm, 'paired final norm observation') } : undefined);
+      }
+
+      // Wrap input buffer as Tensor for RMSNorm
+      await traceTensorHealth('LOGITS_INPUT_HEALTH', inputTensor, numTokens * hiddenSize);
+      const kernelPath = config.kernelPath ?? null;
+      const finalNormPrecision = getKernelPathStepPrecision('final_norm', 'postLayer', phase, 0, kernelPath);
+      const hasExplicitFinalNormPrecision = finalNormPrecision?.inputDtype != null || finalNormPrecision?.outputDtype != null;
+      forceStableF32Logits = !hasExplicitFinalNormPrecision && (
+        config.normalizationType === 'layernorm'
+        || shouldForceStableF32Logits(config, inputDtype)
+      );
+      stableKernelPath = forceStableF32Logits
+        ? createStableF32LogitsKernelPath(kernelPath)
+        : kernelPath;
+      let normInputTensor = inputTensor;
+      let normInputBufferOwned = false;
+      if (forceStableF32Logits) {
+        assertImplicitDtypeTransitionAllowed({
           executionPolicies: config.executionPolicies ?? null,
-          op: 'final_norm',
-          transitionDeclaredBy: 'step_precision',
-        }))
-        : inputTensor;
-      normInputBufferOwned = normInputTensor !== inputTensor;
-    }
-    let finalNormBiasBuffer = null;
-    let normedTensor;
-    if (config.normalizationType === 'layernorm') {
-      if (config.finalNormBiasTensor !== null && !(finalNormBias instanceof Float32Array)) {
-        throw new Error(
-          `[Logits] LayerNorm declares bias tensor "${config.finalNormBiasTensor}" but it was not loaded.`
-        );
+          fromDtype: inputTensor.dtype,
+          toDtype: 'f32',
+          op: 'logits_final_norm',
+          detail: 'Stable logits mode would widen activations implicitly before final RMSNorm.',
+        });
+        normInputTensor = await ownTensor(castF16ToF32(inputTensor));
+        normInputBufferOwned = true;
+      } else {
+        const finalNormInputDtype = resolvePostLayerStepDtype('final_norm', phase, stableKernelPath, inputTensor.dtype, 'inputDtype');
+        normInputTensor = finalNormInputDtype !== inputTensor.dtype
+          ? await ownTensor(coerceTensorDtype(inputTensor, finalNormInputDtype, {
+            executionPolicies: config.executionPolicies ?? null,
+            op: 'final_norm',
+            transitionDeclaredBy: 'step_precision',
+          }))
+          : inputTensor;
+        normInputBufferOwned = normInputTensor !== inputTensor;
       }
-      const effectiveBias = finalNormBias instanceof Float32Array
-        ? finalNormBias
-        : new Float32Array(hiddenSize);
-      if (effectiveBias.length !== hiddenSize) {
-        throw new Error(
-          `[Logits] LayerNorm final bias length must be ${hiddenSize}; got ${effectiveBias.length}.`
-        );
-      }
-      finalNormBiasBuffer = acquire(effectiveBias.byteLength, undefined, 'final_norm_bias');
-      device.queue.writeBuffer(finalNormBiasBuffer, 0, effectiveBias);
-      normedTensor = await ownTensor(runLayerNorm(
-        normInputTensor,
-        normWeightBuffer,
-        finalNormBiasBuffer,
-        rmsNormEps,
-        {
+      let finalNormBiasBuffer = null;
+      let normedTensor;
+      if (config.normalizationType === 'layernorm') {
+        if (config.finalNormBiasTensor !== null && !(finalNormBias instanceof Float32Array)) {
+          throw new Error(
+            `[Logits] LayerNorm declares bias tensor "${config.finalNormBiasTensor}" but it was not loaded.`
+          );
+        }
+        const effectiveBias = finalNormBias instanceof Float32Array
+          ? finalNormBias
+          : new Float32Array(hiddenSize);
+        if (effectiveBias.length !== hiddenSize) {
+          throw new Error(
+            `[Logits] LayerNorm final bias length must be ${hiddenSize}; got ${effectiveBias.length}.`
+          );
+        }
+        finalNormBiasBuffer = acquire(effectiveBias.byteLength, undefined, 'final_norm_bias');
+        device.queue.writeBuffer(finalNormBiasBuffer, 0, effectiveBias);
+        normedTensor = await ownTensor(runLayerNorm(
+          normInputTensor,
+          normWeightBuffer,
+          finalNormBiasBuffer,
+          rmsNormEps,
+          {
+            batchSize: numTokens,
+            hiddenSize,
+            normWeightDtype: requireWeightDtype(finalNorm, 'logits final LayerNorm weight'),
+          }
+        ));
+      } else {
+        normedTensor = await ownTensor(runRMSNorm(normInputTensor,
+          resolveLogitsNormWeight(finalNorm, normWeightBuffer, normInputTensor), rmsNormEps, {
+          kernelPath: stableKernelPath, phase, layerIdx: 0, role: 'final_norm', section: 'postLayer',
           batchSize: numTokens,
           hiddenSize,
-          normWeightDtype: requireWeightDtype(finalNorm, 'logits final LayerNorm weight'),
-        }
-      ));
-    } else {
-      normedTensor = await ownTensor(runRMSNorm(normInputTensor,
-        resolveLogitsNormWeight(finalNorm, normWeightBuffer, normInputTensor), rmsNormEps, {
-        kernelPath: stableKernelPath, phase, layerIdx: 0, role: 'final_norm', section: 'postLayer',
-        batchSize: numTokens,
-        hiddenSize,
-        rmsNormWeightOffset: config.rmsNormWeightOffset,
-      }));
-    }
-    if (finalNormBiasBuffer) resources.release(finalNormBiasBuffer);
-    if (normInputBufferOwned) {
-      resources.release(normInputTensor.buffer);
-    }
-    let finalNormTensor = normedTensor;
-    if (!forceStableF32Logits) {
-      const finalNormOutputDtype = resolvePostLayerStepDtype(
-        'final_norm',
-        phase,
-        stableKernelPath,
-        normedTensor.dtype,
-        'outputDtype'
-      );
-      finalNormTensor = finalNormOutputDtype !== normedTensor.dtype
-        ? await ownTensor(coerceTensorDtype(normedTensor, finalNormOutputDtype, {
-          executionPolicies: config.executionPolicies ?? null,
-          op: 'final_norm',
-          transitionDeclaredBy: 'step_precision',
-        }))
-        : normedTensor;
-    }
-    if (finalNormTensor !== normedTensor) {
-      resources.release(normedTensor.buffer);
-      normedTensor = null;
+          rmsNormWeightOffset: config.rmsNormWeightOffset,
+        }));
+      }
+      if (finalNormBiasBuffer) resources.release(finalNormBiasBuffer);
+      if (normInputBufferOwned) {
+        resources.release(normInputTensor.buffer);
+      }
+      finalNormTensor = normedTensor;
+      if (!forceStableF32Logits) {
+        const finalNormOutputDtype = resolvePostLayerStepDtype(
+          'final_norm',
+          phase,
+          stableKernelPath,
+          normedTensor.dtype,
+          'outputDtype'
+        );
+        finalNormTensor = finalNormOutputDtype !== normedTensor.dtype
+          ? await ownTensor(coerceTensorDtype(normedTensor, finalNormOutputDtype, {
+            executionPolicies: config.executionPolicies ?? null,
+            op: 'final_norm',
+            transitionDeclaredBy: 'step_precision',
+          }))
+          : normedTensor;
+      }
+      if (finalNormTensor !== normedTensor) {
+        resources.release(normedTensor.buffer);
+        normedTensor = null;
+      }
     }
     await runProbes('final_norm', finalNormTensor.buffer, {
       numTokens,
@@ -454,7 +462,7 @@ export async function computeLogits(
     const lastTokenMatmul = resolveLmHeadMatmulConfig(numTokens, options);
     const { lastPositionOnly, matmulRows } = lastTokenMatmul;
     const matmulPhaseOverride = lastTokenMatmul.phaseOverride;
-    const lmHeadPhase = matmulPhaseOverride ?? (matmulRows === 1 ? 'decode' : 'prefill');
+    const lmHeadPhase = config.executionPhase ?? matmulPhaseOverride ?? (matmulRows === 1 ? 'decode' : 'prefill');
     const lmHeadRole = resolveLmHeadMatmulRole(lmHeadPhase);
 
     let matmulInputTensor = finalNormTensor;
@@ -618,7 +626,7 @@ export async function computeLogits(
     const logitsTensor = await ownTensor(runMatmul(matmulInputTensor, lmHeadBuffer, matmulRows, matmulVocabSize, hiddenSize, {
       transposeB: 'auto',
       role: lmHeadRole,
-      phaseOverride: matmulPhaseOverride,
+      phaseOverride: config.executionPhase ?? matmulPhaseOverride,
       kernelPath: stableKernelPath,
       outputDtype: lmHeadOutputDtype,
       ...(matmulInputTensor.precision === 'two-f32' ? { outputPrecision: 'f32' } : {}),

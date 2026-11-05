@@ -45,6 +45,7 @@ export class PipelineState {
   kvCache: KVCache | SlidingWindowKVCache | TieredKVCache | BasisDecomposedPagedCache | MixedGeometryKVCache | null;
   linearAttentionRuntime: LinearAttentionRuntime | null;
   convLayerStates: Map<number, Record<string, unknown>>;
+  hyperConnectionSession: import('./hyper-connection/session.js').HyperConnectionSession | null;
   moeRouter: MoERouter | null;
   speculativeDecoder: SpeculativeDecoder | null;
   decodeBuffers: DecodeBufferManager | null;

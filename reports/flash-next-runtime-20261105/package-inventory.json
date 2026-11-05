@@ -1,0 +1,329 @@
+{
+  "schema": "doppler.package-audit/v1",
+  "baseCommit": "a1864d263cc13e5576ee83169400c7386294efcb",
+  "toolchain": {
+    "node": "22.20.0",
+    "npm": "10.9.3"
+  },
+  "scope": "Integrated runtime checkpoint on 53e79625, including upstream retained source-shard conversion and text-only recipe repair. No learned weights or source-table bytes ship.",
+  "baseline": {
+    "entryCount": 1876,
+    "size": 3598875,
+    "unpackedSize": 15364650
+  },
+  "candidate": {
+    "entryCount": 1897,
+    "size": 3634804,
+    "unpackedSize": 15522563
+  },
+  "packedCompressionAllowanceBytes": 2158,
+  "previousLimits": {
+    "maxPackedSize": 3601033,
+    "maxUnpackedSize": 15364650,
+    "maxEntryCount": 2004
+  },
+  "addedFiles": [
+    {
+      "path": "src/config/conversion/qwen3/qwen-3-8-flash-next-text-q4k-ehf16-af32.json",
+      "size": 30092,
+      "mode": 420
+    },
+    {
+      "path": "src/converter/retained-source-shards.js",
+      "size": 4111,
+      "mode": 420
+    },
+    {
+      "path": "src/gpu/kernels/hyper-connection.js",
+      "size": 12368,
+      "mode": 420
+    },
+    {
+      "path": "src/gpu/kernels/ple.js",
+      "size": 7782,
+      "mode": 420
+    },
+    {
+      "path": "src/gpu/kernels/qsa-indexer.d.ts",
+      "size": 3665,
+      "mode": 420
+    },
+    {
+      "path": "src/inference/pipelines/text/hyper-connection/decoder-layer.js",
+      "size": 6730,
+      "mode": 420
+    },
+    {
+      "path": "src/inference/pipelines/text/hyper-connection/layer-executor.js",
+      "size": 7272,
+      "mode": 420
+    },
+    {
+      "path": "src/inference/pipelines/text/hyper-connection/logits-input.js",
+      "size": 1287,
+      "mode": 420
+    },
+    {
+      "path": "src/inference/pipelines/text/hyper-connection/projection.js",
+      "size": 1222,
+      "mode": 420
+    },
+    {
+      "path": "src/inference/pipelines/text/hyper-connection/sequence-transaction.js",
+      "size": 7854,
+      "mode": 420
+    },
+    {
+      "path": "src/inference/pipelines/text/hyper-connection/session.d.ts",
+      "size": 2642,
+      "mode": 420
+    },
+    {
+      "path": "src/inference/pipelines/text/hyper-connection/session.js",
+      "size": 10665,
+      "mode": 420
+    },
+    {
+      "path": "src/inference/pipelines/text/indexed-attention/qsa-cache.d.ts",
+      "size": 2295,
+      "mode": 420
+    },
+    {
+      "path": "src/inference/pipelines/text/indexed-attention/qsa-cache.js",
+      "size": 10905,
+      "mode": 420
+    },
+    {
+      "path": "src/inference/pipelines/text/ngram/ngram-addresses.d.ts",
+      "size": 1118,
+      "mode": 420
+    },
+    {
+      "path": "src/inference/pipelines/text/ngram/ngram-addresses.js",
+      "size": 5239,
+      "mode": 420
+    },
+    {
+      "path": "src/inference/pipelines/text/ngram/ngram-table.d.ts",
+      "size": 2937,
+      "mode": 420
+    },
+    {
+      "path": "src/inference/pipelines/text/ngram/ngram-table.js",
+      "size": 10190,
+      "mode": 420
+    },
+    {
+      "path": "src/inference/pipelines/text/ngram/ple-layer.js",
+      "size": 5796,
+      "mode": 420
+    },
+    {
+      "path": "src/loader/ngram-table-bindings.d.ts",
+      "size": 992,
+      "mode": 420
+    },
+    {
+      "path": "src/loader/ngram-table-bindings.js",
+      "size": 3900,
+      "mode": 420
+    }
+  ],
+  "removedFiles": [],
+  "changedFiles": [
+    {
+      "path": "src/config/schema/debug.schema.d.ts",
+      "before": 10301,
+      "after": 10316,
+      "sha256": "a6b2d2960775c82fd3c44ee5b7f13c81dbc6438e0a3c5543d421d2ccee4afe48"
+    },
+    {
+      "path": "src/config/supported-operations.json",
+      "before": 7608,
+      "after": 10459,
+      "sha256": "07e95fc877ab630ec72829779a4293434a5f5421dcf3b2b9ff9b6a9e9963ba42"
+    },
+    {
+      "path": "src/converter/core.js",
+      "before": 31787,
+      "after": 32190,
+      "sha256": "cd1cbd8a7228c6334ce8f7dc4f8f3d2f4703ab445a4706cfe2267e4844bb14b2"
+    },
+    {
+      "path": "src/converter/qwen4-exp-source.js",
+      "before": 11883,
+      "after": 14389,
+      "sha256": "b65613e6dfb2fe08c3a5989957ca3bf25d82e4c399d26624a8120d2c552e6906"
+    },
+    {
+      "path": "src/converter/source-tensor-rules.d.ts",
+      "before": 1020,
+      "after": 1784,
+      "sha256": "7dcf0baedd614e1cc3f5f5091a83baab2bed4f477d988edd8276c0a70703b9e8"
+    },
+    {
+      "path": "src/converter/source-tensor-rules.js",
+      "before": 6009,
+      "after": 7740,
+      "sha256": "95c69fd94cae50eefab285e58d92ba2e81d84cf6c5e5382879963ca37214942f"
+    },
+    {
+      "path": "src/inference/pipelines/text/generator-steps.js",
+      "before": 35692,
+      "after": 35825,
+      "sha256": "26de98b55759aa22223c01a96afda15538f26a1925c0316bc6a65b3c39e8a75a"
+    },
+    {
+      "path": "src/inference/pipelines/text/generator.js",
+      "before": 20872,
+      "after": 21949,
+      "sha256": "5f11df2d3b246eb1d5ff1242103c3038b8711ce1622682a859e61affdca8ec18"
+    },
+    {
+      "path": "src/inference/pipelines/text/generator/decode-runtime.js",
+      "before": 46287,
+      "after": 46439,
+      "sha256": "333a190ce7c3af438ccef073b5b0ce1e48995a7f7e83f661bef1a18429e2d73c"
+    },
+    {
+      "path": "src/inference/pipelines/text/generator/decode.js",
+      "before": 39210,
+      "after": 39276,
+      "sha256": "370d4589aaac8efaf47b9be4890f6ee7145a85437c276a41a811ab3ad5d1361c"
+    },
+    {
+      "path": "src/inference/pipelines/text/generator/logits-config.js",
+      "before": 2554,
+      "after": 2946,
+      "sha256": "baabeb534bc021faefdc1a8c542bc9363516ea8e52a114b55c7cc6ca2c994987"
+    },
+    {
+      "path": "src/inference/pipelines/text/generator/prefill-runtime.js",
+      "before": 38325,
+      "after": 38497,
+      "sha256": "966b6474898e8e6faf4224f71e9d9a516e62f9cafc6b1b116a0be82e365a2420"
+    },
+    {
+      "path": "src/inference/pipelines/text/generator/session-context.js",
+      "before": 8053,
+      "after": 8111,
+      "sha256": "0c8886d4da3405f8c7f86643e981b7103ff14ea65e82902f583fa155aa3c3e78"
+    },
+    {
+      "path": "src/inference/pipelines/text/layer.js",
+      "before": 32020,
+      "after": 32380,
+      "sha256": "07de4c2dd00aa937e2c04db2e89d20bf71462cdbebbf16f30b83c25553014d8f"
+    },
+    {
+      "path": "src/inference/pipelines/text/lifecycle.js",
+      "before": 33008,
+      "after": 33464,
+      "sha256": "ad0490144e600fdc90c17cd658665b1635274aa7063550f5a9eadf5055f6ea78"
+    },
+    {
+      "path": "src/inference/pipelines/text/linear-attention.d.ts",
+      "before": 5121,
+      "after": 5203,
+      "sha256": "b5e736b5dca2f0a87a00729dd1f508d1d224b910c125cb1f77a33cbde72352f4"
+    },
+    {
+      "path": "src/inference/pipelines/text/logits/gpu-executor.js",
+      "before": 13668,
+      "after": 14409,
+      "sha256": "c9a8ed375d8f4d285154666b8cd1831b8204457633656da8775d5de33bace5ff"
+    },
+    {
+      "path": "src/inference/pipelines/text/logits/gpu.js",
+      "before": 25856,
+      "after": 26414,
+      "sha256": "85a0d2284fc920d88a8e2941a661b696ad8c58df3a5fc136ba7ae17101dfbdb0"
+    },
+    {
+      "path": "src/inference/pipelines/text/logits/index.js",
+      "before": 28388,
+      "after": 29091,
+      "sha256": "7611aa8ffbbff51d520771efefc94f372ad573fffe19d9f43596a5da11cd1f10"
+    },
+    {
+      "path": "src/inference/pipelines/text/logits/types.d.ts",
+      "before": 2009,
+      "after": 2283,
+      "sha256": "24f6b2a8676f2fec15898c3d825d257f46276f57045d6fe603bcf8ead37f2160"
+    },
+    {
+      "path": "src/inference/pipelines/text/pipeline.js",
+      "before": 22440,
+      "after": 24360,
+      "sha256": "873cb38cc593b9063208498034e5d04f89e59350bdea576800d40487a6c799ec"
+    },
+    {
+      "path": "src/inference/pipelines/text/state.d.ts",
+      "before": 5934,
+      "after": 6031,
+      "sha256": "5c3fb79d6c74502fcd9833d4109493596568bcde6564108e231d179265c32224"
+    },
+    {
+      "path": "src/inference/pipelines/text/state.js",
+      "before": 4687,
+      "after": 4727,
+      "sha256": "ef2585fee90b357d26c1f4fdc2c8b7fb5cf6c47a0b5568d2e7214d8d365d5d72"
+    },
+    {
+      "path": "src/inference/pipelines/text/types.d.ts",
+      "before": 27191,
+      "after": 27530,
+      "sha256": "86d267408d1d221e909bf8471c22b47d819c7e068644aa7d583e208748665ddc"
+    },
+    {
+      "path": "src/inference/pipelines/text/weights.d.ts",
+      "before": 6279,
+      "after": 6617,
+      "sha256": "ffe187a0e80ac607f03be0bd1f8b616e91a190f574f5e1879948e7c620c62dae"
+    },
+    {
+      "path": "src/loader/loader-types.d.ts",
+      "before": 12104,
+      "after": 12210,
+      "sha256": "dd3656f18b34564755d2ebfbff31df0b30873d2dbce570eb41ebd31cee56ad7e"
+    },
+    {
+      "path": "src/loader/shard-cache.js",
+      "before": 24043,
+      "after": 24204,
+      "sha256": "98f46e55a09d83ead121705f61b72e9b9222a407068f0047d6c0c5a534410dc6"
+    },
+    {
+      "path": "src/storage/shard-manager.d.ts",
+      "before": 6308,
+      "after": 6334,
+      "sha256": "3777bde1dcc00a7a498a8869586a3c5f889c19e4e505a5417148333533888be4"
+    },
+    {
+      "path": "src/storage/shard-manager.js",
+      "before": 27168,
+      "after": 27057,
+      "sha256": "1f9e13a52e401c58a3e6ad6c07968e464179ddca9d5044a17e43a948a99fe76b"
+    },
+    {
+      "path": "src/storage/shards/index.js",
+      "before": 2095,
+      "after": 3081,
+      "sha256": "2a458e67d6c44aa11a4563ac9372fcd3595e8815ecd0dcc2843f7f0fc9c4dff5"
+    },
+    {
+      "path": "src/tooling/node-converter.js",
+      "before": 34028,
+      "after": 34316,
+      "sha256": "abc59244939292710b22776bac63b0dd015bac9e8cb0da7e74c40b4488f4f04e"
+    },
+    {
+      "path": "src/tooling/node-converter/output.js",
+      "before": 8848,
+      "after": 10015,
+      "sha256": "e5acf34cc1d0eda174b2f8f389ffbdd09ee45570a662476ba20dc4830e2a2ef2"
+    }
+  ],
+  "review": "Reviewed all paths against last package-budget checkpoint a1864d26. Additions are runtime owners, reachable declarations and source-pinned conversion recipe; generated closure also exposes existing component dependencies. No model weights or reports are shipped.",
+  "integratedCommit": "53e796257a07021c18986bfaf7a6bad1842d574e"
+}

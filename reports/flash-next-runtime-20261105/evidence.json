@@ -1,0 +1,47 @@
+{
+  "schema": "doppler.scoped-checks/v1",
+  "baseCommit": "53e796257a07021c18986bfaf7a6bad1842d574e",
+  "scope": "Runtime integration plus text-only profile fix; no learned-weight Flash-Next execution. The 23-file regression run reports 41 runner checks; the separate profile/text-only run reports 2 file checks. Numerical root-mixer/logits and PLE failure tests run on Apple Metal; composite lifecycle and I/O checks use doubles.",
+  "checks": [
+    {
+      "path": "regression.log",
+      "sha256": "99f95b19c0f714b5737a6b02c99622fcf589d893a8b4c26e20db9ea342c06774"
+    },
+    {
+      "path": "profile.log",
+      "sha256": "afa1968dc3fd3194ba401b72ba5db4e6e9e8687c2f76c46829f971526ec67edb"
+    },
+    {
+      "path": "strict.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "types.log",
+      "sha256": "f96a3c0e1645fada86b8b36a84ce98acd10e80485c9ba5dd565a0545e064fe14"
+    },
+    {
+      "path": "style.log",
+      "sha256": "cd2ee5c4e06559987f2d2b33e5f9292ee2c62d2967adf63d664e8c05ccb81b96"
+    },
+    {
+      "path": "arch.log",
+      "sha256": "f18a09f921fba33ac759573792f20b339f8a9193a726b2c42825039e11dc6421"
+    },
+    {
+      "path": "boundaries.log",
+      "sha256": "be20f275b6abbb8dd16adbfe092201e24d677613fe8929c14dd11e3d66f94f8d"
+    },
+    {
+      "path": "browser.log",
+      "sha256": "ae9601a695b08117b4f498f2db50f7400c28b41e37abf33b902b3f5d173a2296"
+    },
+    {
+      "path": "config.log",
+      "sha256": "dd8a88cbd57b88f748254f8aaade46ae947583aeda298a1dd43f562f8bdb2ef7"
+    },
+    {
+      "path": "package.log",
+      "sha256": "4637d5ca0956c0f6922a5ef4ccdd24626e819a9d4982dc9a01fe20defefa7245"
+    }
+  ]
+}

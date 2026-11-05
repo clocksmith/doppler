@@ -1,3 +1,4 @@
+import { mixHyperConnectionLogitsInput } from '../hyper-connection/logits-input.js';
 import { acquireBuffer, releaseBuffer } from '../../../../memory/buffer-pool.js';
 import { recordScale } from '../../../../gpu/kernels/scale.js';
 import { recordMatmul } from '../../../../gpu/kernels/matmul.js';
@@ -59,7 +60,7 @@ export function createLogitsInputTensor(buffer, dtype, numTokens, config) {
     components: config.activationComponents,
     elementStrideBytes: config.activationElementStrideBytes,
   };
-  const tensor = createTensor(buffer, dtype, [numTokens, config.hiddenSize], 'logits_input', representation);
+  const tensor = createTensor(buffer, dtype, [numTokens, config.hyperConnections ? config.hyperConnections.streamCount * config.hiddenSize : config.hiddenSize], 'logits_input', representation);
   if (tensor.precision === 'two-f32' && config.normalizationType !== 'rmsnorm') {
     throw new Error('[Logits] Paired activations require the declared RMSNorm path.');
   }
@@ -135,7 +136,7 @@ async function recordLogitsTailGPU(
   const { finalNorm, lmHead, lmHeadBias = null } = weights;
   const matmulVocabSize = useTiedEmbeddings && embeddingVocabSize ? embeddingVocabSize : vocabSize;
 
-  if (!finalNorm || !lmHead) {
+  if ((!finalNorm && !config.hyperConnections) || !lmHead) {
     throw new Error('[recordLogitsGPU] Final norm or LM head not loaded');
   }
   if (isCpuWeightBuffer(lmHead) || isSplitWeightBuffer(lmHead)) {
@@ -150,89 +151,96 @@ async function recordLogitsTailGPU(
       recorder.trackTemporaryBuffer(buffer);
     }
   };
-  // Validate the input representation before acquiring norm resources.
-  // Get norm weight buffer
+  const phase = config.executionPhase ?? (numTokens === 1 ? 'decode' : 'prefill');
+  let stableKernelPath = config.kernelPath ?? null;
+  let forceStableF32Logits = false;
+  let normWeightBuffer = null, normWeightOwned = false;
+  let normInputTensor = inputTensor, normInputOwned = false;
+  let normedTensor = null, finalNormTensor;
+  if (config.hyperConnections) {
+    finalNormTensor = await mixHyperConnectionLogitsInput(recorder, hiddenStates, numTokens, weights, config);
+    track(finalNormTensor.buffer);
+  } else {
+    // Validate the input representation before acquiring norm resources.
+    // Get norm weight buffer
   
-  let normWeightBuffer;
-  let normWeightOwned = false;
-  const resolvedFinalNorm = resolveFinalNormGpuBuffer(finalNorm, recorder.device.queue, 'final_norm_w');
-  normWeightBuffer = resolvedFinalNorm.buffer;
-  normWeightOwned = resolvedFinalNorm.owned;
-  if (normWeightOwned) track(normWeightBuffer);
+    const resolvedFinalNorm = resolveFinalNormGpuBuffer(finalNorm, recorder.device.queue, 'final_norm_w');
+    normWeightBuffer = resolvedFinalNorm.buffer;
+    normWeightOwned = resolvedFinalNorm.owned;
+    if (normWeightOwned) track(normWeightBuffer);
 
   
-  const inputDtype = activationDtype;
-  // Wrap input buffer as Tensor for RMSNorm
-  const phase = numTokens === 1 ? 'decode' : 'prefill';
-  const kernelPath = config.kernelPath ?? null;
-  const finalNormPrecision = getKernelPathStepPrecision('final_norm', 'postLayer', phase, 0, kernelPath);
-  const hasExplicitFinalNormPrecision = finalNormPrecision?.inputDtype != null || finalNormPrecision?.outputDtype != null;
-  await runProbes('pre_final_norm', hiddenStates, {
-    numTokens,
-    hiddenSize,
-    recorder,
-    operatorDiagnostics,
-    dtype: inputDtype,
-    precision: inputTensor.precision,
-    components: inputTensor.components,
-    elementStrideBytes: inputTensor.elementStrideBytes,
-  });
-  const forceStableF32Logits = !hasExplicitFinalNormPrecision && shouldForceStableF32Logits(config, inputDtype);
-  const stableKernelPath = forceStableF32Logits
-    ? createStableF32LogitsKernelPath(kernelPath)
-    : kernelPath;
-  let normInputTensor = inputTensor;
-  let normInputOwned = false;
-  if (forceStableF32Logits) {
-    assertImplicitDtypeTransitionAllowed({
-      executionPolicies: config.executionPolicies ?? null,
-      fromDtype: inputTensor.dtype,
-      toDtype: 'f32',
-      op: 'logits_final_norm',
-      detail: 'Stable logits mode would widen activations implicitly before final RMSNorm.',
+    const inputDtype = activationDtype;
+    // Wrap input buffer as Tensor for RMSNorm
+    const kernelPath = config.kernelPath ?? null;
+    const finalNormPrecision = getKernelPathStepPrecision('final_norm', 'postLayer', phase, 0, kernelPath);
+    const hasExplicitFinalNormPrecision = finalNormPrecision?.inputDtype != null || finalNormPrecision?.outputDtype != null;
+    await runProbes('pre_final_norm', hiddenStates, {
+      numTokens,
+      hiddenSize,
+      recorder,
+      operatorDiagnostics,
+      dtype: inputDtype,
+      precision: inputTensor.precision,
+      components: inputTensor.components,
+      elementStrideBytes: inputTensor.elementStrideBytes,
     });
-    normInputTensor = await recordCastF16ToF32(recorder, inputTensor);
-    normInputOwned = true;
-  } else {
-    const finalNormInputDtype = resolvePostLayerStepDtype('final_norm', phase, stableKernelPath, inputTensor.dtype, 'inputDtype');
-    normInputTensor = finalNormInputDtype !== inputTensor.dtype
-      ? await coerceTensorDtype(inputTensor, finalNormInputDtype, recorder, {
+    forceStableF32Logits = !hasExplicitFinalNormPrecision && shouldForceStableF32Logits(config, inputDtype);
+    stableKernelPath = forceStableF32Logits
+      ? createStableF32LogitsKernelPath(kernelPath)
+      : kernelPath;
+    normInputTensor = inputTensor;
+    if (forceStableF32Logits) {
+      assertImplicitDtypeTransitionAllowed({
         executionPolicies: config.executionPolicies ?? null,
-        op: 'final_norm',
-        transitionDeclaredBy: 'step_precision',
-      })
-      : inputTensor;
-    normInputOwned = normInputTensor !== inputTensor;
+        fromDtype: inputTensor.dtype,
+        toDtype: 'f32',
+        op: 'logits_final_norm',
+        detail: 'Stable logits mode would widen activations implicitly before final RMSNorm.',
+      });
+      normInputTensor = await recordCastF16ToF32(recorder, inputTensor);
+      normInputOwned = true;
+    } else {
+      const finalNormInputDtype = resolvePostLayerStepDtype('final_norm', phase, stableKernelPath, inputTensor.dtype, 'inputDtype');
+      normInputTensor = finalNormInputDtype !== inputTensor.dtype
+        ? await coerceTensorDtype(inputTensor, finalNormInputDtype, recorder, {
+          executionPolicies: config.executionPolicies ?? null,
+          op: 'final_norm',
+          transitionDeclaredBy: 'step_precision',
+        })
+        : inputTensor;
+      normInputOwned = normInputTensor !== inputTensor;
+    }
+    if (normInputOwned) track(normInputTensor.buffer);
+    // Record RMSNorm (no submit)
+    normedTensor = await recordRMSNorm(recorder, normInputTensor,
+      resolveLogitsNormWeight(finalNorm, normWeightBuffer, normInputTensor), rmsNormEps, {
+      kernelPath: stableKernelPath, phase, layerIdx: 0, role: 'final_norm', section: 'postLayer',
+      batchSize: numTokens,
+      hiddenSize,
+      rmsNormWeightOffset: config.rmsNormWeightOffset,
+      label: 'final_norm',
+    });
+    track(normedTensor.buffer);
+    finalNormTensor = normedTensor;
+    if (!forceStableF32Logits) {
+      const finalNormOutputDtype = resolvePostLayerStepDtype(
+        'final_norm',
+        phase,
+        stableKernelPath,
+        normedTensor.dtype,
+        'outputDtype'
+      );
+      finalNormTensor = finalNormOutputDtype !== normedTensor.dtype
+        ? await coerceTensorDtype(normedTensor, finalNormOutputDtype, recorder, {
+          executionPolicies: config.executionPolicies ?? null,
+          op: 'final_norm',
+          transitionDeclaredBy: 'step_precision',
+        })
+        : normedTensor;
+    }
+    track(finalNormTensor.buffer);
   }
-  if (normInputOwned) track(normInputTensor.buffer);
-  // Record RMSNorm (no submit)
-  const normedTensor = await recordRMSNorm(recorder, normInputTensor,
-    resolveLogitsNormWeight(finalNorm, normWeightBuffer, normInputTensor), rmsNormEps, {
-    kernelPath: stableKernelPath, phase, layerIdx: 0, role: 'final_norm', section: 'postLayer',
-    batchSize: numTokens,
-    hiddenSize,
-    rmsNormWeightOffset: config.rmsNormWeightOffset,
-    label: 'final_norm',
-  });
-  track(normedTensor.buffer);
-  let finalNormTensor = normedTensor;
-  if (!forceStableF32Logits) {
-    const finalNormOutputDtype = resolvePostLayerStepDtype(
-      'final_norm',
-      phase,
-      stableKernelPath,
-      normedTensor.dtype,
-      'outputDtype'
-    );
-    finalNormTensor = finalNormOutputDtype !== normedTensor.dtype
-      ? await coerceTensorDtype(normedTensor, finalNormOutputDtype, recorder, {
-        executionPolicies: config.executionPolicies ?? null,
-        op: 'final_norm',
-        transitionDeclaredBy: 'step_precision',
-      })
-      : normedTensor;
-  }
-  track(finalNormTensor.buffer);
   await runProbes('final_norm', finalNormTensor.buffer, {
     numTokens,
     hiddenSize,
@@ -330,6 +338,7 @@ export async function recordLogitsGPU(
     transposeB: 'auto',
     role: tail.lmHeadRole,
     kernelPath: tail.stableKernelPath,
+    phaseOverride: tail.phase,
     outputDtype: tail.lmHeadOutputDtype,
     ...(tail.lmHeadInputTensor.precision === 'two-f32' ? { outputPrecision: 'f32' } : {}),
     executionPolicies: config.executionPolicies ?? null,

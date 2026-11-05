@@ -3,7 +3,7 @@
   "output": {
     "baseDir": "models/local",
     "modelBaseId": "qwen-3-8-flash-next-text-q4k-ehf16-af32",
-    "textOnly": false,
+    "textOnly": true,
     "fast": false
   },
   "quantization": {

@@ -15,6 +15,8 @@ import type { WeightBuffer, CpuWeightBuffer, SplitWeightBuffer } from '../../../
  * Configuration for logits computation.
  */
 export interface LogitsConfig {
+  hyperConnections?: import('../../../../config/schema/hyper-connection-decoder.schema.js').ResolvedHyperConnections | null;
+  executionPhase?: 'prefill' | 'decode';
   hiddenSize: number;
   vocabSize: number;
   normalizationType: 'rmsnorm' | 'layernorm';
@@ -44,7 +46,8 @@ export interface LogitsConfig {
  * Weights required for logits computation.
  */
 export interface LogitsWeights {
-  finalNorm: GPUBuffer | Float32Array;
+  finalNorm: GPUBuffer | Float32Array | null;
+  hyperConnectionMixer?: import('../hyper-connection/decoder-layer.js').GatedResidualWeights | null;
   finalNormBias?: Float32Array | null;
   lmHead: GPUBuffer | Float32Array | WeightBuffer | CpuWeightBuffer | SplitWeightBuffer;
   lmHeadBias?: Float32Array | null;

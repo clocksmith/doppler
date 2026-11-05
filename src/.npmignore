@@ -255,6 +255,7 @@ converter/qwen4-exp-source.d.ts
 converter/release-to-javascript-receipt.d.ts
 converter/release-to-javascript-receipt.js
 converter/resident-qualification.d.ts
+converter/retained-source-shards.d.ts
 converter/rope-config.d.ts
 converter/safetensors-header-evidence.d.ts
 converter/safetensors-header-evidence.js
@@ -589,7 +590,6 @@ gpu/kernels/generated/uniform-writers.d.ts
 gpu/kernels/grouped_pointwise_conv2d.d.ts
 gpu/kernels/groupnorm.d.ts
 gpu/kernels/hyper-connection.d.ts
-gpu/kernels/hyper-connection.js
 gpu/kernels/kernel-base.d.ts
 gpu/kernels/kernel-bindings.d.ts
 gpu/kernels/kernel-cache-lifecycle.d.ts
@@ -630,9 +630,7 @@ gpu/kernels/paired-rope.d.ts
 gpu/kernels/paired-split.d.ts
 gpu/kernels/pixel_shuffle.d.ts
 gpu/kernels/ple.d.ts
-gpu/kernels/ple.js
 gpu/kernels/q4_0.d.ts
-gpu/kernels/qsa-indexer.d.ts
 gpu/kernels/qwen_attention_split_q_gate.d.ts
 gpu/kernels/qwen_linear_attention_prepare.d.ts
 gpu/kernels/relu.d.ts
@@ -823,11 +821,12 @@ inference/pipelines/text/generator/text.d.ts
 inference/pipelines/text/generator/training.d.ts
 inference/pipelines/text/generator/whole-token-lane.d.ts
 inference/pipelines/text/generator/whole-token-template.d.ts
-inference/pipelines/text/hyper-connection/decoder-layer.js
+inference/pipelines/text/hyper-connection/layer-executor.d.ts
+inference/pipelines/text/hyper-connection/logits-input.d.ts
+inference/pipelines/text/hyper-connection/projection.d.ts
+inference/pipelines/text/hyper-connection/sequence-transaction.d.ts
 inference/pipelines/text/image-transcription.d.ts
 inference/pipelines/text/indexed-attention/attention-runner.d.ts
-inference/pipelines/text/indexed-attention/qsa-cache.d.ts
-inference/pipelines/text/indexed-attention/qsa-cache.js
 inference/pipelines/text/init-chat-templates.d.ts
 inference/pipelines/text/init-qkv-fusion.d.ts
 inference/pipelines/text/init-tokenizer.d.ts
@@ -861,11 +860,6 @@ inference/pipelines/text/moe/expert-loading.d.ts
 inference/pipelines/text/moe/gpu-executor.d.ts
 inference/pipelines/text/moe/grouped-prefill.d.ts
 inference/pipelines/text/moe/plan.d.ts
-inference/pipelines/text/ngram/ngram-addresses.d.ts
-inference/pipelines/text/ngram/ngram-addresses.js
-inference/pipelines/text/ngram/ngram-table.d.ts
-inference/pipelines/text/ngram/ngram-table.js
-inference/pipelines/text/ngram/ple-layer.js
 inference/pipelines/text/normalization-contract.d.ts
 inference/pipelines/text/operator-identity.d.ts
 inference/pipelines/text/ops.d.ts

@@ -151,6 +151,7 @@ export async function runDecodeLayers(state, tokenId, opts, helpers) {
 
   const context = helpers.buildLayerContext(undefined, true, opts.debugLayers, opts.executionPlan);
   context.currentTokenIds = [tokenId];
+  context.signal = opts.signal;
 
   state.decodeBuffers.resetPingPong();
 
@@ -348,6 +349,7 @@ async function decodeStepBody(state, currentIds, opts, helpers, makeRecorder, dr
     }
     const context = helpers.buildLayerContext(recorder, true, opts.debugLayers, executionPlan);
     context.currentTokenIds = [lastToken];
+    context.signal = opts.signal;
     const decodeSession = state.resolvedRuntimeSession?.runtime?.session ?? state.runtimeConfig.inference.session;
     attachPreparedDecodeWorkspace(decodeSession.usePreparedDecodeWorkspace, recorder, context, device);
     const layerSubmitInterval = dryRun ? null : resolveDecodeLayerSubmitInterval(decodeSession.decodeLoop, recorder);

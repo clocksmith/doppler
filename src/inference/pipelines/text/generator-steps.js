@@ -355,6 +355,7 @@ async function generateNTokensGPUStepwiseRangeBackedPle(state, N, currentIds, op
 }
 
 export async function generateNTokensGPU(state, startToken, N, currentIds, opts, helpers) {
+  if (state.modelConfig?.hyperConnections) throw new Error('[HyperConnection] GPU-feedback multi-token decoding is not supported.');
   const device = getDevice();
   const config = state.modelConfig;
   if (hasConvLayers(config.layerTypes)) {

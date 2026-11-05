@@ -1,3 +1,4 @@
+import { withHyperConnectionTransaction, assertClassicSequenceState } from './hyper-connection/sequence-transaction.js';
 import '../../../gpu/device.js'; // Preserve declared device initialization side effects.
 import { beginDiagnosticSequence, endDiagnosticSequence } from './generator/diagnostic-sequence.js';
 import { prefillWithToken, decodeStepWithToken } from './generator/capsule-generation.js';
@@ -111,6 +112,7 @@ export class PipelineGenerator {
   }
 
   _resetReplayPrefillRuntimeState() {
+    this._state.hyperConnectionSession?.reset();
     this._state.kvCache?.clear?.();
     this._state.linearAttentionRuntime = resetLinearAttentionSequence(this._state.linearAttentionRuntime);
     this._state.currentSeqLen = 0;
@@ -200,7 +202,7 @@ export class PipelineGenerator {
       buildLayerContext: (recorder, isDecodeMode, debugLayers, executionPlan) =>
         buildLayerContext(this._state, recorder, isDecodeMode, debugLayers, debugCheckBuffer, executionPlan),
       getLogitsWeights: () => getLogitsWeights(this._state),
-      getLogitsConfig: () => getLogitsConfig(this._state),
+      getLogitsConfig: () => getLogitsConfig(this._state, 'decode'),
       releaseSharedAttentionState,
       debugCheckBuffer,
     };
@@ -305,7 +307,7 @@ export class PipelineGenerator {
   }
 
   async _prefillInputIdsToLogits(inputIds, opts) {
-    return _prefillInputIdsToLogitsImpl.apply(this, arguments);
+    return withHyperConnectionTransaction(this._state, opts, scoped => _prefillInputIdsToLogitsImpl.call(this, inputIds, scoped));
   }
 
   async _prefillPromptToLogits(prompt, opts, contextLabel) {
@@ -320,7 +322,7 @@ export class PipelineGenerator {
       ? (buffer, label, numTokens, expectedDim) =>
         debugCheckBufferHelper(this._state, buffer, label, numTokens, expectedDim)
       : undefined;
-    return decodeStepLogits(this._state, currentIds, opts, this._getDecodeHelpers(debugCheckBuffer));
+    return withHyperConnectionTransaction(this._state, opts, scoped => decodeStepLogits(this._state, currentIds, scoped, this._getDecodeHelpers(debugCheckBuffer)));
   }
 
   async _decodeNextTokenViaLogits(currentIds, opts) {
@@ -434,18 +436,22 @@ export class PipelineGenerator {
   }
 
   async prefillKVOnly(prompt, options = {}) {
+    assertClassicSequenceState(this._state, 'prefillKVOnly');
     return prefillKVOnlyImpl.apply(this, arguments);
   }
 
   async prefillForLoRATraining(inputIds, options = {}) {
+    assertClassicSequenceState(this._state, 'prefillForLoRATraining');
     return prefillForLoRATrainingImpl.apply(this, arguments);
   }
 
   async prefillWithEmbedding(prompt, options = {}) {
+    assertClassicSequenceState(this._state, 'prefillWithEmbedding');
     return prefillWithEmbeddingImpl.apply(this, arguments);
   }
 
   async prefillWithLogits(prompt, options = {}) {
+    assertClassicSequenceState(this._state, 'prefillWithLogits');
     return prefillWithLogitsImpl.apply(this, arguments);
   }
 
@@ -458,14 +464,17 @@ export class PipelineGenerator {
   }
 
   async prefillWithTokenLogits(prompt, tokenIds, options = {}) {
+    assertClassicSequenceState(this._state, 'prefillWithTokenLogits');
     return prefillWithTokenLogitsImpl.apply(this, arguments);
   }
 
   async prefillWithTokenLogitsFromKV(prefix, prompt, tokenIds, options = {}) {
+    assertClassicSequenceState(this._state, 'prefillWithTokenLogitsFromKV');
     return prefillWithTokenLogitsFromKVImpl.apply(this, arguments);
   }
 
   async *generateWithPrefixKV(prefix, prompt, options = {}) {
+    assertClassicSequenceState(this._state, 'generateWithPrefixKV');
     if (!this._state.isLoaded) throw new Error('Model not loaded');
     if (this._state.isGenerating) throw new Error('Generation already in progress');
     const decoder = createGenerationOutputDecoder(this._state.tokenizer,
@@ -495,11 +504,11 @@ export class PipelineGenerator {
   }
 
   async _prefill(inputIds, opts) {
-    return _prefillImpl.apply(this, arguments);
+    return withHyperConnectionTransaction(this._state, opts, scoped => _prefillImpl.call(this, inputIds, scoped));
   }
 
   async _decodeStep(currentIds, opts) {
-    return _decodeStepImpl.apply(this, arguments);
+    return withHyperConnectionTransaction(this._state, opts, scoped => _decodeStepImpl.call(this, currentIds, scoped));
   }
 
   async decodeStepLogits(currentIds, options = {}) {
@@ -515,10 +524,11 @@ export class PipelineGenerator {
   }
 
   async advanceWithToken(tokenId, options = {}) {
-    return advanceWithTokenImpl.apply(this, arguments);
+    return withHyperConnectionTransaction(this._state, options, scoped => advanceWithTokenImpl.call(this, tokenId, scoped));
   }
 
   async advanceWithTokenAndEmbedding(tokenId, options = {}) {
+    assertClassicSequenceState(this._state, 'advanceWithTokenAndEmbedding');
     return advanceWithTokenAndEmbeddingImpl.apply(this, arguments);
   }
 

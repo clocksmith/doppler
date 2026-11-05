@@ -12,7 +12,11 @@ export interface TensorLocation extends TensorPrimarySpan {
 export interface ShardStorageBackend {
   getFileSize?: (filename: string) => Promise<number>;
   readFile: (filename: string) => Promise<ArrayBuffer>;
+  readFileRange?: (filename: string, offset: number, length: number | null) => Promise<ArrayBuffer>;
 }
+
+export declare function readFileRangeInBackend(storageBackend: ShardStorageBackend, filename: string,
+  offset: number, length: number | null, requireRange: boolean): Promise<ArrayBuffer>;
 
 export declare function isRequestedRangeInsideTensor(
   location: TensorLocation,

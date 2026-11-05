@@ -305,6 +305,9 @@ export class ShardCache {
 
     if (this.#customLoader) {
       // Custom loaders without a range API: full-shard load, then slice.
+      if (options.requireRange === true) {
+        throw new Error('ShardCache: a bounded range reader is required; whole-shard fallback is disabled.');
+      }
       const full = await this.load(shardIndex, options);
       const view = new Uint8Array(full);
       const end = want == null ? view.length : Math.min(view.length, start + want);
