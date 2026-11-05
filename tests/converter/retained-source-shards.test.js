@@ -5,7 +5,8 @@ import os from 'node:os';
 import path from 'node:path';
 import { applySourceTensorRules } from '../../src/converter/source-tensor-rules.js';
 import { appendRetainedSourceShards, partitionRetainedSourceTensors } from '../../src/converter/retained-source-shards.js';
-import { createFileRangeReader, createNodeConvertIO } from '../../src/tooling/node-converter/output.js';
+import { createFileRangeReader, createNodeConvertIO, normalizeExecutionConfig } from '../../src/tooling/node-converter/output.js';
+import { DEFAULT_CONVERTER_EXECUTION_CONFIG } from '../../src/config/schema/converter.schema.js';
 import { computeHash } from '../../src/storage/shards/integrity.js';
 import { ngramTablePartsFromTensorLocations } from '../../src/inference/pipelines/text/ngram/ngram-table.js';
 
@@ -91,6 +92,20 @@ const outOfRange = [{ ...retained[0], offset: 60 }];
 await assert.rejects(appendRetainedSourceShards(outOfRange, io, [], {}, { hashAlgorithm: 'sha256', manifestConfig: {} }),
   /lies outside model-00001.safetensors/);
 assert.deepEqual(await appendRetainedSourceShards([], io, shards, tensorLocations, { hashAlgorithm: 'blake3' }), []);
+
+// An explicit copy writes the same bytes to a new file; the shard hash is still the pin.
+const copyDir = path.join(dir, 'copy');
+await fs.mkdir(copyDir);
+const copyIo = createNodeConvertIO(copyDir, { hashAlgorithm: 'sha256', computeHash, readRange: reader.readRange, retainedSourceFiles: 'copy' });
+const copied = await copyIo.retainSourceFile(path.join(sourceDir, 'model-00002.safetensors'), 3, files['model-00002.safetensors']);
+assert.deepEqual(copied, { size: 96, hash: files['model-00002.safetensors'] });
+const copyStat = await fs.stat(path.join(copyDir, 'shard_00003.bin'));
+assert.notEqual(copyStat.ino, (await fs.stat(path.join(sourceDir, 'model-00002.safetensors'))).ino, 'copy mode does not link');
+assert.deepEqual([...await fs.readFile(path.join(copyDir, 'shard_00003.bin'))], [...fileA]);
+await assert.rejects(copyIo.retainSourceFile(path.join(sourceDir, 'model-00001.safetensors'), 4, '0'.repeat(64)), /differs from its pin/);
+await assert.rejects(fs.stat(path.join(copyDir, 'shard_00004.bin')), /ENOENT/);
+assert.throws(() => normalizeExecutionConfig({ retainedSourceFiles: 'move' }, DEFAULT_CONVERTER_EXECUTION_CONFIG), /must be "link" or "copy"/);
+assert.equal(normalizeExecutionConfig(null, DEFAULT_CONVERTER_EXECUTION_CONFIG).retainedSourceFiles, 'link');
 await reader.closeAll();
 
 // Runtime: the loader's normalized locations become table parts addressed by shard index.

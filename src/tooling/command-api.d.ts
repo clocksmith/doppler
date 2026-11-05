@@ -16,6 +16,7 @@ export interface ToolingConvertExecutionPayload {
   rowChunkMinTensorBytes?: number | null;
   useGpuCast?: boolean | null;
   gpuCastMinTensorBytes?: number | null;
+  retainedSourceFiles?: 'link' | 'copy' | null;
   [key: string]: unknown;
 }
 

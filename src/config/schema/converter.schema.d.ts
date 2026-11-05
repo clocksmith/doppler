@@ -111,6 +111,8 @@ export interface ConverterExecutionConfigSchema {
   maxInFlightJobs: number | null;
   useGpuCast: boolean;
   gpuCastMinTensorBytes: number;
+  /** How retained source files become artifact shards; the bytes are identical either way. */
+  retainedSourceFiles: 'link' | 'copy';
 }
 
 export interface ConverterConfigSchema {

@@ -61,6 +61,10 @@ function parseArgs(argv) {
       execution.gpuCastMinTensorBytes = nextValue();
       continue;
     }
+    if (arg === '--retained-source-files') {
+      execution.retainedSourceFiles = nextValue();
+      continue;
+    }
     if (arg.startsWith('--')) {
       throw new Error(`Unknown flag: ${arg}`);
     }
@@ -118,6 +122,7 @@ function normalizeExecutionConfig(rawExecution) {
     && maxInFlightJobs == null
     && !useGpuCast
     && gpuCastMinTensorBytes == null
+    && rawExecution.retainedSourceFiles == null
   ) {
     return null;
   }
@@ -129,6 +134,7 @@ function normalizeExecutionConfig(rawExecution) {
     ...(maxInFlightJobs != null ? { maxInFlightJobs } : {}),
     ...(useGpuCast ? { useGpuCast: true } : {}),
     ...(gpuCastMinTensorBytes != null ? { gpuCastMinTensorBytes } : {}),
+    ...(rawExecution.retainedSourceFiles != null ? { retainedSourceFiles: rawExecution.retainedSourceFiles } : {}),
   };
 }
 
@@ -196,7 +202,7 @@ async function main() {
   const args = parseArgs(process.argv.slice(2));
   if (!args.inputDir || !args.configPath) {
     console.error(
-      'Usage: node tools/convert-safetensors-node.js <inputPath> --config <path.json> [--output-dir <path>] [--workers <n>] [--worker-policy <cap|error>] [--row-chunk-rows <n>] [--row-chunk-min-tensor-bytes <n>] [--max-in-flight-jobs <n>] [--use-gpu-cast] [--gpu-cast-min-tensor-bytes <n>]'
+      'Usage: node tools/convert-safetensors-node.js <inputPath> --config <path.json> [--output-dir <path>] [--workers <n>] [--worker-policy <cap|error>] [--row-chunk-rows <n>] [--row-chunk-min-tensor-bytes <n>] [--max-in-flight-jobs <n>] [--use-gpu-cast] [--gpu-cast-min-tensor-bytes <n>] [--retained-source-files <link|copy>]'
     );
     process.exit(2);
   }

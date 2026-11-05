@@ -83,6 +83,8 @@ export const DEFAULT_CONVERTER_EXECUTION_CONFIG = {
   maxInFlightJobs: null,
   useGpuCast: false,
   gpuCastMinTensorBytes: 32 * MB,
+  // How retained source files become artifact shards: 'link' (no copy) or an explicit 'copy'.
+  retainedSourceFiles: 'link',
 };
 
 export const DEFAULT_CONVERTER_CONFIG = {

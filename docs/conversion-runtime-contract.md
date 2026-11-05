@@ -306,11 +306,14 @@ and every pin must be used.
 
 Conversion (`src/converter/retained-source-shards.js`) appends one shard per
 pinned file after the packed shards, in file-name order with cumulative
-offsets. The Node conversion IO hard-links the file as `shard_NNNNN.bin`,
-hashes its complete bytes and fails (removing the link) when the hash differs
-from the pin; a source and output on different filesystems fail instead of
-copying. Retained shards require `manifest.hashAlgorithm: "sha256"`, so the
-shard hash is the pin. Each table tensor's location is its exact byte span in
+offsets. The Node conversion IO makes the file `shard_NNNNN.bin` by a hard
+link (conversion execution option `retainedSourceFiles: "link"`, the default)
+or, when requested explicitly, a copy (`"copy"`, CLI
+`--retained-source-files copy`) for filesystems without hard links such as
+exFAT. Both produce identical shard bytes; link failure never falls back to a
+copy. The IO hashes the shard's complete bytes and fails (removing the shard)
+when the hash differs from the pin. Retained shards require
+`manifest.hashAlgorithm: "sha256"`, so the shard hash is the pin. Each table tensor's location is its exact byte span in
 its shard (`shard`, the absolute file `offset`, `size`, `BF16`, `[rows, 160]`),
 and `manifest.conversion.retainedSourceShards` records shard, file, SHA-256,
 bytes and tensor count. The other tensors in those files are converted

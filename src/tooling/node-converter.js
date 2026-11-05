@@ -759,6 +759,7 @@ export async function convertSafetensorsDirectory(options) {
     hashAlgorithm: converterConfig.manifest.hashAlgorithm,
     computeHash,
     readRange: fileRangeReader.readRange,
+    retainedSourceFiles: executionPlan.retainedSourceFiles,
   });
   const deferredManifestState = {
     manifest: null,

@@ -15,7 +15,7 @@ Notes:
 - Conversion configs are self-contained. Do not rely on external family selection or implicit family detection.
 - Worker execution tuning belongs in `request.convertPayload.execution`
   (`workers`, `workerCountPolicy`, `rowChunkRows`, `rowChunkMinTensorBytes`,
-  `maxInFlightJobs`, `useGpuCast`, `gpuCastMinTensorBytes`).
+  `maxInFlightJobs`, `useGpuCast`, `gpuCastMinTensorBytes`, `retainedSourceFiles`).
 - To pin deterministic manifest timestamps, set `manifest.conversion.convertedAt` in converter config.
 - Execution-v1 configs may set `execution.inlineKernelPath: false` when the
   manifest must own an explicit execution graph without lowering it into

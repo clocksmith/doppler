@@ -74,6 +74,10 @@ export function normalizeExecutionConfig(value, defaults) {
       'execution.gpuCastMinTensorBytes'
     )
     : asPositiveInteger(Number(value.gpuCastMinTensorBytes), 'execution.gpuCastMinTensorBytes');
+  const retainedSourceFiles = value.retainedSourceFiles ?? defaults.retainedSourceFiles;
+  if (retainedSourceFiles !== 'link' && retainedSourceFiles !== 'copy') {
+    throw new Error('node convert: execution.retainedSourceFiles must be "link" or "copy".');
+  }
 
   return {
     workers,
@@ -84,6 +88,7 @@ export function normalizeExecutionConfig(value, defaults) {
     useGpuCast,
     gpuCastRequestedExplicitly,
     gpuCastMinTensorBytes,
+    retainedSourceFiles,
   };
 }
 
@@ -177,6 +182,7 @@ export function createNodeConvertIO(outputDir, options) {
   const hashAlgorithm = options?.hashAlgorithm;
   const computeHash = options?.computeHash;
   const readRange = options?.readRange;
+  const retainedSourceFiles = options?.retainedSourceFiles ?? 'link';
   if (!hashAlgorithm || typeof hashAlgorithm !== 'string') {
     throw new Error('node convert: hashAlgorithm is required.');
   }
@@ -206,24 +212,40 @@ export function createNodeConvertIO(outputDir, options) {
         'utf8'
       );
     },
-    // Retained source shard: hard-link the pinned source file as shard `index`
-    // (no copy), then hash its complete bytes. A cross-filesystem layout fails
-    // instead of silently copying; a pin mismatch removes the link and fails.
+    // Retained source shard: the pinned source file becomes shard `index` by a
+    // hard link (execution.retainedSourceFiles "link", the default) or an
+    // explicitly requested copy; the shard bytes are identical either way. A
+    // filesystem that cannot link fails rather than copying silently. The
+    // shard's complete bytes are hashed; a pin mismatch removes it and fails.
     async retainSourceFile(sourcePath, index, sha256) {
       const target = path.join(outputDir, generateShardFilename(index));
-      try {
-        await fs.link(sourcePath, target);
-      } catch (error) {
-        if (error?.code === 'EXDEV') {
-          throw new Error(`node convert: retained source file ${sourcePath} and output ${outputDir} must share one filesystem.`);
-        }
-        throw error;
-      }
       const hasher = createHash('sha256');
       let size = 0;
-      for await (const chunk of createReadStream(target, { highWaterMark: 8 << 20 })) {
-        hasher.update(chunk);
-        size += chunk.length;
+      if (retainedSourceFiles === 'copy') {
+        const output = await fs.open(target, 'wx');
+        try {
+          for await (const chunk of createReadStream(sourcePath, { highWaterMark: 8 << 20 })) {
+            hasher.update(chunk);
+            await output.write(chunk);
+            size += chunk.length;
+          }
+        } finally {
+          await output.close();
+        }
+      } else {
+        try {
+          await fs.link(sourcePath, target);
+        } catch (error) {
+          if (['EXDEV', 'EPERM', 'ENOTSUP', 'EOPNOTSUPP'].includes(error?.code)) {
+            throw new Error(`node convert: cannot hard-link retained source file ${sourcePath} into ${outputDir} (${error.code}); `
+              + 'set execution.retainedSourceFiles to "copy" (--retained-source-files copy) to copy it instead.');
+          }
+          throw error;
+        }
+        for await (const chunk of createReadStream(target, { highWaterMark: 8 << 20 })) {
+          hasher.update(chunk);
+          size += chunk.length;
+        }
       }
       const hash = hasher.digest('hex');
       if (hash !== sha256) {
