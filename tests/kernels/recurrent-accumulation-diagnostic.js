@@ -10,11 +10,12 @@ export function buildRecurrentAccumulationDiagnostic(source, scope = 'both', fus
   };
   if (scope !== 'readout') {
     replace('var kv_mem = 0.0;', 'var kv_mem = 0.0;\n    var memory_error = 0.0;');
-    replace('kv_mem = fma(recurrent_state[state_idx], k_normed, kv_mem);',
-    `let term = recurrent_state[state_idx] * k_normed;
+    // `decayed` is the value just stored to recurrent_state[state_idx].
+    replace('kv_mem = fma(decayed, k_normed, kv_mem);',
+    `let term = decayed * k_normed;
         let next = kv_mem + term;
         let residual = select((term - next) + kv_mem, (kv_mem - next) + term, abs(kv_mem) >= abs(term));
-        memory_error += residual + fma(recurrent_state[state_idx], k_normed, -term);
+        memory_error += residual + fma(decayed, k_normed, -term);
         kv_mem = next;`);
     const delta = fused ? 'let delta = multiply_ordered(v_val - kv_mem, beta);'
       : 'let delta = multiply_ordered(conv_out[conv_row_base + v_base + vd] - kv_mem, beta);';
@@ -22,11 +23,12 @@ export function buildRecurrentAccumulationDiagnostic(source, scope = 'both', fus
   }
   if (scope !== 'memory') {
     replace('var out_value = 0.0;', 'var out_value = 0.0;\n    var output_error = 0.0;');
-    replace('out_value = fma(recurrent_state[state_idx], q_normed, out_value);',
-    `let term = recurrent_state[state_idx] * q_normed;
+    // `updated` is the value just stored to recurrent_state[state_idx].
+    replace('out_value = fma(updated, q_normed, out_value);',
+    `let term = updated * q_normed;
         let next = out_value + term;
         let residual = select((term - next) + out_value, (out_value - next) + term, abs(out_value) >= abs(term));
-        output_error += residual + fma(recurrent_state[state_idx], q_normed, -term);
+        output_error += residual + fma(updated, q_normed, -term);
         out_value = next;`);
     const boundary = fused ? 'let out_sum_sq = reduce_sum('
       : 'output[out_row_base + vd] = out_value;';

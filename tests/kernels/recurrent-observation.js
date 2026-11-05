@@ -19,20 +19,20 @@ export function observeRecurrentShader(source, layout, selectedStages = Object.k
     `    if (vd == 0u) { ${scalar('qScale')} = q_norm_scale; }`);
   after('let k_norm_scale = inverse_root_refined(shared_sq[0] + params.qk_l2norm_eps);',
     `    if (vd == 0u) { ${scalar('kScale')} = k_norm_scale; }`);
-  after('kv_mem = fma(recurrent_state[state_idx], k_normed, kv_mem);',
+  after('kv_mem = fma(decayed, k_normed, kv_mem);',
     `        if (vd == 0u) { ${at('normalizedK', 'ab_row_base * head_k_dim + kd')} = k_normed; }`);
-  after('out_value = fma(recurrent_state[state_idx], q_normed, out_value);',
+  after('out_value = fma(updated, q_normed, out_value);',
     `        if (vd == 0u) { ${at('normalizedQ', 'ab_row_base * head_k_dim + kd')} = q_normed; }`);
   for (const [name, value] of [['beta', 'beta'], ['logDecay', 'g'], ['decay', 'g_exp']]) {
     after('let g_exp = exp_refined(g);', `    if (vd == 0u) { ${scalar(name)} = ${value}; }`);
   }
-  after('recurrent_state[state_idx] = recurrent_state[state_idx] * g_exp;',
+  after('recurrent_state[state_idx] = decayed;',
     `        ${matrix('decayedState')} = recurrent_state[state_idx];`);
   after('let delta = multiply_ordered(conv_out[conv_row_base + v_base + vd] - kv_mem, beta);',
     `      ${vector('memory')} = kv_mem;`);
   after('let delta = multiply_ordered(conv_out[conv_row_base + v_base + vd] - kv_mem, beta);',
     `      ${vector('correction')} = delta;`);
-  after('recurrent_state[state_idx] = fma(k_normed, delta, recurrent_state[state_idx]);',
+  after('recurrent_state[state_idx] = updated;',
     `        ${matrix('updatedState')} = recurrent_state[state_idx];`);
   after('output[out_row_base + vd] = out_value;', `      ${vector('rawOutput')} = out_value;`);
   after('let inv_rms = inverse_root_refined(shared_sq[0] / f32(head_v_dim) + params.rms_norm_eps);',

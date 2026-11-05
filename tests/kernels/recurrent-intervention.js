@@ -45,8 +45,9 @@ export function interveneRecurrentShader(source, layout, intervention) {
   }
   if (['state', 'all'].includes(intervention)) {
     const index = 'ab_row_base * head_k_dim * head_v_dim + kd * head_v_dim + vd';
-    replace('recurrent_state[state_idx] = fma(k_normed, delta, recurrent_state[state_idx]);',
-      `recurrent_state[state_idx] = ${at('updatedState', index)};`);
+    // The scalar branch stores and reads `updated`; substituting it replaces both.
+    replace('let updated = fma(k_normed, delta, recurrent_state[state_idx]);',
+      `let updated = ${at('updatedState', index)};`);
   }
   return source + '\n@group(0) @binding(10) var<storage, read> reference_values: array<f32>;\n';
 }
