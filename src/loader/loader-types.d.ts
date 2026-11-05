@@ -39,6 +39,9 @@ export interface TensorLocation {
  * Loaded layer weights
  */
 export interface LayerWeights {
+  hyperConnections?: import('./hyper-connection-loader.js').HyperConnectionLayerWeights['hyperConnections'];
+  qsaIndexer?: import('./hyper-connection-loader.js').HyperConnectionLayerWeights['qsaIndexer'];
+  ple?: import('./hyper-connection-loader.js').HyperConnectionLayerWeights['ple'];
   inputNorm: GPUBuffer | Float32Array | null;
   inputNormBias?: GPUBuffer | Float32Array | null;
   qProj: GPUBuffer | WeightBuffer | Float32Array | null;

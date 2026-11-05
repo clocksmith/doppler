@@ -149,6 +149,7 @@
     "src/experimental/training/lora-training-round.js",
     "src/tooling/browser-harness/request-timing.js",
     "src/loader/weight-representation-plan.js",
+    "src/loader/hyper-connection-loader.js",
     "src/rules/greedy-sampling.js",
     "src/inference/pipelines/text/generator/greedy-head-policy.js",
     "src/gpu/recorder-timestamps.js",

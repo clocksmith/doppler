@@ -796,6 +796,7 @@ export async function loadWeights(manifest, modelConfig, options = {}) {
     lmHead: dopplerLoader.lmHead,
     lmHeadBias: dopplerLoader.lmHeadBias,
     finalNorm: dopplerLoader.finalNorm,
+    hyperConnectionMixer: dopplerLoader.hyperConnectionMixer,
     finalNormBias: dopplerLoader.finalNormBias,
     embeddingPostprocessor: dopplerLoader.embeddingPostprocessor,
     diffusionGemmaSelfConditioning: dopplerLoader.diffusionGemmaSelfConditioning,

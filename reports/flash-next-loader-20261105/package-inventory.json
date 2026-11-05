@@ -1,0 +1,367 @@
+{
+  "schema": "doppler.package-audit/v1",
+  "baseCommit": "bbd344c2251bdcf6e22ad965091c3648c5c26160",
+  "checkpointCommit": "44f04d5572932e21d080da3df163c6c673591f33",
+  "toolchain": {
+    "node": "22.20.0",
+    "npm": "10.9.3"
+  },
+  "scope": "npm pack --dry-run --json --ignore-scripts, exact tracked inputs at the last budget update and the Flash-Next checkpoint versus the loader integration candidate. Contract-double loading and recorded source-header geometry only; no physical GPU or model qualification.",
+  "baseline": {
+    "entryCount": 1852,
+    "size": 3564892,
+    "unpackedSize": 15208014
+  },
+  "checkpoint": {
+    "entryCount": 1888,
+    "size": 3613359,
+    "unpackedSize": 15423470
+  },
+  "candidate": {
+    "entryCount": 1876,
+    "size": 3598875,
+    "unpackedSize": 15364650
+  },
+  "packedCompressionAllowanceBytes": 2158,
+  "previousLimits": {
+    "maxPackedSize": 3567050,
+    "maxUnpackedSize": 15208014,
+    "maxEntryCount": 2004
+  },
+  "addedFiles": [
+    {
+      "path": "src/config/schema/hyper-connection-decoder.schema.d.ts",
+      "size": 3908,
+      "mode": 420
+    },
+    {
+      "path": "src/config/schema/hyper-connection-decoder.schema.js",
+      "size": 11889,
+      "mode": 420
+    },
+    {
+      "path": "src/config/schema/ngram-embedding.schema.d.ts",
+      "size": 4199,
+      "mode": 420
+    },
+    {
+      "path": "src/config/schema/ngram-embedding.schema.js",
+      "size": 15758,
+      "mode": 420
+    },
+    {
+      "path": "src/converter/qwen4-exp-source-defaults.json",
+      "size": 1256,
+      "mode": 420
+    },
+    {
+      "path": "src/converter/qwen4-exp-source.js",
+      "size": 11883,
+      "mode": 420
+    },
+    {
+      "path": "src/gpu/kernels/attention_indexed_f16kv.wgsl",
+      "size": 6511,
+      "mode": 420
+    },
+    {
+      "path": "src/gpu/kernels/hyper_connection_activation.wgsl",
+      "size": 3787,
+      "mode": 420
+    },
+    {
+      "path": "src/gpu/kernels/hyper_connection_branch.wgsl",
+      "size": 1748,
+      "mode": 420
+    },
+    {
+      "path": "src/gpu/kernels/hyper_connection_inject.wgsl",
+      "size": 1615,
+      "mode": 420
+    },
+    {
+      "path": "src/gpu/kernels/hyper_connection_norm.wgsl",
+      "size": 2590,
+      "mode": 420
+    },
+    {
+      "path": "src/gpu/kernels/ple_conv.wgsl",
+      "size": 3804,
+      "mode": 420
+    },
+    {
+      "path": "src/gpu/kernels/ple_gate.wgsl",
+      "size": 4574,
+      "mode": 420
+    },
+    {
+      "path": "src/gpu/kernels/qsa-indexer.js",
+      "size": 15728,
+      "mode": 420
+    },
+    {
+      "path": "src/gpu/kernels/qsa_block_keys.wgsl",
+      "size": 3977,
+      "mode": 420
+    },
+    {
+      "path": "src/gpu/kernels/qsa_block_scores.wgsl",
+      "size": 2582,
+      "mode": 420
+    },
+    {
+      "path": "src/gpu/kernels/qsa_prepare.wgsl",
+      "size": 4327,
+      "mode": 420
+    },
+    {
+      "path": "src/gpu/kernels/qsa_select.wgsl",
+      "size": 6278,
+      "mode": 420
+    },
+    {
+      "path": "src/inference/pipelines/text/hyper-connection/decoder-layer.d.ts",
+      "size": 2731,
+      "mode": 420
+    },
+    {
+      "path": "src/inference/pipelines/text/indexed-attention/attention-runner.js",
+      "size": 2397,
+      "mode": 420
+    },
+    {
+      "path": "src/inference/pipelines/text/ngram/ple-layer.d.ts",
+      "size": 1817,
+      "mode": 420
+    },
+    {
+      "path": "src/loader/hyper-connection-loader.d.ts",
+      "size": 1419,
+      "mode": 420
+    },
+    {
+      "path": "src/loader/hyper-connection-loader.js",
+      "size": 8112,
+      "mode": 420
+    },
+    {
+      "path": "src/loader/layer-loader.d.ts",
+      "size": 2782,
+      "mode": 420
+    }
+  ],
+  "removedFiles": [],
+  "changedFiles": [
+    {
+      "path": "src/config/kernel-path-loader.js",
+      "before": 24239,
+      "after": 24369,
+      "beforeSha256": "5afc497cb0dff21a1541bf41f8184ba167e2a0d8b6868ef96a9ce3b75102db9e",
+      "afterSha256": "f0ab72e1eca307d299f66bc0a75de5ad9ecbdf2ab3079bef1622d69a01b1ede7"
+    },
+    {
+      "path": "src/config/kernels/registry.json",
+      "before": 757519,
+      "after": 775139,
+      "beforeSha256": "788a11b79efb1023b68b6311b10ae93f2f812a5761a16c1de3dfac5f000f1fe1",
+      "afterSha256": "9b33f5b94e1a4ed5cc71d11ac4348fdb598295fc0dd2625836be017cd319bc4f"
+    },
+    {
+      "path": "src/config/merge.d.ts",
+      "before": 5485,
+      "after": 5732,
+      "beforeSha256": "a2bb8afcf3c200ae947d570c9a7d0e609c9240fddbff1820e16e96193b47435a",
+      "afterSha256": "cfd16d0eca0b8a9934be3ae349d083e8be7d8332283c84a9c8a22d3183a8c1af"
+    },
+    {
+      "path": "src/config/merge.js",
+      "before": 22967,
+      "after": 23822,
+      "beforeSha256": "70e362be75aa5c49d1155b1535b6e4cf18b1cdc2e003104d1bc13c7c0b4a0898",
+      "afterSha256": "c7c013786c4d626197578bea2e858e94a7511110cececdcf4df3bb61b2fc751d"
+    },
+    {
+      "path": "src/config/schema/doppler.schema.js",
+      "before": 15439,
+      "after": 15627,
+      "beforeSha256": "509ae37fbdbb7d3f1147610bbf2044c5f3c182d4734ceff66474e686b323c740",
+      "afterSha256": "f9b20e3b350ce118c0a2117d09d2b8551de1814e1f6c0cb71a62d7c5e1f8f679"
+    },
+    {
+      "path": "src/config/schema/execution-v1.schema.d.ts",
+      "before": 16372,
+      "after": 16619,
+      "beforeSha256": "b6806de3fc99398c7bb2d0dc53e0c176091d62ede64ecc335f6be0a9875e1251",
+      "afterSha256": "76cc52df8f76bf22f3668b11384c7f91d6d6b8e54c238e68ea77dd3f666495a1"
+    },
+    {
+      "path": "src/config/schema/execution-v1.schema.js",
+      "before": 11191,
+      "after": 11215,
+      "beforeSha256": "3515ee623e230287eb0bbaa87fda24a7404d659cc1266dc03d8833b88ece1f20",
+      "afterSha256": "90861fb494bec5c5884aba32eea67b0582db099cd93ce6800e8630f19fb08647"
+    },
+    {
+      "path": "src/config/schema/manifest.schema.d.ts",
+      "before": 28002,
+      "after": 28623,
+      "beforeSha256": "40ac6c9b51f45a3512e85cabaa156938e605bf4929bd9e162963d4d7f920f9f7",
+      "afterSha256": "929641755a59bc33048965f4b424978241cace94be4f9736e6792bc8b62d424c"
+    },
+    {
+      "path": "src/config/schema/manifest.schema.js",
+      "before": 11927,
+      "after": 12166,
+      "beforeSha256": "e046c2d22380ab47489698cca96ad39d937f126c08cfca5e4aa7a91456745b8e",
+      "afterSha256": "79fe0625301bdf7a2084c981da2c77c4eb54f37cdbaeba9287ceaaac9df47800"
+    },
+    {
+      "path": "src/converter/conversion-plan.js",
+      "before": 11154,
+      "after": 11465,
+      "beforeSha256": "a47016d46c1a6c0b93dadacedeb7c84d7823e4e2c269bb6aefbf2f8b5ebd6db0",
+      "afterSha256": "02f29d4c7f7cf83891cb729f3340ddf57526f7c6bc233ff0ace8e30824068161"
+    },
+    {
+      "path": "src/gpu/kernels/generated/uniform-writers-2.js",
+      "before": 20652,
+      "after": 23974,
+      "beforeSha256": "1fbf03c909dcd1af5705299fd121e40643d66053df8e57e2ab2952dd0f4b91ef",
+      "afterSha256": "a2aa66fe58ba0cdc4ebe4af22a1192acf525af7681e7a16a1599652d3524bbce"
+    },
+    {
+      "path": "src/gpu/kernels/generated/uniform-writers.js",
+      "before": 48715,
+      "after": 50065,
+      "beforeSha256": "882db6913e0277d6df4cc7da71d8a6d8fe4fe76aec990c681d5d50e74091123c",
+      "afterSha256": "eafb8d012da1c28e6ed2994632612dbe380ba78d58b15dbaa2422666f261fdf8"
+    },
+    {
+      "path": "src/inference/pipelines/text/attention/dispatch-params.js",
+      "before": 17452,
+      "after": 17508,
+      "beforeSha256": "0a2666c66f8c79b97a12c82239b08c5f7b7a2331775964bcb11a338654083d32",
+      "afterSha256": "cbd272e79cf385db6bde54ae52ed03005108e933851e113e90025afd318f4eba"
+    },
+    {
+      "path": "src/inference/pipelines/text/attention/interpreter/recorded.js",
+      "before": 17329,
+      "after": 17779,
+      "beforeSha256": "285330ec9e3bd75c904e11b22f8730b2e8661cd0bbb54eb25c0a89898ebdf4b9",
+      "afterSha256": "bbe59f26df0b9527a8eb3bd7e9d24371f0bcb5ffb39d9e68f94246df4b81d166"
+    },
+    {
+      "path": "src/inference/pipelines/text/attention/plan.js",
+      "before": 13118,
+      "after": 13358,
+      "beforeSha256": "4272ea27bf58c84168cbacb21d275ae575fc35c0958a90146f8e9326801df5b9",
+      "afterSha256": "1ec7f56ddc41fa85dc4ea547ca73f68941d05e448dbc63abb567fdf9d4a59f1d"
+    },
+    {
+      "path": "src/inference/pipelines/text/config.d.ts",
+      "before": 11672,
+      "after": 12173,
+      "beforeSha256": "604e67bbf7d8368dfa80e35dd18241d8fef5bd002a23937f83a0d7adf8f1bad4",
+      "afterSha256": "b12131586650fd0032f0ff61ad994332b875e2d8c879a2ba8c378219330d9863"
+    },
+    {
+      "path": "src/inference/pipelines/text/config.js",
+      "before": 33315,
+      "after": 33825,
+      "beforeSha256": "67c30bb490ce5c24ef1730d204ae56ff7bde3e96d295d711ddb399481e6185d6",
+      "afterSha256": "aa03b8d61ef51eb0d68524b9ce32493637867040a1de9451dce7cda41f198cef"
+    },
+    {
+      "path": "src/inference/pipelines/text/init.d.ts",
+      "before": 13245,
+      "after": 13344,
+      "beforeSha256": "fb5e8737bcbbd919a5fd1d11a6f18c8bceb5c4f4f26ffc5288dd760e9d102dec",
+      "afterSha256": "0bb48146378aed3c77f820e653ed46958e2b96e324b94913df1e82e2853c0a6f"
+    },
+    {
+      "path": "src/inference/pipelines/text/init.js",
+      "before": 35712,
+      "after": 35774,
+      "beforeSha256": "62d3d88dce8d6d19a506e1edda81f98682ba6ba6174bb702ba85866006daa4d9",
+      "afterSha256": "ad4827dd7d7ae9ba17057d9bc5f0d668e5d9fc50c23870f5b1835f5fd66e51a5"
+    },
+    {
+      "path": "src/inference/pipelines/text/lifecycle.js",
+      "before": 32931,
+      "after": 33008,
+      "beforeSha256": "b7bae367eab1ca7250536fab54544544b352eae2d0786125866dbb3068e76d01",
+      "afterSha256": "fe1153ab199e0b09a86b7b4e9ed84eb5bacc7bfe481e578df1b25c4ad60711eb"
+    },
+    {
+      "path": "src/loader/doppler-loader.d.ts",
+      "before": 5761,
+      "after": 5886,
+      "beforeSha256": "22034d3188fa75afe4e0be6d5cbaabe93dece9e477e5d49e4344395d9e0045a4",
+      "afterSha256": "9c67af33948c3886d9489b647348a00e0ef603a9b15337fec5c5cdb323556f7b"
+    },
+    {
+      "path": "src/loader/doppler-loader.js",
+      "before": 22578,
+      "after": 22646,
+      "beforeSha256": "d30135f073635b815cc1a3d9fef3aa64d5e9066ba1dc8968b2db8b475e2675fe",
+      "afterSha256": "a79de373ec9a8f828a2afdf4c533ed08b8dd4874078e70618ec173f3d6846512"
+    },
+    {
+      "path": "src/loader/final-weights-loader.d.ts",
+      "before": 3985,
+      "after": 4251,
+      "beforeSha256": "03b2d1a151980c8e27ec7d7e7590e4c389a57dcf23a3ee846c8a44a1433fa623",
+      "afterSha256": "4df8237d80bf2dccd5310ece433e634e3134355cd5675b92edd97bd6e18ff1f0"
+    },
+    {
+      "path": "src/loader/final-weights-loader.js",
+      "before": 17834,
+      "after": 18088,
+      "beforeSha256": "6c59383fa09e400ac257f21b4d75dab0ba64e44818100da2f2c3a43e354c6c32",
+      "afterSha256": "9ed00ad5e6c174392c2fd58c3148c37d459694452f1b81d6cc0f8f50cefedd89"
+    },
+    {
+      "path": "src/loader/layer-loader.js",
+      "before": 25724,
+      "after": 25848,
+      "beforeSha256": "8f5d3784de39500a8d12ee20a07585c33a395ed2272d6e80945d4e3021868ec6",
+      "afterSha256": "e864d2fc720a1360cbb6e3cba3d46d373d479ef89b8819de92ab780f76143a39"
+    },
+    {
+      "path": "src/loader/layer-tensor-aliases.js",
+      "before": 6214,
+      "after": 8214,
+      "beforeSha256": "b58a919b429d904efc9de6f0ce188d672419beda7d2e9ad555a6a21e65e07783",
+      "afterSha256": "8d2991687e908515ed2d17d8d8baf1b8228fd260218e745edf837437a4ce1d5d"
+    },
+    {
+      "path": "src/loader/loader-types.d.ts",
+      "before": 11815,
+      "after": 12104,
+      "beforeSha256": "4685bbe6a2bbfaf2ddc667116ec0de016ebb949db3c1b9e953baf1dadfdc0e9b",
+      "afterSha256": "1eff4424523d478346fd1a5352f36e2decd6bb3cb3b7c5d2711b370e716cff1c"
+    },
+    {
+      "path": "src/loader/model-executor.js",
+      "before": 20184,
+      "after": 20513,
+      "beforeSha256": "1aa6c0c921ce29c122b63567a918e1563c92b4ff07305fbb1f1da4aec7b1095c",
+      "afterSha256": "c0d2b824893cd9429689a225e29f0eed8f95bfa61586c6c53b8b4d04841e1679"
+    },
+    {
+      "path": "src/loader/weight-representation-plan.js",
+      "before": 9122,
+      "after": 9324,
+      "beforeSha256": "eda1289032efb111b03d0d2cb49e5670dc05b1338163c266ef8df78afb4f18a3",
+      "afterSha256": "94b18df866b9701a3ea02574e931b2ce2ee8092f54541dac31c4fcbce9073382"
+    },
+    {
+      "path": "src/rules/generated/rule-bundle.json",
+      "before": 55980,
+      "after": 56138,
+      "beforeSha256": "6258135ae3a803e6c19887cac73868624aeace704013017ca985ba7fb733266a",
+      "afterSha256": "65683ddc23fe112d79f8bf05442c4a01c86a3f8150d92358d0bf335a32566cfa"
+    }
+  ],
+  "review": "The checkpoint already exceeded both byte ceilings after Flash-Next contract and operator work. Candidate regenerates the public source closure, excludes still-unreachable operator implementations, and adds only the reachable loader and its required declarations. No learned weights, host embedding table, checkpoints or reference tensors ship. Entry ceiling stays unchanged; compressed allowance stays 2158 bytes."
+}

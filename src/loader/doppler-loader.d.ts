@@ -78,6 +78,7 @@ export declare class DopplerLoader {
   lmHead: GPUBuffer | WeightBuffer | CpuWeightBuffer | Float32Array | null;
   lmHeadBias: Float32Array | null;
   finalNorm: GPUBuffer | Float32Array | null;
+  hyperConnectionMixer: import('../inference/pipelines/text/hyper-connection/decoder-layer.js').GatedResidualWeights | null;
   finalNormBias: Float32Array | null;
   embeddingPostprocessor: LoadedEmbeddingPostprocessor | null;
   diffusionGemmaSelfConditioning: DiffusionGemmaSelfConditioningWeights | null;

@@ -25,6 +25,7 @@ import {
   SINK_SUFFIXES,
 } from './layer-tensor-aliases.js';
 import { getWeightShape, toPositiveInt, getVectorElementCount } from './layer-weight-shape.js';
+import { loadHyperConnectionLayerWeights } from './hyper-connection-loader.js';
 
 function inferLinearQKVSizes(ctx, linearQkvProj, linearOutProj) {
   const qkvShape = getWeightShape(linearQkvProj);
@@ -300,8 +301,8 @@ export async function loadLayer(ctx, layerIdx) {
   // Load attention sinks
   weights.attentionSinks =  (await tryLoad(SINK_SUFFIXES));
 
-  // Downcast matmul weights to F16
   await downcastLayerWeights(ctx, weights, layerIdx);
+  Object.assign(weights, await loadHyperConnectionLayerWeights(ctx, layerIdx));
 
   return weights;
 }

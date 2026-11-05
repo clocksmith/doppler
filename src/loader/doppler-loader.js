@@ -129,7 +129,7 @@ export class DopplerLoader {
   finalNormBias = null;
   
   finalNorm = null;
-
+  hyperConnectionMixer = null;
   embeddingPostprocessor = null;
 
   diffusionGemmaSelfConditioning = null;
@@ -700,6 +700,7 @@ export class DopplerLoader {
     this.lmHeadBias = null;
     this.finalNormBias = null;
     this.finalNorm = null;
+    this.hyperConnectionMixer = null;
     this.embeddingPostprocessor = null;
     this.perLayerInputWeights = null;
     if (getManifest() === this.manifest) clearManifest();

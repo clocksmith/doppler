@@ -92,6 +92,48 @@ export const ROUTER_SUFFIXES = {
 
 export const SINK_SUFFIXES = ['self_attn.sinks'];
 
+export const GATED_RESIDUAL_SUFFIXES = Object.freeze({
+  norm: 'hc_norm.weight',
+  down: 'input_mix_weight_down.weight',
+  up: 'input_mix_weight_up.weight',
+  inject: 'block_inject_weight.weight',
+});
+
+export const HYPER_CONNECTION_SUFFIXES = Object.freeze(Object.fromEntries(
+  ['attention', 'mlp'].map(branch => [branch, Object.freeze(Object.fromEntries(
+    Object.entries(GATED_RESIDUAL_SUFFIXES).map(([key, suffix]) =>
+      [key, Object.freeze([`${branch === 'attention' ? 'attn' : 'mlp'}_hyper_connection.${suffix}`])])
+  ))])
+));
+
+export const QSA_SUFFIXES = Object.freeze({
+  projection: Object.freeze(['self_attn.indexer.index_qk_proj.weight']),
+  qNorm: Object.freeze(['self_attn.indexer.q_layernorm.weight']),
+  kNorm: Object.freeze(['self_attn.indexer.k_layernorm.weight']),
+});
+
+export const NGRAM_PLE_SUFFIXES = Object.freeze({
+  keyProj: Object.freeze(['ple.key_proj.weight']),
+  valueProj: Object.freeze(['ple.value_proj.weight']),
+  normKey: Object.freeze(['ple.norm_key.weight']),
+  normQuery: Object.freeze(['ple.norm_query.weight']),
+  normConv: Object.freeze(['ple.norm_conv.weight']),
+  conv: Object.freeze(['ple.conv1d.weight']),
+});
+
+export const HYPER_CONNECTION_MIXER_PREFIXES = Object.freeze([
+  'model.language_model.hyper_connection_mixer',
+  'language_model.hyper_connection_mixer',
+  'language_model.model.hyper_connection_mixer',
+  'model.hyper_connection_mixer',
+  'hyper_connection_mixer',
+]);
+
+export const ROOT_WEIGHT_CONSUMERS = Object.freeze(['down', 'up'].map(key => Object.freeze({
+  role: `hc_mixer_${key}`,
+  names: Object.freeze(HYPER_CONNECTION_MIXER_PREFIXES.map(prefix => `${prefix}.${GATED_RESIDUAL_SUFFIXES[key]}`)),
+})));
+
 
 export const MATMUL_KEYS = [
   'qProj', 'kProj', 'vProj', 'oProj',
@@ -116,4 +158,8 @@ export const LAYER_WEIGHT_CONSUMERS = Object.freeze([
   ['ffn_down', ROUTER_SUFFIXES.sharedExpertDown],
   ['moe_router', ROUTER_SUFFIXES.routerWeight], ['moe_shared_router', ROUTER_SUFFIXES.sharedExpertRouter],
   ['ffn_gate', FFN_SUFFIXES.ffnGate, ['ffn_gate_up']], ['ffn_up', FFN_SUFFIXES.ffnUp, ['ffn_gate_up']], ['ffn_down', FFN_SUFFIXES.ffnDown],
+  ...['attention', 'mlp'].flatMap(branch => ['down', 'up', 'inject'].map(key =>
+    [`${branch === 'attention' ? 'attn' : 'mlp'}_hc_${key}`, HYPER_CONNECTION_SUFFIXES[branch][key]])),
+  ['qsa_index_qk', QSA_SUFFIXES.projection],
+  ['ple_key_proj', NGRAM_PLE_SUFFIXES.keyProj], ['ple_value_proj', NGRAM_PLE_SUFFIXES.valueProj],
 ].map(([role, suffixes, additionalRoles = []]) => Object.freeze({ role, suffixes, additionalRoles: Object.freeze(additionalRoles) })));

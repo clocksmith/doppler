@@ -14,6 +14,7 @@ import { maybeDowncastToF16 } from './weight-downcast.js';
 import { getTensorNamesByRole } from './tensors/tensor-role.js';
 import { log, trace as debugTrace } from '../debug/index.js';
 import { selectRuleValue } from '../rules/rule-registry.js';
+import { loadHyperConnectionMixerWeights } from './hyper-connection-loader.js';
 
 // ============================================================================
 // Constants
@@ -216,7 +217,10 @@ export async function loadFinalWeights(ctx) {
   let normOffsetDebugLogged = ctx.normOffsetDebugLogged;
 
   // Load final norm
-  const { finalNorm, debugLogged: normDebugLogged } = await loadFinalNorm(ctx);
+  const hyperConnectionMixer = await loadHyperConnectionMixerWeights(ctx);
+  const { finalNorm, debugLogged: normDebugLogged } = hyperConnectionMixer
+    ? { finalNorm: null, debugLogged: false }
+    : await loadFinalNorm(ctx);
   if (normDebugLogged) {
     normOffsetDebugLogged = true;
   }
@@ -232,6 +236,7 @@ export async function loadFinalWeights(ctx) {
 
   return {
     finalNorm,
+    hyperConnectionMixer,
     finalNormBias,
     lmHead,
     lmHeadBias,

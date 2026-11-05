@@ -163,7 +163,10 @@ const PACKAGE_CONTENT_LIMITS = Object.freeze({
   // Retain the existing 2,158-byte cross-npm compression allowance.
   // Reviewed inventory: reports/runtime-isolation-20261104/package-inventory.json.
   // Retain the existing 2,158-byte cross-npm compression allowance.
-  maxPackedSize: 3_567_050,
+  // Flash-Next source contracts, declared kernels and loader bindings: reviewed
+  // inventory in reports/flash-next-loader-20261105/package-inventory.json.
+  // Measured 3,598,875 bytes; retain the existing 2,158-byte npm allowance.
+  maxPackedSize: 3_601_033,
   // Capsule naming changes identifiers and declarations, not the shipped file count.
   // Measured 0.6.0 payload: 2,097,039 packed / 10,835,420 unpacked bytes.
   // The remaining GPU diagnostic label adds three uncompressed bytes.
@@ -226,7 +229,9 @@ const PACKAGE_CONTENT_LIMITS = Object.freeze({
   // graph steps (36b73ec8) add 28,520: measured 14,172,897.
   // Exact reviewed payload: docs/cleanup/package-audit-2026-11-01.json.
   // Exact reviewed payload: reports/runtime-isolation-20261104/package-inventory.json.
-  maxUnpackedSize: 15_208_014,
+  // Exact reviewed Flash-Next closure (1876 entries, unchanged entry ceiling).
+  // Evidence: reports/flash-next-loader-20261105/package-inventory.json.
+  maxUnpackedSize: 15_364_650,
 });
 const REQUIRED_PACKAGE_FILES = Object.freeze([
   'README.md',

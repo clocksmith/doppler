@@ -27,7 +27,8 @@ export function requiresTiedEmbeddingLoad(tensorLocations: Map<string, TensorLoc
 export type TensorLoader = (
   name: string,
   toGPU?: boolean,
-  silent?: boolean
+  silent?: boolean,
+  consumerRole?: string
 ) => Promise<GPUBuffer | WeightBuffer | Float32Array | Uint8Array | null>;
 
 export interface LoadedEmbeddingProjection extends ManifestEmbeddingProjectionSchema {
@@ -44,6 +45,7 @@ export interface LoadedEmbeddingPostprocessor
  * Context required for final weights loading.
  */
 export interface FinalWeightsContext {
+  hyperConnections?: import('../config/schema/hyper-connection-decoder.schema.js').ResolvedHyperConnections | null;
   /** Tensor locations map */
   tensorLocations: Map<string, TensorLocation>;
   weightRepresentationPlan?: import('./weight-representation-plan.js').WeightRepresentationPlan | null;
@@ -79,6 +81,7 @@ export interface FinalWeightsContext {
 
 /** Result of final weights loading */
 export interface FinalWeightsResult {
+  hyperConnectionMixer: import('../inference/pipelines/text/hyper-connection/decoder-layer.js').GatedResidualWeights | null;
   /** Final layer norm tensor */
   finalNorm: GPUBuffer | Float32Array | null;
   /** Optional final LayerNorm bias, held on CPU for embedding extraction. */

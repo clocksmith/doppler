@@ -2,7 +2,7 @@ import { ggufBlockFormat, isGgufBlockSourceDtype } from '../formats/gguf/block-s
 import { getKernelPathMatmulVariant } from '../config/kernel-path-loader.js';
 import { selectRuleValue } from '../rules/rule-registry.js';
 import { getKernelConfigs } from '../config/kernel-registry-contract.js';
-import { LAYER_PREFIXES, LAYER_WEIGHT_CONSUMERS } from './layer-tensor-aliases.js';
+import { LAYER_PREFIXES, LAYER_WEIGHT_CONSUMERS, ROOT_WEIGHT_CONSUMERS } from './layer-tensor-aliases.js';
 
 // Resolve the same first-existing binding used by layer loading, before any
 // weight allocation. Equal immutable storage and tied endpoints share demand.
@@ -65,6 +65,10 @@ export function compileWeightRepresentationPlan(locations, manifest, paths, defa
         for (const additional of additionalRoles) add(found, additional, layer, ['prefill', 'decode'], true);
       }
     }
+  }
+  for (const { role, names } of ROOT_WEIGHT_CONSUMERS) {
+    const found = names.find(name => locations.has(name));
+    if (found) add(found, role, 0, ['prefill', 'decode']);
   }
   const embeddings = [...locations].filter(([, loc]) => loc.role === 'embedding');
   const heads = [...locations].filter(([, loc]) => loc.role === 'lm_head');

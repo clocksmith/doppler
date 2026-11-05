@@ -25,6 +25,9 @@ export type TensorLoader = (
  * Context required for layer loading.
  */
 export interface LayerLoaderContext {
+  hyperConnections?: import('../config/schema/hyper-connection-decoder.schema.js').ResolvedHyperConnections | null;
+  indexedAttention?: import('../config/schema/hyper-connection-decoder.schema.js').ResolvedIndexedAttention | null;
+  ngramEmbedding?: import('../config/schema/ngram-embedding.schema.js').ResolvedNgramEmbedding | null;
   /** Tensor locations map */
   tensorLocations: Map<string, TensorLocation>;
   weightRepresentationPlan?: import('./weight-representation-plan.js').WeightRepresentationPlan | null;

@@ -497,6 +497,7 @@ export async function _loadWeights(options = {}) {
       this.disableFusedDecode = true;
     }
     this.weights.set('final_norm', result.finalNorm);
+    this.weights.set('hyper_connection_mixer', result.hyperConnectionMixer);
     this.weights.set('final_norm_bias', result.finalNormBias);
     if (result.finalNormBias) {
       this.disableRecordedLogits = true;

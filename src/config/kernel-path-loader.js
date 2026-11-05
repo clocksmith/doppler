@@ -186,6 +186,8 @@ const MATMUL_STEP_ROLE_ALIASES = {
   ffn_gate_up: { section: 'layer', ops: ['ffn_gate_up'] },
   lm_head: { section: 'postLayer', ops: ['lm_head'] },
   lm_head_prefill: { section: 'postLayer', ops: ['lm_head_prefill', 'lm_head'] },
+  hc_mixer_down: { section: 'postLayer', ops: ['hc_mixer_down'] },
+  hc_mixer_up: { section: 'postLayer', ops: ['hc_mixer_up'] },
 };
 
 const MATMUL_PRECISION_ROLE_ALIASES = {

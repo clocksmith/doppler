@@ -424,6 +424,9 @@ export async function _loadLayer(layerIdx, _onProgress) {
       numKVHeads: this.manifest?.architecture?.numKeyValueHeads ?? null,
       headDim: this.manifest?.architecture?.headDim ?? null,
       hiddenSize: this.manifest?.architecture?.hiddenSize ?? null,
+      hyperConnections: this.manifest?.inference?.hyperConnections,
+      indexedAttention: this.manifest?.inference?.indexedAttention,
+      ngramEmbedding: this.manifest?.inference?.ngramEmbedding,
       linearNumKeyHeads: textConfig?.linear_num_key_heads ?? this.manifest?.architecture?.linearNumKeyHeads ?? null,
       linearNumValueHeads: textConfig?.linear_num_value_heads ?? this.manifest?.architecture?.linearNumValueHeads ?? null,
       linearKeyHeadDim: textConfig?.linear_key_head_dim ?? this.manifest?.architecture?.linearKeyHeadDim ?? null,
@@ -454,6 +457,7 @@ export async function _loadFinalWeights(_onProgress) {
       shouldStreamLargeWeight: (name, loc, label) => this._shouldStreamLargeWeight(name, loc, label),
       resolveWeightLayout: (loc) => this._resolveWeightLayout(loc),
       embeddings: this.embeddings,
+      hyperConnections: this.manifest?.inference?.hyperConnections,
       embeddingPostprocessor: this.manifest?.inference?.output?.embeddingPostprocessor ?? null,
       finalNormBiasTensor: this.manifest?.inference?.normalization?.finalNormBiasTensor ?? null,
       lmHeadBiasTensor: this.manifest?.inference?.output?.lmHeadBiasTensor ?? null,
@@ -467,6 +471,7 @@ export async function _loadFinalWeights(_onProgress) {
 
     const result = await loadFinalWeights(ctx);
     this.finalNorm = result.finalNorm;
+    this.hyperConnectionMixer = result.hyperConnectionMixer;
     this.finalNormBias = result.finalNormBias;
     this.lmHead = result.lmHead;
     this.lmHeadBias = result.lmHeadBias;

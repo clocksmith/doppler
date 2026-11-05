@@ -890,6 +890,11 @@
       "reason": "The loader performs descriptor-bound artifact byte assembly or declared materialization before the runtime execution plan begins."
     },
     {
+      "id": "src/loader/hyper-connection-loader.js#materialize",
+      "category": "artifact-codec-materialization",
+      "reason": "Checks declared tensor shapes and byte capacities while assembling GPU weight handles before execution. It does not read or compute weight contents."
+    },
+    {
       "id": "src/loader/layer-loader.js#cloneWeightMaterializations",
       "category": "artifact-codec-materialization",
       "reason": "The loader performs descriptor-bound artifact byte assembly or declared materialization before the runtime execution plan begins."
