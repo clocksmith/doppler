@@ -36,6 +36,7 @@ definitions through Python AST. Run each with `python3 -I <script>`.
 | `acquisition-receipt.json` | `acquire-text-checkpoint.py` | pass (2026-11-05; 131 files, 360,000,192,888 bytes) |
 | `storage-precision-scan.json` | `storage-precision-scan.py` | measured (2026-11-05, numpy 2.4.4) |
 | `learned-forward-summary-float32.json` | `prepare-learned-forward-reference.py`, `summarize-learned-forward-reference.py` | measured (2026-11-05, torch 2.11.0, x86_64 CPU, learned weights) |
+| `learned-forward-summary-bfloat16.json` | same, `--dtype bfloat16` | measured (2026-11-05, same host) |
 
 No retained fixture fails. None of them qualifies Flash-Next or establishes a
 Doppler operator; all use synthetic weights or fixed strings.
@@ -128,6 +129,13 @@ margin is 3.4e-4, and two positions have a top-1 logit margin below 0.01. A
 Q4K artifact will flip some of these selections. Qualification against this
 reference therefore uses distributional logit criteria and tie-aware routing
 and selection checks, not exact token equality at every position.
+
+The same forward in the checkpoint's bfloat16 dtype
+(`learned-forward-summary-bfloat16.json`) gives the native-precision spread
+that any threshold must exceed. Against float32, argmax agrees at 98.4% of
+long-input positions and all short-input positions. KL(float32 || bfloat16) at
+the sampled positions is at most 0.030 (mean 0.0042), and logits differ by up
+to 2.76. Teacher-forced accuracy is 90.8% (86.5% sparse).
 
 ### PLE layer reference (2026-11-05)
 
@@ -409,9 +417,9 @@ Transformers template renderer and Doppler's tokenizer is not established.
 
 The CPU expert execution reference is now in place at full geometry (MoE block above).
 
-1. Learned-checkpoint comparison: the float32 upstream reference on learned
-   weights exists (above); the bfloat16 run and the Doppler-side comparison
-   (which needs the runtime wiring) remain.
+1. Learned-checkpoint comparison: float32 and bfloat16 upstream references on
+   learned weights exist (above); the Doppler-side comparison, which needs the
+   runtime wiring, remains.
 2. Conversion: the profile
    `src/config/conversion/qwen3/qwen-3-8-flash-next-text-q4k-ehf16-af32.json`
    (2026-11-05) excludes MTP (31) and vision (333) by explicit ignore rules,
