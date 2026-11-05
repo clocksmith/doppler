@@ -1213,6 +1213,11 @@
       "id": "src/converter/fp8-source.js#packFP8Source",
       "category": "artifact-construction",
       "reason": "Rig constructs versioned packed FP8 blocks with explicit F32 scales and zero padding before Capsule signing; runtime consumes unchanged packed bytes."
+    },
+    {
+      "id": "src/inference/pipelines/text/ngram/ngram-table.js#NgramTableReader.gather",
+      "category": "artifact-codec-materialization",
+      "reason": "Copies unchanged stored n-gram table row bytes (policy-bounded host cache and range reads) into a contiguous staging array in address order before the rows enter execution; no arithmetic. BF16 decoding and every projection run in WGSL."
     }
   ]
 }

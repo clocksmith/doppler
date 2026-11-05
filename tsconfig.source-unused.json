@@ -166,6 +166,8 @@
     "src/converter/qwen4-exp-source.js",
     "src/gpu/kernels/hyper-connection.js",
     "src/gpu/kernels/qsa-indexer.js",
-    "src/inference/pipelines/text/indexed-attention/qsa-cache.js"
+    "src/inference/pipelines/text/indexed-attention/qsa-cache.js",
+    "src/inference/pipelines/text/ngram/ngram-addresses.js",
+    "src/inference/pipelines/text/ngram/ngram-table.js"
   ]
 }

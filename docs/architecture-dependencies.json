@@ -4826,6 +4826,7 @@
         "tests/inference/multimodal-prefill-command-batching.test.js",
         "tests/inference/multimodal-sequence-capacity-contract.test.js",
         "tests/inference/native-prefill-token-budget.test.js",
+        "tests/inference/ngram-embedding-host.test.js",
         "tests/inference/node-file-shard-storage-context.test.js",
         "tests/inference/operator-diagnostics-forwarding-contract.test.js",
         "tests/inference/operator-diffing.test.js",
@@ -6300,6 +6301,8 @@
         "src/inference/pipelines/text/moe/grouped-prefill.js",
         "src/inference/pipelines/text/moe/plan.js",
         "src/inference/pipelines/text/moe/qwen-route-executor.js",
+        "src/inference/pipelines/text/ngram/ngram-addresses.js",
+        "src/inference/pipelines/text/ngram/ngram-table.js",
         "src/inference/pipelines/text/normalization-contract.js",
         "src/inference/pipelines/text/operator-events.js",
         "src/inference/pipelines/text/operator-identity.js",
@@ -6664,6 +6667,8 @@
     "src/inference/pipelines/text/bdpa-steamroller.js",
     "src/inference/pipelines/text/failure-reduction.js",
     "src/inference/pipelines/text/indexed-attention/qsa-cache.js",
+    "src/inference/pipelines/text/ngram/ngram-addresses.js",
+    "src/inference/pipelines/text/ngram/ngram-table.js",
     "src/inference/pipelines/text/partition-replay.js",
     "src/loader/multi-model-loader.js",
     "src/storage/preflight.js",
@@ -7058,6 +7063,12 @@
       "kind": "dynamic",
       "line": 17,
       "expression": "import(target)"
+    },
+    {
+      "file": "tests/inference/ngram-embedding-host.test.js",
+      "kind": "asset",
+      "line": 14,
+      "expression": "new URL(path, import.meta.url)"
     },
     {
       "file": "tests/inference/operator-diagnostics-forwarding-contract.test.js",
