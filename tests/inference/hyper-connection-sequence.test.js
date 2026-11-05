@@ -16,6 +16,7 @@ const { NgramTokenHistory } = await import('../../src/inference/pipelines/text/n
 const { PleConvState } = await import('../../src/inference/pipelines/text/ngram/ple-layer.js');
 const { withHyperConnectionTransaction, assertHyperConnectionLoad } = await import('../../src/inference/pipelines/text/hyper-connection/sequence-transaction.js');
 const { InferencePipeline } = await import('../../src/inference/pipelines/text/pipeline.js');
+const { PipelineGenerator } = await import('../../src/inference/pipelines/text/generator.js');
 
 const device = {
   features: new Set(), limits: { maxStorageBufferBindingSize: 1 << 20, maxBufferSize: 1 << 20 },
@@ -121,6 +122,9 @@ await test('unsupported modes fail before mutation and snapshots fail before rep
     await assert.rejects(withHyperConnectionTransaction(f.state, { useSpeculative: true }, async () => { f.mutate(); }), /not supported/);
     const cache = f.state.kvCache;
     assert.throws(() => InferencePipeline.prototype.applyKVCacheSnapshot.call(f.state, {}), /not supported/);
+    const generator = new PipelineGenerator(f.state);
+    assert.throws(() => generator.resetToSeqLen(0), /use resetGenerationState/);
+    assert.throws(() => generator.resetToSeqLen(1), /not supported/);
     assert.equal(f.state.kvCache, cache); f.unchanged();
     const settings = { kvcache: { kvDtype: 'f16', layout: 'contiguous' }, decodeLoop: { batchSize: 1 } };
     const host = { ...f.state, useGPU: true, runtimeConfig: { inference: { compute: { activationDtype: 'f32' }, session: settings } } };

@@ -1,0 +1,26 @@
+{
+  "schema": "doppler.runtime-followup/v1",
+  "baseCommit": "f341412c5fb8baf992b48b5f851d22df131572b6",
+  "scope": "Reject KV-only rewind before mutation for composite decoders; retain physical AMD observations for the original f341412c checkpoint. New learned-model diagnostic is provisioned-only and has not run.",
+  "checks": [
+    {
+      "path": "amd.log",
+      "sha256": "c73ca0b5ea1bd26864556685496f3779f4c8ead28f060514700ce280c00b2eb9"
+    },
+    {
+      "path": "rewind.log",
+      "sha256": "4f9c844831593045a3e2384b3d403e1f6fe2fa66713a963249339293defff59e"
+    }
+  ],
+  "package": {
+    "entryCount": 1897,
+    "size": 3634838,
+    "unpackedSize": 15522668
+  },
+  "shippedDelta": {
+    "path": "src/inference/pipelines/text/generator.js",
+    "unpackedBytes": 105,
+    "sha256": "952909b2090966832830f6aa9e860582f329fbb5e99b54db31f761967943883d"
+  },
+  "packedCompressionAllowanceBytes": 2158
+}

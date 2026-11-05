@@ -14,3 +14,5 @@ Limits: the conversion recipe exists, but no converted model artifact or learned
 Jupiter acquisition was observed complete: 131 files, 360000192888 bytes, at `/run/media/x/models/qwen38-flash-next-de4b8e4d/source`. Its acquisition receipt reports checkpoint hash/header verification. Source preparation is separate from inference qualification.
 
 Component: `doppler.runtime-source.inference.pipelines.text`, `doppler.runtime-source.loader`, `doppler.runtime-source.storage`, `doppler.runtime-source.config`. Intent: preserved. Boundary effects: declared decoder mechanisms now participate in text execution; range requests explicitly reject whole-file fallback; the conversion recipe declares a text-only artifact.
+
+Follow-up: `amd.log` retains a physical AMD RDNA3 run at f341412c (9 runner checks, no skips in the GPU case). `rewind.log` covers rejection of KV-only `resetToSeqLen` before mutation (8 runner checks with ordinary sequence regressions). `followup.json` binds both and audits the additional 105 shipped source bytes. The provisioned learned-weight diagnostic is scaffolding until an artifact is ready; its unprovisioned skip is not model evidence.

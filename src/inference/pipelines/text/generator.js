@@ -392,6 +392,7 @@ export class PipelineGenerator {
    * Only valid when no decode is in progress.
    */
   resetToSeqLen(seqLen) {
+    assertClassicSequenceState(this._state, 'resetToSeqLen; use resetGenerationState for a full reset');
     resetSequenceState(this._state, seqLen);
   }
 

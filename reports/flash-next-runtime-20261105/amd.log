@@ -1,0 +1,71 @@
+TAP version 13
+# hyper-connection layer wiring: branch ownership, PLE order, selection and explicit phase passed
+# Subtest: tests/inference/hyper-connection-layer-wiring.test.js
+ok 1 - tests/inference/hyper-connection-layer-wiring.test.js
+  ---
+  duration_ms: 299.436779
+  type: 'test'
+  ...
+# Warning: maxDynamicUniformBuffersPerPipelineLayout artificially reduced from 500000 to 16 to fit dynamic offset allocation limit.
+# Warning: maxDynamicStorageBuffersPerPipelineLayout artificially reduced from 500000 to 16 to fit dynamic offset allocation limit.
+# [GPU] amd rdna-3, f16/subgroups, 4.0GB, submit probe: 3.6ms
+# [504.3ms][KernelSelect] matmul variant=f32 reason=path_override
+# hyper-connection logits: physical GPU numerical and ownership checks passed
+# Subtest: tests/inference/hyper-connection-logits-gpu.test.js
+ok 2 - tests/inference/hyper-connection-logits-gpu.test.js
+  ---
+  duration_ms: 676.240475
+  type: 'test'
+  ...
+# Subtest: partial-layer failure restores KV, recurrent, indexer, n-gram and convolution state together; next call works
+ok 3 - partial-layer failure restores KV, recurrent, indexer, n-gram and convolution state together; next call works
+  ---
+  duration_ms: 3.853203
+  type: 'test'
+  ...
+# Subtest: abort during the operation rolls back before allowing reuse
+ok 4 - abort during the operation rolls back before allowing reuse
+  ---
+  duration_ms: 1.070891
+  type: 'test'
+  ...
+# Subtest: nested prefill chunks share a transaction and a later chunk failure restores the initial prefix
+ok 5 - nested prefill chunks share a transaction and a later chunk failure restores the initial prefix
+  ---
+  duration_ms: 0.448777
+  type: 'test'
+  ...
+# Subtest: late cancellation releases a completed GPU result that was never transferred to the caller
+ok 6 - late cancellation releases a completed GPU result that was never transferred to the caller
+  ---
+  duration_ms: 0.530381
+  type: 'test'
+  ...
+# Subtest: unsupported modes fail before mutation and snapshots fail before replacing KV
+ok 7 - unsupported modes fail before mutation and snapshots fail before replacing KV
+  ---
+  duration_ms: 0.700412
+  type: 'test'
+  ...
+# Subtest: closing waits for a pending row read and repeated closes share that completion
+ok 8 - closing waits for a pending row read and repeated closes share that completion
+  ---
+  duration_ms: 5.641088
+  type: 'test'
+  ...
+# Flash-Next recipe -> conversion -> manifest -> specialized runtime contracts passed (metadata only)
+# Subtest: tests/integration/flash-next-runtime-profile.test.js
+ok 4 - tests/integration/flash-next-runtime-profile.test.js
+  ---
+  duration_ms: 307.223728
+  type: 'test'
+  ...
+1..9
+# tests 9
+# suites 0
+# pass 9
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 688.383707

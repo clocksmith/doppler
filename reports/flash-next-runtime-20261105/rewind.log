@@ -1,0 +1,59 @@
+TAP version 13
+# generation-prompt-state-reset.test: ok
+# Subtest: tests/inference/generation-prompt-state-reset.test.js
+ok 1 - tests/inference/generation-prompt-state-reset.test.js
+  ---
+  duration_ms: 294.54825
+  type: 'test'
+  ...
+# Subtest: partial-layer failure restores KV, recurrent, indexer, n-gram and convolution state together; next call works
+ok 2 - partial-layer failure restores KV, recurrent, indexer, n-gram and convolution state together; next call works
+  ---
+  duration_ms: 2.415209
+  type: 'test'
+  ...
+# Subtest: abort during the operation rolls back before allowing reuse
+ok 3 - abort during the operation rolls back before allowing reuse
+  ---
+  duration_ms: 0.433167
+  type: 'test'
+  ...
+# Subtest: nested prefill chunks share a transaction and a later chunk failure restores the initial prefix
+ok 4 - nested prefill chunks share a transaction and a later chunk failure restores the initial prefix
+  ---
+  duration_ms: 0.2735
+  type: 'test'
+  ...
+# Subtest: late cancellation releases a completed GPU result that was never transferred to the caller
+ok 5 - late cancellation releases a completed GPU result that was never transferred to the caller
+  ---
+  duration_ms: 0.393458
+  type: 'test'
+  ...
+# Subtest: unsupported modes fail before mutation and snapshots fail before replacing KV
+ok 6 - unsupported modes fail before mutation and snapshots fail before replacing KV
+  ---
+  duration_ms: 0.617958
+  type: 'test'
+  ...
+# Subtest: closing waits for a pending row read and repeated closes share that completion
+ok 7 - closing waits for a pending row read and repeated closes share that completion
+  ---
+  duration_ms: 2.921459
+  type: 'test'
+  ...
+# Subtest: tests/inference/sequence-state.test.js
+ok 3 - tests/inference/sequence-state.test.js
+  ---
+  duration_ms: 27.308125
+  type: 'test'
+  ...
+1..8
+# tests 8
+# suites 0
+# pass 8
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 310.31275
