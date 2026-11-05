@@ -543,5 +543,10 @@ export interface KernelUniformValues {
   "hyper_connection_activation/inject_gate": Parameters<typeof writers2.write_hyper_connection_activation_low_rank_silu>[1];
   "hyper_connection_branch/f32": Parameters<typeof writers2.write_hyper_connection_activation_low_rank_silu>[1];
   "hyper_connection_inject/f32": Parameters<typeof writers2.write_hyper_connection_activation_low_rank_silu>[1];
+  "qsa_prepare/f32": Parameters<typeof writers2.write_qsa_prepare_f32>[1];
+  "qsa_block_keys/f32": Parameters<typeof writers2.write_qsa_block_keys_f32>[1];
+  "qsa_block_scores/f32": Parameters<typeof writers2.write_qsa_block_scores_f32>[1];
+  "qsa_select/u32": Parameters<typeof writers2.write_qsa_select_u32>[1];
+  "attention_indexed/f16kv": Parameters<typeof writers2.write_attention_indexed_f16kv>[1];
 }
 export declare const UNIFORM_WRITERS: { readonly [K in keyof KernelUniformValues]: { readonly size: number; readonly write: (view: DataView, values: KernelUniformValues[K], kernel: string) => void } };

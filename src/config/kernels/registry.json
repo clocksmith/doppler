@@ -36887,6 +36887,454 @@
      }
     }
    }
+  },
+  "qsa_prepare": {
+   "description": "qwen4_exp QSA indexer preparation: normalized, rotated query heads and raw key append to the owned key cache",
+   "baseBindings": [
+    {
+     "index": 0,
+     "name": "uniforms",
+     "type": "uniform"
+    },
+    {
+     "index": 1,
+     "name": "projection",
+     "type": "read-only-storage"
+    },
+    {
+     "index": 2,
+     "name": "q_norm_weight",
+     "type": "read-only-storage"
+    },
+    {
+     "index": 3,
+     "name": "freqs_cos",
+     "type": "read-only-storage"
+    },
+    {
+     "index": 4,
+     "name": "freqs_sin",
+     "type": "read-only-storage"
+    },
+    {
+     "index": 5,
+     "name": "query",
+     "type": "storage"
+    },
+    {
+     "index": 6,
+     "name": "raw_keys",
+     "type": "storage"
+    }
+   ],
+   "baseUniforms": {
+    "size": 16,
+    "fields": [
+     {
+      "name": "num_tokens",
+      "type": "u32",
+      "offset": 0
+     },
+     {
+      "name": "start_pos",
+      "type": "u32",
+      "offset": 4
+     },
+     {
+      "name": "group_stride",
+      "type": "u32",
+      "offset": 8
+     },
+     {
+      "name": "eps",
+      "type": "f32",
+      "offset": 12
+     }
+    ]
+   },
+   "variants": {
+    "f32": {
+     "wgsl": "qsa_prepare.wgsl",
+     "entryPoint": "main",
+     "workgroup": [128,1,1],
+     "requires": [],
+     "outputDtype": "f32",
+     "wgslOverrides": {
+      "WORKGROUP_SIZE": 128
+     },
+     "reachability": {
+      "status": "unused",
+      "inlineConfigs": [],
+      "ruleChains": [],
+      "wgslOnDisk": true
+     }
+    }
+   }
+  },
+  "qsa_block_keys": {
+   "description": "qwen4_exp QSA block keys: normalized mean of raw keys rotated at the block start position",
+   "baseBindings": [
+    {
+     "index": 0,
+     "name": "uniforms",
+     "type": "uniform"
+    },
+    {
+     "index": 1,
+     "name": "raw_keys",
+     "type": "read-only-storage"
+    },
+    {
+     "index": 2,
+     "name": "k_norm_weight",
+     "type": "read-only-storage"
+    },
+    {
+     "index": 3,
+     "name": "freqs_cos",
+     "type": "read-only-storage"
+    },
+    {
+     "index": 4,
+     "name": "freqs_sin",
+     "type": "read-only-storage"
+    },
+    {
+     "index": 5,
+     "name": "block_keys",
+     "type": "storage"
+    }
+   ],
+   "baseUniforms": {
+    "size": 16,
+    "fields": [
+     {
+      "name": "first_block",
+      "type": "u32",
+      "offset": 0
+     },
+     {
+      "name": "block_count",
+      "type": "u32",
+      "offset": 4
+     },
+     {
+      "name": "group_stride",
+      "type": "u32",
+      "offset": 8
+     },
+     {
+      "name": "eps",
+      "type": "f32",
+      "offset": 12
+     }
+    ]
+   },
+   "variants": {
+    "f32": {
+     "wgsl": "qsa_block_keys.wgsl",
+     "entryPoint": "main",
+     "workgroup": [128,1,1],
+     "requires": [],
+     "outputDtype": "f32",
+     "wgslOverrides": {
+      "WORKGROUP_SIZE": 128
+     },
+     "reachability": {
+      "status": "unused",
+      "inlineConfigs": [],
+      "ruleChains": [],
+      "wgslOnDisk": true
+     }
+    }
+   }
+  },
+  "qsa_block_scores": {
+   "description": "qwen4_exp QSA block scores: sum over heads of relu(q . block key) / sqrt(head dim) for sparse queries",
+   "baseBindings": [
+    {
+     "index": 0,
+     "name": "uniforms",
+     "type": "uniform"
+    },
+    {
+     "index": 1,
+     "name": "query",
+     "type": "read-only-storage"
+    },
+    {
+     "index": 2,
+     "name": "block_keys",
+     "type": "read-only-storage"
+    },
+    {
+     "index": 3,
+     "name": "scores",
+     "type": "storage"
+    }
+   ],
+   "baseUniforms": {
+    "size": 32,
+    "fields": [
+     {
+      "name": "num_tokens",
+      "type": "u32",
+      "offset": 0
+     },
+     {
+      "name": "start_pos",
+      "type": "u32",
+      "offset": 4
+     },
+     {
+      "name": "block_stride",
+      "type": "u32",
+      "offset": 8
+     },
+     {
+      "name": "dense_visible_limit",
+      "type": "u32",
+      "offset": 12
+     },
+     {
+      "name": "score_divisor",
+      "type": "f32",
+      "offset": 16
+     },
+     {
+      "name": "_pad0",
+      "type": "u32",
+      "offset": 20,
+      "padding": true
+     },
+     {
+      "name": "_pad1",
+      "type": "u32",
+      "offset": 24,
+      "padding": true
+     },
+     {
+      "name": "_pad2",
+      "type": "u32",
+      "offset": 28,
+      "padding": true
+     }
+    ]
+   },
+   "variants": {
+    "f32": {
+     "wgsl": "qsa_block_scores.wgsl",
+     "entryPoint": "main",
+     "workgroup": [256,1,1],
+     "requires": [],
+     "outputDtype": "f32",
+     "wgslOverrides": {
+      "WORKGROUP_SIZE": 256
+     },
+     "reachability": {
+      "status": "unused",
+      "inlineConfigs": [],
+      "ruleChains": [],
+      "wgslOnDisk": true
+     }
+    }
+   }
+  },
+  "qsa_select": {
+   "description": "qwen4_exp QSA selection: dense shortcut or top-k complete blocks (lower index wins ties) plus the trailing block",
+   "baseBindings": [
+    {
+     "index": 0,
+     "name": "uniforms",
+     "type": "uniform"
+    },
+    {
+     "index": 1,
+     "name": "scores",
+     "type": "read-only-storage"
+    },
+    {
+     "index": 2,
+     "name": "selection",
+     "type": "storage"
+    },
+    {
+     "index": 3,
+     "name": "selection_meta",
+     "type": "storage"
+    }
+   ],
+   "baseUniforms": {
+    "size": 32,
+    "fields": [
+     {
+      "name": "num_tokens",
+      "type": "u32",
+      "offset": 0
+     },
+     {
+      "name": "start_pos",
+      "type": "u32",
+      "offset": 4
+     },
+     {
+      "name": "block_stride",
+      "type": "u32",
+      "offset": 8
+     },
+     {
+      "name": "dense_visible_limit",
+      "type": "u32",
+      "offset": 12
+     },
+     {
+      "name": "max_selected",
+      "type": "u32",
+      "offset": 16
+     },
+     {
+      "name": "_pad0",
+      "type": "u32",
+      "offset": 20,
+      "padding": true
+     },
+     {
+      "name": "_pad1",
+      "type": "u32",
+      "offset": 24,
+      "padding": true
+     },
+     {
+      "name": "_pad2",
+      "type": "u32",
+      "offset": 28,
+      "padding": true
+     }
+    ]
+   },
+   "variants": {
+    "u32": {
+     "wgsl": "qsa_select.wgsl",
+     "entryPoint": "main",
+     "workgroup": [256,1,1],
+     "requires": [],
+     "outputDtype": "u32",
+     "wgslOverrides": {
+      "WORKGROUP_SIZE": 256
+     },
+     "reachability": {
+      "status": "unused",
+      "inlineConfigs": [],
+      "ruleChains": [],
+      "wgslOnDisk": true
+     }
+    }
+   }
+  },
+  "attention_indexed": {
+   "description": "Attention over QSA-selected cache rows (dense prefix or listed rows) with f16 KV and f32 queries/output",
+   "baseBindings": [
+    {
+     "index": 0,
+     "name": "uniforms",
+     "type": "uniform"
+    },
+    {
+     "index": 1,
+     "name": "Q",
+     "type": "read-only-storage"
+    },
+    {
+     "index": 2,
+     "name": "K",
+     "type": "read-only-storage"
+    },
+    {
+     "index": 3,
+     "name": "V",
+     "type": "read-only-storage"
+    },
+    {
+     "index": 4,
+     "name": "selection",
+     "type": "read-only-storage"
+    },
+    {
+     "index": 5,
+     "name": "selection_meta",
+     "type": "read-only-storage"
+    },
+    {
+     "index": 6,
+     "name": "output",
+     "type": "storage"
+    }
+   ],
+   "baseUniforms": {
+    "size": 32,
+    "fields": [
+     {
+      "name": "num_tokens",
+      "type": "u32",
+      "offset": 0
+     },
+     {
+      "name": "num_heads",
+      "type": "u32",
+      "offset": 4
+     },
+     {
+      "name": "num_kv_heads",
+      "type": "u32",
+      "offset": 8
+     },
+     {
+      "name": "head_dim",
+      "type": "u32",
+      "offset": 12
+     },
+     {
+      "name": "max_selected",
+      "type": "u32",
+      "offset": 16
+     },
+     {
+      "name": "scale",
+      "type": "f32",
+      "offset": 20
+     },
+     {
+      "name": "_pad0",
+      "type": "u32",
+      "offset": 24,
+      "padding": true
+     },
+     {
+      "name": "_pad1",
+      "type": "u32",
+      "offset": 28,
+      "padding": true
+     }
+    ]
+   },
+   "variants": {
+    "f16kv": {
+     "wgsl": "attention_indexed_f16kv.wgsl",
+     "entryPoint": "main",
+     "workgroup": [256,1,1],
+     "requires": ["shader-f16"],
+     "outputDtype": "f32",
+     "wgslOverrides": {
+      "WORKGROUP_SIZE": 256
+     },
+     "reachability": {
+      "status": "unused",
+      "inlineConfigs": [],
+      "ruleChains": [],
+      "wgslOnDisk": true
+     }
+    }
+   }
   }
  }
 }

@@ -246,6 +246,15 @@ overrides of the three sections are rejected.
 `text_config.eos_token_id`, first element of a list). It is distinct from the
 generation stop tokens in `eosTokenId`.
 
+QSA runtime state (`src/inference/pipelines/text/indexed-attention/qsa-cache.js`)
+owns raw indexer keys and pooled block keys per indexed layer. Positions are
+the cache rows of one unpadded sequence: an append must start at the layer's
+current length, and padded, masked or non-contiguous positions are rejected.
+Every call appends before it selects, including dense-shortcut calls.
+Truncate, reset and restore advance an epoch; an in-flight append or select
+that observes a new epoch or destruction fails without publishing state, and
+destruction releases buffers only after pending work settles.
+
 `inference.session.ngramEmbedding` is runtime policy for the host-resident
 table. It is required when `ngramEmbedding` is set and `null` otherwise:
 `rowCache` (`maxRows`, `maxBytes`, `eviction: "lru"`), `staging.maxRows` (at

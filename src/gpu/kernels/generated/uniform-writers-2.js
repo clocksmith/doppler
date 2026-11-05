@@ -442,3 +442,50 @@ export function write_hyper_connection_activation_low_rank_silu(view, values, ke
   view.setUint32(8, 0, true);
   view.setUint32(12, 0, true);
 }
+
+export function write_qsa_prepare_f32(view, values, kernel) {
+  writeU32(view, 0, values["num_tokens"], kernel, "num_tokens");
+  writeU32(view, 4, values["start_pos"], kernel, "start_pos");
+  writeU32(view, 8, values["group_stride"], kernel, "group_stride");
+  writeF32(view, 12, values["eps"], kernel, "eps");
+}
+
+export function write_qsa_block_keys_f32(view, values, kernel) {
+  writeU32(view, 0, values["first_block"], kernel, "first_block");
+  writeU32(view, 4, values["block_count"], kernel, "block_count");
+  writeU32(view, 8, values["group_stride"], kernel, "group_stride");
+  writeF32(view, 12, values["eps"], kernel, "eps");
+}
+
+export function write_qsa_block_scores_f32(view, values, kernel) {
+  writeU32(view, 0, values["num_tokens"], kernel, "num_tokens");
+  writeU32(view, 4, values["start_pos"], kernel, "start_pos");
+  writeU32(view, 8, values["block_stride"], kernel, "block_stride");
+  writeU32(view, 12, values["dense_visible_limit"], kernel, "dense_visible_limit");
+  writeF32(view, 16, values["score_divisor"], kernel, "score_divisor");
+  view.setUint32(20, 0, true);
+  view.setUint32(24, 0, true);
+  view.setUint32(28, 0, true);
+}
+
+export function write_qsa_select_u32(view, values, kernel) {
+  writeU32(view, 0, values["num_tokens"], kernel, "num_tokens");
+  writeU32(view, 4, values["start_pos"], kernel, "start_pos");
+  writeU32(view, 8, values["block_stride"], kernel, "block_stride");
+  writeU32(view, 12, values["dense_visible_limit"], kernel, "dense_visible_limit");
+  writeU32(view, 16, values["max_selected"], kernel, "max_selected");
+  view.setUint32(20, 0, true);
+  view.setUint32(24, 0, true);
+  view.setUint32(28, 0, true);
+}
+
+export function write_attention_indexed_f16kv(view, values, kernel) {
+  writeU32(view, 0, values["num_tokens"], kernel, "num_tokens");
+  writeU32(view, 4, values["num_heads"], kernel, "num_heads");
+  writeU32(view, 8, values["num_kv_heads"], kernel, "num_kv_heads");
+  writeU32(view, 12, values["head_dim"], kernel, "head_dim");
+  writeU32(view, 16, values["max_selected"], kernel, "max_selected");
+  writeF32(view, 20, values["scale"], kernel, "scale");
+  view.setUint32(24, 0, true);
+  view.setUint32(28, 0, true);
+}

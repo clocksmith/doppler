@@ -543,4 +543,9 @@ export const UNIFORM_WRITERS = Object.freeze({
   "hyper_connection_activation/inject_gate": { size: 16, write: writers2.write_hyper_connection_activation_low_rank_silu },
   "hyper_connection_branch/f32": { size: 16, write: writers2.write_hyper_connection_activation_low_rank_silu },
   "hyper_connection_inject/f32": { size: 16, write: writers2.write_hyper_connection_activation_low_rank_silu },
+  "qsa_prepare/f32": { size: 16, write: writers2.write_qsa_prepare_f32 },
+  "qsa_block_keys/f32": { size: 16, write: writers2.write_qsa_block_keys_f32 },
+  "qsa_block_scores/f32": { size: 32, write: writers2.write_qsa_block_scores_f32 },
+  "qsa_select/u32": { size: 32, write: writers2.write_qsa_select_u32 },
+  "attention_indexed/f16kv": { size: 32, write: writers2.write_attention_indexed_f16kv },
 });

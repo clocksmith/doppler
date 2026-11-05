@@ -30,6 +30,7 @@ definitions through Python AST. Run each with `python3 -I <script>`.
 | `linear-attention-reference.json` | `prepare-linear-attention-reference.py` | pass (torch 2.11.0, Accelerate, arm64) |
 | `tokenizer-reference.json` | `check-tokenizer.py` | pass (tokenizers 0.22.2) |
 | `checkpoint-headers.json` | `acquire-checkpoint-headers.py` | pass (2026-11-04; headers and three buffers only) |
+| `qsa-stage-reference.json` | `prepare-qsa-stage-reference.py` | pass (2026-11-05, torch 2.11.0, arm64) |
 
 No retained fixture fails. None of them qualifies Flash-Next or establishes a
 Doppler operator; all use synthetic weights or fixed strings.
@@ -61,6 +62,24 @@ token-times-multiplier products reach about 2^63; exact address arithmetic needs
 Text-only BF16 bytes by category: routed experts 225.00 GiB, n-gram table
 95.37 GiB, other text tensors 9.22 GiB; excluded vision 0.84 GiB and MTP
 4.86 GiB.
+
+### QSA stage reference and RoPE tables (2026-11-05)
+
+`prepare-qsa-stage-reference.py` reuses the sparse-attention recipe (weights
+verified by SHA256) and runs the unchanged upstream indexer on row 0 through an
+appending cache port in chunks 1024, 1024, 509, 1, 1, 1. For 13 sampled queries
+(5 dense, 8 sparse) it records upstream selected tokens, float64 block scores,
+and first-order F32 bounds of the form A + B * eps, where eps bounds the
+executing implementation's cos/sin table error; float64 query vectors and block
+keys use the same form. It also records the upstream f32 inverse frequencies.
+
+Doppler's theta-generated RoPE tables deviate from torch's f32-angle cos/sin by
+1.2e-4 at 2,560 positions, 9.8e-4 at 32,768 and 7.8e-3 at 262,144 (Apple
+metal-3), because the GPU derives the inverse frequencies itself. With the
+upstream f32 inverse frequencies retained (`inference.rope.ropeInverseFrequencies`)
+the same precompute matches within 1.2e-7 and 6.4e-7. A Flash-Next conversion
+must author those 32 values; this affects every theta-generated model at long
+positions and is reported separately.
 
 ### Gated residual and n-grams
 
