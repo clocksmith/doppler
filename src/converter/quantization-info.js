@@ -349,6 +349,11 @@ function resolveExpertQuantization(modelConfig) {
   return normalizeQuantTag(quantMethod);
 }
 
+// Source families whose MoE blocks use Doppler's qwen3_5 expert format: fused
+// [experts, 2 * intermediate, hidden] gate/up (gate half first), SiLU experts,
+// top-k renormalized softmax routing and a sigmoid-gated shared expert.
+export const QWEN3_5_EXPERT_SOURCE_TYPES = Object.freeze(new Set(['qwen3_5_moe', 'qwen3_5_moe_text', 'qwen4_exp', 'qwen4_exp_text']));
+
 function resolveExpertFormat(modelConfig, expertQuant) {
   if (!modelConfig) return null;
   if (expertQuant === 'mxfp4') return 'gpt-oss';
@@ -360,7 +365,7 @@ function resolveExpertFormat(modelConfig, expertQuant) {
   if (rawType.includes('gpt_oss') || rawType.includes('gpt-oss') || rawType.includes('gptoss')) {
     return 'gpt-oss';
   }
-  if (rawType === 'qwen3_5_moe' || rawType === 'qwen3_5_moe_text') return 'qwen3_5';
+  if (QWEN3_5_EXPERT_SOURCE_TYPES.has(rawType)) return 'qwen3_5';
   const hasExperts = Boolean(
     modelConfig.num_local_experts ||
     modelConfig.num_experts ||

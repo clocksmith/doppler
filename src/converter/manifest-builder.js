@@ -35,6 +35,7 @@ import {
   resolveTokenizerVocabSize,
 } from './tokenizer-manifest.js';
 import {
+  QWEN3_5_EXPERT_SOURCE_TYPES,
   normalizeQ4KLayout,
   resolveManifestQuantization,
   resolveEffectiveQuantizationInfo,
@@ -233,7 +234,7 @@ export function modelHasMoETensors(model) {
 export function resolveMoEExpertFormat(rawConfig, resolvedModelType, quantizationInfo, explicitFormat) {
   if (explicitFormat) return explicitFormat;
   const sourceType = String(rawConfig?.model_type ?? getNestedTextConfig(rawConfig)?.model_type ?? '').toLowerCase();
-  if (sourceType === 'qwen3_5_moe' || sourceType === 'qwen3_5_moe_text') return 'qwen3_5';
+  if (QWEN3_5_EXPERT_SOURCE_TYPES.has(sourceType)) return 'qwen3_5';
   const fromQuant = quantizationInfo?.expertsFormat;
   if (typeof fromQuant === 'string' && fromQuant.length > 0) {
     return fromQuant;
@@ -250,7 +251,7 @@ export function resolveMoEExpertFormat(rawConfig, resolvedModelType, quantizatio
   if (modelType === 'diffusion_gemma' || modelType === 'diffusion_gemma_text') {
     return 'gemma4';
   }
-  if (modelType === 'qwen3_5_moe' || modelType === 'qwen3_5_moe_text') {
+  if (QWEN3_5_EXPERT_SOURCE_TYPES.has(modelType)) {
     return 'qwen3_5';
   }
   return 'mixtral';

@@ -7,6 +7,9 @@
 import type { ConvertOptions } from './core.js';
 import type { ConverterConfigSchema, QuantizationInfoSchema } from '../config/schema/index.js';
 
+/** Source model types whose experts use Doppler's qwen3_5 expert format. */
+export declare const QWEN3_5_EXPERT_SOURCE_TYPES: ReadonlySet<string>;
+
 export declare function normalizeQuantTag(value: string | null | undefined): string;
 
 export declare function resolveManifestQuantization(quantize: string | null, fallback: string): string;
