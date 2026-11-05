@@ -1,4 +1,5 @@
-import { createHash } from 'node:crypto';
+import { createHash, randomUUID } from 'node:crypto';
+import { DEFAULT_CONVERTER_EXECUTION_CONFIG } from '../../config/schema/converter.schema.js';
 import { createReadStream } from 'node:fs';
 import fs from 'node:fs/promises';
 import os from 'node:os';
@@ -182,7 +183,8 @@ export function createNodeConvertIO(outputDir, options) {
   const hashAlgorithm = options?.hashAlgorithm;
   const computeHash = options?.computeHash;
   const readRange = options?.readRange;
-  const retainedSourceFiles = options?.retainedSourceFiles ?? 'link';
+  const retainedSourceFiles = options?.retainedSourceFiles ?? DEFAULT_CONVERTER_EXECUTION_CONFIG.retainedSourceFiles;
+  if (retainedSourceFiles !== 'link' && retainedSourceFiles !== 'copy') throw new Error('node convert: retainedSourceFiles must be link or copy.');
   if (!hashAlgorithm || typeof hashAlgorithm !== 'string') {
     throw new Error('node convert: hashAlgorithm is required.');
   }
@@ -192,12 +194,35 @@ export function createNodeConvertIO(outputDir, options) {
   if (typeof readRange !== 'function') {
     throw new Error('node convert: readRange(filePath, offset, length) is required.');
   }
+  const retainedNames = new Map();
+  const existingRelativeSource = (sourcePath) => {
+    const relative = path.relative(path.resolve(outputDir), path.resolve(sourcePath));
+    return relative && !path.isAbsolute(relative) && relative !== '..' && !relative.startsWith(`..${path.sep}`)
+      ? relative.split(path.sep).join('/') : null;
+  };
+  const linkSource = async (sourcePath, target) => {
+    try { await fs.link(sourcePath, target); }
+    catch (error) {
+      if (['EXDEV', 'EPERM', 'ENOTSUP', 'EOPNOTSUPP'].includes(error?.code)) {
+        throw new Error(`node convert: cannot retain ${sourcePath} without copying on this filesystem. Put the source directory inside the artifact output root, or use a filesystem supporting hard links.`, { cause: error });
+      }
+      throw error;
+    }
+  };
   return {
+    async preflightRetainedSources(sourcePaths) {
+      for (const sourcePath of sourcePaths) {
+        if (retainedSourceFiles === 'copy' || existingRelativeSource(sourcePath)) { await fs.access(sourcePath); continue; }
+        const probe = path.join(outputDir, `.doppler-retention-${randomUUID()}`);
+        await linkSource(sourcePath, probe);
+        await fs.unlink(probe);
+      }
+    },
     async readTensorData(tensor) {
       return readRange(tensor.sourcePath, tensor.offset, tensor.size);
     },
     async readShardRange(index, offset, length) {
-      const filename = generateShardFilename(index);
+      const filename = retainedNames.get(index) ?? generateShardFilename(index);
       return readRange(path.join(outputDir, filename), offset, length);
     },
     async writeShard(index, data) {
@@ -212,47 +237,47 @@ export function createNodeConvertIO(outputDir, options) {
         'utf8'
       );
     },
-    // Retained source shard: the pinned source file becomes shard `index` by a
-    // hard link (execution.retainedSourceFiles "link", the default) or an
-    // explicitly requested copy; the shard bytes are identical either way. A
-    // filesystem that cannot link fails rather than copying silently. The
-    // shard's complete bytes are hashed; a pin mismatch removes it and fails.
     async retainSourceFile(sourcePath, index, sha256) {
-      const target = path.join(outputDir, generateShardFilename(index));
-      const hasher = createHash('sha256');
-      let size = 0;
-      if (retainedSourceFiles === 'copy') {
-        const output = await fs.open(target, 'wx');
-        try {
-          for await (const chunk of createReadStream(sourcePath, { highWaterMark: 8 << 20 })) {
+      const existing = retainedSourceFiles === 'link' ? existingRelativeSource(sourcePath) : null;
+      const filename = existing ?? generateShardFilename(index);
+      const target = path.join(outputDir, filename);
+      let ownsTarget = false;
+      try {
+        const hasher = createHash('sha256');
+        let size = 0;
+        if (retainedSourceFiles === 'copy') {
+          const output = await fs.open(target, 'wx');
+          ownsTarget = true;
+          try {
+            for await (const chunk of createReadStream(sourcePath, { highWaterMark: 8 << 20 })) {
+              let written = 0;
+              while (written < chunk.length) {
+                const result = await output.write(chunk, written, chunk.length - written);
+                if (result.bytesWritten <= 0) throw new Error('Retained source copy made no write progress.');
+                written += result.bytesWritten;
+              }
+              hasher.update(chunk);
+              size += chunk.length;
+            }
+          } finally { await output.close(); }
+        } else {
+          if (!existing) { await linkSource(sourcePath, target); ownsTarget = true; }
+          for await (const chunk of createReadStream(target, { highWaterMark: 8 << 20 })) {
             hasher.update(chunk);
-            await output.write(chunk);
             size += chunk.length;
           }
-        } finally {
-          await output.close();
         }
-      } else {
-        try {
-          await fs.link(sourcePath, target);
-        } catch (error) {
-          if (['EXDEV', 'EPERM', 'ENOTSUP', 'EOPNOTSUPP'].includes(error?.code)) {
-            throw new Error(`node convert: cannot hard-link retained source file ${sourcePath} into ${outputDir} (${error.code}); `
-              + 'set execution.retainedSourceFiles to "copy" (--retained-source-files copy) to copy it instead.');
-          }
-          throw error;
+        const hash = hasher.digest('hex');
+        if (hash !== sha256) throw new Error(`node convert: ${sourcePath} SHA-256 ${hash} differs from its pin ${sha256}.`);
+        retainedNames.set(index, filename);
+        return { size, hash, ...(existing ? { filename } : {}) };
+      } catch (error) {
+        if (ownsTarget) {
+          try { await fs.unlink(target); }
+          catch (cleanupError) { throw new AggregateError([error, cleanupError], 'Retained source verification and cleanup failed.', { cause: error }); }
         }
-        for await (const chunk of createReadStream(target, { highWaterMark: 8 << 20 })) {
-          hasher.update(chunk);
-          size += chunk.length;
-        }
+        throw error;
       }
-      const hash = hasher.digest('hex');
-      if (hash !== sha256) {
-        await fs.unlink(target);
-        throw new Error(`node convert: ${sourcePath} SHA-256 ${hash} differs from its pin ${sha256}.`);
-      }
-      return { size, hash };
     },
   };
 }

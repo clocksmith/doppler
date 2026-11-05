@@ -22,6 +22,18 @@ export function partitionRetainedSourceTensors(tensors) {
   return { packed, retained };
 }
 
+/** @type {typeof import('./retained-source-shards.js').preflightRetainedSourceShards} */
+export async function preflightRetainedSourceShards(retained, io) {
+  if (!retained.length) return;
+  if (typeof io.retainSourceFile !== 'function') fail('this conversion surface cannot retain source files in the artifact.');
+  const paths = new Set();
+  for (const tensor of retained) {
+    if (typeof tensor.sourcePath !== 'string' || !tensor.sourcePath) fail(`${tensor.name} lacks its retained source path.`);
+    paths.add(tensor.sourcePath);
+  }
+  await io.preflightRetainedSources?.([...paths]);
+}
+
 /** @type {typeof import('./retained-source-shards.js').appendRetainedSourceShards} */
 export async function appendRetainedSourceShards(retained, io, shards, tensorLocations, options) {
   if (retained.length === 0) return [];
@@ -57,9 +69,12 @@ export async function appendRetainedSourceShards(retained, io, shards, tensorLoc
     const index = shards.length;
     const previous = shards[index - 1];
     const offset = previous ? previous.offset + previous.size : 0;
-    const { size, hash } = await io.retainSourceFile(sourcePath, index, sha256);
+    const { size, hash, filename = generateShardFilename(index) } = await io.retainSourceFile(sourcePath, index, sha256);
     if (hash !== sha256) fail(`${file} hashed to ${hash}; its pin is ${sha256}.`);
-    shards.push({ index, filename: generateShardFilename(index), size, hash, offset });
+    if (!filename || filename.includes('\\') || filename.startsWith('/') || filename.split('/').some(part => !part || part === '.' || part === '..') || filename.includes(':')) {
+      fail(`retained shard ${index} requires a relative artifact filename; got ${JSON.stringify(filename)}.`);
+    }
+    shards.push({ index, filename, size, hash, offset });
     for (const tensor of tensors) {
       if (!Number.isSafeInteger(tensor.offset) || !Number.isSafeInteger(tensor.size) || tensor.offset < 0
         || tensor.size <= 0 || tensor.offset + tensor.size > size) {

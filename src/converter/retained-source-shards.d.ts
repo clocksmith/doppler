@@ -1,4 +1,5 @@
 import type { RetainedSourceBinding } from './source-tensor-rules.js';
+import type { ConversionIOSchema } from '../config/schema/conversion.schema.js';
 
 export interface RetainedSourceTensor {
   name: string;
@@ -14,13 +15,7 @@ export interface RetainedSourceTensor {
   [key: string]: unknown;
 }
 
-export interface RetainedSourceShardIO {
-  /**
-   * Make the source file artifact shard `index` without copying its bytes and
-   * return its size and SHA-256; fails when the bytes differ from the pin.
-   */
-  retainSourceFile?(sourcePath: string, index: number, sha256: string): Promise<{ size: number; hash: string }>;
-}
+export type RetainedSourceShardIO = Pick<ConversionIOSchema, 'preflightRetainedSources' | 'retainSourceFile'>;
 
 export interface RetainedShardEntry {
   index: number;
@@ -41,6 +36,9 @@ export interface RetainedSourceShardReceipt {
 export declare function partitionRetainedSourceTensors<T extends { retainedSource?: RetainedSourceBinding }>(
   tensors: T[]
 ): { packed: T[]; retained: T[] };
+
+/** Reject missing retention capability and paths before tensor transformation. */
+export declare function preflightRetainedSourceShards(retained: RetainedSourceTensor[], io: RetainedSourceShardIO): Promise<void>;
 
 /**
  * Append one shard per retained source file after the packed shards, record

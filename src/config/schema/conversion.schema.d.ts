@@ -180,6 +180,11 @@ export interface WriteResultSchema {
 
 /** Platform-specific I/O adapter */
 export interface ConversionIOSchema {
+  /** Fail before packing when the surface cannot retain the declared files. */
+  preflightRetainedSources?(sourcePaths: string[]): Promise<void>;
+  /** Bind pinned source bytes as a shard without copying them. An in-root file
+   * may retain its relative filename instead of acquiring another link. */
+  retainSourceFile?(sourcePath: string, index: number, sha256: string): Promise<{ size: number; hash: string; filename?: string }>;
   /** Read tensor data from source */
   readTensorData(tensor: TensorInfoSchema): Promise<ArrayBuffer>;
   /** Write shard data, returns hash */

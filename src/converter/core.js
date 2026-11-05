@@ -1,5 +1,5 @@
 import { prepareFP8SourceTensors, readFP8CompanionScales } from './fp8-source.js';
-import { appendRetainedSourceShards, partitionRetainedSourceTensors } from './retained-source-shards.js';
+import { appendRetainedSourceShards, partitionRetainedSourceTensors, preflightRetainedSourceShards } from './retained-source-shards.js';
 
 import {
   // Constants
@@ -425,6 +425,7 @@ export async function convertModel(model, io, options = {}) {
   );
   const fp8Source = prepareFP8SourceTensors(sourceTensors, options.quantizationInfo?.fp8, model.config ?? null);
   const { packed: tensors, retained: retainedSources } = partitionRetainedSourceTensors(fp8Source.tensors);
+  await preflightRetainedSourceShards(retainedSources, io);
   if (!Array.isArray(tensors) || tensors.length === 0) {
     const textOnly = converterConfig?.output?.textOnly === true;
     if (textOnly) {
