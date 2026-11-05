@@ -4476,6 +4476,7 @@
         "tests/converter/q4_0-passthrough.test.js",
         "tests/converter/qat-quantization-info.test.js",
         "tests/converter/quantizer.test.js",
+        "tests/converter/qwen4-exp-source-buffers.test.js",
         "tests/converter/qwen4-exp-source.test.js",
         "tests/converter/release-to-javascript-receipt.test.js",
         "tests/converter/rope-config.test.js",
@@ -6816,6 +6817,12 @@
       "file": "tests/converter/linear-norm-gate.test.js",
       "kind": "asset",
       "line": 12,
+      "expression": "new URL(path, import.meta.url)"
+    },
+    {
+      "file": "tests/converter/qwen4-exp-source-buffers.test.js",
+      "kind": "asset",
+      "line": 9,
       "expression": "new URL(path, import.meta.url)"
     },
     {

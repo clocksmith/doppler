@@ -11,6 +11,7 @@ import { bootstrapNodeWebGPU } from './node-webgpu.js';
 import { buildManifestIntegrityFromModelDir } from './rdrr-integrity-refresh.js';
 import { readSourceRotaryFrequencies } from '../converter/source-rotary-frequencies.js';
 import { applySourceTensorRules } from '../converter/source-tensor-rules.js';
+import { authenticateQwen4ExpSourceBuffers } from '../converter/qwen4-exp-source.js';
 import {
   buildSourceTokenizerJson,
   validateSourceTokenizerPolicy,
@@ -634,6 +635,7 @@ export async function convertSafetensorsDirectory(options) {
       converterConfig.inference = { ...converterConfig.inference,
         rope: { ...converterConfig.inference?.rope, ropeInverseFrequencies: sourceFrequencies } };
     }
+    await authenticateQwen4ExpSourceBuffers(tensors, converterConfig, (t) => fileRangeReader.readRange(t.sourcePath, t.offset, t.size));
     tensors = applySourceTensorRules(tensors, converterConfig.sourceTensors);
     architecture = converterConfig.architecture ?? extractArchitecture(config, null);
     const tokenizerJsonPath = path.join(inputDir, 'tokenizer.json');
