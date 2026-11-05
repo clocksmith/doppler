@@ -33,6 +33,8 @@ definitions through Python AST. Run each with `python3 -I <script>`.
 | `qsa-stage-reference.json` | `prepare-qsa-stage-reference.py` | pass (2026-11-05, torch 2.11.0, arm64) |
 | `ple-reference.json` | `prepare-ple-reference.py` | pass (2026-11-05, torch 2.11.0, arm64) |
 | `decoder-composition-reference.json` | `prepare-decoder-composition-reference.py` | pass (2026-11-05, torch 2.11.0, arm64) |
+| `acquisition-receipt.json` | `acquire-text-checkpoint.py` | pass (2026-11-05; 131 files, 360,000,192,888 bytes) |
+| `storage-precision-scan.json` | `storage-precision-scan.py` | measured (2026-11-05, numpy 2.4.4) |
 
 No retained fixture fails. None of them qualifies Flash-Next or establishes a
 Doppler operator; all use synthetic weights or fixed strings.
@@ -64,6 +66,32 @@ token-times-multiplier products reach about 2^63; exact address arithmetic needs
 Text-only BF16 bytes by category: routed experts 225.00 GiB, n-gram table
 95.37 GiB, other text tensors 9.22 GiB; excluded vision 0.84 GiB and MTP
 4.86 GiB.
+
+### Checkpoint acquisition (2026-11-05)
+
+`acquire-text-checkpoint.py` downloaded every file holding a text tensor (all
+131; no file is vision-only) to the models drive of the qualification host,
+never to the Mac. Each file's length and SHA-256 equal the Hugging Face LFS
+`X-Linked-Size` and `X-Linked-ETag` at the pinned revision, and its header
+bytes equal `checkpoint-headers.json`. `acquisition-receipt.json` lists all
+131 files (360,000,192,888 bytes); the run took 2,545 s after one restart from
+a DNS failure. The conversion profile pins the 33 n-gram table files by these
+SHA-256 values. The seven metadata files beside the weights were copied from
+`source/` and checked against `source-binding.json`.
+
+### Storage precision (2026-11-05)
+
+`storage-precision-scan.py` reads every BF16 tensor that the conversion profile
+stores unquantized (everything except experts, attention and shared-expert
+projections, MTP, vision and the n-gram table) and counts values F16 storage
+cannot hold exactly. No value overflows F16. Norm vectors, `A_log` and
+`dt_bias` are exact. Projection classes have 0.01% to 0.05% inexact values, all
+in the F16 subnormal range below 6.1e-5, so each such value moves by at most
+2^-25 (about 3.0e-8) in absolute terms; a few hundred per class flush to zero
+(for example 91 of 157,286,400 attention hyper-connection down-projection
+values). The profile therefore stores these tensors as F16; qualification
+tolerances must carry this absolute bound. The n-gram table keeps its BF16
+bytes.
 
 ### PLE layer reference (2026-11-05)
 
@@ -348,11 +376,14 @@ The CPU expert execution reference is now in place at full geometry (MoE block a
 1. Learned-checkpoint comparison: an independent reference on learned weights
    for selected layers, in the checkpoint's bfloat16 dtype, covering indexer
    selection (ties, near ties), routing and gated-delta decay ranges.
-2. Conversion: RDRR conversion and conversion-quality controls. The norm-gate
-   contract now exists: the field, the qwen4_exp mapping and conversion
-   fail-fast guards are in place. A Flash-Next conversion config must author
-   `linearNormGateActivation: "sigmoid"`; conversion rejects omission or silu.
-   No Flash-Next conversion config or RDRR artifact exists yet.
+2. Conversion: the profile
+   `src/config/conversion/qwen3/qwen-3-8-flash-next-text-q4k-ehf16-af32.json`
+   (2026-11-05) excludes MTP (31) and vision (333) by explicit ignore rules,
+   authenticates and then ignores the three I64 buffers, retains the 128
+   n-gram table tensors in their 33 pinned files, and authors the three
+   qwen4_exp contracts, the sigmoid norm gate and the 32 source inverse
+   frequencies. The RDRR artifact and conversion-quality controls are not yet
+   established.
 3. GPU verification of the sigmoid gated-delta kernels against the CPU
    reference: done 2026-10-14 on Apple metal-3, AMD RDNA3 Vulkan and Intel
    Gen12LP Vulkan (see above). Neither establishes Flash-Next numerics on

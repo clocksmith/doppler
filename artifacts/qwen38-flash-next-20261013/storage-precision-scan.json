@@ -1,0 +1,322 @@
+{
+ "lm_head.weight": {
+  "tensors": 1,
+  "values": 635699200,
+  "inexact": 208406,
+  "overflow": 0,
+  "flushed": 1216,
+  "absmax": 0.412109375,
+  "absminNonzero": 1.659827830735594e-11,
+  "maxRelError": 1.0
+ },
+ "model.language_model.embed_tokens.weight": {
+  "tensors": 1,
+  "values": 635699200,
+  "inexact": 304377,
+  "overflow": 0,
+  "flushed": 1737,
+  "absmax": 0.2333984375,
+  "absminNonzero": 6.565414878423326e-12,
+  "maxRelError": 1.0
+ },
+ "model.language_model.hyper_connection_mixer.hc_norm.weight": {
+  "tensors": 1,
+  "values": 10240,
+  "inexact": 0,
+  "overflow": 0,
+  "flushed": 0,
+  "absmax": 12.375,
+  "absminNonzero": 0.0010833740234375,
+  "maxRelError": 0.0
+ },
+ "model.language_model.hyper_connection_mixer.input_mix_weight_down.weight": {
+  "tensors": 1,
+  "values": 3276800,
+  "inexact": 608,
+  "overflow": 0,
+  "flushed": 4,
+  "absmax": 1.3515625,
+  "absminNonzero": 1.2150849215686321e-09,
+  "maxRelError": 1.0
+ },
+ "model.language_model.hyper_connection_mixer.input_mix_weight_up.weight": {
+  "tensors": 1,
+  "values": 3276800,
+  "inexact": 204,
+  "overflow": 0,
+  "flushed": 0,
+  "absmax": 4.15625,
+  "absminNonzero": 9.499490261077881e-08,
+  "maxRelError": 0.2549019753932953
+ },
+ "model.language_model.layers.N.attn_hyper_connection.block_inject_weight.weight": {
+  "tensors": 48,
+  "values": 1966080,
+  "inexact": 755,
+  "overflow": 0,
+  "flushed": 5,
+  "absmax": 0.87890625,
+  "absminNonzero": 1.3271346688270569e-08,
+  "maxRelError": 1.0
+ },
+ "model.language_model.layers.N.attn_hyper_connection.hc_norm.weight": {
+  "tensors": 48,
+  "values": 491520,
+  "inexact": 7,
+  "overflow": 0,
+  "flushed": 0,
+  "absmax": 6.625,
+  "absminNonzero": 6.146728992462158e-08,
+  "maxRelError": 0.051094889640808105
+ },
+ "model.language_model.layers.N.attn_hyper_connection.input_mix_weight_down.weight": {
+  "tensors": 48,
+  "values": 157286400,
+  "inexact": 16184,
+  "overflow": 0,
+  "flushed": 91,
+  "absmax": 6.46875,
+  "absminNonzero": 7.219114195322618e-12,
+  "maxRelError": 1.0
+ },
+ "model.language_model.layers.N.attn_hyper_connection.input_mix_weight_up.weight": {
+  "tensors": 48,
+  "values": 157286400,
+  "inexact": 15786,
+  "overflow": 0,
+  "flushed": 102,
+  "absmax": 4.71875,
+  "absminNonzero": 3.979039320256561e-12,
+  "maxRelError": 1.0
+ },
+ "model.language_model.layers.N.linear_attn.A_log": {
+  "tensors": 36,
+  "values": 1728,
+  "inexact": 0,
+  "overflow": 0,
+  "flushed": 0,
+  "absmax": 7.125,
+  "absminNonzero": 0.0006561279296875,
+  "maxRelError": 0.0
+ },
+ "model.language_model.layers.N.linear_attn.conv1d.weight": {
+  "tensors": 36,
+  "values": 1474560,
+  "inexact": 1485,
+  "overflow": 0,
+  "flushed": 75,
+  "absmax": 0.98828125,
+  "absminNonzero": 4.472333961502706e-18,
+  "maxRelError": 1.0
+ },
+ "model.language_model.layers.N.linear_attn.dt_bias": {
+  "tensors": 36,
+  "values": 1728,
+  "inexact": 0,
+  "overflow": 0,
+  "flushed": 0,
+  "absmax": 11.4375,
+  "absminNonzero": 0.0022430419921875,
+  "maxRelError": 0.0
+ },
+ "model.language_model.layers.N.linear_attn.in_proj_a.weight": {
+  "tensors": 36,
+  "values": 4423680,
+  "inexact": 4007,
+  "overflow": 0,
+  "flushed": 614,
+  "absmax": 1.09375,
+  "absminNonzero": 2.7966962079517543e-11,
+  "maxRelError": 1.0
+ },
+ "model.language_model.layers.N.linear_attn.in_proj_b.weight": {
+  "tensors": 36,
+  "values": 4423680,
+  "inexact": 1901,
+  "overflow": 0,
+  "flushed": 12,
+  "absmax": 1.1875,
+  "absminNonzero": 4.31100488640368e-10,
+  "maxRelError": 1.0
+ },
+ "model.language_model.layers.N.linear_attn.norm.weight": {
+  "tensors": 36,
+  "values": 4608,
+  "inexact": 0,
+  "overflow": 0,
+  "flushed": 0,
+  "absmax": 1.578125,
+  "absminNonzero": 0.875,
+  "maxRelError": 0.0
+ },
+ "model.language_model.layers.N.mlp.gate.weight": {
+  "tensors": 48,
+  "values": 62914560,
+  "inexact": 18856,
+  "overflow": 0,
+  "flushed": 108,
+  "absmax": 3.28125,
+  "absminNonzero": 1.1226575225009583e-12,
+  "maxRelError": 1.0
+ },
+ "model.language_model.layers.N.mlp.shared_expert_gate.weight": {
+  "tensors": 48,
+  "values": 122880,
+  "inexact": 109,
+  "overflow": 0,
+  "flushed": 0,
+  "absmax": 0.09619140625,
+  "absminNonzero": 5.005858838558197e-08,
+  "maxRelError": 0.19069766998291016
+ },
+ "model.language_model.layers.N.mlp_hyper_connection.block_inject_weight.weight": {
+  "tensors": 48,
+  "values": 1966080,
+  "inexact": 681,
+  "overflow": 0,
+  "flushed": 1,
+  "absmax": 1.3203125,
+  "absminNonzero": 2.066371962428093e-09,
+  "maxRelError": 1.0
+ },
+ "model.language_model.layers.N.mlp_hyper_connection.hc_norm.weight": {
+  "tensors": 48,
+  "values": 491520,
+  "inexact": 4,
+  "overflow": 0,
+  "flushed": 0,
+  "absmax": 6.59375,
+  "absminNonzero": 2.3562461137771606e-07,
+  "maxRelError": 0.023255813866853714
+ },
+ "model.language_model.layers.N.mlp_hyper_connection.input_mix_weight_down.weight": {
+  "tensors": 48,
+  "values": 157286400,
+  "inexact": 18098,
+  "overflow": 0,
+  "flushed": 118,
+  "absmax": 4.125,
+  "absminNonzero": 6.875779945403337e-10,
+  "maxRelError": 1.0
+ },
+ "model.language_model.layers.N.mlp_hyper_connection.input_mix_weight_up.weight": {
+  "tensors": 48,
+  "values": 157286400,
+  "inexact": 12317,
+  "overflow": 0,
+  "flushed": 85,
+  "absmax": 8.5625,
+  "absminNonzero": 1.014086592476815e-10,
+  "maxRelError": 1.0
+ },
+ "model.language_model.layers.N.ple.conv1d.weight": {
+  "tensors": 1,
+  "values": 40960,
+  "inexact": 101,
+  "overflow": 0,
+  "flushed": 0,
+  "absmax": 0.3671875,
+  "absminNonzero": 4.819594323635101e-08,
+  "maxRelError": 0.23671497404575348
+ },
+ "model.language_model.layers.N.ple.key_proj.weight": {
+  "tensors": 1,
+  "values": 26214400,
+  "inexact": 8805,
+  "overflow": 0,
+  "flushed": 41,
+  "absmax": 0.6953125,
+  "absminNonzero": 3.292370820418e-10,
+  "maxRelError": 1.0
+ },
+ "model.language_model.layers.N.ple.norm_conv.weight": {
+  "tensors": 1,
+  "values": 10240,
+  "inexact": 0,
+  "overflow": 0,
+  "flushed": 0,
+  "absmax": 0.45703125,
+  "absminNonzero": 0.0002651214599609375,
+  "maxRelError": 0.0
+ },
+ "model.language_model.layers.N.ple.norm_key.weight": {
+  "tensors": 1,
+  "values": 10240,
+  "inexact": 0,
+  "overflow": 0,
+  "flushed": 0,
+  "absmax": 0.86328125,
+  "absminNonzero": 1.7523765563964844e-05,
+  "maxRelError": 0.0
+ },
+ "model.language_model.layers.N.ple.norm_query.weight": {
+  "tensors": 1,
+  "values": 10240,
+  "inexact": 0,
+  "overflow": 0,
+  "flushed": 0,
+  "absmax": 0.86328125,
+  "absminNonzero": 2.181529998779297e-05,
+  "maxRelError": 0.0
+ },
+ "model.language_model.layers.N.ple.value_proj.weight": {
+  "tensors": 1,
+  "values": 6553600,
+  "inexact": 4892,
+  "overflow": 0,
+  "flushed": 29,
+  "absmax": 0.1630859375,
+  "absminNonzero": 5.7980287238024175e-11,
+  "maxRelError": 1.0
+ },
+ "model.language_model.layers.N.self_attn.indexer.index_qk_proj.weight": {
+  "tensors": 12,
+  "values": 19660800,
+  "inexact": 3388,
+  "overflow": 0,
+  "flushed": 22,
+  "absmax": 0.7734375,
+  "absminNonzero": 7.821654435247183e-10,
+  "maxRelError": 1.0
+ },
+ "model.language_model.layers.N.self_attn.indexer.k_layernorm.weight": {
+  "tensors": 12,
+  "values": 1536,
+  "inexact": 0,
+  "overflow": 0,
+  "flushed": 0,
+  "absmax": 0.498046875,
+  "absminNonzero": 2.5033950805664062e-05,
+  "maxRelError": 0.0
+ },
+ "model.language_model.layers.N.self_attn.indexer.q_layernorm.weight": {
+  "tensors": 12,
+  "values": 1536,
+  "inexact": 0,
+  "overflow": 0,
+  "flushed": 0,
+  "absmax": 0.5,
+  "absminNonzero": 1.5735626220703125e-05,
+  "maxRelError": 0.0
+ },
+ "model.language_model.layers.N.self_attn.k_norm.weight": {
+  "tensors": 12,
+  "values": 3072,
+  "inexact": 0,
+  "overflow": 0,
+  "flushed": 0,
+  "absmax": 1.171875,
+  "absminNonzero": 0.00154876708984375,
+  "maxRelError": 0.0
+ },
+ "model.language_model.layers.N.self_attn.q_norm.weight": {
+  "tensors": 12,
+  "values": 3072,
+  "inexact": 0,
+  "overflow": 0,
+  "flushed": 0,
+  "absmax": 1.375,
+  "absminNonzero": 0.0078125,
+  "maxRelError": 0.0
+ }
+}
