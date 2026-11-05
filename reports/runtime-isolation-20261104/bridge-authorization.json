@@ -1,0 +1,16 @@
+{
+  "schema": "doppler.architecture-authorization/v1",
+  "baseCommit": "f78a255212186d056077329870f94bc562571d12",
+  "authorization": "User selected: Keep training behavior; supply CI authorization.",
+  "scope": {
+    "importer": "tooling/browser-harness/benchmark-execution.js",
+    "target": "experimental/training/suite.js",
+    "behavior": "Retain the existing lazy training-suite load, now resolved and checked by the dependency graph.",
+    "removalCondition": "Remove this bridge if training suite acquisition moves outside the browser benchmark harness."
+  },
+  "nonChanges": [
+    "No new training capability",
+    "No broader experimental dependency permission",
+    "No qualification or support claim"
+  ]
+}

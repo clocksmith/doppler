@@ -49,7 +49,7 @@ export async function createResidentPartitionSession(pipeline, allocation, token
       residentWeightBytes: [...(owner.dopplerLoader?.gpuBuffers ?? [])].reduce((bytes, buffer) => bytes + buffer.size, 0),
       generationDigest: computeCanonicalSha256(allocation.generation),
       ...(canonical ? { canonicalGenerationId: canonical.generationId } : {}), pipelinePreparation };
-  });
+  }, signal);
   /** @type {Map<string, import('./resident-partition.js').ResidentAttempt>} */
   const attempts = new Map();
   let closed = false;
@@ -236,7 +236,7 @@ export async function createResidentPartitionSession(pipeline, allocation, token
         // including cancellation or a failure after recording started.
         await owner.gpuContext?.device?.queue.onSubmittedWorkDone();
       }
-    });
+    }, combined);
     attempt.pending = operation;
     try { const result = await operation; combined.throwIfAborted(); return result; }
     catch (error) { attempt.retired = true; throw error; }
@@ -335,7 +335,7 @@ export async function createResidentPartitionSession(pipeline, allocation, token
         const tokenIds = await tokens.tokenize(messages, allocation.generation);
         combined.throwIfAborted();
         return tokenIds;
-      });
+      }, combined);
       attempt.pending = operation;
       try {
         const tokenIds = await operation;

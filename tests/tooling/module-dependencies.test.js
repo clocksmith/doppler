@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import { mkdtemp, writeFile, rm, readFile, access } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
-import { parseModuleDependencies, buildDependencyGraph, collectStronglyConnectedComponents, collectReachable } from '../../tools/lib/module-dependencies.js';
+import { parseModuleDependencies, dependencyPolicyErrors, buildDependencyGraph, collectStronglyConnectedComponents, collectReachable } from '../../tools/lib/module-dependencies.js';
 
 const parsed = parseModuleDependencies(`
 // import './comment.js';
@@ -54,6 +54,7 @@ try {
   await Promise.all(Object.entries(files).map(([name, contents]) => writeFile(path.join(root, name), contents)));
   const { graph: actual, diagnostics } = await buildDependencyGraph(root, ['a.js']);
   assert.equal(diagnostics[0].expression, 'import(name)');
+  assert.equal(dependencyPolicyErrors(diagnostics).length, 1, 'undeclared computed imports fail enforcement');
   assert(collectReachable(actual, [path.join(root, 'a.js')]).has(path.join(root, 'worker.js')));
   const eager = collectReachable(actual, [path.join(root, 'a.js')], edge => edge.kind !== 'dynamic');
   assert(!eager.has(path.join(root, 'hidden.js')));
@@ -62,6 +63,20 @@ try {
   const declared = await buildDependencyGraph(root, ['a.js'], { 'a.js': { 'import(name)': ['./declared.js'] } });
   assert.equal(declared.diagnostics.length, 0);
   assert(declared.graph.has(path.join(root, 'declared.js')));
+  const empty = await buildDependencyGraph(root, ['a.js'], { 'a.js': { 'import(name)': [] } });
+  assert.equal(dependencyPolicyErrors(empty.diagnostics)[0].kind, 'invalid-declaration');
+  const extension = await buildDependencyGraph(root, ['a.js'], { 'a.js': { 'import(name)': {
+    externalContract: 'test provider: callable create()', validatedBy: 'declared.js',
+  } } });
+  assert.equal(dependencyPolicyErrors(extension.diagnostics).length, 0);
+  assert.equal(extension.diagnostics[0].kind, 'external-contract');
+  assert(!extension.graph.get(path.join(root, 'a.js')).some(edge => edge.specifier === './declared.js'),
+    'a runtime validation owner is not a fabricated module target');
+  const missingOwner = await buildDependencyGraph(root, ['a.js'], { 'a.js': { 'import(name)': {
+    externalContract: 'test provider', validatedBy: 'missing.js',
+  } } });
+  assert.equal(dependencyPolicyErrors(missingOwner.diagnostics)[0].kind, 'invalid-declaration');
+
   const types = parseModuleDependencies("export type Result = import('./a.js').Result;", 'boundary.d.ts');
   assert.equal(types.edges[0].kind, 'type');
   assert(parseModuleDependencies('import { broken').diagnostics.some(item => item.kind === 'syntax'));

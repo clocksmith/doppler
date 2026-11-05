@@ -1,6 +1,6 @@
 {
   "schemaVersion": 4,
-  "debtAuthorization": "sha256:677e3e9fefec747a23a45c34400c35805ef0179a9bff1347fc33dffd6f8396f5",
+  "debtAuthorization": "sha256:ea060d2b41e2b40b824cc34cd45956e882b65049cf23b1cb96fae0fe8deb86ab",
   "facadeDependencies": {
     "config/transforms/execution-graph-transforms.js": [
       "converter/execution-graph-transforms.js"
@@ -123,8 +123,8 @@
     },
     "experimental/training": {
       "decision": "retain",
-      "consumerEvidence": ["package.json exports ./training", "training.js and training-browser.js expose training APIs", "tooling/node-command-execution.js loads operator-command", "tooling/browser-harness/benchmark-execution.js imports TRAINING_SUITE_MODULE_PATH pointing to experimental/training/suite.js; this remains an explicit graph diagnostic"],
-      "migration": "Retain. The inspected computed edge reveals an undeclared quarantine bridge; routing it through tooling/test-harness creates a cycle because suite/plan needs initializeInference. Separate training acquisition from harness assembly before admitting that edge. This inventory is not a complete production graph or evidence that training is dead. Public retirement requires versioned export and command migration."
+      "consumerEvidence": ["package.json exports ./training", "training.js and training-browser.js expose training APIs", "tooling/node-command-execution.js loads operator-command", "tooling/browser-harness/benchmark-execution.js imports TRAINING_SUITE_MODULE_PATH pointing to experimental/training/suite.js; this is now a declared, checked graph edge"],
+      "migration": "Retain existing training APIs and browser benchmark behavior through the explicitly reviewed quarantine bridge. Computed module targets are checked; external provider contracts remain separately inventoried. Remove the browser bridge if training suite acquisition moves outside the benchmark harness."
     },
     "experimental/distribution": {
       "decision": "retain",
@@ -235,6 +235,10 @@
     },
     "tooling/translation-artifact-competition.js": {
       "reason": "Translation competition evidence consumes an explicitly experimental trainer bridge descriptor."
+    },
+    "tooling/browser-harness/benchmark-execution.js": {
+      "reason": "Existing explicit browser training benchmark delegates to the quarantined training suite; its computed target is now a checked graph edge.",
+      "removalCondition": "Remove this bridge if training suite acquisition moves outside the browser benchmark harness."
     }
   },
   "reachability": {

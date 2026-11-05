@@ -47,7 +47,7 @@ for (const [name, entries] of Object.entries(roots)) {
 const testFiles = [...views.tests.eager, ...views.tests.lazyOnly];
 const report = {
   schemaVersion: 1,
-  description: 'Parsed potential dependencies, not observed execution. Injected core excludes executors supplied by the host. Computed dependencies without declarations remain diagnostics.',
+  description: 'Parsed potential dependencies, not observed execution. Injected core excludes executors supplied by the host. Computed dependencies require declared targets or explicit external runtime contracts; those contracts remain visible as diagnostics.',
   views,
   testOnly: testFiles.filter(file => !product.has(file)).sort(),
   diagnostics: diagnostics.sort((a, b) => a.file.localeCompare(b.file) || a.line - b.line),
@@ -67,5 +67,5 @@ if (changed.length) {
   else if (await fs.readFile(output, 'utf8').catch(() => '') !== text) {
     throw new Error('Dependency views are stale. Run node tools/report-source-dependencies.js --write.');
   }
-  console.log(`[source-dependencies] ${graph.size} files; ${report.testOnly.length} test-only; ${diagnostics.length} computed/unresolved diagnostics`);
+  console.log(`[source-dependencies] ${graph.size} files; ${report.testOnly.length} test-only; ${diagnostics.length} dependency diagnostics (including external runtime contracts)`);
 }

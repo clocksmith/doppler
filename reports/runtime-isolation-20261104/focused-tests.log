@@ -1,0 +1,430 @@
+TAP version 13
+# ✔ model-host-boundaries.test.js passed
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 0.438417
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 274.161
+[node-tests] ok: tests/client/model-host-boundaries.test.js
+TAP version 13
+# shader-source-scope.test: ok (contract doubles, not GPU execution)
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 0.387833
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 145.19825
+[node-tests] ok: tests/gpu/shader-source-scope.test.js
+TAP version 13
+# [140.0ms][GPU] Device lost: Test loss, Reason: destroyed
+# [140.9ms][Trace] Kernel tracing enabled {
+#   layers: [],
+#   breakOnAnomaly: false,
+#   explosionThreshold: 10,
+#   collapseThreshold: 0.000001,
+#   maxSteps: 5000
+# }
+# [141.3ms][GPU] Device lost: Test replacement, Reason: destroyed
+# pipeline-context-restoration.test: ok
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 0.398
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 163.845417
+[node-tests] ok: tests/inference/pipeline-context-restoration.test.js
+TAP version 13
+# Subtest: every exposed pipeline method declares ownership
+ok 1 - every exposed pipeline method declares ownership
+  ---
+  duration_ms: 0.928916
+  type: 'test'
+  ...
+# Subtest: ordinary promise functions and wrapped iterators retain one owner through aliases
+ok 2 - ordinary promise functions and wrapped iterators retain one owner through aliases
+  ---
+  duration_ms: 2.422041
+  type: 'test'
+  ...
+# Subtest: embedding batch scheduling releases compatibility scope between explicit execution calls
+ok 3 - embedding batch scheduling releases compatibility scope between explicit execution calls
+  ---
+  duration_ms: 3.065333
+  type: 'test'
+  ...
+# Subtest: standalone batch scheduler needs only request and execution ports and honors cancellation
+ok 4 - standalone batch scheduler needs only request and execution ports and honors cancellation
+  ---
+  duration_ms: 0.103042
+  type: 'test'
+  ...
+# Subtest: test module initialization completed
+ok 5 - test module initialization completed
+  ---
+  duration_ms: 0.040083
+  type: 'test'
+  ...
+1..5
+# tests 5
+# suites 0
+# pass 5
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 267.963208
+[node-tests] ok: tests/inference/pipeline-operation-contract.test.js
+TAP version 13
+# Subtest: queued cancellation rejects before another model releases its paused stream, without bypassing its lease
+ok 1 - queued cancellation rejects before another model releases its paused stream, without bypassing its lease
+  ---
+  duration_ms: 3.273042
+  type: 'test'
+  ...
+# Subtest: aborting a paused stream closes it and releases its model context without another consumer pull
+ok 2 - aborting a paused stream closes it and releases its model context without another consumer pull
+  ---
+  duration_ms: 0.602166
+  type: 'test'
+  ...
+# Subtest: unload closes an abandoned paused iterator before draining owned resources
+ok 3 - unload closes an abandoned paused iterator before draining owned resources
+  ---
+  duration_ms: 0.771
+  type: 'test'
+  ...
+# Subtest: cancellation retains the lease until active work and iterator cleanup settle
+ok 4 - cancellation retains the lease until active work and iterator cleanup settle
+  ---
+  duration_ms: 0.962084
+  type: 'test'
+  ...
+# Subtest: surviving waiters remain FIFO across a cancelled middle waiter
+ok 5 - surviving waiters remain FIFO across a cancelled middle waiter
+  ---
+  duration_ms: 0.566583
+  type: 'test'
+  ...
+# Subtest: shutdown reports background cleanup failure and still unloads under its context
+ok 6 - shutdown reports background cleanup failure and still unloads under its context
+  ---
+  duration_ms: 0.447792
+  type: 'test'
+  ...
+# Subtest: factory loading observes cancellation while waiting for another model scope
+ok 7 - factory loading observes cancellation while waiting for another model scope
+  ---
+  duration_ms: 0.458417
+  type: 'test'
+  ...
+# Subtest: factory preserves construction and cleanup failures
+ok 8 - factory preserves construction and cleanup failures
+  ---
+  duration_ms: 0.157583
+  type: 'test'
+  ...
+# Subtest: shutdown preserves the original unload failure for every caller
+ok 9 - shutdown preserves the original unload failure for every caller
+  ---
+  duration_ms: 0.252333
+  type: 'test'
+  ...
+# Subtest: cleanup that yields retains context until all of its work settles
+ok 10 - cleanup that yields retains context until all of its work settles
+  ---
+  duration_ms: 0.53075
+  type: 'test'
+  ...
+# Subtest: host evidence operations forward cancellation to lease acquisition
+ok 11 - host evidence operations forward cancellation to lease acquisition
+  ---
+  duration_ms: 0.316166
+  type: 'test'
+  ...
+# Subtest: test module initialization completed
+ok 12 - test module initialization completed
+  ---
+  duration_ms: 0.023834
+  type: 'test'
+  ...
+1..12
+# tests 12
+# suites 0
+# pass 12
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 143.749833
+[node-tests] ok: tests/inference/pipeline-scope-cancellation.test.js
+TAP version 13
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 0.306375
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 231.190792
+[node-tests] ok: tests/inference/resident-partition-lifecycle.test.js
+TAP version 13
+# doppler-model-session-reset.test: ok
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 0.455833
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 168.010792
+[node-tests] ok: tests/integration/doppler-model-session-reset.test.js
+TAP version 13
+# Subtest: scoped session exposes explicit capabilities and stable results
+ok 1 - scoped session exposes explicit capabilities and stable results
+  ---
+  duration_ms: 0.749959
+  type: 'test'
+  ...
+# Subtest: stream emits semantic events instead of return-dependent unions
+ok 2 - stream emits semantic events instead of return-dependent unions
+  ---
+  duration_ms: 0.460584
+  type: 'test'
+  ...
+# Subtest: scoped completion preserves declared stopping reasons and raw token counts
+ok 3 - scoped completion preserves declared stopping reasons and raw token counts
+  ---
+  duration_ms: 0.886959
+  type: 'test'
+  ...
+# Subtest: scoped stream never invents completion on failure or early consumer return
+ok 4 - scoped stream never invents completion on failure or early consumer return
+  ---
+  duration_ms: 0.376583
+  type: 'test'
+  ...
+# Subtest: scoped completion rejects invalid reasons or counters instead of inferring EOS
+ok 5 - scoped completion rejects invalid reasons or counters instead of inferring EOS
+  ---
+  duration_ms: 0.211875
+  type: 'test'
+  ...
+# Subtest: specialized models reject generation and streaming capabilities
+ok 6 - specialized models reject generation and streaming capabilities
+  ---
+  duration_ms: 0.145
+  type: 'test'
+  ...
+# Subtest: unsupported observation policies fail closed on a generation session
+ok 7 - unsupported observation policies fail closed on a generation session
+  ---
+  duration_ms: 0.067458
+  type: 'test'
+  ...
+# Subtest: close is idempotent and blocks later work
+ok 8 - close is idempotent and blocks later work
+  ---
+  duration_ms: 0.12925
+  type: 'test'
+  ...
+# Subtest: concurrent close and disposal wait for the same unload
+ok 9 - concurrent close and disposal wait for the same unload
+  ---
+  duration_ms: 0.293375
+  type: 'test'
+  ...
+# Subtest: every close caller observes the original unload failure without retrying cleanup
+ok 10 - every close caller observes the original unload failure without retrying cleanup
+  ---
+  duration_ms: 0.404958
+  type: 'test'
+  ...
+# Subtest: guided and deep inspection disclose non-representative execution
+ok 11 - guided and deep inspection disclose non-representative execution
+  ---
+  duration_ms: 0.15525
+  type: 'test'
+  ...
+# Subtest: test module initialization completed
+ok 12 - test module initialization completed
+  ---
+  duration_ms: 0.028458
+  type: 'test'
+  ...
+1..12
+# tests 12
+# suites 0
+# pass 12
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 42.16175
+[node-tests] ok: tests/integration/doppler-scoped-session.test.js
+TAP version 13
+# capsule-artifact-verification-reuse: passed
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 0.372959
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 190.126875
+[node-tests] ok: tests/runtime/capsule-artifact-verification-reuse.test.js
+TAP version 13
+# capsule-session-execution: exclusion, cancellation, draining and cleanup failure passed
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 0.2995
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 39.115458
+[node-tests] ok: tests/runtime/capsule-session-execution.test.js
+TAP version 13
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 0.384542
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 184.389167
+[node-tests] ok: tests/runtime/resident-partition-opening.test.js
+TAP version 13
+# browser-import-graph.test: dynamic targets and missing dependencies reject
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 0.56325
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 667.293084
+[node-tests] ok: tests/tooling/browser-import-graph.test.js
+TAP version 13
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 0.4875
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 786.891417
+[node-tests] ok: tests/tooling/module-dependencies.test.js
+TAP version 13
+# package-source-closure.test: ok
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 0.567375
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 4318.870333
+[node-tests] ok: tests/tooling/package-source-closure.test.js
+TAP version 13
+# source-architecture-debt.test: ok
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 0.689875
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 42.408208
+[node-tests] ok: tests/tooling/source-architecture-debt.test.js
+[node-tests] ok: 15 files

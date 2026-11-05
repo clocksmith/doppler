@@ -4,7 +4,7 @@ import fs from 'node:fs/promises';
 import path from 'node:path';
 import process from 'node:process';
 import { fileURLToPath } from 'node:url';
-import { createJavaScriptDependencyGraph } from './lib/javascript-dependency-graph.js';
+import { buildDependencyGraph, dependencyPolicyErrors } from './lib/module-dependencies.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const ROOT_DIR = path.resolve(__dirname, '..');
@@ -21,6 +21,7 @@ const ALLOWED_NODE_GATED_MODULES = new Set([
   'src/client/runtime/node-quickstart-cache.js',
   'src/storage/artifact-storage-context.js',
   'src/tooling/browser-harness/model-initialization.js',
+  'src/tooling/node-source-runtime.js',
   'src/tooling/browser-harness/model-resolution.js',
   'src/client/runtime/lora.js',
   'src/tooling/node-webgpu.js',
@@ -87,8 +88,10 @@ async function resolveLocalPath(importerPath, rawSpecifier) {
 // intentionally unreachable from browser code at runtime.
 
 async function scanImportGraph(entryFile) {
-  const graph = createJavaScriptDependencyGraph();
+  const declarations = JSON.parse(await fs.readFile(path.join(ROOT_DIR, 'tools/policies/module-dependencies.json'), 'utf8'));
   const entryAbsolute = path.resolve(ROOT_DIR, entryFile);
+  const graphRoot = path.relative(ROOT_DIR, entryAbsolute).startsWith('..') ? path.dirname(entryAbsolute) : ROOT_DIR;
+  const { graph, diagnostics } = await buildDependencyGraph(graphRoot, [entryAbsolute], declarations);
   const pending = [entryAbsolute];
   const seen = new Set();
   const issues = [];
@@ -100,7 +103,11 @@ async function scanImportGraph(entryFile) {
 
     let node;
     try {
-      node = await graph.read(currentFile);
+      node = { edges: (graph.get(currentFile) ?? []).map(edge => ({ ...edge,
+        kind: edge.kind === 'forward' ? 'static' : edge.kind })) };
+      for (const diagnostic of dependencyPolicyErrors(diagnostics.filter(item => item.file === path.relative(graphRoot, currentFile).split(path.sep).join('/')))) {
+        issues.push(`${diagnostic.kind}: ${diagnostic.file}:${diagnostic.line}: ${diagnostic.expression}`);
+      }
     } catch (error) {
       issues.push(`unreadable module: ${toRepoPath(currentFile)} (${error?.message || 'unknown error'})`);
       continue;

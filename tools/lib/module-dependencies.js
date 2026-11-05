@@ -99,10 +99,23 @@ export async function buildDependencyGraph(root, files, declarations = {}) {
     const parsed = file.endsWith('.js') || file.endsWith('.ts')
       ? parseModuleDependencies(await fs.readFile(file, 'utf8'), file) : { edges: [], diagnostics: [] };
     for (const diagnostic of parsed.diagnostics) {
+      if (!['dynamic', 'worker', 'asset'].includes(diagnostic.kind)) {
+        diagnostics.push({ file: relative, ...diagnostic });
+        continue;
+      }
       const declared = declarations[relative]?.[diagnostic.expression];
-      if (declared) {
+      if (Array.isArray(declared) && declared.length && declared.every(value => typeof value === 'string' && value.trim())) {
         for (const specifier of declared) parsed.edges.push({ kind: diagnostic.kind, specifier, line: diagnostic.line, declared: true });
-      } else diagnostics.push({ file: relative, ...diagnostic });
+      } else if (declared && typeof declared.externalContract === 'string' && declared.externalContract.trim()
+        && typeof declared.validatedBy === 'string' && !path.isAbsolute(declared.validatedBy)
+        && !declared.validatedBy.split('/').includes('..')
+        && (await fs.stat(path.join(root, declared.validatedBy)).catch(() => null))?.isFile()) {
+        // Runtime extension modules cannot be represented as invented local graph
+        // edges. Keep their interface and validation owner visible in the report.
+        diagnostics.push({ file: relative, ...diagnostic, kind: 'external-contract',
+          dependencyKind: diagnostic.kind, contract: declared.externalContract, validatedBy: declared.validatedBy });
+      } else diagnostics.push({ file: relative, ...diagnostic,
+        ...(declared === undefined ? {} : { kind: 'invalid-declaration' }) });
     }
     const edges = [];
     for (const edge of parsed.edges) {
@@ -246,4 +259,8 @@ export function createValueExportResolver(files, declarations = false) {
     return new Set([...resolve(checker.getSymbolAtLocation(source))]
       .filter(([, symbol]) => symbol !== null).map(([name]) => name));
   };
+}
+
+export function dependencyPolicyErrors(diagnostics) {
+  return diagnostics.filter(item => item.kind !== 'external-contract');
 }

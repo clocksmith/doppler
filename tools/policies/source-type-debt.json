@@ -520,7 +520,6 @@
     "src/gpu/kernels/sample.js",
     "src/gpu/kernels/scale.js",
     "src/gpu/kernels/shader-cache.js",
-    "src/gpu/kernels/shader-source-scope.js",
     "src/gpu/kernels/silu.js",
     "src/gpu/kernels/soft-embedding.js",
     "src/gpu/kernels/softmax.js",

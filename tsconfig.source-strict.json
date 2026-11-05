@@ -175,6 +175,7 @@
     "src/formats/gguf/qwen-source.js",
     "src/formats/gguf/tokenizer.js",
     "src/debug/pipeline-config.js",
-    "src/gpu/kernels/attention/query-splitk.js"
+    "src/gpu/kernels/attention/query-splitk.js",
+    "src/gpu/kernels/shader-source-scope.js"
   ]
 }

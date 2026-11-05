@@ -7,7 +7,7 @@ import process from 'node:process';
 import { fileURLToPath } from 'node:url';
 import { pathExistsAtGitRef, readJsonAtGitRef, readTextAtGitRef, resolvePolicyBaseRef } from './lib/policy-base.js';
 import { validateArchitecturePolicyDelta } from './lib/source-architecture-debt.js';
-import { collectModuleSpecifiers, collectStronglyConnectedComponents, buildDependencyGraph } from './lib/module-dependencies.js';
+import { collectModuleSpecifiers, collectStronglyConnectedComponents, buildDependencyGraph, dependencyPolicyErrors } from './lib/module-dependencies.js';
 
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const policyPath = path.join(repoRoot, 'tools/policies/source-architecture-policy.json');
@@ -127,7 +127,7 @@ async function validateProductionGraph(policy, sourceRoot, files, facadePaths, e
   const fullGraph = new Map();
   const declarations = JSON.parse(await fs.readFile(path.join(repoRoot, 'tools/policies/module-dependencies.json'), 'utf8'));
   const parsed = await buildDependencyGraph(repoRoot, [...sourceFiles], declarations);
-  for (const diagnostic of parsed.diagnostics.filter(item => item.kind === 'syntax' || item.kind === 'unresolved')) {
+  for (const diagnostic of dependencyPolicyErrors(parsed.diagnostics)) {
     errors.push(`${diagnostic.file}:${diagnostic.line}: ${diagnostic.kind}: ${diagnostic.expression}`);
   }
   const experimentalBridges = new Map(Object.entries(policy.experimentalBridges ?? {}));

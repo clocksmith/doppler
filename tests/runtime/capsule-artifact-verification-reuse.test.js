@@ -71,7 +71,7 @@ for (const shard of [{ hash: '0'.repeat(64) }, { hash: null }, { size: 9 }, { fi
     const source = await createCapsuleArtifactSource(f.capsule, facade);
     const before = store.getMetrics().returnedBytes;
     await source.storageContext.loadShard(0);
-    assert.equal(store.getMetrics().returnedBytes - before, 16, 'generic ports retain byte verification');
+    assert.equal(store.getMetrics().returnedBytes - before, 8, 'generic ports verify the returned buffer without a second copy');
   }
   store.close();
 }
@@ -97,7 +97,7 @@ for (const shard of [{ hash: '0'.repeat(64) }, { hash: null }, { size: 9 }, { fi
       await assert.rejects(source.storageContext.loadShard(0), /hash mismatch/);
     } else {
       assert.deepEqual(new Uint8Array(await source.storageContext.loadShard(0)), bytes);
-      assert.equal(store.getMetrics().returnedBytes - before, 16);
+      assert.equal(store.getMetrics().returnedBytes - before, 8);
     }
     store.close();
   }

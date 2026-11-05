@@ -1,0 +1,532 @@
+{
+  "schema": "doppler.package-audit/v1",
+  "baseCommit": "9d0b4482",
+  "runtimeBaseCommit": "f78a255212186d056077329870f94bc562571d12",
+  "toolchain": {
+    "node": "22.20.0",
+    "npm": "10.9.3"
+  },
+  "scope": "Complete baseline npm pack dry run reconstructed from tracked package inputs; candidate is HEAD plus runtime-isolation changes, excluding concurrent Flash-Next work. No GPU qualification.",
+  "baseline": {
+    "entryCount": 1823,
+    "size": 3524622,
+    "unpackedSize": 14824051
+  },
+  "candidate": {
+    "entryCount": 1852,
+    "size": 3564892,
+    "unpackedSize": 15208014
+  },
+  "packedCompressionAllowanceBytes": 2158,
+  "addedFiles": [
+    {
+      "path": "src/config/conversion/qwen3/qwen3.8-27b-q4_0-passthrough.json",
+      "size": 18650,
+      "mode": 420
+    },
+    {
+      "path": "src/gpu/kernels/attention/query-splitk.js",
+      "size": 5523,
+      "mode": 420
+    },
+    {
+      "path": "src/gpu/kernels/attention_prefill_query_splitk_f32.wgsl",
+      "size": 9541,
+      "mode": 420
+    },
+    {
+      "path": "src/gpu/kernels/attention_prefill_query_splitk_reduce_f32.wgsl",
+      "size": 3917,
+      "mode": 420
+    },
+    {
+      "path": "src/gpu/kernels/attention_prefill_query_tile_f16kv.wgsl",
+      "size": 8991,
+      "mode": 420
+    },
+    {
+      "path": "src/gpu/kernels/check_finiteness_f32.wgsl",
+      "size": 1027,
+      "mode": 420
+    },
+    {
+      "path": "src/gpu/kernels/linear-attention-recovery.js",
+      "size": 4302,
+      "mode": 420
+    },
+    {
+      "path": "src/gpu/kernels/matmul_f32_row_subgroup.wgsl",
+      "size": 4055,
+      "mode": 420
+    },
+    {
+      "path": "src/gpu/kernels/matmul_gguf_columns_hoisted_f32.wgsl",
+      "size": 16334,
+      "mode": 420
+    },
+    {
+      "path": "src/gpu/kernels/matmul_gguf_pair_columns_f32.wgsl",
+      "size": 14413,
+      "mode": 420
+    },
+    {
+      "path": "src/gpu/kernels/matmul_q4_0_tile128.wgsl",
+      "size": 24203,
+      "mode": 420
+    },
+    {
+      "path": "src/gpu/kernels/matmul_q4_0_tile128_bounded.wgsl",
+      "size": 24703,
+      "mode": 420
+    },
+    {
+      "path": "src/gpu/kernels/matmul_q4_0_tile64_bounded.wgsl",
+      "size": 14064,
+      "mode": 420
+    },
+    {
+      "path": "src/gpu/kernels/matmul_q4_0_tile64x128.wgsl",
+      "size": 17900,
+      "mode": 420
+    },
+    {
+      "path": "src/gpu/kernels/matmul_q4_0_tile64x128_bounded.wgsl",
+      "size": 18358,
+      "mode": 420
+    },
+    {
+      "path": "src/gpu/kernels/matmul_q4_1_columns_f32.wgsl",
+      "size": 6354,
+      "mode": 420
+    },
+    {
+      "path": "src/gpu/kernels/matmul_q5k.wgsl",
+      "size": 8389,
+      "mode": 420
+    },
+    {
+      "path": "src/gpu/kernels/matmul_q5k_columns.wgsl",
+      "size": 9029,
+      "mode": 420
+    },
+    {
+      "path": "src/gpu/kernels/matmul_q5k_cooperative.wgsl",
+      "size": 6910,
+      "mode": 420
+    },
+    {
+      "path": "src/gpu/kernels/matmul_q5k_tile64.wgsl",
+      "size": 15196,
+      "mode": 420
+    },
+    {
+      "path": "src/gpu/kernels/speculative-accept.js",
+      "size": 5943,
+      "mode": 420
+    },
+    {
+      "path": "src/gpu/kernels/speculative_accept.wgsl",
+      "size": 1278,
+      "mode": 420
+    },
+    {
+      "path": "src/gpu/kernels/speculative_accept_gpu_limit.wgsl",
+      "size": 1612,
+      "mode": 420
+    },
+    {
+      "path": "src/inference/pipelines/text/generator/compiled-greedy-window.js",
+      "size": 8643,
+      "mode": 420
+    },
+    {
+      "path": "src/inference/pipelines/text/generator/decode-readback.js",
+      "size": 2443,
+      "mode": 420
+    },
+    {
+      "path": "src/inference/pipelines/text/generator/recorded-step-executor.js",
+      "size": 3770,
+      "mode": 420
+    },
+    {
+      "path": "src/inference/pipelines/text/warm-generation.d.ts",
+      "size": 1101,
+      "mode": 420
+    },
+    {
+      "path": "src/inference/pipelines/text/warm-generation.js",
+      "size": 1753,
+      "mode": 420
+    },
+    {
+      "path": "src/storage/node-file-access.js",
+      "size": 3300,
+      "mode": 420
+    }
+  ],
+  "removedFiles": [],
+  "changedSizes": [
+    {
+      "path": "src/client/doppler-registry.js",
+      "before": 5500,
+      "after": 6110
+    },
+    {
+      "path": "src/client/model-host/index.js",
+      "before": 23877,
+      "after": 23919
+    },
+    {
+      "path": "src/client/model-host/model-session.d.ts",
+      "before": 12761,
+      "after": 13249
+    },
+    {
+      "path": "src/client/model-host/model-session.js",
+      "before": 25632,
+      "after": 28748
+    },
+    {
+      "path": "src/config/kernels/registry.json",
+      "before": 681658,
+      "after": 757519
+    },
+    {
+      "path": "src/config/param-validator.js",
+      "before": 15473,
+      "after": 15828
+    },
+    {
+      "path": "src/config/runtime/profiles/qwen3-6-35b-a3b-q4_0-candidate.json",
+      "before": 181164,
+      "after": 183117
+    },
+    {
+      "path": "src/config/schema/doppler.schema.js",
+      "before": 15231,
+      "after": 15439
+    },
+    {
+      "path": "src/config/schema/execution-v1.schema.d.ts",
+      "before": 16240,
+      "after": 16372
+    },
+    {
+      "path": "src/config/schema/kernel-warmup.schema.d.ts",
+      "before": 478,
+      "after": 1143
+    },
+    {
+      "path": "src/config/schema/kernel-warmup.schema.js",
+      "before": 94,
+      "after": 271
+    },
+    {
+      "path": "src/config/schema/loading.schema.d.ts",
+      "before": 6695,
+      "after": 6953
+    },
+    {
+      "path": "src/config/schema/loading.schema.js",
+      "before": 3697,
+      "after": 4052
+    },
+    {
+      "path": "src/config/schema/manifest.schema.d.ts",
+      "before": 27978,
+      "after": 28002
+    },
+    {
+      "path": "src/config/schema/quantization-defaults.schema.d.ts",
+      "before": 1144,
+      "after": 1152
+    },
+    {
+      "path": "src/converter/quantization-info.js",
+      "before": 22159,
+      "after": 22334
+    },
+    {
+      "path": "src/formats/gguf/quantized-formats.json",
+      "before": 478,
+      "after": 597
+    },
+    {
+      "path": "src/formats/rdrr/parsing.js",
+      "before": 6021,
+      "after": 6073
+    },
+    {
+      "path": "src/gpu/kernels/attention/executors.js",
+      "before": 28623,
+      "after": 29792
+    },
+    {
+      "path": "src/gpu/kernels/attention_prefill_query_tile_f32.wgsl",
+      "before": 7722,
+      "after": 8754
+    },
+    {
+      "path": "src/gpu/kernels/dispatch.js",
+      "before": 5369,
+      "after": 5376
+    },
+    {
+      "path": "src/gpu/kernels/gated_delta_conv_prefill.wgsl",
+      "before": 5193,
+      "after": 5187
+    },
+    {
+      "path": "src/gpu/kernels/gated_delta_recurrent_gguf_register_prefill.wgsl",
+      "before": 84174,
+      "after": 62761
+    },
+    {
+      "path": "src/gpu/kernels/generated/uniform-writers-2.js",
+      "before": 20322,
+      "after": 20652
+    },
+    {
+      "path": "src/gpu/kernels/generated/uniform-writers.js",
+      "before": 45199,
+      "after": 48715
+    },
+    {
+      "path": "src/gpu/kernels/kv-cache-write.js",
+      "before": 4100,
+      "after": 4139
+    },
+    {
+      "path": "src/gpu/kernels/linear-attention-core.js",
+      "before": 34372,
+      "after": 36100
+    },
+    {
+      "path": "src/gpu/kernels/matmul.js",
+      "before": 24813,
+      "after": 24835
+    },
+    {
+      "path": "src/gpu/kernels/matmul_f32.wgsl",
+      "before": 3395,
+      "after": 3790
+    },
+    {
+      "path": "src/gpu/kernels/matmul_q4_0_tile64.wgsl",
+      "before": 8403,
+      "after": 13629
+    },
+    {
+      "path": "src/gpu/kernels/moe_grouped_matmul_f32.wgsl",
+      "before": 7410,
+      "after": 10334
+    },
+    {
+      "path": "src/gpu/kernels/q4_0.js",
+      "before": 11040,
+      "after": 13777
+    },
+    {
+      "path": "src/gpu/kernels/rmsnorm.js",
+      "before": 11012,
+      "after": 11038
+    },
+    {
+      "path": "src/gpu/kernels/shader-source-scope.d.ts",
+      "before": 917,
+      "after": 1268
+    },
+    {
+      "path": "src/gpu/kernels/shader-source-scope.js",
+      "before": 3115,
+      "after": 7628
+    },
+    {
+      "path": "src/gpu/weight-buffer.d.ts",
+      "before": 7220,
+      "after": 7228
+    },
+    {
+      "path": "src/inference/pipelines/factory.js",
+      "before": 1916,
+      "after": 1996
+    },
+    {
+      "path": "src/inference/pipelines/shader-scoped-pipeline.d.ts",
+      "before": 1886,
+      "after": 1908
+    },
+    {
+      "path": "src/inference/pipelines/shader-scoped-pipeline.js",
+      "before": 11142,
+      "after": 12410
+    },
+    {
+      "path": "src/inference/pipelines/text/chat-format.js",
+      "before": 16224,
+      "after": 16288
+    },
+    {
+      "path": "src/inference/pipelines/text/ffn/dense-executor.js",
+      "before": 25108,
+      "after": 25127
+    },
+    {
+      "path": "src/inference/pipelines/text/generator.d.ts",
+      "before": 5016,
+      "after": 5041
+    },
+    {
+      "path": "src/inference/pipelines/text/generator.js",
+      "before": 20773,
+      "after": 20872
+    },
+    {
+      "path": "src/inference/pipelines/text/generator/decode-runtime.js",
+      "before": 42770,
+      "after": 46287
+    },
+    {
+      "path": "src/inference/pipelines/text/generator/decode.js",
+      "before": 40202,
+      "after": 39210
+    },
+    {
+      "path": "src/inference/pipelines/text/generator/prefill-observation.js",
+      "before": 1694,
+      "after": 2120
+    },
+    {
+      "path": "src/inference/pipelines/text/generator/prefill-policy.js",
+      "before": 1690,
+      "after": 3024
+    },
+    {
+      "path": "src/inference/pipelines/text/generator/prefill-runtime.js",
+      "before": 37954,
+      "after": 38325
+    },
+    {
+      "path": "src/inference/pipelines/text/generator/whole-token-lane.js",
+      "before": 9568,
+      "after": 19606
+    },
+    {
+      "path": "src/inference/pipelines/text/generator/whole-token-observation.d.ts",
+      "before": 3790,
+      "after": 4014
+    },
+    {
+      "path": "src/inference/pipelines/text/generator/whole-token-observation.js",
+      "before": 21183,
+      "after": 21991
+    },
+    {
+      "path": "src/inference/pipelines/text/generator/whole-token-program.d.ts",
+      "before": 2066,
+      "after": 4647
+    },
+    {
+      "path": "src/inference/pipelines/text/generator/whole-token-program.js",
+      "before": 27352,
+      "after": 36047
+    },
+    {
+      "path": "src/inference/pipelines/text/generator/whole-token-template.js",
+      "before": 18942,
+      "after": 20499
+    },
+    {
+      "path": "src/inference/pipelines/text/lifecycle.js",
+      "before": 32397,
+      "after": 32931
+    },
+    {
+      "path": "src/inference/pipelines/text/linear-attention.js",
+      "before": 27810,
+      "after": 27537
+    },
+    {
+      "path": "src/inference/pipelines/text/linear-attention/state-checkpoint.js",
+      "before": 2514,
+      "after": 4393
+    },
+    {
+      "path": "src/inference/pipelines/text/linear-attention/state-clone.js",
+      "before": 4142,
+      "after": 5057
+    },
+    {
+      "path": "src/inference/pipelines/text/partition-execution.js",
+      "before": 18821,
+      "after": 18885
+    },
+    {
+      "path": "src/inference/pipelines/text/pipeline-load-timing.js",
+      "before": 2170,
+      "after": 2220
+    },
+    {
+      "path": "src/inference/pipelines/text/pipeline.d.ts",
+      "before": 8910,
+      "after": 8935
+    },
+    {
+      "path": "src/inference/pipelines/text/resident-partition.js",
+      "before": 27348,
+      "after": 27376
+    },
+    {
+      "path": "src/inference/pipelines/text/state.d.ts",
+      "before": 5797,
+      "after": 5934
+    },
+    {
+      "path": "src/inference/pipelines/text/types.d.ts",
+      "before": 27160,
+      "after": 27191
+    },
+    {
+      "path": "src/loader/embedding-limit-preflight.js",
+      "before": 7915,
+      "after": 8379
+    },
+    {
+      "path": "src/rules/generated/rule-bundle.json",
+      "before": 55463,
+      "after": 55980
+    },
+    {
+      "path": "src/storage/artifact-storage-context.d.ts",
+      "before": 2954,
+      "after": 3026
+    },
+    {
+      "path": "src/storage/artifact-storage-context.js",
+      "before": 30060,
+      "after": 29613
+    },
+    {
+      "path": "src/storage/shards/integrity.js",
+      "before": 6796,
+      "after": 7461
+    },
+    {
+      "path": "src/tooling/browser-harness/timing-diagnostics.js",
+      "before": 16563,
+      "after": 16708
+    },
+    {
+      "path": "src/tooling/source-artifact-adapter.js",
+      "before": 13859,
+      "after": 13884
+    },
+    {
+      "path": "src/tooling/test-harness.js",
+      "before": 16456,
+      "after": 16548
+    }
+  ],
+  "candidateIntegrity": "sha512-By0vuRkprw56DNYL8DhWHPdE4gvV7TAvnW/fVa50bkB0s/WDZgkOy8yT+yEGKElHmGJ8drX8XQgjQYZcyASnag=="
+}

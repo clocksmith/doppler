@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "description": "Parsed potential dependencies, not observed execution. Injected core excludes executors supplied by the host. Computed dependencies without declarations remain diagnostics.",
+  "description": "Parsed potential dependencies, not observed execution. Injected core excludes executors supplied by the host. Computed dependencies require declared targets or explicit external runtime contracts; those contracts remain visible as diagnostics.",
   "views": {
     "injectedRuntimeCore": {
       "roots": [
@@ -826,7 +826,8 @@
         "src/tooling/capsule.js",
         "src/tooling/node-capsule-artifact-store.js",
         "src/tooling/node-webgpu-provider.v1.json",
-        "src/tooling/node-webgpu.js"
+        "src/tooling/node-webgpu.js",
+        "src/tooling/provider-v1-contract.js"
       ]
     },
     "compilerAndTooling": {
@@ -2167,7 +2168,8 @@
         "src/inference/pipelines/vision/spatial-merge.js",
         "src/storage/emulated-vram.js",
         "src/tooling/capsule.js",
-        "src/tooling/node-capsule-artifact-store.js"
+        "src/tooling/node-capsule-artifact-store.js",
+        "src/tooling/provider-v1-contract.js"
       ]
     },
     "experimental": {
@@ -4157,6 +4159,7 @@
         "src/tooling/capsule.js",
         "src/tooling/node-capsule-artifact-store.js",
         "src/tooling/node-source-runtime.js",
+        "src/tooling/provider-v1-contract.js",
         "src/tooling/reference-verify.js",
         "src/tooling/source-runtime/node-loader.js"
       ]
@@ -4836,6 +4839,7 @@
         "tests/inference/pipeline-load-cancellation.test.js",
         "tests/inference/pipeline-operation-contract.test.js",
         "tests/inference/pipeline-registry-isolation.test.js",
+        "tests/inference/pipeline-scope-cancellation.test.js",
         "tests/inference/pipeline-session-config.test.js",
         "tests/inference/pipeline-session-interleaving.test.js",
         "tests/inference/pipeline-shader-scope.test.js",
@@ -6636,8 +6640,7 @@
     "src/tooling/kernel-path-builder/index.js",
     "src/tooling/kernel-path-builder/runtime-overlay.js",
     "src/tooling/kernel-path-builder/validation.js",
-    "src/tooling/program-bundle-host.js",
-    "src/tooling/provider-v1-contract.js"
+    "src/tooling/program-bundle-host.js"
   ],
   "diagnostics": [
     {
@@ -6647,70 +6650,58 @@
       "expression": "import(/*webpackIgnore:true*/ /*@vite-ignore*/a)"
     },
     {
-      "file": "src/bootstrap.js",
-      "kind": "dynamic",
-      "line": 25,
-      "expression": "import(APP_ENTRY_URL)"
-    },
-    {
       "file": "src/experimental/training/lora/recovery.js",
-      "kind": "dynamic",
+      "kind": "external-contract",
       "line": 283,
-      "expression": "import(pathToFileURL(absoluteModulePath).href)"
+      "expression": "import(pathToFileURL(absoluteModulePath).href)",
+      "dependencyKind": "dynamic",
+      "contract": "configured trainer module with callable trainer.exportName",
+      "validatedBy": "src/experimental/training/lora/recovery.js"
     },
     {
       "file": "src/experimental/training/suite/execution.js",
-      "kind": "asset",
+      "kind": "external-contract",
       "line": 109,
-      "expression": "new URL(pathname, import.meta.url)"
+      "expression": "new URL(pathname, import.meta.url)",
+      "dependencyKind": "asset",
+      "contract": "caller-supplied training resource URL; not a module import",
+      "validatedBy": "src/experimental/training/suite/execution.js"
     },
     {
       "file": "src/inference/pipelines/text/init.js",
-      "kind": "dynamic",
+      "kind": "external-contract",
       "line": 888,
-      "expression": "import(simulatorEnvSpecifier)"
+      "expression": "import(simulatorEnvSpecifier)",
+      "dependencyKind": "dynamic",
+      "contract": "host simulator env: setSimulatorEnv",
+      "validatedBy": "src/inference/pipelines/text/init.js"
     },
     {
       "file": "src/inference/pipelines/text/init.js",
-      "kind": "dynamic",
+      "kind": "external-contract",
       "line": 892,
-      "expression": "import(simulatorIndexSpecifier)"
-    },
-    {
-      "file": "src/storage/reports.js",
-      "kind": "dynamic",
-      "line": 79,
-      "expression": "import(nodeModule('fs/promises'))"
-    },
-    {
-      "file": "src/storage/reports.js",
-      "kind": "dynamic",
-      "line": 80,
-      "expression": "import(nodeModule('path'))"
-    },
-    {
-      "file": "src/tooling/browser-harness/benchmark-execution.js",
-      "kind": "dynamic",
-      "line": 47,
-      "expression": "import(TRAINING_SUITE_MODULE_PATH)"
+      "expression": "import(simulatorIndexSpecifier)",
+      "dependencyKind": "dynamic",
+      "contract": "host simulator: createEmulationContext, isEmulationSupported",
+      "validatedBy": "src/inference/pipelines/text/init.js"
     },
     {
       "file": "src/tooling/browser-harness/runtime-config.js",
-      "kind": "asset",
+      "kind": "external-contract",
       "line": 74,
-      "expression": "new URL(target, import.meta.url)"
-    },
-    {
-      "file": "src/tooling/node-webgpu.js",
-      "kind": "dynamic",
-      "line": 61,
-      "expression": "import(specifier)"
+      "expression": "new URL(target, import.meta.url)",
+      "dependencyKind": "asset",
+      "contract": "caller-supplied runtime configuration URL; not a module import",
+      "validatedBy": "src/tooling/browser-harness/runtime-config.js"
     },
     {
       "file": "src/tooling/provider-v1-contract.js",
-      "kind": "dynamic",
+      "kind": "external-contract",
       "line": 146,
-      "expression": "import(provider.module)"
+      "expression": "import(provider.module)",
+      "dependencyKind": "dynamic",
+      "contract": "doe.webgpu-provider/v1: GPU factory, adapter and globals",
+      "validatedBy": "src/tooling/provider-v1-contract.js"
     },
     {
       "file": "tests/benchmarks/compare-chart-contract.test.js",

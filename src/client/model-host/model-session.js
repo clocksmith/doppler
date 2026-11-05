@@ -250,7 +250,7 @@ export function createModelHandle(pipeline, resolved) {
         resolutionPolicy,
       });
       return { evidence, inputTokenIds };
-    });
+    }, executionOptions.signal);
   }
 
   async function generateWithEvidence(prompt, options = {}) {
@@ -284,7 +284,7 @@ export function createModelHandle(pipeline, resolved) {
         stats,
         resolutionPolicy,
       });
-    });
+    }, options.signal);
   }
 
   async function rerankWithEvidence(query, documents, options = {}) {
@@ -329,7 +329,7 @@ export function createModelHandle(pipeline, resolved) {
         backendIdentityHash: hashEvidenceValue(backendIdentity),
         stats: snapshotModelEvidenceStats(stats),
       };
-    });
+    }, options.signal);
   }
 
   const handle = {
@@ -384,7 +384,7 @@ export function createModelHandle(pipeline, resolved) {
         const result = await scoreModelChoices(current, snapshot, control);
         assertActiveAdapterUnchanged(current, activeAdapter);
         return result;
-      });
+      }, control.signal);
     },
     async encodeSequence(sequence, options = {}) {
       assertRaw('encodeSequence');

@@ -1,0 +1,66 @@
+TAP version 13
+# Subtest: queued cancellation rejects before another model releases its paused stream, without bypassing its lease
+not ok 1 - queued cancellation rejects before another model releases its paused stream, without bypassing its lease
+  ---
+  duration_ms: 204.630125
+  type: 'test'
+  location: '/Users/xyz/deco/doppler/tests/inference/pipeline-scope-cancellation.test.js:31:1'
+  failureType: 'testCodeFailure'
+  error: 'Operation remained blocked by a paused stream'
+  code: 'ERR_TEST_FAILURE'
+  stack: |-
+    Timeout.<anonymous> (file:///Users/xyz/deco/doppler/tests/inference/pipeline-scope-cancellation.test.js:10:39)
+    listOnTimeout (node:internal/timers:588:17)
+    process.processTimers (node:internal/timers:523:7)
+  ...
+# Subtest: aborting a paused stream closes it and releases its model context without another consumer pull
+not ok 2 - aborting a paused stream closes it and releases its model context without another consumer pull
+  ---
+  duration_ms: 202.695709
+  type: 'test'
+  location: '/Users/xyz/deco/doppler/tests/inference/pipeline-scope-cancellation.test.js:53:1'
+  failureType: 'testCodeFailure'
+  error: 'Operation remained blocked by a paused stream'
+  code: 'ERR_TEST_FAILURE'
+  stack: |-
+    Timeout.<anonymous> (file:///Users/xyz/deco/doppler/tests/inference/pipeline-scope-cancellation.test.js:10:39)
+    listOnTimeout (node:internal/timers:588:17)
+    process.processTimers (node:internal/timers:523:7)
+  ...
+# Subtest: unload closes an abandoned paused iterator before draining owned resources
+not ok 3 - unload closes an abandoned paused iterator before draining owned resources
+  ---
+  duration_ms: 202.666958
+  type: 'test'
+  location: '/Users/xyz/deco/doppler/tests/inference/pipeline-scope-cancellation.test.js:66:1'
+  failureType: 'testCodeFailure'
+  error: 'Operation remained blocked by a paused stream'
+  code: 'ERR_TEST_FAILURE'
+  stack: |-
+    Timeout.<anonymous> (file:///Users/xyz/deco/doppler/tests/inference/pipeline-scope-cancellation.test.js:10:39)
+    listOnTimeout (node:internal/timers:588:17)
+    process.processTimers (node:internal/timers:523:7)
+  ...
+# Subtest: cancellation retains the lease until active work and iterator cleanup settle
+ok 4 - cancellation retains the lease until active work and iterator cleanup settle
+  ---
+  duration_ms: 1.676958
+  type: 'test'
+  ...
+# Subtest: test module initialization completed
+ok 5 - test module initialization completed
+  ---
+  duration_ms: 0.077334
+  type: 'test'
+  ...
+1..5
+# tests 5
+# suites 0
+# pass 2
+# fail 3
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 745.441417
+[node-tests] fail: tests/inference/pipeline-scope-cancellation.test.js
+[node-tests] failed 1/1

@@ -26,12 +26,14 @@ export async function createInitializedPipeline(PipelineClass, manifest, context
       signal?.throwIfAborted();
       pipeline.runtimeConfig = snapshotRuntimeConfig(pipeline.runtimeConfig);
     } catch (error) {
-      try { await pipeline.unload?.(); } catch { /* Preserve the construction failure. */ }
+      try { await pipeline.unload?.(); } catch (cleanup) {
+        throw new AggregateError([error, cleanup], 'Pipeline construction and cleanup failed.');
+      }
       throw error;
     } finally {
       try { releasePipelineContextGlobals(pipeline); }
       finally { restoreKernels?.(); restoreRules?.(); restoreObserver(); }
     }
-  });
+  }, signal);
   return scopePipelineShaders(pipeline, scope, undefined, { ruleRegistry, kernelRegistry }, observer);
 }

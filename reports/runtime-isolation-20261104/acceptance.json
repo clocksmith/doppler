@@ -1,0 +1,52 @@
+{
+  "schema": "doppler.runtime-isolation-acceptance/v1",
+  "agent": "D",
+  "baseCommit": "f78a255212186d056077329870f94bc562571d12",
+  "scope": "Cancellation, owned stream cleanup, public and resident operation signals, computed-import enforcement, verification-test repair and reviewed package budgets.",
+  "method": "Isolated HEAD snapshot plus only task-owned edits; concurrent Flash-Next changes excluded. Real wrappers with contract doubles; no GPU/model performance qualification.",
+  "checks": {
+    "focusedTestFiles": 15,
+    "cancellationBehavioralCases": 11,
+    "strictRoots": 161,
+    "inventoriedUncheckedImplementations": 950,
+    "unusedLocalRoots": 154,
+    "architecture": "passed with approved external authorization",
+    "browserImportGraphs": "both passed",
+    "packageClosure": "passed",
+    "packageBoundaries": "passed",
+    "dependencyReport": "current",
+    "catscan": "current, 29 components"
+  },
+  "trainingBridge": "Existing behavior retained with user approval; repository Actions variable configured and read back.",
+  "changedFileSha256": {
+    ".github/workflows/check-green.yml": "d923c5f796459ef39fff70b22fdb85b2f5005dae3b7d19fa558522531d5b4337",
+    "docs/architecture-dependencies.json": "7d68be125b981d5841fe55b0caaccca38b555d9ccb9afa2fb3d5ce4994d9ace3",
+    "src/client/model-host/index.js": "e5e04efcfa36b999ec506730e965de83e0090c41e773d3fee32a9704655bbb0b",
+    "src/client/model-host/model-session.js": "42a0ecb634f2ff6887090f650d25a570eb41b6c79ea6c9fa873188957974aaed",
+    "src/gpu/kernels/shader-source-scope.d.ts": "d23e67512cd88303ee32eb6fae9f48360a0134c395b0a4129d3a550090e54e1e",
+    "src/gpu/kernels/shader-source-scope.js": "ccaa927f1459bee2105481eb45e51543221886fb71c30e4ad44405bed2bc7db8",
+    "src/inference/pipelines/factory.js": "7ba7cb783cc8962932c002c8c820bb569acefa944bc1692f6824541de91fd92e",
+    "src/inference/pipelines/shader-scoped-pipeline.d.ts": "22bd934b6009edab87d25deb885d6fa6c6644bce395dd314e39b5b8cd3ffb629",
+    "src/inference/pipelines/shader-scoped-pipeline.js": "0d97b99e55de16e693774c23c05f1019d4ba05ebc0e579d5b83eb946f10e89ea",
+    "tests/inference/pipeline-scope-cancellation.test.js": "88d72856e32e6287f8e33963747b512b9db87ef57ab18ea54ae0eb10805554a2",
+    "tests/runtime/capsule-artifact-verification-reuse.test.js": "525c59aac093f3eb829b5db1b91b62f85c83ea538e73b63f444b433d52afb149",
+    "tests/tooling/module-dependencies.test.js": "ad774a01e0e39efe48c4afc411f39e693b3f9cd444388f3e4a92ddb1ec3429d5",
+    "tools/check-browser-import-graph.js": "f1fad13384d5f30e79df66c8c2f448b45fa16d8763cd942f5899d1c0483193a1",
+    "tools/check-source-architecture.js": "cab12d90a84e438c1096ccba4b1f1053a757dcdb4381507f93f8e1dd571b3f9f",
+    "tools/lib/module-dependencies.js": "97950a8192f5eb59286cf9cc2b0d00c7c39ef96684a435d870664d17416ff3d0",
+    "tools/policies/module-dependencies.json": "b8b06160978a5e7faa30682677da5f42ea7e68fb7a9544d5313f05a636b9aa33",
+    "tools/policies/source-architecture-policy.json": "ee3df2cf933cf15829641a8bc75d44905942fac340bb389ab13a399f4bbca13f",
+    "tools/policies/source-type-debt.json": "288c0a972ee0f0d7545ddefc2336514412b03110027e8bc88f7669326248cbc5",
+    "tsconfig.source-strict.json": "c2025ebe6e9bf6e80b1501a178ffce26ec23fdff16416c8d78d78b3cbea06d64",
+    "tsconfig.source-unused.json": "63235ae3dcd21741f9ead717d7e1fd0ec22dbca3c80187916d3f9501e842924c",
+    "tools/check-public-boundaries.js": "04e693d58f1e9ada5c632c5a80ab9c526db7c53636fc47462fc5d3a93c49c081",
+    "src/inference/pipelines/text/resident-partition.js": "380982b8c5841f42f36946dc36a3aa7deab379900fc9b184007da850181a1173",
+    "tools/report-source-dependencies.js": "3bd263408f0f71826825118baf0581aa74b176043a4ac229d596a4248144700d"
+  },
+  "remainingOutsideScope": [
+    "Flash-Next onboarding",
+    "stale recurrent-shader instrumentation anchors",
+    "browser-host optimization",
+    "archive retention"
+  ]
+}

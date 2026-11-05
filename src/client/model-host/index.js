@@ -169,11 +169,11 @@ async function resolveNodeArtifactStorageContext(loadSource) {
 // The host owns device acquisition. A binding is the selected device plus the
 // capability snapshot taken with it, so the pipeline executes on that device
 // with the same probed capabilities rather than whichever device is ambient.
-async function acquireHostDeviceBinding() {
+async function acquireHostDeviceBinding(signal) {
   return runWithShaderSourceScope(null, async () => {
     const device = await initDevice();
     return Object.freeze({ device, capabilities: getKernelCapabilities(), platformConfig: getPlatformConfig() });
-  });
+  }, signal);
 }
 
 function resolveArtifactStorageContext(loadSource) {
@@ -279,7 +279,7 @@ export function createDopplerRuntimeService({
         },
       }
       : await resolveManifestArtifactSource(resolved, manifestPayload);
-    const gpu = deviceBinding ?? await acquireHostDeviceBinding();
+    const gpu = deviceBinding ?? await acquireHostDeviceBinding(options.signal);
     const embeddingLimitError = resolveManifestGpuResidentEmbeddingLimitError(
       resolvedArtifactSource.manifest,
       {
@@ -419,7 +419,7 @@ export function createDopplerRuntimeService({
         async getProfile() {
           await ensureWebGPUAvailable();
           assertCapsuleLoadActive(options.signal);
-          deviceBinding = await acquireHostDeviceBinding();
+          deviceBinding = await acquireHostDeviceBinding(options.signal);
           assertCapsuleLoadActive(options.signal);
           const { device: gpuDevice, capabilities } = deviceBinding;
           return {

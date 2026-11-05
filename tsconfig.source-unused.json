@@ -157,6 +157,9 @@
     "src/gpu/kernels/moe-route.js",
     "src/inference/pipelines/text/moe/qwen-route-executor.js",
     "src/debug/pipeline-config.js",
-    "src/gpu/kernels/attention/query-splitk.js"
+    "src/gpu/kernels/attention/query-splitk.js",
+    "src/gpu/kernels/shader-source-scope.js",
+    "src/inference/pipelines/shader-scoped-pipeline.js",
+    "src/inference/pipelines/factory.js"
   ]
 }

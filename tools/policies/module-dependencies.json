@@ -1,24 +1,101 @@
 {
   "tools/qualify-document-search.js": {
-    "import(pathToFileURL(path.join(config.applicationDir, 'server.js')).href)": ["../examples/document-search/server.js"]
+    "import(pathToFileURL(path.join(config.applicationDir, 'server.js')).href)": [
+      "../examples/document-search/server.js"
+    ]
   },
   "tools/check-document-search-starter.js": {
-    "import(pathToFileURL(path.join(app, 'server.js')).href)": ["../examples/document-search/server.js"]
+    "import(pathToFileURL(path.join(app, 'server.js')).href)": [
+      "../examples/document-search/server.js"
+    ]
   },
   "src/tooling/browser-harness/model-initialization.js": {
-    "import(NODE_SOURCE_RUNTIME_MODULE_PATH)": ["../../tooling/node-source-runtime.js"]
+    "import(NODE_SOURCE_RUNTIME_MODULE_PATH)": [
+      "../../tooling/node-source-runtime.js"
+    ]
   },
   "src/inference/pipelines/text.js": {
-    "import(modulePath)": ["./diffusion-gemma/pipeline.js", "./diffusion/index.js", "./energy/index.js", "./structured/json-head-pipeline.js", "./energy-head/row-head-pipeline.js"]
+    "import(modulePath)": [
+      "./diffusion-gemma/pipeline.js",
+      "./diffusion/index.js",
+      "./energy/index.js",
+      "./structured/json-head-pipeline.js",
+      "./energy-head/row-head-pipeline.js"
+    ]
   },
   "src/inference/pipelines/structured/json-head-pipeline.js": {
-    "import(nodeModule('crypto'))": ["node:crypto"]
+    "import(nodeModule('crypto'))": [
+      "node:crypto"
+    ]
   },
   "src/formats/load-json.js": {
-    "import(nodeModule('fs/promises'))": ["node:fs/promises"],
-    "import(nodeModule('url'))": ["node:url"]
+    "import(nodeModule('fs/promises'))": [
+      "node:fs/promises"
+    ],
+    "import(nodeModule('url'))": [
+      "node:url"
+    ]
   },
   "src/gpu/kernels/shader-cache.js": {
-    "import(nodeModule('fs/promises'))": ["node:fs/promises"]
+    "import(nodeModule('fs/promises'))": [
+      "node:fs/promises"
+    ]
+  },
+  "src/tooling/node-webgpu.js": {
+    "import(specifier)": [
+      "./provider-v1-contract.js"
+    ]
+  },
+  "src/tooling/browser-harness/benchmark-execution.js": {
+    "import(TRAINING_SUITE_MODULE_PATH)": [
+      "../../experimental/training/suite.js"
+    ]
+  },
+  "src/storage/reports.js": {
+    "import(nodeModule('fs/promises'))": [
+      "node:fs/promises"
+    ],
+    "import(nodeModule('path'))": [
+      "node:path"
+    ]
+  },
+  "src/bootstrap.js": {
+    "import(APP_ENTRY_URL)": [
+      "../demo/demo.js"
+    ]
+  },
+  "src/inference/pipelines/text/init.js": {
+    "import(simulatorEnvSpecifier)": {
+      "externalContract": "host simulator env: setSimulatorEnv",
+      "validatedBy": "src/inference/pipelines/text/init.js"
+    },
+    "import(simulatorIndexSpecifier)": {
+      "externalContract": "host simulator: createEmulationContext, isEmulationSupported",
+      "validatedBy": "src/inference/pipelines/text/init.js"
+    }
+  },
+  "src/experimental/training/lora/recovery.js": {
+    "import(pathToFileURL(absoluteModulePath).href)": {
+      "externalContract": "configured trainer module with callable trainer.exportName",
+      "validatedBy": "src/experimental/training/lora/recovery.js"
+    }
+  },
+  "src/tooling/provider-v1-contract.js": {
+    "import(provider.module)": {
+      "externalContract": "doe.webgpu-provider/v1: GPU factory, adapter and globals",
+      "validatedBy": "src/tooling/provider-v1-contract.js"
+    }
+  },
+  "src/experimental/training/suite/execution.js": {
+    "new URL(pathname, import.meta.url)": {
+      "externalContract": "caller-supplied training resource URL; not a module import",
+      "validatedBy": "src/experimental/training/suite/execution.js"
+    }
+  },
+  "src/tooling/browser-harness/runtime-config.js": {
+    "new URL(target, import.meta.url)": {
+      "externalContract": "caller-supplied runtime configuration URL; not a module import",
+      "validatedBy": "src/tooling/browser-harness/runtime-config.js"
+    }
   }
 }

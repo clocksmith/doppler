@@ -71,32 +71,52 @@ function notifyIdle(owner) {
   if (!owner.pending && !owner.mutating) owner.onIdle?.();
 }
 
-export async function runPipelineOperation(pipeline, action) {
+export async function runPipelineOperation(pipeline, action, signal) {
   const owner = owners.get(scopePipelineShaders(pipeline));
   // Internal calls use the original pipeline, as scoped methods do, without
   // acquiring their own lease again. External handles retain the guarded view.
-  return runOperation(owner, 'execute', () => action(owner.pipeline));
+  return runOperation(owner, 'execute', () => action(owner.pipeline), false, signal);
 }
 
-async function runOperation(owner, key, action, explicit = false) {
+async function runOperation(owner, key, action, explicit = false, signal) {
   const release = beginOperation(owner);
   try {
+    signal?.throwIfAborted();
     if (explicit) return await action();
     return await runWithShaderSourceScope(owner.scope, () => invoke(owner, key, () => {
       assertOpen(owner);
       return action();
-    }));
+    }), signal);
   } finally { release(); }
 }
 
-async function* streamOperation(owner, key, action) {
-  const release = beginOperation(owner);
-  try {
-    yield* streamWithShaderSourceScope(owner.scope, () => stream(owner, key, () => {
-      assertOpen(owner);
-      return action();
-    }));
-  } finally { release(); }
+function streamOperation(owner, key, action, signal) {
+  let iterator, ended = false;
+  function start() {
+    if (!iterator) {
+      const release = beginOperation(owner);
+      iterator = streamWithShaderSourceScope(owner.scope, () => stream(owner, key, () => {
+        assertOpen(owner);
+        return action();
+      }), signal);
+      owner.streams.add(iterator);
+      iterator.closed.catch(error => { owner.cleanupFailures.add(error); }).finally(() => {
+        owner.streams.delete(iterator);
+        release();
+      });
+    }
+    return iterator;
+  }
+  return {
+    [Symbol.asyncIterator]() { return this; },
+    async next(value) { return ended ? { done: true, value: undefined } : start().next(value); },
+    async return(value) {
+      if (!iterator) { ended = true; return { done: true, value }; }
+      try { return await iterator.return(value); }
+      catch (error) { owner.cleanupFailures.delete(error); throw error; }
+    },
+    async throw(error) { ended = true; if (iterator) return iterator.throw(error); throw error; },
+  };
 }
 
 function closeOwner(owner, action) {
@@ -104,9 +124,14 @@ function closeOwner(owner, action) {
     owner.closing = true;
     const idle = owner.pending || owner.mutating
       ? new Promise(resolve => { owner.onIdle = resolve; }) : Promise.resolve();
-    owner.closeTask = idle.then(() => runWithShaderSourceScope(
-      owner.scope, () => invoke(owner, 'unload', action)
-    ));
+    for (const iterator of owner.streams) iterator.return().catch(() => {});
+    owner.closeTask = idle.then(async () => {
+      const errors = [...owner.cleanupFailures];
+      try { await runWithShaderSourceScope(owner.scope, () => invoke(owner, 'unload', action)); }
+      catch (error) { errors.push(error); }
+      if (errors.length === 1) throw errors[0];
+      if (errors.length > 1) throw new AggregateError(errors, 'Pipeline cleanup failed.');
+    });
   }
   return owner.closeTask;
 }
@@ -199,7 +224,7 @@ export function scopePipelineShaders(pipeline, scope, operations = pipeline.oper
     if (typeof definition !== 'string') Object.freeze(definition);
   }
   const owner = { pipeline, contract, ruleRegistry, kernelRegistry, observer: resolveDiagnosticObserver(observer), scope: scope === undefined ? getStorageShaderSourceScope(pipeline.storageContext) : scope,
-    pending: 0, mutating: false, closing: false, closeTask: null, onIdle: null, proxy: null };
+    streams: new Set(), cleanupFailures: new Set(), pending: 0, mutating: false, closing: false, closeTask: null, onIdle: null, proxy: null };
   const methods = new Map();
   const proxy = new Proxy(pipeline, {
     get(target, key) {
@@ -213,12 +238,12 @@ export function scopePipelineShaders(pipeline, scope, operations = pipeline.oper
       if (kind === 'shutdown') {
         bound = (...args) => closeOwner(owner, () => value.apply(target, args));
       } else if (kind === 'streaming') {
-        bound = (...args) => streamOperation(owner, key, () => value.apply(target, args));
+        bound = (...args) => streamOperation(owner, key, () => value.apply(target, args), args.at(-1)?.signal);
       } else if (kind === 'execution') {
         const explicit = definition?.context === 'explicit';
         // Explicit orchestrators call only declared services through the guarded
         // view. Each legacy compute call still acquires compatibility scope.
-        bound = (...args) => runOperation(owner, key, () => value.apply(explicit ? proxy : target, args), explicit);
+        bound = (...args) => runOperation(owner, key, () => value.apply(explicit ? proxy : target, args), explicit, args.at(-1)?.signal);
       } else if (kind === 'mutation' || kind === 'reset') {
         bound = (...args) => { assertMutable(owner); return value.apply(target, args); };
       } else {
