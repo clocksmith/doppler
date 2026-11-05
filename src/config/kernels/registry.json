@@ -36576,6 +36576,317 @@
      }
     }
    }
+  },
+  "hyper_connection_norm": {
+   "description": "qwen4_exp hyper-connection grouped RMSNorm: per-stream RMS with (1 + weight) per-stream slices",
+   "baseBindings": [
+    {
+     "index": 0,
+     "name": "uniforms",
+     "type": "uniform"
+    },
+    {
+     "index": 1,
+     "name": "input",
+     "type": "read-only-storage"
+    },
+    {
+     "index": 2,
+     "name": "weight",
+     "type": "read-only-storage"
+    },
+    {
+     "index": 3,
+     "name": "output",
+     "type": "storage"
+    }
+   ],
+   "baseUniforms": {
+    "size": 16,
+    "fields": [
+     {
+      "name": "group_count",
+      "type": "u32",
+      "offset": 0
+     },
+     {
+      "name": "group_stride",
+      "type": "u32",
+      "offset": 4
+     },
+     {
+      "name": "eps",
+      "type": "f32",
+      "offset": 8
+     },
+     {
+      "name": "_pad0",
+      "type": "u32",
+      "offset": 12,
+      "padding": true
+     }
+    ]
+   },
+   "variants": {
+    "f32": {
+     "wgsl": "hyper_connection_norm.wgsl",
+     "entryPoint": "main",
+     "workgroup": [256,1,1],
+     "requires": [],
+     "outputDtype": "f32",
+     "wgslOverrides": {
+      "WORKGROUP_SIZE": 256
+     },
+     "reachability": {
+      "status": "unused",
+      "inlineConfigs": [],
+      "ruleChains": [],
+      "wgslOnDisk": true
+     }
+    }
+   }
+  },
+  "hyper_connection_activation": {
+   "description": "qwen4_exp hyper-connection activations: silu(x / streams), sigmoid(x), 2 * sigmoid(x / streams)",
+   "baseBindings": [
+    {
+     "index": 0,
+     "name": "uniforms",
+     "type": "uniform"
+    },
+    {
+     "index": 1,
+     "name": "input",
+     "type": "read-only-storage"
+    },
+    {
+     "index": 2,
+     "name": "output",
+     "type": "storage"
+    }
+   ],
+   "baseUniforms": {
+    "size": 16,
+    "fields": [
+     {
+      "name": "size",
+      "type": "u32",
+      "offset": 0
+     },
+     {
+      "name": "dispatch_stride",
+      "type": "u32",
+      "offset": 4
+     },
+     {
+      "name": "_pad0",
+      "type": "u32",
+      "offset": 8,
+      "padding": true
+     },
+     {
+      "name": "_pad1",
+      "type": "u32",
+      "offset": 12,
+      "padding": true
+     }
+    ]
+   },
+   "variants": {
+    "low_rank_silu": {
+     "wgsl": "hyper_connection_activation.wgsl",
+     "entryPoint": "low_rank_silu",
+     "workgroup": [256,1,1],
+     "requires": [],
+     "outputDtype": "f32",
+     "wgslOverrides": {
+      "WORKGROUP_SIZE": 256
+     },
+     "reachability": {
+      "status": "unused",
+      "inlineConfigs": [],
+      "ruleChains": [],
+      "wgslOnDisk": true
+     }
+    },
+    "mix_sigmoid": {
+     "wgsl": "hyper_connection_activation.wgsl",
+     "entryPoint": "mix_sigmoid",
+     "workgroup": [256,1,1],
+     "requires": [],
+     "outputDtype": "f32",
+     "wgslOverrides": {
+      "WORKGROUP_SIZE": 256
+     },
+     "reachability": {
+      "status": "unused",
+      "inlineConfigs": [],
+      "ruleChains": [],
+      "wgslOnDisk": true
+     }
+    },
+    "inject_gate": {
+     "wgsl": "hyper_connection_activation.wgsl",
+     "entryPoint": "inject_gate",
+     "workgroup": [256,1,1],
+     "requires": [],
+     "outputDtype": "f32",
+     "wgslOverrides": {
+      "WORKGROUP_SIZE": 256
+     },
+     "reachability": {
+      "status": "unused",
+      "inlineConfigs": [],
+      "ruleChains": [],
+      "wgslOnDisk": true
+     }
+    }
+   }
+  },
+  "hyper_connection_branch": {
+   "description": "qwen4_exp hyper-connection branch input: mean over streams of mix weights times normalized streams",
+   "baseBindings": [
+    {
+     "index": 0,
+     "name": "uniforms",
+     "type": "uniform"
+    },
+    {
+     "index": 1,
+     "name": "mix",
+     "type": "read-only-storage"
+    },
+    {
+     "index": 2,
+     "name": "normed",
+     "type": "read-only-storage"
+    },
+    {
+     "index": 3,
+     "name": "output",
+     "type": "storage"
+    }
+   ],
+   "baseUniforms": {
+    "size": 16,
+    "fields": [
+     {
+      "name": "size",
+      "type": "u32",
+      "offset": 0
+     },
+     {
+      "name": "dispatch_stride",
+      "type": "u32",
+      "offset": 4
+     },
+     {
+      "name": "_pad0",
+      "type": "u32",
+      "offset": 8,
+      "padding": true
+     },
+     {
+      "name": "_pad1",
+      "type": "u32",
+      "offset": 12,
+      "padding": true
+     }
+    ]
+   },
+   "variants": {
+    "f32": {
+     "wgsl": "hyper_connection_branch.wgsl",
+     "entryPoint": "main",
+     "workgroup": [256,1,1],
+     "requires": [],
+     "outputDtype": "f32",
+     "wgslOverrides": {
+      "WORKGROUP_SIZE": 256
+     },
+     "reachability": {
+      "status": "unused",
+      "inlineConfigs": [],
+      "ruleChains": [],
+      "wgslOnDisk": true
+     }
+    }
+   }
+  },
+  "hyper_connection_inject": {
+   "description": "qwen4_exp hyper-connection injection: streams plus branch output times per-stream gate",
+   "baseBindings": [
+    {
+     "index": 0,
+     "name": "uniforms",
+     "type": "uniform"
+    },
+    {
+     "index": 1,
+     "name": "streams",
+     "type": "read-only-storage"
+    },
+    {
+     "index": 2,
+     "name": "branch",
+     "type": "read-only-storage"
+    },
+    {
+     "index": 3,
+     "name": "gate",
+     "type": "read-only-storage"
+    },
+    {
+     "index": 4,
+     "name": "output",
+     "type": "storage"
+    }
+   ],
+   "baseUniforms": {
+    "size": 16,
+    "fields": [
+     {
+      "name": "size",
+      "type": "u32",
+      "offset": 0
+     },
+     {
+      "name": "dispatch_stride",
+      "type": "u32",
+      "offset": 4
+     },
+     {
+      "name": "_pad0",
+      "type": "u32",
+      "offset": 8,
+      "padding": true
+     },
+     {
+      "name": "_pad1",
+      "type": "u32",
+      "offset": 12,
+      "padding": true
+     }
+    ]
+   },
+   "variants": {
+    "f32": {
+     "wgsl": "hyper_connection_inject.wgsl",
+     "entryPoint": "main",
+     "workgroup": [256,1,1],
+     "requires": [],
+     "outputDtype": "f32",
+     "wgslOverrides": {
+      "WORKGROUP_SIZE": 256
+     },
+     "reachability": {
+      "status": "unused",
+      "inlineConfigs": [],
+      "ruleChains": [],
+      "wgslOnDisk": true
+     }
+    }
+   }
   }
  }
 }

@@ -537,4 +537,10 @@ export const UNIFORM_WRITERS = Object.freeze({
   "moe_grouped_down/native_f32_ordered": { size: 32, write: writers2.write_moe_grouped_gu_native_f32 },
   "speculative_accept/greedy": { size: 16, write: writers2.write_speculative_accept_greedy },
   "speculative_accept/greedy_gpu_limit": { size: 16, write: writers2.write_speculative_accept_greedy },
+  "hyper_connection_norm/f32": { size: 16, write: writers2.write_hyper_connection_norm_f32 },
+  "hyper_connection_activation/low_rank_silu": { size: 16, write: writers2.write_hyper_connection_activation_low_rank_silu },
+  "hyper_connection_activation/mix_sigmoid": { size: 16, write: writers2.write_hyper_connection_activation_low_rank_silu },
+  "hyper_connection_activation/inject_gate": { size: 16, write: writers2.write_hyper_connection_activation_low_rank_silu },
+  "hyper_connection_branch/f32": { size: 16, write: writers2.write_hyper_connection_activation_low_rank_silu },
+  "hyper_connection_inject/f32": { size: 16, write: writers2.write_hyper_connection_activation_low_rank_silu },
 });

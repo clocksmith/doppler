@@ -428,3 +428,17 @@ export function write_speculative_accept_greedy(view, values, kernel) {
   writeU32(view, 8, values["vocab_size"], kernel, "vocab_size");
   writeU32(view, 12, values["_pad"], kernel, "_pad");
 }
+
+export function write_hyper_connection_norm_f32(view, values, kernel) {
+  writeU32(view, 0, values["group_count"], kernel, "group_count");
+  writeU32(view, 4, values["group_stride"], kernel, "group_stride");
+  writeF32(view, 8, values["eps"], kernel, "eps");
+  view.setUint32(12, 0, true);
+}
+
+export function write_hyper_connection_activation_low_rank_silu(view, values, kernel) {
+  writeU32(view, 0, values["size"], kernel, "size");
+  writeU32(view, 4, values["dispatch_stride"], kernel, "dispatch_stride");
+  view.setUint32(8, 0, true);
+  view.setUint32(12, 0, true);
+}

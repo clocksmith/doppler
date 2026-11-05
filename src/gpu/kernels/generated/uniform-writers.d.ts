@@ -537,5 +537,11 @@ export interface KernelUniformValues {
   "moe_grouped_down/native_f32_ordered": Parameters<typeof writers2.write_moe_grouped_gu_native_f32>[1];
   "speculative_accept/greedy": Parameters<typeof writers2.write_speculative_accept_greedy>[1];
   "speculative_accept/greedy_gpu_limit": Parameters<typeof writers2.write_speculative_accept_greedy>[1];
+  "hyper_connection_norm/f32": Parameters<typeof writers2.write_hyper_connection_norm_f32>[1];
+  "hyper_connection_activation/low_rank_silu": Parameters<typeof writers2.write_hyper_connection_activation_low_rank_silu>[1];
+  "hyper_connection_activation/mix_sigmoid": Parameters<typeof writers2.write_hyper_connection_activation_low_rank_silu>[1];
+  "hyper_connection_activation/inject_gate": Parameters<typeof writers2.write_hyper_connection_activation_low_rank_silu>[1];
+  "hyper_connection_branch/f32": Parameters<typeof writers2.write_hyper_connection_activation_low_rank_silu>[1];
+  "hyper_connection_inject/f32": Parameters<typeof writers2.write_hyper_connection_activation_low_rank_silu>[1];
 }
 export declare const UNIFORM_WRITERS: { readonly [K in keyof KernelUniformValues]: { readonly size: number; readonly write: (view: DataView, values: KernelUniformValues[K], kernel: string) => void } };

@@ -42,3 +42,5 @@ export declare function write_sigmoid_gated_add_f32(view: DataView, values: { "s
 export declare function write_moe_grouped_sort_native_f32(view: DataView, values: { "num_routes": number; "num_experts": number; "top_k": number; "pair_offset": number; "gu_groups": number; "down_groups": number }, kernel: string): void;
 export declare function write_moe_grouped_gu_native_f32(view: DataView, values: { "num_routes": number; "num_experts": number; "top_k": number; "pair_offset": number; "N": number; "K": number }, kernel: string): void;
 export declare function write_speculative_accept_greedy(view: DataView, values: { "draft_count": number; "output_limit": number; "vocab_size": number; "_pad": number }, kernel: string): void;
+export declare function write_hyper_connection_norm_f32(view: DataView, values: { "group_count": number; "group_stride": number; "eps": number }, kernel: string): void;
+export declare function write_hyper_connection_activation_low_rank_silu(view: DataView, values: { "size": number; "dispatch_stride": number }, kernel: string): void;
