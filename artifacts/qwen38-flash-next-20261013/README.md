@@ -35,6 +35,7 @@ definitions through Python AST. Run each with `python3 -I <script>`.
 | `decoder-composition-reference.json` | `prepare-decoder-composition-reference.py` | pass (2026-11-05, torch 2.11.0, arm64) |
 | `acquisition-receipt.json` | `acquire-text-checkpoint.py` | pass (2026-11-05; 131 files, 360,000,192,888 bytes) |
 | `storage-precision-scan.json` | `storage-precision-scan.py` | measured (2026-11-05, numpy 2.4.4) |
+| `learned-forward-summary-float32.json` | `prepare-learned-forward-reference.py`, `summarize-learned-forward-reference.py` | measured (2026-11-05, torch 2.11.0, x86_64 CPU, learned weights) |
 
 No retained fixture fails. None of them qualifies Flash-Next or establishes a
 Doppler operator; all use synthetic weights or fixed strings.
@@ -92,6 +93,41 @@ in the F16 subnormal range below 6.1e-5, so each such value moves by at most
 values). The profile therefore stores these tensors as F16; qualification
 tolerances must carry this absolute bound. The n-gram table keeps its BF16
 bytes.
+
+### Learned-weight forward reference (2026-11-05)
+
+`prepare-learned-forward-reference.py` runs the unchanged upstream text decoder
+stack (gated residuals, PLE, gated delta net, QSA-indexed attention, sparse MoE),
+the root mixer and the LM head on the learned checkpoint weights. It reads
+tensors from the pinned files through the header receipt, building and loading
+one decoder layer at a time on the qualification host's CPU, and reads n-gram
+table rows by address. The forward mirrors `Qwen4ExpTextModel.forward` without
+a cache: replicated embeddings, three mrope position rows, an eager float causal
+mask, and no linear-attention mask for unpadded input. The inputs
+(`learned-forward-inputs.json`, from `make-learned-forward-inputs.py` with the
+pinned tokenizer) are a 15-token factual prompt and the first 2,304 tokens of
+`modeling_qwen4_exp.py`, so queries from position 2051 use sparse QSA
+selection.
+
+The float32 run took about 10 s per layer. Its full output (per-layer stream
+samples, QSA selections, router and decay records, top-20 logits per position)
+and the logit rows for sampled positions stay on the models drive. The SHA-256
+of each is in `learned-forward-summary-float32.json`, which holds per-position
+argmax, top-5 ids and top-1 margins.
+
+The run behaves like the trained model: the short prompt ("... The capital of
+France is") predicts " Paris", and teacher-forced top-1 accuracy on the long
+input is 90.9% (91.5% at dense positions, 86.1% at sparse positions). This
+supports the weight mapping and the table addressing but does not verify any
+operator.
+
+It also shows where comparisons need tie-aware criteria. 2,544 of 110,592
+routing decisions on the long input have a margin below 1e-3 between the tenth
+and eleventh expert logits (one exact tie). The smallest sampled QSA block
+margin is 3.4e-4, and two positions have a top-1 logit margin below 0.01. A
+Q4K artifact will flip some of these selections. Qualification against this
+reference therefore uses distributional logit criteria and tie-aware routing
+and selection checks, not exact token equality at every position.
 
 ### PLE layer reference (2026-11-05)
 
@@ -373,9 +409,9 @@ Transformers template renderer and Doppler's tokenizer is not established.
 
 The CPU expert execution reference is now in place at full geometry (MoE block above).
 
-1. Learned-checkpoint comparison: an independent reference on learned weights
-   for selected layers, in the checkpoint's bfloat16 dtype, covering indexer
-   selection (ties, near ties), routing and gated-delta decay ranges.
+1. Learned-checkpoint comparison: the float32 upstream reference on learned
+   weights exists (above); the bfloat16 run and the Doppler-side comparison
+   (which needs the runtime wiring) remain.
 2. Conversion: the profile
    `src/config/conversion/qwen3/qwen-3-8-flash-next-text-q4k-ehf16-af32.json`
    (2026-11-05) excludes MTP (31) and vision (333) by explicit ignore rules,
