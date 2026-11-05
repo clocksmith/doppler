@@ -12,6 +12,7 @@ import {
 import { cloneJsonValue } from '../formats/clone-json.js';
 import { resolveManifestMoEConfig, sanitizeModelId } from './core.js';
 import { assertConvertedLinearNormGateActivation } from './linear-norm-gate.js';
+import { assertConvertedQwen4ExpContracts } from './qwen4-exp-source.js';
 import { resolveTensorRole } from '../formats/rdrr/index.js';
 import { selectRuleValue } from '../rules/rule-registry.js';
 import { log } from '../debug/index.js';
@@ -165,6 +166,7 @@ function resolveConversionPlanV1(options) {
   const modelId = converterConfig?.output?.modelBaseId ?? rawConfig?.model_id ?? 'unknown';
   validateV1InferenceFields(inference, modelId);
   assertConvertedLinearNormGateActivation(inference, rawConfig, modelId, options?.establishedLinearNormGateActivation ?? null);
+  assertConvertedQwen4ExpContracts(inference, rawConfig, modelId);
 
   const sourceQuantization = (
     options?.sourceQuantization
@@ -234,6 +236,9 @@ function resolveConversionPlanV1(options) {
     rerank: inference.rerank ?? null,
     sequence: inference.sequence ?? null,
     diffusionGemma: inference.diffusionGemma ?? null,
+    hyperConnections: inference.hyperConnections ?? null,
+    indexedAttention: inference.indexedAttention ?? null,
+    ngramEmbedding: inference.ngramEmbedding ?? null,
     pipeline: inference.pipeline ?? null,
     session,
     execution,

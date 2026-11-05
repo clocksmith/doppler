@@ -1,0 +1,35 @@
+{
+  "schema": "doppler.source-config-defaults/v1",
+  "sourceModelTypes": ["qwen4_exp", "qwen4_exp_text"],
+  "configClass": "Qwen4ExpTextConfig",
+  "source": {
+    "url": "https://raw.githubusercontent.com/huggingface/transformers/e0eb2810ac1b2caf6d082f247d8d37162ecf67a0/src/transformers/models/qwen4_exp/configuration_qwen4_exp.py",
+    "sha256": "ac0950ab34516d26fe4f6b28cffe0649d763449effe44e42b5913463806f7e0b"
+  },
+  "note": "Class-level defaults applied when a source text_config omits a field. ple_embed_dim=null resolves to hidden_size and ple_layer_ids=null to [] in __post_init__.",
+  "defaults": {
+    "hidden_size": 2048,
+    "head_dim": 256,
+    "vocab_size": 248320,
+    "num_hidden_layers": 40,
+    "rms_norm_eps": 1e-6,
+    "eos_token_id": null,
+    "hc_count": 4,
+    "hc_lowrank": 320,
+    "ple_layer_ids": null,
+    "ple_embed_dim": null,
+    "ple_conv_kernel_size": 4,
+    "ngram_size": 3,
+    "heads_per_ngram": 8,
+    "ngram_vocab_size_base": 20000000,
+    "make_ngram_vocab_size_divisible_by": 128,
+    "seed": 1234,
+    "split_ngram_parts": 512,
+    "indexer_n_heads": null,
+    "indexer_kv_heads": null,
+    "indexer_head_dim": null,
+    "indexer_budget": null,
+    "indexer_compress_ratio": null,
+    "norm_topk_prob": true
+  }
+}

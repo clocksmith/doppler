@@ -15,6 +15,8 @@ export type { ManifestRoPESchema } from './manifest-rope.schema.js';
 import type { KernelPathRef } from './kernel-path.schema.js';
 import type { LayerPipelineSchema, LayerType, LinearNormGateActivation, LinearNormMode } from './inference.schema.js';
 import type { EnergyModelConfigSchema } from './energy.schema.js';
+import type { HyperConnectionsSchema, IndexedAttentionSchema } from './hyper-connection-decoder.schema.js';
+import type { NgramEmbeddingSchema } from './ngram-embedding.schema.js';
 import type {
   ExecutionV1GraphSchema,
   ExecutionV1SessionSchema,
@@ -525,6 +527,12 @@ export interface ManifestInferenceSchema {
   supportsRerank: boolean;
   /** DiffusionGemma block-diffusion runtime contract, null for non-DiffusionGemma models. */
   diffusionGemma: ManifestDiffusionGemmaSchema | null;
+  /** Source-owned multi-stream gated residual (qwen4_exp); null for single-stream residual decoders. */
+  hyperConnections: HyperConnectionsSchema | null;
+  /** Source-owned QSA sparse-attention indexer (qwen4_exp); null for dense full attention. */
+  indexedAttention: IndexedAttentionSchema | null;
+  /** Source-owned hashed n-gram per-layer embedding (qwen4_exp PLE); null when absent. */
+  ngramEmbedding: NgramEmbeddingSchema | null;
   /** Manifest-owned rerank scoring contract, null when rerank is unsupported. */
   rerank: ManifestRerankSchema | null;
   /** Biological sequence input/output contract, null when unsupported. */

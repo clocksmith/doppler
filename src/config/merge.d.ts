@@ -62,6 +62,10 @@ export interface MergedInferenceConfig {
   output: ManifestOutputSchema;
   session: ExecutionV1SessionSchema | null;
   diffusionGemma: ManifestInferenceSchema['diffusionGemma'];
+  /** Manifest-only; runtime overrides are rejected. */
+  hyperConnections: ManifestInferenceSchema['hyperConnections'];
+  indexedAttention: ManifestInferenceSchema['indexedAttention'];
+  ngramEmbedding: ManifestInferenceSchema['ngramEmbedding'];
   pipeline: ManifestInferenceSchema['pipeline'];
   layerPattern: ManifestLayerPatternSchema | null;
   chatTemplate: ManifestChatTemplateSchema;

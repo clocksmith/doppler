@@ -301,6 +301,12 @@ function normalizeSessionContracts(inference, base, overrides) {
       baseSession.perLayerInputs
     );
   }
+  if (hasOwn(overrideSession, 'ngramEmbedding')) {
+    inference.session.ngramEmbedding = replaceSubtree(
+      overrideSession.ngramEmbedding,
+      baseSession.ngramEmbedding
+    );
+  }
   if (hasOwn(overrideSession, 'speculation')) {
     inference.session.speculation = replaceSubtree(
       overrideSession.speculation,

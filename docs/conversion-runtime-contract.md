@@ -205,6 +205,62 @@ from the manifest's. A sigmoid paired closure declares
 `gated_delta_recurrent/paired_gate_sigmoid` instead of the silu gate and the
 silu monolithic anchor.
 
+## Hyper-connection decoder contracts
+
+qwen4_exp (Qwen3.8 Flash-Next) replaces the pre-norm residual with four gated
+residual streams, adds a sparse-attention indexer to every full-attention layer
+and injects hashed n-gram embeddings at selected layers. Three manifest-only
+sections declare these semantics; each is `null` for every other family:
+
+- `inference.hyperConnections`: `semantics` (`qwen4_exp_gated_residual`),
+  `streamCount`, `streamWidth` (= `architecture.hiddenSize`), `projectionRank`,
+  `normEps`. The semantics fix the grouped RMSNorm with `1 + weight`, the
+  low-rank sigmoid mixer (SiLU after division by `streamCount`), the
+  stream-mean branch input, the injection weight `2 * sigmoid(x / streamCount)`,
+  replicated embedding entry, and the root mixer that reduces without injection
+  in place of a final norm.
+- `inference.indexedAttention`: `semantics` (`qwen4_exp_qsa`), every
+  full-attention `layers` index, `queryHeads`, `keyHeads` (1), `headDim`,
+  `rotaryDim` (shared with full attention), `tokenBudget`, `compressRatio`,
+  `blockTopK` (= budget / compression), `denseVisibleLimit`
+  (= budget + compression - 1; 2051 for Flash-Next), `normEps`, the
+  Doppler-declared `tieOrder` (`lower_block_index`; upstream `torch.topk`
+  leaves ties unspecified) and `forceSelfToken: false`.
+- `inference.ngramEmbedding`: `semantics` (`qwen4_exp_ple`), unigram vocabulary,
+  n-gram size, heads, embedding and head widths, prime base, padding multiple,
+  `seed`, `boundaryTokenId`, convolution kernel, dilation and state length,
+  `normEps`, `tableDtype` (`bf16`) and per-layer `layers` entries. Each entry
+  keeps the one-based `sourceLayerId` and the zero-based `decoderLayerIndex`
+  (source `[2]` selects index 1), and declares the hash `multipliers` as decimal
+  strings, prime `headVocabSizes`, `headOffsets` and padded `rows`.
+
+Validation recomputes every derived value with exact integer arithmetic,
+including the 64-bit SplitMix multipliers, and fails on any difference, unknown
+or missing field, or contradiction with geometry (layer types, rotary width,
+pre-norm residual fields). A manifest whose tensors include
+`*_hyper_connection.*`, `hyper_connection_mixer.*`, `self_attn.indexer.*` or
+`.ple.*` without the matching contract fails before allocation. Runtime
+overrides of the three sections are rejected.
+
+`boundaryTokenId` is the n-gram segment boundary and padding id (source
+`text_config.eos_token_id`, first element of a list). It is distinct from the
+generation stop tokens in `eosTokenId`.
+
+`inference.session.ngramEmbedding` is runtime policy for the host-resident
+table. It is required when `ngramEmbedding` is set and `null` otherwise:
+`rowCache` (`maxRows`, `maxBytes`, `eviction: "lru"`), `staging.maxRows` (at
+least one token's `headCount` rows) and `reads.maxConcurrent`.
+
+Conversion lowers the source config with `src/converter/qwen4-exp-source.js`.
+Omitted source fields resolve from the pinned `Qwen4ExpTextConfig` defaults in
+`src/converter/qwen4-exp-source-defaults.json` (for example `seed: 1234`); a
+test checks that file against the bound Python class. A qwen4_exp conversion
+config must author all three sections exactly as derived; other sources may not
+author them. The derived multipliers, offsets and prime sizes equal the
+checkpoint's retained `layer_multipliers`, `ngram_heads_offsets` and
+`ngram_heads_vocab_sizes` buffers recorded in
+`artifacts/qwen38-flash-next-20261013/checkpoint-headers.json`.
+
 ## Paired Q/K head normalization steps
 
 A paired (two-F32) graph declares per-head query and key normalization as layer

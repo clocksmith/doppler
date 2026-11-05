@@ -21,6 +21,7 @@ import type {
 import type { LinearNormGateActivation } from '../../../config/schema/inference.schema.js';
 import type { MergedConfig, RuntimeInferenceOverrides } from '../../../config/merge.js';
 import type { ExecutionV1PerLayerInputsSessionSchema } from '../../../config/schema/execution-v1.schema.js';
+import type { HyperConnectionDecoderContracts } from '../../../config/schema/hyper-connection-decoder.schema.js';
 import type { RuntimeModelContract } from '../../runtime-model.js';
 import type { WeightlessEmbeddingNormalization } from './embedding-contract.js';
 
@@ -259,6 +260,11 @@ export interface ParsedModelConfig {
   chatTemplateThinking: boolean | null;
   decodeStrategy: 'incremental' | 'replay_prefill';
   diffusionGemma: ManifestInferenceSchema['diffusionGemma'];
+  /** Resolved hyper-connection decoder contracts (qwen4_exp); each null when absent. */
+  hyperConnections: HyperConnectionDecoderContracts['hyperConnections'];
+  indexedAttention: HyperConnectionDecoderContracts['indexedAttention'];
+  ngramEmbedding: HyperConnectionDecoderContracts['ngramEmbedding'];
+  ngramEmbeddingSession: HyperConnectionDecoderContracts['ngramEmbeddingSession'];
   perLayerInputsSession: ExecutionV1PerLayerInputsSessionSchema;
   sessionSettings: ParsedSessionSettings;
   kernelPath?: KernelPathRef;

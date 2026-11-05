@@ -6,6 +6,7 @@ import { selectRuleValue } from '../../../rules/rule-registry.js';
 import { resolveLinearAttentionConfig } from './config-components.js';
 import { appendHeterogeneousAttentionValidation, resolveHeterogeneousAttentionContract } from '../../../config/heterogeneous-attention-contract.js';
 import { resolvePostNormContract } from './normalization-contract.js';
+import { resolveHyperConnectionDecoderContracts } from '../../../config/schema/hyper-connection-decoder.schema.js';
 import { resolveEmbeddingNormalization } from './embedding-contract.js';
 import { CHAT_FORMATTER_TYPES } from './chat-format.js';
 import {
@@ -655,6 +656,11 @@ function toParsedConfigFromMerged(merged, manifest) {
   const residualBranchScale = inf.layerPattern.residualBranchScale;
   const heterogeneousAttention = resolveHeterogeneousAttentionContract(inf, arch.numLayers, merged.modelId);
   const postNormContract = resolvePostNormContract(inf.normalization);
+  const hyperConnectionDecoder = resolveHyperConnectionDecoderContracts(inf, {
+    hiddenSize: arch.hiddenSize, numLayers: arch.numLayers, vocabSize: arch.vocabSize, layerTypes,
+    attentionRotaryDim: ropeRotaryDim, modelId: merged.modelId,
+    tensorNames: manifest?.tensors && typeof manifest.tensors === 'object' ? Object.keys(manifest.tensors) : null,
+  });
   return {
     modelType: manifest.modelType,
     numLayers: arch.numLayers,
@@ -746,6 +752,7 @@ function toParsedConfigFromMerged(merged, manifest) {
     chatTemplateThinking,
     decodeStrategy,
     diffusionGemma,
+    ...hyperConnectionDecoder,
     perLayerInputsSession,
     sessionSettings,
     largeWeightsConfig,

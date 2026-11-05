@@ -29,9 +29,38 @@ definitions through Python AST. Run each with `python3 -I <script>`.
 | `moe-block-reference.json` | `prepare-moe-block-reference.py` | pass (torch 2.11.0, Accelerate, arm64) |
 | `linear-attention-reference.json` | `prepare-linear-attention-reference.py` | pass (torch 2.11.0, Accelerate, arm64) |
 | `tokenizer-reference.json` | `check-tokenizer.py` | pass (tokenizers 0.22.2) |
+| `checkpoint-headers.json` | `acquire-checkpoint-headers.py` | pass (2026-11-04; headers and three buffers only) |
 
 No retained fixture fails. None of them qualifies Flash-Next or establishes a
 Doppler operator; all use synthetic weights or fixed strings.
+
+### Checkpoint headers and the n-gram table (2026-11-04)
+
+The earlier sixteen-file inventory lacked the loader rule that assembles the
+n-gram table. Three more pinned Transformers files are now bound:
+`conversion_mapping.py` (qwen4_exp_text `Concatenate(dim=0)` over
+`ngram_embedding.shard_*.weight`), `core_model_loading.py` (`dot_natural_key`
+load ordering) and `masking_utils.py` (causal and recurrent masks).
+
+`acquire-checkpoint-headers.py` reads only SafeTensors headers of all 131
+checkpoint files plus the bytes of three small PLE buffers. Every header
+matches the index. Executing the pinned `dot_natural_key` orders shards
+numerically (`shard_2` before `shard_11`), and shard numbers rise with file
+numbers (files 00005 to 00037), so per-file and global ordering agree. Each of
+the 128 shards is `[2500012, 160]` BF16, giving 320,001,536 rows (95.37 GiB):
+global row `r` is shard `floor(r / 2500012)`, local row `r mod 2500012`. The
+receipt records every shard's file and absolute byte span.
+
+The checkpoint's `layer_multipliers` (23703573157769, 20109073645365,
+8052911324071), `ngram_heads_offsets` and `ngram_heads_vocab_sizes` equal the
+values derived by the unchanged upstream functions with the class-default seed
+1234 (`config.json` omits `seed`). The multipliers are below 2^45, so
+token-times-multiplier products reach about 2^63; exact address arithmetic needs
+64-bit integers, not JavaScript Number.
+
+Text-only BF16 bytes by category: routed experts 225.00 GiB, n-gram table
+95.37 GiB, other text tensors 9.22 GiB; excluded vision 0.84 GiB and MTP
+4.86 GiB.
 
 ### Gated residual and n-grams
 

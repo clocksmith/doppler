@@ -15,6 +15,7 @@
  */
 
 import type { KVCacheConfigSchema } from './kvcache.schema.js';
+import type { NgramEmbeddingSessionSchema } from './ngram-embedding.schema.js';
 
 // === Primitives ===
 
@@ -190,6 +191,8 @@ export interface ExecutionV1SessionSchema {
   kvcache: Partial<KVCacheConfigSchema> | null;
   decodeLoop: ExecutionV1DecodeLoopSchema | null;
   perLayerInputs: ExecutionV1PerLayerInputsSessionSchema;
+  /** Hashed n-gram table cache, staging and read bounds; required with inference.ngramEmbedding, else null. */
+  ngramEmbedding?: NgramEmbeddingSessionSchema | null;
   speculation: ExecutionV1SelfSpeculationSchema | null;
   /** "sync" (default): wait each prefill chunk. "async": queue within the runtime in-flight limit. */
   prefillChunkSubmitMode: 'sync' | 'async';

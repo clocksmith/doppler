@@ -105,6 +105,24 @@
         "url": "https://raw.githubusercontent.com/huggingface/transformers/e0eb2810ac1b2caf6d082f247d8d37162ecf67a0/src/transformers/models/qwen3_5/modeling_qwen3_5.py",
         "bytes": 87885,
         "sha256": "b48635f7388fbfd1b214b8c19275f8c9854fd02c4f3a3376a2339b753a2a5457"
+      },
+      {
+        "path": "conversion_mapping.py",
+        "url": "https://raw.githubusercontent.com/huggingface/transformers/e0eb2810ac1b2caf6d082f247d8d37162ecf67a0/src/transformers/conversion_mapping.py",
+        "bytes": 119110,
+        "sha256": "9e487e88f1972571065dcef402fead746f16bf9330087a8936776bc2a16e7658"
+      },
+      {
+        "path": "core_model_loading.py",
+        "url": "https://raw.githubusercontent.com/huggingface/transformers/e0eb2810ac1b2caf6d082f247d8d37162ecf67a0/src/transformers/core_model_loading.py",
+        "bytes": 86188,
+        "sha256": "c365aea4e8e9db375a56d1c80b01d92439554fdf63561a08b0d537fad2eef6b5"
+      },
+      {
+        "path": "masking_utils.py",
+        "url": "https://raw.githubusercontent.com/huggingface/transformers/e0eb2810ac1b2caf6d082f247d8d37162ecf67a0/src/transformers/masking_utils.py",
+        "bytes": 78675,
+        "sha256": "ef6f77df4c9bd9bbe93e21c8fe03c830b461d21dc1c6013cc2690f248cf1dee8"
       }
     ],
     "executed": false
@@ -129,6 +147,15 @@
         "modeling_qwen3_5.py"
       ],
       "note": "expert implementations, kernel and accelerate decorators, activations, linear-attention cache and Qwen3.5 comparison source at the pinned Transformers revision"
+    },
+    {
+      "at": "2026-11-04",
+      "added": [
+        "conversion_mapping.py",
+        "core_model_loading.py",
+        "masking_utils.py"
+      ],
+      "note": "checkpoint-to-runtime weight conversion (qwen4_exp_text Concatenate of ngram_embedding shards), the dot_natural_key load ordering, and causal/recurrent mask construction at the pinned Transformers revision"
     }
   ]
 }

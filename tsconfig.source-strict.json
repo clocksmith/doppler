@@ -176,6 +176,9 @@
     "src/formats/gguf/tokenizer.js",
     "src/debug/pipeline-config.js",
     "src/gpu/kernels/attention/query-splitk.js",
-    "src/gpu/kernels/shader-source-scope.js"
+    "src/gpu/kernels/shader-source-scope.js",
+    "src/config/schema/ngram-embedding.schema.js",
+    "src/config/schema/hyper-connection-decoder.schema.js",
+    "src/converter/qwen4-exp-source.js"
   ]
 }

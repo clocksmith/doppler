@@ -505,6 +505,7 @@ function mergeSession(
     kvcache: overlay(`${prefix}.kvcache`, manifestSession.kvcache, runtimeSession.kvcache, sources),
     decodeLoop: overlay(`${prefix}.decodeLoop`, manifestSession.decodeLoop, runtimeSession.decodeLoop, sources),
     perLayerInputs: overlay(`${prefix}.perLayerInputs`, manifestSession.perLayerInputs, runtimeSession.perLayerInputs, sources),
+    ngramEmbedding: overlay(`${prefix}.ngramEmbedding`, manifestSession.ngramEmbedding, runtimeSession.ngramEmbedding, sources),
     speculation: overlay(`${prefix}.speculation`, manifestSession.speculation, runtimeSession.speculation, sources),
     prefillChunkSubmitMode: overlay(`${prefix}.prefillChunkSubmitMode`, manifestSession.prefillChunkSubmitMode, runtimeSession.prefillChunkSubmitMode, sources),
     prefillTokenChunkSize: overlay(`${prefix}.prefillTokenChunkSize`, manifestSession.prefillTokenChunkSize, runtimeSession.prefillTokenChunkSize, sources),
@@ -553,6 +554,15 @@ function mergeDiffusionGemmaContract(manifest, sources) {
   return manifest ?? null;
 }
 
+// Source-owned decoder contracts: runtime overlays may not rewrite them.
+function mergeManifestOnlyContract(field, manifestInf, runtimeOverrides, sources) {
+  if (runtimeOverrides?.[field] !== undefined) {
+    throw new Error(`runtime.inference.${field} is source-owned; re-convert the model to change it.`);
+  }
+  sources.set(`inference.${field}`, 'manifest');
+  return manifestInf[field] ?? null;
+}
+
 // =============================================================================
 // Main Merge Function
 // =============================================================================
@@ -599,6 +609,9 @@ export function mergeConfig(
     session: mergeSession(manifestInf.session, runtimeOverrides?.session, sources),
     largeWeights: mergeLargeWeights(manifestInf.largeWeights, runtimeOverrides?.largeWeights, sources),
     diffusionGemma: mergeDiffusionGemmaContract(manifestInf.diffusionGemma, sources),
+    hyperConnections: mergeManifestOnlyContract('hyperConnections', manifestInf, runtimeOverrides, sources),
+    indexedAttention: mergeManifestOnlyContract('indexedAttention', manifestInf, runtimeOverrides, sources),
+    ngramEmbedding: mergeManifestOnlyContract('ngramEmbedding', manifestInf, runtimeOverrides, sources),
     pipeline,
     layerPattern,
     chatTemplate,

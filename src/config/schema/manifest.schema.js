@@ -181,6 +181,11 @@ export const DEFAULT_MANIFEST_INFERENCE = {
     thinking: null,  // Leave template thinking control unspecified
   },
   diffusionGemma: null,
+  // Hyper-connection decoder contracts (qwen4_exp). Source-owned, manifest-only;
+  // null means the mechanism is absent. See hyper-connection-decoder.schema.js.
+  hyperConnections: null,
+  indexedAttention: null,
+  ngramEmbedding: null,
   rerank: null,
   sequence: null,
   pipeline: null,

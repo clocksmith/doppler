@@ -69,6 +69,7 @@ export const DEFAULT_EXECUTION_V1_SESSION = {
   kvcache: null,
   decodeLoop: null,
   perLayerInputs: { ...DEFAULT_EXECUTION_V1_PER_LAYER_INPUTS_SESSION },
+  ngramEmbedding: null,
   speculation: null,
   prefillChunkSubmitMode: 'sync',
   prefillTokenChunkSize: null,
