@@ -226,3 +226,42 @@ export function ngramTablePartsFromCheckpointHeaders(receipt) {
     };
   });
 }
+
+/**
+ * Parts of the n-gram table from a loaded artifact's tensor locations. The
+ * table is stored as retained source tensors `${tensorPrefix}.shard_<k>.weight`
+ * (k = 0, 1, ...), each one span of one artifact shard; part sources are shard
+ * indices for the storage context's loadShardRange. Every tensor under the
+ * prefix must be consumed, and the parts must tile [0, rows).
+ * @type {typeof import('./ngram-table.js').ngramTablePartsFromTensorLocations}
+ */
+export function ngramTablePartsFromTensorLocations(tensorLocations, { tensorPrefix, rows, rowWidth }) {
+  const rowBytes = rowWidth * ROW_ELEMENT_BYTES.bf16;
+  const parts = [];
+  let rowBegin = 0;
+  for (let k = 0; tensorLocations.has(`${tensorPrefix}.shard_${k}.weight`); k += 1) {
+    const name = `${tensorPrefix}.shard_${k}.weight`;
+    const location = /** @type {import('./ngram-table.js').NgramTableTensorLocation} */ (tensorLocations.get(name));
+    if (location.role !== 'ngram_table' || String(location.dtype).toUpperCase() !== 'BF16') {
+      fail(`${name} must be a retained BF16 ngram_table tensor; got role ${location.role}, dtype ${location.dtype}.`);
+    }
+    if ((location.spans?.length ?? 0) > 0 || !Number.isSafeInteger(location.shardIndex)) {
+      fail(`${name} must lie in one shard.`);
+    }
+    const [partRows, width] = location.shape ?? [];
+    if (location.shape?.length !== 2 || width !== rowWidth || !Number.isSafeInteger(partRows) || partRows <= 0
+      || location.size !== partRows * rowBytes) {
+      fail(`${name} has shape [${location.shape}] and ${location.size} bytes; rows of ${rowWidth} bf16 values are required.`);
+    }
+    parts.push({ rowBegin, rowEnd: rowBegin + partRows, source: location.shardIndex, byteOffset: location.offset, byteLength: location.size });
+    rowBegin += partRows;
+  }
+  if (rowBegin !== rows) fail(`${tensorPrefix} parts cover ${rowBegin} rows; the contract declares ${rows}.`);
+  for (const name of tensorLocations.keys()) {
+    if (!name.startsWith(`${tensorPrefix}.shard_`)) continue;
+    const segment = name.slice(tensorPrefix.length + '.shard_'.length, -'.weight'.length);
+    const k = /^(0|[1-9]\d*)$/.test(segment) ? Number(segment) : -1;
+    if (!name.endsWith('.weight') || !(k >= 0 && k < parts.length)) fail(`${name} is not part of the contiguous table shard sequence.`);
+  }
+  return parts;
+}

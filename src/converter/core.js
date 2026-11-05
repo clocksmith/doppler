@@ -1,5 +1,5 @@
 import { prepareFP8SourceTensors, readFP8CompanionScales } from './fp8-source.js';
-
+import { appendRetainedSourceShards, partitionRetainedSourceTensors } from './retained-source-shards.js';
 
 import {
   // Constants
@@ -424,7 +424,7 @@ export async function convertModel(model, io, options = {}) {
     }
   );
   const fp8Source = prepareFP8SourceTensors(sourceTensors, options.quantizationInfo?.fp8, model.config ?? null);
-  const tensors = fp8Source.tensors;
+  const { packed: tensors, retained: retainedSources } = partitionRetainedSourceTensors(fp8Source.tensors);
   if (!Array.isArray(tensors) || tensors.length === 0) {
     const textOnly = converterConfig?.output?.textOnly === true;
     if (textOnly) {
@@ -741,7 +741,8 @@ export async function convertModel(model, io, options = {}) {
   }
 
   await flushShard();
-
+  await appendRetainedSourceShards(retainedSources, io, shards, tensorLocations,
+    { hashAlgorithm: converterConfig.manifest.hashAlgorithm, manifestConfig: converterConfig.manifest, signal });
   if (signal?.aborted) {
     throw new DOMException('Conversion cancelled', 'AbortError');
   }
@@ -819,11 +820,8 @@ export async function convertModel(model, io, options = {}) {
 
   const executionContractArtifact = buildExecutionContractArtifact(manifest);
   const layerPatternContractArtifact = getInferenceLayerPatternContractArtifact();
-  const requiredInferenceFieldsArtifact = manifest?.modelType === 'transformer'
-    && manifest?.inference
-    && typeof manifest.inference === 'object'
-    && manifest.inference.attention
-    && typeof manifest.inference.attention === 'object'
+  const requiredInferenceFieldsArtifact = manifest?.modelType === 'transformer' && manifest?.inference
+    && typeof manifest.inference === 'object' && manifest.inference.attention && typeof manifest.inference.attention === 'object'
     ? buildManifestRequiredInferenceFieldsArtifact(
       manifest?.inference ?? null,
       `${manifest?.modelId ?? modelId}.inference`
@@ -832,8 +830,8 @@ export async function convertModel(model, io, options = {}) {
   return {
     manifest,
     shardCount: shards.length,
-    tensorCount: tensors.length,
-    totalSize,
+    tensorCount: tensors.length + retainedSources.length,
+    totalSize: manifest.totalSize,
     executionContractArtifact,
     layerPatternContractArtifact,
     requiredInferenceFieldsArtifact,

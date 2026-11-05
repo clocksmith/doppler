@@ -113,9 +113,33 @@ function applyRule(tensor, compiledRule, index) {
     requireString(rule.reason, `sourceTensors.rules[${index}].reason`);
     return [];
   }
+  if (rule.kind === 'retain') {
+    return [retainTensor(tensor, compiledRule, index)];
+  }
   throw new Error(
-    `sourceTensors.rules[${index}].kind must be "rename", "split", or "ignore".`
+    `sourceTensors.rules[${index}].kind must be "rename", "split", "ignore", or "retain".`
   );
+}
+
+// A retained tensor keeps its source bytes: conversion links the pinned source
+// file into the artifact as one shard and records the tensor's byte span there
+// (src/converter/retained-source-shards.js). Each source file is pinned by the
+// SHA-256 of its complete bytes.
+function retainTensor(tensor, compiledRule, index) {
+  const { rule } = compiledRule;
+  requireString(rule.reason, `sourceTensors.rules[${index}].reason`);
+  const role = requireString(rule.role, `sourceTensors.rules[${index}].role`);
+  // An explicit group keeps retained tensors out of per-layer shard prefetch.
+  const group = requireString(rule.group, `sourceTensors.rules[${index}].group`);
+  const files = requirePlainObject(rule.files, `sourceTensors.rules[${index}].files`);
+  const sourcePath = requireString(tensor.sourcePath, `retained source tensor "${tensor.name}" sourcePath`);
+  const file = sourcePath.split(/[\\/]/).pop();
+  const sha256 = Object.hasOwn(files, file) ? files[file] : undefined;
+  if (typeof sha256 !== 'string' || !/^[0-9a-f]{64}$/.test(sha256)) {
+    throw new Error(`sourceTensors.rules[${index}].files lacks a SHA-256 pin for "${file}" (tensor "${tensor.name}").`);
+  }
+  compiledRule.retainedFiles.add(file);
+  return { ...tensor, role, group, retainedSource: { file, sha256 } };
 }
 
 function assertUniqueTargetNames(tensors) {
@@ -144,6 +168,7 @@ export function applySourceTensorRules(tensors, policy) {
       pattern: compileRulePattern(rule, index),
       expectedMatches: requireExpectedMatches(rule, index),
       matches: 0,
+      retainedFiles: new Set(),
     };
   });
 
@@ -173,6 +198,11 @@ export function applySourceTensorRules(tensors, policy) {
       throw new Error(
         `sourceTensors.rules[${index}] matched ${entry.matches} tensors, expected ${entry.expectedMatches}.`
       );
+    }
+    const unused = entry.rule.kind === 'retain'
+      ? Object.keys(entry.rule.files).filter((file) => !entry.retainedFiles.has(file)) : [];
+    if (unused.length > 0) {
+      throw new Error(`sourceTensors.rules[${index}].files pins ${unused.join(', ')} but no matched tensor is stored there.`);
     }
   }
   assertUniqueTargetNames(outputs);

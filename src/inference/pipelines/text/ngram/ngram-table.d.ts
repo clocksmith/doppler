@@ -69,3 +69,24 @@ export interface NgramCheckpointHeaderReceipt {
 
 /** Table parts from the checkpoint header receipt (file names and absolute byte offsets). */
 export declare function ngramTablePartsFromCheckpointHeaders(receipt: NgramCheckpointHeaderReceipt): NgramTablePart[];
+
+/** The loader's normalized location of one retained table tensor. */
+export interface NgramTableTensorLocation {
+  shardIndex: number;
+  offset: number;
+  size: number;
+  shape: number[];
+  dtype: string;
+  role: string;
+  spans?: ReadonlyArray<unknown> | null;
+}
+
+/**
+ * Table parts from a loaded artifact's tensor locations: retained tensors
+ * `${tensorPrefix}.shard_<k>.weight`, sources are shard indices for
+ * loadShardRange. Fails unless the parts tile [0, rows) exactly.
+ */
+export declare function ngramTablePartsFromTensorLocations(
+  tensorLocations: ReadonlyMap<string, NgramTableTensorLocation | { [key: string]: unknown }>,
+  options: { tensorPrefix: string; rows: number; rowWidth: number }
+): NgramTablePart[];

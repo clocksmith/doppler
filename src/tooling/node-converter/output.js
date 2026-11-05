@@ -1,3 +1,4 @@
+import { createHash } from 'node:crypto';
 import { createReadStream } from 'node:fs';
 import fs from 'node:fs/promises';
 import os from 'node:os';
@@ -204,6 +205,32 @@ export function createNodeConvertIO(outputDir, options) {
         JSON.stringify(manifest, null, 2),
         'utf8'
       );
+    },
+    // Retained source shard: hard-link the pinned source file as shard `index`
+    // (no copy), then hash its complete bytes. A cross-filesystem layout fails
+    // instead of silently copying; a pin mismatch removes the link and fails.
+    async retainSourceFile(sourcePath, index, sha256) {
+      const target = path.join(outputDir, generateShardFilename(index));
+      try {
+        await fs.link(sourcePath, target);
+      } catch (error) {
+        if (error?.code === 'EXDEV') {
+          throw new Error(`node convert: retained source file ${sourcePath} and output ${outputDir} must share one filesystem.`);
+        }
+        throw error;
+      }
+      const hasher = createHash('sha256');
+      let size = 0;
+      for await (const chunk of createReadStream(target, { highWaterMark: 8 << 20 })) {
+        hasher.update(chunk);
+        size += chunk.length;
+      }
+      const hash = hasher.digest('hex');
+      if (hash !== sha256) {
+        await fs.unlink(target);
+        throw new Error(`node convert: ${sourcePath} SHA-256 ${hash} differs from its pin ${sha256}.`);
+      }
+      return { size, hash };
     },
   };
 }

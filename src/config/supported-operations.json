@@ -146,6 +146,71 @@
       "section": ["postLayer"],
       "description": "Token sampling from logits.",
       "kernelFamily": ["sample"]
+    },
+    "moe_router": {
+      "section": ["prefill", "decode"],
+      "description": "Declared MoE router projection (per-expert logits) with its own control precision.",
+      "kernelFamily": ["tiled", "gemv", "matmul_f32"]
+    },
+    "moe_shared_router": {
+      "section": ["prefill", "decode"],
+      "description": "Declared shared-expert gate projection with its own control precision.",
+      "kernelFamily": ["tiled", "gemv", "matmul_f32"]
+    },
+    "attn_hc_down": {
+      "section": ["prefill", "decode"],
+      "description": "Hyper-connection low-rank down projection before the attention branch (qwen4_exp).",
+      "kernelFamily": ["tiled", "gemv", "matmul_f32"]
+    },
+    "attn_hc_up": {
+      "section": ["prefill", "decode"],
+      "description": "Hyper-connection low-rank up projection before the attention branch (qwen4_exp).",
+      "kernelFamily": ["tiled", "gemv", "matmul_f32"]
+    },
+    "attn_hc_inject": {
+      "section": ["prefill", "decode"],
+      "description": "Hyper-connection injection-weight projection for the attention branch (qwen4_exp).",
+      "kernelFamily": ["tiled", "gemv", "matmul_f32"]
+    },
+    "mlp_hc_down": {
+      "section": ["prefill", "decode"],
+      "description": "Hyper-connection low-rank down projection before the MLP branch (qwen4_exp).",
+      "kernelFamily": ["tiled", "gemv", "matmul_f32"]
+    },
+    "mlp_hc_up": {
+      "section": ["prefill", "decode"],
+      "description": "Hyper-connection low-rank up projection before the MLP branch (qwen4_exp).",
+      "kernelFamily": ["tiled", "gemv", "matmul_f32"]
+    },
+    "mlp_hc_inject": {
+      "section": ["prefill", "decode"],
+      "description": "Hyper-connection injection-weight projection for the MLP branch (qwen4_exp).",
+      "kernelFamily": ["tiled", "gemv", "matmul_f32"]
+    },
+    "qsa_index_qk": {
+      "section": ["prefill", "decode"],
+      "description": "QSA indexer query/key projection on indexed full-attention layers (qwen4_exp).",
+      "kernelFamily": ["tiled", "gemv", "matmul_f32"]
+    },
+    "ple_key_proj": {
+      "section": ["prefill", "decode"],
+      "description": "N-gram PLE key projection on PLE layers (qwen4_exp).",
+      "kernelFamily": ["tiled", "gemv", "matmul_f32"]
+    },
+    "ple_value_proj": {
+      "section": ["prefill", "decode"],
+      "description": "N-gram PLE value projection on PLE layers (qwen4_exp).",
+      "kernelFamily": ["tiled", "gemv", "matmul_f32"]
+    },
+    "hc_mixer_down": {
+      "section": ["postLayer"],
+      "description": "Root hyper-connection mixer down projection; replaces the final norm (qwen4_exp).",
+      "kernelFamily": ["tiled", "gemv", "matmul_f32"]
+    },
+    "hc_mixer_up": {
+      "section": ["postLayer"],
+      "description": "Root hyper-connection mixer up projection (qwen4_exp).",
+      "kernelFamily": ["tiled", "gemv", "matmul_f32"]
     }
   },
   "runtimeOps": {

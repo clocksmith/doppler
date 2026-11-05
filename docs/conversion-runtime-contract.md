@@ -270,6 +270,63 @@ checkpoint's retained `layer_multipliers`, `ngram_heads_offsets` and
 `ngram_heads_vocab_sizes` buffers recorded in
 `artifacts/qwen38-flash-next-20261013/checkpoint-headers.json`.
 
+### qwen4_exp execution-graph step names
+
+The qwen4_exp projections are declared execution-graph steps whose op names are
+the loader's weight roles (`src/loader/hyper-connection-loader.js`), so the
+kernel-path lookup for a role finds its step without an alias:
+
+| Step op | Section | Layers | Weight |
+| --- | --- | --- | --- |
+| `attn_hc_down`, `attn_hc_up`, `attn_hc_inject` | prefill, decode | all | `attn_hyper_connection.input_mix_weight_{down,up}`, `block_inject_weight` |
+| `mlp_hc_down`, `mlp_hc_up`, `mlp_hc_inject` | prefill, decode | all | `mlp_hyper_connection.*` (same tensors) |
+| `qsa_index_qk` | prefill, decode | `indexedAttention.layers` | `self_attn.indexer.index_qk_proj` |
+| `ple_key_proj`, `ple_value_proj` | prefill, decode | `ngramEmbedding` decoder layers | `ple.key_proj`, `ple.value_proj` |
+| `hc_mixer_down`, `hc_mixer_up` | postLayer | n/a | `hyper_connection_mixer.input_mix_weight_{down,up}` |
+
+The root mixer replaces `final_norm`, which a qwen4_exp graph does not declare.
+The fixed operators (grouped norm, activations, branch reduction, injection,
+replication, QSA prepare/block keys/block scores/select, indexed attention, PLE
+row decode, gate and convolution) are declared in `execution.mechanismKernels`
+with their registry shader, entry and digest. Full-attention layers keep their
+dense `attention` step declarations; the attention rule selects `qsaIndexed`
+for indexed layers before any dense variant. The op catalog
+(`src/config/supported-operations.json`) lists these ops, and `moe_router` and
+`moe_shared_router`, so strict graph validation accepts the MoE templates.
+
+### N-gram table storage: retained source shards
+
+The 95.4 GiB BF16 n-gram table is never transcoded or copied. A
+`sourceTensors` rule of kind `retain` matches the 128 table tensors and pins
+each checkpoint file that holds them by the SHA-256 of its complete bytes (the
+Hugging Face LFS identity at the pinned revision). The rule must also name a
+`role` (`ngram_table`) and a non-layer `group` (`ngram_table`, so per-layer
+shard prefetch never reads the table); every matched tensor's file needs a pin
+and every pin must be used.
+
+Conversion (`src/converter/retained-source-shards.js`) appends one shard per
+pinned file after the packed shards, in file-name order with cumulative
+offsets. The Node conversion IO hard-links the file as `shard_NNNNN.bin`,
+hashes its complete bytes and fails (removing the link) when the hash differs
+from the pin; a source and output on different filesystems fail instead of
+copying. Retained shards require `manifest.hashAlgorithm: "sha256"`, so the
+shard hash is the pin. Each table tensor's location is its exact byte span in
+its shard (`shard`, the absolute file `offset`, `size`, `BF16`, `[rows, 160]`),
+and `manifest.conversion.retainedSourceShards` records shard, file, SHA-256,
+bytes and tensor count. The other tensors in those files are converted
+normally; their bytes in the retained shards are unused.
+
+At runtime `ngramTablePartsFromTensorLocations`
+(`src/inference/pipelines/text/ngram/ngram-table.js`) turns the loader's tensor
+locations under `<layer prefix>.ple.ple_embedding.ngram_embedding` into
+`NgramTableReader` parts whose sources are shard indices for the storage
+context's `loadShardRange`. It fails unless `shard_0..shard_{n-1}` are
+single-shard BF16 `ngram_table` spans that tile the contract's `rows` exactly
+and no other table tensor exists. Integrity is per shard: the storage context
+verifies a shard's hash before its first range read when hash verification is
+on. Individual row reads are not separately authenticated
+(`rowBytesVerified: false`).
+
 ## Paired Q/K head normalization steps
 
 A paired (two-F32) graph declares per-head query and key normalization as layer
