@@ -89,7 +89,7 @@ function allPrompts() {
   return [...new Set(examples.categories.flatMap((entry) => entry.prompts))];
 }
 
-/** The first-visit example answer and its prompt, or null without a valid bank. */
+// The first-visit example answer and its prompt, or null without a valid bank.
 export function getIllustrativeExample() {
   return examples?.illustrative ?? null;
 }
