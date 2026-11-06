@@ -1,0 +1,63 @@
+{
+  "scope": "Same-input Float64 decomposition of the first HC down projection; no new acceptance policy",
+  "normalModelQualified": false,
+  "weightsByteExact": true,
+  "gpuTraceSha256": "c49bd3d803ea0449d532c7f56c0886318d6d774bed5d7ac7d73bfcc32d7de919",
+  "cpuTraceSha256": "35800a6d104f43c50efdb03953a1dc013caa422f92f4fb017d5d3f29f9b1c4fa",
+  "rows": [
+    {
+      "role": "attn_hc",
+      "position": 0,
+      "gpuInputVsCpuInputMax": 1.9073486328125e-06,
+      "gpuArithmeticMaxError": 0.0005558119767101743,
+      "cpuArithmeticMaxError": 1.974272649363229e-05,
+      "propagatedInputErrorMax": 2.2575795867396664e-05,
+      "observedOutputDifferenceMax": 0.0005950927734375
+    },
+    {
+      "role": "attn_hc",
+      "position": 1017,
+      "gpuInputVsCpuInputMax": 0.0,
+      "gpuArithmeticMaxError": 0.0003332009138148351,
+      "cpuArithmeticMaxError": 2.6554684637858372e-05,
+      "propagatedInputErrorMax": 0.0,
+      "observedOutputDifferenceMax": 0.0003204345703125
+    },
+    {
+      "role": "attn_hc",
+      "position": 2003,
+      "gpuInputVsCpuInputMax": 0.0,
+      "gpuArithmeticMaxError": 0.00021246477290759458,
+      "cpuArithmeticMaxError": 1.7562889041755625e-05,
+      "propagatedInputErrorMax": 0.0,
+      "observedOutputDifferenceMax": 0.000213623046875
+    },
+    {
+      "role": "mlp_hc",
+      "position": 0,
+      "gpuInputVsCpuInputMax": 6.687641143798828e-05,
+      "gpuArithmeticMaxError": 0.0002915521553035205,
+      "cpuArithmeticMaxError": 1.8963505041824646e-05,
+      "propagatedInputErrorMax": 0.00017659803872049906,
+      "observedOutputDifferenceMax": 0.0003662109375
+    },
+    {
+      "role": "mlp_hc",
+      "position": 1017,
+      "gpuInputVsCpuInputMax": 3.552436828613281e-05,
+      "gpuArithmeticMaxError": 0.00029307800572553333,
+      "cpuArithmeticMaxError": 2.9569816831553908e-05,
+      "propagatedInputErrorMax": 0.000112301019161265,
+      "observedOutputDifferenceMax": 0.00029754638671875
+    },
+    {
+      "role": "mlp_hc",
+      "position": 2003,
+      "gpuInputVsCpuInputMax": 2.4005770683288574e-05,
+      "gpuArithmeticMaxError": 0.0002731018693395981,
+      "cpuArithmeticMaxError": 1.826284668027256e-05,
+      "propagatedInputErrorMax": 0.00012151458435738505,
+      "observedOutputDifferenceMax": 0.000335693359375
+    }
+  ]
+}

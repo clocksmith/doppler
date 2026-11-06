@@ -67,11 +67,16 @@ if (!file) {
   let primaryError = null;
   try {
     const a = createTensor(upload(input), 'f32', [M, K]);
-    for (const [kernel, dtype, data] of [
+    const candidates = [
       ['matmul_f32.wgsl', 'f32', weights],
       ['matmul_f16w_f32a_tiled.wgsl', 'f16', weightsBytes],
       ['matmul_compensated_f32.wgsl', 'f32', weights],
-    ]) {
+      ['matmul_f32_row_subgroup.wgsl', 'f32', weights],
+    ];
+    const requested = run.kernels ?? candidates.slice(0, 3).map(row => row[0]);
+    assert(requested.length && new Set(requested).size === requested.length);
+    assert(requested.every(kernel => candidates.some(row => row[0] === kernel)), 'only declared diagnostic kernels are allowed');
+    for (const [kernel, dtype, data] of candidates.filter(row => requested.includes(row[0]))) {
       const step = { op: role, kernel, entry: 'main' };
       const b = createWeightBuffer(upload(data), dtype, 'row', [N, K]);
       const observed = await observeKernelDispatches(async () => {
@@ -89,9 +94,13 @@ if (!file) {
         maxAbsoluteError = Math.max(maxAbsoluteError, Math.abs(actual - expected));
         if (actual !== Math.fround(expected)) nearestF32Mismatches++;
       }
-      const order = values => Array.from({ length: N }, (_, n) => n).sort((a, b) => values[b] - values[a]).slice(0, 10);
+      // The runtime ranks stored F32 logits. Distinct exact dots can round to
+      // the same logit, so an F64 ordering is not an F32 top-k oracle.
+      const roundedExact = Float32Array.from(exact);
+      const order = values => Array.from({ length: N }, (_, n) => n).sort((a, b) => values[b] - values[a] || a - b).slice(0, 10);
       const rows = run.rows.map((position, m) => ({ position,
-        expected: order(exact.subarray(m * N, (m + 1) * N)), actual: order(values.subarray(position * N, (position + 1) * N)) }));
+        expected: order(roundedExact.subarray(m * N, (m + 1) * N)), actual: order(values.subarray(position * N, (position + 1) * N)),
+        ...(run.retainRows === true ? { logits: Array.from(values.subarray(position * N, (position + 1) * N)) } : {}) }));
       report.cases.push({ kernel, maxAbsoluteError, nearestF32Mismatches, rows, dispatches: observed.dispatches });
       if (kernel === 'matmul_compensated_f32.wgsl') {
         assert.equal(nearestF32Mismatches, 0);

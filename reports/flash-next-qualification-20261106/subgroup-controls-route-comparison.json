@@ -1,0 +1,152 @@
+{
+  "scope": "Actual GPU top-k replay versus independent source expert choices; not model acceptance",
+  "normalModelQualified": false,
+  "observationSha256": "940f5a0bffaf3bbdba77cdba4525b85ed7c660c230aef1ce056c5a68c7b7faee",
+  "replaySha256": "e6ffbe7467084b6ef1cb9244571a80e6cf2a647daccc7553428c44f210535c4a",
+  "sourceReceiptSha256": "ea4aa5314aa3bb5aa9137549d1837d1d30ef0eac1c8869de92b6e8e734d9ffc4",
+  "manifestSha256": "4902a0b730a9310903b00bc0f8f587528fa1af9f37a722d2f9287bafceceec09",
+  "scriptSha256": "94eda1af020d182e4b2d26ef772bc580eb62146d622ccb58eec8045c638ec5b2",
+  "rows": [
+    {
+      "layer": 0,
+      "compared": true,
+      "changedPositions": [],
+      "sourceFixtureSha256": "b15412bdd0016996b86721317711e318823b2bb3b17d9ad060d9fd23251ec28e",
+      "sourceLogitsSha256": "fa9d6c3e3570b225adcd4151cc3d15ffef2f80425b7336987bf15a66524fd81c"
+    },
+    {
+      "layer": 1,
+      "compared": true,
+      "changedPositions": [],
+      "sourceFixtureSha256": "ad458de1ab5e4e757246fd2bd523116b5ede70303e5b5665c8862469fbdc42a3",
+      "sourceLogitsSha256": "9250114900ffbbff52dc59d78c9c9c3bd839bf969ef685c021648c7030d5d147"
+    },
+    {
+      "layer": 2,
+      "compared": true,
+      "changedPositions": [],
+      "sourceFixtureSha256": "c17a78298cddba76a1f4e75c4e26f34435ae569b0896f4636d3d2410cec5f232",
+      "sourceLogitsSha256": "bfb4c5c557068f8fb8f4a21c39a9b427a2e3148e49b8ed6a51c11702b30cf2b3"
+    },
+    {
+      "layer": 3,
+      "compared": true,
+      "changedPositions": [],
+      "sourceFixtureSha256": "d6f2401251d90bc5b9e7b8e6959415b2d9840864e6ed5d4346f7a2aa36bdc31e",
+      "sourceLogitsSha256": "a3c8432873589dada48cc17d7c7222d50fdc2dbad581051e072b534dc0335413"
+    },
+    {
+      "layer": 4,
+      "compared": true,
+      "changedPositions": [],
+      "sourceFixtureSha256": "33b6145ea1403defb9a05009e8f24733c5b24d0404da8e55310b9a3ed3eaa020",
+      "sourceLogitsSha256": "a9e558a587affa8e74edb881a434795b7270da240be0fdb20d7a222fa3dd4a48"
+    },
+    {
+      "layer": 5,
+      "compared": true,
+      "changedPositions": [],
+      "sourceFixtureSha256": "23b53adfb1a0671616159e12f8fb43b07c30aab7474d290ce9f4e1d60aafe17e",
+      "sourceLogitsSha256": "c42f445bd02d2b927a2adeaf30616ece782b9b331d76da8c98a56f0d8e84b99c"
+    },
+    {
+      "layer": 6,
+      "compared": true,
+      "changedPositions": [],
+      "sourceFixtureSha256": "e16256554631592e6e9d7d8b932299b0d0cbe51e41b7bb4b24db4ad02d729e37",
+      "sourceLogitsSha256": "36bf8b8b25ffe21e24bc8f90c014d2ceee436333c18538e873a928a3f3f7fdda"
+    },
+    {
+      "layer": 7,
+      "compared": true,
+      "changedPositions": [],
+      "sourceFixtureSha256": "8b780259a3bb29b95db990d92c7db74c715c8a8014ca3f40ea7eea4e0b36d56d",
+      "sourceLogitsSha256": "d73084378a22a0a36167958a224f9b0d63b9416356b98072465e418dae12d945"
+    },
+    {
+      "layer": 8,
+      "compared": true,
+      "changedPositions": [],
+      "sourceFixtureSha256": "9b9bfdc6b698226a37633812e90462523d3d586219580c2098ad46d9bfebeaf3",
+      "sourceLogitsSha256": "cdfa21c3e87a11f1935fac1167b0785c58b4757462cfe02638f5feae1fa92821"
+    },
+    {
+      "layer": 9,
+      "compared": true,
+      "changedPositions": [],
+      "sourceFixtureSha256": "7f57681f31778e9a107886008136ba9c5eb9ece9d0273ebb65cfcdf66af80dc8",
+      "sourceLogitsSha256": "9d175c4bbadaa6be5a3fbdfef96045804bf0905245741c2a66c15af9cb501ac6"
+    },
+    {
+      "layer": 10,
+      "compared": true,
+      "changedPositions": [],
+      "sourceFixtureSha256": "1f59aa39bc5087e51316f8420947da4e2bf183286b5c866964ee35e829b61d2d",
+      "sourceLogitsSha256": "e63bae88fecefde507dd0f3ea51b5f6e4b1bad87f85af0ab799e9199590c82cb"
+    },
+    {
+      "layer": 11,
+      "compared": true,
+      "changedPositions": [],
+      "sourceFixtureSha256": "6369b357a8af468d7cb4c4de9a78ad34ff23a62a973bcbde0c7f88d85ac1d6e8",
+      "sourceLogitsSha256": "94f43ed7564dcb87ee13b03e3e0744b58617f0b8cc06ef10a2a8530907173a2c"
+    },
+    {
+      "layer": 12,
+      "compared": true,
+      "changedPositions": [],
+      "sourceFixtureSha256": "bf320b4076fc484b1fa3637d4eae604d19b5a52ca2e620f0bc10223cfd7e8a5b",
+      "sourceLogitsSha256": "0a3f755cad715464157472e1df2a1e55e17a92657965d1da9bb177dd6f2860f3"
+    },
+    {
+      "layer": 13,
+      "compared": true,
+      "changedPositions": [],
+      "sourceFixtureSha256": "e0548a2c729138bbe2faae55f7c84b85ddff1758d5ea0a65c942a711cb97b8b3",
+      "sourceLogitsSha256": "1f7c5488c00a39a41df2ff08837f998e912eb41e1651aa9c8bd151a25f51d841"
+    },
+    {
+      "layer": 14,
+      "compared": true,
+      "changedPositions": [],
+      "sourceFixtureSha256": "589c68aa4a4a4c8ac7e7ff45cdd2766fe78769be976456ef06338f5b40cc88b7",
+      "sourceLogitsSha256": "b26070ef89b41658d33678efc670b9c344f28830635744959797693d359fd129"
+    },
+    {
+      "layer": 15,
+      "compared": true,
+      "changedPositions": [
+        2135
+      ],
+      "sourceFixtureSha256": "84574cf9f89f7b4770430a0c7704833885f815a2864354509d0b5b5b7d715bbe",
+      "sourceLogitsSha256": "ca4ad0aba681cfcd4421bd1b196f2eb8e40b7edf4bd5386cdf83a77d9042ffa7",
+      "firstDifference": {
+        "position": 2135,
+        "lost": [
+          147
+        ],
+        "gained": [
+          115
+        ],
+        "sourceInputAvailable": false,
+        "inputMaxAbsoluteDifference": null,
+        "boundaryLogits": [
+          {
+            "expert": 115,
+            "sourceStored": -4.022751331329346,
+            "gpuStored": -4.02273416519165,
+            "sourceInputF64Dot": null,
+            "gpuInputF64Dot": -4.022734054234665
+          },
+          {
+            "expert": 147,
+            "sourceStored": -4.022695064544678,
+            "gpuStored": -4.022738456726074,
+            "sourceInputF64Dot": null,
+            "gpuInputF64Dot": -4.022738546171158
+          }
+        ]
+      }
+    }
+  ]
+}

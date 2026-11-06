@@ -1,0 +1,10 @@
+{
+  "scope": "Exact observed layer-5 router input row under normal execution versus readback instrumentation",
+  "layer": 5,
+  "position": 2003,
+  "bitExact": true,
+  "normalModelQualified": false,
+  "modelObservationSha256": "5583fde62be440a7ff74fab0480cb34bf5aacfb7c60312a7c63df4535fef7bc3",
+  "traceSha256": "2a062ad89a58ee9365dfd64ce3f9b7b8916a2b7cff1ac16651338a152b399b71",
+  "rowSha256": "80a6a99ed3b7a122b131ac5dd332881eb123745e87a2a4ae8e85f88603aa91c7"
+}

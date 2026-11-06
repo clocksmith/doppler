@@ -1,0 +1,410 @@
+{
+  "scope": "Layer-0 HC down projection on captured learned inputs; existing kernels, no model qualification or speed claim",
+  "process": {
+    "pid": 2480123,
+    "node": "22.22.1"
+  },
+  "runSha256": "5691d7f64b459cdad2515a2c4df0025908d91cd584b6257577e9da45305ddf16",
+  "manifestSha256": "4902a0b730a9310903b00bc0f8f587528fa1af9f37a722d2f9287bafceceec09",
+  "weightsSha256": "d576461fa92f7f9e97258ab61f6321fdba81b5e066e882919d1e8b17da46c88e",
+  "inputSha256": "8817feb61a0b48603935ba19253b8bf9bd34d46f0f15db169d02b46f3c6e16e2",
+  "M": 512,
+  "N": 320,
+  "K": 10240,
+  "oracle": "Neumaier Float64 sum of exact F32 inputs and expanded F16 weights",
+  "provider": {
+    "schema": "doe.webgpu-provider-receipt/v1",
+    "contract": "doe.webgpu-provider/v1",
+    "implementation": "doppler",
+    "providers": [
+      {
+        "id": "pre-installed",
+        "kind": "global"
+      },
+      {
+        "id": "webgpu",
+        "kind": "module",
+        "module": "webgpu",
+        "gpu": {
+          "kind": "factory",
+          "path": "create",
+          "args": [
+            [
+              "enable-dawn-features=allow_unsafe_apis"
+            ]
+          ]
+        },
+        "globals": {
+          "GPUBufferUsage": "globals.GPUBufferUsage",
+          "GPUShaderStage": "globals.GPUShaderStage",
+          "GPUMapMode": "globals.GPUMapMode",
+          "GPUTextureUsage": "globals.GPUTextureUsage"
+        }
+      }
+    ],
+    "providerOrder": [
+      "pre-installed",
+      "webgpu"
+    ],
+    "adapterOptions": null,
+    "globals": {
+      "mode": "replace",
+      "installed": [
+        "GPUBufferUsage",
+        "GPUShaderStage",
+        "GPUMapMode",
+        "GPUTextureUsage",
+        "navigator.gpu"
+      ],
+      "restored": true
+    },
+    "attempts": [
+      {
+        "providerId": "pre-installed",
+        "kind": "global",
+        "module": null,
+        "ok": false,
+        "stage": "gpu.validate",
+        "code": "DOPPLER_PROVIDER_UNAVAILABLE",
+        "detail": "Selected provider does not expose GPU.requestAdapter()."
+      },
+      {
+        "providerId": "webgpu",
+        "kind": "module",
+        "module": "webgpu",
+        "ok": true,
+        "stage": "complete",
+        "code": null,
+        "detail": null
+      }
+    ],
+    "selectedProviderId": "webgpu",
+    "ok": true
+  },
+  "cases": [
+    {
+      "kernel": "matmul_f32.wgsl",
+      "maxAbsoluteError": 0.0003332009138148351,
+      "nearestF32Mismatches": 933,
+      "rows": [
+        {
+          "position": 0,
+          "expected": [
+            253,
+            121,
+            281,
+            100,
+            23,
+            241,
+            170,
+            35,
+            135,
+            93
+          ],
+          "actual": [
+            253,
+            121,
+            281,
+            100,
+            23,
+            241,
+            170,
+            35,
+            135,
+            93
+          ]
+        },
+        {
+          "position": 234,
+          "expected": [
+            253,
+            241,
+            17,
+            245,
+            34,
+            116,
+            313,
+            287,
+            170,
+            203
+          ],
+          "actual": [
+            253,
+            241,
+            17,
+            245,
+            34,
+            116,
+            313,
+            287,
+            170,
+            203
+          ]
+        },
+        {
+          "position": 505,
+          "expected": [
+            253,
+            245,
+            124,
+            28,
+            182,
+            191,
+            111,
+            241,
+            228,
+            7
+          ],
+          "actual": [
+            253,
+            245,
+            124,
+            28,
+            182,
+            191,
+            111,
+            241,
+            228,
+            7
+          ]
+        }
+      ],
+      "dispatches": [
+        {
+          "workgroups": [
+            32,
+            20,
+            1
+          ],
+          "pipeline": {
+            "operation": "matmul",
+            "variant": "f32",
+            "shaderFile": "matmul_f32.wgsl",
+            "shaderHash": "sha256:5996e7d704299f211bbebe1f69ae73b59c03c85b0ee17eddc04d92e44488423c",
+            "entryPoint": "main",
+            "constants": {},
+            "registryIdentity": "sha256:6cf382d22a7ccef7548390f8a605d274e484624fad865e0feb9ceabd2d123629"
+          }
+        }
+      ]
+    },
+    {
+      "kernel": "matmul_f16w_f32a_tiled.wgsl",
+      "maxAbsoluteError": 0.00007137550655045288,
+      "nearestF32Mismatches": 864,
+      "rows": [
+        {
+          "position": 0,
+          "expected": [
+            253,
+            121,
+            281,
+            100,
+            23,
+            241,
+            170,
+            35,
+            135,
+            93
+          ],
+          "actual": [
+            253,
+            121,
+            281,
+            100,
+            23,
+            241,
+            170,
+            35,
+            135,
+            93
+          ]
+        },
+        {
+          "position": 234,
+          "expected": [
+            253,
+            241,
+            17,
+            245,
+            34,
+            116,
+            313,
+            287,
+            170,
+            203
+          ],
+          "actual": [
+            253,
+            241,
+            17,
+            245,
+            34,
+            116,
+            313,
+            287,
+            170,
+            203
+          ]
+        },
+        {
+          "position": 505,
+          "expected": [
+            253,
+            245,
+            124,
+            28,
+            182,
+            191,
+            111,
+            241,
+            228,
+            7
+          ],
+          "actual": [
+            253,
+            245,
+            124,
+            28,
+            182,
+            191,
+            111,
+            241,
+            228,
+            7
+          ]
+        }
+      ],
+      "dispatches": [
+        {
+          "workgroups": [
+            8,
+            5,
+            1
+          ],
+          "pipeline": {
+            "operation": "matmul",
+            "variant": "f16w_f32a_tiled",
+            "shaderFile": "matmul_f16w_f32a_tiled.wgsl",
+            "shaderHash": "sha256:87141bf2a027f563abfcbf6c0472f4bb4af3bf572b9d09b6f530320abd267da8",
+            "entryPoint": "main",
+            "constants": {},
+            "registryIdentity": "sha256:6cf382d22a7ccef7548390f8a605d274e484624fad865e0feb9ceabd2d123629"
+          }
+        }
+      ]
+    },
+    {
+      "kernel": "matmul_compensated_f32.wgsl",
+      "maxAbsoluteError": 0.000007546464587449009,
+      "nearestF32Mismatches": 0,
+      "rows": [
+        {
+          "position": 0,
+          "expected": [
+            253,
+            121,
+            281,
+            100,
+            23,
+            241,
+            170,
+            35,
+            135,
+            93
+          ],
+          "actual": [
+            253,
+            121,
+            281,
+            100,
+            23,
+            241,
+            170,
+            35,
+            135,
+            93
+          ]
+        },
+        {
+          "position": 234,
+          "expected": [
+            253,
+            241,
+            17,
+            245,
+            34,
+            116,
+            313,
+            287,
+            170,
+            203
+          ],
+          "actual": [
+            253,
+            241,
+            17,
+            245,
+            34,
+            116,
+            313,
+            287,
+            170,
+            203
+          ]
+        },
+        {
+          "position": 505,
+          "expected": [
+            253,
+            245,
+            124,
+            28,
+            182,
+            191,
+            111,
+            241,
+            228,
+            7
+          ],
+          "actual": [
+            253,
+            245,
+            124,
+            28,
+            182,
+            191,
+            111,
+            241,
+            228,
+            7
+          ]
+        }
+      ],
+      "dispatches": [
+        {
+          "workgroups": [
+            32,
+            20,
+            1
+          ],
+          "pipeline": {
+            "operation": "matmul",
+            "variant": "f32_compensated",
+            "shaderFile": "matmul_compensated_f32.wgsl",
+            "shaderHash": "sha256:de1160b82537f34023363084c54041df9d2b8deb6fa2ed72ab3b4d3dfa9eda09",
+            "entryPoint": "main",
+            "constants": {
+              "COMPENSATED_F32": 1,
+              "TILE_SIZE": 16
+            },
+            "registryIdentity": "sha256:6cf382d22a7ccef7548390f8a605d274e484624fad865e0feb9ceabd2d123629"
+          }
+        }
+      ]
+    }
+  ],
+  "gpuErrors": [],
+  "completed": true,
+  "cleanupFailures": []
+}

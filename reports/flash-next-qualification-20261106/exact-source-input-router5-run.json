@@ -1,0 +1,25 @@
+{
+  "modelDir": "/run/media/x/models/rdrr/qwen-3-8-flash-next-text-q4k-ehf16-af32",
+  "manifestSha256": "4902a0b730a9310903b00bc0f8f587528fa1af9f37a722d2f9287bafceceec09",
+  "tensor": "model.language_model.layers.5.mlp.gate.weight",
+  "inputFile": "/run/media/x/models/qwen38-flash-next-de4b8e4d/qualify/source-router5-input-20261106.f32",
+  "inputSha256": "bd0fcfc2c5eb1a0d1fc26ca5b743b9bae8195a2dea100f0d15554ae4e68f97e6",
+  "inputShape": [
+    2304,
+    2560
+  ],
+  "rows": [
+    2003
+  ],
+  "role": "moe_router",
+  "requireBaselineReversal": false,
+  "retainRows": true,
+  "kernels": [
+    "matmul_f32.wgsl",
+    "matmul_compensated_f32.wgsl",
+    "matmul_f32_row_subgroup.wgsl"
+  ],
+  "outputPath": "/run/media/x/models/qwen38-flash-next-de4b8e4d/qualify/exact-source-input-router5-component-20261106.json",
+  "sourceFixtureSha256": "23b53adfb1a0671616159e12f8fb43b07c30aab7474d290ce9f4e1d60aafe17e",
+  "scope": "Physical router projections on the exact independent source input; component diagnostic, not model qualification"
+}

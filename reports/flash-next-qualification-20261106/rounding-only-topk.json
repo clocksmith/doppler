@@ -1,0 +1,172 @@
+{
+  "scope": "Physical declared GPU top-k replay of frozen logits; no tensor feedback or model qualification",
+  "normalModelQualified": false,
+  "process": {
+    "pid": 3352144,
+    "node": "22.22.1"
+  },
+  "provider": {
+    "schema": "doe.webgpu-provider-receipt/v1",
+    "contract": "doe.webgpu-provider/v1",
+    "implementation": "doppler",
+    "providers": [
+      {
+        "id": "pre-installed",
+        "kind": "global"
+      },
+      {
+        "id": "webgpu",
+        "kind": "module",
+        "module": "webgpu",
+        "gpu": {
+          "kind": "factory",
+          "path": "create",
+          "args": [
+            [
+              "enable-dawn-features=allow_unsafe_apis"
+            ]
+          ]
+        },
+        "globals": {
+          "GPUBufferUsage": "globals.GPUBufferUsage",
+          "GPUShaderStage": "globals.GPUShaderStage",
+          "GPUMapMode": "globals.GPUMapMode",
+          "GPUTextureUsage": "globals.GPUTextureUsage"
+        }
+      }
+    ],
+    "providerOrder": [
+      "pre-installed",
+      "webgpu"
+    ],
+    "adapterOptions": null,
+    "globals": {
+      "mode": "replace",
+      "installed": [
+        "GPUBufferUsage",
+        "GPUShaderStage",
+        "GPUMapMode",
+        "GPUTextureUsage",
+        "navigator.gpu"
+      ],
+      "restored": true
+    },
+    "attempts": [
+      {
+        "providerId": "pre-installed",
+        "kind": "global",
+        "module": null,
+        "ok": false,
+        "stage": "gpu.validate",
+        "code": "DOPPLER_PROVIDER_UNAVAILABLE",
+        "detail": "Selected provider does not expose GPU.requestAdapter()."
+      },
+      {
+        "providerId": "webgpu",
+        "kind": "module",
+        "module": "webgpu",
+        "ok": true,
+        "stage": "complete",
+        "code": null,
+        "detail": null
+      }
+    ],
+    "selectedProviderId": "webgpu",
+    "ok": true
+  },
+  "observationSha256": "5583fde62be440a7ff74fab0480cb34bf5aacfb7c60312a7c63df4535fef7bc3",
+  "modelRunSha256": "a09ae02f0a1692cad8d969a27705080785cd9f6438fbb47e3745f3196e3ea09c",
+  "rows": [
+    {
+      "layer": 0,
+      "variant": "fused_ranked_512",
+      "shape": [
+        2304,
+        10
+      ],
+      "file": "/run/media/x/models/qwen38-flash-next-de4b8e4d/qualify/rounding-only-topk-20261106.json.layer0.u32",
+      "sha256": "3f6091ed1a23c64bd2af63fd5d04432137346b7a81153393b1303cb2d28c6fbc",
+      "sourceLogitsSha256": "cb2028e12c49ac48fe0e0c61abedc64b1f6d7991947ec7a1b4a67e9016116fef"
+    },
+    {
+      "layer": 1,
+      "variant": "fused_ranked_512",
+      "shape": [
+        2304,
+        10
+      ],
+      "file": "/run/media/x/models/qwen38-flash-next-de4b8e4d/qualify/rounding-only-topk-20261106.json.layer1.u32",
+      "sha256": "63f763f12199fcea1f39f23377bfa87ec938ee2f13e9818d95529c513373651b",
+      "sourceLogitsSha256": "fdb0e07c2c735e43e975f363e051e263fe4ac916dbcf095d57b8d60d60f75bb5"
+    },
+    {
+      "layer": 2,
+      "variant": "fused_ranked_512",
+      "shape": [
+        2304,
+        10
+      ],
+      "file": "/run/media/x/models/qwen38-flash-next-de4b8e4d/qualify/rounding-only-topk-20261106.json.layer2.u32",
+      "sha256": "5ce2c68131c0b79c3aa139d00e38d4b695360bd9659fb9e7459e156d557ee85a",
+      "sourceLogitsSha256": "63931240fb7390a434574924a7b2d50c76a6e4229068c2ea0df2b503178c2e9f"
+    },
+    {
+      "layer": 3,
+      "variant": "fused_ranked_512",
+      "shape": [
+        2304,
+        10
+      ],
+      "file": "/run/media/x/models/qwen38-flash-next-de4b8e4d/qualify/rounding-only-topk-20261106.json.layer3.u32",
+      "sha256": "5042643c3537437f6eae7330da4074374234c6245b37b9106ec02197fbea0eef",
+      "sourceLogitsSha256": "d535377184b572a9742d719fe9e42042e3a6d46153a36650ca45ed46953e0aa4"
+    },
+    {
+      "layer": 4,
+      "variant": "fused_ranked_512",
+      "shape": [
+        2304,
+        10
+      ],
+      "file": "/run/media/x/models/qwen38-flash-next-de4b8e4d/qualify/rounding-only-topk-20261106.json.layer4.u32",
+      "sha256": "6ae4090b4cb266d5d897876cf92e69d0128a770ca59603b72beaefcd0f6735e3",
+      "sourceLogitsSha256": "dda42f1d97f1fdfe6b6ca6a6fd001a7f88eea1783b58010cba35e557e03cc64e"
+    },
+    {
+      "layer": 5,
+      "variant": "fused_ranked_512",
+      "shape": [
+        2304,
+        10
+      ],
+      "file": "/run/media/x/models/qwen38-flash-next-de4b8e4d/qualify/rounding-only-topk-20261106.json.layer5.u32",
+      "sha256": "d85c8a5bfd3f10485af349bf3589ccbf64f859b1c9ee500b8ab2952ca790fa1d",
+      "sourceLogitsSha256": "0cd337c36f0c5103367d50b08031e9b44120a661d6244f5499efcf765cbbb149"
+    },
+    {
+      "layer": 6,
+      "variant": "fused_ranked_512",
+      "shape": [
+        2304,
+        10
+      ],
+      "file": "/run/media/x/models/qwen38-flash-next-de4b8e4d/qualify/rounding-only-topk-20261106.json.layer6.u32",
+      "sha256": "7262085ae04ce48daacb9965dd9d56bfd214310f5a8154375926aecc486aeb15",
+      "sourceLogitsSha256": "32c592ad07287c8f83c16c3fc74b261b5c62111cccf6f140c39e0e1ac1dbeab8"
+    },
+    {
+      "layer": 7,
+      "variant": "fused_ranked_512",
+      "shape": [
+        2304,
+        10
+      ],
+      "file": "/run/media/x/models/qwen38-flash-next-de4b8e4d/qualify/rounding-only-topk-20261106.json.layer7.u32",
+      "sha256": "230e2dfe8f06dca19375782c541db989392b1e3884882c0ebe2fe041f36e25db",
+      "sourceLogitsSha256": "776710e4373e499cf4c021317d025c326646fc8370ff5219ce4a91c2302f5f18"
+    }
+  ],
+  "gpuErrors": [],
+  "completed": true,
+  "cleanupFailures": []
+}

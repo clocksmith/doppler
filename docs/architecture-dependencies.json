@@ -4707,6 +4707,7 @@
         "tests/helpers/gemma4-litert-fixture.js",
         "tests/helpers/gguf-fixture.js",
         "tests/helpers/gpu-probe.js",
+        "tests/helpers/hyper-connection-observation-loader.js",
         "tests/helpers/installed-adapter-fixture.js",
         "tests/helpers/installed-token-selection-fixture.js",
         "tests/helpers/kernel-dispatch-observer.js",
@@ -4961,6 +4962,7 @@
         "tests/inference/qk-norm-weight-shape.test.js",
         "tests/inference/qsa-attention-variant.test.js",
         "tests/inference/qsa-cache-lifecycle.test.js",
+        "tests/inference/qsa-observation-digest.test.js",
         "tests/inference/qsa-query-view.test.js",
         "tests/inference/qwen-linear-norm-offset.test.js",
         "tests/inference/qwen-manifest-completeness.test.js",
@@ -5116,7 +5118,9 @@
         "tests/integration/flash-next-learned-physical.test.js",
         "tests/integration/flash-next-public-consumer.test.js",
         "tests/integration/flash-next-router-numerical-physical.test.js",
+        "tests/integration/flash-next-router-replay-physical.test.js",
         "tests/integration/flash-next-runtime-profile.test.js",
+        "tests/integration/flash-next-upstream-trace-physical.test.js",
         "tests/integration/frozen-prefix-receipt.test.js",
         "tests/integration/frozen-prefix-resources.test.js",
         "tests/integration/frozen-prefix-scope.test.js",
@@ -5253,6 +5257,8 @@
         "tests/kernels/hyper-connection-gpu.test.js",
         "tests/kernels/hyper-connection-reference.js",
         "tests/kernels/hyper-connection-reference.test.js",
+        "tests/kernels/hyper-connection-rounding-browser.test.js",
+        "tests/kernels/hyper-connection-rounding-gpu.test.js",
         "tests/kernels/indexed-attention-gpu.test.js",
         "tests/kernels/kernel-uniform-echo-physical.test.js",
         "tests/kernels/linear-activation-diagnostic.js",
@@ -7496,6 +7502,12 @@
       "kind": "asset",
       "line": 28,
       "expression": "new URL(path, import.meta.url)"
+    },
+    {
+      "file": "tests/kernels/hyper-connection-rounding-gpu.test.js",
+      "kind": "asset",
+      "line": 25,
+      "expression": "new URL(`../../src/gpu/kernels/${file}`, import.meta.url)"
     },
     {
       "file": "tests/kernels/kernel-uniform-echo-physical.test.js",

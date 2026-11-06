@@ -1,0 +1,493 @@
+{
+  "scope": "Actual GPU top-k replay versus independent source expert choices; not model acceptance",
+  "normalModelQualified": false,
+  "observationSha256": "43ab6a1e1b20863d14bdf28f780e5bf52d78e65fd852781cc14ad1c78e819393",
+  "replaySha256": "a3194b8e22f7696570b4fe31f27b395b9f2e098a79628c20ceb3b4d18cf8a964",
+  "sourceReceiptSha256": "ea4aa5314aa3bb5aa9137549d1837d1d30ef0eac1c8869de92b6e8e734d9ffc4",
+  "manifestSha256": "4902a0b730a9310903b00bc0f8f587528fa1af9f37a722d2f9287bafceceec09",
+  "scriptSha256": "94eda1af020d182e4b2d26ef772bc580eb62146d622ccb58eec8045c638ec5b2",
+  "rows": [
+    {
+      "layer": 0,
+      "compared": true,
+      "changedPositions": [],
+      "sourceFixtureSha256": "b15412bdd0016996b86721317711e318823b2bb3b17d9ad060d9fd23251ec28e",
+      "sourceLogitsSha256": "4ca8269038e5cc10a1bc4b183eadf91164e103bccf883bdb3fae4100f4fc4987"
+    },
+    {
+      "layer": 1,
+      "compared": true,
+      "changedPositions": [],
+      "sourceFixtureSha256": "ad458de1ab5e4e757246fd2bd523116b5ede70303e5b5665c8862469fbdc42a3",
+      "sourceLogitsSha256": "dfc57402a72c5c77a9f5170d3317fa96fe35a86fe6534830d85ad011fc7d8169"
+    },
+    {
+      "layer": 2,
+      "compared": true,
+      "changedPositions": [],
+      "sourceFixtureSha256": "c17a78298cddba76a1f4e75c4e26f34435ae569b0896f4636d3d2410cec5f232",
+      "sourceLogitsSha256": "df7822e88ec653fc2a30663fdf96667a7a4034c4b62457fcdb29bc8b48431d53"
+    },
+    {
+      "layer": 3,
+      "compared": true,
+      "changedPositions": [
+        783
+      ],
+      "sourceFixtureSha256": "d6f2401251d90bc5b9e7b8e6959415b2d9840864e6ed5d4346f7a2aa36bdc31e",
+      "sourceLogitsSha256": "529463b3fea6f540f0233fd70b4346ebed839aae5d5d653187f8c7ad09652ab1",
+      "firstDifference": {
+        "position": 783,
+        "lost": [
+          326
+        ],
+        "gained": [
+          111
+        ],
+        "sourceInputAvailable": true,
+        "inputMaxAbsoluteDifference": 1.2680888175964355e-05,
+        "boundaryLogits": [
+          {
+            "expert": 111,
+            "sourceStored": -5.030094146728516,
+            "gpuStored": -5.030087471008301,
+            "sourceInputF64Dot": -5.030094361563707,
+            "gpuInputF64Dot": -5.030090581805845
+          },
+          {
+            "expert": 326,
+            "sourceStored": -5.030087471008301,
+            "gpuStored": -5.030088901519775,
+            "sourceInputF64Dot": -5.030087911172804,
+            "gpuInputF64Dot": -5.030088139431562
+          }
+        ]
+      }
+    },
+    {
+      "layer": 4,
+      "compared": true,
+      "changedPositions": [
+        1936
+      ],
+      "sourceFixtureSha256": "33b6145ea1403defb9a05009e8f24733c5b24d0404da8e55310b9a3ed3eaa020",
+      "sourceLogitsSha256": "6eb797b9574b4421ddeaaf363dc32382cd26bbd71970898d477492ef718477fb",
+      "firstDifference": {
+        "position": 1936,
+        "lost": [
+          436
+        ],
+        "gained": [
+          456
+        ],
+        "sourceInputAvailable": true,
+        "inputMaxAbsoluteDifference": 2.2709369659423828e-05,
+        "boundaryLogits": [
+          {
+            "expert": 436,
+            "sourceStored": -4.640148162841797,
+            "gpuStored": -4.640149116516113,
+            "sourceInputF64Dot": -4.640148628103628,
+            "gpuInputF64Dot": -4.640151133737201
+          },
+          {
+            "expert": 456,
+            "sourceStored": -4.6401567459106445,
+            "gpuStored": -4.640145778656006,
+            "sourceInputF64Dot": -4.640156956587269,
+            "gpuInputF64Dot": -4.640151504996311
+          }
+        ]
+      }
+    },
+    {
+      "layer": 5,
+      "compared": true,
+      "changedPositions": [],
+      "sourceFixtureSha256": "23b53adfb1a0671616159e12f8fb43b07c30aab7474d290ce9f4e1d60aafe17e",
+      "sourceLogitsSha256": "ac09438a2137cc95c65992af356239c1d98926515595ba3db616eae51c663f0e"
+    },
+    {
+      "layer": 6,
+      "compared": true,
+      "changedPositions": [
+        803,
+        881,
+        1936,
+        1939
+      ],
+      "sourceFixtureSha256": "e16256554631592e6e9d7d8b932299b0d0cbe51e41b7bb4b24db4ad02d729e37",
+      "sourceLogitsSha256": "0a3189fdf53ac0a3599b94b3dc35b7d34811b687ba6584c0df73d78c2d85d8fb",
+      "firstDifference": {
+        "position": 803,
+        "lost": [
+          270
+        ],
+        "gained": [
+          313
+        ],
+        "sourceInputAvailable": true,
+        "inputMaxAbsoluteDifference": 0.005141854286193848,
+        "boundaryLogits": [
+          {
+            "expert": 270,
+            "sourceStored": -4.965317249298096,
+            "gpuStored": -4.96577262878418,
+            "sourceInputF64Dot": -4.965317826895385,
+            "gpuInputF64Dot": -4.965771853463613
+          },
+          {
+            "expert": 313,
+            "sourceStored": -4.965978622436523,
+            "gpuStored": -4.965252876281738,
+            "sourceInputF64Dot": -4.965978469996559,
+            "gpuInputF64Dot": -4.965250992089278
+          }
+        ]
+      }
+    },
+    {
+      "layer": 7,
+      "compared": true,
+      "changedPositions": [
+        1939
+      ],
+      "sourceFixtureSha256": "8b780259a3bb29b95db990d92c7db74c715c8a8014ca3f40ea7eea4e0b36d56d",
+      "sourceLogitsSha256": "45d4822af1e15096721385565e6657c270666dc4e64b2491a576b2aa8dd51653",
+      "firstDifference": {
+        "position": 1939,
+        "lost": [
+          354
+        ],
+        "gained": [
+          275
+        ],
+        "sourceInputAvailable": true,
+        "inputMaxAbsoluteDifference": 0.03381679952144623,
+        "boundaryLogits": [
+          {
+            "expert": 275,
+            "sourceStored": -4.377119541168213,
+            "gpuStored": -4.362127304077148,
+            "sourceInputF64Dot": -4.3771194539343785,
+            "gpuInputF64Dot": -4.362130747166345
+          },
+          {
+            "expert": 354,
+            "sourceStored": -4.374446392059326,
+            "gpuStored": -4.376678466796875,
+            "sourceInputF64Dot": -4.374446598171187,
+            "gpuInputF64Dot": -4.376677187300062
+          }
+        ]
+      }
+    },
+    {
+      "layer": 8,
+      "compared": true,
+      "changedPositions": [
+        826
+      ],
+      "sourceFixtureSha256": "9b9bfdc6b698226a37633812e90462523d3d586219580c2098ad46d9bfebeaf3",
+      "sourceLogitsSha256": "d2b410b4d6fd74fe7d4ce192ee3692106e92d608d3884910348dfffd6bdf7540",
+      "firstDifference": {
+        "position": 826,
+        "lost": [
+          287
+        ],
+        "gained": [
+          202
+        ],
+        "sourceInputAvailable": false,
+        "inputMaxAbsoluteDifference": null,
+        "boundaryLogits": [
+          {
+            "expert": 202,
+            "sourceStored": -4.293057918548584,
+            "gpuStored": -4.292829990386963,
+            "sourceInputF64Dot": null,
+            "gpuInputF64Dot": -4.292828229053129
+          },
+          {
+            "expert": 287,
+            "sourceStored": -4.292462348937988,
+            "gpuStored": -4.293371200561523,
+            "sourceInputF64Dot": null,
+            "gpuInputF64Dot": -4.293374163245765
+          }
+        ]
+      }
+    },
+    {
+      "layer": 9,
+      "compared": true,
+      "changedPositions": [
+        1324
+      ],
+      "sourceFixtureSha256": "7f57681f31778e9a107886008136ba9c5eb9ece9d0273ebb65cfcdf66af80dc8",
+      "sourceLogitsSha256": "c72a77a102916bae4b4c56adb337b052a78a67eabb38c950d04c6a8b76be03d6",
+      "firstDifference": {
+        "position": 1324,
+        "lost": [
+          302
+        ],
+        "gained": [
+          260
+        ],
+        "sourceInputAvailable": false,
+        "inputMaxAbsoluteDifference": null,
+        "boundaryLogits": [
+          {
+            "expert": 260,
+            "sourceStored": -4.333387851715088,
+            "gpuStored": -4.333359718322754,
+            "sourceInputF64Dot": null,
+            "gpuInputF64Dot": -4.333359106046828
+          },
+          {
+            "expert": 302,
+            "sourceStored": -4.333371162414551,
+            "gpuStored": -4.33336877822876,
+            "sourceInputF64Dot": null,
+            "gpuInputF64Dot": -4.333369525177183
+          }
+        ]
+      }
+    },
+    {
+      "layer": 10,
+      "compared": true,
+      "changedPositions": [
+        804,
+        881,
+        1939,
+        1956
+      ],
+      "sourceFixtureSha256": "1f59aa39bc5087e51316f8420947da4e2bf183286b5c866964ee35e829b61d2d",
+      "sourceLogitsSha256": "781978d355e65ae0828de73f3598f9d235505e53dca3d005df717a222ce427d9",
+      "firstDifference": {
+        "position": 804,
+        "lost": [
+          26
+        ],
+        "gained": [
+          471
+        ],
+        "sourceInputAvailable": false,
+        "inputMaxAbsoluteDifference": null,
+        "boundaryLogits": [
+          {
+            "expert": 26,
+            "sourceStored": -4.505404949188232,
+            "gpuStored": -4.505932331085205,
+            "sourceInputF64Dot": null,
+            "gpuInputF64Dot": -4.505934181598413
+          },
+          {
+            "expert": 471,
+            "sourceStored": -4.506167411804199,
+            "gpuStored": -4.5056281089782715,
+            "sourceInputF64Dot": null,
+            "gpuInputF64Dot": -4.505626524446235
+          }
+        ]
+      }
+    },
+    {
+      "layer": 11,
+      "compared": true,
+      "changedPositions": [
+        838,
+        1276,
+        1345,
+        1956
+      ],
+      "sourceFixtureSha256": "6369b357a8af468d7cb4c4de9a78ad34ff23a62a973bcbde0c7f88d85ac1d6e8",
+      "sourceLogitsSha256": "f2e9fbeed2cb9f961016a9813ed0e1c2dd11c4da4381d31f50481eadd049023d",
+      "firstDifference": {
+        "position": 838,
+        "lost": [
+          172
+        ],
+        "gained": [
+          220
+        ],
+        "sourceInputAvailable": false,
+        "inputMaxAbsoluteDifference": null,
+        "boundaryLogits": [
+          {
+            "expert": 172,
+            "sourceStored": -4.184255123138428,
+            "gpuStored": -4.1850810050964355,
+            "sourceInputF64Dot": null,
+            "gpuInputF64Dot": -4.185081566952666
+          },
+          {
+            "expert": 220,
+            "sourceStored": -4.185872554779053,
+            "gpuStored": -4.1848955154418945,
+            "sourceInputF64Dot": null,
+            "gpuInputF64Dot": -4.184896658965332
+          }
+        ]
+      }
+    },
+    {
+      "layer": 12,
+      "compared": true,
+      "changedPositions": [
+        799,
+        837,
+        863,
+        1276,
+        1939
+      ],
+      "sourceFixtureSha256": "bf320b4076fc484b1fa3637d4eae604d19b5a52ca2e620f0bc10223cfd7e8a5b",
+      "sourceLogitsSha256": "5e64c03dd5e004f2fcdd426b49dc0fbc44b96c612cf87d26213913969c366193",
+      "firstDifference": {
+        "position": 799,
+        "lost": [
+          313
+        ],
+        "gained": [
+          144
+        ],
+        "sourceInputAvailable": false,
+        "inputMaxAbsoluteDifference": null,
+        "boundaryLogits": [
+          {
+            "expert": 144,
+            "sourceStored": -3.9232993125915527,
+            "gpuStored": -3.922894239425659,
+            "sourceInputF64Dot": null,
+            "gpuInputF64Dot": -3.92289570328264
+          },
+          {
+            "expert": 313,
+            "sourceStored": -3.922271966934204,
+            "gpuStored": -3.923112392425537,
+            "sourceInputF64Dot": null,
+            "gpuInputF64Dot": -3.9231102201386907
+          }
+        ]
+      }
+    },
+    {
+      "layer": 13,
+      "compared": true,
+      "changedPositions": [
+        1327,
+        2129
+      ],
+      "sourceFixtureSha256": "e0548a2c729138bbe2faae55f7c84b85ddff1758d5ea0a65c942a711cb97b8b3",
+      "sourceLogitsSha256": "28dccc4caf89ab66ec561635d0b95a1e4eafda085a5c6fa40d6cdf1ea329c8e7",
+      "firstDifference": {
+        "position": 1327,
+        "lost": [
+          175
+        ],
+        "gained": [
+          460
+        ],
+        "sourceInputAvailable": false,
+        "inputMaxAbsoluteDifference": null,
+        "boundaryLogits": [
+          {
+            "expert": 175,
+            "sourceStored": -4.065171241760254,
+            "gpuStored": -4.067995548248291,
+            "sourceInputF64Dot": null,
+            "gpuInputF64Dot": -4.067997005291452
+          },
+          {
+            "expert": 460,
+            "sourceStored": -4.066656112670898,
+            "gpuStored": -4.06695556640625,
+            "sourceInputF64Dot": null,
+            "gpuInputF64Dot": -4.066954181864768
+          }
+        ]
+      }
+    },
+    {
+      "layer": 14,
+      "compared": true,
+      "changedPositions": [
+        1324,
+        1327,
+        2021,
+        2047,
+        2212
+      ],
+      "sourceFixtureSha256": "589c68aa4a4a4c8ac7e7ff45cdd2766fe78769be976456ef06338f5b40cc88b7",
+      "sourceLogitsSha256": "b17a03517a2556bd120b20380d72a9dbe2c2ce12886149d546c727bf4ffdcded",
+      "firstDifference": {
+        "position": 1324,
+        "lost": [
+          401
+        ],
+        "gained": [
+          93
+        ],
+        "sourceInputAvailable": false,
+        "inputMaxAbsoluteDifference": null,
+        "boundaryLogits": [
+          {
+            "expert": 93,
+            "sourceStored": -4.478989601135254,
+            "gpuStored": -4.481181621551514,
+            "sourceInputF64Dot": null,
+            "gpuInputF64Dot": -4.481175781757113
+          },
+          {
+            "expert": 401,
+            "sourceStored": -4.469672203063965,
+            "gpuStored": -4.481625080108643,
+            "sourceInputF64Dot": null,
+            "gpuInputF64Dot": -4.481627939194911
+          }
+        ]
+      }
+    },
+    {
+      "layer": 15,
+      "compared": true,
+      "changedPositions": [
+        786,
+        1276,
+        2037,
+        2129,
+        2276
+      ],
+      "sourceFixtureSha256": "84574cf9f89f7b4770430a0c7704833885f815a2864354509d0b5b5b7d715bbe",
+      "sourceLogitsSha256": "920f3595df96073c08170864de433707af907bfb71f9980ea8d0afb8fdc61d67",
+      "firstDifference": {
+        "position": 786,
+        "lost": [
+          147
+        ],
+        "gained": [
+          431
+        ],
+        "sourceInputAvailable": false,
+        "inputMaxAbsoluteDifference": null,
+        "boundaryLogits": [
+          {
+            "expert": 147,
+            "sourceStored": -4.293806076049805,
+            "gpuStored": -4.292695999145508,
+            "sourceInputF64Dot": null,
+            "gpuInputF64Dot": -4.292694931928348
+          },
+          {
+            "expert": 431,
+            "sourceStored": -4.295353412628174,
+            "gpuStored": -4.288704872131348,
+            "sourceInputF64Dot": null,
+            "gpuInputF64Dot": -4.28871134100482
+          }
+        ]
+      }
+    }
+  ]
+}

@@ -1,0 +1,249 @@
+{
+  "scope": "Observed GPU versus independent CPU stage slices; not full-tensor or model qualification",
+  "normalModelQualified": false,
+  "gpuTraceSha256": "1bb561065cc5bf7b7805856f40a456ce800e451b17f5fdb37b6ae82ea68c6f63",
+  "scriptSha256": "68523372d1d66e6afc5db23a9453b38e98d7ba38db9029f1037126260b0bd81e",
+  "sourceTraces": [
+    {
+      "layer": 15,
+      "file": "/run/media/x/models/qwen38-flash-next-de4b8e4d/qualify/source-layer15-hc-20261106/trace.json",
+      "sha256": "05674f4ac5d03d7f5490a2888841d8016e71529d7eb6709defff2e37f0cf5f5b"
+    }
+  ],
+  "rows": [
+    {
+      "layer": 15,
+      "role": "attn_hc",
+      "stage": "input",
+      "positions": [
+        2135
+      ],
+      "gpuSha256": "1cf3135ae7659fbb1922aaf440d93cade48402d4b342f34e761e4b9c0dfae10a",
+      "sourceSha256": "d64f67ee126cc6e51941b2b1a6036b263f05687f6f161a6d76b560b8494469c0",
+      "maxAbsoluteDifference": 1.1837109923362732e-06,
+      "rmsDifference": 1.1914172904384439e-07,
+      "differingF32Values": 10176
+    },
+    {
+      "layer": 15,
+      "role": "attn_hc",
+      "stage": "norm",
+      "positions": [
+        2135
+      ],
+      "gpuSha256": "0e87785984e8d699b8ae754c89fe1119ea0f3e54947e02db31d1564cbbd29346",
+      "sourceSha256": "cc7d0803d0bcea5bdb45e23c1c474a88fdffa07678dd96daf90790da37cce565",
+      "maxAbsoluteDifference": 0.00016832351684570312,
+      "rmsDifference": 9.503925352622266e-06,
+      "differingF32Values": 10138
+    },
+    {
+      "layer": 15,
+      "role": "attn_hc",
+      "stage": "down",
+      "positions": [
+        2135
+      ],
+      "gpuSha256": "214a790aa351c029a92affbbf5f75b551b58d066759ce5dadb7b0d61edf03751",
+      "sourceSha256": "cc006d18588b9ed0723d7a218eeded1cf8b302d64847fbffec8f2bda9421d91a",
+      "maxAbsoluteDifference": 0.000339508056640625,
+      "rmsDifference": 8.238534494063784e-05,
+      "differingF32Values": 318
+    },
+    {
+      "layer": 15,
+      "role": "attn_hc",
+      "stage": "lowRank",
+      "positions": [
+        2135
+      ],
+      "gpuSha256": "7296923d1520d3f7d02126993ae2e3fe8309f6a5ca275c2ed5ac25b621562100",
+      "sourceSha256": "e8ee7eb46da8af522253c7521189142a6d82eac855709f9ff6eeba71bf7345b3",
+      "maxAbsoluteDifference": 5.8531761169433594e-05,
+      "rmsDifference": 5.623110435240543e-06,
+      "differingF32Values": 318
+    },
+    {
+      "layer": 15,
+      "role": "attn_hc",
+      "stage": "up",
+      "positions": [
+        2135
+      ],
+      "gpuSha256": "8c6e778566771fffa69d67d196315288d306454c5c6a3b7fd9312fc1e4c09c8b",
+      "sourceSha256": "67be1a58821356089ebf4fbc3f065c29ce6cfb1dee9b39b4b024e327ec5929cf",
+      "maxAbsoluteDifference": 4.887580871582031e-05,
+      "rmsDifference": 8.11326722919652e-06,
+      "differingF32Values": 10149
+    },
+    {
+      "layer": 15,
+      "role": "attn_hc",
+      "stage": "mix",
+      "positions": [
+        2135
+      ],
+      "gpuSha256": "b1613f26ef6e98738830b5e2c1897e6d0685fb3e86d636e29e0ee8c8f8b2154a",
+      "sourceSha256": "e2c9fa0821a41280e85cc0c35e6dfd804cbb4ef50646e936bc788607ae4a1684",
+      "maxAbsoluteDifference": 9.119510650634766e-06,
+      "rmsDifference": 1.2852832065112573e-06,
+      "differingF32Values": 10157
+    },
+    {
+      "layer": 15,
+      "role": "attn_hc",
+      "stage": "branchInput",
+      "positions": [
+        2135
+      ],
+      "gpuSha256": "526e86dccfd47e30838fa6296276acd72a30ef40f79a736dcde7316f293fc4e6",
+      "sourceSha256": "1ba61cb77fe4c56e0725839671ed6f31fb51cbd58b29882666ce5cbbe783c715",
+      "maxAbsoluteDifference": 2.51084566116333e-05,
+      "rmsDifference": 3.581932355948851e-06,
+      "differingF32Values": 2556
+    },
+    {
+      "layer": 15,
+      "role": "attn_hc",
+      "stage": "logits",
+      "positions": [
+        2135
+      ],
+      "gpuSha256": "e47c294357d4d997fc78d22eda0b74e9d20455ce375e99bedd11057218597404",
+      "sourceSha256": "508931ccf6b79408254af638ae4044329f398d849dc47dee0a0de6039fce8eec",
+      "maxAbsoluteDifference": 1.33514404296875e-05,
+      "rmsDifference": 1.0315564943687409e-05,
+      "differingF32Values": 4
+    },
+    {
+      "layer": 15,
+      "role": "attn_hc",
+      "stage": "gate",
+      "positions": [
+        2135
+      ],
+      "gpuSha256": "68fafed8482b0ea84ff1101d5fbbf73f1cd252def34812fdf453c1eed6a9a358",
+      "sourceSha256": "d6b67c80697c858491cdefa305e7fa6229200177a66ea0771be399e560cea024",
+      "maxAbsoluteDifference": 3.203749656677246e-07,
+      "rmsDifference": 1.7203017903892423e-07,
+      "differingF32Values": 4
+    },
+    {
+      "layer": 15,
+      "role": "mlp_hc",
+      "stage": "input",
+      "positions": [
+        2135
+      ],
+      "gpuSha256": "3edcf2359541142493cec51409a1e8ce45c939a3130517b5fc7160ee7cbc5fcf",
+      "sourceSha256": "4a12d172b1cf51a06245b595db938669b4be75b966053d7cd919427567f566e5",
+      "maxAbsoluteDifference": 7.860362529754639e-06,
+      "rmsDifference": 6.696813113218267e-07,
+      "differingF32Values": 10198
+    },
+    {
+      "layer": 15,
+      "role": "mlp_hc",
+      "stage": "norm",
+      "positions": [
+        2135
+      ],
+      "gpuSha256": "8a40dd562cad2ce226bb051aa41d53b754895a2666d5fe76de281a96c98d10c1",
+      "sourceSha256": "49ca30d81b9190d28726dde6254a011d19800b7cb960001feaa376a6ed29ae3e",
+      "maxAbsoluteDifference": 0.0009431838989257812,
+      "rmsDifference": 0.00011067847574737139,
+      "differingF32Values": 10192
+    },
+    {
+      "layer": 15,
+      "role": "mlp_hc",
+      "stage": "down",
+      "positions": [
+        2135
+      ],
+      "gpuSha256": "87a827e9dcb4d10d652a3966eaa802b8cd525309ee4ad4984365c6d995e1144c",
+      "sourceSha256": "e1a4783412ca6c4dbfdc2d40db7eca3e3159346d21a17e8ddfc0b45b1f97cc1e",
+      "maxAbsoluteDifference": 0.004627227783203125,
+      "rmsDifference": 0.0006474980370164739,
+      "differingF32Values": 320
+    },
+    {
+      "layer": 15,
+      "role": "mlp_hc",
+      "stage": "lowRank",
+      "positions": [
+        2135
+      ],
+      "gpuSha256": "cedac8c02c8db30bc721dc4fb2eeee2e44a4d4552f6e0992d5999869bd162250",
+      "sourceSha256": "1185f55b9289220b73d25d8fbaff1ec87394152c172411cb1dd912ffc1646507",
+      "maxAbsoluteDifference": 0.0003705024719238281,
+      "rmsDifference": 5.0765729590008606e-05,
+      "differingF32Values": 320
+    },
+    {
+      "layer": 15,
+      "role": "mlp_hc",
+      "stage": "up",
+      "positions": [
+        2135
+      ],
+      "gpuSha256": "d416208da6d53a6c8a0f60a3c8dc69cdcaad2d20b836b2f75a190355d6186d92",
+      "sourceSha256": "a9aebcd8ccfde271b0890bbe5ad87a5eda151efbba6682c5db39f5fc1e5686ed",
+      "maxAbsoluteDifference": 0.00048100948333740234,
+      "rmsDifference": 6.901797916070154e-05,
+      "differingF32Values": 10221
+    },
+    {
+      "layer": 15,
+      "role": "mlp_hc",
+      "stage": "mix",
+      "positions": [
+        2135
+      ],
+      "gpuSha256": "fd7fc840c1afa825d70278cb4e55d3e493b79ad2766a8211f327963dde344d85",
+      "sourceSha256": "cc4cd0eaf531a96cda1030317967d30ab54e60a912dfe3387c76b651d271c899",
+      "maxAbsoluteDifference": 9.673833847045898e-05,
+      "rmsDifference": 9.806910699340772e-06,
+      "differingF32Values": 9849
+    },
+    {
+      "layer": 15,
+      "role": "mlp_hc",
+      "stage": "branchInput",
+      "positions": [
+        2135
+      ],
+      "gpuSha256": "edb1b9411cf5c5d312076ea3411b40d86da00fb692b129525b07e9dac0501910",
+      "sourceSha256": "7239d3c4208520751a95e932ef7bebe14073944024e1a081332317c7ed0b8a3b",
+      "maxAbsoluteDifference": 0.00028133392333984375,
+      "rmsDifference": 6.004764505531353e-05,
+      "differingF32Values": 2559
+    },
+    {
+      "layer": 15,
+      "role": "mlp_hc",
+      "stage": "logits",
+      "positions": [
+        2135
+      ],
+      "gpuSha256": "d0ecf5fe9d7ce3ad2d4ae10b057db2555c08854358d7874e2f8c83a36347288a",
+      "sourceSha256": "e6b5bc2bdc16e6304036d37afcd5d5bdfdbd6cc78bfb8f3901e98c1b0d65f2a7",
+      "maxAbsoluteDifference": 6.771087646484375e-05,
+      "rmsDifference": 3.549795641028357e-05,
+      "differingF32Values": 4
+    },
+    {
+      "layer": 15,
+      "role": "mlp_hc",
+      "stage": "gate",
+      "positions": [
+        2135
+      ],
+      "gpuSha256": "90f2a7310a6aaa8361c38cf9fc3ded07ba100bdd6dac72fd6cfd428955a99710",
+      "sourceSha256": "7eb9f17aec040a6706d00f53f4410fe4d7c5595d0f068b59c5a8d09b1df525b6",
+      "maxAbsoluteDifference": 2.3990869522094727e-06,
+      "rmsDifference": 1.227196586277789e-06,
+      "differingF32Values": 4
+    }
+  ]
+}

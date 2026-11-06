@@ -1,0 +1,260 @@
+{
+  "scope": "Physical declared GPU top-k replay of frozen logits; no tensor feedback or model qualification",
+  "normalModelQualified": false,
+  "process": {
+    "pid": 3573630,
+    "node": "22.22.1"
+  },
+  "provider": {
+    "schema": "doe.webgpu-provider-receipt/v1",
+    "contract": "doe.webgpu-provider/v1",
+    "implementation": "doppler",
+    "providers": [
+      {
+        "id": "pre-installed",
+        "kind": "global"
+      },
+      {
+        "id": "webgpu",
+        "kind": "module",
+        "module": "webgpu",
+        "gpu": {
+          "kind": "factory",
+          "path": "create",
+          "args": [
+            [
+              "enable-dawn-features=allow_unsafe_apis"
+            ]
+          ]
+        },
+        "globals": {
+          "GPUBufferUsage": "globals.GPUBufferUsage",
+          "GPUShaderStage": "globals.GPUShaderStage",
+          "GPUMapMode": "globals.GPUMapMode",
+          "GPUTextureUsage": "globals.GPUTextureUsage"
+        }
+      }
+    ],
+    "providerOrder": [
+      "pre-installed",
+      "webgpu"
+    ],
+    "adapterOptions": null,
+    "globals": {
+      "mode": "replace",
+      "installed": [
+        "GPUBufferUsage",
+        "GPUShaderStage",
+        "GPUMapMode",
+        "GPUTextureUsage",
+        "navigator.gpu"
+      ],
+      "restored": true
+    },
+    "attempts": [
+      {
+        "providerId": "pre-installed",
+        "kind": "global",
+        "module": null,
+        "ok": false,
+        "stage": "gpu.validate",
+        "code": "DOPPLER_PROVIDER_UNAVAILABLE",
+        "detail": "Selected provider does not expose GPU.requestAdapter()."
+      },
+      {
+        "providerId": "webgpu",
+        "kind": "module",
+        "module": "webgpu",
+        "ok": true,
+        "stage": "complete",
+        "code": null,
+        "detail": null
+      }
+    ],
+    "selectedProviderId": "webgpu",
+    "ok": true
+  },
+  "observationSha256": "940f5a0bffaf3bbdba77cdba4525b85ed7c660c230aef1ce056c5a68c7b7faee",
+  "modelRunSha256": "ce1c954b9389daef70c788ae867bade490ab43a3128ce2f358b3a5f980a220e0",
+  "rows": [
+    {
+      "layer": 0,
+      "variant": "fused_ranked_512",
+      "shape": [
+        2304,
+        10
+      ],
+      "file": "/run/media/x/models/qwen38-flash-next-de4b8e4d/qualify/subgroup-controls-topk-20261106.json.layer0.u32",
+      "sha256": "3f6091ed1a23c64bd2af63fd5d04432137346b7a81153393b1303cb2d28c6fbc",
+      "sourceLogitsSha256": "fa9d6c3e3570b225adcd4151cc3d15ffef2f80425b7336987bf15a66524fd81c"
+    },
+    {
+      "layer": 1,
+      "variant": "fused_ranked_512",
+      "shape": [
+        2304,
+        10
+      ],
+      "file": "/run/media/x/models/qwen38-flash-next-de4b8e4d/qualify/subgroup-controls-topk-20261106.json.layer1.u32",
+      "sha256": "63f763f12199fcea1f39f23377bfa87ec938ee2f13e9818d95529c513373651b",
+      "sourceLogitsSha256": "9250114900ffbbff52dc59d78c9c9c3bd839bf969ef685c021648c7030d5d147"
+    },
+    {
+      "layer": 2,
+      "variant": "fused_ranked_512",
+      "shape": [
+        2304,
+        10
+      ],
+      "file": "/run/media/x/models/qwen38-flash-next-de4b8e4d/qualify/subgroup-controls-topk-20261106.json.layer2.u32",
+      "sha256": "0b30ef0ade9c013597d8ad4a8775b6b20a5066742f9aa9ab5abf1f95b93c71be",
+      "sourceLogitsSha256": "bfb4c5c557068f8fb8f4a21c39a9b427a2e3148e49b8ed6a51c11702b30cf2b3"
+    },
+    {
+      "layer": 3,
+      "variant": "fused_ranked_512",
+      "shape": [
+        2304,
+        10
+      ],
+      "file": "/run/media/x/models/qwen38-flash-next-de4b8e4d/qualify/subgroup-controls-topk-20261106.json.layer3.u32",
+      "sha256": "5042643c3537437f6eae7330da4074374234c6245b37b9106ec02197fbea0eef",
+      "sourceLogitsSha256": "a3c8432873589dada48cc17d7c7222d50fdc2dbad581051e072b534dc0335413"
+    },
+    {
+      "layer": 4,
+      "variant": "fused_ranked_512",
+      "shape": [
+        2304,
+        10
+      ],
+      "file": "/run/media/x/models/qwen38-flash-next-de4b8e4d/qualify/subgroup-controls-topk-20261106.json.layer4.u32",
+      "sha256": "ca5a7a8c46bf4a89f5bf07d334eab5ef2f3f0354d871865d41733480e8c3e56e",
+      "sourceLogitsSha256": "a9e558a587affa8e74edb881a434795b7270da240be0fdb20d7a222fa3dd4a48"
+    },
+    {
+      "layer": 5,
+      "variant": "fused_ranked_512",
+      "shape": [
+        2304,
+        10
+      ],
+      "file": "/run/media/x/models/qwen38-flash-next-de4b8e4d/qualify/subgroup-controls-topk-20261106.json.layer5.u32",
+      "sha256": "45a799aacc430cf7ba70e6d57f17d7548bec8be62a36583afb103f3d6510adcb",
+      "sourceLogitsSha256": "c42f445bd02d2b927a2adeaf30616ece782b9b331d76da8c98a56f0d8e84b99c"
+    },
+    {
+      "layer": 6,
+      "variant": "fused_ranked_512",
+      "shape": [
+        2304,
+        10
+      ],
+      "file": "/run/media/x/models/qwen38-flash-next-de4b8e4d/qualify/subgroup-controls-topk-20261106.json.layer6.u32",
+      "sha256": "c58608bdfd55661027d8575fc9ce82ed048aa3de6abaf9ffc6a72cbbdaae30eb",
+      "sourceLogitsSha256": "36bf8b8b25ffe21e24bc8f90c014d2ceee436333c18538e873a928a3f3f7fdda"
+    },
+    {
+      "layer": 7,
+      "variant": "fused_ranked_512",
+      "shape": [
+        2304,
+        10
+      ],
+      "file": "/run/media/x/models/qwen38-flash-next-de4b8e4d/qualify/subgroup-controls-topk-20261106.json.layer7.u32",
+      "sha256": "379f090d4576d648f8b073c6eb71c28e06354ab08550de6affd8ce6c34e0de52",
+      "sourceLogitsSha256": "d73084378a22a0a36167958a224f9b0d63b9416356b98072465e418dae12d945"
+    },
+    {
+      "layer": 8,
+      "variant": "fused_ranked_512",
+      "shape": [
+        2304,
+        10
+      ],
+      "file": "/run/media/x/models/qwen38-flash-next-de4b8e4d/qualify/subgroup-controls-topk-20261106.json.layer8.u32",
+      "sha256": "bf4772b09c8b82773479667f74eaafc4ba846bb624e52d2d9799f93c7c9cd854",
+      "sourceLogitsSha256": "cdfa21c3e87a11f1935fac1167b0785c58b4757462cfe02638f5feae1fa92821"
+    },
+    {
+      "layer": 9,
+      "variant": "fused_ranked_512",
+      "shape": [
+        2304,
+        10
+      ],
+      "file": "/run/media/x/models/qwen38-flash-next-de4b8e4d/qualify/subgroup-controls-topk-20261106.json.layer9.u32",
+      "sha256": "f68c41b8fab1f3c9e09ff1c2efab9b4df68e98941706e01b8dea846c6b8a3dce",
+      "sourceLogitsSha256": "9d175c4bbadaa6be5a3fbdfef96045804bf0905245741c2a66c15af9cb501ac6"
+    },
+    {
+      "layer": 10,
+      "variant": "fused_ranked_512",
+      "shape": [
+        2304,
+        10
+      ],
+      "file": "/run/media/x/models/qwen38-flash-next-de4b8e4d/qualify/subgroup-controls-topk-20261106.json.layer10.u32",
+      "sha256": "fb5cc2f3d43d97682f2eb0d8cb73108277bd9e25a76fc8dedbc388d26b884bfd",
+      "sourceLogitsSha256": "e63bae88fecefde507dd0f3ea51b5f6e4b1bad87f85af0ab799e9199590c82cb"
+    },
+    {
+      "layer": 11,
+      "variant": "fused_ranked_512",
+      "shape": [
+        2304,
+        10
+      ],
+      "file": "/run/media/x/models/qwen38-flash-next-de4b8e4d/qualify/subgroup-controls-topk-20261106.json.layer11.u32",
+      "sha256": "366c0df56a12ad5bb5d7950372901810bed9211d88fd819c89fbababf8967d82",
+      "sourceLogitsSha256": "94f43ed7564dcb87ee13b03e3e0744b58617f0b8cc06ef10a2a8530907173a2c"
+    },
+    {
+      "layer": 12,
+      "variant": "fused_ranked_512",
+      "shape": [
+        2304,
+        10
+      ],
+      "file": "/run/media/x/models/qwen38-flash-next-de4b8e4d/qualify/subgroup-controls-topk-20261106.json.layer12.u32",
+      "sha256": "d672435c63363276d9ebde7fd3560bc3641137d10050ee79f2c129697d0c298e",
+      "sourceLogitsSha256": "0a3f755cad715464157472e1df2a1e55e17a92657965d1da9bb177dd6f2860f3"
+    },
+    {
+      "layer": 13,
+      "variant": "fused_ranked_512",
+      "shape": [
+        2304,
+        10
+      ],
+      "file": "/run/media/x/models/qwen38-flash-next-de4b8e4d/qualify/subgroup-controls-topk-20261106.json.layer13.u32",
+      "sha256": "b5fc7bd224a49c59ceb77c1d14cbd7a1ef7cbad4489dacba4fceeb49ec9f6996",
+      "sourceLogitsSha256": "1f7c5488c00a39a41df2ff08837f998e912eb41e1651aa9c8bd151a25f51d841"
+    },
+    {
+      "layer": 14,
+      "variant": "fused_ranked_512",
+      "shape": [
+        2304,
+        10
+      ],
+      "file": "/run/media/x/models/qwen38-flash-next-de4b8e4d/qualify/subgroup-controls-topk-20261106.json.layer14.u32",
+      "sha256": "69c6fe110c0bc48551eb9377454cdea7fd02d3f92800b74aa050ae6481450807",
+      "sourceLogitsSha256": "b26070ef89b41658d33678efc670b9c344f28830635744959797693d359fd129"
+    },
+    {
+      "layer": 15,
+      "variant": "fused_ranked_512",
+      "shape": [
+        2304,
+        10
+      ],
+      "file": "/run/media/x/models/qwen38-flash-next-de4b8e4d/qualify/subgroup-controls-topk-20261106.json.layer15.u32",
+      "sha256": "c81641d823b14a3c0de532c1add041506340082ff80c0bc29dfa8c773cf4d3ce",
+      "sourceLogitsSha256": "ca4ad0aba681cfcd4421bd1b196f2eb8e40b7edf4bd5386cdf83a77d9042ffa7"
+    }
+  ],
+  "gpuErrors": [],
+  "completed": true,
+  "cleanupFailures": []
+}

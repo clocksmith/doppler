@@ -1,0 +1,46 @@
+{
+  "schema": "doppler.flash-next-router-geometry-control/v1",
+  "scope": "CPU F32 projection batch-geometry control; no GPU work or full-model qualification",
+  "normalModelQualified": false,
+  "torch": "2.11.0+cu130",
+  "threads": 16,
+  "manifestSha256": "4902a0b730a9310903b00bc0f8f587528fa1af9f37a722d2f9287bafceceec09",
+  "prefixReceiptSha256": "ea4aa5314aa3bb5aa9137549d1837d1d30ef0eac1c8869de92b6e8e734d9ffc4",
+  "fixtureSha256": "23b53adfb1a0671616159e12f8fb43b07c30aab7474d290ce9f4e1d60aafe17e",
+  "weightsSha256": "1a66fc81043359d31540fd1dc38ece2717e0d485ba2a6cefee0c3415f079750c",
+  "layer": 5,
+  "rows": [
+    {
+      "batchRows": 2304,
+      "maxAbsoluteLogitDifference": 0.0,
+      "differingLogitCount": 0,
+      "changedExpertRows": []
+    },
+    {
+      "batchRows": 512,
+      "maxAbsoluteLogitDifference": 0.0,
+      "differingLogitCount": 0,
+      "changedExpertRows": []
+    },
+    {
+      "batchRows": 256,
+      "maxAbsoluteLogitDifference": 0.0,
+      "differingLogitCount": 0,
+      "changedExpertRows": []
+    },
+    {
+      "batchRows": 32,
+      "maxAbsoluteLogitDifference": 0.0,
+      "differingLogitCount": 0,
+      "changedExpertRows": []
+    },
+    {
+      "batchRows": 1,
+      "maxAbsoluteLogitDifference": 1.049041748046875e-05,
+      "differingLogitCount": 996019,
+      "changedExpertRows": [
+        2003
+      ]
+    }
+  ]
+}

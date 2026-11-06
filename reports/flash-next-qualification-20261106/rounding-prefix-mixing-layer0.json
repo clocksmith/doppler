@@ -1,0 +1,94 @@
+{
+  "scope": "Readback-only HC arithmetic-order controls; no full-model qualification",
+  "normalModelQualified": false,
+  "gpuTraceSha256": "2a062ad89a58ee9365dfd64ce3f9b7b8916a2b7cff1ac16651338a152b399b71",
+  "cpuTraceSha256": "e405c8e69b25ad0ba642b9813aa604aed8c6763d6cc3a0ae4cc67f95b4ef707c",
+  "scriptSha256": "a7df1bbaa29dabd1f208dd905c62e741834d3069ba6ebe82cca298ba3914c6f2",
+  "layer": 0,
+  "rows": [
+    {
+      "role": "attn_hc",
+      "source": "gpu",
+      "positions": [
+        2003
+      ],
+      "metrics": {
+        "sourceMean": {
+          "maxAbsoluteDifference": 0.0,
+          "differingValues": 0
+        },
+        "separateProducts": {
+          "maxAbsoluteDifference": 0.0,
+          "differingValues": 0
+        },
+        "fusedPattern": {
+          "maxAbsoluteDifference": 2.384185791015625e-07,
+          "differingValues": 741
+        }
+      }
+    },
+    {
+      "role": "attn_hc",
+      "source": "cpu",
+      "positions": [
+        2003
+      ],
+      "metrics": {
+        "sourceMean": {
+          "maxAbsoluteDifference": 0.0,
+          "differingValues": 0
+        },
+        "separateProducts": {
+          "maxAbsoluteDifference": 0.0,
+          "differingValues": 0
+        },
+        "fusedPattern": {
+          "maxAbsoluteDifference": 2.384185791015625e-07,
+          "differingValues": 684
+        }
+      }
+    },
+    {
+      "role": "mlp_hc",
+      "source": "gpu",
+      "positions": [
+        2003
+      ],
+      "metrics": {
+        "sourceMean": {
+          "maxAbsoluteDifference": 0.0,
+          "differingValues": 0
+        },
+        "separateProducts": {
+          "maxAbsoluteDifference": 0.0,
+          "differingValues": 0
+        },
+        "fusedPattern": {
+          "maxAbsoluteDifference": 1.1920928955078125e-07,
+          "differingValues": 772
+        }
+      }
+    },
+    {
+      "role": "mlp_hc",
+      "source": "cpu",
+      "positions": [
+        2003
+      ],
+      "metrics": {
+        "sourceMean": {
+          "maxAbsoluteDifference": 0.0,
+          "differingValues": 0
+        },
+        "separateProducts": {
+          "maxAbsoluteDifference": 0.0,
+          "differingValues": 0
+        },
+        "fusedPattern": {
+          "maxAbsoluteDifference": 1.1920928955078125e-07,
+          "differingValues": 703
+        }
+      }
+    }
+  ]
+}

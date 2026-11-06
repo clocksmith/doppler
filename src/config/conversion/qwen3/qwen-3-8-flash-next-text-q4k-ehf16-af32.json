@@ -553,12 +553,12 @@
       "hc_branch": {
         "kernel": "hyper_connection_branch.wgsl",
         "entry": "main",
-        "digest": "sha256:8b4deb80091e96da0ffe031f4f168b535db1ae10d5d666756e1c55b652940a4b"
+        "digest": "sha256:b441f8dff1ba5e64d42c3165fad121fc271616e7a79dcb8979189e7a7c1f2dd3"
       },
       "hc_inject": {
         "kernel": "hyper_connection_inject.wgsl",
         "entry": "main",
-        "digest": "sha256:e4595638cf8b9156ab705daf1d6a578bb3ac32a75456f20a5b840bc15bb64945"
+        "digest": "sha256:c242ee8bf5ea180ab3535357481a87495fb9f9973ae737427a7dfb4d95c7acef"
       },
       "qsa_prepare": {
         "kernel": "qsa_prepare.wgsl",

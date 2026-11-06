@@ -1,0 +1,33 @@
+{
+  "schema": "doppler.qwen38-learned-comparison/v1",
+  "scope": "Named unpadded Node observations only; sampled layers and retained last-position logits, no general model or performance qualification",
+  "gpuSha256": "43ab6a1e1b20863d14bdf28f780e5bf52d78e65fd852781cc14ad1c78e819393",
+  "referenceSha256": "5c22cd2b9e47a92c2988b0e461cad88e444d51919f5f0c7ab9c8cea20e377fd3",
+  "policySha256": "f1c4629d593ec2517e3628ac68131dc7568c6aba5e0f03db627d26228c720413",
+  "policyId": "doppler.boundary-tolerance/quantized-v1",
+  "policy": {
+    "absolute": 0.05,
+    "relative": 0.05,
+    "requireDtypeMatch": false
+  },
+  "rows": [
+    {
+      "id": "long",
+      "tokenIds": [
+        7920
+      ],
+      "firstTokenAgrees": true,
+      "layers": [],
+      "logits": {
+        "count": 248320,
+        "maxAbsoluteError": 0.482180118560791,
+        "rmsError": 0.08561337246237237,
+        "outsidePolicy": 30619,
+        "passed": false
+      },
+      "passed": false,
+      "fullLogitsChecked": true
+    }
+  ],
+  "passed": false
+}

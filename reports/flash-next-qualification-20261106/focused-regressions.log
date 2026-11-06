@@ -1,0 +1,67 @@
+TAP version 13
+# hyper-connection layer wiring: branch ownership, PLE order, selection and explicit phase passed
+# Subtest: tests/inference/hyper-connection-layer-wiring.test.js
+ok 1 - tests/inference/hyper-connection-layer-wiring.test.js
+  ---
+  duration_ms: 179.275334
+  type: 'test'
+  ...
+# Subtest: partial-layer failure restores KV, recurrent, indexer, n-gram and convolution state together; next call works
+ok 2 - partial-layer failure restores KV, recurrent, indexer, n-gram and convolution state together; next call works
+  ---
+  duration_ms: 1.988084
+  type: 'test'
+  ...
+# Subtest: abort during the operation rolls back before allowing reuse
+ok 3 - abort during the operation rolls back before allowing reuse
+  ---
+  duration_ms: 0.375125
+  type: 'test'
+  ...
+# Subtest: nested prefill chunks share a transaction and a later chunk failure restores the initial prefix
+ok 4 - nested prefill chunks share a transaction and a later chunk failure restores the initial prefix
+  ---
+  duration_ms: 0.240625
+  type: 'test'
+  ...
+# Subtest: late cancellation releases a completed GPU result that was never transferred to the caller
+ok 5 - late cancellation releases a completed GPU result that was never transferred to the caller
+  ---
+  duration_ms: 0.313292
+  type: 'test'
+  ...
+# Subtest: unsupported modes fail before mutation and snapshots fail before replacing KV
+ok 6 - unsupported modes fail before mutation and snapshots fail before replacing KV
+  ---
+  duration_ms: 0.462875
+  type: 'test'
+  ...
+# Subtest: closing waits for a pending row read and repeated closes share that completion
+ok 7 - closing waits for a pending row read and repeated closes share that completion
+  ---
+  duration_ms: 1.934042
+  type: 'test'
+  ...
+# QSA observation hashes retain high bits and respect view byte offsets.
+# Subtest: tests/inference/qsa-observation-digest.test.js
+ok 3 - tests/inference/qsa-observation-digest.test.js
+  ---
+  duration_ms: 133.092375
+  type: 'test'
+  ...
+# qsa query view: canonical and normalized-head views preserve bytes; unrelated geometry rejects
+# Subtest: tests/inference/qsa-query-view.test.js
+ok 4 - tests/inference/qsa-query-view.test.js
+  ---
+  duration_ms: 45.550375
+  type: 'test'
+  ...
+1..9
+# tests 9
+# suites 0
+# pass 9
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 274.697583

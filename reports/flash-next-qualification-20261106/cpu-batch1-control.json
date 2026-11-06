@@ -1,0 +1,13 @@
+{
+  "schema": "doppler.flash-next-router-geometry-forward/v1",
+  "scope": "CPU-only sensitivity control; no normal model qualification",
+  "producerSha256": "f6bc0f15a6545ab1d205cfc3ec412442415220e541190b63a9c712fa238ba5b0",
+  "instrumentedProducerSha256": "504dc395b4c7cf135d7a0818ed997f77b01c252e8280211fb145001569254d81",
+  "instrumentSha256": "c22cf14425a8e9162b311ed469e22364a3f0cdc149f862994d9f5bec7b21f11b",
+  "artifactManifestSha256": "4902a0b730a9310903b00bc0f8f587528fa1af9f37a722d2f9287bafceceec09",
+  "inputsSha256": "06a819d529593b58abd6cb27566bb835a9b91aac13a77c0c7479b7e4e7b0c378",
+  "files": {
+    "long-logits-float32-artifact-kvf16.npy": "455bb789c12d457054c369cffc561ff19a3c70dd38268033f6210ba9eeb4d993",
+    "learned-forward-reference-float32-artifact-kvf16.json": "5f218a70573869979611616d941aa434ef6de837f38a048c91e0901ff5b03428"
+  }
+}

@@ -1,0 +1,57 @@
+{
+  "schema": "doppler.flash-next-learned-probe/v1",
+  "modelDir": "/run/media/x/models/rdrr/qwen-3-8-flash-next-text-q4k-ehf16-af32",
+  "referencePath": "/run/media/x/models/qwen38-flash-next-de4b8e4d/reference/quantized-kv-control/learned-forward-reference-float32-artifact-kvf16.json",
+  "inputsPath": "/home/x/src/doppler-qualification-603ef2dc/artifacts/qwen38-flash-next-20261013/learned-forward-inputs.json",
+  "outputPath": "/run/media/x/models/qwen38-flash-next-de4b8e4d/qualify/qsa-long-lifecycle-20261106.json",
+  "runtimeConfig": {
+    "loading": {
+      "expertPreparation": {
+        "mode": "on-demand"
+      },
+      "expertCache": {
+        "qwen35Pager": {
+          "enabled": true,
+          "maxResidentLayers": 2
+        }
+      }
+    },
+    "inference": {
+      "session": {
+        "decodeLoop": {
+          "disableCommandBatching": true
+        }
+      },
+      "moe": {
+        "routing": {
+          "activeExpertSelection": "topk-route"
+        }
+      }
+    }
+  },
+  "runtimeRevision": "9e0d2680; runtime QSA repair 50135b70; long-context lifecycle only",
+  "sequences": [
+    {
+      "id": "long",
+      "maxTokens": 2
+    }
+  ],
+  "expectedManifestSha256": "4902a0b730a9310903b00bc0f8f587528fa1af9f37a722d2f9287bafceceec09",
+  "captureLayers": false,
+  "sourceFiles": [
+    "src/config/schema/loading.schema.js",
+    "src/loader/experts/qwen-paging.js",
+    "src/loader/doppler-loader.js",
+    "src/loader/model-load.js",
+    "src/inference/pipelines/text/moe-gpu.js",
+    "src/inference/pipelines/text/ffn/moe.js",
+    "src/inference/pipelines/text/ffn/qwen-shared-expert.js",
+    "tests/integration/flash-next-learned-physical.test.js",
+    "src/inference/pipelines/text/generator/decode.js",
+    "src/inference/pipelines/text/attention/interpreter/immediate.js",
+    "tests/helpers/learned-qsa-observation.js",
+    "src/inference/pipelines/text/indexed-attention/attention-runner.js",
+    "tests/helpers/reference-router-control.js"
+  ],
+  "lifecycle": true
+}

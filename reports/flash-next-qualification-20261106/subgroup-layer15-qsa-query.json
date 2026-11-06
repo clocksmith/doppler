@@ -1,0 +1,36 @@
+{
+  "scope": "Independent source sparse query versus GPU readback; not model acceptance",
+  "normalModelQualified": false,
+  "sourceReceiptSha256": "3d3f6b932e4d51a052d7def416fc92be071dfc487d17f39902c8281c477f8e6e",
+  "gpuTraceSha256": "1bb561065cc5bf7b7805856f40a456ce800e451b17f5fdb37b6ae82ea68c6f63",
+  "sourceQsaSha256": "6585ea36524f799c202d0c842b48ea75194ee490ea5c644ddd51f78914d8cd7d",
+  "scriptSha256": "94235d361833ee8fdc88f1aaf4c37f3edf1529f1bd871236dce6810b18f6070b",
+  "layer": 15,
+  "position": 2135,
+  "sourceShapes": {
+    "query": [
+      4,
+      128
+    ],
+    "rawKeys": [
+      2304,
+      128
+    ],
+    "pooledKeys": [
+      534,
+      128
+    ],
+    "scores": [
+      534
+    ],
+    "selected": [
+      2048
+    ]
+  },
+  "addedTokens": [],
+  "removedTokens": [],
+  "sourceCutoffGap": 0.16356515884399414,
+  "sourceCutoffScore": 7.299549579620361,
+  "queryMaxAbsoluteDifference": 3.1888484954833984e-05,
+  "scoreMaxAbsoluteDifference": 9.1552734375e-05
+}

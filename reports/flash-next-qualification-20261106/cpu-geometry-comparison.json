@@ -1,0 +1,145 @@
+{
+  "schema": "doppler.flash-next-cpu-geometry-comparison/v1",
+  "scope": "Sensitivity control between two CPU forwards at the same dtype and stored weights; router linear projection batch geometry differs. Not a replacement reference or Doppler qualification",
+  "normalModelQualified": false,
+  "baseReferenceSha256": "5c22cd2b9e47a92c2988b0e461cad88e444d51919f5f0c7ab9c8cea20e377fd3",
+  "geometryControlSha256": "5f218a70573869979611616d941aa434ef6de837f38a048c91e0901ff5b03428",
+  "policySha256": "f1c4629d593ec2517e3628ac68131dc7568c6aba5e0f03db627d26228c720413",
+  "policyId": "doppler.boundary-tolerance/quantized-v1",
+  "policy": {
+    "absolute": 0.05,
+    "relative": 0.05,
+    "requireDtypeMatch": false
+  },
+  "rows": [
+    {
+      "position": 0,
+      "maxAbsoluteError": 7.152557373046875e-06,
+      "outsideUnchangedPolicy": 0,
+      "klBaseToGeometryControlNats": 1.4486027191165867e-12,
+      "top1Agrees": true,
+      "top20Overlap": 20
+    },
+    {
+      "position": 1,
+      "maxAbsoluteError": 0.0001125335693359375,
+      "outsideUnchangedPolicy": 0,
+      "klBaseToGeometryControlNats": 6.238882684004783e-11,
+      "top1Agrees": true,
+      "top20Overlap": 20
+    },
+    {
+      "position": 2,
+      "maxAbsoluteError": 0.0001506805419921875,
+      "outsideUnchangedPolicy": 0,
+      "klBaseToGeometryControlNats": 1.5621841579733269e-12,
+      "top1Agrees": true,
+      "top20Overlap": 20
+    },
+    {
+      "position": 7,
+      "maxAbsoluteError": 0.0005960464477539062,
+      "outsideUnchangedPolicy": 0,
+      "klBaseToGeometryControlNats": 4.498942386489984e-11,
+      "top1Agrees": true,
+      "top20Overlap": 20
+    },
+    {
+      "position": 31,
+      "maxAbsoluteError": 0.000339508056640625,
+      "outsideUnchangedPolicy": 0,
+      "klBaseToGeometryControlNats": 1.1727101534095188e-12,
+      "top1Agrees": true,
+      "top20Overlap": 20
+    },
+    {
+      "position": 63,
+      "maxAbsoluteError": 0.00041961669921875,
+      "outsideUnchangedPolicy": 0,
+      "klBaseToGeometryControlNats": 3.884515260635298e-12,
+      "top1Agrees": true,
+      "top20Overlap": 20
+    },
+    {
+      "position": 255,
+      "maxAbsoluteError": 0.04489612579345703,
+      "outsideUnchangedPolicy": 0,
+      "klBaseToGeometryControlNats": 3.117186833787127e-07,
+      "top1Agrees": true,
+      "top20Overlap": 20
+    },
+    {
+      "position": 1023,
+      "maxAbsoluteError": 0.05204951763153076,
+      "outsideUnchangedPolicy": 0,
+      "klBaseToGeometryControlNats": 9.506359418544792e-09,
+      "top1Agrees": true,
+      "top20Overlap": 20
+    },
+    {
+      "position": 2050,
+      "maxAbsoluteError": 0.36878353357315063,
+      "outsideUnchangedPolicy": 26703,
+      "klBaseToGeometryControlNats": 1.5142699165441032e-06,
+      "top1Agrees": true,
+      "top20Overlap": 19
+    },
+    {
+      "position": 2051,
+      "maxAbsoluteError": 0.21474647521972656,
+      "outsideUnchangedPolicy": 3968,
+      "klBaseToGeometryControlNats": 5.4877617231922945e-05,
+      "top1Agrees": true,
+      "top20Overlap": 19
+    },
+    {
+      "position": 2052,
+      "maxAbsoluteError": 0.5061676502227783,
+      "outsideUnchangedPolicy": 27441,
+      "klBaseToGeometryControlNats": 0.0011315827333198546,
+      "top1Agrees": true,
+      "top20Overlap": 19
+    },
+    {
+      "position": 2053,
+      "maxAbsoluteError": 0.1354827880859375,
+      "outsideUnchangedPolicy": 847,
+      "klBaseToGeometryControlNats": 1.7045379130256412e-07,
+      "top1Agrees": true,
+      "top20Overlap": 20
+    },
+    {
+      "position": 2100,
+      "maxAbsoluteError": 0.275657057762146,
+      "outsideUnchangedPolicy": 16819,
+      "klBaseToGeometryControlNats": 0.0054172777498537016,
+      "top1Agrees": true,
+      "top20Overlap": 20
+    },
+    {
+      "position": 2200,
+      "maxAbsoluteError": 0.5830469131469727,
+      "outsideUnchangedPolicy": 48379,
+      "klBaseToGeometryControlNats": 1.453062817612296e-06,
+      "top1Agrees": true,
+      "top20Overlap": 19
+    },
+    {
+      "position": 2302,
+      "maxAbsoluteError": 0.3817939758300781,
+      "outsideUnchangedPolicy": 31226,
+      "klBaseToGeometryControlNats": 0.0004772291029156749,
+      "top1Agrees": true,
+      "top20Overlap": 19
+    },
+    {
+      "position": 2303,
+      "maxAbsoluteError": 0.53188157081604,
+      "outsideUnchangedPolicy": 44475,
+      "klBaseToGeometryControlNats": 2.2881497458441068e-05,
+      "top1Agrees": true,
+      "top20Overlap": 20
+    }
+  ],
+  "passesUnchangedPointwisePolicy": false
+}

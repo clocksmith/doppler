@@ -18,14 +18,11 @@ struct Uniforms {
 @group(0) @binding(2) var<storage, read> normed: array<f32>;
 @group(0) @binding(3) var<storage, read_write> output: array<f32>;
 
-fn multiply_ordered(a: f32, b: f32) -> f32 {
-  var product = 1.0;
-  let factors = array<f32, 2>(a, b);
-  for (var i = 0u; i < 2u; i = i + 1u) {
-    product = fma(product, factors[i], 0.0);
-  }
-  return product;
-}
+// Pass each product to the adjacent invocation through workgroup memory.
+// A local multiply helper alone can be contracted into the subsequent add.
+// The cross-invocation exchange makes the source's F32 product materialization
+// observable before accumulation, without a full-sized intermediate buffer.
+var<workgroup> rounded_products: array<f32, WORKGROUP_SIZE>;
 
 fn divide_refined(x: f32, y: f32) -> f32 {
   let estimate = 1.0 / y;
@@ -35,16 +32,29 @@ fn divide_refined(x: f32, y: f32) -> f32 {
 }
 
 @compute @workgroup_size(WORKGROUP_SIZE, 1, 1)
-fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
+fn main(
+    @builtin(global_invocation_id) gid: vec3<u32>,
+    @builtin(local_invocation_id) lid: vec3<u32>
+) {
     let index = gid.y * u.dispatch_stride + gid.x;
-    if (index >= u.size) { return; }
-    let token = index / STREAM_WIDTH;
-    let column = index % STREAM_WIDTH;
+    let group_base = index - lid.x;
+    let product_index = group_base + (lid.x + 1u) % WORKGROUP_SIZE;
+    let token = product_index / STREAM_WIDTH;
+    let column = product_index % STREAM_WIDTH;
     let token_base = token * STREAM_COUNT * STREAM_WIDTH + column;
     var sum = 0.0;
     for (var stream = 0u; stream < STREAM_COUNT; stream = stream + 1u) {
-        let offset = token_base + stream * STREAM_WIDTH;
-        sum = sum + multiply_ordered(mix[offset], normed[offset]);
+        var product = 0.0;
+        if (product_index < u.size) {
+            let offset = token_base + stream * STREAM_WIDTH;
+            product = mix[offset] * normed[offset];
+        }
+        rounded_products[lid.x] = product;
+        workgroupBarrier();
+        sum = sum + rounded_products[(lid.x + WORKGROUP_SIZE - 1u) % WORKGROUP_SIZE];
+        workgroupBarrier();
     }
-    output[index] = divide_refined(sum, f32(STREAM_COUNT));
+    if (index < u.size) {
+        output[index] = divide_refined(sum, f32(STREAM_COUNT));
+    }
 }

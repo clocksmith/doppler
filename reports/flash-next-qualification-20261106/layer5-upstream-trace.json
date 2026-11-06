@@ -1,0 +1,481 @@
+{
+  "scope": "Layer-5 upstream observation with intentional abort before MoE; not a generated answer or model qualification",
+  "normalModelQualified": false,
+  "process": {
+    "pid": 3054865,
+    "node": "22.22.1"
+  },
+  "manifestSha256": "4902a0b730a9310903b00bc0f8f587528fa1af9f37a722d2f9287bafceceec09",
+  "inputsSha256": "06a819d529593b58abd6cb27566bb835a9b91aac13a77c0c7479b7e4e7b0c378",
+  "runSha256": "80cb2abceaa05d35f0316b246e62deb897694b763357233112d2227b957bc294",
+  "tensors": [
+    {
+      "layer": 5,
+      "role": "attn_hc",
+      "stage": "input",
+      "shape": [
+        1,
+        10240
+      ],
+      "originalShape": [
+        2304,
+        10240
+      ],
+      "positions": [
+        2003
+      ],
+      "file": "/run/media/x/models/qwen38-flash-next-de4b8e4d/qualify/upstream-layer5-gpu-20261106.json.L5.attn_hc.input.f32",
+      "sha256": "ba5aa428a0a448736556835c6798fe91731a38e9eaff0677c21b5bb4740c6418"
+    },
+    {
+      "layer": 5,
+      "role": "attn_hc",
+      "stage": "norm",
+      "shape": [
+        1,
+        10240
+      ],
+      "originalShape": [
+        2304,
+        10240
+      ],
+      "positions": [
+        2003
+      ],
+      "file": "/run/media/x/models/qwen38-flash-next-de4b8e4d/qualify/upstream-layer5-gpu-20261106.json.L5.attn_hc.norm.f32",
+      "sha256": "617868a5224e3913122557476de26cef5dd7ee86058bbeb5e5b3e93346fdcc12"
+    },
+    {
+      "layer": 5,
+      "role": "attn_hc",
+      "stage": "down",
+      "shape": [
+        1,
+        320
+      ],
+      "originalShape": [
+        2304,
+        320
+      ],
+      "positions": [
+        2003
+      ],
+      "file": "/run/media/x/models/qwen38-flash-next-de4b8e4d/qualify/upstream-layer5-gpu-20261106.json.L5.attn_hc.down.f32",
+      "sha256": "30d09dc39c5d02b4a003bb953459cae09cb1a401b70473a0f7c02eb6ab4842c2"
+    },
+    {
+      "layer": 5,
+      "role": "attn_hc",
+      "stage": "lowRank",
+      "shape": [
+        1,
+        320
+      ],
+      "originalShape": [
+        2304,
+        320
+      ],
+      "positions": [
+        2003
+      ],
+      "file": "/run/media/x/models/qwen38-flash-next-de4b8e4d/qualify/upstream-layer5-gpu-20261106.json.L5.attn_hc.lowRank.f32",
+      "sha256": "c7d32d68d37ebcaec7d60d3bc9de67238531b1caf21b7dcbb37ac7a246378483"
+    },
+    {
+      "layer": 5,
+      "role": "attn_hc",
+      "stage": "up",
+      "shape": [
+        1,
+        10240
+      ],
+      "originalShape": [
+        2304,
+        10240
+      ],
+      "positions": [
+        2003
+      ],
+      "file": "/run/media/x/models/qwen38-flash-next-de4b8e4d/qualify/upstream-layer5-gpu-20261106.json.L5.attn_hc.up.f32",
+      "sha256": "62b705c17fe6fb9725ac0004ab52a7a3fb52589db4687150703d76b99e21fa21"
+    },
+    {
+      "layer": 5,
+      "role": "attn_hc",
+      "stage": "mix",
+      "shape": [
+        1,
+        10240
+      ],
+      "originalShape": [
+        2304,
+        10240
+      ],
+      "positions": [
+        2003
+      ],
+      "file": "/run/media/x/models/qwen38-flash-next-de4b8e4d/qualify/upstream-layer5-gpu-20261106.json.L5.attn_hc.mix.f32",
+      "sha256": "1eaefb5e1b5357fcc885ecda7291b42f505102a51d6af670d95f8b5cf335895a"
+    },
+    {
+      "layer": 5,
+      "role": "attn_hc",
+      "stage": "branchInput",
+      "shape": [
+        1,
+        2560
+      ],
+      "originalShape": [
+        2304,
+        2560
+      ],
+      "positions": [
+        2003
+      ],
+      "file": "/run/media/x/models/qwen38-flash-next-de4b8e4d/qualify/upstream-layer5-gpu-20261106.json.L5.attn_hc.branchInput.f32",
+      "sha256": "f9a21ceeff1aa0ec6ea3862c95e6d7a64eaad35a94369381cb557b447fbd60db"
+    },
+    {
+      "layer": 5,
+      "role": "attn_hc",
+      "stage": "logits",
+      "shape": [
+        1,
+        4
+      ],
+      "originalShape": [
+        2304,
+        4
+      ],
+      "positions": [
+        2003
+      ],
+      "file": "/run/media/x/models/qwen38-flash-next-de4b8e4d/qualify/upstream-layer5-gpu-20261106.json.L5.attn_hc.logits.f32",
+      "sha256": "ef336fe5759f61bcd73bcfc3ebcf689f7a1cb8e595878d8d5ceafaf64b8bbab4"
+    },
+    {
+      "layer": 5,
+      "role": "attn_hc",
+      "stage": "gate",
+      "shape": [
+        1,
+        4
+      ],
+      "originalShape": [
+        2304,
+        4
+      ],
+      "positions": [
+        2003
+      ],
+      "file": "/run/media/x/models/qwen38-flash-next-de4b8e4d/qualify/upstream-layer5-gpu-20261106.json.L5.attn_hc.gate.f32",
+      "sha256": "78c8acc5fbd28ce00c0d271c6ec8acfab8e3b7b6e0d86ecfd4f36438502644c8"
+    },
+    {
+      "layer": 5,
+      "role": "mlp_hc",
+      "stage": "input",
+      "shape": [
+        1,
+        10240
+      ],
+      "originalShape": [
+        2304,
+        10240
+      ],
+      "positions": [
+        2003
+      ],
+      "file": "/run/media/x/models/qwen38-flash-next-de4b8e4d/qualify/upstream-layer5-gpu-20261106.json.L5.mlp_hc.input.f32",
+      "sha256": "2502d866d114e08fbd33572995c9d2a932ccc6acb844dcdd5b366b8edd6eee3c"
+    },
+    {
+      "layer": 5,
+      "role": "mlp_hc",
+      "stage": "norm",
+      "shape": [
+        1,
+        10240
+      ],
+      "originalShape": [
+        2304,
+        10240
+      ],
+      "positions": [
+        2003
+      ],
+      "file": "/run/media/x/models/qwen38-flash-next-de4b8e4d/qualify/upstream-layer5-gpu-20261106.json.L5.mlp_hc.norm.f32",
+      "sha256": "4d0d170111b088c9e8b01953e6545389dd206a19cb8bb80e43c7256de02c511f"
+    },
+    {
+      "layer": 5,
+      "role": "mlp_hc",
+      "stage": "down",
+      "shape": [
+        1,
+        320
+      ],
+      "originalShape": [
+        2304,
+        320
+      ],
+      "positions": [
+        2003
+      ],
+      "file": "/run/media/x/models/qwen38-flash-next-de4b8e4d/qualify/upstream-layer5-gpu-20261106.json.L5.mlp_hc.down.f32",
+      "sha256": "e1ff80317b0f16a24d7f517155ea53742fff051c3c860136f3b5045571ee9719"
+    },
+    {
+      "layer": 5,
+      "role": "mlp_hc",
+      "stage": "lowRank",
+      "shape": [
+        1,
+        320
+      ],
+      "originalShape": [
+        2304,
+        320
+      ],
+      "positions": [
+        2003
+      ],
+      "file": "/run/media/x/models/qwen38-flash-next-de4b8e4d/qualify/upstream-layer5-gpu-20261106.json.L5.mlp_hc.lowRank.f32",
+      "sha256": "5fdefc813be4f28f1a8307816d51fb740bc080daee5526fb45ef6bd45444d1cb"
+    },
+    {
+      "layer": 5,
+      "role": "mlp_hc",
+      "stage": "up",
+      "shape": [
+        1,
+        10240
+      ],
+      "originalShape": [
+        2304,
+        10240
+      ],
+      "positions": [
+        2003
+      ],
+      "file": "/run/media/x/models/qwen38-flash-next-de4b8e4d/qualify/upstream-layer5-gpu-20261106.json.L5.mlp_hc.up.f32",
+      "sha256": "575308dbdae2dc23044b5c36aed1b16381a78d65fb8f7e84de6579534fde0d1c"
+    },
+    {
+      "layer": 5,
+      "role": "mlp_hc",
+      "stage": "mix",
+      "shape": [
+        1,
+        10240
+      ],
+      "originalShape": [
+        2304,
+        10240
+      ],
+      "positions": [
+        2003
+      ],
+      "file": "/run/media/x/models/qwen38-flash-next-de4b8e4d/qualify/upstream-layer5-gpu-20261106.json.L5.mlp_hc.mix.f32",
+      "sha256": "2d72208c4f1c1fe8bcaed8ce1b1415f3b9bc2c89c87b0823e48359110daa1ebf"
+    },
+    {
+      "layer": 5,
+      "role": "mlp_hc",
+      "stage": "branchInput",
+      "shape": [
+        1,
+        2560
+      ],
+      "originalShape": [
+        2304,
+        2560
+      ],
+      "positions": [
+        2003
+      ],
+      "file": "/run/media/x/models/qwen38-flash-next-de4b8e4d/qualify/upstream-layer5-gpu-20261106.json.L5.mlp_hc.branchInput.f32",
+      "sha256": "91d15d66eccb682fc7c92ad1352e21cbb5f3c5b41b907460470f19e36262bbec"
+    },
+    {
+      "layer": 5,
+      "role": "mlp_hc",
+      "stage": "logits",
+      "shape": [
+        1,
+        4
+      ],
+      "originalShape": [
+        2304,
+        4
+      ],
+      "positions": [
+        2003
+      ],
+      "file": "/run/media/x/models/qwen38-flash-next-de4b8e4d/qualify/upstream-layer5-gpu-20261106.json.L5.mlp_hc.logits.f32",
+      "sha256": "b2313e2caacdee7cf4b2ddcc4c5c554b04059c472af53365a380e0f6d5386b12"
+    },
+    {
+      "layer": 5,
+      "role": "mlp_hc",
+      "stage": "gate",
+      "shape": [
+        1,
+        4
+      ],
+      "originalShape": [
+        2304,
+        4
+      ],
+      "positions": [
+        2003
+      ],
+      "file": "/run/media/x/models/qwen38-flash-next-de4b8e4d/qualify/upstream-layer5-gpu-20261106.json.L5.mlp_hc.gate.f32",
+      "sha256": "fc617547b8d910f7b864fbb99e43a17cc1fd6a713635fddd18d08ca03bd331da"
+    },
+    {
+      "layer": 5,
+      "role": "linear",
+      "stage": "attn.post_input_norm",
+      "shape": [
+        2304,
+        2560
+      ],
+      "file": "/run/media/x/models/qwen38-flash-next-de4b8e4d/qualify/upstream-layer5-gpu-20261106.json.attn.post_input_norm.f32",
+      "sha256": "7e787e1f128d234dd527605fbf0738138557582ff58d85032ce86347c95b7389"
+    },
+    {
+      "layer": 5,
+      "role": "linear",
+      "stage": "attn.qkv_proj",
+      "shape": [
+        2304,
+        10240
+      ],
+      "file": "/run/media/x/models/qwen38-flash-next-de4b8e4d/qualify/upstream-layer5-gpu-20261106.json.attn.qkv_proj.f32",
+      "sha256": "f92ae6877fb05562a51ec7dd36082dbd05e017dd3e5a36a4cda4b82cc0856ac6"
+    },
+    {
+      "layer": 5,
+      "role": "linear",
+      "stage": "attn.linear_z_proj",
+      "shape": [
+        2304,
+        6144
+      ],
+      "file": "/run/media/x/models/qwen38-flash-next-de4b8e4d/qualify/upstream-layer5-gpu-20261106.json.attn.linear_z_proj.f32",
+      "sha256": "a861cbe5b2becbe5d404fccd4df88093c528e6fbab48a5868e643cdb42348f1c"
+    },
+    {
+      "layer": 5,
+      "role": "linear",
+      "stage": "attn.linear_a_proj",
+      "shape": [
+        2304,
+        48
+      ],
+      "file": "/run/media/x/models/qwen38-flash-next-de4b8e4d/qualify/upstream-layer5-gpu-20261106.json.attn.linear_a_proj.f32",
+      "sha256": "d349655a4a566d16666b6efdf7de302f2f4c98f45a0b78c5bc59a249d87317da"
+    },
+    {
+      "layer": 5,
+      "role": "linear",
+      "stage": "attn.linear_b_proj",
+      "shape": [
+        2304,
+        48
+      ],
+      "file": "/run/media/x/models/qwen38-flash-next-de4b8e4d/qualify/upstream-layer5-gpu-20261106.json.attn.linear_b_proj.f32",
+      "sha256": "c28cd25a3b2a41ebeee8e99f64ab87608483adbb6eab05c452d1860e33c3dfe8"
+    },
+    {
+      "layer": 5,
+      "role": "linear",
+      "stage": "attn.linear_core_out",
+      "shape": [
+        2304,
+        6144
+      ],
+      "file": "/run/media/x/models/qwen38-flash-next-de4b8e4d/qualify/upstream-layer5-gpu-20261106.json.attn.linear_core_out.f32",
+      "sha256": "6c88dc2592bff96a38b99964b433c823b941e9e404e7043b7ddcf8900b4a24d5"
+    }
+  ],
+  "provider": {
+    "schema": "doe.webgpu-provider-receipt/v1",
+    "contract": "doe.webgpu-provider/v1",
+    "implementation": "doppler",
+    "providers": [
+      {
+        "id": "pre-installed",
+        "kind": "global"
+      },
+      {
+        "id": "webgpu",
+        "kind": "module",
+        "module": "webgpu",
+        "gpu": {
+          "kind": "factory",
+          "path": "create",
+          "args": [
+            [
+              "enable-dawn-features=allow_unsafe_apis"
+            ]
+          ]
+        },
+        "globals": {
+          "GPUBufferUsage": "globals.GPUBufferUsage",
+          "GPUShaderStage": "globals.GPUShaderStage",
+          "GPUMapMode": "globals.GPUMapMode",
+          "GPUTextureUsage": "globals.GPUTextureUsage"
+        }
+      }
+    ],
+    "providerOrder": [
+      "pre-installed",
+      "webgpu"
+    ],
+    "adapterOptions": null,
+    "globals": {
+      "mode": "replace",
+      "installed": [
+        "GPUBufferUsage",
+        "GPUShaderStage",
+        "GPUMapMode",
+        "GPUTextureUsage",
+        "navigator.gpu"
+      ],
+      "restored": true
+    },
+    "attempts": [
+      {
+        "providerId": "pre-installed",
+        "kind": "global",
+        "module": null,
+        "ok": false,
+        "stage": "gpu.validate",
+        "code": "DOPPLER_PROVIDER_UNAVAILABLE",
+        "detail": "Selected provider does not expose GPU.requestAdapter()."
+      },
+      {
+        "providerId": "webgpu",
+        "kind": "module",
+        "module": "webgpu",
+        "ok": true,
+        "stage": "complete",
+        "code": null,
+        "detail": null
+      }
+    ],
+    "selectedProviderId": "webgpu",
+    "ok": true
+  },
+  "diagnosticCompleted": true,
+  "instrumentation": {
+    "scope": "Test-only awaited observations; no arithmetic replacement",
+    "sourceUrl": "file:///home/x/src/doppler-qualification-603ef2dc/src/inference/pipelines/text/hyper-connection/decoder-layer.js",
+    "originalSha256": "e3b3680997052f5cc864e82bd88adec0dfe6403d57484c8a1c5c2f085a9691ad",
+    "instrumentedSha256": "214394687c33d9c6dd5e8434848c38a04460506a4ff750dc15e6be29673eb871"
+  },
+  "gpuErrors": [],
+  "cleanupFailures": []
+}
