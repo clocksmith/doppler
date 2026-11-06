@@ -1,0 +1,188 @@
+{
+  "scope": "Unchanged layer-6 CPU GDN on exact GPU input; no tensor feedback or model acceptance",
+  "normalModelQualified": false,
+  "gpuTraceSha256": "93703fbcf1c4254b8c3197a08900a15faba29d130d15f60014d6885685c7c903",
+  "cpuTraceSha256": "667ea0fa074b48ba44964680162bd4fa5bfbc91c4f1e5aaf4c4667ce6be3a1f7",
+  "scriptSha256": "2ddeac996b047d07138d50e5bdea18b9a1990bc3f41117f6efbfba6cc6f34c05",
+  "torch": "2.11.0+cu130",
+  "sourceGeometryReplayBitExact": true,
+  "layer": 6,
+  "position": 2135,
+  "prefixReceiptSha256": "ea4aa5314aa3bb5aa9137549d1837d1d30ef0eac1c8869de92b6e8e734d9ffc4",
+  "checkpointSha256": "37740a315feaaa160626b15098fc3ebd79168fa11c6bf7700c010aac60cd9cd1",
+  "input": {
+    "referenceRms": 0.44801722149307577,
+    "referenceMaxAbsolute": 18.020973205566406,
+    "observedRms": 0.44801721226015967,
+    "maxAbsoluteDifference": 0.0002117753028869629,
+    "rmsDifference": 2.007079075490769e-06,
+    "maxErrorOverReferenceRms": 0.00047269455888591537,
+    "rmsErrorOverReferenceRms": 4.479915010413922e-06,
+    "relativeErrorDefined": true
+  },
+  "total": {
+    "referenceRms": 0.19780512952810966,
+    "referenceMaxAbsolute": 3.3417162895202637,
+    "observedRms": 0.1978050628908107,
+    "maxAbsoluteDifference": 4.887580871582031e-06,
+    "rmsDifference": 6.831340301568627e-07,
+    "maxErrorOverReferenceRms": 2.4709070402987036e-05,
+    "rmsErrorOverReferenceRms": 3.4535708542370437e-06,
+    "relativeErrorDefined": true
+  },
+  "localOnSameGpuInput": {
+    "referenceRms": 0.19780506084332683,
+    "referenceMaxAbsolute": 3.3417134284973145,
+    "observedRms": 0.1978050628908107,
+    "maxAbsoluteDifference": 9.5367431640625e-07,
+    "rmsDifference": 1.3819190900478903e-07,
+    "maxErrorOverReferenceRms": 4.8212837039675934e-06,
+    "rmsErrorOverReferenceRms": 6.986267611941693e-07,
+    "relativeErrorDefined": true
+  },
+  "propagatedInput": {
+    "referenceRms": 0.19780512952810966,
+    "referenceMaxAbsolute": 3.3417162895202637,
+    "observedRms": 0.19780506084332683,
+    "maxAbsoluteDifference": 4.76837158203125e-06,
+    "rmsDifference": 6.60434979241958e-07,
+    "maxErrorOverReferenceRms": 2.4106410149255643e-05,
+    "rmsErrorOverReferenceRms": 3.3388162421142118e-06,
+    "relativeErrorDefined": true
+  },
+  "projectionControls": [
+    {
+      "stage": "attn.qkv_proj",
+      "allRows": {
+        "referenceRms": 0.9003169936458221,
+        "referenceMaxAbsolute": 24.266496658325195,
+        "observedRms": 0.9003169936016476,
+        "maxAbsoluteDifference": 1.049041748046875e-05,
+        "rmsDifference": 2.2982797094726297e-07,
+        "maxErrorOverReferenceRms": 1.1651915441457946e-05,
+        "rmsErrorOverReferenceRms": 2.55274500614031e-07,
+        "relativeErrorDefined": true
+      },
+      "checkedRow": {
+        "referenceRms": 0.8565320019949058,
+        "referenceMaxAbsolute": 12.88023567199707,
+        "observedRms": 0.8565319916858072,
+        "maxAbsoluteDifference": 4.76837158203125e-06,
+        "rmsDifference": 2.195591866664326e-07,
+        "maxErrorOverReferenceRms": 5.5670676296104226e-06,
+        "rmsErrorOverReferenceRms": 2.5633506530411974e-07,
+        "relativeErrorDefined": true
+      }
+    },
+    {
+      "stage": "attn.linear_z_proj",
+      "allRows": {
+        "referenceRms": 1.8168603883928804,
+        "referenceMaxAbsolute": 7.072734355926514,
+        "observedRms": 1.8168603884599728,
+        "maxAbsoluteDifference": 4.76837158203125e-06,
+        "rmsDifference": 3.914665505340875e-07,
+        "maxErrorOverReferenceRms": 2.6245118295793515e-06,
+        "rmsErrorOverReferenceRms": 2.1546319851266206e-07,
+        "relativeErrorDefined": true
+      },
+      "checkedRow": {
+        "referenceRms": 1.711305288957399,
+        "referenceMaxAbsolute": 5.068260192871094,
+        "observedRms": 1.7113053015133735,
+        "maxAbsoluteDifference": 2.86102294921875e-06,
+        "rmsDifference": 3.752145535785384e-07,
+        "maxErrorOverReferenceRms": 1.6718366779324386e-06,
+        "rmsErrorOverReferenceRms": 2.192563512774131e-07,
+        "relativeErrorDefined": true
+      }
+    },
+    {
+      "stage": "attn.linear_a_proj",
+      "allRows": {
+        "referenceRms": 1.7707945302369839,
+        "referenceMaxAbsolute": 6.682365894317627,
+        "observedRms": 1.7707945386347779,
+        "maxAbsoluteDifference": 1.33514404296875e-05,
+        "rmsDifference": 1.3683796391324148e-06,
+        "maxErrorOverReferenceRms": 7.539802163213532e-06,
+        "rmsErrorOverReferenceRms": 7.727489642456066e-07,
+        "relativeErrorDefined": true
+      },
+      "checkedRow": {
+        "referenceRms": 1.7889450836537792,
+        "referenceMaxAbsolute": 3.9558000564575195,
+        "observedRms": 1.788945282903392,
+        "maxAbsoluteDifference": 3.5762786865234375e-06,
+        "rmsDifference": 1.1378801749289641e-06,
+        "maxErrorOverReferenceRms": 1.999099200529493e-06,
+        "rmsErrorOverReferenceRms": 6.360621046035318e-07,
+        "relativeErrorDefined": true
+      }
+    },
+    {
+      "stage": "attn.linear_b_proj",
+      "allRows": {
+        "referenceRms": 2.565657688342086,
+        "referenceMaxAbsolute": 8.046259880065918,
+        "observedRms": 2.5656576753397555,
+        "maxAbsoluteDifference": 1.71661376953125e-05,
+        "rmsDifference": 1.9269309597089516e-06,
+        "maxErrorOverReferenceRms": 6.690735780268944e-06,
+        "rmsErrorOverReferenceRms": 7.510475650998181e-07,
+        "relativeErrorDefined": true
+      },
+      "checkedRow": {
+        "referenceRms": 2.813075869443523,
+        "referenceMaxAbsolute": 6.174591064453125,
+        "observedRms": 2.8130752125759897,
+        "maxAbsoluteDifference": 6.4373016357421875e-06,
+        "rmsDifference": 2.0327564041151767e-06,
+        "maxErrorOverReferenceRms": 2.288349811558976e-06,
+        "rmsErrorOverReferenceRms": 7.226098756153677e-07,
+        "relativeErrorDefined": true
+      }
+    }
+  ],
+  "coreWithSourceProjectionsOnGpuInput": {
+    "referenceRms": 0.1034454171860421,
+    "referenceMaxAbsolute": 2.6993861198425293,
+    "observedRms": 0.10344541797940361,
+    "maxAbsoluteDifference": 1.6689300537109375e-06,
+    "rmsDifference": 7.85308238788606e-08,
+    "maxErrorOverReferenceRms": 1.6133436348460358e-05,
+    "rmsErrorOverReferenceRms": 7.591522758096313e-07,
+    "relativeErrorDefined": true
+  },
+  "coreOnExactGpuProjections": {
+    "referenceRms": 0.10344541577325575,
+    "referenceMaxAbsolute": 2.69938588142395,
+    "observedRms": 0.10344541797940361,
+    "maxAbsoluteDifference": 1.1920928955078125e-06,
+    "rmsDifference": 7.007827578552149e-08,
+    "maxErrorOverReferenceRms": 1.1523883263428383e-05,
+    "rmsErrorOverReferenceRms": 6.774420621898565e-07,
+    "relativeErrorDefined": true
+  },
+  "coreOnExactGpuProjectionsAllRows": {
+    "referenceRms": 0.10868352981630199,
+    "referenceMaxAbsolute": 5.978302001953125,
+    "observedRms": 0.10868352964004394,
+    "maxAbsoluteDifference": 1.3828277587890625e-05,
+    "rmsDifference": 7.208132962990983e-08,
+    "maxErrorOverReferenceRms": 0.0001272343437065701,
+    "rmsErrorOverReferenceRms": 6.632221989085414e-07,
+    "relativeErrorDefined": true
+  },
+  "outputProjectionOnExactGpuCore": {
+    "referenceRms": 0.19780506131263556,
+    "referenceMaxAbsolute": 3.3417134284973145,
+    "observedRms": 0.1978050628908107,
+    "maxAbsoluteDifference": 9.5367431640625e-07,
+    "rmsDifference": 7.409853872695562e-08,
+    "maxErrorOverReferenceRms": 4.821283692528702e-06,
+    "rmsErrorOverReferenceRms": 3.746038561159016e-07,
+    "relativeErrorDefined": true
+  },
+  "stageControlScope": "CPU module with captured GPU projection outputs, then CPU output projection on exact GPU core; no tensor feedback or model acceptance"
+}

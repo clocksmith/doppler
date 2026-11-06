@@ -1,0 +1,44 @@
+{"diagnosticCompleted": true, "tensors": 27}
+{
+  "layer": 6,
+  "input": {
+    "referenceRms": 0.44801722149307577,
+    "referenceMaxAbsolute": 18.020973205566406,
+    "observedRms": 0.44801721226015967,
+    "maxAbsoluteDifference": 0.0002117753028869629,
+    "rmsDifference": 2.007079075490769e-06,
+    "maxErrorOverReferenceRms": 0.00047269455888591537,
+    "rmsErrorOverReferenceRms": 4.479915010413922e-06,
+    "relativeErrorDefined": true
+  },
+  "total": {
+    "referenceRms": 0.19780512952810966,
+    "referenceMaxAbsolute": 3.3417162895202637,
+    "observedRms": 0.1978050628908107,
+    "maxAbsoluteDifference": 4.887580871582031e-06,
+    "rmsDifference": 6.831340301568627e-07,
+    "maxErrorOverReferenceRms": 2.4709070402987036e-05,
+    "rmsErrorOverReferenceRms": 3.4535708542370437e-06,
+    "relativeErrorDefined": true
+  },
+  "localOnSameGpuInput": {
+    "referenceRms": 0.19780506084332683,
+    "referenceMaxAbsolute": 3.3417134284973145,
+    "observedRms": 0.1978050628908107,
+    "maxAbsoluteDifference": 9.5367431640625e-07,
+    "rmsDifference": 1.3819190900478903e-07,
+    "maxErrorOverReferenceRms": 4.8212837039675934e-06,
+    "rmsErrorOverReferenceRms": 6.986267611941693e-07,
+    "relativeErrorDefined": true
+  },
+  "propagatedInput": {
+    "referenceRms": 0.19780512952810966,
+    "referenceMaxAbsolute": 3.3417162895202637,
+    "observedRms": 0.19780506084332683,
+    "maxAbsoluteDifference": 4.76837158203125e-06,
+    "rmsDifference": 6.60434979241958e-07,
+    "maxErrorOverReferenceRms": 2.4106410149255643e-05,
+    "rmsErrorOverReferenceRms": 3.3388162421142118e-06,
+    "relativeErrorDefined": true
+  }
+}

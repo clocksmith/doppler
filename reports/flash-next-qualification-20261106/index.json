@@ -2,8 +2,8 @@
   "scope": "Retained diagnostic files; this index is not model qualification",
   "files": {
     "README.md": {
-      "sha256": "1ea475630840737008006457ac8c501798abfb617157c25d2e420c10d2b3c874",
-      "bytes": 15894
+      "sha256": "9f404e770afe118116aea200144f41a56658172b88bd4c842564cb10aeb99f79",
+      "bytes": 21115
     },
     "all-hc-accuracy-comparison.json": {
       "sha256": "d728450e4507449f3efb7f9d402579682f2fc73a624021848512df71a6577e2a",
@@ -57,6 +57,10 @@
       "sha256": "eb4629d4421acccc2a0c86d0f033b5eb07529e5349282516161203f0f94cd2a6",
       "bytes": 9083
     },
+    "bind-decompose-layer6.py": {
+      "sha256": "6471d0593f2a53b6fbab0ab2e782ed776d657dd0cfa5369f7ccabddf010a9beb",
+      "bytes": 9361
+    },
     "check-attention-same-input.py": {
       "sha256": "956e8e1f120e60cf138c082c04109d70eaabebc6204e6cbb088614238303240e",
       "bytes": 6048
@@ -64,6 +68,10 @@
     "check-hc-norm-same-input.py": {
       "sha256": "d14516d0b8b8781179fd49f2d9510f870975f2e1e49a95529d5dd69296c43394",
       "bytes": 5698
+    },
+    "check-linear-branch-same-input-layer.py": {
+      "sha256": "2ddeac996b047d07138d50e5bdea18b9a1990bc3f41117f6efbfba6cc6f34c05",
+      "bytes": 7742
     },
     "check-linear-branch-same-input.py": {
       "sha256": "ea4717b28132f8f5dde31ebb1817a18aec171ec5cd3818dd22bd9dd27ebe7621",
@@ -104,6 +112,10 @@
     "cpu-router-geometry-layer5.json": {
       "sha256": "11f393c06680a1abbb21a61724666c0b995b6b7cab456e150e3eb989bf8363f4",
       "bytes": 1364
+    },
+    "estimate-injection-steps.py": {
+      "sha256": "d403fcb9423999ebcffa317cc5315c5338ca69f19d2d1c0f3c3293e4bfcb719e",
+      "bytes": 3977
     },
     "exact-source-input-router5-component.json.gz": {
       "sha256": "53cbfb8fa7d10003be9b317c5ffa120e66c311dbb870f9f4e7163196dc802be1",
@@ -185,6 +197,10 @@
       "sha256": "01951266c42f542a35372dd8eb2f046cf9ed3017b5fec40167b61174cff4567e",
       "bytes": 6758
     },
+    "injection-step-estimates.json": {
+      "sha256": "6c8437e18493ad7d1c840f5b85f35c0754c194004ef795f3469e2452e87b30f2",
+      "bytes": 33703
+    },
     "kernel-checks.log": {
       "sha256": "db3736c9af9cf48ece71b99ca997ca89b361eb9e1fd0a9ac2fa973f4ec329148",
       "bytes": 1018
@@ -232,6 +248,38 @@
     "linear-layer0-stages.json.gz": {
       "sha256": "7ac49e351d5e557b26070b26f73bf169fc1f535eb72051b427efa11b9a4cd7c7",
       "bytes": 2872
+    },
+    "linear-layer6-binding-decomposition.json": {
+      "sha256": "0bc117fb62f03e0121eaafdce81944bcba11393b6cc7535ce66f4e242c76c768",
+      "bytes": 33630
+    },
+    "linear-layer6-gpu-capture.log": {
+      "sha256": "84870e8080655621b5efb8056b216ff13679a74df0d5c274e7bd843302f12aa2",
+      "bytes": 3164
+    },
+    "linear-layer6-stage-check-trace.json": {
+      "sha256": "667ea0fa074b48ba44964680162bd4fa5bfbc91c4f1e5aaf4c4667ce6be3a1f7",
+      "bytes": 8587
+    },
+    "linear-layer6-stage-controls.json": {
+      "sha256": "b6612f2acde5a6f4a3742b3317d49e62b5d62c52b7764ec1b25d132f8999063f",
+      "bytes": 7691
+    },
+    "linear-layer6-stage-controls.log": {
+      "sha256": "dab4c502ac2031f782cbecf3db420b5164fc56f941e3a28f2a1a838dd6b5af1d",
+      "bytes": 1631
+    },
+    "linear-layer6-stage-source.json": {
+      "sha256": "667ea0fa074b48ba44964680162bd4fa5bfbc91c4f1e5aaf4c4667ce6be3a1f7",
+      "bytes": 8587
+    },
+    "linear-layer6-stages-run.json.gz": {
+      "sha256": "be678594a208c0d94746ef848caa3ccc954feb3e7ecb81dccb74b7730929995e",
+      "bytes": 7452
+    },
+    "linear-layer6-stages.json.gz": {
+      "sha256": "46d048aff3bb0baabb4c8035c4134141d47481781ef1646f0af95678e1a53259",
+      "bytes": 8983
     },
     "plot-relative-prefix.py": {
       "sha256": "0118d82a791d435343e5f0f1412bb15b08a5aabbf5a83336297f3cf3b39ecc26",

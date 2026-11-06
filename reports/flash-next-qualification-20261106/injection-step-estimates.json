@@ -1,0 +1,903 @@
+{
+ "scope": "Estimated attention-branch output error and injected-error split at token 2135; diagnostic only",
+ "normalModelQualified": false,
+ "position": 2135,
+ "rows": [
+  {
+   "layer": 0,
+   "estimatedFromStream": 2,
+   "branchOutputRms": 0.08815428564826866,
+   "branchOutputMaxAbs": 0.6139837008260365,
+   "branchOutputMaxAbsError": 4.078455339007192e-07,
+   "branchOutputRmsError": 6.171211700807736e-08,
+   "branchOutputMaxErrorOverRms": 4.626496952490809e-06,
+   "branchOutputRmsErrorOverRms": 7.000467028262894e-07,
+   "streams": [
+    {
+     "stream": 0,
+     "gateCpu": 0.01139023620635271,
+     "gateGpu": 0.011390235275030136,
+     "inputMaxAbsError": 0.0,
+     "injectedMaxAbsError": 4.6566128730773926e-09,
+     "injectionDeltaMaxAbs": 4.6566128730773926e-09,
+     "gateTimesOutErrorMaxAbs": 4.645456966835224e-09,
+     "gateErrorTimesOutMaxAbs": 5.718171348073634e-10,
+     "injectionLawResidualGpuMaxAbs": 5.838382513990298e-10
+    },
+    {
+     "stream": 1,
+     "gateCpu": 0.007734783459454775,
+     "gateGpu": 0.007734802085906267,
+     "inputMaxAbsError": 0.0,
+     "injectedMaxAbsError": 1.3969838619232178e-08,
+     "injectionDeltaMaxAbs": 1.3969838619232178e-08,
+     "gateTimesOutErrorMaxAbs": 3.1545968896277847e-09,
+     "gateErrorTimesOutMaxAbs": 1.143634269614727e-08,
+     "injectionLawResidualGpuMaxAbs": 5.336398423844146e-10
+    },
+    {
+     "stream": 2,
+     "gateCpu": 0.09980901330709457,
+     "gateGpu": 0.0998091995716095,
+     "inputMaxAbsError": 0.0,
+     "injectedMaxAbsError": 1.4156103134155273e-07,
+     "injectionDeltaMaxAbs": 1.4156103134155273e-07,
+     "gateTimesOutErrorMaxAbs": 4.0706660320335975e-08,
+     "gateErrorTimesOutMaxAbs": 1.1436342696147268e-07,
+     "injectionLawResidualGpuMaxAbs": 3.469446951953614e-18
+    },
+    {
+     "stream": 3,
+     "gateCpu": 0.009240026585757732,
+     "gateGpu": 0.009240019135177135,
+     "inputMaxAbsError": 0.0,
+     "injectedMaxAbsError": 4.423782229423523e-09,
+     "injectionDeltaMaxAbs": 4.423782229423523e-09,
+     "gateTimesOutErrorMaxAbs": 3.768503576125202e-09,
+     "gateErrorTimesOutMaxAbs": 4.5745370784589075e-09,
+     "injectionLawResidualGpuMaxAbs": 4.4423890607769856e-10
+    }
+   ]
+  },
+  {
+   "layer": 1,
+   "estimatedFromStream": 3,
+   "branchOutputRms": 0.12414300037073506,
+   "branchOutputMaxAbs": 0.8834635310963691,
+   "branchOutputMaxAbsError": 1.2374703723949665e-06,
+   "branchOutputRmsError": 2.0717283354429543e-07,
+   "branchOutputMaxErrorOverRms": 9.968104272487702e-06,
+   "branchOutputRmsErrorOverRms": 1.6688241215823995e-06,
+   "streams": [
+    {
+     "stream": 0,
+     "gateCpu": 0.0019595841877162457,
+     "gateGpu": 0.0019595881458371878,
+     "inputMaxAbsError": 5.587935447692871e-08,
+     "injectedMaxAbsError": 5.587935447692871e-08,
+     "injectionDeltaMaxAbs": 4.6566128730773926e-09,
+     "gateTimesOutErrorMaxAbs": 2.4249273745125104e-09,
+     "gateErrorTimesOutMaxAbs": 3.4968570447947432e-09,
+     "injectionLawResidualGpuMaxAbs": 1.3691111186387925e-09
+    },
+    {
+     "stream": 1,
+     "gateCpu": 4.301597800804302e-05,
+     "gateGpu": 4.3015897972509265e-05,
+     "inputMaxAbsError": 8.195638656616211e-08,
+     "injectedMaxAbsError": 8.195638656616211e-08,
+     "injectionDeltaMaxAbs": 4.656612873077393e-10,
+     "gateTimesOutErrorMaxAbs": 5.3230998324546686e-11,
+     "gateErrorTimesOutMaxAbs": 7.070850642048195e-11,
+     "injectionLawResidualGpuMaxAbs": 1.6882764587561712e-09
+    },
+    {
+     "stream": 2,
+     "gateCpu": 0.0014238936128094792,
+     "gateGpu": 0.0014238902367651463,
+     "inputMaxAbsError": 1.2665987014770508e-07,
+     "injectedMaxAbsError": 1.2665987014770508e-07,
+     "injectionDeltaMaxAbs": 7.450580596923828e-09,
+     "gateTimesOutErrorMaxAbs": 1.7620261592941604e-09,
+     "gateErrorTimesOutMaxAbs": 2.982613361736693e-09,
+     "injectionLawResidualGpuMaxAbs": 4.973583399075707e-09
+    },
+    {
+     "stream": 3,
+     "gateCpu": 0.022485770285129547,
+     "gateGpu": 0.022485781461000443,
+     "inputMaxAbsError": 5.029141902923584e-08,
+     "injectedMaxAbsError": 5.21540641784668e-08,
+     "injectionDeltaMaxAbs": 2.6309862732887268e-08,
+     "gateTimesOutErrorMaxAbs": 2.7825474528326932e-08,
+     "gateErrorTimesOutMaxAbs": 9.87347871471457e-09,
+     "injectionLawResidualGpuMaxAbs": 1.734723475976807e-18
+    }
+   ]
+  },
+  {
+   "layer": 2,
+   "estimatedFromStream": 3,
+   "branchOutputRms": 0.10752803231978862,
+   "branchOutputMaxAbs": 0.5007828372670864,
+   "branchOutputMaxAbsError": 1.1656542433791106e-06,
+   "branchOutputRmsError": 2.022672266637332e-07,
+   "branchOutputMaxErrorOverRms": 1.0840468464190362e-05,
+   "branchOutputRmsErrorOverRms": 1.8810650794965726e-06,
+   "streams": [
+    {
+     "stream": 0,
+     "gateCpu": 0.001967372838407755,
+     "gateGpu": 0.001967367250472307,
+     "inputMaxAbsError": 5.587935447692871e-08,
+     "injectedMaxAbsError": 5.960464477539063e-08,
+     "injectionDeltaMaxAbs": 4.6566128730773926e-09,
+     "gateTimesOutErrorMaxAbs": 2.2932764973988047e-09,
+     "gateErrorTimesOutMaxAbs": 2.7983451185567784e-09,
+     "injectionLawResidualGpuMaxAbs": 1.5773387566789601e-09
+    },
+    {
+     "stream": 1,
+     "gateCpu": 0.0010767950443550944,
+     "gateGpu": 0.0010767884086817503,
+     "inputMaxAbsError": 8.195638656616211e-08,
+     "injectedMaxAbsError": 8.195638656616211e-08,
+     "injectionDeltaMaxAbs": 4.190951585769653e-09,
+     "gateTimesOutErrorMaxAbs": 1.2551707127021135e-09,
+     "gateErrorTimesOutMaxAbs": 3.3230348282861745e-09,
+     "injectionLawResidualGpuMaxAbs": 8.051600852243632e-10
+    },
+    {
+     "stream": 2,
+     "gateCpu": 0.003382971975952387,
+     "gateGpu": 0.0033829750027507544,
+     "inputMaxAbsError": 1.2665987014770508e-07,
+     "injectedMaxAbsError": 1.341104507446289e-07,
+     "injectionDeltaMaxAbs": 7.450580596923828e-09,
+     "gateTimesOutErrorMaxAbs": 3.9433756390015145e-09,
+     "gateErrorTimesOutMaxAbs": 1.5157702725515883e-09,
+     "injectionLawResidualGpuMaxAbs": 6.28644148705209e-09
+    },
+    {
+     "stream": 3,
+     "gateCpu": 0.02605152130126953,
+     "gateGpu": 0.02605149708688259,
+     "inputMaxAbsError": 4.6333298087120056e-08,
+     "injectedMaxAbsError": 4.0978193283081055e-08,
+     "injectionDeltaMaxAbs": 3.841705620288849e-08,
+     "gateTimesOutErrorMaxAbs": 3.036706635130612e-08,
+     "gateErrorTimesOutMaxAbs": 1.2126162180412706e-08,
+     "injectionLawResidualGpuMaxAbs": 8.673617379884035e-19
+    }
+   ]
+  },
+  {
+   "layer": 3,
+   "estimatedFromStream": 3,
+   "branchOutputRms": 0.08129301406049808,
+   "branchOutputMaxAbs": 0.44465228599144213,
+   "branchOutputMaxAbsError": 3.295143777407028e-06,
+   "branchOutputRmsError": 6.036697017887079e-07,
+   "branchOutputMaxErrorOverRms": 4.0534156784429096e-05,
+   "branchOutputRmsErrorOverRms": 7.425849671897493e-06,
+   "streams": [
+    {
+     "stream": 0,
+     "gateCpu": 0.0025667953304946423,
+     "gateGpu": 0.002566808834671974,
+     "inputMaxAbsError": 5.960464477539063e-08,
+     "injectedMaxAbsError": 5.587935447692871e-08,
+     "injectionDeltaMaxAbs": 1.1175870895385742e-08,
+     "gateTimesOutErrorMaxAbs": 8.457959661156837e-09,
+     "gateErrorTimesOutMaxAbs": 6.004672024488941e-09,
+     "injectionLawResidualGpuMaxAbs": 1.1632997363791517e-09
+    },
+    {
+     "stream": 1,
+     "gateCpu": 5.205620823289792e-09,
+     "gateGpu": 5.2056803312439115e-09,
+     "inputMaxAbsError": 8.195638656616211e-08,
+     "injectedMaxAbsError": 8.195638656616211e-08,
+     "injectionDeltaMaxAbs": 5.684341886080802e-14,
+     "gateTimesOutErrorMaxAbs": 1.7153269063403808e-14,
+     "gateErrorTimesOutMaxAbs": 2.646038618684697e-14,
+     "injectionLawResidualGpuMaxAbs": 1.451534867413536e-09
+    },
+    {
+     "stream": 2,
+     "gateCpu": 0.002917188685387373,
+     "gateGpu": 0.002917179139330983,
+     "inputMaxAbsError": 1.6763806343078613e-07,
+     "injectedMaxAbsError": 1.6763806343078613e-07,
+     "injectionDeltaMaxAbs": 8.847564458847046e-09,
+     "gateTimesOutErrorMaxAbs": 9.61255614417639e-09,
+     "gateErrorTimesOutMaxAbs": 4.244681948345631e-09,
+     "injectionLawResidualGpuMaxAbs": 6.028909751315016e-09
+    },
+    {
+     "stream": 3,
+     "gateCpu": 0.04157527536153793,
+     "gateGpu": 0.04157530516386032,
+     "inputMaxAbsError": 3.91155481338501e-08,
+     "injectedMaxAbsError": 1.434236764907837e-07,
+     "injectionDeltaMaxAbs": 1.3998942449688911e-07,
+     "gateTimesOutErrorMaxAbs": 1.3699650990155544e-07,
+     "gateErrorTimesOutMaxAbs": 1.3251689985079044e-08,
+     "injectionLawResidualGpuMaxAbs": 1.734723475976807e-18
+    }
+   ]
+  },
+  {
+   "layer": 4,
+   "estimatedFromStream": 3,
+   "branchOutputRms": 0.09985471044371114,
+   "branchOutputMaxAbs": 0.46564381466011534,
+   "branchOutputMaxAbsError": 2.4271811027987145e-06,
+   "branchOutputRmsError": 6.268191176423869e-07,
+   "branchOutputMaxErrorOverRms": 2.4307126744580918e-05,
+   "branchOutputRmsErrorOverRms": 6.277311454382812e-06,
+   "streams": [
+    {
+     "stream": 0,
+     "gateCpu": 0.0039952159859240055,
+     "gateGpu": 0.00399522390216589,
+     "inputMaxAbsError": 5.587935447692871e-08,
+     "injectedMaxAbsError": 5.960464477539063e-08,
+     "injectionDeltaMaxAbs": 1.0128132998943329e-08,
+     "gateTimesOutErrorMaxAbs": 9.69711274263408e-09,
+     "gateErrorTimesOutMaxAbs": 3.6861441533660634e-09,
+     "injectionLawResidualGpuMaxAbs": 1.791167466571545e-09
+    },
+    {
+     "stream": 1,
+     "gateCpu": 4.69847145723179e-06,
+     "gateGpu": 4.698426437244052e-06,
+     "inputMaxAbsError": 8.195638656616211e-08,
+     "injectedMaxAbsError": 8.195638656616211e-08,
+     "injectionDeltaMaxAbs": 4.656612873077393e-10,
+     "gateTimesOutErrorMaxAbs": 1.1404041133032138e-11,
+     "gateErrorTimesOutMaxAbs": 2.0963250872199006e-11,
+     "injectionLawResidualGpuMaxAbs": 1.3866794205731513e-09
+    },
+    {
+     "stream": 2,
+     "gateCpu": 3.309306703158654e-05,
+     "gateGpu": 3.3092750527430326e-05,
+     "inputMaxAbsError": 1.6763806343078613e-07,
+     "injectedMaxAbsError": 1.6763806343078613e-07,
+     "injectionDeltaMaxAbs": 1.4901161193847656e-08,
+     "gateTimesOutErrorMaxAbs": 8.0322866932718e-11,
+     "gateErrorTimesOutMaxAbs": 1.4737800613182331e-10,
+     "injectionLawResidualGpuMaxAbs": 7.355197318064394e-09
+    },
+    {
+     "stream": 3,
+     "gateCpu": 0.04471629485487938,
+     "gateGpu": 0.04471631348133087,
+     "inputMaxAbsError": 1.2293457984924316e-07,
+     "injectedMaxAbsError": 1.3620592653751373e-07,
+     "injectionDeltaMaxAbs": 1.0523945093154907e-07,
+     "gateTimesOutErrorMaxAbs": 1.0853454585893861e-07,
+     "gateErrorTimesOutMaxAbs": 8.673280360861325e-09,
+     "injectionLawResidualGpuMaxAbs": 1.734723475976807e-18
+    }
+   ]
+  },
+  {
+   "layer": 5,
+   "estimatedFromStream": 3,
+   "branchOutputRms": 0.077943001846725,
+   "branchOutputMaxAbs": 0.4927740698455136,
+   "branchOutputMaxAbsError": 1.8461400437871228e-06,
+   "branchOutputRmsError": 3.908823561617793e-07,
+   "branchOutputMaxErrorOverRms": 2.3685770371245895e-05,
+   "branchOutputRmsErrorOverRms": 5.014976930583838e-06,
+   "streams": [
+    {
+     "stream": 0,
+     "gateCpu": 0.002047361107543111,
+     "gateGpu": 0.0020473571494221687,
+     "inputMaxAbsError": 5.960464477539063e-08,
+     "injectedMaxAbsError": 6.332993507385254e-08,
+     "injectionDeltaMaxAbs": 5.587935447692871e-09,
+     "gateTimesOutErrorMaxAbs": 3.779715324727691e-09,
+     "gateErrorTimesOutMaxAbs": 1.9504561624964937e-09,
+     "injectionLawResidualGpuMaxAbs": 1.1147984497333896e-09
+    },
+    {
+     "stream": 1,
+     "gateCpu": 1.810208694053017e-08,
+     "gateGpu": 1.8102019438970274e-08,
+     "inputMaxAbsError": 8.568167686462402e-08,
+     "injectedMaxAbsError": 8.568167686462402e-08,
+     "injectionDeltaMaxAbs": 1.1368683772161603e-13,
+     "gateTimesOutErrorMaxAbs": 3.341898757702868e-14,
+     "gateErrorTimesOutMaxAbs": 3.3262963766150425e-14,
+     "injectionLawResidualGpuMaxAbs": 8.19493625923652e-10
+    },
+    {
+     "stream": 2,
+     "gateCpu": 0.005418028216809034,
+     "gateGpu": 0.005418023094534874,
+     "inputMaxAbsError": 1.6763806343078613e-07,
+     "injectedMaxAbsError": 1.7881393432617188e-07,
+     "injectionDeltaMaxAbs": 1.4901161193847656e-08,
+     "gateTimesOutErrorMaxAbs": 1.0002438849419697e-08,
+     "gateErrorTimesOutMaxAbs": 2.524119739701345e-09,
+     "injectionLawResidualGpuMaxAbs": 5.981337175119811e-09
+    },
+    {
+     "stream": 3,
+     "gateCpu": 0.057808805257081985,
+     "gateGpu": 0.0578087754547596,
+     "inputMaxAbsError": 1.648440957069397e-07,
+     "injectedMaxAbsError": 1.919688656926155e-07,
+     "injectionDeltaMaxAbs": 1.0710209608078003e-07,
+     "gateTimesOutErrorMaxAbs": 1.067231502685906e-07,
+     "gateErrorTimesOutMaxAbs": 1.4685787576444189e-08,
+     "injectionLawResidualGpuMaxAbs": 1.734723475976807e-18
+    }
+   ]
+  },
+  {
+   "layer": 6,
+   "estimatedFromStream": 0,
+   "branchOutputRms": 0.19780512902878228,
+   "branchOutputMaxAbs": 3.341716301674972,
+   "branchOutputMaxAbsError": 4.902238802562131e-06,
+   "branchOutputRmsError": 6.827189165695106e-07,
+   "branchOutputMaxErrorOverRms": 2.4783173351631416e-05,
+   "branchOutputRmsErrorOverRms": 3.4514722642513952e-06,
+   "streams": [
+    {
+     "stream": 0,
+     "gateCpu": 0.014050362631678581,
+     "gateGpu": 0.014050428755581379,
+     "inputMaxAbsError": 6.332993507385254e-08,
+     "injectedMaxAbsError": 2.4586915969848633e-07,
+     "injectionDeltaMaxAbs": 1.825392246246338e-07,
+     "gateTimesOutErrorMaxAbs": 6.887823288308373e-08,
+     "gateErrorTimesOutMaxAbs": 2.2096714305973648e-07,
+     "injectionLawResidualGpuMaxAbs": 8.673617379884035e-19
+    },
+    {
+     "stream": 1,
+     "gateCpu": 3.0905200674169464e-06,
+     "gateGpu": 3.090493692070595e-06,
+     "inputMaxAbsError": 7.078051567077637e-08,
+     "injectedMaxAbsError": 7.078051567077637e-08,
+     "injectionDeltaMaxAbs": 9.313225746154785e-10,
+     "gateTimesOutErrorMaxAbs": 1.515046739458829e-11,
+     "gateErrorTimesOutMaxAbs": 8.813885272794286e-11,
+     "injectionLawResidualGpuMaxAbs": 1.8520901352330365e-09
+    },
+    {
+     "stream": 2,
+     "gateCpu": 0.0008816540939733386,
+     "gateGpu": 0.0008816514746285975,
+     "inputMaxAbsError": 1.7881393432617188e-07,
+     "injectedMaxAbsError": 1.6391277313232422e-07,
+     "injectionDeltaMaxAbs": 1.4901161193847656e-08,
+     "gateTimesOutErrorMaxAbs": 4.32207890991386e-09,
+     "gateErrorTimesOutMaxAbs": 8.753099857119843e-09,
+     "injectionLawResidualGpuMaxAbs": 5.9035277397926494e-09
+    },
+    {
+     "stream": 3,
+     "gateCpu": 0.0059026069939136505,
+     "gateGpu": 0.005902601405978203,
+     "inputMaxAbsError": 2.0489096641540527e-07,
+     "injectedMaxAbsError": 1.909211277961731e-07,
+     "injectionDeltaMaxAbs": 3.91155481338501e-08,
+     "gateTimesOutErrorMaxAbs": 2.8935989041838115e-08,
+     "gateErrorTimesOutMaxAbs": 1.8673279695189e-08,
+     "injectionLawResidualGpuMaxAbs": 1.563475317527957e-09
+    }
+   ]
+  },
+  {
+   "layer": 7,
+   "estimatedFromStream": 3,
+   "branchOutputRms": 0.11888328313060569,
+   "branchOutputMaxAbs": 0.6533457479156651,
+   "branchOutputMaxAbsError": 1.818677744427899e-05,
+   "branchOutputRmsError": 2.6455102066508215e-06,
+   "branchOutputMaxErrorOverRms": 0.00015298010759257815,
+   "branchOutputRmsErrorOverRms": 2.225300426591056e-05,
+   "streams": [
+    {
+     "stream": 0,
+     "gateCpu": 0.008827620185911655,
+     "gateGpu": 0.008827665820717812,
+     "inputMaxAbsError": 2.3888424038887024e-07,
+     "injectedMaxAbsError": 1.8673017621040344e-07,
+     "injectionDeltaMaxAbs": 1.6693957149982452e-07,
+     "gateTimesOutErrorMaxAbs": 1.605459636838e-07,
+     "gateErrorTimesOutMaxAbs": 2.981526825831953e-08,
+     "injectionLawResidualGpuMaxAbs": 5.977646574343437e-10
+    },
+    {
+     "stream": 1,
+     "gateCpu": 0.0006678430363535881,
+     "gateGpu": 0.000667842454276979,
+     "inputMaxAbsError": 7.450580596923828e-08,
+     "injectedMaxAbsError": 7.82310962677002e-08,
+     "injectionDeltaMaxAbs": 1.210719347000122e-08,
+     "gateTimesOutErrorMaxAbs": 1.214591266987423e-08,
+     "gateErrorTimesOutMaxAbs": 3.802967890091777e-10,
+     "injectionLawResidualGpuMaxAbs": 8.368291548669889e-10
+    },
+    {
+     "stream": 2,
+     "gateCpu": 0.0026333199348300695,
+     "gateGpu": 0.0026333138812333345,
+     "inputMaxAbsError": 1.601874828338623e-07,
+     "injectedMaxAbsError": 1.564621925354004e-07,
+     "injectionDeltaMaxAbs": 4.7031790018081665e-08,
+     "gateTimesOutErrorMaxAbs": 4.7891603594337726e-08,
+     "gateErrorTimesOutMaxAbs": 3.955086605695449e-09,
+     "injectionLawResidualGpuMaxAbs": 7.384432593995818e-09
+    },
+    {
+     "stream": 3,
+     "gateCpu": 0.03626391291618347,
+     "gateGpu": 0.03626393526792526,
+     "inputMaxAbsError": 1.993030309677124e-07,
+     "injectedMaxAbsError": 7.050111889839172e-07,
+     "injectionDeltaMaxAbs": 6.62636011838913e-07,
+     "gateTimesOutErrorMaxAbs": 6.595237134653431e-07,
+     "gateErrorTimesOutMaxAbs": 1.4603396697952424e-08,
+     "injectionLawResidualGpuMaxAbs": 3.469446951953614e-18
+    }
+   ]
+  },
+  {
+   "layer": 8,
+   "estimatedFromStream": 3,
+   "branchOutputRms": 0.02710019419797411,
+   "branchOutputMaxAbs": 0.12948369025869222,
+   "branchOutputMaxAbsError": 8.108639307502497e-07,
+   "branchOutputRmsError": 1.9990577035462464e-07,
+   "branchOutputMaxErrorOverRms": 2.9920963843530916e-05,
+   "branchOutputRmsErrorOverRms": 7.376543831909836e-06,
+   "streams": [
+    {
+     "stream": 0,
+     "gateCpu": 0.03719373792409897,
+     "gateGpu": 0.03719368204474449,
+     "inputMaxAbsError": 1.8067657947540283e-07,
+     "injectedMaxAbsError": 1.885928213596344e-07,
+     "injectionDeltaMaxAbs": 3.480818122625351e-08,
+     "gateTimesOutErrorMaxAbs": 3.015906053242952e-08,
+     "gateErrorTimesOutMaxAbs": 7.235451501408088e-09,
+     "injectionLawResidualGpuMaxAbs": 1.2432090417888175e-09
+    },
+    {
+     "stream": 1,
+     "gateCpu": 0.012443451210856438,
+     "gateGpu": 0.012443416751921177,
+     "inputMaxAbsError": 8.568167686462402e-08,
+     "injectedMaxAbsError": 8.195638656616211e-08,
+     "injectionDeltaMaxAbs": 1.30385160446167e-08,
+     "gateTimesOutErrorMaxAbs": 1.0089945760934004e-08,
+     "gateErrorTimesOutMaxAbs": 4.461861759201654e-09,
+     "injectionLawResidualGpuMaxAbs": 1.5497783505190148e-09
+    },
+    {
+     "stream": 2,
+     "gateCpu": 0.0010720627615228295,
+     "gateGpu": 0.0010720581049099565,
+     "inputMaxAbsError": 1.564621925354004e-07,
+     "injectedMaxAbsError": 1.564621925354004e-07,
+     "injectionDeltaMaxAbs": 7.450580596923828e-09,
+     "gateTimesOutErrorMaxAbs": 8.692970248193691e-10,
+     "gateErrorTimesOutMaxAbs": 6.029542917840074e-10,
+     "injectionLawResidualGpuMaxAbs": 5.9058772960586124e-09
+    },
+    {
+     "stream": 3,
+     "gateCpu": 0.15390649437904358,
+     "gateGpu": 0.15390649437904358,
+     "inputMaxAbsError": 6.798654794692993e-07,
+     "injectedMaxAbsError": 6.891787052154541e-07,
+     "injectionDeltaMaxAbs": 1.2479722499847412e-07,
+     "gateTimesOutErrorMaxAbs": 1.2479722500018248e-07,
+     "gateErrorTimesOutMaxAbs": 0.0,
+     "injectionLawResidualGpuMaxAbs": 3.469446951953614e-18
+    }
+   ]
+  },
+  {
+   "layer": 9,
+   "estimatedFromStream": 3,
+   "branchOutputRms": 0.08562243138040693,
+   "branchOutputMaxAbs": 0.5166863607447284,
+   "branchOutputMaxAbsError": 2.8259588291251747e-06,
+   "branchOutputRmsError": 7.483772466081243e-07,
+   "branchOutputMaxErrorOverRms": 3.3004888830707065e-05,
+   "branchOutputRmsErrorOverRms": 8.740434422881575e-06,
+   "streams": [
+    {
+     "stream": 0,
+     "gateCpu": 0.01721036061644554,
+     "gateGpu": 0.017210442572832108,
+     "inputMaxAbsError": 1.8114224076271057e-07,
+     "injectedMaxAbsError": 2.0349398255348206e-07,
+     "injectionDeltaMaxAbs": 5.029141902923584e-08,
+     "gateTimesOutErrorMaxAbs": 4.8635770536472465e-08,
+     "gateErrorTimesOutMaxAbs": 4.2345655226781266e-08,
+     "injectionLawResidualGpuMaxAbs": 1.7918264046991317e-09
+    },
+    {
+     "stream": 1,
+     "gateCpu": 0.00019135883485432714,
+     "gateGpu": 0.00019135900947730988,
+     "inputMaxAbsError": 8.568167686462402e-08,
+     "injectedMaxAbsError": 8.568167686462402e-08,
+     "injectionDeltaMaxAbs": 1.862645149230957e-09,
+     "gateTimesOutErrorMaxAbs": 5.40772188887692e-10,
+     "gateErrorTimesOutMaxAbs": 9.022511767069872e-11,
+     "injectionLawResidualGpuMaxAbs": 1.3062494830370572e-09
+    },
+    {
+     "stream": 2,
+     "gateCpu": 3.2075680792331696e-05,
+     "gateGpu": 3.207580084563233e-05,
+     "inputMaxAbsError": 1.564621925354004e-07,
+     "injectedMaxAbsError": 1.564621925354004e-07,
+     "injectionDeltaMaxAbs": 3.725290298461914e-09,
+     "gateTimesOutErrorMaxAbs": 9.064455333529053e-11,
+     "gateErrorTimesOutMaxAbs": 6.202976839860537e-11,
+     "injectionLawResidualGpuMaxAbs": 5.277988886534288e-09
+    },
+    {
+     "stream": 3,
+     "gateCpu": 0.025944581255316734,
+     "gateGpu": 0.02594459429383278,
+     "inputMaxAbsError": 6.826594471931458e-07,
+     "injectedMaxAbsError": 6.295740604400635e-07,
+     "injectionDeltaMaxAbs": 7.171183824539185e-08,
+     "gateTimesOutErrorMaxAbs": 7.331831846641783e-08,
+     "gateErrorTimesOutMaxAbs": 6.736808786078838e-09,
+     "injectionLawResidualGpuMaxAbs": 1.734723475976807e-18
+    }
+   ]
+  },
+  {
+   "layer": 10,
+   "estimatedFromStream": 3,
+   "branchOutputRms": 0.09993191624749073,
+   "branchOutputMaxAbs": 0.48641295913013105,
+   "branchOutputMaxAbsError": 4.386420643879424e-06,
+   "branchOutputRmsError": 9.506756222499581e-07,
+   "branchOutputMaxErrorOverRms": 4.3894091183201604e-05,
+   "branchOutputRmsErrorOverRms": 9.513233188639363e-06,
+   "streams": [
+    {
+     "stream": 0,
+     "gateCpu": 0.017495688050985336,
+     "gateGpu": 0.017495786771178246,
+     "inputMaxAbsError": 1.9883736968040466e-07,
+     "injectedMaxAbsError": 1.993030309677124e-07,
+     "injectionDeltaMaxAbs": 7.962808012962341e-08,
+     "gateTimesOutErrorMaxAbs": 7.674344724571664e-08,
+     "gateErrorTimesOutMaxAbs": 4.801889932619868e-08,
+     "injectionLawResidualGpuMaxAbs": 3.2891868981081707e-09
+    },
+    {
+     "stream": 1,
+     "gateCpu": 0.001987375086173415,
+     "gateGpu": 0.0019873809069395065,
+     "inputMaxAbsError": 8.568167686462402e-08,
+     "injectedMaxAbsError": 8.568167686462402e-08,
+     "injectionDeltaMaxAbs": 9.313225746154785e-09,
+     "gateTimesOutErrorMaxAbs": 8.717463105122718e-09,
+     "gateErrorTimesOutMaxAbs": 2.8313030263088843e-09,
+     "injectionLawResidualGpuMaxAbs": 1.0250982043194436e-09
+    },
+    {
+     "stream": 2,
+     "gateCpu": 0.0025346868205815554,
+     "gateGpu": 0.0025346707552671432,
+     "inputMaxAbsError": 1.564621925354004e-07,
+     "injectedMaxAbsError": 1.4901161193847656e-07,
+     "injectionDeltaMaxAbs": 1.5832483768463135e-08,
+     "gateTimesOutErrorMaxAbs": 1.1118202595568037e-08,
+     "gateErrorTimesOutMaxAbs": 7.81439635261252e-09,
+     "injectionLawResidualGpuMaxAbs": 7.461615078412087e-09
+    },
+    {
+     "stream": 3,
+     "gateCpu": 0.017582250759005547,
+     "gateGpu": 0.01758229173719883,
+     "inputMaxAbsError": 6.137415766716003e-07,
+     "injectedMaxAbsError": 6.062909960746765e-07,
+     "injectionDeltaMaxAbs": 7.82310962677002e-08,
+     "gateTimesOutErrorMaxAbs": 7.71231476951666e-08,
+     "gateErrorTimesOutMaxAbs": 1.9932373305214548e-08,
+     "injectionLawResidualGpuMaxAbs": 8.673617379884035e-19
+    }
+   ]
+  },
+  {
+   "layer": 11,
+   "estimatedFromStream": 3,
+   "branchOutputRms": 0.09597570293676078,
+   "branchOutputMaxAbs": 0.6196558056178356,
+   "branchOutputMaxAbsError": 1.7987933303376114e-05,
+   "branchOutputRmsError": 3.3448536991266245e-06,
+   "branchOutputMaxErrorOverRms": 0.00018742174063813338,
+   "branchOutputRmsErrorOverRms": 3.485104663761179e-05,
+   "streams": [
+    {
+     "stream": 0,
+     "gateCpu": 0.019391974434256554,
+     "gateGpu": 0.019392048940062523,
+     "inputMaxAbsError": 1.909211277961731e-07,
+     "injectedMaxAbsError": 3.688037395477295e-07,
+     "injectionDeltaMaxAbs": 3.543682396411896e-07,
+     "gateTimesOutErrorMaxAbs": 3.488215427441816e-07,
+     "gateErrorTimesOutMaxAbs": 4.6166964775706216e-08,
+     "injectionLawResidualGpuMaxAbs": 1.9148579267352916e-09
+    },
+    {
+     "stream": 1,
+     "gateCpu": 0.006266206502914429,
+     "gateGpu": 0.006266173906624317,
+     "inputMaxAbsError": 8.568167686462402e-08,
+     "injectedMaxAbsError": 1.7229467630386353e-07,
+     "injectionDeltaMaxAbs": 1.1920928955078125e-07,
+     "gateTimesOutErrorMaxAbs": 1.1271610463960642e-07,
+     "gateErrorTimesOutMaxAbs": 2.019804708937147e-08,
+     "injectionLawResidualGpuMaxAbs": 8.704061344290762e-10
+    },
+    {
+     "stream": 2,
+     "gateCpu": 3.699453372973949e-05,
+     "gateGpu": 3.69941808457952e-05,
+     "inputMaxAbsError": 1.4901161193847656e-07,
+     "injectedMaxAbsError": 1.4901161193847656e-07,
+     "injectionDeltaMaxAbs": 3.725290298461914e-09,
+     "gateTimesOutErrorMaxAbs": 6.654552053200518e-10,
+     "gateErrorTimesOutMaxAbs": 2.1866189371306166e-10,
+     "injectionLawResidualGpuMaxAbs": 6.621026883082569e-09
+    },
+    {
+     "stream": 3,
+     "gateCpu": 0.025833502411842346,
+     "gateGpu": 0.02583361230790615,
+     "inputMaxAbsError": 5.848705768585205e-07,
+     "injectedMaxAbsError": 6.258487701416016e-07,
+     "injectionDeltaMaxAbs": 4.7404319047927856e-07,
+     "gateTimesOutErrorMaxAbs": 4.646913183768261e-07,
+     "gateErrorTimesOutMaxAbs": 6.809627304416667e-08,
+     "injectionLawResidualGpuMaxAbs": 8.673617379884035e-19
+    }
+   ]
+  },
+  {
+   "layer": 12,
+   "estimatedFromStream": 0,
+   "branchOutputRms": 0.10438436247367334,
+   "branchOutputMaxAbs": 0.672407962870452,
+   "branchOutputMaxAbsError": 1.0514536377459471e-05,
+   "branchOutputRmsError": 2.162283555040119e-06,
+   "branchOutputMaxErrorOverRms": 0.00010072903764786924,
+   "branchOutputRmsErrorOverRms": 2.071463104050155e-05,
+   "streams": [
+    {
+     "stream": 0,
+     "gateCpu": 0.0279755350202322,
+     "gateGpu": 0.027975600212812424,
+     "inputMaxAbsError": 3.734603524208069e-07,
+     "injectedMaxAbsError": 5.159527063369751e-07,
+     "injectionDeltaMaxAbs": 2.784072421491146e-07,
+     "gateTimesOutErrorMaxAbs": 2.9414978064912287e-07,
+     "gateErrorTimesOutMaxAbs": 4.383587915297321e-08,
+     "injectionLawResidualGpuMaxAbs": 1.734723475976807e-18
+    },
+    {
+     "stream": 1,
+     "gateCpu": 0.0038442190270870924,
+     "gateGpu": 0.0038442243821918964,
+     "inputMaxAbsError": 1.755543053150177e-07,
+     "injectedMaxAbsError": 1.9604340195655823e-07,
+     "injectionDeltaMaxAbs": 3.91155481338501e-08,
+     "gateTimesOutErrorMaxAbs": 4.042018080322909e-08,
+     "gateErrorTimesOutMaxAbs": 3.600804358994228e-09,
+     "injectionLawResidualGpuMaxAbs": 9.219895207544793e-10
+    },
+    {
+     "stream": 2,
+     "gateCpu": 6.751983164576814e-05,
+     "gateGpu": 6.751757609890774e-05,
+     "inputMaxAbsError": 1.4901161193847656e-07,
+     "injectedMaxAbsError": 1.4901161193847656e-07,
+     "injectionDeltaMaxAbs": 7.450580596923828e-09,
+     "gateTimesOutErrorMaxAbs": 7.099397260393683e-10,
+     "gateErrorTimesOutMaxAbs": 1.5166431403372428e-09,
+     "injectionLawResidualGpuMaxAbs": 7.388203066077684e-09
+    },
+    {
+     "stream": 3,
+     "gateCpu": 0.02190536819398403,
+     "gateGpu": 0.02190554328262806,
+     "inputMaxAbsError": 6.221234798431396e-07,
+     "injectedMaxAbsError": 6.48200511932373e-07,
+     "injectionDeltaMaxAbs": 1.8812716007232666e-07,
+     "gateTimesOutErrorMaxAbs": 2.303247907372888e-07,
+     "gateErrorTimesOutMaxAbs": 1.1773064686798519e-07,
+     "injectionLawResidualGpuMaxAbs": 4.095291994410388e-09
+    }
+   ]
+  },
+  {
+   "layer": 13,
+   "estimatedFromStream": 0,
+   "branchOutputRms": 0.06396427759783237,
+   "branchOutputMaxAbs": 0.34508130382190294,
+   "branchOutputMaxAbsError": 4.087090087977717e-06,
+   "branchOutputRmsError": 1.0569357632444207e-06,
+   "branchOutputMaxErrorOverRms": 6.38964472275416e-05,
+   "branchOutputRmsErrorOverRms": 1.6523844291493073e-05,
+   "streams": [
+    {
+     "stream": 0,
+     "gateCpu": 0.04590001702308655,
+     "gateGpu": 0.04590008407831192,
+     "inputMaxAbsError": 5.271285772323608e-07,
+     "injectedMaxAbsError": 5.029141902923584e-07,
+     "injectionDeltaMaxAbs": 1.8731225281953812e-07,
+     "gateTimesOutErrorMaxAbs": 1.8759750461306552e-07,
+     "gateErrorTimesOutMaxAbs": 2.3139503448710692e-08,
+     "injectionLawResidualGpuMaxAbs": 1.734723475976807e-18
+    },
+    {
+     "stream": 1,
+     "gateCpu": 0.015860727056860924,
+     "gateGpu": 0.015860721468925476,
+     "inputMaxAbsError": 2.146698534488678e-07,
+     "injectedMaxAbsError": 2.0978040993213654e-07,
+     "injectionDeltaMaxAbs": 6.565824151039124e-08,
+     "gateTimesOutErrorMaxAbs": 6.482422034221627e-08,
+     "gateErrorTimesOutMaxAbs": 1.9282919540592242e-09,
+     "injectionLawResidualGpuMaxAbs": 3.033990275973144e-09
+    },
+    {
+     "stream": 2,
+     "gateCpu": 2.663476607267512e-06,
+     "gateGpu": 2.6634234018274583e-06,
+     "inputMaxAbsError": 1.4901161193847656e-07,
+     "injectedMaxAbsError": 1.4901161193847656e-07,
+     "injectionDeltaMaxAbs": 9.313225746154785e-10,
+     "gateTimesOutErrorMaxAbs": 1.0885868841123567e-11,
+     "gateErrorTimesOutMaxAbs": 1.8360201711013123e-11,
+     "injectionLawResidualGpuMaxAbs": 7.247296994011719e-09
+    },
+    {
+     "stream": 3,
+     "gateCpu": 0.0414142943918705,
+     "gateGpu": 0.041414253413677216,
+     "inputMaxAbsError": 7.282942533493042e-07,
+     "injectedMaxAbsError": 7.189810276031494e-07,
+     "injectionDeltaMaxAbs": 1.7601996660232544e-07,
+     "gateTimesOutErrorMaxAbs": 1.6926395210960507e-07,
+     "gateErrorTimesOutMaxAbs": 1.4140807663100979e-08,
+     "injectionLawResidualGpuMaxAbs": 2.6144779154135822e-09
+    }
+   ]
+  },
+  {
+   "layer": 14,
+   "estimatedFromStream": 0,
+   "branchOutputRms": 0.11232773864774671,
+   "branchOutputMaxAbs": 0.5531398872912199,
+   "branchOutputMaxAbsError": 2.061371214899521e-05,
+   "branchOutputRmsError": 2.0057933460423425e-06,
+   "branchOutputMaxErrorOverRms": 0.00018351399571604141,
+   "branchOutputRmsErrorOverRms": 1.785661645279261e-05,
+   "streams": [
+    {
+     "stream": 0,
+     "gateCpu": 0.06321196258068085,
+     "gateGpu": 0.06321186572313309,
+     "inputMaxAbsError": 4.954636096954346e-07,
+     "injectedMaxAbsError": 1.0891817510128021e-06,
+     "injectionDeltaMaxAbs": 1.314561814069748e-06,
+     "gateTimesOutErrorMaxAbs": 1.3030332010112114e-06,
+     "gateErrorTimesOutMaxAbs": 5.3576495882997164e-08,
+     "injectionLawResidualGpuMaxAbs": 3.469446951953614e-18
+    },
+    {
+     "stream": 1,
+     "gateCpu": 0.009608760476112366,
+     "gateGpu": 0.009608842432498932,
+     "inputMaxAbsError": 2.0209699869155884e-07,
+     "injectedMaxAbsError": 2.1792948246002197e-07,
+     "injectionDeltaMaxAbs": 1.8835999071598053e-07,
+     "gateTimesOutErrorMaxAbs": 1.9807222256322247e-07,
+     "gateErrorTimesOutMaxAbs": 4.533395805484375e-08,
+     "injectionLawResidualGpuMaxAbs": 1.2108803934584092e-09
+    },
+    {
+     "stream": 2,
+     "gateCpu": 0.002491553546860814,
+     "gateGpu": 0.0024915479589253664,
+     "inputMaxAbsError": 1.4901161193847656e-07,
+     "injectedMaxAbsError": 1.4901161193847656e-07,
+     "injectionDeltaMaxAbs": 5.21540641784668e-08,
+     "gateTimesOutErrorMaxAbs": 5.136016761879687e-08,
+     "gateErrorTimesOutMaxAbs": 3.0909516855575288e-09,
+     "injectionLawResidualGpuMaxAbs": 5.091704924955467e-09
+    },
+    {
+     "stream": 3,
+     "gateCpu": 0.03653395175933838,
+     "gateGpu": 0.036533940583467484,
+     "inputMaxAbsError": 7.245689630508423e-07,
+     "injectedMaxAbsError": 7.450580596923828e-07,
+     "injectionDeltaMaxAbs": 7.543712854385376e-07,
+     "gateTimesOutErrorMaxAbs": 7.531003652322786e-07,
+     "gateErrorTimesOutMaxAbs": 6.1819033711150575e-09,
+     "injectionLawResidualGpuMaxAbs": 3.891433098066749e-09
+    }
+   ]
+  },
+  {
+   "layer": 15,
+   "estimatedFromStream": 0,
+   "branchOutputRms": 0.09401848613278606,
+   "branchOutputMaxAbs": 0.5033889154909875,
+   "branchOutputMaxAbsError": 6.575362996655287e-05,
+   "branchOutputRmsError": 9.948589858172144e-06,
+   "branchOutputMaxErrorOverRms": 0.0006993691631418783,
+   "branchOutputRmsErrorOverRms": 0.00010581525258895738,
+   "streams": [
+    {
+     "stream": 0,
+     "gateCpu": 0.1196231096982956,
+     "gateGpu": 0.11962278932332993,
+     "inputMaxAbsError": 1.1837109923362732e-06,
+     "injectedMaxAbsError": 7.860362529754639e-06,
+     "injectionDeltaMaxAbs": 7.819617167115211e-06,
+     "gateTimesOutErrorMaxAbs": 7.865653690550091e-06,
+     "gateErrorTimesOutMaxAbs": 1.6129315117474603e-07,
+     "injectionLawResidualGpuMaxAbs": 3.469446951953614e-18
+    },
+    {
+     "stream": 1,
+     "gateCpu": 0.019381821155548096,
+     "gateGpu": 0.01938188448548317,
+     "inputMaxAbsError": 2.253800630569458e-07,
+     "injectedMaxAbsError": 1.2675300240516663e-06,
+     "injectionDeltaMaxAbs": 1.2835953384637833e-06,
+     "gateTimesOutErrorMaxAbs": 1.2744250963398157e-06,
+     "gateErrorTimesOutMaxAbs": 3.1883529883380026e-08,
+     "injectionLawResidualGpuMaxAbs": 2.8617094453668723e-09
+    },
+    {
+     "stream": 2,
+     "gateCpu": 0.003820231882855296,
+     "gateGpu": 0.003820224432274699,
+     "inputMaxAbsError": 1.4528632164001465e-07,
+     "injectedMaxAbsError": 2.5797635316848755e-07,
+     "injectionDeltaMaxAbs": 2.50060111284256e-07,
+     "gateTimesOutErrorMaxAbs": 2.511941136116947e-07,
+     "gateErrorTimesOutMaxAbs": 3.751003515691768e-09,
+     "injectionLawResidualGpuMaxAbs": 6.429859861125514e-09
+    },
+    {
+     "stream": 3,
+     "gateCpu": 0.05819200724363327,
+     "gateGpu": 0.058192115277051926,
+     "inputMaxAbsError": 6.593763828277588e-07,
+     "injectedMaxAbsError": 3.909692168235779e-06,
+     "injectionDeltaMaxAbs": 3.840774297714233e-06,
+     "gateTimesOutErrorMaxAbs": 3.826335711308826e-06,
+     "gateErrorTimesOutMaxAbs": 5.4389550977530636e-08,
+     "injectionLawResidualGpuMaxAbs": 3.6973968869230545e-09
+    }
+   ]
+  }
+ ]
+}

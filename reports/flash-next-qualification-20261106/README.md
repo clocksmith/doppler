@@ -274,3 +274,89 @@ back into GPU execution or replace the model reference. No full-model gate
 rerun or readiness change follows from this decomposition. See
 [stage controls](linear-layer0-stage-controls.json) and
 [normal-run binding](linear-layer0-stage-binding.json).
+
+## Layer-6 linear branch control and injection decomposition
+
+The relative plot's first visible increase is layer 6's attention injection:
+the worst-stream maximum error over stream RMS moves from 2.9e-5 to 8.7e-5 at
+token 2135. The retained slices decompose that step without new GPU work. On
+every GPU slice of layers 0–15 the injection law `injected_s = input_s +
+gate_s · branchOutput` holds to below 1e-8, so each stream's injected error
+splits exactly into gate × branch-output error plus gate error × branch output.
+The step is confined to stream 0, whose absolute maximum error moves from
+6.33e-8 to 2.46e-7 at element 951. There the layer-6 branch output is 3.342,
+the largest branch-output element at this token in layers 0–15 (no other
+attention branch exceeds 0.89). The injected difference at that element,
+1.83e-7, is the gate difference 6.61e-8 times 3.342 (2.21e-7) plus the gate
+0.01405 times the output difference (-3.68e-8). The gate difference is 4.7e-6
+of the gate, the same relative scale as every upstream slice. See
+[estimated steps](injection-step-estimates.json) and
+[binding and decomposition](linear-layer6-binding-decomposition.json).
+
+A new staged capture at layer 6 (traced layers 0–6, abort before the layer-6
+MoE) binds bit-for-bit to the earlier captures: all 126 hyper-connection
+slices of layers 0–6 match the normal relative-prefix capture, and all 20
+layer-0 slices match the layer-0 staged capture. The pinned source was resumed
+from the frozen layer-5 checkpoint (`37740a31…`, parent receipt `ea4aa531…`);
+two independent CPU runs produced identical tensors (27 of 27). On the exact
+GPU branch input at token 2135:
+
+| Boundary | Maximum difference | RMS difference |
+| --- | ---: | ---: |
+| Total, GPU versus source | 4.89e-6 | 6.83e-7 |
+| Local, source branch on the same GPU input | 9.54e-7 | 1.38e-7 |
+| Propagated input difference alone | 4.77e-6 | 6.60e-7 |
+| QKV / Z / A / B projections (row 2135) | 4.77e-6 / 2.86e-6 / 3.58e-6 / 6.44e-6 | 2.20e-7 / 3.75e-7 / 1.14e-6 / 2.03e-6 |
+| Recurrent/gated core on exact GPU projections (row 2135) | 1.19e-6 | 7.01e-8 |
+| Recurrent/gated core on exact GPU projections (all 2,304 rows) | 1.38e-5 | 7.21e-8 |
+| Output projection on exact GPU core | 9.54e-7 | 7.41e-8 |
+
+Against the output RMS of 0.1978 the local difference is 4.8e-6; layer 0's
+was 4.6e-6 against 0.088. Layer 6's recurrent attention is therefore not a
+defect boundary; 98% of its branch-output error is propagated input. See
+[stage controls](linear-layer6-stage-controls.json),
+[source trace](linear-layer6-stage-source.json),
+[run](linear-layer6-stages-run.json.gz), [capture](linear-layer6-stages.json.gz)
+and the [GPU log](linear-layer6-gpu-capture.log). The control script
+`check-linear-branch-same-input-layer.py` generalizes the layer-0 script to a
+receipt-bound prefix and layer; the layer-0 script and its receipt are unchanged.
+
+Where the branch-output error grows, estimated at token 2135 from the strongest
+stream on both sides (the exact layer-0 and layer-6 controls agree with their
+estimates within 3%):
+
+| Layer | Kind | Max error / output RMS | RMS error / output RMS |
+| --- | --- | ---: | ---: |
+| 0, 1, 2 | linear | 4.6e-6, 1.0e-5, 1.1e-5 | 7.0e-7, 1.7e-6, 1.9e-6 |
+| 3 | QSA | 4.1e-5 | 7.4e-6 |
+| 4, 5, 6 | linear | 2.4e-5, 2.4e-5, 2.5e-5 | 6.3e-6, 5.0e-6, 3.5e-6 |
+| 7 | QSA | 1.5e-4 | 2.2e-5 |
+| 8, 9, 10 | linear | 3.0e-5, 3.3e-5, 4.4e-5 | 7.4e-6, 8.7e-6, 9.5e-6 |
+| 11 | QSA | 1.9e-4 | 3.5e-5 |
+| 12, 13, 14 | linear | 1.0e-4, 6.4e-5, 1.8e-4 | 2.1e-5, 1.7e-5, 1.8e-5 |
+| 15 | QSA | 7.0e-4 | 1.1e-4 |
+
+Each QSA layer's RMS-normalized output error exceeds both of its linear
+neighbours'; the linear layers hold or shrink it. This matches the layer-15
+controls above: the F16 key/value path turns upstream drift into larger output
+differences while the attention core and cache writer are exact on identical
+inputs. The MoE branches of layers 1–5, exact on the GPU side and estimated on
+the CPU side from the next layer's input, sit in the same family (maximum error
+over output RMS 7.6e-6, 1.7e-5, 1.8e-5, 4.8e-5, 7.7e-5), and each GPU injected
+slice equals the next layer's attention input bit-for-bit. Layer 0's MoE is not
+estimated: its injected slice is not the layer-1 input on either side, where the
+streams also pass the n-gram PLE stage, and no CPU slice of that output exists.
+
+No further runtime defect is demonstrated. The remaining gate failure is the
+discrete expert choice at near-tied router logits under drift of order 1e-4
+relative, which the CPU-only geometry control above reproduces inside the
+reference itself (0.531882). No runtime math, dtype, kernel path, artifact or
+tolerance was changed, and the full model remains unqualified under the same
+failing gate. Whether acceptance should score expert agreement and logits
+separately, or keep the single logit tolerance, is an owner decision.
+
+Component: `doppler.docs`. Intent: preserved. Acceptance evidence: the
+physical layer-6 capture receipt and GPU log, the CPU control receipts,
+bindings to the earlier captures, and Python compilation of the three new
+scripts. Boundary effects: none at runtime; retained observations and
+report-local scripts only.
