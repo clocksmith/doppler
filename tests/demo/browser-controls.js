@@ -42,7 +42,6 @@ async function checkBranching(page) {
   await branchAt(page, 1);
   await waitForPhase(page, 'Showing existing branch');
   assert.equal(await page.evaluate(() => __demoContract.calls.length), calls, 'An existing alternative is reopened, not regenerated');
-  await page.locator('#branch-all-tokens').check();
   await page.evaluate(() => { __demoContract.streamNext = true; });
   await branchAt(page, 2);
   await page.waitForFunction((count) => __demoContract.calls.length === count + 1, calls);
@@ -57,7 +56,6 @@ async function checkBranching(page) {
   await page.locator('.branch-switch').first().locator('.branch-switch-btn').first().click();
   assert.match(await streamText(), /Contract generation passed\./);
   assert.equal(await page.locator('#export-btn').isDisabled(), false, 'The original answer republishes its receipt');
-  await page.locator('#branch-all-tokens').uncheck();
 }
 
 async function exportedReport(page) {
@@ -119,7 +117,7 @@ export async function checkDemoControls(page) {
   assert.equal(await page.locator('#settings-panel').isVisible(), true);
   assert.equal(await page.locator('#xray-toggle-all').isChecked(), false);
   assert.equal(await page.locator('#set-word-quality').count(), 0, 'Certainty has one opt-in control');
-  assert.equal(await page.locator('#token-inspector-toggle').isChecked(), false);
+  assert.equal(await page.locator('#token-inspector-toggle, #branch-all-tokens, #branch-threshold').count(), 0, 'Branching and underlines need no opt-in controls');
   assert.equal(await page.locator('#output-prefill-bar').isVisible(), false);
   assert.equal(await page.inputValue('#set-max-tokens'), '256');
   assert.equal(await page.evaluate(() => __demoContract.calls.at(-1).policyId), 'demo/guided-quality',
@@ -130,14 +128,12 @@ export async function checkDemoControls(page) {
   assert.match(await page.locator('#output-toks').textContent(), /Diagnostic timing/);
   assert.match(await page.locator('#runtime-notice').textContent(), /Recording token alternatives changes execution/);
   assert.equal(await page.locator('#runtime-notice').isVisible(), true);
-  // Branch off: branch points are underlined and open their alternatives, but cannot continue.
-  assert.equal(await page.locator('.token-chip').count(), 2, 'Branch points are underlined without Branch');
-  await page.locator('.token-chip[data-token-index="1"]').click();
-  assert.match(await page.locator('.token-inspector-note').textContent(), /Turn on Branch/);
-  assert.equal(await page.locator('.token-candidate-branch').first().isDisabled(), true, 'Branch off cannot continue an alternative');
-  await page.locator('#token-inspector-toggle').check();
-  assert.equal(await page.locator('.token-candidate-branch').first().isDisabled(), false,
-    'Turning Branch on makes the answer already shown branchable');
+  // Even high-likelihood tokens are underlined and branchable immediately.
+  assert.equal(await page.locator('.token-chip').count(), 3, 'Every token is underlined');
+  await page.locator('.token-chip[data-token-index="0"]').click();
+  assert.match(await page.locator('.token-inspector-metrics').textContent(), /95.0%/);
+  assert.equal(await page.locator('.token-candidate-branch').first().isEnabled(), true,
+    'Clicking a high-likelihood word offers branching without a toggle');
   await page.locator('#xray-toggle-all').focus();
   await page.keyboard.press('Space');
   assert.equal(await page.locator('#xray-toggle-all').isChecked(), true);
@@ -170,15 +166,10 @@ export async function checkDemoControls(page) {
   assert.equal(await page.evaluate(() => __demoContract.calls.at(-1).policyId), 'demo/guided-quality');
   assert.match(await page.locator('#output-toks').textContent(), /Diagnostic timing/);
   assert.equal(await page.locator('#token-inspector-view').isVisible(), true);
-  assert.equal(await page.locator('.token-chip').count(), 2, 'Only tokens below the 50% threshold are branch points');
-  await page.locator('#branch-all-tokens').check();
-  assert.equal(await page.locator('#branch-threshold').isDisabled(), true);
+  assert.equal(await page.locator('.token-chip').count(), 3, 'All tokens keep their probability underlines');
   const colors = await page.locator('.token-chip').evaluateAll(nodes => nodes.map(n => n.style.getPropertyValue('--token-surprisal')));
   assert.ok(Number(colors[1]) > Number(colors[0]), 'A low-probability token is redder than a high-probability token');
-  await page.locator('#branch-all-tokens').uncheck();
   await checkBranching(page);
-  await page.locator('#token-inspector-toggle').uncheck();
-  assert.ok(await page.locator('.token-chip').count() > 0, 'Turning Branch off keeps the underlines');
   assert.equal(await page.locator('#runtime-notice').isVisible(), true, 'Recording stays disclosed');
 
   assert.equal(await page.locator('#settings-panel').isVisible(), true);
@@ -261,7 +252,7 @@ export async function checkDemoControls(page) {
   await page.evaluate(() => { __demoContract.blockNext = true; });
   await page.fill('#prompt-input', 'Cancel this generation.');
   await page.click('#run-btn');
-  for (const id of ['model-select', 'model-select-action', 'model-select-remove', 'clear-history-btn', 'import-btn', 'set-profile', 'xray-toggle-all', 'token-inspector-toggle']) {
+  for (const id of ['model-select', 'model-select-action', 'model-select-remove', 'clear-history-btn', 'import-btn', 'set-profile', 'xray-toggle-all']) {
     assert.equal(await page.locator(`#${id}`).isDisabled(), true, `${id} is locked during execution`);
   }
   await page.click('#stop-btn');
@@ -288,14 +279,13 @@ export async function checkDemoControls(page) {
   assert.equal(await page.locator('#clear-history-btn').isEnabled(), true, 'Loaded model remains resettable');
 
   await page.locator('#sample-run-btn').click();
-  assert.equal(await page.locator('#token-inspector-toggle').isChecked(), false, 'Sample inspection preserves the selected observers');
   const sampleSettingsOpen = await page.locator('#settings-panel').isVisible();
   if (!sampleSettingsOpen) await page.click('#settings-toggle');
   assert.equal(await page.locator('#output-text').isVisible(), false, 'The underlined view replaces the duplicate formatted answer');
-  assert.equal(await page.locator('#token-inspector-view').isVisible(), true, 'A recorded answer is underlined without Branch');
-  await page.check('#token-inspector-toggle');
-  assert.equal(await page.locator('#token-inspector-view').isVisible(), true);
-  await page.uncheck('#token-inspector-toggle');
+  assert.equal(await page.locator('#token-inspector-view').isVisible(), true, 'Every recorded answer is underlined');
+  await page.locator('.token-chip').first().click();
+  assert.match(await page.locator('.token-inspector-note').textContent(), /Only a live answer can branch/);
+  assert.equal(await page.locator('.token-candidate-branch').first().isDisabled(), true, 'Recorded evidence cannot pretend to be a live branch');
   assert.equal(await page.locator('#runtime-notice').isVisible(), true, 'Recording stays disclosed');
   if (!sampleSettingsOpen) await page.click('#settings-toggle');
 

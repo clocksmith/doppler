@@ -27,15 +27,13 @@ completed receipt. Completion reconciles the text with the receipt, then display
 token probabilities, X-Ray evidence, and final timing. Image attachment and live token-rate
 controls are not offered.
 Every live answer records each generated token's exact ID and a bounded set of
-alternatives; the default output limit is 256 tokens. Tokens whose selected
-probability is below the threshold (50% by default) are underlined as branch
-points, colored red (0%) to blue (100%); "all tokens" underlines every token.
-Clicking one lists its alternatives. The latest answer shows as this underlined
-token text instead of formatted Markdown; earlier turns render Markdown.
-Branch, beside Send and off by default, only enables continuing: picking an
-alternative continues the answer from that exact token boundary and keeps the
-original, with a switcher at each fork. Turning Branch on makes the answer
-already shown branchable. Branches can branch again. A branch
+alternatives; the default output limit is 256 tokens. Every token is underlined,
+colored red (0%) through purple to blue (100%) by its selected probability.
+Clicking any word lists its alternatives. The latest answer shows as this
+underlined token text instead of formatted Markdown; earlier turns render
+Markdown. Picking an alternative continues a live answer from that exact token
+boundary and keeps the original, with a switcher at each fork. Branching is always
+available without a toggle. Branches can branch again. A branch
 replays the run's exact `inputTokenIds`, the answer's token IDs before the fork,
 and the chosen ID through `model.inspect.generate(prompt, { inputTokenIds })`;
 generation starts from cleared attention and recurrent state, so displayed text

@@ -200,10 +200,3 @@ export function groupTokenFragments(records, decodeTokenIds = null) {
   }
   return groups;
 }
-
-/** @type {import('./branches.js').isBranchPoint} */
-export function isBranchPoint(record, threshold, showAll) {
-  if (showAll) return true;
-  const probability = record?.probability;
-  return typeof probability === 'number' && Number.isFinite(probability) && probability < threshold;
-}

@@ -90,8 +90,7 @@ function recordInspectionRun(receipt, { prompt, promptInput, config, qualityEnab
   setExportEnabled(true);
 }
 
-// Every live answer records token probabilities and alternatives, so branch
-// points are always underlined and any live answer can branch once Branch is on.
+// Every live answer records probabilities and alternatives for branching.
 function resolvePolicyId() {
   return isXrayEnabled() ? 'demo/deep-xray' : 'demo/guided-quality';
 }
@@ -238,7 +237,6 @@ function startBranchTree(run) {
 
 function branchUnavailableReason() {
   if (!state.branchTree) return 'Only a live answer can branch. Recorded and illustrative examples cannot.';
-  if (!state.branchEnabled) return 'Turn on Branch to continue the answer from an alternative.';
   if (state.generating || state.modelBusy || state.settingsBusy) return 'Wait for the current run to finish.';
   return 'Load the model that wrote this answer to branch from it.';
 }
@@ -246,11 +244,9 @@ function branchUnavailableReason() {
 export function syncBranchView() {
   const tree = state.branchTree;
   const model = state.model;
-  const branchable = Boolean(tree && model && state.branchEnabled && state.branchModelId === state.modelId
+  const branchable = Boolean(tree && model && state.branchModelId === state.modelId
     && !state.generating && !state.modelBusy && !state.settingsBusy);
   setTokenInspectorOptions({
-    threshold: state.branchThreshold,
-    showAll: state.branchShowAll,
     decodeTokenIds: model ? (ids) => model.advanced.decodeTokenIds(ids) : null,
     forks: tree ? forkGroups(tree) : new Map(),
     branchable,
@@ -412,6 +408,7 @@ export function loadIllustrativeExample(example) {
 export function loadSampleInspection(receipt) {
   if (state.generating || state.modelBusy || state.settingsBusy) return;
   beginChatTurn([{ role: 'user', content: receipt.prompt }]);
+  syncBranchView();
   const promptLabel = document.querySelector('#chat-thread .chat-role');
   if (promptLabel) promptLabel.textContent = 'Prompt';
   const liveMessage = $('live-assistant-message');

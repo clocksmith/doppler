@@ -25,7 +25,7 @@ Give users one dependable browser surface for verified local model execution and
 ## Invariants
 
 - Live code uses public package boundaries.
-- Every live answer records token alternatives and underlines its branch points; the opt-in Branch toggle owns continuing from an alternative. X-Ray presents captured GPU work, not a second certainty view.
+- Every live answer records token alternatives and underlines every token by likelihood. Clicking any word opens its alternatives; continuing from one requires no opt-in toggle. X-Ray presents captured GPU work, not a second certainty view.
 - Branches replay exact token IDs through the public inspection API; displayed text is never re-tokenized.
 - Observation tiers disclose when measurement changes execution. Recorded samples keep their text and measurements together; illustrative answers carry no measurements.
 - The demo never implies support beyond the support registry.

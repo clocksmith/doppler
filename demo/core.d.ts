@@ -4,7 +4,7 @@ export declare function stopGeneration(): void;
 export declare function loadSampleInspection(): Promise<void>;
 
 export declare function loadIllustrativeExample(example: { prompt: string; answer: string } | null): void;
-/** Re-applies Branch threshold, fork switchers and availability to the token view. */
+/** Re-applies fork switchers and branching availability to the token view. */
 export declare function syncBranchView(): void;
 /** Shows another branch of the latest answer. */
 export declare function switchBranch(id: number): void;

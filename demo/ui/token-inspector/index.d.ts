@@ -7,10 +7,6 @@ export interface InspectedToken {
   chosen?: boolean;
 }
 export interface TokenInspectorOptions {
-  /** Tokens below this probability (0-1) are branch points. */
-  threshold?: number;
-  /** Treat every token as a branch point. */
-  showAll?: boolean;
   /** Decodes grouped fragments together so split Unicode reads correctly. */
   decodeTokenIds?: ((tokenIds: number[]) => string) | null;
   /** Fork switchers on the shown path, keyed by token position. */
@@ -21,7 +17,7 @@ export interface TokenInspectorOptions {
   onSwitch?: ((branchId: number) => void) | null;
 }
 export declare function isTokenInspectorActive(): boolean;
-/** Recorded tokens of the shown answer, whether or not any is a branch point. */
+/** Recorded tokens of the shown answer. */
 export declare function getTokenInspectorTokenCount(): number;
 export declare function setTokenInspectorActive(active: boolean): void;
 export declare function setTokenInspectorOptions(options?: TokenInspectorOptions): void;

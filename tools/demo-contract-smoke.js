@@ -205,9 +205,7 @@ async function main() {
     await page.locator('#inspect-recorded-run').click();
     await page.waitForFunction(() => document.querySelector('#output-phase').textContent === 'Precomputed run');
     assert.match(await page.locator('#recorded-run-note').textContent(), /unchanged model output with a factual error/);
-    assert.equal(await page.locator('#token-inspector-view').isVisible(), true, 'A recorded answer is underlined without Branch');
-    await page.locator('#token-inspector-toggle').check();
-    await page.locator('#branch-all-tokens').check();
+    assert.equal(await page.locator('#token-inspector-view').isVisible(), true, 'A recorded answer is always underlined');
     await page.locator('.token-chip').nth(3).click();
     assert.equal(await page.locator('.token-inspector-badge').textContent(), '" blue"');
     assert.equal(await page.locator('.token-candidates-list').isVisible(), true);
@@ -215,12 +213,10 @@ async function main() {
     assert.equal(await page.locator('.token-inspector-badge').textContent(), '" because"');
     assert.match(await page.locator('.token-inspector-note').textContent(), /Only a live answer can branch/);
     assert.equal(await page.locator('.token-candidate-branch').first().isDisabled(), true, 'A recorded sample cannot branch');
-    await page.locator('#branch-all-tokens').uncheck();
     if (!await page.locator('#model-select').isVisible()) {
       await page.locator('#settings-toggle').click();
       await page.locator('#model-picker > summary').click();
     }
-    await page.locator('#token-inspector-toggle').uncheck();
     await page.selectOption('#model-select', 'contract-model');
     assert.match(await page.locator('#first-run-download').textContent(), /419 MB; cached in this browser when available/);
 

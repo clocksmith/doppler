@@ -7,7 +7,6 @@ import {
   createBranchTree,
   forkGroups,
   groupTokenFragments,
-  isBranchPoint,
   removeBranch,
   selectBranch,
   settleBranch,
@@ -123,12 +122,6 @@ assert.deepEqual(groupTokenFragments(fragments, decode), [
 ]);
 assert.deepEqual(groupTokenFragments([{ tokenId: 9, text: '�' }], decode), [{ start: 0, end: 1, text: '�' }],
   'A trailing incomplete fragment stays visible');
-
-// Threshold compares the selected token's probability; "all tokens" offers every token.
-assert.equal(isBranchPoint({ probability: 0.49 }, 0.5, false), true);
-assert.equal(isBranchPoint({ probability: 0.5 }, 0.5, false), false);
-assert.equal(isBranchPoint({ probability: null }, 0.5, false), false);
-assert.equal(isBranchPoint({ probability: 0.99 }, 0.5, true), true);
 
 assert.throws(() => createBranchTree({ inputTokenIds: [], tokenIds: [1], records: [record(1, 'a', 1)] }), /must not be empty/);
 assert.throws(() => createBranchTree({ inputTokenIds: [1], tokenIds: [1, 2], records: [record(1, 'a', 1)] }), /one inspection record/);

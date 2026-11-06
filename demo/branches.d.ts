@@ -63,4 +63,3 @@ export function groupTokenFragments(
   records: BranchTokenRecord[],
   decodeTokenIds?: ((tokenIds: number[]) => string) | null
 ): TokenFragmentGroup[];
-export function isBranchPoint(record: BranchTokenRecord | undefined, threshold: number, showAll: boolean): boolean;

@@ -242,12 +242,10 @@ export function renderWordQuality(quality, text = state.lastInspection?.outputTe
 export function showTokenInspectorView(show) {
   const qualityOutput = $('word-quality-output');
   const inspectorView = $('token-inspector-view');
-  // Recorded tokens, not underlined chips: a fully confident answer has none.
   const hasTokens = getTokenInspectorTokenCount() > 0;
   const visible = Boolean(show && hasTokens);
-  // With Branch on, say when the shown answer has nothing recorded to branch from.
   const hint = $('token-inspection-hint');
-  if (hint) hint.hidden = !state.branchEnabled || hasTokens;
+  if (hint) hint.hidden = !show || hasTokens;
   if (inspectorView) inspectorView.hidden = !visible;
   setTokenInspectorActive(visible);
   // Inspection and formatted prose are alternate views of the same answer.

@@ -1,9 +1,7 @@
-import { groupTokenFragments, isBranchPoint } from '../../branches.js';
+import { groupTokenFragments } from '../../branches.js';
 
-// Inline token view for every recorded answer. Text reads normally; only branch
-// points (tokens the model gave less than the threshold, or every token with
-// "all tokens") are underlined. Selecting one shows its alternatives; with
-// Branch on, picking one asks the owner to continue from that exact token.
+// Every recorded token is underlined. Selecting one shows its alternatives;
+// picking an alternative continues a live answer from that exact token.
 let currentTokens = [];
 let selectedIndex = -1;
 let inspectorActive = false;
@@ -12,8 +10,6 @@ let boundCardContainer = null;
 let chipIndices = [];
 let renderFrame = null;
 let options = {
-  threshold: 0.5,
-  showAll: false,
   decodeTokenIds: null,
   forks: new Map(),
   branchable: false,
@@ -106,13 +102,8 @@ function renderStream() {
     const fork = forksByGroup.get(group.start);
     if (fork) nodes.push(forkSwitcher(fork));
     if (!group.text) continue;
-    const token = currentTokens[group.start];
-    if (isBranchPoint(token, options.threshold, options.showAll)) {
-      chipIndices.push(group.start);
-      nodes.push(tokenButton(token, group.start, group.text));
-    } else {
-      nodes.push(document.createTextNode(group.text));
-    }
+    chipIndices.push(group.start);
+    nodes.push(tokenButton(currentTokens[group.start], group.start, group.text));
   }
   boundContainer.replaceChildren(...nodes);
   if (!chipIndices.includes(selectedIndex)) selectedIndex = -1;
