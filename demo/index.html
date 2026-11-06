@@ -245,9 +245,9 @@
               <span>Model surprise, not accuracy</span>
             </div>
             <!-- Interactive Token Generation Inspector container -->
-            <p id="token-inspection-hint" class="inspection-note" hidden>Send a prompt with Branch on to record alternatives.</p>
+            <p id="token-inspection-hint" class="inspection-note" hidden>This answer has no recorded alternatives to branch from.</p>
             <div id="token-inspector-view" class="token-inspector-view" hidden>
-              <p id="branch-help" class="inspection-note">Underlined: branch points. Click one for alternatives, then Branch to continue from it. Red: 0% → blue: 100% model likelihood, not factual accuracy.</p>
+              <p id="branch-help" class="inspection-note">Underlined: tokens the model gave less than the threshold. Click one for its alternatives; with Branch on, continue the answer from one. Red: 0% → blue: 100% model likelihood, not factual accuracy.</p>
               <div id="token-stream-container" class="token-stream-container"></div>
               <div id="token-inspector-card-container" class="token-inspector-card-container"></div>
             </div>
@@ -269,11 +269,11 @@
         </div>
         <div class="input-actions">
           <div class="branch-controls">
-            <label class="branch-toggle" for="token-inspector-toggle" title="Record each token's alternatives so you can branch the answer. Changes execution; timings become diagnostic.">
+            <label class="branch-toggle" for="token-inspector-toggle" title="Continue the answer from an underlined token's alternative.">
               <input id="token-inspector-toggle" type="checkbox" aria-describedby="branch-help"> Branch
             </label>
-            <span id="branch-options" class="branch-options" hidden>
-              <label for="branch-threshold">below <input id="branch-threshold" type="number" min="1" max="100" step="1" value="50" aria-label="Branch threshold percent">%</label>
+            <span id="branch-options" class="branch-options">
+              <label for="branch-threshold">underline below <input id="branch-threshold" type="number" min="1" max="100" step="1" value="50" aria-label="Underline threshold percent">%</label>
               <label for="branch-all-tokens"><input id="branch-all-tokens" type="checkbox"> all tokens</label>
             </span>
           </div>

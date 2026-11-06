@@ -122,14 +122,22 @@ export async function checkDemoControls(page) {
   assert.equal(await page.locator('#token-inspector-toggle').isChecked(), false);
   assert.equal(await page.locator('#output-prefill-bar').isVisible(), false);
   assert.equal(await page.inputValue('#set-max-tokens'), '256');
-  assert.equal(await page.evaluate(() => __demoContract.calls.at(-1).policyId), 'demo/always-on');
+  assert.equal(await page.evaluate(() => __demoContract.calls.at(-1).policyId), 'demo/guided-quality',
+    'Every live answer records alternatives');
   const firstChat = await page.evaluate(() => __demoContract.calls.at(-1).prompt);
   assert.deepEqual(firstChat, { messages: [{role:'user',content:'Run the demo contract.'}] });
 
-  assert.doesNotMatch(await page.locator('#output-toks').textContent(), /Diagnostic/);
-  await page.locator('#token-inspector-toggle').check();
-  assert.match(await page.locator('#runtime-notice').textContent(), /Token inspection changes execution/);
+  assert.match(await page.locator('#output-toks').textContent(), /Diagnostic timing/);
+  assert.match(await page.locator('#runtime-notice').textContent(), /Recording token alternatives changes execution/);
   assert.equal(await page.locator('#runtime-notice').isVisible(), true);
+  // Branch off: branch points are underlined and open their alternatives, but cannot continue.
+  assert.equal(await page.locator('.token-chip').count(), 2, 'Branch points are underlined without Branch');
+  await page.locator('.token-chip[data-token-index="1"]').click();
+  assert.match(await page.locator('.token-inspector-note').textContent(), /Turn on Branch/);
+  assert.equal(await page.locator('.token-candidate-branch').first().isDisabled(), true, 'Branch off cannot continue an alternative');
+  await page.locator('#token-inspector-toggle').check();
+  assert.equal(await page.locator('.token-candidate-branch').first().isDisabled(), false,
+    'Turning Branch on makes the answer already shown branchable');
   await page.locator('#xray-toggle-all').focus();
   await page.keyboard.press('Space');
   assert.equal(await page.locator('#xray-toggle-all').isChecked(), true);
@@ -170,7 +178,8 @@ export async function checkDemoControls(page) {
   await page.locator('#branch-all-tokens').uncheck();
   await checkBranching(page);
   await page.locator('#token-inspector-toggle').uncheck();
-  assert.equal(await page.locator('#runtime-notice').isVisible(), false);
+  assert.ok(await page.locator('.token-chip').count() > 0, 'Turning Branch off keeps the underlines');
+  assert.equal(await page.locator('#runtime-notice').isVisible(), true, 'Recording stays disclosed');
 
   assert.equal(await page.locator('#settings-panel').isVisible(), true);
   for (const id of ['set-trace', 'set-batch-max-tokens', 'set-readback', 'set-kv-dtype', 'set-kv-max-seq', 'set-log-level']) {
@@ -267,13 +276,13 @@ export async function checkDemoControls(page) {
   assert.equal(await page.locator('#token-inspector-toggle').isChecked(), false, 'Sample inspection preserves the selected observers');
   const sampleSettingsOpen = await page.locator('#settings-panel').isVisible();
   if (!sampleSettingsOpen) await page.click('#settings-toggle');
+  assert.equal(await page.locator('#output-text').isVisible(), false, 'The underlined view replaces the duplicate formatted answer');
+  assert.equal(await page.locator('#token-inspector-view').isVisible(), true, 'A recorded answer is underlined without Branch');
   await page.check('#token-inspector-toggle');
-  assert.equal(await page.locator('#output-text').isVisible(), false, 'Inspection replaces the duplicate formatted answer');
   assert.equal(await page.locator('#token-inspector-view').isVisible(), true);
   await page.uncheck('#token-inspector-toggle');
-  assert.equal(await page.locator('#output-text').isVisible(), true);
+  assert.equal(await page.locator('#runtime-notice').isVisible(), true, 'Recording stays disclosed');
   if (!sampleSettingsOpen) await page.click('#settings-toggle');
-  assert.equal(await page.locator('#runtime-notice').isVisible(), false);
 
   await checkDemoStreaming(page);
 

@@ -1,9 +1,9 @@
 import { groupTokenFragments, isBranchPoint } from '../../branches.js';
 
-// Inline token view for Branch. Text reads normally; only branch points (tokens
-// the model gave less than the threshold, or every token with "all tokens")
-// are underlined. Selecting one shows its alternatives, and picking an
-// alternative asks the owner to continue the answer from that exact token.
+// Inline token view for every recorded answer. Text reads normally; only branch
+// points (tokens the model gave less than the threshold, or every token with
+// "all tokens") are underlined. Selecting one shows its alternatives; with
+// Branch on, picking one asks the owner to continue from that exact token.
 let currentTokens = [];
 let selectedIndex = -1;
 let inspectorActive = false;
@@ -17,7 +17,7 @@ let options = {
   decodeTokenIds: null,
   forks: new Map(),
   branchable: false,
-  unavailableReason: 'Branching needs a live run with Branch on.',
+  unavailableReason: 'Only a live answer can branch. Recorded and illustrative examples cannot.',
   onBranch: null,
   onSwitch: null,
 };
@@ -131,6 +131,8 @@ function scheduleRender() {
 }
 
 export function isTokenInspectorActive() { return inspectorActive; }
+
+export function getTokenInspectorTokenCount() { return currentTokens.length; }
 
 export function setTokenInspectorActive(active) {
   inspectorActive = Boolean(active);

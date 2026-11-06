@@ -1,6 +1,7 @@
 import { state } from './ui/state.js';
 import {
   appendTokenInspectorToken,
+  getTokenInspectorTokenCount,
   renderTokenInspector,
   setTokenInspectorActive,
 } from './ui/token-inspector/index.js';
@@ -147,7 +148,7 @@ export function createOutputStream(decodeTokenIds, signal) {
   output.classList.remove('chat-markdown');
   output.replaceChildren(textNode);
   renderTokenInspection([]);
-  setTokenInspectorActive(state.tokenInspectorActive);
+  setTokenInspectorActive(true);
   liveMessage?.setAttribute('aria-busy', 'true');
   const tokenIds = [];
   let frame = null;
@@ -204,7 +205,7 @@ export function createOutputStream(decodeTokenIds, signal) {
       tokenIds.push(tokenId);
       if (token) {
         appendTokenInspectorToken(token, $('token-stream-container'), $('token-inspector-card-container'));
-        if (state.tokenInspectorActive) showTokenInspectorView(true);
+        showTokenInspectorView(true);
       }
       dirty = true;
       if (frame === null) frame = requestAnimationFrame(flush);
@@ -241,10 +242,12 @@ export function renderWordQuality(quality, text = state.lastInspection?.outputTe
 export function showTokenInspectorView(show) {
   const qualityOutput = $('word-quality-output');
   const inspectorView = $('token-inspector-view');
-  const hasTokens = Boolean($('token-stream-container')?.childElementCount);
+  // Recorded tokens, not underlined chips: a fully confident answer has none.
+  const hasTokens = getTokenInspectorTokenCount() > 0;
   const visible = Boolean(show && hasTokens);
+  // With Branch on, say when the shown answer has nothing recorded to branch from.
   const hint = $('token-inspection-hint');
-  if (hint) hint.hidden = !show || hasTokens;
+  if (hint) hint.hidden = !state.branchEnabled || hasTokens;
   if (inspectorView) inspectorView.hidden = !visible;
   setTokenInspectorActive(visible);
   // Inspection and formatted prose are alternate views of the same answer.

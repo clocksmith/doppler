@@ -17,7 +17,7 @@ assert.equal(
     profilingEnabled: false,
     traceEnabled: false,
   }),
-  'Token inspection changes execution. Timings are diagnostic.'
+  'Recording token alternatives changes execution. Timings are diagnostic.'
 );
 
 assert.equal(
@@ -50,6 +50,6 @@ assert.equal(
 console.log('xray-runtime-notice.test: ok');
 
 assert.equal(
-  getXrayRuntimeNoticeText({ tokenInspectorActive: true, wordQualityEnabled: false, profilingEnabled: false }),
-  'Token inspection changes execution. Timings are diagnostic.'
+  getXrayRuntimeNoticeText({ alternativesRecorded: true, wordQualityEnabled: false, profilingEnabled: false }),
+  'Recording token alternatives changes execution. Timings are diagnostic.'
 );

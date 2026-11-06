@@ -22,34 +22,38 @@ Stop flushes pending text and retains the partial answer without publishing a
 completed receipt. Completion reconciles the text with the receipt, then displays
 token probabilities, X-Ray evidence, and final timing. Image attachment and live token-rate
 controls are not offered.
-The default is ordinary text with token inspection off and a 256-token output limit.
-Branch, beside Send and off by default, records each generated token's exact ID
-and a bounded set of alternatives. Tokens whose selected probability is below the
-threshold (50% by default) are underlined as branch points, colored red (0%) to
-blue (100%); "all tokens" offers every token. Clicking one lists its alternatives;
-picking one continues the answer from that exact token boundary and keeps the
-original, with a switcher at each fork. Branches can branch again. A branch
+Every live answer records each generated token's exact ID and a bounded set of
+alternatives; the default output limit is 256 tokens. Tokens whose selected
+probability is below the threshold (50% by default) are underlined as branch
+points, colored red (0%) to blue (100%); "all tokens" underlines every token.
+Clicking one lists its alternatives. The latest answer shows as this underlined
+token text instead of formatted Markdown; earlier turns render Markdown.
+Branch, beside Send and off by default, only enables continuing: picking an
+alternative continues the answer from that exact token boundary and keeps the
+original, with a switcher at each fork. Turning Branch on makes the answer
+already shown branchable. Branches can branch again. A branch
 replays the run's exact `inputTokenIds`, the answer's token IDs before the fork,
 and the chosen ID through `model.inspect.generate(prompt, { inputTokenIds })`;
 generation starts from cleared attention and recurrent state, so displayed text
 is never re-tokenized. Replay prefills the prefix in one pass, so its numerics
 can differ slightly from the original token-by-token decode. Fragments of one
-character display together but fork at their first token. Branch changes
-execution (probability capture disables command batching), so its timings are
-diagnostic; Branch off keeps the `demo/always-on` path. Probabilities are model
+character display together but fork at their first token. Recording changes
+execution (probability capture disables command batching), so every live run
+uses `demo/guided-quality` (`demo/deep-xray` with X-Ray) and its timings are
+diagnostic; the demo does not run the `demo/always-on` tier. Probabilities are model
 likelihoods, not factual accuracy. Recorded and illustrative examples cannot
 branch, and a tree is discarded when the conversation or model changes. X-Ray is a separate
 GPU view with captured step durations and per-kernel totals. Missing measurements
 remain unavailable. Its accumulated-duration waterfall is not an absolute dispatch
-timeline or a GPU-utilization measurement. Disable Branch and X-Ray for
-`demo/always-on`. Saved X-Ray preferences remain explicit choices.
+timeline or a GPU-utilization measurement. Saved X-Ray preferences remain
+explicit choices.
 Completed assistant messages render inert Markdown;
 word-quality annotations stay attached to their source text. Clear conversation
 resets model state before removing the conversation and its evidence, and keeps
 the loaded model available. A reset failure leaves the conversation intact.
 Run options expose sampling and observation choices; profile-owned policy is
-shown under read-only details. Diagnostic timing notices remain visible whenever
-Tokens, X-Ray, or word quality is selected. Loading, generation, cancellation, receipt
+shown under read-only details. The diagnostic timing notice stays visible because
+every live answer records alternatives; X-Ray replaces it with its own. Loading, generation, cancellation, receipt
 import/export, and confirmed cache removal keep their controls synchronized.
 
 ## Public boundaries

@@ -17,7 +17,8 @@ export interface DemoState {
   modelBusy: boolean;
   settingsBusy: boolean;
   xrayEnabled: boolean;
-  tokenInspectorActive: boolean;
+  /** Branch toggle: continuing an answer from a recorded alternative is enabled. */
+  branchEnabled: boolean;
   branchTree: import('../branches.js').BranchTree | null;
   branchPrompt: string;
   branchModelId: string | null;

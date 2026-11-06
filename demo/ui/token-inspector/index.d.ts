@@ -21,6 +21,8 @@ export interface TokenInspectorOptions {
   onSwitch?: ((branchId: number) => void) | null;
 }
 export declare function isTokenInspectorActive(): boolean;
+/** Recorded tokens of the shown answer, whether or not any is a branch point. */
+export declare function getTokenInspectorTokenCount(): number;
 export declare function setTokenInspectorActive(active: boolean): void;
 export declare function setTokenInspectorOptions(options?: TokenInspectorOptions): void;
 export declare function getTokenInspectorSelection(): number;

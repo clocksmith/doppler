@@ -5,7 +5,8 @@ export declare function isXrayEnabled(): boolean;
 export declare function isXrayProfilingNeeded(): boolean;
 export declare function getXrayRuntimeNoticeText(options?: {
   wordQualityEnabled?: boolean;
-  tokenInspectorActive?: boolean;
+  /** Token probabilities and alternatives are recorded for the answer. */
+  alternativesRecorded?: boolean;
   traceEnabled?: boolean;
   profilingEnabled?: boolean;
 }): string | null;

@@ -17,7 +17,6 @@ function $(id) { return document.getElementById(id); }
 function refreshRuntimeNotice() {
   const xrayEnabled = $('xray-toggle-all')?.checked === true;
   const wordQualityEnabled = $('set-word-quality')?.checked === true;
-  const tokenInspectorActive = state.tokenInspectorActive;
 
   if (xrayEnabled) {
     const inspectionWorkspace = $('inspection-workspace');
@@ -28,12 +27,13 @@ function refreshRuntimeNotice() {
   if (!el) return;
   const text = getXrayRuntimeNoticeText({
     wordQualityEnabled,
-    tokenInspectorActive,
+    // Every live answer records alternatives, so execution is always observed.
+    alternativesRecorded: true,
     traceEnabled: $('set-trace')?.checked === true,
     profilingEnabled: isXrayProfilingNeeded(),
   });
   el.textContent = text ?? '';
-  el.hidden = !xrayEnabled && !wordQualityEnabled && !tokenInspectorActive;
+  el.hidden = !text;
 }
 
 // Paint travels independently of button geometry, and completes after release.
@@ -84,23 +84,21 @@ async function init() {
     loadSampleInspection(SAMPLE_INSPECTION_RECEIPT);
     refreshRuntimeNotice();
   });
-  // Wire Branch: the toggle records alternatives; threshold and "all tokens"
-  // only change which recorded tokens are offered as branch points.
-  const inspectorToggle = $('token-inspector-toggle');
-  const branchOptions = $('branch-options');
+  // Wire Branch: every live answer records alternatives and underlines its
+  // branch points; the toggle only enables continuing from an alternative.
+  // Threshold and "all tokens" change which recorded tokens are underlined.
+  const branchToggle = $('token-inspector-toggle');
   const branchThreshold = $('branch-threshold');
   const branchAllTokens = $('branch-all-tokens');
   const syncBranchControls = () => {
-    if (branchOptions) branchOptions.hidden = !state.tokenInspectorActive;
     if (branchThreshold) branchThreshold.disabled = state.branchShowAll;
   };
-  if (inspectorToggle) {
-    state.tokenInspectorActive = inspectorToggle.checked;
-    inspectorToggle.addEventListener('change', () => {
-      state.tokenInspectorActive = inspectorToggle.checked;
-      syncBranchControls();
-      showTokenInspectorView(state.tokenInspectorActive);
-      refreshRuntimeNotice();
+  if (branchToggle) {
+    state.branchEnabled = branchToggle.checked;
+    branchToggle.addEventListener('change', () => {
+      state.branchEnabled = branchToggle.checked;
+      syncBranchView();
+      showTokenInspectorView(true);
     });
   }
   branchThreshold?.addEventListener('input', () => {

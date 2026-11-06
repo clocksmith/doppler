@@ -90,10 +90,10 @@ function recordInspectionRun(receipt, { prompt, promptInput, config, qualityEnab
   setExportEnabled(true);
 }
 
+// Every live answer records token probabilities and alternatives, so branch
+// points are always underlined and any live answer can branch once Branch is on.
 function resolvePolicyId() {
-  if (isXrayEnabled()) return 'demo/deep-xray';
-  if (state.tokenInspectorActive) return 'demo/guided-quality';
-  return 'demo/always-on';
+  return isXrayEnabled() ? 'demo/deep-xray' : 'demo/guided-quality';
 }
 
 export function onModelLoaded(model, modelId) {
@@ -170,9 +170,7 @@ export async function runGeneration() {
     }
     if (Array.isArray(receipt.tokens) && receipt.tokens.length > 0) {
       renderTokenInspection(receipt.tokens);
-      if (state.tokenInspectorActive) {
-        showTokenInspectorView(true);
-      }
+      showTokenInspectorView(true);
     }
     const run = {
       receipt,
@@ -220,7 +218,7 @@ function startBranchTree(run) {
   const { receipt, prompt } = run;
   state.branchTree = null;
   const records = Array.isArray(receipt.tokens) ? receipt.tokens : [];
-  if (!state.tokenInspectorActive || !Array.isArray(receipt.inputTokenIds)
+  if (!Array.isArray(receipt.inputTokenIds)
     || records.length === 0 || records.length !== receipt.generatedTokenIds.length) {
     syncBranchView();
     return;
@@ -239,9 +237,8 @@ function startBranchTree(run) {
 }
 
 function branchUnavailableReason() {
-  if (!state.branchTree) {
-    return 'Branching needs an answer generated with Branch on. Recorded and illustrative examples cannot branch.';
-  }
+  if (!state.branchTree) return 'Only a live answer can branch. Recorded and illustrative examples cannot.';
+  if (!state.branchEnabled) return 'Turn on Branch to continue the answer from an alternative.';
   if (state.generating || state.modelBusy || state.settingsBusy) return 'Wait for the current run to finish.';
   return 'Load the model that wrote this answer to branch from it.';
 }
@@ -249,7 +246,7 @@ function branchUnavailableReason() {
 export function syncBranchView() {
   const tree = state.branchTree;
   const model = state.model;
-  const branchable = Boolean(tree && model && state.branchModelId === state.modelId
+  const branchable = Boolean(tree && model && state.branchEnabled && state.branchModelId === state.modelId
     && !state.generating && !state.modelBusy && !state.settingsBusy);
   setTokenInspectorOptions({
     threshold: state.branchThreshold,
@@ -434,7 +431,7 @@ export function loadSampleInspection(receipt) {
 
   if (Array.isArray(receipt.tokens) && receipt.tokens.length > 0) {
     renderTokenInspection(receipt.tokens);
-    showTokenInspectorView(state.tokenInspectorActive);
+    showTokenInspectorView(true);
   }
 
   state.lastInspection = receipt;

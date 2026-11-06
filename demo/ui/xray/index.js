@@ -204,8 +204,8 @@ export function getXrayRuntimeNoticeText(options = {}) {
   if (options.profilingEnabled) {
     return 'X-Ray captures GPU timestamps and changes execution. Timings are diagnostic, not a throughput benchmark.';
   }
-  if (options.wordQualityEnabled || options.tokenInspectorActive) {
-    return 'Token inspection changes execution. Timings are diagnostic.';
+  if (options.wordQualityEnabled || options.alternativesRecorded) {
+    return 'Recording token alternatives changes execution. Timings are diagnostic.';
   }
   return 'Always-on evidence records existing wall timing without GPU timestamp queries. This is the performance-representative observation tier.';
 }
