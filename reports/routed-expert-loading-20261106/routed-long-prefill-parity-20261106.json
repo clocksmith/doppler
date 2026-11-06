@@ -1,0 +1,82 @@
+{
+  "scope": "Learned layer-1 long-prefill parity, unchanged weights and observed selections; not full-model qualification",
+  "manifestSha256": "4902a0b730a9310903b00bc0f8f587528fa1af9f37a722d2f9287bafceceec09",
+  "inputsSha256": "06a819d529593b58abd6cb27566bb835a9b91aac13a77c0c7479b7e4e7b0c378",
+  "baselineReport": "/run/media/x/models/qwen38-flash-next-de4b8e4d/qualify/moe-layer1-stages-r2-20261106.json",
+  "routedReport": "/run/media/x/models/qwen38-flash-next-de4b8e4d/qualify/routed-moe-layer1-r4-20261106.json",
+  "reportSha256": [
+    "e68ea48d85f2f06eb9a98bb3dec1b4611e455f2c3c8ff70c98a7d7621ef31160",
+    "f3db7d7ca22de8cfc0989aead1dc133856d18261ab9fcba24fb8dfde59c4c0ca"
+  ],
+  "rows": [
+    {
+      "boundary": "input",
+      "elements": 5898240,
+      "shape": [
+        2304,
+        2560
+      ],
+      "bitExact": true,
+      "maxAbsError": 0.0,
+      "baselineSha256": "f2e37ddb5a5b79a3611bea01b23f1ccaf9c34a0e6a6ee19c0703bea0dcf9bbc7",
+      "routedSha256": "f2e37ddb5a5b79a3611bea01b23f1ccaf9c34a0e6a6ee19c0703bea0dcf9bbc7"
+    },
+    {
+      "boundary": "output",
+      "elements": 5898240,
+      "shape": [
+        2304,
+        2560
+      ],
+      "bitExact": true,
+      "maxAbsError": 0.0,
+      "baselineSha256": "dc2b099fd6915dd5228b7b9c5d699ced0584c224ee0303c40600ee8ba5f3cce6",
+      "routedSha256": "dc2b099fd6915dd5228b7b9c5d699ced0584c224ee0303c40600ee8ba5f3cce6"
+    },
+    {
+      "boundary": "indices",
+      "elements": 23040,
+      "shape": [
+        2304,
+        10
+      ],
+      "bitExact": true,
+      "maxAbsError": 0.0,
+      "baselineSha256": "63f763f12199fcea1f39f23377bfa87ec938ee2f13e9818d95529c513373651b",
+      "routedSha256": "63f763f12199fcea1f39f23377bfa87ec938ee2f13e9818d95529c513373651b"
+    },
+    {
+      "boundary": "weights",
+      "elements": 23040,
+      "shape": [
+        2304,
+        10
+      ],
+      "bitExact": true,
+      "maxAbsError": 0.0,
+      "baselineSha256": "1a498e5ab9f64e7fc6419aa40b8287c89df311817ce9d95042b6538255d75148",
+      "routedSha256": "1a498e5ab9f64e7fc6419aa40b8287c89df311817ce9d95042b6538255d75148"
+    }
+  ],
+  "routedExpertCache": {
+    "sourceReadBytes": 2831155200,
+    "sourceReads": 3881,
+    "uploadBytes": 2831155200,
+    "cacheHits": 0,
+    "cacheMisses": 960,
+    "workingHits": 5288,
+    "evictions": 232,
+    "residentBytes": 3656908800,
+    "peakResidentBytes": 3656908800,
+    "peakAccountedGpuBytes": 15240910080,
+    "peakStagingBytes": 7372800,
+    "ioWaitMs": 2499.7323019999394,
+    "sourceReadWaitMs": 2029.9535870000145,
+    "uploadEnqueueMs": 247.13834900000984,
+    "initialQueueIdleForWeightsMs": 18.50938199999655,
+    "cacheBytes": 2146959360,
+    "workingBytes": 1509949440,
+    "experts": 728
+  },
+  "passed": true
+}

@@ -92,7 +92,32 @@ export const DEFAULT_EXPERT_CACHE_CONFIG = {
     enabled: false,
     maxResidentLayers: 2,
   },
+  qwen35Routed: {
+    enabled: false,
+    cacheBytes: 2 * GB,
+    stagingBytes: 16 * MB,
+    readConcurrency: 2,
+    routeChunkTokens: 256,
+    gpuBudgetBytes: 24 * GB,
+    reserveBytes: 4 * GB,
+  },
 };
+
+export function validateQwen35RoutedConfig(config) {
+  if (!config || typeof config !== 'object' || typeof config.enabled !== 'boolean') {
+    throw new Error('runtime.loading.expertCache.qwen35Routed requires resolved configuration.');
+  }
+  for (const field of ['cacheBytes', 'stagingBytes', 'readConcurrency', 'routeChunkTokens', 'gpuBudgetBytes', 'reserveBytes']) {
+    if (!Number.isSafeInteger(config[field]) || config[field] < 1) {
+      throw new Error(`runtime.loading.expertCache.qwen35Routed.${field} must be a positive safe integer.`);
+    }
+  }
+  if (config.stagingBytes < 8 * config.readConcurrency || config.stagingBytes % (8 * config.readConcurrency)
+    || config.cacheBytes + config.reserveBytes >= config.gpuBudgetBytes) {
+    throw new Error('Qwen routed staging must be 4-byte aligned per reader and leave GPU budget for weights and activations.');
+  }
+  return config;
+}
 
 export function validateQwen35PagerConfig(config) {
   if (!config || typeof config.enabled !== 'boolean'

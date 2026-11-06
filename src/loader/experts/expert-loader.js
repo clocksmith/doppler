@@ -256,7 +256,7 @@ function getGemma4ExpertTensorCandidates(layerIdx) {
   ];
 }
 
-function getQwen35ExpertTensorCandidates(layerIdx) {
+export function getQwen35ExpertTensorCandidates(layerIdx) {
   const prefixes = [`model.language_model.layers.${layerIdx}`, `model.layers.${layerIdx}`];
   return ['gate_up_proj', 'down_proj'].map((suffix) => [...prefixes.map((prefix) => `${prefix}.mlp.experts.${suffix}`), ...(suffix === 'down_proj' ? [`blk.${layerIdx}.ffn_down_exps.weight`] : [])]);
 }

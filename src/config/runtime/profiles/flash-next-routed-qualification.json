@@ -1,0 +1,27 @@
+{
+  "id": "profiles/flash-next-routed-qualification",
+  "name": "Flash-Next selected-expert range loading",
+  "description": "Bounded Q4K expert-range cache and known-route prefill chunks; unchanged arithmetic and no model qualification claim.",
+  "intent": "investigate",
+  "compatibleIntents": ["investigate", "verify"],
+  "stability": "experimental",
+  "owner": "doppler-core",
+  "createdAtUtc": "2026-11-06T00:00:00Z",
+  "extends": "profiles/flash-next-paged-qualification",
+  "runtime": {
+    "loading": {
+      "expertCache": {
+        "qwen35Pager": { "enabled": false },
+        "qwen35Routed": {
+          "enabled": true,
+          "cacheBytes": 2147483648,
+          "stagingBytes": 16777216,
+          "readConcurrency": 2,
+          "routeChunkTokens": 256,
+          "gpuBudgetBytes": 25769803776,
+          "reserveBytes": 4294967296
+        }
+      }
+    }
+  }
+}

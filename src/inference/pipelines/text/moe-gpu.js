@@ -32,6 +32,7 @@ import {
   resolveMoEActiveExpertSelection,
 } from './moe/plan.js';
 import { runQwenRouteExperts, recordQwenRouteExperts } from './moe/qwen-route-executor.js';
+import { executeRoutedExpertChunks } from './moe/routed-expert-chunks.js';
 import { releaseOrTrack } from './ops.js';
 
 export { buildActiveExpertScheduleFromIndices } from './moe/plan.js';
@@ -190,10 +191,10 @@ export async function moeFeedForwardGPU(
     throw new Error('MoE config.modelType is required; got null/undefined.');
   }
   const modelType = config.modelType;
-  await expertLoader.prepareExpertLayer?.(layerIdx, expertWeights, requestedRecorder, config.signal);
   const moeProfile = resolveMoeExecutionProfile(config, { modelType });
   const activeExpertSelection = config.activeExpertSelection === undefined
     ? resolveConfiguredMoEActiveExpertSelection() : resolveMoEActiveExpertSelection(config.activeExpertSelection);
+  await expertLoader.prepareExpertLayer?.(layerIdx, expertWeights, requestedRecorder, config.signal, activeExpertSelection);
   const recordRouteExecutor = activeExpertSelection === 'topk-route'
     ? MOE_RECORDED_ROUTE_EXECUTORS[moeProfile.topkRouteExecutor] : null;
   const recorder = recordRouteExecutor ? requestedRecorder : null;
@@ -453,8 +454,9 @@ export async function moeFeedForwardGPU(
     }
     const routeExecutor = requireMoeExecutor(MOE_ROUTE_EXECUTORS, moeProfile.topkRouteExecutor, 'route executor');
     stepStart = perfMark();
-    await ensureExpertLoaded(layerIdx, 0, expertWeights, expertLoader);
-    const routeWeights = expertWeights.get(`layer_${layerIdx}_expert_0`);
+    const routedPolicy = expertLoader.getRoutedExpertPolicy?.();
+    if (!routedPolicy?.enabled) await ensureExpertLoaded(layerIdx, 0, expertWeights, expertLoader);
+    const routeWeights = routedPolicy?.enabled ? null : expertWeights.get(`layer_${layerIdx}_expert_0`);
     perfLog(`MoE L${layerIdx} route_weight_load`, stepStart, { expertFormat, topK });
     stepStart = perfMark();
     const routeOptions = {
@@ -480,7 +482,9 @@ export async function moeFeedForwardGPU(
       swigluLimit,
       hiddenActivation,
     };
-    outputTensor = recorder
+    outputTensor = routedPolicy?.enabled
+      ? await executeRoutedExpertChunks(routeOptions, expertLoader, routedPolicy, config.signal)
+      : recorder
       ? await recordRouteExecutor(recorder, routeOptions)
       : await routeExecutor(routeOptions);
     perfLog(`MoE L${layerIdx} route_experts`, stepStart, {

@@ -172,7 +172,22 @@ export interface ExpertCacheConfigSchema {
   };
   /** Explicit bounded Qwen packed-bank paging; requires immediate on-demand execution. */
   qwen35Pager: Qwen35PagerConfig;
+  /** Selected packed ranges, with unchanged logical expert addresses and bounded residency. */
+  qwen35Routed: Qwen35RoutedConfig;
 }
+
+export interface Qwen35RoutedConfig {
+  enabled: boolean;
+  cacheBytes: number;
+  /** Total payload plus assembled-range capacity across concurrent readers. Backend/driver caches are separate. */
+  stagingBytes: number;
+  readConcurrency: number;
+  routeChunkTokens: number;
+  /** This process's accounted GPU allocations; not a claim about system-wide VRAM. */
+  gpuBudgetBytes: number;
+  reserveBytes: number;
+}
+export declare function validateQwen35RoutedConfig(config: unknown): Qwen35RoutedConfig;
 
 export interface Qwen35PagerConfig {
   enabled: boolean;

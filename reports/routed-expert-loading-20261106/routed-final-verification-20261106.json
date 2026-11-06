@@ -1,0 +1,121 @@
+{
+  "scope": "Final runtime parity, lifecycle and corrected observer; timing pair retained separately",
+  "passed": true,
+  "rows": [
+    {
+      "boundary": "moeInput",
+      "elements": 5898240,
+      "bitExact": true,
+      "maxAbsError": 0.0,
+      "baselineSha256": "f2e37ddb5a5b79a3611bea01b23f1ccaf9c34a0e6a6ee19c0703bea0dcf9bbc7",
+      "routedSha256": "f2e37ddb5a5b79a3611bea01b23f1ccaf9c34a0e6a6ee19c0703bea0dcf9bbc7"
+    },
+    {
+      "boundary": "moeOutput",
+      "elements": 5898240,
+      "bitExact": true,
+      "maxAbsError": 0.0,
+      "baselineSha256": "dc2b099fd6915dd5228b7b9c5d699ced0584c224ee0303c40600ee8ba5f3cce6",
+      "routedSha256": "dc2b099fd6915dd5228b7b9c5d699ced0584c224ee0303c40600ee8ba5f3cce6"
+    },
+    {
+      "boundary": "indices",
+      "elements": 23040,
+      "bitExact": true,
+      "maxAbsError": 0.0,
+      "baselineSha256": "63f763f12199fcea1f39f23377bfa87ec938ee2f13e9818d95529c513373651b",
+      "routedSha256": "63f763f12199fcea1f39f23377bfa87ec938ee2f13e9818d95529c513373651b"
+    },
+    {
+      "boundary": "weights",
+      "elements": 23040,
+      "bitExact": true,
+      "maxAbsError": 0.0,
+      "baselineSha256": "1a498e5ab9f64e7fc6419aa40b8287c89df311817ce9d95042b6538255d75148",
+      "routedSha256": "1a498e5ab9f64e7fc6419aa40b8287c89df311817ce9d95042b6538255d75148"
+    },
+    {
+      "repetition": 0,
+      "phase": 0,
+      "elements": 248320,
+      "bitExact": true,
+      "maxAbsError": 0.0,
+      "baselineSha256": "c85cef9b14695e10411b007e415c337a8db35585c78a10a823baa9112b7b63b1",
+      "routedSha256": "c85cef9b14695e10411b007e415c337a8db35585c78a10a823baa9112b7b63b1"
+    },
+    {
+      "repetition": 0,
+      "phase": 1,
+      "elements": 248320,
+      "bitExact": true,
+      "maxAbsError": 0.0,
+      "baselineSha256": "8708538aaf4dcf30385d4f2a6f253c9609bf68e50a095e2d74a9555114739233",
+      "routedSha256": "8708538aaf4dcf30385d4f2a6f253c9609bf68e50a095e2d74a9555114739233"
+    },
+    {
+      "repetition": 0,
+      "phase": 2,
+      "elements": 248320,
+      "bitExact": true,
+      "maxAbsError": 0.0,
+      "baselineSha256": "7e57d596426f9e57401a5fdbc6fd4136878fa47be97f33364fde9f61339511dd",
+      "routedSha256": "7e57d596426f9e57401a5fdbc6fd4136878fa47be97f33364fde9f61339511dd"
+    },
+    {
+      "repetition": 1,
+      "phase": 0,
+      "elements": 248320,
+      "bitExact": true,
+      "maxAbsError": 0.0,
+      "baselineSha256": "c85cef9b14695e10411b007e415c337a8db35585c78a10a823baa9112b7b63b1",
+      "routedSha256": "c85cef9b14695e10411b007e415c337a8db35585c78a10a823baa9112b7b63b1"
+    },
+    {
+      "repetition": 1,
+      "phase": 1,
+      "elements": 248320,
+      "bitExact": true,
+      "maxAbsError": 0.0,
+      "baselineSha256": "8708538aaf4dcf30385d4f2a6f253c9609bf68e50a095e2d74a9555114739233",
+      "routedSha256": "8708538aaf4dcf30385d4f2a6f253c9609bf68e50a095e2d74a9555114739233"
+    },
+    {
+      "repetition": 1,
+      "phase": 2,
+      "elements": 248320,
+      "bitExact": true,
+      "maxAbsError": 0.0,
+      "baselineSha256": "7e57d596426f9e57401a5fdbc6fd4136878fa47be97f33364fde9f61339511dd",
+      "routedSha256": "7e57d596426f9e57401a5fdbc6fd4136878fa47be97f33364fde9f61339511dd"
+    }
+  ],
+  "reportSha256": {
+    "oldTrace": "e68ea48d85f2f06eb9a98bb3dec1b4611e455f2c3c8ff70c98a7d7621ef31160",
+    "finalTrace": "a870492998ef414833f7156920a9cdeb22d59a1a543208797723c8dc193821d3",
+    "bank": "112f90a1452c8f877c269029ade2ae25c1a96d2303a7798d2bbc4446b73c523c",
+    "final": "d998f2a9bcaaa3a19953d5769d500ffee8206fa5b188159519db4425cbefdf80",
+    "counterCheck": "99c1ba248e37c52948c3d780a4dd5d448d28d6dd7048df670817e3f2d4a98336"
+  },
+  "lifecycle": [
+    "queued-abort",
+    "active-decode-rollback",
+    "reset-and-reuse",
+    "paused-abort-without-pull",
+    "unload-paused-consumer"
+  ],
+  "counterCheck": {
+    "loads": 96,
+    "expertPayloadBytes": 72477573120
+  },
+  "providerBefore": "ActiveState=active\nMainPID=3399279",
+  "providerAfter": "ActiveState=active\nMainPID=3399279",
+  "runtimeSourceSha256": {
+    "src/loader/experts/routed-expert-plan.js": "35359657196c41c8ab41ccc29f6d2b52829bf5396a4a842ef264b0d5acb141c6",
+    "src/loader/experts/routed-expert-cache.js": "0b5da688bb8b9e6e43bffe467742edac184b913d15427db845d2c1875e8c855d",
+    "src/loader/experts/loader-bindings.js": "be2f9b839cfcad4ced5452f4882d67f51cf779fbdc58b520302f0b816b761b90",
+    "src/inference/pipelines/text/moe/routed-expert-chunks.js": "2c62078cac1d4f1276079344fcf647e0185c2c1a68a8dfbf451b8791a76c6500",
+    "src/inference/pipelines/text/moe-gpu.js": "52d7f522d4c0c670d0a8c980718340ebd663765a1f34d3e9c3a3762d01c2520d",
+    "src/loader/doppler-loader.js": "10a8d234ab34d114c154a240c5e9d7e1b61162dbe3092397f3f8f8d59a5fc859",
+    "tests/integration/flash-next-upstream-trace-physical.test.js": "6a5758d71e751b3fdbe25be91848c30acdf8e2e4b830bcb4b914407f94c66d3f"
+  }
+}

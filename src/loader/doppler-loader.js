@@ -54,7 +54,7 @@ import {
 } from './experts/expert-loader.js';
 import { assembleShardData } from './tensors/tensor-reader.js';
 import { hasSourceTransform } from './tensors/source-transform.js';
-import { prepareQwenExpertLayer } from './experts/qwen-paging.js';
+import { prepareExpertLayer, prepareRoutedExperts, disposeRoutedExperts, createExpertLoaderContext } from './experts/loader-bindings.js';
 import {
   load as loadImpl,
   _loadTensor as _loadTensorImpl,
@@ -146,6 +146,7 @@ export class DopplerLoader {
   // Expert cache for MoE models (LRU eviction)
   
   expertCache = null;
+  routedExpertCache = null;
 
   // Loading state
   
@@ -568,25 +569,19 @@ export class DopplerLoader {
     return loadExpertFromModule(this._getExpertLoaderContext(), layerIdx, expertIdx);
   }
 
-  async prepareExpertLayer(layerIdx, consumerExperts, recorder = null, signal) {
-    return prepareQwenExpertLayer(this._getExpertLoaderContext(), layerIdx, consumerExperts,
-      this._loadingConfig.expertCache.qwen35Pager, recorder, signal);
+  async prepareExpertLayer(layerIdx, consumerExperts, recorder = null, signal, activeSelection) {
+    return prepareExpertLayer(this, this._loadingConfig.expertCache, layerIdx, consumerExperts, recorder, signal, activeSelection);
   }
 
-  _getExpertLoaderContext() {
-    const loadShard = this._getLoadShard();
-    return {
-      manifest: this.manifest,
-      tensorLocations: this.tensorLocations,
-      loadTensor: (name, toGPU, silent) => this._loadTensor(name, toGPU, silent),
-      loadShard,
-      shardCache: this.shardCache,
-      expertCache: this.expertCache,
-      experts: this.experts,
-      gpuBuffers: this.gpuBuffers,
-      keepF32Weights: this.keepF32Weights,
-    };
+  getRoutedExpertPolicy() { return this._loadingConfig.expertCache.qwen35Routed; }
+
+  async prepareRoutedExperts(layer, expertIds, signal) {
+    return prepareRoutedExperts(this, layer, expertIds, signal);
   }
+
+  getRoutedExpertCacheStats() { return this.routedExpertCache?.getStats() ?? null; }
+
+  _getExpertLoaderContext() { return createExpertLoaderContext(this); }
 
   async _loadFinalWeights(_onProgress) {
     return _loadFinalWeightsImpl.call(this, _onProgress);
@@ -636,6 +631,7 @@ export class DopplerLoader {
 
   async unload() {
     debugTrace.loader(' Unloading model...');
+    const routedCleanupErrors = await disposeRoutedExperts(this);
 
     if (this._memoryMonitor) {
       this._stopMemoryLogging('complete');
@@ -716,6 +712,7 @@ export class DopplerLoader {
     this.shardCache.clear();
 
     debugTrace.loader(' Model unloaded');
+    if (routedCleanupErrors.length) throw new AggregateError(routedCleanupErrors, 'Routed expert resources remain owned after unload failure.');
   }
 }
 

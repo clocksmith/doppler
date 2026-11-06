@@ -9,11 +9,14 @@
  */
 
 import type { RDRRManifest } from '../../formats/rdrr/index.js';
+import type { RuntimeModelContract } from '../../inference/runtime-model.js';
 import type { ExpertCache } from './expert-cache.js';
 import type { TensorLocation } from '../loader-types.js';
 import type { ExpertWeights } from '../weights.js';
 import type { WeightBuffer } from '../../gpu/weight-buffer.js';
 import type { ShardLoadOptions } from '../loader-types.js';
+
+export declare function getQwen35ExpertTensorCandidates(layerIdx: number): string[][];
 
 /** Tensor loading function signature */
 export type TensorLoader = (
@@ -38,7 +41,7 @@ export interface ShardCacheInterface {
  */
 export interface ExpertLoaderContext {
   /** Model manifest */
-  manifest: RDRRManifest | null;
+  manifest: RDRRManifest | RuntimeModelContract | null;
   /** Resolved tensor locations from manifest.tensors or tensors.json */
   tensorLocations?: Map<string, TensorLocation>;
   /** Load a tensor by name */

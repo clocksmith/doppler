@@ -198,6 +198,10 @@
     "src/inference/pipelines/text/hyper-connection/logits-input.js",
     "src/loader/ngram-table-bindings.js",
     "src/storage/shards/index.js",
-    "src/loader/experts/qwen-paging.js"
+    "src/loader/experts/qwen-paging.js",
+    "src/loader/experts/routed-expert-plan.js",
+    "src/loader/experts/routed-expert-cache.js",
+    "src/inference/pipelines/text/moe/routed-expert-chunks.js",
+    "src/loader/experts/loader-bindings.js"
   ]
 }

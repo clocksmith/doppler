@@ -26,6 +26,8 @@ if (!runPath) {
     harnessSha256: hash(await fs.readFile(fileURLToPath(import.meta.url))),
     manifestSha256: hash(manifestBytes), inputsSha256: hash(inputsBytes), runSha256: hash(runBytes),
     hyperConnectionGeometry: manifest.inference.hyperConnections, tensors: [] };
+  report.runtimeSourceSha256 = {};
+  for (const file of run.sourceFiles ?? []) report.runtimeSourceSha256[file] = hash(await fs.readFile(file));
   const controller = new AbortController(), stop = new Error('trace: requested upstream boundary captured');
   const stopLayer = run.stopBeforeMoeLayer ?? 0;
   const captureMoe = run.captureMoe === true;
@@ -166,6 +168,8 @@ if (!runPath) {
     }
     assert(report.tensors.some(row => row.layer === stopLayer && row.role === 'mlp_hc' && row.stage === 'branchInput'));
     if (captureMoe) assert(report.moeInput && report.moeOutput && report.moeRouting);
+    report.routedExpertCache = pipeline.dopplerLoader?.getRoutedExpertCacheStats?.() ?? null;
+    report.bufferPool = memory.getBufferPool().getStats();
     assert.equal(report.tensors.filter(row => row.role === captureRole).length, targetStages.length);
     if (qsaObservation) {
       assert.deepEqual(qsaObservation.errors, []);

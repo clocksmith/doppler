@@ -1,0 +1,241 @@
+import assert from 'node:assert/strict';
+import { RoutedExpertCache } from '../../src/loader/experts/routed-expert-cache.js';
+import { planRoutedExpertBank } from '../../src/loader/experts/routed-expert-plan.js';
+import { validateQwen35RoutedConfig } from '../../src/config/schema/loading.schema.js';
+
+globalThis.GPUBufferUsage ??= { STORAGE: 128, COPY_SRC: 4, COPY_DST: 8 };
+class FakeBuffer {
+  constructor(size, usage) { this.size = size; this.usage = usage; this.data = new Uint8Array(size); this.destroyed = false; }
+  destroy() { this.destroyed = true; }
+}
+function device() {
+  const buffers = [];
+  const gpu = {
+    limits: { maxBufferSize: 16 * 1024 ** 2, maxStorageBufferBindingSize: 16 * 1024 ** 2 },
+    createBuffer({ size, usage }) { const buffer = new FakeBuffer(size, usage); buffers.push(buffer); return buffer; },
+    createCommandEncoder() {
+      const commands = [];
+      return {
+        copyBufferToBuffer(from, start, to, end, bytes) { commands.push(() => {
+          assert(!from.destroyed && !to.destroyed, 'no retired buffer can be used');
+          to.data.set(from.data.subarray(start, start + bytes), end);
+        }); },
+        finish() { return commands; },
+      };
+    },
+    queue: {
+      onSubmittedWorkDone: async () => {},
+      writeBuffer(buffer, offset, bytes) { assert(!buffer.destroyed); buffer.data.set(bytes, offset); },
+      submit(batch) { for (const commands of batch) for (const command of commands) command(); },
+    },
+  };
+  return { gpu, buffers };
+}
+function fixture(separate = false, intermediate = 256) {
+  const manifest = { architecture: { numLayers: 3, hiddenSize: 256 },
+    moeConfig: { expertFormat: 'qwen3_5', numExperts: 4, expertIntermediateSize: intermediate } };
+  const locations = new Map(), shards = new Map();
+  for (let layer = 0; layer < 3; layer++) {
+    for (const [kind, shape] of (separate ? [['gate', [4, intermediate, 256]], ['up', [4, intermediate, 256]], ['down', [4, 256, intermediate]]]
+      : [['gate_up', [4, 2 * intermediate, 256]], ['down', [4, 256, intermediate]]])) {
+      const bytes = shape[0] * shape[1] * Math.ceil(shape[2] / 256) * 144;
+      const shard = shards.size, data = new Uint8Array(bytes);
+      for (let expert = 0; expert < 4; expert++) data.fill(1 + layer * 16 + expert * 3 + shard, expert * bytes / 4, (expert + 1) * bytes / 4);
+      shards.set(shard, data);
+      locations.set(separate ? `blk.${layer}.ffn_${kind}_exps.weight` : `model.language_model.layers.${layer}.mlp.experts.${kind}_proj`,
+        { shape, size: bytes, dtype: 'Q4_K', layout: 'row', shardIndex: shard, offset: 0 });
+    }
+  }
+  const cacheBytes = [...locations.values()].slice(0, separate ? 3 : 2).reduce((sum, plane) => sum + plane.size / 4, 0) * 2;
+  const policy = { enabled: true, cacheBytes, stagingBytes: 8192, readConcurrency: 2,
+    routeChunkTokens: 2, gpuBudgetBytes: 16 * 1024 ** 2, reserveBytes: 1024 ** 2 };
+  const { gpu, buffers } = device(), reads = [];
+  let readHook = async () => {};
+  const cache = new RoutedExpertCache({ device: gpu, policy, otherGpuBytes: () => 0,
+    readRange: async (shard, offset, bytes, signal) => {
+      reads.push({ shard, offset, bytes });
+      await readHook(signal);
+      return shards.get(shard).slice(offset, offset + bytes).buffer;
+    } });
+  return { manifest, locations, shards, policy, gpu, buffers, reads, cache,
+    setReadHook(value) { readHook = value; }, plan(layer) { return planRoutedExpertBank(manifest, locations, layer); } };
+}
+
+{
+  const f = fixture(), plan = f.plan(0);
+  const weights = await f.cache.prepare(plan, [3, 1, 3]);
+  assert.equal(f.cache.getStats().sourceReadBytes, 2 * plan.expertBytes, 'only two selected Q4K payloads, including block metadata');
+  assert.equal(f.cache.getStats().uploadBytes, 2 * plan.expertBytes);
+  assert(f.cache.getStats().peakStagingBytes <= f.policy.stagingBytes);
+  for (const plane of plan.planes) {
+    for (const expert of [1, 3]) {
+      const begin = expert * plane.expertBytes;
+      assert.deepEqual(weights[plane.role].buffer.data.slice(begin, begin + plane.expertBytes),
+        f.shards.get(plane.location.shardIndex).slice(begin, begin + plane.expertBytes), 'all packed bytes retain original expert offsets');
+    }
+    const requested = f.reads.filter(r => r.shard === plane.location.shardIndex);
+    assert(requested.every(r => [1, 3].some(id => r.offset >= id * plane.expertBytes && r.offset + r.bytes <= (id + 1) * plane.expertBytes)));
+  }
+  const reads = f.reads.length;
+  await f.cache.prepare(plan, [1, 3]);
+  assert.equal(f.reads.length, reads, 'a prepared layer deduplicates across prefill chunks');
+  await f.cache.prepare(f.plan(1), [0]);
+  assert(f.cache.getStats().evictions > 0);
+  assert(f.cache.getStats().cacheBytes <= f.policy.cacheBytes);
+  await f.cache.destroy();
+  assert(f.buffers.every(b => b.destroyed));
+}
+
+{
+  const f = fixture();
+  f.policy.cacheBytes *= 3;
+  await f.cache.prepare(f.plan(0), [2]);
+  await f.cache.prepare(f.plan(1), [0]);
+  const bytes = f.cache.getStats().sourceReadBytes;
+  await f.cache.prepare(f.plan(0), [2]);
+  assert.equal(f.cache.getStats().sourceReadBytes, bytes, 'a hot expert survives another layer without another source read');
+  assert.equal(f.cache.getStats().cacheHits, 1);
+  await f.cache.destroy();
+}
+
+{
+  const f = fixture(), controller = new AbortController();
+  let unblock;
+  const gate = new Promise(resolve => { unblock = resolve; });
+  f.setReadHook(async () => gate);
+  const operation = f.cache.prepare(f.plan(0), [0, 1], controller.signal);
+  operation.catch(() => {});
+  while (!f.reads.length) await new Promise(resolve => setImmediate(resolve));
+  controller.abort(new DOMException('cancelled', 'AbortError'));
+  let settled = false;
+  operation.finally(() => { settled = true; }).catch(() => {});
+  await new Promise(resolve => setImmediate(resolve));
+  assert.equal(settled, false, 'cancellation retains ownership until reads settle');
+  unblock();
+  await assert.rejects(operation, error => error.name === 'AbortError');
+  await f.cache.destroy();
+  assert(f.buffers.every(b => b.destroyed));
+}
+
+{
+  const f = fixture();
+  await f.cache.prepare(f.plan(0), [0, 1]);
+  const cached = f.buffers.filter(b => b.size === f.plan(0).expertBytes);
+  let unblock;
+  const fence = new Promise(resolve => { unblock = resolve; });
+  f.gpu.queue.onSubmittedWorkDone = () => fence;
+  const controller = new AbortController();
+  const operation = f.cache.prepare(f.plan(1), [2], controller.signal);
+  operation.catch(() => {});
+  while (!unblock) await new Promise(resolve => setImmediate(resolve));
+  controller.abort(new DOMException('cancelled', 'AbortError'));
+  assert(cached.every(b => !b.destroyed), 'a cancelled miss cannot evict buffers before their GPU work completes');
+  f.gpu.queue.onSubmittedWorkDone = async () => {};
+  unblock();
+  await assert.rejects(operation, error => error.name === 'AbortError');
+  await f.cache.destroy();
+}
+
+{
+  const f = fixture();
+  f.setReadHook(async () => { throw new Error('source read failed'); });
+  await assert.rejects(f.cache.prepare(f.plan(0), [0]), /source read failed/);
+  await f.cache.destroy();
+  assert(f.buffers.every(b => b.destroyed));
+  assert.throws(() => validateQwen35RoutedConfig({ enabled: true }), /cacheBytes/);
+  assert.throws(() => f.plan(9), /declared Qwen/);
+  f.locations.values().next().value.sourceTransform = { kind: 'unexpected' };
+  assert.throws(() => f.plan(0), /untransformed/);
+}
+console.log('Routed expert cache: range extents, identity, hot reuse, budgets, cancellation, eviction fences and failure cleanup passed.');
+
+{
+  const f = fixture(false, 384), plan = f.plan(0);
+  const weights = await f.cache.prepare(plan, [2]);
+  const down = plan.planes.find(p => p.role === 'down');
+  assert.deepEqual(weights.down.shape, [4, 256, 384]);
+  assert.equal(down.expertBytes, 256 * 2 * 144, 'Q4K padding belongs to each row, not the whole matrix');
+  assert.deepEqual(weights.down.buffer.data.slice(2 * down.expertBytes, 3 * down.expertBytes),
+    f.shards.get(down.location.shardIndex).slice(2 * down.expertBytes, 3 * down.expertBytes));
+  await f.cache.destroy();
+}
+
+{
+  const f = fixture(true), plan = f.plan(0);
+  const weights = await f.cache.prepare(plan, [2]);
+  assert(weights.gate && weights.up && !weights.gateUp);
+  assert.equal(f.cache.getStats().sourceReadBytes, plan.expertBytes);
+  await f.cache.destroy();
+}
+
+{
+  const f = fixture(), plan = f.plan(0), plane = plan.planes[0];
+  const original = f.shards.get(plane.location.shardIndex), cut = plane.expertBytes + 100;
+  f.shards.set(100, original.slice(0, cut));
+  f.shards.set(101, original.slice(cut));
+  plane.location.spans = [{ shardIndex: 100, offset: 0, size: cut }, { shardIndex: 101, offset: 0, size: original.length - cut }];
+  const weights = await f.cache.prepare(plan, [1]);
+  assert.deepEqual(weights.gateUp.buffer.data.slice(plane.expertBytes, 2 * plane.expertBytes), original.slice(plane.expertBytes, 2 * plane.expertBytes));
+  await f.cache.destroy();
+}
+
+{
+  const f = fixture();
+  let unblock;
+  const gate = new Promise(resolve => { unblock = resolve; });
+  f.setReadHook(async () => gate);
+  const running = f.cache.prepare(f.plan(0), [0]);
+  running.catch(() => {});
+  while (!f.reads.length) await new Promise(resolve => setImmediate(resolve));
+  const closing = f.cache.destroy();
+  await new Promise(resolve => setImmediate(resolve));
+  assert(f.buffers.some(b => !b.destroyed), 'unload retains resources until its cancelled read settles');
+  unblock();
+  await assert.rejects(running, error => error.name === 'AbortError');
+  await closing;
+  assert(f.buffers.every(b => b.destroyed));
+}
+
+{
+  const f = fixture();
+  await f.cache.prepare(f.plan(0), [0]);
+  const buffer = f.buffers[0], destroy = buffer.destroy.bind(buffer);
+  buffer.destroy = () => { throw new Error('GPU destroy failed'); };
+  await assert.rejects(f.cache.destroy(), AggregateError);
+  assert(f.cache.getStats().residentBytes > 0, 'failed cleanup retains its owner for retry');
+  buffer.destroy = destroy;
+  await f.cache.destroy();
+  assert.equal(f.cache.getStats().residentBytes, 0);
+}
+
+{
+  const f = fixture(), plan = f.plan(0);
+  await f.cache.prepare(plan, [1]);
+  f.policy.gpuBudgetBytes = f.policy.reserveBytes + plan.bankBytes;
+  await f.cache.prepare(plan, [1]);
+  assert.equal(f.cache.getStats().cacheBytes, 0, 'a working-bank hit still preserves the activation/KV reserve');
+  assert.equal(f.cache.getStats().workingHits, 1);
+  await f.cache.destroy();
+}
+
+{
+  const f = fixture(), create = f.gpu.createBuffer.bind(f.gpu);
+  let calls = 0;
+  f.gpu.createBuffer = options => {
+    if (++calls === 2) throw new Error('GPU allocation failed');
+    return create(options);
+  };
+  await assert.rejects(f.cache.prepare(f.plan(0), [0]), /GPU allocation failed/);
+  await f.cache.destroy();
+  assert(f.buffers.every(b => b.destroyed), 'partial working-bank allocation remains owned and is destroyed');
+}
+
+{
+  const f = fixture(), failure = new Error('GPU queue lost');
+  f.gpu.queue.onSubmittedWorkDone = async () => { throw failure; };
+  await assert.rejects(f.cache.prepare(f.plan(0), [0]), error =>
+    error === failure || (error instanceof AggregateError && error.errors.includes(failure)));
+  f.gpu.queue.onSubmittedWorkDone = async () => {};
+  await f.cache.destroy();
+  assert(f.buffers.every(b => b.destroyed));
+}

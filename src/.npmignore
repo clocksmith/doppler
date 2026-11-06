@@ -860,6 +860,7 @@ inference/pipelines/text/moe/expert-loading.d.ts
 inference/pipelines/text/moe/gpu-executor.d.ts
 inference/pipelines/text/moe/grouped-prefill.d.ts
 inference/pipelines/text/moe/plan.d.ts
+inference/pipelines/text/moe/routed-expert-chunks.d.ts
 inference/pipelines/text/normalization-contract.d.ts
 inference/pipelines/text/operator-identity.d.ts
 inference/pipelines/text/ops.d.ts
@@ -909,6 +910,7 @@ inference/tokenizers/types.js
 loader/dtype-utils.d.ts
 loader/embedding-limit-preflight.d.ts
 loader/embedding-loader.d.ts
+loader/experts/loader-bindings.d.ts
 loader/gpu-tensor-materialization.d.ts
 loader/layer-tensor-aliases.d.ts
 loader/layer-weight-shape.d.ts

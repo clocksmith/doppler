@@ -1,0 +1,21 @@
+import assert from 'node:assert/strict';
+import { loadRuntimeProfile } from '../../src/tooling/browser-harness/runtime-config.js';
+import { installNodeFileFetchShim } from '../../src/tooling/node-file-fetch.js';
+import { resolveRuntimeConfig } from '../../src/config/runtime.js';
+import { stripLegacyRuntimeIntent } from '../../src/tooling/runtime-intent.js';
+import { validateQwen35RoutedConfig } from '../../src/config/schema/loading.schema.js';
+import { prepareExpertLayer } from '../../src/loader/experts/loader-bindings.js';
+
+installNodeFileFetchShim();
+const load = async id => resolveRuntimeConfig(stripLegacyRuntimeIntent((await loadRuntimeProfile(id)).runtime));
+const baseline = await load('profiles/flash-next-paged-qualification');
+const routed = await load('profiles/flash-next-routed-qualification');
+assert.equal(baseline.loading.expertCache.qwen35Routed.enabled, false);
+assert.equal(routed.loading.expertCache.qwen35Pager.enabled, false);
+assert.equal(routed.loading.expertCache.qwen35Routed.enabled, true);
+assert.deepEqual(routed.inference, baseline.inference, 'range loading cannot alter precision, routing or kernel policy');
+assert.deepEqual(validateQwen35RoutedConfig(routed.loading.expertCache.qwen35Routed), routed.loading.expertCache.qwen35Routed);
+assert.equal(await prepareExpertLayer({}, routed.loading.expertCache, 0, new Map(), null, undefined, 'topk-route'), null);
+await assert.rejects(prepareExpertLayer({}, routed.loading.expertCache, 0, new Map(), {}, undefined, 'topk-route'), /immediate/);
+await assert.rejects(prepareExpertLayer({}, routed.loading.expertCache, 0, new Map(), null, undefined, 'all'), /immediate/);
+console.log('Routed profile preserves all inference policy and rejects incompatible execution before loading.');

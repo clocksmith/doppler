@@ -103,6 +103,37 @@ compute, sub-second first-token latency, bounded packed-bank eviction or a physi
 GPU-memory limit. Those need separate policies and evidence. Loading configuration
 does not change model weights, quantization or kernel selection.
 
+### Selected Qwen expert ranges
+
+`profiles/flash-next-routed-qualification` enables
+`loading.expertCache.qwen35Routed` instead of the whole-bank pager. It requires
+on-demand, immediate `topk-route` execution and untransformed row-major Q4K
+expert tensors. Incompatible execution or a storage backend without bounded
+range reads fails explicitly. This profile changes loading, not inference
+precision or model qualification policy.
+
+`cacheBytes` bounds an LRU cache of individual learned experts. A reusable
+logical bank preserves global expert offsets for the existing kernels; its
+allocation is additional to the cache. `gpuBudgetBytes` covers this owner's
+buffers plus the device buffer pool, leaving `reserveBytes` for activation/KV
+growth. It is a process accounting limit, not a system-wide GPU-memory cap.
+Eviction waits for submitted GPU work, and cancellation drains owned reads and
+cleanup before releasing the operation.
+
+`stagingBytes` bounds source payload plus assembled ranges across
+`readConcurrency` readers; backend/driver caches are separate. Prefill deduplicates
+actual selections in `routeChunkTokens` chunks and retains already populated
+working-bank slots within a layer. Reads/uploads for the next chunk can overlap
+previously submitted computation; there is no predicted-expert prefetch.
+
+`loader.getRoutedExpertCacheStats()` exposes source/upload bytes, cache and
+working-bank hits, evictions, owned GPU bytes and staging high-water marks.
+`ioWaitMs` and `sourceReadWaitMs` sum reader durations, so they are not request
+latency. `uploadEnqueueMs` measures CPU enqueue time, not completed transfer.
+`initialQueueIdleForWeightsMs` counts only the first proven idle gap per
+preparation on this client queue; it is a lower bound, not global GPU idle time.
+Physical disk I/O and end-to-end latency require separate host measurements.
+
 ## Multimodal config contract
 
 Multimodal encoder behavior is config-owned, not runtime-inferred.

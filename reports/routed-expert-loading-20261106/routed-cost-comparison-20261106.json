@@ -1,0 +1,749 @@
+{
+  "scope": "One shared-host diagnostic pair with full-logit observation; not a throughput promotion or full-model qualification",
+  "bankReportSha256": "112f90a1452c8f877c269029ade2ae25c1a96d2303a7798d2bbc4446b73c523c",
+  "routedReportSha256": "ffc99e88dade4fa594920551c72e110f458b491b7bb6e7b1e9b3c866b5a2d5b0",
+  "parity": [
+    {
+      "repetition": 0,
+      "phase": 0,
+      "elements": 248320,
+      "bitExact": true,
+      "maxAbsError": 0.0,
+      "baselineSha256": "c85cef9b14695e10411b007e415c337a8db35585c78a10a823baa9112b7b63b1",
+      "routedSha256": "c85cef9b14695e10411b007e415c337a8db35585c78a10a823baa9112b7b63b1"
+    },
+    {
+      "repetition": 0,
+      "phase": 1,
+      "elements": 248320,
+      "bitExact": true,
+      "maxAbsError": 0.0,
+      "baselineSha256": "8708538aaf4dcf30385d4f2a6f253c9609bf68e50a095e2d74a9555114739233",
+      "routedSha256": "8708538aaf4dcf30385d4f2a6f253c9609bf68e50a095e2d74a9555114739233"
+    },
+    {
+      "repetition": 0,
+      "phase": 2,
+      "elements": 248320,
+      "bitExact": true,
+      "maxAbsError": 0.0,
+      "baselineSha256": "7e57d596426f9e57401a5fdbc6fd4136878fa47be97f33364fde9f61339511dd",
+      "routedSha256": "7e57d596426f9e57401a5fdbc6fd4136878fa47be97f33364fde9f61339511dd"
+    },
+    {
+      "repetition": 1,
+      "phase": 0,
+      "elements": 248320,
+      "bitExact": true,
+      "maxAbsError": 0.0,
+      "baselineSha256": "c85cef9b14695e10411b007e415c337a8db35585c78a10a823baa9112b7b63b1",
+      "routedSha256": "c85cef9b14695e10411b007e415c337a8db35585c78a10a823baa9112b7b63b1"
+    },
+    {
+      "repetition": 1,
+      "phase": 1,
+      "elements": 248320,
+      "bitExact": true,
+      "maxAbsError": 0.0,
+      "baselineSha256": "8708538aaf4dcf30385d4f2a6f253c9609bf68e50a095e2d74a9555114739233",
+      "routedSha256": "8708538aaf4dcf30385d4f2a6f253c9609bf68e50a095e2d74a9555114739233"
+    },
+    {
+      "repetition": 1,
+      "phase": 2,
+      "elements": 248320,
+      "bitExact": true,
+      "maxAbsError": 0.0,
+      "baselineSha256": "7e57d596426f9e57401a5fdbc6fd4136878fa47be97f33364fde9f61339511dd",
+      "routedSha256": "7e57d596426f9e57401a5fdbc6fd4136878fa47be97f33364fde9f61339511dd"
+    }
+  ],
+  "bank": [
+    {
+      "cache": "empty",
+      "elapsedMs": 205471.396095,
+      "phases": [
+        {
+          "index": 0,
+          "ms": 62473.989027,
+          "uploadBytes": 72603086952,
+          "storageApiBytes": 97895787264
+        },
+        {
+          "index": 1,
+          "ms": 68932.79561599999,
+          "uploadBytes": 72477622680,
+          "storageApiBytes": 97895766784
+        },
+        {
+          "index": 2,
+          "ms": 74061.44981700002,
+          "uploadBytes": 72477622488,
+          "storageApiBytes": 97895766784
+        }
+      ],
+      "uploadBytes": 217558332120,
+      "storageApiBytes": 293687320832,
+      "physicalDiskReadBytes": 32106262528,
+      "processReadChars": 293703742634,
+      "routed": null,
+      "routedAfter": null,
+      "pool": {
+        "allocations": 1629,
+        "reuses": 6975,
+        "totalBytesAllocated": 13911660544,
+        "peakBytesAllocated": 13804902400,
+        "currentBytesAllocated": 13698144256,
+        "totalBytesRequested": 13889654528,
+        "peakBytesRequested": 13766241536,
+        "currentBytesRequested": 13643486208,
+        "resources": {
+          "retainedModel": {
+            "bytes": 13276800000,
+            "count": 1196
+          },
+          "active": {
+            "bytes": 387878912,
+            "count": 243
+          },
+          "reusable": {
+            "bytes": 33465344,
+            "count": 64
+          },
+          "deferredCleanup": {
+            "bytes": 0,
+            "count": 0
+          }
+        },
+        "activeBuffers": 1439,
+        "pooledBuffers": 64,
+        "budgetMaxBytes": 0,
+        "budgetUtilization": 0,
+        "hitRate": "81.1%"
+      },
+      "maxRssKiB": 2253536,
+      "tokenIds": [
+        11751,
+        13,
+        561
+      ],
+      "text": "Paris. The"
+    },
+    {
+      "cache": "retained",
+      "elapsedMs": 224469.38362100002,
+      "phases": [
+        {
+          "index": 0,
+          "ms": 81559.81497699997,
+          "uploadBytes": 72478011768,
+          "storageApiBytes": 97895761664
+        },
+        {
+          "index": 1,
+          "ms": 71636.05425300001,
+          "uploadBytes": 72477622440,
+          "storageApiBytes": 97895761664
+        },
+        {
+          "index": 2,
+          "ms": 71270.60535199998,
+          "uploadBytes": 72477622440,
+          "storageApiBytes": 97895761664
+        }
+      ],
+      "uploadBytes": 217433256648,
+      "storageApiBytes": 293687284992,
+      "physicalDiskReadBytes": 48587739136,
+      "processReadChars": 293704426370,
+      "routed": null,
+      "routedAfter": null,
+      "pool": {
+        "allocations": 1818,
+        "reuses": 13410,
+        "totalBytesAllocated": 14231934976,
+        "peakBytesAllocated": 13804902400,
+        "currentBytesAllocated": 13698144256,
+        "totalBytesRequested": 14209928960,
+        "peakBytesRequested": 13766456576,
+        "currentBytesRequested": 13643486208,
+        "resources": {
+          "retainedModel": {
+            "bytes": 13276800000,
+            "count": 1196
+          },
+          "active": {
+            "bytes": 387878912,
+            "count": 243
+          },
+          "reusable": {
+            "bytes": 33465344,
+            "count": 64
+          },
+          "deferredCleanup": {
+            "bytes": 0,
+            "count": 0
+          }
+        },
+        "activeBuffers": 1439,
+        "pooledBuffers": 64,
+        "budgetMaxBytes": 0,
+        "budgetUtilization": 0,
+        "hitRate": "88.1%"
+      },
+      "maxRssKiB": 2253536,
+      "tokenIds": [
+        11751,
+        13,
+        561
+      ],
+      "text": "Paris. The"
+    }
+  ],
+  "routed": [
+    {
+      "cache": "empty",
+      "elapsedMs": 13162.661593,
+      "phases": [
+        {
+          "index": 0,
+          "ms": 9455.294698999998,
+          "uploadBytes": 4711395432,
+          "storageApiBytes": 4585907200
+        },
+        {
+          "index": 1,
+          "ms": 1560.7189010000002,
+          "uploadBytes": 1256374680,
+          "storageApiBytes": 1256330240
+        },
+        {
+          "index": 2,
+          "ms": 2141.908206,
+          "uploadBytes": 1038139608,
+          "storageApiBytes": 1038095360
+        }
+      ],
+      "uploadBytes": 7005909720,
+      "storageApiBytes": 6880332800,
+      "physicalDiskReadBytes": 5245972480,
+      "processReadChars": 6880753233,
+      "routed": {
+        "sourceReadBytes": 6880296960,
+        "sourceReads": 9444,
+        "uploadBytes": 6880296960,
+        "cacheHits": 182,
+        "cacheMisses": 2333,
+        "workingHits": 0,
+        "evictions": 1605,
+        "ioWaitMs": 18961.678157999937,
+        "sourceReadWaitMs": 17724.242826000074,
+        "uploadEnqueueMs": 595.926482000159,
+        "initialQueueIdleForWeightsMs": 268.1106970000001
+      },
+      "routedAfter": {
+        "sourceReadBytes": 6880296960,
+        "sourceReads": 9444,
+        "uploadBytes": 6880296960,
+        "cacheHits": 182,
+        "cacheMisses": 2333,
+        "workingHits": 0,
+        "evictions": 1605,
+        "residentBytes": 3656908800,
+        "peakResidentBytes": 3656908800,
+        "peakAccountedGpuBytes": 14441912320,
+        "peakStagingBytes": 7372800,
+        "ioWaitMs": 18961.678157999937,
+        "sourceReadWaitMs": 17724.242826000074,
+        "uploadEnqueueMs": 595.926482000159,
+        "initialQueueIdleForWeightsMs": 268.1106970000001,
+        "cacheBytes": 2146959360,
+        "workingBytes": 1509949440,
+        "experts": 728
+      },
+      "pool": {
+        "allocations": 1625,
+        "reuses": 6835,
+        "totalBytesAllocated": 10891761664,
+        "peakBytesAllocated": 10785003520,
+        "currentBytesAllocated": 10678245376,
+        "totalBytesRequested": 10869755648,
+        "peakBytesRequested": 10746342656,
+        "currentBytesRequested": 10623587328,
+        "resources": {
+          "retainedModel": {
+            "bytes": 10256901120,
+            "count": 1192
+          },
+          "active": {
+            "bytes": 387878912,
+            "count": 243
+          },
+          "reusable": {
+            "bytes": 33465344,
+            "count": 64
+          },
+          "deferredCleanup": {
+            "bytes": 0,
+            "count": 0
+          }
+        },
+        "activeBuffers": 1435,
+        "pooledBuffers": 64,
+        "budgetMaxBytes": 0,
+        "budgetUtilization": 0,
+        "hitRate": "80.8%"
+      },
+      "maxRssKiB": 870784,
+      "tokenIds": [
+        11751,
+        13,
+        561
+      ],
+      "text": "Paris. The"
+    },
+    {
+      "cache": "retained",
+      "elapsedMs": 7618.405715000001,
+      "phases": [
+        {
+          "index": 0,
+          "ms": 5414.448667000001,
+          "uploadBytes": 4441813368,
+          "storageApiBytes": 4441374720
+        },
+        {
+          "index": 1,
+          "ms": 1164.9092759999985,
+          "uploadBytes": 1256374440,
+          "storageApiBytes": 1256325120
+        },
+        {
+          "index": 2,
+          "ms": 1036.5941700000003,
+          "uploadBytes": 1038139560,
+          "storageApiBytes": 1038090240
+        }
+      ],
+      "uploadBytes": 6736327368,
+      "storageApiBytes": 6735790080,
+      "physicalDiskReadBytes": 1327181824,
+      "processReadChars": 6735867997,
+      "routed": {
+        "sourceReadBytes": 6735790080,
+        "sourceReads": 9245,
+        "uploadBytes": 6735790080,
+        "cacheHits": 231,
+        "cacheMisses": 2284,
+        "workingHits": 0,
+        "evictions": 2284,
+        "ioWaitMs": 8852.312923000009,
+        "sourceReadWaitMs": 7686.901601999874,
+        "uploadEnqueueMs": 607.9915369999835,
+        "initialQueueIdleForWeightsMs": 238.95580100001462
+      },
+      "routedAfter": {
+        "sourceReadBytes": 13616087040,
+        "sourceReads": 18689,
+        "uploadBytes": 13616087040,
+        "cacheHits": 413,
+        "cacheMisses": 4617,
+        "workingHits": 0,
+        "evictions": 3889,
+        "residentBytes": 3656908800,
+        "peakResidentBytes": 3656908800,
+        "peakAccountedGpuBytes": 14441912320,
+        "peakStagingBytes": 7372800,
+        "ioWaitMs": 27813.991080999946,
+        "sourceReadWaitMs": 25411.14442799995,
+        "uploadEnqueueMs": 1203.9180190001425,
+        "initialQueueIdleForWeightsMs": 507.0664980000147,
+        "cacheBytes": 2146959360,
+        "workingBytes": 1509949440,
+        "experts": 728
+      },
+      "pool": {
+        "allocations": 1814,
+        "reuses": 13126,
+        "totalBytesAllocated": 11212036096,
+        "peakBytesAllocated": 10785003520,
+        "currentBytesAllocated": 10678245376,
+        "totalBytesRequested": 11190030080,
+        "peakBytesRequested": 10746557696,
+        "currentBytesRequested": 10623587328,
+        "resources": {
+          "retainedModel": {
+            "bytes": 10256901120,
+            "count": 1192
+          },
+          "active": {
+            "bytes": 387878912,
+            "count": 243
+          },
+          "reusable": {
+            "bytes": 33465344,
+            "count": 64
+          },
+          "deferredCleanup": {
+            "bytes": 0,
+            "count": 0
+          }
+        },
+        "activeBuffers": 1435,
+        "pooledBuffers": 64,
+        "budgetMaxBytes": 0,
+        "budgetUtilization": 0,
+        "hitRate": "87.9%"
+      },
+      "maxRssKiB": 894336,
+      "tokenIds": [
+        11751,
+        13,
+        561
+      ],
+      "text": "Paris. The"
+    }
+  ],
+  "lifecycle": [
+    {
+      "case": "queued-abort",
+      "passed": true
+    },
+    {
+      "case": "active-decode-rollback",
+      "passed": true,
+      "committedState": {
+        "length": 5,
+        "recurrent": {
+          "0": {
+            "length": 5,
+            "conv": "9f13d1f7153fe658087de3e8c5131ced0e67f1cd60a4540a69f0a33f855628e8",
+            "recurrent": "e03541ed8251868a0b8a558194d41ba68f92f7bbe0e3ca7ee9419b84e3e5b04f"
+          },
+          "1": {
+            "length": 5,
+            "conv": "91673a2a18279b7e53218c3324110fc7e124efe1dd4675bbf3fd36003bbf2c80",
+            "recurrent": "e56a364142b5d5ea819d023b51b57ee7560a9739fb3a78990c385ec7b1876312"
+          },
+          "2": {
+            "length": 5,
+            "conv": "4fd09c4d67190195e8671a47a8409ba0694c7e7f7f5c9ca5c249ca26c0bd6090",
+            "recurrent": "77e647af382dec3eb6581c09a51d093dfcb5a89b50780a17b88fecceebd7d9b7"
+          },
+          "4": {
+            "length": 5,
+            "conv": "7453a435c498fa9ea8978ebbe1508cd61bbcd87ee792a16b8731e71b2dd87f8d",
+            "recurrent": "95f0f44532bd3c14824de210b931b45ec9d7359ec0b0b9c12aceb83b6a6fdfc9"
+          },
+          "5": {
+            "length": 5,
+            "conv": "db9b81827ce2a93504688af73906105fbe473527089ae68eb54d419483352431",
+            "recurrent": "c5bbb650e22a4b5cdbad2e38b0d774e33741c6b22c6f74a258190a5489ba5646"
+          },
+          "6": {
+            "length": 5,
+            "conv": "96f75a4b5182e56f5e540c61617ecbc56f0acf78888eae01bbe33741272c0b13",
+            "recurrent": "719b8bbfec3f2470b1f141178ab42be5ee6d15b0d04673198c344eb0c8c61716"
+          },
+          "8": {
+            "length": 5,
+            "conv": "1bed896338313780dccde0098ece4d0b537e575cef73a02660773c5a9e8cc912",
+            "recurrent": "f3ec565ea28305564d9e8f114fbaf87769e25645df36c747bf705f4d7d288f58"
+          },
+          "9": {
+            "length": 5,
+            "conv": "fab958b1756f7b07a38c8892456832c969e7a2a0d7b648d6c7e3657476bd4a30",
+            "recurrent": "6ae43b4f01d6ecda1d74fe5d90979cfa94ee20af5cb6bf6a691d4a769779075c"
+          },
+          "10": {
+            "length": 5,
+            "conv": "9a92909a9a81b51e8832227ac2234a093456b567dd80b630172f66e9fdd2ecf4",
+            "recurrent": "e26ed4ba313f30a1b417d1e34a171bb023551f64e3b509ef814b0d4f51c66387"
+          },
+          "12": {
+            "length": 5,
+            "conv": "d322d6147d7f22cea0b5c159e76c85dc7ce195cfac834dcb991ad0c5aa052c00",
+            "recurrent": "ce56751cbadfd2e8dfb3a9a73e5b47860d67b7823406de5d35ef74986b8c732b"
+          },
+          "13": {
+            "length": 5,
+            "conv": "bb237ed3118f7b93f9bcc0f1ec0fa677652b16ee941409d0ed8eefd8de04f973",
+            "recurrent": "2c3bf9f5c1709b2d63030fcb12a3d88315ead57ae0c1b22f07e7a2a286df06c0"
+          },
+          "14": {
+            "length": 5,
+            "conv": "a35beea8af110447dca7b08f1526fb6caa6ef82c22052b97ba6095fd2f0ea068",
+            "recurrent": "07f2ff2f3ad8b4928792472fa513077309d0002c36063c8d97c7ed9dc7569865"
+          },
+          "16": {
+            "length": 5,
+            "conv": "67dacc8fc45876b8978bf2246d17087d12f4a5c260629d0e3447d98146c71c0d",
+            "recurrent": "a4da0f2bf68bf4f281a7e4f2512c075c42ed53714983bc7a8b6adb131aef34b6"
+          },
+          "17": {
+            "length": 5,
+            "conv": "b2162a04acd669993279d8a507b49a8b1be90d018aa763094cf04ab83714b9e8",
+            "recurrent": "bc4203f0980a33a82c7ba8d4c2f2fc02e4d1d99bebb7c000b280a9de522bdf19"
+          },
+          "18": {
+            "length": 5,
+            "conv": "076f53a4443e5ce8536f58eb159080e30e1994d597dfb9151d5385d675a2c566",
+            "recurrent": "0d2301ee85344cd27e73205b4b32002361457d0980564e4739fccccbbdab585a"
+          },
+          "20": {
+            "length": 5,
+            "conv": "eb87dec6fb81b552f061fe1a09f4575a3b19aa96c9bb76c90fd5ff3827f517c4",
+            "recurrent": "41aee3b3bf08d705469439f0f2ada2422e669637473ac748e694bba86bb8ba2b"
+          },
+          "21": {
+            "length": 5,
+            "conv": "b2e199f4e54ea08a878e962ad3ffa6f0907c511a0ec8c860ab47035d4808a6a5",
+            "recurrent": "87032c099fcbb3f872d7b2433da0f5ecfc482a742138d256adfcfcaca47420c0"
+          },
+          "22": {
+            "length": 5,
+            "conv": "8d46e276d75ef390e5a2c8bf35c8db0e887d5c81862c6001d7007e933ccd3ab9",
+            "recurrent": "753f7c0924b2b0cfa20dd3f6b709249acc16d0081abdfb87ac40273343984e64"
+          },
+          "24": {
+            "length": 5,
+            "conv": "d5ca4fbeb195718217f6e352165310896f94cd7b61ebca58250195188ddbe1e6",
+            "recurrent": "a6edafe746be4ac3e058ab82dc90b93359a10313a8cbf45fcb536372e4d3b4c8"
+          },
+          "25": {
+            "length": 5,
+            "conv": "d125b0d4817fc8404d39582fa7ed4f71be5c6858d6b6953bfa5d86e821db47f1",
+            "recurrent": "f5d6e5ccf708b41d9886ea1cb803199e1403a566dae5a844f141a36241926b4b"
+          },
+          "26": {
+            "length": 5,
+            "conv": "1934e5a45b9f01ef6bf6a5a06313713de7d9d51d778623a5409ce5c7087d2e46",
+            "recurrent": "3103119c6b17a402b8db187cdb8c86a3b1aa2908e0e9082e6020ee16cd206435"
+          },
+          "28": {
+            "length": 5,
+            "conv": "5150d588a2ca9a59e7672035ffea74dfb887cf32bf9388fb81f0a5e1d804b734",
+            "recurrent": "b1b1e12558baf5371e3918f0773f1c4ca9e9c8aa056b8e9a20356bd1775f2b97"
+          },
+          "29": {
+            "length": 5,
+            "conv": "96ff28dfa97434e90d5083391692c476ac439b0b3dab90a11b5c26fce8eaef4d",
+            "recurrent": "1514fc52545239eb01061bb28b7bafeda93d5640522390d64ea78d356acc4164"
+          },
+          "30": {
+            "length": 5,
+            "conv": "2e23f03364fea63ed56f13fc13f25d6a05a2cba7a3dd89c6a8950cec66c56fcd",
+            "recurrent": "770034928db2a27ebfbc7860702a85fbb0883df4d5a6864777c70eee38d5d12d"
+          },
+          "32": {
+            "length": 5,
+            "conv": "578f4825be5d97d7df79c34aa86120a5fe41a95691c06ee0b1aeae37ad240cc1",
+            "recurrent": "5d90885f44cc431f4556483d6a3c98e13844ad7fa31dd68482615c71c0046f46"
+          },
+          "33": {
+            "length": 5,
+            "conv": "d062c02f753bba8318517a6fd00bd3da5598039204336896f3d65f26bab89da7",
+            "recurrent": "1cfe8d9ee76311f4d7e8f721a0ea1512af7828f7e1c03d2d15a54fb3d6bc27fa"
+          },
+          "34": {
+            "length": 5,
+            "conv": "75cfa2d979c1766d2df16bb9a522e87223eea0fe7001457a0c84edb5a04e261e",
+            "recurrent": "fcf1ce5678fde320a580833129e5a3b595c48ce6014a518faea091f8dd5cd610"
+          },
+          "36": {
+            "length": 5,
+            "conv": "b861a7c375e116bb789d7197c3da2a028128dc4588d0616a6b6b0d79bc0fbb7f",
+            "recurrent": "3e5b5f87022203dff3a2ba1b9eb357616c8dfdfaa98ddf28da78221994477888"
+          },
+          "37": {
+            "length": 5,
+            "conv": "7c7f3b7df5c63413de82c26ddf1b911ee158db5963361df18285a5064363f8fd",
+            "recurrent": "3de2dc8444b47a968adfc665cef6fe12230d7d61b2d2839a3d4f97232020ee4c"
+          },
+          "38": {
+            "length": 5,
+            "conv": "0edcf4a2c6638b949317b1c9549cedb571561eeb1253fc35a827af462b030b41",
+            "recurrent": "b754665c6a0cadc3739293157bb537d8b952c1968df872a58d752c2b22de8c2f"
+          },
+          "40": {
+            "length": 5,
+            "conv": "e6b93b9e54695e2849c1198cfa41902997eb352812df2f1b19af4a85c1698b13",
+            "recurrent": "995ffcdf3c85fefebd016aabe2624c715106f933d34056b1e9c33b0da4e3b479"
+          },
+          "41": {
+            "length": 5,
+            "conv": "c0a9ca9ba6a7fac810ecb29e5aa2125fd63cc768074370fedee394cecc2c85ab",
+            "recurrent": "fe2256a834c4bc96119a47eb8c2433d88a820e66bbea3b7eb20dec71dc5f467d"
+          },
+          "42": {
+            "length": 5,
+            "conv": "db3a2ce3acd4a25005aba4a4d26e389f54c7cb4052c371034cb4c4e39c649d81",
+            "recurrent": "2db43e2b89f54c730307b52b2d0fafb160cfa49c066808ec9482b74662fe1c94"
+          },
+          "44": {
+            "length": 5,
+            "conv": "d6c57adec976c83b4955c0fc8c64f869fb06182597a4b9812b3b65c70fb528f6",
+            "recurrent": "9e811b9156c3624f00c3ad9618d0d7a6b2057396d74f77bcebc650b18f87fe73"
+          },
+          "45": {
+            "length": 5,
+            "conv": "9d101e14cf3f4ea4ab7a3b7f3e214941282f6bc0212c3e707ba9be998ae5a7e6",
+            "recurrent": "4947ccd1247577587d42886dbc8cc834febf37cbaf52df5896ba827935fafd45"
+          },
+          "46": {
+            "length": 5,
+            "conv": "acb629290029fce6f65e470e41724ab8193a2e6756280f34864b0621486ac3e5",
+            "recurrent": "b8dc1a76002ce7a5df4502072b4f442514391a3dc7c503f00b781de7335557a0"
+          }
+        },
+        "ple": {
+          "1": {
+            "length": 5,
+            "conv": "239920eaa9f66929fcedc8c3231a3fe388eb4c637f815e27114df5867ea10cd2"
+          }
+        },
+        "qsa": {
+          "3": {
+            "length": 5,
+            "raw": "28a7d953e5262b7b24d4adc2536b93e9f8137a90cefe1a173515134f186e5b3c",
+            "blocks": "4a5d2bc874b3c00ca99b09e5ab54747468c972dd45037cf5df494b7eeaa361eb"
+          },
+          "7": {
+            "length": 5,
+            "raw": "4df8720b9412cffda69f7e0256a4cfe1d354e2765300a52e2e630e7a5885f4fd",
+            "blocks": "9b015c201f6fbdeb1243d03cf0a8f1e4cd814777ed583eb7c5e891fc44407bb1"
+          },
+          "11": {
+            "length": 5,
+            "raw": "b6b10ec1b3d4f45b5c2a03987a9e4ca6fab2573021b3e961471158cbe548344e",
+            "blocks": "dc1bcad5042eded6c1f5767ad45bd55fd7cabcf44064fe3c48dd6863197d4744"
+          },
+          "15": {
+            "length": 5,
+            "raw": "cb314bf15045a82957fdbbd326d7c256110d20e98c7fc5e281cbfa6616d9d685",
+            "blocks": "37a80e540dfb114368a4deeaab8f89d80922441d5697379c3ee758cb188527c4"
+          },
+          "19": {
+            "length": 5,
+            "raw": "19a75f746881e5915436a4a3c9007e17b4e9cd48bcb110f1010d7b096e496c5c",
+            "blocks": "1d437f83e4258ec162a2d67a30c3cf24d6a49f4175bbc2d265cb211d0cb68c0d"
+          },
+          "23": {
+            "length": 5,
+            "raw": "cf0774357e6213f4736cb709a3a5ada09a83f8513affb6540afba85ee97c8fef",
+            "blocks": "5bafb4a5446238f6140af0cae90a6098f2a0dcec808c8845eb76533fe9aecbbc"
+          },
+          "27": {
+            "length": 5,
+            "raw": "bece536c4dbeef9b8e7457f708369658a04735e62e28343ae94a608a54a7f7a6",
+            "blocks": "96ee296996159ae0592af4dc9d7a98e7e17dde80988e3fa78aa039c68fccecf1"
+          },
+          "31": {
+            "length": 5,
+            "raw": "d439e2e6061f91ee88ea0f893d137a2eef7e07cb8d5b1ebb0bfd1732b8b6da59",
+            "blocks": "2d717c6fb3f271cf4acc11d226686d818f639ca58559beecf71a8f3938feb172"
+          },
+          "35": {
+            "length": 5,
+            "raw": "858d75eb5ae4818b46d7db3c1c283fa99b5b33e244586dd3b4043c78fb6dbc55",
+            "blocks": "e4f699bad358390498a2a3b4ff49258588510b5b8aba9a108abdace2914d5d9d"
+          },
+          "39": {
+            "length": 5,
+            "raw": "f070c4821b1444403584ee59919f9be7aca2770f5d289c334455291b08e48d74",
+            "blocks": "b67befdde32a66d8adf3fab9a820389775637902bf47ef02c01d3beabe05a1c8"
+          },
+          "43": {
+            "length": 5,
+            "raw": "cfda396814ef4cc3b85fa8010d0509eeaaf33304a80c0ac533aa13a47b2148db",
+            "blocks": "ae8ffe3bc917e888caf059644845ac862b01ea119fe427e5f809879c9ea09a40"
+          },
+          "47": {
+            "length": 5,
+            "raw": "9a955a14c1a4d8202a7c49070ec34a909dd3303eddb8abd1defda12ecdcbbb58",
+            "blocks": "d9f5962d96d846613bbcd7cceacb9b5bd3f7dd179f3edd47e9bbcc0e72ecec04"
+          }
+        },
+        "kv": {
+          "3": {
+            "length": 5,
+            "keys": "92216cab2224379f7faa07569f8c7c32190a53fa49bd1abba315c844d46b75a0",
+            "values": "e9e239ab09373bd732dba7fe208056d3242c462928ee061f9910e297542ba611"
+          },
+          "7": {
+            "length": 5,
+            "keys": "c47431a013ad184873e4378f887f7200c20fa185561be680d94c70965714ea7f",
+            "values": "c5a8c1c42c8ba4a9c3b76ef82df2fbeabc163948ed8a96815b0dd70ebd9a8433"
+          },
+          "11": {
+            "length": 5,
+            "keys": "89baf4bf17c260246a4e0708db18064b5a985fa9898a09720617af784dd626de",
+            "values": "abcd1fd5b2011198606a4329877ce49d7ea1713b0ae601d7db18ac5964c70444"
+          },
+          "15": {
+            "length": 5,
+            "keys": "473db2356819cebe5e4cda8461cd399e57deb6e6634697bf41e930cddfc56a5e",
+            "values": "6e65e0f70d98aaeac460a3b3893f589e4b3348b347269e3326602c306b184199"
+          },
+          "19": {
+            "length": 5,
+            "keys": "1bdac738406fd246030ebef098fb505daab79e9ab91931ca16438d70eb1684cd",
+            "values": "10edeb192eb3abf6b574d83151d4d0edae2cf4a4040e40bcad64806b9b2e9dc3"
+          },
+          "23": {
+            "length": 5,
+            "keys": "66154bffbc5b79eac119a21af77cf61150bf04f5d00ba6d284dd80b7e70f49fc",
+            "values": "205374bff5d47620028fdea5ed210efad1f72ac1490c7d713dc5ecae6c658458"
+          },
+          "27": {
+            "length": 5,
+            "keys": "bf09d66119f5bc0814305a6b429036e64202930ae1b60cad6931e2ab6c41e071",
+            "values": "4a8a23aedce91326bbd7c49e065748ac136ceec598f90daea271d4680b1dbb64"
+          },
+          "31": {
+            "length": 5,
+            "keys": "d1bac0949f9c08b716d4b0a5a83aa06e3865135e81b0eeb7f339d32c62c431c3",
+            "values": "f0fbf98782e74dbb4211248ba2beb7362f48585d90c631e52b04ce001733f3a3"
+          },
+          "35": {
+            "length": 5,
+            "keys": "3cb587f631a795104fe3ae1bb2f7593ef5f07727e768741ee7dd5ef21c02a918",
+            "values": "b2127c90ab3ac8391ec5fbe8489665168fda406bcf489b5b736b8bace1ed3a91"
+          },
+          "39": {
+            "length": 5,
+            "keys": "9299ed45942ff90e08ca109c04e038ed87aaf0cdd4d8f7ef904fe58a1d69a61d",
+            "values": "d429e1825cdf8532371ac2ab9b719e47407a005560700b9d7633a2c29d60977d"
+          },
+          "43": {
+            "length": 5,
+            "keys": "0aeb37411824073e06d7ca6df82548d76fba52054294bc97f66b7e1c0745c47e",
+            "values": "e966c54e82eed2ef3774a61783f96cb47cc977fddf8d88a5e58c1b9c84d9f0ab"
+          },
+          "47": {
+            "length": 5,
+            "keys": "3ed84b0b124e2182bc12d71ee84829fbf2af6cb1d9687a99264172b1e2bc04ed",
+            "values": "a09fac5cf258c5cc6fcf66135614efb842a27ec7538df0dad7fd98f1316d2880"
+          }
+        }
+      }
+    },
+    {
+      "case": "reset-and-reuse",
+      "passed": true,
+      "tokenIds": [
+        11751,
+        13
+      ]
+    },
+    {
+      "case": "paused-abort-without-pull",
+      "passed": true
+    },
+    {
+      "case": "unload-paused-consumer",
+      "passed": true
+    }
+  ],
+  "passed": true
+}
