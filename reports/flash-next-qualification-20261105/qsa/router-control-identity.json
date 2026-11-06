@@ -1,0 +1,31 @@
+{
+  "schema": "doppler.flash-next-router-prefix-reference/v1",
+  "scope": "CPU upstream first eight layers; added observations only, no GPU inputs or replacement math",
+  "producerSha256": "f6bc0f15a6545ab1d205cfc3ec412442415220e541190b63a9c712fa238ba5b0",
+  "instrumentedProducerSha256": "af95c7af308715a7cdff029e4029d1f0bd0ffca723d2d21863186dc7e272e64c",
+  "instrumentSha256": "982d787088bc11244e2c68044818871723d328ce5e546ba3c0dbfac610455489",
+  "manifestSha256": "4902a0b730a9310903b00bc0f8f587528fa1af9f37a722d2f9287bafceceec09",
+  "inputsSha256": "06a819d529593b58abd6cb27566bb835a9b91aac13a77c0c7479b7e4e7b0c378",
+  "torch": "2.11.0+cu130",
+  "surface": "CPU",
+  "layers": 8,
+  "sourceRevision": "de4b8e4d43b917e7706784d8bb445c9af86a3540",
+  "files": {
+    "layer-0.npy": "e658e0c83eac370e363391c4b9992eb5a6673dce88f07c765afc4bd60d6730bb",
+    "layer-1.npy": "b4de8c94f3f9c68a99c11c059bb0872f9bcb69b80560e6e334e438c167e5676f",
+    "layer-2.npy": "c99fc94838a23a1003715dee43177dadef074a06f4da2ada24df58490ff6a018",
+    "layer-3.npy": "19f4f477e03551bf0913033ad1626f260f4701e3ebcba8a6c4b421a2f7c234b7",
+    "layer-4.npy": "f2fa7f5058076c5f0abd30d51f5fd17213268d1a84269b24b700cbe0fc97c855",
+    "layer-5.npy": "37740a315feaaa160626b15098fc3ebd79168fa11c6bf7700c010aac60cd9cd1",
+    "layer-6.npy": "66c0ca2ff632155874a85008eb4940247b46b0b0ef43d57bc00d7172257e0c16",
+    "layer-7.npy": "967054a086bf042e093b7de57c51a11d91782dc415b2537a8490e22550e3f2e9",
+    "router-0.npz": "b15412bdd0016996b86721317711e318823b2bb3b17d9ad060d9fd23251ec28e",
+    "router-1.npz": "ad458de1ab5e4e757246fd2bd523116b5ede70303e5b5665c8862469fbdc42a3",
+    "router-2.npz": "c17a78298cddba76a1f4e75c4e26f34435ae569b0896f4636d3d2410cec5f232",
+    "router-3.npz": "d6f2401251d90bc5b9e7b8e6959415b2d9840864e6ed5d4346f7a2aa36bdc31e",
+    "router-4.npz": "33b6145ea1403defb9a05009e8f24733c5b24d0404da8e55310b9a3ed3eaa020",
+    "router-5.npz": "23b53adfb1a0671616159e12f8fb43b07c30aab7474d290ce9f4e1d60aafe17e",
+    "router-6.npz": "e16256554631592e6e9d7d8b932299b0d0cbe51e41b7bb4b24db4ad02d729e37",
+    "router-7.npz": "8b780259a3bb29b95db990d92c7db74c715c8a8014ca3f40ea7eea4e0b36d56d"
+  }
+}

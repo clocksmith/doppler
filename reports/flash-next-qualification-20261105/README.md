@@ -80,7 +80,41 @@ The F16-KV control reduces the largest short-input sampled layer discrepancy to
 [independent control identity](paged/independent-control-identity.json) retain
 the policy and producer hashes. A deliberately corrupted coordinate is rejected.
 This checks sampled activations, not every vocabulary logit. Full-logit,
-installed-package and remaining physical lifecycle checks are still in progress.
+installed-package and remaining physical lifecycle checks are recorded separately
+from numerical agreement.
+
+## Live QSA dispatch and the remaining long-input failure
+
+Long-context numerical qualification remains blocked. The prepared QSA selection
+was omitted when constructing both the live attention dispatch and its semantic
+plan, so the model ran dense attention. The regression now exercises that real
+handoff for prefill and decode. The repaired route also accepts the upstream
+normalized query's `[tokens * heads, headDim]` view as `[tokens, heads * headDim]`,
+after validating its declared geometry; it preserves the same buffer and bytes.
+
+On physical Node/AMD, the first sparse layer's maximum sampled error falls from
+0.00012014783 to 0.00000115484. All seven sampled layer-3 sparse selections match
+the independent artifact/F16-KV reference. Instrumented and uninstrumented runs
+produce the same complete prefill-logit hash. The default corrected run still
+fails the unchanged full-vocabulary gate: maximum error 0.774933815, with 64,993
+coordinates outside the existing policy. See [comparison](qsa/layer3-comparison.json)
+and [compressed observations](qsa/receipts.json). Matching first tokens does not
+clear that failure. Earlier operational receipts predate this routing repair.
+
+The next diagnostic captures every router input and logit in the first eight
+layers, rather than only sampled positions. Its independent CPU prefix matches
+the retained control exactly at every retained sample. The first changed expert
+set is layer 4, token 1,017: the F32 router reverses experts 218 and 260 across a
+4.77e-6 source-logit margin. A physical replay at the original batch geometry
+reproduces that reversal; the existing compensated F32 kernel instead matches
+nearest-F32 Float64-reference results for every checked output. The explicitly
+selected full-model compensated-router candidate still fails the unchanged
+logit gate. It is a diagnostic candidate, not a production recipe change.
+
+The source-only prefix attempt used the wrong producer and is rejected; only
+the artifact/F16-KV control identity in `qsa/router-control-identity.json` is
+used above. No comparison tolerance, stored weight or production precision
+default changes in this repair.
 
 Component: `doppler.runtime-source.config`, `doppler.repository-tooling`,
 `doppler.tests`. Intent: preserved. Boundary effects: recipe execution closure,

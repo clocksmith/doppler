@@ -16,7 +16,7 @@ selected positions as .npy beside the JSON).
 Optional --artifact <dir> reads stored F16/Q4_K weights with independent gguf dequantization,
 while keeping the unchanged upstream forward. It preserves the source-only control separately.
 Usage: python3 -P prepare-learned-forward-reference.py <source-dir> <out-dir> [--dtype float32|bfloat16]
-       [--artifact <dir>] [--sequences short,long] [--kv-dtype f16]
+       [--artifact <dir>] [--sequences short,long] [--kv-dtype f16] [--inputs <json>]
 """
 import ast
 import hashlib
@@ -43,7 +43,8 @@ KV_F16 = '--kv-dtype' in sys.argv
 if KV_F16:
     assert sys.argv[sys.argv.index('--kv-dtype') + 1] == 'f16' and ARTIFACT
 PRODUCER_SHA256 = hashlib.sha256(Path(__file__).read_bytes()).hexdigest()
-artifact_manifest = json.loads((ARTIFACT / 'manifest.json').read_text()) if ARTIFACT else None
+ARTIFACT_MANIFEST_BYTES = (ARTIFACT / 'manifest.json').read_bytes() if ARTIFACT else None
+artifact_manifest = json.loads(ARTIFACT_MANIFEST_BYTES) if ARTIFACT else None
 if ARTIFACT:
     from gguf import quants, GGMLQuantizationType
     assert DTYPE == torch.float32, 'artifact control uses f32 arithmetic on independently decoded stored weights'
@@ -255,7 +256,9 @@ def load(module, prefix):
     assert not missing, missing[:5]
 
 # ---- Inputs ----------------------------------------------------------------------------------
-sequences = json.loads((ROOT / 'learned-forward-inputs.json').read_text())['sequences']
+INPUTS_PATH = Path(sys.argv[sys.argv.index('--inputs') + 1]) if '--inputs' in sys.argv else ROOT / 'learned-forward-inputs.json'
+INPUT_BYTES = INPUTS_PATH.read_bytes()
+sequences = json.loads(INPUT_BYTES)['sequences']
 if '--sequences' in sys.argv:
     selected = sys.argv[sys.argv.index('--sequences') + 1].split(',')
     assert selected and len(set(selected)) == len(selected)
@@ -384,13 +387,14 @@ result = {
     'torch': torch.__version__, 'surface': 'CPU', 'dtype': str(DTYPE).split('.')[-1], 'threads': torch.get_num_threads(),
     'scope': 'Unchanged upstream text decoder stack, root mixer and LM head on the learned checkpoint weights, one cache-free '
              'full-sequence forward per input; vision and MTP excluded; no Doppler execution.',
-    'inputs': 'learned-forward-inputs.json', 'sampleStride': SAMPLE_STRIDE, 'tableRowsRead': rows_read[0],
+    'inputs': INPUTS_PATH.name, 'inputsSha256': hashlib.sha256(INPUT_BYTES).hexdigest(),
+    'sampleStride': SAMPLE_STRIDE, 'tableRowsRead': rows_read[0],
     'layerSeconds': timings, 'sequences': summary,
     'producerSha256': PRODUCER_SHA256,
 }
 if ARTIFACT:
     result['scope'] = 'Unchanged upstream cache-free text forward with stored F16 and independently gguf-dequantized Q4_K weights; source n-gram rows and integer buffers; no Doppler execution.'
-    result['artifactManifestSha256'] = hashlib.sha256((ARTIFACT / 'manifest.json').read_bytes()).hexdigest()
+    result['artifactManifestSha256'] = hashlib.sha256(ARTIFACT_MANIFEST_BYTES).hexdigest()
     result['quantizationControl'] = {'decoder': 'gguf.quants.dequantize', 'type': 'Q4_K', 'rowPadding': 256}
     if KV_F16:
         result['scope'] += ' Post-RoPE keys and values round through F16 before unchanged upstream attention, matching the declared runtime KV storage.'

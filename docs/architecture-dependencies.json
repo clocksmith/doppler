@@ -4711,6 +4711,8 @@
         "tests/helpers/installed-token-selection-fixture.js",
         "tests/helpers/kernel-dispatch-observer.js",
         "tests/helpers/learned-layer-observation.js",
+        "tests/helpers/learned-qsa-observation.js",
+        "tests/helpers/learned-router-observation.js",
         "tests/helpers/litert-package-fixture.js",
         "tests/helpers/local-model-fixture.js",
         "tests/helpers/native-port-fixtures.js",
@@ -4804,6 +4806,7 @@
         "tests/inference/generate-token-ids-contract.test.js",
         "tests/inference/generation-constraints.test.js",
         "tests/inference/generation-output.test.js",
+        "tests/inference/generation-plan-evidence.test.js",
         "tests/inference/generation-profile-completeness.test.js",
         "tests/inference/generation-prompt-state-reset.test.js",
         "tests/inference/generation-request.test.js",
@@ -4957,6 +4960,7 @@
         "tests/inference/qk-norm-weight-shape.test.js",
         "tests/inference/qsa-attention-variant.test.js",
         "tests/inference/qsa-cache-lifecycle.test.js",
+        "tests/inference/qsa-query-view.test.js",
         "tests/inference/qwen-linear-norm-offset.test.js",
         "tests/inference/qwen-manifest-completeness.test.js",
         "tests/inference/qwen-output-gate-recorder-contract.test.js",
@@ -5110,6 +5114,7 @@
         "tests/integration/ffn-silu-platform.js",
         "tests/integration/flash-next-learned-physical.test.js",
         "tests/integration/flash-next-public-consumer.test.js",
+        "tests/integration/flash-next-router-numerical-physical.test.js",
         "tests/integration/flash-next-runtime-profile.test.js",
         "tests/integration/frozen-prefix-receipt.test.js",
         "tests/integration/frozen-prefix-resources.test.js",
@@ -7273,6 +7278,12 @@
       "file": "tests/inference/prefill-output-ownership.test.js",
       "kind": "dynamic",
       "line": 33,
+      "expression": "import(target)"
+    },
+    {
+      "file": "tests/inference/qsa-query-view.test.js",
+      "kind": "dynamic",
+      "line": 12,
       "expression": "import(target)"
     },
     {

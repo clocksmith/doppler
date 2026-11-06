@@ -1,0 +1,39 @@
+[
+  {
+    "layer": 0,
+    "changedExpertRows": []
+  },
+  {
+    "layer": 1,
+    "changedExpertRows": []
+  },
+  {
+    "layer": 2,
+    "changedExpertRows": []
+  },
+  {
+    "layer": 3,
+    "changedExpertRows": []
+  },
+  {
+    "layer": 4,
+    "changedExpertRows": [
+      1017
+    ]
+  },
+  {
+    "layer": 5,
+    "changedExpertRows": [
+      1017,
+      2003
+    ]
+  },
+  {
+    "layer": 6,
+    "changedExpertRows": []
+  },
+  {
+    "layer": 7,
+    "changedExpertRows": []
+  }
+]

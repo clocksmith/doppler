@@ -13,6 +13,8 @@ import { createDefaultCaptureConfig } from '../../src/debug/capture-policy.js';
 import { buildOpId } from '../../src/inference/pipelines/text/operator-identity.js';
 import { getBufferPool } from '../../src/memory/buffer-pool.js';
 import { checkLearnedLifecycle } from '../helpers/flash-next-lifecycle.js';
+import { observeLearnedQsa } from '../helpers/learned-qsa-observation.js';
+import { observeLearnedRouters } from '../helpers/learned-router-observation.js';
 
 // Provisioned learned-weight diagnostic. This is not a performance test or a
 // qualification threshold: quantization spread and intermediate parity need
@@ -53,7 +55,7 @@ if (!runPath) {
     runtimeSourceSha256,
     modelId: manifest.modelId, quantizationInfo: manifest.quantizationInfo,
     provider: probe.providerReceipt, runtimeConfig: run.runtimeConfig, rows: [], gpuErrors };
-  let pipeline, collectLayers;
+  let pipeline, collectLayers, qsaObservation, routerObservation;
   try {
     pipeline = await createPipeline(manifest, { runtimeConfig: run.runtimeConfig,
       storage: createNodeFileArtifactStorageContext(pathToFileURL(path.resolve(run.modelDir)).href, manifest) });
@@ -66,6 +68,10 @@ if (!runPath) {
       assert.ok(input && expected);
       assert.equal(input.tokens.length, expected.tokens);
       pipeline.resetGenerationState();
+      qsaObservation = run.captureQsaLayers
+        ? observeLearnedQsa(run.captureQsaLayers, expected.qsa, `${run.outputPath}.${id}`) : null;
+      routerObservation = run.captureRouterLayers
+        ? observeLearnedRouters(run.captureRouterLayers, `${run.outputPath}.${id}`) : null;
       const captures = new Map();
       collectLayers = () => {
         for (const record of pipeline.stats.operatorDiagnostics?.timeline ?? []) {
@@ -78,10 +84,14 @@ if (!runPath) {
       };
       let diagnostics;
       if (run.captureLayers === true) {
-        assert.ok(input.tokens.length <= 64, 'full layer captures are bounded to short diagnostic inputs');
+        const captureLayerIds = run.captureLayerIds ?? Array.from({ length: manifest.architecture.numLayers }, (_, layer) => layer);
+        assert.ok(captureLayerIds.length && new Set(captureLayerIds).size === captureLayerIds.length);
+        assert.ok(captureLayerIds.every(layer => Number.isSafeInteger(layer) && layer >= 0 && layer < manifest.architecture.numLayers));
+        assert.ok(input.tokens.length <= 64 || (input.tokens.length <= 4096 && captureLayerIds.length <= 4),
+          'long-input full captures require at most four explicitly selected layers');
         diagnostics = { enabled: true,
           captureConfig: { ...createDefaultCaptureConfig(), enabled: true, targetLevel: 'full',
-            targetOpIds: Array.from({ length: manifest.architecture.numLayers }, (_, layer) => buildOpId('layer.out', layer)) } };
+            targetOpIds: captureLayerIds.map(layer => buildOpId('layer.out', layer)) } };
       }
       let observed = null;
       let logitRows = 0;
@@ -113,10 +123,26 @@ if (!runPath) {
           reference: referenceLogits[index], observed: observed[token], delta: observed[token] - referenceLogits[index] })) };
       if (run.captureLayers === true) {
         row.layers = collectLayers();
-        assert.equal(captures.size, manifest.architecture.numLayers, 'every layer must be captured');
+        assert.equal(captures.size, run.captureLayerIds?.length ?? manifest.architecture.numLayers, 'every requested layer must be captured');
+        if (run.retainLayerFiles === true) for (const layer of row.layers) {
+          const bytes = Buffer.from(Float32Array.from(captures.get(layer.layer).data).buffer);
+          layer.file = `${run.outputPath}.${id}.layer${layer.layer}.f32`;
+          layer.sha256 = hash(bytes);
+          await fs.writeFile(layer.file, bytes);
+        }
       }
       const pager = run.runtimeConfig.loading?.expertCache?.qwen35Pager;
       if (pager?.enabled) assert.ok(row.residentExpertLayers.length <= pager.maxResidentLayers, 'resident expert banks must remain bounded');
+      if (qsaObservation) {
+        row.qsaObservations = qsaObservation.records;
+        assert.deepEqual(qsaObservation.errors, []);
+        qsaObservation.restore(); qsaObservation = null;
+      }
+      if (routerObservation) {
+        row.routerObservations = routerObservation.records;
+        assert.deepEqual(routerObservation.errors, []);
+        routerObservation.restore(); routerObservation = null;
+      }
       collectLayers = null;
       report.rows.push(row);
       await fs.writeFile(run.outputPath, JSON.stringify(report, null, 2));
@@ -147,6 +173,8 @@ if (!runPath) {
     catch (captureError) { report.captureFailure = String(captureError); }
     throw error;
   } finally {
+    qsaObservation?.restore();
+    routerObservation?.restore();
     const failures = [];
     try { await pipeline?.unload(); } catch (error) { failures.push(error); }
     try { destroyDevice(); } catch (error) { failures.push(error); }

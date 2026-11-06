@@ -1,0 +1,12 @@
+[
+  {
+    "file": "layer3-observation.json.gz",
+    "rawSha256": "caac36844899ea4f27875321a34cb3efa5faed7ffbaa197cbcf7f41059aa2f5f",
+    "gzipSha256": "a8999b70717595419cd5a4818f753ae0b4841936940c39953c5a8b59b8cd2933"
+  },
+  {
+    "file": "later-observation.json.gz",
+    "rawSha256": "e3dcea48fb2b0af67369b534ce427fa0cfa00680844728c82a89dca5dbd9a96e",
+    "gzipSha256": "a90cc7a82be2e3a6551242f6be610e7dd858dd85c712436ff51cb4e9373bb26a"
+  }
+]

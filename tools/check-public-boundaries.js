@@ -248,7 +248,10 @@ const PACKAGE_CONTENT_LIMITS = Object.freeze({
   // One WGSL resource and its declared routing/materialization contracts.
   // Inventory: reports/flash-next-qualification-20261105/runtime-package-audit.json.
   // Paging audit includes the newly reachable expert-loader declaration.
-  maxUnpackedSize: 15_546_564,
+  // Live QSA dispatch and query view: two existing implementations, +955 bytes.
+  // Parent execution-plan evidence adds one byte; no package entry is added.
+  // Inventory: reports/flash-next-qualification-20261105/qsa-package-audit.json.
+  maxUnpackedSize: 15_547_520,
 });
 const REQUIRED_PACKAGE_FILES = Object.freeze([
   'README.md',

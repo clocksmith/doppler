@@ -1,0 +1,20 @@
+node:internal/modules/run_main:123
+    triggerUncaughtException(
+    ^
+
+AssertionError [ERR_ASSERTION]: live dispatch must consume its prepared QSA selection
++ actual - expected
+
++ 'contiguous'
+- 'qsaIndexed'
+
+    at file:///Users/xyz/deco/doppler/tests/inference/qsa-attention-variant.test.js:54:10 {
+  generatedMessage: false,
+  code: 'ERR_ASSERTION',
+  actual: 'contiguous',
+  expected: 'qsaIndexed',
+  operator: 'strictEqual',
+  diff: 'simple'
+}
+
+Node.js v22.20.0

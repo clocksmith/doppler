@@ -1,0 +1,24 @@
+{
+  "baseline": "740d00c6cd953cc3eefcafa1d9f8cff33d54cda5",
+  "baselineEntries": 1902,
+  "baselineUnpacked": 15546565,
+  "entryCount": 1902,
+  "packedBytes": 3640579,
+  "unpackedBytes": 15547520,
+  "changedShippedFiles": [
+    {
+      "path": "src/inference/pipelines/text/attention/interpreter/immediate.js",
+      "before": 7383,
+      "after": 7629,
+      "delta": 246
+    },
+    {
+      "path": "src/inference/pipelines/text/indexed-attention/attention-runner.js",
+      "before": 2397,
+      "after": 3106,
+      "delta": 709
+    }
+  ],
+  "priorCeilingDriftBytes": 1,
+  "note": "Two existing shipped implementations change by 955 bytes; no new package entry. Parent 740d00c6 adds one shipped byte over the preceding unpacked ceiling. Packed bytes remain under the existing ceiling."
+}

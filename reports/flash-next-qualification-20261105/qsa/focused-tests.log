@@ -1,0 +1,67 @@
+TAP version 13
+# Subtest: immediate and recorded modes consume the identical semantic plan
+ok 1 - immediate and recorded modes consume the identical semantic plan
+  ---
+  duration_ms: 4.955167
+  type: 'test'
+  ...
+# Subtest: changing one semantic decision changes the plan identity
+ok 2 - changing one semantic decision changes the plan identity
+  ---
+  duration_ms: 0.705083
+  type: 'test'
+  ...
+# Subtest: query scaling and NoPE are immutable plan identity
+ok 3 - query scaling and NoPE are immutable plan identity
+  ---
+  duration_ms: 0.780334
+  type: 'test'
+  ...
+# Subtest: semantic plans are deeply immutable and JSON-safe
+ok 4 - semantic plans are deeply immutable and JSON-safe
+  ---
+  duration_ms: 0.476792
+  type: 'test'
+  ...
+# Subtest: characterization matrix covers phase, dtype, capability, KV, fusion, LoRA, gate, and failure contracts
+ok 5 - characterization matrix covers phase, dtype, capability, KV, fusion, LoRA, gate, and failure contracts
+  ---
+  duration_ms: 6.684292
+  type: 'test'
+  ...
+# Subtest: paired intermediates select separate residual/gate paths and exclude scalar flash epilogues
+ok 6 - paired intermediates select separate residual/gate paths and exclude scalar flash epilogues
+  ---
+  duration_ms: 0.627459
+  type: 'test'
+  ...
+# qsa-attention-variant.test: ok
+# Subtest: tests/inference/qsa-attention-variant.test.js
+ok 2 - tests/inference/qsa-attention-variant.test.js
+  ---
+  duration_ms: 491.541916
+  type: 'test'
+  ...
+# qsa-cache-lifecycle.test: ok
+# Subtest: tests/inference/qsa-cache-lifecycle.test.js
+ok 3 - tests/inference/qsa-cache-lifecycle.test.js
+  ---
+  duration_ms: 438.002875
+  type: 'test'
+  ...
+# qsa query view: canonical and normalized-head views preserve bytes; unrelated geometry rejects
+# Subtest: tests/inference/qsa-query-view.test.js
+ok 4 - tests/inference/qsa-query-view.test.js
+  ---
+  duration_ms: 164.899542
+  type: 'test'
+  ...
+1..9
+# tests 9
+# suites 0
+# pass 9
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 511.459917

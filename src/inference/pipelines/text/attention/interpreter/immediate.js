@@ -117,6 +117,9 @@ export function resolveRecordedAttentionDispatch(options) {
     useF16Activations,
     vTensor,
   } = options;
+  // A prepared selection is an operation fact, shared by kernel dispatch and
+  // the semantic plan. Dropping it silently turns indexed attention dense.
+  const indexedSelection = state.qsa != null;
   const dispatchConfig = {
     layerIdx, numTokens, isPrefill, numHeads, numKVHeads, headDim, hiddenSize,
     slidingWindow: diffusionGemmaDecoder ? null : slidingWindow,
@@ -125,6 +128,7 @@ export function resolveRecordedAttentionDispatch(options) {
     causalAttention: diffusionGemmaDecoder ? false : config.causalAttention,
     activationDtype: attentionActivationDtype,
     kvCacheDtype: attentionPrecisionContract.resolvedKvCacheDtype ?? state.kvCache?.kvDtype ?? null,
+    indexedSelection,
   };
   const dispatchParams = buildAttentionDispatchParams(dispatchConfig, state, kTensor, vTensor, kvState);
   const {
@@ -146,6 +150,7 @@ export function resolveRecordedAttentionDispatch(options) {
   const attentionPlan = resolveAttentionPlanForDispatch({
     config: {
       ...config,
+      indexedSelection,
       kernelPath: attentionKernelPath,
     },
     inputDtype: input.dtype,

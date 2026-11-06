@@ -59,18 +59,27 @@ if (!runPath) {
     for (const id of run.sequences) {
       const input = inputs.sequences.find(row => row.id === id);
       model.resetGenerationState();
-      let observed;
+      const observed = [];
+      const maxTokens = run.maxTokensBySequence?.[id] ?? 1;
+      assert.ok(Number.isSafeInteger(maxTokens) && maxTokens > 0);
       const evidence = await model.generateWithEvidence(input.text, { inputIds: input.tokens,
-        useChatTemplate: false, maxTokens: 1, seed: 0,
-        onLogits(values) { assert(values.every(Number.isFinite)); observed = Float32Array.from(values); } });
+        useChatTemplate: false, maxTokens, seed: 0,
+        onLogits(values, context) { assert(values.every(Number.isFinite)); observed.push({ values: Float32Array.from(values), ...context }); } });
       assert.equal(evidence.schema, 'doppler_generation_evidence/v1');
-      assert.deepEqual(evidence.tokenIds, [reference.sequences[id].argmax[input.tokens.length - 1]]);
+      assert.equal(evidence.tokenIds[0], reference.sequences[id].argmax[input.tokens.length - 1]);
+      assert.equal(observed.length, evidence.tokenIds.length);
       assert.ok(evidence.resolution.resolvedExecutionId);
       assert.equal(evidence.resolution.resolvedArtifactVariantId, model.resolvedArtifactVariantId);
-      const prefillLogitsFile = `${run.outputPath}.${id}.prefill.f32`;
-      const bytes = Buffer.from(observed.buffer); await fs.writeFile(prefillLogitsFile, bytes);
+      const stepLogits = [];
+      for (const [step, row] of observed.entries()) {
+        assert.equal(row.tokenId, evidence.tokenIds[step]);
+        assert.equal(row.inputTokenCount, input.tokens.length + step);
+        const file = `${run.outputPath}.${id}.step${step}.f32`;
+        const bytes = Buffer.from(row.values.buffer); await fs.writeFile(file, bytes);
+        stepLogits.push({ step, inputTokenCount: row.inputTokenCount, tokenId: row.tokenId, file, sha256: hash(bytes) });
+      }
       report.rows.push({ id, inputTokenCount: input.tokens.length, tokenId: evidence.tokenIds[0], tokenIds: evidence.tokenIds,
-        prefillLogitsFile, prefillLogitsSha256: hash(bytes), evidence });
+        prefillLogitsFile: stepLogits[0].file, prefillLogitsSha256: stepLogits[0].sha256, stepLogits, evidence });
       await fs.writeFile(run.outputPath, JSON.stringify(report, null, 2));
       console.log(JSON.stringify({ id, tokenIds: evidence.tokenIds, text: evidence.outputText }));
     }

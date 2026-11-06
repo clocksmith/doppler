@@ -1,4 +1,5 @@
 import { recordIndexedAttention } from '../../../../gpu/kernels/qsa-indexer.js';
+import { createTensor } from '../../../../gpu/tensor.js';
 
 // Attention-core runner for qwen4_exp QSA layers (attention kernel variant
 // `qsaIndexed`). The hyper-connection layer executor computes the selection
@@ -31,6 +32,16 @@ export async function runQsaIndexedAttention(recorder, options) {
   if (!Number.isSafeInteger(kvRows) || kvRows !== qsa.visibleRows) {
     fail(layerIdx, `KV cache holds ${kvRows} rows but the selection was made over ${qsa.visibleRows}.`);
   }
-  return recordIndexedAttention(recorder, qTensor, cachedKTensor.buffer, cachedVTensor.buffer, qsa,
+  // Head RMSNorm preserves token-major bytes but exposes one row per head.
+  // Adapt only that known view (or an already canonical query) to the core's
+  // token-major matrix contract, using declared geometry without a copy.
+  const shape = qTensor.shape;
+  if (!Array.isArray(shape) || shape.length !== 2
+    || !((shape[0] === numTokens && shape[1] === numHeads * headDim)
+      || (shape[0] === numTokens * numHeads && shape[1] === headDim))) {
+    fail(layerIdx, 'query must preserve the declared token-major query/head geometry.');
+  }
+  const query = createTensor(qTensor.buffer, 'f32', [numTokens, numHeads * headDim], 'qsa_attention_query');
+  return recordIndexedAttention(recorder, query, cachedKTensor.buffer, cachedVTensor.buffer, qsa,
     { numTokens, numHeads, numKVHeads, headDim, scale: attnScale, kvRows });
 }

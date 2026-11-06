@@ -1,0 +1,106 @@
+import assert from 'node:assert/strict';
+import fs from 'node:fs/promises';
+import path from 'node:path';
+import { createHash } from 'node:crypto';
+import { probeNodeGPU } from '../helpers/gpu-probe.js';
+import { observeKernelDispatches } from '../helpers/kernel-dispatch-observer.js';
+import { runMatmul } from '../../src/gpu/kernels/matmul.js';
+import { createTensor } from '../../src/gpu/tensor.js';
+import { createWeightBuffer } from '../../src/gpu/weight-buffer.js';
+import { acquireBuffer, releaseBuffer, uploadData, readBuffer } from '../../src/memory/buffer-pool.js';
+import { f16ToF32Array } from '../../src/inference/kv-cache/types.js';
+import { getDevice, destroyDevice } from '../../src/gpu/device.js';
+import { releaseNodeWebGPU } from '../../src/tooling/node-webgpu.js';
+
+const file = process.env.DOPPLER_FLASH_NEXT_ROUTER_PROBE;
+if (!file) {
+  assert(!process.argv.includes('--require-model'), 'Set DOPPLER_FLASH_NEXT_ROUTER_PROBE.');
+  console.log('Flash-Next router diagnostic: skipped (no provisioned captured input)');
+} else {
+  const hash = bytes => createHash('sha256').update(bytes).digest('hex');
+  const runBytes = await fs.readFile(file), run = JSON.parse(runBytes);
+  const manifestBytes = await fs.readFile(path.join(run.modelDir, 'manifest.json'));
+  assert.equal(hash(manifestBytes), run.manifestSha256);
+  const manifest = JSON.parse(manifestBytes), descriptor = manifest.tensors[run.tensor];
+  const [N, K] = descriptor.shape, [M, inputWidth] = run.inputShape;
+  assert.equal(inputWidth, K);
+  assert(run.rows.every(row => Number.isSafeInteger(row) && row >= 0 && row < M));
+  assert.equal(descriptor.dtype, 'F16');
+  const weightsBytes = Buffer.alloc(descriptor.size);
+  let cursor = 0;
+  for (const span of descriptor.spans ?? [{ shardIndex: descriptor.shard, offset: descriptor.offset, size: descriptor.size }]) {
+    const handle = await fs.open(path.join(run.modelDir, manifest.shards[span.shardIndex].filename));
+    try {
+      const { bytesRead } = await handle.read(weightsBytes, cursor, span.size, span.offset);
+      assert.equal(bytesRead, span.size); cursor += bytesRead;
+    } finally { await handle.close(); }
+  }
+  assert.equal(cursor, descriptor.size);
+  const raw = await fs.readFile(run.inputFile); assert.equal(hash(raw), run.inputSha256);
+  const all = new Float32Array(raw.buffer, raw.byteOffset, raw.byteLength / 4);
+  assert.equal(all.length, M * K);
+  const input = all;
+  const weights = f16ToF32Array(new Uint16Array(weightsBytes.buffer, weightsBytes.byteOffset, N * K));
+  const exact = new Float64Array(run.rows.length * N);
+  for (let m = 0; m < run.rows.length; m++) for (let n = 0; n < N; n++) {
+    let sum = 0, correction = 0;
+    for (let k = 0; k < K; k++) {
+      const product = input[run.rows[m] * K + k] * weights[n * K + k], next = sum + product;
+      correction += Math.abs(sum) >= Math.abs(product) ? (sum - next) + product : (product - next) + sum;
+      sum = next;
+    }
+    exact[m * N + n] = sum + correction;
+  }
+  const probe = await probeNodeGPU({ installFileFetchShim: true }); assert(probe.ready, probe.reason);
+  const buffers = [], gpuErrors = [];
+  getDevice().addEventListener('uncapturederror', event => gpuErrors.push(event.error.message));
+  const own = buffer => { buffers.push(buffer); return buffer; };
+  const upload = values => { const buffer = own(acquireBuffer(values.byteLength)); uploadData(buffer, values); return buffer; };
+  const report = { scope: 'Captured learned router input; existing kernels only, no model or speed qualification',
+    runSha256: hash(runBytes), manifestSha256: hash(manifestBytes), weightsSha256: hash(weightsBytes),
+    inputSha256: hash(raw), M, N, K, oracle: 'Neumaier Float64 sum of exact F32 inputs and expanded F16 weights',
+    provider: probe.providerReceipt, cases: [], gpuErrors };
+  try {
+    const a = createTensor(upload(input), 'f32', [M, K]);
+    for (const [kernel, dtype, data] of [
+      ['matmul_f32.wgsl', 'f32', weights],
+      ['matmul_f16w_f32a_tiled.wgsl', 'f16', weightsBytes],
+      ['matmul_compensated_f32.wgsl', 'f32', weights],
+    ]) {
+      const step = { op: 'moe_router', kernel, entry: 'main' };
+      const b = createWeightBuffer(upload(data), dtype, 'row', [N, K]);
+      const observed = await observeKernelDispatches(async () => {
+        const output = await runMatmul(a, b, M, N, K, { role: 'moe_router', transposeB: true,
+          outputDtype: 'f32', phaseOverride: 'prefill', kernelPath: { activationDtype: 'f32',
+            prefill: { steps: [step] }, decode: { steps: [step] } } });
+        own(output.buffer); return output;
+      });
+      assert.equal(observed.dispatches[0].pipeline.shaderFile, kernel);
+      const values = new Float32Array(await readBuffer(observed.result.buffer, M * N * 4));
+      let maxAbsoluteError = 0, nearestF32Mismatches = 0;
+      for (let m = 0; m < run.rows.length; m++) for (let n = 0; n < N; n++) {
+        const actual = values[run.rows[m] * N + n], expected = exact[m * N + n];
+        assert(Number.isFinite(actual));
+        maxAbsoluteError = Math.max(maxAbsoluteError, Math.abs(actual - expected));
+        if (actual !== Math.fround(expected)) nearestF32Mismatches++;
+      }
+      const order = values => Array.from({ length: N }, (_, n) => n).sort((a, b) => values[b] - values[a]).slice(0, 10);
+      const rows = run.rows.map((position, m) => ({ position,
+        expected: order(exact.subarray(m * N, (m + 1) * N)), actual: order(values.subarray(position * N, (position + 1) * N)) }));
+      report.cases.push({ kernel, maxAbsoluteError, nearestF32Mismatches, rows, dispatches: observed.dispatches });
+      if (kernel === 'matmul_compensated_f32.wgsl') {
+        assert.equal(nearestF32Mismatches, 0);
+        for (const row of rows) assert.deepEqual(row.actual, row.expected);
+      } else if (kernel === 'matmul_f32.wgsl') {
+        assert(rows.some(row => JSON.stringify(row.actual) !== JSON.stringify(row.expected)),
+          'the captured full-batch baseline must reproduce an expert-choice reversal');
+      }
+    }
+    await getDevice().queue.onSubmittedWorkDone(); assert.deepEqual(gpuErrors, []); report.completed = true;
+  } finally {
+    await getDevice().queue.onSubmittedWorkDone();
+    for (const buffer of new Set(buffers)) releaseBuffer(buffer);
+    destroyDevice(); await releaseNodeWebGPU();
+    await fs.writeFile(run.outputPath, JSON.stringify(report, null, 2));
+  }
+}

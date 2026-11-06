@@ -2,6 +2,8 @@ import assert from 'node:assert/strict';
 import { selectRuleValue } from '../../src/rules/rule-registry.js';
 import { resolveAttentionPlanForDispatch } from '../../src/inference/pipelines/text/attention/plan.js';
 import { runQsaIndexedAttention } from '../../src/inference/pipelines/text/indexed-attention/attention-runner.js';
+import { resolveRecordedAttentionDispatch } from '../../src/inference/pipelines/text/attention/interpreter/immediate.js';
+import { setDevice } from '../../src/gpu/device.js';
 
 // Contract: QSA-indexed layers select the qsaIndexed attention core only for a
 // contiguous KV cache, ordinary layers keep their variants, and the runner
@@ -25,6 +27,36 @@ const plan = (indexedSelection, layout = 'contiguous') => resolveAttentionPlanFo
 assert.equal(plan(true).attention.implementation, 'qsaIndexed');
 assert.equal(plan(false).attention.implementation, 'contiguous');
 assert.equal(plan(true, 'tiered').attention.implementation, 'qsaIndexedRequiresContiguousKV');
+
+// Exercise the live handoff, not only the rule/plan in isolation: the prepared
+// resource in AttentionState must survive construction of both dispatch inputs.
+setDevice({ features: new Set(['shader-f16']), limits: {}, createBindGroup() {}, queue: { submit() {} } });
+for (const numTokens of [1, 2304]) {
+  const cached = { __dopplerFakeGPUBuffer: true, size: 2305 * 2 * 256 * 2 };
+  const input = { buffer: cached, dtype: 'f32', shape: [numTokens, 2560] };
+  const kvState = { kvLayout: 'contiguous', kvLenForAttention: 2305, startPosForMask: 2305 - numTokens,
+    coldQuantMode: 'none', cachedK: cached, cachedV: cached, hasCache: true };
+  const options = {
+    attentionActivationDtype: 'f32', attentionPrecisionContract: { resolvedKvCacheDtype: 'f16' },
+    config: { numHeads: 24, numKVHeads: 2, headDim: 256, hiddenSize: 2560, numTokens, layerIdx: 3,
+      currentSeqLen: 2305 - numTokens, queryScale: 1, causalAttention: true, attentionOutputGate: false },
+    input, normed: input, isPrefill: numTokens > 1, numTokens, numHeads: 24, numKVHeads: 2,
+    headDim: 256, hiddenSize: 2560, layerIdx: 3, kvCacheDtype: 'f16', kvState,
+    kTensor: { buffer: cached, dtype: 'f16', shape: [numTokens, 512] },
+    vTensor: { buffer: cached, dtype: 'f16', shape: [numTokens, 512] },
+    qTensor: { buffer: cached, dtype: 'f32', shape: [numTokens, 6144] },
+    matmulOutputDtype: 'f32', oProjInputDtype: 'f32', oProjOutputDtype: 'f32', layerWeights: {},
+    runtimeSession: {}, state: { kvCache: { kvDtype: 'f16' },
+      qsa: { layerIdx: 3, numTokens, visibleRows: 2305, selection: cached, meta: cached, maxSelected: 2051 },
+      observationContext: { receiptPolicy: 'off' }, stats: {} },
+  };
+  const dispatched = resolveRecordedAttentionDispatch(options);
+  assert.equal(dispatched.attentionKernelVariant, 'qsaIndexed', 'live dispatch must consume its prepared QSA selection');
+  assert.equal(dispatched.attentionPlan.attention.implementation, 'qsaIndexed');
+  const ordinary = resolveRecordedAttentionDispatch({ ...options, state: { ...options.state, qsa: null } });
+  assert.equal(ordinary.attentionKernelVariant, 'contiguous', 'ordinary attention retains its existing route');
+}
+setDevice(null);
 
 const base = {
   state: { qsa: { layerIdx: 3, numTokens: 4, visibleRows: 10, selection: {}, meta: {}, maxSelected: 2051 } },
