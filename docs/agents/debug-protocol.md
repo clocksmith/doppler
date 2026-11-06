@@ -69,5 +69,20 @@ Do not mark a conversion as complete unless all of these exist and agree:
 
 A directory with shards but no manifest is an interrupted conversion, not a usable artifact.
 
+## 8. Regression after a code change
+
+When a kernel swap, transform, dtype policy or materialization change produces
+incorrect output, the ladder above (classify, reference, dump, compare, isolate)
+captures the first numerical or token divergence before broad runtime refactoring.
+
+- Hypothesis first: write down one falsifiable hypothesis and the diagnostic that
+  would disprove it. Read at most five files before running a diagnostic.
+- Measure before tracing: once a behavioral difference is isolated (path A
+  correct, path B wrong), take a per-layer or per-op numerical readback with
+  probes at the first divergence, not more static analysis.
+- Scope the change, not the codebase: if the regression correlates with a
+  transform or kernel swap, diff the execution graph before and after it instead
+  of tracing the whole pipeline.
+
 Canonical workflow doc: `docs/debug-playbook.md`
 Reusable report template: `docs/debug-investigation-template.md`

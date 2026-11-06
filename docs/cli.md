@@ -56,6 +56,15 @@ The parsed object is contract-validated by `resolveConfigEnvelope()`:
   - inside `request`.
 - `runtimeProfile`/`runtimeConfig`/`runtimeConfigUrl` should be defined in exactly one location.
 
+## Model resolution
+
+- The CLI resolves `request.modelId` from the external RDRR root:
+  `/Volumes/models/rdrr` on macOS, `/media/$USER/models/rdrr` on Linux.
+- For a model outside that root, set the request-level `request.modelUrl` to a
+  `file://` path.
+- Run `doppler profiles --json` to discover checked-in runtime profile IDs before
+  choosing an investigation, verify or calibration profile.
+
 ## `--runtime-config` inputs
 
 This flag is a compatibility alias for setting runtime overrides.

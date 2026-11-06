@@ -60,3 +60,4 @@ For performance work, localize the phase before patching:
 - prefill and decode are separate investigations
 - dump resolved prefill/decode kernel path and hot weight/materialization dtype separately
 - for decode, record `decodeMode`, `batchGuardReason`, and whether the wall is in `decodeRecordMs` or submit/readback wait before changing kernels
+- classify the wall before any kernel edit: GPU compute versus submit/readback/orchestration; do not assume a math-kernel bug when timing shows orchestration dominating

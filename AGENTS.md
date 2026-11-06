@@ -41,46 +41,32 @@ changed behavior. Full guides remain references, not a mandatory 2,200-line
 preflight for an ordinary edit. Deep kernel, buffer-lifecycle, config-resolution
 or shader work still reads the applicable full guides below.
 
-### Skill-Specific Style Guide Reads
+Read only the owner documents for the change at hand; there is no repository-wide reading list.
 
-Baseline for coding tasks: the engineering checklist and affected invariants. Add full guides
-by skill (`general`, `javascript`, `config`, `wgsl`, `harness`, `benchmark` =
-`docs/style/<name>-style-guide.md`; `command-interface` =
-`docs/style/command-interface-design-guide.md`):
-- `doppler-kernel-reviewer`: general, javascript, wgsl; plus config when review
-  touches rule selection, dtype policy, or kernel-path metadata
-- `doppler-debug`: general, javascript, config, command-interface, harness
-- `doppler-bench`: general, javascript, config, command-interface, harness, benchmark
-- `doppler-perf`: general, javascript, config, harness, benchmark; plus wgsl for
-  shader changes and command-interface when changing `bench`/`debug` behavior
-- `doppler-convert`: general, javascript, config, command-interface
+| Change | Read at the owner |
+| --- | --- |
+| Any non-trivial code edit | [Engineering checklist](docs/style/general-style-guide.md#invariants-quick-reference), then the invariant sections it links for the changed behavior |
+| Config merge, manifest-first resolution, execution-v1, kernel-path selection, runtime fallback | General guide: `Explicit over Implicit`, `No Runtime Defaults in Code`, `Nullable Required Fields`; JavaScript guide: `Manifest-First Contract`, `Runtime Configuration (Performance Invariants)`; [config guide](docs/style/config-style-guide.md) |
+| Kernels or shaders | [WGSL guide](docs/style/wgsl-style-guide.md), [JavaScript guide](docs/style/javascript-style-guide.md); `doppler-kernel-reviewer` adds the config guide when review touches rule selection, dtype policy or kernel-path metadata |
+| Debugging inference output | [Debug protocol](docs/agents/debug-protocol.md), [hardware notes](docs/agents/hardware-notes.md), [harness guide](docs/style/harness-style-guide.md), [command-interface guide](docs/style/command-interface-design-guide.md) |
+| Benchmarks or performance | [Benchmark protocol](docs/agents/benchmark-protocol.md), [benchmark guide](docs/style/benchmark-style-guide.md), [harness guide](docs/style/harness-style-guide.md); the WGSL guide for shader changes and the command-interface guide when `bench`/`debug` behavior changes |
+| Conversion | [Conversion protocol](docs/agents/conversion-protocol.md), [config guide](docs/style/config-style-guide.md), [command-interface guide](docs/style/command-interface-design-guide.md) |
+| Adding or changing runtime profiles, conversion configs, kernel-path registries, manifest/runtime fields, chat template formatters, sampling knobs, activations, kernels, commands, attention variants, quantization formats or KV-cache layouts; onboarding a model or pipeline family | [Developer guides index](docs/developer-guides/README.md) and the matching playbook; for model adoption, the [depth and reusable support checklist](docs/developer-guides/model-onboarding-playbook.md#depth-and-reusable-support) |
+| Text inference flow | `docs/architecture.md`, `docs/rdrr-format.md`, `src/tooling/command-api.js` (command parity contract); `src/inference/pipelines/text.js` only registers factories by `modelType`, the flow lives under `src/inference/pipelines/text/` in `pipeline.js`, `init.js`, `lifecycle.js`, `generator.js` and `layer.js` |
 
-### Agent Enforcement
+Developer guides are operational checklists, not normative contracts; contracts
+stay in `docs/style/*.md`, `docs/config.md`, `docs/conversion-runtime-contract.md`
+and the other core contract docs. Protocol documents under `docs/agents/` load on
+demand through skills (index: `docs/agents/README.md`), not for every task.
 
-- Open the engineering checklist and affected invariant sections before the first non-trivial code edit in each turn,
-  and again when resuming from a summary, handoff, or context compaction.
-- When changing config merge, manifest-first resolution, execution-v1, kernel-path selection, or runtime fallback behavior, re-read the full sections in:
-  - `docs/style/general-style-guide.md`: `Explicit over Implicit`, `No Runtime Defaults in Code`, `Nullable Required Fields`
-  - `docs/style/javascript-style-guide.md`: `Manifest-First Contract`, `Runtime Configuration (Performance Invariants)`
-- A change that could silently rewrite manifest/runtime behavior must fail fast
-  with an actionable error or add a regression test proving it cannot.
-
-### Developer Guides (Required For Extension Work)
-
-`docs/developer-guides/` holds task-oriented playbooks (operational checklists,
-not normative contracts; those stay in `docs/style/*.md`, `docs/config.md`,
-`docs/conversion-runtime-contract.md`, and other core contract docs). Before
-additive or extension work, open `docs/developer-guides/README.md` and the
-matching guide: adding or changing runtime profiles, conversion configs,
-kernel-path registries, manifest/runtime fields, chat template formatters,
-sampling knobs, activations, kernels, commands, attention variants,
-quantization formats, or KV-cache layouts, or onboarding a model or pipeline family.
-
-For model adoption, follow the [depth and reusable support checklist](docs/developer-guides/model-onboarding-playbook.md#depth-and-reusable-support).
-Keep component support, artifact preparation and full-model qualification
-distinct in status reports. Reuse semantic owners and declared capability
-contracts; a profile copied from a smaller model is a candidate, not evidence
-that its kernels admit the new model's geometry or precisions.
+Re-open the checklist and the affected invariant sections before the first
+non-trivial code edit in each turn, and again when resuming from a summary,
+handoff or context compaction. A change that could silently rewrite
+manifest/runtime behavior must fail fast with an actionable error or add a
+regression test proving it cannot. Keep component support, artifact preparation
+and full-model qualification distinct in status reports; a profile copied from a
+smaller model is a candidate, not evidence that its kernels admit the new model's
+geometry or precisions.
 
 ### Directory Structure
 
@@ -119,11 +105,6 @@ doppler/
 The diagram is an overview. The complete owner and root-facade inventory is
 `tools/policies/source-architecture-policy.json` (`topLevelOwners`, `rootFileOwners`);
 for example, `src/capsule-runtime.js` and `src/training.js` are root facades.
-
-### Before Starting
-
-- Read `docs/architecture.md` (system overview) and `docs/rdrr-format.md` (RDRR format constraints).
-- Review the text inference flow and `src/tooling/command-api.js` (command parity contract). `src/inference/pipelines/text.js` only registers pipeline factories by `modelType`; the flow lives under `src/inference/pipelines/text/`: `pipeline.js` (class), `init.js` and `lifecycle.js` (load), `generator.js` (prefill/decode loop) and `layer.js` (per-layer execution).
 
 ### Component Intent
 
@@ -171,25 +152,9 @@ must match on browser and CLI; unsupported environment capabilities fail fast
 
 ### CLI Quick Reference
 
-Workload/intent rules live in `src/rules/tooling/command-runtime.rules.json`. Do not guess the workload; use this table.
-
-| Command | Workload | Intent | Example |
-|---|---|---|---|
-| `bench` | caller choice | `calibrate` | `node src/cli/doppler-cli.js bench --config '{"request":{"workload":"inference","modelId":"gemma3-270m"}}' --json` |
-| `debug` | caller choice | `investigate` | `node src/cli/doppler-cli.js debug --config '{"request":{"workload":"inference","modelId":"gemma3-270m"}}' --json` |
-| `diagnose` | caller choice | `investigate` | `node src/cli/doppler-cli.js diagnose --config '{"request":{"workload":"inference","modelId":"gemma3-270m"}}' --json` |
-| `verify` | caller choice | `verify` | `node src/cli/doppler-cli.js verify --config '{"request":{"workload":"inference","modelId":"gemma3-270m"}}' --json` |
-| `convert` | n/a | — | `node src/cli/doppler-cli.js convert --config <path|url|json>` |
-| `profiles` | n/a | discovery | `node src/cli/doppler-cli.js profiles --json` |
-| `lora` | n/a | — | `node src/cli/doppler-cli.js lora --config <path|url|json>` |
-| `distill` | n/a | — | `node src/cli/doppler-cli.js distill --config <path|url|json>` |
-
-- `--config` accepts inline JSON, file path, or URL for all commands.
-- The CLI auto-resolves models from the external RDRR root (`/Volumes/models/rdrr` on macOS, `/media/$USER/models/rdrr` on Linux) by `modelId`.
-- For a model outside that root, set the **request-level** `request.modelUrl` to a `file://` path.
-- `--surface node` forces Node/WebGPU, `--surface browser` forces headless Chromium; omit for `auto`.
-- Use `doppler profiles --json` to discover checked-in runtime profile IDs before choosing an investigation, verify, or calibration profile.
-- `--runtime-profile <id>` is CLI shorthand for `request.runtimeProfile` (full JSON config stays canonical); never combine it with `--runtime-config` or runtime fields inside `--config`.
+Workload/intent rules live in `src/rules/tooling/command-runtime.rules.json`; do
+not guess the workload. The command table, `--config` forms, model resolution,
+`--surface` and `--runtime-profile` are documented in [docs/cli.md](docs/cli.md).
 
 ### Config System
 
@@ -210,36 +175,19 @@ Use runtime profiles/config payloads, not ad-hoc per-field flags.
 
 Before changing dtype fallback, execution-v1 capability transforms, kernel-path
 remap behavior, or model-scoped runtime lanes, classify the rule in
-`src/rules/inference/capability-transforms.rules.json`:
-
-- `hardware-compatibility` (missing device feature only) and
-  `runtime-session-compatibility` (resolved session constraint such as
-  `kvDtype=f32`): no model/platform identity.
-- `explicit-lane`: requested f16/selective-f16 lane from a runtime profile or manifest variant; not a fallback.
-- `platform-workaround`: exact platform plus exact model/list and evidence; no silent dtype change.
-- `lane-mismatch-guard`: fail closed when profile and manifest variant disagree.
-- `capability-optimization`: positive capability optimization, no dtype change.
-- `default-noop`: final empty-match rule.
-
+`src/rules/inference/capability-transforms.rules.json` using the
+[capability transform categories](docs/style/config-style-guide.md#capability-transform-categories).
 Every rule must include `kind`, `dtypeEffect`, `reason`, and `evidence`;
 execution receipts must expose the matched policy. When you edit these rules,
 run `npm run capability-policy:check`. If behavior cannot be classified, fail
 fast instead of adding a silent fallback.
 
-### Task-Specific Protocols
-
-Loaded by skills on demand, not for every task (full index: `docs/agents/README.md`):
-
-- `docs/agents/conversion-protocol.md` — conversion triage + promotion gate (`doppler-convert`, `doppler-debug`)
-- `docs/agents/debug-protocol.md` — inference debug ladder (`doppler-debug`)
-- `docs/agents/benchmark-protocol.md` — vendor benchmark registry (`doppler-bench`, `doppler-perf`)
-- `docs/agents/hardware-notes.md` — GPU memory assumptions (all inference skills)
-
 ### Performance Investigation Discipline
 
-- Treat prefill and decode as separate phases; dump each phase's resolved kernel path, active decode mode, and loaded weight/materialization dtype before changing kernels.
-- Keep parity and throughput lanes separate. Claimable compare work belongs to fairness-managed parity lanes; throughput-tuned runs are tuning evidence until promoted explicitly.
-- Before kernel edits, classify the wall: GPU compute vs submit/readback/orchestration. Do not assume a math-kernel bug when timing shows orchestration dominating.
+Follow the [benchmark protocol](docs/agents/benchmark-protocol.md): prefill and
+decode are separate phases, parity and throughput lanes stay separate, and the
+wall is classified (GPU compute versus submit/readback/orchestration) before any
+kernel edit.
 
 ### Intent-First Operations
 
@@ -253,13 +201,13 @@ Loaded by skills on demand, not for every task (full index: `docs/agents/README.
 
 ### Correctness Regression Discipline
 
-When a code change (kernel swap, transform, dtype policy, materialization path) produces incorrect model output (garbled text, numerical divergence, repeated tokens, silent quality loss):
-
-1. **Auto-trigger `doppler-debug`** before any manual investigation. Its ladder (classify → reference → dump → compare → isolate) captures the first numerical or token divergence before broad runtime refactoring.
-2. **Hypothesis first.** Write down one falsifiable hypothesis and the diagnostic that would disprove it. Read at most 5 files before running a diagnostic.
-3. **Measure before tracing.** Once a behavioral difference is isolated ("path A correct, path B wrong"), take a per-layer or per-op numerical readback with `doppler-debug` probes at the first divergence, not more static analysis.
-4. **Scope the change, not the codebase.** If the regression correlates with a transform or kernel swap, diff the execution graph before and after it instead of tracing the whole pipeline.
-5. **Workarounds are not fixes.** Label a disabled broken path as a workaround, track the underlying bug, and add a comment or test stating what it avoids and why.
+When a code change (kernel swap, transform, dtype policy, materialization path)
+produces incorrect model output (garbled text, numerical divergence, repeated
+tokens, silent quality loss), auto-trigger `doppler-debug` before any manual
+investigation and follow its
+[regression steps](docs/agents/debug-protocol.md#8-regression-after-a-code-change).
+Workarounds are not fixes: label a disabled broken path as a workaround, track
+the underlying bug, and add a comment or test stating what it avoids and why.
 
 ### Logging
 
