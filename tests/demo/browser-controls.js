@@ -216,7 +216,10 @@ export async function checkDemoControls(page) {
   assert.equal(await page.locator('#settings-panel').isVisible(), false);
 
   // Each category deals its whole bank before repeating; Surprise draws from every bank.
-  const { categories } = await page.evaluate(async () => (await fetch('/demo/examples.json')).json());
+  const { categories } = await page.evaluate(async () => {
+    const entrypoint = document.querySelector('script[src$="/demo.js"]').src;
+    return (await fetch(new URL('examples.json', entrypoint))).json();
+  });
   for (const { label, prompts } of categories) {
     const dealt = new Set();
     for (let draw = 0; draw < prompts.length; draw++) {
