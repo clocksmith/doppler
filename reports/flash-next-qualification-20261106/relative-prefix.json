@@ -1,0 +1,31 @@
+{
+  "scope": "Plot of descriptive relative errors, not model acceptance",
+  "normalModelQualified": false,
+  "metricsSha256": "16bb1b4f0393c67626bbf12d6a24b502bbc7893b50879254fca5e895d548a881",
+  "scriptSha256": "0118d82a791d435343e5f0f1412bb15b08a5aabbf5a83336297f3cf3b39ecc26",
+  "position": 2135,
+  "layers": [
+    0,
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10,
+    11,
+    12,
+    13,
+    14,
+    15
+  ],
+  "rowCount": 288,
+  "files": {
+    "relative-prefix.csv": "26be3ad68d7f600657b62274b6a922b99c5b72c3dc462eda65b1f8fa8c43401b",
+    "relative-prefix.png": "7e6f54e1c3476b82a9699fdccc7a5bf2201d6ba1cb9eb0ca2480bcd0b78fca42",
+    "relative-prefix.svg": "364d2cd282c1698397dc4d044bb506dd5fd2291141b1dc891c0102dc9525d3a1"
+  }
+}

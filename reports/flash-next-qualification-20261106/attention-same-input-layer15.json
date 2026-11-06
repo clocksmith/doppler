@@ -1,0 +1,116 @@
+{
+  "scope": "Pinned CPU attention on actual GPU inputs; diagnostic only, no tensor feedback or gate replacement",
+  "normalModelQualified": false,
+  "gpuTraceSha256": "db1d29bea5c5837af23516067f33a05ae4b0b21d93b91d12380d1a0c3dea67d6",
+  "cpuTraceSha256": "c69623b3bb73b5cdad646695eeed0b59035e6d946b107c4647d36b97c91279fa",
+  "sourceSha256": "87c27c88424cea73d5d8d9179f76a77a97e6e4249ce43ecff79a8b255fab0504",
+  "scriptSha256": "956e8e1f120e60cf138c082c04109d70eaabebc6204e6cbb088614238303240e",
+  "layer": 15,
+  "position": 2135,
+  "torch": "2.11.0+cu130",
+  "threads": 16,
+  "sourceGeometryReplayBitExact": true,
+  "total": {
+    "referenceRms": 0.49377506191850795,
+    "referenceMaxAbsolute": 1.527317762374878,
+    "observedRms": 0.4937758269588839,
+    "maxAbsoluteDifference": 0.00041425228118896484,
+    "rmsDifference": 1.806549789779286e-05,
+    "maxErrorOverReferenceRms": 0.000838949378244081,
+    "rmsErrorOverReferenceRms": 3.6586493103967996e-05,
+    "relativeErrorDefined": true
+  },
+  "localOnSameGpuInputs": {
+    "referenceRms": 0.4937758488213924,
+    "referenceMaxAbsolute": 1.5272034406661987,
+    "observedRms": 0.4937758269588839,
+    "maxAbsoluteDifference": 5.841255187988281e-06,
+    "rmsDifference": 2.550899898821877e-07,
+    "maxErrorOverReferenceRms": 1.1829770941472612e-05,
+    "rmsErrorOverReferenceRms": 5.16610908555105e-07,
+    "relativeErrorDefined": true
+  },
+  "propagatedInputs": {
+    "referenceRms": 0.49377506191850795,
+    "referenceMaxAbsolute": 1.527317762374878,
+    "observedRms": 0.4937758488213924,
+    "maxAbsoluteDifference": 0.00041413307189941406,
+    "rmsDifference": 1.805782678992047e-05,
+    "maxErrorOverReferenceRms": 0.0008387079539625719,
+    "rmsErrorOverReferenceRms": 3.657095747152316e-05,
+    "relativeErrorDefined": true
+  },
+  "inputs": [
+    {
+      "name": "query",
+      "differingValues": 13073661,
+      "referenceRms": 1.2519341958876247,
+      "referenceMaxAbsolute": 7.89776086807251,
+      "observedRms": 1.2519341529548746,
+      "maxAbsoluteDifference": 0.000255584716796875,
+      "rmsDifference": 1.5101959018139348e-05,
+      "maxErrorOverReferenceRms": 0.00020415187765972378,
+      "rmsErrorOverReferenceRms": 1.2062901602773154e-05,
+      "relativeErrorDefined": true
+    },
+    {
+      "name": "key",
+      "differingValues": 55303,
+      "referenceRms": 1.3742481304433225,
+      "referenceMaxAbsolute": 7.83984375,
+      "observedRms": 1.3742481112874876,
+      "maxAbsoluteDifference": 0.00390625,
+      "rmsDifference": 9.498138762480705e-05,
+      "maxErrorOverReferenceRms": 0.002842463390319383,
+      "rmsErrorOverReferenceRms": 6.911516597382362e-05,
+      "relativeErrorDefined": true
+    },
+    {
+      "name": "value",
+      "differingValues": 38579,
+      "referenceRms": 0.5656396083390557,
+      "referenceMaxAbsolute": 11.4375,
+      "observedRms": 0.5656396993809933,
+      "maxAbsoluteDifference": 0.001953125,
+      "rmsDifference": 3.1997418631840814e-05,
+      "maxErrorOverReferenceRms": 0.0034529494950595076,
+      "rmsErrorOverReferenceRms": 5.656856090010748e-05,
+      "relativeErrorDefined": true
+    }
+  ],
+  "singleInputControls": [
+    {
+      "input": "query",
+      "referenceRms": 0.49377506191850795,
+      "referenceMaxAbsolute": 1.527317762374878,
+      "observedRms": 0.4937751930184083,
+      "maxAbsoluteDifference": 1.5974044799804688e-05,
+      "rmsDifference": 2.096233110863389e-06,
+      "maxErrorOverReferenceRms": 3.23508537222178e-05,
+      "rmsErrorOverReferenceRms": 4.245319929116528e-06,
+      "relativeErrorDefined": true
+    },
+    {
+      "input": "key",
+      "referenceRms": 0.49377506191850795,
+      "referenceMaxAbsolute": 1.527317762374878,
+      "observedRms": 0.493774979851842,
+      "maxAbsoluteDifference": 0.00013136863708496094,
+      "rmsDifference": 7.586096243871086e-06,
+      "maxErrorOverReferenceRms": 0.00026604955822301504,
+      "rmsErrorOverReferenceRms": 1.5363465733559234e-05,
+      "relativeErrorDefined": true
+    },
+    {
+      "input": "value",
+      "referenceRms": 0.49377506191850795,
+      "referenceMaxAbsolute": 1.527317762374878,
+      "observedRms": 0.49377579366064644,
+      "maxAbsoluteDifference": 0.00041538476943969727,
+      "rmsDifference": 1.659795332780483e-05,
+      "maxErrorOverReferenceRms": 0.0008412429089184174,
+      "rmsErrorOverReferenceRms": 3.361440179525336e-05,
+      "relativeErrorDefined": true
+    }
+  ]
+}

@@ -1,0 +1,9 @@
+{
+  "scope": "Bind layer-0 linear branch observation to normal candidate",
+  "normalModelQualified": false,
+  "layer": 0,
+  "position": 2135,
+  "bitExact": true,
+  "gpuTraceSha256": "ea6e63aa9f7b9ae150fc2f4ed34ef905a5182adb994c9fc78b73013601fc9740",
+  "modelObservationSha256": "940f5a0bffaf3bbdba77cdba4525b85ed7c660c230aef1ce056c5a68c7b7faee"
+}

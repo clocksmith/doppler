@@ -1,0 +1,9 @@
+{
+  "scope": "Bind value-projection observation to normal candidate",
+  "normalModelQualified": false,
+  "gpuObservationSha256": "a295d2e306e9cb360579d14b5afb7117c8a0704f51d210afb11ab3ca764e5130",
+  "modelObservationSha256": "940f5a0bffaf3bbdba77cdba4525b85ed7c660c230aef1ce056c5a68c7b7faee",
+  "layer": 15,
+  "position": 2135,
+  "bitExact": true
+}

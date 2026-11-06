@@ -163,3 +163,89 @@ post-repair lifecycle qualification and performance measurements remain open.
 Large JSON receipts and expanded run configurations are gzip-compressed without
 changing their original bytes. Decompress a run JSON before supplying its path
 to a provisioned test; the external models volume retains the original files.
+
+## Scale-aware follow-up and identical-input controls
+
+The layer-15 normalization jump is predominantly incoming error being rescaled.
+The updated stage comparison tool records reference RMS, absolute errors,
+RMS-normalized errors and individual stream measurements at every observed
+stage. Zero reference scale is explicit, with undefined nonzero/zero ratios
+represented as `null`, not a hidden epsilon. Four regression checks cover
+scale invariance, unequal stream magnitudes, zero scale and invalid data.
+
+The [plot](relative-prefix.png), [SVG](relative-prefix.svg) and
+[CSV](relative-prefix.csv) cover token 2135 in all layers 0–15 under the same
+identified subgroup-projection candidate. Each GPU router-input slice is
+bit-exact to its earlier normal full-model observation; each CPU slice is
+bit-exact to its independent frozen source prefix. See
+[bindings](relative-prefix-binding.json) and the
+[relative-stage receipt](relative-prefix-stage-comparison.json.gz).
+These are single-token stage observations, not full-tensor parity.
+
+At layer 15, the worst of four per-stream ratios is:
+
+| Stage | Maximum error / source RMS | RMS error / source RMS |
+| --- | ---: | ---: |
+| Attention HC input | 1.124e-4 | 1.541e-5 |
+| Attention HC norm | 1.629e-4 | 1.579e-5 |
+| MLP HC input | 5.941e-4 | 8.956e-5 |
+| MLP HC norm | 4.473e-4 | 8.798e-5 |
+
+The unchanged source norm, including epsilon and learned weights, was replayed
+on the exact GPU inputs at the original batch geometry. Replaying its original
+CPU input reproduces the frozen output bit-for-bit. Local GPU/source norm
+differences are at most 1.91e-6 (attention) and 3.81e-6 (MLP), versus total
+differences 1.68e-4 and 9.43e-4. This supports the scale diagnosis at these
+specific slices; it does not prove that every norm or earlier operator is exact.
+See the [same-input norm replay](relative-layer15-norm-same-input.json.gz).
+
+The earlier layer-0 down-projection difference at token 2003 is 2.136e-4
+against source output RMS 24.8316: a maximum-error/RMS ratio of 8.60e-6.
+For the subgroup candidate at token 2135, that ratio is 1.68e-6. Those are
+different inputs and kernel paths, not a controlled speed or accuracy ratio.
+
+The plot also shows growth during layer-15 attention. Identical-input controls
+localize it further:
+
+- The unchanged source attention on actual GPU query and stored F16 KV bytes
+  differs from the GPU core by at most 5.84e-6 (RMS 2.55e-7), versus a total
+  source/GPU difference of 4.14e-4 (RMS 1.81e-5). Its positive control exactly
+  reproduces the original source output row. Source-only substitutions of GPU
+  query, key or value inputs show that the value input dominates this row.
+  These substitutions are CPU operator diagnostics, never model qualification
+  or tensor feedback. See [attention control](attention-same-input-layer15.json).
+- All 1,179,648 stored V values match CPU F16 rounding of the GPU's actual
+  F32 projection outputs bit-for-bit. The V projection itself differs from the
+  same-input CPU projection by at most 2.86e-6 (RMS 8.91e-8), versus total
+  difference 1.69e-4 (RMS 4.68e-6). The source projection control reproduces
+  every original F32 V value. Earlier input drift crosses F16 rounding
+  boundaries; the cache writer is not introducing a separate encoding error.
+  See [value control](value-projection-control.json).
+- At layer 0, the full source linear-attention branch was replayed on the
+  exact GPU input. The original CPU replay reproduces every source output;
+  the checked GPU output row differs from the same-input source branch by
+  at most 4.02e-7 (RMS 6.11e-8). This is a localized numerical difference,
+  not evidence of an out-of-contract operator. See
+  [linear branch control](linear-layer0-same-input.json).
+
+Absolute jumps or a smooth relative trend alone cannot distinguish an operator
+defect from accumulated rounding and narrow-cache sensitivity. These controls
+do not establish irreducibility, and do not authorize a routing-aware gate.
+The next unresolved numerical boundary is the small local difference inside
+the layer-0 linear branch (projections, recurrent core and output). No further
+runtime defect was demonstrated in this follow-up, so no runtime math, dtype,
+artifact, kernel path default or tolerance was changed. The full model remains
+unqualified under the same failing gate.
+
+The new trace helper can capture complete branch inputs, raw attention outputs
+and actual KV bytes before cancellation rolls state back. One initial probe
+requested `post_input_norm`, which this HC path does not emit; its failed
+receipt is retained. The replacement reads the actual branch input directly.
+Successful diagnostic captures bind bit-for-bit to the normal candidate's
+router input and preserve normal computation.
+
+Component: `doppler.tests`, `doppler.docs`. Intent: preserved.
+Acceptance evidence: the physical readback/control receipts, four scale-metric
+regressions, JavaScript syntax and Python compilation checks, and rendered plot
+inspection. Boundary effects: test-only observations and descriptive metrics;
+production execution and the model acceptance policy are unchanged.

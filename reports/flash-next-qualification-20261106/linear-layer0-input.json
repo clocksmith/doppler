@@ -1,0 +1,467 @@
+{
+  "scope": "Layer-0 upstream observation with intentional abort before MoE; not a generated answer or model qualification",
+  "normalModelQualified": false,
+  "process": {
+    "pid": 735554,
+    "node": "22.22.1"
+  },
+  "manifestSha256": "4902a0b730a9310903b00bc0f8f587528fa1af9f37a722d2f9287bafceceec09",
+  "inputsSha256": "06a819d529593b58abd6cb27566bb835a9b91aac13a77c0c7479b7e4e7b0c378",
+  "runSha256": "ad3a6697736b8e37d1224e051014f60daa4f5f88cac78489c827ba2b1dc6e3c3",
+  "hyperConnectionGeometry": {
+    "semantics": "qwen4_exp_gated_residual",
+    "streamCount": 4,
+    "streamWidth": 2560,
+    "projectionRank": 320,
+    "normEps": 0.000001
+  },
+  "tensors": [
+    {
+      "layer": 0,
+      "role": "attn_hc",
+      "stage": "input",
+      "shape": [
+        1,
+        10240
+      ],
+      "originalShape": [
+        2304,
+        10240
+      ],
+      "positions": [
+        2135
+      ],
+      "file": "/run/media/x/models/qwen38-flash-next-de4b8e4d/qualify/linear-layer0-input-20261106.json.L0.attn_hc.input.f32",
+      "sha256": "5a92e126810ce616390b5a87d45e60976bbad7ad364dde3bbc8cd71bc1d0f54b"
+    },
+    {
+      "layer": 0,
+      "role": "attn_hc",
+      "stage": "norm",
+      "shape": [
+        1,
+        10240
+      ],
+      "originalShape": [
+        2304,
+        10240
+      ],
+      "positions": [
+        2135
+      ],
+      "file": "/run/media/x/models/qwen38-flash-next-de4b8e4d/qualify/linear-layer0-input-20261106.json.L0.attn_hc.norm.f32",
+      "sha256": "704f6de9b76f840e19c7afcf106b4e971e297ea24f45367f722e073ba723cbf4"
+    },
+    {
+      "layer": 0,
+      "role": "attn_hc",
+      "stage": "down",
+      "shape": [
+        1,
+        320
+      ],
+      "originalShape": [
+        2304,
+        320
+      ],
+      "positions": [
+        2135
+      ],
+      "file": "/run/media/x/models/qwen38-flash-next-de4b8e4d/qualify/linear-layer0-input-20261106.json.L0.attn_hc.down.f32",
+      "sha256": "9bfa3887f069fff5528b69bfb6a724febe5cb19e853bede4936a78e776c2698b"
+    },
+    {
+      "layer": 0,
+      "role": "attn_hc",
+      "stage": "lowRank",
+      "shape": [
+        1,
+        320
+      ],
+      "originalShape": [
+        2304,
+        320
+      ],
+      "positions": [
+        2135
+      ],
+      "file": "/run/media/x/models/qwen38-flash-next-de4b8e4d/qualify/linear-layer0-input-20261106.json.L0.attn_hc.lowRank.f32",
+      "sha256": "476948c45fd08a7528b172e3d628db21d7ee103b3875b8c58d9958c5797d6479"
+    },
+    {
+      "layer": 0,
+      "role": "attn_hc",
+      "stage": "up",
+      "shape": [
+        1,
+        10240
+      ],
+      "originalShape": [
+        2304,
+        10240
+      ],
+      "positions": [
+        2135
+      ],
+      "file": "/run/media/x/models/qwen38-flash-next-de4b8e4d/qualify/linear-layer0-input-20261106.json.L0.attn_hc.up.f32",
+      "sha256": "652f6ff13dd78a8cab22a52d8bf9108377792b6342db400a77d949197f9672e1"
+    },
+    {
+      "layer": 0,
+      "role": "attn_hc",
+      "stage": "mix",
+      "shape": [
+        1,
+        10240
+      ],
+      "originalShape": [
+        2304,
+        10240
+      ],
+      "positions": [
+        2135
+      ],
+      "file": "/run/media/x/models/qwen38-flash-next-de4b8e4d/qualify/linear-layer0-input-20261106.json.L0.attn_hc.mix.f32",
+      "sha256": "04eba19713b88fd252c81cc9079589df92551af6f74350b31ed596e20b0e8012"
+    },
+    {
+      "layer": 0,
+      "role": "attn_hc",
+      "stage": "branchInput",
+      "shape": [
+        1,
+        2560
+      ],
+      "originalShape": [
+        2304,
+        2560
+      ],
+      "positions": [
+        2135
+      ],
+      "file": "/run/media/x/models/qwen38-flash-next-de4b8e4d/qualify/linear-layer0-input-20261106.json.L0.attn_hc.branchInput.f32",
+      "sha256": "7b723352866cbf7fede4866ad044e5da97bc9d64707d31281e8807b15af904a2"
+    },
+    {
+      "layer": 0,
+      "role": "attn_hc",
+      "stage": "logits",
+      "shape": [
+        1,
+        4
+      ],
+      "originalShape": [
+        2304,
+        4
+      ],
+      "positions": [
+        2135
+      ],
+      "file": "/run/media/x/models/qwen38-flash-next-de4b8e4d/qualify/linear-layer0-input-20261106.json.L0.attn_hc.logits.f32",
+      "sha256": "6df43507496053e6aed68d286e38e1ae717f6534541a93e5a9b39cd5e22d363b"
+    },
+    {
+      "layer": 0,
+      "role": "attn_hc",
+      "stage": "gate",
+      "shape": [
+        1,
+        4
+      ],
+      "originalShape": [
+        2304,
+        4
+      ],
+      "positions": [
+        2135
+      ],
+      "file": "/run/media/x/models/qwen38-flash-next-de4b8e4d/qualify/linear-layer0-input-20261106.json.L0.attn_hc.gate.f32",
+      "sha256": "e3f63c0c319190485d3bec31d1b045c5325661874332972238550dadd7b460e3"
+    },
+    {
+      "layer": 0,
+      "role": "attn_hc",
+      "stage": "branchOutput",
+      "shape": [
+        1,
+        2560
+      ],
+      "originalShape": [
+        2304,
+        2560
+      ],
+      "positions": [
+        2135
+      ],
+      "file": "/run/media/x/models/qwen38-flash-next-de4b8e4d/qualify/linear-layer0-input-20261106.json.L0.attn_hc.branchOutput.f32",
+      "sha256": "93ae561714d47d43577010bdb00cbf94d9bf2872aed991d939584032b84b59a2"
+    },
+    {
+      "layer": 0,
+      "role": "attn_hc",
+      "stage": "injected",
+      "shape": [
+        1,
+        10240
+      ],
+      "originalShape": [
+        2304,
+        10240
+      ],
+      "positions": [
+        2135
+      ],
+      "file": "/run/media/x/models/qwen38-flash-next-de4b8e4d/qualify/linear-layer0-input-20261106.json.L0.attn_hc.injected.f32",
+      "sha256": "4e7e275b669e46350e9a438f32b62ac52e7e319919538a8d09140bbefafd5323"
+    },
+    {
+      "layer": 0,
+      "role": "mlp_hc",
+      "stage": "input",
+      "shape": [
+        1,
+        10240
+      ],
+      "originalShape": [
+        2304,
+        10240
+      ],
+      "positions": [
+        2135
+      ],
+      "file": "/run/media/x/models/qwen38-flash-next-de4b8e4d/qualify/linear-layer0-input-20261106.json.L0.mlp_hc.input.f32",
+      "sha256": "4e7e275b669e46350e9a438f32b62ac52e7e319919538a8d09140bbefafd5323"
+    },
+    {
+      "layer": 0,
+      "role": "mlp_hc",
+      "stage": "norm",
+      "shape": [
+        1,
+        10240
+      ],
+      "originalShape": [
+        2304,
+        10240
+      ],
+      "positions": [
+        2135
+      ],
+      "file": "/run/media/x/models/qwen38-flash-next-de4b8e4d/qualify/linear-layer0-input-20261106.json.L0.mlp_hc.norm.f32",
+      "sha256": "5cf37beafc7bcf1a67e3026b71950d8c69acee5542922368279e531fbe7a85b7"
+    },
+    {
+      "layer": 0,
+      "role": "mlp_hc",
+      "stage": "down",
+      "shape": [
+        1,
+        320
+      ],
+      "originalShape": [
+        2304,
+        320
+      ],
+      "positions": [
+        2135
+      ],
+      "file": "/run/media/x/models/qwen38-flash-next-de4b8e4d/qualify/linear-layer0-input-20261106.json.L0.mlp_hc.down.f32",
+      "sha256": "5139d516db974a1c4f015319d0082fa9ff3fae3d0a129dc91ce9faf904ede3c8"
+    },
+    {
+      "layer": 0,
+      "role": "mlp_hc",
+      "stage": "lowRank",
+      "shape": [
+        1,
+        320
+      ],
+      "originalShape": [
+        2304,
+        320
+      ],
+      "positions": [
+        2135
+      ],
+      "file": "/run/media/x/models/qwen38-flash-next-de4b8e4d/qualify/linear-layer0-input-20261106.json.L0.mlp_hc.lowRank.f32",
+      "sha256": "75157bd12278c1d49db0cae843dbdad500181c81b5eaa17804f063e5ba1b40f4"
+    },
+    {
+      "layer": 0,
+      "role": "mlp_hc",
+      "stage": "up",
+      "shape": [
+        1,
+        10240
+      ],
+      "originalShape": [
+        2304,
+        10240
+      ],
+      "positions": [
+        2135
+      ],
+      "file": "/run/media/x/models/qwen38-flash-next-de4b8e4d/qualify/linear-layer0-input-20261106.json.L0.mlp_hc.up.f32",
+      "sha256": "58892827b1813f0db57beb696e9b13e2370ef7793c5b21483b496e65bd27831e"
+    },
+    {
+      "layer": 0,
+      "role": "mlp_hc",
+      "stage": "mix",
+      "shape": [
+        1,
+        10240
+      ],
+      "originalShape": [
+        2304,
+        10240
+      ],
+      "positions": [
+        2135
+      ],
+      "file": "/run/media/x/models/qwen38-flash-next-de4b8e4d/qualify/linear-layer0-input-20261106.json.L0.mlp_hc.mix.f32",
+      "sha256": "2752f1b09c210c1f8262ea5a4d32407622546fcf3da2ae887c29842e90c6de6c"
+    },
+    {
+      "layer": 0,
+      "role": "mlp_hc",
+      "stage": "branchInput",
+      "shape": [
+        1,
+        2560
+      ],
+      "originalShape": [
+        2304,
+        2560
+      ],
+      "positions": [
+        2135
+      ],
+      "file": "/run/media/x/models/qwen38-flash-next-de4b8e4d/qualify/linear-layer0-input-20261106.json.L0.mlp_hc.branchInput.f32",
+      "sha256": "cf28da38f4322fa00740a0ab5d44c2cc3a7ac81129fb8ce7d61aee0bc39e9839"
+    },
+    {
+      "layer": 0,
+      "role": "mlp_hc",
+      "stage": "logits",
+      "shape": [
+        1,
+        4
+      ],
+      "originalShape": [
+        2304,
+        4
+      ],
+      "positions": [
+        2135
+      ],
+      "file": "/run/media/x/models/qwen38-flash-next-de4b8e4d/qualify/linear-layer0-input-20261106.json.L0.mlp_hc.logits.f32",
+      "sha256": "766463e85aa9e62ed3e8b79c2d549e15faadd7d689ba7e5ddfda716acda545ba"
+    },
+    {
+      "layer": 0,
+      "role": "mlp_hc",
+      "stage": "gate",
+      "shape": [
+        1,
+        4
+      ],
+      "originalShape": [
+        2304,
+        4
+      ],
+      "positions": [
+        2135
+      ],
+      "file": "/run/media/x/models/qwen38-flash-next-de4b8e4d/qualify/linear-layer0-input-20261106.json.L0.mlp_hc.gate.f32",
+      "sha256": "148449ab42e5dde9d07b088f29e9241d7cdc1c217c5082aa29ffc39e2a9376ee"
+    }
+  ],
+  "provider": {
+    "schema": "doe.webgpu-provider-receipt/v1",
+    "contract": "doe.webgpu-provider/v1",
+    "implementation": "doppler",
+    "providers": [
+      {
+        "id": "pre-installed",
+        "kind": "global"
+      },
+      {
+        "id": "webgpu",
+        "kind": "module",
+        "module": "webgpu",
+        "gpu": {
+          "kind": "factory",
+          "path": "create",
+          "args": [
+            [
+              "enable-dawn-features=allow_unsafe_apis"
+            ]
+          ]
+        },
+        "globals": {
+          "GPUBufferUsage": "globals.GPUBufferUsage",
+          "GPUShaderStage": "globals.GPUShaderStage",
+          "GPUMapMode": "globals.GPUMapMode",
+          "GPUTextureUsage": "globals.GPUTextureUsage"
+        }
+      }
+    ],
+    "providerOrder": [
+      "pre-installed",
+      "webgpu"
+    ],
+    "adapterOptions": null,
+    "globals": {
+      "mode": "replace",
+      "installed": [
+        "GPUBufferUsage",
+        "GPUShaderStage",
+        "GPUMapMode",
+        "GPUTextureUsage",
+        "navigator.gpu"
+      ],
+      "restored": true
+    },
+    "attempts": [
+      {
+        "providerId": "pre-installed",
+        "kind": "global",
+        "module": null,
+        "ok": false,
+        "stage": "gpu.validate",
+        "code": "DOPPLER_PROVIDER_UNAVAILABLE",
+        "detail": "Selected provider does not expose GPU.requestAdapter()."
+      },
+      {
+        "providerId": "webgpu",
+        "kind": "module",
+        "module": "webgpu",
+        "ok": true,
+        "stage": "complete",
+        "code": null,
+        "detail": null
+      }
+    ],
+    "selectedProviderId": "webgpu",
+    "ok": true
+  },
+  "attentionProjectionInput": {
+    "dtype": "f32",
+    "shape": [
+      2304,
+      2560
+    ],
+    "file": "/run/media/x/models/qwen38-flash-next-de4b8e4d/qualify/linear-layer0-input-20261106.json.attention-input.f32",
+    "sha256": "5f504e750e6e95c1bae807c98e0b9b1f2fb40a38f69e0c22f9c06eb22523e5db"
+  },
+  "diagnosticCompleted": true,
+  "instrumentation": {
+    "scope": "Test-only awaited observations; no arithmetic replacement",
+    "sourceUrl": "file:///home/x/src/doppler-qualification-603ef2dc/src/inference/pipelines/text/hyper-connection/decoder-layer.js",
+    "originalSha256": "e3b3680997052f5cc864e82bd88adec0dfe6403d57484c8a1c5c2f085a9691ad",
+    "instrumentedSha256": "c92213743c52c40594650b4cff8bc57e31e4f8621a4081f279e2251c32cd8a5b"
+  },
+  "gpuErrors": [],
+  "cleanupFailures": []
+}

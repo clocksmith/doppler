@@ -38,20 +38,24 @@ assert text.count(anchor) == 1
 text = text.replace(anchor, anchor + '''
         TRACE_TENSORS = []
         TRACE_STOP = RuntimeError('trace: layer-0 upstream captured')
-        def save_trace(role, stage, value):
+        def save_trace(role, stage, value, full=False):
             values = value.detach().float().reshape(2304, -1).contiguous().numpy()
-            if TRACE_POSITIONS is not None: values = values[TRACE_POSITIONS]
+            if TRACE_POSITIONS is not None and not full: values = values[TRACE_POSITIONS]
             target = OUT / f'{role}.{stage}.npy'
             np.save(target, values, allow_pickle=False)
-            TRACE_TENSORS.append({'role': role, 'stage': stage, 'shape': list(values.shape), 'positions': TRACE_POSITIONS,
+            TRACE_TENSORS.append({'role': role, 'stage': stage, 'shape': list(values.shape), 'positions': None if full else TRACE_POSITIONS,
                                   'file': target.name, 'sha256': hashlib.sha256(target.read_bytes()).hexdigest()})
         def before_hc(role):
-            def hook(module, inputs): save_trace(role, 'input', inputs[0])
+            def hook(module, inputs):
+                save_trace(role, 'input', inputs[0])
+                if role == 'mlp_hc': save_trace('attn_hc', 'injected', inputs[0])
             return hook
         def output_hc(role):
             def hook(module, inputs, result):
                 save_trace(role, 'branchInput', result[0])
                 save_trace(role, 'gate', result[2])
+                if role == 'attn_hc':
+                    save_trace('attention', 'projectionInput', result[0], full=True)
                 if role == 'mlp_hc': raise TRACE_STOP
             return hook
         def output_hook(role, stage):
@@ -70,10 +74,36 @@ text = text.replace(anchor, anchor + '''
                 hooks.append(getattr(module, name).register_forward_hook(output_hook(role, stage)))
             hooks.append(module.input_mix_weight_up.register_forward_pre_hook(low_rank(role)))
         if hasattr(layer, 'linear_attn'):
+            def linear_output(module, inputs, result):
+                save_trace('attn_hc', 'branchOutput', result)
+                save_trace('linear', 'branchOutput', result, full=True)
+            hooks.append(layer.linear_attn.register_forward_hook(linear_output))
             for name, stage in [('in_proj_qkv', 'attn.qkv_proj'), ('in_proj_z', 'attn.linear_z_proj'),
                                 ('in_proj_a', 'attn.linear_a_proj'), ('in_proj_b', 'attn.linear_b_proj'),
                                 ('norm', 'attn.linear_core_out')]:
                 hooks.append(getattr(layer.linear_attn, name).register_forward_hook(output_hook('linear', stage)))
+        else:
+            assert KV_F16
+            trace_original_core = upstream_attention
+            def observe_core(module, query, key, value, *args, **kwargs):
+                save_trace('attention', 'query', query.transpose(1, 2), full=True)
+                save_trace('attention', 'cachedKey', key.transpose(1, 2), full=True)
+                save_trace('attention', 'cachedValue', value.transpose(1, 2), full=True)
+                mask = args[0] if args else kwargs['attention_mask']
+                save_trace('attention', 'mask', mask)
+                result = trace_original_core(module, query, key, value, *args, **kwargs)
+                save_trace('attention', 'attn.core_out', result[0])
+                return result
+            upstream_attention = observe_core
+            def attention_output(module, inputs, result):
+                save_trace('attn_hc', 'branchOutput', result[0])
+            def output_projection_input(module, inputs):
+                save_trace('attention', 'gatedCore', inputs[0])
+            hooks.append(layer.self_attn.register_forward_hook(attention_output))
+            hooks.append(layer.self_attn.o_proj.register_forward_pre_hook(output_projection_input))
+            def value_projection(module, inputs, result):
+                save_trace('attention', 'attn.v_proj', result, full=True)
+            hooks.append(layer.self_attn.v_proj.register_forward_hook(value_projection))
 ''')
 sys.argv = [str(producer), str(source), str(output), '--dtype', 'float32',
             '--artifact', str(artifact), '--sequences', 'long', '--kv-dtype', 'f16']
@@ -87,7 +117,9 @@ except Exception as error:
 sha = lambda b: hashlib.sha256(b).hexdigest()
 report = dict(schema='doppler.flash-next-cpu-upstream-trace/v1', diagnosticCompleted=True,
               scope=f'Pinned CPU upstream stage observations, intentionally stopped before layer-{target_layer} MoE; no GPU values or model qualification',
-              normalModelQualified=False, producerSha256=sha(original), instrumentedProducerSha256=sha(text.encode()),
+              normalModelQualified=False, layer=target_layer,
+              hyperConnectionGeometry=json.loads((artifact / 'manifest.json').read_bytes())['inference']['hyperConnections'],
+              producerSha256=sha(original), instrumentedProducerSha256=sha(text.encode()),
               instrumentSha256=sha(Path(__file__).read_bytes()),
               manifestSha256=sha(environment['ARTIFACT_MANIFEST_BYTES']),
               inputsSha256=sha(environment['INPUTS_PATH'].read_bytes()), tensors=environment['TRACE_TENSORS'])

@@ -1,0 +1,30 @@
+{
+  "scope": "Bind attention-input observation to original normal candidate row",
+  "normalModelQualified": false,
+  "gpuObservationSha256": "db1d29bea5c5837af23516067f33a05ae4b0b21d93b91d12380d1a0c3dea67d6",
+  "modelObservationSha256": "940f5a0bffaf3bbdba77cdba4525b85ed7c660c230aef1ce056c5a68c7b7faee",
+  "layer": 15,
+  "position": 2135,
+  "bitExact": true,
+  "kv": {
+    "layer": 15,
+    "dtype": "f16",
+    "layout": "contiguous",
+    "tokens": 2304,
+    "numHeads": 24,
+    "numKVHeads": 2,
+    "headDim": 256,
+    "tensors": [
+      {
+        "kind": "key",
+        "file": "/run/media/x/models/qwen38-flash-next-de4b8e4d/qualify/attention-input-layer15-20261106.json.cached-key.f16",
+        "sha256": "25135fff97e11966c8df5c978daa2361ebe03da712e2dc2607f0d43b4ed7413b"
+      },
+      {
+        "kind": "value",
+        "file": "/run/media/x/models/qwen38-flash-next-de4b8e4d/qualify/attention-input-layer15-20261106.json.cached-value.f16",
+        "sha256": "ca30a1fd425a623bf679d822bbf89722c3755cb07e33a86ee2363e842728d56e"
+      }
+    ]
+  }
+}

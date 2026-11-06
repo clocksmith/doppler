@@ -1,0 +1,51 @@
+{
+  "scope": "Unchanged layer-0 CPU GDN on exact GPU input; no tensor feedback or model acceptance",
+  "normalModelQualified": false,
+  "gpuTraceSha256": "ea6e63aa9f7b9ae150fc2f4ed34ef905a5182adb994c9fc78b73013601fc9740",
+  "cpuTraceSha256": "a836a57d19c05b72425033180bfc61eb696245e34a077219c4ddd72418ff6397",
+  "scriptSha256": "ac97d41cc74a76bfc1b3ff34c139075b3f745235356878445c3e8f98343c72e7",
+  "torch": "2.11.0+cu130",
+  "sourceGeometryReplayBitExact": true,
+  "layer": 0,
+  "position": 2135,
+  "input": {
+    "referenceRms": 0.7578822087094946,
+    "referenceMaxAbsolute": 16.928565979003906,
+    "observedRms": 0.7578822036361846,
+    "maxAbsoluteDifference": 6.67572021484375e-06,
+    "rmsDifference": 8.261507053431937e-08,
+    "maxErrorOverReferenceRms": 8.808387554328557e-06,
+    "rmsErrorOverReferenceRms": 1.0900779776186397e-07,
+    "relativeErrorDefined": true
+  },
+  "total": {
+    "referenceRms": 0.08815428582174499,
+    "referenceMaxAbsolute": 0.613983690738678,
+    "observedRms": 0.08815430010972852,
+    "maxAbsoluteDifference": 4.172325134277344e-07,
+    "rmsDifference": 6.178328783528594e-08,
+    "maxErrorOverReferenceRms": 4.7329804732513156e-06,
+    "rmsErrorOverReferenceRms": 7.008540453746818e-07,
+    "relativeErrorDefined": true
+  },
+  "localOnSameGpuInput": {
+    "referenceRms": 0.08815429280343705,
+    "referenceMaxAbsolute": 0.6139838099479675,
+    "observedRms": 0.08815430010972852,
+    "maxAbsoluteDifference": 4.023313522338867e-07,
+    "rmsDifference": 6.107694624714084e-08,
+    "maxErrorOverReferenceRms": 4.563945094891627e-06,
+    "rmsErrorOverReferenceRms": 6.928414295527025e-07,
+    "relativeErrorDefined": true
+  },
+  "propagatedInput": {
+    "referenceRms": 0.08815428582174499,
+    "referenceMaxAbsolute": 0.613983690738678,
+    "observedRms": 0.08815429280343705,
+    "maxAbsoluteDifference": 1.4901161193847656e-07,
+    "rmsDifference": 2.7108606244629605e-08,
+    "maxErrorOverReferenceRms": 1.6903501690183272e-06,
+    "rmsErrorOverReferenceRms": 3.0751319679959035e-07,
+    "relativeErrorDefined": true
+  }
+}

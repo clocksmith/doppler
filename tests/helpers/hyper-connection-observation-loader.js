@@ -35,6 +35,13 @@ export function installHyperConnectionObservation(url, expectedSha256, observe) 
         const tensor = value === 'norm' ? 'normed' : value;
         text = text.replace(anchor, i === 0 ? value : `${anchor}\n    await globalThis[Symbol.for('doppler.test.hyper-connection-observation')]?.({ role, stage: '${value}', tensor: ${tensor}, numTokens });`);
       }
+      for (const [anchor, stage, tensor] of [
+        ['output = await branch(branchInput);', 'branchOutput', 'output'],
+        ['const injected = await operators(target).inject(streams, output, gate,\n      { numTokens, streamCount: hyper.streamCount, streamWidth: hyper.streamWidth });', 'injected', 'injected'],
+      ]) {
+        assert.equal(text.split(anchor).length - 1, 1, `unambiguous ${stage} trace anchor`);
+        text = text.replace(anchor, `${anchor}\n    await globalThis[Symbol.for('doppler.test.hyper-connection-observation')]?.({ role, stage: '${stage}', tensor: ${tensor}, numTokens });`);
+      }
       receipt.originalSha256 = expectedSha256;
       receipt.instrumentedSha256 = hash(text);
       return { ...result, source: text };

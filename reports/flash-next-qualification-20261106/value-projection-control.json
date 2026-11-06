@@ -1,0 +1,58 @@
+{
+  "scope": "Learned V projection and exact F16 cache encoding controls; not model acceptance",
+  "normalModelQualified": false,
+  "gpuTraceSha256": "a295d2e306e9cb360579d14b5afb7117c8a0704f51d210afb11ab3ca764e5130",
+  "cpuTraceSha256": "f3569d6ceb2ab11991d1085f3b5945aa640fde0f1e284db64518d9593b5971f9",
+  "manifestSha256": "4902a0b730a9310903b00bc0f8f587528fa1af9f37a722d2f9287bafceceec09",
+  "producerSha256": "f6bc0f15a6545ab1d205cfc3ec412442415220e541190b63a9c712fa238ba5b0",
+  "scriptSha256": "d02beb748780c94a7ed8825da1f252600e3451803569ffa1f58d5d1f4b68960d",
+  "weightsF32Sha256": "97d50356c5b86afce3b8a9361ee23be7a083417fe9e585adf46708587fed79e4",
+  "torch": "2.11.0+cu130",
+  "threads": 16,
+  "layer": 15,
+  "sourceGeometryReplayBitExact": true,
+  "comparedValues": 1179648,
+  "cacheBitsDifferFromCpuRounding": 0,
+  "cacheBitsDifferFromSource": 41803,
+  "totalProjection": {
+    "referenceRms": 0.5663388104793737,
+    "referenceMaxAbsolute": 11.437030792236328,
+    "observedRms": 0.5663388535311454,
+    "maxAbsoluteDifference": 0.0001685619354248047,
+    "rmsDifference": 4.676129586149285e-06,
+    "maxErrorOverReferenceRms": 0.0002976344412669274,
+    "rmsErrorOverReferenceRms": 8.256770504905369e-06,
+    "relativeErrorDefined": true
+  },
+  "localProjectionOnSameGpuInput": {
+    "referenceRms": 0.5663388535449793,
+    "referenceMaxAbsolute": 11.43702507019043,
+    "observedRms": 0.5663388535311454,
+    "maxAbsoluteDifference": 2.86102294921875e-06,
+    "rmsDifference": 8.908179485101097e-08,
+    "maxErrorOverReferenceRms": 5.051786454894047e-06,
+    "rmsErrorOverReferenceRms": 1.5729416107230933e-07,
+    "relativeErrorDefined": true
+  },
+  "propagatedInput": {
+    "referenceRms": 0.5663388104793737,
+    "referenceMaxAbsolute": 11.437030792236328,
+    "observedRms": 0.5663388535449793,
+    "maxAbsoluteDifference": 0.00016808509826660156,
+    "rmsDifference": 4.676445625512208e-06,
+    "maxErrorOverReferenceRms": 0.0002967924767937536,
+    "rmsErrorOverReferenceRms": 8.25732854429288e-06,
+    "relativeErrorDefined": true
+  },
+  "input": {
+    "referenceRms": 0.26208496318014685,
+    "referenceMaxAbsolute": 9.96838665008545,
+    "observedRms": 0.2620849593977868,
+    "maxAbsoluteDifference": 0.00016689300537109375,
+    "rmsDifference": 4.05142694423506e-06,
+    "maxErrorOverReferenceRms": 0.0006367897011183281,
+    "rmsErrorOverReferenceRms": 1.545844864609905e-05,
+    "relativeErrorDefined": true
+  },
+  "mismatchedCacheExamples": []
+}

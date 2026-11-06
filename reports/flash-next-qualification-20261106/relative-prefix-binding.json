@@ -1,0 +1,136 @@
+{
+  "scope": "Bindings for observational traces; no model qualification",
+  "normalModelQualified": false,
+  "gpuTraceSha256": "e0308adcbc0d2e2a238535cd0773657a3472f69f9fff1712f3101a76c50cea5c",
+  "modelObservationSha256": "940f5a0bffaf3bbdba77cdba4525b85ed7c660c230aef1ce056c5a68c7b7faee",
+  "rows": [
+    {
+      "layer": 0,
+      "position": 2135,
+      "gpuNormalRunBitExact": true,
+      "cpuFrozenPrefixBitExact": true,
+      "sourcePrefixReceiptSha256": "ea4aa5314aa3bb5aa9137549d1837d1d30ef0eac1c8869de92b6e8e734d9ffc4",
+      "sourceRouterFixtureSha256": "b15412bdd0016996b86721317711e318823b2bb3b17d9ad060d9fd23251ec28e"
+    },
+    {
+      "layer": 1,
+      "position": 2135,
+      "gpuNormalRunBitExact": true,
+      "cpuFrozenPrefixBitExact": true,
+      "sourcePrefixReceiptSha256": "ea4aa5314aa3bb5aa9137549d1837d1d30ef0eac1c8869de92b6e8e734d9ffc4",
+      "sourceRouterFixtureSha256": "ad458de1ab5e4e757246fd2bd523116b5ede70303e5b5665c8862469fbdc42a3"
+    },
+    {
+      "layer": 2,
+      "position": 2135,
+      "gpuNormalRunBitExact": true,
+      "cpuFrozenPrefixBitExact": true,
+      "sourcePrefixReceiptSha256": "ea4aa5314aa3bb5aa9137549d1837d1d30ef0eac1c8869de92b6e8e734d9ffc4",
+      "sourceRouterFixtureSha256": "c17a78298cddba76a1f4e75c4e26f34435ae569b0896f4636d3d2410cec5f232"
+    },
+    {
+      "layer": 3,
+      "position": 2135,
+      "gpuNormalRunBitExact": true,
+      "cpuFrozenPrefixBitExact": true,
+      "sourcePrefixReceiptSha256": "ea4aa5314aa3bb5aa9137549d1837d1d30ef0eac1c8869de92b6e8e734d9ffc4",
+      "sourceRouterFixtureSha256": "d6f2401251d90bc5b9e7b8e6959415b2d9840864e6ed5d4346f7a2aa36bdc31e"
+    },
+    {
+      "layer": 4,
+      "position": 2135,
+      "gpuNormalRunBitExact": true,
+      "cpuFrozenPrefixBitExact": true,
+      "sourcePrefixReceiptSha256": "ea4aa5314aa3bb5aa9137549d1837d1d30ef0eac1c8869de92b6e8e734d9ffc4",
+      "sourceRouterFixtureSha256": "33b6145ea1403defb9a05009e8f24733c5b24d0404da8e55310b9a3ed3eaa020"
+    },
+    {
+      "layer": 5,
+      "position": 2135,
+      "gpuNormalRunBitExact": true,
+      "cpuFrozenPrefixBitExact": true,
+      "sourcePrefixReceiptSha256": "ea4aa5314aa3bb5aa9137549d1837d1d30ef0eac1c8869de92b6e8e734d9ffc4",
+      "sourceRouterFixtureSha256": "23b53adfb1a0671616159e12f8fb43b07c30aab7474d290ce9f4e1d60aafe17e"
+    },
+    {
+      "layer": 6,
+      "position": 2135,
+      "gpuNormalRunBitExact": true,
+      "cpuFrozenPrefixBitExact": true,
+      "sourcePrefixReceiptSha256": "ea4aa5314aa3bb5aa9137549d1837d1d30ef0eac1c8869de92b6e8e734d9ffc4",
+      "sourceRouterFixtureSha256": "e16256554631592e6e9d7d8b932299b0d0cbe51e41b7bb4b24db4ad02d729e37"
+    },
+    {
+      "layer": 7,
+      "position": 2135,
+      "gpuNormalRunBitExact": true,
+      "cpuFrozenPrefixBitExact": true,
+      "sourcePrefixReceiptSha256": "ea4aa5314aa3bb5aa9137549d1837d1d30ef0eac1c8869de92b6e8e734d9ffc4",
+      "sourceRouterFixtureSha256": "8b780259a3bb29b95db990d92c7db74c715c8a8014ca3f40ea7eea4e0b36d56d"
+    },
+    {
+      "layer": 8,
+      "position": 2135,
+      "gpuNormalRunBitExact": true,
+      "cpuFrozenPrefixBitExact": true,
+      "sourcePrefixReceiptSha256": "3b6a84c11ba9b07f54cfad69b12f536988694a17167075cacb9374a3d77173f8",
+      "sourceRouterFixtureSha256": "9dd8ac5cc993c9e00a80432c16811b063952f5034265d03310d85332b1b9a178"
+    },
+    {
+      "layer": 9,
+      "position": 2135,
+      "gpuNormalRunBitExact": true,
+      "cpuFrozenPrefixBitExact": true,
+      "sourcePrefixReceiptSha256": "3b6a84c11ba9b07f54cfad69b12f536988694a17167075cacb9374a3d77173f8",
+      "sourceRouterFixtureSha256": "4a5fec4b6aca1f2764ef42dc3055c99036cb2f246b9c473fc90a24a154eb74f8"
+    },
+    {
+      "layer": 10,
+      "position": 2135,
+      "gpuNormalRunBitExact": true,
+      "cpuFrozenPrefixBitExact": true,
+      "sourcePrefixReceiptSha256": "3b6a84c11ba9b07f54cfad69b12f536988694a17167075cacb9374a3d77173f8",
+      "sourceRouterFixtureSha256": "7ed4bf0dc93f4a3496d0be5b0583d2d13ccbb3214b5b47f835bab308dff34f7a"
+    },
+    {
+      "layer": 11,
+      "position": 2135,
+      "gpuNormalRunBitExact": true,
+      "cpuFrozenPrefixBitExact": true,
+      "sourcePrefixReceiptSha256": "3b6a84c11ba9b07f54cfad69b12f536988694a17167075cacb9374a3d77173f8",
+      "sourceRouterFixtureSha256": "6fed51356a5dc473993becb109bb18d0cfc7bd12df3d3d0e19e859299aa3666b"
+    },
+    {
+      "layer": 12,
+      "position": 2135,
+      "gpuNormalRunBitExact": true,
+      "cpuFrozenPrefixBitExact": true,
+      "sourcePrefixReceiptSha256": "3b6a84c11ba9b07f54cfad69b12f536988694a17167075cacb9374a3d77173f8",
+      "sourceRouterFixtureSha256": "51355b7721e646a8f79b981b68b1662666b7be5c883cc148fe0c5965f5ab8062"
+    },
+    {
+      "layer": 13,
+      "position": 2135,
+      "gpuNormalRunBitExact": true,
+      "cpuFrozenPrefixBitExact": true,
+      "sourcePrefixReceiptSha256": "3b6a84c11ba9b07f54cfad69b12f536988694a17167075cacb9374a3d77173f8",
+      "sourceRouterFixtureSha256": "2844f8b413260931b841fc4405ca7f5d006de76cf351c920a65d144a604611f8"
+    },
+    {
+      "layer": 14,
+      "position": 2135,
+      "gpuNormalRunBitExact": true,
+      "cpuFrozenPrefixBitExact": true,
+      "sourcePrefixReceiptSha256": "3d3f6b932e4d51a052d7def416fc92be071dfc487d17f39902c8281c477f8e6e",
+      "sourceRouterFixtureSha256": "0fd5bcb5cfdb1d250e92dc0b84797a5c1d92fb8b6adc5642c29dd2ddfa92c948"
+    },
+    {
+      "layer": 15,
+      "position": 2135,
+      "gpuNormalRunBitExact": true,
+      "cpuFrozenPrefixBitExact": true,
+      "sourcePrefixReceiptSha256": "3d3f6b932e4d51a052d7def416fc92be071dfc487d17f39902c8281c477f8e6e",
+      "sourceRouterFixtureSha256": "33876cab86dd529ed952f68d6bd6b5edb308d23a1ed61a8d48098077390e7bbe"
+    }
+  ]
+}

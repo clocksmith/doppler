@@ -22,7 +22,8 @@ if (!runPath) {
   const originalSource = await fs.readFile(sourceURL);
   const report = { scope: 'Layer-0 upstream observation with intentional abort before MoE; not a generated answer or model qualification',
     normalModelQualified: false, process: { pid: process.pid, node: process.versions.node },
-    manifestSha256: hash(manifestBytes), inputsSha256: hash(inputsBytes), runSha256: hash(runBytes), tensors: [] };
+    manifestSha256: hash(manifestBytes), inputsSha256: hash(inputsBytes), runSha256: hash(runBytes),
+    hyperConnectionGeometry: manifest.inference.hyperConnections, tensors: [] };
   const controller = new AbortController(), stop = new Error('trace: requested upstream boundary captured');
   const stopLayer = run.stopBeforeMoeLayer ?? 0;
   assert(Number.isSafeInteger(stopLayer) && stopLayer >= 0 && stopLayer < manifest.architecture.numLayers);
@@ -49,6 +50,29 @@ if (!runPath) {
     await fs.writeFile(file, bytes);
     report.tensors.push({ layer, role: record.role, stage: record.stage, shape, originalShape: record.tensor.shape,
       positions: run.positions ?? null, file, sha256: hash(bytes) });
+    if (run.captureAttentionInput === true && layer === stopLayer && record.role === 'attn_hc' && record.stage === 'branchInput') {
+      const raw = Buffer.from(await readBuffer(record.tensor.buffer, record.tensor.shape.reduce((a, b) => a * b, 1) * 4));
+      const file = `${run.outputPath}.attention-input.f32`;
+      await fs.writeFile(file, raw);
+      report.attentionProjectionInput = { dtype: 'f32', shape: record.tensor.shape, file, sha256: hash(raw) };
+    }
+    if (run.captureAttentionKv === true && layer === stopLayer && record.role === 'attn_hc' && record.stage === 'branchOutput') {
+      const cache = pipeline.kvCache;
+      assert.equal(cache.layout, 'contiguous');
+      assert.equal(cache.bytesPerElem, 2);
+      const buffers = cache.getGPUBuffers(layer);
+      assert.equal(buffers.seqLen, input.tokens.length);
+      report.attentionKv = { layer, dtype: 'f16', layout: cache.layout, tokens: buffers.seqLen,
+        numHeads: manifest.architecture.numAttentionHeads, numKVHeads: manifest.architecture.numKeyValueHeads,
+        headDim: manifest.architecture.headDim, tensors: [] };
+      assert.equal(cache.kvSize, report.attentionKv.numKVHeads * report.attentionKv.headDim);
+      for (const [kind, buffer] of [['key', buffers.keysGPU], ['value', buffers.valuesGPU]]) {
+        const raw = Buffer.from(await readBuffer(buffer, buffers.seqLen * cache.kvSize * cache.bytesPerElem));
+        const file = `${run.outputPath}.cached-${kind}.f16`;
+        await fs.writeFile(file, raw);
+        report.attentionKv.tensors.push({ kind, file, sha256: hash(raw) });
+      }
+    }
     if (layer === stopLayer && record.role === 'mlp_hc' && record.stage === 'branchInput') controller.abort(stop);
   });
   let pipeline, destroyDevice, releaseNodeWebGPU, qsaObservation;
@@ -95,7 +119,9 @@ if (!runPath) {
         }
       }
     }
-    const targetStages = run.captureLinearStages === false ? [] : ['post_input_norm', 'linear_qkv_proj', 'linear_z_proj', 'linear_a_proj', 'linear_b_proj', 'linear_core_out'];
+    const targetStages = run.captureStages ?? (run.captureLinearStages === false ? [] : ['post_input_norm', 'linear_qkv_proj', 'linear_z_proj', 'linear_a_proj', 'linear_b_proj', 'linear_core_out']);
+    assert(targetStages.every(stage => Object.hasOwn(stages.PROBE_TO_CANONICAL, stage)), 'capture stages must name existing probe stages');
+    const captureRole = run.captureStages ? 'attention' : 'linear';
     await assert.rejects(pipeline.generateTokenIds('', { inputIds: input.tokens, useChatTemplate: false,
       signal: controller.signal, maxTokens: 1, temperature: 0, topK: 1, topP: 1, seed: 0,
       diagnostics: targetStages.length ? { enabled: true, captureConfig: { ...capture.createDefaultCaptureConfig(), enabled: true,
@@ -106,10 +132,10 @@ if (!runPath) {
       const bytes = Buffer.from(Float32Array.from(record.capture.data).buffer);
       const file = `${run.outputPath}.${record.stageName}.f32`;
       await fs.writeFile(file, bytes);
-      report.tensors.push({ layer: stopLayer, role: 'linear', stage: record.stageName, shape: record.capture.shape, file, sha256: hash(bytes) });
+      report.tensors.push({ layer: stopLayer, role: captureRole, stage: record.stageName, shape: record.capture.shape, file, sha256: hash(bytes) });
     }
     assert(report.tensors.some(row => row.layer === stopLayer && row.role === 'mlp_hc' && row.stage === 'branchInput'));
-    assert.equal(report.tensors.filter(row => row.role === 'linear').length, targetStages.length);
+    assert.equal(report.tensors.filter(row => row.role === captureRole).length, targetStages.length);
     if (qsaObservation) {
       assert.deepEqual(qsaObservation.errors, []);
       report.qsaObservations = qsaObservation.records;
