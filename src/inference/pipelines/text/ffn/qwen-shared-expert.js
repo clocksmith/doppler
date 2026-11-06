@@ -1,5 +1,6 @@
 import { isWeightBuffer } from '../../../../gpu/weight-buffer.js';
 import { isNativeGpuBuffer } from '../../../../gpu/buffer-identity.js';
+import { createTensor } from '../../../../gpu/tensor.js';
 import { runMatmul, recordMatmul } from '../../../../gpu/kernels/matmul.js';
 import { runSiLU, recordSiLU } from '../../../../gpu/kernels/silu.js';
 import { runRepeatChannels, recordRepeatChannels } from '../../../../gpu/kernels/repeat_channels.js';
@@ -203,7 +204,8 @@ export async function runQwenSharedExpert(input, routed, weights, options) {
       { inChannels: numTokens, height: 1, width: 1, repeats: hiddenSize, outputBuffer: output('expanded', hiddenSize) }));
     const gated = keep(await activate(down, { size: numTokens * hiddenSize,
       gate: expandedGate, inputActivation: 'identity', gateActivation: 'sigmoid', swigluLimit, outputBuffer: output('gated', hiddenSize) }));
-    return await add(routed, gated, numTokens * hiddenSize, { outputBuffer: output('output', hiddenSize) });
+    const combined = await add(routed, gated, numTokens * hiddenSize, { outputBuffer: output('output', hiddenSize) });
+    return createTensor(combined.buffer, combined.dtype, [numTokens, hiddenSize], 'qwen_shared_expert_output');
   } finally {
     for (const buffer of owned) releaseOrTrack(recorder, buffer);
   }

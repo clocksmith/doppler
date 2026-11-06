@@ -1,0 +1,97 @@
+{
+  "baseline": "22ec6b27",
+  "baselineEntries": 1898,
+  "baselineUnpacked": 15535443,
+  "entryCount": 1902,
+  "packedBytes": 3640218,
+  "unpackedBytes": 15546564,
+  "changedShippedFiles": [
+    {
+      "path": "src/config/runtime/profiles/flash-next-paged-qualification.json",
+      "before": 0,
+      "after": 956,
+      "delta": 956
+    },
+    {
+      "path": "src/config/schema/loading.schema.d.ts",
+      "before": 6953,
+      "after": 7254,
+      "delta": 301
+    },
+    {
+      "path": "src/config/schema/loading.schema.js",
+      "before": 4052,
+      "after": 4462,
+      "delta": 410
+    },
+    {
+      "path": "src/inference/pipelines/text/ffn/moe.js",
+      "before": 5887,
+      "after": 5917,
+      "delta": 30
+    },
+    {
+      "path": "src/inference/pipelines/text/ffn/qwen-shared-expert.js",
+      "before": 12576,
+      "after": 12756,
+      "delta": 180
+    },
+    {
+      "path": "src/inference/pipelines/text/generator/decode.js",
+      "before": 39276,
+      "after": 39385,
+      "delta": 109
+    },
+    {
+      "path": "src/inference/pipelines/text/moe-gpu.js",
+      "before": 24223,
+      "after": 24325,
+      "delta": 102
+    },
+    {
+      "path": "src/inference/pipelines/text/moe-impl.d.ts",
+      "before": 4418,
+      "after": 4647,
+      "delta": 229
+    },
+    {
+      "path": "src/loader/doppler-loader.d.ts",
+      "before": 5886,
+      "after": 6136,
+      "delta": 250
+    },
+    {
+      "path": "src/loader/doppler-loader.js",
+      "before": 22646,
+      "after": 22782,
+      "delta": 136
+    },
+    {
+      "path": "src/loader/experts/qwen-paging.d.ts",
+      "before": 0,
+      "after": 738,
+      "delta": 738
+    },
+    {
+      "path": "src/loader/experts/qwen-paging.js",
+      "before": 0,
+      "after": 3809,
+      "delta": 3809
+    },
+    {
+      "path": "src/loader/model-load.js",
+      "before": 16751,
+      "after": 17187,
+      "delta": 436
+    },
+    {
+      "path": "src/loader/experts/expert-loader.d.ts",
+      "before": 0,
+      "after": 3435,
+      "delta": 3435,
+      "reason": "existing declaration newly reachable through qwen-paging declaration; generated package closure includes it"
+    }
+  ],
+  "auditedUnpackedDelta": 11121,
+  "crossNpmAllowance": 2158
+}

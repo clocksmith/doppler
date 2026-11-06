@@ -54,6 +54,7 @@ import {
 } from './experts/expert-loader.js';
 import { assembleShardData } from './tensors/tensor-reader.js';
 import { hasSourceTransform } from './tensors/source-transform.js';
+import { prepareQwenExpertLayer } from './experts/qwen-paging.js';
 import {
   load as loadImpl,
   _loadTensor as _loadTensorImpl,
@@ -181,7 +182,6 @@ export class DopplerLoader {
   weightRepresentationPlan = null;
   // Internal tracking
   
-  _normOffsetLogged = false;
   
   _normOffsetDebugLogged = false;
   
@@ -541,11 +541,7 @@ export class DopplerLoader {
   }
 
   _needsNormWeightOffset() {
-    const result = needsNormWeightOffset(this.manifest);
-    if (result && !this._normOffsetLogged) {
-      this._normOffsetLogged = true;
-    }
-    return result;
+    return needsNormWeightOffset(this.manifest);
   }
 
   async _loadEmbeddings(_onProgress) {
@@ -570,6 +566,11 @@ export class DopplerLoader {
 
   async loadExpert(layerIdx, expertIdx) {
     return loadExpertFromModule(this._getExpertLoaderContext(), layerIdx, expertIdx);
+  }
+
+  async prepareExpertLayer(layerIdx, consumerExperts, recorder = null, signal) {
+    return prepareQwenExpertLayer(this._getExpertLoaderContext(), layerIdx, consumerExperts,
+      this._loadingConfig.expertCache.qwen35Pager, recorder, signal);
   }
 
   _getExpertLoaderContext() {
@@ -713,7 +714,6 @@ export class DopplerLoader {
     this.weightRepresentationPlan = null;
     this._layerShardMap.clear();
     this.shardCache.clear();
-    this._normOffsetLogged = false;
 
     debugTrace.loader(' Model unloaded');
   }

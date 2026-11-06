@@ -650,6 +650,7 @@
         "src/loader/experts/expert-cache.js",
         "src/loader/experts/expert-loader.js",
         "src/loader/experts/expert-preparation.js",
+        "src/loader/experts/qwen-paging.js",
         "src/loader/final-weights-loader.js",
         "src/loader/gpu-tensor-materialization.js",
         "src/loader/hyper-connection-loader.js",
@@ -1908,6 +1909,7 @@
         "src/loader/experts/expert-cache.js",
         "src/loader/experts/expert-loader.js",
         "src/loader/experts/expert-preparation.js",
+        "src/loader/experts/qwen-paging.js",
         "src/loader/final-weights-loader.js",
         "src/loader/gpu-tensor-materialization.js",
         "src/loader/hyper-connection-loader.js",
@@ -3059,6 +3061,7 @@
         "src/loader/experts/expert-cache.js",
         "src/loader/experts/expert-loader.js",
         "src/loader/experts/expert-preparation.js",
+        "src/loader/experts/qwen-paging.js",
         "src/loader/final-weights-loader.js",
         "src/loader/gpu-tensor-materialization.js",
         "src/loader/hyper-connection-loader.js",
@@ -3950,6 +3953,7 @@
         "src/loader/experts/expert-cache.js",
         "src/loader/experts/expert-loader.js",
         "src/loader/experts/expert-preparation.js",
+        "src/loader/experts/qwen-paging.js",
         "src/loader/final-weights-loader.js",
         "src/loader/gpu-tensor-materialization.js",
         "src/loader/hyper-connection-loader.js",
@@ -4681,6 +4685,7 @@
         "tests/gpu/sigmoid-gated-add-contract.test.js",
         "tests/gpu/sigmoid-gated-add-gpu.test.js",
         "tests/gpu/softmax-topk-logit-rank-gpu.test.js",
+        "tests/gpu/softmax-topk-wide-browser.test.js",
         "tests/gpu/softmax-topk-wide-gpu.test.js",
         "tests/gpu/speculative-prefix-recovery-gpu.test.js",
         "tests/gpu/speculative-recovery-ownership.test.js",
@@ -4693,6 +4698,7 @@
         "tests/helpers/embedding-reference-fixture.js",
         "tests/helpers/execution-v1-fixtures.js",
         "tests/helpers/f16-projection-cases.js",
+        "tests/helpers/flash-next-lifecycle.js",
         "tests/helpers/forge-evaluation-fixture.js",
         "tests/helpers/frozen-prefix-receipt.js",
         "tests/helpers/frozen-prefix-resources.js",
@@ -5103,6 +5109,7 @@
         "tests/integration/fault-injection.test.js",
         "tests/integration/ffn-silu-platform.js",
         "tests/integration/flash-next-learned-physical.test.js",
+        "tests/integration/flash-next-public-consumer.test.js",
         "tests/integration/flash-next-runtime-profile.test.js",
         "tests/integration/frozen-prefix-receipt.test.js",
         "tests/integration/frozen-prefix-resources.test.js",
@@ -5339,6 +5346,7 @@
         "tests/loader/ngram-table-bindings.test.js",
         "tests/loader/parallel-weight-load-cleanup.test.js",
         "tests/loader/per-layer-input-loader.test.js",
+        "tests/loader/qwen-paging.test.js",
         "tests/loader/rdrr-tensor-map-reader.test.js",
         "tests/loader/runtime-cleanup.test.js",
         "tests/loader/shard-cache-fallbacks.test.js",
@@ -6462,6 +6470,7 @@
         "src/loader/experts/expert-cache.js",
         "src/loader/experts/expert-loader.js",
         "src/loader/experts/expert-preparation.js",
+        "src/loader/experts/qwen-paging.js",
         "src/loader/final-weights-loader.js",
         "src/loader/gpu-tensor-materialization.js",
         "src/loader/hyper-connection-loader.js",
@@ -7071,7 +7080,7 @@
     {
       "file": "tests/inference/decode-output-ownership.test.js",
       "kind": "dynamic",
-      "line": 23,
+      "line": 25,
       "expression": "import(target)"
     },
     {
@@ -7359,7 +7368,7 @@
     {
       "file": "tests/integration/flash-next-runtime-profile.test.js",
       "kind": "asset",
-      "line": 15,
+      "line": 16,
       "expression": "new URL(path, import.meta.url)"
     },
     {
@@ -7593,7 +7602,7 @@
     {
       "file": "tools/demo-contract-smoke.js",
       "kind": "dynamic",
-      "line": 243,
+      "line": 246,
       "expression": "import(url)"
     },
     {

@@ -75,6 +75,9 @@ export declare class DopplerLoader {
   embeddings: GPUBuffer | WeightBuffer | CpuWeightBuffer | Float32Array | null;
   layers: Map<number, LayerWeights>;
   experts: Map<string, ExpertWeights>;
+  prepareExpertLayer(layerIdx: number, consumerExperts: Map<string, unknown>,
+    recorder?: import('../gpu/command-recorder.js').CommandRecorder | null, signal?: AbortSignal
+  ): Promise<import('./experts/qwen-paging.js').QwenPagingReceipt | null>;
   lmHead: GPUBuffer | WeightBuffer | CpuWeightBuffer | Float32Array | null;
   lmHeadBias: Float32Array | null;
   finalNorm: GPUBuffer | Float32Array | null;

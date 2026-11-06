@@ -1,0 +1,461 @@
+{
+  "schema": "doppler.qwen38-learned-comparison/v1",
+  "scope": "Named unpadded Node observations only; sampled layers and retained last-position logits, no general model or performance qualification",
+  "gpuSha256": "93faea083b78414b7b8761cbf1cc8ffcd28c78d4f45d70d9f8b04bad8cfbfb2b",
+  "referenceSha256": "5c22cd2b9e47a92c2988b0e461cad88e444d51919f5f0c7ab9c8cea20e377fd3",
+  "policySha256": "f1c4629d593ec2517e3628ac68131dc7568c6aba5e0f03db627d26228c720413",
+  "policyId": "doppler.boundary-tolerance/quantized-v1",
+  "policy": {
+    "absolute": 0.05,
+    "relative": 0.05,
+    "requireDtypeMatch": false
+  },
+  "rows": [
+    {
+      "id": "short",
+      "tokenIds": [
+        11751,
+        13,
+        9664
+      ],
+      "firstTokenAgrees": true,
+      "layers": [
+        {
+          "layer": 0,
+          "scope": "sampled stream coordinates",
+          "count": 3840,
+          "maxAbsoluteError": 7.450580596923828e-07,
+          "rmsError": 6.339501304267954e-08,
+          "outsidePolicy": 0,
+          "passed": true
+        },
+        {
+          "layer": 1,
+          "scope": "sampled stream coordinates",
+          "count": 3840,
+          "maxAbsoluteError": 7.674098014831543e-07,
+          "rmsError": 7.22755203528453e-08,
+          "outsidePolicy": 0,
+          "passed": true
+        },
+        {
+          "layer": 2,
+          "scope": "sampled stream coordinates",
+          "count": 3840,
+          "maxAbsoluteError": 9.238719940185547e-07,
+          "rmsError": 8.733213611846421e-08,
+          "outsidePolicy": 0,
+          "passed": true
+        },
+        {
+          "layer": 3,
+          "scope": "sampled stream coordinates",
+          "count": 3840,
+          "maxAbsoluteError": 1.0672956705093384e-06,
+          "rmsError": 1.2214556568077954e-07,
+          "outsidePolicy": 0,
+          "passed": true
+        },
+        {
+          "layer": 4,
+          "scope": "sampled stream coordinates",
+          "count": 3840,
+          "maxAbsoluteError": 9.387731552124023e-07,
+          "rmsError": 1.2952140501027808e-07,
+          "outsidePolicy": 0,
+          "passed": true
+        },
+        {
+          "layer": 5,
+          "scope": "sampled stream coordinates",
+          "count": 3840,
+          "maxAbsoluteError": 1.1064112186431885e-06,
+          "rmsError": 1.4076923522747638e-07,
+          "outsidePolicy": 0,
+          "passed": true
+        },
+        {
+          "layer": 6,
+          "scope": "sampled stream coordinates",
+          "count": 3840,
+          "maxAbsoluteError": 1.1548399925231934e-06,
+          "rmsError": 1.46413732035173e-07,
+          "outsidePolicy": 0,
+          "passed": true
+        },
+        {
+          "layer": 7,
+          "scope": "sampled stream coordinates",
+          "count": 3840,
+          "maxAbsoluteError": 2.078711986541748e-06,
+          "rmsError": 1.853817037584277e-07,
+          "outsidePolicy": 0,
+          "passed": true
+        },
+        {
+          "layer": 8,
+          "scope": "sampled stream coordinates",
+          "count": 3840,
+          "maxAbsoluteError": 1.8775463104248047e-06,
+          "rmsError": 1.8864119591300418e-07,
+          "outsidePolicy": 0,
+          "passed": true
+        },
+        {
+          "layer": 9,
+          "scope": "sampled stream coordinates",
+          "count": 3840,
+          "maxAbsoluteError": 1.8551945686340332e-06,
+          "rmsError": 1.8650326926407367e-07,
+          "outsidePolicy": 0,
+          "passed": true
+        },
+        {
+          "layer": 10,
+          "scope": "sampled stream coordinates",
+          "count": 3840,
+          "maxAbsoluteError": 1.9818544387817383e-06,
+          "rmsError": 1.8701565602404235e-07,
+          "outsidePolicy": 0,
+          "passed": true
+        },
+        {
+          "layer": 11,
+          "scope": "sampled stream coordinates",
+          "count": 3840,
+          "maxAbsoluteError": 2.074986696243286e-06,
+          "rmsError": 2.0933894003618375e-07,
+          "outsidePolicy": 0,
+          "passed": true
+        },
+        {
+          "layer": 12,
+          "scope": "sampled stream coordinates",
+          "count": 3840,
+          "maxAbsoluteError": 2.089887857437134e-06,
+          "rmsError": 2.1061717781541423e-07,
+          "outsidePolicy": 0,
+          "passed": true
+        },
+        {
+          "layer": 13,
+          "scope": "sampled stream coordinates",
+          "count": 3840,
+          "maxAbsoluteError": 2.0675361156463623e-06,
+          "rmsError": 2.1195855983115093e-07,
+          "outsidePolicy": 0,
+          "passed": true
+        },
+        {
+          "layer": 14,
+          "scope": "sampled stream coordinates",
+          "count": 3840,
+          "maxAbsoluteError": 2.115964889526367e-06,
+          "rmsError": 2.1549215250265598e-07,
+          "outsidePolicy": 0,
+          "passed": true
+        },
+        {
+          "layer": 15,
+          "scope": "sampled stream coordinates",
+          "count": 3840,
+          "maxAbsoluteError": 2.734363079071045e-06,
+          "rmsError": 2.9144990849254676e-07,
+          "outsidePolicy": 0,
+          "passed": true
+        },
+        {
+          "layer": 16,
+          "scope": "sampled stream coordinates",
+          "count": 3840,
+          "maxAbsoluteError": 2.1345913410186768e-06,
+          "rmsError": 2.82776661343114e-07,
+          "outsidePolicy": 0,
+          "passed": true
+        },
+        {
+          "layer": 17,
+          "scope": "sampled stream coordinates",
+          "count": 3840,
+          "maxAbsoluteError": 2.115964889526367e-06,
+          "rmsError": 2.71124370331771e-07,
+          "outsidePolicy": 0,
+          "passed": true
+        },
+        {
+          "layer": 18,
+          "scope": "sampled stream coordinates",
+          "count": 3840,
+          "maxAbsoluteError": 2.119690179824829e-06,
+          "rmsError": 2.7148883127071845e-07,
+          "outsidePolicy": 0,
+          "passed": true
+        },
+        {
+          "layer": 19,
+          "scope": "sampled stream coordinates",
+          "count": 3840,
+          "maxAbsoluteError": 1.955777406692505e-06,
+          "rmsError": 3.199994079111062e-07,
+          "outsidePolicy": 0,
+          "passed": true
+        },
+        {
+          "layer": 20,
+          "scope": "sampled stream coordinates",
+          "count": 3840,
+          "maxAbsoluteError": 1.989305019378662e-06,
+          "rmsError": 3.219816938004339e-07,
+          "outsidePolicy": 0,
+          "passed": true
+        },
+        {
+          "layer": 21,
+          "scope": "sampled stream coordinates",
+          "count": 3840,
+          "maxAbsoluteError": 2.0973384380340576e-06,
+          "rmsError": 3.351698085261596e-07,
+          "outsidePolicy": 0,
+          "passed": true
+        },
+        {
+          "layer": 22,
+          "scope": "sampled stream coordinates",
+          "count": 3840,
+          "maxAbsoluteError": 2.1532177925109863e-06,
+          "rmsError": 3.5566723861111425e-07,
+          "outsidePolicy": 0,
+          "passed": true
+        },
+        {
+          "layer": 23,
+          "scope": "sampled stream coordinates",
+          "count": 3840,
+          "maxAbsoluteError": 3.9371661841869354e-06,
+          "rmsError": 4.2764864816578474e-07,
+          "outsidePolicy": 0,
+          "passed": true
+        },
+        {
+          "layer": 24,
+          "scope": "sampled stream coordinates",
+          "count": 3840,
+          "maxAbsoluteError": 3.946945071220398e-06,
+          "rmsError": 4.430365441284273e-07,
+          "outsidePolicy": 0,
+          "passed": true
+        },
+        {
+          "layer": 25,
+          "scope": "sampled stream coordinates",
+          "count": 3840,
+          "maxAbsoluteError": 3.848224878311157e-06,
+          "rmsError": 4.3485417000217104e-07,
+          "outsidePolicy": 0,
+          "passed": true
+        },
+        {
+          "layer": 26,
+          "scope": "sampled stream coordinates",
+          "count": 3840,
+          "maxAbsoluteError": 3.552064299583435e-06,
+          "rmsError": 4.2857829715927164e-07,
+          "outsidePolicy": 0,
+          "passed": true
+        },
+        {
+          "layer": 27,
+          "scope": "sampled stream coordinates",
+          "count": 3840,
+          "maxAbsoluteError": 2.7723610401153564e-05,
+          "rmsError": 9.321939643631518e-07,
+          "outsidePolicy": 0,
+          "passed": true
+        },
+        {
+          "layer": 28,
+          "scope": "sampled stream coordinates",
+          "count": 3840,
+          "maxAbsoluteError": 2.7373433113098145e-05,
+          "rmsError": 9.654740760167815e-07,
+          "outsidePolicy": 0,
+          "passed": true
+        },
+        {
+          "layer": 29,
+          "scope": "sampled stream coordinates",
+          "count": 3840,
+          "maxAbsoluteError": 2.8535723686218262e-05,
+          "rmsError": 9.856196567956166e-07,
+          "outsidePolicy": 0,
+          "passed": true
+        },
+        {
+          "layer": 30,
+          "scope": "sampled stream coordinates",
+          "count": 3840,
+          "maxAbsoluteError": 2.2158026695251465e-05,
+          "rmsError": 9.740940446125108e-07,
+          "outsidePolicy": 0,
+          "passed": true
+        },
+        {
+          "layer": 31,
+          "scope": "sampled stream coordinates",
+          "count": 3840,
+          "maxAbsoluteError": 2.7254223823547363e-05,
+          "rmsError": 1.6782829777889712e-06,
+          "outsidePolicy": 0,
+          "passed": true
+        },
+        {
+          "layer": 32,
+          "scope": "sampled stream coordinates",
+          "count": 3840,
+          "maxAbsoluteError": 2.8058886528015137e-05,
+          "rmsError": 1.7567217957996595e-06,
+          "outsidePolicy": 0,
+          "passed": true
+        },
+        {
+          "layer": 33,
+          "scope": "sampled stream coordinates",
+          "count": 3840,
+          "maxAbsoluteError": 2.2903084754943848e-05,
+          "rmsError": 1.7276932675617447e-06,
+          "outsidePolicy": 0,
+          "passed": true
+        },
+        {
+          "layer": 34,
+          "scope": "sampled stream coordinates",
+          "count": 3840,
+          "maxAbsoluteError": 2.1979212760925293e-05,
+          "rmsError": 1.7231830766201947e-06,
+          "outsidePolicy": 0,
+          "passed": true
+        },
+        {
+          "layer": 35,
+          "scope": "sampled stream coordinates",
+          "count": 3840,
+          "maxAbsoluteError": 2.1338462829589844e-05,
+          "rmsError": 2.043015887981743e-06,
+          "outsidePolicy": 0,
+          "passed": true
+        },
+        {
+          "layer": 36,
+          "scope": "sampled stream coordinates",
+          "count": 3840,
+          "maxAbsoluteError": 2.3096799850463867e-05,
+          "rmsError": 2.775569226185046e-06,
+          "outsidePolicy": 0,
+          "passed": true
+        },
+        {
+          "layer": 37,
+          "scope": "sampled stream coordinates",
+          "count": 3840,
+          "maxAbsoluteError": 2.3350119590759277e-05,
+          "rmsError": 2.8319957974261135e-06,
+          "outsidePolicy": 0,
+          "passed": true
+        },
+        {
+          "layer": 38,
+          "scope": "sampled stream coordinates",
+          "count": 3840,
+          "maxAbsoluteError": 2.5391578674316406e-05,
+          "rmsError": 2.9242361567488476e-06,
+          "outsidePolicy": 0,
+          "passed": true
+        },
+        {
+          "layer": 39,
+          "scope": "sampled stream coordinates",
+          "count": 3840,
+          "maxAbsoluteError": 0.0001212339848279953,
+          "rmsError": 1.2711007627523061e-05,
+          "outsidePolicy": 0,
+          "passed": true
+        },
+        {
+          "layer": 40,
+          "scope": "sampled stream coordinates",
+          "count": 3840,
+          "maxAbsoluteError": 0.00012337975203990936,
+          "rmsError": 1.2906609964632702e-05,
+          "outsidePolicy": 0,
+          "passed": true
+        },
+        {
+          "layer": 41,
+          "scope": "sampled stream coordinates",
+          "count": 3840,
+          "maxAbsoluteError": 0.00012242188677191734,
+          "rmsError": 1.2962661977642208e-05,
+          "outsidePolicy": 0,
+          "passed": true
+        },
+        {
+          "layer": 42,
+          "scope": "sampled stream coordinates",
+          "count": 3840,
+          "maxAbsoluteError": 0.00012618303298950195,
+          "rmsError": 1.3074670012668225e-05,
+          "outsidePolicy": 0,
+          "passed": true
+        },
+        {
+          "layer": 43,
+          "scope": "sampled stream coordinates",
+          "count": 3840,
+          "maxAbsoluteError": 0.0001221299171447754,
+          "rmsError": 1.3119578343298803e-05,
+          "outsidePolicy": 0,
+          "passed": true
+        },
+        {
+          "layer": 44,
+          "scope": "sampled stream coordinates",
+          "count": 3840,
+          "maxAbsoluteError": 0.0001291036605834961,
+          "rmsError": 1.4559406100041641e-05,
+          "outsidePolicy": 0,
+          "passed": true
+        },
+        {
+          "layer": 45,
+          "scope": "sampled stream coordinates",
+          "count": 3840,
+          "maxAbsoluteError": 0.0001379251480102539,
+          "rmsError": 1.531611289741445e-05,
+          "outsidePolicy": 0,
+          "passed": true
+        },
+        {
+          "layer": 46,
+          "scope": "sampled stream coordinates",
+          "count": 3840,
+          "maxAbsoluteError": 0.00013720989227294922,
+          "rmsError": 1.608816981496354e-05,
+          "outsidePolicy": 0,
+          "passed": true
+        },
+        {
+          "layer": 47,
+          "scope": "sampled stream coordinates",
+          "count": 3840,
+          "maxAbsoluteError": 0.00013589859008789062,
+          "rmsError": 1.637244970949218e-05,
+          "outsidePolicy": 0,
+          "passed": true
+        }
+      ],
+      "passed": true,
+      "fullLogitsChecked": false
+    }
+  ],
+  "passed": true
+}

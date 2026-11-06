@@ -1,0 +1,1 @@
+source architecture check passed: 18 owners, 3087 files, 0 governed oversize files, 47 reviewed soft-limit files, 8 reviewed generic modules (6 semantic owners, 2 facades, 0 legacy debt)

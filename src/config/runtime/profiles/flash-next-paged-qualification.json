@@ -1,0 +1,23 @@
+{
+  "id": "profiles/flash-next-paged-qualification",
+  "name": "Flash-Next bounded expert-bank qualification",
+  "description": "Explicit on-demand Qwen bank paging and GPU route selection for learned-weight qualification; no serving or performance claim.",
+  "intent": "investigate",
+  "compatibleIntents": ["investigate", "verify"],
+  "stability": "experimental",
+  "owner": "doppler-core",
+  "createdAtUtc": "2026-11-05T00:00:00Z",
+  "extends": "profiles/default",
+  "runtime": {
+    "loading": {
+      "expertPreparation": { "mode": "on-demand" },
+      "expertCache": { "qwen35Pager": { "enabled": true, "maxResidentLayers": 2 } }
+    },
+    "inference": {
+      "chatTemplate": { "enabled": false },
+      "sampling": { "temperature": 0, "topK": 1, "topP": 1, "repetitionPenalty": 1, "seed": 0 },
+      "session": { "decodeLoop": { "disableCommandBatching": true } },
+      "moe": { "routing": { "activeExpertSelection": "topk-route" } }
+    }
+  }
+}

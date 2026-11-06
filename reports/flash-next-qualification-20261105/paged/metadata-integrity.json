@@ -1,0 +1,10 @@
+{
+  "manifestSha256": "4902a0b730a9310903b00bc0f8f587528fa1af9f37a722d2f9287bafceceec09",
+  "shards": 1243,
+  "tensors": 1291,
+  "allShardDescriptorsUnchanged": true,
+  "allTensorLocationsUnchanged": true,
+  "allMerkleRootsUnchanged": true,
+  "priorManifestVariantId": "qwen-3-8-flash-next-text-q4k-ehf16-af32-mv-0367628ae86e",
+  "manifestVariantId": "qwen-3-8-flash-next-text-q4k-ehf16-af32-mv-4305330203c8"
+}

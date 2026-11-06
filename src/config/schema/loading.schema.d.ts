@@ -170,7 +170,15 @@ export interface ExpertCacheConfigSchema {
     enabled: boolean;
     maxResidentLayers: number;
   };
+  /** Explicit bounded Qwen packed-bank paging; requires immediate on-demand execution. */
+  qwen35Pager: Qwen35PagerConfig;
 }
+
+export interface Qwen35PagerConfig {
+  enabled: boolean;
+  maxResidentLayers: number;
+}
+export declare function validateQwen35PagerConfig(config: unknown): Qwen35PagerConfig;
 
 /** Default expert cache configuration */
 export declare const DEFAULT_EXPERT_CACHE_CONFIG: ExpertCacheConfigSchema;

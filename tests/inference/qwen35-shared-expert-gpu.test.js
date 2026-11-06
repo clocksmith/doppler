@@ -25,6 +25,7 @@ try {
   output = await runQwenSharedExpert(createTensor(buffer(input),'f32',[T,H]),
     createTensor(buffer(routed),'f32',[T,H]),w,
     {numTokens:T,hiddenSize:H,intermediateSize:I,kernelPath:null,swigluLimit:null});
+  assert.deepEqual(output.shape, [T, H], 'shared output must retain explicit token/hidden geometry');
   const actual = new Float32Array(await readBuffer(output.buffer,T*H*4));
   const expected = [];
   const dot = (a,b) => a.reduce((s,v,i)=>s+v*b[i],0);
@@ -53,6 +54,7 @@ try {
   const largeOutput = await runQwenSharedExpert(createTensor(buffer(largeInput),'f32',[largeT,largeH]),
     createTensor(buffer(largeRouted),'f32',[largeT,largeH]),largeWeights,
     {numTokens:largeT,hiddenSize:largeH,intermediateSize:I,kernelPath:null,swigluLimit:null});
+  assert.deepEqual(largeOutput.shape, [largeT, largeH]);
   let largeMaxAbs = 0;
   try {
     const observed = new Float32Array(await readBuffer(largeOutput.buffer,largeT*largeH*4));

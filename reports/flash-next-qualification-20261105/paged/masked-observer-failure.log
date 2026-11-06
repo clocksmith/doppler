@@ -1,0 +1,61 @@
+Warning: maxDynamicUniformBuffersPerPipelineLayout artificially reduced from 500000 to 16 to fit dynamic offset allocation limit.
+Warning: maxDynamicStorageBuffersPerPipelineLayout artificially reduced from 500000 to 16 to fit dynamic offset allocation limit.
+[GPU] amd rdna-3, f16/subgroups, 4.0GB, submit probe: 1.2ms
+[612.8ms][Pipeline] Execution v1 enabled (steps=64, kernelPathInline=yes, pipelineInline=no)
+[613.0ms][Config] Using manifest-first config (source of truth)
+[618.8ms][Pipeline] Resolved session applied (qwen-3-8-flash-next-text-q4k-ehf16-af32): batchSize=1, stopCheckMode=per-token, readbackInterval=1, disableCommandBatching=true
+[620.5ms][Pipeline] KernelPath: qwen-3-8-flash-next-text-q4k-ehf16-af32-execution-inline (26 decode steps, 13 kernels, source=execution-v1)
+[620.9ms][Pipeline] 48L/2560H/24heads (256dim), MoE(512x10), kernelPath=qwen-3-8-flash-next-text-q4k-ehf16-af32-execution-inline
+[621.4ms][Tokenizer] Loading bundled tokenizer from tokenizer.json
+[744.8ms][Tokenizer] HuggingFace model.type="BPE", using type="bpe"
+[855.8ms][Tokenizer] Loaded HuggingFace 248077 tokens (bpe), 33 special patterns, 247587 merges
+[856.2ms][Pipeline] Tokenizer vocabSize=248077 differs from model=248320, using model size
+[876.9ms][Pipeline] KV cache allocated: kvDtype=f16, maxSeqLen=32768, layout=contiguous, modelMaxSeqLen=262144, requestedKvDtype=f16, requestedMaxSeqLen=32768
+[879.2ms][Pipeline] Execution plan: active=primary, dtype=f32, kernelPath=qwen-3-8-flash-next-text-q4k-ehf16-af32-execution-inline
+[1469.3ms][ShardCache] Custom shard loader configured
+[1469.6ms][Loader] Initializing...
+[1659.0ms][HeapManager] Allocated segment 0: 1024MB
+[1659.1ms][HeapManager] Segmented heap: 1GB per segment
+[1659.1ms][HeapManager] Initialized with strategy: SEGMENTED
+[1659.2ms][Loader] Initialized (f16, subgroups)
+[1659.7ms][Loader] Loading: qwen-3-8-flash-next-text-q4k-ehf16-af32
+[1660.9ms][Loader] [0.0s] Memory (start): | RSS=491.63 MB (heap=74.53 MB/134.93 MB, external=2.03 GB, arrayBuffers=1.02 GB) | GPU=0 B (0 active, 0 pooled, peak=0 B) | ShardCache=0 B (0 shards) | Layers=0, GPUBuffers=0
+[3315.7ms][Loader] Embeddings tensor loaded: name=model.language_model.embed_tokens.weight, hasShape=true, shape=[248320,2560], isWeightBuffer=true
+[3316.0ms][Loader] Layers: 0-47
+[13195.4ms][Loader] Layers: 48 complete (9.88s)
+[14805.3ms][Loader] Complete: 8.11 GB in 13.11s (633.21 MB/s)
+[14807.5ms][Loader] [13.1s] Memory (complete): | RSS=719.27 MB (heap=254.78 MB/290.93 MB, external=1.07 GB, arrayBuffers=1.07 GB) | GPU=9.56 GB (1192 active, 7 pooled, peak=9.56 GB) | ShardCache=0 B (0 shards) | Layers=48, GPUBuffers=1192
+[14839.2ms][Pipeline] Model loaded successfully (14234ms)
+[14862.6ms][KernelSelect] matmul variant=f32 reason=path_override
+[14884.5ms][KernelSelect] matmul variant=q4_fused_widetile reason=path_override_f16_fallthrough
+[14884.8ms][KernelSelect] matmul variant=f16w_f32a reason=path_override_fallback
+[23068.3ms][KernelSelect] attention variant=prefill_head256_f16kv reason=path_override:tiled_small
+[137131.8ms][KernelSelect] matmul variant=q4_fused_gemv reason=path_override_f16_fallthrough
+[137133.0ms][KernelSelect] matmul variant=gemv_subgroup reason=gemv
+[144712.9ms][KernelSelect] attention variant=decode_online_f16kv reason=path_override:subgroup
+[260148.0ms][ExpertCache] Cache cleared
+[260160.0ms][Pipeline] Unloaded
+node:internal/modules/run_main:123
+    triggerUncaughtException(
+    ^
+
+AssertionError [ERR_ASSERTION]: every prefill/decode logit row must be finite
+    at onLogits (file:///home/x/src/doppler-qualification-603ef2dc/tests/integration/flash-next-learned-physical.test.js:88:18)
+    at emitObservedLogits (file:///home/x/src/doppler-qualification-603ef2dc/src/inference/pipelines/text/generator-logits-observation.js:8:3)
+    at decodeStepBody (file:///home/x/src/doppler-qualification-603ef2dc/src/inference/pipelines/text/generator/decode.js:759:9)
+    at async withHyperConnectionTransaction (file:///home/x/src/doppler-qualification-603ef2dc/src/inference/pipelines/text/hyper-connection/sequence-transaction.js:89:20)
+    at async PipelineGenerator._runDecodeLoop (file:///home/x/src/doppler-qualification-603ef2dc/src/inference/pipelines/text/generator/decode-runtime.js:821:15)
+    at async PipelineGenerator._runDecodeLoop (file:///home/x/src/doppler-qualification-603ef2dc/src/inference/pipelines/text/generator.js:500:12)
+    at async PipelineGenerator.generateTokenIds (file:///home/x/src/doppler-qualification-603ef2dc/src/inference/pipelines/text/generator/decode-runtime.js:360:26)
+    at async invoke (file:///home/x/src/doppler-qualification-603ef2dc/src/inference/pipelines/shader-scoped-pipeline.js:197:16)
+    at async runWithShaderSourceScope (file:///home/x/src/doppler-qualification-603ef2dc/src/gpu/kernels/shader-source-scope.js:93:16)
+    at async runOperation (file:///home/x/src/doppler-qualification-603ef2dc/src/inference/pipelines/shader-scoped-pipeline.js:86:12) {
+  generatedMessage: false,
+  code: 'ERR_ASSERTION',
+  actual: false,
+  expected: true,
+  operator: '==',
+  diff: 'simple'
+}
+
+Node.js v22.22.1

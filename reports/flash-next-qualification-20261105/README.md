@@ -34,12 +34,53 @@ The operation catalog now recognizes the already-implemented `moe_topk` executor
 manifest admission still rejects unknown operations and unregistered constants.
 Refresh validates metadata before expensive Merkle reconstruction. The focused
 run reports 25 passing checks, with kernel/type/architecture/import/package checks
-recorded separately. Full learned-model execution is still pending.
+recorded separately. These component checks alone do not qualify the learned model.
 
 `capture-harness-failure.json` retains an instrumentation error from an
 intermediate attempt: a custom emitter did not implement `getTimeline`. The
 probe now uses the existing public `diagnostics` option and its real emitter.
 That failed attempt is not numerical model evidence.
+
+## Bounded learned-weight execution
+
+The unfused shared-expert addition returned a flattened tensor despite its
+declared `[tokens, hidden]` result. The repair preserves the explicit geometry;
+physical Metal and AMD checks cover that branch. Immediate decode also exposed
+the sampler's padding mask to `onLogits`, unlike prefill and fused decode. A
+behavioral regression reproduces the resulting `-Infinity` observation and
+checks the repaired pre-suppression observation contract.
+
+The fully resident run exhausted Jupiter's per-device GTT allocation and lost
+the device. Raising the separate TTM page setting did not raise that device
+limit. The new explicitly selected paging profile retains two complete Qwen
+expert banks, settles submitted work before retirement, invalidates both alias
+maps, and preserves cleanup failures. Recorded paging is rejected. The original
+TTM setting was restored and verified; 27B remains active and 35B remains stopped.
+
+Node/AMD runs now complete the learned 48-layer model under that original limit:
+
+- 15 input tokens, three output tokens: `Paris. Water`, first ID 11751.
+- 2,304 input tokens, two output tokens: `hidden_states`, first ID 7920.
+
+Both first IDs match the pinned upstream references. All observed logits are
+finite, both runs retain only layers 46 and 47, and neither reports a GPU or
+cleanup error. The short run reports a buffer-pool peak of 13,811,447,808 bytes.
+See [retained receipts](paged/receipts.json), compressed full observations and
+logs in `paged/`. These are execution observations, not throughput measurements
+or general model qualification.
+
+Independent controls preserve the original source-weight reference and add
+stored F16/Q4_K weights decoded by `gguf`, followed by the unchanged upstream
+forward. A separately named control rounds post-RoPE keys and values through
+F16 to match the declared runtime cache. Numerical comparisons use the existing
+versioned boundary policy, without fitting a new tolerance to the output.
+The F16-KV control reduces the largest short-input sampled layer discrepancy to
+0.000137925, with zero quantized-policy violations across 184,320 values in all
+48 layers. [Comparison](paged/short-kv-matched-comparison.json) and
+[independent control identity](paged/independent-control-identity.json) retain
+the policy and producer hashes. A deliberately corrupted coordinate is rejected.
+This checks sampled activations, not every vocabulary logit. Full-logit,
+installed-package and remaining physical lifecycle checks are still in progress.
 
 Component: `doppler.runtime-source.config`, `doppler.repository-tooling`,
 `doppler.tests`. Intent: preserved. Boundary effects: recipe execution closure,

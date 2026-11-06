@@ -190,6 +190,7 @@ export async function moeFeedForwardGPU(
     throw new Error('MoE config.modelType is required; got null/undefined.');
   }
   const modelType = config.modelType;
+  await expertLoader.prepareExpertLayer?.(layerIdx, expertWeights, requestedRecorder, config.signal);
   const moeProfile = resolveMoeExecutionProfile(config, { modelType });
   const activeExpertSelection = config.activeExpertSelection === undefined
     ? resolveConfiguredMoEActiveExpertSelection() : resolveMoEActiveExpertSelection(config.activeExpertSelection);

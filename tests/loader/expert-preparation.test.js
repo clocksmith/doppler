@@ -195,4 +195,18 @@ for (const format of ['mixtral', 'gpt-oss', 'unknown']) {
   assert.deepEqual(f.calls, [], 'Pre-aborted opening must not destroy an existing owner');
 }
 
+for (const [mode, format] of [['eager-resident', 'qwen3_5'], ['on-demand', 'mixtral']]) {
+  const f = fixture({ mode, format });
+  f.loader._loadingConfig.expertCache.qwen35Pager.enabled = true;
+  await assert.rejects(f.execute(), /Qwen bank paging requires qwen3_5 experts and on-demand/);
+  assert(!f.calls.includes('embeddings'), 'invalid paging policy rejects before weight allocation');
+}
+{
+  const f = fixture({ mode: 'on-demand' });
+  f.loader._loadingConfig.expertCache.qwen35Pager.enabled = true;
+  await f.execute();
+  assert.equal(f.loader.isLoaded, true);
+  assert(!f.calls.some(call => call.startsWith('expert:')), 'paging does not eagerly allocate expert banks');
+}
+
 console.log('expert-preparation.test: preparation, deferred readiness, cancellation, cleanup and retry passed');

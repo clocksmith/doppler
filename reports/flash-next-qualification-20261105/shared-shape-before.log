@@ -1,0 +1,25 @@
+[GPU] apple metal-3, f16/subgroups, 4.0GB, submit probe: 0.7ms
+[207.2ms][KernelSelect] matmul variant=f32 reason=default
+node:internal/modules/run_main:123
+    triggerUncaughtException(
+    ^
+
+AssertionError [ERR_ASSERTION]: shared output must retain explicit token/hidden geometry
++ actual - expected
+
+  [
++   8
+-   2,
+-   4
+  ]
+
+    at file:///Users/xyz/deco/doppler/tests/inference/qwen35-shared-expert-gpu.test.js:28:10 {
+  generatedMessage: false,
+  code: 'ERR_ASSERTION',
+  actual: [ 8 ],
+  expected: [ 2, 4 ],
+  operator: 'deepStrictEqual',
+  diff: 'simple'
+}
+
+Node.js v22.20.0

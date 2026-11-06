@@ -11,6 +11,8 @@ import { releaseNodeWebGPU } from '../../src/tooling/node-webgpu.js';
 import { compareLearnedLayerCapture } from '../helpers/learned-layer-observation.js';
 import { createDefaultCaptureConfig } from '../../src/debug/capture-policy.js';
 import { buildOpId } from '../../src/inference/pipelines/text/operator-identity.js';
+import { getBufferPool } from '../../src/memory/buffer-pool.js';
+import { checkLearnedLifecycle } from '../helpers/flash-next-lifecycle.js';
 
 // Provisioned learned-weight diagnostic. This is not a performance test or a
 // qualification threshold: quantization spread and intermediate parity need
@@ -35,6 +37,7 @@ if (!runPath) {
   assert.equal(reference.schema, 'doppler.qwen38-learned-forward-reference/v1');
   assert.equal(reference.checkpoint, manifest.artifactIdentity.sourceRevision);
   assert.equal(reference.dtype, 'float32');
+  if (reference.artifactManifestSha256) assert.equal(reference.artifactManifestSha256, hash(manifestBytes));
   assert.equal(manifest.inference.hyperConnections.semantics, 'qwen4_exp_gated_residual');
   const runtimeSourceSha256 = {};
   for (const file of run.sourceFiles ?? []) runtimeSourceSha256[file] = hash(await fs.readFile(file));
@@ -45,6 +48,7 @@ if (!runPath) {
   const report = { schema: 'doppler.flash-next-learned-observation/v1',
     scope: 'Node physical load and last-position logits diagnostic on the learned quantized artifact; no general qualification or performance claim',
     manifestSha256: hash(manifestBytes), referenceSha256: hash(referenceBytes),
+    referenceScope: reference.scope,
     inputsSha256: hash(inputBytes), runSha256: hash(runBytes), runtimeRevision: run.runtimeRevision,
     runtimeSourceSha256,
     modelId: manifest.modelId, quantizationInfo: manifest.quantizationInfo,
@@ -94,7 +98,14 @@ if (!runPath) {
       const referenceIds = expected.top20Ids[position];
       const referenceLogits = expected.top20Logits[position];
       const actualId = output.tokenIds[0];
+      const prefillLogitsFile = `${run.outputPath}.${id}.prefill.f32`;
+      const prefillLogitsBytes = Buffer.from(Float32Array.from(observed).buffer);
+      await fs.writeFile(prefillLogitsFile, prefillLogitsBytes);
       const row = { id, inputTokenCount: input.tokens.length, tokenId: actualId, tokenIds: Array.from(output.tokenIds), logitRows,
+        prefillLogitsFile, prefillLogitsSha256: hash(prefillLogitsBytes),
+        bufferPool: getBufferPool().getStats(),
+        residentExpertLayers: [...pipeline.dopplerLoader.experts.keys()].filter(key => /^layer_\d+_qwen35_packed$/.test(key))
+          .map(key => Number(key.split('_')[1])),
         text: output.text ?? pipeline.tokenizer.decode(output.tokenIds),
         referenceTokenId: expected.argmax[position], referenceTop20Rank: referenceIds.indexOf(actualId) + 1,
         top1Agrees: actualId === expected.argmax[position],
@@ -104,10 +115,28 @@ if (!runPath) {
         row.layers = collectLayers();
         assert.equal(captures.size, manifest.architecture.numLayers, 'every layer must be captured');
       }
+      const pager = run.runtimeConfig.loading?.expertCache?.qwen35Pager;
+      if (pager?.enabled) assert.ok(row.residentExpertLayers.length <= pager.maxResidentLayers, 'resident expert banks must remain bounded');
       collectLayers = null;
       report.rows.push(row);
       await fs.writeFile(run.outputPath, JSON.stringify(report, null, 2));
       console.log(JSON.stringify({ id, tokenId: actualId, text: row.text, top1Agrees: row.top1Agrees }));
+    }
+    if (run.lifecycle === true) {
+      const baseline = report.rows[0];
+      const input = inputs.sequences.find(sequence => sequence.id === baseline.id);
+      report.lifecycle = [];
+      await checkLearnedLifecycle(pipeline, input, baseline.tokenIds, async result => {
+        report.lifecycle.push(result);
+        await fs.writeFile(run.outputPath, JSON.stringify(report, null, 2));
+        console.log(JSON.stringify(result));
+      });
+      pipeline = await createPipeline(manifest, { runtimeConfig: run.runtimeConfig,
+        storage: createNodeFileArtifactStorageContext(pathToFileURL(path.resolve(run.modelDir)).href, manifest) });
+      const fresh = await pipeline.generateTokenIds('', { inputIds: input.tokens, useChatTemplate: false,
+        maxTokens: 1, temperature: 0, topK: 1, topP: 1, seed: 0, repetitionPenalty: 1 });
+      assert.equal(fresh.tokenIds[0], baseline.tokenIds[0]);
+      report.lifecycle.push({ case: 'reload-and-reuse', passed: true, tokenIds: Array.from(fresh.tokenIds) });
     }
     await getDevice().queue.onSubmittedWorkDone();
     assert.deepEqual(gpuErrors, []);

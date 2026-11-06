@@ -46,6 +46,7 @@ export function setDequantCacheMaxEntries(maxEntries: number): void;
  * Configuration for MoE feed-forward.
  */
 export interface MoEConfig {
+  signal?: AbortSignal;
   phase?: 'prefill' | 'decode';
   groupedPrefill?: boolean;
   sharedSlot?: import('./moe/qwen-route-executor.js').QwenSharedSlot | null;
@@ -107,6 +108,9 @@ export interface LayerRouterWeights {
  * Expert weight loader interface.
  */
 export interface ExpertLoader {
+  prepareExpertLayer?(layerIdx: number, consumerExperts: Map<string, unknown>,
+    recorder: import('../../../gpu/command-recorder.js').CommandRecorder | null,
+    signal?: AbortSignal): Promise<unknown>;
   loadExpert(layerIdx: number, expertIdx: number): Promise<MoEExpertWeights | null>;
 }
 

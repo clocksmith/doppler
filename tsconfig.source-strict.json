@@ -197,6 +197,7 @@
     "src/inference/pipelines/text/hyper-connection/sequence-transaction.js",
     "src/inference/pipelines/text/hyper-connection/logits-input.js",
     "src/loader/ngram-table-bindings.js",
-    "src/storage/shards/index.js"
+    "src/storage/shards/index.js",
+    "src/loader/experts/qwen-paging.js"
   ]
 }

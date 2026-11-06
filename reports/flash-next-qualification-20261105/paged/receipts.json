@@ -1,0 +1,201 @@
+[
+  {
+    "file": "masked-observer-failure.json.gz",
+    "jsonSha256": "158de8553ae73913ea76a52b71a7b9b79fca89d4915ed2cac875043018c7fa1a",
+    "loaded": true,
+    "completed": false,
+    "failure": {
+      "name": "AssertionError",
+      "message": "every prefill/decode logit row must be finite",
+      "stack": "AssertionError [ERR_ASSERTION]: every prefill/decode logit row must be finite\n    at onLogits (file:///home/x/src/doppler-qualification-603ef2dc/tests/integration/flash-next-learned-physical.test.js:88:18)\n    at emitObservedLogits (file:///home/x/src/doppler-qualification-603ef2dc/src/inference/pipelines/text/generator-logits-observation.js:8:3)\n    at decodeStepBody (file:///home/x/src/doppler-qualification-603ef2dc/src/inference/pipelines/text/generator/decode.js:759:9)\n    at async withHyperConnectionTransaction (file:///home/x/src/doppler-qualification-603ef2dc/src/inference/pipelines/text/hyper-connection/sequence-transaction.js:89:20)\n    at async PipelineGenerator._runDecodeLoop (file:///home/x/src/doppler-qualification-603ef2dc/src/inference/pipelines/text/generator/decode-runtime.js:821:15)\n    at async PipelineGenerator._runDecodeLoop (file:///home/x/src/doppler-qualification-603ef2dc/src/inference/pipelines/text/generator.js:500:12)\n    at async PipelineGenerator.generateTokenIds (file:///home/x/src/doppler-qualification-603ef2dc/src/inference/pipelines/text/generator/decode-runtime.js:360:26)\n    at async invoke (file:///home/x/src/doppler-qualification-603ef2dc/src/inference/pipelines/shader-scoped-pipeline.js:197:16)\n    at async runWithShaderSourceScope (file:///home/x/src/doppler-qualification-603ef2dc/src/gpu/kernels/shader-source-scope.js:93:16)\n    at async runOperation (file:///home/x/src/doppler-qualification-603ef2dc/src/inference/pipelines/shader-scoped-pipeline.js:86:12)"
+    },
+    "gpuErrors": [],
+    "cleanupFailures": [],
+    "rows": []
+  },
+  {
+    "file": "short-three-tokens.json.gz",
+    "jsonSha256": "93faea083b78414b7b8761cbf1cc8ffcd28c78d4f45d70d9f8b04bad8cfbfb2b",
+    "loaded": true,
+    "completed": true,
+    "failure": null,
+    "gpuErrors": [],
+    "cleanupFailures": [],
+    "rows": [
+      {
+        "id": "short",
+        "inputTokenCount": 15,
+        "tokenId": 11751,
+        "tokenIds": [
+          11751,
+          13,
+          9664
+        ],
+        "logitRows": 3,
+        "bufferPool": {
+          "allocations": 1635,
+          "reuses": 6969,
+          "totalBytesAllocated": 13921744896,
+          "peakBytesAllocated": 13811447808,
+          "currentBytesAllocated": 13701150720,
+          "totalBytesRequested": 13898532352,
+          "peakBytesRequested": 13766241536,
+          "currentBytesRequested": 13643486208,
+          "resources": {
+            "retainedModel": {
+              "bytes": 13276800000,
+              "count": 1196
+            },
+            "active": {
+              "bytes": 387878912,
+              "count": 243
+            },
+            "reusable": {
+              "bytes": 36471808,
+              "count": 64
+            },
+            "deferredCleanup": {
+              "bytes": 110297088,
+              "count": 66
+            }
+          },
+          "activeBuffers": 1439,
+          "pooledBuffers": 64,
+          "budgetMaxBytes": 0,
+          "budgetUtilization": 0,
+          "hitRate": "81.0%"
+        },
+        "residentExpertLayers": [
+          46,
+          47
+        ],
+        "text": "Paris. Water",
+        "referenceTokenId": 11751,
+        "referenceTop20Rank": 1,
+        "top1Agrees": true,
+        "referenceTop20LogitDeltas": [
+          {
+            "token": 11751,
+            "reference": 20.158649444580078,
+            "observed": 19.13959312438965,
+            "delta": -1.0190563201904297
+          },
+          {
+            "token": 264,
+            "reference": 13.740348815917969,
+            "observed": 13.810029029846191,
+            "delta": 0.06968021392822266
+          },
+          {
+            "token": 19241,
+            "reference": 13.673372268676758,
+            "observed": 13.613784790039062,
+            "delta": -0.05958747863769531
+          },
+          {
+            "token": 279,
+            "reference": 12.92559814453125,
+            "observed": 12.994956016540527,
+            "delta": 0.06935787200927734
+          },
+          {
+            "token": 13,
+            "reference": 12.92524528503418,
+            "observed": 12.19214916229248,
+            "delta": -0.7330961227416992
+          },
+          {
+            "token": 271,
+            "reference": 12.616930961608887,
+            "observed": 12.386815071105957,
+            "delta": -0.2301158905029297
+          },
+          {
+            "token": 198,
+            "reference": 12.557686805725098,
+            "observed": 12.043607711791992,
+            "delta": -0.5140790939331055
+          },
+          {
+            "token": 6924,
+            "reference": 12.336274147033691,
+            "observed": 12.921286582946777,
+            "delta": 0.5850124359130859
+          },
+          {
+            "token": 25358,
+            "reference": 12.240068435668945,
+            "observed": 12.385489463806152,
+            "delta": 0.14542102813720703
+          },
+          {
+            "token": 220,
+            "reference": 12.173543930053711,
+            "observed": 11.470067977905273,
+            "delta": -0.7034759521484375
+          },
+          {
+            "token": 695,
+            "reference": 12.093807220458984,
+            "observed": 11.361089706420898,
+            "delta": -0.7327175140380859
+          },
+          {
+            "token": 449,
+            "reference": 11.589003562927246,
+            "observed": 11.057663917541504,
+            "delta": -0.5313396453857422
+          },
+          {
+            "token": 217707,
+            "reference": 11.555245399475098,
+            "observed": 11.051785469055176,
+            "delta": -0.5034599304199219
+          },
+          {
+            "token": 57590,
+            "reference": 11.552173614501953,
+            "observed": 10.709038734436035,
+            "delta": -0.843134880065918
+          },
+          {
+            "token": 23327,
+            "reference": 11.454833030700684,
+            "observed": 11.686017036437988,
+            "delta": 0.2311840057373047
+          },
+          {
+            "token": 21047,
+            "reference": 11.351731300354004,
+            "observed": 11.611509323120117,
+            "delta": 0.2597780227661133
+          },
+          {
+            "token": 303,
+            "reference": 11.266594886779785,
+            "observed": 11.590804100036621,
+            "delta": 0.32420921325683594
+          },
+          {
+            "token": 39509,
+            "reference": 11.246245384216309,
+            "observed": 10.985760688781738,
+            "delta": -0.2604846954345703
+          },
+          {
+            "token": 248046,
+            "reference": 11.093994140625,
+            "observed": 10.966619491577148,
+            "delta": -0.12737464904785156
+          },
+          {
+            "token": 498,
+            "reference": 10.870022773742676,
+            "observed": 9.957916259765625,
+            "delta": -0.9121065139770508
+          }
+        ]
+      }
+    ]
+  }
+]

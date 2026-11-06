@@ -10,6 +10,7 @@ import { createLoadTiming, finishLoadPhase, finishLoadTiming, nowMs, roundLoadTi
 import { resolveLayerPartition } from '../config/layer-partition-plan.js';
 import { requiresTiedEmbeddingLoad } from './final-weights-loader.js';
 import { createExpertPreparation } from './experts/expert-preparation.js';
+import { validateQwen35PagerConfig } from '../config/schema/loading.schema.js';
 
 /** @type {import('./model-load.js').load} */
 export async function load(modelId, options) {
@@ -96,6 +97,11 @@ async function loadModel(modelId, options) {
     }
 
     validateManifestInference(this.manifest);
+    const qwenPager = validateQwen35PagerConfig(this._loadingConfig.expertCache.qwen35Pager);
+    if (qwenPager.enabled && (this.manifest.moeConfig?.expertFormat !== 'qwen3_5'
+      || this._loadingConfig.expertPreparation.mode !== 'on-demand')) {
+      throw new Error('Qwen bank paging requires qwen3_5 experts and on-demand expert preparation.');
+    }
     const partition = resolveLayerPartition(this.manifest, options.partition);
 
     this.isMoE = detectMoE(this.manifest);

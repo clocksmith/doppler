@@ -749,6 +749,7 @@ async function decodeStepBody(state, currentIds, opts, helpers, makeRecorder, dr
         if (opts.presencePenalty) {
           applyPresencePenalty(sampledLogits, currentIds, opts.presencePenalty, opts.repetitionPenaltyWindow);
         }
+        const observedLogits = typeof opts.onLogits === 'function' ? sampledLogits.slice() : sampledLogits;
         const nextToken = sample(sampledLogits, {
           temperature: opts.temperature,
           topP: opts.topP,
@@ -756,7 +757,7 @@ async function decodeStepBody(state, currentIds, opts, helpers, makeRecorder, dr
           padTokenId,
           seed: opts.seed,
         });
-        emitObservedLogits(opts.onLogits, sampledLogits, nextToken, currentIds);
+        emitObservedLogits(opts.onLogits, observedLogits, nextToken, currentIds);
         resources.release(hiddenStates);
         state.currentSeqLen++;
         const nfStepWallMs = performance.now() - stepWallStart;

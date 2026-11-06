@@ -88,7 +88,19 @@ export const DEFAULT_EXPERT_CACHE_CONFIG = {
     enabled: true,
     maxResidentLayers: 2,
   },
+  qwen35Pager: {
+    enabled: false,
+    maxResidentLayers: 2,
+  },
 };
+
+export function validateQwen35PagerConfig(config) {
+  if (!config || typeof config.enabled !== 'boolean'
+    || !Number.isSafeInteger(config.maxResidentLayers) || config.maxResidentLayers < 1) {
+    throw new Error('runtime.loading.expertCache.qwen35Pager requires enabled and a positive integer maxResidentLayers.');
+  }
+  return config;
+}
 
 // =============================================================================
 // Complete Loading Config

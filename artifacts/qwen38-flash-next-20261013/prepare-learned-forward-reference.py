@@ -13,7 +13,10 @@ from the checkpoint by address instead of materializing the 95 GiB embedding.
 Records per-layer stream samples, QSA selections and block-score margins at sampled queries, router
 top-k and margins, gated-delta decay ranges, and per-position logits (top-k, argmax; full rows for
 selected positions as .npy beside the JSON).
+Optional --artifact <dir> reads stored F16/Q4_K weights with independent gguf dequantization,
+while keeping the unchanged upstream forward. It preserves the source-only control separately.
 Usage: python3 -P prepare-learned-forward-reference.py <source-dir> <out-dir> [--dtype float32|bfloat16]
+       [--artifact <dir>] [--sequences short,long] [--kv-dtype f16]
 """
 import ast
 import hashlib
@@ -35,12 +38,24 @@ SOURCE = Path(sys.argv[1])
 OUT = Path(sys.argv[2])
 DTYPE = {'float32': torch.float32, 'bfloat16': torch.bfloat16}[sys.argv[sys.argv.index('--dtype') + 1] if '--dtype' in sys.argv else 'float32']
 OUT.mkdir(parents=True, exist_ok=True)
+ARTIFACT = Path(sys.argv[sys.argv.index('--artifact') + 1]) if '--artifact' in sys.argv else None
+KV_F16 = '--kv-dtype' in sys.argv
+if KV_F16:
+    assert sys.argv[sys.argv.index('--kv-dtype') + 1] == 'f16' and ARTIFACT
+PRODUCER_SHA256 = hashlib.sha256(Path(__file__).read_bytes()).hexdigest()
+artifact_manifest = json.loads((ARTIFACT / 'manifest.json').read_text()) if ARTIFACT else None
+if ARTIFACT:
+    from gguf import quants, GGMLQuantizationType
+    assert DTYPE == torch.float32, 'artifact control uses f32 arithmetic on independently decoded stored weights'
 binding = json.loads((ROOT / 'source-binding.json').read_text())
 for entry in binding['files'] + binding['referenceImplementation']['files']:
     assert hashlib.sha256((ROOT / 'source' / entry['path']).read_bytes()).hexdigest() == entry['sha256'], entry['path']
 headers = json.loads((ROOT / 'checkpoint-headers.json').read_text())
 acquired = {f['file']: f for f in json.loads((ROOT / 'acquisition-receipt.json').read_text())['files']}
 assert headers['revision'] == binding['revision']
+if artifact_manifest:
+    assert artifact_manifest['artifactIdentity']['sourceRevision'] == binding['revision']
+    assert artifact_manifest['moeConfig']['expertFormat'] == 'qwen3_5'
 config = json.loads((ROOT / 'source/config.json').read_text())['text_config']
 config_class = next(n for n in ast.parse((ROOT / 'source/configuration_qwen4_exp.py').read_text()).body
                     if isinstance(n, ast.ClassDef) and n.name == 'Qwen4ExpTextConfig')
@@ -161,6 +176,14 @@ decorators = {
 }
 run(source_nodes('modeling_qwen4_exp.py', names, decorators, {'Qwen4ExpTextGatedDeltaNet': {'forward': ["force_accelerate_hooks('conv1d')"]}}),
     namespace, '<pinned-qwen4-exp-text>')
+if KV_F16:
+    # Explicit storage-precision control: retain the upstream attention math,
+    # rounding only post-RoPE K/V at the point a runtime F16 cache stores them.
+    upstream_attention = namespace['eager_attention_forward']
+    def stored_kv_attention(module, query, key, value, *args, **kwargs):
+        return upstream_attention(module, query, key.to(torch.float16).float(),
+                                  value.to(torch.float16).float(), *args, **kwargs)
+    namespace['eager_attention_forward'] = stored_kv_attention
 torch.set_num_threads(16)
 assert torch.get_float32_matmul_precision() == 'highest'
 
@@ -170,7 +193,7 @@ for name, info in headers['files'].items():
     for tensor, t in info['tensors'].items():
         locations[tensor] = (name, info['dataStart'], t)
 
-def read_tensor(name):
+def read_source_tensor(name):
     file, data_start, t = locations[name]
     begin, end = t['dataOffsets']
     h = handle(file)
@@ -181,6 +204,38 @@ def read_tensor(name):
         return bits.reshape(t['shape']).to(DTYPE)
     assert t['dtype'] == 'I64', t['dtype']
     return torch.frombuffer(bytearray(raw), dtype=torch.int64).reshape(t['shape']).clone()
+
+def read_tensor(name):
+    if not artifact_manifest:
+        return read_source_tensor(name)
+    # Integer checkpoint buffers are source-owned contracts, not converted weights.
+    if locations[name][2]['dtype'] == 'I64':
+        return read_source_tensor(name)
+    t = artifact_manifest['tensors'][name]
+    assert t.get('layout', 'row') == 'row', name
+    spans = t.get('spans') or [{'shardIndex': t['shard'], 'offset': t['offset'], 'size': t['size']}]
+    raw = bytearray(t['size'])
+    cursor = 0
+    for span in spans:
+        shard = artifact_manifest['shards'][span['shardIndex']]
+        with open(ARTIFACT / shard['filename'], 'rb') as f:
+            f.seek(span['offset'])
+            chunk = f.read(span['size'])
+        assert len(chunk) == span['size'], name
+        raw[cursor:cursor + len(chunk)] = chunk
+        cursor += len(chunk)
+    assert cursor == t['size'], name
+    if t['dtype'] == 'F16':
+        values = np.frombuffer(raw, dtype='<f2').astype(np.float32)
+        return torch.from_numpy(values.reshape(t['shape'])).to(DTYPE)
+    assert t['dtype'] in ('Q4_K', 'Q4_K_M'), (name, t['dtype'])
+    width = t['shape'][-1]
+    padded = ((width + 255) // 256) * 256
+    rows = math.prod(t['shape'][:-1])
+    assert len(raw) == rows * (padded // 256) * 144, name
+    encoded = np.frombuffer(raw, dtype=np.uint8).reshape(rows, -1)
+    values = quants.dequantize(encoded, GGMLQuantizationType.Q4_K)[:, :width].copy()
+    return torch.from_numpy(values.reshape(t['shape'])).to(DTYPE)
 
 def load(module, prefix):
     state = {}
@@ -201,6 +256,11 @@ def load(module, prefix):
 
 # ---- Inputs ----------------------------------------------------------------------------------
 sequences = json.loads((ROOT / 'learned-forward-inputs.json').read_text())['sequences']
+if '--sequences' in sys.argv:
+    selected = sys.argv[sys.argv.index('--sequences') + 1].split(',')
+    assert selected and len(set(selected)) == len(selected)
+    assert all(any(s['id'] == name for s in sequences) for name in selected)
+    sequences = [s for s in sequences if s['id'] in selected]
 assert all(max(s['tokens']) < cfg.vocab_size for s in sequences)
 
 # ---- Instrumentation -------------------------------------------------------------------------
@@ -308,7 +368,8 @@ with torch.no_grad():
         logits = mixed[0].float() @ head.T
         top = logits.topk(20, dim=-1)
         full_rows = {p: logits[p].numpy() for p in positions}
-        npy = OUT / f"{s['id']}-logits-{DTYPE.__repr__().split('.')[-1]}.npy"
+        suffix = ('-artifact' if ARTIFACT else '') + ('-kvf16' if KV_F16 else '')
+        npy = OUT / f"{s['id']}-logits-{DTYPE.__repr__().split('.')[-1]}{suffix}.npy"
         np.save(npy, np.stack([full_rows[p] for p in positions]))
         summary[s['id']] = {
             'tokens': len(s['tokens']), 'samplePositions': positions,
@@ -325,8 +386,17 @@ result = {
              'full-sequence forward per input; vision and MTP excluded; no Doppler execution.',
     'inputs': 'learned-forward-inputs.json', 'sampleStride': SAMPLE_STRIDE, 'tableRowsRead': rows_read[0],
     'layerSeconds': timings, 'sequences': summary,
+    'producerSha256': PRODUCER_SHA256,
 }
-target = OUT / f"learned-forward-reference-{result['dtype']}.json"
+if ARTIFACT:
+    result['scope'] = 'Unchanged upstream cache-free text forward with stored F16 and independently gguf-dequantized Q4_K weights; source n-gram rows and integer buffers; no Doppler execution.'
+    result['artifactManifestSha256'] = hashlib.sha256((ARTIFACT / 'manifest.json').read_bytes()).hexdigest()
+    result['quantizationControl'] = {'decoder': 'gguf.quants.dequantize', 'type': 'Q4_K', 'rowPadding': 256}
+    if KV_F16:
+        result['scope'] += ' Post-RoPE keys and values round through F16 before unchanged upstream attention, matching the declared runtime KV storage.'
+        result['kvStorageDtype'] = 'f16'
+suffix = ('-artifact' if ARTIFACT else '') + ('-kvf16' if KV_F16 else '')
+target = OUT / f"learned-forward-reference-{result['dtype']}{suffix}.json"
 target.write_text(json.dumps(result, separators=(',', ':')) + '\n')
 print(json.dumps({'written': str(target), 'bytes': target.stat().st_size,
                   'argmaxHead': {k: v['argmax'][-4:] for k, v in summary.items()}}))

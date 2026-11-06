@@ -909,7 +909,6 @@ inference/tokenizers/types.js
 loader/dtype-utils.d.ts
 loader/embedding-limit-preflight.d.ts
 loader/embedding-loader.d.ts
-loader/experts/expert-loader.d.ts
 loader/gpu-tensor-materialization.d.ts
 loader/layer-tensor-aliases.d.ts
 loader/layer-weight-shape.d.ts

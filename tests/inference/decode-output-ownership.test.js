@@ -5,6 +5,8 @@ const hidden = { __dopplerFakeGPUBuffer: true, size: 16, usage: 0 };
 const logits = { __dopplerFakeGPUBuffer: true, size: 16, usage: 0 };
 globalThis.decodeOwnershipProbe = { hidden, logits, released: [], fail: 'readback' };
 const modules = {
+  '../../../../gpu/kernels/sample.js': `export const isGPUSamplingAvailable = () => true;
+    export const recordArgmax = () => {}; export const recordGPUSample = () => {};`,
   '../../../../gpu/device.js': 'export const getDevice = () => null; export const setTrackSubmits = () => {};',
   '../../../../memory/buffer-pool.js': `export const releaseBuffer = buffer => globalThis.decodeOwnershipProbe.released.push(buffer); export const discardBuffer = releaseBuffer;
     export const readBuffer = async () => { if (globalThis.decodeOwnershipProbe.fail === 'readback') throw Error('readback failed'); return new Float32Array([1, 2, 3, 4]).buffer; };`,
@@ -20,7 +22,7 @@ const hooks = registerHooks({ resolve(specifier, context, next) {
   return next(specifier, context);
 } });
 try {
-  const { decodeStepLogits } = await import(target);
+  const { decodeStepLogits, decodeStep } = await import(target);
   const state = { modelConfig: { hiddenSize: 4, vocabSize: 4, numLayers: 1 },
     weights: new Map([['embed', new Float32Array(16)]]), stats: {}, currentSeqLen: 0,
     decodeBuffers: { resetPingPong() {}, swapPingPong() {}, getHiddenBuffer: () => null, getOutputHiddenBuffer: () => null },
@@ -46,5 +48,16 @@ try {
   globalThis.decodeOwnershipProbe.released.length = 0;
   await decodeStepLogits(state, [1], { _returnGpuLogits: true }, helpers);
   assert.deepEqual(globalThis.decodeOwnershipProbe.released, [], 'session-owned ping-pong and returned logits stay live');
+  state.tokenizer = { getSpecialTokens: () => ({ pad: 3 }) };
+  state.runtimeConfig.inference.sampling = {};
+  const observations = [];
+  const selected = await decodeStep(state, [1], {
+    temperature: 0, topP: 1, topK: 1, repetitionPenalty: 1,
+    repetitionPenaltyWindow: 0, suppressTokenIds: [],
+    onLogits: (values, context) => observations.push({ values: Array.from(values), context }),
+  }, helpers);
+  assert.equal(selected, 2, 'sampling still excludes the highest-logit padding token');
+  assert.deepEqual(observations, [{ values: [1, 2, 3, 4], context: { tokenId: 2, inputTokenCount: 1 } }],
+    'immediate decode observers receive finalized logits before sampler suppression, like prefill and fused decode');
 } finally { hooks.deregister(); delete globalThis.decodeOwnershipProbe; }
 console.log('decode-output-ownership: passed');

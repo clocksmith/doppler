@@ -172,7 +172,10 @@ const PACKAGE_CONTENT_LIMITS = Object.freeze({
   // plus the same 2,158-byte npm allowance.
   // Loader materialization and bounded 512-expert routing: 3,637,145 measured,
   // with the same 2,158-byte cross-npm allowance. See runtime-package-audit.json.
-  maxPackedSize: 3_639_303,
+  // Two-bank Qwen paging, immediate logit observation and shared-output shape:
+  // 3,640,218 measured plus the same 2,158-byte npm allowance.
+  // Exact shipped delta: reports/flash-next-qualification-20261105/paging-package-audit.json.
+  maxPackedSize: 3_642_376,
   // Capsule naming changes identifiers and declarations, not the shipped file count.
   // Measured 0.6.0 payload: 2,097,039 packed / 10,835,420 unpacked bytes.
   // The remaining GPU diagnostic label adds three uncompressed bytes.
@@ -244,7 +247,8 @@ const PACKAGE_CONTENT_LIMITS = Object.freeze({
   // Audited in reports/flash-next-qualification-20261105/package-audit.json.
   // One WGSL resource and its declared routing/materialization contracts.
   // Inventory: reports/flash-next-qualification-20261105/runtime-package-audit.json.
-  maxUnpackedSize: 15_535_443,
+  // Paging audit includes the newly reachable expert-loader declaration.
+  maxUnpackedSize: 15_546_564,
 });
 const REQUIRED_PACKAGE_FILES = Object.freeze([
   'README.md',

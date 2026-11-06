@@ -1,0 +1,188 @@
+TAP version 13
+# decode-output-ownership: passed
+# Subtest: tests/inference/decode-output-ownership.test.js
+ok 1 - tests/inference/decode-output-ownership.test.js
+  ---
+  duration_ms: 293.818916
+  type: 'test'
+  ...
+# decode-sampling-ownership: passed
+# Subtest: tests/inference/decode-sampling-ownership.test.js
+ok 2 - tests/inference/decode-sampling-ownership.test.js
+  ---
+  duration_ms: 434.25225
+  type: 'test'
+  ...
+# generator-prefill-logits-observation.test: ok
+# Subtest: tests/inference/generator-prefill-logits-observation.test.js
+ok 3 - tests/inference/generator-prefill-logits-observation.test.js
+  ---
+  duration_ms: 417.248333
+  type: 'test'
+  ...
+# generator-steps-cleanup.test: ok
+# Subtest: tests/inference/generator-steps-cleanup.test.js
+ok 4 - tests/inference/generator-steps-cleanup.test.js
+  ---
+  duration_ms: 420.112875
+  type: 'test'
+  ...
+# Subtest: partial-layer failure restores KV, recurrent, indexer, n-gram and convolution state together; next call works
+ok 5 - partial-layer failure restores KV, recurrent, indexer, n-gram and convolution state together; next call works
+  ---
+  duration_ms: 2.43
+  type: 'test'
+  ...
+# Subtest: abort during the operation rolls back before allowing reuse
+ok 6 - abort during the operation rolls back before allowing reuse
+  ---
+  duration_ms: 0.45625
+  type: 'test'
+  ...
+# Subtest: nested prefill chunks share a transaction and a later chunk failure restores the initial prefix
+ok 7 - nested prefill chunks share a transaction and a later chunk failure restores the initial prefix
+  ---
+  duration_ms: 0.277666
+  type: 'test'
+  ...
+# Subtest: late cancellation releases a completed GPU result that was never transferred to the caller
+ok 8 - late cancellation releases a completed GPU result that was never transferred to the caller
+  ---
+  duration_ms: 0.346875
+  type: 'test'
+  ...
+# Subtest: unsupported modes fail before mutation and snapshots fail before replacing KV
+ok 9 - unsupported modes fail before mutation and snapshots fail before replacing KV
+  ---
+  duration_ms: 0.527125
+  type: 'test'
+  ...
+# Subtest: closing waits for a pending row read and repeated closes share that completion
+ok 10 - closing waits for a pending row read and repeated closes share that completion
+  ---
+  duration_ms: 9.043542
+  type: 'test'
+  ...
+# Flash-Next recipe -> conversion -> manifest -> specialized runtime contracts passed (metadata only)
+# Subtest: tests/integration/flash-next-runtime-profile.test.js
+ok 6 - tests/integration/flash-next-runtime-profile.test.js
+  ---
+  duration_ms: 374.905583
+  type: 'test'
+  ...
+# [254.5ms][Config] Type mismatch during merge at "loading.expertPreparation": base is object, override is string
+# [255.7ms][Loader] Loading: synthetic-transformer
+# [261.2ms][Loader] Layers: 0-3
+# [269.3ms][Loader] Layers: 4 complete (0.01s)
+# [269.7ms][Loader] Complete: 0 B in 0.01s (0 B/s)
+# [270.8ms][Loader] Loading: synthetic-transformer
+# [272.8ms][Loader] Layers: 0-3
+# [277.3ms][Loader] Layers: 4 complete (0.00s)
+# [277.5ms][Loader] Complete: 0 B in 0.01s (0 B/s)
+# [278.1ms][Loader] Loading: synthetic-transformer
+# [278.2ms][Loader] Layers: 0-3
+# [284.4ms][Loader] Layers: 4 complete (0.01s)
+# [284.5ms][Loader] Complete: 0 B in 0.01s (0 B/s)
+# [285.1ms][Loader] Loading: synthetic-transformer
+# [285.3ms][Loader] Layers: 0-3
+# [294.2ms][Loader] Layers: 4 complete (0.01s)
+# [294.3ms][Loader] Complete: 0 B in 0.01s (0 B/s)
+# [294.8ms][Loader] Loading: synthetic-transformer
+# [295.0ms][Loader] Layers: 2-3
+# [296.5ms][Loader] Layers: 2 complete (0.00s)
+# [296.7ms][Loader] Complete: 0 B in 0.00s (0 B/s)
+# [297.4ms][Loader] Loading: synthetic-transformer
+# [298.1ms][Loader] Loading: synthetic-transformer
+# [298.7ms][Loader] Loading: synthetic-transformer
+# [299.3ms][Loader] Loading: synthetic-transformer
+# [300.6ms][Loader] Loading: synthetic-transformer
+# [300.8ms][Loader] Layers: 0-3
+# [306.8ms][Loader] Layers: 4 complete (0.01s)
+# [307.0ms][Loader] Complete: 0 B in 0.01s (0 B/s)
+# [307.3ms][Loader] Loading: synthetic-transformer
+# [307.4ms][Loader] Layers: 0-3
+# [321.0ms][Loader] Layers: 4 complete (0.01s)
+# [321.6ms][Loader] Loading: synthetic-transformer
+# [321.8ms][Loader] Layers: 0-3
+# [333.3ms][Loader] Layers: 4 complete (0.01s)
+# [333.4ms][Loader] Complete: 0 B in 0.01s (0 B/s)
+# [333.7ms][Loader] Loading: synthetic-transformer
+# [333.8ms][Loader] Layers: 0-3
+# [349.6ms][Loader] Layers: 4 complete (0.02s)
+# [351.0ms][Loader] Loading: synthetic-transformer
+# [351.2ms][Loader] Layers: 0-3
+# [356.7ms][Loader] Layers: 4 complete (0.01s)
+# [357.7ms][Loader] Loading: synthetic-transformer
+# [357.9ms][Loader] Loading: synthetic-transformer
+# [358.1ms][Loader] Loading: synthetic-transformer
+# [358.1ms][Loader] Layers: 0-3
+# [363.5ms][Loader] Layers: 4 complete (0.01s)
+# [363.5ms][Loader] Complete: 0 B in 0.01s (0 B/s)
+# expert-preparation.test: preparation, deferred readiness, cancellation, cleanup and retry passed
+# Subtest: tests/loader/expert-preparation.test.js
+ok 7 - tests/loader/expert-preparation.test.js
+  ---
+  duration_ms: 401.450125
+  type: 'test'
+  ...
+# hyper-connection-loading.test: ok (contract doubles; no physical GPU)
+# Subtest: tests/loader/hyper-connection-loading.test.js
+ok 8 - tests/loader/hyper-connection-loading.test.js
+  ---
+  duration_ms: 206.800958
+  type: 'test'
+  ...
+# Subtest: paging waits for GPU settlement, then retires one complete bank and both alias caches
+ok 14 - paging waits for GPU settlement, then retires one complete bank and both alias caches
+  ---
+  duration_ms: 1.250458
+  type: 'test'
+  ...
+# Subtest: resident access updates eviction order without reloading or destroying the active bank
+ok 15 - resident access updates eviction order without reloading or destroying the active bank
+  ---
+  duration_ms: 0.128708
+  type: 'test'
+  ...
+# Subtest: abort and settlement failure preserve bank ownership without early destruction
+ok 16 - abort and settlement failure preserve bank ownership without early destruction
+  ---
+  duration_ms: 0.419875
+  type: 'test'
+  ...
+# Subtest: cleanup failure invalidates stale aliases and preserves the failed buffer owner
+ok 17 - cleanup failure invalidates stale aliases and preserves the failed buffer owner
+  ---
+  duration_ms: 0.2425
+  type: 'test'
+  ...
+# Subtest: invalid policy, foreign format and recorded retirement fail before mutation
+ok 18 - invalid policy, foreign format and recorded retirement fail before mutation
+  ---
+  duration_ms: 1.601666
+  type: 'test'
+  ...
+# [168.3ms][ExpertCache] Cache cleared
+# loader-runtime-cleanup.test: ok
+# Subtest: tests/loader/runtime-cleanup.test.js
+ok 10 - tests/loader/runtime-cleanup.test.js
+  ---
+  duration_ms: 189.026667
+  type: 'test'
+  ...
+# tensor-loader-cleanup.test: ok
+# Subtest: tests/loader/tensor-loader-cleanup.test.js
+ok 11 - tests/loader/tensor-loader-cleanup.test.js
+  ---
+  duration_ms: 198.320416
+  type: 'test'
+  ...
+1..20
+# tests 20
+# suites 0
+# pass 20
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 623.804916
