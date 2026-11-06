@@ -1,0 +1,65 @@
+Warning: maxDynamicUniformBuffersPerPipelineLayout artificially reduced from 500000 to 16 to fit dynamic offset allocation limit.
+Warning: maxDynamicStorageBuffersPerPipelineLayout artificially reduced from 500000 to 16 to fit dynamic offset allocation limit.
+[GPU] amd rdna-3, f16/subgroups, 4.0GB, submit probe: 0.6ms
+[410.9ms][Pipeline] Execution v1 enabled (steps=64, kernelPathInline=yes, pipelineInline=no)
+[411.1ms][Config] Using manifest-first config (source of truth)
+[416.1ms][Pipeline] Resolved session applied (qwen-3-8-flash-next-text-q4k-ehf16-af32): batchSize=1, stopCheckMode=per-token, readbackInterval=1, disableCommandBatching=true
+[417.3ms][Pipeline] KernelPath: qwen-3-8-flash-next-text-q4k-ehf16-af32-execution-inline-hc-accuracy-571b415a2944 (26 decode steps, 14 kernels, source=config)
+[417.6ms][Pipeline] 48L/2560H/24heads (256dim), MoE(512x10), kernelPath=qwen-3-8-flash-next-text-q4k-ehf16-af32-execution-inline-hc-accuracy-571b415a2944
+[418.0ms][Tokenizer] Loading bundled tokenizer from tokenizer.json
+[523.8ms][Tokenizer] HuggingFace model.type="BPE", using type="bpe"
+[634.5ms][Tokenizer] Loaded HuggingFace 248077 tokens (bpe), 33 special patterns, 247587 merges
+[634.9ms][Pipeline] Tokenizer vocabSize=248077 differs from model=248320, using model size
+[666.1ms][Pipeline] KV cache allocated: kvDtype=f16, maxSeqLen=32768, layout=contiguous, modelMaxSeqLen=262144, requestedKvDtype=f16, requestedMaxSeqLen=32768
+[668.3ms][Pipeline] Execution plan: active=primary, dtype=f32, kernelPath=qwen-3-8-flash-next-text-q4k-ehf16-af32-execution-inline-hc-accuracy-571b415a2944
+[907.8ms][ShardCache] Custom shard loader configured
+[908.1ms][Loader] Initializing...
+[950.8ms][HeapManager] Allocated segment 0: 1024MB
+[950.9ms][HeapManager] Segmented heap: 1GB per segment
+[950.9ms][HeapManager] Initialized with strategy: SEGMENTED
+[951.0ms][Loader] Initialized (f16, subgroups)
+[951.5ms][Loader] Loading: qwen-3-8-flash-next-text-q4k-ehf16-af32
+[952.6ms][Loader] [0.0s] Memory (start): | RSS=312.17 MB (heap=67.29 MB/121.18 MB, external=1.01 GB, arrayBuffers=1.01 GB) | GPU=0 B (0 active, 0 pooled, peak=0 B) | ShardCache=0 B (0 shards) | Layers=0, GPUBuffers=0
+[1297.3ms][Loader] Embeddings tensor loaded: name=model.language_model.embed_tokens.weight, hasShape=true, shape=[248320,2560], isWeightBuffer=true
+[1297.6ms][Loader] Layers: 0-47
+[3607.3ms][Loader] Layers: 48 complete (2.31s)
+[3924.4ms][Loader] Complete: 8.11 GB in 2.94s (2.75 GB/s)
+[3926.6ms][Loader] [3.0s] Memory (complete): | RSS=430.79 MB (heap=81.24 MB/115.43 MB, external=1.07 GB, arrayBuffers=1.07 GB) | GPU=9.56 GB (1192 active, 7 pooled, peak=9.56 GB) | ShardCache=0 B (0 shards) | Layers=48, GPUBuffers=1192
+[3949.0ms][Pipeline] Model loaded successfully (3545ms)
+[4070.2ms][KernelSelect] matmul variant=f32_row_subgroup reason=path_override
+[4182.7ms][KernelSelect] matmul variant=q4_fused_widetile reason=path_override_f16_fallthrough
+[4183.0ms][KernelSelect] matmul variant=f16w_f32a_tiled reason=path_override_fallback
+[4190.8ms][KernelSelect] matmul variant=f32 reason=path_override
+[11785.9ms][ExpertCache] Cache cleared
+[11795.2ms][Pipeline] Unloaded
+node:internal/modules/run_main:123
+    triggerUncaughtException(
+    ^
+
+AssertionError [ERR_ASSERTION]: The validation function is expected to return "true". Received false
+
+Caught error:
+
+AbortError: Doppler: prefill aborted
+    at async file:///home/x/src/doppler-qualification-603ef2dc/tests/integration/flash-next-moe-stage-physical.test.js:153:5 {
+  generatedMessage: true,
+  code: 'ERR_ASSERTION',
+  actual: Error [AbortError]: Doppler: prefill aborted
+      at PipelineGenerator._prefill (file:///home/x/src/doppler-qualification-603ef2dc/src/inference/pipelines/text/generator/prefill-runtime.js:463:25)
+      at async withHyperConnectionTransaction (file:///home/x/src/doppler-qualification-603ef2dc/src/inference/pipelines/text/hyper-connection/sequence-transaction.js:89:20)
+      at async PipelineGenerator._prefillPromptToLogits (file:///home/x/src/doppler-qualification-603ef2dc/src/inference/pipelines/text/generator/prefill-runtime.js:100:16)
+      at async PipelineGenerator.generateTokenIds (file:///home/x/src/doppler-qualification-603ef2dc/src/inference/pipelines/text/generator/decode-runtime.js:332:58)
+      at async invoke (file:///home/x/src/doppler-qualification-603ef2dc/src/inference/pipelines/shader-scoped-pipeline.js:197:16)
+      at async runWithShaderSourceScope (file:///home/x/src/doppler-qualification-603ef2dc/src/gpu/kernels/shader-source-scope.js:93:16)
+      at async runOperation (file:///home/x/src/doppler-qualification-603ef2dc/src/inference/pipelines/shader-scoped-pipeline.js:86:12)
+      at async waitForActual (node:assert:644:5)
+      at async Function.rejects (node:assert:767:25)
+      at async file:///home/x/src/doppler-qualification-603ef2dc/tests/integration/flash-next-moe-stage-physical.test.js:153:5 {
+    code: 'ABORT_ERR'
+  },
+  expected: [Function (anonymous)],
+  operator: 'rejects',
+  diff: 'simple'
+}
+
+Node.js v22.22.1

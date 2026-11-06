@@ -1,0 +1,82 @@
+{
+  "sourceRepeatBitExact": true,
+  "sourceRouterExpertSetDifferences": 0,
+  "unchangedSourceOnGpuInput": {
+    "referenceRms": 0.01791315136076985,
+    "referenceMaxAbsolute": 0.7193136215209961,
+    "observedRms": 0.01791315103301909,
+    "maxAbsoluteDifference": 7.152557373046875e-07,
+    "rmsDifference": 8.055958621576055e-09,
+    "maxErrorOverReferenceRms": 3.992908466519808e-05,
+    "rmsErrorOverReferenceRms": 4.4972313689141046e-07,
+    "relativeErrorDefined": true,
+    "worstPositionAndColumn": [
+      1355,
+      1392
+    ],
+    "outsideExistingPolicy": 0,
+    "checkedValues": 5898240,
+    "position2135": {
+      "referenceRms": 0.015885493161378234,
+      "referenceMaxAbsolute": 0.05724746361374855,
+      "observedRms": 0.015885491865236828,
+      "maxAbsoluteDifference": 4.470348358154297e-08,
+      "rmsDifference": 8.164282994675156e-09,
+      "maxErrorOverReferenceRms": 2.8141073825916065e-06,
+      "rmsErrorOverReferenceRms": 5.13945831692821e-07,
+      "relativeErrorDefined": true
+    }
+  },
+  "sourceExpertsWithGpuRoutesAndWeights": {
+    "referenceRms": 0.017913151186820957,
+    "referenceMaxAbsolute": 0.7193136215209961,
+    "observedRms": 0.01791315103301909,
+    "maxAbsoluteDifference": 7.152557373046875e-07,
+    "rmsDifference": 7.278868123222982e-09,
+    "maxErrorOverReferenceRms": 3.9929085052936675e-05,
+    "rmsErrorOverReferenceRms": 4.063421364175267e-07,
+    "relativeErrorDefined": true,
+    "worstPositionAndColumn": [
+      1355,
+      1392
+    ],
+    "outsideExistingPolicy": 0,
+    "checkedValues": 5898240,
+    "position2135": {
+      "referenceRms": 0.01588549072365477,
+      "referenceMaxAbsolute": 0.057247452437877655,
+      "observedRms": 0.015885491865236828,
+      "maxAbsoluteDifference": 2.60770320892334e-08,
+      "rmsDifference": 5.976584651382814e-09,
+      "maxErrorOverReferenceRms": 1.641562891752699e-06,
+      "rmsErrorOverReferenceRms": 3.762291486836601e-07,
+      "relativeErrorDefined": true
+    }
+  },
+  "omitSharedExpertNegativeControl": {
+    "referenceRms": 0.017913151186820957,
+    "referenceMaxAbsolute": 0.7193136215209961,
+    "observedRms": 0.016000979100537875,
+    "maxAbsoluteDifference": 0.717517077922821,
+    "rmsDifference": 0.007061374402536937,
+    "maxErrorOverReferenceRms": 40.055324182755285,
+    "rmsErrorOverReferenceRms": 0.3942005696759889,
+    "relativeErrorDefined": true,
+    "worstPositionAndColumn": [
+      1355,
+      1392
+    ],
+    "outsideExistingPolicy": 3294,
+    "checkedValues": 5898240,
+    "position2135": {
+      "referenceRms": 0.01588549072365477,
+      "referenceMaxAbsolute": 0.057247452437877655,
+      "observedRms": 0.013950075170470188,
+      "maxAbsoluteDifference": 0.055585138499736786,
+      "rmsDifference": 0.007106594178160264,
+      "maxErrorOverReferenceRms": 3.499113717460806,
+      "rmsErrorOverReferenceRms": 0.44736384300536436,
+      "relativeErrorDefined": true
+    }
+  }
+}

@@ -1,0 +1,64 @@
+normal relative-prefix capture, layers 0-15 | bit-exact 126 | different 0 [] | not in other 26
+layer-0 staged capture | bit-exact 20 | different 0 [] | not in other 132
+cpu determinism: identical 27/27 differing []
+L0 attn_hc out[estimated] refRMS=0.0882 refMax=0.614 maxErr=4.171e-07 rmsErr=6.175e-08 max/RMS=4.731e-06 rms/RMS=7.004e-07
+   s0 gate=0.01139 dGate=-9.31e-10 inErr=0.00e+00 injErr=4.66e-09 delta=4.66e-09 @1553 out=+0.131 gate*dOut=+4.75e-09 dGate*out=-1.22e-10 law=5.6e-10
+   s1 gate=0.00773 dGate=+1.86e-08 inErr=0.00e+00 injErr=1.40e-08 delta=1.40e-08 @1682 out=+0.614 gate*dOut=+2.23e-09 dGate*out=+1.14e-08 law=5.5e-10
+   s2 gate=0.09981 dGate=+1.86e-07 inErr=0.00e+00 injErr=1.42e-07 delta=1.42e-07 @1682 out=+0.614 gate*dOut=+2.87e-08 dGate*out=+1.14e-07 law=1.8e-09
+   s3 gate=0.00924 dGate=-7.45e-09 inErr=0.00e+00 injErr=4.42e-09 delta=4.42e-09 @8 out=-0.380 gate*dOut=+1.48e-09 dGate*out=+2.83e-09 law=4.5e-10
+L0 mlp_hc  not estimated: the n-gram PLE layer runs between the layer-0 injection and the layer-1 attention input, and no CPU slice of the layer-0 MoE output was retained
+L1 attn_hc out[estimated] refRMS=0.1241 refMax=0.883 maxErr=1.252e-06 rmsErr=2.073e-07 max/RMS=1.008e-05 rms/RMS=1.670e-06
+   s0 gate=0.00196 dGate=+3.96e-09 inErr=5.59e-08 injErr=5.59e-08 delta=4.66e-09 @1682 out=-0.788 gate*dOut=-7.77e-11 dGate*out=-3.12e-09 law=1.4e-09
+   s1 gate=0.00004 dGate=-8.00e-11 inErr=8.20e-08 injErr=8.20e-08 delta=4.66e-10 @168 out=-0.252 gate*dOut=+2.27e-12 dGate*out=+2.01e-11 law=1.7e-09
+   s2 gate=0.00142 dGate=-3.38e-09 inErr=1.27e-07 injErr=1.27e-07 delta=7.45e-09 @111 out=-0.415 gate*dOut=+5.08e-10 dGate*out=+1.40e-09 law=5.0e-09
+   s3 gate=0.02249 dGate=+1.12e-08 inErr=5.03e-08 injErr=5.22e-08 delta=2.63e-08 @1391 out=+0.106 gate*dOut=-2.75e-08 dGate*out=+1.18e-09 law=8.4e-10
+L1 mlp_hc  out[estimated] refRMS=0.0159 refMax=0.057 maxErr=1.206e-07 rmsErr=2.842e-08 max/RMS=7.592e-06 rms/RMS=1.789e-06 | injected==next input: True
+   s0 gate=0.00321 dGate=+2.79e-09 inErr=5.59e-08 injErr=5.59e-08 delta=1.86e-09 @728 out=-0.012 gate*dOut=+1.55e-10 dGate*out=-3.37e-11 law=9.0e-10
+   s1 gate=0.00054 dGate=-2.62e-09 inErr=8.20e-08 injErr=8.20e-08 delta=4.66e-10 @84 out=-0.009 gate*dOut=+8.55e-13 dGate*out=+2.35e-11 law=1.8e-09
+   s2 gate=0.00431 dGate=-4.19e-09 inErr=1.27e-07 injErr=1.27e-07 delta=7.45e-09 @634 out=+0.014 gate*dOut=+2.42e-10 dGate*out=-5.78e-11 law=7.2e-09
+   s3 gate=0.03394 dGate=-6.33e-08 inErr=5.22e-08 injErr=4.63e-08 delta=6.05e-09 @1094 out=-0.034 gate*dOut=+3.99e-09 dGate*out=+2.17e-09 law=5.9e-10
+L2 attn_hc out[estimated] refRMS=0.1075 refMax=0.501 maxErr=1.165e-06 rmsErr=2.024e-07 max/RMS=1.083e-05 rms/RMS=1.882e-06
+   s0 gate=0.00197 dGate=-5.59e-09 inErr=5.59e-08 injErr=5.96e-08 delta=4.66e-09 @1744 out=+0.453 gate*dOut=-2.10e-09 dGate*out=-2.53e-09 law=1.5e-09
+   s1 gate=0.00108 dGate=-6.64e-09 inErr=8.20e-08 injErr=8.20e-08 delta=4.19e-09 @1744 out=+0.453 gate*dOut=-1.15e-09 dGate*out=-3.01e-09 law=8.0e-10
+   s2 gate=0.00338 dGate=+3.03e-09 inErr=1.27e-07 injErr=1.34e-07 delta=7.45e-09 @111 out=-0.207 gate*dOut=-5.85e-10 dGate*out=-6.25e-10 law=6.3e-09
+   s3 gate=0.02605 dGate=-2.42e-08 inErr=4.63e-08 injErr=4.10e-08 delta=3.84e-08 @1744 out=+0.453 gate*dOut=-2.77e-08 dGate*out=-1.10e-08 law=1.4e-09
+L2 mlp_hc  out[estimated] refRMS=0.0373 refMax=0.340 maxErr=6.243e-07 rmsErr=6.913e-08 max/RMS=1.671e-05 rms/RMS=1.851e-06 | injected==next input: True
+   s0 gate=0.00051 dGate=+1.46e-09 inErr=5.96e-08 injErr=5.96e-08 delta=1.86e-09 @1682 out=+0.107 gate*dOut=+1.37e-10 dGate*out=+1.56e-10 law=1.4e-09
+   s1 gate=0.00049 dGate=+1.40e-09 inErr=8.20e-08 injErr=8.20e-08 delta=1.86e-09 @1682 out=+0.107 gate*dOut=+1.32e-10 dGate*out=+1.50e-10 law=1.1e-09
+   s2 gate=0.24678 dGate=-1.49e-08 inErr=1.34e-07 injErr=1.68e-07 delta=1.49e-07 @728 out=+0.340 gate*dOut=+1.54e-07 dGate*out=-5.07e-09 law=6.5e-09
+   s3 gate=0.03250 dGate=-4.10e-08 inErr=4.10e-08 injErr=3.91e-08 delta=6.98e-09 @1173 out=+0.203 gate*dOut=+1.52e-08 dGate*out=-8.33e-09 law=1.1e-09
+L3 attn_hc out[estimated] refRMS=0.0813 refMax=0.445 maxErr=3.302e-06 rmsErr=6.036e-07 max/RMS=4.062e-05 rms/RMS=7.425e-06
+   s0 gate=0.00257 dGate=+1.35e-08 inErr=5.96e-08 injErr=5.59e-08 delta=1.12e-08 @588 out=+0.387 gate*dOut=+6.05e-09 dGate*out=+5.22e-09 law=1.2e-09
+   s1 gate=0.00000 dGate=+5.95e-14 inErr=8.20e-08 injErr=8.20e-08 delta=5.68e-14 @1814 out=-0.090 gate*dOut=-8.85e-15 dGate*out=-5.36e-15 law=1.5e-09
+   s2 gate=0.00292 dGate=-9.55e-09 inErr=1.68e-07 injErr=1.68e-07 delta=8.85e-09 @1363 out=-0.100 gate*dOut=-9.63e-09 dGate*out=+9.59e-10 law=6.0e-09
+   s3 gate=0.04158 dGate=+2.98e-08 inErr=3.91e-08 injErr=1.43e-07 delta=1.40e-07 @1363 out=-0.100 gate*dOut=-1.37e-07 dGate*out=-2.99e-09 law=1.2e-09
+L3 mlp_hc  out[estimated] refRMS=0.0295 refMax=0.131 maxErr=5.355e-07 rmsErr=1.239e-07 max/RMS=1.813e-05 rms/RMS=4.197e-06 | injected==next input: True
+   s0 gate=0.00811 dGate=+9.31e-09 inErr=5.59e-08 injErr=5.59e-08 delta=3.80e-09 @144 out=-0.025 gate*dOut=+4.06e-09 dGate*out=-2.34e-10 law=5.7e-10
+   s1 gate=0.03597 dGate=+1.01e-07 inErr=8.20e-08 injErr=8.20e-08 delta=1.54e-08 @144 out=-0.025 gate*dOut=+1.80e-08 dGate*out=-2.53e-09 law=8.6e-10
+   s2 gate=0.00414 dGate=-7.92e-09 inErr=1.68e-07 injErr=1.68e-07 delta=7.45e-09 @111 out=-0.035 gate*dOut=+6.14e-10 dGate*out=+2.73e-10 law=6.3e-09
+   s3 gate=0.12598 dGate=+1.94e-07 inErr=1.43e-07 injErr=1.23e-07 delta=5.82e-08 @144 out=-0.025 gate*dOut=+6.30e-08 dGate*out=-4.87e-09 law=1.3e-09
+L4 attn_hc out[estimated] refRMS=0.0999 refMax=0.466 maxErr=2.437e-06 rmsErr=6.268e-07 max/RMS=2.440e-05 rms/RMS=6.277e-06
+   s0 gate=0.00400 dGate=+7.92e-09 inErr=5.59e-08 injErr=5.96e-08 delta=1.01e-08 @406 out=+0.231 gate*dOut=+8.32e-09 dGate*out=+1.83e-09 law=1.8e-09
+   s1 gate=0.00000 dGate=-4.50e-11 inErr=8.20e-08 injErr=8.20e-08 delta=4.66e-10 @1656 out=-0.055 gate*dOut=-4.56e-12 dGate*out=+2.47e-12 law=1.4e-09
+   s2 gate=0.00003 dGate=-3.17e-10 inErr=1.68e-07 injErr=1.68e-07 delta=1.49e-08 @728 out=-0.251 gate*dOut=+2.44e-11 dGate*out=+7.95e-11 law=7.4e-09
+   s3 gate=0.04472 dGate=+1.86e-08 inErr=1.23e-07 injErr=1.36e-07 delta=1.05e-07 @463 out=+0.177 gate*dOut=-1.09e-07 dGate*out=+3.30e-09 law=2.2e-09
+L4 mlp_hc  out[estimated] refRMS=0.0203 refMax=0.095 maxErr=9.746e-07 rmsErr=2.684e-07 max/RMS=4.803e-05 rms/RMS=1.323e-05 | injected==next input: True
+   s0 gate=0.00505 dGate=+6.52e-09 inErr=5.96e-08 injErr=5.96e-08 delta=5.59e-09 @1375 out=-0.095 gate*dOut=-4.93e-09 dGate*out=-6.17e-10 law=8.7e-10
+   s1 gate=0.01965 dGate=+5.96e-08 inErr=8.20e-08 injErr=8.57e-08 delta=2.48e-08 @1375 out=-0.095 gate*dOut=-1.92e-08 dGate*out=-5.64e-09 law=9.5e-10
+   s2 gate=0.01045 dGate=-2.51e-08 inErr=1.68e-07 injErr=1.68e-07 delta=1.49e-08 @36 out=+0.032 gate*dOut=+3.25e-09 dGate*out=-8.16e-10 law=6.0e-09
+   s3 gate=0.09049 dGate=+4.40e-07 inErr=1.36e-07 injErr=1.65e-07 delta=1.30e-07 @1375 out=-0.095 gate*dOut=-8.82e-08 dGate*out=-4.16e-08 law=1.3e-09
+L5 attn_hc out[estimated] refRMS=0.0779 refMax=0.493 maxErr=1.848e-06 rmsErr=3.907e-07 max/RMS=2.371e-05 rms/RMS=5.013e-06
+   s0 gate=0.00205 dGate=-3.96e-09 inErr=5.96e-08 injErr=6.33e-08 delta=5.59e-09 @728 out=-0.311 gate*dOut=+1.87e-09 dGate*out=+1.23e-09 law=1.1e-09
+   s1 gate=0.00000 dGate=-6.75e-14 inErr=8.57e-08 injErr=8.57e-08 delta=1.14e-13 @1085 out=+0.015 gate*dOut=+8.50e-15 dGate*out=-9.82e-16 law=8.2e-10
+   s2 gate=0.00542 dGate=-5.12e-09 inErr=1.68e-07 injErr=1.79e-07 delta=1.49e-08 @36 out=+0.208 gate*dOut=-1.62e-09 dGate*out=-1.06e-09 law=5.9e-09
+   s3 gate=0.05781 dGate=-2.98e-08 inErr=1.65e-07 injErr=1.92e-07 delta=1.07e-07 @1530 out=+0.013 gate*dOut=-1.07e-07 dGate*out=-3.79e-10 law=2.2e-09
+L5 mlp_hc  out[estimated] refRMS=0.0134 refMax=0.180 maxErr=1.035e-06 rmsErr=5.933e-08 max/RMS=7.747e-05 rms/RMS=4.441e-06 | injected==next input: True
+   s0 gate=0.00436 dGate=+2.65e-08 inErr=6.33e-08 injErr=6.33e-08 delta=3.73e-09 @728 out=-0.088 gate*dOut=+1.55e-09 dGate*out=-2.34e-09 law=1.7e-09
+   s1 gate=0.02807 dGate=+1.86e-07 inErr=8.57e-08 injErr=7.08e-08 delta=1.49e-08 @192 out=+0.010 gate*dOut=+1.25e-08 dGate*out=+1.81e-09 law=1.5e-09
+   s2 gate=0.00358 dGate=-2.33e-10 inErr=1.79e-07 injErr=1.79e-07 delta=7.45e-09 @86 out=+0.087 gate*dOut=-8.78e-10 dGate*out=-2.03e-11 law=6.9e-09
+   s3 gate=0.04877 dGate=-1.12e-08 inErr=1.92e-07 injErr=2.05e-07 delta=5.22e-08 @951 out=-0.180 gate*dOut=+5.05e-08 dGate*out=+2.01e-09 law=1.8e-09
+L6 attn_hc out[cpu-trace] refRMS=0.1978 refMax=3.342 maxErr=4.888e-06 rmsErr=6.831e-07 max/RMS=2.471e-05 rms/RMS=3.454e-06
+   s0 gate=0.01405 dGate=+6.61e-08 inErr=6.33e-08 injErr=2.46e-07 delta=1.83e-07 @951 out=+3.342 gate*dOut=-3.68e-08 dGate*out=+2.21e-07 law=1.4e-09
+   s1 gate=0.00000 dGate=-2.64e-11 inErr=7.08e-08 injErr=7.08e-08 delta=9.31e-10 @1883 out=-0.288 gate*dOut=+2.49e-12 dGate*out=+7.59e-12 law=1.9e-09
+   s2 gate=0.00088 dGate=-2.62e-09 inErr=1.79e-07 injErr=1.64e-07 delta=1.49e-08 @36 out=-1.288 gate*dOut=+1.05e-10 dGate*out=+3.37e-09 law=6.0e-09
+   s3 gate=0.00590 dGate=-5.59e-09 inErr=2.05e-07 injErr=1.91e-07 delta=3.91e-08 @728 out=+2.631 gate*dOut=-2.39e-08 dGate*out=-1.47e-08 law=1.6e-09

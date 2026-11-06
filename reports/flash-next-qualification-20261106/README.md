@@ -312,8 +312,12 @@ GPU branch input at token 2135:
 | Output projection on exact GPU core | 9.54e-7 | 7.41e-8 |
 
 Against the output RMS of 0.1978 the local difference is 4.8e-6; layer 0's
-was 4.6e-6 against 0.088. Layer 6's recurrent attention is therefore not a
-defect boundary; 98% of its branch-output error is propagated input. See
+was 4.6e-6 against 0.088. These controls explain the observed layer-6 step
+without demonstrating a recurrent-attention defect. The propagated-input
+control reaches a maximum difference of 4.77e-6 versus the total 4.89e-6;
+that ratio is not an additive attribution of error. Across the complete
+sequence, the same-input recurrent-core maximum is 1.38e-5, rather than the
+1.19e-6 at token 2135. Neither measurement is bit-exact equality. See
 [stage controls](linear-layer6-stage-controls.json),
 [source trace](linear-layer6-stage-source.json),
 [run](linear-layer6-stages-run.json.gz), [capture](linear-layer6-stages.json.gz)
@@ -339,24 +343,84 @@ estimates within 3%):
 Each QSA layer's RMS-normalized output error exceeds both of its linear
 neighbours'; the linear layers hold or shrink it. This matches the layer-15
 controls above: the F16 key/value path turns upstream drift into larger output
-differences while the attention core and cache writer are exact on identical
-inputs. The MoE branches of layers 1–5, exact on the GPU side and estimated on
+differences. The checked attention-core differences are much smaller on identical
+inputs, and the cache writer matches F16 rounding of its actual inputs bit-for-bit.
+The MoE branches of layers 1–5, directly captured on the GPU side and estimated on
 the CPU side from the next layer's input, sit in the same family (maximum error
 over output RMS 7.6e-6, 1.7e-5, 1.8e-5, 4.8e-5, 7.7e-5), and each GPU injected
 slice equals the next layer's attention input bit-for-bit. Layer 0's MoE is not
 estimated: its injected slice is not the layer-1 input on either side, where the
 streams also pass the n-gram PLE stage, and no CPU slice of that output exists.
 
-No further runtime defect is demonstrated. The remaining gate failure is the
-discrete expert choice at near-tied router logits under drift of order 1e-4
-relative, which the CPU-only geometry control above reproduces inside the
-reference itself (0.531882). No runtime math, dtype, kernel path, artifact or
-tolerance was changed, and the full model remains unqualified under the same
-failing gate. Whether acceptance should score expert agreement and logits
-separately, or keep the single logit tolerance, is an owner decision.
+No further runtime defect is demonstrated by these controls. Discrete expert
+choice at near-tied router logits under drift of order 1e-4 relative is a
+demonstrated amplification mechanism; the CPU-only geometry control reproduces
+a large difference inside the reference itself (0.531882). This does not prove
+that every remaining operator is correct, or that an implementation with a
+different summation order cannot pass the existing tolerance. No runtime math,
+dtype, kernel path, artifact or tolerance was changed, and the full model remains
+unqualified under the same failing gate. Any acceptance-policy change still
+requires explicit owner direction.
 
 Component: `doppler.docs`. Intent: preserved. Acceptance evidence: the
 physical layer-6 capture receipt and GPU log, the CPU control receipts,
 bindings to the earlier captures, and Python compilation of the three new
 scripts. Boundary effects: none at runtime; retained observations and
 report-local scripts only.
+
+## Verified tensor reads and learned-weight MoE control
+
+The decomposition and injection-estimate scripts now read tensor data through
+`verified_tensor_io.py`. Each consumed F32, U32 or NPY payload is SHA-256 checked
+against its record before decoding those same bytes. Shape, encoding and finite
+values are checked. Cross-capture bindings also re-read the actual tensor files,
+reject duplicate stage identities, and compare positions and shapes. Repeated
+CPU traces must identify the same artifact, inputs and frozen checkpoint.
+
+The [verified decomposition](linear-layer6-binding-decomposition-verified.json)
+and [verified estimates](injection-step-estimates-verified.json) preserve every
+previous numerical row. They retain script/reader identities and verification
+counts; the original receipts remain unchanged. Regression tests corrupt payloads
+behind unchanged receipts and invoke both real analysis entrypoints. They reject
+corruption even with Python assertions disabled (`-O`).
+
+A new AMD capture completes layer 1's actual MoE, recording its complete
+2,304 × 2,560 input/output and the GPU-selected expert IDs and weights. It uses
+the existing paging profile and unchanged arithmetic. All 36 previously retained
+HC slices of layers 0 and 1 match the normal run bit-for-bit; the full MoE data
+also matches its independently captured token-2135 slices. Test-only readbacks
+identify both original and instrumented source. The pinned upstream eager MoE
+reads the same artifact with independent GGUF dequantization. Its unmodified
+forward is evaluated on the exact captured GPU input; a separate CPU-only
+control supplies the actual GPU routing IDs and weights to isolate expert
+execution from router numerics. No captured tensor feeds GPU execution.
+
+| Layer-1 prefill control, all 5,898,240 output values | Maximum difference | RMS difference | Outside existing quantized-v1 policy |
+| --- | ---: | ---: | ---: |
+| Unchanged source MoE on exact GPU input | 7.15e-7 | 8.06e-9 | 0 |
+| Source experts with GPU routing IDs/weights | 7.15e-7 | 7.28e-9 | 0 |
+| Negative control: omit shared expert | 0.718 | 0.00706 | 3,294 |
+
+Two original CPU forwards are bit-exact. Source/GPU expert sets agree at all
+2,304 positions. This closes the missing same-input MoE operator control for
+the measured layer-1 learned weights and prefill geometry; it does not establish
+all-layer, decode, or full-model parity. The existing long-input failure remains
+unchanged; no full-model gate rerun, precision switch or acceptance-policy change
+is claimed. See [controls](moe-layer1-same-input-controls.json),
+[capture](moe-layer1-stages.json.gz), [run](moe-layer1-stages-run.json.gz),
+[GPU log](moe-layer1-gpu-capture.log) and [CPU log](moe-layer1-same-input.log).
+
+The first capture completed its data readbacks but failed the harness's abort
+validator: stopping after the completed layer normalizes the reason into
+`AbortError`, while the earlier before-MoE mode propagated the original sentinel.
+The validator now accepts that normalized error only after its requested
+injection boundary was captured and its owned signal carries that sentinel.
+The failed capture/run/log remain retained; a fresh successful capture was used
+for the controls. This was a harness failure, not a model repair.
+
+The 27B provider remained active and the TTM pages limit remained `16099953`.
+Component: `doppler.tests`, `doppler.docs`. Intent: preserved.
+Acceptance evidence: seven tensor-integrity regressions (normal and `-O`),
+MoE observation ownership/source-integrity tests, verified retained-data replays,
+the physical AMD capture and independent CPU controls. Boundary effects:
+test-only readbacks and fail-closed evidence readers; no runtime changes.

@@ -9,27 +9,35 @@ tensor feedback and no model acceptance claim.
 
 Usage: python3 -P estimate-injection-steps.py <qualify-dir> <out.json>
 """
+import hashlib
 import json
+import runpy
 import sys
 from pathlib import Path
 
 import numpy as np
+tensor_io = runpy.run_path(str(Path(__file__).with_name('verified_tensor_io.py')))
+load_verified_trace, read_tensor = tensor_io['load_verified_trace'], tensor_io['read_tensor']
 
 Q = Path(sys.argv[1])
 OUT = Path(sys.argv[2])
 G = Q / 'relative-prefix-gpu-20261106.json'
 POSITION, STREAMS, WIDTH = 2135, 4, 2560
+gpu_trace, gpu_index, gpu_verification = load_verified_trace(G, ('layer', 'role', 'stage'))
 
 
 def gpu(layer, role, stage):
-    return np.fromfile(f'{G}.L{layer}.{role}.{stage}.f32', dtype='<f4').astype(np.float64)
+    record = gpu_index[(layer, role, stage)]
+    if record.get('positions') != [POSITION]:
+        raise ValueError('Injection estimates require the recorded token position')
+    return read_tensor(record, Q).reshape(-1).astype(np.float64)
 
 
 def cpu(layer, role, stage):
     base = Q / f'relative-source-L{layer}-20261106'
     trace = json.loads((base / 'trace.json').read_bytes())
     record = next(t for t in trace['tensors'] if t['role'] == role and t['stage'] == stage)
-    values = np.load(base / record['file'], allow_pickle=False)
+    values = read_tensor(record, base)
     if record['positions'] is None:
         values = values[POSITION]
     return values.reshape(-1).astype(np.float64)
@@ -66,7 +74,10 @@ for layer in range(16):
                      branchOutputRmsErrorOverRms=float(np.sqrt(np.mean(d_out ** 2)) / out_rms),
                      streams=per_stream))
 OUT.write_text(json.dumps(dict(scope='Estimated attention-branch output error and injected-error split at token 2135; diagnostic only',
-                               normalModelQualified=False, position=POSITION, rows=rows), indent=1, allow_nan=False) + '\n')
+                               normalModelQualified=False, position=POSITION, gpuTensorVerification=gpu_verification,
+                               scriptSha256=hashlib.sha256(Path(__file__).read_bytes()).hexdigest(),
+                               tensorReaderSha256=hashlib.sha256(Path(__file__).with_name('verified_tensor_io.py').read_bytes()).hexdigest(),
+                               rows=rows), indent=1, allow_nan=False) + '\n')
 for r in rows:
     print('L%2d attn branch (est. stream %d): rms=%.4f maxAbs=%.3f maxErr=%.3e rmsErr=%.3e maxErr/rms=%.3e rmsErr/rms=%.3e' % (
         r['layer'], r['estimatedFromStream'], r['branchOutputRms'], r['branchOutputMaxAbs'], r['branchOutputMaxAbsError'],

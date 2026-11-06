@@ -1,9 +1,10 @@
 import assert from 'node:assert/strict';
 import fs from 'node:fs/promises';
 import path from 'node:path';
-import { pathToFileURL } from 'node:url';
+import { pathToFileURL, fileURLToPath } from 'node:url';
 import { createHash } from 'node:crypto';
 import { installHyperConnectionObservation } from '../helpers/hyper-connection-observation-loader.js';
+import { installMoeRoutingObservation } from '../helpers/moe-routing-observation-loader.js';
 
 const runPath = process.env.DOPPLER_FLASH_NEXT_UPSTREAM_TRACE;
 if (!runPath) {
@@ -22,14 +23,16 @@ if (!runPath) {
   const originalSource = await fs.readFile(sourceURL);
   const report = { scope: 'Layer-0 upstream observation with intentional abort before MoE; not a generated answer or model qualification',
     normalModelQualified: false, process: { pid: process.pid, node: process.versions.node },
+    harnessSha256: hash(await fs.readFile(fileURLToPath(import.meta.url))),
     manifestSha256: hash(manifestBytes), inputsSha256: hash(inputsBytes), runSha256: hash(runBytes),
     hyperConnectionGeometry: manifest.inference.hyperConnections, tensors: [] };
   const controller = new AbortController(), stop = new Error('trace: requested upstream boundary captured');
   const stopLayer = run.stopBeforeMoeLayer ?? 0;
+  const captureMoe = run.captureMoe === true;
   assert(Number.isSafeInteger(stopLayer) && stopLayer >= 0 && stopLayer < manifest.architecture.numLayers);
   const traceLayers = run.traceLayers ?? [stopLayer];
   assert(traceLayers.includes(stopLayer));
-  report.scope = `Layer-${stopLayer} upstream observation with intentional abort before MoE; not a generated answer or model qualification`;
+  report.scope = `Layer-${stopLayer} upstream observation with intentional abort ${captureMoe ? 'after' : 'before'} MoE; not a generated answer or model qualification`;
   let layer = -1, readBuffer, readBufferSlice;
   const observer = installHyperConnectionObservation(sourceURL.href, hash(originalSource), async record => {
     if (record.role === 'attn_hc' && record.stage === 'input') layer++;
@@ -56,6 +59,15 @@ if (!runPath) {
       await fs.writeFile(file, raw);
       report.attentionProjectionInput = { dtype: 'f32', shape: record.tensor.shape, file, sha256: hash(raw) };
     }
+    if (captureMoe && layer === stopLayer && record.role === 'mlp_hc'
+      && ['branchInput', 'branchOutput'].includes(record.stage)) {
+      const raw = Buffer.from(await readBuffer(record.tensor.buffer, record.tensor.shape.reduce((a, b) => a * b, 1) * 4));
+      const file = `${run.outputPath}.moe-${record.stage}.f32`;
+      await fs.writeFile(file, raw);
+      report[record.stage === 'branchInput' ? 'moeInput' : 'moeOutput'] = {
+        dtype: 'f32', shape: record.tensor.shape, file, sha256: hash(raw),
+      };
+    }
     if (run.captureAttentionKv === true && layer === stopLayer && record.role === 'attn_hc' && record.stage === 'branchOutput') {
       const cache = pipeline.kvCache;
       assert.equal(cache.layout, 'contiguous');
@@ -73,8 +85,24 @@ if (!runPath) {
         report.attentionKv.tensors.push({ kind, file, sha256: hash(raw) });
       }
     }
-    if (layer === stopLayer && record.role === 'mlp_hc' && record.stage === 'branchInput') controller.abort(stop);
+    if (layer === stopLayer && record.role === 'mlp_hc'
+      && record.stage === (captureMoe ? 'injected' : 'branchInput')) controller.abort(stop);
   });
+  let routingObservation;
+  if (captureMoe) {
+    const url = new URL('../../src/inference/pipelines/text/moe-gpu.js', import.meta.url);
+    routingObservation = installMoeRoutingObservation(url.href, hash(await fs.readFile(url)), async record => {
+      if (record.layer !== stopLayer) return;
+      assert.equal(record.activationDtype, 'f32');
+      report.moeRouting = {};
+      for (const [name, buffer, suffix] of [['indices', record.indicesBuffer, 'u32'], ['weights', record.weightsBuffer, 'f32']]) {
+        const bytes = Buffer.from(await readBuffer(buffer, record.numTokens * record.topK * 4));
+        const file = `${run.outputPath}.moe-${name}.${suffix}`;
+        await fs.writeFile(file, bytes);
+        report.moeRouting[name] = { shape: [record.numTokens, record.topK], file, sha256: hash(bytes) };
+      }
+    });
+  }
   let pipeline, destroyDevice, releaseNodeWebGPU, qsaObservation;
   const gpuErrors = [];
   let primaryError;
@@ -126,7 +154,9 @@ if (!runPath) {
       signal: controller.signal, maxTokens: 1, temperature: 0, topK: 1, topP: 1, seed: 0,
       diagnostics: targetStages.length ? { enabled: true, captureConfig: { ...capture.createDefaultCaptureConfig(), enabled: true,
         targetLevel: 'full', targetOpIds: targetStages.map(stage => identity.buildOpId(stages.PROBE_TO_CANONICAL[stage], stopLayer)) } } : undefined,
-    }), error => error === stop);
+    }), error => error === stop || (captureMoe && controller.signal.reason === stop
+      && error.name === 'AbortError' && error.code === 'ABORT_ERR'
+      && report.tensors.some(row => row.layer === stopLayer && row.role === 'mlp_hc' && row.stage === 'injected')));
     for (const record of pipeline.stats.operatorDiagnostics?.timeline ?? []) {
       if (!record.capture?.data || record.layerIndex !== stopLayer) continue;
       const bytes = Buffer.from(Float32Array.from(record.capture.data).buffer);
@@ -135,6 +165,7 @@ if (!runPath) {
       report.tensors.push({ layer: stopLayer, role: captureRole, stage: record.stageName, shape: record.capture.shape, file, sha256: hash(bytes) });
     }
     assert(report.tensors.some(row => row.layer === stopLayer && row.role === 'mlp_hc' && row.stage === 'branchInput'));
+    if (captureMoe) assert(report.moeInput && report.moeOutput && report.moeRouting);
     assert.equal(report.tensors.filter(row => row.role === captureRole).length, targetStages.length);
     if (qsaObservation) {
       assert.deepEqual(qsaObservation.errors, []);
@@ -152,8 +183,10 @@ if (!runPath) {
     try { destroyDevice?.(); } catch (error) { failures.push(error); }
     try { await releaseNodeWebGPU?.(); } catch (error) { failures.push(error); }
     observer.restore();
+    routingObservation?.restore();
     qsaObservation?.restore();
     report.instrumentation = observer.receipt;
+    if (routingObservation) report.routingInstrumentation = routingObservation.receipt;
     report.gpuErrors = gpuErrors;
     report.cleanupFailures = failures.map(String);
     await fs.writeFile(run.outputPath, JSON.stringify(report, null, 2));

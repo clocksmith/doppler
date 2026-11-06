@@ -7,10 +7,13 @@ Usage: python3 -P bind-and-decompose-layer6.py <qualify-dir> <out.json>
 """
 import hashlib
 import json
+import runpy
 import sys
 from pathlib import Path
 
 import numpy as np
+tensor_io = runpy.run_path(str(Path(__file__).with_name('verified_tensor_io.py')))
+load_verified_trace, read_tensor = tensor_io['load_verified_trace'], tensor_io['read_tensor']
 
 Q = Path(sys.argv[1])
 OUT = Path(sys.argv[2])
@@ -19,15 +22,22 @@ STAGED = Q / 'linear-layer6-stages-20261106.json'
 RELATIVE = Q / 'relative-prefix-gpu-20261106.json'
 LAYER0 = Q / 'linear-layer0-stages-20261106.json'
 sha = lambda b: hashlib.sha256(b).hexdigest()
-staged = json.loads(STAGED.read_bytes())
+staged, staged_index, staged_verification = load_verified_trace(STAGED, ('layer', 'role', 'stage'))
 assert staged['diagnosticCompleted'] and not staged['gpuErrors'] and not staged['cleanupFailures']
 report = dict(scope='Binding, determinism and exact injection decomposition for the layer-6 staged capture; diagnostic only',
-              normalModelQualified=False, stagedTraceSha256=sha(STAGED.read_bytes()), position=POSITION)
+              normalModelQualified=False, stagedTraceSha256=sha(STAGED.read_bytes()), position=POSITION,
+              scriptSha256=sha(Path(__file__).read_bytes()),
+              tensorReaderSha256=sha(Path(__file__).with_name('verified_tensor_io.py').read_bytes()))
+report['tensorVerification'] = {'staged': staged_verification, 'comparedTraces': []}
 
 # 1. Every hyper-connection slice of layers 0-6 against the normal relative-prefix capture and the layer-0 staged capture.
 def bind(other_path, label):
-    other = json.loads(other_path.read_bytes())
-    index = {(t['layer'], t['role'], t['stage']): t['sha256'] for t in other['tensors']}
+    other, verified, proof = load_verified_trace(other_path, ('layer', 'role', 'stage'))
+    report['tensorVerification']['comparedTraces'].append(proof)
+    for field in ('manifestSha256', 'inputsSha256'):
+        if other[field] != staged[field]:
+            raise ValueError(f'Trace identity differs: {field}')
+    index = verified
     rows = dict(label=label, traceSha256=sha(other_path.read_bytes()), bitExact=0, different=[], notInOther=0)
     for t in staged['tensors']:
         if t['role'] not in ('attn_hc', 'mlp_hc'):
@@ -35,7 +45,7 @@ def bind(other_path, label):
         key = (t['layer'], t['role'], t['stage'])
         if key not in index:
             rows['notInOther'] += 1
-        elif index[key] == t['sha256']:
+        elif all(index[key].get(field) == t.get(field) for field in ('sha256', 'shape', 'positions')):
             rows['bitExact'] += 1
         else:
             rows['different'].append(list(key))
@@ -44,17 +54,24 @@ report['bindings'] = [bind(RELATIVE, 'normal relative-prefix capture, layers 0-1
 
 # 2. CPU trace determinism: the standalone stage-source run against the in-check run.
 def trace_files(directory):
-    trace = json.loads((directory / 'trace.json').read_bytes())
+    trace, _, proof = load_verified_trace(directory / 'trace.json', ('role', 'stage'))
+    report['tensorVerification']['comparedTraces'].append(proof)
     return {(t['role'], t['stage']): t['sha256'] for t in trace['tensors']}, trace
 source_files, source_trace = trace_files(Q / 'linear-layer6-stage-source-20261106')
 check_files, check_trace = trace_files(Q / 'linear-layer6-stage-check-20261106')
+for field in ('manifestSha256', 'inputsSha256', 'parentReceiptSha256', 'checkpointSha256'):
+    if source_trace[field] != check_trace[field]:
+        raise ValueError(f'CPU replay identity differs: {field}')
 report['cpuTraceDeterminism'] = dict(tensors=len(source_files), identical=sum(1 for k in source_files if check_files.get(k) == source_files[k]),
                                     differing=[list(k) for k in source_files if check_files.get(k) != source_files[k]],
                                     parentReceiptSha256=source_trace.get('parentReceiptSha256'), checkpointSha256=source_trace.get('checkpointSha256'))
 
 # 3. Exact decomposition helpers.
 def gpu(layer, role, stage):
-    return np.fromfile(f'{STAGED}.L{layer}.{role}.{stage}.f32', dtype='<f4').astype(np.float64)
+    record = staged_index[(layer, role, stage)]
+    if record.get('positions') != [POSITION]:
+        raise ValueError('Injection decomposition requires the recorded token position')
+    return read_tensor(record, Q).reshape(-1).astype(np.float64)
 
 
 def cpu(layer, role, stage):
@@ -63,7 +80,7 @@ def cpu(layer, role, stage):
     record = next((t for t in trace['tensors'] if t['role'] == role and t['stage'] == stage), None)
     if record is None:
         return None
-    values = np.load(base / record['file'], allow_pickle=False)
+    values = read_tensor(record, base)
     if record['positions'] is None:
         values = values[POSITION]
     return values.reshape(-1).astype(np.float64)
@@ -72,7 +89,7 @@ def cpu(layer, role, stage):
 def cpu_layer6(role, stage):
     base = Q / 'linear-layer6-stage-source-20261106'
     record = next(t for t in source_trace['tensors'] if t['role'] == role and t['stage'] == stage)
-    values = np.load(base / record['file'], allow_pickle=False)
+    values = read_tensor(record, base)
     if record['positions'] is None:
         values = values[POSITION]
     return values.reshape(-1).astype(np.float64)

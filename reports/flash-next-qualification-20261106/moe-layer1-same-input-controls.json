@@ -1,0 +1,327 @@
+{
+  "scope": "Layer-1 learned MoE same-input prefill controls; CPU-only routing substitutions, not model qualification",
+  "normalModelQualified": false,
+  "layer": 1,
+  "torch": "2.11.0+cu130",
+  "threads": 16,
+  "gpuTraceSha256": "e68ea48d85f2f06eb9a98bb3dec1b4611e455f2c3c8ff70c98a7d7621ef31160",
+  "runSha256": "35693a26ce69c2151648e94e0afeaa48bd4ee511bc36c2932a8fcab3edd6cb36",
+  "pinnedCpuTraceSha256": "667ea0fa074b48ba44964680162bd4fa5bfbc91c4f1e5aaf4c4667ce6be3a1f7",
+  "manifestSha256": "4902a0b730a9310903b00bc0f8f587528fa1af9f37a722d2f9287bafceceec09",
+  "inputsSha256": "06a819d529593b58abd6cb27566bb835a9b91aac13a77c0c7479b7e4e7b0c378",
+  "producerSha256": "f6bc0f15a6545ab1d205cfc3ec412442415220e541190b63a9c712fa238ba5b0",
+  "setupSha256": "02a26fe05e81e3e3f8d3a14fe000a37a49725aca808f22604e2263221f790d07",
+  "scriptSha256": "47bbe2a20043a5b4204ca32678e867de5453034d5816fa18942ffa7560fc6808",
+  "tensorReaderSha256": "9b900d3abda5367001fad812d8dcba7e7c0b7eb1b84f3970ebdca8b41c0b2874",
+  "tensorVerification": {
+    "capture": {
+      "traceSha256": "e68ea48d85f2f06eb9a98bb3dec1b4611e455f2c3c8ff70c98a7d7621ef31160",
+      "tensors": 50,
+      "verifiedTensorBytes": 233007232
+    },
+    "normal": {
+      "traceSha256": "e0308adcbc0d2e2a238535cd0773657a3472f69f9fff1712f3101a76c50cea5c",
+      "tensors": 288,
+      "verifiedTensorBytes": 5653504
+    }
+  },
+  "normalBindings": [
+    [
+      0,
+      "attn_hc",
+      "input"
+    ],
+    [
+      0,
+      "attn_hc",
+      "norm"
+    ],
+    [
+      0,
+      "attn_hc",
+      "down"
+    ],
+    [
+      0,
+      "attn_hc",
+      "lowRank"
+    ],
+    [
+      0,
+      "attn_hc",
+      "up"
+    ],
+    [
+      0,
+      "attn_hc",
+      "mix"
+    ],
+    [
+      0,
+      "attn_hc",
+      "branchInput"
+    ],
+    [
+      0,
+      "attn_hc",
+      "logits"
+    ],
+    [
+      0,
+      "attn_hc",
+      "gate"
+    ],
+    [
+      0,
+      "mlp_hc",
+      "input"
+    ],
+    [
+      0,
+      "mlp_hc",
+      "norm"
+    ],
+    [
+      0,
+      "mlp_hc",
+      "down"
+    ],
+    [
+      0,
+      "mlp_hc",
+      "lowRank"
+    ],
+    [
+      0,
+      "mlp_hc",
+      "up"
+    ],
+    [
+      0,
+      "mlp_hc",
+      "mix"
+    ],
+    [
+      0,
+      "mlp_hc",
+      "branchInput"
+    ],
+    [
+      0,
+      "mlp_hc",
+      "logits"
+    ],
+    [
+      0,
+      "mlp_hc",
+      "gate"
+    ],
+    [
+      1,
+      "attn_hc",
+      "input"
+    ],
+    [
+      1,
+      "attn_hc",
+      "norm"
+    ],
+    [
+      1,
+      "attn_hc",
+      "down"
+    ],
+    [
+      1,
+      "attn_hc",
+      "lowRank"
+    ],
+    [
+      1,
+      "attn_hc",
+      "up"
+    ],
+    [
+      1,
+      "attn_hc",
+      "mix"
+    ],
+    [
+      1,
+      "attn_hc",
+      "branchInput"
+    ],
+    [
+      1,
+      "attn_hc",
+      "logits"
+    ],
+    [
+      1,
+      "attn_hc",
+      "gate"
+    ],
+    [
+      1,
+      "mlp_hc",
+      "input"
+    ],
+    [
+      1,
+      "mlp_hc",
+      "norm"
+    ],
+    [
+      1,
+      "mlp_hc",
+      "down"
+    ],
+    [
+      1,
+      "mlp_hc",
+      "lowRank"
+    ],
+    [
+      1,
+      "mlp_hc",
+      "up"
+    ],
+    [
+      1,
+      "mlp_hc",
+      "mix"
+    ],
+    [
+      1,
+      "mlp_hc",
+      "branchInput"
+    ],
+    [
+      1,
+      "mlp_hc",
+      "logits"
+    ],
+    [
+      1,
+      "mlp_hc",
+      "gate"
+    ]
+  ],
+  "policy": {
+    "id": "doppler.boundary-tolerance/quantized-v1",
+    "sha256": "f1c4629d593ec2517e3628ac68131dc7568c6aba5e0f03db627d26228c720413",
+    "absolute": 0.05,
+    "relative": 0.05,
+    "requireDtypeMatch": false
+  },
+  "sourceRepeatBitExact": true,
+  "sourceRouterComparedPositions": 2304,
+  "sourceRouterExpertSetDifferences": 0,
+  "sourceRouterWeightDifference": {
+    "referenceRms": 0.12073470126843357,
+    "referenceMaxAbsolute": 0.7083530426025391,
+    "observedRms": 0.12073470027770979,
+    "maxAbsoluteDifference": 2.384185791015625e-07,
+    "rmsDifference": 3.712721808647945e-08,
+    "maxErrorOverReferenceRms": 1.9747311799900706e-06,
+    "rmsErrorOverReferenceRms": 3.0751074625954676e-07,
+    "relativeErrorDefined": true
+  },
+  "unchangedSourceOnGpuInput": {
+    "referenceRms": 0.01791315136076985,
+    "referenceMaxAbsolute": 0.7193136215209961,
+    "observedRms": 0.01791315103301909,
+    "maxAbsoluteDifference": 7.152557373046875e-07,
+    "rmsDifference": 8.055958621576055e-09,
+    "maxErrorOverReferenceRms": 3.992908466519808e-05,
+    "rmsErrorOverReferenceRms": 4.4972313689141046e-07,
+    "relativeErrorDefined": true,
+    "worstPositionAndColumn": [
+      1355,
+      1392
+    ],
+    "outsideExistingPolicy": 0,
+    "checkedValues": 5898240,
+    "position2135": {
+      "referenceRms": 0.015885493161378234,
+      "referenceMaxAbsolute": 0.05724746361374855,
+      "observedRms": 0.015885491865236828,
+      "maxAbsoluteDifference": 4.470348358154297e-08,
+      "rmsDifference": 8.164282994675156e-09,
+      "maxErrorOverReferenceRms": 2.8141073825916065e-06,
+      "rmsErrorOverReferenceRms": 5.13945831692821e-07,
+      "relativeErrorDefined": true
+    }
+  },
+  "sourceExpertsWithGpuRoutesAndWeights": {
+    "referenceRms": 0.017913151186820957,
+    "referenceMaxAbsolute": 0.7193136215209961,
+    "observedRms": 0.01791315103301909,
+    "maxAbsoluteDifference": 7.152557373046875e-07,
+    "rmsDifference": 7.278868123222982e-09,
+    "maxErrorOverReferenceRms": 3.9929085052936675e-05,
+    "rmsErrorOverReferenceRms": 4.063421364175267e-07,
+    "relativeErrorDefined": true,
+    "worstPositionAndColumn": [
+      1355,
+      1392
+    ],
+    "outsideExistingPolicy": 0,
+    "checkedValues": 5898240,
+    "position2135": {
+      "referenceRms": 0.01588549072365477,
+      "referenceMaxAbsolute": 0.057247452437877655,
+      "observedRms": 0.015885491865236828,
+      "maxAbsoluteDifference": 2.60770320892334e-08,
+      "rmsDifference": 5.976584651382814e-09,
+      "maxErrorOverReferenceRms": 1.641562891752699e-06,
+      "rmsErrorOverReferenceRms": 3.762291486836601e-07,
+      "relativeErrorDefined": true
+    }
+  },
+  "omitSharedExpertNegativeControl": {
+    "referenceRms": 0.017913151186820957,
+    "referenceMaxAbsolute": 0.7193136215209961,
+    "observedRms": 0.016000979100537875,
+    "maxAbsoluteDifference": 0.717517077922821,
+    "rmsDifference": 0.007061374402536937,
+    "maxErrorOverReferenceRms": 40.055324182755285,
+    "rmsErrorOverReferenceRms": 0.3942005696759889,
+    "relativeErrorDefined": true,
+    "worstPositionAndColumn": [
+      1355,
+      1392
+    ],
+    "outsideExistingPolicy": 3294,
+    "checkedValues": 5898240,
+    "position2135": {
+      "referenceRms": 0.01588549072365477,
+      "referenceMaxAbsolute": 0.057247452437877655,
+      "observedRms": 0.013950075170470188,
+      "maxAbsoluteDifference": 0.055585138499736786,
+      "rmsDifference": 0.007106594178160264,
+      "maxErrorOverReferenceRms": 3.499113717460806,
+      "rmsErrorOverReferenceRms": 0.44736384300536436,
+      "relativeErrorDefined": true
+    }
+  },
+  "outputs": {
+    "source": {
+      "file": "source.npy",
+      "sha256": "16873e12eeb1c8babc3e1b7a7b324b7fa0ddb4bedaa362d51f7879f25c55f7a7",
+      "shape": [
+        2304,
+        2560
+      ]
+    },
+    "source-gpu-routes": {
+      "file": "source-gpu-routes.npy",
+      "sha256": "33862593f56cc5157eb554ee8dbc09c097b41eca92680ea7a69cbe923f41279e",
+      "shape": [
+        2304,
+        2560
+      ]
+    }
+  },
+  "componentControlPassed": true
+}

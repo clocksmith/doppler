@@ -1,0 +1,16 @@
+L 0 attn branch (est. stream 2): rms=0.0882 maxAbs=0.614 maxErr=4.078e-07 rmsErr=6.171e-08 maxErr/rms=4.626e-06 rmsErr/rms=7.000e-07
+L 1 attn branch (est. stream 3): rms=0.1241 maxAbs=0.883 maxErr=1.237e-06 rmsErr=2.072e-07 maxErr/rms=9.968e-06 rmsErr/rms=1.669e-06
+L 2 attn branch (est. stream 3): rms=0.1075 maxAbs=0.501 maxErr=1.166e-06 rmsErr=2.023e-07 maxErr/rms=1.084e-05 rmsErr/rms=1.881e-06
+L 3 attn branch (est. stream 3): rms=0.0813 maxAbs=0.445 maxErr=3.295e-06 rmsErr=6.037e-07 maxErr/rms=4.053e-05 rmsErr/rms=7.426e-06
+L 4 attn branch (est. stream 3): rms=0.0999 maxAbs=0.466 maxErr=2.427e-06 rmsErr=6.268e-07 maxErr/rms=2.431e-05 rmsErr/rms=6.277e-06
+L 5 attn branch (est. stream 3): rms=0.0779 maxAbs=0.493 maxErr=1.846e-06 rmsErr=3.909e-07 maxErr/rms=2.369e-05 rmsErr/rms=5.015e-06
+L 6 attn branch (est. stream 0): rms=0.1978 maxAbs=3.342 maxErr=4.902e-06 rmsErr=6.827e-07 maxErr/rms=2.478e-05 rmsErr/rms=3.451e-06
+L 7 attn branch (est. stream 3): rms=0.1189 maxAbs=0.653 maxErr=1.819e-05 rmsErr=2.646e-06 maxErr/rms=1.530e-04 rmsErr/rms=2.225e-05
+L 8 attn branch (est. stream 3): rms=0.0271 maxAbs=0.129 maxErr=8.109e-07 rmsErr=1.999e-07 maxErr/rms=2.992e-05 rmsErr/rms=7.377e-06
+L 9 attn branch (est. stream 3): rms=0.0856 maxAbs=0.517 maxErr=2.826e-06 rmsErr=7.484e-07 maxErr/rms=3.300e-05 rmsErr/rms=8.740e-06
+L10 attn branch (est. stream 3): rms=0.0999 maxAbs=0.486 maxErr=4.386e-06 rmsErr=9.507e-07 maxErr/rms=4.389e-05 rmsErr/rms=9.513e-06
+L11 attn branch (est. stream 3): rms=0.0960 maxAbs=0.620 maxErr=1.799e-05 rmsErr=3.345e-06 maxErr/rms=1.874e-04 rmsErr/rms=3.485e-05
+L12 attn branch (est. stream 0): rms=0.1044 maxAbs=0.672 maxErr=1.051e-05 rmsErr=2.162e-06 maxErr/rms=1.007e-04 rmsErr/rms=2.071e-05
+L13 attn branch (est. stream 0): rms=0.0640 maxAbs=0.345 maxErr=4.087e-06 rmsErr=1.057e-06 maxErr/rms=6.390e-05 rmsErr/rms=1.652e-05
+L14 attn branch (est. stream 0): rms=0.1123 maxAbs=0.553 maxErr=2.061e-05 rmsErr=2.006e-06 maxErr/rms=1.835e-04 rmsErr/rms=1.786e-05
+L15 attn branch (est. stream 0): rms=0.0940 maxAbs=0.503 maxErr=6.575e-05 rmsErr=9.949e-06 maxErr/rms=6.994e-04 rmsErr/rms=1.058e-04
