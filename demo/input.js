@@ -8,7 +8,9 @@ import { clearOutput, renderChatMessages, setPhase } from './output.js';
 import { ensurePromptModel, syncModelControls } from './models.js';
 
 let examples = null;
-let shuffleIndex = -1;
+// Shuffled decks of prompts, one per category plus 'all' for Surprise. A deck
+// deals every prompt once before it is reshuffled.
+const promptDecks = new Map();
 let onRun = null;
 
 function $(id) { return document.getElementById(id); }
@@ -25,25 +27,80 @@ function setupConversationActions() {
   syncClearChatButton();
 }
 
+function isPromptList(value) {
+  return Array.isArray(value) && value.length > 0
+    && value.every((prompt) => typeof prompt === 'string' && prompt.trim());
+}
+
+function validateExamples(value) {
+  const { illustrative, categories } = value ?? {};
+  if (typeof illustrative?.prompt !== 'string' || !illustrative.prompt.trim()
+    || typeof illustrative.answer !== 'string' || !illustrative.answer.trim()) {
+    throw new Error('demo/examples.json needs an illustrative prompt and answer.');
+  }
+  if (!Array.isArray(categories) || categories.length === 0
+    || categories.some((entry) => typeof entry?.label !== 'string' || !entry.label.trim() || !isPromptList(entry.prompts))) {
+    throw new Error('demo/examples.json needs categories, each with a label and a non-empty prompt bank.');
+  }
+  return value;
+}
+
+// The suggestion row is optional: without a valid bank it stays hidden rather
+// than offering invented prompts.
 async function loadExamples() {
   try {
     const url = new URL('./examples.json', import.meta.url).toString();
     const res = await fetch(url);
-    examples = await res.json();
-  } catch {
-    examples = { text: ['hello world'], image: [] };
+    if (!res.ok) throw new Error(`demo/examples.json: HTTP ${res.status}`);
+    examples = validateExamples(await res.json());
+  } catch (error) {
+    examples = null;
+    console.warn('[demo] Prompt suggestions unavailable:', error?.message ?? error);
   }
 }
 
-function shuffle() {
-  if (!examples?.text?.length) return;
-  shuffleIndex = (shuffleIndex + 1) % examples.text.length;
-  const promptEl = $('prompt-input');
-  if (promptEl) {
-    promptEl.value = examples.text[shuffleIndex];
-    promptEl.focus();
-    syncSendButton();
+function shuffled(prompts) {
+  const deck = [...prompts];
+  for (let index = deck.length - 1; index > 0; index--) {
+    const other = Math.floor(Math.random() * (index + 1));
+    [deck[index], deck[other]] = [deck[other], deck[index]];
   }
+  return deck;
+}
+
+// Deals the next prompt from a deck, never the one already in the composer
+// while another remains.
+function dealPrompt(key, prompts) {
+  let deck = promptDecks.get(key);
+  if (!deck?.length) {
+    deck = shuffled(prompts);
+    promptDecks.set(key, deck);
+  }
+  let prompt = deck.pop();
+  if (prompt === getPrompt() && deck.length) {
+    const next = deck.pop();
+    deck.unshift(prompt);
+    prompt = next;
+  }
+  return prompt;
+}
+
+function allPrompts() {
+  return [...new Set(examples.categories.flatMap((entry) => entry.prompts))];
+}
+
+/** The first-visit example answer and its prompt, or null without a valid bank. */
+export function getIllustrativeExample() {
+  return examples?.illustrative ?? null;
+}
+
+// Preloads the composer without taking focus, so it never replaces typed or
+// launched text and does not raise a mobile keyboard on load.
+export function preloadPrompt(value) {
+  const promptEl = $('prompt-input');
+  if (!promptEl || promptEl.value.trim() || typeof value !== 'string') return;
+  promptEl.value = value;
+  syncSendButton();
 }
 
 export function getPrompt() {
@@ -207,16 +264,20 @@ async function submitIfReady() {
 export async function initInput() {
   await loadExamples();
   const suggestions = $('prompt-suggestions');
-  for (const entry of examples?.suggestions ?? []) {
+  if (suggestions) suggestions.hidden = !examples;
+  for (const entry of examples?.categories ?? []) {
     const button = document.createElement('button');
     button.type = 'button';
     button.className = 'btn btn-ghost btn-small';
     button.textContent = entry.label;
-    button.addEventListener('click', () => setPromptValue(entry.prompt));
+    button.title = `Try another ${entry.label.toLowerCase()} prompt`;
+    button.addEventListener('click', () => setPromptValue(dealPrompt(entry.label, entry.prompts)));
     suggestions?.insertBefore(button, $('shuffle-btn'));
   }
 
-  $('shuffle-btn')?.addEventListener('click', shuffle);
+  $('shuffle-btn')?.addEventListener('click', () => {
+    if (examples) setPromptValue(dealPrompt('all', allPrompts()));
+  });
 
   $('run-btn')?.addEventListener('click', submitIfReady);
 
@@ -229,8 +290,6 @@ export async function initInput() {
   $('prompt-input')?.addEventListener('input', () => syncSendButton());
 
   setupConversationActions();
-
-  // Keep the composer empty until the user writes or requests an example.
   syncSendButton();
 }
 

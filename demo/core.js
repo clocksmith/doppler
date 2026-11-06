@@ -393,11 +393,11 @@ export async function runBranch(forkIndex, tokenId) {
   }
 }
 
-export function loadIllustrativeExample() {
-  if (state.generating || state.modelBusy || state.settingsBusy) return;
-  beginChatTurn([{ role: 'user', content: 'Explain why the sky is blue in one sentence.' }]);
+export function loadIllustrativeExample(example) {
+  if (!example || state.generating || state.modelBusy || state.settingsBusy) return;
+  beginChatTurn([{ role: 'user', content: example.prompt }]);
   const output = $('output-text');
-  if (output) output.textContent = 'Air molecules scatter shorter blue wavelengths of sunlight more strongly than longer red wavelengths, so the sky looks blue.';
+  if (output) output.textContent = example.answer;
   const message = $('live-assistant-message');
   if (message) { message.hidden = false; message.dataset.example = 'illustrative'; }
   const note = $('recorded-run-note');

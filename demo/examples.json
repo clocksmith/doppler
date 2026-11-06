@@ -1,11 +1,42 @@
 {
-  "text": [
-    "Explain why the sky is blue in one sentence.",
-    "Make this sentence clearer: We need to utilize a more efficient process to accomplish the task.",
-    "Write the first two sentences of a story about a lost robot.",
-    "Suggest three names for a neighborhood bookshop.",
-    "Explain how a bicycle stays balanced in two sentences.",
-    "Write a friendly invitation to a picnic."
+  "illustrative": {
+    "prompt": "Explain why the sky is blue in one sentence.",
+    "answer": "Air molecules scatter shorter blue wavelengths of sunlight more strongly than longer red wavelengths, so the sky looks blue."
+  },
+  "categories": [
+    {
+      "label": "Explain",
+      "prompts": [
+        "Explain why the sky is blue in one sentence.",
+        "Explain how a bicycle stays balanced in two sentences.",
+        "Explain why ice floats on water in two sentences.",
+        "Explain how a rainbow forms in two sentences.",
+        "Explain what a leap year is in one sentence.",
+        "Explain what a password manager does in one sentence."
+      ]
+    },
+    {
+      "label": "Rewrite",
+      "prompts": [
+        "Make this sentence clearer: We need to utilize a more efficient process to accomplish the task.",
+        "Rewrite more politely: Send me the report now.",
+        "Shorten this sentence: In order to make sure that everyone is on the same page, we will have a meeting.",
+        "Rewrite in plain English: The meeting has been postponed until further notice.",
+        "Make this friendlier: Your request has been denied.",
+        "Fix the grammar: Me and him goes to the store every days."
+      ]
+    },
+    {
+      "label": "Imagine",
+      "prompts": [
+        "Write the first two sentences of a story about a lost robot.",
+        "Write a friendly invitation to a picnic.",
+        "Suggest three names for a neighborhood bookshop.",
+        "Describe a city on the moon in two sentences.",
+        "Write a four-line poem about morning coffee.",
+        "Invent a new holiday and describe it in two sentences."
+      ]
+    }
   ],
   "image": [
     {
@@ -19,20 +50,6 @@
     {
       "prompt": "summarize the key information in this image",
       "note": "Drop or paste an image, then ask about it"
-    }
-  ],
-  "suggestions": [
-    {
-      "label": "Explain",
-      "prompt": "Explain why the sky is blue in one sentence."
-    },
-    {
-      "label": "Rewrite",
-      "prompt": "Make this sentence clearer: We need to utilize a more efficient process to accomplish the task."
-    },
-    {
-      "label": "Imagine",
-      "prompt": "Write the first two sentences of a story about a lost robot."
     }
   ]
 }

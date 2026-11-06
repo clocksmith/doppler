@@ -196,6 +196,9 @@ async function main() {
     assert.equal(await page.locator('#model-select').isVisible(), false);
     assert.equal(await page.locator('#xray-shell').isVisible(), false);
     assert.match(await page.locator('#recorded-run-note').textContent(), /Illustrative answer/);
+    assert.equal(await page.inputValue('#prompt-input'), await page.locator('#chat-thread .chat-message-text').first().textContent(),
+      'The composer preloads the example prompt, so Send runs it live');
+    assert.equal(await page.locator('#run-btn').isEnabled(), true, 'A preloaded prompt can be sent before a model is chosen');
     assert.equal(await page.locator('#output-toks').textContent(), '');
     assert.equal(await page.locator('.token-chip').count(), 0);
     assert.equal(await page.locator('#model-select option[value="embedding-only"]').count(), 0);

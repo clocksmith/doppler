@@ -1,7 +1,7 @@
 import { installDebugGlobal } from 'doppler-gpu/tooling/runtime';
 import { boot, setBootStatus, stopBootProgress, updateBootModelProgress } from './boot.js';
 import { reloadActiveModel, setModelCallbacks } from './models.js';
-import { initInput, setRunHandler } from './input.js';
+import { getIllustrativeExample, initInput, preloadPrompt, setRunHandler } from './input.js';
 import { initSettings } from './settings.js';
 import { initReport } from './report.js';
 import { onModelLoaded, runGeneration, stopGeneration, loadSampleInspection, loadIllustrativeExample, syncBranchView } from './core.js';
@@ -132,8 +132,11 @@ async function init() {
 
   // Boot sequence
   await boot();
+  // First visit: show the example answer and preload its prompt, so Send runs it live.
   if (state.phase === 'ready' && !state.model && !state.conversationHistory.length) {
-    loadIllustrativeExample();
+    const example = getIllustrativeExample();
+    loadIllustrativeExample(example);
+    if (example) preloadPrompt(example.prompt);
     refreshRuntimeNotice();
   }
 }

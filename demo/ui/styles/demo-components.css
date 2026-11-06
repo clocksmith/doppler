@@ -260,6 +260,7 @@
 #app .try-pane { display: grid; gap: var(--demo-space-2); position: static; }
 #app .composer-heading { font: 600 20px/1.4 var(--font-sans); }
 #app .prompt-suggestions { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; }
+#app .prompt-suggestions[hidden] { display: none; }
 #app .prompt-suggestions .btn { width: 100%; min-height: 40px; padding: 8px 1ch; letter-spacing: -.01em; }
 #app #prompt-input { min-height: 130px; }
 #app .input-actions { justify-content: flex-end; }

@@ -10,7 +10,11 @@ choices without downloading weights or presenting its timing as a device result.
 Word choices, local writing, and recorded precision comparison are direct actions.
 Model setup opens on demand; sampling, run receipts, and precision score tables
 remain available under their respective details. The example does not become
-conversation history or replace a returning conversation. Live generation and
+conversation history or replace a returning conversation. The composer opens with
+the example's prompt, without taking focus, so Send runs it live. Each suggestion
+category (Explain, Rewrite, Imagine) deals prompts from its own bank in
+`examples.json`, shuffled and without repeats until the bank is used up; Surprise
+deals from all of them. Live generation and
 recorded examples share the existing inspection view and execution owners.
 
 The composer streams text through inspection token events. Incoming IDs are

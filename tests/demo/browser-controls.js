@@ -224,9 +224,24 @@ export async function checkDemoControls(page) {
   await page.locator('#settings-toggle').click();
   assert.equal(await page.locator('#settings-panel').isVisible(), false);
 
-  const previousPrompt = await page.inputValue('#prompt-input');
-  await page.click('#shuffle-btn');
-  assert.notEqual(await page.inputValue('#prompt-input'), previousPrompt);
+  // Each category deals its whole bank before repeating; Surprise draws from every bank.
+  const { categories } = await page.evaluate(async () => (await fetch('/demo/examples.json')).json());
+  for (const { label, prompts } of categories) {
+    const dealt = new Set();
+    for (let draw = 0; draw < prompts.length; draw++) {
+      await page.locator('#prompt-suggestions button', { hasText: label }).click();
+      dealt.add(await page.inputValue('#prompt-input'));
+    }
+    assert.deepEqual([...dealt].sort(), [...prompts].sort(), `${label} deals every prompt in its bank`);
+  }
+  const bank = new Set(categories.flatMap((entry) => entry.prompts));
+  for (let draw = 0; draw < 3; draw++) {
+    const previousPrompt = await page.inputValue('#prompt-input');
+    await page.click('#shuffle-btn');
+    const surprise = await page.inputValue('#prompt-input');
+    assert.notEqual(surprise, previousPrompt, 'Surprise never repeats the prompt already shown');
+    assert.ok(bank.has(surprise), 'Surprise draws from the category banks');
+  }
   await page.fill('#prompt-input', 'Keyboard');
   await page.locator('#prompt-input').press('Shift+Enter');
   assert.equal(await page.inputValue('#prompt-input'), 'Keyboard\n');
