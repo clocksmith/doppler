@@ -105,6 +105,16 @@ function prepareGenerationRuntime(generator, opts, options) {
       tsirFixture: createTsirFixtureState(tsirFixtureCfg),
     };
   }
+  const activePlan = resolveActiveExecutionPlan(generator._state);
+  generator._state.stats.executionPlan = {
+    primary: summarizeExecutionPlan(generator._state.executionPlanState?.primaryPlan ?? null),
+    fallback: summarizeExecutionPlan(generator._state.executionPlanState?.fallbackPlan ?? null),
+    activePlanIdAtStart: activePlan?.id ?? null,
+    finalActivePlanId: activePlan?.id ?? null,
+    transitions: [],
+  };
+  generator._state.stats.kernelPathId = activePlan?.kernelPathId ?? generator._state.resolvedKernelPath?.id ?? null;
+  generator._state.stats.kernelPathSource = activePlan?.kernelPathSource ?? generator._state.kernelPathSource ?? 'none';
   return startTime;
 }
 
@@ -151,6 +161,9 @@ function finishGenerationRuntime(generator, options, startTime, generatedIds, pr
   settleGenerationStats(generator._state.stats, startTime,
     Math.max(0, generatedIds.length - promptTokenCount), options.signal?.aborted === true);
   generator._state.stats.batching = { ...generator._state.batchingStats };
+  if (generator._state.stats.executionPlan) {
+    generator._state.stats.executionPlan.finalActivePlanId = generator._state.executionPlanState?.activePlanId ?? null;
+  }
   resetActiveExecutionPlan(generator._state);
   generator._state.stats.operatorDiagnostics = generator._state.operatorDiagnostics?.emitter
     ? {
@@ -172,16 +185,6 @@ export async function* _generateTokensInternal(prompt, options = {}, mode = 'tex
     const startTime = prepareGenerationRuntime(this, opts, options);
     let generatedIds = [];
     let promptTokenCount = 0;
-    const activePlan = opts.executionPlan ?? resolveActiveExecutionPlan(this._state);
-    this._state.stats.executionPlan = {
-      primary: summarizeExecutionPlan(this._state.executionPlanState?.primaryPlan ?? null),
-      fallback: summarizeExecutionPlan(this._state.executionPlanState?.fallbackPlan ?? null),
-      activePlanIdAtStart: activePlan?.id ?? null,
-      finalActivePlanId: activePlan?.id ?? null,
-      transitions: [],
-    };
-    this._state.stats.kernelPathId = activePlan?.kernelPathId ?? this._state.resolvedKernelPath?.id ?? null;
-    this._state.stats.kernelPathSource = activePlan?.kernelPathSource ?? this._state.kernelPathSource ?? 'none';
 
     if (opts.debug) {
       log.debug('Pipeline', `ChatTemplate: options=${options.useChatTemplate}, final=${opts.useChatTemplate}`);
@@ -380,9 +383,6 @@ export async function generateTokenIds(prompt, options = {}) {
       };
     } finally {
       this._closeFinitenessFallbackWindow(opts);
-      if (this._state.stats.executionPlan) {
-        this._state.stats.executionPlan.finalActivePlanId = this._state.executionPlanState?.activePlanId ?? null;
-      }
       finishGenerationRuntime(this, options, startTime, generatedIds, promptTokenCount);
     }
   }
