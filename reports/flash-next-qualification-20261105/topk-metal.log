@@ -1,0 +1,2 @@
+[GPU] apple metal-3, f16/subgroups, 4.0GB, submit probe: 0.8ms
+physical wide top-k: 63/256/257/511/512 experts, top-10, normalized/raw, ties, immediate/recorded passed

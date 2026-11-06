@@ -23,7 +23,7 @@ struct Uniforms {
 @group(0) @binding(2) var<storage, read_write> out_indices: array<u32>;
 @group(0) @binding(3) var<storage, read_write> out_weights: array<f32>;
 
-var<workgroup> shared_values: array<vec4<f32>, MAX_EXPERTS / 4u>;
+var<workgroup> shared_values: array<f32, MAX_EXPERTS>;
 var<workgroup> shared_scalar: f32;
 var<workgroup> picked_probs: array<f32, MAX_TOP_K>;
 var<workgroup> picked_indices: array<u32, MAX_TOP_K>;
@@ -45,22 +45,23 @@ fn main(
     var logit = 0.0;
     if (is_expert) {
         logit = probs[base_offset + t];
-        shared_values[t / 4u][t % 4u] = logit;
+        shared_values[t] = logit;
     }
     workgroupBarrier();
 
     // Exact maximum: max is associative and commutative.
     if (t == 0u) {
-        var max_val: f32 = shared_values[0].x;
+        var max_val: f32 = shared_values[0];
         for (var i: u32 = 1u; i < min(n, 4u); i = i + 1u) {
-            max_val = max(max_val, shared_values[0][i]);
+            max_val = max(max_val, shared_values[i]);
         }
         for (var q: u32 = 1u; q < n / 4u; q = q + 1u) {
-            let c = shared_values[q];
+            let base = q * 4u;
+            let c = vec4<f32>(shared_values[base], shared_values[base + 1u], shared_values[base + 2u], shared_values[base + 3u]);
             max_val = max(max(max(max(max_val, c.x), c.y), c.z), c.w);
         }
         for (var i: u32 = max(4u, n - n % 4u); i < n; i = i + 1u) {
-            max_val = max(max_val, shared_values[i / 4u][i % 4u]);
+            max_val = max(max_val, shared_values[i]);
         }
         shared_scalar = max_val;
     }
@@ -72,7 +73,7 @@ fn main(
     }
     workgroupBarrier();
     if (is_expert) {
-        shared_values[t / 4u][t % 4u] = exp_val;
+        shared_values[t] = exp_val;
     }
     workgroupBarrier();
 
@@ -80,11 +81,12 @@ fn main(
     if (t == 0u) {
         var exp_sum: f32 = 0.0;
         for (var q: u32 = 0u; q < n / 4u; q = q + 1u) {
-            let c = shared_values[q];
+            let base = q * 4u;
+            let c = vec4<f32>(shared_values[base], shared_values[base + 1u], shared_values[base + 2u], shared_values[base + 3u]);
             exp_sum = (((exp_sum + c.x) + c.y) + c.z) + c.w;
         }
         for (var i: u32 = n - n % 4u; i < n; i = i + 1u) {
-            exp_sum = exp_sum + shared_values[i / 4u][i % 4u];
+            exp_sum = exp_sum + shared_values[i];
         }
         shared_scalar = 1.0 / exp_sum;
     }
@@ -92,7 +94,7 @@ fn main(
     let prob = exp_val * shared_scalar;
     workgroupBarrier();
     if (is_expert) {
-        shared_values[t / 4u][t % 4u] = prob;
+        shared_values[t] = prob;
     }
     workgroupBarrier();
 
@@ -100,7 +102,8 @@ fn main(
         var rank = 0u;
         let pv = vec4<f32>(prob);
         for (var q: u32 = 0u; q < (n + 3u) / 4u; q = q + 1u) {
-            let c = shared_values[q];
+            let base = q * 4u;
+            let c = vec4<f32>(shared_values[base], shared_values[base + 1u], shared_values[base + 2u], shared_values[base + 3u]);
             let j = vec4<u32>(q * 4u) + vec4<u32>(0u, 1u, 2u, 3u);
             let beats = (c > pv) | ((c == pv) & (j < vec4<u32>(t)));
             let valid = j < vec4<u32>(n);

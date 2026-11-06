@@ -152,6 +152,11 @@
       "description": "Declared MoE router projection (per-expert logits) with its own control precision.",
       "kernelFamily": ["tiled", "gemv", "matmul_f32"]
     },
+    "moe_topk": {
+      "section": ["prefill", "decode"],
+      "description": "Declared GPU top-k expert selection and routing weights consumed by the MoE executor.",
+      "kernelFamily": ["topk"]
+    },
     "moe_shared_router": {
       "section": ["prefill", "decode"],
       "description": "Declared shared-expert gate projection with its own control precision.",

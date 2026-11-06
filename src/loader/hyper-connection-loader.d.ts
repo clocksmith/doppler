@@ -9,6 +9,7 @@ import type { WeightBuffer } from '../gpu/weight-buffer.js';
 export interface MechanismLoaderContext {
   tensorLocations: LayerLoaderContext['tensorLocations'];
   loadTensor: LayerLoaderContext['loadTensor'];
+  gpuBuffers: Set<GPUBuffer>;
   hyperConnections?: ResolvedHyperConnections | null;
   indexedAttention?: ResolvedIndexedAttention | null;
   ngramEmbedding?: ResolvedNgramEmbedding | null;

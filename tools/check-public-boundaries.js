@@ -170,7 +170,9 @@ const PACKAGE_CONTENT_LIMITS = Object.freeze({
   // reports/flash-next-runtime-20261105/package-inventory.json.
   // Integrated retained-source conversion recipe and runtime: 3,635,872 bytes
   // plus the same 2,158-byte npm allowance.
-  maxPackedSize: 3_638_030,
+  // Loader materialization and bounded 512-expert routing: 3,637,145 measured,
+  // with the same 2,158-byte cross-npm allowance. See runtime-package-audit.json.
+  maxPackedSize: 3_639_303,
   // Capsule naming changes identifiers and declarations, not the shipped file count.
   // Measured 0.6.0 payload: 2,097,039 packed / 10,835,420 unpacked bytes.
   // The remaining GPU diagnostic label adds three uncompressed bytes.
@@ -240,7 +242,9 @@ const PACKAGE_CONTENT_LIMITS = Object.freeze({
   // Evidence: reports/flash-next-runtime-20261105/package-inventory.json.
   // Expert-format correction plus the sigmoid recipe: +363 bytes, no files.
   // Audited in reports/flash-next-qualification-20261105/package-audit.json.
-  maxUnpackedSize: 15_527_863,
+  // One WGSL resource and its declared routing/materialization contracts.
+  // Inventory: reports/flash-next-qualification-20261105/runtime-package-audit.json.
+  maxUnpackedSize: 15_535_443,
 });
 const REQUIRED_PACKAGE_FILES = Object.freeze([
   'README.md',

@@ -4327,6 +4327,7 @@
        "qwen3/qwen-3-6-27b-q4k-eaf16",
        "qwen3/qwen-3-6-27b-q4k-ehaf16",
        "qwen3/qwen-3-6-35b-a3b-text-q4k-ehf16-af32",
+       "qwen3/qwen-3-8-flash-next-text-q4k-ehf16-af32",
        "qwen3/qwen-3-embedding-0-6b-f16-af32",
        "qwen3/qwen-3-reranker-0-6b-f16-true-logit-af32",
        "qwen3/qwen3.8-27b-text-f16-af32",
@@ -5700,6 +5701,7 @@
        "qwen3/qwen-3-6-27b-q4k-eaf16",
        "qwen3/qwen-3-6-27b-q4k-ehaf16",
        "qwen3/qwen-3-6-35b-a3b-text-q4k-ehf16-af32",
+       "qwen3/qwen-3-8-flash-next-text-q4k-ehf16-af32",
        "qwen3/qwen-3-reranker-0-6b-f16-af32",
        "qwen3/qwen-3-reranker-0-6b-f16-true-logit-af32",
        "qwen3/qwen-3-reranker-0-6b-q4k-ehf16-af32",
@@ -6946,6 +6948,7 @@
        "qwen3/qwen-3-6-27b-q4k-eaf16",
        "qwen3/qwen-3-6-27b-q4k-ehaf16",
        "qwen3/qwen-3-6-35b-a3b-text-q4k-ehf16-af32",
+       "qwen3/qwen-3-8-flash-next-text-q4k-ehf16-af32",
        "qwen3/qwen-3-reranker-0-6b-q4k-ehf16-af32",
        "qwen3/qwen3.8-27b-text-f16-af32",
        "qwen3/qwen3.8-27b-text-q4k-ehaf16"
@@ -7001,6 +7004,7 @@
        "qwen3/qwen-3-6-27b-q4k-eaf16",
        "qwen3/qwen-3-6-27b-q4k-ehaf16",
        "qwen3/qwen-3-6-35b-a3b-text-q4k-ehf16-af32",
+       "qwen3/qwen-3-8-flash-next-text-q4k-ehf16-af32",
        "qwen3/qwen3.8-27b-text-f16-af32",
        "qwen3/qwen3.8-27b-text-q4k-ehaf16"
       ],
@@ -7063,6 +7067,7 @@
        "qwen3/qwen-3-6-27b-q4k-eaf16",
        "qwen3/qwen-3-6-27b-q4k-ehaf16",
        "qwen3/qwen-3-6-35b-a3b-text-q4k-ehf16-af32",
+       "qwen3/qwen-3-8-flash-next-text-q4k-ehf16-af32",
        "qwen3/qwen-3-embedding-0-6b-q4k-ehf16-af32",
        "qwen3/qwen-3-reranker-0-6b-q4k-ehf16-af32",
        "qwen3/qwen3.8-27b-text-f16-af32",
@@ -7938,6 +7943,7 @@
        "qwen3/qwen-3-6-27b-q4k-eaf16",
        "qwen3/qwen-3-6-27b-q4k-ehaf16",
        "qwen3/qwen-3-6-35b-a3b-text-q4k-ehf16-af32",
+       "qwen3/qwen-3-8-flash-next-text-q4k-ehf16-af32",
        "qwen3/qwen-3-embedding-0-6b-q4k-ehf16-af32",
        "qwen3/qwen-3-reranker-0-6b-q4k-ehf16-af32",
        "qwen3/qwen3.8-27b-text-f16-af32",
@@ -8559,6 +8565,7 @@
        "qwen3/qwen-3-5-0-8b-canonical-f32",
        "qwen3/qwen-3-6-35b-a3b-q4_0-passthrough",
        "qwen3/qwen-3-6-35b-a3b-text-q4k-ehf16-af32",
+       "qwen3/qwen-3-8-flash-next-text-q4k-ehf16-af32",
        "qwen3/qwen3.8-27b-q4_0-passthrough",
        "runtime/profiles/qwen3-6-35b-a3b-q4_0-candidate",
        "runtime/profiles/qwen3-6-35b-a3b-q4_0-pooled-q8-common-diagnostic"
@@ -16370,6 +16377,7 @@
        "qwen3/qwen-3-6-27b-q4k-ehaf16",
        "qwen3/qwen-3-6-35b-a3b-q4_0-passthrough",
        "qwen3/qwen-3-6-35b-a3b-text-q4k-ehf16-af32",
+       "qwen3/qwen-3-8-flash-next-text-q4k-ehf16-af32",
        "qwen3/qwen3.8-27b-q4_0-passthrough",
        "qwen3/qwen3.8-27b-text-f16-af32",
        "qwen3/qwen3.8-27b-text-q4k-ehaf16"
@@ -16706,6 +16714,7 @@
        "qwen3/qwen-3-6-27b-q4k-ehaf16",
        "qwen3/qwen-3-6-35b-a3b-q4_0-passthrough",
        "qwen3/qwen-3-6-35b-a3b-text-q4k-ehf16-af32",
+       "qwen3/qwen-3-8-flash-next-text-q4k-ehf16-af32",
        "qwen3/qwen-3-embedding-0-6b-f16-af32",
        "qwen3/qwen-3-embedding-0-6b-q4k-ehf16-af32",
        "qwen3/qwen-3-reranker-0-6b-f16-af32",
@@ -16860,6 +16869,7 @@
        "qwen3/qwen-3-6-27b-q4k-ehaf16",
        "qwen3/qwen-3-6-35b-a3b-q4_0-passthrough",
        "qwen3/qwen-3-6-35b-a3b-text-q4k-ehf16-af32",
+       "qwen3/qwen-3-8-flash-next-text-q4k-ehf16-af32",
        "qwen3/qwen-3-embedding-0-6b-f16-af32",
        "qwen3/qwen-3-embedding-0-6b-q4k-ehf16-af32",
        "qwen3/qwen-3-reranker-0-6b-f16-af32",
@@ -17120,6 +17130,7 @@
        "qwen3/qwen-3-6-27b-q4k-ehaf16",
        "qwen3/qwen-3-6-35b-a3b-q4_0-passthrough",
        "qwen3/qwen-3-6-35b-a3b-text-q4k-ehf16-af32",
+       "qwen3/qwen-3-8-flash-next-text-q4k-ehf16-af32",
        "qwen3/qwen-3-embedding-0-6b-f16-af32",
        "qwen3/qwen-3-embedding-0-6b-q4k-ehf16-af32",
        "qwen3/qwen-3-reranker-0-6b-f16-af32",
@@ -20615,6 +20626,7 @@
        "qwen3/qwen-3-6-27b-q4k-ehaf16",
        "qwen3/qwen-3-6-35b-a3b-q4_0-passthrough",
        "qwen3/qwen-3-6-35b-a3b-text-q4k-ehf16-af32",
+       "qwen3/qwen-3-8-flash-next-text-q4k-ehf16-af32",
        "qwen3/qwen-3-embedding-0-6b-f16-af32",
        "qwen3/qwen-3-embedding-0-6b-q4k-ehf16-af32",
        "qwen3/qwen-3-reranker-0-6b-f16-af32",
@@ -22082,6 +22094,7 @@
        "qwen3/qwen-3-6-27b-q4k-ehaf16",
        "qwen3/qwen-3-6-35b-a3b-q4_0-passthrough",
        "qwen3/qwen-3-6-35b-a3b-text-q4k-ehf16-af32",
+       "qwen3/qwen-3-8-flash-next-text-q4k-ehf16-af32",
        "qwen3/qwen-3-embedding-0-6b-f16-af32",
        "qwen3/qwen-3-embedding-0-6b-q4k-ehf16-af32",
        "qwen3/qwen-3-reranker-0-6b-f16-af32",
@@ -22402,6 +22415,7 @@
        "qwen3/qwen-3-6-27b-q4k-ehaf16",
        "qwen3/qwen-3-6-35b-a3b-q4_0-passthrough",
        "qwen3/qwen-3-6-35b-a3b-text-q4k-ehf16-af32",
+       "qwen3/qwen-3-8-flash-next-text-q4k-ehf16-af32",
        "qwen3/qwen-3-embedding-0-6b-f16-af32",
        "qwen3/qwen-3-embedding-0-6b-q4k-ehf16-af32",
        "qwen3/qwen-3-reranker-0-6b-f16-af32",
@@ -23602,6 +23616,7 @@
        "qwen3/qwen-3-6-27b-q4k-eaf16",
        "qwen3/qwen-3-6-27b-q4k-ehaf16",
        "qwen3/qwen-3-6-35b-a3b-text-q4k-ehf16-af32",
+       "qwen3/qwen-3-8-flash-next-text-q4k-ehf16-af32",
        "qwen3/qwen-3-embedding-0-6b-f16-af32",
        "qwen3/qwen-3-embedding-0-6b-q4k-ehf16-af32",
        "qwen3/qwen-3-reranker-0-6b-f16-af32",
@@ -24694,6 +24709,7 @@
        "qwen3/qwen-3-6-27b-q4k-ehaf16",
        "qwen3/qwen-3-6-35b-a3b-q4_0-passthrough",
        "qwen3/qwen-3-6-35b-a3b-text-q4k-ehf16-af32",
+       "qwen3/qwen-3-8-flash-next-text-q4k-ehf16-af32",
        "qwen3/qwen-3-embedding-0-6b-f16-af32",
        "qwen3/qwen-3-embedding-0-6b-q4k-ehf16-af32",
        "qwen3/qwen-3-reranker-0-6b-f16-af32",
@@ -24846,9 +24862,32 @@
      "entryPoint": "main",
      "workgroup": [256,1,1],
      "requires": [],
+     "variantMetadata": {
+      "maxExperts": 256,
+      "maxTopK": 64
+     },
      "reachability": {
       "status": "unused",
       "inlineConfigs": [],
+      "ruleChains": [],
+      "wgslOnDisk": true
+     }
+    },
+    "fused_ranked_512": {
+     "wgsl": "softmax_topk_strided.wgsl",
+     "entryPoint": "main",
+     "workgroup": [256,1,1],
+     "requires": [],
+     "wgslOverrides": {
+      "MAX_EXPERTS": 512
+     },
+     "variantMetadata": {
+      "maxExperts": 512,
+      "maxTopK": 64
+     },
+     "reachability": {
+      "status": "pinned",
+      "inlineConfigs": ["qwen3/qwen-3-8-flash-next-text-q4k-ehf16-af32"],
       "ruleChains": [],
       "wgslOnDisk": true
      }
@@ -24858,6 +24897,10 @@
      "entryPoint": "main",
      "workgroup": [256,1,1],
      "requires": ["subgroups"],
+     "variantMetadata": {
+      "maxExperts": 256,
+      "maxTopK": 64
+     },
      "requiredWgslFeatures": ["subgroup_id"],
      "description": "Renormalized top-k by logit rank: weights are the softmax over the picked logits (normalize only).",
      "reachability": {
@@ -27509,6 +27552,7 @@
        "qwen3/qwen-3-6-27b-q4k-ehaf16",
        "qwen3/qwen-3-6-35b-a3b-q4_0-passthrough",
        "qwen3/qwen-3-6-35b-a3b-text-q4k-ehf16-af32",
+       "qwen3/qwen-3-8-flash-next-text-q4k-ehf16-af32",
        "qwen3/qwen-3-reranker-0-6b-f16-af32",
        "qwen3/qwen-3-reranker-0-6b-f16-true-logit-af32",
        "qwen3/qwen-3-reranker-0-6b-q4k-ehf16-af32",
@@ -27588,8 +27632,8 @@
      "workgroup": [256,1,1],
      "requires": [],
      "reachability": {
-      "status": "unused",
-      "inlineConfigs": [],
+      "status": "pinned",
+      "inlineConfigs": ["qwen3/qwen-3-8-flash-next-text-q4k-ehf16-af32"],
       "ruleChains": [],
       "wgslOnDisk": true
      }
@@ -30467,6 +30511,7 @@
       "inlineConfigs": [
        "qwen3/qwen-3-6-35b-a3b-q4_0-passthrough",
        "qwen3/qwen-3-6-35b-a3b-text-q4k-ehf16-af32",
+       "qwen3/qwen-3-8-flash-next-text-q4k-ehf16-af32",
        "qwen3/qwen3.8-27b-q4_0-passthrough",
        "qwen3/qwen3.8-27b-text-f16-af32",
        "qwen3/qwen3.8-27b-text-q4k-ehaf16"
@@ -30858,8 +30903,8 @@
       "normGateActivation": "sigmoid"
      },
      "reachability": {
-      "status": "model-selectable",
-      "inlineConfigs": [],
+      "status": "pinned",
+      "inlineConfigs": ["qwen3/qwen-3-8-flash-next-text-q4k-ehf16-af32"],
       "ruleChains": ["gated-delta-recurrent.rules.json#scalarVariant"],
       "wgslOnDisk": true
      }
@@ -32643,8 +32688,8 @@
       "normGateActivation": "sigmoid"
      },
      "reachability": {
-      "status": "model-selectable",
-      "inlineConfigs": [],
+      "status": "pinned",
+      "inlineConfigs": ["qwen3/qwen-3-8-flash-next-text-q4k-ehf16-af32"],
       "ruleChains": ["gated-delta-fused-decode.rules.json#scalarVariant"],
       "wgslOnDisk": true
      }
@@ -36638,8 +36683,8 @@
       "WORKGROUP_SIZE": 256
      },
      "reachability": {
-      "status": "unused",
-      "inlineConfigs": [],
+      "status": "pinned",
+      "inlineConfigs": ["qwen3/qwen-3-8-flash-next-text-q4k-ehf16-af32"],
       "ruleChains": [],
       "wgslOnDisk": true
      }
@@ -36703,8 +36748,8 @@
       "WORKGROUP_SIZE": 256
      },
      "reachability": {
-      "status": "unused",
-      "inlineConfigs": [],
+      "status": "pinned",
+      "inlineConfigs": ["qwen3/qwen-3-8-flash-next-text-q4k-ehf16-af32"],
       "ruleChains": [],
       "wgslOnDisk": true
      }
@@ -36719,8 +36764,8 @@
       "WORKGROUP_SIZE": 256
      },
      "reachability": {
-      "status": "unused",
-      "inlineConfigs": [],
+      "status": "pinned",
+      "inlineConfigs": ["qwen3/qwen-3-8-flash-next-text-q4k-ehf16-af32"],
       "ruleChains": [],
       "wgslOnDisk": true
      }
@@ -36735,8 +36780,8 @@
       "WORKGROUP_SIZE": 256
      },
      "reachability": {
-      "status": "unused",
-      "inlineConfigs": [],
+      "status": "pinned",
+      "inlineConfigs": ["qwen3/qwen-3-8-flash-next-text-q4k-ehf16-af32"],
       "ruleChains": [],
       "wgslOnDisk": true
      }
@@ -36751,8 +36796,8 @@
       "WORKGROUP_SIZE": 256
      },
      "reachability": {
-      "status": "unused",
-      "inlineConfigs": [],
+      "status": "pinned",
+      "inlineConfigs": ["qwen3/qwen-3-8-flash-next-text-q4k-ehf16-af32"],
       "ruleChains": [],
       "wgslOnDisk": true
      }
@@ -36821,8 +36866,8 @@
       "WORKGROUP_SIZE": 256
      },
      "reachability": {
-      "status": "unused",
-      "inlineConfigs": [],
+      "status": "pinned",
+      "inlineConfigs": ["qwen3/qwen-3-8-flash-next-text-q4k-ehf16-af32"],
       "ruleChains": [],
       "wgslOnDisk": true
      }
@@ -36896,8 +36941,8 @@
       "WORKGROUP_SIZE": 256
      },
      "reachability": {
-      "status": "unused",
-      "inlineConfigs": [],
+      "status": "pinned",
+      "inlineConfigs": ["qwen3/qwen-3-8-flash-next-text-q4k-ehf16-af32"],
       "ruleChains": [],
       "wgslOnDisk": true
      }
@@ -36979,8 +37024,8 @@
       "WORKGROUP_SIZE": 128
      },
      "reachability": {
-      "status": "unused",
-      "inlineConfigs": [],
+      "status": "pinned",
+      "inlineConfigs": ["qwen3/qwen-3-8-flash-next-text-q4k-ehf16-af32"],
       "ruleChains": [],
       "wgslOnDisk": true
      }
@@ -37057,8 +37102,8 @@
       "WORKGROUP_SIZE": 128
      },
      "reachability": {
-      "status": "unused",
-      "inlineConfigs": [],
+      "status": "pinned",
+      "inlineConfigs": ["qwen3/qwen-3-8-flash-next-text-q4k-ehf16-af32"],
       "ruleChains": [],
       "wgslOnDisk": true
      }
@@ -37148,8 +37193,8 @@
       "WORKGROUP_SIZE": 256
      },
      "reachability": {
-      "status": "unused",
-      "inlineConfigs": [],
+      "status": "pinned",
+      "inlineConfigs": ["qwen3/qwen-3-8-flash-next-text-q4k-ehf16-af32"],
       "ruleChains": [],
       "wgslOnDisk": true
      }
@@ -37239,8 +37284,8 @@
       "WORKGROUP_SIZE": 256
      },
      "reachability": {
-      "status": "unused",
-      "inlineConfigs": [],
+      "status": "pinned",
+      "inlineConfigs": ["qwen3/qwen-3-8-flash-next-text-q4k-ehf16-af32"],
       "ruleChains": [],
       "wgslOnDisk": true
      }
@@ -37344,8 +37389,8 @@
       "WORKGROUP_SIZE": 256
      },
      "reachability": {
-      "status": "unused",
-      "inlineConfigs": [],
+      "status": "pinned",
+      "inlineConfigs": ["qwen3/qwen-3-8-flash-next-text-q4k-ehf16-af32"],
       "ruleChains": [],
       "wgslOnDisk": true
      }
@@ -37422,8 +37467,8 @@
       "WORKGROUP_SIZE": 256
      },
      "reachability": {
-      "status": "unused",
-      "inlineConfigs": [],
+      "status": "pinned",
+      "inlineConfigs": ["qwen3/qwen-3-8-flash-next-text-q4k-ehf16-af32"],
       "ruleChains": [],
       "wgslOnDisk": true
      }
@@ -37507,8 +37552,8 @@
       "WORKGROUP_SIZE": 256
      },
      "reachability": {
-      "status": "unused",
-      "inlineConfigs": [],
+      "status": "pinned",
+      "inlineConfigs": ["qwen3/qwen-3-8-flash-next-text-q4k-ehf16-af32"],
       "ruleChains": [],
       "wgslOnDisk": true
      }

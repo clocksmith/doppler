@@ -1,0 +1,2 @@
+[GPU] apple metal-3, f16/subgroups, 4.0GB, submit probe: 1.0ms
+physical GPU: F16 mechanism vector -> exact F32 values with tracked ownership

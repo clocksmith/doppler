@@ -11,6 +11,7 @@ import { trace, isTraceEnabled } from '../../debug/index.js';
 import { getKernelThresholdSnapshot } from '../../config/schema/index.js';
 import { selectRuleValue } from './rule-registry.js';
 import { getDevice } from '../device.js';
+import { getKernelConfig } from '../../config/kernel-registry-contract.js';
 
 function selectSoftmaxVariant(innerSize) {
   const caps = getKernelCapabilities();
@@ -99,10 +100,15 @@ async function softmaxTopK(target, logits, numTokens, numExperts, topK, options 
       throw new Error(`SoftmaxTopK fused_logit_rank needs subgroups of at least top-${topK} lanes; got ${minSubgroup}.`);
     }
   }
-  const pipeline = await createPipeline('topk', variant);
-  if ((variant === 'fused_ranked' || variant === 'fused_logit_rank') && (numExperts > 256 || topK > 64 || topK > numExperts)) {
-    throw new Error(`SoftmaxTopK ${variant} supports at most 256 experts and top-64; got experts=${numExperts} topK=${topK}.`);
+  const limits = getKernelConfig('topk', variant).variantMetadata;
+  if (limits?.maxExperts != null && (typeof limits.maxExperts !== 'number' || typeof limits.maxTopK !== 'number'
+    || !Number.isSafeInteger(limits.maxExperts) || !Number.isSafeInteger(limits.maxTopK))) {
+    throw new Error(`SoftmaxTopK ${variant} requires declared integer expert and top-k limits.`);
   }
+  if (limits?.maxExperts != null && (numExperts > limits.maxExperts || topK > limits.maxTopK || topK > numExperts)) {
+    throw new Error(`SoftmaxTopK ${variant} supports at most ${limits.maxExperts} experts and top-${limits.maxTopK}; got experts=${numExperts} topK=${topK}.`);
+  }
+  const pipeline = await createPipeline('topk', variant);
 
   const indicesSize = numTokens * topK * 4;
   const weightsBytesPerElement = weightsDtype === 'f16' ? 2 : 4;

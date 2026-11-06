@@ -342,6 +342,7 @@ export const UNIFORM_WRITERS = Object.freeze({
   "topk/small": { size: 16, write: writers1.write_topk_default },
   "topk/fused": { size: 16, write: writers1.write_topk_default },
   "topk/fused_ranked": { size: 16, write: writers1.write_topk_default },
+  "topk/fused_ranked_512": { size: 16, write: writers1.write_topk_default },
   "topk/fused_logit_rank": { size: 16, write: writers1.write_topk_default },
   "topk/fused_f16": { size: 16, write: writers1.write_topk_default },
   "topk/fused_f16_w16": { size: 16, write: writers1.write_topk_default },

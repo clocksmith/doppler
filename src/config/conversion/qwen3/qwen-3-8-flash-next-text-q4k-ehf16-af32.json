@@ -599,6 +599,14 @@
         "kernel": "ple_conv.wgsl",
         "entry": "main",
         "digest": "sha256:fc7090a4943a2385afd41d3d142a39807047d3d56b22a218ca80d0a460150940"
+      },
+      "moe_topk": {
+        "kernel": "softmax_topk_strided.wgsl",
+        "entry": "main",
+        "digest": "sha256:6649f298ff43d545a1f217d584b69f234839cfea4991eaaf3570dbeae9f71f5d",
+        "constants": {
+          "MAX_EXPERTS": 512
+        }
       }
     },
     "preLayer": [
@@ -680,6 +688,10 @@
         "moe_router",
         "source_control_f32",
         "layer.{L}.mlp.gate"
+      ],
+      [
+        "moe_topk",
+        "moe_topk"
       ],
       [
         "moe_shared_router",
@@ -839,6 +851,10 @@
         "moe_router",
         "source_control_f32",
         "layer.{L}.mlp.gate"
+      ],
+      [
+        "moe_topk",
+        "moe_topk"
       ],
       [
         "moe_shared_router",

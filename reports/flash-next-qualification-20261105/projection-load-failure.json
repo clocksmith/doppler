@@ -1,0 +1,103 @@
+{
+  "schema": "doppler.flash-next-learned-observation/v1",
+  "scope": "Node physical load and last-position logits diagnostic on the learned quantized artifact; no general qualification or performance claim",
+  "manifestSha256": "5099f4c08bb37ce373ae059bfef4aae8febcc5a085c336b279955f2a249d2281",
+  "referenceSha256": "5f183260cb6c1f04af3b9bb92a9a80895a8375f971b91f4ece06b813ff184d4d",
+  "inputsSha256": "06a819d529593b58abd6cb27566bb835a9b91aac13a77c0c7479b7e4e7b0c378",
+  "runSha256": "e75ca3a9dd88ee3890b939b88385f8bcbf4980b7a381720c040dd82f6d78a43c",
+  "runtimeRevision": "a0c63d6e+vector-materialization",
+  "runtimeSourceSha256": {
+    "src/loader/hyper-connection-loader.js": "6e8cea63836e1ba02a17dafacf7348e33cd27fe6f22221de1c14125f07795a10",
+    "src/loader/hyper-connection-loader.d.ts": "ffcbbe3fe80472fd851da01e8f1089dae4f95223c8cc383956bfae2621fd2be3",
+    "tests/integration/flash-next-learned-physical.test.js": "5a7ab4a7dce31e7405e71232aca80523bb286933af9638f85f0e8758387c66ab",
+    "tests/helpers/learned-layer-observation.js": "d4254e1affe66c52eb8003a48315a7d368b196700442ab60519b8145368c4c58"
+  },
+  "modelId": "qwen-3-8-flash-next-text-q4k-ehf16-af32",
+  "quantizationInfo": {
+    "weights": "q4k",
+    "embeddings": "f16",
+    "experts": "q4k",
+    "expertsFormat": "qwen3_5",
+    "compute": "f32",
+    "layout": "row",
+    "variantTag": "q4k-ehf16-af32"
+  },
+  "provider": {
+    "schema": "doe.webgpu-provider-receipt/v1",
+    "contract": "doe.webgpu-provider/v1",
+    "implementation": "doppler",
+    "providers": [
+      {
+        "id": "pre-installed",
+        "kind": "global"
+      },
+      {
+        "id": "webgpu",
+        "kind": "module",
+        "module": "webgpu",
+        "gpu": {
+          "kind": "factory",
+          "path": "create",
+          "args": [
+            [
+              "enable-dawn-features=allow_unsafe_apis"
+            ]
+          ]
+        },
+        "globals": {
+          "GPUBufferUsage": "globals.GPUBufferUsage",
+          "GPUShaderStage": "globals.GPUShaderStage",
+          "GPUMapMode": "globals.GPUMapMode",
+          "GPUTextureUsage": "globals.GPUTextureUsage"
+        }
+      }
+    ],
+    "providerOrder": [
+      "pre-installed",
+      "webgpu"
+    ],
+    "adapterOptions": null,
+    "globals": {
+      "mode": "replace",
+      "installed": [
+        "GPUBufferUsage",
+        "GPUShaderStage",
+        "GPUMapMode",
+        "GPUTextureUsage",
+        "navigator.gpu"
+      ],
+      "restored": true
+    },
+    "attempts": [
+      {
+        "providerId": "pre-installed",
+        "kind": "global",
+        "module": null,
+        "ok": false,
+        "stage": "gpu.validate",
+        "code": "DOPPLER_PROVIDER_UNAVAILABLE",
+        "detail": "Selected provider does not expose GPU.requestAdapter()."
+      },
+      {
+        "providerId": "webgpu",
+        "kind": "module",
+        "module": "webgpu",
+        "ok": true,
+        "stage": "complete",
+        "code": null,
+        "detail": null
+      }
+    ],
+    "selectedProviderId": "webgpu",
+    "ok": true
+  },
+  "runtimeConfig": {},
+  "rows": [],
+  "gpuErrors": [],
+  "failure": {
+    "name": "Error",
+    "message": "Pipeline load phase \"loadWeights\" failed: [HyperConnectionLoader] model.language_model.layers.0.attn_hyper_connection.input_mix_weight_down.weight requires a WeightBuffer with declared f16 or f32 projection storage and layout.",
+    "stack": "Error: Pipeline load phase \"loadWeights\" failed: [HyperConnectionLoader] model.language_model.layers.0.attn_hyper_connection.input_mix_weight_down.weight requires a WeightBuffer with declared f16 or f32 projection storage and layout.\n    at createPipelineLoadPhaseError (file:///home/x/src/doppler-qualification-603ef2dc/src/inference/pipelines/text/pipeline-load-timing.js:9:19)\n    at withPipelineLoadPhase (file:///home/x/src/doppler-qualification-603ef2dc/src/inference/pipelines/text/pipeline-load-timing.js:32:11)\n    at async timedPipelineLoadPhase (file:///home/x/src/doppler-qualification-603ef2dc/src/inference/pipelines/text/pipeline-load-timing.js:74:12)\n    at async InferencePipeline.loadModel (file:///home/x/src/doppler-qualification-603ef2dc/src/inference/pipelines/text/lifecycle.js:395:5)\n    at async file:///home/x/src/doppler-qualification-603ef2dc/src/inference/pipelines/factory.js:25:7\n    at async runWithShaderSourceScope (file:///home/x/src/doppler-qualification-603ef2dc/src/gpu/kernels/shader-source-scope.js:93:16)\n    at async createInitializedPipeline (file:///home/x/src/doppler-qualification-603ef2dc/src/inference/pipelines/factory.js:16:3)\n    at async file:///home/x/src/doppler-qualification-603ef2dc/tests/integration/flash-next-learned-physical.test.js:54:16"
+  },
+  "cleanupFailures": []
+}

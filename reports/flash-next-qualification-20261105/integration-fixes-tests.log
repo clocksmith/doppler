@@ -1,0 +1,172 @@
+TAP version 13
+# refresh-converted-manifest-tokenizer.test: ok
+# Subtest: tests/config/refresh-converted-manifest-tokenizer.test.js
+ok 1 - tests/config/refresh-converted-manifest-tokenizer.test.js
+  ---
+  duration_ms: 285.71725
+  type: 'test'
+  ...
+# refresh-converted-manifest.test: ok
+# Subtest: tests/config/refresh-converted-manifest.test.js
+ok 2 - tests/config/refresh-converted-manifest.test.js
+  ---
+  duration_ms: 257.920083
+  type: 'test'
+  ...
+# Subtest: partial-layer failure restores KV, recurrent, indexer, n-gram and convolution state together; next call works
+ok 3 - partial-layer failure restores KV, recurrent, indexer, n-gram and convolution state together; next call works
+  ---
+  duration_ms: 2.648958
+  type: 'test'
+  ...
+# Subtest: abort during the operation rolls back before allowing reuse
+ok 4 - abort during the operation rolls back before allowing reuse
+  ---
+  duration_ms: 0.447416
+  type: 'test'
+  ...
+# Subtest: nested prefill chunks share a transaction and a later chunk failure restores the initial prefix
+ok 5 - nested prefill chunks share a transaction and a later chunk failure restores the initial prefix
+  ---
+  duration_ms: 0.272625
+  type: 'test'
+  ...
+# Subtest: late cancellation releases a completed GPU result that was never transferred to the caller
+ok 6 - late cancellation releases a completed GPU result that was never transferred to the caller
+  ---
+  duration_ms: 0.360625
+  type: 'test'
+  ...
+# Subtest: unsupported modes fail before mutation and snapshots fail before replacing KV
+ok 7 - unsupported modes fail before mutation and snapshots fail before replacing KV
+  ---
+  duration_ms: 0.851708
+  type: 'test'
+  ...
+# Subtest: closing waits for a pending row read and repeated closes share that completion
+ok 8 - closing waits for a pending row read and repeated closes share that completion
+  ---
+  duration_ms: 4.003
+  type: 'test'
+  ...
+# learned layer observations: source coordinates and failed captures checked
+# Subtest: tests/inference/learned-layer-observation.test.js
+ok 4 - tests/inference/learned-layer-observation.test.js
+  ---
+  duration_ms: 69.255417
+  type: 'test'
+  ...
+# Subtest: queued cancellation rejects before another model releases its paused stream, without bypassing its lease
+ok 10 - queued cancellation rejects before another model releases its paused stream, without bypassing its lease
+  ---
+  duration_ms: 3.129375
+  type: 'test'
+  ...
+# Subtest: aborting a paused stream closes it and releases its model context without another consumer pull
+ok 11 - aborting a paused stream closes it and releases its model context without another consumer pull
+  ---
+  duration_ms: 1.338417
+  type: 'test'
+  ...
+# Subtest: unload closes an abandoned paused iterator before draining owned resources
+ok 12 - unload closes an abandoned paused iterator before draining owned resources
+  ---
+  duration_ms: 2.508291
+  type: 'test'
+  ...
+# Subtest: cancellation retains the lease until active work and iterator cleanup settle
+ok 13 - cancellation retains the lease until active work and iterator cleanup settle
+  ---
+  duration_ms: 2.095417
+  type: 'test'
+  ...
+# Subtest: surviving waiters remain FIFO across a cancelled middle waiter
+ok 14 - surviving waiters remain FIFO across a cancelled middle waiter
+  ---
+  duration_ms: 1.181042
+  type: 'test'
+  ...
+# Subtest: shutdown reports background cleanup failure and still unloads under its context
+ok 15 - shutdown reports background cleanup failure and still unloads under its context
+  ---
+  duration_ms: 2.489083
+  type: 'test'
+  ...
+# Subtest: factory loading observes cancellation while waiting for another model scope
+ok 16 - factory loading observes cancellation while waiting for another model scope
+  ---
+  duration_ms: 1.170041
+  type: 'test'
+  ...
+# Subtest: factory preserves construction and cleanup failures
+ok 17 - factory preserves construction and cleanup failures
+  ---
+  duration_ms: 0.382541
+  type: 'test'
+  ...
+# Subtest: shutdown preserves the original unload failure for every caller
+ok 18 - shutdown preserves the original unload failure for every caller
+  ---
+  duration_ms: 0.640625
+  type: 'test'
+  ...
+# Subtest: cleanup that yields retains context until all of its work settles
+ok 19 - cleanup that yields retains context until all of its work settles
+  ---
+  duration_ms: 1.436916
+  type: 'test'
+  ...
+# Subtest: host evidence operations forward cancellation to lease acquisition
+ok 20 - host evidence operations forward cancellation to lease acquisition
+  ---
+  duration_ms: 0.711083
+  type: 'test'
+  ...
+# [498.1ms][Pipeline] KV cache kvDtype mismatch: requested=f16, actual=f32 (rule-based resolution may have changed the dtype due to GPU capabilities or softcap policy)
+# [498.5ms][Pipeline] KV cache allocated: kvDtype=f32, maxSeqLen=8192, layout=paged, modelMaxSeqLen=8192, requestedKvDtype=f16, requestedMaxSeqLen=8192
+# [498.8ms][Pipeline] KV cache kvDtype mismatch: requested=f16, actual=f32 (rule-based resolution may have changed the dtype due to GPU capabilities or softcap policy)
+# [498.8ms][Pipeline] KV cache allocated: kvDtype=f32, maxSeqLen=8192, layout=contiguous, modelMaxSeqLen=8192, requestedKvDtype=f16, requestedMaxSeqLen=8192
+# runtime-contract-regressions.test: ok
+# Subtest: tests/inference/runtime-contract-regressions.test.js
+ok 6 - tests/inference/runtime-contract-regressions.test.js
+  ---
+  duration_ms: 524.376583
+  type: 'test'
+  ...
+# Flash-Next recipe -> conversion -> manifest -> specialized runtime contracts passed (metadata only)
+# Subtest: tests/integration/flash-next-runtime-profile.test.js
+ok 7 - tests/integration/flash-next-runtime-profile.test.js
+  ---
+  duration_ms: 454.850625
+  type: 'test'
+  ...
+# hyper-connection-loading.test: ok (contract doubles; no physical GPU)
+# Subtest: tests/loader/hyper-connection-loading.test.js
+ok 8 - tests/loader/hyper-connection-loading.test.js
+  ---
+  duration_ms: 309.252584
+  type: 'test'
+  ...
+# tensor-loader-cleanup.test: ok
+# Subtest: tests/loader/tensor-loader-cleanup.test.js
+ok 9 - tests/loader/tensor-loader-cleanup.test.js
+  ---
+  duration_ms: 277.026333
+  type: 'test'
+  ...
+# tensor-loader-weight-ownership.test: ok
+# Subtest: tests/loader/tensor-loader-weight-ownership.test.js
+ok 10 - tests/loader/tensor-loader-weight-ownership.test.js
+  ---
+  duration_ms: 225.06375
+  type: 'test'
+  ...
+1..25
+# tests 25
+# suites 0
+# pass 25
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 543.420417

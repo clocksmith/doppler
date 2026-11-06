@@ -1,0 +1,73 @@
+[GPU] apple metal-3, f16/subgroups, 4.0GB, submit probe: 0.7ms
+node:internal/modules/run_main:123
+    triggerUncaughtException(
+    ^
+
+AssertionError [ERR_ASSERTION]: fused_ranked picks other experts (n 256, k 8)
++ actual - expected
+
+  [
++   34,
++   218,
+    207,
++   209,
++   168,
++   245,
++   133,
+    236,
++   122,
++   65,
++   210,
+-   205,
+-   212,
+-   242,
+-   92,
+    219,
++   5,
+-   251,
+    205,
++   54,
++   220,
++   78,
+-   232,
+-   229,
+-   238,
+-   195,
+-   241,
+-   239,
+-   178,
+    247,
++   20,
++   7,
++   47,
+    150,
++   171,
++   80
+-   216,
+-   219,
+-   234,
+-   241,
+-   72,
+-   199
+  ]
+
+    at file:///Users/xyz/deco/doppler/tests/gpu/softmax-topk-logit-rank-gpu.test.js:62:12 {
+  generatedMessage: false,
+  code: 'ERR_ASSERTION',
+  actual: [
+     34, 218, 207, 209, 168, 245, 133,
+    236, 122,  65, 210, 219,   5, 205,
+     54, 220,  78, 247,  20,   7,  47,
+    150, 171,  80
+  ],
+  expected: [
+    207, 236, 205, 212, 242,  92,
+    219, 251, 205, 232, 229, 238,
+    195, 241, 239, 178, 247, 150,
+    216, 219, 234, 241,  72, 199
+  ],
+  operator: 'deepStrictEqual',
+  diff: 'simple'
+}
+
+Node.js v22.20.0

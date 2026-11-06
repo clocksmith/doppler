@@ -8,6 +8,8 @@ import { compileExecutionV1 } from '../../src/inference/pipelines/text/execution
 import { getKernelPathMatmulVariant } from '../../src/config/kernel-path-loader.js';
 import { assertHyperConnectionLoad } from '../../src/inference/pipelines/text/hyper-connection/sequence-transaction.js';
 import { assertLinearNormGateClosure } from '../../src/config/execution-registry-contract.js';
+import { resolveDeclaredTopK } from '../../src/inference/pipelines/text/ffn/qwen-shared-expert.js';
+import { parseManifest } from '../../src/formats/rdrr/parsing.js';
 
 // Source metadata and the real conversion recipe meet the runtime boundary.
 // No checkpoint weights, fake model outputs or GPU allocations are involved.
@@ -23,16 +25,24 @@ const manifest = createManifest(converterConfig.output.modelBaseId, { config: ra
   eosTokenId: converterConfig.manifest.eosTokenId, textOnly: converterConfig.output.textOnly,
 });
 const modelConfig = parseModelConfigFromManifest(manifest);
+const admissionFixture = { ...manifest, totalSize: 16,
+  shards: [{ index: 0, filename: 'metadata-only-fixture.bin', size: 16, hash: '0'.repeat(64) }] };
+assert.doesNotThrow(() => parseManifest(JSON.stringify(admissionFixture)), 'manifest admission must accept the real recipe; shard bytes are not exercised');
 assert.doesNotThrow(() => assertLinearNormGateClosure(manifest.inference.execution, modelConfig.linearNormGateActivation));
 assert.equal(modelConfig.visionConfig, null, 'text-only artifact must not request excluded vision weights');
 const compiled = compileExecutionV1({ manifestInference: manifest.inference, modelId: manifest.modelId,
   numLayers: architecture.numLayers, headDim: architecture.headDim, weightDtype: plan.manifestQuantization });
 const kernelPath = compiled.runtimeInferencePatch.kernelPath;
 assert.ok(kernelPath);
+assert.throws(() => resolveDeclaredTopK({ phase: 'prefill', layerIdx: 0, kernelPath: {
+  id: 'unregistered-topk-specialization', prefill: { steps: [{ op: 'moe_topk',
+    kernel: 'softmax_topk_strided.wgsl', entry: 'main', constants: { MAX_EXPERTS: 1024 } }] },
+} }), /exact registered specialization/);
 assert.equal(compiled.runtimeInferencePatch.pipeline, undefined, 'specialized decoder must bypass the ordinary residual layer pipeline');
 const common = ['attn_hc_down', 'attn_hc_up', 'attn_hc_inject', 'mlp_hc_down', 'mlp_hc_up', 'mlp_hc_inject'];
 for (const phase of ['prefill', 'decode']) {
   for (let layer = 0; layer < architecture.numLayers; layer++) {
+    assert.equal(resolveDeclaredTopK({ kernelPath, phase, layerIdx: layer }), 'fused_ranked_512');
     const roles = [...common];
     if (modelConfig.layerTypes[layer] === 'full_attention') roles.push('qsa_index_qk');
     if (modelConfig.ngramEmbedding.layers.some(spec => spec.decoderLayerIndex === layer)) roles.push('ple_key_proj', 'ple_value_proj');

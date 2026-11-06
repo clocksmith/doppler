@@ -36,6 +36,8 @@ if (!runPath) {
   assert.equal(reference.checkpoint, manifest.artifactIdentity.sourceRevision);
   assert.equal(reference.dtype, 'float32');
   assert.equal(manifest.inference.hyperConnections.semantics, 'qwen4_exp_gated_residual');
+  const runtimeSourceSha256 = {};
+  for (const file of run.sourceFiles ?? []) runtimeSourceSha256[file] = hash(await fs.readFile(file));
   const probe = await probeNodeGPU({ installFileFetchShim: true });
   assert(probe.ready, probe.reason);
   const gpuErrors = [];
@@ -44,6 +46,7 @@ if (!runPath) {
     scope: 'Node physical load and last-position logits diagnostic on the learned quantized artifact; no general qualification or performance claim',
     manifestSha256: hash(manifestBytes), referenceSha256: hash(referenceBytes),
     inputsSha256: hash(inputBytes), runSha256: hash(runBytes), runtimeRevision: run.runtimeRevision,
+    runtimeSourceSha256,
     modelId: manifest.modelId, quantizationInfo: manifest.quantizationInfo,
     provider: probe.providerReceipt, runtimeConfig: run.runtimeConfig, rows: [], gpuErrors };
   let pipeline, collectLayers;
@@ -60,24 +63,27 @@ if (!runPath) {
       assert.equal(input.tokens.length, expected.tokens);
       pipeline.resetGenerationState();
       const captures = new Map();
-      collectLayers = () => [...captures].map(([layer, capture]) => ({ layer,
-        ...compareLearnedLayerCapture(capture, expected.layers[layer], expected.samplePositions, reference.sampleStride) }));
+      collectLayers = () => {
+        for (const record of pipeline.stats.operatorDiagnostics?.timeline ?? []) {
+          if (record.stageName === 'layer.out' && record.capture?.shape?.[0] === input.tokens.length && !captures.has(record.layerIndex)) {
+            captures.set(record.layerIndex, record.capture);
+          }
+        }
+        return [...captures].map(([layer, capture]) => ({ layer,
+          ...compareLearnedLayerCapture(capture, expected.layers[layer], expected.samplePositions, reference.sampleStride) }));
+      };
+      let diagnostics;
       if (run.captureLayers === true) {
         assert.ok(input.tokens.length <= 64, 'full layer captures are bounded to short diagnostic inputs');
-        pipeline.operatorDiagnostics = { enabled: true,
+        diagnostics = { enabled: true,
           captureConfig: { ...createDefaultCaptureConfig(), enabled: true, targetLevel: 'full',
-            targetOpIds: Array.from({ length: manifest.architecture.numLayers }, (_, layer) => buildOpId('layer.out', layer)) },
-          emitter: { emitRecord(stage, record) {
-            if (stage === 'layer.out' && record.capture?.shape?.[0] === input.tokens.length && !captures.has(record.layerIdx)) {
-              captures.set(record.layerIdx, record.capture);
-            }
-          } } };
+            targetOpIds: Array.from({ length: manifest.architecture.numLayers }, (_, layer) => buildOpId('layer.out', layer)) } };
       }
       let observed = null;
       let logitRows = 0;
       const output = await pipeline.generateTokenIds('', { inputIds: input.tokens, useChatTemplate: false,
         maxTokens, temperature: 0, topK: 1, topP: 1, seed: 0, repetitionPenalty: 1,
-        onLogits: logits => {
+        diagnostics, onLogits: logits => {
           assert.ok(logits.every(Number.isFinite), 'every prefill/decode logit row must be finite');
           if (observed === null) observed = Array.from(logits);
           logitRows++;
@@ -95,8 +101,8 @@ if (!runPath) {
         referenceTop20LogitDeltas: referenceIds.map((token, index) => ({ token,
           reference: referenceLogits[index], observed: observed[token], delta: observed[token] - referenceLogits[index] })) };
       if (run.captureLayers === true) {
-        assert.equal(captures.size, manifest.architecture.numLayers, 'every layer must be captured');
         row.layers = collectLayers();
+        assert.equal(captures.size, manifest.architecture.numLayers, 'every layer must be captured');
       }
       collectLayers = null;
       report.rows.push(row);

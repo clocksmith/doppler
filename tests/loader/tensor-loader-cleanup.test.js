@@ -187,6 +187,13 @@ function assertPoolClean() {
   });
   assert.deepEqual(Object.keys(float.data.materializations).sort(), ['f16', 'f32']);
   assert.equal(float.allocatedBuffers.length, 2);
+  const control = await loadTensorToGPU(new Uint8Array(512),
+    { dtype: 'F16', size: 512, shape: [1, 256], role: 'other', layout: 'row' }, 'declared_control', {
+      ...config, representationRequirement: { mode: 'dense-only', complete: true, dtypes: ['f32'],
+        consumers: [{ role: 'attn_hc_down' }] },
+    });
+  assert.equal(control.data.dtype, 'f32', 'Declared projection consumers govern unclassified float storage.');
+  assert.deepEqual(control.data.shape, [1, 256]);
   // An embedding alias may feed a packed output head as well as dense gather.
   const { compileWeightRepresentationPlan } = await import('../../src/loader/weight-representation-plan.js');
   const embeddingLocation = { ...location, shardIndex: 0, offset: 0, role: 'embedding' };

@@ -63,8 +63,11 @@ export function resolveDeclaredTopK(options) {
     .filter(step => step.op === 'moe_topk');
   if (steps.length === 0) return null;
   const config = steps.length === 1 ? getKernelPathStepConfig('topk', steps[0], options.phase) : null;
-  if (!config || (steps[0].constants && Object.keys(steps[0].constants).length)) {
-    throw new Error('[MoE] Top-k requires one registered moe_topk step with model-bound geometry.');
+  const supplied = steps[0]?.constants ?? {};
+  const registered = config?.wgslOverrides ?? {};
+  if (!config || Object.keys(supplied).length !== Object.keys(registered).length
+    || Object.keys(supplied).some(key => supplied[key] !== registered[key])) {
+    throw new Error('[MoE] Top-k requires one registered moe_topk step with its exact registered specialization.');
   }
   return config.variant;
 }

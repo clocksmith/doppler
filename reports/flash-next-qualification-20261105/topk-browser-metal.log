@@ -1,0 +1,15 @@
+{
+  "hardware": {
+    "vendor": "apple",
+    "architecture": "metal-3",
+    "device": "unknown",
+    "description": "",
+    "subgroupMinSize": 32,
+    "subgroupMaxSize": 32
+  },
+  "experts": 512,
+  "topK": 10,
+  "immediate": "pass",
+  "recorded": "pass",
+  "errors": []
+}

@@ -446,7 +446,8 @@ export async function loadFloat(shardData, location, name, config) {
       layout: location.layout ?? null,
       useColumnWise: false,
     });
-    const isMatmulWeight = shouldDequantizeToF16(location);
+    const isMatmulWeight = shouldDequantizeToF16(location)
+      || (config.representationRequirement?.complete === true && config.representationRequirement.consumers?.length > 0);
     const caps = config.gpuCapabilities || getKernelCapabilities();
     const dtype = isMatmulWeight
       ? selectRuleValue('loader', 'weights', 'matmulWeightDtype', {

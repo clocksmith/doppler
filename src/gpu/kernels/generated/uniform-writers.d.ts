@@ -342,6 +342,7 @@ export interface KernelUniformValues {
   "topk/small": Parameters<typeof writers1.write_topk_default>[1];
   "topk/fused": Parameters<typeof writers1.write_topk_default>[1];
   "topk/fused_ranked": Parameters<typeof writers1.write_topk_default>[1];
+  "topk/fused_ranked_512": Parameters<typeof writers1.write_topk_default>[1];
   "topk/fused_logit_rank": Parameters<typeof writers1.write_topk_default>[1];
   "topk/fused_f16": Parameters<typeof writers1.write_topk_default>[1];
   "topk/fused_f16_w16": Parameters<typeof writers1.write_topk_default>[1];

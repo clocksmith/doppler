@@ -474,6 +474,8 @@ async function main() {
       ...tokenizerPatch,
     };
   }
+  // Reject unsupported graph/metadata contracts before rereading large tensors.
+  parseManifest(JSON.stringify(refreshed));
   const builtIntegrity = await buildManifestIntegrityFromModelDir(refreshed, {
     modelDir,
     blockSize: resolveOptionalBlockSize(args.blockSize),

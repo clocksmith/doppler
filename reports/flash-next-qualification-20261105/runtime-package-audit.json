@@ -1,0 +1,78 @@
+{
+  "baseline": "a0c63d6e",
+  "baselineEntries": 1897,
+  "baselineUnpacked": 15527863,
+  "entryCount": 1898,
+  "packedBytes": 3637145,
+  "unpackedBytes": 15535443,
+  "changedShippedFiles": [
+    {
+      "path": "src/config/conversion/qwen3/qwen-3-8-flash-next-text-q4k-ehf16-af32.json",
+      "before": 30118,
+      "after": 30486,
+      "delta": 368
+    },
+    {
+      "path": "src/config/kernels/registry.json",
+      "before": 775139,
+      "after": 777551,
+      "delta": 2412
+    },
+    {
+      "path": "src/config/supported-operations.json",
+      "before": 10459,
+      "after": 10665,
+      "delta": 206
+    },
+    {
+      "path": "src/gpu/kernels/generated/uniform-writers.js",
+      "before": 50065,
+      "after": 50142,
+      "delta": 77
+    },
+    {
+      "path": "src/gpu/kernels/softmax.js",
+      "before": 6984,
+      "after": 7457,
+      "delta": 473
+    },
+    {
+      "path": "src/gpu/kernels/softmax_topk_ranked.wgsl",
+      "before": 4302,
+      "after": 4590,
+      "delta": 288
+    },
+    {
+      "path": "src/gpu/kernels/softmax_topk_strided.wgsl",
+      "before": 0,
+      "after": 2974,
+      "delta": 2974
+    },
+    {
+      "path": "src/inference/pipelines/text/ffn/qwen-shared-expert.js",
+      "before": 12388,
+      "after": 12576,
+      "delta": 188
+    },
+    {
+      "path": "src/loader/hyper-connection-loader.d.ts",
+      "before": 1419,
+      "after": 1449,
+      "delta": 30
+    },
+    {
+      "path": "src/loader/hyper-connection-loader.js",
+      "before": 8112,
+      "after": 8555,
+      "delta": 443
+    },
+    {
+      "path": "src/loader/tensors/load-executor.js",
+      "before": 22511,
+      "after": 22632,
+      "delta": 121
+    }
+  ],
+  "auditedUnpackedDelta": 7580,
+  "crossNpmAllowance": 2158
+}

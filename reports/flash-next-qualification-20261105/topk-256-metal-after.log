@@ -1,0 +1,2 @@
+[GPU] apple metal-3, f16/subgroups, 4.0GB, submit probe: 0.6ms
+softmax-topk-logit-rank-gpu.test: ok

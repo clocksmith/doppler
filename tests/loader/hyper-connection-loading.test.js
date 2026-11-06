@@ -86,7 +86,8 @@ for (const corrupt of ['missing', 'shape', 'duplicate']) {
   const { ctx, calls, loaded } = fixture();
   const name = `${root}.layers.1.attn_hyper_connection.hc_norm.weight`;
   tagBufferDtype(loaded.get(name), 'f16');
-  await assert.rejects(loadHyperConnectionLayerWeights(ctx, 1), /complete f32 vector/);
+  loaded.get(name).size = 2;
+  await assert.rejects(loadHyperConnectionLayerWeights(ctx, 1), /complete f16 or f32 vector/);
   assert.equal(calls.length, 1);
 }
 for (const corrupt of ['capacity', 'shape']) {
@@ -96,6 +97,12 @@ for (const corrupt of ['capacity', 'shape']) {
   if (corrupt === 'capacity') weight.buffer.size = 2;
   else loaded.set(name, createWeightBuffer(weight.buffer, 'f16', 'row', [8, 3], name));
   await assert.rejects(loadHyperConnectionLayerWeights(ctx, 1), /projection representation/);
+}
+{
+  const { ctx, loaded } = fixture();
+  const name = `${root}.layers.1.attn_hyper_connection.hc_norm.weight`;
+  tagBufferDtype(loaded.get(name), 'f16');
+  await assert.rejects(loadHyperConnectionLayerWeights(ctx, 1), /GPU buffer owner/);
 }
 {
   const { ctx, calls } = fixture();

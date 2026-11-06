@@ -1,0 +1,106 @@
+{
+  "schema": "doppler.flash-next-learned-observation/v1",
+  "scope": "Node physical load and last-position logits diagnostic on the learned quantized artifact; no general qualification or performance claim",
+  "manifestSha256": "5099f4c08bb37ce373ae059bfef4aae8febcc5a085c336b279955f2a249d2281",
+  "referenceSha256": "5f183260cb6c1f04af3b9bb92a9a80895a8375f971b91f4ece06b813ff184d4d",
+  "inputsSha256": "06a819d529593b58abd6cb27566bb835a9b91aac13a77c0c7479b7e4e7b0c378",
+  "runSha256": "d8f7f4918e0c9144b4c4f5cde076268aad392e8667fc1ce71019e926b17c6605",
+  "runtimeRevision": "a0c63d6e+vectors-and-projections",
+  "runtimeSourceSha256": {
+    "src/loader/hyper-connection-loader.js": "6e8cea63836e1ba02a17dafacf7348e33cd27fe6f22221de1c14125f07795a10",
+    "src/loader/hyper-connection-loader.d.ts": "ffcbbe3fe80472fd851da01e8f1089dae4f95223c8cc383956bfae2621fd2be3",
+    "tests/integration/flash-next-learned-physical.test.js": "5a7ab4a7dce31e7405e71232aca80523bb286933af9638f85f0e8758387c66ab",
+    "tests/helpers/learned-layer-observation.js": "d4254e1affe66c52eb8003a48315a7d368b196700442ab60519b8145368c4c58",
+    "src/loader/tensors/load-executor.js": "77028c20d90b2cf28575f6f7b266442ed3b20262e9cd4633a96657efd53837f7"
+  },
+  "modelId": "qwen-3-8-flash-next-text-q4k-ehf16-af32",
+  "quantizationInfo": {
+    "weights": "q4k",
+    "embeddings": "f16",
+    "experts": "q4k",
+    "expertsFormat": "qwen3_5",
+    "compute": "f32",
+    "layout": "row",
+    "variantTag": "q4k-ehf16-af32"
+  },
+  "provider": {
+    "schema": "doe.webgpu-provider-receipt/v1",
+    "contract": "doe.webgpu-provider/v1",
+    "implementation": "doppler",
+    "providers": [
+      {
+        "id": "pre-installed",
+        "kind": "global"
+      },
+      {
+        "id": "webgpu",
+        "kind": "module",
+        "module": "webgpu",
+        "gpu": {
+          "kind": "factory",
+          "path": "create",
+          "args": [
+            [
+              "enable-dawn-features=allow_unsafe_apis"
+            ]
+          ]
+        },
+        "globals": {
+          "GPUBufferUsage": "globals.GPUBufferUsage",
+          "GPUShaderStage": "globals.GPUShaderStage",
+          "GPUMapMode": "globals.GPUMapMode",
+          "GPUTextureUsage": "globals.GPUTextureUsage"
+        }
+      }
+    ],
+    "providerOrder": [
+      "pre-installed",
+      "webgpu"
+    ],
+    "adapterOptions": null,
+    "globals": {
+      "mode": "replace",
+      "installed": [
+        "GPUBufferUsage",
+        "GPUShaderStage",
+        "GPUMapMode",
+        "GPUTextureUsage",
+        "navigator.gpu"
+      ],
+      "restored": true
+    },
+    "attempts": [
+      {
+        "providerId": "pre-installed",
+        "kind": "global",
+        "module": null,
+        "ok": false,
+        "stage": "gpu.validate",
+        "code": "DOPPLER_PROVIDER_UNAVAILABLE",
+        "detail": "Selected provider does not expose GPU.requestAdapter()."
+      },
+      {
+        "providerId": "webgpu",
+        "kind": "module",
+        "module": "webgpu",
+        "ok": true,
+        "stage": "complete",
+        "code": null,
+        "detail": null
+      }
+    ],
+    "selectedProviderId": "webgpu",
+    "ok": true
+  },
+  "runtimeConfig": {},
+  "rows": [],
+  "gpuErrors": [],
+  "loaded": true,
+  "failure": {
+    "name": "TypeError",
+    "message": "generator._state.operatorDiagnostics.emitter.getTimeline is not a function",
+    "stack": "TypeError: generator._state.operatorDiagnostics.emitter.getTimeline is not a function\n    at finishGenerationRuntime (file:///home/x/src/doppler-qualification-603ef2dc/src/inference/pipelines/text/generator/decode-runtime.js:158:62)\n    at PipelineGenerator.generateTokenIds (file:///home/x/src/doppler-qualification-603ef2dc/src/inference/pipelines/text/generator/decode-runtime.js:386:7)\n    at async invoke (file:///home/x/src/doppler-qualification-603ef2dc/src/inference/pipelines/shader-scoped-pipeline.js:197:16)\n    at async runWithShaderSourceScope (file:///home/x/src/doppler-qualification-603ef2dc/src/gpu/kernels/shader-source-scope.js:93:16)\n    at async runOperation (file:///home/x/src/doppler-qualification-603ef2dc/src/inference/pipelines/shader-scoped-pipeline.js:86:12)\n    at async file:///home/x/src/doppler-qualification-603ef2dc/tests/integration/flash-next-learned-physical.test.js:81:22"
+  },
+  "partialLayers": [],
+  "cleanupFailures": []
+}

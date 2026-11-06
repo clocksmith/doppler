@@ -1,5 +1,6 @@
 import { createTensor } from '../gpu/tensor.js';
 import { getWeightDtype, isWeightBuffer } from '../gpu/weight-buffer.js';
+import { castF16ToF32 } from '../gpu/kernels/cast.js';
 import {
   GATED_RESIDUAL_SUFFIXES, HYPER_CONNECTION_MIXER_PREFIXES, HYPER_CONNECTION_SUFFIXES,
   LAYER_PREFIXES, NGRAM_PLE_SUFFIXES, QSA_SUFFIXES,
@@ -43,8 +44,16 @@ async function materialize(ctx, bindings) {
     const buffer = isWeightBuffer(loaded) ? loaded.buffer : loaded;
     const elements = spec.shape.reduce((a, b) => a * b, 1);
     if (spec.tensor) {
-      if (dtype !== 'f32' || buffer.size < elements * 4) fail(`${spec.name} requires a complete f32 vector.`);
-      result[key] = createTensor(buffer, 'f32', [elements], spec.name);
+      if ((dtype !== 'f16' && dtype !== 'f32') || buffer.size < elements * (dtype === 'f16' ? 2 : 4)) {
+        fail(`${spec.name} requires a complete f16 or f32 vector.`);
+      }
+      const vector = createTensor(buffer, dtype, [elements], spec.name);
+      if (dtype === 'f16') {
+        if (!(ctx.gpuBuffers instanceof Set)) fail(`${spec.name} requires a GPU buffer owner before materialization.`);
+        const converted = await castF16ToF32(vector);
+        ctx.gpuBuffers.add(converted.buffer);
+        result[key] = converted;
+      } else result[key] = vector;
     } else {
       if (!isWeightBuffer(loaded) || (dtype !== 'f16' && dtype !== 'f32')) {
         fail(`${spec.name} requires a WeightBuffer with declared f16 or f32 projection storage and layout.`);
