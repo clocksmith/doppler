@@ -1,0 +1,22 @@
+{
+  "scope": "Bind staged layer-0 observation to previously bound normal candidate",
+  "normalModelQualified": false,
+  "gpuTraceSha256": "aef012ad0fe08f20a8e239a09daf9ed02df96242f03c7bbe98d51c8262da488e",
+  "previousTraceSha256": "ea6e63aa9f7b9ae150fc2f4ed34ef905a5182adb994c9fc78b73013601fc9740",
+  "projectionInputSha256": "5f504e750e6e95c1bae807c98e0b9b1f2fb40a38f69e0c22f9c06eb22523e5db",
+  "projectionInputBitExact": true,
+  "rows": [
+    {
+      "role": "attn_hc",
+      "stage": "branchOutput",
+      "sha256": "93ae561714d47d43577010bdb00cbf94d9bf2872aed991d939584032b84b59a2",
+      "bitExact": true
+    },
+    {
+      "role": "mlp_hc",
+      "stage": "branchInput",
+      "sha256": "cf28da38f4322fa00740a0ab5d44c2cc3a7ac81129fb8ce7d61aee0bc39e9839",
+      "bitExact": true
+    }
+  ]
+}

@@ -249,3 +249,28 @@ Acceptance evidence: the physical readback/control receipts, four scale-metric
 regressions, JavaScript syntax and Python compilation checks, and rendered plot
 inspection. Boundary effects: test-only observations and descriptive metrics;
 production execution and the model acceptance policy are unchanged.
+
+## Layer-0 linear branch decomposition
+
+The staged capture preserves its complete branch input, checked branch-output
+row and router-input row bit-for-bit against the previously bound normal
+candidate. No kernel path or dtype changes were made. The source module's
+original full-sequence replay is bit-exact before the CPU-only controls.
+
+On identical captured inputs at token 2135:
+
+| Boundary | Maximum difference | RMS difference |
+| --- | ---: | ---: |
+| QKV projection | 9.54e-6 | 4.91e-7 |
+| Z projection | 3.34e-6 | 4.53e-7 |
+| A projection | 4.05e-6 | 1.31e-6 |
+| B projection | 5.72e-6 | 2.07e-6 |
+| Recurrent/gated core after supplying exact GPU projection outputs to CPU | 6.85e-7 | 3.76e-8 |
+| Output projection on exact GPU core | 3.87e-7 | 3.67e-8 |
+
+These local differences do not demonstrate a violated operator contract. The
+CPU projection substitutions are diagnostic controls and never feed tensors
+back into GPU execution or replace the model reference. No full-model gate
+rerun or readiness change follows from this decomposition. See
+[stage controls](linear-layer0-stage-controls.json) and
+[normal-run binding](linear-layer0-stage-binding.json).

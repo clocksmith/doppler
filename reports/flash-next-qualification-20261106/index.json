@@ -2,8 +2,8 @@
   "scope": "Retained diagnostic files; this index is not model qualification",
   "files": {
     "README.md": {
-      "sha256": "ae9033206987a53c834d4274f001420e5e6b586d7dc3c47337250ffbc6b8f235",
-      "bytes": 14725
+      "sha256": "1ea475630840737008006457ac8c501798abfb617157c25d2e420c10d2b3c874",
+      "bytes": 15894
     },
     "all-hc-accuracy-comparison.json": {
       "sha256": "d728450e4507449f3efb7f9d402579682f2fc73a624021848512df71a6577e2a",
@@ -66,8 +66,8 @@
       "bytes": 5698
     },
     "check-linear-branch-same-input.py": {
-      "sha256": "ac97d41cc74a76bfc1b3ff34c139075b3f745235356878445c3e8f98343c72e7",
-      "bytes": 3623
+      "sha256": "ea4717b28132f8f5dde31ebb1817a18aec171ec5cd3818dd22bd9dd27ebe7621",
+      "bytes": 6600
     },
     "check-retained-qsa.py": {
       "sha256": "404d917f7929409accbf0c30ce66202ab0004204221742ac3e19d1d27baaacb6",
@@ -212,6 +212,26 @@
     "linear-layer0-source-control.json": {
       "sha256": "a836a57d19c05b72425033180bfc61eb696245e34a077219c4ddd72418ff6397",
       "bytes": 8404
+    },
+    "linear-layer0-stage-binding.json": {
+      "sha256": "1750f8dd1c6daefadb726cb6eb541962175c035b5caa7232464ebfddfc50a530",
+      "bytes": 796
+    },
+    "linear-layer0-stage-controls.json": {
+      "sha256": "fff14ddf3a6c2cd59871514e798b936e6efacfaa6229678a8ffecdf5e38f46b9",
+      "bytes": 7087
+    },
+    "linear-layer0-stage-source.json": {
+      "sha256": "a836a57d19c05b72425033180bfc61eb696245e34a077219c4ddd72418ff6397",
+      "bytes": 8404
+    },
+    "linear-layer0-stages-run.json.gz": {
+      "sha256": "fc35b164b6573d57cde3fa9eae8af1cfc2b97ff1c406bd4a8c213471f094753e",
+      "bytes": 7489
+    },
+    "linear-layer0-stages.json.gz": {
+      "sha256": "7ac49e351d5e557b26070b26f73bf169fc1f535eb72051b427efa11b9a4cd7c7",
+      "bytes": 2872
     },
     "plot-relative-prefix.py": {
       "sha256": "0118d82a791d435343e5f0f1412bb15b08a5aabbf5a83336297f3cf3b39ecc26",

@@ -1,0 +1,368 @@
+{
+  "schema": "doppler.flash-next-cpu-upstream-trace/v1",
+  "diagnosticCompleted": true,
+  "scope": "Pinned CPU upstream stage observations, intentionally stopped before layer-0 MoE; no GPU values or model qualification",
+  "normalModelQualified": false,
+  "layer": 0,
+  "hyperConnectionGeometry": {
+    "semantics": "qwen4_exp_gated_residual",
+    "streamCount": 4,
+    "streamWidth": 2560,
+    "projectionRank": 320,
+    "normEps": 1e-06
+  },
+  "producerSha256": "f6bc0f15a6545ab1d205cfc3ec412442415220e541190b63a9c712fa238ba5b0",
+  "instrumentedProducerSha256": "eaf00591b89c0e4681286b338e18b946ae9ff388e146ea4b890c6c144082a0e9",
+  "instrumentSha256": "939d3e1eaa10e2d882847aeaf1bfb9db40351728babc8548d79c440b68cfbb70",
+  "manifestSha256": "4902a0b730a9310903b00bc0f8f587528fa1af9f37a722d2f9287bafceceec09",
+  "inputsSha256": "06a819d529593b58abd6cb27566bb835a9b91aac13a77c0c7479b7e4e7b0c378",
+  "tensors": [
+    {
+      "role": "attn_hc",
+      "stage": "input",
+      "shape": [
+        1,
+        10240
+      ],
+      "positions": [
+        2135
+      ],
+      "file": "attn_hc.input.npy",
+      "sha256": "3e56383c51dc3cb607b7d09ac3a1ac6639c47c3642eb6a3a2b983b02a60ad89a"
+    },
+    {
+      "role": "attn_hc",
+      "stage": "norm",
+      "shape": [
+        1,
+        10240
+      ],
+      "positions": [
+        2135
+      ],
+      "file": "attn_hc.norm.npy",
+      "sha256": "4bfcd463366973f20f6b29a60f60163820249c0d6c4433dc3e964649777ed99b"
+    },
+    {
+      "role": "attn_hc",
+      "stage": "down",
+      "shape": [
+        1,
+        320
+      ],
+      "positions": [
+        2135
+      ],
+      "file": "attn_hc.down.npy",
+      "sha256": "1879570700496e97aac1b1751f90d1e4d2dce9cdd2354f1de7e2cb3b852cf73b"
+    },
+    {
+      "role": "attn_hc",
+      "stage": "lowRank",
+      "shape": [
+        1,
+        320
+      ],
+      "positions": [
+        2135
+      ],
+      "file": "attn_hc.lowRank.npy",
+      "sha256": "ddc91e68e355d20a874c6bba61318549be014cb942695833c78064293bed3a5a"
+    },
+    {
+      "role": "attn_hc",
+      "stage": "up",
+      "shape": [
+        1,
+        10240
+      ],
+      "positions": [
+        2135
+      ],
+      "file": "attn_hc.up.npy",
+      "sha256": "681329fb8b673d7aee633b06fd07e0d9fac8d7019df6c7eae10c895d03f808c9"
+    },
+    {
+      "role": "attn_hc",
+      "stage": "mix",
+      "shape": [
+        1,
+        10240
+      ],
+      "positions": [
+        2135
+      ],
+      "file": "attn_hc.mix.npy",
+      "sha256": "03b5812514ae37f916ce5183daf28b257f8e5e97e1404f6c907ce2557ad18232"
+    },
+    {
+      "role": "attn_hc",
+      "stage": "logits",
+      "shape": [
+        1,
+        4
+      ],
+      "positions": [
+        2135
+      ],
+      "file": "attn_hc.logits.npy",
+      "sha256": "0a8f91f99923f8fa6f874ea1dfb51b4c5d504b32d4fc969ee7478500d853e8ad"
+    },
+    {
+      "role": "attn_hc",
+      "stage": "branchInput",
+      "shape": [
+        1,
+        2560
+      ],
+      "positions": [
+        2135
+      ],
+      "file": "attn_hc.branchInput.npy",
+      "sha256": "5784f1d494ab42413ad3f7d7e5b91ad7bf67c778a3f562248a8542dc412d3594"
+    },
+    {
+      "role": "attn_hc",
+      "stage": "gate",
+      "shape": [
+        1,
+        4
+      ],
+      "positions": [
+        2135
+      ],
+      "file": "attn_hc.gate.npy",
+      "sha256": "08111ab20b5ad7cc0bfc64d7d8c2cb47a42386b3239cd51c33fa8e2e7811225e"
+    },
+    {
+      "role": "attention",
+      "stage": "projectionInput",
+      "shape": [
+        2304,
+        2560
+      ],
+      "positions": null,
+      "file": "attention.projectionInput.npy",
+      "sha256": "f9999de176d8e6c78aa7a5ac78067ec8fae5320fd587f54a0a9c1971b84ee649"
+    },
+    {
+      "role": "linear",
+      "stage": "attn.qkv_proj",
+      "shape": [
+        1,
+        10240
+      ],
+      "positions": [
+        2135
+      ],
+      "file": "linear.attn.qkv_proj.npy",
+      "sha256": "506a0e734d3716e7323c59f90983fc1fefd9ed76f32040bb92aac17b7e73f554"
+    },
+    {
+      "role": "linear",
+      "stage": "attn.linear_z_proj",
+      "shape": [
+        1,
+        6144
+      ],
+      "positions": [
+        2135
+      ],
+      "file": "linear.attn.linear_z_proj.npy",
+      "sha256": "3b4b766ac661be36c203cdcac0fe0342e46c5f28852fce5ed7caef8f1c262ed3"
+    },
+    {
+      "role": "linear",
+      "stage": "attn.linear_b_proj",
+      "shape": [
+        1,
+        48
+      ],
+      "positions": [
+        2135
+      ],
+      "file": "linear.attn.linear_b_proj.npy",
+      "sha256": "96d998f6aada85ae05c7a173ac4cec697026f061858a87bbdf3caf044b907693"
+    },
+    {
+      "role": "linear",
+      "stage": "attn.linear_a_proj",
+      "shape": [
+        1,
+        48
+      ],
+      "positions": [
+        2135
+      ],
+      "file": "linear.attn.linear_a_proj.npy",
+      "sha256": "cb96521481906aa2bdfe29735e7043c63fed4811f22e2937d2740ef3071cd827"
+    },
+    {
+      "role": "linear",
+      "stage": "attn.linear_core_out",
+      "shape": [
+        1,
+        6144
+      ],
+      "positions": [
+        2135
+      ],
+      "file": "linear.attn.linear_core_out.npy",
+      "sha256": "25a0a1a700cd3dbcfba4a5782913aa0213c31af424f556d05501935d0b9b54be"
+    },
+    {
+      "role": "attn_hc",
+      "stage": "branchOutput",
+      "shape": [
+        1,
+        2560
+      ],
+      "positions": [
+        2135
+      ],
+      "file": "attn_hc.branchOutput.npy",
+      "sha256": "036d99f1d7d489e2fd8167e49d79e365e777d81c0529c8aae0694aa5325a180c"
+    },
+    {
+      "role": "linear",
+      "stage": "branchOutput",
+      "shape": [
+        2304,
+        2560
+      ],
+      "positions": null,
+      "file": "linear.branchOutput.npy",
+      "sha256": "ff1e7363e40707054d5334ae88ed6adf172e330c4894d5111892002807fca708"
+    },
+    {
+      "role": "mlp_hc",
+      "stage": "input",
+      "shape": [
+        1,
+        10240
+      ],
+      "positions": [
+        2135
+      ],
+      "file": "mlp_hc.input.npy",
+      "sha256": "c557459f1d79464c951e6138a9ae70278b3e0b8d29daf1688a03f4de4523fbb0"
+    },
+    {
+      "role": "attn_hc",
+      "stage": "injected",
+      "shape": [
+        1,
+        10240
+      ],
+      "positions": [
+        2135
+      ],
+      "file": "attn_hc.injected.npy",
+      "sha256": "c557459f1d79464c951e6138a9ae70278b3e0b8d29daf1688a03f4de4523fbb0"
+    },
+    {
+      "role": "mlp_hc",
+      "stage": "norm",
+      "shape": [
+        1,
+        10240
+      ],
+      "positions": [
+        2135
+      ],
+      "file": "mlp_hc.norm.npy",
+      "sha256": "1d2c1794c01483c0f044ce11b41111bac6e1c21dddee30269f966e2f9f8d4a26"
+    },
+    {
+      "role": "mlp_hc",
+      "stage": "down",
+      "shape": [
+        1,
+        320
+      ],
+      "positions": [
+        2135
+      ],
+      "file": "mlp_hc.down.npy",
+      "sha256": "82d1e2f0c23219786353f13d4f6112c1a4fd5b4cb18a23e892420e3f3c6adb81"
+    },
+    {
+      "role": "mlp_hc",
+      "stage": "lowRank",
+      "shape": [
+        1,
+        320
+      ],
+      "positions": [
+        2135
+      ],
+      "file": "mlp_hc.lowRank.npy",
+      "sha256": "fb4b4f9c7ef855a6bc79dd82d9a4a3943188f4fa9b11cc621f88690443bee702"
+    },
+    {
+      "role": "mlp_hc",
+      "stage": "up",
+      "shape": [
+        1,
+        10240
+      ],
+      "positions": [
+        2135
+      ],
+      "file": "mlp_hc.up.npy",
+      "sha256": "7fa66c0497cb3b7f24f7cb2b9993b55dc61b25ac43b422698d95723922ba03e2"
+    },
+    {
+      "role": "mlp_hc",
+      "stage": "mix",
+      "shape": [
+        1,
+        10240
+      ],
+      "positions": [
+        2135
+      ],
+      "file": "mlp_hc.mix.npy",
+      "sha256": "691d746fa8889b1769b50e5256047145e0ce0b926199d7d0f45fe9e4ef830117"
+    },
+    {
+      "role": "mlp_hc",
+      "stage": "logits",
+      "shape": [
+        1,
+        4
+      ],
+      "positions": [
+        2135
+      ],
+      "file": "mlp_hc.logits.npy",
+      "sha256": "fda0cc42832804ef08edd697b064527404fc9c253da88f5179437f626b188c63"
+    },
+    {
+      "role": "mlp_hc",
+      "stage": "branchInput",
+      "shape": [
+        1,
+        2560
+      ],
+      "positions": [
+        2135
+      ],
+      "file": "mlp_hc.branchInput.npy",
+      "sha256": "562a270d603b104ebe3987d1bde5748de03c3647022ef3cf39f1c24bb7211688"
+    },
+    {
+      "role": "mlp_hc",
+      "stage": "gate",
+      "shape": [
+        1,
+        4
+      ],
+      "positions": [
+        2135
+      ],
+      "file": "mlp_hc.gate.npy",
+      "sha256": "acb50d43e113be4365a501fb67d43205dbf812e5f39ad122793a7d6d1e9b715b"
+    }
+  ]
+}
