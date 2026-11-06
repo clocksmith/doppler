@@ -1,0 +1,97 @@
+{
+  "schema": "doppler.flash-next-learned-observation/v1",
+  "scope": "Node physical load and last-position logits diagnostic on the learned quantized artifact; no general qualification or performance claim",
+  "manifestSha256": "f807fa1ec89668b3189909e5e405394cdcf9719ca8e3a39fa4794629c82e2180",
+  "referenceSha256": "5f183260cb6c1f04af3b9bb92a9a80895a8375f971b91f4ece06b813ff184d4d",
+  "inputsSha256": "06a819d529593b58abd6cb27566bb835a9b91aac13a77c0c7479b7e4e7b0c378",
+  "runSha256": "eaf8924e23d324e36930fad87b18139aec18022fd9e325d2deb506e06b851283",
+  "runtimeRevision": "603ef2dc909d5091d6386587af2cafd539a1e9d0",
+  "modelId": "qwen-3-8-flash-next-text-q4k-ehf16-af32",
+  "quantizationInfo": {
+    "weights": "q4k",
+    "embeddings": "f16",
+    "experts": "q4k",
+    "expertsFormat": "qwen3_5",
+    "compute": "f32",
+    "layout": "row",
+    "variantTag": "q4k-ehf16-af32"
+  },
+  "provider": {
+    "schema": "doe.webgpu-provider-receipt/v1",
+    "contract": "doe.webgpu-provider/v1",
+    "implementation": "doppler",
+    "providers": [
+      {
+        "id": "pre-installed",
+        "kind": "global"
+      },
+      {
+        "id": "webgpu",
+        "kind": "module",
+        "module": "webgpu",
+        "gpu": {
+          "kind": "factory",
+          "path": "create",
+          "args": [
+            [
+              "enable-dawn-features=allow_unsafe_apis"
+            ]
+          ]
+        },
+        "globals": {
+          "GPUBufferUsage": "globals.GPUBufferUsage",
+          "GPUShaderStage": "globals.GPUShaderStage",
+          "GPUMapMode": "globals.GPUMapMode",
+          "GPUTextureUsage": "globals.GPUTextureUsage"
+        }
+      }
+    ],
+    "providerOrder": [
+      "pre-installed",
+      "webgpu"
+    ],
+    "adapterOptions": null,
+    "globals": {
+      "mode": "replace",
+      "installed": [
+        "GPUBufferUsage",
+        "GPUShaderStage",
+        "GPUMapMode",
+        "GPUTextureUsage",
+        "navigator.gpu"
+      ],
+      "restored": true
+    },
+    "attempts": [
+      {
+        "providerId": "pre-installed",
+        "kind": "global",
+        "module": null,
+        "ok": false,
+        "stage": "gpu.validate",
+        "code": "DOPPLER_PROVIDER_UNAVAILABLE",
+        "detail": "Selected provider does not expose GPU.requestAdapter()."
+      },
+      {
+        "providerId": "webgpu",
+        "kind": "module",
+        "module": "webgpu",
+        "ok": true,
+        "stage": "complete",
+        "code": null,
+        "detail": null
+      }
+    ],
+    "selectedProviderId": "webgpu",
+    "ok": true
+  },
+  "runtimeConfig": {},
+  "rows": [],
+  "gpuErrors": [],
+  "failure": {
+    "name": "Error",
+    "message": "[NormGate] execution.kernels.gated_delta_recurrent (gated_delta_recurrent.wgsl) is gated_delta_recurrent/default, which applies a silu norm gate, but the manifest declares sigmoid.",
+    "stack": "Error: [NormGate] execution.kernels.gated_delta_recurrent (gated_delta_recurrent.wgsl) is gated_delta_recurrent/default, which applies a silu norm gate, but the manifest declares sigmoid.\n    at assertLinearNormGateClosure (file:///home/x/src/doppler-qualification-603ef2dc/src/config/execution-registry-contract.js:117:15)\n    at compileExecutionPlanState (file:///home/x/src/doppler-qualification-603ef2dc/src/inference/pipelines/text/execution-plan.js:244:5)\n    at InferencePipeline.loadModel (file:///home/x/src/doppler-qualification-603ef2dc/src/inference/pipelines/text/lifecycle.js:333:31)\n    at async file:///home/x/src/doppler-qualification-603ef2dc/src/inference/pipelines/factory.js:25:7\n    at async runWithShaderSourceScope (file:///home/x/src/doppler-qualification-603ef2dc/src/gpu/kernels/shader-source-scope.js:93:16)\n    at async createInitializedPipeline (file:///home/x/src/doppler-qualification-603ef2dc/src/inference/pipelines/factory.js:16:3)\n    at async file:///home/x/src/doppler-qualification-603ef2dc/tests/integration/flash-next-learned-physical.test.js:47:16"
+  },
+  "cleanupFailures": []
+}

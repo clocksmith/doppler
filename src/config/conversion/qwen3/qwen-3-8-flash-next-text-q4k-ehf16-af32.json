@@ -511,14 +511,14 @@
         "digest": "sha256:001fb6cbb3529bf2210406a522405d1b80acd6e0ecc09a67114cdb770103c92a"
       },
       "gated_delta_recurrent": {
-        "kernel": "gated_delta_recurrent.wgsl",
+        "kernel": "gated_delta_recurrent_sigmoid_gate.wgsl",
         "entry": "main",
-        "digest": "sha256:33e2f208b15ff6140d493609b6e4814c44f23fb2f3f1b66f2a62336a04dfd46e"
+        "digest": "sha256:d40d09da1dd0ad8c4bc39e5662b5a703903177728a463432a27890f8d5b8beae"
       },
       "gated_delta_fused_decode": {
-        "kernel": "gated_delta_fused_decode.wgsl",
+        "kernel": "gated_delta_fused_decode_sigmoid_gate.wgsl",
         "entry": "main",
-        "digest": "sha256:87dbb137e1495ebb0821ef5a8a90e7a6460883e1bd4eafb1c13ae9b1a1052cfb"
+        "digest": "sha256:b43143ea058690cee520e16676e701912706c45b854e178dad2f5ff4d836849d"
       },
       "source_control_f32": {
         "kernel": "matmul_f32.wgsl",

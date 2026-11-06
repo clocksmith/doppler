@@ -1,0 +1,45 @@
+TAP version 13
+# refresh-converted-manifest-tokenizer.test: ok
+# Subtest: tests/config/refresh-converted-manifest-tokenizer.test.js
+ok 1 - tests/config/refresh-converted-manifest-tokenizer.test.js
+  ---
+  duration_ms: 200.763917
+  type: 'test'
+  ...
+# refresh-converted-manifest.test: ok
+# Subtest: tests/config/refresh-converted-manifest.test.js
+ok 2 - tests/config/refresh-converted-manifest.test.js
+  ---
+  duration_ms: 167.586291
+  type: 'test'
+  ...
+# learned layer observations: source coordinates and failed captures checked
+# Subtest: tests/inference/learned-layer-observation.test.js
+ok 3 - tests/inference/learned-layer-observation.test.js
+  ---
+  duration_ms: 48.84075
+  type: 'test'
+  ...
+# Flash-Next recipe -> conversion -> manifest -> specialized runtime contracts passed (metadata only)
+# Subtest: tests/integration/flash-next-runtime-profile.test.js
+ok 4 - tests/integration/flash-next-runtime-profile.test.js
+  ---
+  duration_ms: 244.162708
+  type: 'test'
+  ...
+# gated-delta-norm-gate.test: rule selection, registry guard, gate-only kernel derivation and graph closure passed
+# Subtest: tests/kernels/gated-delta-norm-gate.test.js
+ok 5 - tests/kernels/gated-delta-norm-gate.test.js
+  ---
+  duration_ms: 284.573958
+  type: 'test'
+  ...
+1..5
+# tests 5
+# suites 0
+# pass 5
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 294.308083

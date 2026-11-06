@@ -7,6 +7,7 @@ import { parseModelConfigFromManifest } from '../../src/inference/pipelines/text
 import { compileExecutionV1 } from '../../src/inference/pipelines/text/execution-v1.js';
 import { getKernelPathMatmulVariant } from '../../src/config/kernel-path-loader.js';
 import { assertHyperConnectionLoad } from '../../src/inference/pipelines/text/hyper-connection/sequence-transaction.js';
+import { assertLinearNormGateClosure } from '../../src/config/execution-registry-contract.js';
 
 // Source metadata and the real conversion recipe meet the runtime boundary.
 // No checkpoint weights, fake model outputs or GPU allocations are involved.
@@ -22,6 +23,7 @@ const manifest = createManifest(converterConfig.output.modelBaseId, { config: ra
   eosTokenId: converterConfig.manifest.eosTokenId, textOnly: converterConfig.output.textOnly,
 });
 const modelConfig = parseModelConfigFromManifest(manifest);
+assert.doesNotThrow(() => assertLinearNormGateClosure(manifest.inference.execution, modelConfig.linearNormGateActivation));
 assert.equal(modelConfig.visionConfig, null, 'text-only artifact must not request excluded vision weights');
 const compiled = compileExecutionV1({ manifestInference: manifest.inference, modelId: manifest.modelId,
   numLayers: architecture.numLayers, headDim: architecture.headDim, weightDtype: plan.manifestQuantization });

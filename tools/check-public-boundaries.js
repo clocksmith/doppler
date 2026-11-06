@@ -238,7 +238,9 @@ const PACKAGE_CONTENT_LIMITS = Object.freeze({
   // Runtime and conversion integration adds 21 reachable files, no source weights or table bytes.
   // No-link retained-source preparation: reports/flash-next-runtime-20261105/retention-package-inventory.json.
   // Evidence: reports/flash-next-runtime-20261105/package-inventory.json.
-  maxUnpackedSize: 15_527_500,
+  // Expert-format correction plus the sigmoid recipe: +363 bytes, no files.
+  // Audited in reports/flash-next-qualification-20261105/package-audit.json.
+  maxUnpackedSize: 15_527_863,
 });
 const REQUIRED_PACKAGE_FILES = Object.freeze([
   'README.md',

@@ -1,0 +1,28 @@
+{
+  "baseline": "0509e702",
+  "baselineUnpacked": 15527500,
+  "entryCount": 1897,
+  "packedBytes": 3636117,
+  "unpackedBytes": 15527863,
+  "changedShippedFiles": [
+    {
+      "path": "src/config/conversion/qwen3/qwen-3-8-flash-next-text-q4k-ehf16-af32.json",
+      "before": 30092,
+      "after": 30118,
+      "delta": 26
+    },
+    {
+      "path": "src/converter/manifest-builder.js",
+      "before": 24289,
+      "after": 24277,
+      "delta": -12
+    },
+    {
+      "path": "src/converter/quantization-info.js",
+      "before": 22334,
+      "after": 22683,
+      "delta": 349
+    }
+  ],
+  "auditedUnpackedDelta": 363
+}

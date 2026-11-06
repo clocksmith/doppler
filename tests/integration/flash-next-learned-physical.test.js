@@ -8,6 +8,9 @@ import { createPipeline } from '../../src/inference/pipelines/text.js';
 import { createNodeFileArtifactStorageContext } from '../../src/storage/artifact-storage-context.js';
 import { destroyDevice, getDevice } from '../../src/gpu/device.js';
 import { releaseNodeWebGPU } from '../../src/tooling/node-webgpu.js';
+import { compareLearnedLayerCapture } from '../helpers/learned-layer-observation.js';
+import { createDefaultCaptureConfig } from '../../src/debug/capture-policy.js';
+import { buildOpId } from '../../src/inference/pipelines/text/operator-identity.js';
 
 // Provisioned learned-weight diagnostic. This is not a performance test or a
 // qualification threshold: quantization spread and intermediate parity need
@@ -23,6 +26,7 @@ if (!runPath) {
   assert.equal(run.schema, 'doppler.flash-next-learned-probe/v1');
   assert.ok(run.runtimeConfig && run.modelDir && run.referencePath && run.inputsPath && run.outputPath);
   const manifestBytes = await fs.readFile(path.join(run.modelDir, 'manifest.json'));
+  assert.equal(hash(manifestBytes), run.expectedManifestSha256, 'the probe must name the exact prepared manifest');
   const manifest = JSON.parse(manifestBytes);
   const referenceBytes = await fs.readFile(run.referencePath);
   const reference = JSON.parse(referenceBytes);
@@ -42,7 +46,7 @@ if (!runPath) {
     inputsSha256: hash(inputBytes), runSha256: hash(runBytes), runtimeRevision: run.runtimeRevision,
     modelId: manifest.modelId, quantizationInfo: manifest.quantizationInfo,
     provider: probe.providerReceipt, runtimeConfig: run.runtimeConfig, rows: [], gpuErrors };
-  let pipeline;
+  let pipeline, collectLayers;
   try {
     pipeline = await createPipeline(manifest, { runtimeConfig: run.runtimeConfig,
       storage: createNodeFileArtifactStorageContext(pathToFileURL(path.resolve(run.modelDir)).href, manifest) });
@@ -55,6 +59,20 @@ if (!runPath) {
       assert.ok(input && expected);
       assert.equal(input.tokens.length, expected.tokens);
       pipeline.resetGenerationState();
+      const captures = new Map();
+      collectLayers = () => [...captures].map(([layer, capture]) => ({ layer,
+        ...compareLearnedLayerCapture(capture, expected.layers[layer], expected.samplePositions, reference.sampleStride) }));
+      if (run.captureLayers === true) {
+        assert.ok(input.tokens.length <= 64, 'full layer captures are bounded to short diagnostic inputs');
+        pipeline.operatorDiagnostics = { enabled: true,
+          captureConfig: { ...createDefaultCaptureConfig(), enabled: true, targetLevel: 'full',
+            targetOpIds: Array.from({ length: manifest.architecture.numLayers }, (_, layer) => buildOpId('layer.out', layer)) },
+          emitter: { emitRecord(stage, record) {
+            if (stage === 'layer.out' && record.capture?.shape?.[0] === input.tokens.length && !captures.has(record.layerIdx)) {
+              captures.set(record.layerIdx, record.capture);
+            }
+          } } };
+      }
       let observed = null;
       let logitRows = 0;
       const output = await pipeline.generateTokenIds('', { inputIds: input.tokens, useChatTemplate: false,
@@ -76,6 +94,11 @@ if (!runPath) {
         top1Agrees: actualId === expected.argmax[position],
         referenceTop20LogitDeltas: referenceIds.map((token, index) => ({ token,
           reference: referenceLogits[index], observed: observed[token], delta: observed[token] - referenceLogits[index] })) };
+      if (run.captureLayers === true) {
+        assert.equal(captures.size, manifest.architecture.numLayers, 'every layer must be captured');
+        row.layers = collectLayers();
+      }
+      collectLayers = null;
       report.rows.push(row);
       await fs.writeFile(run.outputPath, JSON.stringify(report, null, 2));
       console.log(JSON.stringify({ id, tokenId: actualId, text: row.text, top1Agrees: row.top1Agrees }));
@@ -85,6 +108,8 @@ if (!runPath) {
     report.completed = true;
   } catch (error) {
     report.failure = { name: error.name, message: error.message, stack: error.stack };
+    try { if (collectLayers) report.partialLayers = collectLayers(); }
+    catch (captureError) { report.captureFailure = String(captureError); }
     throw error;
   } finally {
     const failures = [];

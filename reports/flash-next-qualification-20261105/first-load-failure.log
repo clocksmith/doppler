@@ -1,0 +1,28 @@
+Warning: maxDynamicUniformBuffersPerPipelineLayout artificially reduced from 500000 to 16 to fit dynamic offset allocation limit.
+Warning: maxDynamicStorageBuffersPerPipelineLayout artificially reduced from 500000 to 16 to fit dynamic offset allocation limit.
+[GPU] amd rdna-3, f16/subgroups, 4.0GB, submit probe: 1.3ms
+[588.5ms][Pipeline] Execution v1 enabled (steps=62, kernelPathInline=yes, pipelineInline=no)
+[588.7ms][Config] Using manifest-first config (source of truth)
+[594.6ms][Pipeline] Resolved session applied (qwen-3-8-flash-next-text-q4k-ehf16-af32): batchSize=1, stopCheckMode=per-token, readbackInterval=1, disableCommandBatching=false
+[596.0ms][Pipeline] KernelPath: qwen-3-8-flash-next-text-q4k-ehf16-af32-execution-inline (25 decode steps, 12 kernels, source=execution-v1)
+[596.4ms][Pipeline] 48L/2560H/24heads (256dim), MoE(512x10), kernelPath=qwen-3-8-flash-next-text-q4k-ehf16-af32-execution-inline
+[596.9ms][Tokenizer] Loading bundled tokenizer from tokenizer.json
+[731.8ms][Tokenizer] HuggingFace model.type="BPE", using type="bpe"
+[842.7ms][Tokenizer] Loaded HuggingFace 248077 tokens (bpe), 33 special patterns, 247587 merges
+[843.2ms][Pipeline] Tokenizer vocabSize=248077 differs from model=248320, using model size
+[872.6ms][Pipeline] KV cache allocated: kvDtype=f16, maxSeqLen=32768, layout=contiguous, modelMaxSeqLen=262144, requestedKvDtype=f16, requestedMaxSeqLen=32768
+[875.1ms][Pipeline] Unloaded
+node:internal/modules/run_main:123
+    triggerUncaughtException(
+    ^
+
+Error: [NormGate] execution.kernels.gated_delta_recurrent (gated_delta_recurrent.wgsl) is gated_delta_recurrent/default, which applies a silu norm gate, but the manifest declares sigmoid.
+    at assertLinearNormGateClosure (file:///home/x/src/doppler-qualification-603ef2dc/src/config/execution-registry-contract.js:117:15)
+    at compileExecutionPlanState (file:///home/x/src/doppler-qualification-603ef2dc/src/inference/pipelines/text/execution-plan.js:244:5)
+    at InferencePipeline.loadModel (file:///home/x/src/doppler-qualification-603ef2dc/src/inference/pipelines/text/lifecycle.js:333:31)
+    at async file:///home/x/src/doppler-qualification-603ef2dc/src/inference/pipelines/factory.js:25:7
+    at async runWithShaderSourceScope (file:///home/x/src/doppler-qualification-603ef2dc/src/gpu/kernels/shader-source-scope.js:93:16)
+    at async createInitializedPipeline (file:///home/x/src/doppler-qualification-603ef2dc/src/inference/pipelines/factory.js:16:3)
+    at async file:///home/x/src/doppler-qualification-603ef2dc/tests/integration/flash-next-learned-physical.test.js:47:16
+
+Node.js v22.22.1

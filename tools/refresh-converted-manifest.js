@@ -8,6 +8,7 @@ import { pathToFileURL } from 'node:url';
 import { parseManifest, parseTensorMap } from '../src/formats/rdrr/parsing.js';
 import { createConverterConfig } from '../src/config/schema/index.js';
 import { resolveConversionPlan } from '../src/converter/conversion-plan.js';
+import { buildArtifactIdentity, extractArchitecture } from '../src/converter/artifact-identity.js';
 import { inferBundledTokenizerBehaviorFlags } from '../src/inference/tokenizers/behavior-flags.js';
 import { buildManifestIntegrityFromModelDir } from '../src/tooling/rdrr-integrity-refresh.js';
 
@@ -20,6 +21,7 @@ function parseArgs(argv) {
   const args = {
     modelDir: null,
     conversionConfigPath: null,
+    sourceConfigPath: null,
     manifestPath: null,
     modelId: null,
     blockSize: null,
@@ -30,6 +32,12 @@ function parseArgs(argv) {
 
   for (let i = 0; i < argv.length; i += 1) {
     const arg = argv[i];
+    if (arg === '--source-config') {
+      args.sourceConfigPath = argv[i + 1] ?? null;
+      if (!args.sourceConfigPath || args.sourceConfigPath.startsWith('-')) fail('Missing --source-config path.');
+      i += 1;
+      continue;
+    }
     if (arg === '--config' || arg === '--conversion-config') {
       args.conversionConfigPath = argv[i + 1] ?? null;
       i += 1;
@@ -74,7 +82,7 @@ function parseArgs(argv) {
   }
 
   if (!args.modelDir || !args.conversionConfigPath) {
-    fail('Usage: node tools/refresh-converted-manifest.js <model-dir> --config <conversion-config.json> [--manifest <manifest.json>] [--model-id <id>] [--block-size <bytes>] [--lowering-entry <entry.json>]... [--skip-shard-check] [--dry-run]');
+    fail('Usage: node tools/refresh-converted-manifest.js <model-dir> --config <conversion-config.json> [--source-config <source-config.json>] [--manifest <manifest.json>] [--model-id <id>] [--block-size <bytes>] [--lowering-entry <entry.json>]... [--skip-shard-check] [--dry-run]');
   }
 
   if (typeof args.conversionConfigPath !== 'string' || !args.conversionConfigPath.trim()) {
@@ -308,8 +316,21 @@ export async function resolveBundledTokenizerRefreshPatch(modelDir, manifest) {
   return Object.keys(patch).length > 0 ? patch : null;
 }
 
-function buildRefreshRawConfig(manifest) {
-  const baseConfig = (manifest?.config && typeof manifest.config === 'object')
+function buildRefreshRawConfig(manifest, sourceConfig = null) {
+  if (sourceConfig !== null) {
+    if (!isPlainRecord(sourceConfig) || !toSafeString(sourceConfig.model_type)) {
+      throw new Error('Explicit source config must be an object with a non-empty model_type.');
+    }
+    const sourceArchitecture = extractArchitecture(sourceConfig);
+    for (const [field, value] of Object.entries(sourceArchitecture)) {
+      const recorded = manifest.architecture?.[field];
+      if (value != null && recorded != null && JSON.stringify(value) !== JSON.stringify(recorded)) {
+        throw new Error(`Source config architecture.${field} disagrees with the converted artifact.`);
+      }
+    }
+  }
+  const baseConfig = sourceConfig !== null ? { ...sourceConfig }
+    : (manifest?.config && typeof manifest.config === 'object')
     ? { ...manifest.config }
     : {};
   const manifestModelType = toSafeString(manifest?.modelType);
@@ -376,6 +397,20 @@ function buildArtifactIdentityRefreshPatch(manifest, rawConversionConfig, conver
   });
 }
 
+async function rebuildArtifactIdentityForRefresh(manifest, rawConversionConfig, converterConfig, plan, conversionConfigPath) {
+  const explicit = { ...buildArtifactIdentityRefreshPatch(manifest, rawConversionConfig, conversionConfigPath) };
+  // The execution graph can change while the weight capsule remains unchanged.
+  // Never carry its old derived variant ID into the replacement manifest.
+  if (!rawConversionConfig.manifest?.artifactIdentity?.manifestVariantId) delete explicit.manifestVariantId;
+  return buildArtifactIdentity({ modelId: manifest.modelId, modelType: plan.modelType,
+    explicitArtifactIdentity: explicit, conversionConfig: rawConversionConfig, converterConfig,
+    conversionConfigPath: toRepoRelativePath(conversionConfigPath), hashAlgorithm: manifest.hashAlgorithm,
+    hashString: value => createHash('sha256').update(value).digest('hex'),
+    shards: manifest.shards, tensorLocations: manifest.tensors,
+    quantizationInfo: plan.quantizationInfo, inference: plan.manifestInference,
+    manifestConfig: converterConfig.manifest });
+}
+
 async function main() {
   const args = parseArgs(process.argv.slice(2));
 
@@ -395,7 +430,8 @@ async function main() {
   const architecture = manifest.architecture && typeof manifest.architecture === 'object'
     ? manifest.architecture
     : null;
-  const refreshRawConfig = buildRefreshRawConfig(manifest);
+  const sourceConfig = args.sourceConfigPath ? await readJson(path.resolve(args.sourceConfigPath), 'source config') : null;
+  const refreshRawConfig = buildRefreshRawConfig(manifest, sourceConfig);
   const sourceQuantization = assertRefreshManifestContract(manifest, refreshRawConfig);
 
   const plan = resolveConversionPlan({
@@ -425,7 +461,8 @@ async function main() {
     modelType: plan.modelType || manifest.modelType,
     quantization: plan.manifestQuantization || manifest.quantization,
     quantizationInfo: plan.quantizationInfo || manifest.quantizationInfo || null,
-    artifactIdentity: buildArtifactIdentityRefreshPatch(manifest, rawConversionConfig, conversionConfigPath),
+    artifactIdentity: await rebuildArtifactIdentityForRefresh(
+      { ...manifest, modelId: nextModelId }, rawConversionConfig, converterConfig, plan, conversionConfigPath),
     moeConfig: plan.moeConfig ?? manifest.moeConfig ?? null,
     inference: plan.manifestInference || manifest.inference,
     metadata: mergeMetadata(manifest, conversionConfigPath),
@@ -463,6 +500,7 @@ async function main() {
 export {
   buildRefreshRawConfig,
   buildArtifactIdentityRefreshPatch,
+  rebuildArtifactIdentityForRefresh,
   extractSourceQuantization,
 };
 
