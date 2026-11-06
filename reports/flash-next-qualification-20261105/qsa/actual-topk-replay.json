@@ -1,0 +1,115 @@
+{
+  "scope": "Actual registered softmax/top-k replay on exact retained GPU router logits; not a new model run",
+  "pid": 1528726,
+  "provider": {
+    "schema": "doe.webgpu-provider-receipt/v1",
+    "contract": "doe.webgpu-provider/v1",
+    "implementation": "doppler",
+    "providers": [
+      {
+        "id": "pre-installed",
+        "kind": "global"
+      },
+      {
+        "id": "webgpu",
+        "kind": "module",
+        "module": "webgpu",
+        "gpu": {
+          "kind": "factory",
+          "path": "create",
+          "args": [
+            [
+              "enable-dawn-features=allow_unsafe_apis"
+            ]
+          ]
+        },
+        "globals": {
+          "GPUBufferUsage": "globals.GPUBufferUsage",
+          "GPUShaderStage": "globals.GPUShaderStage",
+          "GPUMapMode": "globals.GPUMapMode",
+          "GPUTextureUsage": "globals.GPUTextureUsage"
+        }
+      }
+    ],
+    "providerOrder": [
+      "pre-installed",
+      "webgpu"
+    ],
+    "adapterOptions": null,
+    "globals": {
+      "mode": "replace",
+      "installed": [
+        "GPUBufferUsage",
+        "GPUShaderStage",
+        "GPUMapMode",
+        "GPUTextureUsage",
+        "navigator.gpu"
+      ],
+      "restored": false
+    },
+    "attempts": [
+      {
+        "providerId": "pre-installed",
+        "kind": "global",
+        "module": null,
+        "ok": false,
+        "stage": "gpu.validate",
+        "code": "DOPPLER_PROVIDER_UNAVAILABLE",
+        "detail": "Selected provider does not expose GPU.requestAdapter()."
+      },
+      {
+        "providerId": "webgpu",
+        "kind": "module",
+        "module": "webgpu",
+        "ok": true,
+        "stage": "complete",
+        "code": null,
+        "detail": null
+      }
+    ],
+    "selectedProviderId": "webgpu",
+    "ok": true
+  },
+  "rows": [
+    {
+      "layer": 0,
+      "variant": "fused_ranked_512",
+      "file": "/run/media/x/models/qwen38-flash-next-de4b8e4d/qualify/actual-topk-layer0.i32"
+    },
+    {
+      "layer": 1,
+      "variant": "fused_ranked_512",
+      "file": "/run/media/x/models/qwen38-flash-next-de4b8e4d/qualify/actual-topk-layer1.i32"
+    },
+    {
+      "layer": 2,
+      "variant": "fused_ranked_512",
+      "file": "/run/media/x/models/qwen38-flash-next-de4b8e4d/qualify/actual-topk-layer2.i32"
+    },
+    {
+      "layer": 3,
+      "variant": "fused_ranked_512",
+      "file": "/run/media/x/models/qwen38-flash-next-de4b8e4d/qualify/actual-topk-layer3.i32"
+    },
+    {
+      "layer": 4,
+      "variant": "fused_ranked_512",
+      "file": "/run/media/x/models/qwen38-flash-next-de4b8e4d/qualify/actual-topk-layer4.i32"
+    },
+    {
+      "layer": 5,
+      "variant": "fused_ranked_512",
+      "file": "/run/media/x/models/qwen38-flash-next-de4b8e4d/qualify/actual-topk-layer5.i32"
+    },
+    {
+      "layer": 6,
+      "variant": "fused_ranked_512",
+      "file": "/run/media/x/models/qwen38-flash-next-de4b8e4d/qualify/actual-topk-layer6.i32"
+    },
+    {
+      "layer": 7,
+      "variant": "fused_ranked_512",
+      "file": "/run/media/x/models/qwen38-flash-next-de4b8e4d/qualify/actual-topk-layer7.i32"
+    }
+  ]
+}

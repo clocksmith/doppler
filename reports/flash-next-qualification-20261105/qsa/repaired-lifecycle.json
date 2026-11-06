@@ -1,0 +1,658 @@
+{
+  "schema": "doppler.flash-next-learned-observation/v1",
+  "scope": "Node physical load and last-position logits diagnostic on the learned quantized artifact; no general qualification or performance claim",
+  "manifestSha256": "4902a0b730a9310903b00bc0f8f587528fa1af9f37a722d2f9287bafceceec09",
+  "referenceSha256": "5c22cd2b9e47a92c2988b0e461cad88e444d51919f5f0c7ab9c8cea20e377fd3",
+  "referenceScope": "Unchanged upstream cache-free text forward with stored F16 and independently gguf-dequantized Q4_K weights; source n-gram rows and integer buffers; no Doppler execution. Post-RoPE keys and values round through F16 before unchanged upstream attention, matching the declared runtime KV storage.",
+  "inputsSha256": "06a819d529593b58abd6cb27566bb835a9b91aac13a77c0c7479b7e4e7b0c378",
+  "runSha256": "4098a91f962fe8c22e36c1c39a74c1945412fac2f63fa1e1b08eb4ed4089d114",
+  "runtimeRevision": "50135b70-runtime + counterfactual-capable harness (control disabled)",
+  "runtimeSourceSha256": {
+    "src/config/schema/loading.schema.js": "2b73b427a60bc8538d713c88a2b4d52c87a4fab5522498ad4ad040bdd6fe18ab",
+    "src/loader/experts/qwen-paging.js": "b20de16529a4ea43ca6b9316b2ad4149f5d6a2832544580922516ff37381e2de",
+    "src/loader/doppler-loader.js": "0d0a6139e021a354609389807d54295e09c4f508ec4355102a0fe82d99df6fd5",
+    "src/loader/model-load.js": "2e32e818fb4ba07d09cfd75355fc3643a762f0b279d9a2a2229410c59abb631b",
+    "src/inference/pipelines/text/moe-gpu.js": "6965dfa40d967d2db7f0b3a305a2f4a2eeed6aa8e116956ff8c49f33b038f8bb",
+    "src/inference/pipelines/text/ffn/moe.js": "8f99057acb43cc546b9319f4299c27ba8648649748424c2d51ed2d1c76e0d7a7",
+    "src/inference/pipelines/text/ffn/qwen-shared-expert.js": "9ad5c6ec49dec03c2b9ef227ff1aae732d826be8069758cda52ed99d4b995ca9",
+    "tests/integration/flash-next-learned-physical.test.js": "b0158c517e3503adf7ab764bbd6bccdf3584f2606703f7a6145601e0ae793429",
+    "src/inference/pipelines/text/generator/decode.js": "88108eafc5f721f2ace026adfde9d835a259c7296fca647fc492ccf9a16f2411",
+    "src/inference/pipelines/text/attention/interpreter/immediate.js": "4346bb6605f5e1a504d5c5aa0f0462052db6209eb0e9730a498ee096c0af6705",
+    "tests/helpers/learned-qsa-observation.js": "6ade2cc75f29289fc5fe62aa30bfd6e300ca37c4e243d9dbfa594ef5f7ae7406",
+    "src/inference/pipelines/text/indexed-attention/attention-runner.js": "517f0800e446496b5c35ac02ed469f8286191004166ec1e8a6bd4f5801924d3c",
+    "tests/helpers/reference-router-control.js": "d25d33a7386619221b21331221ce44241163096883ef5bb87fe544a3204133a1"
+  },
+  "modelId": "qwen-3-8-flash-next-text-q4k-ehf16-af32",
+  "quantizationInfo": {
+    "weights": "q4k",
+    "embeddings": "f16",
+    "experts": "q4k",
+    "expertsFormat": "qwen3_5",
+    "compute": "f32",
+    "layout": "row",
+    "variantTag": "q4k-ehf16-af32"
+  },
+  "provider": {
+    "schema": "doe.webgpu-provider-receipt/v1",
+    "contract": "doe.webgpu-provider/v1",
+    "implementation": "doppler",
+    "providers": [
+      {
+        "id": "pre-installed",
+        "kind": "global"
+      },
+      {
+        "id": "webgpu",
+        "kind": "module",
+        "module": "webgpu",
+        "gpu": {
+          "kind": "factory",
+          "path": "create",
+          "args": [
+            [
+              "enable-dawn-features=allow_unsafe_apis"
+            ]
+          ]
+        },
+        "globals": {
+          "GPUBufferUsage": "globals.GPUBufferUsage",
+          "GPUShaderStage": "globals.GPUShaderStage",
+          "GPUMapMode": "globals.GPUMapMode",
+          "GPUTextureUsage": "globals.GPUTextureUsage"
+        }
+      }
+    ],
+    "providerOrder": [
+      "pre-installed",
+      "webgpu"
+    ],
+    "adapterOptions": null,
+    "globals": {
+      "mode": "replace",
+      "installed": [
+        "GPUBufferUsage",
+        "GPUShaderStage",
+        "GPUMapMode",
+        "GPUTextureUsage",
+        "navigator.gpu"
+      ],
+      "restored": true
+    },
+    "attempts": [
+      {
+        "providerId": "pre-installed",
+        "kind": "global",
+        "module": null,
+        "ok": false,
+        "stage": "gpu.validate",
+        "code": "DOPPLER_PROVIDER_UNAVAILABLE",
+        "detail": "Selected provider does not expose GPU.requestAdapter()."
+      },
+      {
+        "providerId": "webgpu",
+        "kind": "module",
+        "module": "webgpu",
+        "ok": true,
+        "stage": "complete",
+        "code": null,
+        "detail": null
+      }
+    ],
+    "selectedProviderId": "webgpu",
+    "ok": true
+  },
+  "runtimeConfig": {
+    "loading": {
+      "expertPreparation": {
+        "mode": "on-demand"
+      },
+      "expertCache": {
+        "qwen35Pager": {
+          "enabled": true,
+          "maxResidentLayers": 2
+        }
+      }
+    },
+    "inference": {
+      "session": {
+        "decodeLoop": {
+          "disableCommandBatching": true
+        }
+      },
+      "moe": {
+        "routing": {
+          "activeExpertSelection": "topk-route"
+        }
+      }
+    }
+  },
+  "rows": [
+    {
+      "id": "short",
+      "inputTokenCount": 15,
+      "tokenId": 11751,
+      "tokenIds": [
+        11751,
+        13
+      ],
+      "logitRows": 2,
+      "prefillLogitsFile": "/run/media/x/models/qwen38-flash-next-de4b8e4d/qualify/qsa-repaired-lifecycle.json.short.prefill.f32",
+      "prefillLogitsSha256": "45e06fbc7a80611a00fb9046f206166f200a6d90d2bd242c4f7bdf226e961749",
+      "bufferPool": {
+        "allocations": 1569,
+        "reuses": 4828,
+        "totalBytesAllocated": 13811447808,
+        "peakBytesAllocated": 13811447808,
+        "currentBytesAllocated": 13701150720,
+        "totalBytesRequested": 13788235264,
+        "peakBytesRequested": 13766241536,
+        "currentBytesRequested": 13643486208,
+        "resources": {
+          "retainedModel": {
+            "bytes": 13276800000,
+            "count": 1196
+          },
+          "active": {
+            "bytes": 387878912,
+            "count": 243
+          },
+          "reusable": {
+            "bytes": 36471808,
+            "count": 64
+          },
+          "deferredCleanup": {
+            "bytes": 0,
+            "count": 0
+          }
+        },
+        "activeBuffers": 1439,
+        "pooledBuffers": 64,
+        "budgetMaxBytes": 0,
+        "budgetUtilization": 0,
+        "hitRate": "75.5%"
+      },
+      "residentExpertLayers": [
+        46,
+        47
+      ],
+      "text": "Paris.",
+      "referenceTokenId": 11751,
+      "referenceTop20Rank": 1,
+      "top1Agrees": true,
+      "referenceTop20LogitDeltas": [
+        {
+          "token": 11751,
+          "reference": 19.13945770263672,
+          "observed": 19.1395263671875,
+          "delta": 0.00006866455078125
+        },
+        {
+          "token": 264,
+          "reference": 13.810018539428711,
+          "observed": 13.810002326965332,
+          "delta": -0.00001621246337890625
+        },
+        {
+          "token": 19241,
+          "reference": 13.613734245300293,
+          "observed": 13.613720893859863,
+          "delta": -0.0000133514404296875
+        },
+        {
+          "token": 279,
+          "reference": 12.994925498962402,
+          "observed": 12.994922637939453,
+          "delta": -0.00000286102294921875
+        },
+        {
+          "token": 6924,
+          "reference": 12.92129898071289,
+          "observed": 12.921252250671387,
+          "delta": -0.00004673004150390625
+        },
+        {
+          "token": 271,
+          "reference": 12.386871337890625,
+          "observed": 12.386804580688477,
+          "delta": -0.0000667572021484375
+        },
+        {
+          "token": 25358,
+          "reference": 12.385555267333984,
+          "observed": 12.385478973388672,
+          "delta": -0.0000762939453125
+        },
+        {
+          "token": 13,
+          "reference": 12.192193031311035,
+          "observed": 12.19213581085205,
+          "delta": -0.000057220458984375
+        },
+        {
+          "token": 198,
+          "reference": 12.043665885925293,
+          "observed": 12.04358959197998,
+          "delta": -0.0000762939453125
+        },
+        {
+          "token": 23327,
+          "reference": 11.686019897460938,
+          "observed": 11.685991287231445,
+          "delta": -0.0000286102294921875
+        },
+        {
+          "token": 21047,
+          "reference": 11.611528396606445,
+          "observed": 11.611430168151855,
+          "delta": -0.00009822845458984375
+        },
+        {
+          "token": 303,
+          "reference": 11.590856552124023,
+          "observed": 11.590740203857422,
+          "delta": -0.0001163482666015625
+        },
+        {
+          "token": 220,
+          "reference": 11.470027923583984,
+          "observed": 11.470019340515137,
+          "delta": -0.00000858306884765625
+        },
+        {
+          "token": 695,
+          "reference": 11.361157417297363,
+          "observed": 11.361096382141113,
+          "delta": -0.00006103515625
+        },
+        {
+          "token": 449,
+          "reference": 11.057595252990723,
+          "observed": 11.057595252990723,
+          "delta": 0
+        },
+        {
+          "token": 217707,
+          "reference": 11.051701545715332,
+          "observed": 11.051776885986328,
+          "delta": 0.00007534027099609375
+        },
+        {
+          "token": 39509,
+          "reference": 10.985769271850586,
+          "observed": 10.985774040222168,
+          "delta": 0.00000476837158203125
+        },
+        {
+          "token": 248046,
+          "reference": 10.966703414916992,
+          "observed": 10.966601371765137,
+          "delta": -0.00010204315185546875
+        },
+        {
+          "token": 25701,
+          "reference": 10.75107479095459,
+          "observed": 10.75110149383545,
+          "delta": 0.000026702880859375
+        },
+        {
+          "token": 57590,
+          "reference": 10.708999633789062,
+          "observed": 10.70911979675293,
+          "delta": 0.0001201629638671875
+        }
+      ]
+    }
+  ],
+  "gpuErrors": [],
+  "loaded": true,
+  "lifecycle": [
+    {
+      "case": "queued-abort",
+      "passed": true
+    },
+    {
+      "case": "active-decode-rollback",
+      "passed": true,
+      "committedState": {
+        "length": 15,
+        "recurrent": {
+          "0": {
+            "length": 15,
+            "conv": "1d09b495ef4254f5b9e67fb538d729922397524b4a4ddd27f0c57f62af0d89c4",
+            "recurrent": "8c5a7412ae9e1788b984f443017f51ca7b86c1bf0c7ad9ec8edd471dd1f11a10"
+          },
+          "1": {
+            "length": 15,
+            "conv": "36bd176dd1403578335b0f578a4fb2fdb86467e3e150f326eb33f7a917b6660b",
+            "recurrent": "33c439fad20b2882ee6d563fac642f5698c0cccfee7383ae0f2b615afaa30515"
+          },
+          "2": {
+            "length": 15,
+            "conv": "3ad6f4f295e29eb1f4d40012c1172b6930ea0faf9260295e19a694d05c05c7f3",
+            "recurrent": "53f78b9817c54c95dc8b1e35255489aa22dcdde1110e0777b019f780a72e7f6c"
+          },
+          "4": {
+            "length": 15,
+            "conv": "e85c02985e1f54cd457a2452212f7b790461950df4036e015008178e260fd662",
+            "recurrent": "20314f3bfcd81a2ff2acbdbd5db3f13625b1a463523a5372cb6f303b44e565f8"
+          },
+          "5": {
+            "length": 15,
+            "conv": "526eff361e97c70b32482eb7dbc311f8f02f5a8a50ebecfeb8165340465852b1",
+            "recurrent": "6f5cf214a6df54f3792b87a1d13fbff720d8209e2c9c78193fe3d7fa603ce8ef"
+          },
+          "6": {
+            "length": 15,
+            "conv": "c78f42b70e9bc69b474923bafdf2012ee1899d80ecc814328d216c2ee729fbeb",
+            "recurrent": "813e8f17c640cb932d50265fe32b561289667f53907af80164d0b7efd934d1b0"
+          },
+          "8": {
+            "length": 15,
+            "conv": "36334f9dcb153eedf29371572422ff4cecf64e6ec9b9a0de63fb888c62017bda",
+            "recurrent": "0d368f58b3165bbfc7688df5709e868508781c49fd1fd18660d493fe11544d8d"
+          },
+          "9": {
+            "length": 15,
+            "conv": "61a208795919a38487a3eb21390d3008d55e180cce9df5561c9d75720b6ca932",
+            "recurrent": "e9a19b826f0727cce1f99c26d8a6af39675a0a7448e1eb0e2b5639d6a45572c8"
+          },
+          "10": {
+            "length": 15,
+            "conv": "cd5cddb7b9f9f07249f1ce323516ffef4b0bc62090287a18b8662b0a4ac31977",
+            "recurrent": "8deaa187c9b12912ada894b5a2a8e245cb46aca6f6b9e5d4974d379d3399dc53"
+          },
+          "12": {
+            "length": 15,
+            "conv": "994ddcf131533491f079a5639ed4d45682eb1790ca53e5f58fee5593588a03dd",
+            "recurrent": "51eeaf584cf04edaffee7c825517fc674c7639663a72aeb23e4c27e3b6d7f659"
+          },
+          "13": {
+            "length": 15,
+            "conv": "0d52b8b6c8d3ef275c7277dfe3d423d4192832efdefb962998e99a429ebacf93",
+            "recurrent": "1dcf68b9863d218f74e249d8c78e82945c27926c0a54ff1ac4915a56a9bf0484"
+          },
+          "14": {
+            "length": 15,
+            "conv": "931a271c4aa5684970c690cfa24e70ffb811ce3ef6c86cc54804c9413a89b63c",
+            "recurrent": "1248604e565b57d30bd8be01269dc881442b906ca6ccd03bab393c0dc561b935"
+          },
+          "16": {
+            "length": 15,
+            "conv": "7101e3f434a671191c5ab22500b05b78f91c8bd8a365a0410858fbd915cb98f2",
+            "recurrent": "52aad760f88096e9318afec3f11b5dd4b34e7017a754ee351d5938de9c2ea7dc"
+          },
+          "17": {
+            "length": 15,
+            "conv": "8b1840077ada3706bfa1cc68eb45d40ce46b2e1f2d00f4054e4c1cae64dba385",
+            "recurrent": "821b06f4d571d21149cc104fe8e7a842d654fb16b09c9d604f5b2874eacb60c8"
+          },
+          "18": {
+            "length": 15,
+            "conv": "b3bdce5cb9367e5f980e29959ff5101294b0bf424ad14940e781f192f33278c5",
+            "recurrent": "b9c8f8b1cb38e535f3c994719f28fa650f6cd66648b41b05dc578747361a0613"
+          },
+          "20": {
+            "length": 15,
+            "conv": "7d8c432e2e786ada4fdac5ecdb2b3e977d42527d68e2c1fe4442aefbb83052fa",
+            "recurrent": "f37d2ec268368a591e9407658272c319884b34caa9d07d46c59ac0f7fe651753"
+          },
+          "21": {
+            "length": 15,
+            "conv": "0b4f48ed368cf1c7284bfdebee34fdaa6263391dbfb7e7e942c0caa8c1f6e080",
+            "recurrent": "8f6740bc1084870b867c838ac0a8414acaccc465057ff022264db83ebad52395"
+          },
+          "22": {
+            "length": 15,
+            "conv": "ebd8863c6426b1d0631bbf8aab66c60119e70fc9f511d954d54e523c3cb230e9",
+            "recurrent": "853bb1cb61c57d020916b182ea17b92736a8fbff6ca64943fbba7b90768cc41d"
+          },
+          "24": {
+            "length": 15,
+            "conv": "b2b2fdb37a621016594b021cf43fe7c89115d56f0485921df0bca1ea4f7bf5cf",
+            "recurrent": "98c0e9470052c63b02c1a3d6499abbf84423edeba86d28a24b63f5396a6a1638"
+          },
+          "25": {
+            "length": 15,
+            "conv": "0d5c0d25493e453b6a3a25bb8e20ae921aeea9aff2803a6821621a05d423115e",
+            "recurrent": "ecdad5e8251182fc16c0938b82b71f0b91b4343993f41ab7547c6e4c046b6a75"
+          },
+          "26": {
+            "length": 15,
+            "conv": "d16ac89fcfb0e1bc6298991c71beabf9184bde65551bd8a8fe0ae743cf4f1beb",
+            "recurrent": "7c50a81ab93a4cc181fee498f87d4b339491815a639ce6bb9b3ce75e7c4e89a2"
+          },
+          "28": {
+            "length": 15,
+            "conv": "2a50109467534b520bc5a6e348924a3af31e201dde784699ec83fe1517ab2845",
+            "recurrent": "b174f6a7551d264edca403651b208f7252315143fbf736f90654ea059a9d562d"
+          },
+          "29": {
+            "length": 15,
+            "conv": "ced8da3582ef0eae649c5a068bc08380c846c81d15a4905f5120c04863a01014",
+            "recurrent": "41b956ce3cc594f27b5f735b06e47889bf03f421f1c017b4c61b51fb23b96040"
+          },
+          "30": {
+            "length": 15,
+            "conv": "562680cab1c14395e1ea4e644eac25bb69093471c740728054b5649457307581",
+            "recurrent": "3051802c3b9c032a5dfc7728428802404e68906c504dd74c2f52bf5d1e22754c"
+          },
+          "32": {
+            "length": 15,
+            "conv": "24991528dc72ff9ce50496005e52333ecc87351cd65aca557d6cd03efe53ecc9",
+            "recurrent": "10e845355a1a97aafaceea87586de8e1a3536e7d1269cbc026c386d9c8196376"
+          },
+          "33": {
+            "length": 15,
+            "conv": "3bf9872553903dfa8ee0487484737f03fa118ad4dc1a61c00406a0b771e28aed",
+            "recurrent": "d923f0cc3d4d17115a33091715e5a8354da5eebcd7e519c69ce144c6314f0720"
+          },
+          "34": {
+            "length": 15,
+            "conv": "cdf4ff15e08e7bbf143a03bcecf89125d1cbe2448910f569a86264da71c009df",
+            "recurrent": "5b0a117b563405b98f1a97b2fbeb1b09452ec98e422916d11b592d8fef13a508"
+          },
+          "36": {
+            "length": 15,
+            "conv": "dd4bb0d6c28755e99769c6fd253536c1661541e3e486e685add0380fba00f74e",
+            "recurrent": "cea2cf1918b5ea464a21b83bf621a4eabdb726efc2d9d17b554d4bc34ab6952d"
+          },
+          "37": {
+            "length": 15,
+            "conv": "1363f4783458c06d75ce42826949eb607a0169af8411a1672d79aea70c752536",
+            "recurrent": "60e7d3ec75ff8392be8fd431ceb8c8bd2c0a3d496d72643a5a0eb900a44a00b3"
+          },
+          "38": {
+            "length": 15,
+            "conv": "ca23fac46fe9c70a5a60fccf99016f70f1e0d73102f80649224bb2d80af083db",
+            "recurrent": "2336c8f04c8a5348d38d0b1dc068c6bc6f10c56d8ef972d62a8c14c0c2a850f6"
+          },
+          "40": {
+            "length": 15,
+            "conv": "0c098b19fdbcfb51b920946e63065b1d589559088b8ad791ee7dddbafa41ea4e",
+            "recurrent": "b6b4e329f56e4bde1ef3e3464fcf51465fd223777b949c948c1caf24a03ed721"
+          },
+          "41": {
+            "length": 15,
+            "conv": "a0749ddd98fa6484f11c1e3976a245e93166e7367862e3c4d17360988632bbd8",
+            "recurrent": "25931fb8f09a80b1ae542711cc6fb56f0f48500241df0961d088b211ef87aab9"
+          },
+          "42": {
+            "length": 15,
+            "conv": "72bbf8a20e1e96d64bef0ae21e6c4f8ec219e941475781d2e852b1ee40920c7f",
+            "recurrent": "4012263bb4103da7a812dd26888525deef3b585e11549db8461b46b0f40b4f3b"
+          },
+          "44": {
+            "length": 15,
+            "conv": "429b0516664e79e1b63f7c63aa8b3b4f377af4fdfed93bf0cde23f012b96c12d",
+            "recurrent": "01b19abd89e9968dd6fc48dcb8f7a033fde0e674e2bf066248b9aad9b8ed0ad6"
+          },
+          "45": {
+            "length": 15,
+            "conv": "9ebf33a286a0ccf3a3158207523ac7d00fdf01e5152293db72f95658ef4acb92",
+            "recurrent": "91443637ac6044cd31d5b07b7fd9a71119494d067d3fe5f1752e451b9db03e02"
+          },
+          "46": {
+            "length": 15,
+            "conv": "fa128ae19e1a04d7be61b7886ec3b21af1d0157d811aba80a61a7adc63876c41",
+            "recurrent": "ce9b30ffa0825d210ca09a949f3ada7f7e764c72655d57999cddb630a336419b"
+          }
+        },
+        "ple": {
+          "1": {
+            "length": 15,
+            "conv": "b90c722f90a97a86348cceda67c0d3e06d4593a98b9cd5027b80da79d62981d3"
+          }
+        },
+        "qsa": {
+          "3": {
+            "length": 15,
+            "raw": "d5f393a1382e2173e13c9bc0b8c3760a2342a28e8e93fdffc93954c1096c57de",
+            "blocks": "0e3efd10e2bf2b0203956cfd4e8062038519e2851521647f3838bb8d1e1c9b09"
+          },
+          "7": {
+            "length": 15,
+            "raw": "c457ebf4a360a6f22abb0166914dce6efe0342f9734b688a6d580f7bd5bc2fb1",
+            "blocks": "208cbfde8d7e354aba2246839c102b61acf6444f67f1e201d4b31247c5b92e68"
+          },
+          "11": {
+            "length": 15,
+            "raw": "cb10bf69888423ef5ca592fea2ed895214aeaf5705bb0873035294e50fd6d92f",
+            "blocks": "db3754ead2e212bd7501dd3e27dfd3897be5f549f8ed421339bb48e80c3a8624"
+          },
+          "15": {
+            "length": 15,
+            "raw": "2fda27b8b10489b352bacae54df9332ae7de8f817ab7b604cf2d68deffe72cb9",
+            "blocks": "58ea1f46e6ab68a5327c8d06d63ec2b932d27cfe93b97aacf21cbf380df2185e"
+          },
+          "19": {
+            "length": 15,
+            "raw": "49ce1f0fd5e833cadf948f290409d1fa8b11883386cf877cfb22bdbcf20bfada",
+            "blocks": "2223cb5cc0bbd27f312a1329cd123d9b4299d8d82532fcb682011e909553608c"
+          },
+          "23": {
+            "length": 15,
+            "raw": "97db9b080818bedc36ac9c2e4f97d2dce90f0db67d65f08925e05ed5616590fc",
+            "blocks": "3464f3c218e54faa57abed69c169793024679cd017a77ba291503d65db72bfa2"
+          },
+          "27": {
+            "length": 15,
+            "raw": "3df9ba546bb5c05145299067a9b7cafb9dca75d6ad2310314f8008c95bf7e30d",
+            "blocks": "ad25c3a3d4b82b4efef4946a304a16e6df3de9dd9857cfc9c5250bf97fbe8a14"
+          },
+          "31": {
+            "length": 15,
+            "raw": "dd4d3d995596ca0ea476b5fbc6322aea1191aa5a9edf3d8ff678b542855592e6",
+            "blocks": "ad6c449088ae56e7e89016ebf2e59c2d313fdc49ecaf372d3792f459a200d3a3"
+          },
+          "35": {
+            "length": 15,
+            "raw": "00480bc43c384b64c166cb9a4172017d857b22159095cd8d102faa3424654c5e",
+            "blocks": "17f3b58474af4f1c908213f5be920fe55f26a5d270856714969759dc1587dbfb"
+          },
+          "39": {
+            "length": 15,
+            "raw": "8c6eaa0dfab474fd102467c3b28e19fd13cb79aefb72748661f8f3073f9d5a9d",
+            "blocks": "51bed237044dca3b9e4ade66721facdb49e12ab5d9539becdbb3b93d40ed13a6"
+          },
+          "43": {
+            "length": 15,
+            "raw": "b6001e9b3f8a39a57a25c32d0a9676182b8182fe0fc655eee64bd3227f6a75ab",
+            "blocks": "ae20488b9993ae6d37bc661563ff9367d6c151a3f926b8dbf78aef5806e45e07"
+          },
+          "47": {
+            "length": 15,
+            "raw": "31fbf38e7ac6b3b8f8322233b0aecb826eb88d5a5298652387a42b2a18290b15",
+            "blocks": "e77bd32fbd91c1471b3acbe44357b025b5d94c062052e9ad28e2b75ef779c2a9"
+          }
+        },
+        "kv": {
+          "3": {
+            "length": 15,
+            "keys": "cd1e01d8370f5053cd4085dc70370779b5a0f306b09a38251d0422c718724764",
+            "values": "a32b6675bea36fa116b566c7ea40c036f38b3922c975633990a68a98bc2aa606"
+          },
+          "7": {
+            "length": 15,
+            "keys": "93e2c30f1e2fbc76f8e279f9f46c7682461ce4034cc3e727fa3de6c0bbf75dfb",
+            "values": "fac40e3082bf738344320fd034d7354ff96c325bddbf7b1c7f2cfeda685d514d"
+          },
+          "11": {
+            "length": 15,
+            "keys": "4db107ce53fbdeb4ddc5db962311180a59f1ac6f064b29d866ff6fcefd5adba0",
+            "values": "4b426e81f8e10a4c21e61af205543cb7f2f1c59bf230198923d2ee15868b0787"
+          },
+          "15": {
+            "length": 15,
+            "keys": "8a40fba29aa7792002b441a8eef03588022d193ab406c7f61c7e7ca0ac670ca3",
+            "values": "7f4ae0233c1771d5b5f8d965f03e35761152c0b4e17cf8c8995bd31b8667b898"
+          },
+          "19": {
+            "length": 15,
+            "keys": "852df2c2503b64dda4637248617a568fe8d426e430d9c0f6bccd3e3bd47055c2",
+            "values": "ce3fb2347b7fdac483c8f14052bd8dd33aeb98814a98860c769ff00af24b2b3f"
+          },
+          "23": {
+            "length": 15,
+            "keys": "3675678f5612e1a2003a5c4d941de21791bd8d1a8c2444e54e16d580dc46e932",
+            "values": "8a6016e07bb5b623376ad102e20e98830d8d2241edc40e5dbb18e69e1da37619"
+          },
+          "27": {
+            "length": 15,
+            "keys": "e57f32c7e12fd78f8560035c6d9f74b1b16bfab63763daa6a0c8cd2542fb73ed",
+            "values": "993ea4d38717742270535ea0c3d2c8871bdaabe4fdb311fb0be754f53053654c"
+          },
+          "31": {
+            "length": 15,
+            "keys": "ce0a8a99279b7ea37c4f11ce16c50b402e7ab29bad2c0fc0ccd4f5df2d0ebaf4",
+            "values": "1a25503d50600599672ae1d2d758b2d3cb456e73cf2db919ceed79000ad8b0ed"
+          },
+          "35": {
+            "length": 15,
+            "keys": "9e03b393aaa7bf0799234f854ef30ec938815c2db8316acbe54ffe21ff2d204b",
+            "values": "c84ef9d15101721faa891615d776270b644484f0fb5ac99f9e475939732a625b"
+          },
+          "39": {
+            "length": 15,
+            "keys": "cf0f9a6956f515b126cde1a1c8b519287c0c620a023d048f70228406ab3fab07",
+            "values": "937447557324a0a7dbc3529b4aadcfd365bdb7297f98cbb8f2086e571adeb545"
+          },
+          "43": {
+            "length": 15,
+            "keys": "abb46f07a3ed2fe96d345ddc375811a77d821241d86abbe95581be6a2de64222",
+            "values": "4f870b9a805f3a1b4d5c36692c6f5d8e6eebad4a24101511c9c249ec7cb4f148"
+          },
+          "47": {
+            "length": 15,
+            "keys": "bfc12b492b10cc4ca4f4e00a731f71232394dcc9fa0d59173ca36012a1535651",
+            "values": "318aabeb41a9f2eeefc7dcd5f1a1466fcf108e60b6fa530cd385f7b4bd878ca2"
+          }
+        }
+      }
+    },
+    {
+      "case": "reset-and-reuse",
+      "passed": true,
+      "tokenIds": [
+        11751,
+        13
+      ]
+    },
+    {
+      "case": "paused-abort-without-pull",
+      "passed": true
+    },
+    {
+      "case": "unload-paused-consumer",
+      "passed": true
+    },
+    {
+      "case": "reload-and-reuse",
+      "passed": true,
+      "tokenIds": [
+        11751
+      ]
+    }
+  ],
+  "completed": true,
+  "cleanupFailures": []
+}

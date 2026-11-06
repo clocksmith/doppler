@@ -1,0 +1,118 @@
+Warning: maxDynamicUniformBuffersPerPipelineLayout artificially reduced from 500000 to 16 to fit dynamic offset allocation limit.
+Warning: maxDynamicStorageBuffersPerPipelineLayout artificially reduced from 500000 to 16 to fit dynamic offset allocation limit.
+[GPU] amd rdna-3, f16/subgroups, 4.0GB, submit probe: 0.9ms
+[737.9ms][Pipeline] Execution v1 enabled (steps=64, kernelPathInline=yes, pipelineInline=no)
+[738.2ms][Config] Using manifest-first config (source of truth)
+[744.4ms][Pipeline] Resolved session applied (qwen-3-8-flash-next-text-q4k-ehf16-af32): batchSize=1, stopCheckMode=per-token, readbackInterval=1, disableCommandBatching=true
+[746.1ms][Pipeline] KernelPath: flash-next-compensated-controls-candidate-execution-inline (26 decode steps, 13 kernels, source=config)
+[746.6ms][Pipeline] 48L/2560H/24heads (256dim), MoE(512x10), kernelPath=flash-next-compensated-controls-candidate-execution-inline
+[747.2ms][Tokenizer] Loading bundled tokenizer from tokenizer.json
+[921.9ms][Tokenizer] HuggingFace model.type="BPE", using type="bpe"
+[1138.1ms][Tokenizer] Loaded HuggingFace 248077 tokens (bpe), 33 special patterns, 247587 merges
+[1138.6ms][Pipeline] Tokenizer vocabSize=248077 differs from model=248320, using model size
+[1172.0ms][Pipeline] KV cache allocated: kvDtype=f16, maxSeqLen=32768, layout=contiguous, modelMaxSeqLen=262144, requestedKvDtype=f16, requestedMaxSeqLen=32768
+[1174.2ms][Pipeline] Execution plan: active=primary, dtype=f32, kernelPath=flash-next-compensated-controls-candidate-execution-inline
+[1633.0ms][ShardCache] Custom shard loader configured
+[1633.3ms][Loader] Initializing...
+[1793.1ms][HeapManager] Allocated segment 0: 1024MB
+[1793.3ms][HeapManager] Segmented heap: 1GB per segment
+[1793.3ms][HeapManager] Initialized with strategy: SEGMENTED
+[1793.5ms][Loader] Initialized (f16, subgroups)
+[1794.4ms][Loader] Loading: qwen-3-8-flash-next-text-q4k-ehf16-af32
+[1796.0ms][Loader] [0.0s] Memory (start): | RSS=419.26 MB (heap=75.04 MB/133.93 MB, external=1.03 GB, arrayBuffers=1.02 GB) | GPU=0 B (0 active, 0 pooled, peak=0 B) | ShardCache=0 B (0 shards) | Layers=0, GPUBuffers=0
+[3614.8ms][Loader] Embeddings tensor loaded: name=model.language_model.embed_tokens.weight, hasShape=true, shape=[248320,2560], isWeightBuffer=true
+[3615.1ms][Loader] Layers: 0-47
+[11545.5ms][Loader] Layers: 48 complete (7.93s)
+[13540.4ms][Loader] Complete: 8.11 GB in 11.71s (708.96 MB/s)
+[13542.6ms][Loader] [11.7s] Memory (complete): | RSS=663.01 MB (heap=290.24 MB/327.43 MB, external=1.04 GB, arrayBuffers=1.04 GB) | GPU=9.56 GB (1192 active, 7 pooled, peak=9.56 GB) | ShardCache=0 B (0 shards) | Layers=48, GPUBuffers=1192
+[13578.9ms][Pipeline] Model loaded successfully (12847ms)
+[13618.0ms][KernelSelect] matmul variant=f32_compensated reason=path_override
+[15375.7ms][KernelSelect] matmul variant=q4_fused_widetile reason=path_override_f16_fallthrough
+[15376.1ms][KernelSelect] matmul variant=f16w_f32a_tiled reason=path_override_fallback
+radv/amdgpu: The CS has been cancelled because the context is lost. This context is innocent.
+Warning: ../src/amd/vulkan/radv_queue.c:1893: vkQueueSubmit() failed (VK_ERROR_DEVICE_LOST)
+[24127.7ms][GPU] Device lost: vkQueueSubmit failed with VK_ERROR_DEVICE_LOST
+    at CheckVkSuccessImpl (/home/runner/work/node-webgpu/node-webgpu/third_party/dawn/src/dawn/native/vulkan/VulkanError.cpp:104)
+, Reason: unknown
+[24139.6ms][BufferPool] Releasing buffer not tracked as active
+[24139.7ms][BufferPool] Releasing buffer not tracked as active
+[24139.7ms][BufferPool] Releasing buffer not tracked as active
+[24140.0ms][BufferPool] Releasing buffer not tracked as active
+[24140.5ms][BufferPool] Releasing buffer not tracked as active
+[24140.5ms][BufferPool] Releasing buffer not tracked as active
+[24140.5ms][BufferPool] Releasing buffer not tracked as active
+[24140.5ms][BufferPool] Releasing buffer not tracked as active
+[24140.5ms][BufferPool] Releasing buffer not tracked as active
+[24140.7ms][BufferPool] Releasing buffer not tracked as active
+[24141.6ms][BufferPool] Releasing buffer not tracked as active
+[24146.4ms][BufferPool] Releasing buffer not tracked as active
+[24146.8ms][BufferPool] Releasing buffer not tracked as active
+[24146.8ms][BufferPool] Releasing buffer not tracked as active
+[24146.8ms][BufferPool] Releasing buffer not tracked as active
+[24146.8ms][BufferPool] Releasing buffer not tracked as active
+[24146.8ms][BufferPool] Releasing buffer not tracked as active
+[24146.8ms][BufferPool] Releasing buffer not tracked as active
+[24146.8ms][BufferPool] Releasing buffer not tracked as active
+[24146.8ms][BufferPool] Releasing buffer not tracked as active
+[24146.8ms][BufferPool] Releasing buffer not tracked as active
+[24146.9ms][BufferPool] Releasing buffer not tracked as active
+[24146.9ms][BufferPool] Releasing buffer not tracked as active
+[24146.9ms][BufferPool] Releasing buffer not tracked as active
+[24146.9ms][BufferPool] Releasing buffer not tracked as active
+[24146.9ms][BufferPool] Releasing buffer not tracked as active
+[24146.9ms][BufferPool] Releasing buffer not tracked as active
+[24146.9ms][BufferPool] Releasing buffer not tracked as active
+[24146.9ms][BufferPool] Releasing buffer not tracked as active
+[24146.9ms][BufferPool] Releasing buffer not tracked as active
+[24146.9ms][BufferPool] Releasing buffer not tracked as active
+[24146.9ms][BufferPool] Releasing buffer not tracked as active
+[24146.9ms][BufferPool] Releasing buffer not tracked as active
+[24146.9ms][BufferPool] Releasing buffer not tracked as active
+[24146.9ms][BufferPool] Releasing buffer not tracked as active
+[24146.9ms][BufferPool] Releasing buffer not tracked as active
+[24149.6ms][ExpertCache] Cache cleared
+[24157.2ms][Pipeline] Unloaded
+node:internal/modules/run_main:123
+    triggerUncaughtException(
+    ^
+
+AggregateError: Hyper-connection rollback failed; unload and reload the model before reuse.
+    at withHyperConnectionTransaction (file:///home/x/src/doppler-qualification-603ef2dc/src/inference/pipelines/text/hyper-connection/sequence-transaction.js:119:17)
+    at async PipelineGenerator._prefillPromptToLogits (file:///home/x/src/doppler-qualification-603ef2dc/src/inference/pipelines/text/generator/prefill-runtime.js:100:16)
+    at async PipelineGenerator.generateTokenIds (file:///home/x/src/doppler-qualification-603ef2dc/src/inference/pipelines/text/generator/decode-runtime.js:332:58)
+    at async invoke (file:///home/x/src/doppler-qualification-603ef2dc/src/inference/pipelines/shader-scoped-pipeline.js:197:16)
+    at async runWithShaderSourceScope (file:///home/x/src/doppler-qualification-603ef2dc/src/gpu/kernels/shader-source-scope.js:93:16)
+    at async runOperation (file:///home/x/src/doppler-qualification-603ef2dc/src/inference/pipelines/shader-scoped-pipeline.js:86:12)
+    at async file:///home/x/src/doppler-qualification-603ef2dc/tests/integration/flash-next-learned-physical.test.js:105:22 {
+  [cause]: DOMException [AbortError]
+      at new DOMException (node:internal/per_context/domexception:76:18)
+      at buffer.destroy (file:///home/x/src/doppler-qualification-603ef2dc/src/memory/device-budget.js:39:7)
+      at #destroyPendingBuffers (file:///home/x/src/doppler-qualification-603ef2dc/src/memory/buffer-pool.js:321:16)
+      at #scheduleDestruction (file:///home/x/src/doppler-qualification-603ef2dc/src/memory/buffer-pool.js:391:34)
+      at #deferDestroy (file:///home/x/src/doppler-qualification-603ef2dc/src/memory/buffer-pool.js:373:30)
+      at BufferPool.destroy (file:///home/x/src/doppler-qualification-603ef2dc/src/memory/buffer-pool.js:678:25)
+      at file:///home/x/src/doppler-qualification-603ef2dc/src/memory/buffer-pool.js:167:35,
+  [errors]: [
+    DOMException [AbortError]
+        at new DOMException (node:internal/per_context/domexception:76:18)
+        at buffer.destroy (file:///home/x/src/doppler-qualification-603ef2dc/src/memory/device-budget.js:39:7)
+        at #destroyPendingBuffers (file:///home/x/src/doppler-qualification-603ef2dc/src/memory/buffer-pool.js:321:16)
+        at #scheduleDestruction (file:///home/x/src/doppler-qualification-603ef2dc/src/memory/buffer-pool.js:391:34)
+        at #deferDestroy (file:///home/x/src/doppler-qualification-603ef2dc/src/memory/buffer-pool.js:373:30)
+        at BufferPool.destroy (file:///home/x/src/doppler-qualification-603ef2dc/src/memory/buffer-pool.js:678:25)
+        at file:///home/x/src/doppler-qualification-603ef2dc/src/memory/buffer-pool.js:167:35,
+    Error: [HyperConnectionSession] GPU device is unavailable.
+        at fail (file:///home/x/src/doppler-qualification-603ef2dc/src/inference/pipelines/text/hyper-connection/session.js:12:32)
+        at file:///home/x/src/doppler-qualification-603ef2dc/src/inference/pipelines/text/hyper-connection/session.js:156:20
+        at #operation (file:///home/x/src/doppler-qualification-603ef2dc/src/inference/pipelines/text/hyper-connection/session.js:35:21)
+        at HyperConnectionSession.restore (file:///home/x/src/doppler-qualification-603ef2dc/src/inference/pipelines/text/hyper-connection/session.js:154:27)
+        at withHyperConnectionTransaction (file:///home/x/src/doppler-qualification-603ef2dc/src/inference/pipelines/text/hyper-connection/sequence-transaction.js:114:21)
+        at async PipelineGenerator._prefillPromptToLogits (file:///home/x/src/doppler-qualification-603ef2dc/src/inference/pipelines/text/generator/prefill-runtime.js:100:16)
+        at async PipelineGenerator.generateTokenIds (file:///home/x/src/doppler-qualification-603ef2dc/src/inference/pipelines/text/generator/decode-runtime.js:332:58)
+        at async invoke (file:///home/x/src/doppler-qualification-603ef2dc/src/inference/pipelines/shader-scoped-pipeline.js:197:16)
+        at async runWithShaderSourceScope (file:///home/x/src/doppler-qualification-603ef2dc/src/gpu/kernels/shader-source-scope.js:93:16)
+        at async runOperation (file:///home/x/src/doppler-qualification-603ef2dc/src/inference/pipelines/shader-scoped-pipeline.js:86:12)
+  ]
+}
+
+Node.js v22.22.1

@@ -29,7 +29,8 @@ text = text.replace(anchor, anchor + '''
              input=(inputs[0].detach().float().reshape(-1, cfg.hidden_size).numpy()
                     if current['layer'] < 8 else np.empty((0, cfg.hidden_size), dtype=np.float32)),
              logits=logits.detach().numpy(),
-             experts=top.indices[:, :cfg.num_experts_per_tok].numpy())''')
+             experts=output[2].detach().numpy(), scores=output[1].detach().float().numpy(),
+             rawLogitTopExperts=top.indices[:, :cfg.num_experts_per_tok].numpy())''')
 anchor = "            states[s['id']] = out"
 assert text.count(anchor) == 1
 text = text.replace(anchor, anchor + '''

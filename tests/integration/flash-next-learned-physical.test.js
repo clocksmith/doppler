@@ -14,7 +14,8 @@ import { buildOpId } from '../../src/inference/pipelines/text/operator-identity.
 import { getBufferPool } from '../../src/memory/buffer-pool.js';
 import { checkLearnedLifecycle } from '../helpers/flash-next-lifecycle.js';
 import { observeLearnedQsa } from '../helpers/learned-qsa-observation.js';
-import { observeLearnedRouters } from '../helpers/learned-router-observation.js';
+import { observeLearnedRouters, captureLoadedRouterWeights } from '../helpers/learned-router-observation.js';
+import { installReferenceRouterControl } from '../helpers/reference-router-control.js';
 
 // Provisioned learned-weight diagnostic. This is not a performance test or a
 // qualification threshold: quantization spread and intermediate parity need
@@ -48,6 +49,7 @@ if (!runPath) {
   const gpuErrors = [];
   getDevice().addEventListener('uncapturederror', event => gpuErrors.push(event.error.message));
   const report = { schema: 'doppler.flash-next-learned-observation/v1',
+    process: { pid: process.pid, node: process.versions.node },
     scope: 'Node physical load and last-position logits diagnostic on the learned quantized artifact; no general qualification or performance claim',
     manifestSha256: hash(manifestBytes), referenceSha256: hash(referenceBytes),
     referenceScope: reference.scope,
@@ -55,11 +57,15 @@ if (!runPath) {
     runtimeSourceSha256,
     modelId: manifest.modelId, quantizationInfo: manifest.quantizationInfo,
     provider: probe.providerReceipt, runtimeConfig: run.runtimeConfig, rows: [], gpuErrors };
-  let pipeline, collectLayers, qsaObservation, routerObservation;
+  let pipeline, collectLayers, qsaObservation, routerObservation, routingControl;
   try {
     pipeline = await createPipeline(manifest, { runtimeConfig: run.runtimeConfig,
       storage: createNodeFileArtifactStorageContext(pathToFileURL(path.resolve(run.modelDir)).href, manifest) });
     report.loaded = true;
+    if (run.auditRouterWeights === true) {
+      report.routerWeights = await captureLoadedRouterWeights(pipeline, manifest, run.outputPath);
+      if (run.sequences.length === 0) report.scope = 'Physical loaded router tensor observation only; no generation or numerical qualification';
+    }
     await fs.writeFile(run.outputPath, JSON.stringify(report, null, 2));
     for (const { id, maxTokens } of run.sequences) {
       assert.ok(Number.isSafeInteger(maxTokens) && maxTokens > 0);
@@ -67,6 +73,12 @@ if (!runPath) {
       const expected = reference.sequences[id];
       assert.ok(input && expected);
       assert.equal(input.tokens.length, expected.tokens);
+      if (run.referenceRouterControl) {
+        assert.equal(run.sequences.length, 1); assert.equal(maxTokens, 1, 'counterfactual fixture covers prefill only');
+        routingControl = await installReferenceRouterControl(run.referenceRouterControl, hash(manifestBytes), hash(inputBytes));
+        report.routingControl = routingControl.control;
+        report.scope = 'Counterfactual GPU stack diagnostic with reference router replacement; not normal model qualification';
+      }
       pipeline.resetGenerationState();
       qsaObservation = run.captureQsaLayers
         ? observeLearnedQsa(run.captureQsaLayers, expected.qsa, `${run.outputPath}.${id}`) : null;
@@ -143,6 +155,10 @@ if (!runPath) {
         assert.deepEqual(routerObservation.errors, []);
         routerObservation.restore(); routerObservation = null;
       }
+      if (routingControl) {
+        assert.equal(routingControl.control.replaced.length, manifest.architecture.numLayers);
+        routingControl.restore(); routingControl = null;
+      }
       collectLayers = null;
       report.rows.push(row);
       await fs.writeFile(run.outputPath, JSON.stringify(report, null, 2));
@@ -175,6 +191,7 @@ if (!runPath) {
   } finally {
     qsaObservation?.restore();
     routerObservation?.restore();
+    routingControl?.restore();
     const failures = [];
     try { await pipeline?.unload(); } catch (error) { failures.push(error); }
     try { destroyDevice(); } catch (error) { failures.push(error); }

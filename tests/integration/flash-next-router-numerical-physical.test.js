@@ -22,6 +22,7 @@ if (!file) {
   const manifestBytes = await fs.readFile(path.join(run.modelDir, 'manifest.json'));
   assert.equal(hash(manifestBytes), run.manifestSha256);
   const manifest = JSON.parse(manifestBytes), descriptor = manifest.tensors[run.tensor];
+  assert(descriptor, `Declared tensor is absent: ${run.tensor}`);
   const [N, K] = descriptor.shape, [M, inputWidth] = run.inputShape;
   assert.equal(inputWidth, K);
   assert(run.rows.every(row => Number.isSafeInteger(row) && row >= 0 && row < M));
@@ -56,10 +57,14 @@ if (!file) {
   getDevice().addEventListener('uncapturederror', event => gpuErrors.push(event.error.message));
   const own = buffer => { buffers.push(buffer); return buffer; };
   const upload = values => { const buffer = own(acquireBuffer(values.byteLength)); uploadData(buffer, values); return buffer; };
-  const report = { scope: 'Captured learned router input; existing kernels only, no model or speed qualification',
+  const role = run.role ?? 'moe_router';
+  const report = { scope: run.scope ?? 'Captured learned router input; existing kernels only, no model or speed qualification',
+    process: { pid: process.pid, node: process.versions.node },
     runSha256: hash(runBytes), manifestSha256: hash(manifestBytes), weightsSha256: hash(weightsBytes),
     inputSha256: hash(raw), M, N, K, oracle: 'Neumaier Float64 sum of exact F32 inputs and expanded F16 weights',
     provider: probe.providerReceipt, cases: [], gpuErrors };
+  await fs.writeFile(run.outputPath, JSON.stringify(report, null, 2));
+  let primaryError = null;
   try {
     const a = createTensor(upload(input), 'f32', [M, K]);
     for (const [kernel, dtype, data] of [
@@ -67,10 +72,10 @@ if (!file) {
       ['matmul_f16w_f32a_tiled.wgsl', 'f16', weightsBytes],
       ['matmul_compensated_f32.wgsl', 'f32', weights],
     ]) {
-      const step = { op: 'moe_router', kernel, entry: 'main' };
+      const step = { op: role, kernel, entry: 'main' };
       const b = createWeightBuffer(upload(data), dtype, 'row', [N, K]);
       const observed = await observeKernelDispatches(async () => {
-        const output = await runMatmul(a, b, M, N, K, { role: 'moe_router', transposeB: true,
+        const output = await runMatmul(a, b, M, N, K, { role, transposeB: true,
           outputDtype: 'f32', phaseOverride: 'prefill', kernelPath: { activationDtype: 'f32',
             prefill: { steps: [step] }, decode: { steps: [step] } } });
         own(output.buffer); return output;
@@ -91,16 +96,27 @@ if (!file) {
       if (kernel === 'matmul_compensated_f32.wgsl') {
         assert.equal(nearestF32Mismatches, 0);
         for (const row of rows) assert.deepEqual(row.actual, row.expected);
-      } else if (kernel === 'matmul_f32.wgsl') {
+      } else if (kernel === 'matmul_f32.wgsl' && run.requireBaselineReversal !== false) {
         assert(rows.some(row => JSON.stringify(row.actual) !== JSON.stringify(row.expected)),
           'the captured full-batch baseline must reproduce an expert-choice reversal');
       }
     }
     await getDevice().queue.onSubmittedWorkDone(); assert.deepEqual(gpuErrors, []); report.completed = true;
+  } catch (error) {
+    primaryError = error;
+    report.failure = { name: error.name, message: error.message, stack: error.stack };
+    throw error;
   } finally {
-    await getDevice().queue.onSubmittedWorkDone();
-    for (const buffer of new Set(buffers)) releaseBuffer(buffer);
-    destroyDevice(); await releaseNodeWebGPU();
+    const failures = [];
+    try { await getDevice()?.queue.onSubmittedWorkDone(); } catch (error) { failures.push(error); }
+    for (const buffer of new Set(buffers)) {
+      try { releaseBuffer(buffer); } catch (error) { failures.push(error); }
+    }
+    try { destroyDevice(); } catch (error) { failures.push(error); }
+    try { await releaseNodeWebGPU(); } catch (error) { failures.push(error); }
+    report.cleanupFailures = failures.map(error => String(error));
     await fs.writeFile(run.outputPath, JSON.stringify(report, null, 2));
+    if (failures.length) throw new AggregateError(primaryError ? [primaryError, ...failures] : failures,
+      'Router diagnostic cleanup failed', { cause: primaryError });
   }
 }

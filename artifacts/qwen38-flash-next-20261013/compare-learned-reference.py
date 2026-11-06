@@ -19,8 +19,13 @@ policy_path = Path(__file__).resolve().parents[2] / 'src/config/evidence/boundar
 policy_id = 'doppler.boundary-tolerance/quantized-v1'
 policy = json.loads(policy_path.read_bytes())['tolerancePolicies'][policy_id]
 assert gpu.get('completed') and not gpu.get('failure')
+assert not gpu.get('routingControl'), 'counterfactual router replacement cannot qualify normal model execution'
 assert not gpu['gpuErrors'] and not gpu['cleanupFailures']
 assert reference['artifactManifestSha256'] == gpu['manifestSha256']
+assert reference['inputs'] == 'learned-forward-inputs.json', 'this comparison requires the named frozen reference inputs'
+original_bytes = (Path(__file__).parent / reference['inputs']).read_bytes()
+assert gpu['inputsSha256'] == hashlib.sha256(original_bytes).hexdigest(), 'GPU observation must use the same frozen inputs'
+original_inputs = {row['id']: row['tokens'] for row in json.loads(original_bytes)['sequences']}
 assert reference['kvStorageDtype'] == 'f16'
 decode_reference = None
 if len(sys.argv) == 6:
@@ -31,9 +36,6 @@ if len(sys.argv) == 6:
     assert decode_reference['kvStorageDtype'] == 'f16'
     assert decode_reference['inputsSha256'] == hashlib.sha256(decode_input_bytes).hexdigest()
     decode_inputs = {row['id']: row['tokens'] for row in json.loads(decode_input_bytes)['sequences']}
-    original_bytes = (Path(__file__).parent / 'learned-forward-inputs.json').read_bytes()
-    assert gpu['inputsSha256'] == hashlib.sha256(original_bytes).hexdigest()
-    original_inputs = {row['id']: row['tokens'] for row in json.loads(original_bytes)['sequences']}
 
 def compare(actual, expected):
     actual, expected = np.asarray(actual, dtype=np.float64), np.asarray(expected, dtype=np.float64)

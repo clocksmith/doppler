@@ -1,0 +1,345 @@
+{
+  "schema": "doppler.flash-next-router-weight-audit/v1",
+  "scope": "All 48 loaded F32 router matrices compared byte-for-byte with independent NumPy expansion of the pinned F16 artifact weights; no generation qualification",
+  "gpuObservationSha256": "235f7f344302491f5e25b1c35d6f393b3267454e16e332275ef22218efe75b99",
+  "manifestSha256": "4902a0b730a9310903b00bc0f8f587528fa1af9f37a722d2f9287bafceceec09",
+  "rows": [
+    {
+      "layer": 0,
+      "tensor": "model.language_model.layers.0.mlp.gate.weight",
+      "elements": 1310720,
+      "expandedSha256": "fd3cb0831cedbb132c4050dbfdb85c7432f12c0a8d2907aedd6b35500dcf474f",
+      "passed": true
+    },
+    {
+      "layer": 1,
+      "tensor": "model.language_model.layers.1.mlp.gate.weight",
+      "elements": 1310720,
+      "expandedSha256": "67341a4fc6aebf0b31b3488d25c281245b3f160b017f95e57a72cb8e5ec4c378",
+      "passed": true
+    },
+    {
+      "layer": 2,
+      "tensor": "model.language_model.layers.2.mlp.gate.weight",
+      "elements": 1310720,
+      "expandedSha256": "3df7a9a240d95e38ed91257797650474480b606c968592051444e0b2a1798e37",
+      "passed": true
+    },
+    {
+      "layer": 3,
+      "tensor": "model.language_model.layers.3.mlp.gate.weight",
+      "elements": 1310720,
+      "expandedSha256": "710011f5839a776e0eab5f602cbdfacd6c63cb97fcfe81de5d76a8b1c3cc7438",
+      "passed": true
+    },
+    {
+      "layer": 4,
+      "tensor": "model.language_model.layers.4.mlp.gate.weight",
+      "elements": 1310720,
+      "expandedSha256": "2eb0a998658b3794be3f7bdf3a16bfddd30eb34d44f9fb716c46a0d1fdffc34c",
+      "passed": true
+    },
+    {
+      "layer": 5,
+      "tensor": "model.language_model.layers.5.mlp.gate.weight",
+      "elements": 1310720,
+      "expandedSha256": "f756a57d0d54b686190e08e172f45f57b87cb18830c3563f0eb34094b7881769",
+      "passed": true
+    },
+    {
+      "layer": 6,
+      "tensor": "model.language_model.layers.6.mlp.gate.weight",
+      "elements": 1310720,
+      "expandedSha256": "411390e7f88b9f8ebabda6ceb8a69834982df1be48ff1e52f7c634ddc095fab1",
+      "passed": true
+    },
+    {
+      "layer": 7,
+      "tensor": "model.language_model.layers.7.mlp.gate.weight",
+      "elements": 1310720,
+      "expandedSha256": "f5de009d1c0b215a10476488134dab4bc50d5b709f3c099b383cbd58ad9b3910",
+      "passed": true
+    },
+    {
+      "layer": 8,
+      "tensor": "model.language_model.layers.8.mlp.gate.weight",
+      "elements": 1310720,
+      "expandedSha256": "c8425d920dea69b618d40c25fdcb00ad0681e49c728b9b31ab9cf483352d696e",
+      "passed": true
+    },
+    {
+      "layer": 9,
+      "tensor": "model.language_model.layers.9.mlp.gate.weight",
+      "elements": 1310720,
+      "expandedSha256": "4866fe18f3c422383a8303da4484359f7ec1553a6e8ecdcb5092d21391ac0606",
+      "passed": true
+    },
+    {
+      "layer": 10,
+      "tensor": "model.language_model.layers.10.mlp.gate.weight",
+      "elements": 1310720,
+      "expandedSha256": "055441e4f204e66abf5407bccdca66fb0c1d9acea4fbf547e44f9f797d2f7d85",
+      "passed": true
+    },
+    {
+      "layer": 11,
+      "tensor": "model.language_model.layers.11.mlp.gate.weight",
+      "elements": 1310720,
+      "expandedSha256": "ae4818c190a3ef6ebe194963d6cd65a02007017c4f8cb587abe4c2f080ed6306",
+      "passed": true
+    },
+    {
+      "layer": 12,
+      "tensor": "model.language_model.layers.12.mlp.gate.weight",
+      "elements": 1310720,
+      "expandedSha256": "bbcbf37f20aa568a5f2a3eb6230b3de906cfaa7b5603ee6234c1db1d3c9d62a9",
+      "passed": true
+    },
+    {
+      "layer": 13,
+      "tensor": "model.language_model.layers.13.mlp.gate.weight",
+      "elements": 1310720,
+      "expandedSha256": "ea841d87bcac4879298ecc5d5c409818eaf27c4efca54f7507b091b0e27dd3ea",
+      "passed": true
+    },
+    {
+      "layer": 14,
+      "tensor": "model.language_model.layers.14.mlp.gate.weight",
+      "elements": 1310720,
+      "expandedSha256": "7dcc42d479a2644243889863e6984868e0982b2b311290d4686673e5f63bc12c",
+      "passed": true
+    },
+    {
+      "layer": 15,
+      "tensor": "model.language_model.layers.15.mlp.gate.weight",
+      "elements": 1310720,
+      "expandedSha256": "47df6ac89d45617fae9367e80d6cc631d8ba658220dd1639ad377167acd0e714",
+      "passed": true
+    },
+    {
+      "layer": 16,
+      "tensor": "model.language_model.layers.16.mlp.gate.weight",
+      "elements": 1310720,
+      "expandedSha256": "88585d448db3ec6d67534251769a29649dfd950ff70f7b13f4502bbf32706942",
+      "passed": true
+    },
+    {
+      "layer": 17,
+      "tensor": "model.language_model.layers.17.mlp.gate.weight",
+      "elements": 1310720,
+      "expandedSha256": "065a8366a545b05afe48d6a7bddc21195bfa5cf2d45489b037629a4a2cfe836b",
+      "passed": true
+    },
+    {
+      "layer": 18,
+      "tensor": "model.language_model.layers.18.mlp.gate.weight",
+      "elements": 1310720,
+      "expandedSha256": "a4f32ee565a9a38026514ab4a0b35223628e0c082e07f577dc0f3dec362d1530",
+      "passed": true
+    },
+    {
+      "layer": 19,
+      "tensor": "model.language_model.layers.19.mlp.gate.weight",
+      "elements": 1310720,
+      "expandedSha256": "00050bc4be86cd47b45c2d7bb2ccb75b8bf787163abe0296cad509a3c7c0706a",
+      "passed": true
+    },
+    {
+      "layer": 20,
+      "tensor": "model.language_model.layers.20.mlp.gate.weight",
+      "elements": 1310720,
+      "expandedSha256": "a8b3d93a3997e6bf663d54d6ab954000bc530ffe21cc24679f88a4301a3b62c1",
+      "passed": true
+    },
+    {
+      "layer": 21,
+      "tensor": "model.language_model.layers.21.mlp.gate.weight",
+      "elements": 1310720,
+      "expandedSha256": "1609657e3cc5a24c9ec6b93d0556cd8b4a844df6dfe56cf98d3c81c4f3d33168",
+      "passed": true
+    },
+    {
+      "layer": 22,
+      "tensor": "model.language_model.layers.22.mlp.gate.weight",
+      "elements": 1310720,
+      "expandedSha256": "77c45bf48ecbc338b6bd3e9468ca25b7a3612d621d980ccd8f58a2391045a0a3",
+      "passed": true
+    },
+    {
+      "layer": 23,
+      "tensor": "model.language_model.layers.23.mlp.gate.weight",
+      "elements": 1310720,
+      "expandedSha256": "581bdcdce3d407a6c42e4dbd65047cdbffa2cea991df39a207f3ac8bc5a69f48",
+      "passed": true
+    },
+    {
+      "layer": 24,
+      "tensor": "model.language_model.layers.24.mlp.gate.weight",
+      "elements": 1310720,
+      "expandedSha256": "12f5f01132af784c867669cbe22d35947722824de244374eef683ba26589a3ee",
+      "passed": true
+    },
+    {
+      "layer": 25,
+      "tensor": "model.language_model.layers.25.mlp.gate.weight",
+      "elements": 1310720,
+      "expandedSha256": "5cbdf031a165bb89e11b2c81a434d6bf48ea5e1946ce9c7c031694c872cc8413",
+      "passed": true
+    },
+    {
+      "layer": 26,
+      "tensor": "model.language_model.layers.26.mlp.gate.weight",
+      "elements": 1310720,
+      "expandedSha256": "f5493dc1109e1f9105b1f566ed198ea3835168895800ad3cc3d61a84636dfe2f",
+      "passed": true
+    },
+    {
+      "layer": 27,
+      "tensor": "model.language_model.layers.27.mlp.gate.weight",
+      "elements": 1310720,
+      "expandedSha256": "db90cecb8b4f089ebca509b061035aae757f2df4113abfda337d92014cd6967a",
+      "passed": true
+    },
+    {
+      "layer": 28,
+      "tensor": "model.language_model.layers.28.mlp.gate.weight",
+      "elements": 1310720,
+      "expandedSha256": "ada4711f56a35a63956add03a4fd979d90e1146884cc56796d84cb5bd268874f",
+      "passed": true
+    },
+    {
+      "layer": 29,
+      "tensor": "model.language_model.layers.29.mlp.gate.weight",
+      "elements": 1310720,
+      "expandedSha256": "1a0b9b8bf8d9b6a79b2f44f395d8111e95910b70aca03719a4542094301edd0c",
+      "passed": true
+    },
+    {
+      "layer": 30,
+      "tensor": "model.language_model.layers.30.mlp.gate.weight",
+      "elements": 1310720,
+      "expandedSha256": "65c8a66173e0b4672011c005bb71b8ca4e82ddb05e14a7978889352b596f5724",
+      "passed": true
+    },
+    {
+      "layer": 31,
+      "tensor": "model.language_model.layers.31.mlp.gate.weight",
+      "elements": 1310720,
+      "expandedSha256": "eb9a61c43c0bd3f59dd0455e771111c1b148b11c92b503e3ea41459a1968f078",
+      "passed": true
+    },
+    {
+      "layer": 32,
+      "tensor": "model.language_model.layers.32.mlp.gate.weight",
+      "elements": 1310720,
+      "expandedSha256": "45ff6461681466d8ffb20d7a0f1cc1cb34aa59980bf0dcdb3f793a1033fc18ac",
+      "passed": true
+    },
+    {
+      "layer": 33,
+      "tensor": "model.language_model.layers.33.mlp.gate.weight",
+      "elements": 1310720,
+      "expandedSha256": "831da70894f5bbdf8e8111f01bdb53874536eb572c8207930234b46c85862895",
+      "passed": true
+    },
+    {
+      "layer": 34,
+      "tensor": "model.language_model.layers.34.mlp.gate.weight",
+      "elements": 1310720,
+      "expandedSha256": "0f07f5807416355ac6baf848b3a0e380d2c76d0d02a448fc0c57aa93cd9388d9",
+      "passed": true
+    },
+    {
+      "layer": 35,
+      "tensor": "model.language_model.layers.35.mlp.gate.weight",
+      "elements": 1310720,
+      "expandedSha256": "6884c9b9b9041cb942c0a64bfe8c789d00faf6a6efee3d54fc4c3652d266e8f5",
+      "passed": true
+    },
+    {
+      "layer": 36,
+      "tensor": "model.language_model.layers.36.mlp.gate.weight",
+      "elements": 1310720,
+      "expandedSha256": "3b60850fd3560d8d40987a6ab57f8cfa055c8cae4700b1d0647dd1cf487c9134",
+      "passed": true
+    },
+    {
+      "layer": 37,
+      "tensor": "model.language_model.layers.37.mlp.gate.weight",
+      "elements": 1310720,
+      "expandedSha256": "ea992ad3519aa40b8f9b9caf40a66a943e3bc65d5986b1d9eb328a069b7ea8a1",
+      "passed": true
+    },
+    {
+      "layer": 38,
+      "tensor": "model.language_model.layers.38.mlp.gate.weight",
+      "elements": 1310720,
+      "expandedSha256": "81dab733a5820828a14cec6c5cdb8fa9fd5edab15f31dab2f2580e01c599f031",
+      "passed": true
+    },
+    {
+      "layer": 39,
+      "tensor": "model.language_model.layers.39.mlp.gate.weight",
+      "elements": 1310720,
+      "expandedSha256": "5a8477ada6411d7dca1d24a7ca15a13ef651517109b5b6b67d3be835a365075d",
+      "passed": true
+    },
+    {
+      "layer": 40,
+      "tensor": "model.language_model.layers.40.mlp.gate.weight",
+      "elements": 1310720,
+      "expandedSha256": "11f20eb25e4dc0bdbfc4b4c4484739414db597babb6295849afb5a4db2dd6d73",
+      "passed": true
+    },
+    {
+      "layer": 41,
+      "tensor": "model.language_model.layers.41.mlp.gate.weight",
+      "elements": 1310720,
+      "expandedSha256": "6a418ecc460f716daef59fec950b1b02a6e00bee3da5ec243ff9c0e1a01ad3f7",
+      "passed": true
+    },
+    {
+      "layer": 42,
+      "tensor": "model.language_model.layers.42.mlp.gate.weight",
+      "elements": 1310720,
+      "expandedSha256": "b85d22d35cd2afd42fbc57148777a4eca1980db620019aea35225dac4b8efde1",
+      "passed": true
+    },
+    {
+      "layer": 43,
+      "tensor": "model.language_model.layers.43.mlp.gate.weight",
+      "elements": 1310720,
+      "expandedSha256": "b4a3a5258fd4fd82b5d4104a5c30798c00044e19c501ee938d46072669e77562",
+      "passed": true
+    },
+    {
+      "layer": 44,
+      "tensor": "model.language_model.layers.44.mlp.gate.weight",
+      "elements": 1310720,
+      "expandedSha256": "3749c2d9f9834f91d66587da5562159c42d2d07a890fe66c95bc32b05c4964b0",
+      "passed": true
+    },
+    {
+      "layer": 45,
+      "tensor": "model.language_model.layers.45.mlp.gate.weight",
+      "elements": 1310720,
+      "expandedSha256": "ee06e1c4b0cd537e9b7c528d802b3dac41d517398136ed3879c7c155f3d523bf",
+      "passed": true
+    },
+    {
+      "layer": 46,
+      "tensor": "model.language_model.layers.46.mlp.gate.weight",
+      "elements": 1310720,
+      "expandedSha256": "2e6b570ac466bee3d8d8264f33b665eefc8406c17daa0900ec9ddae6dbdf7c9b",
+      "passed": true
+    },
+    {
+      "layer": 47,
+      "tensor": "model.language_model.layers.47.mlp.gate.weight",
+      "elements": 1310720,
+      "expandedSha256": "68a665c53d04734693a1fa4e3a7397559c814b7b86317b677793fa28f5e09df2",
+      "passed": true
+    }
+  ],
+  "passed": true
+}

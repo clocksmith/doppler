@@ -1,0 +1,491 @@
+{
+  "schema": "doppler.reference-router-fixture/v1",
+  "scope": "Independent upstream CPU logits; counterfactual test fixtures only",
+  "derivation": "np.load(source)['logits'].astype('<f4').tobytes(order='C')",
+  "layers": 48,
+  "manifestSha256": "4902a0b730a9310903b00bc0f8f587528fa1af9f37a722d2f9287bafceceec09",
+  "inputsSha256": "06a819d529593b58abd6cb27566bb835a9b91aac13a77c0c7479b7e4e7b0c378",
+  "producerReceiptSha256": "ea4aa5314aa3bb5aa9137549d1837d1d30ef0eac1c8869de92b6e8e734d9ffc4",
+  "files": [
+    {
+      "layer": 0,
+      "file": "router-0.logits.f32",
+      "sha256": "586f7d49e392b6d3d915f19139cae000197d3ac171d709b188a55e218b5e6886",
+      "shape": [
+        2304,
+        512
+      ],
+      "sourceNpzSha256": "b15412bdd0016996b86721317711e318823b2bb3b17d9ad060d9fd23251ec28e"
+    },
+    {
+      "layer": 1,
+      "file": "router-1.logits.f32",
+      "sha256": "14f73ac9373c29a5b3355f2e11aa08e5af3dd05a9901d8c6b6f680fa93da854a",
+      "shape": [
+        2304,
+        512
+      ],
+      "sourceNpzSha256": "ad458de1ab5e4e757246fd2bd523116b5ede70303e5b5665c8862469fbdc42a3"
+    },
+    {
+      "layer": 2,
+      "file": "router-2.logits.f32",
+      "sha256": "a26463f589a80b6ad4a34208cb697c8c49d24a9da4be2e998a734be82d46868d",
+      "shape": [
+        2304,
+        512
+      ],
+      "sourceNpzSha256": "c17a78298cddba76a1f4e75c4e26f34435ae569b0896f4636d3d2410cec5f232"
+    },
+    {
+      "layer": 3,
+      "file": "router-3.logits.f32",
+      "sha256": "d0230e87cf8098bee4358d129dd9268c6033bc0fca5bd7a570660182423dc81a",
+      "shape": [
+        2304,
+        512
+      ],
+      "sourceNpzSha256": "d6f2401251d90bc5b9e7b8e6959415b2d9840864e6ed5d4346f7a2aa36bdc31e"
+    },
+    {
+      "layer": 4,
+      "file": "router-4.logits.f32",
+      "sha256": "18f4044419a18f17ef0d1a2130a1fb0b0b94cd8d0c40f9c3fd3b6a56fc1f11cc",
+      "shape": [
+        2304,
+        512
+      ],
+      "sourceNpzSha256": "33b6145ea1403defb9a05009e8f24733c5b24d0404da8e55310b9a3ed3eaa020"
+    },
+    {
+      "layer": 5,
+      "file": "router-5.logits.f32",
+      "sha256": "416486cb2242e0f69670ba837e6369543a88bb4f758a830269754f8961660480",
+      "shape": [
+        2304,
+        512
+      ],
+      "sourceNpzSha256": "23b53adfb1a0671616159e12f8fb43b07c30aab7474d290ce9f4e1d60aafe17e"
+    },
+    {
+      "layer": 6,
+      "file": "router-6.logits.f32",
+      "sha256": "59609481ff5e8ad6b403269088704650a04a8fce1510a349746f601be7734939",
+      "shape": [
+        2304,
+        512
+      ],
+      "sourceNpzSha256": "e16256554631592e6e9d7d8b932299b0d0cbe51e41b7bb4b24db4ad02d729e37"
+    },
+    {
+      "layer": 7,
+      "file": "router-7.logits.f32",
+      "sha256": "9c836e0830cf693d3ef9d4b6c0159007b1b891af286d0091bfa42714dd6a8c4a",
+      "shape": [
+        2304,
+        512
+      ],
+      "sourceNpzSha256": "8b780259a3bb29b95db990d92c7db74c715c8a8014ca3f40ea7eea4e0b36d56d"
+    },
+    {
+      "layer": 8,
+      "file": "router-8.logits.f32",
+      "sha256": "4b69a62d895879e7658f3058336260386d318a3e432e4c46f0def43ac491e248",
+      "shape": [
+        2304,
+        512
+      ],
+      "sourceNpzSha256": "9b9bfdc6b698226a37633812e90462523d3d586219580c2098ad46d9bfebeaf3"
+    },
+    {
+      "layer": 9,
+      "file": "router-9.logits.f32",
+      "sha256": "4e9e72fc1689e6a07f16c40c8244a84e7039858a54bc7803047dd580c98f44af",
+      "shape": [
+        2304,
+        512
+      ],
+      "sourceNpzSha256": "7f57681f31778e9a107886008136ba9c5eb9ece9d0273ebb65cfcdf66af80dc8"
+    },
+    {
+      "layer": 10,
+      "file": "router-10.logits.f32",
+      "sha256": "9d82dd94f0092bc11c3fafa410c86ef25b1bd4ecd1806716dbf6de9a92ce39ee",
+      "shape": [
+        2304,
+        512
+      ],
+      "sourceNpzSha256": "1f59aa39bc5087e51316f8420947da4e2bf183286b5c866964ee35e829b61d2d"
+    },
+    {
+      "layer": 11,
+      "file": "router-11.logits.f32",
+      "sha256": "6efe69fdf4893e0127c34263f4a18a1089d2c1dc621162ef9b41d2b5321ad854",
+      "shape": [
+        2304,
+        512
+      ],
+      "sourceNpzSha256": "6369b357a8af468d7cb4c4de9a78ad34ff23a62a973bcbde0c7f88d85ac1d6e8"
+    },
+    {
+      "layer": 12,
+      "file": "router-12.logits.f32",
+      "sha256": "27171f9cc1f3a2353f3840595d1d8dcc15dd53912006a99d75a214e50f1d111a",
+      "shape": [
+        2304,
+        512
+      ],
+      "sourceNpzSha256": "bf320b4076fc484b1fa3637d4eae604d19b5a52ca2e620f0bc10223cfd7e8a5b"
+    },
+    {
+      "layer": 13,
+      "file": "router-13.logits.f32",
+      "sha256": "76c016ce53a12760d6839a7ad36bf137b3fae5cdae90b57ebc2a2058605eed0c",
+      "shape": [
+        2304,
+        512
+      ],
+      "sourceNpzSha256": "e0548a2c729138bbe2faae55f7c84b85ddff1758d5ea0a65c942a711cb97b8b3"
+    },
+    {
+      "layer": 14,
+      "file": "router-14.logits.f32",
+      "sha256": "e045012eaee4e702fca7f7acbe8cc877fbca14e501180e31a62c0fffed4de3f4",
+      "shape": [
+        2304,
+        512
+      ],
+      "sourceNpzSha256": "589c68aa4a4a4c8ac7e7ff45cdd2766fe78769be976456ef06338f5b40cc88b7"
+    },
+    {
+      "layer": 15,
+      "file": "router-15.logits.f32",
+      "sha256": "6b6553a5f2143ed2aef29d7647eeafb936892fcede713eac395650b708a805e8",
+      "shape": [
+        2304,
+        512
+      ],
+      "sourceNpzSha256": "84574cf9f89f7b4770430a0c7704833885f815a2864354509d0b5b5b7d715bbe"
+    },
+    {
+      "layer": 16,
+      "file": "router-16.logits.f32",
+      "sha256": "3fe7dbaf6d4ea58704c532e6a8730de3d3c521ef86c66d5eb90a687759bcd8af",
+      "shape": [
+        2304,
+        512
+      ],
+      "sourceNpzSha256": "c4285140bc6fd77560d2349e734ba5f1636c542d4a2477becb7f1bb0d1b32107"
+    },
+    {
+      "layer": 17,
+      "file": "router-17.logits.f32",
+      "sha256": "98cbf6243b3a350f8c89bfb1740f7fea254947aea73d4f1b8c57c9d6e1ee8a9e",
+      "shape": [
+        2304,
+        512
+      ],
+      "sourceNpzSha256": "d90098e929a9ff5144e9d02727dd7dec84c1a025780c7123c37456ff5117f3a7"
+    },
+    {
+      "layer": 18,
+      "file": "router-18.logits.f32",
+      "sha256": "78551766e5a994d3ecdece465c3d2966aa09dc628bf84f1419df0068fea65935",
+      "shape": [
+        2304,
+        512
+      ],
+      "sourceNpzSha256": "65832e7d3d42a35d854db1a381ecd42503349c27133ec979fd15de47d939b754"
+    },
+    {
+      "layer": 19,
+      "file": "router-19.logits.f32",
+      "sha256": "c5d4bcfc37a276486e82cc09314eb0dba97d195b2bb0ad9468436330120cebf3",
+      "shape": [
+        2304,
+        512
+      ],
+      "sourceNpzSha256": "170e779147e789eff9ca4f905bec7662908eb0cb19f48dd0c79214632d11eeaf"
+    },
+    {
+      "layer": 20,
+      "file": "router-20.logits.f32",
+      "sha256": "544cf81ced312fe117f9d27da577f5c2ee34e521eb9d504c9af64b284198383d",
+      "shape": [
+        2304,
+        512
+      ],
+      "sourceNpzSha256": "d8043b576001d9dee70a3900645d54d5a3456bff87ef97bd4c596ad5b595ed4c"
+    },
+    {
+      "layer": 21,
+      "file": "router-21.logits.f32",
+      "sha256": "c1bf83ef4f3a4aa520bec7d81d09fbb466d016003633a00f667dc7946da957cc",
+      "shape": [
+        2304,
+        512
+      ],
+      "sourceNpzSha256": "f0bd56979208ea31ac1bf0f832b511bcdb9ce7519b10cf8bce82c1c2c3d67ddb"
+    },
+    {
+      "layer": 22,
+      "file": "router-22.logits.f32",
+      "sha256": "7c1f083a1288d6276ee60d31d81756cf74cc6b48e8a4096863ce05defa984c05",
+      "shape": [
+        2304,
+        512
+      ],
+      "sourceNpzSha256": "2d9d75cf650f28c291f2e4a82327b2f996bd08be6fb9fc81cd3b0e0e7c709f27"
+    },
+    {
+      "layer": 23,
+      "file": "router-23.logits.f32",
+      "sha256": "bf7f8e7d58660f9d034609204e0f9db052efbce55d7a76606b8088a4c6d0f5f5",
+      "shape": [
+        2304,
+        512
+      ],
+      "sourceNpzSha256": "7ac113cbe9a17d10d8d4b6137dbf43149c4d6b4e9d64473ef133b9f3dfb0dc08"
+    },
+    {
+      "layer": 24,
+      "file": "router-24.logits.f32",
+      "sha256": "0fd40951f6d14325edef08fe929d1765f0346774d24acf14c53281026e2f5c5c",
+      "shape": [
+        2304,
+        512
+      ],
+      "sourceNpzSha256": "8fddfcebdbebf50fa41c098ccd43efa3d99b0e5be3e774a467b1827c1d734996"
+    },
+    {
+      "layer": 25,
+      "file": "router-25.logits.f32",
+      "sha256": "911ff72060ca4472634dbe50e574b1fcdf9139003676316374ea5fcc65f6f038",
+      "shape": [
+        2304,
+        512
+      ],
+      "sourceNpzSha256": "18ec672d9fee69bb17a0fb2dffe05c164de073b23dc6fa4af2c826b7c81622fc"
+    },
+    {
+      "layer": 26,
+      "file": "router-26.logits.f32",
+      "sha256": "31e473beed52841e8762ee025acf6ae492a06396de4e0623ba1e4c25de3275bb",
+      "shape": [
+        2304,
+        512
+      ],
+      "sourceNpzSha256": "f1eef2bcd4217f9e8f4e60288174da29a7e4828700e9dc5ee76945e86d7ac1f4"
+    },
+    {
+      "layer": 27,
+      "file": "router-27.logits.f32",
+      "sha256": "f8b4bebe6f784dcee15eb89c59413e53ca36b35bfb5c2ccca0deccd52328c25c",
+      "shape": [
+        2304,
+        512
+      ],
+      "sourceNpzSha256": "5ba217e3396f61ba5dfa7829983d843da0c70cb82fc0e408e284d0f24a1f73b9"
+    },
+    {
+      "layer": 28,
+      "file": "router-28.logits.f32",
+      "sha256": "2cb19becde0969aa39b210358d335ded63530f041ff2779f0a446cb8de67cc48",
+      "shape": [
+        2304,
+        512
+      ],
+      "sourceNpzSha256": "9e65c5dba06367e097607766a6eb999e14c884cc3a85a66f267d106d9fe2223a"
+    },
+    {
+      "layer": 29,
+      "file": "router-29.logits.f32",
+      "sha256": "ecd9537fef015abe607ff2da4a805860a2137aa72a366ee9527893c5fbaeff3f",
+      "shape": [
+        2304,
+        512
+      ],
+      "sourceNpzSha256": "8e8c9bbc604672759eea820cd004bcbbe9fbb14524f2b32868b8108387715b5f"
+    },
+    {
+      "layer": 30,
+      "file": "router-30.logits.f32",
+      "sha256": "ffac25f8f4458b2ba3c8b00850bb0189fc21359bca0f4ea9f18cf94e54557818",
+      "shape": [
+        2304,
+        512
+      ],
+      "sourceNpzSha256": "f9b07b7141c7ee8e771237d831161fa6d3b33d3d93522c116a143ac732fc556f"
+    },
+    {
+      "layer": 31,
+      "file": "router-31.logits.f32",
+      "sha256": "064062765749f9367f8f746b92b2473d1a65779c4f972bc90cf5ac2fec1b56fa",
+      "shape": [
+        2304,
+        512
+      ],
+      "sourceNpzSha256": "1f97398e0409d1af0b8ae18303aecd65affea612c86172a76031926cc0c34c27"
+    },
+    {
+      "layer": 32,
+      "file": "router-32.logits.f32",
+      "sha256": "f3ae5f735b7715af20b7290c0568fc555c1a3368caa2f92c1aca466241dfe452",
+      "shape": [
+        2304,
+        512
+      ],
+      "sourceNpzSha256": "9b6a73509fe4744d05d0b1c25468d1682821a4b5b07b4adae9e5059ae5959ed0"
+    },
+    {
+      "layer": 33,
+      "file": "router-33.logits.f32",
+      "sha256": "6bf973ab5193364d70d8d220796c03ab85f9a5f10b5e1d6312146db9871a340f",
+      "shape": [
+        2304,
+        512
+      ],
+      "sourceNpzSha256": "5f18d0cb1281e93b56e1979db420f2db7855e717af6799e77ff04d2302a96264"
+    },
+    {
+      "layer": 34,
+      "file": "router-34.logits.f32",
+      "sha256": "859dbc5359928a3654ce4a62d71b3c9ae3a8b4d18564e06c479ae2063fc0b15a",
+      "shape": [
+        2304,
+        512
+      ],
+      "sourceNpzSha256": "3d1ad2b0edd931a8f06bebb488e6ff5d9069c745d67eb7e4cc916892016db13e"
+    },
+    {
+      "layer": 35,
+      "file": "router-35.logits.f32",
+      "sha256": "d650900ad7d4d5041e90bd7e6e8835ad97402fb9c1278e64c77fda555d41d120",
+      "shape": [
+        2304,
+        512
+      ],
+      "sourceNpzSha256": "85a2ee24170e14e5be60a4feb1a228003aa6dbe63189c113899eb1f67c546db1"
+    },
+    {
+      "layer": 36,
+      "file": "router-36.logits.f32",
+      "sha256": "d90a0b70b1b4e8487163708af91c9d1662a681a9297fc16e38a899188dce07e8",
+      "shape": [
+        2304,
+        512
+      ],
+      "sourceNpzSha256": "a918d72bc2eb1b001359eb3167bef793ed67f9340ba0590731b5735aac730276"
+    },
+    {
+      "layer": 37,
+      "file": "router-37.logits.f32",
+      "sha256": "c45a83b3ffe819115d66447ac5f6e1d3792cce1025c2ba53ab9bb1dbf4f89763",
+      "shape": [
+        2304,
+        512
+      ],
+      "sourceNpzSha256": "230f6c664312b7a0cafb3d233ce9966bc92d9011d1fb6482c1f6fa09afb7b144"
+    },
+    {
+      "layer": 38,
+      "file": "router-38.logits.f32",
+      "sha256": "903a1b29d6c3c7dff2adfea711dc2c8b5dfb7f8175d7f97399ce47f8c4db85d5",
+      "shape": [
+        2304,
+        512
+      ],
+      "sourceNpzSha256": "a147fba96ec1646760f4dfc802d47872d03b653f831fba09a9bd9c5acadb50d9"
+    },
+    {
+      "layer": 39,
+      "file": "router-39.logits.f32",
+      "sha256": "b1ef2da774ac2e81e000f507854db7d64ca8c5daf611146c6688da1c503b7e95",
+      "shape": [
+        2304,
+        512
+      ],
+      "sourceNpzSha256": "a75b579046c7356881707a19d44d40ecfc4adb78c30de02022b13e792e3df74a"
+    },
+    {
+      "layer": 40,
+      "file": "router-40.logits.f32",
+      "sha256": "60df10522f8fe4da4c26943d67d22f219e8c4589df02b34e26b446a88cc5a05c",
+      "shape": [
+        2304,
+        512
+      ],
+      "sourceNpzSha256": "9e6c2449ed5bac7be8faff0384ca7854f48eb266d5c4274f8976bb314481a479"
+    },
+    {
+      "layer": 41,
+      "file": "router-41.logits.f32",
+      "sha256": "35a0aa4f60586918f774e87a9c075752f497350121ab0f3a3f41f1f4d02b5d85",
+      "shape": [
+        2304,
+        512
+      ],
+      "sourceNpzSha256": "a66f3021c97ba079d785afa1a0e903c6d0f81f6a98093f8fe256a6641cda0d61"
+    },
+    {
+      "layer": 42,
+      "file": "router-42.logits.f32",
+      "sha256": "43d59b07600b3f0c2aa72585c8d0ef1da3e0a545d078571f632bd320bb89456f",
+      "shape": [
+        2304,
+        512
+      ],
+      "sourceNpzSha256": "f33b9325cfbe283a0b02fa3a14177b0f72d1bfc9ef8f4a70777e06b1cc4315e7"
+    },
+    {
+      "layer": 43,
+      "file": "router-43.logits.f32",
+      "sha256": "0523f42c8801a6f0247988e4794ef8731b232405b7382b0033889be35ba217c8",
+      "shape": [
+        2304,
+        512
+      ],
+      "sourceNpzSha256": "5ce2779ed778282ee62b2c3622d62008c5b54b6a59281641c0045b26a408a0e2"
+    },
+    {
+      "layer": 44,
+      "file": "router-44.logits.f32",
+      "sha256": "d60a0bd338393af716752e29bb82e5bcf63803610a74b0e1082933d5712e5909",
+      "shape": [
+        2304,
+        512
+      ],
+      "sourceNpzSha256": "6de485a7b867d32282733639d39b85c2802e5d248a6cac9576871e20fa462863"
+    },
+    {
+      "layer": 45,
+      "file": "router-45.logits.f32",
+      "sha256": "c77d606a5a4cf92c73268e8740aa0f13d10000b2d3b69dfabbf44216d15a1b94",
+      "shape": [
+        2304,
+        512
+      ],
+      "sourceNpzSha256": "ad67b18e1e5cb73610ea455bc21531a1f5af8528eaab60d2d83deffe6ecce6a4"
+    },
+    {
+      "layer": 46,
+      "file": "router-46.logits.f32",
+      "sha256": "7a6d356cd97d8c34bfc09a5000ea1d1dd3aa52d27a8247cc090594bdc9e32c30",
+      "shape": [
+        2304,
+        512
+      ],
+      "sourceNpzSha256": "891fad6d437fd59cf5c697b102c7b0645c3436944665e5dce1554a21d67d7444"
+    },
+    {
+      "layer": 47,
+      "file": "router-47.logits.f32",
+      "sha256": "e8207b9fdf7877fb35ef143e3b96132328a8e2b17d5fe18208761e3b6732c3ce",
+      "shape": [
+        2304,
+        512
+      ],
+      "sourceNpzSha256": "571980179d964ed7abbf92e0345c810598be38f0d9bab37ce99dd5f050c9cfa5"
+    }
+  ]
+}

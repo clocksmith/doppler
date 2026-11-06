@@ -1,0 +1,1 @@
+CPU-only contract checks pass: manifest mismatch, recorded-lane rejection, geometry rejection, no dispatch, and hook restoration. No physical GPU execution claimed.

@@ -4720,6 +4720,7 @@
         "tests/helpers/physical-kv-cache-observer.js",
         "tests/helpers/q4_0-fixture.js",
         "tests/helpers/rdrr-manifest-fixture.js",
+        "tests/helpers/reference-router-control.js",
         "tests/helpers/rerank-reference-fixture.js",
         "tests/helpers/resident-partition-physical-config.js",
         "tests/helpers/subgroup-portability.js",

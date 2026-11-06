@@ -1,0 +1,89 @@
+{
+  "schema": "doppler.qwen38-learned-comparison/v1",
+  "scope": "Named unpadded Node observations only; sampled layers and retained last-position logits, no general model or performance qualification",
+  "gpuSha256": "eec9ca49851d4353f5fa26de0ff6ddc1b7b26d99b2466f7df6d6540d4437c344",
+  "referenceSha256": "5c22cd2b9e47a92c2988b0e461cad88e444d51919f5f0c7ab9c8cea20e377fd3",
+  "policySha256": "f1c4629d593ec2517e3628ac68131dc7568c6aba5e0f03db627d26228c720413",
+  "policyId": "doppler.boundary-tolerance/quantized-v1",
+  "policy": {
+    "absolute": 0.05,
+    "relative": 0.05,
+    "requireDtypeMatch": false
+  },
+  "rows": [
+    {
+      "id": "short",
+      "tokenIds": [
+        11751,
+        13,
+        9664
+      ],
+      "firstTokenAgrees": true,
+      "layers": [],
+      "logits": {
+        "count": 248320,
+        "maxAbsoluteError": 0.00039386749267578125,
+        "rmsError": 6.579607466996917e-05,
+        "outsidePolicy": 0,
+        "passed": true
+      },
+      "passed": true,
+      "fullLogitsChecked": true,
+      "decodeRows": [
+        {
+          "count": 248320,
+          "maxAbsoluteError": 0.0004451274871826172,
+          "rmsError": 8.817910716184191e-05,
+          "outsidePolicy": 0,
+          "passed": true,
+          "step": 1,
+          "tokenId": 13,
+          "tokenAgrees": true
+        },
+        {
+          "count": 248320,
+          "maxAbsoluteError": 0.0006551742553710938,
+          "rmsError": 0.0001231685135130608,
+          "outsidePolicy": 0,
+          "passed": true,
+          "step": 2,
+          "tokenId": 9664,
+          "tokenAgrees": true
+        }
+      ]
+    },
+    {
+      "id": "long",
+      "tokenIds": [
+        7920,
+        22257
+      ],
+      "firstTokenAgrees": true,
+      "layers": [],
+      "logits": {
+        "count": 248320,
+        "maxAbsoluteError": 0.7749338150024414,
+        "rmsError": 0.13384576154551875,
+        "outsidePolicy": 64993,
+        "passed": false
+      },
+      "passed": false,
+      "fullLogitsChecked": true,
+      "decodeRows": [
+        {
+          "count": 248320,
+          "maxAbsoluteError": 1.13398939371109,
+          "rmsError": 0.21945097139684172,
+          "outsidePolicy": 138362,
+          "passed": false,
+          "step": 1,
+          "tokenId": 22257,
+          "tokenAgrees": true
+        }
+      ]
+    }
+  ],
+  "passed": false,
+  "decodeReferenceSha256": "cee3373b166e9958538bd66a0af5a59a5cefb574b0db1e4d54fb3943dc055994",
+  "decodeInputsSha256": "f767c04d0c55ee5ddaef6dfbcf7460840240994dc123502d959b4a008392e85a"
+}

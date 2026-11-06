@@ -1,0 +1,47 @@
+{
+  "scope": "Actual source softmax/top-k versus actual GPU softmax/top-k, using their retained full-forward logits",
+  "rows": [
+    {
+      "layer": 0,
+      "changedExpertRows": []
+    },
+    {
+      "layer": 1,
+      "changedExpertRows": []
+    },
+    {
+      "layer": 2,
+      "changedExpertRows": []
+    },
+    {
+      "layer": 3,
+      "changedExpertRows": []
+    },
+    {
+      "layer": 4,
+      "changedExpertRows": [
+        1017
+      ]
+    },
+    {
+      "layer": 5,
+      "changedExpertRows": [
+        1017,
+        2003
+      ]
+    },
+    {
+      "layer": 6,
+      "changedExpertRows": []
+    },
+    {
+      "layer": 7,
+      "changedExpertRows": []
+    }
+  ],
+  "indicesFile": "actual-source-gpu-topk.npz",
+  "indicesSha256": "0b8cf0c09b2f3cf79451beb55a048c24229c696ebe1075515571987ac2afb90b",
+  "gpuObservationSha256": "618b9e669dad4d0831d27a901aba034b02fc2b37abc2b05cd8e953ae24be1d18",
+  "cpuProducerReceiptSha256": "ea4aa5314aa3bb5aa9137549d1837d1d30ef0eac1c8869de92b6e8e734d9ffc4",
+  "gpuReplayReceiptSha256": "7cc36686353eddafcaa5c3faa90069f9df947ac6657bccd5338e3e7859d3b8bf"
+}

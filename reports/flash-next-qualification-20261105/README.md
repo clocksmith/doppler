@@ -1,5 +1,10 @@
 # Flash-Next learned-artifact qualification
 
+Current checkpoint: the QSA dispatch/query-view repair is pushed in `50135b70`.
+The installed Node/AMD candidate passes the named public API and six short-input
+lifecycle checks. Normal long-context numerical qualification still fails the
+unchanged policy. Full-model availability and performance promotion remain open.
+
 The initial Node physical load at runtime 603ef2dc was rejected before weight
 allocation: the sigmoid source contract included SiLU gated-delta mechanisms.
 The recipe now declares the existing sigmoid kernels and their canonical entry
@@ -116,6 +121,86 @@ the artifact/F16-KV control identity in `qsa/router-control-identity.json` is
 used above. No comparison tolerance, stored weight or production precision
 default changes in this repair.
 
+## Repaired-runtime operational checks and routing isolation
+
+The private installed package `c7dc6afdff57…` passes the public compatibility API
+check: exact artifact/variant identities, execution receipts, three short-input
+tokens and two long-input tokens, finite logit observations, and clean unload.
+The short prefill and both decode rows pass the existing full-vocabulary policy
+(maximum errors 0.000394, 0.000445 and 0.000655). The normal long prefill and
+decode still fail (maximum errors 0.774934 and 1.133989). This archive is an
+unpublished candidate, not an npm release or Reploid availability claim.
+
+All six provisioned short-input lifecycle cases now pass with repaired QSA:
+queued cancellation, active-decode rollback of committed KV/recurrent/PLE/QSA
+state, reset/reuse, paused cancellation, unload of a paused consumer, and fresh
+reload/reuse. No GPU or cleanup error is reported. The long input also executes
+prefill and decode through the installed API; that does not extend the short
+lifecycle cases into a long-context rollback qualification.
+
+All 48 loaded router matrices (62,914,560 F32 elements) are byte-identical to
+independent NumPy expansion of their declared F16 artifact tensors. Actual
+source softmax/top-k and actual registered GPU softmax/top-k replay confirm the
+first changed expert set at layer 4/token 1,017; this is not merely an inference
+from sorting raw logits. Future prefix captures retain the upstream router's
+actual output indices and weights directly.
+
+The first reversed router row also passes the existing `source-f32-v1`
+operator tolerance against a Float64 dot product of the exact same GPU input
+and independently expanded F16 weights: maximum error 1.71733e-5, zero policy
+violations. Experts 218/260 have an exact-input gap of +9.61687e-6, but the
+GPU gap is -2.38419e-6. This establishes rounding sensitivity at that boundary;
+it does not excuse the full-model failure or establish that every later
+difference has the same cause. See [row assessment](qsa/router-rounding-assessment.json).
+
+An explicitly counterfactual run replaces all router logits with independent
+CPU fixtures. The remaining GPU stack then has maximum full-vocabulary error
+0.00205517 with zero violations under the unchanged policy. The normal
+qualification comparator explicitly rejects such controlled observations.
+This isolates sensitivity to router outputs/choices; it does not qualify normal
+generation, or prove that changing the acceptance criterion is appropriate.
+The comparator also requires the GPU input hash to match the named frozen
+reference fixture. CPU-only rejection checks cover counterfactual routing and
+mismatched inputs; the ordinary retained
+prefill/decode comparison reproduces its earlier result exactly. See
+[comparator checks](qsa/comparator-contract.log).
+
+The router-only compensated candidate fails the normal gate. A broader
+full-matrix candidate ends on device loss coincident with an AMD graphics-ring
+timeout and automatic reset; that run provides no numerical evidence and its
+process PID was not retained. Subsequent probes retain PIDs for attribution.
+Bounded 256/512-row control-projection probes match nearest-F32 references at
+all checked coordinates. A normal candidate using 512-token prefill chunks and
+compensated control projections (PLE projections unchanged, no CPU injection)
+completes cleanly but still fails: maximum error 0.615987, 42,033 violations.
+None of these candidates changes a production recipe or precision default.
+
+The additional raw-distribution metrics are diagnostics, not a replacement gate:
+the long prefill/decode top-20 overlap is 19/20 and reference-to-GPU KL is
+8.61e-5/1.70e-5 nats on these particular prefixes. Remaining numerical work must
+assess routing-sensitive F32 differences against the independent reference;
+normal long-context qualification and performance promotion remain open.
+
+See `qsa/public-consumer.json`, `qsa/public-decode-comparison.json`,
+`qsa/repaired-lifecycle.json`, `qsa/router-weight-byte-comparison.json`,
+`qsa/actual-source-gpu-topk-comparison.json`, and
+`qsa/reference-router-control-comparison.json`. Raw model output and large
+CPU fixtures remain on the external models volume, identified by these receipts.
+The counterfactual and bounded-candidate observations, including their complete
+runtime configurations, are retained as `qsa/reference-router-control-observation.json.gz`
+and `qsa/bounded-compensated-controls-observation.json.gz`.
+
+Focused development checks pass: the QSA dispatch, query-view, attention-plan
+and cache-lifecycle files report nine passing checks; changed JavaScript syntax
+and Python compilation checks pass; dependency freshness and source architecture
+checks pass. The counterfactual helper's CPU-only preflight checks reject an
+unmatched manifest, recorded execution and wrong geometry before dispatch, and
+verify hook restoration. These checks do not add physical qualification scope.
+
 Component: `doppler.runtime-source.config`, `doppler.repository-tooling`,
-`doppler.tests`. Intent: preserved. Boundary effects: recipe execution closure,
-source-aware metadata refresh and variant identity, diagnostic observations.
+`doppler.runtime-source.inference.pipelines.text`, `doppler.tests`.
+Intent: preserved. Boundary effects: recipe execution closure, source-aware
+metadata refresh and variant identity, repaired QSA dispatch/query views,
+private package source increase of 955 bytes, and explicitly counterfactual
+test observations. The failed broad candidate coincided with a driver reset;
+no manual GPU reset, participant restart or persistent GPU-limit change was made.

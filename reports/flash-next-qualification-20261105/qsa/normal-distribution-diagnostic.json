@@ -1,0 +1,58 @@
+{
+  "schema": "doppler.flash-next-distribution-diagnostic/v1",
+  "scope": "Unmasked softmax distributions of full raw logits at temperature one on the named inputs; not the greedy sampler, an accuracy benchmark or a replacement gate",
+  "normalModelQualified": false,
+  "gpuObservationSha256": "eec9ca49851d4353f5fa26de0ff6ddc1b7b26d99b2466f7df6d6540d4437c344",
+  "rows": [
+    {
+      "sequence": "short",
+      "step": 0,
+      "inputTokenCount": 15,
+      "referenceTop1": 11751,
+      "gpuTop1": 11751,
+      "top20Overlap": 20,
+      "klReferenceToGpuNats": 1.5749770418497888e-10,
+      "gpuLogitsSha256": "45e06fbc7a80611a00fb9046f206166f200a6d90d2bd242c4f7bdf226e961749"
+    },
+    {
+      "sequence": "short",
+      "step": 1,
+      "inputTokenCount": 16,
+      "referenceTop1": 13,
+      "gpuTop1": 13,
+      "top20Overlap": 20,
+      "klReferenceToGpuNats": 2.0852842286805056e-10,
+      "gpuLogitsSha256": "f4e1475018043a027147b4482b815baf183741d32723f85c21092e596804ab96"
+    },
+    {
+      "sequence": "short",
+      "step": 2,
+      "inputTokenCount": 17,
+      "referenceTop1": 9664,
+      "gpuTop1": 9664,
+      "top20Overlap": 20,
+      "klReferenceToGpuNats": 3.867084033612522e-09,
+      "gpuLogitsSha256": "31ef4ee36c08e560e610b0021ace2167722e4e7ad78814a73032c3d05175e58c"
+    },
+    {
+      "sequence": "long",
+      "step": 0,
+      "inputTokenCount": 2304,
+      "referenceTop1": 7920,
+      "gpuTop1": 7920,
+      "top20Overlap": 19,
+      "klReferenceToGpuNats": 8.610610191892206e-05,
+      "gpuLogitsSha256": "fcc1c5333b716b6ea77ae16d0dd05eb0c7219045225a0944b38e681fdf50602e"
+    },
+    {
+      "sequence": "long",
+      "step": 1,
+      "inputTokenCount": 2305,
+      "referenceTop1": 22257,
+      "gpuTop1": 22257,
+      "top20Overlap": 19,
+      "klReferenceToGpuNats": 1.6992576887182775e-05,
+      "gpuLogitsSha256": "7c95e5170dfbd09853f917c1c1f1fe9978564cc4dc8d9d3a1370108d0d2d9709"
+    }
+  ]
+}

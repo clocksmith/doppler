@@ -1,0 +1,3 @@
+counterfactual: rejected before any qualification result
+mismatched-inputs: rejected before any qualification result
+normal public prefill/decode comparison: identical retained results; short rows pass, long rows fail unchanged policy
