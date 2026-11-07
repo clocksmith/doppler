@@ -3,7 +3,7 @@
   "entrypoint": "src/capsule-runtime.js",
   "scope": "injected-capsule-core; excludes host-supplied program executors",
   "fileCount": 88,
-  "sourceBytes": 1228632,
+  "sourceBytes": 1229002,
   "forbiddenPatterns": [
     "/src/converter/",
     "/src/training/",
@@ -269,8 +269,8 @@
     },
     {
       "path": "src/config/kernels/registry.json",
-      "sizeBytes": 777551,
-      "hash": "sha256:0d97e8da784c06a975f82ef4ec71c8c3b9e51f9f4951ac84d253e08f775dd282"
+      "sizeBytes": 777921,
+      "hash": "sha256:982bbcf6c80eca51b2323be3b9794dadffe68a8c827c6b9e33051cb713e02698"
     },
     {
       "path": "src/config/layer-partition-plan.js",
