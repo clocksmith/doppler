@@ -1,0 +1,130 @@
+{
+  "schema": "doppler.debugging-workflow-study-draft/v1",
+  "studyId": "doppler-debugging-pilot-001",
+  "status": "DRAFT_UNREGISTERED",
+  "trialAuthorization": false,
+  "comparativeTrialsStarted": false,
+  "purpose": "Feasibility of a blinded debugging-value study; novelty is a separate review, not inferred from speed.",
+  "case": {
+    "id": "case-001",
+    "sealedPreparerSpecificationSha256": "d439eea5eada645111d769cf8071d4f742f2befa0b7dd0e521529f9afaad5b8b",
+    "revealAfter": "Data collection and blinded outcome scoring are locked",
+    "hardwareRequirement": "Physical Apple M3/Metal observer mandatory; AMD Vulkan is a portability control and does not expose this defect",
+    "sealedMetalPreflightSha256": "95a030aaf267e8b6399f816ed18b89bc34b5f30542423f0c3bb3b86c83504cc6"
+  },
+  "design": {
+    "initialStudy": "Feasibility pilot; not a superiority or equivalence trial",
+    "assignment": "Different cause-unfamiliar investigators across workflows; never repeat the same case after unblinding",
+    "confirmatoryStudy": "Separate preregistration with multiple bugs and investigators randomized across workflows",
+    "runtimePins": "Freeze exact installed runtime, toolchain, driver and hardware identities before starting; checkout availability is distinct from published package availability"
+  },
+  "participants": {
+    "dopplerInvestigator": null,
+    "baselineInvestigator": null,
+    "appleHardwareOperator": null,
+    "independentReproducer": null,
+    "outcomeAssessor": null,
+    "excluded": "Every agent/person exposed to the cause in this workspace, including E and agents A through F"
+  },
+  "blinding": {
+    "causeBlinded": true,
+    "workflowBlinded": false,
+    "networkAccess": "DENIED for both investigator environments; preload identical allowed tools, references and documentation",
+    "history": "Truncate participant history at the failing revision; exclude fixed objects, later refs, remotes, correction reports, answer keys and inherited conversations",
+    "modelContamination": "A fresh context is insufficient. Record model version, provenance and possible exposure to public material after 2026-10-22; self-reported cutoff is not proof of absence. Unknown contamination limits conclusions. Remote API model access is incompatible with this offline protocol unless the owner explicitly changes it.",
+    "audit": "Independent leak audit before freeze; preserve original bug-bearing code unchanged",
+    "offlineEnvironmentEnforcementBuilt": false
+  },
+  "workflows": {
+    "shared": [
+      "Equivalent Apple and AMD access and operator assistance",
+      "Identical failing program, model artifacts, input bytes, reference outputs and correctness tolerances",
+      "Ordinary debugger, logs, logprobs, parity checks, GPU profiler and offline reference implementation",
+      "Identical network restrictions, documentation access, setup completion and time budget"
+    ],
+    "baseline": "Competent standard debugging workflow; reasonable custom glue permitted and counted",
+    "doppler": "Same baseline plus version-pinned documented Doppler inspection, exact-prefix replay, fingerprints and semantic-boundary evidence that actually work with this case",
+    "capabilityAudit": "Before freeze, name installed entry points and verify the case can use them. Unavailable facilities remain unavailable; proposed instrumentation cannot be scored as an existing feature."
+  },
+  "milestones": {
+    "detection": "Save independently confirmed incorrect output",
+    "isolation": "Identify the first faulty boundary and support the actual mechanism; record each timestamp separately",
+    "minimalReproduction": "Smallest practical submitted case independent of unrelated application state, rerunnable by another person",
+    "verifiedFix": "Independent correctness oracle passes plus original application symptom and Apple/AMD controls; do not require the authors exact patch. Record reversion/workaround versus mechanism repair and any tradeoffs."
+  },
+  "metrics": {
+    "primary": "Elapsed seconds from equal-ready start to independently verified fix; correctness required",
+    "secondary": [
+      "Elapsed seconds to detection, first faulty boundary, supported cause and minimal reproduction",
+      "Active investigator seconds, separately from setup and machine waits",
+      "New custom code lines and files, including generated code; also record changed/deleted lines",
+      "Manual interventions by count and type, tool calls and operator assistance",
+      "Independent reproduction success on same inputs and hardware",
+      "Incorrect fix attempts, crashes, device loss, timeouts and unresolved cases"
+    ],
+    "setup": "Record acquisition, installation and preparation separately; do not hide total setup burden",
+    "failures": "Incorrect final fixes and timeouts are failures. Retain unsuccessful attempts and censored timings; do not average only solved cases or silently drop failures."
+  },
+  "decisionRules": {
+    "numericalThresholdsApproved": false,
+    "trialTimeLimitSeconds": null,
+    "meaningfulTimeImprovementPercent": null,
+    "completionRateNoninferiorityMargin": null,
+    "equivalenceMarginPercent": null,
+    "confirmatorySampleSize": null,
+    "confidenceLevel": null,
+    "inference": "Pilot outcomes descriptive only. Nonsignificance is not equivalence. Equivalence needs a predeclared practical margin, suitable sample size/analysis and an interval contained within that margin. Distinguish inconclusive evidence from evidence of no practically meaningful advantage."
+  },
+  "noveltyTrack": {
+    "status": "UNSTARTED",
+    "method": "For each claim link Doppler implementation/tests, version-pinned competitor code/docs, and scoped verdict. Separate checkout features from installed/published versions and measure integration work where necessary.",
+    "candidates": [
+      "Application approval of exact TargetPlan execution identity",
+      "Token inspection with exact-prefix replay and execution fingerprints",
+      "Bounded shared LoRA experiment; four fixture tokens and one update is not useful quality improvement"
+    ],
+    "verdicts": [
+      "novel within explicitly reviewed tool/version set only",
+      "shared",
+      "not proven",
+      "proposed only"
+    ],
+    "utilityDoesNotEstablishNovelty": true,
+    "universalUniquenessClaimAllowed": false
+  },
+  "allowedConclusions": [
+    "Useful but familiar",
+    "Distinctive and useful within reviewed scope",
+    "Distinctive but no demonstrated debugging advantage",
+    "No demonstrated practical advantage within a sufficiently supported comparison",
+    "Inconclusive"
+  ],
+  "ownerDecisionsRemaining": [
+    "Assign eligible cause-unfamiliar investigators, Apple operator and assessor/reproducer",
+    "Approve numerical time budget, meaningful-effect/equivalence margins and confirmatory sample/analysis plan before relevant trials"
+  ],
+  "preparerWorkRemaining": [
+    "Complete offline dependency, model and input artifacts for identical participant packets",
+    "Perform manual solution-leak and tool-compatibility audit; current automated marker scan is only a partial check",
+    "Freeze runtime/tool/hardware versions, investigator eligibility and approved decision thresholds",
+    "Timestamp/hash final protocol and lock changes before assigning cases"
+  ],
+  "state": {
+    "historicalCasePinsVerified": true,
+    "canonicalMainAncestryVerified": true,
+    "freshFetchProof": "Preparer-only record; no participant checkout uses stale aliases",
+    "currentPhysicalPreflightByE": "PASSED_INFORMED_METAL_CONTROLS_ONLY",
+    "participantPacket": "SOURCE_SNAPSHOT_ONLY_NOT_TRIAL_READY",
+    "benchmarkResults": null,
+    "advantageClaimEstablished": false,
+    "noveltyClaimEstablished": false,
+    "comparativeTrialsStarted": false,
+    "preparerSourceSnapshotBuilt": true
+  },
+  "handoff": {
+    "component": "doppler.benchmarks",
+    "intent": "preserved",
+    "acceptanceEvidence": "Draft JSON and sealed-hash validation; fresh canonical Git fetch; cause-informed physical Metal failure/fix controls. No comparative study evidence.",
+    "boundaryEffects": "none; no runtime, service, GPU or model changes"
+  }
+}
