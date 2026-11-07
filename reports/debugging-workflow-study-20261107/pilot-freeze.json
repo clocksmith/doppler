@@ -1,0 +1,33 @@
+{
+  "schema": "doppler.debugging-pilot-freeze/v1",
+  "frozenAt": "2026-11-07T22:25:40.188641+00:00",
+  "assignmentRandomSeedHex": "1a03fe6b08642001132b8c03ab6d91f0",
+  "runOrder": [
+    "standard",
+    "inspection"
+  ],
+  "arms": {
+    "standard": {
+      "root": "/private/tmp/doppler-pilot-standard-20261107",
+      "manifestSha256": "6cd822b92669a3b7d2f337132c73baf5a3e948e4410eb9b9b8da8568808ff9c1",
+      "fileCount": 7153
+    },
+    "inspection": {
+      "root": "/private/tmp/doppler-pilot-inspection-20261107",
+      "manifestSha256": "7044fcbbc2896366636bad5f50895c5f7ae18d1cca768896f1618e9ac2da9f3f",
+      "fileCount": 7153
+    }
+  },
+  "trialTimeLimitSeconds": 1800,
+  "maxWrappedCommands": 40,
+  "inference": "Descriptive feasibility only; no superiority, equivalence or unique-capability claim",
+  "investigators": "Fresh fork-none AI contexts authorized by owner; training exposure unknown",
+  "offlineLimitation": "Only wrapped subprocesses are OS-restricted; investigator tool compliance is audited, not globally enforced",
+  "historicalReleaseReplay": false,
+  "runtimeRevision": "6f94e8fe6b5d0c2c9c037c27183c9bc2226aa41b",
+  "badShaderRevision": "161e0e12e695fde30bccc6cc88ba015d4f7d4ae9",
+  "independentOracle": "Float64 dot of exact F32 activations and stored F16 weights; existing unchanged per-element tolerances",
+  "success": "Supported mechanism, submitted reproduction, F64 tests and application control pass on M3; AMD portability control assessed separately",
+  "wrongFixOrTimeout": "Failure retained, never dropped; timings censored at the limit",
+  "equivalenceOrSuperiorityThresholds": null
+}

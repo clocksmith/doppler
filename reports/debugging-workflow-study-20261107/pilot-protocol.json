@@ -1,0 +1,129 @@
+{
+  "schema": "doppler.debugging-workflow-pilot-protocol/v1",
+  "studyId": "doppler-debugging-pilot-001",
+  "status": "FROZEN_BEFORE_INVESTIGATOR_START",
+  "trialAuthorization": true,
+  "comparativeTrialsStarted": false,
+  "purpose": "Feasibility of a blinded debugging-value study; novelty is a separate review, not inferred from speed.",
+  "case": {
+    "id": "case-001",
+    "sealedPreparerSpecificationSha256": "d439eea5eada645111d769cf8071d4f742f2befa0b7dd0e521529f9afaad5b8b",
+    "revealAfter": "Data collection and blinded outcome scoring are locked",
+    "hardwareRequirement": "Physical Apple M3/Metal observer mandatory; AMD Vulkan is a portability control and does not expose this defect",
+    "sealedMetalPreflightSha256": "95a030aaf267e8b6399f816ed18b89bc34b5f30542423f0c3bb3b86c83504cc6",
+    "runtimeReplay": "Frozen 6f94e8fe current runtime with original 161e0e12 defective shader and honestly regenerated pins; no historical whole-release or signed-Capsule claim."
+  },
+  "design": {
+    "initialStudy": "Two fresh AI contexts, one per workflow, descriptive feasibility pilot only",
+    "assignment": "Run order randomized before investigator start: standard, inspection",
+    "confirmatoryStudy": "Separate preregistration with multiple bugs and investigators randomized across workflows",
+    "runtimePins": "Freeze exact installed runtime, toolchain, driver and hardware identities before starting; checkout availability is distinct from published package availability"
+  },
+  "participants": {
+    "standardInvestigator": "Fresh pilot_standard context, fork_turns:none",
+    "inspectionInvestigator": "Fresh pilot_inspection context, fork_turns:none",
+    "appleHardwareOperator": "Each investigator through audited offline wrapper; coordinator verifies outcomes",
+    "outcomeAssessor": "Fresh packet auditor later given anonymized patches for reproduction; informed coordinator assesses known mechanism",
+    "excluded": "E and all previously exposed contexts are excluded as investigators. Owner explicitly authorized fresh workspace AI agents on 2026-11-07.",
+    "modelVersion": "Inherited agent model, identifier not exposed by agent tool; training contamination unknown."
+  },
+  "blinding": {
+    "causeBlinded": "Cause withheld from fresh contexts; absence of pretraining exposure cannot be established",
+    "workflowBlinded": false,
+    "networkAccess": "DENIED for both investigator environments; preload identical allowed tools, references and documentation",
+    "history": "No Git history/remotes, answer reports or fixed shader in either packet. Current source is declared diagnostic replay.",
+    "modelContamination": "Owner-authorized fresh AI contexts supersede original draft ban on API-backed agents. AI inference is external to command sandbox. Training exposure unknown; no human-blinded or definitive comparative claim.",
+    "audit": "Marker scan, symlink audit, network/filesystem denial tests and fresh-context packet audit before trial.",
+    "offlineEnvironmentEnforcementBuilt": true,
+    "enforcementBoundary": "Wrapped subprocesses only; direct tools remain technically available and are prohibited by investigator instructions. Compliance must be assessed separately."
+  },
+  "workflows": {
+    "shared": [
+      "Identical physical Apple M3. AMD control after trials by assessor, not investigator access.",
+      "Identical failing program, model artifacts, input bytes, reference outputs and correctness tolerances",
+      "Ordinary debugger, logs, logprobs, parity checks, GPU profiler and offline reference implementation",
+      "Identical network restrictions, documentation access, setup completion and time budget"
+    ],
+    "baseline": "Competent standard debugging workflow; reasonable custom glue permitted and counted",
+    "doppler": "Same baseline plus version-pinned documented Doppler inspection, exact-prefix replay, fingerprints and semantic-boundary evidence that actually work with this case",
+    "capabilityAudit": "Before freeze, name installed entry points and verify the case can use them. Unavailable facilities remain unavailable; proposed instrumentation cannot be scored as an existing feature."
+  },
+  "milestones": {
+    "detection": "Save independently confirmed incorrect output",
+    "isolation": "Identify the first faulty boundary and support the actual mechanism; record each timestamp separately",
+    "minimalReproduction": "Smallest practical submitted case independent of unrelated application state, rerunnable by another person",
+    "verifiedFix": "Independent correctness oracle passes plus original application symptom and Apple/AMD controls; do not require the authors exact patch. Record reversion/workaround versus mechanism repair and any tradeoffs."
+  },
+  "metrics": {
+    "primary": "Elapsed seconds from equal-ready start to independently verified fix; correctness required",
+    "secondary": [
+      "Elapsed seconds to detection, first faulty boundary, supported cause and minimal reproduction",
+      "Active investigator seconds, separately from setup and machine waits",
+      "New custom code lines and files, including generated code; also record changed/deleted lines",
+      "Manual interventions by count and type, tool calls and operator assistance",
+      "Independent reproduction success on same inputs and hardware",
+      "Incorrect fix attempts, crashes, device loss, timeouts and unresolved cases"
+    ],
+    "setup": "Record acquisition, installation and preparation separately; do not hide total setup burden",
+    "failures": "Incorrect final fixes and timeouts are failures. Retain unsuccessful attempts and censored timings; do not average only solved cases or silently drop failures."
+  },
+  "decisionRules": {
+    "numericalThresholdsApproved": true,
+    "trialTimeLimitSeconds": 1800,
+    "meaningfulTimeImprovementPercent": null,
+    "completionRateNoninferiorityMargin": null,
+    "equivalenceMarginPercent": null,
+    "confirmatorySampleSize": null,
+    "confidenceLevel": null,
+    "inference": "Descriptive pilot only. Success requires mechanism/reproduction plus unchanged F64 oracle and application control. Wrong fixes and timeouts fail and remain recorded. No superiority/equivalence test or confirmatory sample authorized.",
+    "maxWrappedCommands": 40
+  },
+  "noveltyTrack": {
+    "status": "UNSTARTED",
+    "method": "For each claim link Doppler implementation/tests, version-pinned competitor code/docs, and scoped verdict. Separate checkout features from installed/published versions and measure integration work where necessary.",
+    "candidates": [
+      "Application approval of exact TargetPlan execution identity",
+      "Token inspection with exact-prefix replay and execution fingerprints",
+      "Bounded shared LoRA experiment; four fixture tokens and one update is not useful quality improvement"
+    ],
+    "verdicts": [
+      "novel within explicitly reviewed tool/version set only",
+      "shared",
+      "not proven",
+      "proposed only"
+    ],
+    "utilityDoesNotEstablishNovelty": true,
+    "universalUniquenessClaimAllowed": false
+  },
+  "allowedConclusions": [
+    "Useful but familiar",
+    "Distinctive and useful within reviewed scope",
+    "Distinctive but no demonstrated debugging advantage",
+    "No demonstrated practical advantage within a sufficiently supported comparison",
+    "Inconclusive"
+  ],
+  "ownerDecisionsRemaining": [],
+  "preparerWorkRemaining": [
+    "Receive fresh-context leak audit before trial; archive setup-only command logs; timestamp investigator starts; independently score and reproduce patches."
+  ],
+  "state": {
+    "historicalCasePinsVerified": true,
+    "canonicalMainAncestryVerified": true,
+    "freshFetchProof": "Preparer-only record; no participant checkout uses stale aliases",
+    "currentPhysicalPreflightByE": "PASSED_INFORMED_METAL_CONTROLS_ONLY",
+    "participantPacket": "PREPARED_AND_SANDBOX_PREFLIGHT_PASSED",
+    "benchmarkResults": null,
+    "advantageClaimEstablished": false,
+    "noveltyClaimEstablished": false,
+    "comparativeTrialsStarted": false,
+    "preparerSourceSnapshotBuilt": true
+  },
+  "handoff": {
+    "component": "doppler.benchmarks",
+    "intent": "preserved",
+    "acceptanceEvidence": "Frozen packet hashes; repaired and defective learned-model M3 controls; exact-prefix inspection replay; sandbox denial/GPU checks. Trial results not yet available.",
+    "boundaryEffects": "none; no runtime, service, GPU or model changes"
+  },
+  "frozenAt": "2026-11-07T22:26:26.674146+00:00",
+  "pilotFreezeSha256": "851c9fbb99f6de61b1320a5b004520e1a0fd8a33be93eefbd0e1ece687d20965"
+}
