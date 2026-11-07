@@ -20,6 +20,10 @@ execFileSync('git', ['archive', '--format=tar.gz', `--output=${archive}`, revisi
 { cwd: repository });
 command('tar', ['-xzf', archive]);
 await fs.unlink(archive);
+// Preserve normative/API docs; omit historical investigation narratives from both arms.
+for (const directory of ['docs/status', 'docs/perf-investigations', 'docs/evidence']) {
+  await fs.rm(path.join(root, directory), { recursive: true, force: true });
+}
 const shaderPath = 'src/gpu/kernels/matmul_f16w_f32a_tiled.wgsl';
 const defect = execFileSync('git', ['show', `${defectRevision}:${shaderPath}`], { cwd: repository });
 await fs.writeFile(path.join(root, shaderPath), defect);

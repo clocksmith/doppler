@@ -1,6 +1,6 @@
 {
   "schema": "doppler.debugging-pilot-freeze/v1",
-  "frozenAt": "2026-11-07T22:25:40.188641+00:00",
+  "frozenAt": "2026-11-07T22:28:29.446004+00:00",
   "assignmentRandomSeedHex": "1a03fe6b08642001132b8c03ab6d91f0",
   "runOrder": [
     "standard",
@@ -9,13 +9,13 @@
   "arms": {
     "standard": {
       "root": "/private/tmp/doppler-pilot-standard-20261107",
-      "manifestSha256": "6cd822b92669a3b7d2f337132c73baf5a3e948e4410eb9b9b8da8568808ff9c1",
-      "fileCount": 7153
+      "manifestSha256": "c02301a357904881c79a81b8e829c74498f25e67c09e442089785e379fd3e7a9",
+      "fileCount": 7068
     },
     "inspection": {
       "root": "/private/tmp/doppler-pilot-inspection-20261107",
-      "manifestSha256": "7044fcbbc2896366636bad5f50895c5f7ae18d1cca768896f1618e9ac2da9f3f",
-      "fileCount": 7153
+      "manifestSha256": "4eae976032f65410038ed0ee3b1d3649e93f60ff02693a897fb62c3251b0b5f3",
+      "fileCount": 7068
     }
   },
   "trialTimeLimitSeconds": 1800,
@@ -29,5 +29,7 @@
   "independentOracle": "Float64 dot of exact F32 activations and stored F16 weights; existing unchanged per-element tolerances",
   "success": "Supported mechanism, submitted reproduction, F64 tests and application control pass on M3; AMD portability control assessed separately",
   "wrongFixOrTimeout": "Failure retained, never dropped; timings censored at the limit",
-  "equivalenceOrSuperiorityThresholds": null
+  "equivalenceOrSuperiorityThresholds": null,
+  "supersedesPreparationFreezeAt": "2026-11-07T22:25:40.188641+00:00",
+  "pretrialAmendment": "Fresh audit found unrelated historical narratives; exclude docs/status, docs/perf-investigations, docs/evidence from both arms before investigator starts. No target-specific leak was confirmed."
 }

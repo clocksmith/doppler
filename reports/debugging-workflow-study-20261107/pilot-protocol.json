@@ -33,7 +33,7 @@
     "networkAccess": "DENIED for both investigator environments; preload identical allowed tools, references and documentation",
     "history": "No Git history/remotes, answer reports or fixed shader in either packet. Current source is declared diagnostic replay.",
     "modelContamination": "Owner-authorized fresh AI contexts supersede original draft ban on API-backed agents. AI inference is external to command sandbox. Training exposure unknown; no human-blinded or definitive comparative claim.",
-    "audit": "Marker scan, symlink audit, network/filesystem denial tests and fresh-context packet audit before trial.",
+    "audit": "Fresh audit found no confirmed case answer leak; unrelated historical narrative directories removed before investigator starts. All observations from setup/audit archived outside packets.",
     "offlineEnvironmentEnforcementBuilt": true,
     "enforcementBoundary": "Wrapped subprocesses only; direct tools remain technically available and are prohibited by investigator instructions. Compliance must be assessed separately."
   },
@@ -104,7 +104,7 @@
   ],
   "ownerDecisionsRemaining": [],
   "preparerWorkRemaining": [
-    "Receive fresh-context leak audit before trial; archive setup-only command logs; timestamp investigator starts; independently score and reproduce patches."
+    "Timestamp fresh-context investigator starts; independently score and reproduce patches."
   ],
   "state": {
     "historicalCasePinsVerified": true,
@@ -124,6 +124,6 @@
     "acceptanceEvidence": "Frozen packet hashes; repaired and defective learned-model M3 controls; exact-prefix inspection replay; sandbox denial/GPU checks. Trial results not yet available.",
     "boundaryEffects": "none; no runtime, service, GPU or model changes"
   },
-  "frozenAt": "2026-11-07T22:26:26.674146+00:00",
-  "pilotFreezeSha256": "851c9fbb99f6de61b1320a5b004520e1a0fd8a33be93eefbd0e1ece687d20965"
+  "frozenAt": "2026-11-07T22:28:29.446004+00:00",
+  "pilotFreezeSha256": "7755a066cdab73ee1a6e9d8e0cc7d7880c6156c9e766f73568ced9323772573a"
 }
