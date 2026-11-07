@@ -231,6 +231,7 @@ converter/execution-candidate-forge.js
 converter/execution-graph-transforms.d.ts
 converter/execution-graph/dtype.d.ts
 converter/execution-graph/fusion.d.ts
+converter/execution-graph/kv-storage.d.ts
 converter/execution-graph/validation.d.ts
 converter/forge-candidate-evaluation.d.ts
 converter/forge-qualification.d.ts

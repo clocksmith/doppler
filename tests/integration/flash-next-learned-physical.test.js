@@ -107,11 +107,14 @@ if (!runPath) {
       }
       let observed = null;
       let logitRows = 0;
+      const logitFrames = [];
+      if (run.captureLogitRows) assert.ok(maxTokens <= 4, 'complete-logit capture is bounded to four rows per sequence');
       const output = await pipeline.generateTokenIds('', { inputIds: input.tokens, useChatTemplate: false,
         maxTokens, temperature: 0, topK: 1, topP: 1, seed: 0, repetitionPenalty: 1,
         diagnostics, onLogits: logits => {
           assert.ok(logits.every(Number.isFinite), 'every prefill/decode logit row must be finite');
           if (observed === null) observed = Array.from(logits);
+          if (run.captureLogitRows) logitFrames.push(Float32Array.from(logits));
           logitRows++;
         } });
       assert.ok(observed?.length === manifest.architecture.vocabSize, 'complete last-position logits must be observed');
@@ -125,6 +128,7 @@ if (!runPath) {
       await fs.writeFile(prefillLogitsFile, prefillLogitsBytes);
       const row = { id, inputTokenCount: input.tokens.length, tokenId: actualId, tokenIds: Array.from(output.tokenIds), logitRows,
         prefillLogitsFile, prefillLogitsSha256: hash(prefillLogitsBytes),
+        kvStorageDtype: pipeline.kvCache.kvDtype,
         bufferPool: getBufferPool().getStats(),
         residentExpertLayers: [...pipeline.dopplerLoader.experts.keys()].filter(key => /^layer_\d+_qwen35_packed$/.test(key))
           .map(key => Number(key.split('_')[1])),
@@ -133,6 +137,15 @@ if (!runPath) {
         top1Agrees: actualId === expected.argmax[position],
         referenceTop20LogitDeltas: referenceIds.map((token, index) => ({ token,
           reference: referenceLogits[index], observed: observed[token], delta: observed[token] - referenceLogits[index] })) };
+      if (run.captureLogitRows) {
+        row.logitFrames = [];
+        for (let step = 0; step < logitFrames.length; step++) {
+          const bytes = Buffer.from(logitFrames[step].buffer);
+          const file = `${run.outputPath}.${id}.step${step}.f32`;
+          await fs.writeFile(file, bytes);
+          row.logitFrames.push({ step, shape: [manifest.architecture.vocabSize], file, sha256: hash(bytes) });
+        }
+      }
       if (run.captureLayers === true) {
         row.layers = collectLayers();
         assert.equal(captures.size, run.captureLayerIds?.length ?? manifest.architecture.numLayers, 'every requested layer must be captured');

@@ -2,6 +2,7 @@ import { getDevice } from '../device.js';
 import { createTensor } from '../tensor.js';
 import { acquireBuffer, releaseBuffer } from '../../memory/buffer-pool.js';
 import { unifiedKernelWrapper, withKernelOutput } from './kernel-execution.js';
+import { selectRuleValue } from '../../rules/rule-registry.js';
 
 // qwen4_exp QSA indexer operators (Qwen4ExpTextQSAIndexer) and attention over
 // the selected cache rows. Key caches are caller-owned buffers; every operator
@@ -243,14 +244,16 @@ async function executeIndexedAttention(target, query, keys, values, selection, o
   positive(scale, 'scale');
   if (numHeads % numKVHeads !== 0) fail('numHeads must be a multiple of numKVHeads.');
   if (headDim > 2 * WIDE_WORKGROUP) fail('headDim exceeds the indexed attention workgroup.');
+  if (options.kvDtype !== 'f16' && options.kvDtype !== 'f32') fail('indexed attention requires an explicit f16 or f32 kvDtype.');
   assertTensor(query, [numTokens, numHeads * headDim], 'attention query');
-  assertBuffer(keys, kvRows * numKVHeads * headDim * 2, 'f16 key cache');
-  assertBuffer(values, kvRows * numKVHeads * headDim * 2, 'f16 value cache');
+  const storage = selectRuleValue('kernels', 'attention', 'indexedStorage', { kvDtype: options.kvDtype });
+  assertBuffer(keys, kvRows * numKVHeads * headDim * storage.bytesPerElement, `${options.kvDtype} key cache`);
+  assertBuffer(values, kvRows * numKVHeads * headDim * storage.bytesPerElement, `${options.kvDtype} value cache`);
   assertBuffer(selection.selection, numTokens * selection.maxSelected * 4, 'selection list');
   assertBuffer(selection.meta, numTokens * 8, 'selection meta');
   const bytes = numTokens * numHeads * headDim * 4;
   return withKernelOutput(target, options.outputBuffer ?? null, bytes, 'attention_indexed_output', async (output) => {
-    await unifiedKernelWrapper('attention_indexed', target, 'f16kv',
+    await unifiedKernelWrapper('attention_indexed', target, storage.variant,
       [query, keys, values, selection.selection, selection.meta, output],
       { num_tokens: numTokens, num_heads: numHeads, num_kv_heads: numKVHeads, head_dim: headDim,
         max_selected: selection.maxSelected, scale, _pad0: 0, _pad1: 0 },

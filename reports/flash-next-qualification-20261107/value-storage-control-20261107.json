@@ -1,0 +1,33 @@
+{
+  "scope": "CPU-only V storage control at one frozen query; not a full-model candidate or acceptance",
+  "normalModelQualified": false,
+  "gpuTraceSha256": "a295d2e306e9cb360579d14b5afb7117c8a0704f51d210afb11ab3ca764e5130",
+  "cpuTraceSha256": "f3569d6ceb2ab11991d1085f3b5945aa640fde0f1e284db64518d9593b5971f9",
+  "sourceSha256": "87c27c88424cea73d5d8d9179f76a77a97e6e4249ce43ecff79a8b255fab0504",
+  "scriptSha256": "9a7cfffdc1e04d6036ec83be17958d822d274bde2c7a82460f7d73a074ff644c",
+  "layer": 15,
+  "position": 2135,
+  "tokens": 2304,
+  "torch": "2.11.0+cu130",
+  "originalSourceReplayBitExact": true,
+  "baselineGpu": {
+    "maxAbsolute": 0.00041425228118896484,
+    "rms": 1.806549789779286e-05
+  },
+  "sourceOnGpuF16Inputs": {
+    "maxAbsolute": 0.00041413307189941406,
+    "rms": 1.805782678992047e-05
+  },
+  "gpuF32ValueAgainstExistingF16Reference": {
+    "maxAbsolute": 0.00041866302490234375,
+    "rms": 5.4905659282815105e-05
+  },
+  "sourceF32ValueAgainstExistingF16Reference": {
+    "maxAbsolute": 0.0004107952117919922,
+    "rms": 5.43098622796533e-05
+  },
+  "gpuF32ValueAgainstMatchedF32Source": {
+    "maxAbsolute": 0.00011587142944335938,
+    "rms": 7.302181870158802e-06
+  }
+}

@@ -4,7 +4,7 @@ import { createTensor } from '../../../../gpu/tensor.js';
 // Attention-core runner for qwen4_exp QSA layers (attention kernel variant
 // `qsaIndexed`). The hyper-connection layer executor computes the selection
 // from the owned indexer cache before the attention call and supplies it as
-// `state.qsa`; this runner attends to the selected rows of the contiguous f16
+// `state.qsa`; this runner attends to the selected rows of the contiguous
 // KV cache, which already holds the current tokens. Main attention consumes
 // the original per-token keys and values.
 
@@ -22,7 +22,9 @@ export async function runQsaIndexedAttention(recorder, options) {
   const qsa = state?.qsa ?? null;
   if (!qsa || qsa.layerIdx !== layerIdx || !qsa.selection) fail(layerIdx, 'no indexer selection was prepared for this layer.');
   if (qsa.numTokens !== numTokens) fail(layerIdx, `selection covers ${qsa.numTokens} queries but attention has ${numTokens}.`);
-  if (cachedKDtype !== 'f16' || cachedVDtype !== 'f16') fail(layerIdx, 'indexed attention requires an f16 KV cache.');
+  if ((cachedKDtype !== 'f16' && cachedKDtype !== 'f32') || cachedKDtype !== cachedVDtype) {
+    fail(layerIdx, 'indexed attention requires matching f16 or f32 key/value storage.');
+  }
   if (kvState?.kvLayout !== 'contiguous' || (kvState.kvStart ?? 0) !== 0) fail(layerIdx, 'indexed attention requires the contiguous KV layout from row 0.');
   if (qTensor?.dtype !== 'f32') fail(layerIdx, 'indexed attention requires f32 queries.');
   if (attnSoftcap) fail(layerIdx, 'attention logit softcapping is not part of qwen4_exp QSA.');
@@ -43,5 +45,5 @@ export async function runQsaIndexedAttention(recorder, options) {
   }
   const query = createTensor(qTensor.buffer, 'f32', [numTokens, numHeads * headDim], 'qsa_attention_query');
   return recordIndexedAttention(recorder, query, cachedKTensor.buffer, cachedVTensor.buffer, qsa,
-    { numTokens, numHeads, numKVHeads, headDim, scale: attnScale, kvRows });
+    { numTokens, numHeads, numKVHeads, headDim, scale: attnScale, kvRows, kvDtype: cachedKDtype });
 }

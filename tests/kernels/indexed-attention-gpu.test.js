@@ -9,7 +9,7 @@ import { recordIndexedAttention, runIndexedAttention } from '../../src/gpu/kerne
 // Contract: attention over QSA-selected cache rows equals float64 softmax
 // attention restricted to those rows within a derived F32 bound, for the dense
 // prefix mode and the listed mode, at the qwen4_exp geometry (24 heads, 2 KV
-// heads, head dim 256, f16 KV), immediate and recorded. Excluded rows have no
+// heads, head dim 256, explicit F16/F32 KV), immediate and recorded. Excluded rows have no
 // influence. Synthetic exact inputs; not learned-weight evidence.
 const probe = await probeNodeGPU({ installFileFetchShim: true });
 if (!probe.ready) throw new Error(`Physical indexed attention check unavailable: ${probe.reason}`);
@@ -108,8 +108,6 @@ const upload = (data) => {
 };
 const results = [];
 try {
-  const keyBuffer = upload(keys.bits);
-  const valueBuffer = upload(vals.bits);
   const selection = new Uint32Array(numTokens * maxSelected);
   const meta = new Uint32Array(numTokens * 2);
   cases.forEach((entry, t) => {
@@ -120,41 +118,57 @@ try {
   });
   const selectionBuffers = { selection: upload(selection), meta: upload(meta), maxSelected };
   const q = createTensor(upload(query), 'f32', [numTokens, numHeads * headDim]);
-  const expected = cases.map((_, t) => reference(t));
-  for (const mode of ['immediate', 'recorded']) {
-    const recorder = mode === 'recorded' ? new CommandRecorder(getDevice(), 'indexed_attention_check') : null;
-    const options = { numTokens, numHeads, numKVHeads, headDim, scale, kvRows };
-    const output = recorder
-      ? await recordIndexedAttention(recorder, q, keyBuffer, valueBuffer, selectionBuffers, options)
-      : await runIndexedAttention(q, keyBuffer, valueBuffer, selectionBuffers, options);
-    owned.add(output.buffer);
-    if (recorder) await recorder.submitAndWait();
-    const actual = new Float32Array(await readBuffer(output.buffer, numTokens * numHeads * headDim * 4));
-    cases.forEach((entry, t) => {
-      let worst = 0;
-      for (let i = 0; i < numHeads * headDim; i++) {
-        const error = Math.abs(actual[t * numHeads * headDim + i] - expected[t].value[i]);
-        worst = Math.max(worst, error / expected[t].bound[i]);
+  for (const kvDtype of ['f16', 'f32']) {
+    if (kvDtype === 'f32') {
+      for (let i = 0; i < keys.values.length; i++) {
+        keys.values[i] = Math.fround(keys.values[i] + 2 ** -17);
+        vals.values[i] = Math.fround(vals.values[i] - 2 ** -16);
       }
-      assert.ok(Number.isFinite(worst) && worst <= 1, `${mode}/${entry.name}: error/bound=${worst}`);
-      results.push({ mode, case: entry.name, ratio: worst });
-    });
+    }
+    const keyBuffer = upload(kvDtype === 'f16' ? keys.bits : Float32Array.from(keys.values));
+    const valueBuffer = upload(kvDtype === 'f16' ? vals.bits : Float32Array.from(vals.values));
+    const expected = cases.map((_, t) => reference(t));
+    for (const mode of ['immediate', 'recorded']) {
+      const recorder = mode === 'recorded' ? new CommandRecorder(getDevice(), 'indexed_attention_check') : null;
+      const options = { numTokens, numHeads, numKVHeads, headDim, scale, kvRows, kvDtype };
+      const output = recorder
+        ? await recordIndexedAttention(recorder, q, keyBuffer, valueBuffer, selectionBuffers, options)
+        : await runIndexedAttention(q, keyBuffer, valueBuffer, selectionBuffers, options);
+      owned.add(output.buffer);
+      if (recorder) await recorder.submitAndWait();
+      const actual = new Float32Array(await readBuffer(output.buffer, numTokens * numHeads * headDim * 4));
+      cases.forEach((entry, t) => {
+        let worst = 0;
+        for (let i = 0; i < numHeads * headDim; i++) {
+          const error = Math.abs(actual[t * numHeads * headDim + i] - expected[t].value[i]);
+          worst = Math.max(worst, error / expected[t].bound[i]);
+        }
+        assert.ok(Number.isFinite(worst) && worst <= 1, `${mode}/${entry.name}: error/bound=${worst}`);
+        results.push({ kvDtype, mode, case: entry.name, ratio: worst });
+      });
+    }
+    // Discrimination: attending to all 2600 rows instead of the listed 2049 exceeds the bound.
+    const listed = 2;
+    const full = { ...cases[listed] };
+    cases[listed] = { name: 'all rows', count: kvRows, mode: 0, rows: null };
+    const unselected = reference(listed);
+    cases[listed] = full;
+    let separation = Infinity;
+    for (let i = 0; i < numHeads * headDim; i++) {
+      separation = Math.min(separation, expected[listed].bound[i] / Math.max(Math.abs(unselected.value[i] - expected[listed].value[i]), 1e-300));
+    }
+    assert.ok(separation < 0.5, 'the listed-mode case distinguishes selected from all rows');
+    await assert.rejects(runIndexedAttention(q, keyBuffer, valueBuffer, selectionBuffers,
+      { numTokens, numHeads, numKVHeads: 5, headDim, scale, kvRows, kvDtype }), /multiple of numKVHeads/);
+    await assert.rejects(runIndexedAttention(q, keyBuffer, valueBuffer, selectionBuffers,
+      { numTokens, numHeads, numKVHeads, headDim, scale, kvRows: kvRows * 2, kvDtype }), /key cache/);
+    if (kvDtype === 'f16') {
+      await assert.rejects(runIndexedAttention(q, keyBuffer, valueBuffer, selectionBuffers,
+        { numTokens, numHeads, numKVHeads, headDim, scale, kvRows, kvDtype: 'f32' }), /f32 key cache/);
+    }
+    await assert.rejects(runIndexedAttention(q, keyBuffer, valueBuffer, selectionBuffers,
+      { numTokens, numHeads, numKVHeads, headDim, scale, kvRows }), /kvDtype/);
   }
-  // Discrimination: attending to all 2600 rows instead of the listed 2049 exceeds the bound.
-  const listed = 2;
-  const full = { ...cases[listed] };
-  cases[listed] = { name: 'all rows', count: kvRows, mode: 0, rows: null };
-  const unselected = reference(listed);
-  cases[listed] = full;
-  let separation = Infinity;
-  for (let i = 0; i < numHeads * headDim; i++) {
-    separation = Math.min(separation, expected[listed].bound[i] / Math.max(Math.abs(unselected.value[i] - expected[listed].value[i]), 1e-300));
-  }
-  assert.ok(separation < 0.5, 'the listed-mode case distinguishes selected from all rows');
-  await assert.rejects(runIndexedAttention(q, keyBuffer, valueBuffer, selectionBuffers,
-    { numTokens, numHeads, numKVHeads: 5, headDim, scale, kvRows }), /multiple of numKVHeads/);
-  await assert.rejects(runIndexedAttention(q, keyBuffer, valueBuffer, selectionBuffers,
-    { numTokens, numHeads, numKVHeads, headDim, scale, kvRows: kvRows * 2 }), /f16 key cache/);
 } finally {
   await getDevice()?.queue.onSubmittedWorkDone();
   for (const buffer of owned) releaseBuffer(buffer);

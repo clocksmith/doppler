@@ -549,7 +549,8 @@ export interface KernelUniformValues {
   "qsa_block_keys/f32": Parameters<typeof writers2.write_qsa_block_keys_f32>[1];
   "qsa_block_scores/f32": Parameters<typeof writers2.write_qsa_block_scores_f32>[1];
   "qsa_select/u32": Parameters<typeof writers2.write_qsa_select_u32>[1];
-  "attention_indexed/f16kv": Parameters<typeof writers2.write_attention_indexed_f16kv>[1];
+  "attention_indexed/f32kv": Parameters<typeof writers2.write_attention_indexed_f32kv>[1];
+  "attention_indexed/f16kv": Parameters<typeof writers2.write_attention_indexed_f32kv>[1];
   "ple_gate/f32": Parameters<typeof writers2.write_ple_gate_f32>[1];
   "ple_conv/f32": Parameters<typeof writers2.write_ple_conv_f32>[1];
 }

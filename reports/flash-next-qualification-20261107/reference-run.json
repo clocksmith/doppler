@@ -1,0 +1,20 @@
+{
+  "scope": "Separate independent F32-KV reference; original F16 reference untouched",
+  "kvStorageDtype": "f32",
+  "argv": [
+    "/run/media/x/models/qwen38-flash-next-de4b8e4d/reference/f32kv-20261107/producer/prepare-learned-forward-reference.py",
+    "/run/media/x/models/qwen38-flash-next-de4b8e4d/source",
+    "/run/media/x/models/qwen38-flash-next-de4b8e4d/reference/f32kv-20261107/out",
+    "--dtype",
+    "float32",
+    "--artifact",
+    "/run/media/x/models/rdrr/qwen-3-8-flash-next-text-q4k-ehf16-af32",
+    "--inputs",
+    "/home/x/src/doppler-qualification-603ef2dc/artifacts/qwen38-flash-next-20261013/learned-forward-inputs.json",
+    "--sequences",
+    "short,long"
+  ],
+  "producerSha256": "f6bc0f15a6545ab1d205cfc3ec412442415220e541190b63a9c712fa238ba5b0",
+  "inputsSha256": "06a819d529593b58abd6cb27566bb835a9b91aac13a77c0c7479b7e4e7b0c378",
+  "manifestSha256": "4902a0b730a9310903b00bc0f8f587528fa1af9f37a722d2f9287bafceceec09"
+}

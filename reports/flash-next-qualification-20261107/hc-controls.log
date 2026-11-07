@@ -1,0 +1,178 @@
+[
+  {
+    "role": "attn_hc",
+    "stage": "norm",
+    "positions": [
+      1717,
+      2271,
+      2303
+    ],
+    "sourceReplayBitExact": true,
+    "total": {
+      "maxAbsolute": 4.863739013671875e-05,
+      "rms": 3.236892593273059e-06
+    },
+    "local": {
+      "maxAbsolute": 1.9073486328125e-06,
+      "rms": 8.775815604185831e-08
+    },
+    "propagated": {
+      "maxAbsolute": 4.9114227294921875e-05,
+      "rms": 3.237251250524126e-06
+    }
+  },
+  {
+    "role": "attn_hc",
+    "stage": "down",
+    "positions": [
+      1717,
+      2271,
+      2303
+    ],
+    "sourceReplayBitExact": true,
+    "total": {
+      "maxAbsolute": 0.00014543533325195312,
+      "rms": 3.021492542274762e-05
+    },
+    "local": {
+      "maxAbsolute": 1.71661376953125e-05,
+      "rms": 3.2211898913603757e-06
+    },
+    "propagated": {
+      "maxAbsolute": 0.00014448165893554688,
+      "rms": 3.044056606740839e-05
+    }
+  },
+  {
+    "role": "attn_hc",
+    "stage": "up",
+    "positions": [
+      1717,
+      2271,
+      2303
+    ],
+    "sourceReplayBitExact": true,
+    "total": {
+      "maxAbsolute": 2.384185791015625e-05,
+      "rms": 4.7109749429586975e-06
+    },
+    "local": {
+      "maxAbsolute": 4.76837158203125e-06,
+      "rms": 6.302694876094534e-07
+    },
+    "propagated": {
+      "maxAbsolute": 2.384185791015625e-05,
+      "rms": 4.700541311764229e-06
+    }
+  },
+  {
+    "role": "attn_hc",
+    "stage": "logits",
+    "positions": [
+      1717,
+      2271,
+      2303
+    ],
+    "sourceReplayBitExact": true,
+    "total": {
+      "maxAbsolute": 2.6702880859375e-05,
+      "rms": 1.0729719055008996e-05
+    },
+    "local": {
+      "maxAbsolute": 7.62939453125e-06,
+      "rms": 3.6832905534923767e-06
+    },
+    "propagated": {
+      "maxAbsolute": 2.288818359375e-05,
+      "rms": 9.71000947907846e-06
+    }
+  },
+  {
+    "role": "mlp_hc",
+    "stage": "norm",
+    "positions": [
+      1717,
+      2271,
+      2303
+    ],
+    "sourceReplayBitExact": true,
+    "total": {
+      "maxAbsolute": 4.00543212890625e-05,
+      "rms": 3.859569491339813e-06
+    },
+    "local": {
+      "maxAbsolute": 9.5367431640625e-07,
+      "rms": 7.976462899789808e-08
+    },
+    "propagated": {
+      "maxAbsolute": 3.981590270996094e-05,
+      "rms": 3.859101704159636e-06
+    }
+  },
+  {
+    "role": "mlp_hc",
+    "stage": "down",
+    "positions": [
+      1717,
+      2271,
+      2303
+    ],
+    "sourceReplayBitExact": true,
+    "total": {
+      "maxAbsolute": 9.918212890625e-05,
+      "rms": 2.006341107977677e-05
+    },
+    "local": {
+      "maxAbsolute": 1.430511474609375e-05,
+      "rms": 3.239433739974198e-06
+    },
+    "propagated": {
+      "maxAbsolute": 9.5367431640625e-05,
+      "rms": 2.030240725680066e-05
+    }
+  },
+  {
+    "role": "mlp_hc",
+    "stage": "up",
+    "positions": [
+      1717,
+      2271,
+      2303
+    ],
+    "sourceReplayBitExact": true,
+    "total": {
+      "maxAbsolute": 1.52587890625e-05,
+      "rms": 3.7577394648680856e-06
+    },
+    "local": {
+      "maxAbsolute": 4.291534423828125e-06,
+      "rms": 4.982783850211984e-07
+    },
+    "propagated": {
+      "maxAbsolute": 1.621246337890625e-05,
+      "rms": 3.7463761491174932e-06
+    }
+  },
+  {
+    "role": "mlp_hc",
+    "stage": "logits",
+    "positions": [
+      1717,
+      2271,
+      2303
+    ],
+    "sourceReplayBitExact": true,
+    "total": {
+      "maxAbsolute": 3.4332275390625e-05,
+      "rms": 1.2789190164287036e-05
+    },
+    "local": {
+      "maxAbsolute": 7.510185241699219e-06,
+      "rms": 3.5632163152990433e-06
+    },
+    "propagated": {
+      "maxAbsolute": 3.0517578125e-05,
+      "rms": 1.1936081256796051e-05
+    }
+  }
+]

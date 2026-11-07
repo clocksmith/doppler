@@ -1,0 +1,28 @@
+{
+  "scope": "CPU-only exact-dot diagnostic, no expert replacement or acceptance change",
+  "layer": 25,
+  "position": 1717,
+  "gpuSha256": "4c4367d68d2dd41e15868d824851c6f7357acfecbcfa41609a95792355e7b429",
+  "comparisonSha256": "681bcb5f631327583b7d958cd55de6cc45e85dce4b4059a25db9015eb09d81c8",
+  "parentSha256": "06b9300753f65574477b66f45a0c0fce6474e2112a3f9d901b0af22371037073",
+  "manifestSha256": "4902a0b730a9310903b00bc0f8f587528fa1af9f37a722d2f9287bafceceec09",
+  "scriptSha256": "68abbbb887c9c33a2e928e7843c371069b307ced4c17cbf2d686fdac8bccba6f",
+  "weightSha256": "4cca2b05519d9331e694cf6245e0e16058b4f6a4cf12c0ffde391c25134d35f2",
+  "rows": [
+    {
+      "expert": 330,
+      "sourceStored": -4.263555526733398,
+      "gpuStored": -4.263556003570557,
+      "sourceInputExactDot": -4.263555528149498,
+      "gpuInputExactDot": -4.263555822015153
+    },
+    {
+      "expert": 493,
+      "sourceStored": -4.263553619384766,
+      "gpuStored": -4.263558387756348,
+      "sourceInputExactDot": -4.263554013897025,
+      "gpuInputExactDot": -4.2635585238089675
+    }
+  ],
+  "inputMaxAbsolute": 1.4781951904296875e-05
+}

@@ -1,0 +1,48 @@
+{
+  "scope": "Actual public-API short chat smoke, not long-context or full-model qualification",
+  "runSha256": "c5637aea68502b8b350d0c65d0958bbedb714e99f4c8350ca90ab52fb3e72e26",
+  "scriptSha256": "0d1f30654a6ef117d4a831330fc501952985fb38149a0138209f4efbc959e00d",
+  "manifestSha256": "4902a0b730a9310903b00bc0f8f587528fa1af9f37a722d2f9287bafceceec09",
+  "rows": [
+    {
+      "id": "capital",
+      "content": "Paris",
+      "usage": {
+        "promptTokens": 26,
+        "completionTokens": 2,
+        "totalTokens": 28
+      },
+      "elapsedMs": 10187.673582,
+      "generationConfigHash": "sha256:f4860ef29d8c2f8699def16ada5fbd8c58d1d1e5a740a31b4deeed52bb3e7aef",
+      "passed": true
+    },
+    {
+      "id": "arithmetic",
+      "content": "42",
+      "usage": {
+        "promptTokens": 28,
+        "completionTokens": 3,
+        "totalTokens": 31
+      },
+      "elapsedMs": 11988.66374,
+      "generationConfigHash": "sha256:f4860ef29d8c2f8699def16ada5fbd8c58d1d1e5a740a31b4deeed52bb3e7aef",
+      "passed": true
+    },
+    {
+      "id": "translation",
+      "content": "Bonjour",
+      "usage": {
+        "promptTokens": 26,
+        "completionTokens": 2,
+        "totalTokens": 28
+      },
+      "elapsedMs": 10331.233522999999,
+      "generationConfigHash": "sha256:f4860ef29d8c2f8699def16ada5fbd8c58d1d1e5a740a31b4deeed52bb3e7aef",
+      "passed": true
+    }
+  ],
+  "gpuErrors": [],
+  "fullModelQualified": false,
+  "completed": true,
+  "cleanupFailures": []
+}

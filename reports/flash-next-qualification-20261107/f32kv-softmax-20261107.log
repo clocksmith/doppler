@@ -1,0 +1,41 @@
+Warning: maxDynamicUniformBuffersPerPipelineLayout artificially reduced from 500000 to 16 to fit dynamic offset allocation limit.
+Warning: maxDynamicStorageBuffersPerPipelineLayout artificially reduced from 500000 to 16 to fit dynamic offset allocation limit.
+[GPU] amd rdna-3, f16/subgroups, 4.0GB, submit probe: 0.9ms
+{"test":"indexed-attention-gpu","adapter":{"vendor":"amd","architecture":"rdna-3","device":"radeon-8060s-graphics-radv-strix-halo-","description":"radv: Mesa 26.0.3-1ubuntu1","subgroupMinSize":32,"subgroupMaxSize":64},"results":[{"kvDtype":"f16","mode":"immediate","case":"dense prefix","ratio":0.0009165233006428094},{"kvDtype":"f16","mode":"immediate","case":"dense at limit","ratio":0.00019079978540610253},{"kvDtype":"f16","mode":"immediate","case":"listed sparse","ratio":0.00024138539342975735},{"kvDtype":"f16","mode":"recorded","case":"dense prefix","ratio":0.0009165233006428094},{"kvDtype":"f16","mode":"recorded","case":"dense at limit","ratio":0.00019079978540610253},{"kvDtype":"f16","mode":"recorded","case":"listed sparse","ratio":0.00024138539342975735},{"kvDtype":"f32","mode":"immediate","case":"dense prefix","ratio":0.0007588183300333779},{"kvDtype":"f32","mode":"immediate","case":"dense at limit","ratio":0.00017197067844288227},{"kvDtype":"f32","mode":"immediate","case":"listed sparse","ratio":0.00024673673112851364},{"kvDtype":"f32","mode":"recorded","case":"dense prefix","ratio":0.0007588183300333779},{"kvDtype":"f32","mode":"recorded","case":"dense at limit","ratio":0.00017197067844288227},{"kvDtype":"f32","mode":"recorded","case":"listed sparse","ratio":0.00024673673112851364}],"scope":"Physical indexed attention arithmetic on synthetic exact inputs; no learned weights or timing"}
+Warning: maxDynamicUniformBuffersPerPipelineLayout artificially reduced from 500000 to 16 to fit dynamic offset allocation limit.
+Warning: maxDynamicStorageBuffersPerPipelineLayout artificially reduced from 500000 to 16 to fit dynamic offset allocation limit.
+[GPU] amd rdna-3, f16/subgroups, 4.0GB, submit probe: 0.6ms
+[472.4ms][ExecutionV1] Capability transforms applied: [widenAttentionKvToF32] (Explicit Flash-Next F32 KV candidate preserves Q4K experts, F16 stored weights and existing F32 projection arithmetic; only attention-cache readers widen. No qualification of the F16 KV lane is implied.)
+[476.3ms][Pipeline] Execution v1 enabled (steps=64, kernelPathInline=yes, pipelineInline=no, transforms=[widenAttentionKvToF32])
+[476.4ms][Config] Using manifest-first config (source of truth)
+[481.8ms][Pipeline] Resolved session applied (qwen-3-8-flash-next-text-q4k-ehf16-af32): batchSize=1, stopCheckMode=per-token, readbackInterval=1, disableCommandBatching=true
+[483.0ms][Pipeline] KernelPath: qwen-3-8-flash-next-text-q4k-ehf16-af32-execution-inline-f32kv-be0896155f2e (26 decode steps, 14 kernels, source=config)
+[483.4ms][Pipeline] 48L/2560H/24heads (256dim), MoE(512x10), kernelPath=qwen-3-8-flash-next-text-q4k-ehf16-af32-execution-inline-f32kv-be0896155f2e
+[483.8ms][Tokenizer] Loading bundled tokenizer from tokenizer.json
+[587.9ms][Tokenizer] HuggingFace model.type="BPE", using type="bpe"
+[708.6ms][Tokenizer] Loaded HuggingFace 248077 tokens (bpe), 33 special patterns, 247587 merges
+[708.9ms][Pipeline] Tokenizer vocabSize=248077 differs from model=248320, using model size
+[767.5ms][Pipeline] KV cache allocated: kvDtype=f32, maxSeqLen=32768, layout=contiguous, modelMaxSeqLen=262144, requestedKvDtype=f32, requestedMaxSeqLen=32768
+[769.8ms][Pipeline] Execution plan: active=primary, dtype=f32, kernelPath=qwen-3-8-flash-next-text-q4k-ehf16-af32-execution-inline-f32kv-be0896155f2e
+[1037.6ms][ShardCache] Custom shard loader configured
+[1037.9ms][Loader] Initializing...
+[1089.3ms][HeapManager] Allocated segment 0: 1024MB
+[1089.5ms][HeapManager] Segmented heap: 1GB per segment
+[1089.5ms][HeapManager] Initialized with strategy: SEGMENTED
+[1089.6ms][Loader] Initialized (f16, subgroups)
+[1090.1ms][Loader] Loading: qwen-3-8-flash-next-text-q4k-ehf16-af32
+[1091.1ms][Loader] [0.0s] Memory (start): | RSS=351.02 MB (heap=75.03 MB/126.18 MB, external=1.03 GB, arrayBuffers=1.02 GB) | GPU=0 B (0 active, 0 pooled, peak=0 B) | ShardCache=0 B (0 shards) | Layers=0, GPUBuffers=0
+[1576.8ms][Loader] Embeddings tensor loaded: name=model.language_model.embed_tokens.weight, hasShape=true, shape=[248320,2560], isWeightBuffer=true
+[1577.1ms][Loader] Layers: 0-47
+[7492.9ms][Loader] Layers: 48 complete (5.92s)
+[9313.9ms][Loader] Complete: 8.11 GB in 8.19s (1014.12 MB/s)
+[9316.0ms][Loader] [8.2s] Memory (complete): | RSS=717.53 MB (heap=270.16 MB/304.43 MB, external=1.08 GB, arrayBuffers=1.07 GB) | GPU=9.56 GB (1192 active, 7 pooled, peak=9.56 GB) | ShardCache=0 B (0 shards) | Layers=48, GPUBuffers=1192
+[9345.8ms][Pipeline] Model loaded successfully (8876ms)
+[9377.9ms][KernelSelect] matmul variant=f32_row_subgroup reason=path_override
+[9458.4ms][KernelSelect] matmul variant=q4_fused_widetile reason=path_override_f16_fallthrough
+[9458.7ms][KernelSelect] matmul variant=f16w_f32a_tiled reason=path_override_fallback
+[9468.8ms][KernelSelect] matmul variant=f32 reason=path_override
+[171086.7ms][KernelSelect] matmul variant=f16w_f32a reason=path_override
+{"id":"long","tokenId":7920,"text":"hidden","top1Agrees":true}
+[171166.3ms][ExpertCache] Cache cleared
+[171173.9ms][Pipeline] Unloaded

@@ -36,7 +36,7 @@ const MODEL_IDENTITY_KEYS = new Set(['modelId', 'manifestModelType']);
 const FORBIDDEN_MODEL_IDENTITY_OPERATORS = new Set(['contains', 'startsWith', 'endsWith', 'neq']);
 const ALLOWED_MODEL_IDENTITY_OPERATORS = new Set(['eq', 'in']);
 const PLATFORM_KEYS = new Set(['platformVendor', 'platformId', 'platformArchitecture']);
-const F32_TRANSFORMS = new Set(['widenToF32Activations', 'widenToF32CorrectnessFallback']);
+const F32_TRANSFORMS = new Set(['widenToF32Activations', 'widenToF32CorrectnessFallback', 'widenAttentionKvToF32']);
 const F16_TRANSFORMS = new Set([
   'narrowToF16Activations',
   'useQwenF16PrimaryMatmuls',
@@ -195,6 +195,13 @@ function validateKind(rule, index, errors) {
       }
       break;
     case 'explicit-lane':
+      if (rule.transforms.includes('widenAttentionKvToF32')) {
+        if (match.kvDtype !== 'f32' || !matchHasModelIdentity(match) || match.hasF16 !== true
+          || rule.dtypeEffect !== 'widen-to-f32' || rule.transforms.length !== 1) {
+          errors.push(`${label}: explicit KV widening requires exact model identity, kvDtype=f32, hasF16=true, widen-to-f32 and only widenAttentionKvToF32`);
+        }
+        break;
+      }
       if (
         rule.dtypeEffect === 'selective-f16'
           ? (match.activationDtype !== 'f16' && match.requestedActivationDtype !== 'f16')
@@ -328,13 +335,14 @@ async function readPolicy() {
   return JSON.parse(await fs.readFile(POLICY_ABSOLUTE_PATH, 'utf8'));
 }
 
-export async function buildCapabilityTransformPolicyReport() {
+export async function buildCapabilityTransformPolicyReport(providedPolicy) {
   const errors = [];
-  const policy = await readPolicy();
+  const policy = providedPolicy === undefined ? await readPolicy() : providedPolicy;
+  const policyPath = providedPolicy === undefined ? POLICY_PATH : null;
   if (!isPlainObject(policy)) {
     return {
       ok: false,
-      policyPath: POLICY_PATH,
+      policyPath,
       rules: 0,
       kinds: {},
       errors: ['policy must be an object'],
@@ -382,7 +390,7 @@ export async function buildCapabilityTransformPolicyReport() {
 
   return {
     ok: errors.length === 0,
-    policyPath: POLICY_PATH,
+    policyPath,
     rules: rules.length,
     kinds,
     errors,

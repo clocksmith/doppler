@@ -28,3 +28,20 @@ assert.equal(
 );
 
 console.log('capability-transform-policy-contract.test: ok');
+
+// The explicit F32-KV extension must retain exact scope and dtype authority.
+const laneIndex = policy.capabilityTransforms.findIndex(row => row.transforms.includes('widenAttentionKvToF32'));
+assert.ok(laneIndex >= 0);
+for (const mutate of [
+  row => { delete row.match.modelId; },
+  row => { delete row.match.kvDtype; },
+  row => { row.match.hasF16 = false; },
+  row => { row.dtypeEffect = 'none'; },
+  row => { row.transforms.push('widenToF32Activations'); },
+]) {
+  const invalid = structuredClone(policy);
+  mutate(invalid.capabilityTransforms[laneIndex]);
+  const refused = await buildCapabilityTransformPolicyReport(invalid);
+  assert.equal(refused.ok, false, 'explicit KV widening cannot broaden its identity, dtype or transform scope');
+  assert.ok(refused.errors.some(error => error.includes('explicit KV widening')));
+}

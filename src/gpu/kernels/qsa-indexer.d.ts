@@ -62,7 +62,9 @@ export interface IndexedAttentionOptions {
   numKVHeads: number;
   headDim: number;
   scale: number;
-  /** Rows present in the f16 KV cache buffers. */
+  /** Explicit element type of both caller-owned contiguous cache buffers. */
+  kvDtype: 'f16' | 'f32';
+  /** Rows present in the KV cache buffers. */
   kvRows: number;
   outputBuffer?: GPUBuffer | null;
 }

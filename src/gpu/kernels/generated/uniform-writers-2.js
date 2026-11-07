@@ -479,7 +479,7 @@ export function write_qsa_select_u32(view, values, kernel) {
   view.setUint32(28, 0, true);
 }
 
-export function write_attention_indexed_f16kv(view, values, kernel) {
+export function write_attention_indexed_f32kv(view, values, kernel) {
   writeU32(view, 0, values["num_tokens"], kernel, "num_tokens");
   writeU32(view, 4, values["num_heads"], kernel, "num_heads");
   writeU32(view, 8, values["num_kv_heads"], kernel, "num_kv_heads");

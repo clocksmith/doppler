@@ -4,6 +4,14 @@
   "source": "doppler",
   "capabilityTransforms": [
     {
+      "kind": "explicit-lane",
+      "dtypeEffect": "widen-to-f32",
+      "match": { "modelId": "qwen-3-8-flash-next-text-q4k-ehf16-af32", "kvDtype": "f32", "hasF16": true },
+      "transforms": ["widenAttentionKvToF32"],
+      "reason": "Explicit Flash-Next F32 KV candidate preserves Q4K experts, F16 stored weights and existing F32 projection arithmetic; only attention-cache readers widen. No qualification of the F16 KV lane is implied.",
+      "evidence": ["tests/integration/flash-next-f32kv-policy.test.js", "tests/kernels/indexed-attention-gpu.test.js"]
+    },
+    {
       "kind": "lane-mismatch-guard",
       "dtypeEffect": "fail-closed",
       "match": {

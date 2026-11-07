@@ -37293,7 +37293,7 @@
    }
   },
   "attention_indexed": {
-   "description": "Attention over QSA-selected cache rows (dense prefix or listed rows) with f16 KV and f32 queries/output",
+   "description": "Attention over QSA-selected cache rows (dense prefix or listed rows) with explicit f16/f32 KV and f32 queries/output",
    "baseBindings": [
     {
      "index": 0,
@@ -37379,6 +37379,22 @@
     ]
    },
    "variants": {
+    "f32kv": {
+     "wgsl": "attention_indexed.wgsl",
+     "entryPoint": "main",
+     "workgroup": [256,1,1],
+     "requires": [],
+     "outputDtype": "f32",
+     "wgslOverrides": {
+      "WORKGROUP_SIZE": 256
+     },
+     "reachability": {
+      "status": "unused",
+      "inlineConfigs": [],
+      "ruleChains": [],
+      "wgslOnDisk": true
+     }
+    },
     "f16kv": {
      "wgsl": "attention_indexed_f16kv.wgsl",
      "entryPoint": "main",

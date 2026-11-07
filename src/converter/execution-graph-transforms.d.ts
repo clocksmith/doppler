@@ -289,6 +289,7 @@ export declare const TRANSFORMS: Record<string, ExecutionGraphTransform>;
 
 /** F16→F32 correctness fallback when the target's f16 kernel is absent. */
 export declare const widenToF32CorrectnessFallback: ExecutionGraphTransform;
+export declare const widenAttentionKvToF32: ExecutionGraphTransform;
 
 /** Narrow pipeline activations from F32 back to F16 where safe. */
 export declare const narrowToF16Activations: ExecutionGraphTransform;

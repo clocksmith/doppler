@@ -1,0 +1,53 @@
+TAP version 13
+# Subtest: partial-layer failure restores KV, recurrent, indexer, n-gram and convolution state together; next call works
+ok 1 - partial-layer failure restores KV, recurrent, indexer, n-gram and convolution state together; next call works
+  ---
+  duration_ms: 1.997542
+  type: 'test'
+  ...
+# Subtest: abort during the operation rolls back before allowing reuse
+ok 2 - abort during the operation rolls back before allowing reuse
+  ---
+  duration_ms: 0.342917
+  type: 'test'
+  ...
+# Subtest: nested prefill chunks share a transaction and a later chunk failure restores the initial prefix
+ok 3 - nested prefill chunks share a transaction and a later chunk failure restores the initial prefix
+  ---
+  duration_ms: 0.229375
+  type: 'test'
+  ...
+# Subtest: late cancellation releases a completed GPU result that was never transferred to the caller
+ok 4 - late cancellation releases a completed GPU result that was never transferred to the caller
+  ---
+  duration_ms: 0.300041
+  type: 'test'
+  ...
+# Subtest: unsupported modes fail before mutation and snapshots fail before replacing KV
+ok 5 - unsupported modes fail before mutation and snapshots fail before replacing KV
+  ---
+  duration_ms: 0.470167
+  type: 'test'
+  ...
+# Subtest: closing waits for a pending row read and repeated closes share that completion
+ok 6 - closing waits for a pending row read and repeated closes share that completion
+  ---
+  duration_ms: 1.968583
+  type: 'test'
+  ...
+# qsa query view: canonical and normalized-head views preserve bytes; unrelated geometry rejects
+# Subtest: tests/inference/qsa-query-view.test.js
+ok 2 - tests/inference/qsa-query-view.test.js
+  ---
+  duration_ms: 45.478958
+  type: 'test'
+  ...
+1..7
+# tests 7
+# suites 0
+# pass 7
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 269.516042

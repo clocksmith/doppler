@@ -1,0 +1,23 @@
+{
+  "id": "profiles/flash-next-routed-f32kv-qualification",
+  "name": "Flash-Next selected-expert F32 KV qualification",
+  "description": "Explicit F32 KV candidate with bounded routed experts; independent reference required and no promotion of the F16 KV lane.",
+  "intent": "investigate",
+  "compatibleIntents": [
+    "investigate",
+    "verify"
+  ],
+  "stability": "experimental",
+  "owner": "doppler-core",
+  "createdAtUtc": "2026-11-07T00:00:00Z",
+  "extends": "profiles/flash-next-routed-qualification",
+  "runtime": {
+    "inference": {
+      "session": {
+        "kvcache": {
+          "kvDtype": "f32"
+        }
+      }
+    }
+  }
+}

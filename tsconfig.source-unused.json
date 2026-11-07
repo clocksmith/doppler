@@ -186,6 +186,7 @@
     "src/loader/experts/routed-expert-plan.js",
     "src/loader/experts/routed-expert-cache.js",
     "src/inference/pipelines/text/moe/routed-expert-chunks.js",
-    "src/loader/experts/loader-bindings.js"
+    "src/loader/experts/loader-bindings.js",
+    "src/converter/execution-graph/kv-storage.js"
   ]
 }

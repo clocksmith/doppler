@@ -1,0 +1,43 @@
+[414.1ms][doppler] Resolving model
+Warning: maxDynamicUniformBuffersPerPipelineLayout artificially reduced from 500000 to 16 to fit dynamic offset allocation limit.
+Warning: maxDynamicStorageBuffersPerPipelineLayout artificially reduced from 500000 to 16 to fit dynamic offset allocation limit.
+[457.2ms][doppler] Fetching manifest
+[GPU] amd rdna-3, f16/subgroups, 4.0GB, submit probe: 0.5ms
+[716.2ms][doppler] Loading weights
+[721.3ms][ExecutionV1] Capability transforms applied: [widenAttentionKvToF32] (Explicit Flash-Next F32 KV candidate preserves Q4K experts, F16 stored weights and existing F32 projection arithmetic; only attention-cache readers widen. No qualification of the F16 KV lane is implied.)
+[725.1ms][Pipeline] Execution v1 enabled (steps=64, kernelPathInline=yes, pipelineInline=no, transforms=[widenAttentionKvToF32])
+[725.1ms][Config] Using manifest-first config (source of truth)
+[730.0ms][Pipeline] Resolved session applied (qwen-3-8-flash-next-text-q4k-ehf16-af32): batchSize=1, stopCheckMode=per-token, readbackInterval=1, disableCommandBatching=true
+[731.1ms][Pipeline] KernelPath: qwen-3-8-flash-next-text-q4k-ehf16-af32-execution-inline (26 decode steps, 13 kernels, source=execution-v1)
+[731.7ms][Pipeline] 48L/2560H/24heads (256dim), MoE(512x10), kernelPath=qwen-3-8-flash-next-text-q4k-ehf16-af32-execution-inline
+[732.1ms][Tokenizer] Loading bundled tokenizer from tokenizer.json
+[831.6ms][Tokenizer] HuggingFace model.type="BPE", using type="bpe"
+[984.6ms][Tokenizer] Loaded HuggingFace 248077 tokens (bpe), 33 special patterns, 247587 merges
+[984.9ms][Pipeline] Tokenizer vocabSize=248077 differs from model=248320, using model size
+[993.4ms][Pipeline] KV cache allocated: kvDtype=f32, maxSeqLen=4096, layout=contiguous, modelMaxSeqLen=262144, requestedKvDtype=f32, requestedMaxSeqLen=4096
+[995.7ms][Pipeline] Execution plan: active=primary, dtype=f32, kernelPath=qwen-3-8-flash-next-text-q4k-ehf16-af32-execution-inline
+[1126.0ms][ShardCache] Custom shard loader configured
+[1126.2ms][Loader] Initializing...
+[1150.2ms][HeapManager] Allocated segment 0: 1024MB
+[1150.4ms][HeapManager] Segmented heap: 1GB per segment
+[1150.4ms][HeapManager] Initialized with strategy: SEGMENTED
+[1150.4ms][Loader] Initialized (f16, subgroups)
+[1150.9ms][Loader] Loading: qwen-3-8-flash-next-text-q4k-ehf16-af32
+[1152.0ms][Loader] [0.0s] Memory (start): | RSS=328.63 MB (heap=75.51 MB/120.52 MB, external=1.01 GB, arrayBuffers=1.01 GB) | GPU=0 B (0 active, 0 pooled, peak=0 B) | ShardCache=0 B (0 shards) | Layers=0, GPUBuffers=0
+[1501.9ms][Loader] Embeddings tensor loaded: name=model.language_model.embed_tokens.weight, hasShape=true, shape=[248320,2560], isWeightBuffer=true
+[1502.2ms][Loader] Layers: 0-47
+[3727.2ms][Loader] Layers: 48 complete (2.22s)
+[4039.1ms][Loader] Complete: 8.11 GB in 2.86s (2.83 GB/s)
+[4041.3ms][Loader] [2.9s] Memory (complete): | RSS=451.58 MB (heap=86.81 MB/120.77 MB, external=1.08 GB, arrayBuffers=1.08 GB) | GPU=9.56 GB (1192 active, 7 pooled, peak=9.56 GB) | ShardCache=0 B (0 shards) | Layers=48, GPUBuffers=1192
+[4054.3ms][Pipeline] Model loaded successfully (3335ms)
+[4057.1ms][doppler] Model ready
+[4080.6ms][KernelSelect] matmul variant=f32 reason=path_override
+[4098.9ms][KernelSelect] matmul variant=q4_fused_widetile reason=path_override_f16_fallthrough
+[4099.2ms][KernelSelect] matmul variant=f16w_f32a reason=path_override_fallback
+[13050.3ms][KernelSelect] matmul variant=q4_fused_gemv reason=path_override_f16_fallthrough
+[13050.5ms][KernelSelect] matmul variant=gemv_subgroup reason=gemv
+{"id":"capital","content":"Paris","usage":{"promptTokens":26,"completionTokens":2,"totalTokens":28},"elapsedMs":10187.673582,"generationConfigHash":"sha256:f4860ef29d8c2f8699def16ada5fbd8c58d1d1e5a740a31b4deeed52bb3e7aef","passed":true}
+{"id":"arithmetic","content":"42","usage":{"promptTokens":28,"completionTokens":3,"totalTokens":31},"elapsedMs":11988.66374,"generationConfigHash":"sha256:f4860ef29d8c2f8699def16ada5fbd8c58d1d1e5a740a31b4deeed52bb3e7aef","passed":true}
+{"id":"translation","content":"Bonjour","usage":{"promptTokens":26,"completionTokens":2,"totalTokens":28},"elapsedMs":10331.233522999999,"generationConfigHash":"sha256:f4860ef29d8c2f8699def16ada5fbd8c58d1d1e5a740a31b4deeed52bb3e7aef","passed":true}
+[36580.5ms][ExpertCache] Cache cleared
+[36589.8ms][Pipeline] Unloaded

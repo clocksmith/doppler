@@ -226,6 +226,7 @@ export function removeSubgroups(graph, ctx) {
 // lane. Online subgroup programs retain their topology with F32 KV storage;
 // tiled fixed-head programs use the generic F32 programs; output-gated and head-512 programs stay unmapped and fail closed.
 export const ATTENTION_F16KV_TO_F32_ENTRIES = Object.freeze([
+  ['attention_indexed_f16kv.wgsl', 'attention_indexed.wgsl'],
   ['attention_decode_online_f16kv.wgsl', 'attention_decode_online.wgsl'],
   ['attention_decode_chunked_f16kv.wgsl', 'attention_streaming.wgsl'],
   ['attention_decode_online_head256_f16kv.wgsl', 'attention_decode_online.wgsl'],

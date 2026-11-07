@@ -33,10 +33,10 @@ export function assertHyperConnectionLoad(state) {
   const session = state.runtimeConfig.inference.session;
   if (!state.useGPU || state.modelPartition || state.layerPipelinePlan || state.lora || state.manifest?.draftModel
     || state.runtimeConfig.inference.compute.activationDtype !== 'f32'
-    || session.kvcache?.kvDtype !== 'f16' || session.kvcache?.layout !== 'contiguous'
+    || (session.kvcache?.kvDtype !== 'f16' && session.kvcache?.kvDtype !== 'f32') || session.kvcache?.layout !== 'contiguous'
     || session.decodeLoop?.wholeTokenProgram === true || session.decodeLoop?.batchSize !== 1
     || state.executionV1State?.fallbackKernelPath) {
-    throw new Error('[HyperConnection] Requires unpartitioned f32 text execution, contiguous f16 KV storage and batchSize=1, without whole-token replay, draft models or layer-plan/LoRA overrides.');
+    throw new Error('[HyperConnection] Requires unpartitioned f32 text execution, contiguous f16/f32 KV storage and batchSize=1, without whole-token replay, draft models or layer-plan/LoRA overrides.');
   }
 }
 

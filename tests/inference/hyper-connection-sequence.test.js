@@ -129,6 +129,11 @@ await test('unsupported modes fail before mutation and snapshots fail before rep
     const settings = { kvcache: { kvDtype: 'f16', layout: 'contiguous' }, decodeLoop: { batchSize: 1 } };
     const host = { ...f.state, useGPU: true, runtimeConfig: { inference: { compute: { activationDtype: 'f32' }, session: settings } } };
     assert.doesNotThrow(() => assertHyperConnectionLoad(host));
+    settings.kvcache.kvDtype = 'f32';
+    assert.doesNotThrow(() => assertHyperConnectionLoad(host));
+    settings.kvcache.kvDtype = 'int8';
+    assert.throws(() => assertHyperConnectionLoad(host), /contiguous f16\/f32/);
+    settings.kvcache.kvDtype = 'f16';
     settings.decodeLoop.batchSize = 2;
     assert.throws(() => assertHyperConnectionLoad(host), /batchSize=1/);
   } finally { await f.close(); }

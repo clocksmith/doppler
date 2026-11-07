@@ -78,7 +78,7 @@ See [the runtime contract](../config.md#whole-token-replay-windows).
 | --- | --- | --- |
 | `hardware-compatibility` | Missing hardware feature adaptation (`hasF16=false`, `hasSubgroups=false`) | no model/platform match |
 | `runtime-session-compatibility` | Resolved session compatibility such as `kvDtype=f32` | no model/platform match |
-| `explicit-lane` | Requested f16 or selective-f16 runtime lane | exact model/list or generic `requiresF16ActivationNarrowing=true` |
+| `explicit-lane` | Requested f16/selective-f16 lane, or explicit F32 KV storage preserving weight formats | F16: exact model/list or generic `requiresF16ActivationNarrowing=true`; F32 KV: exact model/list, `kvDtype=f32`, `hasF16=true`, only `widenAttentionKvToF32` |
 | `platform-workaround` | Known platform bug workaround | exact platform plus exact model/list and evidence |
 | `lane-mismatch-guard` | Fail closed on manifest/profile lane mismatch | exact model/list |
 | `capability-optimization` | Positive capability optimization without dtype change | exact model/list and positive capability |

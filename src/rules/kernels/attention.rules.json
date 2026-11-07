@@ -1,4 +1,8 @@
 {
+  "indexedStorage": [
+    { "match": { "kvDtype": "f16" }, "value": { "variant": "f16kv", "bytesPerElement": 2 } },
+    { "match": { "kvDtype": "f32" }, "value": { "variant": "f32kv", "bytesPerElement": 4 } }
+  ],
   "tier": [
     { "match": { "canSubgroup": true }, "value": "subgroup" },
     { "match": { "canLarge": true }, "value": "tiled_large" },

@@ -1,0 +1,15 @@
+{
+  "scope": "Measured existing participant and independent local experimental operator",
+  "checkedAt": "2026-11-07T13:58:59.075153+00:00",
+  "participant": {
+    "unit": "reploid-qwen27b-0633-20261104.service",
+    "ActiveState": "active",
+    "MainPID": "3399279"
+  },
+  "ttmPagesLimit": "16099953",
+  "localOperatorPid": 2293622,
+  "localOperatorCommand": "node reports/flash-next-qualification-20261107/serve-local.js /run/media/x/models/qwen38-flash-next-de4b8e4d/qualify/f32kv-local-serve-20261107.json ",
+  "localOperatorStartTimeTicks": "32419895",
+  "localOperatorConfigSha256": "9b725aa2dcc929e44ecddff2b5a2e35a47a7263901f2e5524228760cd2aef52a",
+  "localOperatorScriptSha256": "cecbaca32a4f13adee0fe245d0298aac11d241e7f2949c902ff48afab8bb8e61"
+}

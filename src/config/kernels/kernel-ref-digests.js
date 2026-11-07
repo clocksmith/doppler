@@ -34,6 +34,7 @@ export const KERNEL_REF_CONTENT_DIGESTS = Object.freeze({
   "attention_head512_f16.wgsl#main": "e6d5ad9ebeb226524a9f9e664110b3ecd37374e11201f36b8d2683e28254ee0a",
   "attention_head512_f16kv.wgsl#main": "fe8bc99230a5ee4c969ba1cf9eca289ad936d14f1f87c12a7ca95640cdd8d89e",
   "attention_indexed_f16kv.wgsl#main": "30d1f6cb9f4acbdc5830259827c5a683a66d5c1ec0edc5edde0237506e793ee2",
+  "attention_indexed.wgsl#main": "382c4d69a3b9e45ab86dae027d0f7d3673b8dea43614892234a971bebb2923d4",
   "attention_paired_tiled.wgsl#main": "70a0a584eb26e3eb9aa14ea1082b9f3801bf730c43577874c1c4257a69b6ea16",
   "attention_paired.wgsl#main": "95e862b22362590cb3a24b4184222b94b4a942e8c331bfb8520ad5d418ddf1f1",
   "attention_prefill_flash_head256_f16kv.wgsl#main": "dc06506d7adf0d30f551276ca4229197817ca097a4825ee8fd16a0ac2b843c54",

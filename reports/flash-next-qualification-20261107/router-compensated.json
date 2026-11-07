@@ -1,0 +1,3 @@
+{
+  "prefillRouterKernel": "matmul_compensated_f32.wgsl"
+}

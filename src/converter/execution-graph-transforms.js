@@ -1,3 +1,5 @@
+import { widenAttentionKvToF32 } from './execution-graph/kv-storage.js';
+export { widenAttentionKvToF32 } from './execution-graph/kv-storage.js';
 import { F16_TO_F32_ACTIVATION_MAP, F32_TO_F16_ACTIVATION_MAP, KERNEL_FILE_PRECISION_PATCHES, cloneGraph, deriveKernelEntry, deriveKernelKey, deriveLinearDecodeF16KernelEntry, narrowToF16Activations, useQwen36F16Activations, useQwenDecodeF16Matmuls, useQwenF16PrimaryMatmuls } from './execution-graph/dtype.js';
 import { LAYER_PROJECTION_OPS, useGemma4Int4PleAf16Activations, useGemma4Int4PleSelectiveF16Decode, useGemma4TextF16ActivationsForLane } from './execution-graph/fusion.js';
 import { ATTENTION_F16KV_TO_F32_ENTRIES, deriveMappedKernelEntry, deriveQ4DecodeF32ActivationKernelEntry, deriveQ4PrefillF32ActivationKernelEntry, findKernelKeyByFileAndEntry, hasKernelFile, remapDenseQ4KPrefillToQ4Native, remapStepKeys, removeSubgroups, widenProjectionWeightsToF32, widenToF32Activations } from './execution-graph/validation.js';
@@ -899,6 +901,7 @@ export const TRANSFORMS = Object.freeze({
   removeSubgroups,
   widenToF32Activations,
   widenToF32CorrectnessFallback,
+  widenAttentionKvToF32,
   swapPrefillAttention,
   useHead256SmallPrefillAttention,
   useHead256PrefillAttention,
