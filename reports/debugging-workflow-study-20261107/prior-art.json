@@ -1,0 +1,155 @@
+{
+  "schema": "doppler.bounded-prior-art-review/v1",
+  "reviewedAt": "2026-11-07T22:30:28.444073+00:00",
+  "status": "COMPLETED_BOUNDED_SOURCE_REVIEW_NOT_UNIQUENESS_PROOF",
+  "dopplerRevision": "6f94e8fe6b5d0c2c9c037c27183c9bc2226aa41b",
+  "method": "Read the enumerated primary-source files at exact Git revisions, record content hashes, and compare declared API/code surfaces. No competitor runtime experiment or integration-effort benchmark was run. Absence from this file set is not absence from a product.",
+  "sources": [
+    {
+      "tool": "pooled",
+      "revision": "45b5ee275a8754a37fce4a6ce174f31e4a216ef4",
+      "path": "SECURITY.md",
+      "url": "https://raw.githubusercontent.com/Nehanth/pooled/45b5ee275a8754a37fce4a6ce174f31e4a216ef4/SECURITY.md",
+      "sha256": "2141dcdff432a53437ad0392cdf2fef4aeb9ec78d4ffb3522c6529399bdf2647",
+      "bytes": 7409
+    },
+    {
+      "tool": "pooled",
+      "revision": "45b5ee275a8754a37fce4a6ce174f31e4a216ef4",
+      "path": "README.md",
+      "url": "https://raw.githubusercontent.com/Nehanth/pooled/45b5ee275a8754a37fce4a6ce174f31e4a216ef4/README.md",
+      "sha256": "11b5af1c56db8e1fc208ce1298754059ae600bcf555358077504a6a4cbf5161b",
+      "bytes": 25161
+    },
+    {
+      "tool": "pooled",
+      "revision": "45b5ee275a8754a37fce4a6ce174f31e4a216ef4",
+      "path": "engine/sampling.js",
+      "url": "https://raw.githubusercontent.com/Nehanth/pooled/45b5ee275a8754a37fce4a6ce174f31e4a216ef4/engine/sampling.js",
+      "sha256": "19aef62f7fc111f2c77b245d3e43bc7a991b12fe29b6588677257f14c543b6c9",
+      "bytes": 142
+    },
+    {
+      "tool": "pooled",
+      "revision": "45b5ee275a8754a37fce4a6ce174f31e4a216ef4",
+      "path": "tests/unit/runtime_trace_test.js",
+      "url": "https://raw.githubusercontent.com/Nehanth/pooled/45b5ee275a8754a37fce4a6ce174f31e4a216ef4/tests/unit/runtime_trace_test.js",
+      "sha256": "cc515f34f97cf17c43f8ccfff217e601088f653c2d1f26b7f58489430706838b",
+      "bytes": 2153
+    },
+    {
+      "tool": "webllm",
+      "revision": "d0a8ade825657484465d1b5518df54c79a73499a",
+      "path": "src/types.ts",
+      "url": "https://raw.githubusercontent.com/mlc-ai/web-llm/d0a8ade825657484465d1b5518df54c79a73499a/src/types.ts",
+      "sha256": "c4f82e22f1ec7d234035b3d70c5a1df75105ee0d8e55d9dd3a9c1393da11c942",
+      "bytes": 10519
+    },
+    {
+      "tool": "webllm",
+      "revision": "d0a8ade825657484465d1b5518df54c79a73499a",
+      "path": "src/config.ts",
+      "url": "https://raw.githubusercontent.com/mlc-ai/web-llm/d0a8ade825657484465d1b5518df54c79a73499a/src/config.ts",
+      "sha256": "3308146bfcf19d18b8a7daafb8159bc493ca239b100bdf8152c26b7d9e3f849d",
+      "bytes": 83313
+    },
+    {
+      "tool": "webllm",
+      "revision": "d0a8ade825657484465d1b5518df54c79a73499a",
+      "path": "src/resumable/replay.ts",
+      "url": "https://raw.githubusercontent.com/mlc-ai/web-llm/d0a8ade825657484465d1b5518df54c79a73499a/src/resumable/replay.ts",
+      "sha256": "86a2f279dc478d37d8de1930282bdcbab75909d59af586d5962d4616fc061b1f",
+      "bytes": 8292
+    },
+    {
+      "tool": "webllm",
+      "revision": "d0a8ade825657484465d1b5518df54c79a73499a",
+      "path": "docs/user/resumable_generation.rst",
+      "url": "https://raw.githubusercontent.com/mlc-ai/web-llm/d0a8ade825657484465d1b5518df54c79a73499a/docs/user/resumable_generation.rst",
+      "sha256": "1d3c9597d08167a4054d966be231bab8250cf53cf792440998d333d87c3c387f",
+      "bytes": 10846
+    },
+    {
+      "tool": "ollama",
+      "revision": "5e983d4f800053c6f5691496b675c3212aa8099d",
+      "path": "api/types.go",
+      "url": "https://raw.githubusercontent.com/ollama/ollama/5e983d4f800053c6f5691496b675c3212aa8099d/api/types.go",
+      "sha256": "8e54520d34c312bb6adfccb652b0d1e18bb5c4cdb8ac2eb2eab0c065a508effa",
+      "bytes": 44623
+    },
+    {
+      "tool": "ollama",
+      "revision": "5e983d4f800053c6f5691496b675c3212aa8099d",
+      "path": "docs/api.md",
+      "url": "https://raw.githubusercontent.com/ollama/ollama/5e983d4f800053c6f5691496b675c3212aa8099d/docs/api.md",
+      "sha256": "96db03080e385dbabf5d70e75f298d41b75983bc30975cae56f7119f848dd0f5",
+      "bytes": 54614
+    },
+    {
+      "tool": "ollama",
+      "revision": "5e983d4f800053c6f5691496b675c3212aa8099d",
+      "path": "docs/modelfile.mdx",
+      "url": "https://raw.githubusercontent.com/ollama/ollama/5e983d4f800053c6f5691496b675c3212aa8099d/docs/modelfile.mdx",
+      "sha256": "ffc9a0e50ceb51054e721bdabba3fa063cd86f851060d5c5bcfb344911962128",
+      "bytes": 13006
+    },
+    {
+      "tool": "ollama",
+      "revision": "5e983d4f800053c6f5691496b675c3212aa8099d",
+      "path": "README.md",
+      "url": "https://raw.githubusercontent.com/ollama/ollama/5e983d4f800053c6f5691496b675c3212aa8099d/README.md",
+      "sha256": "02904cdfc8865b25f7f9946af07e45acb3d257a11ec2730d75c3e4f3b5c793f5",
+      "bytes": 19433
+    },
+    {
+      "tool": "petals",
+      "revision": "22afba627a7eb4fcfe9418c49472c6a51334b8ac",
+      "path": "README.md",
+      "url": "https://raw.githubusercontent.com/bigscience-workshop/petals/22afba627a7eb4fcfe9418c49472c6a51334b8ac/README.md",
+      "bytes": 9161,
+      "sha256": "39a1351269bd2b4520de124f1b52a43dba3f9177b1456822b51e903e769589c7"
+    }
+  ],
+  "findings": [
+    {
+      "capability": "Application acceptance of exact signed TargetPlan and validation of initial execution identity",
+      "doppler": [
+        "src/client/runtime/composition-root.js",
+        "tests/runtime/initial-execution-identity.test.js"
+      ],
+      "scope": "Source implementation and contract-double tests at frozen checkout; not a fresh published-package physical claim and not exercised by this diagnostic RDRR study.",
+      "comparison": "Pooled SECURITY states its peer/weight trust limitations. Inspected WebLLM configuration/types and Ollama generation types do not expose the same integrated signed graph/shader/dtype/KV/memory acceptance contract. Model hashes and selection controls are related mechanisms, not equivalent proof of remote execution.",
+      "verdict": "not proven",
+      "boundedObservation": "Same integrated approval surface not found in this enumerated API/document set; no universal novelty claim or measured integration advantage."
+    },
+    {
+      "capability": "Token inspection, exact token-prefix replay, and comparison fingerprints",
+      "doppler": [
+        "src/client/model-host/model-session.js",
+        "src/client/inspection.js",
+        "tests/client/inspection-contract.test.js"
+      ],
+      "scope": "Physical M3 guided-quality receipt and replay preflight; token IDs replay identically. Does not establish automatic semantic-boundary capture for this case.",
+      "comparison": "WebLLM exposes logit processors and logprobs; its resumable replay code retains token prefixes and recovery metadata. Ollama exposes context tokens, raw prompts, logprobs and top alternatives. Pooled retains runtime trace instrumentation tests. These disprove broad exclusivity claims for inspection, token replay or tracing.",
+      "verdict": "shared",
+      "boundedObservation": "Doppler packages explicit fingerprint/observation-policy comparisons; advantage of that packaging remains unmeasured outside this feasibility pilot."
+    },
+    {
+      "capability": "Cross-vendor shared LoRA gradient round",
+      "doppler": [
+        "reports/community-lora-20261017/README.md",
+        "reports/community-lora-20261017/applied.json"
+      ],
+      "scope": "Four supervised fixture tokens, one optimizer update across Metal and AMD, no useful quality improvement or concurrent speedup demonstrated.",
+      "comparison": "Petals README documents distributed inference and fine-tuning. This review did not reproduce Petals or investigate every WebGPU training implementation.",
+      "verdict": "shared",
+      "boundedObservation": "The exact cross-vendor combination may differ; broad distributed training novelty is unsupported."
+    }
+  ],
+  "claims": {
+    "universalUniqueness": false,
+    "debuggingAdvantage": false,
+    "publishedPackageParityWithCheckout": false,
+    "integrationEffortMeasured": false
+  }
+}

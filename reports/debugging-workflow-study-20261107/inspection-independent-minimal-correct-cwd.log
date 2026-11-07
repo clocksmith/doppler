@@ -1,0 +1,92 @@
+[GPU] apple metal-3, f16/subgroups, 4.0GB, submit probe: 0.5ms
+{
+  "schema": "pilot-minimal-matmul-reproduction/v1",
+  "shape": {
+    "M": 4,
+    "N": 4,
+    "K": 1
+  },
+  "input": [
+    1,
+    2,
+    3,
+    4
+  ],
+  "weightValues": [
+    5,
+    6,
+    7,
+    8
+  ],
+  "expected": [
+    5,
+    6,
+    7,
+    8,
+    10,
+    12,
+    14,
+    16,
+    15,
+    18,
+    21,
+    24,
+    20,
+    24,
+    28,
+    32
+  ],
+  "oracle": "Independent Float64 dot products over exactly represented f32 activations and f16 weights; these integer outputs are exact.",
+  "rows": [
+    {
+      "label": "original",
+      "path": "observations/original.wgsl",
+      "actual": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        32
+      ],
+      "mismatches": 15,
+      "maxAbsError": 28
+    },
+    {
+      "label": "fixed",
+      "path": "src/gpu/kernels/matmul_f16w_f32a_tiled.wgsl",
+      "actual": [
+        5,
+        6,
+        7,
+        8,
+        10,
+        12,
+        14,
+        16,
+        15,
+        18,
+        21,
+        24,
+        20,
+        24,
+        28,
+        32
+      ],
+      "mismatches": 0,
+      "maxAbsError": 0
+    }
+  ],
+  "errors": [],
+  "passed": true
+}

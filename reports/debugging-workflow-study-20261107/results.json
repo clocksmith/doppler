@@ -1,0 +1,1146 @@
+{
+  "schema": "doppler.debugging-feasibility-pilot-results/v1",
+  "status": "COMPLETE_DESCRIPTIVE_AI_FEASIBILITY_PILOT",
+  "studyId": "doppler-debugging-pilot-001",
+  "arms": {
+    "standard": {
+      "status": "PASS: M3 independent numerical/application controls, AMD portability control, and fresh masked reproduction assessment",
+      "metrics": {
+        "coordinatorStartedAt": "2026-11-07T22:28:37.530943+00:00",
+        "firstWrappedCommandAt": "2026-11-07T22:28:49.083206+00:00",
+        "coordinatorVerifiedAt": "2026-11-07T22:34:41.132654+00:00",
+        "primaryElapsedSecondsToIndependentM3Verification": 363.602,
+        "investigatorRecordedFinalVerificationSeconds": 279.21,
+        "wrappedCommands": 18,
+        "nonzeroWrappedCommandExits": 3,
+        "wrappedCommandElapsedSecondsSum": 25.606,
+        "activeInvestigatorSeconds": null,
+        "activeTimeLimitation": "Not instrumented; wall minus command time is not a valid active-time estimate.",
+        "manualCoordinatorInterventions": [
+          {
+            "type": "Process-only finalize/stop reminder",
+            "count": 1,
+            "diagnosticHint": false
+          }
+        ],
+        "newCodeFiles": [
+          {
+            "path": "tests/kernels/pilot-shared-vector.test.js",
+            "lines": 108,
+            "sha256": "1362e4cf728dfe9388144679ae2eaa29d2eba724006d55706c13bceaeb67930f"
+          }
+        ],
+        "authoredExistingCodeEdits": [
+          {
+            "path": "src/gpu/kernels/matmul_f16w_f32a_tiled.wgsl",
+            "addedLines": 16,
+            "removedLines": 24
+          }
+        ],
+        "generatedIdentityEdits": [
+          {
+            "path": "model/manifest.json",
+            "addedLines": 3,
+            "removedLines": 3
+          },
+          {
+            "path": "src/config/conversion/gemma3/gemma-3-1b-it-f16-af32.json",
+            "addedLines": 1,
+            "removedLines": 1
+          },
+          {
+            "path": "src/config/conversion/gemma3/gemma-3-1b-it-q4k-ehf16-af32.json",
+            "addedLines": 1,
+            "removedLines": 1
+          },
+          {
+            "path": "src/config/conversion/gemma3/gemma-3-270m-it-f16-af32.json",
+            "addedLines": 1,
+            "removedLines": 1
+          },
+          {
+            "path": "src/config/conversion/gemma3/gemma-3-270m-it-q4k-ehf16-af16.json",
+            "addedLines": 2,
+            "removedLines": 2
+          },
+          {
+            "path": "src/config/conversion/gemma3/gemma-3-270m-it-q4k-ehf16-af32.json",
+            "addedLines": 1,
+            "removedLines": 1
+          },
+          {
+            "path": "src/config/conversion/gemma3/gemma-3-270m-it-w8a8-ehf16-af32.json",
+            "addedLines": 1,
+            "removedLines": 1
+          },
+          {
+            "path": "src/config/conversion/glmocr/glm-ocr-f16-af32.json",
+            "addedLines": 1,
+            "removedLines": 1
+          },
+          {
+            "path": "src/config/conversion/lfm2/lfm2.5-1.2b-instruct-q4k-ehf16-af32.json",
+            "addedLines": 1,
+            "removedLines": 1
+          },
+          {
+            "path": "src/config/conversion/qwen3/qwen-3-embedding-0-6b-f16-af32.json",
+            "addedLines": 2,
+            "removedLines": 2
+          },
+          {
+            "path": "src/config/conversion/qwen3/qwen-3-reranker-0-6b-f16-af32.json",
+            "addedLines": 1,
+            "removedLines": 1
+          },
+          {
+            "path": "src/config/conversion/qwen3/qwen-3-reranker-0-6b-q4k-ehf16-af32.json",
+            "addedLines": 1,
+            "removedLines": 1
+          },
+          {
+            "path": "src/config/kernels/kernel-ref-digests.js",
+            "addedLines": 1,
+            "removedLines": 1
+          }
+        ],
+        "inlineCommandCodeAccounting": "Raw inline scripts retained in command journal; not counted as an independently deduplicated source-line total.",
+        "newCodeFootprintMeaning": "Physical new-file lines including derived/generated boilerplate, not unique handwritten logic or total inline scripting."
+      },
+      "changedPaths": [
+        "model/manifest.json",
+        "src/config/conversion/gemma3/gemma-3-1b-it-f16-af32.json",
+        "src/config/conversion/gemma3/gemma-3-1b-it-q4k-ehf16-af32.json",
+        "src/config/conversion/gemma3/gemma-3-270m-it-f16-af32.json",
+        "src/config/conversion/gemma3/gemma-3-270m-it-q4k-ehf16-af16.json",
+        "src/config/conversion/gemma3/gemma-3-270m-it-q4k-ehf16-af32.json",
+        "src/config/conversion/gemma3/gemma-3-270m-it-w8a8-ehf16-af32.json",
+        "src/config/conversion/glmocr/glm-ocr-f16-af32.json",
+        "src/config/conversion/lfm2/lfm2.5-1.2b-instruct-q4k-ehf16-af32.json",
+        "src/config/conversion/qwen3/qwen-3-embedding-0-6b-f16-af32.json",
+        "src/config/conversion/qwen3/qwen-3-reranker-0-6b-f16-af32.json",
+        "src/config/conversion/qwen3/qwen-3-reranker-0-6b-q4k-ehf16-af32.json",
+        "src/config/kernels/kernel-ref-digests.js",
+        "src/gpu/kernels/matmul_f16w_f32a_tiled.wgsl"
+      ],
+      "deletedOriginalPaths": [],
+      "milestones": [
+        {
+          "timestamp": "2026-11-07T22:28:56.904071+00:00",
+          "milestone": "prior_recognition",
+          "statement": "No prior recognition of this specific failure. Model training provenance is unknown; fresh context is not proof of no prior exposure."
+        },
+        {
+          "timestamp": "2026-11-07T22:29:25.130512+00:00",
+          "milestone": "detection",
+          "evidence": "application-before.json",
+          "finding": "Supplied deterministic prompt emits garbled multilingual output, diverging from repaired-runtime application control.",
+          "hypothesis": "The prefill f16w_f32a_tiled matrix product is numerically incorrect. Independent F64 parity test can falsify this."
+        },
+        {
+          "timestamp": "2026-11-07T22:30:54.343752+00:00",
+          "milestone": "first_faulty_boundary",
+          "finding": "The output of the registered prefill f16w_f32a_tiled kernel violates the independent F64 dot-product oracle. M=3,N=5,K=7, output[0]=0, expected=-0.15974238558624165. This is an operator boundary; no independent whole-model first-divergence capture has been performed.",
+          "evidence": "tiled-before.log",
+          "hypothesis": "Multiple invocations write separate components of each shared vec4. A dynamic component write can lower to a read/modify/write of the whole vector, losing components written by other invocations. Assigning each complete shared vector to one invocation should remove the loss without changing arithmetic or dispatch."
+        },
+        {
+          "timestamp": "2026-11-07T22:31:15.451448+00:00",
+          "milestone": "minimal_reproduction",
+          "finding": "Exact integer M=4,N=4,K=1 outer product produced 15 zeros and only the final expected output 28. Independent expected values are [2,3,5,7,4,6,10,14,6,9,15,21,8,12,20,28].",
+          "evidence": "minimal-before.log",
+          "reproduction": "node tests/kernels/pilot-shared-vector.test.js --require-gpu"
+        },
+        {
+          "timestamp": "2026-11-07T22:31:46.909562+00:00",
+          "milestone": "supported_cause",
+          "finding": "Cross-invocation dynamic component writes to workgroup vec4 arrays lose shared-tile components on this Metal runtime. Giving each whole vector one writer corrects the exact integer outer product and all seven unchanged F64 parity cases. Specific compiler lowering to read/modify/write is a mechanism inference, not inspected backend IR.",
+          "evidence": [
+            "minimal-before.log",
+            "minimal-after.log",
+            "tiled-before.log",
+            "tiled-after.log"
+          ],
+          "numeric_result": "All seven existing test shapes pass; worst absolute error 5.348259279891465e-7 under unchanged tolerance."
+        },
+        {
+          "timestamp": "2026-11-07T22:33:16.740927+00:00",
+          "milestone": "fix_verified",
+          "finding": "Single-writer whole-vector staging passes the original physical F64 kernel tests, the exact integer minimal reproduction, and deterministic supplied application control after official identity regeneration. This is an actual kernel correction, not a disabled-path workaround.",
+          "evidence": [
+            "minimal-after.log",
+            "tiled-after.log",
+            "application-comparison.json",
+            "digest-check.log",
+            "conversion-digest-check.log",
+            "registry-check.log"
+          ]
+        }
+      ],
+      "investigatorFinal": {
+        "schema": "doppler.debugging-pilot-final/v1",
+        "workflow": "competent standard workflow",
+        "completedAt": "2026-11-07T22:33:16.740927+00:00",
+        "status": "corrected-with-scoped-evidence",
+        "diagnosis": {
+          "classification": "runtime numerics",
+          "component": "doppler.runtime-source.gpu.kernels",
+          "intent": "preserved",
+          "firstFaultyBoundary": "Physical output C of matmul_f16w_f32a_tiled.wgsl disagrees with independently computed F64 dot products for explicitly supplied input and weight buffers.",
+          "cause": "Multiple invocations wrote different dynamically indexed components of the same workgroup vec4 during A/B staging. On the supplied M3 Metal runtime those writes lose components.",
+          "mechanismLimit": "Read/modify/write lowering is an inference consistent with the numeric pattern and correction. Backend compiler IR was not inspected.",
+          "fix": "Each invocation now loads all four values into a private vec4 and writes one complete shared tile vector. The tile layout, bindings, workgroup geometry, arithmetic, selected execution path, and precision are preserved.",
+          "workaround": false,
+          "manifestParity": "The session and execution graph matched conversion config before correction. Explicit conversion inference values also matched; extra manifest queryKeyNormType/queryKeyNormAxis fields are normalized fields. Shader identities were regenerated using official tools.",
+          "boundaryEffects": "Same registered kernel ABI and selection; shader content identity and dependent conversion/manifest identity changed."
+        },
+        "priorRecognition": {
+          "statement": "No prior recognition of this specific failure.",
+          "provenanceLimit": "Training provenance is unknown; fresh context is not proof of no prior exposure.",
+          "recordedIn": "observations/milestones.jsonl"
+        },
+        "detection": {
+          "prompt": "The capital of France is",
+          "generation": {
+            "maxTokens": 12,
+            "temperature": 0,
+            "topK": 1,
+            "useChatTemplate": false
+          },
+          "beforeText": "\u0cb0\u00e7ochia \u0637\u0631\u06cc\u0642\u06d2\u0442\u043e\u0435bbicuthing\u0435 Himself</h4>impose",
+          "beforeTokenIds": [
+            237113,
+            13116,
+            36439,
+            121795,
+            122055,
+            9579,
+            39072,
+            2437,
+            236815,
+            97454,
+            194,
+            208281
+          ],
+          "evidence": "observations/application-before.json"
+        },
+        "minimalReproduction": {
+          "command": "node tests/kernels/pilot-shared-vector.test.js --require-gpu",
+          "testPath": "tests/kernels/pilot-shared-vector.test.js",
+          "brokenShaderCommand": "node tests/kernels/pilot-shared-vector.test.js --require-gpu --shader observations/matmul-before.wgsl",
+          "shape": {
+            "M": 4,
+            "N": 4,
+            "K": 1
+          },
+          "input": [
+            1,
+            2,
+            3,
+            4
+          ],
+          "weightRows": [
+            2,
+            3,
+            5,
+            7
+          ],
+          "expected": [
+            2,
+            3,
+            5,
+            7,
+            4,
+            6,
+            10,
+            14,
+            6,
+            9,
+            15,
+            21,
+            8,
+            12,
+            20,
+            28
+          ],
+          "brokenActual": [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            28
+          ],
+          "fixedMaxAbsoluteError": 0,
+          "evidence": [
+            "observations/minimal-before.log",
+            "observations/minimal-after.log"
+          ]
+        },
+        "independentNumericalEvidence": {
+          "command": "node tests/kernels/matmul-f16w-f32a-tiled-parity.test.js --require-gpu",
+          "oracle": "Float64 dot products of actual F32 inputs and decoded F16 weight values.",
+          "testUnchanged": true,
+          "tolerancesUnchanged": true,
+          "beforeFailure": {
+            "M": 3,
+            "N": 5,
+            "K": 7,
+            "outputIndex": 0,
+            "actual": 0,
+            "expected": -0.15974238558624165
+          },
+          "afterPassedShapes": [
+            [
+              1,
+              1,
+              1
+            ],
+            [
+              3,
+              5,
+              7
+            ],
+            [
+              64,
+              64,
+              16
+            ],
+            [
+              65,
+              63,
+              17
+            ],
+            [
+              130,
+              151,
+              200
+            ],
+            [
+              102,
+              3072,
+              1024
+            ],
+            [
+              37,
+              1024,
+              3072
+            ]
+          ],
+          "worstAbsoluteError": 5.348259279891465e-07,
+          "evidence": [
+            "observations/tiled-before.log",
+            "observations/tiled-after.log"
+          ]
+        },
+        "applicationEvidence": {
+          "command": "node case/run.js",
+          "afterText": " Paris.\n\nParis is a city with a population of ",
+          "afterTokenIds": [
+            9079,
+            236761,
+            108,
+            50429,
+            563,
+            496,
+            3207,
+            607,
+            496,
+            5499,
+            529,
+            236743
+          ],
+          "all12TokensMatchControl": true,
+          "textMatchesControl": true,
+          "controlIsIndependentWholeModelOracle": false,
+          "scope": "The frozen repaired-runtime application control confirms restoration for this supplied workload. Independent correctness evidence comes from the kernel F64 tests.",
+          "evidence": [
+            "observations/application-after.json",
+            "observations/application-after.log",
+            "observations/application-comparison.json"
+          ]
+        },
+        "patchPaths": [
+          "src/gpu/kernels/matmul_f16w_f32a_tiled.wgsl",
+          "tests/kernels/pilot-shared-vector.test.js",
+          "src/config/conversion/glmocr/glm-ocr-f16-af32.json",
+          "src/config/conversion/gemma3/gemma-3-270m-it-w8a8-ehf16-af32.json",
+          "src/config/conversion/gemma3/gemma-3-270m-it-q4k-ehf16-af16.json",
+          "src/config/conversion/gemma3/gemma-3-1b-it-q4k-ehf16-af32.json",
+          "src/config/conversion/gemma3/gemma-3-270m-it-f16-af32.json",
+          "src/config/conversion/gemma3/gemma-3-270m-it-q4k-ehf16-af32.json",
+          "src/config/conversion/gemma3/gemma-3-1b-it-f16-af32.json",
+          "src/config/conversion/lfm2/lfm2.5-1.2b-instruct-q4k-ehf16-af32.json",
+          "src/config/conversion/qwen3/qwen-3-reranker-0-6b-f16-af32.json",
+          "src/config/conversion/qwen3/qwen-3-embedding-0-6b-f16-af32.json",
+          "src/config/conversion/qwen3/qwen-3-reranker-0-6b-q4k-ehf16-af32.json",
+          "src/config/kernels/kernel-ref-digests.js",
+          "model/manifest.json"
+        ],
+        "patchArtifact": "observations/correction.patch",
+        "successfulChecks": [
+          "node tests/kernels/pilot-shared-vector.test.js --require-gpu",
+          "node tests/kernels/matmul-f16w-f32a-tiled-parity.test.js --require-gpu",
+          "node tools/sync-kernel-ref-digests.js",
+          "node tools/sync-conversion-kernel-digests.js --source-only",
+          "node tools/refresh-converted-manifest.js model --config src/config/conversion/gemma3/gemma-3-270m-it-f16-af32.json",
+          "node case/run.js",
+          "node tools/sync-kernel-ref-digests.js --check",
+          "node tools/sync-conversion-kernel-digests.js --source-only --check",
+          "node tools/sync-kernel-reachability.js --check"
+        ],
+        "failedAttempts": [
+          {
+            "attempt": "Baseline application",
+            "outcome": "Completed but emitted garbled multilingual text.",
+            "evidence": "observations/application-before.json"
+          },
+          {
+            "attempt": "Original independent kernel parity test",
+            "outcome": "Assertion failure at M=3,N=5,K=7 output[0].",
+            "evidence": "observations/tiled-before.log"
+          },
+          {
+            "attempt": "Original minimal outer product",
+            "outcome": "Assertion failure; 15 missing outputs.",
+            "evidence": "observations/minimal-before.log"
+          },
+          {
+            "attempt": "Read-only Python metadata inspection in wrapped command 8",
+            "outcome": "SyntaxError from unmatched parenthesis; corrected in wrapped command 11. No files changed."
+          },
+          {
+            "attempt": "Direct equality of partial conversion inference with normalized manifest inference",
+            "outcome": "False because manifest adds normalized fields and nests session/execution; refined explicit-field comparison found no conflicting values."
+          }
+        ],
+        "wrongDiagnoses": [],
+        "unresolvedIssues": [
+          "No independent whole-model source-runtime oracle was supplied or run.",
+          "No per-layer first divergence capture was performed; the first directly demonstrated faulty boundary is the tiled matmul operator.",
+          "Portability is unassessed here. AMD/Jupiter control is reserved for the independent assessor.",
+          "No browser, other device, performance, broad model-quality, or release qualification claim is made.",
+          "This is a frozen diagnostic runtime snapshot, not a qualified signed Capsule."
+        ],
+        "compliance": {
+          "allFilesystemReadsEditsCommandsThroughAssignedWrapper": true,
+          "onlyPacketDopplerSourceTouched": true,
+          "noNetworkGitHistoryMainCheckoutOtherPacketsOrOutsideReports": true,
+          "noOtherAgentsInvoked": true,
+          "noModelInspectExactPrefixReplayInspectionFingerprintsOrBoundaryCommandsInvoked": true,
+          "existingTestsTolerancesWorkloadReferenceWeightsUnchanged": true,
+          "officialDigestSyncAndManifestRefreshUsed": true,
+          "breaches": [],
+          "knownWrappedCommandsBeforeFinalVerification": 17,
+          "commandBudget": 40,
+          "elapsedBudgetSeconds": 1800
+        }
+      },
+      "coordinatorInvocationFailure": null,
+      "retainedEvidence": {
+        "archive": "standard-evidence.tar.gz",
+        "sha256": "77d194ec3bac80c97941e132dbb4147c7942ef66b187dfa4fc87e39316b4be24",
+        "frozenFiles": "standard-frozen-files.json.gz"
+      },
+      "coordinatorLogHashes": {
+        "standard-independent-metal.log": "9251b9c730ebffb87c01c4fc9b8eb497e6da610943b03719e9bd2edc7da02649",
+        "standard-independent-application.log": "e3e1b8af140ce9d00fa62686a043ff0a18a7585fb9108d232a94b42f23acfbfe",
+        "standard-independent-amd.log": "176a8a7fd2a0e149d8aefff9f5c0ff4b8d188d43b234181ab2e4cbce90568692",
+        "standard-independent-minimal.log": "e11620dffda33fd2c5096135ce685ebfd80ab32baa02256dfaaa7aba5b09de08"
+      },
+      "protectedWorkloadWeightsTestsWrapperDependenciesUnchanged": true
+    },
+    "inspection": {
+      "status": "PASS: M3 independent numerical/application controls, AMD portability control, and fresh masked reproduction assessment",
+      "metrics": {
+        "coordinatorStartedAt": "2026-11-07T22:34:41.132798+00:00",
+        "firstWrappedCommandAt": "2026-11-07T22:34:59.946255+00:00",
+        "coordinatorVerifiedAt": "2026-11-07T22:43:31.435031+00:00",
+        "primaryElapsedSecondsToIndependentM3Verification": 530.302,
+        "investigatorRecordedFinalVerificationSeconds": 427.17,
+        "wrappedCommands": 21,
+        "nonzeroWrappedCommandExits": 0,
+        "wrappedCommandElapsedSecondsSum": 55.689,
+        "activeInvestigatorSeconds": null,
+        "activeTimeLimitation": "Not instrumented; wall minus command time is not a valid active-time estimate.",
+        "manualCoordinatorInterventions": [
+          {
+            "type": "Process-only finalize/stop reminder",
+            "count": 1,
+            "diagnosticHint": false
+          }
+        ],
+        "newCodeFiles": [
+          {
+            "path": "observations/staging-original.wgsl",
+            "lines": 120,
+            "sha256": "54479e20c72a2876b7c88e98906f7e81a84c9f58a577fc81cd0c99afc5c9d1e1"
+          },
+          {
+            "path": "observations/inspect-after.js",
+            "lines": 13,
+            "sha256": "db3adf136f7e0e47cfc6e7be200745119545c115dbadf2b9271622113fd5e48e"
+          },
+          {
+            "path": "observations/reproduce.js",
+            "lines": 31,
+            "sha256": "c0531b168f80c2e299948390c21b1ebc231d45c0c353e61440ed7e8bf3614271"
+          },
+          {
+            "path": "observations/staging-candidate.wgsl",
+            "lines": 115,
+            "sha256": "454d358a8a732257255c62d60b0f81d9e9da9fba08d75b2fc375037803d1dd72"
+          },
+          {
+            "path": "observations/inspect.js",
+            "lines": 13,
+            "sha256": "dc4446caee90ce27c3b842756e61b05b2d300321e15e244dbe8d1feae8ebeeb6"
+          },
+          {
+            "path": "observations/staging-probe.js",
+            "lines": 43,
+            "sha256": "31b479b99dff630a3a2030ad0744d631a8376b8cee43b7c1a166ad21cf22171c"
+          }
+        ],
+        "authoredExistingCodeEdits": [
+          {
+            "path": "src/gpu/kernels/matmul_f16w_f32a_tiled.wgsl",
+            "addedLines": 19,
+            "removedLines": 24
+          }
+        ],
+        "generatedIdentityEdits": [
+          {
+            "path": "model/manifest.json",
+            "addedLines": 3,
+            "removedLines": 3
+          },
+          {
+            "path": "src/config/conversion/gemma3/gemma-3-1b-it-f16-af32.json",
+            "addedLines": 1,
+            "removedLines": 1
+          },
+          {
+            "path": "src/config/conversion/gemma3/gemma-3-1b-it-q4k-ehf16-af32.json",
+            "addedLines": 1,
+            "removedLines": 1
+          },
+          {
+            "path": "src/config/conversion/gemma3/gemma-3-270m-it-f16-af32.json",
+            "addedLines": 1,
+            "removedLines": 1
+          },
+          {
+            "path": "src/config/conversion/gemma3/gemma-3-270m-it-q4k-ehf16-af16.json",
+            "addedLines": 2,
+            "removedLines": 2
+          },
+          {
+            "path": "src/config/conversion/gemma3/gemma-3-270m-it-q4k-ehf16-af32.json",
+            "addedLines": 1,
+            "removedLines": 1
+          },
+          {
+            "path": "src/config/conversion/gemma3/gemma-3-270m-it-w8a8-ehf16-af32.json",
+            "addedLines": 1,
+            "removedLines": 1
+          },
+          {
+            "path": "src/config/conversion/glmocr/glm-ocr-f16-af32.json",
+            "addedLines": 1,
+            "removedLines": 1
+          },
+          {
+            "path": "src/config/conversion/lfm2/lfm2.5-1.2b-instruct-q4k-ehf16-af32.json",
+            "addedLines": 1,
+            "removedLines": 1
+          },
+          {
+            "path": "src/config/conversion/qwen3/qwen-3-embedding-0-6b-f16-af32.json",
+            "addedLines": 2,
+            "removedLines": 2
+          },
+          {
+            "path": "src/config/conversion/qwen3/qwen-3-reranker-0-6b-f16-af32.json",
+            "addedLines": 1,
+            "removedLines": 1
+          },
+          {
+            "path": "src/config/conversion/qwen3/qwen-3-reranker-0-6b-q4k-ehf16-af32.json",
+            "addedLines": 1,
+            "removedLines": 1
+          },
+          {
+            "path": "src/config/kernels/kernel-ref-digests.js",
+            "addedLines": 1,
+            "removedLines": 1
+          }
+        ],
+        "inlineCommandCodeAccounting": "Raw inline scripts retained in command journal; not counted as an independently deduplicated source-line total.",
+        "newCodeFootprintMeaning": "Physical new-file lines including derived/generated boilerplate, not unique handwritten logic or total inline scripting.",
+        "retainedCorrectedSourceCopies": [
+          {
+            "path": "observations/candidate.wgsl",
+            "lines": 160,
+            "sha256": "efc55d9650ef63108bf62cac6d5bd153cc94cd2584472c0d6ab57511e7f1dfb8"
+          }
+        ]
+      },
+      "changedPaths": [
+        "model/manifest.json",
+        "src/config/conversion/gemma3/gemma-3-1b-it-f16-af32.json",
+        "src/config/conversion/gemma3/gemma-3-1b-it-q4k-ehf16-af32.json",
+        "src/config/conversion/gemma3/gemma-3-270m-it-f16-af32.json",
+        "src/config/conversion/gemma3/gemma-3-270m-it-q4k-ehf16-af16.json",
+        "src/config/conversion/gemma3/gemma-3-270m-it-q4k-ehf16-af32.json",
+        "src/config/conversion/gemma3/gemma-3-270m-it-w8a8-ehf16-af32.json",
+        "src/config/conversion/glmocr/glm-ocr-f16-af32.json",
+        "src/config/conversion/lfm2/lfm2.5-1.2b-instruct-q4k-ehf16-af32.json",
+        "src/config/conversion/qwen3/qwen-3-embedding-0-6b-f16-af32.json",
+        "src/config/conversion/qwen3/qwen-3-reranker-0-6b-f16-af32.json",
+        "src/config/conversion/qwen3/qwen-3-reranker-0-6b-q4k-ehf16-af32.json",
+        "src/config/kernels/kernel-ref-digests.js",
+        "src/gpu/kernels/matmul_f16w_f32a_tiled.wgsl"
+      ],
+      "deletedOriginalPaths": [],
+      "milestones": [
+        {
+          "timestamp": "2026-11-07T22:35:06.939989+00:00",
+          "milestone": "prior-recognition",
+          "statement": "No prior recognition of this particular failure, defect, or solution. Model training provenance is unknown."
+        },
+        {
+          "timestamp": "2026-11-07T22:35:41.188407+00:00",
+          "milestone": "detection",
+          "evidence": "observations/application.json",
+          "observedFirstToken": 105842,
+          "controlFirstToken": 9079,
+          "classification": "Incorrect deterministic output; source-reference whole-model parity not established.",
+          "hypothesis": "Prefill matrix multiplication may corrupt the first-token logits; falsified if CPU/F64 parity passes for prefill kernel."
+        },
+        {
+          "timestamp": "2026-11-07T22:36:40.111075+00:00",
+          "milestone": "isolation",
+          "boundary": "f16w_f32a_tiled GPU output vs independent F64 dot product",
+          "evidence": "observations/tiled-before.log",
+          "mismatch": {
+            "shape": [
+              3,
+              5,
+              7
+            ],
+            "index": 0,
+            "actual": 0,
+            "expected": -0.15974238558624165
+          },
+          "hypothesis": "Concurrent component stores to the same workgroup vec4 clobber sibling values; candidate gives each vector one invocation owner.",
+          "status": "cause hypothesis pending candidate test"
+        },
+        {
+          "timestamp": "2026-11-07T22:37:42.520722+00:00",
+          "milestone": "failed-attempt",
+          "attempt": "staging probe first run",
+          "reason": "Diagnostic script contained escaped template delimiters; syntax error before GPU execution.",
+          "evidence": "observations/staging-probe.log",
+          "retainedSource": "observations/staging-probe-syntax-failure.txt"
+        },
+        {
+          "milestone": "supported-cause",
+          "boundary": "shared tile staging immediately after first workgroup barrier, before accumulation",
+          "evidence": [
+            "observations/staging-probe.json",
+            "observations/tiled-candidate.log"
+          ],
+          "cause": "Multiple invocations perform component stores into the same workgroup vec4. On this Metal runtime sibling components are clobbered. A complete vec4 store by one owning invocation fixes both input tiles without changing accumulation or dispatch.",
+          "originalA": [
+            0,
+            0,
+            0,
+            4
+          ],
+          "expectedA": [
+            1,
+            2,
+            3,
+            4
+          ],
+          "originalB": [
+            0,
+            0,
+            0,
+            8
+          ],
+          "expectedB": [
+            5,
+            6,
+            7,
+            8
+          ],
+          "timestamp": "2026-11-07T22:38:07.334702+00:00"
+        },
+        {
+          "milestone": "command-result",
+          "label": "digest-sync",
+          "command": [
+            "node",
+            "tools/sync-kernel-ref-digests.js"
+          ],
+          "exitCode": 0,
+          "evidence": "observations/digest-sync.log",
+          "timestamp": "2026-11-07T22:38:08.352760+00:00"
+        },
+        {
+          "milestone": "command-result",
+          "label": "manifest-refresh",
+          "command": [
+            "node",
+            "tools/refresh-converted-manifest.js",
+            "model",
+            "--config",
+            "src/config/conversion/gemma3/gemma-3-270m-it-f16-af32.json"
+          ],
+          "exitCode": 0,
+          "evidence": "observations/manifest-refresh.log",
+          "timestamp": "2026-11-07T22:38:09.012494+00:00"
+        },
+        {
+          "milestone": "command-result",
+          "label": "application-after",
+          "command": [
+            "node",
+            "case/run.js"
+          ],
+          "exitCode": 0,
+          "evidence": "observations/application-after.log",
+          "timestamp": "2026-11-07T22:38:11.133549+00:00"
+        },
+        {
+          "timestamp": "2026-11-07T22:38:38.538533+00:00",
+          "milestone": "application-fix",
+          "evidence": "observations/application-after.json",
+          "result": "All 12 generated token IDs and output text match the frozen repaired-runtime application control. This is not an independent whole-model oracle.",
+          "workaround": false
+        },
+        {
+          "timestamp": "2026-11-07T22:39:35.415489+00:00",
+          "milestone": "identity-gap",
+          "evidence": "observations/manifest.json.patch",
+          "finding": "First official manifest refresh preserved old pinned conversion digest; corrected source and generated registry are correct but recipe digest still stale. Will use official conversion digest sync then refresh again.",
+          "status": "Intermediate bookkeeping gap; not a different numeric diagnosis."
+        },
+        {
+          "timestamp": "2026-11-07T22:39:53.991981+00:00",
+          "milestone": "command-result",
+          "label": "conversion-digest-sync",
+          "command": [
+            "node",
+            "tools/sync-conversion-kernel-digests.js",
+            "--source-only"
+          ],
+          "exitCode": 0,
+          "evidence": "observations/conversion-digest-sync.log"
+        },
+        {
+          "timestamp": "2026-11-07T22:39:54.766272+00:00",
+          "milestone": "command-result",
+          "label": "manifest-refresh-final",
+          "command": [
+            "node",
+            "tools/refresh-converted-manifest.js",
+            "model",
+            "--config",
+            "src/config/conversion/gemma3/gemma-3-270m-it-f16-af32.json"
+          ],
+          "exitCode": 0,
+          "evidence": "observations/manifest-refresh-final.log"
+        },
+        {
+          "timestamp": "2026-11-07T22:39:54.798839+00:00",
+          "milestone": "command-result",
+          "label": "conversion-digest-check",
+          "command": [
+            "node",
+            "tools/sync-conversion-kernel-digests.js",
+            "--source-only",
+            "--check"
+          ],
+          "exitCode": 0,
+          "evidence": "observations/conversion-digest-check.log"
+        },
+        {
+          "timestamp": "2026-11-07T22:39:54.825732+00:00",
+          "milestone": "command-result",
+          "label": "model-digest-check",
+          "command": [
+            "node",
+            "tools/sync-conversion-kernel-digests.js",
+            "--file",
+            "model/manifest.json",
+            "--check"
+          ],
+          "exitCode": 0,
+          "evidence": "observations/model-digest-check.log"
+        },
+        {
+          "timestamp": "2026-11-07T22:39:56.870183+00:00",
+          "milestone": "command-result",
+          "label": "application-final",
+          "command": [
+            "node",
+            "case/run.js"
+          ],
+          "exitCode": 0,
+          "evidence": "observations/application-final.log"
+        },
+        {
+          "timestamp": "2026-11-07T22:39:58.376751+00:00",
+          "milestone": "command-result",
+          "label": "inspection-final",
+          "command": [
+            "node",
+            "observations/inspect-after.js"
+          ],
+          "exitCode": 0,
+          "evidence": "observations/inspection-final.log"
+        },
+        {
+          "timestamp": "2026-11-07T22:41:48.302640+00:00",
+          "milestone": "minimal-reproduction",
+          "command": "node observations/reproduce.js",
+          "evidence": "observations/reproduction.json",
+          "originalMismatches": 15,
+          "fixedMismatches": 0,
+          "shape": {
+            "M": 4,
+            "N": 4,
+            "K": 1
+          }
+        },
+        {
+          "timestamp": "2026-11-07T22:41:48.302640+00:00",
+          "milestone": "final-verification",
+          "evidence": [
+            "observations/application-final.json",
+            "observations/inspection-final.json",
+            "observations/tiled-after.log",
+            "observations/protected-hashes.json"
+          ],
+          "protectedFileCount": 3271,
+          "protectedDrift": [],
+          "result": "Original shared-tile bug corrected; independent operator parity and exact supplied application-control tokens pass. No performance or portability claim."
+        }
+      ],
+      "investigatorFinal": {
+        "schema": "doppler.debugging-pilot-final/v1",
+        "completedAt": "2026-11-07T22:41:48.302640+00:00",
+        "workflow": "inspection",
+        "status": "fixed-with-evidence",
+        "priorRecognition": {
+          "recognizedParticularFailure": false,
+          "statement": "No prior recognition of this particular failure or its solution. Model training provenance is unknown; fresh context is not proof of no training exposure.",
+          "recordedBeforeInitialRun": true
+        },
+        "diagnosis": {
+          "failureClass": "runtime numerics",
+          "affectedKernel": "matmul_f16w_f32a_tiled.wgsl#main",
+          "firstFaultyBoundary": "Workgroup A/B tile staging immediately after the first workgroup barrier, before accumulation.",
+          "supportedCause": "The old staging loops distribute component writes to one shared vec4 across several invocations. Those component stores clobber sibling values on this runtime. A=[1,2,3,4] becomes [0,0,0,4], and B=[5,6,7,8] becomes [0,0,0,8].",
+          "scopeLimit": "This internal operator boundary has independent numeric evidence. A full source-runtime layer-by-layer model comparison was not available and is not claimed.",
+          "evidence": [
+            "observations/staging-probe.json",
+            "observations/reproduction.json",
+            "observations/tiled-before.log",
+            "observations/tiled-after.log"
+          ]
+        },
+        "fix": {
+          "description": "Each invocation assembles a complete private vec4 and stores it once into its exclusively owned shared slot, for both A and B. The output arithmetic, dispatch geometry, and kernel selection are preserved.",
+          "workaround": false,
+          "patchPaths": [
+            "src/gpu/kernels/matmul_f16w_f32a_tiled.wgsl",
+            "src/config/kernels/kernel-ref-digests.js",
+            "src/config/conversion/glmocr/glm-ocr-f16-af32.json",
+            "src/config/conversion/gemma3/gemma-3-270m-it-w8a8-ehf16-af32.json",
+            "src/config/conversion/gemma3/gemma-3-270m-it-q4k-ehf16-af16.json",
+            "src/config/conversion/gemma3/gemma-3-1b-it-q4k-ehf16-af32.json",
+            "src/config/conversion/gemma3/gemma-3-270m-it-f16-af32.json",
+            "src/config/conversion/gemma3/gemma-3-270m-it-q4k-ehf16-af32.json",
+            "src/config/conversion/gemma3/gemma-3-1b-it-f16-af32.json",
+            "src/config/conversion/lfm2/lfm2.5-1.2b-instruct-q4k-ehf16-af32.json",
+            "src/config/conversion/qwen3/qwen-3-reranker-0-6b-f16-af32.json",
+            "src/config/conversion/qwen3/qwen-3-embedding-0-6b-f16-af32.json",
+            "src/config/conversion/qwen3/qwen-3-reranker-0-6b-q4k-ehf16-af32.json",
+            "model/manifest.json"
+          ],
+          "patchArtifacts": [
+            "observations/matmul_f16w_f32a_tiled.wgsl.patch",
+            "observations/kernel-ref-digests.js.patch",
+            "observations/source-config-digests.patch",
+            "observations/manifest.json.patch"
+          ],
+          "identityRefresh": "Official kernel-reference digest sync, conversion-kernel digest sync, and converted-manifest refresh tools; 13 shared shader digest references updated across 11 source conversion files.",
+          "shaderSha256": "efc55d9650ef63108bf62cac6d5bd153cc94cd2584472c0d6ab57511e7f1dfb8",
+          "declaredEntryDigest": "sha256:add94637f6179a15674c9a34efbf4eadf64128131b37717a828904c23e7607ab"
+        },
+        "reproduction": {
+          "command": "/usr/bin/python3 /private/tmp/doppler-pilot-inspection-20261107/case/command.py \"node observations/reproduce.js\"",
+          "artifact": "observations/reproduction.json",
+          "shape": {
+            "M": 4,
+            "N": 4,
+            "K": 1
+          },
+          "expected": [
+            5,
+            6,
+            7,
+            8,
+            10,
+            12,
+            14,
+            16,
+            15,
+            18,
+            21,
+            24,
+            20,
+            24,
+            28,
+            32
+          ],
+          "originalMismatches": 15,
+          "fixedMismatches": 0,
+          "fixedMaxAbsoluteError": 0,
+          "independentOracle": "Float64 dot products using exactly represented f32 input and f16 weights.",
+          "stagingCommand": "node observations/staging-probe.js",
+          "existingRegressionCommand": "node tests/kernels/matmul-f16w-f32a-tiled-parity.test.js --require-gpu",
+          "originalShaderRegressionCommand": "node tests/kernels/matmul-f16w-f32a-tiled-parity.test.js --require-gpu --shader observations/original.wgsl"
+        },
+        "successfulChecks": [
+          {
+            "command": "node observations/reproduce.js",
+            "evidence": "observations/reproduction.json",
+            "result": "Original 15/16 outputs wrong; corrected 16/16 exact."
+          },
+          {
+            "command": "node observations/staging-probe.js",
+            "evidence": "observations/staging-probe.json",
+            "result": "Original 6 staging-value failures; candidate zero."
+          },
+          {
+            "command": "node tests/kernels/matmul-f16w-f32a-tiled-parity.test.js --require-gpu",
+            "evidence": "observations/tiled-after.log",
+            "result": "All seven existing shapes pass unchanged F64 tolerances; maximum absolute error 5.348259279891465e-07"
+          },
+          {
+            "command": "node case/run.js",
+            "evidence": "observations/application-final.json",
+            "result": "All 12 generated IDs and text exactly match supplied repaired-runtime application control; control is not an independent whole-model oracle."
+          },
+          {
+            "command": "node observations/inspect-after.js",
+            "evidence": "observations/inspection-final.json",
+            "result": "Exact six-token supplied prefix; all 12 generated IDs match application control; first-token probability 0.9995212728815919"
+          },
+          {
+            "command": "node tools/sync-kernel-ref-digests.js --check",
+            "evidence": "observations/digest-check.log",
+            "result": "Pass."
+          },
+          {
+            "command": "node tools/sync-kernel-reachability.js --check",
+            "evidence": "observations/registry-check.log",
+            "result": "Pass, 555 variants."
+          },
+          {
+            "command": "node tools/sync-conversion-kernel-digests.js --source-only --check",
+            "evidence": "observations/conversion-digest-check.log",
+            "result": "Pass, 54 configuration files."
+          },
+          {
+            "command": "node tools/sync-conversion-kernel-digests.js --file model/manifest.json --check",
+            "evidence": "observations/model-digest-check.log",
+            "result": "Pass."
+          },
+          {
+            "check": "Protected workload/reference/tests/model-shard SHA256 comparison",
+            "evidence": "observations/protected-hashes.json",
+            "result": "No changes in 3271 protected files."
+          }
+        ],
+        "inspectionWorkflow": {
+          "used": [
+            "model.inspect.generate policyId demo/guided-quality",
+            "options.inputTokenIds exact-prefix replay",
+            "retained comparison fingerprints",
+            "top-candidate logits and probabilities",
+            "existing independent F64 physical kernel parity test",
+            "custom immediate post-barrier staging capture",
+            "minimal independent physical matrix reproduction"
+          ],
+          "notUsed": [
+            {
+              "tool": "documented semantic boundary capture/compare",
+              "reason": "No independent source-boundary capsule was supplied; direct operator staging and F64 diagnostics isolated the fault without inventing source evidence."
+            }
+          ],
+          "fingerprints": {
+            "before": "sha256:1f726e0263b358e4b7f14cf087ebda96cdbd4c5b25072f3c257dfb9f7b065b7e",
+            "after": "sha256:6236dbee5c9a73f179fd5fdf60698c5f6e4733689cf593ae05f21457153a4b01",
+            "claim": "Fingerprints retained; identities intentionally differ after source/manifest correction. No canonical quality or performance comparability gate is asserted.",
+            "samePromptTokenIds": true,
+            "sameTokenizer": true,
+            "sameSampling": true
+          },
+          "performanceRepresentative": false
+        },
+        "failedAttempts": [
+          {
+            "attempt": "Initial ordinary generation",
+            "evidence": "observations/1794090906904289000.stdout",
+            "output": {
+              "outputText": "\u4f1a\u306e untuk hairs televillors nos onus establecido \u0445\u043e\u0434\u0430 c\u00f4t\u00e9 sedikitquat",
+              "tokenIds": [
+                105842,
+                5995,
+                65212,
+                10736,
+                83617,
+                4922,
+                189374,
+                110476,
+                184155,
+                34362,
+                67534,
+                147776
+              ]
+            }
+          },
+          {
+            "attempt": "Exact-prefix inspection before correction",
+            "evidence": "observations/inspection-before.json",
+            "result": "Garbled output with first ID 222665 despite exact supplied input IDs."
+          },
+          {
+            "attempt": "Existing physical parity test before correction",
+            "evidence": "observations/tiled-before.log",
+            "result": "M=3 N=5 K=7 output 0 was 0 vs F64 -0.15974238558624165."
+          },
+          {
+            "attempt": "First staging-probe script",
+            "evidence": [
+              "observations/staging-probe.log",
+              "observations/staging-probe-syntax-failure.txt"
+            ],
+            "result": "Syntax error from escaped template delimiters before GPU execution; corrected and rerun."
+          },
+          {
+            "attempt": "First manifest refresh after kernel-reference sync",
+            "evidence": [
+              "observations/manifest-refresh.log",
+              "observations/milestones.jsonl"
+            ],
+            "result": "It preserved the recipe's stale pinned digest. Resolved by official conversion-digest sync before final manifest refresh."
+          },
+          {
+            "attempt": "Discovery reads of guessed paths",
+            "evidence": "observations/commands.jsonl",
+            "result": "Several nonexistent path probes; retained stdout/stderr. No outside packet access."
+          }
+        ],
+        "wrongDiagnoses": [],
+        "unresolvedIssues": [
+          "No independent whole-model source-runtime oracle was supplied; application-control equality and independent operator correctness are distinct evidence.",
+          "Validated only on supplied Apple M3 Metal/macOS 26.6.2 Node22.20.0 webgpu0.4.0 runtime. AMD/Jupiter portability was not tested.",
+          "No performance benchmark or signed Capsule qualification is claimed."
+        ],
+        "compliance": {
+          "allReadsEditsAndCommandsThroughWrapper": true,
+          "mainCheckoutOrOtherPacketsAccessed": false,
+          "networkOrHistoryAccessed": false,
+          "otherAgentsUsed": false,
+          "protectedInputsTestsWeightsOrTolerancesEdited": false,
+          "wrapperOrSandboxEdited": false,
+          "breaches": [],
+          "allCommandStdoutStderrRetained": true,
+          "commandLedger": "observations/commands.jsonl",
+          "wrappedCommandCountIncludingThisFinalWrite": 21,
+          "elapsedSecondsFromFirstWrapperAtFinalWrite": 409.070622,
+          "elapsedBudgetSeconds": 1800,
+          "commandBudget": 40
+        },
+        "handoff": {
+          "Component": "doppler.runtime-source.gpu.kernels",
+          "Intent": "preserved",
+          "Acceptance evidence": "Independent physical staging and F64 tests plus exact supplied application-control continuation.",
+          "Boundary effects": "Kernel digest metadata under doppler.runtime-source.config and the isolated model manifest refreshed; no main checkout changes."
+        }
+      },
+      "coordinatorInvocationFailure": "First coordinator minimal-reproduction command used repo cwd instead of documented packet cwd; ENOENT retained; corrected invocation passed.",
+      "retainedEvidence": {
+        "archive": "inspection-evidence.tar.gz",
+        "sha256": "ea2dd4ac6ccbd74eb67d80b19c5ae2f131a3f241be5229e5984e63974a038384",
+        "frozenFiles": "inspection-frozen-files.json.gz"
+      },
+      "coordinatorLogHashes": {
+        "inspection-independent-metal.log": "4c6d7b4358acbcf2d6c432f6350b1ac908ad1ff4d7ad8b4e5b8eb4c9c25d3013",
+        "inspection-independent-application.log": "2aa0d6c31c8b99f9bc2d370296d71ca4ef59f3c9a01fa6ebe88c09e0f63f6fb8",
+        "inspection-independent-amd.log": "75b4b9d7f1d7c057bdfe9ada8c472928d89a1496e5fb68fa9c813df20453dcd3",
+        "inspection-independent-minimal.log": "8928b552229922c7d30b6b67fa1da6a38806aaf8a3659194d4dbd259fa6e076a",
+        "inspection-independent-minimal-correct-cwd.log": "85d0e61fd172b6d3d30602c277bce8baa0799a0853c1d5f1c63d14f78b72e0ba"
+      },
+      "protectedWorkloadWeightsTestsWrapperDependenciesUnchanged": true
+    }
+  },
+  "coordinatorAssessment": "Informed coordinator, independent invocation; not a cause-blind investigator",
+  "qualifications": {
+    "nInvestigators": 2,
+    "nBugs": 1,
+    "priorExposure": "Withheld from fresh contexts; training exposure unknown",
+    "inference": "Descriptive only; no superiority, equivalence, general debugging advantage or universal novelty established",
+    "applicationOracle": "Repaired-runtime control, not independent whole-model source reference",
+    "setupElapsedSeconds": null,
+    "setupLimitation": "Preparation elapsed/active time was not instrumented; do not hide it or manufacture a setup timing. Packet has 536 MB learned-model material plus pinned source/dependencies/copied Node; hashes/preflights retained.",
+    "timingLimitations": [
+      "Coordinator verification scheduling and one coordinator cwd error are included in primary elapsed values.",
+      "Global GPU/compiler caches were not reset.",
+      "Single realization per workflow cannot distinguish investigator variance or task ceiling effects.",
+      "No independent active-thought-time measurement or complete deduplicated inline-code LOC measure.",
+      "Existing numerical tests and selection logs made this fault directly accessible to both workflows."
+    ],
+    "sandbox": "Only wrapped commands OS-restricted; global tool compliance not mechanically proven.",
+    "coordinatorRerunArtifacts": "Coordinator reruns wrote scratch application.json and reproduction.json in participant observations. Investigator application-before/after/final files and wrapped stdout remain preserved. Inspection original reproduction recovered from wrapped stdout and stored separately; semantic JSON equal to coordinator rerun: True."
+  },
+  "noveltyTrack": "Completed bounded source review: prior-art.json; not inferred from trial speed.",
+  "lockedAt": "2026-11-07T22:46:23.441813+00:00",
+  "maskedAssessment": {
+    "path": "masked-assessment.json",
+    "sha256": "4019b8871615ef6043625910e35c1f057313969d81f9f662c2133788e3ec87d3",
+    "result": "X pass; Y pass",
+    "identityMaskReleasedAfterScoring": {
+      "X": "standard",
+      "Y": "inspection"
+    },
+    "assessorContext": "Fresh fork_turns:none; no workflow labels or timings supplied."
+  },
+  "outcome": "Both workflows produced mechanism repairs and independently reproducible small cases. No debugging advantage or equivalence established. Tooling was usable in this bounded case; broad utility and novelty remain unproven.",
+  "nextEvidenceNeeded": "A separate multi-bug, multi-investigator preregistration with appropriate sample/analysis and equivalence margin before any confirmatory advantage/equivalence claim.",
+  "protocolDeviations": [
+    "Active-investigator time and setup elapsed/active time were planned but not instrumented.",
+    "Complete deduplicated inline-script/custom-code total not measured; source inventories and command text retained.",
+    "Coordinator initially invoked the inspection minimal reproduction from the wrong cwd, then corrected it; both logs retained.",
+    "Coordinator reruns touched scratch application/reproduction files; investigator saved outputs/stdout retained and semantically identical reproduction recovered."
+  ],
+  "plannedMetricsComplete": false,
+  "confirmatoryClaimGrade": false
+}

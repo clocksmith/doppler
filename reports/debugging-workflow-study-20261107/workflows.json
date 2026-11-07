@@ -1,0 +1,4 @@
+{
+  "standard": "Use the competent standard workflow. Do not invoke model.inspect, exact-prefix replay helpers, the bundled inspection fingerprints, or the boundary capture/compare commands being tested. Ordinary generation, ordinary generation evidence/logits, tests, debugger/profiler and your own instrumentation are allowed.",
+  "inspection": "Use the same standard workflow plus the existing bundled Doppler inspection tools where useful: model.inspect.generate (policyId demo/guided-quality, options.inputTokenIds for exact-prefix replay), comparison fingerprints, and documented boundary capture/compare tools. Inspect src/client/model-host/model-session.d.ts and docs/evidence-loop.md for actual contracts. You need not use a tool that does not help; record what you used. Do not describe unavailable facilities as working."
+}

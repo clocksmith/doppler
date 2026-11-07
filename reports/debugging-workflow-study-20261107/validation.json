@@ -1,0 +1,30 @@
+{
+  "schema": "doppler.debugging-study-validation/v1",
+  "validatedAt": "2026-11-07T22:48:53.174047+00:00",
+  "passed": true,
+  "checks": [
+    "Frozen-protocol hash matches final pretrial freeze",
+    "Both raw evidence archives match result hashes, retain final.json, contain no weight shards or escaping paths",
+    "Both frozen-file inventories match frozen hashes",
+    "All independent coordinator logs match retained hashes",
+    "JSON documents parse",
+    "Fresh masked assessment passes both candidates",
+    "Confirmed missing planned metrics and blocked confirmatory claims remain explicit",
+    "Final preparation helper rebuilt original defect and ran through offline GPU wrapper"
+  ],
+  "helperRebuild": {
+    "schema": "doppler.debugging-pilot-preparation/v1",
+    "runtimeRevision": "6f94e8fe6b5d0c2c9c037c27183c9bc2226aa41b",
+    "defectRevision": "161e0e12e695fde30bccc6cc88ba015d4f7d4ae9",
+    "shaderPath": "src/gpu/kernels/matmul_f16w_f32a_tiled.wgsl",
+    "shaderSha256": "8376893a0d1badbe9d46ca8b1be00a5bc4b1a5a55f6f65fa7ebff32d7229adcb",
+    "preparationIsNotTrial": true,
+    "modifiedProgram": "Current runtime with exactly the historical defective shader; generated kernel pins and diagnostic manifest refreshed honestly. No signed Capsule or historical whole-release claim.",
+    "originalModelManifestSha256": "7ecfd972ddc3fb074026b41f0a069e47392c0138007bb607a76878a203806a08",
+    "diagnosticManifestSha256": "5fc0aae09c1b8e226272f441f0a084c451e31437319cc47e808e7ae2ff28f3a7",
+    "modelId": "gemma-3-270m-it-f16-af32",
+    "nodeVersion": "v22.20.0",
+    "nodeSha256": "49161ba4e67afda85c25b2daa1f0e91d1bffc023d2dbc4886eda7a9ba38bca62"
+  },
+  "helperSandboxLogSha256": "a486457c9db49f88c330d9c8458a39221ef9fa0e59c03e13b8bab6c6b9ea5e2d"
+}

@@ -1,0 +1,25 @@
+{
+  "schema": "doppler.study-preparation-ci-repair/v1",
+  "commit": "6f94e8fe6b5d0c2c9c037c27183c9bc2226aa41b",
+  "status": "PASSED",
+  "rootCause": "F32-KV registry entry changed one existing closure member; checked runtime-closure receipt was not regenerated.",
+  "changedRuntimeMember": "src/config/kernels/registry.json",
+  "closureFiles": 88,
+  "oldSourceBytes": 1228632,
+  "newSourceBytes": 1229002,
+  "addedOrRemovedDependencies": 0,
+  "fix": "Regenerate reports/capsule-runtime/runtime-closure.json; no validator, runtime or budget change.",
+  "localChecks": [
+    "runtime:closure:check",
+    "source:architecture:check",
+    "package:smoke"
+  ],
+  "localPackageReceiptSha256": "7c071f9b80c638a87cd484f8f8235c1f2e0896c9c83de267eebb26059a744cdf",
+  "localPackageLogSha256": "fe4c223841e0f7cd84a04d594ad2d46147cced35803842a2d434e273f162df96",
+  "ci": {
+    "runId": 42419785491,
+    "url": "https://github.com/clocksmith/doppler/actions/runs/42419785491",
+    "conclusion": "success"
+  },
+  "physicalModelQualification": false
+}

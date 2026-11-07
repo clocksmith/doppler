@@ -1,0 +1,38 @@
+[220.9ms][doppler] Resolving model
+[234.5ms][doppler] Fetching manifest
+[GPU] apple metal-3, f16/subgroups, 4.0GB, submit probe: 0.5ms
+[279.6ms][doppler] Loading weights
+[283.4ms][Pipeline] Execution v1 enabled (steps=35, kernelPathInline=yes, pipelineInline=no)
+[283.5ms][Config] Using manifest-first config (source of truth)
+[286.3ms][Pipeline] Resolved session applied (gemma-3-270m-it-f16-af32): batchSize=1, stopCheckMode=batch, readbackInterval=1, disableCommandBatching=false
+[286.9ms][Pipeline] KernelPath: gemma-3-270m-it-f16-af32-execution-inline (15 decode steps, 10 kernels, source=execution-v1)
+[287.2ms][Pipeline] 18L/640H/4heads (256dim), kernelPath=gemma-3-270m-it-f16-af32-execution-inline
+[287.7ms][Tokenizer] Loading bundled tokenizer from tokenizer.json
+[429.9ms][Tokenizer] HuggingFace model.type="BPE", using type="bpe"
+[651.8ms][Tokenizer] Loaded HuggingFace 262145 tokens (bpe), 6413 special patterns, 514906 merges
+[652.0ms][Pipeline] Tokenizer vocabSize=262145 differs from model=262144, using model size
+[653.0ms][Pipeline] KV cache allocated: kvDtype=f16, maxSeqLen=4096, layout=contiguous, modelMaxSeqLen=32768, requestedKvDtype=f16, requestedMaxSeqLen=4096
+[653.8ms][Pipeline] Execution plan: active=primary, dtype=f32, kernelPath=gemma-3-270m-it-f16-af32-execution-inline
+[691.8ms][ShardCache] Custom shard loader configured
+[691.9ms][Loader] Initializing...
+[875.6ms][HeapManager] Allocated segment 0: 1024MB
+[875.8ms][HeapManager] Segmented heap: 1GB per segment
+[875.9ms][HeapManager] Initialized with strategy: SEGMENTED
+[876.0ms][Loader] Initialized (f16, subgroups, unified)
+[876.7ms][Loader] Loading: gemma-3-270m-it-f16-af32
+[877.4ms][Loader] [0.0s] Memory (start): | RSS=1.30 GB (heap=93.37 MB/176.64 MB, external=1.00 GB, arrayBuffers=1.00 GB) | GPU=0 B (0 active, 0 pooled, peak=0 B) | ShardCache=0 B (0 shards) | Layers=0, GPUBuffers=0
+[1015.5ms][Loader] Embeddings tensor loaded: name=model.embed_tokens.weight, hasShape=true, shape=[262144,640], isWeightBuffer=true
+[1015.8ms][Loader] Layers: 0-17
+[1107.3ms][Loader] Layers: 18 complete (0.09s)
+[1108.0ms][Loader] Complete: 511.36 MB in 0.23s (2.21 GB/s)
+[1108.4ms][Loader] [0.2s] Memory (complete): | RSS=1.22 GB (heap=96.34 MB/130.64 MB, external=1.04 GB, arrayBuffers=1.04 GB) | GPU=511.41 MB (236 active, 0 pooled, peak=511.41 MB) | ShardCache=0 B (0 shards) | Layers=18, GPUBuffers=236
+[1119.1ms][Pipeline] Model loaded successfully (838ms)
+[1120.4ms][doppler] Model ready
+[1134.0ms][KernelSelect] matmul variant=f16w_f32a_tiled reason=path_override
+[1143.5ms][KernelSelect] attention variant=prefill_head256_f16kv reason=path_override:tiled_small
+[1258.3ms][KernelSelect] matmul variant=gemv_subgroup_vec4 reason=path_override
+[1263.1ms][KernelSelect] attention variant=decode_online_head256_f16kv reason=path_override:subgroup
+[1287.8ms][KernelSelect] matmul variant=gemv_subgroup_multicol reason=path_override
+{"outputText":" Paris.\n\nParis is a city with a population of ","tokenIds":[9079,236761,108,50429,563,496,3207,607,496,5499,529,236743]}
+[1558.9ms][ExpertCache] Cache cleared
+[1562.7ms][Pipeline] Unloaded

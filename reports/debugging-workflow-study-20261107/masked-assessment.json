@@ -1,0 +1,266 @@
+{
+  "schema": "doppler.debugging-pilot-independent-outcome-assessment/v1",
+  "overall_result": "pass",
+  "scope": "Independent source and direct numerical outcome assessment of anonymous candidates X and Y",
+  "contract": {
+    "operation": "C[M,N] = alpha * A[M,K] * B[N,K]^T",
+    "input_and_output_dtypes": {
+      "A": "f32",
+      "B": "f16",
+      "C": "f32",
+      "shared_tiles": "f32",
+      "accumulation": "f32"
+    },
+    "numeric_oracle": "Float64 dot products over the actual f32 activations and decoded f16 weights",
+    "acceptance": "Every output finite and abs(actual-expected) <= 1e-4 + 2e-5 * abs(expected); no uncaptured GPU errors",
+    "coordinator_verified_shapes": [
+      [
+        1,
+        1,
+        1
+      ],
+      [
+        3,
+        5,
+        7
+      ],
+      [
+        64,
+        64,
+        16
+      ],
+      [
+        65,
+        63,
+        17
+      ],
+      [
+        130,
+        151,
+        200
+      ],
+      [
+        102,
+        3072,
+        1024
+      ],
+      [
+        37,
+        1024,
+        3072
+      ]
+    ],
+    "broader_verification_evidence": "The coordinator stated that all seven unchanged F64 shapes and actual application output were separately verified for each candidate. The assessor read the numerical test contract, did not rerun this suite or the application, and did not inspect outside reports.",
+    "application_reference_limit": "case/reference.json describes a frozen repaired-runtime application control, not an independent whole-model source reference."
+  },
+  "candidates": {
+    "X": {
+      "result": "pass",
+      "pass_basis": "The designated physical reproduction passed with all 16 outputs exactly equal to independently recomputed values; source evidence shows a mechanism correction; coordinator separately verified the unchanged broader numerical contract and application control.",
+      "shader_sha256": "e81403c7c2fcde53fe254f358b20aefeb1f151d84d81981450a20c6a3c86753a",
+      "supported_mechanism": {
+        "classification": "mechanism correction; path remains active",
+        "direct_source_evidence": "Original staging gives distinct invocations writes to different components of the same workgroup vec4. Each candidate instead assembles a private vec4 initialized to zero and assigns tileA[tid] and tileB[tid] once from the owning invocation.",
+        "mapping_proof": "For tid in 0..255, k=tid/16 and row=(tid%16)*4. The shared slot k*16+row/4 equals tid. These 256 unique slots cover all 64*16 scalar elements for each operand. In-bounds components load the original logical elements; out-of-bounds components retain zero.",
+        "retained_path": "Both preserve the vector workgroup tiles, cooperative staging, 64x64 output tile, 16x16 workgroup, 4x4 per-invocation output tile and tiled f32 accumulation. Neither disables the kernel, substitutes a fallback, shrinks the tested work, or changes tolerance.",
+        "demonstrated_defect": "X produced all 16 exact values on its designated physical outer-product reproduction. Source inspection shows the original cross-invocation shared-vector component writes and their replacement by one writer per complete vector. The separately authorized Y reproduction demonstrated the same original source failing 15 of 16 entries on a different exact outer product.",
+        "compiler_lowering_status": "Inference only: lost sibling components are consistent with component stores lowered to vector read/modify/write or equivalent whole-vector interference. No backend IR was supplied, so a particular lowering sequence or compiler defect is not directly established.",
+        "abi_arithmetic_dtype_dispatch": "Unchanged Uniforms layout and bindings (32-byte uniform; A f32, B f16, C f32), main entry point, 256-invocation workgroup, transposed B indexing, alpha application, f32 tile-subtotal/fma order and outer additions, barriers, output guards and dispatch geometry. Only staging write ownership/index construction changes.",
+        "source_check": "For each candidate, all source before the changed staging block and all source from its first workgroupBarrier through final output writes are byte-identical to the original."
+      },
+      "reproduction": {
+        "command": "node tests/kernels/pilot-shared-vector.test.js --require-gpu",
+        "exit_code": 0,
+        "gpu": "Apple metal-3, f16/subgroups; supplied M3 physical environment",
+        "shape": [
+          4,
+          4,
+          1
+        ],
+        "input": [
+          1,
+          2,
+          3,
+          4
+        ],
+        "weights": [
+          2,
+          3,
+          5,
+          7
+        ],
+        "independent_expected": [
+          2,
+          3,
+          5,
+          7,
+          4,
+          6,
+          10,
+          14,
+          6,
+          9,
+          15,
+          21,
+          8,
+          12,
+          20,
+          28
+        ],
+        "actual": [
+          2,
+          3,
+          5,
+          7,
+          4,
+          6,
+          10,
+          14,
+          6,
+          9,
+          15,
+          21,
+          8,
+          12,
+          20,
+          28
+        ],
+        "mismatches": 0,
+        "max_abs_error": 0,
+        "expected_value_check": "Assessor read the test and separately recomputed each outer-product entry; f32 and f16 integer inputs and these integer outputs are exactly representable.",
+        "no_uncaptured_gpu_errors": true,
+        "stdout_path": "observations/assessment-X-reproduction.stdout",
+        "stderr_path": "observations/assessment-X-reproduction.stderr"
+      },
+      "limitations": [
+        "Direct physical assessment was limited to the two authorized 4x4x1 reproductions on the supplied Apple M3 environment; no other GPU work or broad suite was run.",
+        "The broader seven-shape and application pass information is coordinator-supplied verification, not an independent assessor rerun.",
+        "The exact direct cases do not alone prove all matrix sizes, alpha values or other GPU/compiler combinations; index-coverage and unchanged arithmetic evidence support the repair beyond those cases.",
+        "No backend IR or compiler instrumentation was available; the exact lowering explanation remains inferred.",
+        "Application control matching does not establish independent whole-model correctness.",
+        "No workflow identity, comparative speed or novelty conclusion is made."
+      ]
+    },
+    "Y": {
+      "result": "pass",
+      "pass_basis": "The designated physical reproduction demonstrated 15 original mismatches and zero candidate mismatches against independently recomputed values; source evidence shows a mechanism correction; coordinator separately verified the unchanged broader numerical contract and application control.",
+      "shader_sha256": "efc55d9650ef63108bf62cac6d5bd153cc94cd2584472c0d6ab57511e7f1dfb8",
+      "supported_mechanism": {
+        "classification": "mechanism correction; path remains active",
+        "direct_source_evidence": "Original staging gives distinct invocations writes to different components of the same workgroup vec4. Each candidate instead assembles a private vec4 initialized to zero and assigns tileA[tid] and tileB[tid] once from the owning invocation.",
+        "mapping_proof": "For tid in 0..255, k=tid/16 and row=(tid%16)*4. The shared slot k*16+row/4 equals tid. These 256 unique slots cover all 64*16 scalar elements for each operand. In-bounds components load the original logical elements; out-of-bounds components retain zero.",
+        "retained_path": "Both preserve the vector workgroup tiles, cooperative staging, 64x64 output tile, 16x16 workgroup, 4x4 per-invocation output tile and tiled f32 accumulation. Neither disables the kernel, substitutes a fallback, shrinks the tested work, or changes tolerance.",
+        "demonstrated_defect": "The original shader produced 15 wrong values out of 16 on the exact 4x4x1 outer product in the Y reproduction; only the last value was correct. Candidate Y produced all 16 exact values. Candidate X independently produced all 16 exact values on its designated outer product.",
+        "compiler_lowering_status": "Inference only: lost sibling components are consistent with component stores lowered to vector read/modify/write or equivalent whole-vector interference. No backend IR was supplied, so a particular lowering sequence or compiler defect is not directly established.",
+        "abi_arithmetic_dtype_dispatch": "Unchanged Uniforms layout and bindings (32-byte uniform; A f32, B f16, C f32), main entry point, 256-invocation workgroup, transposed B indexing, alpha application, f32 tile-subtotal/fma order and outer additions, barriers, output guards and dispatch geometry. Only staging write ownership/index construction changes.",
+        "source_check": "For each candidate, all source before the changed staging block and all source from its first workgroupBarrier through final output writes are byte-identical to the original."
+      },
+      "reproduction": {
+        "command": "node observations/reproduce.js",
+        "exit_code": 0,
+        "gpu": "Apple metal-3, f16/subgroups; supplied M3 physical environment",
+        "shape": [
+          4,
+          4,
+          1
+        ],
+        "input": [
+          1,
+          2,
+          3,
+          4
+        ],
+        "weights": [
+          5,
+          6,
+          7,
+          8
+        ],
+        "independent_expected": [
+          5,
+          6,
+          7,
+          8,
+          10,
+          12,
+          14,
+          16,
+          15,
+          18,
+          21,
+          24,
+          20,
+          24,
+          28,
+          32
+        ],
+        "original_actual": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          32
+        ],
+        "original_mismatches": 15,
+        "original_max_abs_error": 28,
+        "actual": [
+          5,
+          6,
+          7,
+          8,
+          10,
+          12,
+          14,
+          16,
+          15,
+          18,
+          21,
+          24,
+          20,
+          24,
+          28,
+          32
+        ],
+        "mismatches": 0,
+        "max_abs_error": 0,
+        "expected_value_check": "Assessor read the reproduction and separately recomputed each outer-product entry; every integer is exactly represented in its specified dtype.",
+        "no_uncaptured_gpu_errors": true,
+        "stdout_path": "observations/assessment-Y-reproduction.stdout",
+        "stderr_path": "observations/assessment-Y-reproduction.stderr",
+        "receipt_path": "observations/reproduction.json"
+      },
+      "limitations": [
+        "Direct physical assessment was limited to the two authorized 4x4x1 reproductions on the supplied Apple M3 environment; no other GPU work or broad suite was run.",
+        "The broader seven-shape and application pass information is coordinator-supplied verification, not an independent assessor rerun.",
+        "The exact direct cases do not alone prove all matrix sizes, alpha values or other GPU/compiler combinations; index-coverage and unchanged arithmetic evidence support the repair beyond those cases.",
+        "No backend IR or compiler instrumentation was available; the exact lowering explanation remains inferred.",
+        "Application control matching does not establish independent whole-model correctness.",
+        "No workflow identity, comparative speed or novelty conclusion is made."
+      ]
+    }
+  },
+  "compliance": {
+    "all_commands_reads_and_edits_via_case_command_wrapper": true,
+    "wrapped_command_count_including_this_write": 7,
+    "maximum_wrapped_commands": 8,
+    "external_repo_reports_other_packets_git_history_or_network_access": false,
+    "other_agents_used": false,
+    "only_gpu_work": "The two expressly authorized small physical reproductions; the Y reproduction internally executes original and fixed.",
+    "submitted_candidates_tests_workload_references_weights_edited": false,
+    "authorized_installations": "Copied X then Y to src/gpu/kernels/matmul_f16w_f32a_tiled.wgsl only to run the specified reproductions; final installed source is byte-identical to Y.",
+    "assessment_artifacts": "Created assessment-X/Y-reproduction stdout/stderr and this JSON; observations/reproduce.js created observations/reproduction.json.",
+    "workflow_labels_guessed": false,
+    "comparative_speed_or_novelty_claims": false
+  }
+}

@@ -1,0 +1,16 @@
+[GPU] apple metal-3, f16/subgroups, 4.0GB, submit probe: 0.6ms
+node:internal/fs/promises:641
+  return new FileHandle(await PromisePrototypeThen(
+                        ^
+
+Error: ENOENT: no such file or directory, open 'observations/original.wgsl'
+    at async open (node:internal/fs/promises:641:25)
+    at async Object.readFile (node:internal/fs/promises:1245:14)
+    at async file:///private/tmp/doppler-pilot-inspection-20261107/observations/reproduce.js:21:12 {
+  errno: -2,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: 'observations/original.wgsl'
+}
+
+Node.js v22.20.0

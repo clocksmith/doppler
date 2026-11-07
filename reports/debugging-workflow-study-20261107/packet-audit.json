@@ -1,0 +1,21 @@
+{
+  "schema": "doppler.debugging-packet-audit/v1",
+  "auditor": "Fresh fork-none pilot_packet_audit AI context, not an investigator",
+  "method": "Five wrapped read-only commands; no GPU work or defect investigation. Source/dependency/fixture availability, solution-marker scan, VCS and symlink scan.",
+  "findings": {
+    "competentStandardWorkflow": true,
+    "runtimeDependenciesAndModelPresent": true,
+    "noEscapingSymlinksFound": true,
+    "noVcsDirectoriesFound": true,
+    "confirmedTargetSpecificAnswerLeakFound": false,
+    "historicalNarrativesFound": true
+  },
+  "actionBeforeTrial": "Removed docs/status, docs/perf-investigations and docs/evidence from both packets, archived setup command logs, then refroze and pushed 9b8d14e5 before investigator starts.",
+  "limitations": [
+    "Bounded leak audit is not proof of no semantic hint anywhere.",
+    "Sandbox denylist is not whole-filesystem confinement.",
+    "Agent tool restrictions and time/command limits depend on compliance.",
+    "Public-training contamination unknown."
+  ],
+  "claim": "Availability audit passed; blinding qualified, not established absolutely."
+}

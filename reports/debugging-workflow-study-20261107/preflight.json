@@ -1,0 +1,87 @@
+{
+  "schema": "doppler.debugging-pilot-preflight/v1",
+  "preparationNotInvestigatorEvidence": true,
+  "hardware": {
+    "vendor": "apple",
+    "architecture": "metal-3",
+    "device": "apple-m3",
+    "description": "Metal driver on macOS Version 26.6.2 (Build 25G83)"
+  },
+  "provider": "Node 22.20.0 webgpu 0.4.0",
+  "runtimeReplay": {
+    "schema": "doppler.debugging-pilot-preparation/v1",
+    "runtimeRevision": "6f94e8fe6b5d0c2c9c037c27183c9bc2226aa41b",
+    "defectRevision": "161e0e12e695fde30bccc6cc88ba015d4f7d4ae9",
+    "shaderPath": "src/gpu/kernels/matmul_f16w_f32a_tiled.wgsl",
+    "shaderSha256": "8376893a0d1badbe9d46ca8b1be00a5bc4b1a5a55f6f65fa7ebff32d7229adcb",
+    "preparationIsNotTrial": true,
+    "modifiedProgram": "Current runtime with exactly the historical defective shader; generated kernel pins and diagnostic manifest refreshed honestly. No signed Capsule or historical whole-release claim.",
+    "originalModelManifestSha256": "7ecfd972ddc3fb074026b41f0a069e47392c0138007bb607a76878a203806a08",
+    "diagnosticManifestSha256": "d23fbf4b471d528d6f8541fb5e4f30e646d06c91996e9b5a65164f0251fd3cbb",
+    "modelId": "gemma-3-270m-it-f16-af32",
+    "nodeVersion": "v22.20.0",
+    "nodeSha256": "49161ba4e67afda85c25b2daa1f0e91d1bffc023d2dbc4886eda7a9ba38bca62"
+  },
+  "independentNumericalOracle": "Host Float64 dot products over exact F32 activations and stored F16 weights in unchanged shared parity test",
+  "applicationReferenceScope": "Repaired-runtime control; not independent whole-model PyTorch/source oracle",
+  "repairedApplication": {
+    "inputTokenIds": [
+      2,
+      818,
+      5279,
+      529,
+      7001,
+      563
+    ],
+    "generatedTokenIds": [
+      9079,
+      236761,
+      108,
+      50429,
+      563,
+      496,
+      3207,
+      607,
+      496,
+      5499,
+      529,
+      236743
+    ],
+    "outputText": " Paris.\n\nParis is a city with a population of "
+  },
+  "exactPrefixReplay": {
+    "passed": true,
+    "tokensMatch": true
+  },
+  "defectiveApplication": {
+    "outputText": "\u0441\u0442\u0440\u043e\u0439\u043a\u0430=S=\u0441\u0442\u0430\u043d\u0435OtherwiseEditarCaseWhenMeansProvidingOtherwise",
+    "tokenIds": [
+      211385,
+      236784,
+      236773,
+      236784,
+      160066,
+      113255,
+      198148,
+      9818,
+      4420,
+      88187,
+      137085,
+      113255
+    ]
+  },
+  "sandbox": {
+    "gpuExecutionPassed": true,
+    "networkDenied": true,
+    "sourceCheckoutDenied": true,
+    "agentConfigDenied": true,
+    "answerSourceDenied": true,
+    "limitation": "Only wrapped subprocesses are sandboxed; packet-external paths elsewhere on disk are not globally denied."
+  },
+  "logs": {
+    "current-model-control.log": "98a9df72b4e4972f314a909f17a3612fef70c1fbf2b7a86997e56eb99353ddf3",
+    "defective-model-control.log": "6119ec02aa8910a7eac2cedc219cffa5857727cf93fb326d43acb68f0965402a",
+    "sandbox-gpu-preflight.log": "35280eabe00a957c0116b8b08a404fded409e79eca0e28f749addd12be47f458",
+    "sandbox-denial-preflight.log": "dce4b7f7125694a15c466d1fb343b5716dbdd466f06f15c4cedf8a75caa1c707"
+  }
+}

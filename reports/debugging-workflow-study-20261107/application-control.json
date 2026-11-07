@@ -1,0 +1,27 @@
+{
+  "scope": "Frozen repaired-runtime application control, not an independent whole-model source reference. Independent numeric oracle: Float64 dot products in the shared kernel tests.",
+  "prompt": "The capital of France is",
+  "inputTokenIds": [
+    2,
+    818,
+    5279,
+    529,
+    7001,
+    563
+  ],
+  "generatedTokenIds": [
+    9079,
+    236761,
+    108,
+    50429,
+    563,
+    496,
+    3207,
+    607,
+    496,
+    5499,
+    529,
+    236743
+  ],
+  "outputText": " Paris.\n\nParis is a city with a population of "
+}

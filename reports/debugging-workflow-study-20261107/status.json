@@ -1,0 +1,14 @@
+{
+  "schema": "doppler.debugging-study-status/v1",
+  "pilot": "COMPLETE",
+  "fullConfirmatoryStudy": "NOT_RUN",
+  "boundedPriorArtReview": "COMPLETE_WITH_NO_UNIVERSAL_NOVELTY_CLAIM",
+  "smokeCiRepair": "PUSHED_AND_GREEN",
+  "runningServices": "27B active, original TTM setting unchanged; no service restart/stop",
+  "claims": {
+    "superiority": false,
+    "equivalence": false,
+    "universalNovelty": false
+  },
+  "results": "results.json"
+}

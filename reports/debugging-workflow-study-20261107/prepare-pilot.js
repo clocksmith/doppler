@@ -2,15 +2,20 @@
 // Preparer only. Never include this file or the report directory in a blinded packet.
 import fs from 'node:fs/promises';
 import path from 'node:path';
+import os from 'node:os';
 import { execFileSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
 
-const [repository, revision, defectRevision, assetDirectory, destination] = process.argv.slice(2);
-if (![repository, revision, defectRevision, assetDirectory, destination].every(Boolean)) {
-  throw new Error('Usage: prepare-pilot.js <repo> <runtime-revision> <defect-revision> <model-dir> <new-packet-dir>');
+const [repository, revision, defectRevision, assetDirectory, destination, workflow] = process.argv.slice(2);
+if (![repository, revision, defectRevision, assetDirectory, destination].every(Boolean)
+    || !['standard', 'inspection'].includes(workflow)) {
+  throw new Error('Usage: prepare-pilot.js <repo> <runtime-revision> <defect-revision> <model-dir> <new-packet-dir> <standard|inspection>');
 }
 const root = path.resolve(destination);
 const assets = path.resolve(assetDirectory);
+if (process.platform !== 'darwin' || !root.startsWith('/private/tmp/')) {
+  throw new Error('This Metal pilot requires macOS and a new packet under /private/tmp/.');
+}
 await fs.mkdir(root); // Refuse to overwrite an existing packet or observations.
 const command = (file, args, cwd = root) => execFileSync(file, args, { cwd, encoding: 'utf8' });
 const hash = bytes => createHash('sha256').update(bytes).digest('hex');
@@ -47,6 +52,21 @@ command(node, ['tools/refresh-converted-manifest.js', 'model', '--config',
   'src/config/conversion/gemma3/gemma-3-270m-it-f16-af32.json']);
 await fs.mkdir(path.join(root, 'case'));
 await fs.mkdir(path.join(root, 'observations'));
+await fs.copyFile(new URL('./command.py', import.meta.url), path.join(root, 'case/command.py'));
+await fs.copyFile(new URL('./application-control.json', import.meta.url), path.join(root, 'case/reference.json'));
+const instructions = await fs.readFile(new URL('./packet-instructions.md', import.meta.url), 'utf8');
+const workflows = JSON.parse(await fs.readFile(new URL('./workflows.json', import.meta.url)));
+await fs.writeFile(path.join(root, 'case/START.md'), instructions
+  .replaceAll('ABSOLUTE_PACKET', root).replace('WORKFLOW_TEXT', workflows[workflow]));
+const deniedPaths = [path.resolve(repository), ...['.codex', '.agents', '.claude', '.ssh']
+  .map(name => path.join(os.homedir(), name))];
+await fs.writeFile(path.join(root, 'case/offline.sb'), `(version 1)
+(allow default)
+(deny network*)
+(deny file-read* file-write* ${deniedPaths.map(value => `(subpath ${JSON.stringify(value)})`).join(' ')})
+(deny file-read* file-write* (require-all (subpath "/private/tmp") (require-not (subpath ${JSON.stringify(root)}))))
+(allow file-read-metadata (literal "/private/tmp"))
+`);
 const workload = {
   schema: 'doppler.debugging-pilot-workload/v1',
   prompt: 'The capital of France is',
