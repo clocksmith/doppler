@@ -33,13 +33,22 @@ separate model-identity change, not part of this commit.
 - Bit-identical output does not qualify any model or package; it removes a numerical question.
   Speedups are one AMD device; other GPUs need their own timing.
 
-## Correction: Metal corruption and 7425fd58 (2026-10-22)
+## Correction: Metal corruption and 49c39730 (2026-10-22)
+
+The reproducible `origin/main` pins are failing commit
+`161e0e12e695fde30bccc6cc88ba015d4f7d4ae9` (tree
+`c46cd5281a291e414298a0b79d8e6d06be25d309`) and fix
+`49c39730d3a04f0918da831cf218ce253238c13e` (tree
+`0ba63c1b90b8fc51719f230517920014ca3125e6`). Historical labels
+`07d0f6ba` and `7425fd58` identify the same respective trees but are not
+reproducible main-history checkout instructions. Existing receipt filenames and
+measurements below remain unchanged; their historical labels are intentional.
 
 The evidence above covered AMD Vulkan only, and the layout was wrong on Apple GPUs. Four threads
 each wrote one dynamically indexed component of the same shared `vec4`. Tint lowers that store
 on Metal to a read-modify-write of the whole vector, so writes were lost. Every model routed
 through this kernel produced garbage on Metal, and the parity test failed there.
-[7425fd58](https://github.com/clocksmith/doppler/commit/7425fd58) stages one whole `vec4` per
+[49c39730](https://github.com/clocksmith/doppler/commit/49c39730d3a04f0918da831cf218ce253238c13e) stages one whole `vec4` per
 thread and keeps the k-major layout and FMA order. It was verified on Apple Metal.
 
 The fixed kernel on the same AMD device (Chrome 146 Vulkan, GPU timestamps, median of 20):
@@ -47,10 +56,10 @@ The fixed kernel on the same AMD device (Chrome 146 Vulkan, GPU timestamps, medi
 | Check | Result |
 |---|---|
 | vs the [original shader](previous-matmul_f16w_f32a_tiled.wgsl), 11 shapes ([result](chrome-7425fd58-vs-previous.json)) | Byte-identical; 613×3072×1024 2.82 → 0.69 ms, 513×4096×2560 8.64 → 2.27 ms, 102×3072×1024 0.66 → 0.17 ms |
-| vs the 07d0f6ba layout, 11 shapes ([result](chrome-7425fd58-vs-07d0f6ba.json)) | Byte-identical; equal to 1.31× faster on the large shapes (613-row prefill 1.13–1.30×), except 102×1024×3072 (0.27 → 0.31 ms) |
+| vs the 161e0e12 layout, 11 shapes ([result](chrome-7425fd58-vs-07d0f6ba.json)) | Byte-identical; equal to 1.31× faster on the large shapes (613-row prefill 1.13–1.30×), except 102×1024×3072 (0.27 → 0.31 ms) |
 | `tests/kernels/matmul-f16w-f32a-tiled-parity.test.js --require-gpu --reference-shader previous-matmul_f16w_f32a_tiled.wgsl` (Node Dawn/Vulkan) | Byte-exact on all shapes |
 
-The end-to-end figures above were measured with the 07d0f6ba layout. Any artifact that pinned
+The end-to-end figures above were measured with the 161e0e12 layout. Any artifact that pinned
 its digest (`sha256:bed71e39…`) carries the Metal defect and must be rebuilt against
 `sha256:5dada682…`.
 
