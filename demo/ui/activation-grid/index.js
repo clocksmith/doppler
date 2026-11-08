@@ -1,7 +1,8 @@
 import config from './config.json' with { type: 'json' };
 import previews from './previews.json' with { type: 'json' };
+import previewData from '../../assets/activity-previews.json' with { type: 'json' };
 import { SHELL_MANIFEST_DIGEST } from '../../generated-shell-manifest.js';
-import { validateRecording, colorGrid, initialColorScale } from './data.js';
+import { validateRecording, colorGrid, initialColorScale, heatmapColor } from './data.js';
 import { encodeRecording } from './recording-codec.js';
 import { activityView, activityModes, playbackPoints, assertMatchedRuns } from './views.js';
 
@@ -41,7 +42,14 @@ function points() { return recording ? playbackPoints(recording, $('activity-pla
 function paint() {
   scheduled = null;
   const trace = recording?.trace, timeline = points();
-  $('activity-previews').hidden = timeline.length > 0 || active;
+  $('activation-live').setAttribute('aria-pressed', String(active && follow));
+  $('activation-live').disabled = !active;
+  $('activation-play').hidden = active && follow;
+  $('activity-gallery').classList.toggle('activity-gallery--compact', timeline.length > 0 || active);
+  $('activity-intro').hidden = timeline.length > 0 || active;
+  $('activity-intro').textContent = $('activity-auto-example').checked
+    ? 'Opening a recorded Qwen 0.8B example when visible · 20 MB. No model runs or weight download.'
+    : 'Select a recorded Qwen 0.8B map to explore · 20 MB. No model runs or weight download.';
   $('activity-selectors').hidden = !timeline.length;
   $('activation-caption').hidden = !timeline.length && !active;
   $('activity-source').hidden = !timeline.length && !exampleLoading;
@@ -55,6 +63,10 @@ function paint() {
     option.textContent = `${mode?.label}${mode?.reason ? ' · unavailable' : ''}`;
   }
   const chosen = availability.find(m => m.id === select.value);
+  for (const card of $('activity-gallery').querySelectorAll('button')) {
+    card.setAttribute('aria-pressed', String(card.dataset.mode === select.value && timeline.length > 0));
+    card.disabled = exampleLoading || (Boolean(recording) && Boolean(availability.find(m => m.id === card.dataset.mode)?.reason));
+  }
   $('activity-availability').textContent = timeline.length ? chosen?.reason ?? '' : '';
   $('activity-availability').hidden = !timeline.length || !chosen?.reason;
   $('activity-weight-controls').hidden = !['weights', 'contributions', 'residency', 'quantization-error', 'recurrent-memory', 'convolution-history'].includes(select.value);
@@ -95,14 +107,17 @@ function paint() {
     page: Number($('activity-page').value), baseline });
   const scales = recording.display.scales ??= {};
   const key = scaleKey();
+  const fixedUnit = view.range === 'unit' || view.range === 'residency';
+  if (fixedUnit) scales[key] = 1;
   if (view.values.some(v => typeof v === 'number' && v !== 0) && scales[key] === undefined) {
     scales[key] = initialColorScale(view.values, recording.display.scale);
   }
-  const scale = scales[key] ?? recording.display.scale;
+  const scale = fixedUnit ? 1 : scales[key] ?? recording.display.scale;
+  $('activation-scale').disabled = fixedUnit;
   $('activation-scale').value = String(scale);
-  const { side, rgba } = colorGrid(view.values, scale);
-  const canvas = $('activation-canvas'); canvas.width = Math.max(1, side); canvas.height = Math.max(1, side);
-  canvas.setAttribute('aria-label', `${view.quantity}: three scalar values per RGB pixel, ${view.representation}`);
+  const { side, rgba } = colorGrid(view.values, scale, view.range);
+  const canvas = $('activation-canvas'); canvas.hidden = side === 0; canvas.width = Math.max(1, side); canvas.height = Math.max(1, side);
+  canvas.setAttribute('aria-label', `${view.quantity}: one scalar per opaque heatmap pixel, ${view.representation}`);
   const context = canvas.getContext('2d');
   if (!context) throw new Error('Activity grids require a canvas 2D context.');
   if (side) { const image = context.createImageData(side, side); image.data.set(rgba); context.putImageData(image, 0, 0); }
@@ -115,8 +130,37 @@ function paint() {
     ? 'Play selects token positions; prefill positions were computed together.'
     : $('activity-playback').value === 'time' ? 'Play follows recorded capture timestamps, including diagnostic overhead.'
       : 'Play advances operator captures at 12 captures/second at 1×.';
-  $('activation-caption').textContent = `${view.quantity} · ${view.representation} · ${point.phase} · token position ${position} · ${side} × ${side} pixels · color ±${Number(scale.toPrecision(3))}`;
-  $('activation-layout').textContent = `${present.toLocaleString()}/${view.values.length.toLocaleString()} displayed scalars present; ${view.valuesPerScalar} underlying values per scalar (up to ${3 * view.valuesPerScalar} per RGB pixel). Full-detail extent ${view.underlyingValues.toLocaleString()} scalars (${Math.ceil(Math.sqrt(view.underlyingValues / 3)).toLocaleString()}² RGB pixels); current overview/window extent ${view.extent.toLocaleString()} scalars; tile starts at ${view.offset.toLocaleString()}. ${view.description} ${playMeaning} Fixed signed color scale ±${scale}; gray is zero, dark is missing, magenta is non-finite.`;
+  $('activation-caption').textContent = `${active && follow ? 'Live · ' : ''}${point.phase} · token position ${position} · ${side} × ${side} pixels`;
+  $('activity-title').textContent = chosen?.label ?? view.quantity;
+  $('activity-method').textContent = view.representation === 'aggregated' ? 'Block summary' : view.representation === 'raw' ? 'Captured values' : 'Reconstructed';
+  $('activity-explanation').textContent = $('activity-detail').value === 'raw' || select.value === 'contributions' ? view.description : previews.find(p => p.mode === select.value)?.help ?? view.description;
+  $('activity-coverage').textContent = `${present.toLocaleString()} / ${view.values.length.toLocaleString()} pixels have data · ${view.valuesPerScalar === 1 ? 'one value per pixel' : `up to ${view.valuesPerScalar.toLocaleString()} values per pixel`}${select.value === 'weights' ? ' · fixed during generation' : ''}`;
+  if (select.value === 'weights' && $('activity-detail').value === 'overview') {
+    $('activity-coverage').textContent += ` · ${weights.filter(w => w.rms.length).length}/${weights.length} tensors captured; ${weights.filter(w => !w.shape.length).length} shapes unknown and excluded`;
+  }
+  const legend = $('activity-legend'); legend.hidden = side === 0; legend.replaceChildren();
+  const gradient = document.createElement('div'); gradient.className = 'activity-color-bar';
+  const colors = view.range === 'signed' ? config.colors.signed : config.colors.positive;
+  gradient.style.background = `linear-gradient(to right, ${colors.map(c => `rgb(${c.join(',')})`).join(',')})`;
+  const labels = document.createElement('div'); labels.className = 'activity-color-labels';
+  const fmt = (/** @type {number} */ n) => String(Number(n.toPrecision(3)));
+  for (const text of [view.range === 'signed' ? `≤ −${fmt(scale)}` : '0', view.range === 'signed' ? '0' : fmt(scale / 2), `≥ ${fmt(scale)}`]) {
+    const label = document.createElement('span'); label.textContent = text; labels.append(label);
+  }
+  const keyNote = document.createElement('p'); keyNote.className = 'demo-note';
+  keyNote.textContent = `${view.quantity} · fixed scale · 24-bit RGB, fully opaque`;
+  const markers = document.createElement('div'); markers.className = 'activity-color-markers';
+  for (const [name, color] of [['Missing', config.colors.missing[1]], ['Invalid', config.colors.invalid], ['Padding', config.colors.padding]]) {
+    const marker = document.createElement('span'), swatch = document.createElement('i');
+    swatch.style.background = `rgb(${/** @type {number[]} */ (color).join(',')})`; if (name === 'Missing') swatch.style.background = `repeating-conic-gradient(rgb(${config.colors.missing[0].join(',')}) 0% 25%, rgb(${config.colors.missing[1].join(',')}) 0% 50%) 0 / 6px 6px`;
+    marker.append(swatch, document.createTextNode(String(name))); markers.append(marker);
+  }
+  if (view.range === 'residency') {
+    keyNote.textContent = '0: not resident · 0.25: resident · 1: observed dispatch. No measure of importance.';
+    for (const n of [0, 0.25, 1]) { const label = document.createElement('span'); label.textContent = String(n); label.style.borderBottom = `4px solid rgb(${heatmapColor(n, 1, 'residency').join(',')})`; markers.append(label); }
+  }
+  legend.append(gradient, labels, keyNote, markers);
+  $('activation-layout').textContent = `${present.toLocaleString()}/${view.values.length.toLocaleString()} displayed scalars present; ${view.valuesPerScalar} underlying values per pixel. Full-detail extent ${view.underlyingValues.toLocaleString()} scalars (${Math.ceil(Math.sqrt(view.underlyingValues)).toLocaleString()}² pixels); current overview/window extent ${view.extent.toLocaleString()} scalars; tile starts at ${view.offset.toLocaleString()}. ${view.description} ${playMeaning} Colors clip outside the displayed bounds; saved numerical values are unchanged.`;
   const gaps = [...trace.frames, ...(trace.activity?.frames ?? [])].filter(f => ['failed', 'dropped'].includes(f.status)).length;
   $('activation-status').textContent = `${trace.identity.logicalModelId ?? trace.identity.modelId} · ${trace.identity.adapters?.length ? JSON.stringify(trace.identity.adapters) : 'no active adapters recorded'} · manifest ${trace.identity.manifestHash ?? 'unavailable'} · ${trace.status} · ${gaps} missing captures · ${((trace.recordedBytes + (trace.activity?.recordedBytes ?? 0)) / 1048576).toFixed(1)} MiB of retained numerical payload, plus weights and metadata${trace.stoppedReason ? ' · ' + trace.stoppedReason : ''}${trace.activity?.unavailable['capture-limit'] ? ' · ' + trace.activity.unavailable['capture-limit'] : ''}`;
   $('activity-page-control').hidden = view.extent <= config.maxDisplayValues;
@@ -125,8 +169,10 @@ function paint() {
     const box = canvas.getBoundingClientRect();
     const pixel = Math.floor((event.clientY - box.top) / box.height * side) * side
       + Math.floor((event.clientX - box.left) / box.width * side);
-    const start = pixel * 3;
-    $('activation-cell').textContent = `Scalars ${view.offset + start}–${view.offset + start + 2}: ${view.values.slice(start, start + 3).map(v => v === undefined ? 'missing' : String(v)).join(', ')} · ${view.representation}`;
+    const index = view.offset + pixel, segment = view.segments.find(s => index >= s.start && index < s.end);
+    const value = pixel >= view.values.length ? 'padding' : view.values[pixel] === undefined ? 'missing' : String(view.values[pixel]);
+    const block = segment ? ` · ${segment.id}, values ${(index - segment.start) * segment.blockSize}–${Math.min(segment.count, (index - segment.start + 1) * segment.blockSize) - 1}` : '';
+    $('activation-cell').textContent = `Pixel ${index}: ${value}${block} · ${view.representation}`;
   };
 }
 
@@ -169,6 +215,7 @@ export function finishActivationRecording(status, receipt = null) {
 /** @type {typeof import('./index.js').importActivationRecording} */
 export function importActivationRecording(value) {
   const next = validateRecording(value);
+  next.display = { ...next.display, layout: config.layout, palette: config.palette };
   revision++; source = 'Saved recording';
   stopPlayback(); active = false; follow = false; recording = next; cursor = Math.max(0, points().length - 1);
   $('activation-position').max = String(Math.max(...next.trace.frames.map(f => f.tokenStart + f.tokenIds.length - 1)));
@@ -198,6 +245,16 @@ export function openActivationRecording(value, byteLength) {
 export function getActivationRecording() { return recording; }
 
 export function initActivationGrid() {
+  for (const [id, key, enabled] of [
+    ['activation-record', config.recordPreferenceKey, config.recordByDefault],
+    ['activity-auto-example', config.examplePreferenceKey, config.autoExample],
+  ]) {
+    const input = $(/** @type {'activation-record'} */ (id));
+    try { const saved = localStorage.getItem(String(key)); input.checked = saved === null ? Boolean(enabled) : saved === 'true'; }
+    catch { input.checked = Boolean(enabled); }
+    input.addEventListener('change', () => { try { localStorage.setItem(String(key), String(input.checked)); } catch { /* Private storage may be unavailable. */ } });
+  }
+
   $('activation-scale').value = String(config.scale);
   $('activation-scrub').addEventListener('input', () => {
     stopPlayback(); follow = false; cursor = Number($('activation-scrub').value); $('activation-position').value = String(points()[cursor]?.position ?? 0); queuePaint();
@@ -254,8 +311,8 @@ export function initActivationGrid() {
       assertMatchedRuns(recording, next); baseline = next; queuePaint();
     } catch (error) { $('activity-availability').hidden = false; $('activity-availability').textContent = String(error); }
   });
-  /** @param {string} mode */
-  async function loadExample(mode) {
+  /** @param {string} mode @param {boolean} automatic */
+  async function loadExample(mode, automatic = false) {
     if (exampleLoading || active) return;
     const expectedRevision = revision;
     exampleLoading = true;
@@ -275,7 +332,7 @@ export function initActivationGrid() {
       const stream = new Blob([bytes]).stream().pipeThrough(new DecompressionStream('gzip'));
       const text = await new Response(stream).text();
       if (text.length !== metadata.decodedBytes) throw new Error('Example recording length differs.');
-      if (revision !== expectedRevision || active) return;
+      if (revision !== expectedRevision || active || (automatic && !$('activity-auto-example').checked)) return;
       $('activity-playback').value = 'tokens';
       $('activity-layer').value = '-1';
       $('activity-detail').value = 'overview';
@@ -287,14 +344,14 @@ export function initActivationGrid() {
       cursor = points().findIndex(p => p.position === metadata.promptPosition);
       $('activation-position').value = String(metadata.promptPosition);
       paint();
-      $('activity-mode').focus({ preventScroll: true });
-      $('activation-view').scrollIntoView({ block: 'start' });
+
     } catch (error) { $('activity-availability').hidden = false; $('activity-availability').textContent = String(error); }
     finally {
       exampleLoading = false; $('activity-example').disabled = false;
       for (const card of $('activity-gallery').querySelectorAll('button')) card.disabled = false;
       if (recording) $('activity-source').textContent = `${source} · ${recording.trace.identity.logicalModelId ?? recording.trace.identity.modelId}`;
       else $('activity-source').hidden = true;
+      queuePaint();
     }
   }
   $('activity-example').addEventListener('click', () => { void loadExample('layer-output'); });
@@ -307,9 +364,28 @@ export function initActivationGrid() {
     const label = document.createElement('span'); label.textContent = preview.label;
     const note = document.createElement('small'); note.textContent = preview.description;
     card.append(img, label, note);
-    card.addEventListener('click', () => { void loadExample(preview.mode); });
+    const data = previewData.previews.find(p => p.mode === preview.mode);
+    if (data) {
+      const key = document.createElement('small'); key.className = 'activity-preview-key';
+      const colors = data.range === 'signed' ? config.colors.signed : config.colors.positive;
+      key.style.borderImage = `linear-gradient(to right, ${colors.map(c => `rgb(${c.join(',')})`).join(',')}) 1`;
+      key.textContent = `${data.range === 'signed' ? '−' + Number(data.scale.toPrecision(2)) : '0'} → ${Number(data.scale.toPrecision(2))}`;
+      card.append(key);
+    }
+    card.addEventListener('click', () => {
+      if (!recording) { void loadExample(preview.mode); return; }
+      stopPlayback(); $('activity-mode').value = preview.mode; $('activity-detail').value = 'overview';
+      $('activity-layer').value = '-1'; $('activity-weight').value = ''; $('activity-page').value = '0'; queuePaint();
+    });
     $('activity-gallery').append(card);
   }
+  const observer = new IntersectionObserver(entries => {
+    if (entries.some(e => e.isIntersecting) && $('activity-auto-example').checked && !recording && !active && !exampleLoading) {
+      observer.disconnect(); void loadExample('layer-output', true);
+    }
+  });
+  observer.observe($('activation-view'));
+  $('activity-auto-example').addEventListener('change', queuePaint);
   document.addEventListener('visibilitychange' , () => { if (document.hidden) stopPlayback(); });
   queuePaint();
 }

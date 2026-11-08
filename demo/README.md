@@ -55,7 +55,7 @@ is never re-tokenized. Replay prefills the prefix in one pass, so its numerics
 can differ slightly from the original token-by-token decode. Fragments of one
 character display together but fork at their first token. Recording changes
 execution (probability capture disables command batching), so every live run
-uses `demo/guided-quality` (`demo/deep-xray` with X-Ray) and its timings are
+uses `demo/model-activity` by default (`demo/model-activity-timing` with GPU timing), or `demo/guided-quality` / `demo/deep-xray` after activity is turned off and its timings are
 diagnostic; the demo does not run the `demo/always-on` tier. Probabilities are model
 likelihoods, not factual accuracy. Recorded and illustrative examples cannot
 branch, and a tree is discarded when the conversation or model changes. X-Ray is a separate
@@ -169,16 +169,15 @@ The separately inspectable precomputed run was captured with `model.inspect.gene
 
 The visible model selector sits above the conversation. The **layer grid** records
 bounded asynchronous snapshots of real layer outputs during prefill and decode.
-Positions stay stable across tokens, with a fixed scale and three values per RGB
-pixel. Missing captures are marked, never filled with zeros. Scrub or play the
-execution order; prompt-position controls select within a prefill capture. The
-composite combines sequential layer captures and does not imply simultaneous
-state. Recording limits stop observation without stopping generation. Exported
-recordings contain numerical samples, layout/scale, policy and model/build
-identity; imported playback needs no model. KV and recurrent state are not captured.
-Layer recording takes precedence over GPU timestamps in the run policy, so ticking
-one recording choice clears the other. **Open file** accepts a run file or a
-standalone grid recording and dispatches on its schema.
+Positions stay stable across tokens, with a fixed scale and one scalar per opaque
+24-bit heatmap pixel. Missing captures are marked, never filled with zeros.
+Live follow updates the selected grid as capture events arrive during generation;
+scrubbing pauses follow, and **Live** resumes it. The composite combines sequential
+layer captures and does not imply simultaneous state. Recording limits stop
+observation without stopping generation. Exported recordings contain numerical
+samples, layout/scale, policy and model/build identity; imported playback needs
+no model. Activity and GPU timing can be recorded together. **Open file** accepts
+a run file or a standalone grid recording and dispatches on its schema.
 
 **Your prompt** runs the message box's prompt, or the last message sent when the
 box is empty (earlier turns are not included), against the default and
@@ -194,12 +193,17 @@ F32-versus-F16 model runs. Neither comparison is a throughput or quality benchma
 
 ## Model activity recording and playback
 
-Open **Model activity → Open example recording** to download a real Qwen 0.8B
-capture (about 20 MB compressed), without loading or executing a model. Its
-compressed bytes are SHA-256 checked before import. The example is fetched on
-demand, outside the application-shell cache. Use **Activity grids** to record
-your own next answer. Recording scans supported loaded weights and adds bounded
-GPU readbacks; it is intentionally diagnostic, not a normal-speed mode.
+**Model activity** opens a real Qwen 0.8B capture (about 20 MB compressed)
+when the section enters view, without loading or executing a model. This can be
+turned off under Details; the preference persists. The compressed bytes are
+SHA-256 checked before import, outside the application-shell cache. An example
+fetch cannot replace a newer live run or imported recording. Six preview maps
+become compact view switches when data is available; all other views share the
+same selector and player.
+
+**Record my answers** defaults on, with a persistent opt-out. Recording scans
+supported loaded weights and adds bounded GPU readbacks; its timing is diagnostic,
+not representative of normal inference. Live follow defaults on for each run.
 
 The Grid selector covers layer outputs, three FFN stages, differences, weights,
 weight×input products, new and accumulated KV, recurrent state, convolution
@@ -216,12 +220,21 @@ timestamps, including observation overhead. Static weights do not animate.
 Recurrent and convolution snapshots are after chunks; they cannot reveal
 uncaptured states between positions inside a chunk.
 
-RGB packs three numerical scalars into each pixel through a fixed signed tanh
-scale. Hover reads the numbers. Captions state raw/reconstructed/aggregated,
-actual pixel dimensions, full-detail extent, current tile/window, and maximum
-underlying values per pixel. Dark cells are missing; zero is gray; nonfinite
-values are magenta. Summary tiles are not individual connections. Quantitative
-values remain in the saved recording; RGB itself does not preserve precision.
+Each pixel represents one scalar using opaque 24-bit RGB color. Signed values
+use blue–neutral–red; magnitudes use dark blue–teal–yellow. Probabilities and gates
+use 0–1. Other scales freeze at the initial 99th-percentile magnitude per view,
+with their limits visible; changing tokens never rescales them. Missing data uses
+a checker pattern, invalid numbers magenta, and padding a separate dark color.
+The visible key names the quantity and bounds. Captions distinguish captured
+values, reconstructed values and block summaries. Hover reads values; Details
+contains full extents and capture identity. The color mapping clips extremes but
+never changes saved numerical values. Legacy RGB-packed recordings still import,
+with their numerical data preserved and their exported display metadata updated.
+
+Known-size missing weight tensors retain their complete block extent. Tensors
+without recorded shapes are counted and excluded, rather than given an invented
+size. An explicitly selected tensor never silently substitutes another tensor.
+Block boundaries do not cross tensors, and the final block can be shorter.
 
 Weights use RMS blocks of 16,384 values. The first supported FFN down projection
 retains four exact rows and squared-weight column sums grouped over 128 output

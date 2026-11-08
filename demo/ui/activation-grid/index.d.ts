@@ -4,6 +4,10 @@ import type { DopplerModelInspectionReceipt } from '../../../src/client/model-ho
 export interface GridElements {
   'activity-previews': HTMLElement; 'activity-gallery': HTMLElement; 'activity-selectors': HTMLElement;
   'activity-source': HTMLElement; 'activation-view': HTMLElement;
+  'activity-intro': HTMLElement; 'activity-auto-example': HTMLInputElement;
+  'activity-maps': HTMLElement; 'activity-title': HTMLElement; 'activity-method': HTMLElement;
+  'activity-explanation': HTMLElement; 'activity-coverage': HTMLElement;
+  'activity-legend': HTMLElement;
   'activity-mode': HTMLSelectElement; 'activity-layer': HTMLSelectElement; 'activity-playback': HTMLSelectElement;
   'activity-weight': HTMLSelectElement; 'activity-detail': HTMLSelectElement;
   'activity-page': HTMLInputElement; 'activity-compare-file': HTMLInputElement;

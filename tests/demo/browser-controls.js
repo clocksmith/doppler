@@ -121,8 +121,11 @@ export async function checkDemoControls(page) {
   assert.equal(await page.locator('#token-inspector-toggle, #branch-all-tokens, #branch-threshold').count(), 0, 'Branching and underlines need no opt-in controls');
   assert.equal(await page.locator('#output-prefill-bar').isVisible(), false);
   assert.equal(await page.inputValue('#set-max-tokens'), '256');
-  assert.equal(await page.evaluate(() => __demoContract.calls.at(-1).policyId), 'demo/guided-quality',
-    'Every live answer records alternatives');
+  assert.equal(await page.evaluate(() => __demoContract.calls.at(-1).policyId), 'demo/model-activity',
+    'Activity recording defaults on for live answers');
+  assert.equal(await page.locator('#activation-record').isChecked(), true);
+  await page.locator('#activation-record').uncheck();
+  assert.equal(await page.evaluate(() => localStorage.getItem('doppler.demo.activity-recording')), 'false');
   const firstChat = await page.evaluate(() => __demoContract.calls.at(-1).prompt);
   assert.deepEqual(firstChat, { messages: [{role:'user',content:'Run the demo contract.'}] });
 

@@ -15,18 +15,18 @@ if (createHash('sha256').update(bytes).digest('hex') !== metadata.sha256) throw 
 const recording = validateRecording(JSON.parse(gunzipSync(bytes)));
 const point = playbackPoints(recording, 'tokens').find(p => p.position === metadata.promptPosition);
 if (!point) throw new Error('Example position is missing.');
-const receipt = { sourceSha256: metadata.sha256, model: metadata.model.logicalModelId, position: point.position, scaleRule: "fixed 99th-percentile magnitude per view", previews: [] };
+const receipt = { sourceSha256: metadata.sha256, model: metadata.model.logicalModelId, position: point.position, scaleRule: "fixed 99th-percentile magnitude; probabilities use 0–1; one scalar per opaque 24-bit heatmap pixel", previews: [] };
 const check = process.argv.includes('--check');
 for (const preview of previews) {
   const view = activityView(recording, { mode: preview.mode, position: point.position, atMs: point.atMs, layer: -1, weightId: '', detail: 'overview', page: 0, baseline: null });
-  const scale = initialColorScale(view.values, recording.display.scale);
-  const { side, rgba } = colorGrid(view.values, scale);
+  const scale = view.range === 'unit' || view.range === 'residency' ? 1 : initialColorScale(view.values, recording.display.scale);
+  const { side, rgba } = colorGrid(view.values, scale, view.range);
   if (!side || !view.values.some(v => v !== undefined)) throw new Error(`Empty preview: ${preview.mode}`);
-  const png = await sharp(Buffer.from(rgba), { raw: { width: side, height: side, channels: 4 } }).png().toBuffer();
+  const png = await sharp(Buffer.from(rgba), { raw: { width: side, height: side, channels: 4 } }).removeAlpha().png().toBuffer();
   const file = new URL(`activity-preview-${preview.mode}.png`, root);
   if (check) { if (!png.equals(await fs.readFile(file))) throw new Error(`Stale preview: ${preview.mode}`); }
   else await fs.writeFile(file, png);
-  receipt.previews.push({ mode: preview.mode, side, scale, representation: view.representation, underlyingValues: view.underlyingValues, sha256: createHash('sha256').update(png).digest('hex') });
+  receipt.previews.push({ mode: preview.mode, side, scale, range: view.range, representation: view.representation, underlyingValues: view.underlyingValues, sha256: createHash('sha256').update(png).digest('hex') });
 }
 const manifest = JSON.stringify(receipt, null, 2) + '\n';
 const target = new URL('activity-previews.json', root);

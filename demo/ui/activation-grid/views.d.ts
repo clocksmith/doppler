@@ -6,6 +6,8 @@ export interface ActivitySelection {
   detail: string; page: number; baseline?: ActivationRecording | null;
 }
 export interface ActivityView {
+  range: 'signed' | 'positive' | 'unit' | 'residency';
+  segments: { start:number; end:number; id:string; count:number; blockSize:number }[];
   values: (number | string | undefined)[]; extent: number; offset: number;
   underlyingValues: number; quantity: string; representation: string; description: string; valuesPerScalar: number;
 }

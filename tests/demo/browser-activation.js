@@ -42,6 +42,8 @@ export async function checkActivationPlayback(page) {
       status: 'complete', stoppedReason: null, recordedBytes: 96, frames } };
   assert.equal(await page.locator('#activation-player').isVisible(), false, 'An instruction replaces the empty grid');
   await page.setInputFiles('#import-file', { name: 'trace.json', mimeType: 'application/json', buffer: Buffer.from(JSON.stringify(recording)) });
+  await page.locator('#activation-player').waitFor({ state: 'visible' });
+  if (!await page.locator('#run-details').evaluate(n => n.open)) await page.locator('#run-details > summary').click();
   await page.selectOption('#activity-playback', 'captures');
   await page.waitForFunction(() => document.querySelector('#activation-scrub').max === '3');
   assert.equal(await page.locator('#activation-canvas').isVisible(), true);
@@ -93,17 +95,21 @@ export async function checkTokenGeometry(page) {
 // Uses the published physical recording; does not run a model or fixture generator.
 export async function checkRealActivityPlayback(page) {
   // Reopen the initial gallery to exercise its actual entry point.
-  await page.evaluate(() => localStorage.setItem('doppler.demo.xray-enabled', 'true'));
+  await page.evaluate(() => { localStorage.setItem('doppler.demo.xray-enabled', 'true'); localStorage.setItem('doppler.demo.activity-example', 'true'); });
   await page.reload({ waitUntil: 'networkidle' });
   assert.equal(await page.locator('#run-details').evaluate(n => n.open), false, 'Saved timing preference must not reopen verbose details');
   assert.match(await page.locator('#activity-measurement-note').textContent(), /GPU timing on/);
+  assert.equal(await page.locator('#activation-record').isChecked(), false, 'Recording opt-out survives reload');
+  await page.locator('#activation-view').scrollIntoViewIfNeeded();
+  await page.waitForFunction(() => document.querySelector('#activity-source').textContent.startsWith('Recorded example'), null, { timeout: 120000 });
+  assert.match(await page.locator('#activity-legend').textContent(), /fully opaque/);
   await page.locator('.activity-preview[data-mode="contributions"]').click();
-  await page.waitForFunction(() => !document.querySelector('#activity-example').disabled, null, { timeout: 120000 });
   await page.evaluate(() => new Promise(requestAnimationFrame));
   assert.match(await page.locator('#activation-caption').textContent(), /token position 17/, await page.locator('#activity-availability').textContent() + ' ' + await page.locator('#activation-status').textContent());
   assert.equal(await page.inputValue('#activity-mode'), 'contributions', 'The selected preview opens its own interactive grid');
-  assert.equal(await page.locator('#activity-previews').isVisible(), false);
+  assert.equal(await page.locator('.activity-gallery--compact').isVisible(), true, 'Primary views remain visible');
   assert.match(await page.locator('#activity-source').textContent(), /Recorded example.*qwen/);
+  await page.locator('#run-details > summary').click();
   const modes = await page.locator('#activity-mode option').evaluateAll(options => options.map(o => ({ id: o.value, disabled: o.disabled })));
   const results = [];
   for (const mode of modes) {
@@ -114,10 +120,12 @@ export async function checkRealActivityPlayback(page) {
       const c = document.querySelector('#activation-canvas');
       const layout = document.querySelector('#activation-layout').textContent;
       return { caption: document.querySelector('#activation-caption').textContent, layout, width: c.width, height: c.height,
+        opaque: [...c.getContext('2d').getImageData(0, 0, c.width, c.height).data].filter((_,i) => i % 4 === 3).every(a => a === 255),
         pixelColors: new Set(c.getContext('2d').getImageData(0, 0, c.width, c.height).data).size,
         position: document.querySelector('#activation-position').value };
     });
     assert.equal(state.position, '17', 'Switching grids preserves the shared token position');
+    assert(state.opaque, `${mode.id} has no alpha-encoded dimension`);
     assert(state.width > 1 && state.pixelColors > 2, `${mode.id} renders recorded numerical values`);
     assert(!state.layout.startsWith('0/'), `${mode.id} has real capture coverage`);
     results.push({ id: mode.id, ...state });
@@ -125,6 +133,9 @@ export async function checkRealActivityPlayback(page) {
   assert.equal(modes.filter(m => !m.disabled).length, 18);
   assert.equal(modes.find(m => m.id === 'expert-routing').disabled, true, 'A dense model cannot pretend to route experts');
   await page.selectOption('#activity-mode', 'weights');
+  await page.locator('#run-details > summary').click();
+  await page.locator('#inspection-workspace').screenshot({ path: '.cache/activation-grid/weights-heatmap.png' });
+  await page.locator('#run-details > summary').click();
   await page.selectOption('#activity-detail', 'raw');
   await page.selectOption('#activity-weight', 'lm_head');
   await page.evaluate(() => new Promise(requestAnimationFrame));
@@ -162,8 +173,50 @@ export async function checkRealActivityPlayback(page) {
   await page.route('**/*', route => route.abort());
   await page.setInputFiles('#import-file', { name: 'saved-activity.json', mimeType: 'application/json', buffer: exported });
   await page.waitForFunction(() => document.querySelector('#activation-status').textContent.includes('0 missing captures'));
-  assert.match(await page.locator('#activation-caption').textContent(), /stored keys and values/);
+  assert.match(await page.locator('#activity-legend').textContent(), /stored keys and values/);
   await page.unroute('**/*');
   await fs.writeFile('.cache/activation-grid/playback/receipt.json', JSON.stringify({ schema: 'doppler.activity-playback-check/v1', origin: page.url(),
     viewports: [1200,390,320], modes: results, offlineImport: true, exportBytes: exported.length, modelExecutionRequired: false }, null, 2));
+}
+
+// The public event contract drives grids during an unfinished answer, not only at receipt time.
+export async function checkLiveActivity(page) {
+  await page.locator('#activation-record').check();
+  await page.evaluate(() => { __demoContract.streamNext = true; });
+  await page.fill('#prompt-input', 'Stream activity while answering.');
+  await page.click('#run-btn');
+  await page.waitForFunction(() => typeof __demoContract.completeStream === 'function');
+  const emit = async (position, value) => page.evaluate(({position, value}) => {
+    const frame = { index: position, forward: position, atMs: position * 10 + 1, phase: 'decode', role: 'layer-output', layer: 0,
+      tokenStart: position, tokenIds: [1], shape: [1,3], dtype: 'f32', status: 'captured', values: [value, -value, .5], reason: null };
+    const input = {...frame, fullShape:[1,3], offset:0, role:'ffn-down-input', metadata:{}, representation:'raw'};
+    const weights = [{ id:'layer_0/down', layer:0, shape:[1,3], raw:[1,2,3], rawOffset:0, rms:[1,2,3],
+      columnEnergy:[1,4,9], rowGroupSize:1, blockSize:1, resident:true, status:'captured', dtype:'f32' }];
+    __demoContract.emitActivation({ type:'activation-frame', frame, trace:{ identity:{modelId:'live-fixture', adapters:[]},
+      geometry:{layers:1,width:3}, status:'recording', recordedBytes:(position+1)*24, frames:[],
+      activity:{frames:[input], weights, model:{}, unavailable:{}, recordedBytes:24} } });
+    __demoContract.emitTokens([1]);
+  }, {position,value});
+  await emit(0,1);
+  await page.waitForFunction(() => document.querySelector('#activation-caption').textContent.startsWith('Live'));
+  await page.selectOption('#activity-mode', 'contributions');
+  await page.evaluate(() => new Promise(requestAnimationFrame));
+  const image = () => page.locator('#activation-canvas').evaluate(c => [...c.getContext('2d').getImageData(0,0,c.width,c.height).data]);
+  const first = await image();
+  await emit(1,.2);
+  await page.waitForFunction(() => document.querySelector('#activation-position').value === '1');
+  assert.notDeepEqual(await image(), first, 'Weight/input map updates before answer completes');
+  assert.equal(await page.locator('#activation-live').getAttribute('aria-pressed'), 'true');
+  await page.locator('#activation-scrub').fill('0');
+  await emit(2,.4);
+  await page.evaluate(() => new Promise(requestAnimationFrame));
+  assert.equal(await page.inputValue('#activation-position'), '0', 'Scrubbing pauses live follow');
+  await page.click('#activation-live');
+  await page.waitForFunction(() => document.querySelector('#activation-position').value === '2');
+  assert.match(await page.locator('#output-text').textContent(), /Contract/, 'Answer text streams alongside the grid');
+  await page.click('#stop-btn');
+  await page.waitForFunction(() => document.querySelector('#output-phase').textContent === 'Stopped');
+  await page.waitForFunction(() => document.querySelector('#activation-live').disabled);
+  assert.equal(await page.locator('#activation-live').isDisabled(), true);
+  await page.locator('#activation-record').uncheck();
 }

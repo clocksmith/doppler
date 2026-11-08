@@ -101,9 +101,11 @@ export function activityView(recording, selection) {
   const frames = (activity?.frames ?? []).filter(f => f.atMs <= atMs);
   const latest = (/** @type {string} */ role, /** @type {number} */ l) => lastMatch(frames, f => f.role === role && f.layer === l
     && position >= f.tokenStart && position < f.tokenStart + f.tokenIds.length);
-  const weights = activity?.weights ?? [];
+  const weights = (activity?.weights ?? []).filter(w => layer < 0 || w.layer === layer);
   /** @type {(number | string | undefined)[]} */
   let values = [];
+  /** @type {{start:number; end:number; id:string; count:number; blockSize:number}[]} */
+  const segments = [];
   let underlyingValues = 0, extent = 0, offset = 0, quantity = mode, representation = 'raw', description = '', valuesPerScalar = 1;
   const tile = (/** @type {number} */ size, /** @type {(index: number) => number | string | undefined} */ get) => {
     extent = size;
@@ -145,23 +147,37 @@ export function activityView(recording, selection) {
       underlyingValues = selected.reduce((n, w) => n + (w.shape.length ? w.shape.reduce((a, b) => a * b, 1) : 0), 0);
       if (detail === 'raw') {
         const w = selected.find(w => w.raw.length);
-        if (w) { values = [...w.raw]; description = `${w.id}: saved exact window begins at value ${w.rawOffset}. Other connections require the matching weight bytes.`; }
+        if (w) { underlyingValues = w.shape.reduce((a, b) => a * b, 1); values = [...w.raw]; description = `${w.id}: saved exact window begins at value ${w.rawOffset}. Other connections require the matching weight bytes.`; }
         else description = 'No exact weight window saved for this tensor; use its overview.';
         quantity = 'dequantized stored weight';
       } else {
-        values = selected.flatMap(w => w.rms.length ? w.rms : [undefined]);
+        let blocks = 0;
+        for (const w of selected) {
+          if (!w.shape.length) continue;
+          const count = w.shape.reduce((a, b) => a * b, 1), size = Math.ceil(count / w.blockSize);
+          segments.push({ start: blocks, end: blocks + size, id: w.id, count, blockSize: w.blockSize });
+          blocks += size;
+        }
+        const byId = new Map(selected.map(w => [w.id, w]));
+        let segmentIndex = 0;
+        tile(blocks, i => {
+          while (segmentIndex < segments.length && i >= segments[segmentIndex].end) segmentIndex++;
+          const segment = segments[segmentIndex];
+          return segment ? byId.get(segment.id)?.rms[i - segment.start] : undefined;
+        });
         quantity = 'weight RMS per block'; representation = 'aggregated';
-        valuesPerScalar = selected.find(w => w.rms.length)?.blockSize ?? 1;
-        description = `${selected.filter(w => w.status === 'captured').length}/${selected.length} loaded tensors observed. Blocks never cross tensor boundaries; final blocks may be shorter. Unobserved tensors are dark placeholders.`;
+        valuesPerScalar = Math.max(1, ...selected.filter(w => w.shape.length).map(w => w.blockSize));
+        description = `${selected.filter(w => w.status === 'captured').length}/${selected.length} loaded tensors observed. Blocks never cross tensor boundaries; final blocks may be shorter. ${selected.filter(w => !w.shape.length).length} tensors have no recorded shape and are excluded from the atlas. Known-size missing tensors retain their full block extent.`;
       }
     } else {
-      const w = selected.find(w => w.columnEnergy.length) ?? weights.find(w => w.columnEnergy.length);
+      const w = selected.find(w => w.columnEnergy.length);
+      description = 'No weight/input pair captured for this tensor or layer.';
       if (w) {
         const input = tokenRow(latest('ffn-down-input', Number(w.layer)), position);
         const [rows, cols] = w.shape;
         underlyingValues = rows * cols;
         if (detail === 'raw') {
-          tile(w.raw.length, i => typeof w.raw[i] === 'number' && typeof input[i % cols] === 'number' ? w.raw[i] * Number(input[i % cols]) : undefined);
+          tile(w.raw.length, i => typeof w.raw[i] === 'number' && typeof input[(w.rawOffset + i) % cols] === 'number' ? w.raw[i] * Number(input[(w.rawOffset + i) % cols]) : undefined);
           quantity = 'weight × projection input'; representation = 'reconstructed';
           description = `${w.id}: exact mathematical products in the saved weight window. Not kernel-rounded products or causal attribution. Other connections require matching weights.`;
         } else {
@@ -177,17 +193,26 @@ export function activityView(recording, selection) {
   } else if (mode === 'recurrent-memory' || mode === 'convolution-history') {
     const sources = frames.filter(f => f.role === mode && (layer < 0 || f.layer === layer)
       && position >= f.tokenStart && position < f.tokenStart + f.tokenIds.length);
-    const latestByLayer = [...new Map(sources.map(f => [f.layer, f])).values()];
+    const latestByLayer = [...new Map(sources.map(f => [f.layer, f])).values()].sort((a, b) => a.layer - b.layer);
     const boundaries = [...new Set(latestByLayer.map(f => `${f.phase} positions ${f.tokenStart}–${f.tokenStart + f.tokenIds.length - 1}`))].join(', ');
     const fullCount = latestByLayer.reduce((n, f) => n + f.fullShape.reduce((a, b) => a * b, 1), 0);
     underlyingValues = fullCount;
     if (detail === 'overview' && latestByLayer.some(f => f.summary)) {
-      values = latestByLayer.flatMap(f => f.summary?.values ?? [undefined]);
       valuesPerScalar = latestByLayer.find(f => f.summary)?.summary?.blockSize ?? 1;
+      let blocks = 0;
+      for (const f of latestByLayer) {
+        const count = f.fullShape.reduce((a, b) => a * b, 1), blockSize = f.summary?.blockSize ?? valuesPerScalar;
+        segments.push({start: blocks, end: blocks + Math.ceil(count / blockSize), id: String(f.layer), count, blockSize});
+        blocks += Math.ceil(count / blockSize);
+      }
+      tile(blocks, i => {
+        const n = segments.findIndex(s => i >= s.start && i < s.end);
+        return n < 0 ? undefined : latestByLayer[n].summary?.values[i - segments[n].start];
+      });
       representation = 'aggregated'; quantity = `${mode} · block RMS`;
       description = `${fullCount.toLocaleString()} full-state values across ${latestByLayer.length} layers; summaries cover ${latestByLayer.reduce((n, f) => n + (f.summary?.observedValues ?? 0), 0).toLocaleString()}. State after ${boundaries}; prefill does not expose intermediate per-token states.`;
     } else {
-      values = latestByLayer.flatMap(f => f.values ?? [undefined]);
+      values = latestByLayer.flatMap(f => f.values ?? new Array(f.shape[0]).fill(undefined));
       quantity = mode === 'recurrent-memory' ? 'recurrent state values' : 'convolution history values';
       description = `Saved raw prefixes (${values.length.toLocaleString()} of ${fullCount.toLocaleString()} full-state values). State after ${boundaries}, not intermediate prefill positions. Unrecorded state needs a new capture.`;
     }
@@ -268,7 +293,8 @@ export function activityView(recording, selection) {
       quantity = 'selected-expert routing weight';
     }
   } else if (mode === 'quantization-error') {
-    const w = weights.find(w => w.id === weightId && w.error?.length) ?? weights.find(w => w.error?.length);
+    const w = weightId ? weights.find(w => w.id === weightId && w.error?.length) : weights.find(w => w.error?.length);
+    description = 'No source-reference pair captured for this tensor or layer.';
     if (w) {
       values = [...(w.error ?? [])];
       underlyingValues = w.shape.reduce((a, b) => a * b, 1);
@@ -278,5 +304,8 @@ export function activityView(recording, selection) {
   }
   if (!extent) extent = values.length;
   if (values.length > config.maxDisplayValues) { const all = values; tile(all.length, i => all[i]); }
-  return { values, extent, offset, underlyingValues: underlyingValues || extent, quantity, representation, description, valuesPerScalar };
+  const range = mode === 'residency' ? 'residency'
+    : ['attention-query', 'attention-prefill', 'probabilities', 'linear-gates', 'expert-routing'].includes(mode) ? 'unit'
+    : representation === 'aggregated' ? 'positive' : 'signed';
+  return { values, extent, offset, range, segments, underlyingValues: underlyingValues || extent, quantity, representation, description, valuesPerScalar };
 }

@@ -50,6 +50,28 @@ assert.deepEqual(view('linear-gates').values, [0.5, 0.5]);
 assert.deepEqual(view('recurrent-memory').values, [Math.sqrt(2.5), Math.sqrt(12.5), Math.sqrt(30.5)], 'overview covers the full state without retaining its full payload');
 assert.deepEqual(view('recurrent-memory', {detail: 'raw'}).values, [1, 2, 3, 4], 'raw window stays bounded and labeled');
 assert.deepEqual(view('contributions', { detail: 'raw' }).values, [2, 6, 12, -2, 3, 0]);
+const shifted = structuredClone(recording);
+shifted.trace.activity.weights[0].raw = [3, -1];
+shifted.trace.activity.weights[0].rawOffset = 2;
+assert.deepEqual(activityView(shifted, { ...selection, mode: 'contributions', detail: 'raw' }).values,
+  [12, -2], 'A saved connection window uses its actual input-column offset');
+assert.equal(view('contributions', { weightId: 'not-captured' }).values.length, 0,
+  'Selecting an uncaptured tensor must not show another tensor');
+assert.equal(view('weights', { layer: 1 }).values.length, 0,
+  'The selected layer also limits weight views');
+const missingWeights = structuredClone(recording);
+missingWeights.trace.activity.weights.push({ ...down, id: 'missing', shape: [4, 3], rms: [], raw: [], columnEnergy: [], status: 'unavailable' });
+const atlas = activityView(missingWeights, { ...selection, mode: 'weights' });
+assert.equal(atlas.values.length, 9, 'Known missing tensor occupies all six blocks, not one');
+assert(atlas.values.slice(3).every(v => v === undefined));
+assert.equal(atlas.segments[1].start, 3); assert.equal(atlas.segments[1].end, 9);
+assert.equal(view('quantization-error', { weightId: 'not-captured' }).values.length, 0);
+const partialState = structuredClone(recording);
+const stateFrame = partialState.trace.activity.frames.find(f => f.role === 'recurrent-memory');
+stateFrame.summary.values = stateFrame.summary.values.slice(0,1); stateFrame.summary.observedValues = 2;
+const stateView = activityView(partialState, { ...selection, mode:'recurrent-memory' });
+assert.equal(stateView.values.length, 3); assert.equal(stateView.values[1], undefined,
+  'State summaries reserve unobserved blocks instead of implying full coverage');
 const energy = view('contributions').values;
 assert.deepEqual(energy, [2, Math.sqrt(22.5), Math.sqrt(72)], 'block energy matches an independent explicit product calculation');
 const probabilities = view('probabilities').values;

@@ -1,8 +1,8 @@
 [
-  {"mode":"layer-output","label":"Activations","description":"Layer outputs · raw values"},
-  {"mode":"weights","label":"Weights","description":"Fixed parameters · block summaries"},
-  {"mode":"contributions","label":"Weight × input","description":"Connection products · block summaries"},
-  {"mode":"attention-prefill","label":"Attention","description":"Prompt relationships · reconstructed"},
-  {"mode":"kv-cache","label":"KV memory","description":"Stored keys and values · raw values"},
-  {"mode":"recurrent-memory","label":"Recurrent memory","description":"Changing state · block summaries"}
+  {"mode":"layer-output","label":"Activations","description":"Captured outputs","help":"What each layer produced for this token. Each pixel shows one captured value."},
+  {"mode":"weights","label":"Weights","description":"Static block summaries","help":"RMS magnitude of fixed weights in each block. This view stays fixed during ordinary generation; it does not measure importance."},
+  {"mode":"contributions","label":"Weight × input","description":"Changing connection products","help":"How fixed weights combine with this token’s inputs. The overview shows RMS product magnitude, not causal importance or signed cancellation."},
+  {"mode":"attention-prefill","label":"Attention","description":"Reconstructed relationships","help":"Attention probabilities reconstructed from captured queries and stored keys. These are not kernel bit-exact results or causal attribution."},
+  {"mode":"kv-cache","label":"KV memory","description":"Captured keys and values","help":"Attention memory written for earlier positions. Missing captures are marked, never treated as zero."},
+  {"mode":"recurrent-memory","label":"Recurrent memory","description":"State summaries","help":"Block RMS of state after captured chunks. Intermediate prompt states inside a chunk were not captured."}
 ]

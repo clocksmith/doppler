@@ -63,6 +63,9 @@ export function validateActivity(value, geometry) {
       if (stored > config.maxWeightValues) fail();
     }
     if (w.error?.length && (!value.weights.some(r => r.id === w.referenceId && r.dtype === w.referenceDtype && r.raw.length === w.error?.length) || w.raw.length !== w.error.length || value.model.useTiedEmbeddings !== true)) fail();
+    const count = w.shape.length ? w.shape.reduce((a, b) => a * b, 1) : 0;
+    if (w.rms.length && (w.rms.length !== Math.ceil(count / w.blockSize) || w.rms.some(n => n < 0))) fail();
+    if (w.raw.length > count || (w.error?.length ?? 0) > count || w.columnEnergy.some(n => n < 0)) fail();
     if (w.columnEnergy.length && (w.shape.length !== 2 || w.columnEnergy.length !== Math.ceil(w.shape[0] / w.rowGroupSize) * w.shape[1])) fail();
   }
 }

@@ -10,7 +10,7 @@ export function validateRecording(input) {
   const value = /** @type {import('./data.js').ActivationRecording} */ (input);
   const fail = () => { throw new Error('Invalid or oversized activation recording.'); };
   if (value?.schema !== 'doppler.activation-recording/v1' || typeof value.demoBuild !== 'string' || !value.demoBuild
-    || value.display?.layout !== config.layout || value.display?.palette !== config.palette
+    || !config.compatibleDisplays.some(d => d.layout === value.display?.layout && d.palette === value.display?.palette)
     || !Number.isFinite(value.display.scale) || value.display.scale <= 0) fail();
   if (value.display.scales !== undefined && (!value.display.scales || typeof value.display.scales !== 'object'
     || Array.isArray(value.display.scales) || Object.keys(value.display.scales).length > 64
@@ -75,15 +75,25 @@ export function projectFrame(trace, index, position) {
   return { values, sources };
 }
 
+/** @type {typeof import('./data.js').heatmapColor} */
+export function heatmapColor(value, scale, range = 'signed') {
+  if (!Number.isFinite(value)) return config.colors.invalid;
+  const colors = range === 'signed' ? config.colors.signed : config.colors.positive;
+  const t = Math.min(1, Math.max(0, range === 'signed' ? (value / scale + 1) / 2 : value / scale));
+  const position = t * (colors.length - 1), lo = Math.floor(position), hi = Math.min(lo + 1, colors.length - 1);
+  return colors[lo].map((v, i) => Math.round(v + (colors[hi][i] - v) * (position - lo)));
+}
+
 /** @type {typeof import('./data.js').colorGrid} */
-export function colorGrid(values, scale) {
-  const side = Math.ceil(Math.sqrt(values.length / 3));
+export function colorGrid(values, scale, range = 'signed') {
+  const side = Math.ceil(Math.sqrt(values.length));
   const rgba = new Uint8ClampedArray(side * side * 4);
   for (let p = 0; p < side * side; p++) {
-    const channels = values.slice(p * 3, p * 3 + 3);
-    const invalid = channels.some(v => typeof v === 'string');
-    for (let c = 0; c < 3; c++) rgba[p * 4 + c] = invalid ? (c === 1 ? 0 : 255)
-      : typeof channels[c] !== 'number' ? 48 : 128 + 127 * Math.tanh(Number(channels[c]) / scale);
+    const value = values[p];
+    const rgb = p >= values.length ? config.colors.padding : value === undefined
+      ? config.colors.missing[(p % side + Math.floor(p / side)) % 2]
+      : typeof value === 'number' ? heatmapColor(value, scale, range) : config.colors.invalid;
+    rgba.set(rgb, p * 4);
     rgba[p * 4 + 3] = 255;
   }
   return { side, rgba };

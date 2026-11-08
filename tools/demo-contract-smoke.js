@@ -6,7 +6,7 @@ import fs from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { chromium } from 'playwright';
-import { checkActivationPlayback, checkTokenGeometry, checkRealActivityPlayback, checkFirstLoadLayout } from '../tests/demo/browser-activation.js';
+import { checkLiveActivity, checkActivationPlayback, checkTokenGeometry, checkRealActivityPlayback, checkFirstLoadLayout } from '../tests/demo/browser-activation.js';
 import { checkDemoControls } from '../tests/demo/browser-controls.js';
 import {
   SHELL_MANIFEST_DIGEST,
@@ -54,6 +54,7 @@ const model = {
     async generate(prompt, options = {}) {
       controls.calls.push({ prompt: structuredClone(prompt), policyId: options.policyId, generation: options.generation, inputTokenIds: options.inputTokenIds ?? null });
       let tokenIds = [];
+      controls.emitActivation = event => options.onEvent?.(event);
       controls.emitTokens = (ids) => {
         for (const tokenId of ids) {
           // Probability-capturing policies attach the live token record, as the engine does.
@@ -188,6 +189,7 @@ async function main() {
   };
   let testedShellDigest = SHELL_MANIFEST_DIGEST;
   try {
+    await page.addInitScript(() => { if (localStorage.getItem('doppler.demo.activity-example') === null) localStorage.setItem('doppler.demo.activity-example', 'false'); });
     await page.goto(`${origin}${entrypoint}`, { waitUntil: 'networkidle' });
     await page.waitForFunction(() => {
       const select = document.querySelector('#model-select');
@@ -244,6 +246,7 @@ async function main() {
     journey.generationCompleted = true;
     await checkDemoControls(page);
     await checkActivationPlayback(page);
+    await checkLiveActivity(page);
     if (process.env.DOPPLER_ACTIVITY_SAMPLE === '1') await checkRealActivityPlayback(page);
     testedShellDigest = await page.evaluate(async (url) => (await import(url)).SHELL_MANIFEST_DIGEST,
       `${origin}${modulePath.replace('/src/index-browser.js', '/demo/generated-shell-manifest.js')}`);
