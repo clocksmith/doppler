@@ -212,10 +212,17 @@ function assertSupportedSourceDtypes(tensors, sourceKind) {
     if (isGgufBlockSourceDtype(dtype)) {
       const kernels = getKernelConfigs().matmul;
       if (kernels.q4_0_gemv?.weightDtype !== 'q4_0' || kernels.q4_0_prefill?.weightDtype !== 'q4_0') {
-        throw new Error('Q4_0 direct loading requires registered native projection programs.');
+        throw new Error(
+          `${dtype} direct loading requires the registered native GGUF block projection programs ` +
+          '(matmul q4_0_gemv and q4_0_prefill).'
+        );
       }
-      if (ggufBlockBytes(tensor.shape,dtype) !== tensor.size) {
-        throw new Error('Q4_0 source tensor byte length differs from declared storage.');
+      const declaredBytes = ggufBlockBytes(tensor.shape, dtype);
+      if (declaredBytes !== tensor.size) {
+        throw new Error(
+          `${dtype} source tensor "${tensor?.name ?? '(unnamed)'}" byte length ${tensor.size} differs from ` +
+          `the ${declaredBytes} bytes its shape and block format require.`
+        );
       }
     }
     if (!SUPPORTED_SOURCE_DTYPES.has(dtype)) {
