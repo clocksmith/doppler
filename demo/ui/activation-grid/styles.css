@@ -1,7 +1,11 @@
-.activation-grid-controls { display: flex; flex-wrap: wrap; gap: var(--space-sm, 8px); align-items: center; }
-.activation-grid-controls label { display: inline-flex; gap: 6px; align-items: center; }
-#activation-canvas { width: min(100%, 640px); aspect-ratio: 1; height: auto; image-rendering: pixelated; background: #303030; display: block; margin: 12px auto; }
-#activation-scrub { width: 100%; }
-#activation-scale { width: 6em; }
-#activation-position { width: min(50%, 240px); }
-.activation-grid-copy { font-size: 12px; line-height: 1.5; overflow-wrap: anywhere; }
+/* The layer grid: one pixel per three numbers, drawn without smoothing. */
+#activation-canvas { display: block; width: 100%; max-width: 640px; height: auto; aspect-ratio: 1; image-rendering: pixelated; background: #303030; }
+.activation-player { display: grid; gap: 12px; }
+.activation-player[hidden] { display: none; }
+.activation-timeline { display: flex; align-items: center; gap: 16px; }
+.activation-timeline input[type="range"] { flex: 1 1 auto; min-width: 0; }
+.activation-settings { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 24px; }
+#activation-scale { width: 9ch; }
+#activation-speed { min-width: 8ch; }
+.activation-detail-controls { display: grid; gap: 16px; }
+.activation-detail-controls[hidden] { display: none; }

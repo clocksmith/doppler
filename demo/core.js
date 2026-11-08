@@ -331,7 +331,7 @@ export async function runBranch(forkIndex, tokenId) {
     settleBranch(node, 'complete');
     renderActiveBranch();
     publishActiveRun();
-    setPhase(remaining < 1 ? 'Branch reached the output limit' : 'Branch ends here');
+    setPhase(remaining < 1 ? 'Branch reached the maximum length' : 'Branch ends here');
     return;
   }
   const inputTokenIds = branchInputTokenIds(tree, node);
@@ -409,12 +409,12 @@ export function loadIllustrativeExample(example) {
   const message = $('live-assistant-message');
   if (message) { message.hidden = false; message.dataset.example = 'illustrative'; }
   const note = $('recorded-run-note');
-  if (note) { note.textContent = 'Illustrative answer · not a model run. No probabilities or timings.'; note.hidden = false; }
+  if (note) { note.textContent = 'Example answer written for this page, not by a model. Press Send to run the prompt for real.'; note.hidden = false; }
   const recorded = $('inspect-recorded-run');
   if (recorded) recorded.hidden = false;
   state.lastInspection = null;state.lastRun = null;state.lastInferenceStats = null;
   delete globalThis.__DOPPLER_DEMO_EVIDENCE__;
-  setExportEnabled(false);clearTokSec();setPhase('Illustrative example');
+  setExportEnabled(false);clearTokSec();setPhase('Example');
 }
 
 export function loadSampleInspection(receipt) {
@@ -428,7 +428,7 @@ export function loadSampleInspection(receipt) {
   if (outputText) outputText.textContent = receipt.outputText;
   const note = $('recorded-run-note');
   if (note) {
-    note.textContent = `Recorded ${receipt.recording?.recordedAt || 'previously'} · unchanged model output with a factual error (“Rayleigh-induced”). Correct term: Rayleigh scattering. Probabilities and timings belong to this recorded answer, not this browser.`;
+    note.textContent = `Recorded ${receipt.recording?.recordedAt || 'earlier'}, not run on your device. The answer is shown unedited and contains a factual error: “Rayleigh-induced” should be “Rayleigh scattering”. Its likelihoods and times come from that recording.`;
     note.hidden = false;
   }
   if (liveMessage) {
@@ -474,8 +474,8 @@ export function loadSampleInspection(receipt) {
   updateXrayPanels(receipt);
   setFinalStats(state.lastRun);
   setExportEnabled(true);
-  setPhase('Precomputed run');
+  setPhase('Recorded answer');
   clearTokSec();
-  setStatus(state.model ? 'Ready' : 'Select model', false);
+  setStatus(state.model ? 'Ready' : 'No model loaded', false);
   setGenerating(false);
 }

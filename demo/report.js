@@ -1,5 +1,6 @@
 import { state } from './ui/state.js';
-import { getActivationRecording, importActivationRecording } from './ui/activation-grid/index.js';
+import { getActivationRecording, importActivationRecording, isActivationRecordingFile,
+  openActivationRecording } from './ui/activation-grid/index.js';
 import { restoreConversationHistory } from './input.js';
 import { updateXrayPanels } from './ui/xray/index.js';
 import {
@@ -116,16 +117,22 @@ export function importReportData(value) {
     ]);
   }
   updateXrayPanels();
-  setPhase('Imported report');
+  setPhase('Opened run file');
   setFinalStats(state.lastRun);
   setExportEnabled(true);
   return report;
 }
 
-async function importReportFile(file) {
-  if (!file) return null;
-  const source = await file.text();
-  return importReportData(JSON.parse(source));
+// One Open control takes either a run file or a standalone layer grid recording.
+async function openFile(file) {
+  if (!file) return;
+  const value = JSON.parse(await file.text());
+  if (isActivationRecordingFile(value)) {
+    openActivationRecording(value, file.size);
+    setPhase('Opened layer grid recording');
+    return;
+  }
+  importReportData(value);
 }
 
 function downloadJSON(data, filename) {
@@ -157,9 +164,9 @@ export function initReport() {
   importButton?.addEventListener('click', () => importFile?.click());
   importFile?.addEventListener('change', async () => {
     try {
-      await importReportFile(importFile.files?.[0]);
+      await openFile(importFile.files?.[0]);
     } catch (error) {
-      setPhase(`Import failed: ${error.message}`);
+      setPhase(`Could not open file: ${error.message}`);
     } finally {
       importFile.value = '';
     }

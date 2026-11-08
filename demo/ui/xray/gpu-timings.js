@@ -47,20 +47,20 @@ export function renderGpuTimings(container, receipt) {
   const data = readGpuTimings(receipt);
   const section = node('section', 'xray-card demo-panel demo-panel--inset');
   section.append(node('h3', '', 'GPU work by step'), node('p', 'xray-caption',
-    'Accumulated GPU time, not elapsed wall time or utilization. Each row groups measured kernel durations within one captured step; segment order is not a dispatch timeline.'));
+    'Each row is one step, split into the GPU programs it ran. The total is GPU time, not elapsed time, and segment order is not the order the programs ran in.'));
   const colors = new Map(data.kernels.map((kernel, index) => [kernel.label, `hsl(${index * 137.5 % 360} 55% 44%)`]));
-  if (!data.kernels.length) section.append(node('p', 'xray-empty', 'Run with X-Ray enabled to capture GPU timestamps.'));
+  if (!data.kernels.length) section.append(node('p', 'xray-empty', 'Tick GPU timing before sending to measure each step.'));
   for (const phase of data.phases) {
-    const label = phase.phase === 'prefill' ? 'Read prompt (prefill)' : 'Write answer (decode)';
-    section.append(node('h4', '', label), node('p', 'xray-caption', `Captured kernel sum: ${ms(phase.totalMs)} · Reported GPU phase total: ${ms(phase.reportedMs)}`));
+    const label = phase.phase === 'prefill' ? 'Read the prompt' : 'Write the answer';
+    section.append(node('h4', '', label), node('p', 'xray-caption', `Sum of measured programs: ${ms(phase.totalMs)} · GPU total reported: ${ms(phase.reportedMs)}`));
     if (!phase.steps.length) {
-      section.append(node('p', 'xray-empty', `${label}: per-kernel timings were not captured.`));
+      section.append(node('p', 'xray-empty', `${label}: times per GPU program were not captured.`));
       continue;
     }
-    if (phase.missingSteps) section.append(node('p', 'xray-diagnostic', `${phase.missingSteps} profile steps have no usable kernel timestamps and are omitted.`));
+    if (phase.missingSteps) section.append(node('p', 'xray-diagnostic', `${phase.missingSteps} steps had no usable times and are left out.`));
     const maximum = Math.max(...phase.steps.map((step) => step.totalMs));
     const waterfall = node('div', 'xray-waterfall');
-    waterfall.setAttribute('aria-label', `${label} kernel waterfall`);
+    waterfall.setAttribute('aria-label', `${label}: time per GPU program, step by step`);
     for (const step of phase.steps) {
       const row = node('div', 'xray-waterfall-row');
       const track = node('div', 'xray-waterfall-segments');
@@ -75,14 +75,14 @@ export function renderGpuTimings(container, receipt) {
       row.append(node('span', 'xray-waterfall-step', String(step.step)), track, node('span', 'xray-waterfall-total', ms(step.totalMs)));
       waterfall.append(row);
     }
-    section.append(waterfall, node('p', 'xray-caption', `All rows: 0–${ms(maximum)}. Hover a segment for its kernel and duration.`));
+    section.append(waterfall, node('p', 'xray-caption', `All rows: 0–${ms(maximum)}. Point at a segment for its program and time.`));
   }
   if (data.kernels.length) {
     const details = /** @type {HTMLDetailsElement} */ (node('details', 'xray-kernel-details'));
     details.open = true;
-    details.append(node('summary', '', 'Time by kernel'));
+    details.append(node('summary', '', 'Time by GPU program'));
     const table = node('table', 'xray-kernel-table'), head = node('thead'), header = node('tr');
-    for (const label of ['Kernel', 'Prefill', 'Decode', 'Measured sum']) { const cell = /** @type {HTMLTableCellElement} */ (node('th', '', label)); cell.scope = 'col'; header.append(cell); }
+    for (const label of ['GPU program', 'Read the prompt', 'Write the answer', 'Total measured']) { const cell = /** @type {HTMLTableCellElement} */ (node('th', '', label)); cell.scope = 'col'; header.append(cell); }
     head.append(header);table.append(head);
     const body = node('tbody');
     for (const kernel of data.kernels) {

@@ -47,7 +47,7 @@ function createEmptyState() {
   sample.id = 'sample-run-btn';
   sample.className = 'btn btn-ghost sample-run-btn';
   sample.type = 'button';
-  sample.textContent = 'View precomputed run';
+  sample.textContent = 'Show a recorded answer';
   empty.append(sample);
   return empty;
 }
@@ -258,13 +258,20 @@ export function renderTokenInspection(tokens) {
   renderTokenInspector(tokens, streamContainer, cardContainer);
 }
 
+// One line of timing and device facts for the latest answer.
 export function setFinalStats(stats) {
   if (!stats) return;
   const parts = [];
-  if (stats.observationPolicy?.modifiesExecution === true) parts.push('Diagnostic timing');
   if (stats.totalTokens != null) parts.push(`${stats.totalTokens} tokens`);
-  if (stats.prefillMs != null) parts.push(`prefill ${stats.prefillMs.toFixed(0)}ms`);
-  if (stats.decodeMs != null) parts.push(`decode ${stats.decodeMs.toFixed(0)}ms`);
-  if (stats.tokPerSec != null) parts.push(`${stats.tokPerSec.toFixed(1)} tok/s`);
-  setText('output-toks', parts.join(' · '));
+  if (stats.prefillMs != null) parts.push(`read the prompt in ${stats.prefillMs.toFixed(0)} ms`);
+  if (stats.decodeMs != null) parts.push(`wrote the answer in ${stats.decodeMs.toFixed(0)} ms`);
+  if (stats.tokPerSec != null) parts.push(`${stats.tokPerSec.toFixed(1)} tokens/s`);
+  const adapter = stats.comparisonFingerprint?.identity?.adapter;
+  const gpu = [adapter?.vendor, adapter?.architecture]
+    .filter((value) => typeof value === 'string' && value && value !== 'unknown').join(' ');
+  if (gpu) parts.push(`GPU: ${gpu}`);
+  if (!parts.length) return;
+  const heading = stats.observationPolicy?.modifiesExecution === true
+    ? 'Latest answer, slowed by recording (not a speed benchmark)' : 'Latest answer';
+  setText('output-toks', `${heading}: ${parts.join(' · ')}`);
 }

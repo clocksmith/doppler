@@ -125,8 +125,8 @@ export async function checkDemoControls(page) {
   const firstChat = await page.evaluate(() => __demoContract.calls.at(-1).prompt);
   assert.deepEqual(firstChat, { messages: [{role:'user',content:'Run the demo contract.'}] });
 
-  assert.match(await page.locator('#output-toks').textContent(), /Diagnostic timing/);
-  assert.match(await page.locator('#runtime-notice').textContent(), /Recording token alternatives changes execution/);
+  assert.match(await page.locator('#output-toks').textContent(), /slowed by recording/);
+  assert.match(await page.locator('#runtime-notice').textContent(), /saves the alternatives for each token, which slows the model/);
   assert.equal(await page.locator('#runtime-notice').isVisible(), true);
   // Even high-likelihood tokens are underlined and branchable immediately.
   assert.equal(await page.locator('.token-chip').count(), 3, 'Every token is underlined');
@@ -141,8 +141,13 @@ export async function checkDemoControls(page) {
   assert.equal(await page.locator('#xray-toggle-all').isChecked(), false);
   await page.locator('#xray-toggle-all').check();
   assert.equal(await page.locator('#inspection-workspace').isVisible(), true);
-  assert.equal(await page.locator('#xray-shell').isVisible(), true);
+  assert.equal(await page.locator('#xray-shell').isVisible(), true, 'Turning on GPU timing opens its details');
   assert.equal(await page.locator('#xray-container h3').first().textContent(), 'Where time went');
+  await page.locator('#activation-record').check();
+  assert.equal(await page.locator('#xray-toggle-all').isChecked(), false, 'One answer records the layer grid or GPU timing, not both');
+  assert.match(await page.locator('#runtime-notice').textContent(), /records every layer/);
+  await page.locator('#xray-toggle-all').check();
+  assert.equal(await page.locator('#activation-record').isChecked(), false);
   await page.locator('#xray-container .xray-section > summary').click();
   await page.waitForFunction(() => document.querySelector('#xray-container pre').textContent.length > 0);
   assert.equal(JSON.parse(await page.locator('#xray-container pre').textContent()).outputText, 'Contract generation passed.');
@@ -155,16 +160,16 @@ export async function checkDemoControls(page) {
   ], 'The next generation receives the previous user and assistant turns');
 
   assert.equal(await page.evaluate(() => __demoContract.calls.at(-1).policyId), 'demo/deep-xray');
-  assert.match(await page.locator('#output-toks').textContent(), /Diagnostic timing/);
+  assert.match(await page.locator('#output-toks').textContent(), /slowed by recording/);
   assert.equal(await page.locator('.xray-waterfall-segment').count(), 2);
   assert.match(await page.locator('.xray-kernel-table').textContent(), /fused_ffn/);
   assert.match(await page.locator('.xray-kernel-table').textContent(), /1.96 ms/);
-  assert.match(await page.locator('#xray-container').textContent(), /prefill.*not captured/);
+  assert.match(await page.locator('#xray-container').textContent(), /Read the prompt: times per GPU program were not captured/);
   assert.equal(await page.locator('.xray-probability-chart').count(), 0);
   await page.locator('#xray-toggle-all').uncheck();
   await completeRun(page, 'Inspect token probability.');
   assert.equal(await page.evaluate(() => __demoContract.calls.at(-1).policyId), 'demo/guided-quality');
-  assert.match(await page.locator('#output-toks').textContent(), /Diagnostic timing/);
+  assert.match(await page.locator('#output-toks').textContent(), /slowed by recording/);
   assert.equal(await page.locator('#token-inspector-view').isVisible(), true);
   assert.equal(await page.locator('.token-chip').count(), 3, 'All tokens keep their probability underlines');
   const colors = await page.locator('.token-chip').evaluateAll(nodes => nodes.map(n => n.style.getPropertyValue('--token-surprisal')));
@@ -243,9 +248,9 @@ export async function checkDemoControls(page) {
   const report = await exportedReport(page);
   assert.equal(report.output, 'Contract generation passed.');
   await importReport(page, { schema: 'invalid', output: 'reject' });
-  await page.waitForFunction(() => document.querySelector('#output-phase').textContent.startsWith('Import failed:'));
+  await page.waitForFunction(() => document.querySelector('#output-phase').textContent.startsWith('Could not open file:'));
   await importReport(page, { ...report, output: 'Imported receipt output.' });
-  await page.waitForFunction(() => document.querySelector('#output-phase').textContent === 'Imported report');
+  await page.waitForFunction(() => document.querySelector('#output-phase').textContent === 'Opened run file');
   assert.equal((await exportedReport(page)).output, 'Imported receipt output.');
   await completeRun(page, 'Fresh receipt.');
   assert.equal((await exportedReport(page)).output, 'Contract generation passed.', 'New generation replaces imported evidence');
@@ -350,10 +355,9 @@ export async function checkDemoControls(page) {
   assert.equal(await page.locator('#precision-replay-panel').isVisible(), false);
 
   await page.locator('#settings-toggle').click();
-  await page.locator('#model-browser > summary').click();
-  await page.locator('[data-model-id="second-model"]').click();
+  await page.selectOption('#model-select', 'second-model');
   assert.equal(await page.inputValue('#model-select'), 'second-model');
-  assert.equal(await page.locator('[data-model-id="second-model"]').getAttribute('aria-pressed'), 'true');
+  assert.doesNotMatch(await page.locator('#model-select-detail').textContent(), /second-model/, 'The status line never shows the raw model ID');
   await page.evaluate(() => { __demoContract.failLoad = true; });
   await page.click('#model-select-action');
   await page.waitForFunction(() => document.querySelector('#status-text').textContent.startsWith('Load failed:'));
@@ -379,7 +383,7 @@ export async function checkDemoControls(page) {
   assert.equal(await page.locator('#run-btn').textContent(), 'Send');
   assert.equal(await page.locator('#run-btn').isEnabled(), true);
   assert.equal(await page.locator('#model-select-remove').isVisible(), false);
-  assert.equal(await page.locator('#status-text').textContent(), 'Select model');
+  assert.equal(await page.locator('#status-text').textContent(), 'No model loaded');
 
   await page.evaluate(() => {
     const event = new Event('beforeinstallprompt', { cancelable: true });

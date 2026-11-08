@@ -115,12 +115,12 @@ function addTiming(container, receipt) {
   const prefill = number(stats.prefillTimeMs);
   const decode = number(stats.decodeTimeMs);
   const section = panel('Where time went',
-    'Reading the prompt is prefill. Writing the answer is decode. Bars share a zero-based scale; timers are not stacked.');
+    'Bars share one scale from zero. They are separate timers, not slices of the total.');
   const metrics = element('dl', 'xray-overview');
-  metric(metrics, 'Output tokens', Array.isArray(receipt.generatedTokenIds)
+  metric(metrics, 'Tokens written', Array.isArray(receipt.generatedTokenIds)
     ? String(receipt.generatedTokenIds.length) : 'Not captured');
   const rate = number(stats.tokensPerSecond) ?? (number(stats.decodeTokens) !== null && decode > 0 ? stats.decodeTokens / (decode / 1000) : null);
-  metric(metrics, 'Recorded decode rate', rate === null ? 'Not captured' : rate.toFixed(1) + ' tokens/s');
+  metric(metrics, 'Writing speed', rate === null ? 'Not captured' : rate.toFixed(1) + ' tokens/s');
   section.append(metrics);
   const maximum = Math.max(total ?? 0, prefill ?? 0, decode ?? 0);
   section.append(
@@ -133,7 +133,7 @@ function addTiming(container, receipt) {
   if (total !== null || prefill !== null || decode !== null) section.append(axis);
   if (total !== null && prefill !== null && decode !== null && prefill + decode > total) {
     section.append(element('p', 'xray-diagnostic',
-      'Phase timers exceed total elapsed time. They cannot be treated as an additive breakdown.'));
+      'The read and write timers add up to more than the total, so they overlap and cannot be summed.'));
   }
   container.append(section);
 }
@@ -143,28 +143,28 @@ function addIdentity(container, receipt) {
   const execution = identity.execution ?? receipt.generationEvidence?.backendIdentity ?? {};
   const stats = receipt.generationEvidence?.stats ?? {};
   const adapter = identity.adapter ?? {};
-  const section = panel('What ran', 'Identity recorded with this receipt, not the currently selected model.');
+  const section = panel('What ran', 'Recorded with this answer; it can differ from the model selected now.');
   const facts = element('dl', 'xray-identity');
   metric(facts, 'Model', fact(identity.artifact?.modelId));
-  metric(facts, 'Backend', fact(execution.backend));
+  metric(facts, 'Graphics interface', fact(execution.backend));
   metric(facts, 'GPU', [adapter.vendor, adapter.architecture, adapter.device]
     .filter((value) => typeof value === 'string' && value.trim()).join(' / ') || 'Not captured');
-  metric(facts, 'Activation precision', fact(execution.activationDtype));
-  metric(facts, 'Kernel path', fact(execution.kernelPathId ?? stats.kernelPathId));
-  metric(facts, 'Observation policy', fact(receipt.policy?.label ?? receipt.policy?.id));
+  metric(facts, 'Math precision', fact(execution.activationDtype));
+  metric(facts, 'GPU program set', fact(execution.kernelPathId ?? stats.kernelPathId));
+  metric(facts, 'Recording mode', fact(receipt.policy?.label ?? receipt.policy?.id));
   section.append(facts);
   const notes = element('ul', 'xray-diagnostics');
-  notes.append(element('li', '', 'Kernel durations below are GPU timestamp measurements where captured; phase totals do not establish utilization.'));
+  notes.append(element('li', '', 'Step times below come from the GPU’s own clock where available. They show where time went, not how busy the GPU was.'));
   notes.append(element('li', '', receipt.fingerprint?.qualityDigest
-    ? 'A quality fingerprint is recorded. Comparison still requires a matching receipt.'
-    : 'No quality fingerprint is recorded; comparability has not been established.'));
+    ? 'A fingerprint of this answer is saved, so a matching run can be checked against it.'
+    : 'No answer fingerprint is saved, so this run cannot be checked against others.'));
   section.append(notes);
   container.append(section);
 }
 
 function addRawReceipt(container, receipt) {
   const details = element('details', 'xray-section');
-  details.append(element('summary', 'xray-section-header', 'Raw inspection receipt (JSON)'));
+  details.append(element('summary', 'xray-section-header', 'Full run record (JSON)'));
   const body = element('pre', 'xray-content');
   details.append(body);
   details.addEventListener('toggle', () => {
@@ -180,17 +180,17 @@ export function updateXrayPanels(receipt = state.lastInspection) {
   container.replaceChildren();
   if (!receipt) {
     container.append(element('p', 'xray-empty', state.lastImportedReport
-      ? 'This imported report has no inspection receipt. Its summary remains in the conversation.'
-      : 'Run a prompt or explore the recorded sample to see its X-Ray.'));
+      ? 'This file has no detailed run record. Its text is shown in the conversation.'
+      : 'Send a message, or show the recorded answer, to see where time went.'));
     return;
   }
-  const source = state.lastImportedReport ? 'Imported receipt'
-    : state.lastRun?.mode === 'sample-inspection' ? 'Recorded sample' : 'Current browser run';
+  const source = state.lastImportedReport ? 'Opened file'
+    : state.lastRun?.mode === 'sample-inspection' ? 'Recorded answer' : 'This browser';
   const provenance = element('div', 'xray-provenance');
   provenance.append(element('strong', '', source));
   provenance.append(element('span', '', receipt.policy?.performanceRepresentative === true
-    ? 'Representative timing policy; comparisons still require matching fingerprints.'
-    : 'Diagnostic timing / not benchmark evidence'));
+    ? 'Normal-speed timing. Compare only with runs that have a matching fingerprint.'
+    : 'Slowed by measurement, not a speed benchmark'));
   container.append(provenance);
   const grid = element('div', 'xray-dashboard');
   addTiming(grid, receipt);
@@ -200,12 +200,17 @@ export function updateXrayPanels(receipt = state.lastInspection) {
   addRawReceipt(container, receipt);
 }
 
+// Says how recording changes the next answer. The layer grid takes
+// precedence over GPU timing, matching the run policy order in core.js.
 export function getXrayRuntimeNoticeText(options = {}) {
+  if (options.activationRecording) {
+    return 'The next answer records every layer. Recording slows the model, so its times are not a speed benchmark.';
+  }
   if (options.profilingEnabled) {
-    return 'X-Ray captures GPU timestamps and changes execution. Timings are diagnostic, not a throughput benchmark.';
+    return 'The next answer measures GPU time for each step. Measuring slows the model, so its times are not a speed benchmark.';
   }
   if (options.wordQualityEnabled || options.alternativesRecorded) {
-    return 'Recording token alternatives changes execution. Timings are diagnostic.';
+    return 'Every answer saves the alternatives for each token, which slows the model. Times shown are not a speed benchmark.';
   }
-  return 'Always-on evidence records existing wall timing without GPU timestamp queries. This is the performance-representative observation tier.';
+  return 'Times are recorded without slowing the model.';
 }

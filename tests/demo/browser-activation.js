@@ -14,7 +14,8 @@ export async function checkActivationPlayback(page) {
     trace: { schema: 'doppler.activation-trace/v1', identity: { modelId: 'synthetic-ui-test', manifestHash: 'a'.repeat(64), runtimeVersion: 'fixture' },
       geometry: { layers: 2, width: 3 }, capturePolicy: { maxBytes: 1024, maxFrameBytes: 128, maxFrames: 8, maxGridValues: 64, maxInFlight: 2 },
       status: 'complete', stoppedReason: null, recordedBytes: 96, frames } };
-  await page.setInputFiles('#activation-import', { name: 'trace.json', mimeType: 'application/json', buffer: Buffer.from(JSON.stringify(recording)) });
+  assert.equal(await page.locator('#activation-player').isVisible(), false, 'An instruction replaces the empty grid');
+  await page.setInputFiles('#import-file', { name: 'trace.json', mimeType: 'application/json', buffer: Buffer.from(JSON.stringify(recording)) });
   await page.waitForFunction(() => document.querySelector('#activation-caption').textContent.includes('capture 4/4'));
   assert.equal(await page.locator('#activation-canvas').isVisible(), true);
   const final = await page.locator('#activation-canvas').evaluate(c => [...c.getContext('2d').getImageData(0, 0, c.width, c.height).data]);
@@ -22,6 +23,7 @@ export async function checkActivationPlayback(page) {
   await page.waitForFunction(() => document.querySelector('#activation-caption').textContent.includes('capture 1/4'));
   const first = await page.locator('#activation-canvas').evaluate(c => [...c.getContext('2d').getImageData(0, 0, c.width, c.height).data]);
   assert.notDeepEqual(first, final, 'Scrubbing changes measured samples');
+  if (!await page.locator('#activation-speed').isVisible()) await page.locator('#run-details > summary').click();
   await page.selectOption('#activation-speed', '0.25');
   await page.click('#activation-play');
   await page.waitForFunction(() => Number(document.querySelector('#activation-scrub').value) > 0);
@@ -30,7 +32,7 @@ export async function checkActivationPlayback(page) {
   const pending = page.waitForEvent('download'); await page.click('#activation-export');
   const download = await pending;
   assert.deepEqual(JSON.parse(await fs.readFile(await download.path(), 'utf8')), recording, 'Offline export is self-contained');
-  await page.setInputFiles('#activation-import', { name: 'bad.json', mimeType: 'application/json', buffer: Buffer.from('{"schema":"bad"}') });
+  await page.setInputFiles('#import-file', { name: 'bad.json', mimeType: 'application/json', buffer: Buffer.from('{"schema":"doppler.activation-recording/v1"}') });
   await page.waitForFunction(() => document.querySelector('#activation-status').textContent.includes('Invalid'));
   assert.equal(await page.evaluate(async () => (await import(new URL('ui/activation-grid/index.js', document.querySelector('script[src$="/demo.js"]').src))).getActivationRecording().demoBuild), 'synthetic-ui-test', 'Invalid imports preserve the accepted recording');
   assert.equal(await page.evaluate(async () => (await import(new URL('report.js', document.querySelector('script[src$="/demo.js"]').src))).buildReport()?.activationRecording ?? null), null, 'A recording is never attached to an unrelated answer receipt');

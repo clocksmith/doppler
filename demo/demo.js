@@ -9,7 +9,7 @@ import { SAMPLE_INSPECTION_RECEIPT } from './data/sample-inspection.js';
 import { state } from './ui/state.js';
 import { initPrecisionReplay } from './ui/precision-replay/index.js';
 import { initLivePrecision } from './ui/precision-replay/live.js';
-import { initActivationGrid } from './ui/activation-grid/index.js';
+import { initActivationGrid, isActivationRecordingEnabled } from './ui/activation-grid/index.js';
 import { initXray, getXrayRuntimeNoticeText, isXrayProfilingNeeded } from './ui/xray/index.js';
 import { flushPwaLaunchState, initPwa } from './pwa.js';
 
@@ -19,14 +19,16 @@ function refreshRuntimeNotice() {
   const xrayEnabled = $('xray-toggle-all')?.checked === true;
   const wordQualityEnabled = $('set-word-quality')?.checked === true;
 
+  // GPU timing results live under Model activity → Details.
   if (xrayEnabled) {
-    const inspectionWorkspace = $('inspection-workspace');
-    if (inspectionWorkspace) inspectionWorkspace.open = true;
+    const details = $('run-details');
+    if (details) details.open = true;
   }
 
   const el = $('runtime-notice');
   if (!el) return;
   const text = getXrayRuntimeNoticeText({
+    activationRecording: isActivationRecordingEnabled(),
     wordQualityEnabled,
     // Every live answer records alternatives, so execution is always observed.
     alternativesRecorded: true,
@@ -35,6 +37,24 @@ function refreshRuntimeNotice() {
   });
   el.textContent = text ?? '';
   el.hidden = !text;
+}
+
+// One answer records either the layer grid or GPU timing, never both: layer
+// recording takes precedence in the run policy, so the other box clears.
+function initRecordingChoice() {
+  const grid = $('activation-record');
+  const timing = $('xray-toggle-all');
+  const exclusive = (changed, other) => {
+    changed?.addEventListener('change', () => {
+      if (changed.checked && other?.checked) {
+        other.checked = false;
+        other.dispatchEvent(new Event('change'));
+      }
+      refreshRuntimeNotice();
+    });
+  };
+  exclusive(grid, timing);
+  exclusive(timing, grid);
 }
 
 // Paint travels independently of button geometry, and completes after release.
@@ -95,6 +115,7 @@ async function init() {
     // xray init is optional
   }
   $('set-trace')?.addEventListener('change', refreshRuntimeNotice);
+  initRecordingChoice();
   refreshRuntimeNotice();
 
   try {

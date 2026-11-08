@@ -120,12 +120,11 @@
 
 #app .setting-field label { cursor: default; }
 #app :is(.setting-field, .output-limit) { gap: var(--demo-space-1); }
-#app :is(.settings-grid, .model-cards, .xray-dashboard, .precision-replay-layout,
+#app :is(.settings-grid, .xray-dashboard, .precision-replay-layout,
   .precision-replay-controls, .precision-replay-stats, .precision-replay-winners,
   .precision-replay-watch-pairs, .precision-replay-broad-flips, .precision-replay-branch-grid) {
   gap: var(--demo-space-2);
 }
-#app .model-cards { padding-top: var(--demo-space-2); }
 #app .model-select-row { gap: var(--demo-space-1); }
 #app .model-select-status { padding: 0; font-size: var(--demo-label-size); }
 #app .model-select-detail:empty { display: none; }
@@ -135,14 +134,8 @@
 #app .app-links { gap: var(--demo-space-2); }
 #app .app-brand-mark { border-radius: var(--demo-control-radius); }
 
-#app .demo-flow,
-#app .inspection-workspace-body { gap: var(--demo-space-3); }
-#app .inspection-workspace { border: 0; border-radius: 0; background: transparent; box-shadow: none; overflow: visible; }
-#app .inspection-workspace-body { padding: 0; border: 0; }
 #app #xray-container { gap: var(--demo-space-2); padding: 0; }
 #app .xray-provenance { padding-bottom: var(--demo-space-2); border-bottom: 1px solid var(--doppler-line); }
-#app :is(.report-bar, .precision-replay-area) { margin: 0; }
-#app .precision-replay-panel { padding: var(--demo-space-2); border-radius: var(--demo-control-radius); border: 1px solid var(--doppler-line); }
 #app :is(.precision-replay-card, .precision-replay-stat-card, .precision-replay-mini-card) {
   padding: var(--demo-space-2);
   gap: var(--demo-space-1);
@@ -219,15 +212,11 @@
 #app .token-inspector-view { border: 0; padding-top: 0; }
 
 #app .model-picker { padding: 0; border: 0; box-shadow: none; }
-#app .model-picker > summary { border-top: 1px solid var(--doppler-line); }
-#app .model-picker > .demo-stack { padding-top: var(--demo-space-2); }
 #app .runtime-notice { font-size: 12px; }
 #app .input-area { padding: 0; border: 0; border-radius: 0; background: transparent; box-shadow: none; }
 #app #prompt-input { padding: 12px; border: 1px solid var(--doppler-line); border-radius: var(--demo-control-radius); background: var(--doppler-surface); }
 #app .input-actions { justify-content: flex-end; }
-#app #run-details .report-bar { padding-top: var(--demo-space-2); }
 #app .precision-evidence-details > :not(summary) { margin-top: var(--demo-space-2); }
-#app :is(#run-details, .precision-replay-area) { padding: 16px 0; border: 0; border-top: 1px solid var(--doppler-line); border-radius: 0; background: transparent; box-shadow: none; }
 
 @media (prefers-reduced-motion: reduce) {
   #app { scroll-behavior: auto; }
@@ -236,39 +225,22 @@
 @media (max-width: 600px) {
   :root { --demo-panel-padding: var(--demo-space-2); }
   #app { padding: var(--demo-space-2); }
-  #app .model-select-row { grid-template-columns: minmax(0, 1fr); }
-  #app .model-select-row #model-select { grid-column: 1 / -1; }
-  #app .input-actions .output-limit { flex-basis: 100%; }
-  #app .input-actions .btn { flex: 1; }
-  #app .chat-toolbar-run { margin-left: 0; justify-content: space-between; flex: 1; }
-  #app .chat-toolbar-run .chat-run-status { flex-basis: auto; }
   #app .token-stream-container { font-size: 19px; line-height: 1.7; }
   #app .token-candidates-list { grid-template-columns: 1ch minmax(40px, 1fr) minmax(30px, 1fr) 6ch max-content; gap: 6px; }
   #app .token-candidate-bar-bg { display: block; }
   #app .chat-message--user { max-width: 95%; }
-  #app .report-bar { align-items: stretch; }
 }
 
 /* Explore the recorded result beside an always-visible composer. */
-#app .chat-toolbar { justify-content: flex-start; }
-#app .chat-toolbar-run { margin-left: 0; flex: 1; justify-content: space-between; }
 #app .chat-run-status { font: 400 14px/1.5 var(--font-sans); }
 #app .output-phase { font: inherit; text-transform: none; letter-spacing: normal; }
 #app .chat-toolbar .btn { min-width: 9ch; }
-#app .demo-playground { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--demo-space-4); align-items: start; }
-#app .example-pane, #app .try-pane { min-width: 0; }
-#app .try-pane { display: grid; gap: var(--demo-space-2); position: static; }
-#app .composer-heading { font: 600 20px/1.4 var(--font-sans); }
 #app .prompt-suggestions { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; }
 #app .prompt-suggestions[hidden] { display: none; }
 #app .prompt-suggestions .btn { width: 100%; min-height: 40px; padding: 8px 1ch; letter-spacing: -.01em; }
 #app #prompt-input { min-height: 130px; }
 #app .input-actions { justify-content: flex-end; }
 #app .input-actions .btn { min-width: 12ch; }
-@media (max-width: 800px) {
-  #app .demo-playground { grid-template-columns: minmax(0, 1fr); }
-  #app .try-pane { position: static; }
-}
 
 /* One control treatment, with a filled state reserved for running a prompt. */
 #app .btn-primary { background: var(--fg); color: var(--bg); border-color: var(--fg); box-shadow: var(--doppler-shadow-sm); }
@@ -281,11 +253,7 @@
 #app .chat-message--user { max-width: 100%; }
 #app details > summary { display: flex; align-items: center; justify-content: space-between; }
 #app details > summary::after { margin-left: 12px; }
-#app .model-select-row { grid-template-columns: minmax(0, 1fr); }
-#app .model-select-row > :is(select, .btn) { grid-column: 1; width: 100%; min-width: 0; }
 #app :is(.model-select-status, .model-select-detail) { font: 400 12px/1.5 var(--font-sans); text-transform: none; letter-spacing: normal; overflow-wrap: anywhere; }
-#app .model-card { border: 1px solid var(--doppler-line); border-radius: var(--demo-control-radius); background: var(--doppler-surface); color: var(--fg); box-shadow: var(--doppler-shadow-sm); }
-#app .precision-replay-panel { padding: 16px 0; border: 0; border-radius: 0; }
 #app :is(.precision-replay-card, .precision-replay-stat-card, .precision-replay-mini-card) { border: 0; border-radius: 0; background: transparent; box-shadow: none; }
 #app .run-measurements { margin: 0; font: 400 12px/1.6 var(--font-sans); color: var(--fg); }
 
@@ -340,7 +308,6 @@
 #app .token-candidate-bar-fill { background: var(--doppler-spectrum); }
 #app .token-chip.is-selected { text-decoration-thickness: 4px; background-size: 100% 4px; }
 #app :is(.xray-measure-track, .xray-overview > div) { background: var(--doppler-surface); border: 1px solid var(--doppler-line); box-shadow: none; }
-#app .model-card:hover { transform: none; }
 #app .app-links a { color: var(--fg); border-bottom-color: var(--doppler-line); }
 #app .app-links a:hover { text-decoration: underline; text-underline-offset: 4px; }
 @media (prefers-reduced-motion: reduce) {
@@ -349,16 +316,11 @@
 
 /* Read the result, try a prompt, then open optional evidence. */
 #app .chat-toolbar { align-items: center; }
-#app .chat-toolbar-run { order: -1; }
-#app .demo-playground { gap: var(--demo-space-4); }
-#app .try-pane { padding: 0; border: 0; }
 #app .chat-run-status { font-weight: 600; }
 #app #live-assistant-message[data-example="true"] { margin-top: var(--demo-space-2); }
 #app .token-stream-container { font-size: 22px; line-height: 1.7; }
 #app .input-area { gap: var(--demo-space-2); }
 #app #prompt-input { min-height: 100px; }
-#app :is(#run-details, .precision-replay-area) { padding: 0; border: 0; }
-#app .inspection-workspace-body { gap: var(--demo-space-2); }
 #app .precision-replay-heading { gap: 8px; }
 #app .precision-replay-status { font-size: 12px; }
 /* Native control ink must not fade when disabled, including WebKit text fill. */
@@ -370,14 +332,10 @@
 @media (max-width: 480px) {
   #app .prompt-suggestions { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   #app .chat-toolbar { gap: 8px; }
-  #app .chat-toolbar-run { gap: 8px; }
   #app .token-stream-container { font-size: 20px; }
 }
 
 /* Compare outcomes first; numerical evidence stays in its disclosure. */
-#app .precision-replay-controls { grid-template-columns: minmax(0, 1fr) auto; }
-#app .precision-replay-layout { grid-template-columns: minmax(0, 1fr); }
-#app .precision-replay-winners { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 #app .precision-replay-winner-card {
   display: grid;
   align-content: start;
@@ -394,9 +352,6 @@
 #app #precision-replay-status:empty { display: none; }
 #app #precision-replay-branch:empty { display: none; }
 #app .precision-replay-prompt { padding: 0; border: 0; }
-@media (max-width: 480px) {
-  #app .precision-replay-controls { grid-template-columns: minmax(0, 1fr); }
-}
 
 /* The recorded exchange and new prompts share one conversation surface. */
 #app :is(.token-stream-container, .output-text, .chat-message-text) { font-size: 18px; line-height: 1.7; }
@@ -416,10 +371,6 @@
 #app #prompt-input:focus-visible { outline: 0; }
 #app #input-area:focus-within { outline: 2px solid var(--fg); outline-offset: -3px; }
 #app #input-area .input-actions .btn { min-width: 8ch; }
-@media (max-width: 600px) {
-  #app #input-area { grid-template-columns: minmax(0, 1fr); }
-  #app #input-area .input-actions { justify-self: end; }
-}
 
 /* Setup owns model readiness; the conversation owns run progress. */
 #app .sr-only {
@@ -445,4 +396,125 @@
   box-shadow: var(--doppler-inset);
 }
 
-.inspection-note{font-size:13px;line-height:1.5;color:var(--doppler-muted);margin:8px 0}
+/* Sections: Dialogue, Model activity and Precision effects share one structure:
+   a heading, a short note, the content, then disclosures. One left edge, one
+   heading size and one disclosure style. Buttons fit their labels; selects and
+   text inputs fill the space they are given. */
+#app .demo-sections { display: flex; flex-direction: column; min-width: 0; }
+#app .demo-section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--demo-space-2);
+  min-width: 0;
+  padding: var(--demo-space-4) 0;
+  border-top: 1px solid var(--doppler-line);
+}
+#app .demo-section:first-child { padding-top: var(--demo-space-2); border-top: 0; }
+#app .demo-section-head { display: grid; gap: var(--demo-space-1); }
+#app .demo-section-head h2 { margin: 0; font: 600 22px/1.3 var(--font-sans); letter-spacing: -.01em; color: var(--fg); }
+#app .demo-note { margin: 0; font: 400 13px/1.55 var(--font-sans); color: var(--doppler-muted); overflow-wrap: anywhere; }
+#app .demo-section-head .demo-note { max-width: 64ch; font-size: 14px; }
+#app .demo-note strong { color: var(--fg); }
+
+#app .btn { flex: 0 0 auto; width: auto; max-width: 100%; }
+#app :is(.demo-section, .demo-disclosure-body, .chat-message, .chat-empty) > .btn { align-self: flex-start; }
+#app .demo-controls { display: flex; flex-wrap: wrap; align-items: center; gap: var(--demo-space-1); }
+#app :is(.demo-inline-field, .demo-range-field, .checkbox-label) {
+  display: flex;
+  align-items: center;
+  gap: var(--demo-space-1);
+  margin: 0;
+  font: 400 14px/1.5 var(--font-sans);
+  color: var(--fg);
+}
+#app .demo-range-field input[type="range"] { flex: 1 1 auto; min-width: 0; }
+#app :is(.demo-range-field > label, .demo-inline-field) { white-space: nowrap; }
+#app .runtime-notice { padding: 0; border: 0; opacity: 1; font: 400 13px/1.55 var(--font-sans); color: var(--doppler-muted); }
+
+#app .demo-disclosure { margin: 0; padding: 0; border: 0; border-top: 1px solid var(--doppler-line); border-radius: 0; background: transparent; box-shadow: none; }
+#app .demo-disclosure > summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--demo-space-2);
+  min-height: 48px;
+  margin: 0;
+  padding: var(--demo-space-1) 0;
+  border: 0;
+  font: 600 15px/1.4 var(--font-sans);
+  letter-spacing: normal;
+  text-transform: none;
+  color: var(--fg);
+  cursor: pointer;
+}
+#app .demo-disclosure > summary::after { content: '+'; margin-left: auto; font: 400 20px/1 var(--font-sans); }
+#app .demo-disclosure[open] > summary::after { content: '−'; }
+#app .demo-disclosure .demo-disclosure > summary { min-height: 40px; font-size: 14px; }
+#app :is(.demo-disclosure-body, .demo-disclosure > .settings-panel) {
+  display: flex;
+  flex-direction: column;
+  gap: var(--demo-space-2);
+  margin: 0;
+  padding: 0 0 var(--demo-space-3);
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+#app .demo-disclosure .demo-disclosure-body { padding-bottom: var(--demo-space-2); }
+#app .demo-disclosure-body[hidden] { display: none; }
+#app .profile-details > :is(.settings-grid, .checkbox-label) { margin: 0 0 var(--demo-space-2); }
+
+/* Dialogue */
+#app .model-picker { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--demo-space-1); padding: 0; border: 0; box-shadow: none; }
+#app .model-picker-heading { flex-direction: row; align-items: center; justify-content: space-between; gap: var(--demo-space-2); }
+#app #model-picker-label { font: 600 var(--demo-label-size)/1.5 var(--font-sans); }
+#app .status-chip { font: 400 13px/1.5 var(--font-sans); letter-spacing: normal; text-transform: none; color: var(--fg); }
+#app .model-select-row { display: flex; align-items: stretch; gap: var(--demo-space-1); }
+#app .model-select-row select { flex: 1 1 auto; width: auto; min-width: 0; min-height: var(--demo-control-height); font-weight: 500; }
+#app .model-select-row .btn { min-height: var(--demo-control-height); }
+#app .chat-toolbar { display: flex; flex-wrap: nowrap; align-items: center; justify-content: space-between; gap: var(--demo-space-2); padding: 0; }
+#app .chat-run-status { flex: 1 1 auto; }
+#app .chat-toolbar .btn { min-width: 0; }
+#app .chat-empty { display: flex; }
+#app .output-area { min-height: 0; }
+
+/* Model activity */
+#app .activity-record { display: flex; flex-wrap: wrap; align-items: center; gap: var(--demo-space-1) var(--demo-space-3); margin: 0; padding: 0; border: 0; min-width: 0; }
+#app .activity-record legend { margin: 0 0 var(--demo-space-1); padding: 0; font: 600 var(--demo-label-size)/1.5 var(--font-sans); }
+#app .activation-view { display: grid; gap: var(--demo-space-2); }
+#app .activation-caption { font-size: 14px; color: var(--fg); }
+#app .run-measurements { margin: 0; }
+#app .run-measurements:has(.output-toks:empty) { display: none; }
+#app .output-toks { font: 400 13px/1.55 var(--font-sans); color: var(--fg); }
+
+/* Precision effects */
+#app .precision-pair { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--demo-space-2); }
+#app .precision-pair:empty { display: none; }
+#app :is(.precision-card, .precision-replay-winner-card) {
+  display: grid;
+  align-content: start;
+  gap: var(--demo-space-1);
+  padding: var(--demo-space-2);
+  border: 1px solid var(--doppler-line);
+  border-radius: var(--demo-control-radius);
+  background: var(--doppler-surface);
+  box-shadow: none;
+}
+#app .precision-card-text { margin: 0; font: 400 16px/1.6 var(--font-sans); white-space: pre-wrap; overflow-wrap: anywhere; }
+#app .precision-outcome { margin: 0; font: 600 14px/1.5 var(--font-sans); color: var(--fg); }
+#app .precision-outcome:empty { display: none; }
+#app .precision-replay-controls { display: flex; flex-wrap: wrap; align-items: center; gap: var(--demo-space-1); }
+#app .precision-replay-controls select { flex: 1 1 240px; min-width: 0; }
+#app #precision-replay-winner-scores { display: grid; gap: 2px; }
+#app #precision-replay-winner-scores p { margin: 0; font: 400 13px/1.55 var(--font-sans); color: var(--fg); }
+#app .precision-replay-prompt { margin: 0; font: 400 16px/1.6 var(--font-sans); white-space: pre-wrap; overflow-wrap: anywhere; }
+#app .recorded-tag {
+  display: inline-block;
+  margin-right: 6px;
+  padding: 0 8px;
+  border: 1px solid var(--doppler-line-strong);
+  border-radius: 999px;
+  font: 600 11px/1.6 var(--font-sans);
+  color: var(--fg);
+}

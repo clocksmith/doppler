@@ -16,8 +16,14 @@ export interface DemoCatalogEntry {
 
 export declare function canRemoveModelStatus(status: string | null | undefined): boolean;
 
-export declare function buildModelCardDetail(
-  entry: DemoCatalogEntry
+export declare function buildModelDetail(
+  entry: DemoCatalogEntry | null,
+  status?: string
+): string;
+
+export declare function modelLabel(
+  entry: DemoCatalogEntry,
+  entries?: readonly DemoCatalogEntry[]
 ): string;
 
 export declare function setModelCallbacks(callbacks: {
@@ -41,7 +47,7 @@ export declare function checkStoredModels(): Promise<Array<Record<string, unknow
 
 export declare function loadDefaultStoredModel(): Promise<unknown | null>;
 
-export declare function renderModelCards(): void;
+export declare function renderModelOptions(): void;
 export declare function syncModelControls(): void;
 export declare function reloadActiveModel(runtimeProfile: string): Promise<void>;
 

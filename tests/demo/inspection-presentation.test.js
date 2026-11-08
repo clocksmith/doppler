@@ -1,12 +1,12 @@
 import assert from 'node:assert/strict';
 import { readGpuTimings } from '../../demo/ui/xray/gpu-timings.js';
 import { listQuickstartModels } from '../../src/client/doppler-registry.js';
-import { isChatModel, buildModelCardDetail } from '../../demo/models.js';
+import { isChatModel, buildModelDetail } from '../../demo/models.js';
 
 const rows = await listQuickstartModels();
 const displayed = rows.find((entry) => entry.label && Number.isFinite(entry.sizeBytes) && entry.quickstartRequirements);
 assert.ok(displayed, 'The public registry must retain human labels, byte sizes and model requirements');
-assert.ok(buildModelCardDetail(displayed).includes('cached in this browser when available'));
+assert.ok(buildModelDetail(displayed).includes('Your browser keeps a copy if it can.'));
 displayed.quickstartRequirements.paramCount = 'mutated by consumer';
 assert.notEqual((await listQuickstartModels()).find((entry) => entry.modelId === displayed.modelId).quickstartRequirements.paramCount, 'mutated by consumer');
 
@@ -15,8 +15,11 @@ assert.equal(isChatModel({ modes: ['embedding'], classification: { tasks: ['embe
 assert.equal(isChatModel({ modes: ['text'], classification: { tasks: ['embedding'] } }), false);
 assert.equal(isChatModel({ modes: ['image'], classification: { tasks: ['generation'] } }), false);
 assert.equal(isChatModel({}), false, 'An unknown capability cannot be offered as a chat model');
-assert.equal(buildModelCardDetail({ modelId: 'fixture', label: 'Fixture', sizeBytes: 418518521 }),
-  'fixture · First run downloads about 419 MB; cached in this browser when available.');
+assert.equal(buildModelDetail({ modelId: 'fixture', label: 'Fixture', sizeBytes: 418518521 }),
+  'First use downloads about 419 MB. Your browser keeps a copy if it can.');
+assert.equal(buildModelDetail({ modelId: 'fixture', sizeBytes: 418518521 }, 'stored'),
+  'Saved in this browser, so it loads without downloading.');
+assert.equal(buildModelDetail({ modelId: 'fixture', sizeBytes: 418518521 }, 'loaded'), '', 'The status chip alone reports a loaded model');
 
 const receipt = { generationEvidence: { stats: {
   prefillTimeMs: 50, gpuTimeDecodeMs: 4,

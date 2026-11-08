@@ -6,7 +6,7 @@ import { setPromptValue } from '../../input.js';
 
 const DATA_ROOT = new URL('../../data/f16-precision-collapse/', import.meta.url);
 const DISPLAY_MODES = Object.freeze([
-  { id: 'exact', label: 'Reference' },
+  { id: 'exact', label: 'Exact' },
   { id: 'f32_forward', label: '32-bit' },
   { id: 'f16_forward', label: '16-bit' },
 ]);
@@ -90,24 +90,24 @@ function renderStats() {
   const curated = replayState.curated.aggregate;
   const cards = [
     {
-      label: 'Broad winner flips',
+      label: 'Next token changed',
       value: `${broad.f16VsF32FlipCount} / ${broad.promptCount}`,
-      detail: `${broad.persistentFlipCount} persisted through 8 steps`,
+      detail: `${broad.persistentFlipCount} still differed 8 tokens later`,
     },
     {
-      label: 'Top-64 inversions',
+      label: 'Swaps among the top 64',
       value: `${broad.totalF16VsF32Inversions.toLocaleString()}`,
-      detail: 'f16 forward vs f32 forward',
+      detail: 'pairs of candidates whose order flipped, 16-bit vs 32-bit',
     },
     {
-      label: 'Curated watched-pair swaps',
+      label: 'Hand-picked pairs that swapped',
       value: `${curated.watchPairSwapCount}`,
-      detail: `${curated.f16VsF32FlipCount} curated top-1 flips`,
+      detail: `${curated.f16VsF32FlipCount} hand-picked prompts changed their next token`,
     },
     {
-      label: 'Replay max abs error',
+      label: 'Largest replay error',
       value: formatCompact(broad.maxReplayAbsError, 6),
-      detail: 'live logits vs replayed f32 slice',
+      detail: 'saved scores vs scores recomputed here in 32-bit',
     },
   ];
   statsEl.innerHTML = cards.map((card) => `
@@ -140,7 +140,7 @@ function renderModeGroup() {
         control.classList.toggle('is-active', active);
         control.setAttribute('aria-pressed', String(active));
       }
-      await renderSelectedPrompt().catch((error) => renderStatus(`Precision replay unavailable: ${error.message}`));
+      await renderSelectedPrompt().catch((error) => renderStatus(`Recorded examples unavailable: ${error.message}`));
     });
   }
 }
@@ -155,8 +155,8 @@ function renderBroadFlips() {
     <article class="precision-replay-mini-card">
       <div class="precision-replay-mini-id">${escapeHtml(flip.id)}</div>
       <div class="precision-replay-mini-text">${escapeHtml(flip.text)}</div>
-      <div class="precision-replay-mini-line">F32 winner: <code>${escapeHtml(flip.modes.f32_forward.winnerText)}</code></div>
-      <div class="precision-replay-mini-line">F16 winner: <code>${escapeHtml(flip.modes.f16_forward.winnerText)}</code></div>
+      <div class="precision-replay-mini-line">32-bit picked: <code>${escapeHtml(flip.modes.f32_forward.winnerText)}</code></div>
+      <div class="precision-replay-mini-line">16-bit picked: <code>${escapeHtml(flip.modes.f16_forward.winnerText)}</code></div>
     </article>
   `).join('');
 }
@@ -193,7 +193,9 @@ function renderWinnerCards(prompt) {
   if (!winnersEl) return;
   const same = prompt.modes.f32_forward.winnerTokenId === prompt.modes.f16_forward.winnerTokenId;
   const outcome = $('precision-replay-outcome');
-  if (outcome) outcome.textContent = same ? 'Same next token' : 'Different next token';
+  if (outcome) outcome.textContent = same
+    ? '32-bit and 16-bit math picked the same next token.'
+    : '16-bit math picked a different next token than 32-bit.';
   winnersEl.innerHTML = DISPLAY_MODES.filter(({ id }) => id !== 'exact').map(({ id, label }) => `
     <article class="precision-replay-card precision-replay-winner-card">
       <div class="type-label">${label}</div>
@@ -202,7 +204,7 @@ function renderWinnerCards(prompt) {
   `).join('');
   const scores = $('precision-replay-winner-scores');
   if (scores) scores.innerHTML = DISPLAY_MODES.map(({ id, label }) => `
-    <p>${label}: ${escapeHtml(visibleToken(prompt.modes[id].winnerText))} · score ${formatFixed(prompt.modes[id].winnerScore)} · gap ${formatFixed(prompt.modes[id].winnerGap)}</p>
+    <p>${label}: ${escapeHtml(visibleToken(prompt.modes[id].winnerText))} · score ${formatFixed(prompt.modes[id].winnerScore)} · ahead of the runner-up by ${formatFixed(prompt.modes[id].winnerGap)}</p>
   `).join('');
 }
 
@@ -218,11 +220,11 @@ function renderWatchPairs(prompt) {
   }
   watchEl.innerHTML = presentPairs.map((pair) => `
     <article class="precision-replay-card">
-      <div class="type-label">Watched pair</div>
+      <div class="type-label">Hand-picked pair</div>
       <div class="precision-replay-watch-title"><code>${escapeHtml(pair.left.decodedText)}</code> vs <code>${escapeHtml(pair.right.decodedText)}</code></div>
       <div class="precision-replay-watch-line">Exact: <code>${escapeHtml(pair.modes.exact.winnerText)}</code> (${escapeHtml(formatFixed(pair.modes.exact.gap))})</div>
-      <div class="precision-replay-watch-line">F32: <code>${escapeHtml(pair.modes.f32_forward.winnerText)}</code> (${escapeHtml(formatFixed(pair.modes.f32_forward.gap))})</div>
-      <div class="precision-replay-watch-line">F16: <code>${escapeHtml(pair.modes.f16_forward.winnerText)}</code> (${escapeHtml(formatFixed(pair.modes.f16_forward.gap))})</div>
+      <div class="precision-replay-watch-line">32-bit: <code>${escapeHtml(pair.modes.f32_forward.winnerText)}</code> (${escapeHtml(formatFixed(pair.modes.f32_forward.gap))})</div>
+      <div class="precision-replay-watch-line">16-bit: <code>${escapeHtml(pair.modes.f16_forward.winnerText)}</code> (${escapeHtml(formatFixed(pair.modes.f16_forward.gap))})</div>
     </article>
   `).join('');
 }
@@ -238,17 +240,17 @@ function renderBranch(prompt) {
   }
   branchEl.innerHTML = `
     <article class="precision-replay-card">
-      <div class="type-label">Forced branch</div>
-      <div class="precision-replay-branch-meta">Differing steps: ${escapeHtml(String(prompt.branchComparison.differingStepCount))}</div>
-      <div class="precision-replay-branch-meta">Healed at: ${escapeHtml(String(prompt.branchComparison.healedAtStep ?? 'none'))}</div>
-      <div class="precision-replay-branch-meta">Persists through end: ${escapeHtml(String(prompt.branchComparison.persistsThroughEnd))}</div>
+      <div class="type-label">Continuing both versions</div>
+      <div class="precision-replay-branch-meta">Tokens that differ: ${escapeHtml(String(prompt.branchComparison.differingStepCount))}</div>
+      <div class="precision-replay-branch-meta">Back in agreement at token: ${escapeHtml(String(prompt.branchComparison.healedAtStep ?? 'never'))}</div>
+      <div class="precision-replay-branch-meta">Still different at the end: ${prompt.branchComparison.persistsThroughEnd ? 'yes' : 'no'}</div>
       <div class="precision-replay-branch-grid">
         <div>
-          <div class="type-label">F32 branch</div>
+          <div class="type-label">32-bit continues</div>
           <pre class="precision-replay-branch-text">${escapeHtml(prompt.branches.f32_forward.decodedText ?? '')}</pre>
         </div>
         <div>
-          <div class="type-label">F16 branch</div>
+          <div class="type-label">16-bit continues</div>
           <pre class="precision-replay-branch-text">${escapeHtml(prompt.branches.f16_forward.decodedText ?? '')}</pre>
         </div>
       </div>
@@ -326,7 +328,7 @@ export async function initPrecisionReplay() {
   const ensureLoaded = async () => {
     if (replayState.manifest && replayState.curated) return;
     if (loading) return loading;
-    renderStatus('Loading comparison…');
+    renderStatus('Loading examples…');
     loading = (async () => {
       replayState.manifest = await fetchJson('manifest.json');
       replayState.curated = await fetchJson('curated/summary.json');
@@ -339,14 +341,14 @@ export async function initPrecisionReplay() {
       renderBroadFlips();
       await renderSelectedPrompt();
       const aggregate = replayState.manifest.broad.aggregate;
-      renderStatus(`${aggregate.f16VsF32FlipCount} of ${aggregate.promptCount} prompts chose a different next token.`);
+      renderStatus(`In ${aggregate.f16VsF32FlipCount} of ${aggregate.promptCount} saved prompts, 16-bit math picked a different next token.`);
     })();
     try {
       await loading;
     } catch (error) {
       replayState.manifest = null;
       replayState.curated = null;
-      renderStatus(`Precision replay unavailable: ${error.message}`);
+      renderStatus(`Recorded examples unavailable: ${error.message}`);
       throw error;
     } finally {
       loading = null;
@@ -362,7 +364,7 @@ export async function initPrecisionReplay() {
 
   selectEl.addEventListener('change', async () => {
     replayState.selectedPromptId = selectEl.value;
-    await renderSelectedPrompt().catch((error) => renderStatus(`Precision replay unavailable: ${error.message}`));
+    await renderSelectedPrompt().catch((error) => renderStatus(`Recorded examples unavailable: ${error.message}`));
   });
 
   usePromptBtn.addEventListener('click', () => {

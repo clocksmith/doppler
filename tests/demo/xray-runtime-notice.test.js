@@ -8,7 +8,7 @@ assert.equal(
     profilingEnabled: true,
     traceEnabled: false,
   }),
-  'X-Ray captures GPU timestamps and changes execution. Timings are diagnostic, not a throughput benchmark.'
+  'The next answer measures GPU time for each step. Measuring slows the model, so its times are not a speed benchmark.'
 );
 
 assert.equal(
@@ -17,7 +17,7 @@ assert.equal(
     profilingEnabled: false,
     traceEnabled: false,
   }),
-  'Recording token alternatives changes execution. Timings are diagnostic.'
+  'Every answer saves the alternatives for each token, which slows the model. Times shown are not a speed benchmark.'
 );
 
 assert.equal(
@@ -26,7 +26,7 @@ assert.equal(
     profilingEnabled: true,
     traceEnabled: true,
   }),
-  'X-Ray captures GPU timestamps and changes execution. Timings are diagnostic, not a throughput benchmark.'
+  'The next answer measures GPU time for each step. Measuring slows the model, so its times are not a speed benchmark.'
 );
 
 assert.equal(
@@ -35,7 +35,7 @@ assert.equal(
     profilingEnabled: false,
     traceEnabled: true,
   }),
-  'Always-on evidence records existing wall timing without GPU timestamp queries. This is the performance-representative observation tier.'
+  'Times are recorded without slowing the model.'
 );
 
 assert.equal(
@@ -44,12 +44,18 @@ assert.equal(
     profilingEnabled: false,
     traceEnabled: false,
   }),
-  'Always-on evidence records existing wall timing without GPU timestamp queries. This is the performance-representative observation tier.'
+  'Times are recorded without slowing the model.'
+);
+
+assert.equal(
+  getXrayRuntimeNoticeText({ activationRecording: true, profilingEnabled: true, alternativesRecorded: true }),
+  'The next answer records every layer. Recording slows the model, so its times are not a speed benchmark.',
+  'The layer grid takes precedence over GPU timing, as in the run policy'
 );
 
 console.log('xray-runtime-notice.test: ok');
 
 assert.equal(
   getXrayRuntimeNoticeText({ alternativesRecorded: true, wordQualityEnabled: false, profilingEnabled: false }),
-  'Recording token alternatives changes execution. Timings are diagnostic.'
+  'Every answer saves the alternatives for each token, which slows the model. Times shown are not a speed benchmark.'
 );

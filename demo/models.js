@@ -17,8 +17,24 @@ function $(id) {
   return document.getElementById(id);
 }
 
-function modelLabel(entry) {
+function catalogLabel(entry) {
   return entry?.label || entry?.modelId || 'Unknown model';
+}
+
+// Catalog labels end with storage details, e.g. "Gemma 3 1B Instruct (Q4K/F32a)".
+// The picker shows the plain name and keeps the full label as a tooltip. Models
+// that share a plain name are told apart by a plain qualifier; if they cannot
+// be, the full catalog label stays.
+const PLAIN_QUALIFIERS = [[/\bINT4 PLE\b/, 'compact']];
+const plainName = (entry) => catalogLabel(entry).replace(/\s*\([^)]*\)$/, '');
+const plainQualifier = (entry) => PLAIN_QUALIFIERS.find(([pattern]) => pattern.test(catalogLabel(entry)))?.[1] ?? '';
+
+export function modelLabel(entry, entries = catalog) {
+  const name = plainName(entry);
+  const group = entries.filter((other) => plainName(other) === name);
+  if (group.length > 1 && new Set(group.map(plainQualifier)).size !== group.length) return catalogLabel(entry);
+  const qualifier = group.length > 1 ? plainQualifier(entry) : '';
+  return qualifier ? `${name}, ${qualifier}` : name;
 }
 
 function downloadSize(entry) {
@@ -57,7 +73,7 @@ function setProgress(event) {
   if (fill) fill.style.width = event ? '35%' : '0%';
   const detail = $('model-select-detail');
   if (detail && event) {
-    detail.textContent = message || 'Loading model...';
+    detail.textContent = message || 'Loading model…';
     detail.hidden = false;
   }
   onProgress?.(event);
@@ -76,48 +92,21 @@ export function syncModelControls() {
   const busy = state.modelBusy || state.settingsBusy || state.generating;
   if (action) {
     action.disabled = !entry || busy || status === 'loaded';
-    action.textContent = status === 'loaded'
-      ? 'Loaded'
-      : (status === 'stored' ? 'Use saved model' : 'Load locally');
+    action.textContent = status === 'loaded' ? 'Loaded' : 'Load';
   }
   if (remove) {
     remove.hidden = status !== 'stored' && status !== 'loaded';
     remove.disabled = busy;
   }
   if (detail) {
-    detail.textContent = entry ? buildModelCardDetail(entry) : '';
+    detail.textContent = entry ? buildModelDetail(entry, status) : '';
     detail.hidden = !detail.textContent;
-  }
-  const download = $('first-run-download');
-  if (download) {
-    const size = downloadSize(entry);
-    download.textContent = size ? `First run downloads about ${size}; cached in this browser when available.` : '';
-    download.hidden = Boolean(state.model) || !size;
   }
   const select = $('model-select');
   if (select) select.disabled = !catalog.length || busy;
   const profile = $('set-profile');
   if (profile) profile.disabled = busy;
-  for (const card of document.querySelectorAll('.model-card')) {
-    card.disabled = busy;
-    card.setAttribute('aria-pressed', String(card.dataset.modelId === selectedModelId));
-  }
   syncSendButton();
-}
-
-function createModelCard(entry) {
-  const card = document.createElement('button');
-  card.type = 'button';
-  card.className = 'model-card';
-  card.dataset.modelId = entry.modelId;
-  card.textContent = modelLabel(entry);
-  card.addEventListener('click', () => {
-    selectedModelId = entry.modelId;
-    const select = $('model-select');
-    if (select) select.value = entry.modelId;
-    syncModelControls();
-  });
-  return card;
 }
 
 async function loadSelectedModel({ entry = selectedEntry(), runtimeProfile = state.settings.runtimeProfile, force = false } = {}) {
@@ -153,14 +142,14 @@ async function loadSelectedModel({ entry = selectedEntry(), runtimeProfile = sta
   } finally {
     state.modelBusy = false;
     setProgress(null);
-    renderModelCards();
+    renderModelOptions();
   }
 }
 
 export async function ensurePromptModel() {
   if (state.model) return state.model;
   const entry = selectedEntry();
-  if (!entry) throw new Error('The default model is unavailable. Choose a model in Settings.');
+  if (!entry) throw new Error('The default model is unavailable. Choose a model above.');
   await loadSelectedModel({ entry });
   if (!state.model) throw new Error('Model loading is already in progress. Try again when ready.');
   return state.model;
@@ -177,7 +166,7 @@ async function removeSelectedModel() {
   if (!entry || state.generating || state.modelBusy) return;
   const dialog = $('remove-model-dialog');
   $('remove-model-message').textContent = `Remove ${modelLabel(entry)}?`;
-  $('remove-model-detail').textContent = 'Deletes this browser’s cached copy. You can download it again.';
+  $('remove-model-detail').textContent = 'Deletes the copy saved in this browser. You can download it again.';
   dialog.returnValue = '';
   const confirmed = new Promise((resolve) => {
     dialog.addEventListener('close', () => resolve(dialog.returnValue === 'confirm'), { once: true });
@@ -195,7 +184,7 @@ async function removeSelectedModel() {
       state.conversationModelId = null;
       clearConversationHistory();
       setExportEnabled(false);
-      setStatus('Select model');
+      setStatus('No model loaded');
     }
     const removed = await dr.removePersistentModel(entry.modelId);
     if (!removed) throw new Error('The cached model could not be removed. Retry removal.');
@@ -203,7 +192,7 @@ async function removeSelectedModel() {
     localStorage.removeItem(LAST_USED_MODEL_STORAGE_KEY);
   } finally {
     state.modelBusy = false;
-    renderModelCards();
+    renderModelOptions();
   }
 }
 
@@ -236,11 +225,12 @@ export function canRemoveModelStatus(status) {
   return status === 'stored' || status === 'loaded';
 }
 
-export function buildModelCardDetail(entry) {
-  const identity = entry?.modelId ?? '';
+// The single status line under the picker; the status chip shows readiness.
+export function buildModelDetail(entry, status = 'available') {
+  if (!entry || status === 'loaded' || status === 'loading') return '';
+  if (status === 'stored') return 'Saved in this browser, so it loads without downloading.';
   const size = downloadSize(entry);
-  return [modelLabel(entry) === identity ? '' : identity,
-    size ? `First run downloads about ${size}; cached in this browser when available.` : ''].filter(Boolean).join(' · ');
+  return size ? `First use downloads about ${size}. Your browser keeps a copy if it can.` : '';
 }
 
 export function setModelCallbacks(callbacks = {}) {
@@ -254,7 +244,7 @@ export async function loadCatalog() {
   selectedModelId = catalog.find((entry) => entry.modelId === DEFAULT_DEMO_MODEL_ID)?.modelId ?? null;
   state.quickModelCatalog = catalog.map((entry) => ({ ...entry }));
   bindModelControls();
-  renderModelCards();
+  renderModelOptions();
   return catalog.map((entry) => ({ ...entry }));
 }
 
@@ -276,7 +266,7 @@ export async function checkStoredModels() {
   for (const entry of catalog) {
     state.modelStatus[entry.modelId] = stored.has(entry.modelId) ? 'stored' : 'available';
   }
-  renderModelCards();
+  renderModelOptions();
   return registered;
 }
 
@@ -287,12 +277,12 @@ export async function loadDefaultStoredModel() {
   );
   if (!entry) return null;
   selectedModelId = entry.modelId;
-  renderModelCards();
+  renderModelOptions();
   await loadSelectedModel();
   return state.model;
 }
 
-export function renderModelCards() {
+export function renderModelOptions() {
   const select = $('model-select');
   if (select) {
     select.replaceChildren();
@@ -300,17 +290,12 @@ export function renderModelCards() {
       const option = document.createElement('option');
       option.value = entry.modelId;
       option.textContent = [modelLabel(entry), downloadSize(entry)].filter(Boolean).join(' · ');
+      option.title = catalogLabel(entry);
       select.append(option);
     }
     select.disabled = catalog.length === 0;
     select.value = selectedModelId ?? '';
   }
-  const cards = $('model-cards');
-  if (cards) {
-    cards.replaceChildren(...catalog.map(createModelCard));
-  }
-  const count = $('model-browser-count');
-  if (count) count.textContent = `${catalog.length} models`;
   const status = $('model-select-status');
   if (status) {
     status.textContent = catalog.length ? '' : 'No supported models';

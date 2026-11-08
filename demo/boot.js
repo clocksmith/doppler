@@ -3,7 +3,7 @@ import {
   loadCatalog,
   checkStoredModels,
   loadDefaultStoredModel,
-  renderModelCards,
+  renderModelOptions,
 } from './models.js';
 
 function $(id) { return document.getElementById(id); }
@@ -108,7 +108,7 @@ export async function boot() {
     const storedModels = await checkStoredModels();
 
     // Step 4: Reuse a saved model before offering remote downloads
-    renderModelCards();
+    renderModelOptions();
     if (storedModels.length > 0) await loadSavedModelWithStatus();
 
     // Step 5: Show the ready chat surface

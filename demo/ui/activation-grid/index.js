@@ -17,6 +17,7 @@ let timer = null;
 /** @type {number | null} */
 let scheduled = null;
 let active = false;
+const EMPTY_CAPTION = 'Nothing recorded yet. Tick Layer grid and send a message: the model is a stack of layers, and each layer’s numbers appear here as colored pixels.';
 
 export function isActivationRecordingEnabled() { return $('activation-record')?.checked === true; }
 
@@ -32,12 +33,15 @@ function paint() {
   $('activation-export').disabled = !frames.length;
   $('activation-play').disabled = !frames.length;
   $('activation-scrub').disabled = !frames.length;
+  // Before anything is recorded, a short instruction replaces the empty grid.
+  $('activation-player').hidden = !frames.length;
+  $('activation-detail-controls').hidden = !frames.length;
   if (!frames.length) {
     $('activation-canvas').width = 1;
     $('activation-canvas').height = 1;
     $('activation-layout').textContent = '';
     $('activation-status').textContent = '';
-    $('activation-caption').textContent = active ? 'Waiting for the first layer capture…' : 'Record a run or import a recording.';
+    $('activation-caption').textContent = active ? 'Recording… waiting for the first layer.' : EMPTY_CAPTION;
     return;
   }
   cursor = Math.min(cursor, frames.length - 1);
@@ -55,17 +59,17 @@ function paint() {
   const image = context.createImageData(side, side); image.data.set(rgba);
   context.putImageData(image, 0, 0);
   const captured = sources.filter(f => f?.status === 'captured').length;
-  $('activation-caption').textContent = `${frame.phase === 'prefill' ? 'Prefill' : 'Decode'} · forward ${frame.forward + 1} · input position ${position} · token ID ${frame.tokenIds[position - frame.tokenStart]} · layer ${frame.layer + 1}/${trace.geometry.layers} · capture ${cursor + 1}/${frames.length} · ${frame.status}`;
-  $('activation-layout').textContent = `${side} × ${side} RGB cells · ${trace.geometry.layers} layers × ${trace.geometry.width} values · ${captured} captured layers in this composite. Three consecutive values per pixel; no subsampling. Zero is gray, missing is dark, nonfinite is magenta. Scale ±${recording.display.scale}; colors saturate smoothly.`;
+  $('activation-caption').textContent = `${frame.phase === 'prefill' ? 'Reading the prompt' : 'Writing the answer'} · layer ${frame.layer + 1} of ${trace.geometry.layers} · token position ${position} · capture ${cursor + 1}/${frames.length}${frame.status === 'captured' ? '' : ` · ${frame.status}`}`;
+  $('activation-layout').textContent = `${side} × ${side} pixels showing ${trace.geometry.layers} layers × ${trace.geometry.width} numbers, ${captured} layers captured in this picture. Each pixel shows three neighboring numbers as red, green and blue; gray is zero, dark is missing and magenta is not a valid number. Colors reach full strength at ±${recording.display.scale}. Layers are captured one after another, so the picture is a collage rather than one instant, and the model’s memory of earlier tokens is not shown. Step ${frame.forward + 1}, token ID ${frame.tokenIds[position - frame.tokenStart]}.`;
   const gaps = frames.filter(f => ['failed', 'dropped'].includes(f.status)).length;
-  $('activation-status').textContent = `${trace.identity.modelId} · runtime ${trace.identity.runtimeVersion} · ${trace.status} · ${(trace.recordedBytes / 1048576).toFixed(1)} MiB numerical payload · ${gaps} gaps${trace.stoppedReason ? ' · ' + trace.stoppedReason : ''}`;
+  $('activation-status').textContent = `${trace.identity.modelId} · Doppler ${trace.identity.runtimeVersion} · ${trace.status} · ${(trace.recordedBytes / 1e6).toFixed(1)} MB of numbers · ${gaps} missing captures${trace.stoppedReason ? ' · ' + trace.stoppedReason : ''}`;
   canvas.onpointermove = event => {
     const box = canvas.getBoundingClientRect();
     const pixel = Math.floor((event.clientY - box.top) / box.height * side) * side
       + Math.floor((event.clientX - box.left) / box.width * side);
     const dimension = pixel * 3, layer = Math.floor(dimension / trace.geometry.width), source = sources[layer];
-    $('activation-cell').textContent = layer >= trace.geometry.layers ? 'Padding'
-      : `Layer ${layer + 1}, dimension ${dimension % trace.geometry.width}: ${values.slice(dimension, dimension + 3).map(v => v === undefined ? 'missing' : String(v)).join(', ')} · ${source ? 'capture ' + (source.index + 1) + ', ' + source.atMs.toFixed(2) + ' ms after observation began, ' + source.status : 'not captured'}`;
+    $('activation-cell').textContent = layer >= trace.geometry.layers ? 'Unused pixel'
+      : `Layer ${layer + 1}, numbers ${dimension % trace.geometry.width}–${dimension % trace.geometry.width + 2}: ${values.slice(dimension, dimension + 3).map(v => v === undefined ? 'missing' : String(v)).join(', ')} · ${source ? 'capture ' + (source.index + 1) + ', ' + source.atMs.toFixed(2) + ' ms after recording began, ' + source.status : 'not captured'}`;
   };
 }
 
@@ -74,7 +78,6 @@ function queuePaint() { if (scheduled === null) scheduled = requestAnimationFram
 export function beginActivationRecording() {
   if (!isActivationRecordingEnabled()) return;
   stopPlayback(); recording = null; cursor = 0; follow = true; active = true;
-  $('activation-view').open = true;
   queuePaint();
 }
 
@@ -110,18 +113,31 @@ export function importActivationRecording(value) {
   const next = validateRecording(value);
   stopPlayback(); active = false; follow = false; recording = next; cursor = Math.max(0, next.trace.frames.length - 1);
   $('activation-scale').value = String(next.display.scale);
-  $('activation-view').open = true; queuePaint();
+  queuePaint();
+}
+
+/** @type {typeof import('./index.js').isActivationRecordingFile} */
+export function isActivationRecordingFile(value) {
+  const schema = value && typeof value === 'object' ? /** @type {{ schema?: unknown }} */ (value).schema : undefined;
+  return typeof schema === 'string' && schema.startsWith('doppler.activation-recording/');
+}
+
+// Opens a standalone recording file; errors stay visible beside the grid.
+/** @type {typeof import('./index.js').openActivationRecording} */
+export function openActivationRecording(value, byteLength) {
+  try {
+    if (byteLength > config.maxImportBytes) throw new Error('Recording file exceeds the import limit.');
+    importActivationRecording(value);
+  } catch (error) {
+    $('activation-status').textContent = String(error);
+    throw error;
+  }
 }
 
 export function getActivationRecording() { return recording; }
 
 export function initActivationGrid() {
   $('activation-scale').value = String(config.scale);
-  $('activation-record').addEventListener('change', () => {
-    $('activation-notice').textContent = isActivationRecordingEnabled()
-      ? 'Next run records layer outputs with asynchronous GPU readbacks. Diagnostic timings; recording takes precedence over X-Ray timestamps.'
-      : 'Recording is off. Playback of captured data needs no loaded model.';
-  });
   $('activation-scrub').addEventListener('input', () => {
     stopPlayback(); follow = false; cursor = Number($('activation-scrub').value); queuePaint();
   });
@@ -152,14 +168,6 @@ export function initActivationGrid() {
     const url = URL.createObjectURL(new Blob([JSON.stringify(recording)], { type: 'application/json' }));
     const link = document.createElement('a'); link.href = url; link.download = 'doppler-activation-trace.json'; link.click();
     setTimeout(() => URL.revokeObjectURL(url), 0);
-  });
-  $('activation-import').addEventListener('change', async () => {
-    const file = $('activation-import').files?.[0]; if (!file) return;
-    try {
-      if (file.size > config.maxImportBytes) throw new Error('Recording file exceeds the import limit.');
-      importActivationRecording(JSON.parse(await file.text()));
-    } catch (error) { $('activation-status').textContent = String(error); }
-    finally { $('activation-import').value = ''; }
   });
   document.addEventListener('visibilitychange', () => { if (document.hidden) stopPlayback(); });
   queuePaint();

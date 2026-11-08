@@ -192,11 +192,11 @@ async function main() {
       return select && !select.disabled && select.options.length > 0;
     });
     journey.catalogRendered = true;
-    await page.waitForFunction(() => document.querySelector('#output-phase').textContent === 'Illustrative example');
+    await page.waitForFunction(() => document.querySelector('#output-phase').textContent === 'Example');
     assert.deepEqual(await page.evaluate(() => [__demoContract.loads.length, __demoContract.calls.length]), [0, 0], 'Opening the example does not download or execute a model');
     assert.equal(await page.locator('#model-select').isVisible(), true, 'Model selection is visible by the composer');
     assert.equal(await page.locator('#xray-shell').isVisible(), false);
-    assert.match(await page.locator('#recorded-run-note').textContent(), /Illustrative answer/);
+    assert.match(await page.locator('#recorded-run-note').textContent(), /Example answer written for this page, not by a model/);
     assert.equal(await page.inputValue('#prompt-input'), await page.locator('#chat-thread .chat-message-text').first().textContent(),
       'The composer preloads the example prompt, so Send runs it live');
     assert.equal(await page.locator('#run-btn').isEnabled(), true, 'A preloaded prompt can be sent before a model is chosen');
@@ -204,8 +204,8 @@ async function main() {
     assert.equal(await page.locator('.token-chip').count(), 0);
     assert.equal(await page.locator('#model-select option[value="embedding-only"]').count(), 0);
     await page.locator('#inspect-recorded-run').click();
-    await page.waitForFunction(() => document.querySelector('#output-phase').textContent === 'Precomputed run');
-    assert.match(await page.locator('#recorded-run-note').textContent(), /unchanged model output with a factual error/);
+    await page.waitForFunction(() => document.querySelector('#output-phase').textContent === 'Recorded answer');
+    assert.match(await page.locator('#recorded-run-note').textContent(), /shown unedited and contains a factual error/);
     assert.equal(await page.locator('#token-inspector-view').isVisible(), true, 'A recorded answer is always underlined');
     await page.locator('.token-chip').nth(3).click();
     assert.equal(await page.locator('.token-inspector-badge').textContent(), '" blue"');
@@ -219,7 +219,7 @@ async function main() {
       await page.locator('#settings-toggle').click();
     }
     await page.selectOption('#model-select', 'contract-model');
-    assert.match(await page.locator('#first-run-download').textContent(), /419 MB; cached in this browser when available/);
+    assert.match(await page.locator('#model-select-detail').textContent(), /First use downloads about 419 MB\. Your browser keeps a copy if it can\./);
 
     journey.modelSelected = await page.$eval(
       '#model-select',

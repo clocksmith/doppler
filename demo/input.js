@@ -285,7 +285,7 @@ export function setGenerating(active) {
   if (runBtn) runBtn.hidden = active;
   if (stopBtn) stopBtn.hidden = !active;
   for (const control of document.querySelectorAll(
-'#set-profile, #set-max-tokens, #settings-panel input:not(:disabled), #xray-toggle-all, #set-word-quality, #import-btn, #shuffle-btn, #prompt-suggestions button'
+'#set-profile, #set-max-tokens, #settings-panel input:not(:disabled), #xray-toggle-all, #activation-record, #set-word-quality, #import-btn, #shuffle-btn, #prompt-suggestions button'
   )) {
     if (active) control.dataset.runLocked = 'true';
     control.disabled = active;
