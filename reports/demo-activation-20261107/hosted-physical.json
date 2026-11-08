@@ -1,0 +1,45 @@
+{
+  "origin": "https://d4da.com",
+  "browser": "145.0.7632.6",
+  "release": {
+    "application": "doppler-demo",
+    "canonicalUrl": "https://d4da.com/doppler/",
+    "sourceCommit": "46aa1df32f2ff6278d01cbf1c4022a481c360f89",
+    "demoSourceCommit": "46aa1df32f2ff6278d01cbf1c4022a481c360f89",
+    "runtime": {
+      "sourceCommit": "46aa1df32f2ff6278d01cbf1c4022a481c360f89",
+      "version": "0.6.33",
+      "inventorySha256": "c81ec70829488038a4c7b73f9da61a1e16580e1bfd1b90fd4c2663e968571f67"
+    },
+    "hostingRecipeSha256": "7ec02801ab3ea086cffab15d904bc2b94edeafdb4a8d378b916c97b9f9332c19"
+  },
+  "receipt": {
+    "identity": {
+      "modelId": "qwen-3-5-0-8b-q4k-ehaf16",
+      "manifestHash": "c5fcf38e945f1c048faca9ccda8991f1494563317f46a6dd79e0714ad001c569",
+      "runtimeVersion": "0.6.33"
+    },
+    "persistentCache": {
+      "backend": "opfs",
+      "state": "imported",
+      "fromCache": false,
+      "manifestHash": "c5fcf38e945f1c048faca9ccda8991f1494563317f46a6dd79e0714ad001c569",
+      "totalBytes": 1146048704
+    },
+    "output": "Hello! How's",
+    "tokenIds": [
+      9419,
+      0,
+      2500,
+      579
+    ],
+    "phases": [
+      "prefill",
+      "decode"
+    ],
+    "frames": 96,
+    "captured": 96,
+    "gaps": 0
+  },
+  "errors": []
+}
