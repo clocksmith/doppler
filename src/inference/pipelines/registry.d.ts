@@ -13,3 +13,5 @@ export type PipelineFactory = (manifest: ManifestSchema, contexts?: Record<strin
 export declare function registerPipeline(modelType: string, factory: PipelineFactory): void;
 export declare function getPipelineFactory(modelType: string | null | undefined): PipelineFactory | null;
 export declare function listPipelines(): string[];
+
+export declare function normalizeModelType(modelType: unknown): string;

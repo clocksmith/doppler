@@ -176,7 +176,10 @@ export class InferencePipeline extends PipelineState {
 
   get capabilities() {
     const caps = ['generation'];
-    if (typeof this.prefillWithEmbedding === 'function') caps.push('embedding');
+    // Every text pipeline implements prefillWithEmbedding; only manifests that
+    // declare embedding support advertise it.
+    if (this.manifest?.inference?.supportsEmbedding === true) caps.push('embedding');
+    if (this.manifest?.inference?.supportsRerank === true) caps.push('rerank');
     if (this.manifest?.inference?.supportsSequence === true) caps.push('sequence');
     if (this.visionCapable) caps.push('multimodal');
     if (this.audioCapable) caps.push('audio');

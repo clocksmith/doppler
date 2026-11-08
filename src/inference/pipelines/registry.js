@@ -10,12 +10,18 @@ export function registerPipeline(
   if (typeof factory !== 'function') {
     throw new Error(`Pipeline registry requires a factory function for "${modelType}".`);
   }
-  registry.set(modelType, factory);
+  registry.set(normalizeModelType(modelType), factory);
+}
+
+// Model types are case-insensitive identifiers: lazy module rules already
+// match on the lower-cased type, so the registry keys the same way.
+export function normalizeModelType(modelType) {
+  return String(modelType).trim().toLowerCase();
 }
 
 export function getPipelineFactory(modelType) {
-  if (!modelType) return null;
-  return registry.get(modelType) ?? null;
+  if (!modelType || typeof modelType !== 'string') return null;
+  return registry.get(normalizeModelType(modelType)) ?? null;
 }
 
 export function listPipelines() {

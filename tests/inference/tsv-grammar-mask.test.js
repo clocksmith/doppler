@@ -117,13 +117,65 @@ describe("createTsvGrammarMask", () => {
     assert.equal(result["\t\n"], "blocked", "composite tab+newline blocked when tab would push past per-line budget");
   });
 
-  it("returns a no-op when no tokenizer is provided", () => {
+  it("refuses to run without a tokenizer instead of degrading to a no-op", () => {
+    // The pipelines charter requires token constraints to fail closed: a
+    // constraint that silently allows every token is not a constraint.
     const mask = createTsvGrammarMask({ fieldsPerLine: 4 });
     const logits = new Float32Array([0, 0, 0]);
-    mask(logits, { generatedIds: [], vocabSize: 3 });
-    // No tokenizer → mask should be a no-op (all zeros preserved).
-    assert.equal(logits[0], 0);
-    assert.equal(logits[1], 0);
-    assert.equal(logits[2], 0);
+    assert.throws(() => mask(logits, { generatedIds: [], vocabSize: 3 }), /requires a tokenizer/);
+    assert.deepEqual(Array.from(logits), [0, 0, 0], "logits are untouched when the constraint refuses");
+  });
+});
+
+describe("createTsvGrammarMask fail-closed contract", () => {
+  function tokenizerWithEos(pieces, eos) {
+    return { decode(ids) { return ids.map((id) => pieces[id] ?? "").join(""); }, getSpecialTokens() { return { eos }; } };
+  }
+
+  it("blocks end-of-stream until one complete record has been emitted", () => {
+    const pieces = ["name", "\t", "x", "\n", "<eos>"];
+    const eos = 4;
+    const mask = createTsvGrammarMask({ tokenizer: tokenizerWithEos(pieces, eos), fieldsPerLine: 2 });
+    const run = (generatedIds) => { const logits = new Float32Array(pieces.length); mask(logits, { generatedIds, vocabSize: pieces.length }); return logits[eos] === -Infinity ? "blocked" : "allowed"; };
+    assert.equal(run([]), "blocked", "nothing emitted yet");
+    assert.equal(run([0, 1, 2]), "blocked", "a line is open");
+    assert.equal(run([0, 1, 2, 3]), "allowed", "one complete two-field record, line closed");
+    assert.equal(run([0, 1, 2, 3, 0]), "blocked", "a new line has started");
+  });
+
+  it("honours explicit stop token ids and rejects invalid ones", () => {
+    const pieces = ["a", "\t", "\n", "<stop>"];
+    const tokenizer = { decode(ids) { return ids.map((id) => pieces[id] ?? "").join(""); } };
+    const mask = createTsvGrammarMask({ tokenizer, fieldsPerLine: 2, stopTokenIds: [3] });
+    const logits = new Float32Array(pieces.length);
+    mask(logits, { generatedIds: [], vocabSize: pieces.length });
+    assert.equal(logits[3], -Infinity);
+    const bad = createTsvGrammarMask({ tokenizer, fieldsPerLine: 2, stopTokenIds: [99] });
+    assert.throws(() => bad(new Float32Array(pieces.length), { generatedIds: [], vocabSize: pieces.length }), /invalid stop token id 99/);
+  });
+
+  it("fails closed instead of allowing tokens it cannot decode", () => {
+    const broken = { decode() { throw new Error("decode failed"); } };
+    const mask = createTsvGrammarMask({ tokenizer: broken, fieldsPerLine: 2 });
+    assert.throws(() => mask(new Float32Array(3), { generatedIds: [], vocabSize: 3 }), /decode failed/);
+    const nonString = { decode() { return 7; } };
+    assert.throws(() => createTsvGrammarMask({ tokenizer: nonString, fieldsPerLine: 2 })(new Float32Array(3), { generatedIds: [], vocabSize: 3 }), /synchronous string token decoding/);
+    assert.throws(() => createTsvGrammarMask({ fieldsPerLine: 2 })(new Float32Array(3), { generatedIds: [] }), /requires a tokenizer/);
+    assert.throws(() => createTsvGrammarMask({ tokenizer: broken, fieldsPerLine: 2 })(new Float32Array(3), {}), /requires generated token IDs/);
+  });
+
+  it("resets parse state when a shorter generation reuses the mask, and on demand", () => {
+    const pieces = ["name", "\t", "x", "\n"];
+    const tokenizer = { decode(ids) { return ids.map((id) => pieces[id] ?? "").join(""); } };
+    const mask = createTsvGrammarMask({ tokenizer, fieldsPerLine: 2 });
+    mask(new Float32Array(pieces.length), { generatedIds: [0, 1, 2, 3], vocabSize: pieces.length });
+    assert.deepEqual(mask.snapshot(), { tabsOnCurrentLine: 0, linesEmitted: 1, reflectedTokens: 4 });
+    // A new generation starts with a shorter prefix: stale state must not leak.
+    const logits = new Float32Array(pieces.length);
+    mask(logits, { generatedIds: [0], vocabSize: pieces.length });
+    assert.deepEqual(mask.snapshot(), { tabsOnCurrentLine: 0, linesEmitted: 0, reflectedTokens: 1 });
+    assert.equal(logits[3], -Infinity, "newline is blocked again at the start of a new record");
+    mask.reset();
+    assert.deepEqual(mask.snapshot(), { tabsOnCurrentLine: 0, linesEmitted: 0, reflectedTokens: 0 });
   });
 });

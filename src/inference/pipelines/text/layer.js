@@ -793,8 +793,11 @@ export async function processLayerGPU(layerIdx, inputBuffer, numTokens, isPrefil
 async function processLayerCPU(layerIdx, hiddenStates, numTokens, isPrefill, context) {
   const { config } = context;
   assertSupportedLayerRuntime(layerIdx, config);
-  const { hiddenSize } = config;
-
-  log.warn('Layer', `L${layerIdx} CPU fallback - returning input unchanged`);
-  return new Float32Array(hiddenStates);
+  // There is no CPU layer implementation. Returning the input unchanged would
+  // produce silently wrong activations, so this path fails closed.
+  throw new Error(
+    `[Layer] L${layerIdx} has no GPU execution path (useGPU=${context.useGPU === true}, ` +
+    `hiddenStates=${hiddenStates?.constructor?.name ?? typeof hiddenStates}, numTokens=${numTokens}, ` +
+    `phase=${isPrefill ? 'prefill' : 'decode'}); CPU layer processing is not implemented.`
+  );
 }
