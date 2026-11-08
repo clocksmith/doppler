@@ -43,11 +43,12 @@ const BUDGET_OUTPUT = path.join(ROOT, 'demo', 'generated-shell-budget.json');
 const WORKER_OUTPUT = path.join(ROOT, 'demo', 'sw.js');
 const WORKER_SHELL_START = '// BEGIN GENERATED DEMO SHELL';
 const WORKER_SHELL_END = '// END GENERATED DEMO SHELL';
-// The audited 792-module shell gains five existing runtime owners: compiled
-// greedy windows, speculative frames, F32 finiteness checks, recorded-step
-// execution and split-K attention. Their source totals 35,378 bytes. Match the
-// reachable closure exactly; removing dependencies must lower this ceiling.
-const MAX_MODULES = 797;
+// The retained 797-module shell gains 27 reachable runtime owners: Flash-Next
+// hyper-connections, QSA/PLE and expert paging; shard-load policy, video feature
+// concatenation and vision admission. A clean committed-source audit adds
+// 259,273 shell bytes (9,419,783 total). Keep the byte limit unchanged and match
+// the 824-module closure exactly; removing dependencies must lower this ceiling.
+const MAX_MODULES = 824;
 const MAX_TOTAL_BYTES = 10_000_000;
 const MODULE_ROOTS = [
   'demo/demo.js',
