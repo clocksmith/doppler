@@ -264,6 +264,7 @@ export async function loadModel(manifest, options = {}) {
       manifest,
       runtimeConfig: this.runtimeConfig,
       runtimeOverrides: this.runtimeOverrides,
+      executionV1State: this.executionV1State,
       modelConfig: this.modelConfig,
     });
     this.resolvedKernelPath = kernelPathState.resolvedKernelPath;

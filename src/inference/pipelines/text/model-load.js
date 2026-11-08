@@ -617,9 +617,22 @@ function getKernelCapabilitiesSafe() {
   }
 }
 
-function getExplicitRuntimeDtypeOverrides(runtimeOverrides) {
+function getExplicitRuntimeDtypeOverrides(runtimeOverrides, executionV1State, resolvedKernelPath, kernelPathSource) {
+  const inference = runtimeOverrides?.inference;
+  // A selective lane consumes the legacy compute field as its request; the
+  // compiler's declared session still owns the residual activation dtype.
+  // Canonical session overrides remain strict, as do untransformed paths.
+  const selectiveRequest = inference?.session?.compute?.defaults?.activationDtype === undefined
+    && inference?.compute?.activationDtype === 'f16'
+    && kernelPathSource === 'execution-v1'
+    && executionV1State?.laneIntegrity?.policy?.kind === 'explicit-lane'
+    && executionV1State.laneIntegrity.policy.dtypeEffect === 'selective-f16'
+    && executionV1State.appliedTransforms?.length > 0
+    && executionV1State.runtimeInferencePatch?.kernelPath?.id === resolvedKernelPath?.id;
   return {
-    activationDtype: resolveRuntimeActivationDtype(runtimeOverrides?.inference),
+    activationDtype: selectiveRequest
+      ? resolveRuntimeActivationDtype(executionV1State.runtimeInferencePatch)
+      : resolveRuntimeActivationDtype(inference),
     kvDtype: normalizeKernelDtype(
       runtimeOverrides?.inference?.session?.kvcache?.kvDtype
     ),
@@ -634,14 +647,15 @@ function applyKernelPathRuntimeDtypeContract(
   runtimeConfig,
   runtimeOverrides,
   kernelPathSource,
-  modelId
+  modelId,
+  executionV1State
 ) {
   const contract = buildKernelPathDtypeContract(resolvedKernelPath);
   if (!contract) {
     return runtimeConfig;
   }
 
-  const explicitRuntime = getExplicitRuntimeDtypeOverrides(runtimeOverrides);
+  const explicitRuntime = getExplicitRuntimeDtypeOverrides(runtimeOverrides, executionV1State, resolvedKernelPath, kernelPathSource);
   const current = {
     activationDtype: resolveRuntimeActivationDtype(runtimeConfig.inference),
     kvDtype: normalizeKernelDtype(runtimeConfig.inference?.session?.kvcache?.kvDtype),
@@ -695,6 +709,7 @@ export function resolveKernelPathState(options) {
     runtimeConfig,
     runtimeOverrides = null,
     modelConfig,
+    executionV1State = null,
     kernelCapabilities = null,
   } = options;
 
@@ -754,7 +769,8 @@ export function resolveKernelPathState(options) {
     runtimeConfig,
     runtimeOverrides,
     kernelPathSource,
-    String(manifest?.modelId ?? 'unknown').trim() || 'unknown'
+    String(manifest?.modelId ?? 'unknown').trim() || 'unknown',
+    executionV1State
   );
   return {
     resolvedKernelPath,

@@ -2,6 +2,8 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 
 const { compileExecutionV1 } = await import('../../src/inference/pipelines/text/execution-v1.js');
+const { applyExecutionV1RuntimeConfig } = await import('../../src/inference/pipelines/text/execution-v1.js');
+const { resolveKernelPathState } = await import('../../src/inference/pipelines/text/model-load.js');
 const { getLayerSteps } = await import('../../src/config/kernel-path-loader.js');
 
 // Contract: the selective f16 lane (useQwenF16PrimaryMatmuls) changes only the
@@ -124,3 +126,28 @@ for (const configPath of [
 }
 
 console.log('qwen-execution-v1-linear-decode-f16.test: ok');
+
+// Exercise the next production boundary too: compilation must consume the
+// selective request without treating it as a conflicting residual-stream dtype.
+const conversion = loadConversionConfig('../../src/config/conversion/qwen3/qwen-3-5-0-8b-q4k-ehaf16.json');
+const manifest = { modelId: conversion.output.modelBaseId, architecture: { numLayers: 24 },
+  inference: { schema: 'doppler.execution/v1', session: conversion.session,
+    layerPattern: conversion.inference.layerPattern, execution: conversion.execution } };
+const runtimeOverrides = { inference: { compute: { activationDtype: 'f16' } } };
+const runtimeConfig = { inference: { ...runtimeOverrides.inference, kernelPathPolicy: {
+  mode: 'capability-aware', sourceScope: ['manifest'], allowSources: ['manifest'], onIncompatible: 'remap',
+} } };
+const compiled = applyExecutionV1RuntimeConfig({ runtimeConfig, runtimeOverrides, manifest,
+  capabilities: { hasF16: true, hasSubgroups: true, maxWorkgroupStorageSize: 32768 },
+  platform: { id: 'metal', vendor: 'apple', architecture: 'metal-3' } });
+const options = { manifest, runtimeConfig: compiled.runtimeConfig, runtimeOverrides,
+  executionV1State: compiled.executionV1State, modelConfig: { kernelPath: null },
+  kernelCapabilities: { hasF16: true, hasSubgroups: true } };
+assert.equal(resolveKernelPathState(options).runtimeConfig.inference.session.compute.defaults.activationDtype, 'f32');
+assert.throws(() => resolveKernelPathState({ ...options, executionV1State: null }), /conflicts with runtime dtype overrides/);
+assert.throws(() => resolveKernelPathState({ ...options,
+  runtimeOverrides: { inference: { session: { compute: { defaults: { activationDtype: 'f16' } } } } },
+}), /conflicts with runtime dtype overrides/, 'Canonical session dtype remains strict');
+assert.throws(() => resolveKernelPathState({ ...options,
+  runtimeOverrides: { inference: { ...runtimeOverrides.inference, session: { kvcache: { kvDtype: 'f32' } } } },
+}), /conflicts with runtime dtype overrides/, 'Selective activations cannot waive a KV mismatch');

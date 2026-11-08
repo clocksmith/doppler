@@ -7,6 +7,7 @@ import type { KernelPathPolicy, KernelPathSource } from '../../../config/kernel-
 import type { ParsedModelConfig, Manifest } from './config.js';
 import type { Tokenizer } from '../../tokenizer.js';
 import type { PipelineStorageContext } from './init.js';
+import type { ExecutionV1CompiledState } from './execution-v1.js';
 
 export interface KernelWarmupOptions {
   useGPU: boolean;
@@ -17,6 +18,8 @@ export interface KernelPathResolutionOptions {
   manifest: Manifest;
   runtimeConfig: RuntimeConfigSchema;
   modelConfig: ParsedModelConfig;
+  runtimeOverrides?: Record<string, unknown> | null;
+  executionV1State?: ExecutionV1CompiledState | null;
   kernelCapabilities?: {
     hasSubgroups?: boolean;
     hasF16?: boolean;
