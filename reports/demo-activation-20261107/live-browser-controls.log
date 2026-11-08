@@ -1,0 +1,16 @@
+Demo controls: sampling, profiles, diagnostics, keyboard, stop, receipts, removal, install handoff, contrast and responsive layouts passed (mocked execution).
+{
+  "schema": "doppler.demo-hosted-controls-check/v1",
+  "status": "passed",
+  "createdAtUtc": "2026-11-08T03:07:18.149Z",
+  "entrypoint": "/doppler/",
+  "executionClass": "mocked-contract",
+  "journey": {
+    "catalogRendered": true,
+    "modelSelected": true,
+    "modelLoaded": true,
+    "generationCompleted": true
+  },
+  "shellManifestDigest": "sha256:56937b2da34159e3ae5143a28a1eccd92bf2728d124ad3912eda9a437b4b3bbb",
+  "fatalConsoleErrors": []
+}
