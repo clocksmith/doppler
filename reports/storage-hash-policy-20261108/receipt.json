@@ -1,0 +1,159 @@
+{
+  "schema": "doppler.storage-hash-observation/v1",
+  "timestamp": "2026-11-08T02:51:42.441Z",
+  "sourceCommit": "0ebdbe08b9bc2fb7844533612a08c836a0dc4724",
+  "scriptSha256": "90d392249337f060556ea3458b41631db9cb5e4fc66389c373e66eb5fe1f1319",
+  "command": "node tools/experiments/shard-hash-load.js <receipt.json>",
+  "environment": {
+    "platform": "darwin",
+    "arch": "arm64",
+    "cpu": "Apple M3",
+    "node": "v22.20.0",
+    "backend": "node-file",
+    "gpu": null,
+    "browser": null
+  },
+  "workload": {
+    "bytes": 67108864,
+    "seed": "constant-0x5a",
+    "sha256": "103f23a15401a701b73587902f16e3b5b3bf38a039d5c94b675a9a8e84dbd5b5",
+    "pairedRuns": 6,
+    "warmupPairs": 1,
+    "cache": "OS page cache primed; no cache flush",
+    "timing": "loadShard only; output equality checked outside timer"
+  },
+  "samples": [
+    {
+      "pair": -1,
+      "warmup": true,
+      "verifyHashes": true,
+      "durationMs": 58.618375000000015,
+      "outputMatches": true
+    },
+    {
+      "pair": -1,
+      "warmup": true,
+      "verifyHashes": false,
+      "durationMs": 16.59299999999999,
+      "outputMatches": true
+    },
+    {
+      "pair": 0,
+      "warmup": false,
+      "verifyHashes": false,
+      "durationMs": 17.047166000000004,
+      "outputMatches": true
+    },
+    {
+      "pair": 0,
+      "warmup": false,
+      "verifyHashes": true,
+      "durationMs": 40.906000000000006,
+      "outputMatches": true
+    },
+    {
+      "pair": 1,
+      "warmup": false,
+      "verifyHashes": true,
+      "durationMs": 39.917125,
+      "outputMatches": true
+    },
+    {
+      "pair": 1,
+      "warmup": false,
+      "verifyHashes": false,
+      "durationMs": 11.992375000000038,
+      "outputMatches": true
+    },
+    {
+      "pair": 2,
+      "warmup": false,
+      "verifyHashes": false,
+      "durationMs": 13.666665999999964,
+      "outputMatches": true
+    },
+    {
+      "pair": 2,
+      "warmup": false,
+      "verifyHashes": true,
+      "durationMs": 39.632124999999974,
+      "outputMatches": true
+    },
+    {
+      "pair": 3,
+      "warmup": false,
+      "verifyHashes": true,
+      "durationMs": 42.37762500000002,
+      "outputMatches": true
+    },
+    {
+      "pair": 3,
+      "warmup": false,
+      "verifyHashes": false,
+      "durationMs": 12.948083999999994,
+      "outputMatches": true
+    },
+    {
+      "pair": 4,
+      "warmup": false,
+      "verifyHashes": false,
+      "durationMs": 13.399790999999993,
+      "outputMatches": true
+    },
+    {
+      "pair": 4,
+      "warmup": false,
+      "verifyHashes": true,
+      "durationMs": 40.07166600000005,
+      "outputMatches": true
+    },
+    {
+      "pair": 5,
+      "warmup": false,
+      "verifyHashes": true,
+      "durationMs": 43.07854099999997,
+      "outputMatches": true
+    },
+    {
+      "pair": 5,
+      "warmup": false,
+      "verifyHashes": false,
+      "durationMs": 12.547915999999987,
+      "outputMatches": true
+    }
+  ],
+  "summary": {
+    "false": {
+      "mean": 13.600332999999997,
+      "median": 13.173937499999994,
+      "min": 11.992375000000038,
+      "max": 17.047166000000004,
+      "p95": 16.202040999999994,
+      "p99": 16.878141000000003,
+      "stdDev": 1.7913019913010726,
+      "ci95": 1.8282399391329416,
+      "samples": 6,
+      "samplesAfterOutlierRemoval": 6,
+      "outliersRemoved": 0
+    },
+    "true": {
+      "mean": 40.99718033333334,
+      "median": 40.48883300000003,
+      "min": 39.632124999999974,
+      "max": 43.07854099999997,
+      "p95": 42.903311999999985,
+      "p99": 43.043495199999974,
+      "stdDev": 1.4235502044530262,
+      "ci95": 1.4529048433935765,
+      "samples": 6,
+      "samplesAfterOutlierRemoval": 6,
+      "outliersRemoved": 0
+    }
+  },
+  "limitations": [
+    "One process on one host during ordinary development activity.",
+    "Synthetic 64 MiB local file with SHA-256; no network, OPFS, full model or GPU measured.",
+    "Explicit verification opt-out is a control, not a recommended loading policy.",
+    "Retains all samples; no inference throughput or cross-device claim."
+  ]
+}
