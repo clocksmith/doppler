@@ -77,6 +77,14 @@ try {
     assert.equal(hybrid.currentSeqLen, 0);
     assert.equal(hybridPart.currentSeqLen, 1, 'Clearing one cache does not clear another owner');
   } finally { hybrid.destroy(); hybridPart.destroy(); }
+  const convHybrid = createKVCache({ ...hybridModel, layerTypes: ['conv', 'full_attention', 'conv', 'full_attention'] },
+    false, false, policy);
+  try {
+    assert.equal(convHybrid.numLayers, 2, 'Short-convolution layers own no attention KV allocation');
+    assert.deepEqual(convHybrid.layerIndices, [1, 3]);
+    assert.equal(convHybrid.getMemoryStats().allocated, full.getMemoryStats().allocated / 2);
+    assert.throws(() => convHybrid.get(0), /no allocated KV cache/);
+  } finally { convHybrid.destroy(); }
   const hybridGPU = createKVCache(hybridModel, true, false, policy);
   const linearOnly = createKVCache({ ...hybridModel, layerTypes: Array(4).fill('linear_attention') },
     true, false, policy, [0, 1]);

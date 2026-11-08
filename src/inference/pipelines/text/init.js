@@ -25,6 +25,7 @@ import {
   createNodeFileArtifactStorageContext,
 } from '../../../storage/artifact-storage-context.js';
 import { hasLinearAttentionLayers } from './linear-attention.js';
+import { isConvLayerType } from './layer-input-execution.js';
 import { rewriteWeightLoadError } from './load-errors.js';
 import { resolveWeightLoadingConfig } from './weight-loading-config.js';
 import { toArrayBuffer } from '../../../formats/array-buffer.js';
@@ -172,6 +173,10 @@ function resolveContiguousKVPolicy(modelConfig) {
     forceContiguousKVCache: false,
     reason: 'none',
   };
+}
+
+function layerOwnsNoAttentionKV(layerType) {
+  return hasLinearAttentionLayers([layerType]) || isConvLayerType(layerType);
 }
 
 function usesMixedGeometryKVCache(modelConfig) {
@@ -328,17 +333,18 @@ export function createKVCache(modelConfig, useGPU, debug = false, runtimeConfig,
   if (layerRange !== null && requiresMixedGeometryKVCache) {
     throw new Error('Resident partition KV cache does not support mixed geometry or shared KV layers.');
   }
-  // Linear attention owns recurrent state, not per-token attention keys/values.
-  // Keep mixed geometry/shared-KV ownership unchanged; its source-layer mapping
-  // is a separate cache contract.
+  // Linear attention and short-convolution layers own recurrent or convolution
+  // state, not per-token attention keys/values. Keep mixed geometry/shared-KV
+  // ownership unchanged; its source-layer mapping is a separate cache contract.
   let allocatedLayerIndices = null;
-  if (!requiresMixedGeometryKVCache && hasLinearAttentionLayers(modelConfig.layerTypes)) {
+  if (!requiresMixedGeometryKVCache && Array.isArray(modelConfig.layerTypes)
+    && modelConfig.layerTypes.some(layerOwnsNoAttentionKV)) {
     if (modelConfig.layerTypes.length !== modelConfig.numLayers) {
       throw new Error('Hybrid KV allocation requires explicit types for every model layer.');
     }
     const firstLayer = layerRange === null ? 0 : layerRange[0];
     allocatedLayerIndices = Array.from({ length: allocatedLayerCount }, (_, index) => firstLayer + index)
-      .filter(layer => !hasLinearAttentionLayers([modelConfig.layerTypes[layer]]));
+      .filter(layer => !layerOwnsNoAttentionKV(modelConfig.layerTypes[layer]));
     allocatedLayerCount = allocatedLayerIndices.length;
   }
   const contiguousKVPolicy = resolveContiguousKVPolicy(modelConfig);
