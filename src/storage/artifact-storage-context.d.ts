@@ -45,9 +45,18 @@ export interface CreateArtifactStorageContextOptions {
 export interface ArtifactStorageContext extends SourceStorageContext {
   preflight?: () => Promise<void>;
   loadAuxiliaryFile: ((path: string) => Promise<ArrayBuffer | null>) | null;
+  /** True when the bytes behind this context were already verified (for example a verified OPFS download). */
+  hashesTrusted?: boolean;
+}
+
+export interface CreateNodeFileArtifactStorageContextOptions {
+  /** Defaults to true. Pass false explicitly to skip shard digest verification. */
+  verifyHashes?: boolean;
+  verificationBufferBytes?: number;
 }
 
 export interface CreateHttpArtifactStorageContextOptions {
+  /** Defaults to true. Pass false explicitly to skip shard digest verification. */
   verifyHashes?: boolean;
   verificationBufferBytes?: number;
   rangeCacheBlockBytes?: number;
@@ -73,7 +82,8 @@ export declare function createArtifactStorageContext(
 
 export declare function createNodeFileArtifactStorageContext(
   baseUrl: string | null | undefined,
-  manifest: RDRRManifest
+  manifest: RDRRManifest,
+  options?: CreateNodeFileArtifactStorageContextOptions
 ): ArtifactStorageContext | null;
 
 export declare function createOpfsArtifactStorageContext(

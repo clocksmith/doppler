@@ -107,7 +107,8 @@ const storage = (target = manifest) => createArtifactStorageContext({ manifest: 
   readRange: async (_path, _offset, length) => new ArrayBuffer(length), readText: async () => tokenizerJson,
   readBinary: async () => new TextEncoder().encode(tokenizerJson).buffer });
 const withGraph = execution => ({ ...manifest, inference: { ...manifest.inference, execution } });
-const runtimeConfig = { inference: { compute: { activationDtype: 'f32' }, session: {
+// The synthetic shard is zero-filled behind a placeholder digest; verification is opted out explicitly.
+const runtimeConfig = { loading: { shardCache: { verifyHashes: false } }, inference: { compute: { activationDtype: 'f32' }, session: {
   intermediatePrecision: 'two-f32', linearRecurrentStatePrecision: 'two-f32', prefillTokenChunkSize: 16,
   prefillChunkLayers: 1, kvcache: { maxSeqLen: 32, kvDtype: 'f16', layout: 'contiguous' },
   compute: { defaults: { activationDtype: 'f32', mathDtype: 'f32', accumDtype: 'f32', outputDtype: 'f32' } } } } };

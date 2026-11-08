@@ -63,6 +63,8 @@ import {
   timedPipelineLoadPhase,
 } from './pipeline-load-timing.js';
 import { resolveVisionWeightLoader } from '../vision/weight-loading.js';
+import { resolveVisionCapability, describeVisionUnavailable } from '../vision/support.js';
+import { resolveKVCacheAllocation } from './load-policy.js';
 import { runWarmGeneration } from './warm-generation.js';
 export async function initialize(contexts = {}) {
     this.modelPartition = contexts.partition == null ? null : structuredClone(contexts.partition);
@@ -219,23 +221,11 @@ export async function loadModel(manifest, options = {}) {
     this.embeddingVocabSize = this.modelConfig.embeddingVocabSize;
     this.embeddingTranspose = this.modelConfig.embeddingTranspose;
 
-    // Vision capability detection — gated by manifest fields
-    const imageTokenId = manifest.image_token_id;
-    const hasVisionQuant = manifest.quantizationInfo?.vision != null;
-    if (Number.isInteger(imageTokenId) && imageTokenId > 0 && hasVisionQuant) {
-      this.visionCapable = true;
-      this.imageTokenId = imageTokenId;
-      this.visionConfig = this.modelConfig.visionConfig;
-      if (!this.visionConfig) {
-        throw new Error(
-          `Manifest declares image_token_id=${imageTokenId} and quantizationInfo.vision ` +
-          'but no vision_config was resolved. Check conversion config.'
-        );
-      }
-      log.info('Pipeline', `Vision capable: imageTokenId=${imageTokenId}`);
-    } else {
-      this.visionCapable = false;
-    }
+    // Vision capability means the runtime can execute the declared tower.
+    const vision = resolveVisionCapability(manifest, this.modelConfig);
+    Object.assign(this, vision.state);
+    if (vision.warning) log.warn('Pipeline', vision.warning);
+    else if (vision.info) log.info('Pipeline', vision.info);
 
     // Audio capability detection — gated by manifest fields
     const audioTokenId = manifest.audio_token_id;
@@ -318,6 +308,7 @@ export async function loadModel(manifest, options = {}) {
     assertManifestComputeLaneBinding({ manifest, runtimeConfig: this.runtimeConfig });
 
     // Initialize KV cache
+    const kvCacheAllocation = resolveKVCacheAllocation(manifest, this.runtimeConfig);
     if (this.modelConfig.decodeStrategy === 'replay_prefill') {
       this.kvCache = null;
       log.warn(
@@ -325,6 +316,9 @@ export async function loadModel(manifest, options = {}) {
         'Replay-prefill decode enabled for this model. Incremental KV-cache decode is disabled ' +
         'because the model config did not resolve explicit layerTypes for mixed-geometry/shared-KV decode.'
       );
+    } else if (!kvCacheAllocation.allocate) {
+      this.kvCache = null;
+      log.info('Pipeline', `KV cache not allocated: ${kvCacheAllocation.reason}.`);
     } else {
       const partition = resolveLayerPartition(manifest, this.modelPartition);
       this.kvCache = createKVCache(this.modelConfig, this.useGPU, this.debug,
@@ -615,9 +609,7 @@ export async function _loadVisionWeights() {
 
 export async function _ensureVisionWeightsLoaded() {
     if (!this.visionCapable) {
-      throw new Error(
-        'Pipeline does not support vision weights (no image_token_id in manifest).'
-      );
+      throw new Error(describeVisionUnavailable(this, 'vision weights'));
     }
     if (this.visionWeights) {
       return;

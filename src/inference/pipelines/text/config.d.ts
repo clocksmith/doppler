@@ -325,6 +325,25 @@ export interface AudioEncoderConfig {
   hiddenAct: string;
   useClippedLinears: boolean;
   audioTokenId: number | null;
+  /** Reference log-mel front end parameters; null when the manifest omits audio_config.feature_extractor. */
+  featureExtractor: AudioFeatureExtractorConfig | null;
+}
+
+export interface AudioFeatureExtractorConfig {
+  featureSize: number;
+  samplingRate: number;
+  frameLength: number;
+  hopLength: number;
+  fftLength: number;
+  fftOverdrive: boolean;
+  minFrequency: number;
+  maxFrequency: number;
+  preemphasis: number;
+  preemphasisHtkFlavor: boolean;
+  melFloor: number;
+  inputScaleFactor: number;
+  perBinMean: Float32Array | null;
+  perBinStddev: Float32Array | null;
 }
 
 export function getStopTokenIds(manifest: Manifest): number[];

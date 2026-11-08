@@ -78,8 +78,10 @@ export interface EmulationContext {
 
 export function createNodeFileShardStorageContext(
   baseUrl: string | null | undefined,
-  manifest: Manifest
+  manifest: Manifest,
+  options?: { verifyHashes?: boolean; verificationBufferBytes?: number }
 ): PipelineStorageContext | null;
+
 
 /**
  * External contexts that can be injected into the pipeline.

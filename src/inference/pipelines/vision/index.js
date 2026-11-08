@@ -8,6 +8,9 @@ import { patchEmbed } from './patch-embed.js';
 import { runVisionEncoder } from './encoder.js';
 import { encodeGemma4Image } from './gemma4.js';
 import { encodeGlmOcrImage } from './glmocr.js';
+import { resolveVisionArchitectureSupport, executableVisionArchitectures } from './support.js';
+
+export { resolveVisionArchitectureSupport } from './support.js';
 
 export async function encodeImage(params) {
   const { pixels, width, height, visionConfig, weights, softTokenBudget } = params;
@@ -30,13 +33,20 @@ export async function encodeImage(params) {
       return encodeGemma4Image(params);
     case 'glmocr':
       return encodeGlmOcrImage(params);
-    case 'qwen3vl':
+    case 'qwen3vl': {
+      // The generic ViT path below is the partial Qwen3-VL implementation. It
+      // runs only once the support table marks the architecture executable.
+      const support = resolveVisionArchitectureSupport(arch);
+      if (!support.executable) {
+        throw new Error(`Vision architecture "${arch}" cannot run: ${support.reason}.`);
+      }
       preprocessed = preprocessImage(pixels, width, height, visionConfig);
       break;
+    }
     default:
       throw new Error(
         `Unsupported vision architecture "${arch}". ` +
-        'Supported: gemma4, qwen3vl, glmocr. Check vision_config.vision_architecture.'
+        `Executable: ${executableVisionArchitectures().join(', ')}. Check vision_config.vision_architecture.`
       );
   }
 

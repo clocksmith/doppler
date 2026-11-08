@@ -26,6 +26,7 @@ import {
 } from '../../../storage/artifact-storage-context.js';
 import { hasLinearAttentionLayers } from './linear-attention.js';
 import { isConvLayerType } from './layer-input-execution.js';
+import { resolveShardHashVerification } from './load-policy.js';
 import { rewriteWeightLoadError } from './load-errors.js';
 import { resolveWeightLoadingConfig } from './weight-loading-config.js';
 import { toArrayBuffer } from '../../../formats/array-buffer.js';
@@ -125,17 +126,18 @@ function isRDRRManifest(manifest) {
   return manifest !== null && typeof manifest === 'object' && Array.isArray( (manifest).shards);
 }
 
-export function createNodeFileShardStorageContext(baseUrl, manifest) {
-  return createNodeFileArtifactStorageContext(baseUrl, manifest);
+export function createNodeFileShardStorageContext(baseUrl, manifest, options = {}) {
+  return createNodeFileArtifactStorageContext(baseUrl, manifest, options);
 }
 
-function createRemoteStorageContext(baseUrl, manifest) {
-  const nodeFileStorageContext = createNodeFileArtifactStorageContext(baseUrl, manifest);
+function createRemoteStorageContext(baseUrl, manifest, options = {}) {
+  const nodeFileStorageContext = createNodeFileArtifactStorageContext(baseUrl, manifest, options);
   if (nodeFileStorageContext) {
     return nodeFileStorageContext;
   }
-  return createHttpArtifactStorageContext(baseUrl, manifest);
+  return createHttpArtifactStorageContext(baseUrl, manifest, options);
 }
+
 
 function normalizeLayerType(layerType) {
   return typeof layerType === 'string' ? layerType.trim().toLowerCase() : '';
@@ -644,19 +646,19 @@ export async function loadWeights(manifest, modelConfig, options = {}) {
     loaderDebug,
     perLayerInputSession,
   } = options;
+  // Resolve the policy before creating a context so the context it creates
+  // carries the same decision; a context must never shadow the configured policy.
+  const configuredVerifyHashes = resolveShardHashVerification({ options, loadingConfig }).verifyHashes;
   const runtimeStorageContext = options.storageContext
-    ?? createRemoteStorageContext(baseUrl, manifest);
+    ?? createRemoteStorageContext(baseUrl, manifest, { verifyHashes: configuredVerifyHashes });
   if (typeof runtimeStorageContext?.preflight === 'function') {
     await runtimeStorageContext.preflight();
   }
-  const verifyHashes = (
-    typeof runtimeStorageContext?.verifyHashes === 'boolean'
-      ? runtimeStorageContext.verifyHashes
-      : options.verifyHashes
-  ) ?? loadingConfig?.shardCache?.verifyHashes;
-  if (verifyHashes == null) {
-    throw new Error('runtime.loading.shardCache.verifyHashes is required.');
-  }
+  const { verifyHashes } = resolveShardHashVerification({
+    options,
+    loadingConfig,
+    storageContext: runtimeStorageContext,
+  });
 
   const dopplerLoader = options.loader ?? createDopplerLoader(loadingConfig);
   const keepF32Weights = options.keepF32Weights === true;

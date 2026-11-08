@@ -536,5 +536,83 @@ export function resolveAudioConfig(rawConfig, manifest) {
     hiddenAct: resolveRequiredString(ac.hidden_act, 'hidden_act'),
     useClippedLinears: ac.use_clipped_linears === true,
     audioTokenId: rawConfig?.audio_token_id ?? manifest?.audio_token_id ?? null,
+    featureExtractor: resolveAudioFeatureExtractor(ac.feature_extractor, modelId),
+  };
+}
+
+// The log-mel front end is part of the model contract, not a runtime constant:
+// the encoder's first convolution expects exactly the reference mel geometry.
+// Manifests carry it as audio_config.feature_extractor using the Hugging Face
+// feature-extractor field names; absent fields that mean "feature off" resolve
+// to off (preemphasis 0, no overdrive, unit scale, no per-bin normalization).
+export function resolveAudioFeatureExtractor(raw, modelId = 'unknown') {
+  if (raw == null) return null;
+  if (typeof raw !== 'object' || Array.isArray(raw)) {
+    throw new Error(`Manifest "${modelId}" has invalid audio_config.feature_extractor; expected an object.`);
+  }
+  const label = (field) => `audio_config.feature_extractor.${field}`;
+  const number = (field, { min = -Infinity, positive = false, integer = false, optional = false, fallback = null } = {}) => {
+    const value = raw[field];
+    if (value == null) {
+      if (optional) return fallback;
+      throw new Error(`Manifest "${modelId}" is missing ${label(field)}.`);
+    }
+    const parsed = Number(value);
+    if (!Number.isFinite(parsed) || parsed < min || (positive && parsed <= 0) || (integer && !Number.isInteger(parsed))) {
+      throw new Error(`Manifest "${modelId}" has invalid ${label(field)}=${JSON.stringify(value)}.`);
+    }
+    return parsed;
+  };
+  const flag = (field, fallback) => {
+    const value = raw[field];
+    if (value == null) return fallback;
+    if (typeof value !== 'boolean') {
+      throw new Error(`Manifest "${modelId}" has invalid ${label(field)}=${JSON.stringify(value)}; expected a boolean.`);
+    }
+    return value;
+  };
+  const perBin = (field, featureSize) => {
+    const value = raw[field];
+    if (value == null) return null;
+    if (!Array.isArray(value) || value.length !== featureSize || !value.every((entry) => Number.isFinite(Number(entry)))) {
+      throw new Error(`Manifest "${modelId}" has invalid ${label(field)}; expected ${featureSize} finite numbers.`);
+    }
+    return Float32Array.from(value, Number);
+  };
+  const featureSize = number('feature_size', { positive: true, integer: true });
+  const samplingRate = number('sampling_rate', { positive: true, integer: true });
+  const frameLengthMs = number('frame_length_ms', { positive: true });
+  const hopLengthMs = number('hop_length_ms', { positive: true });
+  const frameLength = Math.round((samplingRate * frameLengthMs) / 1000);
+  const hopLength = Math.round((samplingRate * hopLengthMs) / 1000);
+  if (frameLength < 2 || hopLength < 1) {
+    throw new Error(`Manifest "${modelId}" audio_config.feature_extractor frame/hop resolve to ${frameLength}/${hopLength} samples.`);
+  }
+  const fftOverdrive = flag('fft_overdrive', false);
+  const fftLength = (2 ** Math.ceil(Math.log2(frameLength))) * (fftOverdrive ? 2 : 1);
+  const minFrequency = number('min_frequency', { min: 0 });
+  const maxFrequency = number('max_frequency', { positive: true });
+  if (maxFrequency <= minFrequency || maxFrequency > samplingRate / 2) {
+    throw new Error(`Manifest "${modelId}" audio_config.feature_extractor frequency range ${minFrequency}-${maxFrequency} Hz is invalid for ${samplingRate} Hz audio.`);
+  }
+  const dither = number('dither', { min: 0, optional: true, fallback: 0 });
+  if (dither > 0) {
+    throw new Error(`Manifest "${modelId}" audio_config.feature_extractor.dither=${dither} requests random dither; the runtime front end is deterministic and supports dither 0 only.`);
+  }
+  return {
+    featureSize,
+    samplingRate,
+    frameLength,
+    hopLength,
+    fftLength,
+    fftOverdrive,
+    minFrequency,
+    maxFrequency,
+    preemphasis: number('preemphasis', { min: 0, optional: true, fallback: 0 }),
+    preemphasisHtkFlavor: flag('preemphasis_htk_flavor', true),
+    melFloor: number('mel_floor', { positive: true }),
+    inputScaleFactor: number('input_scale_factor', { positive: true, optional: true, fallback: 1 }),
+    perBinMean: perBin('per_bin_mean', featureSize),
+    perBinStddev: perBin('per_bin_stddev', featureSize),
   };
 }

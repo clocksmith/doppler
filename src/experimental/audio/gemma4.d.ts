@@ -19,3 +19,5 @@ export function encodeGemma4Audio(params: {
     features: GPUBuffer;
     numTokens: number;
 }>;
+
+export declare function uploadHostArray(data: ArrayBufferView, label: string): GPUBuffer;

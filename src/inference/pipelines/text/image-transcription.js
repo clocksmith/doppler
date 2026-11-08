@@ -1,6 +1,7 @@
 import { releaseBuffer } from '../../../memory/buffer-pool.js';
 import { formatChatMessages } from './chat-format.js';
 import { assertNotAborted } from './abort-contract.js';
+import { describeVisionUnavailable } from '../vision/support.js';
 import {
   assertMultimodalSequenceCapacity,
   buildConservativeMultimodalGenerationOptions,
@@ -102,9 +103,7 @@ export function createImageTranscriptionResourceScope(
 export async function transcribeImage({ imageBytes, width, height, prompt, maxTokens, softTokenBudget, signal }) {
     assertNotAborted(signal);
     if (!this.visionCapable) {
-      throw new Error(
-        'Pipeline does not support image transcription (no image_token_id in manifest).'
-      );
+      throw new Error(describeVisionUnavailable(this, 'image transcription'));
     }
     await this._ensureVisionWeightsLoaded();
     assertNotAborted(signal);

@@ -249,11 +249,15 @@ function createHttpShardLoader(baseUrl, manifest, log) {
 }
 
 export function createHarnessShardStorageContext(modelUrl, manifest, log, options = {}) {
-  const nodeFileStorageContext = createNodeFileShardStorageContext(modelUrl, manifest);
+  const runtimeConfig = getRuntimeConfig();
+  // The harness carries the resolved loading policy into every context it creates.
+  const nodeFileStorageContext = createNodeFileShardStorageContext(modelUrl, manifest, {
+    verifyHashes: runtimeConfig?.loading?.shardCache?.verifyHashes === true,
+    verificationBufferBytes: runtimeConfig?.loading?.shardCache?.verificationBufferBytes,
+  });
   if (nodeFileStorageContext) {
     return nodeFileStorageContext;
   }
-  const runtimeConfig = getRuntimeConfig();
   const sourceOrder = runtimeConfig?.loading?.distribution?.sourceOrder;
   const httpOnly = Array.isArray(sourceOrder)
     && sourceOrder.length === 1

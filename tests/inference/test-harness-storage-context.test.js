@@ -24,15 +24,34 @@ const manifest = {
 };
 
 {
+  // The fixture shard carries no digest, so this block opts out of verification
+  // explicitly; the default policy would (correctly) refuse to read it.
+  const originalConfig = snapshotRuntimeConfig(getRuntimeConfig());
+  setRuntimeConfig({ loading: { shardCache: { verifyHashes: false } } });
   const tempRoot = await fs.mkdtemp(path.join(os.tmpdir(), 'doppler-harness-storage-'));
   try {
     await fs.writeFile(path.join(tempRoot, 'shard_00000.bin'), new Uint8Array([1, 2, 3, 4]));
     const storageContext = createHarnessShardStorageContext(pathToFileURL(tempRoot).href, manifest);
+    assert.equal(storageContext.verifyHashes, false);
     assert.equal(typeof storageContext.loadShard, 'function');
     assert.equal(typeof storageContext.loadShardRange, 'function');
     assert.equal(typeof storageContext.streamShardRange, 'function');
     const slice = new Uint8Array(await storageContext.loadShardRange(0, 1, 2));
     assert.deepEqual(Array.from(slice), [2, 3]);
+  } finally {
+    await fs.rm(tempRoot, { recursive: true, force: true });
+    setRuntimeConfig(originalConfig);
+  }
+}
+
+{
+  // Under the default policy the same unhashed fixture is refused.
+  const tempRoot = await fs.mkdtemp(path.join(os.tmpdir(), 'doppler-harness-storage-verify-'));
+  try {
+    await fs.writeFile(path.join(tempRoot, 'shard_00000.bin'), new Uint8Array([1, 2, 3, 4]));
+    const storageContext = createHarnessShardStorageContext(pathToFileURL(tempRoot).href, manifest);
+    assert.equal(storageContext.verifyHashes, true);
+    await assert.rejects(() => storageContext.loadShardRange(0, 1, 2), /missing a hash digest/);
   } finally {
     await fs.rm(tempRoot, { recursive: true, force: true });
   }

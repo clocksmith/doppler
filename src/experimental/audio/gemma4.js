@@ -15,6 +15,17 @@ function reshapeTensor(tensor, shape, label) {
   return createTensor(tensor.buffer, tensor.dtype, shape, label ?? tensor.label);
 }
 
+// Host arrays reach the GPU through an acquired buffer; uploadData writes into a
+// buffer and never allocates one. Exported for the regression test.
+export function uploadHostArray(data, label) {
+  if (!ArrayBuffer.isView(data)) {
+    throw new Error(`[Audio] uploadHostArray(${label}) requires a typed array, got ${data?.constructor?.name ?? typeof data}.`);
+  }
+  const buffer = acquireBuffer(data.byteLength, undefined, label);
+  uploadData(buffer, data, 0);
+  return buffer;
+}
+
 // ---------------------------------------------------------------------------
 // Subsampling: 2-stage Conv2D + LayerNorm + Linear projection
 // ---------------------------------------------------------------------------
@@ -24,7 +35,7 @@ async function runSubsampling(melFeatures, numFrames, nMels, weights, audioConfi
   const convChannels = audioConfig.subsamplingConvChannels;
 
   // Reshape mel [numFrames, nMels] -> [1, numFrames, nMels] for conv2d (treat as single-channel image)
-  const inputBuffer = await uploadData(melFeatures, 'audio_mel_input');
+  const inputBuffer = uploadHostArray(melFeatures, 'audio_mel_input');
   let currentTensor = createTensor(inputBuffer, 'f32', [1, numFrames, nMels], 'audio_mel');
 
   let currentHeight = numFrames;
@@ -340,7 +351,7 @@ async function runConformerAttention(hiddenTensor, layerWeights, audioConfig, se
   releaseBuffer(vTensor.buffer);
 
   // Upload attention output
-  const attnBuffer = await uploadData(attnOutput, 'audio_attn_output');
+  const attnBuffer = uploadHostArray(attnOutput, 'audio_attn_output');
   const attnTensor = createTensor(attnBuffer, 'f32', [seqLen, hiddenSize], 'audio_attn_output');
 
   // Output projection with clipping
@@ -422,7 +433,7 @@ async function runConformerConvModule(hiddenTensor, layerWeights, audioConfig, s
       transposed[d * seqLen + s] = gluOutput[s * hiddenSize + d];
     }
   }
-  const transposedBuffer = await uploadData(transposed, 'audio_lconv_transposed');
+  const transposedBuffer = uploadHostArray(transposed, 'audio_lconv_transposed');
   const transposedTensor = createTensor(transposedBuffer, 'f32', [hiddenSize, seqLen], 'audio_lconv_transposed');
 
   const convResult = await runDepthwiseConv1D(
@@ -444,7 +455,7 @@ async function runConformerConvModule(hiddenTensor, layerWeights, audioConfig, s
   releaseBuffer(convResult.buffer);
 
   // Conv norm (RMSNorm on the convolution output)
-  const convNormBuffer = await uploadData(convTransposed, 'audio_lconv_normed');
+  const convNormBuffer = uploadHostArray(convTransposed, 'audio_lconv_normed');
   const convNormTensor = createTensor(convNormBuffer, 'f32', [seqLen, hiddenSize], 'audio_lconv_normed');
   const convNormed = await runRMSNorm(
     convNormTensor,

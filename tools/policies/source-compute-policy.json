@@ -575,7 +575,7 @@
       "reason": "The unqualified Gemma 4 audio prototype is isolated under src/experimental, excluded from Capsule Runtime closure, and cannot satisfy production support claims."
     },
     {
-      "id": "src/inference/pipelines/audio/mel.js#melFilterBank",
+      "id": "src/inference/pipelines/audio/mel.js#buildMelFilterBank",
       "category": "host-input-preprocessing",
       "reason": "Audio samples are transformed into the manifest-declared model input representation before runtime tensor execution begins."
     },
@@ -1041,6 +1041,11 @@
     },
     {
       "id": "src/experimental/diffusion/scheduler.js#buildScheduler",
+      "category": "quarantined-experimental",
+      "reason": "The diffusion scheduler prototype is isolated under src/experimental and excluded from Capsule Runtime support claims."
+    },
+    {
+      "id": "src/experimental/diffusion/scheduler.js#buildFlowMatchSchedule",
       "category": "quarantined-experimental",
       "reason": "The diffusion scheduler prototype is isolated under src/experimental and excluded from Capsule Runtime support claims."
     },

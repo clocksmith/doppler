@@ -209,6 +209,9 @@ export class PipelineState {
 
     this.visionCapable = false;
 
+    // Set when the manifest declares a vision tower the runtime cannot execute.
+    this.visionUnsupportedReason = null;
+
     this.imageTokenId = null;
 
     this.visionConfig = null;

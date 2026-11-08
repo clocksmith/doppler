@@ -3,6 +3,7 @@ import { readBuffer, releaseBuffer } from '../../../memory/buffer-pool.js';
 import { formatChatMessages } from './chat-format.js';
 
 import { assertNotAborted } from './abort-contract.js';
+import { describeVisionUnavailable } from '../vision/support.js';
 import { executeEmbeddingBatch } from './embedding-batch.js';
 import {
   buildConservativeMultimodalGenerationOptions,
@@ -38,9 +39,7 @@ export {
 export async function transcribeVideo({ frames, prompt, maxTokens, maxFrames, perFrameSoftTokenBudget, signal }) {
     assertNotAborted(signal);
     if (!this.visionCapable) {
-      throw new Error(
-        'Pipeline does not support video transcription (no image_token_id in manifest for vision encoder).'
-      );
+      throw new Error(describeVisionUnavailable(this, 'video transcription'));
     }
     await this._ensureVisionWeightsLoaded();
 
@@ -175,7 +174,14 @@ export async function transcribeAudio({ audio, prompt, maxTokens, signal }) {
       });
     } else {
       const { extractLogMelSpectrogram } = await import('../audio/mel.js');
-      const { features: melFeatures, numFrames, nMels } = extractLogMelSpectrogram(audio);
+      const featureExtractor = this.audioConfig.featureExtractor;
+      if (!featureExtractor) {
+        throw new Error(
+          'Manifest audio_config has no feature_extractor block, so the log-mel front end the encoder was trained on ' +
+          'is unknown. Re-convert the model with audio_config.feature_extractor set from its preprocessor_config.json.'
+        );
+      }
+      const { features: melFeatures, numFrames, nMels } = extractLogMelSpectrogram(audio, featureExtractor);
       encodeResult = await encodeAudio({
         melFeatures,
         numFrames,
@@ -346,9 +352,7 @@ export async function encodeSequence(sequence, options = {}) {
 export async function embedImage({ pixels, width, height, softTokenBudget, signal } = {}) {
     assertNotAborted(signal);
     if (!this.visionCapable) {
-      throw new Error(
-        'Pipeline does not support image embedding (no image_token_id in manifest).'
-      );
+      throw new Error(describeVisionUnavailable(this, 'image embedding'));
     }
     if (pixels == null) {
       throw new Error('[Pipeline] embedImage: pixels are required.');
@@ -417,7 +421,14 @@ export async function embedAudio({ audio, signal } = {}) {
       });
     } else {
       const { extractLogMelSpectrogram } = await import('../audio/mel.js');
-      const { features: melFeatures, numFrames, nMels } = extractLogMelSpectrogram(audio);
+      const featureExtractor = this.audioConfig.featureExtractor;
+      if (!featureExtractor) {
+        throw new Error(
+          'Manifest audio_config has no feature_extractor block, so the log-mel front end the encoder was trained on ' +
+          'is unknown. Re-convert the model with audio_config.feature_extractor set from its preprocessor_config.json.'
+        );
+      }
+      const { features: melFeatures, numFrames, nMels } = extractLogMelSpectrogram(audio, featureExtractor);
       encodeResult = await encodeAudio({
         melFeatures,
         numFrames,

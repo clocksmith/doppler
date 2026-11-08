@@ -195,7 +195,9 @@ for (const verificationBufferBytes of [undefined, 0, 72]) {
   writeFileSync(shardPath, Uint8Array.from({ length: 32 }, (_, index) => index));
   let storageContext = null;
   try {
-    storageContext = createNodeFileArtifactStorageContext(fixtureDir, manifest);
+    // The fixture carries no digests; this case covers range reads, so verification is off explicitly.
+    storageContext = createNodeFileArtifactStorageContext(fixtureDir, manifest, { verifyHashes: false });
+    assert.equal(storageContext.verifyHashes, false);
     assert.ok(storageContext, 'node file artifact storage context should be created for filesystem manifests');
     assert.equal(typeof storageContext.close, 'function');
     const firstRange = await storageContext.loadShardRange(0, 0, 8);
@@ -239,6 +241,31 @@ for (const verificationBufferBytes of [undefined, 0, 72]) {
     assert.equal(calls[0].init.headers.Range, 'bytes=1-2');
     assert.equal(calls[1].url, 'https://example.com/model/tensors.json');
     assert.equal(calls[1].init.cache, 'no-store');
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+}
+
+{
+  // HTTP contexts verify by default; a manifest without digests cannot be read
+  // until the caller disables verification explicitly.
+  const originalFetch = globalThis.fetch;
+  globalThis.fetch = async () => ({
+    ok: true,
+    status: 200,
+    arrayBuffer: async () => Uint8Array.from([1, 2, 3, 4]).buffer,
+    text: async () => '{}',
+  });
+  try {
+    const manifest = {
+      modelId: 'artifact-http-default-verify-test',
+      hashAlgorithm: 'blake3',
+      shards: [{ filename: 'shard_00000.bin', size: 4, hash: null }],
+    };
+    const storageContext = createHttpArtifactStorageContext('https://example.com/model', manifest);
+    assert.equal(storageContext.verifyHashes, true, 'http contexts verify by default');
+    await assert.rejects(() => storageContext.loadShardRange(0, 1, 2), /missing a hash digest/);
+    await assert.rejects(() => storageContext.loadShard(0), /missing a hash digest/);
   } finally {
     globalThis.fetch = originalFetch;
   }

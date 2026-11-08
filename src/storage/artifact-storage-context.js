@@ -455,6 +455,7 @@ function createPathBackedStorageContext(options) {
       }
       : null,
     verifyHashes,
+    hashesTrusted,
     close,
   };
 }
@@ -578,7 +579,15 @@ async function resolveArtifactFileReference(root, relativePath) {
   throw new Error(`Unsupported local artifact root "${root}".`);
 }
 
-export function createNodeFileArtifactStorageContext(baseUrl, manifest) {
+// Node file and HTTP contexts verify shard digests unless the caller passes
+// verifyHashes: false explicitly. Hash verification is a loading policy owned by
+// runtime.loading.shardCache.verifyHashes; a context created without that
+// decision must not relax it on the loader's behalf.
+function resolveContextVerifyHashes(options) {
+  return options?.verifyHashes !== false;
+}
+
+export function createNodeFileArtifactStorageContext(baseUrl, manifest, options = {}) {
   const root = normalizeBaseUrl(baseUrl);
   if (
     !root
@@ -639,7 +648,8 @@ export function createNodeFileArtifactStorageContext(baseUrl, manifest) {
       readText,
       readBinary,
       close: fileAccess.close,
-      verifyHashes: false,
+      verifyHashes: resolveContextVerifyHashes(options),
+      verificationBufferBytes: options.verificationBufferBytes,
     });
   } catch (error) {
     fileAccess.close().catch(() => {});
@@ -838,8 +848,7 @@ export function createHttpArtifactStorageContext(baseUrl, manifest, options = {}
     readRange,
     readText,
     readBinary,
-    verifyHashes: options.verifyHashes === true
-      || (options.verifyHashes !== false && getArtifactFormat(manifest) === ARTIFACT_FORMAT_DIRECT_SOURCE),
+    verifyHashes: resolveContextVerifyHashes(options),
     verificationBufferBytes: options.verificationBufferBytes,
   });
 }
