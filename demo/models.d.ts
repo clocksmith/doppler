@@ -21,10 +21,7 @@ export declare function buildModelDetail(
   status?: string
 ): string;
 
-export declare function modelLabel(
-  entry: DemoCatalogEntry,
-  entries?: readonly DemoCatalogEntry[]
-): string;
+export declare function modelLabel(entry: DemoCatalogEntry | null): string;
 
 export declare function setModelCallbacks(callbacks: {
   onLoaded?: ((model: unknown, modelId: string) => void) | null;

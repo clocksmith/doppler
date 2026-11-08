@@ -6,7 +6,8 @@ unreferenced JavaScript implementation appears under `demo/` or live demo code
 imports private `src/` paths.
 
 The page has three sections with one heading size, left edge, spacing and
-disclosure style, written without unexplained jargon:
+disclosure style, written in plain language. Model labels stay exactly as
+published in the catalog, configuration included:
 
 1. **Dialogue**: the model selector with a compact Load button and one status
    line, the conversation with clickable words and alternatives, the message box

@@ -17,24 +17,9 @@ function $(id) {
   return document.getElementById(id);
 }
 
-function catalogLabel(entry) {
+// The published catalog label, including its configuration, e.g. "(Q4K/F32a)".
+export function modelLabel(entry) {
   return entry?.label || entry?.modelId || 'Unknown model';
-}
-
-// Catalog labels end with storage details, e.g. "Gemma 3 1B Instruct (Q4K/F32a)".
-// The picker shows the plain name and keeps the full label as a tooltip. Models
-// that share a plain name are told apart by a plain qualifier; if they cannot
-// be, the full catalog label stays.
-const PLAIN_QUALIFIERS = [[/\bINT4 PLE\b/, 'compact']];
-const plainName = (entry) => catalogLabel(entry).replace(/\s*\([^)]*\)$/, '');
-const plainQualifier = (entry) => PLAIN_QUALIFIERS.find(([pattern]) => pattern.test(catalogLabel(entry)))?.[1] ?? '';
-
-export function modelLabel(entry, entries = catalog) {
-  const name = plainName(entry);
-  const group = entries.filter((other) => plainName(other) === name);
-  if (group.length > 1 && new Set(group.map(plainQualifier)).size !== group.length) return catalogLabel(entry);
-  const qualifier = group.length > 1 ? plainQualifier(entry) : '';
-  return qualifier ? `${name}, ${qualifier}` : name;
 }
 
 function downloadSize(entry) {
@@ -290,7 +275,6 @@ export function renderModelOptions() {
       const option = document.createElement('option');
       option.value = entry.modelId;
       option.textContent = [modelLabel(entry), downloadSize(entry)].filter(Boolean).join(' · ');
-      option.title = catalogLabel(entry);
       select.append(option);
     }
     select.disabled = catalog.length === 0;
