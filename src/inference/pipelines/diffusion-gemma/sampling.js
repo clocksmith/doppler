@@ -24,6 +24,18 @@ function randomToken(random, vocabSize) {
   return Math.min(vocabSize - 1, Math.floor(random() * vocabSize));
 }
 
+export function drawCanvasUniforms(random, canvasLength) {
+  const draws = new Float32Array(canvasLength);
+  for (let i = 0; i < canvasLength; i += 1) {
+    draws[i] = random();
+  }
+  return draws;
+}
+
+function resolvePadTokenId(config) {
+  return Number.isInteger(config?.padTokenId) && config.padTokenId >= 0 ? config.padTokenId : null;
+}
+
 function normalizeTemperature(value) {
   if (typeof value !== 'number' || !Number.isFinite(value) || value <= 0) {
     throw new Error(`DiffusionGemma temperature must be positive; got ${String(value)}.`);
@@ -61,20 +73,26 @@ function getLogitsView(logits, tokenIndex, vocabSize) {
   return logits.subarray(start, end);
 }
 
-function softmaxStats(tokenLogits, processedLogits, temperature, random) {
+// Per-position statistics on the temperature-scaled distribution. The pad token
+// never counts toward the max, the mass, the argmax or the sample, matching the
+// GPU stats kernel; the sample is the inverse CDF of one uniform draw taken in
+// vocabulary order.
+function softmaxStats(tokenLogits, processedLogits, temperature, random, padTokenId = null) {
+  const isPad = (index) => index === padTokenId;
   let max = -Infinity;
   for (let i = 0; i < tokenLogits.length; i += 1) {
     const value = tokenLogits[i] / temperature;
     processedLogits[i] = value;
-    if (value > max) max = value;
+    if (!isPad(i) && value > max) max = value;
   }
 
   let sum = 0;
   let weightedLogitSum = 0;
-  let argmaxToken = 0;
+  let argmaxToken = -1;
   let argmaxValue = -Infinity;
   const probs = new Float32Array(tokenLogits.length);
   for (let i = 0; i < tokenLogits.length; i += 1) {
+    if (isPad(i)) continue;
     const scaled = processedLogits[i];
     if (scaled > argmaxValue) {
       argmaxValue = scaled;
@@ -85,17 +103,18 @@ function softmaxStats(tokenLogits, processedLogits, temperature, random) {
     sum += expValue;
     weightedLogitSum += expValue * scaled;
   }
-  if (!Number.isFinite(sum) || sum <= 0) {
+  if (!Number.isFinite(sum) || sum <= 0 || argmaxToken < 0) {
     throw new Error('DiffusionGemma logits produced an invalid softmax denominator.');
   }
 
   const draw = random() * sum;
   let cumulative = 0;
-  let sampledToken = tokenLogits.length - 1;
+  let sampledToken = -1;
   for (let i = 0; i < probs.length; i += 1) {
+    if (isPad(i)) continue;
     cumulative += probs[i];
+    sampledToken = i;
     if (draw <= cumulative) {
-      sampledToken = i;
       break;
     }
   }
@@ -130,7 +149,8 @@ export function applyEntropyBoundStep(currentCanvas, logits, config, options = {
       getLogitsView(logits, i, config.vocabSize),
       getLogitsView(processedLogits, i, config.vocabSize),
       temperature,
-      random
+      random,
+      resolvePadTokenId(config)
     );
     argmaxCanvas[i] = stats.argmaxToken;
     sampledCanvas[i] = stats.sampledToken;
@@ -173,8 +193,13 @@ export function applyEntropyBoundStatsStep(currentCanvas, stats, config, options
   }
   assertCanvas(currentCanvas, config.canvasLength, 'currentCanvas');
   const argmaxCanvas = stats?.argmaxCanvas;
+  const sampledCanvas = stats?.sampledCanvas;
   const entropies = stats?.entropies;
   assertCanvas(argmaxCanvas, config.canvasLength, 'argmaxCanvas');
+  // The stats provider samples on the GPU from the same temperature-scaled
+  // distribution and the same uniform draws the CPU path consumes, so both
+  // paths accept sampled tokens and report argmax separately.
+  assertCanvas(sampledCanvas, config.canvasLength, 'sampledCanvas');
   if (!(entropies instanceof Float32Array) || entropies.length !== config.canvasLength) {
     throw new Error('DiffusionGemma entropy stats step requires entropies as Float32Array[canvasLength].');
   }
@@ -202,13 +227,13 @@ export function applyEntropyBoundStatsStep(currentCanvas, stats, config, options
   }
 
   for (let i = 0; i < config.canvasLength; i += 1) {
-    nextCanvas[i] = accepted[i] ? argmaxCanvas[i] : randomToken(random, config.vocabSize);
+    nextCanvas[i] = accepted[i] ? sampledCanvas[i] : randomToken(random, config.vocabSize);
   }
 
   return {
     canvas: nextCanvas,
     argmaxCanvas: Int32Array.from(argmaxCanvas),
-    sampledCanvas: Int32Array.from(argmaxCanvas),
+    sampledCanvas: Int32Array.from(sampledCanvas),
     entropies,
     processedLogits: null,
     accepted,
@@ -344,10 +369,14 @@ export async function denoiseCanvasWithStatsProvider(config, options) {
       const temperature = resolveDenoisingTemperature(config, step);
       const inputSelfConditioningLogits = selfConditioningLogits;
       selfConditioningLogits = null;
+      // One uniform draw per canvas position, consumed in position order before
+      // the rejected-position draws: the same stream order as the CPU path.
+      const uniformDraws = drawCanvasUniforms(random, config.canvasLength);
       const stats = await statsProvider({
         canvas,
         step,
         temperature,
+        uniformDraws,
         selfConditioningLogits: inputSelfConditioningLogits,
         canvasIndex: options.canvasIndex ?? 0,
         inputIds: options.inputIds ?? null,

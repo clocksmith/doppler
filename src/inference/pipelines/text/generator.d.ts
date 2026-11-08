@@ -37,10 +37,13 @@ export interface DiffusionGemmaGpuLogitsState {
 
 export interface DiffusionGemmaCanvasStepInput extends DiffusionGemmaCanvasLogitsInput {
   temperature: number;
+  /** One uniform draw in [0, 1) per canvas position. */
+  uniformDraws: Float32Array;
 }
 
 export interface DiffusionGemmaCanvasStepResult {
   argmaxCanvas: Int32Array;
+  sampledCanvas: Int32Array;
   entropies: Float32Array;
   selfConditioningLogits: DiffusionGemmaGpuLogitsState;
 }

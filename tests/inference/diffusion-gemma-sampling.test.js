@@ -65,6 +65,7 @@ assert.equal(resolveDenoisingTemperature(config, 1), 0.6000000000000001);
     Int32Array.from([1, 1, 1]),
     {
       argmaxCanvas: Int32Array.from([2, 3, 4]),
+      sampledCanvas: Int32Array.from([2, 3, 4]),
       entropies: new Float32Array([0.001, 0.002, 0.003]),
     },
     config,
@@ -84,11 +85,16 @@ assert.equal(resolveDenoisingTemperature(config, 1), 0.6000000000000001);
   const result = await denoiseCanvasWithStatsProvider(config, {
     initialCanvas: [1, 1, 1],
     random: createSeededRandom(456),
-    statsProvider: async () => ({
+    statsProvider: async ({ uniformDraws }) => {
+      assert.ok(uniformDraws instanceof Float32Array && uniformDraws.length === 3, 'stats provider receives one uniform draw per position');
+      assert.ok(uniformDraws.every((draw) => draw >= 0 && draw < 1));
+      return {
       argmaxCanvas: Int32Array.from([5, 6, 7]),
+      sampledCanvas: Int32Array.from([5, 6, 7]),
       entropies: new Float32Array([0.001, 0.002, 0.003]),
       selfConditioningLogits: { logitsBuffer: {}, release() {} },
-    }),
+      };
+    },
   });
   assert.deepEqual([...result.argmaxCanvas], [5, 6, 7]);
   assert.equal(result.selfConditioningLogits?.logitsBuffer != null, true);
@@ -104,6 +110,7 @@ assert.equal(resolveDenoisingTemperature(config, 1), 0.6000000000000001);
       random: createSeededRandom(456),
       statsProvider: async () => ({
         argmaxCanvas: Int32Array.from([5, 6]),
+        sampledCanvas: Int32Array.from([5, 6]),
         entropies: new Float32Array([0.001, 0.002]),
         selfConditioningLogits: {
           kind: 'soft_embedding',
@@ -313,6 +320,7 @@ assert.equal(resolveDenoisingTemperature(config, 1), 0.6000000000000001);
       });
       return {
         argmaxCanvas: Int32Array.from([3, 7]),
+        sampledCanvas: Int32Array.from([3, 7]),
         entropies: new Float32Array([0.001, 0.002]),
         selfConditioningLogits: { logitsBuffer: {}, release() {} },
       };

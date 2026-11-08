@@ -1,3 +1,5 @@
+import { assertSupportedDiffusionSchedulerType } from '../../inference/pipelines/diffusion/scheduler-contract.js';
+
 function resolveStepCount(config, stepsOverride) {
   const stepCount = Number.isFinite(stepsOverride) && stepsOverride > 0
     ? Math.floor(stepsOverride)
@@ -18,18 +20,30 @@ function linspace(start, end, steps) {
   return out;
 }
 
-function buildLinearSigmaSchedule(steps) {
-  return linspace(1.0, 0.0, steps);
+// Time shift of the flow-matching schedule (diffusers
+// FlowMatchEulerDiscreteScheduler, use_dynamic_shifting=false). A shift above 1
+// moves every noise level toward sigma=1 so more steps are spent at high noise:
+//   shifted(sigma) = shift * sigma / (1 + (shift - 1) * sigma)
+function shiftSigma(sigma, shift) {
+  return (shift * sigma) / (1 + (shift - 1) * sigma);
 }
 
-function buildFlowMatchSchedule(config, steps) {
+// sigma_min is the shifted value of the smallest training timestep (1/T). The
+// inference grid runs linearly from 1 to that sigma_min and is shifted once
+// more, exactly as the reference does. The schedule never reaches 0: the final
+// Euler step integrates from the last sigma down to 0, so every step moves the
+// sample.
+function buildFlowMatchSchedule(config, steps, trainSteps) {
   const shift = Number.isFinite(config.shift) ? config.shift : 1.0;
-  const t = linspace(1.0, 0.0, steps);
+  if (shift <= 0) {
+    throw new Error(`Diffusion flow-match scheduler shift must be positive; got ${shift}.`);
+  }
+  const sigmaMin = shiftSigma(1 / trainSteps, shift);
+  const sigmaMax = shiftSigma(1, shift);
+  const base = linspace(sigmaMax, sigmaMin, steps);
   const sigmas = new Float32Array(steps);
   for (let i = 0; i < steps; i++) {
-    const ti = t[i];
-    const denom = ti + shift * (1.0 - ti);
-    sigmas[i] = denom === 0 ? 0 : ti / denom;
+    sigmas[i] = shiftSigma(base[i], shift);
   }
   return sigmas;
 }
@@ -137,9 +151,8 @@ export function buildScheduler(config, stepsOverride = null) {
       sigmaData: Number.isFinite(config.sigmaData) ? config.sigmaData : 0.5,
     };
   }
-  const sigmas = type === 'flowmatch_euler'
-    ? buildFlowMatchSchedule(config, steps)
-    : buildLinearSigmaSchedule(steps);
+  assertSupportedDiffusionSchedulerType(type);
+  const sigmas = buildFlowMatchSchedule(config, steps, trainSteps);
   const timesteps = new Float32Array(steps);
   for (let i = 0; i < steps; i++) {
     timesteps[i] = sigmas[i] * trainSteps;

@@ -276,9 +276,9 @@ export class DiffusionGemmaPipeline {
         && typeof this.corePipeline?.computeDiffusionGemmaCanvasStep === 'function';
       const result = useStatsProvider
         ? await denoiseCanvasWithStatsProvider(runConfig, {
-          statsProvider: ({ canvas, selfConditioningLogits: logits, temperature }) =>
+          statsProvider: ({ canvas, selfConditioningLogits: logits, temperature, uniformDraws }) =>
             this.corePipeline.computeDiffusionGemmaCanvasStep(
-              { canvas, selfConditioningLogits: logits, temperature },
+              { canvas, selfConditioningLogits: logits, temperature, uniformDraws },
               coreOptions
             ),
           random,

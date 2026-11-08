@@ -1,6 +1,10 @@
 import { DEFAULT_DIFFUSION_CONFIG } from '../../../config/schema/index.js';
+import { assertSupportedDiffusionSchedulerType } from './scheduler-contract.js';
 
-const SUPPORTED_DIFFUSION_RUNTIME_LAYOUTS = new Set(['sd3', 'flux']);
+// Only the SD3 (MMDiT) transformer has a GPU execution path. "flux" manifests
+// were accepted here and then ran through the SD3 transformer, so the layout
+// gate now admits what the runtime implements.
+const SUPPORTED_DIFFUSION_RUNTIME_LAYOUTS = new Set(['sd3']);
 
 function mergeSection(base, override) {
   if (!override) return { ...base };
@@ -106,7 +110,7 @@ export function initializeDiffusion(manifest, runtimeConfig) {
   if (layout && !SUPPORTED_DIFFUSION_RUNTIME_LAYOUTS.has(layout)) {
     throw new Error(
       `Diffusion layout "${layout}" is recognized in the manifest, but the GPU runtime is not implemented yet. ` +
-      'Supported runtime layouts: sd3, flux.'
+      'Supported runtime layouts: sd3.'
     );
   }
 
@@ -115,6 +119,10 @@ export function initializeDiffusion(manifest, runtimeConfig) {
     ...runtimeBase,
     scheduler: mergeSchedulerConfig(modelConfig, runtimeBase.scheduler),
   };
+  assertSupportedDiffusionSchedulerType(
+    runtime.scheduler.type,
+    modelConfig?.components?.scheduler?.config?._class_name ?? null
+  );
   if (runtime.backend?.pipeline !== 'gpu') {
     throw new Error(
       `Diffusion runtime backend.pipeline must be "gpu"; got "${runtime.backend?.pipeline}".`

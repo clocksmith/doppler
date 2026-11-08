@@ -18,12 +18,15 @@ export interface DiffusionGemmaStatsRequest {
   step: number;
   temperature: number;
   selfConditioningLogits: unknown;
+  /** One uniform draw per canvas position, consumed from the shared random stream in position order. */
+  uniformDraws: Float32Array;
   canvasIndex: number;
   inputIds: Int32Array | null;
 }
 
 export interface DiffusionGemmaStatsProviderResult {
   argmaxCanvas: Int32Array;
+  sampledCanvas: Int32Array;
   entropies: Float32Array;
   selfConditioningLogits?: unknown;
 }
@@ -87,6 +90,7 @@ export function applyEntropyBoundStatsStep(
   currentCanvas: ArrayLike<number>,
   stats: {
     argmaxCanvas: ArrayLike<number>;
+    sampledCanvas: ArrayLike<number>;
     entropies: Float32Array;
   },
   config: DiffusionGemmaConfig,
@@ -126,3 +130,6 @@ export function denoiseCanvasWithStatsProvider(
     inputIds?: Int32Array | null;
   }
 ): Promise<DiffusionGemmaDenoiseResult>;
+
+/** One uniform draw per canvas position from `random`, in position order. */
+export function drawCanvasUniforms(random: () => number, canvasLength: number): Float32Array;

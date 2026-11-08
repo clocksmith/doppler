@@ -21887,6 +21887,16 @@
      "index": 3,
      "name": "entropies",
      "type": "storage"
+    },
+    {
+     "index": 4,
+     "name": "uniform_draws",
+     "type": "read-only-storage"
+    },
+    {
+     "index": 5,
+     "name": "sampled_tokens",
+     "type": "storage"
     }
    ],
    "baseUniforms": {

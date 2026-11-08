@@ -166,7 +166,7 @@ function createManifest({ includeTransformer = true } = {}) {
       },
       { inference: { diffusion: { backend: { pipeline: 'gpu' } } } }
     ),
-    /Supported runtime layouts: sd3, flux/
+    /Supported runtime layouts: sd3\./
   );
 }
 

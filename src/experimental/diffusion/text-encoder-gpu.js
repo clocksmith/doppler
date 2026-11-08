@@ -13,6 +13,7 @@ import { runSiLU, runSiLURowSplit, recordSiLU, recordSiLURowSplit } from '../../
 import { runScale, recordScale } from '../../gpu/kernels/scale.js';
 import { runResidualAdd, runBiasAdd, recordResidualAdd, recordBiasAdd } from '../../gpu/kernels/residual.js';
 import { createSD3WeightResolver } from '../../inference/pipelines/diffusion/sd3-weights.js';
+import { assembleSd3TextContext } from './text-context.js';
 import { f32ToF16Array } from '../../inference/kv-cache/types.js';
 import { sumDiffusionProfileTimings } from '../../inference/pipelines/diffusion/profile-timing.js';
 import {
@@ -271,7 +272,15 @@ async function runClipTextEncoder(tokens, weightsEntry, config, runtime, options
   hidden = createTensor(combined.buffer, combined.dtype, [maxLength, hiddenSize], 'clip_embed');
 
   const layerCount = config.num_hidden_layers;
+  if (!Number.isInteger(layerCount) || layerCount < 2) {
+    throw new Error(`CLIP text encoder "${prefix}" needs at least 2 layers to expose its penultimate hidden state; got ${String(layerCount)}.`);
+  }
+  // SD3 conditions on hidden_states[-2]: the residual stream entering the last
+  // layer, before the final LayerNorm. The pooled vector uses the full stack.
+  let penultimate = null;
   for (let layerIdx = 0; layerIdx < layerCount; layerIdx++) {
+    const isLastLayer = layerIdx === layerCount - 1;
+    if (isLastLayer) penultimate = hidden;
     const ln1Weight = expectDiffusionWeight(
       getWeight(weights, prefix, `text_model.encoder.layers.${layerIdx}.layer_norm1.weight`),
       `${prefix}.text_model.encoder.layers.${layerIdx}.layer_norm1.weight`
@@ -360,7 +369,7 @@ async function runClipTextEncoder(tokens, weightsEntry, config, runtime, options
     release(v.buffer);
     release(attn.buffer);
     release(attnOut.buffer);
-    release(hidden.buffer);
+    if (!isLastLayer) release(hidden.buffer);
 
     hidden = createTensor(attnResidual.buffer, attnResidual.dtype, [maxLength, hiddenSize], 'clip_attn_out');
 
@@ -453,6 +462,7 @@ async function runClipTextEncoder(tokens, weightsEntry, config, runtime, options
   );
   let pooled = await matmul(pooledToken, textProj, textProjKey, 1, hiddenSize, hiddenSize, { outputDtype: activationDtype, transposeB: 'auto' });
   release(pooledToken.buffer);
+  release(final.buffer);
 
   const pooledBuffer = pooled.buffer;
   if (recorder) {
@@ -493,7 +503,7 @@ async function runClipTextEncoder(tokens, weightsEntry, config, runtime, options
   }
 
   return {
-    hidden: final,
+    hidden: penultimate,
     pooled: pooledView,
     maxLength,
     hiddenSize,
@@ -726,8 +736,12 @@ export async function runTextEncodersForPrompt(tokensByEncoder, weightsByCompone
   pooled.set(clip.pooled, 0);
   pooled.set(clip2.pooled, clip.pooled.length);
 
-  releaseBuffer(clip.hidden.buffer);
-  releaseBuffer(clip2.hidden.buffer);
+  // Joint context: [CLIP-L | CLIP-G | zero pad] rows, then the T5 rows. The CLIP
+  // hidden states used to be released here so only T5 reached the transformer.
+  const context = await assembleSd3TextContext({
+    clipHidden: [clip.hidden, clip2.hidden],
+    t5Hidden: t5.hidden,
+  });
 
   const clipMs = clip.profile?.totalMs ?? null;
   const clip2Ms = clip2.profile?.totalMs ?? null;
@@ -744,7 +758,7 @@ export async function runTextEncodersForPrompt(tokensByEncoder, weightsByCompone
 
   return {
     pooled,
-    context: t5.hidden,
+    context,
     attentionMask: null,
     profile,
   };

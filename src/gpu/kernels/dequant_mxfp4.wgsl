@@ -6,10 +6,12 @@
 // - blocks: 16 bytes containing 32 x 4-bit values (2 nibbles per byte)
 // - scale: 1 byte shared across the 32 values
 //
-// Dequantization formula:
-//   value = (nibble - 8) * scale * (1.0 / 127.0)
-//
-// Where nibble is 0-15 (representing -8 to +7 signed 4-bit)
+// Dequantization (matches get_nibble and get_scale below):
+//   nibble = S E1 E0 M (E2M1 FP4, exponent bias 1)
+//     E == 0: magnitude = 0.5 * M            (subnormal)
+//     E  > 0: magnitude = (1 + 0.5 * M) * 2^(E - 1)
+//   scale  = 2^(scale_byte - 127)            (E8M0; bytes 0 and 255 decode to 0)
+//   value  = (-1)^S * magnitude * scale
 
 // Tunable workgroup size
 override WORKGROUP_SIZE_MAIN: u32 = 256u;

@@ -464,6 +464,12 @@ export async function computeDiffusionGemmaCanvasStep(args, options = {}) {
     if (typeof temperature !== 'number' || !Number.isFinite(temperature) || temperature <= 0) {
       throw new Error('[DiffusionGemma] computeDiffusionGemmaCanvasStep requires a positive temperature.');
     }
+    const uniformDraws = args?.uniformDraws;
+    if (!(uniformDraws instanceof Float32Array) || uniformDraws.length !== canvasIds.length) {
+      throw new Error(
+        '[DiffusionGemma] computeDiffusionGemmaCanvasStep requires uniformDraws as a Float32Array with one draw per canvas position.'
+      );
+    }
     const seqLenBefore = this._state.currentSeqLen;
     const opts = {
       ...resolvePrefillOptions(this._state, {
@@ -545,13 +551,18 @@ export async function computeDiffusionGemmaCanvasStep(args, options = {}) {
         vocabSize: logitsResult.vocabSize,
         temperature,
         padTokenId: this._state.modelConfig.diffusionGemma?.padTokenId ?? null,
-        logitSoftcap: this._state.modelConfig.finalLogitSoftcapping ?? 0,
+        // computeLogitsGPU already finalizes the logits with finalLogitSoftcapping;
+        // capping again here diverged from the CPU path, which caps once.
+        logitSoftcap: 0,
+        uniformDraws,
       });
-      const [argmaxData, entropyData] = await Promise.all([
+      const [argmaxData, entropyData, sampledData] = await Promise.all([
         readBuffer(statsBuffers.argmaxBuffer, canvasIds.length * Uint32Array.BYTES_PER_ELEMENT),
         readBuffer(statsBuffers.entropyBuffer, canvasIds.length * Float32Array.BYTES_PER_ELEMENT),
+        readBuffer(statsBuffers.sampledBuffer, canvasIds.length * Uint32Array.BYTES_PER_ELEMENT),
       ]);
       const argmaxCanvas = Int32Array.from(new Uint32Array(argmaxData));
+      const sampledCanvas = Int32Array.from(new Uint32Array(sampledData));
       const entropies = new Float32Array(entropyData);
       const logitsState = {
         logitsBuffer,
@@ -580,6 +591,7 @@ export async function computeDiffusionGemmaCanvasStep(args, options = {}) {
       }
       return {
         argmaxCanvas,
+        sampledCanvas,
         entropies,
         selfConditioningLogits: selfConditioningState ?? logitsState,
       };
@@ -587,6 +599,9 @@ export async function computeDiffusionGemmaCanvasStep(args, options = {}) {
       this._state.currentSeqLen = seqLenBefore;
       if (statsBuffers?.argmaxBuffer) {
         releaseBuffer(statsBuffers.argmaxBuffer);
+      }
+      if (statsBuffers?.sampledBuffer) {
+        releaseBuffer(statsBuffers.sampledBuffer);
       }
       if (statsBuffers?.entropyBuffer) {
         releaseBuffer(statsBuffers.entropyBuffer);
