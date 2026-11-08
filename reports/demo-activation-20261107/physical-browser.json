@@ -1,0 +1,54 @@
+{
+  "firstCache": {
+    "backend": "opfs",
+    "state": "imported",
+    "fromCache": false,
+    "manifestHash": "c5fcf38e945f1c048faca9ccda8991f1494563317f46a6dd79e0714ad001c569",
+    "totalBytes": 1146048704
+  },
+  "reusedCache": {
+    "backend": "opfs",
+    "state": "verified-hit",
+    "fromCache": true,
+    "manifestHash": "c5fcf38e945f1c048faca9ccda8991f1494563317f46a6dd79e0714ad001c569",
+    "totalBytes": 1146048704
+  },
+  "precision": {
+    "status": "Both paths generated the same token IDs.",
+    "lanes": [
+      "Default path4Resolved activations: f32 · 2 output tokens · 121.9 ms diagnostic wall time. Per-operation precision follows the recorded execution identity.",
+      "F16-requested path4Resolved activations: f32 · 2 output tokens · 375.2 ms diagnostic wall time. Per-operation precision follows the recorded execution identity."
+    ]
+  },
+  "identity": {
+    "modelId": "qwen-3-5-0-8b-q4k-ehaf16",
+    "manifestHash": "c5fcf38e945f1c048faca9ccda8991f1494563317f46a6dd79e0714ad001c569",
+    "runtimeVersion": "0.6.33"
+  },
+  "tokenIds": [
+    9419,
+    0,
+    248046
+  ],
+  "output": "Hello!",
+  "frames": 72,
+  "captured": 72,
+  "dropped": 0,
+  "phases": [
+    "prefill",
+    "decode"
+  ],
+  "geometry": {
+    "layers": 24,
+    "width": 1024
+  },
+  "offlinePlayback": true,
+  "environment": {
+    "browser": "Google Chrome for Testing 145.0.7632.6",
+    "cpu": "Apple M3",
+    "platform": "darwin",
+    "architecture": "arm64",
+    "gpuBackend": "physical WebGPU/Metal",
+    "limitations": "One Apple device; no cross-device or throughput claim."
+  }
+}

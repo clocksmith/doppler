@@ -359,6 +359,8 @@ export interface GenerateOptions {
   /** @category hybrid Apply chat template (auto-detected for Gemma) */
   useChatTemplate?: boolean;
   onToken?: ((tokenId: number, text: string) => void) | null;
+  /** @internal Owned by the explicit activation-trace inspection policy. */
+  __activationTrace?: import('../../../debug/activation-trace.js').ActivationTrace;
   /** Synchronous constraint; errors abort, and generatedIds excludes prompt tokens. */
   logitMaskFn?: ((logits: Float32Array, context: { generatedIds: number[]; tokenizer: unknown; vocabSize: number }) => void) | null;
   logitMaskIdentity?: { id: string; contentDigest: string } | null;

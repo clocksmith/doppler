@@ -45,6 +45,14 @@ function tokenButton(token, index, text) {
   element.textContent = whitespace && text.includes('\n') ? `↵${text}` : text;
   const probability = Number.isFinite(token?.probability) && token.probability >= 0 && token.probability <= 1 ? token.probability : null;
   element.style.setProperty('--token-surprisal', String(probability === null ? .5 : 1 - probability));
+  // The center retains this token's measured likelihood. Shared boundary colors
+  // interpolate neighboring values for a continuous underline, not three bins.
+  const neighbor = offset => {
+    const p = currentTokens[index + offset]?.probability;
+    return Number.isFinite(p) && p >= 0 && p <= 1 ? p : probability ?? .5;
+  };
+  element.style.setProperty('--token-gradient-start', String(1 - (neighbor(-1) + (probability ?? .5)) / 2));
+  element.style.setProperty('--token-gradient-end', String(1 - (neighbor(1) + (probability ?? .5)) / 2));
   element.classList.toggle('token-chip--unavailable', probability === null);
   element.classList.toggle('token-chip--chosen', token?.chosen === true);
   const description = [

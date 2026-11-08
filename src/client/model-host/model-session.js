@@ -4,6 +4,8 @@ import {
   buildGenerationEvidence, buildEmbeddingEvidence, snapshotModelEvidenceStats,
 } from './model-evidence.js';
 import { getKernelCapabilities } from '../../gpu/device.js';
+import { createActivationTrace } from '../../debug/activation-trace.js';
+import { DOPPLER_VERSION } from '../../version.js';
 import { createGenerationOutputDecoder, decodeGenerationOutput } from '../../inference/generation-output.js';
 import { formatChatMessages } from '../../inference/pipelines/text/chat-format.js';
 import { applyChatTemplate } from '../../inference/pipelines/text/init-chat-templates.js';
@@ -163,7 +165,7 @@ function resolveInspectionGenerationOptions(options, policy) {
   if (!generation || typeof generation !== 'object' || Array.isArray(generation)) {
     throw new Error('Doppler inspection generation options must be an object.');
   }
-  for (const field of ['onToken', 'onLogits', 'profile', 'disableCommandBatching']) {
+  for (const field of ['onToken', 'onLogits', 'profile', 'disableCommandBatching', '__activationTrace']) {
     if (Object.prototype.hasOwnProperty.call(generation, field)) {
       throw new Error(`Doppler inspection owns generation.${field} through its observation policy.`);
     }
@@ -614,6 +616,15 @@ export function createModelHandle(pipeline, resolved) {
       let streaming = typeof options.onEvent === 'function';
       let tokenIndex = 0;
       const topKSize = Number.isInteger(options.topKSize) ? options.topKSize : 5;
+      const traceConfig = policy.activationTrace;
+      const activationTrace = traceConfig ? createActivationTrace(traceConfig, {
+        layers: pipeline.modelConfig.numLayers,
+        width: pipeline.modelConfig.hiddenSize * (pipeline.modelConfig.hyperConnections?.streamCount ?? 1),
+      }, { modelId: resolved.modelId, manifestHash: resolved.manifestHash, runtimeVersion: DOPPLER_VERSION }, frame => {
+        if (streaming) options.onEvent({ type: 'activation-frame',
+          frame, trace: activationTrace.snapshot('recording', false) });
+      }) : null;
+      if (activationTrace) generationOptions.__activationTrace = activationTrace;
       const logitsByStep = [];
       if (policy.requiredCaptures.includes('selected-token-probabilities')) {
         generationOptions.onLogits = (logits) => {
@@ -699,6 +710,7 @@ export function createModelHandle(pipeline, resolved) {
         tokens: tokenRecords,
         quality,
         generationEvidence: evidence,
+        ...(activationTrace ? { activationTrace: activationTrace.snapshot('complete') } : {}),
       };
       if (typeof options.onEvent === 'function') {
         generationOptions.signal?.throwIfAborted();

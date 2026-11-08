@@ -5,6 +5,7 @@ export type DopplerClaimType =
   | 'diagnostic';
 
 export interface DopplerObservationPolicy {
+  activationTrace?: import('../debug/activation-trace.js').ActivationTraceLimits;
   id: string;
   label: string;
   modifiesExecution: boolean;

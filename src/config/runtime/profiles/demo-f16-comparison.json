@@ -1,0 +1,20 @@
+{
+  "id": "profiles/demo-f16-comparison",
+  "name": "Demo F16-requested comparison",
+  "description": "Explicit diagnostic precision request against unchanged model weights. The manifest and capability transforms decide which operations support F16; resolved activation and kernel identities must be reported. Unsupported models fail closed. Not a full-F16 or qualification claim.",
+  "intent": "investigate",
+  "compatibleIntents": ["investigate", "verify"],
+  "stability": "experimental",
+  "owner": "doppler-core",
+  "createdAtUtc": "2026-11-07T00:00:00Z",
+  "extends": "profiles/default",
+  "runtime": {
+    "inference": {
+      "compute": { "activationDtype": "f16" },
+      "kernelPathPolicy": {
+        "mode": "capability-aware", "sourceScope": ["manifest"],
+        "allowSources": ["manifest"], "onIncompatible": "remap"
+      }
+    }
+  }
+}

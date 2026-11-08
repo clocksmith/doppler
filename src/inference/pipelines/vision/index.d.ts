@@ -1,3 +1,5 @@
+export { resolveVisionArchitectureSupport } from './support.js';
+
 /**
  * Encode an image through the vision pipeline.
  *

@@ -75,6 +75,40 @@
           "size": 8
         }
       }
+    },
+    {
+      "id": "demo/activation-grid",
+      "label": "Activation grid capture",
+      "modifiesExecution": true,
+      "performanceRepresentative": false,
+      "requiredCaptures": [
+        "artifact-identity",
+        "prompt-token-ids",
+        "generated-token-ids",
+        "selected-token-probabilities",
+        "top-candidates",
+        "word-quality",
+        "layer-activations"
+      ],
+      "allowedClaimTypes": [
+        "diagnostic"
+      ],
+      "gpuTimestampQueries": false,
+      "perplexity": {
+        "wordSegmentation": "doppler.word-segmentation/unicode-whitespace-v1",
+        "aggregation": "doppler.perplexity/summed-word-surprisal-v1",
+        "rollingWindow": {
+          "unit": "words",
+          "size": 8
+        }
+      },
+      "activationTrace": {
+        "maxBytes": 33554432,
+        "maxFrameBytes": 8388608,
+        "maxFrames": 8192,
+        "maxGridValues": 4194304,
+        "maxInFlight": 32
+      }
     }
   ]
 }

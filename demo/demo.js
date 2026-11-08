@@ -8,6 +8,8 @@ import { onModelLoaded, runGeneration, stopGeneration, loadSampleInspection, loa
 import { SAMPLE_INSPECTION_RECEIPT } from './data/sample-inspection.js';
 import { state } from './ui/state.js';
 import { initPrecisionReplay } from './ui/precision-replay/index.js';
+import { initLivePrecision } from './ui/precision-replay/live.js';
+import { initActivationGrid } from './ui/activation-grid/index.js';
 import { initXray, getXrayRuntimeNoticeText, isXrayProfilingNeeded } from './ui/xray/index.js';
 import { flushPwaLaunchState, initPwa } from './pwa.js';
 
@@ -70,6 +72,8 @@ async function init() {
   await initSettings({ requireDefaultProfile: true, onProfileChange: reloadActiveModel });
   setBootStatus('Preparing chat...');
   initReport();
+  initActivationGrid();
+  initLivePrecision();
   await initInput();
   flushPwaLaunchState();
 

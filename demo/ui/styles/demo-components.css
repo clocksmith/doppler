@@ -243,7 +243,7 @@
   #app .chat-toolbar-run { margin-left: 0; justify-content: space-between; flex: 1; }
   #app .chat-toolbar-run .chat-run-status { flex-basis: auto; }
   #app .token-stream-container { font-size: 19px; line-height: 1.7; }
-  #app .token-candidate-row { grid-template-columns: 1ch minmax(50px, 1fr) minmax(30px, 1fr) 6ch auto; gap: 6px; }
+  #app .token-candidates-list { grid-template-columns: 1ch minmax(40px, 1fr) minmax(30px, 1fr) 6ch max-content; gap: 6px; }
   #app .token-candidate-bar-bg { display: block; }
   #app .chat-message--user { max-width: 95%; }
   #app .report-bar { align-items: stretch; }
@@ -338,7 +338,7 @@
 #app #prompt-input::placeholder { color: var(--doppler-muted); opacity: 1; }
 #app .token-candidate-bar-bg { background: var(--doppler-surface); border: 1px solid var(--doppler-line); height: 6px; }
 #app .token-candidate-bar-fill { background: var(--doppler-spectrum); }
-#app .token-chip.is-selected { text-decoration-thickness: 4px; }
+#app .token-chip.is-selected { text-decoration-thickness: 4px; background-size: 100% 4px; }
 #app :is(.xray-measure-track, .xray-overview > div) { background: var(--doppler-surface); border: 1px solid var(--doppler-line); box-shadow: none; }
 #app .model-card:hover { transform: none; }
 #app .app-links a { color: var(--fg); border-bottom-color: var(--doppler-line); }

@@ -112,7 +112,7 @@ async function assertControlContrast(page) {
 export async function checkDemoControls(page) {
   assert.equal(await page.evaluate(() => typeof globalThis.DOPPLER?.log?.info), 'function');
   assert.equal(await page.locator('#settings-panel').isVisible(), false);
-  assert.equal(await page.locator('#status').isVisible(), false, 'Model readiness stays in setup, without repeating run progress');
+  assert.equal(await page.locator('#status').isVisible(), true, 'Model readiness stays beside the visible selector');
   await page.locator('#settings-toggle').click();
   assert.equal(await page.locator('#settings-panel').isVisible(), true);
   assert.equal(await page.locator('#xray-toggle-all').isChecked(), false);
@@ -215,26 +215,24 @@ export async function checkDemoControls(page) {
   await page.locator('#settings-toggle').click();
   assert.equal(await page.locator('#settings-panel').isVisible(), false);
 
-  // Each category deals its whole bank before repeating; Surprise draws from every bank.
-  const { categories } = await page.evaluate(async () => {
+  // One shuffle control deals every alternative once, keeping the sky question as the initial example.
+  const { prompts, illustrative } = await page.evaluate(async () => {
     const entrypoint = document.querySelector('script[src$="/demo.js"]').src;
     return (await fetch(new URL('examples.json', entrypoint))).json();
   });
-  for (const { label, prompts } of categories) {
+  assert.equal(await page.locator('#prompt-suggestions button').count(), 1);
+  assert.equal(await page.locator('#shuffle-btn').textContent(), 'Try another example');
+  for (let round = 0; round < 2; round++) {
     const dealt = new Set();
     for (let draw = 0; draw < prompts.length; draw++) {
-      await page.locator('#prompt-suggestions button', { hasText: label }).click();
-      dealt.add(await page.inputValue('#prompt-input'));
+      const previous = await page.inputValue('#prompt-input');
+      await page.click('#shuffle-btn');
+      const next = await page.inputValue('#prompt-input');
+      assert.notEqual(next, previous);
+      assert.notEqual(next, illustrative.prompt);
+      dealt.add(next);
     }
-    assert.deepEqual([...dealt].sort(), [...prompts].sort(), `${label} deals every prompt in its bank`);
-  }
-  const bank = new Set(categories.flatMap((entry) => entry.prompts));
-  for (let draw = 0; draw < 3; draw++) {
-    const previousPrompt = await page.inputValue('#prompt-input');
-    await page.click('#shuffle-btn');
-    const surprise = await page.inputValue('#prompt-input');
-    assert.notEqual(surprise, previousPrompt, 'Surprise never repeats the prompt already shown');
-    assert.ok(bank.has(surprise), 'Surprise draws from the category banks');
+    assert.deepEqual([...dealt].sort(), [...prompts].sort(), 'Every alternative appears before reshuffling');
   }
   await page.fill('#prompt-input', 'Keyboard');
   await page.locator('#prompt-input').press('Shift+Enter');
@@ -352,9 +350,6 @@ export async function checkDemoControls(page) {
   assert.equal(await page.locator('#precision-replay-panel').isVisible(), false);
 
   await page.locator('#settings-toggle').click();
-  if (!await page.locator('#model-select').isVisible()) {
-    await page.locator('#model-picker > summary').click();
-  }
   await page.locator('#model-browser > summary').click();
   await page.locator('[data-model-id="second-model"]').click();
   assert.equal(await page.inputValue('#model-select'), 'second-model');
@@ -364,7 +359,7 @@ export async function checkDemoControls(page) {
   await page.waitForFunction(() => document.querySelector('#status-text').textContent.startsWith('Load failed:'));
   assert.equal(await page.locator('#model-select-action').isEnabled(), true);
   await page.locator('#settings-toggle').click();
-  assert.equal(await page.locator('#status').isVisible(), false);
+  assert.equal(await page.locator('#status').isVisible(), true);
   assert.equal(await page.locator('#output-phase').isVisible(), true);
   assert.equal(await page.locator('#output-phase').textContent(), 'Load failed: Contract load failure', 'Load failures remain visible when setup is collapsed');
   await page.locator('#settings-toggle').click();

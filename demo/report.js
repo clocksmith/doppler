@@ -1,4 +1,5 @@
 import { state } from './ui/state.js';
+import { getActivationRecording, importActivationRecording } from './ui/activation-grid/index.js';
 import { restoreConversationHistory } from './input.js';
 import { updateXrayPanels } from './ui/xray/index.js';
 import {
@@ -20,6 +21,8 @@ export function buildReport() {
     modelId: state.lastInspection?.fingerprint?.identity?.artifact?.modelId
       ?? (run.mode === 'sample-inspection' ? null : state.modelId),
     inspection: state.lastInspection ?? null,
+    activationRecording: state.lastInspection?.activationTrace === getActivationRecording()?.trace
+      ? getActivationRecording() : null,
     settings: { ...(run.config ?? state.settings) },
     preset: state.preset,
     generationMode: run.wordQuality?.enabled ? 'guided_quality' : 'plain',
@@ -82,6 +85,7 @@ export function validateImportedReport(value) {
 
 export function importReportData(value) {
   const report = validateImportedReport(value);
+  if (report.activationRecording) importActivationRecording(report.activationRecording);
   const output = getReportOutput(report);
   state.lastImportedReport = report;
   state.lastInspection = report.inspection && typeof report.inspection === 'object'

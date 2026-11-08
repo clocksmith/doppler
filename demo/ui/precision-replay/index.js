@@ -312,24 +312,15 @@ async function renderSelectedPrompt() {
   }
 }
 
-function setPanelOpen(open) {
-  const panel = $('precision-replay-panel');
-  const toggle = $('precision-replay-toggle');
-  if (panel) {
-    panel.hidden = !open;
-  }
-  if (toggle) toggle.setAttribute('aria-expanded', String(open));
-}
-
 export async function initPrecisionReplay() {
-  const toggleEl = $('precision-replay-toggle');
+  const toggleEl = $('precision-replay');
   const selectEl = $('precision-replay-prompt-select');
   const usePromptBtn = $('precision-replay-use-prompt');
   if (!toggleEl || !selectEl || !usePromptBtn) {
     return;
   }
 
-  setPanelOpen(false);
+  $('precision-replay-panel').hidden = false;
 
   let loading = null;
   const ensureLoaded = async () => {
@@ -363,10 +354,8 @@ export async function initPrecisionReplay() {
   };
 
   renderStatus('');
-  toggleEl.addEventListener('click', async () => {
-    const open = toggleEl.getAttribute('aria-expanded') !== 'true';
-    setPanelOpen(open);
-    if (open) {
+  toggleEl.addEventListener('toggle', async () => {
+    if (toggleEl.open) {
       await ensureLoaded().catch(() => {});
     }
   });

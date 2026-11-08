@@ -314,8 +314,11 @@ export async function* _generateTokensInternal(prompt, options = {}, mode = 'tex
         totalMs: this._state.stats.totalTimeMs,
       });
     } finally {
-      this._closeFinitenessFallbackWindow(opts);
-      finishGenerationRuntime(this, options, startTime, generatedIds, promptTokenCount);
+      try { await opts.__activationTrace?.drain(); }
+      finally {
+        try { this._closeFinitenessFallbackWindow(opts); }
+        finally { finishGenerationRuntime(this, options, startTime, generatedIds, promptTokenCount); }
+      }
     }
   }
 
@@ -382,8 +385,11 @@ export async function generateTokenIds(prompt, options = {}) {
         stats: this._state.stats,
       };
     } finally {
-      this._closeFinitenessFallbackWindow(opts);
-      finishGenerationRuntime(this, options, startTime, generatedIds, promptTokenCount);
+      try { await opts.__activationTrace?.drain(); }
+      finally {
+        try { this._closeFinitenessFallbackWindow(opts); }
+        finally { finishGenerationRuntime(this, options, startTime, generatedIds, promptTokenCount); }
+      }
     }
   }
 

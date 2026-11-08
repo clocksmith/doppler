@@ -208,6 +208,8 @@ export async function runDecodeLayers(state, tokenId, opts, helpers) {
         context.perLayerInputBuffer = perLayerInputs?.[l] ?? null;
         const prevStates = hiddenStates;
         hiddenStates = (await processLayer(l, hiddenStates, 1, false, context));
+        opts.__activationTrace?.capture(hiddenStates, { layer: l, phase: 'decode', tokenStart: state.currentSeqLen,
+          tokenIds: [tokenId], dtype: activationDtype, ...representation });
         state.decodeBuffers.swapPingPong();
         releasePerLayerInputBuffer(context.perLayerInputBuffer, null, context.decodeBuffers, state.pleCache ?? null);
         if (perLayerInputs) {
@@ -424,6 +426,8 @@ async function decodeStepBody(state, currentIds, opts, helpers, makeRecorder, dr
         const prevStates = hiddenStates;
         hiddenStates = (await processLayer(l, hiddenStates, numTokens, false, context));
         ownHidden(hiddenStates);
+        opts.__activationTrace?.capture(hiddenStates, { layer: l, phase: 'decode', tokenStart: state.currentSeqLen,
+          tokenIds: [lastToken], dtype: activationDtype, recorder, ...representation });
 
         state.decodeBuffers.swapPingPong();
         releasePerLayerInputBuffer(

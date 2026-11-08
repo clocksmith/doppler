@@ -2,8 +2,8 @@
 // a module. An older registration must be able to update without booting the app.
 // BEGIN GENERATED DEMO SHELL
 const SHELL_MANIFEST_SCHEMA = 'doppler.demo-shell-manifest/v1';
-const SHELL_MANIFEST_DIGEST = 'sha256:d9353c641e365bfd5c49cd256ce2c93b480f9ce174770a1813016a5a94c1a8aa';
-const CACHE_NAME = 'doppler-demo-shell-d9353c641e365bfd';
+const SHELL_MANIFEST_DIGEST = 'sha256:ac077c382c7d79e00b4f7829536775edb91d90fd321175108bf2ef747e9189c8';
+const CACHE_NAME = 'doppler-demo-shell-ac077c382c7d79e0';
 const APP_SHELL = Object.freeze([
   "/demo/assets/pwa/icon-192.png",
   "/demo/assets/pwa/icon-512.png",
@@ -33,9 +33,14 @@ const APP_SHELL = Object.freeze([
   "/demo/styles/rd-tokens.css",
   "/demo/styles/rd.css",
   "/demo/sw.js",
+  "/demo/ui/activation-grid/config.json",
+  "/demo/ui/activation-grid/data.js",
+  "/demo/ui/activation-grid/index.js",
+  "/demo/ui/activation-grid/styles.css",
   "/demo/ui/chat-markdown.js",
   "/demo/ui/dom.js",
   "/demo/ui/precision-replay/index.js",
+  "/demo/ui/precision-replay/live.js",
   "/demo/ui/state.js",
   "/demo/ui/styles/app.css",
   "/demo/ui/styles/demo-components.css",
@@ -144,6 +149,7 @@ const APP_SHELL = Object.freeze([
   "/src/config/runtime-merge.js",
   "/src/config/runtime.js",
   "/src/config/runtime/profiles/default.json",
+  "/src/config/runtime/profiles/demo-f16-comparison.json",
   "/src/config/runtime/profiles/low-memory.json",
   "/src/config/runtime/profiles/production.json",
   "/src/config/runtime/profiles/throughput.json",
@@ -213,6 +219,7 @@ const APP_SHELL = Object.freeze([
   "/src/converter/execution-graph/kv-storage.js",
   "/src/converter/execution-graph/validation.js",
   "/src/converter/quantizer.js",
+  "/src/debug/activation-trace.js",
   "/src/debug/capture-policy.js",
   "/src/debug/config.js",
   "/src/debug/history.js",

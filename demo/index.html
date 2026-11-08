@@ -153,6 +153,7 @@
   <link rel="stylesheet" href="/demo/ui/styles/app.css">
   <link rel="stylesheet" href="/demo/ui/word-quality/styles.css">
   <link rel="stylesheet" href="/demo/ui/xray/styles.css">
+  <link rel="stylesheet" href="/demo/ui/activation-grid/styles.css">
   <link rel="stylesheet" href="/demo/ui/token-inspector/styles.css">
   <link rel="stylesheet" href="/demo/ui/styles/demo-components.css">
   <script type="importmap">
@@ -259,37 +260,11 @@
         </div>
         <div class="try-pane">
       <!-- Chat composer -->
-      <p id="first-run-download" class="inspection-note" hidden></p>
-      <section id="input-area" class="input-area">
-        <div class="input-row">
-          <textarea id="prompt-input" aria-label="Message Doppler" placeholder="Message Doppler…" rows="3"></textarea>
-        </div>
-        <div id="prompt-suggestions" class="prompt-suggestions" aria-label="Suggested prompts">
-          <button id="shuffle-btn" class="btn btn-ghost btn-small" type="button" title="Try another prompt idea">Surprise</button>
-        </div>
-        <div class="input-actions">
-          <button id="run-btn" class="btn btn-primary run-btn" type="button" disabled title="Send a prompt locally">Send</button>
-          <button id="stop-btn" class="btn" type="button" hidden>Stop</button>
-        </div>
-      </section>    <!-- Model picker -->
-
-
-
-        </div>
-      </div>
-
-    </section>
-    </main>
-
-    <details id="advanced-settings" class="advanced-settings">
-      <summary id="settings-toggle">Settings</summary>
-<div id="settings-panel" class="settings-panel demo-panel demo-panel--inset demo-stack">
-<details id="model-picker" class="model-picker flow-card demo-panel demo-stack" >
-<summary>Models</summary>
+<section id="model-picker" class="model-picker flow-card demo-panel demo-stack" >
 <div class="demo-stack">
 <div class="model-picker-heading demo-row">
         <div>
-          <label id="model-picker-label" class="sr-only" for="model-select">Model</label>
+          <label id="model-picker-label" for="model-select">Model</label>
         </div>
         <div id="status" class="status-chip">
           <span id="status-dot" class="status-dot"></span>
@@ -315,7 +290,32 @@
         <div id="model-cards" class="model-cards"></div>
       </details>
 </div>
-    </details>
+</section>
+      <p id="first-run-download" class="inspection-note" hidden></p>
+      <section id="input-area" class="input-area">
+        <div class="input-row">
+          <textarea id="prompt-input" aria-label="Message Doppler" placeholder="Message Doppler…" rows="3"></textarea>
+        </div>
+        <div id="prompt-suggestions" class="prompt-suggestions" aria-label="Suggested prompts">
+          <button id="shuffle-btn" class="btn btn-ghost btn-small" type="button">Try another example</button>
+        </div>
+        <div class="input-actions">
+          <button id="run-btn" class="btn btn-primary run-btn" type="button" disabled title="Send a prompt locally">Send</button>
+          <button id="stop-btn" class="btn" type="button" hidden>Stop</button>
+        </div>
+      </section>    <!-- Model picker -->
+
+
+
+        </div>
+      </div>
+
+    </section>
+    </main>
+
+    <details id="advanced-settings" class="advanced-settings">
+      <summary id="settings-toggle">Settings</summary>
+<div id="settings-panel" class="settings-panel demo-panel demo-panel--inset demo-stack">
         <fieldset class="settings-group">
           <legend>Response</legend>
           <div id="runtime-notice" class="runtime-notice" role="status" hidden></div>
@@ -426,6 +426,30 @@
       </section>
 
     <!-- Report -->
+<details id="activation-view" class="demo-panel">
+  <summary>Activation grid · record and replay</summary>
+  <p class="activation-grid-copy">Measured layer outputs, arranged by layer and dimension. Weights stay fixed. Layer tiles form a composite of separate captures in execution order—not a simultaneous model snapshot. KV and recurrent buffers are not captured.</p>
+  <div class="activation-grid-controls">
+    <label><input id="activation-record" type="checkbox">Record next run</label>
+    <button id="activation-play" class="btn" type="button" disabled>Play</button>
+    <button id="activation-live" class="btn" type="button">Follow live</button>
+    <label>Speed <select id="activation-speed"><option value="0.25">¼×</option><option value="1" selected>1×</option><option value="4">4×</option></select></label>
+    <button id="activation-export" class="btn" type="button" disabled>Save recording</button>
+    <label>Open recording <input id="activation-import" type="file" accept="application/json,.json"></label>
+  </div>
+  <p id="activation-notice" class="activation-grid-copy">Recording is off. Playback of captured data needs no loaded model.</p>
+  <p id="activation-caption" class="activation-grid-copy" aria-live="polite">Record a run or import a recording.</p>
+  <canvas id="activation-canvas" width="1" height="1" aria-label="RGB activation grid"></canvas>
+  <label for="activation-scrub">Capture order</label>
+  <input id="activation-scrub" type="range" min="0" max="0" value="0" disabled>
+  <div class="activation-grid-controls">
+    <label for="activation-position">Prompt / decode input position</label><input id="activation-position" type="range" min="0" max="0" value="0">
+    <label>Fixed scale <input id="activation-scale" type="number" min="0.000001" step="any" value="1"></label>
+  </div>
+  <p id="activation-layout" class="activation-grid-copy"></p>
+  <p id="activation-cell" class="activation-grid-copy">Hover a cell for its values and source capture.</p>
+  <p id="activation-status" class="activation-grid-copy" role="status"></p>
+</details>
 <details id="run-details" class="demo-panel">
 <summary>Run details</summary>
 <p class="run-measurements"><span id="output-toks" class="output-toks"></span></p>
@@ -440,20 +464,27 @@
 
 </details>
 
-    <section class="precision-replay-area demo-panel demo-stack" aria-label="Stored precision comparison">
-      <div class="precision-replay-heading demo-row">
-        <button id="precision-replay-toggle" class="btn btn-ghost precision-replay-toggle" type="button" aria-expanded="false" aria-controls="precision-replay-panel" title="Compare recorded results">Compare precision</button>
-      </div>
+    <details id="live-precision" class="demo-panel demo-stack">
+      <summary>Live precision comparison · current prompt</summary>
+      <p>Run the composer’s prompt on the default path and a declared F16-requested path, using the same weights, exact prompt tokens and greedy sampling. Supported operations may remain F32; each result reports its resolved precision. This opens a second model and uses additional memory.</p>
+      <p>Up to 16 output tokens per path. These observed runs are diagnostics, not throughput or quality benchmarks. After the first different token, later output also reflects different context.</p>
+      <button id="live-precision-run" class="btn" type="button">Compare current prompt</button>
+      <button id="live-precision-export" class="btn btn-ghost" type="button" disabled>Save comparison</button>
+      <p id="live-precision-status" role="status">Load a model, enter any prompt above, then compare.</p>
+      <div id="live-precision-results" class="demo-stack"></div>
+    </details>
+    <details id="precision-replay" class="precision-replay-area demo-panel demo-stack">
+      <summary id="precision-replay-toggle" aria-controls="precision-replay-panel">Recorded precision examples · Gemma 270M</summary>
       <div id="precision-replay-panel" class="precision-replay-panel" hidden>
         <p id="precision-replay-status" class="precision-replay-status" role="status"></p>
-<p class="precision-replay-note">Recorded 32-bit and 16-bit results for one model.</p>
+<p class="precision-replay-note">Saved Gemma 3 270M next-token calculations from April 9, 2026. These replay final LM-head arithmetic on stored hidden values and weights; they are not two full-model precision runs or measurements of your current conversation.</p>
 
         <div class="precision-replay-controls">
           <div class="setting-field">
             <label for="precision-replay-prompt-select">Example</label>
             <select id="precision-replay-prompt-select"></select>
           </div>
-          <button id="precision-replay-use-prompt" class="btn btn-ghost" type="button">Try this prompt</button>
+          <button id="precision-replay-use-prompt" class="btn btn-ghost" type="button">Copy prompt to composer</button>
         </div>
         <div class="precision-replay-layout">
           <article class="precision-replay-card">
@@ -496,7 +527,7 @@
         </div>
         </details>
       </div>
-    </section>
+    </details>
       </div>
     </section>
 

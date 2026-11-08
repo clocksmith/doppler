@@ -43,3 +43,6 @@ export {
   buildModeScoreMaps,
   sortTokenIdsByScore,
 } from '../tooling/precision-replay-math.js';
+export type { ActivationFrame, ActivationTraceReceipt, ActivationGeometry, ActivationTraceLimits } from '../debug/activation-trace.js';
+
+export type { DopplerModelHandle } from '../client/model-host/model-session.js';

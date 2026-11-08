@@ -8,9 +8,8 @@ import { clearOutput, renderChatMessages, setPhase } from './output.js';
 import { ensurePromptModel, syncModelControls } from './models.js';
 
 let examples = null;
-// Shuffled decks of prompts, one per category plus 'all' for Surprise. A deck
-// deals every prompt once before it is reshuffled.
-const promptDecks = new Map();
+// One deck deals every alternative once before it is reshuffled.
+let promptDeck = [];
 let onRun = null;
 
 function $(id) { return document.getElementById(id); }
@@ -33,14 +32,13 @@ function isPromptList(value) {
 }
 
 function validateExamples(value) {
-  const { illustrative, categories } = value ?? {};
+  const { illustrative, prompts } = value ?? {};
   if (typeof illustrative?.prompt !== 'string' || !illustrative.prompt.trim()
     || typeof illustrative.answer !== 'string' || !illustrative.answer.trim()) {
     throw new Error('demo/examples.json needs an illustrative prompt and answer.');
   }
-  if (!Array.isArray(categories) || categories.length === 0
-    || categories.some((entry) => typeof entry?.label !== 'string' || !entry.label.trim() || !isPromptList(entry.prompts))) {
-    throw new Error('demo/examples.json needs categories, each with a label and a non-empty prompt bank.');
+  if (!isPromptList(prompts)) {
+    throw new Error('demo/examples.json needs a non-empty example prompt bank.');
   }
   return value;
 }
@@ -70,12 +68,9 @@ function shuffled(prompts) {
 
 // Deals the next prompt from a deck, never the one already in the composer
 // while another remains.
-function dealPrompt(key, prompts) {
-  let deck = promptDecks.get(key);
-  if (!deck?.length) {
-    deck = shuffled(prompts);
-    promptDecks.set(key, deck);
-  }
+function dealPrompt(prompts) {
+  if (!promptDeck.length) promptDeck = shuffled(prompts);
+  const deck = promptDeck;
   let prompt = deck.pop();
   if (prompt === getPrompt() && deck.length) {
     const next = deck.pop();
@@ -86,7 +81,7 @@ function dealPrompt(key, prompts) {
 }
 
 function allPrompts() {
-  return [...new Set(examples.categories.flatMap((entry) => entry.prompts))];
+  return [...new Set(examples.prompts)];
 }
 
 // The first-visit example answer and its prompt, or null without a valid bank.
@@ -265,18 +260,9 @@ export async function initInput() {
   await loadExamples();
   const suggestions = $('prompt-suggestions');
   if (suggestions) suggestions.hidden = !examples;
-  for (const entry of examples?.categories ?? []) {
-    const button = document.createElement('button');
-    button.type = 'button';
-    button.className = 'btn btn-ghost btn-small';
-    button.textContent = entry.label;
-    button.title = `Try another ${entry.label.toLowerCase()} prompt`;
-    button.addEventListener('click', () => setPromptValue(dealPrompt(entry.label, entry.prompts)));
-    suggestions?.insertBefore(button, $('shuffle-btn'));
-  }
 
   $('shuffle-btn')?.addEventListener('click', () => {
-    if (examples) setPromptValue(dealPrompt('all', allPrompts()));
+    if (examples) setPromptValue(dealPrompt(allPrompts()));
   });
 
   $('run-btn')?.addEventListener('click', submitIfReady);

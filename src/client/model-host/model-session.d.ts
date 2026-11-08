@@ -244,6 +244,10 @@ export interface DopplerModelHandle {
           /** Present when the selected observation policy captures token probabilities. */
           token?: DopplerInspectionTokenRecord;
         } | {
+          type: 'activation-frame';
+          frame: import('../../debug/activation-trace.js').ActivationFrame;
+          trace: import('../../debug/activation-trace.js').ActivationTraceReceipt;
+        } | {
           type: 'inspection-complete';
           receipt: DopplerModelInspectionReceipt;
         }) => void;
@@ -307,6 +311,7 @@ export interface DopplerModelHandle {
 }
 
 export interface DopplerModelInspectionReceipt {
+  activationTrace?: import('../../debug/activation-trace.js').ActivationTraceReceipt;
   schema: 'doppler.model-inspection-receipt/v1';
   policy: DopplerObservationPolicy;
   fingerprint: DopplerComparisonFingerprint;

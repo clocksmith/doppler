@@ -1,0 +1,7 @@
+.activation-grid-controls { display: flex; flex-wrap: wrap; gap: var(--space-sm, 8px); align-items: center; }
+.activation-grid-controls label { display: inline-flex; gap: 6px; align-items: center; }
+#activation-canvas { width: min(100%, 640px); aspect-ratio: 1; height: auto; image-rendering: pixelated; background: #303030; display: block; margin: 12px auto; }
+#activation-scrub { width: 100%; }
+#activation-scale { width: 6em; }
+#activation-position { width: min(50%, 240px); }
+.activation-grid-copy { font-size: 12px; line-height: 1.5; overflow-wrap: anywhere; }

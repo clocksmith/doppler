@@ -1,0 +1,11 @@
+{
+  "schema": "doppler.activation-grid-display/v1",
+  "layout": "layer-major-rgb/v1",
+  "palette": "signed-tanh-rgb/v1",
+  "scale": 1,
+  "playbackFps": 12,
+  "maxImportBytes": 134217728,
+  "maxFrames": 8192,
+  "maxValues": 4194304,
+  "maxGridValues": 4194304
+}

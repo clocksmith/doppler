@@ -7,6 +7,10 @@
   },
   "include": [],
   "files": [
+    "demo/ui/precision-replay/live.js",
+    "demo/ui/activation-grid/data.js",
+    "demo/ui/activation-grid/index.js",
+    "src/debug/activation-trace.js",
     "src/storage/node-file-access.js",
     "src/inference/pipelines/video/feature-concat.js",
     "src/inference/pipelines/vision/support.js",

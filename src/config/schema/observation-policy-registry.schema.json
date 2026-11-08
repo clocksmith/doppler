@@ -93,6 +93,39 @@
               "$ref": "#/$defs/perplexity"
             }
           ]
+        },
+        "activationTrace": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "maxBytes",
+            "maxFrameBytes",
+            "maxFrames",
+            "maxGridValues",
+            "maxInFlight"
+          ],
+          "properties": {
+            "maxBytes": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "maxFrameBytes": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "maxFrames": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "maxGridValues": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "maxInFlight": {
+              "type": "integer",
+              "minimum": 1
+            }
+          }
         }
       }
     },

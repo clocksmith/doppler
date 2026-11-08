@@ -6,6 +6,7 @@ import fs from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { chromium } from 'playwright';
+import { checkActivationPlayback, checkTokenGeometry } from '../tests/demo/browser-activation.js';
 import { checkDemoControls } from '../tests/demo/browser-controls.js';
 import {
   SHELL_MANIFEST_DIGEST,
@@ -193,7 +194,7 @@ async function main() {
     journey.catalogRendered = true;
     await page.waitForFunction(() => document.querySelector('#output-phase').textContent === 'Illustrative example');
     assert.deepEqual(await page.evaluate(() => [__demoContract.loads.length, __demoContract.calls.length]), [0, 0], 'Opening the example does not download or execute a model');
-    assert.equal(await page.locator('#model-select').isVisible(), false);
+    assert.equal(await page.locator('#model-select').isVisible(), true, 'Model selection is visible by the composer');
     assert.equal(await page.locator('#xray-shell').isVisible(), false);
     assert.match(await page.locator('#recorded-run-note').textContent(), /Illustrative answer/);
     assert.equal(await page.inputValue('#prompt-input'), await page.locator('#chat-thread .chat-message-text').first().textContent(),
@@ -209,13 +210,13 @@ async function main() {
     await page.locator('.token-chip').nth(3).click();
     assert.equal(await page.locator('.token-inspector-badge').textContent(), '" blue"');
     assert.equal(await page.locator('.token-candidates-list').isVisible(), true);
+    await checkTokenGeometry(page);
     await page.locator('.token-chip').nth(3).press('ArrowRight');
     assert.equal(await page.locator('.token-inspector-badge').textContent(), '" because"');
     assert.match(await page.locator('.token-inspector-note').textContent(), /Only a live answer can branch/);
     assert.equal(await page.locator('.token-candidate-branch').first().isDisabled(), true, 'A recorded sample cannot branch');
     if (!await page.locator('#model-select').isVisible()) {
       await page.locator('#settings-toggle').click();
-      await page.locator('#model-picker > summary').click();
     }
     await page.selectOption('#model-select', 'contract-model');
     assert.match(await page.locator('#first-run-download').textContent(), /419 MB; cached in this browser when available/);
@@ -230,7 +231,7 @@ async function main() {
       '#model-select-action',
       (element) => element.textContent === 'Loaded'
     );
-    await page.locator('#settings-toggle').click();
+    if (await page.locator('#settings-panel').isVisible()) await page.locator('#settings-toggle').click();
     await page.fill('#prompt-input', 'Run the demo contract.');
     await page.click('#run-btn');
     await page.waitForFunction(
@@ -239,6 +240,7 @@ async function main() {
     );
     journey.generationCompleted = true;
     await checkDemoControls(page);
+    await checkActivationPlayback(page);
     testedShellDigest = await page.evaluate(async (url) => (await import(url)).SHELL_MANIFEST_DIGEST,
       `${origin}${modulePath.replace('/src/index-browser.js', '/demo/generated-shell-manifest.js')}`);
     await page.waitForFunction(async () => Boolean((await navigator.serviceWorker.getRegistration())?.active), null, { timeout: 60000 });

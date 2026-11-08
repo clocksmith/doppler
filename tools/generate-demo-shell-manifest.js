@@ -47,8 +47,10 @@ const WORKER_SHELL_END = '// END GENERATED DEMO SHELL';
 // hyper-connections, QSA/PLE and expert paging; shard-load policy, video feature
 // concatenation and vision admission. A clean committed-source audit adds
 // 259,273 shell bytes (9,419,783 total). Keep the byte limit unchanged and match
-// the 824-module closure exactly; removing dependencies must lower this ceiling.
-const MAX_MODULES = 824;
+// the audited runtime closure. Activation capture adds three modules and live
+// precision comparison adds one, for 828 total. Removing dependencies must
+// lower this ceiling; the ten-megabyte byte limit remains unchanged.
+const MAX_MODULES = 828;
 const MAX_TOTAL_BYTES = 10_000_000;
 const MODULE_ROOTS = [
   'demo/demo.js',
@@ -69,6 +71,7 @@ const DECLARED_ASSETS = [
   'demo/ui/word-quality/styles.css',
   'demo/ui/xray/styles.css',
   'demo/ui/token-inspector/styles.css',
+  'demo/ui/activation-grid/styles.css',
   'demo/assets/pwa/icon-192.png',
   'demo/assets/pwa/icon-512.png',
   'demo/assets/pwa/icon-maskable-512.png',
@@ -76,6 +79,7 @@ const DECLARED_ASSETS = [
   'demo/assets/pwa/shortcut-xray-96.png',
   'demo/assets/pwa/screenshot-desktop.png',
   'src/config/runtime/profiles/default.json',
+  'src/config/runtime/profiles/demo-f16-comparison.json',
   'src/config/runtime/profiles/throughput.json',
   'src/config/runtime/profiles/verbose-trace.json',
   'src/config/runtime/profiles/production.json',

@@ -11,10 +11,9 @@ Word choices, local writing, and recorded precision comparison are direct action
 Model setup opens on demand; sampling, run receipts, and precision score tables
 remain available under their respective details. The example does not become
 conversation history or replace a returning conversation. The composer opens with
-the example's prompt, without taking focus, so Send runs it live. Each suggestion
-category (Explain, Rewrite, Imagine) deals prompts from its own bank in
-`examples.json`, shuffled and without repeats until the bank is used up; Surprise
-deals from all of them. Live generation and
+the example's prompt, without taking focus, so Send runs it live. A single “Try another example” button deals the other prompts from
+`examples.json` in shuffled order, without repeats until the bank is used up.
+There are no category buttons. Live generation and
 recorded examples share the existing inspection view and execution owners.
 
 The composer streams text through inspection token events. Incoming IDs are
@@ -146,3 +145,25 @@ caches without deleting model bytes or other user storage. Local storage and
 model caches remain on their original origin.
 
 The separately inspectable precomputed run was captured with `model.inspect.generate` in Chrome WebGPU. `data/sample-inspection.js` retains the real token probabilities, artifact fingerprint, timing, capture date, and raw receipt digest. The illustrative opening performs no inference or downloads and carries no measurements from the recorded run. Prompt suggestions are editable; choosing a model is explicit before a new visitor runs their own prompt.
+
+## Activation recording and precision views
+
+The visible model selector sits beside the composer. **Activation grid** records
+bounded asynchronous snapshots of real layer outputs during prefill and decode.
+Positions stay stable across tokens, with a fixed scale and three values per RGB
+pixel. Missing captures are marked, never filled with zeros. Scrub or play the
+execution order; prompt-position controls select within a prefill capture. The
+composite combines sequential layer captures and does not imply simultaneous
+state. Recording limits stop observation without stopping generation. Exported
+recordings contain numerical samples, layout/scale, policy and model/build
+identity; imported playback needs no model. KV and recurrent state are not captured.
+
+**Live precision comparison** runs any composer prompt against the default and
+declared F16-requested paths, with identical weights, exact prompt tokens and
+greedy settings. Actual resolved precision and execution identities are retained;
+selective F16 paths may keep F32 residual activations. Unsupported candidates fail
+visibly. The temporary second model needs additional memory and is always unloaded.
+
+**Recorded precision examples** are separate, saved Gemma 270M final LM-head
+arithmetic replays. They are not current-conversation measurements or complete
+F32-versus-F16 model runs. Neither comparison is a throughput or quality benchmark.

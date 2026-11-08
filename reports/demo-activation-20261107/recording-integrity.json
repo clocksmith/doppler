@@ -1,0 +1,6 @@
+{
+  "format": "gzip-compressed standalone doppler.activation-recording/v1 JSON",
+  "jsonSha256": "108dc3d2a8cb1d19288b5360f3a4e88c42e706bd02237fc65de1a9c37c79bae6",
+  "jsonBytes": 10238591,
+  "gzipSha256": "3ffc0d1c632f8037709f5b74f89c8ef71215540eee25835842d61319c1528f68"
+}

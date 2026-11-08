@@ -474,6 +474,8 @@ export async function _prefill(inputIds, opts) {
           prefillRecordMs += performance.now() - layerRecordStart;
           if (!isGpuBufferInstance(layerOutput)) throw new Error('Expected GPUBuffer from processLayer');
           currentHiddenBuffer = layerOutput;
+          opts.__activationTrace?.capture(layerOutput, { layer: l, phase: 'prefill', tokenStart: startPos,
+            tokenIds: inputIds, dtype: activationDtype, recorder: currentRecorder, ...representation });
           releasePerLayerInputBuffer(
             context.perLayerInputBuffer,
             currentRecorder,

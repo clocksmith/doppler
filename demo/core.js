@@ -1,4 +1,6 @@
 import { state } from './ui/state.js';
+import { isActivationRecordingEnabled, beginActivationRecording, acceptActivationFrame,
+  finishActivationRecording } from './ui/activation-grid/index.js';
 import { syncModelControls } from './models.js';
 import { getSettings } from './settings.js';
 import {
@@ -92,6 +94,7 @@ function recordInspectionRun(receipt, { prompt, promptInput, config, qualityEnab
 
 // Every live answer records probabilities and alternatives for branching.
 function resolvePolicyId() {
+  if (isActivationRecordingEnabled()) return 'demo/activation-grid';
   return isXrayEnabled() ? 'demo/deep-xray' : 'demo/guided-quality';
 }
 
@@ -136,12 +139,14 @@ export async function runGeneration() {
   const stream = createOutputStream((ids) => model.advanced.decodeTokenIds(ids), signal);
   let receiving = true;
   resetXray();
+  beginActivationRecording();
 
   try {
     const receipt = await model.inspect.generate(conversationRequest.promptInput, {
       policyId,
       topKSize: 8,
       onEvent(event) {
+        if (receiving && event.type === 'activation-frame') { acceptActivationFrame(event); return; }
         if (!receiving || event.type !== 'token' || signal.aborted) return;
         if (state.prefilling) {
           state.prefilling = false;
@@ -162,6 +167,7 @@ export async function runGeneration() {
     receiving = false;
     signal.throwIfAborted();
     stream.finish(receipt.outputText);
+    finishActivationRecording('complete', receipt);
     const qualityEnabled = state.wordQualityEnabled && receipt.quality != null;
     showWordQuality(qualityEnabled);
     if (qualityEnabled) {
@@ -183,6 +189,7 @@ export async function runGeneration() {
     startBranchTree(run);
     setPhase('Complete');
   } catch (error) {
+    finishActivationRecording(signal.aborted ? 'stopped' : 'error');
     receiving = false;
     const partialOutput = stream.finish();
     if (partialOutput) recordConversationTurn(conversationRequest, partialOutput, { render: false });
@@ -337,6 +344,7 @@ export async function runBranch(forkIndex, tokenId) {
   setExportEnabled(false);
   resetXray();
   setPhase('Branching');
+  beginActivationRecording();
   setStatus('Running…', true);
   renderActiveBranch({ updateText: false });
   try {
@@ -345,6 +353,7 @@ export async function runBranch(forkIndex, tokenId) {
       topKSize: 8,
       inputTokenIds,
       onEvent(event) {
+        if (event.type === 'activation-frame' && tree === state.branchTree) { acceptActivationFrame(event); return; }
         if (event.type !== 'token' || signal.aborted || tree !== state.branchTree) return;
         if (state.prefilling) {
           state.prefilling = false;
@@ -364,14 +373,17 @@ export async function runBranch(forkIndex, tokenId) {
     });
     signal.throwIfAborted();
     const records = receipt.tokens.length === receipt.generatedTokenIds.length ? receipt.tokens : null;
+    finishActivationRecording('complete', receipt);
     settleBranch(node, 'complete', records ? receipt.generatedTokenIds : null, records);
     node.run = { receipt, prompt: state.branchPrompt, promptInput: null, config: { ...settings } };
     setPhase('Branch complete');
   } catch (error) {
     if (signal.aborted || error?.name === 'AbortError') {
+      finishActivationRecording('stopped');
       settleBranch(node, 'stopped');
       setPhase('Branch stopped');
     } else if (tree.nodes.has(node.id)) {
+      finishActivationRecording('error');
       removeBranch(tree, node);
       setPhase(`Branch failed: ${error?.message ?? error}`);
     }

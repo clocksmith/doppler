@@ -59,6 +59,7 @@ export type DopplerModelSource =
   };
 
 export interface DopplerLoadOptions {
+  signal?: AbortSignal;
   onProgress?: (event: DopplerLoadProgress) => void;
   runtimeConfig?: Record<string, unknown>;
   isolatedLoader?: boolean;

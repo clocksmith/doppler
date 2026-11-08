@@ -1,0 +1,126 @@
+TAP version 13
+# inspection-contract.test: ok
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 0.459542
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 45.851375
+[node-tests] ok: tests/client/inspection-contract.test.js
+TAP version 13
+# Activation grid: owned samples, bounded async queue, explicit gaps, cap, fixed scale, provenance and offline round trip passed.
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 0.379834
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 37.881417
+[node-tests] ok: tests/demo/activation-grid.test.js
+TAP version 13
+# report.test: ok
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 0.487792
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 253.627583
+[node-tests] ok: tests/demo/report.test.js
+TAP version 13
+# [194.1ms][Pipeline] KernelPath: inline-f32 (1 decode steps, 1 kernels, source=model)
+# [194.9ms][Pipeline] KernelPath: inline-f32 (1 decode steps, 1 kernels, source=model)
+# [195.1ms][Pipeline] KernelPath: inline-f16 (1 decode steps, 1 kernels, source=config)
+# [195.6ms][Pipeline] KernelPath: inline-f16 (1 decode steps, 1 kernels, source=config)
+# [195.6ms][Pipeline] KernelPath: inline-f16 (1 decode steps, 1 kernels, source=config)
+# [195.6ms][Pipeline] KernelPath: inline-f16 (1 decode steps, 1 kernels, source=config)
+# [195.8ms][Pipeline] KernelPath: inline-f16 (1 decode steps, 1 kernels, source=config)
+# [195.8ms][Pipeline] KernelPath: inline-f16 (1 decode steps, 1 kernels, source=config)
+# [195.9ms][Pipeline] KernelPath: inline-f16 (1 decode steps, 1 kernels, source=config)
+# [196.2ms][Pipeline] KernelPath: inline-f16 (1 decode steps, 1 kernels, source=config)
+# [196.2ms][Pipeline] KernelPath: inline-f16 (1 decode steps, 1 kernels, source=config)
+# [196.3ms][Pipeline] KernelPath: inline-f16 (1 decode steps, 1 kernels, source=config)
+# [196.3ms][Pipeline] KernelPath: inline-f16 (1 decode steps, 1 kernels, source=config)
+# [196.4ms][Pipeline] KernelPath: inline-f32 (1 decode steps, 1 kernels, source=config)
+# [196.5ms][Pipeline] KernelPath: inline-f32 (1 decode steps, 1 kernels, source=config)
+# [196.5ms][Pipeline] KernelPath: inline-f32 (1 decode steps, 1 kernels, source=config)
+# [196.5ms][Pipeline] KernelPath: inline-f32 (1 decode steps, 1 kernels, source=config)
+# [196.6ms][Pipeline] KernelPath: inline-f32 (1 decode steps, 1 kernels, source=config)
+# [196.6ms][Pipeline] KernelPath: inline-f32 (1 decode steps, 1 kernels, source=config)
+# [196.6ms][Pipeline] KernelPath: inline-f32 (1 decode steps, 1 kernels, source=config)
+# [196.7ms][Pipeline] KernelPath: inline-f32 (1 decode steps, 1 kernels, source=config)
+# [196.7ms][Pipeline] KernelPath: inline-f32 (1 decode steps, 1 kernels, source=config)
+# [196.7ms][Pipeline] KernelPath: inline-f32 (1 decode steps, 1 kernels, source=config)
+# [196.7ms][Pipeline] KernelPath: inline-f32 (1 decode steps, 1 kernels, source=config)
+# [230.4ms][Pipeline] KernelPath: inline-f32 (1 decode steps, 1 kernels, source=model)
+# [230.5ms][Pipeline] KernelPath: inline-f32 (1 decode steps, 1 kernels, source=model)
+# model-load-kernel-path-dtype-contract.test: ok
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 0.455209
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 268.333667
+[node-tests] ok: tests/inference/model-load-kernel-path-dtype-contract.test.js
+TAP version 13
+# [190.0ms][ExecutionV1] Capability transforms applied: [useQwenF16PrimaryMatmuls] (Runtime explicitly requested the selective f16 probe lane for Qwen 3.5 small execution-v1 Q4K models with the shared linear/full attention graph. Promotion remains device- and evidence-specific.)
+# [193.5ms][ExecutionV1] Capability transforms applied: [widenToF32Activations] (GPU lacks shader-f16.)
+# [194.9ms][ExecutionV1] Capability transforms applied: [useQwenF16PrimaryMatmuls] (Runtime explicitly requested the selective f16 probe lane for Qwen 3.5 small execution-v1 Q4K models with the shared linear/full attention graph. Promotion remains device- and evidence-specific.)
+# [196.3ms][ExecutionV1] Capability transforms applied: [widenToF32Activations] (GPU lacks shader-f16.)
+# qwen-execution-v1-linear-decode-f16.test: ok
+# [197.3ms][ExecutionV1] Capability transforms applied: [useQwenF16PrimaryMatmuls] (Runtime explicitly requested the selective f16 probe lane for Qwen 3.5 small execution-v1 Q4K models with the shared linear/full attention graph. Promotion remains device- and evidence-specific.)
+# [198.4ms][Pipeline] KernelPath: qwen-3-5-0-8b-q4k-ehaf16-execution-inline (15 decode steps, 12 kernels, source=execution-v1)
+# [198.6ms][Pipeline] KernelPath: qwen-3-5-0-8b-q4k-ehaf16-execution-inline (15 decode steps, 12 kernels, source=execution-v1)
+# [198.8ms][Pipeline] KernelPath: qwen-3-5-0-8b-q4k-ehaf16-execution-inline (15 decode steps, 12 kernels, source=execution-v1)
+# [199.0ms][Pipeline] KernelPath: qwen-3-5-0-8b-q4k-ehaf16-execution-inline (15 decode steps, 12 kernels, source=execution-v1)
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 0.375834
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 218.092542
+[node-tests] ok: tests/integration/qwen-execution-v1-linear-decode-f16.test.js
+[node-tests] ok: 5 files
