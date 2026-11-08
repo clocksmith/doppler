@@ -93,7 +93,10 @@ export async function checkTokenGeometry(page) {
 // Uses the published physical recording; does not run a model or fixture generator.
 export async function checkRealActivityPlayback(page) {
   // Reopen the initial gallery to exercise its actual entry point.
+  await page.evaluate(() => localStorage.setItem('doppler.demo.xray-enabled', 'true'));
   await page.reload({ waitUntil: 'networkidle' });
+  assert.equal(await page.locator('#run-details').evaluate(n => n.open), false, 'Saved timing preference must not reopen verbose details');
+  assert.match(await page.locator('#activity-measurement-note').textContent(), /GPU timing on/);
   await page.locator('.activity-preview[data-mode="contributions"]').click();
   await page.waitForFunction(() => !document.querySelector('#activity-example').disabled, null, { timeout: 120000 });
   await page.evaluate(() => new Promise(requestAnimationFrame));

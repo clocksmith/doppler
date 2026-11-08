@@ -18,6 +18,9 @@ view/window, fixed across subsequent token positions. These scales are retained
 in recording exports and validated on import. Per-view scaling is disclosed;
 color intensity is not a comparable magnitude across different views.
 
+Restoring a GPU-timing preference keeps Details closed and shows a compact
+measurement indicator. Explicit `?xray=all` links still open timing details.
+
 Validation:
 - Focused browser contract passes, including desktop/390/320 initial gallery,
   empty conversation bounds, existing model lifecycle and token branching.

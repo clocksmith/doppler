@@ -19,11 +19,10 @@ function refreshRuntimeNotice() {
   const xrayEnabled = $('xray-toggle-all')?.checked === true;
   const wordQualityEnabled = $('set-word-quality')?.checked === true;
 
-  // GPU timing results live under Model activity → Details.
-  if (xrayEnabled) {
-    const details = $('run-details');
-    if (details) details.open = true;
-  }
+  // Restoring a measurement preference must not expand the page on every update.
+  const measurement = $('activity-measurement-note');
+  if (measurement) measurement.textContent = xrayEnabled
+    ? 'GPU timing on · adds measurement overhead.' : 'Adds measurement overhead.';
 
   const el = $('runtime-notice');
   if (!el) return;
@@ -41,6 +40,7 @@ function refreshRuntimeNotice() {
 
 // Each checkbox has an explicit observation policy, including the combined mode.
 function initRecordingChoice() {
+  if (new URLSearchParams(location.search).get('xray') === 'all') $('run-details').open = true;
   for (const id of ['activation-record', 'xray-toggle-all']) {
     $(id)?.addEventListener('change', refreshRuntimeNotice);
   }
