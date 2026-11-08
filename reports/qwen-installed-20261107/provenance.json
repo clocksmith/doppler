@@ -1,0 +1,24 @@
+{
+  "schema": "doppler.qwen-smoke-provenance/v1",
+  "sourceArchiveRevision": "46aa1df32f2ff6278d01cbf1c4022a481c360f89",
+  "runtimeDelta": {
+    "src/gpu/kernels/matmul-dispatch.js": "96193bbe123c2b2063ab03a38472bdbc85b2580c29f7679f1261c5e0cd2b9507",
+    "src/gpu/kernels/fused_matmul_q4_batched_f16acc_f16a.wgsl": "3f3d8641492318af795e4c4f5a32d5542d901ef4f152bb848137d6802547d6d1",
+    "src/config/kernels/registry.json": "c759deea8a98b0bf0713993d10095527106ce288f5f93e700f0fa54ca665c1bc",
+    "src/config/kernels/kernel-ref-digests.js": "a059aa8f4c52270e13b5e23f57964c0ac9405529025e9898ce3fd7aac60b70f3",
+    "src/gpu/kernels/generated/uniform-writers-0.d.ts": "4a85e8e3aacca6e6886970309427aee5e4e7307c70741ef4309f66494b423e8e",
+    "src/gpu/kernels/generated/uniform-writers-0.js": "68e1da216b1965890130a3e1661857de6442c47440afcbaa0303203f663898a5",
+    "src/gpu/kernels/generated/uniform-writers-1.d.ts": "b35b461771f5784011dd631f27af3d26f23e8047efceca2c17416c00286232a6",
+    "src/gpu/kernels/generated/uniform-writers-1.js": "4e519824b323e01b8b73ffc521eba3d896a60adf4cf89a4befafb2166fefbebd",
+    "src/gpu/kernels/generated/uniform-writers-2.d.ts": "811b2091d07f920aa25316d84d68e6688900fbf08acff8dfaa951cb2bc3a8b03",
+    "src/gpu/kernels/generated/uniform-writers-2.js": "2d1954867d1d906f3e992360c953bd4fb150eedcc2581fbe26ec0cc021f1fbde",
+    "src/gpu/kernels/generated/uniform-writers.d.ts": "33dbc8ed6133c87043052fcae7d480c43791bc7c9a6fcea834da436b2a5f21b8",
+    "src/gpu/kernels/generated/uniform-writers.js": "cf529ed86ed4d87552ccd33b7f2004ee0d84cd512a1c19fa2b33027cabc110dc"
+  },
+  "physicalProvider": "webgpu (Dawn)",
+  "hardware": "AMD Radeon 8060S",
+  "gpuLimitChanged": false,
+  "existingProviderRestarted": false,
+  "isolatedPerformanceClaim": false,
+  "flashNextGateChanged": false
+}

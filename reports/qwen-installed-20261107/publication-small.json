@@ -1,0 +1,13 @@
+{
+  "repo": "clocksmith/rdrr",
+  "parent": "ea7b211b72c4d43687fa72802dee7aba74eca293",
+  "revision": "3a05b346b1c86abf02c7620f2369a9a7b82cb62f",
+  "url": "https://huggingface.co/clocksmith/rdrr/commit/3a05b346b1c86abf02c7620f2369a9a7b82cb62f",
+  "models": [
+    "qwen-3-5-2b-q4k-ehaf16",
+    "qwen-3-embedding-0-6b-q4k-ehf16-af32",
+    "qwen-3-reranker-0-6b-q4k-ehf16-af32",
+    "qwen-3-reranker-0-6b-f16-af32"
+  ],
+  "weightsChanged": false
+}

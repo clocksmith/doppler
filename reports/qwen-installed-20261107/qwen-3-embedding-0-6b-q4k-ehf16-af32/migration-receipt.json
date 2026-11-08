@@ -1,0 +1,109 @@
+{
+  "contractVersion": 1,
+  "migration": "legacy-shard-digests-to-standard-sha256",
+  "originalManifestHash": "aa8b96509f17ba0c949aee6891abd0459883d0c4be761f666242240a97e9d979",
+  "manifestHash": "c16d679b57c7048bd3bdbd63655dea0787681305443ec0f05065be3c3cee052f",
+  "originalArtifactIdentity": {
+    "artifactCompleteness": "complete",
+    "conversionConfigDigest": "sha256:a290edefde2f3156a8494d0aec19dcfadb7b57e8317fd97a75b32cdecd4d074b",
+    "conversionConfigPath": "src/config/conversion/qwen3/qwen-3-embedding-0-6b-q4k-ehf16-af32.json",
+    "manifestVariantId": "qwen-3-embedding-0-6b-q4k-ehf16-af32-mv-exec-v1",
+    "materializationProfile": "auto",
+    "modalitySet": [
+      "embedding"
+    ],
+    "shardSetHash": "sha256:d75b1574143e8b157d1ba32157d871495462b2aae5efcfe3488721d0c9ed0680",
+    "sourceCheckpointId": "Qwen/Qwen3-Embedding-0.6B",
+    "sourceFormat": "safetensors",
+    "weightPackHash": "sha256:ef89c72fdf91f6d256d6247604217590b67f9a689f693abe64d77d91598d10a3",
+    "weightPackId": "qwen-3-embedding-0-6b-q4k-ehf16-af32-wp-catalog-v1"
+  },
+  "artifactIdentity": {
+    "artifactCompleteness": "complete",
+    "conversionConfigDigest": "sha256:a290edefde2f3156a8494d0aec19dcfadb7b57e8317fd97a75b32cdecd4d074b",
+    "conversionConfigPath": "src/config/conversion/qwen3/qwen-3-embedding-0-6b-q4k-ehf16-af32.json",
+    "manifestVariantId": "qwen-3-embedding-0-6b-q4k-ehf16-af32-mv-f71d6b641050",
+    "materializationProfile": "auto",
+    "modalitySet": [
+      "embedding"
+    ],
+    "shardSetHash": "sha256:8b6a4043c2dc30b50e21703018bc9e9a64130262d8af5192e58114e70946fa77",
+    "sourceCheckpointId": "Qwen/Qwen3-Embedding-0.6B",
+    "sourceFormat": "safetensors",
+    "weightCapsuleHash": "sha256:0b8a8f7d66bf8831c590341d425f5bc66b0e2a6f423d70b5269af63c0605d456",
+    "weightCapsuleId": "qwen-3-embedding-0-6b-q4k-ehf16-af32-wp-0b8a8f7d66bf"
+  },
+  "independentInventoryHash": "c24ea947e7aa6b775173c1129dafb4ef13b21fa598c823b70850c7a81af60da4",
+  "inventoryPrefix": "models/qwen-3-embedding-0-6b-q4k-ehf16-af32",
+  "files": [
+    {
+      "filename": "manifest.json",
+      "size": 129669,
+      "sha256": "aa8b96509f17ba0c949aee6891abd0459883d0c4be761f666242240a97e9d979",
+      "inventoryLfsSha256": null
+    },
+    {
+      "filename": "shard_00000.bin",
+      "size": 67108864,
+      "sha256": "36e00991c46afe56d860d15d73b6eeabd5915ccaeff78fbf7bde3053667bdbd6",
+      "inventoryLfsSha256": "36e00991c46afe56d860d15d73b6eeabd5915ccaeff78fbf7bde3053667bdbd6"
+    },
+    {
+      "filename": "shard_00001.bin",
+      "size": 67108864,
+      "sha256": "1c9b1052b8bfd5042322e3b67d5122b06c459da60981f28a91f81db38706c2ba",
+      "inventoryLfsSha256": "1c9b1052b8bfd5042322e3b67d5122b06c459da60981f28a91f81db38706c2ba"
+    },
+    {
+      "filename": "shard_00002.bin",
+      "size": 67108864,
+      "sha256": "035976534ff964ca651fbe76e8b5a14eb87aa4b66289cc7a3103f01c6a6f0861",
+      "inventoryLfsSha256": "035976534ff964ca651fbe76e8b5a14eb87aa4b66289cc7a3103f01c6a6f0861"
+    },
+    {
+      "filename": "shard_00003.bin",
+      "size": 67108864,
+      "sha256": "2b82ae70dd3126088f6537106304e5915066e21ab3f8e0e0eaf8d21374e16866",
+      "inventoryLfsSha256": "2b82ae70dd3126088f6537106304e5915066e21ab3f8e0e0eaf8d21374e16866"
+    },
+    {
+      "filename": "shard_00004.bin",
+      "size": 67108864,
+      "sha256": "cbf3813088cebf8f9ab01b5bf35c053444738bd3d028d875452c39b4e0ff6a10",
+      "inventoryLfsSha256": "cbf3813088cebf8f9ab01b5bf35c053444738bd3d028d875452c39b4e0ff6a10"
+    },
+    {
+      "filename": "shard_00005.bin",
+      "size": 67108864,
+      "sha256": "96fc25b5eec5350d11307b4f2bc736fa3b795399d1b0019fb8d5b2f0510cc09f",
+      "inventoryLfsSha256": "96fc25b5eec5350d11307b4f2bc736fa3b795399d1b0019fb8d5b2f0510cc09f"
+    },
+    {
+      "filename": "shard_00006.bin",
+      "size": 67108864,
+      "sha256": "9a924d6342611aea99cf37fe75cebba773302432cfa641e6a4c69d1c108bed1a",
+      "inventoryLfsSha256": "9a924d6342611aea99cf37fe75cebba773302432cfa641e6a4c69d1c108bed1a"
+    },
+    {
+      "filename": "shard_00007.bin",
+      "size": 67108864,
+      "sha256": "397767b90b8862d1676dd679b994064ca3261f452b4d08d2c08f541c038663c4",
+      "inventoryLfsSha256": "397767b90b8862d1676dd679b994064ca3261f452b4d08d2c08f541c038663c4"
+    },
+    {
+      "filename": "shard_00008.bin",
+      "size": 21604352,
+      "sha256": "d73559e5d9ca729c92f9a310ce794b3b903593bb3dfe84def48484e3e0d13aa1",
+      "inventoryLfsSha256": "d73559e5d9ca729c92f9a310ce794b3b903593bb3dfe84def48484e3e0d13aa1"
+    },
+    {
+      "filename": "tokenizer.json",
+      "size": 5363482,
+      "sha256": "fc0c640dde6fe5c2892af6be480ac6728483fefba8bddb5e3bbeab523201666d",
+      "inventoryLfsSha256": null
+    }
+  ],
+  "unchangedExecution": true,
+  "qualificationTransferred": false,
+  "integrityExtensionsRebuilt": true
+}

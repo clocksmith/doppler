@@ -147,7 +147,7 @@ export const KERNEL_REF_CONTENT_DIGESTS = Object.freeze({
   "fused_matmul_litert_int4_f32a_f32out.wgsl#main_multicol_f32a_f32out": "636d77160301145cce22488868b1bce2245a0c8ea848927388c0ee3086cd02ff",
   "fused_matmul_q4_batched_f16.wgsl#main_batched_f16": "0a879483eb2f394b36daccd702dc3e640b4cb786df3e50627cde2c361fcc2e11",
   "fused_matmul_q4_batched_f16a.wgsl#main_batched_f16a": "ee5aebc5d3048ae1adb86ea253e754ad1879a97dbc434e63b7757d2a87555e95",
-  "fused_matmul_q4_batched_f16acc_f16a.wgsl#main_batched_f16acc_f16a": "41c0d57ad4194a910009fd8e4f311b80b384d6a1c652e20631a6f406df8724ca",
+  "fused_matmul_q4_batched_f16acc_f16a.wgsl#main_batched_f16acc_f16a": "6576c3a401327611ad3817236f0e36bca0c98f00b0de2a003f4ebe11a23430f5",
   "fused_matmul_q4_batched_multicol_shared.wgsl#main": "142817adcacb28750a92793996cd15c2d9fe13d03e0c2d0aadf3e674dc7a35d6",
   "fused_matmul_q4_batched.wgsl#main_batched": "a513e4170792aaf2f1c22b73f34288721541acf5954756993a0001a412c91209",
   "fused_matmul_q4_f16a.wgsl#main_f16a": "f620f275f6614ce93fc30f90945ed3fe9ddbfb150cdb2b80ec3dd5e51325cd77",

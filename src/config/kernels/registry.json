@@ -7678,6 +7678,53 @@
      ]
     },
     "q4_fused_batched_f16acc_f16a": {
+     "uniformsOverride": {
+      "size": 32,
+      "fields": [
+       {
+        "name": "M",
+        "type": "u32",
+        "offset": 0
+       },
+       {
+        "name": "N",
+        "type": "u32",
+        "offset": 4
+       },
+       {
+        "name": "K",
+        "type": "u32",
+        "offset": 8
+       },
+       {
+        "name": "alpha",
+        "type": "f32",
+        "offset": 12
+       },
+       {
+        "name": "num_blocks_per_row",
+        "type": "u32",
+        "offset": 16
+       },
+       {
+        "name": "workgroups_x",
+        "type": "u32",
+        "offset": 20
+       },
+       {
+        "name": "_pad1",
+        "type": "u32",
+        "offset": 24,
+        "padding": true
+       },
+       {
+        "name": "_pad2",
+        "type": "u32",
+        "offset": 28,
+        "padding": true
+       }
+      ]
+     },
      "wgsl": "fused_matmul_q4_batched_f16acc_f16a.wgsl",
      "entryPoint": "main_batched_f16acc_f16a",
      "workgroup": [256,4,1],
@@ -7687,7 +7734,7 @@
      "variantMetadata": {
       "tileM": 4,
       "accumDtype": "f16",
-      "dispatchGeometry": "column-row-tile"
+      "dispatchGeometry": "column-row-tile-3d"
      },
      "description": "Batched Q4_K prefill matmul with f16 activation input, f16 accumulation, and f16 output for experimental all-f16 execution lanes.",
      "reachability": {

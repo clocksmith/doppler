@@ -45,6 +45,7 @@ export function calculateMatmulDispatch(variant, useQ4KFused, useGemv, useLiteRT
     return value;
   };
   let x, y, uniformWorkgroupsX;
+  let z = 1;
   switch (geometry) {
     case 'pairedReduction':
       // Each group reduces one output; shader grid_width unfolds the second axis.
@@ -70,6 +71,10 @@ export function calculateMatmulDispatch(variant, useQ4KFused, useGemv, useLiteRT
     case 'column-row-tile':
       x = N; y = Math.ceil(M / required('tileM'));
       break;
+    case 'column-row-tile-3d':
+      x = Math.min(N, maxWorkgroups); y = Math.ceil(M / required('tileM'));
+      z = Math.ceil(N / x); uniformWorkgroupsX = x;
+      break;
     case 'linear-column-block': {
       const count = Math.ceil(N / required('colsPerWg'));
       x = Math.min(count, maxWorkgroups); y = Math.ceil(count / maxWorkgroups);
@@ -86,10 +91,10 @@ export function calculateMatmulDispatch(variant, useQ4KFused, useGemv, useLiteRT
     default:
       throw new Error(`Matmul kernel "${variant}" has unsupported dispatchGeometry "${String(geometry)}".`);
   }
-  if (![x, y].every((value) => Number.isInteger(value) && value > 0 && value <= maxWorkgroups)) {
+  if (![x, y, z].every((value) => Number.isInteger(value) && value > 0 && value <= maxWorkgroups)) {
     throw new Error(`Matmul kernel "${variant}" dispatch exceeds WebGPU workgroup limits: ${x} x ${y}, max=${maxWorkgroups}.`);
   }
-  return { workgroups: [x, y, 1], uniformWorkgroupsX };
+  return { workgroups: [x, y, z], uniformWorkgroupsX };
 }
 
 

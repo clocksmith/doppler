@@ -1,0 +1,113 @@
+{
+  "schema": "doppler.q4k-f16acc-wide-grid/v1",
+  "provider": {
+    "schema": "doe.webgpu-provider-receipt/v1",
+    "contract": "doe.webgpu-provider/v1",
+    "implementation": "doppler",
+    "providers": [
+      {
+        "id": "pre-installed",
+        "kind": "global"
+      },
+      {
+        "id": "webgpu",
+        "kind": "module",
+        "module": "webgpu",
+        "gpu": {
+          "kind": "factory",
+          "path": "create",
+          "args": [
+            [
+              "enable-dawn-features=allow_unsafe_apis"
+            ]
+          ]
+        },
+        "globals": {
+          "GPUBufferUsage": "globals.GPUBufferUsage",
+          "GPUShaderStage": "globals.GPUShaderStage",
+          "GPUMapMode": "globals.GPUMapMode",
+          "GPUTextureUsage": "globals.GPUTextureUsage"
+        }
+      }
+    ],
+    "providerOrder": [
+      "pre-installed",
+      "webgpu"
+    ],
+    "adapterOptions": null,
+    "globals": {
+      "mode": "replace",
+      "installed": [
+        "GPUBufferUsage",
+        "GPUShaderStage",
+        "GPUMapMode",
+        "GPUTextureUsage",
+        "navigator.gpu"
+      ],
+      "restored": false
+    },
+    "attempts": [
+      {
+        "providerId": "pre-installed",
+        "kind": "global",
+        "module": null,
+        "ok": false,
+        "stage": "gpu.validate",
+        "code": "DOPPLER_PROVIDER_UNAVAILABLE",
+        "detail": "Selected provider does not expose GPU.requestAdapter()."
+      },
+      {
+        "providerId": "webgpu",
+        "kind": "module",
+        "module": "webgpu",
+        "ok": true,
+        "stage": "complete",
+        "code": null,
+        "detail": null
+      }
+    ],
+    "selectedProviderId": "webgpu",
+    "ok": true
+  },
+  "rows": [
+    {
+      "M": 1,
+      "N": 248320,
+      "K": 256,
+      "workgroups": [
+        65535,
+        1,
+        4
+      ],
+      "outputsChecked": 248320,
+      "bitExact": true,
+      "guardPreserved": true
+    },
+    {
+      "M": 5,
+      "N": 65539,
+      "K": 256,
+      "workgroups": [
+        65535,
+        2,
+        2
+      ],
+      "outputsChecked": 327695,
+      "bitExact": true,
+      "guardPreserved": true
+    },
+    {
+      "M": 7,
+      "N": 17,
+      "K": 256,
+      "workgroups": [
+        17,
+        2,
+        1
+      ],
+      "outputsChecked": 119,
+      "bitExact": true,
+      "guardPreserved": true
+    }
+  ]
+}

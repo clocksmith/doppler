@@ -1,0 +1,32 @@
+TAP version 13
+# matmul-dispatch-contract.test: ok
+# node:internal/test_runner/harness:99
+#       throw err;
+#       ^
+# Error: Matmul kernel "q4_fused_batched_f16acc_f16a" dispatch exceeds WebGPU workgroup limits: 248320 x 1, max=65535.
+#     at calculateMatmulDispatch (file://doppler/src/gpu/kernels/matmul-dispatch.js:90:11)
+#     at file://doppler/tests/gpu/matmul-dispatch-contract.test.js:475:16
+# Node.js v22.20.0
+# Subtest: doppler/tests/gpu/matmul-dispatch-contract.test.js
+not ok 1 - doppler/tests/gpu/matmul-dispatch-contract.test.js
+  ---
+  duration_ms: 116.5975
+  type: 'test'
+  location: 'doppler/tests/gpu/matmul-dispatch-contract.test.js:1:1'
+  failureType: 'testCodeFailure'
+  exitCode: 7
+  signal: ~
+  error: 'test failed'
+  code: 'ERR_TEST_FAILURE'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 0
+# fail 1
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 120.18825
+[node-tests] fail: tests/gpu/matmul-dispatch-contract.test.js
+[node-tests] failed 1/1

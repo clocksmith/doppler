@@ -1,0 +1,38 @@
+[
+  {
+    "modelId": "qwen-3-5-2b-q4k-ehaf16",
+    "revision": "3a05b346b1c86abf02c7620f2369a9a7b82cb62f",
+    "manifestSha256": "de880cb8ca348530ef68199eaaddb553195b5f4ed652f0ae0a22420acfc6f26d",
+    "publishedBytesMatch": true
+  },
+  {
+    "modelId": "qwen-3-embedding-0-6b-q4k-ehf16-af32",
+    "revision": "3a05b346b1c86abf02c7620f2369a9a7b82cb62f",
+    "manifestSha256": "c16d679b57c7048bd3bdbd63655dea0787681305443ec0f05065be3c3cee052f",
+    "publishedBytesMatch": true
+  },
+  {
+    "modelId": "qwen-3-reranker-0-6b-q4k-ehf16-af32",
+    "revision": "3a05b346b1c86abf02c7620f2369a9a7b82cb62f",
+    "manifestSha256": "8b5e3df929a8a4c5bc84097d552dceb717e10616638e2fddfe1bf6aa80bd77ce",
+    "publishedBytesMatch": true
+  },
+  {
+    "modelId": "qwen-3-reranker-0-6b-f16-af32",
+    "revision": "3a05b346b1c86abf02c7620f2369a9a7b82cb62f",
+    "manifestSha256": "258b195da152abbd981b0d138b6bbdf583d99ff417dc728c47529d60a059fb85",
+    "publishedBytesMatch": true
+  },
+  {
+    "modelId": "qwen-3-6-27b-q4k-ehaf16",
+    "revision": "2061f17e310f9c240c77368f55e5e50509a88dfd",
+    "manifestSha256": "762b58979a98151c69bfb272cf35e2ab4ea4767c3112d57181fe76b98cf5dd81",
+    "publishedBytesMatch": true
+  },
+  {
+    "modelId": "qwen-3-6-27b-q4k-eaf16",
+    "revision": "2061f17e310f9c240c77368f55e5e50509a88dfd",
+    "manifestSha256": "87a39ce891e3de1de9e57b6f28de0e9ae644478fe83fe377a3ceeb6a99a3c5ec",
+    "publishedBytesMatch": true
+  }
+]

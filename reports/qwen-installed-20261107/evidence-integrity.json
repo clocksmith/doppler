@@ -1,0 +1,172 @@
+{
+  "smoke-qwen-3-reranker-0-6b-f16-af32.json": {
+    "originalSha256": "3c01fe3472d062faf29c558d661ea710d48178f4297f4a34c1520d415d1e6fcb",
+    "publishedSha256": "14b970e0859445ed98c341b4145ec42b2ea77c6a159e35d41245c0539b7fadb4",
+    "pathsNormalized": true
+  },
+  "smoke-qwen-3-embedding-0-6b-q4k-ehf16-af32.json": {
+    "originalSha256": "8f4b60aaca21c77f79ec6b177ca3717cf4478c9b7768472c5bbb4d07b5ac20a1",
+    "publishedSha256": "ddc172edbc5348b6463b3d946be783d032992406652a81fba34baa2ec358be64",
+    "pathsNormalized": true
+  },
+  "27b-f16-derived-conversion.json": {
+    "originalSha256": "35586e611abe85f93b8e912eaa360f276994451b5cbeb36a8a525f0765202997",
+    "publishedSha256": "35586e611abe85f93b8e912eaa360f276994451b5cbeb36a8a525f0765202997",
+    "pathsNormalized": false
+  },
+  "27b-derived-conversion.json": {
+    "originalSha256": "118f342d08145f803775c3b5408f102ad9ed49515a133ff55ff87a0c17f0e76a",
+    "publishedSha256": "118f342d08145f803775c3b5408f102ad9ed49515a133ff55ff87a0c17f0e76a",
+    "pathsNormalized": false
+  },
+  "reploid-smoke-08.json": {
+    "originalSha256": "18908cd575c6a3f7bd2eef69a38c7edfa20eb983499c9efb9fc62e52078a1f63",
+    "publishedSha256": "18908cd575c6a3f7bd2eef69a38c7edfa20eb983499c9efb9fc62e52078a1f63",
+    "pathsNormalized": false
+  },
+  "qwen-3-6-27b-q4k-ehaf16-inventory.json": {
+    "originalSha256": "a032f157866a5ac2ada34c017df4d929518826fe969118dfc0264c1a00133b81",
+    "publishedSha256": "a032f157866a5ac2ada34c017df4d929518826fe969118dfc0264c1a00133b81",
+    "pathsNormalized": false
+  },
+  "reploid-smoke-2b.json": {
+    "originalSha256": "ccbd1fcfa57c6b1b050acf033a13d36e4e4be607566008f59de7713e3c34a918",
+    "publishedSha256": "ccbd1fcfa57c6b1b050acf033a13d36e4e4be607566008f59de7713e3c34a918",
+    "pathsNormalized": false
+  },
+  "qwen36-source-config.json": {
+    "originalSha256": "69db4eb7196bc8190813231b3018ca05d8c2e3abc7b1af19d55c157af44a9d9c",
+    "publishedSha256": "69db4eb7196bc8190813231b3018ca05d8c2e3abc7b1af19d55c157af44a9d9c",
+    "pathsNormalized": false
+  },
+  "27b-f16-reference-preparation.json": {
+    "originalSha256": "3436bdafd6a51ab83a259ca675f27a61db63f2fa56345a6bcd5ce09ad224c0fa",
+    "publishedSha256": "3436bdafd6a51ab83a259ca675f27a61db63f2fa56345a6bcd5ce09ad224c0fa",
+    "pathsNormalized": false
+  },
+  "results.json": {
+    "originalSha256": "03099c25b29dfc09c7af7deaa90ef9f66841f8762e82691dd1f46fe4131496bd",
+    "publishedSha256": "01c3cc2add711f753efde202b5b7d176fb1b315dac55d7ac454103b65a8413eb",
+    "pathsNormalized": true
+  },
+  "smoke-27b-f16.json": {
+    "originalSha256": "1f16ba1b2f06603106c6830c93cf9c5e478474bb191d8b006ed1afb5a8b7fcf3",
+    "publishedSha256": "1f16ba1b2f06603106c6830c93cf9c5e478474bb191d8b006ed1afb5a8b7fcf3",
+    "pathsNormalized": false
+  },
+  "reploid-smoke-35b.json": {
+    "originalSha256": "2bde204148a0f580a37dc56bd1c1ed9a886324abbba4d7720e16b06d4dae9004",
+    "publishedSha256": "2bde204148a0f580a37dc56bd1c1ed9a886324abbba4d7720e16b06d4dae9004",
+    "pathsNormalized": false
+  },
+  "qwen-3-reranker-0-6b-q4k-ehf16-af32-inventory.json": {
+    "originalSha256": "a9b7b21c9a969ef460c633b8ea9ba4b2215ef9155125617201c958f8763bd61e",
+    "publishedSha256": "a9b7b21c9a969ef460c633b8ea9ba4b2215ef9155125617201c958f8763bd61e",
+    "pathsNormalized": false
+  },
+  "qwen-3-5-0-8b-q4k-ehaf16-inventory.json": {
+    "originalSha256": "70217d4b0c33c03c1310f07c3fc52167c707e4b12dd2afdc4051b431832c1ece",
+    "publishedSha256": "70217d4b0c33c03c1310f07c3fc52167c707e4b12dd2afdc4051b431832c1ece",
+    "pathsNormalized": false
+  },
+  "qwen-3-reranker-0-6b-f16-af32-inventory.json": {
+    "originalSha256": "ca5b13a84742ca21307595e04da0869b727466a9a30008202f3f6de35ce458a4",
+    "publishedSha256": "ca5b13a84742ca21307595e04da0869b727466a9a30008202f3f6de35ce458a4",
+    "pathsNormalized": false
+  },
+  "smoke-qwen-3-reranker-0-6b-q4k-ehf16-af32.json": {
+    "originalSha256": "99216ecb2aea743b5612056797dc4a16f332b8e09b9bad91b361c3b36f23b05e",
+    "publishedSha256": "46f1902ba2312f2d2c11f504fa2cf811a5fa4037e76c332842bd1d5752ff59ad",
+    "pathsNormalized": true
+  },
+  "qwen36-source-config-pin.json": {
+    "originalSha256": "e5fb1d82a28287d4c2bb37e6d9de0337302bcc41a103423eece576183c3aef8d",
+    "publishedSha256": "e5fb1d82a28287d4c2bb37e6d9de0337302bcc41a103423eece576183c3aef8d",
+    "pathsNormalized": false
+  },
+  "smoke-08.json": {
+    "originalSha256": "98e4a871d24e18f433ab33aa4221239d21e22baa408ca8fcc9db3da5cc5f2b98",
+    "publishedSha256": "4fbbf24a10021f6be5e73bff06f886b769c6cf86dc43f4c21a038e79d8a344d1",
+    "pathsNormalized": true
+  },
+  "27b-byte-authentication.json": {
+    "originalSha256": "54178a664f7581d2357bb62e8634a1a5c7def03188ef2f34ce2b16530606a31d",
+    "publishedSha256": "54178a664f7581d2357bb62e8634a1a5c7def03188ef2f34ce2b16530606a31d",
+    "pathsNormalized": false
+  },
+  "smoke-27b-f16-fixed.json": {
+    "originalSha256": "c5ae18f1011561bb9c157f453277f9fcd0cc5c0bd60e2e2a16de816b7f4fe99c",
+    "publishedSha256": "25fc6fde2939a0ede3cac49163f6e2974d83cbd241ef0595b4200326ecb0518f",
+    "pathsNormalized": true
+  },
+  "qwen-3-embedding-0-6b-q4k-ehf16-af32-inventory.json": {
+    "originalSha256": "c24ea947e7aa6b775173c1129dafb4ef13b21fa598c823b70850c7a81af60da4",
+    "publishedSha256": "c24ea947e7aa6b775173c1129dafb4ef13b21fa598c823b70850c7a81af60da4",
+    "pathsNormalized": false
+  },
+  "qwen-3-5-2b-q4k-ehaf16-inventory.json": {
+    "originalSha256": "486a17e4c21bd5d7d0a94f323c40266feb42ca0e6f5ad875d5de6d2bd2dd6011",
+    "publishedSha256": "486a17e4c21bd5d7d0a94f323c40266feb42ca0e6f5ad875d5de6d2bd2dd6011",
+    "pathsNormalized": false
+  },
+  "publication-small.json": {
+    "originalSha256": "cc921476d93a754fbbf2fc55783e3fc6200cd9abcf5570e75453102274098893",
+    "publishedSha256": "cc921476d93a754fbbf2fc55783e3fc6200cd9abcf5570e75453102274098893",
+    "pathsNormalized": false
+  },
+  "smoke-27b.json": {
+    "originalSha256": "9ee9958a51b31f054527aa9ca656e66d52944b8cb10d9725bcecc422c8bea275",
+    "publishedSha256": "821f5bdc507988a21b16292a3f7d01369a7e1f76e5f5ca5e0d4f6e21fbe2499a",
+    "pathsNormalized": true
+  },
+  "reconciled-results.json": {
+    "originalSha256": "0a20b6b361bd84a944beb55659856ce8920b82b9668717f9a4cb5e18f74ccf54",
+    "publishedSha256": "750025ea2c37a12b33d9665485e2649c8a56f29f607abc9fbc04be2eb5c1da5b",
+    "pathsNormalized": true
+  },
+  "smoke-qwen-3-5-2b-q4k-ehaf16.json": {
+    "originalSha256": "132f44928050f2fbbe8a87470580249f6665c37bb4b697671fd67effa8cbb0dc",
+    "publishedSha256": "174bfb3bd29ef644c57949c4f6ee31910b8645ae09de6e4e535c8688e1ac9e03",
+    "pathsNormalized": true
+  },
+  "qwen-3-reranker-0-6b-q4k-ehf16-af32/migration-receipt.json": {
+    "originalSha256": "70a112f86c11309e0ec70637689d2af35385feeb169e372888cbdc82b662e65d",
+    "publishedSha256": "70a112f86c11309e0ec70637689d2af35385feeb169e372888cbdc82b662e65d",
+    "pathsNormalized": false
+  },
+  "qwen-3-embedding-0-6b-q4k-ehf16-af32/migration-receipt.json": {
+    "originalSha256": "dd3c20bbe9d2f38313a68a9ff28ff53d57d16051d83931483e7c72d3c3cdbabd",
+    "publishedSha256": "dd3c20bbe9d2f38313a68a9ff28ff53d57d16051d83931483e7c72d3c3cdbabd",
+    "pathsNormalized": false
+  },
+  "qwen-3-reranker-0-6b-f16-af32/migration-receipt.json": {
+    "originalSha256": "334ac7e441c5fd0b4566247787782c28e9bdd08368f7ed48e888e4b093c80d28",
+    "publishedSha256": "334ac7e441c5fd0b4566247787782c28e9bdd08368f7ed48e888e4b093c80d28",
+    "pathsNormalized": false
+  },
+  "qwen-3-5-0-8b-q4k-ehaf16/migration-receipt.json": {
+    "originalSha256": "61bfd62b18ed1b15bd8388ed93f232f9acc23f7ba26378b363d0a5ca2ad78034",
+    "publishedSha256": "61bfd62b18ed1b15bd8388ed93f232f9acc23f7ba26378b363d0a5ca2ad78034",
+    "pathsNormalized": false
+  },
+  "qwen-3-5-2b-q4k-ehaf16/migration-receipt.json": {
+    "originalSha256": "967a2aa5fb85d4f95dde48451afbefd0d13aa9260fdcdd3333d9ed62cd52ec34",
+    "publishedSha256": "967a2aa5fb85d4f95dde48451afbefd0d13aa9260fdcdd3333d9ed62cd52ec34",
+    "pathsNormalized": false
+  },
+  "reploid-catalog-27b.json": {
+    "originalSha256": "cf9823724285eb1733cfe0b0e8e6a5b53c2c97a1752b5355bb54de2cd334549e",
+    "publishedSha256": "cf9823724285eb1733cfe0b0e8e6a5b53c2c97a1752b5355bb54de2cd334549e",
+    "pathsNormalized": false
+  },
+  "reploid-catalog-08.json": {
+    "originalSha256": "ecb179e520f2ec8777a8d5befb80d0498f8bb21134cb3e118fe77f54fa9a52e9",
+    "publishedSha256": "ecb179e520f2ec8777a8d5befb80d0498f8bb21134cb3e118fe77f54fa9a52e9",
+    "pathsNormalized": false
+  },
+  "reploid-catalog-2b.json": {
+    "originalSha256": "5993e1f2cde9fccceb35a0fd1c8acdd1f4a521db0b8207d309ad177889d26a64",
+    "publishedSha256": "5993e1f2cde9fccceb35a0fd1c8acdd1f4a521db0b8207d309ad177889d26a64",
+    "pathsNormalized": false
+  }
+}

@@ -19,7 +19,7 @@ struct Uniforms {
     K: u32,
     alpha: f32,
     num_blocks_per_row: u32,
-    _pad0: u32,
+    workgroups_x: u32,
     _pad1: u32,
     _pad2: u32,
 }
@@ -105,7 +105,7 @@ fn main_batched_f16acc_f16a(
 
     let local_id = lid.x;
     let row = wg_id.y * TILE_M + lid.y;
-    let col = wg_id.x;
+    let col = wg_id.x + wg_id.z * u.workgroups_x;
     let is_valid = row < u.M && col < u.N;
 
     var partial_sum: f16 = f16(0.0);

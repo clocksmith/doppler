@@ -467,3 +467,21 @@ for (const variant of ['w8a8_portable', 'w8a8_packed']) {
   }
   assert.throws(() => calculateMatmulDispatch(variant, false, false, 65536, 1, config), /limits/);
 }
+
+// Wide F16-accumulation vocabulary heads must cover columns beyond X's limit
+// without changing the independent row-tile axis.
+for (const [M, N] of [[1, 248320], [5, 65539], [7, 17]]) {
+  const variant = 'q4_fused_batched_f16acc_f16a', config = getMatmulConfig(variant, null);
+  const plan = calculateMatmulDispatch(variant, true, false, false, M, N, config);
+  const [x, y, z] = plan.workgroups;
+  assert([x, y, z].every(n => n > 0 && n <= 65535));
+  assert.equal(y, Math.ceil(M / config.variantMetadata.tileM));
+  assert.equal(plan.uniformWorkgroupsX, x);
+  const covered = new Set();
+  for (let plane = 0; plane < z; plane++) for (let column = 0; column < x; column++) {
+    const n = column + plane * plan.uniformWorkgroupsX;
+    if (n < N) { assert(!covered.has(n)); covered.add(n); }
+  }
+  assert.equal(covered.size, N);
+  assert(covered.has(N - 1));
+}

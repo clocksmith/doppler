@@ -1,0 +1,131 @@
+{
+  "schema": "reploid.qwen-native-composition/v1",
+  "modelId": "qwen-3-5-0-8b-q4k-ehaf16",
+  "modelIdentity": "sha256:6788ca6b95e2fe3dd27a057042cd3b543e4b8d2fcdc433bcfe218148feb82a4e",
+  "profile": "profiles/qwen-3-5-0-8b-vulkan-throughput",
+  "catalogIdentity": "sha256:6788ca6b95e2fe3dd27a057042cd3b543e4b8d2fcdc433bcfe218148feb82a4e",
+  "catalogIdentityMatched": true,
+  "scope": "Controlled offline native provider on a supplied exact artifact; no network/public-provider qualification",
+  "passed": true,
+  "nativeAcquisition": {
+    "indexIdentity": "sha256:6f0b2ea5678a83124ca2f08b929f35334bc7b4ed7d58ee6f84bd03faf503f5a2",
+    "manifestIdentity": "sha256:6788ca6b95e2fe3dd27a057042cd3b543e4b8d2fcdc433bcfe218148feb82a4e",
+    "requestedBytes": 16,
+    "verifiedBytes": 4194304,
+    "pieces": [
+      "sha256:b07993d999a914692340789a2d2cd68333985a1decfc1cec9497db4355eea925"
+    ],
+    "ranges": [
+      {
+        "path": "shard_00000.bin",
+        "offset": 0,
+        "size": 4194304,
+        "identity": "sha256:b07993d999a914692340789a2d2cd68333985a1decfc1cec9497db4355eea925"
+      }
+    ],
+    "acquisitionMs": 2.3119859999999903,
+    "verificationMs": 4.173373999999967,
+    "copyMs": 0.004489000000035048,
+    "activeReadBytes": 0,
+    "peakReadBytes": 16
+  },
+  "first": {
+    "content": "Hello!",
+    "raw": "Hello!",
+    "requestedModel": "qwen-3-5-0-8b-q4k-ehaf16",
+    "model": "qwen-3-5-0-8b-q4k-ehaf16",
+    "modelIdentity": "sha256:6788ca6b95e2fe3dd27a057042cd3b543e4b8d2fcdc433bcfe218148feb82a4e",
+    "adapterIdentities": [],
+    "completion": {
+      "schema": "doppler.generation-completion/v1",
+      "stopReason": "stop-token",
+      "promptTokenCount": 18,
+      "generatedTokenCount": 3
+    },
+    "timing": {
+      "totalMs": 344.82067000000006,
+      "generatedTokenCount": 3,
+      "prefillMs": 204.71956599999976,
+      "decodeMs": 133.12885600000027,
+      "firstTokenMs": 210.51777100000072
+    },
+    "hardware": {
+      "vendor": "amd",
+      "architecture": "rdna-3",
+      "device": "radeon-8060s-graphics-radv-strix-halo-",
+      "description": "radv: Mesa 26.0.3-1ubuntu1"
+    },
+    "provider": "doppler",
+    "execution": "local-scoped-session",
+    "ownerPolicyDigest": null
+  },
+  "reused": {
+    "content": "Hello!",
+    "raw": "Hello!",
+    "requestedModel": "qwen-3-5-0-8b-q4k-ehaf16",
+    "model": "qwen-3-5-0-8b-q4k-ehaf16",
+    "modelIdentity": "sha256:6788ca6b95e2fe3dd27a057042cd3b543e4b8d2fcdc433bcfe218148feb82a4e",
+    "adapterIdentities": [],
+    "completion": {
+      "schema": "doppler.generation-completion/v1",
+      "stopReason": "stop-token",
+      "promptTokenCount": 18,
+      "generatedTokenCount": 3
+    },
+    "timing": {
+      "totalMs": 107.81953500000054,
+      "generatedTokenCount": 3,
+      "prefillMs": 34.76461699999982,
+      "decodeMs": 71.60310200000004,
+      "firstTokenMs": 36.05424700000003
+    },
+    "hardware": {
+      "vendor": "amd",
+      "architecture": "rdna-3",
+      "device": "radeon-8060s-graphics-radv-strix-halo-",
+      "description": "radv: Mesa 26.0.3-1ubuntu1"
+    },
+    "provider": "doppler",
+    "execution": "local-scoped-session",
+    "ownerPolicyDigest": null
+  },
+  "afterActive": {
+    "content": "Hello!",
+    "raw": "Hello!",
+    "requestedModel": "qwen-3-5-0-8b-q4k-ehaf16",
+    "model": "qwen-3-5-0-8b-q4k-ehaf16",
+    "modelIdentity": "sha256:6788ca6b95e2fe3dd27a057042cd3b543e4b8d2fcdc433bcfe218148feb82a4e",
+    "adapterIdentities": [],
+    "completion": {
+      "schema": "doppler.generation-completion/v1",
+      "stopReason": "stop-token",
+      "promptTokenCount": 18,
+      "generatedTokenCount": 3
+    },
+    "timing": {
+      "totalMs": 99.52822199999991,
+      "generatedTokenCount": 3,
+      "prefillMs": 32.83645400000023,
+      "decodeMs": 65.2273180000002,
+      "firstTokenMs": 34.125262999999904
+    },
+    "hardware": {
+      "vendor": "amd",
+      "architecture": "rdna-3",
+      "device": "radeon-8060s-graphics-radv-strix-halo-",
+      "description": "radv: Mesa 26.0.3-1ubuntu1"
+    },
+    "provider": "doppler",
+    "execution": "local-scoped-session",
+    "ownerPolicyDigest": null
+  },
+  "checks": [
+    "exact-artifact-preparation",
+    "generation",
+    "resident-reuse",
+    "pre-aborted-request",
+    "reuse-after-cancellation",
+    "active-cancellation",
+    "reuse-after-active-cancellation"
+  ]
+}

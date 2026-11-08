@@ -192,6 +192,17 @@ export function write_matmul_litert_int4_multicol_f16a(view, values, kernel) {
   view.setUint32(28, 0, true);
 }
 
+export function write_matmul_q4_fused_batched_f16acc_f16a(view, values, kernel) {
+  writeU32(view, 0, values["M"], kernel, "M");
+  writeU32(view, 4, values["N"], kernel, "N");
+  writeU32(view, 8, values["K"], kernel, "K");
+  writeF32(view, 12, values["alpha"], kernel, "alpha");
+  writeU32(view, 16, values["num_blocks_per_row"], kernel, "num_blocks_per_row");
+  writeU32(view, 20, values["workgroups_x"], kernel, "workgroups_x");
+  view.setUint32(24, 0, true);
+  view.setUint32(28, 0, true);
+}
+
 export function write_matmul_q4_fused_rmsnorm_widetile(view, values, kernel) {
   writeU32(view, 0, values["M"], kernel, "M");
   writeU32(view, 4, values["N"], kernel, "N");
@@ -585,16 +596,5 @@ export function write_rmsnorm_default(view, values, kernel) {
   writeU32(view, 16, values["token_stride"], kernel, "token_stride");
   writeF32(view, 20, values["output_scale"], kernel, "output_scale");
   view.setUint32(24, 0, true);
-  view.setUint32(28, 0, true);
-}
-
-export function write_rmsnorm_paired(view, values, kernel) {
-  writeU32(view, 0, values["size"], kernel, "size");
-  writeU32(view, 4, values["num_tokens"], kernel, "num_tokens");
-  writeF32(view, 8, values["eps_hi"], kernel, "eps_hi");
-  writeF32(view, 12, values["eps_lo"], kernel, "eps_lo");
-  writeU32(view, 16, values["token_stride"], kernel, "token_stride");
-  writeF32(view, 20, values["scale_hi"], kernel, "scale_hi");
-  writeF32(view, 24, values["scale_lo"], kernel, "scale_lo");
   view.setUint32(28, 0, true);
 }

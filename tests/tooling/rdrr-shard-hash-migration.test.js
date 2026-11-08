@@ -3,7 +3,7 @@ import { createHash } from 'node:crypto';
 import { mkdtemp, mkdir, readFile, rm, writeFile } from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
-import { migrateRdrrShardHashes } from '../../tools/migrate-rdrr-shard-hashes.js';
+import { migrateRdrrShardHashes, prepareRdrrShardHashMigration } from '../../tools/migrate-rdrr-shard-hashes.js';
 import { createRDRRManifestFixture } from '../helpers/rdrr-manifest-fixture.js';
 
 const sha256 = (value) => createHash('sha256').update(value).digest('hex');
@@ -44,6 +44,9 @@ try {
   await writeFile(path.join(sourceDir, 'shard_00000.bin'), Buffer.alloc(16));
   await assert.rejects(migrateRdrrShardHashes(options), /inventory byte mismatch/);
   await writeFile(path.join(sourceDir, 'shard_00000.bin'), bytes);
+  const prepared = await prepareRdrrShardHashMigration(options);
+  await assert.rejects(readFile(path.join(options.destinationDir, 'manifest.json')), /ENOENT/, 'Preparation never admits or writes an artifact');
+  assert.equal(prepared.manifest.hashAlgorithm, 'sha256');
   const first = await migrateRdrrShardHashes(options);
   assert.equal(first.manifest.hashAlgorithm, 'sha256');
   assert.equal(first.manifest.shards[0].hash, sha256(bytes));
@@ -62,6 +65,19 @@ try {
   const second = await migrateRdrrShardHashes({ ...options, destinationDir: path.join(root, 'repeated') });
   assert.equal(first.receipt.manifestHash, second.receipt.manifestHash, 'migration identities must reproduce');
   await assert.rejects(migrateRdrrShardHashes(options), /EEXIST/);
+  const incomplete = structuredClone(manifest);
+  delete incomplete.inference.output.logitInputScale;
+  const incompleteText = JSON.stringify(incomplete) + '\n';
+  await writeFile(path.join(sourceDir, 'manifest.json'), incompleteText);
+  const incompleteInventory = JSON.parse(inventory);
+  incompleteInventory[0].size = Buffer.byteLength(incompleteText);
+  incompleteInventory[0].oid = createHash('sha1').update(`blob ${Buffer.byteLength(incompleteText)}\0`).update(incompleteText).digest('hex');
+  const incompleteInventoryText = JSON.stringify(incompleteInventory);
+  await writeFile(inventoryPath, incompleteInventoryText);
+  const repairOptions = { ...options, destinationDir: path.join(root, 'requires-converter'), inventoryHash: sha256(incompleteInventoryText) };
+  assert.equal((await prepareRdrrShardHashMigration(repairOptions)).manifest.hashAlgorithm, 'sha256');
+  await assert.rejects(migrateRdrrShardHashes(repairOptions), /logitInputScale/);
+  await assert.rejects(readFile(path.join(repairOptions.destinationDir, 'manifest.json')), /ENOENT/, 'Invalid runtime contracts are never published by migration');
 } finally {
   await rm(root, { recursive: true, force: true });
 }

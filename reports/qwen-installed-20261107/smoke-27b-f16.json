@@ -1,0 +1,21 @@
+{
+  "schema": "doppler.qwen-installed-smoke/v1",
+  "modelId": "qwen-3-6-27b-q4k-eaf16",
+  "profile": "default",
+  "scope": "functional smoke alongside the existing provider; not an isolated benchmark or model qualification",
+  "runtime": {
+    "shared": {
+      "bufferPool": {
+        "budget": {
+          "maxTotalBytes": 25769803776,
+          "highWatermarkRatio": 0.9,
+          "emergencyTrimTargetRatio": 0.8,
+          "hardFailOnBudgetExceeded": true
+        }
+      }
+    }
+  },
+  "passed": false,
+  "manifestHash": "87a39ce891e3de1de9e57b6f28de0e9ae644478fe83fe377a3ceeb6a99a3c5ec",
+  "failure": "Error: Matmul kernel \"q4_fused_batched_f16acc_f16a\" dispatch exceeds WebGPU workgroup limits: 248320 x 1, max=65535."
+}

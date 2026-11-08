@@ -1,0 +1,107 @@
+{
+  "schema": "reploid.qwen-native-composition/v1",
+  "modelId": "qwen-3-6-35b-a3b-text-source-q4_0-af32",
+  "modelIdentity": "sha256:e985e3cdad60d0cb57d84b436161e66ab5b3f6589a168de6f00b4610e5f1fb59",
+  "profile": "catalog",
+  "scope": "Controlled offline native provider on a supplied exact artifact; no network/public-provider qualification",
+  "passed": true,
+  "first": {
+    "content": "Hello",
+    "raw": "Hello",
+    "requestedModel": "qwen-3-6-35b-a3b-text-source-q4_0-af32",
+    "model": "qwen-3-6-35b-a3b-text-source-q4_0-af32",
+    "modelIdentity": "sha256:e985e3cdad60d0cb57d84b436161e66ab5b3f6589a168de6f00b4610e5f1fb59",
+    "adapterIdentities": [],
+    "completion": {
+      "schema": "doppler.generation-completion/v1",
+      "stopReason": "stop-token",
+      "promptTokenCount": 18,
+      "generatedTokenCount": 2
+    },
+    "timing": {
+      "totalMs": 176.2944209999987,
+      "generatedTokenCount": 2,
+      "prefillMs": 155.81927199999336,
+      "decodeMs": 16.36650100001134,
+      "firstTokenMs": 159.37531799999124
+    },
+    "hardware": {
+      "vendor": "amd",
+      "architecture": "rdna-3",
+      "device": "radeon-8060s-graphics-radv-strix-halo-",
+      "description": "radv: Mesa 26.0.3-1ubuntu1"
+    },
+    "provider": "doppler",
+    "execution": "local-scoped-session",
+    "ownerPolicyDigest": null
+  },
+  "reused": {
+    "content": "Hello",
+    "raw": "Hello",
+    "requestedModel": "qwen-3-6-35b-a3b-text-source-q4_0-af32",
+    "model": "qwen-3-6-35b-a3b-text-source-q4_0-af32",
+    "modelIdentity": "sha256:e985e3cdad60d0cb57d84b436161e66ab5b3f6589a168de6f00b4610e5f1fb59",
+    "adapterIdentities": [],
+    "completion": {
+      "schema": "doppler.generation-completion/v1",
+      "stopReason": "stop-token",
+      "promptTokenCount": 18,
+      "generatedTokenCount": 2
+    },
+    "timing": {
+      "totalMs": 160.54837899999984,
+      "generatedTokenCount": 2,
+      "prefillMs": 144.03062400000636,
+      "decodeMs": 14.778284999993048,
+      "firstTokenMs": 145.2428990000044
+    },
+    "hardware": {
+      "vendor": "amd",
+      "architecture": "rdna-3",
+      "device": "radeon-8060s-graphics-radv-strix-halo-",
+      "description": "radv: Mesa 26.0.3-1ubuntu1"
+    },
+    "provider": "doppler",
+    "execution": "local-scoped-session",
+    "ownerPolicyDigest": null
+  },
+  "afterActive": {
+    "content": "Hello",
+    "raw": "Hello",
+    "requestedModel": "qwen-3-6-35b-a3b-text-source-q4_0-af32",
+    "model": "qwen-3-6-35b-a3b-text-source-q4_0-af32",
+    "modelIdentity": "sha256:e985e3cdad60d0cb57d84b436161e66ab5b3f6589a168de6f00b4610e5f1fb59",
+    "adapterIdentities": [],
+    "completion": {
+      "schema": "doppler.generation-completion/v1",
+      "stopReason": "stop-token",
+      "promptTokenCount": 18,
+      "generatedTokenCount": 2
+    },
+    "timing": {
+      "totalMs": 139.33400799999072,
+      "generatedTokenCount": 2,
+      "prefillMs": 122.3373789999896,
+      "decodeMs": 15.244083999990835,
+      "firstTokenMs": 123.73923199999263
+    },
+    "hardware": {
+      "vendor": "amd",
+      "architecture": "rdna-3",
+      "device": "radeon-8060s-graphics-radv-strix-halo-",
+      "description": "radv: Mesa 26.0.3-1ubuntu1"
+    },
+    "provider": "doppler",
+    "execution": "local-scoped-session",
+    "ownerPolicyDigest": null
+  },
+  "checks": [
+    "exact-artifact-preparation",
+    "generation",
+    "resident-reuse",
+    "pre-aborted-request",
+    "reuse-after-cancellation",
+    "active-cancellation",
+    "reuse-after-active-cancellation"
+  ]
+}

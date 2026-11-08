@@ -11,7 +11,9 @@ const sha256 = (bytes) => createHash('sha256').update(bytes).digest('hex');
 
 // Internal migration, never an inference fallback. The caller must independently
 // authenticate and pin an immutable Git-LFS inventory before invoking this tool.
-export async function migrateRdrrShardHashes(options) {
+// Preparation authenticates bytes and returns metadata in memory only. A caller
+// may need to refresh a legacy inference contract before it can be admitted.
+export async function prepareRdrrShardHashMigration(options) {
   const { sourceDir, destinationDir, inventoryPath, inventoryHash, inventoryPrefix } = options;
   const source = await realpath(sourceDir);
   const destination = path.join(await realpath(path.dirname(path.resolve(destinationDir))), path.basename(destinationDir));
@@ -108,7 +110,6 @@ export async function migrateRdrrShardHashes(options) {
     await Promise.all([...handles.values()].map((handle) => handle.close()));
   }
   const text = `${JSON.stringify(manifest, null, 2)}\n`;
-  parseManifest(text);
   const receipt = {
     contractVersion: 1,
     migration: 'legacy-shard-digests-to-standard-sha256',
@@ -123,8 +124,15 @@ export async function migrateRdrrShardHashes(options) {
     qualificationTransferred: false,
     integrityExtensionsRebuilt: original.integrityExtensions != null,
   };
+  return { manifest, receipt, manifestText: text, destination };
+}
+
+export async function migrateRdrrShardHashes(options) {
+  const { manifest, receipt, manifestText, destination } = await prepareRdrrShardHashMigration(options);
+  // No artifact is written or admitted until the complete runtime contract passes.
+  parseManifest(manifestText);
   await mkdir(destination, { recursive: false });
-  await writeFile(path.join(destination, 'manifest.json'), text, { flag: 'wx' });
+  await writeFile(path.join(destination, 'manifest.json'), manifestText, { flag: 'wx' });
   await writeFile(path.join(destination, 'migration-receipt.json'), `${JSON.stringify(receipt, null, 2)}\n`, { flag: 'wx' });
   return { manifest, receipt };
 }

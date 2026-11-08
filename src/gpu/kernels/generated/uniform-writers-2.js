@@ -2,6 +2,17 @@
 // Do not edit; npm run kernels:uniforms:sync.
 import { writeU32, writeI32, writeF32 } from '../uniform-encoding.js';
 
+export function write_gated_delta_recurrent_backward_default(view, values, kernel) {
+  writeU32(view, 0, values["num_tokens"], kernel, "num_tokens");
+  writeU32(view, 4, values["total_tokens"], kernel, "total_tokens");
+  writeU32(view, 8, values["token_offset"], kernel, "token_offset");
+  writeU32(view, 12, values["num_heads"], kernel, "num_heads");
+  writeU32(view, 16, values["key_dim"], kernel, "key_dim");
+  writeU32(view, 20, values["value_dim"], kernel, "value_dim");
+  writeF32(view, 24, values["query_scale"], kernel, "query_scale");
+  view.setUint32(28, 0, true);
+}
+
 export function write_rope_backward_default(view, values, kernel) {
   writeU32(view, 0, values["seq_len"], kernel, "seq_len");
   writeU32(view, 4, values["num_heads"], kernel, "num_heads");

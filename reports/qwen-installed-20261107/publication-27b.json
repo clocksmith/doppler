@@ -1,0 +1,86 @@
+{
+  "repo": "clocksmith/rdrr",
+  "parent": "3a05b346b1c86abf02c7620f2369a9a7b82cb62f",
+  "revision": "2061f17e310f9c240c77368f55e5e50509a88dfd",
+  "url": "https://huggingface.co/clocksmith/rdrr/commit/2061f17e310f9c240c77368f55e5e50509a88dfd",
+  "models": [
+    "qwen-3-6-27b-q4k-ehaf16",
+    "qwen-3-6-27b-q4k-eaf16"
+  ],
+  "receipts": [
+    {
+      "schema": "doppler.source-aware-metadata-refresh/v1",
+      "modelId": "qwen-3-6-27b-q4k-ehaf16",
+      "manifestSha256": "762b58979a98151c69bfb272cf35e2ab4ea4767c3112d57181fe76b98cf5dd81",
+      "artifactIdentity": {
+        "artifactCompleteness": "complete",
+        "conversionConfigDigest": "sha256:7325a48a232a2a6836bb84e2c1db618e7bcf281856059dfe30a1df31402f94d5",
+        "conversionConfigPath": "reports/qwen-installed-20261107/27b-derived-conversion.json",
+        "manifestVariantId": "qwen-3-6-27b-q4k-ehaf16-mv-3d9e82a6d516",
+        "materializationProfile": "auto",
+        "modalitySet": [
+          "text"
+        ],
+        "shardSetHash": "sha256:6a0010a7f36c79d0093c23d690eb5097ae793e1a4dd11c564df6b9b6092d797e",
+        "sourceCheckpointId": "Qwen/Qwen3.6-27B",
+        "sourceFormat": "safetensors",
+        "sourceRepo": "Qwen/Qwen3.6-27B",
+        "sourceRevision": "main",
+        "weightCapsuleHash": "sha256:735a054a6c75fc3ecc45cf55a3056ce295741e91641c7b93ab8265bf494841d3",
+        "weightCapsuleId": "qwen-3-6-27b-q4k-ehaf16-wp-735a054a6c75"
+      },
+      "weightsChanged": false,
+      "qualified": false,
+      "sourceConfig": {
+        "repo": "Qwen/Qwen3.6-27B",
+        "revision": "8f33b98937c6031bb49e713dee3e8e185aafd26f",
+        "sha256": "69db4eb7196bc8190813231b3018ca05d8c2e3abc7b1af19d55c157af44a9d9c"
+      },
+      "weightProvenanceLimit": "Original conversion records sourceRevision main; newly pinned source config does not retroactively pin original weights. Converted bytes authenticated against immutable clocksmith/rdrr Git-LFS inventory.",
+      "authenticationReceipt": "27b-byte-authentication.json",
+      "requiredRuntimeFix": "q4_fused_batched_f16acc_f16a column-row-tile-3d for wide F16 vocabulary head",
+      "scope": "Short greedy generation and resident reuse on AMD; no full-logit or quality qualification transferred."
+    },
+    {
+      "schema": "doppler.source-aware-metadata-refresh/v1",
+      "modelId": "qwen-3-6-27b-q4k-eaf16",
+      "manifestSha256": "87a39ce891e3de1de9e57b6f28de0e9ae644478fe83fe377a3ceeb6a99a3c5ec",
+      "artifactIdentity": {
+        "artifactCompleteness": "weights-ref",
+        "conversionConfigDigest": "sha256:3c34f17f8392e668a2c0637e5b72f021955a55fefafb96d450435d8fb766cdd0",
+        "conversionConfigPath": "reports/qwen-installed-20261107/27b-f16-derived-conversion.json",
+        "manifestVariantId": "qwen-3-6-27b-q4k-eaf16-mv-c129e9823c03",
+        "materializationProfile": "auto",
+        "modalitySet": [
+          "text"
+        ],
+        "shardSetHash": "sha256:6a0010a7f36c79d0093c23d690eb5097ae793e1a4dd11c564df6b9b6092d797e",
+        "sourceCheckpointId": "Qwen/Qwen3.6-27B",
+        "sourceFormat": "safetensors",
+        "sourceRepo": "Qwen/Qwen3.6-27B",
+        "sourceRevision": "main",
+        "weightCapsuleHash": "sha256:735a054a6c75fc3ecc45cf55a3056ce295741e91641c7b93ab8265bf494841d3",
+        "weightCapsuleId": "qwen-3-6-27b-q4k-ehaf16-wp-735a054a6c75"
+      },
+      "weightsChanged": false,
+      "qualified": false,
+      "sourceConfig": {
+        "repo": "Qwen/Qwen3.6-27B",
+        "revision": "8f33b98937c6031bb49e713dee3e8e185aafd26f",
+        "sha256": "69db4eb7196bc8190813231b3018ca05d8c2e3abc7b1af19d55c157af44a9d9c"
+      },
+      "weightProvenanceLimit": "Original conversion records sourceRevision main; newly pinned source config does not retroactively pin original weights. Converted bytes authenticated against immutable clocksmith/rdrr Git-LFS inventory.",
+      "authenticationReceipt": "27b-byte-authentication.json",
+      "requiredRuntimeFix": "q4_fused_batched_f16acc_f16a column-row-tile-3d for wide F16 vocabulary head",
+      "scope": "Short greedy generation and resident reuse on AMD; no full-logit or quality qualification transferred.",
+      "originalMetadata": {
+        "sourceRevision": "3dee21b3b12d65ac7fef9b24cbf759cacc953a67",
+        "originalManifestSha256": "41dedf4bbbcf70d3132012e593fb126df9e099bb723f9092b2ebd364ddf5e7df",
+        "authenticatedReferenceManifestSha256": "762b58979a98151c69bfb272cf35e2ab4ea4767c3112d57181fe76b98cf5dd81",
+        "weightsChanged": false,
+        "qualified": false
+      }
+    }
+  ],
+  "weightsChanged": false
+}

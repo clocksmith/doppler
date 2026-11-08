@@ -1,0 +1,35 @@
+[
+  {
+    "modelId": "qwen-3-5-0-8b-q4k-ehaf16",
+    "sourceRevision": "80d7716270b6371d541de979eff3370edaf34e13",
+    "exitCode": 0,
+    "manifestHash": "c5fcf38e945f1c048faca9ccda8991f1494563317f46a6dd79e0714ad001c569",
+    "shards": 18,
+    "inventoryHash": "70217d4b0c33c03c1310f07c3fc52167c707e4b12dd2afdc4051b431832c1ece",
+    "destination": "operator-state",
+    "artifactIdentity": {
+      "artifactCompleteness": "complete",
+      "conversionConfigDigest": "sha256:f25a87e06dbb4b112fd8e3710894059f80904a35e1a95cb1ab0f1106c50a0ac9",
+      "conversionConfigPath": "src/config/conversion/qwen3/qwen-3-5-0-8b-q4k-ehaf16.json",
+      "manifestVariantId": "qwen-3-5-0-8b-q4k-ehaf16-mv-48ade0e66f84",
+      "materializationProfile": "auto",
+      "modalitySet": [
+        "text",
+        "vision"
+      ],
+      "shardSetHash": "sha256:a313f0ad972c676468885aaea5ec2ac68d3f2aae3b66f4f483927648d9c63152",
+      "sourceCheckpointId": "Qwen/Qwen3.5-0.8B",
+      "sourceFormat": "safetensors",
+      "sourceRepo": "Qwen/Qwen3.5-0.8B",
+      "sourceRevision": "2fc06364715b967f1860aea9cf38778875588b17",
+      "weightCapsuleHash": "sha256:7f4f20cbb633dbf8c62f4652fb2c8ce3d4fb3787a2c3ecd414f8e96dee4133d1",
+      "weightCapsuleId": "qwen-3-5-0-8b-q4k-ehaf16-wp-7f4f20cbb633"
+    }
+  },
+  {
+    "modelId": "qwen-3-6-27b-q4k-ehaf16",
+    "sourceRevision": "b402f6f27837857d51636da5f78c12bcd47e2a03",
+    "exitCode": 1,
+    "failure": "file://operator-model-source\n    throw new Error(`Invalid manifest:\\n  - ${validation.errors.join('\\n  - ')}`);\n          ^\n\nError: Invalid manifest:\n  - Manifest \"qwen-3-6-27b-q4k-ehaf16\" has incomplete inference config. Missing required fields:\n  - ffn.branchMode is required\n  - output.embeddingScale must be explicitly set (null for scaleEmbeddings semantics, or number)\n  - output.logitInputScale is required\n  - layerPattern.residualBranchScale is required\n  - rope.longropeShortFactor must be explicitly set (null if not LongRoPE)\n  - rope.longropeLongFactor must be explicitly set (null if not LongRoPE)\n  - rope.longropeOriginalMaxPos must be explicitly set (null if not LongRoPE)\n  - rope LongRoPE fields must be null unless rope.ropeScalingType is \"longrope\"\nRe-convert the model using the latest converter.\n    at parseManifest (file://operator-model-source\n    at migrateRdrrShardHashes (file://operator-model-source\n    at async file://operator-model-source\n\nNode.js v22.22.1\n"
+  }
+]

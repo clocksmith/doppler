@@ -1,0 +1,121 @@
+[
+  {
+    "modelId": "qwen-3-embedding-0-6b-q4k-ehf16-af32",
+    "sourceRevision": "049000f49325dca7db2ed2c9de2c8881bd0f4603",
+    "sourcePrefix": "models/qwen-3-embedding-0-6b-q4k-ehf16-af32",
+    "exitCode": 0,
+    "manifestHash": "c16d679b57c7048bd3bdbd63655dea0787681305443ec0f05065be3c3cee052f",
+    "shards": 9,
+    "inventoryHash": "c24ea947e7aa6b775173c1129dafb4ef13b21fa598c823b70850c7a81af60da4",
+    "destination": "operator-state",
+    "artifactIdentity": {
+      "artifactCompleteness": "complete",
+      "conversionConfigDigest": "sha256:a290edefde2f3156a8494d0aec19dcfadb7b57e8317fd97a75b32cdecd4d074b",
+      "conversionConfigPath": "src/config/conversion/qwen3/qwen-3-embedding-0-6b-q4k-ehf16-af32.json",
+      "manifestVariantId": "qwen-3-embedding-0-6b-q4k-ehf16-af32-mv-f71d6b641050",
+      "materializationProfile": "auto",
+      "modalitySet": [
+        "embedding"
+      ],
+      "shardSetHash": "sha256:8b6a4043c2dc30b50e21703018bc9e9a64130262d8af5192e58114e70946fa77",
+      "sourceCheckpointId": "Qwen/Qwen3-Embedding-0.6B",
+      "sourceFormat": "safetensors",
+      "weightCapsuleHash": "sha256:0b8a8f7d66bf8831c590341d425f5bc66b0e2a6f423d70b5269af63c0605d456",
+      "weightCapsuleId": "qwen-3-embedding-0-6b-q4k-ehf16-af32-wp-0b8a8f7d66bf"
+    }
+  },
+  {
+    "modelId": "qwen-3-reranker-0-6b-q4k-ehf16-af32",
+    "sourceRevision": "f86fe245b9bbc275cd69af46b1d45d47ea685a55",
+    "sourcePrefix": "models/qwen-3-reranker-0-6b-q4k-ehf16-af32",
+    "exitCode": 0,
+    "manifestHash": "8b5e3df929a8a4c5bc84097d552dceb717e10616638e2fddfe1bf6aa80bd77ce",
+    "shards": 14,
+    "inventoryHash": "a9b7b21c9a969ef460c633b8ea9ba4b2215ef9155125617201c958f8763bd61e",
+    "destination": "operator-state",
+    "artifactIdentity": {
+      "artifactCompleteness": "complete",
+      "conversionConfigDigest": "sha256:528d37e227bd974a8bc1673481c7d9f6b937759d8f560e9d6aaf7e9e71e275d4",
+      "manifestVariantId": "qwen-3-reranker-0-6b-q4k-ehf16-af32-mv-70c63bfc5427",
+      "materializationProfile": "auto",
+      "modalitySet": [
+        "text"
+      ],
+      "shardSetHash": "sha256:8f4197344db3095289c7aedc9511a1920db5d24c48c36a1c358d10f086b9be13",
+      "sourceCheckpointId": "Qwen/Qwen3-Reranker-0.6B",
+      "sourceFormat": "safetensors",
+      "weightCapsuleHash": "sha256:74f069838f13f0ed402050a044f5022bbc63f4c8cfcd9f2003611a1e6ba02529",
+      "weightCapsuleId": "qwen-3-reranker-0-6b-q4k-ehf16-af32-wp-74f069838f13"
+    }
+  },
+  {
+    "modelId": "qwen-3-reranker-0-6b-f16-af32",
+    "sourceRevision": "cc1fafff8cda609372b608cd92e487f6a2c32bc8",
+    "sourcePrefix": "models/qwen-3-reranker-0-6b-f16-af32",
+    "exitCode": 0,
+    "manifestHash": "258b195da152abbd981b0d138b6bbdf583d99ff417dc728c47529d60a059fb85",
+    "shards": 18,
+    "inventoryHash": "ca5b13a84742ca21307595e04da0869b727466a9a30008202f3f6de35ce458a4",
+    "destination": "operator-state",
+    "artifactIdentity": {
+      "artifactCompleteness": "complete",
+      "conversionConfigDigest": "sha256:764760952bfe10c65ff6d45f1dba7a723e596a616e9d1f4f5e886beff70c6e17",
+      "conversionConfigPath": "src/config/conversion/qwen3/qwen-3-reranker-0-6b-f16-af32.json",
+      "manifestVariantId": "qwen-3-reranker-0-6b-f16-af32-mv-6599b29f4339",
+      "materializationProfile": "auto",
+      "modalitySet": [
+        "text"
+      ],
+      "shardSetHash": "sha256:d741d1bef1997c2a195949ec2eb5720ec80907675903765c77493ee1458687be",
+      "sourceCheckpointId": "Qwen/Qwen3-Reranker-0.6B",
+      "sourceFormat": "safetensors",
+      "weightCapsuleHash": "sha256:e2c46113e1292e2ea5c08b0e46a5f92fe80d51854000e683fef3ff09ae7540a1",
+      "weightCapsuleId": "qwen-3-reranker-0-6b-f16-af32-wp-e2c46113e129"
+    }
+  },
+  {
+    "modelId": "qwen-3-5-0-8b-q4k-ehaf16",
+    "sourceRevision": "80d7716270b6371d541de979eff3370edaf34e13",
+    "sourcePrefix": "models/qwen-3-5-0-8b-q4k-ehaf16",
+    "exitCode": 1,
+    "failure": "file://operator-model-source\n      throw new Error(`Independent inventory byte mismatch: ${filename}`);\n            ^\n\nError: Independent inventory byte mismatch: manifest.json\n    at verify (file://operator-model-source\n    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)\n    at async migrateRdrrShardHashes (file://operator-model-source\n    at async file://operator-model-source\n\nNode.js v22.22.1\n"
+  },
+  {
+    "modelId": "qwen-3-5-2b-q4k-ehaf16",
+    "sourceRevision": "977d145bf2478a7fb542e6aca65030585620ca60",
+    "sourcePrefix": "models/qwen-3-5-2b-q4k-ehaf16",
+    "exitCode": 0,
+    "manifestHash": "de880cb8ca348530ef68199eaaddb553195b5f4ed652f0ae0a22420acfc6f26d",
+    "shards": 32,
+    "inventoryHash": "486a17e4c21bd5d7d0a94f323c40266feb42ca0e6f5ad875d5de6d2bd2dd6011",
+    "destination": "operator-state",
+    "artifactIdentity": {
+      "artifactCompleteness": "complete",
+      "conversionConfigDigest": "sha256:2f46bcfb867fd8caedfd31420aa3d05b29b83f0d5d8fe7140e5f767aa3e89132",
+      "conversionConfigPath": "src/config/conversion/qwen3/qwen-3-5-2b-q4k-ehaf16.json",
+      "manifestVariantId": "qwen-3-5-2b-q4k-ehaf16-mv-4af4cf72a939",
+      "materializationProfile": "auto",
+      "modalitySet": [
+        "text"
+      ],
+      "shardSetHash": "sha256:4044885c8b90d2f27b6604ae7e53f84814faf6676e624b6d4280bd0d50539d04",
+      "sourceCheckpointId": "Qwen/Qwen3.5-2B",
+      "sourceFormat": "safetensors",
+      "weightCapsuleHash": "sha256:deed4c707f46dcb17d497f123e81c4d7739490e009f1feb594a321b540d2b0ea",
+      "weightCapsuleId": "qwen-3-5-2b-q4k-ehaf16-wp-deed4c707f46"
+    }
+  },
+  {
+    "modelId": "qwen-3-6-27b-q4k-ehaf16",
+    "sourceRevision": "b402f6f27837857d51636da5f78c12bcd47e2a03",
+    "sourcePrefix": "models/qwen-3-6-27b-q4k-ehaf16",
+    "exitCode": 1,
+    "failure": "file://operator-model-source\n      throw new Error(`Independent inventory byte mismatch: ${filename}`);\n            ^\n\nError: Independent inventory byte mismatch: manifest.json\n    at verify (file://operator-model-source\n    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)\n    at async migrateRdrrShardHashes (file://operator-model-source\n    at async file://operator-model-source\n\nNode.js v22.22.1\n"
+  },
+  {
+    "modelId": "qwen-3-6-27b-q4k-eaf16",
+    "sourceRevision": "3dee21b3b12d65ac7fef9b24cbf759cacc953a67",
+    "sourcePrefix": "models/qwen-3-6-27b-q4k-eaf16",
+    "failure": "Variant uses weightsRef; must migrate its exact referenced capsule separately"
+  }
+]

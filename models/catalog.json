@@ -1215,7 +1215,7 @@
       },
       "hf": {
         "repoId": "clocksmith/rdrr",
-        "revision": "049000f49325dca7db2ed2c9de2c8881bd0f4603",
+        "revision": "3a05b346b1c86abf02c7620f2369a9a7b82cb62f",
         "path": "models/qwen-3-embedding-0-6b-q4k-ehf16-af32"
       },
       "baseUrl": null,
@@ -1248,7 +1248,7 @@
           "contracts": {
             "executionContractOk": true
           },
-          "notes": "Fresh hosted registry verify receipts pass on node (reports/release-claims/qwen-3-embedding-0-6b-q4k-ehf16-af32/2026-07-05T16-24-38.048Z.node.json) and browser (reports/release-claims/qwen-3-embedding-0-6b-q4k-ehf16-af32/2026-07-05T16-26-35.664Z.browser.json). Semantic retrieval top-1 accuracy 0.90, semantic pair accuracy 0.7143, finite ratio 1.0, 1024-dimensional unit-norm embeddings. Fresh speed evidence: node embeddingMs 144.14, browser embeddingMs 184.70, and local comparable benchmark benchmarks/vendors/results/embedding_compare_qwen-3-embedding-0-6b-q4k-ehf16-af32_20260705T152659.json (Doppler medianEmbeddingMs 67.60; Transformers.js q4f16 medianEmbeddingMs 155.68; correctnessOk true)."
+          "notes": "Fresh hosted registry verify receipts pass on node (reports/release-claims/qwen-3-embedding-0-6b-q4k-ehf16-af32/2026-07-05T16-24-38.048Z.node.json) and browser (reports/release-claims/qwen-3-embedding-0-6b-q4k-ehf16-af32/2026-07-05T16-26-35.664Z.browser.json). Semantic retrieval top-1 accuracy 0.90, semantic pair accuracy 0.7143, finite ratio 1.0, 1024-dimensional unit-norm embeddings. Fresh speed evidence: node embeddingMs 144.14, browser embeddingMs 184.70, and local comparable benchmark benchmarks/vendors/results/embedding_compare_qwen-3-embedding-0-6b-q4k-ehf16-af32_20260705T152659.json (Doppler medianEmbeddingMs 67.60; Transformers.js q4f16 medianEmbeddingMs 155.68; correctnessOk true). Updated manifest/shard authentication and bounded AMD Node functional smoke: reports/qwen-installed-20261107/README.md. Historical browser/quality evidence is not transferred to this refreshed identity; this run establishes only the explicitly recorded smoke checks."
         }
       },
       "verify": {
@@ -1266,8 +1266,8 @@
         }
       },
       "sourceCheckpointId": "Qwen/Qwen3-Embedding-0.6B",
-      "weightCapsuleId": "qwen-3-embedding-0-6b-q4k-ehf16-af32-wp-catalog-v1",
-      "manifestVariantId": "qwen-3-embedding-0-6b-q4k-ehf16-af32-mv-exec-v1",
+      "weightCapsuleId": "qwen-3-embedding-0-6b-q4k-ehf16-af32-wp-0b8a8f7d66bf",
+      "manifestVariantId": "qwen-3-embedding-0-6b-q4k-ehf16-af32-mv-f71d6b641050",
       "artifactCompleteness": "complete",
       "runtimePromotionState": "manifest-owned",
       "weightsRefAllowed": false
@@ -1303,7 +1303,7 @@
       },
       "hf": {
         "repoId": "clocksmith/rdrr",
-        "revision": "f86fe245b9bbc275cd69af46b1d45d47ea685a55",
+        "revision": "3a05b346b1c86abf02c7620f2369a9a7b82cb62f",
         "path": "models/qwen-3-reranker-0-6b-q4k-ehf16-af32"
       },
       "baseUrl": null,
@@ -1336,7 +1336,7 @@
           "contracts": {
             "executionContractOk": true
           },
-          "notes": "Fresh hosted registry verify receipts pass on node (reports/release-claims/qwen-3-reranker-0-6b-q4k-ehf16-af32/2026-07-05T16-28-17.169Z.node.json) and browser (reports/release-claims/qwen-3-reranker-0-6b-q4k-ehf16-af32/2026-07-05T16-30-58.312Z.browser.json). Semantic pair accuracy 1.0 (5/5) on both receipts, WebGPU query topDocumentIndex 0, rerankMs 1665.34 on node and 1797.80 in browser for the three-document smoke request. Speed evidence: reports/release-claims/qwen-3-reranker-0-6b-q4k-ehf16-af32/2026-07-04T18-43-20.530Z.bench.json (medianRerankMs 1546.27 for the same request). External reranker receipts compare against onnx-community/Qwen3-Reranker-0.6B-ONNX using the q4 ONNX artifact and must not be summarized as a Doppler speed win unless the saved receipt says Doppler leads."
+          "notes": "Fresh hosted registry verify receipts pass on node (reports/release-claims/qwen-3-reranker-0-6b-q4k-ehf16-af32/2026-07-05T16-28-17.169Z.node.json) and browser (reports/release-claims/qwen-3-reranker-0-6b-q4k-ehf16-af32/2026-07-05T16-30-58.312Z.browser.json). Semantic pair accuracy 1.0 (5/5) on both receipts, WebGPU query topDocumentIndex 0, rerankMs 1665.34 on node and 1797.80 in browser for the three-document smoke request. Speed evidence: reports/release-claims/qwen-3-reranker-0-6b-q4k-ehf16-af32/2026-07-04T18-43-20.530Z.bench.json (medianRerankMs 1546.27 for the same request). External reranker receipts compare against onnx-community/Qwen3-Reranker-0.6B-ONNX using the q4 ONNX artifact and must not be summarized as a Doppler speed win unless the saved receipt says Doppler leads. Updated manifest/shard authentication and bounded AMD Node functional smoke: reports/qwen-installed-20261107/README.md. Historical browser/quality evidence is not transferred to this refreshed identity; this run establishes only the explicitly recorded smoke checks."
         }
       },
       "verify": {
@@ -1363,8 +1363,8 @@
         }
       },
       "sourceCheckpointId": "Qwen/Qwen3-Reranker-0.6B",
-      "weightCapsuleId": "qwen-3-reranker-0-6b-q4k-ehf16-af32-wp-catalog-v2",
-      "manifestVariantId": "qwen-3-reranker-0-6b-q4k-ehf16-af32-mv-exec-v2",
+      "weightCapsuleId": "qwen-3-reranker-0-6b-q4k-ehf16-af32-wp-74f069838f13",
+      "manifestVariantId": "qwen-3-reranker-0-6b-q4k-ehf16-af32-mv-70c63bfc5427",
       "artifactCompleteness": "complete",
       "runtimePromotionState": "manifest-owned",
       "weightsRefAllowed": false
@@ -1401,7 +1401,7 @@
       },
       "hf": {
         "repoId": "clocksmith/rdrr",
-        "revision": "cc1fafff8cda609372b608cd92e487f6a2c32bc8",
+        "revision": "3a05b346b1c86abf02c7620f2369a9a7b82cb62f",
         "path": "models/qwen-3-reranker-0-6b-f16-af32"
       },
       "baseUrl": null,
@@ -1433,7 +1433,7 @@
           "contracts": {
             "executionContractOk": true
           },
-          "notes": "Release evidence: reports/release-claims/qwen-3-reranker-0-6b-f16-af32/2026-07-04T02-00-00.000Z.json. Semantic pair accuracy 1.0 (5/5), WebGPU query topDocumentIndex 0, rerankMs 4057.56 for the three-document smoke request. No separate benchmark receipt is promoted for this f16 reranker lane."
+          "notes": "Release evidence: reports/release-claims/qwen-3-reranker-0-6b-f16-af32/2026-07-04T02-00-00.000Z.json. Semantic pair accuracy 1.0 (5/5), WebGPU query topDocumentIndex 0, rerankMs 4057.56 for the three-document smoke request. No separate benchmark receipt is promoted for this f16 reranker lane. Updated manifest/shard authentication and bounded AMD Node functional smoke: reports/qwen-installed-20261107/README.md. Historical browser/quality evidence is not transferred to this refreshed identity; this run establishes only the explicitly recorded smoke checks."
         }
       },
       "verify": {
@@ -1453,8 +1453,8 @@
       },
       "vendorBenchmark": null,
       "sourceCheckpointId": "Qwen/Qwen3-Reranker-0.6B",
-      "weightCapsuleId": "qwen-3-reranker-0-6b-f16-af32-wp-catalog-v1",
-      "manifestVariantId": "qwen-3-reranker-0-6b-f16-af32-mv-exec-v1",
+      "weightCapsuleId": "qwen-3-reranker-0-6b-f16-af32-wp-e2c46113e129",
+      "manifestVariantId": "qwen-3-reranker-0-6b-f16-af32-mv-6599b29f4339",
       "artifactCompleteness": "complete",
       "runtimePromotionState": "manifest-owned",
       "weightsRefAllowed": false
@@ -1518,7 +1518,7 @@
           "contracts": {
             "executionContractOk": true
           },
-          "notes": "Failure evidence: reports/release-claims/minicpm4-0-5b-f16-af32/2026-07-04T01-07-00.000Z.failed.json. The prompt \"Q: What color is the sky on a clear day? A:\" produced \"This problem question: When是我国 an an\", so the artifact remains local-only until tokenizer/template/config correctness is fixed."
+          "notes": "Failure evidence: reports/release-claims/minicpm4-0-5b-f16-af32/2026-07-04T01-07-00.000Z.failed.json. The prompt \"Q: What color is the sky on a clear day? A:\" produced \"This problem question: When\u662f\u6211\u56fd an an\", so the artifact remains local-only until tokenizer/template/config correctness is fixed."
         }
       },
       "vendorBenchmark": null,
@@ -1668,7 +1668,7 @@
       },
       "hf": {
         "repoId": "clocksmith/rdrr",
-        "revision": "977d145bf2478a7fb542e6aca65030585620ca60",
+        "revision": "3a05b346b1c86abf02c7620f2369a9a7b82cb62f",
         "path": "models/qwen-3-5-2b-q4k-ehaf16"
       },
       "baseUrl": null,
@@ -1706,7 +1706,7 @@
           "result": "pass",
           "lastVerifiedAt": "2026-06-15",
           "source": "local-node-webgpu-verify",
-          "notes": "Browser/Node release evidence is package-visible at reports/release-claims/qwen-3-5-2b-q4k-ehaf16/2026-05-03T02-33-21.397Z.json. The execution-v1 lane keeps the fixed fused-Q4 decode path and q4 LM-head/prefill kernels; the hosted clocksmith/rdrr artifact is approved for quickstart resolution with explicit stop-token metadata.",
+          "notes": "Browser/Node release evidence is package-visible at reports/release-claims/qwen-3-5-2b-q4k-ehaf16/2026-05-03T02-33-21.397Z.json. The execution-v1 lane keeps the fixed fused-Q4 decode path and q4 LM-head/prefill kernels; the hosted clocksmith/rdrr artifact is approved for quickstart resolution with explicit stop-token metadata. Updated manifest/shard authentication and bounded AMD Node functional smoke: reports/qwen-installed-20261107/README.md. Historical browser/quality evidence is not transferred to this refreshed identity; this run establishes only the explicitly recorded smoke checks.",
           "contracts": {
             "executionContractOk": true
           }
@@ -1719,8 +1719,8 @@
         }
       },
       "sourceCheckpointId": "Qwen/Qwen3.5-2B",
-      "weightCapsuleId": "qwen-3-5-2b-q4k-ehaf16-wp-catalog-v1",
-      "manifestVariantId": "qwen-3-5-2b-q4k-ehaf16-mv-exec-v1",
+      "weightCapsuleId": "qwen-3-5-2b-q4k-ehaf16-wp-deed4c707f46",
+      "manifestVariantId": "qwen-3-5-2b-q4k-ehaf16-mv-4af4cf72a939",
       "artifactCompleteness": "complete",
       "runtimePromotionState": "manifest-owned",
       "weightsRefAllowed": false
@@ -1756,7 +1756,7 @@
       },
       "hf": {
         "repoId": "clocksmith/rdrr",
-        "revision": "b402f6f27837857d51636da5f78c12bcd47e2a03",
+        "revision": "2061f17e310f9c240c77368f55e5e50509a88dfd",
         "path": "models/qwen-3-6-27b-q4k-ehaf16"
       },
       "baseUrl": null,
@@ -1790,7 +1790,7 @@
           "result": "pass",
           "lastVerifiedAt": "2026-04-28",
           "source": "browser-webgpu-smoke",
-          "notes": "Committed program-bundle reference reports/program-bundles/qwen-3-6-27b-q4k-ehaf16/2026-04-28T01-19-10.497Z.reference.json captured a deterministic reference transcript and executionContractOk=true. Hosted artifact is enabled for web demo download; quickstart remains disabled.",
+          "notes": "Committed program-bundle reference reports/program-bundles/qwen-3-6-27b-q4k-ehaf16/2026-04-28T01-19-10.497Z.reference.json captured a deterministic reference transcript and executionContractOk=true. Hosted artifact is enabled for web demo download; quickstart remains disabled. Updated manifest/shard authentication and bounded AMD Node functional smoke: reports/qwen-installed-20261107/README.md. Historical browser/quality evidence is not transferred to this refreshed identity; this run establishes only the explicitly recorded smoke checks.",
           "contracts": {
             "executionContractOk": true
           }
@@ -1798,8 +1798,8 @@
       },
       "vendorBenchmark": null,
       "sourceCheckpointId": "Qwen/Qwen3.6-27B",
-      "weightCapsuleId": "qwen-3-6-27b-q4k-ehaf16-wp-catalog-v1",
-      "manifestVariantId": "qwen-3-6-27b-q4k-ehaf16-mv-exec-v1",
+      "weightCapsuleId": "qwen-3-6-27b-q4k-ehaf16-wp-735a054a6c75",
+      "manifestVariantId": "qwen-3-6-27b-q4k-ehaf16-mv-3d9e82a6d516",
       "artifactCompleteness": "complete",
       "runtimePromotionState": "manifest-owned",
       "weightsRefAllowed": false
@@ -1834,7 +1834,7 @@
       },
       "hf": {
         "repoId": "clocksmith/rdrr",
-        "revision": "3dee21b3b12d65ac7fef9b24cbf759cacc953a67",
+        "revision": "2061f17e310f9c240c77368f55e5e50509a88dfd",
         "path": "models/qwen-3-6-27b-q4k-eaf16"
       },
       "baseUrl": null,
@@ -1864,7 +1864,7 @@
           "result": "pass",
           "lastVerifiedAt": "2026-04-29",
           "source": "browser-node-webgpu-smoke",
-          "notes": "Committed program-bundle reference reports/program-bundles/qwen-3-6-27b-q4k-eaf16/capture.node.reference.json produces coherent sky prompt output with f16 compute.",
+          "notes": "Committed program-bundle reference reports/program-bundles/qwen-3-6-27b-q4k-eaf16/capture.node.reference.json produces coherent sky prompt output with f16 compute. Updated manifest/shard authentication and bounded AMD Node functional smoke: reports/qwen-installed-20261107/README.md. Historical browser/quality evidence is not transferred to this refreshed identity; this run establishes only the explicitly recorded smoke checks.",
           "contracts": {
             "executionContractOk": true
           }
@@ -1872,8 +1872,8 @@
       },
       "vendorBenchmark": null,
       "sourceCheckpointId": "Qwen/Qwen3.6-27B",
-      "weightCapsuleId": "qwen-3-6-27b-q4k-ehaf16-wp-catalog-v1",
-      "manifestVariantId": "qwen-3-6-27b-q4k-eaf16-mv-exec-v1",
+      "weightCapsuleId": "qwen-3-6-27b-q4k-ehaf16-wp-735a054a6c75",
+      "manifestVariantId": "qwen-3-6-27b-q4k-eaf16-mv-c129e9823c03",
       "artifactCompleteness": "weights-ref",
       "runtimePromotionState": "manifest-owned",
       "weightsRefAllowed": true

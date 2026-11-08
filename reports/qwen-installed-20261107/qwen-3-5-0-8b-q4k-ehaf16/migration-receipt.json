@@ -1,0 +1,168 @@
+{
+  "contractVersion": 1,
+  "migration": "legacy-shard-digests-to-standard-sha256",
+  "originalManifestHash": "edeb69dd65cbb26971abf773a95bf6dc219a82942c0951d65e1893d442b607c9",
+  "manifestHash": "c5fcf38e945f1c048faca9ccda8991f1494563317f46a6dd79e0714ad001c569",
+  "originalArtifactIdentity": {
+    "artifactCompleteness": "complete",
+    "conversionConfigDigest": "sha256:f25a87e06dbb4b112fd8e3710894059f80904a35e1a95cb1ab0f1106c50a0ac9",
+    "conversionConfigPath": "src/config/conversion/qwen3/qwen-3-5-0-8b-q4k-ehaf16.json",
+    "manifestVariantId": "qwen-3-5-0-8b-q4k-ehaf16-mv-exec-v1",
+    "materializationProfile": "auto",
+    "modalitySet": [
+      "text",
+      "vision"
+    ],
+    "sourceCheckpointId": "Qwen/Qwen3.5-0.8B",
+    "sourceFormat": "safetensors",
+    "sourceRepo": "Qwen/Qwen3.5-0.8B",
+    "sourceRevision": "2fc06364715b967f1860aea9cf38778875588b17",
+    "weightPackHash": "sha256:fab133e49d6dc67912fc3a087222ec44ca1941d9b7bc36c60cb1379863a6dd4f",
+    "weightPackId": "qwen-3-5-0-8b-q4k-ehaf16-wp-catalog-v1"
+  },
+  "artifactIdentity": {
+    "artifactCompleteness": "complete",
+    "conversionConfigDigest": "sha256:f25a87e06dbb4b112fd8e3710894059f80904a35e1a95cb1ab0f1106c50a0ac9",
+    "conversionConfigPath": "src/config/conversion/qwen3/qwen-3-5-0-8b-q4k-ehaf16.json",
+    "manifestVariantId": "qwen-3-5-0-8b-q4k-ehaf16-mv-48ade0e66f84",
+    "materializationProfile": "auto",
+    "modalitySet": [
+      "text",
+      "vision"
+    ],
+    "shardSetHash": "sha256:a313f0ad972c676468885aaea5ec2ac68d3f2aae3b66f4f483927648d9c63152",
+    "sourceCheckpointId": "Qwen/Qwen3.5-0.8B",
+    "sourceFormat": "safetensors",
+    "sourceRepo": "Qwen/Qwen3.5-0.8B",
+    "sourceRevision": "2fc06364715b967f1860aea9cf38778875588b17",
+    "weightCapsuleHash": "sha256:7f4f20cbb633dbf8c62f4652fb2c8ce3d4fb3787a2c3ecd414f8e96dee4133d1",
+    "weightCapsuleId": "qwen-3-5-0-8b-q4k-ehaf16-wp-7f4f20cbb633"
+  },
+  "independentInventoryHash": "70217d4b0c33c03c1310f07c3fc52167c707e4b12dd2afdc4051b431832c1ece",
+  "inventoryPrefix": "models/qwen-3-5-0-8b-q4k-ehaf16",
+  "files": [
+    {
+      "filename": "manifest.json",
+      "size": 214138,
+      "sha256": "edeb69dd65cbb26971abf773a95bf6dc219a82942c0951d65e1893d442b607c9",
+      "inventoryLfsSha256": null
+    },
+    {
+      "filename": "shard_00000.bin",
+      "size": 67108864,
+      "sha256": "96d19964c1444a98030586ba141b7b0c891fab95c52fb2c4429618a3ea711d1f",
+      "inventoryLfsSha256": "96d19964c1444a98030586ba141b7b0c891fab95c52fb2c4429618a3ea711d1f"
+    },
+    {
+      "filename": "shard_00001.bin",
+      "size": 67108864,
+      "sha256": "c6dbd495c64493cc0964d49f26a2b7f18319da95d6122c4f7a2d09d6a5d9459e",
+      "inventoryLfsSha256": "c6dbd495c64493cc0964d49f26a2b7f18319da95d6122c4f7a2d09d6a5d9459e"
+    },
+    {
+      "filename": "shard_00002.bin",
+      "size": 67108864,
+      "sha256": "8afc35b2a6dc0f6bbf5de2cea79f8f53f199cec03a66d8cf5a117b724ba00dec",
+      "inventoryLfsSha256": "8afc35b2a6dc0f6bbf5de2cea79f8f53f199cec03a66d8cf5a117b724ba00dec"
+    },
+    {
+      "filename": "shard_00003.bin",
+      "size": 67108864,
+      "sha256": "735461c9819224e8c3faf8cfd7f2069dab97ed824556184990f795a32c305b29",
+      "inventoryLfsSha256": "735461c9819224e8c3faf8cfd7f2069dab97ed824556184990f795a32c305b29"
+    },
+    {
+      "filename": "shard_00004.bin",
+      "size": 67108864,
+      "sha256": "3cbdeb4e0c2505038e4313c91580511f5175d9108ab05652f69040452b282f69",
+      "inventoryLfsSha256": "3cbdeb4e0c2505038e4313c91580511f5175d9108ab05652f69040452b282f69"
+    },
+    {
+      "filename": "shard_00005.bin",
+      "size": 67108864,
+      "sha256": "e34e6f23816d5cdaf1e16dfbf0d3f537d18fe673764d680d64245c84bfbf21b4",
+      "inventoryLfsSha256": "e34e6f23816d5cdaf1e16dfbf0d3f537d18fe673764d680d64245c84bfbf21b4"
+    },
+    {
+      "filename": "shard_00006.bin",
+      "size": 67108864,
+      "sha256": "70b3d422749e585719659b9e7627901d6aa1759851e717aec2abd8a96aab9313",
+      "inventoryLfsSha256": "70b3d422749e585719659b9e7627901d6aa1759851e717aec2abd8a96aab9313"
+    },
+    {
+      "filename": "shard_00007.bin",
+      "size": 67108864,
+      "sha256": "e564556babdfbb1baffab20a3778a434a0632047ff9347d203a19a9c818a89d4",
+      "inventoryLfsSha256": "e564556babdfbb1baffab20a3778a434a0632047ff9347d203a19a9c818a89d4"
+    },
+    {
+      "filename": "shard_00008.bin",
+      "size": 67108864,
+      "sha256": "82cd4797be5ab68f782ed7aae634ee38e472f4c4187c9b835df649e7aa79da55",
+      "inventoryLfsSha256": "82cd4797be5ab68f782ed7aae634ee38e472f4c4187c9b835df649e7aa79da55"
+    },
+    {
+      "filename": "shard_00009.bin",
+      "size": 67108864,
+      "sha256": "294432c344a641b36daca64e82f00c727c74fa131804e1430796b4c3b139ad7b",
+      "inventoryLfsSha256": "294432c344a641b36daca64e82f00c727c74fa131804e1430796b4c3b139ad7b"
+    },
+    {
+      "filename": "shard_00010.bin",
+      "size": 67108864,
+      "sha256": "1290c563dc8242a983122e16397c75fd3d700acbcec9d96ee94d5eb2f63c795e",
+      "inventoryLfsSha256": "1290c563dc8242a983122e16397c75fd3d700acbcec9d96ee94d5eb2f63c795e"
+    },
+    {
+      "filename": "shard_00011.bin",
+      "size": 67108864,
+      "sha256": "4f9be8b80afcb3b6780a6e450fe9b57827ceb227e197dcdb9343b8d3adab0387",
+      "inventoryLfsSha256": "4f9be8b80afcb3b6780a6e450fe9b57827ceb227e197dcdb9343b8d3adab0387"
+    },
+    {
+      "filename": "shard_00012.bin",
+      "size": 67108864,
+      "sha256": "93daf25bb1b1d4155b95f4b3969891220f66a66f71b00fe63a7f092967a7b668",
+      "inventoryLfsSha256": "93daf25bb1b1d4155b95f4b3969891220f66a66f71b00fe63a7f092967a7b668"
+    },
+    {
+      "filename": "shard_00013.bin",
+      "size": 67108864,
+      "sha256": "a9926de9af0b1bb05ac2b2a6b9bad1645b9a3fc3f740105b97e064959b12e690",
+      "inventoryLfsSha256": "a9926de9af0b1bb05ac2b2a6b9bad1645b9a3fc3f740105b97e064959b12e690"
+    },
+    {
+      "filename": "shard_00014.bin",
+      "size": 67108864,
+      "sha256": "b338167c0c6a7bb0c967c73b0730d212f1ad718a899a8db50fef8b332eed66a8",
+      "inventoryLfsSha256": "b338167c0c6a7bb0c967c73b0730d212f1ad718a899a8db50fef8b332eed66a8"
+    },
+    {
+      "filename": "shard_00015.bin",
+      "size": 67108864,
+      "sha256": "8bc98ed891947db766df770d7c52eb2afd6c8c3a827981ddae7e52d2caeae455",
+      "inventoryLfsSha256": "8bc98ed891947db766df770d7c52eb2afd6c8c3a827981ddae7e52d2caeae455"
+    },
+    {
+      "filename": "shard_00016.bin",
+      "size": 67108864,
+      "sha256": "914114c15d53702fedcd5bcbb153a4120b13fb45883ff76dabf9052fa8c9d266",
+      "inventoryLfsSha256": "914114c15d53702fedcd5bcbb153a4120b13fb45883ff76dabf9052fa8c9d266"
+    },
+    {
+      "filename": "shard_00017.bin",
+      "size": 5198016,
+      "sha256": "d8fb99646d5213b1b2609899a7d86cfb8a6b8d02b9aa934f1fade2a3f8f54c78",
+      "inventoryLfsSha256": "d8fb99646d5213b1b2609899a7d86cfb8a6b8d02b9aa934f1fade2a3f8f54c78"
+    },
+    {
+      "filename": "tokenizer.json",
+      "size": 9088480,
+      "sha256": "8fc3b6de02de5a8e21d3867aba335e2d9a3c2263201f55daaed1feab3541bea4",
+      "inventoryLfsSha256": null
+    }
+  ],
+  "unchangedExecution": true,
+  "qualificationTransferred": false,
+  "integrityExtensionsRebuilt": true
+}
