@@ -44,6 +44,16 @@ for saved playback. Packaging verifies a lossless export/import round trip.
 
 ## Actual example coverage
 
+The table below describes the original three-scalars-per-pixel display. The
+subsequent display audit changed the viewer to one scalar per opaque colored
+cell, corrected saved-window input offsets, and preserved the full extent of
+known-size missing tensor blocks. Its [playback receipt](../demo-heatmap-20261108/recorded-playback.json)
+records the new resolutions for all 18 available views, responsive checks at
+1200/390/320 pixels, and export/import with networking disabled. For example,
+layer outputs are now 157 × 157, the weight overview 248 × 248, weight × input
+170 × 170, and accumulated KV 333 × 333. These are display changes using the
+same retained numerical capture, not new physical-model qualification.
+
 These dimensions are the displayed RGB overview/window of the **0.8B recording**,
 not theoretical full-detail 27B dimensions. Each RGB pixel carries three mapped
 scalars; the saved numerical values retain their recording precision.
