@@ -109,6 +109,95 @@
         "maxGridValues": 4194304,
         "maxInFlight": 32
       }
+    },
+    {
+      "id": "demo/model-activity",
+      "label": "Model activity capture",
+      "modifiesExecution": true,
+      "performanceRepresentative": false,
+      "requiredCaptures": [
+        "artifact-identity",
+        "prompt-token-ids",
+        "generated-token-ids",
+        "selected-token-probabilities",
+        "top-candidates",
+        "word-quality",
+        "layer-activations"
+      ],
+      "allowedClaimTypes": [
+        "diagnostic"
+      ],
+      "gpuTimestampQueries": false,
+      "perplexity": {
+        "wordSegmentation": "doppler.word-segmentation/unicode-whitespace-v1",
+        "aggregation": "doppler.perplexity/summed-word-surprisal-v1",
+        "rollingWindow": {
+          "unit": "words",
+          "size": 8
+        }
+      },
+      "activationTrace": {
+        "maxBytes": 33554432,
+        "maxFrameBytes": 8388608,
+        "maxFrames": 8192,
+        "maxGridValues": 4194304,
+        "maxInFlight": 32,
+        "activityMaxBytes": 33554432,
+        "activityMaxFrameValues": 1048576,
+        "activityMaxStateValues": 16384,
+        "weightBlockValues": 16384,
+        "weightReadValues": 262144,
+        "weightRowGroupSize": 128,
+        "weightRawRows": 4,
+        "weightMaxBytes": 16777216,
+        "activityTokenWindow": 4,
+        "activitySummaryBlock": 256
+      }
+    },
+    {
+      "id": "demo/model-activity-timing",
+      "label": "Model activity and GPU timing",
+      "modifiesExecution": true,
+      "performanceRepresentative": false,
+      "requiredCaptures": [
+        "artifact-identity",
+        "prompt-token-ids",
+        "generated-token-ids",
+        "selected-token-probabilities",
+        "top-candidates",
+        "word-quality",
+        "layer-activations",
+        "gpu-timestamps"
+      ],
+      "allowedClaimTypes": [
+        "diagnostic"
+      ],
+      "gpuTimestampQueries": true,
+      "perplexity": {
+        "wordSegmentation": "doppler.word-segmentation/unicode-whitespace-v1",
+        "aggregation": "doppler.perplexity/summed-word-surprisal-v1",
+        "rollingWindow": {
+          "unit": "words",
+          "size": 8
+        }
+      },
+      "activationTrace": {
+        "maxBytes": 33554432,
+        "maxFrameBytes": 8388608,
+        "maxFrames": 8192,
+        "maxGridValues": 4194304,
+        "maxInFlight": 32,
+        "activityMaxBytes": 33554432,
+        "activityMaxFrameValues": 1048576,
+        "activityMaxStateValues": 16384,
+        "weightBlockValues": 16384,
+        "weightReadValues": 262144,
+        "weightRowGroupSize": 128,
+        "weightRawRows": 4,
+        "weightMaxBytes": 16777216,
+        "activityTokenWindow": 4,
+        "activitySummaryBlock": 256
+      }
     }
   ]
 }

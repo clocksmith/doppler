@@ -1,10 +1,11 @@
+import { createActivityTrace } from './activity-trace.js';
 import { snapshotTensor, snapshotFromArray, snapshotElementBytes } from './tensor.js';
 
 // Copies are enqueued before the caller can reuse its activation buffer. Mapping
 // runs asynchronously, with bounded staging and explicit gaps under backpressure.
 /** @type {typeof import('./activation-trace.js').createActivationTrace} */
 export function createActivationTrace(limits, geometry, identity, onFrame) {
-  /** @type {(keyof import('./activation-trace.js').ActivationTraceLimits)[]} */
+  /** @type {Array<'maxBytes' | 'maxFrameBytes' | 'maxFrames' | 'maxGridValues' | 'maxInFlight'>} */
   const fields = ['maxBytes', 'maxFrameBytes', 'maxFrames', 'maxGridValues', 'maxInFlight'];
   for (const key of fields) {
     if (!Number.isSafeInteger(limits[key]) || limits[key] < 1) throw new Error(`Activation trace requires ${key}.`);
@@ -21,15 +22,19 @@ export function createActivationTrace(limits, geometry, identity, onFrame) {
   /** @type {unknown} */
   let observerError = null;
   const started = performance.now();
+  const activity = limits.activityMaxBytes ? createActivityTrace(/** @type {import('./activity-trace.js').ActivityLimits} */ (limits), started) : undefined;
   /** @param {import('./activation-trace.js').ActivationFrame} frame */
   const publish = frame => {
     frames[frame.index] = Object.freeze(frame);
     try { onFrame?.(frames[frame.index]); } catch (error) { observerError ??= error; }
   };
   return {
+    activity,
     capture(buffer, context) {
       if (stoppedReason) return;
-      if (context.recorder) throw new Error('Activation capture requires immediate diagnostic execution.');
+      // Submit the producer before the independent staging copy; keep temporary
+      // resources owned by the recorder until its normal completion/abort path.
+      context.recorder?.submitPartial();
       const { layer, tokenStart, tokenIds, dtype } = context;
       if (layer === 0) forward++;
       if (!Number.isSafeInteger(layer) || layer < 0 || layer >= geometry.layers
@@ -78,7 +83,7 @@ export function createActivationTrace(limits, geometry, identity, onFrame) {
     },
     snapshot(status, includeFrames = true) {
       return { schema: 'doppler.activation-trace/v1', identity: { ...identity }, geometry: { ...geometry },
-        capturePolicy: { ...limits }, status, stoppedReason, recordedBytes: bytes, frames: includeFrames ? [...frames] : [] };
+        capturePolicy: { ...limits }, ...(activity ? { activity: activity.snapshot(true) } : {}), status, stoppedReason, recordedBytes: bytes, frames: includeFrames ? [...frames] : [] };
     },
   };
 }

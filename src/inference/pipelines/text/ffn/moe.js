@@ -84,6 +84,7 @@ export async function runMoEFFNGPU(
       groupedPrefill,
       phase: context.phase,
       signal: context.signal,
+      activity: context.operatorDiagnostics?.activity ?? null,
       sharedSlot: sharedSlot ? { weights: context.weights.get(`layer_${layerIdx}`),
         intermediateSize: config.moeSharedExpertIntermediateSize, kernelPath: context.kernelPath,
         phase: context.phase,

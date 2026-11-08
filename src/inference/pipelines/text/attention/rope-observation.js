@@ -38,3 +38,26 @@ export async function observeAttentionRoPE(options) {
     });
   }
 }
+
+export async function observeActivityAttention(options) {
+  const activity = options.state.operatorDiagnostics?.activity;
+  if (!activity) return;
+  const { kvState, qTensor, cachedKTensor, cachedVTensor, recorder, layerIdx,
+    numTokens, numHeads, numKVHeads, headDim, attnScale, attnSoftcap,
+    causalForAttention, effectiveSlidingWindow } = options;
+  if (kvState.kvLayout !== 'contiguous' || kvState.kvStart !== 0 || !cachedKTensor || !cachedVTensor) {
+    activity.unavailable('attention', 'This cache layout has no activity capture adapter.');
+    return;
+  }
+  const width = numKVHeads * headDim;
+  const metadata = { heads: numHeads, kvHeads: numKVHeads, headDim, scale: attnScale,
+    softcap: attnSoftcap, causal: causalForAttention, slidingWindow: effectiveSlidingWindow,
+    kvLength: kvState.kvLenForAttention, queryStart: kvState.startPosForMask };
+  for (const [role, tensor] of [['kv-key', cachedKTensor], ['kv-value', cachedVTensor]]) {
+    await activity.capture(role, tensor.buffer, { layer: layerIdx, dtype: tensor.dtype,
+      recorder, shape: [numTokens, width], offset: kvState.startPosForMask * width,
+      metadata, ...tensorProbeOptions(tensor) });
+  }
+  await activity.capture('attention-query', qTensor.buffer, { layer: layerIdx,
+    shape: [numTokens, numHeads * headDim], recorder, metadata, ...tensorProbeOptions(qTensor) });
+}

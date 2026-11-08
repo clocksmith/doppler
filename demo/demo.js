@@ -39,22 +39,11 @@ function refreshRuntimeNotice() {
   el.hidden = !text;
 }
 
-// One answer records either the layer grid or GPU timing, never both: layer
-// recording takes precedence in the run policy, so the other box clears.
+// Each checkbox has an explicit observation policy, including the combined mode.
 function initRecordingChoice() {
-  const grid = $('activation-record');
-  const timing = $('xray-toggle-all');
-  const exclusive = (changed, other) => {
-    changed?.addEventListener('change', () => {
-      if (changed.checked && other?.checked) {
-        other.checked = false;
-        other.dispatchEvent(new Event('change'));
-      }
-      refreshRuntimeNotice();
-    });
-  };
-  exclusive(grid, timing);
-  exclusive(timing, grid);
+  for (const id of ['activation-record', 'xray-toggle-all']) {
+    $(id)?.addEventListener('change', refreshRuntimeNotice);
+  }
 }
 
 // Paint travels independently of button geometry, and completes after release.

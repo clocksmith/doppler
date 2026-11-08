@@ -35,7 +35,7 @@ import { assertImplicitDtypeTransitionAllowed } from '../dtype-contract.js';
 import { canFuseSplitPrefillF16GateUpPath, hasQ4KMaterialization, resolveDenseFFNFusedPathDtypes, resolveDenseFFNMatmulStepDtype, resolveFusedGateUpPipelineConstants, resolveFusedGateUpVariant, resolveFusedGateUpWeights, resolveGateUpPathMode } from './dense-plan.js';
 import { coerceTensorDtype, dispatchActivation, dispatchFusedGateUp, requireFusedWeightDtype, resolveActivationOp, resolveMatmulStepDtype, runDenseUngatedFFNGPU } from './dense-executor.js';
 import { runPairedFFNGPU } from './paired.js';
-import { captureTrainingActivation, enqueueRecordedDenseHealth } from './activation-observation.js';
+import { captureTrainingActivation, captureProjectionInput, enqueueRecordedDenseHealth } from './activation-observation.js';
 import { borrowDecodeFfnIntermediate } from './decode-intermediate.js';
 
 // Lazily loaded once: each dynamic import() makes the browser re-walk the module graph.
@@ -199,6 +199,7 @@ export async function runDenseFFNGPU(
       && downOutputDtype === 'f32'
       && pendingResidual.dtype === 'f32';
     let residualFusedHere = false;
+    await captureProjectionInput(context, layerIdx, activatedOutput, numTokens, intermediateSize);
     let output = await doMatmul(
       activatedOutput, downWeight,
       numTokens, hiddenSize, intermediateSize,
@@ -436,6 +437,7 @@ export async function runDenseFFNGPU(
       && downInput.dtype === 'f32'
       && fusedDownOutputDtype === 'f32'
       && pendingResidualFused.dtype === 'f32';
+    await captureProjectionInput(context, layerIdx, downInput, numTokens, intermediateSize);
     let output = await doMatmul(
       downInput,
       downWeight,
@@ -641,6 +643,7 @@ export async function runDenseFFNGPU(
       });
       downInputOwned = downInputTensor !== fused;
     }
+    await captureProjectionInput(context, layerIdx, downInputTensor, numTokens, intermediateSize);
     let outFused = await doMatmul(
       downInputTensor,
       downWeight,
@@ -850,6 +853,7 @@ export async function runDenseFFNGPU(
     });
     downInputOwned = downInputTensor !== activatedOutput;
   }
+  await captureProjectionInput(context, layerIdx, downInputTensor, numTokens, intermediateSize);
   let output = await doMatmul(
     downInputTensor,
     downWeight,

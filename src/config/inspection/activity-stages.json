@@ -1,0 +1,14 @@
+{
+  "schema": "doppler.activity-stages/v1",
+  "probes": {
+    "ffn_gate": "ffn-gate",
+    "ffn_up": "ffn-up",
+    "ffn_act": "ffn-product"
+  },
+  "weightRoles": {
+    "ffn_down": [
+      "ffnDown",
+      "down"
+    ]
+  }
+}

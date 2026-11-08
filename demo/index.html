@@ -395,13 +395,29 @@
 
         <fieldset class="activity-record">
           <legend>Record during the next answer</legend>
-          <label class="checkbox-label"><input id="activation-record" type="checkbox"> Layer grid</label>
+          <label class="checkbox-label"><input id="activation-record" type="checkbox"> Activity grids (adds readbacks)</label>
           <label class="checkbox-label"><input id="xray-toggle-all" type="checkbox"> GPU timing</label>
         </fieldset>
         <p id="runtime-notice" class="demo-note runtime-notice" role="status" hidden></p>
 
         <div id="activation-view" class="activation-view">
-          <p id="activation-caption" class="demo-note activation-caption" aria-live="polite">Nothing recorded yet. Tick Layer grid and send a message: the model is a stack of layers, and each layer’s numbers appear here as colored pixels.</p>
+          <p id="activation-caption" class="demo-note activation-caption" aria-live="polite">Nothing recorded yet. Open the real example recording, or record activity during your next answer.</p>
+          <div class="activity-controls">
+            <label>Grid <select id="activity-mode" aria-label="Activity grid"></select></label>
+            <label>Layer <select id="activity-layer"><option value="-1">All captured layers</option></select></label>
+            <label>Play through <select id="activity-playback"><option value="tokens">Token positions</option><option value="captures">Operator captures</option><option value="time">Recorded time</option></select></label>
+          </div>
+          <p id="activity-availability" class="demo-note" role="status"></p>
+          <div id="activity-weight-controls" class="activity-controls" hidden>
+            <label>Tensor <select id="activity-weight"><option value="">All observed tensors</option></select></label>
+            <label>Detail <select id="activity-detail"><option value="overview">Overview</option><option value="raw">Exact saved window</option></select></label>
+          </div>
+          <div id="activity-compare-controls" class="demo-controls" hidden>
+            <button id="activity-compare" class="btn btn-ghost" type="button">Compare saved run</button>
+            <button id="activity-adjacent" class="btn btn-ghost" type="button">Use previous token</button>
+            <input id="activity-compare-file" type="file" accept="application/json,.json" hidden>
+          </div>
+          <div class="demo-controls"><button id="activity-example" class="btn btn-ghost" type="button">Open example recording · 20 MB</button></div>
           <div id="activation-player" class="activation-player" hidden>
             <div class="activation-timeline">
               <button id="activation-play" class="btn" type="button" disabled>Play</button>
@@ -409,6 +425,7 @@
               <input id="activation-scrub" type="range" min="0" max="0" value="0" disabled>
             </div>
             <canvas id="activation-canvas" width="1" height="1" aria-label="Layer grid: each pixel’s red, green and blue show three of one layer’s numbers"></canvas>
+            <label id="activity-page-control" class="demo-range-field" hidden>Tile <input id="activity-page" type="range" min="0" max="0" value="0"></label>
             <p id="activation-cell" class="demo-note">Point at a pixel to see its numbers.</p>
           </div>
         </div>

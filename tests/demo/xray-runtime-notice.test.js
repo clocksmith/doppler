@@ -49,8 +49,8 @@ assert.equal(
 
 assert.equal(
   getXrayRuntimeNoticeText({ activationRecording: true, profilingEnabled: true, alternativesRecorded: true }),
-  'The next answer records every layer. Recording slows the model, so its times are not a speed benchmark.',
-  'The layer grid takes precedence over GPU timing, as in the run policy'
+  'The next answer records numerical activity and GPU timing. Recording changes execution, so its times are not a speed benchmark.',
+  'The combined policy records both kinds of evidence'
 );
 
 console.log('xray-runtime-notice.test: ok');

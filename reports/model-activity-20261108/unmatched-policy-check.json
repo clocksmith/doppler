@@ -1,0 +1,2445 @@
+{
+  "policyId": "demo/model-activity-timing",
+  "sameTokens": true,
+  "sameScores": false,
+  "cancelledCleanly": true,
+  "reuseMatches": true,
+  "output": "Hello!",
+  "frames": 576,
+  "roles": [
+    "recurrent-memory",
+    "convolution-history",
+    "linear-a",
+    "linear-b",
+    "linear-a-log",
+    "linear-dt-bias",
+    "ffn-gate",
+    "ffn-up",
+    "ffn-product",
+    "ffn-down-input",
+    "weight-access",
+    "kv-key",
+    "kv-value",
+    "attention-query",
+    "logits"
+  ],
+  "failed": [],
+  "weights": [
+    {
+      "id": "layer_0/inputNorm",
+      "status": "unavailable",
+      "reason": "This loaded weight has no supported row-major observation descriptor.",
+      "raw": 0,
+      "summaries": 0
+    },
+    {
+      "id": "layer_0/oProj",
+      "status": "captured",
+      "reason": null,
+      "raw": 0,
+      "summaries": 128
+    },
+    {
+      "id": "layer_0/qkvProj",
+      "status": "captured",
+      "reason": null,
+      "raw": 0,
+      "summaries": 384
+    },
+    {
+      "id": "layer_0/linearInProjZ",
+      "status": "captured",
+      "reason": null,
+      "raw": 0,
+      "summaries": 128
+    },
+    {
+      "id": "layer_0/linearInProjA",
+      "status": "captured",
+      "reason": null,
+      "raw": 0,
+      "summaries": 1
+    },
+    {
+      "id": "layer_0/linearInProjB",
+      "status": "captured",
+      "reason": null,
+      "raw": 0,
+      "summaries": 1
+    },
+    {
+      "id": "layer_0/linearConv1D",
+      "status": "unavailable",
+      "reason": "This loaded weight has no supported row-major observation descriptor.",
+      "raw": 0,
+      "summaries": 0
+    },
+    {
+      "id": "layer_0/linearDtBias",
+      "status": "unavailable",
+      "reason": "This loaded weight has no supported row-major observation descriptor.",
+      "raw": 0,
+      "summaries": 0
+    },
+    {
+      "id": "layer_0/linearALog",
+      "status": "unavailable",
+      "reason": "This loaded weight has no supported row-major observation descriptor.",
+      "raw": 0,
+      "summaries": 0
+    },
+    {
+      "id": "layer_0/linearNorm",
+      "status": "unavailable",
+      "reason": "This loaded weight has no supported row-major observation descriptor.",
+      "raw": 0,
+      "summaries": 0
+    },
+    {
+      "id": "layer_0/postAttentionNorm",
+      "status": "unavailable",
+      "reason": "This loaded weight has no supported row-major observation descriptor.",
+      "raw": 0,
+      "summaries": 0
+    },
+    {
+      "id": "layer_0/preFeedforwardNorm",
+      "status": "unavailable",
+      "reason": "This loaded weight has no supported row-major observation descriptor.",
+      "raw": 0,
+      "summaries": 0
+    },
+    {
+      "id": "layer_0/ffnGate",
+      "status": "captured",
+      "reason": null,
+      "raw": 0,
+      "summaries": 224
+    },
+    {
+      "id": "layer_0/ffnUp",
+      "status": "captured",
+      "reason": null,
+      "raw": 0,
+      "summaries": 224
+    },
+    {
+      "id": "layer_0/ffnDown",
+      "status": "captured",
+      "reason": null,
+      "raw": 14336,
+      "summaries": 224
+    },
+    {
+      "id": "layer_1/inputNorm",
+      "status": "unavailable",
+      "reason": "This loaded weight has no supported row-major observation descriptor.",
+      "raw": 0,
+      "summaries": 0
+    },
+    {
+      "id": "layer_1/oProj",
+      "status": "captured",
+      "reason": null,
+      "raw": 0,
+      "summaries": 128
+    },
+    {
+      "id": "layer_1/qkvProj",
+      "status": "captured",
+      "reason": null,
+      "raw": 0,
+      "summaries": 384
+    },
+    {
+      "id": "layer_1/linearInProjZ",
+      "status": "captured",
+      "reason": null,
+      "raw": 0,
+      "summaries": 128
+    },
+    {
+      "id": "layer_1/linearInProjA",
+      "status": "captured",
+      "reason": null,
+      "raw": 0,
+      "summaries": 1
+    },
+    {
+      "id": "layer_1/linearInProjB",
+      "status": "captured",
+      "reason": null,
+      "raw": 0,
+      "summaries": 1
+    },
+    {
+      "id": "layer_1/linearConv1D",
+      "status": "unavailable",
+      "reason": "This loaded weight has no supported row-major observation descriptor.",
+      "raw": 0,
+      "summaries": 0
+    },
+    {
+      "id": "layer_1/linearDtBias",
+      "status": "unavailable",
+      "reason": "This loaded weight has no supported row-major observation descriptor.",
+      "raw": 0,
+      "summaries": 0
+    },
+    {
+      "id": "layer_1/linearALog",
+      "status": "unavailable",
+      "reason": "This loaded weight has no supported row-major observation descriptor.",
+      "raw": 0,
+      "summaries": 0
+    },
+    {
+      "id": "layer_1/linearNorm",
+      "status": "unavailable",
+      "reason": "This loaded weight has no supported row-major observation descriptor.",
+      "raw": 0,
+      "summaries": 0
+    },
+    {
+      "id": "layer_1/postAttentionNorm",
+      "status": "unavailable",
+      "reason": "This loaded weight has no supported row-major observation descriptor.",
+      "raw": 0,
+      "summaries": 0
+    },
+    {
+      "id": "layer_1/preFeedforwardNorm",
+      "status": "unavailable",
+      "reason": "This loaded weight has no supported row-major observation descriptor.",
+      "raw": 0,
+      "summaries": 0
+    },
+    {
+      "id": "layer_1/ffnGate",
+      "status": "captured",
+      "reason": null,
+      "raw": 0,
+      "summaries": 224
+    },
+    {
+      "id": "layer_1/ffnUp",
+      "status": "captured",
+      "reason": null,
+      "raw": 0,
+      "summaries": 224
+    },
+    {
+      "id": "layer_1/ffnDown",
+      "status": "captured",
+      "reason": null,
+      "raw": 0,
+      "summaries": 224
+    },
+    {
+      "id": "layer_2/inputNorm",
+      "status": "unavailable",
+      "reason": "This loaded weight has no supported row-major observation descriptor.",
+      "raw": 0,
+      "summaries": 0
+    },
+    {
+      "id": "layer_2/oProj",
+      "status": "captured",
+      "reason": null,
+      "raw": 0,
+      "summaries": 128
+    },
+    {
+      "id": "layer_2/qkvProj",
+      "status": "captured",
+      "reason": null,
+      "raw": 0,
+      "summaries": 384
+    },
+    {
+      "id": "layer_2/linearInProjZ",
+      "status": "captured",
+      "reason": null,
+      "raw": 0,
+      "summaries": 128
+    },
+    {
+      "id": "layer_2/linearInProjA",
+      "status": "captured",
+      "reason": null,
+      "raw": 0,
+      "summaries": 1
+    },
+    {
+      "id": "layer_2/linearInProjB",
+      "status": "captured",
+      "reason": null,
+      "raw": 0,
+      "summaries": 1
+    },
+    {
+      "id": "layer_2/linearConv1D",
+      "status": "unavailable",
+      "reason": "This loaded weight has no supported row-major observation descriptor.",
+      "raw": 0,
+      "summaries": 0
+    },
+    {
+      "id": "layer_2/linearDtBias",
+      "status": "unavailable",
+      "reason": "This loaded weight has no supported row-major observation descriptor.",
+      "raw": 0,
+      "summaries": 0
+    },
+    {
+      "id": "layer_2/linearALog",
+      "status": "unavailable",
+      "reason": "This loaded weight has no supported row-major observation descriptor.",
+      "raw": 0,
+      "summaries": 0
+    },
+    {
+      "id": "layer_2/linearNorm",
+      "status": "unavailable",
+      "reason": "This loaded weight has no supported row-major observation descriptor.",
+      "raw": 0,
+      "summaries": 0
+    },
+    {
+      "id": "layer_2/postAttentionNorm",
+      "status": "unavailable",
+      "reason": "This loaded weight has no supported row-major observation descriptor.",
+      "raw": 0,
+      "summaries": 0
+    },
+    {
+      "id": "layer_2/preFeedforwardNorm",
+      "status": "unavailable",
+      "reason": "This loaded weight has no supported row-major observation descriptor.",
+      "raw": 0,
+      "summaries": 0
+    },
+    {
+      "id": "layer_2/ffnGate",
+      "status": "captured",
+      "reason": null,
+      "raw": 0,
+      "summaries": 224
+    },
+    {
+      "id": "layer_2/ffnUp",
+      "status": "captured",
+      "reason": null,
+      "raw": 0,
+      "summaries": 224
+    },
+    {
+      "id": "layer_2/ffnDown",
+      "status": "captured",
+      "reason": null,
+      "raw": 0,
+      "summaries": 224
+    },
+    {
+      "id": "layer_3/inputNorm",
+      "status": "unavailable",
+      "reason": "This loaded weight has no supported row-major observation descriptor.",
+      "raw": 0,
+      "summaries": 0
+    },
+    {
+      "id": "layer_3/qProj",
+      "status": "captured",
+      "reason": null,
+      "raw": 0,
+      "summaries": 256
+    },
+    {
+      "id": "layer_3/kProj",
+      "status": "captured",
+      "reason": null,
+      "raw": 0,
+      "summaries": 32
+    },
+    {
+      "id": "layer_3/vProj",
+      "status": "captured",
+      "reason": null,
+      "raw": 0,
+      "summaries": 32
+    },
+    {
+      "id": "layer_3/oProj",
+      "status": "captured",
+      "reason": null,
+      "raw": 0,
+      "summaries": 128
+    },
+    {
+      "id": "layer_3/qNorm",
+      "status": "unavailable",
+      "reason": "This loaded weight has no supported row-major observation descriptor.",
+      "raw": 0,
+      "summaries": 0
+    },
+    {
+      "id": "layer_3/kNorm",
+      "status": "unavailable",
+      "reason": "This loaded weight has no supported row-major observation descriptor.",
+      "raw": 0,
+      "summaries": 0
+    },
+    {
+      "id": "layer_3/postAttentionNorm",
+      "status": "unavailable",
+      "reason": "This loaded weight has no supported row-major observation descriptor.",
+      "raw": 0,
+      "summaries": 0
+    },
+    {
+      "id": "layer_3/preFeedforwardNorm",
+      "status": "unavailable",
+      "reason": "This loaded weight has no supported row-major observation descriptor.",
+      "raw": 0,
+      "summaries": 0
+    },
+    {
+      "id": "layer_3/ffnGate",
+      "status": "captured",
+      "reason": null,
+      "raw": 0,
+      "summaries": 224
+    },
+    {
+      "id": "layer_3/ffnUp",
+      "status": "captured",
+      "reason": null,
+      "raw": 0,
+      "summaries": 224
+    },
+    {
+      "id": "layer_3/ffnDown",
+      "status": "captured",
+      "reason": null,
+      "raw": 0,
+      "summaries": 224
+    },
+    {
+      "id": "layer_4/inputNorm",
+      "status": "unavailable",
+      "reason": "This loaded weight has no supported row-major observation descriptor.",
+      "raw": 0,
+      "summaries": 0
+    },
+    {
+      "id": "layer_4/oProj",
+      "status": "captured",
+      "reason": null,
+      "raw": 0,
+      "summaries": 128
+    },
+    {
+      "id": "layer_4/qkvProj",
+      "status": "captured",
+      "reason": null,
+      "raw": 0,
+      "summaries": 384
+    },
+    {
+      "id": "layer_4/linearInProjZ",
+      "status": "captured",
+      "reason": null,
+      "raw": 0,
+      "summaries": 128
+    },
+    {
+      "id": "layer_4/linearInProjA",
+      "status": "captured",
+      "reason": null,
+      "raw": 0,
+      "summaries": 1
+    },
+    {
+      "id": "layer_4/linearInProjB",
+      "status": "captured",
+      "reason": null,
+      "raw": 0,
+      "summaries": 1
+    },
+    {
+      "id": "layer_4/linearConv1D",
+      "status": "unavailable",
+      "reason": "This loaded weight has no supported row-major observation descriptor.",
+      "raw": 0,
+      "summaries": 0
+    },
+    {
+      "id": "layer_4/linearDtBias",
+      "status": "unavailable",
+      "reason": "This loaded weight has no supported row-major observation descriptor.",
+      "raw": 0,
+      "summaries": 0
+    },
+    {
+      "id": "layer_4/linearALog",
+      "status": "unavailable",
+      "reason": "This loaded weight has no supported row-major observation descriptor.",
+      "raw": 0,
+      "summaries": 0
+    },
+    {
+      "id": "layer_4/linearNorm",
+      "status": "unavailable",
+      "reason": "This loaded weight has no supported row-major observation descriptor.",
+      "raw": 0,
+      "summaries": 0
+    },
+    {
+      "id": "layer_4/postAttentionNorm",
+      "status": "unavailable",
+      "reason": "This loaded weight has no supported row-major observation descriptor.",
+      "raw": 0,
+      "summaries": 0
+    },
+    {
+      "id": "layer_4/preFeedforwardNorm",
+      "status": "unavailable",
+      "reason": "This loaded weight has no supported row-major observation descriptor.",
+      "raw": 0,
+      "summaries": 0
+    },
+    {
+      "id": "layer_4/ffnGate",
+      "status": "captured",
+      "reason": null,
+      "raw": 0,
+      "summaries": 224
+    },
+    {
+      "id": "layer_4/ffnUp",
+      "status": "captured",
+      "reason": null,
+      "raw": 0,
+      "summaries": 224
+    },
+    {
+      "id": "layer_4/ffnDown",
+      "status": "captured",
+      "reason": null,
+      "raw": 0,
+      "summaries": 224
+    },
+    {
+      "id": "layer_5/inputNorm",
+      "status": "unavailable",
+      "reason": "This loaded weight has no supported row-major observation descriptor.",
+      "raw": 0,
+      "summaries": 0
+    },
+    {
+      "id": "layer_5/oProj",
+      "status": "captured",
+      "reason": null,
+      "raw": 0,
+      "summaries": 128
+    },
+    {
+      "id": "layer_5/qkvProj",
+      "status": "captured",
+      "reason": null,
+      "raw": 0,
+      "summaries": 384
+    },
+    {
+      "id": "layer_5/linearInProjZ",
+      "status": "captured",
+      "reason": null,
+      "raw": 0,
+      "summaries": 128
+    },
+    {
+      "id": "layer_5/linearInProjA",
+      "status": "captured",
+      "reason": null,
+      "raw": 0,
+      "summaries": 1
+    },
+    {
+      "id": "layer_5/linearInProjB",
+      "status": "captured",
+      "reason": null,
+      "raw": 0,
+      "summaries": 1
+    },
+    {
+      "id": "layer_5/linearConv1D",
+      "status": "unavailable",
+      "reason": "This loaded weight has no supported row-major observation descriptor.",
+      "raw": 0,
+      "summaries": 0
+    },
+    {
+      "id": "layer_5/linearDtBias",
+      "status": "unavailable",
+      "reason": "This loaded weight has no supported row-major observation descriptor.",
+      "raw": 0,
+      "summaries": 0
+    },
+    {
+      "id": "layer_5/linearALog",
+      "status": "unavailable",
+      "reason": "This loaded weight has no supported row-major observation descriptor.",
+      "raw": 0,
+      "summaries": 0
+    },
+    {
+      "id": "layer_5/linearNorm",
+      "status": "unavailable",
+      "reason": "This loaded weight has no supported row-major observation descriptor.",
+      "raw": 0,
+      "summaries": 0
+    },
+    {
+      "id": "layer_5/postAttentionNorm",
+      "status": "unavailable",
+      "reason": "This loaded weight has no supported row-major observation descriptor.",
+      "raw": 0,
+      "summaries": 0
+    },
+    {
+      "id": "layer_5/preFeedforwardNorm",
+      "status": "unavailable",
+      "reason": "This loaded weight has no supported row-major observation descriptor.",
+      "raw": 0,
+      "summaries": 0
+    },
+    {
+      "id": "layer_5/ffnGate",
+      "status": "captured",
+      "reason": null,
+      "raw": 0,
+      "summaries": 224
+    },
+    {
+      "id": "layer_5/ffnUp",
+      "status": "captured",
+      "reason": null,
+      "raw": 0,
+      "summaries": 224
+    },
+    {
+      "id": "layer_5/ffnDown",
+      "status": "captured",
+      "reason": null,
+      "raw": 0,
+      "summaries": 224
+    },
+    {
+      "id": "layer_6/inputNorm",
+      "status": "unavailable",
+      "reason": "This loaded weight has no supported row-major observation descriptor.",
+      "raw": 0,
+      "summaries": 0
+    },
+    {
+      "id": "layer_6/oProj",
+      "status": "captured",
+      "reason": null,
+      "raw": 0,
+      "summaries": 128
+    },
+    {
+      "id": "layer_6/qkvProj",
+      "status": "captured",
+      "reason": null,
+      "raw": 0,
+      "summaries": 384
+    },
+    {
+      "id": "layer_6/linearInProjZ",
+      "status": "captured",
+      "reason": null,
+      "raw": 0,
+      "summaries": 128
+    },
+    {
+      "id": "layer_6/linearInProjA",
+      "status": "captured",
+      "reason": null,
+      "raw": 0,
+      "summaries": 1
+    },
+    {
+      "id": "layer_6/linearInProjB",
+      "status": "captured",
+      "reason": null,
+      "raw": 0,
+      "summaries": 1
+    },
+    {
+      "id": "layer_6/linearConv1D",
+      "status": "unavailable",
+      "reason": "This loaded weight has no supported row-major observation descriptor.",
+      "raw": 0,
+      "summaries": 0
+    },
+    {
+      "id": "layer_6/linearDtBias",
+      "status": "unavailable",
+      "reason": "This loaded weight has no supported row-major observation descriptor.",
+      "raw": 0,
+      "summaries": 0
+    },
+    {
+      "id": "layer_6/linearALog",
+      "status": "unavailable",
+      "reason": "This loaded weight has no supported row-major observation descriptor.",
+      "raw": 0,
+      "summaries": 0
+    },
+    {
+      "id": "layer_6/linearNorm",
+      "status": "unavailable",
+      "reason": "This loaded weight has no supported row-major observation descriptor.",
+      "raw": 0,
+      "summaries": 0
+    },
+    {
+      "id": "layer_6/postAttentionNorm",
+      "status": "unavailable",
+      "reason": "This loaded weight has no supported row-major observation descriptor.",
+      "raw": 0,
+      "summaries": 0
+    },
+    {
+      "id": "layer_6/preFeedforwardNorm",
+      "status": "unavailable",
+      "reason": "This loaded weight has no supported row-major observation descriptor.",
+      "raw": 0,
+      "summaries": 0
+    },
+    {
+      "id": "layer_6/ffnGate",
+      "status": "captured",
+      "reason": null,
+      "raw": 0,
+      "summaries": 224
+    },
+    {
+      "id": "layer_6/ffnUp",
+      "status": "captured",
+      "reason": null,
+      "raw": 0,
+      "summaries": 224
+    },
+    {
+      "id": "layer_6/ffnDown",
+      "status": "captured",
+      "reason": null,
+      "raw": 0,
+      "summaries": 224
+    },
+    {
+      "id": "layer_7/inputNorm",
+      "status": "unavailable",
+      "reason": "This loaded weight has no supported row-major observation descriptor.",
+      "raw": 0,
+      "summaries": 0
+    },
+    {
+      "id": "layer_7/qProj",
+      "status": "captured",
+      "reason": null,
+      "raw": 0,
+      "summaries": 256
+    },
+    {
+      "id": "layer_7/kProj",
+      "status": "captured",
+      "reason": null,
+      "raw": 0,
+      "summaries": 32
+    },
+    {
+      "id": "layer_7/vProj",
+      "status": "captured",
+      "reason": null,
+      "raw": 0,
+      "summaries": 32
+    },
+    {
+      "id": "layer_7/oProj",
+      "status": "captured",
+      "reason": null,
+      "raw": 0,
+      "summaries": 128
+    },
+    {
+      "id": "layer_7/qNorm",
+      "status": "unavailable",
+      "reason": "This loaded weight has no supported row-major observation descriptor.",
+      "raw": 0,
+      "summaries": 0
+    },
+    {
+      "id": "layer_7/kNorm",
+      "status": "unavailable",
+      "reason": "This loaded weight has no supported row-major observation descriptor.",
+      "raw": 0,
+      "summaries": 0
+    },
+    {
+      "id": "layer_7/postAttentionNorm",
+      "status": "unavailable",
+      "reason": "This loaded weight has no supported row-major observation descriptor.",
+      "raw": 0,
+      "summaries": 0
+    },
+    {
+      "id": "layer_7/preFeedforwardNorm",
+      "status": "unavailable",
+      "reason": "This loaded weight has no supported row-major observation descriptor.",
+      "raw": 0,
+      "summaries": 0
+    },
+    {
+      "id": "layer_7/ffnGate",
+      "status": "captured",
+      "reason": null,
+      "raw": 0,
+      "summaries": 224
+    },
+    {
+      "id": "layer_7/ffnUp",
+      "status": "captured",
+      "reason": null,
+      "raw": 0,
+      "summaries": 224
+    },
+    {
+      "id": "layer_7/ffnDown",
+      "status": "captured",
+      "reason": null,
+      "raw": 0,
+      "summaries": 224
+    },
+    {
+      "id": "layer_8/inputNorm",
+      "status": "unavailable",
+      "reason": "This loaded weight has no supported row-major observation descriptor.",
+      "raw": 0,
+      "summaries": 0
+    },
+    {
+      "id": "layer_8/oProj",
+      "status": "captured",
+      "reason": null,
+      "raw": 0,
+      "summaries": 128
+    },
+    {
+      "id": "layer_8/qkvProj",
+      "status": "captured",
+      "reason": null,
+      "raw": 0,
+      "summaries": 384
+    },
+    {
+      "id": "layer_8/linearInProjZ",
+      "status": "captured",
+      "reason": null,
+      "raw": 0,
+      "summaries": 128
+    },
+    {
+      "id": "layer_8/linearInProjA",
+      "status": "captured",
+      "reason": null,
+      "raw": 0,
+      "summaries": 1
+    },
+    {
+      "id": "layer_8/linearInProjB",
+      "status": "captured",
+      "reason": null,
+      "raw": 0,
+      "summaries": 1
+    },
+    {
+      "id": "layer_8/linearConv1D",
+      "status": "unavailable",
+      "reason": "This loaded weight has no supported row-major observation descriptor.",
+      "raw": 0,
+      "summaries": 0
+    },
+    {
+      "id": "layer_8/linearDtBias",
+      "status": "unavailable",
+      "reason": "This loaded weight has no supported row-major observation descriptor.",
+      "raw": 0,
+      "summaries": 0
+    },
+    {
+      "id": "layer_8/linearALog",
+      "status": "unavailable",
+      "reason": "This loaded weight has no supported row-major observation descriptor.",
+      "raw": 0,
+      "summaries": 0
+    },
+    {
+      "id": "layer_8/linearNorm",
+      "status": "unavailable",
+      "reason": "This loaded weight has no supported row-major observation descriptor.",
+      "raw": 0,
+      "summaries": 0
+    },
+    {
+      "id": "layer_8/postAttentionNorm",
+      "status": "unavailable",
+      "reason": "This loaded weight has no supported row-major observation descriptor.",
+      "raw": 0,
+      "summaries": 0
+    },
+    {
+      "id": "layer_8/preFeedforwardNorm",
+      "status": "unavailable",
+      "reason": "This loaded weight has no supported row-major observation descriptor.",
+      "raw": 0,
+      "summaries": 0
+    },
+    {
+      "id": "layer_8/ffnGate",
+      "status": "captured",
+      "reason": null,
+      "raw": 0,
+      "summaries": 224
+    },
+    {
+      "id": "layer_8/ffnUp",
+      "status": "captured",
+      "reason": null,
+      "raw": 0,
+      "summaries": 224
+    },
+    {
+      "id": "layer_8/ffnDown",
+      "status": "captured",
+      "reason": null,
+      "raw": 0,
+      "summaries": 224
+    },
+    {
+      "id": "layer_9/inputNorm",
+      "status": "unavailable",
+      "reason": "This loaded weight has no supported row-major observation descriptor.",
+      "raw": 0,
+      "summaries": 0
+    },
+    {
+      "id": "layer_9/oProj",
+      "status": "captured",
+      "reason": null,
+      "raw": 0,
+      "summaries": 128
+    },
+    {
+      "id": "layer_9/qkvProj",
+      "status": "captured",
+      "reason": null,
+      "raw": 0,
+      "summaries": 384
+    },
+    {
+      "id": "layer_9/linearInProjZ",
+      "status": "captured",
+      "reason": null,
+      "raw": 0,
+      "summaries": 128
+    },
+    {
+      "id": "layer_9/linearInProjA",
+      "status": "captured",
+      "reason": null,
+      "raw": 0,
+      "summaries": 1
+    },
+    {
+      "id": "layer_9/linearInProjB",
+      "status": "captured",
+      "reason": null,
+      "raw": 0,
+      "summaries": 1
+    },
+    {
+      "id": "layer_9/linearConv1D",
+      "status": "unavailable",
+      "reason": "This loaded weight has no supported row-major observation descriptor.",
+      "raw": 0,
+      "summaries": 0
+    },
+    {
+      "id": "layer_9/linearDtBias",
+      "status": "unavailable",
+      "reason": "This loaded weight has no supported row-major observation descriptor.",
+      "raw": 0,
+      "summaries": 0
+    },
+    {
+      "id": "layer_9/linearALog",
+      "status": "unavailable",
+      "reason": "This loaded weight has no supported row-major observation descriptor.",
+      "raw": 0,
+      "summaries": 0
+    },
+    {
+      "id": "layer_9/linearNorm",
+      "status": "unavailable",
+      "reason": "This loaded weight has no supported row-major observation descriptor.",
+      "raw": 0,
+      "summaries": 0
+    },
+    {
+      "id": "layer_9/postAttentionNorm",
+      "status": "unavailable",
+      "reason": "This loaded weight has no supported row-major observation descriptor.",
+      "raw": 0,
+      "summaries": 0
+    },
+    {
+      "id": "layer_9/preFeedforwardNorm",
+      "status": "unavailable",
+      "reason": "This loaded weight has no supported row-major observation descriptor.",
+      "raw": 0,
+      "summaries": 0
+    },
+    {
+      "id": "layer_9/ffnGate",
+      "status": "captured",
+      "reason": null,
+      "raw": 0,
+      "summaries": 224
+    },
+    {
+      "id": "layer_9/ffnUp",
+      "status": "captured",
+      "reason": null,
+      "raw": 0,
+      "summaries": 224
+    },
+    {
+      "id": "layer_9/ffnDown",
+      "status": "captured",
+      "reason": null,
+      "raw": 0,
+      "summaries": 224
+    },
+    {
+      "id": "layer_10/inputNorm",
+      "status": "unavailable",
+      "reason": "This loaded weight has no supported row-major observation descriptor.",
+      "raw": 0,
+      "summaries": 0
+    },
+    {
+      "id": "layer_10/oProj",
+      "status": "captured",
+      "reason": null,
+      "raw": 0,
+      "summaries": 128
+    },
+    {
+      "id": "layer_10/qkvProj",
+      "status": "captured",
+      "reason": null,
+      "raw": 0,
+      "summaries": 384
+    },
+    {
+      "id": "layer_10/linearInProjZ",
+      "status": "captured",
+      "reason": null,
+      "raw": 0,
+      "summaries": 128
+    },
+    {
+      "id": "layer_10/linearInProjA",
+      "status": "captured",
+      "reason": null,
+      "raw": 0,
+      "summaries": 1
+    },
+    {
+      "id": "layer_10/linearInProjB",
+      "status": "captured",
+      "reason": null,
+      "raw": 0,
+      "summaries": 1
+    },
+    {
+      "id": "layer_10/linearConv1D",
+      "status": "unavailable",
+      "reason": "This loaded weight has no supported row-major observation descriptor.",
+      "raw": 0,
+      "summaries": 0
+    },
+    {
+      "id": "layer_10/linearDtBias",
+      "status": "unavailable",
+      "reason": "This loaded weight has no supported row-major observation descriptor.",
+      "raw": 0,
+      "summaries": 0
+    },
+    {
+      "id": "layer_10/linearALog",
+      "status": "unavailable",
+      "reason": "This loaded weight has no supported row-major observation descriptor.",
+      "raw": 0,
+      "summaries": 0
+    },
+    {
+      "id": "layer_10/linearNorm",
+      "status": "unavailable",
+      "reason": "This loaded weight has no supported row-major observation descriptor.",
+      "raw": 0,
+      "summaries": 0
+    },
+    {
+      "id": "layer_10/postAttentionNorm",
+      "status": "unavailable",
+      "reason": "This loaded weight has no supported row-major observation descriptor.",
+      "raw": 0,
+      "summaries": 0
+    },
+    {
+      "id": "layer_10/preFeedforwardNorm",
+      "status": "unavailable",
+      "reason": "This loaded weight has no supported row-major observation descriptor.",
+      "raw": 0,
+      "summaries": 0
+    },
+    {
+      "id": "layer_10/ffnGate",
+      "status": "captured",
+      "reason": null,
+      "raw": 0,
+      "summaries": 224
+    },
+    {
+      "id": "layer_10/ffnUp",
+      "status": "captured",
+      "reason": null,
+      "raw": 0,
+      "summaries": 224
+    },
+    {
+      "id": "layer_10/ffnDown",
+      "status": "captured",
+      "reason": null,
+      "raw": 0,
+      "summaries": 224
+    },
+    {
+      "id": "layer_11/inputNorm",
+      "status": "unavailable",
+      "reason": "This loaded weight has no supported row-major observation descriptor.",
+      "raw": 0,
+      "summaries": 0
+    },
+    {
+      "id": "layer_11/qProj",
+      "status": "captured",
+      "reason": null,
+      "raw": 0,
+      "summaries": 256
+    },
+    {
+      "id": "layer_11/kProj",
+      "status": "captured",
+      "reason": null,
+      "raw": 0,
+      "summaries": 32
+    },
+    {
+      "id": "layer_11/vProj",
+      "status": "captured",
+      "reason": null,
+      "raw": 0,
+      "summaries": 32
+    },
+    {
+      "id": "layer_11/oProj",
+      "status": "captured",
+      "reason": null,
+      "raw": 0,
+      "summaries": 128
+    },
+    {
+      "id": "layer_11/qNorm",
+      "status": "unavailable",
+      "reason": "This loaded weight has no supported row-major observation descriptor.",
+      "raw": 0,
+      "summaries": 0
+    },
+    {
+      "id": "layer_11/kNorm",
+      "status": "unavailable",
+      "reason": "This loaded weight has no supported row-major observation descriptor.",
+      "raw": 0,
+      "summaries": 0
+    },
+    {
+      "id": "layer_11/postAttentionNorm",
+      "status": "unavailable",
+      "reason": "This loaded weight has no supported row-major observation descriptor.",
+      "raw": 0,
+      "summaries": 0
+    },
+    {
+      "id": "layer_11/preFeedforwardNorm",
+      "status": "unavailable",
+      "reason": "This loaded weight has no supported row-major observation descriptor.",
+      "raw": 0,
+      "summaries": 0
+    },
+    {
+      "id": "layer_11/ffnGate",
+      "status": "captured",
+      "reason": null,
+      "raw": 0,
+      "summaries": 224
+    },
+    {
+      "id": "layer_11/ffnUp",
+      "status": "captured",
+      "reason": null,
+      "raw": 0,
+      "summaries": 224
+    },
+    {
+      "id": "layer_11/ffnDown",
+      "status": "captured",
+      "reason": null,
+      "raw": 0,
+      "summaries": 224
+    },
+    {
+      "id": "layer_12/inputNorm",
+      "status": "unavailable",
+      "reason": "This loaded weight has no supported row-major observation descriptor.",
+      "raw": 0,
+      "summaries": 0
+    },
+    {
+      "id": "layer_12/oProj",
+      "status": "captured",
+      "reason": null,
+      "raw": 0,
+      "summaries": 128
+    },
+    {
+      "id": "layer_12/qkvProj",
+      "status": "captured",
+      "reason": null,
+      "raw": 0,
+      "summaries": 384
+    },
+    {
+      "id": "layer_12/linearInProjZ",
+      "status": "captured",
+      "reason": null,
+      "raw": 0,
+      "summaries": 128
+    },
+    {
+      "id": "layer_12/linearInProjA",
+      "status": "captured",
+      "reason": null,
+      "raw": 0,
+      "summaries": 1
+    },
+    {
+      "id": "layer_12/linearInProjB",
+      "status": "captured",
+      "reason": null,
+      "raw": 0,
+      "summaries": 1
+    },
+    {
+      "id": "layer_12/linearConv1D",
+      "status": "unavailable",
+      "reason": "This loaded weight has no supported row-major observation descriptor.",
+      "raw": 0,
+      "summaries": 0
+    },
+    {
+      "id": "layer_12/linearDtBias",
+      "status": "unavailable",
+      "reason": "This loaded weight has no supported row-major observation descriptor.",
+      "raw": 0,
+      "summaries": 0
+    },
+    {
+      "id": "layer_12/linearALog",
+      "status": "unavailable",
+      "reason": "This loaded weight has no supported row-major observation descriptor.",
+      "raw": 0,
+      "summaries": 0
+    },
+    {
+      "id": "layer_12/linearNorm",
+      "status": "unavailable",
+      "reason": "This loaded weight has no supported row-major observation descriptor.",
+      "raw": 0,
+      "summaries": 0
+    },
+    {
+      "id": "layer_12/postAttentionNorm",
+      "status": "unavailable",
+      "reason": "This loaded weight has no supported row-major observation descriptor.",
+      "raw": 0,
+      "summaries": 0
+    },
+    {
+      "id": "layer_12/preFeedforwardNorm",
+      "status": "unavailable",
+      "reason": "This loaded weight has no supported row-major observation descriptor.",
+      "raw": 0,
+      "summaries": 0
+    },
+    {
+      "id": "layer_12/ffnGate",
+      "status": "captured",
+      "reason": null,
+      "raw": 0,
+      "summaries": 224
+    },
+    {
+      "id": "layer_12/ffnUp",
+      "status": "captured",
+      "reason": null,
+      "raw": 0,
+      "summaries": 224
+    },
+    {
+      "id": "layer_12/ffnDown",
+      "status": "captured",
+      "reason": null,
+      "raw": 0,
+      "summaries": 224
+    },
+    {
+      "id": "layer_13/inputNorm",
+      "status": "unavailable",
+      "reason": "This loaded weight has no supported row-major observation descriptor.",
+      "raw": 0,
+      "summaries": 0
+    },
+    {
+      "id": "layer_13/oProj",
+      "status": "captured",
+      "reason": null,
+      "raw": 0,
+      "summaries": 128
+    },
+    {
+      "id": "layer_13/qkvProj",
+      "status": "captured",
+      "reason": null,
+      "raw": 0,
+      "summaries": 384
+    },
+    {
+      "id": "layer_13/linearInProjZ",
+      "status": "captured",
+      "reason": null,
+      "raw": 0,
+      "summaries": 128
+    },
+    {
+      "id": "layer_13/linearInProjA",
+      "status": "captured",
+      "reason": null,
+      "raw": 0,
+      "summaries": 1
+    },
+    {
+      "id": "layer_13/linearInProjB",
+      "status": "captured",
+      "reason": null,
+      "raw": 0,
+      "summaries": 1
+    },
+    {
+      "id": "layer_13/linearConv1D",
+      "status": "unavailable",
+      "reason": "This loaded weight has no supported row-major observation descriptor.",
+      "raw": 0,
+      "summaries": 0
+    },
+    {
+      "id": "layer_13/linearDtBias",
+      "status": "unavailable",
+      "reason": "This loaded weight has no supported row-major observation descriptor.",
+      "raw": 0,
+      "summaries": 0
+    },
+    {
+      "id": "layer_13/linearALog",
+      "status": "unavailable",
+      "reason": "This loaded weight has no supported row-major observation descriptor.",
+      "raw": 0,
+      "summaries": 0
+    },
+    {
+      "id": "layer_13/linearNorm",
+      "status": "unavailable",
+      "reason": "This loaded weight has no supported row-major observation descriptor.",
+      "raw": 0,
+      "summaries": 0
+    },
+    {
+      "id": "layer_13/postAttentionNorm",
+      "status": "unavailable",
+      "reason": "This loaded weight has no supported row-major observation descriptor.",
+      "raw": 0,
+      "summaries": 0
+    },
+    {
+      "id": "layer_13/preFeedforwardNorm",
+      "status": "unavailable",
+      "reason": "This loaded weight has no supported row-major observation descriptor.",
+      "raw": 0,
+      "summaries": 0
+    },
+    {
+      "id": "layer_13/ffnGate",
+      "status": "captured",
+      "reason": null,
+      "raw": 0,
+      "summaries": 224
+    },
+    {
+      "id": "layer_13/ffnUp",
+      "status": "captured",
+      "reason": null,
+      "raw": 0,
+      "summaries": 224
+    },
+    {
+      "id": "layer_13/ffnDown",
+      "status": "captured",
+      "reason": null,
+      "raw": 0,
+      "summaries": 224
+    },
+    {
+      "id": "layer_14/inputNorm",
+      "status": "unavailable",
+      "reason": "This loaded weight has no supported row-major observation descriptor.",
+      "raw": 0,
+      "summaries": 0
+    },
+    {
+      "id": "layer_14/oProj",
+      "status": "captured",
+      "reason": null,
+      "raw": 0,
+      "summaries": 128
+    },
+    {
+      "id": "layer_14/qkvProj",
+      "status": "captured",
+      "reason": null,
+      "raw": 0,
+      "summaries": 384
+    },
+    {
+      "id": "layer_14/linearInProjZ",
+      "status": "captured",
+      "reason": null,
+      "raw": 0,
+      "summaries": 128
+    },
+    {
+      "id": "layer_14/linearInProjA",
+      "status": "captured",
+      "reason": null,
+      "raw": 0,
+      "summaries": 1
+    },
+    {
+      "id": "layer_14/linearInProjB",
+      "status": "captured",
+      "reason": null,
+      "raw": 0,
+      "summaries": 1
+    },
+    {
+      "id": "layer_14/linearConv1D",
+      "status": "unavailable",
+      "reason": "This loaded weight has no supported row-major observation descriptor.",
+      "raw": 0,
+      "summaries": 0
+    },
+    {
+      "id": "layer_14/linearDtBias",
+      "status": "unavailable",
+      "reason": "This loaded weight has no supported row-major observation descriptor.",
+      "raw": 0,
+      "summaries": 0
+    },
+    {
+      "id": "layer_14/linearALog",
+      "status": "unavailable",
+      "reason": "This loaded weight has no supported row-major observation descriptor.",
+      "raw": 0,
+      "summaries": 0
+    },
+    {
+      "id": "layer_14/linearNorm",
+      "status": "unavailable",
+      "reason": "This loaded weight has no supported row-major observation descriptor.",
+      "raw": 0,
+      "summaries": 0
+    },
+    {
+      "id": "layer_14/postAttentionNorm",
+      "status": "unavailable",
+      "reason": "This loaded weight has no supported row-major observation descriptor.",
+      "raw": 0,
+      "summaries": 0
+    },
+    {
+      "id": "layer_14/preFeedforwardNorm",
+      "status": "unavailable",
+      "reason": "This loaded weight has no supported row-major observation descriptor.",
+      "raw": 0,
+      "summaries": 0
+    },
+    {
+      "id": "layer_14/ffnGate",
+      "status": "captured",
+      "reason": null,
+      "raw": 0,
+      "summaries": 224
+    },
+    {
+      "id": "layer_14/ffnUp",
+      "status": "captured",
+      "reason": null,
+      "raw": 0,
+      "summaries": 224
+    },
+    {
+      "id": "layer_14/ffnDown",
+      "status": "captured",
+      "reason": null,
+      "raw": 0,
+      "summaries": 224
+    },
+    {
+      "id": "layer_15/inputNorm",
+      "status": "unavailable",
+      "reason": "This loaded weight has no supported row-major observation descriptor.",
+      "raw": 0,
+      "summaries": 0
+    },
+    {
+      "id": "layer_15/qProj",
+      "status": "captured",
+      "reason": null,
+      "raw": 0,
+      "summaries": 256
+    },
+    {
+      "id": "layer_15/kProj",
+      "status": "captured",
+      "reason": null,
+      "raw": 0,
+      "summaries": 32
+    },
+    {
+      "id": "layer_15/vProj",
+      "status": "captured",
+      "reason": null,
+      "raw": 0,
+      "summaries": 32
+    },
+    {
+      "id": "layer_15/oProj",
+      "status": "captured",
+      "reason": null,
+      "raw": 0,
+      "summaries": 128
+    },
+    {
+      "id": "layer_15/qNorm",
+      "status": "unavailable",
+      "reason": "This loaded weight has no supported row-major observation descriptor.",
+      "raw": 0,
+      "summaries": 0
+    },
+    {
+      "id": "layer_15/kNorm",
+      "status": "unavailable",
+      "reason": "This loaded weight has no supported row-major observation descriptor.",
+      "raw": 0,
+      "summaries": 0
+    },
+    {
+      "id": "layer_15/postAttentionNorm",
+      "status": "unavailable",
+      "reason": "This loaded weight has no supported row-major observation descriptor.",
+      "raw": 0,
+      "summaries": 0
+    },
+    {
+      "id": "layer_15/preFeedforwardNorm",
+      "status": "unavailable",
+      "reason": "This loaded weight has no supported row-major observation descriptor.",
+      "raw": 0,
+      "summaries": 0
+    },
+    {
+      "id": "layer_15/ffnGate",
+      "status": "captured",
+      "reason": null,
+      "raw": 0,
+      "summaries": 224
+    },
+    {
+      "id": "layer_15/ffnUp",
+      "status": "captured",
+      "reason": null,
+      "raw": 0,
+      "summaries": 224
+    },
+    {
+      "id": "layer_15/ffnDown",
+      "status": "captured",
+      "reason": null,
+      "raw": 0,
+      "summaries": 224
+    },
+    {
+      "id": "layer_16/inputNorm",
+      "status": "unavailable",
+      "reason": "This loaded weight has no supported row-major observation descriptor.",
+      "raw": 0,
+      "summaries": 0
+    },
+    {
+      "id": "layer_16/oProj",
+      "status": "captured",
+      "reason": null,
+      "raw": 0,
+      "summaries": 128
+    },
+    {
+      "id": "layer_16/qkvProj",
+      "status": "captured",
+      "reason": null,
+      "raw": 0,
+      "summaries": 384
+    },
+    {
+      "id": "layer_16/linearInProjZ",
+      "status": "captured",
+      "reason": null,
+      "raw": 0,
+      "summaries": 128
+    },
+    {
+      "id": "layer_16/linearInProjA",
+      "status": "captured",
+      "reason": null,
+      "raw": 0,
+      "summaries": 1
+    },
+    {
+      "id": "layer_16/linearInProjB",
+      "status": "captured",
+      "reason": null,
+      "raw": 0,
+      "summaries": 1
+    },
+    {
+      "id": "layer_16/linearConv1D",
+      "status": "unavailable",
+      "reason": "This loaded weight has no supported row-major observation descriptor.",
+      "raw": 0,
+      "summaries": 0
+    },
+    {
+      "id": "layer_16/linearDtBias",
+      "status": "unavailable",
+      "reason": "This loaded weight has no supported row-major observation descriptor.",
+      "raw": 0,
+      "summaries": 0
+    },
+    {
+      "id": "layer_16/linearALog",
+      "status": "unavailable",
+      "reason": "This loaded weight has no supported row-major observation descriptor.",
+      "raw": 0,
+      "summaries": 0
+    },
+    {
+      "id": "layer_16/linearNorm",
+      "status": "unavailable",
+      "reason": "This loaded weight has no supported row-major observation descriptor.",
+      "raw": 0,
+      "summaries": 0
+    },
+    {
+      "id": "layer_16/postAttentionNorm",
+      "status": "unavailable",
+      "reason": "This loaded weight has no supported row-major observation descriptor.",
+      "raw": 0,
+      "summaries": 0
+    },
+    {
+      "id": "layer_16/preFeedforwardNorm",
+      "status": "unavailable",
+      "reason": "This loaded weight has no supported row-major observation descriptor.",
+      "raw": 0,
+      "summaries": 0
+    },
+    {
+      "id": "layer_16/ffnGate",
+      "status": "captured",
+      "reason": null,
+      "raw": 0,
+      "summaries": 224
+    },
+    {
+      "id": "layer_16/ffnUp",
+      "status": "captured",
+      "reason": null,
+      "raw": 0,
+      "summaries": 224
+    },
+    {
+      "id": "layer_16/ffnDown",
+      "status": "captured",
+      "reason": null,
+      "raw": 0,
+      "summaries": 224
+    },
+    {
+      "id": "layer_17/inputNorm",
+      "status": "unavailable",
+      "reason": "This loaded weight has no supported row-major observation descriptor.",
+      "raw": 0,
+      "summaries": 0
+    },
+    {
+      "id": "layer_17/oProj",
+      "status": "captured",
+      "reason": null,
+      "raw": 0,
+      "summaries": 128
+    },
+    {
+      "id": "layer_17/qkvProj",
+      "status": "captured",
+      "reason": null,
+      "raw": 0,
+      "summaries": 384
+    },
+    {
+      "id": "layer_17/linearInProjZ",
+      "status": "captured",
+      "reason": null,
+      "raw": 0,
+      "summaries": 128
+    },
+    {
+      "id": "layer_17/linearInProjA",
+      "status": "captured",
+      "reason": null,
+      "raw": 0,
+      "summaries": 1
+    },
+    {
+      "id": "layer_17/linearInProjB",
+      "status": "captured",
+      "reason": null,
+      "raw": 0,
+      "summaries": 1
+    },
+    {
+      "id": "layer_17/linearConv1D",
+      "status": "unavailable",
+      "reason": "This loaded weight has no supported row-major observation descriptor.",
+      "raw": 0,
+      "summaries": 0
+    },
+    {
+      "id": "layer_17/linearDtBias",
+      "status": "unavailable",
+      "reason": "This loaded weight has no supported row-major observation descriptor.",
+      "raw": 0,
+      "summaries": 0
+    },
+    {
+      "id": "layer_17/linearALog",
+      "status": "unavailable",
+      "reason": "This loaded weight has no supported row-major observation descriptor.",
+      "raw": 0,
+      "summaries": 0
+    },
+    {
+      "id": "layer_17/linearNorm",
+      "status": "unavailable",
+      "reason": "This loaded weight has no supported row-major observation descriptor.",
+      "raw": 0,
+      "summaries": 0
+    },
+    {
+      "id": "layer_17/postAttentionNorm",
+      "status": "unavailable",
+      "reason": "This loaded weight has no supported row-major observation descriptor.",
+      "raw": 0,
+      "summaries": 0
+    },
+    {
+      "id": "layer_17/preFeedforwardNorm",
+      "status": "unavailable",
+      "reason": "This loaded weight has no supported row-major observation descriptor.",
+      "raw": 0,
+      "summaries": 0
+    },
+    {
+      "id": "layer_17/ffnGate",
+      "status": "captured",
+      "reason": null,
+      "raw": 0,
+      "summaries": 224
+    },
+    {
+      "id": "layer_17/ffnUp",
+      "status": "captured",
+      "reason": null,
+      "raw": 0,
+      "summaries": 224
+    },
+    {
+      "id": "layer_17/ffnDown",
+      "status": "captured",
+      "reason": null,
+      "raw": 0,
+      "summaries": 224
+    },
+    {
+      "id": "layer_18/inputNorm",
+      "status": "unavailable",
+      "reason": "This loaded weight has no supported row-major observation descriptor.",
+      "raw": 0,
+      "summaries": 0
+    },
+    {
+      "id": "layer_18/oProj",
+      "status": "captured",
+      "reason": null,
+      "raw": 0,
+      "summaries": 128
+    },
+    {
+      "id": "layer_18/qkvProj",
+      "status": "captured",
+      "reason": null,
+      "raw": 0,
+      "summaries": 384
+    },
+    {
+      "id": "layer_18/linearInProjZ",
+      "status": "captured",
+      "reason": null,
+      "raw": 0,
+      "summaries": 128
+    },
+    {
+      "id": "layer_18/linearInProjA",
+      "status": "captured",
+      "reason": null,
+      "raw": 0,
+      "summaries": 1
+    },
+    {
+      "id": "layer_18/linearInProjB",
+      "status": "captured",
+      "reason": null,
+      "raw": 0,
+      "summaries": 1
+    },
+    {
+      "id": "layer_18/linearConv1D",
+      "status": "unavailable",
+      "reason": "This loaded weight has no supported row-major observation descriptor.",
+      "raw": 0,
+      "summaries": 0
+    },
+    {
+      "id": "layer_18/linearDtBias",
+      "status": "unavailable",
+      "reason": "This loaded weight has no supported row-major observation descriptor.",
+      "raw": 0,
+      "summaries": 0
+    },
+    {
+      "id": "layer_18/linearALog",
+      "status": "unavailable",
+      "reason": "This loaded weight has no supported row-major observation descriptor.",
+      "raw": 0,
+      "summaries": 0
+    },
+    {
+      "id": "layer_18/linearNorm",
+      "status": "unavailable",
+      "reason": "This loaded weight has no supported row-major observation descriptor.",
+      "raw": 0,
+      "summaries": 0
+    },
+    {
+      "id": "layer_18/postAttentionNorm",
+      "status": "unavailable",
+      "reason": "This loaded weight has no supported row-major observation descriptor.",
+      "raw": 0,
+      "summaries": 0
+    },
+    {
+      "id": "layer_18/preFeedforwardNorm",
+      "status": "unavailable",
+      "reason": "This loaded weight has no supported row-major observation descriptor.",
+      "raw": 0,
+      "summaries": 0
+    },
+    {
+      "id": "layer_18/ffnGate",
+      "status": "captured",
+      "reason": null,
+      "raw": 0,
+      "summaries": 224
+    },
+    {
+      "id": "layer_18/ffnUp",
+      "status": "captured",
+      "reason": null,
+      "raw": 0,
+      "summaries": 224
+    },
+    {
+      "id": "layer_18/ffnDown",
+      "status": "captured",
+      "reason": null,
+      "raw": 0,
+      "summaries": 224
+    },
+    {
+      "id": "layer_19/inputNorm",
+      "status": "unavailable",
+      "reason": "This loaded weight has no supported row-major observation descriptor.",
+      "raw": 0,
+      "summaries": 0
+    },
+    {
+      "id": "layer_19/qProj",
+      "status": "captured",
+      "reason": null,
+      "raw": 0,
+      "summaries": 256
+    },
+    {
+      "id": "layer_19/kProj",
+      "status": "captured",
+      "reason": null,
+      "raw": 0,
+      "summaries": 32
+    },
+    {
+      "id": "layer_19/vProj",
+      "status": "captured",
+      "reason": null,
+      "raw": 0,
+      "summaries": 32
+    },
+    {
+      "id": "layer_19/oProj",
+      "status": "captured",
+      "reason": null,
+      "raw": 0,
+      "summaries": 128
+    },
+    {
+      "id": "layer_19/qNorm",
+      "status": "unavailable",
+      "reason": "This loaded weight has no supported row-major observation descriptor.",
+      "raw": 0,
+      "summaries": 0
+    },
+    {
+      "id": "layer_19/kNorm",
+      "status": "unavailable",
+      "reason": "This loaded weight has no supported row-major observation descriptor.",
+      "raw": 0,
+      "summaries": 0
+    },
+    {
+      "id": "layer_19/postAttentionNorm",
+      "status": "unavailable",
+      "reason": "This loaded weight has no supported row-major observation descriptor.",
+      "raw": 0,
+      "summaries": 0
+    },
+    {
+      "id": "layer_19/preFeedforwardNorm",
+      "status": "unavailable",
+      "reason": "This loaded weight has no supported row-major observation descriptor.",
+      "raw": 0,
+      "summaries": 0
+    },
+    {
+      "id": "layer_19/ffnGate",
+      "status": "captured",
+      "reason": null,
+      "raw": 0,
+      "summaries": 224
+    },
+    {
+      "id": "layer_19/ffnUp",
+      "status": "captured",
+      "reason": null,
+      "raw": 0,
+      "summaries": 224
+    },
+    {
+      "id": "layer_19/ffnDown",
+      "status": "captured",
+      "reason": null,
+      "raw": 0,
+      "summaries": 224
+    },
+    {
+      "id": "layer_20/inputNorm",
+      "status": "unavailable",
+      "reason": "This loaded weight has no supported row-major observation descriptor.",
+      "raw": 0,
+      "summaries": 0
+    },
+    {
+      "id": "layer_20/oProj",
+      "status": "captured",
+      "reason": null,
+      "raw": 0,
+      "summaries": 128
+    },
+    {
+      "id": "layer_20/qkvProj",
+      "status": "captured",
+      "reason": null,
+      "raw": 0,
+      "summaries": 384
+    },
+    {
+      "id": "layer_20/linearInProjZ",
+      "status": "captured",
+      "reason": null,
+      "raw": 0,
+      "summaries": 128
+    },
+    {
+      "id": "layer_20/linearInProjA",
+      "status": "captured",
+      "reason": null,
+      "raw": 0,
+      "summaries": 1
+    },
+    {
+      "id": "layer_20/linearInProjB",
+      "status": "captured",
+      "reason": null,
+      "raw": 0,
+      "summaries": 1
+    },
+    {
+      "id": "layer_20/linearConv1D",
+      "status": "unavailable",
+      "reason": "This loaded weight has no supported row-major observation descriptor.",
+      "raw": 0,
+      "summaries": 0
+    },
+    {
+      "id": "layer_20/linearDtBias",
+      "status": "unavailable",
+      "reason": "This loaded weight has no supported row-major observation descriptor.",
+      "raw": 0,
+      "summaries": 0
+    },
+    {
+      "id": "layer_20/linearALog",
+      "status": "unavailable",
+      "reason": "This loaded weight has no supported row-major observation descriptor.",
+      "raw": 0,
+      "summaries": 0
+    },
+    {
+      "id": "layer_20/linearNorm",
+      "status": "unavailable",
+      "reason": "This loaded weight has no supported row-major observation descriptor.",
+      "raw": 0,
+      "summaries": 0
+    },
+    {
+      "id": "layer_20/postAttentionNorm",
+      "status": "unavailable",
+      "reason": "This loaded weight has no supported row-major observation descriptor.",
+      "raw": 0,
+      "summaries": 0
+    },
+    {
+      "id": "layer_20/preFeedforwardNorm",
+      "status": "unavailable",
+      "reason": "This loaded weight has no supported row-major observation descriptor.",
+      "raw": 0,
+      "summaries": 0
+    },
+    {
+      "id": "layer_20/ffnGate",
+      "status": "captured",
+      "reason": null,
+      "raw": 0,
+      "summaries": 224
+    },
+    {
+      "id": "layer_20/ffnUp",
+      "status": "captured",
+      "reason": null,
+      "raw": 0,
+      "summaries": 224
+    },
+    {
+      "id": "layer_20/ffnDown",
+      "status": "captured",
+      "reason": null,
+      "raw": 0,
+      "summaries": 224
+    },
+    {
+      "id": "layer_21/inputNorm",
+      "status": "unavailable",
+      "reason": "This loaded weight has no supported row-major observation descriptor.",
+      "raw": 0,
+      "summaries": 0
+    },
+    {
+      "id": "layer_21/oProj",
+      "status": "captured",
+      "reason": null,
+      "raw": 0,
+      "summaries": 128
+    },
+    {
+      "id": "layer_21/qkvProj",
+      "status": "captured",
+      "reason": null,
+      "raw": 0,
+      "summaries": 384
+    },
+    {
+      "id": "layer_21/linearInProjZ",
+      "status": "captured",
+      "reason": null,
+      "raw": 0,
+      "summaries": 128
+    },
+    {
+      "id": "layer_21/linearInProjA",
+      "status": "captured",
+      "reason": null,
+      "raw": 0,
+      "summaries": 1
+    },
+    {
+      "id": "layer_21/linearInProjB",
+      "status": "captured",
+      "reason": null,
+      "raw": 0,
+      "summaries": 1
+    },
+    {
+      "id": "layer_21/linearConv1D",
+      "status": "unavailable",
+      "reason": "This loaded weight has no supported row-major observation descriptor.",
+      "raw": 0,
+      "summaries": 0
+    },
+    {
+      "id": "layer_21/linearDtBias",
+      "status": "unavailable",
+      "reason": "This loaded weight has no supported row-major observation descriptor.",
+      "raw": 0,
+      "summaries": 0
+    },
+    {
+      "id": "layer_21/linearALog",
+      "status": "unavailable",
+      "reason": "This loaded weight has no supported row-major observation descriptor.",
+      "raw": 0,
+      "summaries": 0
+    },
+    {
+      "id": "layer_21/linearNorm",
+      "status": "unavailable",
+      "reason": "This loaded weight has no supported row-major observation descriptor.",
+      "raw": 0,
+      "summaries": 0
+    },
+    {
+      "id": "layer_21/postAttentionNorm",
+      "status": "unavailable",
+      "reason": "This loaded weight has no supported row-major observation descriptor.",
+      "raw": 0,
+      "summaries": 0
+    },
+    {
+      "id": "layer_21/preFeedforwardNorm",
+      "status": "unavailable",
+      "reason": "This loaded weight has no supported row-major observation descriptor.",
+      "raw": 0,
+      "summaries": 0
+    },
+    {
+      "id": "layer_21/ffnGate",
+      "status": "captured",
+      "reason": null,
+      "raw": 0,
+      "summaries": 224
+    },
+    {
+      "id": "layer_21/ffnUp",
+      "status": "captured",
+      "reason": null,
+      "raw": 0,
+      "summaries": 224
+    },
+    {
+      "id": "layer_21/ffnDown",
+      "status": "captured",
+      "reason": null,
+      "raw": 0,
+      "summaries": 224
+    },
+    {
+      "id": "layer_22/inputNorm",
+      "status": "unavailable",
+      "reason": "This loaded weight has no supported row-major observation descriptor.",
+      "raw": 0,
+      "summaries": 0
+    },
+    {
+      "id": "layer_22/oProj",
+      "status": "captured",
+      "reason": null,
+      "raw": 0,
+      "summaries": 128
+    },
+    {
+      "id": "layer_22/qkvProj",
+      "status": "captured",
+      "reason": null,
+      "raw": 0,
+      "summaries": 384
+    },
+    {
+      "id": "layer_22/linearInProjZ",
+      "status": "captured",
+      "reason": null,
+      "raw": 0,
+      "summaries": 128
+    },
+    {
+      "id": "layer_22/linearInProjA",
+      "status": "captured",
+      "reason": null,
+      "raw": 0,
+      "summaries": 1
+    },
+    {
+      "id": "layer_22/linearInProjB",
+      "status": "captured",
+      "reason": null,
+      "raw": 0,
+      "summaries": 1
+    },
+    {
+      "id": "layer_22/linearConv1D",
+      "status": "unavailable",
+      "reason": "This loaded weight has no supported row-major observation descriptor.",
+      "raw": 0,
+      "summaries": 0
+    },
+    {
+      "id": "layer_22/linearDtBias",
+      "status": "unavailable",
+      "reason": "This loaded weight has no supported row-major observation descriptor.",
+      "raw": 0,
+      "summaries": 0
+    },
+    {
+      "id": "layer_22/linearALog",
+      "status": "unavailable",
+      "reason": "This loaded weight has no supported row-major observation descriptor.",
+      "raw": 0,
+      "summaries": 0
+    },
+    {
+      "id": "layer_22/linearNorm",
+      "status": "unavailable",
+      "reason": "This loaded weight has no supported row-major observation descriptor.",
+      "raw": 0,
+      "summaries": 0
+    },
+    {
+      "id": "layer_22/postAttentionNorm",
+      "status": "unavailable",
+      "reason": "This loaded weight has no supported row-major observation descriptor.",
+      "raw": 0,
+      "summaries": 0
+    },
+    {
+      "id": "layer_22/preFeedforwardNorm",
+      "status": "unavailable",
+      "reason": "This loaded weight has no supported row-major observation descriptor.",
+      "raw": 0,
+      "summaries": 0
+    },
+    {
+      "id": "layer_22/ffnGate",
+      "status": "captured",
+      "reason": null,
+      "raw": 0,
+      "summaries": 224
+    },
+    {
+      "id": "layer_22/ffnUp",
+      "status": "captured",
+      "reason": null,
+      "raw": 0,
+      "summaries": 224
+    },
+    {
+      "id": "layer_22/ffnDown",
+      "status": "captured",
+      "reason": null,
+      "raw": 0,
+      "summaries": 224
+    },
+    {
+      "id": "layer_23/inputNorm",
+      "status": "unavailable",
+      "reason": "This loaded weight has no supported row-major observation descriptor.",
+      "raw": 0,
+      "summaries": 0
+    },
+    {
+      "id": "layer_23/qProj",
+      "status": "captured",
+      "reason": null,
+      "raw": 0,
+      "summaries": 256
+    },
+    {
+      "id": "layer_23/kProj",
+      "status": "captured",
+      "reason": null,
+      "raw": 0,
+      "summaries": 32
+    },
+    {
+      "id": "layer_23/vProj",
+      "status": "captured",
+      "reason": null,
+      "raw": 0,
+      "summaries": 32
+    },
+    {
+      "id": "layer_23/oProj",
+      "status": "captured",
+      "reason": null,
+      "raw": 0,
+      "summaries": 128
+    },
+    {
+      "id": "layer_23/qNorm",
+      "status": "unavailable",
+      "reason": "This loaded weight has no supported row-major observation descriptor.",
+      "raw": 0,
+      "summaries": 0
+    },
+    {
+      "id": "layer_23/kNorm",
+      "status": "unavailable",
+      "reason": "This loaded weight has no supported row-major observation descriptor.",
+      "raw": 0,
+      "summaries": 0
+    },
+    {
+      "id": "layer_23/postAttentionNorm",
+      "status": "unavailable",
+      "reason": "This loaded weight has no supported row-major observation descriptor.",
+      "raw": 0,
+      "summaries": 0
+    },
+    {
+      "id": "layer_23/preFeedforwardNorm",
+      "status": "unavailable",
+      "reason": "This loaded weight has no supported row-major observation descriptor.",
+      "raw": 0,
+      "summaries": 0
+    },
+    {
+      "id": "layer_23/ffnGate",
+      "status": "captured",
+      "reason": null,
+      "raw": 0,
+      "summaries": 224
+    },
+    {
+      "id": "layer_23/ffnUp",
+      "status": "captured",
+      "reason": null,
+      "raw": 0,
+      "summaries": 224
+    },
+    {
+      "id": "layer_23/ffnDown",
+      "status": "captured",
+      "reason": null,
+      "raw": 0,
+      "summaries": 224
+    },
+    {
+      "id": "embed",
+      "status": "captured",
+      "reason": null,
+      "raw": 4096,
+      "summaries": 15520
+    },
+    {
+      "id": "lm_head",
+      "status": "captured",
+      "reason": null,
+      "raw": 4096,
+      "summaries": 15520
+    },
+    {
+      "id": "final_norm",
+      "status": "unavailable",
+      "reason": "This loaded weight has no supported row-major observation descriptor.",
+      "raw": 0,
+      "summaries": 0
+    }
+  ],
+  "bytes": 33460800
+}

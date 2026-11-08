@@ -1,8 +1,11 @@
+import { decodeRecording } from './recording-codec.js';
+import { validateActivity } from './validation.js';
 import config from './config.json' with { type: 'json' };
 
 // Import validation is independent of a recording's claimed limits.
 /** @type {typeof import('./data.js').validateRecording} */
 export function validateRecording(input) {
+  input = decodeRecording(input);
   if (!input || typeof input !== 'object') throw new Error('Invalid activation recording.');
   const value = /** @type {import('./data.js').ActivationRecording} */ (input);
   const fail = () => { throw new Error('Invalid or oversized activation recording.'); };
@@ -44,6 +47,7 @@ export function validateRecording(input) {
     } else if (f.values != null) fail();
   }
   if (trace.recordedBytes !== total * 8) fail();
+  if (trace.activity) validateActivity(trace.activity, trace.geometry);
   return value;
 }
 

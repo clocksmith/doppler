@@ -1,3 +1,4 @@
+import { prepareActivityRecording } from '../activity-weights.js';
 import { assertHyperConnectionOperation } from '../hyper-connection/sequence-transaction.js';
 import { lookupDraft, verifySpeculativeTokens } from './speculative-runtime.js';
 import { markDiagnosticSequenceStep } from './diagnostic-sequence.js';
@@ -105,6 +106,10 @@ function prepareGenerationRuntime(generator, opts, options) {
       tsirFixture: createTsirFixtureState(tsirFixtureCfg),
     };
   }
+  if (opts.__activationTrace?.activity) {
+    generator._state.operatorDiagnostics ??= { enabled: false };
+    generator._state.operatorDiagnostics.activity = opts.__activationTrace.activity;
+  }
   const activePlan = resolveActiveExecutionPlan(generator._state);
   generator._state.stats.executionPlan = {
     primary: summarizeExecutionPlan(generator._state.executionPlanState?.primaryPlan ?? null),
@@ -202,6 +207,7 @@ export async function* _generateTokensInternal(prompt, options = {}, mode = 'tex
     };
 
     try {
+      await prepareActivityRecording(this._state, opts);
       const prefillStartSeqLen = this._state.currentSeqLen;
       const prefillStart = performance.now();
       opts._whileFinalPrefillRuns = wholeTokenAheadVerification(this, opts);
@@ -333,6 +339,7 @@ export async function generateTokenIds(prompt, options = {}) {
     let promptTokenCount = 0;
 
     try {
+      await prepareActivityRecording(this._state, opts);
       const prefillStartSeqLen = this._state.currentSeqLen;
       const prefillStart = performance.now();
       const { inputIds, logits: initialPrefillLogits } = await this._prefillPromptToLogits(prompt, opts, 'generateTokenIds');

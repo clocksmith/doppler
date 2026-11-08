@@ -50,7 +50,8 @@ const WORKER_SHELL_END = '// END GENERATED DEMO SHELL';
 // the audited runtime closure. Activation capture adds three modules and live
 // precision comparison adds one, for 828 total. Removing dependencies must
 // lower this ceiling; the ten-megabyte byte limit remains unchanged.
-const MAX_MODULES = 828;
+// Six added owners: activity capture, weight observation, linear-state capture, grid projections, recording validation and binary recording interchange.
+const MAX_MODULES = 834;
 const MAX_TOTAL_BYTES = 10_000_000;
 const MODULE_ROOTS = [
   'demo/demo.js',

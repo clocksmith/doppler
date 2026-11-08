@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
 import fs from 'node:fs/promises';
+import { validateRecording } from '../../demo/ui/activation-grid/data.js';
 
 // Synthetic data exercises only the UI. Physical captures are a separate opt-in check.
 export async function checkActivationPlayback(page) {
@@ -16,11 +17,13 @@ export async function checkActivationPlayback(page) {
       status: 'complete', stoppedReason: null, recordedBytes: 96, frames } };
   assert.equal(await page.locator('#activation-player').isVisible(), false, 'An instruction replaces the empty grid');
   await page.setInputFiles('#import-file', { name: 'trace.json', mimeType: 'application/json', buffer: Buffer.from(JSON.stringify(recording)) });
-  await page.waitForFunction(() => document.querySelector('#activation-caption').textContent.includes('capture 4/4'));
+  await page.selectOption('#activity-playback', 'captures');
+  await page.waitForFunction(() => document.querySelector('#activation-scrub').max === '3');
   assert.equal(await page.locator('#activation-canvas').isVisible(), true);
   const final = await page.locator('#activation-canvas').evaluate(c => [...c.getContext('2d').getImageData(0, 0, c.width, c.height).data]);
   await page.locator('#activation-scrub').fill('0');
-  await page.waitForFunction(() => document.querySelector('#activation-caption').textContent.includes('capture 1/4'));
+  await page.waitForFunction(() => document.querySelector('#activation-position').value === '0');
+  await page.evaluate(() => new Promise(requestAnimationFrame));
   const first = await page.locator('#activation-canvas').evaluate(c => [...c.getContext('2d').getImageData(0, 0, c.width, c.height).data]);
   assert.notDeepEqual(first, final, 'Scrubbing changes measured samples');
   if (!await page.locator('#activation-speed').isVisible()) await page.locator('#run-details > summary').click();
@@ -31,7 +34,7 @@ export async function checkActivationPlayback(page) {
   assert.equal(await page.locator('#activation-play').textContent(), 'Play');
   const pending = page.waitForEvent('download'); await page.click('#activation-export');
   const download = await pending;
-  assert.deepEqual(JSON.parse(await fs.readFile(await download.path(), 'utf8')), recording, 'Offline export is self-contained');
+  assert.deepEqual(validateRecording(JSON.parse(await fs.readFile(await download.path(), 'utf8'))), recording, 'Offline export is self-contained');
   await page.setInputFiles('#import-file', { name: 'bad.json', mimeType: 'application/json', buffer: Buffer.from('{"schema":"doppler.activation-recording/v1"}') });
   await page.waitForFunction(() => document.querySelector('#activation-status').textContent.includes('Invalid'));
   assert.equal(await page.evaluate(async () => (await import(new URL('ui/activation-grid/index.js', document.querySelector('script[src$="/demo.js"]').src))).getActivationRecording().demoBuild), 'synthetic-ui-test', 'Invalid imports preserve the accepted recording');
@@ -55,4 +58,73 @@ export async function checkTokenGeometry(page) {
     assert(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), `No page overflow at ${width}px`);
   }
   await page.setViewportSize({ width: 1280, height: 1000 });
+}
+
+// Uses the published physical recording; does not run a model or fixture generator.
+export async function checkRealActivityPlayback(page) {
+  await page.click('#activity-example');
+  await page.waitForFunction(() => !document.querySelector('#activity-example').disabled, null, { timeout: 120000 });
+  await page.evaluate(() => new Promise(requestAnimationFrame));
+  assert.match(await page.locator('#activation-caption').textContent(), /token position 17/, await page.locator('#activity-availability').textContent() + ' ' + await page.locator('#activation-status').textContent());
+  const modes = await page.locator('#activity-mode option').evaluateAll(options => options.map(o => ({ id: o.value, disabled: o.disabled })));
+  const results = [];
+  for (const mode of modes) {
+    if (mode.disabled) { results.push({ ...mode }); continue; }
+    await page.selectOption('#activity-mode', mode.id);
+    await page.evaluate(() => new Promise(requestAnimationFrame));
+    const state = await page.evaluate(() => {
+      const c = document.querySelector('#activation-canvas');
+      const layout = document.querySelector('#activation-layout').textContent;
+      return { caption: document.querySelector('#activation-caption').textContent, layout, width: c.width, height: c.height,
+        pixelColors: new Set(c.getContext('2d').getImageData(0, 0, c.width, c.height).data).size,
+        position: document.querySelector('#activation-position').value };
+    });
+    assert.equal(state.position, '17', 'Switching grids preserves the shared token position');
+    assert(state.width > 1 && state.pixelColors > 2, `${mode.id} renders recorded numerical values`);
+    assert(!state.layout.startsWith('0/'), `${mode.id} has real capture coverage`);
+    results.push({ id: mode.id, ...state });
+  }
+  assert.equal(modes.filter(m => !m.disabled).length, 18);
+  assert.equal(modes.find(m => m.id === 'expert-routing').disabled, true, 'A dense model cannot pretend to route experts');
+  await page.selectOption('#activity-mode', 'weights');
+  await page.selectOption('#activity-detail', 'raw');
+  await page.selectOption('#activity-weight', 'lm_head');
+  await page.evaluate(() => new Promise(requestAnimationFrame));
+  assert.match(await page.locator('#activation-layout').textContent(), /Other connections require/);
+  await page.selectOption('#activity-mode', 'recurrent-memory');
+  await page.selectOption('#activity-detail', 'overview');
+  await page.locator('#activity-weight').waitFor({ state: 'hidden' });
+  assert.equal(await page.locator('#activity-weight').isVisible(), false);
+  await page.selectOption('#activity-mode', 'layer-output');
+  if (!await page.locator('#activation-position').isVisible()) await page.locator('#run-details > summary').click();
+  await fs.mkdir('.cache/activation-grid/playback', { recursive: true });
+  for (const width of [1200, 390, 320]) {
+    await page.setViewportSize({ width, height: 900 });
+    assert(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), `No overflow at ${width}px`);
+    for (const id of ['activity-mode', 'activation-play', 'activation-canvas']) {
+      const rect = await page.locator(`#${id}`).boundingBox();
+      assert(rect && rect.x >= 0 && rect.x + rect.width <= width + 1, `${id} fits at ${width}px`);
+    }
+    await page.locator('#inspection-workspace').screenshot({ path: `.cache/activation-grid/playback/activity-${width}.png` });
+  }
+  await page.selectOption('#activity-playback', 'tokens');
+  await page.locator('#activation-scrub').fill('0');
+  await page.click('#activation-play');
+  await page.waitForFunction(() => Number(document.querySelector('#activation-scrub').value) > 1);
+  await page.click('#activation-play');
+  const position = await page.inputValue('#activation-position');
+  await page.selectOption('#activity-mode', 'kv-cache');
+  assert.equal(await page.inputValue('#activation-position'), position);
+  const pending = page.waitForEvent('download');
+  await page.click('#activation-export');
+  const downloaded = await pending;
+  const exported = await fs.readFile(await downloaded.path());
+  // Reopen the saved numerical file with all networking blocked.
+  await page.route('**/*', route => route.abort());
+  await page.setInputFiles('#import-file', { name: 'saved-activity.json', mimeType: 'application/json', buffer: exported });
+  await page.waitForFunction(() => document.querySelector('#activation-status').textContent.includes('0 missing captures'));
+  assert.match(await page.locator('#activation-caption').textContent(), /stored keys and values/);
+  await page.unroute('**/*');
+  await fs.writeFile('.cache/activation-grid/playback/receipt.json', JSON.stringify({ schema: 'doppler.activity-playback-check/v1', origin: page.url(),
+    viewports: [1200,390,320], modes: results, offlineImport: true, exportBytes: exported.length, modelExecutionRequired: false }, null, 2));
 }

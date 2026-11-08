@@ -1,3 +1,4 @@
+import { observeLinearActivity } from './linear-attention/activity.js';
 import { recordMatmul, runMatmul } from '../../../gpu/kernels/matmul.js';
 import { recordRMSNorm, runRMSNorm } from '../../../gpu/kernels/rmsnorm.js';
 import { castF32ToF16, castF16ToF32, recordCastF32ToF16, recordCastF16ToF32 } from '../../../gpu/kernels/cast.js';
@@ -665,6 +666,8 @@ export async function runLinearAttentionLayer(inputTensor, layerWeights, options
         bProjOffsetElements: abProjection?.bProjOffsetElements ?? 0,
       }
     );
+    await observeLinearActivity(options.operatorDiagnostics?.activity, layerIdx, layerState, projectionLayout,
+      coreATensor, coreBTensor, numTokens, abProjection?.bProjOffsetElements ?? 0, recorder);
     await runProbes('linear_core_out', coreTensor.buffer, {
       layerIdx,
       numTokens,

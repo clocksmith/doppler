@@ -200,11 +200,13 @@ export function updateXrayPanels(receipt = state.lastInspection) {
   addRawReceipt(container, receipt);
 }
 
-// Says how recording changes the next answer. The layer grid takes
-// precedence over GPU timing, matching the run policy order in core.js.
+// Says how the selected observation policy changes the next answer.
 export function getXrayRuntimeNoticeText(options = {}) {
+  if (options.activationRecording && options.profilingEnabled) {
+    return 'The next answer records numerical activity and GPU timing. Recording changes execution, so its times are not a speed benchmark.';
+  }
   if (options.activationRecording) {
-    return 'The next answer records every layer. Recording slows the model, so its times are not a speed benchmark.';
+    return 'The next answer records numerical activity. Recording slows the model, so its times are not a speed benchmark.';
   }
   if (options.profilingEnabled) {
     return 'The next answer measures GPU time for each step. Measuring slows the model, so its times are not a speed benchmark.';

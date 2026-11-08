@@ -144,10 +144,11 @@ export async function checkDemoControls(page) {
   assert.equal(await page.locator('#xray-shell').isVisible(), true, 'Turning on GPU timing opens its details');
   assert.equal(await page.locator('#xray-container h3').first().textContent(), 'Where time went');
   await page.locator('#activation-record').check();
-  assert.equal(await page.locator('#xray-toggle-all').isChecked(), false, 'One answer records the layer grid or GPU timing, not both');
-  assert.match(await page.locator('#runtime-notice').textContent(), /records every layer/);
+  assert.equal(await page.locator('#xray-toggle-all').isChecked(), true, 'The combined policy preserves both requested observations');
+  assert.match(await page.locator('#runtime-notice').textContent(), /numerical activity and GPU timing/);
   await page.locator('#xray-toggle-all').check();
-  assert.equal(await page.locator('#activation-record').isChecked(), false);
+  assert.equal(await page.locator('#activation-record').isChecked(), true);
+  await page.locator('#activation-record').uncheck();
   await page.locator('#xray-container .xray-section > summary').click();
   await page.waitForFunction(() => document.querySelector('#xray-container pre').textContent.length > 0);
   assert.equal(JSON.parse(await page.locator('#xray-container pre').textContent()).outputText, 'Contract generation passed.');

@@ -1,3 +1,4 @@
+import { observeActivityAttention } from '../rope-observation.js';
 import { isGpuBufferInstance, isWeightBuffer, getWeightDtype } from '../../../../../gpu/weight-buffer.js';
 import { getKernelCapabilities } from '../../../../../gpu/device.js';
 import { acquireBuffer } from '../../../../../memory/buffer-pool.js';
@@ -148,6 +149,7 @@ export async function runRecordedAttentionCore(options) {
     state,
     vTensor,
   } = options;
+  await observeActivityAttention(options);
   let attnOutput = null;
   let attnForProjection = null;
 

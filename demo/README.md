@@ -12,8 +12,8 @@ published in the catalog, configuration included:
 1. **Dialogue**: the model selector with a compact Load button and one status
    line, the conversation with clickable words and alternatives, the message box
    with Send and Stop, and answer and engine settings under **Options**.
-2. **Model activity**: what to record during the next answer (the layer grid or
-   GPU timing, one at a time), the layer grid with Play and a timeline, a timing
+2. **Model activity**: what to record during the next answer (activity grids,
+   GPU timing, or both), selectable grids with one player and timeline, a timing
    and device line for the latest answer, Save run, Save grid and one Open file
    control, and measurements and color settings under **Details**.
 3. **Precision effects**: **Your prompt** (a live 32-bit versus 16-bit run) and
@@ -69,8 +69,8 @@ resets model state before removing the conversation and its evidence, and keeps
 the loaded model available. A reset failure leaves the conversation intact.
 Run options expose sampling and observation choices; profile-owned policy is
 shown under read-only details. The recording notice in Model activity stays
-visible because every live answer records alternatives; the layer grid and GPU
-timing replace it with their own. Loading, generation, cancellation, receipt
+visible because every live answer records alternatives; activity grids and GPU
+timing replace it with the selected policy’s notice. Loading, generation, cancellation, receipt
 import/export, and confirmed cache removal keep their controls synchronized.
 
 ## Public boundaries
@@ -104,6 +104,9 @@ Observation behavior is owned by
   timing. It does not alter execution or enable GPU timestamp queries.
 - `demo/guided-quality` captures selected-token probabilities and word quality.
   It changes execution and its timing is not representative.
+- `demo/model-activity` captures bounded numerical activity and weight summaries.
+  `demo/model-activity-timing` additionally records GPU timestamps. Both change
+  execution and prohibit performance claims.
 - `demo/deep-xray` enables diagnostic execution and GPU timestamps. It changes
   execution and permits diagnostic claims only.
 
@@ -187,3 +190,69 @@ visibly. The temporary second model needs additional memory and is always unload
 **Recorded examples** are separate, saved Gemma 270M final LM-head
 arithmetic replays. They are not current-conversation measurements or complete
 F32-versus-F16 model runs. Neither comparison is a throughput or quality benchmark.
+
+
+## Model activity recording and playback
+
+Open **Model activity → Open example recording** to download a real Qwen 0.8B
+capture (about 20 MB compressed), without loading or executing a model. Its
+compressed bytes are SHA-256 checked before import. The example is fetched on
+demand, outside the application-shell cache. Use **Activity grids** to record
+your own next answer. Recording scans supported loaded weights and adds bounded
+GPU readbacks; it is intentionally diagnostic, not a normal-speed mode.
+
+The Grid selector covers layer outputs, three FFN stages, differences, weights,
+weight×input products, new and accumulated KV, recurrent state, convolution
+history, attention rows and prompt relationships, memory gates, logits,
+probabilities, quantization error, residency/access, and expert routing. A view
+without its required captures stays visibly unavailable. A fused-away stage is
+missing at that position, rather than reconstructed without notice.
+
+All views share position, layer and timeline. Switching grids preserves the
+position. **Token positions** plays completed observations for each input position;
+prefill positions were computed together, not sequentially. **Operator captures**
+advances 12 captured boundaries/second at 1×. **Recorded time** follows capture
+timestamps, including observation overhead. Static weights do not animate.
+Recurrent and convolution snapshots are after chunks; they cannot reveal
+uncaptured states between positions inside a chunk.
+
+RGB packs three numerical scalars into each pixel through a fixed signed tanh
+scale. Hover reads the numbers. Captions state raw/reconstructed/aggregated,
+actual pixel dimensions, full-detail extent, current tile/window, and maximum
+underlying values per pixel. Dark cells are missing; zero is gray; nonfinite
+values are magenta. Summary tiles are not individual connections. Quantitative
+values remain in the saved recording; RGB itself does not preserve precision.
+
+Weights use RMS blocks of 16,384 values. The first supported FFN down projection
+retains four exact rows and squared-weight column sums grouped over 128 output
+rows; these reconstruct mathematical connection products and RMS summaries
+from actual post-cast inputs. They do not claim kernel-rounded arithmetic or
+causal importance. Exact zoom outside the saved window needs the matching
+weight bytes. Effective adapter products are unavailable when adapter matrices
+were not captured. The initial residency inventory is tensor-level; observed
+FFN down-dispatch bindings update it. Uploads, other operator accesses and hardware
+cache hits are not measured by this view.
+
+Attention is reconstructed from captured Q and actual stored K using the
+recorded mask, scale and softcap. It uses CPU double arithmetic, not kernel
+bit-exact replay. New KV writes are append-only; missing earlier keys make an
+attention row unavailable. Logit softmax is full-vocabulary, before sampling
+filters. Quantization error requires a retained reference: this example compares
+four Q4K head rows against their F16 tied embedding rows from the same pinned
+artifact, not against an original F32 checkpoint.
+
+The default policy retains up to 32 MiB each for layer and activity payloads,
+plus 16 MiB of weight summaries/windows (accounted as JavaScript numbers; engine
+and metadata overhead is additional). FFN capture keeps the last four positions
+of a prompt chunk. State raw windows keep 16,384 values, with 256-value RMS blocks
+across the bounded state read. Reaching a limit leaves explicit missing captures
+and does not substitute zeros or stop generation. Large views page at 786,432
+scalars. Saved v2 files pack F32 values and F64 summaries into base64 little-endian
+payloads; older v1 files remain readable. Imports validate dimensions and byte
+budgets before projection, and a rejected import preserves the accepted recording.
+
+Physical capture, cancellation/reuse and offline UI evidence:
+[2026-11-08 activity report](../reports/model-activity-20261108/README.md).
+This qualifies the demonstrated 0.8B recording on the reported browser/device;
+it does not qualify 27B capture, MoE capture, other cache layouts or arbitrary
+long recordings.

@@ -9,3 +9,11 @@
 #activation-speed { min-width: 8ch; }
 .activation-detail-controls { display: grid; gap: 16px; }
 .activation-detail-controls[hidden] { display: none; }
+
+.activity-controls { display: flex; flex-wrap: wrap; align-items: end; gap: 12px; margin: 12px 0; }
+.activity-controls label { display: grid; gap: 4px; font-size: 12px; min-width: 0; }
+.activity-controls select { max-width: 100%; min-width: 0; font-size: 12px; }
+.activity-controls label[hidden], .activity-controls[hidden] { display: none; }
+#activity-mode { max-width: min(100%, 300px); }
+#activity-weight { max-width: min(100%, 350px); }
+@media (max-width: 600px) { .activity-controls { display: grid; grid-template-columns: 1fr 1fr; } .activity-controls label:first-child { grid-column: 1 / -1; } }

@@ -620,7 +620,7 @@ export function createModelHandle(pipeline, resolved) {
       const activationTrace = traceConfig ? createActivationTrace(traceConfig, {
         layers: pipeline.modelConfig.numLayers,
         width: pipeline.modelConfig.hiddenSize * (pipeline.modelConfig.hyperConnections?.streamCount ?? 1),
-      }, { modelId: resolved.modelId, manifestHash: resolved.manifestHash, runtimeVersion: DOPPLER_VERSION }, frame => {
+      }, { modelId: resolved.modelId, logicalModelId: resolved.logicalModelId, manifestHash: resolved.manifestHash, runtimeVersion: DOPPLER_VERSION, adapters: [getActiveLoRAIdentityForPipeline(pipeline)].filter(Boolean) }, frame => {
         if (streaming) options.onEvent({ type: 'activation-frame',
           frame, trace: activationTrace.snapshot('recording', false) });
       }) : null;
@@ -629,6 +629,7 @@ export function createModelHandle(pipeline, resolved) {
       if (policy.requiredCaptures.includes('selected-token-probabilities')) {
         generationOptions.onLogits = (logits) => {
           logitsByStep.push(Float32Array.from(logits));
+          void activationTrace?.activity?.logits(logits);
         };
       }
       if (streaming) {

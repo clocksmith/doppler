@@ -216,6 +216,7 @@ export function tensorProbeOptions(tensor) {
 export async function runProbes(stage, buffer, options) {
   const { layerIdx, numTokens, hiddenSize, probes, recorder, dtype = 'f32' } = options;
   if (!buffer) return;
+  await options.operatorDiagnostics?.activity?.probe(stage, buffer, options);
   const representation = { precision: options.precision, components: options.components,
     elementStrideBytes: options.elementStrideBytes };
   const elementBytes = snapshotElementBytes(dtype, representation);

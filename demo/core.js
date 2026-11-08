@@ -94,7 +94,7 @@ function recordInspectionRun(receipt, { prompt, promptInput, config, qualityEnab
 
 // Every live answer records probabilities and alternatives for branching.
 function resolvePolicyId() {
-  if (isActivationRecordingEnabled()) return 'demo/activation-grid';
+  if (isActivationRecordingEnabled()) return isXrayEnabled() ? 'demo/model-activity-timing' : 'demo/model-activity';
   return isXrayEnabled() ? 'demo/deep-xray' : 'demo/guided-quality';
 }
 

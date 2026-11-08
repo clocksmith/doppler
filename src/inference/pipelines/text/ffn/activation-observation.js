@@ -20,6 +20,7 @@ export async function captureTrainingActivation(context, layerIdx, tensor, numTo
 }
 /** @type {import('./activation-observation.js').enqueueRecordedDenseHealth} */
 export function enqueueRecordedDenseHealth(context, layerIdx, label, tensor, elementCount) {
+  context.operatorDiagnostics?.activity?.weightAccess(layerIdx, label);
   const recorder = context.recorder ?? null;
   if (!recorder || !isTraceEnabled('logits') || !shouldDebugLayerOutput(layerIdx, context.debugLayers)) {
     return;
@@ -32,5 +33,13 @@ export function enqueueRecordedDenseHealth(context, layerIdx, label, tensor, ele
   recorder.enqueueCompletionTask(async () => {
     const data = await readBuffer(tensor.buffer, elementCount * bytesPerElement);
     trace.logits(`L${layerIdx}.${label}_HEALTH`, getLogitsHealth(decodeReadback(data, dtype)));
+  });
+}
+
+/** @type {typeof import('./activation-observation.js').captureProjectionInput} */
+export async function captureProjectionInput(context, layerIdx, tensor, numTokens, width) {
+  await context.operatorDiagnostics?.activity?.capture('ffn-down-input', tensor.buffer, {
+    layer: layerIdx, shape: [numTokens, width], dtype: tensor.dtype, recorder: context.recorder,
+    precision: tensor.precision, components: tensor.components, elementStrideBytes: tensor.elementStrideBytes,
   });
 }

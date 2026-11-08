@@ -124,6 +124,46 @@
             "maxInFlight": {
               "type": "integer",
               "minimum": 1
+            },
+            "activityMaxBytes": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "activityMaxFrameValues": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "activityMaxStateValues": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "weightBlockValues": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "weightReadValues": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "weightRowGroupSize": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "weightRawRows": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "weightMaxBytes": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "activityTokenWindow": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "activitySummaryBlock": {
+              "type": "integer",
+              "minimum": 1
             }
           }
         }

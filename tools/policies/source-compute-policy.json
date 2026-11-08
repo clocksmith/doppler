@@ -1233,6 +1233,16 @@
       "id": "src/inference/pipelines/text/ngram/ngram-table.js#NgramTableReader.gather",
       "category": "artifact-codec-materialization",
       "reason": "Copies unchanged stored n-gram table row bytes (policy-bounded host cache and range reads) into a contiguous staging array in address order before the rows enter execution; no arithmetic. BF16 decoding and every projection run in WGSL."
+    },
+    {
+      "id": "src/inference/pipelines/text/activity-weights.js#visit",
+      "category": "observation",
+      "reason": "Computes bounded RMS tiles and per-column squared-weight summaries from unchanged loaded weights. These diagnostic arrays are retained only in activity receipts and never uploaded or used as model execution inputs."
+    },
+    {
+      "id": "src/debug/activity-trace.js#capture",
+      "category": "observation",
+      "reason": "Computes block RMS summaries of bounded readback windows for replay. These observations never modify or feed tensors into model execution; raw window and summary coverage remain explicit."
     }
   ]
 }

@@ -395,6 +395,14 @@ export async function moeFeedForwardGPU(
         weightsBuffer: workspace?.getBuffer(`moe:${layerIdx}:weights`, topK * 4),
       }
     ));
+  if (config.activity) {
+    for (const [role, buffer, width, dtype] of [
+      ['expert-scores', logitsBuffer, numExperts, logitsDtype],
+      ['expert-indices', indicesBuffer, topK, 'u32'],
+      ['expert-weights', weightsBuffer, topK, activationDtype],
+    ]) await config.activity.capture(role, buffer, { layer: layerIdx, shape: [numTokens, width],
+      dtype, recorder, metadata: { numExperts, topK, normalized: moeRouter.normalizeWeights } });
+  }
   perfLog(`MoE L${layerIdx} topk`, stepStart, {
     topK,
     modelType,

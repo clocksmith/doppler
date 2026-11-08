@@ -1,0 +1,20 @@
+warning [6076.6ms][Pipeline] Vision unavailable: vision architecture "qwen3vl" is declared by the manifest but not executable (the shared ViT path applies no 2D rotary or learned position embedding, the merger never applies visual.merger.ln_q, and deepstack features never reach the text layers).
+warning [26825.2ms][CommandRecorder] maxQuerySetSize unavailable; using fallback 4096
+node:internal/modules/run_main:123
+    triggerUncaughtException(
+    ^
+
+page.evaluate: Error: Activation capture requires immediate diagnostic execution.
+    at Object.capture (http://127.0.0.1:51585/src/debug/activation-trace.js:35:35)
+    at decodeStepBody (http://127.0.0.1:51585/src/inference/pipelines/text/generator/decode.js:431:33)
+    at async PipelineGenerator._runDecodeLoop (http://127.0.0.1:51585/src/inference/pipelines/text/generator/decode-runtime.js:834:15)
+    at async PipelineGenerator._runDecodeLoop (http://127.0.0.1:51585/src/inference/pipelines/text/generator.js:500:12)
+    at async PipelineGenerator.generateTokenIds (http://127.0.0.1:51585/src/inference/pipelines/text/generator/decode-runtime.js:373:26)
+    at async http://127.0.0.1:51585/src/client/model-host/model-session.js:227:22
+    at async invoke (http://127.0.0.1:51585/src/inference/pipelines/shader-scoped-pipeline.js:197:16)
+    at async runWithShaderSourceScope (http://127.0.0.1:51585/src/gpu/kernels/shader-source-scope.js:93:16)
+    at async runOperation (http://127.0.0.1:51585/src/inference/pipelines/shader-scoped-pipeline.js:86:12)
+    at async Object.generate (http://127.0.0.1:51585/src/client/model-host/model-session.js:656:40)
+    at /Users/xyz/deco/doppler/tools/experiments/activity-grids-browser.js:31:29
+
+Node.js v22.20.0

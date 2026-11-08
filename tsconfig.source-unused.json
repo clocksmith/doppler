@@ -196,6 +196,12 @@
     "src/loader/experts/routed-expert-cache.js",
     "src/inference/pipelines/text/moe/routed-expert-chunks.js",
     "src/loader/experts/loader-bindings.js",
-    "src/converter/execution-graph/kv-storage.js"
+    "src/converter/execution-graph/kv-storage.js",
+    "src/debug/activity-trace.js",
+    "src/inference/pipelines/text/activity-weights.js",
+    "demo/ui/activation-grid/views.js",
+    "demo/ui/activation-grid/validation.js",
+    "src/inference/pipelines/text/linear-attention/activity.js",
+    "demo/ui/activation-grid/recording-codec.js"
   ]
 }

@@ -2,8 +2,8 @@
 // a module. An older registration must be able to update without booting the app.
 // BEGIN GENERATED DEMO SHELL
 const SHELL_MANIFEST_SCHEMA = 'doppler.demo-shell-manifest/v1';
-const SHELL_MANIFEST_DIGEST = 'sha256:dac0273aa16b5f81d6ac502f3af0a79dba7e6f399a241ad87cb45c494baaab83';
-const CACHE_NAME = 'doppler-demo-shell-dac0273aa16b5f81';
+const SHELL_MANIFEST_DIGEST = 'sha256:fb71e22f819c7a9517ee6b6b23a87379ceb1620ba2ee59f2a15062e40f1cadbf';
+const CACHE_NAME = 'doppler-demo-shell-fb71e22f819c7a95';
 const APP_SHELL = Object.freeze([
   "/demo/assets/pwa/icon-192.png",
   "/demo/assets/pwa/icon-512.png",
@@ -36,7 +36,11 @@ const APP_SHELL = Object.freeze([
   "/demo/ui/activation-grid/config.json",
   "/demo/ui/activation-grid/data.js",
   "/demo/ui/activation-grid/index.js",
+  "/demo/ui/activation-grid/modes.json",
+  "/demo/ui/activation-grid/recording-codec.js",
   "/demo/ui/activation-grid/styles.css",
+  "/demo/ui/activation-grid/validation.js",
+  "/demo/ui/activation-grid/views.js",
   "/demo/ui/chat-markdown.js",
   "/demo/ui/dom.js",
   "/demo/ui/precision-replay/index.js",
@@ -115,6 +119,7 @@ const APP_SHELL = Object.freeze([
   "/src/config/generation-contract.json",
   "/src/config/heterogeneous-attention-contract.js",
   "/src/config/initial-execution-identity.js",
+  "/src/config/inspection/activity-stages.json",
   "/src/config/inspection/observation-policies.json",
   "/src/config/kernel-path-loader.js",
   "/src/config/kernel-registry-contract.js",
@@ -220,6 +225,7 @@ const APP_SHELL = Object.freeze([
   "/src/converter/execution-graph/validation.js",
   "/src/converter/quantizer.js",
   "/src/debug/activation-trace.js",
+  "/src/debug/activity-trace.js",
   "/src/debug/capture-policy.js",
   "/src/debug/config.js",
   "/src/debug/history.js",
@@ -491,6 +497,7 @@ const APP_SHELL = Object.freeze([
   "/src/inference/pipelines/shared/clipped-linear.js",
   "/src/inference/pipelines/text.js",
   "/src/inference/pipelines/text/abort-contract.js",
+  "/src/inference/pipelines/text/activity-weights.js",
   "/src/inference/pipelines/text/attention/attn-config.js",
   "/src/inference/pipelines/text/attention/cache-cast.js",
   "/src/inference/pipelines/text/attention/dispatch-params.js",
@@ -611,6 +618,7 @@ const APP_SHELL = Object.freeze([
   "/src/inference/pipelines/text/lifecycle.js",
   "/src/inference/pipelines/text/linear-attention-ab-fusion.js",
   "/src/inference/pipelines/text/linear-attention.js",
+  "/src/inference/pipelines/text/linear-attention/activity.js",
   "/src/inference/pipelines/text/linear-attention/norm-ab.js",
   "/src/inference/pipelines/text/linear-attention/plan.js",
   "/src/inference/pipelines/text/linear-attention/state-checkpoint.js",

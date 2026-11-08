@@ -214,15 +214,11 @@ export async function _prefill(inputIds, opts) {
         debugCheckBufferHelper(this._state, buffer, label, numTokens, expectedDim, representation)
       : undefined;
     const context = buildLayerContext(
-      this._state,
-      recorder,
-      false,
-      opts.debugLayers,
-      debugCheckBuffer,
-      opts.executionPlan
+      this._state, recorder, false, opts.debugLayers, debugCheckBuffer, opts.executionPlan
     );
     context.trainingCapture = opts?._trainingCapture ?? null;
     context.currentTokenIds = inputIds;
+    opts.__activationTrace?.activity?.begin('prefill', startPos, inputIds);
     context.signal = opts.signal;
     context.diffusionGemmaDecoder = opts?._diffusionGemmaDecoder === true;
     context.skipKVCacheWrites = returnHidden

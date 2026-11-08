@@ -1,0 +1,21 @@
+[
+  {"id":"layer-output","label":"Layer outputs","roles":[]},
+  {"id":"ffn-product","label":"FFN features · activated product","roles":["ffn-product"]},
+  {"id":"ffn-gate","label":"FFN features · gate projection","roles":["ffn-gate"]},
+  {"id":"ffn-up","label":"FFN features · up projection","roles":["ffn-up"]},
+  {"id":"difference","label":"Activation changes","roles":[]},
+  {"id":"weights","label":"Weights","roles":[]},
+  {"id":"contributions","label":"Weight × input","roles":["ffn-down-input"]},
+  {"id":"kv-new","label":"New attention memory","roles":["kv-key","kv-value"]},
+  {"id":"kv-cache","label":"Accumulated attention memory","roles":["kv-key","kv-value"]},
+  {"id":"recurrent-memory","label":"Recurrent memory","roles":["recurrent-memory"]},
+  {"id":"convolution-history","label":"Convolution history","roles":["convolution-history"]},
+  {"id":"attention-query","label":"Attention · current query","roles":["attention-query","kv-key"]},
+  {"id":"attention-prefill","label":"Attention · prompt relationships","roles":["attention-query","kv-key"]},
+  {"id":"linear-gates","label":"Memory retention & update gates","roles":["linear-a","linear-b","linear-a-log","linear-dt-bias"]},
+  {"id":"logits","label":"Next-token scores","roles":["logits"]},
+  {"id":"probabilities","label":"Next-token probabilities","roles":["logits"]},
+  {"id":"quantization-error","label":"Weight quantization error","roles":["quantization-error"]},
+  {"id":"residency","label":"Weight residency & access","roles":[]},
+  {"id":"expert-routing","label":"Expert routing","roles":["expert-indices","expert-weights"]}
+]

@@ -6,7 +6,7 @@ import fs from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { chromium } from 'playwright';
-import { checkActivationPlayback, checkTokenGeometry } from '../tests/demo/browser-activation.js';
+import { checkActivationPlayback, checkTokenGeometry, checkRealActivityPlayback } from '../tests/demo/browser-activation.js';
 import { checkDemoControls } from '../tests/demo/browser-controls.js';
 import {
   SHELL_MANIFEST_DIGEST,
@@ -31,6 +31,8 @@ const policies = new Map([
   ['demo/always-on', { id: 'demo/always-on', modifiesExecution: false, performanceRepresentative: true }],
   ['demo/guided-quality', { id: 'demo/guided-quality', modifiesExecution: true, performanceRepresentative: false }],
   ['demo/deep-xray', { id: 'demo/deep-xray', modifiesExecution: true, performanceRepresentative: false }],
+  ['demo/model-activity', { id: 'demo/model-activity', modifiesExecution: true, performanceRepresentative: false }],
+  ['demo/model-activity-timing', { id: 'demo/model-activity-timing', modifiesExecution: true, performanceRepresentative: false }],
 ]);
 const model = {
   modelId: 'contract-model',
@@ -241,6 +243,7 @@ async function main() {
     journey.generationCompleted = true;
     await checkDemoControls(page);
     await checkActivationPlayback(page);
+    if (process.env.DOPPLER_ACTIVITY_SAMPLE === '1') await checkRealActivityPlayback(page);
     testedShellDigest = await page.evaluate(async (url) => (await import(url)).SHELL_MANIFEST_DIGEST,
       `${origin}${modulePath.replace('/src/index-browser.js', '/demo/generated-shell-manifest.js')}`);
     await page.waitForFunction(async () => Boolean((await navigator.serviceWorker.getRegistration())?.active), null, { timeout: 60000 });

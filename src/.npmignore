@@ -737,6 +737,7 @@ inference/pipelines/shared/clipped-linear.d.ts
 inference/pipelines/structured/tsv-grammar-mask.d.ts
 inference/pipelines/structured/tsv-grammar-mask.js
 inference/pipelines/text/abort-contract.d.ts
+inference/pipelines/text/activity-weights.d.ts
 inference/pipelines/text/attention/attn-config.d.ts
 inference/pipelines/text/attention/cache-cast.d.ts
 inference/pipelines/text/attention/dispatch-params.d.ts
@@ -842,6 +843,7 @@ inference/pipelines/text/layer-plan-gpu.d.ts
 inference/pipelines/text/layer.d.ts
 inference/pipelines/text/lifecycle.d.ts
 inference/pipelines/text/linear-attention-ab-fusion.d.ts
+inference/pipelines/text/linear-attention/activity.d.ts
 inference/pipelines/text/linear-attention/norm-ab.d.ts
 inference/pipelines/text/linear-attention/plan.d.ts
 inference/pipelines/text/linear-attention/state-checkpoint.d.ts

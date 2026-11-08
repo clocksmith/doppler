@@ -46,6 +46,7 @@ export function setDequantCacheMaxEntries(maxEntries: number): void;
  * Configuration for MoE feed-forward.
  */
 export interface MoEConfig {
+  activity?: import('../../../debug/activity-trace.js').ActivityTrace | null;
   signal?: AbortSignal;
   phase?: 'prefill' | 'decode';
   groupedPrefill?: boolean;
