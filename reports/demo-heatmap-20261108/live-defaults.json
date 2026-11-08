@@ -1,0 +1,26 @@
+{
+  "url": "https://d4da.com/doppler/",
+  "release": {
+    "application": "doppler-demo",
+    "canonicalUrl": "https://d4da.com/doppler/",
+    "sourceCommit": "0c0ff3ac2bfca4868c1dda585716b90b784957d7",
+    "demoSourceCommit": "0c0ff3ac2bfca4868c1dda585716b90b784957d7",
+    "runtime": {
+      "sourceCommit": "ca685808ed0c208583a8cf1780c74ed4ae8bf501",
+      "version": "0.6.33",
+      "inventorySha256": "dfcf2b15ee5ebf89edcc743193fcbfab9917526e84c3face259453c1783bc04b"
+    },
+    "hostingRecipeSha256": "7ec02801ab3ea086cffab15d904bc2b94edeafdb4a8d378b916c97b9f9332c19"
+  },
+  "browser": "145.0.7632.6",
+  "defaultRecording": true,
+  "automaticExample": true,
+  "persistedOptOut": true,
+  "staticWeights": true,
+  "viewports": [
+    1280,
+    390,
+    320
+  ],
+  "errors": []
+}
