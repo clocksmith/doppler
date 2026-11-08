@@ -616,6 +616,7 @@ export async function encodeGemma4Image(params) {
     return {
       features: projected.buffer,
       numTokens: outputLength,
+      featureSize: weights.textHiddenSize,
       gridThw: [1, preprocessed.gridHeight, preprocessed.gridWidth],
       imageWidth: preprocessed.gridWidth * patchSize,
       imageHeight: preprocessed.gridHeight * patchSize,

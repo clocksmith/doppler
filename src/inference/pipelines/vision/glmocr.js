@@ -544,6 +544,7 @@ export async function encodeGlmOcrImage(params) {
     return {
       features: merged.buffer,
       numTokens: outputTokens,
+      featureSize: outHiddenSize,
       gridThw: [1, preprocessed.gridHeight, preprocessed.gridWidth],
       imageWidth: preprocessed.targetWidth,
       imageHeight: preprocessed.targetHeight,

@@ -58,57 +58,64 @@ export async function transcribeVideo({ frames, prompt, maxTokens, maxFrames, pe
       perFrameSoftTokenBudget,
     });
 
-    // Step 2: Build the multimodal prompt with <|video|> placeholder
-    const requestedPrompt = prompt ?? 'Describe the video in one short sentence.';
-    const videoTokenId = this.tokenizer?.model?.tokenToId?.('<|video_token|>')
-      ?? this.tokenizer?.encode?.('<|video|>')?.find?.((id) => id !== undefined)
-      ?? null;
-    // Fall back to image token ID for video placeholder expansion
-    const placeholderTokenId = videoTokenId ?? this.visionConfig?.imageTokenId ?? this.imageTokenId;
-    if (placeholderTokenId == null) {
-      throw new Error(
-        'Pipeline missing video/image token ID for video placeholder expansion.'
-      );
-    }
-
-    const templateType = this.modelConfig?.chatTemplateType ?? 'gemma4';
-    const chatOptions = this.modelConfig?.chatTemplateThinking === true ? { thinking: true } : undefined;
-    const multimodalPrompt = formatChatMessages([
-      {
-        role: 'user',
-        content: [
-          { type: 'video' },
-          { type: 'text', text: requestedPrompt },
-        ],
-      },
-    ], templateType, chatOptions);
-    const promptTokenIds = this.tokenizer.encode(multimodalPrompt);
-    const videoTokenSpanLength = encodeResult.numTokens;
-
-    // Resolve BOV/EOV tokens (reuse image BOI/EOI if video-specific ones don't exist)
-    const bovTokenId = resolveSingleSpecialTokenId(this.tokenizer, '<|video|>', 'Gemma 4 BOV token');
-    const eovTokenId = resolveSingleSpecialTokenId(this.tokenizer, '<video|>', 'Gemma 4 EOV token');
-
-    const { inputIds: fullTokenIds, imageStartOffset: videoStartOffset } = expandImagePlaceholderTokenIds(
-      promptTokenIds,
-      placeholderTokenId,
-      videoTokenSpanLength,
-      { boiTokenId: bovTokenId, eoiTokenId: eovTokenId }
-    );
-
-    const padTokenId = this.tokenizer?.getSpecialTokens?.()?.pad;
-    if (!Number.isFinite(padTokenId) || Math.floor(padTokenId) !== padTokenId || padTokenId < 0) {
-      throw new Error(
-        `[Pipeline] transcribeVideo: Gemma 4 multimodal prefill requires a tokenizer pad token ID, got ${padTokenId}.`
-      );
-    }
-
-    // Step 3: Generate with embedding override at the video token offset
     const tokens = [];
-    const maxGen = resolveMultimodalMaxTokens(this.runtimeConfig, maxTokens);
-    const stopTokenIds = this.modelConfig.stopTokenIds;
-
     try {
+      if (encodeResult.featureSize !== this.modelConfig.hiddenSize) {
+        throw new Error(
+          `[Pipeline] transcribeVideo: vision features are ${encodeResult.featureSize} values per token, ` +
+          `but the text model hidden size is ${this.modelConfig.hiddenSize}.`
+        );
+      }
+
+      // Step 2: Build the multimodal prompt with <|video|> placeholder
+      const requestedPrompt = prompt ?? 'Describe the video in one short sentence.';
+      const videoTokenId = this.tokenizer?.model?.tokenToId?.('<|video_token|>')
+        ?? this.tokenizer?.encode?.('<|video|>')?.find?.((id) => id !== undefined)
+        ?? null;
+      // Fall back to image token ID for video placeholder expansion
+      const placeholderTokenId = videoTokenId ?? this.visionConfig?.imageTokenId ?? this.imageTokenId;
+      if (placeholderTokenId == null) {
+        throw new Error(
+          'Pipeline missing video/image token ID for video placeholder expansion.'
+        );
+      }
+
+      const templateType = this.modelConfig?.chatTemplateType ?? 'gemma4';
+      const chatOptions = this.modelConfig?.chatTemplateThinking === true ? { thinking: true } : undefined;
+      const multimodalPrompt = formatChatMessages([
+        {
+          role: 'user',
+          content: [
+            { type: 'video' },
+            { type: 'text', text: requestedPrompt },
+          ],
+        },
+      ], templateType, chatOptions);
+      const promptTokenIds = this.tokenizer.encode(multimodalPrompt);
+      const videoTokenSpanLength = encodeResult.numTokens;
+
+      // Resolve BOV/EOV tokens (reuse image BOI/EOI if video-specific ones don't exist)
+      const bovTokenId = resolveSingleSpecialTokenId(this.tokenizer, '<|video|>', 'Gemma 4 BOV token');
+      const eovTokenId = resolveSingleSpecialTokenId(this.tokenizer, '<video|>', 'Gemma 4 EOV token');
+
+      const { inputIds: fullTokenIds, imageStartOffset: videoStartOffset } = expandImagePlaceholderTokenIds(
+        promptTokenIds,
+        placeholderTokenId,
+        videoTokenSpanLength,
+        { boiTokenId: bovTokenId, eoiTokenId: eovTokenId }
+      );
+
+      const padTokenId = this.tokenizer?.getSpecialTokens?.()?.pad;
+      if (!Number.isFinite(padTokenId) || Math.floor(padTokenId) !== padTokenId || padTokenId < 0) {
+        throw new Error(
+          `[Pipeline] transcribeVideo: Gemma 4 multimodal prefill requires a tokenizer pad token ID, got ${padTokenId}.`
+        );
+      }
+
+      // Step 3: Generate with embedding override at the video token offset
+      const maxGen = resolveMultimodalMaxTokens(this.runtimeConfig, maxTokens);
+      const stopTokenIds = this.modelConfig.stopTokenIds;
+
       const generation = await this.generator.generateTokenIds('', buildConservativeMultimodalGenerationOptions({
         inputIds: fullTokenIds,
         embeddingOverrides: {

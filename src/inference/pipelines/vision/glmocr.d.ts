@@ -34,6 +34,7 @@ export interface GlmOcrPreprocessResult {
 export interface GlmOcrEncodeResult {
   features: GPUBuffer;
   numTokens: number;
+  featureSize: number;
   gridThw: [number, number, number];
   imageWidth: number;
   imageHeight: number;

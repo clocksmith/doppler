@@ -9,6 +9,7 @@ export function preprocessGemma4Image(pixels: any, width: any, height: any, visi
 export function encodeGemma4Image(params: any): Promise<{
     features: GPUBuffer;
     numTokens: number;
+    featureSize: number;
     gridThw: number[];
     imageWidth: number;
     imageHeight: number;

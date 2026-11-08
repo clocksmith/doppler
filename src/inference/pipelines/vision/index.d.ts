@@ -39,6 +39,10 @@ export type VisionEncodeResult = {
      */
     numTokens: number;
     /**
+     * Values per visual token in features
+     */
+    featureSize: number;
+    /**
      * [temporal, height, width] grid dimensions
      */
     gridThw: number[];

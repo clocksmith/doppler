@@ -285,7 +285,7 @@ export async function runVisionEncoder(params) {
       'Vision',
       `encoder done: ${numPatches} patches -> ${numTokens} tokens (${outHiddenSize}d)`
     );
-    return { features, numTokens };
+    return { features, numTokens, featureSize: outHiddenSize };
   } finally {
     if (hidden) releaseBuffer(hidden);
   }

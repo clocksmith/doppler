@@ -39,4 +39,4 @@ export declare function runVisionEncoder(params: {
   gridWidth: number;
   visionConfig: VisionEncoderConfig;
   weights: VisionEncoderWeights;
-}): Promise<{ features: GPUBuffer; numTokens: number }>;
+}): Promise<{ features: GPUBuffer; numTokens: number; featureSize: number }>;

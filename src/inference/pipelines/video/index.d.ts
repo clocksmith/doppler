@@ -36,4 +36,8 @@ export type VideoEncodeResult = {
      * Number of frames actually encoded
      */
     numFrames: number;
+    /**
+     * Values per visual token, as declared by the vision encoder
+     */
+    featureSize: number;
 };

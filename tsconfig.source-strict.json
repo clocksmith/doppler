@@ -17,6 +17,7 @@
   "include": [],
   "files": [
     "src/storage/node-file-access.js",
+    "src/inference/pipelines/video/feature-concat.js",
     "src/gpu/greedy-speculative-frame.js",
     "src/gpu/kernels/check-finiteness-f32.js",
     "src/gpu/kernels/linear-attention-recovery.js",

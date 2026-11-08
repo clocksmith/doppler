@@ -53,7 +53,7 @@ export async function encodeImage(params) {
   });
 
   // Step 3: Vision encoder — ViT blocks + spatial merge.
-  const { features, numTokens } = await runVisionEncoder({
+  const { features, numTokens, featureSize } = await runVisionEncoder({
     patchBuffer,
     numPatches,
     gridHeight: preprocessed.gridThw[1],
@@ -65,6 +65,7 @@ export async function encodeImage(params) {
   return {
     features,
     numTokens,
+    featureSize,
     gridThw: preprocessed.gridThw,
     imageWidth: preprocessed.width,
     imageHeight: preprocessed.height,

@@ -14,6 +14,10 @@ export function sampleFrames(frames, maxFrames) {
     return frames.map((frame, i) => ({ ...frame, frameIndex: i }));
   }
 
+  // Evenly spaced from the first to the last frame; one sample takes the first frame.
+  if (numSampled === 1) {
+    return [{ ...frames[0], frameIndex: 0 }];
+  }
   const sampled = [];
   for (let i = 0; i < numSampled; i++) {
     const idx = Math.round((i * (totalFrames - 1)) / (numSampled - 1));
