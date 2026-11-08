@@ -5,11 +5,25 @@ no second demo implementation. `npm run demo:reachability:check` fails when an
 unreferenced JavaScript implementation appears under `demo/` or live demo code
 imports private `src/` paths.
 
+The page has three sections with one heading size, left edge, spacing and
+disclosure style, written without unexplained jargon:
+
+1. **Dialogue**: the model selector with a compact Load button and one status
+   line, the conversation with clickable words and alternatives, the message box
+   with Send and Stop, and answer and engine settings under **Options**.
+2. **Model activity**: what to record during the next answer (the layer grid or
+   GPU timing, one at a time), the layer grid with Play and a timeline, a timing
+   and device line for the latest answer, Save run, Save grid and one Open file
+   control, and measurements and color settings under **Details**.
+3. **Precision effects**: **Your prompt** (a live 32-bit versus 16-bit run) and
+   **Recorded examples** (saved Gemma 3 270M calculations), each with side-by-side
+   results first, one sentence saying what changed, and the rest under Details.
+
+Buttons fit their labels; selects and text inputs fill the available width.
+Before anything is recorded, a short instruction replaces the empty grid.
+
 First-time visitors see an interactive, explicitly labeled example of word
-choices without downloading weights or presenting its timing as a device result.
-Word choices, local writing, and recorded precision comparison are direct actions.
-Model setup opens on demand; sampling, run receipts, and precision score tables
-remain available under their respective details. The example does not become
+choices without downloading weights or presenting its timing as a device result. The example does not become
 conversation history or replace a returning conversation. The composer opens with
 the example's prompt, without taking focus, so Send runs it live. A single “Try another example” button deals the other prompts from
 `examples.json` in shuffled order, without repeats until the bank is used up.
@@ -53,8 +67,9 @@ word-quality annotations stay attached to their source text. Clear conversation
 resets model state before removing the conversation and its evidence, and keeps
 the loaded model available. A reset failure leaves the conversation intact.
 Run options expose sampling and observation choices; profile-owned policy is
-shown under read-only details. The diagnostic timing notice stays visible because
-every live answer records alternatives; X-Ray replaces it with its own. Loading, generation, cancellation, receipt
+shown under read-only details. The recording notice in Model activity stays
+visible because every live answer records alternatives; the layer grid and GPU
+timing replace it with their own. Loading, generation, cancellation, receipt
 import/export, and confirmed cache removal keep their controls synchronized.
 
 ## Public boundaries
@@ -148,7 +163,7 @@ The separately inspectable precomputed run was captured with `model.inspect.gene
 
 ## Activation recording and precision views
 
-The visible model selector sits beside the composer. **Activation grid** records
+The visible model selector sits above the conversation. The **layer grid** records
 bounded asynchronous snapshots of real layer outputs during prefill and decode.
 Positions stay stable across tokens, with a fixed scale and three values per RGB
 pixel. Missing captures are marked, never filled with zeros. Scrub or play the
@@ -157,13 +172,17 @@ composite combines sequential layer captures and does not imply simultaneous
 state. Recording limits stop observation without stopping generation. Exported
 recordings contain numerical samples, layout/scale, policy and model/build
 identity; imported playback needs no model. KV and recurrent state are not captured.
+Layer recording takes precedence over GPU timestamps in the run policy, so ticking
+one recording choice clears the other. **Open file** accepts a run file or a
+standalone grid recording and dispatches on its schema.
 
-**Live precision comparison** runs any composer prompt against the default and
+**Your prompt** runs the message box's prompt, or the last message sent when the
+box is empty (earlier turns are not included), against the default and
 declared F16-requested paths, with identical weights, exact prompt tokens and
 greedy settings. Actual resolved precision and execution identities are retained;
 selective F16 paths may keep F32 residual activations. Unsupported candidates fail
 visibly. The temporary second model needs additional memory and is always unloaded.
 
-**Recorded precision examples** are separate, saved Gemma 270M final LM-head
+**Recorded examples** are separate, saved Gemma 270M final LM-head
 arithmetic replays. They are not current-conversation measurements or complete
 F32-versus-F16 model runs. Neither comparison is a throughput or quality benchmark.
