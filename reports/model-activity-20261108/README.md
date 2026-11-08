@@ -8,7 +8,7 @@ D4DA hosts the synchronized player, numerical example and updated runtime.
 
 One Qwen 3.5 0.8B Q4K artifact, manifest
 `c5fcf38e945f1c048faca9ccda8991f1494563317f46a6dd79e0714ad001c569`,
-executed through the public browser model handle on Apple Metal (physical adapter,
+executed through the public browser model handle on Apple M3 / Metal (physical adapter,
 Chrome 145). The input was `Say hello in one word.`, temperature 0, top-k 1,
 top-p 1, maximum 3 output tokens. The reply was `Hello!`.
 
@@ -131,3 +131,22 @@ Browser checks found and corrected stale range bounds clamping a newly imported
 recording to an old token position, grid changes resetting the timeline, duplicate
 notices and stretched example buttons. Source checks also caught a private path
 in a demo type annotation; it now uses its local declaration boundary.
+
+
+## Production publication
+
+Published at https://d4da.com/doppler/ with runtime and demo source
+`ca685808ed0c208583a8cf1780c74ed4ae8bf501`; D4DA hosting change `8ceea38`.
+The [live physical receipt](live-physical-check.json) verifies the pinned model
+was downloaded from the public catalog into OPFS (1,146,048,704 bytes), answered
+`Hello!`, and retained all 72 layer captures plus 576 activity captures, with zero
+gaps and browser errors. Its 18 dense-model views are enabled; expert routing
+is unavailable. This is a live short-prompt capture check, not broader numerical
+or performance qualification.
+
+The [production playback receipt](live-playback-check.json) checks the actual
+hosted example in all enabled views, desktop/390/320 geometry and offline saved
+playback. The [production control log](live-browser-contract.log) identifies
+its mocked execution separately. Production screenshots are prefixed `live-`.
+The only source change after the deployed revision adds assertions to the hosted
+check and retains these receipts; it does not change the hosted runtime.

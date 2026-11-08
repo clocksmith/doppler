@@ -1,0 +1,20 @@
+
+> doppler-gpu@0.6.33 test:demo:contract
+> node tools/demo-contract-smoke.js
+
+Demo controls: sampling, profiles, diagnostics, keyboard, stop, receipts, removal, install handoff, contrast and responsive layouts passed (mocked execution).
+{
+  "schema": "doppler.demo-hosted-controls-check/v1",
+  "status": "passed",
+  "createdAtUtc": "2026-11-08T13:06:26.197Z",
+  "entrypoint": "/doppler/",
+  "executionClass": "mocked-contract",
+  "journey": {
+    "catalogRendered": true,
+    "modelSelected": true,
+    "modelLoaded": true,
+    "generationCompleted": true
+  },
+  "shellManifestDigest": "sha256:86adc295e0a1c9ecaa7e3238320287e4727bbd0f386b0ec9d7ca72a6c05176dc",
+  "fatalConsoleErrors": []
+}

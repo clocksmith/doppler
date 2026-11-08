@@ -1,0 +1,180 @@
+{
+  "schema": "doppler.activity-playback-check/v1",
+  "origin": "https://d4da.com/doppler/",
+  "viewports": [
+    1200,
+    390,
+    320
+  ],
+  "modes": [
+    {
+      "id": "layer-output",
+      "caption": "layer-output values · raw · prefill · token position 17 · 91 × 91 pixels",
+      "layout": "24,576/24,576 displayed scalars present; 1 underlying values per scalar (up to 3 per RGB pixel). Full-detail extent 24,576 scalars (91² RGB pixels); current overview/window extent 24,576 scalars; tile starts at 0. A composite of sequential layer captures, not simultaneous state. Play selects token positions; prefill positions were computed together. Fixed signed color scale ±1; gray is zero, dark is missing, magenta is non-finite.",
+      "width": 91,
+      "height": 91,
+      "pixelColors": 226,
+      "position": "17"
+    },
+    {
+      "id": "ffn-product",
+      "caption": "activated gate × up-projection values · raw · prefill · token position 17 · 170 × 170 pixels",
+      "layout": "86,016/86,016 displayed scalars present; 1 underlying values per scalar (up to 3 per RGB pixel). Full-detail extent 86,016 scalars (170² RGB pixels); current overview/window extent 86,016 scalars; tile starts at 0. Only materialized stages are captured. Fused-away intermediates and positions outside the recorded window are missing. Play selects token positions; prefill positions were computed together. Fixed signed color scale ±1; gray is zero, dark is missing, magenta is non-finite.",
+      "width": 170,
+      "height": 170,
+      "pixelColors": 253,
+      "position": "17"
+    },
+    {
+      "id": "ffn-gate",
+      "caption": "ffn-gate values · raw · prefill · token position 17 · 170 × 170 pixels",
+      "layout": "86,016/86,016 displayed scalars present; 1 underlying values per scalar (up to 3 per RGB pixel). Full-detail extent 86,016 scalars (170² RGB pixels); current overview/window extent 86,016 scalars; tile starts at 0. Only materialized stages are captured. Fused-away intermediates and positions outside the recorded window are missing. Play selects token positions; prefill positions were computed together. Fixed signed color scale ±1; gray is zero, dark is missing, magenta is non-finite.",
+      "width": 170,
+      "height": 170,
+      "pixelColors": 255,
+      "position": "17"
+    },
+    {
+      "id": "ffn-up",
+      "caption": "ffn-up values · raw · prefill · token position 17 · 170 × 170 pixels",
+      "layout": "86,016/86,016 displayed scalars present; 1 underlying values per scalar (up to 3 per RGB pixel). Full-detail extent 86,016 scalars (170² RGB pixels); current overview/window extent 86,016 scalars; tile starts at 0. Only materialized stages are captured. Fused-away intermediates and positions outside the recorded window are missing. Play selects token positions; prefill positions were computed together. Fixed signed color scale ±1; gray is zero, dark is missing, magenta is non-finite.",
+      "width": 170,
+      "height": 170,
+      "pixelColors": 255,
+      "position": "17"
+    },
+    {
+      "id": "difference",
+      "caption": "signed activation difference · reconstructed · prefill · token position 17 · 91 × 91 pixels",
+      "layout": "24,576/24,576 displayed scalars present; 1 underlying values per scalar (up to 3 per RGB pixel). Full-detail extent 24,576 scalars (91² RGB pixels); current overview/window extent 24,576 scalars; tile starts at 0. Current token minus the previous token position. Play selects token positions; prefill positions were computed together. Fixed signed color scale ±1; gray is zero, dark is missing, magenta is non-finite.",
+      "width": 91,
+      "height": 91,
+      "pixelColors": 176,
+      "position": "17"
+    },
+    {
+      "id": "weights",
+      "caption": "weight RMS per block · aggregated · prefill · token position 17 · 144 × 144 pixels",
+      "layout": "61,412/61,569 displayed scalars present; 16384 underlying values per scalar (up to 49152 per RGB pixel). Full-detail extent 1,006,178,304 scalars (18,314² RGB pixels); current overview/window extent 61,569 scalars; tile starts at 0. 188/345 loaded tensors observed. Blocks never cross tensor boundaries; final blocks may be shorter. Unobserved tensors are dark placeholders. Play selects token positions; prefill positions were computed together. Fixed signed color scale ±1; gray is zero, dark is missing, magenta is non-finite.",
+      "width": 144,
+      "height": 144,
+      "pixelColors": 8,
+      "position": "17"
+    },
+    {
+      "id": "contributions",
+      "caption": "RMS connection product per output-row group · aggregated · prefill · token position 17 · 98 × 98 pixels",
+      "layout": "28,672/28,672 displayed scalars present; 128 underlying values per scalar (up to 384 per RGB pixel). Full-detail extent 3,670,016 scalars (1,107² RGB pixels); current overview/window extent 28,672 scalars; tile starts at 0. layer_0/ffnDown: precomputed sum of squared weights × input², grouped over up to 128 output rows. No per-token weight matrix is materialized. Play selects token positions; prefill positions were computed together. Fixed signed color scale ±1; gray is zero, dark is missing, magenta is non-finite.",
+      "width": 98,
+      "height": 98,
+      "pixelColors": 4,
+      "position": "17"
+    },
+    {
+      "id": "kv-new",
+      "caption": "stored keys and values · raw · prefill · token position 17 · 46 × 46 pixels",
+      "layout": "6,144/6,144 displayed scalars present; 1 underlying values per scalar (up to 3 per RGB pixel). Full-detail extent 6,144 scalars (46² RGB pixels); current overview/window extent 6,144 scalars; tile starts at 0. Append-only cache writes, ordered layer → position → keys then values. Missing entries remain dark; unused capacity is excluded. Play selects token positions; prefill positions were computed together. Fixed signed color scale ±1; gray is zero, dark is missing, magenta is non-finite.",
+      "width": 46,
+      "height": 46,
+      "pixelColors": 255,
+      "position": "17"
+    },
+    {
+      "id": "kv-cache",
+      "caption": "stored keys and values · raw · prefill · token position 17 · 192 × 192 pixels",
+      "layout": "110,592/110,592 displayed scalars present; 1 underlying values per scalar (up to 3 per RGB pixel). Full-detail extent 110,592 scalars (192² RGB pixels); current overview/window extent 110,592 scalars; tile starts at 0. Append-only cache writes, ordered layer → position → keys then values. Missing entries remain dark; unused capacity is excluded. Play selects token positions; prefill positions were computed together. Fixed signed color scale ±1; gray is zero, dark is missing, magenta is non-finite.",
+      "width": 192,
+      "height": 192,
+      "pixelColors": 255,
+      "position": "17"
+    },
+    {
+      "id": "recurrent-memory",
+      "caption": "recurrent-memory · block RMS · aggregated · prefill · token position 17 · 79 × 79 pixels",
+      "layout": "18,432/18,432 displayed scalars present; 256 underlying values per scalar (up to 768 per RGB pixel). Full-detail extent 4,718,592 scalars (1,255² RGB pixels); current overview/window extent 18,432 scalars; tile starts at 0. 4,718,592 full-state values across 18 layers; summaries cover 4,718,592. State after prefill positions 0–17; prefill does not expose intermediate per-token states. Play selects token positions; prefill positions were computed together. Fixed signed color scale ±1; gray is zero, dark is missing, magenta is non-finite.",
+      "width": 79,
+      "height": 79,
+      "pixelColors": 48,
+      "position": "17"
+    },
+    {
+      "id": "convolution-history",
+      "caption": "convolution-history · block RMS · aggregated · prefill · token position 17 · 24 × 24 pixels",
+      "layout": "1,728/1,728 displayed scalars present; 256 underlying values per scalar (up to 768 per RGB pixel). Full-detail extent 442,368 scalars (384² RGB pixels); current overview/window extent 1,728 scalars; tile starts at 0. 442,368 full-state values across 18 layers; summaries cover 442,368. State after prefill positions 0–17; prefill does not expose intermediate per-token states. Play selects token positions; prefill positions were computed together. Fixed signed color scale ±1; gray is zero, dark is missing, magenta is non-finite.",
+      "width": 24,
+      "height": 24,
+      "pixelColors": 82,
+      "position": "17"
+    },
+    {
+      "id": "attention-query",
+      "caption": "attention probabilities · reconstructed · prefill · token position 17 · 17 × 17 pixels",
+      "layout": "864/864 displayed scalars present; 1 underlying values per scalar (up to 3 per RGB pixel). Full-detail extent 864 scalars (17² RGB pixels); current overview/window extent 864 scalars; tile starts at 0. 6 captured layer(s), ordered layer → query → head → key. Prompt chunks share global position coordinates. CPU double reconstruction from captured Q and stored K, with recorded scale, mask and softcap; future masked positions are zero. Not kernel bit-exact or causal attribution. Play selects token positions; prefill positions were computed together. Fixed signed color scale ±1; gray is zero, dark is missing, magenta is non-finite.",
+      "width": 17,
+      "height": 17,
+      "pixelColors": 60,
+      "position": "17"
+    },
+    {
+      "id": "attention-prefill",
+      "caption": "attention probabilities · reconstructed · prefill · token position 17 · 72 × 72 pixels",
+      "layout": "15,552/15,552 displayed scalars present; 1 underlying values per scalar (up to 3 per RGB pixel). Full-detail extent 15,552 scalars (72² RGB pixels); current overview/window extent 15,552 scalars; tile starts at 0. 6 captured layer(s), ordered layer → query → head → key. Prompt chunks share global position coordinates. CPU double reconstruction from captured Q and stored K, with recorded scale, mask and softcap; future masked positions are zero. Not kernel bit-exact or causal attribution. Play selects token positions; prefill positions were computed together. Fixed signed color scale ±1; gray is zero, dark is missing, magenta is non-finite.",
+      "width": 72,
+      "height": 72,
+      "pixelColors": 99,
+      "position": "17"
+    },
+    {
+      "id": "linear-gates",
+      "caption": "retention factor, update strength per head · reconstructed · prefill · token position 17 · 14 × 14 pixels",
+      "layout": "576/576 displayed scalars present; 1 underlying values per scalar (up to 3 per RGB pixel). Full-detail extent 576 scalars (14² RGB pixels); current overview/window extent 576 scalars; tile starts at 0. Recomputed from captured projections and parameters; alternating retention exp(log-decay) and update sigmoid values. Not a claim of kernel bit-exact arithmetic. Play selects token positions; prefill positions were computed together. Fixed signed color scale ±1; gray is zero, dark is missing, magenta is non-finite.",
+      "width": 14,
+      "height": 14,
+      "pixelColors": 91,
+      "position": "17"
+    },
+    {
+      "id": "logits",
+      "caption": "next-token logits · raw · prefill · token position 17 · 288 × 288 pixels",
+      "layout": "248,320/248,320 displayed scalars present; 1 underlying values per scalar (up to 3 per RGB pixel). Full-detail extent 248,320 scalars (288² RGB pixels); current overview/window extent 248,320 scalars; tile starts at 0. Vocabulary token-ID order. These are scores before sampling filters; a missing position has no captured prediction. Play selects token positions; prefill positions were computed together. Fixed signed color scale ±1; gray is zero, dark is missing, magenta is non-finite.",
+      "width": 288,
+      "height": 288,
+      "pixelColors": 255,
+      "position": "17"
+    },
+    {
+      "id": "probabilities",
+      "caption": "full-vocabulary softmax probability · reconstructed · prefill · token position 17 · 288 × 288 pixels",
+      "layout": "248,320/248,320 displayed scalars present; 1 underlying values per scalar (up to 3 per RGB pixel). Full-detail extent 248,320 scalars (288² RGB pixels); current overview/window extent 248,320 scalars; tile starts at 0. Vocabulary token-ID order. These are scores before sampling filters; a missing position has no captured prediction. Play selects token positions; prefill positions were computed together. Fixed signed color scale ±1; gray is zero, dark is missing, magenta is non-finite.",
+      "width": 288,
+      "height": 288,
+      "pixelColors": 9,
+      "position": "17"
+    },
+    {
+      "id": "quantization-error",
+      "caption": "stored head minus tied embedding reference · reconstructed · prefill · token position 17 · 37 × 37 pixels",
+      "layout": "4,096/4,096 displayed scalars present; 1 underlying values per scalar (up to 3 per RGB pixel). Full-detail extent 254,279,680 scalars (9,207² RGB pixels); current overview/window extent 4,096 scalars; tile starts at 0. lm_head (q4k) minus embed (f16) from the same pinned artifact, whose contract ties these weights. Exact saved window only; reference precision is not original F32 precision. Play selects token positions; prefill positions were computed together. Fixed signed color scale ±1; gray is zero, dark is missing, magenta is non-finite.",
+      "width": 37,
+      "height": 37,
+      "pixelColors": 5,
+      "position": "17"
+    },
+    {
+      "id": "residency",
+      "caption": "resident tensor and observed projection binding · raw · prefill · token position 17 · 11 × 11 pixels",
+      "layout": "345/345 displayed scalars present; 1 underlying values per scalar (up to 3 per RGB pixel). Full-detail extent 345 scalars (11² RGB pixels); current overview/window extent 345 scalars; tile starts at 0. One scalar per tensor: 1 = down-projection dispatch encoded for this position, 0.25 = resident at capture start, 0 = not resident. Other operator accesses, uploads and hardware cache hits are unobserved. This is not numerical importance. Play selects token positions; prefill positions were computed together. Fixed signed color scale ±1; gray is zero, dark is missing, magenta is non-finite.",
+      "width": 11,
+      "height": 11,
+      "pixelColors": 4,
+      "position": "17"
+    },
+    {
+      "id": "expert-routing",
+      "disabled": true
+    }
+  ],
+  "offlineImport": true,
+  "exportBytes": 26829100,
+  "modelExecutionRequired": false
+}

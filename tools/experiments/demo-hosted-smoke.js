@@ -21,7 +21,7 @@ try {
   assert.equal(await page.locator('#model-select-action').textContent(), 'Loaded', await page.locator('#status-text').textContent());
   await page.locator('#activation-view').evaluate(el => { el.open = true; });
   await page.check('#activation-record');
-  await page.evaluate(() => { const select = document.querySelector('#set-max-tokens'); select.add(new Option('4', '4')); select.value = '4'; select.dispatchEvent(new Event('change', { bubbles: true })); });
+  await page.evaluate(() => { const select = document.querySelector('#set-max-tokens'); select.add(new Option('3', '3')); select.value = '3'; select.dispatchEvent(new Event('change', { bubbles: true })); });
   await page.fill('#prompt-input', 'Say hello in one word.');
   await page.click('#run-btn');
   await page.waitForFunction(() => document.querySelector('#output-phase').textContent === 'Complete');
@@ -29,14 +29,20 @@ try {
     const base = document.querySelector('script[src$="/demo.js"]').src;
     const { state } = await import(new URL('ui/state.js', base));
     const { getActivationRecording } = await import(new URL('ui/activation-grid/index.js', base));
-    const trace = getActivationRecording().trace;
+    const recording = getActivationRecording(), trace = recording.trace;
+    const { activityModes } = await import(new URL('ui/activation-grid/views.js', base));
     return { identity: trace.identity, persistentCache: state.model.persistentCache,
       output: state.lastInspection.outputText, tokenIds: state.lastInspection.generatedTokenIds,
       phases: [...new Set(trace.frames.map(f => f.phase))], frames: trace.frames.length,
       captured: trace.frames.filter(f => f.status === 'captured').length,
-      gaps: trace.frames.filter(f => f.status === 'dropped' || f.status === 'failed').length };
+      gaps: trace.frames.filter(f => f.status === 'dropped' || f.status === 'failed').length,
+      activityFrames: trace.activity?.frames.length ?? 0,
+      activityGaps: trace.activity?.frames.filter(f => f.status !== 'captured').length ?? null,
+      modes: activityModes(recording).map(m => ({ id: m.id, available: !m.reason, reason: m.reason })) };
   });
   assert(receipt.phases.includes('prefill') && receipt.phases.includes('decode'));
+  assert.equal(receipt.activityGaps, 0); assert(receipt.activityFrames > 0);
+  assert.equal(receipt.modes.filter(m => m.available).length, 18);
   assert.equal(receipt.gaps, 0); assert.equal(receipt.captured, receipt.frames);
   const release = await (await page.request.get(origin + '/doppler/release.json')).json();
   const result = { origin, browser: browser.version(), release, receipt, errors };
