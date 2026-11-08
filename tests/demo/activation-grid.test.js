@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { createActivationTrace } from '../../src/debug/activation-trace.js';
-import { validateRecording, projectFrame, colorGrid } from '../../demo/ui/activation-grid/data.js';
+import { validateRecording, projectFrame, colorGrid, initialColorScale } from '../../demo/ui/activation-grid/data.js';
 
 const limits = { maxBytes: 512, maxFrameBytes: 128, maxFrames: 16, maxGridValues: 64, maxInFlight: 1 };
 const geometry = { layers: 2, width: 3 };
@@ -30,6 +30,12 @@ assert.deepEqual(decode.values.slice(0, 3), [8, 9, 10]);
 assert.equal(colorGrid([0, undefined, 'NaN'], 1).rgba[0], 255, 'nonfinite pixels are marked');
 assert.deepEqual([...colorGrid([0, 0, 0], 1).rgba], [128, 128, 128, 255]);
 assert.equal(colorGrid([undefined, undefined, undefined], 1).rgba[0], 48);
+assert.equal(initialColorScale([0, undefined, 'NaN'], 1), 1, 'Empty data keeps the declared scale');
+assert(initialColorScale([0.0001, 0.0002, 0.0003], 1) < 0.001, 'Small connection products remain visible');
+const scaled = structuredClone(recording); scaled.display.scales = { 'weights:overview': 0.002 };
+assert.deepEqual(validateRecording(JSON.parse(JSON.stringify(scaled))), scaled);
+scaled.display.scales['weights:overview'] = 0;
+assert.throws(() => validateRecording(scaled), /Invalid/, 'Saved view scales cannot divide by zero');
 const corrupted = structuredClone(recording); corrupted.trace.frames[0].shape = [999, 3];
 assert.throws(() => validateRecording(corrupted), /Invalid/);
 const oversized = structuredClone(recording); oversized.trace.geometry.layers = 2 ** 30;

@@ -2,6 +2,8 @@ import type { ActivationFrame, ActivationTraceReceipt } from '../../../src/debug
 import type { ActivationRecording } from './data.js';
 import type { DopplerModelInspectionReceipt } from '../../../src/client/model-host/model-session.js';
 export interface GridElements {
+  'activity-previews': HTMLElement; 'activity-gallery': HTMLElement; 'activity-selectors': HTMLElement;
+  'activity-source': HTMLElement; 'activation-view': HTMLElement;
   'activity-mode': HTMLSelectElement; 'activity-layer': HTMLSelectElement; 'activity-playback': HTMLSelectElement;
   'activity-weight': HTMLSelectElement; 'activity-detail': HTMLSelectElement;
   'activity-page': HTMLInputElement; 'activity-compare-file': HTMLInputElement;

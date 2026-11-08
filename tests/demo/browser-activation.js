@@ -2,6 +2,31 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs/promises';
 import { validateRecording } from '../../demo/ui/activation-grid/data.js';
 
+// Geometry protects the first-load gap and makes every preview an immediate entry.
+export async function checkFirstLoadLayout(page, empty = false) {
+  await fs.mkdir('.cache/demo-first-load', { recursive: true });
+  for (const width of [1280, 390, 320]) {
+    await page.setViewportSize({ width, height: 900 });
+    await page.evaluate(() => new Promise(requestAnimationFrame));
+    assert(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), `No overflow at ${width}px`);
+    if (empty) {
+      const surface = await page.locator('.chat-surface').boundingBox();
+      const composer = await page.locator('#input-area').boundingBox();
+      assert(surface.height < 80, `Empty conversation must not reserve a transcript at ${width}px`);
+      assert(composer.y - surface.y - surface.height < 40, `Composer follows empty conversation at ${width}px`);
+      await page.locator('#dialogue-section').screenshot({ path: `.cache/demo-first-load/empty-${width}.png` });
+    } else {
+      assert.equal(await page.locator('.activity-preview').count(), 6);
+      const images = await page.locator('.activity-preview img').evaluateAll(nodes => nodes.map(n => ({ loaded: n.complete && n.naturalWidth > 1, width: n.getBoundingClientRect().width })));
+      assert(images.every(i => i.loaded && i.width >= 90), 'Real grid previews are visible before any download or model run');
+      assert.equal(await page.locator('#activity-selectors').isVisible(), false, 'No unusable selectors on first load');
+      assert.equal(await page.locator('#activation-player').isVisible(), false);
+      await page.locator('#inspection-workspace').screenshot({ path: `.cache/demo-first-load/activity-${width}.png` });
+    }
+  }
+  await page.setViewportSize({ width: 1280, height: 1000 });
+}
+
 // Synthetic data exercises only the UI. Physical captures are a separate opt-in check.
 export async function checkActivationPlayback(page) {
   const frames = [0, 1, 0, 1].map((layer, index) => ({
@@ -21,20 +46,25 @@ export async function checkActivationPlayback(page) {
   await page.waitForFunction(() => document.querySelector('#activation-scrub').max === '3');
   assert.equal(await page.locator('#activation-canvas').isVisible(), true);
   const final = await page.locator('#activation-canvas').evaluate(c => [...c.getContext('2d').getImageData(0, 0, c.width, c.height).data]);
+  const scale = await page.inputValue('#activation-scale');
   await page.locator('#activation-scrub').fill('0');
   await page.waitForFunction(() => document.querySelector('#activation-position').value === '0');
   await page.evaluate(() => new Promise(requestAnimationFrame));
   const first = await page.locator('#activation-canvas').evaluate(c => [...c.getContext('2d').getImageData(0, 0, c.width, c.height).data]);
   assert.notDeepEqual(first, final, 'Scrubbing changes measured samples');
+  assert.equal(await page.inputValue('#activation-scale'), scale, 'Playback never rescales as token position changes');
   if (!await page.locator('#activation-speed').isVisible()) await page.locator('#run-details > summary').click();
   await page.selectOption('#activation-speed', '0.25');
   await page.click('#activation-play');
   await page.waitForFunction(() => Number(document.querySelector('#activation-scrub').value) > 0);
   await page.click('#activation-play');
   assert.equal(await page.locator('#activation-play').textContent(), 'Play');
+  if (!await page.locator('#activation-export').isVisible()) await page.locator('#activity-files > summary').click();
   const pending = page.waitForEvent('download'); await page.click('#activation-export');
   const download = await pending;
-  assert.deepEqual(validateRecording(JSON.parse(await fs.readFile(await download.path(), 'utf8'))), recording, 'Offline export is self-contained');
+  const reopened = validateRecording(JSON.parse(await fs.readFile(await download.path(), 'utf8')));
+  assert.deepEqual(reopened.trace, recording.trace, 'Offline export preserves every numerical value');
+  assert(reopened.display.scales['layer-output:overview'] > 0, 'Export preserves the fixed view scale');
   await page.setInputFiles('#import-file', { name: 'bad.json', mimeType: 'application/json', buffer: Buffer.from('{"schema":"doppler.activation-recording/v1"}') });
   await page.waitForFunction(() => document.querySelector('#activation-status').textContent.includes('Invalid'));
   assert.equal(await page.evaluate(async () => (await import(new URL('ui/activation-grid/index.js', document.querySelector('script[src$="/demo.js"]').src))).getActivationRecording().demoBuild), 'synthetic-ui-test', 'Invalid imports preserve the accepted recording');
@@ -62,10 +92,15 @@ export async function checkTokenGeometry(page) {
 
 // Uses the published physical recording; does not run a model or fixture generator.
 export async function checkRealActivityPlayback(page) {
-  await page.click('#activity-example');
+  // Reopen the initial gallery to exercise its actual entry point.
+  await page.reload({ waitUntil: 'networkidle' });
+  await page.locator('.activity-preview[data-mode="contributions"]').click();
   await page.waitForFunction(() => !document.querySelector('#activity-example').disabled, null, { timeout: 120000 });
   await page.evaluate(() => new Promise(requestAnimationFrame));
   assert.match(await page.locator('#activation-caption').textContent(), /token position 17/, await page.locator('#activity-availability').textContent() + ' ' + await page.locator('#activation-status').textContent());
+  assert.equal(await page.inputValue('#activity-mode'), 'contributions', 'The selected preview opens its own interactive grid');
+  assert.equal(await page.locator('#activity-previews').isVisible(), false);
+  assert.match(await page.locator('#activity-source').textContent(), /Recorded example.*qwen/);
   const modes = await page.locator('#activity-mode option').evaluateAll(options => options.map(o => ({ id: o.value, disabled: o.disabled })));
   const results = [];
   for (const mode of modes) {
@@ -115,6 +150,7 @@ export async function checkRealActivityPlayback(page) {
   const position = await page.inputValue('#activation-position');
   await page.selectOption('#activity-mode', 'kv-cache');
   assert.equal(await page.inputValue('#activation-position'), position);
+  if (!await page.locator('#activation-export').isVisible()) await page.locator('#activity-files > summary').click();
   const pending = page.waitForEvent('download');
   await page.click('#activation-export');
   const downloaded = await pending;

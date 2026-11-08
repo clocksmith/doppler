@@ -12,6 +12,9 @@ export function validateRecording(input) {
   if (value?.schema !== 'doppler.activation-recording/v1' || typeof value.demoBuild !== 'string' || !value.demoBuild
     || value.display?.layout !== config.layout || value.display?.palette !== config.palette
     || !Number.isFinite(value.display.scale) || value.display.scale <= 0) fail();
+  if (value.display.scales !== undefined && (!value.display.scales || typeof value.display.scales !== 'object'
+    || Array.isArray(value.display.scales) || Object.keys(value.display.scales).length > 64
+    || Object.values(value.display.scales).some(n => !Number.isFinite(n) || n <= 0))) fail();
   const trace = value.trace, geometry = trace?.geometry;
   if (trace?.schema !== 'doppler.activation-trace/v1' || !trace.identity || !trace.capturePolicy
     || ![trace.identity.modelId, trace.identity.runtimeVersion].every(s => typeof s === 'string' && s.length > 0)
@@ -84,4 +87,12 @@ export function colorGrid(values, scale) {
     rgba[p * 4 + 3] = 255;
   }
   return { side, rgba };
+}
+
+// Freeze this initial 99th-percentile magnitude per quantity/window for playback.
+// Changing token position never renormalizes an already chosen scale.
+/** @type {typeof import('./data.js').initialColorScale} */
+export function initialColorScale(values, fallback) {
+  const magnitudes = values.filter(v => typeof v === 'number' && Number.isFinite(v) && v !== 0).map(v => Math.abs(Number(v))).sort((a, b) => a - b);
+  return magnitudes.length ? magnitudes[Math.min(magnitudes.length - 1, Math.floor(magnitudes.length * 0.99))] : fallback;
 }

@@ -3,6 +3,7 @@
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import activityPreviews from '../demo/ui/activation-grid/previews.json' with { type: 'json' };
 import { computeCanonicalSha256, hashBytesSha256 } from '../src/formats/canonical-hash.js';
 
 function parseOptions(args) {
@@ -73,6 +74,7 @@ const DECLARED_ASSETS = [
   'demo/ui/xray/styles.css',
   'demo/ui/token-inspector/styles.css',
   'demo/ui/activation-grid/styles.css',
+  ...activityPreviews.map(({ mode }) => `demo/assets/activity-preview-${mode}.png`),
   'demo/assets/pwa/icon-192.png',
   'demo/assets/pwa/icon-512.png',
   'demo/assets/pwa/icon-maskable-512.png',

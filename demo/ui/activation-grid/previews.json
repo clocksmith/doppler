@@ -1,0 +1,8 @@
+[
+  {"mode":"layer-output","label":"Activations","description":"Layer outputs · raw values"},
+  {"mode":"weights","label":"Weights","description":"Fixed parameters · block summaries"},
+  {"mode":"contributions","label":"Weight × input","description":"Connection products · block summaries"},
+  {"mode":"attention-prefill","label":"Attention","description":"Prompt relationships · reconstructed"},
+  {"mode":"kv-cache","label":"KV memory","description":"Stored keys and values · raw values"},
+  {"mode":"recurrent-memory","label":"Recurrent memory","description":"Changing state · block summaries"}
+]

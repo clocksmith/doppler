@@ -17,3 +17,15 @@
 #activity-mode { max-width: min(100%, 300px); }
 #activity-weight { max-width: min(100%, 350px); }
 @media (max-width: 600px) { .activity-controls { display: grid; grid-template-columns: 1fr 1fr; } .activity-controls label:first-child { grid-column: 1 / -1; } }
+
+/* Actual saved numerical maps provide the first-load entry points. */
+.activity-gallery { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; margin-top: 12px; }
+#app .activity-preview { display: grid; gap: 6px; justify-items: start; padding: 12px; border: 1px solid var(--doppler-line); border-radius: 10px; background: transparent; color: var(--fg); text-align: left; cursor: pointer; font: 500 14px/1.4 var(--font-sans); min-width: 0; }
+#app .activity-preview img { width: 100%; max-width: 144px; aspect-ratio: 1; height: auto; image-rendering: pixelated; justify-self: center; margin-bottom: 6px; }
+#app .activity-preview small { font: 400 12px/1.4 var(--font-sans); color: var(--doppler-muted); }
+#app .activity-preview:hover { border-color: var(--fg); background: var(--doppler-surface); }
+#app .activity-preview:focus-visible { outline: 2px solid var(--fg); outline-offset: 3px; }
+#app .activity-preview:disabled { cursor: wait; opacity: .6; }
+#app .activity-controls { margin: 0; }
+#app .activity-controls label { font-size: 12px; }
+@media (max-width: 600px) { .activity-gallery { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; } }

@@ -2,7 +2,7 @@ import type { ActivationTraceReceipt, ActivationFrame } from '../../../src/debug
 export interface ActivationRecording {
   schema: 'doppler.activation-recording/v1';
   demoBuild: string;
-  display: { layout: string; palette: string; scale: number };
+  display: { layout: string; palette: string; scale: number; scales?: Record<string, number> };
   trace: ActivationTraceReceipt;
   fingerprint?: unknown;
   inputTokenIds?: number[] | null;
@@ -14,3 +14,5 @@ export declare function projectFrame(trace: ActivationTraceReceipt, index: numbe
   values: Array<number | string | undefined>; sources: Array<ActivationFrame | undefined>;
 };
 export declare function colorGrid(values: Array<number | string | undefined>, scale: number): { side: number; rgba: Uint8ClampedArray };
+
+export declare function initialColorScale(values: Array<number | string | undefined>, fallback: number): number;

@@ -1,0 +1,56 @@
+{
+  "sourceSha256": "5a12123d9da3c933a041db75aff4bb9868c4e2fd789d8939900bb816db219d33",
+  "model": "qwen-3-5-0-8b-q4k-ehaf16",
+  "position": 17,
+  "scaleRule": "fixed 99th-percentile magnitude per view",
+  "previews": [
+    {
+      "mode": "layer-output",
+      "side": 91,
+      "scale": 0.6395615339279175,
+      "representation": "raw",
+      "underlyingValues": 24576,
+      "sha256": "fca6bd8f20a34ef4ffa5fdaf92fc90089ab86e39a4f70be9e4fab7c11e0327f3"
+    },
+    {
+      "mode": "weights",
+      "side": 144,
+      "scale": 0.02548358817512507,
+      "representation": "aggregated",
+      "underlyingValues": 1006178304,
+      "sha256": "0deed7aa804cdc3b6c3733314a7c8bfc5f1dac1f6c242311dca03ae7a8fb3967"
+    },
+    {
+      "mode": "contributions",
+      "side": 98,
+      "scale": 0.0008988815464168879,
+      "representation": "aggregated",
+      "underlyingValues": 3670016,
+      "sha256": "1cb927a71f1613bd08a233ac74eeb55c907d7253c49a958f469f52616de32137"
+    },
+    {
+      "mode": "attention-prefill",
+      "side": 72,
+      "scale": 0.94133103900269,
+      "representation": "reconstructed",
+      "underlyingValues": 15552,
+      "sha256": "fb31304c636d33c4d48106d5e94ef869d95c8c72180f517e9e5adc69cc033834"
+    },
+    {
+      "mode": "kv-cache",
+      "side": 192,
+      "scale": 5.44921875,
+      "representation": "raw",
+      "underlyingValues": 110592,
+      "sha256": "46687071e866d378e73a98df402388b4c3b8a4bec5b7984bbea86a55d5341dab"
+    },
+    {
+      "mode": "recurrent-memory",
+      "side": 79,
+      "scale": 0.08817498590839266,
+      "representation": "aggregated",
+      "underlyingValues": 4718592,
+      "sha256": "19aeb2fdfcd60c951a78f0fad4737169fea08a93305cca2ab2439c9c9bfb8598"
+    }
+  ]
+}

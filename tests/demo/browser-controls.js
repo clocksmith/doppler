@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import { checkDemoStreaming } from './browser-streaming.js';
+import { checkFirstLoadLayout } from './browser-activation.js';
 
 async function completeRun(page, prompt) {
   await page.fill('#prompt-input', prompt);
@@ -60,7 +61,7 @@ async function checkBranching(page) {
 
 async function exportedReport(page) {
   if (!await page.locator('#export-btn').isVisible()) {
-    await page.locator('#run-details > summary').click();
+    await page.locator('#activity-files > summary').click();
   }
   const download = page.waitForEvent('download');
   await page.click('#export-btn');
@@ -127,6 +128,7 @@ export async function checkDemoControls(page) {
 
   assert.match(await page.locator('#output-toks').textContent(), /slowed by recording/);
   assert.match(await page.locator('#runtime-notice').textContent(), /saves the alternatives for each token, which slows the model/);
+  await page.locator('#run-details > summary').click();
   assert.equal(await page.locator('#runtime-notice').isVisible(), true);
   // Even high-likelihood tokens are underlined and branchable immediately.
   assert.equal(await page.locator('.token-chip').count(), 3, 'Every token is underlined');
@@ -285,6 +287,7 @@ export async function checkDemoControls(page) {
   assert.equal(await page.evaluate(() => __demoContract.resets), 1);
   assert.equal(await page.locator('#clear-history-btn').isEnabled(), true, 'Loaded model remains resettable');
 
+  await checkFirstLoadLayout(page, true);
   await page.locator('#sample-run-btn').click();
   const sampleSettingsOpen = await page.locator('#settings-panel').isVisible();
   if (!sampleSettingsOpen) await page.click('#settings-toggle');

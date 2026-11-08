@@ -190,6 +190,7 @@
   background: transparent;
   border: 0;
   padding: 0;
+  min-height: 0;
   max-height: none;
   overflow: visible;
   scrollbar-gutter: auto;
@@ -200,7 +201,6 @@
 #app .token-inspector-card { padding: 16px 0 0; border: 0; border-top: 1px solid var(--doppler-line); border-radius: 0; background: transparent; box-shadow: none; }
 #app .token-inspector-badge { border: 0; padding: 0; border-radius: 0; background: transparent; color: var(--fg); font: 600 14px/1.5 var(--font-sans); }
 #app .token-candidate-text { border: 0; padding: 0; background: transparent; }
-#app .chat-surface:has([data-example="true"]) { max-height: none; min-height: 0; }
 #app .chat-message--user {
   align-self: flex-start;
   padding: 0;
@@ -476,6 +476,7 @@
 #app .chat-toolbar { display: flex; flex-wrap: nowrap; align-items: center; justify-content: space-between; gap: var(--demo-space-2); padding: 0; }
 #app .chat-run-status { flex: 1 1 auto; }
 #app .chat-toolbar .btn { min-width: 0; }
+#app .chat-toolbar:has(.output-phase:empty):has(button:disabled) { display: none; }
 #app .chat-empty { display: flex; }
 #app .output-area { min-height: 0; }
 
@@ -483,7 +484,7 @@
 #app .activity-record { display: flex; flex-wrap: wrap; align-items: center; gap: var(--demo-space-1) var(--demo-space-3); margin: 0; padding: 0; border: 0; min-width: 0; }
 #app .activity-record legend { margin: 0 0 var(--demo-space-1); padding: 0; font: 600 var(--demo-label-size)/1.5 var(--font-sans); }
 #app .activation-view { display: grid; gap: var(--demo-space-2); }
-#app .activation-caption { font-size: 14px; color: var(--fg); }
+#app .activation-caption { font-size: 13px; color: var(--fg); }
 #app .run-measurements { margin: 0; }
 #app .run-measurements:has(.output-toks:empty) { display: none; }
 #app .output-toks { font: 400 13px/1.55 var(--font-sans); color: var(--fg); }
@@ -518,3 +519,10 @@
   font: 600 11px/1.6 var(--font-sans);
   color: var(--fg);
 }
+
+/* Three destinations, with content-sized sections instead of empty chat space. */
+#app .demo-section-nav { display: flex; flex-wrap: wrap; gap: 8px 24px; padding: 8px 0 20px; font: 500 14px/1.5 var(--font-sans); }
+#app .demo-section-nav a { color: var(--doppler-muted); text-decoration: none; border-bottom: 1px solid var(--doppler-line); padding-block: 4px; }
+#app .demo-section-nav a:hover { color: var(--fg); border-color: var(--fg); }
+#app .demo-section { scroll-margin-top: 20px; }
+#app .activation-view [hidden] { display: none; }

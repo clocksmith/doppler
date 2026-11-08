@@ -6,7 +6,7 @@ import fs from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { chromium } from 'playwright';
-import { checkActivationPlayback, checkTokenGeometry, checkRealActivityPlayback } from '../tests/demo/browser-activation.js';
+import { checkActivationPlayback, checkTokenGeometry, checkRealActivityPlayback, checkFirstLoadLayout } from '../tests/demo/browser-activation.js';
 import { checkDemoControls } from '../tests/demo/browser-controls.js';
 import {
   SHELL_MANIFEST_DIGEST,
@@ -205,6 +205,7 @@ async function main() {
     assert.equal(await page.locator('#output-toks').textContent(), '');
     assert.equal(await page.locator('.token-chip').count(), 0);
     assert.equal(await page.locator('#model-select option[value="embedding-only"]').count(), 0);
+    await checkFirstLoadLayout(page);
     await page.locator('#inspect-recorded-run').click();
     await page.waitForFunction(() => document.querySelector('#output-phase').textContent === 'Recorded answer');
     assert.match(await page.locator('#recorded-run-note').textContent(), /shown unedited and contains a factual error/);

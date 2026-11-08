@@ -212,12 +212,17 @@
       </div>
     </header>
 
+    <nav class="demo-section-nav" aria-label="Demo sections">
+      <a href="#dialogue-section">Dialogue</a>
+      <a href="#inspection-workspace">Model activity</a>
+      <a href="#precision-section">Precision effects</a>
+    </nav>
     <main class="demo-sections">
       <!-- 1. Dialogue: model, conversation, prompt and options. -->
       <section id="dialogue-section" class="demo-section" aria-labelledby="dialogue-heading">
         <header class="demo-section-head">
           <h2 id="dialogue-heading">Dialogue</h2>
-          <p class="demo-note">The model runs on your graphics card, inside this browser. It writes in tokens: whole words or pieces of words. Click any underlined word to see what else the model considered, and continue from a different choice.</p>
+          <p class="demo-note">Run a model in your browser. Click an underlined word to explore a different answer.</p>
         </header>
 
         <div id="model-picker" class="model-picker">
@@ -390,19 +395,17 @@
       <section id="inspection-workspace" class="demo-section" aria-labelledby="activity-heading">
         <header class="demo-section-head">
           <h2 id="activity-heading">Model activity</h2>
-          <p class="demo-note">What the model computed for the latest answer. Choose what to record, then send a message.</p>
+          <p class="demo-note">Explore activations, weights, attention and memory in one player.</p>
         </header>
 
-        <fieldset class="activity-record">
-          <legend>Record during the next answer</legend>
-          <label class="checkbox-label"><input id="activation-record" type="checkbox"> Activity grids (adds readbacks)</label>
-          <label class="checkbox-label"><input id="xray-toggle-all" type="checkbox"> GPU timing</label>
-        </fieldset>
-        <p id="runtime-notice" class="demo-note runtime-notice" role="status" hidden></p>
-
         <div id="activation-view" class="activation-view">
-          <p id="activation-caption" class="demo-note activation-caption" aria-live="polite">Nothing recorded yet. Open the real example recording, or record activity during your next answer.</p>
-          <div class="activity-controls">
+          <div id="activity-previews">
+            <p class="demo-note">Recorded Qwen 0.8B example · select a grid to replay all 18 views (20 MB). Colors are scaled per view.</p>
+            <div id="activity-gallery" class="activity-gallery"></div>
+          </div>
+          <p id="activity-source" class="demo-note" role="status" hidden></p>
+          <p id="activation-caption" class="demo-note activation-caption" aria-live="polite" hidden></p>
+          <div id="activity-selectors" class="activity-controls" hidden>
             <label>Grid <select id="activity-mode" aria-label="Activity grid"></select></label>
             <label>Layer <select id="activity-layer"><option value="-1">All captured layers</option></select></label>
             <label>Play through <select id="activity-playback"><option value="tokens">Token positions</option><option value="captures">Operator captures</option><option value="time">Recorded time</option></select></label>
@@ -417,7 +420,7 @@
             <button id="activity-adjacent" class="btn btn-ghost" type="button">Use previous token</button>
             <input id="activity-compare-file" type="file" accept="application/json,.json" hidden>
           </div>
-          <div class="demo-controls"><button id="activity-example" class="btn btn-ghost" type="button">Open example recording · 20 MB</button></div>
+
           <div id="activation-player" class="activation-player" hidden>
             <div class="activation-timeline">
               <button id="activation-play" class="btn" type="button" disabled>Play</button>
@@ -430,18 +433,32 @@
           </div>
         </div>
 
+        <fieldset class="activity-record">
+          <legend class="sr-only">Record during the next answer</legend>
+          <label class="checkbox-label"><input id="activation-record" type="checkbox"> Record my next answer</label>
+          <span class="demo-note">Adds measurement overhead.</span>
+        </fieldset>
+
         <p class="run-measurements"><span id="output-toks" class="output-toks"></span></p>
 
-        <div class="demo-controls">
-          <button id="export-btn" class="btn btn-ghost" type="button" disabled>Save run</button>
-          <button id="activation-export" class="btn btn-ghost" type="button" disabled>Save grid</button>
-          <button id="import-btn" class="btn btn-ghost" type="button">Open file</button>
-          <input id="import-file" type="file" accept="application/json,.json" hidden>
-        </div>
+        <details id="activity-files" class="demo-disclosure">
+          <summary>Recordings</summary>
+          <div class="demo-disclosure-body">
+            <div class="demo-controls">
+              <button id="activity-example" class="btn btn-ghost" type="button">Open example · 20 MB</button>
+              <button id="export-btn" class="btn btn-ghost" type="button" disabled>Save run</button>
+              <button id="activation-export" class="btn btn-ghost" type="button" disabled>Save grid</button>
+              <button id="import-btn" class="btn btn-ghost" type="button">Open file</button>
+              <input id="import-file" type="file" accept="application/json,.json" hidden>
+            </div>
+          </div>
+        </details>
 
         <details id="run-details" class="demo-disclosure">
           <summary>Details</summary>
           <div class="demo-disclosure-body">
+            <label class="checkbox-label"><input id="xray-toggle-all" type="checkbox"> Record GPU timing</label>
+            <p id="runtime-notice" class="demo-note runtime-notice" role="status" hidden></p>
             <div id="activation-detail-controls" class="activation-detail-controls" hidden>
               <div class="activation-settings">
                 <button id="activation-live" class="btn btn-small" type="button">Jump to latest</button>
@@ -470,7 +487,7 @@
       <section id="precision-section" class="demo-section" aria-labelledby="precision-heading">
         <header class="demo-section-head">
           <h2 id="precision-heading">Precision effects</h2>
-          <p class="demo-note">A model can do its math with 32-bit or 16-bit numbers. 16-bit numbers take half the memory but are less exact, which can change the token the model picks.</p>
+          <p class="demo-note">Compare answers computed with 32-bit and 16-bit numbers.</p>
         </header>
 
         <details id="live-precision" class="demo-disclosure">

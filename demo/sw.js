@@ -2,9 +2,15 @@
 // a module. An older registration must be able to update without booting the app.
 // BEGIN GENERATED DEMO SHELL
 const SHELL_MANIFEST_SCHEMA = 'doppler.demo-shell-manifest/v1';
-const SHELL_MANIFEST_DIGEST = 'sha256:d4967a4a401d8f4da3a3a0635db536d2fba2dd0cf0a712bd873b90c7ccb360ac';
-const CACHE_NAME = 'doppler-demo-shell-d4967a4a401d8f4d';
+const SHELL_MANIFEST_DIGEST = 'sha256:387848931bb43e2707ffb537a5190dcdfee2cc1bff0e667947d901fb8ad35dbc';
+const CACHE_NAME = 'doppler-demo-shell-387848931bb43e27';
 const APP_SHELL = Object.freeze([
+  "/demo/assets/activity-preview-attention-prefill.png",
+  "/demo/assets/activity-preview-contributions.png",
+  "/demo/assets/activity-preview-kv-cache.png",
+  "/demo/assets/activity-preview-layer-output.png",
+  "/demo/assets/activity-preview-recurrent-memory.png",
+  "/demo/assets/activity-preview-weights.png",
   "/demo/assets/pwa/icon-192.png",
   "/demo/assets/pwa/icon-512.png",
   "/demo/assets/pwa/icon-maskable-512.png",
@@ -37,6 +43,7 @@ const APP_SHELL = Object.freeze([
   "/demo/ui/activation-grid/data.js",
   "/demo/ui/activation-grid/index.js",
   "/demo/ui/activation-grid/modes.json",
+  "/demo/ui/activation-grid/previews.json",
   "/demo/ui/activation-grid/recording-codec.js",
   "/demo/ui/activation-grid/styles.css",
   "/demo/ui/activation-grid/validation.js",
