@@ -1,0 +1,280 @@
+<title>Doppler Model Atlas</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@75..100,500..800&family=IBM+Plex+Mono:wght@400;600&display=swap">
+<style>
+/* Layout: a reference manual on Doppler's soft-grey ink, one reading column that widens for tables; a spectrum hairline marks each section. */
+:root {
+  --bg: #efefef; --surface: #f7f7f7; --inset: #e6e6e6; --ink: #121212; --muted: #5a5a5a; --line: #d4d4d4;
+  --blue: #4a61d6; --purple: #7356d3; --red: #c83647;
+  --ok: #26754a; --ok-bg: #dcefe3; --warn: #8f5c00; --warn-bg: #f6e8c8; --bad: #b42d3e; --bad-bg: #f7dadd; --idle-bg: #e2e2e2;
+  --spectrum: linear-gradient(100deg, var(--blue), var(--purple) 52%, var(--red));
+  --display: 'Archivo', 'Avenir Next', -apple-system, 'Segoe UI', sans-serif;
+  --body: 'Avenir Next', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  --mono: 'IBM Plex Mono', 'SF Mono', Menlo, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #1b1b1c; --surface: #232325; --inset: #29292c; --ink: #ececec; --muted: #a6a6a6; --line: #38383b;
+  --blue: #8193ff; --purple: #a68cff; --red: #ff7183;
+  --ok: #7fd3a1; --ok-bg: #1f3a2a; --warn: #f2c46d; --warn-bg: #3d3018; --bad: #ff8f9c; --bad-bg: #432128; --idle-bg: #2e2e31; color-scheme: dark } }
+:root[data-theme="dark"] {
+  --bg: #1b1b1c; --surface: #232325; --inset: #29292c; --ink: #ececec; --muted: #a6a6a6; --line: #38383b;
+  --blue: #8193ff; --purple: #a68cff; --red: #ff7183;
+  --ok: #7fd3a1; --ok-bg: #1f3a2a; --warn: #f2c46d; --warn-bg: #3d3018; --bad: #ff8f9c; --bad-bg: #432128; --idle-bg: #2e2e31; color-scheme: dark }
+* { box-sizing: border-box }
+body { background: var(--bg); color: var(--ink); font: 15px/1.55 var(--body); }
+.wrap { max-width: 1180px; margin: 0 auto; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); padding-block: 28px 64px; }
+.bar { height: 4px; background: var(--spectrum); }
+h1, h2, h3, h4 { font-family: var(--display); text-wrap: balance; line-height: 1.15; margin: 0 }
+h1 { font-size: clamp(30px, 5vw, 46px); font-weight: 800; font-stretch: 82%; letter-spacing: -0.01em }
+h2 { font-size: 26px; font-weight: 750; font-stretch: 85%; margin-top: 56px; padding-top: 14px; border-top: 1px solid var(--line); position: relative }
+h2::before { content: ""; position: absolute; top: -1px; left: 0; width: 72px; height: 2px; background: var(--spectrum) }
+h3 { font-size: 20px; font-weight: 700; font-stretch: 88% }
+h4 { font-size: 13px; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); margin: 18px 0 8px; font-family: var(--body); font-weight: 600 }
+p, li { max-width: 74ch }
+p { margin: 10px 0 }
+a { color: var(--blue) }
+code { font: 12.5px/1.4 var(--mono); background: var(--inset); padding: 1px 5px; border-radius: 4px; overflow-wrap: anywhere }
+.lede { font-size: 17px; color: var(--muted); max-width: 70ch; margin-top: 12px }
+.stamp { display: flex; flex-wrap: wrap; gap: 8px 18px; margin-top: 16px; font: 12px/1.4 var(--mono); color: var(--muted) }
+nav.toc { display: flex; flex-wrap: wrap; gap: 6px 14px; margin-top: 22px; font-size: 14px }
+nav.toc a { text-decoration: none; color: var(--ink); border-bottom: 1px solid var(--line) }
+nav.toc a:hover, nav.toc a:focus-visible { border-color: var(--purple) }
+.legend { display: flex; flex-wrap: wrap; gap: 8px; margin: 12px 0 }
+.chip, .dot { display: inline-block; font: 600 11px/1.6 var(--body); padding: 0 8px; border-radius: 999px; letter-spacing: .02em; white-space: nowrap }
+.ok { color: var(--ok); background: var(--ok-bg) } .warn { color: var(--warn); background: var(--warn-bg) } .bad { color: var(--bad); background: var(--bad-bg) } .local, .candidate { color: var(--muted); background: var(--idle-bg) }
+.scroll { overflow-x: auto; margin: 12px 0; border: 1px solid var(--line); border-radius: 8px; background: var(--surface) }
+table { border-collapse: collapse; width: 100%; font-size: 13.5px }
+th, td { text-align: left; vertical-align: top; padding: 8px 10px; border-bottom: 1px solid var(--line) }
+thead th { font: 600 11.5px/1.3 var(--body); text-transform: uppercase; letter-spacing: .05em; color: var(--muted); background: var(--inset); position: sticky; top: 0 }
+tbody tr:last-child > * { border-bottom: 0 }
+.num { text-align: right; font-family: var(--mono); font-variant-numeric: tabular-nums; white-space: nowrap }
+.matrix th:first-child { white-space: nowrap } .matrix td { text-align: center } .matrix td.num { text-align: right }
+.fmt { display: inline-block; font: 11.5px/1.5 var(--mono); margin-right: 10px; white-space: nowrap } .fmt i { color: var(--muted); font-style: normal }
+.sub { font-size: 12px; color: var(--muted); margin-top: 3px }
+.grid2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 14px; margin: 14px 0 }
+.panel { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 14px 16px; min-width: 0 }
+.panel h3 { font-size: 17px; margin-bottom: 6px }
+.panel p, .panel li { font-size: 14px }
+.panel ol, .panel ul { padding-left: 20px; margin: 6px 0 }
+section.pipe { margin-top: 30px; padding: 18px 18px 8px; background: var(--surface); border: 1px solid var(--line); border-radius: 12px }
+.pipe-meta { display: grid; grid-template-columns: 120px 1fr; gap: 6px 14px; margin: 12px 0; font-size: 14px }
+.pipe-meta dt { color: var(--muted); font-weight: 600 } .pipe-meta dd { margin: 0; min-width: 0 }
+ol.stages { list-style: none; counter-reset: s; padding: 0; margin: 8px 0 }
+ol.stages > li { counter-increment: s; position: relative; padding: 8px 0 8px 40px; border-top: 1px dashed var(--line); max-width: none }
+ol.stages > li::before { content: counter(s); position: absolute; left: 0; top: 8px; width: 26px; height: 26px; border-radius: 50%; display: grid; place-items: center; font: 600 12px var(--mono); color: var(--purple); border: 1.5px solid var(--purple) }
+ol.stages b { font-family: var(--display); font-weight: 650 }
+.ref { font: 11.5px var(--mono); color: var(--muted); overflow-wrap: anywhere }
+article.model { margin-top: 26px; padding: 18px; background: var(--surface); border: 1px solid var(--line); border-radius: 12px; scroll-margin-top: 12px }
+article.model header { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 10px 20px }
+dl.counts { display: flex; flex-wrap: wrap; gap: 4px 18px; margin: 0 }
+dl.counts div { display: flex; flex-direction: column } dl.counts dt { font-size: 11px; text-transform: uppercase; letter-spacing: .05em; color: var(--muted) } dl.counts dd { margin: 0; font: 600 14px var(--mono); font-variant-numeric: tabular-nums }
+ul.notes { margin: 10px 0; padding-left: 18px } ul.notes li { font-size: 14px }
+table.walk { font-size: 13.5px } table.walk th { width: 150px; color: var(--muted); font-weight: 600; white-space: nowrap; background: transparent }
+table.walk td { min-width: 0 }
+.walk-wrap, table.walk { border: 1px solid var(--line); border-radius: 8px; overflow: hidden }
+.callout { border-left: 3px solid var(--purple); padding: 8px 14px; background: var(--surface); border-radius: 0 8px 8px 0; margin: 14px 0; max-width: 80ch }
+@media (max-width: 640px) { .pipe-meta { grid-template-columns: 1fr } table.walk th { width: auto; white-space: normal } section.pipe, article.model { padding: 14px 12px } }
+@media (prefers-reduced-motion: no-preference) { html { scroll-behavior: smooth } }
+</style>
+
+<div class="bar"></div>
+<div class="wrap">
+<header>
+<h1>Doppler Model Atlas</h1>
+<p class="lede">Every model Doppler can load, how many numbers each one holds and in what format, every way weights reach the GPU, and every pipeline those numbers flow through, written stage by stage in the same order each time.</p>
+<div class="stamp"><span>doppler main 3f821b78, with fixes through d1963e38</span><span>38 manifests + 1 GGUF header</span><span>2026-11-07</span><span>Retained model-shape analysis; catalog status generated from source. No models run by this page.</span><span><a href="/doppler/">Doppler demo</a> · <a href="/bench/">Bench Explorer</a></span></div>
+<nav class="toc"><a href="#formats">1 · Number formats</a><a href="#paths">2 · Paths to the GPU</a><a href="#pipelines">3 · Pipelines</a><a href="#matrix">4 · Which model uses which pipeline</a><a href="#models">5 · Model by model</a><a href="#configs">6 · Configs with no artifact</a><a href="#gaps">7 · Gaps found</a></nav>
+</header>
+
+<div class="callout"><b>How to read the numbers.</b> A "value" is one number. Weights are the model's learned numbers, loaded once. Per-token buffers are rebuilt for every token. The KV cache and linear-attention state persist across a conversation; Doppler allocates the whole KV cache when the model loads. KV sizes use the manifest's token cap, or the runtime default of 4,096 when the manifest sets none (a runtime profile can change it). Status labels come from <code>models/catalog.json</code>: "verified" means the catalog lists a passing test suite for that lane, not that this page ran it.</div>
+
+<h2 id="formats">1 · Number formats</h2>
+<p>Each format stores a weight in fewer or more bits. Block formats group weights and share a scale per block, which is why their bits per weight are slightly above the nominal number. Doppler either keeps a block format packed and decodes it inside the kernel, or expands it to F16/F32 when the model loads.</p>
+<div class="scroll"><table>
+<thead><tr><th>Format</th><th>Block layout</th><th class="num">Bits / weight</th><th>Decode</th><th>How Doppler handles it</th><th>Used by</th></tr></thead>
+<tbody>
+<tr><td><b>F32</b></td><td>one 4-byte float</td><td class="num">32</td><td>as is</td><td>Activations and accumulation in most lanes; protein/DNA encoder weights</td><td>ESM-2, ESM C, Nucleotide Transformer</td></tr>
+<tr><td><b>F16</b></td><td>one 2-byte half float</td><td class="num">16</td><td>as is</td><td>Native on GPUs with shader-f16; widened to F32 otherwise</td><td>Embedding tables of most models; whole-model F16 lanes</td></tr>
+<tr><td><b>BF16</b></td><td>2 bytes, F32 range, fewer digits</td><td class="num">16</td><td>as is</td><td>Cast to F16 or F32 on the GPU at load unless a kernel takes BF16</td><td>Muse Glimmer BF16 lane; Flash-Next n-gram tables; W4A16 scales</td></tr>
+<tr><td><b>Q4_0</b></td><td>32 weights: F16 scale + 16 bytes of 4-bit values = 18 B</td><td class="num">4.5</td><td>scale × (q − 8)</td><td>GGUF passthrough only; kept packed, native kernels</td><td>Qwen 3.6 35B-A3B</td></tr>
+<tr><td><b>Q4_1</b></td><td>32 weights: F16 scale, F16 offset, nibbles = 20 B</td><td class="num">5.0</td><td>scale × q + offset</td><td>Passthrough only, kept packed</td><td>35B expert down-projections</td></tr>
+<tr><td><b>Q5_0</b></td><td>32 weights: F16 scale, 4 B high bits, 16 B low nibbles = 22 B</td><td class="num">5.5</td><td>scale × (q − 16)</td><td>Passthrough only, kept packed</td><td>35B (60 tensors)</td></tr>
+<tr><td><b>Q8_0</b></td><td>32 weights: F16 scale + 32 int8 = 34 B</td><td class="num">8.5</td><td>scale × q</td><td>Passthrough only, kept packed</td><td>35B shared experts, K/V, some expert down-projections</td></tr>
+<tr><td><b>Q4_K</b> <span class="sub">(labelled Q4_K_M)</span></td><td>256 weights: F16 d and dmin, 12 B of 6-bit sub-block scales and mins, 128 B of nibbles = 144 B</td><td class="num">4.5</td><td>d × sub_scale × q − dmin × sub_min</td><td>Doppler's own converter target. Kept packed for fused kernels, or expanded to F16 at load, depending on the model's kernel graph</td><td>Most models</td></tr>
+<tr><td><b>Q5_K</b></td><td>256 weights in 176 B</td><td class="num">5.5</td><td>d × q − min</td><td>Passthrough only, GPU-packed</td><td>none stored here</td></tr>
+<tr><td><b>Q6_K</b></td><td>256 weights: ql[128], qh[64], 16 int8 scales, F16 d = 210 B</td><td class="num">6.56</td><td>d × scale × (q − 32)</td><td>Kept packed in passthrough; otherwise expanded to F16 at load</td><td>35B output head</td></tr>
+<tr><td><b>W4A16</b></td><td>groups of 32 along the input: 16 B of nibbles + one scale per row per group</td><td class="num">≈4.5</td><td>(q − 8) × scale</td><td>Import-only from compressed-tensors checkpoints; fused kernel with shader-f16, else CPU expansion to F16</td><td>Gemma 4 12B W4A16 lane</td></tr>
+<tr><td><b>W8A8</b></td><td>per row: F32 scale + int8 codes</td><td class="num">≈8</td><td>scale × q; activations quantized per token</td><td>Converter target for 2-D matmul weights</td><td>Gemma 3 270M W8A8 config (no artifact)</td></tr>
+<tr><td><b>MXFP4</b></td><td>32 FP4 (E2M1) values in 16 B + one E8M0 exponent</td><td class="num">4.25</td><td>value × 2^(e − 127)</td><td>GPT-OSS expert blocks, decoded per use</td><td>gpt-oss-20b config (no artifact)</td></tr>
+<tr><td><b>FP8</b> (E4M3, E5M2)</td><td>per block: F32 scale + FP8 bytes</td><td class="num">≈8</td><td>scale × fp8</td><td>Import-only from FP8 checkpoints</td><td>none stored here</td></tr>
+<tr><td><b>int4ple</b></td><td>Gemma 4 per-layer-input table: 4-bit per row + one F32 scale per row</td><td class="num">≈4</td><td>(q − 8) × row scale</td><td>Only for the per-layer-input table</td><td>Gemma 4 E2B int4ple lanes</td></tr>
+</tbody></table></div>
+<p><b>Lane names.</b> After the weight format, <b>e</b> = embeddings, <b>h</b> = output head, <b>a</b> = activations, each shown only when it differs from the weights: <code>q4k-ehf16-af32</code> means Q4_K weights, F16 embeddings and head, F32 activations. The rule lives in <code>converter/quantization-info.js:284-343</code>. Three Qwen lanes break it: <code>qwen-3-5-0-8b-q4k-ehaf16</code>, <code>qwen-3-5-2b-q4k-ehaf16</code> and <code>qwen-3-6-27b-q4k-ehaf16</code> actually use a Q4_K head and F32 activations.</p>
+
+<h2 id="paths">2 · Paths from weights to the GPU</h2>
+<p>Every path ends in the same loader (<code>loader/doppler-loader.js</code>). They differ in what file they start from and what checks happen on the way.</p>
+<div class="grid2">
+<div class="panel" id="path-rdrr"><h3>A · Converted RDRR</h3><p>Doppler's own format: <code>manifest.json</code> plus 64 MiB <code>shard_NNNNN.bin</code> files.</p><ol><li>Node-only <code>convert</code> reads SafeTensors, a GGUF file or a diffusers directory.</li><li>Each tensor's target format comes from its role: embeddings, head, vision, or everything else. Norms, routers, biases and tensors under 1,024 values are never quantized.</li><li>Shards are hashed (SHA-256 by default), with per-tensor Merkle roots over 1 MiB blocks.</li><li>The manifest records formats, architecture, the execution graph (kernels with digests) and session settings.</li></ol><p class="ref">converter/core.js:398-840 · tensor-transform.js:404-693</p></div>
+<div class="panel" id="path-gguf"><h3>B · GGUF passthrough</h3><p>An RDRR manifest whose shards hold the GGUF's quantized blocks byte for byte (<code>preserveSourceTensors: true</code>).</p><ol><li>Allowed blocks: Q4_0, Q4_1, Q5_0, Q8_0, Q5_K, Q6_K, plus F16/BF16/F32.</li><li>No re-quantization; other GGUF formats cannot become Q4_K.</li><li>Kernels <code>matmul_q4_0*</code> and <code>matmul_q5k</code> decode the blocks on the fly.</li></ol><p>Used by Qwen 3.6 35B-A3B; a Qwen 3.8 27B config exists too.</p><p class="ref">tensor-transform.js:418-429 · qwen3/qwen-3-6-35b-a3b-q4_0-passthrough.json</p></div>
+<div class="panel"><h3>C · Direct source (no conversion)</h3><p>Node only. Reads SafeTensors, GGUF, TFLite or LiteRT files where they sit, through a synthetic manifest whose "shards" are byte ranges in the original files.</p><ol><li>Every source file is hashed in full first.</li><li>Memory check: resident memory plus the largest tensor must fit the budget (default half of RAM minus 2 GiB).</li><li>Allowed: F32, F16, BF16, Q4_0, Q4_1, Q5_0, Q8_0, Q4_K, Q5_K, Q6_K. Anything else: "Convert to RDRR first".</li><li>TFLite INT8/INT4 tensors are expanded on the CPU at load.</li></ol><p class="ref">tooling/node-source-runtime.js:625-788 · source-artifact-adapter.js:28-40</p></div>
+<div class="panel" id="path-ref"><h3>D · weightsRef variant</h3><p>A second manifest that borrows another lane's shards and changes only runtime settings, such as F16 activations. Loading checks the target manifest's SHA-256 digest, weight-capsule ID and shard-set hash.</p><p>Used by Qwen 3.6 27B eaf16 (borrows ehaf16) and Gemma 4 E2B af16-int4ple (borrows af32-int4ple).</p><p class="ref">client/runtime/model-source.js:91-191</p></div>
+<div class="panel"><h3>E · Signed Capsule</h3><p>The Rig/Run lane: an Ed25519-signed bundle of manifest, shards, tokenizer, configs, evidence and WGSL sources. <code>doppler.openCapsule</code> checks that every shard is inside the signed set with a matching SHA-256 and size, and binds the Capsule's own shaders. Caller load options are refused; the signed plan decides.</p><p class="ref">client/model-host/index.js:389-475 · config/capsule-v3.js</p></div>
+<div class="panel"><h3>F · Partitioned layers</h3><p>One model split into stages by layer range (two groups by default, or N ordered stages). Each stage loads only its layers, plus the embedding (first) or head (last). Stages pass <code>[1, T, hidden]</code> activation frames.</p><p>Refused for MoE, shared KV, per-layer inputs, mixed KV geometry, conv layers, multimodal input and replay-prefill. Partitions run only through Capsule or pinned-manifest factories.</p><p class="ref">inference/pipelines/text/partition-execution.js:17-55 · config/layer-partition-plan.js</p></div>
+</div>
+<h4>Where the bytes come from</h4>
+<div class="scroll"><table><thead><tr><th>Source</th><th>When</th><th>Hash check</th></tr></thead><tbody>
+<tr><td>Quickstart ID → pinned Hugging Face revision of <code>clocksmith/rdrr</code></td><td>Gemma 3 270M and 1B Q4_K, EmbeddingGemma, Gemma 4 E2B (two lanes), Qwen 3.5 0.8B and 2B</td><td>Checked on download into the Node cache <code>~/.cache/doppler-gpu/models</code>; a warm hit checks sizes only</td></tr>
+<tr><td>Browser OPFS cache (<code>cache: 'opfs'</code>)</td><td>Browser loads</td><td>Checked when written and on a cache hit</td></tr>
+<tr><td>HTTP URL with byte-range reads</td><td>Any manifest URL</td><td>Not checked at load (see gaps)</td></tr>
+<tr><td>Local file path (Node)</td><td>Local artifacts</td><td>Not checked at load (see gaps)</td></tr>
+</tbody></table></div>
+<h4>Packed or expanded at load</h4>
+<p>For each tensor the loader asks which kernels in the model's graph read it. If every reader is a fused Q4_K kernel, the tensor stays packed (4.5 bits). If every reader is an F16 kernel, it is expanded to F16 at load (16 bits, about 3.6 times the file size). If both read it, both copies are kept. Gemma 3 270M Q4_K, TranslateGemma, EmbeddingGemma and LFM2 have no fused Q4_K kernel in their graphs, so they expand. The Qwen and Gemma 4 Q4_K lanes keep weights packed.</p>
+<p class="ref">loader/weight-representation-plan.js:10-146 · rules/loader/tensor-loader.rules.json</p>
+
+<h2 id="pipelines">3 · Pipelines</h2>
+<p>Each pipeline below uses the same template: how a manifest reaches it, which models use it, its stages in order with the code that runs them, the buffers it allocates, and its status and limits. Shapes use T = tokens in the pass, H = hidden width, I = FFN width, V = vocabulary, nH/nKV = query/KV heads, D = head width, E/k = experts / experts per token.</p>
+
+<section class="pipe" id="p-gen"><h3>3.1 Text generation</h3>
+<dl class="pipe-meta"><dt>Routing</dt><dd>modelType <code>transformer</code> or <code>gemma4</code> → <code>InferencePipeline</code> (<code>pipelines/text.js:13-14</code>). Unknown types lazy-load per <code>rules/inference/config.rules.json</code>, else fail.</dd><dt>Models</dt><dd>All Gemma 3/4, TranslateGemma, Qwen 3.5/3.6/3.8, Flash-Next, LFM2, MiniCPM, Muse Glimmer, and the GLM-OCR decoder</dd></dl>
+<ol class="stages">
+<li><b>Load in a fixed order.</b> Compile the manifest's execution graph and apply device capability rules (for example, widen to F32 without shader-f16) → read model config from the manifest only → resolve kernels and check dtypes → tokenizer → check manifest compute dtype equals session → allocate KV cache → build the execution plan (plus an F32 fallback plan for F16 lanes) → load weights → fuse Q/K/V projections → RoPE tables → decode buffers. <span class="ref">text/lifecycle.js:105-440</span></li>
+<li><b>Tokenize and template.</b> Chat templates: gemma, gemma4, qwen (optional thinking prefix), chatml, llama3, gpt-oss, translategemma, glmocr. Every token ID is range-checked against V before the GPU sees it. <span class="ref">text/init-chat-templates.js:53-72 · generator-runtime.js:78-119</span></li>
+<li><b>Embed.</b> Gather [T, H] from the embedding table (F16, BF16, GGUF blocks or INT4), scale by √H or an explicit number, optional weightless RMSNorm. Image or audio features are spliced in here for multimodal prompts. <span class="ref">text/embed.js:183-458</span></li>
+<li><b>Run each layer.</b> The mixer depends on the layer type:
+<ul><li><i>Full or sliding attention:</i> Q [T, nH·D], K and V [T, nKV·D]; optional per-head Q/K RMSNorm; RoPE (a local table for sliding layers); write K and V to the cache; attention over the cache (contiguous, tiered, quantized or indexed); optional sigmoid output gate; output projection [T, H] plus residual.</li>
+<li><i>Linear attention (Qwen 3.5/3.6/3.8):</i> project qkv [T, conv width], z, a, b; causal 4-tap convolution; gated-delta recurrence that updates a fixed per-layer state; gated norm; output projection. No KV cache.</li>
+<li><i>Short convolution (LFM2):</i> in-projection → conv with persistent state → out-projection.</li>
+<li><i>Indexed attention (Flash-Next):</i> an indexer selects KV rows, and attention runs only over them, inside hyper-connection layers.</li></ul>
+Then the FFN: dense act(gate) × up → down through [T, I], or mixture of experts (router [T, E] → top k → experts, plus a Qwen shared expert, or a Gemma dense branch summed with the experts). Gemma 4 E2B adds a per-layer-input block. F16 lanes record a finiteness check per layer. <span class="ref">text/layer.js:162-787 · linear-attention.js · ffn/ · moe-gpu.js</span></li>
+<li><b>Produce logits.</b> Final norm → LM head (often the embedding table, "tied") → softcap → F32 logits [V]. Prefill computes only the last position. Rerank and choice scoring compute just the token IDs they need. <span class="ref">text/logits/index.js:165-688</span></li>
+<li><b>Prefill.</b> The whole prompt in one recorded pass, cut into chunks if <code>prefillTokenChunkSize</code> is set and submitted every 4 or 8 layers to bound buffer lifetime. <span class="ref">text/generator/prefill-runtime.js:131-894</span></li>
+<li><b>Decode.</b> Batched GPU decode records batchSize tokens per command buffer (embed → layers → head → penalty → sample, all on the GPU) and reads tokens back every readbackInterval batches. Otherwise single-token decode with a fused LM-head argmax/sample reads back 4 bytes per token. A "whole-token program" can record one step and replay it with only the position changing. <span class="ref">text/generator-steps.js:357-760 · generator/decode.js · whole-token-lane.js</span></li>
+<li><b>Sample and stop.</b> Repetition and presence penalty, temperature, top-k, top-p with a per-token seed (temperature 0 = argmax). Optional prompt-lookup speculation (greedy, verified, rolled back on rejection). Stop on EOS IDs, stop sequences, the token limit or abort. <span class="ref">inference/token-sampling.js:285-334 · generator/speculative-runtime.js</span></li>
+</ol>
+<h4>Buffers</h4>
+<div class="scroll"><table><thead><tr><th>Buffer</th><th>Size</th></tr></thead><tbody>
+<tr><td>Decode hidden, attention output, alternate hidden</td><td>3 × pad256(H) × activation bytes</td></tr>
+<tr><td>Decode FFN intermediate</td><td>pad256(largest I) × activation bytes</td></tr>
+<tr><td>Q; K and V; attention output</td><td>T × nH × D; T × nKV × D each; T × nH × D</td></tr>
+<tr><td>FFN gate+up; down</td><td>T × 2I; T × H</td></tr>
+<tr><td>MoE router logits; top-k indices and weights</td><td>T × E; T × k</td></tr>
+<tr><td>Logits</td><td>V × 4 bytes (T × V × 4 when all positions are returned)</td></tr>
+<tr><td>KV cache, contiguous</td><td>2 × tokens × nKV × D × KV bytes per attention layer</td></tr>
+<tr><td>KV cache, mixed geometry</td><td>sliding layers: window × nKV × D; global layers: tokens × global KV heads × global D</td></tr>
+<tr><td>Linear-attention state (per layer, F32)</td><td>value heads × 128 × 128 + conv width × 4</td></tr>
+<tr><td>RoPE tables</td><td>tokens × rotary dims / 2 × 4 bytes, for cos and sin</td></tr>
+</tbody></table></div>
+<h4>Status and limits</h4>
+<ul><li>Fails closed on Mamba and RWKV layers, CPU MoE, CPU logits, tiered or quantized KV at F32, paged KV with full-attention layers, and a manifest/session compute mismatch.</li><li>Draft-model and Medusa speculation are not implemented. "Self" speculation runs extra decode steps that are recorded as accepted without a verification pass.</li><li>Models with mixed head geometry but no explicit layer types fall back to "replay prefill", which re-runs the whole prompt every token.</li></ul>
+</section>
+
+<section class="pipe" id="p-tr"><h3>3.2 Translation</h3>
+<dl class="pipe-meta"><dt>Routing</dt><dd>Same as text generation; chat template <code>translategemma</code></dd><dt>Models</dt><dd>TranslateGemma 4B IT (structured template), TranslateGemma 4B→1B en-es (plain gemma template)</dd></dl>
+<ol class="stages"><li><b>Format the request.</b> The translategemma template rejects plain strings. The single user message must be <code>{type: 'text' | 'image', source_lang_code, target_lang_code}</code>; codes become language names in a fixed instruction prefix. <span class="ref">text/chat-format.js:343-400 · generator/prompt-input.js:15-20</span></li><li><b>Generate.</b> Stages 3–8 of text generation, unchanged.</li></ol>
+<h4>Status and limits</h4><ul><li>Both lanes are verified in the catalog and appear in the compare demo.</li></ul></section>
+
+<section class="pipe" id="p-emb"><h3>3.3 Embedding</h3>
+<dl class="pipe-meta"><dt>Routing</dt><dd>modelType <code>embedding</code> → <code>EmbeddingPipeline</code>, which only blocks <code>generate()</code>. Every text pipeline also exposes <code>embed()</code>.</dd><dt>Models</dt><dd>EmbeddingGemma 300M, Qwen3 Embedding 0.6B; the protein/DNA encoders through the sequence path</dd></dl>
+<ol class="stages"><li><b>Tokenize</b> without a chat template. EmbeddingGemma's task prefixes (for example <code>task: search result | query:</code>) are added by tooling, not the pipeline.</li><li><b>Prefill to hidden states</b> [T, H]; no logits. State is reset before and after. <span class="ref">text/execution.js:264-283</span></li><li><b>Final norm</b> over all T rows.</li><li><b>Pool</b> to [H]: <code>mean</code> or <code>last</code>; the manifest's choice wins. <span class="ref">gpu/kernels/embedding-pool.js</span></li><li><b>Postprocess.</b> Optional dense projections (identity activation), then L2 normalize; read back H × 4 bytes. <span class="ref">text/embedding-extraction.js:59-230</span></li></ol>
+<h4>Status and limits</h4><ul><li>Both embedding models are verified.</li><li>The KV cache is allocated at load and serves as the attention store for the single pass, sized for the full token cap. With <code>skipEmbeddingKVCacheWrites</code>, attention reads the current tensors and the cache goes unused.</li><li><code>embedBatch</code> is a sequential loop. CPU extraction throws.</li></ul></section>
+
+<section class="pipe" id="p-seq"><h3>3.4 Sequence encoding (protein and DNA)</h3>
+<dl class="pipe-meta"><dt>Routing</dt><dd>modelType <code>embedding</code> plus <code>inference.supportsSequence</code> and an <code>inference.sequence</code> block → <code>encodeSequence</code></dd><dt>Models</dt><dd>AMPLIFY 120M, ESM-2 35M, ESM C 300M, Nucleotide Transformer v2 50M</dd></dl>
+<ol class="stages"><li><b>Tokenize</b> with the manifest's alphabet (amino acid or nucleotide).</li><li><b>One bidirectional pass</b> (<code>causal: false</code>) to hidden states [T, H].</li><li><b>Final norm</b> (LayerNorm for ESM and NT, RMSNorm for AMPLIFY).</li><li><b>Per-token embeddings</b> [T, H].</li><li><b>Mean pool</b> excluding special token IDs; throws if every token is excluded.</li><li><b>Per-position logits</b> [T, V], AMPLIFY only. Masked-token prediction is this single pass, with no iterative fill-in loop. <span class="ref">text/execution.js:290-337 · embedding-extraction.js:14-33</span></li></ol>
+<h4>Status and limits</h4><ul><li>All four are verified and published on Hugging Face; none is stored on mac-host.</li><li>All four set <code>skipEmbeddingKVCacheWrites</code>. Since a76f1add the loader skips KV allocation for these encoders; text embedders and rerankers retain their caches.</li></ul></section>
+
+<section class="pipe" id="p-rr"><h3>3.5 Rerank</h3>
+<dl class="pipe-meta"><dt>Routing</dt><dd><code>inference.supportsRerank</code> plus an <code>inference.rerank</code> block of format <code>qwen3_yes_no_logit</code>. Run by <code>inference/rerank.js</code> and the tooling harness, not a pipeline method.</dd><dt>Models</dt><dd>Qwen3 Reranker 0.6B (F16 and Q4_K lanes)</dd></dl>
+<ol class="stages"><li><b>Build the prompt:</b> prefix + template(instruction, query, document) + suffix, never the chat template. <span class="ref">inference/rerank.js:20-80</span></li><li><b>Share the common prefix:</b> the harness prefills the tokens shared by all documents once, then rewinds to that point before each document. <span class="ref">tooling/browser-harness/text-execution.js:70-154</span></li><li><b>Prefill each suffix</b> and compute logits for only the "yes" and "no" token IDs. <span class="ref">text/logits/index.js:586-623</span></li><li><b>Score</b> = yes − no (or the yes logit alone); probability = sigmoid(score).</li></ol>
+<h4>Status and limits</h4><ul><li>Both lanes verified. The client scoped session has no rerank method; use tooling or a program bundle.</li></ul></section>
+
+<section class="pipe" id="p-img"><h3>3.6 Image → text</h3>
+<dl class="pipe-meta"><dt>Routing</dt><dd>Enabled when the manifest has <code>image_token_id</code> and <code>quantizationInfo.vision</code>. Encoder chosen by <code>vision_config.vision_architecture</code>: <code>gemma4</code>, <code>glmocr</code> or <code>qwen3vl</code>. Entry points: <code>transcribeImage</code> (gemma4, glmocr) and <code>embedImage</code> (all three).</dd><dt>Models</dt><dd>Gemma 4 E2B, GLM-OCR, Qwen 3.5 0.8B (embedImage only)</dd></dl>
+<ol class="stages"><li><b>Preprocess on the CPU.</b>
+<ul><li>Gemma 4: bicubic resize to a soft-token budget (70, 140, 280, 560 or 1,120), 16-pixel patches → [N, 768].</li><li>GLM-OCR: PIL-style bicubic, 14-pixel patches repeated over 2 frames → [N, 1,176].</li><li>Qwen3-VL: bilinear resize to about one megapixel.</li></ul> <span class="ref">vision/gemma4.js:135-227 · glmocr-preprocess.js · image-preprocess.js</span></li>
+<li><b>Patch embed</b> (linear plus position embedding) → [N, h].</li>
+<li><b>Encoder layers.</b>
+<ul><li>Gemma 4: 16 layers, 12 heads × 64, 2-D RoPE, GELU MLP.</li><li>GLM-OCR: depth from config, 2-D RoPE, SiLU MLP with biases.</li><li>Qwen3-VL: ViT blocks.</li></ul></li>
+<li><b>Reduce tokens.</b>
+<ul><li>Gemma 4: 3×3 average pool → N/9 tokens, then project to text width 1,536.</li><li>GLM-OCR: 2×2 spatial merge → N/4 tokens, downsample, then the merger MLP to text width.</li></ul></li>
+<li><b>Splice into the prompt.</b> Expand the image placeholder to N tokens and override their embeddings with the features. Gemma marks the image span bidirectional. GLM-OCR swaps in 3-axis rotary positions for the run. <span class="ref">text/image-transcription.js:102-303 · vision/glmocr-rope.js</span></li>
+<li><b>Decode greedily</b> (temperature 0, top-k 1) through text generation.</li></ol>
+<h4>Buffers</h4><p>Gemma 4 E2B (16 layers, 12 query and 12 KV heads × 64): patches [≤2,520, 768] → hidden [N, 768] → Q, K, V [N, 768] each → MLP [N, 3,072] → pooled [≤280, 768] → output [≤280, 1,536], all F32. GLM-OCR: patches [N, 1,176] → hidden [N, 1,024] → QKV [N, 3,072] → merge [N/4, 4,096] → output [N/4, 1,536].</p>
+<h4>Status and limits</h4><ul><li>Gemma 4 and GLM-OCR are implemented. Qwen3-VL is partial: no position encoding in its encoder, and a loaded merger LayerNorm is unused (reported by the trace, not re-checked).</li><li>The catalog's E2B "verified" covers the text inference suite; no separate vision receipt was found.</li></ul></section>
+
+<section class="pipe" id="p-aud"><h3>3.7 Audio → text</h3>
+<dl class="pipe-meta"><dt>Routing</dt><dd>Enabled when the manifest has <code>audio_token_id</code> and <code>quantizationInfo.audio</code>. Only <code>gemma4</code> audio; the encoder lives in <code>src/experimental/audio/</code>.</dd><dt>Models</dt><dd>Gemma 4 E2B (manifest flags on)</dd></dl>
+<ol class="stages"><li><b>Mel features on the CPU:</b> 16 kHz, 512-point FFT, hop 160, window 400, 80 mel bins → [frames, 80]. These parameters are fixed in code; the manifest does not change them. <span class="ref">pipelines/audio/mel.js</span></li><li><b>Subsample:</b> two stride-2 3×3 convolutions with RMSNorm, then a linear to [seq, 1,024].</li><li><b>Conformer layers</b> (12): macaron FFN, chunked self-attention (left 13, chunk 12), 1-D conv module.</li><li><b>Project</b> to [seq, 1,536].</li><li><b>Splice and decode greedily,</b> as for images.</li></ol>
+<h4>Status and limits</h4><ul><li><span class="chip warn">repaired, not qualified</span> Since a76f1add, upload receives an owned GPU buffer and subsampling keeps its declared layout. Previously stage 2 called <code>uploadData(melFeatures, 'audio_mel_input')</code> (<code>experimental/audio/gemma4.js:27</code>), but <code>uploadData</code> takes a GPU buffer first (<code>memory/buffer-pool.js:838</code>). That historical call threw before GPU work. Focused tests cover the repair; a full audio-model reference run is still required.</li></ul></section>
+
+<section class="pipe" id="p-vid"><h3>3.8 Video → text</h3>
+<dl class="pipe-meta"><dt>Routing</dt><dd>Same gate as image → text; <code>transcribeVideo</code></dd><dt>Models</dt><dd>Gemma 4 E2B</dd></dl>
+<ol class="stages"><li><b>Sample frames:</b> up to 8, evenly spaced.</li><li><b>Encode each frame</b> with the image encoder and a per-frame token budget. There is no temporal modeling.</li><li><b>Concatenate</b> the frame features into one buffer.</li><li><b>Splice and decode greedily</b> under <code>&lt;|video|&gt;</code> delimiters.</li></ol>
+<h4>Status and limits</h4><ul><li><span class="chip warn">fixed, not run</span> The concatenation used to size rows with <code>outHiddenSize ?? hiddenSize</code>, so E2B frames were copied at 768 values while the features are 1,536 wide. Since <code>3a58230f</code> each encoder returns <code>featureSize</code>, the planner requires every frame to agree, and <code>transcribeVideo</code> checks it against the text hidden size. A unit test covers the plan; no GPU video run has been done.</li><li>The single-frame NaN index is fixed in the same commit.</li></ul></section>
+
+<section class="pipe" id="p-dg"><h3>3.9 Diffusion text (DiffusionGemma)</h3>
+<dl class="pipe-meta"><dt>Routing</dt><dd>modelType <code>diffusion_gemma</code> → lazy-loaded <code>pipelines/diffusion-gemma/pipeline.js</code>, which drives an internal text pipeline</dd><dt>Models</dt><dd>DiffusionGemma 26B-A4B</dd></dl>
+<ol class="stages"><li><b>Prefill the prompt</b> into the KV cache only (<code>prefillKVOnly</code>).</li><li><b>Start a canvas</b> of 256 tokens drawn uniformly from the 262,144-token vocabulary.</li><li><b>Denoise</b> for up to 48 steps, with temperature moving from 0.8 toward 0.4.<ul><li>Self-conditioning blends the previous step's soft predictions into the embeddings.</li><li>A non-causal pass runs over [prompt KV + canvas].</li><li>Logits [256, 262,144] are reduced on the GPU to an argmax and an entropy per position; only 8 bytes per position are read back.</li></ul> <span class="ref">text/generator/diffusion.js:453-600</span></li>
+<li><b>Accept confident positions:</b> lowest entropy first while the running total stays under the entropy bound (0.1); re-randomize the rest; stop early when everything is stable and mean entropy is under 0.005. <span class="ref">diffusion-gemma/sampling.js:169-244</span></li>
+<li><b>Emit the canvas</b> (padding dropped, stop at EOS), append it to the KV cache, start the next canvas.</li></ol>
+<h4>Buffers</h4><p>Logits 256 × 262,144 × 4 bytes = 256 MiB per step; decoder K/V per layer [prompt + 256, nKV × D]; argmax and entropy [256] each.</p>
+<h4>Status and limits</h4><ul><li>Experimental; the catalog lists no test. The GPU path accepts argmax tokens while the CPU-logits path accepts sampled tokens, so the two do not match exactly.</li></ul></section>
+
+<section class="pipe" id="p-imgdiff"><h3>3.10 Image generation</h3>
+<dl class="pipe-meta"><dt>Routing</dt><dd>modelType <code>diffusion</code> → <code>experimental/diffusion/pipeline.js</code>. Runtime layouts allowed: <code>sd3</code>, <code>flux</code>.</dd><dt>Models</dt><dd>None runnable. Sana Sprint 0.6B (layout <code>sana</code>) is rejected at load.</dd></dl>
+<ol class="stages"><li><b>Tokenize</b> for CLIP-L, CLIP-G and T5 (77 tokens for CLIP).</li><li><b>Encode text.</b> Pooled CLIP vectors, plus T5 hidden states as context; the CLIP hidden states are dropped.</li><li><b>Draw seeded Gaussian latents</b> [channels, H/scale, W/scale].</li><li><b>Denoise</b> for N steps (default 20).<ul><li>Patchify, then joint attention over image and text tokens with adaLN modulation.</li><li>Classifier-free guidance runs a second pass on the negative prompt.</li><li>Flow-match Euler or SCM scheduler step.</li></ul></li><li><b>Decode with the VAE</b> in F16 (standard VAE or DC-AE).</li><li><b>Convert to RGBA</b> pixels.</li></ol>
+<h4>Status and limits</h4><ul><li>Experimental. <code>flux</code> loads but always runs the SD3 transformer and needs T5, so it cannot run.</li><li>Schedulers other than flow-match Euler and SCM resolve but throw at the first step.</li><li>The trace also reports an inverted flow-match shift and a final step that does nothing. Neither was re-checked.</li></ul></section>
+
+<section class="pipe" id="p-other"><h3>3.11 Registered pipelines with no model</h3>
+<div class="grid2"><div class="panel"><h3>Structured JSON head</h3><p>Eleven <code>structured_json_head</code> / <code>dream_*</code> modelTypes. Runs text generation, then parses JSON from the output (raw, fenced, or first <code>{</code> to last <code>}</code>) and hashes the prompt. The JSON and TSV grammar masks are opt-in logit masks on CPU logits.</p></div><div class="panel"><h3>Energy</h3><p>A toy energy-minimization demo with no weights: random state and target vectors, gradient steps until energy ≤ 1e-4, or a 5×5 "Quintel" grid puzzle with Adam on the GPU.</p></div><div class="panel"><h3>Energy row head</h3><p>Seven modelTypes. Weights are inline JSON arrays. Each row's features are relaxed toward the weights for 3 steps, then scored as logit = w·s + b − energy, passed through a sigmoid and sorted.</p></div></div></section>
+
+<h2 id="matrix">4 · Which model uses which pipeline</h2>
+<div class="legend"><span class="dot ok">yes</span><span class="dot warn">partial</span><span class="dot bad">broken / rejected</span></div>
+{{MATRIX}}
+
+<h2 id="models">5 · Model by model</h2>
+<p>One card per model architecture. The stored lanes table lists every variant with exact weight counts per format. The pipeline walk follows the same ten rows for every model, using that model's own numbers.</p>
+{{CARDS}}
+
+<h2 id="configs">6 · Conversion configs with no artifact found</h2>
+<p>These configs exist in <code>src/config/conversion/</code>, but no manifest was found on mac-host, in amd-host's RDRR folder or in the catalog. Each is a recipe, not a loadable model.</p>
+<div class="scroll"><table><thead><tr><th>Config output ID</th><th>Formats (weights / embeddings / head / compute)</th><th>Note</th></tr></thead><tbody>
+<tr><td><code>qwen-3-6-35b-a3b-text-q4k-ehf16-af32</code></td><td>q4k / f16 / f16 / f32</td><td>The 35B runs from its GGUF instead</td></tr>
+<tr><td><code>qwen3-8-27b-text-source-q4_0-af32</code></td><td>q4_0 / q4_0 / q6k / f32, passthrough</td><td>GGUF passthrough recipe</td></tr>
+<tr><td><code>qwen3.8-27b-text-f16-af32</code>, <code>qwen3.8-27b-text-q4k-ehaf16</code></td><td>f16; q4k / f16 / f16 / f32</td><td>Artifacts exist under the dashed IDs <code>qwen3-8-27b-…</code></td></tr>
+<tr><td><code>qwen-3-5-9b-f16-af32</code>, <code>qwen-3-5-9b-q4k-ehaf16</code></td><td>f16; q4k / f16 / q4k / f32</td><td>Qwen 3.5 9B</td></tr>
+<tr><td><code>qwen-3-5-0-8b-canonical-f32</code></td><td>f32 throughout</td><td>Reference lane</td></tr>
+<tr><td><code>qwen-3-4b-instruct-2507-q4k-ehf16-af32</code></td><td>q4k / f16 / f16 / f32</td><td></td></tr>
+<tr><td><code>qwen-3-embedding-0-6b-f16-af32</code></td><td>f16</td><td>F16 twin of the published Q4_K embedder</td></tr>
+<tr><td><code>qwen-3-reranker-0-6b-f16-true-logit-af32</code></td><td>f16</td><td>True-logit scoring variant</td></tr>
+<tr><td><code>gemma-3-270m-it-q4k-ehf16-af16</code>, <code>gemma-3-270m-it-w8a8-ehf16-af32</code></td><td>q4k with F16 activations; w8a8</td><td>W8A8 is the only int8-weight recipe</td></tr>
+<tr><td><code>gemma-4-12b-it-text-q4k-ehf16-hq4k-af16</code></td><td>q4k / f16 / q4k / f16</td><td>Name contradicts the naming rule (would be q4k-eaf16)</td></tr>
+<tr><td><code>gemma-4-moe-q4k-ehf16-af32</code></td><td>q4k / f16 / f16 / f32</td><td>Gemma 4 MoE</td></tr>
+<tr><td><code>gpt-oss-20b-f16-xmxfp4</code></td><td>f16 with MXFP4 experts</td><td>Uses the GPT-OSS expert pager</td></tr>
+<tr><td><code>janus-pro-1b-text-q4k-ehaf16</code></td><td>q4k / f16 / f16 / f16</td><td></td></tr>
+<tr><td><code>lfm2.5-1.2b-instruct-q4k-ehf16-af32</code></td><td>q4k</td><td>Artifact exists under <code>lfm2-5-1-2b-…</code></td></tr>
+</tbody></table></div>
+
+<h2 id="gaps">7 · Gaps found while mapping</h2>
+<h4>Confirmed by reading the code or manifest directly</h4>
+<ol>
+<li><b>Audio transcription remains unqualified.</b> The upload and convolution-layout defects below were repaired in a76f1add; no full-model reference qualification is recorded here. Previously, <code>experimental/audio/gemma4.js:27</code> passes a Float32Array where <code>uploadData</code> expects a GPU buffer, so it throws before any GPU work.</li>
+<li><b>Video copied half of each frame on Gemma 4.</b> It sized rows at the 768-wide vision size; the features are 1,536 wide. <span class="chip warn">fixed in 3a58230f</span></li>
+<li><b>Sana Sprint is stored but cannot load.</b> <code>diffusion/init.js:105-110</code> accepts only <code>sd3</code> and <code>flux</code>.</li>
+<li><b>Three Qwen lane names misstate their formats.</b> The <code>-ehaf16</code> lanes use a Q4_K head and F32 activations.</li>
+<li><b>Protein encoders allocate a KV cache they never write.</b> All four (AMPLIFY, ESM-2, ESM C, Nucleotide Transformer) set <code>skipEmbeddingKVCacheWrites</code>, so attention uses the current tensors. Fixed in a76f1add: these encoders no longer allocate the unused cache (previously 120, 45, 450 and 96 MiB). Corrected: the text embedders use their cache as the attention store for the single pass, and the reranker uses it to share the prompt prefix, so theirs is not unused.</li>
+<li><b>LFM2's 10 conv layers got KV buffers.</b> 80 MiB of 128 MiB at 4,096 tokens was never used. <span class="chip warn">fixed in 8815443c</span>: conv layers now take the same no-KV path as linear attention.</li>
+<li><b>The 35B "Q4_0" file is a mix of formats.</b> Of 35.5 B weights, 32.5 B are Q4_0, 1.34 B Q4_1, 1.05 B Q8_0, 0.58 B Q6_K, 63 M Q5_0 and 26 M F32.</li>
+</ol>
+<h4>Reported by the code traces, not re-checked</h4>
+<ol>
+<li>Fixed in a76f1add: URL and file RDRR loading now inherit the configured shard-hash policy, defaulting to verification. Explicit opt-out remains available. Focused storage and policy tests pass; hashing overhead is not measured here.</li>
+<li>The image-generation pipeline drops CLIP hidden states from the context, inverts the flow-match shift, and wastes its final step.</li>
+<li>The Qwen3-VL encoder applies no position encoding, and a loaded merger LayerNorm is unused.</li>
+<li>The TSV grammar mask fails open, has no EOS gating, and keeps state across generations, contrary to the "fail closed" charter.</li>
+<li>Mixed-case modelTypes import their module but miss the exact-case registry lookup.</li>
+</ol>
+</div>

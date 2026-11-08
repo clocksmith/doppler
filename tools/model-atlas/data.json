@@ -1,0 +1,2739 @@
+[
+  {
+    "id": "amplify-120m-f16-af32",
+    "modelType": "embedding",
+    "catalog": true,
+    "quant": {
+      "weights": "f16",
+      "embeddings": "f16",
+      "compute": "f32",
+      "variantTag": "f16-af32"
+    },
+    "weights": 118276507,
+    "bytes": 236553014,
+    "shards": 4,
+    "dtypes": {
+      "F16": {
+        "tensors": 220,
+        "elements": 118276507,
+        "bytes": 236553014
+      }
+    },
+    "weightsRef": false,
+    "activationDtype": "f32",
+    "kvDtype": "f16",
+    "sessionMaxSeqLen": 2048,
+    "modes": [
+      "supportsEmbedding",
+      "supportsSequence"
+    ],
+    "arch": {
+      "numLayers": 24,
+      "hiddenSize": 640,
+      "intermediateSize": 1712,
+      "numAttentionHeads": 10,
+      "numKeyValueHeads": 10,
+      "headDim": 64,
+      "vocabSize": 27,
+      "maxSeqLen": 2048
+    },
+    "layerTypes": null,
+    "slidingWindow": null,
+    "moe": null,
+    "kvCapSource": "manifest",
+    "kvCapacityTokens": 2048,
+    "kvLayout": "contiguous",
+    "kvLayers": 24,
+    "kvValuesPerToken": 30720,
+    "kvValuesAtCapacity": 62914560,
+    "kvBytesAtCapacity": 125829120,
+    "hidden": 640,
+    "ffn": 1712,
+    "vocab": 27,
+    "task": "embedding,masked-token-prediction",
+    "runtime": "active",
+    "tested": "verified",
+    "hf": true,
+    "where": [
+      "Hugging Face"
+    ],
+    "label": "AMPLIFY 120M Protein Encoder (F16/F32a)",
+    "family": "amplify",
+    "description": "AMPLIFY 120M protein-sequence encoder with F16 weights and F32 activations."
+  },
+  {
+    "id": "create-gemma-3-1b-qualification",
+    "modelType": "transformer",
+    "catalog": false,
+    "quant": {
+      "weights": "q4k",
+      "embeddings": "f16",
+      "compute": "f32",
+      "layout": "row",
+      "variantTag": "q4k-ehf16-af32"
+    },
+    "weights": 999885952,
+    "bytes": 1025493248,
+    "shards": 16,
+    "dtypes": {
+      "F16": {
+        "tensors": 1,
+        "elements": 301989888,
+        "bytes": 603979776
+      },
+      "BF16": {
+        "tensors": 157,
+        "elements": 134272,
+        "bytes": 268544
+      },
+      "Q4_K_M": {
+        "tensors": 182,
+        "elements": 697761792,
+        "bytes": 421244928
+      }
+    },
+    "weightsRef": false,
+    "activationDtype": "f32",
+    "kvDtype": "f16",
+    "sessionMaxSeqLen": null,
+    "modes": [],
+    "arch": {
+      "numLayers": 26,
+      "hiddenSize": 1152,
+      "intermediateSize": 6912,
+      "numAttentionHeads": 4,
+      "numKeyValueHeads": 1,
+      "headDim": 256,
+      "vocabSize": 262144,
+      "maxSeqLen": 32768,
+      "ropeTheta": 1000000
+    },
+    "layerTypes": {
+      "sliding_attention": 22,
+      "full_attention": 4
+    },
+    "slidingWindow": 512,
+    "moe": null,
+    "kvCapSource": "runtime default 4096",
+    "kvCapacityTokens": 4096,
+    "kvLayout": "contiguous",
+    "kvLayers": 26,
+    "kvValuesPerToken": 13312,
+    "kvValuesAtCapacity": 54525952,
+    "kvBytesAtCapacity": 109051904,
+    "hidden": 1152,
+    "ffn": 6912,
+    "vocab": 262144,
+    "where": [
+      "mac-host"
+    ]
+  },
+  {
+    "id": "diffusiongemma-26b-a4b-it-q4k-ehf16-af16",
+    "modelType": "diffusion_gemma",
+    "catalog": true,
+    "quant": {
+      "weights": "q4k",
+      "embeddings": "f16",
+      "compute": "f16",
+      "layout": "row",
+      "variantTag": "q4k-ehaf16"
+    },
+    "weights": 25250986812,
+    "bytes": 15680106104,
+    "shards": 234,
+    "dtypes": {
+      "F16": {
+        "tensors": 423,
+        "elements": 749714236,
+        "bytes": 1499428472
+      },
+      "Q4_K_M": {
+        "tensors": 268,
+        "elements": 24501272576,
+        "bytes": 14180677632
+      }
+    },
+    "weightsRef": false,
+    "activationDtype": "f16",
+    "kvDtype": "f16",
+    "sessionMaxSeqLen": null,
+    "modes": [],
+    "arch": {
+      "numLayers": 30,
+      "hiddenSize": 2816,
+      "intermediateSize": 2112,
+      "numAttentionHeads": 16,
+      "numKeyValueHeads": 8,
+      "numGlobalKeyValueHeads": 2,
+      "headDim": 256,
+      "vocabSize": 262144,
+      "maxSeqLen": 262144,
+      "globalHeadDim": 512
+    },
+    "layerTypes": {
+      "sliding_attention": 25,
+      "full_attention": 5
+    },
+    "slidingWindow": 1024,
+    "moe": {
+      "numExperts": 128,
+      "numExpertsPerToken": 8,
+      "expertFormat": "gemma4",
+      "expertIntermediateSize": 704
+    },
+    "kvCapSource": "runtime default 4096",
+    "kvCapacityTokens": 4096,
+    "kvLayout": "mixed-geometry (sliding layers ring-capped at window)",
+    "kvValuesPerToken": 112640,
+    "kvValuesAtCapacity": 146800640,
+    "kvBytesAtCapacity": 293601280,
+    "hidden": 2816,
+    "ffn": 2112,
+    "vocab": 262144,
+    "task": "generation",
+    "runtime": "experimental",
+    "tested": "none",
+    "hf": false,
+    "where": [
+      "mac-host",
+      "amd-host"
+    ],
+    "label": "DiffusionGemma 26B A4B Instruct (Q4K/F16a)",
+    "family": "diffusiongemma",
+    "description": "DiffusionGemma 26B A4B text-only block-diffusion MoE artifact. Q4K weights, F16 embeddings/head, F16 activation contract, and DiffusionGemma throughput runtime profile."
+  },
+  {
+    "id": "esm2-t12-35m-ur50d-f32-af32",
+    "modelType": "embedding",
+    "catalog": true,
+    "quant": {
+      "weights": "f32",
+      "embeddings": "f32",
+      "compute": "f32",
+      "variantTag": "f32"
+    },
+    "weights": 33269280,
+    "bytes": 133077120,
+    "shards": 2,
+    "dtypes": {
+      "F32": {
+        "tensors": 195,
+        "elements": 33269280,
+        "bytes": 133077120
+      }
+    },
+    "weightsRef": false,
+    "activationDtype": "f32",
+    "kvDtype": "f32",
+    "sessionMaxSeqLen": 1026,
+    "modes": [
+      "supportsEmbedding",
+      "supportsSequence"
+    ],
+    "arch": {
+      "numLayers": 12,
+      "hiddenSize": 480,
+      "intermediateSize": 1920,
+      "numAttentionHeads": 20,
+      "numKeyValueHeads": 20,
+      "headDim": 24,
+      "vocabSize": 33,
+      "maxSeqLen": 1026
+    },
+    "layerTypes": null,
+    "slidingWindow": null,
+    "moe": null,
+    "kvCapSource": "manifest",
+    "kvCapacityTokens": 1026,
+    "kvLayout": "contiguous",
+    "kvLayers": 12,
+    "kvValuesPerToken": 11520,
+    "kvValuesAtCapacity": 11819520,
+    "kvBytesAtCapacity": 47278080,
+    "hidden": 480,
+    "ffn": 1920,
+    "vocab": 33,
+    "task": "embedding",
+    "runtime": "active",
+    "tested": "verified",
+    "hf": true,
+    "where": [
+      "Hugging Face"
+    ],
+    "label": "ESM-2 35M Protein Encoder (F32)",
+    "family": "esm",
+    "description": "ESM-2 35M protein-sequence encoder with F32 weights and activations."
+  },
+  {
+    "id": "esmc-300m-f32-af32",
+    "modelType": "embedding",
+    "catalog": true,
+    "quant": {
+      "weights": "f32",
+      "embeddings": "f32",
+      "compute": "f32",
+      "variantTag": "f32"
+    },
+    "weights": 332011200,
+    "bytes": 1328044800,
+    "shards": 20,
+    "dtypes": {
+      "F32": {
+        "tensors": 392,
+        "elements": 332011200,
+        "bytes": 1328044800
+      }
+    },
+    "weightsRef": false,
+    "activationDtype": "f32",
+    "kvDtype": "f32",
+    "sessionMaxSeqLen": 2048,
+    "modes": [
+      "supportsEmbedding",
+      "supportsSequence"
+    ],
+    "arch": {
+      "numLayers": 30,
+      "hiddenSize": 960,
+      "intermediateSize": 2560,
+      "numAttentionHeads": 15,
+      "numKeyValueHeads": 15,
+      "headDim": 64,
+      "vocabSize": 64,
+      "maxSeqLen": 2048,
+      "ropeTheta": 10000
+    },
+    "layerTypes": null,
+    "slidingWindow": null,
+    "moe": null,
+    "kvCapSource": "manifest",
+    "kvCapacityTokens": 2048,
+    "kvLayout": "contiguous",
+    "kvLayers": 30,
+    "kvValuesPerToken": 57600,
+    "kvValuesAtCapacity": 117964800,
+    "kvBytesAtCapacity": 471859200,
+    "hidden": 960,
+    "ffn": 2560,
+    "vocab": 64,
+    "task": "embedding",
+    "runtime": "active",
+    "tested": "verified",
+    "hf": true,
+    "where": [
+      "Hugging Face"
+    ],
+    "label": "ESMC 300M Protein Encoder (F32)",
+    "family": "esmc",
+    "description": "ESMC 300M protein-sequence encoder with F32 weights and activations."
+  },
+  {
+    "id": "gemma-3-1b-it-f16-af32",
+    "modelType": "transformer",
+    "catalog": false,
+    "quant": {
+      "weights": "f16",
+      "embeddings": "f16",
+      "compute": "f32",
+      "variantTag": "f16-af32"
+    },
+    "weights": 999885952,
+    "bytes": 1999771904,
+    "shards": 30,
+    "dtypes": {
+      "F16": {
+        "tensors": 340,
+        "elements": 999885952,
+        "bytes": 1999771904
+      }
+    },
+    "weightsRef": false,
+    "activationDtype": null,
+    "kvDtype": null,
+    "sessionMaxSeqLen": null,
+    "modes": [],
+    "arch": {
+      "numLayers": 26,
+      "hiddenSize": 1152,
+      "intermediateSize": 6912,
+      "numAttentionHeads": 4,
+      "numKeyValueHeads": 1,
+      "headDim": 256,
+      "vocabSize": 262144,
+      "maxSeqLen": 32768,
+      "ropeTheta": 1000000
+    },
+    "layerTypes": null,
+    "slidingWindow": null,
+    "moe": null,
+    "kvCapSource": "runtime default 4096",
+    "kvCapacityTokens": 4096,
+    "kvLayout": "contiguous",
+    "kvLayers": 26,
+    "kvValuesPerToken": 13312,
+    "kvValuesAtCapacity": 54525952,
+    "kvBytesAtCapacity": 109051904,
+    "hidden": 1152,
+    "ffn": 6912,
+    "vocab": 262144,
+    "where": [
+      "amd-host"
+    ]
+  },
+  {
+    "id": "gemma-3-1b-it-q4k-ehf16-af32",
+    "modelType": "transformer",
+    "catalog": true,
+    "quant": {
+      "weights": "q4k",
+      "embeddings": "f16",
+      "compute": "f32",
+      "layout": "row",
+      "variantTag": "q4k-ehf16-af32"
+    },
+    "weights": 999885952,
+    "bytes": 1025493248,
+    "shards": 16,
+    "dtypes": {
+      "F16": {
+        "tensors": 1,
+        "elements": 301989888,
+        "bytes": 603979776
+      },
+      "BF16": {
+        "tensors": 157,
+        "elements": 134272,
+        "bytes": 268544
+      },
+      "Q4_K_M": {
+        "tensors": 182,
+        "elements": 697761792,
+        "bytes": 421244928
+      }
+    },
+    "weightsRef": false,
+    "activationDtype": "f32",
+    "kvDtype": "f16",
+    "sessionMaxSeqLen": null,
+    "modes": [],
+    "arch": {
+      "numLayers": 26,
+      "hiddenSize": 1152,
+      "intermediateSize": 6912,
+      "numAttentionHeads": 4,
+      "numKeyValueHeads": 1,
+      "headDim": 256,
+      "vocabSize": 262144,
+      "maxSeqLen": 32768,
+      "ropeTheta": 1000000
+    },
+    "layerTypes": {
+      "sliding_attention": 22,
+      "full_attention": 4
+    },
+    "slidingWindow": 512,
+    "moe": null,
+    "kvCapSource": "runtime default 4096",
+    "kvCapacityTokens": 4096,
+    "kvLayout": "contiguous",
+    "kvLayers": 26,
+    "kvValuesPerToken": 13312,
+    "kvValuesAtCapacity": 54525952,
+    "kvBytesAtCapacity": 109051904,
+    "hidden": 1152,
+    "ffn": 6912,
+    "vocab": 262144,
+    "task": "generation",
+    "runtime": "active",
+    "tested": "verified",
+    "hf": true,
+    "where": [
+      "mac-host",
+      "amd-host",
+      "Hugging Face"
+    ],
+    "label": "Gemma 3 1B Instruct (Q4K/F32a)",
+    "family": "gemma3",
+    "description": "Gemma 3 1B text model. Q4K weights, F16 embeddings/head, F32 accumulation."
+  },
+  {
+    "id": "gemma-3-270m-it-f16-af32",
+    "modelType": "transformer",
+    "catalog": true,
+    "quant": {
+      "weights": "f16",
+      "embeddings": "f16",
+      "compute": "f32",
+      "variantTag": "f16-af32"
+    },
+    "weights": 268098176,
+    "bytes": 536196352,
+    "shards": 8,
+    "dtypes": {
+      "F16": {
+        "tensors": 236,
+        "elements": 268098176,
+        "bytes": 536196352
+      }
+    },
+    "weightsRef": false,
+    "activationDtype": "f32",
+    "kvDtype": "f16",
+    "sessionMaxSeqLen": null,
+    "modes": [],
+    "arch": {
+      "numLayers": 18,
+      "hiddenSize": 640,
+      "intermediateSize": 2048,
+      "numAttentionHeads": 4,
+      "numKeyValueHeads": 1,
+      "headDim": 256,
+      "vocabSize": 262144,
+      "maxSeqLen": 32768,
+      "ropeTheta": 1000000
+    },
+    "layerTypes": {
+      "sliding_attention": 15,
+      "full_attention": 3
+    },
+    "slidingWindow": 512,
+    "moe": null,
+    "kvCapSource": "runtime default 4096",
+    "kvCapacityTokens": 4096,
+    "kvLayout": "contiguous",
+    "kvLayers": 18,
+    "kvValuesPerToken": 9216,
+    "kvValuesAtCapacity": 37748736,
+    "kvBytesAtCapacity": 75497472,
+    "hidden": 640,
+    "ffn": 2048,
+    "vocab": 262144,
+    "task": "generation",
+    "runtime": "active",
+    "tested": "verified",
+    "hf": true,
+    "where": [
+      "mac-host",
+      "amd-host",
+      "Hugging Face"
+    ],
+    "label": "Gemma 3 270M Instruct (F16/F32a)",
+    "family": "gemma3",
+    "description": "Gemma 3 270M text model. F16 weights, F16 embeddings/head, F32 accumulation."
+  },
+  {
+    "id": "gemma-3-270m-it-q4k-ehf16-af32",
+    "modelType": "transformer",
+    "catalog": true,
+    "quant": {
+      "weights": "q4k",
+      "embeddings": "f16",
+      "compute": "f32",
+      "layout": "row",
+      "variantTag": "q4k-ehf16-af32"
+    },
+    "weights": 268098176,
+    "bytes": 399357184,
+    "shards": 6,
+    "dtypes": {
+      "F16": {
+        "tensors": 1,
+        "elements": 167772160,
+        "bytes": 335544320
+      },
+      "BF16": {
+        "tensors": 109,
+        "elements": 55936,
+        "bytes": 111872
+      },
+      "Q4_K_M": {
+        "tensors": 126,
+        "elements": 100270080,
+        "bytes": 63700992
+      }
+    },
+    "weightsRef": false,
+    "activationDtype": "f32",
+    "kvDtype": "f16",
+    "sessionMaxSeqLen": null,
+    "modes": [],
+    "arch": {
+      "numLayers": 18,
+      "hiddenSize": 640,
+      "intermediateSize": 2048,
+      "numAttentionHeads": 4,
+      "numKeyValueHeads": 1,
+      "headDim": 256,
+      "vocabSize": 262144,
+      "maxSeqLen": 32768,
+      "ropeTheta": 1000000
+    },
+    "layerTypes": {
+      "sliding_attention": 15,
+      "full_attention": 3
+    },
+    "slidingWindow": 512,
+    "moe": null,
+    "kvCapSource": "runtime default 4096",
+    "kvCapacityTokens": 4096,
+    "kvLayout": "contiguous",
+    "kvLayers": 18,
+    "kvValuesPerToken": 9216,
+    "kvValuesAtCapacity": 37748736,
+    "kvBytesAtCapacity": 75497472,
+    "hidden": 640,
+    "ffn": 2048,
+    "vocab": 262144,
+    "task": "generation",
+    "runtime": "active",
+    "tested": "verified",
+    "hf": true,
+    "where": [
+      "mac-host",
+      "amd-host",
+      "Hugging Face"
+    ],
+    "label": "Gemma 3 270M Instruct (Q4K/F32a)",
+    "family": "gemma3",
+    "description": "Gemma 3 270M text model. Q4K weights, F16 embeddings/head, F32 accumulation."
+  },
+  {
+    "id": "gemma-4-12b-it-text-q4k-ehf16-af16",
+    "modelType": "gemma4",
+    "catalog": true,
+    "quant": {
+      "weights": "q4k",
+      "embeddings": "f16",
+      "compute": "f16",
+      "layout": "row",
+      "variantTag": "q4k-ehf16-af16"
+    },
+    "weights": 11907350320,
+    "bytes": 8146026080,
+    "shards": 122,
+    "dtypes": {
+      "F16": {
+        "tensors": 338,
+        "elements": 1007402800,
+        "bytes": 2014805600
+      },
+      "Q4_K_M": {
+        "tensors": 328,
+        "elements": 10899947520,
+        "bytes": 6131220480
+      }
+    },
+    "weightsRef": true,
+    "activationDtype": "f16",
+    "kvDtype": "f16",
+    "sessionMaxSeqLen": null,
+    "modes": [],
+    "arch": {
+      "numLayers": 48,
+      "hiddenSize": 3840,
+      "intermediateSize": 15360,
+      "numAttentionHeads": 16,
+      "numKeyValueHeads": 8,
+      "numGlobalKeyValueHeads": 1,
+      "headDim": 256,
+      "vocabSize": 262144,
+      "maxSeqLen": 262144,
+      "hiddenSizePerLayerInput": 0,
+      "vocabSizePerLayerInput": 262144,
+      "globalHeadDim": 512,
+      "numKvSharedLayers": 0
+    },
+    "layerTypes": {
+      "sliding_attention": 40,
+      "full_attention": 8
+    },
+    "slidingWindow": 1024,
+    "moe": null,
+    "kvCapSource": "runtime default 4096",
+    "kvCapacityTokens": 4096,
+    "kvLayout": "mixed-geometry (sliding layers ring-capped at window)",
+    "kvValuesPerToken": 172032,
+    "kvValuesAtCapacity": 201326592,
+    "kvBytesAtCapacity": 402653184,
+    "hidden": 3840,
+    "ffn": 15360,
+    "vocab": 262144,
+    "task": "generation",
+    "runtime": "active",
+    "tested": "verified",
+    "hf": true,
+    "where": [
+      "mac-host",
+      "amd-host",
+      "Hugging Face"
+    ],
+    "label": "Gemma 4 12B Instruct Text (Q4K/F16a)",
+    "family": "gemma4",
+    "description": "Gemma 4 12B text-only local f16 activation sibling over the existing Q4K weight capsule."
+  },
+  {
+    "id": "gemma-4-12b-it-text-q4k-ehf16-af32",
+    "modelType": "gemma4",
+    "catalog": true,
+    "quant": {
+      "weights": "q4k",
+      "embeddings": "f16",
+      "compute": "f32",
+      "layout": "row",
+      "variantTag": "q4k-ehf16-af32"
+    },
+    "weights": 11907350320,
+    "bytes": 8146026080,
+    "shards": 122,
+    "dtypes": {
+      "F16": {
+        "tensors": 338,
+        "elements": 1007402800,
+        "bytes": 2014805600
+      },
+      "Q4_K_M": {
+        "tensors": 328,
+        "elements": 10899947520,
+        "bytes": 6131220480
+      }
+    },
+    "weightsRef": false,
+    "activationDtype": "f32",
+    "kvDtype": "f16",
+    "sessionMaxSeqLen": null,
+    "modes": [],
+    "arch": {
+      "numLayers": 48,
+      "hiddenSize": 3840,
+      "intermediateSize": 15360,
+      "numAttentionHeads": 16,
+      "numKeyValueHeads": 8,
+      "numGlobalKeyValueHeads": 1,
+      "headDim": 256,
+      "vocabSize": 262144,
+      "maxSeqLen": 262144,
+      "hiddenSizePerLayerInput": 0,
+      "vocabSizePerLayerInput": 262144,
+      "globalHeadDim": 512,
+      "numKvSharedLayers": 0
+    },
+    "layerTypes": {
+      "sliding_attention": 40,
+      "full_attention": 8
+    },
+    "slidingWindow": 1024,
+    "moe": null,
+    "kvCapSource": "runtime default 4096",
+    "kvCapacityTokens": 4096,
+    "kvLayout": "mixed-geometry (sliding layers ring-capped at window)",
+    "kvValuesPerToken": 172032,
+    "kvValuesAtCapacity": 201326592,
+    "kvBytesAtCapacity": 402653184,
+    "hidden": 3840,
+    "ffn": 15360,
+    "vocab": 262144,
+    "task": "generation",
+    "runtime": "active",
+    "tested": "verified",
+    "hf": true,
+    "where": [
+      "mac-host",
+      "amd-host",
+      "Hugging Face"
+    ],
+    "label": "Gemma 4 12B Instruct Text (Q4K/F32a)",
+    "family": "gemma4",
+    "description": "Gemma 4 12B text-only local RDRR lane. Q4K weights, F16 embeddings/head, F32 activation contract."
+  },
+  {
+    "id": "gemma-4-12b-it-text-w4a16-ct-ehf16-af16",
+    "modelType": "gemma4",
+    "catalog": true,
+    "quant": {
+      "weights": "w4a16",
+      "embeddings": "f16",
+      "compute": "f16",
+      "sourceTrainingQuantization": "qat",
+      "sourceQuantizationTarget": "w4a16",
+      "sourceQuantizationFormat": "compressed-tensors",
+      "variantTag": "w4a16-ehaf16",
+      "lmHead": "f16"
+    },
+    "weights": 13254607296,
+    "bytes": 10159297248,
+    "shards": 152,
+    "dtypes": {
+      "F16": {
+        "tensors": 2,
+        "elements": 2013265920,
+        "bytes": 4026531840
+      },
+      "BF16": {
+        "tensors": 665,
+        "elements": 341393200,
+        "bytes": 682786400
+      },
+      "W4A16": {
+        "tensors": 328,
+        "elements": 10899947520,
+        "bytes": 5449973760
+      },
+      "I64": {
+        "tensors": 328,
+        "elements": 656,
+        "bytes": 5248
+      }
+    },
+    "weightsRef": false,
+    "activationDtype": "f16",
+    "kvDtype": "f16",
+    "sessionMaxSeqLen": null,
+    "modes": [],
+    "arch": {
+      "numLayers": 48,
+      "hiddenSize": 3840,
+      "intermediateSize": 15360,
+      "numAttentionHeads": 16,
+      "numKeyValueHeads": 8,
+      "numGlobalKeyValueHeads": 1,
+      "headDim": 256,
+      "vocabSize": 262144,
+      "maxSeqLen": 262144,
+      "hiddenSizePerLayerInput": 0,
+      "vocabSizePerLayerInput": 0,
+      "globalHeadDim": 512,
+      "numKvSharedLayers": 0
+    },
+    "layerTypes": {
+      "sliding_attention": 40,
+      "full_attention": 8
+    },
+    "slidingWindow": 1024,
+    "moe": null,
+    "kvCapSource": "runtime default 4096",
+    "kvCapacityTokens": 4096,
+    "kvLayout": "mixed-geometry (sliding layers ring-capped at window)",
+    "kvValuesPerToken": 172032,
+    "kvValuesAtCapacity": 201326592,
+    "kvBytesAtCapacity": 402653184,
+    "hidden": 3840,
+    "ffn": 15360,
+    "vocab": 262144,
+    "task": "generation",
+    "runtime": "active",
+    "tested": "verified",
+    "hf": true,
+    "where": [
+      "mac-host",
+      "amd-host",
+      "Hugging Face"
+    ],
+    "label": "Gemma 4 12B Instruct Text (W4A16 QAT/F16a)",
+    "family": "gemma4",
+    "description": "Gemma 4 12B text-only RDRR lane from Google's W4A16 QAT compressed-tensors checkpoint. W4A16 weights, F16 embeddings/head, F16 activation contract."
+  },
+  {
+    "id": "gemma-4-31b-it-text-q4k-ehf16-af16",
+    "modelType": "gemma4",
+    "catalog": true,
+    "quant": {
+      "weights": "q4k",
+      "embeddings": "f16",
+      "compute": "f16",
+      "layout": "row",
+      "variantTag": "q4k-ehf16-af16"
+    },
+    "weights": 30697345340,
+    "bytes": 19295019640,
+    "shards": 288,
+    "dtypes": {
+      "F16": {
+        "tensors": 422,
+        "elements": 1410617660,
+        "bytes": 2821235320
+      },
+      "Q4_K_M": {
+        "tensors": 410,
+        "elements": 29286727680,
+        "bytes": 16473784320
+      }
+    },
+    "weightsRef": true,
+    "activationDtype": "f16",
+    "kvDtype": "f16",
+    "sessionMaxSeqLen": null,
+    "modes": [],
+    "arch": {
+      "numLayers": 60,
+      "hiddenSize": 5376,
+      "intermediateSize": 21504,
+      "numAttentionHeads": 32,
+      "numKeyValueHeads": 16,
+      "numGlobalKeyValueHeads": 4,
+      "headDim": 256,
+      "vocabSize": 262144,
+      "maxSeqLen": 262144,
+      "hiddenSizePerLayerInput": 0,
+      "vocabSizePerLayerInput": 262144,
+      "globalHeadDim": 512,
+      "numKvSharedLayers": 0
+    },
+    "layerTypes": {
+      "sliding_attention": 50,
+      "full_attention": 10
+    },
+    "slidingWindow": 1024,
+    "moe": null,
+    "kvCapSource": "runtime default 4096",
+    "kvCapacityTokens": 4096,
+    "kvLayout": "mixed-geometry (sliding layers ring-capped at window)",
+    "kvValuesPerToken": 450560,
+    "kvValuesAtCapacity": 587202560,
+    "kvBytesAtCapacity": 1174405120,
+    "hidden": 5376,
+    "ffn": 21504,
+    "vocab": 262144,
+    "task": "generation",
+    "runtime": "active",
+    "tested": "verified",
+    "hf": true,
+    "where": [
+      "mac-host",
+      "amd-host",
+      "Hugging Face"
+    ],
+    "label": "Gemma 4 31B Instruct Text (Q4K/F16a)",
+    "family": "gemma4",
+    "description": "Gemma 4 31B text-only Doppler/WebGPU f16 activation variant. Shares the existing Q4K/F16 embedding and head weight capsule; Doe/Cerebras f16 CSL lowering is intentionally unsupported."
+  },
+  {
+    "id": "gemma-4-31b-it-text-q4k-ehf16-af32",
+    "modelType": "gemma4",
+    "catalog": true,
+    "quant": {
+      "weights": "q4k",
+      "embeddings": "f16",
+      "compute": "f32",
+      "layout": "row",
+      "variantTag": "q4k-ehf16-af32"
+    },
+    "weights": 30697345340,
+    "bytes": 19295019640,
+    "shards": 288,
+    "dtypes": {
+      "F16": {
+        "tensors": 422,
+        "elements": 1410617660,
+        "bytes": 2821235320
+      },
+      "Q4_K_M": {
+        "tensors": 410,
+        "elements": 29286727680,
+        "bytes": 16473784320
+      }
+    },
+    "weightsRef": false,
+    "activationDtype": "f32",
+    "kvDtype": "f16",
+    "sessionMaxSeqLen": null,
+    "modes": [],
+    "arch": {
+      "numLayers": 60,
+      "hiddenSize": 5376,
+      "intermediateSize": 21504,
+      "numAttentionHeads": 32,
+      "numKeyValueHeads": 16,
+      "numGlobalKeyValueHeads": 4,
+      "headDim": 256,
+      "vocabSize": 262144,
+      "maxSeqLen": 262144,
+      "hiddenSizePerLayerInput": 0,
+      "vocabSizePerLayerInput": 262144,
+      "globalHeadDim": 512,
+      "numKvSharedLayers": 0
+    },
+    "layerTypes": {
+      "sliding_attention": 50,
+      "full_attention": 10
+    },
+    "slidingWindow": 1024,
+    "moe": null,
+    "kvCapSource": "runtime default 4096",
+    "kvCapacityTokens": 4096,
+    "kvLayout": "mixed-geometry (sliding layers ring-capped at window)",
+    "kvValuesPerToken": 450560,
+    "kvValuesAtCapacity": 587202560,
+    "kvBytesAtCapacity": 1174405120,
+    "hidden": 5376,
+    "ffn": 21504,
+    "vocab": 262144,
+    "task": "generation",
+    "runtime": "active",
+    "tested": "verified",
+    "hf": true,
+    "where": [
+      "mac-host",
+      "amd-host",
+      "Hugging Face"
+    ],
+    "label": "Gemma 4 31B Instruct Text (Q4K/F32a)",
+    "family": "gemma4",
+    "description": "Gemma 4 31B text-only model. Q4K weights, F16 embeddings/head, F32 accumulation."
+  },
+  {
+    "id": "gemma-4-e2b-it-q4k-ehf16-af16-int4ple",
+    "modelType": "gemma4",
+    "catalog": true,
+    "quant": {
+      "weights": "q4k",
+      "embeddings": "f16",
+      "vision": "f16",
+      "audio": "f16",
+      "projector": "f16",
+      "compute": "f16",
+      "perLayerEmbeddings": "int4_per_row",
+      "layout": "row",
+      "variantTag": "q4k-ehf16-af16-vf16-audiof16-pf16-int4ple"
+    },
+    "weights": 5123178051,
+    "bytes": 3995739078,
+    "shards": 60,
+    "dtypes": {
+      "F16": {
+        "tensors": 1694,
+        "elements": 3225124419,
+        "bytes": 2927035334
+      },
+      "Q4_K_M": {
+        "tensors": 317,
+        "elements": 1898053632,
+        "bytes": 1067655168
+      }
+    },
+    "weightsRef": true,
+    "activationDtype": "f16",
+    "kvDtype": "f16",
+    "sessionMaxSeqLen": null,
+    "modes": [
+      "supportsEmbedding",
+      "supportsTranscription",
+      "supportsVision"
+    ],
+    "arch": {
+      "numLayers": 35,
+      "hiddenSize": 1536,
+      "intermediateSize": 6144,
+      "numAttentionHeads": 8,
+      "numKeyValueHeads": 1,
+      "headDim": 256,
+      "vocabSize": 262144,
+      "maxSeqLen": 131072,
+      "hiddenSizePerLayerInput": 256,
+      "vocabSizePerLayerInput": 262144,
+      "globalHeadDim": 512,
+      "numKvSharedLayers": 20
+    },
+    "layerTypes": {
+      "sliding_attention": 28,
+      "full_attention": 7
+    },
+    "slidingWindow": 512,
+    "moe": null,
+    "kvCapSource": "runtime default 4096",
+    "kvCapacityTokens": 4096,
+    "kvLayout": "mixed-geometry (sliding layers ring-capped at window)",
+    "kvValuesPerToken": 21504,
+    "kvValuesAtCapacity": 36700160,
+    "kvBytesAtCapacity": 73400320,
+    "hidden": 1536,
+    "ffn": 6144,
+    "vocab": 262144,
+    "perLayerInputPerToken": 8960,
+    "task": "generation",
+    "runtime": "active",
+    "tested": "verified",
+    "hf": true,
+    "where": [
+      "mac-host",
+      "amd-host",
+      "Hugging Face"
+    ],
+    "label": "Gemma 4 E2B Instruct (Q4K/F16a/INT4 PLE)",
+    "family": "gemma4",
+    "description": "Gemma 4 E2B multimodal Doppler/WebGPU f16 activation variant. Shares the existing Q4K/INT4 PLE weight capsule and falls back to AF32 when capability rules reject AF16."
+  },
+  {
+    "id": "gemma-4-e2b-it-q4k-ehf16-af32-int4ple",
+    "modelType": "gemma4",
+    "catalog": true,
+    "quant": {
+      "weights": "q4k",
+      "embeddings": "f16",
+      "vision": "f16",
+      "audio": "f16",
+      "projector": "f16",
+      "compute": "f32",
+      "perLayerEmbeddings": "int4_per_row",
+      "layout": "row",
+      "variantTag": "q4k-ehf16-af32-vf16-audiof16-pf16"
+    },
+    "weights": 5123178051,
+    "bytes": 3995739078,
+    "shards": 60,
+    "dtypes": {
+      "F16": {
+        "tensors": 1694,
+        "elements": 3225124419,
+        "bytes": 2927035334
+      },
+      "Q4_K_M": {
+        "tensors": 317,
+        "elements": 1898053632,
+        "bytes": 1067655168
+      }
+    },
+    "weightsRef": false,
+    "activationDtype": "f32",
+    "kvDtype": "f16",
+    "sessionMaxSeqLen": null,
+    "modes": [],
+    "arch": {
+      "numLayers": 35,
+      "hiddenSize": 1536,
+      "intermediateSize": 6144,
+      "numAttentionHeads": 8,
+      "numKeyValueHeads": 1,
+      "headDim": 256,
+      "vocabSize": 262144,
+      "maxSeqLen": 131072,
+      "hiddenSizePerLayerInput": 256,
+      "vocabSizePerLayerInput": 262144,
+      "globalHeadDim": 512,
+      "numKvSharedLayers": 20
+    },
+    "layerTypes": {
+      "sliding_attention": 28,
+      "full_attention": 7
+    },
+    "slidingWindow": 512,
+    "moe": null,
+    "kvCapSource": "runtime default 4096",
+    "kvCapacityTokens": 4096,
+    "kvLayout": "mixed-geometry (sliding layers ring-capped at window)",
+    "kvValuesPerToken": 21504,
+    "kvValuesAtCapacity": 36700160,
+    "kvBytesAtCapacity": 73400320,
+    "hidden": 1536,
+    "ffn": 6144,
+    "vocab": 262144,
+    "perLayerInputPerToken": 8960,
+    "task": "generation",
+    "runtime": "active",
+    "tested": "verified",
+    "hf": true,
+    "where": [
+      "mac-host",
+      "amd-host",
+      "Hugging Face"
+    ],
+    "label": "Gemma 4 E2B Instruct (Q4K/F32a/INT4 PLE)",
+    "family": "gemma4",
+    "description": "Gemma 4 E2B multimodal model. Q4K weights, INT4 per-layer embeddings with per-row F32 scales, F16 embeddings/head/vision/audio/projector, F32 accumulation."
+  },
+  {
+    "id": "gemma-4-e2b-it-q4k-ehf16-af32",
+    "modelType": "gemma4",
+    "catalog": true,
+    "quant": {
+      "weights": "q4k",
+      "embeddings": "f16",
+      "vision": "f16",
+      "audio": "f16",
+      "projector": "f16",
+      "compute": "f32",
+      "layout": "row",
+      "variantTag": "q4k-ehf16-af32-vf16-audiof16-pf16"
+    },
+    "weights": 5123178051,
+    "bytes": 7517905862,
+    "shards": 113,
+    "dtypes": {
+      "F16": {
+        "tensors": 1694,
+        "elements": 3225124419,
+        "bytes": 6450250694
+      },
+      "Q4_K_M": {
+        "tensors": 317,
+        "elements": 1898053632,
+        "bytes": 1067655168
+      }
+    },
+    "weightsRef": false,
+    "activationDtype": "f32",
+    "kvDtype": "f16",
+    "sessionMaxSeqLen": null,
+    "modes": [],
+    "arch": {
+      "numLayers": 35,
+      "hiddenSize": 1536,
+      "intermediateSize": 6144,
+      "numAttentionHeads": 8,
+      "numKeyValueHeads": 1,
+      "headDim": 256,
+      "vocabSize": 262144,
+      "maxSeqLen": 131072,
+      "hiddenSizePerLayerInput": 256,
+      "vocabSizePerLayerInput": 262144,
+      "globalHeadDim": 512,
+      "numKvSharedLayers": 20
+    },
+    "layerTypes": {
+      "sliding_attention": 28,
+      "full_attention": 7
+    },
+    "slidingWindow": 512,
+    "moe": null,
+    "kvCapSource": "runtime default 4096",
+    "kvCapacityTokens": 4096,
+    "kvLayout": "mixed-geometry (sliding layers ring-capped at window)",
+    "kvValuesPerToken": 21504,
+    "kvValuesAtCapacity": 36700160,
+    "kvBytesAtCapacity": 73400320,
+    "hidden": 1536,
+    "ffn": 6144,
+    "vocab": 262144,
+    "perLayerInputPerToken": 8960,
+    "task": "generation",
+    "runtime": "active",
+    "tested": "verified",
+    "hf": true,
+    "where": [
+      "mac-host",
+      "amd-host",
+      "Hugging Face"
+    ],
+    "label": "Gemma 4 E2B Instruct (Q4K/F32a)",
+    "family": "gemma4",
+    "description": "Gemma 4 E2B multimodal model. Q4K weights, F16 embeddings/head/vision/audio/projector, F32 accumulation."
+  },
+  {
+    "id": "glm-ocr-f16-af32-pad-token-v1",
+    "modelType": "transformer",
+    "catalog": false,
+    "quant": {
+      "weights": "f16",
+      "embeddings": "f16",
+      "vision": "f16",
+      "compute": "f32",
+      "variantTag": "f16-af32"
+    },
+    "weights": 1107405824,
+    "bytes": 2214811648,
+    "shards": 34,
+    "dtypes": {
+      "F16": {
+        "tensors": 510,
+        "elements": 1107405824,
+        "bytes": 2214811648
+      }
+    },
+    "weightsRef": false,
+    "activationDtype": "f32",
+    "kvDtype": "f16",
+    "sessionMaxSeqLen": 8192,
+    "modes": [],
+    "arch": {
+      "numLayers": 16,
+      "hiddenSize": 1536,
+      "intermediateSize": 4608,
+      "numAttentionHeads": 16,
+      "numKeyValueHeads": 8,
+      "headDim": 128,
+      "vocabSize": 59392,
+      "maxSeqLen": 131072,
+      "ropeTheta": 10000
+    },
+    "layerTypes": null,
+    "slidingWindow": null,
+    "moe": null,
+    "kvCapSource": "manifest",
+    "kvCapacityTokens": 8192,
+    "kvLayout": "contiguous",
+    "kvLayers": 16,
+    "kvValuesPerToken": 32768,
+    "kvValuesAtCapacity": 268435456,
+    "kvBytesAtCapacity": 536870912,
+    "hidden": 1536,
+    "ffn": 4608,
+    "vocab": 59392,
+    "where": [
+      "mac-host"
+    ]
+  },
+  {
+    "id": "glm-ocr-f16-af32",
+    "modelType": "transformer",
+    "catalog": false,
+    "quant": {
+      "weights": "f16",
+      "embeddings": "f16",
+      "vision": "f16",
+      "compute": "f32",
+      "variantTag": "f16-af32"
+    },
+    "weights": 1107405824,
+    "bytes": 2214811648,
+    "shards": 34,
+    "dtypes": {
+      "F16": {
+        "tensors": 510,
+        "elements": 1107405824,
+        "bytes": 2214811648
+      }
+    },
+    "weightsRef": false,
+    "activationDtype": "f32",
+    "kvDtype": "f16",
+    "sessionMaxSeqLen": 8192,
+    "modes": [],
+    "arch": {
+      "numLayers": 16,
+      "hiddenSize": 1536,
+      "intermediateSize": 4608,
+      "numAttentionHeads": 16,
+      "numKeyValueHeads": 8,
+      "headDim": 128,
+      "vocabSize": 59392,
+      "maxSeqLen": 131072,
+      "ropeTheta": 10000
+    },
+    "layerTypes": null,
+    "slidingWindow": null,
+    "moe": null,
+    "kvCapSource": "manifest",
+    "kvCapacityTokens": 8192,
+    "kvLayout": "contiguous",
+    "kvLayers": 16,
+    "kvValuesPerToken": 32768,
+    "kvValuesAtCapacity": 268435456,
+    "kvBytesAtCapacity": 536870912,
+    "hidden": 1536,
+    "ffn": 4608,
+    "vocab": 59392,
+    "where": [
+      "mac-host"
+    ]
+  },
+  {
+    "id": "google-embeddinggemma-300m-q4k-ehf16-af32",
+    "modelType": "embedding",
+    "catalog": true,
+    "quant": {
+      "weights": "q4k",
+      "embeddings": "f16",
+      "compute": "f32",
+      "layout": "row",
+      "variantTag": "q4k-ehf16-af32"
+    },
+    "weights": 307581696,
+    "bytes": 470830080,
+    "shards": 8,
+    "dtypes": {
+      "F16": {
+        "tensors": 3,
+        "elements": 206045184,
+        "bytes": 412090368
+      },
+      "F32": {
+        "tensors": 145,
+        "elements": 86784,
+        "bytes": 347136
+      },
+      "Q4_K_M": {
+        "tensors": 168,
+        "elements": 101449728,
+        "bytes": 58392576
+      }
+    },
+    "weightsRef": false,
+    "activationDtype": "f32",
+    "kvDtype": "f32",
+    "sessionMaxSeqLen": null,
+    "modes": [],
+    "arch": {
+      "numLayers": 24,
+      "hiddenSize": 768,
+      "intermediateSize": 1152,
+      "numAttentionHeads": 3,
+      "numKeyValueHeads": 1,
+      "headDim": 256,
+      "vocabSize": 262144,
+      "maxSeqLen": 2048,
+      "ropeTheta": 1000000
+    },
+    "layerTypes": {
+      "full_attention": 4,
+      "sliding_attention": 20
+    },
+    "slidingWindow": null,
+    "moe": null,
+    "kvCapSource": "runtime default 4096",
+    "kvCapacityTokens": 2048,
+    "kvLayout": "contiguous",
+    "kvLayers": 24,
+    "kvValuesPerToken": 12288,
+    "kvValuesAtCapacity": 25165824,
+    "kvBytesAtCapacity": 100663296,
+    "hidden": 768,
+    "ffn": 1152,
+    "vocab": 262144,
+    "task": "embedding",
+    "runtime": "active",
+    "tested": "verified",
+    "hf": true,
+    "where": [
+      "mac-host",
+      "amd-host",
+      "Hugging Face"
+    ],
+    "label": "EmbeddingGemma 300M (Q4K)",
+    "family": "embeddinggemma",
+    "description": "EmbeddingGemma 300M sentence embedding model. Q4K weights, F16 embeddings/head, F32 accumulation."
+  },
+  {
+    "id": "lfm2-5-1-2b-instruct-q4k-ehf16-af32",
+    "modelType": "transformer",
+    "catalog": true,
+    "quant": {
+      "weights": "q4k",
+      "embeddings": "f16",
+      "compute": "f32",
+      "layout": "row",
+      "variantTag": "q4k-ehf16-af32"
+    },
+    "weights": 1170340608,
+    "bytes": 851352832,
+    "shards": 13,
+    "dtypes": {
+      "F16": {
+        "tensors": 1,
+        "elements": 134217728,
+        "bytes": 268435456
+      },
+      "BF16": {
+        "tensors": 45,
+        "elements": 68352,
+        "bytes": 136704
+      },
+      "Q4_K_M": {
+        "tensors": 102,
+        "elements": 1036054528,
+        "bytes": 582780672
+      }
+    },
+    "weightsRef": false,
+    "activationDtype": "f32",
+    "kvDtype": "f16",
+    "sessionMaxSeqLen": null,
+    "modes": [],
+    "arch": {
+      "numLayers": 16,
+      "hiddenSize": 2048,
+      "intermediateSize": 8192,
+      "numAttentionHeads": 32,
+      "numKeyValueHeads": 8,
+      "headDim": 64,
+      "vocabSize": 65536,
+      "maxSeqLen": 128000,
+      "ropeTheta": 1000000
+    },
+    "layerTypes": {
+      "conv": 10,
+      "full_attention": 6
+    },
+    "slidingWindow": null,
+    "moe": null,
+    "kvCapSource": "runtime default 4096",
+    "kvCapacityTokens": 4096,
+    "kvLayout": "contiguous",
+    "kvLayers": 16,
+    "kvValuesPerToken": 16384,
+    "kvValuesAtCapacity": 67108864,
+    "kvBytesAtCapacity": 134217728,
+    "hidden": 2048,
+    "ffn": 8192,
+    "vocab": 65536,
+    "task": "generation",
+    "runtime": "experimental",
+    "tested": "none",
+    "hf": false,
+    "where": [
+      "mac-host",
+      "amd-host"
+    ],
+    "label": "LFM2.5 1.2B Instruct (Q4K/F32a)",
+    "family": "lfm2",
+    "description": "Liquid AI LFM2.5 1.2B Instruct text model. Q4K weights, F16 embeddings/head, F32 accumulation."
+  },
+  {
+    "id": "minicpm4-0-5b-f16-af32",
+    "modelType": "transformer",
+    "catalog": true,
+    "quant": {
+      "weights": "f16",
+      "embeddings": "f16",
+      "compute": "f32",
+      "variantTag": "f16-af32"
+    },
+    "weights": 433873920,
+    "bytes": 867747840,
+    "shards": 13,
+    "dtypes": {
+      "F16": {
+        "tensors": 218,
+        "elements": 433873920,
+        "bytes": 867747840
+      }
+    },
+    "weightsRef": false,
+    "activationDtype": "f32",
+    "kvDtype": "f16",
+    "sessionMaxSeqLen": 8192,
+    "modes": [],
+    "arch": {
+      "numLayers": 24,
+      "hiddenSize": 1024,
+      "intermediateSize": 4096,
+      "numAttentionHeads": 16,
+      "numKeyValueHeads": 2,
+      "headDim": 64,
+      "vocabSize": 73448,
+      "maxSeqLen": 32768
+    },
+    "layerTypes": null,
+    "slidingWindow": null,
+    "moe": null,
+    "kvCapSource": "manifest",
+    "kvCapacityTokens": 8192,
+    "kvLayout": "contiguous",
+    "kvLayers": 24,
+    "kvValuesPerToken": 6144,
+    "kvValuesAtCapacity": 50331648,
+    "kvBytesAtCapacity": 100663296,
+    "hidden": 1024,
+    "ffn": 4096,
+    "vocab": 73448,
+    "task": "generation",
+    "runtime": "experimental",
+    "tested": "failed",
+    "hf": false,
+    "where": [
+      "mac-host",
+      "amd-host"
+    ],
+    "label": "MiniCPM4 0.5B (F16/F32a)",
+    "family": "minicpm",
+    "description": "MiniCPM4 0.5B text onboarding artifact. The manifest and shards are complete, but the deterministic smoke prompt produced incoherent text, so this lane is not a supported generation model yet."
+  },
+  {
+    "id": "muse-glimmer-30b-text-bf16-af32",
+    "modelType": "transformer",
+    "catalog": true,
+    "quant": {
+      "weights": "bf16",
+      "embeddings": "bf16",
+      "compute": "f32",
+      "variantTag": "bf16-af32"
+    },
+    "weights": 27854780928,
+    "bytes": 55709561856,
+    "shards": 831,
+    "dtypes": {
+      "BF16": {
+        "tensors": 627,
+        "elements": 27854780928,
+        "bytes": 55709561856
+      }
+    },
+    "weightsRef": false,
+    "activationDtype": "f32",
+    "kvDtype": "f16",
+    "sessionMaxSeqLen": 131072,
+    "modes": [],
+    "arch": {
+      "numLayers": 52,
+      "hiddenSize": 6656,
+      "intermediateSize": 19968,
+      "numAttentionHeads": 32,
+      "numKeyValueHeads": 2,
+      "headDim": 128,
+      "vocabSize": 202048,
+      "maxSeqLen": 131072
+    },
+    "layerTypes": {
+      "sliding_attention": 39,
+      "full_attention": 13
+    },
+    "slidingWindow": 2048,
+    "moe": null,
+    "kvCapSource": "manifest",
+    "kvCapacityTokens": 131072,
+    "kvLayout": "contiguous",
+    "kvLayers": 52,
+    "kvValuesPerToken": 26624,
+    "kvValuesAtCapacity": 3489660928,
+    "kvBytesAtCapacity": 6979321856,
+    "hidden": 6656,
+    "ffn": 19968,
+    "vocab": 202048,
+    "task": "generation",
+    "runtime": "experimental",
+    "tested": "failed",
+    "hf": false,
+    "where": [
+      "mac-host"
+    ],
+    "label": "Muse Glimmer 30B (BF16/F32a)",
+    "family": "muse-glimmer",
+    "description": "Muse Glimmer 30B BF16-weight onboarding artifact. The selected BF16 kernel path materializes stored BF16 weights directly, but deterministic generation still diverges from the pinned source transcript, so this lane is not promoted."
+  },
+  {
+    "id": "muse-glimmer-30b-text-f16-af32",
+    "modelType": "transformer",
+    "catalog": true,
+    "quant": {
+      "weights": "f16",
+      "embeddings": "f16",
+      "compute": "f32",
+      "variantTag": "f16-af32"
+    },
+    "weights": 27854780928,
+    "bytes": 55709561856,
+    "shards": 831,
+    "dtypes": {
+      "F16": {
+        "tensors": 627,
+        "elements": 27854780928,
+        "bytes": 55709561856
+      }
+    },
+    "weightsRef": false,
+    "activationDtype": "f32",
+    "kvDtype": "f16",
+    "sessionMaxSeqLen": 131072,
+    "modes": [],
+    "arch": {
+      "numLayers": 52,
+      "hiddenSize": 6656,
+      "intermediateSize": 19968,
+      "numAttentionHeads": 32,
+      "numKeyValueHeads": 2,
+      "headDim": 128,
+      "vocabSize": 202048,
+      "maxSeqLen": 131072
+    },
+    "layerTypes": {
+      "sliding_attention": 39,
+      "full_attention": 13
+    },
+    "slidingWindow": 2048,
+    "moe": null,
+    "kvCapSource": "manifest",
+    "kvCapacityTokens": 131072,
+    "kvLayout": "contiguous",
+    "kvLayers": 52,
+    "kvValuesPerToken": 26624,
+    "kvValuesAtCapacity": 3489660928,
+    "kvBytesAtCapacity": 6979321856,
+    "hidden": 6656,
+    "ffn": 19968,
+    "vocab": 202048,
+    "task": "generation",
+    "runtime": "experimental",
+    "tested": "failed",
+    "hf": false,
+    "where": [
+      "mac-host"
+    ],
+    "label": "Muse Glimmer 30B (F16/F32a)",
+    "family": "muse-glimmer",
+    "description": "Muse Glimmer 30B text onboarding artifact. Semantic lowering and the execution contract pass, but deterministic generation still diverges from the pinned source transcript, so this lane is not promoted."
+  },
+  {
+    "id": "nucleotide-transformer-v2-50m-f32-af32",
+    "modelType": "embedding",
+    "catalog": true,
+    "quant": {
+      "weights": "f32",
+      "embeddings": "f32",
+      "compute": "f32",
+      "variantTag": "f32"
+    },
+    "weights": 52484608,
+    "bytes": 209938432,
+    "shards": 4,
+    "dtypes": {
+      "F32": {
+        "tensors": 183,
+        "elements": 52484608,
+        "bytes": 209938432
+      }
+    },
+    "weightsRef": false,
+    "activationDtype": "f32",
+    "kvDtype": "f32",
+    "sessionMaxSeqLen": 2050,
+    "modes": [
+      "supportsEmbedding",
+      "supportsSequence"
+    ],
+    "arch": {
+      "numLayers": 12,
+      "hiddenSize": 512,
+      "intermediateSize": 2048,
+      "numAttentionHeads": 16,
+      "numKeyValueHeads": 16,
+      "headDim": 32,
+      "vocabSize": 4107,
+      "maxSeqLen": 2050,
+      "ropeTheta": 10000
+    },
+    "layerTypes": null,
+    "slidingWindow": null,
+    "moe": null,
+    "kvCapSource": "manifest",
+    "kvCapacityTokens": 2050,
+    "kvLayout": "contiguous",
+    "kvLayers": 12,
+    "kvValuesPerToken": 12288,
+    "kvValuesAtCapacity": 25190400,
+    "kvBytesAtCapacity": 100761600,
+    "hidden": 512,
+    "ffn": 2048,
+    "vocab": 4107,
+    "task": "embedding",
+    "runtime": "active",
+    "tested": "verified",
+    "hf": true,
+    "where": [
+      "Hugging Face"
+    ],
+    "label": "Nucleotide Transformer v2 50M DNA Encoder (F32)",
+    "family": "nucleotide-transformer",
+    "description": "Nucleotide Transformer v2 50M DNA-sequence encoder with F32 weights and activations."
+  },
+  {
+    "id": "qwen-3-5-0-8b-q4k-ehaf16",
+    "modelType": "transformer",
+    "catalog": true,
+    "quant": {
+      "weights": "q4k",
+      "embeddings": "f16",
+      "lmHead": "q4k",
+      "vision": "f16",
+      "compute": "f32",
+      "layout": "row",
+      "variantTag": "q4k-ef16-af32-vf16"
+    },
+    "weights": 1127718464,
+    "bytes": 1146048704,
+    "shards": 18,
+    "dtypes": {
+      "F32": {
+        "tensors": 36,
+        "elements": 2592,
+        "bytes": 10368
+      },
+      "F16": {
+        "tensors": 294,
+        "elements": 355963936,
+        "bytes": 711927872
+      },
+      "Q4_K_M": {
+        "tensors": 159,
+        "elements": 771751936,
+        "bytes": 434110464
+      }
+    },
+    "weightsRef": false,
+    "activationDtype": "f32",
+    "kvDtype": "f16",
+    "sessionMaxSeqLen": 8192,
+    "modes": [],
+    "arch": {
+      "numLayers": 24,
+      "hiddenSize": 1024,
+      "intermediateSize": 3584,
+      "numAttentionHeads": 8,
+      "numKeyValueHeads": 2,
+      "headDim": 256,
+      "vocabSize": 248320,
+      "maxSeqLen": 262144,
+      "linearNumKeyHeads": 16,
+      "linearNumValueHeads": 16,
+      "linearKeyHeadDim": 128,
+      "linearValueHeadDim": 128,
+      "linearConvKernelDim": 4,
+      "linearNormMode": "shared"
+    },
+    "layerTypes": {
+      "linear_attention": 18,
+      "full_attention": 6
+    },
+    "slidingWindow": null,
+    "moe": null,
+    "kvCapSource": "manifest",
+    "kvCapacityTokens": 8192,
+    "kvLayout": "contiguous",
+    "kvLayers": 6,
+    "kvValuesPerToken": 6144,
+    "kvValuesAtCapacity": 50331648,
+    "kvBytesAtCapacity": 100663296,
+    "linearLayers": 18,
+    "linearStateValues": 5160960,
+    "hidden": 1024,
+    "ffn": 3584,
+    "vocab": 248320,
+    "task": "generation",
+    "runtime": "active",
+    "tested": "verified",
+    "hf": true,
+    "where": [
+      "mac-host",
+      "amd-host",
+      "Hugging Face"
+    ],
+    "label": "Qwen 3.5 0.8B (Q4K)",
+    "family": "qwen3",
+    "description": "Qwen 3.5 0.8B text model with hybrid linear attention. Q4K weights, F16 embeddings, Q4 tied LM head, F32 accumulation."
+  },
+  {
+    "id": "qwen-3-5-2b-q4k-ehaf16",
+    "modelType": "transformer",
+    "catalog": true,
+    "quant": {
+      "weights": "q4k",
+      "embeddings": "f16",
+      "lmHead": "q4k",
+      "compute": "f32",
+      "layout": "row",
+      "variantTag": "q4k-ef16-af32"
+    },
+    "weights": 2390384448,
+    "bytes": 2078134976,
+    "shards": 32,
+    "dtypes": {
+      "F32": {
+        "tensors": 36,
+        "elements": 2592,
+        "bytes": 10368
+      },
+      "F16": {
+        "tensors": 134,
+        "elements": 510285088,
+        "bytes": 1020570176
+      },
+      "Q4_K_M": {
+        "tensors": 151,
+        "elements": 1880096768,
+        "bytes": 1057554432
+      }
+    },
+    "weightsRef": false,
+    "activationDtype": "f32",
+    "kvDtype": "f16",
+    "sessionMaxSeqLen": 8192,
+    "modes": [],
+    "arch": {
+      "numLayers": 24,
+      "hiddenSize": 2048,
+      "intermediateSize": 6144,
+      "numAttentionHeads": 8,
+      "numKeyValueHeads": 2,
+      "headDim": 256,
+      "vocabSize": 248320,
+      "maxSeqLen": 262144,
+      "linearNumKeyHeads": 16,
+      "linearNumValueHeads": 16,
+      "linearKeyHeadDim": 128,
+      "linearValueHeadDim": 128,
+      "linearConvKernelDim": 4,
+      "linearNormMode": "shared"
+    },
+    "layerTypes": {
+      "linear_attention": 18,
+      "full_attention": 6
+    },
+    "slidingWindow": null,
+    "moe": null,
+    "kvCapSource": "manifest",
+    "kvCapacityTokens": 8192,
+    "kvLayout": "contiguous",
+    "kvLayers": 6,
+    "kvValuesPerToken": 6144,
+    "kvValuesAtCapacity": 50331648,
+    "kvBytesAtCapacity": 100663296,
+    "linearLayers": 18,
+    "linearStateValues": 5160960,
+    "hidden": 2048,
+    "ffn": 6144,
+    "vocab": 248320,
+    "task": "generation",
+    "runtime": "active",
+    "tested": "verified",
+    "hf": true,
+    "where": [
+      "mac-host",
+      "amd-host",
+      "Hugging Face"
+    ],
+    "label": "Qwen 3.5 2B (Q4K)",
+    "family": "qwen3",
+    "description": "Qwen 3.5 2B text model with hybrid linear attention. Q4K weights, F16 embeddings, Q4 tied LM head, F32 accumulation."
+  },
+  {
+    "id": "qwen-3-6-27b-q4k-eaf16",
+    "modelType": "transformer",
+    "catalog": true,
+    "quant": {
+      "weights": "q4k",
+      "embeddings": "f16",
+      "lmHead": "q4k",
+      "compute": "f16",
+      "layout": "row",
+      "variantTag": "q4k-eaf16"
+    },
+    "weights": 26895998464,
+    "bytes": 16994352128,
+    "shards": 254,
+    "dtypes": {
+      "F16": {
+        "tensors": 450,
+        "elements": 1297636864,
+        "bytes": 2595273728
+      },
+      "Q4_K_M": {
+        "tensors": 401,
+        "elements": 25598361600,
+        "bytes": 14399078400
+      }
+    },
+    "weightsRef": true,
+    "activationDtype": "f16",
+    "kvDtype": "f16",
+    "sessionMaxSeqLen": 8192,
+    "modes": [],
+    "arch": {
+      "numLayers": 64,
+      "hiddenSize": 5120,
+      "intermediateSize": 17408,
+      "numAttentionHeads": 24,
+      "numKeyValueHeads": 4,
+      "headDim": 256,
+      "vocabSize": 248320,
+      "maxSeqLen": 262144,
+      "linearNumKeyHeads": 16,
+      "linearNumValueHeads": 48,
+      "linearKeyHeadDim": 128,
+      "linearValueHeadDim": 128,
+      "linearConvKernelDim": 4,
+      "linearNormMode": "shared"
+    },
+    "layerTypes": {
+      "linear_attention": 48,
+      "full_attention": 16
+    },
+    "slidingWindow": null,
+    "moe": null,
+    "kvCapSource": "manifest",
+    "kvCapacityTokens": 8192,
+    "kvLayout": "contiguous",
+    "kvLayers": 16,
+    "kvValuesPerToken": 32768,
+    "kvValuesAtCapacity": 268435456,
+    "kvBytesAtCapacity": 536870912,
+    "linearLayers": 48,
+    "linearStateValues": 39714816,
+    "hidden": 5120,
+    "ffn": 17408,
+    "vocab": 248320,
+    "task": "generation",
+    "runtime": "active",
+    "tested": "verified",
+    "hf": true,
+    "where": [
+      "mac-host",
+      "amd-host",
+      "Hugging Face"
+    ],
+    "label": "Qwen 3.6 27B (Q4K/F16a)",
+    "family": "qwen3",
+    "description": "Qwen 3.6 27B text-only Doppler/WebGPU f16 lane. Shares the existing Q4K/F16 embedding weight capsule; Doe/Cerebras f16 CSL lowering is intentionally unsupported."
+  },
+  {
+    "id": "qwen-3-6-27b-q4k-ehaf16",
+    "modelType": "transformer",
+    "catalog": true,
+    "quant": {
+      "weights": "q4k",
+      "embeddings": "f16",
+      "lmHead": "q4k",
+      "compute": "f32",
+      "layout": "row",
+      "variantTag": "q4k-ef16-af32"
+    },
+    "weights": 26895998464,
+    "bytes": 16994352128,
+    "shards": 254,
+    "dtypes": {
+      "F16": {
+        "tensors": 450,
+        "elements": 1297636864,
+        "bytes": 2595273728
+      },
+      "Q4_K_M": {
+        "tensors": 401,
+        "elements": 25598361600,
+        "bytes": 14399078400
+      }
+    },
+    "weightsRef": false,
+    "activationDtype": "f32",
+    "kvDtype": "f16",
+    "sessionMaxSeqLen": 8192,
+    "modes": [],
+    "arch": {
+      "numLayers": 64,
+      "hiddenSize": 5120,
+      "intermediateSize": 17408,
+      "numAttentionHeads": 24,
+      "numKeyValueHeads": 4,
+      "headDim": 256,
+      "vocabSize": 248320,
+      "maxSeqLen": 262144,
+      "linearNumKeyHeads": 16,
+      "linearNumValueHeads": 48,
+      "linearKeyHeadDim": 128,
+      "linearValueHeadDim": 128,
+      "linearConvKernelDim": 4,
+      "linearNormMode": "shared"
+    },
+    "layerTypes": {
+      "linear_attention": 48,
+      "full_attention": 16
+    },
+    "slidingWindow": null,
+    "moe": null,
+    "kvCapSource": "manifest",
+    "kvCapacityTokens": 8192,
+    "kvLayout": "contiguous",
+    "kvLayers": 16,
+    "kvValuesPerToken": 32768,
+    "kvValuesAtCapacity": 268435456,
+    "kvBytesAtCapacity": 536870912,
+    "linearLayers": 48,
+    "linearStateValues": 39714816,
+    "hidden": 5120,
+    "ffn": 17408,
+    "vocab": 248320,
+    "task": "generation",
+    "runtime": "active",
+    "tested": "verified",
+    "hf": true,
+    "where": [
+      "mac-host",
+      "amd-host",
+      "Hugging Face"
+    ],
+    "label": "Qwen 3.6 27B (Q4K)",
+    "family": "qwen3",
+    "description": "Qwen 3.6 27B text model with hybrid linear attention. Q4K weights, F16 embeddings, F32 accumulation."
+  },
+  {
+    "id": "qwen-3-8-flash-next-text-q4k-ehf16-af32",
+    "modelType": "transformer",
+    "catalog": false,
+    "quant": {
+      "weights": "q4k",
+      "embeddings": "f16",
+      "experts": "q4k",
+      "expertsFormat": "qwen3_5",
+      "compute": "f32",
+      "layout": "row",
+      "variantTag": "q4k-ehf16-af32"
+    },
+    "weights": 176943899520,
+    "bytes": 185482224544,
+    "shards": 1243,
+    "dtypes": {
+      "F16": {
+        "tensors": 875,
+        "elements": 4114080640,
+        "bytes": 8228161280
+      },
+      "Q4_K_M": {
+        "tensors": 288,
+        "elements": 121629573120,
+        "bytes": 72955330560
+      },
+      "BF16": {
+        "tensors": 128,
+        "elements": 51200245760,
+        "bytes": 102400491520
+      }
+    },
+    "weightsRef": false,
+    "activationDtype": "f32",
+    "kvDtype": "f16",
+    "sessionMaxSeqLen": 32768,
+    "modes": [],
+    "arch": {
+      "numLayers": 48,
+      "hiddenSize": 2560,
+      "intermediateSize": 640,
+      "numAttentionHeads": 24,
+      "numKeyValueHeads": 2,
+      "headDim": 256,
+      "vocabSize": 248320,
+      "maxSeqLen": 262144,
+      "ropeTheta": 10000000,
+      "linearNumKeyHeads": 16,
+      "linearNumValueHeads": 48,
+      "linearKeyHeadDim": 128,
+      "linearValueHeadDim": 128,
+      "linearConvKernelDim": 4,
+      "linearNormMode": "shared"
+    },
+    "layerTypes": {
+      "linear_attention": 36,
+      "full_attention": 12
+    },
+    "slidingWindow": null,
+    "moe": {
+      "numExperts": 512,
+      "numExpertsPerToken": 10,
+      "expertFormat": "qwen3_5",
+      "sharedExpertIntermediateSize": 640,
+      "expertIntermediateSize": 640
+    },
+    "kvCapSource": "manifest",
+    "kvCapacityTokens": 32768,
+    "kvLayout": "contiguous",
+    "kvLayers": 12,
+    "kvValuesPerToken": 12288,
+    "kvValuesAtCapacity": 402653184,
+    "kvBytesAtCapacity": 805306368,
+    "linearLayers": 36,
+    "linearStateValues": 29786112,
+    "hidden": 2560,
+    "ffn": 640,
+    "vocab": 248320,
+    "where": [
+      "amd-host"
+    ]
+  },
+  {
+    "id": "qwen-3-embedding-0-6b-q4k-ehf16-af32",
+    "modelType": "embedding",
+    "catalog": true,
+    "quant": {
+      "weights": "q4k",
+      "embeddings": "f16",
+      "compute": "f32",
+      "layout": "row",
+      "variantTag": "q4k-ehf16-af32"
+    },
+    "weights": 595776512,
+    "bytes": 558475264,
+    "shards": 9,
+    "dtypes": {
+      "F16": {
+        "tensors": 114,
+        "elements": 155374592,
+        "bytes": 310749184
+      },
+      "Q4_K_M": {
+        "tensors": 196,
+        "elements": 440401920,
+        "bytes": 247726080
+      }
+    },
+    "weightsRef": false,
+    "activationDtype": "f32",
+    "kvDtype": "f16",
+    "sessionMaxSeqLen": 8192,
+    "modes": [],
+    "arch": {
+      "numLayers": 28,
+      "hiddenSize": 1024,
+      "intermediateSize": 3072,
+      "numAttentionHeads": 16,
+      "numKeyValueHeads": 8,
+      "headDim": 128,
+      "vocabSize": 151669,
+      "maxSeqLen": 32768,
+      "ropeTheta": 1000000
+    },
+    "layerTypes": null,
+    "slidingWindow": null,
+    "moe": null,
+    "kvCapSource": "manifest",
+    "kvCapacityTokens": 8192,
+    "kvLayout": "contiguous",
+    "kvLayers": 28,
+    "kvValuesPerToken": 57344,
+    "kvValuesAtCapacity": 469762048,
+    "kvBytesAtCapacity": 939524096,
+    "hidden": 1024,
+    "ffn": 3072,
+    "vocab": 151669,
+    "task": "embedding",
+    "runtime": "active",
+    "tested": "verified",
+    "hf": true,
+    "where": [
+      "mac-host",
+      "amd-host",
+      "Hugging Face"
+    ],
+    "label": "Qwen3 Embedding 0.6B (Q4K/F32a)",
+    "family": "qwen3",
+    "description": "Qwen3 0.6B SentenceTransformers embedding target with manifest-owned last-token pooling, prompt inclusion, and L2 normalization. Node/WebGPU verification passes semantic retrieval and pair thresholds; the local compare lane cites the Transformers.js ONNX WebGPU baseline."
+  },
+  {
+    "id": "qwen-3-reranker-0-6b-f16-af32",
+    "modelType": "transformer",
+    "catalog": true,
+    "quant": {
+      "weights": "f16",
+      "embeddings": "f16",
+      "compute": "f32",
+      "variantTag": "f16-af32"
+    },
+    "weights": 595776512,
+    "bytes": 1191553024,
+    "shards": 18,
+    "dtypes": {
+      "F16": {
+        "tensors": 310,
+        "elements": 595776512,
+        "bytes": 1191553024
+      }
+    },
+    "weightsRef": false,
+    "activationDtype": "f32",
+    "kvDtype": "f16",
+    "sessionMaxSeqLen": 8192,
+    "modes": [
+      "supportsRerank"
+    ],
+    "arch": {
+      "numLayers": 28,
+      "hiddenSize": 1024,
+      "intermediateSize": 3072,
+      "numAttentionHeads": 16,
+      "numKeyValueHeads": 8,
+      "headDim": 128,
+      "vocabSize": 151669,
+      "maxSeqLen": 40960,
+      "ropeTheta": 1000000
+    },
+    "layerTypes": null,
+    "slidingWindow": null,
+    "moe": null,
+    "kvCapSource": "manifest",
+    "kvCapacityTokens": 8192,
+    "kvLayout": "contiguous",
+    "kvLayers": 28,
+    "kvValuesPerToken": 57344,
+    "kvValuesAtCapacity": 469762048,
+    "kvBytesAtCapacity": 939524096,
+    "hidden": 1024,
+    "ffn": 3072,
+    "vocab": 151669,
+    "task": "reranking",
+    "runtime": "active",
+    "tested": "verified",
+    "hf": true,
+    "where": [
+      "mac-host",
+      "amd-host",
+      "Hugging Face"
+    ],
+    "label": "Qwen3 Reranker 0.6B (F16/F32a)",
+    "family": "qwen3",
+    "description": "Qwen3 0.6B SentenceTransformers CrossEncoder reranker target with manifest-owned true/false token scoring. The F16 lane passes the semantic rerank suite and is the supported reranker variant for publication."
+  },
+  {
+    "id": "qwen-3-reranker-0-6b-q4k-ehf16-af32",
+    "modelType": "transformer",
+    "catalog": true,
+    "quant": {
+      "weights": "q4k",
+      "embeddings": "f16",
+      "compute": "f32",
+      "layout": "row",
+      "variantTag": "q4k-ehf16-af32"
+    },
+    "weights": 595776512,
+    "bytes": 938321920,
+    "shards": 14,
+    "dtypes": {
+      "F16": {
+        "tensors": 198,
+        "elements": 419615744,
+        "bytes": 839231488
+      },
+      "Q4_K_M": {
+        "tensors": 112,
+        "elements": 176160768,
+        "bytes": 99090432
+      }
+    },
+    "weightsRef": false,
+    "activationDtype": "f32",
+    "kvDtype": "f16",
+    "sessionMaxSeqLen": 8192,
+    "modes": [
+      "supportsRerank"
+    ],
+    "arch": {
+      "numLayers": 28,
+      "hiddenSize": 1024,
+      "intermediateSize": 3072,
+      "numAttentionHeads": 16,
+      "numKeyValueHeads": 8,
+      "headDim": 128,
+      "vocabSize": 151669,
+      "maxSeqLen": 40960,
+      "ropeTheta": 1000000
+    },
+    "layerTypes": null,
+    "slidingWindow": null,
+    "moe": null,
+    "kvCapSource": "manifest",
+    "kvCapacityTokens": 8192,
+    "kvLayout": "contiguous",
+    "kvLayers": 28,
+    "kvValuesPerToken": 57344,
+    "kvValuesAtCapacity": 469762048,
+    "kvBytesAtCapacity": 939524096,
+    "hidden": 1024,
+    "ffn": 3072,
+    "vocab": 151669,
+    "task": "reranking",
+    "runtime": "active",
+    "tested": "verified",
+    "hf": true,
+    "where": [
+      "mac-host",
+      "amd-host",
+      "Hugging Face"
+    ],
+    "label": "Qwen3 Reranker 0.6B (Q4K/F32a)",
+    "family": "qwen3",
+    "description": "Qwen3 0.6B SentenceTransformers CrossEncoder reranker target with Q4K attention, F16 MLP projections, and manifest-owned true-logit scoring. The hosted registry lane passes semantic rerank verification and has an external Transformers.js ONNX compare profile for fair rerank receipts."
+  },
+  {
+    "id": "qwen3-8-27b-text-f16-af32",
+    "modelType": "transformer",
+    "catalog": true,
+    "quant": {
+      "weights": "f16",
+      "embeddings": "f16",
+      "compute": "f32",
+      "variantTag": "f16-af32"
+    },
+    "weights": 26895998464,
+    "bytes": 53791996928,
+    "shards": 802,
+    "dtypes": {
+      "F16": {
+        "tensors": 851,
+        "elements": 26895998464,
+        "bytes": 53791996928
+      }
+    },
+    "weightsRef": false,
+    "activationDtype": "f32",
+    "kvDtype": "f16",
+    "sessionMaxSeqLen": 8192,
+    "modes": [],
+    "arch": {
+      "numLayers": 64,
+      "hiddenSize": 5120,
+      "intermediateSize": 17408,
+      "numAttentionHeads": 24,
+      "numKeyValueHeads": 4,
+      "headDim": 256,
+      "vocabSize": 248320,
+      "maxSeqLen": 262144,
+      "linearNumKeyHeads": 16,
+      "linearNumValueHeads": 48,
+      "linearKeyHeadDim": 128,
+      "linearValueHeadDim": 128,
+      "linearConvKernelDim": 4,
+      "linearNormMode": "shared"
+    },
+    "layerTypes": {
+      "linear_attention": 48,
+      "full_attention": 16
+    },
+    "slidingWindow": null,
+    "moe": null,
+    "kvCapSource": "manifest",
+    "kvCapacityTokens": 8192,
+    "kvLayout": "contiguous",
+    "kvLayers": 16,
+    "kvValuesPerToken": 32768,
+    "kvValuesAtCapacity": 268435456,
+    "kvBytesAtCapacity": 536870912,
+    "linearLayers": 48,
+    "linearStateValues": 39714816,
+    "hidden": 5120,
+    "ffn": 17408,
+    "vocab": 248320,
+    "task": "generation",
+    "runtime": "active",
+    "tested": "verified",
+    "hf": false,
+    "where": [
+      "mac-host"
+    ],
+    "label": "Qwen 3.8 27B (F16/F32a)",
+    "family": "qwen3",
+    "description": "Qwen 3.8 27B text model with hybrid linear attention. The manifest-owned F16/F32 lane passes deterministic source-token parity and signed Capsule execution qualification."
+  },
+  {
+    "id": "qwen3-8-27b-text-q4k-ehaf16",
+    "modelType": "transformer",
+    "catalog": false,
+    "quant": {
+      "weights": "q4k",
+      "embeddings": "f16",
+      "lmHead": "q4k",
+      "compute": "f32",
+      "layout": "row",
+      "variantTag": "q4k-ef16-af32"
+    },
+    "weights": 26895998464,
+    "bytes": 16994352128,
+    "shards": 254,
+    "dtypes": {
+      "F16": {
+        "tensors": 450,
+        "elements": 1297636864,
+        "bytes": 2595273728
+      },
+      "Q4_K_M": {
+        "tensors": 401,
+        "elements": 25598361600,
+        "bytes": 14399078400
+      }
+    },
+    "weightsRef": false,
+    "activationDtype": "f32",
+    "kvDtype": "f16",
+    "sessionMaxSeqLen": 8192,
+    "modes": [],
+    "arch": {
+      "numLayers": 64,
+      "hiddenSize": 5120,
+      "intermediateSize": 17408,
+      "numAttentionHeads": 24,
+      "numKeyValueHeads": 4,
+      "headDim": 256,
+      "vocabSize": 248320,
+      "maxSeqLen": 262144,
+      "linearNumKeyHeads": 16,
+      "linearNumValueHeads": 48,
+      "linearKeyHeadDim": 128,
+      "linearValueHeadDim": 128,
+      "linearConvKernelDim": 4,
+      "linearNormMode": "shared"
+    },
+    "layerTypes": {
+      "linear_attention": 48,
+      "full_attention": 16
+    },
+    "slidingWindow": null,
+    "moe": null,
+    "kvCapSource": "manifest",
+    "kvCapacityTokens": 8192,
+    "kvLayout": "contiguous",
+    "kvLayers": 16,
+    "kvValuesPerToken": 32768,
+    "kvValuesAtCapacity": 268435456,
+    "kvBytesAtCapacity": 536870912,
+    "linearLayers": 48,
+    "linearStateValues": 39714816,
+    "hidden": 5120,
+    "ffn": 17408,
+    "vocab": 248320,
+    "where": [
+      "mac-host"
+    ]
+  },
+  {
+    "id": "sana-sprint-0.6b-wf16-ef16-hf16-f16",
+    "modelType": "diffusion",
+    "catalog": false,
+    "quant": {
+      "weights": "f16",
+      "embeddings": "f16",
+      "compute": "f16",
+      "variantTag": "f16"
+    },
+    "weights": 3520093379,
+    "bytes": 7040186758,
+    "shards": 105,
+    "dtypes": {
+      "F16": {
+        "tensors": 1327,
+        "elements": 3520093379,
+        "bytes": 7040186758
+      }
+    },
+    "weightsRef": false,
+    "activationDtype": null,
+    "kvDtype": null,
+    "sessionMaxSeqLen": null,
+    "modes": [],
+    "where": [
+      "amd-host"
+    ]
+  },
+  {
+    "id": "translategemma-4b-1b-enes-q4k-ehf16-af32",
+    "modelType": "transformer",
+    "catalog": true,
+    "quant": {
+      "weights": "q4k",
+      "embeddings": "f16",
+      "compute": "f32",
+      "layout": "row",
+      "variantTag": "q4k-ehf16-af32"
+    },
+    "weights": 999885952,
+    "bytes": 1025493248,
+    "shards": 16,
+    "dtypes": {
+      "F16": {
+        "tensors": 158,
+        "elements": 302124160,
+        "bytes": 604248320
+      },
+      "Q4_K_M": {
+        "tensors": 182,
+        "elements": 697761792,
+        "bytes": 421244928
+      }
+    },
+    "weightsRef": false,
+    "activationDtype": "f32",
+    "kvDtype": "f16",
+    "sessionMaxSeqLen": null,
+    "modes": [],
+    "arch": {
+      "numLayers": 26,
+      "hiddenSize": 1152,
+      "intermediateSize": 6912,
+      "numAttentionHeads": 4,
+      "numKeyValueHeads": 1,
+      "headDim": 256,
+      "vocabSize": 262144,
+      "maxSeqLen": 32768,
+      "ropeTheta": 1000000
+    },
+    "layerTypes": {
+      "sliding_attention": 22,
+      "full_attention": 4
+    },
+    "slidingWindow": 512,
+    "moe": null,
+    "kvCapSource": "runtime default 4096",
+    "kvCapacityTokens": 4096,
+    "kvLayout": "contiguous",
+    "kvLayers": 26,
+    "kvValuesPerToken": 13312,
+    "kvValuesAtCapacity": 54525952,
+    "kvBytesAtCapacity": 109051904,
+    "hidden": 1152,
+    "ffn": 6912,
+    "vocab": 262144,
+    "task": "translation",
+    "runtime": "active",
+    "tested": "verified",
+    "hf": true,
+    "where": [
+      "mac-host",
+      "amd-host",
+      "Hugging Face"
+    ],
+    "label": "TranslateGemma 1B EN/ES Student (NativeKD2 Q4K)",
+    "family": "translategemma",
+    "description": "Experimental-tier English/Spanish translation specialist distilled from TranslateGemma 4B into Gemma 3 1B. The hosted Q4K artifact has deterministic WMT13 and browser/WebGPU evidence; quality and performance claims remain limited to the recorded EN/ES and Radeon/Vulkan receipts."
+  },
+  {
+    "id": "translategemma-4b-it-q4k-ehf16-af32",
+    "modelType": "transformer",
+    "catalog": true,
+    "quant": {
+      "weights": "q4k",
+      "embeddings": "f16",
+      "compute": "f32",
+      "layout": "row",
+      "variantTag": "q4k-ehf16-af32"
+    },
+    "weights": 3880263168,
+    "bytes": 3148102656,
+    "shards": 47,
+    "dtypes": {
+      "F16": {
+        "tensors": 1,
+        "elements": 671252480,
+        "bytes": 1342504960
+      },
+      "BF16": {
+        "tensors": 205,
+        "elements": 368128,
+        "bytes": 736256
+      },
+      "Q4_K_M": {
+        "tensors": 238,
+        "elements": 3208642560,
+        "bytes": 1804861440
+      }
+    },
+    "weightsRef": false,
+    "activationDtype": "f32",
+    "kvDtype": "f16",
+    "sessionMaxSeqLen": null,
+    "modes": [],
+    "arch": {
+      "numLayers": 34,
+      "hiddenSize": 2560,
+      "intermediateSize": 10240,
+      "numAttentionHeads": 8,
+      "numKeyValueHeads": 4,
+      "headDim": 256,
+      "vocabSize": 262208,
+      "maxSeqLen": 131072,
+      "ropeTheta": 1000000
+    },
+    "layerTypes": {
+      "sliding_attention": 29,
+      "full_attention": 5
+    },
+    "slidingWindow": 512,
+    "moe": null,
+    "kvCapSource": "runtime default 4096",
+    "kvCapacityTokens": 4096,
+    "kvLayout": "contiguous",
+    "kvLayers": 34,
+    "kvValuesPerToken": 69632,
+    "kvValuesAtCapacity": 285212672,
+    "kvBytesAtCapacity": 570425344,
+    "hidden": 2560,
+    "ffn": 10240,
+    "vocab": 262208,
+    "task": "translation",
+    "runtime": "active",
+    "tested": "verified",
+    "hf": true,
+    "where": [
+      "mac-host",
+      "amd-host",
+      "Hugging Face"
+    ],
+    "label": "TranslateGemma 4B Instruct (Q4K)",
+    "family": "translategemma",
+    "description": "TranslateGemma 4B translation model. Q4K weights, F16 embeddings/head, F32 accumulation."
+  },
+  {
+    "id": "qwen-3-6-35b-a3b-text-source-q4_0-af32",
+    "label": "Qwen 3.6 35B-A3B (source GGUF Q4_0 mix)",
+    "family": "qwen3",
+    "modelType": "transformer",
+    "catalog": false,
+    "task": "generation",
+    "runtime": "opt-in candidate profile",
+    "tested": "qualification open",
+    "where": [
+      "amd-host (GGUF)"
+    ],
+    "weights": 35505251456,
+    "bytes": 20836243072,
+    "dtypes": {
+      "Q6_K": {
+        "tensors": 5,
+        "elements": 575668224
+      },
+      "F32": {
+        "tensors": 368,
+        "elements": 26156160
+      },
+      "Q4_0": {
+        "tensors": 208,
+        "elements": 32452378624
+      },
+      "Q4_1": {
+        "tensors": 5,
+        "elements": 1342177280
+      },
+      "Q8_0": {
+        "tensors": 105,
+        "elements": 1045430272
+      },
+      "Q5_0": {
+        "tensors": 60,
+        "elements": 62914560
+      },
+      "BF16": {
+        "tensors": 2,
+        "elements": 526336
+      }
+    },
+    "expertElements": {
+      "Q4_1": 1342177280,
+      "Q4_0": 30870077440,
+      "Q8_0": 805306368
+    },
+    "arch": {
+      "numLayers": 40,
+      "mtpLayers": 1,
+      "hiddenSize": 2048,
+      "numAttentionHeads": 16,
+      "numKeyValueHeads": 2,
+      "headDim": 256,
+      "vocabSize": 248320,
+      "maxSeqLen": 262144,
+      "linearNumKeyHeads": 16,
+      "linearNumValueHeads": 32,
+      "linearKeyHeadDim": 128,
+      "linearValueHeadDim": 128
+    },
+    "layerTypes": {
+      "linear_attention": 30,
+      "full_attention": 10
+    },
+    "moe": {
+      "numExperts": 256,
+      "numExpertsPerToken": 8,
+      "expertIntermediateSize": 512,
+      "sharedExpertIntermediateSize": 512
+    },
+    "kvValuesPerToken": 10240,
+    "kvDtype": "f32",
+    "activationDtype": "f32",
+    "linearLayers": 30,
+    "linearStateValues": 16711680,
+    "hidden": 2048,
+    "vocab": 248320,
+    "source": "GGUF header read on amd-host",
+    "kvCapacityTokens": 4096,
+    "kvCapSource": "conversion session"
+  }
+]

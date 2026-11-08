@@ -1,0 +1,10 @@
+{
+  "schema": "doppler.model-atlas-snapshot/v1",
+  "description": "Retained model-shape analysis from the original Atlas, 2026-11-07. Counts and pipeline prose are inspection records, not newly measured qualification. Catalog lifecycle is read at generation time.",
+  "inputs": {
+    "data.json": "83127ebe74dc196b740ea36f3f75e833898668653c7b96c5379cbbd718935e43",
+    "stages.json": "8c4e5c9a2ff45d13785fffc2b6aaf09bce0caa0ff2bce1e84441700e7c2670b5",
+    "template.html": "77cad364606f6b6e08801046a5dfeb85c1b32892966e9c2b6dec9307adb35bb0",
+    "gen.py": "2413b8d40965751c7de80ae3f28a3977442647daf21de5f33dd371d516e5d65d"
+  }
+}
