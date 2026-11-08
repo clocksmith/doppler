@@ -10,10 +10,18 @@ installNodeFileFetchShim();
 const load = async id => resolveRuntimeConfig(stripLegacyRuntimeIntent((await loadRuntimeProfile(id)).runtime));
 const baseline = await load('profiles/flash-next-paged-qualification');
 const routed = await load('profiles/flash-next-routed-qualification');
+const f32 = await load('profiles/flash-next-routed-f32kv-qualification');
+const host = await load('profiles/flash-next-node-host-cache-qualification');
 assert.equal(baseline.loading.expertCache.qwen35Routed.enabled, false);
 assert.equal(routed.loading.expertCache.qwen35Pager.enabled, false);
 assert.equal(routed.loading.expertCache.qwen35Routed.enabled, true);
 assert.deepEqual(routed.inference, baseline.inference, 'range loading cannot alter precision, routing or kernel policy');
+assert.equal(routed.loading.expertCache.qwen35Routed.hostCacheBytes, 0, 'existing profiles retain disabled host caching');
+assert.deepEqual(host.inference, f32.inference, 'host reuse cannot change the F32 KV inference contract');
+const hostPolicy = host.loading.expertCache.qwen35Routed;
+assert(hostPolicy.hostCacheBytes > 0);
+assert.deepEqual({ ...hostPolicy, hostCacheBytes: 0, hostCacheAdmission: 'all' }, f32.loading.expertCache.qwen35Routed,
+  'the new profile changes only host payload caching, preserving GPU cache, staging, budget and reserve');
 assert.deepEqual(validateQwen35RoutedConfig(routed.loading.expertCache.qwen35Routed), routed.loading.expertCache.qwen35Routed);
 assert.equal(await prepareExpertLayer({}, routed.loading.expertCache, 0, new Map(), null, undefined, 'topk-route'), null);
 await assert.rejects(prepareExpertLayer({}, routed.loading.expertCache, 0, new Map(), {}, undefined, 'topk-route'), /immediate/);

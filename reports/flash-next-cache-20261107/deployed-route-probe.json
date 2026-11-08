@@ -1,0 +1,35 @@
+{
+  "at": "2026-11-08T01:29:11.731502+00:00",
+  "health": {
+    "ready": true,
+    "model": "qwen-3-8-flash-next-text-q4k-ehf16-af32",
+    "manifestSha256": "4902a0b730a9310903b00bc0f8f587528fa1af9f37a722d2f9287bafceceec09",
+    "qualification": "Short chat smoke passed; long-context numerical gate remains open",
+    "active": false
+  },
+  "elapsedMs": 11621.171453036368,
+  "result": {
+    "id": "chatcmpl-cyzoybkNtfG069mY",
+    "object": "chat.completion",
+    "created": 1794101340,
+    "model": "qwen-3-8-flash-next-text-q4k-ehf16-af32",
+    "choices": [
+      {
+        "index": 0,
+        "message": {
+          "role": "assistant",
+          "content": "Paris"
+        },
+        "finish_reason": "stop"
+      }
+    ],
+    "usage": {
+      "prompt_tokens": 26,
+      "completion_tokens": 2,
+      "total_tokens": 28
+    }
+  },
+  "provider": "ActiveState=active\nMainPID=3399279",
+  "ttmPagesLimit": "16099953",
+  "fullModelQualified": false
+}

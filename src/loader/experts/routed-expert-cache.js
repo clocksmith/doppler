@@ -17,6 +17,12 @@ export class RoutedExpertCache {
   #layer = -1;
   #signature = '';
   #cacheBytes = 0;
+  /** @type {Map<string, import('./routed-expert-cache.js').RoutedHostExpertEntry>} */
+  #hostEntries = new Map();
+  #hostBytes = 0;
+  #hostReserved = 0;
+  /** @type {Set<string>} */
+  #hostSeen = new Set();
   #workingBytes = 0;
   #staging = 0;
   #closed = false;
@@ -28,7 +34,8 @@ export class RoutedExpertCache {
   #stats = { sourceReadBytes: 0, sourceReads: 0, uploadBytes: 0,
     cacheHits: 0, cacheMisses: 0, workingHits: 0, evictions: 0,
     residentBytes: 0, peakResidentBytes: 0, peakAccountedGpuBytes: 0, peakStagingBytes: 0,
-    ioWaitMs: 0, sourceReadWaitMs: 0, uploadEnqueueMs: 0, initialQueueIdleForWeightsMs: 0 };
+    ioWaitMs: 0, sourceReadWaitMs: 0, uploadEnqueueMs: 0, initialQueueIdleForWeightsMs: 0,
+    hostCacheHits: 0, hostCacheMisses: 0, hostEvictions: 0, hostAdmissionSkips: 0, peakHostOwnedOrReservedBytes: 0 };
 
   /** @param {import('./routed-expert-cache.js').RoutedExpertCacheOptions} options */
   constructor(options) {
@@ -86,6 +93,26 @@ export class RoutedExpertCache {
     }
   }
 
+  /** @param {number} bytes */
+  #makeHostRoom(bytes) {
+    while (this.#hostBytes + this.#hostReserved + bytes > this.#options.policy.hostCacheBytes) {
+      const oldest = this.#hostEntries.entries().next().value;
+      if (!oldest) throw new Error('Routed host cache cannot hold the concurrent expert payloads.');
+      this.#hostEntries.delete(oldest[0]); this.#hostBytes -= oldest[1].bytes;
+      this.#stats.hostEvictions++;
+    }
+  }
+
+  /** @param {import('./routed-expert-cache.js').RoutedExpertEntry} entry
+   * @param {number} offset @param {Uint8Array} bytes @param {() => void} beforeSubmit */
+  #upload(entry, offset, bytes, beforeSubmit) {
+    beforeSubmit();
+    const started = performance.now();
+    this.#options.device.queue.writeBuffer(entry.buffer, offset, bytes);
+    this.#stats.uploadEnqueueMs += performance.now() - started;
+    this.#stats.uploadBytes += bytes.byteLength;
+  }
+
   /** @param {import('./routed-expert-plan.js').RoutedExpertBankPlan} plan @param {AbortSignal} signal */
   async #prepareWorking(plan, signal) {
     const signature = JSON.stringify(plan.planes.map(p => [p.role, p.location.shape, p.bytes]));
@@ -113,6 +140,8 @@ export class RoutedExpertCache {
       this.#layer = plan.layer;
     }
     await this.#makeRoom(0, 0, signal);
+    this.#makeHostRoom(0);
+    if (this.#options.policy.hostCacheBytes === 0) this.#hostSeen.clear();
   }
 
   /** @param {import('./routed-expert-plan.js').RoutedExpertBankPlan} plan
@@ -130,7 +159,11 @@ export class RoutedExpertCache {
       }
       return entry;
     });
-    if (cached) return cached;
+    if (cached) {
+      const host = this.#hostEntries.get(key);
+      if (host) { this.#hostEntries.delete(key); this.#hostEntries.set(key, host); }
+      return cached;
+    }
     this.#stats.cacheMisses++;
     const entry = await this.#locked(async () => {
       await this.#makeRoom(plan.expertBytes, plan.expertBytes, signal);
@@ -142,7 +175,36 @@ export class RoutedExpertCache {
     // loadTensorRange owns an assembled output as well as its source payload.
     const chunkBytes = Math.floor(this.#options.policy.stagingBytes / (2 * this.#options.policy.readConcurrency * 4)) * 4;
     let targetOffset = 0;
+    let hostReservation = 0;
     try {
+      const host = this.#hostEntries.get(key);
+      if (host) {
+        this.#hostEntries.delete(key); this.#hostEntries.set(key, host);
+        this.#stats.hostCacheHits++;
+        // writeBuffer copies each immutable payload before the next await;
+        // queued GPU work never borrows the host cache's backing bytes.
+        for (const chunk of host.chunks) {
+          signal.throwIfAborted();
+          this.#upload(entry, chunk.offset, chunk.data, beforeSubmit);
+        }
+        await this.#locked(async () => { this.#entries.set(key, entry); });
+        return entry;
+      }
+      /** @type {Array<{offset: number, data: Uint8Array}> | null} */
+      let chunks = null;
+      if (this.#options.policy.hostCacheBytes > 0) {
+        this.#stats.hostCacheMisses++;
+        const repeatOnly = this.#options.policy.hostCacheAdmission === 'repeat-read';
+        const admit = !repeatOnly || this.#hostSeen.has(key);
+        if (repeatOnly) this.#hostSeen.add(key);
+        if (admit) {
+          this.#makeHostRoom(plan.expertBytes);
+          this.#hostReserved += plan.expertBytes; hostReservation = plan.expertBytes;
+          this.#stats.peakHostOwnedOrReservedBytes = Math.max(this.#stats.peakHostOwnedOrReservedBytes,
+            this.#hostBytes + this.#hostReserved);
+          chunks = [];
+        } else this.#stats.hostAdmissionSkips++;
+      }
       for (const plane of plan.planes) {
         for (let offset = 0; offset < plane.expertBytes;) {
           signal.throwIfAborted();
@@ -163,11 +225,8 @@ export class RoutedExpertCache {
                 return data;
               });
             signal.throwIfAborted();
-            beforeSubmit();
-            const uploading = performance.now();
-            this.#options.device.queue.writeBuffer(entry.buffer, targetOffset + offset, bytes);
-            this.#stats.uploadEnqueueMs += performance.now() - uploading;
-            this.#stats.uploadBytes += bytes.byteLength;
+            this.#upload(entry, targetOffset + offset, bytes, beforeSubmit);
+            chunks?.push({ offset: targetOffset + offset, data: bytes });
           } finally {
             this.#stats.ioWaitMs += performance.now() - started;
             this.#staging -= 2 * length;
@@ -175,6 +234,12 @@ export class RoutedExpertCache {
           offset += length;
         }
         targetOffset += plane.expertBytes;
+      }
+      if (chunks) {
+        signal.throwIfAborted();
+        this.#hostReserved -= hostReservation; hostReservation = 0;
+        this.#hostEntries.set(key, { bytes: plan.expertBytes, chunks });
+        this.#hostBytes += plan.expertBytes;
       }
       await this.#locked(async () => { this.#entries.set(key, entry); });
       return entry;
@@ -184,6 +249,8 @@ export class RoutedExpertCache {
         await this.#locked(async () => { this.#destroyBuffer(entry.buffer); this.#cacheBytes -= entry.bytes; });
       } catch (cleanup) { throw new AggregateError([error, cleanup], 'Routed expert load and cleanup failed.'); }
       throw error;
+    } finally {
+      this.#hostReserved -= hostReservation;
     }
   }
 
@@ -217,6 +284,10 @@ export class RoutedExpertCache {
     }
     if (plan.expertBytes * this.#options.policy.readConcurrency > this.#options.policy.cacheBytes) {
       throw new Error('Routed expert cache must hold one payload per concurrent reader.');
+    }
+    if (this.#options.policy.hostCacheBytes > 0
+        && plan.expertBytes * this.#options.policy.readConcurrency > this.#options.policy.hostCacheBytes) {
+      throw new Error('Routed host cache must hold one payload per concurrent reader.');
     }
     await this.#locked(() => this.#prepareWorking(plan, signal));
     let cursor = 0;
@@ -276,13 +347,15 @@ export class RoutedExpertCache {
   getStats() {
     this.#stats.peakAccountedGpuBytes = Math.max(this.#stats.peakAccountedGpuBytes,
       this.#options.otherGpuBytes() + this.#stats.residentBytes);
-    return { ...this.#stats, cacheBytes: this.#cacheBytes, workingBytes: this.#workingBytes, experts: this.#entries.size };
+    return { ...this.#stats, cacheBytes: this.#cacheBytes, workingBytes: this.#workingBytes, experts: this.#entries.size,
+      hostCacheBytes: this.#hostBytes, hostReservedBytes: this.#hostReserved, hostExperts: this.#hostEntries.size };
   }
 
   async destroy() {
     this.#closed = true;
     this.#shutdown.abort(new DOMException('Routed expert cache unloaded.', 'AbortError'));
     await this.#active?.catch(() => undefined);
+    this.#hostEntries.clear(); this.#hostSeen.clear(); this.#hostBytes = 0; this.#hostReserved = 0;
     const errors = [];
     if (this.#owned.size) {
       try { await this.#options.device.queue.onSubmittedWorkDone(); } catch (error) { errors.push(error); }

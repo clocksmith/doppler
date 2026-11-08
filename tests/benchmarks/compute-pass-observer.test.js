@@ -75,6 +75,16 @@ try {
   assert.ok(result.records.slice(1).every(value => value.status === 'encoded-not-submitted' && value.ms === undefined));
   restored();
 
+  // Native Node objects need not have matching browser constructor globals.
+  delete globalThis.GPUCommandEncoder;
+  delete globalThis.GPUComputePassEncoder;
+  observer = observeComputePasses(device, options);
+  device.queue.submit([encode().finish()]);
+  result = await observer.collect();
+  assert.equal(result.submittedPasses, 1); assert.equal(result.sumPassMs, 1);
+  restored();
+  Object.assign(globalThis, { GPUCommandEncoder: Encoder, GPUComputePassEncoder: Pass });
+
   observer = observeComputePasses(device, options);
   const pending = encode(); observer.stop(); device.queue.submit([pending.finish()]);
   result = await observer.collect(); assert.equal(result.submittedPasses, 1); assert.equal(result.sumPassMs, 1);

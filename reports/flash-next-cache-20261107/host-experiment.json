@@ -1,0 +1,38 @@
+{
+  "schema": "doppler.flash-next-host-cache-experiment/v1",
+  "frozenAt": "2026-11-08T00:44:08.106746+00:00",
+  "runtimeSource": "Same frozen 3f821b78 src; explicit experiment storage adapter and patched observation harness only",
+  "harnessSha256": "dbc03b3bed61c3e43da915051588b56ccba09ace4b9e0674374036ab2bda5e17",
+  "adapterSha256": "f9d493f5f2287aa00b71e1e0e92df2a2a3d160b9da7fcaaab8d33ec4031b08c0",
+  "processOrder": [
+    "c1",
+    "d1",
+    "d2",
+    "c2"
+  ],
+  "sharedContract": {
+    "prompt": "The capital of France is",
+    "useChatTemplate": false,
+    "maxTokens": 16,
+    "repetitionsPerProcess": 2,
+    "processOrder": [
+      "c1",
+      "d1",
+      "d2",
+      "c2"
+    ],
+    "sampling": {
+      "temperature": 0,
+      "topK": 1,
+      "topP": 1,
+      "repetitionPenalty": 1,
+      "seed": 0
+    },
+    "cacheState": "First request empty expert cache; second retains it while resetting generation. OS caches not cleared.",
+    "measurement": "Existing full-logit cost observer; same observation overhead both arms; no GPU timestamp instrumentation on primary runs."
+  },
+  "gpuCacheBytes": 2147483648,
+  "hostCacheCandidateBytes": 17179869184,
+  "maxCachedRangeBytes": 4194304,
+  "gates": "Complete output logits and IDs bit-exact; existing GPU budget/reserve and services preserved; host cache is explicit, bounded and disabled during initial model loading. No long-context gate relaxation."
+}

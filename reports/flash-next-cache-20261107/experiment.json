@@ -1,0 +1,56 @@
+{
+  "schema": "doppler.flash-next-cache-experiment/v1",
+  "frozenAt": "2026-11-08T00:26:34.124430+00:00",
+  "runtimeRevision": "3f821b78e2a2475bfd6408c9925c0282efc1d48c",
+  "sourceArchiveSha256": "c794c269a289c4d97208f1a2dfcbd67f50329954d7a303022f08aea99bfcb391",
+  "sharedContract": {
+    "prompt": "The capital of France is",
+    "useChatTemplate": false,
+    "maxTokens": 16,
+    "repetitionsPerProcess": 2,
+    "processOrder": [
+      "a1",
+      "b1",
+      "b2",
+      "a2"
+    ],
+    "sampling": {
+      "temperature": 0,
+      "topK": 1,
+      "topP": 1,
+      "repetitionPenalty": 1,
+      "seed": 0
+    },
+    "cacheState": "First request empty expert cache; second retains it while resetting generation. OS caches not cleared.",
+    "measurement": "Existing full-logit cost observer; same observation overhead both arms; no GPU timestamp instrumentation on primary runs."
+  },
+  "engineOverlays": {
+    "a": {
+      "cacheBytes": 2147483648
+    },
+    "b": {
+      "cacheBytes": 8589934592
+    }
+  },
+  "invariants": {
+    "sameSourceWeightsMathAndKv": true,
+    "kvDtype": "f32",
+    "gpuBudgetBytes": 25769803776,
+    "activationKvReserveBytes": 4294967296,
+    "readConcurrency": 2,
+    "stagingBytes": 16777216,
+    "routeChunkTokens": 256,
+    "existingServices": "27B and local experimental Flash-Next left running; shared-host experiment, no service restarts."
+  },
+  "gates": {
+    "parity": "All output IDs and complete full-vocabulary logits must be bit-exact for matched requests. Failure blocks promotion.",
+    "resource": "Per-process GPU accounting must preserve existing allocation reserve; live GTT and system memory admission plus provider PID checks before every process.",
+    "performance": "Report per-request and per-decode-interval raw values, total decode time divided by actual decode intervals; never sum overlapped reader durations into latency. No population or service-SLA claim from this sample.",
+    "qualification": "Existing long-context source-reference gate remains unchanged and open."
+  },
+  "premeasurementAmendment": {
+    "at": "2026-11-08T00:28:07.131998+00:00",
+    "reason": "Initial snapshot omitted a source-inventory-only trace test; launch stopped before model creation or timed requests. Include every declared sourceFiles path and preserve failure.",
+    "previousSourceArchiveSha256": "a9211ee45e1d4506b0440101d295ba18dafe2e8411337778911b5fc124a5a132"
+  }
+}

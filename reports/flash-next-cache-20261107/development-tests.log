@@ -1,0 +1,73 @@
+TAP version 13
+# compute-pass-observer: submitted ownership, late submit, missing timestamps, cleanup passed
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 0.398709
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 35.831666
+[node-tests] ok: tests/benchmarks/compute-pass-observer.test.js
+TAP version 13
+# Routed profile preserves all inference policy and rejects incompatible execution before loading.
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 0.380375
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 241.734333
+[node-tests] ok: tests/config/routed-expert-profile.test.js
+TAP version 13
+# Flash-Next F32 KV: explicit policy, unchanged weights/projections, immutable graph, and isolated profile passed.
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 0.412333
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 237.875084
+[node-tests] ok: tests/integration/flash-next-f32kv-policy.test.js
+TAP version 13
+# Routed expert cache: range extents, identity, hot reuse, budgets, cancellation, eviction fences and failure cleanup passed.
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 0.343584
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 154.54775
+[node-tests] ok: tests/loader/routed-expert-cache.test.js
+[node-tests] ok: 4 files

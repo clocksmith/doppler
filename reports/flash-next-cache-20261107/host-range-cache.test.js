@@ -1,0 +1,36 @@
+import assert from 'node:assert/strict';
+import { withHostRangeCache } from './host-range-cache.js';
+const policy = { enabled: true, maxBytes: 8, maxEntryBytes: 4 };
+let reads = 0, closes = 0;
+const storage = { async loadShardRange(shard, offset, length) {
+  reads++; return Uint8Array.from({ length }, (_, i) => shard + offset + i).buffer;
+}, async close() { closes++; } };
+const cache = withHostRangeCache(storage, policy);
+cache.start();
+const first = await cache.storage.loadShardRange(0, 0, 4);
+new Uint8Array(first)[0] = 99;
+assert.equal(new Uint8Array(await cache.storage.loadShardRange(0, 0, 4))[0], 0);
+assert.equal(reads, 1, 'cache cannot return an aliased mutable buffer');
+await cache.storage.loadShardRange(1, 0, 4);
+await cache.storage.loadShardRange(1, 1, 4);
+assert.equal(cache.stats().residentBytes, 8);
+assert.equal(cache.stats().evictions, 1);
+await cache.storage.loadShardRange(0, 0, 4);
+assert.equal(reads, 4, 'shard, offset and length jointly identify bytes');
+await cache.storage.close();
+assert.equal(cache.stats().residentBytes, 0); assert.equal(closes, 1);
+await assert.rejects(cache.storage.loadShardRange(0, 0, 4), /closed/);
+let resolve;
+const waiting = withHostRangeCache({ ...storage, loadShardRange() {
+  reads++; return new Promise(done => { resolve = done; });
+} }, policy);
+waiting.start();
+const a = waiting.storage.loadShardRange(0, 0, 4), b = waiting.storage.loadShardRange(0, 0, 4);
+assert.equal(waiting.stats().pending, 1);
+const closing = waiting.storage.close();
+resolve(new Uint8Array([1, 2, 3, 4]).buffer);
+const values = await Promise.all([a, b]); await closing;
+assert.notEqual(values[0], values[1]);
+assert.equal(waiting.stats().residentBytes, 0, 'closing pending reads cannot repopulate the cache');
+assert.equal(waiting.stats().pending, 0);
+console.log('Host range prototype: identity, ownership, eviction, pending deduplication and close passed.');

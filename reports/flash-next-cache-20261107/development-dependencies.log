@@ -1,0 +1,5 @@
+
+> doppler-gpu@0.6.33 source:dependencies:check
+> node tools/report-source-dependencies.js
+
+[source-dependencies] 2916 files; 62 test-only; 198 dependency diagnostics (including external runtime contracts)

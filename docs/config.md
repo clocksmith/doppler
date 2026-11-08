@@ -126,8 +126,23 @@ actual selections in `routeChunkTokens` chunks and retains already populated
 working-bank slots within a layer. Reads/uploads for the next chunk can overlap
 previously submitted computation; there is no predicted-expert prefetch.
 
+`hostCacheBytes` optionally bounds a separate CPU cache of assembled, unchanged
+expert payloads; zero disables it. `hostCacheAdmission: "all"` retains first-use
+payloads, while `"repeat-read"` retains an expert only after it needs another
+source read. The latter avoids retaining one-use prefill experts. The bound
+includes retained payloads and concurrent admission reservations, excludes
+backend/driver caches and metadata, and is separate from GPU accounting.
+Cancellation discards partial payloads; unload drains readers and clears the
+cache. Cache hits still upload the original packed bytes to the GPU.
+
+`profiles/flash-next-node-host-cache-qualification` explicitly requests a 16 GiB
+host cache with repeat-read admission and the existing F32-KV profile. It is a
+Node investigation profile, not a new default or a model qualification claim.
+
 `loader.getRoutedExpertCacheStats()` exposes source/upload bytes, cache and
 working-bank hits, evictions, owned GPU bytes and staging high-water marks.
+Host hits, misses, admission skips, evictions, retained/reserved bytes and their
+combined high-water mark are reported separately.
 `ioWaitMs` and `sourceReadWaitMs` sum reader durations, so they are not request
 latency. `uploadEnqueueMs` measures CPU enqueue time, not completed transfer.
 `initialQueueIdleForWeightsMs` counts only the first proven idle gap per

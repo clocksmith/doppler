@@ -1,0 +1,63 @@
+{
+  "schema": "doppler.flash-next-repeat-admission-experiment/v1",
+  "frozenAt": "2026-11-08T01:16:12.028096+00:00",
+  "runtimeRevision": "3f821b78e2a2475bfd6408c9925c0282efc1d48c",
+  "sourceArchiveSha256": "1fe6f34cf394852c620c645c5190c0dafc6e921db410e700b4c4a164f529582e",
+  "sharedContract": {
+    "prompt": "The capital of France is",
+    "useChatTemplate": false,
+    "maxTokens": 16,
+    "repetitionsPerProcess": 3,
+    "processOrder": [
+      "i1",
+      "j1",
+      "j2",
+      "i2"
+    ],
+    "sampling": {
+      "temperature": 0,
+      "topK": 1,
+      "topP": 1,
+      "repetitionPenalty": 1,
+      "seed": 0
+    },
+    "cacheState": "First request empty expert cache; second retains it while resetting generation. OS caches not cleared.",
+    "measurement": "Existing full-logit cost observer; same observation overhead both arms; no GPU timestamp instrumentation on primary runs."
+  },
+  "engineOverlays": {
+    "i": {
+      "cacheBytes": 2147483648,
+      "hostCacheBytes": 0,
+      "hostCacheAdmission": "repeat-read"
+    },
+    "j": {
+      "cacheBytes": 2147483648,
+      "hostCacheBytes": 17179869184,
+      "hostCacheAdmission": "repeat-read"
+    }
+  },
+  "invariants": {
+    "sameSourceWeightsMathAndKv": true,
+    "kvDtype": "f32",
+    "gpuBudgetBytes": 25769803776,
+    "activationKvReserveBytes": 4294967296,
+    "readConcurrency": 2,
+    "stagingBytes": 16777216,
+    "routeChunkTokens": 256,
+    "existingServices": "27B and local experimental Flash-Next left running; shared-host experiment, no service restarts.",
+    "hostCacheBudgetBytes": 17179869184
+  },
+  "gates": {
+    "parity": "All output IDs and complete full-vocabulary logits must be bit-exact for matched requests. Failure blocks promotion.",
+    "resource": "Per-process GPU accounting must preserve existing allocation reserve; live GTT and system memory admission plus provider PID checks before every process.",
+    "performance": "Report per-request and per-decode-interval raw values, total decode time divided by actual decode intervals; never sum overlapped reader durations into latency. No population or service-SLA claim from this sample.",
+    "qualification": "Existing long-context source-reference gate remains unchanged and open."
+  },
+  "processOrder": [
+    "i1",
+    "j1",
+    "j2",
+    "i2"
+  ],
+  "mechanism": "Explicit repeat-read admission: the first source read leaves no retained host payload; a later source read can admit the assembled bytes. No shader, dtype, routing or tolerance change."
+}

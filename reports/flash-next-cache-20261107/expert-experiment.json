@@ -1,0 +1,61 @@
+{
+  "schema": "doppler.flash-next-expert-host-cache-experiment/v1",
+  "frozenAt": "2026-11-08T01:07:51.789117+00:00",
+  "runtimeRevision": "3f821b78e2a2475bfd6408c9925c0282efc1d48c",
+  "sourceArchiveSha256": "03cfec02a6cb689a1a2bbfaf4ca761a916af6b7e9a54e38898cc9bef214d9acb",
+  "sharedContract": {
+    "prompt": "The capital of France is",
+    "useChatTemplate": false,
+    "maxTokens": 16,
+    "repetitionsPerProcess": 2,
+    "processOrder": [
+      "g1",
+      "h1",
+      "h2",
+      "g2"
+    ],
+    "sampling": {
+      "temperature": 0,
+      "topK": 1,
+      "topP": 1,
+      "repetitionPenalty": 1,
+      "seed": 0
+    },
+    "cacheState": "First request empty expert cache; second retains it while resetting generation. OS caches not cleared.",
+    "measurement": "Existing full-logit cost observer; same observation overhead both arms; no GPU timestamp instrumentation on primary runs."
+  },
+  "engineOverlays": {
+    "g": {
+      "cacheBytes": 2147483648,
+      "hostCacheBytes": 0
+    },
+    "h": {
+      "cacheBytes": 2147483648,
+      "hostCacheBytes": 17179869184
+    }
+  },
+  "invariants": {
+    "sameSourceWeightsMathAndKv": true,
+    "kvDtype": "f32",
+    "gpuBudgetBytes": 25769803776,
+    "activationKvReserveBytes": 4294967296,
+    "readConcurrency": 2,
+    "stagingBytes": 16777216,
+    "routeChunkTokens": 256,
+    "existingServices": "27B and local experimental Flash-Next left running; shared-host experiment, no service restarts.",
+    "hostCacheBudgetBytes": 17179869184
+  },
+  "gates": {
+    "parity": "All output IDs and complete full-vocabulary logits must be bit-exact for matched requests. Failure blocks promotion.",
+    "resource": "Per-process GPU accounting must preserve existing allocation reserve; live GTT and system memory admission plus provider PID checks before every process.",
+    "performance": "Report per-request and per-decode-interval raw values, total decode time divided by actual decode intervals; never sum overlapped reader durations into latency. No population or service-SLA claim from this sample.",
+    "qualification": "Existing long-context source-reference gate remains unchanged and open."
+  },
+  "processOrder": [
+    "g1",
+    "h1",
+    "h2",
+    "g2"
+  ],
+  "mechanism": "Cache exact assembled Q4K expert chunks in their loader owner after read/upload, with bounded reservations. No generic file cache, new weight copies, dtype, shader or routing change."
+}

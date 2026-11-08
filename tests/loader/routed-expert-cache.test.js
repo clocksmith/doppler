@@ -47,7 +47,7 @@ function fixture(separate = false, intermediate = 256) {
     }
   }
   const cacheBytes = [...locations.values()].slice(0, separate ? 3 : 2).reduce((sum, plane) => sum + plane.size / 4, 0) * 2;
-  const policy = { enabled: true, cacheBytes, stagingBytes: 8192, readConcurrency: 2,
+  const policy = { enabled: true, cacheBytes, hostCacheBytes: 0, hostCacheAdmission: 'all', stagingBytes: 8192, readConcurrency: 2,
     routeChunkTokens: 2, gpuBudgetBytes: 16 * 1024 ** 2, reserveBytes: 1024 ** 2 };
   const { gpu, buffers } = device(), reads = [];
   let readHook = async () => {};
@@ -59,6 +59,64 @@ function fixture(separate = false, intermediate = 256) {
     } });
   return { manifest, locations, shards, policy, gpu, buffers, reads, cache,
     setReadHook(value) { readHook = value; }, plan(layer) { return planRoutedExpertBank(manifest, locations, layer); } };
+}
+
+{
+  const f = fixture(), plan = f.plan(0);
+  f.policy.hostCacheBytes = plan.expertBytes * 6;
+  await f.cache.prepare(plan, [2]);
+  await f.cache.prepare(f.plan(1), [0]);
+  await f.cache.prepare(f.plan(2), [0]);
+  const sourceBytes = f.cache.getStats().sourceReadBytes;
+  const restored = await f.cache.prepare(plan, [2]);
+  assert.equal(f.cache.getStats().sourceReadBytes, sourceBytes, 'GPU eviction can recover the exact assembled host payload without source reads');
+  assert.equal(f.cache.getStats().hostCacheHits, 1);
+  for (const plane of plan.planes) {
+    assert.deepEqual(restored[plane.role].buffer.data.slice(2 * plane.expertBytes, 3 * plane.expertBytes),
+      f.shards.get(plane.location.shardIndex).slice(2 * plane.expertBytes, 3 * plane.expertBytes));
+  }
+  assert.equal(f.cache.getStats().hostReservedBytes, 0);
+  await f.cache.destroy();
+  assert.equal(f.cache.getStats().hostCacheBytes, 0);
+}
+
+{
+  const f = fixture(), plan = f.plan(0);
+  f.policy.hostCacheBytes = plan.expertBytes * 6;
+  f.policy.hostCacheAdmission = 'repeat-read';
+  await f.cache.prepare(plan, [2]);
+  assert.equal(f.cache.getStats().hostCacheBytes, 0, 'first-use payload is not retained');
+  assert.equal(f.cache.getStats().hostAdmissionSkips, 1);
+  await f.cache.prepare(f.plan(1), [0]); await f.cache.prepare(f.plan(2), [0]);
+  await f.cache.prepare(plan, [2]);
+  assert(f.cache.getStats().hostCacheBytes > 0, 'the second source read admits the expert');
+  await f.cache.prepare(f.plan(1), [0]); await f.cache.prepare(f.plan(2), [0]);
+  const bytes = f.cache.getStats().sourceReadBytes;
+  await f.cache.prepare(plan, [2]);
+  assert.equal(f.cache.getStats().sourceReadBytes, bytes);
+  assert.equal(f.cache.getStats().hostCacheHits, 1);
+  await f.cache.destroy();
+}
+
+{
+  const f = fixture(), plan = f.plan(0);
+  f.policy.hostCacheBytes = plan.expertBytes * 2;
+  for (const layer of [0, 1, 2, 0]) await f.cache.prepare(f.plan(layer), [0, 1]);
+  const stats = f.cache.getStats();
+  assert(stats.hostEvictions > 0);
+  assert(stats.peakHostOwnedOrReservedBytes <= f.policy.hostCacheBytes);
+  assert.equal(stats.hostReservedBytes, 0);
+  await f.cache.destroy();
+}
+
+{
+  const f = fixture(), plan = f.plan(0);
+  f.policy.hostCacheBytes = plan.expertBytes * 2;
+  f.setReadHook(async () => { throw new Error('source read failed'); });
+  await assert.rejects(f.cache.prepare(plan, [0]), /source read failed/);
+  assert.equal(f.cache.getStats().hostCacheBytes, 0, 'partial payloads never enter the host cache');
+  assert.equal(f.cache.getStats().hostReservedBytes, 0, 'failed source reads release their host reservation');
+  await f.cache.destroy();
 }
 
 {
@@ -100,12 +158,14 @@ function fixture(separate = false, intermediate = 256) {
 
 {
   const f = fixture(), controller = new AbortController();
+  f.policy.hostCacheBytes = f.plan(0).expertBytes * 2;
   let unblock;
   const gate = new Promise(resolve => { unblock = resolve; });
   f.setReadHook(async () => gate);
   const operation = f.cache.prepare(f.plan(0), [0, 1], controller.signal);
   operation.catch(() => {});
   while (!f.reads.length) await new Promise(resolve => setImmediate(resolve));
+  assert(f.cache.getStats().hostReservedBytes > 0);
   controller.abort(new DOMException('cancelled', 'AbortError'));
   let settled = false;
   operation.finally(() => { settled = true; }).catch(() => {});
@@ -113,7 +173,15 @@ function fixture(separate = false, intermediate = 256) {
   assert.equal(settled, false, 'cancellation retains ownership until reads settle');
   unblock();
   await assert.rejects(operation, error => error.name === 'AbortError');
+  assert.equal(f.cache.getStats().hostCacheBytes, 0, 'cancelled partial payloads cannot be reused');
+  assert.equal(f.cache.getStats().hostReservedBytes, 0);
+  f.setReadHook(async () => {});
+  const retried = await f.cache.prepare(f.plan(0), [0]);
+  const plane = f.plan(0).planes[0];
+  assert.deepEqual(retried[plane.role].buffer.data.slice(0, plane.expertBytes),
+    f.shards.get(plane.location.shardIndex).slice(0, plane.expertBytes));
   await f.cache.destroy();
+  assert.equal(f.cache.getStats().hostCacheBytes, 0);
   assert(f.buffers.every(b => b.destroyed));
 }
 
@@ -181,6 +249,7 @@ console.log('Routed expert cache: range extents, identity, hot reuse, budgets, c
 
 {
   const f = fixture();
+  f.policy.hostCacheBytes = f.plan(0).expertBytes * 2;
   let unblock;
   const gate = new Promise(resolve => { unblock = resolve; });
   f.setReadHook(async () => gate);
@@ -194,6 +263,8 @@ console.log('Routed expert cache: range extents, identity, hot reuse, budgets, c
   await assert.rejects(running, error => error.name === 'AbortError');
   await closing;
   assert(f.buffers.every(b => b.destroyed));
+  assert.equal(f.cache.getStats().hostCacheBytes, 0);
+  assert.equal(f.cache.getStats().hostReservedBytes, 0);
 }
 
 {

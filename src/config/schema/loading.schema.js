@@ -95,6 +95,8 @@ export const DEFAULT_EXPERT_CACHE_CONFIG = {
   qwen35Routed: {
     enabled: false,
     cacheBytes: 2 * GB,
+    hostCacheBytes: 0,
+    hostCacheAdmission: 'all',
     stagingBytes: 16 * MB,
     readConcurrency: 2,
     routeChunkTokens: 256,
@@ -111,6 +113,12 @@ export function validateQwen35RoutedConfig(config) {
     if (!Number.isSafeInteger(config[field]) || config[field] < 1) {
       throw new Error(`runtime.loading.expertCache.qwen35Routed.${field} must be a positive safe integer.`);
     }
+  }
+  if (!Number.isSafeInteger(config.hostCacheBytes) || config.hostCacheBytes < 0) {
+    throw new Error('runtime.loading.expertCache.qwen35Routed.hostCacheBytes must be a non-negative safe integer.');
+  }
+  if (!['all', 'repeat-read'].includes(config.hostCacheAdmission)) {
+    throw new Error('runtime.loading.expertCache.qwen35Routed.hostCacheAdmission must be all or repeat-read.');
   }
   if (config.stagingBytes < 8 * config.readConcurrency || config.stagingBytes % (8 * config.readConcurrency)
     || config.cacheBytes + config.reserveBytes >= config.gpuBudgetBytes) {

@@ -55,6 +55,11 @@
   ],
   "reviews": [
     {
+      "id": "src/loader/experts/routed-expert-cache.js#RoutedExpertCache.#prepareWorking",
+      "category": "gpu-orchestration",
+      "reason": "Allocates working GPU buffers from the declared packed-bank planes and records them in a Map. The detected looped set is Map.set, not a typed-array tensor write; host caching preserves unchanged artifact bytes and performs no tensor arithmetic."
+    },
+    {
       "id": "src/experimental/training/native-qwen-lora.js#NativeQwenLoRATrainer.applyRound",
       "category": "gpu-orchestration",
       "reason": "Validates contribution metadata, uploads unchanged gradient payload bytes, and records parameter-to-GPU-gradient Map entries. Token-count weights are scalar dispatch inputs; WGSL scale/add kernels perform all gradient arithmetic. The scalar loss mean is observation only."

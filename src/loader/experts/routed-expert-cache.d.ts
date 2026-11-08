@@ -8,6 +8,7 @@ export interface RoutedExpertCacheOptions {
   otherGpuBytes: () => number;
 }
 export interface RoutedExpertEntry { buffer: GPUBuffer; bytes: number; users: number }
+export interface RoutedHostExpertEntry { bytes: number; chunks: Array<{ offset: number; data: Uint8Array }> }
 export interface RoutedExpertWeights {
   expertIdx: number;
   expertFormat: string;
@@ -38,6 +39,14 @@ export interface RoutedExpertCacheStats {
   /** First proven client-queue idle gap per preparation; a lower bound, not global GPU utilization. */
   initialQueueIdleForWeightsMs: number;
   experts: number;
+  hostCacheHits: number;
+  hostCacheMisses: number;
+  hostEvictions: number;
+  hostAdmissionSkips: number;
+  peakHostOwnedOrReservedBytes: number;
+  hostCacheBytes: number;
+  hostReservedBytes: number;
+  hostExperts: number;
 }
 export declare class RoutedExpertCache {
   constructor(options: RoutedExpertCacheOptions);

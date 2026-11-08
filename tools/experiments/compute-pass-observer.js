@@ -5,7 +5,13 @@ export function observeComputePasses(device, options) {
   if (!device.features.has('timestamp-query')) throw new Error('Pass observer requires timestamp-query');
   if (!Number.isSafeInteger(queriesPerBlock) || queriesPerBlock < 2 || queriesPerBlock % 2
       || !Number.isSafeInteger(maxPasses) || maxPasses < 1) throw new Error('Invalid pass timestamp budgets');
-  const encoderProto = GPUCommandEncoder.prototype, passProto = GPUComputePassEncoder.prototype;
+  // Node providers can expose native instances without publishing constructor globals.
+  // An empty, unsubmitted probe discovers the owning provider's actual prototypes.
+  const probeEncoder = device.createCommandEncoder({ label: 'diagnostic-prototype-probe' });
+  const probePass = probeEncoder.beginComputePass({});
+  const encoderProto = Object.getPrototypeOf(probeEncoder), passProto = Object.getPrototypeOf(probePass);
+  probePass.end();
+  probeEncoder.finish();
   const begin = encoderProto.beginComputePass, pipeline = passProto.setPipeline;
   const dispatch = passProto.dispatchWorkgroups, indirect = passProto.dispatchWorkgroupsIndirect;
   const finish = encoderProto.finish, queue = device.queue, submit = queue.submit;

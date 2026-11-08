@@ -1,0 +1,63 @@
+{
+  "scope": "Actual local Flash-Next HTTP operations; long-context gate remains open",
+  "startedAt": "2026-11-08T01:25:50.750561+00:00",
+  "baseUrl": "http://127.0.0.1:8990",
+  "rows": [
+    {
+      "case": "identity",
+      "passed": true
+    },
+    {
+      "case": "chat",
+      "passed": true,
+      "content": "Paris",
+      "usage": {
+        "prompt_tokens": 26,
+        "completion_tokens": 2,
+        "total_tokens": 28
+      }
+    },
+    {
+      "case": "stream",
+      "passed": true,
+      "content": "42"
+    },
+    {
+      "case": "follow-up",
+      "passed": true,
+      "content": "France",
+      "usage": {
+        "prompt_tokens": 51,
+        "completion_tokens": 2,
+        "total_tokens": 53
+      }
+    },
+    {
+      "case": "concurrent-refusal-and-active-client-cancel",
+      "passed": true
+    },
+    {
+      "case": "reuse-after-cancel",
+      "passed": true,
+      "content": "42",
+      "usage": {
+        "prompt_tokens": 28,
+        "completion_tokens": 3,
+        "total_tokens": 31
+      }
+    },
+    {
+      "case": "output-cap",
+      "passed": true
+    }
+  ],
+  "fullModelQualified": false,
+  "health": {
+    "ready": true,
+    "model": "qwen-3-8-flash-next-text-q4k-ehf16-af32",
+    "manifestSha256": "4902a0b730a9310903b00bc0f8f587528fa1af9f37a722d2f9287bafceceec09",
+    "qualification": "Short chat smoke passed; long-context numerical gate remains open",
+    "active": false
+  },
+  "completed": true
+}

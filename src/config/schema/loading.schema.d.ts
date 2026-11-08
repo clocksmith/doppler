@@ -179,6 +179,10 @@ export interface ExpertCacheConfigSchema {
 export interface Qwen35RoutedConfig {
   enabled: boolean;
   cacheBytes: number;
+  /** Bounded assembled expert payloads in host memory; zero disables. Separate from the GPU budget. */
+  hostCacheBytes: number;
+  /** Retain all requested payloads, or admit only after a second source read. */
+  hostCacheAdmission: 'all' | 'repeat-read';
   /** Total payload plus assembled-range capacity across concurrent readers. Backend/driver caches are separate. */
   stagingBytes: number;
   readConcurrency: number;

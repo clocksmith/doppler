@@ -1,0 +1,39 @@
+{
+  "schema": "doppler.flash-next-host-cache-core-experiment/v1",
+  "frozenAt": "2026-11-08T00:55:33.079811+00:00",
+  "sourceArchiveSha256": "754d41d486a8aed99c6876e2368de83b092ac69fa0b72cf3ae206f8d43859d5b",
+  "sharedContract": {
+    "prompt": "The capital of France is",
+    "useChatTemplate": false,
+    "maxTokens": 16,
+    "repetitionsPerProcess": 2,
+    "processOrder": [
+      "e1",
+      "f1",
+      "f2",
+      "e2"
+    ],
+    "sampling": {
+      "temperature": 0,
+      "topK": 1,
+      "topP": 1,
+      "repetitionPenalty": 1,
+      "seed": 0
+    },
+    "cacheState": "First request empty expert cache; second retains it while resetting generation. OS caches not cleared.",
+    "measurement": "Existing full-logit cost observer; same observation overhead both arms; no GPU timestamp instrumentation on primary runs."
+  },
+  "processOrder": [
+    "e1",
+    "f1",
+    "f2",
+    "e2"
+  ],
+  "source": "Working-tree implementation in Node file reader, not report adapter. Both arms use identical source; cache disabled/enabled is the only runtime difference.",
+  "hostCachePolicy": {
+    "enabled": true,
+    "maxBytes": 17179869184,
+    "maxEntryBytes": 4194304
+  },
+  "gates": "Full bit-exact logits/IDs vs prototype and baseline, original GPU budget/reserve, no participant restart, explicit source cache bytes and immutable range/close tests."
+}

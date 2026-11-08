@@ -1,0 +1,5 @@
+
+> doppler-gpu@0.6.33 runtime:closure:check
+> node tools/check-capsule-runtime-closure.js
+
+Capsule runtime closure passed: 88 files, 1229002 source bytes.
