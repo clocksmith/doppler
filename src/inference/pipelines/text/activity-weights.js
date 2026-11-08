@@ -108,4 +108,3 @@ export async function prepareActivityRecording(state, opts) {
     activity.unavailable('expert-routing', 'No expert-routing boundary was captured for this execution.');
   }
 }
-
