@@ -1,0 +1,10 @@
+{
+  "repo": "clocksmith/rdrr",
+  "previousRevision": "eafe756a6b11d19eafc9e030b720a2c92e63b2c7",
+  "revision": "ea7b211b72c4d43687fa72802dee7aba74eca293",
+  "url": "https://huggingface.co/clocksmith/rdrr/commit/ea7b211b72c4d43687fa72802dee7aba74eca293",
+  "changedFiles": [
+    "models/qwen-3-5-0-8b-q4k-ehaf16/manifest.json",
+    "models/qwen-3-5-0-8b-q4k-ehaf16/integrity-migration-receipt.json"
+  ]
+}
