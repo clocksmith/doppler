@@ -318,6 +318,8 @@ experimental/diffusion/image-regression.js
 experimental/diffusion/pipeline.js
 experimental/diffusion/scheduler.d.ts
 experimental/diffusion/scheduler.js
+experimental/diffusion/text-context.d.ts
+experimental/diffusion/text-context.js
 experimental/diffusion/text-encoder-gpu.d.ts
 experimental/diffusion/text-encoder-gpu.js
 experimental/diffusion/vae.d.ts
@@ -706,6 +708,8 @@ inference/pipelines/diffusion/profile-timing.d.ts
 inference/pipelines/diffusion/profile-timing.js
 inference/pipelines/diffusion/runtime-resources.d.ts
 inference/pipelines/diffusion/runtime-resources.js
+inference/pipelines/diffusion/scheduler-contract.d.ts
+inference/pipelines/diffusion/scheduler-contract.js
 inference/pipelines/diffusion/sd3-transformer.d.ts
 inference/pipelines/diffusion/sd3-transformer.js
 inference/pipelines/diffusion/sd3-weights.d.ts
@@ -844,6 +848,7 @@ inference/pipelines/text/linear-attention/state-checkpoint.d.ts
 inference/pipelines/text/linear-attention/state-clone.d.ts
 inference/pipelines/text/linear-attention/state-layout.d.ts
 inference/pipelines/text/load-errors.d.ts
+inference/pipelines/text/load-policy.d.ts
 inference/pipelines/text/logits/gpu-executor.d.ts
 inference/pipelines/text/logits/output-transform.d.ts
 inference/pipelines/text/logits/plan.d.ts
@@ -882,6 +887,7 @@ inference/pipelines/text/sequence-state.d.ts
 inference/pipelines/text/stopping.d.ts
 inference/pipelines/text/types.js
 inference/pipelines/text/weight-loading-config.d.ts
+inference/pipelines/video/feature-concat.d.ts
 inference/pipelines/video/frame-sampler.d.ts
 inference/pipelines/video/index.d.ts
 inference/pipelines/vision/attention.d.ts
@@ -895,6 +901,7 @@ inference/pipelines/vision/index.d.ts
 inference/pipelines/vision/ops.d.ts
 inference/pipelines/vision/patch-embed.d.ts
 inference/pipelines/vision/spatial-merge.d.ts
+inference/pipelines/vision/support.d.ts
 inference/pipelines/vision/weight-loading.d.ts
 inference/sampling-rng.d.ts
 inference/test-harness.d.ts
