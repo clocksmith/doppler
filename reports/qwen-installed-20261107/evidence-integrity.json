@@ -168,5 +168,25 @@
     "originalSha256": "5993e1f2cde9fccceb35a0fd1c8acdd1f4a521db0b8207d309ad177889d26a64",
     "publishedSha256": "5993e1f2cde9fccceb35a0fd1c8acdd1f4a521db0b8207d309ad177889d26a64",
     "pathsNormalized": false
+  },
+  "reploid-catalog-35b.json": {
+    "originalSha256": "89b076d9ed87903d5be35229d3acf56439c1d4f3c36bd91bc74f856d486a5531",
+    "publishedSha256": "89b076d9ed87903d5be35229d3acf56439c1d4f3c36bd91bc74f856d486a5531",
+    "pathsNormalized": false
+  },
+  "final-install-smoke.json": {
+    "originalSha256": "7084f8dcff3bf041410bf904acc4aaa07048ad1c7cc81dba43d5bb0caeb8385c",
+    "publishedSha256": "ee085e10036c5d06035e66d6b3e333bc5be60401592ebd0739e9c0e5f06a1564",
+    "pathsNormalized": true
+  },
+  "hosted-physical-final.json": {
+    "originalSha256": "7826e432c4d1aa592f4bb54110fa0aa0138a7a0a1fc187fffbd27eae94cb642f",
+    "publishedSha256": "7826e432c4d1aa592f4bb54110fa0aa0138a7a0a1fc187fffbd27eae94cb642f",
+    "pathsNormalized": false
+  },
+  "hosted-grid-final.png": {
+    "originalSha256": "1b280a2149a3d739a50e6155f20106f47c922994f2a6833bf30b91074c68c5d4",
+    "publishedSha256": "1b280a2149a3d739a50e6155f20106f47c922994f2a6833bf30b91074c68c5d4",
+    "pathsNormalized": false
   }
 }

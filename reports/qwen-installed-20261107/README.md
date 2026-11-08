@@ -89,3 +89,31 @@ failed discovery/metadata attempts remain in `results.json`; later successful
 smokes do not erase them. No model source was deleted. Native-directory
 confinement required owned copies for two small Reploid artifacts because the
 models volume cannot hardlink/reflink; Doppler views reference existing shards.
+
+## Installed and deployed result
+
+The committed `019dec78` runtime archive was installed independently of the
+in-progress snapshot and passed [actual generation/reuse](final-install-smoke.json)
+using the permanent authenticated 0.8B artifact view. The operator's private plan
+records exact runtime/artifact paths, selected profiles and the borrowed Node
+provider dependency; no daemon was started. Native Reploid checks on all four
+catalog identities passed: [0.8B](reploid-catalog-08.json),
+[2B](reploid-catalog-2b.json), [27B](reploid-catalog-27b.json) and
+[35B](reploid-catalog-35b.json). The consumer fixture and original receipts are
+also committed in Reploid `6f4ceecfe`.
+
+[The deployed release](deployed-release.json) pins source `019dec78`, verified
+0.8B/2B quickstart URLs, and the hosted shell inventory. Local-preview and
+production browser control checks passed with mocked generation; physical
+production capture is recorded [separately](hosted-physical-final.json): real
+OPFS import, `Hello!`, 72/72 prefill/decode frames, zero gaps and browser errors.
+[Grid screenshot](hosted-grid-final.png). No npm publication or replacement
+of the running provider is implied by this web deployment.
+
+Component: `doppler.repository-tooling`, `doppler.tests`, `doppler.runtime-source.gpu.kernels`
+and artifact catalog. Intent: preserved. Acceptance: retained byte-authentication,
+physical Metal/AMD geometry results, per-model AMD smokes, focused migration and
+dispatch tests, source typing/architecture/unused checks, kernel generators,
+runtime/package closure, quickstart/shell checks, and hosted browser controls.
+Boundary effects: D4DA hosts the explicitly pinned runtime; Reploid received
+only a test fixture and evidence, with no product/bundle or identity change.
