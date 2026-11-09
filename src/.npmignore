@@ -492,6 +492,7 @@ formats/gguf/tokenizer.d.ts
 formats/gguf/types.d.ts
 formats/litert/types.d.ts
 formats/load-json.d.ts
+formats/paged-source-reader.d.ts
 formats/plain-object.d.ts
 formats/q4k-dequant.d.ts
 formats/rdrr/distributed/parsing.d.ts
@@ -597,6 +598,7 @@ gpu/kernels/kernel-base.d.ts
 gpu/kernels/kernel-bindings.d.ts
 gpu/kernels/kernel-cache-lifecycle.d.ts
 gpu/kernels/kernel-execution.d.ts
+gpu/kernels/kernel-geometry.d.ts
 gpu/kernels/kernel-prewarm.d.ts
 gpu/kernels/kv-cache-write.d.ts
 gpu/kernels/kv-quantize.d.ts
@@ -931,6 +933,7 @@ loader/model-load-validation.d.ts
 loader/multi-model-loader.d.ts
 loader/multi-model-loader.js
 loader/per-layer-input-loader.d.ts
+loader/q4k-reference-weight.d.ts
 loader/shard-resolver.d.ts
 loader/tensor-load-error.d.ts
 loader/tensor-shard-indices.d.ts

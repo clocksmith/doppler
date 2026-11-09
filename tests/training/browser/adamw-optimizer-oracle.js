@@ -4,6 +4,7 @@ import { AdamOptimizer } from '../../../src/experimental/training/optimizer.js';
 import { getKernelCapabilities, initDevice } from '../../../src/gpu/device.js';
 import { createTensor } from '../../../src/gpu/tensor.js';
 import { acquireBuffer, readBuffer, releaseBuffer, uploadData } from '../../../src/memory/buffer-pool.js';
+import { compare } from './oracle-compare.js';
 
 function makeTensor(values, label) {
   const buffer = acquireBuffer(values.byteLength, undefined, label);
@@ -13,24 +14,6 @@ function makeTensor(values, label) {
 
 async function readF32(tensor) {
   return new Float32Array(await readBuffer(tensor.buffer, tensor.shape[0] * 4));
-}
-
-function compare(actual, expected) {
-  let maxAbsError = 0;
-  let squaredError = 0;
-  let allFinite = true;
-  for (let index = 0; index < expected.length; index += 1) {
-    const error = Math.abs(actual[index] - expected[index]);
-    maxAbsError = Math.max(maxAbsError, error);
-    squaredError += error * error;
-    allFinite = allFinite && Number.isFinite(actual[index]);
-  }
-  return {
-    elementCount: expected.length,
-    allFinite,
-    maxAbsError,
-    rmse: Math.sqrt(squaredError / expected.length),
-  };
 }
 
 function scalarStep(parameters, gradients, moment1, moment2, options, step) {

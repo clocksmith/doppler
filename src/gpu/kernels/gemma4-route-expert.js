@@ -4,15 +4,12 @@ import { createTensor } from '../tensor.js';
 import { getBuffer, getWeightDtype } from '../weight-buffer.js';
 import { VEC4_ELEMENTS_PER_WG } from './constants.js';
 import { unifiedKernelWrapper } from './kernel-execution.js';
+import { requirePositiveInteger as kernelPositiveInteger } from './kernel-geometry.js';
 
 const ROUTE_TILE_M = 4;
 const ROUTE_THREADS_PER_COL = 64;
 
-function assertPositiveInteger(value, label) {
-  if (!Number.isInteger(value) || value <= 0) {
-    throw new Error(`${label} must be a positive integer, got ${String(value)}.`);
-  }
-}
+const assertPositiveInteger = (value, label) => kernelPositiveInteger(value, label, '');
 
 function resolveInputMode(value) {
   if (value === 'token') return 0;

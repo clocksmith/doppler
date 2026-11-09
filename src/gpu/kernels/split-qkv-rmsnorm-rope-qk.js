@@ -9,18 +9,11 @@ import {
   resolveNormWeightDtype,
 } from './rmsnorm.js';
 import { WORKGROUP_SIZES } from './constants.js';
+import { requirePositiveInteger as kernelPositiveInteger, requireNonNegativeInteger as kernelNonNegativeInteger } from './kernel-geometry.js';
 
-function assertPositiveInteger(value, label) {
-  if (!Number.isInteger(value) || value <= 0) {
-    throw new Error(`split_qkv_rmsnorm_rope_qk requires ${label} to be a positive integer.`);
-  }
-}
+const assertPositiveInteger = (value, label) => kernelPositiveInteger(value, label, 'split_qkv_rmsnorm_rope_qk');
 
-function assertNonNegativeInteger(value, label) {
-  if (!Number.isInteger(value) || value < 0) {
-    throw new Error(`split_qkv_rmsnorm_rope_qk requires ${label} to be a non-negative integer.`);
-  }
-}
+const assertNonNegativeInteger = (value, label) => kernelNonNegativeInteger(value, label, 'split_qkv_rmsnorm_rope_qk');
 
 function assertQKVSizes(options) {
   const {

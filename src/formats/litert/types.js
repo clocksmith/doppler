@@ -1,4 +1,5 @@
 import { createFlatBufferTableReader } from '../flatbuffer-tables.js';
+import { createPagedByteReader, describeSource } from '../paged-source-reader.js';
 const TEXT_DECODER = new TextDecoder();
 const ZIP_TAIL_BYTES = 0xffff + 22;
 const ZIP_EOCD_SIGNATURE = 0x06054b50;
@@ -42,143 +43,16 @@ const LITERTLM_VALUE_TYPE = Object.freeze({
   Double: 12,
 });
 
-function normalizeSourceLabel(source) {
-  const raw = typeof source?.name === 'string' ? source.name.trim() : '';
-  return raw || 'LiteRT source';
-}
-
 function decodeAscii(bytes) {
   return Array.from(bytes, (value) => String.fromCharCode(value)).join('');
 }
 
-function toUint8Array(value, label) {
-  if (value instanceof Uint8Array) {
-    return value;
-  }
-  if (value instanceof ArrayBuffer) {
-    return new Uint8Array(value);
-  }
-  throw new Error(`${label} must return ArrayBuffer or Uint8Array.`);
-}
-
 function createPagedSourceReader(source) {
-  if (!source || typeof source.readRange !== 'function') {
-    throw new Error('LiteRT parser: source.readRange(offset, length) is required.');
-  }
-  const size = Number(source.size);
-  if (!Number.isFinite(size) || size < 8) {
-    throw new Error('LiteRT parser: source.size must be a finite byte length >= 8.');
-  }
-  const label = normalizeSourceLabel(source);
-  const pageCache = new Map();
-
-  async function loadPage(pageIndex) {
-    const cached = pageCache.get(pageIndex);
-    if (cached) {
-      return cached;
-    }
-    const pageOffset = pageIndex * LITERT_PAGE_BYTES;
-    const pageLength = Math.min(LITERT_PAGE_BYTES, size - pageOffset);
-    const raw = await source.readRange(pageOffset, pageLength);
-    const bytes = toUint8Array(raw, `${label} page ${pageIndex}`);
-    if (bytes.byteLength !== pageLength) {
-      throw new Error(
-        `LiteRT parser: short read for ${label} page ${pageIndex}. ` +
-        `Expected ${pageLength} bytes, got ${bytes.byteLength}.`
-      );
-    }
-    pageCache.set(pageIndex, bytes);
-    return bytes;
-  }
-
-  async function readSlice(offset, length) {
-    if (!Number.isFinite(offset) || !Number.isFinite(length)) {
-      throw new Error(`LiteRT parser: invalid read request (${offset}, ${length}).`);
-    }
-    const start = Math.max(0, Math.floor(offset));
-    const byteLength = Math.max(0, Math.floor(length));
-    if (start + byteLength > size) {
-      throw new Error(
-        `LiteRT parser: read exceeds ${label} bounds (offset=${start}, length=${byteLength}, size=${size}).`
-      );
-    }
-    if (byteLength === 0) {
-      return new Uint8Array(0);
-    }
-    const pageStart = Math.floor(start / LITERT_PAGE_BYTES);
-    const pageEnd = Math.floor((start + byteLength - 1) / LITERT_PAGE_BYTES);
-    if (pageStart === pageEnd) {
-      const page = await loadPage(pageStart);
-      const sliceOffset = start - pageStart * LITERT_PAGE_BYTES;
-      return page.subarray(sliceOffset, sliceOffset + byteLength);
-    }
-    const out = new Uint8Array(byteLength);
-    let writeOffset = 0;
-    for (let pageIndex = pageStart; pageIndex <= pageEnd; pageIndex++) {
-      const page = await loadPage(pageIndex);
-      const pageBase = pageIndex * LITERT_PAGE_BYTES;
-      const sliceStart = pageIndex === pageStart ? start - pageBase : 0;
-      const sliceEnd = pageIndex === pageEnd
-        ? (start + byteLength) - pageBase
-        : page.byteLength;
-      const slice = page.subarray(sliceStart, sliceEnd);
-      out.set(slice, writeOffset);
-      writeOffset += slice.byteLength;
-    }
-    return out;
-  }
-
-  async function readUint8(offset) {
-    const bytes = await readSlice(offset, 1);
-    return bytes[0];
-  }
-
-  async function readUint16(offset) {
-    const bytes = await readSlice(offset, 2);
-    return new DataView(bytes.buffer, bytes.byteOffset, 2).getUint16(0, true);
-  }
-
-  async function readInt16(offset) {
-    const bytes = await readSlice(offset, 2);
-    return new DataView(bytes.buffer, bytes.byteOffset, 2).getInt16(0, true);
-  }
-
-  async function readUint32(offset) {
-    const bytes = await readSlice(offset, 4);
-    return new DataView(bytes.buffer, bytes.byteOffset, 4).getUint32(0, true);
-  }
+  const reader = createPagedByteReader(source, { pageBytes: LITERT_PAGE_BYTES, parser: 'LiteRT parser', defaultLabel: 'LiteRT source' });
+  const { readSlice, readUint8, readInt16, readUint16, readInt32, readUint32, readFloat32, readFloat64, readBigInt64, readBigUint64 } = reader;
 
   const { getTableFieldPos, readStringAtField, readTableVectorLength, readTableVectorEntry } =
     createFlatBufferTableReader({ readSlice, readInt32, readUint16 });
-
-  async function readInt32(offset) {
-    const bytes = await readSlice(offset, 4);
-    return new DataView(bytes.buffer, bytes.byteOffset, 4).getInt32(0, true);
-  }
-
-  async function readFloat32(offset) {
-    const bytes = await readSlice(offset, 4);
-    return new DataView(bytes.buffer, bytes.byteOffset, 4).getFloat32(0, true);
-  }
-
-  async function readBigUint64(offset) {
-    const bytes = await readSlice(offset, 8);
-    return new DataView(bytes.buffer, bytes.byteOffset, 8).getBigUint64(0, true);
-  }
-
-  async function readBigInt64(offset) {
-    const bytes = await readSlice(offset, 8);
-    return new DataView(bytes.buffer, bytes.byteOffset, 8).getBigInt64(0, true);
-  }
-
-  async function readFloat64(offset) {
-    const bytes = await readSlice(offset, 8);
-    return new DataView(bytes.buffer, bytes.byteOffset, 8).getFloat64(0, true);
-  }
-
-
-
-
 
   async function readScalarAtField(tablePos, fieldIndex, type) {
     const fieldPos = await getTableFieldPos(tablePos, fieldIndex);
@@ -215,20 +89,8 @@ function createPagedSourceReader(source) {
     }
   }
 
-
-
-
-
   return {
-    label,
-    size,
-    readSlice,
-    readUint8,
-    readUint16,
-    readUint32,
-    readInt32,
-    readBigUint64,
-    readBigInt64,
+    ...reader,
     getTableFieldPos,
     readStringAtField,
     readScalarAtField,
@@ -418,7 +280,7 @@ export async function parseLiteRTLMFromSource(source) {
 
   const headerBytes = await reader.readSlice(32, headerEndOffset - 32);
   const headerReader = createPagedSourceReader({
-    name: `${normalizeSourceLabel(source)} header`,
+    name: `${describeSource(source, 'LiteRT source')} header`,
     size: headerBytes.byteLength,
     async readRange(offset, length) {
       const start = Math.max(0, Math.floor(offset));

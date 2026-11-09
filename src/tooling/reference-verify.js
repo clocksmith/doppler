@@ -4,21 +4,10 @@ import path from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { runNodeCommand } from './node-command-runner.js';
 import { runBrowserCommandInNode } from './node-browser-command-runner.js';
+import { mergeRuntimeValues } from '../config/runtime-merge.js';
 
 const DEFAULT_BROWSER_TIMEOUT_MS = 600000;
 const PROGRAM_BUNDLE_REFERENCE_TRANSCRIPT_SCHEMA_ID = 'doppler.reference-transcript/v1';
-
-function mergePlainObjects(base, patch) {
-  const output = { ...(isPlainObject(base) ? base : {}) };
-  for (const [key, value] of Object.entries(patch)) {
-    if (isPlainObject(value) && isPlainObject(output[key])) {
-      output[key] = mergePlainObjects(output[key], value);
-    } else {
-      output[key] = value;
-    }
-  }
-  return output;
-}
 
 export async function normalizeRuntimeConfigInput(input) {
   if (input == null || input === '') return {};
@@ -45,9 +34,11 @@ export function withReferenceTranscriptRuntimeConfig(runtimeInput) {
       },
     },
   };
+  // The canonical runtime merge keeps base values under undefined overrides,
+  // treats null as an explicit reset and replaces arrays whole.
   return {
     ...runtimeInput,
-    runtimeConfig: mergePlainObjects(runtimeInput.runtimeConfig ?? {}, proofRuntimeConfig),
+    runtimeConfig: mergeRuntimeValues(runtimeInput.runtimeConfig ?? {}, proofRuntimeConfig),
   };
 }
 

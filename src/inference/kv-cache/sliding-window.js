@@ -58,237 +58,112 @@ export class SlidingWindowKVCache extends KVCache {
   }
 
   
-  updateFromGPU(
-    layerIdx,
-    keysBuffer,
-    valuesBuffer,
-    startPos,
-    numTokens
-  ) {
+  // Ring-buffer writes share one plan: which tokens survive when more arrive
+  // than the window holds, where the write starts and how it wraps. Immediate
+  // and recorded paths differ only in who owns the encoder and submits it;
+  // window bookkeeping always follows the encoded commands.
+  _beginGpuWrite(name, layerIdx, startPos, numTokens) {
     this._assertLayerIndex(layerIdx);
     this._assertStartPos(startPos);
     if (!Number.isInteger(numTokens) || numTokens < 0) {
-      throw new Error('SlidingWindowKVCache updateFromGPU requires a non-negative integer token count.');
+      throw new Error(`SlidingWindowKVCache ${name} requires a non-negative integer token count.`);
     }
-    if (numTokens === 0) {
-      return;
-    }
+    return numTokens === 0 ? null : this.layers[layerIdx];
+  }
 
-    const layer =  (this.layers[layerIdx]);
+  _planRingWrite(name, keysBuffer, valuesBuffer, startPos, numTokens, unitsPerToken, bytesPerUnit) {
+    const windowSize = this.windowSize;
+    const fullStart = startPos;
+    const fullTokens = numTokens;
+    let srcOffset = 0;
+    if (numTokens > windowSize) {
+      const dropTokens = numTokens - windowSize;
+      startPos += dropTokens;
+      numTokens = windowSize;
+      srcOffset = dropTokens * unitsPerToken;
+    }
+    const writePos = startPos % windowSize;
+    const bytesNeeded = (srcOffset + (numTokens * unitsPerToken)) * bytesPerUnit;
+    if (bytesNeeded > keysBuffer.size || bytesNeeded > valuesBuffer.size) {
+      throw new Error(`SlidingWindowKVCache ${name} buffer size is smaller than requested write.`);
+    }
+    const firstChunkTokens = Math.min(numTokens, windowSize - writePos);
+    return { fullStart, fullTokens, srcOffset, writePos, firstChunkTokens, secondChunkTokens: numTokens - firstChunkTokens, unitsPerToken };
+  }
+
+  _encodeRingCopy(encoder, layer, keysBuffer, valuesBuffer, plan) {
+    const firstBytes = plan.firstChunkTokens * plan.unitsPerToken;
+    const destOffset = plan.writePos * plan.unitsPerToken;
+    encoder.copyBufferToBuffer(keysBuffer, plan.srcOffset, layer.keysGPU, destOffset, firstBytes);
+    encoder.copyBufferToBuffer(valuesBuffer, plan.srcOffset, layer.valuesGPU, destOffset, firstBytes);
+    if (plan.secondChunkTokens > 0) {
+      const secondBytes = plan.secondChunkTokens * plan.unitsPerToken;
+      const wrapOffset = plan.srcOffset + firstBytes;
+      encoder.copyBufferToBuffer(keysBuffer, wrapOffset, layer.keysGPU, 0, secondBytes);
+      encoder.copyBufferToBuffer(valuesBuffer, wrapOffset, layer.valuesGPU, 0, secondBytes);
+    }
+  }
+
+  _noteRingWrite(layerIdx, layer, plan) {
+    const windowSize = this.windowSize;
+    const seen = Math.max(this.totalTokensSeen, plan.fullStart + plan.fullTokens);
+    const storedLen = Math.min(windowSize, Math.max(0, seen));
+    this.totalTokensSeen = Math.max(this.totalTokensSeen, seen);
+    const prevLayerSeqLen = Math.min(Math.max(layer.seqLen || 0, 0), windowSize);
+    layer.seqLen = Math.max(prevLayerSeqLen, storedLen);
+    if (layerIdx === this.numLayers - 1) {
+      this.currentSeqLen = Math.min(this.currentSeqLen, windowSize);
+      this.currentSeqLen = Math.max(this.currentSeqLen, storedLen);
+    }
+  }
+
+  updateFromGPU(layerIdx, keysBuffer, valuesBuffer, startPos, numTokens) {
+    const layer = this._beginGpuWrite('updateFromGPU', layerIdx, startPos, numTokens);
+    if (!layer) return;
     const device = getDevice();
-
     if (!device || !layer.keysGPU) {
       throw new Error('GPU cache not initialized');
     }
-
-    const windowSize = this.windowSize;
-    const bytesPerToken = this.kvSize * this.bytesPerElem;
-    const fullStart = startPos;
-    const fullTokens = numTokens;
-    let srcByteOffset = 0;
-
-    if (numTokens > windowSize) {
-      const dropTokens = numTokens - windowSize;
-      startPos += dropTokens;
-      numTokens = windowSize;
-      srcByteOffset = dropTokens * bytesPerToken;
-    }
-    const writePos = startPos % windowSize;
-    const bytesNeeded = srcByteOffset + (numTokens * bytesPerToken);
-    if (bytesNeeded > keysBuffer.size || bytesNeeded > valuesBuffer.size) {
-      throw new Error('SlidingWindowKVCache updateFromGPU buffer size is smaller than requested write.');
-    }
-
-    const firstChunkTokens = Math.min(numTokens, windowSize - writePos);
-    const firstChunkBytes = firstChunkTokens * bytesPerToken;
-    const secondChunkTokens = numTokens - firstChunkTokens;
-    const secondChunkBytes = secondChunkTokens * bytesPerToken;
-
+    const plan = this._planRingWrite('updateFromGPU', keysBuffer, valuesBuffer, startPos, numTokens, this.kvSize * this.bytesPerElem, 1);
     const encoder = device.createCommandEncoder({ label: 'kv_cache_update_sliding' });
-
-    const destByteOffset1 = writePos * bytesPerToken;
-    encoder.copyBufferToBuffer(keysBuffer, srcByteOffset, layer.keysGPU, destByteOffset1, firstChunkBytes);
-    encoder.copyBufferToBuffer(valuesBuffer, srcByteOffset, layer.valuesGPU, destByteOffset1, firstChunkBytes);
-
-    if (secondChunkTokens > 0) {
-      const srcByteOffset2 = srcByteOffset + firstChunkBytes;
-      encoder.copyBufferToBuffer(keysBuffer, srcByteOffset2, layer.keysGPU, 0, secondChunkBytes);
-      encoder.copyBufferToBuffer(valuesBuffer, srcByteOffset2, layer.valuesGPU, 0, secondChunkBytes);
-    }
-
+    this._encodeRingCopy(encoder, layer, keysBuffer, valuesBuffer, plan);
     device.queue.submit([encoder.finish()]);
-
-    const seen = Math.max(this.totalTokensSeen, fullStart + fullTokens);
-    const storedLen = Math.min(windowSize, Math.max(0, seen));
-    this.totalTokensSeen = Math.max(this.totalTokensSeen, seen);
-    const prevLayerSeqLen = Math.min(Math.max(layer.seqLen || 0, 0), windowSize);
-
-    layer.seqLen = Math.max(prevLayerSeqLen, storedLen);
-    if (layerIdx === this.numLayers - 1) {
-      this.currentSeqLen = Math.min(this.currentSeqLen, windowSize);
-      this.currentSeqLen = Math.max(this.currentSeqLen, storedLen);
-    }
+    this._noteRingWrite(layerIdx, layer, plan);
   }
 
-  
-  recordUpdateFromGPU(
-    recorder,
-    layerIdx,
-    keysBuffer,
-    valuesBuffer,
-    startPos,
-    numTokens
-  ) {
-    this._assertLayerIndex(layerIdx);
-    this._assertStartPos(startPos);
-    if (!Number.isInteger(numTokens) || numTokens < 0) {
-      throw new Error('SlidingWindowKVCache recordUpdateFromGPU requires a non-negative integer token count.');
-    }
-    if (numTokens === 0) {
-      return;
-    }
-
-    const layer =  (this.layers[layerIdx]);
+  recordUpdateFromGPU(recorder, layerIdx, keysBuffer, valuesBuffer, startPos, numTokens) {
+    const layer = this._beginGpuWrite('recordUpdateFromGPU', layerIdx, startPos, numTokens);
+    if (!layer) return;
     const encoder = recorder.getEncoder();
-
     if (!layer.keysGPU) {
       throw new Error('GPU cache not initialized');
     }
-
-    const windowSize = this.windowSize;
-    const bytesPerToken = this.kvSize * this.bytesPerElem;
-    const fullStart = startPos;
-    const fullTokens = numTokens;
-    let srcByteOffset = 0;
-
-    if (numTokens > windowSize) {
-      const dropTokens = numTokens - windowSize;
-      startPos += dropTokens;
-      numTokens = windowSize;
-      srcByteOffset = dropTokens * bytesPerToken;
-    }
-    const writePos = startPos % windowSize;
-    const bytesNeeded = srcByteOffset + (numTokens * bytesPerToken);
-    if (bytesNeeded > keysBuffer.size || bytesNeeded > valuesBuffer.size) {
-      throw new Error('SlidingWindowKVCache recordUpdateFromGPU buffer size is smaller than requested write.');
-    }
-
-    const firstChunkTokens = Math.min(numTokens, windowSize - writePos);
-    const firstChunkBytes = firstChunkTokens * bytesPerToken;
-    const secondChunkTokens = numTokens - firstChunkTokens;
-    const secondChunkBytes = secondChunkTokens * bytesPerToken;
-
-    const destByteOffset1 = writePos * bytesPerToken;
-    encoder.copyBufferToBuffer(keysBuffer, srcByteOffset, layer.keysGPU, destByteOffset1, firstChunkBytes);
-    encoder.copyBufferToBuffer(valuesBuffer, srcByteOffset, layer.valuesGPU, destByteOffset1, firstChunkBytes);
-
-    if (secondChunkTokens > 0) {
-      const srcByteOffset2 = srcByteOffset + firstChunkBytes;
-      encoder.copyBufferToBuffer(keysBuffer, srcByteOffset2, layer.keysGPU, 0, secondChunkBytes);
-      encoder.copyBufferToBuffer(valuesBuffer, srcByteOffset2, layer.valuesGPU, 0, secondChunkBytes);
-    }
-
-    // Update metadata (copies happen when encoder is submitted)
-    const seen = Math.max(this.totalTokensSeen, fullStart + fullTokens);
-    const storedLen = Math.min(windowSize, Math.max(0, seen));
-    this.totalTokensSeen = Math.max(this.totalTokensSeen, seen);
-    const prevLayerSeqLen = Math.min(Math.max(layer.seqLen || 0, 0), windowSize);
-
-    layer.seqLen = Math.max(prevLayerSeqLen, storedLen);
-    if (layerIdx === this.numLayers - 1) {
-      this.currentSeqLen = Math.min(this.currentSeqLen, windowSize);
-      this.currentSeqLen = Math.max(this.currentSeqLen, storedLen);
-    }
+    const plan = this._planRingWrite('recordUpdateFromGPU', keysBuffer, valuesBuffer, startPos, numTokens, this.kvSize * this.bytesPerElem, 1);
+    this._encodeRingCopy(encoder, layer, keysBuffer, valuesBuffer, plan);
+    this._noteRingWrite(layerIdx, layer, plan);
   }
 
-
-  async recordUpdateF32ToF16FromGPU(
-    recorder,
-    layerIdx,
-    keysBuffer,
-    valuesBuffer,
-    startPos,
-    numTokens
-  ) {
+  async recordUpdateF32ToF16FromGPU(recorder, layerIdx, keysBuffer, valuesBuffer, startPos, numTokens) {
     this._assertLayerIndex(layerIdx);
     this._assertStartPos(startPos);
     if (this.kvDtype !== 'f16') {
       throw new Error('SlidingWindowKVCache recordUpdateF32ToF16FromGPU requires an f16 KV cache.');
     }
-    if (!Number.isInteger(numTokens) || numTokens < 0) {
-      throw new Error('SlidingWindowKVCache recordUpdateF32ToF16FromGPU requires a non-negative integer token count.');
-    }
-    if (numTokens === 0) {
-      return;
-    }
-
-    const layer =  (this.layers[layerIdx]);
+    const layer = this._beginGpuWrite('recordUpdateF32ToF16FromGPU', layerIdx, startPos, numTokens);
+    if (!layer) return;
     if (!layer.keysGPU) {
       throw new Error('GPU cache not initialized');
     }
-
-    const windowSize = this.windowSize;
-    const sourceBytesPerToken = this.kvSize * 4;
-    const fullStart = startPos;
-    const fullTokens = numTokens;
-    let srcElementOffset = 0;
-
-    if (numTokens > windowSize) {
-      const dropTokens = numTokens - windowSize;
-      startPos += dropTokens;
-      numTokens = windowSize;
-      srcElementOffset = dropTokens * this.kvSize;
+    const plan = this._planRingWrite('recordUpdateF32ToF16FromGPU', keysBuffer, valuesBuffer, startPos, numTokens, this.kvSize, 4);
+    await recordKVCacheWriteF32ToF16(recorder, keysBuffer, valuesBuffer, layer.keysGPU, layer.valuesGPU,
+      { srcOffset: plan.srcOffset, dstOffset: plan.writePos * this.kvSize, elementCount: plan.firstChunkTokens * this.kvSize });
+    if (plan.secondChunkTokens > 0) {
+      await recordKVCacheWriteF32ToF16(recorder, keysBuffer, valuesBuffer, layer.keysGPU, layer.valuesGPU,
+        { srcOffset: plan.srcOffset + (plan.firstChunkTokens * this.kvSize), dstOffset: 0, elementCount: plan.secondChunkTokens * this.kvSize });
     }
-    const writePos = startPos % windowSize;
-    const sourceBytesNeeded = (srcElementOffset * 4) + (numTokens * sourceBytesPerToken);
-    if (sourceBytesNeeded > keysBuffer.size || sourceBytesNeeded > valuesBuffer.size) {
-      throw new Error('SlidingWindowKVCache recordUpdateF32ToF16FromGPU buffer size is smaller than requested write.');
-    }
-
-    const firstChunkTokens = Math.min(numTokens, windowSize - writePos);
-    const secondChunkTokens = numTokens - firstChunkTokens;
-
-    await recordKVCacheWriteF32ToF16(
-      recorder,
-      keysBuffer,
-      valuesBuffer,
-      layer.keysGPU,
-      layer.valuesGPU,
-      {
-        srcOffset: srcElementOffset,
-        dstOffset: writePos * this.kvSize,
-        elementCount: firstChunkTokens * this.kvSize,
-      }
-    );
-
-    if (secondChunkTokens > 0) {
-      await recordKVCacheWriteF32ToF16(
-        recorder,
-        keysBuffer,
-        valuesBuffer,
-        layer.keysGPU,
-        layer.valuesGPU,
-        {
-          srcOffset: srcElementOffset + (firstChunkTokens * this.kvSize),
-          dstOffset: 0,
-          elementCount: secondChunkTokens * this.kvSize,
-        }
-      );
-    }
-
-    const seen = Math.max(this.totalTokensSeen, fullStart + fullTokens);
-    const storedLen = Math.min(windowSize, Math.max(0, seen));
-    this.totalTokensSeen = Math.max(this.totalTokensSeen, seen);
-    const prevLayerSeqLen = Math.min(Math.max(layer.seqLen || 0, 0), windowSize);
-
-    layer.seqLen = Math.max(prevLayerSeqLen, storedLen);
-    if (layerIdx === this.numLayers - 1) {
-      this.currentSeqLen = Math.min(this.currentSeqLen, windowSize);
-      this.currentSeqLen = Math.max(this.currentSeqLen, storedLen);
-    }
+    this._noteRingWrite(layerIdx, layer, plan);
   }
 
-  
   _slideWindow(numNewTokens) {
     if (!Number.isInteger(numNewTokens) || numNewTokens <= 0) {
       return;

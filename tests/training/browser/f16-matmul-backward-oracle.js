@@ -5,6 +5,7 @@ import { createTensor } from '../../../src/gpu/tensor.js';
 import { runMatmulBackwardDx } from '../../../src/gpu/kernels/backward/matmul.js';
 import { f16ToF32Array, f32ToF16Array } from '../../../src/inference/kv-cache/types.js';
 import { acquireBuffer, readBuffer, releaseBuffer, uploadData } from '../../../src/memory/buffer-pool.js';
+import { compare } from './oracle-compare.js';
 
 function makeTensor(values, dtype, shape, label) {
   const byteLength = Math.ceil(values.byteLength / 4) * 4;
@@ -35,24 +36,6 @@ function cpuInputGradient(gradOutput, weight, M, K, N, transposeB) {
     }
   }
   return output;
-}
-
-function compare(actual, expected) {
-  let maxAbsError = 0;
-  let squaredError = 0;
-  let allFinite = true;
-  for (let index = 0; index < expected.length; index += 1) {
-    const error = Math.abs(actual[index] - expected[index]);
-    maxAbsError = Math.max(maxAbsError, error);
-    squaredError += error * error;
-    allFinite = allFinite && Number.isFinite(actual[index]);
-  }
-  return {
-    elementCount: expected.length,
-    allFinite,
-    maxAbsError,
-    rmse: Math.sqrt(squaredError / expected.length),
-  };
 }
 
 async function executeCase(gradOutput, weightValues, M, K, N, transposeB, label) {

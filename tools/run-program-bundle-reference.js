@@ -9,6 +9,8 @@ import { writeProgramBundle } from '../src/tooling/program-bundle.js';
 import { destroyDevice } from '../src/gpu/device.js';
 import { releaseNodeWebGPU } from '../src/tooling/node-webgpu.js';
 import { sha256Hex } from '../src/formats/sha256.js';
+import { mergeRuntimeValues } from '../src/config/runtime-merge.js';
+import { normalizeRuntimeConfigInput } from '../src/tooling/reference-verify.js';
 
 const DEFAULT_PROMPT = 'The color of the sky is';
 const DEFAULT_MAX_TOKENS = 8;
@@ -311,32 +313,6 @@ export function resolveRuntimeConfigArtifactPath(input) {
   return path.resolve(raw);
 }
 
-async function normalizeRuntimeConfigInput(input) {
-  if (input == null || input === '') return {};
-  const raw = String(input).trim();
-  if (!raw) return {};
-  if (raw.startsWith('{')) {
-    return { runtimeConfig: JSON.parse(raw) };
-  }
-  return { runtimeConfigUrl: pathToFileURL(path.resolve(raw)).href };
-}
-
-function isPlainObject(value) {
-  return value != null && typeof value === 'object' && !Array.isArray(value);
-}
-
-function mergePlainObjects(base, patch) {
-  const output = { ...(isPlainObject(base) ? base : {}) };
-  for (const [key, value] of Object.entries(patch)) {
-    if (isPlainObject(value) && isPlainObject(output[key])) {
-      output[key] = mergePlainObjects(output[key], value);
-    } else {
-      output[key] = value;
-    }
-  }
-  return output;
-}
-
 function withReferenceTranscriptRuntimeConfig(runtimeInput, options = {}) {
   const harnessPatch = {
     referenceTranscript: {
@@ -360,7 +336,7 @@ function withReferenceTranscriptRuntimeConfig(runtimeInput, options = {}) {
   };
   return {
     ...runtimeInput,
-    runtimeConfig: mergePlainObjects(runtimeInput.runtimeConfig ?? {}, proofRuntimeConfig),
+    runtimeConfig: mergeRuntimeValues(runtimeInput.runtimeConfig ?? {}, proofRuntimeConfig),
   };
 }
 

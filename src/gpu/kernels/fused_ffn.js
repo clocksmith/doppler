@@ -16,6 +16,7 @@ import { resolveNormWeightDtype } from './rmsnorm.js';
 import { getShaderModule } from './shader-cache.js';
 import { getKernelConfig } from './kernel-configs.js';
 import { assertSubgroupPartition } from './subgroup-partition.js';
+import { requirePositiveInteger as kernelPositiveInteger } from './kernel-geometry.js';
 
 class FusedFFNKernel extends KernelBase {
 
@@ -193,11 +194,7 @@ function resolveSwigluLimit(value, context) {
   return value;
 }
 
-function assertPositiveIntegerConstant(value, name, context) {
-  if (!Number.isInteger(value) || value <= 0) {
-    throw new Error(`${context} requires ${name} to be a positive integer; got ${String(value)}.`);
-  }
-}
+const assertPositiveIntegerConstant = (value, name, context) => kernelPositiveInteger(value, name, context);
 
 function normalizeQ4KPipelineConstants(constants, context) {
   if (constants == null) return null;

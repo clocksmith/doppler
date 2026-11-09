@@ -10,12 +10,9 @@ import {
   planRMSNormDispatch,
   resolveNormWeightDtype,
 } from './rmsnorm.js';
+import { requirePositiveInteger as kernelPositiveInteger } from './kernel-geometry.js';
 
-function assertPositiveInteger(value, label) {
-  if (!Number.isInteger(value) || value <= 0) {
-    throw new Error(`RMSNorm QK requires ${label} to be a positive integer.`);
-  }
-}
+const assertPositiveInteger = (value, label) => kernelPositiveInteger(value, label, 'RMSNorm QK');
 
 function assertBufferCapacity(buffer, requiredBytes, label) {
   if (Number.isFinite(buffer?.size) && requiredBytes > buffer.size) {

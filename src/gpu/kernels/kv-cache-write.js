@@ -9,6 +9,7 @@ import {
 import { createUniformBufferWithView } from './uniform-utils.js';
 import { getKernelConfig } from './kernel-configs.js';
 import { hasRequiredFeatures } from './feature-check.js';
+import { requireNonNegativeInteger as kernelNonNegativeInteger } from './kernel-geometry.js';
 
 function calculate2DDispatch(workgroups) {
   const maxWorkgroupsPerDim = GPU_LIMITS.MAX_WORKGROUPS;
@@ -17,11 +18,7 @@ function calculate2DDispatch(workgroups) {
     : [maxWorkgroupsPerDim, Math.ceil(workgroups / maxWorkgroupsPerDim), 1];
 }
 
-function assertNonNegativeInteger(value, label) {
-  if (!Number.isInteger(value) || value < 0) {
-    throw new Error(`KV cache write requires ${label} to be a non-negative integer.`);
-  }
-}
+const assertNonNegativeInteger = (value, label) => kernelNonNegativeInteger(value, label, 'KV cache write');
 
 function assertBufferCapacity(buffer, offset, elementCount, bytesPerElement, label) {
   const requiredBytes = (offset + elementCount) * bytesPerElement;

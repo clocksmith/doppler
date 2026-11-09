@@ -1,6 +1,7 @@
 import { setRegistryUrl } from '../../../src/config/kernels/registry.js';
 import { setPlatformsBaseUrl } from '../../../src/config/platforms/loader.js';
 import { runQwenHybridSftMicrostep } from '../../../src/experimental/training/qwen-hybrid-sft-microstep.js';
+import { compare } from './oracle-compare.js';
 import {
   createQwenSftBackendParityFixture,
 } from '../../../src/experimental/training/qwen-sft-backend-parity-fixture.js';
@@ -35,26 +36,9 @@ export async function readF32(tensor) {
   return new Float32Array(await readBuffer(tensor.buffer, count * 4));
 }
 
-export function compare(actual, expected) {
-  if (actual.length !== expected.length) {
-    throw new Error(`Parity array length mismatch: ${actual.length} != ${expected.length}.`);
-  }
-  let maxAbsError = 0;
-  let squaredError = 0;
-  let allFinite = true;
-  for (let index = 0; index < expected.length; index += 1) {
-    const error = Math.abs(actual[index] - expected[index]);
-    maxAbsError = Math.max(maxAbsError, error);
-    squaredError += error * error;
-    allFinite = allFinite && Number.isFinite(actual[index]) && Number.isFinite(expected[index]);
-  }
-  return {
-    elementCount: expected.length,
-    allFinite,
-    maxAbsError,
-    rmse: Math.sqrt(squaredError / expected.length),
-  };
-}
+// The prefix-parity oracle imports the comparator from here; both share the
+// length-checked metric with every other training oracle.
+export { compare };
 
 export function updateSimilarity(actual, expected, initial) {
   let dot = 0;

@@ -9,6 +9,9 @@
     "test:unit"
   ],
   "triggered": {
+    "conversion:profiles:check": {
+      "inputs": ["tools/conversion-authoring/**", "src/config/conversion/qwen3/*.json", "tools/sync-conversion-profiles.js"]
+    },
     "agents:verify": {
       "inputs": ["AGENTS.md", "CLAUDE.md", "GEMINI.md", "skills/**", ".agents/**", ".claude/**", ".gemini/**", ".codex/**", "tools/policies/agent-parity-policy.json"]
     },

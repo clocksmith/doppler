@@ -11,6 +11,19 @@ export declare function unifiedKernelWrapper(
   signal?: AbortSignal | null
 ): Promise<boolean>;
 
+export interface KernelOutputSpec {
+  supplied?: GPUBuffer | null;
+  bytes?: number;
+  usage?: number;
+  label?: string;
+}
+
+export declare function withKernelOutputs<T, Names extends string>(
+  target: import('../command-recorder.js').CommandRecorder | GPUDevice | null,
+  specs: Record<Names, KernelOutputSpec>,
+  execute: (outputs: Record<Names, GPUBuffer>) => Promise<T>
+): Promise<T>;
+
 export declare function withKernelOutput<T>(
   target: import('../command-recorder.js').CommandRecorder | GPUDevice | null,
   supplied: GPUBuffer | null, bytes: number, label: string,

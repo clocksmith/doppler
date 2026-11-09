@@ -41,163 +41,92 @@ export function update(layerIdx, keys, values, startPos = this.currentSeqLen) {
     this.currentSeqLen = Math.max(this.currentSeqLen, startPos + numNewTokens);
   }
 
-export function updateFromGPU(layerIdx, keysBuffer, valuesBuffer, startPos, numTokens) {
-    this._assertLayerIndex(layerIdx);
-    this._assertStartPos(startPos);
-    if (!Number.isInteger(numTokens) || numTokens < 0) {
-      throw new Error('KVCache updateFromGPU requires a non-negative integer token count.');
-    }
-    if (numTokens === 0) {
-      return;
-    }
-    this.counters.gpuUpdateCalls += 1;
-    this.counters.tokensWritten += numTokens;
-
-    const layer =  (this.layers[layerIdx]);
-    const device = getDevice();
-
-    if (!device || !layer.keysGPU) {
-      throw new Error('GPU cache not initialized');
-    }
-
-    if (startPos + numTokens > this.maxSeqLen) {
-      throw new Error(
-        `Cache overflow: ${startPos + numTokens} > ${this.maxSeqLen}`
-      );
-    }
-
-    const byteOffset = startPos * this.kvSize * this.bytesPerElem;
-    const byteSize = numTokens * this.kvSize * this.bytesPerElem;
-    if (byteSize > keysBuffer.size || byteSize > valuesBuffer.size) {
-      throw new Error('KVCache updateFromGPU buffer size is smaller than requested write.');
-    }
-
-    // Copy directly from source buffers to cache buffers
-    const encoder = device.createCommandEncoder({ label: 'kv_cache_update' });
-    encoder.copyBufferToBuffer(keysBuffer, 0, layer.keysGPU, byteOffset, byteSize);
-    encoder.copyBufferToBuffer(valuesBuffer, 0, layer.valuesGPU, byteOffset, byteSize);
-    device.queue.submit([encoder.finish()]);
-
-    if (this.layout === 'paged') {
-      const neededPages = Math.ceil((startPos + numTokens) / this.pageSize);
-      if (Number.isFinite(layer.allocatedPages)) {
-        layer.allocatedPages = Math.max(layer.allocatedPages, neededPages);
-      } else {
-        layer.allocatedPages = neededPages;
-      }
-    }
-
-    layer.seqLen = Math.max(layer.seqLen, startPos + numTokens);
-    this.totalTokensSeen = Math.max(this.totalTokensSeen, startPos + numTokens);
-
-    this.currentSeqLen = Math.max(this.currentSeqLen, startPos + numTokens);
+// Shared mechanics for GPU-side writes into a base cache: span validation and
+// counters, the two copy commands, and the bookkeeping every write advances.
+// Immediate and recorded paths differ only in who owns the encoder and when it
+// is submitted; metadata always advances after the commands are encoded.
+function beginGpuWrite(cache, name, layerIdx, startPos, numTokens, counter, needDevice) {
+  cache._assertLayerIndex(layerIdx);
+  cache._assertStartPos(startPos);
+  if (!Number.isInteger(numTokens) || numTokens < 0) {
+    throw new Error(`KVCache ${name} requires a non-negative integer token count.`);
   }
+  if (numTokens === 0) {
+    return null;
+  }
+  cache.counters[counter] += 1;
+  cache.counters.tokensWritten += numTokens;
+  const layer = cache.layers[layerIdx];
+  const device = needDevice ? getDevice() : null;
+  if ((needDevice && !device) || !layer.keysGPU) {
+    throw new Error('GPU cache not initialized');
+  }
+  if (startPos + numTokens > cache.maxSeqLen) {
+    throw new Error(`Cache overflow: ${startPos + numTokens} > ${cache.maxSeqLen}`);
+  }
+  return { layer, device };
+}
+
+function contiguousCopySpan(cache, name, keysBuffer, valuesBuffer, startPos, numTokens) {
+  const byteOffset = startPos * cache.kvSize * cache.bytesPerElem;
+  const byteSize = numTokens * cache.kvSize * cache.bytesPerElem;
+  if (byteSize > keysBuffer.size || byteSize > valuesBuffer.size) {
+    throw new Error(`KVCache ${name} buffer size is smaller than requested write.`);
+  }
+  return { byteOffset, byteSize };
+}
+
+function encodeContiguousCopy(encoder, layer, keysBuffer, valuesBuffer, span) {
+  encoder.copyBufferToBuffer(keysBuffer, 0, layer.keysGPU, span.byteOffset, span.byteSize);
+  encoder.copyBufferToBuffer(valuesBuffer, 0, layer.valuesGPU, span.byteOffset, span.byteSize);
+}
+
+function noteWrittenSpan(cache, layer, startPos, numTokens) {
+  if (cache.layout === 'paged') {
+    const neededPages = Math.ceil((startPos + numTokens) / cache.pageSize);
+    layer.allocatedPages = Number.isFinite(layer.allocatedPages)
+      ? Math.max(layer.allocatedPages, neededPages)
+      : neededPages;
+  }
+  layer.seqLen = Math.max(layer.seqLen, startPos + numTokens);
+  cache.totalTokensSeen = Math.max(cache.totalTokensSeen, startPos + numTokens);
+  cache.currentSeqLen = Math.max(cache.currentSeqLen, startPos + numTokens);
+}
+
+export function updateFromGPU(layerIdx, keysBuffer, valuesBuffer, startPos, numTokens) {
+  const write = beginGpuWrite(this, 'updateFromGPU', layerIdx, startPos, numTokens, 'gpuUpdateCalls', true);
+  if (!write) return;
+  const span = contiguousCopySpan(this, 'updateFromGPU', keysBuffer, valuesBuffer, startPos, numTokens);
+  const encoder = write.device.createCommandEncoder({ label: 'kv_cache_update' });
+  encodeContiguousCopy(encoder, write.layer, keysBuffer, valuesBuffer, span);
+  write.device.queue.submit([encoder.finish()]);
+  noteWrittenSpan(this, write.layer, startPos, numTokens);
+}
 
 export function recordUpdateFromGPU(recorder, layerIdx, keysBuffer, valuesBuffer, startPos, numTokens) {
-    this._assertLayerIndex(layerIdx);
-    this._assertStartPos(startPos);
-    if (!Number.isInteger(numTokens) || numTokens < 0) {
-      throw new Error('KVCache recordUpdateFromGPU requires a non-negative integer token count.');
-    }
-    if (numTokens === 0) {
-      return;
-    }
-    this.counters.recordedGpuUpdateCalls += 1;
-    this.counters.tokensWritten += numTokens;
-
-    const encoder = recorder.getEncoder();
-    const layer =  (this.layers[layerIdx]);
-
-    if (!layer.keysGPU) {
-      throw new Error('GPU cache not initialized');
-    }
-
-    if (startPos + numTokens > this.maxSeqLen) {
-      throw new Error(
-        `Cache overflow: ${startPos + numTokens} > ${this.maxSeqLen}`
-      );
-    }
-
-    const byteOffset = startPos * this.kvSize * this.bytesPerElem;
-    const byteSize = numTokens * this.kvSize * this.bytesPerElem;
-    if (byteSize > keysBuffer.size || byteSize > valuesBuffer.size) {
-      throw new Error('KVCache recordUpdateFromGPU buffer size is smaller than requested write.');
-    }
-
-    // Record copy operations to the provided encoder (no submit)
-    encoder.copyBufferToBuffer(keysBuffer, 0, layer.keysGPU, byteOffset, byteSize);
-    encoder.copyBufferToBuffer(valuesBuffer, 0, layer.valuesGPU, byteOffset, byteSize);
-
-    if (this.layout === 'paged') {
-      const neededPages = Math.ceil((startPos + numTokens) / this.pageSize);
-      if (Number.isFinite(layer.allocatedPages)) {
-        layer.allocatedPages = Math.max(layer.allocatedPages, neededPages);
-      } else {
-        layer.allocatedPages = neededPages;
-      }
-    }
-
-    // Update seqLen metadata (this happens immediately, copies happen when encoder is submitted)
-    layer.seqLen = Math.max(layer.seqLen, startPos + numTokens);
-    this.totalTokensSeen = Math.max(this.totalTokensSeen, startPos + numTokens);
-
-    this.currentSeqLen = Math.max(this.currentSeqLen, startPos + numTokens);
-  }
+  const write = beginGpuWrite(this, 'recordUpdateFromGPU', layerIdx, startPos, numTokens, 'recordedGpuUpdateCalls', false);
+  if (!write) return;
+  const span = contiguousCopySpan(this, 'recordUpdateFromGPU', keysBuffer, valuesBuffer, startPos, numTokens);
+  // The copies join the recorder's encoder and land when it is submitted.
+  encodeContiguousCopy(recorder.getEncoder(), write.layer, keysBuffer, valuesBuffer, span);
+  noteWrittenSpan(this, write.layer, startPos, numTokens);
+}
 
 export async function recordUpdateF32ToF16FromGPU(recorder, layerIdx, keysBuffer, valuesBuffer, startPos, numTokens) {
-    this._assertLayerIndex(layerIdx);
-    this._assertStartPos(startPos);
-    if (this.kvDtype !== 'f16') {
-      throw new Error('KVCache recordUpdateF32ToF16FromGPU requires an f16 KV cache.');
-    }
-    if (!Number.isInteger(numTokens) || numTokens < 0) {
-      throw new Error('KVCache recordUpdateF32ToF16FromGPU requires a non-negative integer token count.');
-    }
-    if (numTokens === 0) {
-      return;
-    }
-    this.counters.recordedGpuUpdateCalls += 1;
-    this.counters.tokensWritten += numTokens;
-
-    const layer =  (this.layers[layerIdx]);
-    if (!layer.keysGPU) {
-      throw new Error('GPU cache not initialized');
-    }
-
-    if (startPos + numTokens > this.maxSeqLen) {
-      throw new Error(
-        `Cache overflow: ${startPos + numTokens} > ${this.maxSeqLen}`
-      );
-    }
-
-    const elementCount = numTokens * this.kvSize;
-    await recordKVCacheWriteF32ToF16(
-      recorder,
-      keysBuffer,
-      valuesBuffer,
-      layer.keysGPU,
-      layer.valuesGPU,
-      {
-        srcOffset: 0,
-        dstOffset: startPos * this.kvSize,
-        elementCount,
-      }
-    );
-
-    if (this.layout === 'paged') {
-      const neededPages = Math.ceil((startPos + numTokens) / this.pageSize);
-      if (Number.isFinite(layer.allocatedPages)) {
-        layer.allocatedPages = Math.max(layer.allocatedPages, neededPages);
-      } else {
-        layer.allocatedPages = neededPages;
-      }
-    }
-
-    layer.seqLen = Math.max(layer.seqLen, startPos + numTokens);
-    this.totalTokensSeen = Math.max(this.totalTokensSeen, startPos + numTokens);
-
-    this.currentSeqLen = Math.max(this.currentSeqLen, startPos + numTokens);
+  this._assertLayerIndex(layerIdx);
+  this._assertStartPos(startPos);
+  if (this.kvDtype !== 'f16') {
+    throw new Error('KVCache recordUpdateF32ToF16FromGPU requires an f16 KV cache.');
   }
+  const write = beginGpuWrite(this, 'recordUpdateF32ToF16FromGPU', layerIdx, startPos, numTokens, 'recordedGpuUpdateCalls', false);
+  if (!write) return;
+  await recordKVCacheWriteF32ToF16(recorder, keysBuffer, valuesBuffer, write.layer.keysGPU, write.layer.valuesGPU, {
+    srcOffset: 0,
+    dstOffset: startPos * this.kvSize,
+    elementCount: numTokens * this.kvSize,
+  });
+  noteWrittenSpan(this, write.layer, startPos, numTokens);
+}
 
 export function recordF16UpdateAlreadyWrittenFromGPU(layerIdx, startPos, numTokens) {
     this._assertLayerIndex(layerIdx);
@@ -235,9 +164,7 @@ export function recordF16UpdateAlreadyWrittenFromGPU(layerIdx, startPos, numToke
 
     this.counters.recordedGpuUpdateCalls += 1;
     this.counters.tokensWritten += numTokens;
-    layer.seqLen = Math.max(layer.seqLen, startPos + numTokens);
-    this.totalTokensSeen = Math.max(this.totalTokensSeen, startPos + numTokens);
-    this.currentSeqLen = Math.max(this.currentSeqLen, startPos + numTokens);
+    noteWrittenSpan(this, layer, startPos, numTokens);
   }
 
 export function _updateContiguous(layer, keys, values, startPos, numNewTokens) {
@@ -251,8 +178,7 @@ export function _updateContiguous(layer, keys, values, startPos, numNewTokens) {
         const byteOffset = offset * this.bytesPerElem;
         const byteSize = numNewTokens * this.kvSize * this.bytesPerElem;
         const encoder = device.createCommandEncoder({ label: 'kv_update_gpu' });
-        encoder.copyBufferToBuffer(keys, 0, layer.keysGPU, byteOffset, byteSize);
-        encoder.copyBufferToBuffer( (values), 0, layer.valuesGPU, byteOffset, byteSize);
+        encodeContiguousCopy(encoder, layer, keys, values, { byteOffset, byteSize });
         device.queue.submit([encoder.finish()]);
       }
       return;

@@ -161,16 +161,42 @@ export async function unifiedKernelWrapper(
   return true;
 }
 
-// The wrapper retains shape semantics; this executor owns only allocated output
-// rollback. Recorded commands retain failed outputs until recorder cleanup.
-export async function withKernelOutput(target, supplied, bytes, label, execute) {
-  const output = supplied ?? acquireBuffer(bytes, undefined, label);
-  try { return await execute(output); }
-  catch (error) {
-    if (!supplied) {
-      if (target && typeof target.beginComputePass === 'function') target.trackTemporaryBuffer(output);
-      else releaseBuffer(output);
+// Failed outputs on a recorder stay alive as temporaries until the recorder
+// cleans up, because recorded commands may still reference them; immediate
+// targets release them now.
+function rollbackAcquiredOutputs(target, buffers) {
+  const recorder = target && typeof target.beginComputePass === 'function' ? target : null;
+  for (const buffer of buffers) {
+    if (recorder) recorder.trackTemporaryBuffer(buffer);
+    else releaseBuffer(buffer);
+  }
+}
+
+// Named outputs are one transaction: they are acquired in declaration order,
+// and if any acquisition or the executor fails every buffer acquired here is
+// rolled back. On success ownership transfers to whatever the executor
+// returned; nothing is released. Supplied buffers are never acquired or
+// released. The wrapper retains shape semantics; this owns only output rollback.
+export async function withKernelOutputs(target, specs, execute) {
+  const outputs = {};
+  const acquired = [];
+  try {
+    for (const [name, spec] of Object.entries(specs)) {
+      if (spec?.supplied) {
+        outputs[name] = spec.supplied;
+        continue;
+      }
+      const buffer = acquireBuffer(spec.bytes, spec.usage, spec.label ?? name);
+      acquired.push(buffer);
+      outputs[name] = buffer;
     }
+    return await execute(outputs);
+  } catch (error) {
+    rollbackAcquiredOutputs(target, acquired);
     throw error;
   }
+}
+
+export async function withKernelOutput(target, supplied, bytes, label, execute) {
+  return withKernelOutputs(target, { output: { supplied, bytes, label } }, ({ output }) => execute(output));
 }

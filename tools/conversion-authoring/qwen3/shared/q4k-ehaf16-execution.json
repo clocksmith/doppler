@@ -1,0 +1,275 @@
+{
+  "inlineKernelPath": true,
+  "kernels": {
+    "embed": {
+      "kernel": "gather_f16.wgsl",
+      "entry": "main",
+      "digest": "sha256:a2c318bc362d676769d8cb751d61a4d7777e1068be0456eff634e0821d783c10"
+    },
+    "rmsnorm": {
+      "kernel": "rmsnorm.wgsl",
+      "entry": "main",
+      "digest": "sha256:4f4d144735bdff86b8567346ba7ea7b82fe68a2ac9656ba1577106158af9bc7c"
+    },
+    "q4_decode": {
+      "kernel": "fused_matmul_q4.wgsl",
+      "entry": "main_multicol",
+      "digest": "sha256:53d5573ae047f553dac3c226507c6e1d80a2a2a2939acb65acd8092dd229677b"
+    },
+    "q4_decode_gemv": {
+      "kernel": "fused_matmul_q4.wgsl",
+      "entry": "main_gemv",
+      "digest": "sha256:02029c2254c8ddb4c2051c4322e6b11ddbcf555e27d233e7fe73277edfa0f3f7"
+    },
+    "rope": {
+      "kernel": "rope.wgsl",
+      "entry": "main",
+      "digest": "sha256:923f9a96c941aee94119ecf04fa5b1508c77b7d927a7e6044ce6588b2d51a416"
+    },
+    "attn_decode": {
+      "kernel": "attention_decode_online_f16kv.wgsl",
+      "entry": "main",
+      "digest": "sha256:c6d9f8c614a2a088cb533958007896391efb3e348377dc8095c409944c562912",
+      "precision": {
+        "kvDtype": "f16"
+      }
+    },
+    "residual": {
+      "kernel": "residual.wgsl",
+      "entry": "main",
+      "digest": "sha256:abd19bc08ad668a7cad562e2bc0a4be1aa8827ad4300d8d474b7fc2af4c27117"
+    },
+    "silu": {
+      "kernel": "silu.wgsl",
+      "entry": "main",
+      "digest": "sha256:c6e28a7e6b2a7cfa805db03c9079fbc90fc2717c621e388bfa55b75ce1737ac0",
+      "constants": {
+        "HAS_GATE": true
+      }
+    },
+    "q4_prefill": {
+      "kernel": "fused_matmul_q4_batched_multicol_shared.wgsl",
+      "entry": "main",
+      "digest": "sha256:142817adcacb28750a92793996cd15c2d9fe13d03e0c2d0aadf3e674dc7a35d6"
+    },
+    "q4_widetile": {
+      "kernel": "fused_matmul_q4_widetile.wgsl",
+      "entry": "main",
+      "digest": "sha256:c434473d64a163eddbb6fc349aec944e4bef6b067170acdf4d55daf92f1932bf"
+    },
+    "tiled": {
+      "kernel": "matmul_f16w_f32a.wgsl",
+      "entry": "main",
+      "digest": "sha256:027a8f1cd9713cbe0b0ada160bd175e0542bb90896ad85441b023522d9a1befc"
+    },
+    "attn_stream": {
+      "kernel": "attention_streaming_f16kv.wgsl",
+      "entry": "main",
+      "digest": "sha256:c3ec920699a81ee6df04a64eb0ea2477bec168ebb809af29f2d4b0924a4bdf8f",
+      "precision": {
+        "kvDtype": "f16"
+      }
+    },
+    "attn_head256": {
+      "kernel": "attention_head256_f16kv.wgsl",
+      "entry": "main",
+      "digest": "sha256:4e1eafa0a5e407c99714d04f0e75f3834e1156bcb25579892f248d95aae197da",
+      "precision": {
+        "kvDtype": "f16"
+      }
+    },
+    "lm_head_gemv": {
+      "kernel": "matmul_gemv_subgroup.wgsl",
+      "entry": "main_multicol",
+      "digest": "sha256:e41f94574d5ac54dd2710036da5d5acc643a483b79b2d74b86825efdaaa7438f",
+      "constants": {
+        "MULTICOL_COLS_PER_WG": 64,
+        "MULTICOL_THREADS_PER_COL": 4
+      }
+    },
+    "lm_head_q4": {
+      "kernel": "fused_matmul_q4.wgsl",
+      "entry": "main_gemv",
+      "digest": "sha256:02029c2254c8ddb4c2051c4322e6b11ddbcf555e27d233e7fe73277edfa0f3f7",
+      "constants": {
+        "COLS_PER_WG": 64,
+        "THREADS_PER_COL_GEMV": 4
+      }
+    },
+    "sample": {
+      "kernel": "sample.wgsl",
+      "entry": "sample_single_pass",
+      "digest": "sha256:f2377b2a58c2eeb695a6f6f7ad877630bdba5e74d5dc1a8d919cd73b360d4870"
+    }
+  },
+  "preLayer": [
+    [
+      "embed",
+      "embed",
+      "embed_tokens"
+    ]
+  ],
+  "decode": [
+    [
+      "input_norm",
+      "rmsnorm"
+    ],
+    [
+      "q_proj",
+      "q4_decode_gemv",
+      "layer.{L}.self_attn.q_proj"
+    ],
+    [
+      "k_proj",
+      "q4_decode_gemv",
+      "layer.{L}.self_attn.k_proj"
+    ],
+    [
+      "v_proj",
+      "q4_decode_gemv",
+      "layer.{L}.self_attn.v_proj"
+    ],
+    [
+      "rope_q",
+      "rope"
+    ],
+    [
+      "rope_k",
+      "rope"
+    ],
+    [
+      "attention",
+      "attn_decode"
+    ],
+    [
+      "o_proj",
+      "q4_decode_gemv",
+      "layer.{L}.self_attn.o_proj"
+    ],
+    [
+      "attn_residual",
+      "residual"
+    ],
+    [
+      "post_attn_norm",
+      "rmsnorm"
+    ],
+    [
+      "gate_proj",
+      "q4_decode_gemv",
+      "layer.{L}.mlp.gate_proj"
+    ],
+    [
+      "up_proj",
+      "q4_decode_gemv",
+      "layer.{L}.mlp.up_proj"
+    ],
+    [
+      "activation",
+      "silu"
+    ],
+    [
+      "down_proj",
+      "q4_decode_gemv",
+      "layer.{L}.mlp.down_proj"
+    ],
+    [
+      "ffn_residual",
+      "residual"
+    ]
+  ],
+  "prefill": [
+    [
+      "input_norm",
+      "rmsnorm"
+    ],
+    [
+      "q_proj",
+      "q4_widetile",
+      "layer.{L}.self_attn.q_proj"
+    ],
+    [
+      "k_proj",
+      "q4_widetile",
+      "layer.{L}.self_attn.k_proj"
+    ],
+    [
+      "v_proj",
+      "q4_widetile",
+      "layer.{L}.self_attn.v_proj"
+    ],
+    [
+      "rope_q",
+      "rope"
+    ],
+    [
+      "rope_k",
+      "rope"
+    ],
+    [
+      "attention",
+      "attn_head256"
+    ],
+    [
+      "o_proj",
+      "q4_widetile",
+      "layer.{L}.self_attn.o_proj"
+    ],
+    [
+      "attn_residual",
+      "residual"
+    ],
+    [
+      "post_attn_norm",
+      "rmsnorm"
+    ],
+    [
+      "gate_proj",
+      "q4_widetile",
+      "layer.{L}.mlp.gate_proj"
+    ],
+    [
+      "up_proj",
+      "q4_widetile",
+      "layer.{L}.mlp.up_proj"
+    ],
+    [
+      "activation",
+      "silu"
+    ],
+    [
+      "down_proj",
+      "q4_widetile",
+      "layer.{L}.mlp.down_proj"
+    ],
+    [
+      "ffn_residual",
+      "residual"
+    ]
+  ],
+  "postLayer": [
+    [
+      "final_norm",
+      "rmsnorm"
+    ],
+    [
+      "lm_head",
+      "lm_head_q4",
+      "lm_head"
+    ],
+    [
+      "lm_head_prefill",
+      "q4_prefill",
+      "lm_head"
+    ],
+    [
+      "sample",
+      "sample"
+    ]
+  ],
+  "policies": {
+    "unsupportedPrecision": "error",
+    "dtypeTransition": "require_cast_step",
+    "unresolvedKernel": "error"
+  }
+}

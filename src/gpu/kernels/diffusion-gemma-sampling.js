@@ -4,14 +4,11 @@ import { createPipeline } from './pipeline-cache.js';
 import { createUniformBufferWithView } from './uniform-utils.js';
 import { createBindGroupWithValidation } from './bind-group-validation.js';
 import { dispatchKernel } from './dispatch.js';
+import { requirePositiveInteger as kernelPositiveInteger } from './kernel-geometry.js';
 
 const UNIFORM_SIZE = 32;
 
-function assertPositiveInteger(value, label) {
-  if (!Number.isInteger(value) || value <= 0) {
-    throw new Error(`[DiffusionGemmaSampling] ${label} must be a positive integer.`);
-  }
-}
+const assertPositiveInteger = (value, label) => kernelPositiveInteger(value, label, 'DiffusionGemma sampling');
 
 function assertFinitePositiveNumber(value, label) {
   if (typeof value !== 'number' || !Number.isFinite(value) || value <= 0) {

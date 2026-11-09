@@ -6,13 +6,13 @@ import {
   resolveWeightBufferMaterialization,
 } from '../gpu/weight-buffer.js';
 import { dequantize, dequantizeRowwise } from '../gpu/kernels/dequant.js';
-import { releaseBuffer, acquireBuffer, uploadData } from '../memory/buffer-pool.js';
+import { releaseBuffer } from '../memory/buffer-pool.js';
 import { batchDowncastWeights } from './weight-downcast.js';
-import { QK_K, Q4K_BLOCK_BYTES } from '../config/schema/quantization.schema.js';
+import { QK_K } from '../config/schema/quantization.schema.js';
 import { log, trace as debugTrace } from '../debug/index.js';
 import { createTensor } from '../gpu/tensor.js';
 import { castF16ToF32 } from '../gpu/kernels/cast.js';
-import { dequantizeQ4KM, dequantizeQ4KMRowWise } from '../formats/q4k-dequant.js';
+import { loadReferenceQ4KWeight } from './q4k-reference-weight.js';
 import {
   ATTN_SUFFIXES,
   CONV_SUFFIXES,
@@ -105,56 +105,15 @@ function cloneWeightMaterializations(weight, excludeDtypes = []) {
   return Object.keys(cloned).length > 0 ? cloned : null;
 }
 
-function isQ4KLocationDtype(dtype) {
-  return dtype === 'Q4_K_M' || dtype === 'Q4_K';
-}
-
-function toUint8Array(data) {
-  if (data instanceof Uint8Array) {
-    return data;
-  }
-  if (ArrayBuffer.isView(data)) {
-    return new Uint8Array(data.buffer, data.byteOffset, data.byteLength);
-  }
-  if (data instanceof ArrayBuffer) {
-    return new Uint8Array(data);
-  }
-  return null;
-}
-
 async function loadPleReferenceQ4K(ctx, name, location, layerIdx, label) {
-  if (!location || !isQ4KLocationDtype(String(location.dtype ?? '').toUpperCase())) {
-    return null;
+  // Layer tensors keep the location's declared layout, defaulting to rows.
+  const weight = await loadReferenceQ4KWeight(ctx, { name, location, layout: location?.layout ?? 'row' });
+  if (weight) {
+    debugTrace.loader(
+      `Layer ${layerIdx}: loaded ${label} via CPU reference q4k dequant`
+    );
   }
-  const shape = Array.isArray(location.shape) ? location.shape : null;
-  if (!shape || shape.length !== 2) {
-    return null;
-  }
-
-  const quantizedBytes = toUint8Array(await ctx.loadTensor(name, false, true));
-  if (!quantizedBytes) {
-    return null;
-  }
-
-  const rows = Number(shape[0]);
-  const cols = Number(shape[1]);
-  if (!Number.isFinite(rows) || rows <= 0 || !Number.isFinite(cols) || cols <= 0) {
-    return null;
-  }
-
-  const f32Weights = cols % QK_K === 0
-    ? dequantizeQ4KM(quantizedBytes, Math.ceil(location.size / Q4K_BLOCK_BYTES), shape)
-    : dequantizeQ4KMRowWise(quantizedBytes, shape);
-
-  const buffer = acquireBuffer(f32Weights.byteLength, undefined, `${name}_f32_reference`);
-  uploadData(buffer, f32Weights);
-  ctx.gpuBuffers.add(buffer);
-
-  debugTrace.loader(
-    `Layer ${layerIdx}: loaded ${label} via CPU reference q4k dequant`
-  );
-
-  return createWeightBuffer(buffer, 'f32', location.layout ?? 'row', shape, name);
+  return weight;
 }
 
 async function loadPerLayerProjectionReferenceQ4K(ctx, name, location, layerIdx) {

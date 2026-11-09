@@ -3,12 +3,9 @@ import { createTensor, dtypeBytes } from '../tensor.js';
 import { WORKGROUP_SIZES } from './constants.js';
 import { unifiedKernelWrapper } from './kernel-execution.js';
 import { selectRuleValue } from './rule-registry.js';
+import { requirePositiveInteger as kernelPositiveInteger } from './kernel-geometry.js';
 
-function requirePositiveInteger(value, label) {
-  if (!Number.isInteger(value) || value <= 0) {
-    throw new Error(`Vision position embedding requires ${label} to be a positive integer.`);
-  }
-}
+const requirePositiveInteger = (value, label) => kernelPositiveInteger(value, label, 'Vision position embedding');
 
 export async function runVisionPositionEmbedding(table, geometry) {
   const { gridHeight, gridWidth, positionEmbeddingSize, hiddenSize } = geometry;

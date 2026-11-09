@@ -218,6 +218,9 @@
     "demo/ui/activation-grid/views.js",
     "demo/ui/activation-grid/validation.js",
     "src/inference/pipelines/text/linear-attention/activity.js",
-    "demo/ui/activation-grid/recording-codec.js"
+    "demo/ui/activation-grid/recording-codec.js",
+    "src/gpu/kernels/kernel-geometry.js",
+    "src/formats/paged-source-reader.js",
+    "src/loader/q4k-reference-weight.js"
   ]
 }

@@ -72,6 +72,8 @@
     "config:single-source:check": "node tools/check-config-single-source.js && node tools/sync-generation-contract.js --check",
     "rules:bundle:sync": "node tools/sync-rule-bundle.js",
     "rules:bundle:check": "node tools/sync-rule-bundle.js --check",
+    "conversion:profiles:sync": "node tools/sync-conversion-profiles.js",
+    "conversion:profiles:check": "node tools/sync-conversion-profiles.js --check",
     "evidence:workflows:check": "node tools/check-evidence-workflow-ownership.js",
     "inference:boundaries:check": "node tools/check-inference-boundaries.js",
     "generation:contract:check": "node tools/sync-generation-contract.js --check",

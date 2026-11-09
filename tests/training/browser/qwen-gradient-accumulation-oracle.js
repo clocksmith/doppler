@@ -10,24 +10,7 @@ import {
   releaseBuffer,
   uploadData,
 } from '../../../src/memory/buffer-pool.js';
-
-function compare(actual, expected) {
-  let maxAbsError = 0;
-  let squaredError = 0;
-  let allFinite = true;
-  for (let index = 0; index < expected.length; index += 1) {
-    const error = Math.abs(actual[index] - expected[index]);
-    maxAbsError = Math.max(maxAbsError, error);
-    squaredError += error * error;
-    allFinite = allFinite && Number.isFinite(actual[index]);
-  }
-  return {
-    elementCount: expected.length,
-    allFinite,
-    maxAbsError,
-    rmse: Math.sqrt(squaredError / expected.length),
-  };
-}
+import { compare } from './oracle-compare.js';
 
 function average(left, right) {
   return Float32Array.from(left, (value, index) => (value + right[index]) / 2);

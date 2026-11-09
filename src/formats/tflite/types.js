@@ -1,4 +1,5 @@
 import { createFlatBufferTableReader } from '../flatbuffer-tables.js';
+import { createPagedByteReader } from '../paged-source-reader.js';
 const TFLITE_PAGE_BYTES = 16 * 1024;
 
 export const TFLITE_FILE_IDENTIFIER = 'TFL3';
@@ -64,11 +65,6 @@ function toUint8Array(value, label) {
     return new Uint8Array(value);
   }
   throw new Error(`${label} must return ArrayBuffer or Uint8Array.`);
-}
-
-function normalizeSourceLabel(source) {
-  const raw = typeof source?.name === 'string' ? source.name.trim() : '';
-  return raw || 'TFLite source';
 }
 
 function decodeAscii(bytes) {
@@ -146,113 +142,11 @@ function createMemoryRangeSource(buffer, label = 'TFLite buffer') {
 }
 
 function createPagedSourceReader(source) {
-  if (!source || typeof source.readRange !== 'function') {
-    throw new Error('TFLite parser: source.readRange(offset, length) is required.');
-  }
-  const size = Number(source.size);
-  if (!Number.isFinite(size) || size < 8) {
-    throw new Error('TFLite parser: source.size must be a finite byte length >= 8.');
-  }
-  const label = normalizeSourceLabel(source);
-  const pageCache = new Map();
-
-  async function loadPage(pageIndex) {
-    const cached = pageCache.get(pageIndex);
-    if (cached) {
-      return cached;
-    }
-    const pageOffset = pageIndex * TFLITE_PAGE_BYTES;
-    const pageLength = Math.min(TFLITE_PAGE_BYTES, size - pageOffset);
-    const raw = await source.readRange(pageOffset, pageLength);
-    const bytes = toUint8Array(raw, `${label} page ${pageIndex}`);
-    if (bytes.byteLength !== pageLength) {
-      throw new Error(
-        `TFLite parser: short read for ${label} page ${pageIndex}. ` +
-        `Expected ${pageLength} bytes, got ${bytes.byteLength}.`
-      );
-    }
-    pageCache.set(pageIndex, bytes);
-    return bytes;
-  }
-
-  async function readSlice(offset, length) {
-    if (!Number.isFinite(offset) || !Number.isFinite(length)) {
-      throw new Error(`TFLite parser: invalid read request (${offset}, ${length}).`);
-    }
-    const start = Math.max(0, Math.floor(offset));
-    const byteLength = Math.max(0, Math.floor(length));
-    if (start + byteLength > size) {
-      throw new Error(
-        `TFLite parser: read exceeds ${label} bounds (offset=${start}, length=${byteLength}, size=${size}).`
-      );
-    }
-    if (byteLength === 0) {
-      return new Uint8Array(0);
-    }
-    const pageStart = Math.floor(start / TFLITE_PAGE_BYTES);
-    const pageEnd = Math.floor((start + byteLength - 1) / TFLITE_PAGE_BYTES);
-    if (pageStart === pageEnd) {
-      const page = await loadPage(pageStart);
-      const sliceOffset = start - pageStart * TFLITE_PAGE_BYTES;
-      return page.subarray(sliceOffset, sliceOffset + byteLength);
-    }
-    const out = new Uint8Array(byteLength);
-    let writeOffset = 0;
-    for (let pageIndex = pageStart; pageIndex <= pageEnd; pageIndex++) {
-      const page = await loadPage(pageIndex);
-      const pageBase = pageIndex * TFLITE_PAGE_BYTES;
-      const sliceStart = pageIndex === pageStart ? start - pageBase : 0;
-      const sliceEnd = pageIndex === pageEnd
-        ? (start + byteLength) - pageBase
-        : page.byteLength;
-      const slice = page.subarray(sliceStart, sliceEnd);
-      out.set(slice, writeOffset);
-      writeOffset += slice.byteLength;
-    }
-    return out;
-  }
+  const reader = createPagedByteReader(source, { pageBytes: TFLITE_PAGE_BYTES, parser: 'TFLite parser', defaultLabel: 'TFLite source' });
+  const { readSlice, readUint8, readUint16, readInt32, readUint32, readFloat32, readBigInt64, readBigUint64 } = reader;
 
   const { getTableFieldPos, readStringAtField, readTableVectorLength, readTableVectorEntry } =
     createFlatBufferTableReader({ readSlice, readInt32, readUint16 });
-
-  async function readInt32(offset) {
-    const bytes = await readSlice(offset, 4);
-    return new DataView(bytes.buffer, bytes.byteOffset, 4).getInt32(0, true);
-  }
-
-  async function readUint32(offset) {
-    const bytes = await readSlice(offset, 4);
-    return new DataView(bytes.buffer, bytes.byteOffset, 4).getUint32(0, true);
-  }
-
-  async function readUint16(offset) {
-    const bytes = await readSlice(offset, 2);
-    return new DataView(bytes.buffer, bytes.byteOffset, 2).getUint16(0, true);
-  }
-
-  async function readUint8(offset) {
-    const bytes = await readSlice(offset, 1);
-    return bytes[0];
-  }
-
-  async function readFloat32(offset) {
-    const bytes = await readSlice(offset, 4);
-    return new DataView(bytes.buffer, bytes.byteOffset, 4).getFloat32(0, true);
-  }
-
-  async function readBigInt64(offset) {
-    const bytes = await readSlice(offset, 8);
-    return new DataView(bytes.buffer, bytes.byteOffset, 8).getBigInt64(0, true);
-  }
-
-  async function readBigUint64(offset) {
-    const bytes = await readSlice(offset, 8);
-    return new DataView(bytes.buffer, bytes.byteOffset, 8).getBigUint64(0, true);
-  }
-
-
-
-
 
   async function readInt32VectorAtField(tablePos, fieldIndex) {
     const fieldPos = await getTableFieldPos(tablePos, fieldIndex);
@@ -303,10 +197,6 @@ function createPagedSourceReader(source) {
     return values;
   }
 
-
-
-
-
   async function readByteVectorLocationAtField(tablePos, fieldIndex) {
     const fieldPos = await getTableFieldPos(tablePos, fieldIndex);
     if (fieldPos == null) {
@@ -320,16 +210,7 @@ function createPagedSourceReader(source) {
   }
 
   return {
-    label,
-    size,
-    readSlice,
-    readInt32,
-    readUint32,
-    readUint16,
-    readUint8,
-    readFloat32,
-    readBigInt64,
-    readBigUint64,
+    ...reader,
     getTableFieldPos,
     readStringAtField,
     readInt32VectorAtField,
