@@ -248,6 +248,22 @@ async function main() {
     await checkActivationPlayback(page);
     await checkLiveActivity(page);
     if (process.env.DOPPLER_ACTIVITY_SAMPLE === '1') await checkRealActivityPlayback(page);
+    // Returning users load a stored default model before the ready surface opens.
+    const cachedPage = await browser.newPage({ serviceWorkers: 'block' });
+    await cachedPage.addInitScript(() => {
+      localStorage.setItem('doppler.demo.activity-example', 'false');
+      if (!navigator.gpu) Object.defineProperty(navigator, 'gpu', { configurable: true, value: {} });
+    });
+    await cachedPage.route(`${origin}${modulePath}`, route => route.fulfill({ status: 200, contentType: 'text/javascript',
+      body: STUB_MODULE.replaceAll("'contract-model'", "'gemma-3-270m-it-q4k-ehf16-af32'")
+        .replace('async listPersistentModels() { return []; }', "async listPersistentModels() { return [{modelId:'gemma-3-270m-it-q4k-ehf16-af32'}]; }") }));
+    await cachedPage.goto(`${origin}${entrypoint}`, { waitUntil: 'networkidle' });
+    await cachedPage.waitForFunction(() => document.querySelector('#status-text').textContent === 'Ready');
+    assert.equal(await cachedPage.evaluate(() => __demoContract.loads.length), 1, 'The cached model loads during boot');
+    const defaultPrompt = await cachedPage.evaluate(async () => (await (await fetch(new URL('examples.json', document.querySelector('script[src$="/demo.js"]').src))).json()).illustrative.prompt);
+    assert.equal(await cachedPage.inputValue('#prompt-input'), defaultPrompt, 'A cached-model visit still gets a default prompt');
+    assert.equal(await cachedPage.locator('#run-btn').isEnabled(), true);
+    await cachedPage.close();
     testedShellDigest = await page.evaluate(async (url) => (await import(url)).SHELL_MANIFEST_DIGEST,
       `${origin}${modulePath.replace('/src/index-browser.js', '/demo/generated-shell-manifest.js')}`);
     await page.waitForFunction(async () => Boolean((await navigator.serviceWorker.getRegistration())?.active), null, { timeout: 60000 });

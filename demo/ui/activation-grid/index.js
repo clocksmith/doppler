@@ -137,7 +137,14 @@ function paint() {
   const canvas = $('activation-canvas'); canvas.hidden = Boolean(graph) || side === 0;
   $('activity-paths').hidden = !graph;
   $('activity-paths-button').hidden = !graph || layerSelect.value === '-1';
-  if (graph) renderModelPaths($('activity-paths'), graph, scale, layer => { layerSelect.value = String(layer); queuePaint(); });
+  if (graph) {
+    const activationKey = 'model-path-activations';
+    if (scales[activationKey] === undefined && graph.outputs.some(v => typeof v === 'number' && v !== 0)) {
+      scales[activationKey] = initialColorScale(graph.outputs, recording.display.scale);
+    }
+    renderModelPaths($('activity-paths'), graph, scale, scales[activationKey] ?? recording.display.scale,
+      layer => { layerSelect.value = String(layer); queuePaint(); });
+  }
   layerSelect.options[0].textContent = graph ? 'Follow latest layer' : 'All captured layers'; canvas.width = Math.max(1, side); canvas.height = Math.max(1, side);
   canvas.setAttribute('aria-label', `${view.quantity}: one scalar per opaque heatmap pixel, ${view.representation}`);
   const context = canvas.getContext('2d');
@@ -213,8 +220,15 @@ function queuePaint() { if (scheduled === null) scheduled = requestAnimationFram
 
 export function beginActivationRecording() {
   if (!isActivationRecordingEnabled()) return;
+  const mode = activityModes(recording).find(m => m.id === $('activity-mode').value);
+  if (!mode || mode.clock === 'snapshot') $('activity-mode').value = 'model-paths';
+  $('activity-layer').value = '-1';
+  $('activity-playback').value = 'captures';
   revision++; source = 'Current run';
   stopPlayback(); baseline = null; recording = null; cursor = 0; follow = true; active = true;
+  document.getElementById('app')?.setAttribute('data-live-activity', '');
+  const view = $('activation-view'), box = view.getBoundingClientRect();
+  if (box.top < 0 || box.top > innerHeight * 0.6) view.scrollIntoView({ block: 'start', behavior: 'instant' });
   queuePaint();
 }
 
@@ -234,6 +248,7 @@ export function acceptActivationFrame(event) {
 export function finishActivationRecording(status, receipt = null) {
   if (!active) return;
   active = false;
+  document.getElementById('app')?.removeAttribute('data-live-activity');
   if (recording) {
     if (receipt?.activationTrace) recording.trace = receipt.activationTrace;
     recording.trace.status = status;

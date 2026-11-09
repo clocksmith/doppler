@@ -115,11 +115,12 @@ async function init() {
 
   // Boot sequence
   await boot();
+  // A cached model must not suppress the ready-to-run prompt on a return visit.
+  const example = getIllustrativeExample();
+  if (state.phase === 'ready' && example) preloadPrompt(example.prompt);
   // First visit: show the example answer and preload its prompt, so Send runs it live.
   if (state.phase === 'ready' && !state.model && !state.conversationHistory.length) {
-    const example = getIllustrativeExample();
     loadIllustrativeExample(example);
-    if (example) preloadPrompt(example.prompt);
     refreshRuntimeNotice();
   }
 }

@@ -57,6 +57,9 @@
 #app .activity-cadence { font: 400 11px/1.4 var(--font-sans); color: var(--doppler-muted); }
 
 .activity-paths { display:grid; grid-template-columns:54px minmax(0,1fr); gap:16px; max-width:560px; align-items:start; }
+.activity-path-activations { grid-column:1 / -1; min-width:0; margin:0; display:grid; gap:6px; font:400 12px/1.4 var(--font-sans); color:var(--doppler-muted); }
+.activity-path-activations canvas { display:block; width:100%; height:160px; image-rendering:pixelated; }
+.activity-path-activation-key { margin:0; padding-top:10px; background-size:100% 6px; background-repeat:no-repeat; font-variant-numeric:tabular-nums; }
 .activity-path-layers { position:relative; display:grid; gap:4px; max-height:700px; overflow:auto; }
 #app .activity-path-layer { min-height:24px; padding:2px 6px; font:500 11px/1.4 var(--font-sans); border:1px solid var(--doppler-line); border-left:8px solid var(--path-color); border-radius:4px; background:var(--doppler-surface); color:var(--fg); cursor:pointer; }
 #app .activity-path-layer[aria-pressed="true"] { outline:1px solid var(--fg); outline-offset:-1px; }

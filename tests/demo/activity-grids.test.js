@@ -34,6 +34,8 @@ const recording = { schema: 'doppler.activation-recording/v1', demoBuild: 'fixtu
   display: { layout: 'layer-major-rgb/v1', palette: 'signed-tanh-rgb/v1', scale: 1 }, trace: trace.snapshot('complete'), inputTokenIds: [10, 20], generatedTokenIds: [] };
 validateRecording(recording);
 const path = modelPathView(recording, Infinity, 1, 0);
+assert.deepEqual(path.outputs, [3,5,7,3,5,7], 'The path heatmap retains layer-major captured values');
+assert.equal(path.width, 3);
 assert.equal(path.kind, 'linear_attention');
 assert(Math.abs(path.nodes.find(n => n.id === 'gate').magnitude - Math.sqrt(29/3)) < 1e-12);
 assert(Math.abs(path.nodes.find(n => n.id === 'mixer').magnitude - Math.sqrt(91/6)) < 1e-12,

@@ -14,6 +14,8 @@ try {
   const errors = []; page.on('pageerror', e => errors.push(e.message));
   await page.goto(origin + '/doppler/', { waitUntil: 'domcontentloaded' });
   await page.waitForFunction(() => document.querySelector('#model-select')?.options.length > 1);
+  await page.waitForFunction(() => document.querySelector('#prompt-input')?.value.trim());
+  const defaultPrompt = await page.inputValue('#prompt-input');
   await page.selectOption('#model-select', 'qwen-3-5-0-8b-q4k-ehaf16');
   await page.click('#model-select-action');
   await page.waitForFunction(() => document.querySelector('#model-select-action').textContent === 'Loaded'
@@ -21,10 +23,10 @@ try {
   assert.equal(await page.locator('#model-select-action').textContent(), 'Loaded', await page.locator('#status-text').textContent());
   await page.locator('#activation-view').evaluate(el => { el.open = true; });
   assert.equal(await page.locator('#activation-record').isChecked(), true, 'Live activity defaults on');
-  await page.evaluate(() => { const select = document.querySelector('#set-max-tokens'); select.add(new Option('3', '3')); select.value = '3'; select.dispatchEvent(new Event('change', { bubbles: true })); });
-  await page.fill('#prompt-input', 'Say hello in one word.');
+  await page.evaluate(() => { const select = document.querySelector('#set-max-tokens'); select.add(new Option('16', '16')); select.value = '16'; select.dispatchEvent(new Event('change', { bubbles: true })); });
+  assert.equal(await page.inputValue('#prompt-input'), defaultPrompt, 'Loading a model preserves the ready-to-run prompt');
   await page.evaluate(() => {
-    globalThis.__liveGridCheck = { captions: [], duringGeneration: 0, colorChanges: 0, pathChanges: 0, last: '' };
+    globalThis.__liveGridCheck = { captions: [], duringGeneration: 0, colorChanges: 0, pathChanges: 0, activationChanges: 0, visibleActivations: 0, last: '', lastActivation: '' };
     const observe = () => {
       const caption = document.querySelector('#activation-caption').textContent;
       if (!caption.startsWith('Live')) return;
@@ -33,6 +35,15 @@ try {
       let digest = 0; for (let i = 0; i < bytes.length; i++) digest = (Math.imul(digest, 31) + bytes[i]) | 0;
       const paths = document.querySelector('#activity-paths');
       if (paths && !paths.hidden) {
+        const activationCanvas = paths.querySelector('canvas');
+        if (activationCanvas) {
+          let activationDigest = 0;
+          for (const v of activationCanvas.getContext('2d').getImageData(0,0,activationCanvas.width,activationCanvas.height).data) activationDigest = (Math.imul(activationDigest,31) + v) | 0;
+          if (result.lastActivation !== String(activationDigest)) result.activationChanges++;
+          result.lastActivation = String(activationDigest);
+          const box = activationCanvas.getBoundingClientRect();
+          if (box.top >= 0 && box.bottom <= innerHeight) result.visibleActivations++;
+        }
         const text = paths.textContent; digest = 0;
         for (let i = 0; i < text.length; i++) digest = (Math.imul(digest,31) + text.charCodeAt(i)) | 0;
         if (result.last !== String(digest)) result.pathChanges++;
@@ -67,8 +78,9 @@ try {
   assert.equal(receipt.gaps, 0); assert.equal(receipt.captured, receipt.frames);
   const live = await page.evaluate(() => globalThis.__liveGridCheck);
   assert(live.duringGeneration > 1 && live.pathChanges > 1, 'Visible model paths change while generation is active');
+  assert(live.activationChanges > 1 && live.visibleActivations > 1, 'The activation heatmap changes in the viewport during generation');
   const release = await (await page.request.get(origin + '/doppler/release.json')).json();
-  const result = { origin, browser: browser.version(), release, receipt, live, errors };
+  const result = { origin, browser: browser.version(), release, defaultPrompt, receipt, live, errors };
   await page.locator('#activation-view').screenshot({ path: out + '/grid.png' });
   await fs.writeFile(out + '/receipt.json', JSON.stringify(result, null, 2) + '\n');
   console.log(JSON.stringify(result)); assert.deepEqual(errors, []);

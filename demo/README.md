@@ -28,6 +28,13 @@ source remain beside the visual. Follow live appears only after pausing live
 follow, and Follow latest layer appears only after pinning a diagram layer.
 Secondary actions use quiet text controls. Loaded models show status rather than
 a redundant disabled Load button.
+An empty composer receives the example prompt on both fresh and cached-model
+visits, without replacing entered text. Starting a recorded run leaves static
+snapshots for live Model paths. That view includes a layer-by-dimension activation
+heatmap from the captured layer outputs, with a fixed signed color scale. Rows
+fill at their capture boundaries; this is not a simultaneous hardware snapshot.
+Wide screens place activity beside the conversation. Narrow screens bring the
+activity into view on Send and keep Stop reachable while generation runs.
 
 First-time visitors see an interactive, explicitly labeled example of word
 choices without downloading weights or presenting its timing as a device result. The example does not become

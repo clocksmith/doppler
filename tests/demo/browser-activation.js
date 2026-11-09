@@ -211,6 +211,7 @@ export async function checkRealActivityPlayback(page) {
 // The public event contract drives grids during an unfinished answer, not only at receipt time.
 export async function checkLiveActivity(page) {
   await page.locator('#activation-record').check();
+  await page.selectOption('#activity-mode', 'weights');
   await page.evaluate(() => { __demoContract.streamNext = true; });
   await page.fill('#prompt-input', 'Stream activity while answering.');
   await page.click('#run-btn');
@@ -223,26 +224,32 @@ export async function checkLiveActivity(page) {
       columnEnergy:[1,4,9], rowGroupSize:1, blockSize:1, resident:true, status:'captured', dtype:'f32' }];
     __demoContract.emitActivation({ type:'activation-frame', frame, trace:{ identity:{modelId:'live-fixture', adapters:[]},
       geometry:{layers:1,width:3}, status:'recording', recordedBytes:(position+1)*24, frames:[],
-      activity:{frames:[input], weights, model:{}, unavailable:{}, recordedBytes:24} } });
+      activity:{frames:[input], weights, model:{layerTypes:['full_attention']}, unavailable:{}, recordedBytes:24} } });
     __demoContract.emitTokens([1]);
   }, {position,value});
   await emit(0,1);
   await page.waitForFunction(() => document.querySelector('#activation-caption').textContent.startsWith('Live'));
+  assert.equal(await page.inputValue('#activity-mode'), 'model-paths', 'A static snapshot switches to live activity when generation begins');
+  const pixels = () => page.locator('.activity-path-activations canvas').evaluate(c => [...c.getContext('2d').getImageData(0,0,c.width,c.height).data]);
+  const startPixels = await pixels();
+  await emit(1,.2);
+  await page.waitForFunction(() => document.querySelector('#activation-position').value === '1');
+  assert.notDeepEqual(await pixels(), startPixels, 'The default path view includes a changing activation heatmap');
   await page.selectOption('#activity-mode', 'contributions');
   await page.evaluate(() => new Promise(requestAnimationFrame));
   const image = () => page.locator('#activation-canvas').evaluate(c => [...c.getContext('2d').getImageData(0,0,c.width,c.height).data]);
   const first = await image();
-  await emit(1,.2);
-  await page.waitForFunction(() => document.querySelector('#activation-position').value === '1');
+  await emit(2,.4);
+  await page.waitForFunction(() => document.querySelector('#activation-position').value === '2');
   assert.notDeepEqual(await image(), first, 'Weight/input map updates before answer completes');
   assert.equal(await page.locator('#activation-live').getAttribute('aria-pressed'), 'true');
   assert.equal(await page.locator('#activation-live').isVisible(), false, 'Following live needs no redundant action');
   await page.locator('#activation-scrub').fill('0');
-  await emit(2,.4);
+  await emit(3,.6);
   await page.evaluate(() => new Promise(requestAnimationFrame));
   assert.equal(await page.inputValue('#activation-position'), '0', 'Scrubbing pauses live follow');
   await page.click('#activation-live');
-  await page.waitForFunction(() => document.querySelector('#activation-position').value === '2');
+  await page.waitForFunction(() => document.querySelector('#activation-position').value === '3');
   assert.match(await page.locator('#output-text').textContent(), /Contract/, 'Answer text streams alongside the grid');
   await page.click('#stop-btn');
   await page.waitForFunction(() => document.querySelector('#output-phase').textContent === 'Stopped');
