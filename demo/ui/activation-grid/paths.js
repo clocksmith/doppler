@@ -221,7 +221,7 @@ export function renderLayerMap(container, options) {
     onInspect(`Layer ${l+1} · token ${history.positions[c]} · RMS ${difference ? 'change' : 'activity'}: ${history.values[l*n+c] ?? 'missing'}`);
   };
   canvas.onpointerleave = () => onInspect(null);
-  /** @type {HTMLElement} */ (container.querySelector('.activity-layer-note')).textContent = `${shape.width} × ${shape.height} values per layer · ${baseline ? 'compared with saved run' : difference ? 'change from previous position' : 'captured outputs'}`;
+  /** @type {HTMLElement} */ (container.querySelector('.activity-layer-note')).textContent = `${width.toLocaleString()} values/layer · ${shape.width} × ${shape.height} tile · ${baseline ? 'compared with saved run' : difference ? 'change from previous position' : 'captured outputs'}`;
   const detail = /** @type {HTMLElement} */ (container.querySelector('.activity-layer-detail'));
   detail.hidden = selected < 0;
   /** @type {HTMLButtonElement} */ (detail.querySelector('button')).onclick = () => onLayer(-1);

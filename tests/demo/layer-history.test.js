@@ -3,7 +3,8 @@ import { layerShape, layerHistory } from '../../demo/ui/activation-grid/data.js'
 
 assert.deepEqual(layerShape(1024), { width:32, height:32 });
 assert.deepEqual(layerShape(5120), { width:80, height:64 });
-assert.deepEqual(layerShape(7), { width:7, height:1 });
+assert.deepEqual(layerShape(7), { width:3, height:3 });
+assert.deepEqual(layerShape(1048573), { width:1024, height:1024 },'Large prime widths stay bounded with explicit padding');
 const frame = (index, layer, tokenStart, values, forward=0) => ({ index, forward, atMs:index+1,
   layer, tokenStart, tokenIds: values.length === 8 ? [10,11] : [12], status:'captured', values });
 const a=frame(0,0,0,[1,1,1,1, 2,0,2,0]);

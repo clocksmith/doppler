@@ -120,6 +120,11 @@ export function heatmapColors(range = 'signed', dark = false) {
 export function layerShape(values) {
   let height = Math.floor(Math.sqrt(values));
   while (height > 1 && values % height) height--;
+  // Unusual widths must not become canvas-wide strips. Padding is explicit.
+  if (height < Math.sqrt(values) / 2) {
+    const width = Math.ceil(Math.sqrt(values));
+    return { width, height:Math.ceil(values / width) };
+  }
   return { width: values / height, height };
 }
 
