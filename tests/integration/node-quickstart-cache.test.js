@@ -6,6 +6,7 @@ import os from 'node:os';
 import path from 'node:path';
 
 import { resolveNodeQuickstartCachedSource } from '../../src/client/runtime/node-quickstart-cache.js';
+import { createNodeFileArtifactStorageContext } from '../../src/storage/artifact-storage-context.js';
 
 function sha256Hex(bytes) {
   return createHash('sha256').update(bytes).digest('hex');
@@ -65,6 +66,8 @@ try {
   const resolved = {
     modelId: manifest.modelId,
     baseUrl,
+    storageBaseUrl: baseUrl,
+    storageManifest: manifest,
     trace: [
       {
         source: 'quickstart-registry',
@@ -80,6 +83,10 @@ try {
     });
     assert.equal(imported.cache.state, 'imported');
     assert.ok(imported.baseUrl.startsWith('file://'));
+    const storage = createNodeFileArtifactStorageContext(imported.storageBaseUrl ?? imported.baseUrl,
+      imported.storageManifest ?? imported.manifest);
+    assert.ok(storage, 'the runtime storage selector must consume cached file bytes after import');
+    assert.equal(Buffer.from(await storage.loadShard(0)).toString(), shardBytes.toString());
     assert.ok(existsSync(path.join(tempRoot, manifest.modelId, 'manifest.json')));
     assert.equal(
       readFileSync(path.join(tempRoot, manifest.modelId, 'shard_00000.bin')).toString(),
@@ -95,6 +102,10 @@ try {
   });
   assert.equal(hit.cache.state, 'hit');
   assert.ok(hit.baseUrl.startsWith('file://'));
+  const storage = createNodeFileArtifactStorageContext(hit.storageBaseUrl ?? hit.baseUrl,
+    hit.storageManifest ?? hit.manifest);
+  assert.ok(storage, 'a cache hit must remain usable after the source server closes');
+  assert.equal(Buffer.from(await storage.loadShard(0)).toString(), shardBytes.toString());
 } finally {
   if (previousCacheDir == null) {
     delete process.env.DOPPLER_QUICKSTART_CACHE_DIR;

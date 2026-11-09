@@ -311,6 +311,7 @@ export async function resolveNodeQuickstartCachedSource(resolved, manifestPayloa
 
   const modelId = normalizeText(resolved?.modelId) || normalizeText(manifest.modelId);
   const cacheDir = path.join(resolveCacheRoot(), sanitizeModelId(modelId));
+  const cachedBaseUrl = pathToFileURL(cacheDir).href;
   const complete = await cacheIsComplete(cacheDir, manifest);
   if (complete) {
     await writeManifest(cacheDir, manifestText);
@@ -321,7 +322,9 @@ export async function resolveNodeQuickstartCachedSource(resolved, manifestPayloa
     });
     return {
       ...resolved,
-      baseUrl: pathToFileURL(cacheDir).href,
+      baseUrl: cachedBaseUrl,
+      storageBaseUrl: cachedBaseUrl,
+      storageManifest: manifest,
       manifest,
       cache: {
         state: 'hit',
@@ -343,7 +346,9 @@ export async function resolveNodeQuickstartCachedSource(resolved, manifestPayloa
   });
   return {
     ...resolved,
-    baseUrl: pathToFileURL(cacheDir).href,
+    baseUrl: cachedBaseUrl,
+    storageBaseUrl: cachedBaseUrl,
+    storageManifest: manifest,
     manifest,
     cache: {
       state: 'imported',
