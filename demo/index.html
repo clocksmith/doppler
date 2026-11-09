@@ -258,7 +258,6 @@
           <div class="chat-surface">
             <div id="chat-thread" class="chat-thread" aria-live="polite">
               <div id="chat-empty" class="chat-empty">
-                <button id="sample-run-btn" class="btn btn-ghost sample-run-btn" type="button">Show a recorded answer</button>
               </div>
             </div>
             <article id="live-assistant-message" class="chat-message chat-message--assistant" aria-live="polite" aria-atomic="false" hidden>
@@ -277,7 +276,6 @@
                 <div id="token-stream-container" class="token-stream-container"></div>
                 <div id="token-inspector-card-container" class="token-inspector-card-container"></div>
               </div>
-              <button id="inspect-recorded-run" class="btn btn-ghost btn-small" type="button" hidden>Show a recorded answer</button>
             </article>
           </div>
         </section>
@@ -433,6 +431,7 @@
         <details id="run-details" class="demo-disclosure">
           <summary>Details</summary>
           <div class="demo-disclosure-body">
+            <p id="recording-details" class="demo-note" hidden></p>
             <span id="activity-measurement-note" class="demo-note">Adds measurement overhead.</span>
             <span id="activity-method" class="activity-method"></span>
             <p id="activity-coverage" class="demo-note"></p>

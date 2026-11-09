@@ -1,0 +1,33 @@
+{
+  "component": "doppler.demo",
+  "intent": "Automatic first recorded chat with one synchronized answer/activity player; remove the separate sample button and long correction note.",
+  "acceptance": {
+    "browser": "mocked public API; actual retained numerical recording; fresh/cached visits, token inspection, synchronized rewind, typing cancellation, pending-download cancellation, failed download recovery, live generation, desktop and mobile",
+    "types": "strict source and declaration checks passed",
+    "focused": [
+      "default-model",
+      "demo-models",
+      "input",
+      "conversation",
+      "demo reachability",
+      "clean shell generation and freshness"
+    ]
+  },
+  "recording": {
+    "prompt": "Say hello in one word.",
+    "answer": "Hello!",
+    "model": "qwen-3-5-0-8b-q4k-ehaf16",
+    "asset": "demo/assets/activity-example.json.gz",
+    "assetSha256": "5a12123d9da3c933a041db75aff4bb9868c4e2fd789d8939900bb816db219d33",
+    "receiptSource": "demo/data/sample-inspection.js",
+    "publishedAt": "2026-11-08",
+    "playback": "One clock advances captured positions; does not reproduce original elapsed time. Logit boundaries reveal recorded token text.",
+    "provenance": "Fingerprint, exact input and generated token IDs, prompt, output and manifest identity matched. No answer edited."
+  },
+  "boundaries": [
+    "No new inference or hardware qualification",
+    "Replay creates no live model state",
+    "Live API/runtime and provider services unchanged",
+    "Unrelated model/catalog edits excluded"
+  ]
+}

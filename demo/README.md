@@ -33,9 +33,15 @@ fill at their capture boundaries; this is not a simultaneous hardware snapshot.
 Wide screens place activity beside the conversation. Narrow screens bring the
 activity into view on Send and keep Stop reachable while generation runs.
 
-Fresh and returning visits start with an editable prompt and no invented answer
-or unrelated activity. Send produces the answer and its activity together.
-Saved examples open only on request, with their own prompt and answer. A single
+Fresh and returning visits automatically replay the first exchange: the real Qwen
+0.8B “Say hello in one word.” → “Hello!” recording. Its answer and activity use
+one player; words appear at their captured prediction boundaries and scrubbing
+rewinds both. A small Recorded replay label identifies it; model, publication date and timing
+semantics live under Details. It requires no model download or inference. Typing,
+changing models, clearing or sending cancels a pending opening or automatic playback.
+The editable composer remains a draft for the next live request; the sample never
+creates live model state or enters its conversation history. Send produces the new
+answer and its activity together. A single
 “Try another example” button deals the other prompts from
 `examples.json` in shuffled order, without repeats until the bank is used up.
 There are no category buttons. Live generation and
@@ -173,7 +179,12 @@ their m3t4.ai redirects. CanvasContext retires Doppler's old worker and shell
 caches without deleting model bytes or other user storage. Local storage and
 model caches remain on their original origin.
 
-The separately inspectable precomputed run was captured with `model.inspect.generate` in Chrome WebGPU. `data/sample-inspection.js` retains the real token probabilities, artifact fingerprint, timing, capture date, and raw receipt digest. Opening it clears any activity from another run; it has no activity capture. Prompt suggestions are editable.
+The first exchange was captured with `model.inspect.generate` in Chrome WebGPU.
+`data/sample-inspection.js` retains its real probabilities, fingerprint, timing,
+publication date and raw receipt digest. It matches `assets/activity-example.json.gz`
+by fingerprint and exact input/output token IDs. Unknown imported recordings
+remain inspectable, but do not borrow token text or probabilities from this sample.
+Prompt suggestions are editable.
 
 ## Activation recording and precision views
 

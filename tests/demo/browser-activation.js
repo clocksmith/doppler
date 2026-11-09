@@ -19,8 +19,9 @@ export async function checkFirstLoadLayout(page, empty = false) {
       assert.equal(await page.locator('.activity-preview').count(), 6);
       assert.equal(await page.locator('#activity-gallery').isVisible(), false, 'Preview shortcuts stay under Details');
       assert.equal(await page.locator('#activity-files').isVisible(), false, 'File actions stay under Details');
-      assert.equal(await page.locator('#activity-selectors').isVisible(), false, 'No unusable selectors on first load');
-      assert.equal(await page.locator('#activation-player').isVisible(), false);
+      assert.equal(await page.locator('#activity-selectors').isVisible(), false, 'Playback settings remain under Details');
+      assert.equal(await page.locator('#activity-mode').isVisible(), true, 'The replay exposes its view selector');
+      assert.equal(await page.locator('#activation-player').isVisible(), true);
       const example = await page.locator('#shuffle-btn').boundingBox();
       assert(example && example.height <= 44, 'The example action fits one line beside Send');
       await page.locator('#inspection-workspace').screenshot({ path: `.cache/demo-first-load/activity-${width}.png` });
@@ -76,6 +77,17 @@ export async function checkActivationPlayback(page) {
 }
 
 export async function checkTokenGeometry(page) {
+  // Cover a broad probability range independently of how long the sample answer is.
+  await page.evaluate(async () => {
+    const entry = document.querySelector('script[src$="/demo.js"]').src;
+    const output = await import(new URL('output.js', entry));
+    const tokens = [.05, .2, .4, .6, .8, .95].map((probability, index) => ({
+      index, tokenId: index, text: ` word${index}`, probability,
+      topCandidates: [{ tokenId: 20, text: ' other', probability: .3 }, { tokenId: 21, text: ' alternative', probability: .1 }],
+    }));
+    output.renderTokenInspection(tokens); output.showTokenInspectorView(true);
+  });
+  await page.locator('.token-chip').first().click();
   await fs.mkdir('.cache/activation-grid', { recursive: true });
   for (const width of [1200, 390, 320]) {
     await page.setViewportSize({ width, height: 950 });
@@ -92,6 +104,13 @@ export async function checkTokenGeometry(page) {
     assert(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), `No page overflow at ${width}px`);
   }
   await page.setViewportSize({ width: 1280, height: 1000 });
+  await page.evaluate(async () => {
+    const entry = document.querySelector('script[src$="/demo.js"]').src;
+    const output = await import(new URL('output.js', entry));
+    const { state } = await import(new URL('ui/state.js', entry));
+    output.renderTokenInspection(state.lastInspection.tokens);
+  });
+  await page.locator('.token-chip').first().click();
 }
 
 // Uses the published physical recording; does not run a model or fixture generator.
@@ -103,15 +122,10 @@ export async function checkRealActivityPlayback(page) {
   assert.match(await page.locator('#activity-measurement-note').textContent(), /GPU timing on/);
   assert.equal(await page.locator('#activation-record').isChecked(), false, 'Recording opt-out survives reload');
   await page.locator('#activation-view').scrollIntoViewIfNeeded();
-  assert.equal(await page.locator('#activation-player').isVisible(), false, 'A legacy auto-example preference cannot pair an unrelated sample with the draft');
-  await page.locator('#run-details > summary').click();
-  await page.click('#activity-example');
-  await page.waitForFunction(() => document.querySelector('#activity-source').textContent.startsWith('Recorded example'), null, { timeout: 120000 });
-  assert.equal(await page.inputValue('#prompt-input'), 'Say hello in one word.');
+  await page.waitForFunction(() => document.querySelector('#output-text').textContent === 'Hello!'
+    && document.querySelector('#activation-play').textContent === 'Play', null, { timeout: 120000 });
   assert.equal(await page.locator('#chat-thread .chat-message-text').first().textContent(), 'Say hello in one word.');
-  assert.equal(await page.locator('#output-text').textContent(), 'Hello!');
-  assert.match(await page.locator('#recorded-run-note').textContent(), /qwen-3-5-0-8b/);
-  await page.locator('#run-details > summary').click();
+  assert.match(await page.locator('#recorded-run-note').textContent(), /Recorded replay/);
   assert.match(await page.locator('#activation-layout').textContent(), /fully opaque/);
   assert.equal(await page.locator('#activity-explanation').isVisible(), false);
   assert.equal(await page.locator('#activation-live').isVisible(), false, 'Saved recordings have no live-follow action');

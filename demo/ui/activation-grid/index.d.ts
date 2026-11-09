@@ -31,6 +31,9 @@ export declare function acceptActivationFrame(event: { type: 'activation-frame';
 export declare function finishActivationRecording(status: 'complete' | 'stopped' | 'error', receipt?: DopplerModelInspectionReceipt | null, outputText?: string | null): void;
 export declare function importActivationRecording(value: unknown): void;
 export declare function isActivationRecordingFile(value: unknown): boolean;
-export declare function openActivationRecording(value: unknown, byteLength: number): void;
+export declare function openActivationRecording(value: unknown, byteLength: number, options?: { preserveDraft?: boolean }): void;
 export declare function getActivationRecording(): ActivationRecording | null;
-export declare function initActivationGrid(options?: { onOpenRecording?: (recording: ActivationRecording) => void }): void;
+export declare function initActivationGrid(options?: { onOpenRecording?: (recording: ActivationRecording, options?: { preserveDraft?: boolean }) => void; onPlayback?: (recording: ActivationRecording, point: import('./views.js').PlaybackPoint) => void }): void;
+
+export declare function loadActivityExample(mode?: string, options?: { autoplay?: boolean }): Promise<void>;
+export declare function cancelActivityExample(): void;

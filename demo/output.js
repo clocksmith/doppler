@@ -43,12 +43,6 @@ function createEmptyState() {
   empty.id = 'chat-empty';
   empty.className = 'chat-empty';
 
-  const sample = document.createElement('button');
-  sample.id = 'sample-run-btn';
-  sample.className = 'btn btn-ghost sample-run-btn';
-  sample.type = 'button';
-  sample.textContent = 'Show a recorded answer';
-  empty.append(sample);
   return empty;
 }
 
@@ -69,7 +63,7 @@ function resetLiveAssistant() {
     output.classList.remove('chat-markdown');
   }
   $('recorded-run-note')?.setAttribute('hidden', '');
-  $('inspect-recorded-run')?.setAttribute('hidden', '');
+  $('recording-details')?.setAttribute('hidden', '');
   $('token-inspection-hint')?.setAttribute('hidden', '');
   $('word-quality-output')?.replaceChildren();
   $('word-quality-legend')?.setAttribute('hidden', '');

@@ -4,12 +4,11 @@ import { reloadActiveModel, setModelCallbacks } from './models.js';
 import { getIllustrativeExample, initInput, preloadPrompt, setRunHandler } from './input.js';
 import { initSettings } from './settings.js';
 import { initReport } from './report.js';
-import { onModelLoaded, runGeneration, stopGeneration, loadSampleInspection, showRecordedActivity } from './core.js';
-import { SAMPLE_INSPECTION_RECEIPT } from './data/sample-inspection.js';
+import { onModelLoaded, runGeneration, stopGeneration, showRecordedActivity, updateRecordedActivity } from './core.js';
 import { state } from './ui/state.js';
 import { initPrecisionReplay } from './ui/precision-replay/index.js';
 import { initLivePrecision } from './ui/precision-replay/live.js';
-import { initActivationGrid, isActivationRecordingEnabled } from './ui/activation-grid/index.js';
+import { initActivationGrid, isActivationRecordingEnabled, loadActivityExample, cancelActivityExample } from './ui/activation-grid/index.js';
 import { initXray, getXrayRuntimeNoticeText, isXrayProfilingNeeded } from './ui/xray/index.js';
 import { flushPwaLaunchState, initPwa } from './pwa.js';
 
@@ -81,7 +80,7 @@ async function init() {
   await initSettings({ requireDefaultProfile: true, onProfileChange: reloadActiveModel });
   setBootStatus('Preparing chat...');
   initReport();
-  initActivationGrid({ onOpenRecording: showRecordedActivity });
+  initActivationGrid({ onOpenRecording: showRecordedActivity, onPlayback: updateRecordedActivity });
   initLivePrecision();
   await initInput();
   flushPwaLaunchState();
@@ -90,12 +89,15 @@ async function init() {
   setRunHandler(runGeneration);
   $('stop-btn')?.addEventListener('click', stopGeneration);
 
-  // Wire sample inspection
-  $('output-area')?.addEventListener('click', (event) => {
-    if (!event.target.closest('#sample-run-btn, #inspect-recorded-run')) return;
-    loadSampleInspection(SAMPLE_INSPECTION_RECEIPT);
-    refreshRuntimeNotice();
-  });
+  // User actions take ownership before an asynchronous example can replace them.
+  $('prompt-input')?.addEventListener('input', cancelActivityExample);
+  $('model-select')?.addEventListener('change', cancelActivityExample);
+  for (const id of ['run-btn', 'shuffle-btn', 'model-select-action', 'clear-history-btn', 'stop-btn']) {
+    $(id)?.addEventListener('click', cancelActivityExample, true);
+  }
+  $('prompt-input')?.addEventListener('keydown', event => {
+    if (event.key === 'Enter' && !event.shiftKey) cancelActivityExample();
+  }, true);
   // Init xray (reads URL ?xray= flags, wires the all-panels checkbox)
   setBootStatus('Preparing inspection tools...');
   try {
@@ -117,7 +119,10 @@ async function init() {
   await boot();
   // A cached model must not suppress the ready-to-run prompt on a return visit.
   const example = getIllustrativeExample();
-  if (state.phase === 'ready' && example) preloadPrompt(example.prompt);
+  if (state.phase === 'ready') {
+    if (example) preloadPrompt(example.prompt);
+    void loadActivityExample(undefined, { autoplay: true });
+  }
 }
 
 function showInitError(message) {

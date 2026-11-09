@@ -26,12 +26,15 @@ let active = false;
 let baseline = null;
 let revision = 0;
 let exampleLoading = false;
+let exampleError = '';
 /** @type {AbortController | null} */
 let exampleRequest = null;
 let source = 'Saved recording';
 let currentPrompt = '';
-/** @type {((recording: import('./data.js').ActivationRecording) => void) | null} */
+/** @type {((recording: import('./data.js').ActivationRecording, options?: { preserveDraft?: boolean }) => void) | null} */
 let onOpenRecording = null;
+/** @type {((recording: import('./data.js').ActivationRecording, point: import('./views.js').PlaybackPoint) => void) | null} */
+let onPlayback = null;
 
 export function isActivationRecordingEnabled() { return $('activation-record')?.checked === true; }
 
@@ -59,7 +62,7 @@ function paint() {
     : 'Activity recording is off.';
   $('activity-selectors').hidden = !timeline.length;
   $('activation-caption').hidden = !timeline.length;
-  $('activity-source').hidden = !exampleLoading && (!timeline.length || source === 'Current run');
+  $('activity-source').hidden = !exampleLoading && (!timeline.length || source === 'Current run' || source === 'Recorded replay');
   if (!exampleLoading && recording) $('activity-source').textContent = source;
   const select = $('activity-mode'), availability = activityModes(recording);
   if (!select.options.length) {
@@ -88,8 +91,8 @@ function paint() {
     card.setAttribute('aria-pressed', String(card.dataset.mode === select.value && timeline.length > 0));
     card.disabled = exampleLoading || (Boolean(recording) && Boolean(availability.find(m => m.id === card.dataset.mode)?.reason));
   }
-  $('activity-availability').textContent = timeline.length ? chosen?.reason ?? '' : '';
-  $('activity-availability').hidden = !timeline.length || !chosen?.reason;
+  $('activity-availability').textContent = exampleError || (timeline.length ? chosen?.reason ?? '' : '');
+  $('activity-availability').hidden = !$('activity-availability').textContent;
   $('activity-paths-button').disabled = Boolean(availability.find(m => m.id === 'model-paths')?.reason);
   $('activity-weight-controls').hidden = !['weights', 'contributions', 'residency', 'quantization-error', 'recurrent-memory', 'convolution-history'].includes(select.value);
   const weightLabel = $('activity-weight').closest('label');
@@ -124,6 +127,7 @@ function paint() {
   token.min = '0'; token.max = String(Math.max(...trace.frames.map(f => f.tokenStart + f.tokenIds.length - 1)));
   if (follow || Number(token.value) > Number(token.max)) token.value = String(point.position);
   const position = Number(token.value);
+  if (!active && !snapshot) onPlayback?.(recording, { ...point, position });
   const graph = select.value === 'model-paths' ? modelPathView(recording, point.atMs, position, Number(layerSelect.value)) : null;
   const view = graph ? { values: graph.nodes.map(n => n.magnitude ?? undefined), range: /** @type {const} */ ('positive'),
     representation:'aggregated', quantity:'Captured RMS magnitude', valuesPerScalar:1, underlyingValues:0, extent:graph.nodes.length, offset:0, segments:[],
@@ -230,7 +234,7 @@ function paint() {
 function queuePaint() { if (scheduled === null) scheduled = requestAnimationFrame(paint); }
 
 export function clearActivationRecording() {
-  revision++;
+  revision++; exampleError = '';
   exampleRequest?.abort(); exampleRequest = null; exampleLoading = false;
   $('activity-example').disabled = false;
   stopPlayback(); baseline = null; recording = null; cursor = 0; follow = true; active = false;
@@ -306,11 +310,11 @@ export function isActivationRecordingFile(value) {
 
 // Opens a standalone recording file; errors stay visible beside the grid.
 /** @type {typeof import('./index.js').openActivationRecording} */
-export function openActivationRecording(value, byteLength) {
+export function openActivationRecording(value, byteLength, options = {}) {
   try {
     if (byteLength > config.maxImportBytes) throw new Error('Recording file exceeds the import limit.');
     const next = validateRecording(value);
-    onOpenRecording?.(next);
+    onOpenRecording?.(next, options);
     importActivationRecording(next);
   } catch (error) {
     $('activation-status').textContent = String(error);
@@ -323,6 +327,7 @@ export function getActivationRecording() { return recording; }
 /** @type {typeof import('./index.js').initActivationGrid} */
 export function initActivationGrid(options = {}) {
   onOpenRecording = options.onOpenRecording ?? null;
+  onPlayback = options.onPlayback ?? null;
   $('activity-playback').value = config.defaultPlayback;
   for (const [id, key, enabled] of [
     ['activation-record', config.recordPreferenceKey, config.recordByDefault],
@@ -337,7 +342,12 @@ export function initActivationGrid(options = {}) {
   $('activation-scrub').addEventListener('input', () => {
     stopPlayback(); follow = false; cursor = Number($('activation-scrub').value); $('activation-position').value = String(points()[cursor]?.position ?? 0); queuePaint();
   });
-  $('activation-position').addEventListener('input', () => { follow = false; queuePaint(); });
+  $('activation-position').addEventListener('input', () => {
+    stopPlayback(); follow = false;
+    const position = Number($('activation-position').value), timeline = points();
+    for (let i = 0; i < timeline.length; i++) if (timeline[i].position === position) cursor = i;
+    queuePaint();
+  });
   $('activation-scale').addEventListener('change', () => {
     const scale = Number($('activation-scale').value);
     if (!Number.isFinite(scale) || scale <= 0) { $('activation-scale').value = String(recording?.display.scales?.[scaleKey()] ?? recording?.display.scale ?? config.scale); return; }
@@ -403,53 +413,7 @@ export function initActivationGrid(options = {}) {
       assertMatchedRuns(recording, next); baseline = next; queuePaint();
     } catch (error) { $('activity-availability').hidden = false; $('activity-availability').textContent = String(error); }
   });
-  /** @param {string} mode */
-  async function loadExample(mode) {
-    if (exampleLoading || active) return;
-    const expectedRevision = revision;
-    const request = new AbortController(); exampleRequest = request;
-    exampleLoading = true;
-    $('activity-source').hidden = false;
-    $('activity-source').textContent = 'Opening the recorded Qwen 0.8B example…';
-    for (const card of $('activity-gallery').querySelectorAll('button')) card.disabled = true;
-    $('activity-example').disabled = true;
-    try {
-      const metadataResponse = await fetch(new URL('../../assets/activity-example.json', import.meta.url), { signal: request.signal });
-      if (!metadataResponse.ok) throw new Error('Example description is unavailable.');
-      const metadata = await metadataResponse.json();
-      const response = await fetch(new URL('../../assets/activity-example.json.gz', import.meta.url), { signal: request.signal });
-      if (!response.ok) throw new Error('Example recording is unavailable.');
-      const bytes = await response.arrayBuffer();
-      const hash = [...new Uint8Array(await crypto.subtle.digest('SHA-256', bytes))].map(n => n.toString(16).padStart(2, '0')).join('');
-      if (hash !== metadata.sha256 || bytes.byteLength !== metadata.compressedBytes) throw new Error('Example recording integrity check failed.');
-      const stream = new Blob([bytes]).stream().pipeThrough(new DecompressionStream('gzip'));
-      const text = await new Response(stream).text();
-      if (text.length !== metadata.decodedBytes) throw new Error('Example recording length differs.');
-      if (revision !== expectedRevision || active) return;
-      $('activity-playback').value = mode === 'model-paths' ? 'captures' : 'tokens';
-      $('activity-layer').value = '-1';
-      $('activity-detail').value = 'overview';
-      $('activity-weight').value = '';
-      $('activity-page').value = '0';
-      $('activity-mode').value = mode;
-      openActivationRecording({ ...JSON.parse(text), prompt: metadata.prompt }, text.length);
-      source = 'Recorded example';
-      cursor = 0; const examplePoints = points();
-      for (let i = 0; i < examplePoints.length; i++) if (examplePoints[i].position === metadata.promptPosition) cursor = i;
-      $('activation-position').value = String(metadata.promptPosition);
-      paint();
-
-    } catch (error) {
-      if (!request.signal.aborted) { $('activity-availability').hidden = false; $('activity-availability').textContent = String(error); }
-    }
-    finally {
-      if (exampleRequest === request) {
-        exampleRequest = null; exampleLoading = false; $('activity-example').disabled = false;
-        queuePaint();
-      }
-    }
-  }
-  $('activity-example').addEventListener('click', () => { void loadExample(config.defaultMode); });
+  $('activity-example').addEventListener('click', () => { void loadActivityExample(config.defaultMode); });
   for (const preview of previews) {
     const card = document.createElement('button');
     card.type = 'button'; card.className = 'activity-preview'; card.dataset.mode = preview.mode;
@@ -471,7 +435,7 @@ export function initActivationGrid(options = {}) {
       card.append(key);
     }
     card.addEventListener('click', () => {
-      if (!recording) { void loadExample(preview.mode); return; }
+      if (!recording) { void loadActivityExample(preview.mode); return; }
       $('activity-mode').value = preview.mode; $('activity-detail').value = 'overview';
       $('activity-layer').value = '-1'; $('activity-weight').value = ''; selectMode();
     });
@@ -480,4 +444,62 @@ export function initActivationGrid(options = {}) {
   $('activation-record').addEventListener('change', queuePaint);
   document.addEventListener('visibilitychange' , () => { if (document.hidden) stopPlayback(); });
   queuePaint();
+}
+
+/** @type {typeof import('./index.js').loadActivityExample} */
+export async function loadActivityExample(mode = config.defaultMode, { autoplay = false } = {}) {
+  if (exampleLoading || active) return;
+  const expectedRevision = revision;
+  const request = new AbortController(); exampleRequest = request;
+  exampleLoading = true; exampleError = '';
+  $('activity-source').hidden = false;
+  $('activity-source').textContent = 'Opening the recorded Qwen 0.8B example…';
+  for (const card of $('activity-gallery').querySelectorAll('button')) card.disabled = true;
+  $('activity-example').disabled = true;
+  try {
+    const metadataResponse = await fetch(new URL('../../assets/activity-example.json', import.meta.url), { signal: request.signal });
+    if (!metadataResponse.ok) throw new Error('Example description is unavailable.');
+    const metadata = await metadataResponse.json();
+    const response = await fetch(new URL('../../assets/activity-example.json.gz', import.meta.url), { signal: request.signal });
+    if (!response.ok) throw new Error('Example recording is unavailable.');
+    const bytes = await response.arrayBuffer();
+    const hash = [...new Uint8Array(await crypto.subtle.digest('SHA-256', bytes))].map(n => n.toString(16).padStart(2, '0')).join('');
+    if (hash !== metadata.sha256 || bytes.byteLength !== metadata.compressedBytes) throw new Error('Example recording integrity check failed.');
+    const stream = new Blob([bytes]).stream().pipeThrough(new DecompressionStream('gzip'));
+    const text = await new Response(stream).text();
+    if (text.length !== metadata.decodedBytes) throw new Error('Example recording length differs.');
+    if (revision !== expectedRevision || active) return;
+    $('activity-playback').value = mode === 'model-paths' ? 'captures' : 'tokens';
+    $('activity-layer').value = '-1';
+    $('activity-detail').value = 'overview';
+    $('activity-weight').value = '';
+    $('activity-page').value = '0';
+    $('activity-mode').value = mode;
+    openActivationRecording({ ...JSON.parse(text), prompt: metadata.prompt }, text.length, { preserveDraft: autoplay });
+    source = 'Recorded replay';
+    cursor = 0; const examplePoints = points();
+    if (!autoplay) for (let i = 0; i < examplePoints.length; i++) if (examplePoints[i].position === metadata.promptPosition) cursor = i;
+    $('activation-position').value = String(examplePoints[cursor]?.position ?? 0);
+    paint();
+    if (autoplay) $('activation-play').click();
+
+  } catch (error) {
+    if (!request.signal.aborted) { exampleError = String(error); queuePaint(); }
+  }
+  finally {
+    if (exampleRequest === request) {
+      exampleRequest = null; exampleLoading = false; $('activity-example').disabled = false;
+      queuePaint();
+    }
+  }
+}
+
+export function cancelActivityExample() {
+  if (exampleRequest) {
+    revision++;
+    exampleRequest.abort(); exampleRequest = null; exampleLoading = false;
+    $('activity-example').disabled = false;
+    queuePaint();
+  }
+  stopPlayback();
 }

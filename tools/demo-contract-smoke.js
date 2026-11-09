@@ -8,7 +8,7 @@ import { fileURLToPath } from 'node:url';
 import { chromium } from 'playwright';
 import { checkLiveActivity, checkActivationPlayback, checkTokenGeometry, checkRealActivityPlayback, checkFirstLoadLayout } from '../tests/demo/browser-activation.js';
 import { checkDemoControls } from '../tests/demo/browser-controls.js';
-import { checkBootLayout, checkEmptyRun, checkPendingExample } from '../tests/demo/browser-run-coherence.js';
+import { checkBootLayout, checkAutomaticReplay, checkPendingExample, checkPendingInitialReplay } from '../tests/demo/browser-run-coherence.js';
 import {
   SHELL_MANIFEST_DIGEST,
 } from '../demo/generated-shell-manifest.js';
@@ -201,22 +201,14 @@ async function main() {
     assert.deepEqual(await page.evaluate(() => [__demoContract.loads.length, __demoContract.calls.length]), [0, 0], 'Opening the example does not download or execute a model');
     assert.equal(await page.locator('#model-select').isVisible(), true, 'Model selection is visible by the composer');
     assert.equal(await page.locator('#xray-shell').isVisible(), false);
-    await checkEmptyRun(page);
+    await checkAutomaticReplay(page);
     assert.equal(await page.locator('#run-btn').isEnabled(), true, 'A preloaded prompt can be sent before a model is chosen');
-    assert.equal(await page.locator('#output-toks').textContent(), '');
-    assert.equal(await page.locator('.token-chip').count(), 0);
     assert.equal(await page.locator('#model-select option[value="embedding-only"]').count(), 0);
     await checkFirstLoadLayout(page);
-    await page.locator('#sample-run-btn').click();
-    await page.waitForFunction(() => document.querySelector('#output-phase').textContent === 'Recorded answer');
-    assert.match(await page.locator('#recorded-run-note').textContent(), /shown unedited and contains a factual error/);
-    assert.equal(await page.locator('#token-inspector-view').isVisible(), true, 'A recorded answer is always underlined');
-    await page.locator('.token-chip').nth(3).click();
-    assert.equal(await page.locator('.token-inspector-badge').textContent(), '" blue"');
+    await page.locator('.token-chip').first().click();
+    assert.equal(await page.locator('.token-inspector-badge').textContent(), '"Hello"');
     assert.equal(await page.locator('.token-candidates-list').isVisible(), true);
     await checkTokenGeometry(page);
-    await page.locator('.token-chip').nth(3).press('ArrowRight');
-    assert.equal(await page.locator('.token-inspector-badge').textContent(), '" because"');
     assert.match(await page.locator('.token-inspector-note').textContent(), /Only a live answer can branch/);
     assert.equal(await page.locator('.token-candidate-branch').first().isDisabled(), true, 'A recorded sample cannot branch');
     if (!await page.locator('#model-select').isVisible()) {
@@ -257,14 +249,15 @@ async function main() {
       body: STUB_MODULE.replaceAll("'contract-model'", "'gemma-3-270m-it-q4k-ehf16-af32'")
         .replace('async listPersistentModels() { return []; }', "async listPersistentModels() { return [{modelId:'gemma-3-270m-it-q4k-ehf16-af32'}]; }") }));
     await cachedPage.goto(`${origin}${entrypoint}`, { waitUntil: 'networkidle' });
-    await cachedPage.waitForFunction(() => document.querySelector('#output-phase').textContent === 'Ready');
+    await cachedPage.waitForFunction(() => document.querySelector('#boot-overlay').hidden);
     assert.equal(await cachedPage.evaluate(() => __demoContract.loads.length), 1, 'The cached model loads during boot');
     const defaultPrompt = await cachedPage.evaluate(async () => (await (await fetch(new URL('examples.json', document.querySelector('script[src$="/demo.js"]').src))).json()).illustrative.prompt);
     assert.equal(await cachedPage.inputValue('#prompt-input'), defaultPrompt, 'A cached-model visit still gets a default prompt');
     assert.equal(await cachedPage.locator('#run-btn').isEnabled(), true);
-    await checkEmptyRun(cachedPage);
+    await checkAutomaticReplay(cachedPage);
     await checkBootLayout(cachedPage);
     await checkPendingExample(cachedPage);
+    await checkPendingInitialReplay(cachedPage);
     await cachedPage.close();
     testedShellDigest = await page.evaluate(async (url) => (await import(url)).SHELL_MANIFEST_DIGEST,
       `${origin}${modulePath.replace('/src/index-browser.js', '/demo/generated-shell-manifest.js')}`);

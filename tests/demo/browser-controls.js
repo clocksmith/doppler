@@ -291,7 +291,11 @@ export async function checkDemoControls(page) {
   assert.equal(await page.locator('#clear-history-btn').isEnabled(), true, 'Loaded model remains resettable');
 
   await checkFirstLoadLayout(page, true);
-  await page.locator('#sample-run-btn').click();
+  await page.evaluate(async () => {
+    const entry = document.querySelector('script[src$="/demo.js"]').src;
+    await (await import(new URL('ui/activation-grid/index.js', entry))).loadActivityExample(undefined, { autoplay: true });
+  });
+  await page.waitForFunction(() => document.querySelector('#output-text').textContent === 'Hello!');
   const sampleSettingsOpen = await page.locator('#settings-panel').isVisible();
   if (!sampleSettingsOpen) await page.click('#settings-toggle');
   assert.equal(await page.locator('#output-text').isVisible(), false, 'The underlined view replaces the duplicate formatted answer');

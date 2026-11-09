@@ -1,10 +1,10 @@
 export declare function onModelLoaded(model: unknown, modelId: string): void;
 export declare function runGeneration(): Promise<void>;
 export declare function stopGeneration(): void;
-export declare function showRecordedActivity(recording: import('./ui/activation-grid/data.js').ActivationRecording): void;
-export declare function loadSampleInspection(): Promise<void>;
+export declare function showRecordedActivity(recording: import('./ui/activation-grid/data.js').ActivationRecording, options?: { preserveDraft?: boolean }): void;
+export declare function loadSampleInspection(receipt: typeof import('./data/sample-inspection.js').SAMPLE_INSPECTION_RECEIPT, options?: { preserveDraft?: boolean }): void;
+export declare function updateRecordedActivity(recording: import('./ui/activation-grid/data.js').ActivationRecording, point: import('./ui/activation-grid/views.js').PlaybackPoint): void;
 
-export declare function loadIllustrativeExample(example: { prompt: string; answer: string } | null): void;
 /** Re-applies fork switchers and branching availability to the token view. */
 export declare function syncBranchView(): void;
 /** Shows another branch of the latest answer. */
