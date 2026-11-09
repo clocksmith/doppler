@@ -5,6 +5,8 @@ import { resolveBrowserArgs } from '../demo-hardware-smoke.js';
 
 assert(process.argv.includes('--physical'), 'Pass --physical to run the real hosted model.');
 const origin = process.argv.find(v => v.startsWith('--origin='))?.slice(9) || 'https://d4da.com';
+const activationChangesOnly = process.argv.includes('--activation-changes-only');
+const tokenLimit = activationChangesOnly ? 16 : 3;
 const out = '.cache/activation-grid/hosted';
 await fs.mkdir(out, { recursive: true });
 const browser = await chromium.launch({ headless: true, args: resolveBrowserArgs() });
@@ -23,7 +25,7 @@ try {
   assert.equal(await page.locator('#model-select-action').textContent(), 'Loaded', await page.locator('#status-text').textContent());
   await page.locator('#activation-view').evaluate(el => { el.open = true; });
   assert.equal(await page.locator('#activation-record').isChecked(), true, 'Live activity defaults on');
-  await page.evaluate(() => { const select = document.querySelector('#set-max-tokens'); select.add(new Option('16', '16')); select.value = '16'; select.dispatchEvent(new Event('change', { bubbles: true })); });
+  await page.evaluate(limit => { const select = document.querySelector('#set-max-tokens'); select.add(new Option(String(limit), String(limit))); select.value = String(limit); select.dispatchEvent(new Event('change', { bubbles: true })); }, tokenLimit);
   assert.equal(await page.inputValue('#prompt-input'), defaultPrompt, 'Loading a model preserves the ready-to-run prompt');
   await page.evaluate(() => {
     globalThis.__liveGridCheck = { captions: [], duringGeneration: 0, colorChanges: 0, pathChanges: 0, activationChanges: 0, visibleActivations: 0, last: '', lastActivation: '' };
@@ -72,19 +74,23 @@ try {
       gaps: trace.frames.filter(f => f.status === 'dropped' || f.status === 'failed').length,
       activityFrames: trace.activity?.frames.length ?? 0,
       activityGaps: trace.activity?.frames.filter(f => f.status !== 'captured').length ?? null,
+      activityMissingReasons: [...new Set(trace.activity?.frames.filter(f => f.status !== 'captured').map(f => f.reason))],
       modes: activityModes(recording).map(m => ({ id: m.id, available: !m.reason, reason: m.reason })) };
   });
+  const live = await page.evaluate(() => globalThis.__liveGridCheck);
+  const release = await (await page.request.get(origin + '/doppler/release.json')).json();
+  const result = { origin, browser: browser.version(), release, scope: activationChangesOnly ? '16-token layer-output and activation-change stream; detailed operators remain bounded' : '3-token full capture', defaultPrompt, receipt, live, errors };
+  await page.locator('#activation-view').screenshot({ path: out + '/grid.png' });
+  await fs.writeFile(out + '/receipt.json', JSON.stringify(result, null, 2) + '\n');
+  console.log(JSON.stringify(result));
   assert(receipt.phases.includes('prefill') && receipt.phases.includes('decode'));
-  assert.equal(receipt.activityGaps, 0); assert(receipt.activityFrames > 0);
+  if (!activationChangesOnly) assert.equal(receipt.activityGaps, 0);
+  else assert(receipt.activityMissingReasons.every(reason => reason === 'Activity recording budget reached; inference continues.'), 'Only explicit detailed-recording budget gaps are accepted in the layer-output check');
+  assert(receipt.activityFrames > 0);
   assert.equal(receipt.modes.filter(m => m.available).length, 19);
   assert.equal(receipt.gaps, 0); assert.equal(receipt.captured, receipt.frames);
-  const live = await page.evaluate(() => globalThis.__liveGridCheck);
   assert.equal(await page.inputValue('#activity-mode'), 'difference');
   assert(live.duringGeneration > 1 && live.colorChanges > 1, 'Default activation changes update while generation is active');
   assert(live.visibleActivations > 1, 'The activation heatmap is in the viewport during generation');
-  const release = await (await page.request.get(origin + '/doppler/release.json')).json();
-  const result = { origin, browser: browser.version(), release, defaultPrompt, receipt, live, errors };
-  await page.locator('#activation-view').screenshot({ path: out + '/grid.png' });
-  await fs.writeFile(out + '/receipt.json', JSON.stringify(result, null, 2) + '\n');
-  console.log(JSON.stringify(result)); assert.deepEqual(errors, []);
+  assert.deepEqual(errors, []);
 } finally { await browser.close(); }

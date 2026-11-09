@@ -1,0 +1,195 @@
+{
+  "origin": "http://127.0.0.1:8767",
+  "browser": "145.0.7632.6",
+  "release": {
+    "application": "doppler-demo",
+    "canonicalUrl": "https://d4da.com/doppler/",
+    "sourceCommit": "da5611f2d35bb81803571e7f53323a162a1050fc",
+    "demoSourceCommit": "da5611f2d35bb81803571e7f53323a162a1050fc",
+    "runtime": {
+      "sourceCommit": "ca685808ed0c208583a8cf1780c74ed4ae8bf501",
+      "version": "0.6.33",
+      "inventorySha256": "dfcf2b15ee5ebf89edcc743193fcbfab9917526e84c3face259453c1783bc04b"
+    },
+    "hostingRecipeSha256": "7ec02801ab3ea086cffab15d904bc2b94edeafdb4a8d378b916c97b9f9332c19"
+  },
+  "scope": "16-token layer-output and activation-change stream; detailed operators remain bounded",
+  "defaultPrompt": "Explain why the sky is blue in one sentence.",
+  "receipt": {
+    "identity": {
+      "modelId": "qwen-3-5-0-8b-q4k-ehaf16",
+      "logicalModelId": "qwen-3-5-0-8b-q4k-ehaf16",
+      "manifestHash": "c5fcf38e945f1c048faca9ccda8991f1494563317f46a6dd79e0714ad001c569",
+      "runtimeVersion": "0.6.33",
+      "adapters": []
+    },
+    "persistentCache": {
+      "backend": "opfs",
+      "state": "imported",
+      "fromCache": false,
+      "manifestHash": "c5fcf38e945f1c048faca9ccda8991f1494563317f46a6dd79e0714ad001c569",
+      "totalBytes": 1146048704
+    },
+    "output": "The sky appears blue because Rayleigh scattering occurs when blue light from distant celestial bodies",
+    "tokenIds": [
+      760,
+      12515,
+      7701,
+      6105,
+      1521,
+      12870,
+      60845,
+      69377,
+      13273,
+      948,
+      6105,
+      3000,
+      494,
+      27786,
+      73766,
+      12497
+    ],
+    "phases": [
+      "prefill",
+      "decode"
+    ],
+    "frames": 384,
+    "captured": 384,
+    "gaps": 0,
+    "activityFrames": 2864,
+    "activityGaps": 2200,
+    "activityMissingReasons": [
+      "Activity recording budget reached; inference continues."
+    ],
+    "modes": [
+      {
+        "id": "model-paths",
+        "available": true,
+        "reason": null
+      },
+      {
+        "id": "layer-output",
+        "available": true,
+        "reason": null
+      },
+      {
+        "id": "ffn-product",
+        "available": true,
+        "reason": null
+      },
+      {
+        "id": "ffn-gate",
+        "available": true,
+        "reason": null
+      },
+      {
+        "id": "ffn-up",
+        "available": true,
+        "reason": null
+      },
+      {
+        "id": "difference",
+        "available": true,
+        "reason": null
+      },
+      {
+        "id": "weights",
+        "available": true,
+        "reason": null
+      },
+      {
+        "id": "contributions",
+        "available": true,
+        "reason": null
+      },
+      {
+        "id": "kv-new",
+        "available": true,
+        "reason": null
+      },
+      {
+        "id": "kv-cache",
+        "available": true,
+        "reason": null
+      },
+      {
+        "id": "recurrent-memory",
+        "available": true,
+        "reason": null
+      },
+      {
+        "id": "convolution-history",
+        "available": true,
+        "reason": null
+      },
+      {
+        "id": "attention-query",
+        "available": true,
+        "reason": null
+      },
+      {
+        "id": "attention-prefill",
+        "available": true,
+        "reason": null
+      },
+      {
+        "id": "linear-gates",
+        "available": true,
+        "reason": null
+      },
+      {
+        "id": "logits",
+        "available": true,
+        "reason": null
+      },
+      {
+        "id": "probabilities",
+        "available": true,
+        "reason": null
+      },
+      {
+        "id": "quantization-error",
+        "available": true,
+        "reason": null
+      },
+      {
+        "id": "residency",
+        "available": true,
+        "reason": null
+      },
+      {
+        "id": "expert-routing",
+        "available": false,
+        "reason": "No expert-routing boundary was captured for this execution."
+      }
+    ]
+  },
+  "live": {
+    "captions": [
+      "Live · prefill · token position 22 · 157 × 157 pixels",
+      "Live · prefill · token position 22 · 157 × 157 pixels",
+      "Live · prefill · token position 22 · 157 × 157 pixels",
+      "Live · prefill · token position 22 · 157 × 157 pixels",
+      "Live · prefill · token position 22 · 157 × 157 pixels",
+      "Live · prefill · token position 22 · 157 × 157 pixels",
+      "Live · prefill · token position 22 · 157 × 157 pixels",
+      "Live · prefill · token position 22 · 157 × 157 pixels",
+      "Live · prefill · token position 22 · 157 × 157 pixels",
+      "Live · prefill · token position 22 · 157 × 157 pixels",
+      "Live · prefill · token position 22 · 157 × 157 pixels",
+      "Live · prefill · token position 22 · 157 × 157 pixels",
+      "Live · prefill · token position 22 · 157 × 157 pixels",
+      "Live · prefill · token position 22 · 157 × 157 pixels",
+      "Live · prefill · token position 22 · 157 × 157 pixels",
+      "Live · prefill · token position 22 · 157 × 157 pixels"
+    ],
+    "duringGeneration": 76,
+    "colorChanges": 71,
+    "pathChanges": 0,
+    "activationChanges": 0,
+    "visibleActivations": 74,
+    "last": "-610988899",
+    "lastActivation": ""
+  },
+  "errors": []
+}
