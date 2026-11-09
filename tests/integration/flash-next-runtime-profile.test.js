@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import { createOrderedLayerPartitionPlan } from '../../src/partitions.js';
 import { readFile } from 'node:fs/promises';
 import { resolveConversionPlan } from '../../src/converter/conversion-plan.js';
 import { extractArchitecture } from '../../src/converter/artifact-identity.js';
@@ -57,5 +58,11 @@ const state = { modelConfig, manifest, useGPU: true, runtimeConfig: { inference:
   session: compiled.session, compute: { activationDtype: compiled.session.compute.defaults.activationDtype },
 } }, executionV1State: compiled };
 assert.doesNotThrow(() => assertHyperConnectionLoad(state));
-assert.throws(() => assertHyperConnectionLoad({ ...state, modelPartition: { startLayer: 0, endLayer: 4 } }), /unpartitioned/);
+assert.throws(() => assertHyperConnectionLoad({ ...state, modelPartition: { startLayer: 0, endLayer: 4 } }), /ordered plan/);
+const partitionPlan = createOrderedLayerPartitionPlan({ modelId: manifest.modelId, ...manifest.architecture,
+  splitLayers: [16, 32], activationDtype: 'f32', residualStreams: {
+    streamCount: modelConfig.hyperConnections.streamCount, streamWidth: modelConfig.hyperConnections.streamWidth,
+  } });
+for (const index of [0, 1, 2]) assert.doesNotThrow(() => assertHyperConnectionLoad({ ...state,
+  modelPartition: { plan: partitionPlan, index } }));
 console.log('Flash-Next recipe -> conversion -> manifest -> specialized runtime contracts passed (metadata only)');

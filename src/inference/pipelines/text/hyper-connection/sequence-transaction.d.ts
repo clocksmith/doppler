@@ -1,4 +1,5 @@
 import type { PipelineState } from '../state.js';
+import type { AnyLayerPartitionPlan } from '../layer-partition-contract.js';
 export interface HyperConnectionOptions {
   signal?: AbortSignal;
   useSpeculative?: boolean;
@@ -15,7 +16,9 @@ export interface HyperConnectionOptions {
   paddingMask?: unknown;
   _returnHidden?: boolean;
 }
-export type HyperConnectionPipeline = PipelineState & { modelPartition?: unknown; layerPipelinePlan?: unknown; };
+export type HyperConnectionPipeline = PipelineState & {
+  modelPartition?: { plan: AnyLayerPartitionPlan; index: number } | null; layerPipelinePlan?: unknown;
+};
 export declare function assertHyperConnectionLoad(state: HyperConnectionPipeline): void;
 export declare function assertHyperConnectionOperation(state: Pick<PipelineState, 'modelConfig'>, opts: HyperConnectionOptions): void;
 export declare function assertClassicSequenceState(state: Pick<PipelineState, 'modelConfig'>, operation: string): void;

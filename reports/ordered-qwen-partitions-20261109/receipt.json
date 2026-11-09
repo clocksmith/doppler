@@ -1,0 +1,41 @@
+{
+  "schema": "doppler.ordered-qwen-component-evidence/v1",
+  "scope": "Same AMD device; whole versus split prefill and two greedy decode steps; not independent source accuracy or network qualification",
+  "archiveBase": {
+    "sha256": "2cdfb3105b84c7716d9cbbc55674aefb1729087f4ce724e91aa115fcb17dc0d6",
+    "bytes": 12369662,
+    "scope": "Uncommitted isolated source snapshot plus retained stage phase and warm-generation repairs"
+  },
+  "files": [
+    {
+      "path": "flash-next-result.json",
+      "sha256": "d1cc8d7bed4becd97a24d74a735dbc8a5a896a60fb05ba77c1da096f80fd0ac9",
+      "bytes": 179836
+    },
+    {
+      "path": "post-run-source-inventory.json",
+      "sha256": "c15823d84b17a9dfac9d3aca11027150bb782fa67d7dbf1297e8e83dfd7a9454",
+      "bytes": 492574
+    },
+    {
+      "path": "qwen27b-result.json",
+      "sha256": "5e0465647b528ed08443eb93e3451737c5a6370000c559e29cb526b6d4ded43f",
+      "bytes": 11282
+    },
+    {
+      "path": "qwen35b-result.json",
+      "sha256": "1fc4f15745bb0ca0bf14b1f94673b3b6d4fe0ea25d3976af72883480ac8becca",
+      "bytes": 195564
+    },
+    {
+      "path": "qwen35b-warm-generation-failure.json",
+      "sha256": "8c63578a0fa0e2d887d8a9c81803ebf3874f73c6717b382f0afb1ad6e7c694b0",
+      "bytes": 189962
+    },
+    {
+      "path": "stage-logits-phase-failure.json",
+      "sha256": "32335f9a88149993feda249b0b72081a68e621325998ac12f7aad53ffb37dd44",
+      "bytes": 178383
+    }
+  ]
+}

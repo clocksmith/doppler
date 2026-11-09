@@ -12,7 +12,7 @@ import { hashPartitionGeneration, assertResidentPartitionIdentity, resolveReside
 import { admitResidentPrompt } from '../../resident-state-contract.js';
 import { createResidentTargetState, createResidentCursorMirror } from '../../resident-target-state.js';
 import { createResidentOutputState } from '../../resident-output-state.js';
-import { ORDERED_LAYER_PARTITION_SCHEMA, hashLayerPartitionPlan, resolveActivationTensorLayout, validateActivationTensorShape } from './layer-partition-contract.js';
+import { ORDERED_LAYER_PARTITION_SCHEMA, hashLayerPartitionPlan, getPartitionActivationContract, resolveActivationTensorLayout, validateActivationTensorShape } from './layer-partition-contract.js';
 import { markDeviceWeights, getDeviceMemorySnapshot } from '../../../memory/device-budget.js';
 import { prepareResidentPartitionPipelines } from './resident-pipeline-preparation.js';
 
@@ -41,6 +41,8 @@ export async function createResidentPartitionSession(pipeline, allocation, token
     // copy of the participant's entire context allocation.
     owner.kvCache?.destroy();
     owner.kvCache = null;
+    await owner.hyperConnectionSession?.destroy();
+    owner.hyperConnectionSession = null;
     return { schema: ordered ? /** @type {const} */ ('doppler.resident-partition/v2')
       : /** @type {const} */ ('doppler.resident-partition/v1'), ready: true,
       ...(ordered ? { stageCount: allocation.plan.partitions.length } : {}),
@@ -89,8 +91,8 @@ export async function createResidentPartitionSession(pipeline, allocation, token
       || data.inputTokenCount > (data.step === 0 ? allocation.limits.maxPromptTokens : 1)) {
       throw new Error('Resident input exceeds its prompt allocation.');
     }
-    if (allocation.plan.activationPrecision === 'two-f32') {
-      const { expectedBytes } = validateActivationTensorShape({ shape: [1, data.inputTokenCount, allocation.plan.hiddenSize],
+    {
+      const { expectedBytes } = validateActivationTensorShape({ shape: [1, data.inputTokenCount, getPartitionActivationContract(allocation.plan).hiddenSize],
         dtype: allocation.plan.activationDtype, precision: allocation.plan.activationPrecision,
         components: allocation.plan.activationComponents, elementStrideBytes: allocation.plan.activationElementStrideBytes });
       if (expectedBytes > allocation.limits.maxActivationBytes) throw new Error('Resident activation exceeds its byte allocation.');
@@ -149,10 +151,10 @@ export async function createResidentPartitionSession(pipeline, allocation, token
             throw new Error('Resident activation precision or component layout mismatch.');
           }
           validateActivationTensorShape({ ...activation, dtype: allocation.plan.activationDtype,
-            byteLength: activation.tensorData?.byteLength, hiddenSize: allocation.plan.hiddenSize });
+            byteLength: activation.tensorData?.byteLength, hiddenSize: getPartitionActivationContract(allocation.plan).hiddenSize });
           if (activation?.dtype !== allocation.plan.activationDtype || activation.step !== request.step
             || activation.seqOffset !== request.tokenPosition
-            || JSON.stringify(activation.shape) !== JSON.stringify([1, request.inputTokenCount, allocation.plan.hiddenSize])) {
+            || JSON.stringify(activation.shape) !== JSON.stringify([1, request.inputTokenCount, getPartitionActivationContract(allocation.plan).hiddenSize])) {
             throw new Error('Resident activation identity or shape mismatch.');
           }
         }
@@ -161,7 +163,7 @@ export async function createResidentPartitionSession(pipeline, allocation, token
         const state = attempt.execution.state;
         const executionStarted = performance.now();
         const result = await executePartitionLayers(state, { numTokens: request.inputTokenCount,
-          ...('tokenIds' in request ? { tokenIds: ids } : { activationBytes: request.activation.tensorData }) }, combined);
+          tokenIds: ids, ...('activation' in request ? { activationBytes: request.activation.tensorData } : {}) }, combined);
         state.currentSeqLen += request.inputTokenCount;
         state.decodeStepCount++;
         attempt.step++; attempt.position = state.currentSeqLen;
@@ -176,7 +178,7 @@ export async function createResidentPartitionSession(pipeline, allocation, token
           if (ordered && partition.hasLmHead) throw new Error('Final ordered stage must produce logits.');
           if (canonicalMode) attempt.canonicalAwaiting = true;
           if (result.activationBytes.byteLength > allocation.limits.maxActivationBytes) throw new Error('Resident activation exceeds its byte allocation.');
-          return { activationTensor: { shape: [1, request.inputTokenCount, allocation.plan.hiddenSize],
+          return { activationTensor: { shape: [1, request.inputTokenCount, getPartitionActivationContract(allocation.plan).hiddenSize],
             dtype: allocation.plan.activationDtype,
             ...(allocation.plan.activationPrecision === 'two-f32' ? { precision: allocation.plan.activationPrecision,
               components: allocation.plan.activationComponents, elementStrideBytes: allocation.plan.activationElementStrideBytes } : {}), data: result.activationBytes, step: request.step,
@@ -255,7 +257,9 @@ export async function createResidentPartitionSession(pipeline, allocation, token
     attempt.controller.abort(new Error('Resident attempt closed.'));
     attempt.settlement = (async () => {
       await attempt.pending?.catch(() => {});
-      attempt.execution?.close(); attempt.execution = null;
+      const execution = attempt.execution;
+      if (execution) await runPipelineOperation(pipeline, async () => { await execution.close(); });
+      attempt.execution = null;
       attempt.decoder = null; attempt.contextTokens = []; attempt.text = '';
       attempt.canonicalState = null; attempt.canonicalMirror = null; attempt.canonicalPrompt = null; attempt.canonicalAwaiting = false;
     })();
@@ -362,7 +366,7 @@ export async function createResidentPartitionSession(pipeline, allocation, token
         precision: allocation.plan.activationPrecision, components: allocation.plan.activationComponents,
         elementStrideBytes: allocation.plan.activationElementStrideBytes });
       const { expectedBytes } = validateActivationTensorShape({ ...layout, dtype: allocation.plan.activationDtype,
-        shape: [1, snapshot.inputTokenCount, allocation.plan.hiddenSize] });
+        shape: [1, snapshot.inputTokenCount, getPartitionActivationContract(allocation.plan).hiddenSize] });
       if (expectedBytes > allocation.limits.maxActivationBytes) throw new Error('Resident activation exceeds its byte allocation.');
       const stepInput = { identity: snapshot.identity, step: snapshot.step, tokenPosition: snapshot.tokenPosition,
         inputTokenCount: snapshot.inputTokenCount, maxTokens: snapshot.maxTokens,

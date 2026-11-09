@@ -1,0 +1,423 @@
+{
+  "schema": "doppler.ordered-split-physical-result/v1",
+  "scope": "One same-device ordered resident route versus the same whole-model GPU program; no independent accuracy or transport qualification",
+  "configSha256": "b964aeb8a7bc0035956e54753e056f7cd9e3e21da8bbd7472b3a8035d3a30de6",
+  "modelIdentity": "sha256:e29626a8d3c41c0af8c0dd945d028464dcebfef2413ba85e4f5e8695d5910d06",
+  "modelId": "qwen3-8-27b-text-q4k-ehaf16",
+  "plan": {
+    "schema": "doppler.layer-partition-contract/v3",
+    "modelId": "qwen3-8-27b-text-q4k-ehaf16",
+    "totalLayers": 64,
+    "hiddenSize": 5120,
+    "vocabSize": 248320,
+    "stageCount": 2,
+    "splitLayers": [
+      32
+    ],
+    "activationDtype": "f32",
+    "activationPrecision": "f32",
+    "activationComponents": 1,
+    "activationElementStrideBytes": 4,
+    "partitions": [
+      {
+        "index": 0,
+        "layerRange": [
+          0,
+          31
+        ],
+        "layerCount": 32,
+        "hasEmbedding": true,
+        "hasLmHead": false,
+        "inputContract": {
+          "type": "token-ids",
+          "rank": 2,
+          "shapeDescription": "[batchSize, seqLen]",
+          "dtype": "i32"
+        },
+        "outputContract": {
+          "type": "activation-tensor",
+          "rank": 3,
+          "shapeDescription": "[batchSize, seqLen, hiddenSize]",
+          "hiddenSize": 5120,
+          "dtype": "f32",
+          "precision": "f32",
+          "components": 1,
+          "elementStrideBytes": 4
+        }
+      },
+      {
+        "index": 1,
+        "layerRange": [
+          32,
+          63
+        ],
+        "layerCount": 32,
+        "hasEmbedding": false,
+        "hasLmHead": true,
+        "inputContract": {
+          "type": "activation-tensor",
+          "rank": 3,
+          "shapeDescription": "[batchSize, seqLen, hiddenSize]",
+          "hiddenSize": 5120,
+          "dtype": "f32",
+          "precision": "f32",
+          "components": 1,
+          "elementStrideBytes": 4
+        },
+        "outputContract": {
+          "type": "logits",
+          "rank": 3,
+          "shapeDescription": "[batchSize, seqLen, vocabSize]",
+          "vocabSize": 248320,
+          "dtype": "f32"
+        }
+      }
+    ]
+  },
+  "planId": "sha256:4588fa1962fcb53a8d8892dc9ea222755567eb0a45219ad782f407f641d5b003",
+  "runtimeConfig": {
+    "shared": {
+      "harness": {
+        "referenceTranscript": {
+          "enabled": false,
+          "captureLogits": true,
+          "captureKvBytes": true
+        }
+      },
+      "debug": {
+        "logLevel": {
+          "defaultLogLevel": "warn"
+        },
+        "trace": {
+          "enabled": false
+        },
+        "profiler": {
+          "enabled": false
+        }
+      },
+      "bufferPool": {
+        "budget": {
+          "maxTotalBytes": 25769803776,
+          "highWatermarkRatio": 0.94,
+          "emergencyTrimTargetRatio": 0.9,
+          "hardFailOnBudgetExceeded": true
+        }
+      }
+    },
+    "inference": {
+      "prompt": "The capital of France is",
+      "chatTemplate": {
+        "enabled": false,
+        "type": null,
+        "thinking": false
+      },
+      "generation": {
+        "maxTokens": 128,
+        "disableMultiTokenDecode": true
+      },
+      "batching": {
+        "maxTokens": 128,
+        "batchSize": 1,
+        "readbackInterval": 1,
+        "stopCheckMode": "per-token",
+        "readbackMode": "sequential",
+        "ringTokens": 1,
+        "ringStop": 1,
+        "ringStaging": 1
+      },
+      "sampling": {
+        "temperature": 0,
+        "topK": 1,
+        "topP": 1,
+        "repetitionPenalty": 1,
+        "repetitionPenaltyWindow": 1,
+        "greedyThreshold": 0,
+        "suppressSpecialTokens": false,
+        "suppressSpecialLikeTokens": false,
+        "suppressTokenIds": []
+      },
+      "session": {
+        "decodeLoop": {
+          "batchSize": 1,
+          "readbackInterval": 1,
+          "stopCheckMode": "per-token",
+          "readbackMode": "sequential",
+          "submitLatencyThresholdMs": null,
+          "maxBatchDecodeTokens": 1,
+          "ringTokens": 1,
+          "ringStop": 1,
+          "ringStaging": 1,
+          "disableCommandBatching": false,
+          "wholeTokenProgram": false
+        },
+        "kvcache": {
+          "maxSeqLen": 64
+        },
+        "prefillTokenChunkSize": 256
+      },
+      "kernelPathPolicy": {
+        "mode": "capability-aware",
+        "sourceScope": [
+          "manifest"
+        ],
+        "allowSources": [
+          "manifest"
+        ],
+        "onIncompatible": "error"
+      },
+      "kvcache": {
+        "maxSeqLen": 64
+      }
+    },
+    "loading": {
+      "shardCache": {
+        "verifyHashes": false
+      }
+    }
+  },
+  "generation": {
+    "maxTokens": 3,
+    "maxSeqLen": 64,
+    "temperature": 0,
+    "topP": 1,
+    "topK": 1,
+    "repetitionPenalty": 1,
+    "repetitionPenaltyWindow": 1,
+    "presencePenalty": 0,
+    "useChatTemplate": false,
+    "suppressTokenIds": [],
+    "stopSequences": []
+  },
+  "referenceSource": "unsplit-doppler",
+  "tolerance": 0.0001,
+  "rows": [
+    {
+      "step": 0,
+      "tokenPosition": 0,
+      "inputTokenCount": 23,
+      "tokenId": 220,
+      "referenceTokenId": 220,
+      "comparison": {
+        "schema": "doppler.partition-comparison-contract/v1",
+        "matches": true,
+        "maxDiff": 0,
+        "mse": 0,
+        "cosineSimilarity": 1,
+        "tolerance": 0.0001,
+        "minCosineSimilarity": 0.9999,
+        "length": 248320
+      },
+      "logitsSha256": "fc1ab4948bdd522e7bcd2ffe27fb15a17ef04dfaa6aaab2285a6ff2e6357aad5"
+    },
+    {
+      "step": 1,
+      "tokenPosition": 23,
+      "inputTokenCount": 1,
+      "tokenId": 24,
+      "referenceTokenId": 24,
+      "comparison": {
+        "schema": "doppler.partition-comparison-contract/v1",
+        "matches": true,
+        "maxDiff": 0,
+        "mse": 0,
+        "cosineSimilarity": 1.0000000000000002,
+        "tolerance": 0.0001,
+        "minCosineSimilarity": 0.9999,
+        "length": 248320
+      },
+      "logitsSha256": "4f2dd3700559607671f43823d0ba93c0a4cbd18135ab4f3b4f2613b3d2c42d65"
+    },
+    {
+      "step": 2,
+      "tokenPosition": 24,
+      "inputTokenCount": 1,
+      "tokenId": 11,
+      "referenceTokenId": 11,
+      "comparison": {
+        "schema": "doppler.partition-comparison-contract/v1",
+        "matches": true,
+        "maxDiff": 0,
+        "mse": 0,
+        "cosineSimilarity": 1.0000000000000002,
+        "tolerance": 0.0001,
+        "minCosineSimilarity": 0.9999,
+        "length": 248320
+      },
+      "logitsSha256": "c8a3c9f3a6d6879d63d21b1a0490496855d19068b19f97c779545683d158fb3e"
+    }
+  ],
+  "gpuErrors": [],
+  "cleanupFailures": [],
+  "passed": true,
+  "artifactVerification": "Existing pinned operator artifact; no full-shard rehash in this component comparison",
+  "provider": {
+    "schema": "doe.webgpu-provider-receipt/v1",
+    "contract": "doe.webgpu-provider/v1",
+    "implementation": "doppler",
+    "providers": [
+      {
+        "id": "pre-installed",
+        "kind": "global"
+      },
+      {
+        "id": "webgpu",
+        "kind": "module",
+        "module": "webgpu",
+        "gpu": {
+          "kind": "factory",
+          "path": "create",
+          "args": [
+            [
+              "enable-dawn-features=allow_unsafe_apis"
+            ]
+          ]
+        },
+        "globals": {
+          "GPUBufferUsage": "globals.GPUBufferUsage",
+          "GPUShaderStage": "globals.GPUShaderStage",
+          "GPUMapMode": "globals.GPUMapMode",
+          "GPUTextureUsage": "globals.GPUTextureUsage"
+        }
+      }
+    ],
+    "providerOrder": [
+      "pre-installed",
+      "webgpu"
+    ],
+    "adapterOptions": null,
+    "globals": {
+      "mode": "replace",
+      "installed": [
+        "GPUBufferUsage",
+        "GPUShaderStage",
+        "GPUMapMode",
+        "GPUTextureUsage",
+        "navigator.gpu"
+      ],
+      "restored": true
+    },
+    "attempts": [
+      {
+        "providerId": "pre-installed",
+        "kind": "global",
+        "module": null,
+        "ok": false,
+        "stage": "gpu.validate",
+        "code": "DOPPLER_PROVIDER_UNAVAILABLE",
+        "detail": "Selected provider does not expose GPU.requestAdapter()."
+      },
+      {
+        "providerId": "webgpu",
+        "kind": "module",
+        "module": "webgpu",
+        "ok": true,
+        "stage": "complete",
+        "code": null,
+        "detail": null
+      }
+    ],
+    "selectedProviderId": "webgpu",
+    "ok": true
+  },
+  "adapter": {
+    "vendor": "amd",
+    "architecture": "rdna-3",
+    "device": "radeon-8060s-graphics-radv-strix-halo-",
+    "description": "radv: Mesa 26.0.3-1ubuntu1",
+    "subgroupMinSize": 32,
+    "subgroupMaxSize": 64
+  },
+  "inputTokenIds": [
+    16,
+    11,
+    220,
+    17,
+    11,
+    220,
+    18,
+    11,
+    220,
+    19,
+    11,
+    220,
+    20,
+    11,
+    220,
+    21,
+    11,
+    220,
+    22,
+    11,
+    220,
+    23,
+    11
+  ],
+  "controlLogits": [
+    "fc1ab4948bdd522e7bcd2ffe27fb15a17ef04dfaa6aaab2285a6ff2e6357aad5",
+    "4f2dd3700559607671f43823d0ba93c0a4cbd18135ab4f3b4f2613b3d2c42d65",
+    "c8a3c9f3a6d6879d63d21b1a0490496855d19068b19f97c779545683d158fb3e"
+  ],
+  "controlTokenIds": [
+    220,
+    24,
+    11
+  ],
+  "descriptors": [
+    {
+      "schema": "doppler.resident-partition/v2",
+      "ready": true,
+      "stageCount": 2,
+      "modelId": "qwen3-8-27b-text-q4k-ehaf16",
+      "modelIdentity": "sha256:e29626a8d3c41c0af8c0dd945d028464dcebfef2413ba85e4f5e8695d5910d06",
+      "planId": "sha256:4588fa1962fcb53a8d8892dc9ea222755567eb0a45219ad782f407f641d5b003",
+      "index": 0,
+      "layerRange": [
+        0,
+        31
+      ],
+      "residentWeightBytes": 9414666240,
+      "generationDigest": "sha256:59f2c29d933e0e4f0fb01ab679c7e722952378b56f4c5bb53c98f088595f9a33",
+      "pipelinePreparation": {
+        "schema": "doppler.resident-pipeline-preparation/v1",
+        "complete": false,
+        "count": 0,
+        "durationMs": 0.021881000000576023,
+        "pipelines": [],
+        "lazy": [
+          {
+            "scope": "program",
+            "reason": "Scalar resident programs select matmul, attention and normalization variants from token and KV lengths and fused-kernel policy; their pipelines are created on first use."
+          }
+        ]
+      }
+    },
+    {
+      "schema": "doppler.resident-partition/v2",
+      "ready": true,
+      "stageCount": 2,
+      "modelId": "qwen3-8-27b-text-q4k-ehaf16",
+      "modelIdentity": "sha256:e29626a8d3c41c0af8c0dd945d028464dcebfef2413ba85e4f5e8695d5910d06",
+      "planId": "sha256:4588fa1962fcb53a8d8892dc9ea222755567eb0a45219ad782f407f641d5b003",
+      "index": 1,
+      "layerRange": [
+        32,
+        63
+      ],
+      "residentWeightBytes": 7587080192,
+      "generationDigest": "sha256:59f2c29d933e0e4f0fb01ab679c7e722952378b56f4c5bb53c98f088595f9a33",
+      "pipelinePreparation": {
+        "schema": "doppler.resident-pipeline-preparation/v1",
+        "complete": false,
+        "count": 0,
+        "durationMs": 0.026389999999082647,
+        "pipelines": [],
+        "lazy": [
+          {
+            "scope": "program",
+            "reason": "Scalar resident programs select matmul, attention and normalization variants from token and KV lengths and fused-kernel policy; their pipelines are created on first use."
+          }
+        ]
+      }
+    }
+  ]
+}

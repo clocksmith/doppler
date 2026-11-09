@@ -198,11 +198,22 @@ export class HyperConnectionSession {
 }
 
 /** @type {typeof import('./session.js').createHyperConnectionSession} */
-export async function createHyperConnectionSession(config, loader, capacity) {
+export async function createHyperConnectionSession(config, loader, capacity, layerRange = null) {
   if (!config.hyperConnections) return null;
   const hyper = config.hyperConnections;
-  const indexed = config.indexedAttention;
-  const ngram = config.ngramEmbedding;
+  if (layerRange !== null && (!Array.isArray(layerRange) || layerRange.length !== 2
+    || !layerRange.every(Number.isSafeInteger) || layerRange[0] < 0
+    || layerRange[1] < layerRange[0] || layerRange[1] >= config.numLayers)) {
+    fail('session requires an explicit valid assigned layer range.');
+  }
+  /** @param {number} index */
+  const owns = (index) => layerRange === null || index >= layerRange[0] && index <= layerRange[1];
+  const indexedLayers = config.indexedAttention?.layers.filter(owns);
+  const ngramLayers = config.ngramEmbedding?.layers.filter(layer => owns(layer.decoderLayerIndex));
+  const indexed = config.indexedAttention && indexedLayers?.length
+    ? { ...config.indexedAttention, layers: indexedLayers } : null;
+  const ngram = config.ngramEmbedding && ngramLayers?.length
+    ? { ...config.ngramEmbedding, layers: ngramLayers } : null;
   const bindings = ngram && config.ngramEmbeddingSession ? bindNgramTables(loader, ngram, config.ngramEmbeddingSession) : new Map();
   /** @type {import('./session.js').HyperConnectionSessionInput['layers']} */
   const layers = new Map();

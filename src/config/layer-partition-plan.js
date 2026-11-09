@@ -127,7 +127,7 @@ export function createLayerPartitionPlan({
 /** Ordered model geometry only; resident execution admits supported plan versions separately.
  * @type {import('./layer-partition-plan.js').createOrderedLayerPartitionPlan} */
 export function createOrderedLayerPartitionPlan(options) {
-  const { splitLayers } = options;
+  const { splitLayers, residualStreams } = options;
   if (!Array.isArray(splitLayers) || splitLayers.length < 1) {
     throw new TypeError('Ordered partitions require at least one explicit split layer.');
   }
@@ -140,7 +140,16 @@ export function createOrderedLayerPartitionPlan(options) {
   }
   const base = createLayerPartitionPlan({ ...options, splitLayer: splitLayers[0] });
   const layout = resolveActivationTensorLayout(base.partitions[0].outputContract);
-  const activation = Object.freeze({ ...base.partitions[0].outputContract, ...layout });
+  if (residualStreams !== undefined && (!residualStreams || typeof residualStreams !== 'object'
+    || Object.keys(residualStreams).length !== 2
+    || !Number.isSafeInteger(residualStreams.streamCount) || residualStreams.streamCount < 1
+    || residualStreams.streamWidth !== base.hiddenSize || layout.precision !== 'f32'
+    || !Number.isSafeInteger(residualStreams.streamCount * residualStreams.streamWidth))) {
+    throw new TypeError('Residual streams require explicit positive streamCount, model streamWidth and scalar f32 activations.');
+  }
+  const boundaryWidth = residualStreams === undefined ? base.hiddenSize
+    : residualStreams.streamCount * residualStreams.streamWidth;
+  const activation = Object.freeze({ ...base.partitions[0].outputContract, hiddenSize: boundaryWidth, ...layout });
   const boundaries = [0, ...splitLayers, base.totalLayers];
   const stageCount = boundaries.length - 1;
   const partitions = Array.from({ length: stageCount }, (_, index) => Object.freeze({
@@ -155,6 +164,7 @@ export function createOrderedLayerPartitionPlan(options) {
   return Object.freeze({
     schema: ORDERED_LAYER_PARTITION_SCHEMA, modelId: base.modelId, totalLayers: base.totalLayers,
     hiddenSize: base.hiddenSize, vocabSize: base.vocabSize, stageCount,
+    ...(residualStreams === undefined ? {} : { residualStreams: Object.freeze({ ...residualStreams }) }),
     ...(base.adapterIdentities === undefined ? {} : { adapterIdentities: base.adapterIdentities }),
     splitLayers: Object.freeze([...splitLayers]), activationDtype: base.activationDtype,
     activationPrecision: layout.precision, activationComponents: layout.components,
@@ -171,19 +181,35 @@ function matchesPartitionRecord(actual, expected) {
     && matchesPartitionRecord(Reflect.get(actual, key), Reflect.get(expected, key)));
 }
 
-/** @type {import('./layer-partition-plan.js').validateOrderedLayerPartitionPlan} */
-export function validateOrderedLayerPartitionPlan(manifest, plan) {
-  if (plan?.schema !== ORDERED_LAYER_PARTITION_SCHEMA) throw new Error('Ordered partition plan schema mismatch.');
+/** Build a serializable ordered contract from source-owned geometry and a JSON request.
+ * This prepares metadata only; it neither loads weights nor qualifies execution.
+ * @type {import('./layer-partition-plan.js').createOrderedLayerPartitionPlanFromManifest} */
+export function createOrderedLayerPartitionPlanFromManifest(manifest, request) {
+  if (!request || typeof request !== 'object' || Array.isArray(request)
+    || Object.keys(request).some(key => !['splitLayers', 'activationDtype', 'activationPrecision', 'adapterIdentities'].includes(key))
+    || !['f32', 'f16'].includes(request.activationDtype) || !['f32', 'f16', 'two-f32'].includes(request.activationPrecision)) {
+    throw new TypeError('Partition request requires explicit splitLayers, activationDtype and activationPrecision.');
+  }
   const architecture = manifest?.architecture;
   if (!architecture || typeof architecture !== 'object' || !('numLayers' in architecture)
     || !('hiddenSize' in architecture) || !('vocabSize' in architecture)) {
     throw new Error('Ordered partition plan requires explicit model architecture.');
   }
-  const canonical = createOrderedLayerPartitionPlan({
+  const hyper = manifest.inference?.hyperConnections;
+  return createOrderedLayerPartitionPlan({
     modelId: /** @type {string} */ (manifest.modelId),
     numLayers: /** @type {number} */ (architecture.numLayers),
     hiddenSize: /** @type {number} */ (architecture.hiddenSize),
     vocabSize: /** @type {number} */ (architecture.vocabSize),
+    ...request,
+    ...(hyper == null ? {} : { residualStreams: { streamCount: hyper.streamCount, streamWidth: hyper.streamWidth } }),
+  });
+}
+
+/** @type {import('./layer-partition-plan.js').validateOrderedLayerPartitionPlan} */
+export function validateOrderedLayerPartitionPlan(manifest, plan) {
+  if (plan?.schema !== ORDERED_LAYER_PARTITION_SCHEMA) throw new Error('Ordered partition plan schema mismatch.');
+  const canonical = createOrderedLayerPartitionPlanFromManifest(manifest, {
     splitLayers: plan.splitLayers, activationDtype: plan.activationDtype, activationPrecision: plan.activationPrecision, adapterIdentities: plan.adapterIdentities,
   });
   if (!matchesPartitionRecord(plan, canonical)) throw new Error('Ordered partition plan does not match the model manifest.');
@@ -194,7 +220,8 @@ export function validateOrderedLayerPartitionPlan(manifest, plan) {
 export function hashLayerPartitionPlan(plan) {
   if (plan?.schema === ORDERED_LAYER_PARTITION_SCHEMA) {
     validateOrderedLayerPartitionPlan({ modelId: plan.modelId, architecture: { numLayers: plan.totalLayers,
-      hiddenSize: plan.hiddenSize, vocabSize: plan.vocabSize } }, plan);
+      hiddenSize: plan.hiddenSize, vocabSize: plan.vocabSize },
+    inference: { hyperConnections: plan.residualStreams } }, plan);
   } else if (![LAYER_PARTITION_SCHEMA, PAIRED_LAYER_PARTITION_SCHEMA].includes(plan?.schema)) throw new Error('Layer partition plan schema mismatch.');
   return /** @type {`sha256:${string}`} */ (computeCanonicalSha256(plan));
 }
@@ -263,14 +290,16 @@ export function resolveActivationTensorLayout({ dtype, precision, components, el
 export function getPartitionActivationContract(plan) {
   const manifest = { modelId: plan.modelId, architecture: {
     numLayers: plan.totalLayers, hiddenSize: plan.hiddenSize, vocabSize: plan.vocabSize,
-  } };
+  }, inference: { hyperConnections: 'residualStreams' in plan ? plan.residualStreams : undefined } };
   const partition = plan.schema === ORDERED_LAYER_PARTITION_SCHEMA
     ? validateOrderedLayerPartitionPlan(manifest, plan).partitions[0]
     : resolveLayerPartition(manifest, { plan, index: 0 });
   if (!partition) throw new Error('Partition activation contract is missing.');
   const format = resolveActivationTensorLayout(partition.outputContract);
+  const hiddenSize = partition.outputContract.hiddenSize;
+  if (typeof hiddenSize !== 'number') throw new Error('Partition activation width is missing.');
   return Object.freeze({ schema: format.precision === 'two-f32'
     ? PAIRED_ACTIVATION_TENSOR_SCHEMA : ACTIVATION_TENSOR_SCHEMA,
-    dtype: plan.activationDtype, hiddenSize: plan.hiddenSize, ...format });
+    dtype: plan.activationDtype, hiddenSize, ...format });
 }
 

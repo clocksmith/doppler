@@ -1,0 +1,5 @@
+{
+  "splitLayers": [32],
+  "activationDtype": "f32",
+  "activationPrecision": "f32"
+}

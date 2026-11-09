@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import { load } from '../../src/loader/model-executor.js';
 import { createLayerPartitionPlan, createOrderedLayerPartitionPlan, resolveLayerPartition } from '../../src/inference/pipelines/text/layer-partition-contract.js';
 import { createRDRRManifestFixture } from '../helpers/rdrr-manifest-fixture.js';
+import { DEFAULT_EXPERT_CACHE_CONFIG, DEFAULT_EXPERT_PREPARATION_CONFIG } from '../../src/config/schema/loading.schema.js';
 
 // Exercise the production load coordinator with observed materialization ports.
 // This does not claim GPU execution or selective artifact acquisition.
@@ -15,7 +16,8 @@ function fixture({ tied = false, failLayer = null, head = null, numLayers = 4 } 
     manifest, calls, heapManager: {}, modelId: null, isLoaded: false,
     isUnifiedMemory: true, tensorLocations: new Map(), layers: new Map(),
     experts: new Map(), gpuBuffers: new Set(), _memoryMonitor: null,
-    _loadingConfig: { memoryManagement: {
+    _loadingConfig: { expertCache: structuredClone(DEFAULT_EXPERT_CACHE_CONFIG),
+      expertPreparation: structuredClone(DEFAULT_EXPERT_PREPARATION_CONFIG), memoryManagement: {
       flushIntervalLayers: 1, flushThresholdBytes: 1024, gpuQueueFlushLayers: 8,
     } },
     shardCache: {

@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { createLayerPartitionPlan } from '../../src/partitions.js';
-import { executePartitionLayers } from '../../src/inference/pipelines/text/partition-execution.js';
+import { executePartitionLayers, assertPartitionExecutionSupported } from '../../src/inference/pipelines/text/partition-execution.js';
 
 const manifest = { modelId: 'recurrent', architecture: { numLayers: 4, hiddenSize: 8, vocabSize: 128 } };
 const plan = createLayerPartitionPlan({ modelId: manifest.modelId, ...manifest.architecture, activationDtype: 'f32' });
@@ -13,6 +13,15 @@ const state = { manifest, useGPU: true, modelPartition: { plan, index: 1 }, curr
   executionPlanState: { primaryPlan: { activationDtype: 'f32', finitenessGuardEnabled: false } },
   linearAttentionRuntime: { layers: new Map() } };
 const signal = new AbortController().signal;
+state.modelConfig.useMoE = true;
+assert.doesNotThrow(() => assertPartitionExecutionSupported(state, plan), 'Scalar MoE stages use their assigned experts');
+state.runtimeConfig.shared = { kernelWarmup: { warmGeneration: { prompt: 'warm', maxTokens: 2 } } };
+assert.throws(() => assertPartitionExecutionSupported(state, plan), /whole-model warm generation.*null/);
+state.runtimeConfig.shared.kernelWarmup.warmGeneration = null;
+assert.doesNotThrow(() => assertPartitionExecutionSupported(state, plan));
+state.resolvedRuntimeSession.runtime.session.intermediatePrecision = 'two-f32';
+assert.throws(() => assertPartitionExecutionSupported(state, plan), /MoE partitions require scalar f32/);
+state.resolvedRuntimeSession.runtime.session.intermediatePrecision = 'f32';
 await assert.rejects(executePartitionLayers(state, { numTokens: 1 }, signal), /recurrent state missing.*layer 2/);
 state.linearAttentionRuntime.layers.set(2, { seqLen: 11 });
 await assert.rejects(executePartitionLayers(state, { numTokens: 1 }, signal), /recurrent state missing.*layer 2/);

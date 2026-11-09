@@ -58,20 +58,34 @@ export interface OrderedLayerPartitionPlan extends Omit<LayerPartitionPlan, 'sch
   readonly activationPrecision: ActivationPrecision;
   readonly activationComponents: number;
   readonly activationElementStrideBytes: number;
+  /** Complete residual streams across boundaries, bound to manifest.inference.hyperConnections. */
+  readonly residualStreams?: Readonly<{ streamCount: number; streamWidth: number }>;
 }
 export type AnyLayerPartitionPlan = LayerPartitionPlan | OrderedLayerPartitionPlan;
+export interface OrderedLayerPartitionRequest {
+  splitLayers: readonly number[]; activationDtype: ActivationDtype;
+  activationPrecision: ActivationPrecision; adapterIdentities?: readonly string[];
+}
+/** JSON request -> source-bound plan. Does not open or qualify the model. */
+export declare function createOrderedLayerPartitionPlanFromManifest(manifest: {
+  modelId?: unknown; architecture?: unknown;
+  inference?: { hyperConnections?: { streamCount: number; streamWidth: number } | null };
+}, request: OrderedLayerPartitionRequest): OrderedLayerPartitionPlan;
 export declare function createOrderedLayerPartitionPlan(options: {
   modelId: string; numLayers: number; hiddenSize: number; vocabSize: number;
   adapterIdentities?: readonly string[];
   splitLayers: readonly number[]; activationDtype?: ActivationDtype; activationPrecision?: ActivationPrecision;
+  residualStreams?: { streamCount: number; streamWidth: number };
 }): OrderedLayerPartitionPlan;
 export declare function validateOrderedLayerPartitionPlan(manifest: {
   modelId?: unknown; architecture?: unknown;
+  inference?: { hyperConnections?: { streamCount: number; streamWidth: number } | null };
 }, plan: OrderedLayerPartitionPlan): OrderedLayerPartitionPlan;
 /** The digest expected by signed resident allocations and TargetPlan qualification. */
 export declare function hashLayerPartitionPlan(plan: LayerPartitionPlan | OrderedLayerPartitionPlan): `sha256:${string}`;
 export declare function resolveLayerPartition(manifest: {
   modelId?: unknown; architecture?: unknown;
+  inference?: { hyperConnections?: { streamCount: number; streamWidth: number } | null };
 }, allocation: { plan: AnyLayerPartitionPlan; index: number } | null | undefined): Readonly<LayerPartition> | null;
 export declare function getPartitionActivationContract(plan: LayerPartitionPlan | OrderedLayerPartitionPlan): Readonly<Required<ActivationLayout> & {
   schema: typeof ACTIVATION_TENSOR_SCHEMA | typeof PAIRED_ACTIVATION_TENSOR_SCHEMA;

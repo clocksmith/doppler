@@ -28,6 +28,7 @@ export function createPartitionAttempt(owner, maxSeqLen) {
     manifest: owner.manifest, modelConfig: owner.modelConfig, modelPartition: owner.modelPartition,
     lora: owner.lora,
     weights: owner.weights, expertWeights: owner.expertWeights, tokenizer: owner.tokenizer,
+    dopplerLoader: owner.dopplerLoader, moeRouter: owner.moeRouter, layerRouterWeights: owner.layerRouterWeights,
     runtimeConfig: owner.runtimeConfig, resolvedRuntimeSession: owner.resolvedRuntimeSession,
     resolvedKernelPath: owner.resolvedKernelPath, kernelPathSource: owner.kernelPathSource,
     executionV1State: owner.executionV1State,
@@ -47,14 +48,24 @@ export function createPartitionAttempt(owner, maxSeqLen) {
     ...inference, session: { ...inference.session,
       kvcache: { ...inference.session.kvcache, maxSeqLen } },
   }, [partition.layerRange[0], partition.layerRange[1]]);
-  let closed = false;
-  return { state, close() {
-    if (closed) return;
-    closed = true;
+  /** @type {Promise<void> | null} */
+  let closing = null;
+  const release = () => {
     state.kvCache?.destroy();
     state.kvCache = null;
     resetLinearAttentionRuntime(state.linearAttentionRuntime);
     state.isLoaded = false;
+  };
+  return { state, close() {
+    if (closing) return closing;
+    if (state.hyperConnectionSession) {
+      const session = state.hyperConnectionSession;
+      closing = session.destroy().then(() => { state.hyperConnectionSession = null; release(); });
+    } else {
+      try { release(); closing = Promise.resolve(); }
+      catch (error) { closing = Promise.reject(error); }
+    }
+    return closing;
   } };
 }
 
@@ -63,7 +74,7 @@ export function createPartitionAttempt(owner, maxSeqLen) {
 export async function clonePartitionAttempt(parent, signal) {
   signal.throwIfAborted();
   const source = parent.state;
-  if (!source.isLoaded || !(source.kvCache instanceof KVCache || source.kvCache instanceof MixedGeometryKVCache)
+  if (!source.isLoaded || source.modelConfig?.hyperConnections || !(source.kvCache instanceof KVCache || source.kvCache instanceof MixedGeometryKVCache)
     || source.convLayerStates.size > 0 || source.speculativeDecoder || source.decodeRing || source.decodeBuffers) {
     throw new Error('Partition state geometry does not support composite cloning.');
   }
@@ -87,7 +98,7 @@ export async function clonePartitionAttempt(parent, signal) {
   } catch (error) {
     // If queue completion is unknown, do not claim release. The enclosing
     // resident must retain the failed owner and interrupt its attempt.
-    try { await source.gpuContext?.device?.queue.onSubmittedWorkDone(); child.close(); }
+    try { await source.gpuContext?.device?.queue.onSubmittedWorkDone(); await child.close(); }
     catch (settlement) { throw Object.assign(new AggregateError([error, settlement], 'Composite clone settlement failed.'), { unsettledAttempt: child }); }
     throw error;
   }

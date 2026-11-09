@@ -70,9 +70,13 @@ const modules = {
     export const readBuffer = async (buffer, size) => buffer.bytes.slice(0, size).buffer;`,
   './layer.js': 'export const processLayer = (...args) => partitionLifetime.layer(...args);',
   './generator/session-context.js': 'export const buildLayerContext = (state, recorder) => ({ state, recorder, currentSeqLen: state.currentSeqLen });',
-  './layer-partition-contract.js': `export { validateActivationTensorShape } from '${new URL('../../src/inference/pipelines/text/layer-partition-contract.js', import.meta.url).href}';
+  './layer-partition-contract.js': `export { validateActivationTensorShape, getPartitionActivationContract } from '${new URL('../../src/inference/pipelines/text/layer-partition-contract.js', import.meta.url).href}';
     export const resolveLayerPartition = () => ({layerRange: [0, 11], hasEmbedding: false, hasLmHead: partitionLifetime.hasLmHead()});`,
-  './generator/logits-config.js': 'export const getLogitsWeights = () => ({}); export const getLogitsConfig = () => ({});',
+  './generator/logits-config.js': `export const getLogitsWeights = () => ({});
+    export const getLogitsConfig = (_state, phase) => {
+      if (!['prefill', 'decode'].includes(phase)) throw Error('Missing stage logits phase');
+      return {executionPhase: phase};
+    };`,
   './logits/index.js': 'export const computeLogits = (...args) => partitionLifetime.logits(...args);',
 };
 globalThis.partitionLifetime.hasLmHead = () => probe.hasLmHead === true;
@@ -90,7 +94,7 @@ try {
   const state = { useGPU: true, manifest: {}, modelPartition: { plan: { activationDtype: 'f32' } },
     modelConfig: { hiddenSize: 4, useMoE: false, numKvSharedLayers: 0, hiddenSizePerLayerInput: null,
       decodeStrategy: 'incremental', causalAttention: true }, currentSeqLen: 0, kvCache: { maxSeqLen: 16 },
-    executionPlanState: { primaryPlan: { activationDtype: 'f32', finitenessGuardEnabled: false } },
+    executionPlanState: { primaryPlan: { activationDtype: 'f32', finitenessGuardEnabled: false, defaultDisableCommandBatching: false } },
     resolvedRuntimeSession: { runtime: { session: { intermediatePrecision: 'f32' } } },
     runtimeConfig: { shared: { debug: { profiler: { enabled: false } } },
       inference: { session: { usePostFfnNextInputRMSNormPairFusion: false, prefillChunkLayers: 4, prefillTokenChunkSize: null } } } };
@@ -105,9 +109,10 @@ try {
     }
     assert.equal(probe.live.size, 0, `${fail || 'success'} settles all owned buffers`);
   }
-  // Even when the prompt is smaller than the token chunk, ordinary prefill
-  // submits operators directly. The resident path must consume that same policy.
+  // The declared immediate-execution policy also applies when the prompt fits
+  // one token chunk. It must reach both the stage kernels and their cleanup.
   state.runtimeConfig.inference.session.prefillTokenChunkSize = 256;
+  state.executionPlanState.primaryPlan.defaultDisableCommandBatching = true;
   expectRecordedLayers = false;
   state.runtimeConfig.shared.debug.profiler.enabled = true;
   for (const fail of [null, 'layer', 'timestamp']) {

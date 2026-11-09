@@ -11,7 +11,8 @@ class Buffer {
 globalThis.GPUBuffer = Buffer;
 const { setDevice } = await import('../../src/gpu/device.js');
 const { acquireBuffer, releaseBuffer, getBufferPool, destroyBufferPool } = await import('../../src/memory/buffer-pool.js');
-const { HyperConnectionSession } = await import('../../src/inference/pipelines/text/hyper-connection/session.js');
+const { HyperConnectionSession, createHyperConnectionSession } = await import('../../src/inference/pipelines/text/hyper-connection/session.js');
+const { LAYER_PREFIXES } = await import('../../src/loader/layer-tensor-aliases.js');
 const { NgramTokenHistory } = await import('../../src/inference/pipelines/text/ngram/ngram-addresses.js');
 const { PleConvState } = await import('../../src/inference/pipelines/text/ngram/ple-layer.js');
 const { withHyperConnectionTransaction, assertHyperConnectionLoad } = await import('../../src/inference/pipelines/text/hyper-connection/sequence-transaction.js');
@@ -156,6 +157,41 @@ await test('closing waits for a pending row read and repeated closes share that 
   read.resolve(new Uint8Array(2));
   await Promise.all([first, rejected]);
   await f.close();
+});
+
+await test('partition sessions allocate only assigned QSA/PLE layers and isolate histories and cleanup', async () => {
+  const layer = { ...ngramLayer, decoderLayerIndex: 1, rows: 17 };
+  const contract = { ...ngram, headDim: 2, convStateLength: 2, tableDtype: 'bf16', layers: [layer] };
+  const config = { numLayers: 8, hyperConnections: hyper,
+    indexedAttention: { semantics: 'qwen4_exp_qsa', layers: [3, 7], headDim: 2, compressRatio: 4 },
+    ngramEmbedding: contract, ngramEmbeddingSession: {
+      rowCache: { maxRows: 4, maxBytes: 16 }, staging: { maxRows: 4 }, reads: { maxConcurrent: 1 },
+    } };
+  let reads = 0;
+  const loader = { tensorLocations: new Map([[`${LAYER_PREFIXES(1)[0]}.ple.ple_embedding.ngram_embedding.shard_0.weight`,
+    { role: 'ngram_table', dtype: 'BF16', shardIndex: 0, shape: [17, 2], offset: 0, size: 68 }]]),
+    shardCache: { loadRange() { reads++; throw Error('Unrequested table read'); } } };
+  const before = getBufferPool().getStats().activeBuffers;
+  const a = await createHyperConnectionSession(config, loader, 8, [0, 3]);
+  const b = await createHyperConnectionSession(config, loader, 8, [0, 3]);
+  const c = await createHyperConnectionSession(config, loader, 8, [4, 7]);
+  try {
+    assert.deepEqual([...a.layers.keys()], [1]);
+    assert.deepEqual([...a.qsa.layers.keys()], [3]);
+    assert.deepEqual([...c.layers.keys()], []);
+    assert.deepEqual([...c.qsa.layers.keys()], [7]);
+    a.layers.get(1).history.append([2, 3]);
+    assert.equal(b.layers.get(1).history.length, 0);
+    a.layers.get(1).conv.buffer.bytes.fill(91);
+    assert(b.layers.get(1).conv.buffer.bytes.every(v => v === 0));
+    await a.destroy();
+    assert.equal(b.layers.get(1).conv.destroyed, false);
+    assert.equal(c.qsa.destroyed, false);
+    assert.equal(reads, 0, 'Preparing an attempt never acquires table payloads');
+    assert.deepEqual(config.indexedAttention.layers, [3, 7], 'Source contract remains immutable');
+    await assert.rejects(createHyperConnectionSession(config, loader, 8, [4, 8]), /assigned layer range/);
+  } finally { await Promise.all([a.destroy(), b.destroy(), c.destroy()]); }
+  assert.equal(getBufferPool().getStats().activeBuffers, before);
 });
 
 await getBufferPool().settleDeferredDestruction();

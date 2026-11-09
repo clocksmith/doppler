@@ -11,14 +11,18 @@ import { buildLayerContext } from './generator/session-context.js';
 import { releaseSharedAttentionState } from './generator/attention-lifecycle.js';
 import { computeLogits } from './logits/index.js';
 import { getLogitsWeights, getLogitsConfig } from './generator/logits-config.js';
-import { resolveLayerPartition, validateActivationTensorShape } from './layer-partition-contract.js';
+import { resolveLayerPartition, getPartitionActivationContract, validateActivationTensorShape } from './layer-partition-contract.js';
+import { createHyperConnectionSession } from './hyper-connection/session.js';
 import { resolvePrefillTokenChunkSize, shouldDisablePrefillCommandBatching } from './generator/prefill-policy.js';
 
 /** @type {import('./partition-execution.js').assertPartitionExecutionSupported} */
 export function assertPartitionExecutionSupported(state, plan, requireAdapter = true) {
   const config = state.modelConfig;
   if (!state.useGPU || !config) throw new Error('Resident partition execution requires a loaded WebGPU model.');
-  if (config.useMoE || config.numKvSharedLayers > 0 || (config.hiddenSizePerLayerInput !== null && config.hiddenSizePerLayerInput > 0)
+  if (state.runtimeConfig.shared?.kernelWarmup?.warmGeneration != null) {
+    throw new Error('Resident partitions cannot run a whole-model warm generation; set shared.kernelWarmup.warmGeneration to null in the partition runtime configuration.');
+  }
+  if (config.numKvSharedLayers > 0 || (config.hiddenSizePerLayerInput !== null && config.hiddenSizePerLayerInput > 0)
     || config.decodeStrategy !== 'incremental' || config.causalAttention !== true
     || config.layerTypes?.some(type => !['full_attention', 'sliding_attention', 'linear_attention'].includes(type))
     || config.diffusionGemma
@@ -42,6 +46,9 @@ export function assertPartitionExecutionSupported(state, plan, requireAdapter = 
   const precision = state.resolvedRuntimeSession?.runtime.session.intermediatePrecision;
   if (precision !== 'f32' && precision !== 'two-f32') {
     throw new Error('Resident partition requires explicit resolved intermediate precision.');
+  }
+  if (config.useMoE && precision !== 'f32') {
+    throw new Error('Resident MoE partitions require scalar f32 execution; paired expert kernels are unavailable.');
   }
   if ((precision === 'two-f32') !== (plan.activationPrecision === 'two-f32')) {
     throw new Error('Partition activation precision must match the resolved session; implicit precision changes are forbidden.');
@@ -87,12 +94,14 @@ function resolvePartitionInput(state, input, prefill) {
     || (state.currentSeqLen > 0 && numTokens !== 1 && !prefill)) {
     throw new Error('Resident partition input exceeds its sequence allocation or incremental decode shape.');
   }
-  if (partition.hasEmbedding && (!input.tokenIds || input.tokenIds.length !== numTokens
+  if ((partition.hasEmbedding || config.hyperConnections) && (!input.tokenIds || input.tokenIds.length !== numTokens
     || input.tokenIds.some(id => !Number.isSafeInteger(id) || id < 0 || id >= config.vocabSize))) {
     throw new Error('Resident partition token IDs must match the declared input shape and vocabulary.');
   }
   const plan = state.modelPartition.plan;
-  const { expectedBytes: byteLength } = validateActivationTensorShape({ shape: [1, numTokens, config.hiddenSize], dtype,
+  const boundaryWidth = 'residualStreams' in plan && plan.residualStreams
+    ? getPartitionActivationContract(plan).hiddenSize : config.hiddenSize;
+  const { expectedBytes: byteLength } = validateActivationTensorShape({ shape: [1, numTokens, boundaryWidth], dtype,
     precision: plan.activationPrecision, components: plan.activationComponents,
     elementStrideBytes: plan.activationElementStrideBytes });
   if (!Number.isSafeInteger(byteLength)) throw new Error('Resident activation size exceeds the safe integer range.');
@@ -112,9 +121,16 @@ export async function executePartitionLayers(state, input, signal) {
   signal.throwIfAborted();
   const prefill = state.currentSeqLen === 0;
   const setup = resolvePartitionInput(state, input, prefill);
+  if (setup.config.hyperConnections && !state.hyperConnectionSession) {
+    if (!state.dopplerLoader || !state.kvCache) throw new Error('Resident hyper-connections require the owning loader and attempt cache.');
+    state.hyperConnectionSession = await createHyperConnectionSession(setup.config, state.dopplerLoader,
+      state.kvCache.maxSeqLen, setup.partition.layerRange);
+    signal.throwIfAborted();
+  }
   const chunkSize = resolvePrefillTokenChunkSize(state, input.numTokens);
   if (!prefill || chunkSize === null) {
     const result = await executePartitionChunk(state, input, signal, prefill, true);
+    state.hyperConnectionSession?.assertLength(state.currentSeqLen + input.numTokens);
     if (result.logits) return { logits: result.logits, timing: result.timing };
     if (result.activationBytes) return { activationBytes: result.activationBytes, timing: result.timing };
     throw new Error('Resident partition produced no boundary result.');
@@ -143,6 +159,7 @@ export async function executePartitionLayers(state, input, signal) {
       timing.activationReadbackMs += result.timing.activationReadbackMs;
       timing.logitsMs += result.timing.logitsMs;
       if (result.timing.gpuKernelsMs !== null) timing.gpuKernelsMs = (timing.gpuKernelsMs ?? 0) + result.timing.gpuKernelsMs;
+      if (end === input.numTokens) state.hyperConnectionSession?.assertLength(originalSeqLen + input.numTokens);
       if (result.logits) return { logits: result.logits, timing };
       if (activation) {
         if (!result.activationBytes) throw new Error('Resident partition produced no chunk activation.');
@@ -165,9 +182,9 @@ async function executePartitionChunk(state, input, signal, prefill, finalChunk) 
     hasGpuSplitPerLayerInputs: false,
     numTokens,
   });
-  const recordLayers = !prefill || !shouldDisablePrefillCommandBatching({ runtimeConfig: state.runtimeConfig,
+  const recordLayers = !executionPlan.defaultDisableCommandBatching && (!prefill || !shouldDisablePrefillCommandBatching({ runtimeConfig: state.runtimeConfig,
     modelConfig: state.modelConfig, kvCache: state.kvCache }, {}, null,
-  { startPos: state.currentSeqLen, returnHidden: !finalChunk });
+  { startPos: state.currentSeqLen, returnHidden: !finalChunk }));
   const createRecorder = () => createCommandRecorder('resident_partition_layers', {
     profile: state.runtimeConfig.shared.debug.profiler.enabled,
   });
@@ -216,6 +233,7 @@ async function executePartitionChunk(state, input, signal, prefill, finalChunk) 
       releaseProfile = beginImmediateDispatchProfile(recorder.device, () => recorder);
     }
     context = buildLayerContext(state, recordLayers ? recorder : undefined, !prefill, null, undefined, executionPlan);
+    context.signal = signal;
     context.currentTokenIds = input.tokenIds ?? null;
     if (partition.hasEmbedding) {
       const weight = state.weights.get('embed');
@@ -289,7 +307,7 @@ async function executePartitionChunk(state, input, signal, prefill, finalChunk) 
     }
     if (!finalChunk) return { timing };
     const logitsStarted = performance.now();
-    const logits = await computeLogits(output, numTokens, getLogitsWeights(state), getLogitsConfig(state),
+    const logits = await computeLogits(output, numTokens, getLogitsWeights(state), getLogitsConfig(state, prefill ? 'prefill' : 'decode'),
       true, state.debugFlags, undefined, undefined, state.runtimeConfig.shared.debug.probes,
       { lastPositionOnly: true, returnGpuBuffer: true }, state.operatorDiagnostics);
     try {

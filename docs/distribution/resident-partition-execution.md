@@ -119,6 +119,43 @@ port, keeping the root independent of the inference executor.
 
 ## Ordered N-stage plan contract
 
+For JSON-controlled cuts, use
+`createOrderedLayerPartitionPlanFromManifest(manifest, request)` from
+`doppler-gpu/partitions`. The request declares only `splitLayers`,
+`activationDtype`, `activationPrecision`, and optional `adapterIdentities`.
+Model dimensions come from the manifest; overrides and unknown request fields
+are rejected. The repository's offline preparation tool writes the complete
+plan, plan hash and exact manifest identity without loading a GPU:
+
+```sh
+node tools/compile-layer-partition-plan.js --manifest /models/model/manifest.json \
+  --config examples/partitions/flash-next-three-stage.json --out /tmp/plan.json
+```
+
+The [example requests](../../examples/partitions/) cover 27B with two stages,
+35B with four, and Flash-Next with three. Cuts remain fixed within an attempt;
+hosts may place or replicate those stages independently. Preparing a different
+cut creates a different plan identity, not permission to migrate active state.
+
+Flash-Next derives `residualStreams` from `inference.hyperConnections`. Its
+model width remains 2,560, while each boundary carries four streams (10,240 F32
+values per position). Each attempt owns only its assigned QSA, PLE, KV and
+recurrent state. The final stage alone applies the root mixer and output head.
+Scalar F32 MoE stages use the original expert identities and routing; paired
+MoE and Flash-Next adapter/speculative combinations remain rejected.
+
+Partition runtime configuration must set whole-model
+`shared.kernelWarmup.warmGeneration` to `null`. A configured whole-model warm-up
+is rejected before weight materialization rather than trying to execute absent
+layers. Resident pipeline preparation remains a separate stage-local mechanism.
+
+The [physical control](../../tests/integration/ordered-split-physical.test.js)
+compares the whole program with serialized ordered boundaries under identical
+weights and configuration. Its retained results are in
+[ordered Qwen evidence](../../reports/ordered-qwen-partitions-20261109/README.md).
+Same-device agreement does not establish independent accuracy, cross-device
+numerics, signed opening, or public availability.
+
 `createOrderedLayerPartitionPlan({ modelId, numLayers, hiddenSize, vocabSize,
 splitLayers, activationDtype, activationPrecision })` creates the opt-in
 `doppler.layer-partition-contract/v3` geometry contract. `splitLayers` explicitly

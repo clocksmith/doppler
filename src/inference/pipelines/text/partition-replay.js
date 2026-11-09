@@ -58,7 +58,7 @@ export async function replayPartitionAttempt(parent, inputs, signal) {
     signal.throwIfAborted();
     return child;
   } catch (error) {
-    try { await child.state.gpuContext?.device?.queue.onSubmittedWorkDone(); child.close(); }
+    try { await child.state.gpuContext?.device?.queue.onSubmittedWorkDone(); await child.close(); }
     catch (settlement) {
       throw Object.assign(new AggregateError([error, settlement], 'Replay settlement failed.'), { unsettledAttempt: child });
     }

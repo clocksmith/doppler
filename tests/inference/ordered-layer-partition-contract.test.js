@@ -46,6 +46,34 @@ for (const [stages, splits] of [[2, [14]], [3, [3, 19]], [4, [1, 8, 24]], [7, [1
 for (const splitLayers of [[], [0], [28], [4, 4], [14, 3], [1.5], [NaN], [Infinity], null, '14']) {
   assert.throws(() => contract.createOrderedLayerPartitionPlan({ ...dimensions, splitLayers }));
 }
+// A split must carry every residual stream, while embedding/model width stays
+// unchanged. JSON round trips must preserve that distinction and its identity.
+const residualStreams = { streamCount: 4, streamWidth: dimensions.hiddenSize };
+const hyperManifest = { ...manifest, inference: { hyperConnections: residualStreams } };
+const streamed = contract.createOrderedLayerPartitionPlan({ ...dimensions, splitLayers: [2, 19],
+  activationDtype: 'f32', residualStreams });
+const parsed = JSON.parse(JSON.stringify(streamed));
+assert.deepEqual(contract.createOrderedLayerPartitionPlanFromManifest(hyperManifest,
+  JSON.parse('{"splitLayers":[2,19],"activationDtype":"f32","activationPrecision":"f32"}')), streamed);
+assert.throws(() => contract.createOrderedLayerPartitionPlanFromManifest(hyperManifest,
+  { splitLayers: [2], activationDtype: 'f32', activationPrecision: 'f32', residualStreams: { streamCount: 1, streamWidth: 4 } }), /explicit/);
+assert.deepEqual(contract.validateOrderedLayerPartitionPlan(hyperManifest, parsed), streamed);
+assert.equal(streamed.hiddenSize, 4, 'Embedding/model width is distinct from the boundary width');
+assert.equal(contract.getPartitionActivationContract(streamed).hiddenSize, 16);
+assert.equal(streamed.partitions[1].inputContract.hiddenSize, 16);
+const frame = contract.serializeActivationFrame({ ...contract.getPartitionActivationContract(streamed),
+  shape: [1, 2, 16], data: new Float32Array(32) });
+assert.equal(contract.validateActivationFrameForPlan(frame, streamed).tensorData.length, 32);
+assert.throws(() => contract.validateOrderedLayerPartitionPlan(manifest, parsed), /manifest/);
+const omitted = contract.createOrderedLayerPartitionPlan({ ...dimensions, splitLayers: [2, 19] });
+assert.throws(() => contract.validateOrderedLayerPartitionPlan(hyperManifest, omitted), /manifest/);
+assert.notEqual(contract.hashLayerPartitionPlan(streamed), contract.hashLayerPartitionPlan(omitted));
+for (const bad of [null, {}, { ...residualStreams, streamCount: 0 },
+  { ...residualStreams, streamWidth: 5 }, { ...residualStreams, extra: true }]) {
+  assert.throws(() => contract.createOrderedLayerPartitionPlan({ ...dimensions, splitLayers: [2], residualStreams: bad }));
+}
+assert.throws(() => contract.createOrderedLayerPartitionPlan({ ...dimensions, splitLayers: [2],
+  residualStreams, activationPrecision: 'two-f32' }), /scalar f32/);
 for (const [activationPrecision, expected] of [[undefined, 'sha256:9fe509881c9a93f0894b3f8b01e2850ff79bff94bb01ea434c0aae9e2ec05e38'],
   ['two-f32', 'sha256:da46dcc12d154ba125c4321427943affd439aac8dcd2e4ee0e93ec3bcc585a7a']]) {
   assert.equal(contract.hashLayerPartitionPlan(contract.createLayerPartitionPlan({ ...dimensions, splitLayer: 14, activationPrecision })), expected);

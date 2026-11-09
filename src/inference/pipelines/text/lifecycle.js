@@ -402,7 +402,8 @@ export async function loadModel(manifest, options = {}) {
       () => this._initRoPE()
     );
 
-    if (this.modelConfig.hyperConnections) this.hyperConnectionSession = await createHyperConnectionSession(this.modelConfig, this.dopplerLoader, this.kvCache.maxSeqLen);
+    if (this.modelConfig.hyperConnections) this.hyperConnectionSession = await createHyperConnectionSession(this.modelConfig, this.dopplerLoader,
+      this.kvCache.maxSeqLen, resolveLayerPartition(manifest, this.modelPartition)?.layerRange ?? null);
     // Initialize conv layer states for gated short conv layers (LFM2)
     await timedPipelineLoadPhase(
       pipelineLoadTiming,

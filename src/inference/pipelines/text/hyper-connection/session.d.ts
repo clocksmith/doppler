@@ -35,4 +35,5 @@ export declare class HyperConnectionSession {
   releaseCheckpoint(snapshot: HyperConnectionCheckpoint): void;
   destroy(): Promise<void>;
 }
-export declare function createHyperConnectionSession(config: ParsedModelConfig, loader: DopplerLoader, capacity: number): Promise<HyperConnectionSession | null>;
+export declare function createHyperConnectionSession(config: ParsedModelConfig, loader: DopplerLoader, capacity: number,
+  layerRange?: readonly number[] | null): Promise<HyperConnectionSession | null>;
