@@ -4,9 +4,12 @@ import { heatmapColor, projectFrame } from './data.js';
 /** @param {(number | string | undefined)[]} values */
 function rms(values) {
   if (!values.length) return null;
-  if (values.some(v => typeof v !== 'number' || !Number.isFinite(v))) return NaN;
   let sum = 0;
-  for (const value of values) sum += Number(value) ** 2;
+  for (const value of values) {
+    if (value === undefined) return null;
+    if (typeof value !== 'number' || !Number.isFinite(value)) return NaN;
+    sum += value ** 2;
+  }
   return Math.sqrt(sum / values.length);
 }
 

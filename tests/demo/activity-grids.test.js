@@ -38,6 +38,7 @@ assert.equal(path.kind, 'linear_attention');
 assert(Math.abs(path.nodes.find(n => n.id === 'gate').magnitude - Math.sqrt(29/3)) < 1e-12);
 assert(Math.abs(path.nodes.find(n => n.id === 'mixer').magnitude - Math.sqrt(91/6)) < 1e-12,
   'State summary RMS weights partial blocks by their scalar counts');
+assert(modelPathView(recording, -1, 1, 0).layers.every(l => l.magnitude === null), 'Uncaptured layers are missing, not invalid');
 const attentionPath = modelPathView(recording, Infinity, 1, 1);
 assert.equal(attentionPath.kind, 'full_attention');
 assert.equal(attentionPath.nodes.find(n => n.id === 'mixer').magnitude, null,
