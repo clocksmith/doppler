@@ -34,3 +34,13 @@ stays 10 MB; lossless PNG compression reduces preview bytes without changing pix
 
 These checks verify data projection and UI. They do not establish new numerical,
 quality, 27B/MoE or long-context qualification. Runtime and serving services are unchanged.
+
+## Deployed physical streaming check
+
+The live 9cb27453 demo loaded Qwen 0.8B through its normal verified OPFS path and
+generated three capped tokens. Model paths visibly changed 48 times during generation.
+All 72 layer captures and 576 activity captures completed with zero gaps and no
+browser errors. The receipt records the exact artifact, runtime, browser and deployed
+source. This is a short streaming-path check, not answer-quality qualification.
+The subsequent presentation-only change clarifies Stage summaries / Not captured
+and removes the pixel Padding key from the diagram. Numerical capture is unchanged.

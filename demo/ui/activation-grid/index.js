@@ -154,9 +154,10 @@ function paint() {
   $('activation-caption').textContent = `${snapshot ? chosen.clockLabel : `${active && follow ? 'Live · ' : ''}${point.phase} · token position ${position}`} · ${graph ? `layer ${graph.layer + 1} of ${trace.geometry.layers}` : `${side} × ${side} pixels`}`;
   $('activity-title').textContent = chosen?.label ?? view.quantity;
   $('activity-update').textContent = chosen?.clockLabel ?? '';
-  $('activity-method').textContent = view.representation === 'aggregated' ? 'Block summary' : view.representation === 'raw' ? 'Captured values' : 'Reconstructed';
+  $('activity-method').textContent = graph ? 'Stage summaries' : view.representation === 'aggregated' ? 'Block summary' : view.representation === 'raw' ? 'Captured values' : 'Reconstructed';
   $('activity-explanation').textContent = graph ? view.description : $('activity-detail').value === 'raw' || select.value === 'contributions' ? view.description : previews.find(p => p.mode === select.value)?.help ?? view.description;
   $('activity-coverage').textContent = `${present.toLocaleString()} / ${view.values.length.toLocaleString()} pixels have data · ${view.valuesPerScalar === 1 ? 'one value per pixel' : `up to ${view.valuesPerScalar.toLocaleString()} values per pixel`}${select.value === 'weights' ? ' · fixed during generation' : ''}`;
+  $('activation-cell').textContent = 'Point at a pixel to see its value.';
   if (graph) {
     $('activity-coverage').textContent = `${present}/${graph.nodes.length} stages have captured values · unrecorded stages stay empty`;
     $('activation-cell').textContent = 'Select a layer to inspect its branches. Bold outline = latest capture.';
@@ -176,7 +177,9 @@ function paint() {
   const keyNote = document.createElement('p'); keyNote.className = 'demo-note';
   keyNote.textContent = `${view.quantity} · fixed scale · 24-bit RGB, fully opaque`;
   const markers = document.createElement('div'); markers.className = 'activity-color-markers';
-  for (const [name, color] of [['Missing', config.colors.missing[1]], ['Invalid', config.colors.invalid], ['Padding', config.colors.padding]]) {
+  const markerKinds = graph ? [['Not captured', config.colors.missing[0]], ['Invalid', config.colors.invalid]]
+    : [['Missing', config.colors.missing[1]], ['Invalid', config.colors.invalid], ['Padding', config.colors.padding]];
+  for (const [name, color] of markerKinds) {
     const marker = document.createElement('span'), swatch = document.createElement('i');
     swatch.style.background = `rgb(${/** @type {number[]} */ (color).join(',')})`; if (name === 'Missing') swatch.style.background = `repeating-conic-gradient(rgb(${config.colors.missing[0].join(',')}) 0% 25%, rgb(${config.colors.missing[1].join(',')}) 0% 50%) 0 / 6px 6px`;
     marker.append(swatch, document.createTextNode(String(name))); markers.append(marker);

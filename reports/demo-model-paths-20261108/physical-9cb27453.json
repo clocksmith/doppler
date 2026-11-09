@@ -1,0 +1,174 @@
+{
+  "origin": "https://d4da.com",
+  "browser": "145.0.7632.6",
+  "release": {
+    "application": "doppler-demo",
+    "canonicalUrl": "https://d4da.com/doppler/",
+    "sourceCommit": "9cb2745306f0f5f6b6704931f680eaad2ab615f4",
+    "demoSourceCommit": "9cb2745306f0f5f6b6704931f680eaad2ab615f4",
+    "runtime": {
+      "sourceCommit": "ca685808ed0c208583a8cf1780c74ed4ae8bf501",
+      "version": "0.6.33",
+      "inventorySha256": "dfcf2b15ee5ebf89edcc743193fcbfab9917526e84c3face259453c1783bc04b"
+    },
+    "hostingRecipeSha256": "7ec02801ab3ea086cffab15d904bc2b94edeafdb4a8d378b916c97b9f9332c19"
+  },
+  "receipt": {
+    "identity": {
+      "modelId": "qwen-3-5-0-8b-q4k-ehaf16",
+      "logicalModelId": "qwen-3-5-0-8b-q4k-ehaf16",
+      "manifestHash": "c5fcf38e945f1c048faca9ccda8991f1494563317f46a6dd79e0714ad001c569",
+      "runtimeVersion": "0.6.33",
+      "adapters": []
+    },
+    "persistentCache": {
+      "backend": "opfs",
+      "state": "imported",
+      "fromCache": false,
+      "manifestHash": "c5fcf38e945f1c048faca9ccda8991f1494563317f46a6dd79e0714ad001c569",
+      "totalBytes": 1146048704
+    },
+    "output": "Hello! It",
+    "tokenIds": [
+      9419,
+      0,
+      1049
+    ],
+    "phases": [
+      "prefill",
+      "decode"
+    ],
+    "frames": 72,
+    "captured": 72,
+    "gaps": 0,
+    "activityFrames": 576,
+    "activityGaps": 0,
+    "modes": [
+      {
+        "id": "model-paths",
+        "available": true,
+        "reason": null
+      },
+      {
+        "id": "layer-output",
+        "available": true,
+        "reason": null
+      },
+      {
+        "id": "ffn-product",
+        "available": true,
+        "reason": null
+      },
+      {
+        "id": "ffn-gate",
+        "available": true,
+        "reason": null
+      },
+      {
+        "id": "ffn-up",
+        "available": true,
+        "reason": null
+      },
+      {
+        "id": "difference",
+        "available": true,
+        "reason": null
+      },
+      {
+        "id": "weights",
+        "available": true,
+        "reason": null
+      },
+      {
+        "id": "contributions",
+        "available": true,
+        "reason": null
+      },
+      {
+        "id": "kv-new",
+        "available": true,
+        "reason": null
+      },
+      {
+        "id": "kv-cache",
+        "available": true,
+        "reason": null
+      },
+      {
+        "id": "recurrent-memory",
+        "available": true,
+        "reason": null
+      },
+      {
+        "id": "convolution-history",
+        "available": true,
+        "reason": null
+      },
+      {
+        "id": "attention-query",
+        "available": true,
+        "reason": null
+      },
+      {
+        "id": "attention-prefill",
+        "available": true,
+        "reason": null
+      },
+      {
+        "id": "linear-gates",
+        "available": true,
+        "reason": null
+      },
+      {
+        "id": "logits",
+        "available": true,
+        "reason": null
+      },
+      {
+        "id": "probabilities",
+        "available": true,
+        "reason": null
+      },
+      {
+        "id": "quantization-error",
+        "available": true,
+        "reason": null
+      },
+      {
+        "id": "residency",
+        "available": true,
+        "reason": null
+      },
+      {
+        "id": "expert-routing",
+        "available": false,
+        "reason": "No expert-routing boundary was captured for this execution."
+      }
+    ]
+  },
+  "live": {
+    "captions": [
+      "Live · prefill · token position 17 · layer 1 of 24",
+      "Live · prefill · token position 17 · layer 2 of 24",
+      "Live · prefill · token position 17 · layer 3 of 24",
+      "Live · prefill · token position 17 · layer 4 of 24",
+      "Live · prefill · token position 17 · layer 5 of 24",
+      "Live · prefill · token position 17 · layer 5 of 24",
+      "Live · prefill · token position 17 · layer 6 of 24",
+      "Live · prefill · token position 17 · layer 8 of 24",
+      "Live · prefill · token position 17 · layer 8 of 24",
+      "Live · prefill · token position 17 · layer 9 of 24",
+      "Live · prefill · token position 17 · layer 10 of 24",
+      "Live · prefill · token position 17 · layer 11 of 24",
+      "Live · prefill · token position 17 · layer 12 of 24",
+      "Live · prefill · token position 17 · layer 12 of 24",
+      "Live · prefill · token position 17 · layer 13 of 24",
+      "Live · prefill · token position 17 · layer 13 of 24"
+    ],
+    "duringGeneration": 48,
+    "colorChanges": 48,
+    "pathChanges": 48,
+    "last": "-635120414"
+  },
+  "errors": []
+}
