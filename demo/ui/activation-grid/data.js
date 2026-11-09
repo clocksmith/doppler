@@ -114,3 +114,63 @@ export function initialColorScale(values, fallback) {
 export function heatmapColors(range = 'signed', dark = false) {
   return range === 'signed' ? (dark ? config.colors.signedDark : config.colors.signed) : config.colors.positive;
 }
+
+/** Fold a vector without dropping values or suggesting neuron connectivity.
+ * @type {typeof import('./data.js').layerShape} */
+export function layerShape(values) {
+  let height = Math.floor(Math.sqrt(values));
+  while (height > 1 && values % height) height--;
+  return { width: values / height, height };
+}
+
+/** @type {WeakMap<object, Map<string, { other: object | undefined, value: number | string }>>} */
+const energies = new WeakMap();
+
+/** History is an observation-only summary; it never feeds inference.
+ * @type {typeof import('./data.js').layerHistory} */
+export function layerHistory(recording, atMs, position, difference, baseline = null) {
+  const { layers, width } = recording.trace.geometry;
+  /** @param {import('./data.js').ActivationRecording} r @param {number} time */
+  const collect = (r, time) => {
+    /** @type {Map<number, { forward: number, frames: Map<number, import('doppler-gpu/tooling/evidence').ActivationFrame> }>} */
+    const rows = new Map();
+    for (const f of r.trace.frames) {
+      if (f.atMs > time) continue;
+      for (let i = 0; i < f.tokenIds.length; i++) {
+        const pos = f.tokenStart + i;
+        let row = rows.get(pos);
+        if (!row || row.forward !== f.forward) { row = { forward: f.forward, frames: new Map() }; rows.set(pos, row); }
+        row.frames.set(f.layer, f);
+      }
+    }
+    return rows;
+  };
+  const rows = collect(recording, atMs), otherRows = baseline ? collect(baseline, Infinity) : rows;
+  const all = [...new Set(recording.trace.frames.flatMap(f => f.tokenIds.map((_, i) => f.tokenStart + i)))].sort((a,b) => a-b);
+  const start = Math.floor(Math.max(0, all.indexOf(position)) / config.historyColumns) * config.historyColumns;
+  const positions = all.slice(start, start + config.historyColumns);
+  /** @type {(number | string | undefined)[]} */
+  const values = new Array(layers * positions.length).fill(undefined);
+  for (let l = 0; l < layers; l++) for (let col = 0; col < positions.length; col++) {
+    const pos = positions[col], f = rows.get(pos)?.frames.get(l);
+    const other = difference ? otherRows.get(baseline ? pos : pos - 1)?.frames.get(l) : undefined;
+    if (pos > position || f?.status !== 'captured' || !f.values || (difference && (other?.status !== 'captured' || !other.values))) continue;
+    const offset = (pos - f.tokenStart) * width;
+    const otherOffset = other ? ((baseline ? pos : pos - 1) - other.tokenStart) * width : 0;
+    const key = `${offset}/${difference}/${otherOffset}`;
+    let cache = energies.get(f);
+    if (!cache) { cache = new Map(); energies.set(f, cache); }
+    let entry = cache.get(key);
+    if (!entry || entry.other !== other) {
+      let sum = 0;
+      for (let d = 0; d < width; d++) {
+        const a = f.values[offset + d], b = difference ? other?.values?.[otherOffset + d] : 0;
+        if (typeof a !== 'number' || typeof b !== 'number') { sum = NaN; break; }
+        sum += (a-b) ** 2;
+      }
+      entry = { other, value: Number.isFinite(sum) ? Math.sqrt(sum / width) : 'NaN' }; cache.set(key, entry);
+    }
+    values[l * positions.length + col] = entry.value;
+  }
+  return { positions, values, layers };
+}

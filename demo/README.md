@@ -217,7 +217,18 @@ F32-versus-F16 model runs. Neither comparison is a throughput or quality benchma
 
 ## Model paths, snapshots and playback
 
-**Model paths** is the default activity view. Its layer strip has stable positions;
+**Activation changes** is the default: one labeled tile per layer, in four-column
+reading order. Each tile folds its output vector without pooling: Qwen 0.8B uses
+32 × 32 values; a 5,120-component layer uses 80 × 64. Pixel adjacency inside a
+tile does not imply neural connectivity. Colors compare adjacent positions, or
+the same position in an explicitly matched saved run. The first position has no
+adjacent difference. A layer-by-token history shows RMS across all components;
+missing components make that summary missing. History uses a separate fixed,
+nonnegative scale and a bounded 256-position window. Click or use arrow keys to
+seek; the recorded answer follows the same cursor. Future positions stay missing.
+Selecting a tile opens its captured branches when layer structure is recorded.
+
+**Model paths** is also available from the selector. Its layer strip has stable positions;
 the selected layer exposes the recorded attention/memory kind and the feed-forward
 gate/up/product branches. Nodes show RMS from captured values, with explicitly
 weighted state summaries. Missing stages stay empty. The last captured stage gets

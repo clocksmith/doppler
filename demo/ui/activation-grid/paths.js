@@ -1,5 +1,5 @@
 import config from './config.json' with { type: 'json' };
-import { colorGrid, heatmapColor, heatmapColors, projectFrame } from './data.js';
+import { colorGrid, heatmapColor, heatmapColors, projectFrame, layerShape } from './data.js';
 
 /** @param {readonly (number | string | undefined)[]} values */
 function rms(values) {
@@ -145,4 +145,84 @@ export function renderModelPaths(container, graph, scale, activationScale, onLay
     if (list.scrollWidth > list.clientWidth && (selected.offsetLeft < list.scrollLeft || selected.offsetLeft + selected.offsetWidth > list.scrollLeft + list.clientWidth)) list.scrollLeft = selected.offsetLeft - list.clientWidth / 2;
     if (list.scrollHeight > list.clientHeight && (selected.offsetTop < list.scrollTop || selected.offsetTop + selected.offsetHeight > list.scrollTop + list.clientHeight)) list.scrollTop = selected.offsetTop - list.clientHeight / 2;
   }
+}
+
+/** @type {typeof import('./paths.js').renderLayerMap} */
+export function renderLayerMap(container, options) {
+  const { values, width, layers, types, scale, history, historyScale, position, difference, baseline, selected, dark, onLayer, onPosition, onInspect } = options;
+  if (!container.children.length) {
+    container.innerHTML = `<div class="activity-layer-overview"><div class="activity-layer-tiles" aria-label="Model layers"></div><figure class="activity-history"><figcaption>Change over tokens</figcaption><div class="activity-history-plot"><canvas tabindex="0" role="slider" aria-label="Token position in layer history"></canvas><i aria-hidden="true"></i></div><div class="activity-history-axis"></div><div class="activity-history-key"></div></figure></div><p class="activity-layer-note demo-note"></p><div class="activity-layer-detail" hidden><button type="button" class="btn btn-ghost btn-small">Close layer</button><div class="activity-paths"></div></div>`;
+  }
+  const tiles = /** @type {HTMLElement} */ (container.querySelector('.activity-layer-tiles'));
+  tiles.style.setProperty('--layer-columns', String(Math.min(layers, config.layerColumns)));
+  while (tiles.children.length > layers) tiles.lastElementChild?.remove();
+  const shape = layerShape(width);
+  /** @param {HTMLCanvasElement} canvas @param {(number | string | undefined)[]} scalars @param {number} w @param {number} h @param {number} limit @param {'signed'|'positive'} range */
+  const draw = (canvas, scalars, w, h, limit, range) => {
+    canvas.width = w; canvas.height = h;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) throw new Error('Layer maps require canvas 2D.');
+    const image = ctx.createImageData(w,h);
+    image.data.set(colorGrid(scalars, limit, range, dark).rgba.subarray(0,w*h*4));
+    ctx.putImageData(image,0,0);
+  };
+  for (let l = 0; l < layers; l++) {
+    let tile = /** @type {HTMLButtonElement | undefined} */ (tiles.children[l]);
+    if (!tile) {
+      tile = document.createElement('button'); tile.type = 'button'; tile.className = 'activity-layer-tile';
+      tile.innerHTML = '<span></span><canvas></canvas><small></small>'; tiles.append(tile);
+    }
+    const label = types?.[l] === 'linear_attention' ? 'Linear' : types?.[l] === 'full_attention' ? 'Attention' : 'Layer output';
+    tile.dataset.layer = String(l); tile.dataset.kind = types?.[l] ?? 'unknown';
+    tile.disabled = !['linear_attention','full_attention'].includes(types?.[l] ?? '');
+    tile.setAttribute('aria-label', `Layer ${l+1}, ${label}. ${tile.disabled ? 'Branch structure not recorded.' : 'Inspect captured branches.'}`);
+    tile.setAttribute('aria-pressed', String(selected === l));
+    /** @type {HTMLElement} */ (tile.querySelector('span')).textContent = `${l+1}${l < layers-1 ? ' →' : ''}`;
+    /** @type {HTMLElement} */ (tile.querySelector('small')).textContent = label;
+    tile.onclick = () => onLayer(selected === l ? -1 : l);
+    const canvas = /** @type {HTMLCanvasElement} */ (tile.querySelector('canvas'));
+    const row = values.slice(l*width,(l+1)*width);
+    draw(canvas, row, shape.width, shape.height, scale, 'signed');
+    canvas.onpointermove = event => {
+      const rect = canvas.getBoundingClientRect();
+      const d = Math.floor((event.clientY-rect.top)/rect.height*shape.height)*shape.width + Math.floor((event.clientX-rect.left)/rect.width*shape.width);
+      onInspect(`Layer ${l+1} · component ${d} · ${row[d] ?? 'missing'}${difference ? ' change' : ''}`);
+    };
+    canvas.onpointerleave = () => onInspect(null);
+  }
+  const figure = /** @type {HTMLElement} */ (container.querySelector('.activity-history'));
+  /** @type {HTMLElement} */ (figure.querySelector('figcaption')).textContent = difference ? 'Change over tokens' : 'Activity over tokens';
+  const canvas = /** @type {HTMLCanvasElement} */ (figure.querySelector('canvas'));
+  const n = history.positions.length;
+  draw(canvas, history.values, Math.max(1,n), layers, historyScale, 'positive');
+  canvas.setAttribute('aria-valuemin', String(history.positions[0] ?? 0));
+  canvas.setAttribute('aria-valuemax', String(history.positions[n-1] ?? 0));
+  canvas.setAttribute('aria-valuenow', String(position));
+  canvas.setAttribute('aria-valuetext', `Token ${position}. Rows are layers; color is ${difference ? 'RMS change' : 'RMS activity'}. Arrow keys select a token.`);
+  const column = Math.max(0,history.positions.indexOf(position));
+  const cursor = /** @type {HTMLElement} */ (figure.querySelector('i'));
+  cursor.style.left = `${(column+.5)/Math.max(1,n)*100}%`;
+  const key = /** @type {HTMLElement} */ (figure.querySelector('.activity-history-key'));
+  key.style.borderImage = `linear-gradient(to right,${heatmapColors('positive',dark).map(c=>`rgb(${c.join(',')})`).join(',')}) 1`;
+  key.textContent = `RMS ${difference ? 'change' : 'activity'} · 0–${Number(historyScale.toPrecision(3))}`;
+  /** @type {HTMLElement} */ (figure.querySelector('.activity-history-axis')).textContent = `Tokens ${history.positions[0] ?? 0}–${history.positions[n-1] ?? 0} → · layers 1–${layers} ↓`;
+  canvas.onclick = event => {
+    const box = canvas.getBoundingClientRect();
+    const c = Math.max(0,Math.min(n-1,Math.floor((event.clientX-box.left)/box.width*n)));
+    if (n) onPosition(history.positions[c]);
+  };
+  canvas.onkeydown = event => {
+    const c = event.key === 'Home' ? 0 : event.key === 'End' ? n-1 : event.key === 'ArrowLeft' ? column-1 : event.key === 'ArrowRight' ? column+1 : null;
+    if (c !== null && n) { event.preventDefault(); onPosition(history.positions[Math.max(0,Math.min(n-1,c))]); }
+  };
+  canvas.onpointermove = event => {
+    const box = canvas.getBoundingClientRect();
+    const c = Math.min(n-1,Math.floor((event.clientX-box.left)/box.width*n)), l = Math.min(layers-1,Math.floor((event.clientY-box.top)/box.height*layers));
+    onInspect(`Layer ${l+1} · token ${history.positions[c]} · RMS ${difference ? 'change' : 'activity'}: ${history.values[l*n+c] ?? 'missing'}`);
+  };
+  canvas.onpointerleave = () => onInspect(null);
+  /** @type {HTMLElement} */ (container.querySelector('.activity-layer-note')).textContent = `${shape.width} × ${shape.height} values per layer · ${baseline ? 'compared with saved run' : difference ? 'change from previous position' : 'captured outputs'}`;
+  const detail = /** @type {HTMLElement} */ (container.querySelector('.activity-layer-detail'));
+  detail.hidden = selected < 0;
+  /** @type {HTMLButtonElement} */ (detail.querySelector('button')).onclick = () => onLayer(-1);
 }

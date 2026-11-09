@@ -2,8 +2,8 @@ import config from './config.json' with { type: 'json' };
 import previews from './previews.json' with { type: 'json' };
 import previewData from '../../assets/activity-previews.json' with { type: 'json' };
 import { SHELL_MANIFEST_DIGEST } from '../../generated-shell-manifest.js';
-import { validateRecording, colorGrid, initialColorScale, heatmapColor, heatmapColors } from './data.js';
-import { modelPathView, renderModelPaths } from './paths.js';
+import { validateRecording, colorGrid, initialColorScale, heatmapColor, heatmapColors, layerHistory, layerShape } from './data.js';
+import { modelPathView, renderModelPaths, renderLayerMap } from './paths.js';
 import { encodeRecording } from './recording-codec.js';
 import { activityView, activityModes, playbackPoints, assertMatchedRuns } from './views.js';
 
@@ -130,11 +130,12 @@ function paint() {
   const position = Number(token.value);
   if (!active && !snapshot) onPlayback?.(recording, { ...point, position });
   const graph = select.value === 'model-paths' ? modelPathView(recording, point.atMs, position, Number(layerSelect.value)) : null;
+  const tiled = select.value === 'difference' || select.value === 'layer-output';
   const view = graph ? { values: graph.nodes.map(n => n.magnitude ?? undefined), range: /** @type {const} */ ('positive'),
     representation:'aggregated', quantity:'Captured RMS magnitude', valuesPerScalar:1, underlyingValues:0, extent:graph.nodes.length, offset:0, segments:[],
     description:'Color shows captured magnitude, not importance. Connections show computational structure; dashed links omit unrecorded transformations. A bold outline marks the latest captured stage.' }
     : activityView(recording, { mode: select.value, atMs: snapshot ? Infinity : point.atMs, position,
-    layer: Number(layerSelect.value), weightId: weightSelect.value, detail: $('activity-detail').value,
+    layer: tiled ? -1 : Number(layerSelect.value), weightId: weightSelect.value, detail: $('activity-detail').value,
     page: Number($('activity-page').value), baseline });
   const scales = recording.display.scales ??= {};
   const key = scaleKey();
@@ -147,7 +148,8 @@ function paint() {
   $('activation-scale').disabled = fixedUnit;
   $('activation-scale').value = String(scale);
   const { side, rgba } = colorGrid(view.values, scale, view.range, dark);
-  const canvas = $('activation-canvas'); canvas.hidden = Boolean(graph) || side === 0;
+  const canvas = $('activation-canvas'); canvas.hidden = tiled || Boolean(graph) || side === 0;
+  $('activity-layer-map').hidden = !tiled;
   $('activity-paths').hidden = !graph;
   $('activity-paths-button').hidden = !graph || layerSelect.value === '-1';
   if (graph) {
@@ -163,6 +165,28 @@ function paint() {
   const context = canvas.getContext('2d');
   if (!context) throw new Error('Activity grids require a canvas 2D context.');
   if (side) { const image = context.createImageData(side, side); image.data.set(rgba); context.putImageData(image, 0, 0); }
+  if (tiled) {
+    const difference = select.value === 'difference';
+    const history = layerHistory(recording, point.atMs, position, difference, baseline);
+    const historyKey = `history:${difference}:${Boolean(baseline)}`;
+    if (scales[historyKey] === undefined && history.values.some(v => typeof v === 'number' && v !== 0)) {
+      scales[historyKey] = initialColorScale(history.values, recording.display.scale);
+    }
+    const types = trace.activity?.model.layerTypes;
+    const onLayer = (/** @type {number} */ layer) => { layerSelect.value = String(layer); queuePaint(); };
+    renderLayerMap($('activity-layer-map'), { values:view.values, width:trace.geometry.width, layers:trace.geometry.layers,
+      types:Array.isArray(types) ? types : undefined, scale, history, historyScale:scales[historyKey] ?? recording.display.scale,
+      position, difference, baseline:difference && Boolean(baseline), selected:Number(layerSelect.value), dark, onLayer,
+      onPosition: pos => { stopPlayback(); follow = false; for (let i=0;i<timeline.length;i++) if (timeline[i].position === pos) cursor=i; token.value=String(pos); queuePaint(); },
+      onInspect: text => { $('activation-cell').hidden = text === null; $('activation-cell').textContent = text ?? ''; } });
+    if (Number(layerSelect.value) >= 0) {
+      const detail = modelPathView(recording, point.atMs, position, Number(layerSelect.value));
+      const magnitudes = detail.nodes.map(n => n.magnitude ?? undefined);
+      if (scales['layer-stages'] === undefined && magnitudes.some(v => typeof v === 'number' && v !== 0)) scales['layer-stages'] = initialColorScale(magnitudes, recording.display.scale);
+      renderModelPaths(/** @type {HTMLElement} */ ($('activity-layer-map').querySelector('.activity-layer-detail .activity-paths')),
+        detail, scales['layer-stages'] ?? recording.display.scale, scale, onLayer, dark);
+    }
+  }
   const present = view.values.filter(v => v !== undefined).length;
   if (!present && !chosen?.reason) {
     $('activity-availability').hidden = false;
@@ -215,6 +239,10 @@ function paint() {
   $('activation-layout').textContent = `${present.toLocaleString()}/${view.values.length.toLocaleString()} displayed scalars present; ${view.valuesPerScalar} underlying values per pixel. Full-detail extent ${view.underlyingValues.toLocaleString()} scalars (${Math.ceil(Math.sqrt(view.underlyingValues)).toLocaleString()}² pixels); current overview/window extent ${view.extent.toLocaleString()} scalars; tile starts at ${view.offset.toLocaleString()}. ${view.description} ${playMeaning} Colors clip outside the displayed bounds; saved numerical values are unchanged.`;
   if (graph) $('activation-layout').textContent = `${trace.geometry.layers} recorded layers; ${graph.kind} at layer ${graph.layer + 1}. Node colors summarize captured values with RMS. This is a partial computation diagram: normalization, residual transforms and uncaptured operator outputs are omitted, never invented. ${playMeaning}`;
   $('activation-layout').textContent += ' Color uses 24-bit RGB, fully opaque.';
+  if (tiled) {
+    const shape = layerShape(trace.geometry.width);
+    $('activation-layout').textContent = `${trace.geometry.layers} layer tiles, each ${shape.width} × ${shape.height}, in layer order. One component per opaque pixel; folding a vector does not imply connections between neighboring pixels. ${view.description} History: RMS across every component in a layer; any missing component makes its summary missing. Future positions stay missing. Select a tile for captured branches. ${playMeaning}`;
+  }
   const gaps = [...trace.frames, ...(trace.activity?.frames ?? [])].filter(f => ['failed', 'dropped'].includes(f.status)).length;
   $('activation-status').textContent = `${trace.identity.logicalModelId ?? trace.identity.modelId} · ${trace.identity.adapters?.length ? JSON.stringify(trace.identity.adapters) : 'no active adapters recorded'} · manifest ${trace.identity.manifestHash ?? 'unavailable'} · ${trace.status} · ${gaps} missing captures · ${((trace.recordedBytes + (trace.activity?.recordedBytes ?? 0)) / 1048576).toFixed(1)} MiB of retained numerical payload, plus weights and metadata${trace.stoppedReason ? ' · ' + trace.stoppedReason : ''}${trace.activity?.unavailable['capture-limit'] ? ' · ' + trace.activity.unavailable['capture-limit'] : ''}`;
   $('activity-page-control').hidden = view.extent <= config.maxDisplayValues;

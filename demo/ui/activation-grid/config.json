@@ -109,5 +109,7 @@
     ]
   },
   "defaultPlayback": "tokens",
-  "defaultMode": "difference"
+  "defaultMode": "difference",
+  "layerColumns": 4,
+  "historyColumns": 256
 }

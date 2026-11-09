@@ -2,6 +2,44 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs/promises';
 import { validateRecording } from '../../demo/ui/activation-grid/data.js';
 
+export async function checkLayerMap(page) {
+  await page.selectOption('#activity-mode','difference');
+  await page.locator('#activation-scrub').fill('22');
+  await page.locator('.activity-layer-tile').first().waitFor();
+  assert.equal(await page.locator('.activity-layer-tile').count(),24);
+  assert.equal(await page.locator('#activation-canvas').isVisible(),false);
+  const pixels = () => page.locator('.activity-layer-tile canvas').first().evaluate(c=>[...c.getContext('2d').getImageData(0,0,c.width,c.height).data]);
+  const before=await pixels();
+  await page.locator('#activation-scrub').fill('23');
+  await page.waitForFunction(()=>document.querySelector('.activity-history canvas').getAttribute('aria-valuenow')==='23');
+  assert.notDeepEqual(await pixels(),before,'Visible tile updates with the same replay token');
+  await page.locator('.activity-history canvas').focus();
+  await page.keyboard.press('ArrowLeft');
+  await page.waitForFunction(()=>document.querySelector('.activity-history canvas').getAttribute('aria-valuenow')==='22');
+  assert.equal(await page.locator('#output-text').textContent(),'The','History navigation also rewinds the matching answer');
+  await page.locator('.activity-layer-tile').nth(3).click();
+  await page.locator('.activity-layer-detail').waitFor({state:'visible'});
+  assert.match(await page.locator('.activity-layer-detail').textContent(),/Full attention/);
+  await page.locator('.activity-layer-detail > button').click();
+  await page.locator('.activity-layer-detail').waitFor({state:'hidden'});
+  await fs.mkdir('.cache/layer-map',{recursive:true});
+  for (const width of [1280,390,320]) {
+    await page.setViewportSize({width,height:950});
+    assert(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));
+    const geometry = await page.locator('.activity-layer-tile canvas').evaluateAll(cs=>cs.map(c=>({w:c.width,h:c.height,box:c.getBoundingClientRect().width})));
+    assert(geometry.every(c=>c.w===32 && c.h===32 && c.box>=32),'Every scalar remains represented at desktop and phone widths');
+    await page.locator('#inspection-workspace').screenshot({path:`.cache/layer-map/light-${width}.png`});
+  }
+  const light=await pixels();
+  await page.emulateMedia({colorScheme:'dark'});
+  await page.evaluate(()=>new Promise(requestAnimationFrame));
+  assert.notDeepEqual(await pixels(),light,'Tiles follow system theme');
+  assert((await pixels()).filter((_,i)=>i%4===3).every(a=>a===255),'All pixels are opaque');
+  await page.locator('#inspection-workspace').screenshot({path:'.cache/layer-map/dark-320.png'});
+  await page.emulateMedia({colorScheme:'light'});
+  await page.setViewportSize({width:1280,height:1000});
+}
+
 // Geometry protects the first-load gap and keeps secondary controls out of the main view.
 export async function checkFirstLoadLayout(page, empty = false) {
   await fs.mkdir('.cache/demo-first-load', { recursive: true });
@@ -49,13 +87,13 @@ export async function checkActivationPlayback(page) {
   if (!await page.locator('#run-details').evaluate(n => n.open)) await page.locator('#run-details > summary').click();
   await page.selectOption('#activity-playback', 'captures');
   await page.waitForFunction(() => document.querySelector('#activation-scrub').max === '3');
-  assert.equal(await page.locator('#activation-canvas').isVisible(), true);
-  const final = await page.locator('#activation-canvas').evaluate(c => [...c.getContext('2d').getImageData(0, 0, c.width, c.height).data]);
+  assert.equal(await page.locator('#activity-layer-map').isVisible(), true);
+  const final = await page.locator('.activity-layer-tile canvas').first().evaluate(c => [...c.getContext('2d').getImageData(0, 0, c.width, c.height).data]);
   const scale = await page.inputValue('#activation-scale');
   await page.locator('#activation-scrub').fill('0');
   await page.waitForFunction(() => document.querySelector('#activation-position').value === '0');
   await page.evaluate(() => new Promise(requestAnimationFrame));
-  const first = await page.locator('#activation-canvas').evaluate(c => [...c.getContext('2d').getImageData(0, 0, c.width, c.height).data]);
+  const first = await page.locator('.activity-layer-tile canvas').first().evaluate(c => [...c.getContext('2d').getImageData(0, 0, c.width, c.height).data]);
   assert.notDeepEqual(first, final, 'Scrubbing changes measured samples');
   assert.equal(await page.inputValue('#activation-scale'), scale, 'Playback never rescales as token position changes');
   if (!await page.locator('#activation-speed').isVisible()) await page.locator('#run-details > summary').click();
@@ -200,7 +238,7 @@ export async function checkRealActivityPlayback(page) {
   for (const width of [1200, 390, 320]) {
     await page.setViewportSize({ width, height: 900 });
     assert(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), `No overflow at ${width}px`);
-    for (const id of ['activity-mode', 'activation-play', 'activation-canvas']) {
+    for (const id of ['activity-mode', 'activation-play', 'activity-layer-map']) {
       const rect = await page.locator(`#${id}`).boundingBox();
       assert(rect && rect.x >= 0 && rect.x + rect.width <= width + 1, `${id} fits at ${width}px`);
     }
@@ -209,7 +247,7 @@ export async function checkRealActivityPlayback(page) {
     await page.locator('#inspection-workspace').screenshot({ path: `.cache/activation-grid/playback/paths-${width}.png` });
     assert(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth));
     await page.selectOption('#activity-mode', 'layer-output');
-    await page.locator('#activation-canvas').waitFor({state:'visible'});
+    await page.locator('#activity-layer-map').waitFor({state:'visible'});
   }
   await page.selectOption('#activity-playback', 'tokens');
   await page.locator('#activation-scrub').fill('0');
@@ -266,7 +304,7 @@ export async function checkLiveActivity(page) {
   await emit(0,1);
   await page.waitForFunction(() => document.querySelector('#activation-caption').dataset.live === 'true');
   assert.equal(await page.inputValue('#activity-mode'), 'difference', 'A static snapshot switches to activation changes when generation begins');
-  const pixels = () => page.locator('#activation-canvas').evaluate(c => [...c.getContext('2d').getImageData(0,0,c.width,c.height).data]);
+  const pixels = () => page.locator('.activity-layer-tile canvas').first().evaluate(c => [...c.getContext('2d').getImageData(0,0,c.width,c.height).data]);
   const startPixels = await pixels();
   await emit(1,.2);
   await page.waitForFunction(() => document.querySelector('#activation-position').value === '1');

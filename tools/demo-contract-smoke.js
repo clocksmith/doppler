@@ -6,7 +6,7 @@ import fs from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { chromium } from 'playwright';
-import { checkLiveActivity, checkActivationPlayback, checkTokenGeometry, checkRealActivityPlayback, checkFirstLoadLayout } from '../tests/demo/browser-activation.js';
+import { checkLiveActivity, checkActivationPlayback, checkTokenGeometry, checkRealActivityPlayback, checkFirstLoadLayout, checkLayerMap } from '../tests/demo/browser-activation.js';
 import { checkDemoControls } from '../tests/demo/browser-controls.js';
 import { checkBootLayout, checkAutomaticReplay, checkPendingExample, checkPendingInitialReplay } from '../tests/demo/browser-run-coherence.js';
 import {
@@ -202,6 +202,7 @@ async function main() {
     assert.equal(await page.locator('#model-select').isVisible(), true, 'Model selection is visible by the composer');
     assert.equal(await page.locator('#xray-shell').isVisible(), false);
     await checkAutomaticReplay(page);
+    await checkLayerMap(page);
     assert.equal(await page.locator('#run-btn').isEnabled(), false, 'The first prompt has already been submitted in replay');
     assert.equal(await page.locator('#model-select option[value="embedding-only"]').count(), 0);
     await checkFirstLoadLayout(page);

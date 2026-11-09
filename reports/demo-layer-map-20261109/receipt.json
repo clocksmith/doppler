@@ -1,0 +1,32 @@
+{
+  "scope": "Demo presentation only; no new model/GPU qualification",
+  "views": [
+    "layer tiles: raw outputs or signed differences",
+    "layer-by-token RMS history",
+    "selected layer captured branches"
+  ],
+  "layouts": [
+    1280,
+    390,
+    320
+  ],
+  "theme": [
+    "light",
+    "dark"
+  ],
+  "captures": "Existing sky-question recording; public API fixture tests exercise live events",
+  "checks": [
+    "RMS sign cancellation",
+    "first-position missing",
+    "saved baseline",
+    "future capture hidden",
+    "failed capture",
+    "retry isolation",
+    "position gaps",
+    "live append",
+    "token/answer cursor synchronization",
+    "opaque pixels",
+    "responsive layout"
+  ],
+  "runtime": "Hosted runtime retained by demo-only sync"
+}
