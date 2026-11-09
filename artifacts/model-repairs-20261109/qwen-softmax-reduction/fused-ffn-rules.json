@@ -1,0 +1,130 @@
+{
+  "activationOp": [
+    {
+      "match": {
+        "hiddenActivation": "gelu"
+      },
+      "value": "gelu"
+    },
+    {
+      "match": {},
+      "value": "silu"
+    }
+  ],
+  "useFusedGateUp": [
+    {
+      "match": {
+        "hasGate": true,
+        "hasUp": true,
+        "hasDown": true,
+        "hasFusedWeights": false,
+        "inputIsSupported": true,
+        "hasLoRA": false,
+        "dtypeMatches": true,
+        "dtypeSupported": true,
+        "weightDtype": "f16",
+        "activationDtype": "f16",
+        "f16BatchSupported": true
+      },
+      "value": true
+    },
+    {
+      "match": {
+        "hasGate": true,
+        "hasUp": true,
+        "hasDown": true,
+        "hasFusedWeights": false,
+        "inputIsSupported": true,
+        "hasLoRA": false,
+        "dtypeMatches": true,
+        "dtypeSupported": true,
+        "weightDtype": "f16",
+        "activationDtype": "f32",
+        "useLargeBatchF16F32FusedGateUp": true,
+        "batchSize": {
+          "gt": 4
+        }
+      },
+      "value": true
+    },
+    {
+      "match": {
+        "hasGate": true,
+        "hasUp": true,
+        "hasDown": true,
+        "hasFusedWeights": false,
+        "inputIsSupported": true,
+        "hasLoRA": false,
+        "dtypeMatches": true,
+        "dtypeSupported": true,
+        "weightDtype": "f16",
+        "activationDtype": "f32",
+        "batchSize": {
+          "lte": 4
+        }
+      },
+      "value": true
+    },
+    {
+      "match": {
+        "hasGate": true,
+        "hasUp": true,
+        "hasDown": true,
+        "hasFusedWeights": false,
+        "inputIsSupported": true,
+        "hasLoRA": false,
+        "dtypeMatches": true,
+        "dtypeSupported": true,
+        "weightDtype": "q4k",
+        "activationDtype": "f16",
+        "hiddenSizeAligned32": true,
+        "batchSize": {
+          "lte": 4
+        }
+      },
+      "value": true
+    },
+    {
+      "match": {
+        "hasGate": true,
+        "hasUp": true,
+        "hasDown": true,
+        "hasFusedWeights": false,
+        "inputIsSupported": true,
+        "hasLoRA": false,
+        "dtypeMatches": true,
+        "dtypeSupported": true,
+        "weightDtype": "q4k",
+        "activationDtype": "f32",
+        "hiddenSizeAligned32": true,
+        "batchSize": {
+          "lte": 4
+        }
+      },
+      "value": true
+    },
+    {
+      "match": {
+        "hasGate": true,
+        "hasUp": true,
+        "hasDown": true,
+        "hasFusedWeights": false,
+        "inputIsSupported": true,
+        "hasLoRA": false,
+        "dtypeMatches": true,
+        "dtypeSupported": true,
+        "hasQ4KMaterialization": true,
+        "activationDtype": "f32",
+        "hiddenSizeAligned32": true,
+        "batchSize": {
+          "lte": 4
+        }
+      },
+      "value": true
+    },
+    {
+      "match": {},
+      "value": false
+    }
+  ]
+}

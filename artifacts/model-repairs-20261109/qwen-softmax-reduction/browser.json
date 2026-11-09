@@ -1,0 +1,111 @@
+{
+  "scope": "Qwen GQA softmax and backward operator checks; no training-run qualification",
+  "browser": "157.0.8103.38",
+  "adapter": {
+    "vendor": "apple",
+    "architecture": "metal-3",
+    "device": "",
+    "description": ""
+  },
+  "cases": [
+    {
+      "seqLen": 33,
+      "numHeads": 4,
+      "numKVHeads": 2,
+      "headDim": 8,
+      "causal": true,
+      "iterations": 8,
+      "bitStable": true,
+      "maxAbs": 4.470348358154297e-07,
+      "gradientErrors": {
+        "query": 5.587935447692871e-08,
+        "key": 2.384185791015625e-07,
+        "value": 3.2782554626464844e-07
+      }
+    },
+    {
+      "seqLen": 33,
+      "numHeads": 4,
+      "numKVHeads": 2,
+      "headDim": 8,
+      "causal": false,
+      "iterations": 8,
+      "bitStable": true,
+      "maxAbs": 5.066394805908203e-07,
+      "gradientErrors": {
+        "query": 3.5390257835388184e-08,
+        "key": 3.650784492492676e-07,
+        "value": 3.203749656677246e-07
+      }
+    },
+    {
+      "seqLen": 58,
+      "numHeads": 4,
+      "numKVHeads": 2,
+      "headDim": 8,
+      "causal": true,
+      "iterations": 8,
+      "bitStable": true,
+      "maxAbs": 4.470348358154297e-07,
+      "gradientErrors": {
+        "query": 5.774199962615967e-08,
+        "key": 2.3096799850463867e-07,
+        "value": 2.775341272354126e-07
+      }
+    },
+    {
+      "seqLen": 58,
+      "numHeads": 4,
+      "numKVHeads": 2,
+      "headDim": 8,
+      "causal": false,
+      "iterations": 8,
+      "bitStable": true,
+      "maxAbs": 3.725290298461914e-07,
+      "gradientErrors": {
+        "query": 5.774199962615967e-08,
+        "key": 2.682209014892578e-07,
+        "value": 2.2351741790771484e-07
+      }
+    },
+    {
+      "seqLen": 129,
+      "numHeads": 4,
+      "numKVHeads": 2,
+      "headDim": 8,
+      "causal": true,
+      "iterations": 8,
+      "bitStable": true,
+      "maxAbs": 4.470348358154297e-07,
+      "gradientErrors": {
+        "query": 5.797483026981354e-08,
+        "key": 3.2782554626464844e-07,
+        "value": 3.5762786865234375e-07
+      }
+    },
+    {
+      "seqLen": 129,
+      "numHeads": 4,
+      "numKVHeads": 2,
+      "headDim": 8,
+      "causal": false,
+      "iterations": 8,
+      "bitStable": true,
+      "maxAbs": 1.6391277313232422e-07,
+      "gradientErrors": {
+        "query": 7.031485438346863e-08,
+        "key": 2.682209014892578e-07,
+        "value": 1.4901161193847656e-07
+      }
+    }
+  ],
+  "sources": {
+    "src/gpu/kernels/backward/qwen_gqa_softmax_recompute.wgsl": "631bb01c42c410ca62541465248ddf8c4e3a8ddc8a802fcbd521bb94f4fb3735",
+    "src/gpu/kernels/backward/qwen_gqa_attention_backward.js": "88ebe338f3ff4ddd26e035217af000e7fecd65754ebd9e5177eeb66006ee9d13",
+    "tests/kernels/qwen-gqa-softmax-race.js": "025d7c1810a1922fe72b4d3ba88e527ac24ffd41dc603374238d7f5e30e8551e",
+    "src/experimental/training/attention-backward.js": "5cabccbdf38b2691c066899db2348f3b2d88c2cf6d880373fbfdeb25712cb0ab",
+    "tests/helpers/physical-browser-regression.js": "9da956f36ba6a17dec252491c7cd03098354a8eb8c1fce9fcfbe582e1f158252"
+  },
+  "errors": [],
+  "output": "browser.json"
+}

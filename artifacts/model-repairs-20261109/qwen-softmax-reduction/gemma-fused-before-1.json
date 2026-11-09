@@ -1,0 +1,324 @@
+{
+  "schema": "doppler.repeated-generation-observation/v1",
+  "originalEnvelopeSha256": "a7a3f4d7e343c3033232b1b123b42f1bcaf2c531ac92d0783cb220c8f80d4ae9",
+  "ok": true,
+  "error": null,
+  "output": "Thinking Process:\n\n1.  **Analyze the Request:** The user has provided",
+  "deviceInfo": {
+    "hasSubgroups": true,
+    "wgslLanguageFeatures": [
+      "subgroup_uniformity",
+      "buffer_view",
+      "unrestricted_pointer_parameters",
+      "chromium_print",
+      "pointer_composite_access",
+      "immediate_address_space",
+      "subgroup_id",
+      "linear_indexing",
+      "texture_and_sampler_let",
+      "fragment_depth",
+      "uniform_buffer_standard_layout",
+      "packed_4x8_integer_dot_product",
+      "texture_formats_tier1",
+      "readonly_and_readwrite_storage_textures",
+      "filtering_parameters",
+      "texel_buffers",
+      "sized_binding_array",
+      "swizzle_assignment"
+    ],
+    "hasSubgroupsF16": true,
+    "hasF16": true,
+    "hasTimestampQuery": true,
+    "maxBufferSize": 4294967295,
+    "maxWorkgroupSize": 1024,
+    "maxWorkgroupStorageSize": 32768,
+    "adapterInfo": {
+      "vendor": "apple",
+      "architecture": "metal-3",
+      "device": "apple-m3",
+      "description": "Metal driver on macOS Version 26.6.2 (Build 25G83)",
+      "subgroupMinSize": 32,
+      "subgroupMaxSize": 32
+    },
+    "submitProbeMs": 0.5765840000000253
+  },
+  "generationConfig": {
+    "maxTokens": 16,
+    "temperature": 0,
+    "topP": 1,
+    "topK": 1,
+    "repetitionPenalty": 1,
+    "repetitionPenaltyWindow": 100,
+    "greedyThreshold": 0,
+    "suppressSpecialTokens": false,
+    "suppressSpecialLikeTokens": false,
+    "suppressTokenIds": [],
+    "seed": null,
+    "useChatTemplate": true
+  },
+  "prompt": {
+    "identity": "The color of the sky is clear because sunlight scatters through the atmosphere. The color of the sky is clear because sunlight scatters through the atmosphere. The color of the sky is clear because sunlight scatters through the atmosphere.",
+    "hash": "sha256:161b2e4509bb2d9b4fede4a11a8dae2bf81b920138259a9e25c0994d0c45e676",
+    "input": "The color of the sky is clear because sunlight scatters through the atmosphere. The color of the sky is clear because sunlight scatters through the atmosphere. The color of the sky is clear because sunlight scatters through the atmosphere.",
+    "ids": [
+      2,
+      105,
+      2364,
+      107,
+      818,
+      2258,
+      529,
+      506,
+      7217,
+      563,
+      3582,
+      1547,
+      26808,
+      141891,
+      1826,
+      1343,
+      506,
+      11661,
+      236761,
+      669,
+      2258,
+      529,
+      506,
+      7217,
+      563,
+      3582,
+      1547,
+      26808,
+      141891,
+      1826,
+      1343,
+      506,
+      11661,
+      236761,
+      669,
+      2258,
+      529,
+      506,
+      7217,
+      563,
+      3582,
+      1547,
+      26808,
+      141891,
+      1826,
+      1343,
+      506,
+      11661,
+      236761,
+      106,
+      107,
+      105,
+      4368,
+      107,
+      100,
+      45518,
+      107,
+      101
+    ],
+    "tokenIdsHash": "sha256:2a071349ff9a50d841e66ed00fe707c39162717e9b734737425533b2c52f90b7",
+    "tokenCount": 58
+  },
+  "tokens": {
+    "ids": [
+      120474,
+      12364,
+      236787,
+      108,
+      236770,
+      236761,
+      138,
+      1018,
+      115863,
+      506,
+      16499,
+      53121,
+      669,
+      2430,
+      815,
+      3847
+    ],
+    "generatedTokenIdsHash": "sha256:d5c15f1693ac60acef61cf84c3c89b9ae35593bfadea3a622c65e68f75968dc6",
+    "generatedTextHash": "sha256:64e7c5e41b864a999dc51994f1f9e36216426e5645d817171c570117023b4884",
+    "preview": [
+      {
+        "id": 120474,
+        "text": "Thinking",
+        "fallbackText": "Thinking"
+      },
+      {
+        "id": 12364,
+        "text": " Process",
+        "fallbackText": " Process"
+      },
+      {
+        "id": 236787,
+        "text": ":",
+        "fallbackText": ":"
+      },
+      {
+        "id": 108,
+        "text": "\n\n",
+        "fallbackText": "\n\n"
+      },
+      {
+        "id": 236770,
+        "text": "1",
+        "fallbackText": "1"
+      },
+      {
+        "id": 236761,
+        "text": ".",
+        "fallbackText": "."
+      },
+      {
+        "id": 138,
+        "text": "  ",
+        "fallbackText": "  "
+      },
+      {
+        "id": 1018,
+        "text": "**",
+        "fallbackText": "**"
+      },
+      {
+        "id": 115863,
+        "text": "Analyze",
+        "fallbackText": "Analyze"
+      },
+      {
+        "id": 506,
+        "text": " the",
+        "fallbackText": " the"
+      },
+      {
+        "id": 16499,
+        "text": " Request",
+        "fallbackText": " Request"
+      },
+      {
+        "id": 53121,
+        "text": ":**",
+        "fallbackText": ":**"
+      },
+      {
+        "id": 669,
+        "text": " The",
+        "fallbackText": " The"
+      },
+      {
+        "id": 2430,
+        "text": " user",
+        "fallbackText": " user"
+      },
+      {
+        "id": 815,
+        "text": " has",
+        "fallbackText": " has"
+      },
+      {
+        "id": 3847,
+        "text": " provided",
+        "fallbackText": " provided"
+      }
+    ],
+    "perStep": [
+      {
+        "index": 0,
+        "tokenId": 120474,
+        "tokenHash": "sha256:f9ae1ea84ddfa6fd6c086679cdad4c812f439238d0d2ac64514bd045bb23cad6"
+      },
+      {
+        "index": 1,
+        "tokenId": 12364,
+        "tokenHash": "sha256:318083416d1b9a2c9a5bfa671a6bb3166956503fb55fa9bfa81da8e92ab98898"
+      },
+      {
+        "index": 2,
+        "tokenId": 236787,
+        "tokenHash": "sha256:40eab27c2694f5959dad8e7f9c94db149454a8ee06adf74689632ad2501f045a"
+      },
+      {
+        "index": 3,
+        "tokenId": 108,
+        "tokenHash": "sha256:3d52cce385748dc2544c2e73c9c54aa418e7c50673fe8982b169547dfc55c824"
+      },
+      {
+        "index": 4,
+        "tokenId": 236770,
+        "tokenHash": "sha256:29f17f9a6d2c6c77875cd8df5d6ab800098bdab63126d0deca06c7856e01ceb4"
+      },
+      {
+        "index": 5,
+        "tokenId": 236761,
+        "tokenHash": "sha256:8a10786af7f715f8f663794bd8a79858de46e3d78aee6be09c66dc7442611e98"
+      },
+      {
+        "index": 6,
+        "tokenId": 138,
+        "tokenHash": "sha256:c8e93fc7dd2b0f18cf2baade65ea4d30c6da71c52a73374d30d80e9ddf403684"
+      },
+      {
+        "index": 7,
+        "tokenId": 1018,
+        "tokenHash": "sha256:ed600827c624493a5e0f82a1a8dee680c1560fd6a41baca0de7b9eda74677b2c"
+      },
+      {
+        "index": 8,
+        "tokenId": 115863,
+        "tokenHash": "sha256:c601b8c7346b5ce8caf01e384ca7486cd37838b596fef4c43bb37da73c924e16"
+      },
+      {
+        "index": 9,
+        "tokenId": 506,
+        "tokenHash": "sha256:005ac0a1a256922d64247fbf1c500409e26cbace66494a1d3a4b75612bef1d20"
+      },
+      {
+        "index": 10,
+        "tokenId": 16499,
+        "tokenHash": "sha256:ae935b8d5685d25b442c061bb7d031482cbacb3ab7ffadd26e79258436c7e3a8"
+      },
+      {
+        "index": 11,
+        "tokenId": 53121,
+        "tokenHash": "sha256:3f12c88c216247efece92b9356f02f8b34a21eb3605481948cd690ba43a6a6e4"
+      },
+      {
+        "index": 12,
+        "tokenId": 669,
+        "tokenHash": "sha256:eedba735695e9d03ebc9259e9c6909809b6e00668b8f5fa7584d0e7c9cf2216a"
+      },
+      {
+        "index": 13,
+        "tokenId": 2430,
+        "tokenHash": "sha256:97f137b16b407f4b520db19c4412a5e965c0e11ec5bd9251b55c125bcc82b246"
+      },
+      {
+        "index": 14,
+        "tokenId": 815,
+        "tokenHash": "sha256:e2d7e621d28e9a44501591e6dcd9bd1d3619b2753f0edcc29db6416fbfc78322"
+      },
+      {
+        "index": 15,
+        "tokenId": 3847,
+        "tokenHash": "sha256:b63824de85823e4155c004ffb691d76b7283a1504424d9c7b1b2c0c2dd8d9296"
+      }
+    ],
+    "coverage": {
+      "mode": "full-token-ids",
+      "omitted": 0
+    }
+  },
+  "executionGraphHash": "sha256:4ad451e7904c1c7557944be7f7b343b9781c74636e23b86fceb2369cfd8610d4",
+  "observedFusedDispatchCount": 30,
+  "tracedLayers": [
+    0,
+    1
+  ],
+  "selectedFusedShader": "fused_ffn_q4k_f16.wgsl#main",
+  "scope": "Isolated guarded lane. Counts cover the two configured trace layers; no claim that every layer was captured."
+}

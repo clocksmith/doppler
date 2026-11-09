@@ -1,0 +1,155 @@
+{
+  "schema": "doppler.model-repair-receipt/v1",
+  "implementationCommit": "ebb35f98ae6fb356afeb27a547f33734ffe648c9",
+  "qualified": false,
+  "productionGuardsChanged": false,
+  "diagnosis": {
+    "operator": "qwen_gqa_softmax_recompute/default",
+    "cause": "Every invocation reads the row maximum from shared_reduce[0], then reuses shared_reduce for a sum reduction without an intervening workgroup barrier.",
+    "repair": "Add a uniform workgroupBarrier after the row_max read.",
+    "numericalFailureObservedOnM3BeforeRepair": false,
+    "interpretation": "Source-level workgroup race repaired; the bounded M3 baseline already passed. No reproduced failure or speedup is claimed.",
+    "beforeShaderSha256": "bcd0808a78a10418747b696812bb3fe58e95a4455629a6e043b806fb7fc6ba57"
+  },
+  "physicalChecks": {
+    "nodeSoftmaxDispatches": 48,
+    "browserSoftmaxDispatches": 48,
+    "fullBackwardCallsPerSurface": 6,
+    "reference": "Existing independent CPU attention-softmax and backward references, with explicit head-major to token-major observation mapping",
+    "browserReceipt": "browser.json"
+  },
+  "gemmaGuardControl": {
+    "sourceBaseCommit": "ac260bffac9eeeaeff88d1d0c14b49ae71934606",
+    "priorReportScopeCorrection": "The prior gemma-repeatability diagnostic snapshot edited inference/ffn.rules.json without regenerating rule-bundle.json. Its repeated tokens and 715 equal boundary arrays were observed on the unfused path. The source-rule overrides were recorded but not active.",
+    "correctedPreparation": "Regenerate the isolated rule bundle and assert that the Q4K/F16/double-width context selects fusion, then verify actual fused dispatch logs.",
+    "withRmsNormBarrier": {
+      "freshRuns": 2,
+      "tokensPerRun": 16,
+      "identical": true
+    },
+    "withoutRmsNormBarrier": {
+      "freshRuns": 2,
+      "tokensPerRun": 16,
+      "identical": false
+    },
+    "observedFusedDispatchesPerRun": 30,
+    "tracedLayers": [
+      0,
+      1
+    ],
+    "historicalNaNReproduced": false,
+    "conclusion": "RMSNorm race affects this actual fused path too. These controls do not establish that it caused the historical intermittent NaN. Production guards unchanged."
+  },
+  "demoShell": {
+    "committedSourceScope": "committed-demo-shell-scope.json",
+    "moduleCeiling": 838,
+    "budgetRaised": false
+  },
+  "checks": [
+    "node tests/inference/qwen-gqa-softmax-race.test.js",
+    "node tests/integration/qwen-gqa-softmax-race-browser.js --physical",
+    "node tests/integration/rmsnorm-f16-small-race-browser.js --physical --output <local receipt>",
+    "npm run kernels:check",
+    "npm run kernels:package-digests:check",
+    "npm run runtime:closure:check",
+    "npm run package:closure:check",
+    "npm run source:style:check",
+    "npm run source:architecture:check",
+    "npm run demo:shell:check (isolated committed source; concurrent UI edits excluded)"
+  ],
+  "limits": [
+    "Apple M3 Node/WebGPU and Chrome/Metal operator evidence only; no Jupiter workload or training campaign.",
+    "GQA baseline and repaired numerical checks both passed on the M3. The source race is not reclassified as an observed hardware corruption.",
+    "Gemma uses the previously recorded local diagnostic artifact and explicit isolated overrides; no hosted artifact, catalog or production policy changes.",
+    "Complete command envelopes remain local; these selected-field projections bind them by SHA-256."
+  ],
+  "implementationFiles": [
+    {
+      "path": "src/gpu/kernels/backward/qwen_gqa_softmax_recompute.wgsl",
+      "sha256": "631bb01c42c410ca62541465248ddf8c4e3a8ddc8a802fcbd521bb94f4fb3735"
+    },
+    {
+      "path": "tests/kernels/qwen-gqa-softmax-race.js",
+      "sha256": "025d7c1810a1922fe72b4d3ba88e527ac24ffd41dc603374238d7f5e30e8551e"
+    },
+    {
+      "path": "tests/inference/qwen-gqa-softmax-race.test.js",
+      "sha256": "031dc93dcb27f86d612c8b8e760b158c89c827aaa08e75bc277bd90d74026288"
+    },
+    {
+      "path": "tests/integration/qwen-gqa-softmax-race-browser.js",
+      "sha256": "e7eac48aa7565a87e333d0bbc7046f03a385dfc5d860c6982a56021e9cb3ea99"
+    },
+    {
+      "path": "tests/helpers/physical-browser-regression.js",
+      "sha256": "9da956f36ba6a17dec252491c7cd03098354a8eb8c1fce9fcfbe582e1f158252"
+    }
+  ],
+  "files": [
+    {
+      "path": "README.md",
+      "bytes": 3970,
+      "sha256": "699768e928e12bd54d4a49dde888d2ca8b158c3836272ad3d94fb52c4f5c52cf"
+    },
+    {
+      "path": "browser.json",
+      "bytes": 3093,
+      "sha256": "204af448606742686634a3962d335b845e1e43243eab729e211c1f689dea26e5"
+    },
+    {
+      "path": "committed-demo-shell-check.txt",
+      "bytes": 133,
+      "sha256": "32ee1f6f89cd225d777cb3b3556ecbe2704c5ebbf9662bf0b05bb7fa0c6fed17"
+    },
+    {
+      "path": "committed-demo-shell-scope.json",
+      "bytes": 183,
+      "sha256": "41aad30055a593ae3f219ab5a2edc475224c7d3c1a14250e317369c7d9041367"
+    },
+    {
+      "path": "fused-control-scope.json",
+      "bytes": 3248,
+      "sha256": "1b3675973d935650547fc07bae6c57c9854828a2d79d69ad3ce626c7f6bea094"
+    },
+    {
+      "path": "fused-ffn-rules.json",
+      "bytes": 2829,
+      "sha256": "fce6663e80d87c89f2f553893e89818120a923c4471cebaa3a7b6ad0804f25dd"
+    },
+    {
+      "path": "gemma-fused-after-1.json",
+      "bytes": 8100,
+      "sha256": "0d94a8ee37034f1949975e043d08f200e9064ffc99a5f416db1d06ba1945fd61"
+    },
+    {
+      "path": "gemma-fused-after-2.json",
+      "bytes": 8100,
+      "sha256": "5b142f015a310e8e11a403eb7c093734798110dc4e228b96fcc50f714522428d"
+    },
+    {
+      "path": "gemma-fused-before-1.json",
+      "bytes": 8103,
+      "sha256": "94ed9434ed822697d118108f784af1337277fb826826fb0655483e732438e276"
+    },
+    {
+      "path": "gemma-fused-before-2.json",
+      "bytes": 8178,
+      "sha256": "6d9e7b3f7132c9e20e2639d104a38311fcdd8b0d9ba132dfb4f0574987aa213a"
+    },
+    {
+      "path": "operator-after.txt",
+      "bytes": 1482,
+      "sha256": "63f1f873fe90128c2fee8008cfa021aaec36662047df52a402804010b9a1850c"
+    },
+    {
+      "path": "operator-before.txt",
+      "bytes": 1482,
+      "sha256": "2f4188c04797a48559fd47c802351a00a4caea1b573e841b8512edf9947f1e55"
+    },
+    {
+      "path": "rmsnorm-browser.json",
+      "bytes": 1289,
+      "sha256": "dbcb26ab0f83fa490c629d97afc3b1fcba4a913d78e86bc15b110ba6ba6d2de7"
+    }
+  ]
+}

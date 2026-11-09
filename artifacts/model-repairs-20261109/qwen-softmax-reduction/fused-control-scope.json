@@ -1,0 +1,100 @@
+{
+  "baseCommit": "ac260bffac9eeeaeff88d1d0c14b49ae71934606",
+  "scope": "Isolated test only; production guards unchanged",
+  "removedGuards": [
+    {
+      "kind": "platform-workaround",
+      "dtypeEffect": "none",
+      "match": {
+        "modelId": {
+          "in": [
+            "gemma-4-e2b-it-q4k-ehf16-af32",
+            "gemma-4-e2b-it-q4k-ehf16-af32-int4ple",
+            "gemma-4-e2b-it-q4k-ehf16-af16-int4ple"
+          ]
+        },
+        "platformVendor": "apple",
+        "retainQ4KMaterialization": true
+      },
+      "transforms": [
+        "disableRetainQ4KMaterialization"
+      ],
+      "reason": "Fused-q4k FFN kernels under retain=mixed corrupt subsequent-layer attention compute on Apple Metal (intermittent NaN at L1.attn_core_out and beyond). Standalone-q4k projection kernels are clean; only the fused gate+up+down dispatch is the perturbation source.",
+      "evidence": [
+        "tests/config/capability-retain-q4k-policy.test.js",
+        "tests/config/gemma4-e2b-conversion-config-contract.test.js",
+        "tests/inference/gemma4-e2b-q4k-apple-retain-regression.test.js"
+      ]
+    },
+    {
+      "kind": "lane-mismatch-guard",
+      "dtypeEffect": "fail-closed",
+      "match": {
+        "modelId": "gemma-4-e2b-it-q4k-ehf16-af16-int4ple",
+        "platformVendor": "apple"
+      },
+      "transforms": [
+        "failClosedLaneMismatch"
+      ],
+      "reason": "af16-int4ple lane requires retainQ4KMaterialization=true to dispatch the fused-q4k+f16 widetile pool, which produces intermittent NaN at L1.attn_core_out on Apple Metal - load the af32 manifest variant instead. Bug is intermittent and depends on buffer-pool aliasing patterns; confirmed re-emerged 2026-05-07 after e5c9a6a tightened bucket defaults.",
+      "evidence": [
+        "tests/demo/demo-models.test.js",
+        "tests/inference/gemma4-e2b-q4k-apple-retain-regression.test.js"
+      ]
+    }
+  ],
+  "fusedRuleMatchEdits": [
+    {
+      "hasGate": true,
+      "hasUp": true,
+      "hasDown": true,
+      "hasFusedWeights": false,
+      "inputIsSupported": true,
+      "hasLoRA": false,
+      "dtypeMatches": true,
+      "dtypeSupported": true,
+      "weightDtype": "q4k",
+      "activationDtype": "f16",
+      "hiddenSizeAligned32": true,
+      "batchSize": {
+        "lte": 4
+      },
+      "useDoubleWideMlp": false
+    },
+    {
+      "hasGate": true,
+      "hasUp": true,
+      "hasDown": true,
+      "hasFusedWeights": false,
+      "inputIsSupported": true,
+      "hasLoRA": false,
+      "dtypeMatches": true,
+      "dtypeSupported": true,
+      "weightDtype": "q4k",
+      "activationDtype": "f32",
+      "hiddenSizeAligned32": true,
+      "batchSize": {
+        "lte": 4
+      },
+      "useDoubleWideMlp": false
+    },
+    {
+      "hasGate": true,
+      "hasUp": true,
+      "hasDown": true,
+      "hasFusedWeights": false,
+      "inputIsSupported": true,
+      "hasLoRA": false,
+      "dtypeMatches": true,
+      "dtypeSupported": true,
+      "hasQ4KMaterialization": true,
+      "activationDtype": "f32",
+      "hiddenSizeAligned32": true,
+      "batchSize": {
+        "lte": 4
+      },
+      "useDoubleWideMlp": false
+    }
+  ],
+  "generatedRuleBundleSha256": "0aeb61ff7285a90a17a2f6e7ff1d682964552f1e7e498a28d004253b5a71a996"
+}

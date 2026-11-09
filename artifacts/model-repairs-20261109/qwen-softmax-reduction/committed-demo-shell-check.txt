@@ -1,0 +1,1 @@
+demo shell manifest: 902 files, 838 modules, 9957864 bytes (sha256:7e5dd9b12a8b6737bd02a42fe2b7468bbe2af1f7607f8059b019f7fb6da73228)
