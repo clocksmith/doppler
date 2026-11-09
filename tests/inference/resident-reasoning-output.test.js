@@ -1,3 +1,4 @@
+import { createLayerPartitionPlan } from '../../src/config/layer-partition-plan.js';
 import assert from 'node:assert/strict';
 import { registerHooks } from 'node:module';
 import { createGenerationOutputDecoder } from '../../src/inference/generation-output.js';
@@ -33,8 +34,7 @@ try {
     createIncrementalDecoder: () => ({ push: id => id < 2 || id === 4 ? '' : text[id], pendingText: () => '', finish: () => '' }) };
   const generation = resolveGenerationOptions({ maxTokens: 5, maxSeqLen: 12, temperature: 0,
     topK: 1, topP: 1, repetitionPenalty: 1, repetitionPenaltyWindow: 0, useChatTemplate: false });
-  const plan = { schema: 'doppler.layer-partition-contract/v1', activationDtype: 'f32', vocabSize: 6, hiddenSize: 2,
-    partitions: [{ layerRange: [0, 0] }, { layerRange: [1, 1] }] };
+  const plan = createLayerPartitionPlan({ modelId: 'fixture', numLayers: 2, hiddenSize: 2, vocabSize: 6, splitLayer: 1, activationDtype: 'f32' });
   const planId = computeCanonicalSha256(plan);
   const allocation = { model: { id: 'fixture', identity: 'sha256:model' }, plan, planId, index: 1,
     participantId: 'right', generation,

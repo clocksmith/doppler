@@ -1,3 +1,4 @@
+import { createLayerPartitionPlan } from '../../src/config/layer-partition-plan.js';
 import assert from 'node:assert/strict';
 import { registerHooks } from 'node:module';
 import { createSessionController } from '../../src/client/runtime/session-controller.js';
@@ -112,8 +113,7 @@ try {
       { ...options, temperature: 0 }), 0);
   }
   const { createResidentPartitionSession } = await import(residentURL);
-  const plan = { schema: 'doppler.layer-partition-contract/v1', activationDtype: 'f32',
-    vocabSize: 4, hiddenSize: 2, partitions: [{ layerRange: [0, 0] }, { layerRange: [1, 1] }] };
+  const plan = createLayerPartitionPlan({ modelId: 'fixture', numLayers: 2, hiddenSize: 2, vocabSize: 4, splitLayer: 1, activationDtype: 'f32' });
   const planId = computeCanonicalSha256(plan);
   const allocation = { model: { id: 'fixture', identity: 'sha256:model' }, plan, planId, index: 1,
     participantId: 'right', generation: resolveGenerationOptions(generation),

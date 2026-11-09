@@ -4,13 +4,15 @@ import { scopePipelineShaders } from '../../src/inference/pipelines/shader-scope
 import { markDeviceLost } from '../../src/memory/device-residency.js';
 import { computeCanonicalSha256 } from '../../src/formats/canonical-hash.js';
 import { resolveGenerationOptions } from '../../src/config/generation-contract.js';
+import { createLayerPartitionPlan } from '../../src/config/layer-partition-plan.js';
 
-const plan = { schema: 'doppler.layer-partition-contract/v1', activationDtype: 'f32', vocabSize: 8,
-  partitions: [{ layerRange: [0, 0] }, { layerRange: [1, 1] }] };
+const plan = createLayerPartitionPlan({ modelId: 'model', numLayers: 2, hiddenSize: 4,
+  vocabSize: 8, splitLayer: 1, activationDtype: 'f32' });
 const planId = computeCanonicalSha256(plan);
 const allocation = { model: { id: 'model', identity: 'sha256:model' }, plan, planId, index: 0,
   participantId: 'left', generation: resolveGenerationOptions({ maxTokens: 1, maxSeqLen: 16, temperature: 0, topK: 1, topP: 1,
-    repetitionPenalty: 1, repetitionPenaltyWindow: 0, useChatTemplate: false }), limits: { maxAttempts: 1, maxConcurrentAttempts: 1, maxPromptTokens: 4 } };
+    repetitionPenalty: 1, repetitionPenaltyWindow: 0, useChatTemplate: false }),
+  limits: { maxAttempts: 1, maxConcurrentAttempts: 1, maxPromptTokens: 4, maxActivationBytes: 32 } };
 const identity = attemptId => ({ modelId: 'model', modelIdentity: 'sha256:model', planId,
   threadId: attemptId, attemptId, participantA: 'left', participantB: 'right' });
 
@@ -90,6 +92,8 @@ const replacement = await sessionWith(() => [1]);
 const oldContinuation = { nonce: 'previous-resident', step: 1, position: 1 };
 const request = { identity: identity('interrupted'), tokenIds: [1], inputTokenCount: 1,
   maxTokens: 1, generation: allocation.generation, signal, continuation: oldContinuation };
+await assert.rejects(replacement.session.executeGroup0({ ...request, tokenIds: [1, 1, 1], inputTokenCount: 3,
+  step: 0, tokenPosition: 0 }), /activation exceeds its byte allocation/);
 await assert.rejects(replacement.session.executeGroup0({ ...request, step: 1, tokenPosition: 1 }), /out of order/);
 await assert.rejects(replacement.session.executeGroup0({ ...request, step: 0, tokenPosition: 0 }), /continuation mismatch/);
 await replacement.session.close();

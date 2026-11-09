@@ -1,3 +1,4 @@
+import { createLayerPartitionPlan } from '../../src/config/layer-partition-plan.js';
 import assert from 'node:assert/strict';
 import { registerHooks } from 'node:module';
 import { readFileSync } from 'node:fs';
@@ -33,8 +34,7 @@ const hooks = registerHooks({ resolve(name, context, next) {
   return next(name, context);
 } });
 const { createResidentPartitionSession } = await import(target);
-const plan = { schema: 'doppler.layer-partition-contract/v1', activationDtype: 'f32', hiddenSize: 4, vocabSize: 100,
-  partitions: [{ layerRange: [0, 0] }, { layerRange: [1, 1] }] };
+const plan = createLayerPartitionPlan({ modelId: 'model', numLayers: 2, hiddenSize: 4, vocabSize: 100, splitLayer: 1, activationDtype: 'f32' });
 const planId = computeCanonicalSha256(plan), executionIdentity = 'sha256:' + 'a'.repeat(64);
 const policy = { ...JSON.parse(readFileSync(new URL('../fixtures/canonical-generation-policy.json', import.meta.url))),
   maxGeneratedTokens: 3, materializedInputCapacity: 8, totalAcceptedTokenLimit: 9,

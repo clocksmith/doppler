@@ -20,7 +20,7 @@ globalThis.orderedResidentFixture = {
     dispatches++;
     await globalThis.orderedResidentFixture.pause?.(state);
     if (state.index === 0) assert(input.tokenIds && !input.activationBytes);
-    else assert(input.activationBytes && !input.tokenIds);
+    else assert(input.activationBytes && input.tokenIds?.length === input.numTokens, 'Every stage receives the exact token IDs needed by composite state');
     if (state.index < state.plan.stageCount - 1) {
       return { activationBytes: new ArrayBuffer(input.numTokens * 4 * state.plan.activationElementStrideBytes), timing: {} };
     }
