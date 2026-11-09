@@ -521,8 +521,5 @@
 }
 
 /* Three destinations, with content-sized sections instead of empty chat space. */
-#app .demo-section-nav { display: flex; flex-wrap: wrap; gap: 8px 24px; padding: 8px 0 20px; font: 500 14px/1.5 var(--font-sans); }
-#app .demo-section-nav a { color: var(--doppler-muted); text-decoration: none; border-bottom: 1px solid var(--doppler-line); padding-block: 4px; }
-#app .demo-section-nav a:hover { color: var(--fg); border-color: var(--fg); }
 #app .demo-section { scroll-margin-top: 20px; }
 #app .activation-view [hidden] { display: none; }
