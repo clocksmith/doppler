@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs/promises';
 import { validateRecording } from '../../demo/ui/activation-grid/data.js';
 
-// Geometry protects the first-load gap and makes every preview an immediate entry.
+// Geometry protects the first-load gap and keeps secondary controls out of the main view.
 export async function checkFirstLoadLayout(page, empty = false) {
   await fs.mkdir('.cache/demo-first-load', { recursive: true });
   for (const width of [1280, 390, 320]) {
@@ -17,10 +17,12 @@ export async function checkFirstLoadLayout(page, empty = false) {
       await page.locator('#dialogue-section').screenshot({ path: `.cache/demo-first-load/empty-${width}.png` });
     } else {
       assert.equal(await page.locator('.activity-preview').count(), 6);
-      const images = await page.locator('.activity-preview img').evaluateAll(nodes => nodes.map(n => ({ loaded: n.complete && n.naturalWidth > 1, width: n.getBoundingClientRect().width })));
-      assert(images.every(i => i.loaded && i.width >= 90), 'Real grid previews are visible before any download or model run');
+      assert.equal(await page.locator('#activity-gallery').isVisible(), false, 'Preview shortcuts stay under Details');
+      assert.equal(await page.locator('#activity-files').isVisible(), false, 'File actions stay under Details');
       assert.equal(await page.locator('#activity-selectors').isVisible(), false, 'No unusable selectors on first load');
       assert.equal(await page.locator('#activation-player').isVisible(), false);
+      const example = await page.locator('#shuffle-btn').boundingBox();
+      assert(example && example.height <= 44, 'The example action fits one line beside Send');
       await page.locator('#inspection-workspace').screenshot({ path: `.cache/demo-first-load/activity-${width}.png` });
     }
   }
@@ -61,7 +63,7 @@ export async function checkActivationPlayback(page) {
   await page.waitForFunction(() => Number(document.querySelector('#activation-scrub').value) > 0);
   await page.click('#activation-play');
   assert.equal(await page.locator('#activation-play').textContent(), 'Play');
-  if (!await page.locator('#activation-export').isVisible()) await page.locator('#activity-files > summary').click();
+  if (!await page.locator('#activation-export').isVisible()) await page.locator('#run-details > summary').click();
   const pending = page.waitForEvent('download'); await page.click('#activation-export');
   const download = await pending;
   const reopened = validateRecording(JSON.parse(await fs.readFile(await download.path(), 'utf8')));
@@ -102,7 +104,10 @@ export async function checkRealActivityPlayback(page) {
   assert.equal(await page.locator('#activation-record').isChecked(), false, 'Recording opt-out survives reload');
   await page.locator('#activation-view').scrollIntoViewIfNeeded();
   await page.waitForFunction(() => document.querySelector('#activity-source').textContent.startsWith('Recorded example'), null, { timeout: 120000 });
-  assert.match(await page.locator('#activity-legend').textContent(), /fully opaque/);
+  assert.match(await page.locator('#activation-layout').textContent(), /fully opaque/);
+  assert.equal(await page.locator('#activity-explanation').isVisible(), false);
+  assert.equal(await page.locator('#activation-live').isVisible(), false, 'Saved recordings have no live-follow action');
+  assert.equal(await page.locator('#activity-paths-button').isVisible(), false, 'Unpinned paths need no follow-layer action');
   assert.equal(await page.inputValue('#activity-mode'), 'model-paths', 'The spatial view opens by default');
   assert.equal(await page.locator('#activity-paths').isVisible(), true);
   assert.equal(await page.locator('.activity-path-layer').count(), 24);
@@ -117,15 +122,15 @@ export async function checkRealActivityPlayback(page) {
   await page.click('#activation-play');
   assert.notEqual(await page.locator('#activity-paths').textContent(), before, 'Playback changes captured path values');
   await page.locator('#activation-scrub').fill(await page.locator('#activation-scrub').getAttribute('max'));
-  await page.locator('.activity-preview[data-mode="contributions"]').click();
+  await page.selectOption('#activity-mode', 'contributions');
   await page.locator('#run-details > summary').click();
   await page.locator('#activation-position').fill('17');
   await page.locator('#run-details > summary').click();
   await page.evaluate(() => new Promise(requestAnimationFrame));
   assert.match(await page.locator('#activation-caption').textContent(), /token position 17/, await page.locator('#activity-availability').textContent() + ' ' + await page.locator('#activation-status').textContent());
   assert.equal(await page.inputValue('#activity-mode'), 'contributions', 'The selected preview opens its own interactive grid');
-  assert.equal(await page.locator('.activity-gallery--compact').isVisible(), true, 'Primary views remain visible');
-  assert.match(await page.locator('#activity-source').textContent(), /Recorded example.*qwen/);
+  assert.equal(await page.locator('#activity-gallery').isVisible(), false, 'One view selector replaces the redundant shortcut row');
+  assert.match(await page.locator('#activity-source').textContent(), /Recorded example/);
   await page.locator('#run-details > summary').click();
   const modes = await page.locator('#activity-mode option').evaluateAll(options => options.map(o => ({ id: o.value, disabled: o.disabled })));
   const results = [];
@@ -174,7 +179,7 @@ export async function checkRealActivityPlayback(page) {
       assert(rect && rect.x >= 0 && rect.x + rect.width <= width + 1, `${id} fits at ${width}px`);
     }
     await page.locator('#inspection-workspace').screenshot({ path: `.cache/activation-grid/playback/activity-${width}.png` });
-    await page.click('#activity-paths-button');
+    await page.selectOption('#activity-mode', 'model-paths');
     await page.locator('#inspection-workspace').screenshot({ path: `.cache/activation-grid/playback/paths-${width}.png` });
     assert(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth));
     await page.selectOption('#activity-mode', 'layer-output');
@@ -188,7 +193,7 @@ export async function checkRealActivityPlayback(page) {
   const position = await page.inputValue('#activation-position');
   await page.selectOption('#activity-mode', 'kv-cache');
   assert.equal(await page.inputValue('#activation-position'), position);
-  if (!await page.locator('#activation-export').isVisible()) await page.locator('#activity-files > summary').click();
+  if (!await page.locator('#activation-export').isVisible()) await page.locator('#run-details > summary').click();
   const pending = page.waitForEvent('download');
   await page.click('#activation-export');
   const downloaded = await pending;
@@ -231,6 +236,7 @@ export async function checkLiveActivity(page) {
   await page.waitForFunction(() => document.querySelector('#activation-position').value === '1');
   assert.notDeepEqual(await image(), first, 'Weight/input map updates before answer completes');
   assert.equal(await page.locator('#activation-live').getAttribute('aria-pressed'), 'true');
+  assert.equal(await page.locator('#activation-live').isVisible(), false, 'Following live needs no redundant action');
   await page.locator('#activation-scrub').fill('0');
   await emit(2,.4);
   await page.evaluate(() => new Promise(requestAnimationFrame));
@@ -242,5 +248,6 @@ export async function checkLiveActivity(page) {
   await page.waitForFunction(() => document.querySelector('#output-phase').textContent === 'Stopped');
   await page.waitForFunction(() => document.querySelector('#activation-live').disabled);
   assert.equal(await page.locator('#activation-live').isDisabled(), true);
+  assert.equal(await page.locator('#activation-live').isVisible(), false, 'Completed runs have no live-follow action');
   await page.locator('#activation-record').uncheck();
 }

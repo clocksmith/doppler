@@ -22,7 +22,7 @@ function refreshRuntimeNotice() {
   // Restoring a measurement preference must not expand the page on every update.
   const measurement = $('activity-measurement-note');
   if (measurement) measurement.textContent = xrayEnabled
-    ? 'GPU timing on · adds measurement overhead.' : isActivationRecordingEnabled() ? 'On by default · adds measurement overhead.' : 'Activity recording off.';
+    ? 'GPU timing on · adds overhead.' : isActivationRecordingEnabled() ? 'Adds measurement overhead.' : 'Recording off.';
 
   const el = $('runtime-notice');
   if (!el) return;

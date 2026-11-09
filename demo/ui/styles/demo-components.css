@@ -235,9 +235,9 @@
 #app .chat-run-status { font: 400 14px/1.5 var(--font-sans); }
 #app .output-phase { font: inherit; text-transform: none; letter-spacing: normal; }
 #app .chat-toolbar .btn { min-width: 9ch; }
-#app .prompt-suggestions { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; }
+#app .prompt-suggestions { display: flex; align-items: center; min-width: 0; gap: 8px; }
 #app .prompt-suggestions[hidden] { display: none; }
-#app .prompt-suggestions .btn { width: 100%; min-height: 40px; padding: 8px 1ch; letter-spacing: -.01em; }
+#app .prompt-suggestions .btn { width: auto; min-height: 40px; padding: 8px 1ch; letter-spacing: -.01em; }
 #app #prompt-input { min-height: 130px; }
 #app .input-actions { justify-content: flex-end; }
 #app .input-actions .btn { min-width: 12ch; }
@@ -300,7 +300,10 @@
 #app :is(.btn, .precision-replay-mode-btn):active:not(:disabled),
 .confirm-dialog .btn:active:not(:disabled) { box-shadow: var(--doppler-inset); }
 #app .btn-primary::before { opacity: .65; }
-#app .btn:disabled { border-style: dashed; font-weight: 400; }
+#app .btn:disabled { font-weight: 400; }
+#app .btn-ghost { background: transparent; border-color: transparent; box-shadow: none; }
+#app .btn-ghost::before, #app .btn-ghost::after { content: none; }
+#app .btn-ghost:hover:not(:disabled) { background: transparent; border-color: var(--doppler-line); }
 #app :is(input, select, textarea) { color: var(--fg); accent-color: var(--fg); }
 #app #prompt-input { padding: 16px; line-height: 1.6; }
 #app #prompt-input::placeholder { color: var(--doppler-muted); opacity: 1; }
@@ -330,7 +333,6 @@
 #app { scrollbar-color: var(--doppler-line-strong) transparent; }
 #app * { scrollbar-color: var(--doppler-line-strong) transparent; }
 @media (max-width: 480px) {
-  #app .prompt-suggestions { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   #app .chat-toolbar { gap: 8px; }
   #app .token-stream-container { font-size: 20px; }
 }
@@ -476,6 +478,7 @@
 #app .chat-toolbar { display: flex; flex-wrap: nowrap; align-items: center; justify-content: space-between; gap: var(--demo-space-2); padding: 0; }
 #app .chat-run-status { flex: 1 1 auto; }
 #app .chat-toolbar .btn { min-width: 0; }
+#app #clear-history-btn:disabled { display: none; }
 #app .chat-toolbar:has(.output-phase:empty):has(button:disabled) { display: none; }
 #app .chat-empty { display: flex; }
 #app .output-area { min-height: 0; }

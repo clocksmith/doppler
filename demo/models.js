@@ -76,6 +76,7 @@ export function syncModelControls() {
   const detail = $('model-select-detail');
   const busy = state.modelBusy || state.settingsBusy || state.generating;
   if (action) {
+    action.hidden = status === 'loaded';
     action.disabled = !entry || busy || status === 'loaded';
     action.textContent = status === 'loaded' ? 'Loaded' : 'Load';
   }

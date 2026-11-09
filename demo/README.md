@@ -22,6 +22,12 @@ published in the catalog, configuration included:
 
 Buttons fit their labels; selects and text inputs fill the available width.
 Before anything is recorded, a short instruction replaces the empty grid.
+Model activity uses one visible view selector. Preview shortcuts, recording files
+and longer explanations live under Details; the color key, capture coverage and
+source remain beside the visual. Follow live appears only after pausing live
+follow, and Follow latest layer appears only after pinning a diagram layer.
+Secondary actions use quiet text controls. Loaded models show status rather than
+a redundant disabled Load button.
 
 First-time visitors see an interactive, explicitly labeled example of word
 choices without downloading weights or presenting its timing as a device result. The example does not become

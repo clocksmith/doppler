@@ -61,7 +61,7 @@ async function checkBranching(page) {
 
 async function exportedReport(page) {
   if (!await page.locator('#export-btn').isVisible()) {
-    await page.locator('#activity-files > summary').click();
+    await page.locator('#run-details > summary').click();
   }
   const download = page.waitForEvent('download');
   await page.click('#export-btn');
