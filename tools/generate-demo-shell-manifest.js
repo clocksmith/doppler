@@ -54,7 +54,9 @@ const WORKER_SHELL_END = '// END GENERATED DEMO SHELL';
 // Six added owners: activity capture, weight observation, linear-state capture, grid projections, recording validation and binary recording interchange.
 // One presentation owner for the capture-backed model-path diagram. Remove this
 // allowance if demo/ui/activation-grid/paths.js is removed or inlined. Byte limit unchanged.
-const MAX_MODULES = 837;
+// Bundled tokenizer normalization (26a81570) adds one reachable owner. Remove
+// this allowance if bundled/normalizer.js leaves the shell; byte limit unchanged.
+const MAX_MODULES = 838;
 const MAX_TOTAL_BYTES = 10_000_000;
 const MODULE_ROOTS = [
   'demo/demo.js',

@@ -24,7 +24,6 @@ import {
   renderWordQuality,
   setFinalStats,
   setPhase,
-  setPrefillProgress,
   setAssistantText,
   showTokenInspectorView,
   showWordQuality,
@@ -50,16 +49,6 @@ import {
 
 function $(id) {
   return document.getElementById(id);
-}
-
-function setStatus(text, busy) {
-  const status = $('status');
-  const dot = $('status-dot');
-  const label = $('status-text');
-  dot?.classList.toggle('is-ready', !busy);
-  dot?.classList.toggle('is-busy', busy);
-  if (label) label.textContent = text;
-  if (status) status.hidden = busy;
 }
 
 // One owner for the run state a completed receipt publishes (answer or branch).
@@ -105,7 +94,6 @@ export function onModelLoaded(model, modelId) {
   state.model = model;
   resetConversationForModel(modelId);
   syncSendButton();
-  setStatus('Ready', false);
 }
 
 export async function runGeneration() {
@@ -125,9 +113,7 @@ export async function runGeneration() {
   beginChatTurn(conversationRequest.messages);
   clearPrompt();
   clearTokSec();
-  setPrefillProgress(10);
-  setPhase('Running');
-  setStatus('Running…', true);
+  setPhase('Running', { busy: true, quiet: true });
   setExportEnabled(false);
   state.generating = true;
   state.prefilling = true;
@@ -153,8 +139,7 @@ export async function runGeneration() {
         if (!receiving || event.type !== 'token' || signal.aborted) return;
         if (state.prefilling) {
           state.prefilling = false;
-          setPhase('Generating');
-          setPrefillProgress(100);
+          setPhase('Generating', { busy: true, quiet: true });
         }
         stream.push(event.tokenId, event.token ?? null);
       },
@@ -190,7 +175,7 @@ export async function runGeneration() {
     recordInspectionRun(receipt, run);
     recordConversationTurn(conversationRequest, receipt.outputText, { render: false, quality: receipt.quality });
     startBranchTree(run);
-    setPhase('Complete');
+    setPhase('Complete', { quiet: true });
   } catch (error) {
     receiving = false;
     const partialOutput = stream.finish();
@@ -206,8 +191,6 @@ export async function runGeneration() {
     state.abortController = null;
     setGenerating(false);
     syncModelControls();
-    setPrefillProgress(100);
-    setStatus('Ready', false);
     // The tree was built while the run still counted as generating.
     if (state.branchTree) syncBranchView();
   }
@@ -314,7 +297,7 @@ export function switchBranch(id) {
   selectBranch(state.branchTree, id);
   renderActiveBranch();
   publishActiveRun();
-  setPhase('Showing branch');
+  setPhase('Showing branch', { quiet: true });
 }
 
 export async function runBranch(forkIndex, tokenId) {
@@ -333,7 +316,7 @@ export async function runBranch(forkIndex, tokenId) {
   if (!created) {
     renderActiveBranch();
     publishActiveRun();
-    setPhase('Showing existing branch');
+    setPhase('Showing existing branch', { quiet: true });
     return;
   }
   const remaining = settings.maxTokens - node.pathIds.length;
@@ -353,9 +336,8 @@ export async function runBranch(forkIndex, tokenId) {
   syncModelControls();
   setExportEnabled(false);
   resetXray();
-  setPhase('Branching');
+  setPhase('Branching', { busy: true, quiet: true });
   beginActivationRecording(state.branchPrompt);
-  setStatus('Running…', true);
   renderActiveBranch({ updateText: false });
   try {
     const receipt = await model.inspect.generate(state.branchPrompt, {
@@ -367,7 +349,7 @@ export async function runBranch(forkIndex, tokenId) {
         if (event.type !== 'token' || signal.aborted || tree !== state.branchTree) return;
         if (state.prefilling) {
           state.prefilling = false;
-          setPhase('Generating branch');
+          setPhase('Generating branch', { busy: true, quiet: true });
         }
         appendBranchToken(node, event.tokenId, event.token ?? null);
         updateTokenInspector(node.records);
@@ -386,7 +368,7 @@ export async function runBranch(forkIndex, tokenId) {
     finishActivationRecording('complete', receipt);
     settleBranch(node, 'complete', records ? receipt.generatedTokenIds : null, records);
     node.run = { receipt, prompt: state.branchPrompt, promptInput: null, config: { ...settings } };
-    setPhase('Branch complete');
+    setPhase('Branch complete', { quiet: true });
   } catch (error) {
     if (signal.aborted || error?.name === 'AbortError') {
       finishActivationRecording('stopped');
@@ -403,7 +385,6 @@ export async function runBranch(forkIndex, tokenId) {
     state.abortController = null;
     setGenerating(false);
     syncModelControls();
-    setStatus('Ready', false);
     if (tree === state.branchTree) {
       renderActiveBranch();
       publishActiveRun();
@@ -427,7 +408,7 @@ export function showRecordedActivity(recording) {
     note.hidden = false;
   }
   resetXray();
-  setPhase('Recorded activity');
+  setPhase('Recorded activity', { quiet: true });
 }
 
 export function loadIllustrativeExample(example) {
@@ -444,7 +425,7 @@ export function loadIllustrativeExample(example) {
   if (recorded) recorded.hidden = false;
   state.lastInspection = null;state.lastRun = null;state.lastInferenceStats = null;
   delete globalThis.__DOPPLER_DEMO_EVIDENCE__;
-  setExportEnabled(false);clearTokSec();setPhase('Example');
+  setExportEnabled(false);clearTokSec();setPhase('Example', { quiet: true });
 }
 
 export function loadSampleInspection(receipt) {
@@ -506,8 +487,7 @@ export function loadSampleInspection(receipt) {
   updateXrayPanels(receipt);
   setFinalStats(state.lastRun);
   setExportEnabled(true);
-  setPhase('Recorded answer');
+  setPhase('Recorded answer', { quiet: true });
   clearTokSec();
-  setStatus(state.model ? 'Ready' : 'No model loaded', false);
   setGenerating(false);
 }

@@ -535,3 +535,8 @@
 /* Three destinations, with content-sized sections instead of empty chat space. */
 #app .demo-section { scroll-margin-top: 20px; }
 #app .activation-view [hidden] { display: none; }
+
+/* One fixed-size signal owns loading and generation; readable phase names stay accessible. */
+#app .chat-run-status { display: flex; align-items: center; gap: 8px; min-height: 16px; }
+#app .run-indicator { flex: 0 0 8px; width: 8px; height: 8px; border-radius: 50%; background: var(--fg); animation: pulse 1.6s ease-in-out infinite; }
+@media (prefers-reduced-motion: reduce) { #app .run-indicator { animation: none; } }

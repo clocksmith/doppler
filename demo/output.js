@@ -124,20 +124,18 @@ export function renderImportedChat(output, prompt = null) {
   renderChatMessages(messages, []);
 }
 
-export function setPhase(label) {
-  setText('output-phase', label);
+export function setPhase(label, { busy = false, quiet = false } = {}) {
+  const phase = $('output-phase');
+  if (phase) {
+    if (phase.textContent !== label) phase.textContent = label;
+    phase.classList.toggle('sr-only', quiet);
+  }
+  const indicator = $('run-indicator');
+  if (indicator) indicator.hidden = !busy;
 }
 
 export function clearTokSec() {
   setText('output-toks', '');
-}
-
-export function setPrefillProgress(percent) {
-  const bar = $('output-prefill-bar');
-  if (bar) {
-    bar.style.width = `${Math.min(100, Math.max(0, percent))}%`;
-    bar.hidden = percent <= 0 || percent >= 100;
-  }
 }
 
 export function createOutputStream(decodeTokenIds, signal) {
@@ -217,7 +215,6 @@ export function createOutputStream(decodeTokenIds, signal) {
 export function clearOutput() {
   resetLiveAssistant();
   renderChatMessages([]);
-  setPrefillProgress(0);
   setPhase('');
   clearTokSec();
 }

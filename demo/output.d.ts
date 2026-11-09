@@ -4,9 +4,8 @@ export declare function renderChatMessages(messages: Array<{ role: string; conte
 }>): void;
 export declare function beginChatTurn(messages: Array<{ role: string; content: string }>): void;
 export declare function renderImportedChat(output: string, prompt?: string | null): void;
-export declare function setPhase(label: string): void;
+export declare function setPhase(label: string, options?: { busy?: boolean; quiet?: boolean }): void;
 export declare function clearTokSec(): void;
-export declare function setPrefillProgress(percent: number): void;
 export declare function createOutputStream(
   decodeTokenIds: (tokenIds: number[]) => string,
   signal?: AbortSignal

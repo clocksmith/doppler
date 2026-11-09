@@ -58,9 +58,9 @@ function paint() {
     ? 'Activity will appear as your answer is generated.'
     : 'Activity recording is off.';
   $('activity-selectors').hidden = !timeline.length;
-  $('activation-caption').hidden = !timeline.length && !active;
-  $('activity-source').hidden = !timeline.length && !exampleLoading;
-  if (!exampleLoading && recording) $('activity-source').textContent = `${source} · ${trace?.identity.logicalModelId ?? trace?.identity.modelId}`;
+  $('activation-caption').hidden = !timeline.length;
+  $('activity-source').hidden = !exampleLoading && (!timeline.length || source === 'Current run');
+  if (!exampleLoading && recording) $('activity-source').textContent = source;
   const select = $('activity-mode'), availability = activityModes(recording);
   if (!select.options.length) {
     for (const name of [...new Set(availability.map(m => m.group))]) {
@@ -103,7 +103,7 @@ function paint() {
   if (!timeline.length || !recording || !trace) {
     $('activation-canvas').width = 1; $('activation-canvas').height = 1;
     $('activation-layout').textContent = ''; $('activation-status').textContent = '';
-    $('activation-caption').textContent = active ? 'Recording… inspecting fixed weights, then model activity.' : '';
+    $('activation-caption').textContent = '';
     return;
   }
   const layerSelect = $('activity-layer');
@@ -162,14 +162,15 @@ function paint() {
   if (!present && !chosen?.reason) {
     $('activity-availability').hidden = false;
     $('activity-availability').textContent = select.value === 'difference' && !baseline && position === 0
-      ? 'Waiting for the next token to measure change.'
+      ? 'Changes need two token positions.'
       : 'No values captured at this position and layer. Select an earlier prompt position or another layer; fused-away stages and uncaptured windows are unavailable.';
   }
   const playMeaning = snapshot ? 'Snapshot: no token playback.' : $('activity-playback').value === 'tokens'
     ? 'Play selects token positions; prefill positions were computed together.'
     : $('activity-playback').value === 'time' ? 'Play follows recorded capture timestamps, including diagnostic overhead.'
       : 'Play advances operator captures at 12 captures/second at 1×.';
-  $('activation-caption').textContent = `${snapshot ? chosen.clockLabel : `${active && follow ? 'Live · ' : ''}${point.phase} · token position ${position}`} · ${graph ? `layer ${graph.layer + 1} of ${trace.geometry.layers}` : `${side} × ${side} pixels`}`;
+  $('activation-caption').dataset.live = String(active && follow);
+  $('activation-caption').textContent = `${snapshot ? chosen.clockLabel : `${point.phase === 'prefill' ? 'Prefill' : 'Decode'} · token ${position}`}${graph ? ` · layer ${graph.layer + 1}` : ''}`;
   $('activity-title').textContent = chosen?.label ?? view.quantity;
   $('activity-update').textContent = chosen?.clockLabel ?? '';
   $('activity-method').textContent = graph ? 'Stage summaries' : view.representation === 'aggregated' ? 'Block summary' : view.representation === 'raw' ? 'Captured values' : 'Reconstructed';

@@ -119,7 +119,7 @@ export function importReportData(value) {
     ]);
   }
   updateXrayPanels();
-  setPhase('Opened run file');
+  setPhase('Opened run file', { quiet: true });
   setFinalStats(state.lastRun);
   setExportEnabled(true);
   return report;
@@ -131,7 +131,7 @@ async function openFile(file) {
   const value = JSON.parse(await file.text());
   if (isActivationRecordingFile(value)) {
     openActivationRecording(value, file.size);
-    setPhase('Opened layer grid recording');
+    setPhase('Opened layer grid recording', { quiet: true });
     return;
   }
   importReportData(value);

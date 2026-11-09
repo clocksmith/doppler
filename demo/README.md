@@ -5,16 +5,13 @@ no second demo implementation. `npm run demo:reachability:check` fails when an
 unreferenced JavaScript implementation appears under `demo/` or live demo code
 imports private `src/` paths.
 
-The page has three sections with one heading size, left edge, spacing and
-disclosure style, written in plain language. Model labels stay exactly as
+The page has three sections with consistent spacing and disclosures. Section names are accessible landmarks, not visible headings. Model labels stay exactly as
 published in the catalog, configuration included:
 
-1. **Dialogue**: the model selector with a compact Load button and one status
-   line, the conversation with clickable words and alternatives, the message box
+1. **Dialogue**: the model selector with a compact Load button, one animated loading/generation indicator, the conversation with clickable words and alternatives, the message box
    with Send and Stop, and answer and engine settings under **Options**.
 2. **Model activity**: what to record during the next answer (activity grids,
-   GPU timing, or both), selectable grids with one player and timeline, a timing
-   and device line for the latest answer, Save run, Save grid and one Open file
+   GPU timing, or both), selectable grids with one player and timeline, recorded timing and device details for the latest answer, Save run, Save grid and one Open file
    control, and measurements and color settings under **Details**.
 3. **Precision effects**: **Your prompt** (a live 32-bit versus 16-bit run) and
    **Recorded examples** (saved Gemma 3 270M calculations), each with side-by-side
@@ -23,10 +20,9 @@ published in the catalog, configuration included:
 Buttons fit their labels; selects and text inputs fill the available width.
 Before anything is recorded, a short instruction replaces the empty grid.
 Model activity uses one visible view selector. Preview shortcuts, recording files
-and longer explanations live under Details; the color key, capture coverage and
-source remain beside the visual. Follow live appears only after pausing live
+and longer explanations live under Details, along with timing, coverage, capture method and measurement overhead. The color key and token position remain beside the visual. Saved examples retain a visible source label; live runs do not repeat model identity. Follow live appears only after pausing live
 follow, and Follow latest layer appears only after pinning a diagram layer.
-Secondary actions use quiet text controls. Loaded models show status rather than
+Routine phase names remain accessible without visible repeated status text. Errors and stopped runs stay readable; reduced motion makes the indicator static. Secondary actions use quiet text controls. Loaded models show status rather than
 a redundant disabled Load button.
 An empty composer receives the example prompt on both fresh and cached-model
 visits, without replacing entered text. Starting a recorded run leaves static

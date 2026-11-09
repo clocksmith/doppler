@@ -32,35 +32,9 @@ export function isChatModel(entry) {
   return entry?.modes?.includes('text') === true && entry?.classification?.tasks?.includes('generation') === true;
 }
 
-function setStatus(text, busy = false) {
-  const dot = $('status-dot');
-  const label = $('status-text');
-  dot?.classList.toggle('is-ready', !busy);
-  dot?.classList.toggle('is-busy', busy);
-  if (label) label.textContent = text;
-  if (/^(Load|Remove) failed/.test(text)) setPhase(text);
-}
-
 function setProgress(event) {
   state.downloadProgress = event ?? null;
-  const row = $('model-select-progress-row');
-  const bar = $('model-select-progress');
-  const fill = bar?.querySelector('.model-card-progress-fill');
-  if (row) row.hidden = !event;
-  // The public API's percentages are milestones across unlike phases, not a
-  // measured total. Show activity and the reported work without a false 0-100%.
-  const message = typeof event?.message === 'string' ? event.message.trim() : '';
-  if (bar) {
-    bar.removeAttribute('aria-valuenow');
-    bar.dataset.indeterminate = String(Boolean(event));
-    bar.setAttribute('aria-valuetext', message || 'Loading model');
-  }
-  if (fill) fill.style.width = event ? '35%' : '0%';
-  const detail = $('model-select-detail');
-  if (detail && event) {
-    detail.textContent = message || 'Loading model…';
-    detail.hidden = false;
-  }
+  if (event) setPhase(event.message?.trim() || 'Loading model…', { busy: true, quiet: true });
   onProgress?.(event);
 }
 
@@ -101,7 +75,7 @@ async function loadSelectedModel({ entry = selectedEntry(), runtimeProfile = sta
   state.modelBusy = true;
   state.modelStatus[entry.modelId] = 'loading';
   syncModelControls();
-  setStatus('Loading model…', true);
+  setPhase('Loading model…', { busy: true, quiet: true });
   setProgress({ phase: 'prepare', message: 'Preparing model' });
   try {
     const model = await dr.load(entry.modelId, {
@@ -119,11 +93,11 @@ async function loadSelectedModel({ entry = selectedEntry(), runtimeProfile = sta
     state.modelId = model.modelId;
     state.modelStatus[entry.modelId] = 'loaded';
     localStorage.setItem(LAST_USED_MODEL_STORAGE_KEY, entry.modelId);
-    setStatus('Ready');
     onModelLoaded?.(model, entry.modelId);
+    setPhase('Ready', { quiet: true });
   } catch (error) {
     state.modelStatus[entry.modelId] = previousStatus ?? 'available';
-    setStatus('Load failed');
+    setPhase('Load failed');
     throw error;
   } finally {
     state.modelBusy = false;
@@ -170,7 +144,7 @@ async function removeSelectedModel() {
       state.conversationModelId = null;
       clearConversationHistory();
       setExportEnabled(false);
-      setStatus('No model loaded');
+      setPhase('No model loaded', { quiet: true });
     }
     const removed = await dr.removePersistentModel(entry.modelId);
     if (!removed) throw new Error('The cached model could not be removed. Retry removal.');
@@ -195,14 +169,14 @@ function bindModelControls() {
   if (action && action.dataset.bound !== 'true') {
     action.dataset.bound = 'true';
     action.addEventListener('click', () => {
-      loadSelectedModel().catch((error) => setStatus(`Load failed: ${error.message}`));
+      loadSelectedModel().catch((error) => setPhase(`Load failed: ${error.message}`));
     });
   }
   const remove = $('model-select-remove');
   if (remove && remove.dataset.bound !== 'true') {
     remove.dataset.bound = 'true';
     remove.addEventListener('click', () => {
-      removeSelectedModel().catch((error) => setStatus(`Remove failed: ${error.message}`));
+      removeSelectedModel().catch((error) => setPhase(`Remove failed: ${error.message}`));
     });
   }
 }
@@ -211,7 +185,7 @@ export function canRemoveModelStatus(status) {
   return status === 'stored' || status === 'loaded';
 }
 
-// The single status line under the picker; the status chip shows readiness.
+// Explain download cost before loading; the selected model and enabled Send show readiness.
 export function buildModelDetail(entry, status = 'available') {
   if (!entry || status === 'loaded' || status === 'loading') return '';
   if (status === 'stored') return 'Saved in this browser, so it loads without downloading.';

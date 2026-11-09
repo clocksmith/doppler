@@ -8,7 +8,7 @@ const originals = { load: dr.load, list: dr.listModelDetails, stored: dr.listPer
 const prompt = { value: 'Keep this prompt.', addEventListener() {} };
 const handlers = {};
 const send = { addEventListener: (name, handler) => { handlers[name] = handler; } };
-const phase = {};
+const phase = { classList: { toggle() {} } };
 globalThis.document = {
   getElementById: (id) => ({ 'prompt-input': prompt, 'run-btn': send, 'output-phase': phase })[id] ?? null,
   querySelectorAll: () => [],

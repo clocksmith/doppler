@@ -137,7 +137,7 @@ export async function checkRealActivityPlayback(page) {
   await page.locator('#activation-position').fill('17');
   await page.locator('#run-details > summary').click();
   await page.evaluate(() => new Promise(requestAnimationFrame));
-  assert.match(await page.locator('#activation-caption').textContent(), /token position 17/, await page.locator('#activity-availability').textContent() + ' ' + await page.locator('#activation-status').textContent());
+  assert.match(await page.locator('#activation-caption').textContent(), /token 17/, await page.locator('#activity-availability').textContent() + ' ' + await page.locator('#activation-status').textContent());
   assert.equal(await page.inputValue('#activity-mode'), 'contributions', 'The selected preview opens its own interactive grid');
   assert.equal(await page.locator('#activity-gallery').isVisible(), false, 'One view selector replaces the redundant shortcut row');
   assert.match(await page.locator('#activity-source').textContent(), /Recorded example/);
@@ -248,13 +248,30 @@ export async function checkLiveActivity(page) {
     __demoContract.emitTokens([1]);
   }, {position,value});
   await emit(0,1);
-  await page.waitForFunction(() => document.querySelector('#activation-caption').textContent.startsWith('Live'));
+  await page.waitForFunction(() => document.querySelector('#activation-caption').dataset.live === 'true');
   assert.equal(await page.inputValue('#activity-mode'), 'difference', 'A static snapshot switches to activation changes when generation begins');
   const pixels = () => page.locator('#activation-canvas').evaluate(c => [...c.getContext('2d').getImageData(0,0,c.width,c.height).data]);
   const startPixels = await pixels();
   await emit(1,.2);
   await page.waitForFunction(() => document.querySelector('#activation-position').value === '1');
   assert.notDeepEqual(await pixels(), startPixels, 'The default difference view changes as tokens arrive');
+  await page.locator('#run-details').evaluate(node => { node.open = false; });
+  await fs.mkdir('.cache/demo-quiet-progress', { recursive: true });
+  const viewport = page.viewportSize();
+  for (const width of [1280, 390]) {
+    await page.setViewportSize({ width, height: 900 });
+    assert.equal(await page.locator('#run-indicator').isVisible(), true);
+    assert.equal(await page.locator('#activity-source').isVisible(), false);
+    assert.equal(await page.locator('#activity-coverage').isVisible(), false);
+    assert.equal(await page.locator('#activity-legend').isVisible(), true);
+    assert.equal(await page.locator('#activation-caption').textContent(), 'Decode · token 1');
+    for (const heading of ['dialogue-heading', 'activity-heading', 'precision-heading']) {
+      assert.equal(await page.locator('#' + heading).evaluate(node => getComputedStyle(node.parentElement).clipPath), 'inset(50%)');
+    }
+    await page.screenshot({ path: `.cache/demo-quiet-progress/live-${width}.png`, fullPage: true });
+  }
+  await page.setViewportSize(viewport);
+
   await page.selectOption('#activity-mode', 'contributions');
   await page.evaluate(() => new Promise(requestAnimationFrame));
   const image = () => page.locator('#activation-canvas').evaluate(c => [...c.getContext('2d').getImageData(0,0,c.width,c.height).data]);

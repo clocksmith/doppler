@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 
 export async function checkDemoStreaming(page) {
+  await page.locator('#run-details').evaluate(node => { node.open = false; });
   await page.locator('#settings-toggle').click();
   assert.equal(await page.locator('#settings-panel').isVisible(), true);
   await page.locator('#xray-toggle-all').uncheck();
@@ -22,6 +23,18 @@ export async function checkDemoStreaming(page) {
     });
     await page.waitForFunction(() => document.querySelector('#output-text').textContent === 'Contract');
     assert.equal(await page.textContent('#output-phase'), 'Generating');
+    assert.equal(await page.locator('#run-indicator').isVisible(), true);
+    assert.equal(await page.locator('#output-phase').evaluate(node => getComputedStyle(node).clipPath), 'inset(50%)', 'Routine progress is accessible without repeating visible text');
+    assert.equal(await page.locator('#run-details').evaluate(node => node.open), false);
+    for (const id of ['activity-method', 'activity-coverage', 'output-toks', 'activity-measurement-note']) {
+      assert.equal(await page.locator('#' + id).isVisible(), false, id + ' belongs in Details');
+    }
+    assert.equal(await page.locator('#activity-source').isVisible(), false, 'Live activity does not repeat model identity');
+    await page.emulateMedia({ reducedMotion: 'reduce' });
+    assert.equal(await page.locator('#run-indicator').evaluate(node => getComputedStyle(node).animationName), 'none');
+    await page.emulateMedia({ reducedMotion: 'no-preference' });
+    assert.equal(await page.locator('#run-indicator').evaluate(node => getComputedStyle(node).animationName), 'pulse');
+
     assert.equal(await page.locator('#export-btn').isDisabled(), true);
     assert.equal(await page.locator('#stop-btn').isVisible(), true);
     assert.equal(await page.locator('#live-assistant-message').getAttribute('aria-busy'), 'true');
@@ -46,6 +59,8 @@ export async function checkDemoStreaming(page) {
       await page.evaluate(() => __demoContract.failStream());
       await page.waitForFunction(() => document.querySelector('#output-phase').textContent === 'Error: Contract stream failure');
     }
+    assert.equal(await page.locator('#run-indicator').isVisible(), false, 'Activity ends on success, stop and error');
+    if (outcome !== 'complete') assert.equal(await page.locator('#output-phase').evaluate(node => getComputedStyle(node).clipPath), 'none', 'Failures and stopping stay readable');
     const text = await page.textContent('#output-text');
     assert.ok(text.startsWith('Contract generation passed.'));
     assert.ok(text.endsWith('🙂'));

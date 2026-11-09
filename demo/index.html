@@ -226,17 +226,13 @@
     <main class="demo-sections">
       <!-- 1. Dialogue: model, conversation, prompt and options. -->
       <section id="dialogue-section" class="demo-section" aria-labelledby="dialogue-heading">
-        <header class="demo-section-head">
+        <header class="demo-section-head sr-only">
           <h2 id="dialogue-heading">Dialogue</h2>
         </header>
 
         <div id="model-picker" class="model-picker">
           <div class="model-picker-heading">
             <label id="model-picker-label" for="model-select">Model</label>
-            <div id="status" class="status-chip">
-              <span id="status-dot" class="status-dot"></span>
-              <span id="status-text">No model loaded</span>
-            </div>
             <span id="model-select-status" class="model-select-status" role="status" aria-live="polite">Loading the model list…</span>
           </div>
           <div class="model-select-row">
@@ -247,22 +243,18 @@
             <button id="model-select-remove" class="btn btn-ghost" type="button" hidden>Remove</button>
           </div>
           <p id="model-select-detail" class="demo-note model-select-detail"></p>
-          <div id="model-select-progress-row" class="model-card-progress-row model-select-progress-row" hidden>
-            <div id="model-select-progress" class="model-card-progress" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
-              <div class="model-card-progress-fill"></div>
-            </div>
-          </div>
+
         </div>
 
         <div class="chat-toolbar">
           <div class="chat-run-status" role="status" aria-live="polite">
+            <span id="run-indicator" class="run-indicator" aria-hidden="true" hidden></span>
             <span id="output-phase" class="output-phase"></span>
           </div>
           <button id="clear-history-btn" class="btn btn-ghost btn-small" type="button" title="Clear the conversation. The model stays loaded." disabled>Clear</button>
         </div>
 
         <section id="output-area" class="output-area" aria-label="Conversation">
-          <div id="output-prefill-bar" class="output-prefill-bar" style="width: 0%"></div>
           <div class="chat-surface">
             <div id="chat-thread" class="chat-thread" aria-live="polite">
               <div id="chat-empty" class="chat-empty">
@@ -398,14 +390,13 @@
 
       <!-- 2. Model activity: the layer grid, timing and run files. -->
       <section id="inspection-workspace" class="demo-section" aria-labelledby="activity-heading">
-        <header class="demo-section-head">
+        <header class="demo-section-head sr-only">
           <h2 id="activity-heading">Model activity</h2>
         </header>
 
         <fieldset class="activity-record">
           <legend class="sr-only">Record during the next answer</legend>
-          <label class="checkbox-label"><input id="activation-record" type="checkbox" checked> Record activity</label>
-          <span id="activity-measurement-note" class="demo-note">Adds measurement overhead.</span>
+          <label class="checkbox-label" title="Recording adds measurement overhead. Details shows capture limits and timing."><input id="activation-record" type="checkbox" checked> Record activity</label>
         </fieldset>
 
         <div id="activation-view" class="activation-view">
@@ -417,7 +408,6 @@
           <div id="activation-player" class="activation-player" hidden>
             <div class="activity-view-toolbar">
               <label class="activity-view-choice"><span class="sr-only">View</span><select id="activity-mode" aria-label="Activity grid"></select></label>
-              <span id="activity-method" class="activity-method"></span>
               <button id="activity-paths-button" class="btn btn-ghost btn-small" type="button" hidden>Follow latest layer</button>
             </div>
             <div id="activation-timeline" class="activation-timeline">
@@ -432,7 +422,6 @@
                 <div id="activity-paths" class="activity-paths" hidden></div>
                 <canvas id="activation-canvas" width="1" height="1" aria-label="Captured model activity"></canvas>
                 <div id="activity-legend" class="activity-legend" aria-label="Color key"></div>
-                <p id="activity-coverage" class="demo-note"></p>
               </figure>
             </div>
             <label id="activity-page-control" class="demo-range-field" hidden>Tile <input id="activity-page" type="range" min="0" max="0" value="0"></label>
@@ -440,11 +429,14 @@
           </div>
         </div>
 
-        <p class="run-measurements"><span id="output-toks" class="output-toks"></span></p>
 
         <details id="run-details" class="demo-disclosure">
           <summary>Details</summary>
           <div class="demo-disclosure-body">
+            <span id="activity-measurement-note" class="demo-note">Adds measurement overhead.</span>
+            <span id="activity-method" class="activity-method"></span>
+            <p id="activity-coverage" class="demo-note"></p>
+            <p class="run-measurements"><span id="output-toks" class="output-toks"></span></p>
             <p id="activity-update" class="demo-note"></p>
             <p id="activity-explanation" class="demo-note"></p>
             <div id="activity-compare-controls" class="demo-controls" hidden>
@@ -500,7 +492,7 @@
 
       <!-- 3. Precision effects: your prompt, and saved examples. -->
       <section id="precision-section" class="demo-section" aria-labelledby="precision-heading">
-        <header class="demo-section-head">
+        <header class="demo-section-head sr-only">
           <h2 id="precision-heading">Precision effects</h2>
           <p class="demo-note">Compare answers computed with 32-bit and 16-bit numbers.</p>
         </header>

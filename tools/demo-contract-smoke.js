@@ -230,7 +230,7 @@ async function main() {
       (element) => element.value === 'contract-model'
     );
     await page.click('#model-select-action');
-    await page.waitForFunction(() => document.querySelector('#status-text')?.textContent === 'Ready');
+    await page.waitForFunction(() => document.querySelector('#output-phase')?.textContent === 'Ready');
     journey.modelLoaded = await page.$eval(
       '#model-select-action',
       (element) => element.textContent === 'Loaded'
@@ -257,7 +257,7 @@ async function main() {
       body: STUB_MODULE.replaceAll("'contract-model'", "'gemma-3-270m-it-q4k-ehf16-af32'")
         .replace('async listPersistentModels() { return []; }', "async listPersistentModels() { return [{modelId:'gemma-3-270m-it-q4k-ehf16-af32'}]; }") }));
     await cachedPage.goto(`${origin}${entrypoint}`, { waitUntil: 'networkidle' });
-    await cachedPage.waitForFunction(() => document.querySelector('#status-text').textContent === 'Ready');
+    await cachedPage.waitForFunction(() => document.querySelector('#output-phase').textContent === 'Ready');
     assert.equal(await cachedPage.evaluate(() => __demoContract.loads.length), 1, 'The cached model loads during boot');
     const defaultPrompt = await cachedPage.evaluate(async () => (await (await fetch(new URL('examples.json', document.querySelector('script[src$="/demo.js"]').src))).json()).illustrative.prompt);
     assert.equal(await cachedPage.inputValue('#prompt-input'), defaultPrompt, 'A cached-model visit still gets a default prompt');

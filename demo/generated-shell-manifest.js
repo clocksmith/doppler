@@ -1,6 +1,6 @@
 export const SHELL_MANIFEST_SCHEMA = 'doppler.demo-shell-manifest/v1';
-export const SHELL_MANIFEST_DIGEST = 'sha256:cc8b000ce6ae1e06217ea98310d9ee2ac126a7e1a4e2798a066ee957033791a1';
-export const CACHE_NAME = 'doppler-demo-shell-cc8b000ce6ae1e06';
+export const SHELL_MANIFEST_DIGEST = 'sha256:8d979acfd01d65b70b8e29468f12d4b725aaf3374af6db435ed4c0272d5acfec';
+export const CACHE_NAME = 'doppler-demo-shell-8d979acfd01d65b7';
 export const APP_SHELL = Object.freeze([
   "/demo/assets/activity-preview-attention-prefill.png",
   "/demo/assets/activity-preview-contributions.png",
@@ -722,6 +722,7 @@ export const APP_SHELL = Object.freeze([
   "/src/inference/tokenizers/bundled.js",
   "/src/inference/tokenizers/bundled/decoders.js",
   "/src/inference/tokenizers/bundled/incremental-decoder.js",
+  "/src/inference/tokenizers/bundled/normalizer.js",
   "/src/inference/tokenizers/bundled/registry.js",
   "/src/inference/tokenizers/sentencepiece.js",
   "/src/loader/doppler-loader.js",

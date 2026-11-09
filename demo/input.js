@@ -156,7 +156,7 @@ export async function clearConversation() {
     }
     clearConversationHistory();
     clearPrompt();
-    setPhase('Conversation and model state cleared');
+    setPhase('Conversation and model state cleared', { quiet: true });
   } catch (error) {
     setPhase(`Clear failed: ${error?.message || error}`);
   } finally {
@@ -225,7 +225,7 @@ export function syncSendButton(options = {}) {
 
   const canLoadModel = !state.model && Boolean(prompt) && !state.modelBusy && !state.settingsBusy && !generating && !prefilling;
   btn.disabled = !ready && !canLoadModel;
-  btn.textContent = state.modelBusy ? 'Loading…' : 'Send';
+  btn.textContent = 'Send';
   if (state.model == null) {
     btn.title = 'Load the model and send this prompt locally';
   } else if (!prompt) {
@@ -243,11 +243,11 @@ async function submitIfReady() {
   if (!prompt || state.modelBusy || state.settingsBusy || state.generating || state.prefilling) return;
   try {
     if (!state.model) {
-      setPhase('Loading model…');
+      setPhase('Loading model…', { busy: true, quiet: true });
       await ensurePromptModel();
       // Keep edits made during loading; never send a different prompt implicitly.
       if (getPrompt() !== prompt) {
-        setPhase('Ready');
+        setPhase('Ready', { quiet: true });
         return;
       }
     }

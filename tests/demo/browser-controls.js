@@ -113,13 +113,13 @@ async function assertControlContrast(page) {
 export async function checkDemoControls(page) {
   assert.equal(await page.evaluate(() => typeof globalThis.DOPPLER?.log?.info), 'function');
   assert.equal(await page.locator('#settings-panel').isVisible(), false);
-  assert.equal(await page.locator('#status').isVisible(), true, 'Model readiness stays beside the visible selector');
+  assert.equal(await page.locator('#status').count(), 0, 'Readiness does not repeat the selected model and enabled Send');
   await page.locator('#settings-toggle').click();
   assert.equal(await page.locator('#settings-panel').isVisible(), true);
   assert.equal(await page.locator('#xray-toggle-all').isChecked(), false);
   assert.equal(await page.locator('#set-word-quality').count(), 0, 'Certainty has one opt-in control');
   assert.equal(await page.locator('#token-inspector-toggle, #branch-all-tokens, #branch-threshold').count(), 0, 'Branching and underlines need no opt-in controls');
-  assert.equal(await page.locator('#output-prefill-bar').isVisible(), false);
+  assert.equal(await page.locator('#output-prefill-bar').count(), 0);
   assert.equal(await page.inputValue('#set-max-tokens'), '256');
   assert.equal(await page.evaluate(() => __demoContract.calls.at(-1).policyId), 'demo/model-activity',
     'Activity recording defaults on for live answers');
@@ -367,10 +367,10 @@ export async function checkDemoControls(page) {
   assert.doesNotMatch(await page.locator('#model-select-detail').textContent(), /second-model/, 'The status line never shows the raw model ID');
   await page.evaluate(() => { __demoContract.failLoad = true; });
   await page.click('#model-select-action');
-  await page.waitForFunction(() => document.querySelector('#status-text').textContent.startsWith('Load failed:'));
+  await page.waitForFunction(() => document.querySelector('#output-phase').textContent.startsWith('Load failed:'));
   assert.equal(await page.locator('#model-select-action').isEnabled(), true);
   await page.locator('#settings-toggle').click();
-  assert.equal(await page.locator('#status').isVisible(), true);
+  assert.equal(await page.locator('#run-indicator').isVisible(), false, 'A failed load stops the activity signal');
   assert.equal(await page.locator('#output-phase').isVisible(), true);
   assert.equal(await page.locator('#output-phase').textContent(), 'Load failed: Contract load failure', 'Load failures remain visible when setup is collapsed');
   await page.locator('#settings-toggle').click();
@@ -390,7 +390,7 @@ export async function checkDemoControls(page) {
   assert.equal(await page.locator('#run-btn').textContent(), 'Send');
   assert.equal(await page.locator('#run-btn').isEnabled(), true);
   assert.equal(await page.locator('#model-select-remove').isVisible(), false);
-  assert.equal(await page.locator('#status-text').textContent(), 'No model loaded');
+  assert.equal(await page.locator('#output-phase').textContent(), 'No model loaded');
 
   await page.evaluate(() => {
     const event = new Event('beforeinstallprompt', { cancelable: true });

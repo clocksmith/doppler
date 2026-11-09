@@ -1,0 +1,5 @@
+
+> doppler-gpu@0.6.33 demo:shell:generate
+> node tools/generate-demo-shell-manifest.js
+
+demo shell manifest: 902 files, 838 modules, 9950951 bytes (sha256:8d979acfd01d65b70b8e29468f12d4b725aaf3374af6db435ed4c0272d5acfec)

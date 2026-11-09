@@ -21,8 +21,8 @@ try {
   await page.selectOption('#model-select', 'qwen-3-5-0-8b-q4k-ehaf16');
   await page.click('#model-select-action');
   await page.waitForFunction(() => document.querySelector('#model-select-action').textContent === 'Loaded'
-    || document.querySelector('#status-text').textContent.startsWith('Load failed:'));
-  assert.equal(await page.locator('#model-select-action').textContent(), 'Loaded', await page.locator('#status-text').textContent());
+    || document.querySelector('#output-phase').textContent.startsWith('Load failed:'));
+  assert.equal(await page.locator('#model-select-action').textContent(), 'Loaded', await page.locator('#output-phase').textContent());
   await page.locator('#activation-view').evaluate(el => { el.open = true; });
   assert.equal(await page.locator('#activation-record').isChecked(), true, 'Live activity defaults on');
   await page.evaluate(limit => { const select = document.querySelector('#set-max-tokens'); select.add(new Option(String(limit), String(limit))); select.value = String(limit); select.dispatchEvent(new Event('change', { bubbles: true })); }, tokenLimit);
@@ -31,7 +31,7 @@ try {
     globalThis.__liveGridCheck = { captions: [], duringGeneration: 0, colorChanges: 0, pathChanges: 0, activationChanges: 0, visibleActivations: 0, last: '', lastActivation: '' };
     const observe = () => {
       const caption = document.querySelector('#activation-caption').textContent;
-      if (!caption.startsWith('Live')) return;
+      if (document.querySelector('#activation-caption').dataset.live !== 'true') return;
       const result = globalThis.__liveGridCheck, canvas = document.querySelector('#activation-canvas');
       const bytes = canvas.getContext('2d').getImageData(0, 0, canvas.width, canvas.height).data;
       let digest = 0; for (let i = 0; i < bytes.length; i++) digest = (Math.imul(digest, 31) + bytes[i]) | 0;
