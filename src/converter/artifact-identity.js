@@ -73,10 +73,32 @@ export function extractArchitecture(config, ggufConfig) {
       fromConfig('hidden_size', 'n_embd', 'embedding_size'),
       'hidden_size'
     );
-    const intermediateSize = requireNumber(
+    let intermediateSize = requireNumber(
       fromConfig('intermediate_size', 'n_inner', 'ffn_dim', 'moe_intermediate_size'),
       'intermediate_size'
     );
+    if ((config.model_type ?? textConfig?.model_type) === 'lfm2'
+      && fromConfigValue('block_auto_adjust_ff_dim') === true) {
+      // LFM2 serializes the width before its SwiGLU reduction and alignment.
+      intermediateSize = Math.trunc(2 * intermediateSize / 3);
+      const multiplier = fromConfigValue('block_ffn_dim_multiplier');
+      if (multiplier === undefined) {
+        throw new Error('Missing block_ffn_dim_multiplier in LFM2 source config (null explicitly disables it).');
+      }
+      if (multiplier !== null) {
+        if (typeof multiplier !== 'number' || !Number.isFinite(multiplier) || multiplier <= 0) {
+          throw new Error('LFM2 block_ffn_dim_multiplier must be positive and finite or null.');
+        }
+        const multiple = fromConfig('block_multiple_of');
+        if (!Number.isSafeInteger(multiple) || multiple <= 0) {
+          throw new Error('LFM2 block_multiple_of must be a positive integer.');
+        }
+        intermediateSize = multiple * Math.ceil(Math.trunc(multiplier * intermediateSize) / multiple);
+      }
+      if (!Number.isSafeInteger(intermediateSize) || intermediateSize <= 0) {
+        throw new Error('LFM2 adjusted intermediate_size must be a positive safe integer.');
+      }
+    }
     const numHeads = requireNumber(
       fromConfig('num_attention_heads', 'n_head', 'attention_heads'),
       'num_attention_heads'

@@ -40,6 +40,18 @@ Optional additive surfaces:
 - `manifest.integrityExtensions` for tensor-level block integrity metadata
 - sibling `distributed.json` plans for topology-aware execution that still reference the canonical shards
 
+## Q4K packing and logical layout
+
+Q4_K_M blocks encode 256 values in 144 bytes. Two-dimensional row matrices
+pad each row to a complete block; higher-rank tensors with explicit `layout:
+"row"` use the same row padding along the final dimension (including expert
+matrices). Two-dimensional column matrices transpose the storage shape before
+padding. Higher-rank tensors without a layout declaration, including depthwise
+convolution filters, use flat blocks over all declared elements. The converter's
+logical row-layout policy alone does not declare higher-rank row padding.
+Materialization validates the packed byte count against this geometry before
+GPU dequantization; missing blocks must not silently become zero weights.
+
 ## Artifact identity migration fields
 
 The manifest may include additive identity metadata while Doppler migrates away

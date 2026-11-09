@@ -24,7 +24,7 @@
     "normalization": {
       "rmsNormEps": 0.00001,
       "rmsNormWeightOffset": false,
-      "postAttentionNorm": false,
+      "postAttentionNorm": true,
       "preFeedforwardNorm": false,
       "postFeedforwardNorm": false
     },
@@ -206,10 +206,10 @@
         "entry": "main",
         "digest": "sha256:abd19bc08ad668a7cad562e2bc0a4be1aa8827ad4300d8d474b7fc2af4c27117"
       },
-      "gelu": {
-        "kernel": "gelu.wgsl",
+      "silu": {
+        "kernel": "silu.wgsl",
         "entry": "main",
-        "digest": "sha256:db864455ec72070d7d8729c8744e2eac377a4939a9bc2ecb26eb086d866e16b0",
+        "digest": "sha256:c6e28a7e6b2a7cfa805db03c9079fbc90fc2717c621e388bfa55b75ce1737ac0",
         "constants": {
           "HAS_GATE": true
         }
@@ -306,7 +306,7 @@
       ],
       [
         "activation",
-        "gelu"
+        "silu"
       ],
       [
         "down_proj",
@@ -375,7 +375,7 @@
       ],
       [
         "activation",
-        "gelu"
+        "silu"
       ],
       [
         "down_proj",

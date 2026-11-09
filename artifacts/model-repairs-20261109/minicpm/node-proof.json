@@ -1,0 +1,2346 @@
+{
+  "mode": "verify",
+  "workload": "inference",
+  "suite": "inference",
+  "modelId": "minicpm4-0-5b-f16-af32",
+  "surface": "node",
+  "runtimeProfile": null,
+  "deviceInfo": {
+    "hasSubgroups": true,
+    "wgslLanguageFeatures": [
+      "buffer_view",
+      "unrestricted_pointer_parameters",
+      "chromium_print",
+      "readonly_and_readwrite_storage_textures",
+      "subgroup_uniformity",
+      "swizzle_assignment",
+      "sized_binding_array",
+      "texel_buffers",
+      "texture_formats_tier1",
+      "packed_4x8_integer_dot_product",
+      "filtering_parameters",
+      "texture_and_sampler_let",
+      "uniform_buffer_standard_layout",
+      "linear_indexing",
+      "subgroup_id",
+      "fragment_depth",
+      "pointer_composite_access",
+      "immediate_address_space"
+    ],
+    "hasSubgroupsF16": true,
+    "hasF16": true,
+    "hasTimestampQuery": true,
+    "maxBufferSize": 4294967295,
+    "maxWorkgroupSize": 1024,
+    "maxWorkgroupStorageSize": 32768,
+    "adapterInfo": {
+      "vendor": "apple",
+      "architecture": "metal-3",
+      "device": "apple-m3",
+      "description": "Metal driver on macOS Version 26.6.2 (Build 25G83)",
+      "subgroupMinSize": 32,
+      "subgroupMaxSize": 32
+    },
+    "submitProbeMs": 0.558667000000014
+  },
+  "results": [
+    {
+      "name": "generation",
+      "passed": true,
+      "duration": 543.1060420000003
+    },
+    {
+      "name": "source-token-parity",
+      "passed": true,
+      "duration": 0
+    }
+  ],
+  "durationMs": 5240.692542,
+  "timestamp": "2026-11-09T12:06:03.576Z",
+  "metrics": {
+    "prompt": "Q: What color is the sky on a clear day? A:",
+    "maxTokens": 16,
+    "tokensGenerated": 13,
+    "tokensPerSec": 25.78,
+    "totalRunMs": 530.81,
+    "firstTokenMs": 195.59,
+    "firstResponseMs": 4873.59,
+    "prefillMs": 186.52,
+    "decodeMs": 344.29,
+    "wallRunMs": 540.65,
+    "prefillTokens": 24,
+    "decodeTokens": 13,
+    "stopReason": "stop-token",
+    "stopTokenId": 73440,
+    "prefillTokensPerSec": 128.67,
+    "prefillTokensPerSecTtft": 122.7,
+    "decodeTokensPerSec": 37.76,
+    "modelLoadMs": 4678,
+    "gpu": {
+      "decodeRecordMs": 0,
+      "decodeRecordOps": 0,
+      "decodeRecordPasses": 0,
+      "uniformCache": {
+        "hits": 2302,
+        "misses": 50,
+        "totalLookups": 2352,
+        "hitRateRatio": 0.9787414965986394,
+        "hitRate": "97.9%",
+        "evictions": 0,
+        "currentSize": 50,
+        "pendingDestruction": 0
+      },
+      "decodeSubmitWaitMs": 0,
+      "decodeReadbackWaitMs": 0,
+      "decodeReadbackMapWaitMs": 0,
+      "decodeReadbackCleanupMs": 0,
+      "decodeReadbackCopyMs": 0,
+      "prefillRecordMs": 142.0247470000022,
+      "prefillRecordOps": 0,
+      "prefillRecordPasses": 0,
+      "prefillSubmitWaitMs": 0,
+      "decodeOrchestrationMs": 344.286916,
+      "singleTokenSubmitWaitMs": 0,
+      "singleTokenReadbackWaitMs": 0,
+      "singleTokenReadbackMapWaitMs": 0,
+      "singleTokenReadbackCleanupMs": 0,
+      "singleTokenReadbackCopyMs": 0,
+      "singleTokenOrchestrationMs": 0
+    },
+    "batching": {
+      "batchedForwardCalls": 0,
+      "unbatchedForwardCalls": 0,
+      "totalBatchedTimeMs": 0,
+      "totalUnbatchedTimeMs": 0,
+      "gpuSubmissions": 0,
+      "requestedBatchTokens": 0,
+      "effectiveBatchTokens": 0,
+      "executedBatchTokens": 0,
+      "resolvedBatchTokens": 0,
+      "batchClampCount": 0
+    },
+    "plePreparedTokenCache": {
+      "hits": 0,
+      "misses": 0,
+      "entries": 0,
+      "bytes": 0
+    },
+    "prefillProfileSteps": [],
+    "decodeProfileSteps": [],
+    "executionPlan": {
+      "primary": {
+        "id": "primary",
+        "kernelPathId": "minicpm4-0-5b-f16-af32-execution-inline",
+        "kernelPathSource": "execution-v1",
+        "activationDtype": "f32",
+        "readbackInterval": 1,
+        "readbackMode": "sequential",
+        "maxBatchDecodeTokens": null,
+        "batchSize": 1,
+        "stopCheckMode": "batch",
+        "disableCommandBatching": false,
+        "ringTokens": 1,
+        "ringStop": 1,
+        "ringStaging": 1
+      },
+      "fallback": null,
+      "activePlanIdAtStart": "primary",
+      "finalActivePlanId": "primary",
+      "transitions": []
+    },
+    "kernelPathId": "minicpm4-0-5b-f16-af32-execution-inline",
+    "kernelPathSource": "execution-v1",
+    "generationDiagnostics": {
+      "preview": [
+        {
+          "id": 2219,
+          "text": "The",
+          "fallbackText": "The"
+        },
+        {
+          "id": 4351,
+          "text": " color",
+          "fallbackText": " color"
+        },
+        {
+          "id": 1379,
+          "text": " of",
+          "fallbackText": " of"
+        },
+        {
+          "id": 1358,
+          "text": " the",
+          "fallbackText": " the"
+        },
+        {
+          "id": 18086,
+          "text": " sky",
+          "fallbackText": " sky"
+        },
+        {
+          "id": 1432,
+          "text": " on",
+          "fallbackText": " on"
+        },
+        {
+          "id": 1348,
+          "text": " a",
+          "fallbackText": " a"
+        },
+        {
+          "id": 4104,
+          "text": " clear",
+          "fallbackText": " clear"
+        },
+        {
+          "id": 2676,
+          "text": " day",
+          "fallbackText": " day"
+        },
+        {
+          "id": 1410,
+          "text": " is",
+          "fallbackText": " is"
+        },
+        {
+          "id": 10649,
+          "text": " typically",
+          "fallbackText": " typically"
+        },
+        {
+          "id": 8055,
+          "text": " blue",
+          "fallbackText": " blue"
+        },
+        {
+          "id": 72,
+          "text": ".",
+          "fallbackText": "."
+        },
+        {
+          "id": 73440,
+          "text": "",
+          "fallbackText": "<|im_end|>"
+        }
+      ],
+      "total": 14,
+      "omitted": 0,
+      "emptyTextCount": 1,
+      "specialLikeTextCount": 0,
+      "specialLikeFallbackCount": 1
+    },
+    "generationConfig": {
+      "maxTokens": 16,
+      "temperature": 0,
+      "topP": 1,
+      "topK": 1,
+      "repetitionPenalty": 1,
+      "repetitionPenaltyWindow": 100,
+      "greedyThreshold": 0,
+      "suppressSpecialTokens": false,
+      "suppressSpecialLikeTokens": false,
+      "suppressTokenIds": [],
+      "seed": null,
+      "useChatTemplate": true
+    },
+    "initialExecutionIdentity": {
+      "schema": "doppler.initial-execution-identity/v2",
+      "executionGraphHash": "sha256:6d1a200b5ebac525281537db856d520a9d22d27ef2f50fe337d3a1f539464703",
+      "resolvedGraphHash": "sha256:8e4a1448fd5284665bcc5ea2cdfbbb6c5907d807d0e164843978b4e3351fa9a7",
+      "kernelClosure": [
+        {
+          "moduleId": "attn_decode",
+          "file": "attention_decode_online_f16kv.wgsl",
+          "entry": "main",
+          "digest": "sha256:c6d9f8c614a2a088cb533958007896391efb3e348377dc8095c409944c562912"
+        },
+        {
+          "moduleId": "attn_stream",
+          "file": "attention_streaming_f16kv.wgsl",
+          "entry": "main",
+          "digest": "sha256:c3ec920699a81ee6df04a64eb0ea2477bec168ebb809af29f2d4b0924a4bdf8f"
+        },
+        {
+          "moduleId": "embed",
+          "file": "gather_f16.wgsl",
+          "entry": "main",
+          "digest": "sha256:a2c318bc362d676769d8cb751d61a4d7777e1068be0456eff634e0821d783c10"
+        },
+        {
+          "moduleId": "gemv",
+          "file": "matmul_gemv_subgroup.wgsl",
+          "entry": "main_vec4",
+          "digest": "sha256:2ea9aea659367210fbf61d922c0d4ee17cdac68ffb506b3bc5516e498071e011"
+        },
+        {
+          "moduleId": "lm_head_gemv",
+          "file": "matmul_gemv_subgroup.wgsl",
+          "entry": "main_multicol",
+          "digest": "sha256:e41f94574d5ac54dd2710036da5d5acc643a483b79b2d74b86825efdaaa7438f"
+        },
+        {
+          "moduleId": "residual",
+          "file": "residual.wgsl",
+          "entry": "main",
+          "digest": "sha256:abd19bc08ad668a7cad562e2bc0a4be1aa8827ad4300d8d474b7fc2af4c27117"
+        },
+        {
+          "moduleId": "rmsnorm",
+          "file": "rmsnorm.wgsl",
+          "entry": "main",
+          "digest": "sha256:4f4d144735bdff86b8567346ba7ea7b82fe68a2ac9656ba1577106158af9bc7c"
+        },
+        {
+          "moduleId": "rope",
+          "file": "rope.wgsl",
+          "entry": "main",
+          "digest": "sha256:923f9a96c941aee94119ecf04fa5b1508c77b7d927a7e6044ce6588b2d51a416"
+        },
+        {
+          "moduleId": "sample",
+          "file": "sample.wgsl",
+          "entry": "sample_single_pass",
+          "digest": "sha256:f2377b2a58c2eeb695a6f6f7ad877630bdba5e74d5dc1a8d919cd73b360d4870"
+        },
+        {
+          "moduleId": "silu",
+          "file": "silu.wgsl",
+          "entry": "main",
+          "digest": "sha256:c6e28a7e6b2a7cfa805db03c9079fbc90fc2717c621e388bfa55b75ce1737ac0"
+        },
+        {
+          "moduleId": "tiled",
+          "file": "matmul_f16w_f32a.wgsl",
+          "entry": "main",
+          "digest": "sha256:027a8f1cd9713cbe0b0ada160bd175e0542bb90896ad85441b023522d9a1befc"
+        }
+      ],
+      "kernelClosureHash": "sha256:173440ba728a9e11f06148315e657e54480716afd08c7c933ae73053071604cd",
+      "dtypeLane": {
+        "activation": "f32",
+        "output": "f32",
+        "kv": "f16",
+        "math": "f32",
+        "accumulation": "f32"
+      },
+      "fusionSet": [],
+      "fusionSetHash": "sha256:4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+      "kvLayout": {
+        "maxSeqLen": 4096,
+        "gpuPagedFallbackMaxSeqLen": 4096,
+        "kvDtype": "f16",
+        "forceF32Softcap": false,
+        "layout": "contiguous",
+        "pageSize": 256,
+        "bdpaVocabSize": 2048,
+        "windowSize": 1024,
+        "tiering": {
+          "mode": "off",
+          "hotWindow": 1024,
+          "coldPageSize": 256,
+          "coldDtype": "f16",
+          "compression": {
+            "mode": "none",
+            "blockSize": 1,
+            "bitWidth": 4,
+            "prodMode": false
+          },
+          "gating": {
+            "mode": "auto",
+            "minAluBwRatio": 0
+          }
+        },
+        "quantization": {
+          "mode": "none",
+          "bitWidth": 4,
+          "prodMode": false
+        }
+      },
+      "kvLayoutHash": "sha256:7914573e9a94b6cf6525dbd027e2da398c4c808a08a66e90ea544822f0087c80",
+      "memoryPolicy": {
+        "kvcache": {
+          "maxSeqLen": 4096,
+          "gpuPagedFallbackMaxSeqLen": 4096,
+          "kvDtype": "f16",
+          "forceF32Softcap": false,
+          "layout": "contiguous",
+          "pageSize": 256,
+          "bdpaVocabSize": 2048,
+          "windowSize": 1024,
+          "tiering": {
+            "mode": "off",
+            "hotWindow": 1024,
+            "coldPageSize": 256,
+            "coldDtype": "f16",
+            "compression": {
+              "mode": "none",
+              "blockSize": 1,
+              "bitWidth": 4,
+              "prodMode": false
+            },
+            "gating": {
+              "mode": "auto",
+              "minAluBwRatio": 0
+            }
+          },
+          "quantization": {
+            "mode": "none",
+            "bitWidth": 4,
+            "prodMode": false
+          }
+        },
+        "perLayerInputs": {
+          "materialization": "auto",
+          "rowCache": {
+            "mode": "lru",
+            "maxRows": 256,
+            "maxBytes": 134217728,
+            "decodedDtype": "f32"
+          },
+          "prefetch": {
+            "mode": "next_token",
+            "rowsAhead": 1
+          },
+          "gpuUpload": {
+            "mode": "per_step_slices",
+            "stagingRows": 2
+          },
+          "hotCache": {
+            "mode": "prepared_tokens",
+            "maxTokens": 1024,
+            "maxBytes": 134217728,
+            "outputDtype": "f32"
+          }
+        },
+        "largeWeights": null
+      },
+      "memoryPolicyHash": "sha256:3334b16c0929f3da800cee370f913c2e56bdc940f6c96a012d9276a623b3a9f7",
+      "executionPlanDigest": "sha256:b43bcab71a6a08a42a20753b03e29a237da1b89df6e54e80d9e8103743c1772d",
+      "runtimeEngine": {
+        "resolvedRuntimeSessionId": "sha256:cbfe5959a668107c9af00aa4d65328b205596ffe200c34db6b74eeedecfdf62c",
+        "resolvedRuntimeSchema": "doppler.resolved-runtime-session/v1",
+        "kernelPath": {
+          "id": "minicpm4-0-5b-f16-af32-execution-inline",
+          "source": "execution-v1",
+          "hash": "sha256:e8e57b7ab64c68fb30e26dbb594b33ef0541c6d346eef0f45f02a3e11c37d865",
+          "definition": {
+            "id": "minicpm4-0-5b-f16-af32-execution-inline",
+            "name": "Execution inline kernel path",
+            "description": "Generated from manifest.inference.execution",
+            "activationDtype": "f32",
+            "kvDtype": "f16",
+            "decode": {
+              "steps": [
+                {
+                  "op": "input_norm",
+                  "kernel": "rmsnorm.wgsl",
+                  "entry": "main"
+                },
+                {
+                  "op": "q_proj",
+                  "kernel": "matmul_gemv_subgroup.wgsl",
+                  "entry": "main_vec4",
+                  "weights": "layer.{L}.self_attn.q_proj"
+                },
+                {
+                  "op": "k_proj",
+                  "kernel": "matmul_gemv_subgroup.wgsl",
+                  "entry": "main_vec4",
+                  "weights": "layer.{L}.self_attn.k_proj"
+                },
+                {
+                  "op": "v_proj",
+                  "kernel": "matmul_gemv_subgroup.wgsl",
+                  "entry": "main_vec4",
+                  "weights": "layer.{L}.self_attn.v_proj"
+                },
+                {
+                  "op": "rope_q",
+                  "kernel": "rope.wgsl",
+                  "entry": "main"
+                },
+                {
+                  "op": "rope_k",
+                  "kernel": "rope.wgsl",
+                  "entry": "main"
+                },
+                {
+                  "op": "attention",
+                  "kernel": "attention_decode_online_f16kv.wgsl",
+                  "entry": "main",
+                  "precision": {
+                    "kvDtype": "f16"
+                  }
+                },
+                {
+                  "op": "o_proj",
+                  "kernel": "matmul_gemv_subgroup.wgsl",
+                  "entry": "main_vec4",
+                  "weights": "layer.{L}.self_attn.o_proj"
+                },
+                {
+                  "op": "attn_residual",
+                  "kernel": "residual.wgsl",
+                  "entry": "main"
+                },
+                {
+                  "op": "post_attn_norm",
+                  "kernel": "rmsnorm.wgsl",
+                  "entry": "main"
+                },
+                {
+                  "op": "gate_proj",
+                  "kernel": "matmul_gemv_subgroup.wgsl",
+                  "entry": "main_vec4",
+                  "weights": "layer.{L}.mlp.gate_proj"
+                },
+                {
+                  "op": "up_proj",
+                  "kernel": "matmul_gemv_subgroup.wgsl",
+                  "entry": "main_vec4",
+                  "weights": "layer.{L}.mlp.up_proj"
+                },
+                {
+                  "op": "activation",
+                  "kernel": "silu.wgsl",
+                  "entry": "main"
+                },
+                {
+                  "op": "down_proj",
+                  "kernel": "matmul_gemv_subgroup.wgsl",
+                  "entry": "main_vec4",
+                  "weights": "layer.{L}.mlp.down_proj"
+                },
+                {
+                  "op": "ffn_residual",
+                  "kernel": "residual.wgsl",
+                  "entry": "main"
+                }
+              ]
+            },
+            "prefill": {
+              "steps": [
+                {
+                  "op": "input_norm",
+                  "kernel": "rmsnorm.wgsl",
+                  "entry": "main"
+                },
+                {
+                  "op": "q_proj",
+                  "kernel": "matmul_f16w_f32a.wgsl",
+                  "entry": "main",
+                  "weights": "layer.{L}.self_attn.q_proj"
+                },
+                {
+                  "op": "k_proj",
+                  "kernel": "matmul_f16w_f32a.wgsl",
+                  "entry": "main",
+                  "weights": "layer.{L}.self_attn.k_proj"
+                },
+                {
+                  "op": "v_proj",
+                  "kernel": "matmul_f16w_f32a.wgsl",
+                  "entry": "main",
+                  "weights": "layer.{L}.self_attn.v_proj"
+                },
+                {
+                  "op": "rope_q",
+                  "kernel": "rope.wgsl",
+                  "entry": "main"
+                },
+                {
+                  "op": "rope_k",
+                  "kernel": "rope.wgsl",
+                  "entry": "main"
+                },
+                {
+                  "op": "attention",
+                  "kernel": "attention_streaming_f16kv.wgsl",
+                  "entry": "main",
+                  "precision": {
+                    "kvDtype": "f16"
+                  }
+                },
+                {
+                  "op": "o_proj",
+                  "kernel": "matmul_f16w_f32a.wgsl",
+                  "entry": "main",
+                  "weights": "layer.{L}.self_attn.o_proj"
+                },
+                {
+                  "op": "attn_residual",
+                  "kernel": "residual.wgsl",
+                  "entry": "main"
+                },
+                {
+                  "op": "post_attn_norm",
+                  "kernel": "rmsnorm.wgsl",
+                  "entry": "main"
+                },
+                {
+                  "op": "gate_proj",
+                  "kernel": "matmul_f16w_f32a.wgsl",
+                  "entry": "main",
+                  "weights": "layer.{L}.mlp.gate_proj"
+                },
+                {
+                  "op": "up_proj",
+                  "kernel": "matmul_f16w_f32a.wgsl",
+                  "entry": "main",
+                  "weights": "layer.{L}.mlp.up_proj"
+                },
+                {
+                  "op": "activation",
+                  "kernel": "silu.wgsl",
+                  "entry": "main"
+                },
+                {
+                  "op": "down_proj",
+                  "kernel": "matmul_f16w_f32a.wgsl",
+                  "entry": "main",
+                  "weights": "layer.{L}.mlp.down_proj"
+                },
+                {
+                  "op": "ffn_residual",
+                  "kernel": "residual.wgsl",
+                  "entry": "main"
+                }
+              ]
+            },
+            "preLayer": [
+              {
+                "op": "embed",
+                "kernel": "gather_f16.wgsl",
+                "entry": "main",
+                "weights": "embed_tokens"
+              }
+            ],
+            "postLayer": [
+              {
+                "op": "final_norm",
+                "kernel": "rmsnorm.wgsl",
+                "entry": "main"
+              },
+              {
+                "op": "lm_head",
+                "kernel": "matmul_gemv_subgroup.wgsl",
+                "entry": "main_multicol",
+                "weights": "lm_head",
+                "constants": {
+                  "MULTICOL_COLS_PER_WG": 8,
+                  "MULTICOL_THREADS_PER_COL": 32
+                }
+              },
+              {
+                "op": "lm_head_prefill",
+                "kernel": "matmul_f16w_f32a.wgsl",
+                "entry": "main",
+                "weights": "lm_head"
+              },
+              {
+                "op": "sample",
+                "kernel": "sample.wgsl",
+                "entry": "sample_single_pass"
+              }
+            ]
+          }
+        },
+        "capabilityPolicy": {
+          "kind": "default-noop",
+          "dtypeEffect": "none",
+          "reason": "GPU supports all required features.",
+          "evidence": []
+        },
+        "laneIntegrity": {
+          "declared": {
+            "activationDtype": "f32",
+            "mathDtype": "f32",
+            "accumDtype": "f32",
+            "kvDtype": "f16"
+          },
+          "executed": {
+            "activationDtype": "f32",
+            "mathDtype": "f32",
+            "accumDtype": "f32",
+            "kvDtype": "f16"
+          },
+          "status": "matches",
+          "transforms": [],
+          "policy": {
+            "kind": "default-noop",
+            "dtypeEffect": "none",
+            "reason": "GPU supports all required features.",
+            "evidence": []
+          }
+        }
+      },
+      "runtimeEngineDigest": "sha256:6b2e5b172a06984f8c98acf03711e8b1ae272aeca9c1fd198fc1bbc3b3d848bf",
+      "programLoadPolicy": {
+        "schema": "doppler.capsule-program-load-policy/v2",
+        "runtimeConfig": {
+          "inference": {
+            "session": {
+              "kvcache": {
+                "maxSeqLen": 4096,
+                "gpuPagedFallbackMaxSeqLen": 4096,
+                "kvDtype": "f16",
+                "forceF32Softcap": false,
+                "layout": "contiguous",
+                "pageSize": 256,
+                "bdpaVocabSize": 2048,
+                "windowSize": 1024,
+                "tiering": {
+                  "mode": "off",
+                  "hotWindow": 1024,
+                  "coldPageSize": 256,
+                  "coldDtype": "f16",
+                  "compression": {
+                    "mode": "none",
+                    "blockSize": 1,
+                    "bitWidth": 4,
+                    "prodMode": false
+                  },
+                  "gating": {
+                    "mode": "auto",
+                    "minAluBwRatio": 0
+                  }
+                },
+                "quantization": {
+                  "mode": "none",
+                  "bitWidth": 4,
+                  "prodMode": false
+                }
+              },
+              "speculation": {
+                "mode": "none",
+                "tokens": 1,
+                "verify": "greedy",
+                "threshold": null,
+                "rollbackOnReject": true
+              },
+              "prefillChunkSubmitMode": "sync",
+              "prefillChunkLayers": 4,
+              "prefillMaxInFlightChunks": 2,
+              "prefillTokenChunkSize": null,
+              "skipEmbeddingKVCacheWrites": false,
+              "useFlashPrefillAttention": false,
+              "useFusedGateUpGelu": false,
+              "useLargeBatchF16F32FusedGateUp": false,
+              "useTiledQ4KPrefill": false,
+              "retainQ4KMaterialization": false,
+              "useWideTileQ4KPrefill": false,
+              "useWideTileQ4KDecode": false,
+              "useSandwichRMSNormPairFusion": false,
+              "usePostFfnNextInputRMSNormPairFusion": false,
+              "usePostAttnNormFusedGateUp": false,
+              "fusedFfnQ4K": null,
+              "lmHeadArgmaxQ4K": null,
+              "attentionDecodeOnline": null,
+              "useLinearAttentionABProjectionFusion": false,
+              "useLinearAttentionQKVZProjectionFusion": false,
+              "useLinearAttentionFusedDecodeCore": false,
+              "useLinearAttentionRegisterPrefill": false,
+              "useLinearAttentionRegisterDecode": false,
+              "linearRecurrentStatePrecision": "f32",
+              "intermediatePrecision": "f32",
+              "useWideTileResidualFusion": false,
+              "useFusedRmsnormWideTile": false,
+              "useFusedQKVSplitQKNorm": false,
+              "useFusedQKVSplitQKNormRoPE": false,
+              "useGreedyLmHeadArgmaxFusion": false,
+              "usePreparedDecodeWorkspace": false,
+              "decodeLoop": {
+                "batchSize": 1,
+                "readbackInterval": 1,
+                "stopCheckMode": "batch",
+                "readbackMode": "sequential",
+                "submitLatencyThresholdMs": null,
+                "ringTokens": 1,
+                "ringStop": 1,
+                "ringStaging": 1,
+                "disableCommandBatching": false
+              },
+              "compute": {
+                "defaults": {
+                  "activationDtype": "f32",
+                  "mathDtype": "f32",
+                  "accumDtype": "f32",
+                  "outputDtype": "f32"
+                }
+              },
+              "perLayerInputs": {
+                "materialization": "auto",
+                "rowCache": {
+                  "mode": "lru",
+                  "maxRows": 256,
+                  "maxBytes": 134217728,
+                  "decodedDtype": "f32"
+                },
+                "prefetch": {
+                  "mode": "next_token",
+                  "rowsAhead": 1
+                },
+                "gpuUpload": {
+                  "mode": "per_step_slices",
+                  "stagingRows": 2
+                },
+                "hotCache": {
+                  "mode": "prepared_tokens",
+                  "maxTokens": 1024,
+                  "maxBytes": 134217728,
+                  "outputDtype": "f32"
+                }
+              }
+            },
+            "compute": {
+              "activationDtype": "f32"
+            },
+            "generation": {
+              "disableMultiTokenDecode": false
+            }
+          }
+        }
+      },
+      "programLoadPolicyHash": "sha256:9e118ea89617b0dbc82e4355ef8843222b3af1f2b6060865a260cc3af04061dc",
+      "digest": "sha256:f603c479a04ee136dcb8b5b3fe046676862c1507896de7b2faa2e520699d63c8"
+    },
+    "kvCache": {
+      "layout": "contiguous",
+      "kvDtype": "f16",
+      "seqLen": 37,
+      "maxSeqLen": 4096,
+      "usedBytes": 454656,
+      "allocatedBytes": 50331648,
+      "counters": {
+        "updateCalls": 0,
+        "gpuUpdateCalls": 0,
+        "recordedGpuUpdateCalls": 336,
+        "tokensWritten": 888
+      }
+    },
+    "referenceTranscript": {
+      "schema": "doppler.reference-transcript/v1",
+      "source": {
+        "kind": "inline-browser-suite",
+        "path": "inline",
+        "hash": "sha256:f2fa390ef2e5841c3f862294b33cf30a3295a6260dbdc1bfe553c906225dbdd4"
+      },
+      "executionGraphHash": "sha256:6d1a200b5ebac525281537db856d520a9d22d27ef2f50fe337d3a1f539464703",
+      "surface": "node-webgpu",
+      "generationConfig": {
+        "maxTokens": 16,
+        "temperature": 0,
+        "topP": 1,
+        "topK": 1,
+        "repetitionPenalty": 1,
+        "repetitionPenaltyWindow": 100,
+        "greedyThreshold": 0,
+        "suppressSpecialTokens": false,
+        "suppressSpecialLikeTokens": false,
+        "suppressTokenIds": [],
+        "seed": null,
+        "useChatTemplate": true
+      },
+      "prompt": {
+        "identity": "Q: What color is the sky on a clear day? A:",
+        "hash": "sha256:2bd906babe98e48dfdc0f3d5f33530b95d530fc5e7a6eed4c21d892f0b1ecdb2",
+        "input": "Q: What color is the sky on a clear day? A:",
+        "ids": [
+          1,
+          73441,
+          3060,
+          5,
+          59544,
+          59358,
+          3067,
+          4351,
+          1410,
+          1358,
+          18086,
+          1432,
+          1348,
+          4104,
+          2676,
+          74,
+          1420,
+          59358,
+          73440,
+          59320,
+          5,
+          73441,
+          16434,
+          5
+        ],
+        "tokenIdsHash": "sha256:2346e3b62c3607f7b63f271b1eab7f8852ad054fa8eaa09c8f3ffcf12143f3b2",
+        "tokenCount": 24
+      },
+      "output": {
+        "textHash": "sha256:5766d393177fa09a6c51bef6cf2c1515491b8df20b874710bf888240ea3c0c4c",
+        "tokensGenerated": 14,
+        "stopReason": "stop-token",
+        "stopTokenId": 73440
+      },
+      "tokens": {
+        "ids": [
+          2219,
+          4351,
+          1379,
+          1358,
+          18086,
+          1432,
+          1348,
+          4104,
+          2676,
+          1410,
+          10649,
+          8055,
+          72,
+          73440
+        ],
+        "generatedTokenIdsHash": "sha256:9c59ec59c9d001f5ad6ddd572988275abf8a8fa927475200d0f11183dd75bfdc",
+        "generatedTextHash": "sha256:5766d393177fa09a6c51bef6cf2c1515491b8df20b874710bf888240ea3c0c4c",
+        "preview": [
+          {
+            "id": 2219,
+            "text": "The",
+            "fallbackText": "The"
+          },
+          {
+            "id": 4351,
+            "text": " color",
+            "fallbackText": " color"
+          },
+          {
+            "id": 1379,
+            "text": " of",
+            "fallbackText": " of"
+          },
+          {
+            "id": 1358,
+            "text": " the",
+            "fallbackText": " the"
+          },
+          {
+            "id": 18086,
+            "text": " sky",
+            "fallbackText": " sky"
+          },
+          {
+            "id": 1432,
+            "text": " on",
+            "fallbackText": " on"
+          },
+          {
+            "id": 1348,
+            "text": " a",
+            "fallbackText": " a"
+          },
+          {
+            "id": 4104,
+            "text": " clear",
+            "fallbackText": " clear"
+          },
+          {
+            "id": 2676,
+            "text": " day",
+            "fallbackText": " day"
+          },
+          {
+            "id": 1410,
+            "text": " is",
+            "fallbackText": " is"
+          },
+          {
+            "id": 10649,
+            "text": " typically",
+            "fallbackText": " typically"
+          },
+          {
+            "id": 8055,
+            "text": " blue",
+            "fallbackText": " blue"
+          },
+          {
+            "id": 72,
+            "text": ".",
+            "fallbackText": "."
+          },
+          {
+            "id": 73440,
+            "text": "",
+            "fallbackText": "<|im_end|>"
+          }
+        ],
+        "perStep": [
+          {
+            "index": 0,
+            "tokenId": 2219,
+            "tokenHash": "sha256:56467a29e234eab6193ccae360afcd95e18aab7b81778b44cf98eb95d5196c99"
+          },
+          {
+            "index": 1,
+            "tokenId": 4351,
+            "tokenHash": "sha256:9991657eb5716093ec2ff23688e2f94266cd7777ac5a3228dbd49c36a96a2bd0"
+          },
+          {
+            "index": 2,
+            "tokenId": 1379,
+            "tokenHash": "sha256:6253e1079c51d8d05196dfb7667b6befda0327984c3b6bf17732ed4b5fcdf228"
+          },
+          {
+            "index": 3,
+            "tokenId": 1358,
+            "tokenHash": "sha256:a54fcd1831553ef5df0f862138053b0d4bc145c2f9deed929424ed85407ca09a"
+          },
+          {
+            "index": 4,
+            "tokenId": 18086,
+            "tokenHash": "sha256:3f88f64d01ab02235fe32f1186c934f006ad00889505c53387b672eccd87f294"
+          },
+          {
+            "index": 5,
+            "tokenId": 1432,
+            "tokenHash": "sha256:4450f9cb08f539541927dd4f6001a2ada718af478cff6309ee06d41fa3a0a8c5"
+          },
+          {
+            "index": 6,
+            "tokenId": 1348,
+            "tokenHash": "sha256:0f8f6c7b04968c68333d1f7e3bf0f158de2d7946988dba3ba8614cea7a95e396"
+          },
+          {
+            "index": 7,
+            "tokenId": 4104,
+            "tokenHash": "sha256:7141f79eef91280f942722abd4decc529e7080623c489650c14e29a2c6ef3f6f"
+          },
+          {
+            "index": 8,
+            "tokenId": 2676,
+            "tokenHash": "sha256:f81422485c26f998c59374c4233f8408cf0b2802b6a5dec5a824e2107e2c1093"
+          },
+          {
+            "index": 9,
+            "tokenId": 1410,
+            "tokenHash": "sha256:26510f8b25117a3f9aba4d3eb976a8950b43e10eecea02b6999e461f33208924"
+          },
+          {
+            "index": 10,
+            "tokenId": 10649,
+            "tokenHash": "sha256:007134f25aea2ccaa4ef90b07a160a2003880a69887a0045ed9ad45c9661f086"
+          },
+          {
+            "index": 11,
+            "tokenId": 8055,
+            "tokenHash": "sha256:4bf9f297a0345e7fb2c1a1ebd442c75f79888e4a23a7688e5ba0b34ffd51d5de"
+          },
+          {
+            "index": 12,
+            "tokenId": 72,
+            "tokenHash": "sha256:3df34a36d3b4a637080a3248d5809de55bd930c3514d93a8adf662899173feba"
+          },
+          {
+            "index": 13,
+            "tokenId": 73440,
+            "tokenHash": "sha256:fc57ee1f5b27ef122f1694d19cb787a91c4ec74756a10baf2ab4a23241a83fa8"
+          }
+        ],
+        "coverage": {
+          "mode": "full-token-ids",
+          "omitted": 0
+        }
+      },
+      "phase": {
+        "prefillMs": 186.5211250000002,
+        "decodeMs": 344.286916,
+        "prefillTokens": 24,
+        "decodeTokens": 13
+      },
+      "kvCache": {
+        "mode": "stats+sha256-layer-kv-bytes",
+        "layout": "contiguous",
+        "kvDtype": "f16",
+        "seqLen": 37,
+        "maxSeqLen": 4096,
+        "usedBytes": 454656,
+        "allocatedBytes": 50331648,
+        "counters": {
+          "updateCalls": 0,
+          "gpuUpdateCalls": 0,
+          "recordedGpuUpdateCalls": 336,
+          "tokensWritten": 888
+        },
+        "byteDigestMode": "sha256-layer-kv-bytes",
+        "byteDigest": "sha256:1c102f9099acc1197a9a1d932e87e86d2bdb5463848186832283f7e8c65de252",
+        "byteDigests": [
+          {
+            "layer": 0,
+            "seqLen": 37,
+            "keyBytes": 9472,
+            "valueBytes": 9472,
+            "keyDigest": "sha256:b874858448feb72ee60cc0a426b22181596c3e82f5adb5fcb87957d07e42c344",
+            "valueDigest": "sha256:f90865fba7c6f67cdcd50a87993817ddaddecfa849218318ad922da0ab42f06a"
+          },
+          {
+            "layer": 1,
+            "seqLen": 37,
+            "keyBytes": 9472,
+            "valueBytes": 9472,
+            "keyDigest": "sha256:b0f2b1dbe5a8ccbef1d6773314f8e2875abd52b9a4b0deb5e0edb34bdfcc9c45",
+            "valueDigest": "sha256:9946f361cf178aaa04709c9677c41944cdabb6edca85e957468dd2436a39b2e7"
+          },
+          {
+            "layer": 2,
+            "seqLen": 37,
+            "keyBytes": 9472,
+            "valueBytes": 9472,
+            "keyDigest": "sha256:ef16edc595ecb32da05e5649dccc57f546e35b3582884440b817818c9937022e",
+            "valueDigest": "sha256:0b6dff70e7dfe4b39b0102e84511a8f5ba682a364503cf8794a27dee8141c907"
+          },
+          {
+            "layer": 3,
+            "seqLen": 37,
+            "keyBytes": 9472,
+            "valueBytes": 9472,
+            "keyDigest": "sha256:8bce84196275c2b5123e6a5d34ce80f557657332fea74364ff75af75c84b84c9",
+            "valueDigest": "sha256:51c78aac180fdd81100c206fcd214693ddf0245adf35d9efca06822073708726"
+          },
+          {
+            "layer": 4,
+            "seqLen": 37,
+            "keyBytes": 9472,
+            "valueBytes": 9472,
+            "keyDigest": "sha256:913e1e1cef7d88b54cb3924df731e0d4b1a54204305399082b6ca243b7f68e1c",
+            "valueDigest": "sha256:59bf59aed2fdf7847fecb180d7ce79e5578cf4df49c63a58f4dfe204f48c03bc"
+          },
+          {
+            "layer": 5,
+            "seqLen": 37,
+            "keyBytes": 9472,
+            "valueBytes": 9472,
+            "keyDigest": "sha256:88ee52e006a67f7391b75dfa76305d5179b5668e4a35c0874db04a48659a9ea9",
+            "valueDigest": "sha256:d21b1f06c5e1555027009902c55ca8219fb5bc42bab116d44067c32ba6d59b24"
+          },
+          {
+            "layer": 6,
+            "seqLen": 37,
+            "keyBytes": 9472,
+            "valueBytes": 9472,
+            "keyDigest": "sha256:f24c2e3ca4aa956439c18532a8b8308c28f7027fe6105712b6398c3a1bb28e7a",
+            "valueDigest": "sha256:5fa22f6cc95d178017441e7f4e5826f0dad54125b1e0ad8afd6a5242b31958f8"
+          },
+          {
+            "layer": 7,
+            "seqLen": 37,
+            "keyBytes": 9472,
+            "valueBytes": 9472,
+            "keyDigest": "sha256:c10abf86d9235c0e8686f3e109766467a71e47b8e61a54c09ffc05fe923e8e80",
+            "valueDigest": "sha256:6c964b70bdf1d6bfe7de7ae28359431208e935720bc57647787f2e854b5d1114"
+          },
+          {
+            "layer": 8,
+            "seqLen": 37,
+            "keyBytes": 9472,
+            "valueBytes": 9472,
+            "keyDigest": "sha256:9bb6f98192d729b9ab81e774a80687fb1ad8e8dea3e07405d3e5511eccedb7f0",
+            "valueDigest": "sha256:adc37ee95f9d98026c3d4843ccad2ed51879235ee1c8abace9b8aa815de36f8d"
+          },
+          {
+            "layer": 9,
+            "seqLen": 37,
+            "keyBytes": 9472,
+            "valueBytes": 9472,
+            "keyDigest": "sha256:c7d717e13605742def9ed0f04db6d95a8c2358da39263e63f5c3e3cd335841f7",
+            "valueDigest": "sha256:29de2277c50824ba1a1b4b86e0771a6f18d69e4bbccf4dbe85df9631c20a98d3"
+          },
+          {
+            "layer": 10,
+            "seqLen": 37,
+            "keyBytes": 9472,
+            "valueBytes": 9472,
+            "keyDigest": "sha256:a6972c9a318adcbf1a55134f12676ff9c430868afa3e72399b7bcfe921b8287d",
+            "valueDigest": "sha256:39a8ba8c365263dcb8e160df866ccf1a3db000b8462a5918b3755a089a3ccc6e"
+          },
+          {
+            "layer": 11,
+            "seqLen": 37,
+            "keyBytes": 9472,
+            "valueBytes": 9472,
+            "keyDigest": "sha256:ddb615c7942a467fde0e545e8b1360890b975de1cb79c8e22477fc9879cd72db",
+            "valueDigest": "sha256:ccbc2a1363e2803ef4cc1141415235c7f09a292ca3af49cb3833363c58718762"
+          },
+          {
+            "layer": 12,
+            "seqLen": 37,
+            "keyBytes": 9472,
+            "valueBytes": 9472,
+            "keyDigest": "sha256:d321469a73a2c9020dced02fd3c2436be25aa9cd65a1f1474f4dcb5a178b5ea8",
+            "valueDigest": "sha256:1d0dcdcaa074414426610aad57c371c504ce1b9c899372c08e19aee05f775cd3"
+          },
+          {
+            "layer": 13,
+            "seqLen": 37,
+            "keyBytes": 9472,
+            "valueBytes": 9472,
+            "keyDigest": "sha256:62bd15558769780b321852c4a5788e278dfac2330932dbf19d8b936ff0749efe",
+            "valueDigest": "sha256:69648173c6251a0c8890197327a2ead1c3797a1665d80b75686e47c24d40bc65"
+          },
+          {
+            "layer": 14,
+            "seqLen": 37,
+            "keyBytes": 9472,
+            "valueBytes": 9472,
+            "keyDigest": "sha256:8706f745c69b3e44ac9a4a3c5be248c6f43de2eb6c18d9d81244ee97b5db99b3",
+            "valueDigest": "sha256:036b8601838ee6cd4e34438764766fe125d7e0db1f8f75decc8f21650bdfd5ab"
+          },
+          {
+            "layer": 15,
+            "seqLen": 37,
+            "keyBytes": 9472,
+            "valueBytes": 9472,
+            "keyDigest": "sha256:a3dab2b2ba970851d81879826cb3a5fc116d43fe8815e1a556ac89bccfd8cecb",
+            "valueDigest": "sha256:ed229315894e31cf9505e481d6c1ca36859df219b171a52cc2fe48281f5fea6e"
+          },
+          {
+            "layer": 16,
+            "seqLen": 37,
+            "keyBytes": 9472,
+            "valueBytes": 9472,
+            "keyDigest": "sha256:9351be3f547e917e66b43c0774dce7256a25c610edb627c4cab18e1427ebd1cc",
+            "valueDigest": "sha256:ad59e9840a68cad507ae89381e289df90b2e7207127227165279cb9042fb7460"
+          },
+          {
+            "layer": 17,
+            "seqLen": 37,
+            "keyBytes": 9472,
+            "valueBytes": 9472,
+            "keyDigest": "sha256:3606fa073abb0cde8d942c44a5065ed40ce0a9cd1b1478bf8db458b94adabb8a",
+            "valueDigest": "sha256:d1d6e82b47d74bf0e25addba3a3ae3732162b19dd878f674e90184e154af9b4d"
+          },
+          {
+            "layer": 18,
+            "seqLen": 37,
+            "keyBytes": 9472,
+            "valueBytes": 9472,
+            "keyDigest": "sha256:ba929e0735968ac13eec1ef5cb7008566fa315628d72df7f4ff90f927cbea536",
+            "valueDigest": "sha256:f82f62988d70565a818b3f0b9ea7c9436cf643dec782226ba9e1c5e5d231d615"
+          },
+          {
+            "layer": 19,
+            "seqLen": 37,
+            "keyBytes": 9472,
+            "valueBytes": 9472,
+            "keyDigest": "sha256:78e48b7440b6502ddfade49aaad133e6cf1f4b6061db9f0a18dfb0d81349d214",
+            "valueDigest": "sha256:7592104170f03c8e49bb8bbbe8404976aa16930a943245049e2108348478142d"
+          },
+          {
+            "layer": 20,
+            "seqLen": 37,
+            "keyBytes": 9472,
+            "valueBytes": 9472,
+            "keyDigest": "sha256:9b77cc986a8b74026493d9edd2fb6f84382bae9d808e778d125765a42a67a382",
+            "valueDigest": "sha256:976db8561ef7d2307b155e917cd0e2759549a28f897debe3c6444ca746c51a7e"
+          },
+          {
+            "layer": 21,
+            "seqLen": 37,
+            "keyBytes": 9472,
+            "valueBytes": 9472,
+            "keyDigest": "sha256:283a4a718948c6cae98157200159030a1c8d8ca02ca57d0c5e5dd36a8effa8b3",
+            "valueDigest": "sha256:1e0599eb074c00cf9eb62cd062fa724a64f14b6131fd8612fcc943c54bebd000"
+          },
+          {
+            "layer": 22,
+            "seqLen": 37,
+            "keyBytes": 9472,
+            "valueBytes": 9472,
+            "keyDigest": "sha256:9903fb344da0af3a69a39a5a7e476e3c1aeeec05ee3de29f5b67897401cb6fc7",
+            "valueDigest": "sha256:5b5b58b2f62683cbd60b4a657c736bdbe4e960c259821e983962b956f802bafd"
+          },
+          {
+            "layer": 23,
+            "seqLen": 37,
+            "keyBytes": 9472,
+            "valueBytes": 9472,
+            "keyDigest": "sha256:5f7178c514647d27dcafa1f2f5c35bacb08f505195a8a440d32ae93996c7a445",
+            "valueDigest": "sha256:eefc0756713c9ad86841a2a2402f9b05bd0217102fc704cffa5c299b6a588936"
+          }
+        ],
+        "stateHash": "sha256:0b0d3845fe5010c5f888707bb9194f3f2bf07e59b6745005f47d40e51717946c"
+      },
+      "logits": {
+        "mode": "sha256-per-step",
+        "perStepDigests": [
+          "sha256:ab04bcc7a2fef703d1df89fa5413b3a41bbacddf749f25af87ea44680f0e5116",
+          "sha256:3602e5e1043bfc39d63e5342dcbba229af02518cdc2921cf49b47948560d81bd",
+          "sha256:f8f468785f0f014db83547a2974eb9d1c1a4bf66e4bf711e8355e6c266d120f0",
+          "sha256:3c100668fede780eb43dbad810ee993b851317662916bd71c87bcc942d49ff57",
+          "sha256:a752ae1f7f4c09fc6964b8960859335f2a49d4ce0e339639fa0335925292f603",
+          "sha256:ae349649330d384128965685943e4e7f3ef7b4c036b7c6725fb194686a381d07",
+          "sha256:31d2e7fc9df64f2d22a9036d134e248dd303f0927bdc7ae0b4648355d0394f61",
+          "sha256:96e39cab60827a0e814768eb134ff434c06936a1251033f81a215ae7a3657ca2",
+          "sha256:77f0d67cf257769ef0500eec93206975d37fac031c70db5f18a0e69a972ea99e",
+          "sha256:d911ea72833bb7bc22d19978743b9f3f3e5b13764f18c8018d33d1f3c58f03ae",
+          "sha256:f04558b5c2d38e5e3d40582e0b64358def58ea3f6c70f9cd103a31d678048ed7",
+          "sha256:1db008fdfe5c8892c6537d9fd54d12d39150a80ecf8f4cb22c423767118c3708",
+          "sha256:ca1851b72d83a090562a648e998e02af5e3ab1d99a6880cd705995aef683ee4c",
+          "sha256:aaa7d42a692c382fd794752f026663cf9e7289afb88cae25ce21b33eed504d92"
+        ],
+        "steps": [
+          {
+            "index": 0,
+            "tokenId": 2219,
+            "inputTokenCount": 24,
+            "dtype": "f32",
+            "elementCount": 73448,
+            "digest": "sha256:ab04bcc7a2fef703d1df89fa5413b3a41bbacddf749f25af87ea44680f0e5116",
+            "top": [
+              {
+                "tokenId": 2219,
+                "logit": 10.430479049682617,
+                "text": "The"
+              },
+              {
+                "tokenId": 59353,
+                "logit": 9.99100399017334,
+                "text": "A"
+              },
+              {
+                "tokenId": 59378,
+                "logit": 9.409882545471191,
+                "text": "B"
+              },
+              {
+                "tokenId": 59357,
+                "logit": 8.558747291564941,
+                "text": "C"
+              },
+              {
+                "tokenId": 21378,
+                "logit": 8.447317123413086,
+                "text": "Blue"
+              },
+              {
+                "tokenId": 7285,
+                "logit": 7.872726917266846,
+                "text": "On"
+              },
+              {
+                "tokenId": 1588,
+                "logit": 7.714542388916016,
+                "text": "**"
+              },
+              {
+                "tokenId": 5,
+                "logit": 7.388937473297119,
+                "text": "\n"
+              }
+            ]
+          },
+          {
+            "index": 1,
+            "tokenId": 4351,
+            "inputTokenCount": 25,
+            "dtype": "f32",
+            "elementCount": 73448,
+            "digest": "sha256:3602e5e1043bfc39d63e5342dcbba229af02518cdc2921cf49b47948560d81bd",
+            "top": [
+              {
+                "tokenId": 4351,
+                "logit": 16.21714210510254,
+                "text": " color"
+              },
+              {
+                "tokenId": 18086,
+                "logit": 16.12637710571289,
+                "text": " sky"
+              },
+              {
+                "tokenId": 4402,
+                "logit": 12.017195701599121,
+                "text": " correct"
+              },
+              {
+                "tokenId": 3361,
+                "logit": 11.971818923950195,
+                "text": " question"
+              },
+              {
+                "tokenId": 10057,
+                "logit": 11.840032577514648,
+                "text": " colors"
+              },
+              {
+                "tokenId": 4104,
+                "logit": 11.513808250427246,
+                "text": " clear"
+              },
+              {
+                "tokenId": 3978,
+                "logit": 11.39799976348877,
+                "text": " answer"
+              },
+              {
+                "tokenId": 7739,
+                "logit": 11.180164337158203,
+                "text": " sun"
+              }
+            ]
+          },
+          {
+            "index": 2,
+            "tokenId": 1379,
+            "inputTokenCount": 26,
+            "dtype": "f32",
+            "elementCount": 73448,
+            "digest": "sha256:f8f468785f0f014db83547a2974eb9d1c1a4bf66e4bf711e8355e6c266d120f0",
+            "top": [
+              {
+                "tokenId": 1379,
+                "logit": 19.784587860107422,
+                "text": " of"
+              },
+              {
+                "tokenId": 1457,
+                "logit": 10.950555801391602,
+                "text": " that"
+              },
+              {
+                "tokenId": 1496,
+                "logit": 10.775653839111328,
+                "text": " \""
+              },
+              {
+                "tokenId": 18086,
+                "logit": 10.734147071838379,
+                "text": " sky"
+              },
+              {
+                "tokenId": 1432,
+                "logit": 10.709012031555176,
+                "text": " on"
+              },
+              {
+                "tokenId": 1384,
+                "logit": 10.107168197631836,
+                "text": " and"
+              },
+              {
+                "tokenId": 59361,
+                "logit": 9.322152137756348,
+                "text": "'"
+              },
+              {
+                "tokenId": 1358,
+                "logit": 9.319835662841797,
+                "text": " the"
+              }
+            ]
+          },
+          {
+            "index": 3,
+            "tokenId": 1358,
+            "inputTokenCount": 27,
+            "dtype": "f32",
+            "elementCount": 73448,
+            "digest": "sha256:3c100668fede780eb43dbad810ee993b851317662916bd71c87bcc942d49ff57",
+            "top": [
+              {
+                "tokenId": 1358,
+                "logit": 21.2757625579834,
+                "text": " the"
+              },
+              {
+                "tokenId": 1348,
+                "logit": 14.16611385345459,
+                "text": " a"
+              },
+              {
+                "tokenId": 18086,
+                "logit": 12.966743469238281,
+                "text": " sky"
+              },
+              {
+                "tokenId": 40459,
+                "logit": 11.704341888427734,
+                "text": " sunlight"
+              },
+              {
+                "tokenId": 3378,
+                "logit": 11.391528129577637,
+                "text": " light"
+              },
+              {
+                "tokenId": 2676,
+                "logit": 10.993928909301758,
+                "text": " day"
+              },
+              {
+                "tokenId": 11267,
+                "logit": 10.831321716308594,
+                "text": " Earth"
+              },
+              {
+                "tokenId": 1496,
+                "logit": 10.77661418914795,
+                "text": " \""
+              }
+            ]
+          },
+          {
+            "index": 4,
+            "tokenId": 18086,
+            "inputTokenCount": 28,
+            "dtype": "f32",
+            "elementCount": 73448,
+            "digest": "sha256:a752ae1f7f4c09fc6964b8960859335f2a49d4ce0e339639fa0335925292f603",
+            "top": [
+              {
+                "tokenId": 18086,
+                "logit": 23.752309799194336,
+                "text": " sky"
+              },
+              {
+                "tokenId": 2709,
+                "logit": 14.54948902130127,
+                "text": " sk"
+              },
+              {
+                "tokenId": 7739,
+                "logit": 14.2896146774292,
+                "text": " sun"
+              },
+              {
+                "tokenId": 2676,
+                "logit": 13.483433723449707,
+                "text": " day"
+              },
+              {
+                "tokenId": 4975,
+                "logit": 13.178272247314453,
+                "text": " night"
+              },
+              {
+                "tokenId": 7872,
+                "logit": 12.583453178405762,
+                "text": " morning"
+              },
+              {
+                "tokenId": 47567,
+                "logit": 12.527749061584473,
+                "text": " sunset"
+              },
+              {
+                "tokenId": 1496,
+                "logit": 12.31005859375,
+                "text": " \""
+              }
+            ]
+          },
+          {
+            "index": 5,
+            "tokenId": 1432,
+            "inputTokenCount": 29,
+            "dtype": "f32",
+            "elementCount": 73448,
+            "digest": "sha256:ae349649330d384128965685943e4e7f3ef7b4c036b7c6725fb194686a381d07",
+            "top": [
+              {
+                "tokenId": 1432,
+                "logit": 17.621780395507812,
+                "text": " on"
+              },
+              {
+                "tokenId": 1410,
+                "logit": 13.917886734008789,
+                "text": " is"
+              },
+              {
+                "tokenId": 1571,
+                "logit": 12.829487800598145,
+                "text": " can"
+              },
+              {
+                "tokenId": 2459,
+                "logit": 12.057286262512207,
+                "text": " during"
+              },
+              {
+                "tokenId": 3450,
+                "logit": 11.2523193359375,
+                "text": " changes"
+              },
+              {
+                "tokenId": 11407,
+                "logit": 10.865996360778809,
+                "text": " depends"
+              },
+              {
+                "tokenId": 25106,
+                "logit": 10.853090286254883,
+                "text": " varies"
+              },
+              {
+                "tokenId": 7920,
+                "logit": 9.951212882995605,
+                "text": " appears"
+              }
+            ]
+          },
+          {
+            "index": 6,
+            "tokenId": 1348,
+            "inputTokenCount": 30,
+            "dtype": "f32",
+            "elementCount": 73448,
+            "digest": "sha256:31d2e7fc9df64f2d22a9036d134e248dd303f0927bdc7ae0b4648355d0394f61",
+            "top": [
+              {
+                "tokenId": 1348,
+                "logit": 21.990699768066406,
+                "text": " a"
+              },
+              {
+                "tokenId": 4104,
+                "logit": 13.906490325927734,
+                "text": " clear"
+              },
+              {
+                "tokenId": 1842,
+                "logit": 12.4681396484375,
+                "text": " any"
+              },
+              {
+                "tokenId": 1358,
+                "logit": 11.400972366333008,
+                "text": " the"
+              },
+              {
+                "tokenId": 2705,
+                "logit": 9.180743217468262,
+                "text": " top"
+              },
+              {
+                "tokenId": 3569,
+                "logit": 9.041460037231445,
+                "text": " either"
+              },
+              {
+                "tokenId": 2319,
+                "logit": 8.81113338470459,
+                "text": " both"
+              },
+              {
+                "tokenId": 2676,
+                "logit": 8.484559059143066,
+                "text": " day"
+              }
+            ]
+          },
+          {
+            "index": 7,
+            "tokenId": 4104,
+            "inputTokenCount": 31,
+            "dtype": "f32",
+            "elementCount": 73448,
+            "digest": "sha256:96e39cab60827a0e814768eb134ff434c06936a1251033f81a215ae7a3657ca2",
+            "top": [
+              {
+                "tokenId": 4104,
+                "logit": 23.624813079833984,
+                "text": " clear"
+              },
+              {
+                "tokenId": 45897,
+                "logit": 12.537105560302734,
+                "text": " clearer"
+              },
+              {
+                "tokenId": 3566,
+                "logit": 12.27918529510498,
+                "text": " **"
+              },
+              {
+                "tokenId": 1496,
+                "logit": 12.21633529663086,
+                "text": " \""
+              },
+              {
+                "tokenId": 10592,
+                "logit": 11.829659461975098,
+                "text": " clearly"
+              },
+              {
+                "tokenId": 1614,
+                "logit": 11.622962951660156,
+                "text": " *"
+              },
+              {
+                "tokenId": 9853,
+                "logit": 11.502151489257812,
+                "text": "clear"
+              },
+              {
+                "tokenId": 31469,
+                "logit": 11.369733810424805,
+                "text": "Clear"
+              }
+            ]
+          },
+          {
+            "index": 8,
+            "tokenId": 2676,
+            "inputTokenCount": 32,
+            "dtype": "f32",
+            "elementCount": 73448,
+            "digest": "sha256:77f0d67cf257769ef0500eec93206975d37fac031c70db5f18a0e69a972ea99e",
+            "top": [
+              {
+                "tokenId": 2676,
+                "logit": 23.281572341918945,
+                "text": " day"
+              },
+              {
+                "tokenId": 59342,
+                "logit": 14.895069122314453,
+                "text": ","
+              },
+              {
+                "tokenId": 49881,
+                "logit": 13.878368377685547,
+                "text": " daytime"
+              },
+              {
+                "tokenId": 18086,
+                "logit": 13.824142456054688,
+                "text": " sky"
+              },
+              {
+                "tokenId": 1384,
+                "logit": 13.53093433380127,
+                "text": " and"
+              },
+              {
+                "tokenId": 1426,
+                "logit": 12.84955883026123,
+                "text": " ("
+              },
+              {
+                "tokenId": 4975,
+                "logit": 12.71997356414795,
+                "text": " night"
+              },
+              {
+                "tokenId": 7872,
+                "logit": 12.715806007385254,
+                "text": " morning"
+              }
+            ]
+          },
+          {
+            "index": 9,
+            "tokenId": 1410,
+            "inputTokenCount": 33,
+            "dtype": "f32",
+            "elementCount": 73448,
+            "digest": "sha256:d911ea72833bb7bc22d19978743b9f3f3e5b13764f18c8018d33d1f3c58f03ae",
+            "top": [
+              {
+                "tokenId": 1410,
+                "logit": 16.983596801757812,
+                "text": " is"
+              },
+              {
+                "tokenId": 1571,
+                "logit": 15.04036808013916,
+                "text": " can"
+              },
+              {
+                "tokenId": 11407,
+                "logit": 14.329107284545898,
+                "text": " depends"
+              },
+              {
+                "tokenId": 25106,
+                "logit": 13.428587913513184,
+                "text": " varies"
+              },
+              {
+                "tokenId": 10649,
+                "logit": 12.137894630432129,
+                "text": " typically"
+              },
+              {
+                "tokenId": 7920,
+                "logit": 11.574189186096191,
+                "text": " appears"
+              },
+              {
+                "tokenId": 1601,
+                "logit": 11.456707000732422,
+                "text": " will"
+              },
+              {
+                "tokenId": 59342,
+                "logit": 11.242411613464355,
+                "text": ","
+              }
+            ]
+          },
+          {
+            "index": 10,
+            "tokenId": 10649,
+            "inputTokenCount": 34,
+            "dtype": "f32",
+            "elementCount": 73448,
+            "digest": "sha256:f04558b5c2d38e5e3d40582e0b64358def58ea3f6c70f9cd103a31d678048ed7",
+            "top": [
+              {
+                "tokenId": 10649,
+                "logit": 17.26767921447754,
+                "text": " typically"
+              },
+              {
+                "tokenId": 8522,
+                "logit": 15.464369773864746,
+                "text": " generally"
+              },
+              {
+                "tokenId": 28214,
+                "logit": 15.353940963745117,
+                "text": " predominantly"
+              },
+              {
+                "tokenId": 12315,
+                "logit": 14.926361083984375,
+                "text": " primarily"
+              },
+              {
+                "tokenId": 6053,
+                "logit": 14.725520133972168,
+                "text": " usually"
+              },
+              {
+                "tokenId": 4022,
+                "logit": 14.510177612304688,
+                "text": " often"
+              },
+              {
+                "tokenId": 8055,
+                "logit": 14.119250297546387,
+                "text": " blue"
+              },
+              {
+                "tokenId": 1573,
+                "logit": 13.668051719665527,
+                "text": " not"
+              }
+            ]
+          },
+          {
+            "index": 11,
+            "tokenId": 8055,
+            "inputTokenCount": 35,
+            "dtype": "f32",
+            "elementCount": 73448,
+            "digest": "sha256:1db008fdfe5c8892c6537d9fd54d12d39150a80ecf8f4cb22c423767118c3708",
+            "top": [
+              {
+                "tokenId": 8055,
+                "logit": 15.822001457214355,
+                "text": " blue"
+              },
+              {
+                "tokenId": 1348,
+                "logit": 13.92724609375,
+                "text": " a"
+              },
+              {
+                "tokenId": 5349,
+                "logit": 13.89087963104248,
+                "text": " white"
+              },
+              {
+                "tokenId": 4104,
+                "logit": 13.442437171936035,
+                "text": " clear"
+              },
+              {
+                "tokenId": 3566,
+                "logit": 12.90575885772705,
+                "text": " **"
+              },
+              {
+                "tokenId": 23088,
+                "logit": 11.908814430236816,
+                "text": " gray"
+              },
+              {
+                "tokenId": 5083,
+                "logit": 11.849889755249023,
+                "text": " described"
+              },
+              {
+                "tokenId": 11773,
+                "logit": 10.891472816467285,
+                "text": " bright"
+              }
+            ]
+          },
+          {
+            "index": 12,
+            "tokenId": 72,
+            "inputTokenCount": 36,
+            "dtype": "f32",
+            "elementCount": 73448,
+            "digest": "sha256:ca1851b72d83a090562a648e998e02af5e3ab1d99a6880cd705995aef683ee4c",
+            "top": [
+              {
+                "tokenId": 72,
+                "logit": 17.51436424255371,
+                "text": "."
+              },
+              {
+                "tokenId": 3642,
+                "logit": 15.552014350891113,
+                "text": " due"
+              },
+              {
+                "tokenId": 59342,
+                "logit": 15.519271850585938,
+                "text": ","
+              },
+              {
+                "tokenId": 1508,
+                "logit": 15.32187557220459,
+                "text": " or"
+              },
+              {
+                "tokenId": 1385,
+                "logit": 12.57785415649414,
+                "text": " to"
+              },
+              {
+                "tokenId": 2493,
+                "logit": 12.415228843688965,
+                "text": " because"
+              },
+              {
+                "tokenId": 63,
+                "logit": 12.344409942626953,
+                "text": "-"
+              },
+              {
+                "tokenId": 1384,
+                "logit": 10.12344741821289,
+                "text": " and"
+              }
+            ]
+          },
+          {
+            "index": 13,
+            "tokenId": 73440,
+            "inputTokenCount": 37,
+            "dtype": "f32",
+            "elementCount": 73448,
+            "digest": "sha256:aaa7d42a692c382fd794752f026663cf9e7289afb88cae25ce21b33eed504d92",
+            "top": [
+              {
+                "tokenId": 73440,
+                "logit": 15.081586837768555,
+                "text": "<|im_end|>"
+              },
+              {
+                "tokenId": 1900,
+                "logit": 14.973029136657715,
+                "text": " This"
+              },
+              {
+                "tokenId": 3519,
+                "logit": 11.361665725708008,
+                "text": " However"
+              },
+              {
+                "tokenId": 1507,
+                "logit": 10.979169845581055,
+                "text": " The"
+              },
+              {
+                "tokenId": 5,
+                "logit": 10.747836112976074,
+                "text": "\n"
+              },
+              {
+                "tokenId": 4139,
+                "logit": 10.533408164978027,
+                "text": " When"
+              },
+              {
+                "tokenId": 8868,
+                "logit": 10.447175025939941,
+                "text": " During"
+              },
+              {
+                "tokenId": 11003,
+                "logit": 10.372928619384766,
+                "text": " Blue"
+              }
+            ]
+          }
+        ]
+      },
+      "tolerance": {
+        "tokenPolicy": "exact generated token IDs",
+        "logitsPolicy": "exact sha256 digest per generated step over finalized f32 logits before sampling",
+        "kvPolicy": "exact sha256 digest over used KV cache bytes by layer/key/value"
+      }
+    },
+    "operatorDiagnostics": null,
+    "modelCheckpoints": null,
+    "decodeBottleneck": {
+      "schemaVersion": 2,
+      "source": "doppler",
+      "dominant": {
+        "id": "orchestration",
+        "label": "decode orchestration",
+        "ms": 344.287,
+        "shareOfDecode": 1
+      },
+      "bottleneckClass": null,
+      "attribution": {
+        "status": "unresolved",
+        "reason": "Aggregate intervals may overlap and do not establish a critical path or causal bottleneck."
+      },
+      "decodeWallMs": 344.29,
+      "componentsMs": {
+        "commandRecordMs": 0,
+        "submitWaitMs": 0,
+        "readbackWaitMs": 0,
+        "effectiveSubmitReadbackWaitMs": 0,
+        "readbackMapWaitMs": 0,
+        "readbackCleanupMs": 0,
+        "readbackCopyMs": 0,
+        "readbackUnattributedMs": null,
+        "gpuTimestampMs": null,
+        "submitReadbackSlackMs": null,
+        "orchestrationMs": 344.287,
+        "residualMs": null
+      },
+      "recording": {
+        "opCount": 0,
+        "passCount": 0,
+        "uniqueOpLabels": null,
+        "msPerOp": null,
+        "msPerPass": null,
+        "passesPerOp": null,
+        "msPerExecutedBatchToken": null,
+        "opsPerExecutedBatchToken": null,
+        "passesPerExecutedBatchToken": null,
+        "topOps": [],
+        "topOpGroups": [],
+        "uniformCache": {
+          "hits": 2302,
+          "misses": 50,
+          "totalLookups": 2352,
+          "hitRateRatio": 0.9787414965986394,
+          "evictions": 0,
+          "currentSize": 50,
+          "pendingDestruction": 0,
+          "hitRate": "97.9%"
+        }
+      },
+      "shares": {
+        "commandRecord": 0,
+        "submitWait": 0,
+        "readbackWait": 0,
+        "effectiveSubmitReadbackWait": 0,
+        "readbackMapWait": 0,
+        "readbackCleanup": 0,
+        "readbackCopy": 0,
+        "readbackUnattributed": null,
+        "gpuTimestamp": null,
+        "submitReadbackSlack": null,
+        "orchestration": 1,
+        "residual": null
+      },
+      "semantics": {
+        "dominant": "Largest observed aggregate interval, not a causal bottleneck or recoverable fraction of decode time.",
+        "shares": "Each interval divided by decode wall; intervals overlap and shares are not additive.",
+        "effectiveSubmitReadbackWaitMs": "Maximum aggregate submit/readback wait, not a measured union of intervals.",
+        "submitReadbackSlackMs": "Unknown without aligned GPU/host intervals and complete timestamp coverage.",
+        "readbackUnattributedMs": "Unknown: independently aggregated subcomponent medians are not subtractable.",
+        "residualMs": "Unknown: overlapping aggregate intervals cannot partition decode wall.",
+        "readbackMapWaitMs": "Wall time awaiting staging-buffer mapAsync; usually includes GPU completion behind the readback.",
+        "gpuTimestampMs": "Elapsed timestamped GPU intervals when available; may include scheduling/preemption, omit unmeasured passes, and overlap host recording. Null means not captured.",
+        "topOps": "Highest-count exact compute-pass labels observed during command recording.",
+        "topOpGroups": "Highest-count compute-pass labels after grouping repeated per-layer labels.",
+        "uniformCache": "Current uniform-buffer cache counters at the end of the measured suite."
+      }
+    },
+    "load": {
+      "schemaVersion": 1,
+      "source": "doppler",
+      "semantics": {
+        "modelLoadMs": "suite initialization time before generation",
+        "loaderTotalMs": "DopplerLoader.load() weight-loader wall time",
+        "pipelineTotalMs": "InferencePipeline.loadModel() wall time",
+        "modelLoadMinusPipelineMs": "modelLoadMs - pipeline.totalMs; harness, storage, manifest, GPU init, and pipeline construction",
+        "pipelineMinusLoaderMs": "pipeline.totalMs - loader.totalMs; config, tokenizer, KV, RoPE, and other pipeline setup",
+        "modelLoadMinusLoaderMs": "modelLoadMs - loader.totalMs"
+      },
+      "modelLoadMs": 4678,
+      "loader": {
+        "schemaVersion": 1,
+        "source": "doppler-loader",
+        "modelId": "minicpm4-0-5b-f16-af32",
+        "status": "complete",
+        "customShardLoader": true,
+        "byteAccountingMode": "custom-loader-read-progress",
+        "totalBytes": 867747840,
+        "totalShards": 13,
+        "bytesLoaded": 867796992,
+        "shardsLoaded": 13,
+        "bytesPerSecond": 194446291,
+        "phasesMs": {
+          "preflight": 0.56,
+          "tensorLocations": 4.57,
+          "embeddings": 959.17,
+          "layers": 3496.43,
+          "finalWeights": 1.09,
+          "cleanup": 0.04
+        },
+        "layers": {
+          "count": 24,
+          "totalMs": 3468.87,
+          "meanMs": 144.54,
+          "maxMs": 648.3,
+          "maxLayer": 3
+        },
+        "totalMs": 4462.91,
+        "failedPhase": null,
+        "error": null
+      },
+      "pipeline": {
+        "schemaVersion": 1,
+        "source": "doppler-pipeline",
+        "modelId": "minicpm4-0-5b-f16-af32",
+        "status": "complete",
+        "phasesMs": {
+          "reset": 0.05,
+          "configResolution": 5.25,
+          "kernelWarmup": 0.03,
+          "tokenizer": 57.04,
+          "executionSetup": 5.31,
+          "loadWeights": 4573.22,
+          "rope": 10.09,
+          "convStates": 0.06,
+          "warmGeneration": null
+        },
+        "details": {
+          "tokenizer": {
+            "schemaVersion": 1,
+            "source": "doppler-tokenizer",
+            "modelId": "minicpm4-0-5b-f16-af32",
+            "status": "complete",
+            "tokenizerType": "bundled",
+            "tokenizerFile": "tokenizer.json",
+            "backend": "bundled",
+            "assetSource": "custom-loader",
+            "cacheHit": false,
+            "phasesMs": {
+              "configResolution": 0.03,
+              "cacheLookup": 0.03,
+              "backendCreate": 0.05,
+              "assetLoad": 26.67,
+              "assetParse": 0.04,
+              "backendLoad": 29.9,
+              "cacheStore": 0.01
+            },
+            "totalMs": 56.82,
+            "error": null
+          },
+          "warmGeneration": null
+        },
+        "totalMs": 4651.15
+      },
+      "residualsMs": {
+        "modelLoadMinusLoaderMs": 215.09,
+        "modelLoadMinusPipelineMs": 26.85,
+        "pipelineMinusLoaderMs": 188.24
+      },
+      "consistent": {
+        "loaderWithinModelLoad": true,
+        "pipelineWithinModelLoad": true,
+        "loaderWithinPipeline": true
+      }
+    },
+    "schemaVersion": 1,
+    "source": "doppler",
+    "suite": "inference",
+    "executionContractArtifact": {
+      "schemaVersion": 1,
+      "source": "doppler",
+      "ok": true,
+      "checks": [
+        {
+          "id": "minicpm4-0-5b-f16-af32.steps",
+          "ok": true
+        },
+        {
+          "id": "minicpm4-0-5b-f16-af32.session",
+          "ok": true
+        }
+      ],
+      "errors": [],
+      "session": {
+        "layout": "contiguous",
+        "disableCommandBatching": false,
+        "decodeBatchSize": 4,
+        "headDim": 64,
+        "kvLen": 8192,
+        "coldQuantMode": "none",
+        "contiguousQuantMode": "none"
+      },
+      "steps": {
+        "total": 35,
+        "attention": 2,
+        "attentionPhases": {
+          "prefill": 1,
+          "decode": 1,
+          "both": 0
+        }
+      }
+    },
+    "layerPatternContractArtifact": {
+      "schemaVersion": 1,
+      "source": "doppler",
+      "ok": true,
+      "checks": [
+        {
+          "id": "inference.layerPattern.groups",
+          "ok": true
+        },
+        {
+          "id": "inference.layerPattern.patternKind.structure",
+          "ok": true
+        },
+        {
+          "id": "inference.layerPattern.layerType.structure",
+          "ok": true
+        },
+        {
+          "id": "inference.layerPattern.layerType.coverage",
+          "ok": true
+        }
+      ],
+      "errors": [],
+      "stats": {
+        "patternKindRules": 4,
+        "layerTypeRules": 6
+      }
+    },
+    "requiredInferenceFieldsArtifact": {
+      "schemaVersion": 1,
+      "source": "doppler",
+      "scope": "manifest",
+      "label": "minicpm4-0-5b-f16-af32.inference",
+      "ok": true,
+      "checks": [
+        {
+          "id": "minicpm4-0-5b-f16-af32.inference.requiredInferenceFields",
+          "ok": true
+        }
+      ],
+      "errors": [],
+      "stats": {
+        "fieldCases": 51,
+        "nullableCases": 27,
+        "nonNullableCases": 24
+      }
+    },
+    "sourceParity": {
+      "schema": "doppler.source-token-parity/v1",
+      "status": "passed",
+      "expectedTranscriptPath": "../../../../tmp/doppler-minicpm-expected-transcript.json",
+      "expectedTranscriptHash": "sha256:10cfa9115bfad77b88ff1dce1c9f33387806dc2d5f09f28b69a732036f24bcbe",
+      "sourceModel": "openbmb/MiniCPM4-0.5B",
+      "sourceRevision": "5253c7fcc5e29e1cf3eacb59a58adf1ba4df8630",
+      "sampling": "greedy-argmax-f32-logits",
+      "prompt": {
+        "passed": true,
+        "expectedCount": 24,
+        "observedCount": 24,
+        "firstMismatchIndex": null,
+        "expectedTokenId": null,
+        "observedTokenId": null
+      },
+      "generation": {
+        "passed": true,
+        "expectedCount": 14,
+        "observedCount": 14,
+        "firstMismatchIndex": null,
+        "expectedTokenId": null,
+        "observedTokenId": null
+      }
+    }
+  },
+  "output": "The color of the sky on a clear day is typically blue.",
+  "memory": {
+    "used": 923914496,
+    "pool": {
+      "allocations": 2292,
+      "reuses": 2921,
+      "totalBytesAllocated": 892213248,
+      "peakBytesAllocated": 885415680,
+      "currentBytesAllocated": 873554176,
+      "totalBytesRequested": 887841280,
+      "peakBytesRequested": 881966848,
+      "currentBytesRequested": 869894144,
+      "resources": {
+        "retainedModel": {
+          "bytes": 867846144,
+          "count": 242
+        },
+        "active": {
+          "bytes": 2097152,
+          "count": 4
+        },
+        "reusable": {
+          "bytes": 3610880,
+          "count": 58
+        },
+        "deferredCleanup": {
+          "bytes": 0,
+          "count": 0
+        }
+      },
+      "activeBuffers": 246,
+      "pooledBuffers": 58,
+      "budgetMaxBytes": 0,
+      "budgetUtilization": 0,
+      "hitRate": "56.0%"
+    },
+    "kvCache": {
+      "theoretical": 50331648,
+      "allocated": 50331648,
+      "used": 454656,
+      "efficiency": 0.009033203125,
+      "seqLen": 37,
+      "maxSeqLen": 4096,
+      "layout": "contiguous",
+      "kvDtype": "f16",
+      "counters": {
+        "updateCalls": 0,
+        "gpuUpdateCalls": 0,
+        "recordedGpuUpdateCalls": 336,
+        "tokensWritten": 888
+      }
+    },
+    "decodeBuffers": {
+      "hiddenBytes": 4096,
+      "intermediateBytes": 16384,
+      "totalBytes": 28672,
+      "activationDtype": "f32",
+      "workspace": null
+    }
+  },
+  "debugSnapshot": null
+}

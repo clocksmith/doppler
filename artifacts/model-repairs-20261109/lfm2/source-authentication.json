@@ -1,0 +1,82 @@
+[
+  {
+    "file": ".gitattributes",
+    "bytes": 1519,
+    "sha256": "11ad7efa24975ee4b0c3c3a38ed18737f0658a5f75a0a96787b576a78a023361",
+    "expected": "a6344aac8c09253b3b630fb776ae94478aa0275b",
+    "actual": "a6344aac8c09253b3b630fb776ae94478aa0275b",
+    "passed": true
+  },
+  {
+    "file": "LICENSE",
+    "bytes": 10596,
+    "sha256": "5188f2b355da20647257a3156db5834c794e5fb5e6d8dc4d4cdbb3180e75b85b",
+    "expected": "d24c9208b10e63d317589bc8d6fc34967c3068d3",
+    "actual": "d24c9208b10e63d317589bc8d6fc34967c3068d3",
+    "passed": true
+  },
+  {
+    "file": "README.md",
+    "bytes": 15429,
+    "sha256": "083f5b372f073dcf3aaad88533b09573a7b2398a22d69afde39480e8d6125682",
+    "expected": "33ed1d65bae60cc089fb75606fc7494a3d4c2ae7",
+    "actual": "33ed1d65bae60cc089fb75606fc7494a3d4c2ae7",
+    "passed": true
+  },
+  {
+    "file": "chat_template.jinja",
+    "bytes": 1783,
+    "sha256": "f05bf4b967dc993bdc7a2fe6e43759ee218eb0eb340d68b063e1c4f8ad148176",
+    "expected": "7778756dd927ccd77836f05b0315809593fd0f3a",
+    "actual": "7778756dd927ccd77836f05b0315809593fd0f3a",
+    "passed": true
+  },
+  {
+    "file": "config.json",
+    "bytes": 1224,
+    "sha256": "15d6157fb6df3f8272e2fe90e18f57727ccf02a125c94469198b0f3281510185",
+    "expected": "42d7131e339aa00fecec1da8541151f9d0962835",
+    "actual": "42d7131e339aa00fecec1da8541151f9d0962835",
+    "passed": true
+  },
+  {
+    "file": "generation_config.json",
+    "bytes": 132,
+    "sha256": "5ffd97da1dec4308543894569662d96e923ed01f7a9d8c7ff5aea7f800738cbd",
+    "expected": "0ec736a123e9569cb6aef0c86f7ee22523b2640f",
+    "actual": "0ec736a123e9569cb6aef0c86f7ee22523b2640f",
+    "passed": true
+  },
+  {
+    "file": "model.safetensors",
+    "bytes": 2340697936,
+    "sha256": "1ba63d9adb03ae43581db0e136e4416febe0441aff7296397bd455fb6017f73a",
+    "expected": "1ba63d9adb03ae43581db0e136e4416febe0441aff7296397bd455fb6017f73a",
+    "actual": "1ba63d9adb03ae43581db0e136e4416febe0441aff7296397bd455fb6017f73a",
+    "passed": true
+  },
+  {
+    "file": "special_tokens_map.json",
+    "bytes": 434,
+    "sha256": "742aefe2b7dec496e8caffdba03a75d0c1a9925d53bd3f3e0d388c96b591b6f4",
+    "expected": "b28c8a1e9ecfa97dfc04bf0a5951183155ccc6d7",
+    "actual": "b28c8a1e9ecfa97dfc04bf0a5951183155ccc6d7",
+    "passed": true
+  },
+  {
+    "file": "tokenizer.json",
+    "bytes": 4733389,
+    "sha256": "df1d8d5ec5d091b460562ffd545e4a5e91d17d4a0db7ebe733be34ed374377bd",
+    "expected": "2e27bba0b0505b2b2124fa9225c9b5dda7531474",
+    "actual": "2e27bba0b0505b2b2124fa9225c9b5dda7531474",
+    "passed": true
+  },
+  {
+    "file": "tokenizer_config.json",
+    "bytes": 92225,
+    "sha256": "2a52ec012d3df831ba434b081bef3726a6ee22501f062ad8353c557a0cfa0d01",
+    "expected": "5b071cd2a330a6e5b33ba575fd1e2f6f57f09927",
+    "actual": "5b071cd2a330a6e5b33ba575fd1e2f6f57f09927",
+    "passed": true
+  }
+]

@@ -167,7 +167,18 @@ export async function materializeQ4KDenseBuffer(quantBuffer, shardData, location
   const paritySamples = loaderDebug?.q4kDequantParitySamples ?? null;
 
   const q4kCpuReferenceContext = getQ4KCpuReferenceContext(shardData, location, config, outputDtype);
-  const { needsRowwise, layout, K } = q4kCpuReferenceContext;
+  const { needsRowwise, layout, K, storageShape } = q4kCpuReferenceContext;
+  const elementCount = getShapeElementCount(location.shape);
+  const packedBlocks = needsRowwise
+    ? (elementCount / K) * Math.ceil(K / QK_K)
+    : Math.ceil(elementCount / QK_K);
+  const expectedBytes = packedBlocks * Q4K_BLOCK_BYTES;
+  if (location.size !== expectedBytes || resolveInputByteLength(shardData, location.size) < expectedBytes) {
+    throw new Error(
+      `Tensor "${name}" Q4K packed size mismatch: expected ${expectedBytes} bytes ` +
+      `for ${needsRowwise ? 'row-padded' : 'flat'} shape [${location.shape}], got ${location.size}.`
+    );
+  }
   const preferCpuDequant = loaderDebug?.preferCpuDequant === true;
   const canUseCpuReference = !forceGpuDequant && preferCpuDequant && q4kCpuReferenceContext.eligible;
 
@@ -186,7 +197,7 @@ export async function materializeQ4KDenseBuffer(quantBuffer, shardData, location
       `shape=[${location.shape.join(',')}], layout=${layout}, needsRowwise=${needsRowwise}`
     );
     const f32Weights = needsRowwise
-      ? dequantizeQ4KMRowWise(quantizedBytes, location.shape)
+      ? dequantizeQ4KMRowWise(quantizedBytes, storageShape)
       : dequantizeQ4KM(quantizedBytes, numBlocks, location.shape);
     const outputBuffer = acquireAlignedBuffer(f32Weights.byteLength, `dequant_cpu_${name}`);
     try {
@@ -209,7 +220,7 @@ export async function materializeQ4KDenseBuffer(quantBuffer, shardData, location
   let denseElementCount = null;
   let dequantizedTensor;
   if (needsRowwise) {
-    rowCount = location.shape.slice(0, -1).reduce((a, b) => a * b, 1);
+    rowCount = elementCount / K;
     blocksPerRow = Math.ceil(K / QK_K);
     numBlocks = rowCount * blocksPerRow;
     denseElementCount = rowCount * K;
@@ -261,7 +272,7 @@ export async function materializeQ4KDenseBuffer(quantBuffer, shardData, location
         const quantizedBytes = toUint8View(shardData);
         const cpuRef = Array.from(
           needsRowwise
-            ? dequantizeQ4KMRowWise(quantizedBytes, location.shape)
+            ? dequantizeQ4KMRowWise(quantizedBytes, storageShape)
             : dequantizeQ4KM(quantizedBytes, numBlocks, location.shape)
         ).slice(0, gpuVals.length);
 
@@ -356,18 +367,25 @@ async function loadQ4KRepresentations(shardData, location, name, config, packed)
 
 export function getQ4KCpuReferenceContext(shardData, location, config, outputDtype = getQ4KOutputDtype(location, config)) {
   const isMatrixLike = Array.isArray(location.shape) && location.shape.length >= 2;
-  const K = isMatrixLike ? location.shape[location.shape.length - 1] : 0;
   const layout = getWeightLayout(location, config);
-  const needsRowwise = isMatrixLike && layout === 'row' && K > 0 && K % QK_K !== 0;
-  const eligible = outputDtype === 'f32'
-    && !isGpuBufferInstance(shardData)
-    && (!needsRowwise || layout === 'row');
+  const storageShape = layout === 'column' && location.shape?.length === 2
+    ? [location.shape[1], location.shape[0]] : location.shape;
+  const K = isMatrixLike ? storageShape[storageShape.length - 1] : 0;
+  // Higher-rank non-expert tensors without a packing declaration are flat
+  // converter output; a logical row layout does not imply padding each row.
+  const needsRowwise = selectRuleValue('loader', 'weights', 'q4kRowPadding', {
+    rank: location.shape?.length ?? 0,
+    explicitRowPacking: location.layout === 'row',
+    partialRow: isMatrixLike && K > 0 && K % QK_K !== 0,
+  });
+  const eligible = outputDtype === 'f32' && !isGpuBufferInstance(shardData);
   return {
     eligible,
     outputDtype,
     needsRowwise,
     layout,
     K,
+    storageShape,
   };
 }
 

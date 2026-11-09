@@ -73,4 +73,23 @@ import {
   assert.notEqual(first.manifestVariantId, second.manifestVariantId);
 }
 
+{
+  const source = {
+    model_type: 'lfm2', num_hidden_layers: 16, hidden_size: 2048, intermediate_size: 12288,
+    num_attention_heads: 32, num_key_value_heads: 8, vocab_size: 65536, max_position_embeddings: 128000,
+    block_auto_adjust_ff_dim: true, block_ffn_dim_multiplier: 1, block_multiple_of: 256,
+  };
+  const manifest = { modelType: 'transformer', architecture: { ...extractArchitecture(source), intermediateSize: 8192 } };
+  assert.deepEqual(buildRefreshRawConfig(manifest, source), source);
+  assert.equal(extractArchitecture(source).intermediateSize, 8192);
+  assert.equal(extractArchitecture({ ...source, block_ffn_dim_multiplier: 1.05 }).intermediateSize, 8704);
+  assert.equal(extractArchitecture({ ...source, intermediate_size: 12300, block_ffn_dim_multiplier: null }).intermediateSize, 8200);
+  assert.equal(extractArchitecture({ ...source, block_auto_adjust_ff_dim: false }).intermediateSize, 12288);
+  assert.throws(() => buildRefreshRawConfig({ ...manifest, architecture: { ...manifest.architecture, intermediateSize: 7936 } }, source), /architecture.intermediateSize disagrees/);
+  assert.throws(() => extractArchitecture({ ...source, block_multiple_of: 0 }), /block_multiple_of/);
+  assert.throws(() => extractArchitecture({ ...source, block_ffn_dim_multiplier: -1 }), /block_ffn_dim_multiplier/);
+  assert.throws(() => extractArchitecture({ ...source, block_ffn_dim_multiplier: undefined }), /block_ffn_dim_multiplier/);
+  assert.throws(() => extractArchitecture({ ...source, intermediate_size: 1, block_ffn_dim_multiplier: null }), /adjusted intermediate_size/);
+}
+
 console.log('refresh-converted-manifest.test: ok');

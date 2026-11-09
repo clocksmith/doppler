@@ -1,0 +1,214 @@
+{
+  "schema": "doppler.model-repair-receipt/v1",
+  "consumer": "LFM2 bounded repair evidence and tests/loader/q4k-packing-gpu.test.js",
+  "baseCommit": "26a81570b3866ed3ebe4d7705e3a77817a481fe1",
+  "implementationFiles": [
+    {
+      "path": "src/config/conversion/lfm2/lfm2.5-1.2b-instruct-q4k-ehf16-af32.json",
+      "sha256": "b5abd0018764f983bf9011c155a90a8438a9c9c53cb81fa76f3a1062dd6d09e4"
+    },
+    {
+      "path": "src/converter/artifact-identity.js",
+      "sha256": "30ab7f0226a933fba5b0e5b721556fee6eb2b68888547a4565de6a678744eee9"
+    },
+    {
+      "path": "src/loader/tensors/load-executor.js",
+      "sha256": "d7845967c51720906c283021ecb208c8dea9e990df7de4e95e99885cc3a32ba1"
+    },
+    {
+      "path": "src/rules/loader/weights.rules.json",
+      "sha256": "b1f9abb0897d19102a993fd565ca4b62a3ff7339a669efa2810e24b61f877719"
+    },
+    {
+      "path": "src/rules/generated/rule-bundle.json",
+      "sha256": "2246739019fe0f3f286f5deff836b2b8d631d2f38160e1280efbe417525c5f53"
+    }
+  ],
+  "source": {
+    "model": "LiquidAI/LFM2.5-1.2B-Instruct",
+    "revision": "e129ea4241f9232d771540bd8ed4753feebaedc2",
+    "checkpointSha256": "1ba63d9adb03ae43581db0e136e4416febe0441aff7296397bd455fb6017f73a",
+    "independentInventoryUrl": "https://huggingface.co/api/models/LiquidAI/LFM2.5-1.2B-Instruct/tree/e129ea4241f9232d771540bd8ed4753feebaedc2"
+  },
+  "diagnosis": [
+    "Recipe omitted the source ffn_norm stage and selected GELU despite source SiLU gating.",
+    "Architecture refresh compared serialized FFN width 12288 instead of the source-adjusted width 8192.",
+    "Loader confused logical row layout with row-padded packing for a flat [2048,1,3] convolution filter."
+  ],
+  "filterMaterialization": {
+    "elements": 6144,
+    "beforeZeroCount": 6072,
+    "afterZeroCount": 0,
+    "afterMaxAbsAgainstIndependentQ4DecodeRoundedF16": 0.0,
+    "beforeCaptureNote": "Original scratch capture was mislabeled f32; bytes decoded as F16, trimmed to declared 6144 elements. Invalid F32 interpretation excluded. Stack-trace workspace paths in packing-gpu-before.log were redacted to <repo>."
+  },
+  "nodeChecks": [
+    {
+      "lane": "f16",
+      "case": 0,
+      "promptTokens": 24,
+      "generatedTokensIncludingEos": 10,
+      "exactTokenMatch": true,
+      "reference": "source-reference.json"
+    },
+    {
+      "lane": "f16",
+      "case": 1,
+      "promptTokens": 23,
+      "generatedTokensIncludingEos": 2,
+      "exactTokenMatch": true,
+      "reference": "source-reference.json"
+    },
+    {
+      "lane": "f16",
+      "case": 2,
+      "promptTokens": 21,
+      "generatedTokensIncludingEos": 24,
+      "exactTokenMatch": true,
+      "reference": "source-reference.json"
+    },
+    {
+      "lane": "q4k",
+      "case": 0,
+      "promptTokens": 24,
+      "generatedTokensIncludingEos": 11,
+      "exactTokenMatch": true,
+      "reference": "quantized-source-reference.json"
+    },
+    {
+      "lane": "q4k",
+      "case": 1,
+      "promptTokens": 23,
+      "generatedTokensIncludingEos": 2,
+      "exactTokenMatch": true,
+      "reference": "quantized-source-reference.json"
+    },
+    {
+      "lane": "q4k",
+      "case": 2,
+      "promptTokens": 21,
+      "generatedTokensIncludingEos": 24,
+      "exactTokenMatch": true,
+      "reference": "quantized-source-reference.json"
+    }
+  ],
+  "browserCheck": {
+    "reference": "expected-transcript.json",
+    "report": "browser-proof.json",
+    "scope": "One complete prompt; 24 prompt IDs, 11 generation IDs including EOS; physical Apple Metal WebGPU"
+  },
+  "limits": [
+    "Three bounded prompts, not broad task-quality qualification.",
+    "Python-function case intentionally stops after 24 generated tokens and is incomplete.",
+    "F16 and Q4K have different expected token sequences; Q4K compared to independently decoded quantized weights.",
+    "No performance promotion, catalog change or hosted artifact publication.",
+    "Jupiter jobs preserved; matched Jupiter timing explicitly deferred."
+  ],
+  "files": [
+    {
+      "path": "browser-proof.json",
+      "sha256": "4361157d90014940a44b8e8665623f6b2d05539a6e25858b472865fc7a399553",
+      "bytes": 62080
+    },
+    {
+      "path": "candidate-manifest.json",
+      "sha256": "820330a533f142344334f56622f624e5fdd2a2af3f3178db9955c41d40f16364",
+      "bytes": 72759
+    },
+    {
+      "path": "conversion-config.json",
+      "sha256": "db745201a7ba19a55aac483bbc9290ef029be6c266739fca491b29c28130f807",
+      "bytes": 9593
+    },
+    {
+      "path": "expected-transcript.json",
+      "sha256": "f4387def1d8bdcd8c8d5cc814ec55f1eb589fd2d8bf1270500a9c9166660142a",
+      "bytes": 1198
+    },
+    {
+      "path": "f16-control-manifest.json",
+      "sha256": "5ccc9516650d15ab08a55a223b3d6aa6992d733bdca74af4c9852336a40f2b00",
+      "bytes": 78907
+    },
+    {
+      "path": "filter-after-f32.npy",
+      "sha256": "62af5f81b2a5b95188179fe04643971b814a3da76d1733207e4b975f35e8a9f9",
+      "bytes": 24704
+    },
+    {
+      "path": "filter-before-f16.npy",
+      "sha256": "84d83583270bc25b2302336ec2c022f00b3098682117e99ba632874cdd8df7fb",
+      "bytes": 12416
+    },
+    {
+      "path": "filter-reference-materialized-f32.npy",
+      "sha256": "62af5f81b2a5b95188179fe04643971b814a3da76d1733207e4b975f35e8a9f9",
+      "bytes": 24704
+    },
+    {
+      "path": "loaded-weights-after.json",
+      "sha256": "483b6a2b3c68229bbe226b75a71dfe753a0bf55fc59ae54d66d9bfca881bb560",
+      "bytes": 2566
+    },
+    {
+      "path": "loaded-weights-before.json",
+      "sha256": "778fb5fc1e0dff478b20859d25098d5d92f0eda4547962a9ebfa792a27b7ee50",
+      "bytes": 2472
+    },
+    {
+      "path": "node-cases-after-packing.json",
+      "sha256": "5de46d7b3f2cae071a2d2e8ca1dbd60e1a7e2941c73d86ebaf0bafab667af144",
+      "bytes": 17063
+    },
+    {
+      "path": "node-cases-before-packing.json",
+      "sha256": "f8170b58694bfdb0ec8c19c07d1bfa382bca88801c28ff0add47f80eaaaa88a3",
+      "bytes": 17606
+    },
+    {
+      "path": "packing-gpu-after.log",
+      "sha256": "77a9e9cc41c00477b6f70dd4dcb0828cefd1d143183319f332feef2393a83d6d",
+      "bytes": 318
+    },
+    {
+      "path": "packing-gpu-before.log",
+      "sha256": "6d2c432af061a6ebafb0b976f9b09024c2ed041a44cdc68eb14862c71082cf12",
+      "bytes": 509
+    },
+    {
+      "path": "quantized-source-reference.json",
+      "sha256": "201b6efd6c8908c8a88089433368ec59b341cba92c99241a26d3de4b94287d94",
+      "bytes": 4578
+    },
+    {
+      "path": "quantized-source-reference.py",
+      "sha256": "d5a27b881b355e8299e2c38107f3eeb316896c3cb0a6290aac7237b4c7e8272a",
+      "bytes": 3464
+    },
+    {
+      "path": "source-authentication.json",
+      "sha256": "4b142968b80600470610c467718e8e14f5e944c7c764c30ca4a28701e0b21a18",
+      "bytes": 2847
+    },
+    {
+      "path": "source-config.json",
+      "sha256": "15d6157fb6df3f8272e2fe90e18f57727ccf02a125c94469198b0f3281510185",
+      "bytes": 1224
+    },
+    {
+      "path": "source-inventory.json",
+      "sha256": "b9cba0f233beceb5159b040f61da183cbf557cf7edf339cbd993a6e0ee85f870",
+      "bytes": 1334
+    },
+    {
+      "path": "source-reference.json",
+      "sha256": "749cb570ff27535087c3cd5967842f668cec9f7963e614f4cfde8f767b838337",
+      "bytes": 5967
+    },
+    {
+      "path": "source-reference.py",
+      "sha256": "68d33a72ac15f8e23e93b4fee48309d230ccfb5bf6a8e20cc843fa60b749fa13",
+      "bytes": 1813
+    }
+  ]
+}

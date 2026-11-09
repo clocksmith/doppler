@@ -262,5 +262,31 @@ resetRuntimeState(null);
   assert.equal(result.allocatedBuffers.length, 1);
 }
 
+// The explicit CPU reference and GPU materialization share packing, not
+// inference policy. A flat filter must not acquire per-row padding.
+{
+  resetRuntimeState(createFakeDevice());
+  const config = { useFusedQ4K: false, keepF32Weights: true, q4kLayout: 'row',
+    loaderDebug: { preferCpuDequant: true } };
+  const shape = [512, 1, 3];
+  const source = Float32Array.from({ length: 1536 }, (_, i) => Math.sin(i * 0.03));
+  const { quantized, numBlocks } = quantizeToQ4KM(source, shape);
+  const expected = dequantizeQ4KM(quantized, numBlocks, shape);
+  const result = await loadQ4KDequant(quantized, {
+    shape, size: quantized.byteLength, dtype: 'Q4_K_M', role: 'other',
+  }, 'flat-filter-cpu-reference', config);
+  assert.deepEqual(decodeF32Prefix(result.data.buffer, expected.length), Array.from(expected));
+  // Column storage is row-padded after transpose, including on basic backends.
+  const rowShape = [4, 3];
+  const rowValues = source.slice(0, 12);
+  const rowBytes = quantizeToQ4KMRowWise(rowValues, rowShape).quantized;
+  const column = await loadQ4KDequant(rowBytes, {
+    shape: [3, 4], size: rowBytes.byteLength, dtype: 'Q4_K_M', role: 'other', layout: 'column',
+  }, 'column-cpu-reference', config);
+  assert.equal(column.data.layout, 'column');
+  assert.deepEqual(decodeF32Prefix(column.data.buffer, 12),
+    Array.from(dequantizeQ4KMRowWise(rowBytes, rowShape)));
+}
+
 resetRuntimeState(null);
 console.log('tensor-loader-q4k-reference-path.test: ok');

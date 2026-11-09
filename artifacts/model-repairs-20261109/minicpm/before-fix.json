@@ -1,0 +1,332 @@
+{
+  "classification": "projection of the before-fix diagnostic; full raw diagnostic remains local",
+  "sourceCommit": "7e174eab",
+  "rawReportSha256": "79db2b79e31c87ddd292c727e010d6b74b46fd0f38a39f232dab4437a604a545",
+  "prompt": "Q: What color is the sky on a clear day? A:",
+  "output": "A:\nB:\nC:\nD:\nE:\nF",
+  "referenceTranscript": {
+    "schema": "doppler.reference-transcript/v1",
+    "source": {
+      "kind": "inline-browser-suite",
+      "path": "inline",
+      "hash": "sha256:e9304c3dbd431c006502fda5e250ec0278470a607c74c129554eafae4486b830"
+    },
+    "executionGraphHash": "sha256:6d1a200b5ebac525281537db856d520a9d22d27ef2f50fe337d3a1f539464703",
+    "surface": "node-webgpu",
+    "generationConfig": {
+      "maxTokens": 16,
+      "temperature": 0,
+      "topP": 1,
+      "topK": 1,
+      "repetitionPenalty": 1,
+      "repetitionPenaltyWindow": 100,
+      "greedyThreshold": 0,
+      "suppressSpecialTokens": false,
+      "suppressSpecialLikeTokens": false,
+      "suppressTokenIds": [],
+      "seed": null,
+      "useChatTemplate": true
+    },
+    "prompt": {
+      "identity": "Q: What color is the sky on a clear day? A:",
+      "hash": "sha256:2bd906babe98e48dfdc0f3d5f33530b95d530fc5e7a6eed4c21d892f0b1ecdb2",
+      "input": "Q: What color is the sky on a clear day? A:",
+      "ids": [
+        1,
+        73441,
+        1836,
+        5,
+        59544,
+        59358,
+        3067,
+        4351,
+        1410,
+        1358,
+        18086,
+        1432,
+        1348,
+        4104,
+        2676,
+        74,
+        1420,
+        59358,
+        73440,
+        5,
+        73441,
+        43686,
+        5
+      ],
+      "tokenIdsHash": "sha256:4052a5fdd9add362318621a08a546254dae0ef5b4a1b498eb6c6c5c17bfe31cc",
+      "tokenCount": 23
+    },
+    "output": {
+      "textHash": "sha256:2f343315d53eafc90395275440a6da10d6bbf5178b782fd6af597f3474ef8dd8",
+      "tokensGenerated": 16,
+      "stopReason": "max-tokens",
+      "stopTokenId": null
+    },
+    "tokens": {
+      "ids": [
+        59353,
+        59358,
+        5,
+        59378,
+        59358,
+        5,
+        59357,
+        59358,
+        5,
+        59371,
+        59358,
+        5,
+        59364,
+        59358,
+        5,
+        59380
+      ],
+      "generatedTokenIdsHash": "sha256:be0a9fe25ad183a9976635b92a9d01f56f6b1881ef225ad4e2149d0167581752",
+      "generatedTextHash": "sha256:2f343315d53eafc90395275440a6da10d6bbf5178b782fd6af597f3474ef8dd8",
+      "preview": [
+        {
+          "id": 59353,
+          "text": "A",
+          "fallbackText": "A"
+        },
+        {
+          "id": 59358,
+          "text": ":",
+          "fallbackText": ":"
+        },
+        {
+          "id": 5,
+          "text": "\n",
+          "fallbackText": "\n"
+        },
+        {
+          "id": 59378,
+          "text": "B",
+          "fallbackText": "B"
+        },
+        {
+          "id": 59358,
+          "text": ":",
+          "fallbackText": ":"
+        },
+        {
+          "id": 5,
+          "text": "\n",
+          "fallbackText": "\n"
+        },
+        {
+          "id": 59357,
+          "text": "C",
+          "fallbackText": "C"
+        },
+        {
+          "id": 59358,
+          "text": ":",
+          "fallbackText": ":"
+        },
+        {
+          "id": 5,
+          "text": "\n",
+          "fallbackText": "\n"
+        },
+        {
+          "id": 59371,
+          "text": "D",
+          "fallbackText": "D"
+        },
+        {
+          "id": 59358,
+          "text": ":",
+          "fallbackText": ":"
+        },
+        {
+          "id": 5,
+          "text": "\n",
+          "fallbackText": "\n"
+        },
+        {
+          "id": 59364,
+          "text": "E",
+          "fallbackText": "E"
+        },
+        {
+          "id": 59358,
+          "text": ":",
+          "fallbackText": ":"
+        },
+        {
+          "id": 5,
+          "text": "\n",
+          "fallbackText": "\n"
+        },
+        {
+          "id": 59380,
+          "text": "F",
+          "fallbackText": "F"
+        }
+      ],
+      "perStep": [
+        {
+          "index": 0,
+          "tokenId": 59353,
+          "tokenHash": "sha256:498791764a5166a9cbf435f6a1f271a2923c49e605b34223f35a43f6d2ef1d19"
+        },
+        {
+          "index": 1,
+          "tokenId": 59358,
+          "tokenHash": "sha256:7572a4f9e53d64460930c9b2537c4b7f075d52cad89440487b11eb76b6362599"
+        },
+        {
+          "index": 2,
+          "tokenId": 5,
+          "tokenHash": "sha256:7b6d2bcdb58c1fb13131552af96a8b83ec253aebd81214d92da38356fab35eb6"
+        },
+        {
+          "index": 3,
+          "tokenId": 59378,
+          "tokenHash": "sha256:4aff966e70aba1a77d4cf52f5d00cdfdc6225abb77a6a1d1325ca8be3ef31042"
+        },
+        {
+          "index": 4,
+          "tokenId": 59358,
+          "tokenHash": "sha256:ebc26c3808c105896f540b6ffda94f55c9c46a65331304b91ef7dbeb3d8d67b5"
+        },
+        {
+          "index": 5,
+          "tokenId": 5,
+          "tokenHash": "sha256:2185a9d424a57a1ddf2dcd2ee1f1034adcb8ab2e12bf8de40899724072e83230"
+        },
+        {
+          "index": 6,
+          "tokenId": 59357,
+          "tokenHash": "sha256:b7ea1cc805bd180fa0fe719fa011ef223f1a4e280c347c4da995e83e6856dfcf"
+        },
+        {
+          "index": 7,
+          "tokenId": 59358,
+          "tokenHash": "sha256:24f9a17d0eb6d5d7a9dafce99f826a3722e7681d1ac349d73d3d429b6e383875"
+        },
+        {
+          "index": 8,
+          "tokenId": 5,
+          "tokenHash": "sha256:ff0ce013400e599746ebce581e6961f63ef98045fd39af78db87ff2ccfe2bedd"
+        },
+        {
+          "index": 9,
+          "tokenId": 59371,
+          "tokenHash": "sha256:d2d05f3dd75d09cc8c240f231d47cce345fd46ddd80c84489c09ee889d60add9"
+        },
+        {
+          "index": 10,
+          "tokenId": 59358,
+          "tokenHash": "sha256:a51444376c945a645ecd2cc2ef8a99867061799d9cd42fac22dd5a0d3f0934d6"
+        },
+        {
+          "index": 11,
+          "tokenId": 5,
+          "tokenHash": "sha256:43d3c6de48c657d364cd65dc6138feaa7dd6118a818eeadff028b067bcafb53b"
+        },
+        {
+          "index": 12,
+          "tokenId": 59364,
+          "tokenHash": "sha256:329be173d45dfd6d5071f0b9692035050d1af6ba675b61f9b0e5841b214ccdaf"
+        },
+        {
+          "index": 13,
+          "tokenId": 59358,
+          "tokenHash": "sha256:4284562507c094b19724d36b37e9ab0230e54cdf28fdc27ab4c4652c2fe1468d"
+        },
+        {
+          "index": 14,
+          "tokenId": 5,
+          "tokenHash": "sha256:fdc8481ebf38f991479c3f65a6ce2c083479fb3323117ef043db0b02004a422d"
+        },
+        {
+          "index": 15,
+          "tokenId": 59380,
+          "tokenHash": "sha256:359a8f6bba6950cb20e84a22f3ea7cc1c68fd41c9017b0ccf5476f30cb0fd9ab"
+        }
+      ],
+      "coverage": {
+        "mode": "full-token-ids",
+        "omitted": 0
+      }
+    },
+    "phase": {
+      "prefillMs": 387.0416660000001,
+      "decodeMs": 481.40079200000037,
+      "prefillTokens": 23,
+      "decodeTokens": 15
+    },
+    "kvCache": {
+      "mode": "stats",
+      "layout": "contiguous",
+      "kvDtype": "f16",
+      "seqLen": 38,
+      "maxSeqLen": 4096,
+      "usedBytes": 466944,
+      "allocatedBytes": 50331648,
+      "counters": {
+        "updateCalls": 0,
+        "gpuUpdateCalls": 0,
+        "recordedGpuUpdateCalls": 384,
+        "tokensWritten": 912
+      },
+      "byteDigestMode": null,
+      "byteDigest": null,
+      "byteDigests": null,
+      "stateHash": "sha256:70a1e1ddcf4a1a7a1e7d1edc0e162b0c4dc334aacccfc271cb558e2b186dc4e4"
+    },
+    "logits": {
+      "mode": "not-captured",
+      "reason": "Per-step logits digests were not requested for this browser harness run.",
+      "perStepDigests": null
+    },
+    "tolerance": {
+      "tokenPolicy": "exact generated token IDs",
+      "logitsPolicy": "not captured",
+      "kvPolicy": "metadata hash only; KV tensor bytes are not read back by default"
+    }
+  },
+  "deviceInfo": {
+    "hasSubgroups": true,
+    "wgslLanguageFeatures": [
+      "texture_and_sampler_let",
+      "unrestricted_pointer_parameters",
+      "buffer_view",
+      "uniform_buffer_standard_layout",
+      "subgroup_id",
+      "linear_indexing",
+      "fragment_depth",
+      "pointer_composite_access",
+      "immediate_address_space",
+      "subgroup_uniformity",
+      "swizzle_assignment",
+      "sized_binding_array",
+      "readonly_and_readwrite_storage_textures",
+      "texel_buffers",
+      "chromium_print",
+      "texture_formats_tier1",
+      "filtering_parameters",
+      "packed_4x8_integer_dot_product"
+    ],
+    "hasSubgroupsF16": true,
+    "hasF16": true,
+    "hasTimestampQuery": true,
+    "maxBufferSize": 4294967295,
+    "maxWorkgroupSize": 1024,
+    "maxWorkgroupStorageSize": 32768,
+    "adapterInfo": {
+      "vendor": "apple",
+      "architecture": "metal-3",
+      "device": "apple-m3",
+      "description": "Metal driver on macOS Version 26.6.2 (Build 25G83)",
+      "subgroupMinSize": 32,
+      "subgroupMaxSize": 32
+    },
+    "submitProbeMs": 0.599125000000015
+  }
+}

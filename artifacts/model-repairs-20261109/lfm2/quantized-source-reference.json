@@ -1,0 +1,210 @@
+{
+  "schema": "doppler.quantized-source-reference/v1",
+  "qualified": false,
+  "arithmetic": "Source LFM2 F32 equations with independently gguf-decoded Q4_K weights rounded through F16, F32 cache; not bit-exact GPU arithmetic",
+  "manifestSha256": "820330a533f142344334f56622f624e5fdd2a2af3f3178db9955c41d40f16364",
+  "shards": [
+    {
+      "file": "shard_00000.bin",
+      "sha256": "7522b0ac96d09787a255c2200d1a313251599a1569c0d370aba1f74364e82d9e",
+      "bytes": 67108864
+    },
+    {
+      "file": "shard_00001.bin",
+      "sha256": "74f0ece9ee3ba63565d9636ab597cefdfaeb17ddead860d570e9d4b0e9fe09ed",
+      "bytes": 67108864
+    },
+    {
+      "file": "shard_00002.bin",
+      "sha256": "72e4c5545d6ef6689428428959fd970553620adb2343c7ce92e2ae40590f5a71",
+      "bytes": 67108864
+    },
+    {
+      "file": "shard_00003.bin",
+      "sha256": "f288077d789d63c37732a91a0fc6a8d394a9b8ca8a21b2f25c57a3ca5b5be708",
+      "bytes": 67108864
+    },
+    {
+      "file": "shard_00004.bin",
+      "sha256": "b2ae0f51029d90e65d07619f469ec03a9baf1955ff7ddf865b6468c9f8d02e21",
+      "bytes": 67108864
+    },
+    {
+      "file": "shard_00005.bin",
+      "sha256": "09f57eb48fa729e4d10917d22dd89dbe31cdabf913d3145e32cc292a1bce28d9",
+      "bytes": 67108864
+    },
+    {
+      "file": "shard_00006.bin",
+      "sha256": "efe603d42c19c33986992daa831f4c9cbb8a8d430227fad09fff1188d09b74cb",
+      "bytes": 67108864
+    },
+    {
+      "file": "shard_00007.bin",
+      "sha256": "60eea44fa7105454b0b4f60ff898d8bf696d5052e599edb25b0194f35a619faf",
+      "bytes": 67108864
+    },
+    {
+      "file": "shard_00008.bin",
+      "sha256": "248e5e83be611f17ad65cd7e4683437219f7ecc99bb75769bb84918146329e04",
+      "bytes": 67108864
+    },
+    {
+      "file": "shard_00009.bin",
+      "sha256": "28d03168ccbb4c37b18cbb7fd426803f000cfb8add4bc29d33d359e880bbecbe",
+      "bytes": 67108864
+    },
+    {
+      "file": "shard_00010.bin",
+      "sha256": "b95e0d048c2d94b94d7e39dd9fed5481640b6e984d9838ead63732c915564f10",
+      "bytes": 67108864
+    },
+    {
+      "file": "shard_00011.bin",
+      "sha256": "d4da864ce34d5380cf53237f47d5372fa8d8ce3f18b2363cff93f8e001d1d2c9",
+      "bytes": 67108864
+    },
+    {
+      "file": "shard_00012.bin",
+      "sha256": "8d02b74ce32d2493276b6cf6dfebfb50530fe446e86713725e77b55023d908e8",
+      "bytes": 46046464
+    }
+  ],
+  "packages": {
+    "torch": "2.9.1",
+    "transformers": "4.57.3",
+    "gguf": "0.17.1",
+    "numpy": "2.2.3"
+  },
+  "rows": [
+    {
+      "prompt": "What color is the sky on a clear day? Answer in one sentence.",
+      "promptTokenIds": [
+        1,
+        6,
+        6423,
+        708,
+        3493,
+        4100,
+        856,
+        779,
+        12123,
+        884,
+        768,
+        4484,
+        2285,
+        540,
+        42275,
+        797,
+        1235,
+        13184,
+        523,
+        7,
+        708,
+        6,
+        64015,
+        708
+      ],
+      "generatedTokenIds": [
+        3312,
+        768,
+        4484,
+        2285,
+        521,
+        779,
+        12123,
+        7705,
+        7043,
+        523,
+        7
+      ],
+      "output": "On a clear day, the sky appears blue.<|im_end|>"
+    },
+    {
+      "prompt": "What is 2 + 2? Answer with just the number.",
+      "promptTokenIds": [
+        1,
+        6,
+        6423,
+        708,
+        3493,
+        856,
+        730,
+        527,
+        2011,
+        730,
+        527,
+        540,
+        42275,
+        916,
+        1804,
+        779,
+        2080,
+        523,
+        7,
+        708,
+        6,
+        64015,
+        708
+      ],
+      "generatedTokenIds": [
+        529,
+        7
+      ],
+      "output": "4<|im_end|>"
+    },
+    {
+      "prompt": "Write a Python function that returns the larger of two numbers.",
+      "promptTokenIds": [
+        1,
+        6,
+        6423,
+        708,
+        22998,
+        768,
+        22017,
+        1947,
+        896,
+        12116,
+        779,
+        5814,
+        803,
+        1547,
+        5743,
+        523,
+        7,
+        708,
+        6,
+        64015,
+        708
+      ],
+      "generatedTokenIds": [
+        49296,
+        876,
+        510,
+        6567,
+        1172,
+        768,
+        4048,
+        22017,
+        1947,
+        896,
+        12116,
+        779,
+        5814,
+        803,
+        1547,
+        5743,
+        535,
+        509,
+        26298,
+        64014,
+        708,
+        3663,
+        5814,
+        31091
+      ],
+      "output": "Certainly! Here\u2019s a simple Python function that returns the larger of two numbers:\n\n```python\ndef larger_of"
+    }
+  ]
+}

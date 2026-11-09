@@ -160,6 +160,11 @@
       "value": "f32"
     }
   ],
+  "q4kRowPadding": [
+    { "match": { "rank": 2, "partialRow": true }, "value": true },
+    { "match": { "explicitRowPacking": true, "partialRow": true }, "value": true },
+    { "match": {}, "value": false }
+  ],
   "weightLayout": [
     {
       "match": {

@@ -1,0 +1,72 @@
+[
+  {
+    "file": "added_tokens.json",
+    "sha256": "4760fcbf90bc193f33827ffe02f2e7ba1af1ec43644cc02ac22fdd611f6cca15",
+    "expected": "7f0cedcb7641462cc71347e3cd09076de272cba1",
+    "actual": "7f0cedcb7641462cc71347e3cd09076de272cba1",
+    "passed": true
+  },
+  {
+    "file": "config.json",
+    "sha256": "610c5b519420a3633ec4950c15a26d83ad0e9be35ef9d00a9e3d2b621b325f72",
+    "expected": "ef0ad7131d32574c5127b0061d37039dcbf7a792",
+    "actual": "ef0ad7131d32574c5127b0061d37039dcbf7a792",
+    "passed": true
+  },
+  {
+    "file": "configuration_minicpm.py",
+    "sha256": "1e289912fdc0608ccad3983f4ff8b381ec8f161f45c85be4d694f92f17596b0a",
+    "expected": "8fd0bc09a3962124e11cf9be3f05089f3900754d",
+    "actual": "8fd0bc09a3962124e11cf9be3f05089f3900754d",
+    "passed": true
+  },
+  {
+    "file": "generation_config.json",
+    "sha256": "83595cf3b045d7ed16593ae399b0e3c13fe45640a4bec3a1cd371b057a6a98b7",
+    "expected": "cf2547d9266129727d9eca87249cc4aa2ec12314",
+    "actual": "cf2547d9266129727d9eca87249cc4aa2ec12314",
+    "passed": true
+  },
+  {
+    "file": "model.safetensors",
+    "sha256": "ef74f4de1d1c580dd64e425d11f29881b9fd39f9be16a485150f727d4583181c",
+    "expected": "ef74f4de1d1c580dd64e425d11f29881b9fd39f9be16a485150f727d4583181c",
+    "actual": "ef74f4de1d1c580dd64e425d11f29881b9fd39f9be16a485150f727d4583181c",
+    "passed": true
+  },
+  {
+    "file": "modeling_minicpm.py",
+    "sha256": "c646022c44d0e1cc1d149fb80422a5d5f1ba6de66dd0f525f2be1e18d99994bf",
+    "expected": "8e75a3c2204588a35f9bf1f6d43f672338ca250a",
+    "actual": "8e75a3c2204588a35f9bf1f6d43f672338ca250a",
+    "passed": true
+  },
+  {
+    "file": "special_tokens_map.json",
+    "sha256": "9ec9d6f07cb0e436598bf29b4d97c6355434c08fdbe9c264e6926907f3751c7e",
+    "expected": "2fcea2d88e22d7120780198704204786556b5293",
+    "actual": "2fcea2d88e22d7120780198704204786556b5293",
+    "passed": true
+  },
+  {
+    "file": "tokenizer.json",
+    "sha256": "adf7208af154a5ca065d2eda4e5419e02aac58c2c00627874748b75ec6769094",
+    "expected": "15a2f9ba3a0b38ca3a84fa564598f90a38042614",
+    "actual": "15a2f9ba3a0b38ca3a84fa564598f90a38042614",
+    "passed": true
+  },
+  {
+    "file": "tokenizer.model",
+    "sha256": "bb74d51116831c3bf65db812c553f94ab0c88dcf97a5bbb37e3504f6d359c530",
+    "expected": "bb74d51116831c3bf65db812c553f94ab0c88dcf97a5bbb37e3504f6d359c530",
+    "actual": "bb74d51116831c3bf65db812c553f94ab0c88dcf97a5bbb37e3504f6d359c530",
+    "passed": true
+  },
+  {
+    "file": "tokenizer_config.json",
+    "sha256": "8bef75d59004eb0e62db89e97090d4736b14fd6c4a0282370c28833be1e83051",
+    "expected": "270eeb40d8a0c218587d410a7538d2c75bb3ae41",
+    "actual": "270eeb40d8a0c218587d410a7538d2c75bb3ae41",
+    "passed": true
+  }
+]

@@ -1,0 +1,427 @@
+{
+  "output": {
+    "baseDir": "models/local",
+    "modelBaseId": "lfm2.5-1.2b-instruct-q4k-ehf16-af32"
+  },
+  "quantization": {
+    "weights": "q4k",
+    "embeddings": "f16",
+    "lmHead": "f16",
+    "computePrecision": "f32",
+    "q4kLayout": "row"
+  },
+  "inference": {
+    "attention": {
+      "queryPreAttnScalar": 64,
+      "attnLogitSoftcapping": null,
+      "slidingWindow": null,
+      "queryKeyNorm": true,
+      "causal": true,
+      "attentionBias": false,
+      "attentionOutputGate": false,
+      "valueNorm": false
+    },
+    "normalization": {
+      "rmsNormEps": 1e-05,
+      "rmsNormWeightOffset": false,
+      "postAttentionNorm": true,
+      "preFeedforwardNorm": false,
+      "postFeedforwardNorm": false
+    },
+    "ffn": {
+      "activation": "silu",
+      "gatedActivation": true,
+      "branchMode": "auto",
+      "swigluLimit": null,
+      "useDoubleWideMlp": false
+    },
+    "rope": {
+      "ropeTheta": 1000000,
+      "ropeLocalTheta": null,
+      "mropeInterleaved": false,
+      "mropeSection": null,
+      "partialRotaryFactor": null,
+      "ropeScalingType": null,
+      "ropeScalingFactor": 1,
+      "ropeLocalScalingType": null,
+      "ropeLocalScalingFactor": 1,
+      "yarnBetaFast": null,
+      "yarnBetaSlow": null,
+      "yarnOriginalMaxPos": null,
+      "ropeLocalYarnBetaFast": null,
+      "ropeLocalYarnBetaSlow": null,
+      "ropeLocalYarnOriginalMaxPos": null,
+      "ropeLocalPartialRotaryFactor": null,
+      "ropeFrequencyBaseDim": null,
+      "ropeLocalFrequencyBaseDim": null,
+      "longropeShortFactor": null,
+      "longropeLongFactor": null,
+      "longropeOriginalMaxPos": null
+    },
+    "output": {
+      "finalLogitSoftcapping": null,
+      "tieWordEmbeddings": true,
+      "scaleEmbeddings": false,
+      "embeddingTranspose": false,
+      "embeddingVocabSize": null,
+      "embeddingPostprocessor": null,
+      "embeddingScale": null,
+      "logitInputScale": 1
+    },
+    "layerPattern": {
+      "type": "custom",
+      "globalPattern": null,
+      "period": null,
+      "offset": null,
+      "layerTypes": [
+        "conv",
+        "conv",
+        "full_attention",
+        "conv",
+        "conv",
+        "full_attention",
+        "conv",
+        "conv",
+        "full_attention",
+        "conv",
+        "full_attention",
+        "conv",
+        "full_attention",
+        "conv",
+        "full_attention",
+        "conv"
+      ],
+      "residualBranchScale": 1
+    },
+    "chatTemplate": {
+      "type": "chatml",
+      "enabled": true
+    }
+  },
+  "session": {
+    "compute": {
+      "defaults": {
+        "activationDtype": "f32",
+        "mathDtype": "f32",
+        "accumDtype": "f32",
+        "outputDtype": "f32"
+      }
+    },
+    "kvcache": {
+      "kvDtype": "f16",
+      "layout": "contiguous",
+      "pageSize": 256,
+      "tiering": {
+        "mode": "off",
+        "hotWindow": 1024,
+        "coldPageSize": 256,
+        "coldDtype": "f16",
+        "compression": {
+          "mode": "none",
+          "blockSize": 1,
+          "bitWidth": 4,
+          "prodMode": false
+        },
+        "gating": {
+          "mode": "auto",
+          "minAluBwRatio": 0
+        }
+      },
+      "quantization": {
+        "mode": "none",
+        "bitWidth": 4,
+        "prodMode": false
+      }
+    },
+    "decodeLoop": {
+      "batchSize": 8,
+      "stopCheckMode": "batch",
+      "readbackInterval": 8,
+      "readbackMode": "sequential",
+      "ringTokens": 1,
+      "ringStop": 1,
+      "ringStaging": 1,
+      "disableCommandBatching": false
+    },
+    "perLayerInputs": {
+      "materialization": "auto",
+      "rowCache": {
+        "mode": "lru",
+        "maxRows": 256,
+        "maxBytes": 134217728,
+        "decodedDtype": "f32"
+      },
+      "prefetch": {
+        "mode": "next_token",
+        "rowsAhead": 1
+      },
+      "gpuUpload": {
+        "mode": "per_step_slices",
+        "stagingRows": 2
+      },
+      "hotCache": {
+        "mode": "prepared_tokens",
+        "maxTokens": 1024,
+        "maxBytes": 134217728,
+        "outputDtype": "f32"
+      }
+    },
+    "prefillChunkSubmitMode": "sync",
+    "useFlashPrefillAttention": false,
+    "useWideTileQ4KPrefill": false,
+    "retainQ4KMaterialization": false
+  },
+  "execution": {
+    "kernels": {
+      "embed": {
+        "kernel": "gather_f16.wgsl",
+        "entry": "main",
+        "digest": "sha256:a2c318bc362d676769d8cb751d61a4d7777e1068be0456eff634e0821d783c10"
+      },
+      "rmsnorm": {
+        "kernel": "rmsnorm.wgsl",
+        "entry": "main",
+        "digest": "sha256:4f4d144735bdff86b8567346ba7ea7b82fe68a2ac9656ba1577106158af9bc7c"
+      },
+      "gemv": {
+        "kernel": "matmul_gemv_subgroup.wgsl",
+        "entry": "main_vec4",
+        "digest": "sha256:2ea9aea659367210fbf61d922c0d4ee17cdac68ffb506b3bc5516e498071e011"
+      },
+      "rope": {
+        "kernel": "rope.wgsl",
+        "entry": "main",
+        "digest": "sha256:923f9a96c941aee94119ecf04fa5b1508c77b7d927a7e6044ce6588b2d51a416"
+      },
+      "attn_decode": {
+        "kernel": "attention_decode_online_f16kv.wgsl",
+        "entry": "main",
+        "digest": "sha256:c6d9f8c614a2a088cb533958007896391efb3e348377dc8095c409944c562912",
+        "precision": {
+          "kvDtype": "f16"
+        }
+      },
+      "residual": {
+        "kernel": "residual.wgsl",
+        "entry": "main",
+        "digest": "sha256:abd19bc08ad668a7cad562e2bc0a4be1aa8827ad4300d8d474b7fc2af4c27117"
+      },
+      "silu": {
+        "kernel": "silu.wgsl",
+        "entry": "main",
+        "digest": "sha256:c6e28a7e6b2a7cfa805db03c9079fbc90fc2717c621e388bfa55b75ce1737ac0",
+        "constants": {
+          "HAS_GATE": true
+        }
+      },
+      "tiled": {
+        "kernel": "matmul_f16w_f32a_tiled.wgsl",
+        "entry": "main",
+        "digest": "sha256:5dada68240a47e2fcf916ae1467d89010a27a22588f097c1523f7ee6c9e9377a"
+      },
+      "attn_small": {
+        "kernel": "attention_small_f16kv.wgsl",
+        "entry": "main",
+        "digest": "sha256:ad3bb913c17167eb28fefc6abd24602ea0f148bc22a2b5f437eeffcc6f7fc668",
+        "precision": {
+          "kvDtype": "f16"
+        }
+      },
+      "lm_head_gemv": {
+        "kernel": "matmul_gemv_subgroup.wgsl",
+        "entry": "main_multicol",
+        "digest": "sha256:e41f94574d5ac54dd2710036da5d5acc643a483b79b2d74b86825efdaaa7438f",
+        "constants": {
+          "MULTICOL_COLS_PER_WG": 64,
+          "MULTICOL_THREADS_PER_COL": 4
+        }
+      },
+      "sample": {
+        "kernel": "sample.wgsl",
+        "entry": "sample_single_pass",
+        "digest": "sha256:f2377b2a58c2eeb695a6f6f7ad877630bdba5e74d5dc1a8d919cd73b360d4870"
+      }
+    },
+    "preLayer": [
+      [
+        "embed",
+        "embed",
+        "embed_tokens"
+      ]
+    ],
+    "decode": [
+      [
+        "input_norm",
+        "rmsnorm"
+      ],
+      [
+        "q_proj",
+        "gemv",
+        "layer.{L}.self_attn.q_proj"
+      ],
+      [
+        "k_proj",
+        "gemv",
+        "layer.{L}.self_attn.k_proj"
+      ],
+      [
+        "v_proj",
+        "gemv",
+        "layer.{L}.self_attn.v_proj"
+      ],
+      [
+        "rope_q",
+        "rope"
+      ],
+      [
+        "rope_k",
+        "rope"
+      ],
+      [
+        "attention",
+        "attn_decode"
+      ],
+      [
+        "o_proj",
+        "gemv",
+        "layer.{L}.self_attn.o_proj"
+      ],
+      [
+        "attn_residual",
+        "residual"
+      ],
+      [
+        "post_attn_norm",
+        "rmsnorm"
+      ],
+      [
+        "gate_proj",
+        "gemv",
+        "layer.{L}.mlp.gate_proj"
+      ],
+      [
+        "up_proj",
+        "gemv",
+        "layer.{L}.mlp.up_proj"
+      ],
+      [
+        "activation",
+        "silu"
+      ],
+      [
+        "down_proj",
+        "gemv",
+        "layer.{L}.mlp.down_proj"
+      ],
+      [
+        "ffn_residual",
+        "residual"
+      ]
+    ],
+    "prefill": [
+      [
+        "input_norm",
+        "rmsnorm"
+      ],
+      [
+        "q_proj",
+        "tiled",
+        "layer.{L}.self_attn.q_proj"
+      ],
+      [
+        "k_proj",
+        "tiled",
+        "layer.{L}.self_attn.k_proj"
+      ],
+      [
+        "v_proj",
+        "tiled",
+        "layer.{L}.self_attn.v_proj"
+      ],
+      [
+        "rope_q",
+        "rope"
+      ],
+      [
+        "rope_k",
+        "rope"
+      ],
+      [
+        "attention",
+        "attn_small"
+      ],
+      [
+        "o_proj",
+        "tiled",
+        "layer.{L}.self_attn.o_proj"
+      ],
+      [
+        "attn_residual",
+        "residual"
+      ],
+      [
+        "post_attn_norm",
+        "rmsnorm"
+      ],
+      [
+        "gate_proj",
+        "tiled",
+        "layer.{L}.mlp.gate_proj"
+      ],
+      [
+        "up_proj",
+        "tiled",
+        "layer.{L}.mlp.up_proj"
+      ],
+      [
+        "activation",
+        "silu"
+      ],
+      [
+        "down_proj",
+        "tiled",
+        "layer.{L}.mlp.down_proj"
+      ],
+      [
+        "ffn_residual",
+        "residual"
+      ]
+    ],
+    "postLayer": [
+      [
+        "final_norm",
+        "rmsnorm"
+      ],
+      [
+        "lm_head",
+        "lm_head_gemv",
+        "lm_head"
+      ],
+      [
+        "lm_head_prefill",
+        "tiled",
+        "lm_head"
+      ],
+      [
+        "sample",
+        "sample"
+      ]
+    ],
+    "policies": {
+      "unsupportedPrecision": "error",
+      "dtypeTransition": "require_cast_step",
+      "unresolvedKernel": "error"
+    }
+  },
+  "largeWeights": {
+    "gpuResidentOverrides": null
+  },
+  "modelType": "transformer",
+  "manifest": {
+    "hashAlgorithm": "sha256",
+    "artifactIdentity": {
+      "sourceCheckpointId": "LiquidAI/LFM2.5-1.2B-Instruct",
+      "artifactCompleteness": "complete"
+    }
+  }
+}

@@ -1,0 +1,258 @@
+{
+  "schema": "doppler.model-repair-receipt/v1",
+  "consumer": "MiniCPM source-token and tokenizer-normalization repair acceptance; tests/inference/tokenizer-bundled-normalizer.test.js",
+  "sourceCommit": "26a81570b3866ed3ebe4d7705e3a77817a481fe1",
+  "implementationFiles": [
+    {
+      "path": "src/inference/tokenizers/bundled.js",
+      "sha256": "bfcd5c5878cde0671bef1295c4664b1132157b191c3c325eec8d99ebafed8ab3"
+    },
+    {
+      "path": "src/inference/tokenizers/bundled/normalizer.js",
+      "sha256": "0a933770d2e728bd6754afd71759151d1480ce7f34c72b5fdb2de9bc78626f4d"
+    },
+    {
+      "path": "src/inference/tokenizers/bundled/normalizer.d.ts",
+      "sha256": "a09a47d1e4710faee34567f5447ba0307810ed625779b580632e5023cb40fed6"
+    }
+  ],
+  "diagnosis": {
+    "firstMismatch": "Source Prepend + Replace tokenizer normalization was ignored on non-special text segments.",
+    "beforePromptTokenCount": 23,
+    "afterPromptTokenCount": 24,
+    "legacyArtifactIntegrity": {
+      "unchangedOriginalPreserved": true,
+      "historicalDeclaredBlake3": "e85b988bfcde02f2d19b8247db152c99735677389f4ae76d28ca2d63b5d4bb58",
+      "independentStandardBlake3": "c106ebefd77b76f1d7bc3ab3426cfff6587541d2ca6f04bf2d9304e48ca77d54",
+      "disposition": "Rejected before inference. Rebuilt separately from independently authenticated source; no verification bypass or in-place hash replacement."
+    }
+  },
+  "source": {
+    "model": "openbmb/MiniCPM4-0.5B",
+    "revision": "5253c7fcc5e29e1cf3eacb59a58adf1ba4df8630",
+    "checkpointSha256": "ef74f4de1d1c580dd64e425d11f29881b9fd39f9be16a485150f727d4583181c",
+    "independentInventoryUrl": "https://huggingface.co/api/models/openbmb/MiniCPM4-0.5B/tree/5253c7fcc5e29e1cf3eacb59a58adf1ba4df8630",
+    "referenceRuntime": {
+      "torch": "2.9.1",
+      "transformers": "4.57.3",
+      "device": "cpu",
+      "dtype": "float32",
+      "attention": "eager",
+      "cache": false,
+      "addSpecialTokens": true
+    },
+    "authentication": "source-authentication.json"
+  },
+  "checks": [
+    {
+      "artifact": "node-proof.json",
+      "surface": "node",
+      "deviceInfo": {
+        "hasSubgroups": true,
+        "wgslLanguageFeatures": [
+          "buffer_view",
+          "unrestricted_pointer_parameters",
+          "chromium_print",
+          "readonly_and_readwrite_storage_textures",
+          "subgroup_uniformity",
+          "swizzle_assignment",
+          "sized_binding_array",
+          "texel_buffers",
+          "texture_formats_tier1",
+          "packed_4x8_integer_dot_product",
+          "filtering_parameters",
+          "texture_and_sampler_let",
+          "uniform_buffer_standard_layout",
+          "linear_indexing",
+          "subgroup_id",
+          "fragment_depth",
+          "pointer_composite_access",
+          "immediate_address_space"
+        ],
+        "hasSubgroupsF16": true,
+        "hasF16": true,
+        "hasTimestampQuery": true,
+        "maxBufferSize": 4294967295,
+        "maxWorkgroupSize": 1024,
+        "maxWorkgroupStorageSize": 32768,
+        "adapterInfo": {
+          "vendor": "apple",
+          "architecture": "metal-3",
+          "device": "apple-m3",
+          "description": "Metal driver on macOS Version 26.6.2 (Build 25G83)",
+          "subgroupMinSize": 32,
+          "subgroupMaxSize": 32
+        },
+        "submitProbeMs": 0.558667000000014
+      },
+      "sourceParity": {
+        "schema": "doppler.source-token-parity/v1",
+        "status": "passed",
+        "expectedTranscriptPath": "../../../../tmp/doppler-minicpm-expected-transcript.json",
+        "expectedTranscriptHash": "sha256:10cfa9115bfad77b88ff1dce1c9f33387806dc2d5f09f28b69a732036f24bcbe",
+        "sourceModel": "openbmb/MiniCPM4-0.5B",
+        "sourceRevision": "5253c7fcc5e29e1cf3eacb59a58adf1ba4df8630",
+        "sampling": "greedy-argmax-f32-logits",
+        "prompt": {
+          "passed": true,
+          "expectedCount": 24,
+          "observedCount": 24,
+          "firstMismatchIndex": null,
+          "expectedTokenId": null,
+          "observedTokenId": null
+        },
+        "generation": {
+          "passed": true,
+          "expectedCount": 14,
+          "observedCount": 14,
+          "firstMismatchIndex": null,
+          "expectedTokenId": null,
+          "observedTokenId": null
+        }
+      },
+      "output": "The color of the sky on a clear day is typically blue."
+    },
+    {
+      "artifact": "browser-proof.json",
+      "surface": "browser",
+      "deviceInfo": {
+        "hasSubgroups": true,
+        "wgslLanguageFeatures": [
+          "packed_4x8_integer_dot_product",
+          "subgroup_uniformity",
+          "subgroup_id",
+          "readonly_and_readwrite_storage_textures",
+          "unrestricted_pointer_parameters",
+          "texture_and_sampler_let",
+          "pointer_composite_access",
+          "uniform_buffer_standard_layout"
+        ],
+        "hasSubgroupsF16": true,
+        "hasF16": true,
+        "hasTimestampQuery": true,
+        "maxBufferSize": 4294967292,
+        "maxWorkgroupSize": 1024,
+        "maxWorkgroupStorageSize": 32768,
+        "adapterInfo": {
+          "vendor": "apple",
+          "architecture": "metal-3",
+          "device": "0x0000",
+          "description": "Apple M3",
+          "subgroupMinSize": 32,
+          "subgroupMaxSize": 32
+        },
+        "submitProbeMs": 1.5999999046325684
+      },
+      "sourceParity": {
+        "schema": "doppler.source-token-parity/v1",
+        "status": "passed",
+        "expectedTranscriptPath": "../../../../tmp/doppler-minicpm-expected-transcript.json",
+        "expectedTranscriptHash": "sha256:10cfa9115bfad77b88ff1dce1c9f33387806dc2d5f09f28b69a732036f24bcbe",
+        "sourceModel": "openbmb/MiniCPM4-0.5B",
+        "sourceRevision": "5253c7fcc5e29e1cf3eacb59a58adf1ba4df8630",
+        "sampling": "greedy-argmax-f32-logits",
+        "prompt": {
+          "passed": true,
+          "expectedCount": 24,
+          "observedCount": 24,
+          "firstMismatchIndex": null,
+          "expectedTokenId": null,
+          "observedTokenId": null
+        },
+        "generation": {
+          "passed": true,
+          "expectedCount": 14,
+          "observedCount": 14,
+          "firstMismatchIndex": null,
+          "expectedTokenId": null,
+          "observedTokenId": null
+        }
+      },
+      "output": "The color of the sky on a clear day is typically blue."
+    }
+  ],
+  "numericalComparison": "boundary-comparison.json",
+  "limits": [
+    "One bounded prompt on recorded Mac Node/WebGPU and browser/WebGPU; no general task-quality, throughput or platform qualification.",
+    "Captured prefill embedding and first-layer output only; not full-layer numerical qualification.",
+    "The rebuilt SHA-256 artifact has new artifact identities and does not inherit the historical release or catalog status.",
+    "No catalog, hosted artifacts, production profiles, tolerances, GPU serving jobs or Jupiter timing changed."
+  ],
+  "files": [
+    {
+      "path": "before-fix.json",
+      "sha256": "cd12b50c641242f61f47f47baa48b8df28b3fd2121cae7335291b3346d3d52c9",
+      "bytes": 8964
+    },
+    {
+      "path": "boundary-comparison.json",
+      "sha256": "e3bf32294d2d40b482efb3dd53415351c1e97b3ac60f96c24f06e3b7b71b9e94",
+      "bytes": 2795
+    },
+    {
+      "path": "browser-proof.json",
+      "sha256": "3bd756b97b4dc6accc058dcdbf74fb638e616b941117ff86a62696794e8e9110",
+      "bytes": 73667
+    },
+    {
+      "path": "candidate-embedding.npy",
+      "sha256": "be39e34c72e3aac049469097e982627ecc3cdd5727e17de35381684d7c4f30e4",
+      "bytes": 98432
+    },
+    {
+      "path": "candidate-layer0.npy",
+      "sha256": "62252f4f360a2ae85f832afdbea326ad6614638cc526e0df162440dbb8303b86",
+      "bytes": 98432
+    },
+    {
+      "path": "candidate-manifest.json",
+      "sha256": "260b71ee894d9f6a62010224e7a8c20f3188f646c5c62d4437fca39ebae5813e",
+      "bytes": 98451
+    },
+    {
+      "path": "conversion-config.json",
+      "sha256": "ab627bc606e3c745dc06c85bc7a26b45198d1496a587e235e315fb8fc910501c",
+      "bytes": 11133
+    },
+    {
+      "path": "expected-transcript.json",
+      "sha256": "10cfa9115bfad77b88ff1dce1c9f33387806dc2d5f09f28b69a732036f24bcbe",
+      "bytes": 950
+    },
+    {
+      "path": "node-proof.json",
+      "sha256": "a307116e77565ead74af16a7b4ec56ab99c3e47867b2dadcb3ee3fd1ddbdad79",
+      "bytes": 73998
+    },
+    {
+      "path": "source-embedding.npy",
+      "sha256": "0b5218217822c929c5a9f8f9686dbf0009ed6e7be6e80f82268339adb1078162",
+      "bytes": 98432
+    },
+    {
+      "path": "source-inventory.json",
+      "sha256": "2de957c928f1ee7bf3d3c4eb8562c0d7fe16fe4ab7be13043011e8c55c172a38",
+      "bytes": 1645
+    },
+    {
+      "path": "source-layer0.npy",
+      "sha256": "1b073d9994cde1e825e88bba766a6e684d7b47a6abf99a6619968908c041f8fc",
+      "bytes": 98432
+    },
+    {
+      "path": "source-reference.json",
+      "sha256": "a6e5b1f6643ee79c01f76d1902b9fc75fbfaa2bdf30191c5a2c4735259203eba",
+      "bytes": 1967
+    },
+    {
+      "path": "source-reference.py",
+      "sha256": "57efc6238c25d6267f4aafb8a8c19bd814a6c2fed651b12090f341e8b02098e9",
+      "bytes": 1667
+    },
+    {
+      "path": "source-authentication.json",
+      "sha256": "6e1cdb975625e5e0d42e4fc35b050cf73d6bc05f419384d96e60341292f8265d",
+      "bytes": 2721
+    }
+  ]
+}
