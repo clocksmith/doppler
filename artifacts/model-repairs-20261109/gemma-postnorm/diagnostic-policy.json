@@ -1,0 +1,111 @@
+{
+  "scope": "isolated diagnostic snapshot only; production policy unchanged",
+  "baseCommit": "844f6659",
+  "sourcePolicySha256": "617c773184972b22fa353ac25d84cbb196af3c5854a19d7d98008dd0fac4e9ed",
+  "experimentalPolicySha256": "0e14c774d69cc72796341e690e689407d1ddc92c0af15a7c75a2c51d061a3b62",
+  "removedRule": [
+    {
+      "kind": "platform-workaround",
+      "dtypeEffect": "none",
+      "match": {
+        "modelId": {
+          "in": [
+            "gemma-4-e2b-it-q4k-ehf16-af32",
+            "gemma-4-e2b-it-q4k-ehf16-af32-int4ple",
+            "gemma-4-e2b-it-q4k-ehf16-af16-int4ple"
+          ]
+        },
+        "platformVendor": "apple",
+        "retainQ4KMaterialization": true
+      },
+      "transforms": [
+        "disableRetainQ4KMaterialization"
+      ],
+      "reason": "Fused-q4k FFN kernels under retain=mixed corrupt subsequent-layer attention compute on Apple Metal (intermittent NaN at L1.attn_core_out and beyond). Standalone-q4k projection kernels are clean; only the fused gate+up+down dispatch is the perturbation source.",
+      "evidence": [
+        "tests/config/capability-retain-q4k-policy.test.js",
+        "tests/config/gemma4-e2b-conversion-config-contract.test.js",
+        "tests/inference/gemma4-e2b-q4k-apple-retain-regression.test.js"
+      ]
+    }
+  ],
+  "fusedDispatchProbe": {
+    "sourcePolicySha256": "3aa3c66dcc3d154158d2fc59dc94165bbb47955c7c017612568f6825a995b260",
+    "experimentalPolicySha256": "fce6663e80d87c89f2f553893e89818120a923c4471cebaa3a7b6ad0804f25dd",
+    "changes": "Admit declared double-width MLP geometry to the same fused Q4_K kernel in isolated snapshot only. Production policy untouched.",
+    "priorMatches": [
+      {
+        "hasGate": true,
+        "hasUp": true,
+        "hasDown": true,
+        "hasFusedWeights": false,
+        "inputIsSupported": true,
+        "hasLoRA": false,
+        "dtypeMatches": true,
+        "dtypeSupported": true,
+        "weightDtype": "q4k",
+        "activationDtype": "f16",
+        "hiddenSizeAligned32": true,
+        "batchSize": {
+          "lte": 4
+        },
+        "useDoubleWideMlp": false
+      },
+      {
+        "hasGate": true,
+        "hasUp": true,
+        "hasDown": true,
+        "hasFusedWeights": false,
+        "inputIsSupported": true,
+        "hasLoRA": false,
+        "dtypeMatches": true,
+        "dtypeSupported": true,
+        "weightDtype": "q4k",
+        "activationDtype": "f32",
+        "hiddenSizeAligned32": true,
+        "batchSize": {
+          "lte": 4
+        },
+        "useDoubleWideMlp": false
+      },
+      {
+        "hasGate": true,
+        "hasUp": true,
+        "hasDown": true,
+        "hasFusedWeights": false,
+        "inputIsSupported": true,
+        "hasLoRA": false,
+        "dtypeMatches": true,
+        "dtypeSupported": true,
+        "hasQ4KMaterialization": true,
+        "activationDtype": "f32",
+        "hiddenSizeAligned32": true,
+        "batchSize": {
+          "lte": 4
+        },
+        "useDoubleWideMlp": false
+      }
+    ]
+  },
+  "af16ArtifactProbe": {
+    "removedRule": [
+      {
+        "kind": "lane-mismatch-guard",
+        "dtypeEffect": "fail-closed",
+        "match": {
+          "modelId": "gemma-4-e2b-it-q4k-ehf16-af16-int4ple",
+          "platformVendor": "apple"
+        },
+        "transforms": [
+          "failClosedLaneMismatch"
+        ],
+        "reason": "af16-int4ple lane requires retainQ4KMaterialization=true to dispatch the fused-q4k+f16 widetile pool, which produces intermittent NaN at L1.attn_core_out on Apple Metal - load the af32 manifest variant instead. Bug is intermittent and depends on buffer-pool aliasing patterns; confirmed re-emerged 2026-05-07 after e5c9a6a tightened bucket defaults.",
+        "evidence": [
+          "tests/demo/demo-models.test.js",
+          "tests/inference/gemma4-e2b-q4k-apple-retain-regression.test.js"
+        ]
+      }
+    ],
+    "policySha256": "d0182b2e60b89cd3c73cb580f9c45a56dcdbacbefc335ae75b528823624d71c2"
+  }
+}

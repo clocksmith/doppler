@@ -443,6 +443,7 @@ export async function runDenseFFNWithFusedPostNormGPU(
   );
   const {
     fusedGateUpInputDtype,
+    downInputDtype,
   } = resolveDenseFFNFusedPathDtypes({
     phase,
     layerIdx,
@@ -688,37 +689,40 @@ export async function runDenseFFNWithFusedPostNormGPU(
     }
   }
 
-  const outputTensor = await doMatmulRMSNormFused(
-    activatedOutput,
-    downWeight,
-    normWeightBuf,
-    {
-      N: hiddenSize,
-      K: intermediateSize,
-      eps,
-      residual: residualTensor,
-      outputBuffer,
-      transposeB,
-      label: `L${layerIdx}.ffn_down`,
-      rmsNormWeightOffset: config.postNormWeightOffset ?? config.rmsNormWeightOffset,
-    },
-    recorder
-  );
-
-  const loraDown = getLoRAModule(lora, layerIdx, 'down_proj');
-  if (loraDown) {
-    log.warn('Layer', `L${layerIdx} LoRA down_proj with fused kernel not yet optimized`);
+  let downInput = null;
+  try {
+    downInput = await coerceTensorDtype(activatedOutput, downInputDtype, recorder, {
+      executionPolicies: context.executionPolicies ?? null,
+      op: 'ffn_down_input',
+      transitionDeclaredBy: 'step_precision',
+    });
+    if (getLoRAModule(lora, layerIdx, 'down_proj')) {
+      log.warn('Layer', `L${layerIdx} LoRA down_proj with fused kernel not yet optimized`);
+    }
+    return await doMatmulRMSNormFused(
+      downInput,
+      downWeight,
+      normWeightBuf,
+      {
+        N: hiddenSize,
+        K: intermediateSize,
+        eps,
+        residual: residualTensor,
+        outputBuffer,
+        transposeB,
+        label: `L${layerIdx}.ffn_down`,
+        rmsNormWeightOffset: config.postNormWeightOffset ?? config.rmsNormWeightOffset,
+      },
+      recorder
+    );
+  } finally {
+    if (downInput && downInput !== activatedOutput) releaseOrTrack(recorder, downInput.buffer);
+    if (!isGpuBufferInstance(layerWeights.down) && !isWeightBuffer(layerWeights.down)) {
+      releaseOrTrack(recorder, isWeightBuffer(downWeight) ? downWeight.buffer : downWeight);
+    }
+    if (!isGpuBufferInstance(layerWeights.postFeedforwardNorm) && !isWeightBuffer(layerWeights.postFeedforwardNorm)) {
+      releaseOrTrack(recorder, normWeightBuf);
+    }
+    releaseOrTrack(recorder, activatedOutput.buffer);
   }
-
-  if (!isGpuBufferInstance(layerWeights.down) && !isWeightBuffer(layerWeights.down)) {
-    releaseOrTrack(recorder, isWeightBuffer(downWeight) ? downWeight.buffer : downWeight);
-  }
-  if (!isGpuBufferInstance(layerWeights.postFeedforwardNorm) && !isWeightBuffer(layerWeights.postFeedforwardNorm)) releaseOrTrack(recorder, normWeightBuf);
-  if (recorder) {
-    recorder.trackTemporaryBuffer(activatedOutput.buffer);
-  } else {
-    releaseBuffer(activatedOutput.buffer);
-  }
-
-  return outputTensor;
 }

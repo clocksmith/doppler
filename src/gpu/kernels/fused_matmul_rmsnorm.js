@@ -1,7 +1,7 @@
 import { getDevice } from '../device.js';
 import { acquireBuffer, getBufferRequestedSize, releaseBuffer } from '../../memory/buffer-pool.js';
 import { createTensor } from '../tensor.js';
-import { getBuffer } from '../weight-buffer.js';
+import { getBuffer, getWeightDtype } from '../weight-buffer.js';
 import { dispatch, recordDispatch } from './dispatch.js';
 import { getPipelineFast } from './pipeline-cache.js';
 import { createUniformBufferWithView } from './uniform-utils.js';
@@ -76,6 +76,13 @@ async function executeMatmulRMSNormFused(
     throw new Error(`[MatmulRMSNormFused] N=${N} exceeds maxMediumN=${maxMediumN}; kernel only supports single-workgroup RMSNorm.`);
   }
 
+  const weightDtype = getWeightDtype(weight);
+  if (weightDtype && weightDtype !== input.dtype) {
+    throw new Error(
+      `[MatmulRMSNormFused] Input dtype ${input.dtype} must match weight dtype ${weightDtype}; ` +
+      'bind the declared activation and weight materialization before dispatch.'
+    );
+  }
   const weightBuffer = getBuffer(weight);
   const normWeightBuffer = getBuffer(normWeight);
   const normWeightSize = getBufferRequestedSize(normWeightBuffer);

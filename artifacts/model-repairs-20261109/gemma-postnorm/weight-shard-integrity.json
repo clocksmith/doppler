@@ -1,0 +1,305 @@
+{
+  "manifestSha256": "512d6e16602071cccff4cbe576bf3b2c20bd43fd32aefc271db4bb95cc9c7f17",
+  "shards": [
+    {
+      "file": "shard_00000.bin",
+      "size": 67108864,
+      "sha256": "927343581954a5f71c60d74833cd34a6f2823931f142b3bab441d215a7728bba"
+    },
+    {
+      "file": "shard_00001.bin",
+      "size": 67108864,
+      "sha256": "a7516c8613f887818d4ecde4b507e99d79dad3a8995e36302695dadaa9ad75a9"
+    },
+    {
+      "file": "shard_00002.bin",
+      "size": 67108864,
+      "sha256": "9c52e56e128143b0953978d6f716af133c1133d5633fb33f01a3615712d9413a"
+    },
+    {
+      "file": "shard_00003.bin",
+      "size": 67108864,
+      "sha256": "a1cddb85e690e3dcb3bf1dbbe942969d160f564d7b2caa82e6e64ab540a07264"
+    },
+    {
+      "file": "shard_00004.bin",
+      "size": 67108864,
+      "sha256": "35ccf43efe17ba719dbca2cab9c15ccb1ceb65c01e13788fd58269b2f54ee254"
+    },
+    {
+      "file": "shard_00005.bin",
+      "size": 67108864,
+      "sha256": "ead31e42394cdbc18db2efe8f819f52851a59bb4c48a01711a464afe58ca00cf"
+    },
+    {
+      "file": "shard_00006.bin",
+      "size": 67108864,
+      "sha256": "f4f449a570f0bbd54a500615a6e384f81d5bb5d1b3001c45f171484ac6045643"
+    },
+    {
+      "file": "shard_00007.bin",
+      "size": 67108864,
+      "sha256": "2bfd6186e98f57af4d5b2c2c685c88039f930bde2a75e7864f3a27a3156fa200"
+    },
+    {
+      "file": "shard_00008.bin",
+      "size": 67108864,
+      "sha256": "c1a54117a6ab80db892b5ce8e12c87572201a554e5f9ca4fbab892a99d335719"
+    },
+    {
+      "file": "shard_00009.bin",
+      "size": 67108864,
+      "sha256": "cf3ed42b11c43ae3a5fdd2968f10b086d2c3f11acaaca8614f49b461c7380622"
+    },
+    {
+      "file": "shard_00010.bin",
+      "size": 67108864,
+      "sha256": "3295d61768258da63eba720470a0188f07558ab27830b134f4d53c3b7c12d919"
+    },
+    {
+      "file": "shard_00011.bin",
+      "size": 67108864,
+      "sha256": "edee7d61532f2a50d9441b3928a5c73a97579060f6dba5147db47563d5fb0306"
+    },
+    {
+      "file": "shard_00012.bin",
+      "size": 67108864,
+      "sha256": "6c8f6b1a246c37474b05404834ccee8c8ae7144d2b34e8eef214febcba590198"
+    },
+    {
+      "file": "shard_00013.bin",
+      "size": 67108864,
+      "sha256": "7650eccac118e45ded04e5eccdb37a36fbb46fcda875f98af331e0570b5c59ac"
+    },
+    {
+      "file": "shard_00014.bin",
+      "size": 67108864,
+      "sha256": "c468b7ba1d320c1b7abd2f00a48c4fff888305a60621a3413cf2e233ea8ec1f3"
+    },
+    {
+      "file": "shard_00015.bin",
+      "size": 67108864,
+      "sha256": "ec7311bd46a6f9d655b81cc5c1708186f260600b2370147326b78965f52ca7d5"
+    },
+    {
+      "file": "shard_00016.bin",
+      "size": 67108864,
+      "sha256": "8888abf5eec8aa0ba739c85e7e6851ea588a39ff695d779dca59a241e8c8a74c"
+    },
+    {
+      "file": "shard_00017.bin",
+      "size": 67108864,
+      "sha256": "57a7142a06633f9028555cf04167711b0c708e1216a1a475e44128d26b70f4d2"
+    },
+    {
+      "file": "shard_00018.bin",
+      "size": 67108864,
+      "sha256": "0af68af5a4ccc7d6ef80d866ef69da223aaaa0a6cba84498140e1bec0fbb2d74"
+    },
+    {
+      "file": "shard_00019.bin",
+      "size": 67108864,
+      "sha256": "82673f234099165cd93d0a4921acd4e48b29125395c19dd5180b3a0dbbfc347a"
+    },
+    {
+      "file": "shard_00020.bin",
+      "size": 67108864,
+      "sha256": "92bfcd1c8eb98b056494afaf20629439badb17f8148a33198fd4bfdb14f33eb1"
+    },
+    {
+      "file": "shard_00021.bin",
+      "size": 67108864,
+      "sha256": "4ccaedb88363afd49704d70ab6c0d3bd6633afbbaf880bc5a35a8ee70ee4da16"
+    },
+    {
+      "file": "shard_00022.bin",
+      "size": 67108864,
+      "sha256": "182d75953e54cf29ba9a73145eda46b2ad7ffd38ae9515650db172596e4f8526"
+    },
+    {
+      "file": "shard_00023.bin",
+      "size": 67108864,
+      "sha256": "a14fe26d535ae366fd64168b874750bcc150a99bdcbb03adc7afbcd6abfdbdd9"
+    },
+    {
+      "file": "shard_00024.bin",
+      "size": 67108864,
+      "sha256": "32c4685eb16e8259a79abfd03eddda1f32e5758616f64435ea1d8dcb1ab6bc55"
+    },
+    {
+      "file": "shard_00025.bin",
+      "size": 67108864,
+      "sha256": "d011b6a23ab9fcd8fa43f3348fa59e67b5b0bbee35d060778c719679d74f05c8"
+    },
+    {
+      "file": "shard_00026.bin",
+      "size": 67108864,
+      "sha256": "95892c326dc94e337053d9d960ba2344a04126b018c35e56c5ac4a6966ab7326"
+    },
+    {
+      "file": "shard_00027.bin",
+      "size": 67108864,
+      "sha256": "d5a44daae10511a5c760eadfc1d42ee5e1c36f0463843e4c0338f8d20dd788af"
+    },
+    {
+      "file": "shard_00028.bin",
+      "size": 67108864,
+      "sha256": "e40ef9180e6ac5fbe02e719823592cccb2812d02dbb9c0ee2d2d743317f06fda"
+    },
+    {
+      "file": "shard_00029.bin",
+      "size": 67108864,
+      "sha256": "4a1500f791484d866ae02f0b2dc660a5825be1292234ab98e4d8ac601349a953"
+    },
+    {
+      "file": "shard_00030.bin",
+      "size": 67108864,
+      "sha256": "8a1eca1dd23b4697c05db037262e68ee46799a9c09c7e91a5cc499ea8f5db9af"
+    },
+    {
+      "file": "shard_00031.bin",
+      "size": 67108864,
+      "sha256": "9ff98201636f871ca86aac899225a48dcf1c7a346abc75c11379ad3c6f49e03c"
+    },
+    {
+      "file": "shard_00032.bin",
+      "size": 67108864,
+      "sha256": "0bdd0df5146909261c25c467ad2aca149e72a5d1216782619dfb2cca3ccf741d"
+    },
+    {
+      "file": "shard_00033.bin",
+      "size": 67108864,
+      "sha256": "282e15d87b5b9dce75c85108ec593fae91c63e033662209e76a9758e6051b45a"
+    },
+    {
+      "file": "shard_00034.bin",
+      "size": 67108864,
+      "sha256": "3f54e362f1eddb5f1d0f34e91e98b5ee18173c50a1666cb6273946fffa965e54"
+    },
+    {
+      "file": "shard_00035.bin",
+      "size": 67108864,
+      "sha256": "d78c2733b1a27865760260fad4b3d6df81176ba34c18eeaaae75f06d22af1071"
+    },
+    {
+      "file": "shard_00036.bin",
+      "size": 67108864,
+      "sha256": "c204af40811269cb21f76256612fc89979ff931ef3ae17dded965174f0fa2a9a"
+    },
+    {
+      "file": "shard_00037.bin",
+      "size": 67108864,
+      "sha256": "9451853290882c8b3dd3c63622dca26d4e8a38caad2e98552295398327859323"
+    },
+    {
+      "file": "shard_00038.bin",
+      "size": 67108864,
+      "sha256": "6a0e8ecfb1190554392143f79434839b629ee9284a3fd643d84cb62522a0cdcd"
+    },
+    {
+      "file": "shard_00039.bin",
+      "size": 67108864,
+      "sha256": "4b0e6bb1531f4c5f0bd8c32df984473f4af72f92ebf231806c9e3f3aba60f390"
+    },
+    {
+      "file": "shard_00040.bin",
+      "size": 67108864,
+      "sha256": "08eeccc34f1f29ff30663dfcd06e8d9bfc3e345cdf153638fb994495a177649d"
+    },
+    {
+      "file": "shard_00041.bin",
+      "size": 67108864,
+      "sha256": "6da15ad8dd31abad82e3168da42e0d220e7e97a285eb4635d56904fb29d3fd84"
+    },
+    {
+      "file": "shard_00042.bin",
+      "size": 67108864,
+      "sha256": "16afb041cf02bb70ee0e4c2dc42484047ab38c3dfda4e4280917b8d73a26e5f4"
+    },
+    {
+      "file": "shard_00043.bin",
+      "size": 67108864,
+      "sha256": "bd6f586dc262da7f2f60c27adcf94ff38cc0a513041553b1e5936777db9f2d07"
+    },
+    {
+      "file": "shard_00044.bin",
+      "size": 67108864,
+      "sha256": "9a9c89f82052cfc28d2d498a54a33097111de286d946158d82b128f240794f8a"
+    },
+    {
+      "file": "shard_00045.bin",
+      "size": 67108864,
+      "sha256": "1b7770141cdb0f9c0949339868b74ec6607f023f6bcadf8ebc5ac43c3fd37cfe"
+    },
+    {
+      "file": "shard_00046.bin",
+      "size": 67108864,
+      "sha256": "ea470fbe970ca5fb5560e2360b4fb057ebae3d4b02b749fb463fb70ef02ec22c"
+    },
+    {
+      "file": "shard_00047.bin",
+      "size": 67108864,
+      "sha256": "4251b2f7d957fcb700b9d0f84c2e6c4131c9a78d8fd85ce566d2c5ff0e9e2fa7"
+    },
+    {
+      "file": "shard_00048.bin",
+      "size": 67108864,
+      "sha256": "49a7165ad27c5983bd077661c0f04f5e1af0eb0f336121796be399ec8ada8bd8"
+    },
+    {
+      "file": "shard_00049.bin",
+      "size": 67108864,
+      "sha256": "f709dc9d04a887e727758ea032152ddcc2c80efaef0211c5ba7b15f855a1516d"
+    },
+    {
+      "file": "shard_00050.bin",
+      "size": 67108864,
+      "sha256": "6a0a4d61618515f01e6cc4a9ea153add1f1911aa6523ac45fcce43dccde4b4f4"
+    },
+    {
+      "file": "shard_00051.bin",
+      "size": 67108864,
+      "sha256": "2b7202edc3383d8fbd097b039b9e5ddbc72dd2c28aa9b657df2b2c3e52957273"
+    },
+    {
+      "file": "shard_00052.bin",
+      "size": 67108864,
+      "sha256": "320f714c2ffda14c2b301f2de4f70c4e162d99d1d7c178b8b9559a26e9a0539f"
+    },
+    {
+      "file": "shard_00053.bin",
+      "size": 67108864,
+      "sha256": "00477b003a4b0dd53c471f29e88c36f47f68d942a8696bb5e7cc07c9f3aa48d9"
+    },
+    {
+      "file": "shard_00054.bin",
+      "size": 67108864,
+      "sha256": "41b922a8e71851e8c88f40df21b5ad297bcd8e6fe50efd87746d4deeab180165"
+    },
+    {
+      "file": "shard_00055.bin",
+      "size": 67108864,
+      "sha256": "0395e847c68ddc992a1edc944b398dcc882e50888f526abaee5bb8957770b074"
+    },
+    {
+      "file": "shard_00056.bin",
+      "size": 67108864,
+      "sha256": "98e4c9c51f3b35f296193f7b2f9624d938a02233783126bae61ecec1fb95f000"
+    },
+    {
+      "file": "shard_00057.bin",
+      "size": 67108864,
+      "sha256": "eb89267383e2866af5051e9fa044455a71ea53c2d41d464516a5ae8c71c0e6dd"
+    },
+    {
+      "file": "shard_00058.bin",
+      "size": 67108864,
+      "sha256": "324d05a9566ec615f2e6971b57e0cb279365113d12de6b2c690509ea430cff4a"
+    },
+    {
+      "file": "shard_00059.bin",
+      "size": 36316102,
+      "sha256": "b94595dcf0e89ca67f05f2f75ca295c49834a8d28c5f27e13e9f45ce53d501a3"
+    }
+  ]
+}

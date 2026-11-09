@@ -1,0 +1,133 @@
+{
+  "schema": "doppler.model-repair-receipt/v1",
+  "consumer": "tests/inference/fused-postnorm-dtype-gpu.test.js and Gemma F16 diagnostic continuation",
+  "baseCommit": "ee85271f",
+  "implementationFiles": [
+    {
+      "path": "src/inference/pipelines/text/ffn/dense-executor.js",
+      "sha256": "1588dffc0d91ca2dd50d8eb28893f35e6e8003d5921a6e080eee5f64a6c48e97"
+    },
+    {
+      "path": "src/gpu/kernels/fused_matmul_rmsnorm.js",
+      "sha256": "71761bc9dc97598a30ec869509bfa144affe80303bf137e449f3ebe1099392d0"
+    },
+    {
+      "path": "tests/inference/fused-postnorm-dtype-gpu.test.js",
+      "sha256": "e77d2d9ff14756cf8053acbc1803c15036684bb3a2fa0dd1e8efb7f89cb99da1"
+    }
+  ],
+  "qualified": false,
+  "diagnosis": {
+    "dispatchBefore": {
+      "activation": "f32",
+      "downWeight": "f16",
+      "residual": "f16",
+      "outputBytes": 3072,
+      "f32ShaderWouldRequireOutputBytes": 6144
+    },
+    "repair": "Apply the resolved down-step dtype through the existing GPU cast before fused projection/normalization. Reject known mixed input/weight dtypes at the kernel boundary. Release owned activation/cast buffers on rejection as well as success.",
+    "sourceKernelArithmeticChanged": false
+  },
+  "physicalChecks": {
+    "device": "Apple Metal-3",
+    "independentSyntheticReferenceMaxAbs": 0,
+    "immediateAndRecorded": true,
+    "successAndFailureOwnership": true,
+    "firstDecodeLayer0BeforeNonfinite": 1536,
+    "firstDecodeLayer0AfterNonfinite": 0,
+    "inputBoundaryMaxAbs": 0.0,
+    "wholeModelAfterRunsGeneratedTokens": [
+      16,
+      16
+    ]
+  },
+  "limits": [
+    "Production Apple capability guards and double-width fusion admission policy remain unchanged. The whole-model runs use the explicitly recorded isolated diagnostic overrides.",
+    "A separately identified diagnostic manifest repairs a stale weightsRef digest after checking the same 60 SHA-256 shard identities; tracked Gemma metadata and hosted Gemma artifacts remain unchanged.",
+    "The two whole-model F16 continuations are finite but differ in generated text. No source-parity, determinism, broad quality or performance qualification is claimed.",
+    "Captures perturb execution; intermediate values are not all bit-identical across diagnostic runs.",
+    "No Jupiter GPU work, serving restart or production profile promotion."
+  ],
+  "files": [
+    {
+      "path": "after-first-run.json",
+      "bytes": 50025,
+      "sha256": "7eb6c06dac78dc1c668e576ca247e4bfe7b56be89e3659c42efdb308aca969c5"
+    },
+    {
+      "path": "after-post_ffn.npy",
+      "bytes": 6272,
+      "sha256": "5546537fa37fa7623b6cd1d95a04a4fdec534a3ec76775635834971f9a85b97f"
+    },
+    {
+      "path": "after-pre_ffn.npy",
+      "bytes": 6272,
+      "sha256": "132c80fd7405ce0ed4da327a4160f4407531375dea25de82edbb34e777acae7f"
+    },
+    {
+      "path": "after-pre_layer_input.npy",
+      "bytes": 6272,
+      "sha256": "f55172bfe57137becb9bff585b3f7acdf396011ce90ebf11de10737e1351cbf0"
+    },
+    {
+      "path": "after-repeat-run.json",
+      "bytes": 50019,
+      "sha256": "f6c722385d75524996ff385255ffa2c54ccaec693c32af7c2851cdde880e06f2"
+    },
+    {
+      "path": "before-failure.json",
+      "bytes": 1299,
+      "sha256": "981757a993fe7a5b23dd534088099601f66dac5e491dd47853f67a03c30d9375"
+    },
+    {
+      "path": "before-post_ffn.npy",
+      "bytes": 6272,
+      "sha256": "59bbdb68f2372e2567016c4709f8f80ab4640bde096192e5b66cbd109e505363"
+    },
+    {
+      "path": "before-pre_ffn.npy",
+      "bytes": 6272,
+      "sha256": "96ea2db86b4498db2e2dded6271beb3250c77196a31c882faddb3fd240ebc983"
+    },
+    {
+      "path": "before-pre_layer_input.npy",
+      "bytes": 6272,
+      "sha256": "f55172bfe57137becb9bff585b3f7acdf396011ce90ebf11de10737e1351cbf0"
+    },
+    {
+      "path": "diagnostic-conversion.json",
+      "bytes": 15793,
+      "sha256": "690076437c510e51cea426914448063bb6a26e74edbc4ce6916a0af58c2be24a"
+    },
+    {
+      "path": "diagnostic-policy.json",
+      "bytes": 3963,
+      "sha256": "0e1b4bceea675f89c7f9ee413e4961e85a19844f82b8699bb4c0dd0ceadfc311"
+    },
+    {
+      "path": "diagnostic-reference-rebinding.json",
+      "bytes": 509,
+      "sha256": "36329cfe16503eaded2feaaf261c231f24b5bc5d06cd5a5213956b32b4225211"
+    },
+    {
+      "path": "diagnostic-request.json",
+      "bytes": 1735,
+      "sha256": "80570c5ecc502a97bbaa31d109cff0b8dc7cf90f6f0fe2462866b786314e7449"
+    },
+    {
+      "path": "regression-after.log",
+      "bytes": 162,
+      "sha256": "0cb4a14425f842f44e945d45c41e3ab2f2bd5f740d813f78eda0f97e4bca4468"
+    },
+    {
+      "path": "regression-before.log",
+      "bytes": 496,
+      "sha256": "4e7cc3dcc9307ebc17d0404ed5c90d5b808b20a28bd0c82b9fcef9d6f1dd5fbc"
+    },
+    {
+      "path": "weight-shard-integrity.json",
+      "bytes": 9288,
+      "sha256": "3cad3cbdefab7cc7ef4abb33de140b0b315b632f5d905bf202416bb7f84c4331"
+    }
+  ]
+}

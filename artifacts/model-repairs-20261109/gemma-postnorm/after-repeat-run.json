@@ -1,0 +1,1453 @@
+{
+  "schema": "doppler.diagnostic-command-projection/v1",
+  "projectionNote": "Selected fields from the complete command envelope; the original envelope is identified by SHA-256. Numerical boundary arrays and diagnostic configuration are retained separately.",
+  "originalEnvelopeSha256": "6453c5d7dadf2ba830f3e69407f9a2f0aad68052d3d8a2a0fa95cee3e30e1cd2",
+  "ok": true,
+  "error": null,
+  "output": "The user has provided three very similar sentences and is essentially asking which one is the",
+  "deviceInfo": {
+    "hasSubgroups": true,
+    "wgslLanguageFeatures": [
+      "subgroup_id",
+      "texture_formats_tier1",
+      "packed_4x8_integer_dot_product",
+      "sized_binding_array",
+      "swizzle_assignment",
+      "filtering_parameters",
+      "buffer_view",
+      "chromium_print",
+      "subgroup_uniformity",
+      "readonly_and_readwrite_storage_textures",
+      "texel_buffers",
+      "pointer_composite_access",
+      "immediate_address_space",
+      "unrestricted_pointer_parameters",
+      "texture_and_sampler_let",
+      "uniform_buffer_standard_layout",
+      "linear_indexing",
+      "fragment_depth"
+    ],
+    "hasSubgroupsF16": true,
+    "hasF16": true,
+    "hasTimestampQuery": true,
+    "maxBufferSize": 4294967295,
+    "maxWorkgroupSize": 1024,
+    "maxWorkgroupStorageSize": 32768,
+    "adapterInfo": {
+      "vendor": "apple",
+      "architecture": "metal-3",
+      "device": "apple-m3",
+      "description": "Metal driver on macOS Version 26.6.2 (Build 25G83)",
+      "subgroupMinSize": 32,
+      "subgroupMaxSize": 32
+    },
+    "submitProbeMs": 1.3362920000000145
+  },
+  "reportInfo": {
+    "backend": "node-fs",
+    "path": "reports/gemma-4-e2b-it-q4k-ehf16-af16-int4ple/2026-11-09T13-25-13.960Z.json"
+  },
+  "metrics": {
+    "tokensGenerated": 16,
+    "stopReason": "max-tokens",
+    "initialExecutionIdentity": {
+      "schema": "doppler.initial-execution-identity/v2",
+      "executionGraphHash": "sha256:4ad451e7904c1c7557944be7f7b343b9781c74636e23b86fceb2369cfd8610d4",
+      "resolvedGraphHash": "sha256:b7a130e1689ebbf52a4cb01918123335377d933c774df69417ec1c9762cfd2b5",
+      "kernelClosure": [
+        {
+          "moduleId": "attn_decode",
+          "file": "attention_decode_online_f16kv.wgsl",
+          "entry": "main",
+          "digest": "sha256:c6d9f8c614a2a088cb533958007896391efb3e348377dc8095c409944c562912"
+        },
+        {
+          "moduleId": "attn_head256",
+          "file": "attention_head256_f16kv.wgsl",
+          "entry": "main",
+          "digest": "sha256:4e1eafa0a5e407c99714d04f0e75f3834e1156bcb25579892f248d95aae197da"
+        },
+        {
+          "moduleId": "attn_head512",
+          "file": "attention_head512_f16kv.wgsl",
+          "entry": "main",
+          "digest": "sha256:fe8bc99230a5ee4c969ba1cf9eca289ad936d14f1f87c12a7ca95640cdd8d89e"
+        },
+        {
+          "moduleId": "embed",
+          "file": "gather_split8_f16_vec4_f16_out.wgsl",
+          "entry": "gather_vec4_f16_out",
+          "digest": "sha256:5a6922136dad0cf05059533f24ea0989875c3659b464dfc7528518d57ce1e0c1"
+        },
+        {
+          "moduleId": "final_norm_stable",
+          "file": "rmsnorm.wgsl",
+          "entry": "main",
+          "digest": "sha256:4f4d144735bdff86b8567346ba7ea7b82fe68a2ac9656ba1577106158af9bc7c"
+        },
+        {
+          "moduleId": "gelu",
+          "file": "gelu.wgsl",
+          "entry": "main",
+          "digest": "sha256:db864455ec72070d7d8729c8744e2eac377a4939a9bc2ecb26eb086d866e16b0"
+        },
+        {
+          "moduleId": "lm_head_gemv_stable",
+          "file": "matmul_gemv_subgroup.wgsl",
+          "entry": "main_multicol",
+          "digest": "sha256:e41f94574d5ac54dd2710036da5d5acc643a483b79b2d74b86825efdaaa7438f"
+        },
+        {
+          "moduleId": "lm_head_prefill_stable",
+          "file": "matmul_f16w_f32a.wgsl",
+          "entry": "main",
+          "digest": "sha256:027a8f1cd9713cbe0b0ada160bd175e0542bb90896ad85441b023522d9a1befc"
+        },
+        {
+          "moduleId": "q4_decode_gemv",
+          "file": "fused_matmul_q4.wgsl",
+          "entry": "main_gemv",
+          "digest": "sha256:02029c2254c8ddb4c2051c4322e6b11ddbcf555e27d233e7fe73277edfa0f3f7"
+        },
+        {
+          "moduleId": "q4_widetile",
+          "file": "fused_matmul_q4_widetile.wgsl",
+          "entry": "main",
+          "digest": "sha256:c434473d64a163eddbb6fc349aec944e4bef6b067170acdf4d55daf92f1932bf"
+        },
+        {
+          "moduleId": "residual",
+          "file": "residual.wgsl",
+          "entry": "main",
+          "digest": "sha256:abd19bc08ad668a7cad562e2bc0a4be1aa8827ad4300d8d474b7fc2af4c27117"
+        },
+        {
+          "moduleId": "rmsnorm",
+          "file": "rmsnorm.wgsl",
+          "entry": "main",
+          "digest": "sha256:4f4d144735bdff86b8567346ba7ea7b82fe68a2ac9656ba1577106158af9bc7c"
+        },
+        {
+          "moduleId": "rope",
+          "file": "rope.wgsl",
+          "entry": "main",
+          "digest": "sha256:923f9a96c941aee94119ecf04fa5b1508c77b7d927a7e6044ce6588b2d51a416"
+        },
+        {
+          "moduleId": "sample",
+          "file": "sample.wgsl",
+          "entry": "sample_single_pass",
+          "digest": "sha256:f2377b2a58c2eeb695a6f6f7ad877630bdba5e74d5dc1a8d919cd73b360d4870"
+        }
+      ],
+      "kernelClosureHash": "sha256:b7728803f2c4a92e0d539d646cdc176928b253bd4cc67486c14b8aab5df90aa6",
+      "dtypeLane": {
+        "activation": "f16",
+        "output": "f16",
+        "kv": "f16",
+        "math": "f16",
+        "accumulation": "f16"
+      },
+      "fusionSet": [
+        "useGemma4Int4PleAf16Activations"
+      ],
+      "fusionSetHash": "sha256:aad4583a2901cc124bbd81f3f8b8b93f2e23d12e58932be904c27320d49e8403",
+      "kvLayout": {
+        "maxSeqLen": 4096,
+        "gpuPagedFallbackMaxSeqLen": 4096,
+        "kvDtype": "f16",
+        "forceF32Softcap": false,
+        "layout": "contiguous",
+        "pageSize": 256,
+        "bdpaVocabSize": 2048,
+        "windowSize": 1024,
+        "tiering": {
+          "mode": "off",
+          "hotWindow": 1024,
+          "coldPageSize": 256,
+          "coldDtype": "f16",
+          "compression": {
+            "mode": "none",
+            "blockSize": 1,
+            "bitWidth": 4,
+            "prodMode": false
+          },
+          "gating": {
+            "mode": "auto",
+            "minAluBwRatio": 0
+          }
+        },
+        "quantization": {
+          "mode": "none",
+          "bitWidth": 4,
+          "prodMode": false
+        }
+      },
+      "kvLayoutHash": "sha256:7914573e9a94b6cf6525dbd027e2da398c4c808a08a66e90ea544822f0087c80",
+      "memoryPolicy": {
+        "kvcache": {
+          "maxSeqLen": 4096,
+          "gpuPagedFallbackMaxSeqLen": 4096,
+          "kvDtype": "f16",
+          "forceF32Softcap": false,
+          "layout": "contiguous",
+          "pageSize": 256,
+          "bdpaVocabSize": 2048,
+          "windowSize": 1024,
+          "tiering": {
+            "mode": "off",
+            "hotWindow": 1024,
+            "coldPageSize": 256,
+            "coldDtype": "f16",
+            "compression": {
+              "mode": "none",
+              "blockSize": 1,
+              "bitWidth": 4,
+              "prodMode": false
+            },
+            "gating": {
+              "mode": "auto",
+              "minAluBwRatio": 0
+            }
+          },
+          "quantization": {
+            "mode": "none",
+            "bitWidth": 4,
+            "prodMode": false
+          }
+        },
+        "perLayerInputs": {
+          "materialization": "range_backed",
+          "rowCache": {
+            "mode": "lru",
+            "maxRows": 512,
+            "maxBytes": 268435456,
+            "decodedDtype": "f32"
+          },
+          "prefetch": {
+            "mode": "next_token",
+            "rowsAhead": 1
+          },
+          "gpuUpload": {
+            "mode": "per_step_slices",
+            "stagingRows": 2
+          },
+          "hotCache": {
+            "mode": "prepared_tokens",
+            "maxTokens": 4096,
+            "maxBytes": 268435456,
+            "outputDtype": "f16"
+          }
+        },
+        "largeWeights": null
+      },
+      "memoryPolicyHash": "sha256:48d9e8d2e4cadc6c533cc9f7a2ed37135f9587e78024b9ebf8bdf327c055efb8",
+      "executionPlanDigest": "sha256:8f4e991378ef81f28600424ba89f0976877a38fb8533fbbeea017576f9e4bf46",
+      "runtimeEngine": {
+        "resolvedRuntimeSessionId": "sha256:445d2662d6a2be85720ffa37c3e176d10037e92ab374676944633c710dcbb6c8",
+        "resolvedRuntimeSchema": "doppler.resolved-runtime-session/v1",
+        "kernelPath": {
+          "id": "gemma-4-e2b-it-q4k-ehf16-af16-int4ple-execution-inline",
+          "source": "execution-v1",
+          "hash": "sha256:0ecb98d9134359e0d2fe932093b7c2ab55fe42db994a87c9f3c1c41e8ae729a5",
+          "definition": {
+            "id": "gemma-4-e2b-it-q4k-ehf16-af16-int4ple-execution-inline",
+            "name": "Execution inline kernel path",
+            "description": "Generated from manifest.inference.execution",
+            "activationDtype": "f16",
+            "kvDtype": "f16",
+            "decode": {
+              "steps": [
+                {
+                  "op": "input_norm",
+                  "kernel": "rmsnorm_f16.wgsl",
+                  "entry": "main"
+                },
+                {
+                  "op": "q_proj",
+                  "kernel": "fused_matmul_q4_multicol_f16a.wgsl",
+                  "entry": "main_multicol_f16a",
+                  "weights": "layer.{L}.self_attn.q_proj",
+                  "precision": {
+                    "inputDtype": "f16",
+                    "outputDtype": "f16"
+                  }
+                },
+                {
+                  "op": "k_proj",
+                  "kernel": "fused_matmul_q4_multicol_f16a.wgsl",
+                  "entry": "main_multicol_f16a",
+                  "weights": "layer.{L}.self_attn.k_proj",
+                  "precision": {
+                    "inputDtype": "f16",
+                    "outputDtype": "f16"
+                  }
+                },
+                {
+                  "op": "v_proj",
+                  "kernel": "fused_matmul_q4_multicol_f16a.wgsl",
+                  "entry": "main_multicol_f16a",
+                  "weights": "layer.{L}.self_attn.v_proj",
+                  "precision": {
+                    "inputDtype": "f16",
+                    "outputDtype": "f16"
+                  }
+                },
+                {
+                  "op": "rope_q",
+                  "kernel": "rope_f16.wgsl",
+                  "entry": "main"
+                },
+                {
+                  "op": "rope_k",
+                  "kernel": "rope_f16.wgsl",
+                  "entry": "main"
+                },
+                {
+                  "op": "attention",
+                  "kernel": "attention_decode_online_f16.wgsl",
+                  "entry": "main",
+                  "precision": {
+                    "kvDtype": "f16",
+                    "activationDtype": "f16"
+                  }
+                },
+                {
+                  "op": "o_proj",
+                  "kernel": "fused_matmul_q4_multicol_f16a.wgsl",
+                  "entry": "main_multicol_f16a",
+                  "weights": "layer.{L}.self_attn.o_proj",
+                  "precision": {
+                    "inputDtype": "f16",
+                    "outputDtype": "f16"
+                  }
+                },
+                {
+                  "op": "attn_residual",
+                  "kernel": "residual_f16.wgsl",
+                  "entry": "main"
+                },
+                {
+                  "op": "post_attn_norm",
+                  "kernel": "rmsnorm_f16.wgsl",
+                  "entry": "main"
+                },
+                {
+                  "op": "ffn",
+                  "kernel": "gelu_f16.wgsl",
+                  "entry": "main",
+                  "constants": {
+                    "HAS_GATE": true
+                  },
+                  "precision": {
+                    "inputDtype": "f16",
+                    "outputDtype": "f16"
+                  }
+                },
+                {
+                  "op": "ffn_residual",
+                  "kernel": "residual_f16.wgsl",
+                  "entry": "main"
+                }
+              ]
+            },
+            "prefill": {
+              "steps": [
+                {
+                  "op": "input_norm",
+                  "kernel": "rmsnorm_f16.wgsl",
+                  "entry": "main"
+                },
+                {
+                  "op": "q_proj",
+                  "kernel": "fused_matmul_q4_widetile_f16a.wgsl",
+                  "entry": "main",
+                  "weights": "layer.{L}.self_attn.q_proj",
+                  "precision": {
+                    "inputDtype": "f16",
+                    "outputDtype": "f16"
+                  }
+                },
+                {
+                  "op": "k_proj",
+                  "kernel": "fused_matmul_q4_widetile_f16a.wgsl",
+                  "entry": "main",
+                  "weights": "layer.{L}.self_attn.k_proj",
+                  "precision": {
+                    "inputDtype": "f16",
+                    "outputDtype": "f16"
+                  }
+                },
+                {
+                  "op": "v_proj",
+                  "kernel": "fused_matmul_q4_widetile_f16a.wgsl",
+                  "entry": "main",
+                  "weights": "layer.{L}.self_attn.v_proj",
+                  "precision": {
+                    "inputDtype": "f16",
+                    "outputDtype": "f16"
+                  }
+                },
+                {
+                  "op": "rope_q",
+                  "kernel": "rope_f16.wgsl",
+                  "entry": "main"
+                },
+                {
+                  "op": "rope_k",
+                  "kernel": "rope_f16.wgsl",
+                  "entry": "main"
+                },
+                {
+                  "op": "attention",
+                  "kernel": "attention_small_f16.wgsl",
+                  "entry": "main",
+                  "precision": {
+                    "kvDtype": "f16",
+                    "activationDtype": "f16"
+                  }
+                },
+                {
+                  "op": "o_proj",
+                  "kernel": "fused_matmul_q4_widetile_f16a.wgsl",
+                  "entry": "main",
+                  "weights": "layer.{L}.self_attn.o_proj",
+                  "precision": {
+                    "inputDtype": "f16",
+                    "outputDtype": "f16"
+                  }
+                },
+                {
+                  "op": "attn_residual",
+                  "kernel": "residual_f16.wgsl",
+                  "entry": "main"
+                },
+                {
+                  "op": "post_attn_norm",
+                  "kernel": "rmsnorm_f16.wgsl",
+                  "entry": "main"
+                },
+                {
+                  "op": "ffn",
+                  "kernel": "gelu_f16.wgsl",
+                  "entry": "main",
+                  "constants": {
+                    "HAS_GATE": true
+                  },
+                  "precision": {
+                    "inputDtype": "f16",
+                    "outputDtype": "f16"
+                  }
+                },
+                {
+                  "op": "ffn_residual",
+                  "kernel": "residual_f16.wgsl",
+                  "entry": "main"
+                }
+              ]
+            },
+            "layerOverrides": [
+              {
+                "layers": [
+                  4
+                ],
+                "prefill": {
+                  "steps": [
+                    {
+                      "op": "input_norm",
+                      "kernel": "rmsnorm_f16.wgsl",
+                      "entry": "main"
+                    },
+                    {
+                      "op": "q_proj",
+                      "kernel": "fused_matmul_q4_widetile_f16a.wgsl",
+                      "entry": "main",
+                      "weights": "layer.{L}.self_attn.q_proj",
+                      "precision": {
+                        "inputDtype": "f16",
+                        "outputDtype": "f16"
+                      }
+                    },
+                    {
+                      "op": "k_proj",
+                      "kernel": "fused_matmul_q4_widetile_f16a.wgsl",
+                      "entry": "main",
+                      "weights": "layer.{L}.self_attn.k_proj",
+                      "precision": {
+                        "inputDtype": "f16",
+                        "outputDtype": "f16"
+                      }
+                    },
+                    {
+                      "op": "v_proj",
+                      "kernel": "fused_matmul_q4_widetile_f16a.wgsl",
+                      "entry": "main",
+                      "weights": "layer.{L}.self_attn.v_proj",
+                      "precision": {
+                        "inputDtype": "f16",
+                        "outputDtype": "f16"
+                      }
+                    },
+                    {
+                      "op": "rope_q",
+                      "kernel": "rope_f16.wgsl",
+                      "entry": "main"
+                    },
+                    {
+                      "op": "rope_k",
+                      "kernel": "rope_f16.wgsl",
+                      "entry": "main"
+                    },
+                    {
+                      "op": "attention",
+                      "kernel": "attention_head512_f16.wgsl",
+                      "entry": "main",
+                      "precision": {
+                        "kvDtype": "f16",
+                        "activationDtype": "f16"
+                      }
+                    },
+                    {
+                      "op": "o_proj",
+                      "kernel": "fused_matmul_q4_widetile_f16a.wgsl",
+                      "entry": "main",
+                      "weights": "layer.{L}.self_attn.o_proj",
+                      "precision": {
+                        "inputDtype": "f16",
+                        "outputDtype": "f16"
+                      }
+                    },
+                    {
+                      "op": "attn_residual",
+                      "kernel": "residual_f16.wgsl",
+                      "entry": "main"
+                    },
+                    {
+                      "op": "post_attn_norm",
+                      "kernel": "rmsnorm_f16.wgsl",
+                      "entry": "main"
+                    },
+                    {
+                      "op": "ffn",
+                      "kernel": "gelu_f16.wgsl",
+                      "entry": "main",
+                      "constants": {
+                        "HAS_GATE": true
+                      },
+                      "precision": {
+                        "inputDtype": "f16",
+                        "outputDtype": "f16"
+                      }
+                    },
+                    {
+                      "op": "ffn_residual",
+                      "kernel": "residual_f16.wgsl",
+                      "entry": "main"
+                    }
+                  ]
+                }
+              },
+              {
+                "layers": [
+                  9
+                ],
+                "prefill": {
+                  "steps": [
+                    {
+                      "op": "input_norm",
+                      "kernel": "rmsnorm_f16.wgsl",
+                      "entry": "main"
+                    },
+                    {
+                      "op": "q_proj",
+                      "kernel": "fused_matmul_q4_widetile_f16a.wgsl",
+                      "entry": "main",
+                      "weights": "layer.{L}.self_attn.q_proj",
+                      "precision": {
+                        "inputDtype": "f16",
+                        "outputDtype": "f16"
+                      }
+                    },
+                    {
+                      "op": "k_proj",
+                      "kernel": "fused_matmul_q4_widetile_f16a.wgsl",
+                      "entry": "main",
+                      "weights": "layer.{L}.self_attn.k_proj",
+                      "precision": {
+                        "inputDtype": "f16",
+                        "outputDtype": "f16"
+                      }
+                    },
+                    {
+                      "op": "v_proj",
+                      "kernel": "fused_matmul_q4_widetile_f16a.wgsl",
+                      "entry": "main",
+                      "weights": "layer.{L}.self_attn.v_proj",
+                      "precision": {
+                        "inputDtype": "f16",
+                        "outputDtype": "f16"
+                      }
+                    },
+                    {
+                      "op": "rope_q",
+                      "kernel": "rope_f16.wgsl",
+                      "entry": "main"
+                    },
+                    {
+                      "op": "rope_k",
+                      "kernel": "rope_f16.wgsl",
+                      "entry": "main"
+                    },
+                    {
+                      "op": "attention",
+                      "kernel": "attention_head512_f16.wgsl",
+                      "entry": "main",
+                      "precision": {
+                        "kvDtype": "f16",
+                        "activationDtype": "f16"
+                      }
+                    },
+                    {
+                      "op": "o_proj",
+                      "kernel": "fused_matmul_q4_widetile_f16a.wgsl",
+                      "entry": "main",
+                      "weights": "layer.{L}.self_attn.o_proj",
+                      "precision": {
+                        "inputDtype": "f16",
+                        "outputDtype": "f16"
+                      }
+                    },
+                    {
+                      "op": "attn_residual",
+                      "kernel": "residual_f16.wgsl",
+                      "entry": "main"
+                    },
+                    {
+                      "op": "post_attn_norm",
+                      "kernel": "rmsnorm_f16.wgsl",
+                      "entry": "main"
+                    },
+                    {
+                      "op": "ffn",
+                      "kernel": "gelu_f16.wgsl",
+                      "entry": "main",
+                      "constants": {
+                        "HAS_GATE": true
+                      },
+                      "precision": {
+                        "inputDtype": "f16",
+                        "outputDtype": "f16"
+                      }
+                    },
+                    {
+                      "op": "ffn_residual",
+                      "kernel": "residual_f16.wgsl",
+                      "entry": "main"
+                    }
+                  ]
+                }
+              },
+              {
+                "layers": [
+                  14
+                ],
+                "prefill": {
+                  "steps": [
+                    {
+                      "op": "input_norm",
+                      "kernel": "rmsnorm_f16.wgsl",
+                      "entry": "main"
+                    },
+                    {
+                      "op": "q_proj",
+                      "kernel": "fused_matmul_q4_widetile_f16a.wgsl",
+                      "entry": "main",
+                      "weights": "layer.{L}.self_attn.q_proj",
+                      "precision": {
+                        "inputDtype": "f16",
+                        "outputDtype": "f16"
+                      }
+                    },
+                    {
+                      "op": "k_proj",
+                      "kernel": "fused_matmul_q4_widetile_f16a.wgsl",
+                      "entry": "main",
+                      "weights": "layer.{L}.self_attn.k_proj",
+                      "precision": {
+                        "inputDtype": "f16",
+                        "outputDtype": "f16"
+                      }
+                    },
+                    {
+                      "op": "v_proj",
+                      "kernel": "fused_matmul_q4_widetile_f16a.wgsl",
+                      "entry": "main",
+                      "weights": "layer.{L}.self_attn.v_proj",
+                      "precision": {
+                        "inputDtype": "f16",
+                        "outputDtype": "f16"
+                      }
+                    },
+                    {
+                      "op": "rope_q",
+                      "kernel": "rope_f16.wgsl",
+                      "entry": "main"
+                    },
+                    {
+                      "op": "rope_k",
+                      "kernel": "rope_f16.wgsl",
+                      "entry": "main"
+                    },
+                    {
+                      "op": "attention",
+                      "kernel": "attention_head512_f16.wgsl",
+                      "entry": "main",
+                      "precision": {
+                        "kvDtype": "f16",
+                        "activationDtype": "f16"
+                      }
+                    },
+                    {
+                      "op": "o_proj",
+                      "kernel": "fused_matmul_q4_widetile_f16a.wgsl",
+                      "entry": "main",
+                      "weights": "layer.{L}.self_attn.o_proj",
+                      "precision": {
+                        "inputDtype": "f16",
+                        "outputDtype": "f16"
+                      }
+                    },
+                    {
+                      "op": "attn_residual",
+                      "kernel": "residual_f16.wgsl",
+                      "entry": "main"
+                    },
+                    {
+                      "op": "post_attn_norm",
+                      "kernel": "rmsnorm_f16.wgsl",
+                      "entry": "main"
+                    },
+                    {
+                      "op": "ffn",
+                      "kernel": "gelu_f16.wgsl",
+                      "entry": "main",
+                      "constants": {
+                        "HAS_GATE": true
+                      },
+                      "precision": {
+                        "inputDtype": "f16",
+                        "outputDtype": "f16"
+                      }
+                    },
+                    {
+                      "op": "ffn_residual",
+                      "kernel": "residual_f16.wgsl",
+                      "entry": "main"
+                    }
+                  ]
+                }
+              },
+              {
+                "layers": [
+                  19
+                ],
+                "prefill": {
+                  "steps": [
+                    {
+                      "op": "input_norm",
+                      "kernel": "rmsnorm_f16.wgsl",
+                      "entry": "main"
+                    },
+                    {
+                      "op": "q_proj",
+                      "kernel": "fused_matmul_q4_widetile_f16a.wgsl",
+                      "entry": "main",
+                      "weights": "layer.{L}.self_attn.q_proj",
+                      "precision": {
+                        "inputDtype": "f16",
+                        "outputDtype": "f16"
+                      }
+                    },
+                    {
+                      "op": "k_proj",
+                      "kernel": "fused_matmul_q4_widetile_f16a.wgsl",
+                      "entry": "main",
+                      "weights": "layer.{L}.self_attn.k_proj",
+                      "precision": {
+                        "inputDtype": "f16",
+                        "outputDtype": "f16"
+                      }
+                    },
+                    {
+                      "op": "v_proj",
+                      "kernel": "fused_matmul_q4_widetile_f16a.wgsl",
+                      "entry": "main",
+                      "weights": "layer.{L}.self_attn.v_proj",
+                      "precision": {
+                        "inputDtype": "f16",
+                        "outputDtype": "f16"
+                      }
+                    },
+                    {
+                      "op": "rope_q",
+                      "kernel": "rope_f16.wgsl",
+                      "entry": "main"
+                    },
+                    {
+                      "op": "rope_k",
+                      "kernel": "rope_f16.wgsl",
+                      "entry": "main"
+                    },
+                    {
+                      "op": "attention",
+                      "kernel": "attention_head512_f16.wgsl",
+                      "entry": "main",
+                      "precision": {
+                        "kvDtype": "f16",
+                        "activationDtype": "f16"
+                      }
+                    },
+                    {
+                      "op": "o_proj",
+                      "kernel": "fused_matmul_q4_widetile_f16a.wgsl",
+                      "entry": "main",
+                      "weights": "layer.{L}.self_attn.o_proj",
+                      "precision": {
+                        "inputDtype": "f16",
+                        "outputDtype": "f16"
+                      }
+                    },
+                    {
+                      "op": "attn_residual",
+                      "kernel": "residual_f16.wgsl",
+                      "entry": "main"
+                    },
+                    {
+                      "op": "post_attn_norm",
+                      "kernel": "rmsnorm_f16.wgsl",
+                      "entry": "main"
+                    },
+                    {
+                      "op": "ffn",
+                      "kernel": "gelu_f16.wgsl",
+                      "entry": "main",
+                      "constants": {
+                        "HAS_GATE": true
+                      },
+                      "precision": {
+                        "inputDtype": "f16",
+                        "outputDtype": "f16"
+                      }
+                    },
+                    {
+                      "op": "ffn_residual",
+                      "kernel": "residual_f16.wgsl",
+                      "entry": "main"
+                    }
+                  ]
+                }
+              },
+              {
+                "layers": [
+                  24
+                ],
+                "prefill": {
+                  "steps": [
+                    {
+                      "op": "input_norm",
+                      "kernel": "rmsnorm_f16.wgsl",
+                      "entry": "main"
+                    },
+                    {
+                      "op": "q_proj",
+                      "kernel": "fused_matmul_q4_widetile_f16a.wgsl",
+                      "entry": "main",
+                      "weights": "layer.{L}.self_attn.q_proj",
+                      "precision": {
+                        "inputDtype": "f16",
+                        "outputDtype": "f16"
+                      }
+                    },
+                    {
+                      "op": "k_proj",
+                      "kernel": "fused_matmul_q4_widetile_f16a.wgsl",
+                      "entry": "main",
+                      "weights": "layer.{L}.self_attn.k_proj",
+                      "precision": {
+                        "inputDtype": "f16",
+                        "outputDtype": "f16"
+                      }
+                    },
+                    {
+                      "op": "v_proj",
+                      "kernel": "fused_matmul_q4_widetile_f16a.wgsl",
+                      "entry": "main",
+                      "weights": "layer.{L}.self_attn.v_proj",
+                      "precision": {
+                        "inputDtype": "f16",
+                        "outputDtype": "f16"
+                      }
+                    },
+                    {
+                      "op": "rope_q",
+                      "kernel": "rope_f16.wgsl",
+                      "entry": "main"
+                    },
+                    {
+                      "op": "rope_k",
+                      "kernel": "rope_f16.wgsl",
+                      "entry": "main"
+                    },
+                    {
+                      "op": "attention",
+                      "kernel": "attention_head512_f16.wgsl",
+                      "entry": "main",
+                      "precision": {
+                        "kvDtype": "f16",
+                        "activationDtype": "f16"
+                      }
+                    },
+                    {
+                      "op": "o_proj",
+                      "kernel": "fused_matmul_q4_widetile_f16a.wgsl",
+                      "entry": "main",
+                      "weights": "layer.{L}.self_attn.o_proj",
+                      "precision": {
+                        "inputDtype": "f16",
+                        "outputDtype": "f16"
+                      }
+                    },
+                    {
+                      "op": "attn_residual",
+                      "kernel": "residual_f16.wgsl",
+                      "entry": "main"
+                    },
+                    {
+                      "op": "post_attn_norm",
+                      "kernel": "rmsnorm_f16.wgsl",
+                      "entry": "main"
+                    },
+                    {
+                      "op": "ffn",
+                      "kernel": "gelu_f16.wgsl",
+                      "entry": "main",
+                      "constants": {
+                        "HAS_GATE": true
+                      },
+                      "precision": {
+                        "inputDtype": "f16",
+                        "outputDtype": "f16"
+                      }
+                    },
+                    {
+                      "op": "ffn_residual",
+                      "kernel": "residual_f16.wgsl",
+                      "entry": "main"
+                    }
+                  ]
+                }
+              },
+              {
+                "layers": [
+                  29
+                ],
+                "prefill": {
+                  "steps": [
+                    {
+                      "op": "input_norm",
+                      "kernel": "rmsnorm_f16.wgsl",
+                      "entry": "main"
+                    },
+                    {
+                      "op": "q_proj",
+                      "kernel": "fused_matmul_q4_widetile_f16a.wgsl",
+                      "entry": "main",
+                      "weights": "layer.{L}.self_attn.q_proj",
+                      "precision": {
+                        "inputDtype": "f16",
+                        "outputDtype": "f16"
+                      }
+                    },
+                    {
+                      "op": "k_proj",
+                      "kernel": "fused_matmul_q4_widetile_f16a.wgsl",
+                      "entry": "main",
+                      "weights": "layer.{L}.self_attn.k_proj",
+                      "precision": {
+                        "inputDtype": "f16",
+                        "outputDtype": "f16"
+                      }
+                    },
+                    {
+                      "op": "v_proj",
+                      "kernel": "fused_matmul_q4_widetile_f16a.wgsl",
+                      "entry": "main",
+                      "weights": "layer.{L}.self_attn.v_proj",
+                      "precision": {
+                        "inputDtype": "f16",
+                        "outputDtype": "f16"
+                      }
+                    },
+                    {
+                      "op": "rope_q",
+                      "kernel": "rope_f16.wgsl",
+                      "entry": "main"
+                    },
+                    {
+                      "op": "rope_k",
+                      "kernel": "rope_f16.wgsl",
+                      "entry": "main"
+                    },
+                    {
+                      "op": "attention",
+                      "kernel": "attention_head512_f16.wgsl",
+                      "entry": "main",
+                      "precision": {
+                        "kvDtype": "f16",
+                        "activationDtype": "f16"
+                      }
+                    },
+                    {
+                      "op": "o_proj",
+                      "kernel": "fused_matmul_q4_widetile_f16a.wgsl",
+                      "entry": "main",
+                      "weights": "layer.{L}.self_attn.o_proj",
+                      "precision": {
+                        "inputDtype": "f16",
+                        "outputDtype": "f16"
+                      }
+                    },
+                    {
+                      "op": "attn_residual",
+                      "kernel": "residual_f16.wgsl",
+                      "entry": "main"
+                    },
+                    {
+                      "op": "post_attn_norm",
+                      "kernel": "rmsnorm_f16.wgsl",
+                      "entry": "main"
+                    },
+                    {
+                      "op": "ffn",
+                      "kernel": "gelu_f16.wgsl",
+                      "entry": "main",
+                      "constants": {
+                        "HAS_GATE": true
+                      },
+                      "precision": {
+                        "inputDtype": "f16",
+                        "outputDtype": "f16"
+                      }
+                    },
+                    {
+                      "op": "ffn_residual",
+                      "kernel": "residual_f16.wgsl",
+                      "entry": "main"
+                    }
+                  ]
+                }
+              },
+              {
+                "layers": [
+                  34
+                ],
+                "prefill": {
+                  "steps": [
+                    {
+                      "op": "input_norm",
+                      "kernel": "rmsnorm_f16.wgsl",
+                      "entry": "main"
+                    },
+                    {
+                      "op": "q_proj",
+                      "kernel": "fused_matmul_q4_widetile_f16a.wgsl",
+                      "entry": "main",
+                      "weights": "layer.{L}.self_attn.q_proj",
+                      "precision": {
+                        "inputDtype": "f16",
+                        "outputDtype": "f16"
+                      }
+                    },
+                    {
+                      "op": "k_proj",
+                      "kernel": "fused_matmul_q4_widetile_f16a.wgsl",
+                      "entry": "main",
+                      "weights": "layer.{L}.self_attn.k_proj",
+                      "precision": {
+                        "inputDtype": "f16",
+                        "outputDtype": "f16"
+                      }
+                    },
+                    {
+                      "op": "v_proj",
+                      "kernel": "fused_matmul_q4_widetile_f16a.wgsl",
+                      "entry": "main",
+                      "weights": "layer.{L}.self_attn.v_proj",
+                      "precision": {
+                        "inputDtype": "f16",
+                        "outputDtype": "f16"
+                      }
+                    },
+                    {
+                      "op": "rope_q",
+                      "kernel": "rope_f16.wgsl",
+                      "entry": "main"
+                    },
+                    {
+                      "op": "rope_k",
+                      "kernel": "rope_f16.wgsl",
+                      "entry": "main"
+                    },
+                    {
+                      "op": "attention",
+                      "kernel": "attention_head512_f16.wgsl",
+                      "entry": "main",
+                      "precision": {
+                        "kvDtype": "f16",
+                        "activationDtype": "f16"
+                      }
+                    },
+                    {
+                      "op": "o_proj",
+                      "kernel": "fused_matmul_q4_widetile_f16a.wgsl",
+                      "entry": "main",
+                      "weights": "layer.{L}.self_attn.o_proj",
+                      "precision": {
+                        "inputDtype": "f16",
+                        "outputDtype": "f16"
+                      }
+                    },
+                    {
+                      "op": "attn_residual",
+                      "kernel": "residual_f16.wgsl",
+                      "entry": "main"
+                    },
+                    {
+                      "op": "post_attn_norm",
+                      "kernel": "rmsnorm_f16.wgsl",
+                      "entry": "main"
+                    },
+                    {
+                      "op": "ffn",
+                      "kernel": "gelu_f16.wgsl",
+                      "entry": "main",
+                      "constants": {
+                        "HAS_GATE": true
+                      },
+                      "precision": {
+                        "inputDtype": "f16",
+                        "outputDtype": "f16"
+                      }
+                    },
+                    {
+                      "op": "ffn_residual",
+                      "kernel": "residual_f16.wgsl",
+                      "entry": "main"
+                    }
+                  ]
+                }
+              }
+            ],
+            "preLayer": [
+              {
+                "op": "embed",
+                "kernel": "gather_split8_f16_vec4_f16_out.wgsl",
+                "entry": "gather_vec4_f16_out",
+                "weights": "embed_tokens"
+              }
+            ],
+            "postLayer": [
+              {
+                "op": "final_norm",
+                "kernel": "rmsnorm_f16.wgsl",
+                "entry": "main",
+                "precision": {
+                  "inputDtype": "f16",
+                  "outputDtype": "f16"
+                }
+              },
+              {
+                "op": "lm_head",
+                "kernel": "matmul_gemv_subgroup_f16a.wgsl",
+                "entry": "main_multicol",
+                "weights": "lm_head",
+                "constants": {
+                  "MULTICOL_COLS_PER_WG": 64,
+                  "MULTICOL_THREADS_PER_COL": 4
+                },
+                "precision": {
+                  "inputDtype": "f16",
+                  "outputDtype": "f16"
+                }
+              },
+              {
+                "op": "lm_head_prefill",
+                "kernel": "matmul_f16_tiled.wgsl",
+                "entry": "main",
+                "weights": "lm_head",
+                "precision": {
+                  "inputDtype": "f16",
+                  "outputDtype": "f16"
+                }
+              },
+              {
+                "op": "sample",
+                "kernel": "sample_f16.wgsl",
+                "entry": "sample_single_pass"
+              }
+            ]
+          }
+        },
+        "capabilityPolicy": {
+          "kind": "explicit-lane",
+          "dtypeEffect": "narrow-to-f16",
+          "reason": "af16-int4ple manifest variant on shader-f16 GPU - dispatch the all-f16 lane (q4_widetile_f16a + decode multicol_f16a + lm_head_gemv_subgroup_f16a).",
+          "evidence": [
+            "tests/config/gemma4-e2b-int4ple-f16-variant-identity.test.js",
+            "tests/inference/gemma4-e2b-q4k-apple-retain-regression.test.js"
+          ]
+        },
+        "laneIntegrity": {
+          "declared": {
+            "activationDtype": "f16",
+            "mathDtype": "f16",
+            "accumDtype": "f16",
+            "kvDtype": "f16"
+          },
+          "executed": {
+            "activationDtype": "f16",
+            "mathDtype": "f16",
+            "accumDtype": "f16",
+            "kvDtype": "f16"
+          },
+          "status": "matches",
+          "transforms": [
+            "useGemma4Int4PleAf16Activations"
+          ],
+          "policy": {
+            "kind": "explicit-lane",
+            "dtypeEffect": "narrow-to-f16",
+            "reason": "af16-int4ple manifest variant on shader-f16 GPU - dispatch the all-f16 lane (q4_widetile_f16a + decode multicol_f16a + lm_head_gemv_subgroup_f16a).",
+            "evidence": [
+              "tests/config/gemma4-e2b-int4ple-f16-variant-identity.test.js",
+              "tests/inference/gemma4-e2b-q4k-apple-retain-regression.test.js"
+            ]
+          }
+        }
+      },
+      "runtimeEngineDigest": "sha256:0cd9e510a59c4b3c1a17259c5e0a4baede8b39ec59c5cd28a0c856b0ca65ee50",
+      "programLoadPolicy": {
+        "schema": "doppler.capsule-program-load-policy/v2",
+        "runtimeConfig": {
+          "inference": {
+            "session": {
+              "kvcache": {
+                "maxSeqLen": 4096,
+                "gpuPagedFallbackMaxSeqLen": 4096,
+                "kvDtype": "f16",
+                "forceF32Softcap": false,
+                "layout": "contiguous",
+                "pageSize": 256,
+                "bdpaVocabSize": 2048,
+                "windowSize": 1024,
+                "tiering": {
+                  "mode": "off",
+                  "hotWindow": 1024,
+                  "coldPageSize": 256,
+                  "coldDtype": "f16",
+                  "compression": {
+                    "mode": "none",
+                    "blockSize": 1,
+                    "bitWidth": 4,
+                    "prodMode": false
+                  },
+                  "gating": {
+                    "mode": "auto",
+                    "minAluBwRatio": 0
+                  }
+                },
+                "quantization": {
+                  "mode": "none",
+                  "bitWidth": 4,
+                  "prodMode": false
+                }
+              },
+              "speculation": {
+                "mode": "none",
+                "tokens": 1,
+                "verify": "greedy",
+                "threshold": null,
+                "rollbackOnReject": true
+              },
+              "prefillChunkSubmitMode": "sync",
+              "prefillChunkLayers": 4,
+              "prefillMaxInFlightChunks": 2,
+              "prefillTokenChunkSize": null,
+              "skipEmbeddingKVCacheWrites": false,
+              "useFlashPrefillAttention": false,
+              "useFusedGateUpGelu": false,
+              "useLargeBatchF16F32FusedGateUp": false,
+              "useTiledQ4KPrefill": false,
+              "retainQ4KMaterialization": true,
+              "useWideTileQ4KPrefill": false,
+              "useWideTileQ4KDecode": false,
+              "useSandwichRMSNormPairFusion": false,
+              "usePostFfnNextInputRMSNormPairFusion": false,
+              "usePostAttnNormFusedGateUp": false,
+              "fusedFfnQ4K": null,
+              "lmHeadArgmaxQ4K": null,
+              "attentionDecodeOnline": null,
+              "useLinearAttentionABProjectionFusion": false,
+              "useLinearAttentionQKVZProjectionFusion": false,
+              "useLinearAttentionFusedDecodeCore": false,
+              "useLinearAttentionRegisterPrefill": false,
+              "useLinearAttentionRegisterDecode": false,
+              "linearRecurrentStatePrecision": "f32",
+              "intermediatePrecision": "f32",
+              "useWideTileResidualFusion": false,
+              "useFusedRmsnormWideTile": false,
+              "useFusedQKVSplitQKNorm": false,
+              "useFusedQKVSplitQKNormRoPE": false,
+              "useGreedyLmHeadArgmaxFusion": false,
+              "usePreparedDecodeWorkspace": false,
+              "decodeLoop": {
+                "batchSize": 1,
+                "readbackInterval": 1,
+                "stopCheckMode": "batch",
+                "readbackMode": "overlapped",
+                "ringTokens": 2,
+                "ringStop": 1,
+                "ringStaging": 2,
+                "disableCommandBatching": false,
+                "submitLatencyThresholdMs": null
+              },
+              "compute": {
+                "defaults": {
+                  "activationDtype": "f16",
+                  "mathDtype": "f16",
+                  "accumDtype": "f16",
+                  "outputDtype": "f16"
+                }
+              },
+              "perLayerInputs": {
+                "materialization": "range_backed",
+                "rowCache": {
+                  "mode": "lru",
+                  "maxRows": 512,
+                  "maxBytes": 268435456,
+                  "decodedDtype": "f32"
+                },
+                "prefetch": {
+                  "mode": "next_token",
+                  "rowsAhead": 1
+                },
+                "gpuUpload": {
+                  "mode": "per_step_slices",
+                  "stagingRows": 2
+                },
+                "hotCache": {
+                  "mode": "prepared_tokens",
+                  "maxTokens": 4096,
+                  "maxBytes": 268435456,
+                  "outputDtype": "f16"
+                }
+              }
+            },
+            "compute": {
+              "activationDtype": "f16"
+            },
+            "generation": {
+              "disableMultiTokenDecode": false
+            }
+          }
+        }
+      },
+      "programLoadPolicyHash": "sha256:dbc50ea25b7d2d8b373f8352603069e5eaeabf025f1ce4d65cf5d638e6f5c521",
+      "digest": "sha256:b8e62e86673bbb36daa5d45069e8e06ff1a56586ca98c7cb0f7daf4081df2bbf"
+    }
+  },
+  "referenceTranscript": {
+    "prompt": {
+      "ids": [
+        2,
+        105,
+        2364,
+        107,
+        818,
+        2258,
+        529,
+        506,
+        7217,
+        563,
+        3582,
+        1547,
+        26808,
+        141891,
+        1826,
+        1343,
+        506,
+        11661,
+        236761,
+        669,
+        2258,
+        529,
+        506,
+        7217,
+        563,
+        3582,
+        1547,
+        26808,
+        141891,
+        1826,
+        1343,
+        506,
+        11661,
+        236761,
+        669,
+        2258,
+        529,
+        506,
+        7217,
+        563,
+        3582,
+        1547,
+        26808,
+        141891,
+        1826,
+        1343,
+        506,
+        11661,
+        236761,
+        106,
+        107,
+        105,
+        4368,
+        107,
+        100,
+        45518,
+        107,
+        101
+      ]
+    },
+    "tokens": {
+      "ids": [
+        818,
+        2430,
+        815,
+        3847,
+        1806,
+        1401,
+        3361,
+        23974,
+        532,
+        563,
+        13981,
+        10980,
+        837,
+        886,
+        563,
+        506
+      ]
+    }
+  }
+}

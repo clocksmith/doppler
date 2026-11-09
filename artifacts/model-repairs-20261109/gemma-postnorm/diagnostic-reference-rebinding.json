@@ -1,0 +1,9 @@
+{
+  "scope": "separate diagnostic candidate; original tracked and volume manifests unchanged",
+  "sourceBaseCommit": "589f6ee9",
+  "oldManifestDigest": "sha256:55071a8f35b230cb3c5f2c09654f22962bf72cc7eeb0ce55a454a4473a197a85",
+  "newManifestDigest": "sha256:b283ff7bcf2d3217dd35d1160a7f1537ffe100cd9776d3b52d85b629ad150018",
+  "manifestVariantId": "gemma-4-e2b-it-q4k-ehf16-af16-int4ple-mv-918f79bf9ef7",
+  "weightCapsuleId": "gemma-4-e2b-it-q4k-ehf16-af32-int4ple-wp-catalog-v1",
+  "verifiedShardCount": 60
+}

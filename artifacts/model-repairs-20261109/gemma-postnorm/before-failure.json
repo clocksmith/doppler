@@ -1,0 +1,33 @@
+{
+  "schema": "doppler.diagnostic-command-projection/v1",
+  "projectionNote": "Selected fields from the complete command envelope; the original envelope is identified by SHA-256. Numerical boundary arrays and diagnostic configuration are retained separately.",
+  "originalEnvelopeSha256": "85a7db9c12d11f70355589cedd1bc0e288ded95c90fe6aeebe7531f6e1fb1715",
+  "ok": false,
+  "error": {
+    "code": "tooling_error",
+    "message": "Browser harness phase \"dispatchBrowserSuite\" failed: [Sampling] Logits has no finite candidate logits after masking suppressed tokens. Upstream decode likely produced NaN/Inf or an all-masked distribution. beforeMask={len=262144,finite=0,nan=262144,posInf=0,negInf=0,min=n/a,max=n/a} afterMask={len=262144,finite=0,nan=262143,posInf=0,negInf=1,min=n/a,max=n/a}",
+    "details": {
+      "harnessPhase": "dispatchBrowserSuite",
+      "mode": "debug",
+      "workload": "inference",
+      "modelId": "gemma-4-e2b-it-q4k-ehf16-af16-int4ple",
+      "loadMode": null,
+      "surface": "node",
+      "command": "debug",
+      "workloadType": null
+    },
+    "retryable": null
+  },
+  "output": null,
+  "deviceInfo": null,
+  "reportInfo": null,
+  "metrics": {},
+  "referenceTranscript": {
+    "prompt": {
+      "ids": null
+    },
+    "tokens": {
+      "ids": null
+    }
+  }
+}

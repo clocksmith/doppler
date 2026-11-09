@@ -1,0 +1,68 @@
+{
+  "request": {
+    "modelId": "gemma-4-e2b-it-q4k-ehf16-af16-int4ple",
+    "modelUrl": "file:///tmp/doppler-repairs-models/gemma-current/gemma-4-e2b-it-q4k-ehf16-af16-int4ple",
+    "inferenceInput": {
+      "prompt": "The color of the sky is clear because sunlight scatters through the atmosphere. The color of the sky is clear because sunlight scatters through the atmosphere. The color of the sky is clear because sunlight scatters through the atmosphere. ",
+      "maxTokens": 16
+    },
+    "runtimeConfig": {
+      "shared": {
+        "tooling": {
+          "diagnostics": "always"
+        },
+        "harness": {
+          "referenceTranscript": {
+            "enabled": true,
+            "captureLogits": false,
+            "captureKvBytes": false
+          }
+        },
+        "debug": {
+          "trace": {
+            "enabled": true,
+            "categories": [
+              "ffn",
+              "kernels"
+            ],
+            "layers": [
+              0,
+              1
+            ],
+            "maxDecodeSteps": 2
+          }
+        }
+      },
+      "inference": {
+        "compute": {
+          "activationDtype": "f16"
+        },
+        "session": {
+          "retainQ4KMaterialization": true,
+          "decodeLoop": {
+            "batchSize": 1,
+            "readbackInterval": 1
+          },
+          "compute": {
+            "defaults": {
+              "activationDtype": "f16"
+            }
+          }
+        },
+        "generation": {
+          "maxTokens": 16
+        },
+        "sampling": {
+          "temperature": 0,
+          "topK": 1,
+          "topP": 1,
+          "repetitionPenalty": 1,
+          "greedyThreshold": 0
+        }
+      }
+    }
+  },
+  "run": {
+    "surface": "node"
+  }
+}
