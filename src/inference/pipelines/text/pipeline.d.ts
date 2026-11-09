@@ -52,6 +52,8 @@ export declare function isAbortError(err: unknown): boolean;
 // ============================================================================
 
 export declare class InferencePipeline extends PipelineState {
+  readonly supportsGenerationContext: boolean;
+  createGenerationContext(options: { maxBytes: number }): import('./sequence-state.js').GenerationContext;
   private generator;
 
   // Progress callback

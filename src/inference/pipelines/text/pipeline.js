@@ -13,6 +13,7 @@ import { createInitializedPipeline } from '../factory.js';
 // Pipeline sub-modules
 import { PipelineState } from './state.js';
 import { PipelineGenerator } from './generator.js';
+import { createGenerationContext, closeGenerationContexts, supportsGenerationContext } from './sequence-state.js';
 import { parseModelConfig } from './config.js';
 import {
   initRoPEFrequencies,
@@ -502,7 +503,12 @@ export class InferencePipeline extends PipelineState {
     }
   }
 
+  get supportsGenerationContext() { return supportsGenerationContext(this); }
+
+  createGenerationContext(options) { return createGenerationContext(this, options); }
+
   async unload() {
+    closeGenerationContexts(this);
     const bufferPool = this.getBufferPool();
     const storageContext = this.storageContext;
     this.storageContext = null;

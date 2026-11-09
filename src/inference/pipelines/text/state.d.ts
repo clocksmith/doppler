@@ -42,7 +42,7 @@ import type { ResolvedRuntimeSession } from './resolved-runtime-session.js';
 export class PipelineState {
   // Components
   tokenizer: Tokenizer | null;
-  kvCache: KVCache | SlidingWindowKVCache | TieredKVCache | BasisDecomposedPagedCache | MixedGeometryKVCache | null;
+  kvCache: KVCache | SlidingWindowKVCache | TieredKVCache | BasisDecomposedPagedCache | MixedGeometryKVCache | import('../../kv-cache/quantized.js').QuantizedKVCache | null;
   linearAttentionRuntime: LinearAttentionRuntime | null;
   convLayerStates: Map<number, Record<string, unknown>>;
   hyperConnectionSession: import('./hyper-connection/session.js').HyperConnectionSession | null;

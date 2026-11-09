@@ -800,7 +800,6 @@ inference/pipelines/text/finiteness-guard-status.d.ts
 inference/pipelines/text/finiteness-policy.d.ts
 inference/pipelines/text/generator-decode-policy.d.ts
 inference/pipelines/text/generator-logits-observation.d.ts
-inference/pipelines/text/generator-runtime.d.ts
 inference/pipelines/text/generator-steps.d.ts
 inference/pipelines/text/generator/activation-storage.d.ts
 inference/pipelines/text/generator/attention-lifecycle.d.ts
@@ -887,7 +886,6 @@ inference/pipelines/text/precomputed-input-norm.d.ts
 inference/pipelines/text/probes.d.ts
 inference/pipelines/text/resident-partition.d.ts
 inference/pipelines/text/resident-pipeline-preparation.d.ts
-inference/pipelines/text/sequence-state.d.ts
 inference/pipelines/text/stopping.d.ts
 inference/pipelines/text/types.js
 inference/pipelines/text/weight-loading-config.d.ts

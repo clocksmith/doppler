@@ -1,0 +1,160 @@
+{
+  "modelId": "qwen-3-5-0-8b-q4k-ehaf16",
+  "manifestHash": "c5fcf38e945f1c048faca9ccda8991f1494563317f46a6dd79e0714ad001c569",
+  "cases": [
+    {
+      "kind": "cold-checkpoint",
+      "maxError": 0.00018024444580078125,
+      "rows": 1
+    },
+    {
+      "kind": "alternating-context-followup",
+      "maxError": 0.00026154518127441406,
+      "violations": 0,
+      "cached": {
+        "prefillTokens": 11,
+        "decodeTokens": 1,
+        "reusedPrefixTokens": 4,
+        "prefillComputedTokens": 7,
+        "stopReason": "max-tokens",
+        "tokensGenerated": 2
+      },
+      "fresh": {
+        "prefillTokens": 11,
+        "decodeTokens": 1,
+        "reusedPrefixTokens": 0,
+        "prefillComputedTokens": 11,
+        "stopReason": "max-tokens",
+        "tokensGenerated": 2
+      },
+      "cachedWallMs": 139.45458299999973,
+      "freshWallMs": 177.17533400000048,
+      "context": {
+        "allocatedBytes": 49182032,
+        "cachedTokens": 10,
+        "reusedTokens": 4,
+        "status": "cached"
+      }
+    },
+    {
+      "kind": "edited-prefix",
+      "reused": 0
+    },
+    {
+      "kind": "templated-chat",
+      "output": "Thank you for stopping",
+      "reused": 12
+    },
+    {
+      "kind": "cancel-and-reuse",
+      "rebuilt": true
+    },
+    {
+      "kind": "longer-prefix",
+      "inputTokens": 82,
+      "reused": 76,
+      "maxError": 0.00020742416381835938
+    },
+    {
+      "kind": "budget-fallback",
+      "allocatedBytes": 0
+    },
+    {
+      "kind": "working-cache-replacement",
+      "scope": "Injected replacement after a real GPU checkpoint; no precision-recovery numerical claim",
+      "preserved": true
+    },
+    {
+      "kind": "eviction",
+      "allocatedBytes": 0
+    }
+  ],
+  "adapter": {
+    "vendor": "apple",
+    "architecture": "metal-3",
+    "device": "apple-m3",
+    "description": "Metal driver on macOS Version 26.6.2 (Build 25G83)",
+    "subgroupMinSize": 32,
+    "subgroupMaxSize": 32
+  },
+  "provider": {
+    "schema": "doe.webgpu-provider-receipt/v1",
+    "contract": "doe.webgpu-provider/v1",
+    "implementation": "doppler",
+    "providers": [
+      {
+        "id": "pre-installed",
+        "kind": "global"
+      },
+      {
+        "id": "webgpu",
+        "kind": "module",
+        "module": "webgpu",
+        "gpu": {
+          "kind": "factory",
+          "path": "create",
+          "args": [
+            [
+              "enable-dawn-features=allow_unsafe_apis"
+            ]
+          ]
+        },
+        "globals": {
+          "GPUBufferUsage": "globals.GPUBufferUsage",
+          "GPUShaderStage": "globals.GPUShaderStage",
+          "GPUMapMode": "globals.GPUMapMode",
+          "GPUTextureUsage": "globals.GPUTextureUsage"
+        }
+      }
+    ],
+    "providerOrder": [
+      "pre-installed",
+      "webgpu"
+    ],
+    "adapterOptions": null,
+    "globals": {
+      "mode": "replace",
+      "installed": [
+        "GPUBufferUsage",
+        "GPUShaderStage",
+        "GPUMapMode",
+        "GPUTextureUsage",
+        "navigator.gpu"
+      ],
+      "restored": true
+    },
+    "attempts": [
+      {
+        "providerId": "pre-installed",
+        "kind": "global",
+        "module": null,
+        "ok": false,
+        "stage": "gpu.validate",
+        "code": "DOPPLER_PROVIDER_UNAVAILABLE",
+        "detail": "Selected provider does not expose GPU.requestAdapter()."
+      },
+      {
+        "providerId": "webgpu",
+        "kind": "module",
+        "module": "webgpu",
+        "ok": true,
+        "stage": "complete",
+        "code": null,
+        "detail": null
+      }
+    ],
+    "selectedProviderId": "webgpu",
+    "ok": true
+  },
+  "schema": "doppler.generation-context-development/v1",
+  "passed": true,
+  "baseline": "e45aa918c38aea1966107b1eceae918b583df60f",
+  "runtimeVersion": "0.6.35",
+  "scope": "Qwen 0.8B, Node/Dawn/Metal, 256-token KV capacity; synthetic prompts and short outputs; cached vs fresh, not independent model qualification",
+  "tolerance": 0.001,
+  "sourceSha256": {
+    "src/inference/pipelines/text/sequence-state.js": "d191760e9c7a06a3a4cb2619220685a5ad5e70a486cb499b48ff9f6c16aaaa86",
+    "src/inference/pipelines/text/generator/prefill-runtime.js": "e0af872f0ea8ce8a1e3ada27d43471ff5006ee0491d0b28aab88d2a6e4be64c9",
+    "src/inference/pipelines/text/generator/decode-runtime.js": "e62555337e79caaddf08a0c4389e3f9c6ce3ea31b6de71394ea38264bee99c77"
+  }
+}

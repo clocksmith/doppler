@@ -1,4 +1,5 @@
 import { prepareActivityRecording } from '../activity-weights.js';
+import { beginGenerationContext, finishGenerationContext, generationContextInput } from '../sequence-state.js';
 import { assertHyperConnectionOperation } from '../hyper-connection/sequence-transaction.js';
 import { lookupDraft, verifySpeculativeTokens } from './speculative-runtime.js';
 import { markDiagnosticSequenceStep } from './diagnostic-sequence.js';
@@ -75,6 +76,8 @@ function prepareGenerationRuntime(generator, opts, options) {
   generator._state.stats.prefillTimeMs = 0;
   generator._state.stats.decodeTimeMs = 0;
   generator._state.stats.prefillTokens = 0;
+  generator._state.stats.reusedPrefixTokens = 0;
+  generator._state.stats.prefillComputedTokens = 0;
   generator._state.stats.tokensGenerated = 0;
   generator._state.stats.decodeTokens = 0;
   generator._state.stats.totalTimeMs = 0;
@@ -150,13 +153,15 @@ async function samplePrefillToken(generator, prefillLogits, generatedIds, inputI
     if (!generator._shouldUseFinitenessFallback(error, 'prefill-sample')) {
       throw error;
     }
+    await finishGenerationContext(generator._state, [], false);
+    generationContextInput(generator._state, inputIds);
     if (warn) log.warn('Pipeline', 'FinitenessGuard caught non-finite prefill logits at sampling. Retrying with F32 precision.');
     prefillLogits = await generator._retryWithPersistentFinitenessFallback(
       opts,
       'prefill-sample',
       opts.maxTokens,
       () => generator._prefill(inputIds, opts),
-      prefillStartSeqLen
+      opts.generationContext ? 0 : prefillStartSeqLen
     );
     return generator._sampleNextTokenFromLogits(prefillLogits, generatedIds, opts);
   }
@@ -184,17 +189,15 @@ function finishGenerationRuntime(generator, options, startTime, generatedIds, pr
 export async function* _generateTokensInternal(prompt, options = {}, mode = 'text') {
     if (!this._state.isLoaded) throw new Error('Model not loaded');
     if (this._state.isGenerating) throw new Error('Generation already in progress');
-
     validateCallTimeOptions(options);
     const opts = resolveGenerateOptions(this._state, options);
     const startTime = prepareGenerationRuntime(this, opts, options);
     let generatedIds = [];
     let promptTokenCount = 0;
-
+    let completed = false;
     if (opts.debug) {
       log.debug('Pipeline', `ChatTemplate: options=${options.useChatTemplate}, final=${opts.useChatTemplate}`);
     }
-
     const emitToken = async function* (generator, tokenId, textDecoder) {
       if (mode === 'token') {
         yield tokenId;
@@ -205,8 +208,8 @@ export async function* _generateTokensInternal(prompt, options = {}, mode = 'tex
       yield tokenText;
       if (options.onToken) options.onToken(tokenId, tokenText);
     };
-
     try {
+      beginGenerationContext(this._state, options.generationContext, opts);
       await prepareActivityRecording(this._state, opts);
       const prefillStartSeqLen = this._state.currentSeqLen;
       const prefillStart = performance.now();
@@ -219,18 +222,15 @@ export async function* _generateTokensInternal(prompt, options = {}, mode = 'tex
       generatedIds = [...inputIds];
       promptTokenCount = inputIds.length;
       this._state.stats.prefillTokens = opts.promptTokenCount = inputIds.length;
-
       if (opts.debug) {
         log.debug('Pipeline', `Input: ${inputIds.length} tokens`);
       }
-
       const intentBundleConfig = this._state.runtimeConfig.shared.intentBundle;
       const intentBundle = intentBundleConfig?.bundle;
       const expectedTopK = intentBundle?.payload?.expectedTopK
         ?? intentBundle?.payload?.expected_top_k;
       const maxDriftThreshold = intentBundle?.constraints?.maxDriftThreshold
         ?? intentBundle?.constraints?.max_drift_threshold;
-
       if (intentBundleConfig?.enabled && Array.isArray(expectedTopK) && expectedTopK.length > 0) {
         const { enforceLogitDrift } = await getExperimentalIntentBundleModule();
         const actualTopK = getTopK(
@@ -243,7 +243,6 @@ export async function* _generateTokensInternal(prompt, options = {}, mode = 'tex
           throw new Error(`Intent bundle drift check failed: ${driftResult.reason}`);
         }
       }
-
       if (opts.debug) {
         const topAfterPenalty = getTopK(
           Float32Array.from(prefillLogits),
@@ -319,11 +318,15 @@ export async function* _generateTokensInternal(prompt, options = {}, mode = 'tex
         decodeSpeed,
         totalMs: this._state.stats.totalTimeMs,
       });
+      completed = !options.signal?.aborted && !this._finitenessFallbackWindow;
     } finally {
       try { await opts.__activationTrace?.drain(); }
       finally {
         try { this._closeFinitenessFallbackWindow(opts); }
-        finally { finishGenerationRuntime(this, options, startTime, generatedIds, promptTokenCount); }
+        finally {
+          try { await finishGenerationContext(this._state, generatedIds, completed); }
+          finally { finishGenerationRuntime(this, options, startTime, generatedIds, promptTokenCount); }
+        }
       }
     }
   }
@@ -337,8 +340,10 @@ export async function generateTokenIds(prompt, options = {}) {
     const startTime = prepareGenerationRuntime(this, opts, options);
     let generatedIds = [];
     let promptTokenCount = 0;
+    let completed = false;
 
     try {
+      beginGenerationContext(this._state, options.generationContext, opts);
       await prepareActivityRecording(this._state, opts);
       const prefillStartSeqLen = this._state.currentSeqLen;
       const prefillStart = performance.now();
@@ -384,6 +389,7 @@ export async function generateTokenIds(prompt, options = {}) {
 
       this._state.stats.totalTimeMs = performance.now() - startTime;
 
+      completed = !options.signal?.aborted && !this._finitenessFallbackWindow;
       return {
         tokenIds,
         // Exact prefilled IDs, so callers can replay a prefix without
@@ -395,7 +401,10 @@ export async function generateTokenIds(prompt, options = {}) {
       try { await opts.__activationTrace?.drain(); }
       finally {
         try { this._closeFinitenessFallbackWindow(opts); }
-        finally { finishGenerationRuntime(this, options, startTime, generatedIds, promptTokenCount); }
+        finally {
+          try { await finishGenerationContext(this._state, generatedIds, completed); }
+          finally { finishGenerationRuntime(this, options, startTime, generatedIds, promptTokenCount); }
+        }
       }
     }
   }

@@ -45,6 +45,7 @@ function capabilityMap(handle) {
     inspect: typeof handle?.inspect?.generate === 'function',
     lora: typeof handle?.loadLoRA === 'function' && typeof handle?.unloadLoRA === 'function',
     advanced: handle?.advanced && typeof handle.advanced === 'object',
+    generationContext: handle?.supportsGenerationContext === true,
   });
 }
 
@@ -147,6 +148,10 @@ export function createScopedModelSession(handle) {
     capabilities,
     supports,
     require: requireCapability,
+    createGenerationContext(options) {
+      requireCapability('generationContext');
+      return handle.createGenerationContext(options);
+    },
     async generate(input, options = {}) {
       requireCapability('generate');
       const policy = resolveObservationPolicy(options.observe);

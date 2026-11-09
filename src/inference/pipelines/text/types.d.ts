@@ -333,6 +333,7 @@ export interface PrefixEmbeddingOverride {
 }
 
 export interface GenerateOptions {
+  generationContext?: import('./sequence-state.js').GenerationContext;
   /** @category generation Maximum tokens to generate (default: 512) */
   maxTokens?: number;
 
@@ -610,6 +611,8 @@ export interface PendingFfnNorm {
 }
 
 export interface PipelineStats {
+  reusedPrefixTokens?: number;
+  prefillComputedTokens?: number;
   /** Per-generation whole-token counters; dispatches is null until a program is built. */
   wholeTokenProgram?: import('./generator/whole-token-program.js').WholeTokenProgram['stats'] & {
     dispatches: number | null;

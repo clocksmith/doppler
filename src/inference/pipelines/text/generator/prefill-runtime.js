@@ -1,4 +1,5 @@
 import { getDevice, setTrackSubmits } from '../../../../gpu/device.js';
+import { generationContextInput, prepareGenerationContextPrefill, finishGenerationContext } from '../sequence-state.js';
 import { acquireBuffer, releaseBuffer, readBuffer, readBufferSlice, uploadData, getBufferPool } from '../../../../memory/buffer-pool.js';
 import { resetSubmitStats, logSubmitStats } from '../../../../gpu/submit-tracker.js';
 import { createCommandRecorder, createProfilingRecorder, CommandRecorder } from '../../../../gpu/command-recorder.js';
@@ -85,33 +86,37 @@ export async function _prefillInputIdsToLogits(inputIds, opts) {
   }
 
 export async function _prefillPromptToLogits(prompt, opts, contextLabel) {
-    const prefillStartSeqLen = this._state.currentSeqLen;
     const inputStart = performance.now();
     const inputIds = this._resolvePromptOrInputIds(prompt, opts.useChatTemplate, contextLabel, opts.inputIds);
+    generationContextInput(this._state, inputIds);
+    const prefillStartSeqLen = this._state.currentSeqLen;
     const inputMs = performance.now() - inputStart;
     if (opts.debug) {
       log.debug('Pipeline', `${contextLabel}: ${inputIds.length} tokens`);
     }
-
     let logits;
     const prefillStart = performance.now();
-    const runPrefill = () => this._prefillInputIdsToLogits(inputIds, opts);
+    const runPrefill = async () => {
+      const computedIds = generationContextInput(this._state, inputIds);
+      const checkpoint = await prepareGenerationContextPrefill(this, prompt, inputIds, opts);
+      return this._prefillInputIdsToLogits(checkpoint === null ? computedIds : inputIds.slice(checkpoint), opts);
+    };
     try {
       logits = await runPrefill();
     } catch (error) {
       if (!this._shouldUseFinitenessFallback(error, contextLabel)) {
         throw error;
       }
+      await finishGenerationContext(this._state, [], false);
       log.warn('Pipeline', `FinitenessGuard caught NaN/Inf during ${contextLabel}. Retrying with F32 precision.`);
       logits = await this._retryWithPersistentFinitenessFallback(
         opts,
         contextLabel,
         opts.maxTokens ?? 1,
         runPrefill,
-        prefillStartSeqLen
+        opts.generationContext ? 0 : prefillStartSeqLen
       );
     }
-
     return {
       inputIds,
       logits,
@@ -122,7 +127,6 @@ export async function _prefillPromptToLogits(prompt, opts, contextLabel) {
       }),
     };
   }
-
 export async function _prefillToHidden(inputIds, opts) {
     // Internal-only: reuse the main prefill implementation but stop before logits.
     return this._prefill(inputIds, { ...opts, _returnHidden: true });

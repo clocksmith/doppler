@@ -14,6 +14,44 @@ import { createPipeline, InferencePipeline } from 'doppler-gpu/generation';
 
 Advanced runtime consumers and experiments that need direct pipeline objects.
 
+## Reusing a conversation prefix
+
+The compatible scoped session exposes `supports('generationContext')` and
+`createGenerationContext({ maxBytes })`. Pass the resulting opaque handle as
+`generationContext` to `stream()` or `generate()`, together with the complete
+conversation on every request. The runtime validates the exact token prefix
+and execution configuration; a mismatch rebuilds it. Applications own requester
+isolation, retention limits, expiry and eviction.
+
+```js
+const context = session.supports('generationContext')
+  ? session.createGenerationContext({ maxBytes: 256 * 1024 * 1024 }) : undefined;
+try {
+  for await (const messages of conversationTurns) {
+    for await (const event of session.stream(messages, { maxTokens: 64, generationContext: context })) {
+      if (event.type === 'text-delta') show(event.text);
+    }
+    console.log(context?.getStats());
+  }
+} finally {
+  // Conversation finished; evict after execution/iterator cleanup has settled.
+  context?.close();
+}
+```
+
+This path retains a stable **prompt** checkpoint, including hybrid recurrent and
+convolution state. It does not retain chat history or cache whole answers.
+Generation-only template suffixes and the preceding answer are processed again
+when necessary. `stats.reusedPrefixTokens` and `stats.prefillComputedTokens`
+describe actual work; `prefillTokens` continues to report the full prompt length.
+Cancellation, failed execution and over-budget snapshots are not retained.
+Model unload closes remaining contexts. Working memory and checkpoint-copy
+temporaries are additional to the retained-context limit. The API currently
+supports whole-model GPU decoders with ordinary contiguous KV storage; other
+cache layouts, independent convolution decoders, hyper-connections, multimodal
+embedding overrides and activation recording retain fresh-generation behavior
+when the application omits a context. No multi-request decode batching is added.
+
 ## Stability
 
 Public, but advanced. Prefer the root facade unless you need direct pipeline control.
@@ -32,10 +70,11 @@ Current support tier: `tier1` advanced surface. See [Subsystem Support Matrix](.
 - direct access to text inference pipeline objects
 - lower-level than the root `doppler` facade
 
-`generate()`, `generateTokens()`, and `generateTokenIds()` start a new prompt
-context while retaining loaded model weights. Prior calls cannot supply hidden
-KV or recurrent state to that prompt. Explicit prefix-KV and manual decode APIs
-remain available for continuation, with their existing lifecycle contracts.
+Without an explicit `generationContext`, `generate()`, `generateTokens()`, and
+`generateTokenIds()` start a new prompt context while retaining loaded model
+weights. Prior calls cannot implicitly supply KV or recurrent state. Explicit
+prefix-KV and manual decode APIs remain available for continuation, with their
+existing lifecycle contracts.
 
 Seeded generation advances a separate deterministic draw sequence for each
 request or resident attempt. Generated-token index zero uses the original seed

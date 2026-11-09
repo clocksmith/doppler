@@ -3,6 +3,24 @@ import { test } from 'node:test';
 
 import { createScopedModelSession } from '../../src/client/runtime/scoped-session.js';
 
+test('generation contexts are capability-gated and pass unchanged to the runtime', async () => {
+  const context = { getStats: () => ({ cachedTokens: 0 }), close() {} };
+  const handle = { supportsGenerationContext: true, createGenerationContext(options) {
+    assert.equal(options.maxBytes, 1024); return context;
+  }, async *generate(input, options) {
+    assert.equal(input, 'prompt'); assert.equal(options.generationContext, context); yield 'answer';
+  } };
+  const session = createScopedModelSession(handle);
+  assert.equal(session.supports('generationContext'), true);
+  const created = session.createGenerationContext({ maxBytes: 1024 });
+  const events = [];
+  for await (const event of session.stream('prompt', { generationContext: created })) events.push(event);
+  assert.equal(events.at(-1).outputText, 'answer');
+  const unsupported = createScopedModelSession({});
+  assert.equal(unsupported.supports('generationContext'), false);
+  assert.throws(() => unsupported.createGenerationContext({ maxBytes: 1 }), /does not support/);
+});
+
 function makeHandle(overrides = {}) {
   let unloaded = 0;
   const evidence = {

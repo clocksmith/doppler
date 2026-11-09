@@ -18,6 +18,7 @@ export type DopplerCapability =
   | 'embed'
   | 'sequence'
   | 'inspect'
+  | 'generationContext'
   | 'lora'
   | 'advanced';
 export type DopplerObservationTier = 'always' | 'guided-quality' | 'deep-xray';
@@ -102,6 +103,7 @@ export interface DopplerScopedModelSession {
   readonly advanced: DopplerModelHandle['advanced'];
   supports(capability: DopplerCapability): boolean;
   require(capability: DopplerCapability): true;
+  createGenerationContext(options: { maxBytes: number }): import('../../inference/pipelines/text/sequence-state.js').GenerationContext;
   generate(input: DopplerPromptInput, options?: DopplerScopedGenerateOptions): Promise<DopplerGenerationResult>;
   stream(input: DopplerPromptInput, options?: DopplerScopedGenerateOptions): AsyncGenerator<DopplerGenerationEvent, void, void>;
   inspect(

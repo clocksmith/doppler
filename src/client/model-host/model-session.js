@@ -335,6 +335,15 @@ export function createModelHandle(pipeline, resolved) {
   }
 
   const handle = {
+    get supportsGenerationContext() {
+      try { assertRaw('createGenerationContext'); }
+      catch { return false; }
+      return pipeline.supportsGenerationContext === true;
+    },
+    createGenerationContext(options) {
+      assertRaw('createGenerationContext');
+      return pipeline.createGenerationContext(options);
+    },
     generate(prompt, options = {}) {
       assertRaw('generate');
       assertSupportedGenerationOptions(options);
