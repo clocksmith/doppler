@@ -1,0 +1,31 @@
+{
+  "result": {
+    "prompt": "Explain why the sky is blue in one sentence.",
+    "answer": "The sky appears blue because Rayleigh scattering causes shorter-wavelength light (blue and violet) to scatter more strongly than longer wavelengths, making them dominate our view of the sky.",
+    "tokens": 36,
+    "identity": {
+      "modelId": "qwen-3-5-0-8b-q4k-ehaf16",
+      "logicalModelId": "qwen-3-5-0-8b-q4k-ehaf16",
+      "manifestHash": "c5fcf38e945f1c048faca9ccda8991f1494563317f46a6dd79e0714ad001c569",
+      "runtimeVersion": "0.6.33",
+      "adapters": []
+    },
+    "frames": 864,
+    "missing": 0,
+    "activityFrames": 6384,
+    "activityMissing": 5720
+  },
+  "errors": [],
+  "release": {
+    "application": "doppler-demo",
+    "canonicalUrl": "https://d4da.com/doppler/",
+    "sourceCommit": "9d4e65c7e56ee9825d0246b03103c443ff56cae2",
+    "demoSourceCommit": "9d4e65c7e56ee9825d0246b03103c443ff56cae2",
+    "runtime": {
+      "sourceCommit": "ca685808ed0c208583a8cf1780c74ed4ae8bf501",
+      "version": "0.6.33",
+      "inventorySha256": "dfcf2b15ee5ebf89edcc743193fcbfab9917526e84c3face259453c1783bc04b"
+    },
+    "hostingRecipeSha256": "7ec02801ab3ea086cffab15d904bc2b94edeafdb4a8d378b916c97b9f9332c19"
+  }
+}

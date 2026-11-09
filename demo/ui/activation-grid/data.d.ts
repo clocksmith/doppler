@@ -14,8 +14,10 @@ export declare function validateRecording(value: unknown): ActivationRecording;
 export declare function projectFrame(trace: ActivationTraceReceipt, index: number, position: number): {
   values: Array<number | string | undefined>; sources: Array<ActivationFrame | undefined>;
 };
-export declare function colorGrid(values: Array<number | string | undefined>, scale: number, range?: 'signed' | 'positive' | 'unit' | 'residency'): { side: number; rgba: Uint8ClampedArray };
+export declare function colorGrid(values: Array<number | string | undefined>, scale: number, range?: 'signed' | 'positive' | 'unit' | 'residency', dark?: boolean): { side: number; rgba: Uint8ClampedArray };
 
 export declare function initialColorScale(values: Array<number | string | undefined>, fallback: number): number;
 
-export declare function heatmapColor(value: number, scale: number, range?: 'signed' | 'positive' | 'unit' | 'residency'): number[];
+export declare function heatmapColor(value: number, scale: number, range?: 'signed' | 'positive' | 'unit' | 'residency', dark?: boolean): number[];
+
+export declare function heatmapColors(range?: string, dark?: boolean): number[][];

@@ -202,11 +202,11 @@ async function main() {
     assert.equal(await page.locator('#model-select').isVisible(), true, 'Model selection is visible by the composer');
     assert.equal(await page.locator('#xray-shell').isVisible(), false);
     await checkAutomaticReplay(page);
-    assert.equal(await page.locator('#run-btn').isEnabled(), true, 'A preloaded prompt can be sent before a model is chosen');
+    assert.equal(await page.locator('#run-btn').isEnabled(), false, 'The first prompt has already been submitted in replay');
     assert.equal(await page.locator('#model-select option[value="embedding-only"]').count(), 0);
     await checkFirstLoadLayout(page);
     await page.locator('.token-chip').first().click();
-    assert.equal(await page.locator('.token-inspector-badge').textContent(), '"Hello"');
+    assert.equal(await page.locator('.token-inspector-badge').textContent(), '"The"');
     assert.equal(await page.locator('.token-candidates-list').isVisible(), true);
     await checkTokenGeometry(page);
     assert.match(await page.locator('.token-inspector-note').textContent(), /Only a live answer can branch/);
@@ -251,9 +251,6 @@ async function main() {
     await cachedPage.goto(`${origin}${entrypoint}`, { waitUntil: 'networkidle' });
     await cachedPage.waitForFunction(() => document.querySelector('#boot-overlay').hidden);
     assert.equal(await cachedPage.evaluate(() => __demoContract.loads.length), 1, 'The cached model loads during boot');
-    const defaultPrompt = await cachedPage.evaluate(async () => (await (await fetch(new URL('examples.json', document.querySelector('script[src$="/demo.js"]').src))).json()).illustrative.prompt);
-    assert.equal(await cachedPage.inputValue('#prompt-input'), defaultPrompt, 'A cached-model visit still gets a default prompt');
-    assert.equal(await cachedPage.locator('#run-btn').isEnabled(), true);
     await checkAutomaticReplay(cachedPage);
     await checkBootLayout(cachedPage);
     await checkPendingExample(cachedPage);

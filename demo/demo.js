@@ -120,7 +120,7 @@ async function init() {
   await boot();
   // A cached model must not suppress the ready-to-run prompt on a return visit.
   const example = getIllustrativeExample();
-  if (state.phase === 'ready') {
+  if (state.phase === 'ready' && !$('prompt-input').value.trim()) {
     if (example) preloadPrompt(example.prompt);
     const select = $('model-select'), sampleModel = SAMPLE_INSPECTION_RECEIPT.recording.modelId;
     if (!state.model && [...select.options].some(option => option.value === sampleModel)) {

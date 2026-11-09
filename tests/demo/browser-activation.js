@@ -115,6 +115,8 @@ export async function checkTokenGeometry(page) {
 
 // Uses the published physical recording; does not run a model or fixture generator.
 export async function checkRealActivityPlayback(page) {
+  const sample = await page.evaluate(async () => (await import(new URL('data/sample-inspection.js', document.querySelector('script[src$="/demo.js"]').src))).SAMPLE_INSPECTION_RECEIPT);
+  const promptPosition = String(sample.inputTokenIds.length - 1);
   // Reopen the initial gallery to exercise its actual entry point.
   await page.evaluate(() => { localStorage.setItem('doppler.demo.xray-enabled', 'true'); localStorage.setItem('doppler.demo.activity-example', 'true'); });
   await page.reload({ waitUntil: 'networkidle' });
@@ -122,9 +124,9 @@ export async function checkRealActivityPlayback(page) {
   assert.match(await page.locator('#activity-measurement-note').textContent(), /GPU timing on/);
   assert.equal(await page.locator('#activation-record').isChecked(), false, 'Recording opt-out survives reload');
   await page.locator('#activation-view').scrollIntoViewIfNeeded();
-  await page.waitForFunction(() => document.querySelector('#output-text').textContent === 'Hello!'
-    && document.querySelector('#activation-play').textContent === 'Play', null, { timeout: 120000 });
-  assert.equal(await page.locator('#chat-thread .chat-message-text').first().textContent(), 'Say hello in one word.');
+  await page.waitForFunction(text => document.querySelector('#output-text').textContent === text
+    && document.querySelector('#activation-play').textContent === 'Play', sample.outputText, { timeout: 120000 });
+  assert.equal(await page.locator('#chat-thread .chat-message-text').first().textContent(), 'Explain why the sky is blue in one sentence.');
   assert.match(await page.locator('#recorded-run-note').textContent(), /Recorded replay/);
   assert.match(await page.locator('#activation-layout').textContent(), /fully opaque/);
   assert.equal(await page.locator('#activity-explanation').isVisible(), false);
@@ -148,10 +150,10 @@ export async function checkRealActivityPlayback(page) {
   await page.locator('#activation-scrub').fill(await page.locator('#activation-scrub').getAttribute('max'));
   await page.selectOption('#activity-mode', 'contributions');
   await page.locator('#run-details > summary').click();
-  await page.locator('#activation-position').fill('17');
+  await page.locator('#activation-position').fill(promptPosition);
   await page.locator('#run-details > summary').click();
   await page.evaluate(() => new Promise(requestAnimationFrame));
-  assert.match(await page.locator('#activation-caption').textContent(), /token 17/, await page.locator('#activity-availability').textContent() + ' ' + await page.locator('#activation-status').textContent());
+  assert.match(await page.locator('#activation-caption').textContent(), new RegExp(`token ${promptPosition}`), await page.locator('#activity-availability').textContent() + ' ' + await page.locator('#activation-status').textContent());
   assert.equal(await page.inputValue('#activity-mode'), 'contributions', 'The selected preview opens its own interactive grid');
   assert.equal(await page.locator('#activity-gallery').isVisible(), false, 'One view selector replaces the redundant shortcut row');
   assert.match(await page.locator('#activity-source').textContent(), /Recorded example/);
@@ -172,7 +174,7 @@ export async function checkRealActivityPlayback(page) {
     });
     const snapshots = ['weights','quantization-error','attention-prefill'].includes(mode.id);
     assert.equal(await page.locator('#activation-timeline').isVisible(), !snapshots, `${mode.id} has truthful playback controls`);
-    assert.equal(state.position, '17', 'Switching grids preserves the shared token position');
+    assert.equal(state.position, promptPosition, 'Switching grids preserves the shared token position');
     assert(state.opaque, `${mode.id} has no alpha-encoded dimension`);
     assert(state.width > 1 && state.pixelColors > 2, `${mode.id} renders recorded numerical values`);
     assert(!state.layout.startsWith('0/'), `${mode.id} has real capture coverage`);
@@ -227,8 +229,8 @@ export async function checkRealActivityPlayback(page) {
   await page.setInputFiles('#import-file', { name: 'saved-activity.json', mimeType: 'application/json', buffer: exported });
   await page.waitForFunction(() => document.querySelector('#activation-status').textContent.includes('0 missing captures'));
   assert.match(await page.locator('#activity-legend').textContent(), /stored keys and values/);
-  assert.equal(await page.inputValue('#prompt-input'), 'Say hello in one word.', 'Offline activity exports retain their prompt');
-  assert.equal(await page.locator('#output-text').textContent(), 'Hello!', 'Offline activity exports retain their answer');
+  assert.equal(await page.inputValue('#prompt-input'), 'Explain why the sky is blue in one sentence.', 'Offline activity exports retain their prompt');
+  assert.equal(await page.locator('#output-text').textContent(), sample.outputText, 'Offline activity exports retain their answer');
   await page.unroute('**/*');
   await fs.writeFile('.cache/activation-grid/playback/receipt.json', JSON.stringify({ schema: 'doppler.activity-playback-check/v1', origin: page.url(),
     viewports: [1200,390,320], modes: results, offlineImport: true, exportBytes: exported.length, modelExecutionRequired: false }, null, 2));

@@ -3,11 +3,14 @@ import fs from 'node:fs/promises';
 
 // Run presentation only: no model inference or GPU qualification.
 export async function checkAutomaticReplay(page) {
-  await page.waitForFunction(() => document.querySelector('#output-text').textContent === 'Hello!'
-    && document.querySelector('#activation-play').textContent === 'Play', null, { timeout: 120000 });
+  const sample = await page.evaluate(async () => (await import(new URL('data/sample-inspection.js', document.querySelector('script[src$="/demo.js"]').src))).SAMPLE_INSPECTION_RECEIPT);
+  const firstPosition = String(sample.inputTokenIds.length - 1);
+  await page.waitForFunction(text => document.querySelector('#output-text').textContent === text
+    && document.querySelector('#activation-play').textContent === 'Play', sample.outputText, { timeout: 120000 });
+  const finalPosition = await page.locator('#activation-scrub').getAttribute('max');
   assert.equal(await page.locator('#sample-run-btn').count(), 0);
   assert.equal(await page.locator('#inspect-recorded-run').count(), 0);
-  assert.equal(await page.locator('#chat-thread .chat-message-text').first().textContent(), 'Say hello in one word.');
+  assert.equal(await page.locator('#chat-thread .chat-message-text').first().textContent(), 'Explain why the sky is blue in one sentence.');
   assert.equal(await page.locator('#recorded-run-note').textContent(), 'Recorded replay · Qwen 0.8B');
   assert.equal(await page.locator('#recording-details').isVisible(), false);
   assert.equal(await page.locator('#activation-player').isVisible(), true);
@@ -18,24 +21,30 @@ export async function checkAutomaticReplay(page) {
   }
   await page.setViewportSize({ width: 1280, height: 1000 });
   assert.equal(await page.evaluate(() => __demoContract.calls.length), 0, 'Replay never runs inference');
-  const defaultPrompt = await page.evaluate(async () => {
-    const entry = document.querySelector('script[src$="/demo.js"]').src;
-    return (await (await fetch(new URL('examples.json', entry))).json()).illustrative.prompt;
-  });
-  assert.equal(await page.inputValue('#prompt-input'), defaultPrompt, 'Replay preserves the next-request draft');
+  assert.equal(await page.inputValue('#prompt-input'), '', 'The submitted first prompt is not duplicated in the composer');
   await page.locator('#activation-scrub').fill('0');
   await page.waitForFunction(() => document.querySelector('#output-text').textContent === '');
-  await page.locator('#activation-scrub').fill('17');
-  await page.waitForFunction(() => document.querySelector('#output-text').textContent === 'Hello');
-  await page.locator('#activation-scrub').fill('19');
-  await page.waitForFunction(() => document.querySelector('#output-text').textContent === 'Hello!');
+  await page.locator('#activation-scrub').fill(firstPosition);
+  await page.waitForFunction(text => document.querySelector('#output-text').textContent === text, sample.tokens[0].text);
+  await page.locator('#activation-scrub').fill(finalPosition);
+  await page.waitForFunction(text => document.querySelector('#output-text').textContent === text, sample.outputText);
   assert.equal(await page.locator('#token-inspector-view').isVisible(), true);
+  const scale = await page.inputValue('#activation-scale');
+  const before = await page.locator('#activation-canvas').evaluate(c => c.toDataURL());
+  await page.emulateMedia({ colorScheme: 'dark' });
+  await page.waitForFunction(before => document.querySelector('#activation-canvas').toDataURL() !== before, before);
+  assert.equal(await page.inputValue('#activation-scale'), scale, 'Theme changes do not rescale numbers');
+  assert.match(await page.locator('.activity-color-bar').evaluate(n => n.style.background), /38, 42, 50/);
+  await page.screenshot({ path: '.cache/demo-first-replay/replay-dark.png', fullPage: true });
+  await page.emulateMedia({ colorScheme: 'light' });
+  await page.waitForFunction(before => document.querySelector('#activation-canvas').toDataURL() === before, before);
+
   await page.locator('#activation-play').click();
   await page.fill('#prompt-input', 'My next question');
   assert.equal(await page.locator('#activation-play').textContent(), 'Play', 'Typing pauses automatic playback');
-  await page.fill('#prompt-input', defaultPrompt);
-  await page.locator('#activation-scrub').fill('19');
-  await page.waitForFunction(() => document.querySelector('#output-text').textContent === 'Hello!');
+  await page.fill('#prompt-input', '');
+  await page.locator('#activation-scrub').fill(finalPosition);
+  await page.waitForFunction(text => document.querySelector('#output-text').textContent === text, sample.outputText);
 }
 
 export async function checkBootLayout(page) {

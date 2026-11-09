@@ -2,8 +2,8 @@
 // a module. An older registration must be able to update without booting the app.
 // BEGIN GENERATED DEMO SHELL
 const SHELL_MANIFEST_SCHEMA = 'doppler.demo-shell-manifest/v1';
-const SHELL_MANIFEST_DIGEST = 'sha256:9ed8a6e4dc53c0ac3d353c8a5bcc441eab83cc2622fe7f652af748259c74e439';
-const CACHE_NAME = 'doppler-demo-shell-9ed8a6e4dc53c0ac';
+const SHELL_MANIFEST_DIGEST = 'sha256:613bd308ad42cbb8c3dcb2ba332b4bae3db76af3ce6801c87e55a17c7a6699e2';
+const CACHE_NAME = 'doppler-demo-shell-613bd308ad42cbb8';
 const APP_SHELL = Object.freeze([
   "/demo/assets/activity-preview-attention-prefill.png",
   "/demo/assets/activity-preview-contributions.png",

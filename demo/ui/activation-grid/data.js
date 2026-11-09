@@ -79,23 +79,23 @@ export function projectFrame(trace, index, position) {
 }
 
 /** @type {typeof import('./data.js').heatmapColor} */
-export function heatmapColor(value, scale, range = 'signed') {
+export function heatmapColor(value, scale, range = 'signed', dark = false) {
   if (!Number.isFinite(value)) return config.colors.invalid;
-  const colors = range === 'signed' ? config.colors.signed : config.colors.positive;
+  const colors = heatmapColors(range, dark);
   const t = Math.min(1, Math.max(0, range === 'signed' ? (value / scale + 1) / 2 : value / scale));
   const position = t * (colors.length - 1), lo = Math.floor(position), hi = Math.min(lo + 1, colors.length - 1);
   return colors[lo].map((v, i) => Math.round(v + (colors[hi][i] - v) * (position - lo)));
 }
 
 /** @type {typeof import('./data.js').colorGrid} */
-export function colorGrid(values, scale, range = 'signed') {
+export function colorGrid(values, scale, range = 'signed', dark = false) {
   const side = Math.ceil(Math.sqrt(values.length));
   const rgba = new Uint8ClampedArray(side * side * 4);
   for (let p = 0; p < side * side; p++) {
     const value = values[p];
     const rgb = p >= values.length ? config.colors.padding : value === undefined
       ? config.colors.missing[(p % side + Math.floor(p / side)) % 2]
-      : typeof value === 'number' ? heatmapColor(value, scale, range) : config.colors.invalid;
+      : typeof value === 'number' ? heatmapColor(value, scale, range, dark) : config.colors.invalid;
     rgba.set(rgb, p * 4);
     rgba[p * 4 + 3] = 255;
   }
@@ -108,4 +108,9 @@ export function colorGrid(values, scale, range = 'signed') {
 export function initialColorScale(values, fallback) {
   const magnitudes = values.filter(v => typeof v === 'number' && Number.isFinite(v) && v !== 0).map(v => Math.abs(Number(v))).sort((a, b) => a - b);
   return magnitudes.length ? magnitudes[Math.min(magnitudes.length - 1, Math.floor(magnitudes.length * 0.99))] : fallback;
+}
+
+/** The canvas and its key use the same theme palette; numeric scales never change. */
+export function heatmapColors(range = 'signed', dark = false) {
+  return range === 'signed' ? (dark ? config.colors.signedDark : config.colors.signed) : config.colors.positive;
 }

@@ -8,4 +8,4 @@ export interface ModelPathView {
   outputs:(number|string|undefined)[]; width:number;
 }
 export declare function modelPathView(recording:ActivationRecording, atMs:number, position:number, selectedLayer:number):ModelPathView;
-export declare function renderModelPaths(container:HTMLElement, graph:ModelPathView, scale:number, activationScale:number, onLayer:(layer:number)=>void):void;
+export declare function renderModelPaths(container:HTMLElement, graph:ModelPathView, scale:number, activationScale:number, onLayer:(layer:number)=>void, dark?:boolean):void;

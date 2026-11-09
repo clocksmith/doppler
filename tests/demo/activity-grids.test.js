@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { createActivationTrace } from '../../src/debug/activation-trace.js';
-import { validateRecording } from '../../demo/ui/activation-grid/data.js';
+import { validateRecording, colorGrid, heatmapColor, heatmapColors } from '../../demo/ui/activation-grid/data.js';
 import { encodeRecording } from '../../demo/ui/activation-grid/recording-codec.js';
 import { modelPathView } from '../../demo/ui/activation-grid/paths.js';
 import { activityView, activityModes, playbackPoints, assertMatchedRuns, attentionRow } from '../../demo/ui/activation-grid/views.js';
@@ -116,3 +116,12 @@ assert(missingRow.every(v => v === undefined), 'missing key never becomes a norm
 const finalPoint = playbackPoints(recording, 'tokens').at(-1);
 assert(finalPoint.atMs >= recording.trace.activity.frames.find(f => f.role === 'logits').atMs, 'token playback includes the prediction after the final layer');
 console.log('Activity views: raw/aggregate products, causal attention, cache history, state gaps, gates, differences, matching, packed replay and malformed imports passed.');
+
+// Display theme changes colors only, with no alpha data or numerical rescaling.
+const light = colorGrid([-1, 0, 1, undefined, NaN], 1, 'signed');
+const dark = colorGrid([-1, 0, 1, undefined, NaN], 1, 'signed', true);
+assert.deepEqual(heatmapColor(0, 1, 'signed', true), heatmapColors('signed', true)[1]);
+assert.notDeepEqual(dark.rgba.slice(4, 7), light.rgba.slice(4, 7));
+assert.notDeepEqual(dark.rgba.slice(4, 7), dark.rgba.slice(12, 15), 'Zero is distinct from a missing capture');
+assert.deepEqual(dark.rgba.slice(12), light.rgba.slice(12), 'Missing, invalid and padding semantics survive theme changes');
+assert([...dark.rgba].filter((_, i) => i % 4 === 3).every(a => a === 255));

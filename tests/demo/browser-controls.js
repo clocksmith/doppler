@@ -295,7 +295,7 @@ export async function checkDemoControls(page) {
     const entry = document.querySelector('script[src$="/demo.js"]').src;
     await (await import(new URL('ui/activation-grid/index.js', entry))).loadActivityExample(undefined, { autoplay: true });
   });
-  await page.waitForFunction(() => document.querySelector('#output-text').textContent === 'Hello!');
+  await page.waitForFunction(() => document.querySelector('#output-text').textContent.startsWith('The sky appears blue') && document.querySelector('#activation-play').textContent === 'Play');
   const sampleSettingsOpen = await page.locator('#settings-panel').isVisible();
   if (!sampleSettingsOpen) await page.click('#settings-toggle');
   assert.equal(await page.locator('#output-text').isVisible(), false, 'The underlined view replaces the duplicate formatted answer');

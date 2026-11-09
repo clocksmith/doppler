@@ -1,26 +1,46 @@
 {
   "schema": "doppler.activity-example/v1",
-  "prompt": "Say hello in one word.",
-  "sha256": "5a12123d9da3c933a041db75aff4bb9868c4e2fd789d8939900bb816db219d33",
-  "compressedBytes": 19454396,
-  "decodedBytes": 26829100,
+  "sha256": "75f8dd3e8bb8c4f64aa083402f3f6fd8254599045bd3b201f85858ed2e1d4dd3",
+  "compressedBytes": 23272619,
+  "decodedBytes": 34510023,
   "model": {
-    "modelId": "http://127.0.0.1:51762/.cache/qwen08-sha256-repair/",
+    "modelId": "qwen-3-5-0-8b-q4k-ehaf16",
     "logicalModelId": "qwen-3-5-0-8b-q4k-ehaf16",
     "manifestHash": "c5fcf38e945f1c048faca9ccda8991f1494563317f46a6dd79e0714ad001c569",
     "runtimeVersion": "0.6.33",
     "adapters": []
   },
-  "promptPosition": 17,
-  "outputText": "Hello!",
+  "promptPosition": 22,
+  "prompt": "Explain why the sky is blue in one sentence.",
+  "outputText": "The sky appears blue because Rayleigh scattering causes shorter-wavelength light (blue and violet) to scatter more strongly than longer wavelengths, making them dominate our view of the sky.",
   "modes": [
     {
-      "id": "layer-output",
-      "label": "Layer outputs",
+      "id": "model-paths",
+      "label": "Model paths",
+      "roles": [],
+      "clock": "boundary",
+      "group": "Captured updates",
+      "clockLabel": "Highlights actual capture boundaries",
       "reason": null,
       "displayedScalars": 24576,
       "present": 24576,
-      "side": 91,
+      "side": 157,
+      "underlyingValues": 24576,
+      "representation": "raw",
+      "quantity": "Layer outputs in the computation diagram",
+      "description": "Rows are layers, columns are hidden dimensions; captured operator structure accompanies the map."
+    },
+    {
+      "id": "layer-output",
+      "label": "Layer outputs",
+      "roles": [],
+      "clock": "token",
+      "group": "Token playback",
+      "clockLabel": "Changes with token position",
+      "reason": null,
+      "displayedScalars": 24576,
+      "present": 24576,
+      "side": 157,
       "underlyingValues": 24576,
       "representation": "raw",
       "quantity": "layer-output values",
@@ -29,10 +49,16 @@
     {
       "id": "ffn-product",
       "label": "FFN features · activated product",
+      "roles": [
+        "ffn-product"
+      ],
+      "clock": "token",
+      "group": "Token playback",
+      "clockLabel": "Changes with token position",
       "reason": null,
       "displayedScalars": 86016,
       "present": 86016,
-      "side": 170,
+      "side": 294,
       "underlyingValues": 86016,
       "representation": "raw",
       "quantity": "activated gate × up-projection values",
@@ -41,10 +67,16 @@
     {
       "id": "ffn-gate",
       "label": "FFN features · gate projection",
+      "roles": [
+        "ffn-gate"
+      ],
+      "clock": "token",
+      "group": "Token playback",
+      "clockLabel": "Changes with token position",
       "reason": null,
       "displayedScalars": 86016,
       "present": 86016,
-      "side": 170,
+      "side": 294,
       "underlyingValues": 86016,
       "representation": "raw",
       "quantity": "ffn-gate values",
@@ -53,10 +85,16 @@
     {
       "id": "ffn-up",
       "label": "FFN features · up projection",
+      "roles": [
+        "ffn-up"
+      ],
+      "clock": "token",
+      "group": "Token playback",
+      "clockLabel": "Changes with token position",
       "reason": null,
       "displayedScalars": 86016,
       "present": 86016,
-      "side": 170,
+      "side": 294,
       "underlyingValues": 86016,
       "representation": "raw",
       "quantity": "ffn-up values",
@@ -65,10 +103,14 @@
     {
       "id": "difference",
       "label": "Activation changes",
+      "roles": [],
+      "clock": "token",
+      "group": "Token playback",
+      "clockLabel": "Changes with token position",
       "reason": null,
       "displayedScalars": 24576,
       "present": 24576,
-      "side": 91,
+      "side": 157,
       "underlyingValues": 24576,
       "representation": "reconstructed",
       "quantity": "signed activation difference",
@@ -77,22 +119,32 @@
     {
       "id": "weights",
       "label": "Weights",
+      "roles": [],
+      "clock": "snapshot",
+      "group": "Snapshots · no playback",
+      "clockLabel": "Fixed weights",
       "reason": null,
-      "displayedScalars": 61569,
+      "displayedScalars": 61425,
       "present": 61412,
-      "side": 144,
+      "side": 248,
       "underlyingValues": 1006178304,
       "representation": "aggregated",
       "quantity": "weight RMS per block",
-      "description": "188/345 loaded tensors observed. Blocks never cross tensor boundaries; final blocks may be shorter. Unobserved tensors are dark placeholders."
+      "description": "188/345 loaded tensors observed. Blocks never cross tensor boundaries; final blocks may be shorter. 144 tensors have no recorded shape and are excluded from the atlas. Known-size missing tensors retain their full block extent."
     },
     {
       "id": "contributions",
       "label": "Weight × input",
+      "roles": [
+        "ffn-down-input"
+      ],
+      "clock": "token",
+      "group": "Token playback",
+      "clockLabel": "Changes with token position",
       "reason": null,
       "displayedScalars": 28672,
       "present": 28672,
-      "side": 98,
+      "side": 170,
       "underlyingValues": 3670016,
       "representation": "aggregated",
       "quantity": "RMS connection product per output-row group",
@@ -101,10 +153,17 @@
     {
       "id": "kv-new",
       "label": "New attention memory",
+      "roles": [
+        "kv-key",
+        "kv-value"
+      ],
+      "clock": "token",
+      "group": "Token playback",
+      "clockLabel": "Changes with token position",
       "reason": null,
       "displayedScalars": 6144,
       "present": 6144,
-      "side": 46,
+      "side": 79,
       "underlyingValues": 6144,
       "representation": "raw",
       "quantity": "stored keys and values",
@@ -113,11 +172,18 @@
     {
       "id": "kv-cache",
       "label": "Accumulated attention memory",
+      "roles": [
+        "kv-key",
+        "kv-value"
+      ],
+      "clock": "token",
+      "group": "Token playback",
+      "clockLabel": "Changes with token position",
       "reason": null,
-      "displayedScalars": 110592,
-      "present": 110592,
-      "side": 192,
-      "underlyingValues": 110592,
+      "displayedScalars": 141312,
+      "present": 141312,
+      "side": 376,
+      "underlyingValues": 141312,
       "representation": "raw",
       "quantity": "stored keys and values",
       "description": "Append-only cache writes, ordered layer → position → keys then values. Missing entries remain dark; unused capacity is excluded."
@@ -125,35 +191,54 @@
     {
       "id": "recurrent-memory",
       "label": "Recurrent memory",
+      "roles": [
+        "recurrent-memory"
+      ],
+      "clock": "boundary",
+      "group": "Captured updates",
+      "clockLabel": "After each chunk or decode step",
       "reason": null,
       "displayedScalars": 18432,
       "present": 18432,
-      "side": 79,
+      "side": 136,
       "underlyingValues": 4718592,
       "representation": "aggregated",
       "quantity": "recurrent-memory · block RMS",
-      "description": "4,718,592 full-state values across 18 layers; summaries cover 4,718,592. State after prefill positions 0–17; prefill does not expose intermediate per-token states."
+      "description": "4,718,592 full-state values across 18 layers; summaries cover 4,718,592. State after prefill positions 0–22; prefill does not expose intermediate per-token states."
     },
     {
       "id": "convolution-history",
       "label": "Convolution history",
+      "roles": [
+        "convolution-history"
+      ],
+      "clock": "boundary",
+      "group": "Captured updates",
+      "clockLabel": "After each chunk or decode step",
       "reason": null,
       "displayedScalars": 1728,
       "present": 1728,
-      "side": 24,
+      "side": 42,
       "underlyingValues": 442368,
       "representation": "aggregated",
       "quantity": "convolution-history · block RMS",
-      "description": "442,368 full-state values across 18 layers; summaries cover 442,368. State after prefill positions 0–17; prefill does not expose intermediate per-token states."
+      "description": "442,368 full-state values across 18 layers; summaries cover 442,368. State after prefill positions 0–22; prefill does not expose intermediate per-token states."
     },
     {
       "id": "attention-query",
       "label": "Attention · current query",
+      "roles": [
+        "attention-query",
+        "kv-key"
+      ],
+      "clock": "token",
+      "group": "Token playback",
+      "clockLabel": "Changes with token position",
       "reason": null,
-      "displayedScalars": 864,
-      "present": 864,
-      "side": 17,
-      "underlyingValues": 864,
+      "displayedScalars": 1104,
+      "present": 1104,
+      "side": 34,
+      "underlyingValues": 1104,
       "representation": "reconstructed",
       "quantity": "attention probabilities",
       "description": "6 captured layer(s), ordered layer → query → head → key. Prompt chunks share global position coordinates. CPU double reconstruction from captured Q and stored K, with recorded scale, mask and softcap; future masked positions are zero. Not kernel bit-exact or causal attribution."
@@ -161,11 +246,18 @@
     {
       "id": "attention-prefill",
       "label": "Attention · prompt relationships",
+      "roles": [
+        "attention-query",
+        "kv-key"
+      ],
+      "clock": "snapshot",
+      "group": "Snapshots · no playback",
+      "clockLabel": "Whole-prompt snapshot",
       "reason": null,
-      "displayedScalars": 15552,
-      "present": 15552,
-      "side": 72,
-      "underlyingValues": 15552,
+      "displayedScalars": 25392,
+      "present": 25392,
+      "side": 160,
+      "underlyingValues": 25392,
       "representation": "reconstructed",
       "quantity": "attention probabilities",
       "description": "6 captured layer(s), ordered layer → query → head → key. Prompt chunks share global position coordinates. CPU double reconstruction from captured Q and stored K, with recorded scale, mask and softcap; future masked positions are zero. Not kernel bit-exact or causal attribution."
@@ -173,10 +265,19 @@
     {
       "id": "linear-gates",
       "label": "Memory retention & update gates",
+      "roles": [
+        "linear-a",
+        "linear-b",
+        "linear-a-log",
+        "linear-dt-bias"
+      ],
+      "clock": "token",
+      "group": "Token playback",
+      "clockLabel": "Changes with token position",
       "reason": null,
       "displayedScalars": 576,
-      "present": 576,
-      "side": 14,
+      "present": 288,
+      "side": 24,
       "underlyingValues": 576,
       "representation": "reconstructed",
       "quantity": "retention factor, update strength per head",
@@ -185,10 +286,16 @@
     {
       "id": "logits",
       "label": "Next-token scores",
+      "roles": [
+        "logits"
+      ],
+      "clock": "token",
+      "group": "Token playback",
+      "clockLabel": "Changes with token position",
       "reason": null,
       "displayedScalars": 248320,
       "present": 248320,
-      "side": 288,
+      "side": 499,
       "underlyingValues": 248320,
       "representation": "raw",
       "quantity": "next-token logits",
@@ -197,10 +304,16 @@
     {
       "id": "probabilities",
       "label": "Next-token probabilities",
+      "roles": [
+        "logits"
+      ],
+      "clock": "token",
+      "group": "Token playback",
+      "clockLabel": "Changes with token position",
       "reason": null,
       "displayedScalars": 248320,
       "present": 248320,
-      "side": 288,
+      "side": 499,
       "underlyingValues": 248320,
       "representation": "reconstructed",
       "quantity": "full-vocabulary softmax probability",
@@ -209,10 +322,16 @@
     {
       "id": "quantization-error",
       "label": "Weight quantization error",
+      "roles": [
+        "quantization-error"
+      ],
+      "clock": "snapshot",
+      "group": "Snapshots · no playback",
+      "clockLabel": "Fixed reference comparison",
       "reason": null,
       "displayedScalars": 4096,
       "present": 4096,
-      "side": 37,
+      "side": 64,
       "underlyingValues": 254279680,
       "representation": "reconstructed",
       "quantity": "stored head minus tied embedding reference",
@@ -221,10 +340,14 @@
     {
       "id": "residency",
       "label": "Weight residency & access",
+      "roles": [],
+      "clock": "boundary",
+      "group": "Captured updates",
+      "clockLabel": "Observed dispatch events",
       "reason": null,
       "displayedScalars": 345,
       "present": 345,
-      "side": 11,
+      "side": 19,
       "underlyingValues": 345,
       "representation": "raw",
       "quantity": "resident tensor and observed projection binding",
@@ -233,6 +356,13 @@
     {
       "id": "expert-routing",
       "label": "Expert routing",
+      "roles": [
+        "expert-indices",
+        "expert-weights"
+      ],
+      "clock": "token",
+      "group": "Token playback",
+      "clockLabel": "Changes with token position",
       "reason": "No expert-routing boundary was captured for this execution.",
       "displayedScalars": 0,
       "present": 0,

@@ -34,12 +34,13 @@ Wide screens place activity beside the conversation. Narrow screens bring the
 activity into view on Send and keep Stop reachable while generation runs.
 
 Fresh and returning visits automatically replay the first exchange: the real Qwen
-0.8B “Say hello in one word.” → “Hello!” recording. Its answer and activity use
-one player; words appear at their captured prediction boundaries and scrubbing
+0.8B recording of “Explain why the sky is blue in one sentence.” Its answer and activity use
+one player; words appear with their corresponding completed layer stack and scrubbing
 rewinds both. A small Recorded replay label identifies it; model, publication date and timing
 semantics live under Details. It requires no model download or inference. Typing,
 changing models, clearing or sending cancels a pending opening or automatic playback.
-The editable composer remains a draft for the next live request; the sample never
+Once the first exchange opens, its submitted prompt is cleared from the composer.
+Typed or launched drafts cancel automatic opening and are preserved. The sample never
 creates live model state or enters its conversation history. Send produces the new
 answer and its activity together. A single
 “Try another example” button deals the other prompts from
@@ -191,7 +192,9 @@ Prompt suggestions are editable.
 The visible model selector sits above the conversation. The **layer grid** records
 bounded asynchronous snapshots of real layer outputs during prefill and decode.
 Positions stay stable across tokens, with a fixed scale and one scalar per opaque
-24-bit heatmap pixel. Missing captures are marked, never filled with zeros.
+24-bit heatmap pixel. The system dark theme uses a dark neutral for signed zero;
+the grid, diagram and legend change together without rescaling data or using alpha.
+Missing captures are marked, never filled with zeros.
 Live follow updates the selected grid as capture events arrive during generation;
 scrubbing pauses follow, and **Live** resumes it. The composite combines sequential
 layer captures and does not imply simultaneous state. Recording limits stop
@@ -240,7 +243,7 @@ Views are separated in the selector and primary labels:
 
 **Model activity** follows the displayed run. No example downloads automatically,
 including for visitors with the old automatic-example preference. Details can
-open a real Qwen 0.8B capture (about 20 MB compressed) together with its recorded
+open a real Qwen 0.8B capture (about 23 MB compressed) together with its recorded
 “Say hello in one word.” prompt and “Hello!” answer. The compressed bytes are
 SHA-256 checked before import, outside the application-shell cache. An example
 fetch cannot replace a newer live run, cleared conversation or imported recording.

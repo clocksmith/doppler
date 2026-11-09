@@ -2,7 +2,7 @@ import config from './config.json' with { type: 'json' };
 import previews from './previews.json' with { type: 'json' };
 import previewData from '../../assets/activity-previews.json' with { type: 'json' };
 import { SHELL_MANIFEST_DIGEST } from '../../generated-shell-manifest.js';
-import { validateRecording, colorGrid, initialColorScale, heatmapColor } from './data.js';
+import { validateRecording, colorGrid, initialColorScale, heatmapColor, heatmapColors } from './data.js';
 import { modelPathView, renderModelPaths } from './paths.js';
 import { encodeRecording } from './recording-codec.js';
 import { activityView, activityModes, playbackPoints, assertMatchedRuns } from './views.js';
@@ -50,6 +50,7 @@ function points() { return recording ? playbackPoints(recording, $('activity-pla
 
 function paint() {
   scheduled = null;
+  const dark = globalThis.matchMedia?.('(prefers-color-scheme: dark)').matches === true;
   const trace = recording?.trace, timeline = points();
   $('activation-live').setAttribute('aria-pressed', String(active && follow));
   $('activation-live').disabled = !active;
@@ -145,7 +146,7 @@ function paint() {
   const scale = fixedUnit ? 1 : scales[key] ?? recording.display.scale;
   $('activation-scale').disabled = fixedUnit;
   $('activation-scale').value = String(scale);
-  const { side, rgba } = colorGrid(view.values, scale, view.range);
+  const { side, rgba } = colorGrid(view.values, scale, view.range, dark);
   const canvas = $('activation-canvas'); canvas.hidden = Boolean(graph) || side === 0;
   $('activity-paths').hidden = !graph;
   $('activity-paths-button').hidden = !graph || layerSelect.value === '-1';
@@ -155,7 +156,7 @@ function paint() {
       scales[activationKey] = initialColorScale(graph.outputs, recording.display.scale);
     }
     renderModelPaths($('activity-paths'), graph, scale, scales[activationKey] ?? recording.display.scale,
-      layer => { layerSelect.value = String(layer); queuePaint(); });
+      layer => { layerSelect.value = String(layer); queuePaint(); }, dark);
   }
   layerSelect.options[0].textContent = graph ? 'Follow latest layer' : 'All captured layers'; canvas.width = Math.max(1, side); canvas.height = Math.max(1, side);
   canvas.setAttribute('aria-label', `${view.quantity}: one scalar per opaque heatmap pixel, ${view.representation}`);
@@ -189,7 +190,7 @@ function paint() {
   }
   const legend = $('activity-legend'); legend.hidden = side === 0; legend.replaceChildren();
   const gradient = document.createElement('div'); gradient.className = 'activity-color-bar';
-  const colors = view.range === 'signed' ? config.colors.signed : config.colors.positive;
+  const colors = heatmapColors(view.range, dark);
   gradient.style.background = `linear-gradient(to right, ${colors.map(c => `rgb(${c.join(',')})`).join(',')})`;
   const labels = document.createElement('div'); labels.className = 'activity-color-labels';
   const fmt = (/** @type {number} */ n) => String(Number(n.toPrecision(3)));
@@ -443,6 +444,7 @@ export function initActivationGrid(options = {}) {
   }
   $('activation-record').addEventListener('change', queuePaint);
   document.addEventListener('visibilitychange' , () => { if (document.hidden) stopPlayback(); });
+  globalThis.matchMedia?.('(prefers-color-scheme: dark)').addEventListener('change', queuePaint);
   queuePaint();
 }
 

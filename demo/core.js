@@ -420,6 +420,7 @@ export function loadSampleInspection(receipt, { preserveDraft = false } = {}) {
   if (state.generating || state.modelBusy || state.settingsBusy) return;
   clearConversationHistory();
   if (!preserveDraft) setPromptValue(receipt.prompt);
+  else if (getPrompt() === receipt.prompt) clearPrompt();
   beginChatTurn([{ role: 'user', content: receipt.prompt }]);
   syncBranchView();
   const promptLabel = document.querySelector('#chat-thread .chat-role');
@@ -435,7 +436,7 @@ export function loadSampleInspection(receipt, { preserveDraft = false } = {}) {
   }
   const details = $('recording-details');
   if (details) {
-    details.textContent = `${receipt.recording?.modelId} · published ${receipt.recording?.publishedAt}. Text, probabilities and activity are from the same saved run. Playback advances captured positions, not original elapsed time. No model runs for this replay.`;
+    details.textContent = `${receipt.recording?.modelId} · published ${receipt.recording?.publishedAt}. Text, probabilities and activity are from the same saved run. Playback pairs each completed layer stack with its predicted token, not original elapsed time. No model runs for this replay.`;
     details.hidden = false;
   }
   if (liveMessage) {
@@ -496,12 +497,17 @@ function matchesSample(recording) {
     && JSON.stringify(recording.generatedTokenIds) === JSON.stringify(SAMPLE_INSPECTION_RECEIPT.generatedTokenIds);
 }
 
-// The grid owns the clock. A prediction appears only after its captured logits;
+// The grid owns the clock. Each completed layer stack identifies a prediction;
 // scrubbing backwards removes later words as well as later numerical activity.
 export function updateRecordedActivity(recording, point) {
   if (!matchesSample(recording) || state.lastInspection !== SAMPLE_INSPECTION_RECEIPT) return;
-  const boundaries = recording.trace.activity?.frames.filter(frame => frame.role === 'logits') ?? [];
-  const count = boundaries.filter(frame => frame.atMs <= point.atMs && frame.tokenStart <= point.position).length;
+  const firstPrediction = SAMPLE_INSPECTION_RECEIPT.inputTokenIds.length - 1;
+  const boundaries = recording.trace.frames.filter(frame => frame.status === 'captured'
+    && frame.layer === recording.trace.geometry.layers - 1);
+  const count = boundaries.filter(frame => {
+    const position = frame.tokenStart + frame.tokenIds.length - 1;
+    return position >= firstPrediction && position <= point.position && frame.atMs <= point.atMs;
+  }).length;
   const tokens = SAMPLE_INSPECTION_RECEIPT.tokens.slice(0, count);
   const text = tokens.map(token => token.text).join('');
   if ($('output-text')?.textContent === text) return;

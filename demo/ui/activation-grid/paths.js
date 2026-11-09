@@ -1,5 +1,5 @@
 import config from './config.json' with { type: 'json' };
-import { colorGrid, heatmapColor, projectFrame } from './data.js';
+import { colorGrid, heatmapColor, heatmapColors, projectFrame } from './data.js';
 
 /** @param {readonly (number | string | undefined)[]} values */
 function rms(values) {
@@ -72,7 +72,7 @@ export function modelPathView(recording, atMs, position, selectedLayer) {
 }
 
 /** @type {typeof import('./paths.js').renderModelPaths} */
-export function renderModelPaths(container, graph, scale, activationScale, onLayer) {
+export function renderModelPaths(container, graph, scale, activationScale, onLayer, dark = false) {
   const svgNS = 'http://www.w3.org/2000/svg';
   /** @param {string} tag @param {Record<string,string | number>} attrs @param {string} [text] */
   const element = (tag, attrs, text) => {
@@ -94,10 +94,10 @@ export function renderModelPaths(container, graph, scale, activationScale, onLay
   const context = activationCanvas.getContext('2d');
   if (!context) throw new Error('Layer activity requires a canvas 2D context.');
   const image = context.createImageData(graph.width, graph.layers.length);
-  image.data.set(colorGrid(graph.outputs, activationScale, 'signed').rgba.subarray(0, image.data.length));
+  image.data.set(colorGrid(graph.outputs, activationScale, 'signed', dark).rgba.subarray(0, image.data.length));
   context.putImageData(image, 0, 0);
   const key = /** @type {HTMLElement} */ (overview.querySelector('.activity-path-activation-key'));
-  const colors = config.colors.signed.map(c => `rgb(${c.join(',')})`).join(',');
+  const colors = heatmapColors('signed', dark).map(c => `rgb(${c.join(',')})`).join(',');
   key.style.backgroundImage = `linear-gradient(to right,${colors})`;
   key.textContent = `≤ −${Number(activationScale.toPrecision(3))} · 0 · ≥ ${Number(activationScale.toPrecision(3))} · fixed scale`;
   const list = container.querySelector('.activity-path-layers') ?? document.createElement('div'); list.className = 'activity-path-layers'; list.setAttribute('aria-label','Model layers');

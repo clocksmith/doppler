@@ -1,0 +1,3 @@
+Loading the published Qwen 0.8B model.
+Capturing the sky answer and matching numerical activity.
+{"result":{"prompt":"Explain why the sky is blue in one sentence.","answer":"The sky appears blue because Rayleigh scattering causes shorter-wavelength light (blue and violet) to scatter more strongly than longer wavelengths, making them dominate our view of the sky.","tokens":36,"identity":{"modelId":"qwen-3-5-0-8b-q4k-ehaf16","logicalModelId":"qwen-3-5-0-8b-q4k-ehaf16","manifestHash":"c5fcf38e945f1c048faca9ccda8991f1494563317f46a6dd79e0714ad001c569","runtimeVersion":"0.6.33","adapters":[]},"frames":864,"missing":0,"activityFrames":6384,"activityMissing":5720},"errors":[]}

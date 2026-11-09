@@ -1,17 +1,17 @@
 {
-  "sourceSha256": "5a12123d9da3c933a041db75aff4bb9868c4e2fd789d8939900bb816db219d33",
+  "sourceSha256": "75f8dd3e8bb8c4f64aa083402f3f6fd8254599045bd3b201f85858ed2e1d4dd3",
   "model": "qwen-3-5-0-8b-q4k-ehaf16",
-  "position": 17,
+  "position": 22,
   "scaleRule": "fixed 99th-percentile magnitude; probabilities use 0–1; one scalar per opaque 24-bit heatmap pixel",
   "previews": [
     {
       "mode": "layer-output",
       "side": 157,
-      "scale": 0.6395615339279175,
+      "scale": 0.5595873594284058,
       "range": "signed",
       "representation": "raw",
       "underlyingValues": 24576,
-      "sha256": "b6f247a7c3890178813ed4da9190928bffdd22eb7d9d8c8cc427ea95c9492e59"
+      "sha256": "ce95e6523fa85d7e094e2d496af20548aa877f759f0daf02ce1761e57733f564"
     },
     {
       "mode": "weights",
@@ -25,38 +25,38 @@
     {
       "mode": "contributions",
       "side": 170,
-      "scale": 0.0008988815464168879,
+      "scale": 0.0008606709915920917,
       "range": "positive",
       "representation": "aggregated",
       "underlyingValues": 3670016,
-      "sha256": "82d8126e12c18ca3502d37c2ab6d0888dc3d5876b29d67c3901b14b841c20e8c"
+      "sha256": "a5de6d56e3b10f2ed87cbcfdd47760aeb16d6de833867f0de63590d4e6a11cae"
     },
     {
       "mode": "attention-prefill",
-      "side": 125,
+      "side": 160,
       "scale": 1,
       "range": "unit",
       "representation": "reconstructed",
-      "underlyingValues": 15552,
-      "sha256": "ed1881c0851ca77efd0b26ad885b5dfdcf2a2f32bc985f030bc142e4b66e3c55"
+      "underlyingValues": 25392,
+      "sha256": "4748eca0781ed8ed0b216f4464f88abe9d9a5f331cdea1f20b90f2645a2e59f2"
     },
     {
       "mode": "kv-cache",
-      "side": 333,
-      "scale": 5.44921875,
+      "side": 376,
+      "scale": 5.4375,
       "range": "signed",
       "representation": "raw",
-      "underlyingValues": 110592,
-      "sha256": "432f6e724672cfb99b2325b3c17ee405e6e87aa7272be9c88f7553b4a8ec5218"
+      "underlyingValues": 141312,
+      "sha256": "8cc87573a8e751b0f9aaf107307af4b105341f8983783ea1544b4c71c19ef018"
     },
     {
       "mode": "recurrent-memory",
       "side": 136,
-      "scale": 0.08817498590839266,
+      "scale": 0.09322023331574207,
       "range": "positive",
       "representation": "aggregated",
       "underlyingValues": 4718592,
-      "sha256": "62acc88b6579286866ae6ce8b34358167cf22ca4e3250f85a7e609595afb1076"
+      "sha256": "03cb89707729475808e629ee5257c705cfd8e3e85a8d0d0e3aa33a01bc8b4212"
     }
   ]
 }
