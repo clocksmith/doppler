@@ -4,7 +4,7 @@ import type { DopplerModelInspectionReceipt } from '../../../src/client/model-ho
 export interface GridElements {
   'activity-previews': HTMLElement; 'activity-gallery': HTMLElement; 'activity-selectors': HTMLElement;
   'activity-source': HTMLElement; 'activation-view': HTMLElement;
-  'activity-intro': HTMLElement; 'activity-auto-example': HTMLInputElement;
+  'activity-intro': HTMLElement;
   'activity-maps': HTMLElement; 'activity-title': HTMLElement; 'activity-method': HTMLElement;
   'activity-explanation': HTMLElement; 'activity-coverage': HTMLElement;
   'activity-paths': HTMLElement; 'activity-paths-button': HTMLButtonElement;
@@ -25,11 +25,12 @@ export interface GridElements {
   'activation-player': HTMLElement; 'activation-detail-controls': HTMLElement;
 }
 export declare function isActivationRecordingEnabled(): boolean;
-export declare function beginActivationRecording(): void;
+export declare function clearActivationRecording(): void;
+export declare function beginActivationRecording(prompt?: string): void;
 export declare function acceptActivationFrame(event: { type: 'activation-frame'; frame: ActivationFrame; trace: ActivationTraceReceipt }): void;
-export declare function finishActivationRecording(status: 'complete' | 'stopped' | 'error', receipt?: DopplerModelInspectionReceipt | null): void;
+export declare function finishActivationRecording(status: 'complete' | 'stopped' | 'error', receipt?: DopplerModelInspectionReceipt | null, outputText?: string | null): void;
 export declare function importActivationRecording(value: unknown): void;
 export declare function isActivationRecordingFile(value: unknown): boolean;
 export declare function openActivationRecording(value: unknown, byteLength: number): void;
 export declare function getActivationRecording(): ActivationRecording | null;
-export declare function initActivationGrid(): void;
+export declare function initActivationGrid(options?: { onOpenRecording?: (recording: ActivationRecording) => void }): void;

@@ -4,7 +4,7 @@ import { reloadActiveModel, setModelCallbacks } from './models.js';
 import { getIllustrativeExample, initInput, preloadPrompt, setRunHandler } from './input.js';
 import { initSettings } from './settings.js';
 import { initReport } from './report.js';
-import { onModelLoaded, runGeneration, stopGeneration, loadSampleInspection, loadIllustrativeExample } from './core.js';
+import { onModelLoaded, runGeneration, stopGeneration, loadSampleInspection, showRecordedActivity } from './core.js';
 import { SAMPLE_INSPECTION_RECEIPT } from './data/sample-inspection.js';
 import { state } from './ui/state.js';
 import { initPrecisionReplay } from './ui/precision-replay/index.js';
@@ -81,7 +81,7 @@ async function init() {
   await initSettings({ requireDefaultProfile: true, onProfileChange: reloadActiveModel });
   setBootStatus('Preparing chat...');
   initReport();
-  initActivationGrid();
+  initActivationGrid({ onOpenRecording: showRecordedActivity });
   initLivePrecision();
   await initInput();
   flushPwaLaunchState();
@@ -118,11 +118,6 @@ async function init() {
   // A cached model must not suppress the ready-to-run prompt on a return visit.
   const example = getIllustrativeExample();
   if (state.phase === 'ready' && example) preloadPrompt(example.prompt);
-  // First visit: show the example answer and preload its prompt, so Send runs it live.
-  if (state.phase === 'ready' && !state.model && !state.conversationHistory.length) {
-    loadIllustrativeExample(example);
-    refreshRuntimeNotice();
-  }
 }
 
 function showInitError(message) {

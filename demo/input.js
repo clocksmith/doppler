@@ -6,6 +6,7 @@ import {
 } from './conversation.js';
 import { clearOutput, renderChatMessages, setPhase } from './output.js';
 import { ensurePromptModel, syncModelControls } from './models.js';
+import { clearActivationRecording } from './ui/activation-grid/index.js';
 
 let examples = null;
 // One deck deals every alternative once before it is reshuffled.
@@ -167,6 +168,7 @@ export async function clearConversation() {
 
 export function clearConversationHistory() {
   if (state.generating || state.prefilling) return;
+  clearActivationRecording();
   state.conversationHistory = [];
   state.conversationAnnotations = [];
   state.lastRun = null;

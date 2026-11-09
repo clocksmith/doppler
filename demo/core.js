@@ -1,11 +1,14 @@
 import { state } from './ui/state.js';
 import { isActivationRecordingEnabled, beginActivationRecording, acceptActivationFrame,
-  finishActivationRecording } from './ui/activation-grid/index.js';
+  finishActivationRecording, clearActivationRecording, getActivationRecording, importActivationRecording } from './ui/activation-grid/index.js';
+import { SHELL_MANIFEST_DIGEST } from './generated-shell-manifest.js';
+import activityConfig from './ui/activation-grid/config.json' with { type: 'json' };
 import { syncModelControls } from './models.js';
 import { getSettings } from './settings.js';
 import {
   buildConversationRequest,
   clearPrompt,
+  clearConversationHistory,
   getPrompt,
   recordConversationTurn,
   setPromptValue,
@@ -139,7 +142,7 @@ export async function runGeneration() {
   const stream = createOutputStream((ids) => model.advanced.decodeTokenIds(ids), signal);
   let receiving = true;
   resetXray();
-  beginActivationRecording();
+  beginActivationRecording(prompt);
 
   try {
     const receipt = await model.inspect.generate(conversationRequest.promptInput, {
@@ -189,9 +192,9 @@ export async function runGeneration() {
     startBranchTree(run);
     setPhase('Complete');
   } catch (error) {
-    finishActivationRecording(signal.aborted ? 'stopped' : 'error');
     receiving = false;
     const partialOutput = stream.finish();
+    finishActivationRecording(signal.aborted ? 'stopped' : 'error', null, partialOutput);
     if (partialOutput) recordConversationTurn(conversationRequest, partialOutput, { render: false });
     setPhase(error?.name === 'AbortError' ? 'Stopped' : `Error: ${error?.message ?? error}`);
     if (!getPrompt()) setPromptValue(prompt);
@@ -288,6 +291,13 @@ function renderActiveBranch({ updateText = true } = {}) {
 // Publishes the shown branch's completed receipt; a stopped branch has none.
 function publishActiveRun() {
   const run = state.branchTree ? activeBranch(state.branchTree).run : null;
+  const trace = run?.receipt.activationTrace;
+  if (trace && getActivationRecording()?.trace !== trace) {
+    importActivationRecording({ schema: 'doppler.activation-recording/v1', demoBuild: SHELL_MANIFEST_DIGEST,
+      display: { layout: activityConfig.layout, palette: activityConfig.palette, scale: activityConfig.scale },
+      trace, prompt: run.prompt, outputText: run.receipt.outputText, fingerprint: run.receipt.fingerprint,
+      inputTokenIds: run.receipt.inputTokenIds, generatedTokenIds: run.receipt.generatedTokenIds });
+  } else if (!trace) clearActivationRecording();
   if (run) {
     recordInspectionRun(run.receipt, run);
     return;
@@ -344,7 +354,7 @@ export async function runBranch(forkIndex, tokenId) {
   setExportEnabled(false);
   resetXray();
   setPhase('Branching');
-  beginActivationRecording();
+  beginActivationRecording(state.branchPrompt);
   setStatus('Running…', true);
   renderActiveBranch({ updateText: false });
   try {
@@ -401,8 +411,28 @@ export async function runBranch(forkIndex, tokenId) {
   }
 }
 
+// Opening activity replaces the displayed exchange as one operation. Old files
+// without prompt text remain inspectable, but never borrow the current draft.
+export function showRecordedActivity(recording) {
+  if (state.generating || state.modelBusy || state.settingsBusy) throw new Error('Wait for the current run to finish before opening a recording.');
+  clearConversationHistory();
+  beginChatTurn(recording.prompt ? [{ role: 'user', content: recording.prompt }] : []);
+  setAssistantText(recording.outputText ?? '');
+  setPromptValue(recording.prompt ?? '');
+  const note = $('recorded-run-note');
+  if (note) {
+    note.textContent = `Recorded run · ${recording.trace.identity.logicalModelId ?? recording.trace.identity.modelId}`
+      + (recording.prompt ? '' : ' · prompt text not saved')
+      + (recording.outputText == null ? ' · answer text not saved' : '');
+    note.hidden = false;
+  }
+  resetXray();
+  setPhase('Recorded activity');
+}
+
 export function loadIllustrativeExample(example) {
   if (!example || state.generating || state.modelBusy || state.settingsBusy) return;
+  clearActivationRecording();
   beginChatTurn([{ role: 'user', content: example.prompt }]);
   const output = $('output-text');
   if (output) output.textContent = example.answer;
@@ -419,6 +449,8 @@ export function loadIllustrativeExample(example) {
 
 export function loadSampleInspection(receipt) {
   if (state.generating || state.modelBusy || state.settingsBusy) return;
+  clearActivationRecording();
+  setPromptValue(receipt.prompt);
   beginChatTurn([{ role: 'user', content: receipt.prompt }]);
   syncBranchView();
   const promptLabel = document.querySelector('#chat-thread .chat-role');

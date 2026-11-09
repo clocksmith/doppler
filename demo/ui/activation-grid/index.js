@@ -26,7 +26,12 @@ let active = false;
 let baseline = null;
 let revision = 0;
 let exampleLoading = false;
+/** @type {AbortController | null} */
+let exampleRequest = null;
 let source = 'Saved recording';
+let currentPrompt = '';
+/** @type {((recording: import('./data.js').ActivationRecording) => void) | null} */
+let onOpenRecording = null;
 
 export function isActivationRecordingEnabled() { return $('activation-record')?.checked === true; }
 
@@ -49,9 +54,9 @@ function paint() {
   $('activation-play').hidden = active && follow;
   $('activity-gallery').classList.toggle('activity-gallery--compact', timeline.length > 0 || active);
   $('activity-intro').hidden = timeline.length > 0 || active;
-  $('activity-intro').textContent = $('activity-auto-example').checked
-    ? 'Opening recorded example · 20 MB. No model download.'
-    : 'Run a prompt or open a recording in Details.';
+  $('activity-intro').textContent = isActivationRecordingEnabled()
+    ? 'Activity will appear as your answer is generated.'
+    : 'Activity recording is off.';
   $('activity-selectors').hidden = !timeline.length;
   $('activation-caption').hidden = !timeline.length && !active;
   $('activity-source').hidden = !timeline.length && !exampleLoading;
@@ -223,14 +228,25 @@ function paint() {
 
 function queuePaint() { if (scheduled === null) scheduled = requestAnimationFrame(paint); }
 
-export function beginActivationRecording() {
-  if (!isActivationRecordingEnabled()) return;
+export function clearActivationRecording() {
+  revision++;
+  exampleRequest?.abort(); exampleRequest = null; exampleLoading = false;
+  $('activity-example').disabled = false;
+  stopPlayback(); baseline = null; recording = null; cursor = 0; follow = true; active = false;
+  currentPrompt = '';
+  document.getElementById('app')?.removeAttribute('data-live-activity');
+  queuePaint();
+}
+
+export function beginActivationRecording(prompt = '') {
   const mode = activityModes(recording).find(m => m.id === $('activity-mode').value);
   if (!mode || mode.clock === 'snapshot') $('activity-mode').value = config.defaultMode;
+  clearActivationRecording();
+  if (!isActivationRecordingEnabled()) return;
+  currentPrompt = prompt;
   $('activity-layer').value = '-1';
   $('activity-playback').value = activityModes(recording).find(m => m.id === $('activity-mode').value)?.clock === 'boundary' ? 'captures' : 'tokens';
-  revision++; source = 'Current run';
-  stopPlayback(); baseline = null; recording = null; cursor = 0; follow = true; active = true;
+  source = 'Current run'; active = true;
   document.getElementById('app')?.setAttribute('data-live-activity', '');
   const view = $('activation-view'), box = view.getBoundingClientRect();
   if (box.top < 0 || box.top > innerHeight * 0.6) view.scrollIntoView({ block: 'start', behavior: 'instant' });
@@ -243,6 +259,7 @@ export function acceptActivationFrame(event) {
   const frames = recording?.trace.frames ?? [];
   frames[event.frame.index] = event.frame;
   recording = { schema: 'doppler.activation-recording/v1', demoBuild: SHELL_MANIFEST_DIGEST,
+    prompt: currentPrompt,
     display: recording?.display ?? { layout: config.layout, palette: config.palette, scale: config.scale },
     trace: { ...event.trace, frames } };
   if (follow) cursor = frames.length - 1;
@@ -250,7 +267,7 @@ export function acceptActivationFrame(event) {
 }
 
 /** @type {typeof import('./index.js').finishActivationRecording} */
-export function finishActivationRecording(status, receipt = null) {
+export function finishActivationRecording(status, receipt = null, outputText = null) {
   if (!active) return;
   active = false;
   document.getElementById('app')?.removeAttribute('data-live-activity');
@@ -260,7 +277,7 @@ export function finishActivationRecording(status, receipt = null) {
     recording.fingerprint = receipt?.fingerprint ?? null;
     recording.inputTokenIds = receipt?.inputTokenIds ?? null;
     recording.generatedTokenIds = receipt?.generatedTokenIds ?? null;
-    recording.outputText = receipt?.outputText ?? null;
+    recording.outputText = receipt?.outputText ?? outputText;
   }
   queuePaint();
 }
@@ -273,6 +290,7 @@ export function importActivationRecording(value) {
   next.display = { ...next.display, layout: config.layout, palette: config.palette };
   revision++; source = 'Saved recording';
   stopPlayback(); active = false; follow = false; recording = next; cursor = Math.max(0, points().length - 1);
+  document.getElementById('app')?.removeAttribute('data-live-activity');
   $('activation-position').max = String(Math.max(...next.trace.frames.map(f => f.tokenStart + f.tokenIds.length - 1)));
   $('activation-position').value = String(points()[cursor]?.position ?? 0);
   $('activation-scale').value = String(next.display.scale);
@@ -290,7 +308,9 @@ export function isActivationRecordingFile(value) {
 export function openActivationRecording(value, byteLength) {
   try {
     if (byteLength > config.maxImportBytes) throw new Error('Recording file exceeds the import limit.');
-    importActivationRecording(value);
+    const next = validateRecording(value);
+    onOpenRecording?.(next);
+    importActivationRecording(next);
   } catch (error) {
     $('activation-status').textContent = String(error);
     throw error;
@@ -299,11 +319,12 @@ export function openActivationRecording(value, byteLength) {
 
 export function getActivationRecording() { return recording; }
 
-export function initActivationGrid() {
+/** @type {typeof import('./index.js').initActivationGrid} */
+export function initActivationGrid(options = {}) {
+  onOpenRecording = options.onOpenRecording ?? null;
   $('activity-playback').value = config.defaultPlayback;
   for (const [id, key, enabled] of [
     ['activation-record', config.recordPreferenceKey, config.recordByDefault],
-    ['activity-auto-example', config.examplePreferenceKey, config.autoExample],
   ]) {
     const input = $(/** @type {'activation-record'} */ (id));
     try { const saved = localStorage.getItem(String(key)); input.checked = saved === null ? Boolean(enabled) : saved === 'true'; }
@@ -381,20 +402,21 @@ export function initActivationGrid() {
       assertMatchedRuns(recording, next); baseline = next; queuePaint();
     } catch (error) { $('activity-availability').hidden = false; $('activity-availability').textContent = String(error); }
   });
-  /** @param {string} mode @param {boolean} automatic */
-  async function loadExample(mode, automatic = false) {
+  /** @param {string} mode */
+  async function loadExample(mode) {
     if (exampleLoading || active) return;
     const expectedRevision = revision;
+    const request = new AbortController(); exampleRequest = request;
     exampleLoading = true;
     $('activity-source').hidden = false;
     $('activity-source').textContent = 'Opening the recorded Qwen 0.8B example…';
     for (const card of $('activity-gallery').querySelectorAll('button')) card.disabled = true;
     $('activity-example').disabled = true;
     try {
-      const metadataResponse = await fetch(new URL('../../assets/activity-example.json', import.meta.url));
+      const metadataResponse = await fetch(new URL('../../assets/activity-example.json', import.meta.url), { signal: request.signal });
       if (!metadataResponse.ok) throw new Error('Example description is unavailable.');
       const metadata = await metadataResponse.json();
-      const response = await fetch(new URL('../../assets/activity-example.json.gz', import.meta.url));
+      const response = await fetch(new URL('../../assets/activity-example.json.gz', import.meta.url), { signal: request.signal });
       if (!response.ok) throw new Error('Example recording is unavailable.');
       const bytes = await response.arrayBuffer();
       const hash = [...new Uint8Array(await crypto.subtle.digest('SHA-256', bytes))].map(n => n.toString(16).padStart(2, '0')).join('');
@@ -402,27 +424,28 @@ export function initActivationGrid() {
       const stream = new Blob([bytes]).stream().pipeThrough(new DecompressionStream('gzip'));
       const text = await new Response(stream).text();
       if (text.length !== metadata.decodedBytes) throw new Error('Example recording length differs.');
-      if (revision !== expectedRevision || active || (automatic && !$('activity-auto-example').checked)) return;
+      if (revision !== expectedRevision || active) return;
       $('activity-playback').value = mode === 'model-paths' ? 'captures' : 'tokens';
       $('activity-layer').value = '-1';
       $('activity-detail').value = 'overview';
       $('activity-weight').value = '';
       $('activity-page').value = '0';
       $('activity-mode').value = mode;
-      openActivationRecording(JSON.parse(text), text.length);
+      openActivationRecording({ ...JSON.parse(text), prompt: metadata.prompt }, text.length);
       source = 'Recorded example';
       cursor = 0; const examplePoints = points();
       for (let i = 0; i < examplePoints.length; i++) if (examplePoints[i].position === metadata.promptPosition) cursor = i;
       $('activation-position').value = String(metadata.promptPosition);
       paint();
 
-    } catch (error) { $('activity-availability').hidden = false; $('activity-availability').textContent = String(error); }
+    } catch (error) {
+      if (!request.signal.aborted) { $('activity-availability').hidden = false; $('activity-availability').textContent = String(error); }
+    }
     finally {
-      exampleLoading = false; $('activity-example').disabled = false;
-      for (const card of $('activity-gallery').querySelectorAll('button')) card.disabled = false;
-      if (recording) $('activity-source').textContent = `${source} · ${recording.trace.identity.logicalModelId ?? recording.trace.identity.modelId}`;
-      else $('activity-source').hidden = true;
-      queuePaint();
+      if (exampleRequest === request) {
+        exampleRequest = null; exampleLoading = false; $('activity-example').disabled = false;
+        queuePaint();
+      }
     }
   }
   $('activity-example').addEventListener('click', () => { void loadExample(config.defaultMode); });
@@ -453,13 +476,7 @@ export function initActivationGrid() {
     });
     $('activity-gallery').append(card);
   }
-  const observer = new IntersectionObserver(entries => {
-    if (entries.some(e => e.isIntersecting) && $('activity-auto-example').checked && !recording && !active && !exampleLoading) {
-      observer.disconnect(); void loadExample(config.defaultMode, true);
-    }
-  });
-  observer.observe($('activation-view'));
-  $('activity-auto-example').addEventListener('change', queuePaint);
+  $('activation-record').addEventListener('change', queuePaint);
   document.addEventListener('visibilitychange' , () => { if (document.hidden) stopPlayback(); });
   queuePaint();
 }

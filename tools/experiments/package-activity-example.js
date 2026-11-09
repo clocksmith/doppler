@@ -10,6 +10,8 @@ import { SHELL_MANIFEST_DIGEST } from '../../demo/generated-shell-manifest.js';
 const source = process.argv[2];
 assert(source, 'Supply the physical inspection receipt to package.');
 const receipt = JSON.parse(await fs.readFile(source, 'utf8'));
+const prompt = receipt.prompt ?? process.argv[3];
+assert(typeof prompt === 'string' && prompt.trim(), 'Supply the exact recorded prompt as the second argument when the receipt omits its text.');
 const recording = validateRecording({ schema: 'doppler.activation-recording/v1',
   demoBuild: SHELL_MANIFEST_DIGEST,
   display: { layout: 'layer-major-rgb/v1', palette: 'signed-tanh-rgb/v1', scale: 1 },
@@ -31,7 +33,7 @@ await fs.mkdir('demo/assets', { recursive: true });
 await fs.writeFile('demo/assets/activity-example.json.gz', compressed);
 const summary = { schema: 'doppler.activity-example/v1', sha256: createHash('sha256').update(compressed).digest('hex'),
   compressedBytes: compressed.length, decodedBytes: Buffer.byteLength(packed), model: recording.trace.identity,
-  promptPosition, outputText: receipt.outputText, modes };
+  promptPosition, prompt, outputText: receipt.outputText, modes };
 await fs.writeFile('demo/assets/activity-example.json', JSON.stringify(summary, null, 2) + '\n');
 console.log(JSON.stringify({ compressedBytes: compressed.length, decodedBytes: summary.decodedBytes,
   enabled: modes.filter(m => !m.reason).length, unavailable: modes.filter(m => m.reason).map(m => m.id) }));

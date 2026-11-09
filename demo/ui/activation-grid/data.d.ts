@@ -8,6 +8,7 @@ export interface ActivationRecording {
   inputTokenIds?: number[] | null;
   generatedTokenIds?: number[] | null;
   outputText?: string | null;
+  prompt?: string | null;
 }
 export declare function validateRecording(value: unknown): ActivationRecording;
 export declare function projectFrame(trace: ActivationTraceReceipt, index: number, position: number): {

@@ -1,6 +1,6 @@
 import { state } from './ui/state.js';
 import { getActivationRecording, importActivationRecording, isActivationRecordingFile,
-  openActivationRecording } from './ui/activation-grid/index.js';
+  openActivationRecording, clearActivationRecording } from './ui/activation-grid/index.js';
 import { restoreConversationHistory } from './input.js';
 import { updateXrayPanels } from './ui/xray/index.js';
 import {
@@ -85,7 +85,9 @@ export function validateImportedReport(value) {
 }
 
 export function importReportData(value) {
+  if (state.generating || state.modelBusy || state.settingsBusy) throw new Error('Wait for the current run to finish before opening a recording.');
   const report = validateImportedReport(value);
+  clearActivationRecording();
   if (report.activationRecording) importActivationRecording(report.activationRecording);
   const output = getReportOutput(report);
   state.lastImportedReport = report;

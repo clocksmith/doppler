@@ -103,7 +103,15 @@ export async function checkRealActivityPlayback(page) {
   assert.match(await page.locator('#activity-measurement-note').textContent(), /GPU timing on/);
   assert.equal(await page.locator('#activation-record').isChecked(), false, 'Recording opt-out survives reload');
   await page.locator('#activation-view').scrollIntoViewIfNeeded();
+  assert.equal(await page.locator('#activation-player').isVisible(), false, 'A legacy auto-example preference cannot pair an unrelated sample with the draft');
+  await page.locator('#run-details > summary').click();
+  await page.click('#activity-example');
   await page.waitForFunction(() => document.querySelector('#activity-source').textContent.startsWith('Recorded example'), null, { timeout: 120000 });
+  assert.equal(await page.inputValue('#prompt-input'), 'Say hello in one word.');
+  assert.equal(await page.locator('#chat-thread .chat-message-text').first().textContent(), 'Say hello in one word.');
+  assert.equal(await page.locator('#output-text').textContent(), 'Hello!');
+  assert.match(await page.locator('#recorded-run-note').textContent(), /qwen-3-5-0-8b/);
+  await page.locator('#run-details > summary').click();
   assert.match(await page.locator('#activation-layout').textContent(), /fully opaque/);
   assert.equal(await page.locator('#activity-explanation').isVisible(), false);
   assert.equal(await page.locator('#activation-live').isVisible(), false, 'Saved recordings have no live-follow action');
@@ -205,9 +213,19 @@ export async function checkRealActivityPlayback(page) {
   await page.setInputFiles('#import-file', { name: 'saved-activity.json', mimeType: 'application/json', buffer: exported });
   await page.waitForFunction(() => document.querySelector('#activation-status').textContent.includes('0 missing captures'));
   assert.match(await page.locator('#activity-legend').textContent(), /stored keys and values/);
+  assert.equal(await page.inputValue('#prompt-input'), 'Say hello in one word.', 'Offline activity exports retain their prompt');
+  assert.equal(await page.locator('#output-text').textContent(), 'Hello!', 'Offline activity exports retain their answer');
   await page.unroute('**/*');
   await fs.writeFile('.cache/activation-grid/playback/receipt.json', JSON.stringify({ schema: 'doppler.activity-playback-check/v1', origin: page.url(),
     viewports: [1200,390,320], modes: results, offlineImport: true, exportBytes: exported.length, modelExecutionRequired: false }, null, 2));
+  await page.evaluate(async () => {
+    const entry = document.querySelector('script[src$="/demo.js"]').src;
+    const { loadSampleInspection } = await import(new URL('core.js', entry));
+    const { SAMPLE_INSPECTION_RECEIPT } = await import(new URL('data/sample-inspection.js', entry));
+    loadSampleInspection(SAMPLE_INSPECTION_RECEIPT);
+  });
+  await page.locator('#activation-player').waitFor({ state: 'hidden' });
+  assert.equal(await page.locator('#activation-player').isVisible(), false, 'An answer without a capture cannot inherit another run’s activity');
 }
 
 // The public event contract drives grids during an unfinished answer, not only at receipt time.
@@ -259,4 +277,9 @@ export async function checkLiveActivity(page) {
   assert.equal(await page.locator('#activation-live').isDisabled(), true);
   assert.equal(await page.locator('#activation-live').isVisible(), false, 'Completed runs have no live-follow action');
   await page.locator('#activation-record').uncheck();
+  await page.fill('#prompt-input', 'Answer without recording activity.');
+  await page.click('#run-btn');
+  await page.waitForFunction(() => document.querySelector('#output-phase').textContent === 'Complete');
+  await page.locator('#activation-player').waitFor({ state: 'hidden' });
+  assert.equal(await page.locator('#activation-player').isVisible(), false, 'Recording-off runs clear the previous answer’s grid');
 }

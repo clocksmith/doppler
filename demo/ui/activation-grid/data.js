@@ -9,6 +9,9 @@ export function validateRecording(input) {
   if (!input || typeof input !== 'object') throw new Error('Invalid activation recording.');
   const value = /** @type {import('./data.js').ActivationRecording} */ (input);
   const fail = () => { throw new Error('Invalid or oversized activation recording.'); };
+  for (const text of [value.prompt, value.outputText]) {
+    if (text != null && (typeof text !== 'string' || text.length > 1048576)) fail();
+  }
   if (value?.schema !== 'doppler.activation-recording/v1' || typeof value.demoBuild !== 'string' || !value.demoBuild
     || !config.compatibleDisplays.some(d => d.layout === value.display?.layout && d.palette === value.display?.palette)
     || !Number.isFinite(value.display.scale) || value.display.scale <= 0) fail();

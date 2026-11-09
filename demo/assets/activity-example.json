@@ -1,5 +1,6 @@
 {
   "schema": "doppler.activity-example/v1",
+  "prompt": "Say hello in one word.",
   "sha256": "5a12123d9da3c933a041db75aff4bb9868c4e2fd789d8939900bb816db219d33",
   "compressedBytes": 19454396,
   "decodedBytes": 26829100,

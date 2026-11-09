@@ -37,10 +37,10 @@ fill at their capture boundaries; this is not a simultaneous hardware snapshot.
 Wide screens place activity beside the conversation. Narrow screens bring the
 activity into view on Send and keep Stop reachable while generation runs.
 
-First-time visitors see an interactive, explicitly labeled example of word
-choices without downloading weights or presenting its timing as a device result. The example does not become
-conversation history or replace a returning conversation. The composer opens with
-the example's prompt, without taking focus, so Send runs it live. A single “Try another example” button deals the other prompts from
+Fresh and returning visits start with an editable prompt and no invented answer
+or unrelated activity. Send produces the answer and its activity together.
+Saved examples open only on request, with their own prompt and answer. A single
+“Try another example” button deals the other prompts from
 `examples.json` in shuffled order, without repeats until the bank is used up.
 There are no category buttons. Live generation and
 recorded examples share the existing inspection view and execution owners.
@@ -177,7 +177,7 @@ their m3t4.ai redirects. CanvasContext retires Doppler's old worker and shell
 caches without deleting model bytes or other user storage. Local storage and
 model caches remain on their original origin.
 
-The separately inspectable precomputed run was captured with `model.inspect.generate` in Chrome WebGPU. `data/sample-inspection.js` retains the real token probabilities, artifact fingerprint, timing, capture date, and raw receipt digest. The illustrative opening performs no inference or downloads and carries no measurements from the recorded run. Prompt suggestions are editable; choosing a model is explicit before a new visitor runs their own prompt.
+The separately inspectable precomputed run was captured with `model.inspect.generate` in Chrome WebGPU. `data/sample-inspection.js` retains the real token probabilities, artifact fingerprint, timing, capture date, and raw receipt digest. Opening it clears any activity from another run; it has no activity capture. Prompt suggestions are editable.
 
 ## Activation recording and precision views
 
@@ -231,13 +231,20 @@ Views are separated in the selector and primary labels:
 
 ## Model activity recording and playback
 
-**Model activity** opens a real Qwen 0.8B capture (about 20 MB compressed)
-when the section enters view, without loading or executing a model. This can be
-turned off under Details; the preference persists. The compressed bytes are
+**Model activity** follows the displayed run. No example downloads automatically,
+including for visitors with the old automatic-example preference. Details can
+open a real Qwen 0.8B capture (about 20 MB compressed) together with its recorded
+“Say hello in one word.” prompt and “Hello!” answer. The compressed bytes are
 SHA-256 checked before import, outside the application-shell cache. An example
-fetch cannot replace a newer live run or imported recording. Six preview maps
-become compact view switches when data is available; all other views share the
-same selector and player.
+fetch cannot replace a newer live run, cleared conversation or imported recording.
+Starting any run, including with recording off, clears the previous activity.
+Model changes and branch switching also clear or replace the activity with the
+matching capture. New recording files retain prompt and answer text; legacy files
+without text explicitly say it was not saved. All views share one selector and player.
+
+The loading animation has a fixed viewport anchor. Status, two-line detail and
+elapsed time occupy reserved slots; full loader details remain in the text/title,
+and failures appear below without moving the animation.
 
 **Record my answers** defaults on, with a persistent opt-out. Recording scans
 supported loaded weights and adds bounded GPU readbacks; its timing is diagnostic,

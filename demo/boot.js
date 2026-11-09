@@ -9,7 +9,6 @@ import {
 function $(id) { return document.getElementById(id); }
 
 let bootStartedAt = null;
-let lastBootUpdateAt = null;
 let bootTimer = null;
 let loadingSavedModel = false;
 
@@ -18,22 +17,20 @@ function refreshBootTiming() {
   if (!el || bootStartedAt === null) return;
   const now = performance.now();
   const elapsed = Math.floor((now - bootStartedAt) / 1000);
-  const sinceUpdate = Math.floor((now - lastBootUpdateAt) / 1000);
-  el.textContent = sinceUpdate >= 6
-    ? `${elapsed}s elapsed / last loader update ${sinceUpdate}s ago`
-    : `${elapsed}s elapsed`;
+  el.textContent = `${elapsed}s`;
   el.hidden = false;
 }
 
 export function setBootStatus(text, detail = '') {
   const now = performance.now();
   if (bootStartedAt === null) bootStartedAt = now;
-  lastBootUpdateAt = now;
   const el = $('boot-status');
   if (el && el.textContent !== text) el.textContent = text;
+  if (el) el.title = text;
   const detailEl = $('boot-detail');
   if (detailEl) {
     if (detailEl.textContent !== detail) detailEl.textContent = detail;
+    detailEl.title = detail;
     detailEl.hidden = !detail;
   }
   $('boot-overlay')?.setAttribute('aria-busy', 'true');

@@ -20,11 +20,7 @@
       z-index: 1000;
       background: var(--bg, #ffffff);
       color: var(--fg, #000);
-      display: grid;
-      place-items: center;
-      align-content: center;
-      justify-content: center;
-      gap: 16px;
+      overflow: auto;
       transition: opacity 240ms ease;
     }
 
@@ -33,13 +29,17 @@
     }
 
     .boot-panel {
+      position: absolute;
+      top: max(24px, calc(50% - 88px));
+      left: 50%;
+      transform: translateX(-50%);
       display: flex;
       flex-direction: column;
       align-items: center;
-      justify-content: center;
       gap: 16px;
       text-align: center;
-      width: min(560px, calc(100vw - 48px));
+      width: min(400px, calc(100vw - 48px));
+      padding-bottom: 24px;
     }
 
     .boot-d4-loading {
@@ -77,17 +77,15 @@
     .boot-d4-d { animation: doppler-d4-overlay-d 4.444s ease-in-out infinite; }
 
     .boot-status {
-      font-size: 12px;
-      letter-spacing: 0.12em;
-      text-transform: uppercase;
-      opacity: 1;
-      padding-top: 2px;
-      line-height: 1.6;
-      overflow-wrap: anywhere;
+      font: 500 14px/24px var(--font-sans, sans-serif);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
 
     .boot-error {
-      max-width: 480px;
+      box-sizing: border-box;
+      width: 100%;
       padding: 16px;
       border: 3px double currentColor;
       font-size: 16px;
@@ -97,6 +95,7 @@
 
     .boot-progress {
       display: grid;
+      grid-template-rows: 24px 40px;
       gap: 8px;
       width: 100%;
     }
@@ -104,12 +103,24 @@
     .boot-detail,
     .boot-timing {
       font-size: 12px;
-      line-height: 1.6;
+      line-height: 20px;
       overflow-wrap: anywhere;
     }
 
+    .boot-detail {
+      display: -webkit-box;
+      -webkit-box-orient: vertical;
+      -webkit-line-clamp: 2;
+      overflow: hidden;
+    }
+
+    .boot-detail[hidden], .boot-timing[hidden] {
+      display: block !important;
+      visibility: hidden;
+    }
+
     .boot-timing {
-      opacity: 1;
+      height: 20px;
       font-variant-numeric: tabular-nums;
     }
 
@@ -185,12 +196,12 @@
         <span class="boot-d4-d">A</span>
       </span>
       <div class="boot-progress" role="status" aria-live="polite" aria-atomic="true">
-        <div id="boot-status" class="boot-status">Loading demo modules...</div>
+        <div id="boot-status" class="boot-status">Loading Doppler…</div>
         <div id="boot-detail" class="boot-detail" hidden></div>
       </div>
       <div id="boot-timing" class="boot-timing" aria-live="off" hidden></div>
+      <div id="boot-error" class="boot-error" hidden></div>
     </div>
-    <div id="boot-error" class="boot-error" hidden></div>
   </div>
 
   <!-- App shell -->
@@ -398,7 +409,7 @@
         </fieldset>
 
         <div id="activation-view" class="activation-view">
-          <p id="activity-intro" class="demo-note">Opening recorded example…</p>
+          <p id="activity-intro" class="demo-note">Activity will appear as your answer is generated.</p>
           <p id="activity-source" class="demo-note" role="status" hidden></p>
           <p id="activation-caption" class="demo-note activation-caption" aria-live="polite" hidden></p>
           <p id="activity-availability" class="demo-note" role="status"></p>
@@ -462,7 +473,6 @@
               <label>Tensor <select id="activity-weight"><option value="">All observed tensors</option></select></label>
               <label>Detail <select id="activity-detail"><option value="overview">Overview</option><option value="raw">Exact saved window</option></select></label>
             </div>
-            <label class="checkbox-label"><input id="activity-auto-example" type="checkbox" checked> Open the recorded example automatically · 20 MB</label>
             <label class="checkbox-label"><input id="xray-toggle-all" type="checkbox"> Record GPU timing</label>
             <p id="runtime-notice" class="demo-note runtime-notice" role="status" hidden></p>
             <div id="activation-detail-controls" class="activation-detail-controls" hidden>
