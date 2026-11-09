@@ -3,6 +3,7 @@ import { createBundledIncrementalDecoder } from './bundled/incremental-decoder.j
 import { log } from '../../debug/index.js';
 import { getRuntimeConfig } from '../../config/runtime.js';
 import { inferBundledTokenizerBehaviorFlags } from './behavior-flags.js';
+import { compileTokenizerNormalizer } from './bundled/normalizer.js';
 import {
   createByteLevelCodec,
   decodeByteFallbackTokens,
@@ -158,6 +159,7 @@ export class BundledTokenizer extends BaseTokenizer {
   #scores = [];
   #tokenTypes = [];
   #type = null;
+  #normalizeText = null;
   #byteTokens = new Map();
   #specialTokenPatterns = [];
   #specialTokenIds = new Set();
@@ -192,6 +194,7 @@ export class BundledTokenizer extends BaseTokenizer {
     this.#scores = [];
     this.#tokenTypes = [];
     this.#type = null;
+    this.#normalizeText = null;
     this.#byteTokens.clear();
     this.#specialTokenPatterns = [];
     this.#specialTokenIds = new Set();
@@ -235,6 +238,7 @@ export class BundledTokenizer extends BaseTokenizer {
 
   #loadHuggingFaceFormat(hf) {
     const model = hf.model;
+    this.#normalizeText = compileTokenizerNormalizer(hf.normalizer);
     if (typeof model.type !== 'string') {
       throw new Error('[Tokenizer] Missing model.type in HuggingFace tokenizer JSON.');
     }
@@ -592,12 +596,13 @@ export class BundledTokenizer extends BaseTokenizer {
       if (seg.isSpecial && seg.id !== undefined) {
         ids.push(seg.id);
       } else if (seg.text && seg.text.length > 0) {
+        const text = this.#normalizeText ? this.#normalizeText(seg.text) : seg.text;
         if (this.#type === 'unigram') {
-          ids.push(...this.#encodeUnigram(seg.text));
+          ids.push(...this.#encodeUnigram(text));
         } else if (this.#type === 'wordpiece') {
-          ids.push(...this.#encodeWordPiece(seg.text));
+          ids.push(...this.#encodeWordPiece(text));
         } else {
-          ids.push(...this.#encodeBPE(seg.text));
+          ids.push(...this.#encodeBPE(text));
         }
       }
     }
