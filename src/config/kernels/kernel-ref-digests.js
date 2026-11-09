@@ -74,7 +74,7 @@ export const KERNEL_REF_CONTENT_DIGESTS = Object.freeze({
   "backward/qwen_attention_split_q_gate_backward.wgsl#main": "dbfccdd6f47d6d78a86c9df5045745744efed72c20fb86f632da104575925eab",
   "backward/qwen_gqa_attention_backward.wgsl#main": "bf4b401a01a1185b12e22eac659864ac279dbf46c5622eafab23bdb29b961018",
   "backward/qwen_gqa_softmax_backward_scores.wgsl#main": "baa053e58c732bf11af5e413e104fe051bcd6c8f7f9fee32c03ccc04de72e085",
-  "backward/qwen_gqa_softmax_recompute.wgsl#main": "c047b85fb9e25b62c53d5b3a62e6ddb0c665794946ef1bc583b0a5bb38d8f101",
+  "backward/qwen_gqa_softmax_recompute.wgsl#main": "75a316e3cf1d48b2e66b5c95b1c55624cc8595d3f1980b57fac7175e08e1a899",
   "backward/qwen_linear_attention_prepare_backward.wgsl#main": "05f150b133450f184d985b75d4d25c09ca424afde73fdb1abfa18f6e3f62664e",
   "backward/rmsnorm_backward.wgsl#main": "e16774e9c81a5bf2ee8e6bc05c9438b7b407f4b4b2af2636165d1b77b59b612d",
   "backward/rope_backward.wgsl#main": "bd83dcd8a50f3a20d5ab1ddb9495ae0b5806d2d60b75e584a9d550da926d67df",

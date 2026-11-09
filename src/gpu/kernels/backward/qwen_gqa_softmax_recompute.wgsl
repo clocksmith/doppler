@@ -64,6 +64,7 @@ fn main(
         stride = stride / 2u;
     }
     let row_max = shared_reduce[0];
+    workgroupBarrier();
     var local_sum = 0.0;
     for (var key_token = lane; key_token < u.seq_len; key_token = key_token + WORKGROUP_SIZE) {
         if (u.causal != 0u && key_token > query_token) {
