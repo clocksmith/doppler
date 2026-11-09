@@ -20,7 +20,8 @@ for (const directory of readdirSync(join(repo, 'artifacts')).filter(name => name
       assert.ok(!entry.path.startsWith('/') && !entry.path.split(/[\\/]/).includes('..'));
       assert.ok(!seen.has(entry.path), `${root}: duplicate member ${entry.path}`); seen.add(entry.path);
       const filename = join(root, entry.path);
-      assert.ok(tracked.has(relative(repo, filename)), `Receipt member must be tracked: ${relative(repo, filename)}`);
+      const repoPath = relative(repo, filename).split('\\').join('/');
+      assert.ok(tracked.has(repoPath), `Receipt member must be tracked: ${repoPath}`);
       const bytes = readFileSync(filename);
       assert.equal(bytes.length, entry.bytes, `${filename}: size mismatch`);
       assert.equal(createHash('sha256').update(bytes).digest('hex'), entry.sha256, `${filename}: digest mismatch`);
