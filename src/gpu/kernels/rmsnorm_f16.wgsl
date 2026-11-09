@@ -198,6 +198,8 @@ fn rmsnorm_small_f16(
     }
 
     let row_scale = select(f16(1.0), shared_sum[0], shared_sum[0] > f16(0.0));
+    // Read the maximum in every invocation before reusing shared_sum.
+    workgroupBarrier();
     let x_scaled = x / row_scale;
     let inv_size = f16(1.0) / f16(size);
     shared_sum[thread_idx] = (x_scaled * x_scaled) * inv_size;

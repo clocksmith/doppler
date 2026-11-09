@@ -270,7 +270,7 @@
     {
       "path": "src/config/kernels/registry.json",
       "sizeBytes": 778938,
-      "hash": "sha256:c759deea8a98b0bf0713993d10095527106ce288f5f93e700f0fa54ca665c1bc"
+      "hash": "sha256:ea9a8a7eedd5b718cf0961e9dcd25997cb2e6132ca2f293ed2604d2cf8574aaa"
     },
     {
       "path": "src/config/layer-partition-plan.js",

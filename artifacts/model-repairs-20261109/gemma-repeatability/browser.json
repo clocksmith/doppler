@@ -1,0 +1,51 @@
+{
+  "scope": "Small F16 RMSNorm operator repeatability; not full-model qualification",
+  "browser": "157.0.8103.38",
+  "adapter": {
+    "vendor": "apple",
+    "architecture": "metal-3",
+    "device": "",
+    "description": ""
+  },
+  "cases": [
+    {
+      "size": 64,
+      "rows": 58,
+      "iterationsPerMode": 8,
+      "modes": [
+        "immediate",
+        "recorded"
+      ],
+      "maxAbs": 0.0014857053756713867,
+      "bitStable": true
+    },
+    {
+      "size": 128,
+      "rows": 58,
+      "iterationsPerMode": 8,
+      "modes": [
+        "immediate",
+        "recorded"
+      ],
+      "maxAbs": 0.0014046430587768555,
+      "bitStable": true
+    },
+    {
+      "size": 256,
+      "rows": 58,
+      "iterationsPerMode": 8,
+      "modes": [
+        "immediate",
+        "recorded"
+      ],
+      "maxAbs": 0.0012383460998535156,
+      "bitStable": true
+    }
+  ],
+  "sources": {
+    "src/gpu/kernels/rmsnorm_f16.wgsl": "890c824948b50c9ddaeef8460ee7a96ec7ab15611526e537a77d499f94eb18f2",
+    "tests/kernels/rmsnorm-f16-small-race.js": "0e16fb97aa95b48c54df40882ea8b9a184870d1c1e83ba93664e1f0c3a9faba3"
+  },
+  "errors": [],
+  "output": "browser.json"
+}

@@ -22458,6 +22458,7 @@
        "amplify/amplify-120m-f16-af32",
        "esmc/esmc-300m-f32-af32",
        "glmocr/glm-ocr-f16-af32",
+       "lfm2/lfm2.5-1.2b-instruct-q4k-ehf16-af32",
        "minicpm/minicpm4-0-5b-f16-af32",
        "muse-glimmer/muse-glimmer-30b-text-bf16-af32",
        "muse-glimmer/muse-glimmer-30b-text-f16-af32",
@@ -22583,8 +22584,7 @@
        "gemma4/gemma-4-e2b-it-q4k-ehf16-af32-int4ple",
        "gemma4/gemma-4-moe-q4k-ehf16-af32",
        "gpt-oss-20b-f16-xmxfp4",
-       "janus/janus-pro-1b-text-q4k-ehaf16",
-       "lfm2/lfm2.5-1.2b-instruct-q4k-ehf16-af32"
+       "janus/janus-pro-1b-text-q4k-ehaf16"
       ],
       "ruleChains": ["gelu.rules.json#variant"],
       "wgslOnDisk": true

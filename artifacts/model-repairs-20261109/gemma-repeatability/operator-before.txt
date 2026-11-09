@@ -1,0 +1,10 @@
+[GPU] apple metal-3, f16/subgroups, 4.0GB, submit probe: 0.5ms
+file:///Users/xyz/deco/doppler/tests/kernels/rmsnorm-f16-small-race.js:49
+                throw new Error(`Small F16 RMSNorm size=${size} row=${Math.floor(i / size)} recorded=${recorded} iteration=${iteration}: actual=${value} expected=${expected[i]}`);
+                      ^
+
+Error: Small F16 RMSNorm size=128 row=47 recorded=true iteration=3: actual=0 expected=1.3704264163970947
+    at checkSmallF16RmsNorm (file:///Users/xyz/deco/doppler/tests/kernels/rmsnorm-f16-small-race.js:49:23)
+    at async file:///Users/xyz/deco/doppler/tests/inference/rmsnorm-f16-small-race.test.js:10:32
+
+Node.js v22.20.0

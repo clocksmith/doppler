@@ -1,0 +1,212 @@
+{
+  "schema": "doppler.model-repair-receipt/v1",
+  "baseCommit": "4e6ce98e6dd96d13d8a9f9bc86e8f665204f5060",
+  "modelId": "gemma-4-e2b-it-q4k-ehf16-af16-int4ple",
+  "modelManifestSha256": "bb5ee4cf7b04cd835a158e12daa8ca431de8f45b96f78b58c4f31bd14bfe21b4",
+  "priorDiagnosticRequest": "../gemma-postnorm/diagnostic-request.json",
+  "repeatabilityPassed": true,
+  "qualified": false,
+  "productionPolicyChanged": false,
+  "diagnosis": {
+    "firstMismatch": "layer 0 prefill, value RMSNorm",
+    "inputShape": [
+      58,
+      256
+    ],
+    "identicalProjectionInputs": true,
+    "differentRowsBefore": [
+      40,
+      44,
+      45,
+      46,
+      56
+    ],
+    "maxDifferenceBefore": 13.265625,
+    "cause": "rmsnorm_small_f16 reuses shared_sum for squared-value reduction before all invocations read the preceding maximum reduction. Missing workgroupBarrier permits the row scale to be overwritten. Some whole value rows normalize to zero.",
+    "repair": "Synchronize after reading row_scale and before overwriting shared_sum; F16 arithmetic and tolerances unchanged."
+  },
+  "physicalChecks": {
+    "nodeDevice": {
+      "vendor": "apple",
+      "architecture": "metal-3",
+      "device": "apple-m3",
+      "description": "Metal driver on macOS Version 26.6.2 (Build 25G83)",
+      "subgroupMinSize": 32,
+      "subgroupMaxSize": 32
+    },
+    "browser": {
+      "scope": "Small F16 RMSNorm operator repeatability; not full-model qualification",
+      "browser": "157.0.8103.38",
+      "adapter": {
+        "vendor": "apple",
+        "architecture": "metal-3",
+        "device": "",
+        "description": ""
+      },
+      "cases": [
+        {
+          "size": 64,
+          "rows": 58,
+          "iterationsPerMode": 8,
+          "modes": [
+            "immediate",
+            "recorded"
+          ],
+          "maxAbs": 0.0014857053756713867,
+          "bitStable": true
+        },
+        {
+          "size": 128,
+          "rows": 58,
+          "iterationsPerMode": 8,
+          "modes": [
+            "immediate",
+            "recorded"
+          ],
+          "maxAbs": 0.0014046430587768555,
+          "bitStable": true
+        },
+        {
+          "size": 256,
+          "rows": 58,
+          "iterationsPerMode": 8,
+          "modes": [
+            "immediate",
+            "recorded"
+          ],
+          "maxAbs": 0.0012383460998535156,
+          "bitStable": true
+        }
+      ],
+      "sources": {
+        "src/gpu/kernels/rmsnorm_f16.wgsl": "890c824948b50c9ddaeef8460ee7a96ec7ab15611526e537a77d499f94eb18f2",
+        "tests/kernels/rmsnorm-f16-small-race.js": "0e16fb97aa95b48c54df40882ea8b9a184870d1c1e83ba93664e1f0c3a9faba3"
+      },
+      "errors": [],
+      "output": "browser.json"
+    },
+    "operatorDispatchesPerSurface": 48,
+    "independentReference": "F64 RMS normalization of the exact F16-rounded input, compared with the F16 result",
+    "wholeModelFreshProcesses": 3,
+    "tokensPerWholeModelRun": 16,
+    "identicalGeneratedTokens": true,
+    "capturedBoundaryArraysBitExact": 715
+  },
+  "implementationFiles": [
+    {
+      "path": "src/gpu/kernels/rmsnorm_f16.wgsl",
+      "sha256": "890c824948b50c9ddaeef8460ee7a96ec7ab15611526e537a77d499f94eb18f2"
+    },
+    {
+      "path": "src/gpu/kernels/codegen/patches/rmsnorm_f16.from.rmsnorm.diff",
+      "sha256": "dde1b124f9b66a60d649c413602cbe55c140f8c47cf480a2aeca6bd0b6302f1b"
+    },
+    {
+      "path": "tests/kernels/rmsnorm-f16-small-race.js",
+      "sha256": "0e16fb97aa95b48c54df40882ea8b9a184870d1c1e83ba93664e1f0c3a9faba3"
+    },
+    {
+      "path": "tests/inference/rmsnorm-f16-small-race.test.js",
+      "sha256": "0d02ecc742eb0356d41ee5d9762b2bd0ab8e7d25ba4423bcfb4449e13a882505"
+    },
+    {
+      "path": "tests/integration/rmsnorm-f16-small-race-browser.js",
+      "sha256": "c788e69b1d1f27b78cc5f34b86c14fd4742eae9819f0e1cbb347535d5d2fbbbc"
+    }
+  ],
+  "limits": [
+    "Apple M3 Node/webgpu whole-model diagnostic lane; Chrome/Metal operator checks. No AMD run, throughput claim, source-logit qualification or catalog promotion.",
+    "Existing isolated diagnostic capability/fusion overrides retained; production guards and hosted Gemma artifacts unchanged.",
+    "Repeated two-token capture runs cover prefill and the first decode step. Three uninstrumented-by-TSIR continuations cover 16 tokens; ordinary diagnostics/trace remain enabled.",
+    "The complete 715-array captures remain local; this packet retains their digest inventory and the selected first-mismatch arrays."
+  ],
+  "files": [
+    {
+      "path": "README.md",
+      "bytes": 3789,
+      "sha256": "648bfee0858a741e2fc60b49fecdad5aacb73c1573dd8946cdf64b3eaa3b9645"
+    },
+    {
+      "path": "after-1.json",
+      "bytes": 7926,
+      "sha256": "b88dbe1f4c24b4224998bf4db91a0b05031274bfa645f85151edb493058d2b36"
+    },
+    {
+      "path": "after-2.json",
+      "bytes": 7926,
+      "sha256": "163c551c26b38ce51522ff2a7af06d530debf7df825607d3d4b59767b1235613"
+    },
+    {
+      "path": "after-3.json",
+      "bytes": 7926,
+      "sha256": "f7b21bc59d0b5d47a598a44419d0c297cdebbd901934406f56469fc7a197aadd"
+    },
+    {
+      "path": "baseline-1.json",
+      "bytes": 7913,
+      "sha256": "f5b05420b81c4cd709a1614d62368ed4465091349b1af3ac3af53f95493a1e9e"
+    },
+    {
+      "path": "baseline-2.json",
+      "bytes": 7917,
+      "sha256": "1c210b291c7e2816b1daefb7fb94f9bc67e0ebd0aa3270b15c142a8d128fc9b6"
+    },
+    {
+      "path": "boundary-replay-summary.json",
+      "bytes": 118140,
+      "sha256": "050bd913e5efc1c5fc9a733b0938154a0285fba4626434983f97317a65d87a15"
+    },
+    {
+      "path": "browser.json",
+      "bytes": 1161,
+      "sha256": "15866f89af88876a4637b1215fa5bbc02f21ff5039b4d0c326ffd1548cb6c36e"
+    },
+    {
+      "path": "diagnostic-scope.json",
+      "bytes": 3167,
+      "sha256": "ca707acedc8b4c02fdf09a9c884309a70c498109b03273ab671dc5658ba9dd88"
+    },
+    {
+      "path": "layer0-v-after.npy",
+      "bytes": 59520,
+      "sha256": "07a0de60191fb50e687d5f5300e04d89aa588a99c8c19d3b8074d6322f1e6729"
+    },
+    {
+      "path": "layer0-v-before-1.npy",
+      "bytes": 59520,
+      "sha256": "f7baf5abdfe8ea0ecfdd522b47909203ce619d874eb190f8d4ee9b5899df1166"
+    },
+    {
+      "path": "layer0-v-before-2.npy",
+      "bytes": 59520,
+      "sha256": "7efd190eea206c1eb32c7aa2be319c1bf31349b8abffb19c69183c95c1171d7e"
+    },
+    {
+      "path": "layer0-v-input.npy",
+      "bytes": 59520,
+      "sha256": "3e098864d58fcfb36a0e0577e5fb5ba1379e3a68dce7ef7b3802ce84f06e869f"
+    },
+    {
+      "path": "operator-after.txt",
+      "bytes": 442,
+      "sha256": "56ca4051053576a78fd84a972683394a38c876b56962ddc744d8f107d803b8da"
+    },
+    {
+      "path": "operator-before.txt",
+      "bytes": 669,
+      "sha256": "4c1455677fe5b1532fb37fb146472cdc1a6db53e384170b01cd458f7b265c323"
+    }
+  ],
+  "checks": [
+    "node tests/inference/rmsnorm-f16-small-race.test.js (48 physical Node operator dispatches)",
+    "node tests/integration/rmsnorm-f16-small-race-browser.js --physical (48 Chrome/Metal operator dispatches)",
+    "node tests/inference/fused-postnorm-dtype-gpu.test.js (immediate and recorded maxAbs=0)",
+    "Focused RMSNorm execution, binding lifetime, cache bypass and retained-capability policy contracts: four files passed",
+    "npm run kernels:check",
+    "npm run kernels:package-digests:check",
+    "npm run package:closure:check",
+    "npm run runtime:closure:check",
+    "npm run source:style:check",
+    "npm run source:architecture:check"
+  ]
+}

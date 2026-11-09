@@ -1,0 +1,317 @@
+{
+  "schema": "doppler.repeated-generation-observation/v1",
+  "scope": "Selected fields from complete command envelope; no full-model source-parity claim",
+  "originalEnvelopeSha256": "14188e7b8743daf2869f5f7884541b60065c210e3acf9dd98784d7a661c3abba",
+  "ok": true,
+  "output": "The provided text is a repetition of the same sentence three times. This is a",
+  "deviceInfo": {
+    "hasSubgroups": true,
+    "wgslLanguageFeatures": [
+      "chromium_print",
+      "buffer_view",
+      "unrestricted_pointer_parameters",
+      "pointer_composite_access",
+      "sized_binding_array",
+      "immediate_address_space",
+      "subgroup_id",
+      "linear_indexing",
+      "texture_and_sampler_let",
+      "uniform_buffer_standard_layout",
+      "fragment_depth",
+      "packed_4x8_integer_dot_product",
+      "texture_formats_tier1",
+      "readonly_and_readwrite_storage_textures",
+      "filtering_parameters",
+      "texel_buffers",
+      "subgroup_uniformity",
+      "swizzle_assignment"
+    ],
+    "hasSubgroupsF16": true,
+    "hasF16": true,
+    "hasTimestampQuery": true,
+    "maxBufferSize": 4294967295,
+    "maxWorkgroupSize": 1024,
+    "maxWorkgroupStorageSize": 32768,
+    "adapterInfo": {
+      "vendor": "apple",
+      "architecture": "metal-3",
+      "device": "apple-m3",
+      "description": "Metal driver on macOS Version 26.6.2 (Build 25G83)",
+      "subgroupMinSize": 32,
+      "subgroupMaxSize": 32
+    },
+    "submitProbeMs": 0.821207999999956
+  },
+  "generationConfig": {
+    "maxTokens": 16,
+    "temperature": 0,
+    "topP": 1,
+    "topK": 1,
+    "repetitionPenalty": 1,
+    "repetitionPenaltyWindow": 100,
+    "greedyThreshold": 0,
+    "suppressSpecialTokens": false,
+    "suppressSpecialLikeTokens": false,
+    "suppressTokenIds": [],
+    "seed": null,
+    "useChatTemplate": true
+  },
+  "prompt": {
+    "identity": "The color of the sky is clear because sunlight scatters through the atmosphere. The color of the sky is clear because sunlight scatters through the atmosphere. The color of the sky is clear because sunlight scatters through the atmosphere.",
+    "hash": "sha256:161b2e4509bb2d9b4fede4a11a8dae2bf81b920138259a9e25c0994d0c45e676",
+    "input": "The color of the sky is clear because sunlight scatters through the atmosphere. The color of the sky is clear because sunlight scatters through the atmosphere. The color of the sky is clear because sunlight scatters through the atmosphere.",
+    "ids": [
+      2,
+      105,
+      2364,
+      107,
+      818,
+      2258,
+      529,
+      506,
+      7217,
+      563,
+      3582,
+      1547,
+      26808,
+      141891,
+      1826,
+      1343,
+      506,
+      11661,
+      236761,
+      669,
+      2258,
+      529,
+      506,
+      7217,
+      563,
+      3582,
+      1547,
+      26808,
+      141891,
+      1826,
+      1343,
+      506,
+      11661,
+      236761,
+      669,
+      2258,
+      529,
+      506,
+      7217,
+      563,
+      3582,
+      1547,
+      26808,
+      141891,
+      1826,
+      1343,
+      506,
+      11661,
+      236761,
+      106,
+      107,
+      105,
+      4368,
+      107,
+      100,
+      45518,
+      107,
+      101
+    ],
+    "tokenIdsHash": "sha256:2a071349ff9a50d841e66ed00fe707c39162717e9b734737425533b2c52f90b7",
+    "tokenCount": 58
+  },
+  "tokens": {
+    "ids": [
+      818,
+      3847,
+      1816,
+      563,
+      496,
+      51881,
+      529,
+      506,
+      1638,
+      13315,
+      1806,
+      2782,
+      236761,
+      1174,
+      563,
+      496
+    ],
+    "generatedTokenIdsHash": "sha256:c6b7c3290cce6ff0bcbc572ff972df76552c2ebe7607af81a037d26c21ffd22f",
+    "generatedTextHash": "sha256:c6e79f16219a2df66cdd53e591c015dc148b3ac458a10a5591548e381b97cdfe",
+    "preview": [
+      {
+        "id": 818,
+        "text": "The",
+        "fallbackText": "The"
+      },
+      {
+        "id": 3847,
+        "text": " provided",
+        "fallbackText": " provided"
+      },
+      {
+        "id": 1816,
+        "text": " text",
+        "fallbackText": " text"
+      },
+      {
+        "id": 563,
+        "text": " is",
+        "fallbackText": " is"
+      },
+      {
+        "id": 496,
+        "text": " a",
+        "fallbackText": " a"
+      },
+      {
+        "id": 51881,
+        "text": " repetition",
+        "fallbackText": " repetition"
+      },
+      {
+        "id": 529,
+        "text": " of",
+        "fallbackText": " of"
+      },
+      {
+        "id": 506,
+        "text": " the",
+        "fallbackText": " the"
+      },
+      {
+        "id": 1638,
+        "text": " same",
+        "fallbackText": " same"
+      },
+      {
+        "id": 13315,
+        "text": " sentence",
+        "fallbackText": " sentence"
+      },
+      {
+        "id": 1806,
+        "text": " three",
+        "fallbackText": " three"
+      },
+      {
+        "id": 2782,
+        "text": " times",
+        "fallbackText": " times"
+      },
+      {
+        "id": 236761,
+        "text": ".",
+        "fallbackText": "."
+      },
+      {
+        "id": 1174,
+        "text": " This",
+        "fallbackText": " This"
+      },
+      {
+        "id": 563,
+        "text": " is",
+        "fallbackText": " is"
+      },
+      {
+        "id": 496,
+        "text": " a",
+        "fallbackText": " a"
+      }
+    ],
+    "perStep": [
+      {
+        "index": 0,
+        "tokenId": 818,
+        "tokenHash": "sha256:a720503f3310752f33fbfcf2a56f5aed118d6573e54b44c2e687c0eadb98b87f"
+      },
+      {
+        "index": 1,
+        "tokenId": 3847,
+        "tokenHash": "sha256:bb706d491ffc11185e16e975418316b49b64e88af76033e9bb4125ca58659470"
+      },
+      {
+        "index": 2,
+        "tokenId": 1816,
+        "tokenHash": "sha256:d0c8a0f5030f6b5f5332f1a6a7a69249f8f998ae6131b0479abb51e4dcb8405c"
+      },
+      {
+        "index": 3,
+        "tokenId": 563,
+        "tokenHash": "sha256:66e9ab8eaa9b6ef876a9edc2c7fa2d426fed1fc41b4315a01d497b93376531cc"
+      },
+      {
+        "index": 4,
+        "tokenId": 496,
+        "tokenHash": "sha256:26d6f6dd1b358904b536805a61232943ec2912ccbe4799c451e6fcd40a5064f7"
+      },
+      {
+        "index": 5,
+        "tokenId": 51881,
+        "tokenHash": "sha256:0e46b6a104aad8341771c68fcd87bee9566e831d1f1198f87438315341e441f4"
+      },
+      {
+        "index": 6,
+        "tokenId": 529,
+        "tokenHash": "sha256:a2c9158837aa4947554e83588d30612883a6ce6c553668f3efc4fc7a623ba0ee"
+      },
+      {
+        "index": 7,
+        "tokenId": 506,
+        "tokenHash": "sha256:becddfef05b493438a6530e6f9a07037d8ad353443ca478b2fe2917432145147"
+      },
+      {
+        "index": 8,
+        "tokenId": 1638,
+        "tokenHash": "sha256:2d4f769baa61446688d5eaa62b3ff8d16395c07fe869efc948372a3a6a851861"
+      },
+      {
+        "index": 9,
+        "tokenId": 13315,
+        "tokenHash": "sha256:f4bbde2855943a57d22449f79fd0ced054e1c1338ca1945e0c18d51d74b756d2"
+      },
+      {
+        "index": 10,
+        "tokenId": 1806,
+        "tokenHash": "sha256:c93164c9b2f57dc312964c2871243707f8c59fa5d71dfc9545dd778e3d852746"
+      },
+      {
+        "index": 11,
+        "tokenId": 2782,
+        "tokenHash": "sha256:605067ef0d94c72e3ff7002c7cd5c9ae9c677fef02f0b717917dc638c15c99ab"
+      },
+      {
+        "index": 12,
+        "tokenId": 236761,
+        "tokenHash": "sha256:477e3d5b28eee5dbd9a3b08654234009b00d068d8224a41d416a8578fcd691e1"
+      },
+      {
+        "index": 13,
+        "tokenId": 1174,
+        "tokenHash": "sha256:55e9005c10be66b1f51e7d447cf48eeb1d409907690c145e9ab1181f084d5509"
+      },
+      {
+        "index": 14,
+        "tokenId": 563,
+        "tokenHash": "sha256:8ea4bb6772178fe5bbdece426044df0821490ad4a6b8efab416387e49260e632"
+      },
+      {
+        "index": 15,
+        "tokenId": 496,
+        "tokenHash": "sha256:e5ea5d9b107df077ca3c51ebbd6886527f0c40b8fdabb5389fd3737a3b2f40e3"
+      }
+    ],
+    "coverage": {
+      "mode": "full-token-ids",
+      "omitted": 0
+    }
+  },
+  "executionGraphHash": "sha256:4ad451e7904c1c7557944be7f7b343b9781c74636e23b86fceb2369cfd8610d4"
+}

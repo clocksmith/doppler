@@ -335,7 +335,7 @@
       "rmsnorm": {
         "kernel": "rmsnorm_f16.wgsl",
         "entry": "main",
-        "digest": "sha256:5f46959f502a9a1c3a8e7c6bb3ac56dd06d377d9748dbb9957de710f04f6d05b"
+        "digest": "sha256:ebe94fee51a0ea0d6c5302c4794e76284c856bcb60e0e0ed5ab9a009ac4cd4de"
       },
       "final_norm_stable": {
         "kernel": "rmsnorm.wgsl",

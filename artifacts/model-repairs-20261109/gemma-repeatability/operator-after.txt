@@ -1,0 +1,2 @@
+[GPU] apple metal-3, f16/subgroups, 4.0GB, submit probe: 0.5ms
+[{"size":64,"rows":58,"iterationsPerMode":8,"modes":["immediate","recorded"],"maxAbs":0.0014857053756713867,"bitStable":true},{"size":128,"rows":58,"iterationsPerMode":8,"modes":["immediate","recorded"],"maxAbs":0.0014046430587768555,"bitStable":true},{"size":256,"rows":58,"iterationsPerMode":8,"modes":["immediate","recorded"],"maxAbs":0.0012383460998535156,"bitStable":true}]
