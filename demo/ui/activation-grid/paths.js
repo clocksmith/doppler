@@ -1,7 +1,7 @@
 import config from './config.json' with { type: 'json' };
 import { heatmapColor, projectFrame } from './data.js';
 
-/** @param {(number | string | undefined)[]} values */
+/** @param {readonly (number | string | undefined)[]} values */
 function rms(values) {
   if (!values.length) return null;
   let sum = 0;

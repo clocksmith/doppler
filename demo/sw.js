@@ -2,8 +2,8 @@
 // a module. An older registration must be able to update without booting the app.
 // BEGIN GENERATED DEMO SHELL
 const SHELL_MANIFEST_SCHEMA = 'doppler.demo-shell-manifest/v1';
-const SHELL_MANIFEST_DIGEST = 'sha256:10412660ed53513a6956d89c0c8fe348025851a359a627d081f33dd03747a5e1';
-const CACHE_NAME = 'doppler-demo-shell-10412660ed53513a';
+const SHELL_MANIFEST_DIGEST = 'sha256:40fe3524f2d36cd940f5c4b8d6431867442a790ac444960aed7227cb90da55cc';
+const CACHE_NAME = 'doppler-demo-shell-40fe3524f2d36cd9';
 const APP_SHELL = Object.freeze([
   "/demo/assets/activity-preview-attention-prefill.png",
   "/demo/assets/activity-preview-contributions.png",
@@ -388,6 +388,7 @@ const APP_SHELL = Object.freeze([
   "/src/gpu/kernels/kernel-cache-lifecycle.js",
   "/src/gpu/kernels/kernel-configs.js",
   "/src/gpu/kernels/kernel-execution.js",
+  "/src/gpu/kernels/kernel-geometry.js",
   "/src/gpu/kernels/kernel-prewarm.js",
   "/src/gpu/kernels/kv-cache-write.js",
   "/src/gpu/kernels/kv-quantize.js",
@@ -752,6 +753,7 @@ const APP_SHELL = Object.freeze([
   "/src/loader/model-load.js",
   "/src/loader/ngram-table-bindings.js",
   "/src/loader/per-layer-input-loader.js",
+  "/src/loader/q4k-reference-weight.js",
   "/src/loader/shard-cache.js",
   "/src/loader/shard-resolver.js",
   "/src/loader/tensor-load-error.js",

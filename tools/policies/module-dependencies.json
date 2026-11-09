@@ -97,5 +97,15 @@
       "externalContract": "caller-supplied runtime configuration URL; not a module import",
       "validatedBy": "src/tooling/browser-harness/runtime-config.js"
     }
+  },
+  "demo/ui/activation-grid/index.js": {
+    "new URL(`../../assets/activity-preview-${preview.mode}.png`, import.meta.url)": [
+      "../../assets/activity-preview-attention-prefill.png",
+      "../../assets/activity-preview-contributions.png",
+      "../../assets/activity-preview-kv-cache.png",
+      "../../assets/activity-preview-layer-output.png",
+      "../../assets/activity-preview-recurrent-memory.png",
+      "../../assets/activity-preview-weights.png"
+    ]
   }
 }

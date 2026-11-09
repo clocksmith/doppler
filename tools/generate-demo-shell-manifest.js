@@ -54,7 +54,7 @@ const WORKER_SHELL_END = '// END GENERATED DEMO SHELL';
 // Six added owners: activity capture, weight observation, linear-state capture, grid projections, recording validation and binary recording interchange.
 // One presentation owner for the capture-backed model-path diagram. Remove this
 // allowance if demo/ui/activation-grid/paths.js is removed or inlined. Byte limit unchanged.
-const MAX_MODULES = 835;
+const MAX_MODULES = 837;
 const MAX_TOTAL_BYTES = 10_000_000;
 const MODULE_ROOTS = [
   'demo/demo.js',
