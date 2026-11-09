@@ -1,0 +1,8 @@
+{
+  "sourceModel": "openbmb/MiniCPM4-0.5B",
+  "sourceRepo": "openbmb/MiniCPM4-0.5B",
+  "sourceFormat": "safetensors",
+  "sourceRevision": "5253c7fcc5e29e1cf3eacb59a58adf1ba4df8630",
+  "repairReceipt": "artifacts/model-repairs-20261109/minicpm/receipt.json",
+  "publishedWithUserApproval": "2026-11-09"
+}

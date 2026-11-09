@@ -1,7 +1,7 @@
 {
   "version": 1,
   "lifecycleSchemaVersion": 1,
-  "updatedAt": "2026-07-19",
+  "updatedAt": "2026-11-09",
   "models": [
     {
       "modelId": "gemma-3-270m-it-q4k-ehf16-af32",
@@ -1476,7 +1476,7 @@
         ]
       },
       "label": "MiniCPM4 0.5B (F16/F32a)",
-      "description": "MiniCPM4 0.5B text onboarding artifact. The manifest and shards are complete, but the deterministic smoke prompt produced incoherent text, so this lane is not a supported generation model yet.",
+      "description": "MiniCPM4 0.5B text model with F16 weights and F32 activations. Rebuilt from authenticated source; bounded Node and browser source-token smoke passes with the tokenizer normalization repair.",
       "modes": [
         "text"
       ],
@@ -1488,7 +1488,11 @@
       "artifact": {
         "format": "rdrr"
       },
-      "hf": null,
+      "hf": {
+        "repoId": "clocksmith/rdrr",
+        "revision": "0a0b58d462a4cee373c793d761bc180d3a1a2a08",
+        "path": "models/minicpm4-0-5b-f16-af32"
+      },
       "baseUrl": null,
       "quickstart": false,
       "demoVisible": false,
@@ -1499,34 +1503,35 @@
         "availability": {
           "curated": false,
           "local": true,
-          "hf": false
+          "hf": true
         },
         "status": {
-          "runtime": "experimental",
+          "runtime": "active",
           "conversion": "ready",
           "demo": "none",
-          "tested": "failed"
+          "tested": "verified"
         },
         "tested": {
           "suite": "inference",
           "surface": [
+            "browser",
             "node"
           ],
-          "result": "fail",
-          "lastVerifiedAt": "2026-07-04",
+          "result": "pass",
+          "lastVerifiedAt": "2026-11-09",
           "source": "runtime-verify",
           "contracts": {
             "executionContractOk": true
           },
-          "notes": "Failure evidence: reports/release-claims/minicpm4-0-5b-f16-af32/2026-07-04T01-07-00.000Z.failed.json. The prompt \"Q: What color is the sky on a clear day? A:\" produced \"This problem question: When\u662f\u6211\u56fd an an\", so the artifact remains local-only until tokenizer/template/config correctness is fixed."
+          "notes": "Bounded Apple M3 WebGPU source-token smoke passed on Node and browser; receipt artifacts/model-repairs-20261109/minicpm/receipt.json. Requires the tokenizer repair in 26a81570. Original corrupt legacy-hash artifact was rejected and preserved; rebuilt from authenticated source. No comparative speed or broad task-quality qualification."
         }
       },
       "vendorBenchmark": null,
       "sourceCheckpointId": "openbmb/MiniCPM4-0.5B",
-      "weightCapsuleId": "minicpm4-0-5b-f16-af32-wp-catalog-v1",
-      "manifestVariantId": "minicpm4-0-5b-f16-af32-mv-exec-v1",
+      "weightCapsuleId": "minicpm4-0-5b-f16-af32-wp-296d3aee2303",
+      "manifestVariantId": "minicpm4-0-5b-f16-af32-mv-f9ef7b542924",
       "artifactCompleteness": "complete",
-      "runtimePromotionState": "unpromoted",
+      "runtimePromotionState": "manifest-owned",
       "weightsRefAllowed": false
     },
     {
@@ -2115,32 +2120,49 @@
       "artifact": {
         "format": "rdrr"
       },
-      "hf": null,
+      "hf": {
+        "repoId": "clocksmith/rdrr",
+        "revision": "74825e69ae50097a28dbc153c16762693b65b64b",
+        "path": "models/lfm2-5-1-2b-instruct-q4k-ehf16-af32"
+      },
       "baseUrl": null,
       "quickstart": false,
-      "sizeBytes": 853551378,
+      "sizeBytes": 851352832,
       "recommended": false,
       "sortOrder": 35,
       "lifecycle": {
         "availability": {
           "curated": false,
           "local": true,
-          "hf": false
+          "hf": true
         },
         "status": {
-          "runtime": "experimental",
+          "runtime": "active",
           "conversion": "ready",
           "demo": "none",
-          "tested": "none"
+          "tested": "verified"
         },
-        "tested": null
+        "tested": {
+          "suite": "inference",
+          "surface": [
+            "browser",
+            "node"
+          ],
+          "result": "pass",
+          "lastVerifiedAt": "2026-11-09",
+          "source": "runtime-verify",
+          "contracts": {
+            "executionContractOk": true
+          },
+          "notes": "Three bounded Node cases match independent source equations (Q4_K weights independently decoded and materialized through F16); one full browser case passes. Receipt artifacts/model-repairs-20261109/lfm2/receipt.json. Requires loader/config repairs in 844f6659. No comparative speed or broad task-quality qualification."
+        }
       },
       "vendorBenchmark": null,
       "sourceCheckpointId": "LiquidAI/LFM2.5-1.2B-Instruct",
-      "weightCapsuleId": "lfm2-5-1-2b-instruct-q4k-ehf16-af32-wp-catalog-v1",
-      "manifestVariantId": "lfm2-5-1-2b-instruct-q4k-ehf16-af32-mv-exec-v1",
-      "artifactCompleteness": "incomplete",
-      "runtimePromotionState": "unpromoted",
+      "weightCapsuleId": "lfm2-5-1-2b-instruct-q4k-ehf16-af32-wp-6242e5e96be9",
+      "manifestVariantId": "lfm2-5-1-2b-instruct-q4k-ehf16-af32-mv-1eb2fd132154",
+      "artifactCompleteness": "complete",
+      "runtimePromotionState": "manifest-owned",
       "weightsRefAllowed": false
     },
     {

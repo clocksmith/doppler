@@ -1,0 +1,56 @@
+{
+  "schema": "doppler.model-publication-receipt/v1",
+  "humanCoherenceApproval": "User: Publish the repaired candidates (2026-11-09)",
+  "registryCommit": "7f791cded849f12f4c51f24adec86346740016d4",
+  "models": [
+    {
+      "modelId": "minicpm4-0-5b-f16-af32",
+      "artifactRevision": "0a0b58d462a4cee373c793d761bc180d3a1a2a08",
+      "manifestUrl": "https://huggingface.co/clocksmith/rdrr/resolve/0a0b58d462a4cee373c793d761bc180d3a1a2a08/models/minicpm4-0-5b-f16-af32/manifest.json",
+      "manifestSha256": "260b71ee894d9f6a62010224e7a8c20f3188f646c5c62d4437fca39ebae5813e",
+      "weightCapsuleId": "minicpm4-0-5b-f16-af32-wp-296d3aee2303",
+      "manifestVariantId": "minicpm4-0-5b-f16-af32-mv-f9ef7b542924",
+      "hostedNodeProof": "minicpm-hosted-node-proof.json",
+      "exactPromptTokens": true,
+      "exactGeneratedTokensIncludingEos": 14,
+      "output": "The color of the sky on a clear day is typically blue.",
+      "oldExternalVolumeArtifactArchived": true
+    },
+    {
+      "modelId": "lfm2-5-1-2b-instruct-q4k-ehf16-af32",
+      "artifactRevision": "74825e69ae50097a28dbc153c16762693b65b64b",
+      "manifestUrl": "https://huggingface.co/clocksmith/rdrr/resolve/74825e69ae50097a28dbc153c16762693b65b64b/models/lfm2-5-1-2b-instruct-q4k-ehf16-af32/manifest.json",
+      "manifestSha256": "820330a533f142344334f56622f624e5fdd2a2af3f3178db9955c41d40f16364",
+      "weightCapsuleId": "lfm2-5-1-2b-instruct-q4k-ehf16-af32-wp-6242e5e96be9",
+      "manifestVariantId": "lfm2-5-1-2b-instruct-q4k-ehf16-af32-mv-1eb2fd132154",
+      "hostedNodeProof": "lfm2-hosted-node-proof.json",
+      "exactPromptTokens": true,
+      "exactGeneratedTokensIncludingEos": 11,
+      "output": "On a clear day, the sky appears blue.",
+      "oldExternalVolumeArtifactArchived": true
+    }
+  ],
+  "limits": [
+    "Bounded source-token correctness on Apple M3; no new comparative performance or broad task-quality qualification.",
+    "Runtime requires repairs in commits 26a81570 and 844f6659.",
+    "Existing Jupiter serving and Flash-Next jobs preserved; Jupiter timing deferred."
+  ],
+  "checks": [
+    "npm run ci:catalog:check",
+    "npm run artifact:contract:check",
+    "node tools/artifact-identity-inventory.js --root <MiniCPM candidate> --root <LFM2 candidate> --check",
+    "Four focused publication/catalog/preflight test files passed."
+  ],
+  "files": [
+    {
+      "path": "lfm2-hosted-node-proof.json",
+      "bytes": 52635,
+      "sha256": "424b7fd03def8f9b8a8c7903039ee23f782627fe4406b1332ce967a801fbea4f"
+    },
+    {
+      "path": "minicpm-hosted-node-proof.json",
+      "bytes": 52737,
+      "sha256": "b5c2ed6db646cee138e6a75bcc6b3b25f4d42fa65bd1f3a2933bb306dd7af8fd"
+    }
+  ]
+}

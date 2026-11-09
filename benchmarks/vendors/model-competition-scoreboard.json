@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-09-07T18:11:16.222Z",
+  "updatedAt": "2026-11-09T00:00:00.000Z",
   "sources": [
     "models/catalog.json",
     "benchmarks/vendors/model-support-inventory.json",
@@ -13,13 +13,13 @@
   "summary": {
     "catalogModelCount": 31,
     "scoreboardRowCount": 42,
-    "runtimeVerifiedModelCount": 26,
-    "hfPublishedModelCount": 19,
-    "failedModelCount": 3,
-    "verificationNeededModelCount": 2,
+    "runtimeVerifiedModelCount": 28,
+    "hfPublishedModelCount": 21,
+    "failedModelCount": 2,
+    "verificationNeededModelCount": 1,
     "platformVerifiedModelCount": {
-      "browser": 9,
-      "node": 25,
+      "browser": 11,
+      "node": 27,
       "bun": 0
     },
     "generationCompareRowCount": 15,
@@ -1560,18 +1560,18 @@
       "artifact": {
         "format": "rdrr",
         "architecture": "RDRR, q4k weights, f16 embeddings, f16 LM head, f32 compute, row Q4K layout",
-        "sizeBytes": 853551378,
+        "sizeBytes": 851352832,
         "sizeLabel": "0.79 GiB",
         "hf": {
-          "published": false,
-          "repoId": null,
-          "revision": null,
-          "path": null
+          "published": true,
+          "repoId": "clocksmith/rdrr",
+          "revision": "74825e69ae50097a28dbc153c16762693b65b64b",
+          "path": "models/lfm2-5-1-2b-instruct-q4k-ehf16-af32"
         }
       },
       "platforms": {
-        "browser": "missing",
-        "node": "missing",
+        "browser": "verified",
+        "node": "verified",
         "bun": "missing"
       },
       "competitor": {
@@ -1580,26 +1580,23 @@
         "format": "onnx",
         "dtype": null
       },
-      "correctness": "none",
+      "correctness": "pass",
       "metrics": null,
-      "claimStatus": "verification-needed",
-      "claimReason": "Refresh manifest and weight identity for lfm2-5-1-2b-instruct-q4k-ehf16-af32.",
+      "claimStatus": "compare-missing",
+      "claimReason": "Add a local inference claim lane for lfm2-5-1-2b-instruct-q4k-ehf16-af32.",
       "evidence": {
-        "runtimeReport": null,
+        "runtimeReport": "artifacts/model-repairs-20261109/lfm2/browser-proof.json",
         "compareResult": null,
         "summarySvg": null,
         "localClaimLaneId": null
       },
       "missing": [
-        "manifest-weights",
-        "runtime-verify",
-        "hf-publish",
         "claim-lane",
         "compare-result",
         "summary-svg"
       ],
-      "nextGate": "manifest-weights",
-      "nextCommand": null
+      "nextGate": "claim-lane",
+      "nextCommand": "node tools/compare-engines.js --model-id lfm2-5-1-2b-instruct-q4k-ehf16-af32 --workload p064-d064-t0-k1 --mode compute --decode-profile parity --warmup 1 --runs 3 --save --json"
     },
     {
       "rowId": "minicpm4-0-5b-f16-af32:support",
@@ -1620,15 +1617,15 @@
         "sizeBytes": 867747840,
         "sizeLabel": "0.81 GiB",
         "hf": {
-          "published": false,
-          "repoId": null,
-          "revision": null,
-          "path": null
+          "published": true,
+          "repoId": "clocksmith/rdrr",
+          "revision": "0a0b58d462a4cee373c793d761bc180d3a1a2a08",
+          "path": "models/minicpm4-0-5b-f16-af32"
         }
       },
       "platforms": {
-        "browser": "missing",
-        "node": "missing",
+        "browser": "verified",
+        "node": "verified",
         "bun": "missing"
       },
       "competitor": {
@@ -1637,23 +1634,21 @@
         "format": null,
         "dtype": null
       },
-      "correctness": "fail",
+      "correctness": "pass",
       "metrics": null,
-      "claimStatus": "failed",
-      "claimReason": "Fix failed runtime verification for minicpm4-0-5b-f16-af32; keep it unpromoted until a passing receipt exists.",
+      "claimStatus": "verified-no-compare",
+      "claimReason": "Add a compare profile for minicpm4-0-5b-f16-af32.",
       "evidence": {
-        "runtimeReport": null,
+        "runtimeReport": "artifacts/model-repairs-20261109/minicpm/browser-proof.json",
         "compareResult": null,
         "summarySvg": null,
         "localClaimLaneId": null
       },
       "missing": [
-        "runtime-verify",
-        "hf-publish",
         "compare-profile"
       ],
-      "nextGate": "runtime-verify",
-      "nextCommand": "node tools/run-registry-verify.js minicpm4-0-5b-f16-af32 --surface auto"
+      "nextGate": "compare-profile",
+      "nextCommand": null
     },
     {
       "rowId": "muse-glimmer-30b-text-bf16-af32:support",
@@ -1836,7 +1831,7 @@
         "hf": {
           "published": true,
           "repoId": "clocksmith/rdrr",
-          "revision": "80d7716270b6371d541de979eff3370edaf34e13",
+          "revision": "ea7b211b72c4d43687fa72802dee7aba74eca293",
           "path": "models/qwen-3-5-0-8b-q4k-ehaf16"
         }
       },
@@ -1910,7 +1905,7 @@
         "hf": {
           "published": true,
           "repoId": "clocksmith/rdrr",
-          "revision": "80d7716270b6371d541de979eff3370edaf34e13",
+          "revision": "ea7b211b72c4d43687fa72802dee7aba74eca293",
           "path": "models/qwen-3-5-0-8b-q4k-ehaf16"
         }
       },
@@ -1984,7 +1979,7 @@
         "hf": {
           "published": true,
           "repoId": "clocksmith/rdrr",
-          "revision": "977d145bf2478a7fb542e6aca65030585620ca60",
+          "revision": "3a05b346b1c86abf02c7620f2369a9a7b82cb62f",
           "path": "models/qwen-3-5-2b-q4k-ehaf16"
         }
       },
@@ -2058,7 +2053,7 @@
         "hf": {
           "published": true,
           "repoId": "clocksmith/rdrr",
-          "revision": "977d145bf2478a7fb542e6aca65030585620ca60",
+          "revision": "3a05b346b1c86abf02c7620f2369a9a7b82cb62f",
           "path": "models/qwen-3-5-2b-q4k-ehaf16"
         }
       },
@@ -2132,7 +2127,7 @@
         "hf": {
           "published": true,
           "repoId": "clocksmith/rdrr",
-          "revision": "977d145bf2478a7fb542e6aca65030585620ca60",
+          "revision": "3a05b346b1c86abf02c7620f2369a9a7b82cb62f",
           "path": "models/qwen-3-5-2b-q4k-ehaf16"
         }
       },
@@ -2206,7 +2201,7 @@
         "hf": {
           "published": true,
           "repoId": "clocksmith/rdrr",
-          "revision": "3dee21b3b12d65ac7fef9b24cbf759cacc953a67",
+          "revision": "2061f17e310f9c240c77368f55e5e50509a88dfd",
           "path": "models/qwen-3-6-27b-q4k-eaf16"
         }
       },
@@ -2258,7 +2253,7 @@
         "hf": {
           "published": true,
           "repoId": "clocksmith/rdrr",
-          "revision": "b402f6f27837857d51636da5f78c12bcd47e2a03",
+          "revision": "2061f17e310f9c240c77368f55e5e50509a88dfd",
           "path": "models/qwen-3-6-27b-q4k-ehaf16"
         }
       },
@@ -2310,7 +2305,7 @@
         "hf": {
           "published": true,
           "repoId": "clocksmith/rdrr",
-          "revision": "049000f49325dca7db2ed2c9de2c8881bd0f4603",
+          "revision": "3a05b346b1c86abf02c7620f2369a9a7b82cb62f",
           "path": "models/qwen-3-embedding-0-6b-q4k-ehf16-af32"
         }
       },
@@ -2384,7 +2379,7 @@
         "hf": {
           "published": true,
           "repoId": "clocksmith/rdrr",
-          "revision": "cc1fafff8cda609372b608cd92e487f6a2c32bc8",
+          "revision": "3a05b346b1c86abf02c7620f2369a9a7b82cb62f",
           "path": "models/qwen-3-reranker-0-6b-f16-af32"
         }
       },
@@ -2436,7 +2431,7 @@
         "hf": {
           "published": true,
           "repoId": "clocksmith/rdrr",
-          "revision": "f86fe245b9bbc275cd69af46b1d45d47ea685a55",
+          "revision": "3a05b346b1c86abf02c7620f2369a9a7b82cb62f",
           "path": "models/qwen-3-reranker-0-6b-q4k-ehf16-af32"
         }
       },

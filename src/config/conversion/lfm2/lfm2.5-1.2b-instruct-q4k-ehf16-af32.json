@@ -22,7 +22,7 @@
       "valueNorm": false
     },
     "normalization": {
-      "rmsNormEps": 0.00001,
+      "rmsNormEps": 1e-05,
       "rmsNormWeightOffset": false,
       "postAttentionNorm": true,
       "preFeedforwardNorm": false,
@@ -416,5 +416,12 @@
   "largeWeights": {
     "gpuResidentOverrides": null
   },
-  "modelType": "transformer"
+  "modelType": "transformer",
+  "manifest": {
+    "hashAlgorithm": "sha256",
+    "artifactIdentity": {
+      "sourceCheckpointId": "LiquidAI/LFM2.5-1.2B-Instruct",
+      "artifactCompleteness": "complete"
+    }
+  }
 }

@@ -3,6 +3,6 @@
   "sourceRepo": "LiquidAI/LFM2.5-1.2B-Instruct",
   "sourceFormat": "safetensors",
   "sourceRevision": "e129ea4241f9232d771540bd8ed4753feebaedc2",
-  "variant": "q4k-ehf16-af32",
-  "convertedAt": "2026-03-14T20:14:04.685862Z"
+  "repairReceipt": "artifacts/model-repairs-20261109/lfm2/receipt.json",
+  "publishedWithUserApproval": "2026-11-09"
 }

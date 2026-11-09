@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-08-23",
+  "updatedAt": "2026-11-09",
   "claims": [
     {
       "modelId": "gemma-3-1b-it-q4k-ehf16-af32",
@@ -554,6 +554,52 @@
         "metricPath": "metrics.decodeMs",
         "minValue": 0,
         "unit": "ms"
+      }
+    },
+    {
+      "modelId": "minicpm4-0-5b-f16-af32",
+      "mode": "text",
+      "surface": [
+        "browser",
+        "node"
+      ],
+      "verificationSource": "runtime-verify",
+      "lastVerifiedAt": "2026-11-09",
+      "artifactFormat": "rdrr",
+      "evidence": {
+        "kind": "runtime-verify",
+        "reportPath": "artifacts/model-repairs-20261109/minicpm/browser-proof.json"
+      },
+      "performanceEvidence": {
+        "kind": "runtime-report",
+        "reportPath": "artifacts/model-repairs-20261109/minicpm/browser-proof.json",
+        "metricPath": "metrics.decodeTokensPerSec",
+        "minValue": 0,
+        "unit": "tokens/sec",
+        "scope": "Observed during correctness smoke only; not calibrated or comparative performance qualification."
+      }
+    },
+    {
+      "modelId": "lfm2-5-1-2b-instruct-q4k-ehf16-af32",
+      "mode": "text",
+      "surface": [
+        "browser",
+        "node"
+      ],
+      "verificationSource": "runtime-verify",
+      "lastVerifiedAt": "2026-11-09",
+      "artifactFormat": "rdrr",
+      "evidence": {
+        "kind": "runtime-verify",
+        "reportPath": "artifacts/model-repairs-20261109/lfm2/browser-proof.json"
+      },
+      "performanceEvidence": {
+        "kind": "runtime-report",
+        "reportPath": "artifacts/model-repairs-20261109/lfm2/browser-proof.json",
+        "metricPath": "metrics.decodeTokensPerSec",
+        "minValue": 0,
+        "unit": "tokens/sec",
+        "scope": "Observed during correctness smoke only; not calibrated or comparative performance qualification."
       }
     }
   ]

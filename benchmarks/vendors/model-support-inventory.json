@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "updated": "2026-07-19",
+  "updated": "2026-11-09",
   "sources": [
     "models/catalog.json",
     "models/model-type-taxonomy.json",
@@ -110,9 +110,9 @@
   "summary": {
     "catalogModelCount": 31,
     "sourceCheckpointCount": 23,
-    "conversionOnlyConfigCount": 17,
-    "hfPublishedModelCount": 19,
-    "verifiedModelCount": 26,
+    "conversionOnlyConfigCount": 19,
+    "hfPublishedModelCount": 21,
+    "verifiedModelCount": 28,
     "benchmarkSelectedSourceCount": 1,
     "benchmarkPendingSourceCount": 22,
     "tierCounts": {
@@ -882,15 +882,15 @@
         "label": "Text generators"
       },
       "tier": "small",
-      "minSizeBytes": 853551378,
+      "minSizeBytes": 851352832,
       "minSizeLabel": "0.79 GiB",
-      "status": "runtime-verification-needed",
+      "status": "benchmark-comparison-needed",
       "preferredArchitecture": {
         "status": "pending-benchmark-comparison",
-        "modelId": null,
-        "architecture": null,
+        "modelId": "lfm2-5-1-2b-instruct-q4k-ehf16-af32",
+        "architecture": "RDRR, q4k weights, f16 embeddings, f16 LM head, f32 compute, row Q4K layout",
         "evidence": {
-          "runtimeReport": null,
+          "runtimeReport": "artifacts/model-repairs-20261109/lfm2/browser-proof.json",
           "compareResult": null,
           "summarySvg": null
         }
@@ -920,14 +920,14 @@
           "modes": [
             "text"
           ],
-          "sizeBytes": 853551378,
+          "sizeBytes": 851352832,
           "sizeLabel": "0.79 GiB",
           "tier": "small",
           "sourceCheckpointId": "LiquidAI/LFM2.5-1.2B-Instruct",
-          "weightCapsuleId": "lfm2-5-1-2b-instruct-q4k-ehf16-af32-wp-catalog-v1",
-          "manifestVariantId": "lfm2-5-1-2b-instruct-q4k-ehf16-af32-mv-exec-v1",
-          "artifactCompleteness": "incomplete",
-          "runtimePromotionState": "unpromoted",
+          "weightCapsuleId": "lfm2-5-1-2b-instruct-q4k-ehf16-af32-wp-6242e5e96be9",
+          "manifestVariantId": "lfm2-5-1-2b-instruct-q4k-ehf16-af32-mv-1eb2fd132154",
+          "artifactCompleteness": "complete",
+          "runtimePromotionState": "manifest-owned",
           "conversionConfig": "src/config/conversion/lfm2/lfm2.5-1.2b-instruct-q4k-ehf16-af32.json",
           "architecture": {
             "artifactFormat": "rdrr",
@@ -939,18 +939,21 @@
             "label": "RDRR, q4k weights, f16 embeddings, f16 LM head, f32 compute, row Q4K layout"
           },
           "lifecycle": {
-            "runtime": "experimental",
+            "runtime": "active",
             "conversion": "ready",
-            "tested": "none",
-            "result": null,
-            "lastVerifiedAt": null,
-            "surfaces": []
+            "tested": "verified",
+            "result": "pass",
+            "lastVerifiedAt": "2026-11-09",
+            "surfaces": [
+              "browser",
+              "node"
+            ]
           },
           "hf": {
-            "published": false,
-            "repoId": null,
-            "revision": null,
-            "path": null
+            "published": true,
+            "repoId": "clocksmith/rdrr",
+            "revision": "74825e69ae50097a28dbc153c16762693b65b64b",
+            "path": "models/lfm2-5-1-2b-instruct-q4k-ehf16-af32"
           },
           "quickstart": false,
           "compare": {
@@ -968,8 +971,8 @@
             "benchmarkEvidenceOk": false
           },
           "evidence": {
-            "runtimeReport": null,
-            "runtimeReportExists": false,
+            "runtimeReport": "artifacts/model-repairs-20261109/lfm2/browser-proof.json",
+            "runtimeReportExists": true,
             "compareResult": null,
             "compareResultExists": false,
             "summarySvg": null,
@@ -978,7 +981,7 @@
           },
           "actions": {
             "verifyCommand": "node tools/run-registry-verify.js lfm2-5-1-2b-instruct-q4k-ehf16-af32 --surface auto",
-            "hfDryRunCommand": "node tools/publish-hf-registry-model.js --model-id lfm2-5-1-2b-instruct-q4k-ehf16-af32 --dry-run --bootstrap",
+            "hfDryRunCommand": "node tools/publish-hf-registry-model.js --model-id lfm2-5-1-2b-instruct-q4k-ehf16-af32 --dry-run",
             "compareCommands": [
               {
                 "workloadId": "p064-d064-t0-k1",
@@ -1011,22 +1014,19 @@
                 "command": "node tools/compare-engines.js --model-id lfm2-5-1-2b-instruct-q4k-ehf16-af32 --workload p512-d128-t0-k1 --mode compute --decode-profile throughput --warmup 1 --runs 3 --save --json"
               }
             ],
-            "primaryNextCommand": null
+            "primaryNextCommand": "node tools/compare-engines.js --model-id lfm2-5-1-2b-instruct-q4k-ehf16-af32 --workload p064-d064-t0-k1 --mode compute --decode-profile parity --warmup 1 --runs 3 --save --json"
           },
           "missing": [
-            "manifest-weights",
-            "runtime-verify",
-            "hf-publish",
             "claim-lane",
             "compare-result",
             "summary-svg"
           ],
-          "nextGate": "manifest-weights"
+          "nextGate": "claim-lane"
         }
       ],
-      "nextAction": "Refresh manifest and weight identity for lfm2-5-1-2b-instruct-q4k-ehf16-af32.",
-      "nextGate": "manifest-weights",
-      "nextCommand": null
+      "nextAction": "Add a local inference claim lane for lfm2-5-1-2b-instruct-q4k-ehf16-af32.",
+      "nextGate": "claim-lane",
+      "nextCommand": "node tools/compare-engines.js --model-id lfm2-5-1-2b-instruct-q4k-ehf16-af32 --workload p064-d064-t0-k1 --mode compute --decode-profile parity --warmup 1 --runs 3 --save --json"
     },
     {
       "sourceCheckpointId": "openbmb/MiniCPM4-0.5B",
@@ -1038,13 +1038,13 @@
       "tier": "small",
       "minSizeBytes": 867747840,
       "minSizeLabel": "0.81 GiB",
-      "status": "verification-failed",
+      "status": "benchmark-comparison-needed",
       "preferredArchitecture": {
-        "status": "verification-failed",
-        "modelId": null,
-        "architecture": null,
+        "status": "pending-benchmark-comparison",
+        "modelId": "minicpm4-0-5b-f16-af32",
+        "architecture": "RDRR, f16 weights, f16 embeddings, f16 LM head, f32 compute",
         "evidence": {
-          "runtimeReport": null,
+          "runtimeReport": "artifacts/model-repairs-20261109/minicpm/browser-proof.json",
           "compareResult": null,
           "summarySvg": null
         }
@@ -1078,10 +1078,10 @@
           "sizeLabel": "0.81 GiB",
           "tier": "small",
           "sourceCheckpointId": "openbmb/MiniCPM4-0.5B",
-          "weightCapsuleId": "minicpm4-0-5b-f16-af32-wp-catalog-v1",
-          "manifestVariantId": "minicpm4-0-5b-f16-af32-mv-exec-v1",
+          "weightCapsuleId": "minicpm4-0-5b-f16-af32-wp-296d3aee2303",
+          "manifestVariantId": "minicpm4-0-5b-f16-af32-mv-f9ef7b542924",
           "artifactCompleteness": "complete",
-          "runtimePromotionState": "unpromoted",
+          "runtimePromotionState": "manifest-owned",
           "conversionConfig": "src/config/conversion/minicpm/minicpm4-0-5b-f16-af32.json",
           "architecture": {
             "artifactFormat": "rdrr",
@@ -1093,20 +1093,21 @@
             "label": "RDRR, f16 weights, f16 embeddings, f16 LM head, f32 compute"
           },
           "lifecycle": {
-            "runtime": "experimental",
+            "runtime": "active",
             "conversion": "ready",
-            "tested": "failed",
-            "result": "fail",
-            "lastVerifiedAt": "2026-07-04",
+            "tested": "verified",
+            "result": "pass",
+            "lastVerifiedAt": "2026-11-09",
             "surfaces": [
+              "browser",
               "node"
             ]
           },
           "hf": {
-            "published": false,
-            "repoId": null,
-            "revision": null,
-            "path": null
+            "published": true,
+            "repoId": "clocksmith/rdrr",
+            "revision": "0a0b58d462a4cee373c793d761bc180d3a1a2a08",
+            "path": "models/minicpm4-0-5b-f16-af32"
           },
           "quickstart": false,
           "compare": {
@@ -1115,8 +1116,8 @@
             "benchmarkEvidenceOk": false
           },
           "evidence": {
-            "runtimeReport": null,
-            "runtimeReportExists": false,
+            "runtimeReport": "artifacts/model-repairs-20261109/minicpm/browser-proof.json",
+            "runtimeReportExists": true,
             "compareResult": null,
             "compareResultExists": false,
             "summarySvg": null,
@@ -1125,21 +1126,19 @@
           },
           "actions": {
             "verifyCommand": "node tools/run-registry-verify.js minicpm4-0-5b-f16-af32 --surface auto",
-            "hfDryRunCommand": "node tools/publish-hf-registry-model.js --model-id minicpm4-0-5b-f16-af32 --dry-run --bootstrap",
+            "hfDryRunCommand": "node tools/publish-hf-registry-model.js --model-id minicpm4-0-5b-f16-af32 --dry-run",
             "compareCommands": [],
-            "primaryNextCommand": "node tools/run-registry-verify.js minicpm4-0-5b-f16-af32 --surface auto"
+            "primaryNextCommand": null
           },
           "missing": [
-            "runtime-verify",
-            "hf-publish",
             "compare-profile"
           ],
-          "nextGate": "runtime-verify"
+          "nextGate": "compare-profile"
         }
       ],
-      "nextAction": "Fix failed runtime verification for minicpm4-0-5b-f16-af32; keep it unpromoted until a passing receipt exists.",
-      "nextGate": "runtime-verify",
-      "nextCommand": "node tools/run-registry-verify.js minicpm4-0-5b-f16-af32 --surface auto"
+      "nextAction": "Add a compare profile for minicpm4-0-5b-f16-af32.",
+      "nextGate": "compare-profile",
+      "nextCommand": null
     },
     {
       "sourceCheckpointId": "Qwen/Qwen3-Reranker-0.6B",
@@ -1191,8 +1190,8 @@
           "sizeLabel": "0.87 GiB",
           "tier": "small",
           "sourceCheckpointId": "Qwen/Qwen3-Reranker-0.6B",
-          "weightCapsuleId": "qwen-3-reranker-0-6b-q4k-ehf16-af32-wp-catalog-v2",
-          "manifestVariantId": "qwen-3-reranker-0-6b-q4k-ehf16-af32-mv-exec-v2",
+          "weightCapsuleId": "qwen-3-reranker-0-6b-q4k-ehf16-af32-wp-74f069838f13",
+          "manifestVariantId": "qwen-3-reranker-0-6b-q4k-ehf16-af32-mv-70c63bfc5427",
           "artifactCompleteness": "complete",
           "runtimePromotionState": "manifest-owned",
           "conversionConfig": "src/config/conversion/qwen3/qwen-3-reranker-0-6b-q4k-ehf16-af32.json",
@@ -1219,7 +1218,7 @@
           "hf": {
             "published": true,
             "repoId": "clocksmith/rdrr",
-            "revision": "f86fe245b9bbc275cd69af46b1d45d47ea685a55",
+            "revision": "3a05b346b1c86abf02c7620f2369a9a7b82cb62f",
             "path": "models/qwen-3-reranker-0-6b-q4k-ehf16-af32"
           },
           "quickstart": false,
@@ -1291,8 +1290,8 @@
           "sizeLabel": "1.11 GiB",
           "tier": "small",
           "sourceCheckpointId": "Qwen/Qwen3-Reranker-0.6B",
-          "weightCapsuleId": "qwen-3-reranker-0-6b-f16-af32-wp-catalog-v1",
-          "manifestVariantId": "qwen-3-reranker-0-6b-f16-af32-mv-exec-v1",
+          "weightCapsuleId": "qwen-3-reranker-0-6b-f16-af32-wp-e2c46113e129",
+          "manifestVariantId": "qwen-3-reranker-0-6b-f16-af32-mv-6599b29f4339",
           "artifactCompleteness": "complete",
           "runtimePromotionState": "manifest-owned",
           "conversionConfig": "src/config/conversion/qwen3/qwen-3-reranker-0-6b-f16-af32.json",
@@ -1318,7 +1317,7 @@
           "hf": {
             "published": true,
             "repoId": "clocksmith/rdrr",
-            "revision": "cc1fafff8cda609372b608cd92e487f6a2c32bc8",
+            "revision": "3a05b346b1c86abf02c7620f2369a9a7b82cb62f",
             "path": "models/qwen-3-reranker-0-6b-f16-af32"
           },
           "quickstart": false,
@@ -1675,8 +1674,8 @@
           "sizeLabel": "1.08 GiB",
           "tier": "small",
           "sourceCheckpointId": "Qwen/Qwen3.5-0.8B",
-          "weightCapsuleId": "qwen-3-5-0-8b-q4k-ehaf16-wp-catalog-v1",
-          "manifestVariantId": "qwen-3-5-0-8b-q4k-ehaf16-mv-exec-v1",
+          "weightCapsuleId": "qwen-3-5-0-8b-q4k-ehaf16-wp-7f4f20cbb633",
+          "manifestVariantId": "qwen-3-5-0-8b-q4k-ehaf16-mv-48ade0e66f84",
           "artifactCompleteness": "complete",
           "runtimePromotionState": "manifest-owned",
           "conversionConfig": "src/config/conversion/qwen3/qwen-3-5-0-8b-q4k-ehaf16.json",
@@ -1703,7 +1702,7 @@
           "hf": {
             "published": true,
             "repoId": "clocksmith/rdrr",
-            "revision": "80d7716270b6371d541de979eff3370edaf34e13",
+            "revision": "ea7b211b72c4d43687fa72802dee7aba74eca293",
             "path": "models/qwen-3-5-0-8b-q4k-ehaf16"
           },
           "quickstart": true,
@@ -1827,8 +1826,8 @@
           "sizeLabel": "1.11 GiB",
           "tier": "small",
           "sourceCheckpointId": "Qwen/Qwen3-Embedding-0.6B",
-          "weightCapsuleId": "qwen-3-embedding-0-6b-q4k-ehf16-af32-wp-catalog-v1",
-          "manifestVariantId": "qwen-3-embedding-0-6b-q4k-ehf16-af32-mv-exec-v1",
+          "weightCapsuleId": "qwen-3-embedding-0-6b-q4k-ehf16-af32-wp-0b8a8f7d66bf",
+          "manifestVariantId": "qwen-3-embedding-0-6b-q4k-ehf16-af32-mv-f71d6b641050",
           "artifactCompleteness": "complete",
           "runtimePromotionState": "manifest-owned",
           "conversionConfig": "src/config/conversion/qwen3/qwen-3-embedding-0-6b-q4k-ehf16-af32.json",
@@ -1855,7 +1854,7 @@
           "hf": {
             "published": true,
             "repoId": "clocksmith/rdrr",
-            "revision": "049000f49325dca7db2ed2c9de2c8881bd0f4603",
+            "revision": "3a05b346b1c86abf02c7620f2369a9a7b82cb62f",
             "path": "models/qwen-3-embedding-0-6b-q4k-ehf16-af32"
           },
           "quickstart": false,
@@ -2066,8 +2065,8 @@
           "sizeLabel": "2.32 GiB",
           "tier": "medium",
           "sourceCheckpointId": "Qwen/Qwen3.5-2B",
-          "weightCapsuleId": "qwen-3-5-2b-q4k-ehaf16-wp-catalog-v1",
-          "manifestVariantId": "qwen-3-5-2b-q4k-ehaf16-mv-exec-v1",
+          "weightCapsuleId": "qwen-3-5-2b-q4k-ehaf16-wp-deed4c707f46",
+          "manifestVariantId": "qwen-3-5-2b-q4k-ehaf16-mv-4af4cf72a939",
           "artifactCompleteness": "complete",
           "runtimePromotionState": "manifest-owned",
           "conversionConfig": "src/config/conversion/qwen3/qwen-3-5-2b-q4k-ehaf16.json",
@@ -2094,7 +2093,7 @@
           "hf": {
             "published": true,
             "repoId": "clocksmith/rdrr",
-            "revision": "977d145bf2478a7fb542e6aca65030585620ca60",
+            "revision": "3a05b346b1c86abf02c7620f2369a9a7b82cb62f",
             "path": "models/qwen-3-5-2b-q4k-ehaf16"
           },
           "quickstart": true,
@@ -3203,8 +3202,8 @@
           "sizeLabel": "15.8 GiB",
           "tier": "large",
           "sourceCheckpointId": "Qwen/Qwen3.6-27B",
-          "weightCapsuleId": "qwen-3-6-27b-q4k-ehaf16-wp-catalog-v1",
-          "manifestVariantId": "qwen-3-6-27b-q4k-eaf16-mv-exec-v1",
+          "weightCapsuleId": "qwen-3-6-27b-q4k-ehaf16-wp-735a054a6c75",
+          "manifestVariantId": "qwen-3-6-27b-q4k-eaf16-mv-c129e9823c03",
           "artifactCompleteness": "weights-ref",
           "runtimePromotionState": "manifest-owned",
           "conversionConfig": "src/config/conversion/qwen3/qwen-3-6-27b-q4k-eaf16.json",
@@ -3231,7 +3230,7 @@
           "hf": {
             "published": true,
             "repoId": "clocksmith/rdrr",
-            "revision": "3dee21b3b12d65ac7fef9b24cbf759cacc953a67",
+            "revision": "2061f17e310f9c240c77368f55e5e50509a88dfd",
             "path": "models/qwen-3-6-27b-q4k-eaf16"
           },
           "quickstart": false,
@@ -3288,8 +3287,8 @@
           "sizeLabel": "15.8 GiB",
           "tier": "large",
           "sourceCheckpointId": "Qwen/Qwen3.6-27B",
-          "weightCapsuleId": "qwen-3-6-27b-q4k-ehaf16-wp-catalog-v1",
-          "manifestVariantId": "qwen-3-6-27b-q4k-ehaf16-mv-exec-v1",
+          "weightCapsuleId": "qwen-3-6-27b-q4k-ehaf16-wp-735a054a6c75",
+          "manifestVariantId": "qwen-3-6-27b-q4k-ehaf16-mv-3d9e82a6d516",
           "artifactCompleteness": "complete",
           "runtimePromotionState": "manifest-owned",
           "conversionConfig": "src/config/conversion/qwen3/qwen-3-6-27b-q4k-ehaf16.json",
@@ -3315,7 +3314,7 @@
           "hf": {
             "published": true,
             "repoId": "clocksmith/rdrr",
-            "revision": "b402f6f27837857d51636da5f78c12bcd47e2a03",
+            "revision": "2061f17e310f9c240c77368f55e5e50509a88dfd",
             "path": "models/qwen-3-6-27b-q4k-ehaf16"
           },
           "quickstart": false,
@@ -4112,6 +4111,24 @@
       "nextCommand": null
     },
     {
+      "modelBaseId": "qwen-3-8-flash-next-text-q4k-ehf16-af32",
+      "family": "qwen3",
+      "conversionConfig": "src/config/conversion/qwen3/qwen-3-8-flash-next-text-q4k-ehf16-af32.json",
+      "sourceCheckpointId": "Qwen/Qwen3.8-Flash-Next",
+      "architecture": {
+        "artifactFormat": "rdrr",
+        "weights": "q4k",
+        "embeddings": "f16",
+        "lmHead": "f16",
+        "computePrecision": "f32",
+        "q4kLayout": "row",
+        "label": "RDRR, q4k weights, f16 embeddings, f16 LM head, f32 compute, row Q4K layout"
+      },
+      "status": "conversion-ready",
+      "nextAction": "Catalog, verify, and publish qwen-3-8-flash-next-text-q4k-ehf16-af32 before claiming runtime support.",
+      "nextCommand": null
+    },
+    {
       "modelBaseId": "qwen-3-embedding-0-6b-f16-af32",
       "family": "qwen3",
       "conversionConfig": "src/config/conversion/qwen3/qwen-3-embedding-0-6b-f16-af32.json",
@@ -4145,6 +4162,24 @@
       },
       "status": "conversion-ready",
       "nextAction": "Catalog, verify, and publish qwen-3-reranker-0-6b-f16-true-logit-af32 before claiming runtime support.",
+      "nextCommand": null
+    },
+    {
+      "modelBaseId": "qwen3-8-27b-text-source-q4_0-af32",
+      "family": "qwen3",
+      "conversionConfig": "src/config/conversion/qwen3/qwen3.8-27b-q4_0-passthrough.json",
+      "sourceCheckpointId": "Qwen/Qwen3.8-27B",
+      "architecture": {
+        "artifactFormat": "rdrr",
+        "weights": "q4_0",
+        "embeddings": "q4_0",
+        "lmHead": "q6k",
+        "computePrecision": "f32",
+        "q4kLayout": "row",
+        "label": "RDRR, q4_0 weights, q4_0 embeddings, q6k LM head, f32 compute, row Q4K layout"
+      },
+      "status": "conversion-ready",
+      "nextAction": "Catalog, verify, and publish qwen3-8-27b-text-source-q4_0-af32 before claiming runtime support.",
       "nextCommand": null
     },
     {

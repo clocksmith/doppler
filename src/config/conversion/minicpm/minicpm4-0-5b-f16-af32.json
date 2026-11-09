@@ -13,11 +13,9 @@
     "computePrecision": "f32"
   },
   "manifest": {
-    "hashAlgorithm": "blake3",
+    "hashAlgorithm": "sha256",
     "artifactIdentity": {
       "sourceCheckpointId": "openbmb/MiniCPM4-0.5B",
-      "weightCapsuleId": "minicpm4-0-5b-f16-af32-wp-catalog-v1",
-      "manifestVariantId": "minicpm4-0-5b-f16-af32-mv-exec-v1",
       "artifactCompleteness": "complete"
     },
     "eosTokenId": 73440
@@ -34,7 +32,7 @@
       "attentionOutputGate": false
     },
     "normalization": {
-      "rmsNormEps": 0.00001,
+      "rmsNormEps": 1e-05,
       "rmsNormWeightOffset": false,
       "postAttentionNorm": true,
       "preFeedforwardNorm": false,
