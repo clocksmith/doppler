@@ -1,0 +1,132 @@
+{
+  "schema": "doppler.flash-next-source-order-controls/v1",
+  "scope": "Three-position prefix controls, same-input activations and two separate F32-KV prefill candidates on AMD; not production numerical qualification",
+  "manifestSha256": "4902a0b730a9310903b00bc0f8f587528fa1af9f37a722d2f9287bafceceec09",
+  "inputsSha256": "06a819d529593b58abd6cb27566bb835a9b91aac13a77c0c7479b7e4e7b0c378",
+  "referenceSha256": "ce4cb138b1919474d85507e06faa9ca167d87fd143bb85a7411f5443cea9a897",
+  "policySha256": "f1c4629d593ec2517e3628ac68131dc7568c6aba5e0f03db627d26228c720413",
+  "sourcePositions": [
+    1717,
+    2271,
+    2303
+  ],
+  "sourceLayers": [
+    0,
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10,
+    11,
+    12,
+    13,
+    14,
+    15,
+    16,
+    17,
+    18,
+    19,
+    20,
+    21,
+    22,
+    23,
+    24,
+    25
+  ],
+  "canonicalRuntimeChanged": false,
+  "artifactChanged": false,
+  "acceptanceChanged": false,
+  "fullModelQualified": false,
+  "files": {
+    "prefix-relative.json": {
+      "sha256": "f4633b252b550c4ce6b3f3faae84806b9cb8c80018df388a5cfc5b012b352905",
+      "bytes": 63152
+    },
+    "norm-product-control.json": {
+      "sha256": "42ed8ec608ff822f737305bebc2e65794989de125aad16562bc59fc147ebfe46",
+      "bytes": 2421
+    },
+    "injection-baseline.json": {
+      "sha256": "f6505a8348ff4698c7496ef79cd8f8ec7b961ad161be221b135fe5b3d0eafa6f",
+      "bytes": 3618
+    },
+    "injection-candidate.json": {
+      "sha256": "94d1eaeba30d76d887b7d89437511a3463d3e1f6ff7339cd6ccf0ff40d4fd42d",
+      "bytes": 3621
+    },
+    "mix-baseline.json": {
+      "sha256": "7aa8ae5ecfe8ddd9475f3efbdccf0c44da15c3f29cf3992565f7c876cb5e52ff",
+      "bytes": 3663
+    },
+    "mix-candidate.json": {
+      "sha256": "ce67ab50756eaad9e79b2419d4c58bcea653115319d9f60ac770b84b4fc764ad",
+      "bytes": 3662
+    },
+    "injection-prefill.json": {
+      "sha256": "d11a8fb01b75dd5eb9e867aa8bdeea00d8b60f4dc228977f9ee82b7076166659",
+      "bytes": 1554
+    },
+    "mix-injection-prefill.json": {
+      "sha256": "a94d643e45b75fa61fd07da8f405a78a8639b6090ed0528667cb61886b9d59e2",
+      "bytes": 1554
+    },
+    "injection-run.json.gz": {
+      "sha256": "754aecb5b83cee0b4c4a1926e1d05200a6a8f0b87ad78ddac5759289a54d0f2b",
+      "bytes": 8245,
+      "uncompressedSha256": "f0608613ca8d7dcac8851834d81c047d7b3f69f4e715db8a86214c86ae97e71c",
+      "uncompressedBytes": 193011
+    },
+    "injection-observation.json.gz": {
+      "sha256": "784807b81777805fa824068c02d2f589e07386fe2ce7391b4e9b8267ec17d504",
+      "bytes": 8208,
+      "uncompressedSha256": "090ecaf3fcffc3d23bee6a6cd51ee307218233002cdf139e74a7613eef1455c6",
+      "uncompressedBytes": 185430
+    },
+    "mix-injection-run.json.gz": {
+      "sha256": "0cccd920f2a3bbf0bf1efc1baf601e81bb6b9dc71ee4959ea5d2639d63e1c0fa",
+      "bytes": 8265,
+      "uncompressedSha256": "4c34a37c40726cbc6a6f0fc6202aa4acd321a6bfc424db7e6a6ff4cf7a4ddadd",
+      "uncompressedBytes": 193045
+    },
+    "mix-injection-observation.json.gz": {
+      "sha256": "a7e9be554bca4d361aedaa12fecd8867dd92c48f363d6cc7e218a11664b587b3",
+      "bytes": 8240,
+      "uncompressedSha256": "17c8e09b79a60e853dab209b4ef854d1281b918b15b32963bbdee6c4dc4f3c48",
+      "uncompressedBytes": 185556
+    },
+    "injection.patch.gz": {
+      "sha256": "7b646b94aea7640f85fc0437f14cc7b9683aec09853d9b4bc7d8ea82ae558f9e",
+      "bytes": 685,
+      "uncompressedSha256": "228fee1cea7a75ee0bd526da41a2e6d6def353c444f019ed2e77f50b06f18dcb",
+      "uncompressedBytes": 1366
+    },
+    "mix-injection.patch.gz": {
+      "sha256": "6377a748a9caf5846fc8f155527f052dcca59917c145c43eb4741ad19d664c90",
+      "bytes": 712,
+      "uncompressedSha256": "574eca6abc66d212e3cf9a23ca529d769d1927089ff895b8d7255870acac90b8",
+      "uncompressedBytes": 1670
+    }
+  },
+  "limitations": [
+    "Single AMD host; no Metal candidate run",
+    "Prefill comparisons only; independent F32-KV decode reference is not part of this packet",
+    "Both long-input candidates fail the unchanged gate",
+    "Small operator improvements do not prove an end-to-end fix or speedup",
+    "Large raw tensor and logit payloads remain operator-local, identified by SHA-256 in the retained observations"
+  ],
+  "candidateShaders": {
+    "injection": {
+      "baselineSha256": "fb7406030b4f2892f982daf0543d86e26c27362bdbe1a8660f05e5e8efe0edd3",
+      "candidateSha256": "ac737195b8f3d09756e44fa2bb09218e32b23793fefacbd65f12094bffc86dd9"
+    },
+    "mix-injection": {
+      "baselineSha256": "fb7406030b4f2892f982daf0543d86e26c27362bdbe1a8660f05e5e8efe0edd3",
+      "candidateSha256": "ec0afe97a6c2f141acd5bbe7feb5a57f64de6915d5990d344f914f0ce840e5cf"
+    }
+  }
+}

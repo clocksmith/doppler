@@ -1,0 +1,42 @@
+{
+  "scope": "Separate F32-KV candidate against matching independent source; original F16 gate untouched",
+  "policyId": "doppler.boundary-tolerance/quantized-v1",
+  "policySha256": "f1c4629d593ec2517e3628ac68131dc7568c6aba5e0f03db627d26228c720413",
+  "gpuSha256": "17c8e09b79a60e853dab209b4ef854d1281b918b15b32963bbdee6c4dc4f3c48",
+  "referenceSha256": "ce4cb138b1919474d85507e06faa9ca167d87fd143bb85a7411f5443cea9a897",
+  "referenceBindingSha256": "637bfd38cd89de7249abbac62b3cc2c7491b18c44c5819dde2446c333a4858b5",
+  "manifestSha256": "4902a0b730a9310903b00bc0f8f587528fa1af9f37a722d2f9287bafceceec09",
+  "inputsSha256": "06a819d529593b58abd6cb27566bb835a9b91aac13a77c0c7479b7e4e7b0c378",
+  "rows": [
+    {
+      "id": "short",
+      "count": 248320,
+      "maxAbsoluteError": 2.09808349609375e-05,
+      "rmsError": 4.006176190418957e-06,
+      "outsidePolicy": 0,
+      "firstTokenAgrees": true,
+      "passed": true,
+      "diagnostics": {
+        "klNats": 3.994268582933628e-12,
+        "top20Overlap": 20
+      }
+    },
+    {
+      "id": "long",
+      "count": 248320,
+      "maxAbsoluteError": 0.10901165008544922,
+      "rmsError": 0.014797754137738643,
+      "outsidePolicy": 13,
+      "firstTokenAgrees": true,
+      "passed": false,
+      "diagnostics": {
+        "klNats": 3.840648128619187e-06,
+        "top20Overlap": 20
+      }
+    }
+  ],
+  "passed": false,
+  "scopeOfVerdict": "Observed prefill rows only; decode and full-model qualification are not established",
+  "fullModelQualified": false,
+  "diagnosticsAreNotAcceptance": true
+}

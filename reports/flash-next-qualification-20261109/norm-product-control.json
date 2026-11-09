@@ -1,0 +1,90 @@
+{
+  "scope": "CPU simulation of one grouping and product-rounding choice against PyTorch squared-mean on identical retained GPU inputs; not a GPU experiment or qualification",
+  "gpuTraceSha256": "4bcb97c676cbec37bb066372a3949112763a86d9958e21e58fac38328282245f",
+  "scriptSha256": "5b4b196f90ec5bf0313efc091be98ba76b3c41454ce052d02f3ae6fd3f5f9f6a",
+  "workgroupSize": 256,
+  "rows": [
+    {
+      "role": "attn_hc",
+      "positions": [
+        1717,
+        2271,
+        2303
+      ],
+      "groups": 12,
+      "fusedProductSimulation": {
+        "exactGroups": 7,
+        "maxRelativeError": 1.9226439584470497e-07,
+        "rmsAbsoluteError": 3.116511585386666e-10
+      },
+      "separateProductSimulation": {
+        "exactGroups": 7,
+        "maxRelativeError": 1.9226439584470497e-07,
+        "rmsAbsoluteError": 3.116511585386666e-10
+      },
+      "changedGroups": 0,
+      "sourceVariance": [
+        [
+          0.0009362419950775802,
+          0.0014724449720233679,
+          0.004976999945938587,
+          0.004843967966735363
+        ],
+        [
+          0.00042492002830840647,
+          0.0013027008390054107,
+          0.002245801966637373,
+          0.003442180110141635
+        ],
+        [
+          0.0005195514531806111,
+          0.0013019443722441792,
+          0.003476618556305766,
+          0.0033729965798556805
+        ]
+      ]
+    },
+    {
+      "role": "mlp_hc",
+      "positions": [
+        1717,
+        2271,
+        2303
+      ],
+      "groups": 12,
+      "fusedProductSimulation": {
+        "exactGroups": 10,
+        "maxRelativeError": 1.442295696290603e-07,
+        "rmsAbsoluteError": 1.901054244785863e-10
+      },
+      "separateProductSimulation": {
+        "exactGroups": 9,
+        "maxRelativeError": 1.442295696290603e-07,
+        "rmsAbsoluteError": 1.9305297117420704e-10
+      },
+      "changedGroups": 1,
+      "sourceVariance": [
+        [
+          0.0008630357915535569,
+          0.001370887504890561,
+          0.0049773030914366245,
+          0.004610018339008093
+        ],
+        [
+          0.00035352804115973413,
+          0.0012207962572574615,
+          0.0022459421306848526,
+          0.0032286117784678936
+        ],
+        [
+          0.00042815133929252625,
+          0.0012078562285751104,
+          0.0034766674507409334,
+          0.0032119087409228086
+        ]
+      ]
+    }
+  ],
+  "runtimeChanged": false,
+  "acceptanceChanged": false
+}

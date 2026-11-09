@@ -1,0 +1,130 @@
+{
+  "scope": "Physical same-input activation replay and range controls; not a model qualification or performance result",
+  "activationMode": "mix_sigmoid",
+  "kind": "baseline",
+  "fixtureSha256": "6695003c9237457f4e1f2b2e1730e50c44fdac6425a095fe8973b31bbe61e853",
+  "shaderSha256": "fb7406030b4f2892f982daf0543d86e26c27362bdbe1a8660f05e5e8efe0edd3",
+  "referenceSha256": "5ed4c227ba466f3018ad8c456483c22d374f2d633377a5da98294eb36827ea02",
+  "rows": [
+    {
+      "case": "retained",
+      "mode": "immediate",
+      "count": 1597440,
+      "exact": 1200266,
+      "maxAbsolute": 1.1920928955078125e-7,
+      "rms": 1.0947368484516356e-8,
+      "f64BoundRatio": 0.4109193741253516,
+      "sha256": "b52bf271071e23606ed05fb564dfae304be45a860bf736e18b071716153adcb8"
+    },
+    {
+      "case": "retained",
+      "mode": "recorded",
+      "count": 1597440,
+      "exact": 1200266,
+      "maxAbsolute": 1.1920928955078125e-7,
+      "rms": 1.0947368484516356e-8,
+      "f64BoundRatio": 0.4109193741253516,
+      "sha256": "b52bf271071e23606ed05fb564dfae304be45a860bf736e18b071716153adcb8"
+    },
+    {
+      "case": "range",
+      "mode": "immediate",
+      "count": 4096,
+      "exact": 3372,
+      "maxAbsolute": 5.960464477539063e-8,
+      "rms": 2.3542929279544996e-9,
+      "f64BoundRatio": 0.9356545143023589,
+      "sha256": "8b4415eadd7b2bfb0afb0bd93d892f68dd69a6d2916ca3c913f15a6b8b78865f"
+    },
+    {
+      "case": "range",
+      "mode": "recorded",
+      "count": 4096,
+      "exact": 3372,
+      "maxAbsolute": 5.960464477539063e-8,
+      "rms": 2.3542929279544996e-9,
+      "f64BoundRatio": 0.9356545143023589,
+      "sha256": "8b4415eadd7b2bfb0afb0bd93d892f68dd69a6d2916ca3c913f15a6b8b78865f"
+    }
+  ],
+  "passed": true,
+  "gpuErrors": [],
+  "cleanupFailures": [],
+  "provider": {
+    "schema": "doe.webgpu-provider-receipt/v1",
+    "contract": "doe.webgpu-provider/v1",
+    "implementation": "doppler",
+    "providers": [
+      {
+        "id": "pre-installed",
+        "kind": "global"
+      },
+      {
+        "id": "webgpu",
+        "kind": "module",
+        "module": "webgpu",
+        "gpu": {
+          "kind": "factory",
+          "path": "create",
+          "args": [
+            [
+              "enable-dawn-features=allow_unsafe_apis"
+            ]
+          ]
+        },
+        "globals": {
+          "GPUBufferUsage": "globals.GPUBufferUsage",
+          "GPUShaderStage": "globals.GPUShaderStage",
+          "GPUMapMode": "globals.GPUMapMode",
+          "GPUTextureUsage": "globals.GPUTextureUsage"
+        }
+      }
+    ],
+    "providerOrder": [
+      "pre-installed",
+      "webgpu"
+    ],
+    "adapterOptions": null,
+    "globals": {
+      "mode": "replace",
+      "installed": [
+        "GPUBufferUsage",
+        "GPUShaderStage",
+        "GPUMapMode",
+        "GPUTextureUsage",
+        "navigator.gpu"
+      ],
+      "restored": true
+    },
+    "attempts": [
+      {
+        "providerId": "pre-installed",
+        "kind": "global",
+        "module": null,
+        "ok": false,
+        "stage": "gpu.validate",
+        "code": "DOPPLER_PROVIDER_UNAVAILABLE",
+        "detail": "Selected provider does not expose GPU.requestAdapter()."
+      },
+      {
+        "providerId": "webgpu",
+        "kind": "module",
+        "module": "webgpu",
+        "ok": true,
+        "stage": "complete",
+        "code": null,
+        "detail": null
+      }
+    ],
+    "selectedProviderId": "webgpu",
+    "ok": true
+  },
+  "adapter": {
+    "vendor": "amd",
+    "architecture": "rdna-3",
+    "device": "radeon-8060s-graphics-radv-strix-halo-",
+    "description": "radv: Mesa 26.0.3-1ubuntu1",
+    "subgroupMinSize": 32,
+    "subgroupMaxSize": 64
+  }
+}
