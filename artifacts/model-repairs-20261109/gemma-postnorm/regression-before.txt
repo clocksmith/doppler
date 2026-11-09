@@ -1,0 +1,19 @@
+[GPU] apple metal-3, f16/subgroups, 4.0GB, submit probe: 0.6ms
+node:internal/modules/run_main:123
+    triggerUncaughtException(
+    ^
+
+AssertionError [ERR_ASSERTION]: Fused Q4 gate/up returns F32; the declared down step requires a GPU cast to F16.
+
+'f32' !== 'f16'
+
+    at file://<repo>/tests/inference/fused-postnorm-dtype-gpu.test.js:52:10 {
+  generatedMessage: false,
+  code: 'ERR_ASSERTION',
+  actual: 'f32',
+  expected: 'f16',
+  operator: 'strictEqual',
+  diff: 'simple'
+}
+
+Node.js v22.20.0

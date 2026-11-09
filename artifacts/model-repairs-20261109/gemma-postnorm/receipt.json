@@ -115,12 +115,12 @@
       "sha256": "80570c5ecc502a97bbaa31d109cff0b8dc7cf90f6f0fe2462866b786314e7449"
     },
     {
-      "path": "regression-after.log",
+      "path": "regression-after.txt",
       "bytes": 162,
       "sha256": "0cb4a14425f842f44e945d45c41e3ab2f2bd5f740d813f78eda0f97e4bca4468"
     },
     {
-      "path": "regression-before.log",
+      "path": "regression-before.txt",
       "bytes": 496,
       "sha256": "4e7cc3dcc9307ebc17d0404ed5c90d5b808b20a28bd0c82b9fcef9d6f1dd5fbc"
     },
