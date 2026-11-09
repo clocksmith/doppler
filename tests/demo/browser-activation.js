@@ -68,7 +68,7 @@ export async function checkActivationPlayback(page) {
   const download = await pending;
   const reopened = validateRecording(JSON.parse(await fs.readFile(await download.path(), 'utf8')));
   assert.deepEqual(reopened.trace, recording.trace, 'Offline export preserves every numerical value');
-  assert(reopened.display.scales['layer-output:overview'] > 0, 'Export preserves the fixed view scale');
+  assert.equal(reopened.display.scales[`${await page.inputValue('#activity-mode')}:overview`], Number(scale), 'Export preserves the fixed view scale');
   await page.setInputFiles('#import-file', { name: 'bad.json', mimeType: 'application/json', buffer: Buffer.from('{"schema":"doppler.activation-recording/v1"}') });
   await page.waitForFunction(() => document.querySelector('#activation-status').textContent.includes('Invalid'));
   assert.equal(await page.evaluate(async () => (await import(new URL('ui/activation-grid/index.js', document.querySelector('script[src$="/demo.js"]').src))).getActivationRecording().demoBuild), 'synthetic-ui-test', 'Invalid imports preserve the accepted recording');
@@ -108,7 +108,9 @@ export async function checkRealActivityPlayback(page) {
   assert.equal(await page.locator('#activity-explanation').isVisible(), false);
   assert.equal(await page.locator('#activation-live').isVisible(), false, 'Saved recordings have no live-follow action');
   assert.equal(await page.locator('#activity-paths-button').isVisible(), false, 'Unpinned paths need no follow-layer action');
-  assert.equal(await page.inputValue('#activity-mode'), 'model-paths', 'The spatial view opens by default');
+  assert.equal(await page.inputValue('#activity-mode'), 'difference', 'Activation changes opens by default');
+  await page.selectOption('#activity-mode', 'model-paths');
+  await page.locator('#activity-paths').waitFor({state:'visible'});
   assert.equal(await page.locator('#activity-paths').isVisible(), true);
   assert.equal(await page.locator('.activity-path-layer').count(), 24);
   await page.getByRole('button', {name:'Inspect layer 4', exact:true}).click();
@@ -229,12 +231,12 @@ export async function checkLiveActivity(page) {
   }, {position,value});
   await emit(0,1);
   await page.waitForFunction(() => document.querySelector('#activation-caption').textContent.startsWith('Live'));
-  assert.equal(await page.inputValue('#activity-mode'), 'model-paths', 'A static snapshot switches to live activity when generation begins');
-  const pixels = () => page.locator('.activity-path-activations canvas').evaluate(c => [...c.getContext('2d').getImageData(0,0,c.width,c.height).data]);
+  assert.equal(await page.inputValue('#activity-mode'), 'difference', 'A static snapshot switches to activation changes when generation begins');
+  const pixels = () => page.locator('#activation-canvas').evaluate(c => [...c.getContext('2d').getImageData(0,0,c.width,c.height).data]);
   const startPixels = await pixels();
   await emit(1,.2);
   await page.waitForFunction(() => document.querySelector('#activation-position').value === '1');
-  assert.notDeepEqual(await pixels(), startPixels, 'The default path view includes a changing activation heatmap');
+  assert.notDeepEqual(await pixels(), startPixels, 'The default difference view changes as tokens arrive');
   await page.selectOption('#activity-mode', 'contributions');
   await page.evaluate(() => new Promise(requestAnimationFrame));
   const image = () => page.locator('#activation-canvas').evaluate(c => [...c.getContext('2d').getImageData(0,0,c.width,c.height).data]);

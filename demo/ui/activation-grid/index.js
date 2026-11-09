@@ -57,10 +57,13 @@ function paint() {
   $('activity-source').hidden = !timeline.length && !exampleLoading;
   if (!exampleLoading && recording) $('activity-source').textContent = `${source} · ${trace?.identity.logicalModelId ?? trace?.identity.modelId}`;
   const select = $('activity-mode'), availability = activityModes(recording);
-  if (!select.options.length) for (const name of [...new Set(availability.map(m => m.group))]) {
-    const group = document.createElement('optgroup'); group.label = name;
-    for (const mode of availability.filter(m => m.group === name)) group.append(new Option(mode.label, mode.id));
-    select.append(group);
+  if (!select.options.length) {
+    for (const name of [...new Set(availability.map(m => m.group))]) {
+      const group = document.createElement('optgroup'); group.label = name;
+      for (const mode of availability.filter(m => m.group === name)) group.append(new Option(mode.label, mode.id));
+      select.append(group);
+    }
+    select.value = config.defaultMode;
   }
   for (const option of select.options) {
     const mode = availability.find(m => m.id === option.value);
@@ -153,7 +156,9 @@ function paint() {
   const present = view.values.filter(v => v !== undefined).length;
   if (!present && !chosen?.reason) {
     $('activity-availability').hidden = false;
-    $('activity-availability').textContent = 'No values captured at this position and layer. Select an earlier prompt position or another layer; fused-away stages and uncaptured windows are unavailable.';
+    $('activity-availability').textContent = select.value === 'difference' && !baseline && position === 0
+      ? 'Waiting for the next token to measure change.'
+      : 'No values captured at this position and layer. Select an earlier prompt position or another layer; fused-away stages and uncaptured windows are unavailable.';
   }
   const playMeaning = snapshot ? 'Snapshot: no token playback.' : $('activity-playback').value === 'tokens'
     ? 'Play selects token positions; prefill positions were computed together.'
@@ -221,9 +226,9 @@ function queuePaint() { if (scheduled === null) scheduled = requestAnimationFram
 export function beginActivationRecording() {
   if (!isActivationRecordingEnabled()) return;
   const mode = activityModes(recording).find(m => m.id === $('activity-mode').value);
-  if (!mode || mode.clock === 'snapshot') $('activity-mode').value = 'model-paths';
+  if (!mode || mode.clock === 'snapshot') $('activity-mode').value = config.defaultMode;
   $('activity-layer').value = '-1';
-  $('activity-playback').value = 'captures';
+  $('activity-playback').value = activityModes(recording).find(m => m.id === $('activity-mode').value)?.clock === 'boundary' ? 'captures' : 'tokens';
   revision++; source = 'Current run';
   stopPlayback(); baseline = null; recording = null; cursor = 0; follow = true; active = true;
   document.getElementById('app')?.setAttribute('data-live-activity', '');
@@ -420,7 +425,7 @@ export function initActivationGrid() {
       queuePaint();
     }
   }
-  $('activity-example').addEventListener('click', () => { void loadExample('model-paths'); });
+  $('activity-example').addEventListener('click', () => { void loadExample(config.defaultMode); });
   for (const preview of previews) {
     const card = document.createElement('button');
     card.type = 'button'; card.className = 'activity-preview'; card.dataset.mode = preview.mode;
@@ -450,7 +455,7 @@ export function initActivationGrid() {
   }
   const observer = new IntersectionObserver(entries => {
     if (entries.some(e => e.isIntersecting) && $('activity-auto-example').checked && !recording && !active && !exampleLoading) {
-      observer.disconnect(); void loadExample('model-paths', true);
+      observer.disconnect(); void loadExample(config.defaultMode, true);
     }
   });
   observer.observe($('activation-view'));

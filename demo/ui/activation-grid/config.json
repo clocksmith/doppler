@@ -93,5 +93,6 @@
   },
   "autoExample": true,
   "examplePreferenceKey": "doppler.demo.activity-example",
-  "defaultPlayback": "captures"
+  "defaultPlayback": "tokens",
+  "defaultMode": "difference"
 }

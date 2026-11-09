@@ -49,6 +49,8 @@ try {
         if (result.last !== String(digest)) result.pathChanges++;
       }
       if (result.last !== String(digest)) result.colorChanges++;
+      const gridBox = canvas.getBoundingClientRect();
+      if (!canvas.hidden && gridBox.top >= 0 && gridBox.bottom <= innerHeight) result.visibleActivations++;
       result.last = String(digest);
       if (document.querySelector('#stop-btn').checkVisibility()) result.duringGeneration++;
       if (result.captions.length < 16) result.captions.push(caption);
@@ -77,8 +79,9 @@ try {
   assert.equal(receipt.modes.filter(m => m.available).length, 19);
   assert.equal(receipt.gaps, 0); assert.equal(receipt.captured, receipt.frames);
   const live = await page.evaluate(() => globalThis.__liveGridCheck);
-  assert(live.duringGeneration > 1 && live.pathChanges > 1, 'Visible model paths change while generation is active');
-  assert(live.activationChanges > 1 && live.visibleActivations > 1, 'The activation heatmap changes in the viewport during generation');
+  assert.equal(await page.inputValue('#activity-mode'), 'difference');
+  assert(live.duringGeneration > 1 && live.colorChanges > 1, 'Default activation changes update while generation is active');
+  assert(live.visibleActivations > 1, 'The activation heatmap is in the viewport during generation');
   const release = await (await page.request.get(origin + '/doppler/release.json')).json();
   const result = { origin, browser: browser.version(), release, defaultPrompt, receipt, live, errors };
   await page.locator('#activation-view').screenshot({ path: out + '/grid.png' });

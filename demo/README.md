@@ -30,7 +30,8 @@ Secondary actions use quiet text controls. Loaded models show status rather than
 a redundant disabled Load button.
 An empty composer receives the example prompt on both fresh and cached-model
 visits, without replacing entered text. Starting a recorded run leaves static
-snapshots for live Model paths. That view includes a layer-by-dimension activation
+snapshots for live Activation changes, comparing the current and previous token.
+Model paths remains selectable and includes a layer-by-dimension activation
 heatmap from the captured layer outputs, with a fixed signed color scale. Rows
 fill at their capture boundaries; this is not a simultaneous hardware snapshot.
 Wide screens place activity beside the conversation. Narrow screens bring the
