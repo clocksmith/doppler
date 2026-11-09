@@ -7,7 +7,8 @@ export interface GridElements {
   'activity-intro': HTMLElement; 'activity-auto-example': HTMLInputElement;
   'activity-maps': HTMLElement; 'activity-title': HTMLElement; 'activity-method': HTMLElement;
   'activity-explanation': HTMLElement; 'activity-coverage': HTMLElement;
-  'activity-legend': HTMLElement;
+  'activity-paths': HTMLElement; 'activity-paths-button': HTMLButtonElement;
+  'activity-legend': HTMLElement; 'activity-update': HTMLElement; 'activation-timeline': HTMLElement;
   'activity-mode': HTMLSelectElement; 'activity-layer': HTMLSelectElement; 'activity-playback': HTMLSelectElement;
   'activity-weight': HTMLSelectElement; 'activity-detail': HTMLSelectElement;
   'activity-page': HTMLInputElement; 'activity-compare-file': HTMLInputElement;

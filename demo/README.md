@@ -191,6 +191,30 @@ arithmetic replays. They are not current-conversation measurements or complete
 F32-versus-F16 model runs. Neither comparison is a throughput or quality benchmark.
 
 
+## Model paths, snapshots and playback
+
+**Model paths** is the default activity view. Its layer strip has stable positions;
+the selected layer exposes the recorded attention/memory kind and the feed-forward
+gate/up/product branches. Nodes show RMS from captured values, with explicitly
+weighted state summaries. Missing stages stay empty. The last captured stage gets
+a bold outline; the overview follows its layer during live capture. Selecting a
+layer pins it until **Model paths** or **Follow latest layer** restores follow.
+Connections show model structure, not per-edge influence or literal moving data.
+Normalization/residual transforms and unrecorded outputs are explicitly omitted.
+This view requires recorded layer types; it does not invent an architecture for
+recordings without that metadata.
+
+Views are separated in the selector and primary labels:
+
+- **Token playback**: layer outputs, FFN stages, differences, KV, current-query
+  attention, memory gates, logits/probabilities and available expert routing.
+- **Captured updates**: model paths advance the captured operators; recurrent
+  and convolution state advance their own chunk/decode snapshots; residency
+  advances observed dispatch events. Values can remain unchanged between updates.
+- **Snapshots**: fixed weights, weight quantization error and whole-prompt
+  attention. These have no Play, Live or scrub controls. Whole-prompt attention
+  shows the recorded prompt as a whole; it can fill in during live prefill.
+
 ## Model activity recording and playback
 
 **Model activity** opens a real Qwen 0.8B capture (about 20 MB compressed)

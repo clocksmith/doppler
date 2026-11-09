@@ -50,3 +50,25 @@
 @media (max-width: 600px) { #app .activity-gallery--compact { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 
 #app .activity-preview-key { border-bottom: 6px solid; width: 100%; padding-bottom: 4px; font-variant-numeric: tabular-nums; }
+
+#app .activity-cadence { font: 400 11px/1.4 var(--font-sans); color: var(--doppler-muted); }
+
+.activity-paths { display:grid; grid-template-columns:54px minmax(0,1fr); gap:16px; max-width:560px; align-items:start; }
+.activity-path-layers { position:relative; display:grid; gap:4px; max-height:700px; overflow:auto; }
+#app .activity-path-layer { min-height:24px; padding:2px 6px; font:500 11px/1.4 var(--font-sans); border:1px solid var(--doppler-line); border-left:8px solid var(--path-color); border-radius:4px; background:var(--doppler-surface); color:var(--fg); cursor:pointer; }
+#app .activity-path-layer[aria-pressed="true"] { outline:1px solid var(--fg); outline-offset:-1px; }
+.activity-path-detail svg { width:100%; display:block; color:var(--fg); max-height:720px; }
+.activity-path-node { fill:var(--doppler-surface); stroke:var(--doppler-muted); stroke-width:1; }
+.activity-paths g[data-latest="true"] .activity-path-node { stroke:var(--fg); stroke-width:2.5; }
+.activity-path-label { fill:var(--fg); font:500 11px var(--font-sans); }
+.activity-path-value, .activity-path-note { fill:var(--doppler-muted); font:400 9px var(--font-sans); }
+@media(max-width:600px) {
+  .activity-paths { grid-template-columns:1fr; gap:8px; }
+  .activity-path-layers { display:flex; overflow-x:auto; gap:4px; }
+  #app .activity-path-layer { flex:0 0 32px; }
+}
+
+#app .activity-path-choice { justify-self:start; padding:7px 12px; border:1px solid var(--doppler-line); border-radius:8px; background:transparent; color:var(--fg); font:500 12px/1.4 var(--font-sans); cursor:pointer; }
+#app .activity-path-choice[aria-pressed="true"] { border-color:var(--fg); }
+.activity-path-layers { background:linear-gradient(var(--doppler-line),var(--doppler-line)) center / 1px 100% no-repeat; }
+@media(max-width:600px) { .activity-path-layers { background-size:100% 1px; } }

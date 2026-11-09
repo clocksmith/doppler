@@ -11,7 +11,7 @@
       "range": "signed",
       "representation": "raw",
       "underlyingValues": 24576,
-      "sha256": "27e5105c7eda60d744a569eb9c8a215e9b3fd9a2859b384495b725ceb085f4be"
+      "sha256": "b6f247a7c3890178813ed4da9190928bffdd22eb7d9d8c8cc427ea95c9492e59"
     },
     {
       "mode": "weights",
@@ -20,7 +20,7 @@
       "range": "positive",
       "representation": "aggregated",
       "underlyingValues": 1006178304,
-      "sha256": "5bebdf61c5e618c20f82a8662323386bf3fbccf95fa3164e0ae087f811623e0f"
+      "sha256": "ee1155b47f9c48ed8a9e605b8b0d6025dc399dd1611daee19cb2efcf671515fb"
     },
     {
       "mode": "contributions",
@@ -29,7 +29,7 @@
       "range": "positive",
       "representation": "aggregated",
       "underlyingValues": 3670016,
-      "sha256": "5be79fb1a73f7d4ad85cb6e21bfe13b9491d47bf909459138acce2bbe23ce4a4"
+      "sha256": "82d8126e12c18ca3502d37c2ab6d0888dc3d5876b29d67c3901b14b841c20e8c"
     },
     {
       "mode": "attention-prefill",
@@ -38,7 +38,7 @@
       "range": "unit",
       "representation": "reconstructed",
       "underlyingValues": 15552,
-      "sha256": "0f6928ded3bc8fe4c35020e6a9b3bb4ba28d939c47b63d3ef620231eef447d2d"
+      "sha256": "ed1881c0851ca77efd0b26ad885b5dfdcf2a2f32bc985f030bc142e4b66e3c55"
     },
     {
       "mode": "kv-cache",
@@ -47,7 +47,7 @@
       "range": "signed",
       "representation": "raw",
       "underlyingValues": 110592,
-      "sha256": "e47481ced441634f3daedb32990f9919cecedf0a59bc3d5c52624a9710ef6c2e"
+      "sha256": "432f6e724672cfb99b2325b3c17ee405e6e87aa7272be9c88f7553b4a8ec5218"
     },
     {
       "mode": "recurrent-memory",
@@ -56,7 +56,7 @@
       "range": "positive",
       "representation": "aggregated",
       "underlyingValues": 4718592,
-      "sha256": "dac890bd7da59b2e0a5c57277b419fefe0c674471f727f22c538b5cd7fc4ddee"
+      "sha256": "62acc88b6579286866ae6ce8b34358167cf22ca4e3250f85a7e609595afb1076"
     }
   ]
 }

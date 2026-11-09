@@ -22,7 +22,7 @@ for (const preview of previews) {
   const scale = view.range === 'unit' || view.range === 'residency' ? 1 : initialColorScale(view.values, recording.display.scale);
   const { side, rgba } = colorGrid(view.values, scale, view.range);
   if (!side || !view.values.some(v => v !== undefined)) throw new Error(`Empty preview: ${preview.mode}`);
-  const png = await sharp(Buffer.from(rgba), { raw: { width: side, height: side, channels: 4 } }).removeAlpha().png().toBuffer();
+  const png = await sharp(Buffer.from(rgba), { raw: { width: side, height: side, channels: 4 } }).removeAlpha().png({ compressionLevel: 9, adaptiveFiltering: false }).toBuffer();
   const file = new URL(`activity-preview-${preview.mode}.png`, root);
   if (check) { if (!png.equals(await fs.readFile(file))) throw new Error(`Stale preview: ${preview.mode}`); }
   else await fs.writeFile(file, png);

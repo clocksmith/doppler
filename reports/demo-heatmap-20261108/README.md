@@ -45,4 +45,4 @@ Weight/input overviews are RMS products, not causal attribution. Recurrent prefi
 is recorded after chunks, not every intermediate prompt position. Raw windows and capture
 budgets remain bounded. No new all-model, 27B, MoE or long-context qualification is claimed.
 
-A separate deployed physical smoke receipt will record the short real-model streaming check.
+The deployed physical smoke at source 0c0ff3ac is retained in physical-0c0ff3ac.json: Qwen 0.8B returned “hello!”, 72/72 layer frames and 576 activity frames with no gaps or browser errors. The visible heatmap changed 40 times while generation was active. This verifies that short deployed stream, not arbitrary models or long captures.

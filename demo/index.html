@@ -419,8 +419,9 @@
           </div>
 
           <div id="activation-player" class="activation-player" hidden>
+            <button id="activity-paths-button" class="activity-path-choice" type="button">Model paths</button>
             <label class="activity-view-choice">View <select id="activity-mode" aria-label="Activity grid"></select></label>
-            <div class="activation-timeline">
+            <div id="activation-timeline" class="activation-timeline">
               <button id="activation-live" class="btn btn-small" type="button" aria-pressed="true">Live</button>
               <button id="activation-play" class="btn" type="button" disabled>Play</button>
               <label class="sr-only" for="activation-scrub">Capture</label>
@@ -429,8 +430,10 @@
             <div id="activity-maps" class="activity-maps">
               <figure class="activity-map">
                 <figcaption class="activity-map-head"><h3 id="activity-title">Activations</h3><span id="activity-method" class="activity-method"></span></figcaption>
+                <div id="activity-paths" class="activity-paths" hidden></div>
                 <canvas id="activation-canvas" width="1" height="1" aria-label="Captured model activity"></canvas>
                 <div id="activity-legend" class="activity-legend" aria-label="Color key"></div>
+                <p id="activity-update" class="demo-note"></p>
                 <p id="activity-explanation" class="demo-note"></p>
                 <p id="activity-coverage" class="demo-note"></p>
               </figure>

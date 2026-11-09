@@ -1,21 +1,200 @@
 [
-  {"id":"layer-output","label":"Layer outputs","roles":[]},
-  {"id":"ffn-product","label":"FFN features · activated product","roles":["ffn-product"]},
-  {"id":"ffn-gate","label":"FFN features · gate projection","roles":["ffn-gate"]},
-  {"id":"ffn-up","label":"FFN features · up projection","roles":["ffn-up"]},
-  {"id":"difference","label":"Activation changes","roles":[]},
-  {"id":"weights","label":"Weights","roles":[]},
-  {"id":"contributions","label":"Weight × input","roles":["ffn-down-input"]},
-  {"id":"kv-new","label":"New attention memory","roles":["kv-key","kv-value"]},
-  {"id":"kv-cache","label":"Accumulated attention memory","roles":["kv-key","kv-value"]},
-  {"id":"recurrent-memory","label":"Recurrent memory","roles":["recurrent-memory"]},
-  {"id":"convolution-history","label":"Convolution history","roles":["convolution-history"]},
-  {"id":"attention-query","label":"Attention · current query","roles":["attention-query","kv-key"]},
-  {"id":"attention-prefill","label":"Attention · prompt relationships","roles":["attention-query","kv-key"]},
-  {"id":"linear-gates","label":"Memory retention & update gates","roles":["linear-a","linear-b","linear-a-log","linear-dt-bias"]},
-  {"id":"logits","label":"Next-token scores","roles":["logits"]},
-  {"id":"probabilities","label":"Next-token probabilities","roles":["logits"]},
-  {"id":"quantization-error","label":"Weight quantization error","roles":["quantization-error"]},
-  {"id":"residency","label":"Weight residency & access","roles":[]},
-  {"id":"expert-routing","label":"Expert routing","roles":["expert-indices","expert-weights"]}
+  {
+    "id": "model-paths",
+    "label": "Model paths",
+    "roles": [],
+    "clock": "boundary",
+    "group": "Captured updates",
+    "clockLabel": "Highlights actual capture boundaries"
+  },
+  {
+    "id": "layer-output",
+    "label": "Layer outputs",
+    "roles": [],
+    "clock": "token",
+    "group": "Token playback",
+    "clockLabel": "Changes with token position"
+  },
+  {
+    "id": "ffn-product",
+    "label": "FFN features \u00b7 activated product",
+    "roles": [
+      "ffn-product"
+    ],
+    "clock": "token",
+    "group": "Token playback",
+    "clockLabel": "Changes with token position"
+  },
+  {
+    "id": "ffn-gate",
+    "label": "FFN features \u00b7 gate projection",
+    "roles": [
+      "ffn-gate"
+    ],
+    "clock": "token",
+    "group": "Token playback",
+    "clockLabel": "Changes with token position"
+  },
+  {
+    "id": "ffn-up",
+    "label": "FFN features \u00b7 up projection",
+    "roles": [
+      "ffn-up"
+    ],
+    "clock": "token",
+    "group": "Token playback",
+    "clockLabel": "Changes with token position"
+  },
+  {
+    "id": "difference",
+    "label": "Activation changes",
+    "roles": [],
+    "clock": "token",
+    "group": "Token playback",
+    "clockLabel": "Changes with token position"
+  },
+  {
+    "id": "weights",
+    "label": "Weights",
+    "roles": [],
+    "clock": "snapshot",
+    "group": "Snapshots \u00b7 no playback",
+    "clockLabel": "Fixed weights"
+  },
+  {
+    "id": "contributions",
+    "label": "Weight \u00d7 input",
+    "roles": [
+      "ffn-down-input"
+    ],
+    "clock": "token",
+    "group": "Token playback",
+    "clockLabel": "Changes with token position"
+  },
+  {
+    "id": "kv-new",
+    "label": "New attention memory",
+    "roles": [
+      "kv-key",
+      "kv-value"
+    ],
+    "clock": "token",
+    "group": "Token playback",
+    "clockLabel": "Changes with token position"
+  },
+  {
+    "id": "kv-cache",
+    "label": "Accumulated attention memory",
+    "roles": [
+      "kv-key",
+      "kv-value"
+    ],
+    "clock": "token",
+    "group": "Token playback",
+    "clockLabel": "Changes with token position"
+  },
+  {
+    "id": "recurrent-memory",
+    "label": "Recurrent memory",
+    "roles": [
+      "recurrent-memory"
+    ],
+    "clock": "boundary",
+    "group": "Captured updates",
+    "clockLabel": "After each chunk or decode step"
+  },
+  {
+    "id": "convolution-history",
+    "label": "Convolution history",
+    "roles": [
+      "convolution-history"
+    ],
+    "clock": "boundary",
+    "group": "Captured updates",
+    "clockLabel": "After each chunk or decode step"
+  },
+  {
+    "id": "attention-query",
+    "label": "Attention \u00b7 current query",
+    "roles": [
+      "attention-query",
+      "kv-key"
+    ],
+    "clock": "token",
+    "group": "Token playback",
+    "clockLabel": "Changes with token position"
+  },
+  {
+    "id": "attention-prefill",
+    "label": "Attention \u00b7 prompt relationships",
+    "roles": [
+      "attention-query",
+      "kv-key"
+    ],
+    "clock": "snapshot",
+    "group": "Snapshots \u00b7 no playback",
+    "clockLabel": "Whole-prompt snapshot"
+  },
+  {
+    "id": "linear-gates",
+    "label": "Memory retention & update gates",
+    "roles": [
+      "linear-a",
+      "linear-b",
+      "linear-a-log",
+      "linear-dt-bias"
+    ],
+    "clock": "token",
+    "group": "Token playback",
+    "clockLabel": "Changes with token position"
+  },
+  {
+    "id": "logits",
+    "label": "Next-token scores",
+    "roles": [
+      "logits"
+    ],
+    "clock": "token",
+    "group": "Token playback",
+    "clockLabel": "Changes with token position"
+  },
+  {
+    "id": "probabilities",
+    "label": "Next-token probabilities",
+    "roles": [
+      "logits"
+    ],
+    "clock": "token",
+    "group": "Token playback",
+    "clockLabel": "Changes with token position"
+  },
+  {
+    "id": "quantization-error",
+    "label": "Weight quantization error",
+    "roles": [
+      "quantization-error"
+    ],
+    "clock": "snapshot",
+    "group": "Snapshots \u00b7 no playback",
+    "clockLabel": "Fixed reference comparison"
+  },
+  {
+    "id": "residency",
+    "label": "Weight residency & access",
+    "roles": [],
+    "clock": "boundary",
+    "group": "Captured updates",
+    "clockLabel": "Observed dispatch events"
+  },
+  {
+    "id": "expert-routing",
+    "label": "Expert routing",
+    "roles": [
+      "expert-indices",
+      "expert-weights"
+    ],
+    "clock": "token",
+    "group": "Token playback",
+    "clockLabel": "Changes with token position"
+  }
 ]

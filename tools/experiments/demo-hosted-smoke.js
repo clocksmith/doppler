@@ -24,13 +24,19 @@ try {
   await page.evaluate(() => { const select = document.querySelector('#set-max-tokens'); select.add(new Option('3', '3')); select.value = '3'; select.dispatchEvent(new Event('change', { bubbles: true })); });
   await page.fill('#prompt-input', 'Say hello in one word.');
   await page.evaluate(() => {
-    globalThis.__liveGridCheck = { captions: [], duringGeneration: 0, colorChanges: 0, last: '' };
+    globalThis.__liveGridCheck = { captions: [], duringGeneration: 0, colorChanges: 0, pathChanges: 0, last: '' };
     const observe = () => {
       const caption = document.querySelector('#activation-caption').textContent;
       if (!caption.startsWith('Live')) return;
       const result = globalThis.__liveGridCheck, canvas = document.querySelector('#activation-canvas');
       const bytes = canvas.getContext('2d').getImageData(0, 0, canvas.width, canvas.height).data;
       let digest = 0; for (let i = 0; i < bytes.length; i++) digest = (Math.imul(digest, 31) + bytes[i]) | 0;
+      const paths = document.querySelector('#activity-paths');
+      if (paths && !paths.hidden) {
+        const text = paths.textContent; digest = 0;
+        for (let i = 0; i < text.length; i++) digest = (Math.imul(digest,31) + text.charCodeAt(i)) | 0;
+        if (result.last !== String(digest)) result.pathChanges++;
+      }
       if (result.last !== String(digest)) result.colorChanges++;
       result.last = String(digest);
       if (document.querySelector('#stop-btn').checkVisibility()) result.duringGeneration++;
@@ -57,10 +63,10 @@ try {
   });
   assert(receipt.phases.includes('prefill') && receipt.phases.includes('decode'));
   assert.equal(receipt.activityGaps, 0); assert(receipt.activityFrames > 0);
-  assert.equal(receipt.modes.filter(m => m.available).length, 18);
+  assert.equal(receipt.modes.filter(m => m.available).length, 19);
   assert.equal(receipt.gaps, 0); assert.equal(receipt.captured, receipt.frames);
   const live = await page.evaluate(() => globalThis.__liveGridCheck);
-  assert(live.duringGeneration > 1 && live.colorChanges > 1, 'Heatmap visibly changes while generation is active');
+  assert(live.duringGeneration > 1 && live.pathChanges > 1, 'Visible model paths change while generation is active');
   const release = await (await page.request.get(origin + '/doppler/release.json')).json();
   const result = { origin, browser: browser.version(), release, receipt, live, errors };
   await page.locator('#activation-view').screenshot({ path: out + '/grid.png' });

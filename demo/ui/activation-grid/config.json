@@ -92,5 +92,6 @@
     ]
   },
   "autoExample": true,
-  "examplePreferenceKey": "doppler.demo.activity-example"
+  "examplePreferenceKey": "doppler.demo.activity-example",
+  "defaultPlayback": "captures"
 }

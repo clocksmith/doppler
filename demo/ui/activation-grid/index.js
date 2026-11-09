@@ -3,6 +3,7 @@ import previews from './previews.json' with { type: 'json' };
 import previewData from '../../assets/activity-previews.json' with { type: 'json' };
 import { SHELL_MANIFEST_DIGEST } from '../../generated-shell-manifest.js';
 import { validateRecording, colorGrid, initialColorScale, heatmapColor } from './data.js';
+import { modelPathView, renderModelPaths } from './paths.js';
 import { encodeRecording } from './recording-codec.js';
 import { activityView, activityModes, playbackPoints, assertMatchedRuns } from './views.js';
 
@@ -37,7 +38,7 @@ function stopPlayback() {
 
 function scaleKey() { return `${$('activity-mode').value}:${$('activity-detail').value}`; }
 
-function points() { return recording ? playbackPoints(recording, $('activity-playback').value) : []; }
+function points() { return recording ? playbackPoints(recording, $('activity-playback').value, $('activity-mode').value) : []; }
 
 function paint() {
   scheduled = null;
@@ -55,20 +56,32 @@ function paint() {
   $('activity-source').hidden = !timeline.length && !exampleLoading;
   if (!exampleLoading && recording) $('activity-source').textContent = `${source} · ${trace?.identity.logicalModelId ?? trace?.identity.modelId}`;
   const select = $('activity-mode'), availability = activityModes(recording);
-  if (!select.options.length) for (const mode of availability) select.add(new Option(mode.label, mode.id));
+  if (!select.options.length) for (const name of [...new Set(availability.map(m => m.group))]) {
+    const group = document.createElement('optgroup'); group.label = name;
+    for (const mode of availability.filter(m => m.group === name)) group.append(new Option(mode.label, mode.id));
+    select.append(group);
+  }
   for (const option of select.options) {
     const mode = availability.find(m => m.id === option.value);
     option.disabled = Boolean(mode?.reason);
     option.title = mode?.reason ?? mode?.label ?? option.value;
     option.textContent = `${mode?.label}${mode?.reason ? ' · unavailable' : ''}`;
   }
-  const chosen = availability.find(m => m.id === select.value);
+  const chosen = availability.find(m => m.id === select.value), snapshot = chosen?.clock === 'snapshot';
+  $('activation-timeline').hidden = snapshot;
+  for (const id of ['activity-playback', 'activation-speed', 'activation-position']) {
+    const element = $(/** @type {'activity-playback'} */ (id));
+    const field = element.closest('label') ?? element.closest('.demo-range-field');
+    if (field) field.hidden = snapshot;
+  }
+  $('activity-playback').disabled = chosen?.clock === 'boundary';
   for (const card of $('activity-gallery').querySelectorAll('button')) {
     card.setAttribute('aria-pressed', String(card.dataset.mode === select.value && timeline.length > 0));
     card.disabled = exampleLoading || (Boolean(recording) && Boolean(availability.find(m => m.id === card.dataset.mode)?.reason));
   }
   $('activity-availability').textContent = timeline.length ? chosen?.reason ?? '' : '';
   $('activity-availability').hidden = !timeline.length || !chosen?.reason;
+  $('activity-paths-button').disabled = Boolean(availability.find(m => m.id === 'model-paths')?.reason);
   $('activity-weight-controls').hidden = !['weights', 'contributions', 'residency', 'quantization-error', 'recurrent-memory', 'convolution-history'].includes(select.value);
   const weightLabel = $('activity-weight').closest('label');
   if (weightLabel) weightLabel.hidden = ['recurrent-memory', 'convolution-history'].includes(select.value);
@@ -102,7 +115,11 @@ function paint() {
   token.min = '0'; token.max = String(Math.max(...trace.frames.map(f => f.tokenStart + f.tokenIds.length - 1)));
   if (follow || Number(token.value) > Number(token.max)) token.value = String(point.position);
   const position = Number(token.value);
-  const view = activityView(recording, { mode: select.value, atMs: point.atMs, position,
+  const graph = select.value === 'model-paths' ? modelPathView(recording, point.atMs, position, Number(layerSelect.value)) : null;
+  const view = graph ? { values: graph.nodes.map(n => n.magnitude ?? undefined), range: /** @type {const} */ ('positive'),
+    representation:'aggregated', quantity:'Captured RMS magnitude', valuesPerScalar:1, underlyingValues:0, extent:graph.nodes.length, offset:0, segments:[],
+    description:'Color shows captured magnitude, not importance. Connections show computational structure; dashed links omit unrecorded transformations. A bold outline marks the latest captured stage.' }
+    : activityView(recording, { mode: select.value, atMs: snapshot ? Infinity : point.atMs, position,
     layer: Number(layerSelect.value), weightId: weightSelect.value, detail: $('activity-detail').value,
     page: Number($('activity-page').value), baseline });
   const scales = recording.display.scales ??= {};
@@ -116,7 +133,11 @@ function paint() {
   $('activation-scale').disabled = fixedUnit;
   $('activation-scale').value = String(scale);
   const { side, rgba } = colorGrid(view.values, scale, view.range);
-  const canvas = $('activation-canvas'); canvas.hidden = side === 0; canvas.width = Math.max(1, side); canvas.height = Math.max(1, side);
+  const canvas = $('activation-canvas'); canvas.hidden = Boolean(graph) || side === 0;
+  $('activity-paths').hidden = !graph;
+  $('activity-paths-button').setAttribute('aria-pressed', String(Boolean(graph)));
+  if (graph) renderModelPaths($('activity-paths'), graph, scale, layer => { layerSelect.value = String(layer); queuePaint(); });
+  layerSelect.options[0].textContent = graph ? 'Follow latest layer' : 'All captured layers'; canvas.width = Math.max(1, side); canvas.height = Math.max(1, side);
   canvas.setAttribute('aria-label', `${view.quantity}: one scalar per opaque heatmap pixel, ${view.representation}`);
   const context = canvas.getContext('2d');
   if (!context) throw new Error('Activity grids require a canvas 2D context.');
@@ -126,15 +147,20 @@ function paint() {
     $('activity-availability').hidden = false;
     $('activity-availability').textContent = 'No values captured at this position and layer. Select an earlier prompt position or another layer; fused-away stages and uncaptured windows are unavailable.';
   }
-  const playMeaning = $('activity-playback').value === 'tokens'
+  const playMeaning = snapshot ? 'Snapshot: no token playback.' : $('activity-playback').value === 'tokens'
     ? 'Play selects token positions; prefill positions were computed together.'
     : $('activity-playback').value === 'time' ? 'Play follows recorded capture timestamps, including diagnostic overhead.'
       : 'Play advances operator captures at 12 captures/second at 1×.';
-  $('activation-caption').textContent = `${active && follow ? 'Live · ' : ''}${point.phase} · token position ${position} · ${side} × ${side} pixels`;
+  $('activation-caption').textContent = `${snapshot ? chosen.clockLabel : `${active && follow ? 'Live · ' : ''}${point.phase} · token position ${position}`} · ${graph ? `layer ${graph.layer + 1} of ${trace.geometry.layers}` : `${side} × ${side} pixels`}`;
   $('activity-title').textContent = chosen?.label ?? view.quantity;
+  $('activity-update').textContent = chosen?.clockLabel ?? '';
   $('activity-method').textContent = view.representation === 'aggregated' ? 'Block summary' : view.representation === 'raw' ? 'Captured values' : 'Reconstructed';
-  $('activity-explanation').textContent = $('activity-detail').value === 'raw' || select.value === 'contributions' ? view.description : previews.find(p => p.mode === select.value)?.help ?? view.description;
+  $('activity-explanation').textContent = graph ? view.description : $('activity-detail').value === 'raw' || select.value === 'contributions' ? view.description : previews.find(p => p.mode === select.value)?.help ?? view.description;
   $('activity-coverage').textContent = `${present.toLocaleString()} / ${view.values.length.toLocaleString()} pixels have data · ${view.valuesPerScalar === 1 ? 'one value per pixel' : `up to ${view.valuesPerScalar.toLocaleString()} values per pixel`}${select.value === 'weights' ? ' · fixed during generation' : ''}`;
+  if (graph) {
+    $('activity-coverage').textContent = `${present}/${graph.nodes.length} stages have captured values · unrecorded stages stay empty`;
+    $('activation-cell').textContent = 'Select a layer to inspect its branches. Bold outline = latest capture.';
+  }
   if (select.value === 'weights' && $('activity-detail').value === 'overview') {
     $('activity-coverage').textContent += ` · ${weights.filter(w => w.rms.length).length}/${weights.length} tensors captured; ${weights.filter(w => !w.shape.length).length} shapes unknown and excluded`;
   }
@@ -161,6 +187,7 @@ function paint() {
   }
   legend.append(gradient, labels, keyNote, markers);
   $('activation-layout').textContent = `${present.toLocaleString()}/${view.values.length.toLocaleString()} displayed scalars present; ${view.valuesPerScalar} underlying values per pixel. Full-detail extent ${view.underlyingValues.toLocaleString()} scalars (${Math.ceil(Math.sqrt(view.underlyingValues)).toLocaleString()}² pixels); current overview/window extent ${view.extent.toLocaleString()} scalars; tile starts at ${view.offset.toLocaleString()}. ${view.description} ${playMeaning} Colors clip outside the displayed bounds; saved numerical values are unchanged.`;
+  if (graph) $('activation-layout').textContent = `${trace.geometry.layers} recorded layers; ${graph.kind} at layer ${graph.layer + 1}. Node colors summarize captured values with RMS. This is a partial computation diagram: normalization, residual transforms and uncaptured operator outputs are omitted, never invented. ${playMeaning}`;
   const gaps = [...trace.frames, ...(trace.activity?.frames ?? [])].filter(f => ['failed', 'dropped'].includes(f.status)).length;
   $('activation-status').textContent = `${trace.identity.logicalModelId ?? trace.identity.modelId} · ${trace.identity.adapters?.length ? JSON.stringify(trace.identity.adapters) : 'no active adapters recorded'} · manifest ${trace.identity.manifestHash ?? 'unavailable'} · ${trace.status} · ${gaps} missing captures · ${((trace.recordedBytes + (trace.activity?.recordedBytes ?? 0)) / 1048576).toFixed(1)} MiB of retained numerical payload, plus weights and metadata${trace.stoppedReason ? ' · ' + trace.stoppedReason : ''}${trace.activity?.unavailable['capture-limit'] ? ' · ' + trace.activity.unavailable['capture-limit'] : ''}`;
   $('activity-page-control').hidden = view.extent <= config.maxDisplayValues;
@@ -215,6 +242,8 @@ export function finishActivationRecording(status, receipt = null) {
 /** @type {typeof import('./index.js').importActivationRecording} */
 export function importActivationRecording(value) {
   const next = validateRecording(value);
+  const modes = activityModes(next);
+  if (modes.find(m => m.id === $('activity-mode').value)?.reason) $('activity-mode').value = modes.find(m => !m.reason)?.id ?? 'layer-output';
   next.display = { ...next.display, layout: config.layout, palette: config.palette };
   revision++; source = 'Saved recording';
   stopPlayback(); active = false; follow = false; recording = next; cursor = Math.max(0, points().length - 1);
@@ -245,6 +274,7 @@ export function openActivationRecording(value, byteLength) {
 export function getActivationRecording() { return recording; }
 
 export function initActivationGrid() {
+  $('activity-playback').value = config.defaultPlayback;
   for (const [id, key, enabled] of [
     ['activation-record', config.recordPreferenceKey, config.recordByDefault],
     ['activity-auto-example', config.examplePreferenceKey, config.autoExample],
@@ -296,7 +326,18 @@ export function initActivationGrid() {
     for (let i = 0; i < timeline.length; i++) if (timeline[i].position === position) cursor = i;
     queuePaint();
   });
-  for (const id of ['activity-mode', 'activity-layer', 'activity-weight', 'activity-detail']) {
+  function selectMode() {
+    stopPlayback();
+    const mode = activityModes(recording).find(m => m.id === $('activity-mode').value);
+    $('activity-playback').value = mode?.clock === 'boundary' ? 'captures' : 'tokens';
+    const timeline = points(), position = Number($('activation-position').value);
+    cursor = 0;
+    for (let i = 0; i < timeline.length; i++) if (timeline[i].position === position) cursor = i;
+    $('activity-page').value = '0'; queuePaint();
+  }
+  $('activity-mode').addEventListener('change', selectMode);
+  $('activity-paths-button').addEventListener('click', () => { $('activity-mode').value = 'model-paths'; $('activity-layer').value = '-1'; selectMode(); });
+  for (const id of ['activity-layer', 'activity-weight', 'activity-detail']) {
     $(/** @type {'activity-mode'} */ (id)).addEventListener('change', () => { stopPlayback(); $('activity-page').value = '0'; queuePaint(); });
   }
   $('activity-page').addEventListener('input', queuePaint);
@@ -333,7 +374,7 @@ export function initActivationGrid() {
       const text = await new Response(stream).text();
       if (text.length !== metadata.decodedBytes) throw new Error('Example recording length differs.');
       if (revision !== expectedRevision || active || (automatic && !$('activity-auto-example').checked)) return;
-      $('activity-playback').value = 'tokens';
+      $('activity-playback').value = mode === 'model-paths' ? 'captures' : 'tokens';
       $('activity-layer').value = '-1';
       $('activity-detail').value = 'overview';
       $('activity-weight').value = '';
@@ -341,7 +382,8 @@ export function initActivationGrid() {
       $('activity-mode').value = mode;
       openActivationRecording(JSON.parse(text), text.length);
       source = 'Recorded example';
-      cursor = points().findIndex(p => p.position === metadata.promptPosition);
+      cursor = 0; const examplePoints = points();
+      for (let i = 0; i < examplePoints.length; i++) if (examplePoints[i].position === metadata.promptPosition) cursor = i;
       $('activation-position').value = String(metadata.promptPosition);
       paint();
 
@@ -354,7 +396,7 @@ export function initActivationGrid() {
       queuePaint();
     }
   }
-  $('activity-example').addEventListener('click', () => { void loadExample('layer-output'); });
+  $('activity-example').addEventListener('click', () => { void loadExample('model-paths'); });
   for (const preview of previews) {
     const card = document.createElement('button');
     card.type = 'button'; card.className = 'activity-preview'; card.dataset.mode = preview.mode;
@@ -363,7 +405,10 @@ export function initActivationGrid() {
     img.alt = ''; img.width = 144; img.height = 144;
     const label = document.createElement('span'); label.textContent = preview.label;
     const note = document.createElement('small'); note.textContent = preview.description;
-    card.append(img, label, note);
+    const cadence = document.createElement('em'); cadence.className = 'activity-cadence';
+    const clock = activityModes(null).find(m => m.id === preview.mode)?.clock;
+    cadence.textContent = clock === 'snapshot' ? 'Snapshot' : clock === 'boundary' ? 'Captured updates' : 'Token playback';
+    card.append(img, label, cadence, note);
     const data = previewData.previews.find(p => p.mode === preview.mode);
     if (data) {
       const key = document.createElement('small'); key.className = 'activity-preview-key';
@@ -374,14 +419,14 @@ export function initActivationGrid() {
     }
     card.addEventListener('click', () => {
       if (!recording) { void loadExample(preview.mode); return; }
-      stopPlayback(); $('activity-mode').value = preview.mode; $('activity-detail').value = 'overview';
-      $('activity-layer').value = '-1'; $('activity-weight').value = ''; $('activity-page').value = '0'; queuePaint();
+      $('activity-mode').value = preview.mode; $('activity-detail').value = 'overview';
+      $('activity-layer').value = '-1'; $('activity-weight').value = ''; selectMode();
     });
     $('activity-gallery').append(card);
   }
   const observer = new IntersectionObserver(entries => {
     if (entries.some(e => e.isIntersecting) && $('activity-auto-example').checked && !recording && !active && !exampleLoading) {
-      observer.disconnect(); void loadExample('layer-output', true);
+      observer.disconnect(); void loadExample('model-paths', true);
     }
   });
   observer.observe($('activation-view'));

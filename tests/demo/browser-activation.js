@@ -103,7 +103,24 @@ export async function checkRealActivityPlayback(page) {
   await page.locator('#activation-view').scrollIntoViewIfNeeded();
   await page.waitForFunction(() => document.querySelector('#activity-source').textContent.startsWith('Recorded example'), null, { timeout: 120000 });
   assert.match(await page.locator('#activity-legend').textContent(), /fully opaque/);
+  assert.equal(await page.inputValue('#activity-mode'), 'model-paths', 'The spatial view opens by default');
+  assert.equal(await page.locator('#activity-paths').isVisible(), true);
+  assert.equal(await page.locator('.activity-path-layer').count(), 24);
+  await page.getByRole('button', {name:'Inspect layer 4', exact:true}).click();
+  await page.waitForFunction(() => document.querySelector('.activity-path-detail').textContent.includes('Full attention'));
+  assert.match(await page.locator('.activity-path-detail').textContent(), /Attention resultnot captured/);
+  await page.click('#activity-paths-button');
+  await page.locator('#activation-scrub').fill('0');
+  const before = await page.locator('#activity-paths').textContent();
+  await page.click('#activation-play');
+  await page.waitForFunction(() => Number(document.querySelector('#activation-scrub').value) > 2);
+  await page.click('#activation-play');
+  assert.notEqual(await page.locator('#activity-paths').textContent(), before, 'Playback changes captured path values');
+  await page.locator('#activation-scrub').fill(await page.locator('#activation-scrub').getAttribute('max'));
   await page.locator('.activity-preview[data-mode="contributions"]').click();
+  await page.locator('#run-details > summary').click();
+  await page.locator('#activation-position').fill('17');
+  await page.locator('#run-details > summary').click();
   await page.evaluate(() => new Promise(requestAnimationFrame));
   assert.match(await page.locator('#activation-caption').textContent(), /token position 17/, await page.locator('#activity-availability').textContent() + ' ' + await page.locator('#activation-status').textContent());
   assert.equal(await page.inputValue('#activity-mode'), 'contributions', 'The selected preview opens its own interactive grid');
@@ -113,7 +130,7 @@ export async function checkRealActivityPlayback(page) {
   const modes = await page.locator('#activity-mode option').evaluateAll(options => options.map(o => ({ id: o.value, disabled: o.disabled })));
   const results = [];
   for (const mode of modes) {
-    if (mode.disabled) { results.push({ ...mode }); continue; }
+    if (mode.disabled || mode.id === 'model-paths') { results.push({ ...mode }); continue; }
     await page.selectOption('#activity-mode', mode.id);
     await page.evaluate(() => new Promise(requestAnimationFrame));
     const state = await page.evaluate(() => {
@@ -124,13 +141,15 @@ export async function checkRealActivityPlayback(page) {
         pixelColors: new Set(c.getContext('2d').getImageData(0, 0, c.width, c.height).data).size,
         position: document.querySelector('#activation-position').value };
     });
+    const snapshots = ['weights','quantization-error','attention-prefill'].includes(mode.id);
+    assert.equal(await page.locator('#activation-timeline').isVisible(), !snapshots, `${mode.id} has truthful playback controls`);
     assert.equal(state.position, '17', 'Switching grids preserves the shared token position');
     assert(state.opaque, `${mode.id} has no alpha-encoded dimension`);
     assert(state.width > 1 && state.pixelColors > 2, `${mode.id} renders recorded numerical values`);
     assert(!state.layout.startsWith('0/'), `${mode.id} has real capture coverage`);
     results.push({ id: mode.id, ...state });
   }
-  assert.equal(modes.filter(m => !m.disabled).length, 18);
+  assert.equal(modes.filter(m => !m.disabled).length, 19);
   assert.equal(modes.find(m => m.id === 'expert-routing').disabled, true, 'A dense model cannot pretend to route experts');
   await page.selectOption('#activity-mode', 'weights');
   await page.locator('#run-details > summary').click();
@@ -155,6 +174,11 @@ export async function checkRealActivityPlayback(page) {
       assert(rect && rect.x >= 0 && rect.x + rect.width <= width + 1, `${id} fits at ${width}px`);
     }
     await page.locator('#inspection-workspace').screenshot({ path: `.cache/activation-grid/playback/activity-${width}.png` });
+    await page.click('#activity-paths-button');
+    await page.locator('#inspection-workspace').screenshot({ path: `.cache/activation-grid/playback/paths-${width}.png` });
+    assert(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth));
+    await page.selectOption('#activity-mode', 'layer-output');
+    await page.locator('#activation-canvas').waitFor({state:'visible'});
   }
   await page.selectOption('#activity-playback', 'tokens');
   await page.locator('#activation-scrub').fill('0');

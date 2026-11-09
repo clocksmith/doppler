@@ -11,24 +11,27 @@ function lastMatch(items, predicate) {
 /** @type {typeof import('./views.js').activityModes} */
 export function activityModes(recording) {
   const frames = recording?.trace.activity?.frames ?? [];
-  const roles = new Set(frames.filter(f => f.status === 'captured').map(f => f.role));
+  const roles = new Set(frames.filter(f => f.status === 'captured' && f.values).map(f => f.role));
   const weights = recording?.trace.activity?.weights ?? [];
   return modes.map(mode => {
     let reason = mode.roles.every(role => roles.has(role)) ? null : 'This recording has no capture for this view.';
     if (!recording?.trace.frames.length) reason = 'Record an answer or open a saved recording.';
+    if (mode.id === 'model-paths' && !Array.isArray(recording?.trace.activity?.model.layerTypes)) reason = 'No layer structure recorded; inspect the captured tensor views instead.';
     if (mode.id === 'weights' && !weights.some(w => w.rms.length)) reason = 'No observed weight tiles in this recording.';
     if (mode.id === 'contributions' && !weights.some(w => w.columnEnergy.length)) reason = 'Missing fixed weights and projection-input pair.';
     if (mode.id === 'contributions' && recording?.trace.identity.adapters?.length) reason = 'Effective adapter weights were not included; base-only products would be incomplete.';
     if (mode.id === 'residency' && !weights.length) reason = 'No loaded-weight inventory in this recording.';
     if (mode.id === 'quantization-error' && weights.some(w => w.error?.length)) reason = null;
     if (reason) reason = recording?.trace.activity?.unavailable[mode.id] ?? reason;
-    return { id: mode.id, label: mode.label, reason };
+    return { ...mode, reason };
   });
 }
 
 /** @type {typeof import('./views.js').playbackPoints} */
-export function playbackPoints(recording, mode) {
+export function playbackPoints(recording, mode, viewId) {
+  const view = modes.find(m => m.id === viewId);
   const frames = [...recording.trace.frames, ...(recording.trace.activity?.frames ?? [])]
+    .filter(f => view?.clock !== 'boundary' || view.id === 'model-paths' || (view.id === 'residency' ? f.role === 'weight-access' : f.role === view.id))
     .sort((a, b) => a.atMs - b.atMs);
   if (mode !== 'tokens') return frames.map(f => ({ ...f, position: f.tokenStart + f.tokenIds.length - 1 }));
   const positions = new Map();

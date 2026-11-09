@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import { createActivationTrace } from '../../src/debug/activation-trace.js';
 import { validateRecording } from '../../demo/ui/activation-grid/data.js';
 import { encodeRecording } from '../../demo/ui/activation-grid/recording-codec.js';
+import { modelPathView } from '../../demo/ui/activation-grid/paths.js';
 import { activityView, activityModes, playbackPoints, assertMatchedRuns, attentionRow } from '../../demo/ui/activation-grid/views.js';
 
 const limits = { maxBytes: 4096, maxFrameBytes: 2048, maxFrames: 512, maxGridValues: 64, maxInFlight: 4,
@@ -9,7 +10,7 @@ const limits = { maxBytes: 4096, maxFrameBytes: 2048, maxFrames: 512, maxGridVal
   weightBlockValues: 2, weightReadValues: 16, weightRowGroupSize: 2, weightRawRows: 2, weightMaxBytes: 1024 };
 const trace = createActivationTrace(limits, { layers: 2, width: 3 }, { modelId: 'fixture', manifestHash: 'a'.repeat(64), runtimeVersion: 'fixture', adapters: [] });
 const activity = trace.activity;
-activity.configure({ intermediateSize: 3, useTiedEmbeddings: true });
+activity.configure({ intermediateSize: 3, useTiedEmbeddings: true, layerTypes:['linear_attention','full_attention'] });
 activity.begin('prefill', 0, [10, 20]);
 const down = { id: 'layer_0/ffnDown', layer: 0, role: 'ffnDown', shape: [2, 3], dtype: 'f32', layout: 'row',
   resident: true, byteLength: 24, status: 'captured', reason: null, blockSize: 2,
@@ -32,6 +33,19 @@ await trace.drain();
 const recording = { schema: 'doppler.activation-recording/v1', demoBuild: 'fixture',
   display: { layout: 'layer-major-rgb/v1', palette: 'signed-tanh-rgb/v1', scale: 1 }, trace: trace.snapshot('complete'), inputTokenIds: [10, 20], generatedTokenIds: [] };
 validateRecording(recording);
+const path = modelPathView(recording, Infinity, 1, 0);
+assert.equal(path.kind, 'linear_attention');
+assert(Math.abs(path.nodes.find(n => n.id === 'gate').magnitude - Math.sqrt(29/3)) < 1e-12);
+assert(Math.abs(path.nodes.find(n => n.id === 'mixer').magnitude - Math.sqrt(91/6)) < 1e-12,
+  'State summary RMS weights partial blocks by their scalar counts');
+const attentionPath = modelPathView(recording, Infinity, 1, 1);
+assert.equal(attentionPath.kind, 'full_attention');
+assert.equal(attentionPath.nodes.find(n => n.id === 'mixer').magnitude, null,
+  'Uncaptured attention results remain empty');
+assert.equal(modelPathView(recording, -1, 1, 0).nodes.filter(n => n.magnitude !== null).length, 0,
+  'A path never shows future captures');
+assert(playbackPoints(recording, 'captures', 'recurrent-memory').every(p => p.layer === 0),
+  'Memory playback uses state captures, not unrelated operator ticks');
 const selection = { atMs: Infinity, position: 1, layer: -1, weightId: '', detail: 'overview', page: 0 };
 const view = (mode, changes = {}) => activityView(recording, { ...selection, mode, ...changes });
 assert.deepEqual(view('difference').values, [2, 3, 4, 2, 3, 4]);
