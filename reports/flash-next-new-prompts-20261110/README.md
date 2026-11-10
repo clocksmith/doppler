@@ -101,6 +101,62 @@ variant, which is not the model's declared 512-expert routing kernel. Its output
 is excluded from attribution. The corrected producer requires both the compiled
 shader identity and declared expert/top-k limits before dispatch.
 
+## Causal-prefix control (token 112)
+
+[causal-prefix-control.json](causal-prefix-control.json) compares the 113-token
+causal prefix `inventory_prefix113` (`tokens[0..112]`, `M = 113`) against the
+full 2,187-token `inventory` prompt (`M = 2,187`) at position 112:
+
+- **Physical AMD GPU (`Layers 0–24`)**: all 25 router-input rows
+  (`mlp_hc.branchInput` at position 112, `64,000` F32 values) match
+  **bit-for-bit** (`0` differing values) between `M = 113` and `M = 2,187`.
+  Prompt-length-dependent GPU dispatch or tail-tile leakage does not cause the
+  Layer-24 difference.
+- **Independent CPU F32 source (`Layers 0–47`)**: ordered top-10 expert
+  selections at position 112 match across all 48 layers (`0` differences,
+  selecting expert 60 at rank 10 in Layer 24), while CPU PyTorch SGEMM itself
+  drifts by up to `4.053e-6` on shared sample positions (`Layer 46`) and shifts
+  Layer 24's rank-10 margin (`expert 60 - expert 225`) from `1.049e-5`
+  (`M = 2,187`) to `8.11e-6` (`M = 113`) from `M`-tile blocking alone.
+
+## Full-prefix same-input operator controls (Layers 0–24)
+
+[same-input-operator-controls.json](same-input-operator-controls.json) and
+[audit-same-input-operators.py](audit-same-input-operators.py) capture full
+`[113, ...]` GPU stage boundaries across Layers 0–24 on `inventory_prefix113`
+under `profiles/flash-next-routed-f32kv-qualification` (matching the retained
+prepared-plan prefix router inputs bit-for-bit across all `64,000` F32 values at
+position 112) and replay every sub-operator on CPU with identical GPU inputs:
+
+| Operator family across `inventory_prefix113` (`Layers 0–24`) | Scope | Worst local same-input difference |
+| --- | --- | ---: |
+| Layer 0 token embedding + 4-stream repeat | `113 x 10,240` | `0.0` (bit-exact) |
+| Layer 1 PLE (`ple_layer_ids = [2]`) | pos 112 (`10,240` values) | `relL2 = 1.79e-7` (`maxAbs = 8.94e-8`) |
+| 50 hyper-connection norms / mixes / injections | all `113` tokens | `maxAbs <= 7.63e-6` / `4.05e-6` / `1.07e-6` |
+| 19 Gated DeltaNet layers vs source recurrent / chunked | pos 112 (`2,560` values) | `relL2 <= 9.47e-7` / `1.02e-6` |
+| 6 full indexed-attention layers (`L3, 7, 11, 15, 19, 23`) | pos 112 (`2,560` values) | `relL2 <= 2.05e-6` |
+| 24 upstream MoE + shared-expert blocks (`L0–L23`) | pos 112 (`2,560` values) | `relL2 <= 1.14e-6` (`0` routing flips on all `113` tokens) |
+
+Across all `2,712` upstream token-layer routing decisions (`113` tokens across
+Layers 0–23), GPU inputs produce **zero** expert-set or top-10 rank-order
+differences relative to the CPU source trajectory. Layer 23's `8.64e-6`
+full-attention trajectory difference at position 112 decomposes into `2.05e-6`
+local same-input rounding and `8.78e-6` propagated upstream input sensitivity.
+
+At `(Layer 24, token 112)`, exact rational (`Fraction`) dot products give
+$s(60) - s(225) = +7.855 \times 10^{-6}$ on $x_{\text{cpu}}[112]$ (expert 60
+wins) and $-7.073 \times 10^{-6}$ on $x_{\text{gpu}}[112]$ (expert 225 wins):
+an upstream shift $(x_{\text{gpu}} - x_{\text{cpu}}) \cdot (w_{60} - w_{225}) = -1.493 \times 10^{-5}$
+accumulated from `4.59e-6` relative F32 evaluation-order / fused-Q4_K FMA
+rounding across Layers 0–24. On identical inputs, `matmul_f32_row_subgroup.wgsl`
+(`wave64`) and PyTorch `F.linear` produce bit-identical scores for both experts
+(`roundingVsExact` is `2.51e-7` on $x_{\text{cpu}}$ and `-7.95e-8` on
+$x_{\text{gpu}}$; `wave32` selects the same winner on each input). Selecting
+rank-10 expert 225 instead of 60 injects a `0.00482` (`relL2 = 1.41` single-slot)
+branch step at Layer 24. No single-operator shader defect or missing F32
+rounding boundary is present in Layers 0–24; the `inventory` full-logit gate
+remains **failed** (`30,664` violations) under unchanged `quantized-v1`.
+
 - `marbles`: 22 tokens, arithmetic completion.
 - `inventory`: 2,187 tokens, structured inventory beyond the sparse-attention
   threshold.
@@ -157,7 +213,8 @@ and seven trace-integrity tests pass. No runtime, policy, catalog, service, memo
 limit or deployment change is part of this packet.
 
 The [installed candidate report](../flash-next-installed-20261110/README.md)
-now separates the named-profile failure from the explicit prepared-plan pass
+retains the `6da05a25` named-profile failure alongside the `e1a02e41` repaired
+named-profile pass (byte-identical to the prepared plan across all six vectors)
 on the original two prompts. This new inventory failure remains unresolved.
 Longer generation including QSA block completion, intended release
 configuration, F16 cache and other platforms remain separate work.

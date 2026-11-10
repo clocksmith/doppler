@@ -1,0 +1,48 @@
+{
+  "schema": "doppler.flash-next-installed-candidate-evidence/v1",
+  "sourceRevision": "e1a02e418963df10cace35822efb48ff21445795",
+  "package": {
+    "schema": "doppler.installed-candidate-package/v1",
+    "sourceRevision": "e1a02e418963df10cace35822efb48ff21445795",
+    "packageSha256": "47c1d7a1fba60922b7a851e4ed16d30b9d6132975f46cd0c6f6fd840d28f7b7e",
+    "version": "0.6.36",
+    "dependencySource": "Existing provisioned Node WebGPU module, pinned separately; no clean-provider-install claim"
+  },
+  "packageInventory": {
+    "sha256": "7355bf4d5adf7dafa5e917878df52cbac21348d15f5c1d52189fdce129e1fbb1",
+    "files": 1932,
+    "allInstalledBytesVerifiedBeforeLoading": true
+  },
+  "surface": "Node public compatibility exports, physical AMD RDNA-3, provisioned WebGPU provider",
+  "independentReference": "Pinned upstream cache-free full-prefix CPU recomputation with unchanged prepared artifact",
+  "runs": [
+    {
+      "configurationSource": "named-profile",
+      "observationSha256": "584786f7124d20f9bb12ffc5651a28ba8f537b217feedb61f02be74fbc6d28ff",
+      "runSha256": "e152db3fd5a215eeb86e5e66298c764debd2cbbb023f7dd5b02e28c09235573f",
+      "consumerSha256": "05bcf23a9a24b71298f8f34a5a42ee440eed43a89294ef96ffe78183e7d4e7ce",
+      "manifestSha256": "4902a0b730a9310903b00bc0f8f587528fa1af9f37a722d2f9287bafceceec09",
+      "referenceSha256": "ce4cb138b1919474d85507e06faa9ca167d87fd143bb85a7411f5443cea9a897",
+      "inputsSha256": "06a819d529593b58abd6cb27566bb835a9b91aac13a77c0c7479b7e4e7b0c378",
+      "installedFilesVerified": 1932,
+      "runtimeProfile": "profiles/flash-next-routed-f32kv-qualification",
+      "preparedConfigSha256": null,
+      "fullVectorChecks": 6,
+      "checkedLogits": 1489920,
+      "passed": true,
+      "gpuErrors": [],
+      "cleanupFailures": []
+    }
+  ],
+  "modelGenerallyQualified": false,
+  "acceptanceChanged": false,
+  "published": false,
+  "deployed": false,
+  "limits": [
+    "Original two prompts only; prefill and two decode steps each",
+    "Existing native WebGPU dependency was provisioned separately; not a clean-provider-install test",
+    "Private candidate archive at source version 0.6.36; no published version overwritten",
+    "New inventory failure remains separate and unresolved",
+    "F16 cache, browser, other devices and longer generation remain unqualified"
+  ]
+}

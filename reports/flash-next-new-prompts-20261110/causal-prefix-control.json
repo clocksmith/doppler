@@ -1,0 +1,361 @@
+{
+  "schema": "doppler.flash-next-causal-prefix-control/v1",
+  "scope": "113-token causal prefix (M=113) vs full 2,187-token inventory prompt (M=2187) at token 112 on GPU (Layers 0..24) and independent CPU F32 source (Layers 0..47); diagnostic only, no model qualification or acceptance change",
+  "modelQualified": false,
+  "acceptanceChanged": false,
+  "runtimeChanged": false,
+  "auditScriptSha256": "3c296bab56c3907258be29ab3574c52285b82cf6b8ede8b5fa73876ee42b8d5a",
+  "prefixSequenceId": "inventory_prefix113",
+  "fullSequenceId": "inventory",
+  "prefixTokenCount": 113,
+  "fullTokenCount": 2187,
+  "targetTokenIndex": 112,
+  "manifestSha256": "4902a0b730a9310903b00bc0f8f587528fa1af9f37a722d2f9287bafceceec09",
+  "prefixInputsSha256": "45dc3192228d25fc387d55a5b48a986bc63d4128dad0359bee798e07c8bc83c8",
+  "fullInputsSha256": "3258ae236b529ddaf0d261809a8a7be72cd2048645342078e53c064c5a4b0748",
+  "prefixExactMatchToFullFirst113": true,
+  "gpuControl": {
+    "gpuComparisonSha256": "0ba74daa038feeae1842a92d25797167a4aaf941446cb17923c9a238564733fe",
+    "prefixObservationSha256": "cecad04c5982b86b12ec5a19f2f6c585c84132d6c2fac20d117048acabd294b7",
+    "fullObservationSha256": "dd341d262fa82c4c1b4653f3b6c4396246975baf47bdcfede54917eb84342b0c",
+    "layersChecked": [
+      0,
+      24
+    ],
+    "layerCount": 25,
+    "valuesPerLayer": 2560,
+    "checkedFloat32Values": 64000,
+    "bitExact": true,
+    "differingValues": 0,
+    "firstDifferentLayer": null,
+    "rows": [
+      {
+        "layer": 0,
+        "values": 2560,
+        "bitExact": true,
+        "differingValues": 0,
+        "maxAbsoluteError": 0.0,
+        "differenceRms": 0.0,
+        "relativeRms": 0.0,
+        "prefixTensorSha256": "acf097d8ac7394c072d116a4c6c24bb41555b23bf85b0edf516c9f9388f71b62",
+        "fullTensorSha256": "e5a86a2a3657a7fcdc0b0845744b1b61dc316105a56fa53e83e66c00f1608477"
+      },
+      {
+        "layer": 1,
+        "values": 2560,
+        "bitExact": true,
+        "differingValues": 0,
+        "maxAbsoluteError": 0.0,
+        "differenceRms": 0.0,
+        "relativeRms": 0.0,
+        "prefixTensorSha256": "3b9e5ffd34bcbbe3b4d99c2aec24746961e4fa9ee7e61319f59ab025b71e41d5",
+        "fullTensorSha256": "39bc7ecb72510854fa46756b9865e0ab984f10b3da6f8cb841bb8692bd8ec687"
+      },
+      {
+        "layer": 2,
+        "values": 2560,
+        "bitExact": true,
+        "differingValues": 0,
+        "maxAbsoluteError": 0.0,
+        "differenceRms": 0.0,
+        "relativeRms": 0.0,
+        "prefixTensorSha256": "3a15c292dadcd9c040bcfc870ecbbf04a9fa9fb272a45fe5d1f2f79272518aed",
+        "fullTensorSha256": "0608f6a5c2061a7eef419db758ddfb4bb7c8cfd0c9a201edb5ab1f3c5c0e136e"
+      },
+      {
+        "layer": 3,
+        "values": 2560,
+        "bitExact": true,
+        "differingValues": 0,
+        "maxAbsoluteError": 0.0,
+        "differenceRms": 0.0,
+        "relativeRms": 0.0,
+        "prefixTensorSha256": "a1e4b3e8895ed85197634b854dc4e2c590d9217081aa988c8bfa9b709123397b",
+        "fullTensorSha256": "48b7988f10fe22e1ae1cb873ec1cd72586e120d82b5cca61b5bae2a7c45ef3d8"
+      },
+      {
+        "layer": 4,
+        "values": 2560,
+        "bitExact": true,
+        "differingValues": 0,
+        "maxAbsoluteError": 0.0,
+        "differenceRms": 0.0,
+        "relativeRms": 0.0,
+        "prefixTensorSha256": "74ba2c3f7a3bd95ff60f66b472c3b84176dd886043945242cf4ee19a3de25f62",
+        "fullTensorSha256": "68a8248ade18a1bf9f6208e10fa966b71934544efd9837069900a6045f51a8f9"
+      },
+      {
+        "layer": 5,
+        "values": 2560,
+        "bitExact": true,
+        "differingValues": 0,
+        "maxAbsoluteError": 0.0,
+        "differenceRms": 0.0,
+        "relativeRms": 0.0,
+        "prefixTensorSha256": "42bccf525d28fd43565f01ac3662e5ffd1c155c80634913abf95653a1baa446d",
+        "fullTensorSha256": "6d604df0167076eb3c49bab399a5aaf6dc35c396bdefec709d9659bb45a2a099"
+      },
+      {
+        "layer": 6,
+        "values": 2560,
+        "bitExact": true,
+        "differingValues": 0,
+        "maxAbsoluteError": 0.0,
+        "differenceRms": 0.0,
+        "relativeRms": 0.0,
+        "prefixTensorSha256": "9b0360320130be363c3c7279e7907a2a708195eb1e4d45e2f0b0331243d0c03d",
+        "fullTensorSha256": "8aea8ffac4e76183663da6e2e6a283b4dd75698fdaf4dd4495b4e039ca1be538"
+      },
+      {
+        "layer": 7,
+        "values": 2560,
+        "bitExact": true,
+        "differingValues": 0,
+        "maxAbsoluteError": 0.0,
+        "differenceRms": 0.0,
+        "relativeRms": 0.0,
+        "prefixTensorSha256": "bb547e8fed19037b3c3bc5e8e85b40fbfa4b39ef49efa4c9e69c5fd61dc86ea3",
+        "fullTensorSha256": "394b43747627874be1965aeea7259ebef9b4440a4c4537aa8bc5b2f966e2266a"
+      },
+      {
+        "layer": 8,
+        "values": 2560,
+        "bitExact": true,
+        "differingValues": 0,
+        "maxAbsoluteError": 0.0,
+        "differenceRms": 0.0,
+        "relativeRms": 0.0,
+        "prefixTensorSha256": "a7fb5ee9bfe549a822088d7e39ce50e26bcbf30e872504cbc05767e1bcdb9938",
+        "fullTensorSha256": "313013556044573dc8b7838c2e78369c2b9e04fa1cbd2795f3a67226d2ee77cd"
+      },
+      {
+        "layer": 9,
+        "values": 2560,
+        "bitExact": true,
+        "differingValues": 0,
+        "maxAbsoluteError": 0.0,
+        "differenceRms": 0.0,
+        "relativeRms": 0.0,
+        "prefixTensorSha256": "729fce9d9e70878927629e264068d717a7f4c60d65b208a41ee96129eefbcdba",
+        "fullTensorSha256": "01842266157c86c978eddad0bbad97ab2418d6d2e2fcfcd31d018d35c826763f"
+      },
+      {
+        "layer": 10,
+        "values": 2560,
+        "bitExact": true,
+        "differingValues": 0,
+        "maxAbsoluteError": 0.0,
+        "differenceRms": 0.0,
+        "relativeRms": 0.0,
+        "prefixTensorSha256": "2cdb71a9cf8c4f1ff74133c2a9ae8f5ee78420c26970f1b5ac4c8e3b57a5a894",
+        "fullTensorSha256": "494c69694c6ef602525ccacb7a22cd1e052a104d3223cb597776b1727a3dee6c"
+      },
+      {
+        "layer": 11,
+        "values": 2560,
+        "bitExact": true,
+        "differingValues": 0,
+        "maxAbsoluteError": 0.0,
+        "differenceRms": 0.0,
+        "relativeRms": 0.0,
+        "prefixTensorSha256": "75a61d6342e5345b4e5e57042783e318a01f9c0c7121d153968f3245b9e09196",
+        "fullTensorSha256": "35425b069708e057491145a888cc513d893aa62331726a27c6e4fd1fdcd6783e"
+      },
+      {
+        "layer": 12,
+        "values": 2560,
+        "bitExact": true,
+        "differingValues": 0,
+        "maxAbsoluteError": 0.0,
+        "differenceRms": 0.0,
+        "relativeRms": 0.0,
+        "prefixTensorSha256": "b1ebf7116e0f2c609772515dc2c14d5db773094bc6d846a4b668e21090810bce",
+        "fullTensorSha256": "53107230eedf401a8b9beab772715c16f343fa1f8ab9966d838033498d6ce6c8"
+      },
+      {
+        "layer": 13,
+        "values": 2560,
+        "bitExact": true,
+        "differingValues": 0,
+        "maxAbsoluteError": 0.0,
+        "differenceRms": 0.0,
+        "relativeRms": 0.0,
+        "prefixTensorSha256": "7e8dc362eb8193de32ce8d6e533f6e5b2b3e9b0f56d9f19b5c072919388f0835",
+        "fullTensorSha256": "f29047655031b688eca448595d52a96d4f1c808c24a37cf4fdf72dcacf162593"
+      },
+      {
+        "layer": 14,
+        "values": 2560,
+        "bitExact": true,
+        "differingValues": 0,
+        "maxAbsoluteError": 0.0,
+        "differenceRms": 0.0,
+        "relativeRms": 0.0,
+        "prefixTensorSha256": "c06334fb671574c9e756e9a75d346aee23f8b2802b45547e8af1074bd0ba5dce",
+        "fullTensorSha256": "529c2c73621e146d52f791f28074b1279becb4b0f7b5029ec6d3c43b9c743656"
+      },
+      {
+        "layer": 15,
+        "values": 2560,
+        "bitExact": true,
+        "differingValues": 0,
+        "maxAbsoluteError": 0.0,
+        "differenceRms": 0.0,
+        "relativeRms": 0.0,
+        "prefixTensorSha256": "03c523df094d42fb8d8761624ae740437f37b812ba440479f63a3a28fcd19399",
+        "fullTensorSha256": "22c2ee53a0e777c365ff6364d99690a1ba171d12a1e7292602c3f019efac71bb"
+      },
+      {
+        "layer": 16,
+        "values": 2560,
+        "bitExact": true,
+        "differingValues": 0,
+        "maxAbsoluteError": 0.0,
+        "differenceRms": 0.0,
+        "relativeRms": 0.0,
+        "prefixTensorSha256": "f4c6b2829496750e37f04a927ec4d6ac1c923cab4c63f21206068ecfa3c1900f",
+        "fullTensorSha256": "1525548addfdb4d99ece3c49a83abb798d2fcb8de0e6eeab4c69b1128a640cee"
+      },
+      {
+        "layer": 17,
+        "values": 2560,
+        "bitExact": true,
+        "differingValues": 0,
+        "maxAbsoluteError": 0.0,
+        "differenceRms": 0.0,
+        "relativeRms": 0.0,
+        "prefixTensorSha256": "0a27279bfc9078ae8d7bf186c3d7ae377ddf0974f8ffd7104110b80059cf585d",
+        "fullTensorSha256": "f021a4f70a1385e798b60f32854e04816077eaa392fca0f2d36267362c516e71"
+      },
+      {
+        "layer": 18,
+        "values": 2560,
+        "bitExact": true,
+        "differingValues": 0,
+        "maxAbsoluteError": 0.0,
+        "differenceRms": 0.0,
+        "relativeRms": 0.0,
+        "prefixTensorSha256": "28ee20efe84134593c650a53b64448e3641b8f44f2b06f7e2075ad998b17e85e",
+        "fullTensorSha256": "08094e9dcc216534755fc8cd511202b51c82694ffb910469c8a284ff8be65811"
+      },
+      {
+        "layer": 19,
+        "values": 2560,
+        "bitExact": true,
+        "differingValues": 0,
+        "maxAbsoluteError": 0.0,
+        "differenceRms": 0.0,
+        "relativeRms": 0.0,
+        "prefixTensorSha256": "174fa0a96942b8f6eb00109274334b9d8d52c9c58716e4ae333d19fa6c4e24d0",
+        "fullTensorSha256": "6aa61b44bbbc4a5b28c22819ca440cbd9b242693293dd20c6ce9f0507eb62606"
+      },
+      {
+        "layer": 20,
+        "values": 2560,
+        "bitExact": true,
+        "differingValues": 0,
+        "maxAbsoluteError": 0.0,
+        "differenceRms": 0.0,
+        "relativeRms": 0.0,
+        "prefixTensorSha256": "9445b9297c0a2ec795037af046d2f39900756b4286d77b198ad47deab8379f94",
+        "fullTensorSha256": "9aba5d55a743dfc512ad0e799a27a90cc787bc8d5c6450ba784a2ca821510764"
+      },
+      {
+        "layer": 21,
+        "values": 2560,
+        "bitExact": true,
+        "differingValues": 0,
+        "maxAbsoluteError": 0.0,
+        "differenceRms": 0.0,
+        "relativeRms": 0.0,
+        "prefixTensorSha256": "d0cfccc4d2f0c7a6cc066affd927c12060a73b5ddc14aab5e3b85bcccf607225",
+        "fullTensorSha256": "eecf898e966c3ea0f572bbc209e1acb366f024e10356dfa1025974ea34caaa14"
+      },
+      {
+        "layer": 22,
+        "values": 2560,
+        "bitExact": true,
+        "differingValues": 0,
+        "maxAbsoluteError": 0.0,
+        "differenceRms": 0.0,
+        "relativeRms": 0.0,
+        "prefixTensorSha256": "ac420e0745ab886339e6be796ad969c4025f216575e0426d6c253e701e56248e",
+        "fullTensorSha256": "8042eeba38193458f86fd864a4cb58c0f4cf104c2f399a5c6e1dcfc11943fd6e"
+      },
+      {
+        "layer": 23,
+        "values": 2560,
+        "bitExact": true,
+        "differingValues": 0,
+        "maxAbsoluteError": 0.0,
+        "differenceRms": 0.0,
+        "relativeRms": 0.0,
+        "prefixTensorSha256": "751ddbaf7b7449428beaf89b27f5b71f2b93a30240f6130585e142d3538a0be9",
+        "fullTensorSha256": "ab152d17fc25cb4674f3ee38dce9e056dccbc399d80b35dba11b2fef430a527a"
+      },
+      {
+        "layer": 24,
+        "values": 2560,
+        "bitExact": true,
+        "differingValues": 0,
+        "maxAbsoluteError": 0.0,
+        "differenceRms": 0.0,
+        "relativeRms": 0.0,
+        "prefixTensorSha256": "e3e44bd52f301b8719fdb9881a56ad709a94172749f43ebe9090bda210472c76",
+        "fullTensorSha256": "184fb49ace53ca1f1fc87302db439b720c489f9657c18df658eabf4f2f7baf3b"
+      }
+    ]
+  },
+  "cpuSourceControl": {
+    "prefixReferenceSha256": "092c60b408885bed261605e785800c712383a8c45afa66827e378b3fecffd297",
+    "fullReferenceSha256": "fa25a6e219f1f39f0ecf735ff8d2a7941f88a2e335d052efdb1114afc6e06b99",
+    "sourceTraceReceiptSha256": "3ad67a3de2b0f68368b8b74f4daa3ab36c22cebbf15ecefc4c8d272d3891121e",
+    "layersChecked": [
+      0,
+      47
+    ],
+    "layerCount": 48,
+    "position112OrderedTop10Differences": [],
+    "position112All48LayersMatchOrderedTop10": true,
+    "layer24Prefix113": {
+      "topExperts": [
+        427,
+        429,
+        297,
+        164,
+        321,
+        4,
+        176,
+        212,
+        258,
+        60
+      ],
+      "margin10To11": 8.106231689453125e-06
+    },
+    "layer24Full2187": {
+      "topExperts": [
+        427,
+        429,
+        297,
+        164,
+        321,
+        4,
+        176,
+        212,
+        258,
+        60
+      ],
+      "margin10To11": 1.049041748046875e-05
+    },
+    "sharedSamplePositions": [
+      0,
+      1,
+      2,
+      7,
+      31,
+      63
+    ],
+    "cpuBatchGeometrySgemmMaxSampleAbsDiff": 4.0531158447265625e-06,
+    "cpuBatchGeometrySgemmMaxSampleLayer": 46
+  }
+}
