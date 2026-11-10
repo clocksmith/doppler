@@ -16,7 +16,7 @@
 
  override WORKGROUP_SIZE: u32 = 256u;
  override HAS_GATE: bool = false;
-@@ -23,32 +20,18 @@
+@@ -23,32 +20,19 @@
  }
 
  @group(0) @binding(0) var<uniform> u: Uniforms;
@@ -28,25 +28,27 @@
 +@group(0) @binding(3) var<storage, read> gate: array<f16>;
 
  fn sigmoid(x: f32) -> f32 {
-     let clamped = clamp(x, -15.0, 15.0);
--    let z = exp_refined(-abs(clamped));
--    let numerator = select(z, 1.0, clamped >= 0.0);
+-    // The exponent is nonpositive, so overflow protection needs no input clamp.
+-    let z = exp_refined(-abs(x));
+-    let numerator = select(z, 1.0, x >= 0.0);
 -    let denominator = 1.0 + z;
 -    let inverse = reciprocal_refined(denominator);
 -    let quotient = numerator * inverse;
 -    return fma(fma(-quotient, denominator, numerator), inverse, quotient);
-+    return 1.0 / (1.0 + exp(-clamped));
++    // Stable on both signs without changing the input activation.
++    let z = exp(-abs(x));
++    return select(z, 1.0, x >= 0.0) / (1.0 + z);
  }
 
--// Compensate the rounded numerator and quotient; retain the established gate clamp.
+-// Compensate the rounded numerator and quotient without changing the activation.
  fn silu(x: f32) -> f32 {
--    let z = exp_refined(-abs(clamp(x, -15.0, 15.0)));
-- let numerator = select(x * z, x, x >= 0.0);
-- let error = select(fma(x, z, -numerator), 0.0, x >= 0.0);
-- let den = 1.0 + z;
-- let inverse = reciprocal_refined(den);
-- let q = numerator * inverse;
-- return fma(fma(-q, den, numerator) + error, inverse, q);
+-    let z = exp_refined(-abs(x));
+-    let numerator = select(x * z, x, x >= 0.0);
+-    let error = select(fma(x, z, -numerator), 0.0, x >= 0.0);
+-    let den = 1.0 + z;
+-    let inverse = reciprocal_refined(den);
+-    let q = numerator * inverse;
+-    return fma(fma(-q, den, numerator) + error, inverse, q);
 +    return x * sigmoid(x);
  }
 -
@@ -54,7 +56,7 @@
 
  fn apply_input_activation(x: f32) -> f32 {
      return select(silu(x), x, INPUT_USE_IDENTITY);
-@@ -74,13 +57,13 @@
+@@ -74,13 +58,13 @@
 
          let remaining = min(4u, u.size - base_idx);
          for (var i: u32 = 0u; i < remaining; i = i + 1u) {
@@ -72,7 +74,7 @@
              }
          }
          return;
-@@ -103,64 +86,27 @@
+@@ -103,64 +87,27 @@
              return;
          }
          let row_base = token_idx * dim * 2u;

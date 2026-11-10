@@ -28,24 +28,24 @@ struct Uniforms {
 @group(0) @binding(3) var<storage, read> gate: array<f32>;
 
 fn sigmoid(x: f32) -> f32 {
-    let clamped = clamp(x, -15.0, 15.0);
-    let z = exp_refined(-abs(clamped));
-    let numerator = select(z, 1.0, clamped >= 0.0);
+    // The exponent is nonpositive, so overflow protection needs no input clamp.
+    let z = exp_refined(-abs(x));
+    let numerator = select(z, 1.0, x >= 0.0);
     let denominator = 1.0 + z;
     let inverse = reciprocal_refined(denominator);
     let quotient = numerator * inverse;
     return fma(fma(-quotient, denominator, numerator), inverse, quotient);
 }
 
-// Compensate the rounded numerator and quotient; retain the established gate clamp.
+// Compensate the rounded numerator and quotient without changing the activation.
 fn silu(x: f32) -> f32 {
-    let z = exp_refined(-abs(clamp(x, -15.0, 15.0)));
- let numerator = select(x * z, x, x >= 0.0);
- let error = select(fma(x, z, -numerator), 0.0, x >= 0.0);
- let den = 1.0 + z;
- let inverse = reciprocal_refined(den);
- let q = numerator * inverse;
- return fma(fma(-q, den, numerator) + error, inverse, q);
+    let z = exp_refined(-abs(x));
+    let numerator = select(x * z, x, x >= 0.0);
+    let error = select(fma(x, z, -numerator), 0.0, x >= 0.0);
+    let den = 1.0 + z;
+    let inverse = reciprocal_refined(den);
+    let q = numerator * inverse;
+    return fma(fma(-q, den, numerator) + error, inverse, q);
 }
 
 // GELU activation (approximate)

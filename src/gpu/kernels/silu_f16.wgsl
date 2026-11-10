@@ -27,8 +27,9 @@ struct Uniforms {
 @group(0) @binding(3) var<storage, read> gate: array<f16>;
 
 fn sigmoid(x: f32) -> f32 {
-    let clamped = clamp(x, -15.0, 15.0);
-    return 1.0 / (1.0 + exp(-clamped));
+    // Stable on both signs without changing the input activation.
+    let z = exp(-abs(x));
+    return select(z, 1.0, x >= 0.0) / (1.0 + z);
 }
 
 fn silu(x: f32) -> f32 {
