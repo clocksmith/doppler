@@ -373,6 +373,10 @@ export async function checkDemoControls(page) {
   await page.click('#model-select-action');
   await page.waitForFunction(() => document.querySelector('#output-phase').textContent.startsWith('Load failed:'));
   assert.equal(await page.locator('#model-select-action').isEnabled(), true);
+  // The reason stays beside Load, with only what was observed about model files.
+  assert.equal(await page.locator('#model-select-detail').isVisible(), true);
+  assert.match(await page.locator('#model-select-detail').textContent(), /could not load: Contract load failure\. (No model weights were downloaded|Some of its files may have been downloaded)/);
+  assert.doesNotMatch(await page.locator('#model-select-detail').textContent(), /second-model/);
   await page.locator('#settings-toggle').click();
   assert.equal(await page.locator('#run-indicator').isVisible(), false, 'A failed load stops the activity signal');
   assert.equal(await page.locator('#output-phase').isVisible(), true);
