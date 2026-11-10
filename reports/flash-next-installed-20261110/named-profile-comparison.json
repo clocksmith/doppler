@@ -1,0 +1,122 @@
+{
+  "schema": "doppler.qwen38-learned-comparison/v1",
+  "scope": "Named unpadded Node observations only; sampled layers and retained last-position logits, no general model or performance qualification",
+  "gpuSha256": "e6b3f32a6ac9d9854e2929e36032c2df71312225b51a41d598f53016d17d64a4",
+  "comparatorSha256": "8f08e4084f817d443ea22b1bd13c99915284fad2c9b415a662f6973b3761446b",
+  "kvStorageDtype": "f32",
+  "normalModelQualified": false,
+  "acceptanceChanged": false,
+  "referenceSha256": "ce4cb138b1919474d85507e06faa9ca167d87fd143bb85a7411f5443cea9a897",
+  "policySha256": "f1c4629d593ec2517e3628ac68131dc7568c6aba5e0f03db627d26228c720413",
+  "policyId": "doppler.boundary-tolerance/quantized-v1",
+  "policy": {
+    "absolute": 0.05,
+    "relative": 0.05,
+    "requireDtypeMatch": false
+  },
+  "rows": [
+    {
+      "id": "short",
+      "tokenIds": [
+        11751,
+        13,
+        9664
+      ],
+      "firstTokenAgrees": true,
+      "layers": [],
+      "logits": {
+        "count": 248320,
+        "maxAbsoluteError": 4.9591064453125e-05,
+        "rmsError": 8.213371565173258e-06,
+        "outsidePolicy": 0,
+        "passed": true,
+        "actualArgmax": 11751,
+        "referenceArgmax": 11751
+      },
+      "passed": true,
+      "fullLogitsChecked": true,
+      "decodeRows": [
+        {
+          "count": 248320,
+          "maxAbsoluteError": 7.700920104980469e-05,
+          "rmsError": 1.13164336079505e-05,
+          "outsidePolicy": 0,
+          "passed": true,
+          "actualArgmax": 13,
+          "referenceArgmax": 13,
+          "step": 1,
+          "tokenId": 13,
+          "tokenAgrees": true
+        },
+        {
+          "count": 248320,
+          "maxAbsoluteError": 6.064772605895996e-05,
+          "rmsError": 1.2765634931711918e-05,
+          "outsidePolicy": 0,
+          "passed": true,
+          "actualArgmax": 9664,
+          "referenceArgmax": 9664,
+          "step": 2,
+          "tokenId": 9664,
+          "tokenAgrees": true
+        }
+      ],
+      "trajectoryAgrees": true
+    },
+    {
+      "id": "long",
+      "tokenIds": [
+        7920,
+        22257,
+        2312
+      ],
+      "firstTokenAgrees": true,
+      "layers": [],
+      "logits": {
+        "count": 248320,
+        "maxAbsoluteError": 0.7859580516815186,
+        "rmsError": 0.14052765925398603,
+        "outsidePolicy": 69941,
+        "passed": false,
+        "actualArgmax": 7920,
+        "referenceArgmax": 7920
+      },
+      "passed": false,
+      "fullLogitsChecked": true,
+      "decodeRows": [
+        {
+          "count": 248320,
+          "maxAbsoluteError": 0.8195502758026123,
+          "rmsError": 0.1856374366942262,
+          "outsidePolicy": 128403,
+          "passed": false,
+          "actualArgmax": 22257,
+          "referenceArgmax": 22257,
+          "step": 1,
+          "tokenId": 22257,
+          "tokenAgrees": true
+        },
+        {
+          "count": 248320,
+          "maxAbsoluteError": 0.7764763832092285,
+          "rmsError": 0.15606197618575338,
+          "outsidePolicy": 102431,
+          "passed": false,
+          "actualArgmax": 2312,
+          "referenceArgmax": 2312,
+          "step": 2,
+          "tokenId": 2312,
+          "tokenAgrees": true
+        }
+      ],
+      "trajectoryAgrees": true
+    }
+  ],
+  "passed": false,
+  "decodeReferenceSha256": "bf820fd93264fed297c13cce7c5eff29747c9eacd8a7ee12bf4f3ed0eec863cb",
+  "decodeInputsSha256": "6e1912a348b9858856ac4ed2b488e8d4d874c413b95e8440422d35e87de57df2",
+  "protocolSha256": "929286dab191905788f7c67b2f5c115b35c5f8ffcb7b0964bbb800c89f661715",
+  "decodeReferenceMethod": "Independent cache-free full-prefix source recomputation",
+  "decodeRowsRequested": 4,
+  "independentDecodeRowsChecked": 4
+}

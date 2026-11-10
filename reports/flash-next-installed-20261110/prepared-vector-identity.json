@@ -1,0 +1,45 @@
+{
+  "schema": "doppler.installed-prepared-vector-identity/v1",
+  "originalObservationSha256": "db8c27b9523d51ab1113f28035b91f189d5041e03e61e4c6acf490a5daa7ab38",
+  "installedObservationSha256": "f3c2f14e5ed38ee38b01771d02e0502426fce16cec4730bfe95e667e847d6e43",
+  "byteIdenticalVectors": 6,
+  "checkedLogits": 1489920,
+  "vectors": [
+    {
+      "id": "short",
+      "step": 0,
+      "sha256": "d59113bb0b1168786fba4db47a6a7f04ab7f4feeb03a10a5faf848b2a4b36a78",
+      "bytes": 993280
+    },
+    {
+      "id": "short",
+      "step": 1,
+      "sha256": "5812831cc1f6355c487bbfc643172bb66fc1e807a37050e1b175d40a164ceae5",
+      "bytes": 993280
+    },
+    {
+      "id": "short",
+      "step": 2,
+      "sha256": "faae7084117a7069e31a854a194b9b0172edee329fecd44c4c02005a44688eb2",
+      "bytes": 993280
+    },
+    {
+      "id": "long",
+      "step": 0,
+      "sha256": "dd00db40f17590974e3b0882f12c50e18738291be0531b0a2c2526dfecf73521",
+      "bytes": 993280
+    },
+    {
+      "id": "long",
+      "step": 1,
+      "sha256": "16acc6deee4be63965e0d6dd3f6dccebca94973b9845d5dfe29be18ee4d8c026",
+      "bytes": 993280
+    },
+    {
+      "id": "long",
+      "step": 2,
+      "sha256": "061c03a338e9a223c7e8a60462d719316c12ade22727fc93988c68284fb54030",
+      "bytes": 993280
+    }
+  ]
+}
