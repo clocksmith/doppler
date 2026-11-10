@@ -238,7 +238,7 @@ export function write_gather_q4_0(view, values, kernel) {
   writeU32(view, 12, values["index_offset"], kernel, "index_offset");
 }
 
-export function write_gather_split4_f16_vec4_f16_out(view, values, kernel) {
+export function write_gather_split4_f16_vec4_f32_out(view, values, kernel) {
   writeU32(view, 0, values["num_tokens"], kernel, "num_tokens");
   writeU32(view, 4, values["hidden_size"], kernel, "hidden_size");
   writeU32(view, 8, values["vocab_size"], kernel, "vocab_size");

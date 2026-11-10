@@ -31,6 +31,9 @@ export function expectsSplitGpuEmbeddingKernel(embeddingKernel) {
 export function getSplitGpuEmbeddingKernelSectionCount(embeddingKernel) {
   const kernel = embeddingKernel?.kernel;
   const entry = embeddingKernel?.entry;
+  if (kernel === 'gather_split4_f16_vec4_f32_out.wgsl' && entry === 'gather_vec4_f32_out') {
+    return MAX_SPLIT4_EMBEDDING_SECTIONS;
+  }
   if (kernel === 'gather_split4_f16_vec4_f16_out.wgsl' && entry === 'gather_vec4_f16_out') {
     return MAX_SPLIT4_EMBEDDING_SECTIONS;
   }
@@ -58,7 +61,7 @@ export function canAutoSplitGpuEmbedding({
     return false;
   }
   const kernel = embeddingKernel?.kernel ?? null;
-  if (kernel !== null && kernel !== 'gather_f16.wgsl' && kernel !== 'gather_f16_vec4.wgsl') {
+  if (kernel !== null && kernel !== 'gather.wgsl' && kernel !== 'gather_f16.wgsl' && kernel !== 'gather_f16_vec4.wgsl') {
     return false;
   }
   const dtype = materializedDtype ?? getEmbeddingFloatDtype(location, embeddingKernel);

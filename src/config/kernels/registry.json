@@ -24471,6 +24471,20 @@
     ]
    },
    "variants": {
+    "f16_vec4_f32_out": {
+     "wgsl": "gather_split4_f16_vec4_f32_out.wgsl",
+     "entryPoint": "gather_vec4_f32_out",
+     "workgroup": [64,1,1],
+     "requires": ["shader-f16"],
+     "outputDtype": "f32",
+     "description": "F16 split embeddings -> F32 output",
+     "reachability": {
+      "status": "unused",
+      "inlineConfigs": [],
+      "ruleChains": [],
+      "wgslOnDisk": true
+     }
+    },
     "f16_vec4_f16_out": {
      "wgsl": "gather_split4_f16_vec4_f16_out.wgsl",
      "entryPoint": "gather_vec4_f16_out",

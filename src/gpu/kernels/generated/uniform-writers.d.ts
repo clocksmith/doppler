@@ -331,7 +331,8 @@ export interface KernelUniformValues {
   "gather/q5_0": Parameters<typeof writers1.write_gather_q4_0>[1];
   "gather/q8_0": Parameters<typeof writers1.write_gather_q4_0>[1];
   "gather/q6k": Parameters<typeof writers1.write_gather_q4_0>[1];
-  "gather_split4/f16_vec4_f16_out": Parameters<typeof writers1.write_gather_split4_f16_vec4_f16_out>[1];
+  "gather_split4/f16_vec4_f32_out": Parameters<typeof writers1.write_gather_split4_f16_vec4_f32_out>[1];
+  "gather_split4/f16_vec4_f16_out": Parameters<typeof writers1.write_gather_split4_f16_vec4_f32_out>[1];
   "gather_split8/f16_vec4_f16_out": Parameters<typeof writers1.write_gather_split8_f16_vec4_f16_out>[1];
   "gather_split8/f16_vec4_f32_out": Parameters<typeof writers1.write_gather_split8_f16_vec4_f16_out>[1];
   "residual/default": Parameters<typeof writers1.write_residual_default>[1];

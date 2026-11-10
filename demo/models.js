@@ -90,6 +90,7 @@ async function loadSelectedModel({ entry = selectedEntry(), runtimeProfile = sta
       if (state.modelStatus[modelId] === 'loaded') state.modelStatus[modelId] = 'stored';
     }
     state.model = model;
+    state.bootError = null;
     state.modelId = model.modelId;
     state.modelStatus[entry.modelId] = 'loaded';
     localStorage.setItem(LAST_USED_MODEL_STORAGE_KEY, entry.modelId);

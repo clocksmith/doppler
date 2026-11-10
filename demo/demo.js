@@ -6,7 +6,6 @@ import { initSettings } from './settings.js';
 import { initReport } from './report.js';
 import { onModelLoaded, runGeneration, stopGeneration, showRecordedActivity, updateRecordedActivity } from './core.js';
 import { state } from './ui/state.js';
-import { SAMPLE_INSPECTION_RECEIPT } from './data/sample-inspection.js';
 import { initPrecisionReplay } from './ui/precision-replay/index.js';
 import { initLivePrecision } from './ui/precision-replay/live.js';
 import { initActivationGrid, isActivationRecordingEnabled, loadActivityExample, cancelActivityExample } from './ui/activation-grid/index.js';
@@ -120,13 +119,9 @@ async function init() {
   await boot();
   // A cached model must not suppress the ready-to-run prompt on a return visit.
   const example = getIllustrativeExample();
-  if (state.phase === 'ready' && !$('prompt-input').value.trim()) {
+  if (state.phase === 'ready' && !state.bootError && !$('prompt-input').value.trim()) {
     if (example) preloadPrompt(example.prompt);
-    const select = $('model-select'), sampleModel = SAMPLE_INSPECTION_RECEIPT.recording.modelId;
-    if (!state.model && [...select.options].some(option => option.value === sampleModel)) {
-      select.value = sampleModel;
-      select.dispatchEvent(new Event('change'));
-    }
+    // Recorded examples do not change the model selected for the user's next live run.
     void loadActivityExample(undefined, { autoplay: true });
   }
 }

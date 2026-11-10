@@ -9,7 +9,8 @@
         "label": "gather_split4",
         "sectionCount": 4,
         "variants": {
-          "f16": "f16_vec4_f16_out"
+          "f16": "f16_vec4_f16_out",
+          "f32": "f16_vec4_f32_out"
         }
       }
     },
@@ -21,6 +22,23 @@
         "op": "gather_split8",
         "label": "gather_split8",
         "sectionCount": 8,
+        "variants": {
+          "f16": "f16_vec4_f16_out",
+          "f32": "f16_vec4_f32_out"
+        }
+      }
+    },
+    {
+      "match": {
+        "outputDtype": "f32",
+        "sectionCount": {
+          "lte": 4
+        }
+      },
+      "value": {
+        "op": "gather_split4",
+        "label": "gather_split4",
+        "sectionCount": 4,
         "variants": {
           "f16": "f16_vec4_f16_out",
           "f32": "f16_vec4_f32_out"
@@ -56,7 +74,8 @@
         "label": "gather_split4",
         "sectionCount": 4,
         "variants": {
-          "f16": "f16_vec4_f16_out"
+          "f16": "f16_vec4_f16_out",
+          "f32": "f16_vec4_f32_out"
         }
       }
     },

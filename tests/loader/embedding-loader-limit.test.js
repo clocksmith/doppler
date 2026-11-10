@@ -291,6 +291,7 @@ try {
   assert.equal(loadTensorCalls, 0);
   assert.equal(gpuBuffers.size, 7);
 
+  for (const kernel of ['gather_f16.wgsl', 'gather.wgsl']) {
   // Automatic F16 vec4 split fallback when embeddingKernel is gather_f16.wgsl and table exceeds maxStorageBufferBindingSize.
   destroyBufferPool();
   setDevice(createTinyStorageLimitDevice({
@@ -317,7 +318,7 @@ try {
     gpuBuffers: autoSplitGpuBuffers,
     hostHasShaderF16: true,
     embeddingKernel: {
-      kernel: 'gather_f16.wgsl',
+      kernel,
       entry: 'main',
     },
     async loadShardRange(shardIndex, offset, size) {
@@ -350,6 +351,7 @@ try {
   );
   assert.equal(autoSplitRangeReads, 3);
   assert.equal(autoSplitGpuBuffers.size, 3);
+  }
 } finally {
   resetRuntimeConfig();
   destroyBufferPool();

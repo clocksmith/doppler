@@ -149,6 +149,9 @@ try {
     'split8 manifest should pass preflight when the adapter can bind the split8 shader'
   );
 
+  setDevice(createTinyStorageLimitDevice({ maxStorageBufferBindingSize: 134217728, maxBufferSize: 268435456, maxStorageBuffersPerShaderStage: 8 }), { platformConfig: null });
+  assert.equal(resolveManifestGpuResidentEmbeddingLimitError(readJson('models/local/gemma-3-270m-it-q4k-ehf16-af32/manifest.json')), null, 'Published Gemma F16 table with F32 gather fits mobile through split4');
+
   // 27B F16 embedding table (2.37 GiB) with gather_f16.wgsl passes preflight on a 2 GiB binding-limit adapter via auto-split.
   setDevice(createTinyStorageLimitDevice({
     maxStorageBufferBindingSize: 2147483648,

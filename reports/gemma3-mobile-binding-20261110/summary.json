@@ -1,0 +1,73 @@
+{
+  "classification": "Mac Chrome physical GPU with constrained device limits, not an actual phone test",
+  "passed": true,
+  "fullReceiptSha256": "c4723f208917c81b5af4b59c3744df60653b9326cc575623ae7b552de6024898",
+  "results": [
+    {
+      "constrained": false,
+      "limits": {
+        "binding": 4294967292,
+        "buffers": 10,
+        "maxBuffer": 4294967292
+      },
+      "adapter": {
+        "vendor": "apple",
+        "architecture": "metal-3",
+        "device": "unknown",
+        "description": "",
+        "subgroupMinSize": 32,
+        "subgroupMaxSize": 32
+      },
+      "artifact": {
+        "modelId": "gemma-3-270m-it-q4k-ehf16-af32",
+        "manifestHash": "sha256:230104df762ff394095326d8e9fa4dc144d431bbd61ad5139e1030e66836ab78"
+      },
+      "generatedTokenIds": [
+        818,
+        5279,
+        529,
+        7001,
+        563,
+        9079,
+        236761,
+        107,
+        106
+      ],
+      "text": null,
+      "error": "Complete"
+    },
+    {
+      "constrained": true,
+      "limits": {
+        "binding": 134217728,
+        "buffers": 8,
+        "maxBuffer": 268435456
+      },
+      "adapter": {
+        "vendor": "apple",
+        "architecture": "metal-3",
+        "device": "unknown",
+        "description": "",
+        "subgroupMinSize": 32,
+        "subgroupMaxSize": 32
+      },
+      "artifact": {
+        "modelId": "gemma-3-270m-it-q4k-ehf16-af32",
+        "manifestHash": "sha256:230104df762ff394095326d8e9fa4dc144d431bbd61ad5139e1030e66836ab78"
+      },
+      "generatedTokenIds": [
+        818,
+        5279,
+        529,
+        7001,
+        563,
+        9079,
+        236761,
+        107,
+        106
+      ],
+      "text": null,
+      "error": "Complete"
+    }
+  ]
+}

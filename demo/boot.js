@@ -1,4 +1,5 @@
 import { state } from './ui/state.js';
+import { setPhase } from './output.js';
 import {
   loadCatalog,
   checkStoredModels,
@@ -88,6 +89,7 @@ function hideOverlay() {
 
 export async function boot() {
   state.phase = 'booting';
+  state.bootError = null;
 
   try {
     // Step 1: WebGPU check
@@ -106,12 +108,25 @@ export async function boot() {
 
     // Step 4: Reuse a saved model before offering remote downloads
     renderModelOptions();
-    if (storedModels.length > 0) await loadSavedModelWithStatus();
+    if (storedModels.length > 0) {
+      try {
+        // dr.load checks manifest/device compatibility before weight materialization.
+        await loadSavedModelWithStatus();
+      } catch (error) {
+        // A saved model is optional startup work. Keep its bytes and the picker usable.
+        state.bootError = error?.message || String(error);
+      }
+    }
 
     // Step 5: Show the ready chat surface
     state.phase = 'ready';
     setBootStatus('Ready');
     hideOverlay();
+    if (state.bootError) {
+      const picker = $('model-picker');
+      if (picker) picker.open = true;
+      setPhase(`Saved model could not load. Choose another model or retry. ${state.bootError}`);
+    }
   } catch (err) {
     state.phase = 'error';
     state.bootError = err.message;
