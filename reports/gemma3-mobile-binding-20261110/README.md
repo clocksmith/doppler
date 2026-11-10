@@ -32,3 +32,13 @@ The tool also accepts `DOPPLER_DEMO_URL`, `DOPPLER_DEMO_PREFIX`, and
 Four PWA PNGs were losslessly recompressed; pixel equality was checked. This keeps
 the generated offline shell below its existing 10 MB limit, including hosted URL
 prefixes. No budget, manifest, model dtype, or qualification threshold changed.
+
+## Published route check
+
+The same composed check passed at `https://d4da.com/doppler/` after D4DA
+publication `324ad70`, serving Doppler `04f9eae3` (runtime 0.6.36).
+`live/summary.json` retains the full-model and cached-startup results. Both arms
+returned the same nine token IDs; the constrained arm reports actual device
+limits of 128 MiB per binding, 256 MiB per buffer, and eight storage buffers.
+Six served shader, loader, boot, entrypoint and shell files matched the packaged
+bytes. Phone hardware and other mobile browser implementations remain untested.
