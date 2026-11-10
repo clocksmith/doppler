@@ -1,0 +1,102 @@
+{
+  "schema": "doppler.route-order-physical-control/v1",
+  "mode": "route-slot",
+  "scope": "Fixed weighted expert outputs; arithmetic ordering and product materialization, not full-model correctness",
+  "shaderSha256": "30597e2e0b959e519d55b8c88a3bf290ebd9388d07f347b1d260f92a56160e12",
+  "rows": [
+    {
+      "kind": "order-cancellation",
+      "numTokens": 2,
+      "hiddenSize": 257,
+      "topK": 3,
+      "recorded": false,
+      "outputs": 514,
+      "mismatches": 0,
+      "alternativeOrderMismatches": 514,
+      "actualFirst": 1,
+      "expectedFirst": 1,
+      "inputsSha256": "22ae9d824b275986055c0d908cbc5d8d3d5507fd2b80cc5e7ea9307f90628480",
+      "outputSha256": "a0894ca77ee431c328bddd70b5fb99e59370c2171088046b60bc4cde1a36e187"
+    },
+    {
+      "kind": "order-cancellation",
+      "numTokens": 2,
+      "hiddenSize": 257,
+      "topK": 3,
+      "recorded": true,
+      "outputs": 514,
+      "mismatches": 0,
+      "alternativeOrderMismatches": 514,
+      "actualFirst": 1,
+      "expectedFirst": 1,
+      "inputsSha256": "22ae9d824b275986055c0d908cbc5d8d3d5507fd2b80cc5e7ea9307f90628480",
+      "outputSha256": "a0894ca77ee431c328bddd70b5fb99e59370c2171088046b60bc4cde1a36e187"
+    },
+    {
+      "kind": "mixed-routes",
+      "numTokens": 3,
+      "hiddenSize": 5,
+      "topK": 10,
+      "recorded": false,
+      "outputs": 15,
+      "mismatches": 0,
+      "alternativeOrderMismatches": 8,
+      "actualFirst": 0.28381118178367615,
+      "expectedFirst": 0.28381118178367615,
+      "inputsSha256": "9f907345542be7e6f6973bf942da85f49ee1252cdb90d0cf4988ee5ea715061d",
+      "outputSha256": "d0d2fde8c81c5a3b1db8d7c80cb95365c2dbe819addd70759a347ef9f76febd5"
+    },
+    {
+      "kind": "mixed-routes",
+      "numTokens": 3,
+      "hiddenSize": 5,
+      "topK": 10,
+      "recorded": true,
+      "outputs": 15,
+      "mismatches": 0,
+      "alternativeOrderMismatches": 8,
+      "actualFirst": 0.28381118178367615,
+      "expectedFirst": 0.28381118178367615,
+      "inputsSha256": "9f907345542be7e6f6973bf942da85f49ee1252cdb90d0cf4988ee5ea715061d",
+      "outputSha256": "d0d2fde8c81c5a3b1db8d7c80cb95365c2dbe819addd70759a347ef9f76febd5"
+    },
+    {
+      "kind": "product-rounding",
+      "numTokens": 1,
+      "hiddenSize": 1,
+      "topK": 2,
+      "recorded": false,
+      "outputs": 1,
+      "mismatches": 0,
+      "alternativeOrderMismatches": 0,
+      "actualFirst": 0,
+      "expectedFirst": 0,
+      "inputsSha256": "d3c7feca9c3945a050e20a1473a6e97890cf50ec3620eeaf54ccc3f40f9aef5b",
+      "outputSha256": "df3f619804a92fdb4057192dc43dd748ea778adc52bc498ce80524c014b81119"
+    },
+    {
+      "kind": "product-rounding",
+      "numTokens": 1,
+      "hiddenSize": 1,
+      "topK": 2,
+      "recorded": true,
+      "outputs": 1,
+      "mismatches": 0,
+      "alternativeOrderMismatches": 0,
+      "actualFirst": 0,
+      "expectedFirst": 0,
+      "inputsSha256": "d3c7feca9c3945a050e20a1473a6e97890cf50ec3620eeaf54ccc3f40f9aef5b",
+      "outputSha256": "df3f619804a92fdb4057192dc43dd748ea778adc52bc498ce80524c014b81119"
+    }
+  ],
+  "gpuErrors": [],
+  "adapter": {
+    "vendor": "amd",
+    "architecture": "rdna-3",
+    "device": "radeon-8060s-graphics-radv-strix-halo-",
+    "description": "radv: Mesa 26.0.3-1ubuntu1",
+    "subgroupMinSize": 32,
+    "subgroupMaxSize": 64
+  },
+  "passed": true
+}

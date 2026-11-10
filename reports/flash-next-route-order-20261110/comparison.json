@@ -1,0 +1,58 @@
+{
+  "schema": "doppler.qwen38-learned-comparison/v1",
+  "scope": "Named unpadded Node observations only; sampled layers and retained last-position logits, no general model or performance qualification",
+  "gpuSha256": "1b41a0747984d056ba8c613446598948933c2505d4422c3c48cc50d13cdf5322",
+  "comparatorSha256": "8f08e4084f817d443ea22b1bd13c99915284fad2c9b415a662f6973b3761446b",
+  "kvStorageDtype": "f32",
+  "normalModelQualified": false,
+  "acceptanceChanged": false,
+  "referenceSha256": "fa25a6e219f1f39f0ecf735ff8d2a7941f88a2e335d052efdb1114afc6e06b99",
+  "policySha256": "f1c4629d593ec2517e3628ac68131dc7568c6aba5e0f03db627d26228c720413",
+  "policyId": "doppler.boundary-tolerance/quantized-v1",
+  "policy": {
+    "absolute": 0.05,
+    "relative": 0.05,
+    "requireDtypeMatch": false
+  },
+  "rows": [
+    {
+      "id": "marbles",
+      "tokenIds": [
+        8646
+      ],
+      "firstTokenAgrees": true,
+      "layers": [],
+      "logits": {
+        "count": 248320,
+        "maxAbsoluteError": 3.528594970703125e-05,
+        "rmsError": 4.2816587336567006e-06,
+        "outsidePolicy": 0,
+        "passed": true,
+        "actualArgmax": 8646,
+        "referenceArgmax": 8646
+      },
+      "passed": true,
+      "fullLogitsChecked": true
+    },
+    {
+      "id": "inventory",
+      "tokenIds": [
+        271
+      ],
+      "firstTokenAgrees": true,
+      "layers": [],
+      "logits": {
+        "count": 248320,
+        "maxAbsoluteError": 0.46663475036621094,
+        "rmsError": 0.0736188843705538,
+        "outsidePolicy": 30616,
+        "passed": false,
+        "actualArgmax": 271,
+        "referenceArgmax": 271
+      },
+      "passed": false,
+      "fullLogitsChecked": true
+    }
+  ],
+  "passed": false
+}

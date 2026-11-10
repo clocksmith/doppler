@@ -1,0 +1,23 @@
+{
+  "schema": "doppler.route-order-full-model-experiment/v1",
+  "hypothesis": "Source expert-ID F32 accumulation instead of route-slot accumulation reduces the retained new-prompt score discrepancy; no other arithmetic or precision intervention",
+  "parentRunSha256": "62ddce380ace2380e436acac44b6dd1de3051d6107435329fbb2603efd5bdc88",
+  "preparationSha256": "08c7fffe1d50dae549195a715d06212b6f3c253dbf780900fbebee974694bcd2",
+  "runSha256": "7132372e9833ef9d70b6ae890712a5875c734dbd4c430c9410540814e44961fb",
+  "policySha256": "f1c4629d593ec2517e3628ac68131dc7568c6aba5e0f03db627d26228c720413",
+  "fixed": [
+    "artifact",
+    "independent reference",
+    "inputs",
+    "sampling",
+    "F32 KV",
+    "all unrelated source bytes",
+    "acceptance tolerance"
+  ],
+  "cases": [
+    "marbles",
+    "inventory"
+  ],
+  "acceptance": "Every required full last-position vector passes existing quantized-v1 policy with no GPU or cleanup errors; matching greedy token alone is insufficient",
+  "status": "Declared before candidate model execution; initial operator controls complete; no production edit or release promotion"
+}

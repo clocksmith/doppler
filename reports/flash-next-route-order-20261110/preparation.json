@@ -1,0 +1,39 @@
+{
+  "schema": "doppler.route-order-isolated-candidate/v1",
+  "scope": "Private arithmetic experiment, not a production API or qualification change",
+  "intervention": "Ascending expert-ID instead of route-slot F32 summation; separately rounded products retained",
+  "changes": [
+    {
+      "file": "src/gpu/kernels/scatter_add_routes_f32.wgsl",
+      "beforeSha256": "30597e2e0b959e519d55b8c88a3bf290ebd9388d07f347b1d260f92a56160e12",
+      "afterSha256": "cae404d3cb84e221b18ec0bdc53245b8d826f85aa880fd7c628ca5d6517601ad"
+    },
+    {
+      "file": "src/gpu/kernels/moe-route.js",
+      "beforeSha256": "69b1feecee159789a4f60b3e3f8cd5f1c5d01ceafdd75b346cd470de3fdd8541",
+      "afterSha256": "3a99840ad84209643d0f61c4600a8eef9e3f207ecd36f95a38c4540d1575adb1"
+    },
+    {
+      "file": "src/gpu/kernels/moe-route.d.ts",
+      "beforeSha256": "55a7fc13e0f537d5dea4027a8d6c85a7970fad1b25338d93be254bbd94415c17",
+      "afterSha256": "3e2f654b9cf315002777977751f011a3398866ed2ecd7918571b647bcc5bb569"
+    },
+    {
+      "file": "src/inference/pipelines/text/moe/qwen-route-executor.js",
+      "beforeSha256": "fe2811a0303b4689667b877991863840531a67db66d52527822d025e4e509f77",
+      "afterSha256": "3a36c4aecd6731281cb27ffc73b03947fa0cffc7f0e845626903833d03a8ea3c"
+    },
+    {
+      "file": "src/config/kernels/registry.json",
+      "beforeSha256": "7ffc167a415882d66646f2ff07bf1b336aee8a55065668fd0704e90c1f12f888",
+      "afterSha256": "ffe9baeea9dc1839d8348f1b9f58a6f1ff6e191c2493508a99f8454c19529651"
+    },
+    {
+      "file": "src/config/kernels/kernel-ref-digests.js",
+      "beforeSha256": "bf82bfb06583153e94f4827a8bbd38ab5d625685e895afe6984871e8f995880b",
+      "afterSha256": "6d4c85f3b8d47202193d321c70037d1d2b548904d1448821cb27330e13a41544"
+    }
+  ],
+  "untouchedSourceFilesVerified": 3094,
+  "shaderEntryDigest": "001617581e5f1865c1dceecb3cbd5f7bebe04beb8a35a11ab2aff10eae294e38"
+}
