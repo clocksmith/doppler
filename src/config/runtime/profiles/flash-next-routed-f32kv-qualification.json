@@ -1,7 +1,7 @@
 {
   "id": "profiles/flash-next-routed-f32kv-qualification",
   "name": "Flash-Next selected-expert F32 KV qualification",
-  "description": "Explicit F32 KV candidate with bounded routed experts; independent reference required and no promotion of the F16 KV lane.",
+  "description": "Explicit F32 KV and subgroup prefill control projections with bounded routed experts. Independent reference required; long-context qualification remains open.",
   "intent": "investigate",
   "compatibleIntents": [
     "investigate",
@@ -17,6 +17,55 @@
         "kvcache": {
           "kvDtype": "f32"
         }
+      },
+      "executionPatch": {
+        "addKernels": [
+          {
+            "key": "flash_next_prefill_control",
+            "kernel": {
+              "kernel": "matmul_f32_row_subgroup.wgsl",
+              "entry": "main",
+              "digest": "sha256:684e533f60ab318ad956832d9193a54526cb679d8ee3ab1fcf1779d33e379c0c"
+            }
+          }
+        ],
+        "set": [
+          {
+            "section": "prefill",
+            "op": "moe_router",
+            "kernelKey": "flash_next_prefill_control"
+          },
+          {
+            "section": "prefill",
+            "op": "attn_hc_down",
+            "kernelKey": "flash_next_prefill_control"
+          },
+          {
+            "section": "prefill",
+            "op": "attn_hc_up",
+            "kernelKey": "flash_next_prefill_control"
+          },
+          {
+            "section": "prefill",
+            "op": "attn_hc_inject",
+            "kernelKey": "flash_next_prefill_control"
+          },
+          {
+            "section": "prefill",
+            "op": "mlp_hc_down",
+            "kernelKey": "flash_next_prefill_control"
+          },
+          {
+            "section": "prefill",
+            "op": "mlp_hc_up",
+            "kernelKey": "flash_next_prefill_control"
+          },
+          {
+            "section": "prefill",
+            "op": "mlp_hc_inject",
+            "kernelKey": "flash_next_prefill_control"
+          }
+        ]
       }
     }
   }
