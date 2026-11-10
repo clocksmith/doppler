@@ -361,8 +361,7 @@ async function runPartitionApiSmoke(consumerDir, packageJson) {
   if (!closure.passed || closure.files.some(file => hostOnly.has(file.path))) {
     throw new Error('Installed root import owns an inference or host-storage dependency.');
   }
-  const retained = JSON.parse(await fs.readFile(path.join(ROOT_DIR, 'reports/capsule-runtime/runtime-closure.json')));
-  if (JSON.stringify(closure) !== JSON.stringify(retained)) throw new Error('Installed runtime closure differs from checked receipt.');
+  // Freshness of the checked-in closure receipt belongs to `npm run runtime:closure:check`, not this smoke.
   for (const suffix of ['.js', '.d.ts']) {
     const name = path.join(installedRoot, 'src/inference/pipelines/text/layer-partition-contract' + suffix);
     await fs.access(name);

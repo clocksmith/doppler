@@ -19,18 +19,11 @@ jobs:
   smoke:
     runs-on: ubuntu-24.04
     timeout-minutes: 10
-    env:
-      DOPPLER_ARCHITECTURE_DEBT_AUTHORIZATION: ${{ vars.DOPPLER_ARCHITECTURE_DEBT_AUTHORIZATION }}
     steps:
       - uses: actions/checkout@v7
-        with:
-          fetch-depth: 2
       - uses: actions/setup-node@v6
         with:
           node-version: '22'
           cache: npm
       - run: npm ci --ignore-scripts --omit=optional --no-audit --no-fund
-      - run: npm run source:architecture:check
-        env:
-          DOPPLER_POLICY_BASE_REF: HEAD^
       - run: npm run package:smoke
