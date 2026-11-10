@@ -17,14 +17,15 @@ if (!runPath) {
   assert.equal(hash(manifestBytes), run.expectedManifestSha256);
   const manifest = JSON.parse(manifestBytes);
   const inputsBytes = await fs.readFile(run.inputsPath), inputs = JSON.parse(inputsBytes);
-  const input = inputs.sequences.find(row => row.id === 'long');
-  assert(input && input.tokens.length === 2304);
+  const sequenceId = run.sequenceId ?? 'long';
+  const input = inputs.sequences.find(row => row.id === sequenceId);
+  assert(input && input.tokens.length === (run.inputTokenCount ?? 2304));
   const sourceURL = new URL('../../src/inference/pipelines/text/hyper-connection/decoder-layer.js', import.meta.url);
   const originalSource = await fs.readFile(sourceURL);
   const report = { scope: 'Layer-0 upstream observation with intentional abort before MoE; not a generated answer or model qualification',
     normalModelQualified: false, process: { pid: process.pid, node: process.versions.node },
     harnessSha256: hash(await fs.readFile(fileURLToPath(import.meta.url))),
-    manifestSha256: hash(manifestBytes), inputsSha256: hash(inputsBytes), runSha256: hash(runBytes),
+    manifestSha256: hash(manifestBytes), inputsSha256: hash(inputsBytes), runSha256: hash(runBytes), sequenceId,
     hyperConnectionGeometry: manifest.inference.hyperConnections, tensors: [] };
   report.runtimeSourceSha256 = {};
   for (const file of run.sourceFiles ?? []) report.runtimeSourceSha256[file] = hash(await fs.readFile(file));
@@ -129,7 +130,7 @@ if (!runPath) {
       storage: storage.createNodeFileArtifactStorageContext(pathToFileURL(path.resolve(run.modelDir)).href, manifest) });
     if (run.captureQsaLayers) {
       const reference = JSON.parse(await fs.readFile(run.referencePath));
-      qsaObservation = qsa.observeLearnedQsa(run.captureQsaLayers, reference.sequences.long.qsa,
+      qsaObservation = qsa.observeLearnedQsa(run.captureQsaLayers, reference.sequences[sequenceId].qsa,
         run.outputPath, run.captureQsaPositions ?? []);
     }
     if (run.auditWeights === true) {

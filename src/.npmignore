@@ -1111,6 +1111,7 @@ tooling/node-converter/output.d.ts
 tooling/node-file-fetch.d.ts
 tooling/node-source-runtime.d.ts
 tooling/node-webgpu.d.ts
+tooling/portable-source-path.d.ts
 tooling/program-bundle-host.d.ts
 tooling/program-bundle/choice-scoring-reference.d.ts
 tooling/program-bundle/embedding-reference.d.ts

@@ -3,6 +3,7 @@
 Arguments match prepare-layer0-upstream-trace.py: PRODUCER SOURCE OUT ARTIFACT
 DATA PREFIX TARGET_LAYER POSITIONS_JSON. The prior F16 instrument is unchanged.
 Use --retain-all-layers to preserve observations across the bounded suffix.
+Use --inputs INPUTS_JSON --sequence ID for a different frozen input cohort.
 """
 import hashlib
 import json
@@ -18,6 +19,18 @@ def require(condition, message):
 
 
 sha = lambda raw: hashlib.sha256(raw).hexdigest()
+def take_option(name):
+    if name not in sys.argv:
+        return None
+    index = sys.argv.index(name)
+    require(index + 1 < len(sys.argv), 'Missing value for ' + name)
+    value = sys.argv[index + 1]
+    del sys.argv[index:index + 2]
+    return value
+
+input_option = take_option('--inputs')
+sequence_option = take_option('--sequence')
+require(bool(input_option) == bool(sequence_option), 'Supply both --inputs and --sequence')
 producer, source, output, artifact, data, prefix = map(Path, sys.argv[1:7])
 target = int(sys.argv[7])
 positions = json.loads(sys.argv[8])
@@ -45,7 +58,20 @@ replace_once("checkpoint = prefix / f'layer-{target_layer - 1}.npy'", f"checkpoi
 replace_once("f'for layer_idx in range({target_layer}, {target_layer + 1}):'", f"f'for layer_idx in range({previous+1}, {{target_layer + 1}}):'")
 replace_once("if role == 'mlp_hc': raise TRACE_STOP", "if role == 'mlp_hc' and layer_idx == TRACE_TARGET: raise TRACE_STOP")
 replace_once("'TRACE_POSITIONS': positions}", "'TRACE_POSITIONS': positions, 'TRACE_TARGET': target_layer, 'TRACE_ALL_TENSORS': []}")
-replace_once("'--sequences', 'long', '--kv-dtype', 'f16'", "'--sequences', 'long'")
+if input_option:
+    input_path = Path(input_option)
+    require(sha(input_path.read_bytes()) == binding['inputsSha256'], 'New trace input identity mismatch')
+    cases = [r for r in json.loads(input_path.read_bytes())['sequences'] if r['id'] == sequence_option]
+    require(len(cases) == 1 and 0 < len(cases[0]['tokens']) <= 4096, 'Missing or oversized frozen trace input')
+    tokens = len(cases[0]['tokens'])
+    require(positions and all(type(p) is int and 0 <= p < tokens for p in positions), 'Trace positions outside frozen input')
+    replace_once('0 <= p < 2304', f'0 <= p < {tokens}')
+    replace_once('reshape(2304, -1)', f'reshape({tokens}, -1)')
+    replace_once("states['long']", 'states[' + repr(sequence_option) + ']')
+    replace_once("'--sequences', 'long', '--kv-dtype', 'f16'",
+                 "'--sequences', " + repr(sequence_option) + ", '--inputs', " + repr(str(input_path.resolve())))
+else:
+    replace_once("'--sequences', 'long', '--kv-dtype', 'f16'", "'--sequences', 'long'")
 # The original F16 observer routes through its storage-rounding wrapper.
 # Native F32 instead observes the unchanged eager function directly; no cast.
 replace_once("            assert KV_F16", "            assert not KV_F16\n            upstream_attention = namespace['eager_attention_forward']")
@@ -70,6 +96,8 @@ actual = np.load(output/row['file'], allow_pickle=False)
 require(np.array_equal(actual.view('u4'), expected.view('u4')), 'CPU resume must reproduce the independent router input bit-exactly')
 trace.update(kvStorageDtype='f32', firstLayer=previous+1, sourceRouterInputReplayBitExact=True,
              baseInstrumentSha256=sha(original), adaptedInstrumentSha256=sha(text.encode()))
+if input_option:
+    trace.update(sequenceId=sequence_option, inputTokens=tokens)
 if retain_all:
     records = environment['environment']['TRACE_ALL_TENSORS']
     replays = []

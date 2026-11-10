@@ -41,7 +41,11 @@ try {
   for (const layer of run.layers) {
     const expectedRaw = await verified(layer.sourceExperts);
     const expected = new Uint32Array(expectedRaw.buffer.slice(expectedRaw.byteOffset, expectedRaw.byteOffset + expectedRaw.byteLength));
+    const scoresRaw = await verified(layer.sourceWeights);
+    const scores = new Float32Array(scoresRaw.buffer.slice(scoresRaw.byteOffset, scoresRaw.byteOffset + scoresRaw.byteLength));
     assert.equal(expected.length, run.tokens * run.topK);
+    assert.equal(scores.length, expected.length);
+    assert(scores.every(Number.isFinite));
     for (const lane of ['source', 'gpu']) {
       const bytes = await verified(layer[lane]);
       assert.equal(bytes.byteLength, run.tokens * run.experts * 4);
@@ -55,15 +59,28 @@ try {
         const weights = new Float32Array(await readBuffer(output.weights, expectedRaw.byteLength));
         assert(weights.every(Number.isFinite));
         const setDifferences = [], orderDifferences = [];
+        let maxAbsoluteWeightError = 0, maxRelativeWeightError = 0, weightSquaredError = 0, comparableWeights = 0;
         for (let token = 0; token < run.tokens; token++) {
           const a = Array.from(actual.subarray(token * run.topK, (token + 1) * run.topK));
           const b = Array.from(expected.subarray(token * run.topK, (token + 1) * run.topK));
           if (a.some((value, i) => value !== b[i])) orderDifferences.push(token);
+          for (let slot = 0; slot < run.topK; slot++) {
+            const sourceSlot = b.indexOf(a[slot]);
+            if (sourceSlot < 0) continue;
+            const reference = scores[token * run.topK + sourceSlot];
+            const error = Math.abs(weights[token * run.topK + slot] - reference);
+            maxAbsoluteWeightError = Math.max(maxAbsoluteWeightError, error);
+            if (reference !== 0) maxRelativeWeightError = Math.max(maxRelativeWeightError, error / Math.abs(reference));
+            weightSquaredError += error * error;
+            comparableWeights++;
+          }
           a.sort((x, y) => x - y); b.sort((x, y) => x - y);
           if (a.some((value, i) => value !== b[i])) setDifferences.push(token);
         }
         result.rows.push({ layer: layer.layer, lane, inputSha256: layer[lane].sha256,
           outputIndicesSha256: hash(actual), setDifferences, orderDifferences,
+          sourceWeightsSha256: layer.sourceWeights.sha256, outputWeightsSha256: hash(weights), comparableWeights,
+          maxAbsoluteWeightError, maxRelativeWeightError, weightErrorRms: Math.sqrt(weightSquaredError / comparableWeights),
           differingChoices: setDifferences.map(token => ({ token,
             actual: Array.from(actual.subarray(token * run.topK, (token + 1) * run.topK)),
             source: Array.from(expected.subarray(token * run.topK, (token + 1) * run.topK)) })) });
