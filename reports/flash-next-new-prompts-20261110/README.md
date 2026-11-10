@@ -15,8 +15,40 @@ passing evidence remains in
 Both greedy tokens match the source. That does not override the score failure.
 [comparison.json](comparison.json) preserves the failed gate and
 [preparation.json](preparation.json) binds the run to its unchanged parent
-configuration, independent reference and frozen inputs. A diagnostic trace is
-being collected separately; no repair or new qualification is established here.
+configuration, independent reference and frozen inputs. No repair or new
+qualification is established here.
+
+## First routing boundary
+
+The observation-only GPU trace produces byte-identical final scores to the
+original failed run. Full Layer 2 and 3 outputs differ from the source by at most
+1.14e-6, with relative L2 differences below 9.3e-7. Sampled QSA selections agree
+through Layer 35; sampled differences appear at Layer 39. The initial incomplete
+QSA-block hypothesis does not explain the earliest observed routing difference.
+
+The independent F32 source observer retains all router rows and periodic layer
+checkpoints. Every retained layer sample and router metadata item matches the
+original reference bit-for-bit; its identity is in
+[source-trace-receipt.json](source-trace-receipt.json). The observer adapts the
+existing F32 observer to an explicit sequence ID without changing source math.
+
+[routing-trace.json](routing-trace.json) compares all 2,187 positions across 48
+layers. It first infers a different expert set at Layer 24, token 112: expert 225
+instead of 60. Those rankings are inferred from captured logits, rather than
+live observations of the model's expert-index buffers.
+
+[topk-replay.json](topk-replay.json) separately executes the production
+`softmax_topk_strided.wgsl` shader on the physical AMD GPU for Layers 0 through
+24. All 25 source-logit cases reproduce the source expert sets. The GPU-logit
+cases first differ at Layer 24, token 112, with the same 225/60 change. This
+places the difference before the selection operator; it does not establish
+that all upstream variation is permitted or repair the final-score failure.
+Routing-weight and upstream arithmetic checks remain pending.
+
+An initial exploratory replay accidentally selected the generic `fused`
+variant, which is not the model's declared 512-expert routing kernel. Its output
+is excluded from attribution. The corrected producer requires both the compiled
+shader identity and declared expert/top-k limits before dispatch.
 
 - `marbles`: 22 tokens, arithmetic completion.
 - `inventory`: 2,187 tokens, structured inventory beyond the sparse-attention

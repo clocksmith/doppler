@@ -1,0 +1,524 @@
+{
+  "schema": "doppler.flash-next-routing-physical-replay/v1",
+  "scope": "Production top-k shader replay on retained source/GPU logits; not a live capture of model routing or model qualification",
+  "runSha256": "f1355d08747f308f0a5508596e3893615a97ed0827ec5c9487628a4ac4efbae7",
+  "producerSha256": "619a5858d02e6010447a98db6ff85604d2f0f653dfc8e27c2a85195bcfb134d0",
+  "shader": {
+    "file": "softmax_topk_strided.wgsl",
+    "sourceSha256": "17ee3e45f695f39690827a53a2f659409cbfbc4840b8081e6717ae5ec2c3a623",
+    "variant": "fused_ranked_512"
+  },
+  "adapter": {
+    "vendor": "amd",
+    "architecture": "rdna-3",
+    "device": "radeon-8060s-graphics-radv-strix-halo-",
+    "description": "radv: Mesa 26.0.3-1ubuntu1",
+    "subgroupMinSize": 32,
+    "subgroupMaxSize": 64
+  },
+  "rows": [
+    {
+      "layer": 0,
+      "lane": "source",
+      "inputSha256": "3c5cf955e2a2cb90a0dad32cb29fc6ebff1b16a0cd1e1bf0feacc3da01524ad8",
+      "outputIndicesSha256": "815b01a64518856e80c30787754089f51f32df932ccd846b4bf9d31ef56a93d6",
+      "setDifferences": [],
+      "orderDifferences": [],
+      "differingChoices": []
+    },
+    {
+      "layer": 0,
+      "lane": "gpu",
+      "inputSha256": "54e0ac350fa8f0a45e997989795e14f8ed353402e277210e0a036398cbeedd49",
+      "outputIndicesSha256": "815b01a64518856e80c30787754089f51f32df932ccd846b4bf9d31ef56a93d6",
+      "setDifferences": [],
+      "orderDifferences": [],
+      "differingChoices": []
+    },
+    {
+      "layer": 1,
+      "lane": "source",
+      "inputSha256": "5b76e7f2a6f075a5aae5d854946e0391641e5603c25df83444b0af8a855094cb",
+      "outputIndicesSha256": "1f6d710b773027376c0dbc3bac034195c85cea20af05fffb57ef09d9653182c9",
+      "setDifferences": [],
+      "orderDifferences": [],
+      "differingChoices": []
+    },
+    {
+      "layer": 1,
+      "lane": "gpu",
+      "inputSha256": "d8b17cf85b8baecd5c5215f67afebee973c76ebc715a53211d5b371fccd1c57c",
+      "outputIndicesSha256": "1f6d710b773027376c0dbc3bac034195c85cea20af05fffb57ef09d9653182c9",
+      "setDifferences": [],
+      "orderDifferences": [],
+      "differingChoices": []
+    },
+    {
+      "layer": 2,
+      "lane": "source",
+      "inputSha256": "0ee81c1e4c44e294bf98f941fbc213c73d904ab5e77bb3f51bdbfb7438b15662",
+      "outputIndicesSha256": "37712e5793948a348fdbb2217edb5da61414cfbd13935baee2b6694854fe2ad9",
+      "setDifferences": [],
+      "orderDifferences": [],
+      "differingChoices": []
+    },
+    {
+      "layer": 2,
+      "lane": "gpu",
+      "inputSha256": "49d4c753adc831c11b54fda0c3ce9df739a040422e785d42d0771336efa6ae1a",
+      "outputIndicesSha256": "37712e5793948a348fdbb2217edb5da61414cfbd13935baee2b6694854fe2ad9",
+      "setDifferences": [],
+      "orderDifferences": [],
+      "differingChoices": []
+    },
+    {
+      "layer": 3,
+      "lane": "source",
+      "inputSha256": "86a26239769f78c2ce5f4ff3cb2ae4932632fd16718a3db695003857fdf8ca6f",
+      "outputIndicesSha256": "9d94d8968bacb17ced623866d916d654ead3c8818c9bdf2c1dc0fd3e12816248",
+      "setDifferences": [],
+      "orderDifferences": [],
+      "differingChoices": []
+    },
+    {
+      "layer": 3,
+      "lane": "gpu",
+      "inputSha256": "7291317db720df393153745b59da9fef44a8115722e7fa316b525c829480e091",
+      "outputIndicesSha256": "9d94d8968bacb17ced623866d916d654ead3c8818c9bdf2c1dc0fd3e12816248",
+      "setDifferences": [],
+      "orderDifferences": [],
+      "differingChoices": []
+    },
+    {
+      "layer": 4,
+      "lane": "source",
+      "inputSha256": "5fe1807fcea55a6c1a3fd64997609b5c2d12ff3b8747901146d8aa1e83343276",
+      "outputIndicesSha256": "5489c9fa6dfa8d2026d85644e4b73a903017e6a3e9400cecd167568d75b2306c",
+      "setDifferences": [],
+      "orderDifferences": [],
+      "differingChoices": []
+    },
+    {
+      "layer": 4,
+      "lane": "gpu",
+      "inputSha256": "8bde882706c5147c6fe46d8d289041de6d42f993b6ebaeb8ffa9b875718fed4e",
+      "outputIndicesSha256": "5489c9fa6dfa8d2026d85644e4b73a903017e6a3e9400cecd167568d75b2306c",
+      "setDifferences": [],
+      "orderDifferences": [],
+      "differingChoices": []
+    },
+    {
+      "layer": 5,
+      "lane": "source",
+      "inputSha256": "d02ccbe8da90bdfc1359205f763ebfe3e0f5c5ca67a1ec16a2aae459159520a8",
+      "outputIndicesSha256": "75b4790a89cca4a199d0cd913f419c45219b00246616e788748570562ff5abe5",
+      "setDifferences": [],
+      "orderDifferences": [],
+      "differingChoices": []
+    },
+    {
+      "layer": 5,
+      "lane": "gpu",
+      "inputSha256": "252301906ca62437005b4c978bc904770c270d2e0a63ab3637a6021e887cf447",
+      "outputIndicesSha256": "75b4790a89cca4a199d0cd913f419c45219b00246616e788748570562ff5abe5",
+      "setDifferences": [],
+      "orderDifferences": [],
+      "differingChoices": []
+    },
+    {
+      "layer": 6,
+      "lane": "source",
+      "inputSha256": "9bc07c64fdb53d31757055a1c33a963f089f8c83465b89617369e961c6a200d9",
+      "outputIndicesSha256": "3ec3ca0d60792c7c6ab9a1c0cce8b655400cf75b1f21ee320358b301a0a2c985",
+      "setDifferences": [],
+      "orderDifferences": [],
+      "differingChoices": []
+    },
+    {
+      "layer": 6,
+      "lane": "gpu",
+      "inputSha256": "72e24fbc6ccd7a19114647091034030e4817c3d827e6ad5879cae6cff44769ad",
+      "outputIndicesSha256": "3ec3ca0d60792c7c6ab9a1c0cce8b655400cf75b1f21ee320358b301a0a2c985",
+      "setDifferences": [],
+      "orderDifferences": [],
+      "differingChoices": []
+    },
+    {
+      "layer": 7,
+      "lane": "source",
+      "inputSha256": "7442e22cfe068c6a3fba2cd0f887cebe0c3075ee8354e9da7a8466809da1ca73",
+      "outputIndicesSha256": "c5247ac758ce8458a79b2947faad92ca70df4d3308cfe8e00a2fd5309a21acd8",
+      "setDifferences": [],
+      "orderDifferences": [],
+      "differingChoices": []
+    },
+    {
+      "layer": 7,
+      "lane": "gpu",
+      "inputSha256": "56abd8a479fbfc445a759c6a416e29a9785597add7dd80ea59cde850a3a4bac0",
+      "outputIndicesSha256": "c5247ac758ce8458a79b2947faad92ca70df4d3308cfe8e00a2fd5309a21acd8",
+      "setDifferences": [],
+      "orderDifferences": [],
+      "differingChoices": []
+    },
+    {
+      "layer": 8,
+      "lane": "source",
+      "inputSha256": "0c05a72057fddf759946124c8b5e13ebea76d27dc2a84799dd6ab0f0733ad9cc",
+      "outputIndicesSha256": "9e387b6f5a8b531dbed3518206f94e4baa20044b2ea41d662e7c4f808656e018",
+      "setDifferences": [],
+      "orderDifferences": [],
+      "differingChoices": []
+    },
+    {
+      "layer": 8,
+      "lane": "gpu",
+      "inputSha256": "55f809fa1568c82c0b784c84a701cd2bb46325dd52f6ec1a85907f030d62fc8a",
+      "outputIndicesSha256": "9e387b6f5a8b531dbed3518206f94e4baa20044b2ea41d662e7c4f808656e018",
+      "setDifferences": [],
+      "orderDifferences": [],
+      "differingChoices": []
+    },
+    {
+      "layer": 9,
+      "lane": "source",
+      "inputSha256": "93a2a087005fc99810fa1d120ce9bd1340d1df47447f50cfb2b1cd325cf8bcb8",
+      "outputIndicesSha256": "2e3b1e4abd9727b36b7584b58f1d5203b88d82c9099b27a3c9767ef87d6a4b4b",
+      "setDifferences": [],
+      "orderDifferences": [],
+      "differingChoices": []
+    },
+    {
+      "layer": 9,
+      "lane": "gpu",
+      "inputSha256": "6b798290b64a1a9dc679ad6bd443607f3d4c4baa8c77893c3209a0c08b524bc0",
+      "outputIndicesSha256": "2e3b1e4abd9727b36b7584b58f1d5203b88d82c9099b27a3c9767ef87d6a4b4b",
+      "setDifferences": [],
+      "orderDifferences": [],
+      "differingChoices": []
+    },
+    {
+      "layer": 10,
+      "lane": "source",
+      "inputSha256": "8f8dcde2801967b5949d29d3ec05312faf90f699b4c9ff3b4308405f102a0875",
+      "outputIndicesSha256": "03a5cf02c60d9d6446a9474ae0d22f61b08c528ebf14ff1254bbb023c8416154",
+      "setDifferences": [],
+      "orderDifferences": [],
+      "differingChoices": []
+    },
+    {
+      "layer": 10,
+      "lane": "gpu",
+      "inputSha256": "9f78c4fcd0ac692033877500bd7a532ca0412e65ca824bb9acb3fcf4f37aac30",
+      "outputIndicesSha256": "c505468fd39d623049133acaddf954f08cc5c31e7f349afdb12d70ec4282f175",
+      "setDifferences": [],
+      "orderDifferences": [
+        1269
+      ],
+      "differingChoices": []
+    },
+    {
+      "layer": 11,
+      "lane": "source",
+      "inputSha256": "7ca2ab03439dda42e77a4f79e3c107c8b9d2317402ff60c76f195ceb9b62750b",
+      "outputIndicesSha256": "a8ae375f43fabc8e64674695cdc92d213baba70da7f20ffa232d3cae4ffa2fc6",
+      "setDifferences": [],
+      "orderDifferences": [],
+      "differingChoices": []
+    },
+    {
+      "layer": 11,
+      "lane": "gpu",
+      "inputSha256": "e755f7d863319d19f11d0ae91600b6f89b8aabf1d0838a60c8d09da0ad941c59",
+      "outputIndicesSha256": "a8ae375f43fabc8e64674695cdc92d213baba70da7f20ffa232d3cae4ffa2fc6",
+      "setDifferences": [],
+      "orderDifferences": [],
+      "differingChoices": []
+    },
+    {
+      "layer": 12,
+      "lane": "source",
+      "inputSha256": "293b1abe354e6d438748228b762cbef61dee01c10b3fb50bcaa883c7540b6977",
+      "outputIndicesSha256": "a12fcb5b1cedd6fa8958fd4838833f35222b9560a08c749e12dc01765be890fe",
+      "setDifferences": [],
+      "orderDifferences": [],
+      "differingChoices": []
+    },
+    {
+      "layer": 12,
+      "lane": "gpu",
+      "inputSha256": "6302c431aba36585f5733747bad20d0a27163877b88796d867adb6c5e7510e89",
+      "outputIndicesSha256": "bdc318ffb78fe4df4918f17a52ce95495cb5037ca8d3f251d0b1c8b4256b7f54",
+      "setDifferences": [],
+      "orderDifferences": [
+        915,
+        1966
+      ],
+      "differingChoices": []
+    },
+    {
+      "layer": 13,
+      "lane": "source",
+      "inputSha256": "28c7143cb86f7c4505625cc8a4dae4040e1bdfe925069dab91eeca9db04db3a7",
+      "outputIndicesSha256": "4d6e4d2aec8209f8650984043984e26ac90cbdc4eb296ca3d37bf29f739e1ed3",
+      "setDifferences": [],
+      "orderDifferences": [],
+      "differingChoices": []
+    },
+    {
+      "layer": 13,
+      "lane": "gpu",
+      "inputSha256": "fdcbdb1161dce01c76bf0c706be1a4784aab44877ebdfe4655d7085ae9227cf7",
+      "outputIndicesSha256": "9f74a4cac2ebafab08fc2407187da9301e9a012a815ce14b301d3243dd08317c",
+      "setDifferences": [],
+      "orderDifferences": [
+        312
+      ],
+      "differingChoices": []
+    },
+    {
+      "layer": 14,
+      "lane": "source",
+      "inputSha256": "a63ead35771a7cef6f489da0db4a3954340d5822483187498d2e9ac3710d1f1b",
+      "outputIndicesSha256": "64ba64e7a22865edea731a815a1822f082ecc7ddeaa2becd7d0da91264e02f1c",
+      "setDifferences": [],
+      "orderDifferences": [],
+      "differingChoices": []
+    },
+    {
+      "layer": 14,
+      "lane": "gpu",
+      "inputSha256": "5827a910de2b57ab8ced2154eb0ed11e1b7401949e38b258020fd0693df446c2",
+      "outputIndicesSha256": "64ba64e7a22865edea731a815a1822f082ecc7ddeaa2becd7d0da91264e02f1c",
+      "setDifferences": [],
+      "orderDifferences": [],
+      "differingChoices": []
+    },
+    {
+      "layer": 15,
+      "lane": "source",
+      "inputSha256": "728c89159449c82357157a529ea24e07de1398733d997625cee266c66a7e4544",
+      "outputIndicesSha256": "cae0044e5343c74792d33297c017dab3a810d0d1002455ee439923566133de26",
+      "setDifferences": [],
+      "orderDifferences": [],
+      "differingChoices": []
+    },
+    {
+      "layer": 15,
+      "lane": "gpu",
+      "inputSha256": "79c0b9180a39d966c0c634fd8c3d812fdd33a16803b38dd4543e20ba65d2b4d8",
+      "outputIndicesSha256": "b636b3b1e70a17f47f6fb02cc260cb30403df5746bd1f2687e3f1aa49eb92c25",
+      "setDifferences": [],
+      "orderDifferences": [
+        187,
+        730,
+        1928
+      ],
+      "differingChoices": []
+    },
+    {
+      "layer": 16,
+      "lane": "source",
+      "inputSha256": "9de872e891c8fbacbfdec8e98013de81dc3f75b3502ee6b29496f5650a424487",
+      "outputIndicesSha256": "24bdaabe64a35be5a33a1aca11ebe0b28f6bafc02d99bbcb187db4ed6cd45f3b",
+      "setDifferences": [],
+      "orderDifferences": [],
+      "differingChoices": []
+    },
+    {
+      "layer": 16,
+      "lane": "gpu",
+      "inputSha256": "49fd9b02d3844f0437abc99f9b14eb338ad3f30b4da5766848fb3835deeccc7c",
+      "outputIndicesSha256": "b91b85b87623b50d171deb899f93803505bef8299b1753be5a4d77175ed0eee4",
+      "setDifferences": [],
+      "orderDifferences": [
+        1908
+      ],
+      "differingChoices": []
+    },
+    {
+      "layer": 17,
+      "lane": "source",
+      "inputSha256": "03b8042b33b10ecaf42b1e07babb8864d7520d4d996ead0b611895b0bc3ff254",
+      "outputIndicesSha256": "20633b45ea384ac926b6aef476c8fca0a5873eee29ad90cccf801d40493e1edf",
+      "setDifferences": [],
+      "orderDifferences": [],
+      "differingChoices": []
+    },
+    {
+      "layer": 17,
+      "lane": "gpu",
+      "inputSha256": "82230b2a4e333ca9f313f3b34a1253cb5bac49bdab91b8295603db693e97d6cd",
+      "outputIndicesSha256": "20633b45ea384ac926b6aef476c8fca0a5873eee29ad90cccf801d40493e1edf",
+      "setDifferences": [],
+      "orderDifferences": [],
+      "differingChoices": []
+    },
+    {
+      "layer": 18,
+      "lane": "source",
+      "inputSha256": "2f1b24449a1e4c755b4df7933dd3636028ce357e65da208ca46c8717484d3bb7",
+      "outputIndicesSha256": "388bcb9571bebd75a445298b1072b120d8993cd0d6fc7d235f368ff777ac7981",
+      "setDifferences": [],
+      "orderDifferences": [],
+      "differingChoices": []
+    },
+    {
+      "layer": 18,
+      "lane": "gpu",
+      "inputSha256": "799dbf9289b27a7e7485022cc941489493d7ab8be99336ed526f147a5b5e6f68",
+      "outputIndicesSha256": "152f373bdeb9b57de706c1ec4d9e8dee6948830d28707d4b4dd5fbcc7cdc4955",
+      "setDifferences": [],
+      "orderDifferences": [
+        708
+      ],
+      "differingChoices": []
+    },
+    {
+      "layer": 19,
+      "lane": "source",
+      "inputSha256": "928cfabcc14b135ae72e1f401565294d859c3752e77ecbe449d590bc66ff0411",
+      "outputIndicesSha256": "6df5bcddf46ebcc9c66a5c915bdf681f8f37cea79312559bedfbe14f2b6d1a2c",
+      "setDifferences": [],
+      "orderDifferences": [
+        1583
+      ],
+      "differingChoices": []
+    },
+    {
+      "layer": 19,
+      "lane": "gpu",
+      "inputSha256": "b2add156d4d86ccddbf83ec0bbec2cd2dc0595d1bc51d3fea3d158fbfd65a070",
+      "outputIndicesSha256": "4b36292ea41654dde42ee9c3a7d00abdab47cc8e165961f8878902ad2b3d2723",
+      "setDifferences": [],
+      "orderDifferences": [],
+      "differingChoices": []
+    },
+    {
+      "layer": 20,
+      "lane": "source",
+      "inputSha256": "b400d1a76f001fc3a190477b5985faee360e1cfa9caea3be90c013765b7f92a8",
+      "outputIndicesSha256": "e8f70a36081e2af61c3b4ccee5e8d52172931142389cc8d9127a2404838fb875",
+      "setDifferences": [],
+      "orderDifferences": [],
+      "differingChoices": []
+    },
+    {
+      "layer": 20,
+      "lane": "gpu",
+      "inputSha256": "8c0570c2aef20771245fe6276b855dce85d00640c1bf1def6561cfdc2d756b32",
+      "outputIndicesSha256": "e8f70a36081e2af61c3b4ccee5e8d52172931142389cc8d9127a2404838fb875",
+      "setDifferences": [],
+      "orderDifferences": [],
+      "differingChoices": []
+    },
+    {
+      "layer": 21,
+      "lane": "source",
+      "inputSha256": "cadcfb9ae66bbd0a864638527eca8b8e4ddde27003a99662fe28f1835b1fac92",
+      "outputIndicesSha256": "36a51f67745444bb69bb3cb2bc7188c87351d4801bb396297200c54d48711b36",
+      "setDifferences": [],
+      "orderDifferences": [],
+      "differingChoices": []
+    },
+    {
+      "layer": 21,
+      "lane": "gpu",
+      "inputSha256": "b0e33bc7925c00aed386184babde09c7407850565397b3ee6a00a669fe0f7700",
+      "outputIndicesSha256": "36a51f67745444bb69bb3cb2bc7188c87351d4801bb396297200c54d48711b36",
+      "setDifferences": [],
+      "orderDifferences": [],
+      "differingChoices": []
+    },
+    {
+      "layer": 22,
+      "lane": "source",
+      "inputSha256": "70a60889ea864eb965949511c29641df86dd3e2b3cc8ca3c515d73288cd17192",
+      "outputIndicesSha256": "345445a0613214cf9ab77064450cc1de1bdb5e8375610e252528addc7366f5b1",
+      "setDifferences": [],
+      "orderDifferences": [],
+      "differingChoices": []
+    },
+    {
+      "layer": 22,
+      "lane": "gpu",
+      "inputSha256": "c7772d78cadc3c76203bbe372f16ed2ae123b0324ab6b7dc693c1b3d93d6da69",
+      "outputIndicesSha256": "345445a0613214cf9ab77064450cc1de1bdb5e8375610e252528addc7366f5b1",
+      "setDifferences": [],
+      "orderDifferences": [],
+      "differingChoices": []
+    },
+    {
+      "layer": 23,
+      "lane": "source",
+      "inputSha256": "21c57b2ae207a4b446790e23fe8a12aa62a74e721c455239d2bc9b577683b8be",
+      "outputIndicesSha256": "18b4298516342df0b9e2a9e3a0ecd7e150006310b7c64c92a16a60b67b1beb88",
+      "setDifferences": [],
+      "orderDifferences": [],
+      "differingChoices": []
+    },
+    {
+      "layer": 23,
+      "lane": "gpu",
+      "inputSha256": "d1b2efe82c10f7b2acfe2bf677d68170631fa51db880ebb27c39f0379d0a6f88",
+      "outputIndicesSha256": "18b4298516342df0b9e2a9e3a0ecd7e150006310b7c64c92a16a60b67b1beb88",
+      "setDifferences": [],
+      "orderDifferences": [],
+      "differingChoices": []
+    },
+    {
+      "layer": 24,
+      "lane": "source",
+      "inputSha256": "09dc61a1483d0793328a9f4c91ae4879e798dfbf7f029d507bbccc0edce5d00a",
+      "outputIndicesSha256": "b6c6fa97bb9c64724f00c31c4ca015ad7bd02bc52266b0d738bc8c8add9a51c6",
+      "setDifferences": [],
+      "orderDifferences": [],
+      "differingChoices": []
+    },
+    {
+      "layer": 24,
+      "lane": "gpu",
+      "inputSha256": "a8ee095b6fd2c15c62652985eb795d66e129e7ce52678aaac75e9ce6b3c70d66",
+      "outputIndicesSha256": "e85ef2d640aa53c81b4f98ead12921f091dc4be6905522f5cbe60766dceae5ab",
+      "setDifferences": [
+        112
+      ],
+      "orderDifferences": [
+        112
+      ],
+      "differingChoices": [
+        {
+          "token": 112,
+          "actual": [
+            427,
+            429,
+            297,
+            164,
+            321,
+            4,
+            176,
+            212,
+            258,
+            225
+          ],
+          "source": [
+            427,
+            429,
+            297,
+            164,
+            321,
+            4,
+            176,
+            212,
+            258,
+            60
+          ]
+        }
+      ]
+    }
+  ],
+  "errors": [],
+  "acceptanceChanged": false,
+  "normalModelQualified": false,
+  "completed": true
+}
