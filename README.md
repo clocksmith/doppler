@@ -15,15 +15,15 @@ embeddings, reranking, and choice scoring, qualified per model and host.
 Run the pinned published quickstart with Node 20+ and a working WebGPU provider:
 
 ```sh
-npx --package doppler-gpu@0.6.1 doppler-gpu --model gemma3-270m --prompt "Describe WebGPU briefly"
+npx --package doppler-gpu@0.7.0 doppler-gpu --model gemma3-270m --prompt "Describe WebGPU briefly"
 ```
 
 First execution downloads model assets. Browser and Node support are qualified
 separately. The [installation guide](docs/getting-started.md) covers provider
 requirements and embedding the published compatibility API.
 
-The checkout's [signed Run API](docs/api/root.md) and resident partition exports
-have separate release requirements; do not assume they exist in npm 0.6.1.
+The [signed Run API](docs/api/root.md) and resident partition exports ship in
+0.7.0 with separate release requirements; qualification stays per model and host.
 
 ## Benchmarks
 

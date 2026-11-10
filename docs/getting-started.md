@@ -6,13 +6,13 @@ qualification, and benchmarking are separate engineering workflows.
 
 ## Published first run
 
-The npm registry advertises `doppler-gpu@0.6.1`. Its quickstart includes the
+The npm registry advertises `doppler-gpu@0.7.0`. Its quickstart includes the
 `gemma3-270m` alias for the hosted Gemma 3 270M Q4K model:
 
 ```sh
-npx --yes --package doppler-gpu@0.6.1 doppler-gpu --help
-npx --yes --package doppler-gpu@0.6.1 doppler-gpu --list-models
-npx --yes --package doppler-gpu@0.6.1 doppler-gpu --model gemma3-270m --prompt "Describe WebGPU briefly"
+npx --yes --package doppler-gpu@0.7.0 doppler-gpu --help
+npx --yes --package doppler-gpu@0.7.0 doppler-gpu --list-models
+npx --yes --package doppler-gpu@0.7.0 doppler-gpu --model gemma3-270m --prompt "Describe WebGPU briefly"
 ```
 
 Use Node 20 or newer and a working WebGPU provider. The published package has
@@ -35,7 +35,7 @@ expecting offline operation.
 Install the exact release:
 
 ```sh
-npm install --save-exact doppler-gpu@0.6.1
+npm install --save-exact doppler-gpu@0.7.0
 ```
 
 ```js
@@ -53,8 +53,8 @@ This is the published manifest-loading compatibility API. Keep sessions open
 across requests when appropriate and close them at application shutdown.
 The newer [signed Run API](api/root.md), [choice scoring](api/choice-scoring.md),
 and [resident partitions](distribution/resident-partition-execution.md) describe
-source contracts with their own release and qualification status. Do not assume
-those exports or operations exist in npm 0.6.1. Applications own prompts, policy,
+source contracts with their own release and qualification status. They ship in
+0.7.0; qualification stays per model and host. Applications own prompts, policy,
 trust, updates, and presentation; Doppler owns loading and execution lifecycle.
 
 ## Retained search starter

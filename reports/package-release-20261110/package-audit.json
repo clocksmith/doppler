@@ -10,21 +10,21 @@
   },
   "candidate": {
     "version": "0.7.0",
-    "packedBytes": 3689074,
-    "unpackedBytes": 15744403,
+    "packedBytes": 3689061,
+    "unpackedBytes": 15744407,
     "files": 1932,
-    "integrity": "sha512-lyW+t6a+NO9Q6c4dO/IJ2SvTwmaZsTINudzt6r7PbnTg6qif4+RBQ/1NcDPoKimh+fCG7ZV5exB3xeUZ8KJhww=="
+    "integrity": "sha512-sRaOuz/K6YOhyitFlauZ3u8mFZdOmAEbcRKEhnm4rs7/ajCB/y7xPiI8mF+lpdvg39C+RPH+HDlbAQAen+lTjQ=="
   },
   "delta": {
-    "packedBytes": 48495,
-    "unpackedBytes": 196883,
+    "packedBytes": 48482,
+    "unpackedBytes": 196887,
     "addedFiles": 30,
     "removedFiles": 0
   },
   "limits": {
     "npmAllowanceBytes": 2158,
-    "maxPackedSize": 3691232,
-    "maxUnpackedSize": 15744403
+    "maxPackedSize": 3691219,
+    "maxUnpackedSize": 15744407
   },
   "measuredWith": "npm pack --dry-run --json --ignore-scripts",
   "changedFiles": [
@@ -1029,6 +1029,12 @@
       "baseBytes": 21972,
       "bytes": 21979,
       "delta": 7
+    },
+    {
+      "path": "README.md",
+      "baseBytes": 3708,
+      "bytes": 3712,
+      "delta": 4
     },
     {
       "path": "src/version.js",
