@@ -12,3 +12,4 @@ export declare function initSettings(options?: {
   requireDefaultProfile?: boolean;
   onProfileChange?: ((runtimeProfile: string) => Promise<void>) | null;
 }): Promise<boolean>;
+export declare function fieldText(el: { type: string; step: string }, value: unknown): string;

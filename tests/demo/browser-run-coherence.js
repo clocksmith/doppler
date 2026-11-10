@@ -11,7 +11,22 @@ export async function checkAutomaticReplay(page) {
   assert.equal(await page.locator('#sample-run-btn').count(), 0);
   assert.equal(await page.locator('#inspect-recorded-run').count(), 0);
   assert.equal(await page.locator('#chat-thread .chat-message-text').first().textContent(), 'Explain why the sky is blue in one sentence.');
-  assert.equal(await page.locator('#recorded-run-note').textContent(), 'Recorded replay · Qwen 0.8B');
+  // The label names the model of the saved run itself and says nothing is running here.
+  const recordedModel = await page.evaluate(id => [...document.querySelectorAll('#model-select option')]
+    .find(option => option.value === id)?.textContent.split(' · ')[0] ?? id, sample.recording.modelId);
+  assert.equal(await page.locator('#recorded-run-note').textContent(), `Recorded replay · ${recordedModel} · not running on this device`);
+  // A first visit is a still picture of the answer's least likely word, not a moving one.
+  const leastSure = sample.tokens.reduce((low, token, index) => token.probability < sample.tokens[low].probability ? index : low, 0);
+  assert.equal(await page.inputValue('#activation-position'), String(sample.inputTokenIds.length - 1 + leastSure), 'Opens paused on the least likely word');
+  assert.equal(await page.locator('#activity-hint').isVisible(), true, 'The pause is explained');
+  assert.match(await page.locator('#token-inspector-card-container').textContent(), /likely/, 'The paused word shows what else the model considered');
+  assert.equal(await page.locator('#activity-unsure-prev').isEnabled(), true);
+  await page.locator('#activity-unsure-prev').click();
+  const previousUnsure = sample.tokens.findLastIndex((token, index) => index < leastSure && token.probability < 0.5);
+  await page.waitForFunction(position => document.querySelector('#activation-position').value === position, String(sample.inputTokenIds.length - 1 + previousUnsure));
+  assert.equal(await page.locator('#activity-hint').isVisible(), false, 'The opening note leaves once the reader moves');
+  await page.locator('#activity-unsure-next').click();
+  await page.waitForFunction(text => document.querySelector('#output-text').textContent === text, sample.outputText);
   assert.equal(await page.locator('#recording-details').isVisible(), false);
   assert.equal(await page.locator('#activation-player').isVisible(), true);
   await fs.mkdir('.cache/demo-first-replay', { recursive: true });

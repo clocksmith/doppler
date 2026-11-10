@@ -414,6 +414,11 @@
               <label class="sr-only" for="activation-scrub">Capture</label>
               <input id="activation-scrub" type="range" min="0" max="0" value="0" disabled>
             </div>
+            <p id="activity-hint" class="demo-note" hidden>Paused at the word the model was least sure of. Play shows the answer from the start.</p>
+            <div id="activity-unsure" class="demo-controls" hidden>
+              <button id="activity-unsure-prev" class="btn btn-ghost btn-small" type="button">Previous unsure word</button>
+              <button id="activity-unsure-next" class="btn btn-ghost btn-small" type="button">Next unsure word</button>
+            </div>
             <div id="activity-maps" class="activity-maps">
               <figure class="activity-map">
                 <figcaption id="activity-title" class="sr-only">Activations</figcaption>
@@ -436,6 +441,7 @@
             <span id="activity-measurement-note" class="demo-note">Adds measurement overhead.</span>
             <span id="activity-method" class="activity-method"></span>
             <p id="activity-coverage" class="demo-note"></p>
+            <p id="activity-unlisted" class="demo-note" hidden></p>
             <p class="run-measurements"><span id="output-toks" class="output-toks"></span></p>
             <p id="activity-update" class="demo-note"></p>
             <p id="activity-explanation" class="demo-note"></p>

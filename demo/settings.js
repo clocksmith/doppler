@@ -57,12 +57,20 @@ function readField(el, parse) {
   return parse(el.value);
 }
 
+// A setting stored as a 32-bit float (0.949999988079071) reads back as the
+// 0.95 that was entered: numbers are shown at their input's step precision.
+export function fieldText(el, value) {
+  const step = el.type === 'number' ? el.step : '';
+  if (typeof value !== 'number' || !Number.isFinite(value) || !/^\d*\.?\d+$/.test(step)) return String(value);
+  return String(Number(value.toFixed((step.split('.')[1] ?? '').length)));
+}
+
 function writeField(el, value) {
   if (!el) return;
   if (el.type === 'checkbox') {
     el.checked = value === true;
   } else if (value != null && value !== undefined) {
-    el.value = String(value);
+    el.value = fieldText(el, value);
   } else {
     el.value = '';
   }

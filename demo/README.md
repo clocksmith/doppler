@@ -8,7 +8,7 @@ imports private `src/` paths.
 The page has three sections with consistent spacing and disclosures. Section names are accessible landmarks, not visible headings. Model labels stay exactly as
 published in the catalog, configuration included:
 
-1. **Dialogue**: the model selector with a compact Load button, one animated loading/generation indicator, the conversation with clickable words and alternatives, the message box
+1. **Dialogue**: the model selector with a compact Load button and, before any download, each model's stated GPU memory need compared with the memory the browser reports (a model the device reports too little for is marked, its button reads Load anyway, and Send does not start its download), one animated loading/generation indicator, the conversation with clickable words and alternatives, the message box
    with Send and Stop, and answer and engine settings under **Options**.
 2. **Model activity**: what to record during the next answer (activity grids,
    GPU timing, or both), selectable grids with one player and timeline, recorded timing and device details for the latest answer, Save run, Save grid and one Open file
@@ -19,7 +19,12 @@ published in the catalog, configuration included:
 
 Buttons fit their labels; selects and text inputs fill the available width.
 Before anything is recorded, a short instruction replaces the empty grid.
-Model activity uses one visible view selector. Preview shortcuts, recording files
+Model activity uses one visible view selector. With a recording open it lists only the
+views that recording can draw, a short Start here group first; views it cannot draw are
+named with their reasons under Details. A view's timeline holds only the token positions
+it has values for, and changing view keeps the nearest such position, so playback never
+lands on an empty grid. Previous unsure word and Next unsure word step between the words
+the model gave less than even odds and show their alternatives. Preview shortcuts, recording files
 and longer explanations live under Details, along with timing, coverage, capture method and measurement overhead. The color key and token position remain beside the visual. Saved examples retain a visible source label; live runs do not repeat model identity. Follow live appears only after pausing live
 follow, and Follow latest layer appears only after pinning a diagram layer.
 Routine phase names remain accessible without visible repeated status text. Errors and stopped runs stay readable; reduced motion makes the indicator static. Secondary actions use quiet text controls. Loaded models show status rather than
@@ -33,12 +38,16 @@ fill at their capture boundaries; this is not a simultaneous hardware snapshot.
 Wide screens place activity beside the conversation. Narrow screens bring the
 activity into view on Send and keep Stop reachable while generation runs.
 
-Fresh and returning visits automatically replay the first exchange: the real Qwen
-0.8B recording of “Explain why the sky is blue in one sentence.” Its answer and activity use
-one player; words appear with their corresponding completed layer stack and scrubbing
-rewinds both. A small Recorded replay label identifies it; model, publication date and timing
-semantics live under Details. It requires no model download or inference. Typing,
-changing models, clearing or sending cancels a pending opening or automatic playback.
+Fresh and returning visits open the first exchange: the real Qwen
+0.8B recording of “Explain why the sky is blue in one sentence.” It opens paused, not
+playing, on the word the model was least sure of, with that word's alternatives shown and
+a one-line note that leaves once the reader plays, scrubs or changes view. Play shows the
+answer from the start. Its answer and activity use one player; words appear with their
+corresponding completed layer stack and scrubbing rewinds both. A small Recorded replay
+label names the model from the saved run itself, never from the model selector, and says
+it is not running on this device; publication date and timing semantics live under
+Details. It requires no model download or inference. Typing,
+changing models, clearing or sending cancels a pending opening or playback.
 Once the first exchange opens, its submitted prompt is cleared from the composer.
 Typed or launched drafts cancel automatic opening and are preserved. The sample never
 creates live model state or enters its conversation history. Send produces the new

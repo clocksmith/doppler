@@ -3,7 +3,7 @@ import { createActivationTrace } from '../../src/debug/activation-trace.js';
 import { validateRecording, colorGrid, heatmapColor, heatmapColors } from '../../demo/ui/activation-grid/data.js';
 import { encodeRecording } from '../../demo/ui/activation-grid/recording-codec.js';
 import { modelPathView } from '../../demo/ui/activation-grid/paths.js';
-import { activityView, activityModes, playbackPoints, assertMatchedRuns, attentionRow } from '../../demo/ui/activation-grid/views.js';
+import { activityView, activityModes, playbackPoints, assertMatchedRuns, attentionRow, viewPositions } from '../../demo/ui/activation-grid/views.js';
 
 const limits = { maxBytes: 4096, maxFrameBytes: 2048, maxFrames: 512, maxGridValues: 64, maxInFlight: 4,
   activityMaxBytes: 8192, activityMaxFrameValues: 64, activityMaxStateValues: 4, activityTokenWindow: 2, activitySummaryBlock: 2,
@@ -33,6 +33,18 @@ await trace.drain();
 const recording = { schema: 'doppler.activation-recording/v1', demoBuild: 'fixture',
   display: { layout: 'layer-major-rgb/v1', palette: 'signed-tanh-rgb/v1', scale: 1 }, trace: trace.snapshot('complete'), inputTokenIds: [10, 20], generatedTokenIds: [] };
 validateRecording(recording);
+// A view's timeline holds only positions it can draw, so playback never lands on an empty grid.
+assert.equal(viewPositions(recording, 'difference'), null, 'Layer-output views can draw every recorded position');
+assert.deepEqual([...viewPositions(recording, 'probabilities')], [1], 'A prediction belongs to the one position it was made at');
+assert.deepEqual(playbackPoints(recording, 'tokens', 'probabilities').map(p => p.position), [1]);
+assert.deepEqual(playbackPoints(recording, 'tokens', 'kv-cache').map(p => p.position), [0, 1]);
+assert.deepEqual([...viewPositions(recording, 'linear-gates')], [0, 1], 'Fixed gate parameters do not limit the positions');
+{
+  const withoutValues = structuredClone(recording);
+  for (const frame of withoutValues.trace.activity.frames) if (frame.role === 'logits') frame.values = null;
+  assert.match(activityModes(withoutValues).find(m => m.id === 'probabilities').reason, /no capture/,
+    'A view with nothing to draw is reported unavailable rather than offered empty');
+}
 const path = modelPathView(recording, Infinity, 1, 0);
 assert.deepEqual(path.outputs, [3,5,7,3,5,7], 'The path heatmap retains layer-major captured values');
 assert.equal(path.width, 3);

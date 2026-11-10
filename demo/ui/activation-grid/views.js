@@ -8,6 +8,29 @@ function lastMatch(items, predicate) {
   return undefined;
 }
 
+// Fixed per-layer parameters; they carry no token position of their own.
+const PARAMETER_ROLES = new Set(['linear-a-log', 'linear-dt-bias']);
+
+// Token positions at which a view has captured values. null means the view
+// draws from layer outputs, which every recorded position has.
+/** @type {typeof import('./views.js').viewPositions} */
+export function viewPositions(recording, viewId) {
+  const view = modes.find(m => m.id === viewId);
+  const roles = (view?.roles ?? []).filter(role => !PARAMETER_ROLES.has(role));
+  if (view?.clock !== 'token' || !roles.length) return null;
+  const covered = roles.map(role => {
+    const positions = new Set();
+    for (const f of recording.trace.activity?.frames ?? []) {
+      if (f.role !== role || f.status !== 'captured' || !f.values) continue;
+      // A prediction belongs to the one position it was made at.
+      const count = role === 'logits' ? 1 : f.tokenIds.length;
+      for (let i = 0; i < count; i++) positions.add(f.tokenStart + i);
+    }
+    return positions;
+  });
+  return new Set([...covered[0]].filter(position => covered.every(set => set.has(position))));
+}
+
 /** @type {typeof import('./views.js').activityModes} */
 export function activityModes(recording) {
   const frames = recording?.trace.activity?.frames ?? [];
@@ -22,6 +45,7 @@ export function activityModes(recording) {
     if (mode.id === 'contributions' && recording?.trace.identity.adapters?.length) reason = 'Effective adapter weights were not included; base-only products would be incomplete.';
     if (mode.id === 'residency' && !weights.length) reason = 'No loaded-weight inventory in this recording.';
     if (mode.id === 'quantization-error' && weights.some(w => w.error?.length)) reason = null;
+    if (!reason && recording && viewPositions(recording, mode.id)?.size === 0) reason = 'This recording has no capture for this view.';
     if (reason) reason = recording?.trace.activity?.unavailable[mode.id] ?? reason;
     return { ...mode, reason };
   });
@@ -30,16 +54,19 @@ export function activityModes(recording) {
 /** @type {typeof import('./views.js').playbackPoints} */
 export function playbackPoints(recording, mode, viewId) {
   const view = modes.find(m => m.id === viewId);
+  // The timeline only offers positions the view can draw, so it never lands on an empty grid.
+  const covered = viewId ? viewPositions(recording, viewId) : null;
+  const drawable = (/** @type {{ position: number }} */ point) => !covered || covered.has(point.position);
   const frames = [...recording.trace.frames, ...(recording.trace.activity?.frames ?? [])]
     .filter(f => view?.clock !== 'boundary' || view.id === 'model-paths' || (view.id === 'residency' ? f.role === 'weight-access' : f.role === view.id))
     .sort((a, b) => a.atMs - b.atMs);
-  if (mode !== 'tokens') return frames.map(f => ({ ...f, position: f.tokenStart + f.tokenIds.length - 1 }));
+  if (mode !== 'tokens') return frames.map(f => ({ ...f, position: f.tokenStart + f.tokenIds.length - 1 })).filter(drawable);
   const positions = new Map();
   for (const f of frames) {
     for (let i = 0; i < f.tokenIds.length; i++) positions.set(f.tokenStart + i,
       { ...f, position: f.tokenStart + i });
   }
-  return [...positions.values()].sort((a, b) => a.position - b.position);
+  return [...positions.values()].filter(drawable).sort((a, b) => a.position - b.position);
 }
 
 /** @type {typeof import('./views.js').assertMatchedRuns} */

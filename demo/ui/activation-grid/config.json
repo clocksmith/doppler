@@ -110,6 +110,8 @@
   },
   "defaultPlayback": "tokens",
   "defaultMode": "difference",
+  "commonModes": ["difference", "layer-output", "attention-query", "probabilities"],
+  "unsureBelowProbability": 0.5,
   "layerColumns": 4,
   "historyColumns": 256
 }

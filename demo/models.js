@@ -28,6 +28,29 @@ function downloadSize(entry) {
   return bytes >= 1e9 ? `${(bytes / 1e9).toFixed(1)} GB` : `${Math.ceil(bytes / 1e6)} MB`;
 }
 
+const GIB = 2 ** 30;
+
+// The only memory figure a page can read: system memory in GiB, rounded down
+// and capped at 8 by the browsers that expose it. WebGPU reports no GPU memory.
+function reportedMemoryBytes() {
+  const gib = globalThis.navigator?.deviceMemory;
+  return Number.isFinite(gib) && gib > 0 ? gib * GIB : null;
+}
+
+function memorySize(bytes) {
+  return `${Number((bytes / GIB).toFixed(1))} GB`;
+}
+
+// Compares the catalog's stated GPU memory need with what this device reports,
+// before anything is downloaded. 'unknown' when either figure is missing, or
+// when the device reports the 8 GiB cap and could therefore hold more.
+export function modelFit(entry, reportedBytes = reportedMemoryBytes()) {
+  const required = entry?.quickstartRequirements?.vramRequiredBytes;
+  if (!Number.isFinite(required) || required <= 0 || reportedBytes == null) return 'unknown';
+  if (required <= reportedBytes) return 'fits';
+  return reportedBytes >= 8 * GIB ? 'unknown' : 'too-large';
+}
+
 export function isChatModel(entry) {
   return entry?.modes?.includes('text') === true && entry?.classification?.tasks?.includes('generation') === true;
 }
@@ -52,7 +75,7 @@ export function syncModelControls() {
   if (action) {
     action.hidden = status === 'loaded';
     action.disabled = !entry || busy || status === 'loaded';
-    action.textContent = status === 'loaded' ? 'Loaded' : 'Load';
+    action.textContent = status === 'loaded' ? 'Loaded' : modelFit(entry) === 'too-large' ? 'Load anyway' : 'Load';
   }
   if (remove) {
     remove.hidden = status !== 'stored' && status !== 'loaded';
@@ -111,6 +134,10 @@ export async function ensurePromptModel() {
   if (state.model) return state.model;
   const entry = selectedEntry();
   if (!entry) throw new Error('The default model is unavailable. Choose a model above.');
+  // Send never starts a download the device is unlikely to be able to use.
+  if (modelFit(entry) === 'too-large') {
+    throw new Error(`${modelLabel(entry)} needs more memory than this device reports. Choose a smaller model, or press Load anyway.`);
+  }
   await loadSelectedModel({ entry });
   if (!state.model) throw new Error('Model loading is already in progress. Try again when ready.');
   return state.model;
@@ -186,12 +213,18 @@ export function canRemoveModelStatus(status) {
   return status === 'stored' || status === 'loaded';
 }
 
-// Explain download cost before loading; the selected model and enabled Send show readiness.
-export function buildModelDetail(entry, status = 'available') {
+// Explain download cost and memory need before loading; the selected model and enabled Send show readiness.
+export function buildModelDetail(entry, status = 'available', reportedBytes = reportedMemoryBytes()) {
   if (!entry || status === 'loaded' || status === 'loading') return '';
-  if (status === 'stored') return 'Saved in this browser, so it loads without downloading.';
+  const required = entry.quickstartRequirements?.vramRequiredBytes;
   const size = downloadSize(entry);
-  return size ? `First use downloads about ${size}. Your browser keeps a copy if it can.` : '';
+  if (modelFit(entry, reportedBytes) === 'too-large') {
+    return `Needs about ${memorySize(required)} of GPU memory, and this device reports ${memorySize(reportedBytes)} in total, so it will probably fail to load.`
+      + (status === 'stored' || !size ? '' : ` Loading it downloads about ${size} first.`);
+  }
+  const need = Number.isFinite(required) && required > 0 ? ` Needs about ${memorySize(required)} of GPU memory.` : '';
+  if (status === 'stored') return `Saved in this browser, so it loads without downloading.${need}`;
+  return size ? `First use downloads about ${size}. Your browser keeps a copy if it can.${need}` : need.trim();
 }
 
 export function setModelCallbacks(callbacks = {}) {
@@ -250,7 +283,8 @@ export function renderModelOptions() {
     for (const entry of catalog) {
       const option = document.createElement('option');
       option.value = entry.modelId;
-      option.textContent = [modelLabel(entry), downloadSize(entry)].filter(Boolean).join(' · ');
+      option.textContent = [modelLabel(entry), downloadSize(entry),
+        modelFit(entry) === 'too-large' ? 'too large for this device' : ''].filter(Boolean).join(' · ');
       select.append(option);
     }
     select.disabled = catalog.length === 0;

@@ -293,7 +293,7 @@ export async function checkDemoControls(page) {
   await checkFirstLoadLayout(page, true);
   await page.evaluate(async () => {
     const entry = document.querySelector('script[src$="/demo.js"]').src;
-    await (await import(new URL('ui/activation-grid/index.js', entry))).loadActivityExample(undefined, { autoplay: true });
+    await (await import(new URL('ui/activation-grid/index.js', entry))).loadActivityExample(undefined, { opening: true });
   });
   await page.waitForFunction(() => document.querySelector('#output-text').textContent.startsWith('The sky appears blue') && document.querySelector('#activation-play').textContent === 'Play');
   const sampleSettingsOpen = await page.locator('#settings-panel').isVisible();

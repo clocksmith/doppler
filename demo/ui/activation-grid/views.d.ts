@@ -15,5 +15,6 @@ export interface PlaybackPoint { atMs: number; position: number; phase: string; 
 export function activityView(recording: ActivationRecording, selection: ActivitySelection): ActivityView;
 export function activityModes(recording: ActivationRecording | null): { id: string; label: string; reason: string | null; clock: string; group: string; clockLabel: string }[];
 export function playbackPoints(recording: ActivationRecording, mode: string, viewId?: string): PlaybackPoint[];
+export function viewPositions(recording: ActivationRecording, viewId: string): Set<number> | null;
 export function assertMatchedRuns(a: ActivationRecording, b: ActivationRecording): void;
 export function attentionRow(frames: ActivityFrame[], query: ActivityFrame, position: number, head: number): (number | undefined)[];

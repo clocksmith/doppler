@@ -4,7 +4,7 @@ import { reloadActiveModel, setModelCallbacks } from './models.js';
 import { getIllustrativeExample, initInput, preloadPrompt, setRunHandler } from './input.js';
 import { initSettings } from './settings.js';
 import { initReport } from './report.js';
-import { onModelLoaded, runGeneration, stopGeneration, showRecordedActivity, updateRecordedActivity } from './core.js';
+import { onModelLoaded, runGeneration, stopGeneration, showRecordedActivity, showWordAt, unsureWords, updateRecordedActivity } from './core.js';
 import { state } from './ui/state.js';
 import { initPrecisionReplay } from './ui/precision-replay/index.js';
 import { initLivePrecision } from './ui/precision-replay/live.js';
@@ -80,7 +80,7 @@ async function init() {
   await initSettings({ requireDefaultProfile: true, onProfileChange: reloadActiveModel });
   setBootStatus('Preparing chat...');
   initReport();
-  initActivationGrid({ onOpenRecording: showRecordedActivity, onPlayback: updateRecordedActivity });
+  initActivationGrid({ onOpenRecording: showRecordedActivity, onPlayback: updateRecordedActivity, unsureWords, onUnsureWord: showWordAt });
   initLivePrecision();
   await initInput();
   flushPwaLaunchState();
@@ -122,7 +122,7 @@ async function init() {
   if (state.phase === 'ready' && !state.bootError && !$('prompt-input').value.trim()) {
     if (example) preloadPrompt(example.prompt);
     // Recorded examples do not change the model selected for the user's next live run.
-    void loadActivityExample(undefined, { autoplay: true });
+    void loadActivityExample(undefined, { opening: true });
   }
 }
 

@@ -33,6 +33,12 @@ let source = 'Saved recording';
 let currentPrompt = '';
 /** @type {((recording: import('./data.js').ActivationRecording, options?: { preserveDraft?: boolean }) => void) | null} */
 let onOpenRecording = null;
+/** @type {(() => { position: number; probability: number }[]) | null} */
+let unsureWords = null;
+/** @type {((position: number) => void) | null} */
+let onUnsureWord = null;
+// True while a first-visit example sits paused where it opened.
+let openingHint = false;
 /** @type {((recording: import('./data.js').ActivationRecording, point: import('./views.js').PlaybackPoint) => void) | null} */
 let onPlayback = null;
 
@@ -48,9 +54,75 @@ function scaleKey() { return `${$('activity-mode').value}:${$('activity-detail')
 
 function points() { return recording ? playbackPoints(recording, $('activity-playback').value, $('activity-mode').value) : []; }
 
+/** @param {{ position: number }[]} timeline @param {number} position */
+function nearestIndex(timeline, position) {
+  let best = 0;
+  for (let i = 1; i < timeline.length; i++) {
+    if (Math.abs(timeline[i].position - position) < Math.abs(timeline[best].position - position)) best = i;
+  }
+  return best;
+}
+
+// With a recording open the list holds only views it can draw, a short
+// "Start here" group first. Views it cannot draw are named under Details.
+/** @param {ReturnType<typeof activityModes>} availability */
+function syncViewList(availability) {
+  const select = $('activity-mode'), open = Boolean(recording?.trace.frames.length);
+  const listed = availability.filter(m => !open || !m.reason);
+  const signature = listed.map(m => m.id).join(',');
+  if (select.dataset.signature !== signature) {
+    const previous = select.value || config.defaultMode;
+    const common = config.commonModes.map(id => listed.find(m => m.id === id)).filter(m => m !== undefined);
+    const groups = [{ name: 'Start here', items: common }, ...[...new Set(listed.map(m => m.group))]
+      .map(name => ({ name, items: listed.filter(m => m.group === name && !common.includes(m)) }))];
+    select.replaceChildren();
+    for (const { name, items } of groups) {
+      if (!items.length) continue;
+      const group = document.createElement('optgroup'); group.label = name;
+      for (const mode of items) group.append(new Option(mode.label, mode.id));
+      select.append(group);
+    }
+    select.dataset.signature = signature;
+    const kept = listed.find(m => m.id === previous) ?? listed.find(m => m.id === config.defaultMode) ?? listed[0];
+    select.value = kept?.id ?? '';
+    // A view that left the list hands over to one with its own clock.
+    if (kept && kept.id !== previous) $('activity-playback').value = kept.clock === 'boundary' ? 'captures' : 'tokens';
+  }
+  for (const option of select.options) {
+    const mode = availability.find(m => m.id === option.value);
+    option.disabled = Boolean(mode?.reason);
+    option.title = mode?.reason ?? mode?.label ?? option.value;
+    option.textContent = `${mode?.label}${mode?.reason ? ' · unavailable' : ''}`;
+  }
+  const unlisted = open ? availability.filter(m => m.reason) : [];
+  $('activity-unlisted').hidden = !unlisted.length;
+  $('activity-unlisted').textContent = unlisted.length
+    ? `Not in this recording: ${unlisted.map(m => `${m.label} (${m.reason})`).join('; ')}` : '';
+}
+
+/** Timeline indexes of the words the model gave less than even odds. */
+function unsureIndexes(/** @type {{ position: number }[]} */ timeline) {
+  const unsure = new Set((unsureWords?.() ?? []).map(word => word.position));
+  return timeline.flatMap((point, index) => unsure.has(point.position) ? [index] : []);
+}
+
+/** @param {1 | -1} direction */
+function jumpToUnsure(direction) {
+  const timeline = points(), indexes = unsureIndexes(timeline);
+  const target = direction > 0 ? indexes.find(i => i > cursor) : [...indexes].reverse().find(i => i < cursor);
+  if (target === undefined) return;
+  stopPlayback(); follow = false; openingHint = false; cursor = target;
+  $('activation-position').value = String(timeline[cursor].position);
+  // Painting brings the answer to this word; then its alternatives can be shown.
+  paint();
+  onUnsureWord?.(timeline[cursor].position);
+}
+
 function paint() {
   scheduled = null;
   const dark = globalThis.matchMedia?.('(prefers-color-scheme: dark)').matches === true;
+  const availability = activityModes(recording);
+  syncViewList(availability);
   const trace = recording?.trace, timeline = points();
   $('activation-live').setAttribute('aria-pressed', String(active && follow));
   $('activation-live').disabled = !active;
@@ -65,23 +137,14 @@ function paint() {
   $('activation-caption').hidden = !timeline.length;
   $('activity-source').hidden = !exampleLoading && (!timeline.length || source === 'Current run' || source === 'Recorded replay');
   if (!exampleLoading && recording) $('activity-source').textContent = source;
-  const select = $('activity-mode'), availability = activityModes(recording);
-  if (!select.options.length) {
-    for (const name of [...new Set(availability.map(m => m.group))]) {
-      const group = document.createElement('optgroup'); group.label = name;
-      for (const mode of availability.filter(m => m.group === name)) group.append(new Option(mode.label, mode.id));
-      select.append(group);
-    }
-    select.value = config.defaultMode;
-  }
-  for (const option of select.options) {
-    const mode = availability.find(m => m.id === option.value);
-    option.disabled = Boolean(mode?.reason);
-    option.title = mode?.reason ?? mode?.label ?? option.value;
-    option.textContent = `${mode?.label}${mode?.reason ? ' · unavailable' : ''}`;
-  }
+  const select = $('activity-mode');
   const chosen = availability.find(m => m.id === select.value), snapshot = chosen?.clock === 'snapshot';
   $('activation-timeline').hidden = snapshot;
+  const unsure = snapshot || active ? [] : unsureIndexes(timeline);
+  $('activity-unsure').hidden = !unsure.length;
+  $('activity-unsure-prev').disabled = !unsure.some(i => i < cursor);
+  $('activity-unsure-next').disabled = !unsure.some(i => i > cursor);
+  $('activity-hint').hidden = !openingHint || !timeline.length;
   for (const id of ['activity-playback', 'activation-speed', 'activation-position']) {
     const element = $(/** @type {'activity-playback'} */ (id));
     const field = element.closest('label') ?? element.closest('.demo-range-field');
@@ -357,6 +420,8 @@ export function getActivationRecording() { return recording; }
 export function initActivationGrid(options = {}) {
   onOpenRecording = options.onOpenRecording ?? null;
   onPlayback = options.onPlayback ?? null;
+  unsureWords = options.unsureWords ?? null;
+  onUnsureWord = options.onUnsureWord ?? null;
   $('activity-playback').value = config.defaultPlayback;
   for (const [id, key, enabled] of [
     ['activation-record', config.recordPreferenceKey, config.recordByDefault],
@@ -369,7 +434,7 @@ export function initActivationGrid(options = {}) {
 
   $('activation-scale').value = String(config.scale);
   $('activation-scrub').addEventListener('input', () => {
-    stopPlayback(); follow = false; cursor = Number($('activation-scrub').value); $('activation-position').value = String(points()[cursor]?.position ?? 0); queuePaint();
+    stopPlayback(); follow = false; openingHint = false; cursor = Number($('activation-scrub').value); $('activation-position').value = String(points()[cursor]?.position ?? 0); queuePaint();
   });
   $('activation-position').addEventListener('input', () => {
     stopPlayback(); follow = false;
@@ -387,7 +452,7 @@ export function initActivationGrid(options = {}) {
   $('activation-play').addEventListener('click', () => {
     if (!recording) return;
     if (timer !== null) { stopPlayback(); return; }
-    follow = false;
+    follow = false; openingHint = false;
     if (cursor >= points().length - 1) cursor = 0;
     $('activation-play').textContent = 'Pause';
     const step = () => {
@@ -406,22 +471,22 @@ export function initActivationGrid(options = {}) {
     const link = document.createElement('a'); link.href = url; link.download = 'doppler-activation-trace.json'; link.click();
     setTimeout(() => URL.revokeObjectURL(url), 0);
   });
-  $('activity-playback').addEventListener('change', () => {
-    stopPlayback();
+  // Keep the token being looked at; a view without values there moves to its nearest drawable token.
+  function keepPosition() {
     const position = Number($('activation-position').value), timeline = points();
-    cursor = 0;
-    for (let i = 0; i < timeline.length; i++) if (timeline[i].position === position) cursor = i;
-    queuePaint();
-  });
+    cursor = nearestIndex(timeline, position);
+    if (timeline.length) $('activation-position').value = String(timeline[cursor].position);
+  }
+  $('activity-playback').addEventListener('change', () => { stopPlayback(); keepPosition(); queuePaint(); });
   function selectMode() {
-    stopPlayback();
+    stopPlayback(); openingHint = false;
     const mode = activityModes(recording).find(m => m.id === $('activity-mode').value);
     $('activity-playback').value = mode?.clock === 'boundary' ? 'captures' : 'tokens';
-    const timeline = points(), position = Number($('activation-position').value);
-    cursor = 0;
-    for (let i = 0; i < timeline.length; i++) if (timeline[i].position === position) cursor = i;
+    keepPosition();
     $('activity-page').value = '0'; queuePaint();
   }
+  $('activity-unsure-prev').addEventListener('click', () => jumpToUnsure(-1));
+  $('activity-unsure-next').addEventListener('click', () => jumpToUnsure(1));
   $('activity-mode').addEventListener('change', () => {
     if ($('activity-mode').value === 'model-paths') $('activity-layer').value = '-1';
     selectMode();
@@ -477,7 +542,7 @@ export function initActivationGrid(options = {}) {
 }
 
 /** @type {typeof import('./index.js').loadActivityExample} */
-export async function loadActivityExample(mode = config.defaultMode, { autoplay = false } = {}) {
+export async function loadActivityExample(mode = config.defaultMode, { opening = false } = {}) {
   if (exampleLoading || active) return;
   const expectedRevision = revision;
   const request = new AbortController(); exampleRequest = request;
@@ -504,15 +569,21 @@ export async function loadActivityExample(mode = config.defaultMode, { autoplay 
     $('activity-detail').value = 'overview';
     $('activity-weight').value = '';
     $('activity-page').value = '0';
-    $('activity-mode').value = mode;
-    openActivationRecording({ ...JSON.parse(text), prompt: metadata.prompt }, text.length, { preserveDraft: autoplay });
+    openActivationRecording({ ...JSON.parse(text), prompt: metadata.prompt }, text.length, { preserveDraft: opening });
+    // The list now holds this recording's views; only then can the requested one be chosen.
+    syncViewList(activityModes(recording));
+    if ([...$('activity-mode').options].some(option => option.value === mode && !option.disabled)) $('activity-mode').value = mode;
     source = 'Recorded replay';
     cursor = 0; const examplePoints = points();
-    if (!autoplay) for (let i = 0; i < examplePoints.length; i++) if (examplePoints[i].position === metadata.promptPosition) cursor = i;
+    // A first visit opens paused on the word the model was least sure of, so the
+    // picture is of a moment worth looking at. Play shows the answer from the start.
+    const leastSure = opening ? [...(unsureWords?.() ?? [])].sort((a, b) => a.probability - b.probability)
+      .map(word => examplePoints.findIndex(point => point.position === word.position)).find(index => index >= 0) : undefined;
+    if (leastSure !== undefined) { cursor = leastSure; openingHint = true; }
+    else for (let i = 0; i < examplePoints.length; i++) if (examplePoints[i].position === metadata.promptPosition) cursor = i;
     $('activation-position').value = String(examplePoints[cursor]?.position ?? 0);
     paint();
-    if (autoplay) $('activation-play').click();
-
+    if (leastSure !== undefined) onUnsureWord?.(examplePoints[cursor].position);
   } catch (error) {
     if (!request.signal.aborted) { exampleError = String(error); queuePaint(); }
   }

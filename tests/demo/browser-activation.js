@@ -285,7 +285,12 @@ export async function checkRealActivityPlayback(page) {
 // The public event contract drives grids during an unfinished answer, not only at receipt time.
 export async function checkLiveActivity(page) {
   await page.locator('#activation-record').check();
-  await page.selectOption('#activity-mode', 'weights');
+  // The list only offers views the open recording can draw, so open the example on its weights snapshot.
+  await page.evaluate(async () => {
+    const entry = document.querySelector('script[src$="/demo.js"]').src;
+    await (await import(new URL('ui/activation-grid/index.js', entry))).loadActivityExample('weights');
+  });
+  assert.equal(await page.inputValue('#activity-mode'), 'weights');
   await page.evaluate(() => { __demoContract.streamNext = true; });
   await page.fill('#prompt-input', 'Stream activity while answering.');
   await page.click('#run-btn');
@@ -294,11 +299,14 @@ export async function checkLiveActivity(page) {
     const frame = { index: position, forward: position, atMs: position * 10 + 1, phase: 'decode', role: 'layer-output', layer: 0,
       tokenStart: position, tokenIds: [1], shape: [1,3], dtype: 'f32', status: 'captured', values: [value, -value, .5], reason: null };
     const input = {...frame, fullShape:[1,3], offset:0, role:'ffn-down-input', metadata:{}, representation:'raw'};
+    // Like the runtime's trace snapshot, each event carries every activity capture so far.
+    const captured = __demoContract.activityCaptures ??= [];
+    captured.push(input);
     const weights = [{ id:'layer_0/down', layer:0, shape:[1,3], raw:[1,2,3], rawOffset:0, rms:[1,2,3],
       columnEnergy:[1,4,9], rowGroupSize:1, blockSize:1, resident:true, status:'captured', dtype:'f32' }];
     __demoContract.emitActivation({ type:'activation-frame', frame, trace:{ identity:{modelId:'live-fixture', adapters:[]},
       geometry:{layers:1,width:3}, status:'recording', recordedBytes:(position+1)*24, frames:[],
-      activity:{frames:[input], weights, model:{layerTypes:['full_attention']}, unavailable:{}, recordedBytes:24} } });
+      activity:{frames:[...captured], weights, model:{layerTypes:['full_attention']}, unavailable:{}, recordedBytes:24} } });
     __demoContract.emitTokens([1]);
   }, {position,value});
   await emit(0,1);

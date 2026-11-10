@@ -24,6 +24,8 @@ export interface GridElements {
   'activation-caption': HTMLElement; 'activation-layout': HTMLElement;
   'activation-status': HTMLElement; 'activation-cell': HTMLElement;
   'activation-player': HTMLElement; 'activation-detail-controls': HTMLElement;
+  'activity-unlisted': HTMLElement; 'activity-hint': HTMLElement; 'activity-unsure': HTMLElement;
+  'activity-unsure-prev': HTMLButtonElement; 'activity-unsure-next': HTMLButtonElement;
 }
 export declare function isActivationRecordingEnabled(): boolean;
 export declare function clearActivationRecording(): void;
@@ -34,7 +36,7 @@ export declare function importActivationRecording(value: unknown): void;
 export declare function isActivationRecordingFile(value: unknown): boolean;
 export declare function openActivationRecording(value: unknown, byteLength: number, options?: { preserveDraft?: boolean }): void;
 export declare function getActivationRecording(): ActivationRecording | null;
-export declare function initActivationGrid(options?: { onOpenRecording?: (recording: ActivationRecording, options?: { preserveDraft?: boolean }) => void; onPlayback?: (recording: ActivationRecording, point: import('./views.js').PlaybackPoint) => void }): void;
+export declare function initActivationGrid(options?: { onOpenRecording?: (recording: ActivationRecording, options?: { preserveDraft?: boolean }) => void; onPlayback?: (recording: ActivationRecording, point: import('./views.js').PlaybackPoint) => void; unsureWords?: () => { position: number; probability: number }[]; onUnsureWord?: (position: number) => void }): void;
 
-export declare function loadActivityExample(mode?: string, options?: { autoplay?: boolean }): Promise<void>;
+export declare function loadActivityExample(mode?: string, options?: { opening?: boolean }): Promise<void>;
 export declare function cancelActivityExample(): void;

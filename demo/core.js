@@ -41,7 +41,7 @@ import {
   settleBranch,
   startBranch,
 } from './branches.js';
-import { setTokenInspectorOptions, updateTokenInspector } from './ui/token-inspector/index.js';
+import { selectToken, setTokenInspectorOptions, updateTokenInspector } from './ui/token-inspector/index.js';
 import {
   isXrayEnabled,
   resetXray,
@@ -430,8 +430,11 @@ export function loadSampleInspection(receipt, { preserveDraft = false } = {}) {
   if (outputText) outputText.textContent = receipt.outputText;
   const note = $('recorded-run-note');
   if (note) {
-    note.textContent = 'Recorded replay · Qwen 0.8B';
-    note.title = `${receipt.recording?.modelId ?? ''} · ${receipt.recording?.publishedAt ?? ''}`;
+    // Named from the saved run, never from the model picker above it.
+    const recordedModelId = receipt.recording?.modelId ?? '';
+    const recordedModel = state.quickModelCatalog?.find((entry) => entry.modelId === recordedModelId)?.label ?? recordedModelId;
+    note.textContent = `Recorded replay · ${recordedModel} · not running on this device`;
+    note.title = `${recordedModelId} · ${receipt.recording?.publishedAt ?? ''}`;
     note.hidden = false;
   }
   const details = $('recording-details');
@@ -485,6 +488,25 @@ export function loadSampleInspection(receipt, { preserveDraft = false } = {}) {
   setPhase('Recorded answer', { quiet: true });
   clearTokSec();
   setGenerating(false);
+}
+
+// Words of the shown answer that the model gave less than even odds, by the
+// token position they were predicted at.
+export function unsureWords() {
+  const receipt = state.lastInspection;
+  if (!Array.isArray(receipt?.tokens) || !Array.isArray(receipt?.inputTokenIds)) return [];
+  const firstPrediction = receipt.inputTokenIds.length - 1;
+  return receipt.tokens.flatMap((token, index) => (
+    Number.isFinite(token?.probability) && token.probability < activityConfig.unsureBelowProbability
+      ? [{ position: firstPrediction + index, probability: token.probability }] : []));
+}
+
+// Shows what else the model considered for the word predicted at a token position.
+export function showWordAt(position) {
+  const receipt = state.lastInspection;
+  if (!Array.isArray(receipt?.tokens) || !Array.isArray(receipt?.inputTokenIds)) return;
+  const index = position - (receipt.inputTokenIds.length - 1);
+  if (index >= 0 && index < receipt.tokens.length) selectToken(index);
 }
 
 // Only a matching receipt may supply decoded text or probabilities for a trace.

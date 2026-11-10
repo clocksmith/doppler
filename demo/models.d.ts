@@ -16,9 +16,15 @@ export interface DemoCatalogEntry {
 
 export declare function canRemoveModelStatus(status: string | null | undefined): boolean;
 
+export declare function modelFit(
+  entry: DemoCatalogEntry | null,
+  reportedBytes?: number | null
+): 'fits' | 'too-large' | 'unknown';
+
 export declare function buildModelDetail(
   entry: DemoCatalogEntry | null,
-  status?: string
+  status?: string,
+  reportedBytes?: number | null
 ): string;
 
 export declare function modelLabel(entry: DemoCatalogEntry | null): string;
