@@ -1,0 +1,35 @@
+{
+  "schema": "doppler.flash-next-softplus-comparison/v1",
+  "scope": "Frozen 2304-token last-position F32-KV candidate comparison; not complete model qualification",
+  "normalModelQualified": false,
+  "acceptanceChanged": false,
+  "runtimeReferenceInjection": false,
+  "policyId": "doppler.boundary-tolerance/quantized-v1",
+  "policySha256": "f1c4629d593ec2517e3628ac68131dc7568c6aba5e0f03db627d26228c720413",
+  "manifestSha256": "4902a0b730a9310903b00bc0f8f587528fa1af9f37a722d2f9287bafceceec09",
+  "inputsSha256": "06a819d529593b58abd6cb27566bb835a9b91aac13a77c0c7479b7e4e7b0c378",
+  "referenceSha256": "ce4cb138b1919474d85507e06faa9ca167d87fd143bb85a7411f5443cea9a897",
+  "observationSha256": "dee1a2ec6131aaa9af0cf1097ce9720a2060e6f9bc9adbab142c23b9e02e1103",
+  "preparationSha256": "8fe74a323a0976c97d29637dade2a5d64a3d1b2f6e3baa58ee68999fc382ffb8",
+  "comparatorSha256": "dba9e72089cfbcd5b3e2fcfada4bbdb14a8d4994acd7c861429bf365c311ad9a",
+  "observedLogits": 248320,
+  "maxAbsoluteError": 0.00012183189392089844,
+  "differenceRms": 1.3924014803974513e-05,
+  "outsideUnchangedPolicy": 0,
+  "thisLogitCheckPassed": true,
+  "firstTokenAgrees": true,
+  "violations": [],
+  "routing": {
+    "scope": "CPU stable top-k inferred from captured GPU logits; GPU expert-index buffers were not captured",
+    "tokenLayerDecisions": 110592,
+    "differences": [
+      {
+        "layer": 43,
+        "differingSets": [
+          735
+        ],
+        "cutoffTies": []
+      }
+    ]
+  }
+}

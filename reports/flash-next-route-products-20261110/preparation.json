@@ -1,0 +1,28 @@
+{
+  "scope": "Isolated ordinary-F32 route-product rounding candidate; no reference tensor injection",
+  "normalModelQualified": false,
+  "producerSha256": "dc73c75b978af8e47d75e90da8a60cfe2ccd1bea7f587dfe98654302a1d5d802",
+  "parentRunSha256": "96569a913166bc26cfa6c7c496b1d8a7c39a328362e41732fb0c4d228755c015",
+  "runSha256": "43981b32afd705747cc97b860d282888943bc8949a70bef1dd9589122bf06b8d",
+  "sourceAndGraphSha256": "8d4aa9adf1272f98406342251ef8352da150f99370baef1d1af21bdd69888b9b",
+  "changes": [
+    {
+      "file": "src/gpu/kernels/scatter_add_routes_f32.wgsl",
+      "beforeSha256": "b0649ef1566ef3f69bbf93fbb9ab0547e3c84e26a1e94a8103ea8024126c15b6",
+      "afterSha256": "30597e2e0b959e519d55b8c88a3bf290ebd9388d07f347b1d260f92a56160e12"
+    }
+  ],
+  "kernelRefDigest": {
+    "key": "scatter_add_routes_f32.wgsl#scatter_add_routes",
+    "before": "82ae9bbefa037d69fc3623cc355dea711af52133c659e2c791d6079f7a2c6be7",
+    "after": "a4a949ea31ca3263a1844fa41edf00fda4557fde1df93e44dff9d39f30d13f26"
+  },
+  "digestTable": {
+    "beforeSha256": "5a2c78acb379205809b07ea8dc2eeec5048ab2123ef650b58d13fd2df7e9a673",
+    "afterSha256": "bf82bfb06583153e94f4827a8bbd38ab5d625685e895afe6984871e8f995880b"
+  },
+  "graphReferencesUpdated": 0,
+  "artifactAndReferenceUnchanged": true,
+  "candidateStatePrecision": "f32",
+  "serviceChanges": false
+}

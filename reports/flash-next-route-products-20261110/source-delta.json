@@ -1,0 +1,25 @@
+{
+  "scope": "Complete source-tree and numeric runtime-config comparison, excluding kernel-path identity labels",
+  "producerSha256": "457341c972b97a42398496241fc71d6941df5eba642f4ad07f89fe122b7fb850",
+  "parentRunSha256": "96569a913166bc26cfa6c7c496b1d8a7c39a328362e41732fb0c4d228755c015",
+  "runSha256": "43981b32afd705747cc97b860d282888943bc8949a70bef1dd9589122bf06b8d",
+  "sourceFileCount": 3100,
+  "sameSourceFileInventory": true,
+  "sourceTreeBeforeSha256": "fbacbcc3e06dc85a2e8be3e67c1bc9fa3a88e44d35a18dde70cfbdd48cb0315e",
+  "sourceTreeAfterSha256": "ccb0319f2db613f4b8eb53ca2e00c45ce39bf947c1e95a2ff9dfa644d4620039",
+  "runtimeConfigNumericsUnchanged": true,
+  "numericRuntimeConfigSha256": "51d803ca4cd08a0fe8561aa70bd9110d4b60f0ac96cf0a6b9c6cb06834bcad6f",
+  "artifactReferenceInputsAndSequencesUnchanged": true,
+  "sourceChanges": [
+    {
+      "file": "src/config/kernels/kernel-ref-digests.js",
+      "beforeSha256": "5a2c78acb379205809b07ea8dc2eeec5048ab2123ef650b58d13fd2df7e9a673",
+      "afterSha256": "bf82bfb06583153e94f4827a8bbd38ab5d625685e895afe6984871e8f995880b"
+    },
+    {
+      "file": "src/gpu/kernels/scatter_add_routes_f32.wgsl",
+      "beforeSha256": "b0649ef1566ef3f69bbf93fbb9ab0547e3c84e26a1e94a8103ea8024126c15b6",
+      "afterSha256": "30597e2e0b959e519d55b8c88a3bf290ebd9388d07f347b1d260f92a56160e12"
+    }
+  ]
+}

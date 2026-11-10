@@ -1,0 +1,84 @@
+{
+  "schema": "doppler.route-product-rounding-physical/v1",
+  "sourceSha256": "30597e2e0b959e519d55b8c88a3bf290ebd9388d07f347b1d260f92a56160e12",
+  "adapter": {
+    "vendor": "apple",
+    "architecture": "metal-3",
+    "device": "apple-m3",
+    "description": "Metal driver on macOS Version 26.6.2 (Build 25G83)",
+    "subgroupMinSize": 32,
+    "subgroupMaxSize": 32
+  },
+  "scope": "Route-order weighted product rounding, immediate and recorded; not expert-ID summation order or model qualification.",
+  "acceptance": "Exact F32 products followed by left-associated F32 sums",
+  "rows": [
+    {
+      "numTokens": 2,
+      "hiddenSize": 257,
+      "topK": 2,
+      "recorded": false,
+      "values": 514,
+      "mismatches": 0,
+      "maxAbsoluteError": 0,
+      "cancellationActual": 0,
+      "cancellationExpected": 0
+    },
+    {
+      "numTokens": 2,
+      "hiddenSize": 257,
+      "topK": 2,
+      "recorded": true,
+      "values": 514,
+      "mismatches": 0,
+      "maxAbsoluteError": 0,
+      "cancellationActual": 0,
+      "cancellationExpected": 0
+    },
+    {
+      "numTokens": 3,
+      "hiddenSize": 5,
+      "topK": 10,
+      "recorded": false,
+      "values": 15,
+      "mismatches": 0,
+      "maxAbsoluteError": 0,
+      "cancellationActual": 0,
+      "cancellationExpected": 0
+    },
+    {
+      "numTokens": 3,
+      "hiddenSize": 5,
+      "topK": 10,
+      "recorded": true,
+      "values": 15,
+      "mismatches": 0,
+      "maxAbsoluteError": 0,
+      "cancellationActual": 0,
+      "cancellationExpected": 0
+    },
+    {
+      "numTokens": 1,
+      "hiddenSize": 1,
+      "topK": 2,
+      "recorded": false,
+      "values": 1,
+      "mismatches": 0,
+      "maxAbsoluteError": 0,
+      "cancellationActual": 0,
+      "cancellationExpected": 0
+    },
+    {
+      "numTokens": 1,
+      "hiddenSize": 1,
+      "topK": 2,
+      "recorded": true,
+      "values": 1,
+      "mismatches": 0,
+      "maxAbsoluteError": 0,
+      "cancellationActual": 0,
+      "cancellationExpected": 0
+    }
+  ],
+  "errors": [],
+  "passed": true
+}

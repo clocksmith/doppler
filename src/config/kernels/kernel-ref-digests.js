@@ -446,7 +446,7 @@ export const KERNEL_REF_CONTENT_DIGESTS = Object.freeze({
   "scatter_add_dynamic_f16.wgsl#scatter_add_dynamic": "08f710078e2ba44c8e2b787bd6833d6227bbcba7583a3556e75e26c4f8e1daf5",
   "scatter_add_dynamic.wgsl#scatter_add_dynamic": "fe805dc11dbe358aa1cc733152a071ee4947060a1ba6fb2b006b3e8e5d9c94fe",
   "scatter_add_routes_f16_weights_expert_scale.wgsl#scatter_add_routes": "6e093659759be37ee02c07f09574a5f4d4faf767dc17e31a44c1670b666b2867",
-  "scatter_add_routes_f32.wgsl#scatter_add_routes": "82ae9bbefa037d69fc3623cc355dea711af52133c659e2c791d6079f7a2c6be7",
+  "scatter_add_routes_f32.wgsl#scatter_add_routes": "a4a949ea31ca3263a1844fa41edf00fda4557fde1df93e44dff9d39f30d13f26",
   "scatter_add_vec4.wgsl#scatter_add_vec4": "247c4f23129cdfbb19593b17c5833d85048da117d77141c74bc4e16e691d94e1",
   "scatter_add.wgsl#main": "dea947b8014e9b674e4fec8f15fac6c926e8a3a4d8eff104b953d77f35a1ac35",
   "scatter_add.wgsl#scatter_add_accumulate": "561800af22dedae63f1abe69b757b0ef6c7832a2bff228c2262e0b7111d89247",
