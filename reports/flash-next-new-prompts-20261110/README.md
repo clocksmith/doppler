@@ -43,7 +43,23 @@ live observations of the model's expert-index buffers.
 cases first differ at Layer 24, token 112, with the same 225/60 change. This
 places the difference before the selection operator; it does not establish
 that all upstream variation is permitted or repair the final-score failure.
-Routing-weight and upstream arithmetic checks remain pending.
+
+[topk-weight-replay.json](topk-weight-replay.json) extends that physical replay
+to compare selected weights **by expert ID** on identical source logits:
+546,750 weights across 25 layers. Maximum absolute difference is 1.79e-7,
+maximum relative difference 5.42e-7, and the largest per-layer RMS difference
+is 1.15e-8. All source expert sets still agree. This does not establish that
+small weight differences are harmless after expert combination; recombination
+on identical actual expert outputs remains a separate control.
+
+[upstream-stages.json](upstream-stages.json) compares 106 matched stage slices
+through Layers 20–24 at positions 112 and 2186. The new GPU observer reproduces
+the retained Layer-24 router inputs bit-for-bit; independently resumed source
+traces likewise reproduce their original source router inputs. Reference RMS
+and per-stream metrics keep absolute normalization amplification visible.
+Unmatched boundaries are listed explicitly. These are observations of two
+different upstream trajectories, not identical-input operator controls or
+proof that the accumulated variation is permitted.
 
 An initial exploratory replay accidentally selected the generic `fused`
 variant, which is not the model's declared 512-expert routing kernel. Its output
@@ -105,9 +121,11 @@ still requires one. Missing prompt cases fail. Thirteen focused comparator tests
 and seven trace-integrity tests pass. No runtime, policy, catalog, service, memory
 limit or deployment change is part of this packet.
 
-After these new prompts: longer generation including QSA block completion, then
-installed-package verification and intended release configuration. F16 cache and
-other platforms remain separate qualification lanes.
+The [installed candidate report](../flash-next-installed-20261110/README.md)
+now separates the named-profile failure from the explicit prepared-plan pass
+on the original two prompts. This new inventory failure remains unresolved.
+Longer generation including QSA block completion, intended release
+configuration, F16 cache and other platforms remain separate work.
 
 Component: `doppler.repository-tooling`, `doppler.tests`. Intent: preserved.
 Boundary effects: input preparation and evidence validation only.

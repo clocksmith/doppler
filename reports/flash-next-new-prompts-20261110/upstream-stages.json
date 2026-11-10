@@ -1,0 +1,5201 @@
+{
+  "schema": "doppler.flash-next-new-prompt-upstream-stages/v1",
+  "scope": "Matched source/GPU stage slices; source and GPU router-input replay controls are bit-exact to their own retained traces",
+  "producerSha256": "0c9e581bcd17e53aff04f93c77e7f9b1bef0209e7bdccc41e88da077e75830b4",
+  "readerSha256": "9b900d3abda5367001fad812d8dcba7e7c0b7eb1b84f3970ebdca8b41c0b2874",
+  "identities": [
+    {
+      "file": "trace.json",
+      "sha256": "d040a48e96e89cd8c74545a20ecdf4053b1493affa176d60684318c21382cc87"
+    },
+    {
+      "file": "trace.json",
+      "sha256": "8a33e31126085d4865e01cad4be858a0900e84562a24244004975335b01e5fc8"
+    },
+    {
+      "file": "observation.json",
+      "sha256": "9b45b5c3cf381d7c45672612cff48f6fb1e686b9ed0b4ee7b2486420d1f49653"
+    },
+    {
+      "file": "observation.json",
+      "sha256": "dd341d262fa82c4c1b4653f3b6c4396246975baf47bdcfede54917eb84342b0c"
+    },
+    {
+      "file": "manifest.json",
+      "sha256": "4902a0b730a9310903b00bc0f8f587528fa1af9f37a722d2f9287bafceceec09"
+    }
+  ],
+  "sourceRouterInputReplayBitExact": true,
+  "gpuRouterInputReplayBitExact": true,
+  "positions": [
+    112,
+    2186
+  ],
+  "stages": [
+    {
+      "layer": 20,
+      "role": "attn_hc",
+      "stage": "branchInput",
+      "positions": [
+        112,
+        2186
+      ],
+      "sourceSha256": "4a78b18b5f27c69265a3415da5ec605a0b3ca684d61d97e9541d9df49eebb29c",
+      "gpuSha256": "794a4979755646cc25f6aab260cfab1dad8b2a7b14116331f29b017f7866c9c3",
+      "values": 5120,
+      "referenceRms": 0.5762999557668158,
+      "maxAbsoluteError": 1.6689300537109375e-05,
+      "differenceRms": 1.8192098793217699e-06,
+      "relativeL2": 3.1567066093231904e-06,
+      "perPosition": [
+        {
+          "position": 112,
+          "values": 2560,
+          "referenceRms": 0.564001539551877,
+          "maxAbsoluteError": 1.6689300537109375e-05,
+          "differenceRms": 2.0598698779707674e-06,
+          "relativeL2": 3.6522415871549225e-06
+        },
+        {
+          "position": 2186,
+          "values": 2560,
+          "referenceRms": 0.5883413477028283,
+          "maxAbsoluteError": 8.344650268554688e-06,
+          "differenceRms": 1.5414231268125416e-06,
+          "relativeL2": 2.619946962475117e-06
+        }
+      ]
+    },
+    {
+      "layer": 20,
+      "role": "attn_hc",
+      "stage": "branchOutput",
+      "positions": [
+        112,
+        2186
+      ],
+      "sourceSha256": "065517251af694445844ff29c90021dd963f3e5f49636c462cccd7ee8d5a89a5",
+      "gpuSha256": "65769f0929c32da1b88eb18f801cbecebd7942cf01baff5a59aa782a3c768273",
+      "values": 5120,
+      "referenceRms": 0.10178890742165897,
+      "maxAbsoluteError": 1.8477439880371094e-06,
+      "differenceRms": 3.7669943209788295e-07,
+      "relativeL2": 3.7007906032178083e-06,
+      "perPosition": [
+        {
+          "position": 112,
+          "values": 2560,
+          "referenceRms": 0.09403909771335649,
+          "maxAbsoluteError": 1.8477439880371094e-06,
+          "differenceRms": 3.9963745053251e-07,
+          "relativeL2": 4.2496946509488785e-06
+        },
+        {
+          "position": 2186,
+          "values": 2560,
+          "referenceRms": 0.10898904279535584,
+          "maxAbsoluteError": 1.5497207641601562e-06,
+          "differenceRms": 3.522709644827553e-07,
+          "relativeL2": 3.232168623998283e-06
+        }
+      ]
+    },
+    {
+      "layer": 20,
+      "role": "attn_hc",
+      "stage": "down",
+      "positions": [
+        112,
+        2186
+      ],
+      "sourceSha256": "00cfe3f58c85b0aa8252b1219fa18c8014ddb1445e33bc909060edaaf0a31556",
+      "gpuSha256": "f8a244b9841b0820419f07de76fdc633ed4b02d38105ce09ac3a4fca9957666b",
+      "values": 640,
+      "referenceRms": 15.848000476854896,
+      "maxAbsoluteError": 8.7738037109375e-05,
+      "differenceRms": 2.4059026921864594e-05,
+      "relativeL2": 1.5181111937118778e-06,
+      "perPosition": [
+        {
+          "position": 112,
+          "values": 320,
+          "referenceRms": 16.80764908209226,
+          "maxAbsoluteError": 8.7738037109375e-05,
+          "differenceRms": 2.8591366271427204e-05,
+          "relativeL2": 1.7010925282757076e-06
+        },
+        {
+          "position": 2186,
+          "values": 320,
+          "referenceRms": 14.82636740951839,
+          "maxAbsoluteError": 6.4849853515625e-05,
+          "differenceRms": 1.8444710016346296e-05,
+          "relativeL2": 1.2440478174380706e-06
+        }
+      ]
+    },
+    {
+      "layer": 20,
+      "role": "attn_hc",
+      "stage": "gate",
+      "positions": [
+        112,
+        2186
+      ],
+      "sourceSha256": "c7f5685aeb5536f8645b5be71852f43add8c996e4e5a9e4d6f6e742110302f8a",
+      "gpuSha256": "528dcef22d110a518292fd7e4fea8bfecc958f18c210986d95717c5dfd78762c",
+      "values": 8,
+      "referenceRms": 0.06794010063523477,
+      "maxAbsoluteError": 1.4156103134155273e-07,
+      "differenceRms": 5.948161010856139e-08,
+      "relativeL2": 8.755007654156066e-07,
+      "perPosition": [
+        {
+          "position": 112,
+          "values": 4,
+          "referenceRms": 0.06863631676266553,
+          "maxAbsoluteError": 1.4156103134155273e-07,
+          "differenceRms": 7.996951259791774e-08,
+          "relativeL2": 1.1651195222849846e-06
+        },
+        {
+          "position": 2186,
+          "values": 4,
+          "referenceRms": 0.06723667577971637,
+          "maxAbsoluteError": 5.21540641784668e-08,
+          "differenceRms": 2.6095994655603788e-08,
+          "relativeL2": 3.8812142856527565e-07
+        }
+      ]
+    },
+    {
+      "layer": 20,
+      "role": "attn_hc",
+      "stage": "injected",
+      "positions": [
+        112,
+        2186
+      ],
+      "sourceSha256": "aa4d01f87e5cd296a2d0a72ec0a06095d1d808f137c2128d2398df2023d5a2f1",
+      "gpuSha256": "c446e35410071b2fcef80c3f4123db1915676eb2f20a1033bad052bbe7a4a788",
+      "values": 20480,
+      "referenceRms": 0.02246084772577016,
+      "maxAbsoluteError": 4.470348358154297e-07,
+      "differenceRms": 5.280151927819439e-08,
+      "relativeL2": 2.3508248630176705e-06,
+      "perPosition": [
+        {
+          "position": 112,
+          "values": 10240,
+          "referenceRms": 0.01897006884988588,
+          "maxAbsoluteError": 2.8312206268310547e-07,
+          "differenceRms": 4.892455948689345e-08,
+          "relativeL2": 2.579039637338363e-06
+        },
+        {
+          "position": 2186,
+          "values": 10240,
+          "referenceRms": 0.025477752038809434,
+          "maxAbsoluteError": 4.470348358154297e-07,
+          "differenceRms": 5.6412661302091486e-08,
+          "relativeL2": 2.2141930424693633e-06
+        }
+      ]
+    },
+    {
+      "layer": 20,
+      "role": "attn_hc",
+      "stage": "input",
+      "positions": [
+        112,
+        2186
+      ],
+      "sourceSha256": "291e1aace38e33f352ef616071318c8b722d16a68781a8ebe1ae7a98e0bdf3d5",
+      "gpuSha256": "42f22033e7fbf46e1a40600ccaf57ae0c464233cf2f4b3d90e9afb85001df8b9",
+      "values": 20480,
+      "referenceRms": 0.022334436458215617,
+      "maxAbsoluteError": 4.6193599700927734e-07,
+      "differenceRms": 5.2743389848747315e-08,
+      "relativeL2": 2.3615276771107382e-06,
+      "perPosition": [
+        {
+          "position": 112,
+          "values": 10240,
+          "referenceRms": 0.018715110108171503,
+          "maxAbsoluteError": 2.644956111907959e-07,
+          "differenceRms": 4.782993607659982e-08,
+          "relativeL2": 2.5556855289735123e-06,
+          "streams": [
+            {
+              "stream": 0,
+              "values": 2560,
+              "referenceRms": 0.019323111567211622,
+              "maxAbsoluteError": 2.644956111907959e-07,
+              "differenceRms": 6.795205072059048e-08,
+              "relativeL2": 3.516620523782245e-06
+            },
+            {
+              "stream": 1,
+              "values": 2560,
+              "referenceRms": 0.01279825798294549,
+              "maxAbsoluteError": 2.1141022443771362e-07,
+              "differenceRms": 4.617355914306244e-08,
+              "relativeL2": 3.607800311932429e-06
+            },
+            {
+              "stream": 2,
+              "values": 2560,
+              "referenceRms": 0.020476270175972883,
+              "maxAbsoluteError": 1.043081283569336e-07,
+              "differenceRms": 9.235481027353416e-09,
+              "relativeL2": 4.5103336437660637e-07
+            },
+            {
+              "stream": 3,
+              "values": 2560,
+              "referenceRms": 0.021084726630610146,
+              "maxAbsoluteError": 1.8440186977386475e-07,
+              "differenceRms": 4.812523526683592e-08,
+              "relativeL2": 2.2824690170262495e-06
+            }
+          ]
+        },
+        {
+          "position": 2186,
+          "values": 10240,
+          "referenceRms": 0.025444031863113968,
+          "maxAbsoluteError": 4.6193599700927734e-07,
+          "differenceRms": 5.723659284393383e-08,
+          "relativeL2": 2.249509556970384e-06,
+          "streams": [
+            {
+              "stream": 0,
+              "values": 2560,
+              "referenceRms": 0.022851075763495945,
+              "maxAbsoluteError": 4.6193599700927734e-07,
+              "differenceRms": 6.349097855375013e-08,
+              "relativeL2": 2.7784678152953947e-06
+            },
+            {
+              "stream": 1,
+              "values": 2560,
+              "referenceRms": 0.017960531675723035,
+              "maxAbsoluteError": 4.470348358154297e-07,
+              "differenceRms": 5.0885797281443096e-08,
+              "relativeL2": 2.8332010544111354e-06
+            },
+            {
+              "stream": 2,
+              "values": 2560,
+              "referenceRms": 0.02718913504521672,
+              "maxAbsoluteError": 3.725290298461914e-07,
+              "differenceRms": 3.742990884697584e-08,
+              "relativeL2": 1.3766494882874453e-06
+            },
+            {
+              "stream": 3,
+              "values": 2560,
+              "referenceRms": 0.031711095907803646,
+              "maxAbsoluteError": 3.501772880554199e-07,
+              "differenceRms": 7.129266050972729e-08,
+              "relativeL2": 2.248192894909797e-06
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "layer": 20,
+      "role": "attn_hc",
+      "stage": "logits",
+      "positions": [
+        112,
+        2186
+      ],
+      "sourceSha256": "5841605f55c6518150c761679a3a8e6b4fd05cbe193a78cd1361991c3d8353bd",
+      "gpuSha256": "95f132819a4da0b707d0b168415e5dd543d67365256088081f73bb866781914c",
+      "values": 8,
+      "referenceRms": 21.368051253646367,
+      "maxAbsoluteError": 1.1444091796875e-05,
+      "differenceRms": 5.662127536314925e-06,
+      "relativeL2": 2.649809975230524e-07,
+      "perPosition": [
+        {
+          "position": 112,
+          "values": 4,
+          "referenceRms": 22.33446206140367,
+          "maxAbsoluteError": 1.1444091796875e-05,
+          "differenceRms": 7.231593555499602e-06,
+          "relativeL2": 3.237863323333212e-07
+        },
+        {
+          "position": 2186,
+          "values": 4,
+          "referenceRms": 20.3558107965425,
+          "maxAbsoluteError": 5.7220458984375e-06,
+          "differenceRms": 3.4385216478958026e-06,
+          "relativeL2": 1.689208885985444e-07
+        }
+      ]
+    },
+    {
+      "layer": 20,
+      "role": "attn_hc",
+      "stage": "lowRank",
+      "positions": [
+        112,
+        2186
+      ],
+      "sourceSha256": "279f3c975f31a26f1a3cde06262b051ca161846924b73ad32d54aabc65a92e14",
+      "gpuSha256": "56f670ece2db92fa1d5d6fd98f3334c308723f26ea6bf657f46cf1cd9cced651",
+      "values": 640,
+      "referenceRms": 1.4182049500575376,
+      "maxAbsoluteError": 2.193450927734375e-05,
+      "differenceRms": 3.292864149393865e-06,
+      "relativeL2": 2.3218535157843523e-06,
+      "perPosition": [
+        {
+          "position": 112,
+          "values": 320,
+          "referenceRms": 1.1491176421978437,
+          "maxAbsoluteError": 2.193450927734375e-05,
+          "differenceRms": 3.839588797902886e-06,
+          "relativeL2": 3.3413365672109517e-06
+        },
+        {
+          "position": 2186,
+          "values": 320,
+          "referenceRms": 1.6438184830220988,
+          "maxAbsoluteError": 1.6689300537109375e-05,
+          "differenceRms": 2.6350458204261715e-06,
+          "relativeL2": 1.603002915249948e-06
+        }
+      ]
+    },
+    {
+      "layer": 20,
+      "role": "attn_hc",
+      "stage": "mix",
+      "positions": [
+        112,
+        2186
+      ],
+      "sourceSha256": "104efcdfc51c992a85d22cdd0c9b7ff0ab5e192d7f1d5c0f67e686e863a61553",
+      "gpuSha256": "5ffd47c74da5f2c148b8b19dfd044420fbf4584fe3bc625429e19041cd144eb1",
+      "values": 20480,
+      "referenceRms": 0.5819037809670555,
+      "maxAbsoluteError": 7.18235969543457e-06,
+      "differenceRms": 5.425188135550702e-07,
+      "relativeL2": 9.323170450163904e-07,
+      "perPosition": [
+        {
+          "position": 112,
+          "values": 10240,
+          "referenceRms": 0.5404916317694033,
+          "maxAbsoluteError": 7.18235969543457e-06,
+          "differenceRms": 6.193366733896336e-07,
+          "relativeL2": 1.145876526084439e-06
+        },
+        {
+          "position": 2186,
+          "values": 10240,
+          "referenceRms": 0.6205584715357271,
+          "maxAbsoluteError": 3.337860107421875e-06,
+          "differenceRms": 4.52852526897073e-07,
+          "relativeL2": 7.297499714674367e-07
+        }
+      ]
+    },
+    {
+      "layer": 20,
+      "role": "attn_hc",
+      "stage": "norm",
+      "positions": [
+        112,
+        2186
+      ],
+      "sourceSha256": "413e066d28eb1660ef4e06726da001512d10480a2dcd606f9d5381cd841002f7",
+      "gpuSha256": "0e23dce415f09d5d686af4eeb596941b5a9a8a2fdb0271df56a0e1c936053754",
+      "values": 20480,
+      "referenceRms": 1.3628047351230101,
+      "maxAbsoluteError": 2.9087066650390625e-05,
+      "differenceRms": 3.581867165081118e-06,
+      "relativeL2": 2.6283054885025844e-06,
+      "perPosition": [
+        {
+          "position": 112,
+          "values": 10240,
+          "referenceRms": 1.3723573309152322,
+          "maxAbsoluteError": 2.9087066650390625e-05,
+          "differenceRms": 4.0369583510227825e-06,
+          "relativeL2": 2.9416233367810367e-06,
+          "streams": [
+            {
+              "stream": 0,
+              "values": 2560,
+              "referenceRms": 1.7589881785099866,
+              "maxAbsoluteError": 2.9087066650390625e-05,
+              "differenceRms": 6.0539435272467235e-06,
+              "relativeL2": 3.4417192799868224e-06
+            },
+            {
+              "stream": 1,
+              "values": 2560,
+              "referenceRms": 1.3382773001822246,
+              "maxAbsoluteError": 2.1219253540039062e-05,
+              "differenceRms": 4.888011001082795e-06,
+              "relativeL2": 3.652465001399356e-06
+            },
+            {
+              "stream": 2,
+              "values": 2560,
+              "referenceRms": 1.2607667115208967,
+              "maxAbsoluteError": 6.67572021484375e-06,
+              "differenceRms": 4.3619302929059696e-07,
+              "relativeL2": 3.459744180304425e-07
+            },
+            {
+              "stream": 3,
+              "values": 2560,
+              "referenceRms": 1.0290288283945206,
+              "maxAbsoluteError": 9.5367431640625e-06,
+              "differenceRms": 2.1106830114846e-06,
+              "relativeL2": 2.051140797267715e-06
+            }
+          ]
+        },
+        {
+          "position": 2186,
+          "values": 10240,
+          "referenceRms": 1.3531847059550353,
+          "maxAbsoluteError": 2.574920654296875e-05,
+          "differenceRms": 3.059822225012412e-06,
+          "relativeL2": 2.2612007152806866e-06,
+          "streams": [
+            {
+              "stream": 0,
+              "values": 2560,
+              "referenceRms": 1.7544070740567492,
+              "maxAbsoluteError": 2.2143125534057617e-05,
+              "differenceRms": 4.843222587856201e-06,
+              "relativeL2": 2.760603658908605e-06
+            },
+            {
+              "stream": 1,
+              "values": 2560,
+              "referenceRms": 1.3338066104975375,
+              "maxAbsoluteError": 1.0728836059570312e-05,
+              "differenceRms": 2.9827073600126346e-06,
+              "relativeL2": 2.236236750168769e-06
+            },
+            {
+              "stream": 2,
+              "values": 2560,
+              "referenceRms": 1.2207983027908083,
+              "maxAbsoluteError": 2.574920654296875e-05,
+              "differenceRms": 9.675732640974489e-07,
+              "relativeL2": 7.925742212169906e-07
+            },
+            {
+              "stream": 3,
+              "values": 2560,
+              "referenceRms": 0.9884850236185934,
+              "maxAbsoluteError": 1.2874603271484375e-05,
+              "differenceRms": 2.039730850462722e-06,
+              "relativeL2": 2.0634919110820553e-06
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "layer": 20,
+      "role": "attn_hc",
+      "stage": "up",
+      "positions": [
+        112,
+        2186
+      ],
+      "sourceSha256": "37a6c553dc80d03b9045c9ac19f1d0a1e90cf0c445acd1dc416d2abc3442f7e3",
+      "gpuSha256": "86ffa0757859af7ce2bc368badaee5a6bd9fb72a8d8afed64941dfbc42cfcfb6",
+      "values": 20480,
+      "referenceRms": 3.65927989397762,
+      "maxAbsoluteError": 2.8967857360839844e-05,
+      "differenceRms": 3.961848981101264e-06,
+      "relativeL2": 1.082685417866397e-06,
+      "perPosition": [
+        {
+          "position": 112,
+          "values": 10240,
+          "referenceRms": 2.997961831776614,
+          "maxAbsoluteError": 2.8967857360839844e-05,
+          "differenceRms": 4.671075856090322e-06,
+          "relativeL2": 1.5580838310146893e-06
+        },
+        {
+          "position": 2186,
+          "values": 10240,
+          "referenceRms": 4.218161156256164,
+          "maxAbsoluteError": 1.9788742065429688e-05,
+          "differenceRms": 3.0941145817109482e-06,
+          "relativeL2": 7.335221360904889e-07
+        }
+      ]
+    },
+    {
+      "layer": 20,
+      "role": "mlp_hc",
+      "stage": "branchInput",
+      "positions": [
+        112,
+        2186
+      ],
+      "sourceSha256": "6b64ec0e76f0959ba9423c786bd5b1d51d0020b9c7a486436aef8deca4ae84da",
+      "gpuSha256": "bafdb60e33dd44c341bc18a24579abf83ac7fa28b33cb7f1beabe916ad50d857",
+      "values": 5120,
+      "referenceRms": 0.6898562318101736,
+      "maxAbsoluteError": 1.1086463928222656e-05,
+      "differenceRms": 2.1039945669314e-06,
+      "relativeL2": 3.049902965159198e-06,
+      "perPosition": [
+        {
+          "position": 112,
+          "values": 2560,
+          "referenceRms": 0.6980233810842752,
+          "maxAbsoluteError": 1.1086463928222656e-05,
+          "differenceRms": 2.456501844301773e-06,
+          "relativeL2": 3.519225732074997e-06
+        },
+        {
+          "position": 2186,
+          "values": 2560,
+          "referenceRms": 0.6815912269053503,
+          "maxAbsoluteError": 5.841255187988281e-06,
+          "differenceRms": 1.6790428714883028e-06,
+          "relativeL2": 2.463416201983281e-06
+        }
+      ]
+    },
+    {
+      "layer": 20,
+      "role": "mlp_hc",
+      "stage": "down",
+      "positions": [
+        112,
+        2186
+      ],
+      "sourceSha256": "96a672bed883d45576a7c90accd3e93836f03bd2a3a7ba1b7be50f5621024ad9",
+      "gpuSha256": "cc2311a1144f9de3e0ee90d8e277c850e8f051e5c2b995c6df340cc071145ce6",
+      "values": 640,
+      "referenceRms": 24.744574161294437,
+      "maxAbsoluteError": 0.0001125335693359375,
+      "differenceRms": 2.5631841368212347e-05,
+      "relativeL2": 1.0358570408661862e-06,
+      "perPosition": [
+        {
+          "position": 112,
+          "values": 320,
+          "referenceRms": 26.324603552763243,
+          "maxAbsoluteError": 0.0001125335693359375,
+          "differenceRms": 3.052747346016285e-05,
+          "relativeL2": 1.1596555822379492e-06
+        },
+        {
+          "position": 2186,
+          "values": 320,
+          "referenceRms": 23.056520740073633,
+          "maxAbsoluteError": 0.000110626220703125,
+          "differenceRms": 1.954625150737238e-05,
+          "relativeL2": 8.477537321318306e-07
+        }
+      ]
+    },
+    {
+      "layer": 20,
+      "role": "mlp_hc",
+      "stage": "gate",
+      "positions": [
+        112,
+        2186
+      ],
+      "sourceSha256": "fc6c2a6cdcf2262a9a2a255ca54bd716fd7e89d8e2f58bdf732d9eefd7ffb560",
+      "gpuSha256": "fdacb225346217a3c08a51a5dd08216ecf48c42025f881d386a289d76bb50b9a",
+      "values": 8,
+      "referenceRms": 0.22180023702449495,
+      "maxAbsoluteError": 4.172325134277344e-07,
+      "differenceRms": 2.2811225102188025e-07,
+      "relativeL2": 1.0284581030302875e-06,
+      "perPosition": [
+        {
+          "position": 112,
+          "values": 4,
+          "referenceRms": 0.2158901113244132,
+          "maxAbsoluteError": 3.427267074584961e-07,
+          "differenceRms": 2.029193529152e-07,
+          "relativeL2": 9.39919627028575e-07
+        },
+        {
+          "position": 2186,
+          "values": 4,
+          "referenceRms": 0.22755691622224264,
+          "maxAbsoluteError": 4.172325134277344e-07,
+          "differenceRms": 2.507870298580354e-07,
+          "relativeL2": 1.1020848498979707e-06
+        }
+      ]
+    },
+    {
+      "layer": 20,
+      "role": "mlp_hc",
+      "stage": "input",
+      "positions": [
+        112,
+        2186
+      ],
+      "sourceSha256": "aa4d01f87e5cd296a2d0a72ec0a06095d1d808f137c2128d2398df2023d5a2f1",
+      "gpuSha256": "c446e35410071b2fcef80c3f4123db1915676eb2f20a1033bad052bbe7a4a788",
+      "values": 20480,
+      "referenceRms": 0.02246084772577016,
+      "maxAbsoluteError": 4.470348358154297e-07,
+      "differenceRms": 5.280151927819439e-08,
+      "relativeL2": 2.3508248630176705e-06,
+      "perPosition": [
+        {
+          "position": 112,
+          "values": 10240,
+          "referenceRms": 0.01897006884988588,
+          "maxAbsoluteError": 2.8312206268310547e-07,
+          "differenceRms": 4.892455948689345e-08,
+          "relativeL2": 2.579039637338363e-06,
+          "streams": [
+            {
+              "stream": 0,
+              "values": 2560,
+              "referenceRms": 0.020384981474061554,
+              "maxAbsoluteError": 2.682209014892578e-07,
+              "differenceRms": 7.067283060293661e-08,
+              "relativeL2": 3.466906785903278e-06
+            },
+            {
+              "stream": 1,
+              "values": 2560,
+              "referenceRms": 0.012333988166726408,
+              "maxAbsoluteError": 1.9744038581848145e-07,
+              "differenceRms": 4.431483226710871e-08,
+              "relativeL2": 3.592903744358822e-06
+            },
+            {
+              "stream": 2,
+              "values": 2560,
+              "referenceRms": 0.02047548283628099,
+              "maxAbsoluteError": 1.043081283569336e-07,
+              "differenceRms": 9.234537114788579e-09,
+              "relativeL2": 4.51004608224705e-07
+            },
+            {
+              "stream": 3,
+              "values": 2560,
+              "referenceRms": 0.021272844603015015,
+              "maxAbsoluteError": 2.8312206268310547e-07,
+              "differenceRms": 5.030626267104865e-08,
+              "relativeL2": 2.3648112704174363e-06
+            }
+          ]
+        },
+        {
+          "position": 2186,
+          "values": 10240,
+          "referenceRms": 0.025477752038809434,
+          "maxAbsoluteError": 4.470348358154297e-07,
+          "differenceRms": 5.6412661302091486e-08,
+          "relativeL2": 2.2141930424693633e-06,
+          "streams": [
+            {
+              "stream": 0,
+              "values": 2560,
+              "referenceRms": 0.023715076788497907,
+              "maxAbsoluteError": 3.2782554626464844e-07,
+              "differenceRms": 6.271434610996873e-08,
+              "relativeL2": 2.644492643615893e-06
+            },
+            {
+              "stream": 1,
+              "values": 2560,
+              "referenceRms": 0.017456954234386556,
+              "maxAbsoluteError": 4.470348358154297e-07,
+              "differenceRms": 4.905266354347824e-08,
+              "relativeL2": 2.8099210712745487e-06
+            },
+            {
+              "stream": 2,
+              "values": 2560,
+              "referenceRms": 0.027179499278410124,
+              "maxAbsoluteError": 3.725290298461914e-07,
+              "differenceRms": 3.746063004795369e-08,
+              "relativeL2": 1.3782678504938584e-06
+            },
+            {
+              "stream": 3,
+              "values": 2560,
+              "referenceRms": 0.031473609525335955,
+              "maxAbsoluteError": 3.427267074584961e-07,
+              "differenceRms": 7.061870579696064e-08,
+              "relativeL2": 2.243743468321079e-06
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "layer": 20,
+      "role": "mlp_hc",
+      "stage": "logits",
+      "positions": [
+        112,
+        2186
+      ],
+      "sourceSha256": "7a0c22f30acebaa7bc5c725cf6ad05d3ebf46c64c83b6c6ef94fe8c3b3ded4a6",
+      "gpuSha256": "cd72e335468fca6e9910b27f57aab709c15d7d307a666f8fe7ef92dbccf1bf43",
+      "values": 8,
+      "referenceRms": 11.89891814505559,
+      "maxAbsoluteError": 9.5367431640625e-06,
+      "differenceRms": 5.6041046493259235e-06,
+      "relativeL2": 4.7097598126218066e-07,
+      "perPosition": [
+        {
+          "position": 112,
+          "values": 4,
+          "referenceRms": 12.340704306016018,
+          "maxAbsoluteError": 6.67572021484375e-06,
+          "differenceRms": 4.815819234067e-06,
+          "relativeL2": 3.902386050785868e-07
+        },
+        {
+          "position": 2186,
+          "values": 4,
+          "referenceRms": 11.440084058998172,
+          "maxAbsoluteError": 9.5367431640625e-06,
+          "differenceRms": 6.294431105825465e-06,
+          "relativeL2": 5.502084664207161e-07
+        }
+      ]
+    },
+    {
+      "layer": 20,
+      "role": "mlp_hc",
+      "stage": "lowRank",
+      "positions": [
+        112,
+        2186
+      ],
+      "sourceSha256": "103d50f1959b2f8c1cd9f58f87bff099082409b92eaae1a82f731b158779ae2a",
+      "gpuSha256": "e3e2bd0f3163a6085ae8c6bb0d5c2a02f39412b03b28fe2815acba8321dbc758",
+      "values": 640,
+      "referenceRms": 0.8929938910823825,
+      "maxAbsoluteError": 2.6702880859375e-05,
+      "differenceRms": 2.0564557198910208e-06,
+      "relativeL2": 2.3028777021065917e-06,
+      "perPosition": [
+        {
+          "position": 112,
+          "values": 320,
+          "referenceRms": 0.9479636609307143,
+          "maxAbsoluteError": 2.6702880859375e-05,
+          "differenceRms": 2.5169516303877114e-06,
+          "relativeL2": 2.655114045106496e-06
+        },
+        {
+          "position": 2186,
+          "values": 320,
+          "referenceRms": 0.8344106162889742,
+          "maxAbsoluteError": 1.1682510375976562e-05,
+          "differenceRms": 1.4570431517404122e-06,
+          "relativeL2": 1.746194407521545e-06
+        }
+      ]
+    },
+    {
+      "layer": 20,
+      "role": "mlp_hc",
+      "stage": "mix",
+      "positions": [
+        112,
+        2186
+      ],
+      "sourceSha256": "dbf7fc8a5e1ad5cd9f496c090623a55c16e92c3c497ae6af60084138d8b8b89a",
+      "gpuSha256": "45603a9cd34a9322316296147829d122fe719398eb4731754bc66ca8e60ea32d",
+      "values": 20480,
+      "referenceRms": 0.6603450134328553,
+      "maxAbsoluteError": 2.9802322387695312e-06,
+      "differenceRms": 5.226940262185624e-07,
+      "relativeL2": 7.915468665407139e-07,
+      "perPosition": [
+        {
+          "position": 112,
+          "values": 10240,
+          "referenceRms": 0.6032793170766263,
+          "maxAbsoluteError": 2.9802322387695312e-06,
+          "differenceRms": 6.236121679228346e-07,
+          "relativeL2": 1.033703875254231e-06
+        },
+        {
+          "position": 2186,
+          "values": 10240,
+          "referenceRms": 0.71285702572033,
+          "maxAbsoluteError": 1.8775463104248047e-06,
+          "differenceRms": 3.968953944148566e-07,
+          "relativeL2": 5.567671778415882e-07
+        }
+      ]
+    },
+    {
+      "layer": 20,
+      "role": "mlp_hc",
+      "stage": "norm",
+      "positions": [
+        112,
+        2186
+      ],
+      "sourceSha256": "3bf69051eb82f7cc6c02d151959f14aedabc08ced8cc866cc411c6e03b23f5f2",
+      "gpuSha256": "c820500ba2dd90a81997a347b5a38601350d77c46e0c939bd2a1117d2664333e",
+      "values": 20480,
+      "referenceRms": 1.6496084932897301,
+      "maxAbsoluteError": 2.956390380859375e-05,
+      "differenceRms": 4.190217567574216e-06,
+      "relativeL2": 2.5401285120797843e-06,
+      "perPosition": [
+        {
+          "position": 112,
+          "values": 10240,
+          "referenceRms": 1.6709428110271916,
+          "maxAbsoluteError": 2.956390380859375e-05,
+          "differenceRms": 4.706489516383944e-06,
+          "relativeL2": 2.8166670249418577e-06,
+          "streams": [
+            {
+              "stream": 0,
+              "values": 2560,
+              "referenceRms": 2.189625474953441,
+              "maxAbsoluteError": 2.8133392333984375e-05,
+              "differenceRms": 7.5336539554150965e-06,
+              "relativeL2": 3.4406130370652943e-06
+            },
+            {
+              "stream": 1,
+              "values": 2560,
+              "referenceRms": 1.274313670000282,
+              "maxAbsoluteError": 2.956390380859375e-05,
+              "differenceRms": 4.6358746975572e-06,
+              "relativeL2": 3.6379384500804854e-06
+            },
+            {
+              "stream": 2,
+              "values": 2560,
+              "referenceRms": 1.6968717006553886,
+              "maxAbsoluteError": 4.76837158203125e-06,
+              "differenceRms": 7.986661050509796e-07,
+              "relativeL2": 4.706697063440377e-07
+            },
+            {
+              "stream": 3,
+              "values": 2560,
+              "referenceRms": 1.3676589093388856,
+              "maxAbsoluteError": 2.2172927856445312e-05,
+              "differenceRms": 3.1175359809596408e-06,
+              "relativeL2": 2.279468922895863e-06
+            }
+          ]
+        },
+        {
+          "position": 2186,
+          "values": 10240,
+          "referenceRms": 1.6279946205512394,
+          "maxAbsoluteError": 2.491474151611328e-05,
+          "differenceRms": 3.600667015899026e-06,
+          "relativeL2": 2.2117192344774695e-06,
+          "streams": [
+            {
+              "stream": 0,
+              "values": 2560,
+              "referenceRms": 2.097978903222639,
+              "maxAbsoluteError": 2.491474151611328e-05,
+              "differenceRms": 5.7592272615717485e-06,
+              "relativeL2": 2.745131160625677e-06
+            },
+            {
+              "stream": 1,
+              "values": 2560,
+              "referenceRms": 1.2773969423390288,
+              "maxAbsoluteError": 1.2069940567016602e-05,
+              "differenceRms": 2.8206135275221316e-06,
+              "relativeL2": 2.2080947856015176e-06
+            },
+            {
+              "stream": 2,
+              "values": 2560,
+              "referenceRms": 1.7193333234325054,
+              "maxAbsoluteError": 1.52587890625e-05,
+              "differenceRms": 1.8052898719561516e-06,
+              "relativeL2": 1.049994115365624e-06
+            },
+            {
+              "stream": 3,
+              "values": 2560,
+              "referenceRms": 1.2696851713890598,
+              "maxAbsoluteError": 2.193450927734375e-05,
+              "differenceRms": 2.7341508725147683e-06,
+              "relativeL2": 2.153408525298878e-06
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "layer": 20,
+      "role": "mlp_hc",
+      "stage": "up",
+      "positions": [
+        112,
+        2186
+      ],
+      "sourceSha256": "275c87b56c2eeabda2a907fcb241f90089a3d7a683d707356770a72cb051ac00",
+      "gpuSha256": "4eb700a266060624c842663f07cf870cc8b72001660fc7b8509144a2dbceee3b",
+      "values": 20480,
+      "referenceRms": 2.2467686218084792,
+      "maxAbsoluteError": 2.3365020751953125e-05,
+      "differenceRms": 4.028919994949138e-06,
+      "relativeL2": 1.7932064547466222e-06,
+      "perPosition": [
+        {
+          "position": 112,
+          "values": 10240,
+          "referenceRms": 2.577268654380115,
+          "maxAbsoluteError": 2.3365020751953125e-05,
+          "differenceRms": 5.061604738700184e-06,
+          "relativeL2": 1.963941450224017e-06
+        },
+        {
+          "position": 2186,
+          "values": 10240,
+          "referenceRms": 1.858393059348871,
+          "maxAbsoluteError": 1.430511474609375e-05,
+          "differenceRms": 2.616209112546196e-06,
+          "relativeL2": 1.4077802859761231e-06
+        }
+      ]
+    },
+    {
+      "layer": 21,
+      "role": "attn_hc",
+      "stage": "branchInput",
+      "positions": [
+        112,
+        2186
+      ],
+      "sourceSha256": "282235ae914dd8e4ebbdf7163594636bfeffcee4239b1b68f83cc5c8fffbff39",
+      "gpuSha256": "7d36c9e5429b9c94c53fba6d6f78b77c63a76e05958f76ec1b00a383eb6f4fbb",
+      "values": 5120,
+      "referenceRms": 0.5192189156491479,
+      "maxAbsoluteError": 6.198883056640625e-06,
+      "differenceRms": 1.3324648159322768e-06,
+      "relativeL2": 2.5662871204651255e-06,
+      "perPosition": [
+        {
+          "position": 112,
+          "values": 2560,
+          "referenceRms": 0.4608340730304144,
+          "maxAbsoluteError": 6.079673767089844e-06,
+          "differenceRms": 1.3712329636448552e-06,
+          "relativeL2": 2.9755459587172406e-06
+        },
+        {
+          "position": 2186,
+          "values": 2560,
+          "referenceRms": 0.5716716906319157,
+          "maxAbsoluteError": 6.198883056640625e-06,
+          "differenceRms": 1.292534382834213e-06,
+          "relativeL2": 2.2609732194460573e-06
+        }
+      ]
+    },
+    {
+      "layer": 21,
+      "role": "attn_hc",
+      "stage": "branchOutput",
+      "positions": [
+        112,
+        2186
+      ],
+      "sourceSha256": "af3c9109470037d4cba4f7c91a33af9fd79ae0b266877814fd537d1ab0fbe82e",
+      "gpuSha256": "9783f75d9290ed6609e5ffb4a97b29a03c82950b8817844d5ca04b0aa7d9c761",
+      "values": 5120,
+      "referenceRms": 0.040762094816124445,
+      "maxAbsoluteError": 6.07222318649292e-07,
+      "differenceRms": 9.39135071499922e-08,
+      "relativeL2": 2.3039421200905114e-06,
+      "perPosition": [
+        {
+          "position": 112,
+          "values": 2560,
+          "referenceRms": 0.027066613189535762,
+          "maxAbsoluteError": 6.07222318649292e-07,
+          "differenceRms": 6.525851433175602e-08,
+          "relativeL2": 2.411033618235829e-06
+        },
+        {
+          "position": 2186,
+          "values": 2560,
+          "referenceRms": 0.05089690754894139,
+          "maxAbsoluteError": 5.029141902923584e-07,
+          "differenceRms": 1.1567549419663296e-07,
+          "relativeL2": 2.2727411107521976e-06
+        }
+      ]
+    },
+    {
+      "layer": 21,
+      "role": "attn_hc",
+      "stage": "down",
+      "positions": [
+        112,
+        2186
+      ],
+      "sourceSha256": "3fb0be714a94e87216d3b5fef9943bc97b5fbe80406cfd96476e652bd1e94acb",
+      "gpuSha256": "7eea59572940005f3fa7e5524823d94fb79d830dc0382fae97f3025adf8c4dec",
+      "values": 640,
+      "referenceRms": 12.387338543253728,
+      "maxAbsoluteError": 7.2479248046875e-05,
+      "differenceRms": 1.7291196909233433e-05,
+      "relativeL2": 1.3958766726893405e-06,
+      "perPosition": [
+        {
+          "position": 112,
+          "values": 320,
+          "referenceRms": 12.687049767825572,
+          "maxAbsoluteError": 7.2479248046875e-05,
+          "differenceRms": 1.9396434479750875e-05,
+          "relativeL2": 1.528837265929258e-06
+        },
+        {
+          "position": 2186,
+          "values": 320,
+          "referenceRms": 12.080193730196376,
+          "maxAbsoluteError": 5.1021575927734375e-05,
+          "differenceRms": 1.4891249463376104e-05,
+          "relativeL2": 1.2326995573053637e-06
+        }
+      ]
+    },
+    {
+      "layer": 21,
+      "role": "attn_hc",
+      "stage": "gate",
+      "positions": [
+        112,
+        2186
+      ],
+      "sourceSha256": "19aee6690845a48c87480a1b3780a89f09ea29f74be7684410bf64d50137d970",
+      "gpuSha256": "52bca25f8f18fb2a04ff21f5020035c51d92868ae568cde68eb4fc632ffe952a",
+      "values": 8,
+      "referenceRms": 0.14981181803040203,
+      "maxAbsoluteError": 2.384185791015625e-07,
+      "differenceRms": 1.2973551404092747e-07,
+      "relativeL2": 8.659898514454956e-07,
+      "perPosition": [
+        {
+          "position": 112,
+          "values": 4,
+          "referenceRms": 0.14274219639929056,
+          "maxAbsoluteError": 1.9371509552001953e-07,
+          "differenceRms": 1.318638256842615e-07,
+          "relativeL2": 9.237900845759783e-07
+        },
+        {
+          "position": 2186,
+          "values": 4,
+          "referenceRms": 0.15656253386508198,
+          "maxAbsoluteError": 2.384185791015625e-07,
+          "differenceRms": 1.2757170016440978e-07,
+          "relativeL2": 8.148290463562943e-07
+        }
+      ]
+    },
+    {
+      "layer": 21,
+      "role": "attn_hc",
+      "stage": "injected",
+      "positions": [
+        112,
+        2186
+      ],
+      "sourceSha256": "e81959bf736e6025f222704647e222a2c8bdcd32cad282813f0c0e50a14468b0",
+      "gpuSha256": "cae7a8abba69e4a58f15007f3ffa3b94c75c7c3ad433549e2f7617e8e340d9a4",
+      "values": 20480,
+      "referenceRms": 0.02326830773756886,
+      "maxAbsoluteError": 4.6193599700927734e-07,
+      "differenceRms": 5.504045425938489e-08,
+      "relativeL2": 2.365468725966561e-06,
+      "perPosition": [
+        {
+          "position": 112,
+          "values": 10240,
+          "referenceRms": 0.019545718206925685,
+          "maxAbsoluteError": 2.7194619178771973e-07,
+          "differenceRms": 5.166762821321072e-08,
+          "relativeL2": 2.6434243892303326e-06
+        },
+        {
+          "position": 2186,
+          "values": 10240,
+          "referenceRms": 0.026472498743334894,
+          "maxAbsoluteError": 4.6193599700927734e-07,
+          "differenceRms": 5.821820509926694e-08,
+          "relativeL2": 2.1991956884661227e-06
+        }
+      ]
+    },
+    {
+      "layer": 21,
+      "role": "attn_hc",
+      "stage": "input",
+      "positions": [
+        112,
+        2186
+      ],
+      "sourceSha256": "ae4326711132870e93d2d6cd3e7326b4a10216ba6c5f0b0f060be9fd5350ea82",
+      "gpuSha256": "4aab5f296bb95123077d7aa8d45181b30ddfd94d49f66ed99b51f069806f1b25",
+      "values": 20480,
+      "referenceRms": 0.022954917772255355,
+      "maxAbsoluteError": 4.470348358154297e-07,
+      "differenceRms": 5.479649533162871e-08,
+      "relativeL2": 2.387135335237791e-06,
+      "perPosition": [
+        {
+          "position": 112,
+          "values": 10240,
+          "referenceRms": 0.019605970094810223,
+          "maxAbsoluteError": 2.7194619178771973e-07,
+          "differenceRms": 5.231628475646211e-08,
+          "relativeL2": 2.6683854205362906e-06,
+          "streams": [
+            {
+              "stream": 0,
+              "values": 2560,
+              "referenceRms": 0.020897012921865365,
+              "maxAbsoluteError": 2.7194619178771973e-07,
+              "differenceRms": 7.17858732069032e-08,
+              "relativeL2": 3.4352217455821553e-06
+            },
+            {
+              "stream": 1,
+              "values": 2560,
+              "referenceRms": 0.014104375924717694,
+              "maxAbsoluteError": 2.0675361156463623e-07,
+              "differenceRms": 5.1534504551112457e-08,
+              "relativeL2": 3.653795448035319e-06
+            },
+            {
+              "stream": 2,
+              "values": 2560,
+              "referenceRms": 0.020458674378878466,
+              "maxAbsoluteError": 1.043081283569336e-07,
+              "differenceRms": 9.291126099260453e-09,
+              "relativeL2": 4.5414115925578297e-07
+            },
+            {
+              "stream": 3,
+              "values": 2560,
+              "referenceRms": 0.02198636683972659,
+              "maxAbsoluteError": 2.384185791015625e-07,
+              "differenceRms": 5.525063644229221e-08,
+              "relativeL2": 2.512949813175194e-06
+            }
+          ]
+        },
+        {
+          "position": 2186,
+          "values": 10240,
+          "referenceRms": 0.025873972182550883,
+          "maxAbsoluteError": 4.470348358154297e-07,
+          "differenceRms": 5.7169206313706904e-08,
+          "relativeL2": 2.2095256928606103e-06,
+          "streams": [
+            {
+              "stream": 0,
+              "values": 2560,
+              "referenceRms": 0.024180284831625997,
+              "maxAbsoluteError": 3.2782554626464844e-07,
+              "differenceRms": 6.346029178540835e-08,
+              "relativeL2": 2.6244641958231626e-06
+            },
+            {
+              "stream": 1,
+              "values": 2560,
+              "referenceRms": 0.01843139444215416,
+              "maxAbsoluteError": 4.470348358154297e-07,
+              "differenceRms": 5.093830214992856e-08,
+              "relativeL2": 2.7636705573089114e-06
+            },
+            {
+              "stream": 2,
+              "values": 2560,
+              "referenceRms": 0.027163863657566692,
+              "maxAbsoluteError": 3.725290298461914e-07,
+              "differenceRms": 3.74522391428263e-08,
+              "relativeL2": 1.3787522870441777e-06
+            },
+            {
+              "stream": 3,
+              "values": 2560,
+              "referenceRms": 0.03186803698984237,
+              "maxAbsoluteError": 3.5762786865234375e-07,
+              "differenceRms": 7.105408592008419e-08,
+              "relativeL2": 2.2296348514573395e-06
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "layer": 21,
+      "role": "attn_hc",
+      "stage": "logits",
+      "positions": [
+        112,
+        2186
+      ],
+      "sourceSha256": "d2de03f8c8fd924a22e85773ee58caf5cbc0e6329d5881e578295cf2a0fc3cd6",
+      "gpuSha256": "fd12f667fe581a3d36e52cdf33ad0fae254ed08ea412323db5c1352336f1074b",
+      "values": 8,
+      "referenceRms": 18.890138314971352,
+      "maxAbsoluteError": 2.09808349609375e-05,
+      "differenceRms": 1.0972436427120067e-05,
+      "relativeL2": 5.808552718972883e-07,
+      "perPosition": [
+        {
+          "position": 112,
+          "values": 4,
+          "referenceRms": 20.219367628936954,
+          "maxAbsoluteError": 1.52587890625e-05,
+          "differenceRms": 9.072445674152587e-06,
+          "relativeL2": 4.4870076258807195e-07
+        },
+        {
+          "position": 2186,
+          "values": 4,
+          "referenceRms": 17.46000640903072,
+          "maxAbsoluteError": 2.09808349609375e-05,
+          "differenceRms": 1.258886221165093e-05,
+          "relativeL2": 7.210113167621566e-07
+        }
+      ]
+    },
+    {
+      "layer": 21,
+      "role": "attn_hc",
+      "stage": "lowRank",
+      "positions": [
+        112,
+        2186
+      ],
+      "sourceSha256": "e3486b8acadb2837e8ca4030584f4f35f77f279adec4cb10c520c84ee5db97b0",
+      "gpuSha256": "fedb662b8e816f71165ce46e4868b9d595d41d1e2efe52a0ec4f88d8a373e0fe",
+      "values": 640,
+      "referenceRms": 1.4272140372011282,
+      "maxAbsoluteError": 1.7821788787841797e-05,
+      "differenceRms": 2.733610030598953e-06,
+      "relativeL2": 1.915346934198996e-06,
+      "perPosition": [
+        {
+          "position": 112,
+          "values": 320,
+          "referenceRms": 1.5339726637256086,
+          "maxAbsoluteError": 1.7821788787841797e-05,
+          "differenceRms": 2.9926957393607137e-06,
+          "relativeL2": 1.950944635540152e-06
+        },
+        {
+          "position": 2186,
+          "values": 320,
+          "referenceRms": 1.3117955949424618,
+          "maxAbsoluteError": 1.3589859008789062e-05,
+          "differenceRms": 2.4472473946037103e-06,
+          "relativeL2": 1.8655706758270152e-06
+        }
+      ]
+    },
+    {
+      "layer": 21,
+      "role": "attn_hc",
+      "stage": "mix",
+      "positions": [
+        112,
+        2186
+      ],
+      "sourceSha256": "1b8fe7ddc961518cb894206946c0da6a064caaabc80015307f6baeb5fa50908f",
+      "gpuSha256": "430ae88c92bcecbd7e6a825bc4f28cf3958e1d20cc2f9ec764d48d95f5c9e95a",
+      "values": 20480,
+      "referenceRms": 0.6280514733626071,
+      "maxAbsoluteError": 3.129243850708008e-06,
+      "differenceRms": 6.104643128598156e-07,
+      "relativeL2": 9.71997262567303e-07,
+      "perPosition": [
+        {
+          "position": 112,
+          "values": 10240,
+          "referenceRms": 0.5668505123079549,
+          "maxAbsoluteError": 2.9206275939941406e-06,
+          "differenceRms": 4.903517475588054e-07,
+          "relativeL2": 8.650459634627802e-07
+        },
+        {
+          "position": 2186,
+          "values": 10240,
+          "referenceRms": 0.6837966094403308,
+          "maxAbsoluteError": 3.129243850708008e-06,
+          "differenceRms": 7.105550775392707e-07,
+          "relativeL2": 1.0391322035376001e-06
+        }
+      ]
+    },
+    {
+      "layer": 21,
+      "role": "attn_hc",
+      "stage": "norm",
+      "positions": [
+        112,
+        2186
+      ],
+      "sourceSha256": "a89fc50a6e1f61b511b8bb22129c8b7293d826ae7d982b53fca2eadd58b17eaf",
+      "gpuSha256": "7c154daa8f94e9d4619876a6dcff936e34cbb75ec44844a4654e96afec5c8149",
+      "values": 20480,
+      "referenceRms": 1.4199946846972877,
+      "maxAbsoluteError": 2.9087066650390625e-05,
+      "differenceRms": 3.450993457945389e-06,
+      "relativeL2": 2.4302861800366995e-06,
+      "perPosition": [
+        {
+          "position": 112,
+          "values": 10240,
+          "referenceRms": 1.4080460583197132,
+          "maxAbsoluteError": 2.9087066650390625e-05,
+          "differenceRms": 4.0326740829007765e-06,
+          "relativeL2": 2.8640214281862014e-06,
+          "streams": [
+            {
+              "stream": 0,
+              "values": 2560,
+              "referenceRms": 0.7995211945962251,
+              "maxAbsoluteError": 2.5451183319091797e-05,
+              "differenceRms": 2.840526364103923e-06,
+              "relativeL2": 3.552784320543807e-06
+            },
+            {
+              "stream": 1,
+              "values": 2560,
+              "referenceRms": 1.8137839048660287,
+              "maxAbsoluteError": 2.9087066650390625e-05,
+              "differenceRms": 6.925712552356398e-06,
+              "relativeL2": 3.8183779962850376e-06
+            },
+            {
+              "stream": 2,
+              "values": 2560,
+              "referenceRms": 1.5704808573826605,
+              "maxAbsoluteError": 3.814697265625e-06,
+              "differenceRms": 5.698707489403243e-07,
+              "relativeL2": 3.628638618939057e-07
+            },
+            {
+              "stream": 3,
+              "values": 2560,
+              "referenceRms": 1.2389182748808398,
+              "maxAbsoluteError": 1.5273690223693848e-05,
+              "differenceRms": 2.9480508784728e-06,
+              "relativeL2": 2.3795361956028502e-06
+            }
+          ]
+        },
+        {
+          "position": 2186,
+          "values": 10240,
+          "referenceRms": 1.431843604164721,
+          "maxAbsoluteError": 1.93864107131958e-05,
+          "differenceRms": 2.7488636624365584e-06,
+          "relativeL2": 1.919807201318005e-06,
+          "streams": [
+            {
+              "stream": 0,
+              "values": 2560,
+              "referenceRms": 0.901100330351885,
+              "maxAbsoluteError": 1.5467405319213867e-05,
+              "differenceRms": 2.102609958658809e-06,
+              "relativeL2": 2.3333805213873655e-06
+            },
+            {
+              "stream": 1,
+              "values": 2560,
+              "referenceRms": 1.8276637609354616,
+              "maxAbsoluteError": 1.93864107131958e-05,
+              "differenceRms": 4.1701118736703405e-06,
+              "relativeL2": 2.2816625042321417e-06
+            },
+            {
+              "stream": 2,
+              "values": 2560,
+              "referenceRms": 1.5383956000654582,
+              "maxAbsoluteError": 1.8596649169921875e-05,
+              "differenceRms": 1.0648184276008458e-06,
+              "relativeL2": 6.921616439591599e-07
+            },
+            {
+              "stream": 3,
+              "values": 2560,
+              "referenceRms": 1.2968063758525707,
+              "maxAbsoluteError": 1.4781951904296875e-05,
+              "differenceRms": 2.6982152949163677e-06,
+              "relativeL2": 2.0806616509287723e-06
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "layer": 21,
+      "role": "attn_hc",
+      "stage": "up",
+      "positions": [
+        112,
+        2186
+      ],
+      "sourceSha256": "ca4ae877d40a43f1b27a596612e44902a7c577d35264584211c6e4627ca08601",
+      "gpuSha256": "b0d89670771a5abc83a5af41a63f217cbb6be9b65507fd3011145a78991dd1a0",
+      "values": 20480,
+      "referenceRms": 2.8962266639644234,
+      "maxAbsoluteError": 2.002716064453125e-05,
+      "differenceRms": 4.398483711197275e-06,
+      "relativeL2": 1.518694571085996e-06,
+      "perPosition": [
+        {
+          "position": 112,
+          "values": 10240,
+          "referenceRms": 3.379171014371503,
+          "maxAbsoluteError": 2.002716064453125e-05,
+          "differenceRms": 4.014472368942193e-06,
+          "relativeL2": 1.1880050911506919e-06
+        },
+        {
+          "position": 2186,
+          "values": 10240,
+          "referenceRms": 2.314618982413403,
+          "maxAbsoluteError": 1.6689300537109375e-05,
+          "differenceRms": 4.7515607450957805e-06,
+          "relativeL2": 2.052847911988275e-06
+        }
+      ]
+    },
+    {
+      "layer": 21,
+      "role": "mlp_hc",
+      "stage": "branchInput",
+      "positions": [
+        112,
+        2186
+      ],
+      "sourceSha256": "d18bb38c2cdc3f1bffe028cd2d5952a4ad5d82b450ad5bf6d1f94d1a6298145e",
+      "gpuSha256": "870ee0939847aa8c9fb9b3ce321853a240bd7c45e7063cf99b357d18e26e218f",
+      "values": 5120,
+      "referenceRms": 0.6572860814116492,
+      "maxAbsoluteError": 1.0132789611816406e-05,
+      "differenceRms": 1.8856174005132205e-06,
+      "relativeL2": 2.868792530131616e-06,
+      "perPosition": [
+        {
+          "position": 112,
+          "values": 2560,
+          "referenceRms": 0.6516841594272098,
+          "maxAbsoluteError": 1.0132789611816406e-05,
+          "differenceRms": 2.2834756711624446e-06,
+          "relativeL2": 3.5039606811518614e-06
+        },
+        {
+          "position": 2186,
+          "values": 2560,
+          "referenceRms": 0.6628406610842558,
+          "maxAbsoluteError": 5.334615707397461e-06,
+          "differenceRms": 1.3772598961146344e-06,
+          "relativeL2": 2.077814438634094e-06
+        }
+      ]
+    },
+    {
+      "layer": 21,
+      "role": "mlp_hc",
+      "stage": "down",
+      "positions": [
+        112,
+        2186
+      ],
+      "sourceSha256": "2041167c600855e7a50575bdf3885368d389c2a48d16ba908303564e299c5de5",
+      "gpuSha256": "950d7ad3e0a20a06a419870ce04b41999cf2223312fd4dd9ab67726f17661493",
+      "values": 640,
+      "referenceRms": 26.45155785272276,
+      "maxAbsoluteError": 0.0002307891845703125,
+      "differenceRms": 2.2085739267413747e-05,
+      "relativeL2": 8.349504173018065e-07,
+      "perPosition": [
+        {
+          "position": 112,
+          "values": 320,
+          "referenceRms": 26.294644534498914,
+          "maxAbsoluteError": 0.0002307891845703125,
+          "differenceRms": 2.5430223420308203e-05,
+          "relativeL2": 9.67125582813771e-07
+        },
+        {
+          "position": 2186,
+          "values": 320,
+          "referenceRms": 26.607545818361846,
+          "maxAbsoluteError": 8.0108642578125e-05,
+          "differenceRms": 1.813459386833825e-05,
+          "relativeL2": 6.81558306509561e-07
+        }
+      ]
+    },
+    {
+      "layer": 21,
+      "role": "mlp_hc",
+      "stage": "gate",
+      "positions": [
+        112,
+        2186
+      ],
+      "sourceSha256": "54f7d2770ca7e5528e8dab8402bdc04c371b59a5c1ebb4fea6dd913f6774bae6",
+      "gpuSha256": "5ed5110492853d233eeda50929302ba03adedb94d728d9b402d6d3bc1a3cd1b8",
+      "values": 8,
+      "referenceRms": 0.28781136952031594,
+      "maxAbsoluteError": 8.642673492431641e-07,
+      "differenceRms": 4.639304672826871e-07,
+      "relativeL2": 1.6119254359405679e-06,
+      "perPosition": [
+        {
+          "position": 112,
+          "values": 4,
+          "referenceRms": 0.19313285833509897,
+          "maxAbsoluteError": 8.642673492431641e-07,
+          "differenceRms": 4.687180993948246e-07,
+          "relativeL2": 2.4269205325049667e-06
+        },
+        {
+          "position": 2186,
+          "values": 4,
+          "referenceRms": 0.3582882469208756,
+          "maxAbsoluteError": 8.344650268554688e-07,
+          "differenceRms": 4.5909291025452364e-07,
+          "relativeL2": 1.2813507398022737e-06
+        }
+      ]
+    },
+    {
+      "layer": 21,
+      "role": "mlp_hc",
+      "stage": "input",
+      "positions": [
+        112,
+        2186
+      ],
+      "sourceSha256": "e81959bf736e6025f222704647e222a2c8bdcd32cad282813f0c0e50a14468b0",
+      "gpuSha256": "cae7a8abba69e4a58f15007f3ffa3b94c75c7c3ad433549e2f7617e8e340d9a4",
+      "values": 20480,
+      "referenceRms": 0.02326830773756886,
+      "maxAbsoluteError": 4.6193599700927734e-07,
+      "differenceRms": 5.504045425938489e-08,
+      "relativeL2": 2.365468725966561e-06,
+      "perPosition": [
+        {
+          "position": 112,
+          "values": 10240,
+          "referenceRms": 0.019545718206925685,
+          "maxAbsoluteError": 2.7194619178771973e-07,
+          "differenceRms": 5.166762821321072e-08,
+          "relativeL2": 2.6434243892303326e-06,
+          "streams": [
+            {
+              "stream": 0,
+              "values": 2560,
+              "referenceRms": 0.0208935570226523,
+              "maxAbsoluteError": 2.7194619178771973e-07,
+              "differenceRms": 7.178434126690366e-08,
+              "relativeL2": 3.4357166273352487e-06
+            },
+            {
+              "stream": 1,
+              "values": 2560,
+              "referenceRms": 0.014534489424216437,
+              "maxAbsoluteError": 1.993030309677124e-07,
+              "differenceRms": 5.0095279613524816e-08,
+              "relativeL2": 3.4466487367667185e-06
+            },
+            {
+              "stream": 2,
+              "values": 2560,
+              "referenceRms": 0.020475329462285946,
+              "maxAbsoluteError": 1.043081283569336e-07,
+              "differenceRms": 9.296591980717055e-09,
+              "relativeL2": 4.540387004683218e-07
+            },
+            {
+              "stream": 3,
+              "values": 2560,
+              "referenceRms": 0.021473452829657996,
+              "maxAbsoluteError": 2.3096799850463867e-07,
+              "differenceRms": 5.412226813038988e-08,
+              "relativeL2": 2.5204268991915018e-06
+            }
+          ]
+        },
+        {
+          "position": 2186,
+          "values": 10240,
+          "referenceRms": 0.026472498743334894,
+          "maxAbsoluteError": 4.6193599700927734e-07,
+          "differenceRms": 5.821820509926694e-08,
+          "relativeL2": 2.1991956884661227e-06,
+          "streams": [
+            {
+              "stream": 0,
+              "values": 2560,
+              "referenceRms": 0.02428358514666108,
+              "maxAbsoluteError": 3.5762786865234375e-07,
+              "differenceRms": 6.339004094051093e-08,
+              "relativeL2": 2.61040701188337e-06
+            },
+            {
+              "stream": 1,
+              "values": 2560,
+              "referenceRms": 0.021570208384300033,
+              "maxAbsoluteError": 4.6193599700927734e-07,
+              "differenceRms": 5.65073256510128e-08,
+              "relativeL2": 2.6196930805796894e-06
+            },
+            {
+              "stream": 2,
+              "values": 2560,
+              "referenceRms": 0.027178260992663628,
+              "maxAbsoluteError": 3.725290298461914e-07,
+              "differenceRms": 3.7411886940082787e-08,
+              "relativeL2": 1.37653718720935e-06
+            },
+            {
+              "stream": 3,
+              "values": 2560,
+              "referenceRms": 0.03177339281475717,
+              "maxAbsoluteError": 3.5762786865234375e-07,
+              "differenceRms": 7.0330741449486e-08,
+              "relativeL2": 2.2135105891751307e-06
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "layer": 21,
+      "role": "mlp_hc",
+      "stage": "logits",
+      "positions": [
+        112,
+        2186
+      ],
+      "sourceSha256": "f64000172601864c7d2fd9e8a052ff8bda80a0512502de641f32622bf11cee55",
+      "gpuSha256": "4d90d2e3343307da8027a108947fde9334f418f3f7ba88c313bf9a89aba37679",
+      "values": 8,
+      "referenceRms": 12.961661133754298,
+      "maxAbsoluteError": 2.6702880859375e-05,
+      "differenceRms": 1.2657534359391934e-05,
+      "relativeL2": 9.765364353207502e-07,
+      "perPosition": [
+        {
+          "position": 112,
+          "values": 4,
+          "referenceRms": 14.023589466999045,
+          "maxAbsoluteError": 2.6702880859375e-05,
+          "differenceRms": 1.5924148063179537e-05,
+          "relativeL2": 1.1355258295782954e-06
+        },
+        {
+          "position": 2186,
+          "values": 4,
+          "referenceRms": 11.804586276258348,
+          "maxAbsoluteError": 1.049041748046875e-05,
+          "differenceRms": 8.17605409597504e-06,
+          "relativeL2": 6.926167427331955e-07
+        }
+      ]
+    },
+    {
+      "layer": 21,
+      "role": "mlp_hc",
+      "stage": "lowRank",
+      "positions": [
+        112,
+        2186
+      ],
+      "sourceSha256": "b910eeba708e9b32ad1773a15102277025a58a1eaa1496774a6ff93fca1daf9d",
+      "gpuSha256": "f4a63258a41e4f841d0bee0ea8ccfb7952e66ca87a42ed38a9f89dcf8ae72204",
+      "values": 640,
+      "referenceRms": 1.0357720752618058,
+      "maxAbsoluteError": 4.228949546813965e-05,
+      "differenceRms": 2.298689589007797e-06,
+      "relativeL2": 2.2193006008843898e-06,
+      "perPosition": [
+        {
+          "position": 112,
+          "values": 320,
+          "referenceRms": 1.1757373882110467,
+          "maxAbsoluteError": 4.228949546813965e-05,
+          "differenceRms": 2.9400094772706996e-06,
+          "relativeL2": 2.500566458760061e-06
+        },
+        {
+          "position": 2186,
+          "values": 320,
+          "referenceRms": 0.8736642248295177,
+          "maxAbsoluteError": 1.2874603271484375e-05,
+          "differenceRms": 1.3871884972072594e-06,
+          "relativeL2": 1.5877821911249121e-06
+        }
+      ]
+    },
+    {
+      "layer": 21,
+      "role": "mlp_hc",
+      "stage": "mix",
+      "positions": [
+        112,
+        2186
+      ],
+      "sourceSha256": "b0caf9049fed73aabc2ca50c2c9a59ae1bdd84a93d05aa47abb5c2d8fc9e87c0",
+      "gpuSha256": "ce36bee4f72857b5945705ab4e59faa88b1afb078fb25b57a613fb532159b605",
+      "values": 20480,
+      "referenceRms": 0.6458076121240677,
+      "maxAbsoluteError": 1.138448715209961e-05,
+      "differenceRms": 7.104489840601335e-07,
+      "relativeL2": 1.10009385260025e-06,
+      "perPosition": [
+        {
+          "position": 112,
+          "values": 10240,
+          "referenceRms": 0.6165004666084162,
+          "maxAbsoluteError": 1.138448715209961e-05,
+          "differenceRms": 8.75793429341112e-07,
+          "relativeL2": 1.4205884290066425e-06
+        },
+        {
+          "position": 2186,
+          "values": 10240,
+          "referenceRms": 0.6738413154640976,
+          "maxAbsoluteError": 2.086162567138672e-06,
+          "differenceRms": 4.924036829950467e-07,
+          "relativeL2": 7.307413061425469e-07
+        }
+      ]
+    },
+    {
+      "layer": 21,
+      "role": "mlp_hc",
+      "stage": "norm",
+      "positions": [
+        112,
+        2186
+      ],
+      "sourceSha256": "07eac052931256314cfe9ac29378de3315435d488d5eec37d4f13367ea912738",
+      "gpuSha256": "ee093c361e4e33824879dd4c7087062f6799a088ca524f6e9e7d32192aec213a",
+      "values": 20480,
+      "referenceRms": 1.573622706167731,
+      "maxAbsoluteError": 2.6106834411621094e-05,
+      "differenceRms": 3.896015119017306e-06,
+      "relativeL2": 2.475825433725047e-06,
+      "perPosition": [
+        {
+          "position": 112,
+          "values": 10240,
+          "referenceRms": 1.5706858237680752,
+          "maxAbsoluteError": 2.6106834411621094e-05,
+          "differenceRms": 4.414379581632237e-06,
+          "relativeL2": 2.8104790371394205e-06,
+          "streams": [
+            {
+              "stream": 0,
+              "values": 2560,
+              "referenceRms": 1.483464740485085,
+              "maxAbsoluteError": 2.0503997802734375e-05,
+              "differenceRms": 5.0622855244993e-06,
+              "relativeL2": 3.412474450079589e-06
+            },
+            {
+              "stream": 1,
+              "values": 2560,
+              "referenceRms": 1.82900880142562,
+              "maxAbsoluteError": 2.6106834411621094e-05,
+              "differenceRms": 6.4205347139452945e-06,
+              "relativeL2": 3.510390277477512e-06
+            },
+            {
+              "stream": 2,
+              "values": 2560,
+              "referenceRms": 1.582922096920151,
+              "maxAbsoluteError": 4.76837158203125e-06,
+              "differenceRms": 7.023093384438418e-07,
+              "relativeL2": 4.436790286839171e-07
+            },
+            {
+              "stream": 3,
+              "values": 2560,
+              "referenceRms": 1.3478251485526735,
+              "maxAbsoluteError": 1.8835067749023438e-05,
+              "differenceRms": 3.256339848899262e-06,
+              "relativeL2": 2.415995763542472e-06
+            }
+          ]
+        },
+        {
+          "position": 2186,
+          "values": 10240,
+          "referenceRms": 1.576554117608181,
+          "maxAbsoluteError": 2.4318695068359375e-05,
+          "differenceRms": 3.2971382325421616e-06,
+          "relativeL2": 2.0913574711563407e-06,
+          "streams": [
+            {
+              "stream": 0,
+              "values": 2560,
+              "referenceRms": 1.4557026335648517,
+              "maxAbsoluteError": 1.913309097290039e-05,
+              "differenceRms": 3.866493245271675e-06,
+              "relativeL2": 2.6561010168698183e-06
+            },
+            {
+              "stream": 1,
+              "values": 2560,
+              "referenceRms": 1.8988365638793867,
+              "maxAbsoluteError": 2.4318695068359375e-05,
+              "differenceRms": 4.297959473132894e-06,
+              "relativeL2": 2.2634699346383024e-06
+            },
+            {
+              "stream": 2,
+              "values": 2560,
+              "referenceRms": 1.5990190808949254,
+              "maxAbsoluteError": 1.1444091796875e-05,
+              "differenceRms": 1.590714082982419e-06,
+              "relativeL2": 9.948061921138188e-07
+            },
+            {
+              "stream": 3,
+              "values": 2560,
+              "referenceRms": 1.2886345751337986,
+              "maxAbsoluteError": 2.288818359375e-05,
+              "differenceRms": 2.7444280197779134e-06,
+              "relativeL2": 2.1297178212783556e-06
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "layer": 21,
+      "role": "mlp_hc",
+      "stage": "up",
+      "positions": [
+        112,
+        2186
+      ],
+      "sourceSha256": "c85ca3f777a7b11f3ff149ca639919c1b5cb4ce984936e937a8e09f53807220e",
+      "gpuSha256": "9b978316a296cf08b87930f6231caf9d95c8b1ad57af3c72b02b570fbd9133ad",
+      "values": 20480,
+      "referenceRms": 2.308641444870603,
+      "maxAbsoluteError": 7.343292236328125e-05,
+      "differenceRms": 4.57259691479684e-06,
+      "relativeL2": 1.980644038491273e-06,
+      "perPosition": [
+        {
+          "position": 112,
+          "values": 10240,
+          "referenceRms": 2.6172017424604728,
+          "maxAbsoluteError": 7.343292236328125e-05,
+          "differenceRms": 5.699815877875067e-06,
+          "relativeL2": 2.177828245107532e-06
+        },
+        {
+          "position": 2186,
+          "values": 10240,
+          "referenceRms": 1.951897968954914,
+          "maxAbsoluteError": 1.0967254638671875e-05,
+          "differenceRms": 3.054404041501785e-06,
+          "relativeL2": 1.5648379628865412e-06
+        }
+      ]
+    },
+    {
+      "layer": 22,
+      "role": "attn_hc",
+      "stage": "branchInput",
+      "positions": [
+        112,
+        2186
+      ],
+      "sourceSha256": "5d872322853e444d53de8b7cb7a63ae74b430ebfccb7923ffac2dc9fdb787990",
+      "gpuSha256": "187aea5fdea7a5dee8dd9b3ed2ed38cafdce07bdd7a53d9f90255f4fcf4f9fc8",
+      "values": 5120,
+      "referenceRms": 0.4518586027205249,
+      "maxAbsoluteError": 8.821487426757812e-06,
+      "differenceRms": 1.1520443306206702e-06,
+      "relativeL2": 2.5495682137830425e-06,
+      "perPosition": [
+        {
+          "position": 112,
+          "values": 2560,
+          "referenceRms": 0.4243579811591767,
+          "maxAbsoluteError": 8.821487426757812e-06,
+          "differenceRms": 1.318655492894283e-06,
+          "relativeL2": 3.1074129660345783e-06
+        },
+        {
+          "position": 2186,
+          "values": 2560,
+          "referenceRms": 0.47777892118803034,
+          "maxAbsoluteError": 4.3585896492004395e-06,
+          "differenceRms": 9.568489799807445e-07,
+          "relativeL2": 2.002702374565779e-06
+        }
+      ]
+    },
+    {
+      "layer": 22,
+      "role": "attn_hc",
+      "stage": "branchOutput",
+      "positions": [
+        112,
+        2186
+      ],
+      "sourceSha256": "dc1949bafc2965b6177f9cf4a6371b668ad54fd5f0fa0b15befa33c86a71aafa",
+      "gpuSha256": "ec47ef1dfcd37ff60d833b5a2bc1dd9d1a6ce9829fb6cf92ddbb79ea8443915f",
+      "values": 5120,
+      "referenceRms": 0.11534178320948829,
+      "maxAbsoluteError": 2.3134052753448486e-06,
+      "differenceRms": 2.4727323174148453e-07,
+      "relativeL2": 2.1438304910925226e-06,
+      "perPosition": [
+        {
+          "position": 112,
+          "values": 2560,
+          "referenceRms": 0.14070908917211203,
+          "maxAbsoluteError": 1.0132789611816406e-06,
+          "differenceRms": 1.5700226696935893e-07,
+          "relativeL2": 1.1157933570113406e-06
+        },
+        {
+          "position": 2186,
+          "values": 2560,
+          "referenceRms": 0.08251306643340686,
+          "maxAbsoluteError": 2.3134052753448486e-06,
+          "differenceRms": 3.124714233945849e-07,
+          "relativeL2": 3.7869326265648927e-06
+        }
+      ]
+    },
+    {
+      "layer": 22,
+      "role": "attn_hc",
+      "stage": "down",
+      "positions": [
+        112,
+        2186
+      ],
+      "sourceSha256": "f0a2876741a597e04e4738867ca423bcbba1616999eba681f8ca5260bd0e4ba1",
+      "gpuSha256": "433c51d9e8a8b0ae23d8883cd49adae0b6d6198268c0553c2326c412346504af",
+      "values": 640,
+      "referenceRms": 14.415180577307895,
+      "maxAbsoluteError": 7.104873657226562e-05,
+      "differenceRms": 1.6065924314245785e-05,
+      "relativeL2": 1.1145142600250503e-06,
+      "perPosition": [
+        {
+          "position": 112,
+          "values": 320,
+          "referenceRms": 14.360882653168568,
+          "maxAbsoluteError": 7.104873657226562e-05,
+          "differenceRms": 1.7808227282804525e-05,
+          "relativeL2": 1.2400510270081024e-06
+        },
+        {
+          "position": 2186,
+          "values": 320,
+          "referenceRms": 14.469274742526375,
+          "maxAbsoluteError": 6.103515625e-05,
+          "differenceRms": 1.4110098836865899e-05,
+          "relativeL2": 9.75176647616979e-07
+        }
+      ]
+    },
+    {
+      "layer": 22,
+      "role": "attn_hc",
+      "stage": "gate",
+      "positions": [
+        112,
+        2186
+      ],
+      "sourceSha256": "1f81f19e54142193f434f54b179ab09777ea01b4fd923537c29e9375ab4725d7",
+      "gpuSha256": "7c2fb12a70d5af4ed15e8d5c250d57d85a546ce47a524eeb1a80ac620d0cc566",
+      "values": 8,
+      "referenceRms": 0.11369085632902977,
+      "maxAbsoluteError": 5.960464477539063e-08,
+      "differenceRms": 2.489567115335162e-08,
+      "relativeL2": 2.1897689890998538e-07,
+      "perPosition": [
+        {
+          "position": 112,
+          "values": 4,
+          "referenceRms": 0.12757222006716645,
+          "maxAbsoluteError": 5.960464477539063e-08,
+          "differenceRms": 3.3844942543604746e-08,
+          "relativeL2": 2.6530025522629824e-07
+        },
+        {
+          "position": 2186,
+          "values": 4,
+          "referenceRms": 0.097859850259392,
+          "maxAbsoluteError": 1.5832483768463135e-08,
+          "differenceRms": 9.700966373085817e-09,
+          "relativeL2": 9.913122028464146e-08
+        }
+      ]
+    },
+    {
+      "layer": 22,
+      "role": "attn_hc",
+      "stage": "injected",
+      "positions": [
+        112,
+        2186
+      ],
+      "sourceSha256": "78a968fec7409bbf512704e17243a7b60b1aacd4f8e4326c7f182d9762d1ab3d",
+      "gpuSha256": "27c66ce896b5e131c0cf117d30ab5b81e95dde29c0064f836e17a0a14dbab440",
+      "values": 20480,
+      "referenceRms": 0.031233199259535997,
+      "maxAbsoluteError": 4.544854164123535e-07,
+      "differenceRms": 6.327779960939537e-08,
+      "relativeL2": 2.025978801709711e-06,
+      "perPosition": [
+        {
+          "position": 112,
+          "values": 10240,
+          "referenceRms": 0.031797572122004666,
+          "maxAbsoluteError": 3.4458935260772705e-07,
+          "differenceRms": 5.8914955739858706e-08,
+          "relativeL2": 1.852813023390807e-06
+        },
+        {
+          "position": 2186,
+          "values": 10240,
+          "referenceRms": 0.030658438954351074,
+          "maxAbsoluteError": 4.544854164123535e-07,
+          "differenceRms": 6.735865079545523e-08,
+          "relativeL2": 2.1970672054030213e-06
+        }
+      ]
+    },
+    {
+      "layer": 22,
+      "role": "attn_hc",
+      "stage": "input",
+      "positions": [
+        112,
+        2186
+      ],
+      "sourceSha256": "5875ca9761a1c76d7d93e265d39bb9ef76bb278bce1cf4e6c986d65f582cf229",
+      "gpuSha256": "6517d2dff6aa6314a8da5082082f3944931a221329f5f8a72bc930045f0f4f34",
+      "values": 20480,
+      "referenceRms": 0.023969423724097026,
+      "maxAbsoluteError": 4.470348358154297e-07,
+      "differenceRms": 5.774402094366987e-08,
+      "relativeL2": 2.4090700555983096e-06,
+      "perPosition": [
+        {
+          "position": 112,
+          "values": 10240,
+          "referenceRms": 0.019830271370638423,
+          "maxAbsoluteError": 3.4831464290618896e-07,
+          "differenceRms": 5.5039021508104497e-08,
+          "relativeL2": 2.7755052101605483e-06,
+          "streams": [
+            {
+              "stream": 0,
+              "values": 2560,
+              "referenceRms": 0.020899916632843674,
+              "maxAbsoluteError": 2.7939677238464355e-07,
+              "differenceRms": 7.197834908413051e-08,
+              "relativeL2": 3.443953885013034e-06
+            },
+            {
+              "stream": 1,
+              "values": 2560,
+              "referenceRms": 0.015387279236331217,
+              "maxAbsoluteError": 3.4831464290618896e-07,
+              "differenceRms": 5.8407148679515e-08,
+              "relativeL2": 3.795807418741625e-06
+            },
+            {
+              "stream": 2,
+              "values": 2560,
+              "referenceRms": 0.020411397876839696,
+              "maxAbsoluteError": 1.043081283569336e-07,
+              "differenceRms": 9.58245398466015e-09,
+              "relativeL2": 4.6946583680743994e-07
+            },
+            {
+              "stream": 3,
+              "values": 2560,
+              "referenceRms": 0.0219717684697738,
+              "maxAbsoluteError": 3.0547380447387695e-07,
+              "differenceRms": 5.85924429953412e-08,
+              "relativeL2": 2.6667149290211145e-06
+            }
+          ]
+        },
+        {
+          "position": 2186,
+          "values": 10240,
+          "referenceRms": 0.027492305918155515,
+          "maxAbsoluteError": 4.470348358154297e-07,
+          "differenceRms": 6.032785443654017e-08,
+          "relativeL2": 2.1943541082416277e-06,
+          "streams": [
+            {
+              "stream": 0,
+              "values": 2560,
+              "referenceRms": 0.02434081972922912,
+              "maxAbsoluteError": 3.5762786865234375e-07,
+              "differenceRms": 6.344741987412045e-08,
+              "relativeL2": 2.606626259095582e-06
+            },
+            {
+              "stream": 1,
+              "values": 2560,
+              "referenceRms": 0.02420746338676091,
+              "maxAbsoluteError": 4.470348358154297e-07,
+              "differenceRms": 6.04906372313762e-08,
+              "relativeL2": 2.498842454697612e-06
+            },
+            {
+              "stream": 2,
+              "values": 2560,
+              "referenceRms": 0.027150391835099145,
+              "maxAbsoluteError": 3.725290298461914e-07,
+              "differenceRms": 3.735413371689186e-08,
+              "relativeL2": 1.3758230063037857e-06
+            },
+            {
+              "stream": 3,
+              "values": 2560,
+              "referenceRms": 0.033281931633818616,
+              "maxAbsoluteError": 3.5762786865234375e-07,
+              "differenceRms": 7.401200238194605e-08,
+              "relativeL2": 2.223789267890346e-06
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "layer": 22,
+      "role": "attn_hc",
+      "stage": "logits",
+      "positions": [
+        112,
+        2186
+      ],
+      "sourceSha256": "6cb50be8ece3bff1799fb5c177c30d44e6d36fcfcf2517ca70f9218cdc3547c9",
+      "gpuSha256": "98b6fd0d3a080cc04dc85e2f72acce2e4843bd938d918cf3785de90779b16682",
+      "values": 8,
+      "referenceRms": 21.481289819695526,
+      "maxAbsoluteError": 4.9591064453125e-05,
+      "differenceRms": 1.8646253550301523e-05,
+      "relativeL2": 8.680229961426877e-07,
+      "perPosition": [
+        {
+          "position": 112,
+          "values": 4,
+          "referenceRms": 22.304832743669962,
+          "maxAbsoluteError": 4.9591064453125e-05,
+          "differenceRms": 2.509744856348178e-05,
+          "relativeL2": 1.1252022757536414e-06
+        },
+        {
+          "position": 2186,
+          "values": 4,
+          "referenceRms": 20.624889355155766,
+          "maxAbsoluteError": 1.52587890625e-05,
+          "differenceRms": 8.092194914091653e-06,
+          "relativeL2": 3.923509491249118e-07
+        }
+      ]
+    },
+    {
+      "layer": 22,
+      "role": "attn_hc",
+      "stage": "lowRank",
+      "positions": [
+        112,
+        2186
+      ],
+      "sourceSha256": "8688609d483e99f5971ef75bf5e092f49c8f21bca95011d7595feca6673a6348",
+      "gpuSha256": "507befc0ec9ad22a570439f84ac277a3f52418b31a5946708f903e6a3e4f75ca",
+      "values": 640,
+      "referenceRms": 1.3922707560934429,
+      "maxAbsoluteError": 1.71661376953125e-05,
+      "differenceRms": 2.2263139180072375e-06,
+      "relativeL2": 1.5990524172568466e-06,
+      "perPosition": [
+        {
+          "position": 112,
+          "values": 320,
+          "referenceRms": 1.33840677987813,
+          "maxAbsoluteError": 1.71661376953125e-05,
+          "differenceRms": 2.5058390399708955e-06,
+          "relativeL2": 1.8722551900096226e-06
+        },
+        {
+          "position": 2186,
+          "values": 320,
+          "referenceRms": 1.444127074783334,
+          "maxAbsoluteError": 9.775161743164062e-06,
+          "differenceRms": 1.906231368114378e-06,
+          "relativeL2": 1.31998866401724e-06
+        }
+      ]
+    },
+    {
+      "layer": 22,
+      "role": "attn_hc",
+      "stage": "mix",
+      "positions": [
+        112,
+        2186
+      ],
+      "sourceSha256": "1c3ec2e430efa4f037e1e2c3cf9071c7544d58120a75a9af977c4d1219d6f81c",
+      "gpuSha256": "75bc5ec03d6710e5506c3844967299765277733ff244a72089752004013d38f1",
+      "values": 20480,
+      "referenceRms": 0.5643519166113748,
+      "maxAbsoluteError": 2.8908252716064453e-06,
+      "differenceRms": 4.172851498503227e-07,
+      "relativeL2": 7.39405923091202e-07,
+      "perPosition": [
+        {
+          "position": 112,
+          "values": 10240,
+          "referenceRms": 0.5359525334081593,
+          "maxAbsoluteError": 2.8908252716064453e-06,
+          "differenceRms": 5.0198418235644e-07,
+          "relativeL2": 9.366205980299929e-07
+        },
+        {
+          "position": 2186,
+          "values": 10240,
+          "referenceRms": 0.5913890880792783,
+          "maxAbsoluteError": 2.473592758178711e-06,
+          "differenceRms": 3.102670998271473e-07,
+          "relativeL2": 5.246412321113958e-07
+        }
+      ]
+    },
+    {
+      "layer": 22,
+      "role": "attn_hc",
+      "stage": "norm",
+      "positions": [
+        112,
+        2186
+      ],
+      "sourceSha256": "35e84a828c6d10dd7dc1fca111c352534e277c93f4c5bcf5b6aec6710ee078d8",
+      "gpuSha256": "a0060c9e86fbb1069f72041a6c132691dff996aba85c64302f106a40e330b4bc",
+      "values": 20480,
+      "referenceRms": 1.2535687350163154,
+      "maxAbsoluteError": 2.7418136596679688e-05,
+      "differenceRms": 2.765507202432783e-06,
+      "relativeL2": 2.2061073519010423e-06,
+      "perPosition": [
+        {
+          "position": 112,
+          "values": 10240,
+          "referenceRms": 1.2424952599809176,
+          "maxAbsoluteError": 2.7418136596679688e-05,
+          "differenceRms": 3.127018359784248e-06,
+          "relativeL2": 2.5167245787579687e-06,
+          "streams": [
+            {
+              "stream": 0,
+              "values": 2560,
+              "referenceRms": 0.9515889120800275,
+              "maxAbsoluteError": 2.7418136596679688e-05,
+              "differenceRms": 3.616140740502569e-06,
+              "relativeL2": 3.8001081082357712e-06
+            },
+            {
+              "stream": 1,
+              "values": 2560,
+              "referenceRms": 1.0470707962654346,
+              "maxAbsoluteError": 2.2649765014648438e-05,
+              "differenceRms": 3.799918491103725e-06,
+              "relativeL2": 3.629094140202185e-06
+            },
+            {
+              "stream": 2,
+              "values": 2560,
+              "referenceRms": 1.6022300479052984,
+              "maxAbsoluteError": 6.67572021484375e-06,
+              "differenceRms": 7.440150469193689e-07,
+              "relativeL2": 4.6436218562501e-07
+            },
+            {
+              "stream": 3,
+              "values": 2560,
+              "referenceRms": 1.2673429085705246,
+              "maxAbsoluteError": 1.5854835510253906e-05,
+              "differenceRms": 3.3231855960078673e-06,
+              "relativeL2": 2.6221676655422264e-06
+            }
+          ]
+        },
+        {
+          "position": 2186,
+          "values": 10240,
+          "referenceRms": 1.264545244641631,
+          "maxAbsoluteError": 2.3365020751953125e-05,
+          "differenceRms": 2.3490032675557163e-06,
+          "relativeL2": 1.8575873639233983e-06,
+          "streams": [
+            {
+              "stream": 0,
+              "values": 2560,
+              "referenceRms": 1.0202906820785633,
+              "maxAbsoluteError": 2.1636486053466797e-05,
+              "differenceRms": 2.5753431631497416e-06,
+              "relativeL2": 2.52412690656273e-06
+            },
+            {
+              "stream": 1,
+              "values": 2560,
+              "referenceRms": 1.0110455904731521,
+              "maxAbsoluteError": 2.3365020751953125e-05,
+              "differenceRms": 2.2681657789421017e-06,
+              "relativeL2": 2.2433862531170714e-06
+            },
+            {
+              "stream": 2,
+              "values": 2560,
+              "referenceRms": 1.5959093840039096,
+              "maxAbsoluteError": 2.002716064453125e-05,
+              "differenceRms": 1.6505013788554923e-06,
+              "relativeL2": 1.034207452753125e-06
+            },
+            {
+              "stream": 3,
+              "values": 2560,
+              "referenceRms": 1.3364750948221094,
+              "maxAbsoluteError": 1.424551010131836e-05,
+              "differenceRms": 2.7513891388896076e-06,
+              "relativeL2": 2.0586909172862885e-06
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "layer": 22,
+      "role": "attn_hc",
+      "stage": "up",
+      "positions": [
+        112,
+        2186
+      ],
+      "sourceSha256": "1e25109d4b0d9b4de9a6e6285061dad63230cd242186dfa0c1f1254842996f17",
+      "gpuSha256": "644c03b40016ce29f347461f30d2d3c0621be027f832539a869f5924863139a9",
+      "values": 20480,
+      "referenceRms": 2.5429004198125646,
+      "maxAbsoluteError": 1.430511474609375e-05,
+      "differenceRms": 2.61178792467524e-06,
+      "relativeL2": 1.0270901307522505e-06,
+      "perPosition": [
+        {
+          "position": 112,
+          "values": 10240,
+          "referenceRms": 2.586317196855269,
+          "maxAbsoluteError": 1.430511474609375e-05,
+          "differenceRms": 3.047484497033333e-06,
+          "relativeL2": 1.1783104178941398e-06
+        },
+        {
+          "position": 2186,
+          "values": 10240,
+          "referenceRms": 2.49872936658145,
+          "maxAbsoluteError": 1.2874603271484375e-05,
+          "differenceRms": 2.0870339161835117e-06,
+          "relativeL2": 8.352380790396741e-07
+        }
+      ]
+    },
+    {
+      "layer": 22,
+      "role": "mlp_hc",
+      "stage": "branchInput",
+      "positions": [
+        112,
+        2186
+      ],
+      "sourceSha256": "a958ab84e50bad247187137ea53dd92cd1db63d79a2d4547899131a9690fd6ed",
+      "gpuSha256": "7cf924005f74b024d2859711ba22fa6646451ae18304315bdd81deb103ab905e",
+      "values": 5120,
+      "referenceRms": 0.5923863427806937,
+      "maxAbsoluteError": 7.331371307373047e-06,
+      "differenceRms": 1.5982657373329675e-06,
+      "relativeL2": 2.698012465700376e-06,
+      "perPosition": [
+        {
+          "position": 112,
+          "values": 2560,
+          "referenceRms": 0.5663518718418489,
+          "maxAbsoluteError": 7.331371307373047e-06,
+          "differenceRms": 1.84631624455583e-06,
+          "relativeL2": 3.2600161425288014e-06
+        },
+        {
+          "position": 2186,
+          "values": 2560,
+          "referenceRms": 0.617323833565014,
+          "maxAbsoluteError": 5.066394805908203e-06,
+          "differenceRms": 1.3038493238692288e-06,
+          "relativeL2": 2.1120994411305405e-06
+        }
+      ]
+    },
+    {
+      "layer": 22,
+      "role": "mlp_hc",
+      "stage": "down",
+      "positions": [
+        112,
+        2186
+      ],
+      "sourceSha256": "e3d9668a15c1c0f578cc540737e57bd012b57baa183a8e908b4dffff587bc3c1",
+      "gpuSha256": "d8ab87e027547b9140eafb19c4597bcfc6011a4a61b1d32b56465f54a4044cea",
+      "values": 640,
+      "referenceRms": 22.918566751175693,
+      "maxAbsoluteError": 0.000133514404296875,
+      "differenceRms": 2.062254169732994e-05,
+      "relativeL2": 8.998181221900375e-07,
+      "perPosition": [
+        {
+          "position": 112,
+          "values": 320,
+          "referenceRms": 21.879420530090787,
+          "maxAbsoluteError": 0.000133514404296875,
+          "differenceRms": 2.411974823741671e-05,
+          "relativeL2": 1.1023942889275702e-06
+        },
+        {
+          "position": 2186,
+          "values": 320,
+          "referenceRms": 23.912598376663997,
+          "maxAbsoluteError": 8.392333984375e-05,
+          "differenceRms": 1.6395615178451143e-05,
+          "relativeL2": 6.856475787445758e-07
+        }
+      ]
+    },
+    {
+      "layer": 22,
+      "role": "mlp_hc",
+      "stage": "gate",
+      "positions": [
+        112,
+        2186
+      ],
+      "sourceSha256": "1a4028ac65f7e6c0aa059310e9c31e3c13a34658621bc9ccbe751282d9ffe3b7",
+      "gpuSha256": "6bf4942ea3745cac375a74482aff0388b2ab48dfe42a0b6564e90bc5948de3b5",
+      "values": 8,
+      "referenceRms": 0.5032632563118856,
+      "maxAbsoluteError": 7.152557373046875e-07,
+      "differenceRms": 3.9479873913535125e-07,
+      "relativeL2": 7.844775754713235e-07,
+      "perPosition": [
+        {
+          "position": 112,
+          "values": 4,
+          "referenceRms": 0.3921275455130216,
+          "maxAbsoluteError": 5.364418029785156e-07,
+          "differenceRms": 3.0578261593181834e-07,
+          "relativeL2": 7.798039679455878e-07
+        },
+        {
+          "position": 2186,
+          "values": 4,
+          "referenceRms": 0.593956057597882,
+          "maxAbsoluteError": 7.152557373046875e-07,
+          "differenceRms": 4.671499551959952e-07,
+          "relativeL2": 7.86505919453495e-07
+        }
+      ]
+    },
+    {
+      "layer": 22,
+      "role": "mlp_hc",
+      "stage": "input",
+      "positions": [
+        112,
+        2186
+      ],
+      "sourceSha256": "78a968fec7409bbf512704e17243a7b60b1aacd4f8e4326c7f182d9762d1ab3d",
+      "gpuSha256": "27c66ce896b5e131c0cf117d30ab5b81e95dde29c0064f836e17a0a14dbab440",
+      "values": 20480,
+      "referenceRms": 0.031233199259535997,
+      "maxAbsoluteError": 4.544854164123535e-07,
+      "differenceRms": 6.327779960939537e-08,
+      "relativeL2": 2.025978801709711e-06,
+      "perPosition": [
+        {
+          "position": 112,
+          "values": 10240,
+          "referenceRms": 0.031797572122004666,
+          "maxAbsoluteError": 3.4458935260772705e-07,
+          "differenceRms": 5.8914955739858706e-08,
+          "relativeL2": 1.852813023390807e-06,
+          "streams": [
+            {
+              "stream": 0,
+              "values": 2560,
+              "referenceRms": 0.020892671182873964,
+              "maxAbsoluteError": 2.8312206268310547e-07,
+              "differenceRms": 7.198305315466267e-08,
+              "relativeL2": 3.445373381153304e-06
+            },
+            {
+              "stream": 1,
+              "values": 2560,
+              "referenceRms": 0.014998047262371183,
+              "maxAbsoluteError": 3.4458935260772705e-07,
+              "differenceRms": 5.8640458368993004e-08,
+              "relativeL2": 3.909872888327062e-06
+            },
+            {
+              "stream": 2,
+              "values": 2560,
+              "referenceRms": 0.054092767671708,
+              "maxAbsoluteError": 2.384185791015625e-07,
+              "differenceRms": 4.2880654797376945e-08,
+              "relativeL2": 7.927243630354063e-07
+            },
+            {
+              "stream": 3,
+              "values": 2560,
+              "referenceRms": 0.021374511133379504,
+              "maxAbsoluteError": 2.980232238769531e-07,
+              "differenceRms": 5.852242462743358e-08,
+              "relativeL2": 2.7379538302535507e-06
+            }
+          ]
+        },
+        {
+          "position": 2186,
+          "values": 10240,
+          "referenceRms": 0.030658438954351074,
+          "maxAbsoluteError": 4.544854164123535e-07,
+          "differenceRms": 6.735865079545523e-08,
+          "relativeL2": 2.1970672054030213e-06,
+          "streams": [
+            {
+              "stream": 0,
+              "values": 2560,
+              "referenceRms": 0.02431976791223111,
+              "maxAbsoluteError": 3.8743019104003906e-07,
+              "differenceRms": 6.351029108996952e-08,
+              "relativeL2": 2.6114678116656033e-06
+            },
+            {
+              "stream": 1,
+              "values": 2560,
+              "referenceRms": 0.024053479610840076,
+              "maxAbsoluteError": 4.544854164123535e-07,
+              "differenceRms": 6.055242565988064e-08,
+              "relativeL2": 2.5174081521490864e-06
+            },
+            {
+              "stream": 2,
+              "values": 2560,
+              "referenceRms": 0.038659696338124994,
+              "maxAbsoluteError": 3.986060619354248e-07,
+              "differenceRms": 7.053654612303549e-08,
+              "relativeL2": 1.8245499267792889e-06
+            },
+            {
+              "stream": 3,
+              "values": 2560,
+              "referenceRms": 0.033093298457856475,
+              "maxAbsoluteError": 3.5762786865234375e-07,
+              "differenceRms": 7.398103595747483e-08,
+              "relativeL2": 2.235529228121153e-06
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "layer": 22,
+      "role": "mlp_hc",
+      "stage": "logits",
+      "positions": [
+        112,
+        2186
+      ],
+      "sourceSha256": "418516ea5c45d1bce7a7899f897312fe6b07660be6e10160823b522f3c8e3a7d",
+      "gpuSha256": "b2228f6c5204a90b9d464af2b176a3cc583e2c3f2d936d6c60df1b749a078650",
+      "values": 8,
+      "referenceRms": 14.283941860788778,
+      "maxAbsoluteError": 3.814697265625e-05,
+      "differenceRms": 1.5452299391429925e-05,
+      "relativeL2": 1.0817951754514232e-06,
+      "perPosition": [
+        {
+          "position": 112,
+          "values": 4,
+          "referenceRms": 16.73998487901371,
+          "maxAbsoluteError": 3.814697265625e-05,
+          "differenceRms": 1.963482308473176e-05,
+          "relativeL2": 1.172929559174644e-06
+        },
+        {
+          "position": 2186,
+          "values": 4,
+          "referenceRms": 11.306409528014644,
+          "maxAbsoluteError": 1.71661376953125e-05,
+          "differenceRms": 9.592749105238607e-06,
+          "relativeL2": 8.484346052979961e-07
+        }
+      ]
+    },
+    {
+      "layer": 22,
+      "role": "mlp_hc",
+      "stage": "lowRank",
+      "positions": [
+        112,
+        2186
+      ],
+      "sourceSha256": "7051bfc6952ee49cdb144d14821b614c1e8166ca50fa962d967ee407f078a812",
+      "gpuSha256": "c93fa0ca25e03fc1940216eb2f226328bc1627bfd7be1e2454f43af8a99dc258",
+      "values": 640,
+      "referenceRms": 1.2514844070417919,
+      "maxAbsoluteError": 9.238719940185547e-06,
+      "differenceRms": 1.4324990847520525e-06,
+      "relativeL2": 1.1446399784861372e-06,
+      "perPosition": [
+        {
+          "position": 112,
+          "values": 320,
+          "referenceRms": 1.4370390632193841,
+          "maxAbsoluteError": 8.58306884765625e-06,
+          "differenceRms": 1.5161939938104465e-06,
+          "relativeL2": 1.0550819616647946e-06
+        },
+        {
+          "position": 2186,
+          "values": 320,
+          "referenceRms": 1.0331239871956537,
+          "maxAbsoluteError": 9.238719940185547e-06,
+          "differenceRms": 1.343600769858392e-06,
+          "relativeL2": 1.30052228629935e-06
+        }
+      ]
+    },
+    {
+      "layer": 22,
+      "role": "mlp_hc",
+      "stage": "mix",
+      "positions": [
+        112,
+        2186
+      ],
+      "sourceSha256": "39be92bb5caee5b897caf2c08faa76689c39d7744f7bf2b8ce2943dd75000339",
+      "gpuSha256": "78f47136d327f7053767974123f34d122da88e89cd3082609e58911c7dfbb35e",
+      "values": 20480,
+      "referenceRms": 0.5879921269422541,
+      "maxAbsoluteError": 2.1457672119140625e-06,
+      "differenceRms": 2.969107135902292e-07,
+      "relativeL2": 5.049569543290643e-07,
+      "perPosition": [
+        {
+          "position": 112,
+          "values": 10240,
+          "referenceRms": 0.5921963929853188,
+          "maxAbsoluteError": 2.1457672119140625e-06,
+          "differenceRms": 2.500745181531463e-07,
+          "relativeL2": 4.2228308229385987e-07
+        },
+        {
+          "position": 2186,
+          "values": 10240,
+          "referenceRms": 0.5837575822439737,
+          "maxAbsoluteError": 1.6689300537109375e-06,
+          "differenceRms": 3.3730502376897663e-07,
+          "relativeL2": 5.778169466722309e-07
+        }
+      ]
+    },
+    {
+      "layer": 22,
+      "role": "mlp_hc",
+      "stage": "norm",
+      "positions": [
+        112,
+        2186
+      ],
+      "sourceSha256": "47ebc8e320e796055c7665ceca5bae997db875da38851038b4b7ec0f93a4e49a",
+      "gpuSha256": "327a5ff7f1cc55e22b5061bb5d4adfbb7f81943c8cdbc17fedefbddb26a3402a",
+      "values": 20480,
+      "referenceRms": 1.6366587247232602,
+      "maxAbsoluteError": 2.8252601623535156e-05,
+      "differenceRms": 3.89698634326678e-06,
+      "relativeL2": 2.3810622730317305e-06,
+      "perPosition": [
+        {
+          "position": 112,
+          "values": 10240,
+          "referenceRms": 1.6223489219602547,
+          "maxAbsoluteError": 2.8252601623535156e-05,
+          "differenceRms": 4.38269781095057e-06,
+          "relativeL2": 2.701452043778003e-06,
+          "streams": [
+            {
+              "stream": 0,
+              "values": 2560,
+              "referenceRms": 1.1789690170627978,
+              "maxAbsoluteError": 1.6450881958007812e-05,
+              "differenceRms": 3.911567903754352e-06,
+              "relativeL2": 3.317786852023782e-06
+            },
+            {
+              "stream": 1,
+              "values": 2560,
+              "referenceRms": 1.6320924292458383,
+              "maxAbsoluteError": 2.8252601623535156e-05,
+              "differenceRms": 6.4549790841424735e-06,
+              "relativeL2": 3.955032796227851e-06
+            },
+            {
+              "stream": 2,
+              "values": 2560,
+              "referenceRms": 2.0151089273336096,
+              "maxAbsoluteError": 8.821487426757812e-06,
+              "differenceRms": 1.3096409003690589e-06,
+              "relativeL2": 6.499107232391524e-07
+            },
+            {
+              "stream": 3,
+              "values": 2560,
+              "referenceRms": 1.5536107841178217,
+              "maxAbsoluteError": 1.7821788787841797e-05,
+              "differenceRms": 4.260267911543376e-06,
+              "relativeL2": 2.7421719487886153e-06
+            }
+          ]
+        },
+        {
+          "position": 2186,
+          "values": 10240,
+          "referenceRms": 1.650844492325045,
+          "maxAbsoluteError": 2.3365020751953125e-05,
+          "differenceRms": 3.3414016545612493e-06,
+          "relativeL2": 2.0240559726223687e-06,
+          "streams": [
+            {
+              "stream": 0,
+              "values": 2560,
+              "referenceRms": 1.1380800291227173,
+              "maxAbsoluteError": 1.1801719665527344e-05,
+              "differenceRms": 2.9590998112351834e-06,
+              "relativeL2": 2.6000806055055628e-06
+            },
+            {
+              "stream": 1,
+              "values": 2560,
+              "referenceRms": 1.717188078545039,
+              "maxAbsoluteError": 2.3365020751953125e-05,
+              "differenceRms": 3.951719799031782e-06,
+              "relativeL2": 2.301273720919403e-06
+            },
+            {
+              "stream": 2,
+              "values": 2560,
+              "referenceRms": 2.060339555748037,
+              "maxAbsoluteError": 1.6745179891586304e-05,
+              "differenceRms": 3.0231579973143984e-06,
+              "relativeL2": 1.4673105648436653e-06
+            },
+            {
+              "stream": 3,
+              "values": 2560,
+              "referenceRms": 1.5531226663063533,
+              "maxAbsoluteError": 1.4781951904296875e-05,
+              "differenceRms": 3.338864287266065e-06,
+              "relativeL2": 2.1497750047049242e-06
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "layer": 22,
+      "role": "mlp_hc",
+      "stage": "up",
+      "positions": [
+        112,
+        2186
+      ],
+      "sourceSha256": "731c3955672fcd7206855b31ff052d0ad4d2bfdb472848f55cca1f63b99faf88",
+      "gpuSha256": "bc482c84da22fb2fbf871233b74ea04c5ddf2b86791f0f068e36d156d6365f5c",
+      "values": 20480,
+      "referenceRms": 2.8097176555729524,
+      "maxAbsoluteError": 1.239776611328125e-05,
+      "differenceRms": 2.5879385249683397e-06,
+      "relativeL2": 9.210671114356551e-07,
+      "perPosition": [
+        {
+          "position": 112,
+          "values": 10240,
+          "referenceRms": 3.2120445330283802,
+          "maxAbsoluteError": 1.1920928955078125e-05,
+          "differenceRms": 1.955869871642057e-06,
+          "relativeL2": 6.089174205184583e-07
+        },
+        {
+          "position": 2186,
+          "values": 10240,
+          "referenceRms": 2.339187150682738,
+          "maxAbsoluteError": 1.239776611328125e-05,
+          "differenceRms": 3.093448668271949e-06,
+          "relativeL2": 1.3224459904240944e-06
+        }
+      ]
+    },
+    {
+      "layer": 23,
+      "role": "attn_hc",
+      "stage": "branchInput",
+      "positions": [
+        112,
+        2186
+      ],
+      "sourceSha256": "5ac3b2397cf2906244f0a96a3814565a5292b86a8bb0a7c6dbc08cffbceeb349",
+      "gpuSha256": "da31a735965cfd7f4a99c997d69701226059843c6efb2e1dbc90f926e974e7b6",
+      "values": 5120,
+      "referenceRms": 0.2898133093450459,
+      "maxAbsoluteError": 1.0013580322265625e-05,
+      "differenceRms": 9.427051731562133e-07,
+      "relativeL2": 3.2528015200083433e-06,
+      "perPosition": [
+        {
+          "position": 112,
+          "values": 2560,
+          "referenceRms": 0.30829584165539015,
+          "maxAbsoluteError": 1.0013580322265625e-05,
+          "differenceRms": 1.08269232102307e-06,
+          "relativeL2": 3.5118615781827253e-06
+        },
+        {
+          "position": 2186,
+          "values": 2560,
+          "referenceRms": 0.27006884782412266,
+          "maxAbsoluteError": 5.811452865600586e-06,
+          "differenceRms": 7.779225057733257e-07,
+          "relativeL2": 2.880459971747402e-06
+        }
+      ]
+    },
+    {
+      "layer": 23,
+      "role": "attn_hc",
+      "stage": "branchOutput",
+      "positions": [
+        112,
+        2186
+      ],
+      "sourceSha256": "d95636b6733d7be25ff5ba9c88b5091f5e538f474092bc78e5421794a03ada60",
+      "gpuSha256": "8b8b7821a6cac01bbf897ca6a8f930313465cdebafe8902315a42b9db23a88b9",
+      "values": 5120,
+      "referenceRms": 0.07702186327365539,
+      "maxAbsoluteError": 6.616115570068359e-06,
+      "differenceRms": 5.856277704249211e-07,
+      "relativeL2": 7.603396562145097e-06,
+      "perPosition": [
+        {
+          "position": 112,
+          "values": 2560,
+          "referenceRms": 0.0848826835347355,
+          "maxAbsoluteError": 6.616115570068359e-06,
+          "differenceRms": 7.927276350665884e-07,
+          "relativeL2": 9.339097234622538e-06
+        },
+        {
+          "position": 2186,
+          "values": 2560,
+          "referenceRms": 0.06826173803993911,
+          "maxAbsoluteError": 1.475214958190918e-06,
+          "differenceRms": 2.3979713840549046e-07,
+          "relativeL2": 3.512907014837332e-06
+        }
+      ]
+    },
+    {
+      "layer": 23,
+      "role": "attn_hc",
+      "stage": "down",
+      "positions": [
+        112,
+        2186
+      ],
+      "sourceSha256": "f53e8fd437c83668ecb78c120fcc157736a046aa2923fe2aba3da4973c93cf15",
+      "gpuSha256": "13573fb1ec7b47cf722160a79a5b725b045f5c9b99ca7a82a9a250c0dd944c34",
+      "values": 640,
+      "referenceRms": 12.506884984407954,
+      "maxAbsoluteError": 9.1552734375e-05,
+      "differenceRms": 1.5453851205321454e-05,
+      "relativeL2": 1.2356275143320991e-06,
+      "perPosition": [
+        {
+          "position": 112,
+          "values": 320,
+          "referenceRms": 12.672008856015445,
+          "maxAbsoluteError": 9.1552734375e-05,
+          "differenceRms": 1.7294238106195196e-05,
+          "relativeL2": 1.3647589977800217e-06
+        },
+        {
+          "position": 2186,
+          "values": 320,
+          "referenceRms": 12.339551676600102,
+          "maxAbsoluteError": 4.9591064453125e-05,
+          "differenceRms": 1.3362348688709508e-05,
+          "relativeL2": 1.0828876963211694e-06
+        }
+      ]
+    },
+    {
+      "layer": 23,
+      "role": "attn_hc",
+      "stage": "gate",
+      "positions": [
+        112,
+        2186
+      ],
+      "sourceSha256": "517c30cd51c5242d9a59ea91e8020bce595837c83982b5f4784d2316bb7b11bd",
+      "gpuSha256": "daecbbb6ea4392aac79d1c9338b6df8d148ce9eed84fe6efc6f14031adfc5004",
+      "values": 8,
+      "referenceRms": 0.09569479608289255,
+      "maxAbsoluteError": 2.905726432800293e-07,
+      "differenceRms": 1.6882421369731353e-07,
+      "relativeL2": 1.7641942990408276e-06,
+      "perPosition": [
+        {
+          "position": 112,
+          "values": 4,
+          "referenceRms": 0.09617179100112062,
+          "maxAbsoluteError": 2.905726432800293e-07,
+          "differenceRms": 1.6434611197396453e-07,
+          "relativeL2": 1.708880642267019e-06
+        },
+        {
+          "position": 2186,
+          "values": 4,
+          "referenceRms": 0.09521541162190893,
+          "maxAbsoluteError": 2.682209014892578e-07,
+          "differenceRms": 1.7318656339356552e-07,
+          "relativeL2": 1.8188921356688812e-06
+        }
+      ]
+    },
+    {
+      "layer": 23,
+      "role": "attn_hc",
+      "stage": "injected",
+      "positions": [
+        112,
+        2186
+      ],
+      "sourceSha256": "4645e1f0482bdc226b62a01e0ef63b830ef9fcb9df9aeea7443c35ca23bb9d11",
+      "gpuSha256": "8f47e1cae449aed91cd7e76003770047c5baa5816f99bde67880094b3d33c5cf",
+      "values": 20480,
+      "referenceRms": 0.0337147367416282,
+      "maxAbsoluteError": 1.1324882507324219e-06,
+      "differenceRms": 8.990516031761402e-08,
+      "relativeL2": 2.6666428098371144e-06,
+      "perPosition": [
+        {
+          "position": 112,
+          "values": 10240,
+          "referenceRms": 0.033109103360158126,
+          "maxAbsoluteError": 1.1324882507324219e-06,
+          "differenceRms": 1.024773638917587e-07,
+          "relativeL2": 3.0951416224419697e-06
+        },
+        {
+          "position": 2186,
+          "values": 10240,
+          "referenceRms": 0.034309681167287956,
+          "maxAbsoluteError": 4.544854164123535e-07,
+          "differenceRms": 7.52613153835875e-08,
+          "relativeL2": 2.1935883057795438e-06
+        }
+      ]
+    },
+    {
+      "layer": 23,
+      "role": "attn_hc",
+      "stage": "input",
+      "positions": [
+        112,
+        2186
+      ],
+      "sourceSha256": "07574a41ef0ca08e892455719566c3fe22aedcb8a2a7f63461f1c1bd174934d5",
+      "gpuSha256": "920b2353c25c2634e0cb85134546de99168c245f09e40f92739b09fd0bce347f",
+      "values": 20480,
+      "referenceRms": 0.03302711136719735,
+      "maxAbsoluteError": 4.991888999938965e-07,
+      "differenceRms": 6.843053735656774e-08,
+      "relativeL2": 2.071950422661947e-06,
+      "perPosition": [
+        {
+          "position": 112,
+          "values": 10240,
+          "referenceRms": 0.032575036329266956,
+          "maxAbsoluteError": 4.991888999938965e-07,
+          "differenceRms": 6.359153799172323e-08,
+          "relativeL2": 1.952155550923809e-06,
+          "streams": [
+            {
+              "stream": 0,
+              "values": 2560,
+              "referenceRms": 0.020893360466315174,
+              "maxAbsoluteError": 2.8312206268310547e-07,
+              "differenceRms": 7.197321196561235e-08,
+              "relativeL2": 3.4447886964688832e-06
+            },
+            {
+              "stream": 1,
+              "values": 2560,
+              "referenceRms": 0.015428094014051475,
+              "maxAbsoluteError": 3.8743019104003906e-07,
+              "differenceRms": 5.973270193031808e-08,
+              "relativeL2": 3.871683817580786e-06
+            },
+            {
+              "stream": 2,
+              "values": 2560,
+              "referenceRms": 0.052973040100010825,
+              "maxAbsoluteError": 2.384185791015625e-07,
+              "differenceRms": 4.347633174527153e-08,
+              "relativeL2": 8.207256306828924e-07
+            },
+            {
+              "stream": 3,
+              "values": 2560,
+              "referenceRms": 0.027637481677842878,
+              "maxAbsoluteError": 4.991888999938965e-07,
+              "differenceRms": 7.441239462645333e-08,
+              "relativeL2": 2.6924448288684047e-06
+            }
+          ]
+        },
+        {
+          "position": 2186,
+          "values": 10240,
+          "referenceRms": 0.03347308140386018,
+          "maxAbsoluteError": 4.544854164123535e-07,
+          "differenceRms": 7.294925072723125e-08,
+          "relativeL2": 2.1793407618223817e-06,
+          "streams": [
+            {
+              "stream": 0,
+              "values": 2560,
+              "referenceRms": 0.02431925808221651,
+              "maxAbsoluteError": 3.8743019104003906e-07,
+              "differenceRms": 6.358874310030618e-08,
+              "relativeL2": 2.6147484797986304e-06
+            },
+            {
+              "stream": 1,
+              "values": 2560,
+              "referenceRms": 0.026835612492024357,
+              "maxAbsoluteError": 3.725290298461914e-07,
+              "differenceRms": 6.593208995352521e-08,
+              "relativeL2": 2.456887837872919e-06
+            },
+            {
+              "stream": 2,
+              "values": 2560,
+              "referenceRms": 0.03852937564957014,
+              "maxAbsoluteError": 4.0605664253234863e-07,
+              "differenceRms": 7.025249549826883e-08,
+              "relativeL2": 1.8233489205022357e-06
+            },
+            {
+              "stream": 3,
+              "values": 2560,
+              "referenceRms": 0.0410572711616416,
+              "maxAbsoluteError": 4.544854164123535e-07,
+              "differenceRms": 8.922102256871435e-08,
+              "relativeL2": 2.173087008570372e-06
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "layer": 23,
+      "role": "attn_hc",
+      "stage": "logits",
+      "positions": [
+        112,
+        2186
+      ],
+      "sourceSha256": "83956708e62b4dada95ba4ea60a0bc7539f64b1e6b289dfec3ce51a6feec4fb5",
+      "gpuSha256": "25914ff0b083aac4a9292ea23cb43ab0df39b08c14cacf0690371ae77bf482a7",
+      "values": 8,
+      "referenceRms": 14.603386833267516,
+      "maxAbsoluteError": 2.288818359375e-05,
+      "differenceRms": 1.1253761025625178e-05,
+      "relativeL2": 7.706267836436641e-07,
+      "perPosition": [
+        {
+          "position": 112,
+          "values": 4,
+          "referenceRms": 14.225006044909033,
+          "maxAbsoluteError": 2.288818359375e-05,
+          "differenceRms": 1.3662861616033938e-05,
+          "relativeL2": 9.604819550093422e-07
+        },
+        {
+          "position": 2186,
+          "values": 4,
+          "referenceRms": 14.972208154657867,
+          "maxAbsoluteError": 1.1444091796875e-05,
+          "differenceRms": 8.162137398063512e-06,
+          "relativeL2": 5.451525462210639e-07
+        }
+      ]
+    },
+    {
+      "layer": 23,
+      "role": "attn_hc",
+      "stage": "lowRank",
+      "positions": [
+        112,
+        2186
+      ],
+      "sourceSha256": "2402012ec7c28770daf22d340c59b7ab11142cce1cf2f334f42d7ce02d3961ca",
+      "gpuSha256": "ee28fda7a1083e9bc8250cc4318a68639184b8f853fa68ad573d09606058d278",
+      "values": 640,
+      "referenceRms": 0.7865475101759805,
+      "maxAbsoluteError": 1.2874603271484375e-05,
+      "differenceRms": 1.9230860136164945e-06,
+      "relativeL2": 2.444971204836981e-06,
+      "perPosition": [
+        {
+          "position": 112,
+          "values": 320,
+          "referenceRms": 0.7974795214609376,
+          "maxAbsoluteError": 1.2874603271484375e-05,
+          "differenceRms": 2.2492131946010074e-06,
+          "relativeL2": 2.8204024480535567e-06
+        },
+        {
+          "position": 2186,
+          "values": 320,
+          "referenceRms": 0.7754614009597783,
+          "maxAbsoluteError": 7.510185241699219e-06,
+          "differenceRms": 1.5289079883261418e-06,
+          "relativeL2": 1.971610690659564e-06
+        }
+      ]
+    },
+    {
+      "layer": 23,
+      "role": "attn_hc",
+      "stage": "mix",
+      "positions": [
+        112,
+        2186
+      ],
+      "sourceSha256": "32efa67eb4df5f5c4ede1cac7d29b44969a20c133ed3e2df1e57da5c3d44dbd6",
+      "gpuSha256": "7a0b1140591ea85d55a92a66601f21b908d2c08ef5e844d920e6e47e97a5f25b",
+      "values": 20480,
+      "referenceRms": 0.49673720122675674,
+      "maxAbsoluteError": 3.159046173095703e-06,
+      "differenceRms": 5.446213788878928e-07,
+      "relativeL2": 1.0963974059983427e-06,
+      "perPosition": [
+        {
+          "position": 112,
+          "values": 10240,
+          "referenceRms": 0.5321772079827701,
+          "maxAbsoluteError": 3.159046173095703e-06,
+          "differenceRms": 7.143116140879436e-07,
+          "relativeL2": 1.3422439055508562e-06
+        },
+        {
+          "position": 2186,
+          "values": 10240,
+          "referenceRms": 0.45856636757272795,
+          "maxAbsoluteError": 1.9073486328125e-06,
+          "differenceRms": 2.8806910744225263e-07,
+          "relativeL2": 6.281950178052805e-07
+        }
+      ]
+    },
+    {
+      "layer": 23,
+      "role": "attn_hc",
+      "stage": "norm",
+      "positions": [
+        112,
+        2186
+      ],
+      "sourceSha256": "a4b9da972692a3ea9873984a09d92c1d662c562046709e977c273fe31d3fb513",
+      "gpuSha256": "3014a347286ee8f0ea2f016b8c6b096c2073c37345fce673bef88f7f17ef767e",
+      "values": 20480,
+      "referenceRms": 1.014701550454607,
+      "maxAbsoluteError": 2.467632293701172e-05,
+      "differenceRms": 2.4222688076548756e-06,
+      "relativeL2": 2.387173653740501e-06,
+      "perPosition": [
+        {
+          "position": 112,
+          "values": 10240,
+          "referenceRms": 1.0075187496419582,
+          "maxAbsoluteError": 2.3365020751953125e-05,
+          "differenceRms": 2.5680727728187284e-06,
+          "relativeL2": 2.5489081704249616e-06,
+          "streams": [
+            {
+              "stream": 0,
+              "values": 2560,
+              "referenceRms": 0.8302057797700666,
+              "maxAbsoluteError": 2.2649765014648438e-05,
+              "differenceRms": 3.0561544930733904e-06,
+              "relativeL2": 3.681201176315373e-06
+            },
+            {
+              "stream": 1,
+              "values": 2560,
+              "referenceRms": 0.7938667995575691,
+              "maxAbsoluteError": 2.3365020751953125e-05,
+              "differenceRms": 3.0090335915935836e-06,
+              "relativeL2": 3.7903507153474006e-06
+            },
+            {
+              "stream": 2,
+              "values": 2560,
+              "referenceRms": 1.3341606177241454,
+              "maxAbsoluteError": 8.538365364074707e-06,
+              "differenceRms": 1.3495373764603154e-06,
+              "relativeL2": 1.0115254179533497e-06
+            },
+            {
+              "stream": 3,
+              "values": 2560,
+              "referenceRms": 0.9802680436650502,
+              "maxAbsoluteError": 1.55717134475708e-05,
+              "differenceRms": 2.4828162426238563e-06,
+              "relativeL2": 2.5327932076017108e-06
+            }
+          ]
+        },
+        {
+          "position": 2186,
+          "values": 10240,
+          "referenceRms": 1.0218338622838217,
+          "maxAbsoluteError": 2.467632293701172e-05,
+          "differenceRms": 2.2671070964078152e-06,
+          "relativeL2": 2.2186650688408195e-06,
+          "streams": [
+            {
+              "stream": 0,
+              "values": 2560,
+              "referenceRms": 0.8687269556485542,
+              "maxAbsoluteError": 1.4990568161010742e-05,
+              "differenceRms": 2.2308162911614735e-06,
+              "relativeL2": 2.567914206709566e-06
+            },
+            {
+              "stream": 1,
+              "values": 2560,
+              "referenceRms": 0.7860923938768846,
+              "maxAbsoluteError": 1.430511474609375e-05,
+              "differenceRms": 1.7788858109912346e-06,
+              "relativeL2": 2.2629474917293733e-06
+            },
+            {
+              "stream": 2,
+              "values": 2560,
+              "referenceRms": 1.3494685493072411,
+              "maxAbsoluteError": 2.467632293701172e-05,
+              "differenceRms": 2.9140804981974624e-06,
+              "relativeL2": 2.1594282428393205e-06
+            },
+            {
+              "stream": 3,
+              "values": 2560,
+              "referenceRms": 0.9914053800986768,
+              "maxAbsoluteError": 8.910894393920898e-06,
+              "differenceRms": 1.981478524460599e-06,
+              "relativeL2": 1.998656214941438e-06
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "layer": 23,
+      "role": "attn_hc",
+      "stage": "up",
+      "positions": [
+        112,
+        2186
+      ],
+      "sourceSha256": "be74eca53dd638b804990fb08ed906ec0649a7e6d83a970e786973c4ba2d1c5a",
+      "gpuSha256": "fb4c321e74432e7824e607e6bc191a44ecbc8844874a702618fdba2abf9d47a2",
+      "values": 20480,
+      "referenceRms": 1.7001313904124875,
+      "maxAbsoluteError": 1.4662742614746094e-05,
+      "differenceRms": 2.9235316314322944e-06,
+      "relativeL2": 1.7195915844615893e-06,
+      "perPosition": [
+        {
+          "position": 112,
+          "values": 10240,
+          "referenceRms": 1.3295326889587953,
+          "maxAbsoluteError": 1.4662742614746094e-05,
+          "differenceRms": 3.613984478709167e-06,
+          "relativeL2": 2.71823664714811e-06
+        },
+        {
+          "position": 2186,
+          "values": 10240,
+          "referenceRms": 2.00330634659849,
+          "maxAbsoluteError": 1.0967254638671875e-05,
+          "differenceRms": 2.0082805052132467e-06,
+          "relativeL2": 1.0024829745201987e-06
+        }
+      ]
+    },
+    {
+      "layer": 23,
+      "role": "mlp_hc",
+      "stage": "branchInput",
+      "positions": [
+        112,
+        2186
+      ],
+      "sourceSha256": "8f3913fa31c65ff002142260aa391681187fb36f9ae36bac415a8fb69751f401",
+      "gpuSha256": "2ec3a685b663521d17deaaacc8a380192bfcbde1a2fc9618cddd72c2a3cabbee",
+      "values": 5120,
+      "referenceRms": 0.7239056538650006,
+      "maxAbsoluteError": 3.0040740966796875e-05,
+      "differenceRms": 2.6704204525678458e-06,
+      "relativeL2": 3.6889067495332007e-06,
+      "perPosition": [
+        {
+          "position": 112,
+          "values": 2560,
+          "referenceRms": 0.7244103030573038,
+          "maxAbsoluteError": 3.0040740966796875e-05,
+          "differenceRms": 3.334331609779911e-06,
+          "relativeL2": 4.602821903150309e-06
+        },
+        {
+          "position": 2186,
+          "values": 2560,
+          "referenceRms": 0.7234006526260904,
+          "maxAbsoluteError": 6.258487701416016e-06,
+          "differenceRms": 1.7732804355227702e-06,
+          "relativeL2": 2.4513116335814795e-06
+        }
+      ]
+    },
+    {
+      "layer": 23,
+      "role": "mlp_hc",
+      "stage": "down",
+      "positions": [
+        112,
+        2186
+      ],
+      "sourceSha256": "deb6d4f394562b183d1335a76155cd045bb8800841238e965a5a843cb5e61dd7",
+      "gpuSha256": "5fe6a3c8b504c0220547ee3c4d808f5a95ad5bd5b496ec3e21bc18ff77a01fb7",
+      "values": 640,
+      "referenceRms": 24.405675643535897,
+      "maxAbsoluteError": 0.000240325927734375,
+      "differenceRms": 3.643581700028929e-05,
+      "relativeL2": 1.4929239219787675e-06,
+      "perPosition": [
+        {
+          "position": 112,
+          "values": 320,
+          "referenceRms": 25.67033829569068,
+          "maxAbsoluteError": 0.000240325927734375,
+          "differenceRms": 4.897761368433579e-05,
+          "relativeL2": 1.9079457824113576e-06
+        },
+        {
+          "position": 2186,
+          "values": 320,
+          "referenceRms": 23.071795314187383,
+          "maxAbsoluteError": 5.340576171875e-05,
+          "differenceRms": 1.6010336621854754e-05,
+          "relativeL2": 6.939354481881011e-07
+        }
+      ]
+    },
+    {
+      "layer": 23,
+      "role": "mlp_hc",
+      "stage": "gate",
+      "positions": [
+        112,
+        2186
+      ],
+      "sourceSha256": "59c8aeabcc20c1c0aa06d6dd1e7d4ce926adae2f1af6b43e46498a6acbd1e81f",
+      "gpuSha256": "9bb929ea0d21d0eb1693c148fd08d2c2f13a0bc150ee3bfc0ccc1220374e9754",
+      "values": 8,
+      "referenceRms": 0.25487726190712645,
+      "maxAbsoluteError": 3.427267074584961e-07,
+      "differenceRms": 1.8403933239513545e-07,
+      "relativeL2": 7.22070423301223e-07,
+      "perPosition": [
+        {
+          "position": 112,
+          "values": 4,
+          "referenceRms": 0.31062192193931915,
+          "maxAbsoluteError": 3.427267074584961e-07,
+          "differenceRms": 2.2638610905764247e-07,
+          "relativeL2": 7.288156213967011e-07
+        },
+        {
+          "position": 2186,
+          "values": 4,
+          "referenceRms": 0.18286295110073922,
+          "maxAbsoluteError": 2.4586915969848633e-07,
+          "differenceRms": 1.2841449046986686e-07,
+          "relativeL2": 7.022444387825903e-07
+        }
+      ]
+    },
+    {
+      "layer": 23,
+      "role": "mlp_hc",
+      "stage": "input",
+      "positions": [
+        112,
+        2186
+      ],
+      "sourceSha256": "4645e1f0482bdc226b62a01e0ef63b830ef9fcb9df9aeea7443c35ca23bb9d11",
+      "gpuSha256": "8f47e1cae449aed91cd7e76003770047c5baa5816f99bde67880094b3d33c5cf",
+      "values": 20480,
+      "referenceRms": 0.0337147367416282,
+      "maxAbsoluteError": 1.1324882507324219e-06,
+      "differenceRms": 8.990516031761402e-08,
+      "relativeL2": 2.6666428098371144e-06,
+      "perPosition": [
+        {
+          "position": 112,
+          "values": 10240,
+          "referenceRms": 0.033109103360158126,
+          "maxAbsoluteError": 1.1324882507324219e-06,
+          "differenceRms": 1.024773638917587e-07,
+          "relativeL2": 3.0951416224419697e-06,
+          "streams": [
+            {
+              "stream": 0,
+              "values": 2560,
+              "referenceRms": 0.02044924978772904,
+              "maxAbsoluteError": 4.470348358154297e-07,
+              "differenceRms": 7.962439068863747e-08,
+              "relativeL2": 3.893756079815583e-06
+            },
+            {
+              "stream": 1,
+              "values": 2560,
+              "referenceRms": 0.016012150674927242,
+              "maxAbsoluteError": 8.903443813323975e-07,
+              "differenceRms": 1.1047438448840033e-07,
+              "relativeL2": 6.8994095003981916e-06
+            },
+            {
+              "stream": 2,
+              "values": 2560,
+              "referenceRms": 0.05293920365588815,
+              "maxAbsoluteError": 2.7567148208618164e-07,
+              "differenceRms": 4.749035686409952e-08,
+              "relativeL2": 8.970735028957583e-07
+            },
+            {
+              "stream": 3,
+              "values": 2560,
+              "referenceRms": 0.03012857167901304,
+              "maxAbsoluteError": 1.1324882507324219e-06,
+              "differenceRms": 1.4562442523528983e-07,
+              "relativeL2": 4.833432755683167e-06
+            }
+          ]
+        },
+        {
+          "position": 2186,
+          "values": 10240,
+          "referenceRms": 0.034309681167287956,
+          "maxAbsoluteError": 4.544854164123535e-07,
+          "differenceRms": 7.52613153835875e-08,
+          "relativeL2": 2.1935883057795438e-06,
+          "streams": [
+            {
+              "stream": 0,
+              "values": 2560,
+              "referenceRms": 0.02420614338911333,
+              "maxAbsoluteError": 4.172325134277344e-07,
+              "differenceRms": 6.464927410564305e-08,
+              "relativeL2": 2.670779606086236e-06
+            },
+            {
+              "stream": 1,
+              "values": 2560,
+              "referenceRms": 0.026618744736318697,
+              "maxAbsoluteError": 4.023313522338867e-07,
+              "differenceRms": 6.556396169769694e-08,
+              "relativeL2": 2.4630748875337187e-06
+            },
+            {
+              "stream": 2,
+              "values": 2560,
+              "referenceRms": 0.03850799474207614,
+              "maxAbsoluteError": 4.079192876815796e-07,
+              "differenceRms": 6.994931209770572e-08,
+              "relativeL2": 1.8164880453064701e-06
+            },
+            {
+              "stream": 3,
+              "values": 2560,
+              "referenceRms": 0.0439460610184399,
+              "maxAbsoluteError": 4.544854164123535e-07,
+              "differenceRms": 9.636386456678366e-08,
+              "relativeL2": 2.192775924248344e-06
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "layer": 23,
+      "role": "mlp_hc",
+      "stage": "logits",
+      "positions": [
+        112,
+        2186
+      ],
+      "sourceSha256": "4451288d33f3d2dd05fed2047234d9edcf4cbebd35babfa29f8bb7a6ea829439",
+      "gpuSha256": "1faba39d3e06d59018df47924e5fb9b27ff997baea6ceaa25063a8c23461751c",
+      "values": 8,
+      "referenceRms": 11.47612288877791,
+      "maxAbsoluteError": 1.1444091796875e-05,
+      "differenceRms": 6.818938086545511e-06,
+      "relativeL2": 5.94184826411497e-07,
+      "perPosition": [
+        {
+          "position": 112,
+          "values": 4,
+          "referenceRms": 9.769371352495376,
+          "maxAbsoluteError": 1.1444091796875e-05,
+          "differenceRms": 7.893059424041199e-06,
+          "relativeL2": 8.079393380849512e-07
+        },
+        {
+          "position": 2186,
+          "values": 4,
+          "referenceRms": 12.960022241250481,
+          "maxAbsoluteError": 1.049041748046875e-05,
+          "differenceRms": 5.540347117720723e-06,
+          "relativeL2": 4.274951859331183e-07
+        }
+      ]
+    },
+    {
+      "layer": 23,
+      "role": "mlp_hc",
+      "stage": "lowRank",
+      "positions": [
+        112,
+        2186
+      ],
+      "sourceSha256": "6feda75c64248264f641bed3433be3fac0808ce9675a2358fd105ff77e328891",
+      "gpuSha256": "18b7518f0fa3de1ae327b5dc83891aa3c7263ed31b75f2464fd83d3860e89740",
+      "values": 640,
+      "referenceRms": 1.470103644887436,
+      "maxAbsoluteError": 3.254413604736328e-05,
+      "differenceRms": 3.0997907031697215e-06,
+      "relativeL2": 2.1085524914857744e-06,
+      "perPosition": [
+        {
+          "position": 112,
+          "values": 320,
+          "referenceRms": 1.4405681368073817,
+          "maxAbsoluteError": 3.254413604736328e-05,
+          "differenceRms": 4.1536307888086e-06,
+          "relativeL2": 2.88332823882525e-06
+        },
+        {
+          "position": 2186,
+          "values": 320,
+          "referenceRms": 1.4990573360075186,
+          "maxAbsoluteError": 9.298324584960938e-06,
+          "differenceRms": 1.4016975697974644e-06,
+          "relativeL2": 9.350526735225785e-07
+        }
+      ]
+    },
+    {
+      "layer": 23,
+      "role": "mlp_hc",
+      "stage": "mix",
+      "positions": [
+        112,
+        2186
+      ],
+      "sourceSha256": "271de1f041a73c0d2d445d0203fa4821a074467be14f61adfe680e6d4640bdc3",
+      "gpuSha256": "2c7ed5045ceacb87cfaedbd3b1583e15140564d542d2c7de449087fc12d0ce03",
+      "values": 20480,
+      "referenceRms": 0.6482724329036015,
+      "maxAbsoluteError": 5.155801773071289e-06,
+      "differenceRms": 8.034425872699614e-07,
+      "relativeL2": 1.239359482974396e-06,
+      "perPosition": [
+        {
+          "position": 112,
+          "values": 10240,
+          "referenceRms": 0.5861490869201934,
+          "maxAbsoluteError": 5.155801773071289e-06,
+          "differenceRms": 1.0964310648442653e-06,
+          "relativeL2": 1.8705668733619452e-06
+        },
+        {
+          "position": 2186,
+          "values": 10240,
+          "referenceRms": 0.7049422263052004,
+          "maxAbsoluteError": 2.205371856689453e-06,
+          "differenceRms": 2.9812564821324846e-07,
+          "relativeL2": 4.229079165477268e-07
+        }
+      ]
+    },
+    {
+      "layer": 23,
+      "role": "mlp_hc",
+      "stage": "norm",
+      "positions": [
+        112,
+        2186
+      ],
+      "sourceSha256": "1928e2713e015605310f4d20fd3f2283d3d2d212498940b3c664e1a8ddb7be4f",
+      "gpuSha256": "5dc21c397fc0dc84c36aac16a4e0515b307580641cc2cd2b8836e4b8e347edf3",
+      "values": 20480,
+      "referenceRms": 1.818540143051427,
+      "maxAbsoluteError": 0.00011205673217773438,
+      "differenceRms": 5.844025180692869e-06,
+      "relativeL2": 3.213580521179402e-06,
+      "perPosition": [
+        {
+          "position": 112,
+          "values": 10240,
+          "referenceRms": 1.8571288950412141,
+          "maxAbsoluteError": 0.00011205673217773438,
+          "differenceRms": 7.0805870139504275e-06,
+          "relativeL2": 3.812652440472255e-06,
+          "streams": [
+            {
+              "stream": 0,
+              "values": 2560,
+              "referenceRms": 2.70988122474087,
+              "maxAbsoluteError": 4.5299530029296875e-05,
+              "differenceRms": 1.0496142794148299e-05,
+              "relativeL2": 3.873285182509053e-06
+            },
+            {
+              "stream": 1,
+              "values": 2560,
+              "referenceRms": 1.0940628008856381,
+              "maxAbsoluteError": 0.00011205673217773438,
+              "differenceRms": 7.468242157674615e-06,
+              "relativeL2": 6.82615490777048e-06
+            },
+            {
+              "stream": 2,
+              "values": 2560,
+              "referenceRms": 1.8899353281946556,
+              "maxAbsoluteError": 1.049041748046875e-05,
+              "differenceRms": 1.6844138868764384e-06,
+              "relativeL2": 8.91254775625291e-07
+            },
+            {
+              "stream": 3,
+              "values": 2560,
+              "referenceRms": 1.2974689676231015,
+              "maxAbsoluteError": 4.482269287109375e-05,
+              "differenceRms": 5.635418815436159e-06,
+              "relativeL2": 4.343393912349183e-06
+            }
+          ]
+        },
+        {
+          "position": 2186,
+          "values": 10240,
+          "referenceRms": 1.7791146031051537,
+          "maxAbsoluteError": 2.6941299438476562e-05,
+          "differenceRms": 4.2626925954168006e-06,
+          "relativeL2": 2.3959629064799805e-06,
+          "streams": [
+            {
+              "stream": 0,
+              "values": 2560,
+              "referenceRms": 2.5523130289895555,
+              "maxAbsoluteError": 2.6941299438476562e-05,
+              "differenceRms": 7.129074602073744e-06,
+              "relativeL2": 2.7931819181662447e-06
+            },
+            {
+              "stream": 1,
+              "values": 2560,
+              "referenceRms": 1.0391121448785623,
+              "maxAbsoluteError": 1.811981201171875e-05,
+              "differenceRms": 2.3394762963025773e-06,
+              "relativeL2": 2.2514184901341756e-06
+            },
+            {
+              "stream": 2,
+              "values": 2560,
+              "referenceRms": 1.9024549313461843,
+              "maxAbsoluteError": 1.81589275598526e-05,
+              "differenceRms": 3.1935700936780287e-06,
+              "relativeL2": 1.6786574236574667e-06
+            },
+            {
+              "stream": 3,
+              "values": 2560,
+              "referenceRms": 1.2031643572432882,
+              "maxAbsoluteError": 1.6450881958007812e-05,
+              "differenceRms": 2.487257261715335e-06,
+              "relativeL2": 2.0672630856636943e-06
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "layer": 23,
+      "role": "mlp_hc",
+      "stage": "up",
+      "positions": [
+        112,
+        2186
+      ],
+      "sourceSha256": "2f5ad732469f9fd6282f01333b65bdbbbeb45edae142b338a8b26724e3f0f4cf",
+      "gpuSha256": "cbc281cde58dfbb2a67a3aa126de5f369cde6073812ecd529f5e0ec65d4ce53c",
+      "values": 20480,
+      "referenceRms": 2.036537529049753,
+      "maxAbsoluteError": 3.337860107421875e-05,
+      "differenceRms": 5.502897866279885e-06,
+      "relativeL2": 2.7020851753453976e-06,
+      "perPosition": [
+        {
+          "position": 112,
+          "values": 10240,
+          "referenceRms": 2.0854012819861967,
+          "maxAbsoluteError": 3.337860107421875e-05,
+          "differenceRms": 7.465607858674621e-06,
+          "relativeL2": 3.5799382704724148e-06
+        },
+        {
+          "position": 2186,
+          "values": 10240,
+          "referenceRms": 1.9864721763836704,
+          "maxAbsoluteError": 1.0013580322265625e-05,
+          "differenceRms": 2.1973777904382206e-06,
+          "relativeL2": 1.106170937887738e-06
+        }
+      ]
+    },
+    {
+      "layer": 24,
+      "role": "attention",
+      "stage": "projectionInput",
+      "positions": [
+        112,
+        2186
+      ],
+      "sourceSha256": "b05b392a215364ab071c1befdd33984eacc6cec042dbe5375ad8a88ad34bd200",
+      "gpuSha256": "fe03adeb5ca5f70a55e95f29837e8333a2cd03bd850fe582ab88148f11044814",
+      "values": 5120,
+      "referenceRms": 0.5184743700467258,
+      "maxAbsoluteError": 1.3589859008789062e-05,
+      "differenceRms": 2.1654675235214325e-06,
+      "relativeL2": 4.17661440685347e-06,
+      "perPosition": [
+        {
+          "position": 112,
+          "values": 2560,
+          "referenceRms": 0.5001571337640834,
+          "maxAbsoluteError": 1.3589859008789062e-05,
+          "differenceRms": 2.8189460181178965e-06,
+          "relativeL2": 5.636120786487774e-06
+        },
+        {
+          "position": 2186,
+          "values": 2560,
+          "referenceRms": 0.5361661928316585,
+          "maxAbsoluteError": 4.172325134277344e-06,
+          "differenceRms": 1.1966797975186791e-06,
+          "relativeL2": 2.231919530768334e-06
+        }
+      ]
+    },
+    {
+      "layer": 24,
+      "role": "attn_hc",
+      "stage": "branchInput",
+      "positions": [
+        112,
+        2186
+      ],
+      "sourceSha256": "17c38721a0a6c31c67a3cc53e98c14283c1bfb6538098c1e369e3f2213c14bb5",
+      "gpuSha256": "0c8bd792f272c6460df5743d436e414f1ec5b501090db544478fc3f19d8409c4",
+      "values": 5120,
+      "referenceRms": 0.5184743700467258,
+      "maxAbsoluteError": 1.3589859008789062e-05,
+      "differenceRms": 2.1654675235214325e-06,
+      "relativeL2": 4.17661440685347e-06,
+      "perPosition": [
+        {
+          "position": 112,
+          "values": 2560,
+          "referenceRms": 0.5001571337640834,
+          "maxAbsoluteError": 1.3589859008789062e-05,
+          "differenceRms": 2.8189460181178965e-06,
+          "relativeL2": 5.636120786487774e-06
+        },
+        {
+          "position": 2186,
+          "values": 2560,
+          "referenceRms": 0.5361661928316585,
+          "maxAbsoluteError": 4.172325134277344e-06,
+          "differenceRms": 1.1966797975186791e-06,
+          "relativeL2": 2.231919530768334e-06
+        }
+      ]
+    },
+    {
+      "layer": 24,
+      "role": "attn_hc",
+      "stage": "branchOutput",
+      "positions": [
+        112,
+        2186
+      ],
+      "sourceSha256": "46ca0356a3729e06a342aa0162871a0228ba40447b0b33b9c710da417e2972a9",
+      "gpuSha256": "2a06d70799d85daeffdd6084ed9405bf6d27267a7b26a0e534ccede68af8090e",
+      "values": 5120,
+      "referenceRms": 0.027123611316768163,
+      "maxAbsoluteError": 7.227063179016113e-07,
+      "differenceRms": 1.0399951449271762e-07,
+      "relativeL2": 3.83427978222147e-06,
+      "perPosition": [
+        {
+          "position": 112,
+          "values": 2560,
+          "referenceRms": 0.021684331139818915,
+          "maxAbsoluteError": 7.227063179016113e-07,
+          "differenceRms": 1.2763986250857695e-07,
+          "relativeL2": 5.886271597937001e-06
+        },
+        {
+          "position": 2186,
+          "values": 2560,
+          "referenceRms": 0.0316412762818586,
+          "maxAbsoluteError": 3.2782554626464844e-07,
+          "differenceRms": 7.30743698449295e-08,
+          "relativeL2": 2.309463410830441e-06
+        }
+      ]
+    },
+    {
+      "layer": 24,
+      "role": "attn_hc",
+      "stage": "down",
+      "positions": [
+        112,
+        2186
+      ],
+      "sourceSha256": "848c14778a392a878a67fb054b15eefa87f42aea1b87cf1f7fa4f240612479de",
+      "gpuSha256": "bc2cedf9ac182c3dea1ad60af2f0bb22c1b4e673e1900ac97e3ad526f924156f",
+      "values": 640,
+      "referenceRms": 23.71683640400594,
+      "maxAbsoluteError": 0.0001735687255859375,
+      "differenceRms": 3.495942185985671e-05,
+      "relativeL2": 1.4740339421471835e-06,
+      "perPosition": [
+        {
+          "position": 112,
+          "values": 320,
+          "referenceRms": 22.61165055489495,
+          "maxAbsoluteError": 0.0001735687255859375,
+          "differenceRms": 4.622613343936873e-05,
+          "relativeL2": 2.044350248874766e-06
+        },
+        {
+          "position": 2186,
+          "values": 320,
+          "referenceRms": 24.772765635109895,
+          "maxAbsoluteError": 6.4849853515625e-05,
+          "differenceRms": 1.753473526451227e-05,
+          "relativeL2": 7.07823079699292e-07
+        }
+      ]
+    },
+    {
+      "layer": 24,
+      "role": "attn_hc",
+      "stage": "gate",
+      "positions": [
+        112,
+        2186
+      ],
+      "sourceSha256": "f79c1261e9b17db21424a7c7346c4562dccc59a03b3e80ea447c74d5ae684751",
+      "gpuSha256": "2669bd15a2b2a098b1028f7d06695fbc8eff5d1f470bf33edaea0e374336483a",
+      "values": 8,
+      "referenceRms": 0.34862653363313023,
+      "maxAbsoluteError": 6.556510925292969e-07,
+      "differenceRms": 2.6801406139904907e-07,
+      "relativeL2": 7.687712653595323e-07,
+      "perPosition": [
+        {
+          "position": 112,
+          "values": 4,
+          "referenceRms": 0.35780932748597666,
+          "maxAbsoluteError": 6.556510925292969e-07,
+          "differenceRms": 3.4142863891432187e-07,
+          "relativeL2": 9.542195037598712e-07
+        },
+        {
+          "position": 2186,
+          "values": 4,
+          "referenceRms": 0.3391952314967551,
+          "maxAbsoluteError": 2.682209014892578e-07,
+          "differenceRms": 1.6458906022072093e-07,
+          "relativeL2": 4.852340037165159e-07
+        }
+      ]
+    },
+    {
+      "layer": 24,
+      "role": "attn_hc",
+      "stage": "injected",
+      "positions": [
+        112,
+        2186
+      ],
+      "sourceSha256": "8b1b6b3193e2bf7c56cd5af83bc217fd157ef30f6b1bf235e8fcb302054cdca0",
+      "gpuSha256": "46c67d3f48282f12fe5467c6d9b8f9e4f6202f46a79fb13ae95f49ab0e65f19e",
+      "values": 20480,
+      "referenceRms": 0.03810479339828834,
+      "maxAbsoluteError": 1.3485550880432129e-06,
+      "differenceRms": 1.0485418931020634e-07,
+      "relativeL2": 2.7517322614565434e-06,
+      "perPosition": [
+        {
+          "position": 112,
+          "values": 10240,
+          "referenceRms": 0.036951100836079574,
+          "maxAbsoluteError": 1.3485550880432129e-06,
+          "differenceRms": 1.2561023388839687e-07,
+          "relativeL2": 3.399363782032423e-06
+        },
+        {
+          "position": 2186,
+          "values": 10240,
+          "referenceRms": 0.03922456764394423,
+          "maxAbsoluteError": 4.76837158203125e-07,
+          "differenceRms": 7.880908053202632e-08,
+          "relativeL2": 2.009176525472638e-06
+        }
+      ]
+    },
+    {
+      "layer": 24,
+      "role": "attn_hc",
+      "stage": "input",
+      "positions": [
+        112,
+        2186
+      ],
+      "sourceSha256": "4b4b7e77e9d624ae47b82cc1d94c0522ca5ef346be5dbeefedad4818f8cf7562",
+      "gpuSha256": "6e375033156ff6bc9c0b10aafac091bae6b8b0bd8ff6110649d807917bd2ae88",
+      "values": 20480,
+      "referenceRms": 0.034767333922519614,
+      "maxAbsoluteError": 1.2218952178955078e-06,
+      "differenceRms": 9.62782615407757e-08,
+      "relativeL2": 2.7692161198018702e-06,
+      "perPosition": [
+        {
+          "position": 112,
+          "values": 10240,
+          "referenceRms": 0.034441670134962646,
+          "maxAbsoluteError": 1.2218952178955078e-06,
+          "differenceRms": 1.1262084945454636e-07,
+          "relativeL2": 3.2699009372435158e-06,
+          "streams": [
+            {
+              "stream": 0,
+              "values": 2560,
+              "referenceRms": 0.021229699973565313,
+              "maxAbsoluteError": 4.6193599700927734e-07,
+              "differenceRms": 8.302454346180411e-08,
+              "relativeL2": 3.9107732829566205e-06
+            },
+            {
+              "stream": 1,
+              "values": 2560,
+              "referenceRms": 0.01654554050155183,
+              "maxAbsoluteError": 9.052455425262451e-07,
+              "differenceRms": 1.1266063563208389e-07,
+              "relativeL2": 6.8091239220330876e-06
+            },
+            {
+              "stream": 2,
+              "values": 2560,
+              "referenceRms": 0.05294492638803327,
+              "maxAbsoluteError": 2.905726432800293e-07,
+              "differenceRms": 4.9529754912873885e-08,
+              "relativeL2": 9.354957744179377e-07
+            },
+            {
+              "stream": 3,
+              "values": 2560,
+              "referenceRms": 0.03488974441081446,
+              "maxAbsoluteError": 1.2218952178955078e-06,
+              "differenceRms": 1.6939637737466184e-07,
+              "relativeL2": 4.855191123789247e-06
+            }
+          ]
+        },
+        {
+          "position": 2186,
+          "values": 10240,
+          "referenceRms": 0.03508997541284958,
+          "maxAbsoluteError": 4.172325134277344e-07,
+          "differenceRms": 7.652157577287874e-08,
+          "relativeL2": 2.1807246905296304e-06,
+          "streams": [
+            {
+              "stream": 0,
+              "values": 2560,
+              "referenceRms": 0.02438359718269906,
+              "maxAbsoluteError": 4.172325134277344e-07,
+              "differenceRms": 6.507386401531789e-08,
+              "relativeL2": 2.6687557019474494e-06
+            },
+            {
+              "stream": 1,
+              "values": 2560,
+              "referenceRms": 0.026821339057273123,
+              "maxAbsoluteError": 3.948807716369629e-07,
+              "differenceRms": 6.599544404876534e-08,
+              "relativeL2": 2.46055739080892e-06
+            },
+            {
+              "stream": 2,
+              "values": 2560,
+              "referenceRms": 0.03847988800024407,
+              "maxAbsoluteError": 4.079192876815796e-07,
+              "differenceRms": 6.992298817353658e-08,
+              "relativeL2": 1.817130761219811e-06
+            },
+            {
+              "stream": 3,
+              "values": 2560,
+              "referenceRms": 0.04615820270540104,
+              "maxAbsoluteError": 4.023313522338867e-07,
+              "differenceRms": 9.971447009769122e-08,
+              "relativeL2": 2.1602762727592835e-06
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "layer": 24,
+      "role": "attn_hc",
+      "stage": "logits",
+      "positions": [
+        112,
+        2186
+      ],
+      "sourceSha256": "79c8e37f619d7288dca2bead40417e0a1d33884db3ae80b28b6a0d51ab4e31c6",
+      "gpuSha256": "a0f93e8b9129e38f5e0287ceea5671a541214561f9d7ef8fa36ae0829767f595",
+      "values": 8,
+      "referenceRms": 20.350011268857656,
+      "maxAbsoluteError": 2.6702880859375e-05,
+      "differenceRms": 1.2031578099169086e-05,
+      "relativeL2": 5.912320116294696e-07,
+      "perPosition": [
+        {
+          "position": 112,
+          "values": 4,
+          "referenceRms": 20.229241923624727,
+          "maxAbsoluteError": 1.9073486328125e-05,
+          "differenceRms": 1.016359694816768e-05,
+          "relativeL2": 5.024210490210273e-07
+        },
+        {
+          "position": 2186,
+          "values": 4,
+          "referenceRms": 20.470068111287045,
+          "maxAbsoluteError": 2.6702880859375e-05,
+          "differenceRms": 1.3646209737066445e-05,
+          "relativeL2": 6.666421265858918e-07
+        }
+      ]
+    },
+    {
+      "layer": 24,
+      "role": "attn_hc",
+      "stage": "lowRank",
+      "positions": [
+        112,
+        2186
+      ],
+      "sourceSha256": "e1ffaed2d29c6c9a2f44bff8f444d62c66b127a386fdb5ab3200647130fabb57",
+      "gpuSha256": "166e413547943d5204f6d9f6476dd8963f72baeced565185d252a4b83c35ca20",
+      "values": 640,
+      "referenceRms": 1.5329053070468914,
+      "maxAbsoluteError": 3.325939178466797e-05,
+      "differenceRms": 3.8717802569529175e-06,
+      "relativeL2": 2.525779145752856e-06,
+      "perPosition": [
+        {
+          "position": 112,
+          "values": 320,
+          "referenceRms": 1.6594924160226148,
+          "maxAbsoluteError": 3.325939178466797e-05,
+          "differenceRms": 5.122860524413957e-06,
+          "relativeL2": 3.087004480979891e-06
+        },
+        {
+          "position": 2186,
+          "values": 320,
+          "referenceRms": 1.3948771565655789,
+          "maxAbsoluteError": 1.4185905456542969e-05,
+          "differenceRms": 1.933304105323824e-06,
+          "relativeL2": 1.3860031302569628e-06
+        }
+      ]
+    },
+    {
+      "layer": 24,
+      "role": "attn_hc",
+      "stage": "mix",
+      "positions": [
+        112,
+        2186
+      ],
+      "sourceSha256": "2bc3a147901620cef43bb3773eaf3f5d4d4586412fd9167c35dd45ade420216d",
+      "gpuSha256": "ec2e401fe8aed841ba82abd22c5ca410690cf29ad440fa3a7a4c011042ad3621",
+      "values": 20480,
+      "referenceRms": 0.6555415969754053,
+      "maxAbsoluteError": 9.268522262573242e-06,
+      "differenceRms": 1.2536456255077873e-06,
+      "relativeL2": 1.9123815045329946e-06,
+      "perPosition": [
+        {
+          "position": 112,
+          "values": 10240,
+          "referenceRms": 0.6600582865030794,
+          "maxAbsoluteError": 9.268522262573242e-06,
+          "differenceRms": 1.6890700239914136e-06,
+          "relativeL2": 2.5589710159385044e-06
+        },
+        {
+          "position": 2186,
+          "values": 10240,
+          "referenceRms": 0.6509935707430206,
+          "maxAbsoluteError": 3.5762786865234375e-06,
+          "differenceRms": 5.3879231876788e-07,
+          "relativeL2": 8.27646144266712e-07
+        }
+      ]
+    },
+    {
+      "layer": 24,
+      "role": "attn_hc",
+      "stage": "norm",
+      "positions": [
+        112,
+        2186
+      ],
+      "sourceSha256": "b7d669413a8289b9654cac32940edd29187dd663e92f9b547c4a7efe1e349476",
+      "gpuSha256": "aab0e9b3eaa90c24fd137e465f1dc6f3f8d7b59419821f3cad9d9648e44b024b",
+      "values": 20480,
+      "referenceRms": 1.2179257439160573,
+      "maxAbsoluteError": 5.900859832763672e-05,
+      "differenceRms": 4.640551975497922e-06,
+      "relativeL2": 3.810209283019934e-06,
+      "perPosition": [
+        {
+          "position": 112,
+          "values": 10240,
+          "referenceRms": 1.1927742948675357,
+          "maxAbsoluteError": 5.900859832763672e-05,
+          "differenceRms": 5.993558437334275e-06,
+          "relativeL2": 5.024889002994396e-06,
+          "streams": [
+            {
+              "stream": 0,
+              "values": 2560,
+              "referenceRms": 0.7821958083741145,
+              "maxAbsoluteError": 2.765655517578125e-05,
+              "differenceRms": 3.2504455967006395e-06,
+              "relativeL2": 4.155539523354224e-06
+            },
+            {
+              "stream": 1,
+              "values": 2560,
+              "referenceRms": 1.465572578218268,
+              "maxAbsoluteError": 5.900859832763672e-05,
+              "differenceRms": 9.93336989062238e-06,
+              "relativeL2": 6.777808235671698e-06
+            },
+            {
+              "stream": 2,
+              "values": 2560,
+              "referenceRms": 1.184992461728994,
+              "maxAbsoluteError": 6.705522537231445e-06,
+              "differenceRms": 9.830248418223317e-07,
+              "relativeL2": 8.295621057268364e-07
+            },
+            {
+              "stream": 3,
+              "values": 2560,
+              "referenceRms": 1.235678629324418,
+              "maxAbsoluteError": 3.4332275390625e-05,
+              "differenceRms": 5.786829802775424e-06,
+              "relativeL2": 4.683118786265045e-06
+            }
+          ]
+        },
+        {
+          "position": 2186,
+          "values": 10240,
+          "referenceRms": 1.2425681940602764,
+          "maxAbsoluteError": 1.4454126358032227e-05,
+          "differenceRms": 2.6733317289207564e-06,
+          "relativeL2": 2.151456750381842e-06,
+          "streams": [
+            {
+              "stream": 0,
+              "values": 2560,
+              "referenceRms": 0.8258630766557912,
+              "maxAbsoluteError": 1.4454126358032227e-05,
+              "differenceRms": 2.0998623909973306e-06,
+              "relativeL2": 2.5426277676687144e-06
+            },
+            {
+              "stream": 1,
+              "values": 2560,
+              "referenceRms": 1.5684650173481818,
+              "maxAbsoluteError": 1.4185905456542969e-05,
+              "differenceRms": 3.668125598807154e-06,
+              "relativeL2": 2.3386722421191695e-06
+            },
+            {
+              "stream": 2,
+              "values": 2560,
+              "referenceRms": 1.2109271828282901,
+              "maxAbsoluteError": 1.4066696166992188e-05,
+              "differenceRms": 1.8350178173078318e-06,
+              "relativeL2": 1.5153824633962636e-06
+            },
+            {
+              "stream": 3,
+              "values": 2560,
+              "referenceRms": 1.251968806887778,
+              "maxAbsoluteError": 1.2516975402832031e-05,
+              "differenceRms": 2.712001525042195e-06,
+              "relativeL2": 2.166189373187226e-06
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "layer": 24,
+      "role": "attn_hc",
+      "stage": "up",
+      "positions": [
+        112,
+        2186
+      ],
+      "sourceSha256": "ff68d04bd8e6edf48c22cfb3c9fc5f94b76a5c8ae381c631db7f0b5ba6e6794b",
+      "gpuSha256": "c31c1365deddc51c33a4bed7835ba4712eb1655ce0c07bd3569d22729fa95f2c",
+      "values": 20480,
+      "referenceRms": 2.374482494318718,
+      "maxAbsoluteError": 5.7220458984375e-05,
+      "differenceRms": 7.3833885100325756e-06,
+      "relativeL2": 3.109472707294481e-06,
+      "perPosition": [
+        {
+          "position": 112,
+          "values": 10240,
+          "referenceRms": 2.2193143707157312,
+          "maxAbsoluteError": 5.7220458984375e-05,
+          "differenceRms": 9.698756028459088e-06,
+          "relativeL2": 4.370158710472022e-06
+        },
+        {
+          "position": 2186,
+          "values": 10240,
+          "referenceRms": 2.520114671118503,
+          "maxAbsoluteError": 1.4543533325195312e-05,
+          "differenceRms": 3.868201556355435e-06,
+          "relativeL2": 1.5349307714789864e-06
+        }
+      ]
+    },
+    {
+      "layer": 24,
+      "role": "linear",
+      "stage": "attn.linear_a_proj",
+      "positions": [
+        112,
+        2186
+      ],
+      "sourceSha256": "9b18cc897b05b140fbafa17dde42eaed227bd01f4f80a70d5af927e64002fd19",
+      "gpuSha256": "777861e91684511c416bbd7436b281f05b0786a4f671297a4a00be29f91e9ce9",
+      "values": 96,
+      "referenceRms": 1.3577123856536704,
+      "maxAbsoluteError": 8.702278137207031e-06,
+      "differenceRms": 2.671071461736225e-06,
+      "relativeL2": 1.96733232307536e-06,
+      "perPosition": [
+        {
+          "position": 112,
+          "values": 48,
+          "referenceRms": 1.6926659542279632,
+          "maxAbsoluteError": 8.702278137207031e-06,
+          "differenceRms": 3.514486463351967e-06,
+          "relativeL2": 2.0763024473750632e-06
+        },
+        {
+          "position": 2186,
+          "values": 48,
+          "referenceRms": 0.9064479089899765,
+          "maxAbsoluteError": 3.5762786865234375e-06,
+          "differenceRms": 1.3847853286048228e-06,
+          "relativeL2": 1.5277053594263801e-06
+        }
+      ]
+    },
+    {
+      "layer": 24,
+      "role": "linear",
+      "stage": "attn.linear_b_proj",
+      "positions": [
+        112,
+        2186
+      ],
+      "sourceSha256": "0d23f51759159c59114b89224527a4e0473d13e12874da717cb4d38926d792ea",
+      "gpuSha256": "1c64fc9da4462ba92df623c87b79d45193aa115d89113abab5d4b6a2f529d034",
+      "values": 96,
+      "referenceRms": 1.9616755077099663,
+      "maxAbsoluteError": 6.318092346191406e-06,
+      "differenceRms": 2.1009260138508017e-06,
+      "relativeL2": 1.0709854945904865e-06,
+      "perPosition": [
+        {
+          "position": 112,
+          "values": 48,
+          "referenceRms": 2.2356490772390543,
+          "maxAbsoluteError": 6.318092346191406e-06,
+          "differenceRms": 2.3574173994591725e-06,
+          "relativeL2": 1.0544666528659758e-06
+        },
+        {
+          "position": 2186,
+          "values": 48,
+          "referenceRms": 1.6426243631879063,
+          "maxAbsoluteError": 6.198883056640625e-06,
+          "differenceRms": 1.8084146195154449e-06,
+          "relativeL2": 1.1009301091856344e-06
+        }
+      ]
+    },
+    {
+      "layer": 24,
+      "role": "linear",
+      "stage": "attn.linear_core_out",
+      "positions": [
+        112,
+        2186
+      ],
+      "sourceSha256": "adc0e8cef25181f8b028eeeb7ffb7cded8ce3fb24628ce3595cdfcad1fcca87c",
+      "gpuSha256": "c589106fc838ba99bcfaa5640ded81e1f299a9b2a31c8908d1ac48e19c106990",
+      "values": 12288,
+      "referenceRms": 0.02080677618010638,
+      "maxAbsoluteError": 1.6540288925170898e-06,
+      "differenceRms": 7.21211994392358e-08,
+      "relativeL2": 3.4662361345623447e-06,
+      "perPosition": [
+        {
+          "position": 112,
+          "values": 6144,
+          "referenceRms": 0.016083439520431092,
+          "maxAbsoluteError": 1.6540288925170898e-06,
+          "differenceRms": 8.972497648356416e-08,
+          "relativeL2": 5.57871818211427e-06
+        },
+        {
+          "position": 2186,
+          "values": 6144,
+          "referenceRms": 0.024640755735381166,
+          "maxAbsoluteError": 6.556510925292969e-07,
+          "differenceRms": 4.850116918314356e-08,
+          "relativeL2": 1.9683312356163535e-06
+        }
+      ]
+    },
+    {
+      "layer": 24,
+      "role": "linear",
+      "stage": "attn.linear_z_proj",
+      "positions": [
+        112,
+        2186
+      ],
+      "sourceSha256": "0cb1de090ddfaa9af3ddf7395ce0bfc6f57891e420417f88ceea998c95feaeca",
+      "gpuSha256": "5b601405abf5962ba30e8fc723da54c10ec6d3358fb8d6c10118d1ee2150d8e0",
+      "values": 12288,
+      "referenceRms": 2.54084733492834,
+      "maxAbsoluteError": 2.7626752853393555e-05,
+      "differenceRms": 3.0276850973637535e-06,
+      "relativeL2": 1.1916044918334866e-06,
+      "perPosition": [
+        {
+          "position": 112,
+          "values": 6144,
+          "referenceRms": 2.8042848367749067,
+          "maxAbsoluteError": 2.7626752853393555e-05,
+          "differenceRms": 3.9987552146962044e-06,
+          "relativeL2": 1.4259447407970903e-06
+        },
+        {
+          "position": 2186,
+          "values": 6144,
+          "referenceRms": 2.246730271541119,
+          "maxAbsoluteError": 6.4373016357421875e-06,
+          "differenceRms": 1.5309182964930015e-06,
+          "relativeL2": 6.813983484732619e-07
+        }
+      ]
+    },
+    {
+      "layer": 24,
+      "role": "linear",
+      "stage": "attn.qkv_proj",
+      "positions": [
+        112,
+        2186
+      ],
+      "sourceSha256": "d8c0a0c78629a2a80e6d70709c26d59c925ae544e46e36eb1623d8dc13df8003",
+      "gpuSha256": "f55d4a2728940c6ebb91eaa301d1a59e7a0c4dacc8fddb38eb8f1ec17468e8bb",
+      "values": 20480,
+      "referenceRms": 0.9808493122754999,
+      "maxAbsoluteError": 2.6702880859375e-05,
+      "differenceRms": 2.6385915957468655e-06,
+      "relativeL2": 2.6901090337979875e-06,
+      "perPosition": [
+        {
+          "position": 112,
+          "values": 10240,
+          "referenceRms": 0.9600934358966876,
+          "maxAbsoluteError": 2.6702880859375e-05,
+          "differenceRms": 3.4984687813225965e-06,
+          "relativeL2": 3.643883658109975e-06
+        },
+        {
+          "position": 2186,
+          "values": 10240,
+          "referenceRms": 1.001174980276043,
+          "maxAbsoluteError": 7.510185241699219e-06,
+          "differenceRms": 1.2980937579401441e-06,
+          "relativeL2": 1.2965703133954015e-06
+        }
+      ]
+    },
+    {
+      "layer": 24,
+      "role": "mlp_hc",
+      "stage": "branchInput",
+      "positions": [
+        112,
+        2186
+      ],
+      "sourceSha256": "089248aff22b5e1a5982d70617bcc0002b89889d89eb13522895aec585a1688c",
+      "gpuSha256": "9ef6fe5dcda6dad183586e5d426521b8669e7e1c75c8e65b1013ab6097b86f76",
+      "values": 5120,
+      "referenceRms": 0.48837651305808794,
+      "maxAbsoluteError": 1.2993812561035156e-05,
+      "differenceRms": 1.8288963315800858e-06,
+      "relativeL2": 3.744849071729531e-06,
+      "perPosition": [
+        {
+          "position": 112,
+          "values": 2560,
+          "referenceRms": 0.46588981406068586,
+          "maxAbsoluteError": 1.2993812561035156e-05,
+          "differenceRms": 2.3400088084201654e-06,
+          "relativeL2": 5.022665741550985e-06
+        },
+        {
+          "position": 2186,
+          "values": 2560,
+          "referenceRms": 0.5098724528429175,
+          "maxAbsoluteError": 3.9637088775634766e-06,
+          "differenceRms": 1.1018540556036576e-06,
+          "relativeL2": 2.1610386077145436e-06
+        }
+      ]
+    },
+    {
+      "layer": 24,
+      "role": "mlp_hc",
+      "stage": "down",
+      "positions": [
+        112,
+        2186
+      ],
+      "sourceSha256": "e47360e8b2efb7c1840fa19030a92324e13570ef4d5ee5790e68b811dde8eee6",
+      "gpuSha256": "b21a1aa06ba5888c9aa6ca89fc7db048614cb688877d69063e70be21da3cea5e",
+      "values": 640,
+      "referenceRms": 23.61706232691507,
+      "maxAbsoluteError": 0.0001513957977294922,
+      "differenceRms": 3.126496822177326e-05,
+      "relativeL2": 1.3238296867321338e-06,
+      "perPosition": [
+        {
+          "position": 112,
+          "values": 320,
+          "referenceRms": 23.902739582042692,
+          "maxAbsoluteError": 0.0001513957977294922,
+          "differenceRms": 4.2001514256952126e-05,
+          "relativeL2": 1.7571841132598216e-06
+        },
+        {
+          "position": 2186,
+          "values": 320,
+          "referenceRms": 23.32788688200952,
+          "maxAbsoluteError": 4.1961669921875e-05,
+          "differenceRms": 1.381554472107528e-05,
+          "relativeL2": 5.922330124007004e-07
+        }
+      ]
+    },
+    {
+      "layer": 24,
+      "role": "mlp_hc",
+      "stage": "gate",
+      "positions": [
+        112,
+        2186
+      ],
+      "sourceSha256": "9b48d6a99598c5a145b029e1a42a4cfb6e0835d9ab8c2f3ace7cf236401a45e3",
+      "gpuSha256": "2c25ca8546a6a8f268163fac7fd6f07eeba81c44631aea24e98e1683bc8d2030",
+      "values": 8,
+      "referenceRms": 0.7027247079454042,
+      "maxAbsoluteError": 1.0728836059570312e-06,
+      "differenceRms": 5.166213459777795e-07,
+      "relativeL2": 7.351688935034807e-07,
+      "perPosition": [
+        {
+          "position": 112,
+          "values": 4,
+          "referenceRms": 0.6055522402489808,
+          "maxAbsoluteError": 5.960464477539062e-07,
+          "differenceRms": 3.5388297101968353e-07,
+          "relativeL2": 5.843970965645836e-07
+        },
+        {
+          "position": 2186,
+          "values": 4,
+          "referenceRms": 0.7880041336461047,
+          "maxAbsoluteError": 1.0728836059570312e-06,
+          "differenceRms": 6.391886052348452e-07,
+          "relativeL2": 8.111487972497196e-07
+        }
+      ]
+    },
+    {
+      "layer": 24,
+      "role": "mlp_hc",
+      "stage": "input",
+      "positions": [
+        112,
+        2186
+      ],
+      "sourceSha256": "8b1b6b3193e2bf7c56cd5af83bc217fd157ef30f6b1bf235e8fcb302054cdca0",
+      "gpuSha256": "46c67d3f48282f12fe5467c6d9b8f9e4f6202f46a79fb13ae95f49ab0e65f19e",
+      "values": 20480,
+      "referenceRms": 0.03810479339828834,
+      "maxAbsoluteError": 1.3485550880432129e-06,
+      "differenceRms": 1.0485418931020634e-07,
+      "relativeL2": 2.7517322614565434e-06,
+      "perPosition": [
+        {
+          "position": 112,
+          "values": 10240,
+          "referenceRms": 0.036951100836079574,
+          "maxAbsoluteError": 1.3485550880432129e-06,
+          "differenceRms": 1.2561023388839687e-07,
+          "relativeL2": 3.399363782032423e-06,
+          "streams": [
+            {
+              "stream": 0,
+              "values": 2560,
+              "referenceRms": 0.021951395693937125,
+              "maxAbsoluteError": 4.4330954551696777e-07,
+              "differenceRms": 9.047683074202617e-08,
+              "relativeL2": 4.121689208445888e-06
+            },
+            {
+              "stream": 1,
+              "values": 2560,
+              "referenceRms": 0.01750448972972303,
+              "maxAbsoluteError": 8.940696716308594e-07,
+              "differenceRms": 1.1668095544805534e-07,
+              "relativeL2": 6.66577302450173e-06
+            },
+            {
+              "stream": 2,
+              "values": 2560,
+              "referenceRms": 0.05294379264976553,
+              "maxAbsoluteError": 2.905726432800293e-07,
+              "differenceRms": 4.953063451899821e-08,
+              "relativeL2": 9.355324210838824e-07
+            },
+            {
+              "stream": 3,
+              "values": 2560,
+              "referenceRms": 0.04324603216760279,
+              "maxAbsoluteError": 1.3485550880432129e-06,
+              "differenceRms": 1.9712416749030082e-07,
+              "relativeL2": 4.558202397073872e-06
+            }
+          ]
+        },
+        {
+          "position": 2186,
+          "values": 10240,
+          "referenceRms": 0.03922456764394423,
+          "maxAbsoluteError": 4.76837158203125e-07,
+          "differenceRms": 7.880908053202632e-08,
+          "relativeL2": 2.009176525472638e-06,
+          "streams": [
+            {
+              "stream": 0,
+              "values": 2560,
+              "referenceRms": 0.02683878224001748,
+              "maxAbsoluteError": 4.76837158203125e-07,
+              "differenceRms": 6.918173709250503e-08,
+              "relativeL2": 2.577677946555744e-06
+            },
+            {
+              "stream": 1,
+              "values": 2560,
+              "referenceRms": 0.02954037445777698,
+              "maxAbsoluteError": 4.023313522338867e-07,
+              "differenceRms": 6.756006888704849e-08,
+              "relativeL2": 2.287041722629965e-06
+            },
+            {
+              "stream": 2,
+              "values": 2560,
+              "referenceRms": 0.03847916280708636,
+              "maxAbsoluteError": 4.079192876815796e-07,
+              "differenceRms": 6.992522347414656e-08,
+              "relativeL2": 1.8172230987642241e-06
+            },
+            {
+              "stream": 3,
+              "values": 2560,
+              "referenceRms": 0.055503755745448496,
+              "maxAbsoluteError": 3.948807716369629e-07,
+              "differenceRms": 1.0297316234895907e-07,
+              "relativeL2": 1.8552467480077372e-06
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "layer": 24,
+      "role": "mlp_hc",
+      "stage": "logits",
+      "positions": [
+        112,
+        2186
+      ],
+      "sourceSha256": "84c354f0a2b6aca6fbd7d2e1f00eb70b9f44f1de1acf5ca1936543e8c8ef4b44",
+      "gpuSha256": "ae00f2d414d81ec5c0ee851740150bbce99a9a7bc305a0fa2a5d0aea017e25ec",
+      "values": 8,
+      "referenceRms": 37.05955751651687,
+      "maxAbsoluteError": 2.288818359375e-05,
+      "differenceRms": 1.0909492126714305e-05,
+      "relativeL2": 2.943772904426102e-07,
+      "perPosition": [
+        {
+          "position": 112,
+          "values": 4,
+          "referenceRms": 38.873625439439365,
+          "maxAbsoluteError": 2.288818359375e-05,
+          "differenceRms": 1.2163811584728282e-05,
+          "relativeL2": 3.1290653874509603e-07
+        },
+        {
+          "position": 2186,
+          "values": 4,
+          "referenceRms": 35.15199641320841,
+          "maxAbsoluteError": 1.52587890625e-05,
+          "differenceRms": 9.49082318120577e-06,
+          "relativeL2": 2.699938595134694e-07
+        }
+      ]
+    },
+    {
+      "layer": 24,
+      "role": "mlp_hc",
+      "stage": "lowRank",
+      "positions": [
+        112,
+        2186
+      ],
+      "sourceSha256": "6c6de0701fa0d8fa99402349d8938a831230bd2a4659ade2532eda7a577b564e",
+      "gpuSha256": "6317729a5e994c1c820bbfb5d57110d9f556a81e9b77ac7132e243f0f20cf608",
+      "values": 640,
+      "referenceRms": 1.0453436494643311,
+      "maxAbsoluteError": 3.349781036376953e-05,
+      "differenceRms": 2.50469756619481e-06,
+      "relativeL2": 2.396051831833771e-06,
+      "perPosition": [
+        {
+          "position": 112,
+          "values": 320,
+          "referenceRms": 1.1214585357976714,
+          "maxAbsoluteError": 3.349781036376953e-05,
+          "differenceRms": 3.4741799147701007e-06,
+          "relativeL2": 3.0979120528062904e-06
+        },
+        {
+          "position": 2186,
+          "values": 320,
+          "referenceRms": 0.9632328085345493,
+          "maxAbsoluteError": 8.106231689453125e-06,
+          "differenceRms": 6.907197087186865e-07,
+          "relativeL2": 7.170849067833757e-07
+        }
+      ]
+    },
+    {
+      "layer": 24,
+      "role": "mlp_hc",
+      "stage": "mix",
+      "positions": [
+        112,
+        2186
+      ],
+      "sourceSha256": "82dbbe23497e196332b9d7ae08cd7860ed79c2957909b7d7175de7f822e11fb9",
+      "gpuSha256": "184ebf31272b71c301a3a94a69920a49537de176a63f712e71cd050d39ea6717",
+      "values": 20480,
+      "referenceRms": 0.6735651874656909,
+      "maxAbsoluteError": 5.9604644775390625e-06,
+      "differenceRms": 6.247167593989878e-07,
+      "relativeL2": 9.274778017395812e-07,
+      "perPosition": [
+        {
+          "position": 112,
+          "values": 10240,
+          "referenceRms": 0.6293590652748595,
+          "maxAbsoluteError": 5.9604644775390625e-06,
+          "differenceRms": 8.597327173389879e-07,
+          "relativeL2": 1.3660448617889016e-06
+        },
+        {
+          "position": 2186,
+          "values": 10240,
+          "referenceRms": 0.7150435584548243,
+          "maxAbsoluteError": 1.0132789611816406e-06,
+          "differenceRms": 2.0347411060099456e-07,
+          "relativeL2": 2.845618398978275e-07
+        }
+      ]
+    },
+    {
+      "layer": 24,
+      "role": "mlp_hc",
+      "stage": "norm",
+      "positions": [
+        112,
+        2186
+      ],
+      "sourceSha256": "7cb4d6fde305f5c71ccab54b5809d9a5afca234a48ecb9afcc9413496fdcdcb4",
+      "gpuSha256": "b6f77bde7ceafafaf6a4c1e8e81d6ef3e234f4fcc3ffb61bcba330b67cff5761",
+      "values": 20480,
+      "referenceRms": 1.1561697989456372,
+      "maxAbsoluteError": 3.910064697265625e-05,
+      "differenceRms": 3.5851115187151913e-06,
+      "relativeL2": 3.100852073791076e-06,
+      "perPosition": [
+        {
+          "position": 112,
+          "values": 10240,
+          "referenceRms": 1.1641996568516162,
+          "maxAbsoluteError": 3.910064697265625e-05,
+          "differenceRms": 4.536766711505063e-06,
+          "relativeL2": 3.896897482150092e-06,
+          "streams": [
+            {
+              "stream": 0,
+              "values": 2560,
+              "referenceRms": 1.2625821789617837,
+              "maxAbsoluteError": 3.0279159545898438e-05,
+              "differenceRms": 5.1446971301916645e-06,
+              "relativeL2": 4.0747423937364054e-06
+            },
+            {
+              "stream": 1,
+              "values": 2560,
+              "referenceRms": 0.7616322652797863,
+              "maxAbsoluteError": 3.600120544433594e-05,
+              "differenceRms": 4.894535501495301e-06,
+              "relativeL2": 6.426376250876516e-06
+            },
+            {
+              "stream": 2,
+              "values": 2560,
+              "referenceRms": 1.264179474074752,
+              "maxAbsoluteError": 8.106231689453125e-06,
+              "differenceRms": 7.585131330264105e-07,
+              "relativeL2": 6.000043099747077e-07
+            },
+            {
+              "stream": 3,
+              "values": 2560,
+              "referenceRms": 1.2841713885750075,
+              "maxAbsoluteError": 3.910064697265625e-05,
+              "differenceRms": 5.597256494811375e-06,
+              "relativeL2": 4.358652236460759e-06
+            }
+          ]
+        },
+        {
+          "position": 2186,
+          "values": 10240,
+          "referenceRms": 1.148083780468381,
+          "maxAbsoluteError": 1.52587890625e-05,
+          "differenceRms": 2.2635805725947154e-06,
+          "relativeL2": 1.9716161930893646e-06,
+          "streams": [
+            {
+              "stream": 0,
+              "values": 2560,
+              "referenceRms": 1.2208658816629296,
+              "maxAbsoluteError": 1.52587890625e-05,
+              "differenceRms": 3.196570512347338e-06,
+              "relativeL2": 2.6182814675706395e-06
+            },
+            {
+              "stream": 1,
+              "values": 2560,
+              "referenceRms": 0.7603534161717619,
+              "maxAbsoluteError": 6.973743438720703e-06,
+              "differenceRms": 1.7116247767921172e-06,
+              "relativeL2": 2.251091058957596e-06
+            },
+            {
+              "stream": 2,
+              "values": 2560,
+              "referenceRms": 1.2256702147886036,
+              "maxAbsoluteError": 1.049041748046875e-05,
+              "differenceRms": 1.2151202456491257e-06,
+              "relativeL2": 9.913924895847309e-07
+            },
+            {
+              "stream": 3,
+              "values": 2560,
+              "referenceRms": 1.3044029952379237,
+              "maxAbsoluteError": 8.851289749145508e-06,
+              "differenceRms": 2.4230040045755805e-06,
+              "relativeL2": 1.857557835593304e-06
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "layer": 24,
+      "role": "mlp_hc",
+      "stage": "up",
+      "positions": [
+        112,
+        2186
+      ],
+      "sourceSha256": "eb7f98ddc8a896759ab3b0c1513dc0344781cbe316baed92636adcf1c3b3daf2",
+      "gpuSha256": "496d70ace1e15d8dcfd64717ce94bff52460382f520d216bbd08252ded427006",
+      "values": 20480,
+      "referenceRms": 2.802953638900012,
+      "maxAbsoluteError": 4.00543212890625e-05,
+      "differenceRms": 4.926854004130538e-06,
+      "relativeL2": 1.7577365304065558e-06,
+      "perPosition": [
+        {
+          "position": 112,
+          "values": 10240,
+          "referenceRms": 3.3917452160472763,
+          "maxAbsoluteError": 4.00543212890625e-05,
+          "differenceRms": 6.800390614624309e-06,
+          "relativeL2": 2.004982739402063e-06
+        },
+        {
+          "position": 2186,
+          "values": 10240,
+          "referenceRms": 2.051624379136214,
+          "maxAbsoluteError": 6.67572021484375e-06,
+          "differenceRms": 1.5173886267412981e-06,
+          "relativeL2": 7.396035269283344e-07
+        }
+      ]
+    }
+  ],
+  "unmatchedSourceBoundaries": [
+    [
+      20,
+      "attention",
+      "projectionInput"
+    ],
+    [
+      20,
+      "linear",
+      "attn.linear_a_proj"
+    ],
+    [
+      20,
+      "linear",
+      "attn.linear_b_proj"
+    ],
+    [
+      20,
+      "linear",
+      "attn.linear_core_out"
+    ],
+    [
+      20,
+      "linear",
+      "attn.linear_z_proj"
+    ],
+    [
+      20,
+      "linear",
+      "attn.qkv_proj"
+    ],
+    [
+      20,
+      "linear",
+      "branchOutput"
+    ],
+    [
+      21,
+      "attention",
+      "projectionInput"
+    ],
+    [
+      21,
+      "linear",
+      "attn.linear_a_proj"
+    ],
+    [
+      21,
+      "linear",
+      "attn.linear_b_proj"
+    ],
+    [
+      21,
+      "linear",
+      "attn.linear_core_out"
+    ],
+    [
+      21,
+      "linear",
+      "attn.linear_z_proj"
+    ],
+    [
+      21,
+      "linear",
+      "attn.qkv_proj"
+    ],
+    [
+      21,
+      "linear",
+      "branchOutput"
+    ],
+    [
+      22,
+      "attention",
+      "projectionInput"
+    ],
+    [
+      22,
+      "linear",
+      "attn.linear_a_proj"
+    ],
+    [
+      22,
+      "linear",
+      "attn.linear_b_proj"
+    ],
+    [
+      22,
+      "linear",
+      "attn.linear_core_out"
+    ],
+    [
+      22,
+      "linear",
+      "attn.linear_z_proj"
+    ],
+    [
+      22,
+      "linear",
+      "attn.qkv_proj"
+    ],
+    [
+      22,
+      "linear",
+      "branchOutput"
+    ],
+    [
+      23,
+      "attention",
+      "attn.core_out"
+    ],
+    [
+      23,
+      "attention",
+      "attn.v_proj"
+    ],
+    [
+      23,
+      "attention",
+      "cachedKey"
+    ],
+    [
+      23,
+      "attention",
+      "cachedValue"
+    ],
+    [
+      23,
+      "attention",
+      "gatedCore"
+    ],
+    [
+      23,
+      "attention",
+      "mask"
+    ],
+    [
+      23,
+      "attention",
+      "projectionInput"
+    ],
+    [
+      23,
+      "attention",
+      "query"
+    ],
+    [
+      24,
+      "linear",
+      "branchOutput"
+    ]
+  ],
+  "unmatchedGpuBoundaries": [
+    [
+      20,
+      "mlp_hc",
+      "branchOutput"
+    ],
+    [
+      20,
+      "mlp_hc",
+      "injected"
+    ],
+    [
+      21,
+      "mlp_hc",
+      "branchOutput"
+    ],
+    [
+      21,
+      "mlp_hc",
+      "injected"
+    ],
+    [
+      22,
+      "mlp_hc",
+      "branchOutput"
+    ],
+    [
+      22,
+      "mlp_hc",
+      "injected"
+    ],
+    [
+      23,
+      "mlp_hc",
+      "branchOutput"
+    ],
+    [
+      23,
+      "mlp_hc",
+      "injected"
+    ],
+    [
+      24,
+      "linear",
+      "attn.post_input_norm"
+    ]
+  ],
+  "normalModelQualified": false,
+  "acceptanceChanged": false
+}
