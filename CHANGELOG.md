@@ -4,7 +4,10 @@ Historical package notes are preserved outside the runtime archive in
 `docs/status/archive/package-changelog-through-0.6.1.md` and the earlier
 `package-changelog-through-0.4.15.md` snapshot in that directory.
 
-## [0.7.0 candidate]
+## [0.7.0] - 2026-11-10
+
+First npm release since 0.6.1. It also carries the 0.6.27 and 0.6.2 candidate
+notes below, which were never published separately.
 
 ### Removed
 

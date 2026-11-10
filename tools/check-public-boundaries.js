@@ -175,7 +175,11 @@ const PACKAGE_CONTENT_LIMITS = Object.freeze({
   // Two-bank Qwen paging, immediate logit observation and shared-output shape:
   // 3,640,218 measured plus the same 2,158-byte npm allowance.
   // Exact shipped delta: reports/flash-next-qualification-20261105/paging-package-audit.json.
-  maxPackedSize: 3_642_376,
+  // 0.7.0 release: sequence state, routed expert cache, indexed attention, paged
+  // source reader and activity traces; 30 files added, none removed.
+  // 3,689,074 measured plus the same 2,158-byte npm allowance.
+  // Exact shipped delta: reports/package-release-20261110/package-audit.json.
+  maxPackedSize: 3_691_232,
   // Capsule naming changes identifiers and declarations, not the shipped file count.
   // Measured 0.6.0 payload: 2,097,039 packed / 10,835,420 unpacked bytes.
   // The remaining GPU diagnostic label adds three uncompressed bytes.
@@ -251,7 +255,8 @@ const PACKAGE_CONTENT_LIMITS = Object.freeze({
   // Live QSA dispatch and query view: two existing implementations, +955 bytes.
   // Parent execution-plan evidence adds one byte; no package entry is added.
   // Inventory: reports/flash-next-qualification-20261105/qsa-package-audit.json.
-  maxUnpackedSize: 15_547_520,
+  // 0.7.0 release, measured: reports/package-release-20261110/package-audit.json.
+  maxUnpackedSize: 15_744_403,
 });
 const REQUIRED_PACKAGE_FILES = Object.freeze([
   'README.md',
