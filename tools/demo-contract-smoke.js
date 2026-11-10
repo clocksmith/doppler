@@ -52,8 +52,10 @@ const model = {
     getStopTokenIds() { return [9]; },
   },
   inspect: {
+    // The stub runtime can record a chosen subset, as the engine's activity policies declare.
+    listPolicies() { return [{ id: 'demo/model-activity', activationTrace: { activitySelection: { roles: null, layers: null, tokens: null } } }]; },
     async generate(prompt, options = {}) {
-      controls.calls.push({ prompt: structuredClone(prompt), policyId: options.policyId, generation: options.generation, inputTokenIds: options.inputTokenIds ?? null });
+      controls.calls.push({ prompt: structuredClone(prompt), policyId: options.policyId, generation: options.generation, inputTokenIds: options.inputTokenIds ?? null, capture: options.capture ?? null });
       let tokenIds = [];
       controls.emitActivation = event => options.onEvent?.(event);
       controls.emitTokens = (ids) => {

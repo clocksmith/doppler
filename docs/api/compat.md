@@ -47,6 +47,45 @@ Plain-string fingerprints retain their earlier raw-text convention. A structured
 receipt's exact prefix can be replayed for a branch without re-tokenizing history.
 
 
+### Recording part of a run
+
+Policies that record model activity (`activationTrace.activityMaxBytes`) declare
+what they record in `activationTrace.activitySelection` and, per capture kind, in
+`activationTrace.activityRoleMaxBytes`. A request can record less with
+`model.inspect.generate(prompt, { policyId, capture })`:
+
+| `capture` field | Meaning |
+| --- | --- |
+| `roles` | Capture kinds to keep, for example `['attention-query', 'kv-key']`. `[]` keeps none. The kinds are listed in [`activity-stages.json`](../../src/config/inspection/activity-stages.json). |
+| `layers` | Layer indexes to keep. Model-level captures such as `logits` have no layer and are unaffected. |
+| `tokens` | `{ from, to }` token positions to keep, counted from the first prompt token; `to` is exclusive and `null` means no end. |
+| `maxBytes` | A smaller budget for the whole activity recording. |
+| `roleMaxBytes` | A budget for one kind, for example `{ logits: 4194304 }`. |
+
+Omitted or `null` fields keep the policy's value. A request only narrows: a kind,
+layer, token range or budget outside the policy fails before the run starts, as
+does `capture` on a policy that records no activity. Layer outputs are recorded
+by every activity policy and are not part of this selection. Selection changes
+what is read back and kept, not how the model executes: the same prompt and
+sampling give the same tokens with any selection.
+
+Two kinds of capture are not cut exactly as asked, because cutting them would make
+a view wrong rather than smaller:
+
+- Keys and values (`kv-key`, `kv-value`) keep every token before a token range's
+  start. Attention at a later token reads all of them.
+- Fixed per-layer parameters (`linear-a-log`, `linear-dt-bias`) are recorded once
+  per layer, whatever the token range, and marked `metadata.constant`.
+
+The receipt's `activationTrace.activity` says what was left out. `selection` is
+the resolved selection. `coverage` has one entry per kind the run attempted:
+`captured` and `capturedBytes`; `dropped` and `firstDroppedToken` for captures
+that did not fit a budget (each dropped frame's `metadata.limit` names
+`activityMaxBytes` or `activityRoleMaxBytes`); `failed`; `reused` for repeats of
+a fixed value already recorded; and `notSelected` counts by the rule that left
+them out (`role`, `layer` or `token`). A capture left out by selection takes no
+frame and no budget.
+
 To continue from an exact token boundary, pass `inputTokenIds` instead of relying
 on `prompt` tokenization: `model.inspect.generate(prompt, { inputTokenIds })`.
 Every generation starts from cleared attention and recurrent state, so prefilling

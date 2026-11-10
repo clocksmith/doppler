@@ -1,6 +1,6 @@
 import { SAMPLE_INSPECTION_RECEIPT } from './data/sample-inspection.js';
 import { state } from './ui/state.js';
-import { isActivationRecordingEnabled, beginActivationRecording, acceptActivationFrame,
+import { isActivationRecordingEnabled, activityCaptureRequest, setCaptureSelectionSupport, beginActivationRecording, acceptActivationFrame,
   finishActivationRecording, clearActivationRecording, getActivationRecording, importActivationRecording } from './ui/activation-grid/index.js';
 import { SHELL_MANIFEST_DIGEST } from './generated-shell-manifest.js';
 import activityConfig from './ui/activation-grid/config.json' with { type: 'json' };
@@ -93,6 +93,7 @@ function resolvePolicyId() {
 
 export function onModelLoaded(model, modelId) {
   state.model = model;
+  setCaptureSelectionSupport(model);
   resetConversationForModel(modelId);
   syncSendButton();
 }
@@ -134,6 +135,7 @@ export async function runGeneration() {
   try {
     const receipt = await model.inspect.generate(conversationRequest.promptInput, {
       policyId,
+      capture: activityCaptureRequest(),
       topKSize: 8,
       onEvent(event) {
         if (receiving && event.type === 'activation-frame') { acceptActivationFrame(event); return; }
@@ -343,6 +345,7 @@ export async function runBranch(forkIndex, tokenId) {
   try {
     const receipt = await model.inspect.generate(state.branchPrompt, {
       policyId: resolvePolicyId(),
+      capture: activityCaptureRequest(),
       topKSize: 8,
       inputTokenIds,
       onEvent(event) {

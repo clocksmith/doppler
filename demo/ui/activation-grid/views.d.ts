@@ -1,6 +1,6 @@
 import type { ActivationRecording } from './data.js';
-import type { ActivityFrame } from '../../../src/debug/activity-trace.js';
-export type { ActivityFrame };
+import type { ActivityFrame, ActivityCoverage } from '../../../src/debug/activity-trace.js';
+export type { ActivityFrame, ActivityCoverage };
 export interface ActivitySelection {
   mode: string; atMs: number; position: number; layer: number; weightId: string;
   detail: string; page: number; baseline?: ActivationRecording | null;
@@ -17,9 +17,13 @@ export function activityModes(recording: ActivationRecording | null): { id: stri
 export function playbackPoints(recording: ActivationRecording, mode: string, viewId?: string): PlaybackPoint[];
 export function viewPositions(recording: ActivationRecording, viewId: string): Set<number> | null;
 export interface MissingReason {
-  kind: 'none' | 'dropped' | 'failed' | 'window' | 'fused' | 'elsewhere' | 'representation';
+  kind: 'none' | 'not-selected' | 'dropped' | 'failed' | 'window' | 'fused' | 'elsewhere' | 'representation';
   text: string; nearest: number | null;
 }
-export function missingReason(recording: ActivationRecording, viewId: string, position: number, detail?: string): MissingReason;
+/** `layer` is the layer being looked at, or -1 for every layer at once. */
+export function missingReason(recording: ActivationRecording, viewId: string, position: number, detail?: string, layer?: number): MissingReason;
+export function omissionSummary(recording: ActivationRecording): string;
+/** Capture kinds one view needs; null when it needs every kind. */
+export function viewCaptureRoles(viewId: string): string[] | null;
 export function assertMatchedRuns(a: ActivationRecording, b: ActivationRecording): void;
 export function attentionRow(frames: ActivityFrame[], query: ActivityFrame, position: number, head: number): (number | undefined)[];

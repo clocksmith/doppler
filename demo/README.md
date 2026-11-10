@@ -30,6 +30,9 @@ not saved after the recording reached its size limit, saved for a window of prom
 only, never a separate value because the stage ran inside a fused step, capture failed, or
 only summaries were saved; it offers Go to token N for the nearest token that has values,
 and a partly missing picture says so. Missing values are checkered, never drawn as zero.
+A recording that was set to leave something out says that instead: the view, the layers
+or the token range it kept, or that one view reached its own size limit while the
+recording still had room.
 In the history panel, tokens after the one shown are dark and labelled not shown yet.
 The key beside a picture says when values were recomputed from saved ones rather than
 measured, that recomputed attention is not a causal explanation, and that dark in a
@@ -348,7 +351,18 @@ plus 16 MiB of weight summaries/windows (accounted as JavaScript numbers; engine
 and metadata overhead is additional). FFN capture keeps the last four positions
 of a prompt chunk. State raw windows keep 16,384 values, with 256-value RMS blocks
 across the bounded state read. Reaching a limit leaves explicit missing captures
-and does not substitute zeros or stop generation. Large views page at 786,432
+and does not substitute zeros or stop generation. Fixed per-layer gate parameters
+are recorded once per layer rather than at every token.
+
+Beside Record activity, Only the view I have open records just the capture kinds
+the open view draws from, so that view reaches further into a long answer before
+the size limit; the other views then say the recording was set to leave them out.
+The view is the one open when the answer starts. The choice appears only when the
+loaded runtime's activity policy declares a capture selection, so a page served
+with an older runtime never offers a choice it cannot honor. The status line
+under Details lists what a recording left out and why: kinds left out by choice,
+captures on unselected layers or tokens, fixed values recorded once, and the
+first token at which each kind ran out of budget. Large views page at 786,432
 scalars. Saved v2 files pack F32 values and F64 summaries into base64 little-endian
 payloads; older v1 files remain readable. Imports validate dimensions and byte
 budgets before projection, and a rejected import preserves the accepted recording.

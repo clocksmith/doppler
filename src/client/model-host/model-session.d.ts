@@ -232,6 +232,12 @@ export interface DopplerModelHandle {
         generation?: DopplerGenerateOptions;
         topKSize?: number;
         /**
+         * Narrows what an activity-recording policy saves: capture kinds, layers,
+         * a token range, and smaller budgets. It can only record less than the
+         * policy allows; anything outside the policy fails before the run.
+         */
+        capture?: import('../../debug/activity-trace.js').ActivityCaptureRequest | null;
+        /**
          * Exact token IDs to prefill instead of tokenizing `prompt`. Generation
          * starts from cleared attention and recurrent state, so the last ID is
          * committed and sampling continues after it. Fails if the pipeline did

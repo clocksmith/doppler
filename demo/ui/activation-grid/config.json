@@ -13,6 +13,8 @@
   "maxWeightValues": 2097152,
   "recordByDefault": true,
   "recordPreferenceKey": "doppler.demo.activity-recording",
+  "recordViewOnlyByDefault": false,
+  "recordViewOnlyPreferenceKey": "doppler.demo.activity-recording-view-only",
   "compatibleDisplays": [{"layout": "layer-major-rgb/v1", "palette": "signed-tanh-rgb/v1"}, {"layout": "scalar-square/v2", "palette": "opaque-heatmap/v1"}],
   "colors": {
     "signed": [[59, 76, 192], [221, 221, 221], [180, 4, 38]],

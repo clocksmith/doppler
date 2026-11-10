@@ -10,6 +10,21 @@ export function validateActivity(value, geometry) {
     || !Array.isArray(value.frames) || value.frames.length > config.maxFrames
     || !Array.isArray(value.weights) || value.weights.length > config.maxFrames) fail();
   if (!positive(value.model.intermediateSize) || Number(value.model.intermediateSize) * geometry.layers > config.maxGridValues) fail();
+  // Recordings made before capture selection existed carry neither field.
+  const count = (/** @type {unknown} */ n) => typeof n === 'number' && Number.isSafeInteger(n) && n >= 0;
+  const chosen = value.selection;
+  if (chosen !== undefined && (!chosen || typeof chosen !== 'object'
+    || !(chosen.roles === null || Array.isArray(chosen.roles) && chosen.roles.length <= 64 && chosen.roles.every(r => typeof r === 'string' && r.length <= 80))
+    || !(chosen.layers === null || Array.isArray(chosen.layers) && chosen.layers.length <= geometry.layers && chosen.layers.every(l => count(l) && l < geometry.layers))
+    || !(chosen.tokens === null || chosen.tokens && count(chosen.tokens.from) && (chosen.tokens.to === null || count(chosen.tokens.to) && chosen.tokens.to > chosen.tokens.from)))) fail();
+  if (value.coverage !== undefined) {
+    const kinds = value.coverage && typeof value.coverage === 'object' ? Object.entries(value.coverage) : fail();
+    if (!kinds || kinds.length > 64) fail();
+    for (const [role, c] of kinds ?? []) {
+      if (role.length > 80 || !c || ![c.captured, c.capturedBytes, c.reused, c.dropped, c.failed, c.notSelected?.role, c.notSelected?.layer, c.notSelected?.token].every(count)
+        || !(c.firstDroppedToken === null || count(c.firstDroppedToken)) || !(c.maxBytes === null || positive(c.maxBytes))) fail();
+    }
+  }
   let bytes = 0, previousTime = -1;
   for (const [index, f] of value.frames.entries()) {
     if (f.index !== index || !Number.isSafeInteger(f.forward) || f.forward < 0 || !number(f.atMs) || f.atMs < previousTime

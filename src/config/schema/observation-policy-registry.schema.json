@@ -164,7 +164,79 @@
             "activitySummaryBlock": {
               "type": "integer",
               "minimum": 1
+            },
+            "activitySelection": {
+              "description": "Which activity captures are recorded. null in a field means no restriction; an empty list records none. A request may narrow this, never widen it.",
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "roles",
+                "layers",
+                "tokens"
+              ],
+              "properties": {
+                "roles": {
+                  "type": [
+                    "array",
+                    "null"
+                  ],
+                  "uniqueItems": true,
+                  "items": {
+                    "type": "string",
+                    "minLength": 1
+                  }
+                },
+                "layers": {
+                  "type": [
+                    "array",
+                    "null"
+                  ],
+                  "uniqueItems": true,
+                  "items": {
+                    "type": "integer",
+                    "minimum": 0
+                  }
+                },
+                "tokens": {
+                  "type": [
+                    "object",
+                    "null"
+                  ],
+                  "additionalProperties": false,
+                  "required": [
+                    "from",
+                    "to"
+                  ],
+                  "properties": {
+                    "from": {
+                      "type": "integer",
+                      "minimum": 0
+                    },
+                    "to": {
+                      "type": [
+                        "integer",
+                        "null"
+                      ],
+                      "minimum": 1
+                    }
+                  }
+                }
+              }
+            },
+            "activityRoleMaxBytes": {
+              "description": "Byte budget for one capture kind, inside activityMaxBytes. A kind without an entry is limited only by activityMaxBytes.",
+              "type": "object",
+              "additionalProperties": {
+                "type": "integer",
+                "minimum": 1
+              }
             }
+          },
+          "dependentRequired": {
+            "activityMaxBytes": [
+              "activitySelection",
+              "activityRoleMaxBytes"
+            ]
           }
         }
       }

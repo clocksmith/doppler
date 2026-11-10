@@ -1,12 +1,14 @@
 import assert from 'node:assert/strict';
 import { createActivationTrace } from '../../src/debug/activation-trace.js';
+import { createActivityTrace, resolveActivityCapture } from '../../src/debug/activity-trace.js';
 import { validateRecording, colorGrid, heatmapColor, heatmapColors } from '../../demo/ui/activation-grid/data.js';
 import { encodeRecording } from '../../demo/ui/activation-grid/recording-codec.js';
 import { modelPathView } from '../../demo/ui/activation-grid/paths.js';
-import { activityView, activityModes, playbackPoints, assertMatchedRuns, attentionRow, viewPositions, missingReason } from '../../demo/ui/activation-grid/views.js';
+import { activityView, activityModes, playbackPoints, assertMatchedRuns, attentionRow, viewPositions, missingReason, omissionSummary, viewCaptureRoles } from '../../demo/ui/activation-grid/views.js';
 
 const limits = { maxBytes: 4096, maxFrameBytes: 2048, maxFrames: 512, maxGridValues: 64, maxInFlight: 4,
   activityMaxBytes: 8192, activityMaxFrameValues: 64, activityMaxStateValues: 4, activityTokenWindow: 2, activitySummaryBlock: 2,
+  activitySelection: { roles: null, layers: null, tokens: null }, activityRoleMaxBytes: {},
   weightBlockValues: 2, weightReadValues: 16, weightRowGroupSize: 2, weightRawRows: 2, weightMaxBytes: 1024 };
 const trace = createActivationTrace(limits, { layers: 2, width: 3 }, { modelId: 'fixture', manifestHash: 'a'.repeat(64), runtimeVersion: 'fixture', adapters: [] });
 const activity = trace.activity;
@@ -148,6 +150,116 @@ assert(missingRow.every(v => v === undefined), 'missing key never becomes a norm
 const finalPoint = playbackPoints(recording, 'tokens').at(-1);
 assert(finalPoint.atMs >= recording.trace.activity.frames.find(f => f.role === 'logits').atMs, 'token playback includes the prediction after the final layer');
 console.log('Activity views: raw/aggregate products, causal attention, cache history, state gaps, gates, differences, matching, packed replay and malformed imports passed.');
+
+// Selective capture: a recording can keep chosen kinds, layers and tokens, with a
+// budget per kind, and says what it left out instead of leaving unexplained gaps.
+{
+  const rows = (/** @type {number} */ count, width = 2) => Array.from({ length: count * width }, (_, i) => i);
+  const record = (recorder, role, values, shape, layer = 0, options = {}) => recorder.capture(role, new Float32Array(values), { layer, dtype: 'f32', shape, ...options });
+  const all = { roles: null, layers: null, tokens: null };
+
+  assert.throws(() => createActivityTrace({ ...limits, activitySelection: undefined }, 0), /activitySelection/, 'a recorder never assumes what to capture');
+  assert.throws(() => createActivityTrace({ ...limits, activityRoleMaxBytes: { 'not-a-kind': 8 } }, 0), /capture kind/);
+
+  const chosen = createActivityTrace({ ...limits, activitySelection: { roles: ['ffn-gate', 'kv-key', 'linear-a-log'], layers: [1], tokens: { from: 2, to: 4 } } }, performance.now());
+  chosen.begin('prefill', 0, [10, 20, 30, 40, 50]);
+  await record(chosen, 'ffn-gate', rows(5), [5, 2], 1);
+  await record(chosen, 'ffn-gate', rows(5), [5, 2], 0);
+  await record(chosen, 'ffn-up', rows(5), [5, 2], 1);
+  await record(chosen, 'kv-key', rows(5), [5, 2], 1);
+  await record(chosen, 'linear-a-log', [7], [1, 1], 1);
+  chosen.begin('decode', 5, [60]);
+  await record(chosen, 'ffn-gate', rows(1), [1, 2], 1);
+  await record(chosen, 'linear-a-log', [7], [1, 1], 1);
+  const kept = chosen.snapshot();
+  const gate = kept.frames.find(f => f.role === 'ffn-gate');
+  assert.deepEqual([gate.tokenStart, gate.tokenIds, gate.fullShape, gate.values], [2, [30, 40], [2, 2], [4, 5, 6, 7]], 'a token range keeps exactly its rows');
+  const key = kept.frames.find(f => f.role === 'kv-key');
+  assert.deepEqual([key.tokenStart, key.fullShape, key.values.length], [0, [4, 2], 8], 'keys keep every earlier token, because later tokens attend to them');
+  assert.deepEqual(kept.frames.map(f => f.role), ['ffn-gate', 'kv-key', 'linear-a-log'], 'what is left out takes no frame');
+  assert.equal(kept.frames[2].metadata.constant, true);
+  assert.deepEqual(kept.coverage['ffn-gate'].notSelected, { role: 0, layer: 1, token: 1 });
+  assert.deepEqual([kept.coverage['ffn-gate'].captured, kept.coverage['ffn-up'].notSelected.role], [1, 1]);
+  assert.deepEqual([kept.coverage['linear-a-log'].captured, kept.coverage['linear-a-log'].reused], [1, 1], 'a fixed per-layer value is recorded once, outside any token range');
+  assert.equal(kept.recordedBytes, (4 + 8 + 1) * 8);
+  assert.deepEqual(kept.selection, { roles: ['ffn-gate', 'kv-key', 'linear-a-log'], layers: [1], tokens: { from: 2, to: 4 } });
+  assert.equal(omissionSummary({ trace: { activity: kept } }),
+    'left out by choice: ffn-up · 1 captures on layers not selected · 1 captures outside the selected tokens · 1 repeats of fixed per-layer values recorded once');
+
+  const capped = createActivityTrace({ ...limits, activitySelection: all, activityRoleMaxBytes: { 'ffn-gate': 32 } }, performance.now());
+  for (const [position, token] of [10, 20, 30].entries()) {
+    capped.begin('decode', position, [token]);
+    await record(capped, 'ffn-gate', rows(1), [1, 2]);
+    await record(capped, 'ffn-up', rows(1), [1, 2]);
+  }
+  const overRole = capped.snapshot();
+  const lost = overRole.frames.filter(f => f.status === 'dropped');
+  assert.deepEqual(lost.map(f => [f.role, f.tokenStart, f.metadata.limit]), [['ffn-gate', 2, 'activityRoleMaxBytes']], 'one kind running out leaves the others recording');
+  assert.match(lost[0].reason, /budget for ffn-gate reached/);
+  assert.deepEqual([overRole.coverage['ffn-gate'].dropped, overRole.coverage['ffn-gate'].firstDroppedToken, overRole.coverage['ffn-up'].captured], [1, 2, 3]);
+  assert.equal(omissionSummary({ trace: { activity: overRole } }), 'out of budget: ffn-gate from token 2');
+
+  // A request narrows its policy and never widens it.
+  const policy = { ...limits, activitySelection: { roles: ['ffn-gate', 'logits'], layers: null, tokens: { from: 0, to: 8 } }, activityRoleMaxBytes: { logits: 64 } };
+  assert.equal(resolveActivityCapture(policy, undefined), policy);
+  const narrowed = resolveActivityCapture(policy, { roles: ['logits'], layers: [0], tokens: { from: 2, to: 6 }, maxBytes: 1024, roleMaxBytes: { logits: 32 } });
+  assert.deepEqual([narrowed.activitySelection, narrowed.activityMaxBytes, narrowed.activityRoleMaxBytes],
+    [{ roles: ['logits'], layers: [0], tokens: { from: 2, to: 6 } }, 1024, { logits: 32 }]);
+  assert.equal(policy.activityMaxBytes, 8192, 'the policy itself is left untouched');
+  assert.throws(() => resolveActivityCapture(policy, { roles: ['kv-key'] }), /does not record the kind "kv-key"/);
+  assert.throws(() => resolveActivityCapture(policy, { tokens: { from: 2, to: null } }), /outside the range/);
+  assert.throws(() => resolveActivityCapture(policy, { maxBytes: 8193 }), /between 1 and the policy's 8192 bytes/);
+  assert.throws(() => resolveActivityCapture(policy, { roleMaxBytes: { logits: 65 } }), /exceeds the 64 bytes/);
+  assert.throws(() => resolveActivityCapture(policy, { layers: [-1] }), /distinct valid entries/);
+  assert.deepEqual(resolveActivityCapture(policy, { roles: [] }).activitySelection.roles, [], 'an empty list records none, unlike null');
+
+  // Recording one view keeps exactly what that view draws from.
+  assert.deepEqual(viewCaptureRoles('linear-gates'), ['linear-a', 'linear-b', 'linear-a-log', 'linear-dt-bias']);
+  assert.deepEqual(viewCaptureRoles('difference'), [], 'layer outputs are always recorded, so this view needs no activity kinds');
+  assert.deepEqual(viewCaptureRoles('residency'), ['weight-access']);
+  assert.equal(viewCaptureRoles('model-paths'), null, 'the model map draws from every kind');
+  const none = createActivityTrace({ ...limits, activitySelection: { ...all, roles: [] } }, performance.now());
+  none.begin('decode', 0, [10]);
+  await record(none, 'ffn-gate', rows(1), [1, 2]);
+  assert.deepEqual([none.snapshot().frames.length, none.snapshot().coverage['ffn-gate'].notSelected.role], [0, 1]);
+  assert.throws(() => resolveActivityCapture(policy, { budget: 1 }), /Unknown capture selection field "budget"/);
+  assert.throws(() => resolveActivityCapture({ maxBytes: 1 }, { roles: ['logits'] }), /records model activity/);
+
+  // The viewer tells "left out by choice" apart from "ran out of budget".
+  assert.deepEqual(recording.trace.activity.selection, all);
+  const without = structuredClone(recording);
+  without.trace.activity.selection = { ...all, roles: ['kv-key', 'kv-value', 'attention-query'] };
+  without.trace.activity.frames = without.trace.activity.frames.filter(f => f.role !== 'logits');
+  assert.equal(missingReason(without, 'probabilities', 1).kind, 'not-selected');
+  assert.match(activityModes(without).find(m => m.id === 'probabilities').reason, /set to leave this view out/);
+  assert.equal(missingReason(without, 'kv-new', 1).kind, 'none', 'a selected view is unaffected');
+
+  const ranged = structuredClone(recording);
+  ranged.trace.activity.selection = { ...all, tokens: { from: 1, to: 2 } };
+  for (const f of ranged.trace.activity.frames) {
+    if (f.role === 'ffn-gate') { f.tokenStart = 1; f.tokenIds = [20]; f.fullShape = [1, 3]; f.shape = [3]; f.values = f.values.slice(3); }
+  }
+  assert.deepEqual(missingReason(ranged, 'ffn-gate', 0), { kind: 'not-selected', nearest: 1, text: 'This recording kept tokens 1–1 for this view.' });
+
+  const layered = structuredClone(recording);
+  layered.trace.activity.selection = { ...all, layers: [0] };
+  assert.deepEqual(missingReason(layered, 'ffn-gate', 0, 'overview', 1), { kind: 'not-selected', nearest: 0, text: 'This recording kept layer 1 only.' });
+  assert.equal(missingReason(layered, 'ffn-gate', 0, 'overview', 0).kind, 'none', 'a recorded layer is complete');
+  assert.equal(missingReason(layered, 'ffn-gate', 0).kind, 'not-selected', 'with every layer shown, the ones left out are explained');
+  assert.equal(missingReason(layered, 'difference', 0).kind, 'none', 'layer outputs are always recorded, so the selection does not apply to them');
+
+  const ownLimit = structuredClone(recording);
+  for (const f of ownLimit.trace.activity.frames) {
+    if (f.role === 'kv-key') { f.status = 'dropped'; f.values = null; f.metadata.limit = 'activityRoleMaxBytes'; }
+  }
+  ownLimit.trace.activity.coverage['kv-key'].maxBytes = 2 ** 21;
+  assert.match(missingReason(ownLimit, 'kv-new', 1).text, /This view reached its own size limit \(2 MB\) at token 0/);
+
+  const malformed = structuredClone(recording);
+  malformed.trace.activity.selection = { ...all, layers: [99] };
+  assert.throws(() => validateRecording(malformed), /Invalid or oversized model activity recording/);
+  console.log('Selective capture: kinds, layers, token ranges, per-kind budgets, one-time fixed values, coverage counts and viewer reasons passed.');
+}
 
 // Display theme changes colors only, with no alpha data or numerical rescaling.
 const light = colorGrid([-1, 0, 1, undefined, NaN], 1, 'signed');

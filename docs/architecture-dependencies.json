@@ -171,6 +171,7 @@
         "src/config/generation-contract.json",
         "src/config/heterogeneous-attention-contract.js",
         "src/config/initial-execution-identity.js",
+        "src/config/inspection/activity-stages.json",
         "src/config/inspection/observation-policies.json",
         "src/config/kernel-path-loader.js",
         "src/config/kernel-registry-contract.js",
@@ -261,6 +262,7 @@
         "src/converter/execution-graph/validation.js",
         "src/converter/quantizer.js",
         "src/debug/activation-trace.js",
+        "src/debug/activity-trace.js",
         "src/debug/capture-policy.js",
         "src/debug/config.js",
         "src/debug/history.js",
@@ -358,6 +360,7 @@
         "src/gpu/kernels/kernel-bindings.js",
         "src/gpu/kernels/kernel-configs.js",
         "src/gpu/kernels/kernel-execution.js",
+        "src/gpu/kernels/kernel-geometry.js",
         "src/gpu/kernels/kernel-prewarm.js",
         "src/gpu/kernels/kv-cache-write.js",
         "src/gpu/kernels/kv-quantize.js",
@@ -452,6 +455,7 @@
         "src/inference/pipelines/shader-scoped-pipeline.js",
         "src/inference/pipelines/text.js",
         "src/inference/pipelines/text/abort-contract.js",
+        "src/inference/pipelines/text/activity-weights.js",
         "src/inference/pipelines/text/attention/attn-config.js",
         "src/inference/pipelines/text/attention/cache-cast.js",
         "src/inference/pipelines/text/attention/dispatch-params.js",
@@ -572,6 +576,7 @@
         "src/inference/pipelines/text/lifecycle.js",
         "src/inference/pipelines/text/linear-attention-ab-fusion.js",
         "src/inference/pipelines/text/linear-attention.js",
+        "src/inference/pipelines/text/linear-attention/activity.js",
         "src/inference/pipelines/text/linear-attention/norm-ab.js",
         "src/inference/pipelines/text/linear-attention/plan.js",
         "src/inference/pipelines/text/linear-attention/state-checkpoint.js",
@@ -645,6 +650,7 @@
         "src/inference/tokenizers/bundled.js",
         "src/inference/tokenizers/bundled/decoders.js",
         "src/inference/tokenizers/bundled/incremental-decoder.js",
+        "src/inference/tokenizers/bundled/normalizer.js",
         "src/inference/tokenizers/bundled/registry.js",
         "src/inference/tokenizers/sentencepiece.js",
         "src/loader/doppler-loader.js",
@@ -673,6 +679,7 @@
         "src/loader/model-load.js",
         "src/loader/ngram-table-bindings.js",
         "src/loader/per-layer-input-loader.js",
+        "src/loader/q4k-reference-weight.js",
         "src/loader/shard-cache.js",
         "src/loader/shard-resolver.js",
         "src/loader/tensor-load-error.js",
@@ -864,6 +871,13 @@
       "roots": [
         "src/tooling-exports.browser.js",
         "src/tooling-exports.js",
+        "tools/analyze-hc-origin.js",
+        "tools/analyze-hc-origin.test.js",
+        "tools/analyze-input-normalization.js",
+        "tools/analyze-layer0-to-24-drift-trace.js",
+        "tools/analyze-layer25-prerouter-witness.js",
+        "tools/analyze-numerical-discontinuity.js",
+        "tools/analyze-router-input-drift.js",
         "tools/artifact-identity-inventory.js",
         "tools/audit-execution-routing.js",
         "tools/audit-model-ir-lowerability.js",
@@ -940,6 +954,7 @@
         "tools/ci-diffusion-contract-gates.js",
         "tools/ci-training-contract-gates.js",
         "tools/close-installed-capsule.js",
+        "tools/collect-numerical-discontinuity.js",
         "tools/compare-document-search-retention.js",
         "tools/compare-embeddings.js",
         "tools/compare-engines.js",
@@ -948,6 +963,7 @@
         "tools/compare-rerankers.js",
         "tools/compare-source-boundaries.js",
         "tools/compare-ul-runs.js",
+        "tools/compile-layer-partition-plan.js",
         "tools/confirm-search-abstention.js",
         "tools/convert-safetensors-node.js",
         "tools/create-manifest-conversion-postflight.js",
@@ -964,11 +980,14 @@
         "tools/document-search-installed-build.js",
         "tools/document-search-lifecycle-checks.js",
         "tools/document-search-recovery-checks.js",
+        "tools/dyadic-diagnostic.js",
+        "tools/dyadic-diagnostic.test.js",
         "tools/emit-training-contract-delta.js",
         "tools/evaluate-document-search-corpus.js",
         "tools/evaluate-installed-search-corpus.js",
         "tools/evaluate-search-components.js",
         "tools/experiments/activation-grid-browser.js",
+        "tools/experiments/activity-grids-browser.js",
         "tools/experiments/build-pooled-q8-common-rdrr.js",
         "tools/experiments/compute-pass-observer.js",
         "tools/experiments/demo-hosted-smoke.js",
@@ -980,6 +999,7 @@
         "tools/experiments/moe-grouped-ordered-reference.js",
         "tools/experiments/moe-grouped-physical.js",
         "tools/experiments/native-decode-candidate.js",
+        "tools/experiments/package-activity-example.js",
         "tools/experiments/prepare-f32-prefill-attention.js",
         "tools/experiments/qwen-installed-smoke.js",
         "tools/experiments/shard-hash-load.js",
@@ -990,7 +1010,9 @@
         "tools/forge-chronos-bolt-capsule.js",
         "tools/forge-model-capsule.js",
         "tools/forge-source-truth-model-ir-v2.js",
+        "tools/gemma3-mobile-binding-check.js",
         "tools/gemma4-greedy-prompt-compare.js",
+        "tools/generate-activity-previews.js",
         "tools/generate-demo-shell-manifest.js",
         "tools/generate-gemma4-preflight-receipts.js",
         "tools/generate-kernel-uniforms.js",
@@ -1004,6 +1026,8 @@
         "tools/hash-runtime-ownership-execution-evidence.js",
         "tools/inspect-prefill-logits.js",
         "tools/inspect-student-forward-parity.js",
+        "tools/layer25-wgsl-witness-core.js",
+        "tools/layer25-wgsl-witness-core.test.js",
         "tools/lean-execution-contract-config-sweep.js",
         "tools/lean-execution-contract-sweep.js",
         "tools/lean-execution-contract.js",
@@ -1045,6 +1069,8 @@
         "tools/model-onboarding-embedding-driver.js",
         "tools/node-test-file-bootstrap.js",
         "tools/node-test-runtime-setup.js",
+        "tools/numerical-discontinuity-core.js",
+        "tools/numerical-discontinuity-core.test.js",
         "tools/observe-reranker-browser-lifecycle.js",
         "tools/onboarding-tooling.js",
         "tools/p2p-delivery-observability.js",
@@ -1084,6 +1110,7 @@
         "tools/pooled-equal-weights/verify-q4_0.js",
         "tools/pooled-equal-weights/verify-rdrr.js",
         "tools/prepare-adapter-evaluation-source.js",
+        "tools/prepare-normalization-control.js",
         "tools/probe-electron-reranker.js",
         "tools/probe-installed-token-selection.js",
         "tools/probes/check-gpu-benchmark-budget.js",
@@ -1138,6 +1165,9 @@
         "tools/run-check-gate.js",
         "tools/run-distill-bench.js",
         "tools/run-f16-matmul-backward-oracle.js",
+        "tools/run-gdn-same-input.js",
+        "tools/run-hc-origin-counterfactual.js",
+        "tools/run-layer25-physical-gpu-counterfactual.js",
         "tools/run-node-coverage.js",
         "tools/run-node-test-file.js",
         "tools/run-node-tests.js",
@@ -1163,6 +1193,7 @@
         "tools/sync-api-docs.js",
         "tools/sync-catscan-index.js",
         "tools/sync-conversion-kernel-digests.js",
+        "tools/sync-conversion-profiles.js",
         "tools/sync-generation-contract.js",
         "tools/sync-kernel-reachability.js",
         "tools/sync-kernel-ref-digests.js",
@@ -1280,6 +1311,7 @@
         "src/config/generation-contract.json",
         "src/config/heterogeneous-attention-contract.js",
         "src/config/initial-execution-identity.js",
+        "src/config/inspection/activity-stages.json",
         "src/config/inspection/observation-policies.json",
         "src/config/kernel-path-loader.js",
         "src/config/kernel-registry-contract.js",
@@ -1422,6 +1454,7 @@
         "src/converter/tokenizer-special-tokens.js",
         "src/converter/w8a8-quantizer.js",
         "src/debug/activation-trace.js",
+        "src/debug/activity-trace.js",
         "src/debug/capture-policy.js",
         "src/debug/config.js",
         "src/debug/history.js",
@@ -1520,6 +1553,7 @@
         "src/formats/gguf/types.js",
         "src/formats/litert/types.js",
         "src/formats/load-json.js",
+        "src/formats/paged-source-reader.js",
         "src/formats/plain-object.js",
         "src/formats/q4k-dequant.js",
         "src/formats/rdrr/classification.js",
@@ -1629,6 +1663,7 @@
         "src/gpu/kernels/kernel-bindings.js",
         "src/gpu/kernels/kernel-configs.js",
         "src/gpu/kernels/kernel-execution.js",
+        "src/gpu/kernels/kernel-geometry.js",
         "src/gpu/kernels/kernel-prewarm.js",
         "src/gpu/kernels/kv-cache-write.js",
         "src/gpu/kernels/kv-quantize.js",
@@ -1726,6 +1761,7 @@
         "src/inference/pipelines/shader-scoped-pipeline.js",
         "src/inference/pipelines/text.js",
         "src/inference/pipelines/text/abort-contract.js",
+        "src/inference/pipelines/text/activity-weights.js",
         "src/inference/pipelines/text/attention/attn-config.js",
         "src/inference/pipelines/text/attention/cache-cast.js",
         "src/inference/pipelines/text/attention/dispatch-params.js",
@@ -1846,6 +1882,7 @@
         "src/inference/pipelines/text/lifecycle.js",
         "src/inference/pipelines/text/linear-attention-ab-fusion.js",
         "src/inference/pipelines/text/linear-attention.js",
+        "src/inference/pipelines/text/linear-attention/activity.js",
         "src/inference/pipelines/text/linear-attention/norm-ab.js",
         "src/inference/pipelines/text/linear-attention/plan.js",
         "src/inference/pipelines/text/linear-attention/state-checkpoint.js",
@@ -1920,6 +1957,7 @@
         "src/inference/tokenizers/bundled.js",
         "src/inference/tokenizers/bundled/decoders.js",
         "src/inference/tokenizers/bundled/incremental-decoder.js",
+        "src/inference/tokenizers/bundled/normalizer.js",
         "src/inference/tokenizers/bundled/registry.js",
         "src/inference/tokenizers/sentencepiece.js",
         "src/loader/doppler-loader.js",
@@ -1948,6 +1986,7 @@
         "src/loader/model-load.js",
         "src/loader/ngram-table-bindings.js",
         "src/loader/per-layer-input-loader.js",
+        "src/loader/q4k-reference-weight.js",
         "src/loader/shard-cache.js",
         "src/loader/shard-resolver.js",
         "src/loader/tensor-load-error.js",
@@ -2095,6 +2134,7 @@
         "src/tooling/node-webgpu-provider.v1.json",
         "src/tooling/node-webgpu.js",
         "src/tooling/opfs-cache.js",
+        "src/tooling/portable-source-path.js",
         "src/tooling/precision-replay-math.js",
         "src/tooling/production-release.js",
         "src/tooling/program-bundle-parity.js",
@@ -2107,6 +2147,7 @@
         "src/tooling/program-bundle/validation.js",
         "src/tooling/program-bundle/wgsl-closure.js",
         "src/tooling/rdrr-integrity-refresh.js",
+        "src/tooling/reference-verify.js",
         "src/tooling/registered-variant-calibration-job.js",
         "src/tooling/registered-variant-calibration.js",
         "src/tooling/runtime-input-composition.js",
@@ -2787,6 +2828,7 @@
         "src/gpu/kernels/kernel-bindings.js",
         "src/gpu/kernels/kernel-configs.js",
         "src/gpu/kernels/kernel-execution.js",
+        "src/gpu/kernels/kernel-geometry.js",
         "src/gpu/kernels/kernel-prewarm.js",
         "src/gpu/kernels/kv-cache-write.js",
         "src/gpu/kernels/kv-quantize.js",
@@ -2900,6 +2942,7 @@
         "src/inference/pipelines/shared/clipped-linear.js",
         "src/inference/pipelines/text.js",
         "src/inference/pipelines/text/abort-contract.js",
+        "src/inference/pipelines/text/activity-weights.js",
         "src/inference/pipelines/text/attention/attn-config.js",
         "src/inference/pipelines/text/attention/cache-cast.js",
         "src/inference/pipelines/text/attention/dispatch-params.js",
@@ -3020,6 +3063,7 @@
         "src/inference/pipelines/text/lifecycle.js",
         "src/inference/pipelines/text/linear-attention-ab-fusion.js",
         "src/inference/pipelines/text/linear-attention.js",
+        "src/inference/pipelines/text/linear-attention/activity.js",
         "src/inference/pipelines/text/linear-attention/norm-ab.js",
         "src/inference/pipelines/text/linear-attention/plan.js",
         "src/inference/pipelines/text/linear-attention/state-checkpoint.js",
@@ -3085,6 +3129,7 @@
         "src/inference/tokenizers/bundled.js",
         "src/inference/tokenizers/bundled/decoders.js",
         "src/inference/tokenizers/bundled/incremental-decoder.js",
+        "src/inference/tokenizers/bundled/normalizer.js",
         "src/inference/tokenizers/bundled/registry.js",
         "src/inference/tokenizers/sentencepiece.js",
         "src/loader/doppler-loader.js",
@@ -3113,6 +3158,7 @@
         "src/loader/model-load.js",
         "src/loader/ngram-table-bindings.js",
         "src/loader/per-layer-input-loader.js",
+        "src/loader/q4k-reference-weight.js",
         "src/loader/shard-cache.js",
         "src/loader/shard-resolver.js",
         "src/loader/tensor-load-error.js",
@@ -3185,6 +3231,7 @@
         "src/converter/rope-config.js",
         "src/formats/flatbuffer-tables.js",
         "src/formats/litert/types.js",
+        "src/formats/paged-source-reader.js",
         "src/formats/tflite/types.js",
         "src/gpu/kernel-runtime.js",
         "src/gpu/kernels/fused-gate-up-gelu.js",
@@ -3376,6 +3423,7 @@
         "src/config/generation-contract.json",
         "src/config/heterogeneous-attention-contract.js",
         "src/config/initial-execution-identity.js",
+        "src/config/inspection/activity-stages.json",
         "src/config/inspection/observation-policies.json",
         "src/config/kernel-path-loader.js",
         "src/config/kernel-registry-contract.js",
@@ -3500,6 +3548,7 @@
         "src/converter/tokenizer-special-tokens.js",
         "src/converter/w8a8-quantizer.js",
         "src/debug/activation-trace.js",
+        "src/debug/activity-trace.js",
         "src/debug/capture-policy.js",
         "src/debug/config.js",
         "src/debug/history.js",
@@ -3585,6 +3634,7 @@
         "src/formats/gguf/types.js",
         "src/formats/litert/types.js",
         "src/formats/load-json.js",
+        "src/formats/paged-source-reader.js",
         "src/formats/plain-object.js",
         "src/formats/q4k-dequant.js",
         "src/formats/rdrr/classification.js",
@@ -3691,6 +3741,7 @@
         "src/gpu/kernels/kernel-cache-lifecycle.js",
         "src/gpu/kernels/kernel-configs.js",
         "src/gpu/kernels/kernel-execution.js",
+        "src/gpu/kernels/kernel-geometry.js",
         "src/gpu/kernels/kernel-prewarm.js",
         "src/gpu/kernels/kv-cache-write.js",
         "src/gpu/kernels/kv-quantize.js",
@@ -3790,6 +3841,7 @@
         "src/inference/pipelines/structured/json-head-pipeline.js",
         "src/inference/pipelines/text.js",
         "src/inference/pipelines/text/abort-contract.js",
+        "src/inference/pipelines/text/activity-weights.js",
         "src/inference/pipelines/text/attention/attn-config.js",
         "src/inference/pipelines/text/attention/cache-cast.js",
         "src/inference/pipelines/text/attention/dispatch-params.js",
@@ -3910,6 +3962,7 @@
         "src/inference/pipelines/text/lifecycle.js",
         "src/inference/pipelines/text/linear-attention-ab-fusion.js",
         "src/inference/pipelines/text/linear-attention.js",
+        "src/inference/pipelines/text/linear-attention/activity.js",
         "src/inference/pipelines/text/linear-attention/norm-ab.js",
         "src/inference/pipelines/text/linear-attention/plan.js",
         "src/inference/pipelines/text/linear-attention/state-checkpoint.js",
@@ -3986,6 +4039,7 @@
         "src/inference/tokenizers/bundled.js",
         "src/inference/tokenizers/bundled/decoders.js",
         "src/inference/tokenizers/bundled/incremental-decoder.js",
+        "src/inference/tokenizers/bundled/normalizer.js",
         "src/inference/tokenizers/bundled/registry.js",
         "src/inference/tokenizers/sentencepiece.js",
         "src/loader/doppler-loader.js",
@@ -4014,6 +4068,7 @@
         "src/loader/model-load.js",
         "src/loader/ngram-table-bindings.js",
         "src/loader/per-layer-input-loader.js",
+        "src/loader/q4k-reference-weight.js",
         "src/loader/shard-cache.js",
         "src/loader/shard-resolver.js",
         "src/loader/tensor-load-error.js",
@@ -4154,6 +4209,7 @@
         "src/tooling/node-webgpu-provider.v1.json",
         "src/tooling/node-webgpu.js",
         "src/tooling/opfs-cache.js",
+        "src/tooling/portable-source-path.js",
         "src/tooling/precision-replay-math.js",
         "src/tooling/production-release.js",
         "src/tooling/program-bundle-parity.js",
@@ -4342,6 +4398,10 @@
         "demo/sw.js",
         "demo/ui/activation-grid/data.js",
         "demo/ui/activation-grid/index.js",
+        "demo/ui/activation-grid/paths.js",
+        "demo/ui/activation-grid/recording-codec.js",
+        "demo/ui/activation-grid/validation.js",
+        "demo/ui/activation-grid/views.js",
         "demo/ui/chat-markdown.js",
         "demo/ui/dom.js",
         "demo/ui/precision-replay/index.js",
@@ -4409,6 +4469,7 @@
         "tests/config/columbo-local-model-manifests.test.js",
         "tests/config/compare-engines-cli-contract.test.js",
         "tests/config/config-merge.test.js",
+        "tests/config/conversion-profile-authoring.test.js",
         "tests/config/conversion-report-schema.test.js",
         "tests/config/dense-decode-candidate.test.js",
         "tests/config/diffusion-kernel-wiring.test.js",
@@ -4461,6 +4522,7 @@
         "tests/config/layer-pattern-contract-check.test.js",
         "tests/config/lean-execution-contract-config-sweep.test.js",
         "tests/config/lean-execution-contract-sweep.test.js",
+        "tests/config/lfm2-conversion-contract.test.js",
         "tests/config/lfm2-local-manifest-contract.test.js",
         "tests/config/linear-norm-gate-activation.test.js",
         "tests/config/load-json.test.js",
@@ -4475,6 +4537,7 @@
         "tests/config/model-ir.test.js",
         "tests/config/model-lanes-bootstrap-hf.test.js",
         "tests/config/model-release-platform.test.js",
+        "tests/config/model-repair-receipts.test.js",
         "tests/config/model-support-inventory-contract.test.js",
         "tests/config/model-type-taxonomy.test.js",
         "tests/config/models-manifest-contract.test.js",
@@ -4585,6 +4648,7 @@
         "tests/converter/manifest-conversion-postflight.test.js",
         "tests/converter/manifest-conversion-preflight.test.js",
         "tests/converter/ordered-resident-qualification.test.js",
+        "tests/converter/portable-source-path.test.js",
         "tests/converter/q4_0-passthrough.test.js",
         "tests/converter/qat-quantization-info.test.js",
         "tests/converter/quantizer.test.js",
@@ -4609,9 +4673,12 @@
         "tests/converter/transformer-parser-embedding-postprocessor.test.js",
         "tests/converter/w8a8-quantizer.test.js",
         "tests/demo/activation-grid.test.js",
+        "tests/demo/activity-grids.test.js",
+        "tests/demo/boot-recovery.test.js",
         "tests/demo/branches.test.js",
         "tests/demo/browser-activation.js",
         "tests/demo/browser-controls.js",
+        "tests/demo/browser-run-coherence.js",
         "tests/demo/browser-streaming.js",
         "tests/demo/conversation.test.js",
         "tests/demo/default-model.test.js",
@@ -4619,6 +4686,7 @@
         "tests/demo/demo-ui-controls.test.js",
         "tests/demo/input.test.js",
         "tests/demo/inspection-presentation.test.js",
+        "tests/demo/layer-history.test.js",
         "tests/demo/report.test.js",
         "tests/demo/xray-runtime-notice.test.js",
         "tests/fixtures/attention-cache-observer.js",
@@ -4640,6 +4708,7 @@
         "tests/fixtures/webgpu-provider-v1.js",
         "tests/formats/contract-validation.test.js",
         "tests/formats/litert-types.test.js",
+        "tests/formats/paged-source-reader.test.js",
         "tests/formats/rdrr-distributed-contract.test.js",
         "tests/formats/rdrr-integrity.test.js",
         "tests/formats/rdrr-lowerings.test.js",
@@ -4680,6 +4749,7 @@
         "tests/gpu/kernel-completion-policy.test.js",
         "tests/gpu/kernel-contract-regressions.test.js",
         "tests/gpu/kernel-language-selection.test.js",
+        "tests/gpu/kernel-output-transaction.test.js",
         "tests/gpu/kernel-uniform-writers.test.js",
         "tests/gpu/kernel-wrapper-cleanup.test.js",
         "tests/gpu/linear-attention-allocation-cleanup.test.js",
@@ -4774,6 +4844,7 @@
         "tests/helpers/moe-routing-observation-loader.js",
         "tests/helpers/native-port-fixtures.js",
         "tests/helpers/paired-model-binding.js",
+        "tests/helpers/physical-browser-regression.js",
         "tests/helpers/physical-kv-cache-observer.js",
         "tests/helpers/q4_0-fixture.js",
         "tests/helpers/rdrr-manifest-fixture.js",
@@ -4848,6 +4919,7 @@
         "tests/inference/fused-ffn-subgroup8-gpu-regression.test.js",
         "tests/inference/fused-matmul-q4-metal-simd16-gpu-regression.test.js",
         "tests/inference/fused-normed-ffn-gpu-regression.test.js",
+        "tests/inference/fused-postnorm-dtype-gpu.test.js",
         "tests/inference/gelu-erf-gpu-regression.test.js",
         "tests/inference/gemma3-1b-head256-prefill-path.test.js",
         "tests/inference/gemma3-1b-streaming-prefill-path.test.js",
@@ -4907,6 +4979,7 @@
         "tests/inference/kv-cache-direct-write.test.js",
         "tests/inference/kv-cache-layer-ownership.test.js",
         "tests/inference/kv-cache-sync.test.js",
+        "tests/inference/kv-cache-update-paths.test.js",
         "tests/inference/kvcache-layout-policy.test.js",
         "tests/inference/layer-dispatch-routing.test.js",
         "tests/inference/layer-partition-contract.test.js",
@@ -5029,6 +5102,7 @@
         "tests/inference/qsa-cache-lifecycle.test.js",
         "tests/inference/qsa-observation-digest.test.js",
         "tests/inference/qsa-query-view.test.js",
+        "tests/inference/qwen-gqa-softmax-race.test.js",
         "tests/inference/qwen-linear-norm-offset.test.js",
         "tests/inference/qwen-manifest-completeness.test.js",
         "tests/inference/qwen-output-gate-recorder-contract.test.js",
@@ -5060,6 +5134,7 @@
         "tests/inference/resolved-runtime-session.test.js",
         "tests/inference/resource-scope.test.js",
         "tests/inference/rmsnorm-cache-bypass.test.js",
+        "tests/inference/rmsnorm-f16-small-race.test.js",
         "tests/inference/rmsnorm-fusion-gate.test.js",
         "tests/inference/rope-frequency-cache-contract.test.js",
         "tests/inference/rope-source-frequencies-gpu.test.js",
@@ -5086,6 +5161,7 @@
         "tests/inference/tokenizer-bundled-added-tokens.test.js",
         "tests/inference/tokenizer-bundled-flags.test.js",
         "tests/inference/tokenizer-bundled-hot-token-ranking.test.js",
+        "tests/inference/tokenizer-bundled-normalizer.test.js",
         "tests/inference/tokenizer-bundled-split-pretokenizer.test.js",
         "tests/inference/tokenizer-bundled-unicode-decode.test.js",
         "tests/inference/tokenizer-bundled-wordpiece.test.js",
@@ -5199,6 +5275,7 @@
         "tests/integration/gemma4-12b-f16-activations.test.js",
         "tests/integration/gemma4-31b-f16-activations.test.js",
         "tests/integration/gemma4-chat-template.test.js",
+        "tests/integration/generation-context-physical.test.js",
         "tests/integration/generation-surface-contract.test.js",
         "tests/integration/hotswap-intent-bundle-contract.test.js",
         "tests/integration/hotswap-manifest-contract.test.js",
@@ -5232,6 +5309,7 @@
         "tests/integration/opfs-cache-contract.test.js",
         "tests/integration/opfs-cached-source-contract.test.js",
         "tests/integration/opfs-store-contract.test.js",
+        "tests/integration/ordered-split-physical.test.js",
         "tests/integration/p2p-control-plane-contract.test.js",
         "tests/integration/p2p-control-plane.test.js",
         "tests/integration/p2p-delivery-observability-script.test.js",
@@ -5249,6 +5327,7 @@
         "tests/integration/qwen-chat-template.test.js",
         "tests/integration/qwen-execution-v1-gemv-diagnostic-transforms.test.js",
         "tests/integration/qwen-execution-v1-linear-decode-f16.test.js",
+        "tests/integration/qwen-gqa-softmax-race-browser.js",
         "tests/integration/qwen-harness-explicit-prompt.test.js",
         "tests/integration/qwen-linear-attention-regression.test.js",
         "tests/integration/qwen35-moe-recorder-browser.test.js",
@@ -5267,6 +5346,7 @@
         "tests/integration/rig-choice-scoring-capsule.js",
         "tests/integration/rmsnorm-captured-replay.js",
         "tests/integration/rmsnorm-dispatch-physical.test.js",
+        "tests/integration/rmsnorm-f16-small-race-browser.js",
         "tests/integration/rmsnorm-package-reference.js",
         "tests/integration/root-opfs-cache-contract.test.js",
         "tests/integration/rope-platform.js",
@@ -5312,7 +5392,9 @@
         "tests/kernels/fused-matmul-q4-widetile-f16a-parity.test.js",
         "tests/kernels/fused-matmul-q4-widetile-parity.test.js",
         "tests/kernels/gated-delta-norm-gate.test.js",
+        "tests/kernels/gated-delta-softplus-physical.test.js",
         "tests/kernels/gather-large-dispatch-physical.test.js",
+        "tests/kernels/gather-split4-f32-physical.test.js",
         "tests/kernels/gdn-gguf-prefill-reference.test.js",
         "tests/kernels/gdn-gguf-prefill-selection.test.js",
         "tests/kernels/gemma4-route-expert-parity.test.js",
@@ -5333,6 +5415,7 @@
         "tests/kernels/kernel-uniform-echo-physical.test.js",
         "tests/kernels/linear-activation-diagnostic.js",
         "tests/kernels/matmul-f16w-f32a-tiled-parity.test.js",
+        "tests/kernels/moe-route-product-rounding-physical.test.js",
         "tests/kernels/paired-attention-layer-physical.js",
         "tests/kernels/paired-attention-physical.js",
         "tests/kernels/paired-cast-physical.js",
@@ -5347,6 +5430,7 @@
         "tests/kernels/q4k-f16acc-wide-grid.test.js",
         "tests/kernels/q5_0-reference.test.js",
         "tests/kernels/qsa-indexer-gpu.test.js",
+        "tests/kernels/qwen-gqa-softmax-race.js",
         "tests/kernels/recurrent-accumulation-diagnostic.js",
         "tests/kernels/recurrent-intervention.js",
         "tests/kernels/recurrent-observation.js",
@@ -5385,6 +5469,7 @@
         "tests/kernels/reference/w8a8.js",
         "tests/kernels/registry-wrapper-physical.test.js",
         "tests/kernels/rmsnorm-dispatch-reuse.js",
+        "tests/kernels/rmsnorm-f16-small-race.js",
         "tests/kernels/rmsnorm-platform-diagnostic.js",
         "tests/kernels/rope-partial-rotation-kernel-contract.test.js",
         "tests/kernels/rope-partial-rotation-reference.test.js",
@@ -5392,6 +5477,7 @@
         "tests/kernels/sampling-nonfinite-physical.test.js",
         "tests/kernels/sampling-penalties-physical.test.js",
         "tests/kernels/seeded-batch-physical.js",
+        "tests/kernels/silu-unclamped-physical.test.js",
         "tests/kernels/soft-embedding-split-f16-parity.test.js",
         "tests/kernels/split_qkv_dispatch-contract.test.js",
         "tests/kernels/split_qkv_variant_parity.test.js",
@@ -5429,6 +5515,8 @@
         "tests/loader/ngram-table-bindings.test.js",
         "tests/loader/parallel-weight-load-cleanup.test.js",
         "tests/loader/per-layer-input-loader.test.js",
+        "tests/loader/q4k-packing-gpu.test.js",
+        "tests/loader/q4k-reference-weight.test.js",
         "tests/loader/qwen-paging.test.js",
         "tests/loader/rdrr-tensor-map-reader.test.js",
         "tests/loader/routed-expert-cache.test.js",
@@ -5507,6 +5595,7 @@
         "tests/tooling/command-api-refresh-integrity.test.js",
         "tests/tooling/command-api-release.test.js",
         "tests/tooling/command-surface-style.test.js",
+        "tests/tooling/compile-layer-partition-plan.test.js",
         "tests/tooling/conversion-config-materializer.test.js",
         "tests/tooling/conversion-digest-selection.test.js",
         "tests/tooling/conversion-run-timing.test.js",
@@ -5579,6 +5668,7 @@
         "tests/tooling/record-runtime-ownership-evaluation.test.js",
         "tests/tooling/record-runtime-promotion-monitoring.test.js",
         "tests/tooling/record-signed-revocation-authority-evaluation.test.js",
+        "tests/tooling/reference-runtime-merge.test.js",
         "tests/tooling/registered-variant-calibration-job.test.js",
         "tests/tooling/registered-variant-calibration.test.js",
         "tests/tooling/registry-verify-workload.test.js",
@@ -5625,6 +5715,7 @@
         "tests/training/attention-backward-gqa.test.js",
         "tests/training/browser/adamw-optimizer-oracle.js",
         "tests/training/browser/f16-matmul-backward-oracle.js",
+        "tests/training/browser/oracle-compare.js",
         "tests/training/browser/qwen-full-attention-backward-oracle.js",
         "tests/training/browser/qwen-full-decoder-backward-oracle.js",
         "tests/training/browser/qwen-gamma-sft-microstep-parity-oracle.js",
@@ -5650,6 +5741,7 @@
         "tests/training/lora-training-round.test.js",
         "tests/training/loss-clip-workloads.test.js",
         "tests/training/native-lora-round-gpu.test.js",
+        "tests/training/oracle-compare.test.js",
         "tests/training/qwen-full-attention-reference.test.js",
         "tests/training/qwen-full-decoder-reference.test.js",
         "tests/training/qwen-gated-delta-reference.test.js",
@@ -5757,8 +5849,10 @@
         "src/config/choice-scoring.json",
         "src/config/conversion/diffusiongemma/diffusiongemma-26b-a4b-it-q4k-ehf16-af16.json",
         "src/config/conversion/esm/esm2-t12-35m-ur50d-f32-af32.json",
+        "src/config/conversion/lfm2/lfm2.5-1.2b-instruct-q4k-ehf16-af32.json",
         "src/config/conversion/qwen3/qwen-3-5-0-8b-q4k-ehaf16.json",
         "src/config/conversion/qwen3/qwen-3-6-35b-a3b-text-q4k-ehf16-af32.json",
+        "src/config/conversion/qwen3/qwen-3-8-flash-next-text-q4k-ehf16-af32.json",
         "src/config/conversion/qwen3/qwen3.8-27b-text-f16-af32.json",
         "src/config/diagnostics/drift-policies.json",
         "src/config/dtype-transition-contract.js",
@@ -5775,6 +5869,7 @@
         "src/config/generation-contract.json",
         "src/config/heterogeneous-attention-contract.js",
         "src/config/initial-execution-identity.js",
+        "src/config/inspection/activity-stages.json",
         "src/config/inspection/observation-policies.json",
         "src/config/kernel-path-loader.js",
         "src/config/kernel-registry-contract.js",
@@ -5921,6 +6016,7 @@
         "src/converter/tokenizer-special-tokens.js",
         "src/converter/w8a8-quantizer.js",
         "src/debug/activation-trace.js",
+        "src/debug/activity-trace.js",
         "src/debug/capture-policy.js",
         "src/debug/config.js",
         "src/debug/history.js",
@@ -6068,6 +6164,7 @@
         "src/formats/gguf/types.js",
         "src/formats/litert/types.js",
         "src/formats/load-json.js",
+        "src/formats/paged-source-reader.js",
         "src/formats/plain-object.js",
         "src/formats/q4k-dequant.js",
         "src/formats/rdrr/classification.js",
@@ -6205,6 +6302,7 @@
         "src/gpu/kernels/kernel-cache-lifecycle.js",
         "src/gpu/kernels/kernel-configs.js",
         "src/gpu/kernels/kernel-execution.js",
+        "src/gpu/kernels/kernel-geometry.js",
         "src/gpu/kernels/kernel-prewarm.js",
         "src/gpu/kernels/kv-cache-write.js",
         "src/gpu/kernels/kv-quantize.js",
@@ -6267,6 +6365,7 @@
         "src/gpu/kernels/rule-registry.js",
         "src/gpu/kernels/sample.js",
         "src/gpu/kernels/scale.js",
+        "src/gpu/kernels/scatter_add_routes_f32.wgsl",
         "src/gpu/kernels/shader-cache.js",
         "src/gpu/kernels/shader-source-scope.js",
         "src/gpu/kernels/sigmoid-gated-add.js",
@@ -6347,6 +6446,7 @@
         "src/inference/pipelines/structured/tsv-grammar-mask.js",
         "src/inference/pipelines/text.js",
         "src/inference/pipelines/text/abort-contract.js",
+        "src/inference/pipelines/text/activity-weights.js",
         "src/inference/pipelines/text/attention/attn-config.js",
         "src/inference/pipelines/text/attention/cache-cast.js",
         "src/inference/pipelines/text/attention/dispatch-params.js",
@@ -6468,6 +6568,7 @@
         "src/inference/pipelines/text/lifecycle.js",
         "src/inference/pipelines/text/linear-attention-ab-fusion.js",
         "src/inference/pipelines/text/linear-attention.js",
+        "src/inference/pipelines/text/linear-attention/activity.js",
         "src/inference/pipelines/text/linear-attention/norm-ab.js",
         "src/inference/pipelines/text/linear-attention/plan.js",
         "src/inference/pipelines/text/linear-attention/state-checkpoint.js",
@@ -6563,6 +6664,7 @@
         "src/inference/tokenizers/bundled.js",
         "src/inference/tokenizers/bundled/decoders.js",
         "src/inference/tokenizers/bundled/incremental-decoder.js",
+        "src/inference/tokenizers/bundled/normalizer.js",
         "src/inference/tokenizers/bundled/registry.js",
         "src/inference/tokenizers/sentencepiece.js",
         "src/loader/doppler-loader.js",
@@ -6591,6 +6693,7 @@
         "src/loader/model-load.js",
         "src/loader/ngram-table-bindings.js",
         "src/loader/per-layer-input-loader.js",
+        "src/loader/q4k-reference-weight.js",
         "src/loader/shard-cache.js",
         "src/loader/shard-resolver.js",
         "src/loader/tensor-load-error.js",
@@ -6740,6 +6843,7 @@
         "src/tooling/node-webgpu-provider.v1.json",
         "src/tooling/node-webgpu.js",
         "src/tooling/opfs-cache.js",
+        "src/tooling/portable-source-path.js",
         "src/tooling/production-release.js",
         "src/tooling/program-bundle-host.js",
         "src/tooling/program-bundle-parity.js",
@@ -6753,6 +6857,7 @@
         "src/tooling/program-bundle/wgsl-closure.js",
         "src/tooling/provider-v1-contract.js",
         "src/tooling/rdrr-integrity-refresh.js",
+        "src/tooling/reference-verify.js",
         "src/tooling/registered-variant-calibration-job.js",
         "src/tooling/registered-variant-calibration.js",
         "src/tooling/runtime-input-composition.js",
@@ -6810,8 +6915,7 @@
         "src/storage/emulated-vram.js",
         "src/tooling/capsule.js",
         "src/tooling/distribution-shard-transport.js",
-        "src/tooling/precision-replay-math.js",
-        "src/tooling/reference-verify.js"
+        "src/tooling/precision-replay-math.js"
       ]
     }
   },
@@ -6825,8 +6929,10 @@
     "src/config/capsule-serve.schema.json",
     "src/config/conversion/diffusiongemma/diffusiongemma-26b-a4b-it-q4k-ehf16-af16.json",
     "src/config/conversion/esm/esm2-t12-35m-ur50d-f32-af32.json",
+    "src/config/conversion/lfm2/lfm2.5-1.2b-instruct-q4k-ehf16-af32.json",
     "src/config/conversion/qwen3/qwen-3-5-0-8b-q4k-ehaf16.json",
     "src/config/conversion/qwen3/qwen-3-6-35b-a3b-text-q4k-ehf16-af32.json",
+    "src/config/conversion/qwen3/qwen-3-8-flash-next-text-q4k-ehf16-af32.json",
     "src/config/conversion/qwen3/qwen3.8-27b-text-f16-af32.json",
     "src/config/quickstart-registry.json",
     "src/config/revocation-registry.json",
@@ -6862,6 +6968,7 @@
     "src/gpu/kernels/rmsnorm_paired_sliced.wgsl",
     "src/gpu/kernels/rmsnorm_stats.wgsl",
     "src/gpu/kernels/rmsnorm_stats_subgroups.wgsl",
+    "src/gpu/kernels/scatter_add_routes_f32.wgsl",
     "src/gpu/partitioned-buffer-pool.js",
     "src/gpu/readback-utils.js",
     "src/index-browser.js",
@@ -6960,6 +7067,30 @@
       "expression": "import(signedTarget)"
     },
     {
+      "file": "tests/config/conversion-profile-authoring.test.js",
+      "kind": "asset",
+      "line": 18,
+      "expression": "new URL(`../../${AUTHORING_ROOT}/qwen3/qwen-3-5-2b-q4k-ehaf16.authoring.json`, import.meta.url)"
+    },
+    {
+      "file": "tests/config/conversion-profile-authoring.test.js",
+      "kind": "asset",
+      "line": 26,
+      "expression": "new URL(`../../${AUTHORING_ROOT}`, import.meta.url)"
+    },
+    {
+      "file": "tests/config/conversion-profile-authoring.test.js",
+      "kind": "asset",
+      "line": 29,
+      "expression": "new URL(`../../${target}`, import.meta.url)"
+    },
+    {
+      "file": "tests/config/conversion-profile-authoring.test.js",
+      "kind": "asset",
+      "line": 41,
+      "expression": "new URL(`../../${targets[0]}`, import.meta.url)"
+    },
+    {
       "file": "tests/config/embedding-compare-contract.test.js",
       "kind": "asset",
       "line": 67,
@@ -7022,25 +7153,85 @@
     {
       "file": "tests/demo/browser-activation.js",
       "kind": "dynamic",
-      "line": 35,
+      "line": 113,
       "expression": "import(new URL('ui/activation-grid/index.js', document.querySelector('script[src$=\"/demo.js\"]').src))"
     },
     {
       "file": "tests/demo/browser-activation.js",
       "kind": "dynamic",
-      "line": 36,
+      "line": 114,
       "expression": "import(new URL('report.js', document.querySelector('script[src$=\"/demo.js\"]').src))"
+    },
+    {
+      "file": "tests/demo/browser-activation.js",
+      "kind": "dynamic",
+      "line": 121,
+      "expression": "import(new URL('output.js', entry))"
+    },
+    {
+      "file": "tests/demo/browser-activation.js",
+      "kind": "dynamic",
+      "line": 147,
+      "expression": "import(new URL('output.js', entry))"
+    },
+    {
+      "file": "tests/demo/browser-activation.js",
+      "kind": "dynamic",
+      "line": 148,
+      "expression": "import(new URL('ui/state.js', entry))"
+    },
+    {
+      "file": "tests/demo/browser-activation.js",
+      "kind": "dynamic",
+      "line": 156,
+      "expression": "import(new URL('data/sample-inspection.js', document.querySelector('script[src$=\"/demo.js\"]').src))"
+    },
+    {
+      "file": "tests/demo/browser-activation.js",
+      "kind": "dynamic",
+      "line": 277,
+      "expression": "import(new URL('core.js', entry))"
+    },
+    {
+      "file": "tests/demo/browser-activation.js",
+      "kind": "dynamic",
+      "line": 278,
+      "expression": "import(new URL('data/sample-inspection.js', entry))"
+    },
+    {
+      "file": "tests/demo/browser-activation.js",
+      "kind": "dynamic",
+      "line": 291,
+      "expression": "import(new URL('ui/activation-grid/index.js', entry))"
+    },
+    {
+      "file": "tests/demo/browser-controls.js",
+      "kind": "dynamic",
+      "line": 296,
+      "expression": "import(new URL('ui/activation-grid/index.js', entry))"
+    },
+    {
+      "file": "tests/demo/browser-run-coherence.js",
+      "kind": "dynamic",
+      "line": 6,
+      "expression": "import(new URL('data/sample-inspection.js', document.querySelector('script[src$=\"/demo.js\"]').src))"
+    },
+    {
+      "file": "tests/demo/browser-run-coherence.js",
+      "kind": "dynamic",
+      "line": 92,
+      "expression": "import(new URL('boot.js', entry))"
     },
     {
       "file": "tests/demo/browser-streaming.js",
       "kind": "dynamic",
-      "line": 74,
+      "line": 89,
       "expression": "import(`${base}/demo/output.js`)"
     },
     {
       "file": "tests/demo/browser-streaming.js",
       "kind": "dynamic",
-      "line": 118,
+      "line": 133,
       "expression": "import(`${base}/demo/ui/chat-markdown.js`)"
     },
     {
@@ -7107,6 +7298,12 @@
       "file": "tests/gpu/kernel-completion-policy.test.js",
       "kind": "dynamic",
       "line": 47,
+      "expression": "import(target)"
+    },
+    {
+      "file": "tests/gpu/kernel-output-transaction.test.js",
+      "kind": "dynamic",
+      "line": 28,
       "expression": "import(target)"
     },
     {
@@ -7186,6 +7383,12 @@
       "kind": "asset",
       "line": 16,
       "expression": "new URL(`../../src/gpu/kernels/${file}`, import.meta.url)"
+    },
+    {
+      "file": "tests/helpers/physical-browser-regression.js",
+      "kind": "dynamic",
+      "line": 23,
+      "expression": "import(modulePath)"
     },
     {
       "file": "tests/inference/decode-output-ownership.test.js",
@@ -7394,7 +7597,7 @@
     {
       "file": "tests/inference/partition-prefill-lifetime.test.js",
       "kind": "dynamic",
-      "line": 89,
+      "line": 93,
       "expression": "import(target)"
     },
     {
@@ -7430,7 +7633,7 @@
     {
       "file": "tests/inference/resident-canonical-execution.test.js",
       "kind": "dynamic",
-      "line": 35,
+      "line": 36,
       "expression": "import(target)"
     },
     {
@@ -7442,7 +7645,7 @@
     {
       "file": "tests/inference/resident-reasoning-output.test.js",
       "kind": "dynamic",
-      "line": 27,
+      "line": 28,
       "expression": "import(residentURL)"
     },
     {
@@ -7460,7 +7663,7 @@
     {
       "file": "tests/inference/seeded-generation-sequence.test.js",
       "kind": "dynamic",
-      "line": 114,
+      "line": 115,
       "expression": "import(residentURL)"
     },
     {
@@ -7508,7 +7711,7 @@
     {
       "file": "tests/integration/flash-next-runtime-profile.test.js",
       "kind": "asset",
-      "line": 16,
+      "line": 17,
       "expression": "new URL(path, import.meta.url)"
     },
     {
@@ -7614,6 +7817,12 @@
       "expression": "new URL(`../../src/gpu/kernels/${name}`, import.meta.url)"
     },
     {
+      "file": "tests/kernels/gated-delta-softplus-physical.test.js",
+      "kind": "asset",
+      "line": 66,
+      "expression": "new URL(`../../src/gpu/kernels/${file}`, import.meta.url)"
+    },
+    {
       "file": "tests/kernels/gdn-gguf-prefill-selection.test.js",
       "kind": "dynamic",
       "line": 36,
@@ -7680,6 +7889,18 @@
       "expression": "import(new URL(path, moduleBase))"
     },
     {
+      "file": "tests/kernels/silu-unclamped-physical.test.js",
+      "kind": "asset",
+      "line": 34,
+      "expression": "new URL(`../../src/gpu/kernels/${file}`, import.meta.url)"
+    },
+    {
+      "file": "tests/loader/q4k-reference-weight.test.js",
+      "kind": "dynamic",
+      "line": 25,
+      "expression": "import(target)"
+    },
+    {
       "file": "tests/loader/weight-downcast-failure.test.js",
       "kind": "dynamic",
       "line": 22,
@@ -7734,6 +7955,12 @@
       "expression": "new URL(`../../src/gpu/kernels/${filename}`, import.meta.url)"
     },
     {
+      "file": "tests/tooling/reference-runtime-merge.test.js",
+      "kind": "asset",
+      "line": 28,
+      "expression": "new URL(`../../${file}`, import.meta.url)"
+    },
+    {
       "file": "tools/benchmark-artifact-hashing.js",
       "kind": "dynamic",
       "line": 38,
@@ -7748,7 +7975,7 @@
     {
       "file": "tools/demo-contract-smoke.js",
       "kind": "dynamic",
-      "line": 244,
+      "line": 281,
       "expression": "import(url)"
     },
     {
@@ -7784,20 +8011,26 @@
     {
       "file": "tools/experiments/build-pooled-q8-common-rdrr.js",
       "kind": "dynamic",
-      "line": 56,
+      "line": 57,
       "expression": "import(pathToFileURL(path.join(args['pooled-root'], 'engine/gguf.js')).href)"
     },
     {
       "file": "tools/experiments/demo-hosted-smoke.js",
       "kind": "dynamic",
-      "line": 30,
+      "line": 66,
       "expression": "import(new URL('ui/state.js', base))"
     },
     {
       "file": "tools/experiments/demo-hosted-smoke.js",
       "kind": "dynamic",
-      "line": 31,
+      "line": 67,
       "expression": "import(new URL('ui/activation-grid/index.js', base))"
+    },
+    {
+      "file": "tools/experiments/demo-hosted-smoke.js",
+      "kind": "dynamic",
+      "line": 69,
+      "expression": "import(new URL('ui/activation-grid/views.js', base))"
     },
     {
       "file": "tools/experiments/f32-prefill-attention-physical.js",
@@ -7840,6 +8073,18 @@
       "kind": "dynamic",
       "line": 25,
       "expression": "import(pathToFileURL(config.electronEntry).href)"
+    },
+    {
+      "file": "tools/gemma3-mobile-binding-check.js",
+      "kind": "dynamic",
+      "line": 69,
+      "expression": "import(`${base}/demo/ui/state.js`)"
+    },
+    {
+      "file": "tools/gemma3-mobile-binding-check.js",
+      "kind": "dynamic",
+      "line": 102,
+      "expression": "import(`${base}/src/gpu/device.js`)"
     },
     {
       "file": "tools/generation-qualification-scenario.js",
@@ -7996,6 +8241,48 @@
       "kind": "dynamic",
       "line": 84,
       "expression": "import(moduleUrl)"
+    },
+    {
+      "file": "tools/run-gdn-same-input.js",
+      "kind": "dynamic",
+      "line": 12,
+      "expression": "import(pathToFileURL(path.join(root,file)).href)"
+    },
+    {
+      "file": "tools/run-hc-origin-counterfactual.js",
+      "kind": "dynamic",
+      "line": 47,
+      "expression": "import(pathToFileURL(path.join(root,'src/memory/buffer-pool.js')).href)"
+    },
+    {
+      "file": "tools/run-hc-origin-counterfactual.js",
+      "kind": "dynamic",
+      "line": 58,
+      "expression": "import(pathToFileURL(path.join(root,'src/memory/buffer-pool.js')).href)"
+    },
+    {
+      "file": "tools/run-hc-origin-counterfactual.js",
+      "kind": "dynamic",
+      "line": 59,
+      "expression": "import(pathToFileURL(path.join(root,'src/gpu/device.js')).href)"
+    },
+    {
+      "file": "tools/run-hc-origin-counterfactual.js",
+      "kind": "dynamic",
+      "line": 76,
+      "expression": "import(pathToFileURL(path.join(root,'tests/helpers/moe-routing-observation-loader.js')).href)"
+    },
+    {
+      "file": "tools/run-hc-origin-counterfactual.js",
+      "kind": "dynamic",
+      "line": 80,
+      "expression": "import(pathToFileURL(path.join(root,'src/memory/buffer-pool.js')).href)"
+    },
+    {
+      "file": "tools/run-hc-origin-counterfactual.js",
+      "kind": "dynamic",
+      "line": 94,
+      "expression": "import(pathToFileURL(path.join(root,'tests/integration/flash-next-learned-physical.test.js')).href)"
     },
     {
       "file": "tools/validate-quickstart-cold-path.js",

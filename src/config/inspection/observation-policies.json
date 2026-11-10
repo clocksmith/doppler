@@ -151,7 +151,13 @@
         "weightRawRows": 4,
         "weightMaxBytes": 16777216,
         "activityTokenWindow": 4,
-        "activitySummaryBlock": 256
+        "activitySummaryBlock": 256,
+        "activitySelection": {
+          "roles": null,
+          "layers": null,
+          "tokens": null
+        },
+        "activityRoleMaxBytes": {}
       }
     },
     {
@@ -196,7 +202,13 @@
         "weightRawRows": 4,
         "weightMaxBytes": 16777216,
         "activityTokenWindow": 4,
-        "activitySummaryBlock": 256
+        "activitySummaryBlock": 256,
+        "activitySelection": {
+          "roles": null,
+          "layers": null,
+          "tokens": null
+        },
+        "activityRoleMaxBytes": {}
       }
     }
   ]

@@ -1,5 +1,5 @@
 [
-  {"id": "model-paths", "label": "Model paths", "roles": [], "clock": "boundary", "group": "Captured updates", "clockLabel": "Highlights actual capture boundaries"},
+  {"id": "model-paths", "label": "Model paths", "roles": [], "recordRoles": null, "clock": "boundary", "group": "Captured updates", "clockLabel": "Highlights actual capture boundaries"},
   {"id": "layer-output", "label": "Layer outputs", "roles": [], "clock": "token", "group": "Token playback", "clockLabel": "Changes with token position"},
   {"id": "ffn-product", "label": "FFN features · activated product", "roles": ["ffn-product"], "clock": "token", "group": "Token playback", "clockLabel": "Changes with token position"},
   {"id": "ffn-gate", "label": "FFN features · gate projection", "roles": ["ffn-gate"], "clock": "token", "group": "Token playback", "clockLabel": "Changes with token position"},
@@ -16,7 +16,7 @@
   {"id": "linear-gates", "label": "Memory retention & update gates", "roles": ["linear-a", "linear-b", "linear-a-log", "linear-dt-bias"], "clock": "token", "group": "Token playback", "clockLabel": "Changes with token position"},
   {"id": "logits", "label": "Next-token scores", "roles": ["logits"], "clock": "token", "group": "Token playback", "clockLabel": "Changes with token position"},
   {"id": "probabilities", "label": "Next-token probabilities", "roles": ["logits"], "clock": "token", "group": "Token playback", "clockLabel": "Changes with token position"},
-  {"id": "quantization-error", "label": "Weight quantization error", "roles": ["quantization-error"], "clock": "snapshot", "group": "Snapshots · no playback", "clockLabel": "Fixed reference comparison"},
-  {"id": "residency", "label": "Weight residency & access", "roles": [], "clock": "boundary", "group": "Captured updates", "clockLabel": "Observed dispatch events"},
+  {"id": "quantization-error", "label": "Weight quantization error", "roles": ["quantization-error"], "recordRoles": [], "clock": "snapshot", "group": "Snapshots · no playback", "clockLabel": "Fixed reference comparison"},
+  {"id": "residency", "label": "Weight residency & access", "roles": [], "recordRoles": ["weight-access"], "clock": "boundary", "group": "Captured updates", "clockLabel": "Observed dispatch events"},
   {"id": "expert-routing", "label": "Expert routing", "roles": ["expert-indices", "expert-weights"], "clock": "token", "group": "Token playback", "clockLabel": "Changes with token position"}
 ]

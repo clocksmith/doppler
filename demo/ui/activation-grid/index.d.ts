@@ -19,6 +19,7 @@ export interface GridElements {
   'activation-export': HTMLButtonElement; 'activation-play': HTMLButtonElement;
   'activation-live': HTMLButtonElement; 'activation-canvas': HTMLCanvasElement;
   'activation-record': HTMLInputElement; 'activation-scrub': HTMLInputElement;
+  'activation-record-view': HTMLInputElement; 'activation-record-view-label': HTMLElement;
   'activation-position': HTMLInputElement; 'activation-scale': HTMLInputElement;
   'activation-speed': HTMLSelectElement;
   'activation-caption': HTMLElement; 'activation-layout': HTMLElement;
@@ -29,6 +30,10 @@ export interface GridElements {
   'activity-unsure-prev': HTMLButtonElement; 'activity-unsure-next': HTMLButtonElement;
 }
 export declare function isActivationRecordingEnabled(): boolean;
+/** Shows the "only the open view" choice when the loaded runtime can record a chosen subset. */
+export declare function setCaptureSelectionSupport(model: { inspect: { listPolicies?: () => { activationTrace?: { activitySelection?: unknown } }[] } } | null): void;
+/** The capture selection for the next answer; undefined records everything the policy allows. */
+export declare function activityCaptureRequest(): { roles: string[] } | undefined;
 export declare function clearActivationRecording(): void;
 export declare function beginActivationRecording(prompt?: string): void;
 export declare function acceptActivationFrame(event: { type: 'activation-frame'; frame: ActivationFrame; trace: ActivationTraceReceipt }): void;

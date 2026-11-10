@@ -28,6 +28,15 @@ export function viewPositions(recording, viewId) {
   return new Set([...covered[0]].filter(position => covered.every(set => set.has(position))));
 }
 
+// The capture kinds a recording must keep for one view to be drawable; null
+// means every kind (the model map draws from all of them).
+/** @type {typeof import('./views.js').viewCaptureRoles} */
+export function viewCaptureRoles(viewId) {
+  const view = /** @type {{ roles: string[]; recordRoles?: string[] | null } | undefined} */ (modes.find(m => m.id === viewId));
+  if (!view) return null;
+  return view.recordRoles === undefined ? [...view.roles] : view.recordRoles && [...view.recordRoles];
+}
+
 // Captures a view needs per token position; none for views not tied to one position.
 /** @param {string} viewId */
 function positionRoles(viewId) {
@@ -49,14 +58,21 @@ function covers(f, position) { return position >= f.tokenStart && position < f.t
 
 // Why a view lacks values at a position, read from the recording, and the nearest it can draw.
 /** @type {typeof import('./views.js').missingReason} */
-export function missingReason(recording, viewId, position, detail = 'overview') {
+export function missingReason(recording, viewId, position, detail = 'overview', layer = -1) {
   const covered = viewPositions(recording, viewId);
   const nearest = covered?.size ? [...covered].reduce((best, p) => Math.abs(p - position) < Math.abs(best - position) ? p : best) : null;
-  const frames = recording.trace.activity?.frames ?? [];
-  const limitBytes = Number(recording.trace.capturePolicy?.activityMaxBytes);
-  const limit = Number.isFinite(limitBytes) && limitBytes > 0 ? ` (${Math.round(limitBytes / 2 ** 20)} MB)` : '';
+  const activity = recording.trace.activity, frames = activity?.frames ?? [];
+  const megabytes = (/** @type {unknown} */ bytes) => Number.isFinite(Number(bytes)) && Number(bytes) > 0 ? ` (${Math.round(Number(bytes) / 2 ** 20)} MB)` : '';
+  const limit = megabytes(recording.trace.capturePolicy?.activityMaxBytes);
   const answerStart = Math.min(...recording.trace.frames.filter(f => f.phase === 'decode').map(f => f.tokenStart));
-  for (const role of positionRoles(viewId)) {
+  // What the person recording chose to leave out; absent in recordings made before that choice existed.
+  const chosen = activity?.selection ?? null, roles = positionRoles(viewId);
+  const keptLayers = chosen?.layers && roles.length ? `This recording kept layer${chosen.layers.length === 1 ? '' : 's'} ${chosen.layers.map(l => l + 1).join(', ')} only.` : '';
+  if (keptLayers && layer >= 0 && !chosen?.layers?.includes(layer)) return { kind: 'not-selected', nearest: position, text: keptLayers };
+  for (const role of roles) {
+    if (chosen?.roles && !chosen.roles.includes(role)) {
+      return { kind: 'not-selected', nearest: null, text: 'This recording was set to leave this view out, so nothing was saved for it.' };
+    }
     const mine = frames.filter(f => f.role === role);
     const here = mine.filter(f => covers(f, position));
     const failed = here.find(f => f.status === 'failed');
@@ -68,7 +84,15 @@ export function missingReason(recording, viewId, position, detail = 'overview') 
     const dropped = mine.filter(f => f.status === 'dropped');
     if (here.some(f => f.status === 'dropped')) {
       const first = Math.min(...dropped.map(f => f.tokenStart));
+      // A view can run out of its own budget while the recording still has room.
+      if (here.some(f => f.status === 'dropped' && f.metadata.limit === 'activityRoleMaxBytes')) {
+        return { kind: 'dropped', nearest, text: `This view reached its own size limit${megabytes(activity?.coverage?.[role]?.maxBytes)} at token ${first}, so it was not saved after that.` };
+      }
       return { kind: 'dropped', nearest, text: `The recording reached its size limit${limit} at token ${first}, so this view was not saved after that.` };
+    }
+    const range = chosen?.tokens;
+    if (range && (position < range.from || (range.to !== null && position >= range.to))) {
+      return { kind: 'not-selected', nearest, text: `This recording kept ${range.to === null ? `token ${range.from} onward` : `tokens ${range.from}–${range.to - 1}`} for this view.` };
     }
     const saved = mine.filter(hasPicture);
     if (!saved.length) continue;
@@ -83,7 +107,26 @@ export function missingReason(recording, viewId, position, detail = 'overview') 
     }
     return { kind: 'elsewhere', nearest, text: `Saved only for tokens ${from}–${to}.` };
   }
+  // Every layer at once: the layers left out stay missing in an otherwise complete picture.
+  if (keptLayers && layer < 0) return { kind: 'not-selected', nearest: position, text: keptLayers };
   return { kind: 'none', nearest, text: '' };
+}
+
+// What a recording left out and why, from its own coverage counts.
+/** @type {typeof import('./views.js').omissionSummary} */
+export function omissionSummary(recording) {
+  const coverage = Object.entries(recording.trace.activity?.coverage ?? {});
+  const total = (/** @type {(c: import('./views.js').ActivityCoverage) => number} */ count) => coverage.reduce((sum, [, c]) => sum + count(c), 0);
+  const parts = [];
+  const unselected = coverage.filter(([, c]) => c.notSelected.role).map(([role]) => role);
+  if (unselected.length) parts.push(`left out by choice: ${unselected.join(', ')}`);
+  const layers = total(c => c.notSelected.layer), tokens = total(c => c.notSelected.token), reused = total(c => c.reused);
+  if (layers) parts.push(`${layers} captures on layers not selected`);
+  if (tokens) parts.push(`${tokens} captures outside the selected tokens`);
+  if (reused) parts.push(`${reused} repeats of fixed per-layer values recorded once`);
+  const dropped = coverage.filter(([, c]) => c.dropped);
+  if (dropped.length) parts.push(`out of budget: ${dropped.map(([role, c]) => `${role} from token ${c.firstDroppedToken}`).join(', ')}`);
+  return parts.join(' · ');
 }
 
 /** @type {typeof import('./views.js').activityModes} */
@@ -101,6 +144,8 @@ export function activityModes(recording) {
     if (mode.id === 'residency' && !weights.length) reason = 'No loaded-weight inventory in this recording.';
     if (mode.id === 'quantization-error' && weights.some(w => w.error?.length)) reason = null;
     if (!reason && recording && viewPositions(recording, mode.id)?.size === 0) reason = 'This recording has no capture for this view.';
+    const kept = recording?.trace.activity?.selection?.roles;
+    if (reason && kept && mode.roles.some(role => !kept.includes(role))) reason = 'This recording was set to leave this view out.';
     if (reason) reason = recording?.trace.activity?.unavailable[mode.id] ?? reason;
     return { ...mode, reason };
   });

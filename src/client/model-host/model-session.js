@@ -5,6 +5,7 @@ import {
 } from './model-evidence.js';
 import { getKernelCapabilities } from '../../gpu/device.js';
 import { createActivationTrace } from '../../debug/activation-trace.js';
+import { resolveActivityCapture } from '../../debug/activity-trace.js';
 import { DOPPLER_VERSION } from '../../version.js';
 import { createGenerationOutputDecoder, decodeGenerationOutput } from '../../inference/generation-output.js';
 import { formatChatMessages } from '../../inference/pipelines/text/chat-format.js';
@@ -625,7 +626,8 @@ export function createModelHandle(pipeline, resolved) {
       let streaming = typeof options.onEvent === 'function';
       let tokenIndex = 0;
       const topKSize = Number.isInteger(options.topKSize) ? options.topKSize : 5;
-      const traceConfig = policy.activationTrace;
+      // A request may record less than the policy allows; the receipt keeps what was chosen.
+      const traceConfig = resolveActivityCapture(policy.activationTrace, options.capture);
       const activationTrace = traceConfig ? createActivationTrace(traceConfig, {
         layers: pipeline.modelConfig.numLayers,
         width: pipeline.modelConfig.hiddenSize * (pipeline.modelConfig.hyperConnections?.streamCount ?? 1),

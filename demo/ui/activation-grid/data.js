@@ -23,7 +23,8 @@ export function validateRecording(input) {
     || ![trace.identity.modelId, trace.identity.runtimeVersion].every(s => typeof s === 'string' && s.length > 0)
     || !(trace.identity.manifestHash === null || typeof trace.identity.manifestHash === 'string')
     || !['complete', 'recording', 'stopped', 'error'].includes(trace.status)
-    || !Object.values(trace.capturePolicy).every(n => Number.isSafeInteger(n) && n > 0)
+    || !Object.entries(trace.capturePolicy).every(([key, n]) => ['activitySelection', 'activityRoleMaxBytes'].includes(key)
+      ? Boolean(n) && typeof n === 'object' : Number.isSafeInteger(n) && n > 0)
     || !['maxBytes', 'maxFrameBytes', 'maxFrames', 'maxGridValues', 'maxInFlight'].every(k => k in trace.capturePolicy)
     || ![geometry?.layers, geometry?.width].every(n => Number.isSafeInteger(n) && n > 0)
     || geometry.layers * geometry.width > config.maxGridValues

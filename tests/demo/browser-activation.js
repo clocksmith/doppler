@@ -361,4 +361,24 @@ export async function checkLiveActivity(page) {
   await page.waitForFunction(() => document.querySelector('#output-phase').textContent === 'Complete');
   await page.locator('#activation-player').waitFor({ state: 'hidden' });
   assert.equal(await page.locator('#activation-player').isVisible(), false, 'Recording-off runs clear the previous answer’s grid');
+
+  // "Only the view I have open" narrows the next recording to what that view draws from.
+  assert.equal(await page.evaluate(() => __demoContract.calls.at(-1).capture), null, 'Without the choice, a run records everything its policy allows');
+  await page.locator('#activation-record').check();
+  assert.equal(await page.locator('#activation-record-view-label').isVisible(), true, 'A runtime that can record a chosen subset offers the choice');
+  await page.evaluate(async () => {
+    const entry = document.querySelector('script[src$="/demo.js"]').src;
+    await (await import(new URL('ui/activation-grid/index.js', entry))).loadActivityExample('probabilities');
+  });
+  assert.equal(await page.inputValue('#activity-mode'), 'probabilities');
+  await page.locator('#activation-record-view').check();
+  await page.fill('#prompt-input', 'Record one view.');
+  await page.click('#run-btn');
+  await page.waitForFunction(() => document.querySelector('#output-phase').textContent.startsWith('Complete'));
+  assert.deepEqual(await page.evaluate(() => __demoContract.calls.at(-1).capture), { roles: ['logits'] }, 'The request names exactly the kinds the open view draws from');
+  await page.locator('#activation-record-view').uncheck();
+  await page.fill('#prompt-input', 'Record everything again.');
+  await page.click('#run-btn');
+  await page.waitForFunction(() => document.querySelector('#output-phase').textContent.startsWith('Complete'));
+  assert.equal(await page.evaluate(() => __demoContract.calls.at(-1).capture), null);
 }

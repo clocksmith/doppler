@@ -5,7 +5,7 @@ import { SHELL_MANIFEST_DIGEST } from '../../generated-shell-manifest.js';
 import { validateRecording, colorGrid, initialColorScale, heatmapColor, heatmapColors, layerHistory, layerShape } from './data.js';
 import { modelPathView, renderModelPaths, renderLayerMap } from './paths.js';
 import { encodeRecording } from './recording-codec.js';
-import { activityView, activityModes, playbackPoints, assertMatchedRuns, missingReason } from './views.js';
+import { activityView, activityModes, playbackPoints, assertMatchedRuns, missingReason, omissionSummary, viewCaptureRoles } from './views.js';
 
 /** @template {keyof import('./index.js').GridElements} K
  * @param {K} id @returns {import('./index.js').GridElements[K]} */
@@ -43,6 +43,24 @@ let openingHint = false;
 let onPlayback = null;
 
 export function isActivationRecordingEnabled() { return $('activation-record')?.checked === true; }
+
+// A runtime that can record a chosen subset says so in its activity policy.
+/** @type {typeof import('./index.js').setCaptureSelectionSupport} */
+export function setCaptureSelectionSupport(model) {
+  let supported = false;
+  try {
+    supported = model?.inspect.listPolicies?.().some(policy => policy.activationTrace?.activitySelection !== undefined) === true;
+  } catch { /* A runtime without the listing cannot narrow a recording. */ }
+  $('activation-record-view-label').hidden = !supported;
+}
+
+// What the next answer should record: undefined for everything the policy allows.
+/** @type {typeof import('./index.js').activityCaptureRequest} */
+export function activityCaptureRequest() {
+  if (!isActivationRecordingEnabled() || $('activation-record-view-label').hidden || !$('activation-record-view').checked) return undefined;
+  const roles = viewCaptureRoles($('activity-mode').value || config.commonModes[0]);
+  return roles ? { roles } : undefined;
+}
 
 function stopPlayback() {
   if (timer !== null) clearTimeout(timer);
@@ -257,7 +275,7 @@ function paint() {
   }
   const present = view.values.filter(v => v !== undefined).length;
   // Why values are missing, read from the recording, with the nearest token that has them.
-  const why = graph || chosen?.reason ? null : missingReason(recording, select.value, position, $('activity-detail').value);
+  const why = graph || chosen?.reason ? null : missingReason(recording, select.value, position, $('activity-detail').value, Number(layerSelect.value));
   const firstPosition = Math.min(...trace.frames.map(f => f.tokenStart));
   let missingText = '';
   if (!present && !chosen?.reason) {
@@ -266,7 +284,7 @@ function paint() {
       : why?.text || (layerSelect.value !== '-1'
         ? `Nothing was saved for layer ${Number(layerSelect.value) + 1} in this view at token ${position}. Choose All captured layers to see which layers have values.`
         : `Nothing was saved for this view at token ${position}.`);
-  } else if (why && (why.kind === 'dropped' || why.kind === 'failed') && present < view.values.length) {
+  } else if (why && ['dropped', 'failed', 'not-selected'].includes(why.kind) && present < view.values.length) {
     missingText = `Part of this picture is missing. ${why.text}`;
   }
   const goTo = !present && select.value === 'difference' && !baseline && position === firstPosition ? firstPosition + 1
@@ -328,7 +346,7 @@ function paint() {
     $('activation-layout').textContent = `${trace.geometry.layers} layer tiles, each ${shape.width} × ${shape.height}, in layer order. One component per opaque pixel; folding a vector does not imply connections between neighboring pixels. ${view.description} History: RMS across every component in a layer; any missing component makes its summary missing. Future positions stay missing. Select a tile for captured branches. ${playMeaning}`;
   }
   const gaps = [...trace.frames, ...(trace.activity?.frames ?? [])].filter(f => ['failed', 'dropped'].includes(f.status)).length;
-  $('activation-status').textContent = `${trace.identity.logicalModelId ?? trace.identity.modelId} · ${trace.identity.adapters?.length ? JSON.stringify(trace.identity.adapters) : 'no active adapters recorded'} · manifest ${trace.identity.manifestHash ?? 'unavailable'} · ${trace.status} · ${gaps} missing captures · ${((trace.recordedBytes + (trace.activity?.recordedBytes ?? 0)) / 1048576).toFixed(1)} MiB of retained numerical payload, plus weights and metadata${trace.stoppedReason ? ' · ' + trace.stoppedReason : ''}${trace.activity?.unavailable['capture-limit'] ? ' · ' + trace.activity.unavailable['capture-limit'] : ''}`;
+  $('activation-status').textContent = `${trace.identity.logicalModelId ?? trace.identity.modelId} · ${trace.identity.adapters?.length ? JSON.stringify(trace.identity.adapters) : 'no active adapters recorded'} · manifest ${trace.identity.manifestHash ?? 'unavailable'} · ${trace.status} · ${gaps} missing captures · ${((trace.recordedBytes + (trace.activity?.recordedBytes ?? 0)) / 1048576).toFixed(1)} MiB of retained numerical payload, plus weights and metadata${trace.stoppedReason ? ' · ' + trace.stoppedReason : ''}${trace.activity?.unavailable['capture-limit'] ? ' · ' + trace.activity.unavailable['capture-limit'] : ''}${omissionSummary(recording) ? ' · ' + omissionSummary(recording) : ''}`;
   $('activity-page-control').hidden = view.extent <= config.maxDisplayValues;
   $('activity-page').max = String(Math.max(0, Math.ceil(view.extent / config.maxDisplayValues) - 1));
   canvas.onpointermove = event => {
@@ -446,6 +464,7 @@ export function initActivationGrid(options = {}) {
   $('activity-playback').value = config.defaultPlayback;
   for (const [id, key, enabled] of [
     ['activation-record', config.recordPreferenceKey, config.recordByDefault],
+    ['activation-record-view', config.recordViewOnlyPreferenceKey, config.recordViewOnlyByDefault],
   ]) {
     const input = $(/** @type {'activation-record'} */ (id));
     try { const saved = localStorage.getItem(String(key)); input.checked = saved === null ? Boolean(enabled) : saved === 'true'; }

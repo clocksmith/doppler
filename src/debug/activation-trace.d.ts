@@ -1,4 +1,5 @@
 export interface ActivationTraceLimits {
+  activitySelection?: import('./activity-trace.js').ActivitySelection; activityRoleMaxBytes?: Record<string, number>;
   activityMaxBytes?: number; activityMaxFrameValues?: number; activityMaxStateValues?: number;
   activityTokenWindow?: number; activitySummaryBlock?: number;
   weightBlockValues?: number; weightReadValues?: number; weightRowGroupSize?: number; weightRawRows?: number; weightMaxBytes?: number;

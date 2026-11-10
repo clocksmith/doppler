@@ -2,7 +2,29 @@ import type { ActivationTraceLimits } from './activation-trace.js';
 import type { TensorRepresentation } from './tensor.js';
 import type { CommandRecorder } from '../gpu/command-recorder.js';
 
+/** Which captures are recorded. null in a field means no restriction. `tokens.to` is exclusive. */
+export interface ActivitySelection {
+  roles: string[] | null; layers: number[] | null; tokens: { from: number; to: number | null } | null;
+}
+/** A request's narrowing of its policy: record less, or within smaller budgets. */
+export interface ActivityCaptureRequest {
+  roles?: string[] | null; layers?: number[] | null; tokens?: { from: number; to: number | null } | null;
+  maxBytes?: number; roleMaxBytes?: Record<string, number>;
+}
+/** What happened to one capture kind over a run. Counts are capture attempts. */
+export interface ActivityCoverage {
+  captured: number; capturedBytes: number;
+  /** Attempts served by an earlier capture of a fixed per-layer value. */
+  reused: number;
+  dropped: number; failed: number;
+  /** Attempts the selection left out, by the first rule that excluded them. */
+  notSelected: { role: number; layer: number; token: number };
+  firstDroppedToken: number | null;
+  /** This kind's own budget, or null when only the recording budget applies. */
+  maxBytes: number | null;
+}
 export interface ActivityLimits extends ActivationTraceLimits {
+  activitySelection: ActivitySelection; activityRoleMaxBytes: Record<string, number>;
   activitySummaryBlock: number; activityTokenWindow: number; activityMaxBytes: number; activityMaxFrameValues: number; activityMaxStateValues: number;
   weightBlockValues: number; weightReadValues: number; weightRowGroupSize: number; weightRawRows: number; weightMaxBytes: number;
 }
@@ -26,6 +48,7 @@ export interface ActivityWeight {
 export interface ActivityReceipt {
   schema: 'doppler.model-activity/v1'; frames: ActivityFrame[]; weights: ActivityWeight[];
   recordedBytes: number; limits: ActivityLimits;
+  selection: ActivitySelection; coverage: Record<string, ActivityCoverage>;
   unavailable: Record<string, string>; model: Record<string, unknown>;
 }
 export interface ActivityCaptureOptions extends TensorRepresentation {
@@ -50,3 +73,4 @@ export interface ActivityTrace {
   logits(logits: Float32Array): Promise<void>;
 }
 export function createActivityTrace(limits: ActivityLimits, started: number): ActivityTrace;
+export function resolveActivityCapture<T extends ActivationTraceLimits>(limits: T, request: ActivityCaptureRequest | null | undefined): T;
