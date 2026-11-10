@@ -1,0 +1,150 @@
+{
+  "schema": "doppler.flash-next-route-products-receipt/v1",
+  "createdAtUtc": "2026-11-10T14:45:04.620997+00:00",
+  "codeRevision": "9874095bc54ff550e1b726f047e7bb330bda1b94",
+  "component": "doppler.runtime-source.gpu.kernels",
+  "intent": "preserved",
+  "scope": "Targeted committed shader sources bound to the frozen-snapshot AMD Node F32-KV long-prefill comparison",
+  "namedLongPrefillFailureClosed": true,
+  "normalModelQualified": false,
+  "acceptanceChanged": false,
+  "producerSha256": "9a921d010f492a7340b3805cdc66182efcd59a848e131fdf3a4c25b41589274a",
+  "committedShaders": [
+    {
+      "file": "src/gpu/kernels/gated_delta_recurrent_sigmoid_gate.wgsl",
+      "entryPoint": "main",
+      "sourceSha256": "cff9670f3505d9fc65a9399f284379dc311bac3da255b6a096b6ac32845596d2",
+      "contentDigest": "sha256:2762780beb433308de456dc8b046b8c13736192017289f28351b06d615de02e7",
+      "gitBlob": "15bb105969ff2a86032f3aae9bd6c7344dee8194"
+    },
+    {
+      "file": "src/gpu/kernels/gated_delta_fused_decode_sigmoid_gate.wgsl",
+      "entryPoint": "main",
+      "sourceSha256": "dfc2f6ce8e13dae2fc08591bcd274361849bc071e9b431ed001d66442cc0f63f",
+      "contentDigest": "sha256:95d28751fc98f642a2c20dbec953f25f4c2fd7a025a57b15c621661e363f2176",
+      "gitBlob": "4da335d086a73f10523f884d2e12ec8d4ffcff66"
+    },
+    {
+      "file": "src/gpu/kernels/scatter_add_routes_f32.wgsl",
+      "entryPoint": "scatter_add_routes",
+      "sourceSha256": "30597e2e0b959e519d55b8c88a3bf290ebd9388d07f347b1d260f92a56160e12",
+      "contentDigest": "sha256:a4a949ea31ca3263a1844fa41edf00fda4557fde1df93e44dff9d39f30d13f26",
+      "gitBlob": "c5a978d440b52f4419cd1ea6285ea6f72f472d82"
+    }
+  ],
+  "candidateSourceTreeSha256": "ccb0319f2db613f4b8eb53ca2e00c45ce39bf947c1e95a2ff9dfa644d4620039",
+  "qualifiedSnapshotSourceDeltaSha256": "9e9540e095d1c15b7fec4c7d4a309528a9c6f7eaa56ab80b07e3323aab7d2cee",
+  "longObservationSha256": "dee1a2ec6131aaa9af0cf1097ce9720a2060e6f9bc9adbab142c23b9e02e1103",
+  "shortObservationSha256": "8fba50b9858701722d194adb4b24675c9289fc72476c991f57af62bf3af1aacb",
+  "manifestSha256": "4902a0b730a9310903b00bc0f8f587528fa1af9f37a722d2f9287bafceceec09",
+  "inputsSha256": "06a819d529593b58abd6cb27566bb835a9b91aac13a77c0c7479b7e4e7b0c378",
+  "referenceSha256": "ce4cb138b1919474d85507e06faa9ca167d87fd143bb85a7411f5443cea9a897",
+  "policyId": "doppler.boundary-tolerance/quantized-v1",
+  "policySha256": "f1c4629d593ec2517e3628ac68131dc7568c6aba5e0f03db627d26228c720413",
+  "prefillLogitsSha256": "dd00db40f17590974e3b0882f12c50e18738291be0531b0a2c2526dfecf73521",
+  "comparatorIdentities": [
+    {
+      "file": "reports/flash-next-origin-20261109/compare-softplus.py",
+      "sha256": "dba9e72089cfbcd5b3e2fcfada4bbdb14a8d4994acd7c861429bf365c311ad9a"
+    },
+    {
+      "file": "reports/flash-next-origin-20261109/compare-short.py",
+      "sha256": "4b8d9aa94e7059f53fc7d5a20c43851b91d3814fcea65d80561181df84980cc9"
+    },
+    {
+      "file": "src/config/evidence/boundary-evidence-policy.json",
+      "sha256": "f1c4629d593ec2517e3628ac68131dc7568c6aba5e0f03db627d26228c720413"
+    }
+  ],
+  "longPrefill": {
+    "tokens": 2304,
+    "layers": 48,
+    "lastPosition": 2303,
+    "observedLogits": 248320,
+    "maxAbsoluteError": 0.00012183189392089844,
+    "differenceRms": 1.3924014803974513e-05,
+    "violations": 0,
+    "passed": true
+  },
+  "shortPrefill": {
+    "tokens": 15,
+    "violations": 0,
+    "maxAbsoluteError": 2.86102294921875e-05,
+    "passed": true
+  },
+  "generationRows": {
+    "count": 3,
+    "finite": true,
+    "independentParity": false
+  },
+  "gpuErrors": [],
+  "cleanupFailures": [],
+  "referenceTensorInjection": false,
+  "serviceActions": false,
+  "gpuMemorySettingChanges": false,
+  "deployment": false,
+  "remaining": [
+    "Independent decode-logit parity",
+    "Unseen-input qualification",
+    "Original F16-KV lane qualification",
+    "Installed-package and release qualification"
+  ],
+  "evidence": [
+    {
+      "file": "reports/flash-next-route-products-20261110/README.md",
+      "sha256": "8ce3e86b23844880bcf3474d55720c3b658af6ef850dc5a0423738dba08755f5"
+    },
+    {
+      "file": "reports/flash-next-route-products-20261110/long-comparison.json",
+      "sha256": "de610b52cf61051f60f4415e4af7e0fb876e36b0cf27de6e1870b61d1e82867d"
+    },
+    {
+      "file": "reports/flash-next-route-products-20261110/short-comparison.json",
+      "sha256": "f1635949c22d67f38102fcef4b78775f6de653f2c6d7f7b2ecb30c8a96ffafd8"
+    },
+    {
+      "file": "reports/flash-next-route-products-20261110/preparation.json",
+      "sha256": "8fe74a323a0976c97d29637dade2a5d64a3d1b2f6e3baa58ee68999fc382ffb8"
+    },
+    {
+      "file": "reports/flash-next-route-products-20261110/source-delta.json",
+      "sha256": "9e9540e095d1c15b7fec4c7d4a309528a9c6f7eaa56ab80b07e3323aab7d2cee"
+    },
+    {
+      "file": "reports/flash-next-route-products-20261110/router-margin.json",
+      "sha256": "94c18f4f8454a46eac9f5b2f8bcbae72f272ab12abe9c49f570ea8c353d50f55"
+    },
+    {
+      "file": "reports/flash-next-route-products-20261110/operator-metal.json",
+      "sha256": "55b6e65afa6b6632a410ec98b6ba91a8ecaa82b3b15f4adec6837a44e27c8df6"
+    },
+    {
+      "file": "reports/flash-next-route-products-20261110/operator-amd.json",
+      "sha256": "7723aac942a5852350b337b1d0ea956b09785c5c661d7dfd2f11eee59761327c"
+    },
+    {
+      "file": "reports/flash-next-route-products-20261110/operator-before-metal.json",
+      "sha256": "cedeaf4722bc4ae1966b98ae0ac599d3a883544f3aa25fe1ac53bace0d47abcf"
+    },
+    {
+      "file": "reports/flash-next-route-products-20261110/operator-before-amd.json",
+      "sha256": "bdf56c0c0b8fe8f8e8b302cb81c5b44f19edf659ca9cdf62f4a1d3dcb2432eec"
+    },
+    {
+      "file": "reports/flash-next-route-products-20261110/rejected-local-helper-amd.json",
+      "sha256": "27274d7edc27cdd94ae2c37e9342b99debf21e79716b9ed11611171034c981d5"
+    },
+    {
+      "file": "reports/flash-next-route-products-20261110/rejected-local-helper.wgsl",
+      "sha256": "9c041cb47f20047a164f1bf8064ffc3b0e76a8bf4fe5c6ca76d37c1588bffe44"
+    },
+    {
+      "file": "reports/flash-next-route-products-20261110/route-executor-metal.json",
+      "sha256": "269a9361a7a0ff3d134d40fabe283b0654e28fd5437e607609b7c1ff17a0851b"
+    },
+    {
+      "file": "reports/flash-next-route-products-20261110/route-browser-metal.json",
+      "sha256": "331218327453f49d34d8f126dc1c8c23157629168e4414e8f01cb28f4da6a39e"
+    }
+  ]
+}
