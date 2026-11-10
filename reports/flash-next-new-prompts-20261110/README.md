@@ -61,6 +61,41 @@ Unmatched boundaries are listed explicitly. These are observations of two
 different upstream trajectories, not identical-input operator controls or
 proof that the accumulated variation is permitted.
 
+## Gated-delta algorithm control
+
+[gdn-algorithm-control.json](gdn-algorithm-control.json) compares the pinned
+source's chunked and recurrent implementations at Layer 24. They receive
+identical Q/K/V/decay/beta tensors constructed by the source convolution from
+the captured GPU projection outputs. After source normalization and gating:
+
+| Comparison across 13,436,928 values | Relative RMS difference |
+| --- | ---: |
+| Source recurrent versus source chunked | 9.73e-7 |
+| GPU versus source chunked on GPU projections | 9.94e-7 |
+| GPU versus source recurrent on GPU projections | 2.81e-7 |
+
+The source replay matches all 12,288 retained source core values at positions
+112 and 2186 exactly. The repeated chunk call matches its full raw output
+bit-for-bit, and zero beta with zero initial state produces zero memory output.
+These checks establish coupling and an algorithm-order contribution; they do
+not establish complete-computation correctness or an unavoidable tradeoff.
+The GPU comparisons also include CPU/GPU convolution, decay and normalization
+differences: this control has **not** captured identical GPU post-convolution
+Q/K/V inputs.
+
+Separating source Q normalization from head scaling versus combining their
+scales changes 4,748,325 of 13,436,928 common-input CPU values, with relative
+RMS difference 5.06e-8. That is another bounded arithmetic sensitivity, not a
+demonstrated model fix.
+
+[compare-gdn-algorithms.py](compare-gdn-algorithms.py) loads the unchanged
+pinned source definitions and independently decoded artifact weights. It runs
+CPU-only, exports a hash-bound optional standalone fixture, and never feeds
+modified tensors into model execution. An initial attempt incorrectly assumed
+that the source core capture contained every position; it stopped at its
+coverage assertion. The corrected tool records the actual two-position source
+coverage explicitly. No failed model result or acceptance threshold changed.
+
 An initial exploratory replay accidentally selected the generic `fused`
 variant, which is not the model's declared 512-expert routing kernel. Its output
 is excluded from attribution. The corrected producer requires both the compiled

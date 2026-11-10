@@ -1,0 +1,171 @@
+{
+  "schema": "doppler.gdn-source-algorithm-control/v1",
+  "scope": "CPU source chunked vs recurrent on identical source-convolved captured GPU projections; GPU comparison also includes convolution/decay/norm differences",
+  "layer": 24,
+  "tokens": 2187,
+  "sequenceId": "inventory",
+  "newGpuInvocations": 0,
+  "modelQualified": false,
+  "acceptanceChanged": false,
+  "runtimeChanged": false,
+  "producerSha256": "f6bc0f15a6545ab1d205cfc3ec412442415220e541190b63a9c712fa238ba5b0",
+  "definitionsOnlySha256": "02a26fe05e81e3e3f8d3a14fe000a37a49725aca808f22604e2263221f790d07",
+  "scriptSha256": "ea0f4d69cda40b3521747dcc519231af39499f2290ed83ea6fd2bd7f6b10557e",
+  "readerSha256": "9b900d3abda5367001fad812d8dcba7e7c0b7eb1b84f3970ebdca8b41c0b2874",
+  "gpuTraceSha256": "9b45b5c3cf381d7c45672612cff48f6fb1e686b9ed0b4ee7b2486420d1f49653",
+  "sourceTraceSha256": "8a33e31126085d4865e01cad4be858a0900e84562a24244004975335b01e5fc8",
+  "manifestSha256": "4902a0b730a9310903b00bc0f8f587528fa1af9f37a722d2f9287bafceceec09",
+  "inputsSha256": "3258ae236b529ddaf0d261809a8a7be72cd2048645342078e53c064c5a4b0748",
+  "torchVersion": "2.11.0+cu130",
+  "torchThreads": 16,
+  "sourceGeometryReplayBitExact": true,
+  "sourceGeometryCheckedValues": 12288,
+  "sourceGeometryPositions": [
+    112,
+    2186
+  ],
+  "chunkReplayBitExact": true,
+  "zeroBetaControlPassed": true,
+  "commonInputs": {
+    "query": {
+      "shape": [
+        1,
+        2187,
+        48,
+        128
+      ],
+      "sha256": "fb3a9a137cc2a63a6b1179d01b2cbbda871298919bfad891ecffce346530a0ec"
+    },
+    "key": {
+      "shape": [
+        1,
+        2187,
+        48,
+        128
+      ],
+      "sha256": "f1221e99f40b4c7ea61c57ea733e4d9c8cc3d2f3e20fcdc797e55e0e5261a9ea"
+    },
+    "value": {
+      "shape": [
+        1,
+        2187,
+        48,
+        128
+      ],
+      "sha256": "a469f8943551590291ba3c1c0bb1b195b0b6717e9bb0b174c3ffe8be17d64190"
+    },
+    "g": {
+      "shape": [
+        1,
+        2187,
+        48
+      ],
+      "sha256": "8db39f4edf3a59f581952916bfa7cdcf5ca4871b77dddea0958ae07f4061a24d"
+    },
+    "beta": {
+      "shape": [
+        1,
+        2187,
+        48
+      ],
+      "sha256": "cfda8521b825465ab17c47da06a27079fe771b721cb07a3905d526f0a85b5d78"
+    }
+  },
+  "rawRecurrentVsChunked": {
+    "values": 13436928,
+    "maxAbsoluteError": 4.023313522338867e-07,
+    "referenceRms": 0.0017538568984375893,
+    "differenceRms": 2.2926500926530856e-09,
+    "relativeRms": 1.307204763795425e-06,
+    "differingF32Values": 12268578
+  },
+  "postNormRecurrentVsChunked": {
+    "values": 13436928,
+    "maxAbsoluteError": 1.6391277313232422e-06,
+    "referenceRms": 0.01895427088524632,
+    "differenceRms": 1.8444868809284757e-08,
+    "relativeRms": 9.73124681025949e-07,
+    "differingF32Values": 11928681
+  },
+  "gpuVsSourceChunkedOnGpuProjections": {
+    "values": 13436928,
+    "maxAbsoluteError": 1.6987323760986328e-06,
+    "referenceRms": 0.01895427088524632,
+    "differenceRms": 1.88408357746526e-08,
+    "relativeRms": 9.94015327137589e-07,
+    "differingF32Values": 12424602
+  },
+  "gpuVsSourceRecurrentOnGpuProjections": {
+    "values": 13436928,
+    "maxAbsoluteError": 2.980232238769531e-07,
+    "referenceRms": 0.01895426903039357,
+    "differenceRms": 5.3317533357149855e-09,
+    "relativeRms": 2.812956451744674e-07,
+    "differingF32Values": 11965298
+  },
+  "sourceSeparateVsCombinedQScaling": {
+    "values": 13436928,
+    "maxAbsoluteError": 7.450580596923828e-09,
+    "referenceRms": 0.007812446620653836,
+    "differenceRms": 3.954197975128857e-10,
+    "relativeRms": 5.061407990520035e-08,
+    "differingF32Values": 4748325
+  },
+  "positions": [
+    {
+      "position": 112,
+      "recurrentVsChunked": {
+        "values": 6144,
+        "maxAbsoluteError": 6.705522537231445e-08,
+        "referenceRms": 0.01608342487555041,
+        "differenceRms": 4.449340022276597e-09,
+        "relativeRms": 2.766413283678381e-07,
+        "differingF32Values": 5460
+      },
+      "gpuVsChunked": {
+        "values": 6144,
+        "maxAbsoluteError": 8.195638656616211e-08,
+        "referenceRms": 0.01608342487555041,
+        "differenceRms": 5.094120914849021e-09,
+        "relativeRms": 3.1673110387035577e-07,
+        "differingF32Values": 5676
+      },
+      "gpuVsRecurrent": {
+        "values": 6144,
+        "maxAbsoluteError": 5.960464477539063e-08,
+        "referenceRms": 0.016083425091853756,
+        "differenceRms": 3.841780043560336e-09,
+        "relativeRms": 2.3886579019205275e-07,
+        "differingF32Values": 5505
+      }
+    },
+    {
+      "position": 2186,
+      "recurrentVsChunked": {
+        "values": 6144,
+        "maxAbsoluteError": 6.556510925292969e-07,
+        "referenceRms": 0.02464075671097922,
+        "differenceRms": 2.361570669227817e-08,
+        "relativeRms": 9.584002216034088e-07,
+        "differingF32Values": 5236
+      },
+      "gpuVsChunked": {
+        "values": 6144,
+        "maxAbsoluteError": 6.332993507385254e-07,
+        "referenceRms": 0.02464075671097922,
+        "differenceRms": 2.5196471769000266e-08,
+        "relativeRms": 1.0225526782533198e-06,
+        "differingF32Values": 5629
+      },
+      "gpuVsRecurrent": {
+        "values": 6144,
+        "maxAbsoluteError": 7.450580596923828e-08,
+        "referenceRms": 0.02464075238106745,
+        "differenceRms": 6.7560455480113146e-09,
+        "relativeRms": 2.741817881016602e-07,
+        "differingF32Values": 5418
+      }
+    }
+  ],
+  "fixtureSha256": "16732c333bc3d5c5f18d182260c91fde02e270c6c1a49e70726475121d13bcf7"
+}
