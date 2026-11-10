@@ -1,0 +1,2266 @@
+{
+  "schema": "doppler.layer25-prerouter-witness/v1",
+  "qualified": false,
+  "protocolSha256": "40b03e2f30e99d1d0065d1af639f2d9d0753ddebd74d5b8abff22fea21bdd3f1",
+  "toolSha256": "d318a4acf32d53afdb47ccce7e38ec1bdd670876cb6bfdd7add43b42d4b080dc",
+  "witnessCoreSha256": "936457712dfadf4cb41db3032e8ba487c955d8e593270f1c4bfdf562038a1acd",
+  "arithmeticCoreSha256": "c13300867e98a70674e229aaf1cf92712aed4a203b40980f327c064e7aa32aff",
+  "layer": 25,
+  "positions": [
+    1717,
+    2271,
+    2303
+  ],
+  "seqLen": 2304,
+  "identities": [
+    {
+      "file": "manifest.json",
+      "sha256": "4902a0b730a9310903b00bc0f8f587528fa1af9f37a722d2f9287bafceceec09",
+      "bytes": 7422078
+    },
+    {
+      "file": "f32kv-layer25-stages-20261107.json",
+      "sha256": "4bcb97c676cbec37bb066372a3949112763a86d9958e21e58fac38328282245f",
+      "bytes": 18292
+    },
+    {
+      "file": "f32kv-router-subgroup-20261107.json",
+      "sha256": "4c4367d68d2dd41e15868d824851c6f7357acfecbcfa41609a95792355e7b429",
+      "bytes": 213884
+    },
+    {
+      "file": "f32kv-router-subgroup-routing-20261107.json",
+      "sha256": "681bcb5f631327583b7d958cd55de6cc45e85dce4b4059a25db9015eb09d81c8",
+      "bytes": 54604
+    },
+    {
+      "file": "layer25/trace.json",
+      "sha256": "96cb085d2b84fa0ef1371c4e756c69979a0275490a65843b4c522711349babb2",
+      "bytes": 9570
+    },
+    {
+      "file": "router/receipt.json",
+      "sha256": "06b9300753f65574477b66f45a0c0fce6474e2112a3f9d901b0af22371037073",
+      "bytes": 6146
+    },
+    {
+      "file": "f32kv-layer25-stages-20261107.json.L25.attn_hc.input.f32",
+      "sha256": "6e90f21c801214fcf3db4373eed8563ebe1371de261af120c9ff3fece054cd90",
+      "bytes": 122880
+    },
+    {
+      "file": "f32kv-layer25-stages-20261107.json.L25.attn_hc.norm.f32",
+      "sha256": "0bfc18c3575e91133ad5670e0035f5b100267ee35f93f14e5d458be8da46e8bd",
+      "bytes": 122880
+    },
+    {
+      "file": "f32kv-layer25-stages-20261107.json.L25.attn_hc.down.f32",
+      "sha256": "03c4c71931864a528ccd772e3a661ea3a680ff454be2b5f7a1c8c5a9fb18dcd4",
+      "bytes": 3840
+    },
+    {
+      "file": "f32kv-layer25-stages-20261107.json.L25.attn_hc.lowRank.f32",
+      "sha256": "e66d7a975ca43735a71c13647a8cece2a98f627565155da5da4aba5ed77da755",
+      "bytes": 3840
+    },
+    {
+      "file": "f32kv-layer25-stages-20261107.json.L25.attn_hc.up.f32",
+      "sha256": "b43eed3a549831deabb844c1ce38faf53c999586a0788961667f7e02fd9c6699",
+      "bytes": 122880
+    },
+    {
+      "file": "f32kv-layer25-stages-20261107.json.L25.attn_hc.mix.f32",
+      "sha256": "6ed9a2cba8b39eb84b5d0eed608bd1d582f10dbf35bafcd5a4e0d5c928f80801",
+      "bytes": 122880
+    },
+    {
+      "file": "f32kv-layer25-stages-20261107.json.L25.attn_hc.branchInput.f32",
+      "sha256": "8fda0b28cb7ca06bf2210d5175e743d0f4fcea65dd11eee959d58c1e883deebd",
+      "bytes": 30720
+    },
+    {
+      "file": "f32kv-layer25-stages-20261107.json.L25.attn_hc.logits.f32",
+      "sha256": "126a02cb86c4f87d8697ccd4716b23cabfdb4a0a15b1b1e4bd87af42bc9ef1e4",
+      "bytes": 48
+    },
+    {
+      "file": "f32kv-layer25-stages-20261107.json.L25.attn_hc.gate.f32",
+      "sha256": "e5e551ba34977a0b84800fa3423edb988ff93f21043eb44fe4675263720856b4",
+      "bytes": 48
+    },
+    {
+      "file": "f32kv-layer25-stages-20261107.json.L25.attn_hc.branchOutput.f32",
+      "sha256": "44bd33344ccaa5ac6b8df8a82c2157eeb388a76ec9741e9a89dd7fe10388e71d",
+      "bytes": 30720
+    },
+    {
+      "file": "f32kv-layer25-stages-20261107.json.L25.attn_hc.injected.f32",
+      "sha256": "27d4dd2be71275225a74574f3743c37669dde041b42d0756c083b9f3775e0535",
+      "bytes": 122880
+    },
+    {
+      "file": "f32kv-layer25-stages-20261107.json.L25.mlp_hc.input.f32",
+      "sha256": "27d4dd2be71275225a74574f3743c37669dde041b42d0756c083b9f3775e0535",
+      "bytes": 122880
+    },
+    {
+      "file": "f32kv-layer25-stages-20261107.json.L25.mlp_hc.norm.f32",
+      "sha256": "a8fa3ebeee2e5f527a7361c4c6759cbc7c384a0226027f39e7da47249a500fda",
+      "bytes": 122880
+    },
+    {
+      "file": "f32kv-layer25-stages-20261107.json.L25.mlp_hc.down.f32",
+      "sha256": "d53022c44e4c82af1712ec8d6fe5bc781bd7365c8ca9163d668a66f7687bfaca",
+      "bytes": 3840
+    },
+    {
+      "file": "f32kv-layer25-stages-20261107.json.L25.mlp_hc.lowRank.f32",
+      "sha256": "7324619c119a724591fdd7fbdc574da6a1cb5a556f48e40d9a5c5e0f98dcf99c",
+      "bytes": 3840
+    },
+    {
+      "file": "f32kv-layer25-stages-20261107.json.L25.mlp_hc.up.f32",
+      "sha256": "8c75ed82435535d1ddec105b17240291c876df115245330a49b881b6808baf07",
+      "bytes": 122880
+    },
+    {
+      "file": "f32kv-layer25-stages-20261107.json.L25.mlp_hc.mix.f32",
+      "sha256": "8a9818ab8d3da200dbca6869cc00eba03dcf88d757c12d1e91a5129e5ac53450",
+      "bytes": 122880
+    },
+    {
+      "file": "f32kv-layer25-stages-20261107.json.L25.mlp_hc.branchInput.f32",
+      "sha256": "91be982a16bb0e35a1cf1b2969ceb698600b011011651aebb2c62221d72cf298",
+      "bytes": 30720
+    },
+    {
+      "file": "f32kv-layer25-stages-20261107.json.L25.mlp_hc.logits.f32",
+      "sha256": "d88fab79e956bf8ddaf0fa92a967a708e8a49fe5cd1c8ee9e81c6218303ab0cd",
+      "bytes": 48
+    },
+    {
+      "file": "f32kv-layer25-stages-20261107.json.L25.mlp_hc.gate.f32",
+      "sha256": "ee60cac02e74e179c535d22c569bb96020ddb7a0d27a9e8b279d8f31956ccde2",
+      "bytes": 48
+    },
+    {
+      "file": "f32kv-layer25-stages-20261107.json.attn.post_input_norm.f32",
+      "sha256": "59356fe6fb99bca4f69657e7bb325900c97c49f7d0199d7a6452cefef976a742",
+      "bytes": 23592960
+    },
+    {
+      "file": "f32kv-layer25-stages-20261107.json.attn.qkv_proj.f32",
+      "sha256": "443f65adc48e9b8d3e617e4ec5ee962f6828b3cd4d3bf16c4e269ffaf1f1d282",
+      "bytes": 94371840
+    },
+    {
+      "file": "f32kv-layer25-stages-20261107.json.attn.linear_z_proj.f32",
+      "sha256": "9e72f31a020c8ad165a2aeac66278105869b3c2a4267a362d8be911cfe7a829b",
+      "bytes": 56623104
+    },
+    {
+      "file": "f32kv-layer25-stages-20261107.json.attn.linear_a_proj.f32",
+      "sha256": "6fcfdbbaf640fe722e20ebc5145fa4b0e04062f47ac4d7c57bf7381125041e64",
+      "bytes": 442368
+    },
+    {
+      "file": "f32kv-layer25-stages-20261107.json.attn.linear_b_proj.f32",
+      "sha256": "f30d3c6082e0a03cdfcf6d76f64362f11f83ec35c5c6b459bf111b34cd40d25d",
+      "bytes": 442368
+    },
+    {
+      "file": "f32kv-layer25-stages-20261107.json.attn.linear_core_out.f32",
+      "sha256": "7725ad8c393b4ddba333d497dafb47e5fba600b18e36bd4338215c72aed30667",
+      "bytes": 56623104
+    },
+    {
+      "file": "f32kv-router-subgroup-20261107.json.long.router25.input.f32",
+      "sha256": "a6da2ee6b2a1c8e3a5dae0fcc7d7ec473df738ca07102c513408280d6bad2f72",
+      "bytes": 23592960
+    },
+    {
+      "file": "f32kv-router-subgroup-20261107.json.long.router25.logits.f32",
+      "sha256": "a0e1b6642dccb23293a6582717e208a8b1c01873d601c150054cfb9d5ff92857",
+      "bytes": 4718592
+    },
+    {
+      "file": "layer25/attn_hc.input.npy",
+      "sha256": "f8fd2447f972be5fcbf084f3c5f48d7df3748c993bdf336651c2abb9a3dff42c",
+      "bytes": 123008
+    },
+    {
+      "file": "layer25/attn_hc.norm.npy",
+      "sha256": "3ab74b3a4a927143d4848f7526b1c2aa8cfa1407b68c4aadb08e7f49ca3b522e",
+      "bytes": 123008
+    },
+    {
+      "file": "layer25/attn_hc.down.npy",
+      "sha256": "1da9df8cf9063c7df0e8ab1962556ff97981f32fccb1668ffead0b150f663978",
+      "bytes": 3968
+    },
+    {
+      "file": "layer25/attn_hc.lowRank.npy",
+      "sha256": "9291cf362b1fec00088f7c7a37d8bb0b11879d8a9cf8a97e329ed9e0b5e86b63",
+      "bytes": 3968
+    },
+    {
+      "file": "layer25/attn_hc.up.npy",
+      "sha256": "ed49a97b444385d77f81236d35e3e0debf3c61e90cb76b3f8b60e1540ac68940",
+      "bytes": 123008
+    },
+    {
+      "file": "layer25/attn_hc.mix.npy",
+      "sha256": "330614bfded6f548e53eda3aee3184f389a36352b9fdb35c647d398b7d470827",
+      "bytes": 123008
+    },
+    {
+      "file": "layer25/attn_hc.logits.npy",
+      "sha256": "b797275e5fc5816a7bc2777a20518c3775d3acc0c13ddf5aee033ad9c9007dfb",
+      "bytes": 176
+    },
+    {
+      "file": "layer25/attn_hc.branchInput.npy",
+      "sha256": "a29bd0a24fbc080dd39ee4aaaa5c78971c1d4f35be2b4e96dcf0767a6b1d981b",
+      "bytes": 30848
+    },
+    {
+      "file": "layer25/attn_hc.gate.npy",
+      "sha256": "0080ad1bb28bed8f5600b8f1872d737f84ed0b8f35725dfb74911cdcb5beb7be",
+      "bytes": 176
+    },
+    {
+      "file": "layer25/attention.projectionInput.npy",
+      "sha256": "daf686992f0c641e59d321c61e618494d159b839d9cd52caebeb48dc52ab04d3",
+      "bytes": 23593088
+    },
+    {
+      "file": "layer25/linear.attn.qkv_proj.npy",
+      "sha256": "f6084a533bd7183861e7a171d7f0c7c9a9560fac35c5b3e19b7bc5dd19a611cd",
+      "bytes": 123008
+    },
+    {
+      "file": "layer25/linear.attn.linear_z_proj.npy",
+      "sha256": "06d189b4f0c0a1897e024d6ea81be9fe2e812666c99d8e3fad9fc0cbd90bd394",
+      "bytes": 73856
+    },
+    {
+      "file": "layer25/linear.attn.linear_b_proj.npy",
+      "sha256": "9afa4b5e46a3945d00ee6098d77604c05902e88dbedbd588c01bc915e1c37dfd",
+      "bytes": 704
+    },
+    {
+      "file": "layer25/linear.attn.linear_a_proj.npy",
+      "sha256": "764cdcfc69e4b28dad63a8625ee5e57ac0d244c3678bab6cda3748f4d15922b1",
+      "bytes": 704
+    },
+    {
+      "file": "layer25/linear.attn.linear_core_out.npy",
+      "sha256": "39d6e9d6e007d3625e85fb90ad83d9fcc9e52e6c5f4837528c7e590377503d3b",
+      "bytes": 73856
+    },
+    {
+      "file": "layer25/attn_hc.branchOutput.npy",
+      "sha256": "ab6c940b83f999a060adfe88008f2196a29c2088ed2124b0c00001faf90b4ead",
+      "bytes": 30848
+    },
+    {
+      "file": "layer25/linear.branchOutput.npy",
+      "sha256": "48f7ef5eea3a7d2c80885fec6065fce569c6bf8a24749bb6636de1f3b9b2f6b9",
+      "bytes": 23593088
+    },
+    {
+      "file": "layer25/mlp_hc.input.npy",
+      "sha256": "35640150b7dc73419ae892f59d035b2b39794579b1a1afd08920071fda923780",
+      "bytes": 123008
+    },
+    {
+      "file": "layer25/attn_hc.injected.npy",
+      "sha256": "35640150b7dc73419ae892f59d035b2b39794579b1a1afd08920071fda923780",
+      "bytes": 123008
+    },
+    {
+      "file": "layer25/mlp_hc.norm.npy",
+      "sha256": "7f4d1ed9a1c38542ef9867b369e58211cc01c3d76a971edfeff82a56367cf6cc",
+      "bytes": 123008
+    },
+    {
+      "file": "layer25/mlp_hc.down.npy",
+      "sha256": "d9673a2d56a9adfc91dae30d4a02d586bc2620326ff7eb5b152fdd049b64824b",
+      "bytes": 3968
+    },
+    {
+      "file": "layer25/mlp_hc.lowRank.npy",
+      "sha256": "d0f58f97fa75eddf617ef6185cac560e5a706e295926e954b7e7d22910b522b1",
+      "bytes": 3968
+    },
+    {
+      "file": "layer25/mlp_hc.up.npy",
+      "sha256": "13f52b248d33ec04d4e3e71e571004433090fdb4c23855c57f03aa9dbacbe73c",
+      "bytes": 123008
+    },
+    {
+      "file": "layer25/mlp_hc.mix.npy",
+      "sha256": "75e70273441d0b2056262464d066e4d513b7a293b4aa9dc576c21cb7eb03dab4",
+      "bytes": 123008
+    },
+    {
+      "file": "layer25/mlp_hc.logits.npy",
+      "sha256": "332b93503fa128852f6a65ee410365b33e8800f4964035b21a4f52d69b5d189e",
+      "bytes": 176
+    },
+    {
+      "file": "layer25/mlp_hc.branchInput.npy",
+      "sha256": "4801421e4ea8bf7a763f20ca1ebdc66b6955366cf0aa2b7b1e7cf3535711c6ae",
+      "bytes": 30848
+    },
+    {
+      "file": "layer25/mlp_hc.gate.npy",
+      "sha256": "13530595ffedf0db6b88c8e5580c5b8963cdd0829702dd8b47cad42adadc93c3",
+      "bytes": 176
+    },
+    {
+      "file": "router/router-25.npz",
+      "sha256": "9d596bfd1ee212ab233a01bf34248b449493089daabece20778f3632733ebd56",
+      "bytes": 28589030
+    }
+  ],
+  "weightIdentities": [
+    {
+      "tensor": "attn_hyper_connection.hc_norm.weight",
+      "dtype": "F16",
+      "shape": [
+        10240
+      ],
+      "bytes": 20480,
+      "sha256": "b7e2db47d8a7c87988850c9d24340f567107ca8e8ceb92d79286fb2be9dd0857"
+    },
+    {
+      "tensor": "attn_hyper_connection.input_mix_weight_down.weight",
+      "dtype": "F16",
+      "shape": [
+        320,
+        10240
+      ],
+      "bytes": 6553600,
+      "sha256": "548c3eddc77662560a577aa216c58a15d27a955572463b8e9518c3501767b992"
+    },
+    {
+      "tensor": "attn_hyper_connection.input_mix_weight_up.weight",
+      "dtype": "F16",
+      "shape": [
+        10240,
+        320
+      ],
+      "bytes": 6553600,
+      "sha256": "f7eb257f83a67d90494517401945b052580b6ff1165dfa19f036de22aea64e36"
+    },
+    {
+      "tensor": "attn_hyper_connection.block_inject_weight.weight",
+      "dtype": "F16",
+      "shape": [
+        4,
+        10240
+      ],
+      "bytes": 81920,
+      "sha256": "7b31f83758cd45f5fef4ef91755c5d8657a5b552aca94c9f4dea3817e9a88e4a"
+    },
+    {
+      "tensor": "mlp_hyper_connection.hc_norm.weight",
+      "dtype": "F16",
+      "shape": [
+        10240
+      ],
+      "bytes": 20480,
+      "sha256": "3721d1140ed24803afb57a0d936cb987d2065a18d1a27ad4296212380217ebc8"
+    },
+    {
+      "tensor": "mlp_hyper_connection.input_mix_weight_down.weight",
+      "dtype": "F16",
+      "shape": [
+        320,
+        10240
+      ],
+      "bytes": 6553600,
+      "sha256": "266281daef9c5cf2caf4c3a9b068841d7252534f52638038efe15f7d8c0d9a31"
+    },
+    {
+      "tensor": "mlp_hyper_connection.input_mix_weight_up.weight",
+      "dtype": "F16",
+      "shape": [
+        10240,
+        320
+      ],
+      "bytes": 6553600,
+      "sha256": "eb9674f98627bf9a929f4d7926d3829555f728564ce30ae3255537a5c594dc51"
+    },
+    {
+      "tensor": "mlp_hyper_connection.block_inject_weight.weight",
+      "dtype": "F16",
+      "shape": [
+        4,
+        10240
+      ],
+      "bytes": 81920,
+      "sha256": "6befc00cee3c3ab5c36044a20ff481e055a2749055cdd67c3128ac975a7cea34"
+    },
+    {
+      "tensor": "linear_attn.in_proj_qkv.weight",
+      "dtype": "F16",
+      "shape": [
+        10240,
+        2560
+      ],
+      "bytes": 52428800,
+      "sha256": "34b61ce68167c94ed7d174ccb82d5eed0bdac94897c7a72e84c013ecd7761bf3"
+    },
+    {
+      "tensor": "linear_attn.in_proj_z.weight",
+      "dtype": "F16",
+      "shape": [
+        6144,
+        2560
+      ],
+      "bytes": 31457280,
+      "sha256": "a43ba142ac4a093aa0861c3e955ba99502dad4f751166ded795da6c1471fea10"
+    },
+    {
+      "tensor": "linear_attn.in_proj_a.weight",
+      "dtype": "F16",
+      "shape": [
+        48,
+        2560
+      ],
+      "bytes": 245760,
+      "sha256": "cd337fcfb16a35939f4758e6b5cc08cc247cf5899b73c8101cc3ea6f5c94e869"
+    },
+    {
+      "tensor": "linear_attn.in_proj_b.weight",
+      "dtype": "F16",
+      "shape": [
+        48,
+        2560
+      ],
+      "bytes": 245760,
+      "sha256": "6507bb68e6197c12feefcfbb29afcf87812abae58557012f131803462e57c77a"
+    },
+    {
+      "tensor": "linear_attn.conv1d.weight",
+      "dtype": "F16",
+      "shape": [
+        10240,
+        1,
+        4
+      ],
+      "bytes": 81920,
+      "sha256": "f9e9019eb8423f946340c811b24c34ebb7c297a8e518229e878371709ec03a58"
+    },
+    {
+      "tensor": "linear_attn.A_log",
+      "dtype": "F16",
+      "shape": [
+        48
+      ],
+      "bytes": 96,
+      "sha256": "f23fc188695d54f93409a19fce8ef5a9ec6a14af097454cfbf913220284dcf9e"
+    },
+    {
+      "tensor": "linear_attn.dt_bias",
+      "dtype": "F16",
+      "shape": [
+        48
+      ],
+      "bytes": 96,
+      "sha256": "d4a050dd8fd9d51cbf12d8f106f02053153bfa7753c4933fc701e87a2bcaaf07"
+    },
+    {
+      "tensor": "linear_attn.norm.weight",
+      "dtype": "F16",
+      "shape": [
+        128
+      ],
+      "bytes": 256,
+      "sha256": "dce58f4f04737f3c31fde758096108a936173f90344055a6dd9eb77e827eaf68"
+    },
+    {
+      "tensor": "linear_attn.out_proj.weight",
+      "dtype": "F16",
+      "shape": [
+        2560,
+        6144
+      ],
+      "bytes": 31457280,
+      "sha256": "86d7346d441c8a95f6c232cdbdcf645eb32cc7258afb9d8ac6dc7f54c496f94b"
+    },
+    {
+      "tensor": "mlp.gate.weight",
+      "dtype": "F16",
+      "shape": [
+        512,
+        2560
+      ],
+      "bytes": 2621440,
+      "sha256": "4cca2b05519d9331e694cf6245e0e16058b4f6a4cf12c0ffde391c25134d35f2"
+    }
+  ],
+  "summary": {
+    "stageWitnessesChecked": 27,
+    "stageWitnessesAll0Ulp": true,
+    "stagePositionValuesChecked": 357456,
+    "stagePositionValuesExact0Ulp": 357456,
+    "fullSeqLinearCoreValuesChecked": 14155776,
+    "fullSeqLinearCoreValuesExact0Ulp": 14155776,
+    "fullSeqRouterLogitsValuesChecked": 1179648,
+    "fullSeqRouterLogitsValuesExact0Ulp": 1179648,
+    "chainedEndToEndBranchInputExact0Ulp": 7680,
+    "chainedEndToEndRouterLogitsExact0Ulp": 1536,
+    "faultControlsTested": 7,
+    "faultControlsRejected": 7,
+    "streamResidualPathAloneFlips1717": true,
+    "incomingLayer24DriftThroughLinearAttnFlipsBothPositions": true,
+    "incomingLayer24DriftNecessaryForGpuLayer25Flip": true
+  },
+  "stageWitnessResults": [
+    {
+      "stage": "attn_hc.norm",
+      "kernel": "hyper_connection_norm (4x2560 streams, 256-thread tree + divideRefined + inverseRootRefined)",
+      "exact": 30720,
+      "total": 30720,
+      "allExact": true,
+      "maxUlp": 0,
+      "maxAbsDiff": 0
+    },
+    {
+      "stage": "attn_hc.down",
+      "kernel": "matmul_f32_row_subgroup.wgsl (wave64 vec4 FMA + DPP 1..32)",
+      "exact": 960,
+      "total": 960,
+      "allExact": true,
+      "maxUlp": 0,
+      "maxAbsDiff": 0
+    },
+    {
+      "stage": "attn_hc.lowRank",
+      "kernel": "hyper_connection_low_rank_prepare.wgsl (siluWgsl(divideRefined(x, 4)))",
+      "exact": 960,
+      "total": 960,
+      "allExact": true,
+      "maxUlp": 0,
+      "maxAbsDiff": 0
+    },
+    {
+      "stage": "attn_hc.up",
+      "kernel": "matmul_f32_row_subgroup.wgsl (wave64 vec4 FMA + DPP 1..32)",
+      "exact": 30720,
+      "total": 30720,
+      "allExact": true,
+      "maxUlp": 0,
+      "maxAbsDiff": 0
+    },
+    {
+      "stage": "attn_hc.mix",
+      "kernel": "hyper_connection_mix_prepare.wgsl (sigmoidRefined(x))",
+      "exact": 30720,
+      "total": 30720,
+      "allExact": true,
+      "maxUlp": 0,
+      "maxAbsDiff": 0
+    },
+    {
+      "stage": "attn_hc.branchInput",
+      "kernel": "hyper_connection_mix.wgsl (divideRefined(sum_s(norm_s * mix_s), 4))",
+      "exact": 7680,
+      "total": 7680,
+      "allExact": true,
+      "maxUlp": 0,
+      "maxAbsDiff": 0
+    },
+    {
+      "stage": "linear.attn.post_input_norm@positions",
+      "kernel": "identity (attn_hc.branchInput at [1717, 2271, 2303])",
+      "exact": 7680,
+      "total": 7680,
+      "allExact": true,
+      "maxUlp": 0,
+      "maxAbsDiff": 0
+    },
+    {
+      "stage": "linear.attn.qkv_proj@positions",
+      "kernel": "matmul_f16w_f32a_tiled.wgsl (16-element K-tile FMA subtotal)",
+      "exact": 30720,
+      "total": 30720,
+      "allExact": true,
+      "maxUlp": 0,
+      "maxAbsDiff": 0
+    },
+    {
+      "stage": "linear.attn.linear_z_proj@positions",
+      "kernel": "matmul_f16w_f32a_tiled.wgsl (16-element K-tile FMA subtotal)",
+      "exact": 18432,
+      "total": 18432,
+      "allExact": true,
+      "maxUlp": 0,
+      "maxAbsDiff": 0
+    },
+    {
+      "stage": "linear.attn.linear_a_proj@positions",
+      "kernel": "matmul_f16w_f32a.wgsl (sequential 0..K-1 FMA, N=48<64)",
+      "exact": 144,
+      "total": 144,
+      "allExact": true,
+      "maxUlp": 0,
+      "maxAbsDiff": 0
+    },
+    {
+      "stage": "linear.attn.linear_b_proj@positions",
+      "kernel": "matmul_f16w_f32a.wgsl (sequential 0..K-1 FMA, N=48<64)",
+      "exact": 144,
+      "total": 144,
+      "allExact": true,
+      "maxUlp": 0,
+      "maxAbsDiff": 0
+    },
+    {
+      "stage": "linear.attn.linear_core_out@positions",
+      "kernel": "gated_delta_conv.wgsl + gated_delta_recurrent_sigmoid_gate.wgsl",
+      "exact": 18432,
+      "total": 18432,
+      "allExact": true,
+      "maxUlp": 0,
+      "maxAbsDiff": 0
+    },
+    {
+      "stage": "attn_hc.branchOutput",
+      "kernel": "matmul_f16w_f32a_tiled.wgsl (linear_attn.out_proj)",
+      "exact": 7680,
+      "total": 7680,
+      "allExact": true,
+      "maxUlp": 0,
+      "maxAbsDiff": 0
+    },
+    {
+      "stage": "attn_hc.logits",
+      "kernel": "matmul_f32_row_subgroup.wgsl (wave64 vec4 FMA + DPP 1..32)",
+      "exact": 12,
+      "total": 12,
+      "allExact": true,
+      "maxUlp": 0,
+      "maxAbsDiff": 0
+    },
+    {
+      "stage": "attn_hc.gate",
+      "kernel": "hyper_connection_inject_prepare.wgsl (2 * sigmoidRefined(divideRefined(x, 4)))",
+      "exact": 12,
+      "total": 12,
+      "allExact": true,
+      "maxUlp": 0,
+      "maxAbsDiff": 0
+    },
+    {
+      "stage": "attn_hc.injected",
+      "kernel": "hyper_connection_inject.wgsl (stream + branch * gate)",
+      "exact": 30720,
+      "total": 30720,
+      "allExact": true,
+      "maxUlp": 0,
+      "maxAbsDiff": 0
+    },
+    {
+      "stage": "mlp_hc.input",
+      "kernel": "identity (attn_hc.injected)",
+      "exact": 30720,
+      "total": 30720,
+      "allExact": true,
+      "maxUlp": 0,
+      "maxAbsDiff": 0
+    },
+    {
+      "stage": "mlp_hc.norm",
+      "kernel": "hyper_connection_norm (4x2560 streams, 256-thread tree + divideRefined + inverseRootRefined)",
+      "exact": 30720,
+      "total": 30720,
+      "allExact": true,
+      "maxUlp": 0,
+      "maxAbsDiff": 0
+    },
+    {
+      "stage": "mlp_hc.down",
+      "kernel": "matmul_f32_row_subgroup.wgsl (wave64 vec4 FMA + DPP 1..32)",
+      "exact": 960,
+      "total": 960,
+      "allExact": true,
+      "maxUlp": 0,
+      "maxAbsDiff": 0
+    },
+    {
+      "stage": "mlp_hc.lowRank",
+      "kernel": "hyper_connection_low_rank_prepare.wgsl (siluWgsl(divideRefined(x, 4)))",
+      "exact": 960,
+      "total": 960,
+      "allExact": true,
+      "maxUlp": 0,
+      "maxAbsDiff": 0
+    },
+    {
+      "stage": "mlp_hc.up",
+      "kernel": "matmul_f32_row_subgroup.wgsl (wave64 vec4 FMA + DPP 1..32)",
+      "exact": 30720,
+      "total": 30720,
+      "allExact": true,
+      "maxUlp": 0,
+      "maxAbsDiff": 0
+    },
+    {
+      "stage": "mlp_hc.mix",
+      "kernel": "hyper_connection_mix_prepare.wgsl (sigmoidRefined(x))",
+      "exact": 30720,
+      "total": 30720,
+      "allExact": true,
+      "maxUlp": 0,
+      "maxAbsDiff": 0
+    },
+    {
+      "stage": "mlp_hc.branchInput",
+      "kernel": "hyper_connection_mix.wgsl (divideRefined(sum_s(norm_s * mix_s), 4))",
+      "exact": 7680,
+      "total": 7680,
+      "allExact": true,
+      "maxUlp": 0,
+      "maxAbsDiff": 0
+    },
+    {
+      "stage": "mlp_hc.logits",
+      "kernel": "matmul_f32_row_subgroup.wgsl (wave64 vec4 FMA + DPP 1..32)",
+      "exact": 12,
+      "total": 12,
+      "allExact": true,
+      "maxUlp": 0,
+      "maxAbsDiff": 0
+    },
+    {
+      "stage": "mlp_hc.gate",
+      "kernel": "hyper_connection_inject_prepare.wgsl (2 * sigmoidRefined(divideRefined(x, 4)))",
+      "exact": 12,
+      "total": 12,
+      "allExact": true,
+      "maxUlp": 0,
+      "maxAbsDiff": 0
+    },
+    {
+      "stage": "router25.input",
+      "kernel": "identity (mlp_hc.branchInput)",
+      "exact": 7680,
+      "total": 7680,
+      "allExact": true,
+      "maxUlp": 0,
+      "maxAbsDiff": 0
+    },
+    {
+      "stage": "router25.logits",
+      "kernel": "matmul_f32_row_subgroup.wgsl (wave64 vec4 FMA + DPP 1..32)",
+      "exact": 1536,
+      "total": 1536,
+      "allExact": true,
+      "maxUlp": 0,
+      "maxAbsDiff": 0
+    }
+  ],
+  "fullSeqLinearCoreWitness": {
+    "exact": 14155776,
+    "total": 14155776,
+    "allExact": true,
+    "maxUlp": 0,
+    "maxAbsDiff": 0
+  },
+  "fullSeqRouterLogitsWitness": {
+    "exact": 1179648,
+    "total": 1179648,
+    "allExact": true,
+    "maxUlp": 0,
+    "maxAbsDiff": 0
+  },
+  "chainedEndToEndWitness": {
+    "mlpBranchInput": {
+      "exact": 7680,
+      "total": 7680,
+      "allExact": true,
+      "maxUlp": 0,
+      "maxAbsDiff": 0
+    },
+    "routerLogits": {
+      "exact": 1536,
+      "total": 1536,
+      "allExact": true,
+      "maxUlp": 0,
+      "maxAbsDiff": 0
+    }
+  },
+  "faultControls": [
+    {
+      "control": "corrupted_output_1ulp",
+      "stage": "attn_hc.norm",
+      "rowsTested": 3,
+      "rowsRejected": 3,
+      "allRejected": true
+    },
+    {
+      "control": "norm_missing_weight_offset",
+      "stage": "attn_hc.norm",
+      "rowsTested": 3,
+      "rowsRejected": 3,
+      "allRejected": true
+    },
+    {
+      "control": "norm_right_associated",
+      "stage": "attn_hc.norm",
+      "rowsTested": 3,
+      "rowsRejected": 3,
+      "allRejected": true
+    },
+    {
+      "control": "subgroup_top_down_reduction",
+      "stage": "attn_hc.down",
+      "rowsTested": 3,
+      "rowsRejected": 3,
+      "allRejected": true
+    },
+    {
+      "control": "matmul_seq_instead_of_tiled16",
+      "stage": "linear.attn.qkv_proj@positions",
+      "rowsTested": 3,
+      "rowsRejected": 3,
+      "allRejected": true
+    },
+    {
+      "control": "conv1d_unfused_mul_add",
+      "stage": "linear.attn.linear_core_out",
+      "rowsTested": 3,
+      "rowsRejected": 3,
+      "allRejected": true
+    },
+    {
+      "control": "gdn_wrong_silu_gate",
+      "stage": "linear.attn.linear_core_out",
+      "rowsTested": 3,
+      "rowsRejected": 3,
+      "allRejected": true
+    }
+  ],
+  "stageGpuVsCpuDrift": [
+    {
+      "stage": "attn_hc.input",
+      "width": 10240,
+      "perPosition": [
+        {
+          "position": 1717,
+          "maxAbsDiff": 0.0000024437904357910156,
+          "rmsDiff": 1.575644845252903e-7
+        },
+        {
+          "position": 2271,
+          "maxAbsDiff": 0.0000012754462659358978,
+          "rmsDiff": 1.305898201975483e-7
+        },
+        {
+          "position": 2303,
+          "maxAbsDiff": 0.0000015310943126678467,
+          "rmsDiff": 1.3891439496042614e-7
+        }
+      ]
+    },
+    {
+      "stage": "attn_hc.norm",
+      "width": 10240,
+      "perPosition": [
+        {
+          "position": 1717,
+          "maxAbsDiff": 0.00004863739013671875,
+          "rmsDiff": 0.000003226510250612107
+        },
+        {
+          "position": 2271,
+          "maxAbsDiff": 0.000021696090698242188,
+          "rmsDiff": 0.000003325519294475301
+        },
+        {
+          "position": 2303,
+          "maxAbsDiff": 0.000020742416381835938,
+          "rmsDiff": 0.0000031564179073635764
+        }
+      ]
+    },
+    {
+      "stage": "attn_hc.down",
+      "width": 320,
+      "perPosition": [
+        {
+          "position": 1717,
+          "maxAbsDiff": 0.000087738037109375,
+          "rmsDiff": 0.00002737259449246839
+        },
+        {
+          "position": 2271,
+          "maxAbsDiff": 0.00014543533325195312,
+          "rmsDiff": 0.00003484780491981312
+        },
+        {
+          "position": 2303,
+          "maxAbsDiff": 0.000087738037109375,
+          "rmsDiff": 0.00002784235474826329
+        }
+      ]
+    },
+    {
+      "stage": "attn_hc.lowRank",
+      "width": 320,
+      "perPosition": [
+        {
+          "position": 1717,
+          "maxAbsDiff": 0.00002002716064453125,
+          "rmsDiff": 0.000003719040267806358
+        },
+        {
+          "position": 2271,
+          "maxAbsDiff": 0.00003546476364135742,
+          "rmsDiff": 0.000004406800918530274
+        },
+        {
+          "position": 2303,
+          "maxAbsDiff": 0.00002002716064453125,
+          "rmsDiff": 0.000003567397814015992
+        }
+      ]
+    },
+    {
+      "stage": "attn_hc.up",
+      "width": 10240,
+      "perPosition": [
+        {
+          "position": 1717,
+          "maxAbsDiff": 0.0000209808349609375,
+          "rmsDiff": 0.0000047923547682507026
+        },
+        {
+          "position": 2271,
+          "maxAbsDiff": 0.00002384185791015625,
+          "rmsDiff": 0.0000051630499593811394
+        },
+        {
+          "position": 2303,
+          "maxAbsDiff": 0.000021457672119140625,
+          "rmsDiff": 0.000004117779211142005
+        }
+      ]
+    },
+    {
+      "stage": "attn_hc.mix",
+      "width": 10240,
+      "perPosition": [
+        {
+          "position": 1717,
+          "maxAbsDiff": 0.000005125999450683594,
+          "rmsDiff": 5.134549941814388e-7
+        },
+        {
+          "position": 2271,
+          "maxAbsDiff": 0.000004559755325317383,
+          "rmsDiff": 6.735833563966571e-7
+        },
+        {
+          "position": 2303,
+          "maxAbsDiff": 0.000004798173904418945,
+          "rmsDiff": 5.036898874145456e-7
+        }
+      ]
+    },
+    {
+      "stage": "attn_hc.branchInput",
+      "width": 2560,
+      "perPosition": [
+        {
+          "position": 1717,
+          "maxAbsDiff": 0.00001609325408935547,
+          "rmsDiff": 0.000001907647848710714
+        },
+        {
+          "position": 2271,
+          "maxAbsDiff": 0.000009149312973022461,
+          "rmsDiff": 0.0000018586178670505945
+        },
+        {
+          "position": 2303,
+          "maxAbsDiff": 0.0000073909759521484375,
+          "rmsDiff": 0.0000017877850362652395
+        }
+      ]
+    },
+    {
+      "stage": "linear.attn.qkv_proj",
+      "width": 10240,
+      "perPosition": [
+        {
+          "position": 1717,
+          "maxAbsDiff": 0.000012755393981933594,
+          "rmsDiff": 0.000002093328897155847
+        },
+        {
+          "position": 2271,
+          "maxAbsDiff": 0.00001424551010131836,
+          "rmsDiff": 0.000002255846281629778
+        },
+        {
+          "position": 2303,
+          "maxAbsDiff": 0.00001049041748046875,
+          "rmsDiff": 0.0000019755113902968084
+        }
+      ]
+    },
+    {
+      "stage": "linear.attn.linear_z_proj",
+      "width": 6144,
+      "perPosition": [
+        {
+          "position": 1717,
+          "maxAbsDiff": 0.000009775161743164062,
+          "rmsDiff": 0.0000019768839559676437
+        },
+        {
+          "position": 2271,
+          "maxAbsDiff": 0.000010967254638671875,
+          "rmsDiff": 0.0000020944303633609325
+        },
+        {
+          "position": 2303,
+          "maxAbsDiff": 0.000009894371032714844,
+          "rmsDiff": 0.000001931880548691001
+        }
+      ]
+    },
+    {
+      "stage": "linear.attn.linear_a_proj",
+      "width": 48,
+      "perPosition": [
+        {
+          "position": 1717,
+          "maxAbsDiff": 0.0000054836273193359375,
+          "rmsDiff": 0.0000028753139333889675
+        },
+        {
+          "position": 2271,
+          "maxAbsDiff": 0.000008106231689453125,
+          "rmsDiff": 0.0000027616897383304576
+        },
+        {
+          "position": 2303,
+          "maxAbsDiff": 0.0000064373016357421875,
+          "rmsDiff": 0.000002447765495382531
+        }
+      ]
+    },
+    {
+      "stage": "linear.attn.linear_b_proj",
+      "width": 48,
+      "perPosition": [
+        {
+          "position": 1717,
+          "maxAbsDiff": 0.0000064373016357421875,
+          "rmsDiff": 0.0000027645682758008912
+        },
+        {
+          "position": 2271,
+          "maxAbsDiff": 0.00001239776611328125,
+          "rmsDiff": 0.000003015903395108099
+        },
+        {
+          "position": 2303,
+          "maxAbsDiff": 0.000008106231689453125,
+          "rmsDiff": 0.000002766406532720148
+        }
+      ]
+    },
+    {
+      "stage": "linear.attn.linear_core_out",
+      "width": 6144,
+      "perPosition": [
+        {
+          "position": 1717,
+          "maxAbsDiff": 0.0000013113021850585938,
+          "rmsDiff": 1.6461709430584085e-7
+        },
+        {
+          "position": 2271,
+          "maxAbsDiff": 0.0000015050172805786133,
+          "rmsDiff": 1.5565463970480708e-7
+        },
+        {
+          "position": 2303,
+          "maxAbsDiff": 0.0000014156103134155273,
+          "rmsDiff": 1.3108376507451672e-7
+        }
+      ]
+    },
+    {
+      "stage": "attn_hc.branchOutput",
+      "width": 2560,
+      "perPosition": [
+        {
+          "position": 1717,
+          "maxAbsDiff": 0.0000012293457984924316,
+          "rmsDiff": 2.5096704309187067e-7
+        },
+        {
+          "position": 2271,
+          "maxAbsDiff": 0.000001105479896068573,
+          "rmsDiff": 2.3306005479692394e-7
+        },
+        {
+          "position": 2303,
+          "maxAbsDiff": 7.897615432739258e-7,
+          "rmsDiff": 2.020372897727298e-7
+        }
+      ]
+    },
+    {
+      "stage": "attn_hc.logits",
+      "width": 4,
+      "perPosition": [
+        {
+          "position": 1717,
+          "maxAbsDiff": 0.00000667572021484375,
+          "rmsDiff": 0.000003960906917056119
+        },
+        {
+          "position": 2271,
+          "maxAbsDiff": 0.000026702880859375,
+          "rmsDiff": 0.000013934745022013147
+        },
+        {
+          "position": 2303,
+          "maxAbsDiff": 0.000019073486328125,
+          "rmsDiff": 0.00001164107858250971
+        }
+      ]
+    },
+    {
+      "stage": "attn_hc.gate",
+      "width": 4,
+      "perPosition": [
+        {
+          "position": 1717,
+          "maxAbsDiff": 1.341104507446289e-7,
+          "rmsDiff": 7.375712844523537e-8
+        },
+        {
+          "position": 2271,
+          "maxAbsDiff": 2.384185791015625e-7,
+          "rmsDiff": 1.327072063798449e-7
+        },
+        {
+          "position": 2303,
+          "maxAbsDiff": 2.682209014892578e-7,
+          "rmsDiff": 1.7544504876086665e-7
+        }
+      ]
+    },
+    {
+      "stage": "attn_hc.injected",
+      "width": 10240,
+      "perPosition": [
+        {
+          "position": 1717,
+          "maxAbsDiff": 0.0000023245811462402344,
+          "rmsDiff": 1.5435197745609598e-7
+        },
+        {
+          "position": 2271,
+          "maxAbsDiff": 0.0000012754462659358978,
+          "rmsDiff": 1.279181078064629e-7
+        },
+        {
+          "position": 2303,
+          "maxAbsDiff": 0.0000015310943126678467,
+          "rmsDiff": 1.3728720547584782e-7
+        }
+      ]
+    },
+    {
+      "stage": "mlp_hc.norm",
+      "width": 10240,
+      "perPosition": [
+        {
+          "position": 1717,
+          "maxAbsDiff": 0.0000400543212890625,
+          "rmsDiff": 0.000003889782595304239
+        },
+        {
+          "position": 2271,
+          "maxAbsDiff": 0.000027492642402648926,
+          "rmsDiff": 0.0000039364063826113255
+        },
+        {
+          "position": 2303,
+          "maxAbsDiff": 0.000023603439331054688,
+          "rmsDiff": 0.0000037500834827571804
+        }
+      ]
+    },
+    {
+      "stage": "mlp_hc.down",
+      "width": 320,
+      "perPosition": [
+        {
+          "position": 1717,
+          "maxAbsDiff": 0.000080108642578125,
+          "rmsDiff": 0.000019351149669324912
+        },
+        {
+          "position": 2271,
+          "maxAbsDiff": 0.0000743865966796875,
+          "rmsDiff": 0.00002033370416206876
+        },
+        {
+          "position": 2303,
+          "maxAbsDiff": 0.00009918212890625,
+          "rmsDiff": 0.000020486455867064505
+        }
+      ]
+    },
+    {
+      "stage": "mlp_hc.lowRank",
+      "width": 320,
+      "perPosition": [
+        {
+          "position": 1717,
+          "maxAbsDiff": 0.00001621246337890625,
+          "rmsDiff": 0.0000016962339275648248
+        },
+        {
+          "position": 2271,
+          "maxAbsDiff": 0.000012636184692382812,
+          "rmsDiff": 0.0000016967193188497354
+        },
+        {
+          "position": 2303,
+          "maxAbsDiff": 0.000018596649169921875,
+          "rmsDiff": 0.0000017758248525915775
+        }
+      ]
+    },
+    {
+      "stage": "mlp_hc.up",
+      "width": 10240,
+      "perPosition": [
+        {
+          "position": 1717,
+          "maxAbsDiff": 0.0000152587890625,
+          "rmsDiff": 0.000004051675193715522
+        },
+        {
+          "position": 2271,
+          "maxAbsDiff": 0.00001430511474609375,
+          "rmsDiff": 0.000002954635871255845
+        },
+        {
+          "position": 2303,
+          "maxAbsDiff": 0.00001430511474609375,
+          "rmsDiff": 0.000004149201447314863
+        }
+      ]
+    },
+    {
+      "stage": "mlp_hc.mix",
+      "width": 10240,
+      "perPosition": [
+        {
+          "position": 1717,
+          "maxAbsDiff": 0.000003635883331298828,
+          "rmsDiff": 6.767082299196361e-7
+        },
+        {
+          "position": 2271,
+          "maxAbsDiff": 0.0000034868717193603516,
+          "rmsDiff": 4.4052062796528746e-7
+        },
+        {
+          "position": 2303,
+          "maxAbsDiff": 0.000003129243850708008,
+          "rmsDiff": 8.268077266814264e-7
+        }
+      ]
+    },
+    {
+      "stage": "mlp_hc.branchInput",
+      "width": 2560,
+      "perPosition": [
+        {
+          "position": 1717,
+          "maxAbsDiff": 0.000014781951904296875,
+          "rmsDiff": 0.0000018604112769546631
+        },
+        {
+          "position": 2271,
+          "maxAbsDiff": 0.000008277595043182373,
+          "rmsDiff": 0.000001998377841892917
+        },
+        {
+          "position": 2303,
+          "maxAbsDiff": 0.000007271766662597656,
+          "rmsDiff": 0.0000019151640492812855
+        }
+      ]
+    },
+    {
+      "stage": "router25.logits",
+      "width": 512,
+      "perPosition": [
+        {
+          "position": 1717,
+          "maxAbsDiff": 0.000008106231689453125,
+          "rmsDiff": 0.0000020015316040616035
+        },
+        {
+          "position": 2271,
+          "maxAbsDiff": 0.00000858306884765625,
+          "rmsDiff": 0.000002516421877498784
+        },
+        {
+          "position": 2303,
+          "maxAbsDiff": 0.000006198883056640625,
+          "rmsDiff": 0.0000016792425257375526
+        }
+      ]
+    }
+  ],
+  "forwardCounterfactuals": [
+    {
+      "id": "A0_pure_cpu",
+      "description": "Pure CPU reference Layer 25",
+      "perPosition": [
+        {
+          "position": 1717,
+          "exactTop": [
+            364,
+            482,
+            127,
+            66,
+            431,
+            170,
+            331,
+            494,
+            499,
+            493
+          ],
+          "wgslTop": [
+            364,
+            482,
+            127,
+            66,
+            431,
+            170,
+            331,
+            494,
+            499,
+            493
+          ],
+          "exactOverlapWithCpu": 10,
+          "wgslOverlapWithCpu": 10,
+          "exactMatchesCpuTop10": true,
+          "wgslMatchesCpuTop10": true,
+          "pairMargin": {
+            "sourceExpert": 493,
+            "gpuExpert": 330,
+            "exactMargin": 0.00000151425247274517,
+            "wgslMargin": 0.0000019073486328125,
+            "flipsExact": false,
+            "flipsWgsl": false
+          }
+        },
+        {
+          "position": 2271,
+          "exactTop": [
+            309,
+            170,
+            179,
+            172,
+            495,
+            268,
+            290,
+            469,
+            369,
+            311
+          ],
+          "wgslTop": [
+            309,
+            170,
+            179,
+            172,
+            495,
+            268,
+            290,
+            469,
+            369,
+            311
+          ],
+          "exactOverlapWithCpu": 10,
+          "wgslOverlapWithCpu": 10,
+          "exactMatchesCpuTop10": true,
+          "wgslMatchesCpuTop10": true,
+          "pairMargin": {
+            "sourceExpert": 311,
+            "gpuExpert": 411,
+            "exactMargin": 0.000001133673764641685,
+            "wgslMargin": 0.000001430511474609375,
+            "flipsExact": false,
+            "flipsWgsl": false
+          }
+        },
+        {
+          "position": 2303,
+          "exactTop": [
+            329,
+            500,
+            220,
+            450,
+            85,
+            187,
+            188,
+            393,
+            190,
+            84
+          ],
+          "wgslTop": [
+            329,
+            500,
+            220,
+            450,
+            85,
+            187,
+            188,
+            393,
+            190,
+            84
+          ],
+          "exactOverlapWithCpu": 10,
+          "wgslOverlapWithCpu": 10,
+          "exactMatchesCpuTop10": true,
+          "wgslMatchesCpuTop10": true,
+          "pairMargin": null
+        }
+      ]
+    },
+    {
+      "id": "A1_gpu_layer24_stream_with_cpu_linear_branch",
+      "description": "GPU attn_hc.input (from Layer 24) at [1717, 2271, 2303] + pure CPU attn_hc, CPU linear_attn branchOutput, CPU inject, and CPU mlp_hc",
+      "perPosition": [
+        {
+          "position": 1717,
+          "exactTop": [
+            364,
+            482,
+            127,
+            66,
+            431,
+            170,
+            331,
+            494,
+            499,
+            330
+          ],
+          "wgslTop": [
+            364,
+            482,
+            127,
+            66,
+            431,
+            170,
+            331,
+            494,
+            499,
+            330
+          ],
+          "exactOverlapWithCpu": 9,
+          "wgslOverlapWithCpu": 9,
+          "exactMatchesCpuTop10": false,
+          "wgslMatchesCpuTop10": false,
+          "pairMargin": {
+            "sourceExpert": 493,
+            "gpuExpert": 330,
+            "exactMargin": -0.000004561851717710397,
+            "wgslMargin": -0.00000476837158203125,
+            "flipsExact": true,
+            "flipsWgsl": true
+          }
+        },
+        {
+          "position": 2271,
+          "exactTop": [
+            309,
+            170,
+            179,
+            172,
+            495,
+            268,
+            290,
+            469,
+            369,
+            311
+          ],
+          "wgslTop": [
+            309,
+            170,
+            179,
+            172,
+            495,
+            268,
+            290,
+            469,
+            369,
+            311
+          ],
+          "exactOverlapWithCpu": 10,
+          "wgslOverlapWithCpu": 10,
+          "exactMatchesCpuTop10": true,
+          "wgslMatchesCpuTop10": true,
+          "pairMargin": {
+            "sourceExpert": 311,
+            "gpuExpert": 411,
+            "exactMargin": 6.85235132635853e-7,
+            "wgslMargin": 9.5367431640625e-7,
+            "flipsExact": false,
+            "flipsWgsl": false
+          }
+        },
+        {
+          "position": 2303,
+          "exactTop": [
+            329,
+            500,
+            220,
+            450,
+            85,
+            187,
+            188,
+            393,
+            190,
+            84
+          ],
+          "wgslTop": [
+            329,
+            500,
+            220,
+            450,
+            85,
+            187,
+            188,
+            393,
+            190,
+            84
+          ],
+          "exactOverlapWithCpu": 10,
+          "wgslOverlapWithCpu": 10,
+          "exactMatchesCpuTop10": true,
+          "wgslMatchesCpuTop10": true,
+          "pairMargin": null
+        }
+      ]
+    },
+    {
+      "id": "A2_gpu_layer24_stream_with_spliced_linear_attn",
+      "description": "GPU attn_hc.input (from Layer 24) at [1717, 2271, 2303] + pure CPU attn_hc, spliced Linear Attention, CPU inject, and CPU mlp_hc",
+      "perPosition": [
+        {
+          "position": 1717,
+          "exactTop": [
+            364,
+            482,
+            127,
+            66,
+            431,
+            170,
+            331,
+            494,
+            499,
+            330
+          ],
+          "wgslTop": [
+            364,
+            482,
+            127,
+            66,
+            431,
+            170,
+            331,
+            494,
+            499,
+            330
+          ],
+          "exactOverlapWithCpu": 9,
+          "wgslOverlapWithCpu": 9,
+          "exactMatchesCpuTop10": false,
+          "wgslMatchesCpuTop10": false,
+          "pairMargin": {
+            "sourceExpert": 493,
+            "gpuExpert": 330,
+            "exactMargin": -0.000002782866191708422,
+            "wgslMargin": -0.000002384185791015625,
+            "flipsExact": true,
+            "flipsWgsl": true
+          }
+        },
+        {
+          "position": 2271,
+          "exactTop": [
+            309,
+            170,
+            179,
+            172,
+            495,
+            268,
+            290,
+            469,
+            369,
+            411
+          ],
+          "wgslTop": [
+            309,
+            170,
+            179,
+            172,
+            495,
+            268,
+            290,
+            469,
+            369,
+            411
+          ],
+          "exactOverlapWithCpu": 9,
+          "wgslOverlapWithCpu": 9,
+          "exactMatchesCpuTop10": false,
+          "wgslMatchesCpuTop10": false,
+          "pairMargin": {
+            "sourceExpert": 311,
+            "gpuExpert": 411,
+            "exactMargin": -6.969920738342239e-7,
+            "wgslMargin": -9.5367431640625e-7,
+            "flipsExact": true,
+            "flipsWgsl": true
+          }
+        },
+        {
+          "position": 2303,
+          "exactTop": [
+            329,
+            500,
+            220,
+            450,
+            85,
+            187,
+            188,
+            393,
+            190,
+            84
+          ],
+          "wgslTop": [
+            329,
+            500,
+            220,
+            450,
+            85,
+            187,
+            188,
+            393,
+            190,
+            84
+          ],
+          "exactOverlapWithCpu": 10,
+          "wgslOverlapWithCpu": 10,
+          "exactMatchesCpuTop10": true,
+          "wgslMatchesCpuTop10": true,
+          "pairMargin": null
+        }
+      ]
+    },
+    {
+      "id": "A5_gpu_attn_hc_and_linear_attn",
+      "description": "GPU attn_hc + GPU linear_attn branchOutput + pure CPU inject and mlp_hc",
+      "perPosition": [
+        {
+          "position": 1717,
+          "exactTop": [
+            364,
+            482,
+            127,
+            66,
+            431,
+            170,
+            331,
+            494,
+            499,
+            330
+          ],
+          "wgslTop": [
+            364,
+            482,
+            127,
+            66,
+            431,
+            170,
+            331,
+            494,
+            499,
+            330
+          ],
+          "exactOverlapWithCpu": 9,
+          "wgslOverlapWithCpu": 9,
+          "exactMatchesCpuTop10": false,
+          "wgslMatchesCpuTop10": false,
+          "pairMargin": {
+            "sourceExpert": 493,
+            "gpuExpert": 330,
+            "exactMargin": -0.000002705239702471829,
+            "wgslMargin": -0.00000286102294921875,
+            "flipsExact": true,
+            "flipsWgsl": true
+          }
+        },
+        {
+          "position": 2271,
+          "exactTop": [
+            309,
+            170,
+            179,
+            172,
+            495,
+            268,
+            290,
+            469,
+            369,
+            411
+          ],
+          "wgslTop": [
+            309,
+            170,
+            179,
+            172,
+            495,
+            268,
+            290,
+            469,
+            369,
+            411
+          ],
+          "exactOverlapWithCpu": 9,
+          "wgslOverlapWithCpu": 9,
+          "exactMatchesCpuTop10": false,
+          "wgslMatchesCpuTop10": false,
+          "pairMargin": {
+            "sourceExpert": 311,
+            "gpuExpert": 411,
+            "exactMargin": -7.823671754891848e-7,
+            "wgslMargin": -4.76837158203125e-7,
+            "flipsExact": true,
+            "flipsWgsl": true
+          }
+        },
+        {
+          "position": 2303,
+          "exactTop": [
+            329,
+            500,
+            220,
+            450,
+            85,
+            187,
+            188,
+            393,
+            190,
+            84
+          ],
+          "wgslTop": [
+            329,
+            500,
+            220,
+            450,
+            85,
+            187,
+            188,
+            393,
+            190,
+            84
+          ],
+          "exactOverlapWithCpu": 10,
+          "wgslOverlapWithCpu": 10,
+          "exactMatchesCpuTop10": true,
+          "wgslMatchesCpuTop10": true,
+          "pairMargin": null
+        }
+      ]
+    },
+    {
+      "id": "A6_all_gpu_layer25",
+      "description": "Actual GPU Layer-25 router input (all GPU Layer-25 operators)",
+      "perPosition": [
+        {
+          "position": 1717,
+          "exactTop": [
+            364,
+            482,
+            127,
+            66,
+            431,
+            170,
+            331,
+            494,
+            499,
+            330
+          ],
+          "wgslTop": [
+            364,
+            482,
+            127,
+            66,
+            431,
+            170,
+            331,
+            494,
+            499,
+            330
+          ],
+          "exactOverlapWithCpu": 9,
+          "wgslOverlapWithCpu": 9,
+          "exactMatchesCpuTop10": false,
+          "wgslMatchesCpuTop10": false,
+          "pairMargin": {
+            "sourceExpert": 493,
+            "gpuExpert": 330,
+            "exactMargin": -0.000002701793814452458,
+            "wgslMargin": -0.000002384185791015625,
+            "flipsExact": true,
+            "flipsWgsl": true
+          }
+        },
+        {
+          "position": 2271,
+          "exactTop": [
+            309,
+            170,
+            179,
+            172,
+            495,
+            268,
+            290,
+            469,
+            369,
+            411
+          ],
+          "wgslTop": [
+            309,
+            170,
+            179,
+            172,
+            495,
+            268,
+            290,
+            469,
+            369,
+            411
+          ],
+          "exactOverlapWithCpu": 9,
+          "wgslOverlapWithCpu": 9,
+          "exactMatchesCpuTop10": false,
+          "wgslMatchesCpuTop10": false,
+          "pairMargin": {
+            "sourceExpert": 311,
+            "gpuExpert": 411,
+            "exactMargin": -8.463160519056601e-7,
+            "wgslMargin": -4.76837158203125e-7,
+            "flipsExact": true,
+            "flipsWgsl": true
+          }
+        },
+        {
+          "position": 2303,
+          "exactTop": [
+            329,
+            500,
+            220,
+            450,
+            85,
+            187,
+            188,
+            393,
+            190,
+            84
+          ],
+          "wgslTop": [
+            329,
+            500,
+            220,
+            450,
+            85,
+            187,
+            188,
+            393,
+            190,
+            84
+          ],
+          "exactOverlapWithCpu": 10,
+          "wgslOverlapWithCpu": 10,
+          "exactMatchesCpuTop10": true,
+          "wgslMatchesCpuTop10": true,
+          "pairMargin": null
+        }
+      ]
+    }
+  ],
+  "reverseCounterfactuals": [
+    {
+      "id": "R0_all_gpu_layer25",
+      "description": "Actual GPU Layer-25 router input (GPU Layer-24 state + GPU WGSL Layer-25 operators)",
+      "perPosition": [
+        {
+          "position": 1717,
+          "exactTop": [
+            364,
+            482,
+            127,
+            66,
+            431,
+            170,
+            331,
+            494,
+            499,
+            330
+          ],
+          "wgslTop": [
+            364,
+            482,
+            127,
+            66,
+            431,
+            170,
+            331,
+            494,
+            499,
+            330
+          ],
+          "exactOverlapWithCpu": 9,
+          "wgslOverlapWithCpu": 9,
+          "exactMatchesCpuTop10": false,
+          "wgslMatchesCpuTop10": false,
+          "pairMargin": {
+            "sourceExpert": 493,
+            "gpuExpert": 330,
+            "exactMargin": -0.000002701793814452458,
+            "wgslMargin": -0.000002384185791015625,
+            "flipsExact": true,
+            "flipsWgsl": true
+          }
+        },
+        {
+          "position": 2271,
+          "exactTop": [
+            309,
+            170,
+            179,
+            172,
+            495,
+            268,
+            290,
+            469,
+            369,
+            411
+          ],
+          "wgslTop": [
+            309,
+            170,
+            179,
+            172,
+            495,
+            268,
+            290,
+            469,
+            369,
+            411
+          ],
+          "exactOverlapWithCpu": 9,
+          "wgslOverlapWithCpu": 9,
+          "exactMatchesCpuTop10": false,
+          "wgslMatchesCpuTop10": false,
+          "pairMargin": {
+            "sourceExpert": 311,
+            "gpuExpert": 411,
+            "exactMargin": -8.463160519056601e-7,
+            "wgslMargin": -4.76837158203125e-7,
+            "flipsExact": true,
+            "flipsWgsl": true
+          }
+        },
+        {
+          "position": 2303,
+          "exactTop": [
+            329,
+            500,
+            220,
+            450,
+            85,
+            187,
+            188,
+            393,
+            190,
+            84
+          ],
+          "wgslTop": [
+            329,
+            500,
+            220,
+            450,
+            85,
+            187,
+            188,
+            393,
+            190,
+            84
+          ],
+          "exactOverlapWithCpu": 10,
+          "wgslOverlapWithCpu": 10,
+          "exactMatchesCpuTop10": true,
+          "wgslMatchesCpuTop10": true,
+          "pairMargin": null
+        }
+      ]
+    },
+    {
+      "id": "R1_cpu_stream_and_branch_into_gpu_wgsl_hc",
+      "description": "CPU attn_hc.input + CPU linear_attn branchOutput + GPU WGSL attn_hc, inject, and mlp_hc",
+      "perPosition": [
+        {
+          "position": 1717,
+          "exactTop": [
+            364,
+            482,
+            127,
+            66,
+            431,
+            170,
+            331,
+            494,
+            499,
+            493
+          ],
+          "wgslTop": [
+            364,
+            482,
+            127,
+            66,
+            431,
+            170,
+            331,
+            494,
+            499,
+            493
+          ],
+          "exactOverlapWithCpu": 10,
+          "wgslOverlapWithCpu": 10,
+          "exactMatchesCpuTop10": true,
+          "wgslMatchesCpuTop10": true,
+          "pairMargin": {
+            "sourceExpert": 493,
+            "gpuExpert": 330,
+            "exactMargin": 0.000001465291976643357,
+            "wgslMargin": 0.000001430511474609375,
+            "flipsExact": false,
+            "flipsWgsl": false
+          }
+        },
+        {
+          "position": 2271,
+          "exactTop": [
+            309,
+            170,
+            179,
+            172,
+            495,
+            268,
+            290,
+            469,
+            369,
+            311
+          ],
+          "wgslTop": [
+            309,
+            170,
+            179,
+            172,
+            495,
+            268,
+            290,
+            469,
+            369,
+            311
+          ],
+          "exactOverlapWithCpu": 10,
+          "wgslOverlapWithCpu": 10,
+          "exactMatchesCpuTop10": true,
+          "wgslMatchesCpuTop10": true,
+          "pairMargin": {
+            "sourceExpert": 311,
+            "gpuExpert": 411,
+            "exactMargin": 9.970441725570822e-7,
+            "wgslMargin": 4.76837158203125e-7,
+            "flipsExact": false,
+            "flipsWgsl": false
+          }
+        },
+        {
+          "position": 2303,
+          "exactTop": [
+            329,
+            500,
+            220,
+            450,
+            85,
+            187,
+            188,
+            393,
+            190,
+            84
+          ],
+          "wgslTop": [
+            329,
+            500,
+            220,
+            450,
+            85,
+            187,
+            188,
+            393,
+            190,
+            84
+          ],
+          "exactOverlapWithCpu": 10,
+          "wgslOverlapWithCpu": 10,
+          "exactMatchesCpuTop10": true,
+          "wgslMatchesCpuTop10": true,
+          "pairMargin": null
+        }
+      ]
+    },
+    {
+      "id": "R2_cpu_layer24_stream_into_all_gpu_wgsl_layer25",
+      "description": "CPU attn_hc.input at [1717, 2271, 2303] + 100% GPU WGSL Layer-25 operators (attn_hc -> linear_attn -> inject -> mlp_hc -> router25)",
+      "perPosition": [
+        {
+          "position": 1717,
+          "exactTop": [
+            364,
+            482,
+            127,
+            66,
+            431,
+            170,
+            331,
+            494,
+            499,
+            493
+          ],
+          "wgslTop": [
+            364,
+            482,
+            127,
+            66,
+            431,
+            170,
+            331,
+            494,
+            499,
+            493
+          ],
+          "exactOverlapWithCpu": 10,
+          "wgslOverlapWithCpu": 10,
+          "exactMatchesCpuTop10": true,
+          "wgslMatchesCpuTop10": true,
+          "pairMargin": {
+            "sourceExpert": 493,
+            "gpuExpert": 330,
+            "exactMargin": 0.000001901814188798312,
+            "wgslMargin": 0.000002384185791015625,
+            "flipsExact": false,
+            "flipsWgsl": false
+          }
+        },
+        {
+          "position": 2271,
+          "exactTop": [
+            309,
+            170,
+            179,
+            172,
+            495,
+            268,
+            290,
+            469,
+            369,
+            311
+          ],
+          "wgslTop": [
+            309,
+            170,
+            179,
+            172,
+            495,
+            268,
+            290,
+            469,
+            369,
+            311
+          ],
+          "exactOverlapWithCpu": 10,
+          "wgslOverlapWithCpu": 10,
+          "exactMatchesCpuTop10": true,
+          "wgslMatchesCpuTop10": true,
+          "pairMargin": {
+            "sourceExpert": 311,
+            "gpuExpert": 411,
+            "exactMargin": 9.788916610631304e-7,
+            "wgslMargin": 9.5367431640625e-7,
+            "flipsExact": false,
+            "flipsWgsl": false
+          }
+        },
+        {
+          "position": 2303,
+          "exactTop": [
+            329,
+            500,
+            220,
+            450,
+            85,
+            187,
+            188,
+            393,
+            190,
+            84
+          ],
+          "wgslTop": [
+            329,
+            500,
+            220,
+            450,
+            85,
+            187,
+            188,
+            393,
+            190,
+            84
+          ],
+          "exactOverlapWithCpu": 10,
+          "wgslOverlapWithCpu": 10,
+          "exactMatchesCpuTop10": true,
+          "wgslMatchesCpuTop10": true,
+          "pairMargin": null
+        }
+      ]
+    }
+  ],
+  "scope": "Constructive F32 WGSL operator witnesses and exact dyadic / WGSL counterfactuals for Layer 25 only. Proves 0-ULP operator fidelity across Layer 25 and attributes both Layer-25 routing flips to incoming Layer-24 stream drift (attn_hc.input). Does not bound Layers 0..24 or qualify the model."
+}

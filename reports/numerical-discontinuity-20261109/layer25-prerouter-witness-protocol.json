@@ -1,0 +1,149 @@
+{
+  "schema": "doppler.layer25-prerouter-witness-protocol/v1",
+  "qualificationAuthority": false,
+  "layer": 25,
+  "positions": [1717, 2271, 2303],
+  "seqLen": 2304,
+  "hiddenSize": 2560,
+  "numStreams": 4,
+  "streamWidth": 10240,
+  "lowRankDim": 320,
+  "qkvDim": 10240,
+  "zDim": 6144,
+  "numKeyHeads": 16,
+  "numValueHeads": 48,
+  "headKeyDim": 128,
+  "headValueDim": 128,
+  "convKernelSize": 4,
+  "expertCount": 512,
+  "topK": 10,
+  "rmsNormEps": 1e-6,
+  "manifestSha256": "4902a0b730a9310903b00bc0f8f587528fa1af9f37a722d2f9287bafceceec09",
+  "stagesObservation": "f32kv-layer25-stages-20261107.json",
+  "stagesObservationSha256": "4bcb97c676cbec37bb066372a3949112763a86d9958e21e58fac38328282245f",
+  "routerObservation": "f32kv-router-subgroup-20261107.json",
+  "routerObservationSha256": "4c4367d68d2dd41e15868d824851c6f7357acfecbcfa41609a95792355e7b429",
+  "routerComparison": "f32kv-router-subgroup-routing-20261107.json",
+  "routerComparisonSha256": "681bcb5f631327583b7d958cd55de6cc45e85dce4b4059a25db9015eb09d81c8",
+  "layer25TraceReceipt": "trace.json",
+  "layer25TraceReceiptSha256": "96cb085d2b84fa0ef1371c4e756c69979a0275490a65843b4c522711349babb2",
+  "routerTraceReceipt": "receipt.json",
+  "routerTraceReceiptSha256": "06b9300753f65574477b66f45a0c0fce6474e2112a3f9d901b0af22371037073",
+  "weights": {
+    "attn_hyper_connection.block_inject_weight.weight": {
+      "dtype": "F16",
+      "shape": [4, 10240],
+      "bytes": 81920,
+      "sha256": "7b31f83758cd45f5fef4ef91755c5d8657a5b552aca94c9f4dea3817e9a88e4a"
+    },
+    "attn_hyper_connection.hc_norm.weight": {
+      "dtype": "F16",
+      "shape": [10240],
+      "bytes": 20480,
+      "sha256": "b7e2db47d8a7c87988850c9d24340f567107ca8e8ceb92d79286fb2be9dd0857"
+    },
+    "attn_hyper_connection.input_mix_weight_down.weight": {
+      "dtype": "F16",
+      "shape": [320, 10240],
+      "bytes": 6553600,
+      "sha256": "548c3eddc77662560a577aa216c58a15d27a955572463b8e9518c3501767b992"
+    },
+    "attn_hyper_connection.input_mix_weight_up.weight": {
+      "dtype": "F16",
+      "shape": [10240, 320],
+      "bytes": 6553600,
+      "sha256": "f7eb257f83a67d90494517401945b052580b6ff1165dfa19f036de22aea64e36"
+    },
+    "linear_attn.A_log": {
+      "dtype": "F16",
+      "shape": [48],
+      "bytes": 96,
+      "sha256": "f23fc188695d54f93409a19fce8ef5a9ec6a14af097454cfbf913220284dcf9e"
+    },
+    "linear_attn.conv1d.weight": {
+      "dtype": "F16",
+      "shape": [10240, 1, 4],
+      "bytes": 81920,
+      "sha256": "f9e9019eb8423f946340c811b24c34ebb7c297a8e518229e878371709ec03a58"
+    },
+    "linear_attn.dt_bias": {
+      "dtype": "F16",
+      "shape": [48],
+      "bytes": 96,
+      "sha256": "d4a050dd8fd9d51cbf12d8f106f02053153bfa7753c4933fc701e87a2bcaaf07"
+    },
+    "linear_attn.in_proj_a.weight": {
+      "dtype": "F16",
+      "shape": [48, 2560],
+      "bytes": 245760,
+      "sha256": "cd337fcfb16a35939f4758e6b5cc08cc247cf5899b73c8101cc3ea6f5c94e869"
+    },
+    "linear_attn.in_proj_b.weight": {
+      "dtype": "F16",
+      "shape": [48, 2560],
+      "bytes": 245760,
+      "sha256": "6507bb68e6197c12feefcfbb29afcf87812abae58557012f131803462e57c77a"
+    },
+    "linear_attn.in_proj_qkv.weight": {
+      "dtype": "F16",
+      "shape": [10240, 2560],
+      "bytes": 52428800,
+      "sha256": "34b61ce68167c94ed7d174ccb82d5eed0bdac94897c7a72e84c013ecd7761bf3"
+    },
+    "linear_attn.in_proj_z.weight": {
+      "dtype": "F16",
+      "shape": [6144, 2560],
+      "bytes": 31457280,
+      "sha256": "a43ba142ac4a093aa0861c3e955ba99502dad4f751166ded795da6c1471fea10"
+    },
+    "linear_attn.norm.weight": {
+      "dtype": "F16",
+      "shape": [128],
+      "bytes": 256,
+      "sha256": "dce58f4f04737f3c31fde758096108a936173f90344055a6dd9eb77e827eaf68"
+    },
+    "linear_attn.out_proj.weight": {
+      "dtype": "F16",
+      "shape": [2560, 6144],
+      "bytes": 31457280,
+      "sha256": "86d7346d441c8a95f6c232cdbdcf645eb32cc7258afb9d8ac6dc7f54c496f94b"
+    },
+    "mlp.gate.weight": {
+      "dtype": "F16",
+      "shape": [512, 2560],
+      "bytes": 2621440,
+      "sha256": "4cca2b05519d9331e694cf6245e0e16058b4f6a4cf12c0ffde391c25134d35f2"
+    },
+    "mlp_hyper_connection.block_inject_weight.weight": {
+      "dtype": "F16",
+      "shape": [4, 10240],
+      "bytes": 81920,
+      "sha256": "6befc00cee3c3ab5c36044a20ff481e055a2749055cdd67c3128ac975a7cea34"
+    },
+    "mlp_hyper_connection.hc_norm.weight": {
+      "dtype": "F16",
+      "shape": [10240],
+      "bytes": 20480,
+      "sha256": "3721d1140ed24803afb57a0d936cb987d2065a18d1a27ad4296212380217ebc8"
+    },
+    "mlp_hyper_connection.input_mix_weight_down.weight": {
+      "dtype": "F16",
+      "shape": [320, 10240],
+      "bytes": 6553600,
+      "sha256": "266281daef9c5cf2caf4c3a9b068841d7252534f52638038efe15f7d8c0d9a31"
+    },
+    "mlp_hyper_connection.input_mix_weight_up.weight": {
+      "dtype": "F16",
+      "shape": [10240, 320],
+      "bytes": 6553600,
+      "sha256": "eb9674f98627bf9a929f4d7926d3829555f728564ce30ae3255537a5c594dc51"
+    }
+  },
+  "method": "Constructively witness every Layer-25 pre-router and router WGSL operator (rmsnorm.wgsl, matmul_f32_row_subgroup.wgsl, matmul_f16w_f32a_tiled.wgsl, matmul_f16w_f32a.wgsl, hyper_connection_low_rank_prepare.wgsl, hyper_connection_mix_prepare.wgsl, hyper_connection_mix.wgsl, hyper_connection_inject_prepare.wgsl, hyper_connection_inject.wgsl, gated_delta_conv.wgsl, gated_delta_recurrent_sigmoid_gate.wgsl) against frozen physical GPU captures at 0 ULP, verify 7 negative fault controls, and run bidirectional exact-dyadic router-margin counterfactuals (A0..A6 forward GPU-into-CPU, R0..R3 reverse CPU-into-GPU) at positions 1717, 2271, and 2303.",
+  "interpretation": "Proves that every Layer-25 operator from attn_hc.input through router25.logits matches its declared WGSL kernel bit-for-bit (0 ULP), and that the incoming Layer-24 stream state (attn_hc.input) is both sufficient (A1) and necessary (R1..R3) to cause the two Layer-25 routing set changes at positions 1717 and 2271. Does not establish that upstream Layer 0..24 drift is permitted error or qualify the model.",
+  "controls": [
+    "Position 2303 has no recorded set change across all forward and reverse counterfactuals",
+    "Reject corrupted protocol, capture, or weight SHA-256 identity before arithmetic",
+    "Reject 7 operator fault controls (corrupted output, missing weight offset, right-associated norm multiply, top-down subgroup reduction, sequential vs 16-tile matmul, unfused conv1d multiply-add, and silu vs sigmoid GDN gate)"
+  ]
+}

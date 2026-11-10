@@ -1,0 +1,71 @@
+{
+  "schema": "doppler.layer25-prerouter-witness-receipt/v1",
+  "qualified": false,
+  "baseRevision": "8115ff4657996e4df96e14b46bf24dc79be1c9cc",
+  "originalReceiptSha256": "3d66c49e1cc02ffa1d96d8d50a0131a62471f2570ad74701818237e893978df7",
+  "operatorReceiptSha256": "287f96bca182fb8795afd15991cf0ecc87bba15c68a2c2eea9ed60e95f0b4efe",
+  "newGpuInvocations": 0,
+  "newModelRuns": 0,
+  "files": [
+    {
+      "path": "reports/numerical-discontinuity-20261109/LAYER25-PREROUTER-WITNESS.md",
+      "sha256": "4c9638014760c8b2e972140f88c0b377d0a2e666dcbf9d99cb1ca2db62e866a3",
+      "bytes": 9720
+    },
+    {
+      "path": "reports/numerical-discontinuity-20261109/layer25-prerouter-witness-protocol.json",
+      "sha256": "40b03e2f30e99d1d0065d1af639f2d9d0753ddebd74d5b8abff22fea21bdd3f1",
+      "bytes": 6533
+    },
+    {
+      "path": "reports/numerical-discontinuity-20261109/layer25-prerouter-witness-results.json",
+      "sha256": "dc60412bc75080e3bc2d8c3b5f1ed6fab9f3db0970a86274e77af3948f86bd8d",
+      "bytes": 58059
+    },
+    {
+      "path": "reports/numerical-discontinuity-20261109/layer25-prerouter-witness-negative-result.json",
+      "sha256": "94a1c92c662467865c85895e69e63897ffd8e2f4008f8ecf32f4d427a3505247",
+      "bytes": 125
+    },
+    {
+      "path": "tools/layer25-wgsl-witness-core.js",
+      "sha256": "936457712dfadf4cb41db3032e8ba487c955d8e593270f1c4bfdf562038a1acd",
+      "bytes": 21120
+    },
+    {
+      "path": "tools/layer25-wgsl-witness-core.test.js",
+      "sha256": "3edf2b13112b619c2c6277f97bf5c6d1ecdbde21dec228df60dc61317ce66178",
+      "bytes": 11023
+    },
+    {
+      "path": "tools/analyze-layer25-prerouter-witness.js",
+      "sha256": "d318a4acf32d53afdb47ccce7e38ec1bdd670876cb6bfdd7add43b42d4b080dc",
+      "bytes": 41268
+    }
+  ],
+  "reproduction": {
+    "artifact": "/run/media/x/models/rdrr/qwen-3-8-flash-next-text-q4k-ehf16-af32",
+    "qualify": "/run/media/x/models/qwen38-flash-next-de4b8e4d/qualify",
+    "layer25Trace": "/run/media/x/models/qwen38-flash-next-de4b8e4d/reference/f32kv-layer25-trace-20261107",
+    "routerTrace": "/run/media/x/models/qwen38-flash-next-de4b8e4d/reference/f32kv-routing-trace-20261107",
+    "command": "node tools/analyze-layer25-prerouter-witness.js PROTOCOL ARTIFACT QUALIFY LAYER25_TRACE ROUTER_TRACE OUTPUT"
+  },
+  "priorPacketsPreserved": true,
+  "validation": {
+    "focusedTests": 17,
+    "stageWitnessesChecked": 27,
+    "stagePositionValuesExact0Ulp": 357456,
+    "fullSeqLinearCoreValuesExact0Ulp": 14155776,
+    "fullSeqRouterLogitsValuesExact0Ulp": 1179648,
+    "chainedEndToEndBranchInputExact0Ulp": 7680,
+    "chainedEndToEndRouterLogitsExact0Ulp": 1536,
+    "faultControlsRejected": 7,
+    "identityCorruptionControlsRejected": 1,
+    "reverseCounterfactualTop10PreservedPositions": 3
+  },
+  "limits": [
+    "Witnesses Layer 25 pre-router and router operators only; Layers 0..24 remain unbounded",
+    "Counterfactuals isolate Layer-24 vs Layer-25 sensitivity; they do not establish that Layer 0..24 drift is permitted error",
+    "No correctness contract change or model promotion"
+  ]
+}
