@@ -47,6 +47,59 @@ export function getSplitGpuEmbeddingRequiredStorageBuffers(sectionCount) {
   return sectionCount + SPLIT_EMBEDDING_STORAGE_BUFFER_OVERHEAD;
 }
 
+export function canAutoSplitGpuEmbedding({
+  location,
+  embeddingKernel = null,
+  materializedDtype = null,
+  hostHasShaderF16 = true,
+  preserveF32Embeddings = false,
+} = {}) {
+  if (preserveF32Embeddings || hostHasShaderF16 === false) {
+    return false;
+  }
+  const kernel = embeddingKernel?.kernel ?? null;
+  if (kernel !== null && kernel !== 'gather_f16.wgsl' && kernel !== 'gather_f16_vec4.wgsl') {
+    return false;
+  }
+  const dtype = materializedDtype ?? getEmbeddingFloatDtype(location, embeddingKernel);
+  if (dtype !== 'f16') {
+    return false;
+  }
+  if (!Array.isArray(location?.shape) || location.shape.length !== 2) {
+    return false;
+  }
+  const [, hidden] = location.shape;
+  if (!Number.isSafeInteger(hidden) || hidden <= 0 || hidden % 4 !== 0) {
+    return false;
+  }
+  if ((location?.layout ?? 'row') !== 'row' || Boolean(location?.sourceTransform)) {
+    return false;
+  }
+  return true;
+}
+
+export function resolveAutoSplitSectionCap(requiredSplitSections, device = getDevice()) {
+  if (!Number.isFinite(requiredSplitSections) || requiredSplitSections <= 0) {
+    return 0;
+  }
+  const maxStorageBuffers = device?.limits?.maxStorageBuffersPerShaderStage;
+  if (
+    requiredSplitSections <= MAX_SPLIT4_EMBEDDING_SECTIONS
+    && (!Number.isFinite(maxStorageBuffers)
+      || maxStorageBuffers >= getSplitGpuEmbeddingRequiredStorageBuffers(MAX_SPLIT4_EMBEDDING_SECTIONS))
+  ) {
+    return MAX_SPLIT4_EMBEDDING_SECTIONS;
+  }
+  if (
+    requiredSplitSections <= MAX_SPLIT8_EMBEDDING_SECTIONS
+    && (!Number.isFinite(maxStorageBuffers)
+      || maxStorageBuffers >= getSplitGpuEmbeddingRequiredStorageBuffers(MAX_SPLIT8_EMBEDDING_SECTIONS))
+  ) {
+    return MAX_SPLIT8_EMBEDDING_SECTIONS;
+  }
+  return 0;
+}
+
 export function getMaxSplitGpuEmbeddingSectionsForDevice(embeddingKernel = null, device = getDevice()) {
   const kernelSections = getSplitGpuEmbeddingKernelSectionCount(embeddingKernel);
   const maxStorageBuffersPerShaderStage = device?.limits?.maxStorageBuffersPerShaderStage;
@@ -134,13 +187,22 @@ export function createGpuResidentEmbeddingLimitError({ name, location, embedding
   const requiredSplitSections = rowsPerSplitSection && rowsPerSplitSection > 0
     ? Math.ceil(estimate.rows / rowsPerSplitSection)
     : null;
-  const splitKernelExpected = expectsSplitGpuEmbeddingKernel(embeddingKernel);
+  const explicitSplitKernel = expectsSplitGpuEmbeddingKernel(embeddingKernel);
+  const autoSplitEligible = !explicitSplitKernel && canAutoSplitGpuEmbedding({
+    location,
+    embeddingKernel,
+    materializedDtype,
+  });
+  const splitKernelExpected = explicitSplitKernel || autoSplitEligible;
   const activeSplitKernelMaxSections = getSplitGpuEmbeddingKernelSectionCount(embeddingKernel) || null;
   const maxSplitEmbeddingSections = getMaxSplitGpuEmbeddingSectionsForDevice(embeddingKernel, device);
+  const effectiveMaxSplitSections = explicitSplitKernel
+    ? maxSplitEmbeddingSections
+    : resolveAutoSplitSectionCap(requiredSplitSections, device);
   if (
     splitKernelExpected
     && Number.isFinite(requiredSplitSections)
-    && requiredSplitSections <= maxSplitEmbeddingSections
+    && requiredSplitSections <= effectiveMaxSplitSections
   ) {
     return null;
   }

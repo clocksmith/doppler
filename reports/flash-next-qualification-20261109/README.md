@@ -60,6 +60,52 @@ that failure. See [injection verdict](injection-prefill.json) and
 [combined verdict](mix-injection-prefill.json). Independent decode parity,
 Metal candidate coverage, model quality and performance are not established.
 
+## Layer 25–47 bisection on the 2304-token input
+
+A bounded suffix capture on `jupiter` (Layers 25–47, positions 1717, 2271 and
+2303) paired with CPU reference checkpoints from the F32-KV routing trace
+locates the exact onset of the 13-logit `quantized-v1` violation at position
+2303 ([suffix-bisection-20261109.json](suffix-bisection-20261109.json)):
+
+1. **Layers 0–24:** 0 routed-expert differences across all 2,304 tokens
+   (`pos 2303` `mlp_hc.branchInput` `maxAbs = 7.272e-6`, `relRms = 3.281e-6`
+   entering Layer 25 MoE).
+2. **Layer 25 MoE:** `pos 2303` itself never flips a routed expert at any layer
+   0–47 (`sameSet = true`, `sameOrder = true` across all 48 layers). Earlier
+   tokens `pos 1717` (`1.91e-6` tie, experts `493 <-> 330`) and `pos 2271`
+   (`9.54e-7` tie, experts `311 <-> 411`) flip their 10th routed expert at
+   Layer 25, shifting their MoE outputs by `0.1128` and `0.1208`.
+3. **Layer 26 (`linear_attention` Gated-Delta-Net recurrence):** couples the
+   `pos 1717` and `pos 2271` state shift into `pos 2303`, increasing `pos 2303`
+   `mlp_hc.branchInput` `maxAbs` 97.5x in one layer (`7.272e-6 -> 7.091e-4`) and
+   cascading earlier-token routing flips (`2` at L25–L26 -> `12` at L32 -> `25`
+   at L35 -> `37` at L39 -> `63` at L40 -> `79` at L46 -> `66` at L47).
+4. **Layers 27–47 `quantized-v1` (`0.05 + 0.05 * |ref|`) gate progression at `pos 2303`:**
+
+| Checkpoint | 4-Stream `maxAbs` (`pos 2303`) | Per-Stream `maxAbs` `[s0, s1, s2, s3]` | Direct Root-Mixer + `lm_head` (`maxAbs` / Violations / `max_excess`) | Grafted Final-State `ref_47 + d4s(L)` (`maxAbs` / Violations / `max_excess`) |
+| --- | ---: | --- | --- | --- |
+| `after L27` | `0.000058` | `[5.8e-5, 1.5e-5, 2e-6, 1.7e-5]` | `0.001226` / `0` / `-0.049469` | `0.000065` / `0` / `-0.049970` |
+| `after L31` | `0.000215` | `[0.000215, 5.7e-5, 3e-6, 5.4e-5]` | `0.002840` / `0` / `-0.048536` | `0.000186` / `0` / `-0.049953` |
+| `after L35` | `0.002280` | `[0.002280, 0.000826, 3e-6, 0.000152]` | `0.013506` / `0` / `-0.039920` | `0.001174` / `0` / `-0.049402` |
+| `after L39` | `0.006537` | `[0.006537, 0.002394, 0.002263, 0.001240]` | `0.037869` / `0` / `-0.023011` | `0.010859` / `0` / `-0.042917` |
+| `after L43` | `0.008704` | `[0.008704, 0.005970, 0.003386, 0.006022]` | `0.040213` / `0` / `-0.016826` | `0.051617` / `0` / `-0.027731` |
+| `after L44` | `0.019919` | `[0.019919, 0.006084, 0.003858, 0.007565]` | `0.063060` / `1` / `+0.010207` | `0.045018` / `0` / `-0.015263` |
+| `after L45` | `0.020158` | `[0.020158, 0.010688, 0.003933, 0.007547]` | `0.069313` / `0` / `-0.002098` | `0.062585` / `0` / `-0.012120` |
+| `after L46` | `0.033456` | `[0.021718, 0.033456, 0.004943, 0.011335]` | `0.081357` / `1` / `+0.003039` | `0.071325` / `1` / `+0.001106` |
+| `after L47` | `0.035573` | `[0.021457, 0.035573, 0.006362, 0.011253]` | `0.109036` / `13` / `+0.027245` | `0.109036` / `13` / `+0.027245` |
+
+Through Layer 43, `pos 2303` has 0 violations under both direct and grafted
+projections. Layer 44 (`linear_attention`, `attn_gate[0] = 1.244`, adding
+`0.016758` to Stream 0) first crosses `quantized-v1` under direct projection
+(1 violation). Layer 46 (`linear_attention`, `attn_gate[1] = 1.590`,
+`mlp_gate = [0.036, 1.324, 1.723, 1.769]`, jumping Stream 1 `maxAbs` from
+`0.010688` to `0.033456`) first crosses `quantized-v1` under grafted
+final-state projection (1 violation, token `23825`). Layer 47 (`full_attention`
++ final MoE, `mlp_gate = [0.813, 1.887, 1.193, 1.921]`) combines with the
+accumulated L44–L46 Stream 0/1 drift to push all 13 final violating tokens
+(`[2832, 3277, 6814, 15482, 71942, 72018, 96693, 97706, 104951, 111198, 112552, 131008, 230664]`)
+over tolerance.
+
 ## Identities and reproduction
 
 [receipt.json](receipt.json) binds every retained file. The compressed run

@@ -1,14 +1,24 @@
 import type { PipelineState } from './state.js';
-type ContextOptions = import('./generator-runtime.js').GenerateOptionsResolved & import('./types.js').GenerateOptions;
+import type { AnyLayerPartitionPlan } from './layer-partition-contract.js';
+export type ContextOptions = import('./generator-runtime.js').GenerateOptionsResolved & import('./types.js').GenerateOptions;
+export type ContextPipelineState = PipelineState & {
+  modelPartition?: { plan: AnyLayerPartitionPlan; index: number } | null;
+};
+export interface HyperConnectionSnapshot {
+  ple: Map<number, { conv: GPUBuffer }>;
+  qsa: Map<number, { length: number; rawKeys: GPUBuffer | null; blockKeys: GPUBuffer | null }>;
+}
 export interface GenerationContext {
   getStats(): Readonly<{ allocatedBytes: number; cachedTokens: number; reusedTokens: number; status: string }>;
   close(): void;
 }
 export interface ContextEntry {
-  owner: PipelineState;
+  owner: ContextPipelineState;
   maxBytes: number;
   cache: PipelineState['kvCache'];
   linear: PipelineState['linearAttentionRuntime'];
+  conv: Map<number, GPUBuffer> | null;
+  hyper: HyperConnectionSnapshot | null;
   tokens: number[];
   bytes: number;
   signature: string | null;
@@ -22,23 +32,31 @@ export interface ContextLease {
   entry: ContextEntry;
   previous: { cache: PipelineState['kvCache']; linear: PipelineState['linearAttentionRuntime']; seqLen: number };
   signature: string;
-  checkpoint?: { cache: PipelineState['kvCache']; linear: PipelineState['linearAttentionRuntime']; tokens: number[] };
+  conv: Map<number, GPUBuffer> | null;
+  hyper: HyperConnectionSnapshot | null;
+  checkpoint?: {
+    cache: PipelineState['kvCache'];
+    linear: PipelineState['linearAttentionRuntime'];
+    conv: Map<number, GPUBuffer> | null;
+    hyper: HyperConnectionSnapshot | null;
+    tokens: number[];
+  };
 }
-export function supportsGenerationContext(state: PipelineState): boolean;
-export function createGenerationContext(state: PipelineState, options: { maxBytes: number }): GenerationContext;
-export function closeGenerationContexts(state: PipelineState): void;
-export function beginGenerationContext(state: PipelineState, context: GenerationContext | undefined, options: ContextOptions): void;
-export function generationContextInput(state: PipelineState, inputIds: number[]): number[];
-export function generationContextCheckpointLength(state: PipelineState, prompt: import('./generator.js').PromptInput,
+export function supportsGenerationContext(state: ContextPipelineState): boolean;
+export function createGenerationContext(state: ContextPipelineState, options: { maxBytes: number }): GenerationContext;
+export function closeGenerationContexts(state: ContextPipelineState): void;
+export function beginGenerationContext(state: ContextPipelineState, context: GenerationContext | undefined, options: ContextOptions): void;
+export function generationContextInput(state: ContextPipelineState, inputIds: number[]): number[];
+export function generationContextCheckpointLength(state: ContextPipelineState, prompt: import('./generator.js').PromptInput,
   inputIds: number[], options: ContextOptions): number | null;
-export function checkpointGenerationContext(state: PipelineState, tokens: number[]): Promise<void>;
+export function checkpointGenerationContext(state: ContextPipelineState, tokens: number[]): Promise<void>;
 export function prepareGenerationContextPrefill(generator: {
-  _state: PipelineState;
+  _state: ContextPipelineState;
   _resolvePrefillTokenChunkSize(ids: number[]): number | null;
   _prefillToHidden(ids: number[], options: ContextOptions): Promise<unknown>;
   _commitPrefillHiddenChunk(value: unknown): Promise<void>;
 }, prompt: import('./generator.js').PromptInput, inputIds: number[], options: ContextOptions): Promise<number | null>;
-export function finishGenerationContext(state: PipelineState, generatedIds: number[], completed: boolean): Promise<void>;
+export function finishGenerationContext(state: ContextPipelineState, generatedIds: number[], completed: boolean): Promise<void>;
 
 export interface SequenceState {
   isGenerating: boolean;

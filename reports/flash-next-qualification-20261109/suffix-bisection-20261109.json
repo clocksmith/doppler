@@ -1,0 +1,203 @@
+{
+  "schema": "doppler.flash-next-suffix-bisection/v1",
+  "positions": [
+    1717,
+    2271,
+    2303
+  ],
+  "violatingTokensAtL47": [
+    2832,
+    3277,
+    6814,
+    15482,
+    71942,
+    72018,
+    96693,
+    97706,
+    104951,
+    111198,
+    112552,
+    131008,
+    230664
+  ],
+  "checkpoints": [
+    {
+      "layer": 27,
+      "fourStreamMaxAbs": 5.8418139815330505e-05,
+      "fourStreamRms": 6.5575722420361035e-06,
+      "perStreamMaxAbs": [
+        5.8418139815330505e-05,
+        1.4994293451309204e-05,
+        2.1881423890590668e-06,
+        1.728534698486328e-05
+      ],
+      "directLogitMaxAbs": 0.0012262099964774897,
+      "directQuantizedV1Violations": 0,
+      "directMaxExcess": -0.04946884871816542,
+      "graftedL47LogitMaxAbs": 6.458127231034894e-05,
+      "graftedL47QuantizedV1Violations": 0,
+      "graftedL47MaxExcess": -0.04997048652966794,
+      "graftedL47ViolatingTokenIds": []
+    },
+    {
+      "layer": 31,
+      "fourStreamMaxAbs": 0.0002154707908630371,
+      "fourStreamRms": 2.8586674091362313e-05,
+      "perStreamMaxAbs": [
+        0.0002154707908630371,
+        5.6590884923934937e-05,
+        2.8545036911964417e-06,
+        5.43203204870224e-05
+      ],
+      "directLogitMaxAbs": 0.0028395140378263406,
+      "directQuantizedV1Violations": 0,
+      "directMaxExcess": -0.048536380735240456,
+      "graftedL47LogitMaxAbs": 0.00018597365078409922,
+      "graftedL47QuantizedV1Violations": 0,
+      "graftedL47MaxExcess": -0.049952651475558316,
+      "graftedL47ViolatingTokenIds": []
+    },
+    {
+      "layer": 35,
+      "fourStreamMaxAbs": 0.002280343323945999,
+      "fourStreamRms": 0.00017492224519331887,
+      "perStreamMaxAbs": [
+        0.002280343323945999,
+        0.0008259862661361694,
+        3.353692591190338e-06,
+        0.00015232712030410767
+      ],
+      "directLogitMaxAbs": 0.013506285345242341,
+      "directQuantizedV1Violations": 0,
+      "directMaxExcess": -0.039920271982974306,
+      "graftedL47LogitMaxAbs": 0.0011744964532933722,
+      "graftedL47QuantizedV1Violations": 0,
+      "graftedL47MaxExcess": -0.04940216443576501,
+      "graftedL47ViolatingTokenIds": []
+    },
+    {
+      "layer": 39,
+      "fourStreamMaxAbs": 0.006536900997161865,
+      "fourStreamRms": 0.0008861776611707237,
+      "perStreamMaxAbs": [
+        0.006536900997161865,
+        0.0023937970399856567,
+        0.0022628456354141235,
+        0.0012402832508087158
+      ],
+      "directLogitMaxAbs": 0.037868680391663356,
+      "directQuantizedV1Violations": 0,
+      "directMaxExcess": -0.02301125968452282,
+      "graftedL47LogitMaxAbs": 0.010859369366270855,
+      "graftedL47QuantizedV1Violations": 0,
+      "graftedL47MaxExcess": -0.042917416824851284,
+      "graftedL47ViolatingTokenIds": []
+    },
+    {
+      "layer": 43,
+      "fourStreamMaxAbs": 0.008703887462615967,
+      "fourStreamRms": 0.001438090373599356,
+      "perStreamMaxAbs": [
+        0.008703887462615967,
+        0.0059698522090911865,
+        0.003386080265045166,
+        0.006022453308105469
+      ],
+      "directLogitMaxAbs": 0.04021343936120658,
+      "directQuantizedV1Violations": 0,
+      "directMaxExcess": -0.016826145984439177,
+      "graftedL47LogitMaxAbs": 0.05161691160741455,
+      "graftedL47QuantizedV1Violations": 0,
+      "graftedL47MaxExcess": -0.027731206216043774,
+      "graftedL47ViolatingTokenIds": []
+    },
+    {
+      "layer": 44,
+      "fourStreamMaxAbs": 0.019919440150260925,
+      "fourStreamRms": 0.002676889329415089,
+      "perStreamMaxAbs": [
+        0.019919440150260925,
+        0.006083935499191284,
+        0.0038577914237976074,
+        0.007565438747406006
+      ],
+      "directLogitMaxAbs": 0.06305988646810612,
+      "directQuantizedV1Violations": 1,
+      "directMaxExcess": 0.010207470656135267,
+      "graftedL47LogitMaxAbs": 0.045018242556194465,
+      "graftedL47QuantizedV1Violations": 0,
+      "graftedL47MaxExcess": -0.015262733914235549,
+      "graftedL47ViolatingTokenIds": []
+    },
+    {
+      "layer": 45,
+      "fourStreamMaxAbs": 0.020157530903816223,
+      "fourStreamRms": 0.0029136036990690616,
+      "perStreamMaxAbs": [
+        0.020157530903816223,
+        0.01068761944770813,
+        0.003932654857635498,
+        0.007546916604042053
+      ],
+      "directLogitMaxAbs": 0.06931277062802188,
+      "directQuantizedV1Violations": 0,
+      "directMaxExcess": -0.002098283989497074,
+      "graftedL47LogitMaxAbs": 0.06258491742179828,
+      "graftedL47QuantizedV1Violations": 0,
+      "graftedL47MaxExcess": -0.01211986039022589,
+      "graftedL47ViolatingTokenIds": []
+    },
+    {
+      "layer": 46,
+      "fourStreamMaxAbs": 0.03345555067062378,
+      "fourStreamRms": 0.004683350918402404,
+      "perStreamMaxAbs": [
+        0.021718263626098633,
+        0.03345555067062378,
+        0.004942670464515686,
+        0.011335358023643494
+      ],
+      "directLogitMaxAbs": 0.08135651054860382,
+      "directQuantizedV1Violations": 1,
+      "directMaxExcess": 0.0030385554932875203,
+      "graftedL47LogitMaxAbs": 0.07132476322669534,
+      "graftedL47QuantizedV1Violations": 1,
+      "graftedL47MaxExcess": 0.0011057713312832562,
+      "graftedL47ViolatingTokenIds": [
+        23825
+      ]
+    },
+    {
+      "layer": 47,
+      "fourStreamMaxAbs": 0.03557300567626953,
+      "fourStreamRms": 0.0048625321451902445,
+      "perStreamMaxAbs": [
+        0.021457195281982422,
+        0.03557300567626953,
+        0.0063618868589401245,
+        0.011252939701080322
+      ],
+      "directLogitMaxAbs": 0.10903580871408636,
+      "directQuantizedV1Violations": 13,
+      "directMaxExcess": 0.02724469854973679,
+      "graftedL47LogitMaxAbs": 0.10903580871408636,
+      "graftedL47QuantizedV1Violations": 13,
+      "graftedL47MaxExcess": 0.02724469854973679,
+      "graftedL47ViolatingTokenIds": [
+        2832,
+        3277,
+        6814,
+        15482,
+        71942,
+        72018,
+        96693,
+        97706,
+        104951,
+        111198,
+        112552,
+        131008,
+        230664
+      ]
+    }
+  ]
+}

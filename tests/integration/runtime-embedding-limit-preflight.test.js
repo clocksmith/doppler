@@ -149,6 +149,42 @@ try {
     'split8 manifest should pass preflight when the adapter can bind the split8 shader'
   );
 
+  // 27B F16 embedding table (2.37 GiB) with gather_f16.wgsl passes preflight on a 2 GiB binding-limit adapter via auto-split.
+  setDevice(createTinyStorageLimitDevice({
+    maxStorageBufferBindingSize: 2147483648,
+    maxBufferSize: 2147483648,
+    maxStorageBuffersPerShaderStage: 8,
+  }), { platformConfig: null });
+  assert.equal(
+    resolveManifestGpuResidentEmbeddingLimitError({
+      modelId: 'qwen3-8-27b-text-q4k-ehaf16',
+      inference: {
+        largeWeights: {
+          gpuResidentOverrides: [embeddingName],
+        },
+        execution: {
+          kernels: {
+            embed: {
+              kernel: 'gather_f16.wgsl',
+              entry: 'main',
+            },
+          },
+        },
+      },
+      tensors: {
+        [embeddingName]: {
+          shape: [248320, 5120],
+          dtype: 'F16',
+          role: 'embedding',
+          group: 'embed',
+          layout: 'row',
+        },
+      },
+    }),
+    null,
+    '2.37 GiB row-major F16 embedding with gather_f16.wgsl should auto-split across 2 sections on a 2 GiB adapter'
+  );
+
   setDevice(createTinyStorageLimitDevice({
     maxStorageBufferBindingSize: 134217728,
     maxBufferSize: 4294967295,

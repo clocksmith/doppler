@@ -290,6 +290,66 @@ try {
   assert.equal(rangeReads, 7);
   assert.equal(loadTensorCalls, 0);
   assert.equal(gpuBuffers.size, 7);
+
+  // Automatic F16 vec4 split fallback when embeddingKernel is gather_f16.wgsl and table exceeds maxStorageBufferBindingSize.
+  destroyBufferPool();
+  setDevice(createTinyStorageLimitDevice({
+    maxStorageBufferBindingSize: 128,
+    maxBufferSize: 128,
+    maxStorageBuffersPerShaderStage: 8,
+  }), { platformConfig: null });
+  getBufferPool().configure({ enablePooling: false });
+  let autoSplitRangeReads = 0;
+  const autoSplitGpuBuffers = new Set();
+  const autoSplitTensor = await loadEmbeddings({
+    tensorLocations: new Map([
+      [embeddingName, {
+        shape: [10, 16],
+        dtype: 'F16',
+        role: 'embedding',
+        group: 'embed',
+        layout: 'row',
+        shardIndex: 0,
+        offset: 0,
+        size: 320,
+      }],
+    ]),
+    gpuBuffers: autoSplitGpuBuffers,
+    hostHasShaderF16: true,
+    embeddingKernel: {
+      kernel: 'gather_f16.wgsl',
+      entry: 'main',
+    },
+    async loadShardRange(shardIndex, offset, size) {
+      assert.equal(shardIndex, 0);
+      assert.equal(offset, autoSplitRangeReads * 128);
+      assert.ok(size === 128 || size === 64);
+      autoSplitRangeReads += 1;
+      return new Uint8Array(size).buffer;
+    },
+    async loadTensor() {
+      throw new Error('loadTensor should not be called for auto-split f16 embedding');
+    },
+    shouldStreamLargeWeight() {
+      return false;
+    },
+    resolveWeightLayout(location) {
+      return location.layout ?? 'row';
+    },
+  });
+  assert.equal(autoSplitTensor?.kind, 'split_weight_buffer');
+  assert.equal(autoSplitTensor.sections.length, 3);
+  assert.equal(autoSplitTensor.metadata?.splitGatherSectionCount, null);
+  assert.deepEqual(
+    autoSplitTensor.sections.map((section) => [section.rowStart, section.rowCount]),
+    [
+      [0, 4],
+      [4, 4],
+      [8, 2],
+    ]
+  );
+  assert.equal(autoSplitRangeReads, 3);
+  assert.equal(autoSplitGpuBuffers.size, 3);
 } finally {
   resetRuntimeConfig();
   destroyBufferPool();

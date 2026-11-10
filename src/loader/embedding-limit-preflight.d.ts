@@ -11,6 +11,19 @@ export function getSplitGpuEmbeddingKernelSectionCount(embeddingKernel: unknown)
 
 export function getSplitGpuEmbeddingRequiredStorageBuffers(sectionCount: number): number;
 
+export function canAutoSplitGpuEmbedding(options?: {
+  location?: unknown;
+  embeddingKernel?: unknown;
+  materializedDtype?: string | null;
+  hostHasShaderF16?: boolean | null;
+  preserveF32Embeddings?: boolean;
+}): boolean;
+
+export function resolveAutoSplitSectionCap(
+  requiredSplitSections: number | null,
+  device?: unknown
+): number;
+
 export function getMaxSplitGpuEmbeddingSectionsForDevice(
   embeddingKernel?: unknown,
   device?: unknown

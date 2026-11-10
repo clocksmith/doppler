@@ -34,8 +34,9 @@ export declare class QsaIndexerCache {
   constructor(options: QsaIndexerCacheOptions);
   readonly contract: ResolvedIndexedAttention;
   readonly capacity: number;
-  readonly epoch: number;
+  epoch: number;
   readonly destroyed: boolean;
+  readonly layers: Map<number, { rawKeys: GPUBuffer; blockKeys: GPUBuffer; length: number; reservedEnd: number }>;
   length(layerIdx: number): number;
   buffers(layerIdx: number): { rawKeys: GPUBuffer; blockKeys: GPUBuffer };
   /** Append raw keys and complete block keys; returns the prepared query [numTokens, queryHeads * headDim]. */

@@ -23,11 +23,13 @@ import { assembleShardData, loadTensorRange } from './tensors/tensor-reader.js';
 import { hasSourceTransform } from './tensors/source-transform.js';
 import { getLargeWeightMaxBytes } from './manifest-config.js';
 import {
+  canAutoSplitGpuEmbedding,
   createGpuResidentEmbeddingLimitError,
   expectsSplitGpuEmbeddingKernel,
   getEmbeddingFloatDtype,
   getSplitGpuEmbeddingKernelSectionCount,
   getSplitGpuEmbeddingRequiredStorageBuffers,
+  resolveAutoSplitSectionCap,
 } from './embedding-limit-preflight.js';
 
 // ============================================================================
@@ -150,7 +152,14 @@ function expectsSplitGpuEmbedding(ctx) {
 }
 
 async function createSplitGpuEmbeddingWeightBuffer(ctx, name, location) {
-  if (!expectsSplitGpuEmbedding(ctx)) {
+  const explicitSplitKernel = expectsSplitGpuEmbedding(ctx);
+  const autoSplitEligible = !explicitSplitKernel && canAutoSplitGpuEmbedding({
+    location,
+    embeddingKernel: ctx.embeddingKernel,
+    hostHasShaderF16: ctx.hostHasShaderF16,
+    preserveF32Embeddings: Boolean(ctx.preserveF32Embeddings),
+  });
+  if (!explicitSplitKernel && !autoSplitEligible) {
     return null;
   }
   if (ctx.hostHasShaderF16 === false) {
@@ -181,19 +190,6 @@ async function createSplitGpuEmbeddingWeightBuffer(ctx, name, location) {
   if (!device || !maxBytes) {
     return null;
   }
-  const maxSplitSections = getSplitGpuEmbeddingKernelSectionCount(ctx.embeddingKernel);
-  if (maxSplitSections <= 0) {
-    return null;
-  }
-  const requiredStorageBuffers = getSplitGpuEmbeddingRequiredStorageBuffers(maxSplitSections);
-  if ((device.limits.maxStorageBuffersPerShaderStage ?? 0) < requiredStorageBuffers) {
-    log.warn(
-      'Loader',
-      `Embedding "${name}" cannot use split GPU residency: ` +
-      `maxStorageBuffersPerShaderStage is below ${requiredStorageBuffers}.`
-    );
-    return null;
-  }
 
   const [rows, hidden] = location.shape;
   const bytesPerElement = DTYPE_SIZES[dtype];
@@ -212,6 +208,22 @@ async function createSplitGpuEmbeddingWeightBuffer(ctx, name, location) {
     return null;
   }
   const sectionCount = Math.ceil(rows / rowsPerSection);
+  const explicitSplitSections = getSplitGpuEmbeddingKernelSectionCount(ctx.embeddingKernel);
+  const maxSplitSections = explicitSplitKernel
+    ? explicitSplitSections
+    : resolveAutoSplitSectionCap(sectionCount, device);
+  if (maxSplitSections <= 0) {
+    return null;
+  }
+  const requiredStorageBuffers = getSplitGpuEmbeddingRequiredStorageBuffers(maxSplitSections);
+  if ((device.limits.maxStorageBuffersPerShaderStage ?? 0) < requiredStorageBuffers) {
+    log.warn(
+      'Loader',
+      `Embedding "${name}" cannot use split GPU residency: ` +
+      `maxStorageBuffersPerShaderStage is below ${requiredStorageBuffers}.`
+    );
+    return null;
+  }
   if (sectionCount > maxSplitSections) {
     log.warn(
       'Loader',
@@ -252,7 +264,7 @@ async function createSplitGpuEmbeddingWeightBuffer(ctx, name, location) {
       `Embedding "${name}" stored as split GPU sections (${sections.length} sections, dtype=${dtype}, layout=${layout}).`
     );
     return createSplitWeightBuffer(sections, dtype, layout, location.shape, name, {
-      splitGatherSectionCount: maxSplitSections,
+      splitGatherSectionCount: explicitSplitSections > 0 ? explicitSplitSections : null,
       sourceKernel: ctx.embeddingKernel,
     });
   } catch (error) {
