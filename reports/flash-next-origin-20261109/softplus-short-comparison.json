@@ -1,0 +1,41 @@
+{
+  "scope": "Short-input independent prefill comparison plus three finite generation rows; no independent decode-logit parity or answer-quality claim",
+  "normalModelQualified": false,
+  "acceptanceChanged": false,
+  "observationSha256": "d29747e9af7347050331bad8dc65bb2f790a72c630cf12bd8698d8c9c8b4542d",
+  "preparationSha256": "2783088c47e441c85c20beaf14b085698f75c4fe984814379ebd338c95eeffc0",
+  "runSha256": "694c0348b5f8f57bacb500d51e25ae71f70428110e0abe50ef504eda360a7c2a",
+  "referenceSha256": "ce4cb138b1919474d85507e06faa9ca167d87fd143bb85a7411f5443cea9a897",
+  "policySha256": "f1c4629d593ec2517e3628ac68131dc7568c6aba5e0f03db627d26228c720413",
+  "producerSha256": "4b8d9aa94e7059f53fc7d5a20c43851b91d3814fcea65d80561181df84980cc9",
+  "inputTokens": 15,
+  "prefillLogitsSha256": "12a78e4e42509c788d433ee1a4c2a026909ca1dd3f82a54a9e3092c6443e8b6a",
+  "maxAbsoluteError": 2.384185791015625e-05,
+  "outsideUnchangedPolicy": 0,
+  "thisPrefillCheckPassed": true,
+  "firstTokenAgrees": true,
+  "frames": [
+    {
+      "step": 0,
+      "sha256": "12a78e4e42509c788d433ee1a4c2a026909ca1dd3f82a54a9e3092c6443e8b6a",
+      "finiteValues": 248320
+    },
+    {
+      "step": 1,
+      "sha256": "4ea4d2c4cbb7df1b8da724e765d9a8afc2ccc0eec907aace4c6a31695b599872",
+      "finiteValues": 248320
+    },
+    {
+      "step": 2,
+      "sha256": "779f6006488de174273753adaca76dfff7755e9a470662085934dcef989b4e72",
+      "finiteValues": 248320
+    }
+  ],
+  "tokenIds": [
+    11751,
+    13,
+    9664
+  ],
+  "gpuErrors": [],
+  "cleanupFailures": []
+}

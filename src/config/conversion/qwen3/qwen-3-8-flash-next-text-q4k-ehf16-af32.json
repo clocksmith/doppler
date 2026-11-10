@@ -513,12 +513,12 @@
       "gated_delta_recurrent": {
         "kernel": "gated_delta_recurrent_sigmoid_gate.wgsl",
         "entry": "main",
-        "digest": "sha256:d40d09da1dd0ad8c4bc39e5662b5a703903177728a463432a27890f8d5b8beae"
+        "digest": "sha256:2762780beb433308de456dc8b046b8c13736192017289f28351b06d615de02e7"
       },
       "gated_delta_fused_decode": {
         "kernel": "gated_delta_fused_decode_sigmoid_gate.wgsl",
         "entry": "main",
-        "digest": "sha256:b43143ea058690cee520e16676e701912706c45b854e178dad2f5ff4d836849d"
+        "digest": "sha256:95d28751fc98f642a2c20dbec953f25f4c2fd7a025a57b15c621661e363f2176"
       },
       "source_control_f32": {
         "kernel": "matmul_f32.wgsl",

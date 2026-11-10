@@ -1,0 +1,141 @@
+{
+  "schema": "doppler.hc-origin-witness/v1",
+  "qualificationAuthority": false,
+  "arithmetic": "amd-wave64-ascending-dpp",
+  "originalRows": 2304,
+  "positions": [
+    1717,
+    2271,
+    2303
+  ],
+  "geometry": {
+    "rows": 3,
+    "streamCount": 4,
+    "streamWidth": 2560,
+    "projectionRank": 320,
+    "normEps": 1e-06
+  },
+  "bindings": {
+    "manifestSha256": "4902a0b730a9310903b00bc0f8f587528fa1af9f37a722d2f9287bafceceec09",
+    "inputsSha256": "06a819d529593b58abd6cb27566bb835a9b91aac13a77c0c7479b7e4e7b0c378",
+    "captureSha256": "dd07e0052ba779acf8c05003080154c241595233149ada55fb77e3338321af37",
+    "sourceSha256": "87c27c88424cea73d5d8d9179f76a77a97e6e4249ce43ecff79a8b255fab0504",
+    "sourceForwardScriptSha256": "2fea8862c8bce83a097a54117ed51234cefca14586d82ed60d8a6e6ec8a6c175",
+    "sourceForwardGeometry": [
+      1,
+      2304,
+      10240
+    ],
+    "sourceTorch": "2.11.0+cu130 CPU float32, 16 threads",
+    "referenceSha256": "ce4cb138b1919474d85507e06faa9ca167d87fd143bb85a7411f5443cea9a897",
+    "cpuRoutingTraceReceiptSha256": "06b9300753f65574477b66f45a0c0fce6474e2112a3f9d901b0af22371037073",
+    "policySha256": "f1c4629d593ec2517e3628ac68131dc7568c6aba5e0f03db627d26228c720413"
+  },
+  "payloads": {
+    "input": {
+      "file": "input.f32",
+      "bytes": 122880,
+      "sha256": "35905a44009d423fb71d75c68080fae57a2feceda291467b469758e860e99033"
+    },
+    "normWeight": {
+      "file": "weight.f32",
+      "bytes": 40960,
+      "sha256": "c774ea06414d6f122331e0bc6127318d718ef188c5d2919ea33b0f23679e8704"
+    },
+    "downWeight": {
+      "file": "down-weight.f32",
+      "bytes": 13107200,
+      "sha256": "7c37ec493279cb05b08ff9747aed1f3282c43a0ece0aae0fa29cffa827589149"
+    },
+    "upWeight": {
+      "file": "up-weight.f32",
+      "bytes": 13107200,
+      "sha256": "88e0c579775336ba40bb2c15b52f3671ccef1f42ff58ee9491f56cee44a53234"
+    },
+    "injectWeight": {
+      "file": "inject-weight.f32",
+      "bytes": 163840,
+      "sha256": "96f270df1c7300b11657678e4fd92d523549d520916ffe08291e508965a2198b"
+    },
+    "gpu.norm": {
+      "file": "gpu-norm.f32",
+      "bytes": 122880,
+      "sha256": "ca082d2e065bd0e6829f815c331c7a572b554886d26bcf06fdaf97ef94dcb237"
+    },
+    "source.norm": {
+      "file": "source-norm.f32",
+      "bytes": 122880,
+      "sha256": "24d3438adfcbb9c146a0b9874b658146198ca18cb1e45baa9ec60f59f877c4af"
+    },
+    "gpu.down": {
+      "file": "gpu-down.f32",
+      "bytes": 3840,
+      "sha256": "61292393cb39fb00479ee6814facb108824fca299c4a241779acb0022e0fe75d"
+    },
+    "source.down": {
+      "file": "source-down.f32",
+      "bytes": 3840,
+      "sha256": "178f6875bee6637de300137decf846099719ebb373f807122510d7a5c758d702"
+    },
+    "gpu.lowRank": {
+      "file": "gpu-lowRank.f32",
+      "bytes": 3840,
+      "sha256": "d0f8a7fc06bdd12ba8a092195170f81c149ed9a72162a8e4ecaddd78b4e55275"
+    },
+    "source.lowRank": {
+      "file": "source-lowRank.f32",
+      "bytes": 3840,
+      "sha256": "ae56c3b54315acc0f621ad71ad4dcd72dab5585a1053f0ceae27a0f2c1a81dc5"
+    },
+    "gpu.up": {
+      "file": "gpu-up.f32",
+      "bytes": 122880,
+      "sha256": "55dc27724d3eb03b6fe05a621aba481241dcebb9816e6aa173b875e239b54b3c"
+    },
+    "source.up": {
+      "file": "source-up.f32",
+      "bytes": 122880,
+      "sha256": "7877fb68f11cea07bcdf81acaba28046824f726a606468f635d84cecd456c1cb"
+    },
+    "gpu.mix": {
+      "file": "gpu-mix.f32",
+      "bytes": 122880,
+      "sha256": "f1ea4179f2bbed329f8adbed56738a8d2dce35b9063a966b9192151c6b37af4d"
+    },
+    "source.mix": {
+      "file": "source-mix.f32",
+      "bytes": 122880,
+      "sha256": "c24da614081b04e3c738adbc41c54afe80749135ed39e17166345844551c6008"
+    },
+    "gpu.branchInput": {
+      "file": "gpu-branchInput.f32",
+      "bytes": 30720,
+      "sha256": "b52d03196afa6adf06fb2cbd6bc881047f2b129a8ab6764928eba5db0291fa3e"
+    },
+    "source.branchInput": {
+      "file": "source-branchInput.f32",
+      "bytes": 30720,
+      "sha256": "44d9fdf1d175322c6649b0ccbaaca95bdbd4904fc28e2d3c6d7e24b1ba8b06bd"
+    },
+    "gpu.logits": {
+      "file": "gpu-logits.f32",
+      "bytes": 48,
+      "sha256": "b131fa78f73218f7c2ee529ed169a3e2bb4e33db4acd5627c929f5e7e349d234"
+    },
+    "source.logits": {
+      "file": "source-logits.f32",
+      "bytes": 48,
+      "sha256": "7df0e29c97fd6050ab81704a55af4bb7a8ab6bcb00d2f9557b1a3cbfd11ce09f"
+    },
+    "gpu.gate": {
+      "file": "gpu-gate.f32",
+      "bytes": 48,
+      "sha256": "10ce84888e1fb0dde84b3a1d72648a8084ac178b6e4fa42123234c39bf5d45d0"
+    },
+    "source.gate": {
+      "file": "source-gate.f32",
+      "bytes": 48,
+      "sha256": "1b8c6cf73430b0766f23093e96d2b5f27fb653dbd6ad6bd96c0c0c729692c64e"
+    }
+  }
+}

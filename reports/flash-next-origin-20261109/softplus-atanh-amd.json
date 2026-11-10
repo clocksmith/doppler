@@ -1,0 +1,312 @@
+{
+  "schema": "doppler-gated-delta-softplus-physical-v1",
+  "inputSha256": "83663cb2f3e9dadd874b3a47075f05b1da133afd8bfdb4bb5d30766affbca878",
+  "inputCount": 8226,
+  "acceptance": {
+    "maxUlp": 6,
+    "positiveForFiniteInput": true,
+    "monotonic": true
+  },
+  "scope": "Scalar softplus on finite normal-range inputs; not whole-model qualification.",
+  "variants": [
+    {
+      "file": "gated_delta_recurrent.wgsl",
+      "shaderSha256": "2a76d3737113573c660866e2131d9fb64fb156397300e065d1a28621ca0b7759",
+      "testedShaderSha256": "9990e23934bb46aff6ecdcabd24f5f71b50717f7c072ec9bfaa4316406de724a",
+      "worst": {
+        "ulp": 3,
+        "input": -4.2529296875,
+        "actual": 0.0141223119571805,
+        "expected": 0.014122314751148224
+      },
+      "violations": 0,
+      "monotonic": true,
+      "minusTwenty": {
+        "actual": 2.06115369216775e-9,
+        "expected": 2.06115369216775e-9
+      }
+    },
+    {
+      "file": "gated_delta_recurrent_f16.wgsl",
+      "shaderSha256": "594324d7587b3bc5b86365be50cd2da37b093343e74d663ad51a6158a2272992",
+      "testedShaderSha256": "9990e23934bb46aff6ecdcabd24f5f71b50717f7c072ec9bfaa4316406de724a",
+      "worst": {
+        "ulp": 3,
+        "input": -4.2529296875,
+        "actual": 0.0141223119571805,
+        "expected": 0.014122314751148224
+      },
+      "violations": 0,
+      "monotonic": true,
+      "minusTwenty": {
+        "actual": 2.06115369216775e-9,
+        "expected": 2.06115369216775e-9
+      }
+    },
+    {
+      "file": "gated_delta_fused_decode.wgsl",
+      "shaderSha256": "258a87b7a219bdae349ced021aa84f1a2ecd359af0fd284b2946b3d6171a3b3e",
+      "testedShaderSha256": "9990e23934bb46aff6ecdcabd24f5f71b50717f7c072ec9bfaa4316406de724a",
+      "worst": {
+        "ulp": 3,
+        "input": -4.2529296875,
+        "actual": 0.0141223119571805,
+        "expected": 0.014122314751148224
+      },
+      "violations": 0,
+      "monotonic": true,
+      "minusTwenty": {
+        "actual": 2.06115369216775e-9,
+        "expected": 2.06115369216775e-9
+      }
+    },
+    {
+      "file": "gated_delta_fused_decode_f16.wgsl",
+      "shaderSha256": "aac8fed92397135e6dea34bec7ff941c5b047b890e4fc5bf21ed0c09bdec4749",
+      "testedShaderSha256": "9990e23934bb46aff6ecdcabd24f5f71b50717f7c072ec9bfaa4316406de724a",
+      "worst": {
+        "ulp": 3,
+        "input": -4.2529296875,
+        "actual": 0.0141223119571805,
+        "expected": 0.014122314751148224
+      },
+      "violations": 0,
+      "monotonic": true,
+      "minusTwenty": {
+        "actual": 2.06115369216775e-9,
+        "expected": 2.06115369216775e-9
+      }
+    },
+    {
+      "file": "gated_delta_fused_decode_paired.wgsl",
+      "shaderSha256": "bf981db90e1a7e7928a3d8c8032ae3e8f9d45bbda724ed50baf7ecfd0e64e330",
+      "testedShaderSha256": "9990e23934bb46aff6ecdcabd24f5f71b50717f7c072ec9bfaa4316406de724a",
+      "worst": {
+        "ulp": 3,
+        "input": -4.2529296875,
+        "actual": 0.0141223119571805,
+        "expected": 0.014122314751148224
+      },
+      "violations": 0,
+      "monotonic": true,
+      "minusTwenty": {
+        "actual": 2.06115369216775e-9,
+        "expected": 2.06115369216775e-9
+      }
+    },
+    {
+      "file": "gated_delta_fused_decode_paired_f16.wgsl",
+      "shaderSha256": "f6008ad382fc2a4bab73d6c6f76d7d8a11dc7a00d3fa06bcbfab3ef36901550a",
+      "testedShaderSha256": "9990e23934bb46aff6ecdcabd24f5f71b50717f7c072ec9bfaa4316406de724a",
+      "worst": {
+        "ulp": 3,
+        "input": -4.2529296875,
+        "actual": 0.0141223119571805,
+        "expected": 0.014122314751148224
+      },
+      "violations": 0,
+      "monotonic": true,
+      "minusTwenty": {
+        "actual": 2.06115369216775e-9,
+        "expected": 2.06115369216775e-9
+      }
+    },
+    {
+      "file": "gated_delta_recurrent_sigmoid_gate.wgsl",
+      "shaderSha256": "ccbbd7434fa7e0e672101512d2a0839a5c3196cf5a320b69b9bdb5b5abbae480",
+      "testedShaderSha256": "9990e23934bb46aff6ecdcabd24f5f71b50717f7c072ec9bfaa4316406de724a",
+      "worst": {
+        "ulp": 3,
+        "input": -4.2529296875,
+        "actual": 0.0141223119571805,
+        "expected": 0.014122314751148224
+      },
+      "violations": 0,
+      "monotonic": true,
+      "minusTwenty": {
+        "actual": 2.06115369216775e-9,
+        "expected": 2.06115369216775e-9
+      }
+    },
+    {
+      "file": "gated_delta_recurrent_sigmoid_gate_f16.wgsl",
+      "shaderSha256": "873ead68757b89cc8eff2b1c621a07f7d966bf7a9209206873b2ab260e89b821",
+      "testedShaderSha256": "9990e23934bb46aff6ecdcabd24f5f71b50717f7c072ec9bfaa4316406de724a",
+      "worst": {
+        "ulp": 3,
+        "input": -4.2529296875,
+        "actual": 0.0141223119571805,
+        "expected": 0.014122314751148224
+      },
+      "violations": 0,
+      "monotonic": true,
+      "minusTwenty": {
+        "actual": 2.06115369216775e-9,
+        "expected": 2.06115369216775e-9
+      }
+    },
+    {
+      "file": "gated_delta_fused_decode_sigmoid_gate.wgsl",
+      "shaderSha256": "dd3ab8fa2efe9bbb01a2acae9677559459de7d2d4f23d8c4012934e8b6c1c52d",
+      "testedShaderSha256": "9990e23934bb46aff6ecdcabd24f5f71b50717f7c072ec9bfaa4316406de724a",
+      "worst": {
+        "ulp": 3,
+        "input": -4.2529296875,
+        "actual": 0.0141223119571805,
+        "expected": 0.014122314751148224
+      },
+      "violations": 0,
+      "monotonic": true,
+      "minusTwenty": {
+        "actual": 2.06115369216775e-9,
+        "expected": 2.06115369216775e-9
+      }
+    },
+    {
+      "file": "gated_delta_fused_decode_sigmoid_gate_f16.wgsl",
+      "shaderSha256": "abed3d2d5014aa5f03b5ce40f96282037d4b2edc79fb23f2730a572b252ccd09",
+      "testedShaderSha256": "9990e23934bb46aff6ecdcabd24f5f71b50717f7c072ec9bfaa4316406de724a",
+      "worst": {
+        "ulp": 3,
+        "input": -4.2529296875,
+        "actual": 0.0141223119571805,
+        "expected": 0.014122314751148224
+      },
+      "violations": 0,
+      "monotonic": true,
+      "minusTwenty": {
+        "actual": 2.06115369216775e-9,
+        "expected": 2.06115369216775e-9
+      }
+    },
+    {
+      "file": "gated_delta_fused_decode_paired_sigmoid_gate.wgsl",
+      "shaderSha256": "9446b4d22cbfcdbb837ad0875eb8bcde313a93ed63460a27b4f9f5ef7542163d",
+      "testedShaderSha256": "9990e23934bb46aff6ecdcabd24f5f71b50717f7c072ec9bfaa4316406de724a",
+      "worst": {
+        "ulp": 3,
+        "input": -4.2529296875,
+        "actual": 0.0141223119571805,
+        "expected": 0.014122314751148224
+      },
+      "violations": 0,
+      "monotonic": true,
+      "minusTwenty": {
+        "actual": 2.06115369216775e-9,
+        "expected": 2.06115369216775e-9
+      }
+    },
+    {
+      "file": "gated_delta_fused_decode_paired_sigmoid_gate_f16.wgsl",
+      "shaderSha256": "20c4dffd77de995784c1556b2eeb9d225798d5e0aa54823dff70b47527139da8",
+      "testedShaderSha256": "9990e23934bb46aff6ecdcabd24f5f71b50717f7c072ec9bfaa4316406de724a",
+      "worst": {
+        "ulp": 3,
+        "input": -4.2529296875,
+        "actual": 0.0141223119571805,
+        "expected": 0.014122314751148224
+      },
+      "violations": 0,
+      "monotonic": true,
+      "minusTwenty": {
+        "actual": 2.06115369216775e-9,
+        "expected": 2.06115369216775e-9
+      }
+    },
+    {
+      "file": "gated_delta_fused_decode_register.wgsl",
+      "shaderSha256": "2419c79f2fadde451cf09c9ffdda3b89a9f05067d563502ad65f55633b7bb7f5",
+      "testedShaderSha256": "9990e23934bb46aff6ecdcabd24f5f71b50717f7c072ec9bfaa4316406de724a",
+      "worst": {
+        "ulp": 3,
+        "input": -4.2529296875,
+        "actual": 0.0141223119571805,
+        "expected": 0.014122314751148224
+      },
+      "violations": 0,
+      "monotonic": true,
+      "minusTwenty": {
+        "actual": 2.06115369216775e-9,
+        "expected": 2.06115369216775e-9
+      }
+    },
+    {
+      "file": "gated_delta_recurrent_register_prefill.wgsl",
+      "shaderSha256": "d398eda271473e66ec85e01c908609fdd346201a2cad7723778d0c1659cf243f",
+      "testedShaderSha256": "9990e23934bb46aff6ecdcabd24f5f71b50717f7c072ec9bfaa4316406de724a",
+      "worst": {
+        "ulp": 3,
+        "input": -4.2529296875,
+        "actual": 0.0141223119571805,
+        "expected": 0.014122314751148224
+      },
+      "violations": 0,
+      "monotonic": true,
+      "minusTwenty": {
+        "actual": 2.06115369216775e-9,
+        "expected": 2.06115369216775e-9
+      }
+    },
+    {
+      "file": "gated_delta_recurrent_gguf.wgsl",
+      "shaderSha256": "07f85bfe7f11a8e3004daa0ebe1db4a2e208b5d0f9149a00fcec29119aff461d",
+      "testedShaderSha256": "9990e23934bb46aff6ecdcabd24f5f71b50717f7c072ec9bfaa4316406de724a",
+      "worst": {
+        "ulp": 3,
+        "input": -4.2529296875,
+        "actual": 0.0141223119571805,
+        "expected": 0.014122314751148224
+      },
+      "violations": 0,
+      "monotonic": true,
+      "minusTwenty": {
+        "actual": 2.06115369216775e-9,
+        "expected": 2.06115369216775e-9
+      }
+    },
+    {
+      "file": "gated_delta_recurrent_gguf_register_prefill.wgsl",
+      "shaderSha256": "6102e4656eb3109e994723197208fb1d28498fc91c144e0a734a968b431bcb56",
+      "testedShaderSha256": "9990e23934bb46aff6ecdcabd24f5f71b50717f7c072ec9bfaa4316406de724a",
+      "worst": {
+        "ulp": 3,
+        "input": -4.2529296875,
+        "actual": 0.0141223119571805,
+        "expected": 0.014122314751148224
+      },
+      "violations": 0,
+      "monotonic": true,
+      "minusTwenty": {
+        "actual": 2.06115369216775e-9,
+        "expected": 2.06115369216775e-9
+      }
+    },
+    {
+      "file": "gated_delta_prefill_norm_gate.wgsl",
+      "shaderSha256": "09c3bb25a6abcd05846337aeda29559103f5af4fac4fe661f9d7b1e8217ee9b2",
+      "testedShaderSha256": "9990e23934bb46aff6ecdcabd24f5f71b50717f7c072ec9bfaa4316406de724a",
+      "worst": {
+        "ulp": 3,
+        "input": -4.2529296875,
+        "actual": 0.0141223119571805,
+        "expected": 0.014122314751148224
+      },
+      "violations": 0,
+      "monotonic": true,
+      "minusTwenty": {
+        "actual": 2.06115369216775e-9,
+        "expected": 2.06115369216775e-9
+      }
+    }
+  ],
+  "adapter": {
+    "vendor": "amd",
+    "architecture": "rdna-3",
+    "device": "radeon-8060s-graphics-radv-strix-halo-",
+    "description": "radv: Mesa 26.0.3-1ubuntu1",
+    "subgroupMinSize": 32,
+    "subgroupMaxSize": 64
+  },
+  "errors": [],
+  "passed": true
+}

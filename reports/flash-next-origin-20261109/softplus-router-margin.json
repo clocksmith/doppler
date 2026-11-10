@@ -1,0 +1,37 @@
+{
+  "scope": "Exact dyadic router margins on separately captured actual inputs; not model qualification",
+  "normalModelQualified": false,
+  "acceptanceChanged": false,
+  "manifestSha256": "4902a0b730a9310903b00bc0f8f587528fa1af9f37a722d2f9287bafceceec09",
+  "inputSha256": "25236cbbc4bdedb78b68a81e6f5984ee7a816fdbe443742f34e9f942e10b84ed",
+  "logitsSha256": "89779382dd01b566e8b487469bd5430d9144ec53c5a32d2e5323dcc4dfb17be6",
+  "routerWeightsSha256": "4cca2b05519d9331e694cf6245e0e16058b4f6a4cf12c0ffde391c25134d35f2",
+  "cpuRoutingTraceReceiptSha256": "06b9300753f65574477b66f45a0c0fce6474e2112a3f9d901b0af22371037073",
+  "producerSha256": "0ce963dca64be6e9fe9983bcbb995b6f705f19fedbe5626fdcceac8f932f3893",
+  "rows": [
+    {
+      "position": 1717,
+      "expertA": 493,
+      "expertB": 330,
+      "capturedSourceMargin": 1.9073486328125e-06,
+      "capturedGpuMargin": 0.0,
+      "exactSourceInputMargin": 1.51425247274517e-06,
+      "exactGpuInputMargin": -6.725858447964583e-08,
+      "exactSourceInputMarginDyadic": "852448359/562949953421312",
+      "exactGpuInputMarginDyadic": "-37863217/562949953421312",
+      "exactMarginsHaveSameSign": false
+    },
+    {
+      "position": 2271,
+      "expertA": 311,
+      "expertB": 411,
+      "capturedSourceMargin": 9.5367431640625e-07,
+      "capturedGpuMargin": 0.0,
+      "exactSourceInputMargin": 1.133673764641685e-06,
+      "exactGpuInputMargin": 5.252259454024966e-07,
+      "exactSourceInputMarginDyadic": "638201593/562949953421312",
+      "exactGpuInputMarginDyadic": "591351843/1125899906842624",
+      "exactMarginsHaveSameSign": true
+    }
+  ]
+}

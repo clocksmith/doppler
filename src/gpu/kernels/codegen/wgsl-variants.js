@@ -4,10 +4,9 @@ import { ATTENTION_DECODE_ONLINE_F16KV_VARIANT } from './attention-decode-online
 import { WGSL_PATCH_VARIANTS } from './wgsl-patch-variants.js';
 import { MOE_SHARED_SLOT_DOWN_PAIR_COMBINE_RESIDUAL_VARIANT } from './moe-shared-slot-variants.js';
 
-// Linear-attention gated RMSNorm: norm(x) * w * act(z). The silu sources stay
-// byte-identical because conversion configs and signed Capsules pin their
-// digests; these derived kernels change only act() to sigmoid (qwen4_exp
-// output_gate_type="sigmoid", Qwen3.8 Flash-Next).
+// Linear-attention gated RMSNorm: norm(x) * w * act(z). Derived kernels change
+// only act() to sigmoid (qwen4_exp output_gate_type="sigmoid"). Source arithmetic
+// changes require regenerated variants and refreshed execution digests.
 const SCALAR_SIGMOID_NORM_GATE_RULES = Object.freeze([
   {
     type: 'literal',
@@ -722,7 +721,8 @@ override WORKGROUP_SIZE: u32 = 256u;
       },
     ],
   },
-  ...['gated_delta_recurrent', 'gated_delta_recurrent_f16', 'gated_delta_fused_decode', 'gated_delta_fused_decode_f16']
+  ...['gated_delta_recurrent', 'gated_delta_recurrent_f16', 'gated_delta_fused_decode', 'gated_delta_fused_decode_f16',
+    'gated_delta_fused_decode_paired', 'gated_delta_fused_decode_paired_f16']
     .map(scalarSigmoidNormGateVariant),
   {
     id: 'gated-delta-gate-paired-sigmoid',

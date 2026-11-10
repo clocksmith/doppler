@@ -1,0 +1,129 @@
+{
+  "scope": "Unchanged F32 attention including QSA on the exact full GPU branch input; not model acceptance",
+  "normalModelQualified": false,
+  "newGpuInvocations": 0,
+  "layer": 23,
+  "positions": [
+    1717,
+    2271,
+    2303
+  ],
+  "sourceGeometryReplayBitExact": true,
+  "sourceGeometry": [
+    1,
+    2304,
+    2560
+  ],
+  "sourceReplayCheckedValues": 7680,
+  "sameInputReplayBitStable": true,
+  "gpuBoundarySha256": "eaeb204b07f0625aa4d9e79286f2025112e081e134ee17ecafd252a11fd788cb",
+  "cpuTraceSha256": "cd7663d9335b03d18ec7db56d1148eb4454bd38bbd78aa7744184b31d1d63303",
+  "producerSha256": "f6bc0f15a6545ab1d205cfc3ec412442415220e541190b63a9c712fa238ba5b0",
+  "scriptSha256": "6ac9dd6245823d92d990fb9a6dbf1329d3c710992455c825503969146fed3085",
+  "manifestSha256": "4902a0b730a9310903b00bc0f8f587528fa1af9f37a722d2f9287bafceceec09",
+  "inputsSha256": "06a819d529593b58abd6cb27566bb835a9b91aac13a77c0c7479b7e4e7b0c378",
+  "allRows": {
+    "input": {
+      "values": 5898240,
+      "maxAbsolute": 5.942583084106445e-05,
+      "differenceRms": 1.088407609032075e-06,
+      "sourceRms": 0.306362085108445,
+      "relativeRms": 3.5526837749743226e-06
+    },
+    "localOnSameGpuInput": {
+      "values": 5898240,
+      "maxAbsolute": 3.606081008911133e-06,
+      "differenceRms": 1.4689828037341837e-07,
+      "sourceRms": 0.07709014745794948,
+      "relativeRms": 1.9055389724549077e-06
+    }
+  },
+  "perPosition": [
+    {
+      "position": 1717,
+      "total": {
+        "values": 2560,
+        "maxAbsolute": 4.26173210144043e-06,
+        "differenceRms": 4.407602776993003e-07,
+        "sourceRms": 0.07604301769521693,
+        "relativeRms": 5.796196561607838e-06
+      },
+      "localOnSameGpuInput": {
+        "values": 2560,
+        "maxAbsolute": 8.195638656616211e-07,
+        "differenceRms": 1.4019074929455388e-07,
+        "sourceRms": 0.07604303426727058,
+        "relativeRms": 1.843571217868839e-06
+      },
+      "propagatedInput": {
+        "values": 2560,
+        "maxAbsolute": 3.516674041748047e-06,
+        "differenceRms": 4.17004957870767e-07,
+        "sourceRms": 0.07604301769521693,
+        "relativeRms": 5.48380338536981e-06
+      },
+      "sourceSelectionCount": 1718,
+      "sameInputSourceSelectionCount": 1718,
+      "addedSelections": [],
+      "removedSelections": []
+    },
+    {
+      "position": 2271,
+      "total": {
+        "values": 2560,
+        "maxAbsolute": 3.5762786865234375e-06,
+        "differenceRms": 5.491976763267446e-07,
+        "sourceRms": 0.08573844436509745,
+        "relativeRms": 6.405500827471426e-06
+      },
+      "localOnSameGpuInput": {
+        "values": 2560,
+        "maxAbsolute": 1.430511474609375e-06,
+        "differenceRms": 1.617567492100159e-07,
+        "sourceRms": 0.08573842028277194,
+        "relativeRms": 1.8866308555316232e-06
+      },
+      "propagatedInput": {
+        "values": 2560,
+        "maxAbsolute": 3.337860107421875e-06,
+        "differenceRms": 5.512484860456804e-07,
+        "sourceRms": 0.08573844436509745,
+        "relativeRms": 6.4294201991619475e-06
+      },
+      "sourceSelectionCount": 2048,
+      "sameInputSourceSelectionCount": 2048,
+      "addedSelections": [],
+      "removedSelections": []
+    },
+    {
+      "position": 2303,
+      "total": {
+        "values": 2560,
+        "maxAbsolute": 3.7401914596557617e-06,
+        "differenceRms": 5.118143076107601e-07,
+        "sourceRms": 0.06822888340635243,
+        "relativeRms": 7.501431681983349e-06
+      },
+      "localOnSameGpuInput": {
+        "values": 2560,
+        "maxAbsolute": 8.456408977508545e-07,
+        "differenceRms": 1.3126533720468192e-07,
+        "sourceRms": 0.06822885223798023,
+        "relativeRms": 1.9238977778320568e-06
+      },
+      "propagatedInput": {
+        "values": 2560,
+        "maxAbsolute": 4.202127456665039e-06,
+        "differenceRms": 5.274927088778743e-07,
+        "sourceRms": 0.06822888340635243,
+        "relativeRms": 7.731222944632893e-06
+      },
+      "sourceSelectionCount": 2048,
+      "sameInputSourceSelectionCount": 2048,
+      "addedSelections": [],
+      "removedSelections": []
+    }
+  ],
+  "runtimeChanged": false,
+  "acceptanceChanged": false
+}

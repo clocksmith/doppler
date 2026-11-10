@@ -46,7 +46,32 @@ fn softplus(x: f32) -> f32 {
   if (x < -20.0) {
     return exp_refined(x);
   }
-  return log_refined(1.0 + exp_refined(x));
+  let exponential = exp_refined(x);
+  // Through e^5: at e <= 1/64 the omitted e^6/6 is below one F32 ULP.
+  if (exponential <= 0.015625) {
+    var polynomial = fma(exponential, 0.2, -0.25);
+    polynomial = fma(polynomial, exponential, 0.3333333333333333);
+    polynomial = fma(polynomial, exponential, -0.5);
+    return fma(exponential * exponential, polynomial, exponential);
+  }
+  if (x <= 0.0) {
+    // log1p(e) = 2*atanh(e/(2+e)); never round the small e away in 1+e.
+    // Here e <= 1, so s <= 1/3. The omitted term is below 1.1e-11.
+    let s = exponential * reciprocal_refined(2.0 + exponential);
+    let squared = s * s;
+    var polynomial = 0.05263157894736842;
+    polynomial = fma(polynomial, squared, 0.058823529411764705);
+    polynomial = fma(polynomial, squared, 0.06666666666666667);
+    polynomial = fma(polynomial, squared, 0.07692307692307693);
+    polynomial = fma(polynomial, squared, 0.09090909090909091);
+    polynomial = fma(polynomial, squared, 0.1111111111111111);
+    polynomial = fma(polynomial, squared, 0.14285714285714285);
+    polynomial = fma(polynomial, squared, 0.2);
+    polynomial = fma(polynomial, squared, 0.3333333333333333);
+    polynomial = fma(polynomial, squared, 1.0);
+    return (2.0 * s) * polynomial;
+  }
+  return log_refined(1.0 + exponential);
 }
 
 // Refine exp with a short F32 polynomial. Q32 range reduction prevents

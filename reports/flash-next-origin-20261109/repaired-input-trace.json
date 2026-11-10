@@ -1,0 +1,895 @@
+{
+  "scope": "Post-repair captured MLP-router branch inputs at matched boundaries; not full residual-stream captures or operator attribution",
+  "normalModelQualified": false,
+  "acceptanceChanged": false,
+  "newGpuInvocations": 0,
+  "observationSha256": "44cc3786dc815d77effb65b01f9cdf4aa7a448f293959aa5c448f529d2604f45",
+  "cpuRoutingTraceReceiptSha256": "06b9300753f65574477b66f45a0c0fce6474e2112a3f9d901b0af22371037073",
+  "producerSha256": "768499afedd8daf14e656ff7dd0c9d74074638308948d1d9e155a9c3c7f9702d",
+  "rows": [
+    {
+      "layer": 0,
+      "inputSha256": "1477bb2ca7b3d50edbcfafb07b81330754d5db8d0514c29df467c6d129dfecbf",
+      "values": 5898240,
+      "allPositions": {
+        "sourceRms": 0.4097093734877305,
+        "maxAbsolute": 0.0003903806209564209,
+        "differenceRms": 1.1477271812007892e-06,
+        "relativeRms": 2.8013202906014547e-06
+      },
+      "positions": [
+        {
+          "position": 1717,
+          "sourceRms": 0.40406090270192907,
+          "maxAbsolute": 2.652406692504883e-06,
+          "differenceRms": 4.5847288509510876e-07,
+          "relativeRms": 1.1346628244141669e-06
+        },
+        {
+          "position": 2271,
+          "sourceRms": 0.4023248362168843,
+          "maxAbsolute": 2.86102294921875e-06,
+          "differenceRms": 3.343294187952231e-07,
+          "relativeRms": 8.309937361535234e-07
+        },
+        {
+          "position": 2303,
+          "sourceRms": 0.4045889184417035,
+          "maxAbsolute": 2.9206275939941406e-06,
+          "differenceRms": 4.000841540371751e-07,
+          "relativeRms": 9.88865823557702e-07
+        }
+      ]
+    },
+    {
+      "layer": 1,
+      "inputSha256": "fa11c995725baf7c1cfe47a43aa6648dab144b2e1c3c46b5a7941819ab600c9c",
+      "values": 5898240,
+      "allPositions": {
+        "sourceRms": 0.39694263429011006,
+        "maxAbsolute": 0.00015544891357421875,
+        "differenceRms": 7.216493724409622e-07,
+        "relativeRms": 1.8180193058162065e-06
+      },
+      "positions": [
+        {
+          "position": 1717,
+          "sourceRms": 0.38735213449735423,
+          "maxAbsolute": 3.933906555175781e-06,
+          "differenceRms": 5.457076836256665e-07,
+          "relativeRms": 1.4088154808642057e-06
+        },
+        {
+          "position": 2271,
+          "sourceRms": 0.38201971329650447,
+          "maxAbsolute": 4.172325134277344e-06,
+          "differenceRms": 7.489291415214206e-07,
+          "relativeRms": 1.9604463211042186e-06
+        },
+        {
+          "position": 2303,
+          "sourceRms": 0.37436569657587726,
+          "maxAbsolute": 4.410743713378906e-06,
+          "differenceRms": 7.942114616422836e-07,
+          "relativeRms": 2.1214856727165734e-06
+        }
+      ]
+    },
+    {
+      "layer": 2,
+      "inputSha256": "86ba650ee74faa9a3fe913558930cab4c8046d9f299060a3e9ffedb1bb72742e",
+      "values": 5898240,
+      "allPositions": {
+        "sourceRms": 0.391943516340192,
+        "maxAbsolute": 0.00016883015632629395,
+        "differenceRms": 5.996811553090261e-07,
+        "relativeRms": 1.5300193275515898e-06
+      },
+      "positions": [
+        {
+          "position": 1717,
+          "sourceRms": 0.38740072306854156,
+          "maxAbsolute": 5.602836608886719e-06,
+          "differenceRms": 4.773558889333197e-07,
+          "relativeRms": 1.232201853296135e-06
+        },
+        {
+          "position": 2271,
+          "sourceRms": 0.400309935010577,
+          "maxAbsolute": 3.382563591003418e-06,
+          "differenceRms": 6.108244630986537e-07,
+          "relativeRms": 1.5258788495531954e-06
+        },
+        {
+          "position": 2303,
+          "sourceRms": 0.3721190367666833,
+          "maxAbsolute": 4.76837158203125e-06,
+          "differenceRms": 6.648806403520425e-07,
+          "relativeRms": 1.7867418074848968e-06
+        }
+      ]
+    },
+    {
+      "layer": 3,
+      "inputSha256": "b8924d7adc7787d8fe7f8fb6f8d102915567320aa73c45c743d5e8b1b9f2c8f1",
+      "values": 5898240,
+      "allPositions": {
+        "sourceRms": 0.4882012388950912,
+        "maxAbsolute": 4.026293754577637e-05,
+        "differenceRms": 7.530772166748197e-07,
+        "relativeRms": 1.5425549070280978e-06
+      },
+      "positions": [
+        {
+          "position": 1717,
+          "sourceRms": 0.4898198162094548,
+          "maxAbsolute": 3.0994415283203125e-06,
+          "differenceRms": 5.957393252782751e-07,
+          "relativeRms": 1.2162417802703342e-06
+        },
+        {
+          "position": 2271,
+          "sourceRms": 0.4656546036016298,
+          "maxAbsolute": 4.291534423828125e-06,
+          "differenceRms": 7.448585789758552e-07,
+          "relativeRms": 1.5995945776434027e-06
+        },
+        {
+          "position": 2303,
+          "sourceRms": 0.49118762087736495,
+          "maxAbsolute": 4.410743713378906e-06,
+          "differenceRms": 6.98169217350598e-07,
+          "relativeRms": 1.4213900914349597e-06
+        }
+      ]
+    },
+    {
+      "layer": 4,
+      "inputSha256": "9ae53246d05af862922cb4624cbe352f933dc6dc2af0ab0572092441f0fd16a0",
+      "values": 5898240,
+      "allPositions": {
+        "sourceRms": 0.508481910759681,
+        "maxAbsolute": 0.00011043250560760498,
+        "differenceRms": 7.375168120763893e-07,
+        "relativeRms": 1.4504288087151933e-06
+      },
+      "positions": [
+        {
+          "position": 1717,
+          "sourceRms": 0.5118708179603936,
+          "maxAbsolute": 2.86102294921875e-06,
+          "differenceRms": 6.223954116145167e-07,
+          "relativeRms": 1.2159228261820448e-06
+        },
+        {
+          "position": 2271,
+          "sourceRms": 0.515317034441821,
+          "maxAbsolute": 4.649162292480469e-06,
+          "differenceRms": 6.595154434885186e-07,
+          "relativeRms": 1.2798246504753912e-06
+        },
+        {
+          "position": 2303,
+          "sourceRms": 0.5116625877685337,
+          "maxAbsolute": 3.635883331298828e-06,
+          "differenceRms": 6.684389246886186e-07,
+          "relativeRms": 1.3064057069402295e-06
+        }
+      ]
+    },
+    {
+      "layer": 5,
+      "inputSha256": "cf55977bc9612ba06bc33144dbe9ff9e06ddf1b9613c672b7f47fb91390d7bc9",
+      "values": 5898240,
+      "allPositions": {
+        "sourceRms": 0.3962817638651611,
+        "maxAbsolute": 0.00013071298599243164,
+        "differenceRms": 5.46535956774725e-07,
+        "relativeRms": 1.3791599982902301e-06
+      },
+      "positions": [
+        {
+          "position": 1717,
+          "sourceRms": 0.4513411781682578,
+          "maxAbsolute": 5.9604644775390625e-06,
+          "differenceRms": 7.463715551377961e-07,
+          "relativeRms": 1.6536748500699672e-06
+        },
+        {
+          "position": 2271,
+          "sourceRms": 0.39608957176236237,
+          "maxAbsolute": 2.4437904357910156e-06,
+          "differenceRms": 3.6897633022603417e-07,
+          "relativeRms": 9.315477016582626e-07
+        },
+        {
+          "position": 2303,
+          "sourceRms": 0.417746107339734,
+          "maxAbsolute": 2.562999725341797e-06,
+          "differenceRms": 5.384386427757723e-07,
+          "relativeRms": 1.2889136088056578e-06
+        }
+      ]
+    },
+    {
+      "layer": 6,
+      "inputSha256": "f40bafe1fdf060e94bac354507d797f62b7a6dd2b84c911391ef68adead60d05",
+      "values": 5898240,
+      "allPositions": {
+        "sourceRms": 0.5273089903629226,
+        "maxAbsolute": 5.161762237548828e-05,
+        "differenceRms": 7.510507384600453e-07,
+        "relativeRms": 1.4243086163638735e-06
+      },
+      "positions": [
+        {
+          "position": 1717,
+          "sourceRms": 0.5423516619463229,
+          "maxAbsolute": 3.4570693969726562e-06,
+          "differenceRms": 6.933686950205987e-07,
+          "relativeRms": 1.2784485485530274e-06
+        },
+        {
+          "position": 2271,
+          "sourceRms": 0.5252511122923419,
+          "maxAbsolute": 5.125999450683594e-06,
+          "differenceRms": 7.195691900465813e-07,
+          "relativeRms": 1.3699527201497607e-06
+        },
+        {
+          "position": 2303,
+          "sourceRms": 0.5579075315904508,
+          "maxAbsolute": 1.996755599975586e-06,
+          "differenceRms": 4.819266850480241e-07,
+          "relativeRms": 8.638110399301749e-07
+        }
+      ]
+    },
+    {
+      "layer": 7,
+      "inputSha256": "92624d2ac1149f5e919bff8f330f860bf1fc611723621972f864e7d66db6127e",
+      "values": 5898240,
+      "allPositions": {
+        "sourceRms": 0.5054960444423743,
+        "maxAbsolute": 3.622472286224365e-05,
+        "differenceRms": 7.428662798847293e-07,
+        "relativeRms": 1.4695788187703906e-06
+      },
+      "positions": [
+        {
+          "position": 1717,
+          "sourceRms": 0.5233308396262231,
+          "maxAbsolute": 3.337860107421875e-06,
+          "differenceRms": 7.008316056875572e-07,
+          "relativeRms": 1.3391750545183043e-06
+        },
+        {
+          "position": 2271,
+          "sourceRms": 0.5029739099206348,
+          "maxAbsolute": 5.4836273193359375e-06,
+          "differenceRms": 7.394421069243645e-07,
+          "relativeRms": 1.4701400854788721e-06
+        },
+        {
+          "position": 2303,
+          "sourceRms": 0.5368830855499718,
+          "maxAbsolute": 2.2705644369125366e-06,
+          "differenceRms": 5.977371715315921e-07,
+          "relativeRms": 1.1133469979209394e-06
+        }
+      ]
+    },
+    {
+      "layer": 8,
+      "inputSha256": "850a9c0908c18f088789b3c4294de9dec789e0f6b0a142bb9ee4f20df8ea8e05",
+      "values": 5898240,
+      "allPositions": {
+        "sourceRms": 0.5345882666586592,
+        "maxAbsolute": 3.457069396972656e-05,
+        "differenceRms": 8.771594468796325e-07,
+        "relativeRms": 1.6408131296299267e-06
+      },
+      "positions": [
+        {
+          "position": 1717,
+          "sourceRms": 0.5601536397291872,
+          "maxAbsolute": 1.5735626220703125e-05,
+          "differenceRms": 1.157605821799932e-06,
+          "relativeRms": 2.0665862715086345e-06
+        },
+        {
+          "position": 2271,
+          "sourceRms": 0.5726552759614274,
+          "maxAbsolute": 6.3478946685791016e-06,
+          "differenceRms": 1.0441044032890477e-06,
+          "relativeRms": 1.8232686349324333e-06
+        },
+        {
+          "position": 2303,
+          "sourceRms": 0.5658783656146605,
+          "maxAbsolute": 4.172325134277344e-06,
+          "differenceRms": 9.605566089005312e-07,
+          "relativeRms": 1.6974612695383202e-06
+        }
+      ]
+    },
+    {
+      "layer": 9,
+      "inputSha256": "5b8649437ee92c23721c19de24ee48990a18b96fe4503d6026c68ec1c66a77eb",
+      "values": 5898240,
+      "allPositions": {
+        "sourceRms": 0.525814173554573,
+        "maxAbsolute": 4.124641418457031e-05,
+        "differenceRms": 8.785789000956752e-07,
+        "relativeRms": 1.670892388001575e-06
+      },
+      "positions": [
+        {
+          "position": 1717,
+          "sourceRms": 0.5368180241109499,
+          "maxAbsolute": 1.4781951904296875e-05,
+          "differenceRms": 1.030181320926622e-06,
+          "relativeRms": 1.9190512886238396e-06
+        },
+        {
+          "position": 2271,
+          "sourceRms": 0.5586513482047698,
+          "maxAbsolute": 6.318092346191406e-06,
+          "differenceRms": 9.800820520447029e-07,
+          "relativeRms": 1.7543715864898628e-06
+        },
+        {
+          "position": 2303,
+          "sourceRms": 0.5407301811288157,
+          "maxAbsolute": 5.9604644775390625e-06,
+          "differenceRms": 9.560836347440759e-07,
+          "relativeRms": 1.768134400687933e-06
+        }
+      ]
+    },
+    {
+      "layer": 10,
+      "inputSha256": "6155b792c369406c308864d2c4987eb57f4fd1f3b49bdc9f34ab1ec46420c8ad",
+      "values": 5898240,
+      "allPositions": {
+        "sourceRms": 0.505254096707406,
+        "maxAbsolute": 3.0308961868286133e-05,
+        "differenceRms": 8.647976693164423e-07,
+        "relativeRms": 1.7116094158406182e-06
+      },
+      "positions": [
+        {
+          "position": 1717,
+          "sourceRms": 0.5142200252273681,
+          "maxAbsolute": 1.0967254638671875e-05,
+          "differenceRms": 9.454814477827132e-07,
+          "relativeRms": 1.838670999568051e-06
+        },
+        {
+          "position": 2271,
+          "sourceRms": 0.5256614294727209,
+          "maxAbsolute": 3.948807716369629e-06,
+          "differenceRms": 9.102055590254087e-07,
+          "relativeRms": 1.731543362309111e-06
+        },
+        {
+          "position": 2303,
+          "sourceRms": 0.505313115589016,
+          "maxAbsolute": 4.231929779052734e-06,
+          "differenceRms": 8.733627768471145e-07,
+          "relativeRms": 1.728359604973014e-06
+        }
+      ]
+    },
+    {
+      "layer": 11,
+      "inputSha256": "e49ea7135d43a3c88bd20ec5248efdbaa01050c5d2637649e541dfe0734cf50b",
+      "values": 5898240,
+      "allPositions": {
+        "sourceRms": 0.4904000213274454,
+        "maxAbsolute": 2.664327621459961e-05,
+        "differenceRms": 8.973021486577054e-07,
+        "relativeRms": 1.8297351338379471e-06
+      },
+      "positions": [
+        {
+          "position": 1717,
+          "sourceRms": 0.4978538949365858,
+          "maxAbsolute": 5.841255187988281e-06,
+          "differenceRms": 9.576631027831308e-07,
+          "relativeRms": 1.923582626395066e-06
+        },
+        {
+          "position": 2271,
+          "sourceRms": 0.4970106732814549,
+          "maxAbsolute": 3.4570693969726562e-06,
+          "differenceRms": 8.880761040956857e-07,
+          "relativeRms": 1.7868350758591701e-06
+        },
+        {
+          "position": 2303,
+          "sourceRms": 0.4845551701602414,
+          "maxAbsolute": 3.814697265625e-06,
+          "differenceRms": 8.697717256718844e-07,
+          "relativeRms": 1.7949900841719481e-06
+        }
+      ]
+    },
+    {
+      "layer": 12,
+      "inputSha256": "099c12fe90bef938c25aba0e689864419102433a1d4911a693feb6aa925db75c",
+      "values": 5898240,
+      "allPositions": {
+        "sourceRms": 0.5111613784362257,
+        "maxAbsolute": 3.814697265625e-05,
+        "differenceRms": 8.723291139904833e-07,
+        "relativeRms": 1.7065630362355675e-06
+      },
+      "positions": [
+        {
+          "position": 1717,
+          "sourceRms": 0.5112155047774031,
+          "maxAbsolute": 1.4781951904296875e-05,
+          "differenceRms": 1.0291727636429965e-06,
+          "relativeRms": 2.013187694866817e-06
+        },
+        {
+          "position": 2271,
+          "sourceRms": 0.5164656915138053,
+          "maxAbsolute": 5.9604644775390625e-06,
+          "differenceRms": 8.7802756048315e-07,
+          "relativeRms": 1.7000694816911765e-06
+        },
+        {
+          "position": 2303,
+          "sourceRms": 0.5108164918918435,
+          "maxAbsolute": 4.291534423828125e-06,
+          "differenceRms": 8.730097276749516e-07,
+          "relativeRms": 1.709047655140696e-06
+        }
+      ]
+    },
+    {
+      "layer": 13,
+      "inputSha256": "dee0490a9ca0ca2ec425fe41f0fd5d1768d4eba0b3325a465531d151b64d7033",
+      "values": 5898240,
+      "allPositions": {
+        "sourceRms": 0.480748904209931,
+        "maxAbsolute": 3.08305025100708e-05,
+        "differenceRms": 8.456083026826525e-07,
+        "relativeRms": 1.7589396362168235e-06
+      },
+      "positions": [
+        {
+          "position": 1717,
+          "sourceRms": 0.49514825199701556,
+          "maxAbsolute": 5.245208740234375e-06,
+          "differenceRms": 9.739160081153955e-07,
+          "relativeRms": 1.966917997160304e-06
+        },
+        {
+          "position": 2271,
+          "sourceRms": 0.4995012084905528,
+          "maxAbsolute": 4.172325134277344e-06,
+          "differenceRms": 8.468405129679328e-07,
+          "relativeRms": 1.6953723005536019e-06
+        },
+        {
+          "position": 2303,
+          "sourceRms": 0.48192886383443034,
+          "maxAbsolute": 3.3974647521972656e-06,
+          "differenceRms": 7.981002216321665e-07,
+          "relativeRms": 1.6560539978496884e-06
+        }
+      ]
+    },
+    {
+      "layer": 14,
+      "inputSha256": "bc16250212a07eda2fb011773cc6dd55f1dfc56c2d33359e6fd61c94584fe7da",
+      "values": 5898240,
+      "allPositions": {
+        "sourceRms": 0.5153193899831869,
+        "maxAbsolute": 3.5822391510009766e-05,
+        "differenceRms": 9.167105900424722e-07,
+        "relativeRms": 1.7789173236279372e-06
+      },
+      "positions": [
+        {
+          "position": 1717,
+          "sourceRms": 0.5322183468297799,
+          "maxAbsolute": 4.231929779052734e-06,
+          "differenceRms": 9.781539713891932e-07,
+          "relativeRms": 1.8378809697479999e-06
+        },
+        {
+          "position": 2271,
+          "sourceRms": 0.5426247440158063,
+          "maxAbsolute": 3.6954879760742188e-06,
+          "differenceRms": 8.837595395043456e-07,
+          "relativeRms": 1.6286753400958105e-06
+        },
+        {
+          "position": 2303,
+          "sourceRms": 0.4935809289608314,
+          "maxAbsolute": 3.2782554626464844e-06,
+          "differenceRms": 8.124228443462325e-07,
+          "relativeRms": 1.645976974954604e-06
+        }
+      ]
+    },
+    {
+      "layer": 15,
+      "inputSha256": "889e60e2eb933cb04eda535fbde02bf44e8928839590312c7d65c252fdd6c2f4",
+      "values": 5898240,
+      "allPositions": {
+        "sourceRms": 0.684070705805318,
+        "maxAbsolute": 6.914138793945312e-05,
+        "differenceRms": 1.4956504603946121e-06,
+        "relativeRms": 2.18639746988415e-06
+      },
+      "positions": [
+        {
+          "position": 1717,
+          "sourceRms": 0.6587601636455681,
+          "maxAbsolute": 5.424022674560547e-06,
+          "differenceRms": 1.3918649120495734e-06,
+          "relativeRms": 2.1128553134527985e-06
+        },
+        {
+          "position": 2271,
+          "sourceRms": 0.679115028239932,
+          "maxAbsolute": 5.334615707397461e-06,
+          "differenceRms": 1.3542099309987464e-06,
+          "relativeRms": 1.9940803467543097e-06
+        },
+        {
+          "position": 2303,
+          "sourceRms": 0.6447341006600354,
+          "maxAbsolute": 4.850327968597412e-06,
+          "differenceRms": 1.2621557008364565e-06,
+          "relativeRms": 1.957637574225322e-06
+        }
+      ]
+    },
+    {
+      "layer": 16,
+      "inputSha256": "cb4b7dd21ba5bfa5fb5332e26de48f4e0f6700d318b80a9dc41ce9e3628de4db",
+      "values": 5898240,
+      "allPositions": {
+        "sourceRms": 0.6146535321548082,
+        "maxAbsolute": 6.687641143798828e-05,
+        "differenceRms": 1.4753636986373247e-06,
+        "relativeRms": 2.400317612208459e-06
+      },
+      "positions": [
+        {
+          "position": 1717,
+          "sourceRms": 0.6063328075307811,
+          "maxAbsolute": 4.76837158203125e-06,
+          "differenceRms": 1.3130523725890862e-06,
+          "relativeRms": 2.1655637898538544e-06
+        },
+        {
+          "position": 2271,
+          "sourceRms": 0.6034121804155878,
+          "maxAbsolute": 5.0067901611328125e-06,
+          "differenceRms": 1.2581019923178346e-06,
+          "relativeRms": 2.084979443821208e-06
+        },
+        {
+          "position": 2303,
+          "sourceRms": 0.5724211598291983,
+          "maxAbsolute": 4.947185516357422e-06,
+          "differenceRms": 1.151955909160591e-06,
+          "relativeRms": 2.0124271952216394e-06
+        }
+      ]
+    },
+    {
+      "layer": 17,
+      "inputSha256": "7c93ab705d578fcce8d6a6e629f3973f78fd9465231073862906a57f28e5661c",
+      "values": 5898240,
+      "allPositions": {
+        "sourceRms": 0.5468182082973551,
+        "maxAbsolute": 4.678964614868164e-05,
+        "differenceRms": 1.3626710523839659e-06,
+        "relativeRms": 2.4920001413759746e-06
+      },
+      "positions": [
+        {
+          "position": 1717,
+          "sourceRms": 0.5547922851572085,
+          "maxAbsolute": 4.4405460357666016e-06,
+          "differenceRms": 1.2054202379413665e-06,
+          "relativeRms": 2.1727415290207093e-06
+        },
+        {
+          "position": 2271,
+          "sourceRms": 0.5237446849966233,
+          "maxAbsolute": 4.649162292480469e-06,
+          "differenceRms": 1.0695451867788276e-06,
+          "relativeRms": 2.042111772047335e-06
+        },
+        {
+          "position": 2303,
+          "sourceRms": 0.5166721007964344,
+          "maxAbsolute": 4.179775714874268e-06,
+          "differenceRms": 1.115146499780546e-06,
+          "relativeRms": 2.1583253635363344e-06
+        }
+      ]
+    },
+    {
+      "layer": 18,
+      "inputSha256": "17c13e29fc812b40223e8cb3ebd9a382baaaba644a884ac8eae62129e9140fa5",
+      "values": 5898240,
+      "allPositions": {
+        "sourceRms": 0.5288173727057152,
+        "maxAbsolute": 3.8564205169677734e-05,
+        "differenceRms": 1.153504024939723e-06,
+        "relativeRms": 2.181289958455362e-06
+      },
+      "positions": [
+        {
+          "position": 1717,
+          "sourceRms": 0.5665490438552216,
+          "maxAbsolute": 1.245737075805664e-05,
+          "differenceRms": 1.2045700360584978e-06,
+          "relativeRms": 2.126153153241079e-06
+        },
+        {
+          "position": 2271,
+          "sourceRms": 0.5192922389869358,
+          "maxAbsolute": 4.887580871582031e-06,
+          "differenceRms": 8.994466715646873e-07,
+          "relativeRms": 1.732062611448571e-06
+        },
+        {
+          "position": 2303,
+          "sourceRms": 0.5222163213241272,
+          "maxAbsolute": 3.814697265625e-06,
+          "differenceRms": 8.877453180139354e-07,
+          "relativeRms": 1.699957051826676e-06
+        }
+      ]
+    },
+    {
+      "layer": 19,
+      "inputSha256": "4de857a21b0998a404874a6aa12dbc106cc3b822bbb369fce4fd14eb0c61620b",
+      "values": 5898240,
+      "allPositions": {
+        "sourceRms": 0.5885965284386856,
+        "maxAbsolute": 6.988644599914551e-05,
+        "differenceRms": 1.5716970818718845e-06,
+        "relativeRms": 2.670245245993851e-06
+      },
+      "positions": [
+        {
+          "position": 1717,
+          "sourceRms": 0.6150886788674901,
+          "maxAbsolute": 6.4373016357421875e-06,
+          "differenceRms": 1.5344966159740699e-06,
+          "relativeRms": 2.4947567215826607e-06
+        },
+        {
+          "position": 2271,
+          "sourceRms": 0.5767637823425991,
+          "maxAbsolute": 4.649162292480469e-06,
+          "differenceRms": 1.2759275307375542e-06,
+          "relativeRms": 2.212218536946292e-06
+        },
+        {
+          "position": 2303,
+          "sourceRms": 0.6168574232847799,
+          "maxAbsolute": 4.589557647705078e-06,
+          "differenceRms": 1.1573190323404345e-06,
+          "relativeRms": 1.8761532059996688e-06
+        }
+      ]
+    },
+    {
+      "layer": 20,
+      "inputSha256": "5c6b4a8508a1c8fa5ce9129ac17e38be0231b0ff74c1007430f28e722d9fb7e6",
+      "values": 5898240,
+      "allPositions": {
+        "sourceRms": 0.702162823150957,
+        "maxAbsolute": 9.202957153320312e-05,
+        "differenceRms": 1.9227149750237547e-06,
+        "relativeRms": 2.7382751003471924e-06
+      },
+      "positions": [
+        {
+          "position": 1717,
+          "sourceRms": 0.7337753951393842,
+          "maxAbsolute": 6.556510925292969e-06,
+          "differenceRms": 1.7803889008927752e-06,
+          "relativeRms": 2.426340420633185e-06
+        },
+        {
+          "position": 2271,
+          "sourceRms": 0.6899740549716122,
+          "maxAbsolute": 6.079673767089844e-06,
+          "differenceRms": 1.5207597554869365e-06,
+          "relativeRms": 2.2040825224210865e-06
+        },
+        {
+          "position": 2303,
+          "sourceRms": 0.7081584697439081,
+          "maxAbsolute": 6.020069122314453e-06,
+          "differenceRms": 1.4089596873069994e-06,
+          "relativeRms": 1.9896107262778663e-06
+        }
+      ]
+    },
+    {
+      "layer": 21,
+      "inputSha256": "6ca0d8470fc030158ffc35e2dd2f2386a5be649278ac2bd68030ebb091c15847",
+      "values": 5898240,
+      "allPositions": {
+        "sourceRms": 0.6611643869540206,
+        "maxAbsolute": 0.00010567903518676758,
+        "differenceRms": 1.7412904519339723e-06,
+        "relativeRms": 2.6336724819013387e-06
+      },
+      "positions": [
+        {
+          "position": 1717,
+          "sourceRms": 0.7254051787696277,
+          "maxAbsolute": 1.4662742614746094e-05,
+          "differenceRms": 1.9085736932267118e-06,
+          "relativeRms": 2.6310450339820793e-06
+        },
+        {
+          "position": 2271,
+          "sourceRms": 0.6878328068216372,
+          "maxAbsolute": 6.057322025299072e-06,
+          "differenceRms": 1.4464684058953772e-06,
+          "relativeRms": 2.102936050083553e-06
+        },
+        {
+          "position": 2303,
+          "sourceRms": 0.7317952472641357,
+          "maxAbsolute": 4.649162292480469e-06,
+          "differenceRms": 1.3785152101897607e-06,
+          "relativeRms": 1.8837444153175765e-06
+        }
+      ]
+    },
+    {
+      "layer": 22,
+      "inputSha256": "89554d2590cac4e09a38f85eee4dfbd5fc1beebd5b775257c04148dfcff50fbb",
+      "values": 5898240,
+      "allPositions": {
+        "sourceRms": 0.6305642693084013,
+        "maxAbsolute": 7.867813110351562e-05,
+        "differenceRms": 1.3958931282442861e-06,
+        "relativeRms": 2.213720624822736e-06
+      },
+      "positions": [
+        {
+          "position": 1717,
+          "sourceRms": 0.7207481430051195,
+          "maxAbsolute": 1.704692840576172e-05,
+          "differenceRms": 1.8722412842391251e-06,
+          "relativeRms": 2.597635945939338e-06
+        },
+        {
+          "position": 2271,
+          "sourceRms": 0.654374232144787,
+          "maxAbsolute": 5.4836273193359375e-06,
+          "differenceRms": 1.2789429559179226e-06,
+          "relativeRms": 1.9544518917348563e-06
+        },
+        {
+          "position": 2303,
+          "sourceRms": 0.7102837895098397,
+          "maxAbsolute": 5.841255187988281e-06,
+          "differenceRms": 1.4162413563728738e-06,
+          "relativeRms": 1.9939091631954727e-06
+        }
+      ]
+    },
+    {
+      "layer": 23,
+      "inputSha256": "640380d196a40abbf5c913261dde184fbf00f266504c216b4dc94582a0a3ef4c",
+      "values": 5898240,
+      "allPositions": {
+        "sourceRms": 0.7576879386806087,
+        "maxAbsolute": 0.00012183189392089844,
+        "differenceRms": 2.239077128542057e-06,
+        "relativeRms": 2.9551442147027557e-06
+      },
+      "positions": [
+        {
+          "position": 1717,
+          "sourceRms": 0.7609993502470049,
+          "maxAbsolute": 7.569789886474609e-06,
+          "differenceRms": 2.0831088625379754e-06,
+          "relativeRms": 2.7373332997746195e-06
+        },
+        {
+          "position": 2271,
+          "sourceRms": 0.78883887622712,
+          "maxAbsolute": 8.52346420288086e-06,
+          "differenceRms": 1.918035873313418e-06,
+          "relativeRms": 2.431467224950996e-06
+        },
+        {
+          "position": 2303,
+          "sourceRms": 0.7791504792234027,
+          "maxAbsolute": 1.0371208190917969e-05,
+          "differenceRms": 1.9417513609670536e-06,
+          "relativeRms": 2.4921390832005162e-06
+        }
+      ]
+    },
+    {
+      "layer": 24,
+      "inputSha256": "0559b5779e04cef3127cdaa85a4d77e91aec0d19f3a3bfd44dbf095ebab25bc9",
+      "values": 5898240,
+      "allPositions": {
+        "sourceRms": 0.5453142097240132,
+        "maxAbsolute": 7.611513137817383e-05,
+        "differenceRms": 1.5122988322220202e-06,
+        "relativeRms": 2.7732613697842273e-06
+      },
+      "positions": [
+        {
+          "position": 1717,
+          "sourceRms": 0.5548893605713664,
+          "maxAbsolute": 1.9550323486328125e-05,
+          "differenceRms": 1.4695741492858944e-06,
+          "relativeRms": 2.6484093113133085e-06
+        },
+        {
+          "position": 2271,
+          "sourceRms": 0.5783041617849228,
+          "maxAbsolute": 5.364418029785156e-06,
+          "differenceRms": 1.2004046959701155e-06,
+          "relativeRms": 2.075732417807773e-06
+        },
+        {
+          "position": 2303,
+          "sourceRms": 0.5832402148545552,
+          "maxAbsolute": 6.079673767089844e-06,
+          "differenceRms": 1.3829893231671715e-06,
+          "relativeRms": 2.371217361121185e-06
+        }
+      ]
+    },
+    {
+      "layer": 25,
+      "inputSha256": "25236cbbc4bdedb78b68a81e6f5984ee7a816fdbe443742f34e9f942e10b84ed",
+      "values": 5898240,
+      "allPositions": {
+        "sourceRms": 0.5502878339177047,
+        "maxAbsolute": 0.00016045570373535156,
+        "differenceRms": 1.857206611228711e-06,
+        "relativeRms": 3.3749730536591423e-06
+      },
+      "positions": [
+        {
+          "position": 1717,
+          "sourceRms": 0.5768681000799931,
+          "maxAbsolute": 1.5139579772949219e-05,
+          "differenceRms": 1.5242164980043852e-06,
+          "relativeRms": 2.642227049464211e-06
+        },
+        {
+          "position": 2271,
+          "sourceRms": 0.5888064833860909,
+          "maxAbsolute": 6.51925802230835e-06,
+          "differenceRms": 1.3934707639560217e-06,
+          "relativeRms": 2.3666022764261894e-06
+        },
+        {
+          "position": 2303,
+          "sourceRms": 0.583772590578775,
+          "maxAbsolute": 4.9173831939697266e-06,
+          "differenceRms": 1.4301832303029587e-06,
+          "relativeRms": 2.4498978769883993e-06
+        }
+      ]
+    }
+  ]
+}

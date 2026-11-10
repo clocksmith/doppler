@@ -1,0 +1,656 @@
+{
+  "scope": "Full-sequence CPU GDN on exact captured GPU inputs/projections; not model acceptance",
+  "normalModelQualified": false,
+  "newGpuInvocations": 0,
+  "runtimeChanged": false,
+  "acceptanceChanged": false,
+  "manifestSha256": "4902a0b730a9310903b00bc0f8f587528fa1af9f37a722d2f9287bafceceec09",
+  "inputsSha256": "06a819d529593b58abd6cb27566bb835a9b91aac13a77c0c7479b7e4e7b0c378",
+  "gpuTraceSha256": "924bfec193c5a4442fab8c4139517d98980a9a167837176a4f8861e1dcaef6cf",
+  "cpuTraceSha256": "a7a906bcae49378af8c796e88745bd1a2e55d233215ebf85af496b4bfcdddedf",
+  "prefixCaptureSha256": "dd07e0052ba779acf8c05003080154c241595233149ada55fb77e3338321af37",
+  "producerSha256": "f6bc0f15a6545ab1d205cfc3ec412442415220e541190b63a9c712fa238ba5b0",
+  "definitionsOnlySha256": "fe031f4f2f26c709540268c934086aaeea4ce0d1edda1d9716ecf54d96536bb5",
+  "scriptSha256": "15da2ccfe50a1dfd83c2129a47bd7e591241e7a1c80eb10f25296146537e17f1",
+  "sourceGeometry": [
+    1,
+    2304,
+    2560
+  ],
+  "torchVersion": "2.11.0+cu130",
+  "torchThreads": 16,
+  "frozenPrefixBindings": [
+    {
+      "layer": 20,
+      "role": "attn_hc",
+      "stage": "input",
+      "bitExact": true
+    },
+    {
+      "layer": 20,
+      "role": "attn_hc",
+      "stage": "norm",
+      "bitExact": true
+    },
+    {
+      "layer": 20,
+      "role": "attn_hc",
+      "stage": "down",
+      "bitExact": true
+    },
+    {
+      "layer": 20,
+      "role": "attn_hc",
+      "stage": "lowRank",
+      "bitExact": true
+    },
+    {
+      "layer": 20,
+      "role": "attn_hc",
+      "stage": "up",
+      "bitExact": true
+    },
+    {
+      "layer": 20,
+      "role": "attn_hc",
+      "stage": "mix",
+      "bitExact": true
+    },
+    {
+      "layer": 20,
+      "role": "attn_hc",
+      "stage": "branchInput",
+      "bitExact": true
+    },
+    {
+      "layer": 20,
+      "role": "attn_hc",
+      "stage": "logits",
+      "bitExact": true
+    },
+    {
+      "layer": 20,
+      "role": "attn_hc",
+      "stage": "gate",
+      "bitExact": true
+    },
+    {
+      "layer": 20,
+      "role": "attn_hc",
+      "stage": "branchOutput",
+      "bitExact": true
+    },
+    {
+      "layer": 20,
+      "role": "attn_hc",
+      "stage": "injected",
+      "bitExact": true
+    },
+    {
+      "layer": 20,
+      "role": "mlp_hc",
+      "stage": "input",
+      "bitExact": true
+    },
+    {
+      "layer": 20,
+      "role": "mlp_hc",
+      "stage": "norm",
+      "bitExact": true
+    },
+    {
+      "layer": 20,
+      "role": "mlp_hc",
+      "stage": "down",
+      "bitExact": true
+    },
+    {
+      "layer": 20,
+      "role": "mlp_hc",
+      "stage": "lowRank",
+      "bitExact": true
+    },
+    {
+      "layer": 20,
+      "role": "mlp_hc",
+      "stage": "up",
+      "bitExact": true
+    },
+    {
+      "layer": 20,
+      "role": "mlp_hc",
+      "stage": "mix",
+      "bitExact": true
+    },
+    {
+      "layer": 20,
+      "role": "mlp_hc",
+      "stage": "branchInput",
+      "bitExact": true
+    },
+    {
+      "layer": 20,
+      "role": "mlp_hc",
+      "stage": "logits",
+      "bitExact": true
+    },
+    {
+      "layer": 20,
+      "role": "mlp_hc",
+      "stage": "gate",
+      "bitExact": true
+    },
+    {
+      "layer": 20,
+      "role": "mlp_hc",
+      "stage": "branchOutput",
+      "bitExact": true
+    },
+    {
+      "layer": 20,
+      "role": "mlp_hc",
+      "stage": "injected",
+      "bitExact": true
+    },
+    {
+      "layer": 21,
+      "role": "attn_hc",
+      "stage": "input",
+      "bitExact": true
+    },
+    {
+      "layer": 21,
+      "role": "attn_hc",
+      "stage": "norm",
+      "bitExact": true
+    },
+    {
+      "layer": 21,
+      "role": "attn_hc",
+      "stage": "down",
+      "bitExact": true
+    },
+    {
+      "layer": 21,
+      "role": "attn_hc",
+      "stage": "lowRank",
+      "bitExact": true
+    },
+    {
+      "layer": 21,
+      "role": "attn_hc",
+      "stage": "up",
+      "bitExact": true
+    },
+    {
+      "layer": 21,
+      "role": "attn_hc",
+      "stage": "mix",
+      "bitExact": true
+    },
+    {
+      "layer": 21,
+      "role": "attn_hc",
+      "stage": "branchInput",
+      "bitExact": true
+    },
+    {
+      "layer": 21,
+      "role": "attn_hc",
+      "stage": "logits",
+      "bitExact": true
+    },
+    {
+      "layer": 21,
+      "role": "attn_hc",
+      "stage": "gate",
+      "bitExact": true
+    },
+    {
+      "layer": 21,
+      "role": "attn_hc",
+      "stage": "branchOutput",
+      "bitExact": true
+    },
+    {
+      "layer": 21,
+      "role": "attn_hc",
+      "stage": "injected",
+      "bitExact": true
+    },
+    {
+      "layer": 21,
+      "role": "mlp_hc",
+      "stage": "input",
+      "bitExact": true
+    },
+    {
+      "layer": 21,
+      "role": "mlp_hc",
+      "stage": "norm",
+      "bitExact": true
+    },
+    {
+      "layer": 21,
+      "role": "mlp_hc",
+      "stage": "down",
+      "bitExact": true
+    },
+    {
+      "layer": 21,
+      "role": "mlp_hc",
+      "stage": "lowRank",
+      "bitExact": true
+    },
+    {
+      "layer": 21,
+      "role": "mlp_hc",
+      "stage": "up",
+      "bitExact": true
+    },
+    {
+      "layer": 21,
+      "role": "mlp_hc",
+      "stage": "mix",
+      "bitExact": true
+    },
+    {
+      "layer": 21,
+      "role": "mlp_hc",
+      "stage": "branchInput",
+      "bitExact": true
+    },
+    {
+      "layer": 21,
+      "role": "mlp_hc",
+      "stage": "logits",
+      "bitExact": true
+    },
+    {
+      "layer": 21,
+      "role": "mlp_hc",
+      "stage": "gate",
+      "bitExact": true
+    },
+    {
+      "layer": 21,
+      "role": "mlp_hc",
+      "stage": "branchOutput",
+      "bitExact": true
+    },
+    {
+      "layer": 21,
+      "role": "mlp_hc",
+      "stage": "injected",
+      "bitExact": true
+    },
+    {
+      "layer": 22,
+      "role": "attn_hc",
+      "stage": "input",
+      "bitExact": true
+    },
+    {
+      "layer": 22,
+      "role": "attn_hc",
+      "stage": "norm",
+      "bitExact": true
+    },
+    {
+      "layer": 22,
+      "role": "attn_hc",
+      "stage": "down",
+      "bitExact": true
+    },
+    {
+      "layer": 22,
+      "role": "attn_hc",
+      "stage": "lowRank",
+      "bitExact": true
+    },
+    {
+      "layer": 22,
+      "role": "attn_hc",
+      "stage": "up",
+      "bitExact": true
+    },
+    {
+      "layer": 22,
+      "role": "attn_hc",
+      "stage": "mix",
+      "bitExact": true
+    },
+    {
+      "layer": 22,
+      "role": "attn_hc",
+      "stage": "branchInput",
+      "bitExact": true
+    },
+    {
+      "layer": 22,
+      "role": "attn_hc",
+      "stage": "logits",
+      "bitExact": true
+    },
+    {
+      "layer": 22,
+      "role": "attn_hc",
+      "stage": "gate",
+      "bitExact": true
+    },
+    {
+      "layer": 22,
+      "role": "attn_hc",
+      "stage": "branchOutput",
+      "bitExact": true
+    },
+    {
+      "layer": 22,
+      "role": "attn_hc",
+      "stage": "injected",
+      "bitExact": true
+    },
+    {
+      "layer": 22,
+      "role": "mlp_hc",
+      "stage": "input",
+      "bitExact": true
+    },
+    {
+      "layer": 22,
+      "role": "mlp_hc",
+      "stage": "norm",
+      "bitExact": true
+    },
+    {
+      "layer": 22,
+      "role": "mlp_hc",
+      "stage": "down",
+      "bitExact": true
+    },
+    {
+      "layer": 22,
+      "role": "mlp_hc",
+      "stage": "lowRank",
+      "bitExact": true
+    },
+    {
+      "layer": 22,
+      "role": "mlp_hc",
+      "stage": "up",
+      "bitExact": true
+    },
+    {
+      "layer": 22,
+      "role": "mlp_hc",
+      "stage": "mix",
+      "bitExact": true
+    },
+    {
+      "layer": 22,
+      "role": "mlp_hc",
+      "stage": "branchInput",
+      "bitExact": true
+    },
+    {
+      "layer": 22,
+      "role": "mlp_hc",
+      "stage": "logits",
+      "bitExact": true
+    },
+    {
+      "layer": 22,
+      "role": "mlp_hc",
+      "stage": "gate",
+      "bitExact": true
+    }
+  ],
+  "rows": [
+    {
+      "layer": 20,
+      "sourceGeometryReplayBitExact": true,
+      "sourceReplayCheckedValues": 5898240,
+      "sameInputReplayBitStable": true,
+      "input": {
+        "values": 5898240,
+        "maxAbsolute": 6.902217864990234e-05,
+        "differenceRms": 1.5137320463987477e-06,
+        "sourceRms": 0.5299111136551794,
+        "relativeRms": 2.856577277569148e-06
+      },
+      "total": {
+        "values": 5898240,
+        "maxAbsolute": 1.055002212524414e-05,
+        "differenceRms": 3.1123785368088354e-07,
+        "sourceRms": 0.09104445137263177,
+        "relativeRms": 3.418526324103289e-06
+      },
+      "localOnSameGpuInput": {
+        "values": 5898240,
+        "maxAbsolute": 1.3113021850585938e-06,
+        "differenceRms": 1.4021227821011257e-07,
+        "sourceRms": 0.09104445372392031,
+        "relativeRms": 1.5400419517622334e-06
+      },
+      "propagatedInput": {
+        "values": 5898240,
+        "maxAbsolute": 1.0721385478973389e-05,
+        "differenceRms": 2.893529077160735e-07,
+        "sourceRms": 0.09104445137263177,
+        "relativeRms": 3.1781498306996643e-06
+      },
+      "projections": [
+        {
+          "stage": "attn.qkv_proj",
+          "values": 23592960,
+          "maxAbsolute": 9.5367431640625e-06,
+          "differenceRms": 2.950554059730073e-07,
+          "sourceRms": 1.1552231205657821,
+          "relativeRms": 2.55409886384979e-07
+        },
+        {
+          "stage": "attn.linear_z_proj",
+          "values": 14155776,
+          "maxAbsolute": 4.291534423828125e-06,
+          "differenceRms": 3.9178549418889026e-07,
+          "sourceRms": 1.7850662554657861,
+          "relativeRms": 2.1947952519367956e-07
+        },
+        {
+          "stage": "attn.linear_a_proj",
+          "values": 110592,
+          "maxAbsolute": 2.193450927734375e-05,
+          "differenceRms": 1.9717837392780274e-06,
+          "sourceRms": 2.500250698386445,
+          "relativeRms": 7.886344119613815e-07
+        },
+        {
+          "stage": "attn.linear_b_proj",
+          "values": 110592,
+          "maxAbsolute": 1.5735626220703125e-05,
+          "differenceRms": 1.6141305814478107e-06,
+          "sourceRms": 2.0689720787379438,
+          "relativeRms": 7.801606401727844e-07
+        }
+      ],
+      "coreOnExactGpuProjections": {
+        "values": 14155776,
+        "maxAbsolute": 4.76837158203125e-06,
+        "differenceRms": 8.660732052794347e-08,
+        "sourceRms": 0.11472565668959976,
+        "relativeRms": 7.549080391168917e-07
+      },
+      "outputProjectionOnExactGpuCore": {
+        "values": 5898240,
+        "maxAbsolute": 1.1920928955078125e-06,
+        "differenceRms": 5.429755239177618e-08,
+        "sourceRms": 0.09104445305368677,
+        "relativeRms": 5.963850687285494e-07
+      }
+    },
+    {
+      "layer": 21,
+      "sourceGeometryReplayBitExact": true,
+      "sourceReplayCheckedValues": 5898240,
+      "sameInputReplayBitStable": true,
+      "input": {
+        "values": 5898240,
+        "maxAbsolute": 0.00011658668518066406,
+        "differenceRms": 9.404652525645384e-07,
+        "sourceRms": 0.44863747052682873,
+        "relativeRms": 2.0962699603761657e-06
+      },
+      "total": {
+        "values": 5898240,
+        "maxAbsolute": 2.86102294921875e-06,
+        "differenceRms": 9.831563464701694e-08,
+        "sourceRms": 0.04276764602701272,
+        "relativeRms": 2.2988320326285726e-06
+      },
+      "localOnSameGpuInput": {
+        "values": 5898240,
+        "maxAbsolute": 2.7120113372802734e-06,
+        "differenceRms": 5.234316992262e-08,
+        "sourceRms": 0.04276764349167362,
+        "relativeRms": 1.2238965173007634e-06
+      },
+      "propagatedInput": {
+        "values": 5898240,
+        "maxAbsolute": 2.9616057872772217e-06,
+        "differenceRms": 8.847492208022323e-08,
+        "sourceRms": 0.04276764602701272,
+        "relativeRms": 2.0687349035843844e-06
+      },
+      "projections": [
+        {
+          "stage": "attn.qkv_proj",
+          "values": 23592960,
+          "maxAbsolute": 1.1444091796875e-05,
+          "differenceRms": 2.533755177323176e-07,
+          "sourceRms": 1.0209205120912699,
+          "relativeRms": 2.481833940365241e-07
+        },
+        {
+          "stage": "attn.linear_z_proj",
+          "values": 14155776,
+          "maxAbsolute": 5.7220458984375e-06,
+          "differenceRms": 4.591458433763842e-07,
+          "sourceRms": 2.096341627616447,
+          "relativeRms": 2.1902243285529553e-07
+        },
+        {
+          "stage": "attn.linear_a_proj",
+          "values": 110592,
+          "maxAbsolute": 2.86102294921875e-05,
+          "differenceRms": 1.900233988168252e-06,
+          "sourceRms": 2.4010114363794233,
+          "relativeRms": 7.914306276831764e-07
+        },
+        {
+          "stage": "attn.linear_b_proj",
+          "values": 110592,
+          "maxAbsolute": 1.6689300537109375e-05,
+          "differenceRms": 1.5593055783594545e-06,
+          "sourceRms": 1.9926924598357991,
+          "relativeRms": 7.825119077772511e-07
+        }
+      ],
+      "coreOnExactGpuProjections": {
+        "values": 14155776,
+        "maxAbsolute": 5.185604095458984e-06,
+        "differenceRms": 2.750105734176555e-08,
+        "sourceRms": 0.030044179421012174,
+        "relativeRms": 9.153539178551162e-07
+      },
+      "outputProjectionOnExactGpuCore": {
+        "values": 5898240,
+        "maxAbsolute": 8.344650268554688e-07,
+        "differenceRms": 1.915688290676495e-08,
+        "sourceRms": 0.042767642440731175,
+        "relativeRms": 4.47929364666598e-07
+      }
+    },
+    {
+      "layer": 22,
+      "sourceGeometryReplayBitExact": true,
+      "sourceReplayCheckedValues": 5898240,
+      "sameInputReplayBitStable": true,
+      "input": {
+        "values": 5898240,
+        "maxAbsolute": 0.00015586614608764648,
+        "differenceRms": 1.0372459500637498e-06,
+        "sourceRms": 0.4847092910172019,
+        "relativeRms": 2.139934119865961e-06
+      },
+      "total": {
+        "values": 5898240,
+        "maxAbsolute": 2.285093069076538e-05,
+        "differenceRms": 3.985100601252912e-07,
+        "sourceRms": 0.09280362756930646,
+        "relativeRms": 4.294121582991794e-06
+      },
+      "localOnSameGpuInput": {
+        "values": 5898240,
+        "maxAbsolute": 8.612871170043945e-06,
+        "differenceRms": 3.813024728917422e-07,
+        "sourceRms": 0.09280362614996075,
+        "relativeRms": 4.108702307338703e-06
+      },
+      "propagatedInput": {
+        "values": 5898240,
+        "maxAbsolute": 2.2903084754943848e-05,
+        "differenceRms": 1.2521476209484205e-07,
+        "sourceRms": 0.09280362756930646,
+        "relativeRms": 1.3492442631224808e-06
+      },
+      "projections": [
+        {
+          "stage": "attn.qkv_proj",
+          "values": 23592960,
+          "maxAbsolute": 1.33514404296875e-05,
+          "differenceRms": 2.9964344201983586e-07,
+          "sourceRms": 1.2861576720910057,
+          "relativeRms": 2.3297566738662953e-07
+        },
+        {
+          "stage": "attn.linear_z_proj",
+          "values": 14155776,
+          "maxAbsolute": 5.7220458984375e-06,
+          "differenceRms": 4.4926268775667395e-07,
+          "sourceRms": 2.118029495426023,
+          "relativeRms": 2.121135181199678e-07
+        },
+        {
+          "stage": "attn.linear_a_proj",
+          "values": 110592,
+          "maxAbsolute": 1.9073486328125e-05,
+          "differenceRms": 1.953010653003722e-06,
+          "sourceRms": 2.6630407119036232,
+          "relativeRms": 7.333761907108247e-07
+        },
+        {
+          "stage": "attn.linear_b_proj",
+          "values": 110592,
+          "maxAbsolute": 1.6689300537109375e-05,
+          "differenceRms": 1.866088138800613e-06,
+          "sourceRms": 2.5053637434211624,
+          "relativeRms": 7.448372092478691e-07
+        }
+      ],
+      "coreOnExactGpuProjections": {
+        "values": 14155776,
+        "maxAbsolute": 4.382431507110596e-05,
+        "differenceRms": 2.2610096112093686e-07,
+        "sourceRms": 0.05373048018257273,
+        "relativeRms": 4.208057704912747e-06
+      },
+      "outputProjectionOnExactGpuCore": {
+        "values": 5898240,
+        "maxAbsolute": 1.430511474609375e-06,
+        "differenceRms": 3.634179757946578e-08,
+        "sourceRms": 0.09280362689339623,
+        "relativeRms": 3.915988932330382e-07
+      }
+    }
+  ]
+}

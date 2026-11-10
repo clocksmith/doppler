@@ -369,12 +369,12 @@
       "gated_delta_recurrent": {
         "kernel": "gated_delta_recurrent.wgsl",
         "entry": "main",
-        "digest": "sha256:33e2f208b15ff6140d493609b6e4814c44f23fb2f3f1b66f2a62336a04dfd46e"
+        "digest": "sha256:47bcab58e5bc6b5ac9e7b8e3499c8e6f336ab5be19b24a4dc49b2bafb6a30ae4"
       },
       "gated_delta_fused_decode": {
         "kernel": "gated_delta_fused_decode.wgsl",
         "entry": "main",
-        "digest": "sha256:87dbb137e1495ebb0821ef5a8a90e7a6460883e1bd4eafb1c13ae9b1a1052cfb"
+        "digest": "sha256:2db6a08bc3f43fd922001702316f2566a0b0f06154981e5cae9024bbeb03b29f"
       },
       "gemv": {
         "kernel": "matmul_gemv_subgroup.wgsl",

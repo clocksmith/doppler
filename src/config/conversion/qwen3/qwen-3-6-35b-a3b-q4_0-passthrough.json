@@ -403,12 +403,12 @@
       "gated_delta_recurrent": {
         "kernel": "gated_delta_recurrent_gguf.wgsl",
         "entry": "main",
-        "digest": "sha256:45868ff96095bf40ec4c76610aa40ded1d9f345743bc3c819669e2250b005ff5"
+        "digest": "sha256:5acdcaf797994c495b07ebf5b5b3676a74b0bb128529ef2b1dcdc5bd448fd362"
       },
       "gated_delta_fused_decode": {
         "kernel": "gated_delta_fused_decode.wgsl",
         "entry": "main",
-        "digest": "sha256:87dbb137e1495ebb0821ef5a8a90e7a6460883e1bd4eafb1c13ae9b1a1052cfb"
+        "digest": "sha256:2db6a08bc3f43fd922001702316f2566a0b0f06154981e5cae9024bbeb03b29f"
       },
       "source_control_f32": {
         "kernel": "matmul_f32.wgsl",

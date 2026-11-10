@@ -1,0 +1,78 @@
+{
+  "scope": "Standalone learned GDN ordinary-F32 candidate on fixed projections; not model qualification or performance",
+  "normalModelQualified": false,
+  "fixtureSha256": "dac09fa682af233a77e98e0e9800ebcb8eae1ba6f588d13373e57191a1ccc26e",
+  "runSha256": "2fdcc3697f1096211cb7f96d4f37994dbf6fcccbd915b8d9366a04b742bfdf9c",
+  "producerSha256": "d0b9d47343d138a0bd2f5b58fb8c34a41316230af2f4542ad5494da6f68019ee",
+  "gpuErrors": [],
+  "runtimeSourceSha256": {
+    "src/config/kernels/kernel-ref-digests.js": "bd9e5257dbeac3f299ebbe60c771e42561c4b90f3e60ca258ab94cc5721763a8",
+    "src/config/kernels/registry.json": "7ffc167a415882d66646f2ff07bf1b336aee8a55065668fd0704e90c1f12f888",
+    "src/converter/execution-graph-transforms.js": "0af62f6f97cdbc5a4d5fa8ff5f3022510400159e29e2e5c75ac16f3467a740f5",
+    "src/converter/execution-graph/kv-storage.js": "2e97aecb17959e9637b8e68a1d8cb40eb54fd3c97f5f076f2ce3d0a1e0b39234",
+    "src/converter/execution-graph/validation.js": "c5ac71ac3991471c90f03444a4737528da21d472730b98c813fae004f3daa85d",
+    "src/gpu/kernels/attention_indexed.wgsl": "49a68e1b3a635be70d123167a40c9452c7e7a228978931552be9644d1abd703d",
+    "src/gpu/kernels/gated_delta_fused_decode.wgsl": "258a87b7a219bdae349ced021aa84f1a2ecd359af0fd284b2946b3d6171a3b3e",
+    "src/gpu/kernels/gated_delta_fused_decode_f16.wgsl": "aac8fed92397135e6dea34bec7ff941c5b047b890e4fc5bf21ed0c09bdec4749",
+    "src/gpu/kernels/gated_delta_fused_decode_paired.wgsl": "bf981db90e1a7e7928a3d8c8032ae3e8f9d45bbda724ed50baf7ecfd0e64e330",
+    "src/gpu/kernels/gated_delta_fused_decode_paired_f16.wgsl": "f6008ad382fc2a4bab73d6c6f76d7d8a11dc7a00d3fa06bcbfab3ef36901550a",
+    "src/gpu/kernels/gated_delta_fused_decode_paired_sigmoid_gate.wgsl": "9446b4d22cbfcdbb837ad0875eb8bcde313a93ed63460a27b4f9f5ef7542163d",
+    "src/gpu/kernels/gated_delta_fused_decode_paired_sigmoid_gate_f16.wgsl": "20c4dffd77de995784c1556b2eeb9d225798d5e0aa54823dff70b47527139da8",
+    "src/gpu/kernels/gated_delta_fused_decode_register.wgsl": "2419c79f2fadde451cf09c9ffdda3b89a9f05067d563502ad65f55633b7bb7f5",
+    "src/gpu/kernels/gated_delta_fused_decode_sigmoid_gate.wgsl": "dd3ab8fa2efe9bbb01a2acae9677559459de7d2d4f23d8c4012934e8b6c1c52d",
+    "src/gpu/kernels/gated_delta_fused_decode_sigmoid_gate_f16.wgsl": "abed3d2d5014aa5f03b5ce40f96282037d4b2edc79fb23f2730a572b252ccd09",
+    "src/gpu/kernels/gated_delta_prefill_norm_gate.wgsl": "09c3bb25a6abcd05846337aeda29559103f5af4fac4fe661f9d7b1e8217ee9b2",
+    "src/gpu/kernels/gated_delta_recurrent.wgsl": "2a76d3737113573c660866e2131d9fb64fb156397300e065d1a28621ca0b7759",
+    "src/gpu/kernels/gated_delta_recurrent_f16.wgsl": "594324d7587b3bc5b86365be50cd2da37b093343e74d663ad51a6158a2272992",
+    "src/gpu/kernels/gated_delta_recurrent_gguf.wgsl": "07f85bfe7f11a8e3004daa0ebe1db4a2e208b5d0f9149a00fcec29119aff461d",
+    "src/gpu/kernels/gated_delta_recurrent_gguf_register_prefill.wgsl": "6102e4656eb3109e994723197208fb1d28498fc91c144e0a734a968b431bcb56",
+    "src/gpu/kernels/gated_delta_recurrent_register_prefill.wgsl": "d398eda271473e66ec85e01c908609fdd346201a2cad7723778d0c1659cf243f",
+    "src/gpu/kernels/gated_delta_recurrent_sigmoid_gate.wgsl": "ccbbd7434fa7e0e672101512d2a0839a5c3196cf5a320b69b9bdb5b5abbae480",
+    "src/gpu/kernels/gated_delta_recurrent_sigmoid_gate_f16.wgsl": "873ead68757b89cc8eff2b1c621a07f7d966bf7a9209206873b2ab260e89b821",
+    "src/gpu/kernels/qsa-indexer.js": "2adc6a44e446641aa400aa804dc4910312501840c5fdfe5782a1925587bb28bc",
+    "src/inference/pipelines/text/hyper-connection/sequence-transaction.js": "2d3b7f9df14c94f09e04872b1e59374f22e86c7897d3eb3da3b8a392ef801448",
+    "src/inference/pipelines/text/indexed-attention/attention-runner.js": "0735608d81fbb4797d70e827ae6e3cc3846beae60f18fbf6c46aa8c6634415e7",
+    "src/inference/pipelines/text/moe-gpu.js": "52d7f522d4c0c670d0a8c980718340ebd663765a1f34d3e9c3a3762d01c2520d",
+    "src/inference/pipelines/text/moe/routed-expert-chunks.js": "2c62078cac1d4f1276079344fcf647e0185c2c1a68a8dfbf451b8791a76c6500",
+    "src/loader/doppler-loader.js": "10a8d234ab34d114c154a240c5e9d7e1b61162dbe3092397f3f8f8d59a5fc859",
+    "src/loader/experts/loader-bindings.js": "be2f9b839cfcad4ced5452f4882d67f51cf779fbdc58b520302f0b816b761b90",
+    "src/loader/experts/routed-expert-cache.js": "0b5da688bb8b9e6e43bffe467742edac184b913d15427db845d2c1875e8c855d",
+    "src/loader/experts/routed-expert-plan.js": "35359657196c41c8ab41ccc29f6d2b52829bf5396a4a842ef264b0d5acb141c6",
+    "src/rules/inference/capability-transforms.rules.json": "617c773184972b22fa353ac25d84cbb196af3c5854a19d7d98008dd0fac4e9ed",
+    "src/rules/kernels/attention.rules.json": "fc948d10ae33ca49327ab4efcca1a0383eac9c483287cf595da5eb584360795e",
+    "tests/integration/flash-next-learned-physical.test.js": "f14a6e697f9125b19cd6fcb9b6bedf23b6be9ec411c02ba2c1cc7d6c0df37295",
+    "tests/integration/flash-next-upstream-trace-physical.test.js": "6a5758d71e751b3fdbe25be91848c30acdf8e2e4b830bcb4b914407f94c66d3f"
+  },
+  "completed": true,
+  "cleanupFailures": [],
+  "rows": [
+    {
+      "precision": "f32",
+      "components": 1,
+      "captured": {
+        "values": 14155776,
+        "exact": 3193230,
+        "maxAbsolute": 3.981590270996094e-05,
+        "differenceRms": 2.0951654400156055e-07,
+        "relativeRms": 3.899398035818498e-06
+      },
+      "source": {
+        "values": 14155776,
+        "exact": 1261210,
+        "maxAbsolute": 1.2412667274475098e-05,
+        "differenceRms": 9.249537413999881e-08,
+        "relativeRms": 1.721469337807346e-06
+      },
+      "nonzeroCorrections": 0,
+      "output": {
+        "sha256": "b594e1a5d7094561e79aa4ec050b1095e95d4629ccbc8a717501d12a70807114",
+        "shape": [
+          2304,
+          6144
+        ]
+      },
+      "stateGpuBytes": 3145728
+    }
+  ],
+  "rawReceiptSha256": "64e6f80f9f9f1dd19a6570a422fd008dbadb76872f9fb30b572737891c1bbad3"
+}

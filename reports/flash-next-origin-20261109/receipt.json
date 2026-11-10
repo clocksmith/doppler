@@ -1,0 +1,232 @@
+{
+  "schema": "doppler.flash-next-origin-investigation/v1",
+  "createdAtUtc": "2026-11-10T06:03:46.342577+00:00",
+  "baseRevision": "13bcbcc15f82cbf6ac66750fd573311ddbc72f37",
+  "scope": "Upstream drift attribution, scalar GDN softplus repair and unchanged-policy candidate checks",
+  "component": [
+    "doppler.runtime-source.gpu.kernels",
+    "doppler.runtime-source.config",
+    "doppler.repository-tooling",
+    "doppler.tests"
+  ],
+  "intent": "preserved",
+  "normalModelQualified": false,
+  "acceptanceChanged": false,
+  "sourceArtifactAndFrozenReceiptsChanged": false,
+  "runtimeRepair": "Preserve small positive softplus values before recurrent decay; ordinary F32 state, unchanged weights and KV storage choices",
+  "physicalOperator": {
+    "inputCount": 8226,
+    "shaderSurfaces": 17,
+    "devices": [
+      "Apple M3 Metal",
+      "AMD Radeon 8060S Vulkan"
+    ],
+    "worstUlp": 2,
+    "declaredMaxUlp": 6
+  },
+  "ordinaryCandidate": {
+    "shortPrefillViolations": 0,
+    "shortPrefillMaxAbsoluteError": 2.384185791015625e-05,
+    "finiteShortGenerationRows": 3,
+    "longPrefillViolationsBefore": 13,
+    "longPrefillViolationsAfter": 1,
+    "longPrefillMaxAbsoluteError": 0.059586524963378906,
+    "longInputTokens": 2304,
+    "independentDecodeLogitParity": false,
+    "normalModelQualified": false
+  },
+  "checks": {
+    "focusedWitnessTests": 14,
+    "kernelVariants": 555,
+    "wgslModules": 415,
+    "generatedVariants": 85,
+    "sourceTyping": "passed",
+    "sourceStyle": "passed",
+    "sourceArchitecture": "passed",
+    "kernelChecks": "passed",
+    "runtimeClosure": "passed",
+    "conversionSourceDigests": "passed",
+    "preparedSequencePhysical": "skipped: no provisioned model; not counted as a pass",
+    "demoShell": {
+      "status": "failed before this repair",
+      "totalBytes": 10006898,
+      "maximumBytes": 10000000,
+      "taskAddedShellBytes": 0,
+      "budgetChanged": false
+    }
+  },
+  "operationalBoundary": {
+    "providerProcessStayedRunning": true,
+    "serviceActions": false,
+    "ttmPagesLimit": 16099953,
+    "rootSettingChanges": false,
+    "exploratoryTwoComponentState": "device lost; no valid candidate numerical result; automatic kernel recovery observed; not used by the repair",
+    "manualGpuReset": false,
+    "freshProviderInferenceHealthVerified": false
+  },
+  "remaining": "One frozen long-input logit violation; exact new Layer25 margins still differ because the incoming inputs differ. No unavoidable-drift claim or acceptance-policy change.",
+  "evidence": [
+    {
+      "file": "reports/flash-next-origin-20261109/README.md",
+      "bytes": 9883,
+      "sha256": "d14885a31a6c632029654186fcd757fd76f5a2eb7f2a98a0787e4faddbf51821"
+    },
+    {
+      "file": "reports/flash-next-origin-20261109/assess-router-inputs.py",
+      "bytes": 3336,
+      "sha256": "0ce963dca64be6e9fe9983bcbb995b6f705f19fedbe5626fdcceac8f932f3893"
+    },
+    {
+      "file": "reports/flash-next-origin-20261109/compare-controls.py",
+      "bytes": 6763,
+      "sha256": "c2754c49f9783d273a79d04c26a5c9c3aacd40743edaae14efaee5e0169ccede"
+    },
+    {
+      "file": "reports/flash-next-origin-20261109/compare-short.py",
+      "bytes": 3447,
+      "sha256": "4b8d9aa94e7059f53fc7d5a20c43851b91d3814fcea65d80561181df84980cc9"
+    },
+    {
+      "file": "reports/flash-next-origin-20261109/compare-softplus.py",
+      "bytes": 5280,
+      "sha256": "dba9e72089cfbcd5b3e2fcfada4bbdb14a8d4994acd7c861429bf365c311ad9a"
+    },
+    {
+      "file": "reports/flash-next-origin-20261109/controls-comparison.json",
+      "bytes": 7372,
+      "sha256": "2e801fa29906089ec12d547accd69b497bf37de57c13e97b4954f54ed4f3f242"
+    },
+    {
+      "file": "reports/flash-next-origin-20261109/layer23-same-input.json",
+      "bytes": 4170,
+      "sha256": "1a7913f1d193aa36580ad5224f4798d57b1145cd3b1a9a886dc1582e79e79e66"
+    },
+    {
+      "file": "reports/flash-next-origin-20261109/linear20-22-controls.json",
+      "bytes": 16104,
+      "sha256": "66e17eae2f5311f5f7e94beedd801539e5d8716dcfb92646b11173c1c2f72e18"
+    },
+    {
+      "file": "reports/flash-next-origin-20261109/origin-protocol.json",
+      "bytes": 4692,
+      "sha256": "ed35a0c8766639760bc3b97c972c64cf7c7ddf7e7c0a77851700675333709098"
+    },
+    {
+      "file": "reports/flash-next-origin-20261109/origin-witness.json",
+      "bytes": 9794,
+      "sha256": "06f8a1b9e9ac577654d864f2454b2d64250e77df4e7d3c30a96cd740fd088818"
+    },
+    {
+      "file": "reports/flash-next-origin-20261109/repaired-input-trace.json",
+      "bytes": 29188,
+      "sha256": "72c6b3ca5f11b8e7cccb45d30eb2cec92736a5fd55f6c19c5de5a97f0d3becf3"
+    },
+    {
+      "file": "reports/flash-next-origin-20261109/softplus-amd.json",
+      "bytes": 10275,
+      "sha256": "22324e8f30b1a59afcc012dd26f7b10f372e24d013a90803a280635b62699cd8"
+    },
+    {
+      "file": "reports/flash-next-origin-20261109/softplus-atanh-amd.json",
+      "bytes": 10309,
+      "sha256": "24f9c320479dfb9d2ec68e6eb5e73f7e8b99d1d7471a7e7cd0e5194f913bf3dd"
+    },
+    {
+      "file": "reports/flash-next-origin-20261109/softplus-atanh-comparison.json",
+      "bytes": 15182,
+      "sha256": "8a04c63e132f21f6c1f39636835dfe715c9cd065423d1cb6c3bbadd97e62538f"
+    },
+    {
+      "file": "reports/flash-next-origin-20261109/softplus-atanh-layer22-core.json",
+      "bytes": 5874,
+      "sha256": "a34232f642aac966793eadb52588e1399263ef07b4b5a186ba618e80a08b03ee"
+    },
+    {
+      "file": "reports/flash-next-origin-20261109/softplus-before-metal.json",
+      "bytes": 4985,
+      "sha256": "a226cae573e1078978d0e26d596c423a7230b3ef2b1b09f35f8750d3aae38a5c"
+    },
+    {
+      "file": "reports/flash-next-origin-20261109/softplus-comparison.json",
+      "bytes": 15189,
+      "sha256": "971c92678680a9e0556324b73ce08cbc25793ebabbcfc05ce6041cdf46d76678"
+    },
+    {
+      "file": "reports/flash-next-origin-20261109/softplus-metal.json",
+      "bytes": 10272,
+      "sha256": "fc8f495c28989f466cfdefc3b82fedaca80894774e1ffe0267d89f780b18dfc8"
+    },
+    {
+      "file": "reports/flash-next-origin-20261109/softplus-preparation.json",
+      "bytes": 9095,
+      "sha256": "2783088c47e441c85c20beaf14b085698f75c4fe984814379ebd338c95eeffc0"
+    },
+    {
+      "file": "reports/flash-next-origin-20261109/softplus-router-margin.json",
+      "bytes": 1612,
+      "sha256": "d619435d942c6c40624ea43e8e006fccbbfc220cd0e0fe6570cf046510fef12f"
+    },
+    {
+      "file": "reports/flash-next-origin-20261109/softplus-short-comparison.json",
+      "bytes": 1537,
+      "sha256": "90501a65232f99cbd17b773da629b3cdb99bcb125b09518cfd94f8e4338a3c5a"
+    },
+    {
+      "file": "reports/flash-next-origin-20261109/trace-repaired-inputs.py",
+      "bytes": 2778,
+      "sha256": "768499afedd8daf14e656ff7dd0c9d74074638308948d1d9e155a9c3c7f9702d"
+    }
+  ],
+  "reproductionSources": [
+    {
+      "file": "tools/analyze-hc-origin.js",
+      "bytes": 7802,
+      "sha256": "8186bc54b47d6757e589847221891990914613c7a0fb8f748578be396e6d873f"
+    },
+    {
+      "file": "tools/analyze-hc-origin.test.js",
+      "bytes": 5472,
+      "sha256": "e42135c6b178716aa801b2c4936c3b99e1578b12f9958e2ecdc32d2cac71cfca"
+    },
+    {
+      "file": "tools/run-hc-origin-counterfactual.js",
+      "bytes": 8984,
+      "sha256": "f3c749a0af25397fd310e0c609e5e4c44a6ccfa7d8dd966038b867b47b13aeb4"
+    },
+    {
+      "file": "tools/run-gdn-same-input.js",
+      "bytes": 6473,
+      "sha256": "d0b9d47343d138a0bd2f5b58fb8c34a41316230af2f4542ad5494da6f68019ee"
+    },
+    {
+      "file": "tests/kernels/gated-delta-softplus-physical.test.js",
+      "bytes": 7006,
+      "sha256": "9f74513aa9aaaa59dba814ec19f58bdbaace681d80c4f8eb3f733af959c215d7"
+    },
+    {
+      "file": "artifacts/qwen38-flash-next-20261013/prepare-hc-origin-control.py",
+      "bytes": 9440,
+      "sha256": "2fea8862c8bce83a097a54117ed51234cefca14586d82ed60d8a6e6ec8a6c175"
+    },
+    {
+      "file": "artifacts/qwen38-flash-next-20261013/prepare-f32-attention-trace.py",
+      "bytes": 5255,
+      "sha256": "aeee4ce9c9c6b13b38d73d41aa707ce0822cda285f3e1f96a5b1c9387bb26394"
+    },
+    {
+      "file": "artifacts/qwen38-flash-next-20261013/check-f32-attention-same-input.py",
+      "bytes": 6043,
+      "sha256": "6ac9dd6245823d92d990fb9a6dbf1329d3c710992455c825503969146fed3085"
+    },
+    {
+      "file": "artifacts/qwen38-flash-next-20261013/check-f32-linear-stage-inputs.py",
+      "bytes": 10731,
+      "sha256": "15da2ccfe50a1dfd83c2129a47bd7e591241e7a1c80eb10f25296146537e17f1"
+    },
+    {
+      "file": "artifacts/qwen38-flash-next-20261013/prepare-softplus-candidate.py",
+      "bytes": 4579,
+      "sha256": "51a9467b6d97318010bcbd46fef550ecc82d92df2e5dbd94c6b5021a0bbce90f"
+    }
+  ]
+}
