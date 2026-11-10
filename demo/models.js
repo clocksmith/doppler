@@ -28,9 +28,76 @@ function downloadSize(entry) {
   return bytes >= 1e9 ? `${(bytes / 1e9).toFixed(1)} GB` : `${Math.ceil(bytes / 1e6)} MB`;
 }
 
-// Shown in place of download details when the browser cannot run any model.
-export const NO_WEBGPU_NOTE = 'This browser cannot run models here because it has no WebGPU. '
-  + 'The recorded example below still works. To run a model yourself, open this page in a current Chrome or Edge.';
+// Shown beside Load when the browser cannot start WebGPU at all.
+export const NO_WEBGPU_NOTE = 'This browser couldn’t start WebGPU, so live inference isn’t available. '
+  + 'You can still explore the recorded run. Reloading the page, updating the browser or turning on '
+  + 'hardware acceleration sometimes helps; another browser or device may not work either.';
+
+// Asks for an adapter only. Its limits are per-buffer GPU limits, not memory.
+export async function probeWebGpu(gpu = globalThis.navigator?.gpu) {
+  if (!gpu) return { available: false, limits: null };
+  // An object that cannot be asked gives no verdict here; loading a model will find out.
+  if (typeof gpu.requestAdapter !== 'function') return { available: true, limits: null };
+  try {
+    const adapter = await gpu.requestAdapter();
+    if (!adapter) return { available: false, limits: null };
+    return { available: true, limits: {
+      maxBufferSize: adapter.limits?.maxBufferSize ?? null,
+      maxStorageBufferBindingSize: adapter.limits?.maxStorageBufferBindingSize ?? null,
+    } };
+  } catch {
+    return { available: false, limits: null };
+  }
+}
+
+export async function checkWebGpu() {
+  const result = await probeWebGpu();
+  state.webgpuAvailable = result.available;
+  state.gpuLimits = result.limits;
+  syncModelControls();
+  return result.available;
+}
+
+function isNoAdapterError(error) {
+  return /DOPPLER_GPU_UNSUPPORTED_ADAPTER|DOPPLER_GPU_UNAVAILABLE/.test(String(error?.code ?? ''))
+    || /Failed to get WebGPU adapter|WebGPU is not available/i.test(String(error?.message ?? error));
+}
+
+// Beside Load after a failure. `facts` holds only what was observed about model files.
+export function loadFailureNote(entry, error, facts = {}) {
+  const message = String(error?.message ?? error).replace(/\.$/, '');
+  const files = facts.wasStored ? ' The copy saved in this browser was kept.'
+    : facts.storedNow ? ' Its files finished downloading and are saved in this browser, so the next try will not download them again.'
+    : facts.sawModelFiles ? ' Some of its files may have been downloaded before loading stopped; the browser keeps any that finished.'
+    : ' No model weights were downloaded.';
+  if (isNoAdapterError(error)) return `${NO_WEBGPU_NOTE}${files}`;
+  if (/binding|maxStorageBufferBindingSize|maxBufferSize/i.test(message)) {
+    return `${modelLabel(entry)} needs a single GPU buffer larger than this device allows. That is a per-buffer GPU limit, separate from how much memory the device has. ${message}.${files}`;
+  }
+  return `${modelLabel(entry)} could not load: ${message}.${files}`;
+}
+
+// In words, what Send would do about the model, or why it cannot.
+export function sendGuidance({ hasPrompt = false } = {}) {
+  if (!state.webgpuAvailable) return 'Live inference is not available in this browser. The recorded run still works.';
+  if (state.model) return hasPrompt ? '' : 'Type a message to send.';
+  const entry = selectedEntry();
+  if (!entry) return 'Choose a model above first.';
+  const status = state.modelStatus[entry.modelId] ?? 'available';
+  if (status === 'loading' || state.modelBusy) return '';
+  if (modelFit(entry) === 'too-large') {
+    return `Send is off for ${modelLabel(entry)}: it needs more memory than this device reports. Choose a smaller model, or press Load anyway.`;
+  }
+  const size = downloadSize(entry);
+  const first = status === 'stored' ? `load ${modelLabel(entry)} from the copy saved in this browser`
+    : `download${size ? ` about ${size}` : ''} and load ${modelLabel(entry)}`;
+  return hasPrompt ? `Send will first ${first}.` : `Type a message. Sending it will first ${first}.`;
+}
+
+// No WebGPU, or the chosen model looks too large to load unasked.
+export function sendBlocked() {
+  return !state.webgpuAvailable || (!state.model && modelFit(selectedEntry()) === 'too-large');
+}
 
 const GIB = 2 ** 30;
 
@@ -45,9 +112,8 @@ function memorySize(bytes) {
   return `${Number((bytes / GIB).toFixed(1))} GB`;
 }
 
-// Compares the catalog's stated GPU memory need with what this device reports,
-// before anything is downloaded. 'unknown' when either figure is missing, or
-// when the device reports the 8 GiB cap and could therefore hold more.
+// The catalog's stated GPU memory need against what the device reports, before
+// any download. 'unknown' without both figures, or at the 8 GiB reporting cap.
 export function modelFit(entry, reportedBytes = reportedMemoryBytes()) {
   const required = entry?.quickstartRequirements?.vramRequiredBytes;
   if (!Number.isFinite(required) || required <= 0 || reportedBytes == null) return 'unknown';
@@ -86,9 +152,12 @@ export function syncModelControls() {
     remove.disabled = busy;
   }
   if (detail) {
-    detail.textContent = !state.webgpuAvailable ? NO_WEBGPU_NOTE : entry ? buildModelDetail(entry, status) : '';
+    const failed = entry && state.modelLoadNote?.modelId === entry.modelId ? state.modelLoadNote.text : '';
+    detail.textContent = !state.webgpuAvailable ? NO_WEBGPU_NOTE : failed || (entry ? buildModelDetail(entry, status) : '');
     detail.hidden = !detail.textContent;
   }
+  const retry = $('webgpu-retry');
+  if (retry) retry.hidden = state.webgpuAvailable;
   const select = $('model-select');
   if (select) select.disabled = !catalog.length || busy;
   const profile = $('set-profile');
@@ -99,6 +168,9 @@ export function syncModelControls() {
 async function loadSelectedModel({ entry = selectedEntry(), runtimeProfile = state.settings.runtimeProfile, force = false } = {}) {
   if (!entry || state.generating || state.modelBusy || (!force && state.modelId === entry.modelId)) return;
   const previousStatus = state.modelStatus[entry.modelId];
+  // Phases after the manifest read or fetch model files; seeing none means no weights moved.
+  let sawModelFiles = false;
+  state.modelLoadNote = null;
   state.modelBusy = true;
   state.modelStatus[entry.modelId] = 'loading';
   syncModelControls();
@@ -108,7 +180,10 @@ async function loadSelectedModel({ entry = selectedEntry(), runtimeProfile = sta
     const model = await dr.load(entry.modelId, {
       cache: 'opfs',
       runtimeProfile,
-      onProgress: setProgress,
+      onProgress: (event) => {
+        if (event?.phase && !['resolve', 'manifest'].includes(event.phase)) sawModelFiles = true;
+        setProgress(event);
+      },
     });
     if (state.model && state.model !== model) {
       await state.model.unload().catch(() => {});
@@ -125,6 +200,13 @@ async function loadSelectedModel({ entry = selectedEntry(), runtimeProfile = sta
     setPhase('Ready', { quiet: true });
   } catch (error) {
     state.modelStatus[entry.modelId] = previousStatus ?? 'available';
+    // Ask what is actually saved before saying anything about downloads.
+    const wasStored = previousStatus === 'stored';
+    let storedNow = wasStored;
+    try { storedNow = (await dr.listPersistentModels()).some((item) => item.modelId === entry.modelId); } catch { /* keep what was known */ }
+    if (storedNow) state.modelStatus[entry.modelId] = 'stored';
+    state.modelLoadNote = { modelId: entry.modelId, text: loadFailureNote(entry, error, { sawModelFiles, wasStored, storedNow }) };
+    if (isNoAdapterError(error)) state.webgpuAvailable = false;
     setPhase('Load failed');
     throw error;
   } finally {
@@ -195,6 +277,7 @@ function bindModelControls() {
     select.dataset.bound = 'true';
     select.addEventListener('change', () => {
       selectedModelId = select.value || null;
+      state.modelLoadNote = null;
       syncModelControls();
     });
   }
@@ -204,6 +287,11 @@ function bindModelControls() {
     action.addEventListener('click', () => {
       loadSelectedModel().catch((error) => setPhase(`Load failed: ${error.message}`));
     });
+  }
+  const retry = $('webgpu-retry');
+  if (retry && retry.dataset.bound !== 'true') {
+    retry.dataset.bound = 'true';
+    retry.addEventListener('click', () => { void checkWebGpu(); });
   }
   const remove = $('model-select-remove');
   if (remove && remove.dataset.bound !== 'true') {
@@ -224,7 +312,7 @@ export function buildModelDetail(entry, status = 'available', reportedBytes = re
   const required = entry.quickstartRequirements?.vramRequiredBytes;
   const size = downloadSize(entry);
   if (modelFit(entry, reportedBytes) === 'too-large') {
-    return `Needs about ${memorySize(required)} of GPU memory, and this device reports ${memorySize(reportedBytes)} in total, so it will probably fail to load.`
+    return `Needs about ${memorySize(required)} of GPU memory, and this browser reports ${memorySize(reportedBytes)} of system memory, so it will probably fail to load.`
       + (status === 'stored' || !size ? '' : ` Loading it downloads about ${size} first.`);
   }
   const need = Number.isFinite(required) && required > 0 ? ` Needs about ${memorySize(required)} of GPU memory.` : '';

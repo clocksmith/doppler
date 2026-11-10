@@ -5,6 +5,8 @@ export interface DemoState {
   modelId: string | null;
   modelStatus: Record<string, string>;
   webgpuAvailable: boolean;
+  gpuLimits: { maxBufferSize: number | null; maxStorageBufferBindingSize: number | null } | null;
+  modelLoadNote: { modelId: string; text: string } | null;
   quickModelCatalog: Array<Record<string, unknown>>;
   downloadProgress: Record<string, unknown> | null;
   generating: boolean;

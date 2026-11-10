@@ -15,20 +15,75 @@ const PARAMETER_ROLES = new Set(['linear-a-log', 'linear-dt-bias']);
 // draws from layer outputs, which every recorded position has.
 /** @type {typeof import('./views.js').viewPositions} */
 export function viewPositions(recording, viewId) {
-  const view = modes.find(m => m.id === viewId);
-  const roles = (view?.roles ?? []).filter(role => !PARAMETER_ROLES.has(role));
-  if (view?.clock !== 'token' || !roles.length) return null;
+  const roles = positionRoles(viewId);
+  if (!roles.length) return null;
   const covered = roles.map(role => {
     const positions = new Set();
     for (const f of recording.trace.activity?.frames ?? []) {
-      if (f.role !== role || f.status !== 'captured' || !f.values) continue;
-      // A prediction belongs to the one position it was made at.
-      const count = role === 'logits' ? 1 : f.tokenIds.length;
-      for (let i = 0; i < count; i++) positions.add(f.tokenStart + i);
+      if (f.role !== role || !hasPicture(f)) continue;
+      for (let i = 0; i < span(f); i++) positions.add(f.tokenStart + i);
     }
     return positions;
   });
   return new Set([...covered[0]].filter(position => covered.every(set => set.has(position))));
+}
+
+// Captures a view needs per token position; none for views not tied to one position.
+/** @param {string} viewId */
+function positionRoles(viewId) {
+  const view = modes.find(m => m.id === viewId);
+  if (!view) return [];
+  if (view.clock === 'token') return view.roles.filter(role => !PARAMETER_ROLES.has(role));
+  return ['recurrent-memory', 'convolution-history'].includes(view.id) ? [view.id] : [];
+}
+
+/** @param {import('./views.js').ActivityFrame} f */
+function hasPicture(f) { return f.status === 'captured' && Boolean(f.values || f.summary); }
+
+// A prediction belongs to the one position it was made at.
+/** @param {import('./views.js').ActivityFrame} f */
+function span(f) { return f.role === 'logits' ? 1 : f.tokenIds.length; }
+
+/** @param {import('./views.js').ActivityFrame} f @param {number} position */
+function covers(f, position) { return position >= f.tokenStart && position < f.tokenStart + span(f); }
+
+// Why a view lacks values at a position, read from the recording, and the nearest it can draw.
+/** @type {typeof import('./views.js').missingReason} */
+export function missingReason(recording, viewId, position, detail = 'overview') {
+  const covered = viewPositions(recording, viewId);
+  const nearest = covered?.size ? [...covered].reduce((best, p) => Math.abs(p - position) < Math.abs(best - position) ? p : best) : null;
+  const frames = recording.trace.activity?.frames ?? [];
+  const limitBytes = Number(recording.trace.capturePolicy?.activityMaxBytes);
+  const limit = Number.isFinite(limitBytes) && limitBytes > 0 ? ` (${Math.round(limitBytes / 2 ** 20)} MB)` : '';
+  const answerStart = Math.min(...recording.trace.frames.filter(f => f.phase === 'decode').map(f => f.tokenStart));
+  for (const role of positionRoles(viewId)) {
+    const mine = frames.filter(f => f.role === role);
+    const here = mine.filter(f => covers(f, position));
+    const failed = here.find(f => f.status === 'failed');
+    if (failed) return { kind: 'failed', nearest, text: `Saving this view failed at token ${position}: ${failed.reason}` };
+    if (detail === 'raw' && here.some(f => f.status === 'captured' && !f.values && f.summary)) {
+      return { kind: 'representation', nearest: position, text: 'Only block summaries were saved at this token, not exact values. Set Detail to Overview to see them.' };
+    }
+    if (here.some(hasPicture) && !here.some(f => f.status === 'dropped')) continue;
+    const dropped = mine.filter(f => f.status === 'dropped');
+    if (here.some(f => f.status === 'dropped')) {
+      const first = Math.min(...dropped.map(f => f.tokenStart));
+      return { kind: 'dropped', nearest, text: `The recording reached its size limit${limit} at token ${first}, so this view was not saved after that.` };
+    }
+    const saved = mine.filter(hasPicture);
+    if (!saved.length) continue;
+    const from = Math.min(...saved.map(f => f.tokenStart)), to = Math.max(...saved.map(f => f.tokenStart + span(f) - 1));
+    // A prompt chunk longer than the recording window keeps only its last tokens.
+    const windowed = saved.find(f => Number(/** @type {{ originalShape?: number[] }} */ (f.metadata).originalShape?.[0]) > f.fullShape[0]);
+    if (windowed && position < windowed.tokenStart) {
+      return { kind: 'window', nearest, text: `Saved for the last ${windowed.fullShape[0]} prompt tokens only (tokens ${windowed.tokenStart}–${windowed.tokenStart + windowed.fullShape[0] - 1}).` };
+    }
+    if (Number.isFinite(answerStart) && position >= answerStart && !mine.some(f => f.phase === 'decode')) {
+      return { kind: 'fused', nearest, text: `This stage was never a separate value while the answer was written: the engine ran it inside a fused step, so there was nothing to save. It exists for tokens ${from}–${to}.` };
+    }
+    return { kind: 'elsewhere', nearest, text: `Saved only for tokens ${from}–${to}.` };
+  }
+  return { kind: 'none', nearest, text: '' };
 }
 
 /** @type {typeof import('./views.js').activityModes} */
@@ -58,7 +113,7 @@ export function playbackPoints(recording, mode, viewId) {
   const covered = viewId ? viewPositions(recording, viewId) : null;
   const drawable = (/** @type {{ position: number }} */ point) => !covered || covered.has(point.position);
   const frames = [...recording.trace.frames, ...(recording.trace.activity?.frames ?? [])]
-    .filter(f => view?.clock !== 'boundary' || view.id === 'model-paths' || (view.id === 'residency' ? f.role === 'weight-access' : f.role === view.id))
+    .filter(f => view?.clock !== 'boundary' || view.id === 'model-paths' || (view.id === 'residency' ? f.role === 'weight-access' : f.role === view.id && hasPicture(/** @type {import('./views.js').ActivityFrame} */ (f))))
     .sort((a, b) => a.atMs - b.atMs);
   if (mode !== 'tokens') return frames.map(f => ({ ...f, position: f.tokenStart + f.tokenIds.length - 1 })).filter(drawable);
   const positions = new Map();
@@ -310,7 +365,9 @@ export function activityView(recording, selection) {
     const f = lastMatch(frames, f => f.role === 'logits' && f.tokenStart === position);
     values = f?.values ?? []; quantity = mode === 'logits' ? 'next-token logits' : 'full-vocabulary softmax probability';
     if (mode === 'probabilities') { values = softmax(values); representation = 'reconstructed'; }
-    description = 'Vocabulary token-ID order. These are scores before sampling filters; a missing position has no captured prediction.';
+    description = mode === 'probabilities'
+      ? 'Softmax probabilities over the whole vocabulary, in token-ID order, before sampling filters (temperature, top-k, top-p) are applied. Dark pixels are real probabilities near zero, not missing data; a position with no saved prediction is checkered.'
+      : 'Raw next-token scores over the whole vocabulary, in token-ID order, before softmax and before sampling filters. A position with no saved prediction is checkered.';
   } else if (mode === 'expert-routing') {
     const f = lastMatch(frames, f => f.role === 'expert-indices' && (layer < 0 || layer === f.layer)
       && position >= f.tokenStart && position < f.tokenStart + f.tokenIds.length);

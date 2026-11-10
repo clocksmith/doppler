@@ -166,13 +166,10 @@ async function main() {
   page.on('console', (message) => {
     if (message.type() === 'error') fatalConsoleErrors.push(message.text());
   });
+  // The model is a stub, so WebGPU is too: an adapter that answers, whatever this Chromium build has.
   await page.addInitScript(() => {
-    if (!navigator.gpu) {
-      Object.defineProperty(navigator, 'gpu', {
-        configurable: true,
-        value: {},
-      });
-    }
+    Object.defineProperty(Navigator.prototype, 'gpu', { configurable: true,
+      get: () => ({ requestAdapter: async () => ({ limits: { maxBufferSize: 2 ** 31, maxStorageBufferBindingSize: 2 ** 31 } }) }) });
   });
   await page.route(`${origin}${modulePath}`, async (route) => {
     await route.fulfill({
@@ -244,7 +241,8 @@ async function main() {
     const cachedPage = await browser.newPage({ serviceWorkers: 'block' });
     await cachedPage.addInitScript(() => {
       localStorage.setItem('doppler.demo.activity-example', 'true');
-      if (!navigator.gpu) Object.defineProperty(navigator, 'gpu', { configurable: true, value: {} });
+      Object.defineProperty(Navigator.prototype, 'gpu', { configurable: true,
+        get: () => ({ requestAdapter: async () => ({ limits: { maxBufferSize: 2 ** 31, maxStorageBufferBindingSize: 2 ** 31 } }) }) });
     });
     await cachedPage.route(`${origin}${modulePath}`, route => route.fulfill({ status: 200, contentType: 'text/javascript',
       body: STUB_MODULE.replaceAll("'contract-model'", "'gemma-3-270m-it-q4k-ehf16-af32'")
@@ -268,6 +266,16 @@ async function main() {
     await checkWithoutWebGpu(plainPage);
     await plainPage.screenshot({ path: '.cache/demo-first-replay/no-webgpu-1280.png', fullPage: true });
     await plainPage.close();
+    // WebGPU is present but gives no adapter, as in a browser without a usable GPU.
+    const noAdapterPage = await browser.newPage({ serviceWorkers: 'block' });
+    await noAdapterPage.addInitScript(() => {
+      localStorage.setItem('doppler.demo.activity-example', 'true');
+      Object.defineProperty(Navigator.prototype, 'gpu', { configurable: true, get: () => ({ requestAdapter: async () => null }) });
+    });
+    await noAdapterPage.route(`${origin}${modulePath}`, route => route.fulfill({ status: 200, contentType: 'text/javascript', body: STUB_MODULE }));
+    await noAdapterPage.goto(`${origin}${entrypoint}`, { waitUntil: 'networkidle' });
+    await checkWithoutWebGpu(noAdapterPage, { hasApi: true });
+    await noAdapterPage.close();
     testedShellDigest = await page.evaluate(async (url) => (await import(url)).SHELL_MANIFEST_DIGEST,
       `${origin}${modulePath.replace('/src/index-browser.js', '/demo/generated-shell-manifest.js')}`);
     await page.waitForFunction(async () => Boolean((await navigator.serviceWorker.getRegistration())?.active), null, { timeout: 60000 });

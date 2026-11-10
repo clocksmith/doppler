@@ -28,7 +28,9 @@ for (const preview of previews) {
   else await fs.writeFile(file, png);
   receipt.previews.push({ mode: preview.mode, side, scale, range: view.range, representation: view.representation, underlyingValues: view.underlyingValues, sha256: createHash('sha256').update(png).digest('hex') });
 }
-const manifest = JSON.stringify(receipt, null, 2) + '\n';
+// Shipped in the demo shell, which has a byte budget: one preview per line.
+const { previews: items, ...head } = receipt;
+const manifest = `{\n${Object.entries(head).map(([key, value]) => `  ${JSON.stringify(key)}: ${JSON.stringify(value)},\n`).join('')}  "previews": [\n${items.map(item => `    ${JSON.stringify(item)}`).join(',\n')}\n  ]\n}\n`;
 const target = new URL('activity-previews.json', root);
 if (check) { if (manifest !== await fs.readFile(target, 'utf8')) throw new Error('Stale preview manifest.'); }
 else await fs.writeFile(target, manifest);

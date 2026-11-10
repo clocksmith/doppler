@@ -3,6 +3,10 @@ export const state = {
   bootError: null,
   // False when the browser has no WebGPU: models cannot run, recorded examples still open.
   webgpuAvailable: true,
+  // The adapter's per-buffer limits, when the browser reports them. Not system memory.
+  gpuLimits: null,
+  // The last failed load of a model, shown beside Load until another attempt or choice.
+  modelLoadNote: null,
   model: null,
   modelId: null,
   modelStatus: {},

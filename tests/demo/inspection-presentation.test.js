@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { readGpuTimings } from '../../demo/ui/xray/gpu-timings.js';
 import { listQuickstartModels } from '../../src/client/doppler-registry.js';
-import { isChatModel, buildModelDetail, modelFit } from '../../demo/models.js';
+import { isChatModel, buildModelDetail, modelFit, probeWebGpu, loadFailureNote } from '../../demo/models.js';
 import { fieldText } from '../../demo/settings.js';
 
 const rows = await listQuickstartModels();
@@ -52,9 +52,26 @@ assert.equal(modelFit(large, null), 'unknown', 'A browser that reports nothing g
 assert.equal(modelFit({ modelId: 'small', quickstartRequirements: { vramRequiredBytes: GIB } }, 4 * GIB), 'fits');
 assert.equal(modelFit({ modelId: 'unstated' }, 4 * GIB), 'unknown');
 assert.equal(buildModelDetail(large, 'available', 4 * GIB),
-  'Needs about 12 GB of GPU memory, and this device reports 4 GB in total, so it will probably fail to load. Loading it downloads about 7.1 GB first.');
+  'Needs about 12 GB of GPU memory, and this browser reports 4 GB of system memory, so it will probably fail to load. Loading it downloads about 7.1 GB first.');
 assert.equal(buildModelDetail(large, 'available', null),
   'First use downloads about 7.1 GB. Your browser keeps a copy if it can. Needs about 12 GB of GPU memory.');
+
+// Asking for an adapter decides whether live inference is offered; its limits are per-buffer, not memory.
+assert.deepEqual(await probeWebGpu(undefined), { available: false, limits: null });
+assert.deepEqual(await probeWebGpu({ requestAdapter: async () => null }), { available: false, limits: null });
+assert.deepEqual(await probeWebGpu({ requestAdapter: async () => { throw new Error('blocked'); } }), { available: false, limits: null });
+assert.deepEqual(await probeWebGpu({}), { available: true, limits: null }, 'An object that cannot be asked gives no verdict');
+assert.deepEqual(await probeWebGpu({ requestAdapter: async () => ({ limits: { maxBufferSize: 268435456, maxStorageBufferBindingSize: 134217728 } }) }),
+  { available: true, limits: { maxBufferSize: 268435456, maxStorageBufferBindingSize: 134217728 } });
+// A failed load says only what was observed about model files.
+const fixtureModel = { modelId: 'fixture', label: 'Fixture' };
+assert.match(loadFailureNote(fixtureModel, new Error('Failed to get WebGPU adapter'), {}),
+  /^This browser couldn’t start WebGPU, so live inference isn’t available\. You can still explore the recorded run\..* No model weights were downloaded\.$/);
+assert.equal(loadFailureNote(fixtureModel, new Error('Embedding needs 3.13 GiB but maxStorageBufferBindingSize is 128 MiB.'), { sawModelFiles: false }),
+  'Fixture needs a single GPU buffer larger than this device allows. That is a per-buffer GPU limit, separate from how much memory the device has. Embedding needs 3.13 GiB but maxStorageBufferBindingSize is 128 MiB. No model weights were downloaded.');
+assert.match(loadFailureNote(fixtureModel, new Error('network lost'), { sawModelFiles: true }), /^Fixture could not load: network lost\. Some of its files may have been downloaded/);
+assert.match(loadFailureNote(fixtureModel, new Error('device lost'), { sawModelFiles: true, storedNow: true }), /finished downloading and are saved in this browser/);
+assert.match(loadFailureNote(fixtureModel, new Error('device lost'), { wasStored: true, storedNow: true }), /The copy saved in this browser was kept\.$/);
 
 // A setting stored as a 32-bit float is shown as the number that was entered.
 assert.equal(fieldText({ type: 'number', step: '0.05' }, Math.fround(0.95)), '0.95');

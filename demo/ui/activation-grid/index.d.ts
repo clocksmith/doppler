@@ -25,6 +25,7 @@ export interface GridElements {
   'activation-status': HTMLElement; 'activation-cell': HTMLElement;
   'activation-player': HTMLElement; 'activation-detail-controls': HTMLElement;
   'activity-unlisted': HTMLElement; 'activity-hint': HTMLElement; 'activity-unsure': HTMLElement;
+  'activity-go': HTMLButtonElement;
   'activity-unsure-prev': HTMLButtonElement; 'activity-unsure-next': HTMLButtonElement;
 }
 export declare function isActivationRecordingEnabled(): boolean;

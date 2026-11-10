@@ -16,5 +16,10 @@ export function activityView(recording: ActivationRecording, selection: Activity
 export function activityModes(recording: ActivationRecording | null): { id: string; label: string; reason: string | null; clock: string; group: string; clockLabel: string }[];
 export function playbackPoints(recording: ActivationRecording, mode: string, viewId?: string): PlaybackPoint[];
 export function viewPositions(recording: ActivationRecording, viewId: string): Set<number> | null;
+export interface MissingReason {
+  kind: 'none' | 'dropped' | 'failed' | 'window' | 'fused' | 'elsewhere' | 'representation';
+  text: string; nearest: number | null;
+}
+export function missingReason(recording: ActivationRecording, viewId: string, position: number, detail?: string): MissingReason;
 export function assertMatchedRuns(a: ActivationRecording, b: ActivationRecording): void;
 export function attentionRow(frames: ActivityFrame[], query: ActivityFrame, position: number, head: number): (number | undefined)[];

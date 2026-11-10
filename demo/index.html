@@ -243,6 +243,7 @@
             <button id="model-select-remove" class="btn btn-ghost" type="button" hidden>Remove</button>
           </div>
           <p id="model-select-detail" class="demo-note model-select-detail"></p>
+          <button id="webgpu-retry" class="btn btn-ghost btn-small" type="button" hidden>Check again</button>
 
         </div>
 
@@ -291,6 +292,7 @@
             <button id="run-btn" class="btn btn-primary run-btn" type="button" disabled title="Send this message to the model">Send</button>
             <button id="stop-btn" class="btn" type="button" hidden>Stop</button>
           </div>
+          <p id="send-hint" class="demo-note" role="status" hidden></p>
         </section>
 
         <details id="advanced-settings" class="demo-disclosure advanced-settings">
@@ -402,6 +404,7 @@
           <p id="activity-source" class="demo-note" role="status" hidden></p>
           <p id="activation-caption" class="demo-note activation-caption" aria-live="polite" hidden></p>
           <p id="activity-availability" class="demo-note" role="status"></p>
+          <button id="activity-go" class="btn btn-ghost btn-small" type="button" hidden></button>
 
           <div id="activation-player" class="activation-player" hidden>
             <div class="activity-view-toolbar">

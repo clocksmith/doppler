@@ -38,6 +38,7 @@ export async function runLivePrecision() {
   const status = $('live-precision-status'), results = $('live-precision-results');
   if (!status || !results) return;
   const prompt = comparisonPrompt();
+  if (!state.webgpuAvailable) { status.textContent = 'Live inference is not available in this browser, so there is nothing to compare here. The recorded examples below still work.'; return; }
   if (!state.model || !state.modelId || !prompt) { status.textContent = 'Load a model and write a prompt first.'; return; }
   if (state.generating || state.modelBusy || state.settingsBusy) return;
   if (state.settings.runtimeProfile !== 'profiles/default') { status.textContent = 'Set Options → Engine profile to Default first, so both runs start from the same settings.'; return; }

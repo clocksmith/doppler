@@ -1,11 +1,6 @@
 import { state } from './ui/state.js';
 import { setPhase } from './output.js';
-import {
-  loadCatalog,
-  checkStoredModels,
-  loadDefaultStoredModel,
-  renderModelOptions,
-} from './models.js';
+import { loadCatalog, checkStoredModels, loadDefaultStoredModel, renderModelOptions, checkWebGpu } from './models.js';
 
 function $(id) { return document.getElementById(id); }
 
@@ -95,7 +90,7 @@ export async function boot() {
     // Step 1: WebGPU check. Without it no model can run here, but the recorded
     // example needs none, so the page still opens and says so beside the picker.
     setBootStatus('Checking WebGPU...');
-    state.webgpuAvailable = Boolean(globalThis.navigator?.gpu);
+    await checkWebGpu();
 
     // Step 2: Load catalog
     setBootStatus('Loading model catalog...');

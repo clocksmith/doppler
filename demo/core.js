@@ -407,9 +407,9 @@ export function showRecordedActivity(recording, { preserveDraft = false } = {}) 
   if (!preserveDraft) setPromptValue(recording.prompt ?? '');
   const note = $('recorded-run-note');
   if (note) {
-    note.textContent = `Recorded run · ${recording.trace.identity.logicalModelId ?? recording.trace.identity.modelId}`
-      + (recording.prompt ? '' : ' · prompt text not saved')
-      + (recording.outputText == null ? ' · answer text not saved' : '');
+    note.textContent = `Recorded ${recording.trace.identity.logicalModelId ?? recording.trace.identity.modelId} run. No model is running on this device.`
+      + (recording.prompt ? '' : ' Its prompt text was not saved.')
+      + (recording.outputText == null ? ' Its answer text was not saved.' : '');
     note.hidden = false;
   }
   resetXray();
@@ -433,7 +433,7 @@ export function loadSampleInspection(receipt, { preserveDraft = false } = {}) {
     // Named from the saved run, never from the model picker above it.
     const recordedModelId = receipt.recording?.modelId ?? '';
     const recordedModel = state.quickModelCatalog?.find((entry) => entry.modelId === recordedModelId)?.label ?? recordedModelId;
-    note.textContent = `Recorded replay · ${recordedModel} · not running on this device`;
+    note.textContent = `Recorded ${recordedModel} run. No model is running on this device. The model selected above is used only when you send a message.`;
     note.title = `${recordedModelId} · ${receipt.recording?.publishedAt ?? ''}`;
     note.hidden = false;
   }

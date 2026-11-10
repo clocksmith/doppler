@@ -195,6 +195,13 @@ export function renderLayerMap(container, options) {
   const canvas = /** @type {HTMLCanvasElement} */ (figure.querySelector('canvas'));
   const n = history.positions.length;
   draw(canvas, history.values, Math.max(1,n), layers, historyScale, 'positive');
+  // Tokens after the one being shown are not displayed yet; that is not missing data.
+  const firstLater = history.positions.findIndex(p => p > position);
+  const historyContext = canvas.getContext('2d');
+  if (firstLater >= 0 && historyContext) {
+    historyContext.fillStyle = `rgb(${config.colors.padding.join(',')})`;
+    historyContext.fillRect(firstLater, 0, n - firstLater, layers);
+  }
   canvas.setAttribute('aria-valuemin', String(history.positions[0] ?? 0));
   canvas.setAttribute('aria-valuemax', String(history.positions[n-1] ?? 0));
   canvas.setAttribute('aria-valuenow', String(position));
@@ -205,7 +212,7 @@ export function renderLayerMap(container, options) {
   const key = /** @type {HTMLElement} */ (figure.querySelector('.activity-history-key'));
   key.style.borderImage = `linear-gradient(to right,${heatmapColors('positive',dark).map(c=>`rgb(${c.join(',')})`).join(',')}) 1`;
   key.textContent = `RMS ${difference ? 'change' : 'activity'} · 0–${Number(historyScale.toPrecision(3))}`;
-  /** @type {HTMLElement} */ (figure.querySelector('.activity-history-axis')).textContent = `Tokens ${history.positions[0] ?? 0}–${history.positions[n-1] ?? 0} → · layers 1–${layers} ↓`;
+  /** @type {HTMLElement} */ (figure.querySelector('.activity-history-axis')).textContent = `Tokens ${history.positions[0] ?? 0}–${history.positions[n-1] ?? 0} → · layers 1–${layers} ↓${firstLater >= 0 ? ` · after token ${position}: not shown yet` : ''}`;
   canvas.onclick = event => {
     const box = canvas.getBoundingClientRect();
     const c = Math.max(0,Math.min(n-1,Math.floor((event.clientX-box.left)/box.width*n)));
@@ -218,7 +225,7 @@ export function renderLayerMap(container, options) {
   canvas.onpointermove = event => {
     const box = canvas.getBoundingClientRect();
     const c = Math.min(n-1,Math.floor((event.clientX-box.left)/box.width*n)), l = Math.min(layers-1,Math.floor((event.clientY-box.top)/box.height*layers));
-    onInspect(`Layer ${l+1} · token ${history.positions[c]} · RMS ${difference ? 'change' : 'activity'}: ${history.values[l*n+c] ?? 'missing'}`);
+    onInspect(`Layer ${l+1} · token ${history.positions[c]} · RMS ${difference ? 'change' : 'activity'}: ${history.positions[c] > position ? 'not shown yet' : history.values[l*n+c] ?? 'missing'}`);
   };
   canvas.onpointerleave = () => onInspect(null);
   /** @type {HTMLElement} */ (container.querySelector('.activity-layer-note')).textContent = `${width.toLocaleString()} values/layer · ${shape.width} × ${shape.height} tile · ${baseline ? 'compared with saved run' : difference ? 'change from previous position' : 'captured outputs'}`;

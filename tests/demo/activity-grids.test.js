@@ -3,7 +3,7 @@ import { createActivationTrace } from '../../src/debug/activation-trace.js';
 import { validateRecording, colorGrid, heatmapColor, heatmapColors } from '../../demo/ui/activation-grid/data.js';
 import { encodeRecording } from '../../demo/ui/activation-grid/recording-codec.js';
 import { modelPathView } from '../../demo/ui/activation-grid/paths.js';
-import { activityView, activityModes, playbackPoints, assertMatchedRuns, attentionRow, viewPositions } from '../../demo/ui/activation-grid/views.js';
+import { activityView, activityModes, playbackPoints, assertMatchedRuns, attentionRow, viewPositions, missingReason } from '../../demo/ui/activation-grid/views.js';
 
 const limits = { maxBytes: 4096, maxFrameBytes: 2048, maxFrames: 512, maxGridValues: 64, maxInFlight: 4,
   activityMaxBytes: 8192, activityMaxFrameValues: 64, activityMaxStateValues: 4, activityTokenWindow: 2, activitySummaryBlock: 2,
@@ -44,6 +44,26 @@ assert.deepEqual([...viewPositions(recording, 'linear-gates')], [0, 1], 'Fixed g
   for (const frame of withoutValues.trace.activity.frames) if (frame.role === 'logits') frame.values = null;
   assert.match(activityModes(withoutValues).find(m => m.id === 'probabilities').reason, /no capture/,
     'A view with nothing to draw is reported unavailable rather than offered empty');
+}
+// Missing values are explained from the recording itself, with the nearest token that has them.
+assert.deepEqual(missingReason(recording, 'kv-new', 0), { kind: 'none', nearest: 0, text: '' });
+assert.deepEqual(missingReason(recording, 'probabilities', 0), { kind: 'elsewhere', nearest: 1, text: 'Saved only for tokens 1–1.' });
+{
+  const overBudget = structuredClone(recording);
+  for (const frame of overBudget.trace.activity.frames) {
+    if (frame.role === 'kv-key') { frame.status = 'dropped'; frame.values = null; frame.reason = 'Activity recording budget reached; inference continues.'; }
+  }
+  const dropped = missingReason(overBudget, 'kv-new', 1);
+  assert.equal(dropped.kind, 'dropped');
+  assert.match(dropped.text, /reached its size limit \(0 MB\) at token 0, so this view was not saved after that/);
+  const failed = structuredClone(recording);
+  for (const frame of failed.trace.activity.frames) if (frame.role === 'kv-value') { frame.status = 'failed'; frame.values = null; frame.reason = 'readback lost'; }
+  assert.equal(missingReason(failed, 'kv-new', 1).text, 'Saving this view failed at token 1: readback lost');
+  const windowed = structuredClone(recording);
+  for (const frame of windowed.trace.activity.frames) {
+    if (frame.role === 'ffn-gate') { frame.tokenStart = 1; frame.tokenIds = [20]; frame.fullShape = [1, 3]; frame.values = frame.values.slice(0, 3); frame.metadata = { ...frame.metadata, originalShape: [2, 3] }; }
+  }
+  assert.deepEqual(missingReason(windowed, 'ffn-gate', 0), { kind: 'window', nearest: 1, text: 'Saved for the last 1 prompt tokens only (tokens 1–1).' });
 }
 const path = modelPathView(recording, Infinity, 1, 0);
 assert.deepEqual(path.outputs, [3,5,7,3,5,7], 'The path heatmap retains layer-major captured values');

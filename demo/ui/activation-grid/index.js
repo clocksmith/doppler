@@ -5,7 +5,7 @@ import { SHELL_MANIFEST_DIGEST } from '../../generated-shell-manifest.js';
 import { validateRecording, colorGrid, initialColorScale, heatmapColor, heatmapColors, layerHistory, layerShape } from './data.js';
 import { modelPathView, renderModelPaths, renderLayerMap } from './paths.js';
 import { encodeRecording } from './recording-codec.js';
-import { activityView, activityModes, playbackPoints, assertMatchedRuns } from './views.js';
+import { activityView, activityModes, playbackPoints, assertMatchedRuns, missingReason } from './views.js';
 
 /** @template {keyof import('./index.js').GridElements} K
  * @param {K} id @returns {import('./index.js').GridElements[K]} */
@@ -54,6 +54,11 @@ function scaleKey() { return `${$('activity-mode').value}:${$('activity-detail')
 
 function points() { return recording ? playbackPoints(recording, $('activity-playback').value, $('activity-mode').value) : []; }
 
+// A change needs an earlier token: without a saved run, play starts at the second.
+function firstPlayable() {
+  return $('activity-mode').value === 'difference' && !baseline && $('activity-playback').value === 'tokens' && points().length > 1 ? 1 : 0;
+}
+
 /** @param {{ position: number }[]} timeline @param {number} position */
 function nearestIndex(timeline, position) {
   let best = 0;
@@ -63,8 +68,7 @@ function nearestIndex(timeline, position) {
   return best;
 }
 
-// With a recording open the list holds only views it can draw, a short
-// "Start here" group first. Views it cannot draw are named under Details.
+// With a recording open: only views it can draw, "Start here" first; the rest under Details.
 /** @param {ReturnType<typeof activityModes>} availability */
 function syncViewList(availability) {
   const select = $('activity-mode'), open = Boolean(recording?.trace.frames.length);
@@ -168,6 +172,7 @@ function paint() {
   $('activation-player').hidden = !timeline.length;
   $('activation-detail-controls').hidden = !timeline.length;
   if (!timeline.length || !recording || !trace) {
+    $('activity-go').hidden = true;
     $('activation-canvas').width = 1; $('activation-canvas').height = 1;
     $('activation-layout').textContent = ''; $('activation-status').textContent = '';
     $('activation-caption').textContent = '';
@@ -251,12 +256,25 @@ function paint() {
     }
   }
   const present = view.values.filter(v => v !== undefined).length;
+  // Why values are missing, read from the recording, with the nearest token that has them.
+  const why = graph || chosen?.reason ? null : missingReason(recording, select.value, position, $('activity-detail').value);
+  const firstPosition = Math.min(...trace.frames.map(f => f.tokenStart));
+  let missingText = '';
   if (!present && !chosen?.reason) {
-    $('activity-availability').hidden = false;
-    $('activity-availability').textContent = select.value === 'difference' && !baseline && position === 0
-      ? 'Changes need two token positions.'
-      : 'No values captured at this position and layer. Select an earlier prompt position or another layer; fused-away stages and uncaptured windows are unavailable.';
+    missingText = select.value === 'difference' && !baseline && position === firstPosition
+      ? 'A change needs an earlier token to compare with, and this is the first one.'
+      : why?.text || (layerSelect.value !== '-1'
+        ? `Nothing was saved for layer ${Number(layerSelect.value) + 1} in this view at token ${position}. Choose All captured layers to see which layers have values.`
+        : `Nothing was saved for this view at token ${position}.`);
+  } else if (why && (why.kind === 'dropped' || why.kind === 'failed') && present < view.values.length) {
+    missingText = `Part of this picture is missing. ${why.text}`;
   }
+  const goTo = !present && select.value === 'difference' && !baseline && position === firstPosition ? firstPosition + 1
+    : !present && why && why.nearest !== null && why.nearest !== position ? why.nearest : null;
+  if (missingText) { $('activity-availability').hidden = false; $('activity-availability').textContent = missingText; }
+  $('activity-go').hidden = goTo === null;
+  $('activity-go').textContent = goTo === null ? '' : `Go to token ${goTo}`;
+  $('activity-go').dataset.position = goTo === null ? '' : String(goTo);
   const playMeaning = snapshot ? 'Snapshot: no token playback.' : $('activity-playback').value === 'tokens'
     ? 'Play selects token positions; prefill positions were computed together.'
     : $('activity-playback').value === 'time' ? 'Play follows recorded capture timestamps, including diagnostic overhead.'
@@ -285,7 +303,10 @@ function paint() {
     const label = document.createElement('span'); label.textContent = text; labels.append(label);
   }
   const keyNote = document.createElement('p'); keyNote.className = 'demo-note';
-  keyNote.textContent = `${view.quantity} · fixed scale`;
+  const derivation = graph ? '' : view.representation === 'reconstructed'
+    ? (['attention-query', 'attention-prefill', 'linear-gates'].includes(select.value) ? ' · recomputed from saved values, not a causal explanation' : ' · recomputed from saved values') : '';
+  const darkMeaning = view.range === 'unit' ? ' · dark is a real value near zero; missing is checkered' : '';
+  keyNote.textContent = `${view.quantity}${derivation} · fixed scale${darkMeaning}`;
   const markers = document.createElement('div'); markers.className = 'activity-color-markers';
   const markerKinds = graph ? [['Not captured', config.colors.missing[0]], ['Invalid', config.colors.invalid]]
     : [['Missing', config.colors.missing[1]], ['Invalid', config.colors.invalid], ['Padding', config.colors.padding]];
@@ -453,7 +474,7 @@ export function initActivationGrid(options = {}) {
     if (!recording) return;
     if (timer !== null) { stopPlayback(); return; }
     follow = false; openingHint = false;
-    if (cursor >= points().length - 1) cursor = 0;
+    if (cursor >= points().length - 1) cursor = firstPlayable();
     $('activation-play').textContent = 'Pause';
     const step = () => {
       if (!recording) return;
@@ -485,6 +506,13 @@ export function initActivationGrid(options = {}) {
     keepPosition();
     $('activity-page').value = '0'; queuePaint();
   }
+  $('activity-go').addEventListener('click', () => {
+    const position = Number($('activity-go').dataset.position);
+    if (!Number.isFinite(position) || $('activity-go').dataset.position === '') return;
+    stopPlayback(); follow = false; openingHint = false;
+    $('activation-position').value = String(position);
+    keepPosition(); queuePaint();
+  });
   $('activity-unsure-prev').addEventListener('click', () => jumpToUnsure(-1));
   $('activity-unsure-next').addEventListener('click', () => jumpToUnsure(1));
   $('activity-mode').addEventListener('change', () => {

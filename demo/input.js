@@ -5,7 +5,7 @@ import {
   normalizeConversationHistory,
 } from './conversation.js';
 import { clearOutput, renderChatMessages, setPhase } from './output.js';
-import { ensurePromptModel, syncModelControls } from './models.js';
+import { ensurePromptModel, sendBlocked, sendGuidance, syncModelControls } from './models.js';
 import { clearActivationRecording } from './ui/activation-grid/index.js';
 
 let examples = null;
@@ -223,7 +223,13 @@ export function syncSendButton(options = {}) {
   });
   if (!btn) return ready;
 
-  const canLoadModel = !state.model && state.webgpuAvailable && Boolean(prompt) && !state.modelBusy && !state.settingsBusy && !generating && !prefilling;
+  const canLoadModel = !state.model && !sendBlocked() && Boolean(prompt) && !state.modelBusy && !state.settingsBusy && !generating && !prefilling;
+  // A disabled Send says why in words, and a Send that will download says so first.
+  const hint = $('send-hint');
+  if (hint) {
+    hint.textContent = generating || prefilling ? '' : sendGuidance({ hasPrompt: Boolean(prompt) });
+    hint.hidden = !hint.textContent;
+  }
   btn.disabled = !ready && !canLoadModel;
   btn.textContent = 'Send';
   if (!state.webgpuAvailable) {

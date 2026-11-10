@@ -165,7 +165,7 @@ export async function checkRealActivityPlayback(page) {
   await page.waitForFunction(text => document.querySelector('#output-text').textContent === text
     && document.querySelector('#activation-play').textContent === 'Play', sample.outputText, { timeout: 120000 });
   assert.equal(await page.locator('#chat-thread .chat-message-text').first().textContent(), 'Explain why the sky is blue in one sentence.');
-  assert.match(await page.locator('#recorded-run-note').textContent(), /Recorded replay/);
+  assert.match(await page.locator('#recorded-run-note').textContent(), /^Recorded .+ run\. No model is running on this device\./);
   assert.match(await page.locator('#activation-layout').textContent(), /fully opaque/);
   assert.equal(await page.locator('#activity-explanation').isVisible(), false);
   assert.equal(await page.locator('#activation-live').isVisible(), false, 'Saved recordings have no live-follow action');

@@ -14,7 +14,8 @@ export async function checkAutomaticReplay(page) {
   // The label names the model of the saved run itself and says nothing is running here.
   const recordedModel = await page.evaluate(id => [...document.querySelectorAll('#model-select option')]
     .find(option => option.value === id)?.textContent.split(' · ')[0] ?? id, sample.recording.modelId);
-  assert.equal(await page.locator('#recorded-run-note').textContent(), `Recorded replay · ${recordedModel} · not running on this device`);
+  assert.equal(await page.locator('#recorded-run-note').textContent(),
+    `Recorded ${recordedModel} run. No model is running on this device. The model selected above is used only when you send a message.`);
   // A first visit is a still picture of the answer's least likely word, not a moving one.
   const leastSure = sample.tokens.reduce((low, token, index) => token.probability < sample.tokens[low].probability ? index : low, 0);
   assert.equal(await page.inputValue('#activation-position'), String(sample.inputTokenIds.length - 1 + leastSure), 'Opens paused on the least likely word');
@@ -63,17 +64,22 @@ export async function checkAutomaticReplay(page) {
 }
 
 // A browser without WebGPU cannot run a model, but the recorded example needs none.
-export async function checkWithoutWebGpu(page) {
+export async function checkWithoutWebGpu(page, { hasApi = false } = {}) {
   await page.waitForFunction(() => document.querySelector('#boot-overlay').hidden, null, { timeout: 60000 });
-  assert.equal(await page.evaluate(() => 'gpu' in navigator && Boolean(navigator.gpu)), false, 'This page has no WebGPU');
+  assert.equal(await page.evaluate(() => 'gpu' in navigator && Boolean(navigator.gpu)), hasApi, 'The page has the WebGPU state under test');
   assert.equal(await page.locator('#boot-error').isVisible(), false, 'Missing WebGPU is not a startup failure');
-  assert.match(await page.locator('#model-select-detail').textContent(), /cannot run models here because it has no WebGPU\. The recorded example below still works/);
+  assert.match(await page.locator('#model-select-detail').textContent(), /couldn’t start WebGPU, so live inference isn’t available\. You can still explore the recorded run\./);
   assert.equal(await page.locator('#model-select-action').isDisabled(), true);
+  assert.equal(await page.locator('#webgpu-retry').isVisible(), true, 'The reader can ask the browser again');
   await page.waitForFunction(() => document.querySelector('#output-text').textContent.startsWith('The sky appears blue'), null, { timeout: 120000 });
-  assert.match(await page.locator('#recorded-run-note').textContent(), /Recorded replay/);
+  assert.match(await page.locator('#recorded-run-note').textContent(), /^Recorded .+ run\. No model is running on this device\./);
   assert.equal(await page.locator('#activation-player').isVisible(), true, 'The recorded activity opens without WebGPU');
   await page.fill('#prompt-input', 'Can this browser answer?');
   assert.equal(await page.locator('#run-btn').isDisabled(), true, 'Send cannot start a model here');
+  assert.match(await page.locator('#send-hint').textContent(), /Live inference is not available in this browser/, 'A disabled Send says why in words');
+  await page.locator('#live-precision-run').evaluate(button => { const details = button.closest('details'); if (details) details.open = true; });
+  await page.locator('#live-precision-run').click();
+  assert.match(await page.locator('#live-precision-status').textContent(), /nothing to compare here/, 'Compare says why it cannot run');
   assert.equal(await page.evaluate(() => __demoContract.loads.length), 0);
 }
 

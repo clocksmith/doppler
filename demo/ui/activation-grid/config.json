@@ -13,100 +13,14 @@
   "maxWeightValues": 2097152,
   "recordByDefault": true,
   "recordPreferenceKey": "doppler.demo.activity-recording",
-  "compatibleDisplays": [
-    {
-      "layout": "layer-major-rgb/v1",
-      "palette": "signed-tanh-rgb/v1"
-    },
-    {
-      "layout": "scalar-square/v2",
-      "palette": "opaque-heatmap/v1"
-    }
-  ],
+  "compatibleDisplays": [{"layout": "layer-major-rgb/v1", "palette": "signed-tanh-rgb/v1"}, {"layout": "scalar-square/v2", "palette": "opaque-heatmap/v1"}],
   "colors": {
-    "signed": [
-      [
-        59,
-        76,
-        192
-      ],
-      [
-        221,
-        221,
-        221
-      ],
-      [
-        180,
-        4,
-        38
-      ]
-    ],
-    "positive": [
-      [
-        20,
-        20,
-        55
-      ],
-      [
-        31,
-        80,
-        136
-      ],
-      [
-        25,
-        154,
-        138
-      ],
-      [
-        137,
-        204,
-        85
-      ],
-      [
-        253,
-        231,
-        37
-      ]
-    ],
-    "missing": [
-      [
-        45,
-        45,
-        45
-      ],
-      [
-        90,
-        90,
-        90
-      ]
-    ],
-    "invalid": [
-      255,
-      0,
-      255
-    ],
-    "padding": [
-      20,
-      20,
-      20
-    ],
-    "signedDark": [
-      [
-        100,
-        145,
-        255
-      ],
-      [
-        38,
-        42,
-        50
-      ],
-      [
-        255,
-        105,
-        95
-      ]
-    ]
+    "signed": [[59, 76, 192], [221, 221, 221], [180, 4, 38]],
+    "positive": [[20, 20, 55], [31, 80, 136], [25, 154, 138], [137, 204, 85], [253, 231, 37]],
+    "missing": [[45, 45, 45], [90, 90, 90]],
+    "invalid": [255, 0, 255],
+    "padding": [20, 20, 20],
+    "signedDark": [[100, 145, 255], [38, 42, 50], [255, 105, 95]]
   },
   "defaultPlayback": "tokens",
   "defaultMode": "difference",

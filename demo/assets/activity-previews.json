@@ -4,59 +4,11 @@
   "position": 22,
   "scaleRule": "fixed 99th-percentile magnitude; probabilities use 0–1; one scalar per opaque 24-bit heatmap pixel",
   "previews": [
-    {
-      "mode": "layer-output",
-      "side": 157,
-      "scale": 0.5595873594284058,
-      "range": "signed",
-      "representation": "raw",
-      "underlyingValues": 24576,
-      "sha256": "ce95e6523fa85d7e094e2d496af20548aa877f759f0daf02ce1761e57733f564"
-    },
-    {
-      "mode": "weights",
-      "side": 248,
-      "scale": 0.02548358817512507,
-      "range": "positive",
-      "representation": "aggregated",
-      "underlyingValues": 1006178304,
-      "sha256": "ee1155b47f9c48ed8a9e605b8b0d6025dc399dd1611daee19cb2efcf671515fb"
-    },
-    {
-      "mode": "contributions",
-      "side": 170,
-      "scale": 0.0008606709915920917,
-      "range": "positive",
-      "representation": "aggregated",
-      "underlyingValues": 3670016,
-      "sha256": "a5de6d56e3b10f2ed87cbcfdd47760aeb16d6de833867f0de63590d4e6a11cae"
-    },
-    {
-      "mode": "attention-prefill",
-      "side": 160,
-      "scale": 1,
-      "range": "unit",
-      "representation": "reconstructed",
-      "underlyingValues": 25392,
-      "sha256": "4748eca0781ed8ed0b216f4464f88abe9d9a5f331cdea1f20b90f2645a2e59f2"
-    },
-    {
-      "mode": "kv-cache",
-      "side": 376,
-      "scale": 5.4375,
-      "range": "signed",
-      "representation": "raw",
-      "underlyingValues": 141312,
-      "sha256": "8cc87573a8e751b0f9aaf107307af4b105341f8983783ea1544b4c71c19ef018"
-    },
-    {
-      "mode": "recurrent-memory",
-      "side": 136,
-      "scale": 0.09322023331574207,
-      "range": "positive",
-      "representation": "aggregated",
-      "underlyingValues": 4718592,
-      "sha256": "03cb89707729475808e629ee5257c705cfd8e3e85a8d0d0e3aa33a01bc8b4212"
-    }
+    {"mode":"layer-output","side":157,"scale":0.5595873594284058,"range":"signed","representation":"raw","underlyingValues":24576,"sha256":"ce95e6523fa85d7e094e2d496af20548aa877f759f0daf02ce1761e57733f564"},
+    {"mode":"weights","side":248,"scale":0.02548358817512507,"range":"positive","representation":"aggregated","underlyingValues":1006178304,"sha256":"ee1155b47f9c48ed8a9e605b8b0d6025dc399dd1611daee19cb2efcf671515fb"},
+    {"mode":"contributions","side":170,"scale":0.0008606709915920917,"range":"positive","representation":"aggregated","underlyingValues":3670016,"sha256":"a5de6d56e3b10f2ed87cbcfdd47760aeb16d6de833867f0de63590d4e6a11cae"},
+    {"mode":"attention-prefill","side":160,"scale":1,"range":"unit","representation":"reconstructed","underlyingValues":25392,"sha256":"4748eca0781ed8ed0b216f4464f88abe9d9a5f331cdea1f20b90f2645a2e59f2"},
+    {"mode":"kv-cache","side":376,"scale":5.4375,"range":"signed","representation":"raw","underlyingValues":141312,"sha256":"8cc87573a8e751b0f9aaf107307af4b105341f8983783ea1544b4c71c19ef018"},
+    {"mode":"recurrent-memory","side":136,"scale":0.09322023331574207,"range":"positive","representation":"aggregated","underlyingValues":4718592,"sha256":"03cb89707729475808e629ee5257c705cfd8e3e85a8d0d0e3aa33a01bc8b4212"}
   ]
 }

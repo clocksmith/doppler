@@ -8,7 +8,7 @@ imports private `src/` paths.
 The page has three sections with consistent spacing and disclosures. Section names are accessible landmarks, not visible headings. Model labels stay exactly as
 published in the catalog, configuration included:
 
-1. **Dialogue**: the model selector with a compact Load button and, before any download, each model's stated GPU memory need compared with the memory the browser reports (a model the device reports too little for is marked, its button reads Load anyway, and Send does not start its download), one animated loading/generation indicator, the conversation with clickable words and alternatives, the message box
+1. **Dialogue**: the model selector with a compact Load button and, before any download, each model's stated GPU memory need compared with the memory the browser reports (a model the device reports too little for is marked, its button reads Load anyway, and Send does not start its download). A line under Send says in words what Send will do, including any download it would start first, or why it is unavailable. A failed load leaves a note beside Load with the reason and only what was observed about model files (none, some, or saved); a per-buffer GPU limit is named as such, separately from system memory, one animated loading/generation indicator, the conversation with clickable words and alternatives, the message box
    with Send and Stop, and answer and engine settings under **Options**.
 2. **Model activity**: what to record during the next answer (activity grids,
    GPU timing, or both), selectable grids with one player and timeline, recorded timing and device details for the latest answer, Save run, Save grid and one Open file
@@ -24,7 +24,16 @@ views that recording can draw, a short Start here group first; views it cannot d
 named with their reasons under Details. A view's timeline holds only the token positions
 it has values for, and changing view keeps the nearest such position, so playback never
 lands on an empty grid. Previous unsure word and Next unsure word step between the words
-the model gave less than even odds and show their alternatives. Preview shortcuts, recording files
+the model gave less than even odds and show their alternatives.
+When a view lacks values at a token the page says why, read from the recording itself:
+not saved after the recording reached its size limit, saved for a window of prompt tokens
+only, never a separate value because the stage ran inside a fused step, capture failed, or
+only summaries were saved; it offers Go to token N for the nearest token that has values,
+and a partly missing picture says so. Missing values are checkered, never drawn as zero.
+In the history panel, tokens after the one shown are dark and labelled not shown yet.
+The key beside a picture says when values were recomputed from saved ones rather than
+measured, that recomputed attention is not a causal explanation, and that dark in a
+probability view is a real value near zero. Preview shortcuts, recording files
 and longer explanations live under Details, along with timing, coverage, capture method and measurement overhead. The color key and token position remain beside the visual. Saved examples retain a visible source label; live runs do not repeat model identity. Follow live appears only after pausing live
 follow, and Follow latest layer appears only after pinning a diagram layer.
 Routine phase names remain accessible without visible repeated status text. Errors and stopped runs stay readable; reduced motion makes the indicator static. Secondary actions use quiet text controls. Loaded models show status rather than
@@ -43,13 +52,15 @@ Fresh and returning visits open the first exchange: the real Qwen
 playing, on the word the model was least sure of, with that word's alternatives shown and
 a one-line note that leaves once the reader plays, scrubs or changes view. Play shows the
 answer from the start. Its answer and activity use one player; words appear with their
-corresponding completed layer stack and scrubbing rewinds both. A small Recorded replay
-label names the model from the saved run itself, never from the model selector, and says
-it is not running on this device; publication date and timing semantics live under
-Details. It requires no model download or inference, and no WebGPU: in a
-browser without WebGPU the page still opens and shows this example, the picker says
-that models cannot run there and what to open instead, and Load and Send stay disabled
-rather than startup failing. Typing,
+corresponding completed layer stack and scrubbing rewinds both. A note names the
+model from the saved run itself, never from the model selector: “Recorded <model> run. No
+model is running on this device.”, and adds that the selected model is used only when a
+message is sent; publication date and timing semantics live under Details. It requires no
+model download or inference, and no WebGPU. At startup the page asks the browser for a
+WebGPU adapter without creating a device. With no WebGPU, or no adapter, the page still
+opens and shows this example; a note beside Load says live inference is not available,
+what sometimes helps and that another browser or device may not work either, with a
+Check again control; Load and Send stay disabled rather than startup failing. Typing,
 changing models, clearing or sending cancels a pending opening or playback.
 Once the first exchange opens, its submitted prompt is cleared from the composer.
 Typed or launched drafts cancel automatic opening and are preserved. The sample never
