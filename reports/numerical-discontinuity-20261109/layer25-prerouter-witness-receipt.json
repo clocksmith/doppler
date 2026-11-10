@@ -9,8 +9,8 @@
   "files": [
     {
       "path": "reports/numerical-discontinuity-20261109/LAYER25-PREROUTER-WITNESS.md",
-      "sha256": "4c9638014760c8b2e972140f88c0b377d0a2e666dcbf9d99cb1ca2db62e866a3",
-      "bytes": 9720
+      "sha256": "d28d947dd7edb0317e039ca3bc95bc2e345eec07375a1a799bc934b256507e9a",
+      "bytes": 16793
     },
     {
       "path": "reports/numerical-discontinuity-20261109/layer25-prerouter-witness-protocol.json",
@@ -19,13 +19,28 @@
     },
     {
       "path": "reports/numerical-discontinuity-20261109/layer25-prerouter-witness-results.json",
-      "sha256": "dc60412bc75080e3bc2d8c3b5f1ed6fab9f3db0970a86274e77af3948f86bd8d",
-      "bytes": 58059
+      "sha256": "3f6c5ed13702b2a9940041d25f75be266021fb508bc30a3752b7ff1a579d0be9",
+      "bytes": 58108
     },
     {
       "path": "reports/numerical-discontinuity-20261109/layer25-prerouter-witness-negative-result.json",
       "sha256": "94a1c92c662467865c85895e69e63897ffd8e2f4008f8ecf32f4d427a3505247",
       "bytes": 125
+    },
+    {
+      "path": "reports/numerical-discontinuity-20261109/layer25-physical-gpu-counterfactual-receipt.json",
+      "sha256": "03577226cd54bcf1b7923c185bb99e8c1feba7910bf6610b040eee95b2094c8f",
+      "bytes": 38556
+    },
+    {
+      "path": "reports/numerical-discontinuity-20261109/layer0-to-24-drift-trace-protocol.json",
+      "sha256": "a9558278e31ba6c92ff033f00460f88564e850bb425b1a603f2c57625592cb89",
+      "bytes": 2108
+    },
+    {
+      "path": "reports/numerical-discontinuity-20261109/layer0-to-24-drift-trace-receipt.json",
+      "sha256": "1124d3ef367385f735a74a46ee49cc4df46b3fec16360f45166fb5fc3fa102e2",
+      "bytes": 268494
     },
     {
       "path": "tools/layer25-wgsl-witness-core.js",
@@ -34,13 +49,23 @@
     },
     {
       "path": "tools/layer25-wgsl-witness-core.test.js",
-      "sha256": "3edf2b13112b619c2c6277f97bf5c6d1ecdbde21dec228df60dc61317ce66178",
-      "bytes": 11023
+      "sha256": "3315f6929982f88ef368f49c88abce79b8ebae1f9b5e50a75d57d2ba21d77696",
+      "bytes": 14287
     },
     {
       "path": "tools/analyze-layer25-prerouter-witness.js",
-      "sha256": "d318a4acf32d53afdb47ccce7e38ec1bdd670876cb6bfdd7add43b42d4b080dc",
-      "bytes": 41268
+      "sha256": "061d4ec101739f8c508d39277c5ac7462d5eb56ff1d47f3004cd0c2d48888384",
+      "bytes": 41317
+    },
+    {
+      "path": "tools/run-layer25-physical-gpu-counterfactual.js",
+      "sha256": "bb8cf09859c5abade7abb4d47189bd6c987acd1c346ccc4b6db00757ad92d835",
+      "bytes": 51566
+    },
+    {
+      "path": "tools/analyze-layer0-to-24-drift-trace.js",
+      "sha256": "1aeb3412224d22516627565813c3533fadb4e82faa0ba15193568cf6523432c0",
+      "bytes": 32732
     }
   ],
   "reproduction": {
@@ -52,7 +77,7 @@
   },
   "priorPacketsPreserved": true,
   "validation": {
-    "focusedTests": 17,
+    "focusedTests": 18,
     "stageWitnessesChecked": 27,
     "stagePositionValuesExact0Ulp": 357456,
     "fullSeqLinearCoreValuesExact0Ulp": 14155776,
@@ -61,11 +86,16 @@
     "chainedEndToEndRouterLogitsExact0Ulp": 1536,
     "faultControlsRejected": 7,
     "identityCorruptionControlsRejected": 1,
-    "reverseCounterfactualTop10PreservedPositions": 3
+    "reverseCounterfactualTop10PreservedPositions": 3,
+    "physicalGpuCounterfactualInvocations": 56,
+    "layers0To25WgslChecksPassed0Ulp": 569,
+    "layers0To25TokenLayerDecisionsChecked": 59904
   },
   "limits": [
-    "Witnesses Layer 25 pre-router and router operators only; Layers 0..24 remain unbounded",
-    "Counterfactuals isolate Layer-24 vs Layer-25 sensitivity; they do not establish that Layer 0..24 drift is permitted error",
-    "No correctness contract change or model promotion"
-  ]
+    "layer25-prerouter-witness-results.json is an offline JS witness (newGpuInvocations: 0); layer25-physical-gpu-counterfactual-receipt.json records the fresh physical AMD RDNA-3 WebGPU execution (newGpuInvocations: 56)",
+    "layer0-to-24-drift-trace-receipt.json verifies 569/569 0-ULP WGSL checks across Layers 0..25 and isolates the dominant L20..L23 4-stream drift interval, but does not establish that multi-layer F32 trajectory drift is permitted under the qualification contract",
+    "No correctness contract change or model promotion; the 13 final-logit violations remain failures"
+  ],
+  "offlineWitnessNewGpuInvocations": 0,
+  "physicalCounterfactualNewGpuInvocations": 56
 }

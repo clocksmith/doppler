@@ -240,3 +240,56 @@ test('layer25-prerouter-witness protocol, results, and negative-control artifact
   assert.equal(neg.outputCreated, false);
 });
 
+test('physical WebGPU counterfactual and Layers 0..24 drift trace receipts satisfy provenance and 0-ULP invariants', async () => {
+  const fs = await import('node:fs');
+  const path = await import('node:path');
+  const crypto = await import('node:crypto');
+  const sha = (b) => crypto.createHash('sha256').update(b).digest('hex');
+  const repoRoot = path.resolve(new URL('..', import.meta.url).pathname);
+
+  const physReceipt = JSON.parse(
+    fs.readFileSync(
+      path.join(repoRoot, 'reports/numerical-discontinuity-20261109/layer25-physical-gpu-counterfactual-receipt.json')
+    )
+  );
+  assert.equal(physReceipt.qualified, false);
+  assert.equal(physReceipt.executedOnPhysicalGpu, true);
+  assert.equal(physReceipt.adapter.vendor, 'amd');
+  assert.equal(physReceipt.adapter.architecture, 'rdna-3');
+  assert.equal(physReceipt.newGpuInvocations, 56);
+  assert.equal(physReceipt.toolSha256, sha(fs.readFileSync(path.join(repoRoot, 'tools/run-layer25-physical-gpu-counterfactual.js'))));
+  assert.equal(physReceipt.witnessCoreSha256, sha(fs.readFileSync(path.join(repoRoot, 'tools/layer25-wgsl-witness-core.js'))));
+  assert.equal(physReceipt.summary.r0StagesChecked, 22);
+  assert.equal(physReceipt.summary.r0AllMatchCapturedGpu0Ulp, true);
+  assert.equal(physReceipt.summary.r0AllMatchJsWitness0Ulp, true);
+  assert.equal(physReceipt.summary.r1PhysicalGpuMatchesJsWitness0Ulp, true);
+  assert.equal(physReceipt.summary.r2PhysicalGpuMatchesJsWitness0Ulp, true);
+  assert.equal(physReceipt.summary.r1PhysicalGpuPreservesCpuTop10AllPositions, true);
+  assert.equal(physReceipt.summary.r2PhysicalGpuPreservesCpuTop10AllPositions, true);
+
+  const l0To24ProtocolBytes = fs.readFileSync(
+    path.join(repoRoot, 'reports/numerical-discontinuity-20261109/layer0-to-24-drift-trace-protocol.json')
+  );
+  const l0To24Receipt = JSON.parse(
+    fs.readFileSync(path.join(repoRoot, 'reports/numerical-discontinuity-20261109/layer0-to-24-drift-trace-receipt.json'))
+  );
+  assert.equal(l0To24Receipt.qualified, false);
+  assert.equal(l0To24Receipt.protocolSha256, sha(l0To24ProtocolBytes));
+  assert.equal(l0To24Receipt.toolSha256, sha(fs.readFileSync(path.join(repoRoot, 'tools/analyze-layer0-to-24-drift-trace.js'))));
+  assert.equal(l0To24Receipt.summary.layersVerified, 26);
+  assert.equal(l0To24Receipt.summary.totalWgslChecks, 569);
+  assert.equal(l0To24Receipt.summary.exact0UlpWgslChecks, 569);
+  assert.equal(l0To24Receipt.summary.all569WgslChecksPass0Ulp, true);
+  assert.equal(l0To24Receipt.summary.totalWgslElementsChecked, 8635104);
+  assert.equal(l0To24Receipt.summary.exact0UlpWgslElements, 8635104);
+  assert.equal(l0To24Receipt.summary.totalTokenLayerDecisionsChecked, 59904);
+  assert.equal(l0To24Receipt.summary.tokensWithMarginLe2e6InLayers13To24, 0);
+  assert.equal(l0To24Receipt.summary.tokensWithMarginLe2e6InLayer25, 2);
+  assert.equal(l0To24Receipt.summary.layer25CriticalMarginsSmallerThanOneSigmaDot, true);
+  assert.equal(l0To24Receipt.summary.dominantInterval, 'L20..L23');
+  assert.equal(l0To24Receipt.summary.removingOnlyL20To23RestoresBothPositionsOnGpuLayer25, true);
+  assert.equal(l0To24Receipt.summary.suffixL20To25AloneFlipsBothPositions, true);
+  assert.equal(l0To24Receipt.summary.suffixL24To25AloneFlipsNeitherPosition, true);
+});
+
+

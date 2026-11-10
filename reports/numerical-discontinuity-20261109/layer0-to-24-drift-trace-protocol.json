@@ -1,0 +1,31 @@
+{
+  "schema": "doppler.layer0-to-24-drift-trace-protocol/v1",
+  "qualificationAuthority": false,
+  "firstChangedRouterLayer": 25,
+  "layers": 26,
+  "positions": [1717, 2271, 2303],
+  "seqLen": 2304,
+  "hiddenSize": 2560,
+  "numStreams": 4,
+  "streamWidth": 10240,
+  "lowRankDim": 320,
+  "expertCount": 512,
+  "topK": 10,
+  "rmsNormEps": 1e-6,
+  "streamCheckpoints": [0, 3, 4, 8, 12, 16, 20, 24, 25],
+  "manifestSha256": "4902a0b730a9310903b00bc0f8f587528fa1af9f37a722d2f9287bafceceec09",
+  "prefixStagesObservation": "stages.json",
+  "prefixStagesObservationSha256": "dd07e0052ba779acf8c05003080154c241595233149ada55fb77e3338321af37",
+  "routerObservation": "f32kv-router-subgroup-20261107.json",
+  "routerObservationSha256": "4c4367d68d2dd41e15868d824851c6f7357acfecbcfa41609a95792355e7b429",
+  "layer25TraceReceipt": "trace.json",
+  "layer25TraceReceiptSha256": "96cb085d2b84fa0ef1371c4e756c69979a0275490a65843b4c522711349babb2",
+  "routerTraceReceipt": "receipt.json",
+  "routerTraceReceiptSha256": "06b9300753f65574477b66f45a0c0fce6474e2112a3f9d901b0af22371037073",
+  "method": "1. Verify 0-ULP constructive WGSL witness agreement across all 569 non-PLE stage, residual-continuity, and router captures in Layers 0..25. 2. Independently separate implementation compliance (0 ULP vs WGSL spec) from single-block F32 vs F64 rounding variation (~8e-8 relative RMS on identical inputs) and multi-layer propagated trajectory drift (1.07e-6 to 3.30e-6). 3. Trace 4-stream and branchInput drift backward across Layers 0..25 via cumulative prefix grafting, single-interval addition, suffix-only, and leave-one-interval-out attribution at checkpoints [0, 3, 4, 8, 12, 16, 20, 24, 25], plus a 59,904 token-layer rank-10 vs rank-11 margin census.",
+  "controls": [
+    "All 569 non-PLE stage/continuity/router tensors across Layers 0..25 must match the WGSL witness at 0 ULP",
+    "Layer 1 attn_hc.input != Layer 0 mlp_hc.injected is isolated to Layer 1's PLE (ngram_embedding) addition",
+    "Position 2303 preserves 10/10 top-10 expert agreement under all prefix, interval, suffix, and leave-one-out grafts"
+  ]
+}

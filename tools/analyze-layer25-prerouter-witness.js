@@ -940,17 +940,17 @@ const forwardCounterfactuals = [
 const reverseCounterfactuals = [
   evaluateRouterCounterfactual(
     'R0_all_gpu_layer25',
-    'Actual GPU Layer-25 router input (GPU Layer-24 state + GPU WGSL Layer-25 operators)',
+    'Actual GPU Layer-25 router input (GPU Layer-24 state + offline JS WGSL witness of Layer-25 operators)',
     a6BranchIn
   ),
   evaluateRouterCounterfactual(
     'R1_cpu_stream_and_branch_into_gpu_wgsl_hc',
-    'CPU attn_hc.input + CPU linear_attn branchOutput + GPU WGSL attn_hc, inject, and mlp_hc',
+    'CPU attn_hc.input + CPU linear_attn branchOutput + offline JS WGSL witness of attn_hc, inject, and mlp_hc',
     r1MlpHc.branchInput
   ),
   evaluateRouterCounterfactual(
     'R2_cpu_layer24_stream_into_all_gpu_wgsl_layer25',
-    'CPU attn_hc.input at [1717, 2271, 2303] + 100% GPU WGSL Layer-25 operators (attn_hc -> linear_attn -> inject -> mlp_hc -> router25)',
+    'CPU attn_hc.input at [1717, 2271, 2303] + offline JS WGSL witness of Layer-25 operators (attn_hc -> linear_attn -> inject -> mlp_hc -> router25)',
     r2MlpHc.branchInput
   ),
 ];

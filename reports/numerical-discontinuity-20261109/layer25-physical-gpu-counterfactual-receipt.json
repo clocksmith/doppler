@@ -1,0 +1,1398 @@
+{
+  "schema": "doppler.layer25-physical-gpu-counterfactual/v1",
+  "qualified": false,
+  "executedOnPhysicalGpu": true,
+  "host": "linux",
+  "adapter": {
+    "vendor": "amd",
+    "architecture": "rdna-3",
+    "device": "",
+    "description": ""
+  },
+  "newGpuInvocations": 56,
+  "protocolSha256": "40b03e2f30e99d1d0065d1af639f2d9d0753ddebd74d5b8abff22fea21bdd3f1",
+  "toolSha256": "bb8cf09859c5abade7abb4d47189bd6c987acd1c346ccc4b6db00757ad92d835",
+  "witnessCoreSha256": "936457712dfadf4cb41db3032e8ba487c955d8e593270f1c4bfdf562038a1acd",
+  "shaderIdentities": [
+    {
+      "key": "hcNorm",
+      "file": "hyper_connection_norm.wgsl",
+      "sha256": "8076a741402438a3774897c3096308b2b2bcd4feb6269860a6aeffe9f6584ca9",
+      "bytes": 2590
+    },
+    {
+      "key": "hcActivation",
+      "file": "hyper_connection_activation.wgsl",
+      "sha256": "fb7406030b4f2892f982daf0543d86e26c27362bdbe1a8660f05e5e8efe0edd3",
+      "bytes": 3787
+    },
+    {
+      "key": "hcBranch",
+      "file": "hyper_connection_branch.wgsl",
+      "sha256": "5ac33f6ff56a7789b0745ad88f5d6072cb7bd7f15821a35208090b7ec02b2b8b",
+      "bytes": 2327
+    },
+    {
+      "key": "hcInject",
+      "file": "hyper_connection_inject.wgsl",
+      "sha256": "feebcf7849baaab09037ebbb976bd0952d7391ca91d43c952fdf007267309e10",
+      "bytes": 1958
+    },
+    {
+      "key": "matmulRowSubgroup",
+      "file": "matmul_f32_row_subgroup.wgsl",
+      "sha256": "02cefa35c08116bf2a7846adc4efe7aed87a5e709601fa11a2d6b2ca9c668f67",
+      "bytes": 4055
+    },
+    {
+      "key": "matmulF16Tiled",
+      "file": "matmul_f16w_f32a_tiled.wgsl",
+      "sha256": "87141bf2a027f563abfcbf6c0472f4bb4af3bf572b9d09b6f530320abd267da8",
+      "bytes": 8235
+    },
+    {
+      "key": "matmulF16Seq",
+      "file": "matmul_f16w_f32a.wgsl",
+      "sha256": "78b78ec9a73766b5cfa71505f845a2cd3dac2468f8b92e5624e0c67201198888",
+      "bytes": 2558
+    },
+    {
+      "key": "gdnConv",
+      "file": "gated_delta_conv.wgsl",
+      "sha256": "01ca2e74eb28b716af65bdd86c84654622623714757fafdab7217e704e60879f",
+      "bytes": 3751
+    },
+    {
+      "key": "gdnRecurrentSigmoid",
+      "file": "gated_delta_recurrent_sigmoid_gate.wgsl",
+      "sha256": "7b695bd05d1468cdeb0bd54002b2a478853ebe2757968bfc50fbbec8b3c10927",
+      "bytes": 19936
+    }
+  ],
+  "identities": [
+    {
+      "file": "manifest.json",
+      "sha256": "4902a0b730a9310903b00bc0f8f587528fa1af9f37a722d2f9287bafceceec09",
+      "bytes": 7422078
+    },
+    {
+      "file": "f32kv-layer25-stages-20261107.json",
+      "sha256": "4bcb97c676cbec37bb066372a3949112763a86d9958e21e58fac38328282245f",
+      "bytes": 18292
+    },
+    {
+      "file": "f32kv-router-subgroup-20261107.json",
+      "sha256": "4c4367d68d2dd41e15868d824851c6f7357acfecbcfa41609a95792355e7b429",
+      "bytes": 213884
+    },
+    {
+      "file": "f32kv-router-subgroup-routing-20261107.json",
+      "sha256": "681bcb5f631327583b7d958cd55de6cc45e85dce4b4059a25db9015eb09d81c8",
+      "bytes": 54604
+    },
+    {
+      "file": "layer25/trace.json",
+      "sha256": "96cb085d2b84fa0ef1371c4e756c69979a0275490a65843b4c522711349babb2",
+      "bytes": 9570
+    },
+    {
+      "file": "router/receipt.json",
+      "sha256": "06b9300753f65574477b66f45a0c0fce6474e2112a3f9d901b0af22371037073",
+      "bytes": 6146
+    },
+    {
+      "file": "f32kv-layer25-stages-20261107.json.L25.attn_hc.input.f32",
+      "sha256": "6e90f21c801214fcf3db4373eed8563ebe1371de261af120c9ff3fece054cd90",
+      "bytes": 122880
+    },
+    {
+      "file": "f32kv-layer25-stages-20261107.json.L25.attn_hc.norm.f32",
+      "sha256": "0bfc18c3575e91133ad5670e0035f5b100267ee35f93f14e5d458be8da46e8bd",
+      "bytes": 122880
+    },
+    {
+      "file": "f32kv-layer25-stages-20261107.json.L25.attn_hc.down.f32",
+      "sha256": "03c4c71931864a528ccd772e3a661ea3a680ff454be2b5f7a1c8c5a9fb18dcd4",
+      "bytes": 3840
+    },
+    {
+      "file": "f32kv-layer25-stages-20261107.json.L25.attn_hc.lowRank.f32",
+      "sha256": "e66d7a975ca43735a71c13647a8cece2a98f627565155da5da4aba5ed77da755",
+      "bytes": 3840
+    },
+    {
+      "file": "f32kv-layer25-stages-20261107.json.L25.attn_hc.up.f32",
+      "sha256": "b43eed3a549831deabb844c1ce38faf53c999586a0788961667f7e02fd9c6699",
+      "bytes": 122880
+    },
+    {
+      "file": "f32kv-layer25-stages-20261107.json.L25.attn_hc.mix.f32",
+      "sha256": "6ed9a2cba8b39eb84b5d0eed608bd1d582f10dbf35bafcd5a4e0d5c928f80801",
+      "bytes": 122880
+    },
+    {
+      "file": "f32kv-layer25-stages-20261107.json.L25.attn_hc.branchInput.f32",
+      "sha256": "8fda0b28cb7ca06bf2210d5175e743d0f4fcea65dd11eee959d58c1e883deebd",
+      "bytes": 30720
+    },
+    {
+      "file": "f32kv-layer25-stages-20261107.json.L25.attn_hc.logits.f32",
+      "sha256": "126a02cb86c4f87d8697ccd4716b23cabfdb4a0a15b1b1e4bd87af42bc9ef1e4",
+      "bytes": 48
+    },
+    {
+      "file": "f32kv-layer25-stages-20261107.json.L25.attn_hc.gate.f32",
+      "sha256": "e5e551ba34977a0b84800fa3423edb988ff93f21043eb44fe4675263720856b4",
+      "bytes": 48
+    },
+    {
+      "file": "f32kv-layer25-stages-20261107.json.L25.attn_hc.branchOutput.f32",
+      "sha256": "44bd33344ccaa5ac6b8df8a82c2157eeb388a76ec9741e9a89dd7fe10388e71d",
+      "bytes": 30720
+    },
+    {
+      "file": "f32kv-layer25-stages-20261107.json.L25.attn_hc.injected.f32",
+      "sha256": "27d4dd2be71275225a74574f3743c37669dde041b42d0756c083b9f3775e0535",
+      "bytes": 122880
+    },
+    {
+      "file": "f32kv-layer25-stages-20261107.json.L25.mlp_hc.input.f32",
+      "sha256": "27d4dd2be71275225a74574f3743c37669dde041b42d0756c083b9f3775e0535",
+      "bytes": 122880
+    },
+    {
+      "file": "f32kv-layer25-stages-20261107.json.L25.mlp_hc.norm.f32",
+      "sha256": "a8fa3ebeee2e5f527a7361c4c6759cbc7c384a0226027f39e7da47249a500fda",
+      "bytes": 122880
+    },
+    {
+      "file": "f32kv-layer25-stages-20261107.json.L25.mlp_hc.down.f32",
+      "sha256": "d53022c44e4c82af1712ec8d6fe5bc781bd7365c8ca9163d668a66f7687bfaca",
+      "bytes": 3840
+    },
+    {
+      "file": "f32kv-layer25-stages-20261107.json.L25.mlp_hc.lowRank.f32",
+      "sha256": "7324619c119a724591fdd7fbdc574da6a1cb5a556f48e40d9a5c5e0f98dcf99c",
+      "bytes": 3840
+    },
+    {
+      "file": "f32kv-layer25-stages-20261107.json.L25.mlp_hc.up.f32",
+      "sha256": "8c75ed82435535d1ddec105b17240291c876df115245330a49b881b6808baf07",
+      "bytes": 122880
+    },
+    {
+      "file": "f32kv-layer25-stages-20261107.json.L25.mlp_hc.mix.f32",
+      "sha256": "8a9818ab8d3da200dbca6869cc00eba03dcf88d757c12d1e91a5129e5ac53450",
+      "bytes": 122880
+    },
+    {
+      "file": "f32kv-layer25-stages-20261107.json.L25.mlp_hc.branchInput.f32",
+      "sha256": "91be982a16bb0e35a1cf1b2969ceb698600b011011651aebb2c62221d72cf298",
+      "bytes": 30720
+    },
+    {
+      "file": "f32kv-layer25-stages-20261107.json.L25.mlp_hc.logits.f32",
+      "sha256": "d88fab79e956bf8ddaf0fa92a967a708e8a49fe5cd1c8ee9e81c6218303ab0cd",
+      "bytes": 48
+    },
+    {
+      "file": "f32kv-layer25-stages-20261107.json.L25.mlp_hc.gate.f32",
+      "sha256": "ee60cac02e74e179c535d22c569bb96020ddb7a0d27a9e8b279d8f31956ccde2",
+      "bytes": 48
+    },
+    {
+      "file": "f32kv-layer25-stages-20261107.json.attn.post_input_norm.f32",
+      "sha256": "59356fe6fb99bca4f69657e7bb325900c97c49f7d0199d7a6452cefef976a742",
+      "bytes": 23592960
+    },
+    {
+      "file": "f32kv-layer25-stages-20261107.json.attn.qkv_proj.f32",
+      "sha256": "443f65adc48e9b8d3e617e4ec5ee962f6828b3cd4d3bf16c4e269ffaf1f1d282",
+      "bytes": 94371840
+    },
+    {
+      "file": "f32kv-layer25-stages-20261107.json.attn.linear_z_proj.f32",
+      "sha256": "9e72f31a020c8ad165a2aeac66278105869b3c2a4267a362d8be911cfe7a829b",
+      "bytes": 56623104
+    },
+    {
+      "file": "f32kv-layer25-stages-20261107.json.attn.linear_a_proj.f32",
+      "sha256": "6fcfdbbaf640fe722e20ebc5145fa4b0e04062f47ac4d7c57bf7381125041e64",
+      "bytes": 442368
+    },
+    {
+      "file": "f32kv-layer25-stages-20261107.json.attn.linear_b_proj.f32",
+      "sha256": "f30d3c6082e0a03cdfcf6d76f64362f11f83ec35c5c6b459bf111b34cd40d25d",
+      "bytes": 442368
+    },
+    {
+      "file": "f32kv-layer25-stages-20261107.json.attn.linear_core_out.f32",
+      "sha256": "7725ad8c393b4ddba333d497dafb47e5fba600b18e36bd4338215c72aed30667",
+      "bytes": 56623104
+    },
+    {
+      "file": "f32kv-router-subgroup-20261107.json.long.router25.input.f32",
+      "sha256": "a6da2ee6b2a1c8e3a5dae0fcc7d7ec473df738ca07102c513408280d6bad2f72",
+      "bytes": 23592960
+    },
+    {
+      "file": "f32kv-router-subgroup-20261107.json.long.router25.logits.f32",
+      "sha256": "a0e1b6642dccb23293a6582717e208a8b1c01873d601c150054cfb9d5ff92857",
+      "bytes": 4718592
+    },
+    {
+      "file": "layer25/attn_hc.input.npy",
+      "sha256": "f8fd2447f972be5fcbf084f3c5f48d7df3748c993bdf336651c2abb9a3dff42c",
+      "bytes": 123008
+    },
+    {
+      "file": "layer25/attn_hc.norm.npy",
+      "sha256": "3ab74b3a4a927143d4848f7526b1c2aa8cfa1407b68c4aadb08e7f49ca3b522e",
+      "bytes": 123008
+    },
+    {
+      "file": "layer25/attn_hc.down.npy",
+      "sha256": "1da9df8cf9063c7df0e8ab1962556ff97981f32fccb1668ffead0b150f663978",
+      "bytes": 3968
+    },
+    {
+      "file": "layer25/attn_hc.lowRank.npy",
+      "sha256": "9291cf362b1fec00088f7c7a37d8bb0b11879d8a9cf8a97e329ed9e0b5e86b63",
+      "bytes": 3968
+    },
+    {
+      "file": "layer25/attn_hc.up.npy",
+      "sha256": "ed49a97b444385d77f81236d35e3e0debf3c61e90cb76b3f8b60e1540ac68940",
+      "bytes": 123008
+    },
+    {
+      "file": "layer25/attn_hc.mix.npy",
+      "sha256": "330614bfded6f548e53eda3aee3184f389a36352b9fdb35c647d398b7d470827",
+      "bytes": 123008
+    },
+    {
+      "file": "layer25/attn_hc.logits.npy",
+      "sha256": "b797275e5fc5816a7bc2777a20518c3775d3acc0c13ddf5aee033ad9c9007dfb",
+      "bytes": 176
+    },
+    {
+      "file": "layer25/attn_hc.branchInput.npy",
+      "sha256": "a29bd0a24fbc080dd39ee4aaaa5c78971c1d4f35be2b4e96dcf0767a6b1d981b",
+      "bytes": 30848
+    },
+    {
+      "file": "layer25/attn_hc.gate.npy",
+      "sha256": "0080ad1bb28bed8f5600b8f1872d737f84ed0b8f35725dfb74911cdcb5beb7be",
+      "bytes": 176
+    },
+    {
+      "file": "layer25/attention.projectionInput.npy",
+      "sha256": "daf686992f0c641e59d321c61e618494d159b839d9cd52caebeb48dc52ab04d3",
+      "bytes": 23593088
+    },
+    {
+      "file": "layer25/linear.attn.qkv_proj.npy",
+      "sha256": "f6084a533bd7183861e7a171d7f0c7c9a9560fac35c5b3e19b7bc5dd19a611cd",
+      "bytes": 123008
+    },
+    {
+      "file": "layer25/linear.attn.linear_z_proj.npy",
+      "sha256": "06d189b4f0c0a1897e024d6ea81be9fe2e812666c99d8e3fad9fc0cbd90bd394",
+      "bytes": 73856
+    },
+    {
+      "file": "layer25/linear.attn.linear_b_proj.npy",
+      "sha256": "9afa4b5e46a3945d00ee6098d77604c05902e88dbedbd588c01bc915e1c37dfd",
+      "bytes": 704
+    },
+    {
+      "file": "layer25/linear.attn.linear_a_proj.npy",
+      "sha256": "764cdcfc69e4b28dad63a8625ee5e57ac0d244c3678bab6cda3748f4d15922b1",
+      "bytes": 704
+    },
+    {
+      "file": "layer25/linear.attn.linear_core_out.npy",
+      "sha256": "39d6e9d6e007d3625e85fb90ad83d9fcc9e52e6c5f4837528c7e590377503d3b",
+      "bytes": 73856
+    },
+    {
+      "file": "layer25/attn_hc.branchOutput.npy",
+      "sha256": "ab6c940b83f999a060adfe88008f2196a29c2088ed2124b0c00001faf90b4ead",
+      "bytes": 30848
+    },
+    {
+      "file": "layer25/linear.branchOutput.npy",
+      "sha256": "48f7ef5eea3a7d2c80885fec6065fce569c6bf8a24749bb6636de1f3b9b2f6b9",
+      "bytes": 23593088
+    },
+    {
+      "file": "layer25/mlp_hc.input.npy",
+      "sha256": "35640150b7dc73419ae892f59d035b2b39794579b1a1afd08920071fda923780",
+      "bytes": 123008
+    },
+    {
+      "file": "layer25/attn_hc.injected.npy",
+      "sha256": "35640150b7dc73419ae892f59d035b2b39794579b1a1afd08920071fda923780",
+      "bytes": 123008
+    },
+    {
+      "file": "layer25/mlp_hc.norm.npy",
+      "sha256": "7f4d1ed9a1c38542ef9867b369e58211cc01c3d76a971edfeff82a56367cf6cc",
+      "bytes": 123008
+    },
+    {
+      "file": "layer25/mlp_hc.down.npy",
+      "sha256": "d9673a2d56a9adfc91dae30d4a02d586bc2620326ff7eb5b152fdd049b64824b",
+      "bytes": 3968
+    },
+    {
+      "file": "layer25/mlp_hc.lowRank.npy",
+      "sha256": "d0f58f97fa75eddf617ef6185cac560e5a706e295926e954b7e7d22910b522b1",
+      "bytes": 3968
+    },
+    {
+      "file": "layer25/mlp_hc.up.npy",
+      "sha256": "13f52b248d33ec04d4e3e71e571004433090fdb4c23855c57f03aa9dbacbe73c",
+      "bytes": 123008
+    },
+    {
+      "file": "layer25/mlp_hc.mix.npy",
+      "sha256": "75e70273441d0b2056262464d066e4d513b7a293b4aa9dc576c21cb7eb03dab4",
+      "bytes": 123008
+    },
+    {
+      "file": "layer25/mlp_hc.logits.npy",
+      "sha256": "332b93503fa128852f6a65ee410365b33e8800f4964035b21a4f52d69b5d189e",
+      "bytes": 176
+    },
+    {
+      "file": "layer25/mlp_hc.branchInput.npy",
+      "sha256": "4801421e4ea8bf7a763f20ca1ebdc66b6955366cf0aa2b7b1e7cf3535711c6ae",
+      "bytes": 30848
+    },
+    {
+      "file": "layer25/mlp_hc.gate.npy",
+      "sha256": "13530595ffedf0db6b88c8e5580c5b8963cdd0829702dd8b47cad42adadc93c3",
+      "bytes": 176
+    },
+    {
+      "file": "router/router-25.npz",
+      "sha256": "9d596bfd1ee212ab233a01bf34248b449493089daabece20778f3632733ebd56",
+      "bytes": 28589030
+    }
+  ],
+  "weightIdentities": [
+    {
+      "tensor": "attn_hyper_connection.hc_norm.weight",
+      "dtype": "F16",
+      "shape": [
+        10240
+      ],
+      "bytes": 20480,
+      "sha256": "b7e2db47d8a7c87988850c9d24340f567107ca8e8ceb92d79286fb2be9dd0857"
+    },
+    {
+      "tensor": "attn_hyper_connection.input_mix_weight_down.weight",
+      "dtype": "F16",
+      "shape": [
+        320,
+        10240
+      ],
+      "bytes": 6553600,
+      "sha256": "548c3eddc77662560a577aa216c58a15d27a955572463b8e9518c3501767b992"
+    },
+    {
+      "tensor": "attn_hyper_connection.input_mix_weight_up.weight",
+      "dtype": "F16",
+      "shape": [
+        10240,
+        320
+      ],
+      "bytes": 6553600,
+      "sha256": "f7eb257f83a67d90494517401945b052580b6ff1165dfa19f036de22aea64e36"
+    },
+    {
+      "tensor": "attn_hyper_connection.block_inject_weight.weight",
+      "dtype": "F16",
+      "shape": [
+        4,
+        10240
+      ],
+      "bytes": 81920,
+      "sha256": "7b31f83758cd45f5fef4ef91755c5d8657a5b552aca94c9f4dea3817e9a88e4a"
+    },
+    {
+      "tensor": "mlp_hyper_connection.hc_norm.weight",
+      "dtype": "F16",
+      "shape": [
+        10240
+      ],
+      "bytes": 20480,
+      "sha256": "3721d1140ed24803afb57a0d936cb987d2065a18d1a27ad4296212380217ebc8"
+    },
+    {
+      "tensor": "mlp_hyper_connection.input_mix_weight_down.weight",
+      "dtype": "F16",
+      "shape": [
+        320,
+        10240
+      ],
+      "bytes": 6553600,
+      "sha256": "266281daef9c5cf2caf4c3a9b068841d7252534f52638038efe15f7d8c0d9a31"
+    },
+    {
+      "tensor": "mlp_hyper_connection.input_mix_weight_up.weight",
+      "dtype": "F16",
+      "shape": [
+        10240,
+        320
+      ],
+      "bytes": 6553600,
+      "sha256": "eb9674f98627bf9a929f4d7926d3829555f728564ce30ae3255537a5c594dc51"
+    },
+    {
+      "tensor": "mlp_hyper_connection.block_inject_weight.weight",
+      "dtype": "F16",
+      "shape": [
+        4,
+        10240
+      ],
+      "bytes": 81920,
+      "sha256": "6befc00cee3c3ab5c36044a20ff481e055a2749055cdd67c3128ac975a7cea34"
+    },
+    {
+      "tensor": "linear_attn.in_proj_qkv.weight",
+      "dtype": "F16",
+      "shape": [
+        10240,
+        2560
+      ],
+      "bytes": 52428800,
+      "sha256": "34b61ce68167c94ed7d174ccb82d5eed0bdac94897c7a72e84c013ecd7761bf3"
+    },
+    {
+      "tensor": "linear_attn.in_proj_z.weight",
+      "dtype": "F16",
+      "shape": [
+        6144,
+        2560
+      ],
+      "bytes": 31457280,
+      "sha256": "a43ba142ac4a093aa0861c3e955ba99502dad4f751166ded795da6c1471fea10"
+    },
+    {
+      "tensor": "linear_attn.in_proj_a.weight",
+      "dtype": "F16",
+      "shape": [
+        48,
+        2560
+      ],
+      "bytes": 245760,
+      "sha256": "cd337fcfb16a35939f4758e6b5cc08cc247cf5899b73c8101cc3ea6f5c94e869"
+    },
+    {
+      "tensor": "linear_attn.in_proj_b.weight",
+      "dtype": "F16",
+      "shape": [
+        48,
+        2560
+      ],
+      "bytes": 245760,
+      "sha256": "6507bb68e6197c12feefcfbb29afcf87812abae58557012f131803462e57c77a"
+    },
+    {
+      "tensor": "linear_attn.conv1d.weight",
+      "dtype": "F16",
+      "shape": [
+        10240,
+        1,
+        4
+      ],
+      "bytes": 81920,
+      "sha256": "f9e9019eb8423f946340c811b24c34ebb7c297a8e518229e878371709ec03a58"
+    },
+    {
+      "tensor": "linear_attn.A_log",
+      "dtype": "F16",
+      "shape": [
+        48
+      ],
+      "bytes": 96,
+      "sha256": "f23fc188695d54f93409a19fce8ef5a9ec6a14af097454cfbf913220284dcf9e"
+    },
+    {
+      "tensor": "linear_attn.dt_bias",
+      "dtype": "F16",
+      "shape": [
+        48
+      ],
+      "bytes": 96,
+      "sha256": "d4a050dd8fd9d51cbf12d8f106f02053153bfa7753c4933fc701e87a2bcaaf07"
+    },
+    {
+      "tensor": "linear_attn.norm.weight",
+      "dtype": "F16",
+      "shape": [
+        128
+      ],
+      "bytes": 256,
+      "sha256": "dce58f4f04737f3c31fde758096108a936173f90344055a6dd9eb77e827eaf68"
+    },
+    {
+      "tensor": "linear_attn.out_proj.weight",
+      "dtype": "F16",
+      "shape": [
+        2560,
+        6144
+      ],
+      "bytes": 31457280,
+      "sha256": "86d7346d441c8a95f6c232cdbdcf645eb32cc7258afb9d8ac6dc7f54c496f94b"
+    },
+    {
+      "tensor": "mlp.gate.weight",
+      "dtype": "F16",
+      "shape": [
+        512,
+        2560
+      ],
+      "bytes": 2621440,
+      "sha256": "4cca2b05519d9331e694cf6245e0e16058b4f6a4cf12c0ffde391c25134d35f2"
+    }
+  ],
+  "summary": {
+    "newGpuInvocations": 56,
+    "r0StagesChecked": 22,
+    "r0AllMatchCapturedGpu0Ulp": true,
+    "r0AllMatchJsWitness0Ulp": true,
+    "r1PhysicalGpuMatchesJsWitness0Ulp": true,
+    "r2PhysicalGpuMatchesJsWitness0Ulp": true,
+    "r1PhysicalGpuPreservesCpuTop10AllPositions": true,
+    "r2PhysicalGpuPreservesCpuTop10AllPositions": true
+  },
+  "r0StageChecks": [
+    {
+      "stage": "attn_hc.norm",
+      "elements": 30720,
+      "physicalGpuSha256": "0bfc18c3575e91133ad5670e0035f5b100267ee35f93f14e5d458be8da46e8bd",
+      "vsCapturedGpu": {
+        "exact": 30720,
+        "total": 30720,
+        "allExact": true,
+        "maxUlp": 0,
+        "maxAbsDiff": 0
+      },
+      "vsJsWitness": {
+        "exact": 30720,
+        "total": 30720,
+        "allExact": true,
+        "maxUlp": 0,
+        "maxAbsDiff": 0
+      }
+    },
+    {
+      "stage": "attn_hc.down",
+      "elements": 960,
+      "physicalGpuSha256": "03c4c71931864a528ccd772e3a661ea3a680ff454be2b5f7a1c8c5a9fb18dcd4",
+      "vsCapturedGpu": {
+        "exact": 960,
+        "total": 960,
+        "allExact": true,
+        "maxUlp": 0,
+        "maxAbsDiff": 0
+      },
+      "vsJsWitness": {
+        "exact": 960,
+        "total": 960,
+        "allExact": true,
+        "maxUlp": 0,
+        "maxAbsDiff": 0
+      }
+    },
+    {
+      "stage": "attn_hc.lowRank",
+      "elements": 960,
+      "physicalGpuSha256": "e66d7a975ca43735a71c13647a8cece2a98f627565155da5da4aba5ed77da755",
+      "vsCapturedGpu": {
+        "exact": 960,
+        "total": 960,
+        "allExact": true,
+        "maxUlp": 0,
+        "maxAbsDiff": 0
+      },
+      "vsJsWitness": {
+        "exact": 960,
+        "total": 960,
+        "allExact": true,
+        "maxUlp": 0,
+        "maxAbsDiff": 0
+      }
+    },
+    {
+      "stage": "attn_hc.up",
+      "elements": 30720,
+      "physicalGpuSha256": "b43eed3a549831deabb844c1ce38faf53c999586a0788961667f7e02fd9c6699",
+      "vsCapturedGpu": {
+        "exact": 30720,
+        "total": 30720,
+        "allExact": true,
+        "maxUlp": 0,
+        "maxAbsDiff": 0
+      },
+      "vsJsWitness": {
+        "exact": 30720,
+        "total": 30720,
+        "allExact": true,
+        "maxUlp": 0,
+        "maxAbsDiff": 0
+      }
+    },
+    {
+      "stage": "attn_hc.mix",
+      "elements": 30720,
+      "physicalGpuSha256": "6ed9a2cba8b39eb84b5d0eed608bd1d582f10dbf35bafcd5a4e0d5c928f80801",
+      "vsCapturedGpu": {
+        "exact": 30720,
+        "total": 30720,
+        "allExact": true,
+        "maxUlp": 0,
+        "maxAbsDiff": 0
+      },
+      "vsJsWitness": {
+        "exact": 30720,
+        "total": 30720,
+        "allExact": true,
+        "maxUlp": 0,
+        "maxAbsDiff": 0
+      }
+    },
+    {
+      "stage": "attn_hc.branchInput",
+      "elements": 7680,
+      "physicalGpuSha256": "8fda0b28cb7ca06bf2210d5175e743d0f4fcea65dd11eee959d58c1e883deebd",
+      "vsCapturedGpu": {
+        "exact": 7680,
+        "total": 7680,
+        "allExact": true,
+        "maxUlp": 0,
+        "maxAbsDiff": 0
+      },
+      "vsJsWitness": {
+        "exact": 7680,
+        "total": 7680,
+        "allExact": true,
+        "maxUlp": 0,
+        "maxAbsDiff": 0
+      }
+    },
+    {
+      "stage": "linear.attn.qkv_proj@positions",
+      "elements": 30720,
+      "physicalGpuSha256": "9425b543ed73227a71d37e4df485f4567fbd2e1971c698d58f04558159ebf392",
+      "vsCapturedGpu": {
+        "exact": 30720,
+        "total": 30720,
+        "allExact": true,
+        "maxUlp": 0,
+        "maxAbsDiff": 0
+      },
+      "vsJsWitness": {
+        "exact": 30720,
+        "total": 30720,
+        "allExact": true,
+        "maxUlp": 0,
+        "maxAbsDiff": 0
+      }
+    },
+    {
+      "stage": "linear.attn.linear_z_proj@positions",
+      "elements": 18432,
+      "physicalGpuSha256": "694c759e180c55f71718004bfddaa5cea03913250cd0cfb2a24435f1c19584c8",
+      "vsCapturedGpu": {
+        "exact": 18432,
+        "total": 18432,
+        "allExact": true,
+        "maxUlp": 0,
+        "maxAbsDiff": 0
+      },
+      "vsJsWitness": {
+        "exact": 18432,
+        "total": 18432,
+        "allExact": true,
+        "maxUlp": 0,
+        "maxAbsDiff": 0
+      }
+    },
+    {
+      "stage": "linear.attn.linear_a_proj@positions",
+      "elements": 144,
+      "physicalGpuSha256": "f00c6fd75381fcf2c1dbaf44c2dcbcbdc9397d26985d9cec11ab3583499692dc",
+      "vsCapturedGpu": {
+        "exact": 144,
+        "total": 144,
+        "allExact": true,
+        "maxUlp": 0,
+        "maxAbsDiff": 0
+      },
+      "vsJsWitness": {
+        "exact": 144,
+        "total": 144,
+        "allExact": true,
+        "maxUlp": 0,
+        "maxAbsDiff": 0
+      }
+    },
+    {
+      "stage": "linear.attn.linear_b_proj@positions",
+      "elements": 144,
+      "physicalGpuSha256": "2e60f7e99e8b8c81d6c8b733710dd07381c58fefe98c2d1c715381015cbce015",
+      "vsCapturedGpu": {
+        "exact": 144,
+        "total": 144,
+        "allExact": true,
+        "maxUlp": 0,
+        "maxAbsDiff": 0
+      },
+      "vsJsWitness": {
+        "exact": 144,
+        "total": 144,
+        "allExact": true,
+        "maxUlp": 0,
+        "maxAbsDiff": 0
+      }
+    },
+    {
+      "stage": "linear.attn.linear_core_out_full_seq",
+      "elements": 14155776,
+      "physicalGpuSha256": "7725ad8c393b4ddba333d497dafb47e5fba600b18e36bd4338215c72aed30667",
+      "vsCapturedGpu": {
+        "exact": 14155776,
+        "total": 14155776,
+        "allExact": true,
+        "maxUlp": 0,
+        "maxAbsDiff": 0
+      },
+      "vsJsWitness": {
+        "exact": 14155776,
+        "total": 14155776,
+        "allExact": true,
+        "maxUlp": 0,
+        "maxAbsDiff": 0
+      }
+    },
+    {
+      "stage": "attn_hc.branchOutput",
+      "elements": 7680,
+      "physicalGpuSha256": "44bd33344ccaa5ac6b8df8a82c2157eeb388a76ec9741e9a89dd7fe10388e71d",
+      "vsCapturedGpu": {
+        "exact": 7680,
+        "total": 7680,
+        "allExact": true,
+        "maxUlp": 0,
+        "maxAbsDiff": 0
+      },
+      "vsJsWitness": {
+        "exact": 7680,
+        "total": 7680,
+        "allExact": true,
+        "maxUlp": 0,
+        "maxAbsDiff": 0
+      }
+    },
+    {
+      "stage": "attn_hc.logits",
+      "elements": 12,
+      "physicalGpuSha256": "126a02cb86c4f87d8697ccd4716b23cabfdb4a0a15b1b1e4bd87af42bc9ef1e4",
+      "vsCapturedGpu": {
+        "exact": 12,
+        "total": 12,
+        "allExact": true,
+        "maxUlp": 0,
+        "maxAbsDiff": 0
+      },
+      "vsJsWitness": {
+        "exact": 12,
+        "total": 12,
+        "allExact": true,
+        "maxUlp": 0,
+        "maxAbsDiff": 0
+      }
+    },
+    {
+      "stage": "attn_hc.gate",
+      "elements": 12,
+      "physicalGpuSha256": "e5e551ba34977a0b84800fa3423edb988ff93f21043eb44fe4675263720856b4",
+      "vsCapturedGpu": {
+        "exact": 12,
+        "total": 12,
+        "allExact": true,
+        "maxUlp": 0,
+        "maxAbsDiff": 0
+      },
+      "vsJsWitness": {
+        "exact": 12,
+        "total": 12,
+        "allExact": true,
+        "maxUlp": 0,
+        "maxAbsDiff": 0
+      }
+    },
+    {
+      "stage": "attn_hc.injected",
+      "elements": 30720,
+      "physicalGpuSha256": "27d4dd2be71275225a74574f3743c37669dde041b42d0756c083b9f3775e0535",
+      "vsCapturedGpu": {
+        "exact": 30720,
+        "total": 30720,
+        "allExact": true,
+        "maxUlp": 0,
+        "maxAbsDiff": 0
+      },
+      "vsJsWitness": {
+        "exact": 30720,
+        "total": 30720,
+        "allExact": true,
+        "maxUlp": 0,
+        "maxAbsDiff": 0
+      }
+    },
+    {
+      "stage": "mlp_hc.norm",
+      "elements": 30720,
+      "physicalGpuSha256": "a8fa3ebeee2e5f527a7361c4c6759cbc7c384a0226027f39e7da47249a500fda",
+      "vsCapturedGpu": {
+        "exact": 30720,
+        "total": 30720,
+        "allExact": true,
+        "maxUlp": 0,
+        "maxAbsDiff": 0
+      },
+      "vsJsWitness": {
+        "exact": 30720,
+        "total": 30720,
+        "allExact": true,
+        "maxUlp": 0,
+        "maxAbsDiff": 0
+      }
+    },
+    {
+      "stage": "mlp_hc.down",
+      "elements": 960,
+      "physicalGpuSha256": "d53022c44e4c82af1712ec8d6fe5bc781bd7365c8ca9163d668a66f7687bfaca",
+      "vsCapturedGpu": {
+        "exact": 960,
+        "total": 960,
+        "allExact": true,
+        "maxUlp": 0,
+        "maxAbsDiff": 0
+      },
+      "vsJsWitness": {
+        "exact": 960,
+        "total": 960,
+        "allExact": true,
+        "maxUlp": 0,
+        "maxAbsDiff": 0
+      }
+    },
+    {
+      "stage": "mlp_hc.lowRank",
+      "elements": 960,
+      "physicalGpuSha256": "7324619c119a724591fdd7fbdc574da6a1cb5a556f48e40d9a5c5e0f98dcf99c",
+      "vsCapturedGpu": {
+        "exact": 960,
+        "total": 960,
+        "allExact": true,
+        "maxUlp": 0,
+        "maxAbsDiff": 0
+      },
+      "vsJsWitness": {
+        "exact": 960,
+        "total": 960,
+        "allExact": true,
+        "maxUlp": 0,
+        "maxAbsDiff": 0
+      }
+    },
+    {
+      "stage": "mlp_hc.up",
+      "elements": 30720,
+      "physicalGpuSha256": "8c75ed82435535d1ddec105b17240291c876df115245330a49b881b6808baf07",
+      "vsCapturedGpu": {
+        "exact": 30720,
+        "total": 30720,
+        "allExact": true,
+        "maxUlp": 0,
+        "maxAbsDiff": 0
+      },
+      "vsJsWitness": {
+        "exact": 30720,
+        "total": 30720,
+        "allExact": true,
+        "maxUlp": 0,
+        "maxAbsDiff": 0
+      }
+    },
+    {
+      "stage": "mlp_hc.mix",
+      "elements": 30720,
+      "physicalGpuSha256": "8a9818ab8d3da200dbca6869cc00eba03dcf88d757c12d1e91a5129e5ac53450",
+      "vsCapturedGpu": {
+        "exact": 30720,
+        "total": 30720,
+        "allExact": true,
+        "maxUlp": 0,
+        "maxAbsDiff": 0
+      },
+      "vsJsWitness": {
+        "exact": 30720,
+        "total": 30720,
+        "allExact": true,
+        "maxUlp": 0,
+        "maxAbsDiff": 0
+      }
+    },
+    {
+      "stage": "mlp_hc.branchInput",
+      "elements": 7680,
+      "physicalGpuSha256": "91be982a16bb0e35a1cf1b2969ceb698600b011011651aebb2c62221d72cf298",
+      "vsCapturedGpu": {
+        "exact": 7680,
+        "total": 7680,
+        "allExact": true,
+        "maxUlp": 0,
+        "maxAbsDiff": 0
+      },
+      "vsJsWitness": {
+        "exact": 7680,
+        "total": 7680,
+        "allExact": true,
+        "maxUlp": 0,
+        "maxAbsDiff": 0
+      }
+    },
+    {
+      "stage": "router25.logits",
+      "elements": 1536,
+      "physicalGpuSha256": "4cd34fb4d1240f2ce113464389837e678bc4c2019873a6706b0b6fae978a7aad",
+      "vsCapturedGpu": {
+        "exact": 1536,
+        "total": 1536,
+        "allExact": true,
+        "maxUlp": 0,
+        "maxAbsDiff": 0
+      },
+      "vsJsWitness": {
+        "exact": 1536,
+        "total": 1536,
+        "allExact": true,
+        "maxUlp": 0,
+        "maxAbsDiff": 0
+      }
+    }
+  ],
+  "r2BranchOutVsJsWitness": {
+    "exact": 7680,
+    "total": 7680,
+    "allExact": true,
+    "maxUlp": 0,
+    "maxAbsDiff": 0
+  },
+  "physicalCounterfactuals": [
+    {
+      "id": "R0_physical_gpu_all_layer25",
+      "description": "Physical WebGPU execution of Layer 25 starting from retained GPU Layer-24 stream input",
+      "physicalBranchInputSha256": "91be982a16bb0e35a1cf1b2969ceb698600b011011651aebb2c62221d72cf298",
+      "physicalRouterLogitsSha256": "4cd34fb4d1240f2ce113464389837e678bc4c2019873a6706b0b6fae978a7aad",
+      "branchInputVsJsWitness": {
+        "exact": 7680,
+        "total": 7680,
+        "allExact": true,
+        "maxUlp": 0,
+        "maxAbsDiff": 0
+      },
+      "routerLogitsVsJsWitness": {
+        "exact": 1536,
+        "total": 1536,
+        "allExact": true,
+        "maxUlp": 0,
+        "maxAbsDiff": 0
+      },
+      "perPosition": [
+        {
+          "position": 1717,
+          "exactTop": [
+            364,
+            482,
+            127,
+            66,
+            431,
+            170,
+            331,
+            494,
+            499,
+            330
+          ],
+          "physicalGpuTop": [
+            364,
+            482,
+            127,
+            66,
+            431,
+            170,
+            331,
+            494,
+            499,
+            330
+          ],
+          "exactOverlapWithCpu": 9,
+          "physicalGpuOverlapWithCpu": 9,
+          "exactMatchesCpuTop10": false,
+          "physicalGpuMatchesCpuTop10": false,
+          "pairMargin": {
+            "sourceExpert": 493,
+            "gpuExpert": 330,
+            "exactMargin": -0.000002701793814452458,
+            "physicalGpuMargin": -0.000002384185791015625,
+            "flipsExact": true,
+            "flipsPhysicalGpu": true
+          }
+        },
+        {
+          "position": 2271,
+          "exactTop": [
+            309,
+            170,
+            179,
+            172,
+            495,
+            268,
+            290,
+            469,
+            369,
+            411
+          ],
+          "physicalGpuTop": [
+            309,
+            170,
+            179,
+            172,
+            495,
+            268,
+            290,
+            469,
+            369,
+            411
+          ],
+          "exactOverlapWithCpu": 9,
+          "physicalGpuOverlapWithCpu": 9,
+          "exactMatchesCpuTop10": false,
+          "physicalGpuMatchesCpuTop10": false,
+          "pairMargin": {
+            "sourceExpert": 311,
+            "gpuExpert": 411,
+            "exactMargin": -8.463160519056601e-7,
+            "physicalGpuMargin": -4.76837158203125e-7,
+            "flipsExact": true,
+            "flipsPhysicalGpu": true
+          }
+        },
+        {
+          "position": 2303,
+          "exactTop": [
+            329,
+            500,
+            220,
+            450,
+            85,
+            187,
+            188,
+            393,
+            190,
+            84
+          ],
+          "physicalGpuTop": [
+            329,
+            500,
+            220,
+            450,
+            85,
+            187,
+            188,
+            393,
+            190,
+            84
+          ],
+          "exactOverlapWithCpu": 10,
+          "physicalGpuOverlapWithCpu": 10,
+          "exactMatchesCpuTop10": true,
+          "physicalGpuMatchesCpuTop10": true,
+          "pairMargin": null
+        }
+      ]
+    },
+    {
+      "id": "R1_physical_gpu_cpu_stream_and_branch_into_gpu_hc",
+      "description": "Physical WebGPU execution of Layer 25 attn_hc, inject, mlp_hc, and router25 on substituted CPU attn_hc.input + CPU attn_hc.branchOutput",
+      "physicalBranchInputSha256": "9da79460bcd041598bfea4abebc613366b3ec3a8b999a2ca134b63376269752d",
+      "physicalRouterLogitsSha256": "5dda13163433d5eaaab4ed5f77833ce40fe2131ee2eb7a24fa02093af84a24a3",
+      "branchInputVsJsWitness": {
+        "exact": 7680,
+        "total": 7680,
+        "allExact": true,
+        "maxUlp": 0,
+        "maxAbsDiff": 0
+      },
+      "routerLogitsVsJsWitness": {
+        "exact": 1536,
+        "total": 1536,
+        "allExact": true,
+        "maxUlp": 0,
+        "maxAbsDiff": 0
+      },
+      "perPosition": [
+        {
+          "position": 1717,
+          "exactTop": [
+            364,
+            482,
+            127,
+            66,
+            431,
+            170,
+            331,
+            494,
+            499,
+            493
+          ],
+          "physicalGpuTop": [
+            364,
+            482,
+            127,
+            66,
+            431,
+            170,
+            331,
+            494,
+            499,
+            493
+          ],
+          "exactOverlapWithCpu": 10,
+          "physicalGpuOverlapWithCpu": 10,
+          "exactMatchesCpuTop10": true,
+          "physicalGpuMatchesCpuTop10": true,
+          "pairMargin": {
+            "sourceExpert": 493,
+            "gpuExpert": 330,
+            "exactMargin": 0.000001465291976643357,
+            "physicalGpuMargin": 0.000001430511474609375,
+            "flipsExact": false,
+            "flipsPhysicalGpu": false
+          }
+        },
+        {
+          "position": 2271,
+          "exactTop": [
+            309,
+            170,
+            179,
+            172,
+            495,
+            268,
+            290,
+            469,
+            369,
+            311
+          ],
+          "physicalGpuTop": [
+            309,
+            170,
+            179,
+            172,
+            495,
+            268,
+            290,
+            469,
+            369,
+            311
+          ],
+          "exactOverlapWithCpu": 10,
+          "physicalGpuOverlapWithCpu": 10,
+          "exactMatchesCpuTop10": true,
+          "physicalGpuMatchesCpuTop10": true,
+          "pairMargin": {
+            "sourceExpert": 311,
+            "gpuExpert": 411,
+            "exactMargin": 9.970441725570822e-7,
+            "physicalGpuMargin": 4.76837158203125e-7,
+            "flipsExact": false,
+            "flipsPhysicalGpu": false
+          }
+        },
+        {
+          "position": 2303,
+          "exactTop": [
+            329,
+            500,
+            220,
+            450,
+            85,
+            187,
+            188,
+            393,
+            190,
+            84
+          ],
+          "physicalGpuTop": [
+            329,
+            500,
+            220,
+            450,
+            85,
+            187,
+            188,
+            393,
+            190,
+            84
+          ],
+          "exactOverlapWithCpu": 10,
+          "physicalGpuOverlapWithCpu": 10,
+          "exactMatchesCpuTop10": true,
+          "physicalGpuMatchesCpuTop10": true,
+          "pairMargin": null
+        }
+      ]
+    },
+    {
+      "id": "R2_physical_gpu_cpu_layer24_stream_into_all_gpu_layer25",
+      "description": "Physical WebGPU execution of all Layer-25 operators (attn_hc -> linear_attn -> inject -> mlp_hc -> router25) on substituted CPU attn_hc.input at [1717, 2271, 2303]",
+      "physicalBranchInputSha256": "9312f01082f7685315e4d0a6e60c86386f08ac42c22916a891d68a47ab713f4f",
+      "physicalRouterLogitsSha256": "7739e19ec9c919c1c4871ec513a52bbea12c2722381bef57bdc2961eecf60974",
+      "branchInputVsJsWitness": {
+        "exact": 7680,
+        "total": 7680,
+        "allExact": true,
+        "maxUlp": 0,
+        "maxAbsDiff": 0
+      },
+      "routerLogitsVsJsWitness": {
+        "exact": 1536,
+        "total": 1536,
+        "allExact": true,
+        "maxUlp": 0,
+        "maxAbsDiff": 0
+      },
+      "perPosition": [
+        {
+          "position": 1717,
+          "exactTop": [
+            364,
+            482,
+            127,
+            66,
+            431,
+            170,
+            331,
+            494,
+            499,
+            493
+          ],
+          "physicalGpuTop": [
+            364,
+            482,
+            127,
+            66,
+            431,
+            170,
+            331,
+            494,
+            499,
+            493
+          ],
+          "exactOverlapWithCpu": 10,
+          "physicalGpuOverlapWithCpu": 10,
+          "exactMatchesCpuTop10": true,
+          "physicalGpuMatchesCpuTop10": true,
+          "pairMargin": {
+            "sourceExpert": 493,
+            "gpuExpert": 330,
+            "exactMargin": 0.000001901814188798312,
+            "physicalGpuMargin": 0.000002384185791015625,
+            "flipsExact": false,
+            "flipsPhysicalGpu": false
+          }
+        },
+        {
+          "position": 2271,
+          "exactTop": [
+            309,
+            170,
+            179,
+            172,
+            495,
+            268,
+            290,
+            469,
+            369,
+            311
+          ],
+          "physicalGpuTop": [
+            309,
+            170,
+            179,
+            172,
+            495,
+            268,
+            290,
+            469,
+            369,
+            311
+          ],
+          "exactOverlapWithCpu": 10,
+          "physicalGpuOverlapWithCpu": 10,
+          "exactMatchesCpuTop10": true,
+          "physicalGpuMatchesCpuTop10": true,
+          "pairMargin": {
+            "sourceExpert": 311,
+            "gpuExpert": 411,
+            "exactMargin": 9.788916610631304e-7,
+            "physicalGpuMargin": 9.5367431640625e-7,
+            "flipsExact": false,
+            "flipsPhysicalGpu": false
+          }
+        },
+        {
+          "position": 2303,
+          "exactTop": [
+            329,
+            500,
+            220,
+            450,
+            85,
+            187,
+            188,
+            393,
+            190,
+            84
+          ],
+          "physicalGpuTop": [
+            329,
+            500,
+            220,
+            450,
+            85,
+            187,
+            188,
+            393,
+            190,
+            84
+          ],
+          "exactOverlapWithCpu": 10,
+          "physicalGpuOverlapWithCpu": 10,
+          "exactMatchesCpuTop10": true,
+          "physicalGpuMatchesCpuTop10": true,
+          "pairMargin": null
+        }
+      ]
+    }
+  ],
+  "scope": "Fresh physical WebGPU execution of Layer-25 WGSL shaders on substituted CPU inputs (R1_physical_gpu, R2_physical_gpu) and retained GPU inputs (R0_physical_gpu). Does not change Flash-Next qualification status."
+}
