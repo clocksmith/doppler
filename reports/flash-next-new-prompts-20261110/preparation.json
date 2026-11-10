@@ -1,0 +1,13 @@
+{
+  "schema": "doppler.flash-next-new-prompt-run/v1",
+  "producerSha256": "300cff123663a2748817737b156220812761460289d08b055808cf9cf38d78a0",
+  "protocolSha256": "d318429481dcad4801a2e7563f92dbe008e93178fb616caa95d75f13976aa6fd",
+  "inputsSha256": "3258ae236b529ddaf0d261809a8a7be72cd2048645342078e53c064c5a4b0748",
+  "referenceSha256": "fa25a6e219f1f39f0ecf735ff8d2a7941f88a2e335d052efdb1114afc6e06b99",
+  "parentRunSha256": "43981b32afd705747cc97b860d282888943bc8949a70bef1dd9589122bf06b8d",
+  "runSha256": "62ddce380ace2380e436acac44b6dd1de3051d6107435329fbb2603efd5bdc88",
+  "numericRuntimeConfigUnchanged": true,
+  "referenceTensorInjection": false,
+  "acceptanceChanged": false,
+  "normalModelQualified": false
+}

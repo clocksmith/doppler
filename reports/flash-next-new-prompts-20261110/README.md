@@ -2,10 +2,21 @@
 
 This packet freezes two prompts not used to tune the preceding numerical
 repairs. The independent CPU source reference completed all 48 layers and is
-retained with verified payload hashes and finite F32 arrays. No GPU
-comparison has been performed for these inputs, so there is no new model
-qualification result. The previously passing evidence remains in
+retained with verified payload hashes and finite F32 arrays. The new GPU
+comparison **fails** the unchanged policy on the long prompt. The previously
+passing evidence remains in
 [the bounded decode report](../flash-next-decode-20261110/README.md).
+
+| New prefill case | Tokens | Checked logits | Maximum absolute error | Violations | Greedy token |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| marbles | 22 | 248,320 | 0.0000262260 | 0 | 8646 |
+| inventory | 2,187 | 248,320 | 0.4672708511 | **30,664** | 271 |
+
+Both greedy tokens match the source. That does not override the score failure.
+[comparison.json](comparison.json) preserves the failed gate and
+[preparation.json](preparation.json) binds the run to its unchanged parent
+configuration, independent reference and frozen inputs. A diagnostic trace is
+being collected separately; no repair or new qualification is established here.
 
 - `marbles`: 22 tokens, arithmetic completion.
 - `inventory`: 2,187 tokens, structured inventory beyond the sparse-attention
@@ -48,7 +59,8 @@ python3 reports/flash-next-new-prompts-20261110/prepare-run.py \
 Then run the existing provisioned `tests/integration/flash-next-learned-physical.test.js`
 from that runtime, with `DOPPLER_FLASH_NEXT_PROBE` pointing to the newly prepared
 `run.json`. Preserve the shared GPU lock, the active 27B provider and the existing
-GPU memory limit. No new run is started by this packet.
+GPU memory limit. Use a fresh output directory; the original observation remains
+retained and failed. The preparation script itself starts no inference.
 
 ```sh
 python3 artifacts/qwen38-flash-next-20261013/compare-learned-reference.py \

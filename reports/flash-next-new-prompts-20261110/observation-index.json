@@ -1,0 +1,94 @@
+{
+  "schema": "doppler.flash-next-new-prompt-observation-index/v1",
+  "scope": "Frozen repaired AMD Node F32-KV snapshot, two new prefill prompts; long case failed",
+  "observationSha256": "99c727316d917efb455084f6c2c0a831bb66aa0ab28964cbbb5bbc08e6d90283",
+  "comparisonSha256": "9b1bd57f043b8d94d576d6752f092ada1c5a7f71842cb0eac590ba4e7d6a2176",
+  "preparationSha256": "9030905fdb69bbab338670e57fb2277529bfcf6166c3248808c4470cb8ba4f3d",
+  "runtimeRevision": "frozen-f32kv-20261107+stable-softplus-27446cd31a92+route-products-8d4aa9adf127",
+  "runtimeSourceSha256": {
+    "src/config/kernels/kernel-ref-digests.js": "bf82bfb06583153e94f4827a8bbd38ab5d625685e895afe6984871e8f995880b",
+    "src/config/kernels/registry.json": "7ffc167a415882d66646f2ff07bf1b336aee8a55065668fd0704e90c1f12f888",
+    "src/converter/execution-graph-transforms.js": "0af62f6f97cdbc5a4d5fa8ff5f3022510400159e29e2e5c75ac16f3467a740f5",
+    "src/converter/execution-graph/kv-storage.js": "2e97aecb17959e9637b8e68a1d8cb40eb54fd3c97f5f076f2ce3d0a1e0b39234",
+    "src/converter/execution-graph/validation.js": "c5ac71ac3991471c90f03444a4737528da21d472730b98c813fae004f3daa85d",
+    "src/gpu/kernels/attention_indexed.wgsl": "49a68e1b3a635be70d123167a40c9452c7e7a228978931552be9644d1abd703d",
+    "src/gpu/kernels/gated_delta_fused_decode.wgsl": "1b6166f1013b4e953677f0d674fc3c4a6fdbdaf43d7d95f6148b8cc570a9bd52",
+    "src/gpu/kernels/gated_delta_fused_decode_f16.wgsl": "c600362d92912484eb66b730adfe82ddba0d05bdf187b5583dd529707feefe57",
+    "src/gpu/kernels/gated_delta_fused_decode_paired.wgsl": "f005484e88dbe50b0c3d121cb6aa99b6cf92b8fbea17d6290b2aff158520670b",
+    "src/gpu/kernels/gated_delta_fused_decode_paired_f16.wgsl": "0dadb2533f5cfb6722ade96c5d03fbcf5dfc3d53884d2378622e954ac69df5f8",
+    "src/gpu/kernels/gated_delta_fused_decode_paired_sigmoid_gate.wgsl": "727d7fb890ee55b9a0094b16506ae9fd87ee902eeaa21243430e80df2e4e73be",
+    "src/gpu/kernels/gated_delta_fused_decode_paired_sigmoid_gate_f16.wgsl": "fa04cd9d7f22bcad9fedc700d8024e4fd4bce1af2fcac904820811aed7989dfd",
+    "src/gpu/kernels/gated_delta_fused_decode_register.wgsl": "e706b1deb0f65face61246dbbe0e7cd19f13c1ab6f82be4e3aad09f210910eff",
+    "src/gpu/kernels/gated_delta_fused_decode_sigmoid_gate.wgsl": "dfc2f6ce8e13dae2fc08591bcd274361849bc071e9b431ed001d66442cc0f63f",
+    "src/gpu/kernels/gated_delta_fused_decode_sigmoid_gate_f16.wgsl": "77deeb8d8af55a40c53aeaae467c58fbd481e460edf2ad63163b81df80c7fad1",
+    "src/gpu/kernels/gated_delta_prefill_norm_gate.wgsl": "54b2a3eee343d8ea8424315a1766025fb916d1c29cd1b576a08737b72f45a197",
+    "src/gpu/kernels/gated_delta_recurrent.wgsl": "e7415ae39cd780e58a87febd307f98a1656d0d00b5e52e625370f56e82df25b7",
+    "src/gpu/kernels/gated_delta_recurrent_f16.wgsl": "3ef06f5a43ffb09cf518f9bcfb27fabca049478cec82272d30fe6e347c1086be",
+    "src/gpu/kernels/gated_delta_recurrent_gguf.wgsl": "80976744ad44e12819971ca3fac9758e2f812843c04fb2bee3829cd9e572adb4",
+    "src/gpu/kernels/gated_delta_recurrent_gguf_register_prefill.wgsl": "61b74c31c57a9b82d61ff538eb295d4408a5a0eb3b9042a99f457bbe15213c95",
+    "src/gpu/kernels/gated_delta_recurrent_register_prefill.wgsl": "db11ed95422c7222ca504c9aead1859e2e187a76ec8acbadcecbe9a5e4c9ffc7",
+    "src/gpu/kernels/gated_delta_recurrent_sigmoid_gate.wgsl": "cff9670f3505d9fc65a9399f284379dc311bac3da255b6a096b6ac32845596d2",
+    "src/gpu/kernels/gated_delta_recurrent_sigmoid_gate_f16.wgsl": "5f1ff656f0260b579b027bfd94ea5da341e9188d8ea9382a49cea6eea279b678",
+    "src/gpu/kernels/qsa-indexer.js": "2adc6a44e446641aa400aa804dc4910312501840c5fdfe5782a1925587bb28bc",
+    "src/gpu/kernels/scatter_add_routes_f32.wgsl": "30597e2e0b959e519d55b8c88a3bf290ebd9388d07f347b1d260f92a56160e12",
+    "src/inference/pipelines/text/hyper-connection/sequence-transaction.js": "2d3b7f9df14c94f09e04872b1e59374f22e86c7897d3eb3da3b8a392ef801448",
+    "src/inference/pipelines/text/indexed-attention/attention-runner.js": "0735608d81fbb4797d70e827ae6e3cc3846beae60f18fbf6c46aa8c6634415e7",
+    "src/inference/pipelines/text/moe-gpu.js": "52d7f522d4c0c670d0a8c980718340ebd663765a1f34d3e9c3a3762d01c2520d",
+    "src/inference/pipelines/text/moe/routed-expert-chunks.js": "2c62078cac1d4f1276079344fcf647e0185c2c1a68a8dfbf451b8791a76c6500",
+    "src/loader/doppler-loader.js": "10a8d234ab34d114c154a240c5e9d7e1b61162dbe3092397f3f8f8d59a5fc859",
+    "src/loader/experts/loader-bindings.js": "be2f9b839cfcad4ced5452f4882d67f51cf779fbdc58b520302f0b816b761b90",
+    "src/loader/experts/routed-expert-cache.js": "0b5da688bb8b9e6e43bffe467742edac184b913d15427db845d2c1875e8c855d",
+    "src/loader/experts/routed-expert-plan.js": "35359657196c41c8ab41ccc29f6d2b52829bf5396a4a842ef264b0d5acb141c6",
+    "src/rules/inference/capability-transforms.rules.json": "617c773184972b22fa353ac25d84cbb196af3c5854a19d7d98008dd0fac4e9ed",
+    "src/rules/kernels/attention.rules.json": "fc948d10ae33ca49327ab4efcca1a0383eac9c483287cf595da5eb584360795e",
+    "tests/integration/flash-next-learned-physical.test.js": "f14a6e697f9125b19cd6fcb9b6bedf23b6be9ec411c02ba2c1cc7d6c0df37295",
+    "tests/integration/flash-next-upstream-trace-physical.test.js": "6a5758d71e751b3fdbe25be91848c30acdf8e2e4b830bcb4b914407f94c66d3f"
+  },
+  "manifestSha256": "4902a0b730a9310903b00bc0f8f587528fa1af9f37a722d2f9287bafceceec09",
+  "inputsSha256": "3258ae236b529ddaf0d261809a8a7be72cd2048645342078e53c064c5a4b0748",
+  "referenceSha256": "fa25a6e219f1f39f0ecf735ff8d2a7941f88a2e335d052efdb1114afc6e06b99",
+  "runSha256": "62ddce380ace2380e436acac44b6dd1de3051d6107435329fbb2603efd5bdc88",
+  "completed": true,
+  "rows": [
+    {
+      "id": "marbles",
+      "tokens": 22,
+      "kvDtype": "f32",
+      "tokenIds": [
+        8646
+      ],
+      "frames": [
+        {
+          "step": 0,
+          "shape": [
+            248320
+          ],
+          "sha256": "b41e0408bcf7fd9f002a84ce8faf60b7b42886ae7d353774ad4fc036d76e8b5a"
+        }
+      ]
+    },
+    {
+      "id": "inventory",
+      "tokens": 2187,
+      "kvDtype": "f32",
+      "tokenIds": [
+        271
+      ],
+      "frames": [
+        {
+          "step": 0,
+          "shape": [
+            248320
+          ],
+          "sha256": "04c4192332b28f97503ee23566832e07d12f1cb2dbd80d245b7f3e81f364764f"
+        }
+      ]
+    }
+  ],
+  "gpuErrors": [],
+  "cleanupFailures": [],
+  "passed": false,
+  "normalModelQualified": false,
+  "acceptanceChanged": false,
+  "deployment": false
+}
