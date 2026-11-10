@@ -76,8 +76,10 @@ if args.protocol:
     require(protocol['sourceGreedyChainVerifiedBeforeGpu'], 'Source greedy chain was not frozen before GPU use')
     require([row['id'] for row in gpu['rows']] == [row['id'] for row in protocol['chains']], 'Missing or reordered prompt cases')
     require(hashlib.sha256(decode_input_bytes).hexdigest() == protocol['decodeInputsSha256'], 'Protocol decode inputs mismatch')
-if args.kv_dtype == 'f32':
+if args.kv_dtype == 'f32' and decode_reference is not None:
     require(protocol is not None and decode_reference is not None, 'F32 decode comparison requires its explicit protocol')
+if args.kv_dtype == 'f32' and decode_reference is None:
+    require([row['id'] for row in gpu['rows']] == list(reference['sequences']), 'Missing or reordered prefill cases')
 
 def compare(actual, expected):
     actual, expected = np.asarray(actual, dtype=np.float64), np.asarray(expected, dtype=np.float64)
@@ -119,7 +121,7 @@ for row in gpu['rows']:
     result['passed'] = result['firstTokenAgrees'] and bool(result['layers'] or 'logits' in result) and all(l['passed'] for l in result['layers'])
     if 'logits' in result:
         result['passed'] = result['passed'] and result['logits']['passed']
-        if protocol:
+        if protocol or args.kv_dtype == 'f32':
             result['passed'] = result['passed'] and result['logits']['actualArgmax'] == row['tokenId']
     result['fullLogitsChecked'] = 'logits' in result
     if decode_reference:

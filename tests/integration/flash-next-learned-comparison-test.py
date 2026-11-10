@@ -82,6 +82,38 @@ class LearnedComparison(unittest.TestCase):
         self.assertTrue(result['rows'][0]['trajectoryAgrees'])
         self.assertEqual([r['count'] for r in result['rows'][0]['decodeRows']], [4, 4])
 
+    def test_f32_prefill_only_does_not_require_a_decode_protocol(self):
+        output = self.root / 'prefill.json'
+        result = subprocess.run([sys.executable, str(SCRIPT), str(self.paths['gpu']), str(self.paths['reference']),
+                                 str(output), '--kv-dtype', 'f32', '--inputs', str(self.paths['inputs']),
+                                 '--policy', str(POLICY)], capture_output=True, text=True)
+        self.assertEqual(result.returncode, 0, result.stderr)
+        receipt = json.loads(output.read_bytes())
+        self.assertTrue(receipt['passed'])
+        self.assertEqual(receipt['rows'][0]['logits']['count'], 4)
+        self.assertNotIn('decodeRows', receipt['rows'][0])
+
+    def test_f32_decode_still_requires_an_explicit_protocol(self):
+        output = self.root / 'missing-protocol.json'
+        result = subprocess.run([sys.executable, str(SCRIPT), str(self.paths['gpu']), str(self.paths['reference']),
+                                 str(output), str(self.paths['decode']), str(self.paths['decode-inputs']),
+                                 '--kv-dtype', 'f32', '--inputs', str(self.paths['inputs']), '--policy', str(POLICY)],
+                                capture_output=True, text=True)
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn('requires its explicit protocol', result.stderr)
+        self.assertFalse(output.exists())
+
+    def test_f32_prefill_rejects_missing_prompt_cases(self):
+        self.gpu['rows'] = []
+        self.save('gpu', self.gpu)
+        output = self.root / 'empty-prefill.json'
+        result = subprocess.run([sys.executable, str(SCRIPT), str(self.paths['gpu']), str(self.paths['reference']),
+                                 str(output), '--kv-dtype', 'f32', '--inputs', str(self.paths['inputs']),
+                                 '--policy', str(POLICY)], capture_output=True, text=True)
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn('Missing or reordered prefill cases', result.stderr)
+        self.assertFalse(output.exists())
+
     def test_finite_wrong_decode_writes_a_failed_receipt(self):
         frame = self.gpu['rows'][0]['logitFrames'][1]
         values = self.values[1].copy()

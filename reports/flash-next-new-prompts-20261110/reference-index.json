@@ -1,0 +1,54 @@
+{
+  "schema": "doppler.flash-next-new-prompt-reference-index/v1",
+  "createdAtUtc": "2026-11-10T16:37:31.904986+00:00",
+  "scope": "Retained independent CPU source reference and payload integrity; no new GPU comparison",
+  "referenceFile": "learned-forward-reference-float32-artifact.json",
+  "referenceSha256": "fa25a6e219f1f39f0ecf735ff8d2a7941f88a2e335d052efdb1114afc6e06b99",
+  "referenceBytes": 17364372,
+  "protocolSha256": "d318429481dcad4801a2e7563f92dbe008e93178fb616caa95d75f13976aa6fd",
+  "sourceProducerSha256": "f6bc0f15a6545ab1d205cfc3ec412442415220e541190b63a9c712fa238ba5b0",
+  "sourceCheckpoint": "de4b8e4d43b917e7706784d8bb445c9af86a3540",
+  "upstreamRevision": "e0eb2810ac1b2caf6d082f247d8d37162ecf67a0",
+  "torch": "2.11.0+cu130",
+  "surface": "CPU",
+  "dtype": "float32",
+  "threads": 16,
+  "inputsSha256": "3258ae236b529ddaf0d261809a8a7be72cd2048645342078e53c064c5a4b0748",
+  "manifestSha256": "4902a0b730a9310903b00bc0f8f587528fa1af9f37a722d2f9287bafceceec09",
+  "completedLayers": 48,
+  "sourceLayerSeconds": 487.1,
+  "rows": [
+    {
+      "id": "marbles",
+      "tokens": 22,
+      "lastPosition": 21,
+      "nextTokenId": 8646,
+      "payloadFile": "marbles-logits-float32-artifact.npy",
+      "payloadSha256": "bf4f72dae360b91161d21c5c29408d39b6e93e10f98a47049599b07eedf090fa",
+      "payloadBytes": 5959808,
+      "shape": [
+        6,
+        248320
+      ],
+      "finite": true
+    },
+    {
+      "id": "inventory",
+      "tokens": 2187,
+      "lastPosition": 2186,
+      "nextTokenId": 271,
+      "payloadFile": "inventory-logits-float32-artifact.npy",
+      "payloadSha256": "d6cc91d32317327aed55a86cf7a15aa850181dad6531a12ac0e4b4bc43aa06c5",
+      "payloadBytes": 14899328,
+      "shape": [
+        15,
+        248320
+      ],
+      "finite": true
+    }
+  ],
+  "payloadIntegrityVerified": true,
+  "gpuComparisonPerformed": false,
+  "normalModelQualified": false,
+  "acceptanceChanged": false
+}

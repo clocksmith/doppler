@@ -1,0 +1,24 @@
+{
+  "schema": "doppler.flash-next-new-prompt-inputs/v1",
+  "createdAtUtc": "2026-11-10T16:28:27.752233+00:00",
+  "scope": "Two new numerical parity prompts, not used to tune the preceding runtime repairs; no task-quality qualification",
+  "specSha256": "a22c259f75ef67dc64f5e6d1b5396896bd632981bfe2b2e15c1d1fb57c2ace81",
+  "producerSha256": "61fa4e4e728ab11a92dc791f22def3e9c19a666a608de84c7339967e74d72dcf",
+  "inputsSha256": "3258ae236b529ddaf0d261809a8a7be72cd2048645342078e53c064c5a4b0748",
+  "manifestSha256": "4902a0b730a9310903b00bc0f8f587528fa1af9f37a722d2f9287bafceceec09",
+  "tokenizerSha256": "ae50d65939a34a089eaf1e541c15c8a7d866079a5fe9a1d35454e0aa88577753",
+  "inputs": [
+    {
+      "id": "marbles",
+      "tokens": 22
+    },
+    {
+      "id": "inventory",
+      "tokens": 2187
+    }
+  ],
+  "sourceRunsStarted": 0,
+  "gpuRunsStarted": 0,
+  "acceptanceChanged": false,
+  "normalModelQualified": false
+}

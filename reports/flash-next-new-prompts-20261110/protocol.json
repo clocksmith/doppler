@@ -1,0 +1,41 @@
+{
+  "schema": "doppler.flash-next-new-prompt-protocol/v1",
+  "createdAtUtc": "2026-11-10T16:30:36.071757+00:00",
+  "scope": "New short and sparse-attention-length numerical prefill cases on the previously repaired frozen AMD Node F32-KV snapshot",
+  "parentCodeRevision": "15ca614f0a45b4234ac37c147db82b1b347aaca6",
+  "inputReceiptSha256": "83c2147e60ff687978e8f3484036e43e4d2c321af58ee912d4201c7f5f3be86c",
+  "inputsSha256": "3258ae236b529ddaf0d261809a8a7be72cd2048645342078e53c064c5a4b0748",
+  "specSha256": "a22c259f75ef67dc64f5e6d1b5396896bd632981bfe2b2e15c1d1fb57c2ace81",
+  "manifestSha256": "4902a0b730a9310903b00bc0f8f587528fa1af9f37a722d2f9287bafceceec09",
+  "sourceProducerSha256": "f6bc0f15a6545ab1d205cfc3ec412442415220e541190b63a9c712fa238ba5b0",
+  "policyId": "doppler.boundary-tolerance/quantized-v1",
+  "policySha256": "f1c4629d593ec2517e3628ac68131dc7568c6aba5e0f03db627d26228c720413",
+  "cases": [
+    {
+      "id": "marbles",
+      "tokens": 22,
+      "outputRows": 1,
+      "checkedLogitsPerRow": 248320
+    },
+    {
+      "id": "inventory",
+      "tokens": 2187,
+      "outputRows": 1,
+      "checkedLogitsPerRow": 248320
+    }
+  ],
+  "kvDtype": "f32",
+  "sourceStateDtype": "float32",
+  "sourceMethod": "Independent cache-free full-prefix CPU source forward with stored F16/Q4_K weights",
+  "passRequirements": [
+    "All full last-position score vectors satisfy the unchanged absolute/relative policy",
+    "Greedy token identity matches the independent source",
+    "Execution and cleanup complete without reported errors"
+  ],
+  "sourceExecutionMayPrecedeProtocol": true,
+  "inputsFrozenBeforeSourceExecution": true,
+  "gpuExecutionStarted": false,
+  "referenceTensorInjection": false,
+  "acceptanceChanged": false,
+  "normalModelQualified": false
+}
