@@ -29,6 +29,6 @@ Reproduce the composed GPU check with `node tools/gemma3-mobile-binding-check.js
 The tool also accepts `DOPPLER_DEMO_URL`, `DOPPLER_DEMO_PREFIX`, and
 `DOPPLER_MOBILE_REPORT` for the hosted route.
 
-Three PWA PNGs were losslessly recompressed; pixel equality was checked. This keeps
+Four PWA PNGs were losslessly recompressed; pixel equality was checked. This keeps
 the generated offline shell below its existing 10 MB limit, including hosted URL
 prefixes. No budget, manifest, model dtype, or qualification threshold changed.
