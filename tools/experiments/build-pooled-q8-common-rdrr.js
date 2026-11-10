@@ -21,6 +21,7 @@ import { copyFile, mkdir, open, readdir, readFile, stat, writeFile } from 'node:
 import path from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { parseArgs } from 'node:util';
+import { portableSourcePath } from '../../src/tooling/portable-source-path.js';
 
 const REQUANTIZED = new Set(['Q4_1', 'Q5_0', 'Q5_K', 'Q6_K']);
 const SHARD_BYTES = 64 * 1024 * 1024;
@@ -73,7 +74,7 @@ for (let offset = 0, size = (await file.stat()).size; offset < size; offset += 6
 }
 const ggufSha256 = ggufHash.digest('hex');
 if (ggufSha256 !== args['gguf-sha256']) throw new Error(`GGUF sha256 ${ggufSha256} is not the expected ${args['gguf-sha256']}.`);
-if (source.metadata?.source !== pathToFileURL(path.resolve(args.gguf)).href) {
+if (![portableSourcePath(args.gguf), pathToFileURL(path.resolve(args.gguf)).href].includes(source.metadata?.source)) {
   throw new Error(`Source RDRR names ${source.metadata?.source}, not ${args.gguf}, as its source.`);
 }
 /** @param {{ shard?: number, offset?: number, size: number, spans?: { shardIndex: number, offset: number, size: number }[] }} entry */

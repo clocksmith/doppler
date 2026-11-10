@@ -93,6 +93,7 @@
     "src/inference/pipelines/text/embedding-batch.js",
     "src/client/runtime/fetch-capsule-artifact-store.js",
     "src/tooling/node-capsule-artifact-store.js",
+    "src/tooling/portable-source-path.js",
     "demo/branches.js",
     "demo/ui/chat-markdown.js",
     "demo/ui/xray/gpu-timings.js",

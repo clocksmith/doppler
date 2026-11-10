@@ -2,8 +2,8 @@ import { createReadStream } from 'node:fs';
 import fs from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
-import { pathToFileURL } from 'node:url';
 import { installNodeFileFetchShim } from './node-file-fetch.js';
+import { portableSourcePath } from './portable-source-path.js';
 import { NodeConvertWorkerPool } from './node-convert-worker-pool.js';
 import { createConversionRunTiming } from './conversion-run-timing.js';
 import { createRowChunks, mapOrderedChunkBatches } from './node-converter-chunk-batches.js';
@@ -855,8 +855,8 @@ export async function convertSafetensorsDirectory(options) {
       architecture: manifestArchitecture,
       inference,
       converterConfig,
-      source: pathToFileURL(inputDir).href,
-      sourcePath: inputDir,
+      source: portableSourcePath(inputDir),
+      sourcePath: portableSourcePath(inputDir),
       sourceFormat: isInputGgufFile ? 'gguf' : 'safetensors',
       conversionConfigPath: toRepoRelativePath(options?.configPath),
       conversionConfig: converterConfigOverride ?? null,
