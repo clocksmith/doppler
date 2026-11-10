@@ -1,6 +1,6 @@
 export const SHELL_MANIFEST_SCHEMA = 'doppler.demo-shell-manifest/v1';
-export const SHELL_MANIFEST_DIGEST = 'sha256:b1ff0701795890cbe53c8d3ba9251325de875971028c0287caa1791b68406544';
-export const CACHE_NAME = 'doppler-demo-shell-b1ff0701795890cb';
+export const SHELL_MANIFEST_DIGEST = 'sha256:c22a59d7b910bd07e2fc3456ac098ba9080efbd0cf04a30e295007b937070e57';
+export const CACHE_NAME = 'doppler-demo-shell-c22a59d7b910bd07';
 export const APP_SHELL = Object.freeze([
   "/demo/assets/activity-preview-attention-prefill.png",
   "/demo/assets/activity-preview-contributions.png",
@@ -866,42 +866,5 @@ export const APP_SHELL = Object.freeze([
   "/src/tooling/runtime-optimization.js",
   "/src/tooling/runtime-optimization/candidates.js",
   "/src/tooling/test-harness.js",
-  "/src/version.js",
-  "/tests/fixtures/linear-core-activation-accuracy.json",
-  "/tests/fixtures/linear-core-refined-accuracy.json",
-  "/tests/fixtures/q4k-ordered-accumulation.json",
-  "/tests/fixtures/rmsnorm-inverse-root.json",
-  "/tests/kernels/browser/kernel-suite.js",
-  "/tests/kernels/browser/test-page.js",
-  "/tests/kernels/harness/benchmark.js",
-  "/tests/kernels/harness/buffer-utils.js",
-  "/tests/kernels/harness/tolerance.js",
-  "/tests/kernels/reference/adam.js",
-  "/tests/kernels/reference/attention.js",
-  "/tests/kernels/reference/backward.js",
-  "/tests/kernels/reference/bias-add.js",
-  "/tests/kernels/reference/conv2d.js",
-  "/tests/kernels/reference/cross-entropy.js",
-  "/tests/kernels/reference/dequant.js",
-  "/tests/kernels/reference/embed.js",
-  "/tests/kernels/reference/gather.js",
-  "/tests/kernels/reference/gelu.js",
-  "/tests/kernels/reference/groupnorm.js",
-  "/tests/kernels/reference/index.js",
-  "/tests/kernels/reference/layernorm.js",
-  "/tests/kernels/reference/matmul.js",
-  "/tests/kernels/reference/modulate.js",
-  "/tests/kernels/reference/moe-gather.js",
-  "/tests/kernels/reference/pixel-shuffle.js",
-  "/tests/kernels/reference/residual.js",
-  "/tests/kernels/reference/rmsnorm.js",
-  "/tests/kernels/reference/rope.js",
-  "/tests/kernels/reference/sample.js",
-  "/tests/kernels/reference/scatter-add.js",
-  "/tests/kernels/reference/silu.js",
-  "/tests/kernels/reference/softmax.js",
-  "/tests/kernels/reference/split-qkv.js",
-  "/tests/kernels/reference/topk.js",
-  "/tests/kernels/reference/upsample2d.js",
-  "/tests/kernels/reference/vision.js"
+  "/src/version.js"
 ]);

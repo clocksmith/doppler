@@ -56,8 +56,15 @@ const WORKER_SHELL_END = '// END GENERATED DEMO SHELL';
 // allowance if demo/ui/activation-grid/paths.js is removed or inlined. Byte limit unchanged.
 // Bundled tokenizer normalization (26a81570) adds one reachable owner. Remove
 // this allowance if bundled/normalizer.js leaves the shell; byte limit unchanged.
-const MAX_MODULES = 838;
+// Files outside demo/ and src/ are no longer precached (see SERVED_PREFIXES), which
+// removed the 33 kernel-suite modules under tests/ and 1.79 MB; the ceiling follows.
+const MAX_MODULES = 805;
 const MAX_TOTAL_BYTES = 10_000_000;
+// The worker answers only requests under these folders (isDemoAsset in demo/sw.js).
+// A file anywhere else would be downloaded at install and never served from the
+// cache, so it is not part of the shell. It stays reachable online, and a missing
+// one still fails generation.
+const SERVED_PREFIXES = ['demo/', 'src/'];
 const MODULE_ROOTS = [
   'demo/demo.js',
   'demo/sw.js',
@@ -188,12 +195,16 @@ async function main() {
   const checkOnly = OPTIONS.checkOnly;
   const currentWorker = await fs.readFile(WORKER_OUTPUT, 'utf8');
   const modules = await collectModules();
-  const files = [...new Set([...modules, ...DECLARED_ASSETS])].sort();
-  for (const file of files) {
+  const reachable = [...new Set([...modules, ...DECLARED_ASSETS])].sort();
+  for (const file of reachable) {
     if (!await exists(path.join(ROOT, file))) {
       throw new Error(`Declared demo shell asset does not exist: ${file}`);
     }
   }
+  const files = reachable.filter((file) => SERVED_PREFIXES.some((prefix) => file.startsWith(prefix)));
+  const onlineOnly = reachable.filter((file) => !files.includes(file));
+  const onlineOnlyBytes = (await Promise.all(onlineOnly.map(async (file) => (await fs.stat(path.join(ROOT, file))).size)))
+    .reduce((sum, size) => sum + size, 0);
   const contentEntries = await Promise.all(
     files
       .filter((file) => file !== 'demo/generated-shell-manifest.js')
@@ -254,6 +265,7 @@ async function main() {
     await fs.writeFile(BUDGET_OUTPUT, budgetSource, 'utf8');
   }
   console.log(`demo shell manifest: ${files.length} files, ${moduleCount} modules, ${totalBytes} bytes (${digest})`);
+  console.log(`reachable but not precached: ${onlineOnly.length} files, ${onlineOnlyBytes} bytes`);
 }
 
 await main();
