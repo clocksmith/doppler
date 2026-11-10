@@ -46,7 +46,10 @@ answer from the start. Its answer and activity use one player; words appear with
 corresponding completed layer stack and scrubbing rewinds both. A small Recorded replay
 label names the model from the saved run itself, never from the model selector, and says
 it is not running on this device; publication date and timing semantics live under
-Details. It requires no model download or inference. Typing,
+Details. It requires no model download or inference, and no WebGPU: in a
+browser without WebGPU the page still opens and shows this example, the picker says
+that models cannot run there and what to open instead, and Load and Send stay disabled
+rather than startup failing. Typing,
 changing models, clearing or sending cancels a pending opening or playback.
 Once the first exchange opens, its submitted prompt is cleared from the composer.
 Typed or launched drafts cancel automatic opening and are preserved. The sample never

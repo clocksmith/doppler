@@ -62,6 +62,21 @@ export async function checkAutomaticReplay(page) {
   await page.waitForFunction(text => document.querySelector('#output-text').textContent === text, sample.outputText);
 }
 
+// A browser without WebGPU cannot run a model, but the recorded example needs none.
+export async function checkWithoutWebGpu(page) {
+  await page.waitForFunction(() => document.querySelector('#boot-overlay').hidden, null, { timeout: 60000 });
+  assert.equal(await page.evaluate(() => 'gpu' in navigator && Boolean(navigator.gpu)), false, 'This page has no WebGPU');
+  assert.equal(await page.locator('#boot-error').isVisible(), false, 'Missing WebGPU is not a startup failure');
+  assert.match(await page.locator('#model-select-detail').textContent(), /cannot run models here because it has no WebGPU\. The recorded example below still works/);
+  assert.equal(await page.locator('#model-select-action').isDisabled(), true);
+  await page.waitForFunction(() => document.querySelector('#output-text').textContent.startsWith('The sky appears blue'), null, { timeout: 120000 });
+  assert.match(await page.locator('#recorded-run-note').textContent(), /Recorded replay/);
+  assert.equal(await page.locator('#activation-player').isVisible(), true, 'The recorded activity opens without WebGPU');
+  await page.fill('#prompt-input', 'Can this browser answer?');
+  assert.equal(await page.locator('#run-btn').isDisabled(), true, 'Send cannot start a model here');
+  assert.equal(await page.evaluate(() => __demoContract.loads.length), 0);
+}
+
 export async function checkBootLayout(page) {
   await fs.mkdir('.cache/demo-run-coherence', { recursive: true });
   for (const width of [1280, 390, 320]) {

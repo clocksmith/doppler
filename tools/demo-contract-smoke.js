@@ -8,7 +8,7 @@ import { fileURLToPath } from 'node:url';
 import { chromium } from 'playwright';
 import { checkLiveActivity, checkActivationPlayback, checkTokenGeometry, checkRealActivityPlayback, checkFirstLoadLayout, checkLayerMap } from '../tests/demo/browser-activation.js';
 import { checkDemoControls } from '../tests/demo/browser-controls.js';
-import { checkBootLayout, checkAutomaticReplay, checkPendingExample, checkPendingInitialReplay } from '../tests/demo/browser-run-coherence.js';
+import { checkBootLayout, checkAutomaticReplay, checkPendingExample, checkPendingInitialReplay, checkWithoutWebGpu } from '../tests/demo/browser-run-coherence.js';
 import {
   SHELL_MANIFEST_DIGEST,
 } from '../demo/generated-shell-manifest.js';
@@ -257,6 +257,17 @@ async function main() {
     await checkPendingExample(cachedPage);
     await checkPendingInitialReplay(cachedPage);
     await cachedPage.close();
+    // A browser without WebGPU, whatever this Chromium build provides.
+    const plainPage = await browser.newPage({ serviceWorkers: 'block' });
+    await plainPage.addInitScript(() => {
+      localStorage.setItem('doppler.demo.activity-example', 'true');
+      Object.defineProperty(Navigator.prototype, 'gpu', { configurable: true, get: () => undefined });
+    });
+    await plainPage.route(`${origin}${modulePath}`, route => route.fulfill({ status: 200, contentType: 'text/javascript', body: STUB_MODULE }));
+    await plainPage.goto(`${origin}${entrypoint}`, { waitUntil: 'networkidle' });
+    await checkWithoutWebGpu(plainPage);
+    await plainPage.screenshot({ path: '.cache/demo-first-replay/no-webgpu-1280.png', fullPage: true });
+    await plainPage.close();
     testedShellDigest = await page.evaluate(async (url) => (await import(url)).SHELL_MANIFEST_DIGEST,
       `${origin}${modulePath.replace('/src/index-browser.js', '/demo/generated-shell-manifest.js')}`);
     await page.waitForFunction(async () => Boolean((await navigator.serviceWorker.getRegistration())?.active), null, { timeout: 60000 });

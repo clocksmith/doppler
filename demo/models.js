@@ -28,6 +28,10 @@ function downloadSize(entry) {
   return bytes >= 1e9 ? `${(bytes / 1e9).toFixed(1)} GB` : `${Math.ceil(bytes / 1e6)} MB`;
 }
 
+// Shown in place of download details when the browser cannot run any model.
+export const NO_WEBGPU_NOTE = 'This browser cannot run models here because it has no WebGPU. '
+  + 'The recorded example below still works. To run a model yourself, open this page in a current Chrome or Edge.';
+
 const GIB = 2 ** 30;
 
 // The only memory figure a page can read: system memory in GiB, rounded down
@@ -74,7 +78,7 @@ export function syncModelControls() {
   const busy = state.modelBusy || state.settingsBusy || state.generating;
   if (action) {
     action.hidden = status === 'loaded';
-    action.disabled = !entry || busy || status === 'loaded';
+    action.disabled = !entry || busy || status === 'loaded' || !state.webgpuAvailable;
     action.textContent = status === 'loaded' ? 'Loaded' : modelFit(entry) === 'too-large' ? 'Load anyway' : 'Load';
   }
   if (remove) {
@@ -82,7 +86,7 @@ export function syncModelControls() {
     remove.disabled = busy;
   }
   if (detail) {
-    detail.textContent = entry ? buildModelDetail(entry, status) : '';
+    detail.textContent = !state.webgpuAvailable ? NO_WEBGPU_NOTE : entry ? buildModelDetail(entry, status) : '';
     detail.hidden = !detail.textContent;
   }
   const select = $('model-select');
@@ -132,6 +136,7 @@ async function loadSelectedModel({ entry = selectedEntry(), runtimeProfile = sta
 
 export async function ensurePromptModel() {
   if (state.model) return state.model;
+  if (!state.webgpuAvailable) throw new Error('This browser has no WebGPU, so it cannot run a model.');
   const entry = selectedEntry();
   if (!entry) throw new Error('The default model is unavailable. Choose a model above.');
   // Send never starts a download the device is unlikely to be able to use.

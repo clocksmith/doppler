@@ -4,6 +4,7 @@ export interface DemoState {
   model: unknown;
   modelId: string | null;
   modelStatus: Record<string, string>;
+  webgpuAvailable: boolean;
   quickModelCatalog: Array<Record<string, unknown>>;
   downloadProgress: Record<string, unknown> | null;
   generating: boolean;

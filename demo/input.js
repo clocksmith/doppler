@@ -223,10 +223,12 @@ export function syncSendButton(options = {}) {
   });
   if (!btn) return ready;
 
-  const canLoadModel = !state.model && Boolean(prompt) && !state.modelBusy && !state.settingsBusy && !generating && !prefilling;
+  const canLoadModel = !state.model && state.webgpuAvailable && Boolean(prompt) && !state.modelBusy && !state.settingsBusy && !generating && !prefilling;
   btn.disabled = !ready && !canLoadModel;
   btn.textContent = 'Send';
-  if (state.model == null) {
+  if (!state.webgpuAvailable) {
+    btn.title = 'This browser has no WebGPU, so it cannot run a model. The recorded example still works.';
+  } else if (state.model == null) {
     btn.title = 'Load the model and send this prompt locally';
   } else if (!prompt) {
     btn.title = 'Enter a message to send';

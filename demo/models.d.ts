@@ -16,6 +16,8 @@ export interface DemoCatalogEntry {
 
 export declare function canRemoveModelStatus(status: string | null | undefined): boolean;
 
+export declare const NO_WEBGPU_NOTE: string;
+
 export declare function modelFit(
   entry: DemoCatalogEntry | null,
   reportedBytes?: number | null

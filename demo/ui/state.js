@@ -1,6 +1,8 @@
 export const state = {
   phase: 'booting',
   bootError: null,
+  // False when the browser has no WebGPU: models cannot run, recorded examples still open.
+  webgpuAvailable: true,
   model: null,
   modelId: null,
   modelStatus: {},

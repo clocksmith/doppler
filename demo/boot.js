@@ -92,11 +92,10 @@ export async function boot() {
   state.bootError = null;
 
   try {
-    // Step 1: WebGPU check
+    // Step 1: WebGPU check. Without it no model can run here, but the recorded
+    // example needs none, so the page still opens and says so beside the picker.
     setBootStatus('Checking WebGPU...');
-    if (!globalThis.navigator?.gpu) {
-      throw new Error('WebGPU is not available in this browser. Try Chrome 113+ or Edge 113+.');
-    }
+    state.webgpuAvailable = Boolean(globalThis.navigator?.gpu);
 
     // Step 2: Load catalog
     setBootStatus('Loading model catalog...');
@@ -108,7 +107,7 @@ export async function boot() {
 
     // Step 4: Reuse a saved model before offering remote downloads
     renderModelOptions();
-    if (storedModels.length > 0) {
+    if (state.webgpuAvailable && storedModels.length > 0) {
       try {
         // dr.load checks manifest/device compatibility before weight materialization.
         await loadSavedModelWithStatus();
