@@ -1,0 +1,100 @@
+{
+  "schema": "doppler.flash-next-learned-decode-protocol/v1",
+  "scope": "Original prefill and two cached decode steps per prompt, against independent F32 full-prefix source forwards",
+  "producerSha256": "814d77202fc3d5f8d510fb58d5f564f0c3bc56b7f955b2af77bc3ef30352b417",
+  "inputReceiptSha256": "a443e36671410258c704fe7d3a2c960803766d5486261b9c894bf89be9073368",
+  "inputsSha256": "06a819d529593b58abd6cb27566bb835a9b91aac13a77c0c7479b7e4e7b0c378",
+  "decodeInputsSha256": "6e1912a348b9858856ac4ed2b488e8d4d874c413b95e8440422d35e87de57df2",
+  "originalReferenceSha256": "ce4cb138b1919474d85507e06faa9ca167d87fd143bb85a7411f5443cea9a897",
+  "decodeReferenceSha256": "bf820fd93264fed297c13cce7c5eff29747c9eacd8a7ee12bf4f3ed0eec863cb",
+  "sourceProducerSha256": "f6bc0f15a6545ab1d205cfc3ec412442415220e541190b63a9c712fa238ba5b0",
+  "manifestSha256": "4902a0b730a9310903b00bc0f8f587528fa1af9f37a722d2f9287bafceceec09",
+  "parentGpuRunSha256": "43981b32afd705747cc97b860d282888943bc8949a70bef1dd9589122bf06b8d",
+  "runSha256": "4a07bb52175ed1f06efcfb382bb21c3360ced180dfc2b118fe31b7eb6ccd0c47",
+  "policyId": "doppler.boundary-tolerance/quantized-v1",
+  "policySha256": "f1c4629d593ec2517e3628ac68131dc7568c6aba5e0f03db627d26228c720413",
+  "tolerancePolicy": {
+    "absolute": 0.05,
+    "relative": 0.05,
+    "requireDtypeMatch": false
+  },
+  "chains": [
+    {
+      "id": "short",
+      "promptTokens": 15,
+      "expectedTokenIds": [
+        11751,
+        13,
+        9664
+      ],
+      "referenceCases": [
+        "short",
+        "short-next",
+        "short-next2"
+      ]
+    },
+    {
+      "id": "long",
+      "promptTokens": 2304,
+      "expectedTokenIds": [
+        7920,
+        22257,
+        2312
+      ],
+      "referenceCases": [
+        "long",
+        "long-next",
+        "long-next2"
+      ]
+    }
+  ],
+  "sourceLogitPayloads": {
+    "short": {
+      "shape": [
+        6,
+        248320
+      ],
+      "sha256": "6ec37a30a0db7b1980c5a099da810881a694d11f304cf15a6897b710c68ef9b2"
+    },
+    "short-next": {
+      "shape": [
+        6,
+        248320
+      ],
+      "sha256": "93f4c95e096907ac01bbc6cb09e68ad1d5bf6f7e85b5822720d1a04c884168e3"
+    },
+    "short-next2": {
+      "shape": [
+        6,
+        248320
+      ],
+      "sha256": "95722670cea7fa24ce6efcf443c904d25a8f7bb29d4727456d44c0d51a69f9b0"
+    },
+    "long": {
+      "shape": [
+        16,
+        248320
+      ],
+      "sha256": "596d443ae440197ab323bbf1403659ffb0c988ba00f3e6ff7ebd830e885846be"
+    },
+    "long-next": {
+      "shape": [
+        16,
+        248320
+      ],
+      "sha256": "31d5519ddc83353717774993bc099d76c870bb20c5ed90a984fab2b879327ac4"
+    },
+    "long-next2": {
+      "shape": [
+        16,
+        248320
+      ],
+      "sha256": "8f95c8b012a2d78c2372d69193d50d37a48f28a7a9d2ed6b5706166af3947d46"
+    }
+  },
+  "maximumGenerationRowsPerPrompt": 3,
+  "decodeStepsPerPrompt": 2,
+  "sourceGreedyChainVerifiedBeforeGpu": true,
+  "acceptanceChanged": false,
+  "normalModelQualified": false
+}

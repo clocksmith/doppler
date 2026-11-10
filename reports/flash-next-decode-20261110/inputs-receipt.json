@@ -1,0 +1,59 @@
+{
+  "schema": "doppler.flash-next-decode-inputs/v1",
+  "createdAtUtc": "2026-11-10T15:38:42.284519+00:00",
+  "scope": "Fixed source-owned prefixes for an independent F32 full-prefix reference; no Doppler output used",
+  "producerSha256": "34eae7ecec86a217f2b1666c2e1e06d1750df811e4b5ca5365c83fe268f43f67",
+  "originalInputsSha256": "06a819d529593b58abd6cb27566bb835a9b91aac13a77c0c7479b7e4e7b0c378",
+  "originalF32ReferenceSha256": "ce4cb138b1919474d85507e06faa9ca167d87fd143bb85a7411f5443cea9a897",
+  "sourceDecodeReferenceSha256": "cee3373b166e9958538bd66a0af5a59a5cefb574b0db1e4d54fb3943dc055994",
+  "sourceDecodeInputsSha256": "f767c04d0c55ee5ddaef6dfbcf7460840240994dc123502d959b4a008392e85a",
+  "manifestSha256": "4902a0b730a9310903b00bc0f8f587528fa1af9f37a722d2f9287bafceceec09",
+  "tokenizerSha256": "ae50d65939a34a089eaf1e541c15c8a7d866079a5fe9a1d35454e0aa88577753",
+  "inputsSha256": "6e1912a348b9858856ac4ed2b488e8d4d874c413b95e8440422d35e87de57df2",
+  "inputs": [
+    {
+      "id": "short-next",
+      "tokens": 16
+    },
+    {
+      "id": "short-next2",
+      "tokens": 17
+    },
+    {
+      "id": "long-next",
+      "tokens": 2305
+    },
+    {
+      "id": "long-next2",
+      "tokens": 2306
+    }
+  ],
+  "selections": [
+    {
+      "id": "short",
+      "originalTokens": 15,
+      "continuationTokenIds": [
+        11751,
+        13
+      ],
+      "firstTokenSource": "Frozen independent F32 reference",
+      "secondTokenSource": "Retained source F16-cache reference, to be checked against fresh F32 source before GPU use"
+    },
+    {
+      "id": "long",
+      "originalTokens": 2304,
+      "continuationTokenIds": [
+        7920,
+        22257
+      ],
+      "firstTokenSource": "Frozen independent F32 reference",
+      "secondTokenSource": "Retained source F16-cache reference, to be checked against fresh F32 source before GPU use"
+    }
+  ],
+  "sourceStatePrecision": "float32",
+  "sourceKvPrecision": "float32",
+  "gpuRunsStarted": 0,
+  "acceptanceChanged": false,
+  "normalModelQualified": false,
+  "mandatoryBeforeGpu": "Verify fresh F32 next-token predictions equal these fixed continuation tokens; otherwise stop and prepare source-greedy prefixes"
+}
