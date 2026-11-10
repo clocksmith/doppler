@@ -1,0 +1,46 @@
+TAP version 13
+# Subtest: exact dyadic oracle detects cancellation and independently bounds both orders
+ok 1 - exact dyadic oracle detects cancellation and independently bounds both orders
+  ---
+  duration_ms: 0.491833
+  type: 'test'
+  ...
+# Subtest: independent F16 conversion round-trips every finite bit pattern including signed zero
+ok 2 - independent F16 conversion round-trips every finite bit pattern including signed zero
+  ---
+  duration_ms: 44.180916
+  type: 'test'
+  ...
+# Subtest: all positive and negative adjacent-half midpoints use ties-to-even
+ok 3 - all positive and negative adjacent-half midpoints use ties-to-even
+  ---
+  duration_ms: 40.949583
+  type: 'test'
+  ...
+# Subtest: correct rounding of corrupted input cannot establish upstream correctness
+ok 4 - correct rounding of corrupted input cannot establish upstream correctness
+  ---
+  duration_ms: 0.207
+  type: 'test'
+  ...
+# Subtest: unsupported arithmetic inputs fail explicitly
+ok 5 - unsupported arithmetic inputs fail explicitly
+  ---
+  duration_ms: 0.286917
+  type: 'test'
+  ...
+# Subtest: fixed independent synthetic cases exercise cancellation and varying magnitudes
+ok 6 - fixed independent synthetic cases exercise cancellation and varying magnitudes
+  ---
+  duration_ms: 7.493458
+  type: 'test'
+  ...
+1..6
+# tests 6
+# suites 0
+# pass 6
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 133.73675

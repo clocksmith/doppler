@@ -1,0 +1,80 @@
+{
+  "schema": "doppler.numerical-discontinuity-diagnostic/v1",
+  "qualificationAuthority": false,
+  "intent": "Test whether independent arithmetic bounds explain retained discontinuities; never amend qualification.",
+  "sourceRevisions": {
+    "doppler": "92d79eb7655e76b97b67ae72b2ba633e67cda1e4",
+    "reploid": "c28699768c832569b929ec268afe049c9f7518c5"
+  },
+  "flashNext": {
+    "observation": "learned-router-first.json",
+    "observationSha256": "618b9e669dad4d0831d27a901aba034b02fc2b37abc2b05cd8e953ae24be1d18",
+    "manifestSha256": "4902a0b730a9310903b00bc0f8f587528fa1af9f37a722d2f9287bafceceec09",
+    "inputsSha256": "06a819d529593b58abd6cb27566bb835a9b91aac13a77c0c7479b7e4e7b0c378",
+    "layers": [
+      0,
+      4,
+      5
+    ],
+    "positions": [
+      0,
+      127,
+      509,
+      746,
+      1017,
+      1531,
+      2003,
+      2303
+    ],
+    "knownDiagnosticPositions": [
+      746,
+      1017,
+      2003
+    ],
+    "validationScope": "Other positions are reserved arithmetic-validation slices of an already studied prompt, not unseen model-quality cases.",
+    "sumBound": "gamma(2*K) * sum(abs(x_i*w_i)), u=2^-24; exact dyadic integer arithmetic evaluates sums and comparisons.",
+    "assumptions": [
+      "Finite exact F32 inputs and expanded F16 weights",
+      "Round-to-nearest arithmetic, at most 2*K rounding operations on each contribution",
+      "No overflow; add conservative absolute underflow/flush allowance"
+    ],
+    "constructiveReplays": [
+      "F32 separate multiply/add in forward order",
+      "F32 separate multiply/add in reverse order"
+    ],
+    "upstreamInputBound": null,
+    "decisionRule": "Outside a conditional bound rejects the local arithmetic model. Inside is compatible, never proof of implementation correctness. Cross-run routing remains unresolved without an independent upstream bound and validated selection semantics.",
+    "weightAuditSha256": "d8781515d4e43f6abce2c5105bc8d0b9f0d3115d03b31127a0030017c6f70e38",
+    "prefixReceiptSha256": "4b1fc2b509db0ef0b00881d1a49244854656833fb8697e1a92cb9d1d309d45ac"
+  },
+  "kv": {
+    "request": 2,
+    "promptTokens": 184,
+    "layers": [
+      3,
+      7
+    ],
+    "kinds": [
+      "key",
+      "value"
+    ],
+    "reference": "Retained paired capture; final cache identities match approved independent F64 reference. Paired intermediate values are a proxy, not exact real arithmetic.",
+    "rawIndex": "reploid/artifacts/plain-profile-reference-20261014/amd-host-divergence/out/raw-index.json",
+    "decisionRule": "Recompute nearest-even F16 independently from each captured pre-store value and compare exact bits. Locate crossed rounding midpoints without using observed drift as an allowed input bound.",
+    "upstreamInputBound": null,
+    "rawIndexSha256": "3b11da8e940b2fdf2b98e7dc42fe25631413fb7e0a591004f118a9ca30b20e5f"
+  },
+  "negativeControls": [
+    "Router output outside its analytically computed envelope",
+    "Router output altered inside its envelope (must expose the insufficiency of membership alone)",
+    "Stored F16 bit changed by one representable step",
+    "Correct F16 rounding of deliberately corrupted pre-store input (must remain unresolved without upstream validation)",
+    "Changed input artifact digest"
+  ],
+  "stopRules": [
+    "Missing or mismatched capture identities abort, never silently substitute current HEAD",
+    "Missing upstream bounds remain unresolved",
+    "No deployment, runtime mutation, tolerance update or promotion",
+    "No new full-model GPU campaign; use retained physical captures for this diagnostic"
+  ]
+}

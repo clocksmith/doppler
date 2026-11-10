@@ -1,0 +1,232 @@
+{
+  "schema": "doppler.numerical-discontinuity-receipt/v1",
+  "qualified": false,
+  "newGpuRuns": 0,
+  "protocolSha256": "b397924a360455a5e5c1e683dcfef4414ab266d8ca171245e65febd980216cd8",
+  "inputBundleSha256": "f3dad7bae18e1e801398892d85adbc96f3976a799cf670a6eee0f06045f881c3",
+  "files": [
+    {
+      "path": "reports/numerical-discontinuity-20261109/README.md",
+      "sha256": "fa9caac3a146686494c9acc2926310b177f59e596f4e20ea1181e53b3b2ab642",
+      "bytes": 7396
+    },
+    {
+      "path": "reports/numerical-discontinuity-20261109/protocol.json",
+      "sha256": "b397924a360455a5e5c1e683dcfef4414ab266d8ca171245e65febd980216cd8",
+      "bytes": 3583
+    },
+    {
+      "path": "reports/numerical-discontinuity-20261109/results.json",
+      "sha256": "b842a7c45fbb83f0548d8f207db928464782d925a71fad4d776e8396903d358d",
+      "bytes": 219418
+    },
+    {
+      "path": "reports/numerical-discontinuity-20261109/tests.tap",
+      "sha256": "86548ec78e4a88c066ec108d7510a3149a6d378380f0a0470c8766541761d2eb",
+      "bytes": 1391
+    },
+    {
+      "path": "reports/numerical-discontinuity-20261109/identity-negative-control.json",
+      "sha256": "ff62503188aaf9ecd16725c9830cf340062a9b515d89dd2df610500087576452",
+      "bytes": 99
+    },
+    {
+      "path": "reports/numerical-discontinuity-20261109/qualification-preservation.json",
+      "sha256": "4bd5e07b80a3913353ca191a21f1624d4b1324991cdf998c29657947cf471c74",
+      "bytes": 1170
+    },
+    {
+      "path": "tools/collect-numerical-discontinuity.js",
+      "sha256": "dd96fe3128347e616c8c9f60975f9bdcdbd982de76a2381543d0e9464081cfbe",
+      "bytes": 8063
+    },
+    {
+      "path": "tools/analyze-numerical-discontinuity.js",
+      "sha256": "b808d4ef3a907fb43259e48972ed0c685ae2a27ff1e37f8f3fe0fad039419503",
+      "bytes": 8422
+    },
+    {
+      "path": "tools/numerical-discontinuity-core.js",
+      "sha256": "c13300867e98a70674e229aaf1cf92712aed4a203b40980f327c064e7aa32aff",
+      "bytes": 4313
+    },
+    {
+      "path": "tools/numerical-discontinuity-core.test.js",
+      "sha256": "c37ec9f8bbfebbabb908f8d4b99cd06f0b243f2816365dcd3515ead49221a50c",
+      "bytes": 2799
+    },
+    {
+      "path": "tools/compare-source-boundaries.js",
+      "sha256": "80ac6ce2613a17cd93022efc0a951170e42e60d833372dcb061cf8c141946670",
+      "bytes": 12035
+    }
+  ],
+  "sourceEvidence": [
+    {
+      "path": "reports/flash-next-qualification-20261105/qsa/router-rounding-assessment.json",
+      "sha256": "3f7c0e3b4e370c80245f51d1675f89135c74f2b5d1f014b193bd1fca89a6de1d",
+      "bytes": 1579
+    },
+    {
+      "path": "reports/flash-next-qualification-20261105/qsa/router-prefix-choice-comparison.json",
+      "sha256": "668bfcd62234222cc5e8f9573d7a97d3ab915e58263c7ac5cb7b3ac934705f64",
+      "bytes": 471
+    },
+    {
+      "path": "reports/flash-next-qualification-20261106/router-geometry-control.py",
+      "sha256": "2855e72b3038dc42be8e047466c811475e76887178cf40d40a4b1ed92407eb8d",
+      "bytes": 3359
+    },
+    {
+      "path": "reports/flash-next-qualification-20261106/cpu-router-geometry-layer4.json",
+      "sha256": "19b0a516137c8852a1f3f3d3c1b117697b0db9b6b0788b64d14615dd987249b5",
+      "bytes": 1343
+    },
+    {
+      "path": "reports/flash-next-qualification-20261106/cpu-router-geometry-layer5.json",
+      "sha256": "11f393c06680a1abbb21a61724666c0b995b6b7cab456e150e3eb989bf8363f4",
+      "bytes": 1364
+    },
+    {
+      "path": "../reploid/artifacts/plain-profile-reference-20261014/amd-host-divergence/out/raw-index.json",
+      "sha256": "3b11da8e940b2fdf2b98e7dc42fe25631413fb7e0a591004f118a9ca30b20e5f",
+      "bytes": 4460
+    }
+  ],
+  "historicalCaptureIdentities": [
+    {
+      "file": "manifest.json",
+      "bytes": 7422078,
+      "sha256": "4902a0b730a9310903b00bc0f8f587528fa1af9f37a722d2f9287bafceceec09"
+    },
+    {
+      "file": "learned-router-first.json",
+      "bytes": 1605506,
+      "sha256": "618b9e669dad4d0831d27a901aba034b02fc2b37abc2b05cd8e953ae24be1d18"
+    },
+    {
+      "file": "receipt.json",
+      "bytes": 2165,
+      "sha256": "4b1fc2b509db0ef0b00881d1a49244854656833fb8697e1a92cb9d1d309d45ac"
+    },
+    {
+      "file": "router-weight-byte-comparison.json",
+      "bytes": 11848,
+      "sha256": "d8781515d4e43f6abce2c5105bc8d0b9f0d3115d03b31127a0030017c6f70e38"
+    },
+    {
+      "file": "learned-router-first.json.long.router0.input.f32",
+      "bytes": 23592960,
+      "sha256": "abb67a6323c85968de2c6fab89a3a842414531a7c534e8fb60d5fef356c7c614"
+    },
+    {
+      "file": "learned-router-first.json.long.router0.logits.f32",
+      "bytes": 4718592,
+      "sha256": "5333706974fe82d3598f4ab230166cdd865665a5c7d4eec052d21564e44c607c"
+    },
+    {
+      "file": "router-0.npz",
+      "bytes": 28496626,
+      "sha256": "b15412bdd0016996b86721317711e318823b2bb3b17d9ad060d9fd23251ec28e"
+    },
+    {
+      "file": "learned-router-first.json.long.router4.input.f32",
+      "bytes": 23592960,
+      "sha256": "7376111e1ce31e8e4d6efd6b40ad2481b0ea49d39d12c742eed1e581fdb10953"
+    },
+    {
+      "file": "learned-router-first.json.long.router4.logits.f32",
+      "bytes": 4718592,
+      "sha256": "1ddba8ba5b15e9e2b1e08a3c848a8cbdb036cf723c43b1c5300b35e57690ab96"
+    },
+    {
+      "file": "router-4.npz",
+      "bytes": 28496626,
+      "sha256": "33b6145ea1403defb9a05009e8f24733c5b24d0404da8e55310b9a3ed3eaa020"
+    },
+    {
+      "file": "learned-router-first.json.long.router5.input.f32",
+      "bytes": 23592960,
+      "sha256": "c3294736b77bc82dfb90a1b8f931763a873e998267ee455bfa4fa8b1bcf75284"
+    },
+    {
+      "file": "learned-router-first.json.long.router5.logits.f32",
+      "bytes": 4718592,
+      "sha256": "2b70613d21a3c6cd3d13e305297bc3b85115891d56ae771bc82a23c00ddf92ad"
+    },
+    {
+      "file": "router-5.npz",
+      "bytes": 28496626,
+      "sha256": "23b53adfb1a0671616159e12f8fb43b07c30aab7474d290ce9f4e1d60aafe17e"
+    },
+    {
+      "file": "raw-index.json",
+      "bytes": 4460,
+      "sha256": "3b11da8e940b2fdf2b98e7dc42fe25631413fb7e0a591004f118a9ca30b20e5f"
+    },
+    {
+      "file": "report.json",
+      "bytes": 90779,
+      "sha256": "8e03160db3b2faff52b81acd72a876ab1cb4cffc935b6b52531a1271241e0f42"
+    },
+    {
+      "file": "out/capture-plain/prefill.f64",
+      "bytes": 581828608,
+      "sha256": "9658bd9c9f8fbdb8e449658a47f8314bf2c386507fd0538008153dddba907e2e"
+    },
+    {
+      "file": "out/capture-plain/cache-after-prefill.f16",
+      "bytes": 2260992,
+      "sha256": "8816cbf54a4cd3e118c8748bbb8c26322b443878f6eacfc64210974ad75dbd36"
+    },
+    {
+      "file": "report.json",
+      "bytes": 92036,
+      "sha256": "c5e4ac67ad55261c15ba262db33269d9f70e1fe959ab418a3f1ddfe7781405ca"
+    },
+    {
+      "file": "out/capture-paired/prefill.f64",
+      "bytes": 580386816,
+      "sha256": "814375a4017c084f36ea5c797a0358fe2c54e4d00b7f8fb9323fd1f1afa1495a"
+    },
+    {
+      "file": "out/capture-paired/cache-after-prefill.f16",
+      "bytes": 2260992,
+      "sha256": "95f4042ef79ad20a485612ff69ded26db38f7cc6d7b51335ae6267a7524fe17d"
+    },
+    {
+      "file": "report.json",
+      "bytes": 26753,
+      "sha256": "d444eff5db9380fb0cae15b80eb4e6f2b80fc8b65ce630c2bdca581f2187d293"
+    },
+    {
+      "file": "out/capture-paired-probefix/prefill.f64",
+      "bytes": 73859072,
+      "sha256": "df7d79274051f87d3f5d990f29d16751c0bd18c1037d85d742d2c7432a795e64"
+    },
+    {
+      "file": "out/capture-paired-probefix/cache-after-prefill.f16",
+      "bytes": 2260992,
+      "sha256": "95f4042ef79ad20a485612ff69ded26db38f7cc6d7b51335ae6267a7524fe17d"
+    }
+  ],
+  "verification": {
+    "focusedTests": 6,
+    "routerGpuOutputs": 12288,
+    "routerReferenceOutputs": 12288,
+    "cacheValuesPerSide": 376832,
+    "negativeControls": {
+      "outsideEnvelopeRejected": 24,
+      "insideEnvelopeAlterationAcceptedLocally": 24,
+      "changedCacheBitRejected": 4,
+      "corruptedInputCorrectlyRoundedButUnresolved": 4
+    }
+  },
+  "limitations": [
+    "No independent full upstream error bound",
+    "Reserved slices from an already studied prompt, not unseen prompts",
+    "Conditional rounding model, not GPU compiler conformance proof",
+    "Paired cache intermediates are a reference proxy",
+    "No new model qualification or performance result"
+  ]
+}

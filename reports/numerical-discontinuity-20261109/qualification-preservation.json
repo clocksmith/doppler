@@ -1,0 +1,35 @@
+{
+  "qualified": false,
+  "files": [
+    {
+      "repo": "doppler",
+      "file": "src/config/evidence/boundary-evidence-policy.json",
+      "sha256": "f1c4629d593ec2517e3628ac68131dc7568c6aba5e0f03db627d26228c720413",
+      "unchangedFromHead": true
+    },
+    {
+      "repo": "doppler",
+      "file": "tools/qwen35-f64-reference.py",
+      "sha256": "90376ddec6e6bf997425ee0e1ecf1d98533434ebbe3f934ff00a878dd49e8bc7",
+      "unchangedFromHead": true
+    },
+    {
+      "repo": "doppler",
+      "file": "reports/flash-next-qualification-20261107/compare-f32kv-reference.py",
+      "sha256": "ecfe9d5dfe0e4f7eb9e0aab303f0fb7f753832168bb5ec0d9ee78efe76227db8",
+      "unchangedFromHead": true
+    },
+    {
+      "repo": "reploid",
+      "file": "artifacts/precision-recovery-20261015/precision-check.mjs",
+      "sha256": "7497c4b6fc5680b3e223d7ef3e8bf4b23db4e90e79f981ef3af6b2f24f444a8d",
+      "unchangedFromHead": true
+    },
+    {
+      "repo": "reploid",
+      "file": "artifacts/plain-profile-reference-20261014/substitution-check.mjs",
+      "sha256": "3f29fc694b74facfd5ad133e6946c2b08c1be587843c182493ef8b19612925b5",
+      "unchangedFromHead": true
+    }
+  ]
+}
