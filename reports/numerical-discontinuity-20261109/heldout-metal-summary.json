@@ -1,0 +1,38 @@
+{
+  "scope": "New seeded synthetic RMSNorm operator rows; physical Metal execution only",
+  "host": "darwin",
+  "fixtureSha256": "a68fdc9119cd213338fccb5e1d6a2fce97b647ccd500b235dc96e35ecdea6f5d",
+  "shaderSha256": "a1986477198de29aa97205475bdc5bf3c79039917dd26ba16c9d9e6e687e0f4f",
+  "pipeline": {
+    "entry": "main",
+    "constants": {
+      "RMS_NORM_OFFSET": 1,
+      "PRE_RESIDUAL": 0,
+      "OUTPUT_PRENORM": 0,
+      "WEIGHT_IS_F16": 1
+    }
+  },
+  "epsilon": 0.000001,
+  "rows": 32,
+  "width": 1024,
+  "browser": "157.0.8103.38",
+  "errors": [],
+  "adapter": {
+    "vendor": "apple",
+    "architecture": "metal-3"
+  },
+  "comparison": {
+    "maximum": 3.2338851019275694e-7,
+    "rms": 5.622653359356542e-8
+  },
+  "baseline": {
+    "maximum": 1.1907839603253478e-7,
+    "rms": 2.9764967899749944e-8
+  },
+  "valuesSha256": "b0af7a300dea8a16956a71b9e7833b00d10f4adb0b09d1513fc500711a252a28",
+  "matchesCaptured": false,
+  "executed": true,
+  "originalReceiptSha256": "ca8b05c813318369ad9fdded80c3f709cf9fbeb61fca1b4f33d22b9592ade010",
+  "processor": "Apple M3",
+  "harnessLabelCaveat": "matchesCaptured compares to the synthetic rounded-F64 baseline, not an earlier GPU capture. False is expected and is not a failure."
+}

@@ -1,0 +1,281 @@
+{
+  "schema": "doppler.router-input-drift/v1",
+  "qualified": false,
+  "protocolSha256": "a4d63231415d9e2219a71e0c1cc98beb7a887bf65e243397ecef6aa3984453ca",
+  "toolSha256": "ab57bb81cd28718f31df6e70a75f9bb7042ca6017e43474e3cbc9663b9a64b1e",
+  "arithmeticSha256": "c13300867e98a70674e229aaf1cf92712aed4a203b40980f327c064e7aa32aff",
+  "identities": [
+    {
+      "file": "manifest.json",
+      "sha256": "4902a0b730a9310903b00bc0f8f587528fa1af9f37a722d2f9287bafceceec09",
+      "bytes": 7422078
+    },
+    {
+      "file": "f32kv-router-subgroup-20261107.json",
+      "sha256": "4c4367d68d2dd41e15868d824851c6f7357acfecbcfa41609a95792355e7b429",
+      "bytes": 213884
+    },
+    {
+      "file": "f32kv-router-subgroup-routing-20261107.json",
+      "sha256": "681bcb5f631327583b7d958cd55de6cc45e85dce4b4059a25db9015eb09d81c8",
+      "bytes": 54604
+    },
+    {
+      "file": "receipt.json",
+      "sha256": "06b9300753f65574477b66f45a0c0fce6474e2112a3f9d901b0af22371037073",
+      "bytes": 6146
+    },
+    {
+      "file": "f32kv-router-subgroup-20261107.json.long.router25.input.f32",
+      "sha256": "a6da2ee6b2a1c8e3a5dae0fcc7d7ec473df738ca07102c513408280d6bad2f72",
+      "bytes": 23592960
+    },
+    {
+      "file": "f32kv-router-subgroup-20261107.json.long.router25.logits.f32",
+      "sha256": "a0e1b6642dccb23293a6582717e208a8b1c01873d601c150054cfb9d5ff92857",
+      "bytes": 4718592
+    },
+    {
+      "file": "router-25.npz",
+      "sha256": "9d596bfd1ee212ab233a01bf34248b449493089daabece20778f3632733ebd56",
+      "bytes": 28589030
+    }
+  ],
+  "weightSha256": "4cca2b05519d9331e694cf6245e0e16058b4f6a4cf12c0ffde391c25134d35f2",
+  "layer": 25,
+  "rows": [
+    {
+      "position": 1717,
+      "inputMaxAbsolute": 0.000014781951904296875,
+      "gpuTop": [
+        364,
+        482,
+        127,
+        66,
+        431,
+        170,
+        331,
+        494,
+        499,
+        330
+      ],
+      "sourceTop": [
+        364,
+        482,
+        127,
+        66,
+        431,
+        170,
+        331,
+        494,
+        499,
+        493
+      ],
+      "exactGpuTop": [
+        364,
+        482,
+        127,
+        66,
+        431,
+        170,
+        331,
+        494,
+        499,
+        330
+      ],
+      "exactSourceTop": [
+        364,
+        482,
+        127,
+        66,
+        431,
+        170,
+        331,
+        494,
+        499,
+        493
+      ],
+      "pairs": [
+        {
+          "sourceExpert": 493,
+          "gpuExpert": 330,
+          "sourceStoredMargin": 0.0000019073486328125,
+          "gpuStoredMargin": -0.000002384185791015625,
+          "sourceExactMargin": 0.00000151425247274517,
+          "gpuExactMargin": -0.000002701793814452458,
+          "upstreamMarginChange": -0.000004216046287197628,
+          "sourceProjectionMarginError": 3.9309616006732995e-7,
+          "gpuProjectionMarginError": 3.176080234368328e-7,
+          "orderingReversesOnExactInputs": true,
+          "experts": [
+            {
+              "expert": 493,
+              "sourceStored": -4.263553619384766,
+              "gpuStored": -4.263558387756348,
+              "sourceExact": -4.263554013897025,
+              "gpuExact": -4.2635585238089675
+            },
+            {
+              "expert": 330,
+              "sourceStored": -4.263555526733398,
+              "gpuStored": -4.263556003570557,
+              "sourceExact": -4.263555528149498,
+              "gpuExact": -4.263555822015153
+            }
+          ]
+        }
+      ],
+      "gpuProjectionMaxError": 8.906903978811442e-7,
+      "sourceProjectionMaxError": 0.000001845362463726019,
+      "gpuOutsideLocalEnvelope": 0,
+      "sourceOutsideLocalEnvelope": 0,
+      "upstreamStatus": "No independent upstream bound; not a qualification decision"
+    },
+    {
+      "position": 2271,
+      "inputMaxAbsolute": 0.000008277595043182373,
+      "gpuTop": [
+        309,
+        170,
+        179,
+        172,
+        495,
+        268,
+        290,
+        469,
+        369,
+        411
+      ],
+      "sourceTop": [
+        309,
+        170,
+        179,
+        172,
+        495,
+        268,
+        290,
+        469,
+        369,
+        311
+      ],
+      "exactGpuTop": [
+        309,
+        170,
+        179,
+        172,
+        495,
+        268,
+        290,
+        469,
+        369,
+        411
+      ],
+      "exactSourceTop": [
+        309,
+        170,
+        179,
+        172,
+        495,
+        268,
+        290,
+        469,
+        369,
+        311
+      ],
+      "pairs": [
+        {
+          "sourceExpert": 311,
+          "gpuExpert": 411,
+          "sourceStoredMargin": 9.5367431640625e-7,
+          "gpuStoredMargin": -4.76837158203125e-7,
+          "sourceExactMargin": 0.000001133673764641685,
+          "gpuExactMargin": -8.463160519056601e-7,
+          "upstreamMarginChange": -0.000001979989816547345,
+          "sourceProjectionMarginError": -1.79999448235435e-7,
+          "gpuProjectionMarginError": 3.6947889370253506e-7,
+          "orderingReversesOnExactInputs": true,
+          "experts": [
+            {
+              "expert": 311,
+              "sourceStored": -4.169867515563965,
+              "gpuStored": -4.169867515563965,
+              "sourceExact": -4.169867278749292,
+              "gpuExact": -4.169867736898002
+            },
+            {
+              "expert": 411,
+              "sourceStored": -4.169868469238281,
+              "gpuStored": -4.169867038726807,
+              "sourceExact": -4.169868412423057,
+              "gpuExact": -4.16986689058195
+            }
+          ]
+        }
+      ],
+      "gpuProjectionMaxError": 9.962908933403014e-7,
+      "sourceProjectionMaxError": 0.000002157940778957368,
+      "gpuOutsideLocalEnvelope": 0,
+      "sourceOutsideLocalEnvelope": 0,
+      "upstreamStatus": "No independent upstream bound; not a qualification decision"
+    },
+    {
+      "position": 2303,
+      "inputMaxAbsolute": 0.000007271766662597656,
+      "gpuTop": [
+        329,
+        500,
+        220,
+        450,
+        85,
+        187,
+        188,
+        393,
+        190,
+        84
+      ],
+      "sourceTop": [
+        329,
+        500,
+        220,
+        450,
+        85,
+        187,
+        188,
+        393,
+        190,
+        84
+      ],
+      "exactGpuTop": [
+        329,
+        500,
+        220,
+        450,
+        85,
+        187,
+        188,
+        393,
+        190,
+        84
+      ],
+      "exactSourceTop": [
+        329,
+        500,
+        220,
+        450,
+        85,
+        187,
+        188,
+        393,
+        190,
+        84
+      ],
+      "pairs": [],
+      "gpuProjectionMaxError": 7.769631613641081e-7,
+      "sourceProjectionMaxError": 0.000001749742604140181,
+      "gpuOutsideLocalEnvelope": 0,
+      "sourceOutsideLocalEnvelope": 0,
+      "upstreamStatus": "No independent upstream bound; not a qualification decision"
+    }
+  ],
+  "scope": "Exact dyadic sums, reported rounded to F64. Raw-logit ranking, no physical softmax/top-k replay. Local envelopes are not acceptance."
+}

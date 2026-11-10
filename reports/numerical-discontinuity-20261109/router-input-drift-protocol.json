@@ -1,0 +1,20 @@
+{
+  "schema": "doppler.router-input-drift-protocol/v1",
+  "qualificationAuthority": false,
+  "layer": 25,
+  "positions": [1717, 2271, 2303],
+  "expertCount": 512,
+  "width": 2560,
+  "topK": 10,
+  "manifestSha256": "4902a0b730a9310903b00bc0f8f587528fa1af9f37a722d2f9287bafceceec09",
+  "observation": "f32kv-router-subgroup-20261107.json",
+  "observationSha256": "4c4367d68d2dd41e15868d824851c6f7357acfecbcfa41609a95792355e7b429",
+  "comparison": "f32kv-router-subgroup-routing-20261107.json",
+  "comparisonSha256": "681bcb5f631327583b7d958cd55de6cc45e85dce4b4059a25db9015eb09d81c8",
+  "sourceReceiptSha256": "06b9300753f65574477b66f45a0c0fce6474e2112a3f9d901b0af22371037073",
+  "weightsSha256": "4cca2b05519d9331e694cf6245e0e16058b4f6a4cf12c0ffde391c25134d35f2",
+  "method": "Use integer dyadic dot products on each side's own input. Compare raw-logit top-10 sets, then separate the effect of changed inputs from local projection rounding at every differing expert pair.",
+  "interpretation": "An exact-dot ordering change establishes upstream sensitivity, not that upstream differences are permitted error. Raw-logit rankings do not replay physical softmax or top-k.",
+  "controls": ["Position 2303 has no recorded set change", "Reject corrupted capture identity before arithmetic"],
+  "priorExposure": "Positions and the 1717 result were already known. This is a diagnostic extension, not a held-out model trial."
+}

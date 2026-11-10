@@ -1,0 +1,1982 @@
+{
+  "schema": "doppler.input-normalization-result/v1",
+  "qualified": false,
+  "modelId": "qwen-3-5-0-8b-q4k-ehaf16",
+  "protocolSha256": "e081f21d975506fc1d5a0e1399cd8cb7525a1d6d6a6990aaf4bb4b389fd4d182",
+  "inputsSha256": "644583eee3929bbf19b9923853a614fb5b266f9ac6773f390237123484c58d72",
+  "evidenceSha256": "a71cf498857bc7ffcc1b1bb40c758f9d8a6bc2bf9dc57673eb4e34f75360d36a",
+  "analyzerSha256": "868eb483f1057e6174f96b059a5ac76e21c64601738386b2a61879a286562289",
+  "arithmeticSha256": "88f0736918f0ac3915da0ec45d6962185a18c7921c3790ed4efb02bb80a85e7a",
+  "tokens": 32,
+  "width": 1024,
+  "values": 32768,
+  "proxyMaxError": 0,
+  "observedMaxError": 3.2338851019275694e-7,
+  "models": [
+    {
+      "explicitFma": "fused",
+      "residualSubtraction": "fused",
+      "outputAssociation": "left",
+      "exactRows": 32,
+      "exactElementsInBestRows": 32768,
+      "corruptedRowsRejected": 32,
+      "wrongWeightRowsRejected": 32,
+      "rows": [
+        {
+          "token": 0,
+          "bestMatchingElements": 1024,
+          "matchingEstimates": [
+            665.44482421875,
+            665.4448852539062,
+            665.4449462890625,
+            665.4450073242188
+          ]
+        },
+        {
+          "token": 1,
+          "bestMatchingElements": 1024,
+          "matchingEstimates": [
+            406.2848815917969,
+            406.284912109375,
+            406.2849426269531,
+            406.28497314453125
+          ]
+        },
+        {
+          "token": 2,
+          "bestMatchingElements": 1024,
+          "matchingEstimates": [
+            215.95458984375,
+            215.95460510253906,
+            215.95462036132812,
+            215.9546356201172
+          ]
+        },
+        {
+          "token": 3,
+          "bestMatchingElements": 1024,
+          "matchingEstimates": [
+            112.08248138427734,
+            112.08248901367188,
+            112.0824966430664,
+            112.08250427246094
+          ]
+        },
+        {
+          "token": 4,
+          "bestMatchingElements": 1024,
+          "matchingEstimates": [
+            55.5097541809082,
+            55.50975799560547,
+            55.509761810302734,
+            55.509765625
+          ]
+        },
+        {
+          "token": 5,
+          "bestMatchingElements": 1024,
+          "matchingEstimates": [
+            27.50937271118164,
+            27.509374618530273,
+            27.509376525878906,
+            27.50937843322754
+          ]
+        },
+        {
+          "token": 6,
+          "bestMatchingElements": 1024,
+          "matchingEstimates": [
+            14.132850646972656,
+            14.132851600646973,
+            14.132852554321289,
+            14.132853507995605
+          ]
+        },
+        {
+          "token": 7,
+          "bestMatchingElements": 1024,
+          "matchingEstimates": [
+            6.927065372467041,
+            6.927065849304199,
+            6.927066326141357,
+            6.927066802978516
+          ]
+        },
+        {
+          "token": 8,
+          "bestMatchingElements": 1024,
+          "matchingEstimates": [
+            3.4861972332000732,
+            3.4861974716186523,
+            3.4861977100372314,
+            3.4861979484558105
+          ]
+        },
+        {
+          "token": 9,
+          "bestMatchingElements": 1024,
+          "matchingEstimates": [
+            1.7464957237243652,
+            1.7464958429336548,
+            1.7464959621429443,
+            1.7464960813522339
+          ]
+        },
+        {
+          "token": 10,
+          "bestMatchingElements": 1024,
+          "matchingEstimates": [
+            0.8571056723594666,
+            0.8571057319641113,
+            0.8571057915687561,
+            0.8571058511734009
+          ]
+        },
+        {
+          "token": 11,
+          "bestMatchingElements": 1024,
+          "matchingEstimates": [
+            0.4379938840866089,
+            0.4379939138889313,
+            0.43799394369125366,
+            0.43799397349357605
+          ]
+        },
+        {
+          "token": 12,
+          "bestMatchingElements": 1024,
+          "matchingEstimates": [
+            0.21268023550510406,
+            0.21268025040626526,
+            0.21268026530742645,
+            0.21268028020858765
+          ]
+        },
+        {
+          "token": 13,
+          "bestMatchingElements": 1024,
+          "matchingEstimates": [
+            0.1101607084274292,
+            0.1101607158780098,
+            0.1101607233285904,
+            0.11016073077917099
+          ]
+        },
+        {
+          "token": 14,
+          "bestMatchingElements": 1024,
+          "matchingEstimates": [
+            0.05461402237415314,
+            0.054614026099443436,
+            0.054614029824733734,
+            0.05461403355002403
+          ]
+        },
+        {
+          "token": 15,
+          "bestMatchingElements": 1024,
+          "matchingEstimates": [
+            0.02717808447778225,
+            0.0271780863404274,
+            0.027178088203072548,
+            0.027178090065717697
+          ]
+        },
+        {
+          "token": 16,
+          "bestMatchingElements": 1024,
+          "matchingEstimates": [
+            653.9773559570312,
+            653.9774169921875,
+            653.9774780273438,
+            653.9775390625
+          ]
+        },
+        {
+          "token": 17,
+          "bestMatchingElements": 1024,
+          "matchingEstimates": [
+            406.0906982421875,
+            406.0907287597656,
+            406.09075927734375,
+            406.0907897949219
+          ]
+        },
+        {
+          "token": 18,
+          "bestMatchingElements": 1024,
+          "matchingEstimates": [
+            215.01254272460938,
+            215.01255798339844,
+            215.0125732421875,
+            215.01258850097656
+          ]
+        },
+        {
+          "token": 19,
+          "bestMatchingElements": 1024,
+          "matchingEstimates": [
+            112.4142837524414,
+            112.41429138183594,
+            112.41429901123047,
+            112.414306640625
+          ]
+        },
+        {
+          "token": 20,
+          "bestMatchingElements": 1024,
+          "matchingEstimates": [
+            56.43437957763672,
+            56.434383392333984,
+            56.43438720703125,
+            56.434391021728516
+          ]
+        },
+        {
+          "token": 21,
+          "bestMatchingElements": 1024,
+          "matchingEstimates": [
+            28.036958694458008,
+            28.03696060180664,
+            28.036962509155273,
+            28.036964416503906
+          ]
+        },
+        {
+          "token": 22,
+          "bestMatchingElements": 1024,
+          "matchingEstimates": [
+            13.356178283691406,
+            13.356179237365723,
+            13.356180191040039,
+            13.356181144714355
+          ]
+        },
+        {
+          "token": 23,
+          "bestMatchingElements": 1024,
+          "matchingEstimates": [
+            6.955138206481934,
+            6.955138683319092,
+            6.95513916015625,
+            6.955139636993408
+          ]
+        },
+        {
+          "token": 24,
+          "bestMatchingElements": 1024,
+          "matchingEstimates": [
+            3.387706756591797,
+            3.387706995010376,
+            3.387707233428955,
+            3.387707471847534
+          ]
+        },
+        {
+          "token": 25,
+          "bestMatchingElements": 1024,
+          "matchingEstimates": [
+            1.7584878206253052,
+            1.7584879398345947,
+            1.7584880590438843,
+            1.7584881782531738
+          ]
+        },
+        {
+          "token": 26,
+          "bestMatchingElements": 1024,
+          "matchingEstimates": [
+            0.8506055474281311,
+            0.8506056070327759,
+            0.8506056666374207,
+            0.8506057262420654
+          ]
+        },
+        {
+          "token": 27,
+          "bestMatchingElements": 1024,
+          "matchingEstimates": [
+            0.437862753868103,
+            0.4378627836704254,
+            0.4378628134727478,
+            0.4378628432750702
+          ]
+        },
+        {
+          "token": 28,
+          "bestMatchingElements": 1024,
+          "matchingEstimates": [
+            0.2206561118364334,
+            0.2206561267375946,
+            0.2206561416387558,
+            0.220656156539917
+          ]
+        },
+        {
+          "token": 29,
+          "bestMatchingElements": 1024,
+          "matchingEstimates": [
+            0.1055339053273201,
+            0.1055339127779007,
+            0.10553392022848129,
+            0.10553392767906189
+          ]
+        },
+        {
+          "token": 30,
+          "bestMatchingElements": 1024,
+          "matchingEstimates": [
+            0.05473586171865463,
+            0.05473586544394493,
+            0.05473586916923523,
+            0.05473587289452553
+          ]
+        },
+        {
+          "token": 31,
+          "bestMatchingElements": 1024,
+          "matchingEstimates": [
+            0.026970990002155304,
+            0.026970991864800453,
+            0.026970993727445602,
+            0.02697099559009075
+          ]
+        }
+      ]
+    },
+    {
+      "explicitFma": "fused",
+      "residualSubtraction": "fused",
+      "outputAssociation": "right",
+      "exactRows": 0,
+      "exactElementsInBestRows": 20180,
+      "corruptedRowsRejected": 32,
+      "wrongWeightRowsRejected": 32,
+      "rows": [
+        {
+          "token": 0,
+          "bestMatchingElements": 680,
+          "matchingEstimates": []
+        },
+        {
+          "token": 1,
+          "bestMatchingElements": 704,
+          "matchingEstimates": []
+        },
+        {
+          "token": 2,
+          "bestMatchingElements": 636,
+          "matchingEstimates": []
+        },
+        {
+          "token": 3,
+          "bestMatchingElements": 638,
+          "matchingEstimates": []
+        },
+        {
+          "token": 4,
+          "bestMatchingElements": 615,
+          "matchingEstimates": []
+        },
+        {
+          "token": 5,
+          "bestMatchingElements": 589,
+          "matchingEstimates": []
+        },
+        {
+          "token": 6,
+          "bestMatchingElements": 626,
+          "matchingEstimates": []
+        },
+        {
+          "token": 7,
+          "bestMatchingElements": 613,
+          "matchingEstimates": []
+        },
+        {
+          "token": 8,
+          "bestMatchingElements": 653,
+          "matchingEstimates": []
+        },
+        {
+          "token": 9,
+          "bestMatchingElements": 608,
+          "matchingEstimates": []
+        },
+        {
+          "token": 10,
+          "bestMatchingElements": 616,
+          "matchingEstimates": []
+        },
+        {
+          "token": 11,
+          "bestMatchingElements": 617,
+          "matchingEstimates": []
+        },
+        {
+          "token": 12,
+          "bestMatchingElements": 647,
+          "matchingEstimates": []
+        },
+        {
+          "token": 13,
+          "bestMatchingElements": 599,
+          "matchingEstimates": []
+        },
+        {
+          "token": 14,
+          "bestMatchingElements": 614,
+          "matchingEstimates": []
+        },
+        {
+          "token": 15,
+          "bestMatchingElements": 596,
+          "matchingEstimates": []
+        },
+        {
+          "token": 16,
+          "bestMatchingElements": 704,
+          "matchingEstimates": []
+        },
+        {
+          "token": 17,
+          "bestMatchingElements": 701,
+          "matchingEstimates": []
+        },
+        {
+          "token": 18,
+          "bestMatchingElements": 640,
+          "matchingEstimates": []
+        },
+        {
+          "token": 19,
+          "bestMatchingElements": 628,
+          "matchingEstimates": []
+        },
+        {
+          "token": 20,
+          "bestMatchingElements": 608,
+          "matchingEstimates": []
+        },
+        {
+          "token": 21,
+          "bestMatchingElements": 589,
+          "matchingEstimates": []
+        },
+        {
+          "token": 22,
+          "bestMatchingElements": 658,
+          "matchingEstimates": []
+        },
+        {
+          "token": 23,
+          "bestMatchingElements": 636,
+          "matchingEstimates": []
+        },
+        {
+          "token": 24,
+          "bestMatchingElements": 635,
+          "matchingEstimates": []
+        },
+        {
+          "token": 25,
+          "bestMatchingElements": 587,
+          "matchingEstimates": []
+        },
+        {
+          "token": 26,
+          "bestMatchingElements": 630,
+          "matchingEstimates": []
+        },
+        {
+          "token": 27,
+          "bestMatchingElements": 623,
+          "matchingEstimates": []
+        },
+        {
+          "token": 28,
+          "bestMatchingElements": 633,
+          "matchingEstimates": []
+        },
+        {
+          "token": 29,
+          "bestMatchingElements": 610,
+          "matchingEstimates": []
+        },
+        {
+          "token": 30,
+          "bestMatchingElements": 626,
+          "matchingEstimates": []
+        },
+        {
+          "token": 31,
+          "bestMatchingElements": 621,
+          "matchingEstimates": []
+        }
+      ]
+    },
+    {
+      "explicitFma": "fused",
+      "residualSubtraction": "separate",
+      "outputAssociation": "left",
+      "exactRows": 32,
+      "exactElementsInBestRows": 32768,
+      "corruptedRowsRejected": 32,
+      "wrongWeightRowsRejected": 32,
+      "rows": [
+        {
+          "token": 0,
+          "bestMatchingElements": 1024,
+          "matchingEstimates": [
+            665.44482421875,
+            665.4448852539062,
+            665.4449462890625,
+            665.4450073242188
+          ]
+        },
+        {
+          "token": 1,
+          "bestMatchingElements": 1024,
+          "matchingEstimates": [
+            406.2848815917969,
+            406.284912109375,
+            406.2849426269531,
+            406.28497314453125
+          ]
+        },
+        {
+          "token": 2,
+          "bestMatchingElements": 1024,
+          "matchingEstimates": [
+            215.95458984375,
+            215.95460510253906,
+            215.95462036132812,
+            215.9546356201172
+          ]
+        },
+        {
+          "token": 3,
+          "bestMatchingElements": 1024,
+          "matchingEstimates": [
+            112.08248138427734,
+            112.08248901367188,
+            112.0824966430664,
+            112.08250427246094
+          ]
+        },
+        {
+          "token": 4,
+          "bestMatchingElements": 1024,
+          "matchingEstimates": [
+            55.5097541809082,
+            55.50975799560547,
+            55.509761810302734,
+            55.509765625
+          ]
+        },
+        {
+          "token": 5,
+          "bestMatchingElements": 1024,
+          "matchingEstimates": [
+            27.50937271118164,
+            27.509374618530273,
+            27.509376525878906,
+            27.50937843322754
+          ]
+        },
+        {
+          "token": 6,
+          "bestMatchingElements": 1024,
+          "matchingEstimates": [
+            14.132850646972656,
+            14.132851600646973,
+            14.132852554321289,
+            14.132853507995605
+          ]
+        },
+        {
+          "token": 7,
+          "bestMatchingElements": 1024,
+          "matchingEstimates": [
+            6.927065372467041,
+            6.927065849304199,
+            6.927066326141357,
+            6.927066802978516
+          ]
+        },
+        {
+          "token": 8,
+          "bestMatchingElements": 1024,
+          "matchingEstimates": [
+            3.4861972332000732,
+            3.4861974716186523,
+            3.4861977100372314,
+            3.4861979484558105
+          ]
+        },
+        {
+          "token": 9,
+          "bestMatchingElements": 1024,
+          "matchingEstimates": [
+            1.7464957237243652,
+            1.7464958429336548,
+            1.7464959621429443,
+            1.7464960813522339
+          ]
+        },
+        {
+          "token": 10,
+          "bestMatchingElements": 1024,
+          "matchingEstimates": [
+            0.8571056723594666,
+            0.8571057319641113,
+            0.8571057915687561,
+            0.8571058511734009
+          ]
+        },
+        {
+          "token": 11,
+          "bestMatchingElements": 1024,
+          "matchingEstimates": [
+            0.4379938840866089,
+            0.4379939138889313,
+            0.43799394369125366,
+            0.43799397349357605
+          ]
+        },
+        {
+          "token": 12,
+          "bestMatchingElements": 1024,
+          "matchingEstimates": [
+            0.21268023550510406,
+            0.21268025040626526,
+            0.21268026530742645,
+            0.21268028020858765
+          ]
+        },
+        {
+          "token": 13,
+          "bestMatchingElements": 1024,
+          "matchingEstimates": [
+            0.1101607084274292,
+            0.1101607158780098,
+            0.1101607233285904,
+            0.11016073077917099
+          ]
+        },
+        {
+          "token": 14,
+          "bestMatchingElements": 1024,
+          "matchingEstimates": [
+            0.05461402237415314,
+            0.054614026099443436,
+            0.054614029824733734,
+            0.05461403355002403
+          ]
+        },
+        {
+          "token": 15,
+          "bestMatchingElements": 1024,
+          "matchingEstimates": [
+            0.02717808447778225,
+            0.0271780863404274,
+            0.027178088203072548,
+            0.027178090065717697
+          ]
+        },
+        {
+          "token": 16,
+          "bestMatchingElements": 1024,
+          "matchingEstimates": [
+            653.9773559570312,
+            653.9774169921875,
+            653.9774780273438,
+            653.9775390625
+          ]
+        },
+        {
+          "token": 17,
+          "bestMatchingElements": 1024,
+          "matchingEstimates": [
+            406.0906982421875,
+            406.0907287597656,
+            406.09075927734375,
+            406.0907897949219
+          ]
+        },
+        {
+          "token": 18,
+          "bestMatchingElements": 1024,
+          "matchingEstimates": [
+            215.01254272460938,
+            215.01255798339844,
+            215.0125732421875,
+            215.01258850097656
+          ]
+        },
+        {
+          "token": 19,
+          "bestMatchingElements": 1024,
+          "matchingEstimates": [
+            112.4142837524414,
+            112.41429138183594,
+            112.41429901123047,
+            112.414306640625
+          ]
+        },
+        {
+          "token": 20,
+          "bestMatchingElements": 1024,
+          "matchingEstimates": [
+            56.43437957763672,
+            56.434383392333984,
+            56.43438720703125,
+            56.434391021728516
+          ]
+        },
+        {
+          "token": 21,
+          "bestMatchingElements": 1024,
+          "matchingEstimates": [
+            28.036958694458008,
+            28.03696060180664,
+            28.036962509155273,
+            28.036964416503906
+          ]
+        },
+        {
+          "token": 22,
+          "bestMatchingElements": 1024,
+          "matchingEstimates": [
+            13.356178283691406,
+            13.356179237365723,
+            13.356180191040039,
+            13.356181144714355
+          ]
+        },
+        {
+          "token": 23,
+          "bestMatchingElements": 1024,
+          "matchingEstimates": [
+            6.955138206481934,
+            6.955138683319092,
+            6.95513916015625,
+            6.955139636993408
+          ]
+        },
+        {
+          "token": 24,
+          "bestMatchingElements": 1024,
+          "matchingEstimates": [
+            3.387706756591797,
+            3.387706995010376,
+            3.387707233428955,
+            3.387707471847534
+          ]
+        },
+        {
+          "token": 25,
+          "bestMatchingElements": 1024,
+          "matchingEstimates": [
+            1.7584878206253052,
+            1.7584879398345947,
+            1.7584880590438843,
+            1.7584881782531738
+          ]
+        },
+        {
+          "token": 26,
+          "bestMatchingElements": 1024,
+          "matchingEstimates": [
+            0.8506055474281311,
+            0.8506056070327759,
+            0.8506056666374207,
+            0.8506057262420654
+          ]
+        },
+        {
+          "token": 27,
+          "bestMatchingElements": 1024,
+          "matchingEstimates": [
+            0.437862753868103,
+            0.4378627836704254,
+            0.4378628134727478,
+            0.4378628432750702
+          ]
+        },
+        {
+          "token": 28,
+          "bestMatchingElements": 1024,
+          "matchingEstimates": [
+            0.2206561118364334,
+            0.2206561267375946,
+            0.2206561416387558,
+            0.220656156539917
+          ]
+        },
+        {
+          "token": 29,
+          "bestMatchingElements": 1024,
+          "matchingEstimates": [
+            0.1055339053273201,
+            0.1055339127779007,
+            0.10553392022848129,
+            0.10553392767906189
+          ]
+        },
+        {
+          "token": 30,
+          "bestMatchingElements": 1024,
+          "matchingEstimates": [
+            0.05473586171865463,
+            0.05473586544394493,
+            0.05473586916923523,
+            0.05473587289452553
+          ]
+        },
+        {
+          "token": 31,
+          "bestMatchingElements": 1024,
+          "matchingEstimates": [
+            0.026970990002155304,
+            0.026970991864800453,
+            0.026970993727445602,
+            0.02697099559009075
+          ]
+        }
+      ]
+    },
+    {
+      "explicitFma": "fused",
+      "residualSubtraction": "separate",
+      "outputAssociation": "right",
+      "exactRows": 0,
+      "exactElementsInBestRows": 20180,
+      "corruptedRowsRejected": 32,
+      "wrongWeightRowsRejected": 32,
+      "rows": [
+        {
+          "token": 0,
+          "bestMatchingElements": 680,
+          "matchingEstimates": []
+        },
+        {
+          "token": 1,
+          "bestMatchingElements": 704,
+          "matchingEstimates": []
+        },
+        {
+          "token": 2,
+          "bestMatchingElements": 636,
+          "matchingEstimates": []
+        },
+        {
+          "token": 3,
+          "bestMatchingElements": 638,
+          "matchingEstimates": []
+        },
+        {
+          "token": 4,
+          "bestMatchingElements": 615,
+          "matchingEstimates": []
+        },
+        {
+          "token": 5,
+          "bestMatchingElements": 589,
+          "matchingEstimates": []
+        },
+        {
+          "token": 6,
+          "bestMatchingElements": 626,
+          "matchingEstimates": []
+        },
+        {
+          "token": 7,
+          "bestMatchingElements": 613,
+          "matchingEstimates": []
+        },
+        {
+          "token": 8,
+          "bestMatchingElements": 653,
+          "matchingEstimates": []
+        },
+        {
+          "token": 9,
+          "bestMatchingElements": 608,
+          "matchingEstimates": []
+        },
+        {
+          "token": 10,
+          "bestMatchingElements": 616,
+          "matchingEstimates": []
+        },
+        {
+          "token": 11,
+          "bestMatchingElements": 617,
+          "matchingEstimates": []
+        },
+        {
+          "token": 12,
+          "bestMatchingElements": 647,
+          "matchingEstimates": []
+        },
+        {
+          "token": 13,
+          "bestMatchingElements": 599,
+          "matchingEstimates": []
+        },
+        {
+          "token": 14,
+          "bestMatchingElements": 614,
+          "matchingEstimates": []
+        },
+        {
+          "token": 15,
+          "bestMatchingElements": 596,
+          "matchingEstimates": []
+        },
+        {
+          "token": 16,
+          "bestMatchingElements": 704,
+          "matchingEstimates": []
+        },
+        {
+          "token": 17,
+          "bestMatchingElements": 701,
+          "matchingEstimates": []
+        },
+        {
+          "token": 18,
+          "bestMatchingElements": 640,
+          "matchingEstimates": []
+        },
+        {
+          "token": 19,
+          "bestMatchingElements": 628,
+          "matchingEstimates": []
+        },
+        {
+          "token": 20,
+          "bestMatchingElements": 608,
+          "matchingEstimates": []
+        },
+        {
+          "token": 21,
+          "bestMatchingElements": 589,
+          "matchingEstimates": []
+        },
+        {
+          "token": 22,
+          "bestMatchingElements": 658,
+          "matchingEstimates": []
+        },
+        {
+          "token": 23,
+          "bestMatchingElements": 636,
+          "matchingEstimates": []
+        },
+        {
+          "token": 24,
+          "bestMatchingElements": 635,
+          "matchingEstimates": []
+        },
+        {
+          "token": 25,
+          "bestMatchingElements": 587,
+          "matchingEstimates": []
+        },
+        {
+          "token": 26,
+          "bestMatchingElements": 630,
+          "matchingEstimates": []
+        },
+        {
+          "token": 27,
+          "bestMatchingElements": 623,
+          "matchingEstimates": []
+        },
+        {
+          "token": 28,
+          "bestMatchingElements": 633,
+          "matchingEstimates": []
+        },
+        {
+          "token": 29,
+          "bestMatchingElements": 610,
+          "matchingEstimates": []
+        },
+        {
+          "token": 30,
+          "bestMatchingElements": 626,
+          "matchingEstimates": []
+        },
+        {
+          "token": 31,
+          "bestMatchingElements": 621,
+          "matchingEstimates": []
+        }
+      ]
+    },
+    {
+      "explicitFma": "separate",
+      "residualSubtraction": "fused",
+      "outputAssociation": "left",
+      "exactRows": 32,
+      "exactElementsInBestRows": 32768,
+      "corruptedRowsRejected": 32,
+      "wrongWeightRowsRejected": 32,
+      "rows": [
+        {
+          "token": 0,
+          "bestMatchingElements": 1024,
+          "matchingEstimates": [
+            665.44482421875,
+            665.4448852539062,
+            665.4449462890625,
+            665.4450073242188
+          ]
+        },
+        {
+          "token": 1,
+          "bestMatchingElements": 1024,
+          "matchingEstimates": [
+            406.2848815917969,
+            406.284912109375,
+            406.2849426269531,
+            406.28497314453125
+          ]
+        },
+        {
+          "token": 2,
+          "bestMatchingElements": 1024,
+          "matchingEstimates": [
+            215.95458984375,
+            215.95460510253906,
+            215.95462036132812
+          ]
+        },
+        {
+          "token": 3,
+          "bestMatchingElements": 1024,
+          "matchingEstimates": [
+            112.08248138427734,
+            112.08250427246094
+          ]
+        },
+        {
+          "token": 4,
+          "bestMatchingElements": 1024,
+          "matchingEstimates": [
+            55.5097541809082,
+            55.50975799560547,
+            55.509761810302734,
+            55.509765625
+          ]
+        },
+        {
+          "token": 5,
+          "bestMatchingElements": 1024,
+          "matchingEstimates": [
+            27.50937271118164,
+            27.509374618530273
+          ]
+        },
+        {
+          "token": 6,
+          "bestMatchingElements": 1024,
+          "matchingEstimates": [
+            14.132851600646973,
+            14.132852554321289
+          ]
+        },
+        {
+          "token": 7,
+          "bestMatchingElements": 1024,
+          "matchingEstimates": [
+            6.927065372467041,
+            6.927066802978516
+          ]
+        },
+        {
+          "token": 8,
+          "bestMatchingElements": 1024,
+          "matchingEstimates": [
+            3.4861972332000732,
+            3.4861979484558105
+          ]
+        },
+        {
+          "token": 9,
+          "bestMatchingElements": 1024,
+          "matchingEstimates": [
+            1.7464957237243652,
+            1.7464958429336548,
+            1.7464959621429443,
+            1.7464960813522339
+          ]
+        },
+        {
+          "token": 10,
+          "bestMatchingElements": 1024,
+          "matchingEstimates": [
+            0.8571057319641113,
+            0.8571057915687561,
+            0.8571058511734009
+          ]
+        },
+        {
+          "token": 11,
+          "bestMatchingElements": 1024,
+          "matchingEstimates": [
+            0.4379938840866089,
+            0.4379939138889313,
+            0.43799394369125366,
+            0.43799397349357605
+          ]
+        },
+        {
+          "token": 12,
+          "bestMatchingElements": 1024,
+          "matchingEstimates": [
+            0.21268023550510406,
+            0.21268025040626526,
+            0.21268026530742645
+          ]
+        },
+        {
+          "token": 13,
+          "bestMatchingElements": 1024,
+          "matchingEstimates": [
+            0.1101607084274292,
+            0.1101607158780098,
+            0.11016073077917099
+          ]
+        },
+        {
+          "token": 14,
+          "bestMatchingElements": 1024,
+          "matchingEstimates": [
+            0.05461402237415314,
+            0.054614026099443436,
+            0.054614029824733734,
+            0.05461403355002403
+          ]
+        },
+        {
+          "token": 15,
+          "bestMatchingElements": 1024,
+          "matchingEstimates": [
+            0.02717808447778225,
+            0.0271780863404274,
+            0.027178088203072548,
+            0.027178090065717697
+          ]
+        },
+        {
+          "token": 16,
+          "bestMatchingElements": 1024,
+          "matchingEstimates": [
+            653.9774169921875,
+            653.9774780273438,
+            653.9775390625
+          ]
+        },
+        {
+          "token": 17,
+          "bestMatchingElements": 1024,
+          "matchingEstimates": [
+            406.0906982421875
+          ]
+        },
+        {
+          "token": 18,
+          "bestMatchingElements": 1024,
+          "matchingEstimates": [
+            215.01254272460938,
+            215.0125732421875,
+            215.01258850097656
+          ]
+        },
+        {
+          "token": 19,
+          "bestMatchingElements": 1024,
+          "matchingEstimates": [
+            112.4142837524414,
+            112.41429138183594,
+            112.41429901123047,
+            112.414306640625
+          ]
+        },
+        {
+          "token": 20,
+          "bestMatchingElements": 1024,
+          "matchingEstimates": [
+            56.43437957763672,
+            56.434383392333984,
+            56.43438720703125,
+            56.434391021728516
+          ]
+        },
+        {
+          "token": 21,
+          "bestMatchingElements": 1024,
+          "matchingEstimates": [
+            28.036958694458008,
+            28.03696060180664,
+            28.036962509155273,
+            28.036964416503906
+          ]
+        },
+        {
+          "token": 22,
+          "bestMatchingElements": 1024,
+          "matchingEstimates": [
+            13.356178283691406,
+            13.356180191040039,
+            13.356181144714355
+          ]
+        },
+        {
+          "token": 23,
+          "bestMatchingElements": 1024,
+          "matchingEstimates": [
+            6.955138206481934,
+            6.955138683319092,
+            6.95513916015625,
+            6.955139636993408
+          ]
+        },
+        {
+          "token": 24,
+          "bestMatchingElements": 1024,
+          "matchingEstimates": [
+            3.387706756591797,
+            3.387706995010376,
+            3.387707233428955,
+            3.387707471847534
+          ]
+        },
+        {
+          "token": 25,
+          "bestMatchingElements": 1024,
+          "matchingEstimates": [
+            1.7584878206253052,
+            1.7584879398345947,
+            1.7584881782531738
+          ]
+        },
+        {
+          "token": 26,
+          "bestMatchingElements": 1024,
+          "matchingEstimates": [
+            0.8506055474281311,
+            0.8506056070327759,
+            0.8506056666374207,
+            0.8506057262420654
+          ]
+        },
+        {
+          "token": 27,
+          "bestMatchingElements": 1024,
+          "matchingEstimates": [
+            0.437862753868103,
+            0.4378627836704254,
+            0.4378628134727478,
+            0.4378628432750702
+          ]
+        },
+        {
+          "token": 28,
+          "bestMatchingElements": 1024,
+          "matchingEstimates": [
+            0.2206561118364334,
+            0.2206561267375946,
+            0.2206561416387558,
+            0.220656156539917
+          ]
+        },
+        {
+          "token": 29,
+          "bestMatchingElements": 1024,
+          "matchingEstimates": [
+            0.1055339053273201,
+            0.1055339127779007,
+            0.10553392022848129
+          ]
+        },
+        {
+          "token": 30,
+          "bestMatchingElements": 1024,
+          "matchingEstimates": [
+            0.05473586171865463,
+            0.05473586544394493,
+            0.05473586916923523,
+            0.05473587289452553
+          ]
+        },
+        {
+          "token": 31,
+          "bestMatchingElements": 1024,
+          "matchingEstimates": [
+            0.026970990002155304,
+            0.026970991864800453,
+            0.026970993727445602,
+            0.02697099559009075
+          ]
+        }
+      ]
+    },
+    {
+      "explicitFma": "separate",
+      "residualSubtraction": "fused",
+      "outputAssociation": "right",
+      "exactRows": 0,
+      "exactElementsInBestRows": 20180,
+      "corruptedRowsRejected": 32,
+      "wrongWeightRowsRejected": 32,
+      "rows": [
+        {
+          "token": 0,
+          "bestMatchingElements": 680,
+          "matchingEstimates": []
+        },
+        {
+          "token": 1,
+          "bestMatchingElements": 704,
+          "matchingEstimates": []
+        },
+        {
+          "token": 2,
+          "bestMatchingElements": 636,
+          "matchingEstimates": []
+        },
+        {
+          "token": 3,
+          "bestMatchingElements": 638,
+          "matchingEstimates": []
+        },
+        {
+          "token": 4,
+          "bestMatchingElements": 615,
+          "matchingEstimates": []
+        },
+        {
+          "token": 5,
+          "bestMatchingElements": 589,
+          "matchingEstimates": []
+        },
+        {
+          "token": 6,
+          "bestMatchingElements": 626,
+          "matchingEstimates": []
+        },
+        {
+          "token": 7,
+          "bestMatchingElements": 613,
+          "matchingEstimates": []
+        },
+        {
+          "token": 8,
+          "bestMatchingElements": 653,
+          "matchingEstimates": []
+        },
+        {
+          "token": 9,
+          "bestMatchingElements": 608,
+          "matchingEstimates": []
+        },
+        {
+          "token": 10,
+          "bestMatchingElements": 616,
+          "matchingEstimates": []
+        },
+        {
+          "token": 11,
+          "bestMatchingElements": 617,
+          "matchingEstimates": []
+        },
+        {
+          "token": 12,
+          "bestMatchingElements": 647,
+          "matchingEstimates": []
+        },
+        {
+          "token": 13,
+          "bestMatchingElements": 599,
+          "matchingEstimates": []
+        },
+        {
+          "token": 14,
+          "bestMatchingElements": 614,
+          "matchingEstimates": []
+        },
+        {
+          "token": 15,
+          "bestMatchingElements": 596,
+          "matchingEstimates": []
+        },
+        {
+          "token": 16,
+          "bestMatchingElements": 704,
+          "matchingEstimates": []
+        },
+        {
+          "token": 17,
+          "bestMatchingElements": 701,
+          "matchingEstimates": []
+        },
+        {
+          "token": 18,
+          "bestMatchingElements": 640,
+          "matchingEstimates": []
+        },
+        {
+          "token": 19,
+          "bestMatchingElements": 628,
+          "matchingEstimates": []
+        },
+        {
+          "token": 20,
+          "bestMatchingElements": 608,
+          "matchingEstimates": []
+        },
+        {
+          "token": 21,
+          "bestMatchingElements": 589,
+          "matchingEstimates": []
+        },
+        {
+          "token": 22,
+          "bestMatchingElements": 658,
+          "matchingEstimates": []
+        },
+        {
+          "token": 23,
+          "bestMatchingElements": 636,
+          "matchingEstimates": []
+        },
+        {
+          "token": 24,
+          "bestMatchingElements": 635,
+          "matchingEstimates": []
+        },
+        {
+          "token": 25,
+          "bestMatchingElements": 587,
+          "matchingEstimates": []
+        },
+        {
+          "token": 26,
+          "bestMatchingElements": 630,
+          "matchingEstimates": []
+        },
+        {
+          "token": 27,
+          "bestMatchingElements": 623,
+          "matchingEstimates": []
+        },
+        {
+          "token": 28,
+          "bestMatchingElements": 633,
+          "matchingEstimates": []
+        },
+        {
+          "token": 29,
+          "bestMatchingElements": 610,
+          "matchingEstimates": []
+        },
+        {
+          "token": 30,
+          "bestMatchingElements": 626,
+          "matchingEstimates": []
+        },
+        {
+          "token": 31,
+          "bestMatchingElements": 621,
+          "matchingEstimates": []
+        }
+      ]
+    },
+    {
+      "explicitFma": "separate",
+      "residualSubtraction": "separate",
+      "outputAssociation": "left",
+      "exactRows": 32,
+      "exactElementsInBestRows": 32768,
+      "corruptedRowsRejected": 32,
+      "wrongWeightRowsRejected": 32,
+      "rows": [
+        {
+          "token": 0,
+          "bestMatchingElements": 1024,
+          "matchingEstimates": [
+            665.44482421875,
+            665.4448852539062,
+            665.4449462890625,
+            665.4450073242188
+          ]
+        },
+        {
+          "token": 1,
+          "bestMatchingElements": 1024,
+          "matchingEstimates": [
+            406.2848815917969,
+            406.284912109375,
+            406.2849426269531,
+            406.28497314453125
+          ]
+        },
+        {
+          "token": 2,
+          "bestMatchingElements": 1024,
+          "matchingEstimates": [
+            215.95458984375,
+            215.95460510253906,
+            215.95462036132812
+          ]
+        },
+        {
+          "token": 3,
+          "bestMatchingElements": 1024,
+          "matchingEstimates": [
+            112.08248138427734,
+            112.08250427246094
+          ]
+        },
+        {
+          "token": 4,
+          "bestMatchingElements": 1024,
+          "matchingEstimates": [
+            55.5097541809082,
+            55.50975799560547,
+            55.509761810302734,
+            55.509765625
+          ]
+        },
+        {
+          "token": 5,
+          "bestMatchingElements": 1024,
+          "matchingEstimates": [
+            27.50937271118164,
+            27.509374618530273
+          ]
+        },
+        {
+          "token": 6,
+          "bestMatchingElements": 1024,
+          "matchingEstimates": [
+            14.132851600646973,
+            14.132852554321289
+          ]
+        },
+        {
+          "token": 7,
+          "bestMatchingElements": 1024,
+          "matchingEstimates": [
+            6.927065372467041,
+            6.927066802978516
+          ]
+        },
+        {
+          "token": 8,
+          "bestMatchingElements": 1024,
+          "matchingEstimates": [
+            3.4861972332000732,
+            3.4861979484558105
+          ]
+        },
+        {
+          "token": 9,
+          "bestMatchingElements": 1024,
+          "matchingEstimates": [
+            1.7464957237243652,
+            1.7464958429336548,
+            1.7464959621429443,
+            1.7464960813522339
+          ]
+        },
+        {
+          "token": 10,
+          "bestMatchingElements": 1024,
+          "matchingEstimates": [
+            0.8571057319641113,
+            0.8571057915687561,
+            0.8571058511734009
+          ]
+        },
+        {
+          "token": 11,
+          "bestMatchingElements": 1024,
+          "matchingEstimates": [
+            0.4379938840866089,
+            0.4379939138889313,
+            0.43799394369125366,
+            0.43799397349357605
+          ]
+        },
+        {
+          "token": 12,
+          "bestMatchingElements": 1024,
+          "matchingEstimates": [
+            0.21268023550510406,
+            0.21268025040626526,
+            0.21268026530742645
+          ]
+        },
+        {
+          "token": 13,
+          "bestMatchingElements": 1024,
+          "matchingEstimates": [
+            0.1101607084274292,
+            0.1101607158780098,
+            0.11016073077917099
+          ]
+        },
+        {
+          "token": 14,
+          "bestMatchingElements": 1024,
+          "matchingEstimates": [
+            0.05461402237415314,
+            0.054614026099443436,
+            0.054614029824733734,
+            0.05461403355002403
+          ]
+        },
+        {
+          "token": 15,
+          "bestMatchingElements": 1024,
+          "matchingEstimates": [
+            0.02717808447778225,
+            0.0271780863404274,
+            0.027178088203072548,
+            0.027178090065717697
+          ]
+        },
+        {
+          "token": 16,
+          "bestMatchingElements": 1024,
+          "matchingEstimates": [
+            653.9774169921875,
+            653.9774780273438,
+            653.9775390625
+          ]
+        },
+        {
+          "token": 17,
+          "bestMatchingElements": 1024,
+          "matchingEstimates": [
+            406.0906982421875
+          ]
+        },
+        {
+          "token": 18,
+          "bestMatchingElements": 1024,
+          "matchingEstimates": [
+            215.01254272460938,
+            215.0125732421875,
+            215.01258850097656
+          ]
+        },
+        {
+          "token": 19,
+          "bestMatchingElements": 1024,
+          "matchingEstimates": [
+            112.4142837524414,
+            112.41429138183594,
+            112.41429901123047,
+            112.414306640625
+          ]
+        },
+        {
+          "token": 20,
+          "bestMatchingElements": 1024,
+          "matchingEstimates": [
+            56.43437957763672,
+            56.434383392333984,
+            56.43438720703125,
+            56.434391021728516
+          ]
+        },
+        {
+          "token": 21,
+          "bestMatchingElements": 1024,
+          "matchingEstimates": [
+            28.036958694458008,
+            28.03696060180664,
+            28.036962509155273,
+            28.036964416503906
+          ]
+        },
+        {
+          "token": 22,
+          "bestMatchingElements": 1024,
+          "matchingEstimates": [
+            13.356178283691406,
+            13.356180191040039,
+            13.356181144714355
+          ]
+        },
+        {
+          "token": 23,
+          "bestMatchingElements": 1024,
+          "matchingEstimates": [
+            6.955138206481934,
+            6.955138683319092,
+            6.95513916015625,
+            6.955139636993408
+          ]
+        },
+        {
+          "token": 24,
+          "bestMatchingElements": 1024,
+          "matchingEstimates": [
+            3.387706756591797,
+            3.387706995010376,
+            3.387707233428955,
+            3.387707471847534
+          ]
+        },
+        {
+          "token": 25,
+          "bestMatchingElements": 1024,
+          "matchingEstimates": [
+            1.7584878206253052,
+            1.7584879398345947,
+            1.7584881782531738
+          ]
+        },
+        {
+          "token": 26,
+          "bestMatchingElements": 1024,
+          "matchingEstimates": [
+            0.8506055474281311,
+            0.8506056070327759,
+            0.8506056666374207,
+            0.8506057262420654
+          ]
+        },
+        {
+          "token": 27,
+          "bestMatchingElements": 1024,
+          "matchingEstimates": [
+            0.437862753868103,
+            0.4378627836704254,
+            0.4378628134727478,
+            0.4378628432750702
+          ]
+        },
+        {
+          "token": 28,
+          "bestMatchingElements": 1024,
+          "matchingEstimates": [
+            0.2206561118364334,
+            0.2206561267375946,
+            0.2206561416387558,
+            0.220656156539917
+          ]
+        },
+        {
+          "token": 29,
+          "bestMatchingElements": 1024,
+          "matchingEstimates": [
+            0.1055339053273201,
+            0.1055339127779007,
+            0.10553392022848129
+          ]
+        },
+        {
+          "token": 30,
+          "bestMatchingElements": 1024,
+          "matchingEstimates": [
+            0.05473586171865463,
+            0.05473586544394493,
+            0.05473586916923523,
+            0.05473587289452553
+          ]
+        },
+        {
+          "token": 31,
+          "bestMatchingElements": 1024,
+          "matchingEstimates": [
+            0.026970990002155304,
+            0.026970991864800453,
+            0.026970993727445602,
+            0.02697099559009075
+          ]
+        }
+      ]
+    },
+    {
+      "explicitFma": "separate",
+      "residualSubtraction": "separate",
+      "outputAssociation": "right",
+      "exactRows": 0,
+      "exactElementsInBestRows": 20180,
+      "corruptedRowsRejected": 32,
+      "wrongWeightRowsRejected": 32,
+      "rows": [
+        {
+          "token": 0,
+          "bestMatchingElements": 680,
+          "matchingEstimates": []
+        },
+        {
+          "token": 1,
+          "bestMatchingElements": 704,
+          "matchingEstimates": []
+        },
+        {
+          "token": 2,
+          "bestMatchingElements": 636,
+          "matchingEstimates": []
+        },
+        {
+          "token": 3,
+          "bestMatchingElements": 638,
+          "matchingEstimates": []
+        },
+        {
+          "token": 4,
+          "bestMatchingElements": 615,
+          "matchingEstimates": []
+        },
+        {
+          "token": 5,
+          "bestMatchingElements": 589,
+          "matchingEstimates": []
+        },
+        {
+          "token": 6,
+          "bestMatchingElements": 626,
+          "matchingEstimates": []
+        },
+        {
+          "token": 7,
+          "bestMatchingElements": 613,
+          "matchingEstimates": []
+        },
+        {
+          "token": 8,
+          "bestMatchingElements": 653,
+          "matchingEstimates": []
+        },
+        {
+          "token": 9,
+          "bestMatchingElements": 608,
+          "matchingEstimates": []
+        },
+        {
+          "token": 10,
+          "bestMatchingElements": 616,
+          "matchingEstimates": []
+        },
+        {
+          "token": 11,
+          "bestMatchingElements": 617,
+          "matchingEstimates": []
+        },
+        {
+          "token": 12,
+          "bestMatchingElements": 647,
+          "matchingEstimates": []
+        },
+        {
+          "token": 13,
+          "bestMatchingElements": 599,
+          "matchingEstimates": []
+        },
+        {
+          "token": 14,
+          "bestMatchingElements": 614,
+          "matchingEstimates": []
+        },
+        {
+          "token": 15,
+          "bestMatchingElements": 596,
+          "matchingEstimates": []
+        },
+        {
+          "token": 16,
+          "bestMatchingElements": 704,
+          "matchingEstimates": []
+        },
+        {
+          "token": 17,
+          "bestMatchingElements": 701,
+          "matchingEstimates": []
+        },
+        {
+          "token": 18,
+          "bestMatchingElements": 640,
+          "matchingEstimates": []
+        },
+        {
+          "token": 19,
+          "bestMatchingElements": 628,
+          "matchingEstimates": []
+        },
+        {
+          "token": 20,
+          "bestMatchingElements": 608,
+          "matchingEstimates": []
+        },
+        {
+          "token": 21,
+          "bestMatchingElements": 589,
+          "matchingEstimates": []
+        },
+        {
+          "token": 22,
+          "bestMatchingElements": 658,
+          "matchingEstimates": []
+        },
+        {
+          "token": 23,
+          "bestMatchingElements": 636,
+          "matchingEstimates": []
+        },
+        {
+          "token": 24,
+          "bestMatchingElements": 635,
+          "matchingEstimates": []
+        },
+        {
+          "token": 25,
+          "bestMatchingElements": 587,
+          "matchingEstimates": []
+        },
+        {
+          "token": 26,
+          "bestMatchingElements": 630,
+          "matchingEstimates": []
+        },
+        {
+          "token": 27,
+          "bestMatchingElements": 623,
+          "matchingEstimates": []
+        },
+        {
+          "token": 28,
+          "bestMatchingElements": 633,
+          "matchingEstimates": []
+        },
+        {
+          "token": 29,
+          "bestMatchingElements": 610,
+          "matchingEstimates": []
+        },
+        {
+          "token": 30,
+          "bestMatchingElements": 626,
+          "matchingEstimates": []
+        },
+        {
+          "token": 31,
+          "bestMatchingElements": 621,
+          "matchingEstimates": []
+        }
+      ]
+    }
+  ],
+  "scope": "Exact operator witnesses on the identified inputs; no claim about subsequent layers or complete-model qualification"
+}

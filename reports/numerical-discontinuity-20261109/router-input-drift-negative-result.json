@@ -1,0 +1,6 @@
+{
+  "control": "Incorrect observation SHA-256",
+  "exitCode": 1,
+  "expectedMessage": true,
+  "outputCreated": false
+}

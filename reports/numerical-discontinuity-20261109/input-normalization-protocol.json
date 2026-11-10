@@ -1,0 +1,25 @@
+{
+  "schema": "doppler.input-normalization-diagnostic/v1",
+  "qualificationAuthority": false,
+  "hypothesis": "The earliest split-run discrepancy is reproducible by the declared F32 RMSNorm arithmetic on identical embeddings and weights, without fitting an output tolerance.",
+  "inputBundleSha256": "f3dad7bae18e1e801398892d85adbc96f3976a799cf670a6eee0f06045f881c3",
+  "manifestSha256": "edeb69dd65cbb26971abf773a95bf6dc219a82942c0951d65e1893d442b607c9",
+  "runtimeArchiveSha256": "2df37d88f592b523bb90c4c79840354fd301af9803a7d9009e1c8939561c71f8",
+  "shaderSha256": "a1986477198de29aa97205475bdc5bf3c79039917dd26ba16c9d9e6e687e0f4f",
+  "weightsSha256": "ef788e502a4813797b82059518a964afaa6fa87563a2b305479655ea5eb92a56",
+  "shape": [184, 1024],
+  "workgroupSize": 256,
+  "epsilon": 0.000001,
+  "weightOffset": true,
+  "allowedInverseSqrtErrorUlp": 2,
+  "inverseSqrtAuthority": "https://www.w3.org/TR/2026/CRD-WGSL-20261106/#floating-point-accuracy",
+  "models": {
+    "explicitFma": ["fused", "separate"],
+    "residualSubtraction": ["fused", "separate"],
+    "outputAssociation": ["left", "right"]
+  },
+  "decisionRule": "For each fixed arithmetic model, require every element of a row to match one common allowed inverseSqrt estimate, bit-for-bit. Report how many complete rows each fixed model explains. Never choose a different model per output element.",
+  "referenceRule": "Compare retained high-precision proxy to an independent RMSNorm evaluation; this is diagnostic and does not activate another model reference.",
+  "negativeControls": ["Change one output of each row by 0.01", "Use the wrong normalization weight offset"],
+  "limitations": ["Operator witness only; no complete recurrence error bound", "Historical captures, not unseen prompts", "No runtime mutation, GPU run or qualification change"]
+}

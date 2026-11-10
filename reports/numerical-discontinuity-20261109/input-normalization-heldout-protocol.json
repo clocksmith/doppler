@@ -1,0 +1,13 @@
+{
+  "schema": "doppler.norm-operator-heldout/v1",
+  "seed": "0x6e7149ab",
+  "rows": 32,
+  "width": 1024,
+  "fixtureSha256": "a68fdc9119cd213338fccb5e1d6a2fce97b647ccd500b235dc96e35ecdea6f5d",
+  "shaderSha256": "a1986477198de29aa97205475bdc5bf3c79039917dd26ba16c9d9e6e687e0f4f",
+  "source": "New seeded synthetic F16-valued operator rows, seed 0x6e7149ab; no prompt or full-model qualification",
+  "criterion": "One fixed arithmetic witness model explains all outputs bit-for-bit; preserve model qualification.",
+  "harness": "tests/integration/rmsnorm-captured-replay.js",
+  "harnessSha256": "30ba7165f4c095b842b29856987149acb4c561b25d7ceec95d19b64d5805a68b",
+  "harnessLabelCaveat": "The existing harness calls fixtures captured; this input is newly generated synthetic data. Its baseline is rounded F64, not a retained GPU capture."
+}

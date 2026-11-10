@@ -1,0 +1,208 @@
+{
+  "schema": "doppler.numerical-operator-followup/v1",
+  "qualified": false,
+  "baseRevision": "03521e0d22a258a2d914b1e1ccdb0d6fbff7c723",
+  "originalReceiptSha256": "3d66c49e1cc02ffa1d96d8d50a0131a62471f2570ad74701818237e893978df7",
+  "newGpuInvocations": 1,
+  "newModelRuns": 0,
+  "files": [
+    {
+      "path": "reports/numerical-discontinuity-20261109/OPERATOR-FOLLOWUP.md",
+      "sha256": "a14d2fd728147450054879ccf19ec2c0158eb3e2eb453bcb55a16387a3b7a9c7",
+      "bytes": 8364
+    },
+    {
+      "path": "reports/numerical-discontinuity-20261109/input-normalization-protocol.json",
+      "sha256": "dd6ae76e96d357baf6366f898edd70c666246d3dbaab2184c16b8099ef0f26fd",
+      "bytes": 1816
+    },
+    {
+      "path": "reports/numerical-discontinuity-20261109/input-normalization-results.json",
+      "sha256": "c531a95c3fa8f75522c662d3c2b335e17a09abb0cbe240379f3991650b66b69f",
+      "bytes": 264200
+    },
+    {
+      "path": "reports/numerical-discontinuity-20261109/input-normalization-heldout-protocol.json",
+      "sha256": "3a55f7c66d42d40cbe903bfa1a0817c3ce0cb7843226dba1705530f1c0e7c1f8",
+      "bytes": 837
+    },
+    {
+      "path": "reports/numerical-discontinuity-20261109/input-normalization-heldout-analysis.json",
+      "sha256": "e081f21d975506fc1d5a0e1399cd8cb7525a1d6d6a6990aaf4bb4b389fd4d182",
+      "bytes": 2004
+    },
+    {
+      "path": "reports/numerical-discontinuity-20261109/input-normalization-heldout-results.json",
+      "sha256": "73733ad9fe66a33e14ee2d659a9ccdfb9a646eef0a0b61686e13762a0148c0c6",
+      "bytes": 49202
+    },
+    {
+      "path": "reports/numerical-discontinuity-20261109/input-normalization-negative-result.json",
+      "sha256": "185a3eefc9190ba5672a8a2ef1c3d51ff6339985432f6316e733b0bbe1919d60",
+      "bytes": 115
+    },
+    {
+      "path": "reports/numerical-discontinuity-20261109/heldout-metal.json.gz",
+      "sha256": "6c1bbc247438855db4ef38838e120fe1b97d1e07baf96d0615b102971786dda2",
+      "bytes": 290368
+    },
+    {
+      "path": "reports/numerical-discontinuity-20261109/heldout-metal-summary.json",
+      "sha256": "6fb75e6603ae7e8cd321b64fb4facaa8b5b8411e8f28d679cc31f32fee3633f4",
+      "bytes": 1229
+    },
+    {
+      "path": "reports/numerical-discontinuity-20261109/router-input-drift-protocol.json",
+      "sha256": "a4d63231415d9e2219a71e0c1cc98beb7a887bf65e243397ecef6aa3984453ca",
+      "bytes": 1417
+    },
+    {
+      "path": "reports/numerical-discontinuity-20261109/router-input-drift-results.json",
+      "sha256": "ce2739496c44af9c65dc80a92f96dde409a78ed65c9c09d9ba7a3d474217aea9",
+      "bytes": 6994
+    },
+    {
+      "path": "reports/numerical-discontinuity-20261109/router-input-drift-negative-result.json",
+      "sha256": "2b6810736b1e39aecc289060888d40bfef775ab6a62dabbeecdb35daab94237c",
+      "bytes": 119
+    },
+    {
+      "path": "reports/numerical-discontinuity-20261109/operator-tests.tap",
+      "sha256": "34bda89aa387e399a03c6625ec96de5df018694a3e7dce6601545b8d29fe6ae3",
+      "bytes": 1975
+    },
+    {
+      "path": "tools/analyze-input-normalization.js",
+      "sha256": "868eb483f1057e6174f96b059a5ac76e21c64601738386b2a61879a286562289",
+      "bytes": 7164
+    },
+    {
+      "path": "tools/analyze-router-input-drift.js",
+      "sha256": "ab57bb81cd28718f31df6e70a75f9bb7042ca6017e43474e3cbc9663b9a64b1e",
+      "bytes": 6941
+    },
+    {
+      "path": "tools/dyadic-diagnostic.js",
+      "sha256": "88f0736918f0ac3915da0ec45d6962185a18c7921c3790ed4efb02bb80a85e7a",
+      "bytes": 3159
+    },
+    {
+      "path": "tools/dyadic-diagnostic.test.js",
+      "sha256": "f7d25fe5f5b1d6af30ff17f11941dd2d2d78426794becaeff277bd58ab2389a0",
+      "bytes": 1236
+    },
+    {
+      "path": "tools/prepare-normalization-control.js",
+      "sha256": "2242ca7f0dd64ce7c44c7f271eef481c047c4b2c813a7bc2ec2b2b0c10d6daf5",
+      "bytes": 4535
+    },
+    {
+      "path": "tools/numerical-discontinuity-core.js",
+      "sha256": "c13300867e98a70674e229aaf1cf92712aed4a203b40980f327c064e7aa32aff",
+      "bytes": 4313
+    },
+    {
+      "path": "tools/compare-source-boundaries.js",
+      "sha256": "80ac6ce2613a17cd93022efc0a951170e42e60d833372dcb061cf8c141946670",
+      "bytes": 12035
+    },
+    {
+      "path": "tests/integration/rmsnorm-captured-replay.js",
+      "sha256": "30ba7165f4c095b842b29856987149acb4c561b25d7ceec95d19b64d5805a68b",
+      "bytes": 5922
+    }
+  ],
+  "rawDependencies": [
+    {
+      "path": ".cache/numerical-discontinuity-20261109/inputs.json.gz",
+      "sha256": "f3dad7bae18e1e801398892d85adbc96f3976a799cf670a6eee0f06045f881c3",
+      "bytes": 21559377
+    },
+    {
+      "path": ".cache/numerical-discontinuity-20261109/input-norm-evidence.json",
+      "sha256": "a71cf498857bc7ffcc1b1bb40c758f9d8a6bc2bf9dc57673eb4e34f75360d36a",
+      "bytes": 20410
+    },
+    {
+      "path": ".cache/numerical-discontinuity-20261109/unseen-norm-fixture.json",
+      "sha256": "a68fdc9119cd213338fccb5e1d6a2fce97b647ccd500b235dc96e35ecdea6f5d",
+      "bytes": 702111
+    },
+    {
+      "path": ".cache/numerical-discontinuity-20261109/unseen-norm-inputs.json.gz",
+      "sha256": "644583eee3929bbf19b9923853a614fb5b266f9ac6773f390237123484c58d72",
+      "bytes": 838971
+    },
+    {
+      "path": ".cache/numerical-discontinuity-20261109/unseen-norm-metal.json",
+      "sha256": "ca8b05c813318369ad9fdded80c3f709cf9fbeb61fca1b4f33d22b9592ade010",
+      "bytes": 639250
+    },
+    {
+      "path": ".cache/numerical-discontinuity-20261109/frozen-rmsnorm.wgsl",
+      "sha256": "a1986477198de29aa97205475bdc5bf3c79039917dd26ba16c9d9e6e687e0f4f",
+      "bytes": 16212
+    }
+  ],
+  "rawRetention": [
+    "analysis Mac Doppler checkout",
+    "Jupiter Doppler checkout"
+  ],
+  "routerReproduction": {
+    "artifact": "/run/media/x/models/rdrr/qwen-3-8-flash-next-text-q4k-ehf16-af32",
+    "qualify": "/run/media/x/models/qwen38-flash-next-de4b8e4d/qualify",
+    "sourceTrace": "/run/media/x/models/qwen38-flash-next-de4b8e4d/reference/f32kv-routing-trace-20261107",
+    "command": "node tools/analyze-router-input-drift.js PROTOCOL ARTIFACT QUALIFY SOURCE_TRACE OUTPUT"
+  },
+  "qualificationPreserved": [
+    {
+      "repo": "doppler",
+      "file": "src/config/evidence/boundary-evidence-policy.json",
+      "sha256": "f1c4629d593ec2517e3628ac68131dc7568c6aba5e0f03db627d26228c720413",
+      "unchangedFromHead": true
+    },
+    {
+      "repo": "doppler",
+      "file": "tools/qwen35-f64-reference.py",
+      "sha256": "90376ddec6e6bf997425ee0e1ecf1d98533434ebbe3f934ff00a878dd49e8bc7",
+      "unchangedFromHead": true
+    },
+    {
+      "repo": "doppler",
+      "file": "reports/flash-next-qualification-20261107/compare-f32kv-reference.py",
+      "sha256": "ecfe9d5dfe0e4f7eb9e0aab303f0fb7f753832168bb5ec0d9ee78efe76227db8",
+      "unchangedFromHead": true
+    },
+    {
+      "repo": "reploid",
+      "file": "artifacts/precision-recovery-20261015/precision-check.mjs",
+      "sha256": "7497c4b6fc5680b3e223d7ef3e8bf4b23db4e90e79f981ef3af6b2f24f444a8d",
+      "unchangedFromHead": true
+    },
+    {
+      "repo": "reploid",
+      "file": "artifacts/plain-profile-reference-20261014/substitution-check.mjs",
+      "sha256": "3f29fc694b74facfd5ad133e6946c2b08c1be587843c182493ef8b19612925b5",
+      "unchangedFromHead": true
+    }
+  ],
+  "originalPacketPreserved": true,
+  "validation": {
+    "focusedTests": 9,
+    "historicalNormValues": 188416,
+    "newPhysicalMetalNormValues": 32768,
+    "exactMatchingArithmeticModels": 4,
+    "corruptedNormRowsRejectedPerModel": 216,
+    "wrongOffsetRowsRejectedPerModel": 216,
+    "identityCorruptionControlsRejected": 2,
+    "routerValuesPerSide": 1536,
+    "exactInputOrderingReversals": 2
+  },
+  "limits": [
+    "Only the first historical normalization operator is explained",
+    "The two Flash-Next input differences have no independent upstream bound",
+    "New synthetic operator rows, not unseen model prompts",
+    "No correctness contract change or model promotion",
+    "No performance or delivered-service result"
+  ]
+}

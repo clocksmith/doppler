@@ -1,0 +1,64 @@
+TAP version 13
+# Subtest: exact FMA preserves cancellation lost by separate F32 operations
+ok 1 - exact FMA preserves cancellation lost by separate F32 operations
+  ---
+  duration_ms: 0.49875
+  type: 'test'
+  ...
+# Subtest: F32 rounding includes ties, underflow and negative numbers
+ok 2 - F32 rounding includes ties, underflow and negative numbers
+  ---
+  duration_ms: 0.083416
+  type: 'test'
+  ...
+# Subtest: inverse root enclosure is proved by exact squared inequalities
+ok 3 - inverse root enclosure is proved by exact squared inequalities
+  ---
+  duration_ms: 0.672583
+  type: 'test'
+  ...
+# Subtest: exact dyadic oracle detects cancellation and independently bounds both orders
+ok 4 - exact dyadic oracle detects cancellation and independently bounds both orders
+  ---
+  duration_ms: 0.480084
+  type: 'test'
+  ...
+# Subtest: independent F16 conversion round-trips every finite bit pattern including signed zero
+ok 5 - independent F16 conversion round-trips every finite bit pattern including signed zero
+  ---
+  duration_ms: 42.050459
+  type: 'test'
+  ...
+# Subtest: all positive and negative adjacent-half midpoints use ties-to-even
+ok 6 - all positive and negative adjacent-half midpoints use ties-to-even
+  ---
+  duration_ms: 38.669791
+  type: 'test'
+  ...
+# Subtest: correct rounding of corrupted input cannot establish upstream correctness
+ok 7 - correct rounding of corrupted input cannot establish upstream correctness
+  ---
+  duration_ms: 0.149334
+  type: 'test'
+  ...
+# Subtest: unsupported arithmetic inputs fail explicitly
+ok 8 - unsupported arithmetic inputs fail explicitly
+  ---
+  duration_ms: 0.240542
+  type: 'test'
+  ...
+# Subtest: fixed independent synthetic cases exercise cancellation and varying magnitudes
+ok 9 - fixed independent synthetic cases exercise cancellation and varying magnitudes
+  ---
+  duration_ms: 6.674292
+  type: 'test'
+  ...
+1..9
+# tests 9
+# suites 0
+# pass 9
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 124.563959
