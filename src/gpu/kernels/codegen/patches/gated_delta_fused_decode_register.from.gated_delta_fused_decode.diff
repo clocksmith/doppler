@@ -1,9 +1,23 @@
 --- src/gpu/kernels/gated_delta_fused_decode.wgsl
 +++ src/gpu/kernels/gated_delta_fused_decode_register.wgsl
-@@ -207,171 +207,12 @@
+@@ -1,5 +1,4 @@
+ override RECURRENT_STATE_COMPONENTS: u32 = 1u;
+-
+ override WORKGROUP_SIZE: u32 = 128u;
+
+ struct LinearAttentionParams {
+@@ -131,7 +130,6 @@
+   let reciprocal = reciprocal_refined(1.0 + z);
+   return select(z * reciprocal, reciprocal, x >= 0.0);
+ }
+-
+
+ fn update_conv_channel(channel: u32) -> f32 {
+   let kernel_size = params.conv_kernel_size;
+@@ -232,171 +230,12 @@
    return product;
  }
- 
+
 -// BEGIN GENERATED COMPENSATED STATE
 -// Compensated recurrent-state arithmetic; finite operands and intermediate sums/products.
 -// Overflow propagates nonfinite values; this is not an extended-exponent format.
@@ -172,10 +186,10 @@
 +  if (head >= params.num_v_heads || params.num_tokens != 1u || params.q_rep != 1u || params.head_k_dim != 128u || RECURRENT_STATE_COMPONENTS != 1u) {
      return;
    }
- 
-@@ -412,58 +253,460 @@
+
+@@ -437,61 +276,462 @@
    let g_exp = exp_refined(g);
- 
+
    var kv_mem = 0.0;
 -  var kv_pair = vec2<f32>(0.0);
    var out_value = 0.0;
@@ -682,4 +696,7 @@
 +
    let out_sum_sq = reduce_sum(select(0.0, out_value * out_value, is_v_active), lane);
    let inv_rms = inverse_root_refined(out_sum_sq / f32(head_v_dim) + params.rms_norm_eps);
- 
+-
+   if (is_v_active) {
+     let z_row_base = head * head_v_dim;
+     let z_packed_base = params.conv_dim + z_row_base;

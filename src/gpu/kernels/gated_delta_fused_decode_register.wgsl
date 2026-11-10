@@ -1,7 +1,6 @@
 // AUTO-GENERATED from src/gpu/kernels/gated_delta_fused_decode.wgsl.
 // Edit the source kernel and src/gpu/kernels/codegen/wgsl-variants.js, then run `npm run kernels:codegen:sync`.
 override RECURRENT_STATE_COMPONENTS: u32 = 1u;
-
 override WORKGROUP_SIZE: u32 = 128u;
 
 struct LinearAttentionParams {
@@ -133,7 +132,6 @@ fn sigmoid_refined(x: f32) -> f32 {
   let reciprocal = reciprocal_refined(1.0 + z);
   return select(z * reciprocal, reciprocal, x >= 0.0);
 }
-
 
 fn update_conv_channel(channel: u32) -> f32 {
   let kernel_size = params.conv_kernel_size;
@@ -736,7 +734,6 @@ fn main(@builtin(workgroup_id) wid: vec3<u32>,
 
   let out_sum_sq = reduce_sum(select(0.0, out_value * out_value, is_v_active), lane);
   let inv_rms = inverse_root_refined(out_sum_sq / f32(head_v_dim) + params.rms_norm_eps);
-
   if (is_v_active) {
     let z_row_base = head * head_v_dim;
     let z_packed_base = params.conv_dim + z_row_base;

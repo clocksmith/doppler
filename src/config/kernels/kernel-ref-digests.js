@@ -187,7 +187,7 @@ export const KERNEL_REF_CONTENT_DIGESTS = Object.freeze({
   "gated_delta_fused_decode_paired_sigmoid_gate_f16.wgsl#main": "22479c1cabcf95ba4ac8de1ea77e64733ee1324d3c94e6e0ee07084e9f642400",
   "gated_delta_fused_decode_paired_sigmoid_gate.wgsl#main": "0cf21861bf861da0a0c2220f538a267eddf6795111038de0a17540db218d40aa",
   "gated_delta_fused_decode_paired.wgsl#main": "bfb04c9cdeded652f67791c780fe77b24abd0c2b67079894ea87145080032f31",
-  "gated_delta_fused_decode_register.wgsl#main": "0c640525b7c9690c0e5e87fb2ce2b3ec21218248a3759226b60d5cb7f43871d1",
+  "gated_delta_fused_decode_register.wgsl#main": "7e44b7efc45beb71bac1f0f052ecfbf0c17bbe4f8c825d3cbd19db2f6f360c59",
   "gated_delta_fused_decode_sigmoid_gate_f16.wgsl#main": "b54011f5f96ed04768cbc996216b412cee8b82d189d3fa98857535a198ef9fca",
   "gated_delta_fused_decode_sigmoid_gate.wgsl#main": "95d28751fc98f642a2c20dbec953f25f4c2fd7a025a57b15c621661e363f2176",
   "gated_delta_fused_decode.wgsl#main": "2db6a08bc3f43fd922001702316f2566a0b0f06154981e5cae9024bbeb03b29f",

@@ -1,0 +1,11 @@
+{
+  "schema": "doppler.generated-register-spacing/v1",
+  "file": "src/gpu/kernels/gated_delta_fused_decode_register.wgsl",
+  "beforeLines": 753,
+  "afterLines": 750,
+  "beforeSha256": "e706b1deb0f65face61246dbbe0e7cd19f13c1ab6f82be4e3aad09f210910eff",
+  "expectedAfterSha256": "f632fcbc0639bd4152b82c21e64d8b36dd7b729d9921af0c242a4ffa9c475619",
+  "allNonWhitespaceCharactersIdentical": true,
+  "numericalBehaviorChanged": false,
+  "limitsChanged": false
+}
