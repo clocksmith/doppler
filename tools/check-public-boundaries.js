@@ -281,7 +281,9 @@ const PACKAGE_CONTENT_LIMITS = Object.freeze({
   // Exact inventory: reports/package-release-0.7.2/package-audit.json.
   // Release comparison notes add 613 bytes; source closure is byte-identical
   // to the physically tested archive. See the 0.7.2 package audit.
-  maxUnpackedSize: 15_769_508,
+  // 2e4ecb2e: doppler and doppler-serve compare real paths (bin-link start fix)
+  // plus its changelog line: +442 unpacked bytes, no new entries.
+  maxUnpackedSize: 15_769_950,
 });
 const REQUIRED_PACKAGE_FILES = Object.freeze([
   'README.md',

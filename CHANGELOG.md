@@ -20,6 +20,9 @@ Historical package notes are preserved outside the runtime archive in
 - Projection requests snapshot both vector values and row count before waiting
   for execution. Mutating the caller's vector array cannot change an admitted
   request's shape.
+- The installed `doppler` and `doppler-serve` commands start when run through
+  npm's bin links. In 0.7.1 they exited 0 without output; `doppler-gpu` was
+  unaffected.
 
 ### Limits
 
