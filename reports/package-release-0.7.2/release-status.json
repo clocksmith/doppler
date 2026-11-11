@@ -3,15 +3,15 @@
   "version": "0.7.2",
   "state": "publication-blocked",
   "reason": "npm EOTP: authenticator one-time password required",
-  "releaseCommit": "f20ef780290b0a494f4f04712eb10b1b5ae8d61f",
+  "releaseCommit": "499dff46be745fc442d3867c5385b40a5734805c",
   "archive": ".cache/doppler-gpu-0.7.2.tgz",
   "candidate": {
     "version": "0.7.2",
-    "packedBytes": 3697580,
-    "unpackedBytes": 15769508,
+    "packedBytes": 3697726,
+    "unpackedBytes": 15769950,
     "files": 1936,
-    "integrity": "sha512-k2KmjwIDOCI7JfZdkND4335gAzYP7s30aL7V5VCdFZ8nZKrMhaIGNxPryCRogOKVBM2ASW30um7GcJ3bBHTkDQ==",
-    "shasum": "19a6d089a070ec2afeb988e50c345d857bc165dd"
+    "integrity": "sha512-vr0/n3tgJ3JRZlva1WLIU726Q8q0VIm3AqsPplIupHFMX59E/ro3mC5anSPYESSUhoGBFxXOEN2v3gCoc/DXpA==",
+    "shasum": "79abf06896d6a186344b924b3a8d12d14a8f4b4a"
   },
   "tagCreated": false,
   "gemmaManifestPublication": "deferred by user",
@@ -20,5 +20,10 @@
   "postPublication": [
     "Verify registry integrity equals candidate.integrity and latest equals 0.7.2",
     "Tag v0.7.2 at releaseCommit and push the tag"
-  ]
+  ],
+  "supersedes": {
+    "releaseCommit": "f20ef780290b0a494f4f04712eb10b1b5ae8d61f",
+    "shasum": "19a6d089a070ec2afeb988e50c345d857bc165dd",
+    "reason": "installed doppler and doppler-serve exited 0 without output through npm bin links (fixed in 2e4ecb2e)"
+  }
 }
