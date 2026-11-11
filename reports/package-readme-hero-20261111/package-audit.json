@@ -1,0 +1,36 @@
+{
+  "schema": "doppler.package-audit/v1",
+  "purpose": "README hero: an animated preview and video linked from README.md. The assets live in assets/readme/ and are not packed; only README.md bytes change.",
+  "base": {
+    "commit": "4146b797",
+    "version": "0.7.1",
+    "packedBytes": 3694298,
+    "unpackedBytes": 15759031,
+    "files": 1933
+  },
+  "candidate": {
+    "version": "0.7.1",
+    "packedBytes": 3694474,
+    "unpackedBytes": 15759497,
+    "files": 1933
+  },
+  "delta": {
+    "packedBytes": 176,
+    "unpackedBytes": 466,
+    "addedFiles": 0,
+    "removedFiles": 0
+  },
+  "limits": {
+    "npmAllowanceBytes": 2158,
+    "maxUnpackedSize": 15759497
+  },
+  "measuredWith": "npm pack --dry-run --json --ignore-scripts",
+  "changedFiles": [
+    {
+      "path": "README.md",
+      "baseBytes": 3712,
+      "bytes": 4178,
+      "delta": 466
+    }
+  ]
+}

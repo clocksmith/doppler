@@ -266,7 +266,9 @@ const PACKAGE_CONTENT_LIMITS = Object.freeze({
   // Selective activity capture: +10,347 bytes in seven existing files, measured in
   // reports/package-selective-capture-20261110/package-audit.json.
   // 0.7.1 release, measured: reports/package-release-20261111/package-audit.json.
-  maxUnpackedSize: 15_759_031,
+  // README hero: +466 bytes in README.md only; the hero assets are not packed.
+  // Measured in reports/package-readme-hero-20261111/package-audit.json.
+  maxUnpackedSize: 15_759_497,
 });
 const REQUIRED_PACKAGE_FILES = Object.freeze([
   'README.md',

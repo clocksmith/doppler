@@ -1,5 +1,9 @@
 # Doppler
 
+<a href="assets/readme/doppler-demo-hero.mp4"><img src="assets/readme/doppler-demo-hero.gif" width="100%" alt="Doppler demo: a recorded Qwen 3.5 0.8B answer appears token by token beside per-layer activation changes, then one word's next-token alternatives open with their probabilities." /></a>
+
+<sub>Recorded replay from the <a href="https://d4da.com/doppler/">demo</a>, not a live run. <a href="assets/readme/doppler-demo-hero.mp4">Full-quality video</a>.</sub>
+
 A JavaScript library for local model execution through WebGPU: generation,
 embeddings, reranking, and choice scoring, qualified per model and host.
 
