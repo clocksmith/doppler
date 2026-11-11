@@ -26,6 +26,7 @@ client/doppler-api.browser.d.ts
 client/doppler-registry.d.ts
 client/failure-taxonomy.d.ts
 client/fault-injection.d.ts
+client/model-host/layer-projection.d.ts
 client/model-host/model-evidence.d.ts
 client/model-host/source-loading.d.ts
 client/receipt.d.ts

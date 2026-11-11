@@ -1,0 +1,115 @@
+{
+  "schema": "doppler.package-audit/v1",
+  "purpose": "Layer projection: model.inspect.projectLayerOutputs and the text pipeline's projectHiddenStates. Additive; no existing behavior changes.",
+  "base": {
+    "commit": "51f435af",
+    "version": "0.7.1",
+    "packedBytes": 3694474,
+    "unpackedBytes": 15759497,
+    "files": 1933
+  },
+  "candidate": {
+    "version": "0.7.1",
+    "packedBytes": 3697001,
+    "unpackedBytes": 15767880,
+    "files": 1936
+  },
+  "delta": {
+    "packedBytes": 2527,
+    "unpackedBytes": 8383,
+    "addedFiles": 3,
+    "removedFiles": 0
+  },
+  "limits": {
+    "npmAllowanceBytes": 2158,
+    "maxPackedSize": 3699159,
+    "maxUnpackedSize": 15767880
+  },
+  "measuredWith": "npm pack --dry-run --json --ignore-scripts",
+  "changedFiles": [
+    {
+      "path": "docs/api/compat.md",
+      "baseBytes": 5860,
+      "bytes": 6865,
+      "delta": 1005
+    },
+    {
+      "path": "src/.npmignore",
+      "baseBytes": 48998,
+      "bytes": 49038,
+      "delta": 40
+    },
+    {
+      "path": "src/client/inspection.d.ts",
+      "baseBytes": 4382,
+      "bytes": 5388,
+      "delta": 1006
+    },
+    {
+      "path": "src/client/inspection.js",
+      "baseBytes": 13268,
+      "bytes": 13582,
+      "delta": 314
+    },
+    {
+      "path": "src/client/model-host/layer-projection.d.ts",
+      "baseBytes": 0,
+      "bytes": 583,
+      "delta": 583
+    },
+    {
+      "path": "src/client/model-host/layer-projection.js",
+      "baseBytes": 0,
+      "bytes": 2428,
+      "delta": 2428
+    },
+    {
+      "path": "src/client/model-host/model-session.d.ts",
+      "baseBytes": 14079,
+      "bytes": 14729,
+      "delta": 650
+    },
+    {
+      "path": "src/client/model-host/model-session.js",
+      "baseBytes": 30345,
+      "bytes": 30519,
+      "delta": 174
+    },
+    {
+      "path": "src/inference/pipelines/shader-scoped-pipeline.js",
+      "baseBytes": 12449,
+      "bytes": 12485,
+      "delta": 36
+    },
+    {
+      "path": "src/inference/pipelines/text/generator.js",
+      "baseBytes": 22054,
+      "bytes": 22285,
+      "delta": 231
+    },
+    {
+      "path": "src/inference/pipelines/text/generator/hidden-projection.d.ts",
+      "baseBytes": 0,
+      "bytes": 547,
+      "delta": 547
+    },
+    {
+      "path": "src/inference/pipelines/text/generator/hidden-projection.js",
+      "baseBytes": 0,
+      "bytes": 2441,
+      "delta": 2441
+    },
+    {
+      "path": "src/inference/pipelines/text/pipeline.d.ts",
+      "baseBytes": 9089,
+      "bytes": 9521,
+      "delta": 432
+    },
+    {
+      "path": "src/inference/pipelines/text/pipeline.js",
+      "baseBytes": 24888,
+      "bytes": 25012,
+      "delta": 124
+    }
+  ]
+}
