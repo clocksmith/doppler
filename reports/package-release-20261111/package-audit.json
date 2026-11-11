@@ -1,0 +1,163 @@
+{
+  "schema": "doppler.package-audit/v1",
+  "purpose": "Exact shipped delta of doppler-gpu 0.7.1 against the published 0.7.0 package.",
+  "measuredWith": "npm pack --dry-run --json --ignore-scripts",
+  "base": {
+    "version": "0.7.0",
+    "tag": "v0.7.0",
+    "integrity": "sha512-sRaOuz/K6YOhyitFlauZ3u8mFZdOmAEbcRKEhnm4rs7/ajCB/y7xPiI8mF+lpdvg39C+RPH+HDlbAQAen+lTjQ==",
+    "packedBytes": 3689061,
+    "unpackedBytes": 15744407,
+    "files": 1932,
+    "source": "npm registry"
+  },
+  "candidate": {
+    "commit": "release candidate on 6151f28b",
+    "version": "0.7.1",
+    "packedBytes": 3694298,
+    "unpackedBytes": 15759031,
+    "files": 1933
+  },
+  "delta": {
+    "packedBytes": 5237,
+    "unpackedBytes": 14624,
+    "addedFiles": [
+      "src/memory/sequence-retirement.js"
+    ],
+    "removedFiles": []
+  },
+  "changedFiles": [
+    {
+      "path": "CHANGELOG.md",
+      "baseBytes": 5740,
+      "bytes": 7741,
+      "delta": 2001
+    },
+    {
+      "path": "src/client/model-host/model-session.d.ts",
+      "baseBytes": 13727,
+      "bytes": 14079,
+      "delta": 352
+    },
+    {
+      "path": "src/client/model-host/model-session.js",
+      "baseBytes": 30138,
+      "bytes": 30345,
+      "delta": 207
+    },
+    {
+      "path": "src/config/inspection/activity-stages.json",
+      "baseBytes": 223,
+      "bytes": 709,
+      "delta": 486
+    },
+    {
+      "path": "src/config/inspection/observation-policies.json",
+      "baseBytes": 5816,
+      "bytes": 6124,
+      "delta": 308
+    },
+    {
+      "path": "src/config/kernels/registry.json",
+      "baseBytes": 779343,
+      "bytes": 779399,
+      "delta": 56
+    },
+    {
+      "path": "src/debug/activation-trace.d.ts",
+      "baseBytes": 2276,
+      "bytes": 2394,
+      "delta": 118
+    },
+    {
+      "path": "src/debug/activity-trace.d.ts",
+      "baseBytes": 3159,
+      "bytes": 4574,
+      "delta": 1415
+    },
+    {
+      "path": "src/debug/activity-trace.js",
+      "baseBytes": 7659,
+      "bytes": 15120,
+      "delta": 7461
+    },
+    {
+      "path": "src/gpu/kernels/moe_shared_slot_combine_f32.wgsl",
+      "baseBytes": 3570,
+      "bytes": 3593,
+      "delta": 23
+    },
+    {
+      "path": "src/gpu/kernels/moe_shared_slot_down_f32.wgsl",
+      "baseBytes": 12304,
+      "bytes": 12327,
+      "delta": 23
+    },
+    {
+      "path": "src/gpu/kernels/moe_shared_slot_down_pair_combine_f32.wgsl",
+      "baseBytes": 11960,
+      "bytes": 11983,
+      "delta": 23
+    },
+    {
+      "path": "src/gpu/kernels/moe_shared_slot_down_pair_combine_residual_f32.wgsl",
+      "baseBytes": 12531,
+      "bytes": 12554,
+      "delta": 23
+    },
+    {
+      "path": "src/gpu/kernels/moe_shared_slot_gu_f32.wgsl",
+      "baseBytes": 12338,
+      "bytes": 12361,
+      "delta": 23
+    },
+    {
+      "path": "src/gpu/kernels/moe_shared_slot_gu_pair_f32.wgsl",
+      "baseBytes": 12944,
+      "bytes": 12967,
+      "delta": 23
+    },
+    {
+      "path": "src/gpu/kernels/sigmoid_gated_add_f32.wgsl",
+      "baseBytes": 2569,
+      "bytes": 2597,
+      "delta": 28
+    },
+    {
+      "path": "src/inference/pipelines/text/generator/decode-runtime.js",
+      "baseBytes": 47971,
+      "bytes": 48160,
+      "delta": 189
+    },
+    {
+      "path": "src/inference/pipelines/text/partition-execution.js",
+      "baseBytes": 20291,
+      "bytes": 20616,
+      "delta": 325
+    },
+    {
+      "path": "src/inference/pipelines/text/sequence-state.d.ts",
+      "baseBytes": 3323,
+      "bytes": 3490,
+      "delta": 167
+    },
+    {
+      "path": "src/inference/pipelines/text/sequence-state.js",
+      "baseBytes": 23474,
+      "bytes": 23842,
+      "delta": 368
+    },
+    {
+      "path": "src/memory/sequence-retirement.js",
+      "baseBytes": null,
+      "bytes": 1005,
+      "delta": 1005
+    }
+  ],
+  "sameSizeContentChanges": "Files whose size is unchanged (for example kernel-ref-digests.js digest strings) are not listed; npm pack reports sizes, not hashes.",
+  "limits": {
+    "npmAllowanceBytes": 2158,
+    "maxPackedSize": 3696456,
+    "maxUnpackedSize": 15759031
+  }
+}
