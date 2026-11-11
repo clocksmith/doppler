@@ -1,0 +1,75 @@
+{
+  "schema": "doppler.package-audit/v1",
+  "purpose": "Exact shipped delta of selective activity capture (e56cf5d6) against the 0.7.0 package budget.",
+  "base": {
+    "commit": "4814d1a7",
+    "version": "0.7.0",
+    "packedBytes": 3689061,
+    "unpackedBytes": 15744407,
+    "files": 1932
+  },
+  "candidate": {
+    "commit": "e56cf5d6",
+    "version": "0.7.0",
+    "packedBytes": 3692295,
+    "unpackedBytes": 15754754,
+    "files": 1932,
+    "note": "Not a published npm version. The package on npm as 0.7.0 is the base."
+  },
+  "delta": {
+    "packedBytes": 3234,
+    "unpackedBytes": 10347,
+    "addedFiles": 0,
+    "removedFiles": 0
+  },
+  "limits": {
+    "npmAllowanceBytes": 2158,
+    "maxPackedSize": 3694453,
+    "maxUnpackedSize": 15754754
+  },
+  "measuredWith": "npm pack --dry-run --json --ignore-scripts",
+  "changedFiles": [
+    {
+      "path": "src/client/model-host/model-session.d.ts",
+      "baseBytes": 13727,
+      "bytes": 14079,
+      "delta": 352
+    },
+    {
+      "path": "src/client/model-host/model-session.js",
+      "baseBytes": 30138,
+      "bytes": 30345,
+      "delta": 207
+    },
+    {
+      "path": "src/config/inspection/activity-stages.json",
+      "baseBytes": 223,
+      "bytes": 709,
+      "delta": 486
+    },
+    {
+      "path": "src/config/inspection/observation-policies.json",
+      "baseBytes": 5816,
+      "bytes": 6124,
+      "delta": 308
+    },
+    {
+      "path": "src/debug/activation-trace.d.ts",
+      "baseBytes": 2276,
+      "bytes": 2394,
+      "delta": 118
+    },
+    {
+      "path": "src/debug/activity-trace.d.ts",
+      "baseBytes": 3159,
+      "bytes": 4574,
+      "delta": 1415
+    },
+    {
+      "path": "src/debug/activity-trace.js",
+      "baseBytes": 7659,
+      "bytes": 15120,
+      "delta": 7461
+    }
+  ]
+}

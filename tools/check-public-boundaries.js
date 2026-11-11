@@ -179,7 +179,10 @@ const PACKAGE_CONTENT_LIMITS = Object.freeze({
   // source reader and activity traces; 30 files added, none removed.
   // 3,689,061 measured plus the same 2,158-byte npm allowance.
   // Exact shipped delta: reports/package-release-20261110/package-audit.json.
-  maxPackedSize: 3_691_219,
+  // Selective activity capture (e56cf5d6): seven existing files grow, none added.
+  // 3,692,295 measured plus the same 2,158-byte npm allowance.
+  // Exact shipped delta: reports/package-selective-capture-20261110/package-audit.json.
+  maxPackedSize: 3_694_453,
   // Capsule naming changes identifiers and declarations, not the shipped file count.
   // Measured 0.6.0 payload: 2,097,039 packed / 10,835,420 unpacked bytes.
   // The remaining GPU diagnostic label adds three uncompressed bytes.
@@ -256,7 +259,9 @@ const PACKAGE_CONTENT_LIMITS = Object.freeze({
   // Parent execution-plan evidence adds one byte; no package entry is added.
   // Inventory: reports/flash-next-qualification-20261105/qsa-package-audit.json.
   // 0.7.0 release, measured: reports/package-release-20261110/package-audit.json.
-  maxUnpackedSize: 15_744_407,
+  // Selective activity capture: +10,347 bytes in seven existing files, measured in
+  // reports/package-selective-capture-20261110/package-audit.json.
+  maxUnpackedSize: 15_754_754,
 });
 const REQUIRED_PACKAGE_FILES = Object.freeze([
   'README.md',
