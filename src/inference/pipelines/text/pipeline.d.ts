@@ -114,6 +114,14 @@ export declare class InferencePipeline extends PipelineState {
     options?: GenerateOptions & { __internalGenerate?: boolean }
   ): Promise<Float32Array>;
 
+  /**
+   * Applies the final normalization and output head to caller-supplied hidden
+   * states (`rowCount` rows of `hiddenSize`). An observation aid: the logits
+   * are a projection, not what the model produced at an earlier layer. Does
+   * not read or change sequence state.
+   */
+  projectHiddenStates(hiddenStates: Float32Array, rowCount: number): Promise<import('./generator/hidden-projection.js').HiddenProjectionResult>;
+
   computeDiffusionGemmaCanvasStep(
     args: DiffusionGemmaCanvasStepInput,
     options?: GenerateOptions & { __internalGenerate?: boolean }

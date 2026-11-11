@@ -8,6 +8,7 @@ import { releaseBuffer } from '../../../memory/buffer-pool.js';
 import { sample, applyRepetitionPenalty, applyPresencePenalty } from './sampling.js';
 import { isStopToken } from './init.js';
 import { decodeStepLogits } from './generator-steps.js';
+import { projectHiddenStates as projectHiddenStatesImpl } from './generator/hidden-projection.js';
 import { buildLayerContext, debugCheckBuffer as debugCheckBufferHelper } from './generator/session-context.js';
 import { getLogitsConfig, getLogitsWeights } from './generator/logits-config.js';
 import { releaseSharedAttentionState } from './generator/attention-lifecycle.js';
@@ -406,6 +407,10 @@ export class PipelineGenerator {
 
   async computeDiffusionGemmaCanvasLogits(args, options = {}) {
     return computeDiffusionGemmaCanvasLogitsImpl.apply(this, arguments);
+  }
+
+  async projectHiddenStates(hiddenStates, rowCount) {
+    return projectHiddenStatesImpl(this._state, hiddenStates, rowCount);
   }
 
   async computeDiffusionGemmaCanvasStep(args, options = {}) {

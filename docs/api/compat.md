@@ -101,6 +101,24 @@ callback exception rejects generation and uses its normal cleanup path. Pass
 an `AbortSignal` through `generation.signal` to cancel, and retain any partial
 display separately from completed evidence.
 
+### Projecting recorded layer outputs
+
+`model.inspect.projectLayerOutputs({ vectors, topK })` passes hidden-state
+vectors through the loaded model's own final normalization and output head and
+returns the `topK` candidates for each, with softmax probabilities over the
+whole vocabulary. Pass the `values` of recorded `layer-output` frames as
+`Float32Array`s of the model's hidden size, up to 64 per call, with `topK` from
+1 to 64.
+
+The result has `schema: "doppler.layer-projection/v1"` and
+`projection.kind: "projected"`. A projection estimates what a vector leans
+toward; it is not a token the model produced at that layer, and earlier layers
+were not trained to be read this way. The last layer's vector at a position
+reproduces that step's logits. The call does not read or change sequence state
+and fails for hyper-connection models and paired-precision execution plans.
+Physical evidence: `tests/inference/hidden-projection-gpu.test.js` on a
+synthetic head; no full-model qualification is claimed.
+
 ## Code pointers
 
 - [Compatibility entrypoint](../../src/index.js)

@@ -215,7 +215,13 @@ function selectedProbability(logits, tokenId) {
   return Math.exp(Number(logits[tokenId]) - maximum) / denominator;
 }
 
-function topCandidates(logits, tokenizer, count) {
+export const LAYER_PROJECTION_SCHEMA = 'doppler.layer-projection/v1';
+// One request returns a full vocabulary row per vector before the top candidates
+// are kept, so both bounds limit what a single call can hold.
+export const LAYER_PROJECTION_MAX_ROWS = 64;
+export const LAYER_PROJECTION_MAX_TOP_K = 64;
+
+export function topCandidates(logits, tokenizer, count) {
   if (!logits || !Number.isInteger(count) || count <= 0) return [];
   const candidates = [];
   for (let tokenId = 0; tokenId < logits.length; tokenId += 1) {

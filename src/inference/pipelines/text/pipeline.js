@@ -301,6 +301,10 @@ export class InferencePipeline extends PipelineState {
     return this.generator.computeDiffusionGemmaCanvasLogits(args, options);
   }
 
+  projectHiddenStates(hiddenStates, rowCount) {
+    return this.generator.projectHiddenStates(hiddenStates, rowCount);
+  }
+
   computeDiffusionGemmaCanvasStep(args, options = {}) {
     assertNotAborted(options?.signal);
     return this.generator.computeDiffusionGemmaCanvasStep(args, options);

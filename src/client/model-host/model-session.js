@@ -24,6 +24,7 @@ import {
   listObservationPolicies,
   resolveObservationPolicy,
 } from '../inspection.js';
+import { projectLayerOutputs } from './layer-projection.js';
 import {
   activateLoRAFromTrainingOutputForPipeline,
   activatePreparedLoRAForPipeline,
@@ -729,6 +730,9 @@ export function createModelHandle(pipeline, resolved) {
         options.onEvent({ type: 'inspection-complete', receipt });
       }
       return receipt;
+    },
+    projectLayerOutputs(request) {
+      return projectLayerOutputs(pipeline, resolved.modelId, request);
     },
   };
 

@@ -113,6 +113,33 @@ export declare function buildInspectionTokenRecords(
   topKSize?: number
 ): DopplerInspectionTokenRecord[];
 
+export declare const LAYER_PROJECTION_SCHEMA: 'doppler.layer-projection/v1';
+export declare const LAYER_PROJECTION_MAX_ROWS: 64;
+export declare const LAYER_PROJECTION_MAX_TOP_K: 64;
+
+export interface DopplerLayerProjection {
+  schema: typeof LAYER_PROJECTION_SCHEMA;
+  modelId: string;
+  /** What the vectors were passed through. `kind` is always `projected`: these are not tokens the model produced. */
+  projection: { through: ['final-normalization', 'output-head']; kind: 'projected' };
+  vocabSize: number;
+  rows: Array<{ candidates: DopplerTokenCandidate[] }>;
+}
+
+export interface DopplerTokenCandidate {
+  tokenId: number;
+  logit: number;
+  text: string;
+  probability: number | null;
+}
+
+/** The `count` highest logits with their softmax probability over the whole row. */
+export declare function topCandidates(
+  logits: ArrayLike<number> | null | undefined,
+  tokenizer: { decode(ids: number[], skipSpecialTokens?: boolean, trim?: boolean): string },
+  count: number
+): DopplerTokenCandidate[];
+
 export declare function buildInspectionTokenRecord(
   tokenId: number,
   logits: Float32Array | null,

@@ -261,6 +261,18 @@ export interface DopplerModelHandle {
         }) => void;
       }
     ): Promise<DopplerModelInspectionReceipt>;
+    /**
+     * Projects hidden-state vectors (for example recorded `layer-output` frames)
+     * through this model's final normalization and output head, and returns the
+     * `topK` candidates per vector. The result is a projection, sometimes called
+     * a logit lens: an estimate of what each vector leans toward, not a token the
+     * model produced at that layer. Fails for hyper-connection models and for
+     * paired-precision execution plans. Does not change sequence state.
+     */
+    projectLayerOutputs(request: {
+      vectors: Float32Array[];
+      topK: number;
+    }): Promise<import('../inspection.js').DopplerLayerProjection>;
   };
   readonly advanced: {
   tokenizeText(text: string): number[];

@@ -31,6 +31,7 @@ export const PIPELINE_OPERATIONS = Object.freeze({
   advanceWithToken: 'execution', advanceWithTokenAndEmbedding: 'execution',
   prefillKVOnly: 'execution', prefillForLoRATraining: 'execution',
   computeDiffusionGemmaCanvasLogits: 'execution', computeDiffusionGemmaCanvasStep: 'execution',
+  projectHiddenStates: 'execution',
   prefillWithEmbedding: 'execution', prefillWithLogits: 'execution',
   prefillWithTokenLogits: 'execution', prefillWithTokenLogitsFromKV: 'execution',
   embed: 'execution', embedBatch: Object.freeze({ kind: 'execution', context: 'explicit' }), encodeSequence: 'execution',

@@ -553,3 +553,32 @@ console.log('doppler-generation-evidence exact-prefix replay: ok');
   const other = await legacy.inspect.generate(changed, { generation: { useChatTemplate: true } });
   assert.notEqual(other.fingerprint.fullDigest, fallback.fingerprint.fullDigest, 'Different earlier turns cannot share a comparison fingerprint');
 }
+
+// Layer projection: recorded vectors go through the pipeline's own projection,
+// and the result says it is a projection, not generated tokens.
+{
+  let seen = null;
+  const projecting = createModelHandle({
+    ...pipeline,
+    async projectHiddenStates(hiddenStates, rowCount) {
+      seen = { values: Array.from(hiddenStates), rowCount };
+      // Two rows over a three-token vocabulary.
+      return { logits: new Float32Array([0, 3, 1, 2, 0, 0]), rowCount, vocabSize: 3 };
+    },
+  }, { modelId: 'projection-test', manifestHash: 'a'.repeat(64) });
+  const first = new Float32Array([1, 2]);
+  const pending = projecting.inspect.projectLayerOutputs({ vectors: [first, new Float32Array([3, 4])], topK: 2 });
+  first[0] = 99; // The caller's vector is snapshotted before the pipeline runs.
+  const projection = await pending;
+  assert.deepEqual(seen, { values: [1, 2, 3, 4], rowCount: 2 });
+  assert.equal(projection.schema, 'doppler.layer-projection/v1');
+  assert.deepEqual(projection.projection, { through: ['final-normalization', 'output-head'], kind: 'projected' });
+  assert.deepEqual(projection.rows.map((row) => row.candidates.map((candidate) => candidate.tokenId)), [[1, 2], [0, 1]]);
+  const total = Math.exp(0) + Math.exp(3) + Math.exp(1);
+  assert.ok(Math.abs(projection.rows[0].candidates[0].probability - Math.exp(3) / total) < 1e-12, 'Probabilities are over the whole vocabulary row');
+  await assert.rejects(projecting.inspect.projectLayerOutputs({ vectors: [], topK: 2 }), /1 to 64 vectors/);
+  await assert.rejects(projecting.inspect.projectLayerOutputs({ vectors: [first], topK: 0 }), /topK as a whole number from 1 to 64/);
+  await assert.rejects(projecting.inspect.projectLayerOutputs({ vectors: [first, new Float32Array(3)], topK: 1 }), /vectors of one length/);
+  await assert.rejects(projecting.inspect.projectLayerOutputs({ vectors: [[1, 2]], topK: 1 }), /Float32Array/);
+  await assert.rejects(handle.inspect.projectLayerOutputs({ vectors: [first], topK: 1 }), /cannot project hidden states/);
+}
