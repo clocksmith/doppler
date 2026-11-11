@@ -116,6 +116,25 @@ export function heatmapColors(range = 'signed', dark = false) {
   return range === 'signed' ? (dark ? config.colors.signedDark : config.colors.signed) : config.colors.positive;
 }
 
+/** Rank the complete distribution before display paging, without renormalizing it.
+ * @type {typeof import('./data.js').rankProbabilities} */
+export function rankProbabilities(values) {
+  if (!values.length || values.some(p => typeof p !== 'number' || !Number.isFinite(p) || p < 0 || p > 1)) return null;
+  /** @type {{ tokenId: number; probability: number }[]} */
+  const entries = [];
+  for (let tokenId = 0; tokenId < values.length; tokenId++) {
+    const probability = Number(values[tokenId]);
+    if (entries.length === config.probabilityLeaders && probability <= entries[entries.length - 1].probability) continue;
+    const at = entries.findIndex(entry => probability > entry.probability);
+    entries.splice(at < 0 ? entries.length : at, 0, { tokenId, probability });
+    if (entries.length > config.probabilityLeaders) entries.pop();
+  }
+  const shown = new Set(entries.map(entry => entry.tokenId));
+  let remaining = 0;
+  values.forEach((p, id) => { if (!shown.has(id)) remaining += Number(p); });
+  return { entries, remaining, count: values.length };
+}
+
 /** Fold a vector without dropping values or suggesting neuron connectivity.
  * @type {typeof import('./data.js').layerShape} */
 export function layerShape(values) {

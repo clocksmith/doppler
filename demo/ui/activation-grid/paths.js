@@ -151,7 +151,7 @@ export function renderModelPaths(container, graph, scale, activationScale, onLay
 export function renderLayerMap(container, options) {
   const { values, width, layers, types, scale, history, historyScale, position, difference, baseline, selected, dark, onLayer, onPosition, onInspect } = options;
   if (!container.children.length) {
-    container.innerHTML = `<div class="activity-layer-overview"><div class="activity-layer-tiles" aria-label="Model layers"></div><figure class="activity-history"><figcaption>Change over tokens</figcaption><div class="activity-history-plot"><canvas tabindex="0" role="slider" aria-label="Token position in layer history"></canvas><i aria-hidden="true"></i></div><div class="activity-history-axis"></div><div class="activity-history-key"></div></figure></div><p class="activity-layer-note demo-note"></p><div class="activity-layer-detail" hidden><button type="button" class="btn btn-ghost btn-small">Close layer</button><div class="activity-paths"></div></div>`;
+    container.innerHTML = `<div class="activity-layer-overview"><div class="activity-layer-tiles" aria-label="Model layers"></div><div class="activity-layer-sidebar"><figure class="activity-history"><figcaption>Change over tokens</figcaption><div class="activity-history-plot"><canvas tabindex="0" role="slider" aria-label="Token position in layer history"></canvas><i aria-hidden="true"></i></div><div class="activity-history-axis"></div><div class="activity-history-key"></div></figure><figure class="activity-attention"><figcaption>Attention</figcaption><canvas role="img"></canvas><div class="activity-attention-axis"></div><div class="activity-attention-key"></div><p class="activity-attention-note"></p><button type="button" class="btn btn-ghost btn-small" hidden></button></figure></div></div><p class="activity-layer-note demo-note"></p><div class="activity-layer-detail" hidden><button type="button" class="btn btn-ghost btn-small">Close layer</button><div class="activity-paths"></div></div>`;
   }
   const tiles = /** @type {HTMLElement} */ (container.querySelector('.activity-layer-tiles'));
   tiles.style.setProperty('--layer-columns', String(Math.min(layers, config.layerColumns)));
@@ -228,8 +228,76 @@ export function renderLayerMap(container, options) {
     onInspect(`Layer ${l+1} · token ${history.positions[c]} · RMS ${difference ? 'change' : 'activity'}: ${history.positions[c] > position ? 'not shown yet' : history.values[l*n+c] ?? 'missing'}`);
   };
   canvas.onpointerleave = () => onInspect(null);
+  renderAttentionGrid(/** @type {HTMLElement} */ (container.querySelector('.activity-attention')), options.attention, onPosition, onInspect);
   /** @type {HTMLElement} */ (container.querySelector('.activity-layer-note')).textContent = `${width.toLocaleString()} values/layer · ${shape.width} × ${shape.height} tile · ${baseline ? 'compared with saved run' : difference ? 'change from previous position' : 'captured outputs'}`;
   const detail = /** @type {HTMLElement} */ (container.querySelector('.activity-layer-detail'));
   detail.hidden = selected < 0;
   /** @type {HTMLButtonElement} */ (detail.querySelector('button')).onclick = () => onLayer(-1);
+}
+
+/** @param {HTMLElement} figure @param {import('./views.js').AttentionGrid} grid
+ * @param {(position:number)=>void} onPosition @param {(text:string|null)=>void} onInspect */
+function renderAttentionGrid(figure, grid, onPosition, onInspect) {
+  const canvas = /** @type {HTMLCanvasElement} */ (figure.querySelector('canvas'));
+  const present = grid.values.some(v => v !== undefined);
+  canvas.hidden = !grid.width || !grid.rows.length;
+  canvas.width = Math.max(1, grid.width); canvas.height = Math.max(1, grid.rows.length);
+  canvas.setAttribute('aria-label', `Attention at token ${grid.position}. Columns are key positions; rows are attention heads in layer order. Reconstructed probabilities.`);
+  if (!canvas.hidden) {
+    const ctx = canvas.getContext('2d');
+    if (!ctx) throw new Error('Attention grids require canvas 2D.');
+    const image = ctx.createImageData(canvas.width, canvas.height);
+    grid.values.forEach((v, i) => {
+      image.data.set(v === undefined ? config.colors.missing[(i % grid.width + Math.floor(i / grid.width)) % 2] : heatmapColor(v, 1, 'unit'), i * 4);
+      image.data[i * 4 + 3] = 255;
+    });
+    ctx.putImageData(image, 0, 0);
+  }
+  const layers = [...new Set(grid.rows.map(r => r.layer + 1))];
+  /** @type {HTMLElement} */ (figure.querySelector('figcaption')).textContent = `Attention · token ${grid.position}`;
+  /** @type {HTMLElement} */ (figure.querySelector('.activity-attention-axis')).textContent = grid.width
+    ? `Keys 0–${grid.width - 1} → · ${grid.rows.length} heads ↓ · layers ${layers.join(', ')}` : '';
+  const key = /** @type {HTMLElement} */ (figure.querySelector('.activity-attention-key'));
+  key.hidden = !present;
+  key.style.borderImage = `linear-gradient(to right,${heatmapColors('unit').map(c => `rgb(${c.join(',')})`).join(',')}) 1`;
+  key.textContent = 'Probability · 0–100%';
+  /** @type {HTMLElement} */ (figure.querySelector('.activity-attention-note')).textContent = grid.reason || 'Reconstructed from queries and keys. Missing is checkered; attention is not causal attribution.';
+  const go = /** @type {HTMLButtonElement} */ (figure.querySelector('button'));
+  go.hidden = present || grid.nearest === null || grid.nearest === grid.position;
+  go.textContent = `Go to token ${grid.nearest}`;
+  go.onclick = () => { if (grid.nearest !== null) onPosition(grid.nearest); };
+  canvas.onpointermove = event => {
+    const box = canvas.getBoundingClientRect();
+    const x = Math.min(grid.width - 1, Math.max(0, Math.floor((event.clientX - box.left) / box.width * grid.width)));
+    const y = Math.min(grid.rows.length - 1, Math.max(0, Math.floor((event.clientY - box.top) / box.height * grid.rows.length)));
+    const row = grid.rows[y], p = grid.values[y * grid.width + x];
+    onInspect(`Layer ${row.layer + 1} · head ${row.head + 1} · query ${grid.position} → key ${x}: ${p ?? 'missing'} · reconstructed probability`);
+  };
+  canvas.onpointerleave = () => onInspect(null);
+}
+
+/** @type {typeof import('./paths.js').renderProbabilities} */
+export function renderProbabilities(container, distribution, position) {
+  container.replaceChildren();
+  const caption = document.createElement('p'); caption.className = 'demo-note';
+  container.append(caption);
+  if (!distribution) { caption.textContent = `No complete probability distribution saved at token ${position}.`; return; }
+  const { entries, count, remaining } = distribution;
+  caption.textContent = `Top ${entries.length} of ${count.toLocaleString()} tokens · prediction after token ${position}`;
+  const list = document.createElement('ol'); list.className = 'activity-probability-list';
+  for (const entry of [...entries, { tokenId: -1, probability: remaining }]) {
+    const row = document.createElement('li'); row.dataset.tokenId = String(entry.tokenId);
+    const label = document.createElement('span');
+    label.textContent = entry.tokenId < 0 ? `Other ${(count - entries.length).toLocaleString()}` : `Token ${entry.tokenId}`;
+    const track = document.createElement('span'); track.className = 'activity-probability-track'; track.setAttribute('aria-hidden', 'true');
+    const bar = document.createElement('i'); bar.style.width = `${entry.probability * 100}%`; track.append(bar);
+    const value = document.createElement('span'); value.className = 'activity-probability-value';
+    value.textContent = `${Number((entry.probability * 100).toPrecision(3))}%`;
+    row.title = `${label.textContent}: ${entry.probability}`;
+    row.append(label, track, value); list.append(row);
+  }
+  container.append(list);
+  const note = document.createElement('p'); note.className = 'demo-note';
+  note.textContent = 'Full-vocabulary softmax before sampling filters. Bars use a fixed 0–100% scale. Labels are token IDs from the recording.';
+  container.append(note);
 }

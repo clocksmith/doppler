@@ -6,6 +6,7 @@ export interface ActivitySelection {
   detail: string; page: number; baseline?: ActivationRecording | null;
 }
 export interface ActivityView {
+  distribution?: import('./data.js').ProbabilityDistribution | null;
   range: 'signed' | 'positive' | 'unit' | 'residency';
   segments: { start:number; end:number; id:string; count:number; blockSize:number }[];
   values: (number | string | undefined)[]; extent: number; offset: number;
@@ -27,3 +28,8 @@ export function omissionSummary(recording: ActivationRecording): string;
 export function viewCaptureRoles(viewId: string): string[] | null;
 export function assertMatchedRuns(a: ActivationRecording, b: ActivationRecording): void;
 export function attentionRow(frames: ActivityFrame[], query: ActivityFrame, position: number, head: number): (number | undefined)[];
+export interface AttentionGrid {
+  values: (number | undefined)[]; width: number; rows: { layer: number; head: number }[];
+  position: number; reason: string; nearest: number | null;
+}
+export function attentionGridView(recording: ActivationRecording, atMs: number, position: number, layer?: number): AttentionGrid;

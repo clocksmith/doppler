@@ -3,9 +3,9 @@ import previews from './previews.json' with { type: 'json' };
 import previewData from '../../assets/activity-previews.json' with { type: 'json' };
 import { SHELL_MANIFEST_DIGEST } from '../../generated-shell-manifest.js';
 import { validateRecording, colorGrid, initialColorScale, heatmapColor, heatmapColors, layerHistory, layerShape } from './data.js';
-import { modelPathView, renderModelPaths, renderLayerMap } from './paths.js';
+import { modelPathView, renderModelPaths, renderLayerMap, renderProbabilities } from './paths.js';
 import { encodeRecording } from './recording-codec.js';
-import { activityView, activityModes, playbackPoints, assertMatchedRuns, missingReason, omissionSummary, viewCaptureRoles } from './views.js';
+import { activityView, activityModes, playbackPoints, assertMatchedRuns, missingReason, omissionSummary, viewCaptureRoles, attentionGridView } from './views.js';
 
 /** @template {keyof import('./index.js').GridElements} K
  * @param {K} id @returns {import('./index.js').GridElements[K]} */
@@ -234,6 +234,14 @@ function paint() {
   $('activation-scale').disabled = fixedUnit;
   $('activation-scale').value = String(scale);
   const { side, rgba } = colorGrid(view.values, scale, view.range, dark);
+  const probabilities = select.value === 'probabilities';
+  const scalarGrid = $('activity-scalar-grid');
+  if (scalarGrid.dataset.mode !== select.value) scalarGrid.open = !probabilities;
+  scalarGrid.dataset.mode = select.value;
+  scalarGrid.hidden = Boolean(graph);
+  /** @type {HTMLElement} */ (scalarGrid.querySelector('summary')).hidden = !probabilities;
+  $('activity-probabilities').hidden = !probabilities;
+  if (probabilities) renderProbabilities($('activity-probabilities'), 'distribution' in view ? view.distribution ?? null : null, position);
   const canvas = $('activation-canvas'); canvas.hidden = tiled || Boolean(graph) || side === 0;
   $('activity-layer-map').hidden = !tiled;
   $('activity-paths').hidden = !graph;
@@ -262,8 +270,9 @@ function paint() {
     const onLayer = (/** @type {number} */ layer) => { layerSelect.value = String(layer); queuePaint(); };
     renderLayerMap($('activity-layer-map'), { values:view.values, width:trace.geometry.width, layers:trace.geometry.layers,
       types:Array.isArray(types) ? types : undefined, scale, history, historyScale:scales[historyKey] ?? recording.display.scale,
+      attention: attentionGridView(recording, point.atMs, position, Array.isArray(types) && types[Number(layerSelect.value)] === 'full_attention' ? Number(layerSelect.value) : -1),
       position, difference, baseline:difference && Boolean(baseline), selected:Number(layerSelect.value), dark, onLayer,
-      onPosition: pos => { stopPlayback(); follow = false; for (let i=0;i<timeline.length;i++) if (timeline[i].position === pos) cursor=i; token.value=String(pos); queuePaint(); },
+      onPosition: pos => { stopPlayback(); follow = false; openingHint = false; for (let i=0;i<timeline.length;i++) if (timeline[i].position === pos) cursor=i; token.value=String(pos); queuePaint(); },
       onInspect: text => { $('activation-cell').hidden = text === null; $('activation-cell').textContent = text ?? ''; } });
     if (Number(layerSelect.value) >= 0) {
       const detail = modelPathView(recording, point.atMs, position, Number(layerSelect.value));

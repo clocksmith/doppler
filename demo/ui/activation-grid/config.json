@@ -9,6 +9,7 @@
   "maxValues": 4194304,
   "maxGridValues": 4194304,
   "maxDisplayValues": 786432,
+  "probabilityLeaders": 12,
   "maxActivityValues": 4194304,
   "maxWeightValues": 2097152,
   "recordByDefault": true,

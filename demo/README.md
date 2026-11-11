@@ -34,6 +34,13 @@ A recording that was set to leave something out says that instead: the view, the
 or the token range it kept, or that one view reached its own size limit while the
 recording still had room.
 In the history panel, tokens after the one shown are dark and labelled not shown yet.
+Attention sits below history on the default layer view: columns are key positions,
+rows are heads in layer order, and its query follows the same replay position.
+Selecting a full-attention layer narrows the grid. Missing queries or keys stay
+missing, with a jump to a saved position when available.
+Next-token probabilities opens as the twelve leading token IDs with their
+softmax percentages and the remaining probability mass. Bars use a fixed 0–100%
+scale; the full vocabulary grid remains available in an expandable section.
 The key beside a picture says when values were recomputed from saved ones rather than
 measured, that recomputed attention is not a causal explanation, and that dark in a
 probability view is a real value near zero. Preview shortcuts, recording files

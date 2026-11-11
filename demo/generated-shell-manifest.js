@@ -1,6 +1,6 @@
 export const SHELL_MANIFEST_SCHEMA = 'doppler.demo-shell-manifest/v1';
-export const SHELL_MANIFEST_DIGEST = 'sha256:0a87e55324377068dc0d1fdc9b42c4cb2cccefd3ff02c311ae2033d4cfc9c293';
-export const CACHE_NAME = 'doppler-demo-shell-0a87e55324377068';
+export const SHELL_MANIFEST_DIGEST = 'sha256:7ab1b146fc9eb70dc5a9b4ece5a2822ecbf199744d6bf21823e97e633cdfab41';
+export const CACHE_NAME = 'doppler-demo-shell-7ab1b146fc9eb70d';
 export const APP_SHELL = Object.freeze([
   "/demo/assets/activity-preview-attention-prefill.png",
   "/demo/assets/activity-preview-contributions.png",

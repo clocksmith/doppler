@@ -10,9 +10,13 @@ export async function checkLayerMap(page) {
   assert.equal(await page.locator('#activation-canvas').isVisible(),false);
   const pixels = () => page.locator('.activity-layer-tile canvas').first().evaluate(c=>[...c.getContext('2d').getImageData(0,0,c.width,c.height).data]);
   const before=await pixels();
+  const attentionPixels = () => page.locator('.activity-attention canvas').evaluate(c => [...c.getContext('2d').getImageData(0,0,c.width,c.height).data]);
+  const attentionBefore = await attentionPixels();
   await page.locator('#activation-scrub').fill('23');
   await page.waitForFunction(()=>document.querySelector('.activity-history canvas').getAttribute('aria-valuenow')==='23');
   assert.notDeepEqual(await pixels(),before,'Visible tile updates with the same replay token');
+  assert.match(await page.locator('.activity-attention figcaption').textContent(), /token 23/);
+  assert.notDeepEqual(await attentionPixels(), attentionBefore, 'Attention follows the same playback position');
   await page.locator('.activity-history canvas').focus();
   await page.keyboard.press('ArrowLeft');
   await page.waitForFunction(()=>document.querySelector('.activity-history canvas').getAttribute('aria-valuenow')==='22');
@@ -20,12 +24,16 @@ export async function checkLayerMap(page) {
   await page.locator('.activity-layer-tile').nth(3).click();
   await page.locator('.activity-layer-detail').waitFor({state:'visible'});
   assert.match(await page.locator('.activity-layer-detail').textContent(),/Full attention/);
+  assert.match(await page.locator('.activity-attention-axis').textContent(), /8 heads.*layers 4$/, 'Selecting an attention layer narrows its rows');
   await page.locator('.activity-layer-detail > button').click();
   await page.locator('.activity-layer-detail').waitFor({state:'hidden'});
   await fs.mkdir('.cache/layer-map',{recursive:true});
   for (const width of [1280,390,320]) {
     await page.setViewportSize({width,height:950});
     assert(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));
+    const historyBox = await page.locator('.activity-history').boundingBox();
+    const attentionBox = await page.locator('.activity-attention').boundingBox();
+    assert(attentionBox.y >= historyBox.y + historyBox.height, 'Attention sits below Change over tokens');
     const geometry = await page.locator('.activity-layer-tile canvas').evaluateAll(cs=>cs.map(c=>({w:c.width,h:c.height,box:c.getBoundingClientRect().width})));
     assert(geometry.every(c=>c.w===32 && c.h===32 && c.box>=32),'Every scalar remains represented at desktop and phone widths');
     await page.locator('#inspection-workspace').screenshot({path:`.cache/layer-map/light-${width}.png`});
@@ -216,6 +224,16 @@ export async function checkRealActivityPlayback(page) {
     assert(state.opaque, `${mode.id} has no alpha-encoded dimension`);
     assert(state.width > 1 && state.pixelColors > 2, `${mode.id} renders recorded numerical values`);
     assert(!state.layout.startsWith('0/'), `${mode.id} has real capture coverage`);
+    if (mode.id === 'probabilities') {
+      assert.equal(await page.locator('#activation-canvas').isVisible(), false, 'The sparse vocabulary grid does not obscure the readable probabilities');
+      const leader = page.locator('.activity-probability-list li').first();
+      assert.equal(await leader.getAttribute('data-token-id'), '760', 'The recorded prompt predicts the correct leading token');
+      assert.equal(await leader.locator('.activity-probability-value').textContent(), '49.4%');
+      const width = await leader.locator('i').evaluate(bar => parseFloat(bar.style.width));
+      assert(Math.abs(width - 49.40423038869752) < 1e-9, 'Bars use the original probability, not a top-k renormalization');
+      await page.locator('#activity-scalar-grid > summary').click();
+      assert.equal(await page.locator('#activation-canvas').isVisible(), true, 'Every token ID remains inspectable in the full grid');
+    }
     results.push({ id: mode.id, ...state });
   }
   assert.equal(modes.filter(m => !m.disabled).length, 19);

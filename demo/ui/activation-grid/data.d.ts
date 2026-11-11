@@ -21,6 +21,11 @@ export declare function initialColorScale(values: Array<number | string | undefi
 export declare function heatmapColor(value: number, scale: number, range?: 'signed' | 'positive' | 'unit' | 'residency', dark?: boolean): number[];
 
 export declare function heatmapColors(range?: string, dark?: boolean): number[][];
+export interface ProbabilityDistribution {
+  entries: { tokenId: number; probability: number }[];
+  remaining: number; count: number;
+}
+export declare function rankProbabilities(values: (number | string | undefined)[]): ProbabilityDistribution | null;
 export declare function layerShape(values: number): { width: number; height: number };
 export interface LayerHistory { positions: number[]; values: (number | string | undefined)[]; layers: number; }
 export declare function layerHistory(recording: ActivationRecording, atMs: number, position: number, difference: boolean, baseline?: ActivationRecording | null): LayerHistory;

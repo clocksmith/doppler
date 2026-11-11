@@ -1,6 +1,6 @@
 import modes from './modes.json' with { type: 'json' };
 import config from './config.json' with { type: 'json' };
-import { projectFrame } from './data.js';
+import { projectFrame, rankProbabilities } from './data.js';
 
 /** @template T @param {T[]} items @param {(item: T) => boolean} predicate */
 function lastMatch(items, predicate) {
@@ -224,6 +224,26 @@ export function attentionRow(frames, query, position, head) {
   return exp.map(v => v / sum);
 }
 
+/** Rectangular head-by-key view at the shared playback position.
+ * @type {typeof import('./views.js').attentionGridView} */
+export function attentionGridView(recording, atMs, position, layer = -1) {
+  const frames = (recording.trace.activity?.frames ?? []).filter(f => f.atMs <= atMs);
+  const queries = [...new Map(frames.filter(f => f.role === 'attention-query' && (layer < 0 || f.layer === layer)
+    && position >= f.tokenStart && position < f.tokenStart + f.tokenIds.length).map(f => [f.layer, f])).values()]
+    .sort((a, b) => a.layer - b.layer);
+  const width = Math.max(0, ...queries.map(q => Number(q.metadata.kvLength)));
+  const height = queries.reduce((sum, q) => sum + Number(q.metadata.heads), 0);
+  const why = missingReason(recording, 'attention-query', position, 'overview', layer);
+  if (!width || !height || width * height > config.maxDisplayValues) return { values: [], width: 0, rows: [], position,
+    reason: width * height > config.maxDisplayValues ? 'Attention exceeds the display budget. Select a layer to narrow the grid.' : why.text || 'No attention queries saved at this position.', nearest: why.nearest };
+  const rows = queries.flatMap(q => Array.from({ length: Number(q.metadata.heads) }, (_, head) => ({ layer: q.layer, head })));
+  const values = queries.flatMap(q => Array.from({ length: Number(q.metadata.heads) }, (_, head) => {
+    const row = attentionRow(frames, q, position, head);
+    return Array.from({ length: width }, (_, key) => key < row.length ? row[key] : undefined);
+  }).flat());
+  return { values, width, rows, position, reason: values.some(v => v !== undefined) ? '' : why.text || 'Queries or keys were not saved at this position.', nearest: why.nearest };
+}
+
 /** @type {typeof import('./views.js').activityView} */
 export function activityView(recording, selection) {
   const { mode, atMs, position, layer, detail, weightId, baseline } = selection;
@@ -237,6 +257,7 @@ export function activityView(recording, selection) {
   /** @type {{start:number; end:number; id:string; count:number; blockSize:number}[]} */
   const segments = [];
   let underlyingValues = 0, extent = 0, offset = 0, quantity = mode, representation = 'raw', description = '', valuesPerScalar = 1;
+  let distribution = null;
   const tile = (/** @type {number} */ size, /** @type {(index: number) => number | string | undefined} */ get) => {
     extent = size;
     offset = Math.min(Math.max(0, Math.floor(selection.page)) * config.maxDisplayValues,
@@ -409,7 +430,7 @@ export function activityView(recording, selection) {
   } else if (mode === 'logits' || mode === 'probabilities') {
     const f = lastMatch(frames, f => f.role === 'logits' && f.tokenStart === position);
     values = f?.values ?? []; quantity = mode === 'logits' ? 'next-token logits' : 'full-vocabulary softmax probability';
-    if (mode === 'probabilities') { values = softmax(values); representation = 'reconstructed'; }
+    if (mode === 'probabilities') { values = softmax(values); distribution = rankProbabilities(values); representation = 'reconstructed'; }
     description = mode === 'probabilities'
       ? 'Softmax probabilities over the whole vocabulary, in token-ID order, before sampling filters (temperature, top-k, top-p) are applied. Dark pixels are real probabilities near zero, not missing data; a position with no saved prediction is checkered.'
       : 'Raw next-token scores over the whole vocabulary, in token-ID order, before softmax and before sampling filters. A position with no saved prediction is checkered.';
@@ -439,5 +460,5 @@ export function activityView(recording, selection) {
   const range = mode === 'residency' ? 'residency'
     : ['attention-query', 'attention-prefill', 'probabilities', 'linear-gates', 'expert-routing'].includes(mode) ? 'unit'
     : representation === 'aggregated' ? 'positive' : 'signed';
-  return { values, extent, offset, range, segments, underlyingValues: underlyingValues || extent, quantity, representation, description, valuesPerScalar };
+  return { values, extent, offset, range, segments, underlyingValues: underlyingValues || extent, quantity, representation, description, valuesPerScalar, distribution };
 }

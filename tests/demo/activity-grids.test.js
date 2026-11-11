@@ -1,10 +1,10 @@
 import assert from 'node:assert/strict';
 import { createActivationTrace } from '../../src/debug/activation-trace.js';
 import { createActivityTrace, resolveActivityCapture } from '../../src/debug/activity-trace.js';
-import { validateRecording, colorGrid, heatmapColor, heatmapColors } from '../../demo/ui/activation-grid/data.js';
+import { validateRecording, colorGrid, heatmapColor, heatmapColors, rankProbabilities } from '../../demo/ui/activation-grid/data.js';
 import { encodeRecording } from '../../demo/ui/activation-grid/recording-codec.js';
 import { modelPathView } from '../../demo/ui/activation-grid/paths.js';
-import { activityView, activityModes, playbackPoints, assertMatchedRuns, attentionRow, viewPositions, missingReason, omissionSummary, viewCaptureRoles } from '../../demo/ui/activation-grid/views.js';
+import { activityView, activityModes, playbackPoints, assertMatchedRuns, attentionRow, attentionGridView, viewPositions, missingReason, omissionSummary, viewCaptureRoles } from '../../demo/ui/activation-grid/views.js';
 
 const limits = { maxBytes: 4096, maxFrameBytes: 2048, maxFrames: 512, maxGridValues: 64, maxInFlight: 4,
   activityMaxBytes: 8192, activityMaxFrameValues: 64, activityMaxStateValues: 4, activityTokenWindow: 2, activitySummaryBlock: 2,
@@ -96,6 +96,18 @@ const query = recording.trace.activity.frames.find(f => f.role === 'attention-qu
 assert.deepEqual(attentionRow(recording.trace.activity.frames, query, 0, 0), [1, 0], 'future key is causally masked');
 const row = attentionRow(recording.trace.activity.frames, query, 1, 0);
 assert(Math.abs(row[1] - Math.E / (1 + Math.E)) < 1e-12);
+const attentionGrid = attentionGridView(recording, Infinity, 1);
+assert.deepEqual(attentionGrid.rows, [{ layer: 1, head: 0 }]);
+assert.equal(attentionGrid.width, 2);
+assert.deepEqual(attentionGrid.values, row, 'The default attention grid preserves head/key coordinates');
+assert.deepEqual(attentionGridView(recording, Infinity, 0).values, [1, 0], 'The grid follows the shared query position and causal mask');
+assert.equal(attentionGridView(recording, -1, 1).values.length, 0, 'Future captures never leak into the grid');
+assert.equal(attentionGridView(recording, Infinity, 1, 0).values.length, 0, 'A linear layer is not fabricated into attention');
+{
+  const missingKey = structuredClone(recording);
+  missingKey.trace.activity.frames = missingKey.trace.activity.frames.filter(f => f.role !== 'kv-key');
+  assert(attentionGridView(missingKey, Infinity, 1).values.every(v => v === undefined), 'Missing keys never produce normalized partial attention');
+}
 assert.equal(view('attention-prefill').values.length, 4);
 assert.deepEqual(view('linear-gates').values, [0.5, 0.5]);
 assert.deepEqual(view('recurrent-memory').values, [Math.sqrt(2.5), Math.sqrt(12.5), Math.sqrt(30.5)], 'overview covers the full state without retaining its full payload');
@@ -128,6 +140,17 @@ assert.deepEqual(energy, [2, Math.sqrt(22.5), Math.sqrt(72)], 'block energy matc
 const probabilities = view('probabilities').values;
 assert(Math.abs(probabilities.reduce((a, b) => a + b, 0) - 1) < 1e-12);
 assert(Math.abs(probabilities[2] - 0.5) < 1e-7);
+assert.deepEqual(view('probabilities').distribution.entries.map(e => e.tokenId), [2, 1, 0]);
+{
+  const sparse = new Array(248320).fill(0);
+  sparse[12515] = 0.79; sparse[200000] = 0.2;
+  for (let i = 0; i < 100; i++) sparse[i] = 0.0001;
+  const ranked = rankProbabilities(sparse);
+  assert.deepEqual(ranked.entries.slice(0, 2), [{ tokenId: 12515, probability: 0.79 }, { tokenId: 200000, probability: 0.2 }], 'Sparse probabilities are surfaced without losing their token IDs');
+  assert(Math.abs(ranked.entries.reduce((sum, e) => sum + e.probability, ranked.remaining) - 1) < 1e-12, 'The omitted tail remains part of the whole-vocabulary distribution');
+  assert.equal(rankProbabilities([0.5, undefined]), null, 'Incomplete distributions are never renormalized');
+  assert.equal(rankProbabilities([]), null);
+}
 assert.equal(activityModes(recording).find(m => m.id === 'expert-routing').reason !== null, true);
 assert.equal(activityModes(recording).find(m => m.id === 'quantization-error').reason !== null, true);
 assert.deepEqual(playbackPoints(recording, 'tokens').map(p => p.position), [0, 1], 'prefill positions are individually selectable, not new execution events');

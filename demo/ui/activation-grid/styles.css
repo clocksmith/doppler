@@ -93,13 +93,29 @@
 .activity-history canvas { display:block; width:100%; height:192px; image-rendering:pixelated; cursor:crosshair; }
 .activity-history i { position:absolute; top:0; bottom:0; width:1px; background:white; box-shadow:0 0 0 1px #111; pointer-events:none; }
 .activity-history-key { border-top:8px solid; padding-top:4px; }
+.activity-layer-sidebar { display:grid; gap:24px; min-width:0; }
+.activity-attention { margin:0; display:grid; gap:8px; min-width:0; font:400 11px/1.5 var(--font-sans); color:var(--doppler-muted); }
+.activity-attention canvas { display:block; width:100%; height:144px; image-rendering:pixelated; cursor:crosshair; }
+.activity-attention canvas[hidden] { display:none; }
+.activity-attention-key { border-top:8px solid; padding-top:4px; }
+.activity-attention-note { margin:0; }
+#activity-scalar-grid > summary { cursor:pointer; margin:12px 0; font-size:12px; color:var(--doppler-muted); }
+#activity-scalar-grid > summary[hidden] { display:none; }
+#activity-probabilities { max-width:560px; }
+.activity-probability-list { display:grid; gap:10px; list-style:none; margin:16px 0; padding:0; }
+.activity-probability-list li { display:grid; grid-template-columns:112px minmax(24px,1fr) 64px; align-items:center; gap:12px; font:400 12px/1.5 var(--font-mono); }
+.activity-probability-track { height:12px; background:var(--doppler-line); }
+.activity-probability-track i { display:block; height:100%; background:var(--fg); }
+.activity-probability-value { text-align:right; font-variant-numeric:tabular-nums; }
 .activity-layer-detail { margin-top:12px; border-top:1px solid var(--doppler-line); padding-top:8px; }
 .activity-layer-detail[hidden], .activity-layer-detail .activity-path-activations, .activity-layer-detail .activity-path-layers { display:none; }
 .activity-layer-detail .activity-paths { display:block; }
 .activity-layer-detail .activity-path-detail { max-width:340px; }
 @media (max-width:600px) {
   .activity-layer-overview { grid-template-columns:minmax(0,1fr); gap:14px; }
-  .activity-history { grid-row:1; }
+  .activity-layer-sidebar { grid-row:1; gap:14px; }
+  .activity-attention canvas { height:96px; }
+  .activity-probability-list li { grid-template-columns:100px minmax(24px,1fr) 60px; gap:8px; }
   .activity-history canvas { height:96px; }
   .activity-history-key { max-width:160px; }
   .activity-layer-tiles { gap:8px; }

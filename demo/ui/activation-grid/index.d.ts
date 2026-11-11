@@ -9,6 +9,7 @@ export interface GridElements {
   'activity-explanation': HTMLElement; 'activity-coverage': HTMLElement;
   'activity-paths': HTMLElement; 'activity-paths-button': HTMLButtonElement;
   'activity-layer-map': HTMLElement;
+  'activity-probabilities': HTMLElement; 'activity-scalar-grid': HTMLDetailsElement;
   'activity-legend': HTMLElement; 'activity-update': HTMLElement; 'activation-timeline': HTMLElement;
   'activity-mode': HTMLSelectElement; 'activity-layer': HTMLSelectElement; 'activity-playback': HTMLSelectElement;
   'activity-weight': HTMLSelectElement; 'activity-detail': HTMLSelectElement;
