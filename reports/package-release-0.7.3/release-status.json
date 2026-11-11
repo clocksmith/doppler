@@ -1,0 +1,24 @@
+{
+  "schema": "doppler.release-status/v1",
+  "version": "0.7.3",
+  "state": "awaiting-publication",
+  "reason": "npm EOTP: authenticator one-time password required",
+  "releaseCommit": "ceb844fdf51852beac14c4866d632bb0326a51b3",
+  "archive": ".cache/doppler-gpu-0.7.3.tgz",
+  "candidate": {
+    "version": "0.7.3",
+    "packedBytes": 3697740,
+    "unpackedBytes": 15770014,
+    "files": 1936,
+    "integrity": "sha512-HXyHr+YPwufA9Ego8WLfm9DaKOkNdZ0m7z191QyFzdKy+5n7A+RkzQJ9ho8/A9Qh4u/iUISaEXWhqhIzHTb3yQ==",
+    "shasum": "e78a5c7fca06c1c910f9861b5858211d57c0ac0d"
+  },
+  "installCheck": "archive installed in an empty folder; doppler, doppler-serve and doppler-gpu --help print usage through node_modules/.bin; library imports",
+  "differsFrom0.7.2": "src/cli/doppler-cli.js, src/cli/doppler-serve.js, src/version.js, package.json, CHANGELOG.md",
+  "tagCreated": false,
+  "retry": "npm publish .cache/doppler-gpu-0.7.3.tgz --access public --tag latest --ignore-scripts --otp=<code>",
+  "postPublication": [
+    "Verify registry integrity equals candidate.integrity and latest equals 0.7.3",
+    "Tag v0.7.3 at releaseCommit and push the tag"
+  ]
+}
