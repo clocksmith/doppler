@@ -1,0 +1,67 @@
+--- a/prepare-learned-forward-reference.py	2026-11-09 14:58:01.323540299 -0500
++++ b/prepare-learned-forward-reference.py	2026-11-10 22:14:20.920009684 -0500
+@@ -36,7 +36,7 @@
+ ROOT = Path(__file__).resolve().parent
+ SOURCE = Path(sys.argv[1])
+ OUT = Path(sys.argv[2])
+-DTYPE = {'float32': torch.float32, 'bfloat16': torch.bfloat16}[sys.argv[sys.argv.index('--dtype') + 1] if '--dtype' in sys.argv else 'float32']
++DTYPE = {'float32': torch.float32, 'bfloat16': torch.bfloat16, 'float64': torch.float64}[sys.argv[sys.argv.index('--dtype') + 1] if '--dtype' in sys.argv else 'float32']
+ OUT.mkdir(parents=True, exist_ok=True)
+ ARTIFACT = Path(sys.argv[sys.argv.index('--artifact') + 1]) if '--artifact' in sys.argv else None
+ KV_F16 = '--kv-dtype' in sys.argv
+@@ -47,7 +47,7 @@
+ artifact_manifest = json.loads(ARTIFACT_MANIFEST_BYTES) if ARTIFACT else None
+ if ARTIFACT:
+     from gguf import quants, GGMLQuantizationType
+-    assert DTYPE == torch.float32, 'artifact control uses f32 arithmetic on independently decoded stored weights'
++    assert DTYPE in (torch.float32, torch.float64), 'artifact control uses f32 (or the f64 accuracy control) on independently decoded stored weights'
+ binding = json.loads((ROOT / 'source-binding.json').read_text())
+ for entry in binding['files'] + binding['referenceImplementation']['files']:
+     assert hashlib.sha256((ROOT / 'source' / entry['path']).read_bytes()).hexdigest() == entry['sha256'], entry['path']
+@@ -276,7 +276,7 @@
+     return sorted(p for p in picks if 0 <= p < T)
+ 
+ def router_hook(module, inputs, output):
+-    logits = F.linear(inputs[0].float().reshape(-1, inputs[0].shape[-1]), module.weight.float())
++    logits = F.linear(inputs[0].to(DTYPE).reshape(-1, inputs[0].shape[-1]), module.weight.to(DTYPE))
+     top = logits.topk(cfg.num_experts_per_tok + 1, dim=-1)
+     rec = records[current['seq']]['router'].setdefault(str(current['layer']), {})
+     positions = sample_positions(logits.shape[0])
+@@ -287,7 +287,7 @@
+ 
+ def decay_hook(gdn):
+     def hook(module, inputs, output):
+-        g = -gdn.A_log.float().exp() * F.softplus(output.float() + gdn.dt_bias.float())
++        g = -gdn.A_log.to(DTYPE).exp() * F.softplus(output.to(DTYPE) + gdn.dt_bias.to(DTYPE))
+         records[current['seq']]['decay'][str(current['layer'])] = {'min': float(g.min()), 'max': float(g.max())}
+     return hook
+ 
+@@ -306,10 +306,10 @@
+     for query in sparse:
+         blocks = (query + 1) // module.compress_ratio
+         idx = torch.arange(blocks * module.compress_ratio).view(blocks, module.compress_ratio)
+-        pooled = module.k_layernorm(raw[0].index_select(0, idx.flatten()).view(blocks, module.compress_ratio, -1).float().mean(1).to(raw.dtype))
++        pooled = module.k_layernorm(raw[0].index_select(0, idx.flatten()).view(blocks, module.compress_ratio, -1).to(DTYPE).mean(1).to(raw.dtype))
+         keys = namespace['apply_rotary_pos_emb'](pooled.unsqueeze(1), cos=full_cos[0].index_select(0, idx[:, 0]),
+                                                  sin=full_sin[0].index_select(0, idx[:, 0])).squeeze(1)
+-        scores = (torch.relu(q[0, query].float() @ keys.float().T).sum(0) / math.sqrt(module.index_head_dim))
++        scores = (torch.relu(q[0, query].to(DTYPE) @ keys.to(DTYPE).T).sum(0) / math.sqrt(module.index_head_dim))
+         ordered = scores.sort(descending=True)
+         visible = (output[0, 0, query] == 0) if output.is_floating_point() else output[0, 0, query]
+         selected = torch.nonzero(visible).flatten().tolist()
+@@ -362,13 +362,13 @@
+     mixer = namespace['Qwen4ExpTextGatedResidual'](cfg, use_combine=False).eval()
+     load(mixer, 'model.language_model.hyper_connection_mixer.')
+     mixer.to(DTYPE)
+-    head = read_tensor('lm_head.weight').float()
++    head = read_tensor('lm_head.weight').to(DTYPE)
+     summary = {}
+     for s in sequences:
+         mixed = mixer(states[s['id']])
+         T = mixed.shape[1]
+         positions = sample_positions(T)
+-        logits = mixed[0].float() @ head.T
++        logits = mixed[0].to(DTYPE) @ head.T
+         top = logits.topk(20, dim=-1)
+         full_rows = {p: logits[p].numpy() for p in positions}
+         suffix = ('-artifact' if ARTIFACT else '') + ('-kvf16' if KV_F16 else '')

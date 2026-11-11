@@ -1,0 +1,184 @@
+{
+ "schema": "doppler.flash-next-reference-controls/v1",
+ "createdAtUtc": "2026-11-11T03:57:19.151555+00:00",
+ "policy": {
+  "id": "doppler.boundary-tolerance/quantized-v1",
+  "rule": "abs(actual-reference) <= 0.05 + 0.05*abs(reference)",
+  "changed": false
+ },
+ "producers": {
+  "original": {
+   "sha256": "f6bc0f15a6545ab1d205cfc3ec412442415220e541190b63a9c712fa238ba5b0",
+   "threads": 16,
+   "dtype": "float32"
+  },
+  "threads8": {
+   "sha256": "6e6d45de1616f2af1b154feeb5872f3019151866bdd77e8a60724305855de953",
+   "change": "torch.set_num_threads(16) -> torch.set_num_threads(8); no other line differs"
+  },
+  "float64Widened": {
+   "sha256": "aee3758ee551bfd12f2ddb700f0cfafc684f3c9f78f4a47b1c19f12c0bea801c",
+   "change": "float64 accepted in DTYPE map and artifact assertion; explicit .float() casts at original lines 279, 290, 309, 312, 365, 371 (router logits, GDN gate, compressed-attention pooling and scores, LM head) widened to DTYPE; F16-KV emulation and JSON sample exports unchanged",
+   "limitation": "Upstream source modules that cast internally to float32 are not widened; this is a higher-precision control, not an exact real-number reference"
+  }
+ },
+ "inputsSha256": "3258ae236b529ddaf0d261809a8a7be72cd2048645342078e53c064c5a4b0748",
+ "artifactManifestSha256": "4902a0b730a9310903b00bc0f8f587528fa1af9f37a722d2f9287bafceceec09",
+ "gpuObservation": "frozen repaired F32-KV AMD snapshot, observation.json.<id>.prefill.f32 from reports/flash-next-new-prompts-20261110 (unchanged)",
+ "rows": [
+  {
+   "prompt": "marbles",
+   "actual": "gpu",
+   "reference": "f32_16",
+   "checkedLogits": 248320,
+   "maxAbsoluteError": 2.6226043701171875e-05,
+   "rmsError": 4.176139953546665e-06,
+   "violations": 0,
+   "passes": true,
+   "argmax": [
+    8646,
+    8646
+   ]
+  },
+  {
+   "prompt": "marbles",
+   "actual": "f32_8",
+   "reference": "f32_16",
+   "checkedLogits": 248320,
+   "maxAbsoluteError": 9.059906005859375e-06,
+   "rmsError": 1.7059287292259486e-06,
+   "violations": 0,
+   "passes": true,
+   "argmax": [
+    8646,
+    8646
+   ]
+  },
+  {
+   "prompt": "marbles",
+   "actual": "f32_16",
+   "reference": "f64",
+   "checkedLogits": 248320,
+   "maxAbsoluteError": 9.696521548363535e-06,
+   "rmsError": 1.8026879496119185e-06,
+   "violations": 0,
+   "passes": true,
+   "argmax": [
+    8646,
+    8646
+   ]
+  },
+  {
+   "prompt": "marbles",
+   "actual": "f32_8",
+   "reference": "f64",
+   "checkedLogits": 248320,
+   "maxAbsoluteError": 1.028820471482561e-05,
+   "rmsError": 1.760180002588483e-06,
+   "violations": 0,
+   "passes": true,
+   "argmax": [
+    8646,
+    8646
+   ]
+  },
+  {
+   "prompt": "marbles",
+   "actual": "gpu",
+   "reference": "f64",
+   "checkedLogits": 248320,
+   "maxAbsoluteError": 2.6596801095735145e-05,
+   "rmsError": 4.097470567596346e-06,
+   "violations": 0,
+   "passes": true,
+   "argmax": [
+    8646,
+    8646
+   ]
+  },
+  {
+   "prompt": "inventory",
+   "actual": "gpu",
+   "reference": "f32_16",
+   "checkedLogits": 248320,
+   "maxAbsoluteError": 0.4672708511352539,
+   "rmsError": 0.07366057302349688,
+   "violations": 30664,
+   "passes": false,
+   "argmax": [
+    271,
+    271
+   ]
+  },
+  {
+   "prompt": "inventory",
+   "actual": "f32_8",
+   "reference": "f32_16",
+   "checkedLogits": 248320,
+   "maxAbsoluteError": 1.1444091796875e-05,
+   "rmsError": 2.069223756204919e-06,
+   "violations": 0,
+   "passes": true,
+   "argmax": [
+    271,
+    271
+   ]
+  },
+  {
+   "prompt": "inventory",
+   "actual": "f32_16",
+   "reference": "f64",
+   "checkedLogits": 248320,
+   "maxAbsoluteError": 0.027117386934387255,
+   "rmsError": 0.003240203646343162,
+   "violations": 0,
+   "passes": true,
+   "argmax": [
+    271,
+    271
+   ]
+  },
+  {
+   "prompt": "inventory",
+   "actual": "f32_8",
+   "reference": "f64",
+   "checkedLogits": 248320,
+   "maxAbsoluteError": 0.027117386934387255,
+   "rmsError": 0.0032401890648342396,
+   "violations": 0,
+   "passes": true,
+   "argmax": [
+    271,
+    271
+   ]
+  },
+  {
+   "prompt": "inventory",
+   "actual": "gpu",
+   "reference": "f64",
+   "checkedLogits": 248320,
+   "maxAbsoluteError": 0.4587707602598208,
+   "rmsError": 0.07363588487075251,
+   "violations": 30729,
+   "passes": false,
+   "argmax": [
+    271,
+    271
+   ]
+  }
+ ],
+ "payloadSha256": {
+  "marbles": {
+   "f32_16": "bf4f72dae360b91161d21c5c29408d39b6e93e10f98a47049599b07eedf090fa",
+   "f32_8": "9f7209bf578c5ea475011e4b1360c2038b828e80e010a59592208c90215a4f66",
+   "f64": "11110f35b9b5949b001e7928affb7bb3f260b557cefafccbafd571e55bab5263",
+   "gpu": "b41e0408bcf7fd9f002a84ce8faf60b7b42886ae7d353774ad4fc036d76e8b5a"
+  },
+  "inventory": {
+   "f32_16": "d6cc91d32317327aed55a86cf7a15aa850181dad6531a12ac0e4b4bc43aa06c5",
+   "f32_8": "1d6e698a56c990ccff190e26b90f17d7e18a7062bab07e3907b634095e4fc1e2",
+   "f64": "ab03d1ca208e511b4b07be85d58ac381d53da4c7329557b5d07f2e543106ab79",
+   "gpu": "04c4192332b28f97503ee23566832e07d12f1cb2dbd80d245b7f3e81f364764f"
+  }
+ }
+}

@@ -1,0 +1,11 @@
+--- a/prepare-learned-forward-reference.py	2026-11-09 14:58:01.323540299 -0500
++++ b/prepare-learned-forward-reference.py	2026-11-10 22:04:23.991498814 -0500
+@@ -185,7 +185,7 @@
+         return upstream_attention(module, query, key.to(torch.float16).float(),
+                                   value.to(torch.float16).float(), *args, **kwargs)
+     namespace['eager_attention_forward'] = stored_kv_attention
+-torch.set_num_threads(16)
++torch.set_num_threads(8)
+ assert torch.get_float32_matmul_precision() == 'highest'
+ 
+ # ---- Checkpoint tensors -------------------------------------------------------------------------
