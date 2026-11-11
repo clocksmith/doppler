@@ -85,8 +85,9 @@ export async function checkDemoStreaming(page) {
   // Deterministically drive animation frames to check batching, Unicode repair,
   // final flush, and cancellation without relying on wall-clock timing.
   const renderer = await page.evaluate(async () => {
-    const base = location.pathname.startsWith('/doppler/') ? '/doppler' : '';
-    const { beginChatTurn, createOutputStream, clearOutput } = await import(`${base}/demo/output.js`);
+    // Found from the page's own entry script, so the check holds wherever the demo is served or embedded.
+    const entry = document.querySelector('script[src$="/demo.js"]').src;
+    const { beginChatTurn, createOutputStream, clearOutput } = await import(new URL('output.js', entry));
     const requestFrame = window.requestAnimationFrame;
     const cancelFrame = window.cancelAnimationFrame;
     const frames = new Map();
@@ -129,8 +130,8 @@ export async function checkDemoStreaming(page) {
     finalPending: 0, final: 'Authoritative final text',
   });
   const markdown = await page.evaluate(async () => {
-    const base = location.pathname.startsWith('/doppler/') ? '/doppler' : '';
-    const { renderChatMarkdown } = await import(`${base}/demo/ui/chat-markdown.js`);
+    const entry = document.querySelector('script[src$="/demo.js"]').src;
+    const { renderChatMarkdown } = await import(new URL('ui/chat-markdown.js', entry));
     const container = document.createElement('div');
     renderChatMarkdown(container, [
       '**First** and _second_.', '', '3. Three', '4. Four', '',

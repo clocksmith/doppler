@@ -160,7 +160,10 @@ async function main() {
   const { server, origin: localOrigin } = await startServer();
   const origin = process.env.DOPPLER_DEMO_ORIGIN || localOrigin;
   const entrypoint = process.env.DOPPLER_DEMO_ENTRYPOINT || '/demo/index.html';
-  const modulePath = entrypoint.startsWith('/doppler/') ? '/doppler/src/index-browser.js' : '/src/index-browser.js';
+  // A page that embeds the demo elsewhere names where its import map loads the runtime from.
+  const modulePath = process.env.DOPPLER_DEMO_MODULE_PATH
+    || (entrypoint.startsWith('/doppler/') ? '/doppler/src/index-browser.js' : '/src/index-browser.js');
+  const expectOfflineWorker = process.env.DOPPLER_DEMO_EXPECT_OFFLINE_WORKER !== '0';
   const browser = await chromium.launch({ headless: true, channel: process.env.DOPPLER_BROWSER_CHANNEL || undefined });
   const page = await browser.newPage();
   const fatalConsoleErrors = [];
@@ -280,7 +283,11 @@ async function main() {
     await noAdapterPage.close();
     testedShellDigest = await page.evaluate(async (url) => (await import(url)).SHELL_MANIFEST_DIGEST,
       `${origin}${modulePath.replace('/src/index-browser.js', '/demo/generated-shell-manifest.js')}`);
-    await page.waitForFunction(async () => Boolean((await navigator.serviceWorker.getRegistration())?.active), null, { timeout: 60000 });
+    // A page that embeds the demo without its offline worker says so; the
+    // journey is then reported as not checked, never as passed.
+    if (expectOfflineWorker) {
+      await page.waitForFunction(async () => Boolean((await navigator.serviceWorker.getRegistration())?.active), null, { timeout: 60000 });
+    }
   } finally {
     await browser.close();
     await new Promise((resolve) => server.close(resolve));
@@ -297,6 +304,7 @@ async function main() {
       entrypoint,
       executionClass: 'mocked-contract',
       journey,
+      offlineWorker: expectOfflineWorker ? 'active' : 'not checked: this page does not install the demo worker',
       shellManifestDigest: testedShellDigest,
       fatalConsoleErrors,
     }, null, 2));
