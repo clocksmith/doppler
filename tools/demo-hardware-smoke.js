@@ -120,16 +120,21 @@ export function resolveBrowserArgs(hostPlatform = process.platform) {
 
 async function configureDeterministicGeneration(page, prompt) {
   await page.evaluate(() => {
+    // The page offers fixed answer lengths; take the shortest it offers rather
+    // than a value it does not list, which a select silently refuses.
+    const lengths = Array.from(document.getElementById('set-max-tokens')?.options ?? [], (option) => Number(option.value));
+    if (!lengths.length) throw new Error('Missing demo generation control set-max-tokens');
     const values = {
       'set-temperature': '0',
       'set-top-k': '1',
       'set-top-p': '1',
-      'set-max-tokens': '1',
+      'set-max-tokens': String(Math.min(...lengths)),
     };
     for (const [id, value] of Object.entries(values)) {
       const element = document.getElementById(id);
       if (!element) throw new Error(`Missing demo generation control ${id}`);
       element.value = value;
+      if (element.value !== value) throw new Error(`Demo generation control ${id} did not accept ${value}`);
       element.dispatchEvent(new Event('input', { bubbles: true }));
       element.dispatchEvent(new Event('change', { bubbles: true }));
     }
@@ -142,7 +147,8 @@ async function runDemoGeneration(page, prompt) {
   await page.click('#run-btn');
   await page.waitForFunction(
     () => (
-      globalThis.__DOPPLER_DEMO_EVIDENCE__?.generatedTokenIds?.length > 0
+      // The replay shown at boot also publishes evidence; only a live answer counts.
+      (globalThis.__DOPPLER_DEMO_EVIDENCE__?.generatedTokenIds?.length > 0 && !globalThis.__DOPPLER_DEMO_EVIDENCE__.recording)
       || document.querySelector('#output-phase')?.textContent?.startsWith('Error:')
     ),
     null,
@@ -162,9 +168,9 @@ async function waitForLoadedModel(page, modelId, clickIfNeeded) {
     modelId,
     { timeout: 60_000 }
   );
-  if (!await page.locator('#model-select').isVisible()) {
-    await page.locator('#model-picker > summary').click();
-  }
+  // A returning visitor's saved model loads before the page opens; the picker
+  // is usable once the boot overlay is gone.
+  await page.waitForFunction(() => document.querySelector('#boot-overlay')?.hidden === true, null, { timeout: 600_000 });
   await page.selectOption('#model-select', modelId);
   if (clickIfNeeded) await page.click('#model-select-action');
   await page.waitForFunction(
