@@ -45,6 +45,8 @@ export interface ContextLease {
 export function supportsGenerationContext(state: ContextPipelineState): boolean;
 export function createGenerationContext(state: ContextPipelineState, options: { maxBytes: number }): GenerationContext;
 export function closeGenerationContexts(state: ContextPipelineState): void;
+/** Retire idle pooled memory before a new generation's first prefill when a device budget is set. */
+export function beginSequenceMemoryBoundary(): Promise<boolean>;
 export function beginGenerationContext(state: ContextPipelineState, context: GenerationContext | undefined, options: ContextOptions): void;
 export function generationContextInput(state: ContextPipelineState, inputIds: number[]): number[];
 export function generationContextCheckpointLength(state: ContextPipelineState, prompt: import('./generator.js').PromptInput,

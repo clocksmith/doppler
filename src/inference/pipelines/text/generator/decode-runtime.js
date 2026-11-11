@@ -1,5 +1,5 @@
 import { prepareActivityRecording } from '../activity-weights.js';
-import { beginGenerationContext, finishGenerationContext, generationContextInput } from '../sequence-state.js';
+import { beginGenerationContext, beginSequenceMemoryBoundary, finishGenerationContext, generationContextInput } from '../sequence-state.js';
 import { assertHyperConnectionOperation } from '../hyper-connection/sequence-transaction.js';
 import { lookupDraft, verifySpeculativeTokens } from './speculative-runtime.js';
 import { markDiagnosticSequenceStep } from './diagnostic-sequence.js';
@@ -211,6 +211,7 @@ export async function* _generateTokensInternal(prompt, options = {}, mode = 'tex
     try {
       beginGenerationContext(this._state, options.generationContext, opts);
       await prepareActivityRecording(this._state, opts);
+      if (this._state.currentSeqLen === 0) await beginSequenceMemoryBoundary();
       const prefillStartSeqLen = this._state.currentSeqLen;
       const prefillStart = performance.now();
       opts._whileFinalPrefillRuns = wholeTokenAheadVerification(this, opts);
@@ -345,6 +346,7 @@ export async function generateTokenIds(prompt, options = {}) {
     try {
       beginGenerationContext(this._state, options.generationContext, opts);
       await prepareActivityRecording(this._state, opts);
+      if (this._state.currentSeqLen === 0) await beginSequenceMemoryBoundary();
       const prefillStartSeqLen = this._state.currentSeqLen;
       const prefillStart = performance.now();
       const { inputIds, logits: initialPrefillLogits } = await this._prefillPromptToLogits(prompt, opts, 'generateTokenIds');

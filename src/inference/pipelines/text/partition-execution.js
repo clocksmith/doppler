@@ -2,6 +2,8 @@ import { createCommandRecorder } from '../../../gpu/command-recorder.js';
 import { beginImmediateDispatchProfile } from '../../../gpu/kernels/dispatch.js';
 import { log } from '../../../debug/index.js';
 import { acquireBuffer, releaseBuffer, discardBuffer, readBuffer, uploadData } from '../../../memory/buffer-pool.js';
+import { retireIdleBuffersUnderDeviceBudget } from '../../../memory/sequence-retirement.js';
+import { getDevice } from '../../../gpu/device.js';
 import { getWeightDtype, getWeightMetadata, isWeightBuffer, isCpuWeightBuffer, isGpuBufferInstance, isSplitWeightBuffer } from '../../../gpu/weight-buffer.js';
 import { selectRuleValue } from '../../../rules/rule-registry.js';
 import { embed } from './embed.js';
@@ -121,6 +123,9 @@ export async function executePartitionLayers(state, input, signal) {
   signal.throwIfAborted();
   const prefill = state.currentSeqLen === 0;
   const setup = resolvePartitionInput(state, input, prefill);
+  // A sequence's first prefill starts from its owned state under a device budget.
+  if (prefill) await retireIdleBuffersUnderDeviceBudget(getDevice());
+  signal.throwIfAborted();
   if (setup.config.hyperConnections && !state.hyperConnectionSession) {
     if (!state.dopplerLoader || !state.kvCache) throw new Error('Resident hyper-connections require the owning loader and attempt cache.');
     state.hyperConnectionSession = await createHyperConnectionSession(setup.config, state.dopplerLoader,

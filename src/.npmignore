@@ -953,6 +953,7 @@ loader/tensors/w8a8-loader.d.ts
 loader/weight-downcast.d.ts
 memory/address-table.d.ts
 memory/device-residency.d.ts
+memory/sequence-retirement.d.ts
 rules/converter/execution.rules.json
 rules/converter/tensor-roles.rules.json
 rules/converter/tokenizer.rules.json

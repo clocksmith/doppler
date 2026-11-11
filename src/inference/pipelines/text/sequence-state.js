@@ -1,5 +1,6 @@
 import { getDevice } from '../../../gpu/device.js';
 import { acquireBuffer, releaseBuffer } from '../../../memory/buffer-pool.js';
+import { retireIdleBuffersUnderDeviceBudget } from '../../../memory/sequence-retirement.js';
 import { createKVCache } from './init.js';
 import { createLinearAttentionRuntime, resetLinearAttentionRuntime, resetLinearAttentionSequence } from './linear-attention.js';
 import { isConvLayerType } from './layer-input-execution.js';
@@ -395,6 +396,12 @@ export async function checkpointGenerationContext(state, tokens) {
   state.kvCache = lease.previous.cache;
   state.linearAttentionRuntime = linear;
   state.wholeTokenProgram?.program.invalidate('generation checkpoint parked');
+}
+
+// A new generation's first prefill starts from its owned state under a device budget.
+/** @type {import('./sequence-state.js').beginSequenceMemoryBoundary} */
+export async function beginSequenceMemoryBoundary() {
+  return retireIdleBuffersUnderDeviceBudget(getDevice());
 }
 
 /** @type {import('./sequence-state.js').prepareGenerationContextPrefill} */
