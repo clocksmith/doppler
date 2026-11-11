@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 
 import http from 'node:http';
+import { realpathSync } from 'node:fs';
 import path from 'node:path';
 import process from 'node:process';
 import { fileURLToPath, pathToFileURL } from 'node:url';
@@ -584,7 +585,8 @@ function isMainModule(metaUrl) {
   if (!entryPath) {
     return false;
   }
-  return path.resolve(fileURLToPath(metaUrl)) === path.resolve(entryPath);
+  // npm starts bins through a symbolic link, so compare real paths.
+  return realpathSync(path.resolve(fileURLToPath(metaUrl))) === realpathSync(path.resolve(entryPath));
 }
 
 if (isMainModule(import.meta.url)) {

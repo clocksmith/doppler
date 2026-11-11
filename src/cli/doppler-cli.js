@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 
 import fs from 'node:fs/promises';
+import { realpathSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { writeProgramBundle } from '../tooling/program-bundle.js';
@@ -590,7 +591,8 @@ function isMainModule(metaUrl) {
   if (!entryPath) {
     return false;
   }
-  return path.resolve(fileURLToPath(metaUrl)) === path.resolve(entryPath);
+  // npm starts bins through a symbolic link, so compare real paths.
+  return realpathSync(path.resolve(fileURLToPath(metaUrl))) === realpathSync(path.resolve(entryPath));
 }
 
 function flushStream(stream) {
