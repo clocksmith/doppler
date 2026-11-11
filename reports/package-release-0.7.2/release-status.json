@@ -1,0 +1,24 @@
+{
+  "schema": "doppler.release-status/v1",
+  "version": "0.7.2",
+  "state": "publication-blocked",
+  "reason": "npm EOTP: authenticator one-time password required",
+  "releaseCommit": "f20ef780290b0a494f4f04712eb10b1b5ae8d61f",
+  "archive": ".cache/doppler-gpu-0.7.2.tgz",
+  "candidate": {
+    "version": "0.7.2",
+    "packedBytes": 3697580,
+    "unpackedBytes": 15769508,
+    "files": 1936,
+    "integrity": "sha512-k2KmjwIDOCI7JfZdkND4335gAzYP7s30aL7V5VCdFZ8nZKrMhaIGNxPryCRogOKVBM2ASW30um7GcJ3bBHTkDQ==",
+    "shasum": "19a6d089a070ec2afeb988e50c345d857bc165dd"
+  },
+  "tagCreated": false,
+  "gemmaManifestPublication": "deferred by user",
+  "flashNextLongPromptGate": "failing and unqualified",
+  "retry": "npm publish .cache/doppler-gpu-0.7.2.tgz --access public --tag latest --ignore-scripts --otp=<code>",
+  "postPublication": [
+    "Verify registry integrity equals candidate.integrity and latest equals 0.7.2",
+    "Tag v0.7.2 at releaseCommit and push the tag"
+  ]
+}
