@@ -4,6 +4,14 @@ Historical package notes are preserved outside the runtime archive in
 `docs/status/archive/package-changelog-through-0.6.1.md` and the earlier
 `package-changelog-through-0.4.15.md` snapshot in that directory.
 
+## [0.7.3] - 2026-11-11
+
+### Fixed
+
+- The installed `doppler` and `doppler-serve` commands start when run through
+  npm's bin links. In 0.7.1 and 0.7.2 they exited 0 without output;
+  `doppler-gpu` and the library were unaffected.
+
 ## [0.7.2] - 2026-11-11
 
 ### Added
@@ -20,9 +28,6 @@ Historical package notes are preserved outside the runtime archive in
 - Projection requests snapshot both vector values and row count before waiting
   for execution. Mutating the caller's vector array cannot change an admitted
   request's shape.
-- The installed `doppler` and `doppler-serve` commands start when run through
-  npm's bin links. In 0.7.1 they exited 0 without output; `doppler-gpu` was
-  unaffected.
 
 ### Limits
 
