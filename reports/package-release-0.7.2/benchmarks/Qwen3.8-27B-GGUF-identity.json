@@ -1,0 +1,16 @@
+{
+  "repo": "unsloth/Qwen3.8-27B-GGUF",
+  "revision": "acb953b129cc8c4f412388eef58489503e5eabe8",
+  "files": [
+    {
+      "rfilename": "Qwen3.8-27B-UD-Q4_K_M.gguf",
+      "blobId": "8fda9aaafb572d2d12ede317ea4da19a6afcdad6",
+      "size": 16564259744,
+      "lfs": {
+        "sha256": "1bce504dfecd84153666928a41d8a66706f0158d3a317bc5196b72819d7dc529",
+        "size": 16564259744,
+        "pointerSize": 136
+      }
+    }
+  ]
+}

@@ -1,0 +1,44 @@
+TAP version 13
+# [GPU] apple metal-3, f16/subgroups, 4.0GB, submit probe: 0.7ms
+# [276.9ms][KernelSelect] matmul variant=f16w_f32a reason=default
+# [281.9ms][KernelSelect] matmul variant=gemv_subgroup reason=gemv
+# hidden-projection-gpu: GPU checks passed
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 0.494625
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 316.333208
+[node-tests] ok: tests/inference/hidden-projection-gpu.test.js
+TAP version 13
+# doppler-generation-evidence.test: ok
+# doppler-generation-evidence constraints: ok
+# doppler-generation-evidence inspection streaming: ok
+# doppler-generation-evidence probability streaming: ok
+# doppler-generation-evidence exact-prefix replay: ok
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 0.4255
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 207.502209
+[node-tests] ok: tests/integration/doppler-generation-evidence.test.js
+[node-tests] ok: 2 files

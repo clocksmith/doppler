@@ -1,0 +1,111 @@
+
+> doppler-gpu@0.7.2 package:smoke
+> node tools/check-packed-package.js
+
+[kernels:conversion-digests:check] registered kernel digests match in 54 configuration files
+package import smoke passed (18 exports + browser condition)
+package program bundle smoke passed (synthetic export, host closure, corruption rejection)
+Installed standalone Node provider smoke passed (synthetic; Doe absent).
+package training API smoke passed
+installed public imports preserve minimal runtime authority
+resident-piece-acquisition: signed selective opening, honest receipts, gates, corruption and cleanup passed
+public resident factory preserves signed selective acquisition
+installed minimal runtime closure and explicit partition entry checks passed
+package CLI smoke passed (doppler)
+package CLI smoke passed (doppler-gpu)
+package CLI smoke passed (doppler-serve)
+installed Electron Capsule contract passed (synthetic device/program, no repository imports)
+Installed Capsule direct and incremental operations passed (synthetic).
+Installed Capsule embedding smoke passed (synthetic; no physical qualification).
+Installed Capsule generation passed (injected logits; no physical qualification).
+Installed browser-conditioned host stream exports passed.
+{"passed":true,"consumer":"standalone","runtimeVersion":"0.7.2","phases":6,"releases":6,"physicalExecution":false}
+TAP version 13
+# Subtest: generation contexts are capability-gated and pass unchanged to the runtime
+ok 1 - generation contexts are capability-gated and pass unchanged to the runtime
+  ---
+  duration_ms: 0.725375
+  type: 'test'
+  ...
+# Subtest: scoped session exposes explicit capabilities and stable results
+ok 2 - scoped session exposes explicit capabilities and stable results
+  ---
+  duration_ms: 0.30375
+  type: 'test'
+  ...
+# Subtest: stream emits semantic events instead of return-dependent unions
+ok 3 - stream emits semantic events instead of return-dependent unions
+  ---
+  duration_ms: 0.331708
+  type: 'test'
+  ...
+# Subtest: scoped completion preserves declared stopping reasons and raw token counts
+ok 4 - scoped completion preserves declared stopping reasons and raw token counts
+  ---
+  duration_ms: 0.498875
+  type: 'test'
+  ...
+# Subtest: scoped stream never invents completion on failure or early consumer return
+ok 5 - scoped stream never invents completion on failure or early consumer return
+  ---
+  duration_ms: 0.223875
+  type: 'test'
+  ...
+# Subtest: scoped completion rejects invalid reasons or counters instead of inferring EOS
+ok 6 - scoped completion rejects invalid reasons or counters instead of inferring EOS
+  ---
+  duration_ms: 0.501875
+  type: 'test'
+  ...
+# Subtest: specialized models reject generation and streaming capabilities
+ok 7 - specialized models reject generation and streaming capabilities
+  ---
+  duration_ms: 0.195958
+  type: 'test'
+  ...
+# Subtest: unsupported observation policies fail closed on a generation session
+ok 8 - unsupported observation policies fail closed on a generation session
+  ---
+  duration_ms: 0.075584
+  type: 'test'
+  ...
+# Subtest: close is idempotent and blocks later work
+ok 9 - close is idempotent and blocks later work
+  ---
+  duration_ms: 0.294625
+  type: 'test'
+  ...
+# Subtest: concurrent close and disposal wait for the same unload
+ok 10 - concurrent close and disposal wait for the same unload
+  ---
+  duration_ms: 0.31975
+  type: 'test'
+  ...
+# Subtest: every close caller observes the original unload failure without retrying cleanup
+ok 11 - every close caller observes the original unload failure without retrying cleanup
+  ---
+  duration_ms: 0.264791
+  type: 'test'
+  ...
+# Subtest: guided and deep inspection disclose non-representative execution
+ok 12 - guided and deep inspection disclose non-representative execution
+  ---
+  duration_ms: 0.105834
+  type: 'test'
+  ...
+1..12
+# tests 12
+# suites 0
+# pass 12
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 9.498791
+[205.4ms][Tokenizer] HuggingFace model.type="BPE", using type="bpe"
+[206.3ms][Tokenizer] Loaded HuggingFace 259 tokens (bpe), 3 special patterns, 0 merges
+generation-output.test: ok (synthetic decoding and control, no model qualification)
+resident-reasoning-output.test: raw limits, truncation, cancellation, failure and reuse passed (GPU stubbed)
+installed generation implementation controls passed (synthetic, no model qualification)
+package type smoke passed (18 public export declarations)
+packed package smoke passed (1936 files, 3697580 bytes packed, 15769508 bytes unpacked)

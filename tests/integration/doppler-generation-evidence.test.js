@@ -567,8 +567,10 @@ console.log('doppler-generation-evidence exact-prefix replay: ok');
     },
   }, { modelId: 'projection-test', manifestHash: 'a'.repeat(64) });
   const first = new Float32Array([1, 2]);
-  const pending = projecting.inspect.projectLayerOutputs({ vectors: [first, new Float32Array([3, 4])], topK: 2 });
+  const vectors = [first, new Float32Array([3, 4])];
+  const pending = projecting.inspect.projectLayerOutputs({ vectors, topK: 2 });
   first[0] = 99; // The caller's vector is snapshotted before the pipeline runs.
+  vectors.pop(); // The row count belongs to the same snapshot as the values.
   const projection = await pending;
   assert.deepEqual(seen, { values: [1, 2, 3, 4], rowCount: 2 });
   assert.equal(projection.schema, 'doppler.layer-projection/v1');

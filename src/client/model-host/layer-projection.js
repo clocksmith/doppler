@@ -25,13 +25,14 @@ export const projectLayerOutputs = async function projectLayerOutputs(pipeline, 
     throw new Error('Doppler model.inspect.projectLayerOutputs requires Float32Array vectors of one length.');
   }
   // Snapshot caller-owned vectors before awaiting the pipeline's execution slot.
-  const hiddenStates = new Float32Array(vectors.length * width);
+  const requestedRows = vectors.length;
+  const hiddenStates = new Float32Array(requestedRows * width);
   vectors.forEach((vector, row) => hiddenStates.set(vector, row * width));
   return runPipelineOperation(pipeline, async (scoped) => {
     if (typeof scoped.projectHiddenStates !== 'function') {
       throw new Error('The loaded Doppler pipeline cannot project hidden states.');
     }
-    const { logits, rowCount, vocabSize } = await scoped.projectHiddenStates(hiddenStates, vectors.length);
+    const { logits, rowCount, vocabSize } = await scoped.projectHiddenStates(hiddenStates, requestedRows);
     return {
       schema: LAYER_PROJECTION_SCHEMA,
       modelId,

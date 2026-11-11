@@ -1,0 +1,16 @@
+{
+  "repo": "unsloth/Qwen3.5-2B-GGUF",
+  "revision": "f6d5376be1edb4d416d56da11e5397a961aca8ae",
+  "files": [
+    {
+      "rfilename": "Qwen3.5-2B-Q4_K_M.gguf",
+      "blobId": "2dd42a93d110e1a333c7464693e3c38b979a940e",
+      "size": 1280835840,
+      "lfs": {
+        "sha256": "aaf42c8b7c3cab2bf3d69c355048d4a0ee9973d48f16c731c0520ee914699223",
+        "size": 1280835840,
+        "pointerSize": 135
+      }
+    }
+  ]
+}

@@ -1,0 +1,3165 @@
+{
+  "schema": "doppler.onnx27-browser/v1",
+  "startedAt": "2026-11-11T14:47:37.017Z",
+  "upstreamCommit": "aaa56b8c5accd10456819e18d3e27175afad69fc",
+  "modelRevision": "1030027de90ff1d54cefc66a23f253667723a938",
+  "userPrompt": "Explain why the sky is blue and why sunsets look red. Use a clear paragraph with at least eighty words.",
+  "maxTokens": 64,
+  "warmupRuns": 1,
+  "timedRuns": 3,
+  "warnings": [
+    "\u001b[0;93m2026-11-11 09:48:17.830599 [W:onnxruntime:, graph.cc:5607 CleanUnusedInitializersAndNodeArgs] Removing initializer '/model/constants/INT64/[1]'. It is not used by any node and should be removed from the model.\u001b[m",
+    "\u001b[0;93m2026-11-11 09:48:17.831699 [W:onnxruntime:, graph.cc:5607 CleanUnusedInitializersAndNodeArgs] Removing initializer '/model/constants/INT64/1'. It is not used by any node and should be removed from the model.\u001b[m",
+    "Unknown tokenizer class \"Qwen3_5Tokenizer\", attempting to construct from base class."
+  ],
+  "samples": [
+    {
+      "warmup": true,
+      "inputIds": [
+        248045,
+        846,
+        198,
+        814,
+        20139,
+        3069,
+        279,
+        12515,
+        369,
+        6105,
+        321,
+        3069,
+        6797,
+        4758,
+        1353,
+        2438,
+        13,
+        5272,
+        264,
+        2708,
+        13901,
+        440,
+        506,
+        3140,
+        76837,
+        4105,
+        13,
+        248046,
+        198,
+        248045,
+        74455,
+        198,
+        248068,
+        271,
+        248069,
+        271
+      ],
+      "generatedIds": [
+        760,
+        12515,
+        7701,
+        6105,
+        15048,
+        4016,
+        310,
+        264,
+        24057,
+        2512,
+        12870,
+        60845,
+        69377,
+        13,
+        1577,
+        37728,
+        27891,
+        279,
+        8964,
+        579,
+        16078,
+        11,
+        424,
+        4382,
+        3232,
+        440,
+        6605,
+        33470,
+        11,
+        13969,
+        279,
+        3000,
+        310,
+        43000,
+        303,
+        660,
+        17425,
+        13,
+        10382,
+        261,
+        89661,
+        11,
+        1680,
+        430,
+        6105,
+        321,
+        76990,
+        11,
+        43000,
+        1691,
+        777,
+        28750,
+        1056,
+        4860,
+        89661,
+        1040,
+        2438,
+        466,
+        18016,
+        13,
+        10022,
+        76990,
+        1100,
+        9872
+      ],
+      "promptTokens": 36,
+      "completionTokens": 64,
+      "text": "The sky appears blue primarily due to a phenomenon called Rayleigh scattering. As sunlight enters the Earth's atmosphere, it collides with gas molecules, causing the light to scatter in all directions. Shorter wavelengths, such as blue and violet, scatter much more efficiently than longer wavelengths like red or orange. Although violet scatters",
+      "generatedTokens": 64,
+      "firstTokenMs": 766.1999999284744,
+      "tokensPerSecondAfterFirst": 8.022513975753068,
+      "elapsedMs": 8619.099999904633,
+      "heap": null,
+      "steps": [
+        {
+          "step": 0,
+          "inputTokens": 36,
+          "pastLength": 0,
+          "stateTensorsRetained": 128,
+          "allStateOnGPU": true,
+          "kvLength": 36
+        },
+        {
+          "step": 1,
+          "inputTokens": 1,
+          "pastLength": 36,
+          "stateTensorsRetained": 128,
+          "allStateOnGPU": true,
+          "kvLength": 37
+        },
+        {
+          "step": 2,
+          "inputTokens": 1,
+          "pastLength": 37,
+          "stateTensorsRetained": 128,
+          "allStateOnGPU": true,
+          "kvLength": 38
+        },
+        {
+          "step": 3,
+          "inputTokens": 1,
+          "pastLength": 38,
+          "stateTensorsRetained": 128,
+          "allStateOnGPU": true,
+          "kvLength": 39
+        },
+        {
+          "step": 4,
+          "inputTokens": 1,
+          "pastLength": 39,
+          "stateTensorsRetained": 128,
+          "allStateOnGPU": true,
+          "kvLength": 40
+        },
+        {
+          "step": 5,
+          "inputTokens": 1,
+          "pastLength": 40,
+          "stateTensorsRetained": 128,
+          "allStateOnGPU": true,
+          "kvLength": 41
+        },
+        {
+          "step": 6,
+          "inputTokens": 1,
+          "pastLength": 41,
+          "stateTensorsRetained": 128,
+          "allStateOnGPU": true,
+          "kvLength": 42
+        },
+        {
+          "step": 7,
+          "inputTokens": 1,
+          "pastLength": 42,
+          "stateTensorsRetained": 128,
+          "allStateOnGPU": true,
+          "kvLength": 43
+        },
+        {
+          "step": 8,
+          "inputTokens": 1,
+          "pastLength": 43,
+          "stateTensorsRetained": 128,
+          "allStateOnGPU": true,
+          "kvLength": 44
+        },
+        {
+          "step": 9,
+          "inputTokens": 1,
+          "pastLength": 44,
+          "stateTensorsRetained": 128,
+          "allStateOnGPU": true,
+          "kvLength": 45
+        },
+        {
+          "step": 10,
+          "inputTokens": 1,
+          "pastLength": 45,
+          "stateTensorsRetained": 128,
+          "allStateOnGPU": true,
+          "kvLength": 46
+        },
+        {
+          "step": 11,
+          "inputTokens": 1,
+          "pastLength": 46,
+          "stateTensorsRetained": 128,
+          "allStateOnGPU": true,
+          "kvLength": 47
+        },
+        {
+          "step": 12,
+          "inputTokens": 1,
+          "pastLength": 47,
+          "stateTensorsRetained": 128,
+          "allStateOnGPU": true,
+          "kvLength": 48
+        },
+        {
+          "step": 13,
+          "inputTokens": 1,
+          "pastLength": 48,
+          "stateTensorsRetained": 128,
+          "allStateOnGPU": true,
+          "kvLength": 49
+        },
+        {
+          "step": 14,
+          "inputTokens": 1,
+          "pastLength": 49,
+          "stateTensorsRetained": 128,
+          "allStateOnGPU": true,
+          "kvLength": 50
+        },
+        {
+          "step": 15,
+          "inputTokens": 1,
+          "pastLength": 50,
+          "stateTensorsRetained": 128,
+          "allStateOnGPU": true,
+          "kvLength": 51
+        },
+        {
+          "step": 16,
+          "inputTokens": 1,
+          "pastLength": 51,
+          "stateTensorsRetained": 128,
+          "allStateOnGPU": true,
+          "kvLength": 52
+        },
+        {
+          "step": 17,
+          "inputTokens": 1,
+          "pastLength": 52,
+          "stateTensorsRetained": 128,
+          "allStateOnGPU": true,
+          "kvLength": 53
+        },
+        {
+          "step": 18,
+          "inputTokens": 1,
+          "pastLength": 53,
+          "stateTensorsRetained": 128,
+          "allStateOnGPU": true,
+          "kvLength": 54
+        },
+        {
+          "step": 19,
+          "inputTokens": 1,
+          "pastLength": 54,
+          "stateTensorsRetained": 128,
+          "allStateOnGPU": true,
+          "kvLength": 55
+        },
+        {
+          "step": 20,
+          "inputTokens": 1,
+          "pastLength": 55,
+          "stateTensorsRetained": 128,
+          "allStateOnGPU": true,
+          "kvLength": 56
+        },
+        {
+          "step": 21,
+          "inputTokens": 1,
+          "pastLength": 56,
+          "stateTensorsRetained": 128,
+          "allStateOnGPU": true,
+          "kvLength": 57
+        },
+        {
+          "step": 22,
+          "inputTokens": 1,
+          "pastLength": 57,
+          "stateTensorsRetained": 128,
+          "allStateOnGPU": true,
+          "kvLength": 58
+        },
+        {
+          "step": 23,
+          "inputTokens": 1,
+          "pastLength": 58,
+          "stateTensorsRetained": 128,
+          "allStateOnGPU": true,
+          "kvLength": 59
+        },
+        {
+          "step": 24,
+          "inputTokens": 1,
+          "pastLength": 59,
+          "stateTensorsRetained": 128,
+          "allStateOnGPU": true,
+          "kvLength": 60
+        },
+        {
+          "step": 25,
+          "inputTokens": 1,
+          "pastLength": 60,
+          "stateTensorsRetained": 128,
+          "allStateOnGPU": true,
+          "kvLength": 61
+        },
+        {
+          "step": 26,
+          "inputTokens": 1,
+          "pastLength": 61,
+          "stateTensorsRetained": 128,
+          "allStateOnGPU": true,
+          "kvLength": 62
+        },
+        {
+          "step": 27,
+          "inputTokens": 1,
+          "pastLength": 62,
+          "stateTensorsRetained": 128,
+          "allStateOnGPU": true,
+          "kvLength": 63
+        },
+        {
+          "step": 28,
+          "inputTokens": 1,
+          "pastLength": 63,
+          "stateTensorsRetained": 128,
+          "allStateOnGPU": true,
+          "kvLength": 64
+        },
+        {
+          "step": 29,
+          "inputTokens": 1,
+          "pastLength": 64,
+          "stateTensorsRetained": 128,
+          "allStateOnGPU": true,
+          "kvLength": 65
+        },
+        {
+          "step": 30,
+          "inputTokens": 1,
+          "pastLength": 65,
+          "stateTensorsRetained": 128,
+          "allStateOnGPU": true,
+          "kvLength": 66
+        },
+        {
+          "step": 31,
+          "inputTokens": 1,
+          "pastLength": 66,
+          "stateTensorsRetained": 128,
+          "allStateOnGPU": true,
+          "kvLength": 67
+        },
+        {
+          "step": 32,
+          "inputTokens": 1,
+          "pastLength": 67,
+          "stateTensorsRetained": 128,
+          "allStateOnGPU": true,
+          "kvLength": 68
+        },
+        {
+          "step": 33,
+          "inputTokens": 1,
+          "pastLength": 68,
+          "stateTensorsRetained": 128,
+          "allStateOnGPU": true,
+          "kvLength": 69
+        },
+        {
+          "step": 34,
+          "inputTokens": 1,
+          "pastLength": 69,
+          "stateTensorsRetained": 128,
+          "allStateOnGPU": true,
+          "kvLength": 70
+        },
+        {
+          "step": 35,
+          "inputTokens": 1,
+          "pastLength": 70,
+          "stateTensorsRetained": 128,
+          "allStateOnGPU": true,
+          "kvLength": 71
+        },
+        {
+          "step": 36,
+          "inputTokens": 1,
+          "pastLength": 71,
+          "stateTensorsRetained": 128,
+          "allStateOnGPU": true,
+          "kvLength": 72
+        },
+        {
+          "step": 37,
+          "inputTokens": 1,
+          "pastLength": 72,
+          "stateTensorsRetained": 128,
+          "allStateOnGPU": true,
+          "kvLength": 73
+        },
+        {
+          "step": 38,
+          "inputTokens": 1,
+          "pastLength": 73,
+          "stateTensorsRetained": 128,
+          "allStateOnGPU": true,
+          "kvLength": 74
+        },
+        {
+          "step": 39,
+          "inputTokens": 1,
+          "pastLength": 74,
+          "stateTensorsRetained": 128,
+          "allStateOnGPU": true,
+          "kvLength": 75
+        },
+        {
+          "step": 40,
+          "inputTokens": 1,
+          "pastLength": 75,
+          "stateTensorsRetained": 128,
+          "allStateOnGPU": true,
+          "kvLength": 76
+        },
+        {
+          "step": 41,
+          "inputTokens": 1,
+          "pastLength": 76,
+          "stateTensorsRetained": 128,
+          "allStateOnGPU": true,
+          "kvLength": 77
+        },
+        {
+          "step": 42,
+          "inputTokens": 1,
+          "pastLength": 77,
+          "stateTensorsRetained": 128,
+          "allStateOnGPU": true,
+          "kvLength": 78
+        },
+        {
+          "step": 43,
+          "inputTokens": 1,
+          "pastLength": 78,
+          "stateTensorsRetained": 128,
+          "allStateOnGPU": true,
+          "kvLength": 79
+        },
+        {
+          "step": 44,
+          "inputTokens": 1,
+          "pastLength": 79,
+          "stateTensorsRetained": 128,
+          "allStateOnGPU": true,
+          "kvLength": 80
+        },
+        {
+          "step": 45,
+          "inputTokens": 1,
+          "pastLength": 80,
+          "stateTensorsRetained": 128,
+          "allStateOnGPU": true,
+          "kvLength": 81
+        },
+        {
+          "step": 46,
+          "inputTokens": 1,
+          "pastLength": 81,
+          "stateTensorsRetained": 128,
+          "allStateOnGPU": true,
+          "kvLength": 82
+        },
+        {
+          "step": 47,
+          "inputTokens": 1,
+          "pastLength": 82,
+          "stateTensorsRetained": 128,
+          "allStateOnGPU": true,
+          "kvLength": 83
+        },
+        {
+          "step": 48,
+          "inputTokens": 1,
+          "pastLength": 83,
+          "stateTensorsRetained": 128,
+          "allStateOnGPU": true,
+          "kvLength": 84
+        },
+        {
+          "step": 49,
+          "inputTokens": 1,
+          "pastLength": 84,
+          "stateTensorsRetained": 128,
+          "allStateOnGPU": true,
+          "kvLength": 85
+        },
+        {
+          "step": 50,
+          "inputTokens": 1,
+          "pastLength": 85,
+          "stateTensorsRetained": 128,
+          "allStateOnGPU": true,
+          "kvLength": 86
+        },
+        {
+          "step": 51,
+          "inputTokens": 1,
+          "pastLength": 86,
+          "stateTensorsRetained": 128,
+          "allStateOnGPU": true,
+          "kvLength": 87
+        },
+        {
+          "step": 52,
+          "inputTokens": 1,
+          "pastLength": 87,
+          "stateTensorsRetained": 128,
+          "allStateOnGPU": true,
+          "kvLength": 88
+        },
+        {
+          "step": 53,
+          "inputTokens": 1,
+          "pastLength": 88,
+          "stateTensorsRetained": 128,
+          "allStateOnGPU": true,
+          "kvLength": 89
+        },
+        {
+          "step": 54,
+          "inputTokens": 1,
+          "pastLength": 89,
+          "stateTensorsRetained": 128,
+          "allStateOnGPU": true,
+          "kvLength": 90
+        },
+        {
+          "step": 55,
+          "inputTokens": 1,
+          "pastLength": 90,
+          "stateTensorsRetained": 128,
+          "allStateOnGPU": true,
+          "kvLength": 91
+        },
+        {
+          "step": 56,
+          "inputTokens": 1,
+          "pastLength": 91,
+          "stateTensorsRetained": 128,
+          "allStateOnGPU": true,
+          "kvLength": 92
+        },
+        {
+          "step": 57,
+          "inputTokens": 1,
+          "pastLength": 92,
+          "stateTensorsRetained": 128,
+          "allStateOnGPU": true,
+          "kvLength": 93
+        },
+        {
+          "step": 58,
+          "inputTokens": 1,
+          "pastLength": 93,
+          "stateTensorsRetained": 128,
+          "allStateOnGPU": true,
+          "kvLength": 94
+        },
+        {
+          "step": 59,
+          "inputTokens": 1,
+          "pastLength": 94,
+          "stateTensorsRetained": 128,
+          "allStateOnGPU": true,
+          "kvLength": 95
+        },
+        {
+          "step": 60,
+          "inputTokens": 1,
+          "pastLength": 95,
+          "stateTensorsRetained": 128,
+          "allStateOnGPU": true,
+          "kvLength": 96
+        },
+        {
+          "step": 61,
+          "inputTokens": 1,
+          "pastLength": 96,
+          "stateTensorsRetained": 128,
+          "allStateOnGPU": true,
+          "kvLength": 97
+        },
+        {
+          "step": 62,
+          "inputTokens": 1,
+          "pastLength": 97,
+          "stateTensorsRetained": 128,
+          "allStateOnGPU": true,
+          "kvLength": 98
+        },
+        {
+          "step": 63,
+          "inputTokens": 1,
+          "pastLength": 98,
+          "stateTensorsRetained": 128,
+          "allStateOnGPU": true,
+          "kvLength": 99
+        }
+      ],
+      "decodeTokensPerSecond": 8.022513975753068
+    },
+    {
+      "warmup": false,
+      "inputIds": [
+        248045,
+        846,
+        198,
+        814,
+        20139,
+        3069,
+        279,
+        12515,
+        369,
+        6105,
+        321,
+        3069,
+        6797,
+        4758,
+        1353,
+        2438,
+        13,
+        5272,
+        264,
+        2708,
+        13901,
+        440,
+        506,
+        3140,
+        76837,
+        4105,
+        13,
+        248046,
+        198,
+        248045,
+        74455,
+        198,
+        248068,
+        271,
+        248069,
+        271
+      ],
+      "generatedIds": [
+        760,
+        12515,
+        7701,
+        6105,
+        15048,
+        4016,
+        310,
+        264,
+        24057,
+        2512,
+        12870,
+        60845,
+        69377,
+        13,
+        1577,
+        37728,
+        27891,
+        279,
+        8964,
+        579,
+        16078,
+        11,
+        424,
+        4382,
+        3232,
+        440,
+        6605,
+        33470,
+        11,
+        13969,
+        279,
+        3000,
+        310,
+        43000,
+        303,
+        660,
+        17425,
+        13,
+        10382,
+        261,
+        89661,
+        11,
+        1680,
+        430,
+        6105,
+        321,
+        76990,
+        11,
+        43000,
+        1691,
+        777,
+        28750,
+        1056,
+        4860,
+        89661,
+        1040,
+        2438,
+        466,
+        18016,
+        13,
+        10022,
+        76990,
+        1100,
+        9872
+      ],
+      "promptTokens": 36,
+      "completionTokens": 64,
+      "text": "The sky appears blue primarily due to a phenomenon called Rayleigh scattering. As sunlight enters the Earth's atmosphere, it collides with gas molecules, causing the light to scatter in all directions. Shorter wavelengths, such as blue and violet, scatter much more efficiently than longer wavelengths like red or orange. Although violet scatters",
+      "generatedTokens": 64,
+      "firstTokenMs": 594.6000000238419,
+      "tokensPerSecondAfterFirst": 8.11406050775819,
+      "elapsedMs": 8358.899999976158,
+      "heap": null,
+      "steps": [
+        {
+          "step": 0,
+          "inputTokens": 36,
+          "pastLength": 0,
+          "stateTensorsRetained": 128,
+          "allStateOnGPU": true,
+          "kvLength": 36
+        },
+        {
+          "step": 1,
+          "inputTokens": 1,
+          "pastLength": 36,
+          "stateTensorsRetained": 128,
+          "allStateOnGPU": true,
+          "kvLength": 37
+        },
+        {
+          "step": 2,
+          "inputTokens": 1,
+          "pastLength": 37,
+          "stateTensorsRetained": 128,
+          "allStateOnGPU": true,
+          "kvLength": 38
+        },
+        {
+          "step": 3,
+          "inputTokens": 1,
+          "pastLength": 38,
+          "stateTensorsRetained": 128,
+          "allStateOnGPU": true,
+          "kvLength": 39
+        },
+        {
+          "step": 4,
+          "inputTokens": 1,
+          "pastLength": 39,
+          "stateTensorsRetained": 128,
+          "allStateOnGPU": true,
+          "kvLength": 40
+        },
+        {
+          "step": 5,
+          "inputTokens": 1,
+          "pastLength": 40,
+          "stateTensorsRetained": 128,
+          "allStateOnGPU": true,
+          "kvLength": 41
+        },
+        {
+          "step": 6,
+          "inputTokens": 1,
+          "pastLength": 41,
+          "stateTensorsRetained": 128,
+          "allStateOnGPU": true,
+          "kvLength": 42
+        },
+        {
+          "step": 7,
+          "inputTokens": 1,
+          "pastLength": 42,
+          "stateTensorsRetained": 128,
+          "allStateOnGPU": true,
+          "kvLength": 43
+        },
+        {
+          "step": 8,
+          "inputTokens": 1,
+          "pastLength": 43,
+          "stateTensorsRetained": 128,
+          "allStateOnGPU": true,
+          "kvLength": 44
+        },
+        {
+          "step": 9,
+          "inputTokens": 1,
+          "pastLength": 44,
+          "stateTensorsRetained": 128,
+          "allStateOnGPU": true,
+          "kvLength": 45
+        },
+        {
+          "step": 10,
+          "inputTokens": 1,
+          "pastLength": 45,
+          "stateTensorsRetained": 128,
+          "allStateOnGPU": true,
+          "kvLength": 46
+        },
+        {
+          "step": 11,
+          "inputTokens": 1,
+          "pastLength": 46,
+          "stateTensorsRetained": 128,
+          "allStateOnGPU": true,
+          "kvLength": 47
+        },
+        {
+          "step": 12,
+          "inputTokens": 1,
+          "pastLength": 47,
+          "stateTensorsRetained": 128,
+          "allStateOnGPU": true,
+          "kvLength": 48
+        },
+        {
+          "step": 13,
+          "inputTokens": 1,
+          "pastLength": 48,
+          "stateTensorsRetained": 128,
+          "allStateOnGPU": true,
+          "kvLength": 49
+        },
+        {
+          "step": 14,
+          "inputTokens": 1,
+          "pastLength": 49,
+          "stateTensorsRetained": 128,
+          "allStateOnGPU": true,
+          "kvLength": 50
+        },
+        {
+          "step": 15,
+          "inputTokens": 1,
+          "pastLength": 50,
+          "stateTensorsRetained": 128,
+          "allStateOnGPU": true,
+          "kvLength": 51
+        },
+        {
+          "step": 16,
+          "inputTokens": 1,
+          "pastLength": 51,
+          "stateTensorsRetained": 128,
+          "allStateOnGPU": true,
+          "kvLength": 52
+        },
+        {
+          "step": 17,
+          "inputTokens": 1,
+          "pastLength": 52,
+          "stateTensorsRetained": 128,
+          "allStateOnGPU": true,
+          "kvLength": 53
+        },
+        {
+          "step": 18,
+          "inputTokens": 1,
+          "pastLength": 53,
+          "stateTensorsRetained": 128,
+          "allStateOnGPU": true,
+          "kvLength": 54
+        },
+        {
+          "step": 19,
+          "inputTokens": 1,
+          "pastLength": 54,
+          "stateTensorsRetained": 128,
+          "allStateOnGPU": true,
+          "kvLength": 55
+        },
+        {
+          "step": 20,
+          "inputTokens": 1,
+          "pastLength": 55,
+          "stateTensorsRetained": 128,
+          "allStateOnGPU": true,
+          "kvLength": 56
+        },
+        {
+          "step": 21,
+          "inputTokens": 1,
+          "pastLength": 56,
+          "stateTensorsRetained": 128,
+          "allStateOnGPU": true,
+          "kvLength": 57
+        },
+        {
+          "step": 22,
+          "inputTokens": 1,
+          "pastLength": 57,
+          "stateTensorsRetained": 128,
+          "allStateOnGPU": true,
+          "kvLength": 58
+        },
+        {
+          "step": 23,
+          "inputTokens": 1,
+          "pastLength": 58,
+          "stateTensorsRetained": 128,
+          "allStateOnGPU": true,
+          "kvLength": 59
+        },
+        {
+          "step": 24,
+          "inputTokens": 1,
+          "pastLength": 59,
+          "stateTensorsRetained": 128,
+          "allStateOnGPU": true,
+          "kvLength": 60
+        },
+        {
+          "step": 25,
+          "inputTokens": 1,
+          "pastLength": 60,
+          "stateTensorsRetained": 128,
+          "allStateOnGPU": true,
+          "kvLength": 61
+        },
+        {
+          "step": 26,
+          "inputTokens": 1,
+          "pastLength": 61,
+          "stateTensorsRetained": 128,
+          "allStateOnGPU": true,
+          "kvLength": 62
+        },
+        {
+          "step": 27,
+          "inputTokens": 1,
+          "pastLength": 62,
+          "stateTensorsRetained": 128,
+          "allStateOnGPU": true,
+          "kvLength": 63
+        },
+        {
+          "step": 28,
+          "inputTokens": 1,
+          "pastLength": 63,
+          "stateTensorsRetained": 128,
+          "allStateOnGPU": true,
+          "kvLength": 64
+        },
+        {
+          "step": 29,
+          "inputTokens": 1,
+          "pastLength": 64,
+          "stateTensorsRetained": 128,
+          "allStateOnGPU": true,
+          "kvLength": 65
+        },
+        {
+          "step": 30,
+          "inputTokens": 1,
+          "pastLength": 65,
+          "stateTensorsRetained": 128,
+          "allStateOnGPU": true,
+          "kvLength": 66
+        },
+        {
+          "step": 31,
+          "inputTokens": 1,
+          "pastLength": 66,
+          "stateTensorsRetained": 128,
+          "allStateOnGPU": true,
+          "kvLength": 67
+        },
+        {
+          "step": 32,
+          "inputTokens": 1,
+          "pastLength": 67,
+          "stateTensorsRetained": 128,
+          "allStateOnGPU": true,
+          "kvLength": 68
+        },
+        {
+          "step": 33,
+          "inputTokens": 1,
+          "pastLength": 68,
+          "stateTensorsRetained": 128,
+          "allStateOnGPU": true,
+          "kvLength": 69
+        },
+        {
+          "step": 34,
+          "inputTokens": 1,
+          "pastLength": 69,
+          "stateTensorsRetained": 128,
+          "allStateOnGPU": true,
+          "kvLength": 70
+        },
+        {
+          "step": 35,
+          "inputTokens": 1,
+          "pastLength": 70,
+          "stateTensorsRetained": 128,
+          "allStateOnGPU": true,
+          "kvLength": 71
+        },
+        {
+          "step": 36,
+          "inputTokens": 1,
+          "pastLength": 71,
+          "stateTensorsRetained": 128,
+          "allStateOnGPU": true,
+          "kvLength": 72
+        },
+        {
+          "step": 37,
+          "inputTokens": 1,
+          "pastLength": 72,
+          "stateTensorsRetained": 128,
+          "allStateOnGPU": true,
+          "kvLength": 73
+        },
+        {
+          "step": 38,
+          "inputTokens": 1,
+          "pastLength": 73,
+          "stateTensorsRetained": 128,
+          "allStateOnGPU": true,
+          "kvLength": 74
+        },
+        {
+          "step": 39,
+          "inputTokens": 1,
+          "pastLength": 74,
+          "stateTensorsRetained": 128,
+          "allStateOnGPU": true,
+          "kvLength": 75
+        },
+        {
+          "step": 40,
+          "inputTokens": 1,
+          "pastLength": 75,
+          "stateTensorsRetained": 128,
+          "allStateOnGPU": true,
+          "kvLength": 76
+        },
+        {
+          "step": 41,
+          "inputTokens": 1,
+          "pastLength": 76,
+          "stateTensorsRetained": 128,
+          "allStateOnGPU": true,
+          "kvLength": 77
+        },
+        {
+          "step": 42,
+          "inputTokens": 1,
+          "pastLength": 77,
+          "stateTensorsRetained": 128,
+          "allStateOnGPU": true,
+          "kvLength": 78
+        },
+        {
+          "step": 43,
+          "inputTokens": 1,
+          "pastLength": 78,
+          "stateTensorsRetained": 128,
+          "allStateOnGPU": true,
+          "kvLength": 79
+        },
+        {
+          "step": 44,
+          "inputTokens": 1,
+          "pastLength": 79,
+          "stateTensorsRetained": 128,
+          "allStateOnGPU": true,
+          "kvLength": 80
+        },
+        {
+          "step": 45,
+          "inputTokens": 1,
+          "pastLength": 80,
+          "stateTensorsRetained": 128,
+          "allStateOnGPU": true,
+          "kvLength": 81
+        },
+        {
+          "step": 46,
+          "inputTokens": 1,
+          "pastLength": 81,
+          "stateTensorsRetained": 128,
+          "allStateOnGPU": true,
+          "kvLength": 82
+        },
+        {
+          "step": 47,
+          "inputTokens": 1,
+          "pastLength": 82,
+          "stateTensorsRetained": 128,
+          "allStateOnGPU": true,
+          "kvLength": 83
+        },
+        {
+          "step": 48,
+          "inputTokens": 1,
+          "pastLength": 83,
+          "stateTensorsRetained": 128,
+          "allStateOnGPU": true,
+          "kvLength": 84
+        },
+        {
+          "step": 49,
+          "inputTokens": 1,
+          "pastLength": 84,
+          "stateTensorsRetained": 128,
+          "allStateOnGPU": true,
+          "kvLength": 85
+        },
+        {
+          "step": 50,
+          "inputTokens": 1,
+          "pastLength": 85,
+          "stateTensorsRetained": 128,
+          "allStateOnGPU": true,
+          "kvLength": 86
+        },
+        {
+          "step": 51,
+          "inputTokens": 1,
+          "pastLength": 86,
+          "stateTensorsRetained": 128,
+          "allStateOnGPU": true,
+          "kvLength": 87
+        },
+        {
+          "step": 52,
+          "inputTokens": 1,
+          "pastLength": 87,
+          "stateTensorsRetained": 128,
+          "allStateOnGPU": true,
+          "kvLength": 88
+        },
+        {
+          "step": 53,
+          "inputTokens": 1,
+          "pastLength": 88,
+          "stateTensorsRetained": 128,
+          "allStateOnGPU": true,
+          "kvLength": 89
+        },
+        {
+          "step": 54,
+          "inputTokens": 1,
+          "pastLength": 89,
+          "stateTensorsRetained": 128,
+          "allStateOnGPU": true,
+          "kvLength": 90
+        },
+        {
+          "step": 55,
+          "inputTokens": 1,
+          "pastLength": 90,
+          "stateTensorsRetained": 128,
+          "allStateOnGPU": true,
+          "kvLength": 91
+        },
+        {
+          "step": 56,
+          "inputTokens": 1,
+          "pastLength": 91,
+          "stateTensorsRetained": 128,
+          "allStateOnGPU": true,
+          "kvLength": 92
+        },
+        {
+          "step": 57,
+          "inputTokens": 1,
+          "pastLength": 92,
+          "stateTensorsRetained": 128,
+          "allStateOnGPU": true,
+          "kvLength": 93
+        },
+        {
+          "step": 58,
+          "inputTokens": 1,
+          "pastLength": 93,
+          "stateTensorsRetained": 128,
+          "allStateOnGPU": true,
+          "kvLength": 94
+        },
+        {
+          "step": 59,
+          "inputTokens": 1,
+          "pastLength": 94,
+          "stateTensorsRetained": 128,
+          "allStateOnGPU": true,
+          "kvLength": 95
+        },
+        {
+          "step": 60,
+          "inputTokens": 1,
+          "pastLength": 95,
+          "stateTensorsRetained": 128,
+          "allStateOnGPU": true,
+          "kvLength": 96
+        },
+        {
+          "step": 61,
+          "inputTokens": 1,
+          "pastLength": 96,
+          "stateTensorsRetained": 128,
+          "allStateOnGPU": true,
+          "kvLength": 97
+        },
+        {
+          "step": 62,
+          "inputTokens": 1,
+          "pastLength": 97,
+          "stateTensorsRetained": 128,
+          "allStateOnGPU": true,
+          "kvLength": 98
+        },
+        {
+          "step": 63,
+          "inputTokens": 1,
+          "pastLength": 98,
+          "stateTensorsRetained": 128,
+          "allStateOnGPU": true,
+          "kvLength": 99
+        }
+      ],
+      "decodeTokensPerSecond": 8.11406050775819
+    },
+    {
+      "warmup": false,
+      "inputIds": [
+        248045,
+        846,
+        198,
+        814,
+        20139,
+        3069,
+        279,
+        12515,
+        369,
+        6105,
+        321,
+        3069,
+        6797,
+        4758,
+        1353,
+        2438,
+        13,
+        5272,
+        264,
+        2708,
+        13901,
+        440,
+        506,
+        3140,
+        76837,
+        4105,
+        13,
+        248046,
+        198,
+        248045,
+        74455,
+        198,
+        248068,
+        271,
+        248069,
+        271
+      ],
+      "generatedIds": [
+        760,
+        12515,
+        7701,
+        6105,
+        15048,
+        4016,
+        310,
+        264,
+        24057,
+        2512,
+        12870,
+        60845,
+        69377,
+        13,
+        1577,
+        37728,
+        27891,
+        279,
+        8964,
+        579,
+        16078,
+        11,
+        424,
+        4382,
+        3232,
+        440,
+        6605,
+        33470,
+        11,
+        13969,
+        279,
+        3000,
+        310,
+        43000,
+        303,
+        660,
+        17425,
+        13,
+        10382,
+        261,
+        89661,
+        11,
+        1680,
+        430,
+        6105,
+        321,
+        76990,
+        11,
+        43000,
+        1691,
+        777,
+        28750,
+        1056,
+        4860,
+        89661,
+        1040,
+        2438,
+        466,
+        18016,
+        13,
+        10022,
+        76990,
+        1100,
+        9872
+      ],
+      "promptTokens": 36,
+      "completionTokens": 64,
+      "text": "The sky appears blue primarily due to a phenomenon called Rayleigh scattering. As sunlight enters the Earth's atmosphere, it collides with gas molecules, causing the light to scatter in all directions. Shorter wavelengths, such as blue and violet, scatter much more efficiently than longer wavelengths like red or orange. Although violet scatters",
+      "generatedTokens": 64,
+      "firstTokenMs": 556.7000000476837,
+      "tokensPerSecondAfterFirst": 8.132390148240278,
+      "elapsedMs": 8303.5,
+      "heap": null,
+      "steps": [
+        {
+          "step": 0,
+          "inputTokens": 36,
+          "pastLength": 0,
+          "stateTensorsRetained": 128,
+          "allStateOnGPU": true,
+          "kvLength": 36
+        },
+        {
+          "step": 1,
+          "inputTokens": 1,
+          "pastLength": 36,
+          "stateTensorsRetained": 128,
+          "allStateOnGPU": true,
+          "kvLength": 37
+        },
+        {
+          "step": 2,
+          "inputTokens": 1,
+          "pastLength": 37,
+          "stateTensorsRetained": 128,
+          "allStateOnGPU": true,
+          "kvLength": 38
+        },
+        {
+          "step": 3,
+          "inputTokens": 1,
+          "pastLength": 38,
+          "stateTensorsRetained": 128,
+          "allStateOnGPU": true,
+          "kvLength": 39
+        },
+        {
+          "step": 4,
+          "inputTokens": 1,
+          "pastLength": 39,
+          "stateTensorsRetained": 128,
+          "allStateOnGPU": true,
+          "kvLength": 40
+        },
+        {
+          "step": 5,
+          "inputTokens": 1,
+          "pastLength": 40,
+          "stateTensorsRetained": 128,
+          "allStateOnGPU": true,
+          "kvLength": 41
+        },
+        {
+          "step": 6,
+          "inputTokens": 1,
+          "pastLength": 41,
+          "stateTensorsRetained": 128,
+          "allStateOnGPU": true,
+          "kvLength": 42
+        },
+        {
+          "step": 7,
+          "inputTokens": 1,
+          "pastLength": 42,
+          "stateTensorsRetained": 128,
+          "allStateOnGPU": true,
+          "kvLength": 43
+        },
+        {
+          "step": 8,
+          "inputTokens": 1,
+          "pastLength": 43,
+          "stateTensorsRetained": 128,
+          "allStateOnGPU": true,
+          "kvLength": 44
+        },
+        {
+          "step": 9,
+          "inputTokens": 1,
+          "pastLength": 44,
+          "stateTensorsRetained": 128,
+          "allStateOnGPU": true,
+          "kvLength": 45
+        },
+        {
+          "step": 10,
+          "inputTokens": 1,
+          "pastLength": 45,
+          "stateTensorsRetained": 128,
+          "allStateOnGPU": true,
+          "kvLength": 46
+        },
+        {
+          "step": 11,
+          "inputTokens": 1,
+          "pastLength": 46,
+          "stateTensorsRetained": 128,
+          "allStateOnGPU": true,
+          "kvLength": 47
+        },
+        {
+          "step": 12,
+          "inputTokens": 1,
+          "pastLength": 47,
+          "stateTensorsRetained": 128,
+          "allStateOnGPU": true,
+          "kvLength": 48
+        },
+        {
+          "step": 13,
+          "inputTokens": 1,
+          "pastLength": 48,
+          "stateTensorsRetained": 128,
+          "allStateOnGPU": true,
+          "kvLength": 49
+        },
+        {
+          "step": 14,
+          "inputTokens": 1,
+          "pastLength": 49,
+          "stateTensorsRetained": 128,
+          "allStateOnGPU": true,
+          "kvLength": 50
+        },
+        {
+          "step": 15,
+          "inputTokens": 1,
+          "pastLength": 50,
+          "stateTensorsRetained": 128,
+          "allStateOnGPU": true,
+          "kvLength": 51
+        },
+        {
+          "step": 16,
+          "inputTokens": 1,
+          "pastLength": 51,
+          "stateTensorsRetained": 128,
+          "allStateOnGPU": true,
+          "kvLength": 52
+        },
+        {
+          "step": 17,
+          "inputTokens": 1,
+          "pastLength": 52,
+          "stateTensorsRetained": 128,
+          "allStateOnGPU": true,
+          "kvLength": 53
+        },
+        {
+          "step": 18,
+          "inputTokens": 1,
+          "pastLength": 53,
+          "stateTensorsRetained": 128,
+          "allStateOnGPU": true,
+          "kvLength": 54
+        },
+        {
+          "step": 19,
+          "inputTokens": 1,
+          "pastLength": 54,
+          "stateTensorsRetained": 128,
+          "allStateOnGPU": true,
+          "kvLength": 55
+        },
+        {
+          "step": 20,
+          "inputTokens": 1,
+          "pastLength": 55,
+          "stateTensorsRetained": 128,
+          "allStateOnGPU": true,
+          "kvLength": 56
+        },
+        {
+          "step": 21,
+          "inputTokens": 1,
+          "pastLength": 56,
+          "stateTensorsRetained": 128,
+          "allStateOnGPU": true,
+          "kvLength": 57
+        },
+        {
+          "step": 22,
+          "inputTokens": 1,
+          "pastLength": 57,
+          "stateTensorsRetained": 128,
+          "allStateOnGPU": true,
+          "kvLength": 58
+        },
+        {
+          "step": 23,
+          "inputTokens": 1,
+          "pastLength": 58,
+          "stateTensorsRetained": 128,
+          "allStateOnGPU": true,
+          "kvLength": 59
+        },
+        {
+          "step": 24,
+          "inputTokens": 1,
+          "pastLength": 59,
+          "stateTensorsRetained": 128,
+          "allStateOnGPU": true,
+          "kvLength": 60
+        },
+        {
+          "step": 25,
+          "inputTokens": 1,
+          "pastLength": 60,
+          "stateTensorsRetained": 128,
+          "allStateOnGPU": true,
+          "kvLength": 61
+        },
+        {
+          "step": 26,
+          "inputTokens": 1,
+          "pastLength": 61,
+          "stateTensorsRetained": 128,
+          "allStateOnGPU": true,
+          "kvLength": 62
+        },
+        {
+          "step": 27,
+          "inputTokens": 1,
+          "pastLength": 62,
+          "stateTensorsRetained": 128,
+          "allStateOnGPU": true,
+          "kvLength": 63
+        },
+        {
+          "step": 28,
+          "inputTokens": 1,
+          "pastLength": 63,
+          "stateTensorsRetained": 128,
+          "allStateOnGPU": true,
+          "kvLength": 64
+        },
+        {
+          "step": 29,
+          "inputTokens": 1,
+          "pastLength": 64,
+          "stateTensorsRetained": 128,
+          "allStateOnGPU": true,
+          "kvLength": 65
+        },
+        {
+          "step": 30,
+          "inputTokens": 1,
+          "pastLength": 65,
+          "stateTensorsRetained": 128,
+          "allStateOnGPU": true,
+          "kvLength": 66
+        },
+        {
+          "step": 31,
+          "inputTokens": 1,
+          "pastLength": 66,
+          "stateTensorsRetained": 128,
+          "allStateOnGPU": true,
+          "kvLength": 67
+        },
+        {
+          "step": 32,
+          "inputTokens": 1,
+          "pastLength": 67,
+          "stateTensorsRetained": 128,
+          "allStateOnGPU": true,
+          "kvLength": 68
+        },
+        {
+          "step": 33,
+          "inputTokens": 1,
+          "pastLength": 68,
+          "stateTensorsRetained": 128,
+          "allStateOnGPU": true,
+          "kvLength": 69
+        },
+        {
+          "step": 34,
+          "inputTokens": 1,
+          "pastLength": 69,
+          "stateTensorsRetained": 128,
+          "allStateOnGPU": true,
+          "kvLength": 70
+        },
+        {
+          "step": 35,
+          "inputTokens": 1,
+          "pastLength": 70,
+          "stateTensorsRetained": 128,
+          "allStateOnGPU": true,
+          "kvLength": 71
+        },
+        {
+          "step": 36,
+          "inputTokens": 1,
+          "pastLength": 71,
+          "stateTensorsRetained": 128,
+          "allStateOnGPU": true,
+          "kvLength": 72
+        },
+        {
+          "step": 37,
+          "inputTokens": 1,
+          "pastLength": 72,
+          "stateTensorsRetained": 128,
+          "allStateOnGPU": true,
+          "kvLength": 73
+        },
+        {
+          "step": 38,
+          "inputTokens": 1,
+          "pastLength": 73,
+          "stateTensorsRetained": 128,
+          "allStateOnGPU": true,
+          "kvLength": 74
+        },
+        {
+          "step": 39,
+          "inputTokens": 1,
+          "pastLength": 74,
+          "stateTensorsRetained": 128,
+          "allStateOnGPU": true,
+          "kvLength": 75
+        },
+        {
+          "step": 40,
+          "inputTokens": 1,
+          "pastLength": 75,
+          "stateTensorsRetained": 128,
+          "allStateOnGPU": true,
+          "kvLength": 76
+        },
+        {
+          "step": 41,
+          "inputTokens": 1,
+          "pastLength": 76,
+          "stateTensorsRetained": 128,
+          "allStateOnGPU": true,
+          "kvLength": 77
+        },
+        {
+          "step": 42,
+          "inputTokens": 1,
+          "pastLength": 77,
+          "stateTensorsRetained": 128,
+          "allStateOnGPU": true,
+          "kvLength": 78
+        },
+        {
+          "step": 43,
+          "inputTokens": 1,
+          "pastLength": 78,
+          "stateTensorsRetained": 128,
+          "allStateOnGPU": true,
+          "kvLength": 79
+        },
+        {
+          "step": 44,
+          "inputTokens": 1,
+          "pastLength": 79,
+          "stateTensorsRetained": 128,
+          "allStateOnGPU": true,
+          "kvLength": 80
+        },
+        {
+          "step": 45,
+          "inputTokens": 1,
+          "pastLength": 80,
+          "stateTensorsRetained": 128,
+          "allStateOnGPU": true,
+          "kvLength": 81
+        },
+        {
+          "step": 46,
+          "inputTokens": 1,
+          "pastLength": 81,
+          "stateTensorsRetained": 128,
+          "allStateOnGPU": true,
+          "kvLength": 82
+        },
+        {
+          "step": 47,
+          "inputTokens": 1,
+          "pastLength": 82,
+          "stateTensorsRetained": 128,
+          "allStateOnGPU": true,
+          "kvLength": 83
+        },
+        {
+          "step": 48,
+          "inputTokens": 1,
+          "pastLength": 83,
+          "stateTensorsRetained": 128,
+          "allStateOnGPU": true,
+          "kvLength": 84
+        },
+        {
+          "step": 49,
+          "inputTokens": 1,
+          "pastLength": 84,
+          "stateTensorsRetained": 128,
+          "allStateOnGPU": true,
+          "kvLength": 85
+        },
+        {
+          "step": 50,
+          "inputTokens": 1,
+          "pastLength": 85,
+          "stateTensorsRetained": 128,
+          "allStateOnGPU": true,
+          "kvLength": 86
+        },
+        {
+          "step": 51,
+          "inputTokens": 1,
+          "pastLength": 86,
+          "stateTensorsRetained": 128,
+          "allStateOnGPU": true,
+          "kvLength": 87
+        },
+        {
+          "step": 52,
+          "inputTokens": 1,
+          "pastLength": 87,
+          "stateTensorsRetained": 128,
+          "allStateOnGPU": true,
+          "kvLength": 88
+        },
+        {
+          "step": 53,
+          "inputTokens": 1,
+          "pastLength": 88,
+          "stateTensorsRetained": 128,
+          "allStateOnGPU": true,
+          "kvLength": 89
+        },
+        {
+          "step": 54,
+          "inputTokens": 1,
+          "pastLength": 89,
+          "stateTensorsRetained": 128,
+          "allStateOnGPU": true,
+          "kvLength": 90
+        },
+        {
+          "step": 55,
+          "inputTokens": 1,
+          "pastLength": 90,
+          "stateTensorsRetained": 128,
+          "allStateOnGPU": true,
+          "kvLength": 91
+        },
+        {
+          "step": 56,
+          "inputTokens": 1,
+          "pastLength": 91,
+          "stateTensorsRetained": 128,
+          "allStateOnGPU": true,
+          "kvLength": 92
+        },
+        {
+          "step": 57,
+          "inputTokens": 1,
+          "pastLength": 92,
+          "stateTensorsRetained": 128,
+          "allStateOnGPU": true,
+          "kvLength": 93
+        },
+        {
+          "step": 58,
+          "inputTokens": 1,
+          "pastLength": 93,
+          "stateTensorsRetained": 128,
+          "allStateOnGPU": true,
+          "kvLength": 94
+        },
+        {
+          "step": 59,
+          "inputTokens": 1,
+          "pastLength": 94,
+          "stateTensorsRetained": 128,
+          "allStateOnGPU": true,
+          "kvLength": 95
+        },
+        {
+          "step": 60,
+          "inputTokens": 1,
+          "pastLength": 95,
+          "stateTensorsRetained": 128,
+          "allStateOnGPU": true,
+          "kvLength": 96
+        },
+        {
+          "step": 61,
+          "inputTokens": 1,
+          "pastLength": 96,
+          "stateTensorsRetained": 128,
+          "allStateOnGPU": true,
+          "kvLength": 97
+        },
+        {
+          "step": 62,
+          "inputTokens": 1,
+          "pastLength": 97,
+          "stateTensorsRetained": 128,
+          "allStateOnGPU": true,
+          "kvLength": 98
+        },
+        {
+          "step": 63,
+          "inputTokens": 1,
+          "pastLength": 98,
+          "stateTensorsRetained": 128,
+          "allStateOnGPU": true,
+          "kvLength": 99
+        }
+      ],
+      "decodeTokensPerSecond": 8.132390148240278
+    },
+    {
+      "warmup": false,
+      "inputIds": [
+        248045,
+        846,
+        198,
+        814,
+        20139,
+        3069,
+        279,
+        12515,
+        369,
+        6105,
+        321,
+        3069,
+        6797,
+        4758,
+        1353,
+        2438,
+        13,
+        5272,
+        264,
+        2708,
+        13901,
+        440,
+        506,
+        3140,
+        76837,
+        4105,
+        13,
+        248046,
+        198,
+        248045,
+        74455,
+        198,
+        248068,
+        271,
+        248069,
+        271
+      ],
+      "generatedIds": [
+        760,
+        12515,
+        7701,
+        6105,
+        15048,
+        4016,
+        310,
+        264,
+        24057,
+        2512,
+        12870,
+        60845,
+        69377,
+        13,
+        1577,
+        37728,
+        27891,
+        279,
+        8964,
+        579,
+        16078,
+        11,
+        424,
+        4382,
+        3232,
+        440,
+        6605,
+        33470,
+        11,
+        13969,
+        279,
+        3000,
+        310,
+        43000,
+        303,
+        660,
+        17425,
+        13,
+        10382,
+        261,
+        89661,
+        11,
+        1680,
+        430,
+        6105,
+        321,
+        76990,
+        11,
+        43000,
+        1691,
+        777,
+        28750,
+        1056,
+        4860,
+        89661,
+        1040,
+        2438,
+        466,
+        18016,
+        13,
+        10022,
+        76990,
+        1100,
+        9872
+      ],
+      "promptTokens": 36,
+      "completionTokens": 64,
+      "text": "The sky appears blue primarily due to a phenomenon called Rayleigh scattering. As sunlight enters the Earth's atmosphere, it collides with gas molecules, causing the light to scatter in all directions. Shorter wavelengths, such as blue and violet, scatter much more efficiently than longer wavelengths like red or orange. Although violet scatters",
+      "generatedTokens": 64,
+      "firstTokenMs": 563.8999999761581,
+      "tokensPerSecondAfterFirst": 8.119393752008035,
+      "elapsedMs": 8323.099999904633,
+      "heap": null,
+      "steps": [
+        {
+          "step": 0,
+          "inputTokens": 36,
+          "pastLength": 0,
+          "stateTensorsRetained": 128,
+          "allStateOnGPU": true,
+          "kvLength": 36
+        },
+        {
+          "step": 1,
+          "inputTokens": 1,
+          "pastLength": 36,
+          "stateTensorsRetained": 128,
+          "allStateOnGPU": true,
+          "kvLength": 37
+        },
+        {
+          "step": 2,
+          "inputTokens": 1,
+          "pastLength": 37,
+          "stateTensorsRetained": 128,
+          "allStateOnGPU": true,
+          "kvLength": 38
+        },
+        {
+          "step": 3,
+          "inputTokens": 1,
+          "pastLength": 38,
+          "stateTensorsRetained": 128,
+          "allStateOnGPU": true,
+          "kvLength": 39
+        },
+        {
+          "step": 4,
+          "inputTokens": 1,
+          "pastLength": 39,
+          "stateTensorsRetained": 128,
+          "allStateOnGPU": true,
+          "kvLength": 40
+        },
+        {
+          "step": 5,
+          "inputTokens": 1,
+          "pastLength": 40,
+          "stateTensorsRetained": 128,
+          "allStateOnGPU": true,
+          "kvLength": 41
+        },
+        {
+          "step": 6,
+          "inputTokens": 1,
+          "pastLength": 41,
+          "stateTensorsRetained": 128,
+          "allStateOnGPU": true,
+          "kvLength": 42
+        },
+        {
+          "step": 7,
+          "inputTokens": 1,
+          "pastLength": 42,
+          "stateTensorsRetained": 128,
+          "allStateOnGPU": true,
+          "kvLength": 43
+        },
+        {
+          "step": 8,
+          "inputTokens": 1,
+          "pastLength": 43,
+          "stateTensorsRetained": 128,
+          "allStateOnGPU": true,
+          "kvLength": 44
+        },
+        {
+          "step": 9,
+          "inputTokens": 1,
+          "pastLength": 44,
+          "stateTensorsRetained": 128,
+          "allStateOnGPU": true,
+          "kvLength": 45
+        },
+        {
+          "step": 10,
+          "inputTokens": 1,
+          "pastLength": 45,
+          "stateTensorsRetained": 128,
+          "allStateOnGPU": true,
+          "kvLength": 46
+        },
+        {
+          "step": 11,
+          "inputTokens": 1,
+          "pastLength": 46,
+          "stateTensorsRetained": 128,
+          "allStateOnGPU": true,
+          "kvLength": 47
+        },
+        {
+          "step": 12,
+          "inputTokens": 1,
+          "pastLength": 47,
+          "stateTensorsRetained": 128,
+          "allStateOnGPU": true,
+          "kvLength": 48
+        },
+        {
+          "step": 13,
+          "inputTokens": 1,
+          "pastLength": 48,
+          "stateTensorsRetained": 128,
+          "allStateOnGPU": true,
+          "kvLength": 49
+        },
+        {
+          "step": 14,
+          "inputTokens": 1,
+          "pastLength": 49,
+          "stateTensorsRetained": 128,
+          "allStateOnGPU": true,
+          "kvLength": 50
+        },
+        {
+          "step": 15,
+          "inputTokens": 1,
+          "pastLength": 50,
+          "stateTensorsRetained": 128,
+          "allStateOnGPU": true,
+          "kvLength": 51
+        },
+        {
+          "step": 16,
+          "inputTokens": 1,
+          "pastLength": 51,
+          "stateTensorsRetained": 128,
+          "allStateOnGPU": true,
+          "kvLength": 52
+        },
+        {
+          "step": 17,
+          "inputTokens": 1,
+          "pastLength": 52,
+          "stateTensorsRetained": 128,
+          "allStateOnGPU": true,
+          "kvLength": 53
+        },
+        {
+          "step": 18,
+          "inputTokens": 1,
+          "pastLength": 53,
+          "stateTensorsRetained": 128,
+          "allStateOnGPU": true,
+          "kvLength": 54
+        },
+        {
+          "step": 19,
+          "inputTokens": 1,
+          "pastLength": 54,
+          "stateTensorsRetained": 128,
+          "allStateOnGPU": true,
+          "kvLength": 55
+        },
+        {
+          "step": 20,
+          "inputTokens": 1,
+          "pastLength": 55,
+          "stateTensorsRetained": 128,
+          "allStateOnGPU": true,
+          "kvLength": 56
+        },
+        {
+          "step": 21,
+          "inputTokens": 1,
+          "pastLength": 56,
+          "stateTensorsRetained": 128,
+          "allStateOnGPU": true,
+          "kvLength": 57
+        },
+        {
+          "step": 22,
+          "inputTokens": 1,
+          "pastLength": 57,
+          "stateTensorsRetained": 128,
+          "allStateOnGPU": true,
+          "kvLength": 58
+        },
+        {
+          "step": 23,
+          "inputTokens": 1,
+          "pastLength": 58,
+          "stateTensorsRetained": 128,
+          "allStateOnGPU": true,
+          "kvLength": 59
+        },
+        {
+          "step": 24,
+          "inputTokens": 1,
+          "pastLength": 59,
+          "stateTensorsRetained": 128,
+          "allStateOnGPU": true,
+          "kvLength": 60
+        },
+        {
+          "step": 25,
+          "inputTokens": 1,
+          "pastLength": 60,
+          "stateTensorsRetained": 128,
+          "allStateOnGPU": true,
+          "kvLength": 61
+        },
+        {
+          "step": 26,
+          "inputTokens": 1,
+          "pastLength": 61,
+          "stateTensorsRetained": 128,
+          "allStateOnGPU": true,
+          "kvLength": 62
+        },
+        {
+          "step": 27,
+          "inputTokens": 1,
+          "pastLength": 62,
+          "stateTensorsRetained": 128,
+          "allStateOnGPU": true,
+          "kvLength": 63
+        },
+        {
+          "step": 28,
+          "inputTokens": 1,
+          "pastLength": 63,
+          "stateTensorsRetained": 128,
+          "allStateOnGPU": true,
+          "kvLength": 64
+        },
+        {
+          "step": 29,
+          "inputTokens": 1,
+          "pastLength": 64,
+          "stateTensorsRetained": 128,
+          "allStateOnGPU": true,
+          "kvLength": 65
+        },
+        {
+          "step": 30,
+          "inputTokens": 1,
+          "pastLength": 65,
+          "stateTensorsRetained": 128,
+          "allStateOnGPU": true,
+          "kvLength": 66
+        },
+        {
+          "step": 31,
+          "inputTokens": 1,
+          "pastLength": 66,
+          "stateTensorsRetained": 128,
+          "allStateOnGPU": true,
+          "kvLength": 67
+        },
+        {
+          "step": 32,
+          "inputTokens": 1,
+          "pastLength": 67,
+          "stateTensorsRetained": 128,
+          "allStateOnGPU": true,
+          "kvLength": 68
+        },
+        {
+          "step": 33,
+          "inputTokens": 1,
+          "pastLength": 68,
+          "stateTensorsRetained": 128,
+          "allStateOnGPU": true,
+          "kvLength": 69
+        },
+        {
+          "step": 34,
+          "inputTokens": 1,
+          "pastLength": 69,
+          "stateTensorsRetained": 128,
+          "allStateOnGPU": true,
+          "kvLength": 70
+        },
+        {
+          "step": 35,
+          "inputTokens": 1,
+          "pastLength": 70,
+          "stateTensorsRetained": 128,
+          "allStateOnGPU": true,
+          "kvLength": 71
+        },
+        {
+          "step": 36,
+          "inputTokens": 1,
+          "pastLength": 71,
+          "stateTensorsRetained": 128,
+          "allStateOnGPU": true,
+          "kvLength": 72
+        },
+        {
+          "step": 37,
+          "inputTokens": 1,
+          "pastLength": 72,
+          "stateTensorsRetained": 128,
+          "allStateOnGPU": true,
+          "kvLength": 73
+        },
+        {
+          "step": 38,
+          "inputTokens": 1,
+          "pastLength": 73,
+          "stateTensorsRetained": 128,
+          "allStateOnGPU": true,
+          "kvLength": 74
+        },
+        {
+          "step": 39,
+          "inputTokens": 1,
+          "pastLength": 74,
+          "stateTensorsRetained": 128,
+          "allStateOnGPU": true,
+          "kvLength": 75
+        },
+        {
+          "step": 40,
+          "inputTokens": 1,
+          "pastLength": 75,
+          "stateTensorsRetained": 128,
+          "allStateOnGPU": true,
+          "kvLength": 76
+        },
+        {
+          "step": 41,
+          "inputTokens": 1,
+          "pastLength": 76,
+          "stateTensorsRetained": 128,
+          "allStateOnGPU": true,
+          "kvLength": 77
+        },
+        {
+          "step": 42,
+          "inputTokens": 1,
+          "pastLength": 77,
+          "stateTensorsRetained": 128,
+          "allStateOnGPU": true,
+          "kvLength": 78
+        },
+        {
+          "step": 43,
+          "inputTokens": 1,
+          "pastLength": 78,
+          "stateTensorsRetained": 128,
+          "allStateOnGPU": true,
+          "kvLength": 79
+        },
+        {
+          "step": 44,
+          "inputTokens": 1,
+          "pastLength": 79,
+          "stateTensorsRetained": 128,
+          "allStateOnGPU": true,
+          "kvLength": 80
+        },
+        {
+          "step": 45,
+          "inputTokens": 1,
+          "pastLength": 80,
+          "stateTensorsRetained": 128,
+          "allStateOnGPU": true,
+          "kvLength": 81
+        },
+        {
+          "step": 46,
+          "inputTokens": 1,
+          "pastLength": 81,
+          "stateTensorsRetained": 128,
+          "allStateOnGPU": true,
+          "kvLength": 82
+        },
+        {
+          "step": 47,
+          "inputTokens": 1,
+          "pastLength": 82,
+          "stateTensorsRetained": 128,
+          "allStateOnGPU": true,
+          "kvLength": 83
+        },
+        {
+          "step": 48,
+          "inputTokens": 1,
+          "pastLength": 83,
+          "stateTensorsRetained": 128,
+          "allStateOnGPU": true,
+          "kvLength": 84
+        },
+        {
+          "step": 49,
+          "inputTokens": 1,
+          "pastLength": 84,
+          "stateTensorsRetained": 128,
+          "allStateOnGPU": true,
+          "kvLength": 85
+        },
+        {
+          "step": 50,
+          "inputTokens": 1,
+          "pastLength": 85,
+          "stateTensorsRetained": 128,
+          "allStateOnGPU": true,
+          "kvLength": 86
+        },
+        {
+          "step": 51,
+          "inputTokens": 1,
+          "pastLength": 86,
+          "stateTensorsRetained": 128,
+          "allStateOnGPU": true,
+          "kvLength": 87
+        },
+        {
+          "step": 52,
+          "inputTokens": 1,
+          "pastLength": 87,
+          "stateTensorsRetained": 128,
+          "allStateOnGPU": true,
+          "kvLength": 88
+        },
+        {
+          "step": 53,
+          "inputTokens": 1,
+          "pastLength": 88,
+          "stateTensorsRetained": 128,
+          "allStateOnGPU": true,
+          "kvLength": 89
+        },
+        {
+          "step": 54,
+          "inputTokens": 1,
+          "pastLength": 89,
+          "stateTensorsRetained": 128,
+          "allStateOnGPU": true,
+          "kvLength": 90
+        },
+        {
+          "step": 55,
+          "inputTokens": 1,
+          "pastLength": 90,
+          "stateTensorsRetained": 128,
+          "allStateOnGPU": true,
+          "kvLength": 91
+        },
+        {
+          "step": 56,
+          "inputTokens": 1,
+          "pastLength": 91,
+          "stateTensorsRetained": 128,
+          "allStateOnGPU": true,
+          "kvLength": 92
+        },
+        {
+          "step": 57,
+          "inputTokens": 1,
+          "pastLength": 92,
+          "stateTensorsRetained": 128,
+          "allStateOnGPU": true,
+          "kvLength": 93
+        },
+        {
+          "step": 58,
+          "inputTokens": 1,
+          "pastLength": 93,
+          "stateTensorsRetained": 128,
+          "allStateOnGPU": true,
+          "kvLength": 94
+        },
+        {
+          "step": 59,
+          "inputTokens": 1,
+          "pastLength": 94,
+          "stateTensorsRetained": 128,
+          "allStateOnGPU": true,
+          "kvLength": 95
+        },
+        {
+          "step": 60,
+          "inputTokens": 1,
+          "pastLength": 95,
+          "stateTensorsRetained": 128,
+          "allStateOnGPU": true,
+          "kvLength": 96
+        },
+        {
+          "step": 61,
+          "inputTokens": 1,
+          "pastLength": 96,
+          "stateTensorsRetained": 128,
+          "allStateOnGPU": true,
+          "kvLength": 97
+        },
+        {
+          "step": 62,
+          "inputTokens": 1,
+          "pastLength": 97,
+          "stateTensorsRetained": 128,
+          "allStateOnGPU": true,
+          "kvLength": 98
+        },
+        {
+          "step": 63,
+          "inputTokens": 1,
+          "pastLength": 98,
+          "stateTensorsRetained": 128,
+          "allStateOnGPU": true,
+          "kvLength": 99
+        }
+      ],
+      "decodeTokensPerSecond": 8.119393752008035
+    }
+  ],
+  "browser": "146.0.7680.177",
+  "load": {
+    "runtimeVersion": "1.31.0-dev.20260914-8d85527a0",
+    "executionProviders": [
+      "webgpu"
+    ],
+    "cpuFallbackDisabled": true,
+    "messages": [
+      {
+        "level": "info",
+        "text": "Preparing WebGPU device…"
+      },
+      {
+        "level": "info",
+        "text": "Downloading model.onnx.data_000"
+      },
+      {
+        "level": "info",
+        "text": "Downloading model.onnx.data_001"
+      },
+      {
+        "level": "info",
+        "text": "Downloading model.onnx.data_002"
+      },
+      {
+        "level": "info",
+        "text": "Downloading model.onnx.data_003"
+      },
+      {
+        "level": "info",
+        "text": "Downloading model.onnx.data_004"
+      },
+      {
+        "level": "info",
+        "text": "Downloading model.onnx.data_005"
+      },
+      {
+        "level": "info",
+        "text": "Downloading model.onnx.data_006"
+      },
+      {
+        "level": "info",
+        "text": "Downloading model.onnx.data_007"
+      },
+      {
+        "level": "info",
+        "text": "Downloading model.onnx.data_008"
+      },
+      {
+        "level": "info",
+        "text": "Downloading model.onnx.data_009"
+      },
+      {
+        "level": "info",
+        "text": "Downloading model.onnx.data_010"
+      },
+      {
+        "level": "info",
+        "text": "Downloading model.onnx.data_011"
+      },
+      {
+        "level": "info",
+        "text": "Downloading model.onnx.data_012"
+      },
+      {
+        "level": "info",
+        "text": "Downloading model.onnx.data_013"
+      },
+      {
+        "level": "info",
+        "text": "Downloading model.onnx.data_014"
+      },
+      {
+        "level": "info",
+        "text": "Creating WebGPU inference session…"
+      }
+    ],
+    "status": "ready",
+    "gpu": {
+      "vendor": "amd",
+      "architecture": "rdna-3",
+      "device": "",
+      "description": "",
+      "isFallbackAdapter": false,
+      "adapterFeatures": [
+        "depth32float-stencil8",
+        "chromium-experimental-subgroup-matrix",
+        "rg11b10ufloat-renderable",
+        "bgra8unorm-storage",
+        "texture-formats-tier1",
+        "chromium-experimental-multi-draw-indirect",
+        "texture-compression-bc",
+        "dual-source-blending",
+        "core-features-and-limits",
+        "chromium-experimental-timestamp-query-inside-passes",
+        "float32-filterable",
+        "indirect-first-instance",
+        "float32-blendable",
+        "depth-clip-control",
+        "texture-compression-bc-sliced-3d",
+        "timestamp-query",
+        "clip-distances",
+        "shader-f16",
+        "texture-formats-tier2",
+        "primitive-index",
+        "texture-component-swizzle",
+        "subgroups"
+      ],
+      "deviceFeatures": [
+        "core-features-and-limits",
+        "shader-f16",
+        "subgroups"
+      ],
+      "deviceLimits": {
+        "maxBufferSize": 4294967292,
+        "maxStorageBufferBindingSize": 4294967292
+      }
+    },
+    "graphFile": "model.browser.onnx",
+    "browserAdaptation": {
+      "originalGraph": "model.onnx",
+      "browserGraph": "model.browser.onnx",
+      "removedNodes": [
+        {
+          "name": "/model/attn_mask_reformat/attn_mask_subgraph/ReduceSum",
+          "op": "ReduceSum"
+        },
+        {
+          "name": "/model/attn_mask_reformat/attn_mask_subgraph/Sub",
+          "op": "Sub"
+        },
+        {
+          "name": "/model/attn_mask_reformat/attn_mask_subgraph/Sub/Cast",
+          "op": "Cast"
+        },
+        {
+          "name": "/model/attn_mask_reformat/attn_mask_subgraph/Shape",
+          "op": "Shape"
+        },
+        {
+          "name": "/model/attn_mask_reformat/attn_mask_subgraph/Gather",
+          "op": "Gather"
+        },
+        {
+          "name": "/model/attn_mask_reformat/attn_mask_subgraph/Gather/Cast",
+          "op": "Cast"
+        }
+      ],
+      "newInputs": {
+        "seqlens_k": "int32[1] = total tokens processed including this step - 1",
+        "total_sequence_length": "int32 scalar = total tokens processed including this step"
+      },
+      "restriction": "batch size 1, contiguous unpadded text only",
+      "weightsModified": false,
+      "onnxCheckerWarningAlsoPresentInOriginal": "No Op registered for SimplifiedLayerNormalization with domain_version of 22"
+    },
+    "exportBytes": 15256750346,
+    "files": [
+      {
+        "name": "browser-adaptation.json",
+        "bytes": 1124
+      },
+      {
+        "name": "chat_template.jinja",
+        "bytes": 8952
+      },
+      {
+        "name": "genai_config.json",
+        "bytes": 2173
+      },
+      {
+        "name": "model.browser.onnx",
+        "bytes": 963019
+      },
+      {
+        "name": "model.onnx",
+        "bytes": 966226
+      },
+      {
+        "name": "model.onnx.data_000",
+        "bytes": 1045463040
+      },
+      {
+        "name": "model.onnx.data_001",
+        "bytes": 1070530560
+      },
+      {
+        "name": "model.onnx.data_002",
+        "bytes": 1064632320
+      },
+      {
+        "name": "model.onnx.data_003",
+        "bytes": 1070530560
+      },
+      {
+        "name": "model.onnx.data_004",
+        "bytes": 1070530560
+      },
+      {
+        "name": "model.onnx.data_005",
+        "bytes": 1070530560
+      },
+      {
+        "name": "model.onnx.data_006",
+        "bytes": 1064632320
+      },
+      {
+        "name": "model.onnx.data_007",
+        "bytes": 1070530560
+      },
+      {
+        "name": "model.onnx.data_008",
+        "bytes": 1070530560
+      },
+      {
+        "name": "model.onnx.data_009",
+        "bytes": 1070530560
+      },
+      {
+        "name": "model.onnx.data_010",
+        "bytes": 1064632320
+      },
+      {
+        "name": "model.onnx.data_011",
+        "bytes": 1070530560
+      },
+      {
+        "name": "model.onnx.data_012",
+        "bytes": 1070530560
+      },
+      {
+        "name": "model.onnx.data_013",
+        "bytes": 524943360
+      },
+      {
+        "name": "model.onnx.data_014",
+        "bytes": 835739648
+      },
+      {
+        "name": "tokenizer.json",
+        "bytes": 19989339
+      },
+      {
+        "name": "tokenizer_config.json",
+        "bytes": 1465
+      }
+    ],
+    "graphAndWeightDownloadBytes": 15235781067,
+    "downloadMs": 39296,
+    "sessionCreateMs": 10413.100000023842,
+    "cacheTensorCount": 128,
+    "graphInputs": [
+      "input_ids",
+      "position_ids",
+      "past_key_values.3.key",
+      "past_key_values.7.key",
+      "past_key_values.11.key",
+      "past_key_values.15.key",
+      "past_key_values.19.key",
+      "past_key_values.23.key",
+      "past_key_values.27.key",
+      "past_key_values.31.key",
+      "past_key_values.35.key",
+      "past_key_values.39.key",
+      "past_key_values.43.key",
+      "past_key_values.47.key",
+      "past_key_values.51.key",
+      "past_key_values.55.key",
+      "past_key_values.59.key",
+      "past_key_values.63.key",
+      "past_key_values.3.value",
+      "past_key_values.7.value",
+      "past_key_values.11.value",
+      "past_key_values.15.value",
+      "past_key_values.19.value",
+      "past_key_values.23.value",
+      "past_key_values.27.value",
+      "past_key_values.31.value",
+      "past_key_values.35.value",
+      "past_key_values.39.value",
+      "past_key_values.43.value",
+      "past_key_values.47.value",
+      "past_key_values.51.value",
+      "past_key_values.55.value",
+      "past_key_values.59.value",
+      "past_key_values.63.value",
+      "past.0.conv",
+      "past.1.conv",
+      "past.2.conv",
+      "past.4.conv",
+      "past.5.conv",
+      "past.6.conv",
+      "past.8.conv",
+      "past.9.conv",
+      "past.10.conv",
+      "past.12.conv",
+      "past.13.conv",
+      "past.14.conv",
+      "past.16.conv",
+      "past.17.conv",
+      "past.18.conv",
+      "past.20.conv",
+      "past.21.conv",
+      "past.22.conv",
+      "past.24.conv",
+      "past.25.conv",
+      "past.26.conv",
+      "past.28.conv",
+      "past.29.conv",
+      "past.30.conv",
+      "past.32.conv",
+      "past.33.conv",
+      "past.34.conv",
+      "past.36.conv",
+      "past.37.conv",
+      "past.38.conv",
+      "past.40.conv",
+      "past.41.conv",
+      "past.42.conv",
+      "past.44.conv",
+      "past.45.conv",
+      "past.46.conv",
+      "past.48.conv",
+      "past.49.conv",
+      "past.50.conv",
+      "past.52.conv",
+      "past.53.conv",
+      "past.54.conv",
+      "past.56.conv",
+      "past.57.conv",
+      "past.58.conv",
+      "past.60.conv",
+      "past.61.conv",
+      "past.62.conv",
+      "past.0.recurrent",
+      "past.1.recurrent",
+      "past.2.recurrent",
+      "past.4.recurrent",
+      "past.5.recurrent",
+      "past.6.recurrent",
+      "past.8.recurrent",
+      "past.9.recurrent",
+      "past.10.recurrent",
+      "past.12.recurrent",
+      "past.13.recurrent",
+      "past.14.recurrent",
+      "past.16.recurrent",
+      "past.17.recurrent",
+      "past.18.recurrent",
+      "past.20.recurrent",
+      "past.21.recurrent",
+      "past.22.recurrent",
+      "past.24.recurrent",
+      "past.25.recurrent",
+      "past.26.recurrent",
+      "past.28.recurrent",
+      "past.29.recurrent",
+      "past.30.recurrent",
+      "past.32.recurrent",
+      "past.33.recurrent",
+      "past.34.recurrent",
+      "past.36.recurrent",
+      "past.37.recurrent",
+      "past.38.recurrent",
+      "past.40.recurrent",
+      "past.41.recurrent",
+      "past.42.recurrent",
+      "past.44.recurrent",
+      "past.45.recurrent",
+      "past.46.recurrent",
+      "past.48.recurrent",
+      "past.49.recurrent",
+      "past.50.recurrent",
+      "past.52.recurrent",
+      "past.53.recurrent",
+      "past.54.recurrent",
+      "past.56.recurrent",
+      "past.57.recurrent",
+      "past.58.recurrent",
+      "past.60.recurrent",
+      "past.61.recurrent",
+      "past.62.recurrent",
+      "seqlens_k",
+      "total_sequence_length"
+    ],
+    "graphOutputs": [
+      "logits",
+      "present.3.key",
+      "present.7.key",
+      "present.11.key",
+      "present.15.key",
+      "present.19.key",
+      "present.23.key",
+      "present.27.key",
+      "present.31.key",
+      "present.35.key",
+      "present.39.key",
+      "present.43.key",
+      "present.47.key",
+      "present.51.key",
+      "present.55.key",
+      "present.59.key",
+      "present.63.key",
+      "present.3.value",
+      "present.7.value",
+      "present.11.value",
+      "present.15.value",
+      "present.19.value",
+      "present.23.value",
+      "present.27.value",
+      "present.31.value",
+      "present.35.value",
+      "present.39.value",
+      "present.43.value",
+      "present.47.value",
+      "present.51.value",
+      "present.55.value",
+      "present.59.value",
+      "present.63.value",
+      "present.0.conv",
+      "present.1.conv",
+      "present.2.conv",
+      "present.4.conv",
+      "present.5.conv",
+      "present.6.conv",
+      "present.8.conv",
+      "present.9.conv",
+      "present.10.conv",
+      "present.12.conv",
+      "present.13.conv",
+      "present.14.conv",
+      "present.16.conv",
+      "present.17.conv",
+      "present.18.conv",
+      "present.20.conv",
+      "present.21.conv",
+      "present.22.conv",
+      "present.24.conv",
+      "present.25.conv",
+      "present.26.conv",
+      "present.28.conv",
+      "present.29.conv",
+      "present.30.conv",
+      "present.32.conv",
+      "present.33.conv",
+      "present.34.conv",
+      "present.36.conv",
+      "present.37.conv",
+      "present.38.conv",
+      "present.40.conv",
+      "present.41.conv",
+      "present.42.conv",
+      "present.44.conv",
+      "present.45.conv",
+      "present.46.conv",
+      "present.48.conv",
+      "present.49.conv",
+      "present.50.conv",
+      "present.52.conv",
+      "present.53.conv",
+      "present.54.conv",
+      "present.56.conv",
+      "present.57.conv",
+      "present.58.conv",
+      "present.60.conv",
+      "present.61.conv",
+      "present.62.conv",
+      "present.0.recurrent",
+      "present.1.recurrent",
+      "present.2.recurrent",
+      "present.4.recurrent",
+      "present.5.recurrent",
+      "present.6.recurrent",
+      "present.8.recurrent",
+      "present.9.recurrent",
+      "present.10.recurrent",
+      "present.12.recurrent",
+      "present.13.recurrent",
+      "present.14.recurrent",
+      "present.16.recurrent",
+      "present.17.recurrent",
+      "present.18.recurrent",
+      "present.20.recurrent",
+      "present.21.recurrent",
+      "present.22.recurrent",
+      "present.24.recurrent",
+      "present.25.recurrent",
+      "present.26.recurrent",
+      "present.28.recurrent",
+      "present.29.recurrent",
+      "present.30.recurrent",
+      "present.32.recurrent",
+      "present.33.recurrent",
+      "present.34.recurrent",
+      "present.36.recurrent",
+      "present.37.recurrent",
+      "present.38.recurrent",
+      "present.40.recurrent",
+      "present.41.recurrent",
+      "present.42.recurrent",
+      "present.44.recurrent",
+      "present.45.recurrent",
+      "present.46.recurrent",
+      "present.48.recurrent",
+      "present.49.recurrent",
+      "present.50.recurrent",
+      "present.52.recurrent",
+      "present.53.recurrent",
+      "present.54.recurrent",
+      "present.56.recurrent",
+      "present.57.recurrent",
+      "present.58.recurrent",
+      "present.60.recurrent",
+      "present.61.recurrent",
+      "present.62.recurrent"
+    ],
+    "loadMs": 50176.800000071526,
+    "modelResources": [
+      {
+        "name": "/models/onnx/Qwen3.8-27B-GenAI-WebGPU-INT4/manifest.json",
+        "decodedBodySize": 218401,
+        "transferSize": 218701
+      },
+      {
+        "name": "/models/onnx/Qwen3.8-27B-GenAI-WebGPU-INT4/genai_config.json",
+        "decodedBodySize": 2173,
+        "transferSize": 2473
+      },
+      {
+        "name": "/models/onnx/Qwen3.8-27B-GenAI-WebGPU-INT4/model.onnx.data_000",
+        "decodedBodySize": 1045463040,
+        "transferSize": 1045463340
+      },
+      {
+        "name": "/models/onnx/Qwen3.8-27B-GenAI-WebGPU-INT4/model.onnx.data_001",
+        "decodedBodySize": 1070530560,
+        "transferSize": 1070530860
+      },
+      {
+        "name": "/models/onnx/Qwen3.8-27B-GenAI-WebGPU-INT4/model.onnx.data_002",
+        "decodedBodySize": 1064632320,
+        "transferSize": 1064632620
+      },
+      {
+        "name": "/models/onnx/Qwen3.8-27B-GenAI-WebGPU-INT4/model.onnx.data_003",
+        "decodedBodySize": 1070530560,
+        "transferSize": 1070530860
+      },
+      {
+        "name": "/models/onnx/Qwen3.8-27B-GenAI-WebGPU-INT4/model.onnx.data_004",
+        "decodedBodySize": 1070530560,
+        "transferSize": 1070530860
+      },
+      {
+        "name": "/models/onnx/Qwen3.8-27B-GenAI-WebGPU-INT4/model.onnx.data_005",
+        "decodedBodySize": 1070530560,
+        "transferSize": 1070530860
+      },
+      {
+        "name": "/models/onnx/Qwen3.8-27B-GenAI-WebGPU-INT4/model.onnx.data_006",
+        "decodedBodySize": 1064632320,
+        "transferSize": 1064632620
+      },
+      {
+        "name": "/models/onnx/Qwen3.8-27B-GenAI-WebGPU-INT4/model.onnx.data_007",
+        "decodedBodySize": 1070530560,
+        "transferSize": 1070530860
+      },
+      {
+        "name": "/models/onnx/Qwen3.8-27B-GenAI-WebGPU-INT4/model.onnx.data_008",
+        "decodedBodySize": 1070530560,
+        "transferSize": 1070530860
+      },
+      {
+        "name": "/models/onnx/Qwen3.8-27B-GenAI-WebGPU-INT4/model.onnx.data_009",
+        "decodedBodySize": 1070530560,
+        "transferSize": 1070530860
+      },
+      {
+        "name": "/models/onnx/Qwen3.8-27B-GenAI-WebGPU-INT4/model.onnx.data_010",
+        "decodedBodySize": 1064632320,
+        "transferSize": 1064632620
+      },
+      {
+        "name": "/models/onnx/Qwen3.8-27B-GenAI-WebGPU-INT4/model.onnx.data_011",
+        "decodedBodySize": 1070530560,
+        "transferSize": 1070530860
+      },
+      {
+        "name": "/models/onnx/Qwen3.8-27B-GenAI-WebGPU-INT4/model.onnx.data_012",
+        "decodedBodySize": 1070530560,
+        "transferSize": 1070530860
+      },
+      {
+        "name": "/models/onnx/Qwen3.8-27B-GenAI-WebGPU-INT4/model.onnx.data_013",
+        "decodedBodySize": 524943360,
+        "transferSize": 524943660
+      },
+      {
+        "name": "/models/onnx/Qwen3.8-27B-GenAI-WebGPU-INT4/model.onnx.data_014",
+        "decodedBodySize": 835739648,
+        "transferSize": 835739948
+      },
+      {
+        "name": "/models/onnx/Qwen3.8-27B-GenAI-WebGPU-INT4/model.browser.onnx",
+        "decodedBodySize": 963019,
+        "transferSize": 963319
+      },
+      {
+        "name": "/models/onnx/Qwen3.8-27B-GenAI-WebGPU-INT4/tokenizer.json",
+        "decodedBodySize": 19989339,
+        "transferSize": 19989639
+      },
+      {
+        "name": "/models/onnx/Qwen3.8-27B-GenAI-WebGPU-INT4/tokenizer_config.json",
+        "decodedBodySize": 1465,
+        "transferSize": 1765
+      },
+      {
+        "name": "/models/onnx/Qwen3.8-27B-GenAI-WebGPU-INT4/chat_template.jinja",
+        "decodedBodySize": 8952,
+        "transferSize": 9252
+      }
+    ],
+    "downloadedModelResourceBytes": 15256001397,
+    "heapAfterLoad": null
+  },
+  "passed": true
+}

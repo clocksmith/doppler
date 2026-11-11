@@ -1,6 +1,6 @@
 {
   "name": "doppler-gpu",
-  "version": "0.7.1",
+  "version": "0.7.2",
   "description": "Doppler Rig prepares signed model Capsules; Doppler Run executes them locally through WebGPU for JavaScript",
   "main": "src/capsule-runtime.js",
   "types": "src/capsule-runtime.d.ts",
@@ -355,7 +355,7 @@
     "tools/convert-safetensors-node.js"
   ],
   "devDependencies": {
-    "@huggingface/transformers": "^4.0.1",
+    "@huggingface/transformers": "^4.3.2",
     "@types/node": "^25.6.0",
     "@webgpu/types": "^0.1.69",
     "jest": "^30.2.0",

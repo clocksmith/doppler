@@ -190,7 +190,10 @@ const PACKAGE_CONTENT_LIMITS = Object.freeze({
   // packed over main with the README hero. 3,697,001 measured plus the same
   // 2,158-byte npm allowance.
   // Exact delta: reports/package-layer-projection-20261111/package-audit.json.
-  maxPackedSize: 3_699_159,
+  // 0.7.2: projection snapshot fix, version and release notes; 3,697,347
+  // measured plus the existing 2,158-byte npm allowance. Exact delta:
+  // reports/package-release-0.7.2/package-audit.json.
+  maxPackedSize: 3_699_505,
   // Capsule naming changes identifiers and declarations, not the shipped file count.
   // Measured 0.6.0 payload: 2,097,039 packed / 10,835,420 unpacked bytes.
   // The remaining GPU diagnostic label adds three uncompressed bytes.
@@ -274,7 +277,11 @@ const PACKAGE_CONTENT_LIMITS = Object.freeze({
   // Measured in reports/package-readme-hero-20261111/package-audit.json.
   // Layer projection: +8,383 bytes, measured in
   // reports/package-layer-projection-20261111/package-audit.json.
-  maxUnpackedSize: 15_767_880,
+  // 0.7.2: +1,015 bytes over the projection candidate, no new entries.
+  // Exact inventory: reports/package-release-0.7.2/package-audit.json.
+  // Release comparison notes add 613 bytes; source closure is byte-identical
+  // to the physically tested archive. See the 0.7.2 package audit.
+  maxUnpackedSize: 15_769_508,
 });
 const REQUIRED_PACKAGE_FILES = Object.freeze([
   'README.md',

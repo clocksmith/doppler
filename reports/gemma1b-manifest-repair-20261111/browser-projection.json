@@ -1,0 +1,28 @@
+{
+ "schema": "doppler.observatory.projection-check/v1",
+ "startedAt": "2026-11-11T14:23:56.743Z",
+ "device": {
+  "adapter": {
+   "vendor": "apple",
+   "architecture": "metal-3"
+  },
+  "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/145.0.7632.6 Safari/537.36"
+ },
+ "runtime": {
+  "version": "0.7.2",
+  "sourceCommit": "773b5cc4cfeff74d5ddba601b834f6ce7b243bfa"
+ },
+ "models": [
+  {
+   "modelId": "gemma-3-1b-it-q4k-ehf16-af32",
+   "version": "0.7.2",
+   "adapter": {
+    "vendor": "apple",
+    "architecture": "metal-3"
+   },
+   "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/145.0.7632.6 Safari/537.36",
+   "prompts": [],
+   "error": "the model did not load: Pipeline load phase \"tokenizer\" failed: [Tokenizer] Bundled tokenizer not found for model \"gemma-3-1b-it-q4k-ehf16-af32\". Expected tokenizer file: \"tokenizer.json\". Attempted paths: [custom-loader, http://127.0.0.1:8794/__gemma_candidate//tokenizer.json]. Ensure tokenizer.json is in OPFS or model di"
+  }
+ ]
+}

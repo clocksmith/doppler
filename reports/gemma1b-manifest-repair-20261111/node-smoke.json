@@ -1,0 +1,2012 @@
+{
+  "mode": "debug",
+  "workload": "inference",
+  "suite": "debug",
+  "modelId": "gemma-3-1b-it-q4k-ehf16-af32",
+  "surface": "node",
+  "runtimeProfile": null,
+  "deviceInfo": {
+    "hasSubgroups": true,
+    "wgslLanguageFeatures": [
+      "unrestricted_pointer_parameters",
+      "buffer_view",
+      "texture_and_sampler_let",
+      "filtering_parameters",
+      "pointer_composite_access",
+      "uniform_buffer_standard_layout",
+      "linear_indexing",
+      "subgroup_id",
+      "fragment_depth",
+      "immediate_address_space",
+      "chromium_print",
+      "readonly_and_readwrite_storage_textures",
+      "swizzle_assignment",
+      "sized_binding_array",
+      "texel_buffers",
+      "subgroup_uniformity",
+      "texture_formats_tier1",
+      "packed_4x8_integer_dot_product"
+    ],
+    "hasSubgroupsF16": true,
+    "hasF16": true,
+    "hasTimestampQuery": true,
+    "maxBufferSize": 4294967295,
+    "maxWorkgroupSize": 1024,
+    "maxWorkgroupStorageSize": 32768,
+    "adapterInfo": {
+      "vendor": "apple",
+      "architecture": "metal-3",
+      "device": "apple-m3",
+      "description": "Metal driver on macOS Version 26.6.2 (Build 25G83)",
+      "subgroupMinSize": 32,
+      "subgroupMaxSize": 32
+    },
+    "submitProbeMs": 0.5311249999999745
+  },
+  "results": [
+    {
+      "name": "generation",
+      "passed": true,
+      "duration": 2821.386875
+    }
+  ],
+  "durationMs": 9759.925375,
+  "timestamp": "2026-11-11T14:20:06.623Z",
+  "metrics": {
+    "prompt": "Explain in one sentence why the sky is blue.",
+    "maxTokens": 48,
+    "tokensGenerated": 40,
+    "tokensPerSec": 14.53,
+    "totalRunMs": 2806.18,
+    "firstTokenMs": 462.44,
+    "firstResponseMs": 7370.66,
+    "prefillMs": 452.86,
+    "decodeMs": 2353.32,
+    "wallRunMs": 2816.81,
+    "prefillTokens": 19,
+    "decodeTokens": 40,
+    "stopReason": "stop-token",
+    "stopTokenId": 106,
+    "prefillTokensPerSec": 41.96,
+    "prefillTokensPerSecTtft": 41.09,
+    "decodeTokensPerSec": 17,
+    "modelLoadMs": 6908.22,
+    "gpu": {
+      "decodeRecordMs": 837.885793999998,
+      "decodeRecordOps": 13880,
+      "decodeRecordPasses": 90,
+      "decodeRecordMsPerOp": 0.0603664116714696,
+      "decodeRecordMsPerPass": 9.309842155555533,
+      "decodeRecordPassesPerOp": 0.006484149855907781,
+      "decodeRecordPassesPerExecutedBatchToken": 2.25,
+      "decodeRecordMsPerExecutedBatchToken": 20.94714484999995,
+      "decodeRecordOpsPerExecutedBatchToken": 347,
+      "uniformCache": {
+        "hits": 13963,
+        "misses": 229,
+        "totalLookups": 14192,
+        "hitRateRatio": 0.9838641488162345,
+        "hitRate": "98.4%",
+        "evictions": 0,
+        "currentSize": 229,
+        "pendingDestruction": 0
+      },
+      "decodeSubmitWaitMs": 1493.9410830000006,
+      "decodeReadbackWaitMs": 1493.1352089999964,
+      "decodeReadbackMapWaitMs": 1476.4881240000022,
+      "decodeReadbackCleanupMs": 15.599707999999737,
+      "decodeReadbackCopyMs": 0.316209999999046,
+      "prefillRecordMs": 166.3047059999999,
+      "prefillRecordOps": 392,
+      "prefillRecordPasses": 7,
+      "prefillSubmitWaitMs": 226.10879199999908,
+      "decodeOrchestrationMs": 21.497290000002067,
+      "singleTokenSubmitWaitMs": 0,
+      "singleTokenReadbackWaitMs": 0,
+      "singleTokenReadbackMapWaitMs": 0,
+      "singleTokenReadbackCleanupMs": 0,
+      "singleTokenReadbackCopyMs": 0,
+      "singleTokenOrchestrationMs": 0
+    },
+    "batching": {
+      "batchedForwardCalls": 10,
+      "unbatchedForwardCalls": 0,
+      "totalBatchedTimeMs": 2349.017956999999,
+      "totalUnbatchedTimeMs": 0,
+      "gpuSubmissions": 10,
+      "requestedBatchTokens": 4,
+      "effectiveBatchTokens": 4,
+      "executedBatchTokens": 40,
+      "resolvedBatchTokens": 40,
+      "batchClampCount": 0
+    },
+    "plePreparedTokenCache": {
+      "hits": 0,
+      "misses": 0,
+      "entries": 0,
+      "bytes": 0
+    },
+    "prefillProfileSteps": [],
+    "decodeProfileSteps": [],
+    "executionPlan": {
+      "primary": {
+        "id": "primary",
+        "kernelPathId": "gemma-3-1b-it-q4k-ehf16-af32-execution-inline",
+        "kernelPathSource": "execution-v1",
+        "activationDtype": "f32",
+        "readbackInterval": 1,
+        "readbackMode": "sequential",
+        "maxBatchDecodeTokens": null,
+        "batchSize": 4,
+        "stopCheckMode": "batch",
+        "disableCommandBatching": false,
+        "ringTokens": 1,
+        "ringStop": 1,
+        "ringStaging": 1
+      },
+      "fallback": null,
+      "activePlanIdAtStart": "primary",
+      "finalActivePlanId": "primary",
+      "transitions": []
+    },
+    "kernelPathId": "gemma-3-1b-it-q4k-ehf16-af32-execution-inline",
+    "kernelPathSource": "execution-v1",
+    "generationDiagnostics": {
+      "preview": [
+        {
+          "id": 818,
+          "text": "The",
+          "fallbackText": "The"
+        },
+        {
+          "id": 7217,
+          "text": " sky",
+          "fallbackText": " sky"
+        },
+        {
+          "id": 236858,
+          "text": "’",
+          "fallbackText": "’"
+        },
+        {
+          "id": 236751,
+          "text": "s",
+          "fallbackText": "s"
+        },
+        {
+          "id": 3730,
+          "text": " blue",
+          "fallbackText": " blue"
+        },
+        {
+          "id": 2258,
+          "text": " color",
+          "fallbackText": " color"
+        },
+        {
+          "id": 3952,
+          "text": " comes",
+          "fallbackText": " comes"
+        },
+        {
+          "id": 699,
+          "text": " from",
+          "fallbackText": " from"
+        },
+        {
+          "id": 5213,
+          "text": " **",
+          "fallbackText": " **"
+        },
+        {
+          "id": 11939,
+          "text": "elect",
+          "fallbackText": "elect"
+        },
+        {
+          "id": 24230,
+          "text": "romagnetic",
+          "fallbackText": "romagnetic"
+        },
+        {
+          "id": 10483,
+          "text": " radiation",
+          "fallbackText": " radiation"
+        },
+        {
+          "id": 568,
+          "text": " (",
+          "fallbackText": " ("
+        },
+        {
+          "id": 3223,
+          "text": "light",
+          "fallbackText": "light"
+        },
+        {
+          "id": 236768,
+          "text": ")",
+          "fallbackText": ")"
+        },
+        {
+          "id": 19389,
+          "text": " scattering",
+          "fallbackText": " scattering"
+        },
+        {
+          "id": 1135,
+          "text": " off",
+          "fallbackText": " off"
+        },
+        {
+          "id": 529,
+          "text": " of",
+          "fallbackText": " of"
+        },
+        {
+          "id": 16383,
+          "text": " tiny",
+          "fallbackText": " tiny"
+        },
+        {
+          "id": 10390,
+          "text": " particles",
+          "fallbackText": " particles"
+        },
+        {
+          "id": 528,
+          "text": " in",
+          "fallbackText": " in"
+        },
+        {
+          "id": 506,
+          "text": " the",
+          "fallbackText": " the"
+        },
+        {
+          "id": 11661,
+          "text": " atmosphere",
+          "fallbackText": " atmosphere"
+        },
+        {
+          "id": 99382,
+          "text": ".**",
+          "fallbackText": ".**"
+        },
+        {
+          "id": 1018,
+          "text": "**",
+          "fallbackText": "**"
+        },
+        {
+          "id": 236743,
+          "text": " ",
+          "fallbackText": " "
+        },
+        {
+          "id": 108,
+          "text": "\n\n",
+          "fallbackText": "\n\n"
+        },
+        {
+          "id": 6481,
+          "text": "Let",
+          "fallbackText": "Let"
+        },
+        {
+          "id": 786,
+          "text": " me",
+          "fallbackText": " me"
+        },
+        {
+          "id": 1281,
+          "text": " know",
+          "fallbackText": " know"
+        },
+        {
+          "id": 768,
+          "text": " if",
+          "fallbackText": " if"
+        },
+        {
+          "id": 611,
+          "text": " you",
+          "fallbackText": " you"
+        }
+      ],
+      "total": 41,
+      "omitted": 9,
+      "emptyTextCount": 1,
+      "specialLikeTextCount": 0,
+      "specialLikeFallbackCount": 1
+    },
+    "generationConfig": {
+      "maxTokens": 48,
+      "temperature": 1,
+      "topP": 0.95,
+      "topK": 50,
+      "repetitionPenalty": 1.1,
+      "repetitionPenaltyWindow": 100,
+      "greedyThreshold": 0.01,
+      "suppressSpecialTokens": false,
+      "suppressSpecialLikeTokens": false,
+      "suppressTokenIds": [],
+      "seed": null,
+      "useChatTemplate": true
+    },
+    "initialExecutionIdentity": {
+      "schema": "doppler.initial-execution-identity/v2",
+      "executionGraphHash": "sha256:75c4978b6090394b5c5bde1a4dc470a55f60742ebd56ed5e2bda2120f7cb11f9",
+      "resolvedGraphHash": "sha256:c89c3e3e3e9649d768aadba3f4b016fa0ad8efeb2ff41b9778da1d6380b3ba80",
+      "kernelClosure": [
+        {
+          "moduleId": "attn_decode",
+          "file": "attention_decode_online_f16kv.wgsl",
+          "entry": "main",
+          "digest": "sha256:c6d9f8c614a2a088cb533958007896391efb3e348377dc8095c409944c562912"
+        },
+        {
+          "moduleId": "attn_head256",
+          "file": "attention_head256_f16kv.wgsl",
+          "entry": "main",
+          "digest": "sha256:4e1eafa0a5e407c99714d04f0e75f3834e1156bcb25579892f248d95aae197da"
+        },
+        {
+          "moduleId": "embed",
+          "file": "gather_f16.wgsl",
+          "entry": "main",
+          "digest": "sha256:a2c318bc362d676769d8cb751d61a4d7777e1068be0456eff634e0821d783c10"
+        },
+        {
+          "moduleId": "gelu",
+          "file": "gelu.wgsl",
+          "entry": "main",
+          "digest": "sha256:db864455ec72070d7d8729c8744e2eac377a4939a9bc2ecb26eb086d866e16b0"
+        },
+        {
+          "moduleId": "gemv",
+          "file": "matmul_gemv_subgroup.wgsl",
+          "entry": "main_vec4",
+          "digest": "sha256:2ea9aea659367210fbf61d922c0d4ee17cdac68ffb506b3bc5516e498071e011"
+        },
+        {
+          "moduleId": "lm_head_gemv",
+          "file": "matmul_gemv_subgroup.wgsl",
+          "entry": "main_multicol",
+          "digest": "sha256:e41f94574d5ac54dd2710036da5d5acc643a483b79b2d74b86825efdaaa7438f"
+        },
+        {
+          "moduleId": "residual",
+          "file": "residual.wgsl",
+          "entry": "main",
+          "digest": "sha256:abd19bc08ad668a7cad562e2bc0a4be1aa8827ad4300d8d474b7fc2af4c27117"
+        },
+        {
+          "moduleId": "rmsnorm",
+          "file": "rmsnorm.wgsl",
+          "entry": "main",
+          "digest": "sha256:4f4d144735bdff86b8567346ba7ea7b82fe68a2ac9656ba1577106158af9bc7c"
+        },
+        {
+          "moduleId": "rope",
+          "file": "rope.wgsl",
+          "entry": "main",
+          "digest": "sha256:923f9a96c941aee94119ecf04fa5b1508c77b7d927a7e6044ce6588b2d51a416"
+        },
+        {
+          "moduleId": "sample",
+          "file": "sample.wgsl",
+          "entry": "sample_single_pass",
+          "digest": "sha256:f2377b2a58c2eeb695a6f6f7ad877630bdba5e74d5dc1a8d919cd73b360d4870"
+        },
+        {
+          "moduleId": "tiled",
+          "file": "matmul_f16w_f32a_tiled.wgsl",
+          "entry": "main",
+          "digest": "sha256:5dada68240a47e2fcf916ae1467d89010a27a22588f097c1523f7ee6c9e9377a"
+        }
+      ],
+      "kernelClosureHash": "sha256:a867c2e6e791430c5e29044e4dcbc0fa61459acaf2a2a565f0bb672f711a06b1",
+      "dtypeLane": {
+        "activation": "f32",
+        "output": "f32",
+        "kv": "f16",
+        "math": "f32",
+        "accumulation": "f32"
+      },
+      "fusionSet": [],
+      "fusionSetHash": "sha256:4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+      "kvLayout": {
+        "maxSeqLen": 4096,
+        "gpuPagedFallbackMaxSeqLen": 4096,
+        "kvDtype": "f16",
+        "forceF32Softcap": false,
+        "layout": "contiguous",
+        "pageSize": 256,
+        "bdpaVocabSize": 2048,
+        "windowSize": 1024,
+        "tiering": {
+          "mode": "off",
+          "hotWindow": 1024,
+          "coldPageSize": 256,
+          "coldDtype": "f16",
+          "compression": {
+            "mode": "none",
+            "blockSize": 1,
+            "bitWidth": 4,
+            "prodMode": false
+          },
+          "gating": {
+            "mode": "auto",
+            "minAluBwRatio": 0
+          }
+        },
+        "quantization": {
+          "mode": "none",
+          "bitWidth": 4,
+          "prodMode": false
+        }
+      },
+      "kvLayoutHash": "sha256:7914573e9a94b6cf6525dbd027e2da398c4c808a08a66e90ea544822f0087c80",
+      "memoryPolicy": {
+        "kvcache": {
+          "maxSeqLen": 4096,
+          "gpuPagedFallbackMaxSeqLen": 4096,
+          "kvDtype": "f16",
+          "forceF32Softcap": false,
+          "layout": "contiguous",
+          "pageSize": 256,
+          "bdpaVocabSize": 2048,
+          "windowSize": 1024,
+          "tiering": {
+            "mode": "off",
+            "hotWindow": 1024,
+            "coldPageSize": 256,
+            "coldDtype": "f16",
+            "compression": {
+              "mode": "none",
+              "blockSize": 1,
+              "bitWidth": 4,
+              "prodMode": false
+            },
+            "gating": {
+              "mode": "auto",
+              "minAluBwRatio": 0
+            }
+          },
+          "quantization": {
+            "mode": "none",
+            "bitWidth": 4,
+            "prodMode": false
+          }
+        },
+        "perLayerInputs": {
+          "materialization": "auto",
+          "rowCache": {
+            "mode": "lru",
+            "maxRows": 256,
+            "maxBytes": 134217728,
+            "decodedDtype": "f32"
+          },
+          "prefetch": {
+            "mode": "next_token",
+            "rowsAhead": 1
+          },
+          "gpuUpload": {
+            "mode": "per_step_slices",
+            "stagingRows": 2
+          },
+          "hotCache": {
+            "mode": "prepared_tokens",
+            "maxTokens": 1024,
+            "maxBytes": 134217728,
+            "outputDtype": "f32"
+          }
+        },
+        "largeWeights": null
+      },
+      "memoryPolicyHash": "sha256:3334b16c0929f3da800cee370f913c2e56bdc940f6c96a012d9276a623b3a9f7",
+      "executionPlanDigest": "sha256:06503e40d281188446936cc2354204083591863f31829d22e0f265b2d5e8a8bd",
+      "runtimeEngine": {
+        "resolvedRuntimeSessionId": "sha256:9d661e91522e776584caa99d59f90da190df816816861f1e7e0c2827b02f825c",
+        "resolvedRuntimeSchema": "doppler.resolved-runtime-session/v1",
+        "kernelPath": {
+          "id": "gemma-3-1b-it-q4k-ehf16-af32-execution-inline",
+          "source": "execution-v1",
+          "hash": "sha256:70e5397fe0d370737b6ba81921375268a30a62a4b9ec5e9046fe336e32ab5d96",
+          "definition": {
+            "id": "gemma-3-1b-it-q4k-ehf16-af32-execution-inline",
+            "name": "Execution inline kernel path",
+            "description": "Generated from manifest.inference.execution",
+            "activationDtype": "f32",
+            "kvDtype": "f16",
+            "decode": {
+              "steps": [
+                {
+                  "op": "input_norm",
+                  "kernel": "rmsnorm.wgsl",
+                  "entry": "main"
+                },
+                {
+                  "op": "q_proj",
+                  "kernel": "matmul_gemv_subgroup.wgsl",
+                  "entry": "main_vec4",
+                  "weights": "layer.{L}.self_attn.q_proj"
+                },
+                {
+                  "op": "k_proj",
+                  "kernel": "matmul_gemv_subgroup.wgsl",
+                  "entry": "main_vec4",
+                  "weights": "layer.{L}.self_attn.k_proj"
+                },
+                {
+                  "op": "v_proj",
+                  "kernel": "matmul_gemv_subgroup.wgsl",
+                  "entry": "main_vec4",
+                  "weights": "layer.{L}.self_attn.v_proj"
+                },
+                {
+                  "op": "rope_q",
+                  "kernel": "rope.wgsl",
+                  "entry": "main"
+                },
+                {
+                  "op": "rope_k",
+                  "kernel": "rope.wgsl",
+                  "entry": "main"
+                },
+                {
+                  "op": "attention",
+                  "kernel": "attention_decode_online_f16kv.wgsl",
+                  "entry": "main",
+                  "precision": {
+                    "kvDtype": "f16"
+                  }
+                },
+                {
+                  "op": "o_proj",
+                  "kernel": "matmul_gemv_subgroup.wgsl",
+                  "entry": "main_vec4",
+                  "weights": "layer.{L}.self_attn.o_proj"
+                },
+                {
+                  "op": "attn_residual",
+                  "kernel": "residual.wgsl",
+                  "entry": "main"
+                },
+                {
+                  "op": "post_attn_norm",
+                  "kernel": "rmsnorm.wgsl",
+                  "entry": "main"
+                },
+                {
+                  "op": "gate_proj",
+                  "kernel": "matmul_gemv_subgroup.wgsl",
+                  "entry": "main_vec4",
+                  "weights": "layer.{L}.mlp.gate_proj"
+                },
+                {
+                  "op": "up_proj",
+                  "kernel": "matmul_gemv_subgroup.wgsl",
+                  "entry": "main_vec4",
+                  "weights": "layer.{L}.mlp.up_proj"
+                },
+                {
+                  "op": "activation",
+                  "kernel": "gelu.wgsl",
+                  "entry": "main",
+                  "constants": {
+                    "HAS_GATE": true
+                  }
+                },
+                {
+                  "op": "down_proj",
+                  "kernel": "matmul_gemv_subgroup.wgsl",
+                  "entry": "main_vec4",
+                  "weights": "layer.{L}.mlp.down_proj"
+                },
+                {
+                  "op": "ffn_residual",
+                  "kernel": "residual.wgsl",
+                  "entry": "main"
+                }
+              ]
+            },
+            "prefill": {
+              "steps": [
+                {
+                  "op": "input_norm",
+                  "kernel": "rmsnorm.wgsl",
+                  "entry": "main"
+                },
+                {
+                  "op": "q_proj",
+                  "kernel": "matmul_f16w_f32a_tiled.wgsl",
+                  "entry": "main",
+                  "weights": "layer.{L}.self_attn.q_proj"
+                },
+                {
+                  "op": "k_proj",
+                  "kernel": "matmul_f16w_f32a_tiled.wgsl",
+                  "entry": "main",
+                  "weights": "layer.{L}.self_attn.k_proj"
+                },
+                {
+                  "op": "v_proj",
+                  "kernel": "matmul_f16w_f32a_tiled.wgsl",
+                  "entry": "main",
+                  "weights": "layer.{L}.self_attn.v_proj"
+                },
+                {
+                  "op": "rope_q",
+                  "kernel": "rope.wgsl",
+                  "entry": "main"
+                },
+                {
+                  "op": "rope_k",
+                  "kernel": "rope.wgsl",
+                  "entry": "main"
+                },
+                {
+                  "op": "attention",
+                  "kernel": "attention_head256_f16kv.wgsl",
+                  "entry": "main",
+                  "precision": {
+                    "kvDtype": "f16"
+                  }
+                },
+                {
+                  "op": "o_proj",
+                  "kernel": "matmul_f16w_f32a_tiled.wgsl",
+                  "entry": "main",
+                  "weights": "layer.{L}.self_attn.o_proj"
+                },
+                {
+                  "op": "attn_residual",
+                  "kernel": "residual.wgsl",
+                  "entry": "main"
+                },
+                {
+                  "op": "post_attn_norm",
+                  "kernel": "rmsnorm.wgsl",
+                  "entry": "main"
+                },
+                {
+                  "op": "gate_proj",
+                  "kernel": "matmul_f16w_f32a_tiled.wgsl",
+                  "entry": "main",
+                  "weights": "layer.{L}.mlp.gate_proj"
+                },
+                {
+                  "op": "up_proj",
+                  "kernel": "matmul_f16w_f32a_tiled.wgsl",
+                  "entry": "main",
+                  "weights": "layer.{L}.mlp.up_proj"
+                },
+                {
+                  "op": "activation",
+                  "kernel": "gelu.wgsl",
+                  "entry": "main",
+                  "constants": {
+                    "HAS_GATE": true
+                  }
+                },
+                {
+                  "op": "down_proj",
+                  "kernel": "matmul_f16w_f32a_tiled.wgsl",
+                  "entry": "main",
+                  "weights": "layer.{L}.mlp.down_proj"
+                },
+                {
+                  "op": "ffn_residual",
+                  "kernel": "residual.wgsl",
+                  "entry": "main"
+                }
+              ]
+            },
+            "preLayer": [
+              {
+                "op": "embed",
+                "kernel": "gather_f16.wgsl",
+                "entry": "main",
+                "weights": "embed_tokens"
+              }
+            ],
+            "postLayer": [
+              {
+                "op": "final_norm",
+                "kernel": "rmsnorm.wgsl",
+                "entry": "main"
+              },
+              {
+                "op": "lm_head",
+                "kernel": "matmul_gemv_subgroup.wgsl",
+                "entry": "main_multicol",
+                "weights": "lm_head",
+                "constants": {
+                  "MULTICOL_COLS_PER_WG": 64,
+                  "MULTICOL_THREADS_PER_COL": 4
+                }
+              },
+              {
+                "op": "lm_head_prefill",
+                "kernel": "matmul_f16w_f32a_tiled.wgsl",
+                "entry": "main",
+                "weights": "lm_head"
+              },
+              {
+                "op": "sample",
+                "kernel": "sample.wgsl",
+                "entry": "sample_single_pass"
+              }
+            ]
+          }
+        },
+        "capabilityPolicy": {
+          "kind": "default-noop",
+          "dtypeEffect": "none",
+          "reason": "GPU supports all required features.",
+          "evidence": []
+        },
+        "laneIntegrity": {
+          "declared": {
+            "activationDtype": "f32",
+            "mathDtype": "f32",
+            "accumDtype": "f32",
+            "kvDtype": "f16"
+          },
+          "executed": {
+            "activationDtype": "f32",
+            "mathDtype": "f32",
+            "accumDtype": "f32",
+            "kvDtype": "f16"
+          },
+          "status": "matches",
+          "transforms": [],
+          "policy": {
+            "kind": "default-noop",
+            "dtypeEffect": "none",
+            "reason": "GPU supports all required features.",
+            "evidence": []
+          }
+        }
+      },
+      "runtimeEngineDigest": "sha256:147449620fe6990698dd312fe5c28237fcf44a29de8a72ba4d50c586d07270c7",
+      "programLoadPolicy": {
+        "schema": "doppler.capsule-program-load-policy/v2",
+        "runtimeConfig": {
+          "inference": {
+            "session": {
+              "kvcache": {
+                "maxSeqLen": 4096,
+                "gpuPagedFallbackMaxSeqLen": 4096,
+                "kvDtype": "f16",
+                "forceF32Softcap": false,
+                "layout": "contiguous",
+                "pageSize": 256,
+                "bdpaVocabSize": 2048,
+                "windowSize": 1024,
+                "tiering": {
+                  "mode": "off",
+                  "hotWindow": 1024,
+                  "coldPageSize": 256,
+                  "coldDtype": "f16",
+                  "compression": {
+                    "mode": "none",
+                    "blockSize": 1,
+                    "bitWidth": 4,
+                    "prodMode": false
+                  },
+                  "gating": {
+                    "mode": "auto",
+                    "minAluBwRatio": 0
+                  }
+                },
+                "quantization": {
+                  "mode": "none",
+                  "bitWidth": 4,
+                  "prodMode": false
+                }
+              },
+              "speculation": {
+                "mode": "none",
+                "tokens": 1,
+                "verify": "greedy",
+                "threshold": null,
+                "rollbackOnReject": true
+              },
+              "prefillChunkSubmitMode": "sync",
+              "prefillChunkLayers": 4,
+              "prefillMaxInFlightChunks": 2,
+              "prefillTokenChunkSize": null,
+              "skipEmbeddingKVCacheWrites": false,
+              "useFlashPrefillAttention": false,
+              "useFusedGateUpGelu": false,
+              "useLargeBatchF16F32FusedGateUp": false,
+              "useTiledQ4KPrefill": false,
+              "retainQ4KMaterialization": false,
+              "useWideTileQ4KPrefill": false,
+              "useWideTileQ4KDecode": false,
+              "useSandwichRMSNormPairFusion": false,
+              "usePostFfnNextInputRMSNormPairFusion": false,
+              "usePostAttnNormFusedGateUp": false,
+              "fusedFfnQ4K": null,
+              "lmHeadArgmaxQ4K": null,
+              "attentionDecodeOnline": null,
+              "useLinearAttentionABProjectionFusion": false,
+              "useLinearAttentionQKVZProjectionFusion": false,
+              "useLinearAttentionFusedDecodeCore": false,
+              "useLinearAttentionRegisterPrefill": false,
+              "useLinearAttentionRegisterDecode": false,
+              "linearRecurrentStatePrecision": "f32",
+              "intermediatePrecision": "f32",
+              "useWideTileResidualFusion": false,
+              "useFusedRmsnormWideTile": false,
+              "useFusedQKVSplitQKNorm": false,
+              "useFusedQKVSplitQKNormRoPE": false,
+              "useGreedyLmHeadArgmaxFusion": false,
+              "usePreparedDecodeWorkspace": false,
+              "compute": {
+                "defaults": {
+                  "activationDtype": "f32",
+                  "mathDtype": "f32",
+                  "accumDtype": "f32",
+                  "outputDtype": "f32"
+                }
+              },
+              "decodeLoop": {
+                "batchSize": 4,
+                "stopCheckMode": "batch",
+                "readbackInterval": 1,
+                "readbackMode": "sequential",
+                "ringTokens": 1,
+                "ringStop": 1,
+                "ringStaging": 1,
+                "disableCommandBatching": false,
+                "submitLatencyThresholdMs": null
+              },
+              "perLayerInputs": {
+                "materialization": "auto",
+                "rowCache": {
+                  "mode": "lru",
+                  "maxRows": 256,
+                  "maxBytes": 134217728,
+                  "decodedDtype": "f32"
+                },
+                "prefetch": {
+                  "mode": "next_token",
+                  "rowsAhead": 1
+                },
+                "gpuUpload": {
+                  "mode": "per_step_slices",
+                  "stagingRows": 2
+                },
+                "hotCache": {
+                  "mode": "prepared_tokens",
+                  "maxTokens": 1024,
+                  "maxBytes": 134217728,
+                  "outputDtype": "f32"
+                }
+              }
+            },
+            "compute": {
+              "activationDtype": "f32"
+            },
+            "generation": {
+              "disableMultiTokenDecode": false
+            }
+          }
+        }
+      },
+      "programLoadPolicyHash": "sha256:3571b5006c5c90739759279585206af8b91881c31724207629d9dba195bd6688",
+      "digest": "sha256:04a1a1c9842950c4d52369a91839d3030f5ca94dad1d8fc5aa81ddaf4d9e125c"
+    },
+    "kvCache": {
+      "layout": "contiguous",
+      "kvDtype": "f16",
+      "seqLen": 59,
+      "maxSeqLen": 4096,
+      "usedBytes": 1570816,
+      "allocatedBytes": 109051904,
+      "counters": {
+        "updateCalls": 0,
+        "gpuUpdateCalls": 0,
+        "recordedGpuUpdateCalls": 1066,
+        "tokensWritten": 1534
+      }
+    },
+    "referenceTranscript": {
+      "schema": "doppler.reference-transcript/v1",
+      "source": {
+        "kind": "inline-browser-suite",
+        "path": "inline",
+        "hash": "sha256:bc495edf0f2c9148cbb79f4dad55d0b5557261d89d4544a47d1b18e2090c3d8b"
+      },
+      "executionGraphHash": "sha256:75c4978b6090394b5c5bde1a4dc470a55f60742ebd56ed5e2bda2120f7cb11f9",
+      "surface": "node-webgpu",
+      "generationConfig": {
+        "maxTokens": 48,
+        "temperature": 1,
+        "topP": 0.95,
+        "topK": 50,
+        "repetitionPenalty": 1.1,
+        "repetitionPenaltyWindow": 100,
+        "greedyThreshold": 0.01,
+        "suppressSpecialTokens": false,
+        "suppressSpecialLikeTokens": false,
+        "suppressTokenIds": [],
+        "seed": null,
+        "useChatTemplate": true
+      },
+      "prompt": {
+        "identity": "Explain in one sentence why the sky is blue.",
+        "hash": "sha256:6c15ec19e689a38fd960f3eee72ea9e9829ebf1e360fbd196dae3b3de83295a8",
+        "input": "Explain in one sentence why the sky is blue.",
+        "ids": [
+          2,
+          105,
+          2364,
+          107,
+          155122,
+          528,
+          886,
+          13315,
+          3217,
+          506,
+          7217,
+          563,
+          3730,
+          236761,
+          106,
+          107,
+          105,
+          4368,
+          107
+        ],
+        "tokenIdsHash": "sha256:5a0bf561655930d25e089b38d1a1e5d51aaafcd946c88fabdc9de05531fa0986",
+        "tokenCount": 19
+      },
+      "output": {
+        "textHash": "sha256:27fd593127f2111b484e052297f380ea8f562bb3a1ee1b9fa04db0b46b3387c2",
+        "tokensGenerated": 41,
+        "stopReason": "stop-token",
+        "stopTokenId": 106
+      },
+      "tokens": {
+        "ids": [
+          818,
+          7217,
+          236858,
+          236751,
+          3730,
+          2258,
+          3952,
+          699,
+          5213,
+          11939,
+          24230,
+          10483,
+          568,
+          3223,
+          236768,
+          19389,
+          1135,
+          529,
+          16383,
+          10390,
+          528,
+          506,
+          11661,
+          99382,
+          1018,
+          236743,
+          108,
+          6481,
+          786,
+          1281,
+          768,
+          611,
+          236789,
+          236753,
+          1133,
+          496,
+          919,
+          9813,
+          15569,
+          236888,
+          106
+        ],
+        "generatedTokenIdsHash": "sha256:9784376adab4cd347709b89815f35a4424d6fd1e519cc5ed3a8e3cb30a3d59fd",
+        "generatedTextHash": "sha256:27fd593127f2111b484e052297f380ea8f562bb3a1ee1b9fa04db0b46b3387c2",
+        "preview": [
+          {
+            "id": 818,
+            "text": "The",
+            "fallbackText": "The"
+          },
+          {
+            "id": 7217,
+            "text": " sky",
+            "fallbackText": " sky"
+          },
+          {
+            "id": 236858,
+            "text": "’",
+            "fallbackText": "’"
+          },
+          {
+            "id": 236751,
+            "text": "s",
+            "fallbackText": "s"
+          },
+          {
+            "id": 3730,
+            "text": " blue",
+            "fallbackText": " blue"
+          },
+          {
+            "id": 2258,
+            "text": " color",
+            "fallbackText": " color"
+          },
+          {
+            "id": 3952,
+            "text": " comes",
+            "fallbackText": " comes"
+          },
+          {
+            "id": 699,
+            "text": " from",
+            "fallbackText": " from"
+          },
+          {
+            "id": 5213,
+            "text": " **",
+            "fallbackText": " **"
+          },
+          {
+            "id": 11939,
+            "text": "elect",
+            "fallbackText": "elect"
+          },
+          {
+            "id": 24230,
+            "text": "romagnetic",
+            "fallbackText": "romagnetic"
+          },
+          {
+            "id": 10483,
+            "text": " radiation",
+            "fallbackText": " radiation"
+          },
+          {
+            "id": 568,
+            "text": " (",
+            "fallbackText": " ("
+          },
+          {
+            "id": 3223,
+            "text": "light",
+            "fallbackText": "light"
+          },
+          {
+            "id": 236768,
+            "text": ")",
+            "fallbackText": ")"
+          },
+          {
+            "id": 19389,
+            "text": " scattering",
+            "fallbackText": " scattering"
+          },
+          {
+            "id": 1135,
+            "text": " off",
+            "fallbackText": " off"
+          },
+          {
+            "id": 529,
+            "text": " of",
+            "fallbackText": " of"
+          },
+          {
+            "id": 16383,
+            "text": " tiny",
+            "fallbackText": " tiny"
+          },
+          {
+            "id": 10390,
+            "text": " particles",
+            "fallbackText": " particles"
+          },
+          {
+            "id": 528,
+            "text": " in",
+            "fallbackText": " in"
+          },
+          {
+            "id": 506,
+            "text": " the",
+            "fallbackText": " the"
+          },
+          {
+            "id": 11661,
+            "text": " atmosphere",
+            "fallbackText": " atmosphere"
+          },
+          {
+            "id": 99382,
+            "text": ".**",
+            "fallbackText": ".**"
+          },
+          {
+            "id": 1018,
+            "text": "**",
+            "fallbackText": "**"
+          },
+          {
+            "id": 236743,
+            "text": " ",
+            "fallbackText": " "
+          },
+          {
+            "id": 108,
+            "text": "\n\n",
+            "fallbackText": "\n\n"
+          },
+          {
+            "id": 6481,
+            "text": "Let",
+            "fallbackText": "Let"
+          },
+          {
+            "id": 786,
+            "text": " me",
+            "fallbackText": " me"
+          },
+          {
+            "id": 1281,
+            "text": " know",
+            "fallbackText": " know"
+          },
+          {
+            "id": 768,
+            "text": " if",
+            "fallbackText": " if"
+          },
+          {
+            "id": 611,
+            "text": " you",
+            "fallbackText": " you"
+          }
+        ],
+        "perStep": [
+          {
+            "index": 0,
+            "tokenId": 818,
+            "tokenHash": "sha256:a720503f3310752f33fbfcf2a56f5aed118d6573e54b44c2e687c0eadb98b87f"
+          },
+          {
+            "index": 1,
+            "tokenId": 7217,
+            "tokenHash": "sha256:88a4e600c0f2ec9d975378471f5da7d4c1dd94fa78304086f76ef518459b6915"
+          },
+          {
+            "index": 2,
+            "tokenId": 236858,
+            "tokenHash": "sha256:2141c5093f96a8f8a4dae19de52224103f2a5daca2ead0f7d3034c1dcc337fd5"
+          },
+          {
+            "index": 3,
+            "tokenId": 236751,
+            "tokenHash": "sha256:a38a29e712fbb65a9bfddc666fc64da8a4a3a87e528dea8156234453f7670817"
+          },
+          {
+            "index": 4,
+            "tokenId": 3730,
+            "tokenHash": "sha256:937f7929e889f41e68c3f3ef09e0128110d05e03c347d6952980a0b761a8fad2"
+          },
+          {
+            "index": 5,
+            "tokenId": 2258,
+            "tokenHash": "sha256:d7246ad3226092549e88d73b32768d20c0ec61684e2d2a1577d7d7962772d07c"
+          },
+          {
+            "index": 6,
+            "tokenId": 3952,
+            "tokenHash": "sha256:48170ea3f0822452731fcf263dc02675ca0856fa2f673f1aaf7bb682ef1e7efb"
+          },
+          {
+            "index": 7,
+            "tokenId": 699,
+            "tokenHash": "sha256:7d02eeceae33b67f8dab3d049437d2565fe97375145a13aa7f3de055572bd7f0"
+          },
+          {
+            "index": 8,
+            "tokenId": 5213,
+            "tokenHash": "sha256:cd113548df4bd2f8946dbf48f6460b1a95692b7c28580047fc5ac6c0550a64dd"
+          },
+          {
+            "index": 9,
+            "tokenId": 11939,
+            "tokenHash": "sha256:bd02edc97af2bf8c028dfb55c977adc5df61e1465090e8da1b131d0923ddc4a9"
+          },
+          {
+            "index": 10,
+            "tokenId": 24230,
+            "tokenHash": "sha256:da694aa97af5e8a747993732c8761cbded4fbed96e03d1dd1ede673f394e691d"
+          },
+          {
+            "index": 11,
+            "tokenId": 10483,
+            "tokenHash": "sha256:e0ae84d35046473f646943c2886eb0748b2b8b48c8f0ea880c248dff0dbe117e"
+          },
+          {
+            "index": 12,
+            "tokenId": 568,
+            "tokenHash": "sha256:dec93cfe59bf7ba68983934797d2cc180355fa1e6a0ca85ddb7a12c88a568ac9"
+          },
+          {
+            "index": 13,
+            "tokenId": 3223,
+            "tokenHash": "sha256:9b2ac5781c3e84eefd5fcbfb321f497299d5f3d384aeaef0caedf98ed159f021"
+          },
+          {
+            "index": 14,
+            "tokenId": 236768,
+            "tokenHash": "sha256:d307ef9845ebe40c990839bd4850186d21833076ec78ccffda5e0cab3cfcab3d"
+          },
+          {
+            "index": 15,
+            "tokenId": 19389,
+            "tokenHash": "sha256:4ed20492af654387e469c04a4f6d62309c4e0949bcb329019e37c5deec6fc8ef"
+          },
+          {
+            "index": 16,
+            "tokenId": 1135,
+            "tokenHash": "sha256:68d0fdd79c0a59a2bafb24f4cf3735309d79571cc28eaeb637dbb08f6bdddde8"
+          },
+          {
+            "index": 17,
+            "tokenId": 529,
+            "tokenHash": "sha256:55aff93ebb00a9ff5c3b45ac15c95d20023349e7fca3e83131bc20bad469f57c"
+          },
+          {
+            "index": 18,
+            "tokenId": 16383,
+            "tokenHash": "sha256:d3368a3325726d29989436d948f5b30f36d7b937b303e261c477b3d51dcbc35a"
+          },
+          {
+            "index": 19,
+            "tokenId": 10390,
+            "tokenHash": "sha256:92e09e887e0591fb300fe10b20f09b6d08c9177ef2b9a10408573eea77222632"
+          },
+          {
+            "index": 20,
+            "tokenId": 528,
+            "tokenHash": "sha256:e4a651355e963ef765fccd30394f9011199e67b8f817d182c2adcf665844dfa5"
+          },
+          {
+            "index": 21,
+            "tokenId": 506,
+            "tokenHash": "sha256:71d38b99445e0343d34978011a71153f2fe60f91f5b718b7be2c9f1d084e9456"
+          },
+          {
+            "index": 22,
+            "tokenId": 11661,
+            "tokenHash": "sha256:4fee1e803d21d19f97b9895518ddd233fd8e56c0838ea48dae06b72532f3b261"
+          },
+          {
+            "index": 23,
+            "tokenId": 99382,
+            "tokenHash": "sha256:26d06a318c4643b18768b6ab33f52bec93e091f53f1189517719fececf273e0e"
+          },
+          {
+            "index": 24,
+            "tokenId": 1018,
+            "tokenHash": "sha256:d2617cc23964b5b81b09c20c795f58f4c9532c8bd71fb0d4ab3eab14fdbc834f"
+          },
+          {
+            "index": 25,
+            "tokenId": 236743,
+            "tokenHash": "sha256:f564ebc5d3cf51cb2b4e714c9551caa37377192bb529473191fbdb5f2ba55ac9"
+          },
+          {
+            "index": 26,
+            "tokenId": 108,
+            "tokenHash": "sha256:de54bf8c2b3690c5228877fff98d656fdc9f2c0fd1ea4d5481ce405392b94554"
+          },
+          {
+            "index": 27,
+            "tokenId": 6481,
+            "tokenHash": "sha256:1e5cb4d18cbe1c9bdd606d784d91347611fb0ed2fbf6a941d7e8f9b85b4118a7"
+          },
+          {
+            "index": 28,
+            "tokenId": 786,
+            "tokenHash": "sha256:182aa9fb5ab766b942b36fb078a7c45d110a39f1cae0bd63b3fbbda8b63b3e40"
+          },
+          {
+            "index": 29,
+            "tokenId": 1281,
+            "tokenHash": "sha256:f64ce745976570036c2a9927a6cd59409778c8892836443d5714b8333bffffbe"
+          },
+          {
+            "index": 30,
+            "tokenId": 768,
+            "tokenHash": "sha256:408e3aba9b05265bac95bc5212cae22848744f7927950e50b72198f55b78b2b1"
+          },
+          {
+            "index": 31,
+            "tokenId": 611,
+            "tokenHash": "sha256:809f55c676067102418f799edd549f8de1cf3fc44fad946819fae4fc3fa3eca2"
+          },
+          {
+            "index": 32,
+            "tokenId": 236789,
+            "tokenHash": "sha256:0c59f45187565e5fab84175ea6954ce52d148ef43e977fd34e24d2ed77b42074"
+          },
+          {
+            "index": 33,
+            "tokenId": 236753,
+            "tokenHash": "sha256:23495696c4283dff3199afbe9ed67c877bc4165a2c17ddc11bb4eeaafb7ce37c"
+          },
+          {
+            "index": 34,
+            "tokenId": 1133,
+            "tokenHash": "sha256:eef8e2029feba4e5654cb63ec198282370d2304996b473e90345fbb095fd6b69"
+          },
+          {
+            "index": 35,
+            "tokenId": 496,
+            "tokenHash": "sha256:403034dbb8676368e42c41ed0bb98ba407d726fc7237fcc390912c0f46e55cc5"
+          },
+          {
+            "index": 36,
+            "tokenId": 919,
+            "tokenHash": "sha256:fad92ac2289ac79eb3ddf3c6582908e60153c300c0e9e07202976a95b582b7f7"
+          },
+          {
+            "index": 37,
+            "tokenId": 9813,
+            "tokenHash": "sha256:5bf0a734bb79997990ed8c5e1b61236f1d6cabbbdc701163c456975ddffa57cd"
+          },
+          {
+            "index": 38,
+            "tokenId": 15569,
+            "tokenHash": "sha256:54926abaa402c0434d54cf0314876259617ad5d7d8365b614a370e8b27ed03ee"
+          },
+          {
+            "index": 39,
+            "tokenId": 236888,
+            "tokenHash": "sha256:41eba279d79a07415c3b5bcd7b2894a869266122e9817371b948340685078a44"
+          },
+          {
+            "index": 40,
+            "tokenId": 106,
+            "tokenHash": "sha256:b9ed95e21afb55038ddc49acd063bd6a53e3daaf052b44ebe38488c62cc31fe6"
+          }
+        ],
+        "coverage": {
+          "mode": "full-token-ids",
+          "omitted": 0
+        }
+      },
+      "phase": {
+        "prefillMs": 452.8568749999995,
+        "decodeMs": 2353.3241670000007,
+        "prefillTokens": 19,
+        "decodeTokens": 40
+      },
+      "kvCache": {
+        "mode": "stats",
+        "layout": "contiguous",
+        "kvDtype": "f16",
+        "seqLen": 59,
+        "maxSeqLen": 4096,
+        "usedBytes": 1570816,
+        "allocatedBytes": 109051904,
+        "counters": {
+          "updateCalls": 0,
+          "gpuUpdateCalls": 0,
+          "recordedGpuUpdateCalls": 1066,
+          "tokensWritten": 1534
+        },
+        "byteDigestMode": null,
+        "byteDigest": null,
+        "byteDigests": null,
+        "stateHash": "sha256:1f7b6b483e2ddccac26ccc340b32e9d2ab04ebe8e670cadae663adcd4c862320"
+      },
+      "logits": {
+        "mode": "not-captured",
+        "reason": "Per-step logits digests were not requested for this browser harness run.",
+        "perStepDigests": null
+      },
+      "tolerance": {
+        "tokenPolicy": "exact generated token IDs",
+        "logitsPolicy": "not captured",
+        "kvPolicy": "metadata hash only; KV tensor bytes are not read back by default"
+      }
+    },
+    "operatorDiagnostics": null,
+    "modelCheckpoints": null,
+    "decodeBottleneck": {
+      "schemaVersion": 2,
+      "source": "doppler",
+      "dominant": {
+        "id": "readback_map_wait",
+        "label": "readback map wait",
+        "ms": 1476.488,
+        "shareOfDecode": 0.6274
+      },
+      "bottleneckClass": null,
+      "attribution": {
+        "status": "unresolved",
+        "reason": "Aggregate intervals may overlap and do not establish a critical path or causal bottleneck."
+      },
+      "decodeWallMs": 2353.32,
+      "componentsMs": {
+        "commandRecordMs": 837.886,
+        "submitWaitMs": 1493.941,
+        "readbackWaitMs": 1493.135,
+        "effectiveSubmitReadbackWaitMs": 1493.941,
+        "readbackMapWaitMs": 1476.488,
+        "readbackCleanupMs": 15.6,
+        "readbackCopyMs": 0.316,
+        "readbackUnattributedMs": null,
+        "gpuTimestampMs": null,
+        "submitReadbackSlackMs": null,
+        "orchestrationMs": 21.497,
+        "residualMs": null
+      },
+      "recording": {
+        "opCount": 13880,
+        "passCount": 90,
+        "uniqueOpLabels": null,
+        "msPerOp": 0.06,
+        "msPerPass": 9.31,
+        "passesPerOp": 0.006,
+        "msPerExecutedBatchToken": 20.947,
+        "opsPerExecutedBatchToken": 347,
+        "passesPerExecutedBatchToken": 2.25,
+        "topOps": [],
+        "topOpGroups": [],
+        "uniformCache": {
+          "hits": 13963,
+          "misses": 229,
+          "totalLookups": 14192,
+          "hitRateRatio": 0.9838641488162345,
+          "evictions": 0,
+          "currentSize": 229,
+          "pendingDestruction": 0,
+          "hitRate": "98.4%"
+        }
+      },
+      "shares": {
+        "commandRecord": 0.356,
+        "submitWait": 0.6348,
+        "readbackWait": 0.6345,
+        "effectiveSubmitReadbackWait": 0.6348,
+        "readbackMapWait": 0.6274,
+        "readbackCleanup": 0.0066,
+        "readbackCopy": 0.0001,
+        "readbackUnattributed": null,
+        "gpuTimestamp": null,
+        "submitReadbackSlack": null,
+        "orchestration": 0.0091,
+        "residual": null
+      },
+      "semantics": {
+        "dominant": "Largest observed aggregate interval, not a causal bottleneck or recoverable fraction of decode time.",
+        "shares": "Each interval divided by decode wall; intervals overlap and shares are not additive.",
+        "effectiveSubmitReadbackWaitMs": "Maximum aggregate submit/readback wait, not a measured union of intervals.",
+        "submitReadbackSlackMs": "Unknown without aligned GPU/host intervals and complete timestamp coverage.",
+        "readbackUnattributedMs": "Unknown: independently aggregated subcomponent medians are not subtractable.",
+        "residualMs": "Unknown: overlapping aggregate intervals cannot partition decode wall.",
+        "readbackMapWaitMs": "Wall time awaiting staging-buffer mapAsync; usually includes GPU completion behind the readback.",
+        "gpuTimestampMs": "Elapsed timestamped GPU intervals when available; may include scheduling/preemption, omit unmeasured passes, and overlap host recording. Null means not captured.",
+        "topOps": "Highest-count exact compute-pass labels observed during command recording.",
+        "topOpGroups": "Highest-count compute-pass labels after grouping repeated per-layer labels.",
+        "uniformCache": "Current uniform-buffer cache counters at the end of the measured suite."
+      }
+    },
+    "load": {
+      "schemaVersion": 1,
+      "source": "doppler",
+      "semantics": {
+        "modelLoadMs": "suite initialization time before generation",
+        "loaderTotalMs": "DopplerLoader.load() weight-loader wall time",
+        "pipelineTotalMs": "InferencePipeline.loadModel() wall time",
+        "modelLoadMinusPipelineMs": "modelLoadMs - pipeline.totalMs; harness, storage, manifest, GPU init, and pipeline construction",
+        "pipelineMinusLoaderMs": "pipeline.totalMs - loader.totalMs; config, tokenizer, KV, RoPE, and other pipeline setup",
+        "modelLoadMinusLoaderMs": "modelLoadMs - loader.totalMs"
+      },
+      "modelLoadMs": 6908.22,
+      "loader": {
+        "schemaVersion": 1,
+        "source": "doppler-loader",
+        "modelId": "gemma-3-1b-it-q4k-ehf16-af32",
+        "status": "complete",
+        "customShardLoader": true,
+        "byteAccountingMode": "custom-loader-read-progress",
+        "totalBytes": 1025493248,
+        "totalShards": 16,
+        "bytesLoaded": 1025493248,
+        "shardsLoaded": 16,
+        "bytesPerSecond": 164977484,
+        "phasesMs": {
+          "preflight": 1.23,
+          "tensorLocations": 5.3,
+          "embeddings": 3367.29,
+          "layers": 2840.09,
+          "finalWeights": 0.96,
+          "cleanup": 0.03
+        },
+        "layers": {
+          "count": 26,
+          "totalMs": 2744.26,
+          "meanMs": 105.55,
+          "maxMs": 699.84,
+          "maxLayer": 2
+        },
+        "totalMs": 6215.96,
+        "failedPhase": null,
+        "error": null
+      },
+      "pipeline": {
+        "schemaVersion": 1,
+        "source": "doppler-pipeline",
+        "modelId": "gemma-3-1b-it-q4k-ehf16-af32",
+        "status": "complete",
+        "phasesMs": {
+          "reset": 0.05,
+          "configResolution": 5.78,
+          "kernelWarmup": 0.03,
+          "tokenizer": 407.8,
+          "executionSetup": 6.36,
+          "loadWeights": 6444.73,
+          "rope": 11,
+          "convStates": 0.17,
+          "warmGeneration": null
+        },
+        "details": {
+          "tokenizer": {
+            "schemaVersion": 1,
+            "source": "doppler-tokenizer",
+            "modelId": "gemma-3-1b-it-q4k-ehf16-af32",
+            "status": "complete",
+            "tokenizerType": "bundled",
+            "tokenizerFile": "tokenizer.json",
+            "backend": "bundled",
+            "assetSource": "custom-loader",
+            "cacheHit": false,
+            "phasesMs": {
+              "configResolution": 0.03,
+              "cacheLookup": 0.03,
+              "backendCreate": 0.08,
+              "assetLoad": 161.92,
+              "assetParse": 0.05,
+              "backendLoad": 245.33,
+              "cacheStore": 0.01
+            },
+            "totalMs": 407.55,
+            "error": null
+          },
+          "warmGeneration": null
+        },
+        "totalMs": 6876.07
+      },
+      "residualsMs": {
+        "modelLoadMinusLoaderMs": 692.26,
+        "modelLoadMinusPipelineMs": 32.15,
+        "pipelineMinusLoaderMs": 660.11
+      },
+      "consistent": {
+        "loaderWithinModelLoad": true,
+        "pipelineWithinModelLoad": true,
+        "loaderWithinPipeline": true
+      }
+    },
+    "schemaVersion": 1,
+    "source": "doppler",
+    "suite": "debug",
+    "executionContractArtifact": {
+      "schemaVersion": 1,
+      "source": "doppler",
+      "ok": true,
+      "checks": [
+        {
+          "id": "gemma-3-1b-it-q4k-ehf16-af32.steps",
+          "ok": true
+        },
+        {
+          "id": "gemma-3-1b-it-q4k-ehf16-af32.session",
+          "ok": true
+        }
+      ],
+      "errors": [],
+      "session": {
+        "layout": "contiguous",
+        "disableCommandBatching": false,
+        "decodeBatchSize": 4,
+        "headDim": 256,
+        "kvLen": 32768,
+        "coldQuantMode": "none",
+        "contiguousQuantMode": "none"
+      },
+      "steps": {
+        "total": 35,
+        "attention": 2,
+        "attentionPhases": {
+          "prefill": 1,
+          "decode": 1,
+          "both": 0
+        }
+      }
+    },
+    "layerPatternContractArtifact": {
+      "schemaVersion": 1,
+      "source": "doppler",
+      "ok": true,
+      "checks": [
+        {
+          "id": "inference.layerPattern.groups",
+          "ok": true
+        },
+        {
+          "id": "inference.layerPattern.patternKind.structure",
+          "ok": true
+        },
+        {
+          "id": "inference.layerPattern.layerType.structure",
+          "ok": true
+        },
+        {
+          "id": "inference.layerPattern.layerType.coverage",
+          "ok": true
+        }
+      ],
+      "errors": [],
+      "stats": {
+        "patternKindRules": 4,
+        "layerTypeRules": 6
+      }
+    },
+    "requiredInferenceFieldsArtifact": {
+      "schemaVersion": 1,
+      "source": "doppler",
+      "scope": "manifest",
+      "label": "gemma-3-1b-it-q4k-ehf16-af32.inference",
+      "ok": true,
+      "checks": [
+        {
+          "id": "gemma-3-1b-it-q4k-ehf16-af32.inference.requiredInferenceFields",
+          "ok": true
+        }
+      ],
+      "errors": [],
+      "stats": {
+        "fieldCases": 51,
+        "nullableCases": 27,
+        "nonNullableCases": 24
+      }
+    }
+  },
+  "output": "The sky’s blue color comes from **electromagnetic radiation (light) scattering off of tiny particles in the atmosphere.**** \n\nLet me know if you'd like a more detailed explanation!",
+  "memory": {
+    "used": 2141465856,
+    "pool": {
+      "allocations": 17388,
+      "reuses": 795,
+      "totalBytesAllocated": 2232182272,
+      "peakBytesAllocated": 2048064768,
+      "currentBytesAllocated": 2032370944,
+      "totalBytesRequested": 2200323072,
+      "peakBytesRequested": 2022169088,
+      "currentBytesRequested": 2008429056,
+      "resources": {
+        "retainedModel": {
+          "bytes": 2000416768,
+          "count": 340
+        },
+        "active": {
+          "bytes": 8388608,
+          "count": 4
+        },
+        "reusable": {
+          "bytes": 23565568,
+          "count": 64
+        },
+        "deferredCleanup": {
+          "bytes": 15693824,
+          "count": 1667
+        }
+      },
+      "activeBuffers": 344,
+      "pooledBuffers": 64,
+      "budgetMaxBytes": 0,
+      "budgetUtilization": 0,
+      "hitRate": "4.4%"
+    },
+    "kvCache": {
+      "theoretical": 109051904,
+      "allocated": 109051904,
+      "used": 1570816,
+      "efficiency": 0.014404296875,
+      "seqLen": 59,
+      "maxSeqLen": 4096,
+      "layout": "contiguous",
+      "kvDtype": "f16",
+      "counters": {
+        "updateCalls": 0,
+        "gpuUpdateCalls": 0,
+        "recordedGpuUpdateCalls": 1066,
+        "tokensWritten": 1534
+      }
+    },
+    "decodeBuffers": {
+      "hiddenBytes": 5120,
+      "intermediateBytes": 27648,
+      "totalBytes": 43008,
+      "activationDtype": "f32",
+      "workspace": null
+    }
+  },
+  "debugSnapshot": {
+    "timestamp": "2026-11-11T14:20:16.386Z",
+    "logLevel": "INFO",
+    "traceCategories": [],
+    "enabledModules": [],
+    "disabledModules": [],
+    "recentLogs": [
+      {
+        "time": "367.2",
+        "level": "INFO",
+        "module": "Harness",
+        "message": "Suite model init: loadMode=file, modelId=gemma-3-1b-it-q4k-ehf16-af32, hasModelUrl=yes"
+      },
+      {
+        "time": "368.2",
+        "level": "INFO",
+        "module": "TestHarness",
+        "message": "Initializing WebGPU..."
+      },
+      {
+        "time": "390.5",
+        "level": "INFO",
+        "module": "TestHarness",
+        "message": "GPU: hasF16=true, hasSubgroups=true"
+      },
+      {
+        "time": "390.6",
+        "level": "INFO",
+        "module": "TestHarness",
+        "message": "Fetching manifest..."
+      },
+      {
+        "time": "395.6",
+        "level": "INFO",
+        "module": "TestHarness",
+        "message": "Model: transformer"
+      },
+      {
+        "time": "396.0",
+        "level": "INFO",
+        "module": "TestHarness",
+        "message": "Creating pipeline..."
+      },
+      {
+        "time": "399.7",
+        "level": "INFO",
+        "module": "Pipeline",
+        "message": "Execution v1 enabled (steps=35, kernelPathInline=yes, pipelineInline=no)"
+      },
+      {
+        "time": "399.8",
+        "level": "INFO",
+        "module": "Config",
+        "message": "Using manifest-first config (source of truth)"
+      },
+      {
+        "time": "403.0",
+        "level": "INFO",
+        "module": "Pipeline",
+        "message": "Resolved session applied (gemma-3-1b-it-q4k-ehf16-af32): batchSize=4, stopCheckMode=batch, readbackInterval=1, disableCommandBatching=false"
+      },
+      {
+        "time": "403.7",
+        "level": "INFO",
+        "module": "Pipeline",
+        "message": "KernelPath: gemma-3-1b-it-q4k-ehf16-af32-execution-inline (15 decode steps, 10 kernels, source=execution-v1)"
+      },
+      {
+        "time": "404.0",
+        "level": "INFO",
+        "module": "Pipeline",
+        "message": "26L/1152H/4heads (256dim), kernelPath=gemma-3-1b-it-q4k-ehf16-af32-execution-inline"
+      },
+      {
+        "time": "404.3",
+        "level": "INFO",
+        "module": "Tokenizer",
+        "message": "Loading bundled tokenizer from tokenizer.json"
+      },
+      {
+        "time": "566.7",
+        "level": "INFO",
+        "module": "Tokenizer",
+        "message": "HuggingFace model.type=\"BPE\", using type=\"bpe\""
+      },
+      {
+        "time": "811.7",
+        "level": "INFO",
+        "module": "Tokenizer",
+        "message": "Loaded HuggingFace 262145 tokens (bpe), 6413 special patterns, 514906 merges"
+      },
+      {
+        "time": "811.9",
+        "level": "INFO",
+        "module": "Pipeline",
+        "message": "Tokenizer vocabSize=262145 differs from model=262144, using model size"
+      },
+      {
+        "time": "813.1",
+        "level": "INFO",
+        "module": "Pipeline",
+        "message": "KV cache allocated: kvDtype=f16, maxSeqLen=4096, layout=contiguous, modelMaxSeqLen=32768, requestedKvDtype=f16, requestedMaxSeqLen=4096"
+      },
+      {
+        "time": "814.0",
+        "level": "INFO",
+        "module": "Pipeline",
+        "message": "Execution plan: active=primary, dtype=f32, kernelPath=gemma-3-1b-it-q4k-ehf16-af32-execution-inline"
+      },
+      {
+        "time": "864.0",
+        "level": "INFO",
+        "module": "ShardCache",
+        "message": "Custom shard loader configured"
+      },
+      {
+        "time": "864.2",
+        "level": "INFO",
+        "module": "Loader",
+        "message": "Initializing..."
+      },
+      {
+        "time": "1039.7",
+        "level": "INFO",
+        "module": "HeapManager",
+        "message": "Allocated segment 0: 1024MB"
+      },
+      {
+        "time": "1040.1",
+        "level": "INFO",
+        "module": "HeapManager",
+        "message": "Segmented heap: 1GB per segment"
+      },
+      {
+        "time": "1040.1",
+        "level": "INFO",
+        "module": "HeapManager",
+        "message": "Initialized with strategy: SEGMENTED"
+      },
+      {
+        "time": "1040.3",
+        "level": "INFO",
+        "module": "Loader",
+        "message": "Initialized (f16, subgroups, unified)"
+      },
+      {
+        "time": "1041.0",
+        "level": "INFO",
+        "module": "Loader",
+        "message": "Loading: gemma-3-1b-it-q4k-ehf16-af32"
+      },
+      {
+        "time": "1041.8",
+        "level": "INFO",
+        "module": "Loader",
+        "message": "[0.0s] Memory (start): | RSS=1.30 GB (heap=96.28 MB/132.28 MB, external=1.00 GB, arrayBuffers=1.00 GB) | GPU=0 B (0 active, 0 pooled, peak=0 B) | ShardCache=0 B (0 shards) | Layers=0, GPUBuffers=0"
+      },
+      {
+        "time": "4414.5",
+        "level": "INFO",
+        "module": "Loader",
+        "message": "Embeddings tensor loaded: name=model.embed_tokens.weight, hasShape=true, shape=[262144,1152], isWeightBuffer=true"
+      },
+      {
+        "time": "4415.1",
+        "level": "INFO",
+        "module": "Loader",
+        "message": "Layers: 0-25"
+      },
+      {
+        "time": "7255.3",
+        "level": "INFO",
+        "module": "Loader",
+        "message": "Layers: 26 complete (2.84s)"
+      },
+      {
+        "time": "7256.3",
+        "level": "INFO",
+        "module": "Loader",
+        "message": "[FinalNorm] Falling back to role-only final norm selection because tensor groups are missing in manifest."
+      },
+      {
+        "time": "7256.9",
+        "level": "INFO",
+        "module": "Loader",
+        "message": "Complete: 977.99 MB in 6.21s (157.49 MB/s)"
+      },
+      {
+        "time": "7257.6",
+        "level": "INFO",
+        "module": "Loader",
+        "message": "[6.2s] Memory (complete): | RSS=1.30 GB (heap=97.64 MB/134.78 MB, external=1.05 GB, arrayBuffers=1.04 GB) | GPU=1.88 GB (340 active, 13 pooled, peak=1.88 GB) | ShardCache=0 B (0 shards) | Layers=26, GPUBuffers=340"
+      },
+      {
+        "time": "7273.3",
+        "level": "INFO",
+        "module": "Pipeline",
+        "message": "Model loaded successfully (6876ms)"
+      },
+      {
+        "time": "7275.1",
+        "level": "INFO",
+        "module": "TestHarness",
+        "message": "Pipeline ready"
+      },
+      {
+        "time": "7333.7",
+        "level": "INFO",
+        "module": "KernelSelect",
+        "message": "matmul variant=f16w_f32a_tiled reason=path_override"
+      },
+      {
+        "time": "7372.4",
+        "level": "INFO",
+        "module": "KernelSelect",
+        "message": "attention variant=prefill_head256_f16kv reason=path_override:tiled_small"
+      },
+      {
+        "time": "7751.0",
+        "level": "INFO",
+        "module": "KernelSelect",
+        "message": "matmul variant=gemv_subgroup_vec4 reason=path_override"
+      },
+      {
+        "time": "7755.7",
+        "level": "INFO",
+        "module": "KernelSelect",
+        "message": "attention variant=decode_online_f16kv reason=path_override:subgroup"
+      },
+      {
+        "time": "7811.5",
+        "level": "INFO",
+        "module": "KernelSelect",
+        "message": "matmul variant=gemv_subgroup_multicol reason=path_override"
+      },
+      {
+        "time": "10102.3",
+        "level": "INFO",
+        "module": "Perf",
+        "message": "Load: 6876ms | TTFT: 462ms | Prefill: 453ms | Decode: 2353ms (40 tokens @ 17.0 tok/s)"
+      },
+      {
+        "time": "10108.3",
+        "level": "INFO",
+        "module": "ExpertCache",
+        "message": "Cache cleared"
+      },
+      {
+        "time": "10126.6",
+        "level": "INFO",
+        "module": "Pipeline",
+        "message": "Unloaded"
+      }
+    ],
+    "errorCount": 0,
+    "warnCount": 0
+  }
+}

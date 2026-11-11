@@ -1,0 +1,646 @@
+{
+  "schema": "doppler.release-comparison-summary/v1",
+  "statistic": "arithmetic mean of all timed samples; no outlier removal",
+  "rows": [
+    {
+      "file": "compare_20261111T143211.json",
+      "model": "qwen-3-5-0-8b-q4k-ehaf16",
+      "mode": "parity",
+      "prompt": "evidence supports it user request must stay safe true false yes no a the system should allow review when policy is clear and block unsafe changes only if evidence supports it user request must stay safe true false yes no a the system should allow review when policy is clear and block unsafe changes only if evidence supports it user request must stay",
+      "promptTokens": 64,
+      "outputTokens": 64,
+      "pairedComparable": true,
+      "invalidReason": null,
+      "parity": {
+        "schemaVersion": 1,
+        "status": "match",
+        "reason": null,
+        "exactMatch": true,
+        "normalizedMatch": true,
+        "charMismatchIndex": -1,
+        "tokenMatch": {
+          "leftTokenCount": 64,
+          "rightTokenCount": 64,
+          "matchingPrefixTokens": 64,
+          "firstMismatchTokenIndex": -1
+        },
+        "tokenIdMatch": {
+          "leftTokenCount": 64,
+          "rightTokenCount": 64,
+          "matchingPrefixTokens": 64,
+          "firstMismatchTokenIndex": -1,
+          "firstMismatch": null
+        },
+        "lengths": {
+          "dopplerChars": 344,
+          "transformersjsChars": 344
+        }
+      },
+      "releaseClaimable": true,
+      "doppler": {
+        "samples": 3,
+        "completeRequestMs": 1279.03333346049,
+        "firstTokenMs": 170.10000006357828,
+        "decodeTokensPerSecond": 56.81206763749157,
+        "minCompleteMs": 1276.7000002861023,
+        "maxCompleteMs": 1280.3000001907349
+      },
+      "transformersjs": {
+        "samples": 3,
+        "completeRequestMs": 1236.9483332633972,
+        "firstTokenMs": 76.41333341598511,
+        "decodeTokensPerSecond": 54.28692327373065,
+        "minCompleteMs": 1230.3649997711182,
+        "maxCompleteMs": 1248.7000002861023
+      }
+    },
+    {
+      "file": "compare_20261111T143211.json",
+      "model": "qwen-3-5-0-8b-q4k-ehaf16",
+      "mode": "throughput",
+      "prompt": "evidence supports it user request must stay safe true false yes no a the system should allow review when policy is clear and block unsafe changes only if evidence supports it user request must stay safe true false yes no a the system should allow review when policy is clear and block unsafe changes only if evidence supports it user request must stay",
+      "promptTokens": 64,
+      "outputTokens": 64,
+      "pairedComparable": true,
+      "invalidReason": null,
+      "parity": {
+        "schemaVersion": 1,
+        "status": "match",
+        "reason": null,
+        "exactMatch": true,
+        "normalizedMatch": true,
+        "charMismatchIndex": -1,
+        "tokenMatch": {
+          "leftTokenCount": 64,
+          "rightTokenCount": 64,
+          "matchingPrefixTokens": 64,
+          "firstMismatchTokenIndex": -1
+        },
+        "tokenIdMatch": {
+          "leftTokenCount": 64,
+          "rightTokenCount": 64,
+          "matchingPrefixTokens": 64,
+          "firstMismatchTokenIndex": -1,
+          "firstMismatch": null
+        },
+        "lengths": {
+          "dopplerChars": 344,
+          "transformersjsChars": 344
+        }
+      },
+      "releaseClaimable": true,
+      "doppler": {
+        "samples": 3,
+        "completeRequestMs": 1722.2333332697551,
+        "firstTokenMs": 185.8666664759318,
+        "decodeTokensPerSecond": 46.98986652061841,
+        "minCompleteMs": 1270.7999997138977,
+        "maxCompleteMs": 2619.9000000953674
+      },
+      "transformersjs": {
+        "samples": 3,
+        "completeRequestMs": 1236.9483332633972,
+        "firstTokenMs": 76.41333341598511,
+        "decodeTokensPerSecond": 54.28692327373065,
+        "minCompleteMs": 1230.3649997711182,
+        "maxCompleteMs": 1248.7000002861023
+      }
+    },
+    {
+      "file": "compare_20261111T143941.json",
+      "model": "qwen-3-5-2b-q4k-ehaf16",
+      "mode": "parity",
+      "prompt": "evidence supports it user request must stay safe true false yes no a the system should allow review when policy is clear and block unsafe changes only if evidence supports it user request must stay safe true false yes no a the system should allow review when policy is clear and block unsafe changes only if evidence supports it user request must stay",
+      "promptTokens": 64,
+      "outputTokens": 64,
+      "pairedComparable": true,
+      "invalidReason": null,
+      "parity": {
+        "schemaVersion": 1,
+        "status": "match",
+        "reason": null,
+        "exactMatch": true,
+        "normalizedMatch": true,
+        "charMismatchIndex": -1,
+        "tokenMatch": {
+          "leftTokenCount": 64,
+          "rightTokenCount": 64,
+          "matchingPrefixTokens": 64,
+          "firstMismatchTokenIndex": -1
+        },
+        "tokenIdMatch": {
+          "leftTokenCount": 64,
+          "rightTokenCount": 64,
+          "matchingPrefixTokens": 64,
+          "firstMismatchTokenIndex": -1,
+          "firstMismatch": null
+        },
+        "lengths": {
+          "dopplerChars": 344,
+          "transformersjsChars": 344
+        }
+      },
+      "releaseClaimable": true,
+      "doppler": {
+        "samples": 3,
+        "completeRequestMs": 2324.233333428701,
+        "firstTokenMs": 428.40000009536743,
+        "decodeTokensPerSecond": 33.43791888303219,
+        "minCompleteMs": 2139.7000002861023,
+        "maxCompleteMs": 2512.9000000953674
+      },
+      "transformersjs": {
+        "samples": 3,
+        "completeRequestMs": 6043.058333396912,
+        "firstTokenMs": 419.34833335876465,
+        "decodeTokensPerSecond": 11.202736405523446,
+        "minCompleteMs": 5982.0599999427795,
+        "maxCompleteMs": 6126.539999961853
+      }
+    },
+    {
+      "file": "compare_20261111T143941.json",
+      "model": "qwen-3-5-2b-q4k-ehaf16",
+      "mode": "throughput",
+      "prompt": "evidence supports it user request must stay safe true false yes no a the system should allow review when policy is clear and block unsafe changes only if evidence supports it user request must stay safe true false yes no a the system should allow review when policy is clear and block unsafe changes only if evidence supports it user request must stay",
+      "promptTokens": 64,
+      "outputTokens": 64,
+      "pairedComparable": true,
+      "invalidReason": null,
+      "parity": {
+        "schemaVersion": 1,
+        "status": "match",
+        "reason": null,
+        "exactMatch": true,
+        "normalizedMatch": true,
+        "charMismatchIndex": -1,
+        "tokenMatch": {
+          "leftTokenCount": 64,
+          "rightTokenCount": 64,
+          "matchingPrefixTokens": 64,
+          "firstMismatchTokenIndex": -1
+        },
+        "tokenIdMatch": {
+          "leftTokenCount": 64,
+          "rightTokenCount": 64,
+          "matchingPrefixTokens": 64,
+          "firstMismatchTokenIndex": -1,
+          "firstMismatch": null
+        },
+        "lengths": {
+          "dopplerChars": 344,
+          "transformersjsChars": 344
+        }
+      },
+      "releaseClaimable": true,
+      "doppler": {
+        "samples": 3,
+        "completeRequestMs": 6363.800000031789,
+        "firstTokenMs": 1189.666666507721,
+        "decodeTokensPerSecond": 12.17726923477989,
+        "minCompleteMs": 6222.599999904633,
+        "maxCompleteMs": 6450.800000190735
+      },
+      "transformersjs": {
+        "samples": 3,
+        "completeRequestMs": 6043.058333396912,
+        "firstTokenMs": 419.34833335876465,
+        "decodeTokensPerSecond": 11.202736405523446,
+        "minCompleteMs": 5982.0599999427795,
+        "maxCompleteMs": 6126.539999961853
+      }
+    },
+    {
+      "file": "compare_20261111T145037.json",
+      "model": "qwen-3-5-2b-q4k-ehaf16",
+      "mode": "parity",
+      "prompt": "evidence supports it user request must stay safe true false yes no a the system should allow review when policy is clear and block unsafe changes only if evidence supports it user request must stay safe true false yes no a the system should allow review when policy is clear and block unsafe changes only if evidence supports it user request must stay",
+      "promptTokens": 64,
+      "outputTokens": 64,
+      "pairedComparable": true,
+      "invalidReason": null,
+      "parity": {
+        "schemaVersion": 1,
+        "status": "match",
+        "reason": null,
+        "exactMatch": true,
+        "normalizedMatch": true,
+        "charMismatchIndex": -1,
+        "tokenMatch": {
+          "leftTokenCount": 64,
+          "rightTokenCount": 64,
+          "matchingPrefixTokens": 64,
+          "firstMismatchTokenIndex": -1
+        },
+        "tokenIdMatch": {
+          "leftTokenCount": 64,
+          "rightTokenCount": 64,
+          "matchingPrefixTokens": 64,
+          "firstMismatchTokenIndex": -1,
+          "firstMismatch": null
+        },
+        "lengths": {
+          "dopplerChars": 344,
+          "transformersjsChars": 344
+        }
+      },
+      "releaseClaimable": true,
+      "doppler": {
+        "samples": 3,
+        "completeRequestMs": 1827.4333333969116,
+        "firstTokenMs": 343.5,
+        "decodeTokensPerSecond": 42.45478177173545,
+        "minCompleteMs": 1826.8000001907349,
+        "maxCompleteMs": 1828
+      },
+      "transformersjs": {
+        "samples": 3,
+        "completeRequestMs": 1888.579999923706,
+        "firstTokenMs": 147.60999981562296,
+        "decodeTokensPerSecond": 36.191707242281225,
+        "minCompleteMs": 1865.4800000190735,
+        "maxCompleteMs": 1915.3399996757507
+      }
+    },
+    {
+      "file": "compare_20261111T145037.json",
+      "model": "qwen-3-5-2b-q4k-ehaf16",
+      "mode": "throughput",
+      "prompt": "evidence supports it user request must stay safe true false yes no a the system should allow review when policy is clear and block unsafe changes only if evidence supports it user request must stay safe true false yes no a the system should allow review when policy is clear and block unsafe changes only if evidence supports it user request must stay",
+      "promptTokens": 64,
+      "outputTokens": 64,
+      "pairedComparable": true,
+      "invalidReason": null,
+      "parity": {
+        "schemaVersion": 1,
+        "status": "match",
+        "reason": null,
+        "exactMatch": true,
+        "normalizedMatch": true,
+        "charMismatchIndex": -1,
+        "tokenMatch": {
+          "leftTokenCount": 64,
+          "rightTokenCount": 64,
+          "matchingPrefixTokens": 64,
+          "firstMismatchTokenIndex": -1
+        },
+        "tokenIdMatch": {
+          "leftTokenCount": 64,
+          "rightTokenCount": 64,
+          "matchingPrefixTokens": 64,
+          "firstMismatchTokenIndex": -1,
+          "firstMismatch": null
+        },
+        "lengths": {
+          "dopplerChars": 344,
+          "transformersjsChars": 344
+        }
+      },
+      "releaseClaimable": true,
+      "doppler": {
+        "samples": 3,
+        "completeRequestMs": 1762.0999997456868,
+        "firstTokenMs": 355.09999974568683,
+        "decodeTokensPerSecond": 44.779570317745424,
+        "minCompleteMs": 1747.2999997138977,
+        "maxCompleteMs": 1780.3999996185303
+      },
+      "transformersjs": {
+        "samples": 3,
+        "completeRequestMs": 1888.579999923706,
+        "firstTokenMs": 147.60999981562296,
+        "decodeTokensPerSecond": 36.191707242281225,
+        "minCompleteMs": 1865.4800000190735,
+        "maxCompleteMs": 1915.3399996757507
+      }
+    },
+    {
+      "file": "compare_20261111T145200.json",
+      "model": "qwen-3-5-2b-q4k-ehaf16",
+      "mode": "warm",
+      "prompt": "Explain why the sky is blue and why sunsets look red. Use a clear paragraph with at least eighty words.",
+      "promptTokens": 36,
+      "outputTokens": 64,
+      "pairedComparable": false,
+      "invalidReason": "prompt-rendering-not-shared",
+      "parity": {
+        "schemaVersion": 1,
+        "status": "mismatch",
+        "reason": null,
+        "exactMatch": false,
+        "normalizedMatch": false,
+        "charMismatchIndex": 31,
+        "tokenMatch": {
+          "leftTokenCount": 56,
+          "rightTokenCount": 55,
+          "matchingPrefixTokens": 5,
+          "firstMismatchTokenIndex": 5
+        },
+        "tokenIdMatch": {
+          "leftTokenCount": 64,
+          "rightTokenCount": 64,
+          "matchingPrefixTokens": 5,
+          "firstMismatchTokenIndex": 5,
+          "firstMismatch": {
+            "doppler": 1521,
+            "transformersjs": 4016
+          }
+        },
+        "lengths": {
+          "dopplerChars": 371,
+          "transformersjsChars": 365
+        }
+      },
+      "releaseClaimable": false,
+      "doppler": {
+        "samples": 3,
+        "completeRequestMs": 3887.3666667938232,
+        "firstTokenMs": 519.8666666348776,
+        "decodeTokensPerSecond": 18.803148023551046,
+        "minCompleteMs": 3553.300000190735,
+        "maxCompleteMs": 4213
+      },
+      "transformersjs": {
+        "samples": 3,
+        "completeRequestMs": 3322.936666647593,
+        "firstTokenMs": 271,
+        "decodeTokensPerSecond": 21.44236414001743,
+        "minCompleteMs": 2694.635000228882,
+        "maxCompleteMs": 3638.409999847412
+      }
+    },
+    {
+      "file": "compare_20261111T145329.json",
+      "model": "qwen-3-5-0-8b-q4k-ehaf16",
+      "mode": "warm",
+      "prompt": "Explain why the sky is blue and why sunsets look red. Use a clear paragraph with at least eighty words.",
+      "promptTokens": 36,
+      "outputTokens": 64,
+      "pairedComparable": false,
+      "invalidReason": "prompt-rendering-not-shared",
+      "parity": {
+        "schemaVersion": 1,
+        "status": "mismatch",
+        "reason": null,
+        "exactMatch": false,
+        "normalizedMatch": false,
+        "charMismatchIndex": 7,
+        "tokenMatch": {
+          "leftTokenCount": 55,
+          "rightTokenCount": 54,
+          "matchingPrefixTokens": 1,
+          "firstMismatchTokenIndex": 1
+        },
+        "tokenIdMatch": {
+          "leftTokenCount": 64,
+          "rightTokenCount": 64,
+          "matchingPrefixTokens": 2,
+          "firstMismatchTokenIndex": 2,
+          "firstMismatch": {
+            "doppler": 579,
+            "transformersjs": 7701
+          }
+        },
+        "lengths": {
+          "dopplerChars": 338,
+          "transformersjsChars": 324
+        }
+      },
+      "releaseClaimable": false,
+      "doppler": {
+        "samples": 3,
+        "completeRequestMs": 2743.233333428701,
+        "firstTokenMs": 316.70000012715656,
+        "decodeTokensPerSecond": 25.965315379690058,
+        "minCompleteMs": 2716.7000002861023,
+        "maxCompleteMs": 2766.5999999046326
+      },
+      "transformersjs": {
+        "samples": 3,
+        "completeRequestMs": 1302.1616667111714,
+        "firstTokenMs": 71.10166692733765,
+        "decodeTokensPerSecond": 51.216277068793374,
+        "minCompleteMs": 1264.9749999046326,
+        "maxCompleteMs": 1355.125
+      }
+    },
+    {
+      "file": "compare_20261111T145437.json",
+      "model": "qwen-3-5-0-8b-q4k-ehaf16",
+      "mode": "warm",
+      "prompt": "<|im_start|>user\nExplain why the sky is blue and why sunsets look red. Use a clear paragraph with at least eighty words.<|im_end|>\n<|im_start|>assistant\n<think>\n\n</think>\n\n",
+      "promptTokens": 36,
+      "outputTokens": 64,
+      "pairedComparable": false,
+      "invalidReason": "output-parity-mismatch",
+      "parity": {
+        "schemaVersion": 1,
+        "status": "mismatch",
+        "reason": null,
+        "exactMatch": false,
+        "normalizedMatch": false,
+        "charMismatchIndex": 7,
+        "tokenMatch": {
+          "leftTokenCount": 55,
+          "rightTokenCount": 54,
+          "matchingPrefixTokens": 1,
+          "firstMismatchTokenIndex": 1
+        },
+        "tokenIdMatch": {
+          "leftTokenCount": 64,
+          "rightTokenCount": 64,
+          "matchingPrefixTokens": 2,
+          "firstMismatchTokenIndex": 2,
+          "firstMismatch": {
+            "doppler": 579,
+            "transformersjs": 7701
+          }
+        },
+        "lengths": {
+          "dopplerChars": 338,
+          "transformersjsChars": 324
+        }
+      },
+      "releaseClaimable": false,
+      "doppler": {
+        "samples": 3,
+        "completeRequestMs": 2414.833333492279,
+        "firstTokenMs": 271.9333333969116,
+        "decodeTokensPerSecond": 29.417647991352155,
+        "minCompleteMs": 2346.9000000953674,
+        "maxCompleteMs": 2533.800000190735
+      },
+      "transformersjs": {
+        "samples": 3,
+        "completeRequestMs": 4157.193333148956,
+        "firstTokenMs": 148.90666659673056,
+        "decodeTokensPerSecond": 15.722402798652572,
+        "minCompleteMs": 4110.369999885559,
+        "maxCompleteMs": 4236.7699999809265
+      }
+    },
+    {
+      "file": "compare_20261111T145659.json",
+      "model": "qwen-3-5-2b-q4k-ehaf16",
+      "mode": "warm",
+      "prompt": "<|im_start|>user\nExplain why the sky is blue and why sunsets look red. Use a clear paragraph with at least eighty words.<|im_end|>\n<|im_start|>assistant\n<think>\n\n</think>\n\n",
+      "promptTokens": 36,
+      "outputTokens": 64,
+      "pairedComparable": false,
+      "invalidReason": "output-parity-mismatch",
+      "parity": {
+        "schemaVersion": 1,
+        "status": "mismatch",
+        "reason": null,
+        "exactMatch": false,
+        "normalizedMatch": false,
+        "charMismatchIndex": 31,
+        "tokenMatch": {
+          "leftTokenCount": 56,
+          "rightTokenCount": 55,
+          "matchingPrefixTokens": 5,
+          "firstMismatchTokenIndex": 5
+        },
+        "tokenIdMatch": {
+          "leftTokenCount": 64,
+          "rightTokenCount": 64,
+          "matchingPrefixTokens": 5,
+          "firstMismatchTokenIndex": 5,
+          "firstMismatch": {
+            "doppler": 1521,
+            "transformersjs": 4016
+          }
+        },
+        "lengths": {
+          "dopplerChars": 371,
+          "transformersjsChars": 365
+        }
+      },
+      "releaseClaimable": false,
+      "doppler": {
+        "samples": 3,
+        "completeRequestMs": 2589.966666698456,
+        "firstTokenMs": 333.99999984105426,
+        "decodeTokensPerSecond": 28.172863929806343,
+        "minCompleteMs": 2259.1000003814697,
+        "maxCompleteMs": 2846.9000000953674
+      },
+      "transformersjs": {
+        "samples": 3,
+        "completeRequestMs": 2341.768333276113,
+        "firstTokenMs": 162.8366667429606,
+        "decodeTokensPerSecond": 29.21332043008472,
+        "minCompleteMs": 2122.2749996185303,
+        "maxCompleteMs": 2639.585000038147
+      }
+    }
+  ],
+  "native": [
+    {
+      "file": "qwen0.8B-llamacpp-metal-natural.json",
+      "error": null,
+      "serverVersion": "",
+      "exactTokenMatch": false,
+      "samples": 3,
+      "completeRequestMs": 716.3266806666664,
+      "firstTokenMs": 45.014111333333254,
+      "decodeTokensPerSecond": 94.17590121233836,
+      "minCompleteMs": 683.0096249999988,
+      "maxCompleteMs": 761.4829580000005
+    },
+    {
+      "file": "qwen08-llamacpp-metal-repeat.json",
+      "error": null,
+      "serverVersion": "",
+      "exactTokenMatch": true,
+      "samples": 3,
+      "completeRequestMs": 784.3508473333335,
+      "firstTokenMs": 66.64737500000008,
+      "decodeTokensPerSecond": 87.89418004664265,
+      "minCompleteMs": 752.9960420000002,
+      "maxCompleteMs": 807.0786250000001
+    },
+    {
+      "file": "qwen08-llamacpp-metal.json",
+      "error": null,
+      "serverVersion": "",
+      "exactTokenMatch": true,
+      "samples": 3,
+      "completeRequestMs": 2003.3485973333347,
+      "firstTokenMs": 153.06140266666748,
+      "decodeTokensPerSecond": 36.59700743484177,
+      "minCompleteMs": 1431.0125420000004,
+      "maxCompleteMs": 2663.6092500000013
+    },
+    {
+      "file": "qwen27-llamacpp-vulkan-initial.json",
+      "error": null,
+      "serverVersion": "",
+      "exactTokenMatch": false,
+      "samples": 3,
+      "completeRequestMs": 5400.4587693333315,
+      "firstTokenMs": 376.35184666666584,
+      "decodeTokensPerSecond": 12.54092017790773,
+      "minCompleteMs": 5340.768203,
+      "maxCompleteMs": 5440.909415999999
+    },
+    {
+      "file": "qwen27-llamacpp-vulkan.json",
+      "error": null,
+      "serverVersion": "",
+      "exactTokenMatch": false,
+      "samples": 3,
+      "completeRequestMs": 5392.595457333333,
+      "firstTokenMs": 368.63761366666705,
+      "decodeTokensPerSecond": 12.541052876695893,
+      "minCompleteMs": 5340.011030999998,
+      "maxCompleteMs": 5433.4640660000005
+    },
+    {
+      "file": "qwen2B-llamacpp-metal-natural.json",
+      "error": null,
+      "serverVersion": "",
+      "exactTokenMatch": false,
+      "samples": 3,
+      "completeRequestMs": 1413.244833,
+      "firstTokenMs": 92.97012500000012,
+      "decodeTokensPerSecond": 47.798029400896915,
+      "minCompleteMs": 1343.0480830000001,
+      "maxCompleteMs": 1480.3778750000001
+    },
+    {
+      "file": "qwen2b-llamacpp-metal.json",
+      "error": null,
+      "serverVersion": "",
+      "exactTokenMatch": true,
+      "samples": 3,
+      "completeRequestMs": 1379.4647360000006,
+      "firstTokenMs": 122.48493033333337,
+      "decodeTokensPerSecond": 50.16783683435083,
+      "minCompleteMs": 1348.4666250000005,
+      "maxCompleteMs": 1399.5915409999998
+    }
+  ],
+  "largeModel": {
+    "inputTokensMatch": true,
+    "dopplerNativeMatchingPrefix": 64,
+    "dopplerOnnxMatchingPrefix": 4,
+    "doppler": {
+      "samples": 3,
+      "completeRequestMs": 8392.50284466667,
+      "firstTokenMs": 757.6850976666707,
+      "decodeTokensPerSecond": 8.25546120660326,
+      "minCompleteMs": 8336.291431999998,
+      "maxCompleteMs": 8467.403342999998
+    },
+    "onnx": {
+      "samples": 3,
+      "completeRequestMs": 8328.499999960264,
+      "firstTokenMs": 571.7333333492279,
+      "decodeTokensPerSecond": 8.121948136002167,
+      "minCompleteMs": 8303.5,
+      "maxCompleteMs": 8358.899999976158
+    },
+    "claimBoundary": "Doppler Node/WebGPU, ONNX browser/WebGPU, llama.cpp Vulkan; different quantized artifacts. Short-prompt evidence only; no Flash-Next qualification."
+  }
+}

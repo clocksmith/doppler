@@ -1,0 +1,31 @@
+doppler-generation-evidence.test: ok
+doppler-generation-evidence constraints: ok
+doppler-generation-evidence inspection streaming: ok
+doppler-generation-evidence probability streaming: ok
+doppler-generation-evidence exact-prefix replay: ok
+node:internal/modules/run_main:123
+    triggerUncaughtException(
+    ^
+
+AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
++ actual - expected
+
+  {
++   rowCount: 1,
+-   rowCount: 2,
+    values: [
+      1,
+      2,
+      3,
+      4
+
+    at file:///Users/xyz/deco/doppler/tests/integration/doppler-generation-evidence.test.js:575:10 {
+  generatedMessage: true,
+  code: 'ERR_ASSERTION',
+  actual: { values: [ 1, 2, 3, 4 ], rowCount: 1 },
+  expected: { values: [ 1, 2, 3, 4 ], rowCount: 2 },
+  operator: 'deepStrictEqual',
+  diff: 'simple'
+}
+
+Node.js v22.20.0

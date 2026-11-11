@@ -1,0 +1,24 @@
+[
+  {
+    "id": "unsloth/Qwen3.8-27B-GGUF",
+    "status": 200,
+    "revision": "acb953b129cc8c4f412388eef58489503e5eabe8",
+    "ggufs": [
+      {
+        "rfilename": "Qwen3.8-27B-UD-Q4_K_M.gguf"
+      }
+    ]
+  },
+  {
+    "id": "onnx-community/Qwen3.8-27B-ONNX-OPT",
+    "status": 401,
+    "revision": null,
+    "ggufs": []
+  },
+  {
+    "id": "onnx-community/Qwen3.8-27B-ONNX",
+    "status": 401,
+    "revision": null,
+    "ggufs": []
+  }
+]

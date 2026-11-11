@@ -1,0 +1,401 @@
+{
+ "schema": "doppler.observatory.projection-check/v1",
+ "startedAt": "2026-11-11T14:25:08.310Z",
+ "device": {
+  "adapter": {
+   "vendor": "apple",
+   "architecture": "metal-3"
+  },
+  "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/145.0.7632.6 Safari/537.36"
+ },
+ "runtime": {
+  "version": "0.7.2",
+  "sourceCommit": "773b5cc4cfeff74d5ddba601b834f6ce7b243bfa"
+ },
+ "models": [
+  {
+   "modelId": "gemma-3-1b-it-q4k-ehf16-af32",
+   "version": "0.7.2",
+   "adapter": {
+    "vendor": "apple",
+    "architecture": "metal-3"
+   },
+   "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/145.0.7632.6 Safari/537.36",
+   "prompts": [
+    {
+     "prompt": "Explain in one short paragraph why the sky is blue.",
+     "outputText": "The sky’s blue color is due to a phenomenon called Rayleigh scattering. Sunlight",
+     "tokens": 16,
+     "layers": 26,
+     "width": 1152,
+     "activationDtype": "f32",
+     "projectable": 16,
+     "lastLayerBatchMs": 244,
+     "vocabSize": 262144,
+     "agree": 16,
+     "maxProbabilityGap": 0.000003541900570835921,
+     "disagreements": [],
+     "gpu": {
+      "beforeBytes": 2064817408,
+      "mostSampledBytes": 2146606336,
+      "afterBytes": 2119015680,
+      "lifetimePeakBefore": 2081856768,
+      "lifetimePeakAfter": 2146606336
+     },
+     "stackProjectionMs": [
+      537.0999999046326,
+      356.30000019073486,
+      356
+     ],
+     "jsHeapDeltaBytes": 0,
+     "transientLogitBytes": 27262976,
+     "wallMs": 1583
+    },
+    {
+     "prompt": "List three prime numbers greater than ten.",
+     "outputText": "Here are three prime numbers greater than ten:\n\n*   11\n*",
+     "tokens": 16,
+     "layers": 26,
+     "width": 1152,
+     "activationDtype": "f32",
+     "projectable": 16,
+     "lastLayerBatchMs": 257.8999996185303,
+     "vocabSize": 262144,
+     "agree": 16,
+     "maxProbabilityGap": 0.0000014618942252297984,
+     "disagreements": [],
+     "gpu": {
+      "beforeBytes": 2118851072,
+      "mostSampledBytes": 2146114048,
+      "afterBytes": 2118851072,
+      "lifetimePeakBefore": 2146606336,
+      "lifetimePeakAfter": 2146606336
+     },
+     "stackProjectionMs": [
+      414.59999990463257,
+      269.59999990463257,
+      271.40000009536743
+     ],
+     "jsHeapDeltaBytes": 0,
+     "transientLogitBytes": 27262976,
+     "wallMs": 1030.6000003814697
+    },
+    {
+     "prompt": "Write one sentence about a cat who learns to swim.",
+     "outputText": "With a determined wiggle and a hopeful meow, a sleek black cat finally conquered",
+     "tokens": 16,
+     "layers": 26,
+     "width": 1152,
+     "activationDtype": "f32",
+     "projectable": 16,
+     "lastLayerBatchMs": 251.09999990463257,
+     "vocabSize": 262144,
+     "agree": 16,
+     "maxProbabilityGap": 0.0000019087125999739385,
+     "disagreements": [],
+     "gpu": {
+      "beforeBytes": 2118883584,
+      "mostSampledBytes": 2146146560,
+      "afterBytes": 2118883584,
+      "lifetimePeakBefore": 2146606336,
+      "lifetimePeakAfter": 2146606336
+     },
+     "stackProjectionMs": [
+      425.80000019073486,
+      323.19999980926514,
+      339.19999980926514
+     ],
+     "jsHeapDeltaBytes": 0,
+     "transientLogitBytes": 27262976,
+     "wallMs": 1020.5
+    },
+    {
+     "prompt": "Translate \"good morning\" into French and Spanish.",
+     "outputText": "Here's the translation of \"good morning\" into French and Spanish:\n\n",
+     "tokens": 16,
+     "layers": 26,
+     "width": 1152,
+     "activationDtype": "f32",
+     "projectable": 16,
+     "lastLayerBatchMs": 270,
+     "vocabSize": 262144,
+     "agree": 16,
+     "maxProbabilityGap": 0.0000010822164432378045,
+     "disagreements": [],
+     "gpu": {
+      "beforeBytes": 2118883584,
+      "mostSampledBytes": 2146146560,
+      "afterBytes": 2118883584,
+      "lifetimePeakBefore": 2146606336,
+      "lifetimePeakAfter": 2146606336
+     },
+     "stackProjectionMs": [
+      331.5,
+      425.5,
+      306.7000002861023
+     ],
+     "jsHeapDeltaBytes": 0,
+     "transientLogitBytes": 27262976,
+     "wallMs": 1110.6000003814697
+    }
+   ],
+   "loadMs": 6843.400000095367
+  },
+  {
+   "modelId": "gemma-3-270m-it-q4k-ehf16-af32",
+   "version": "0.7.2",
+   "adapter": {
+    "vendor": "apple",
+    "architecture": "metal-3"
+   },
+   "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/145.0.7632.6 Safari/537.36",
+   "prompts": [
+    {
+     "prompt": "Explain in one short paragraph why the sky is blue.",
+     "outputText": "The sky is blue because of a phenomenon called Rayleigh scattering. Sunlight's shorter",
+     "tokens": 16,
+     "layers": 18,
+     "width": 640,
+     "activationDtype": "f32",
+     "projectable": 16,
+     "lastLayerBatchMs": 219,
+     "vocabSize": 262144,
+     "agree": 16,
+     "maxProbabilityGap": 0.0000018439234361622425,
+     "disagreements": [],
+     "gpu": {
+      "beforeBytes": 584346112,
+      "mostSampledBytes": 640969216,
+      "afterBytes": 621963776,
+      "lifetimePeakBefore": 2146606336,
+      "lifetimePeakAfter": 2146606336
+     },
+     "stackProjectionMs": [
+      222.89999961853027,
+      287.6000003814697,
+      211.89999961853027
+     ],
+     "jsHeapDeltaBytes": 0,
+     "transientLogitBytes": 18874368,
+     "wallMs": 772.7999997138977
+    },
+    {
+     "prompt": "List three prime numbers greater than ten.",
+     "outputText": "Three prime numbers greater than ten are 11, 13, and",
+     "tokens": 16,
+     "layers": 18,
+     "width": 640,
+     "activationDtype": "f32",
+     "projectable": 16,
+     "lastLayerBatchMs": 184.5,
+     "vocabSize": 262144,
+     "agree": 16,
+     "maxProbabilityGap": 8.129829074388084e-7,
+     "disagreements": [],
+     "gpu": {
+      "beforeBytes": 622086400,
+      "mostSampledBytes": 640960768,
+      "afterBytes": 622086400,
+      "lifetimePeakBefore": 2146606336,
+      "lifetimePeakAfter": 2146606336
+     },
+     "stackProjectionMs": [
+      204.09999990463257,
+      192.09999990463257,
+      267.7000002861023
+     ],
+     "jsHeapDeltaBytes": 0,
+     "transientLogitBytes": 18874368,
+     "wallMs": 689.6999998092651
+    },
+    {
+     "prompt": "Write one sentence about a cat who learns to swim.",
+     "outputText": "A cat who learns to swim is a hero who overcomes fear and embraces the thrill",
+     "tokens": 16,
+     "layers": 18,
+     "width": 640,
+     "activationDtype": "f32",
+     "projectable": 16,
+     "lastLayerBatchMs": 208.09999990463257,
+     "vocabSize": 262144,
+     "agree": 16,
+     "maxProbabilityGap": 0.0000013645881281609817,
+     "disagreements": [],
+     "gpu": {
+      "beforeBytes": 622086400,
+      "mostSampledBytes": 640960768,
+      "afterBytes": 622086400,
+      "lifetimePeakBefore": 2146606336,
+      "lifetimePeakAfter": 2146606336
+     },
+     "stackProjectionMs": [
+      212.7000002861023,
+      224.59999990463257,
+      222.59999990463257
+     ],
+     "jsHeapDeltaBytes": 0,
+     "transientLogitBytes": 18874368,
+     "wallMs": 661.9000000953674
+    },
+    {
+     "prompt": "Translate \"good morning\" into French and Spanish.",
+     "outputText": "The most common and appropriate translation of \"good morning\" is:\n\n* **",
+     "tokens": 16,
+     "layers": 18,
+     "width": 640,
+     "activationDtype": "f32",
+     "projectable": 16,
+     "lastLayerBatchMs": 212.2000002861023,
+     "vocabSize": 262144,
+     "agree": 16,
+     "maxProbabilityGap": 0.0000010144657505151145,
+     "disagreements": [],
+     "gpu": {
+      "beforeBytes": 622086400,
+      "mostSampledBytes": 640960768,
+      "afterBytes": 622086400,
+      "lifetimePeakBefore": 2146606336,
+      "lifetimePeakAfter": 2146606336
+     },
+     "stackProjectionMs": [
+      219.30000019073486,
+      256.69999980926514,
+      298.19999980926514
+     ],
+     "jsHeapDeltaBytes": 0,
+     "transientLogitBytes": 18874368,
+     "wallMs": 676.7999997138977
+    }
+   ],
+   "loadMs": 10178
+  },
+  {
+   "modelId": "qwen-3-5-0-8b-q4k-ehaf16",
+   "version": "0.7.2",
+   "adapter": {
+    "vendor": "apple",
+    "architecture": "metal-3"
+   },
+   "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/145.0.7632.6 Safari/537.36",
+   "prompts": [
+    {
+     "prompt": "Explain in one short paragraph why the sky is blue.",
+     "outputText": "The sky appears blue due to a phenomenon called Rayleigh scattering, where shorter wavelengths",
+     "tokens": 16,
+     "layers": 24,
+     "width": 1024,
+     "activationDtype": "f32",
+     "projectable": 16,
+     "lastLayerBatchMs": 1169,
+     "vocabSize": 248320,
+     "agree": 16,
+     "maxProbabilityGap": 0.0000014130733750894464,
+     "disagreements": [],
+     "gpu": {
+      "beforeBytes": 999111168,
+      "mostSampledBytes": 1070676480,
+      "afterBytes": 1046559232,
+      "lifetimePeakBefore": 2146606336,
+      "lifetimePeakAfter": 2146606336
+     },
+     "stackProjectionMs": [
+      903.3000001907349,
+      773.2999997138977,
+      740.7000002861023
+     ],
+     "jsHeapDeltaBytes": 0,
+     "transientLogitBytes": 23838720,
+     "wallMs": 2986.4000000953674
+    },
+    {
+     "prompt": "List three prime numbers greater than ten.",
+     "outputText": "Here are three prime numbers greater than ten:\n\n1. **11**",
+     "tokens": 16,
+     "layers": 24,
+     "width": 1024,
+     "activationDtype": "f32",
+     "projectable": 16,
+     "lastLayerBatchMs": 666.2000002861023,
+     "vocabSize": 248320,
+     "agree": 16,
+     "maxProbabilityGap": 9.430355786266276e-7,
+     "disagreements": [],
+     "gpu": {
+      "beforeBytes": 1048815360,
+      "mostSampledBytes": 1072670464,
+      "afterBytes": 1048815360,
+      "lifetimePeakBefore": 2146606336,
+      "lifetimePeakAfter": 2146606336
+     },
+     "stackProjectionMs": [
+      807.2999997138977,
+      987.7000002861023,
+      860.9000000953674
+     ],
+     "jsHeapDeltaBytes": 0,
+     "transientLogitBytes": 23838720,
+     "wallMs": 1754.2000002861023
+    },
+    {
+     "prompt": "Write one sentence about a cat who learns to swim.",
+     "outputText": "A cat who learns to swim uses a clever trick of balancing on a floating rock",
+     "tokens": 16,
+     "layers": 24,
+     "width": 1024,
+     "activationDtype": "f32",
+     "projectable": 16,
+     "lastLayerBatchMs": 516.9000000953674,
+     "vocabSize": 248320,
+     "agree": 16,
+     "maxProbabilityGap": 0.0000012503014248377298,
+     "disagreements": [],
+     "gpu": {
+      "beforeBytes": 1049124352,
+      "mostSampledBytes": 1072979456,
+      "afterBytes": 1049124352,
+      "lifetimePeakBefore": 2146606336,
+      "lifetimePeakAfter": 2146606336
+     },
+     "stackProjectionMs": [
+      888.2000002861023,
+      809.5999999046326,
+      640.5999999046326
+     ],
+     "jsHeapDeltaBytes": 0,
+     "transientLogitBytes": 23838720,
+     "wallMs": 1328
+    },
+    {
+     "prompt": "Translate \"good morning\" into French and Spanish.",
+     "outputText": "**French:** \"Bon matin\"\n**Spanish:** \"Buenos días",
+     "tokens": 16,
+     "layers": 24,
+     "width": 1024,
+     "activationDtype": "f32",
+     "projectable": 16,
+     "lastLayerBatchMs": 537.7000002861023,
+     "vocabSize": 248320,
+     "agree": 16,
+     "maxProbabilityGap": 0.0000012352126077808112,
+     "disagreements": [],
+     "gpu": {
+      "beforeBytes": 1048921600,
+      "mostSampledBytes": 1072776704,
+      "afterBytes": 1048921600,
+      "lifetimePeakBefore": 2146606336,
+      "lifetimePeakAfter": 2146606336
+     },
+     "stackProjectionMs": [
+      771.2999997138977,
+      917.1000003814697,
+      689.5999999046326
+     ],
+     "jsHeapDeltaBytes": 0,
+     "transientLogitBytes": 23838720,
+     "wallMs": 1072.6999998092651
+    }
+   ],
+   "loadMs": 25939.900000095367
+  }
+ ]
+}

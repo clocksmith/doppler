@@ -1,0 +1,114 @@
+TAP version 13
+# inspection-contract.test: ok
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 0.515333
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 60.3895
+[node-tests] ok: tests/client/inspection-contract.test.js
+TAP version 13
+# refresh-converted-manifest-tokenizer.test: ok
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 0.515208
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 215.042125
+[node-tests] ok: tests/config/refresh-converted-manifest-tokenizer.test.js
+TAP version 13
+# refresh-converted-manifest.test: ok
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 0.574042
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 177.522041
+[node-tests] ok: tests/config/refresh-converted-manifest.test.js
+TAP version 13
+# Subtest: every exposed pipeline method declares ownership
+ok 1 - every exposed pipeline method declares ownership
+  ---
+  duration_ms: 0.991084
+  type: 'test'
+  ...
+# Subtest: ordinary promise functions and wrapped iterators retain one owner through aliases
+ok 2 - ordinary promise functions and wrapped iterators retain one owner through aliases
+  ---
+  duration_ms: 5.272417
+  type: 'test'
+  ...
+# Subtest: embedding batch scheduling releases compatibility scope between explicit execution calls
+ok 3 - embedding batch scheduling releases compatibility scope between explicit execution calls
+  ---
+  duration_ms: 3.832458
+  type: 'test'
+  ...
+# Subtest: standalone batch scheduler needs only request and execution ports and honors cancellation
+ok 4 - standalone batch scheduler needs only request and execution ports and honors cancellation
+  ---
+  duration_ms: 0.119167
+  type: 'test'
+  ...
+# Subtest: test module initialization completed
+ok 5 - test module initialization completed
+  ---
+  duration_ms: 0.045417
+  type: 'test'
+  ...
+1..5
+# tests 5
+# suites 0
+# pass 5
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 342.679166
+[node-tests] ok: tests/inference/pipeline-operation-contract.test.js
+TAP version 13
+# rdrr-shard-hash-migration.test: ok
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 0.635084
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 174.497625
+[node-tests] ok: tests/tooling/rdrr-shard-hash-migration.test.js
+[node-tests] ok: 5 files

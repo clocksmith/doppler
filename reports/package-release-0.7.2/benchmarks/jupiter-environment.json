@@ -1,0 +1,11 @@
+{
+  "uname": "Linux jupiter 7.0.0-42-generic #42-Ubuntu SMP PREEMPT_DYNAMIC Thu Oct 15 08:06:44 UTC 2026 x86_64 GNU/Linux",
+  "browser": "Google Chrome 146.0.7680.177",
+  "node": "v22.22.1",
+  "llamaSource": "cd959bae99ff4bed22bef2604f45241c09bbb8c8",
+  "llamaSourceStatus": "",
+  "llamaBinary": "e12c063eaf1ba72f8f84c0171a2461dcfba5be1fa567f40c6bc4dc2ee4da6cc4  native/build/bin/llama-server",
+  "protectedProcesses": "PID     ELAPSED %CPU STAT\n 204252  1-16:39:28  120 RNl\n1259994  3-13:26:26  120 Rsl",
+  "memory": "total        used        free      shared  buff/cache   available\nMem:           122Gi        36Gi        66Gi       8.1Mi        20Gi        86Gi\nSwap:          8.0Gi       6.2Gi       1.8Gi",
+  "webgpuPackage": "0.4.0"
+}

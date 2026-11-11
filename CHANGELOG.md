@@ -4,6 +4,41 @@ Historical package notes are preserved outside the runtime archive in
 `docs/status/archive/package-changelog-through-0.6.1.md` and the earlier
 `package-changelog-through-0.4.15.md` snapshot in that directory.
 
+## [0.7.2] - 2026-11-11
+
+### Added
+
+- `model.inspect.projectLayerOutputs({ vectors, topK })` projects recorded
+  hidden states through the loaded model's final normalization and output head.
+  It returns vocabulary-normalized probabilities explicitly labeled
+  `projected`. Intermediate projections are an inspection aid, not generated
+  tokens or evidence of causation. Hyper-connection and paired-precision plans
+  fail explicitly. Calls accept at most 64 vectors and 64 candidates per row.
+
+### Fixed
+
+- Projection requests snapshot both vector values and row count before waiting
+  for execution. Mutating the caller's vector array cannot change an admitted
+  request's shape.
+
+### Limits
+
+- Projection reads back a full vocabulary row for each input vector; recording
+  and projection costs are separate from uninstrumented inference performance.
+- Flash-Next's 2,187-token full-logit gate remains failing and unqualified.
+  This release does not fix or relax that gate.
+
+### Comparison evidence
+
+- The release report includes Qwen 3.5 0.8B and 2B on Apple M3 against
+  Transformers.js 4.3.2 / ONNX Runtime WebGPU and llama.cpp, plus Qwen3.8 27B
+  on Jupiter against direct ONNX Runtime WebGPU and llama.cpp Vulkan.
+  It retains exact prompts, artifact identities, outputs, load times and
+  complete-request timings. Host variability and output mismatches prevent a
+  general speed or quality claim; native llama.cpp remains ahead on the
+  retained matched-output workloads. See
+  [the release evidence](https://github.com/clocksmith/doppler/tree/main/reports/package-release-0.7.2).
+
 ## [0.7.1] - 2026-11-11
 
 Patch release. Published bytes for 0.7.0 are unchanged.

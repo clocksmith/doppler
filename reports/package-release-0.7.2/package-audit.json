@@ -1,0 +1,109 @@
+{
+  "schema": "doppler.package-audit/v1",
+  "baseline": {
+    "version": "0.7.1",
+    "packedBytes": 3694298,
+    "unpackedBytes": 15759031,
+    "files": 1933
+  },
+  "candidate": {
+    "version": "0.7.2",
+    "packedBytes": 3697580,
+    "unpackedBytes": 15769508,
+    "files": 1936,
+    "integrity": "sha512-k2KmjwIDOCI7JfZdkND4335gAzYP7s30aL7V5VCdFZ8nZKrMhaIGNxPryCRogOKVBM2ASW30um7GcJ3bBHTkDQ==",
+    "shasum": "19a6d089a070ec2afeb988e50c345d857bc165dd"
+  },
+  "added": [
+    "src/client/model-host/layer-projection.js",
+    "src/inference/pipelines/text/generator/hidden-projection.d.ts",
+    "src/inference/pipelines/text/generator/hidden-projection.js"
+  ],
+  "removed": [],
+  "changed": [
+    {
+      "path": "CHANGELOG.md",
+      "oldBytes": 7741,
+      "newBytes": 9331,
+      "oldSha256": "8b13c564b051eb77cbdb3848808a96e6cbe8ef8617ad3fd356cdaf9c08cb35e3",
+      "newSha256": "68178d8b3748d170ef4216277ed2de91770728a0d55d2fbb69002096e4669096"
+    },
+    {
+      "path": "README.md",
+      "oldBytes": 3712,
+      "newBytes": 4178,
+      "oldSha256": "a5c784b964043a18f039879d926053c56177e15cb9ecdbab294fc0678dc0905a",
+      "newSha256": "d6045330cd845389971afd06678a91bc231239ecda50e8c3418019b5aa465717"
+    },
+    {
+      "path": "package.json",
+      "oldBytes": 26041,
+      "newBytes": 26041,
+      "oldSha256": "990193c8e957b87b44fece227b5a18e0bbb2b7af1cb87261385fd83f8140e60c",
+      "newSha256": "f0234c16286867b5f3446a595f7cf4f4a673a0d0ca036169418d2907494a0f98"
+    },
+    {
+      "path": "src/client/inspection.d.ts",
+      "oldBytes": 4382,
+      "newBytes": 5388,
+      "oldSha256": "4f4b8b9ef108617e7f93cf734108942d86c656846303a0ecc57d8054868df097",
+      "newSha256": "375dd7f18b2c68b6edad1d124805e45a92a1494df8329c15cda901b6399c3f98"
+    },
+    {
+      "path": "src/client/inspection.js",
+      "oldBytes": 13268,
+      "newBytes": 13582,
+      "oldSha256": "c0cd02a5c462f0113d04c9a59b4cf3ace83cc73c3db063e4e5201c52eefe3bd5",
+      "newSha256": "ebe60e87ed00edc546925de2d52eea9937d40457fb90d5f68a3f63e07361d108"
+    },
+    {
+      "path": "src/client/model-host/model-session.d.ts",
+      "oldBytes": 14079,
+      "newBytes": 14729,
+      "oldSha256": "0e434951fc5fa9a1dd9b7f4479cdfa876eaa10b1cc16b047939e0d71218ff588",
+      "newSha256": "28cd2c2ac6f2f4175e55e511e966a7cdb1fa7ce1458e713600d3ec2cfa4184af"
+    },
+    {
+      "path": "src/client/model-host/model-session.js",
+      "oldBytes": 30345,
+      "newBytes": 30519,
+      "oldSha256": "cae95a85824cf51bf31dab3245f978ae15a9f713bd1b588d94f3f7c23b430144",
+      "newSha256": "e7359b920761beac1d8663e90692f74ce4af7cc01d2f28ae06611e7e5c07c136"
+    },
+    {
+      "path": "src/inference/pipelines/shader-scoped-pipeline.js",
+      "oldBytes": 12449,
+      "newBytes": 12485,
+      "oldSha256": "5b6eb05ebf4aec739a198e8f70177efbdbc613a88229dfbcba9a9d6be1d2c4ee",
+      "newSha256": "dfd3aa291b38fe2f504108bab6a5300b9744fa0b8eb8a2c102dc8d8855b281e7"
+    },
+    {
+      "path": "src/inference/pipelines/text/generator.js",
+      "oldBytes": 22054,
+      "newBytes": 22285,
+      "oldSha256": "952909b2090966832830f6aa9e860582f329fbb5e99b54db31f761967943883d",
+      "newSha256": "29b2ae3a2f78378affaf84887d65194ad7f68066620256a19d37c3fc159ac710"
+    },
+    {
+      "path": "src/inference/pipelines/text/pipeline.d.ts",
+      "oldBytes": 9089,
+      "newBytes": 9521,
+      "oldSha256": "daab0b476fb78f6ff742a094e44421996de1d73b0084a193c0b78563476a7d10",
+      "newSha256": "940cd00851823db9948a01bd51d8e87e95752e00b3b7b6ddf2914ddd248459fd"
+    },
+    {
+      "path": "src/inference/pipelines/text/pipeline.js",
+      "oldBytes": 24888,
+      "newBytes": 25012,
+      "oldSha256": "b27aecd592dd504d1ae426e3f8bc7d2d9420abb3ac8e2f6a2e964808952cb587",
+      "newSha256": "bea5ee4fa946869925d7f65ecd7e1456c3a4b1a66854ae745ad751bc0328eb31"
+    },
+    {
+      "path": "src/version.js",
+      "oldBytes": 97,
+      "newBytes": 97,
+      "oldSha256": "419fa86924c80bda385d7da2f63fe83ea88e8c612a93b8ecdb4c3d0075aab3a2",
+      "newSha256": "2d373eef959bbeff47ce85d484c04e3ba4f24bbc4e49c128e57996fd6190ce8f"
+    }
+  ]
+}

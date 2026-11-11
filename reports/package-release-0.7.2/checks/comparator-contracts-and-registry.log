@@ -1,0 +1,42 @@
+TAP version 13
+# transformersjs-contract.test: ok
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 0.583
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 48.134541
+[node-tests] ok: tests/benchmarks/transformersjs-contract.test.js
+TAP version 13
+# compare-engines-cli-contract.test: ok
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 0.460833
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 2083.033042
+[node-tests] ok: tests/config/compare-engines-cli-contract.test.js
+[node-tests] ok: 2 files
+
+> doppler-gpu@0.7.2 bench:vendors:validate
+> node tools/vendor-bench.js validate
+
+[vendor-bench] local-inference-claim-matrix lanes[1] (gemma-3-1b-it-q4k-rdrr).artifact.manifestSha256 mismatch for models/local/gemma-3-1b-it-q4k-ehf16-af32/manifest.json (expected 734f8d68925581ef8ed9a8363dc887c8ad13ffb9d4ba146746d74fcca6549c65, current 733a275b4c46e36d9c69c1d7aa0f8c7edfe05c2273e43fe0c2a6d7749ec6e2aa)

@@ -1,0 +1,6 @@
+{
+  "tools/compare-engines.js": "531c29c72825bfb6ad21a570c2ef0bbe3da873044999700f54415b844b2932a6",
+  "benchmarks/runners/transformersjs-runner.html": "5da90c637faafb1d3631b83fe493927f361288d0ed7a9cf8e96c7a4603192ae0",
+  "benchmarks/vendors/compare-engines.config.json": "e5fe25fab334d63a65e724daeeae94bafab7e5c494ce289fddd634deaae9749b",
+  "package-lock.json": "be540781e5fbcff6e18c1dab9129cb8597b29283f82e97c4263400eea96f1197"
+}

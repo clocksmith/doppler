@@ -1,0 +1,57 @@
+0.00.043.343 I srv  llama_server: initializing ...
+0.00.043.358 I cmn  common_param: common_params_print_info: verbosity = 3 (adjust with the `-lv N` CLI arg)
+0.00.043.650 W srv  server_setup: security: no API key is set and CORS allows all origins (see https://github.com/ggml-org/llama.cpp/pull/25655)
+0.00.045.391 I srv    load_model: loading model 'native/Qwen3.8-27B-UD-Q4_K_M.gguf'
+0.00.456.627 W model has unused tensor blk.64.attn_norm.weight (size = 20480 bytes) -- ignoring
+0.00.456.632 W model has unused tensor blk.64.post_attention_norm.weight (size = 20480 bytes) -- ignoring
+0.00.456.637 W model has unused tensor blk.64.attn_q.weight (size = 51609600 bytes) -- ignoring
+0.00.456.639 W model has unused tensor blk.64.attn_k.weight (size = 5570560 bytes) -- ignoring
+0.00.456.640 W model has unused tensor blk.64.attn_v.weight (size = 5570560 bytes) -- ignoring
+0.00.456.646 W model has unused tensor blk.64.attn_output.weight (size = 25804800 bytes) -- ignoring
+0.00.456.647 W model has unused tensor blk.64.attn_q_norm.weight (size = 1024 bytes) -- ignoring
+0.00.456.649 W model has unused tensor blk.64.attn_k_norm.weight (size = 1024 bytes) -- ignoring
+0.00.456.650 W model has unused tensor blk.64.ffn_gate.weight (size = 73113600 bytes) -- ignoring
+0.00.456.652 W model has unused tensor blk.64.ffn_down.weight (size = 73113600 bytes) -- ignoring
+0.00.456.653 W model has unused tensor blk.64.ffn_up.weight (size = 73113600 bytes) -- ignoring
+0.00.456.656 W model has unused tensor blk.64.nextn.eh_proj.weight (size = 43008000 bytes) -- ignoring
+0.00.456.658 W model has unused tensor blk.64.nextn.enorm.weight (size = 20480 bytes) -- ignoring
+0.00.456.660 W model has unused tensor blk.64.nextn.hnorm.weight (size = 20480 bytes) -- ignoring
+0.00.456.665 W model has unused tensor blk.64.nextn.shared_head_norm.weight (size = 20480 bytes) -- ignoring
+0.02.400.576 I cmn          init: llama threadpool init, n_threads = 16
+0.02.582.119 I srv    load_model: initializing, n_slots = 1, n_ctx_slot = 256, kv_unified = 'false'
+0.02.589.419 W srv          init: chat template supports preserving reasoning, it is enabled by default (may use more tokens, disable via --no-reasoning-preserve)
+0.02.589.484 I srv  server_run_i: model loaded
+0.02.589.490 I srv  server_on_li: listening on http://127.0.0.1:18796
+0.02.851.216 I slot get_availabl: id  0 | task -1 | selected slot by LRU, n_tokens = 0, t_last = -1
+0.02.851.285 I slot launch_slot_: id  0 | task 0 | processing task, is_child = 0
+0.08.201.359 I slot print_timing: id  0 | task 0 | prompt eval time =     310.98 ms /    36 tokens (    8.64 ms per token,   115.76 tokens per second)
+0.08.201.362 I slot print_timing: id  0 | task 0 |        eval time =    5039.04 ms /    64 tokens (   79.98 ms per token,    12.50 tokens per second)
+0.08.201.363 I slot print_timing: id  0 | task 0 |       total time =    5350.02 ms /   100 tokens
+0.08.201.371 I slot print_timing: id  0 | task 0 |    graphs reused =         63
+0.08.201.371 I slot print_timing: id  0 | task 0 |   graph reallocs =          0    /     0        (same size) / (changed size)
+0.08.201.400 I slot      release: id  0 | task 0 | stop processing: n_tokens = 99, truncated = 0
+0.08.213.929 I slot get_availabl: id  0 | task -1 | selected slot by LCP similarity, f_sim_best = 1.000 (> 0.100 thold), f_keep = 0.364
+0.08.299.030 I slot launch_slot_: id  0 | task 66 | processing task, is_child = 0
+0.13.644.558 I slot print_timing: id  0 | task 66 | prompt eval time =     311.56 ms /    36 tokens (    8.65 ms per token,   115.55 tokens per second)
+0.13.644.562 I slot print_timing: id  0 | task 66 |        eval time =    5033.92 ms /    64 tokens (   79.90 ms per token,    12.52 tokens per second)
+0.13.644.563 I slot print_timing: id  0 | task 66 |       total time =    5345.48 ms /   100 tokens
+0.13.644.564 I slot print_timing: id  0 | task 66 |    graphs reused =        125
+0.13.644.565 I slot print_timing: id  0 | task 66 |   graph reallocs =          0    /     0        (same size) / (changed size)
+0.13.644.578 I slot      release: id  0 | task 66 | stop processing: n_tokens = 99, truncated = 0
+0.13.647.402 I slot get_availabl: id  0 | task -1 | selected slot by LCP similarity, f_sim_best = 1.000 (> 0.100 thold), f_keep = 0.364
+0.13.647.474 I slot launch_slot_: id  0 | task 132 | processing task, is_child = 0
+0.18.984.368 I slot print_timing: id  0 | task 132 | prompt eval time =     315.11 ms /    36 tokens (    8.75 ms per token,   114.24 tokens per second)
+0.18.984.373 I slot print_timing: id  0 | task 132 |        eval time =    5021.74 ms /    64 tokens (   79.71 ms per token,    12.55 tokens per second)
+0.18.984.374 I slot print_timing: id  0 | task 132 |       total time =    5336.86 ms /   100 tokens
+0.18.984.375 I slot print_timing: id  0 | task 132 |    graphs reused =        187
+0.18.984.376 I slot print_timing: id  0 | task 132 |   graph reallocs =          0    /     0        (same size) / (changed size)
+0.18.984.391 I slot      release: id  0 | task 132 | stop processing: n_tokens = 99, truncated = 0
+0.18.987.813 I slot get_availabl: id  0 | task -1 | selected slot by LCP similarity, f_sim_best = 1.000 (> 0.100 thold), f_keep = 0.364
+0.19.064.581 I slot launch_slot_: id  0 | task 198 | processing task, is_child = 0
+0.24.388.429 I slot print_timing: id  0 | task 198 | prompt eval time =     308.94 ms /    36 tokens (    8.58 ms per token,   116.53 tokens per second)
+0.24.388.432 I slot print_timing: id  0 | task 198 |        eval time =    5014.88 ms /    64 tokens (   79.60 ms per token,    12.56 tokens per second)
+0.24.388.433 I slot print_timing: id  0 | task 198 |       total time =    5323.81 ms /   100 tokens
+0.24.388.434 I slot print_timing: id  0 | task 198 |    graphs reused =        249
+0.24.388.435 I slot print_timing: id  0 | task 198 |   graph reallocs =          0    /     0        (same size) / (changed size)
+0.24.388.449 I slot      release: id  0 | task 198 | stop processing: n_tokens = 99, truncated = 0
+0.24.390.474 I srv    operator(): operator(): cleaning up before exit...

@@ -1,0 +1,5 @@
+
+> doppler-gpu@0.7.2 release-claims:check
+> node tools/check-release-claims.js
+
+release-claims: ok (28 claims)
