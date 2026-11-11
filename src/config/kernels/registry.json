@@ -11991,8 +11991,8 @@
      },
      "description": "Explicit F32 matrix row projections with subgroup-owned outputs; independent activation rows use grid y and retain the scalar-buffer single-row arithmetic.",
      "reachability": {
-      "status": "unused",
-      "inlineConfigs": [],
+      "status": "pinned",
+      "inlineConfigs": ["runtime/profiles/flash-next-routed-f32kv-qualification"],
       "ruleChains": [],
       "wgslOnDisk": true
      },

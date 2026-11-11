@@ -35,7 +35,8 @@ const close = (actual, expected, label, abs = 2e-4, rel = 2e-5) => {
   }
   return maxAbs;
 };
-const sigmoid = x => 1/(1+Math.exp(-Math.max(-15, Math.min(15,x))));
+// Binary64 logistic without an input clamp: the shared-slot gate contract matches silu.wgsl.
+const sigmoid = x => x >= 0 ? 1/(1+Math.exp(-x)) : Math.exp(x)/(1+Math.exp(x));
 try {
   for (const dtype of ['q4_0', 'q4_1', 'q5_0', 'q8_0', 'q6k']) {
     const blockValues = dtype === 'q6k' ? 256 : 32;
@@ -95,7 +96,7 @@ try {
     }
     for(const mode of ['immediate','recorded']) {
       const recorder=mode==='recorded'?createCommandRecorder('native_shared_slot'):null;if(recorder)recorders.push(recorder);
-      const options={numTokens:T,numExperts:E,topK,hiddenSize:H,intermediateSize:I,sharedSize,swigluLimit:limit,indices};
+      const options={numTokens:T,numExperts:E,topK,hiddenSize:H,intermediateSize:I,sharedSize,swigluLimit:limit,indices,variant:'native_f32'};
       const activated=retain(await executeSharedSlotGateUp(recorder,input,{gate:g.weight,up:u.weight,sharedGate:sg.weight,sharedUp:su.weight},options));
       const output=upload(new Float32Array(T*H+16).fill(-12345));
       const result=await executeSharedSlotDown(recorder,activated,{down:d.weight,sharedDown:sd.weight},gate,{...options,routeWeights,outputBuffer:output});
@@ -111,6 +112,50 @@ try {
       const outerExpected=Float32Array.from(expected,(x,i)=>x+values[i]);
       close(new Float32Array(await readBuffer(outer.buffer,outerExpected.byteLength)),outerExpected,'exactly-once outer residual');
       console.log(JSON.stringify({routedDtype,downDtype,sharedDtype,T,sharedSize,limit,mode,maxAbs,outerResidual:'once'}));
+    }
+  }
+  // Gate isolation for every registered shared-slot variant. Tokens share one input row and
+  // every route weight is zero, so each token's output is sigmoid(gate) * S for one shared
+  // down sum S. The ratio to the gate-0 token removes quantized matmul error and leaves the
+  // gate: a +/-15 input clamp moves sigmoid(-20) from 2.06e-9 to 3.06e-7 (150x), far outside
+  // the allowance. The allowance is 16 f32 ulps: the activation's 8-ulp bound (as in
+  // silu-unclamped-physical) plus product rounding in both tokens.
+  {
+    const H=64,I=64,sharedSize=64,E=4,topK=2,gatesIso=[-20,-1,0,1,20],T=gatesIso.length;
+    const g=packed('q4_0',[E,I,H]),u=packed('q4_0',[E,I,H]),d=packed('q4_0',[E,H,I]);
+    const sg=packed('q4_0',[sharedSize,H]),su=packed('q4_0',[sharedSize,H]),sd=packed('q4_0',[H,sharedSize]);
+    const row=Array.from({length:H},(_,k)=>Math.sin(k*0.37)*0.5);
+    const values=Float32Array.from({length:T*H},(_,i)=>row[i%H]),input=tensor(values,[T,H]);
+    const indices=upload(Uint32Array.from({length:T*topK},(_,i)=>i%E));
+    const routeWeights=upload(new Float32Array(T*topK)),gate=tensor(Float32Array.from(gatesIso),[T,1]);
+    const zero=gatesIso.indexOf(0);
+    for (const [guVariant, downVariant] of [['native_f32','native_f32'],['pair_f32','pair_f32'],
+      ['pair_f32','pair_combine_f32'],['pair_f32','pair_combine_residual_f32']]) {
+      for (const mode of ['immediate','recorded']) {
+        const recorder=mode==='recorded'?createCommandRecorder('shared_slot_gate_isolation'):null;if(recorder)recorders.push(recorder);
+        const base={numTokens:T,numExperts:E,topK,hiddenSize:H,intermediateSize:I,sharedSize,swigluLimit:null,indices};
+        const activated=retain(await executeSharedSlotGateUp(recorder,input,{gate:g.weight,up:u.weight,sharedGate:sg.weight,sharedUp:su.weight},{...base,variant:guVariant}));
+        const output=upload(new Float32Array(T*H));
+        const zeroResidual=downVariant==='pair_combine_residual_f32'?tensor(new Float32Array(T*H),[T,H]):null;
+        await executeSharedSlotDown(recorder,activated,{down:d.weight,sharedDown:sd.weight},gate,
+          {...base,variant:downVariant,routeWeights,outputBuffer:output,...(zeroResidual?{residual:zeroResidual}:{})});
+        if(recorder)await recorder.submitAndWait();
+        const actual=new Float32Array(await readBuffer(output,T*H*4));
+        let rows=0,maxRel=0;
+        for(let r=0;r<H;r++) {
+          const reference=actual[zero*H+r];
+          if(Math.abs(reference)<1e-3)continue;
+          rows++;
+          for(let t=0;t<T;t++) {
+            const ratio=actual[t*H+r]/reference,expected=2*sigmoid(gatesIso[t]);
+            const rel=Math.abs(ratio-expected)/expected;maxRel=Math.max(maxRel,rel);
+            assert.ok(Number.isFinite(ratio)&&rel<=16*2**-23,
+              `${guVariant}/${downVariant}/${mode} gate ${gatesIso[t]} row ${r}: ratio ${ratio} vs ${expected}`);
+          }
+        }
+        assert.ok(rows>=H/2,`${guVariant}/${downVariant}: too few rows with a measurable shared sum (${rows})`);
+        console.log(JSON.stringify({check:'shared-slot gate isolation',guVariant,downVariant,mode,gates:gatesIso,rows,maxRel,allowance:16*2**-23}));
+      }
     }
   }
   assert.deepEqual(errors,[]);

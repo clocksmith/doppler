@@ -175,7 +175,7 @@
               "constants": {
                 "HAS_GATE": true
               },
-              "digest": "sha256:c6e28a7e6b2a7cfa805db03c9079fbc90fc2717c621e388bfa55b75ce1737ac0"
+              "digest": "sha256:712787a59b032453b09f147be0d0c073266c47a7a12c3b746984aaf28075bedb"
             },
             {
               "op": "down_proj",
@@ -273,13 +273,13 @@
               "op": "moe_shared_slot_gu",
               "kernel": "moe_shared_slot_gu_pair_f32.wgsl",
               "entry": "main",
-              "digest": "sha256:1a28e076e93486589a3eace88c3cb230ff1ef4aa982fdd91dcc918d00891649b"
+              "digest": "sha256:9bd7442fd04389e0ad901e660aeb18abf14ba4a2f34c5668680da6d35be65be4"
             },
             {
               "op": "moe_shared_slot_down",
               "kernel": "moe_shared_slot_down_pair_combine_residual_f32.wgsl",
               "entry": "main",
-              "digest": "sha256:750bce8b9e6af48729fcb9dc27569590663dc0f85e6625d8de7e3bb3ba3041f2"
+              "digest": "sha256:ce5918180213bd0923b90f579564f1f00b4c4f716ace51ad1200075a3b1a78a8"
             }
           ]
         },
@@ -412,7 +412,7 @@
               "constants": {
                 "HAS_GATE": true
               },
-              "digest": "sha256:c6e28a7e6b2a7cfa805db03c9079fbc90fc2717c621e388bfa55b75ce1737ac0"
+              "digest": "sha256:712787a59b032453b09f147be0d0c073266c47a7a12c3b746984aaf28075bedb"
             },
             {
               "op": "down_proj",
