@@ -53,6 +53,7 @@
     "src/inference/pipelines/text/warm-generation.js",
     "src/gpu/kernels/matmul-workgroup-capacity.js",
     "tools/lib/evidence-io.js",
+    "tools/lib/engine-compare-cli.js",
     "tools/lib/profile-comparison.js",
     "tools/lib/evidence-fields.js",
     "src/config/layer-partition-plan.js",

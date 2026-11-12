@@ -1,12 +1,21 @@
 #!/usr/bin/env node
 
 import { execFile } from 'node:child_process';
-import crypto from 'node:crypto';
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { promisify } from 'node:util';
 import { buildEntryRemoteBaseUrl } from '../src/tooling/hf-registry/registry-urls.js';
+import {
+  compactTimestamp,
+  parseChoice,
+  parseCompareArgs,
+  parseJsonBlock,
+  parsePositiveInteger,
+  parseTimestampValue,
+  readJsonWithHash,
+  redactSecrets,
+} from './lib/engine-compare-cli.js';
 
 const execFileAsync = promisify(execFile);
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -51,106 +60,7 @@ function usage() {
 }
 
 function parseArgs(argv) {
-  const flags = {};
-  for (let i = 0; i < argv.length; i += 1) {
-    const token = argv[i];
-    if (token === '-h') {
-      flags.h = true;
-      continue;
-    }
-    if (!token.startsWith('--')) continue;
-    const key = token.slice(2);
-    if (key === 'help' || key === 'h' || key === 'json' || key === 'save' || key === 'all' || key === 'browser-console') {
-      flags[key] = true;
-      continue;
-    }
-    if (key === 'document') {
-      const value = argv[i + 1];
-      if (value === undefined) throw new Error(`Missing value for --${key}`);
-      if (!Array.isArray(flags.document)) flags.document = [];
-      flags.document.push(value);
-      i += 1;
-      continue;
-    }
-    const value = argv[i + 1];
-    if (value === undefined) {
-      throw new Error(`Missing value for --${key}`);
-    }
-    flags[key] = value;
-    i += 1;
-  }
-  return flags;
-}
-
-function parsePositiveInteger(value, fallback, label) {
-  if (value == null || value === '') return fallback;
-  const parsed = Number(value);
-  if (!Number.isInteger(parsed) || parsed <= 0) {
-    throw new Error(`${label} must be a positive integer`);
-  }
-  return parsed;
-}
-
-function parseChoice(value, allowed, fallback, label) {
-  if (value == null || value === '') return fallback;
-  const normalized = String(value).trim();
-  if (allowed.includes(normalized)) return normalized;
-  const lower = normalized.toLowerCase();
-  if (allowed.includes(lower)) return lower;
-  throw new Error(`${label} must be one of: ${allowed.join(', ')}`);
-}
-
-function parseTimestampValue(rawValue, label) {
-  if (rawValue == null || rawValue === '') return new Date().toISOString();
-  const trimmed = String(rawValue).trim();
-  const asMs = /^[-+]?\d+$/.test(trimmed) ? Number(trimmed) : NaN;
-  const parsed = Number.isFinite(asMs) ? new Date(asMs) : new Date(trimmed);
-  if (Number.isNaN(parsed.getTime())) {
-    throw new Error(`${label} must be ISO-8601 or epoch milliseconds`);
-  }
-  return parsed.toISOString();
-}
-
-function compactTimestamp(timestamp) {
-  const d = new Date(timestamp);
-  const pad = (n, w = 2) => String(n).padStart(w, '0');
-  return `${d.getUTCFullYear()}${pad(d.getUTCMonth() + 1)}${pad(d.getUTCDate())}T${pad(d.getUTCHours())}${pad(d.getUTCMinutes())}${pad(d.getUTCSeconds())}`;
-}
-
-function hashText(text) {
-  return crypto.createHash('sha256').update(text).digest('hex');
-}
-
-function redactSecrets(text) {
-  return String(text ?? '')
-    .replace(/hfToken=hf_[A-Za-z0-9._-]+/g, 'hfToken=<redacted>')
-    .replace(/\bhf_[A-Za-z0-9._-]+\b/g, '<HF_TOKEN_REDACTED>')
-    .replace(/(authorization:\s*bearer\s+)[^\s"'`]+/gi, '$1<redacted>');
-}
-
-function parseJsonBlock(stdout, label) {
-  const text = String(stdout ?? '').trim();
-  if (!text) throw new Error(`${label} produced no output`);
-  try {
-    return JSON.parse(text);
-  } catch {
-    const start = text.indexOf('{');
-    if (start >= 0) {
-      try {
-        return JSON.parse(text.slice(start));
-      } catch { /* fall through */ }
-    }
-  }
-  throw new Error(`${label} did not produce strict JSON. Output tail:\n${redactSecrets(text.slice(-2000))}`);
-}
-
-async function readJsonWithHash(filePath) {
-  const raw = await fs.readFile(filePath, 'utf-8');
-  return {
-    payload: JSON.parse(raw),
-    source: filePath,
-    sourceSha256: hashText(raw),
-  };
+  return parseCompareArgs(argv, { repeatable: ['document'] });
 }
 
 function catalogEntryById(catalog, modelId) {
