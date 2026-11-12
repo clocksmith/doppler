@@ -5003,6 +5003,7 @@
         "tests/inference/kv-cache-layer-ownership.test.js",
         "tests/inference/kv-cache-sync.test.js",
         "tests/inference/kv-cache-update-paths.test.js",
+        "tests/inference/kv-max-seq-len-declaration.test.js",
         "tests/inference/kvcache-layout-policy.test.js",
         "tests/inference/layer-dispatch-routing.test.js",
         "tests/inference/layer-partition-contract.test.js",
