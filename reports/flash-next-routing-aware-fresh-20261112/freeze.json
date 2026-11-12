@@ -1,0 +1,125 @@
+{
+  "schema": "doppler.routing-aware-freeze/v1",
+  "frozenAtUtc": "2026-11-12T16:07:59Z",
+  "purpose": "Freeze of the proposed doppler.routing-aware-acceptance/v1 limits for one fresh unforced test (owner direction 2026-11-12). This is not an approval: approval.status, nearTie.status and taskQuality.status stay \"proposed\", nothing is released, Flash-Next stays BLOCKED, and doppler.boundary-tolerance/quantized-v1 stays the strict gate.",
+  "policyPath": "tools/policies/routing-aware-acceptance.json",
+  "policySha256": "sha256:7a63c40cfbf0753ebe9946d5c74cd458f6fbcd6d726562a47f193e0b2c9bbbd0",
+  "policyFileSha256": "de397c0b424afd38e54bb35208d488b9a718bdd324b219a2a20a623b272eecd9",
+  "policyStatus": "proposed",
+  "limits": {
+    "nearTie": {
+      "envelopeMultiplier": 2,
+      "absoluteCeiling": 0.001
+    },
+    "attribution": {
+      "maxIndependentRootsPerCase": 1,
+      "rootsMustBeNearTie": true
+    },
+    "requiredControls": {
+      "forcedIndices": {
+        "mode": "indices",
+        "maxExecutedSelectionDifferences": 0,
+        "maxLogitViolations": 0,
+        "ownSelectionDifferencesMustBeNearTie": true
+      },
+      "observationNeutrality": {
+        "requireByteIdenticalPrefillLogits": true
+      },
+      "sameInputOperators": {
+        "maxViolations": 0,
+        "families": [
+          {
+            "family": "token-embedding",
+            "coverage": "model"
+          },
+          {
+            "family": "hyper-connection",
+            "coverage": "all-layers"
+          },
+          {
+            "family": "gated-delta",
+            "coverage": "sequence-mixer"
+          },
+          {
+            "family": "full-attention",
+            "coverage": "sequence-mixer"
+          },
+          {
+            "family": "routed-moe",
+            "coverage": "all-layers"
+          },
+          {
+            "family": "shared-expert",
+            "coverage": "all-layers"
+          },
+          {
+            "family": "final-norm",
+            "coverage": "model"
+          },
+          {
+            "family": "lm-head",
+            "coverage": "model"
+          }
+        ]
+      }
+    },
+    "distribution": {
+      "decisiveMarginLogits": 1,
+      "minTop1AgreementDecisive": 1,
+      "minTop1AgreementOverall": 0.97,
+      "maxMeanKlNats": 0.001,
+      "maxP99KlNats": 0.01
+    },
+    "exactAnswer": {
+      "maxCpuCorrectGpuWrong": 1,
+      "maxNetItemLoss": 1,
+      "minGreedyTokenAgreement": 0.9
+    }
+  },
+  "consistencyReview": "Every proposed value is used as-is. No rule was found internally inconsistent, so nothing was changed before freezing.",
+  "evaluatorNotes": [
+    "The evaluator returns fail with POLICY_NOT_APPROVED for any proposed policy; the report lists every other reason and each criterion separately.",
+    "approval.approvedAtUtc is null, so the evaluator cannot check freshness; every fresh run must start after frozenAtUtc, which the report checks against run-starts.jsonl."
+  ],
+  "promptSetPath": "tools/data/flash-next-routing-acceptance-prompts-v1.json",
+  "promptSetSha256": "sha256:d87a15ac34b15c595b8eb88b18e8e07c580ae723554bc0288916bcb7406a7a61",
+  "promptSetFileSha256": "4098bb3d4282c935d6c4442159fb7bbce7e377cb4f8fd6dcfc406dcdead4ce45",
+  "toleranceFileSha256": "f1c4629d593ec2517e3628ac68131dc7568c6aba5e0f03db627d26228c720413",
+  "artifactManifestSha256": "4902a0b730a9310903b00bc0f8f587528fa1af9f37a722d2f9287bafceceec09",
+  "cpuProducerSha256": "f6bc0f15a6545ab1d205cfc3ec412442415220e541190b63a9c712fa238ba5b0",
+  "toolingCommit": "210719b78bf31a45eac09e09c08b796b09ca53f7",
+  "tooling": {
+    "tests/helpers/moe-shared-split-observation-loader.js": "e60f68a90712282f86e629dc94d52c9b4884724f9b8bc7cb205cba228884e736",
+    "tests/helpers/prefill-logit-rows-loader.js": "4475cefc8a28bc2911e7d1cba139b112699c0b8c6cfbba0bf12be499d0c9a41d",
+    "tests/helpers/reference-routing-selection-control.js": "8620ed47d4c96d1cd4c6cff477a9ef3ca9dd833b5da8982a2ce45f935d4c8d8e",
+    "tests/helpers/moe-routing-observation-loader.js": "0978e5bbb1eb453f7fe7517997eb48a152b0ffd2981c821cda41ab1a7b04243e",
+    "tests/helpers/hyper-connection-observation-loader.js": "74d1c6ed4c5cc8774a990de72941b8b116054a16a915f45f63014124b29cd18d",
+    "tests/integration/flash-next-same-input-capture-physical.test.js": "3d193664bb7b72a0f4cd869a0de02df7a4f8e806f2c14012af95277092b92e72",
+    "tests/integration/flash-next-task-quality-physical.test.js": "e6830bb3717c7874e5231baff4cde64704c60ff649692ffc5bac71a2d09927ad",
+    "tests/integration/flash-next-learned-physical.test.js": "f14a6e697f9125b19cd6fcb9b6bedf23b6be9ec411c02ba2c1cc7d6c0df37295",
+    "tools/lib/routing-aware-acceptance.js": "3d736b43b18466a00fd71ef337c8947546a3b063598dc57a9203a34485c5514e",
+    "tools/evaluate-routing-aware-acceptance.js": "be9752550a40e22d64ef755e912c5e3977fbb63661182ee0eeadf482d00db43f",
+    "reports/flash-next-forced-routing-20261112/prepare-routing-fixture.py": "b1373c6f67e64b8513f39936348f82d7e8b802f09e5dd2b877058902adc8523f",
+    "reports/flash-next-forced-routing-20261112/compare-forced-routing.py": "54a9d503c4d346f201caa63e66d70cd5b063814575dc5d674b7cb7ccd61f9909",
+    "reports/flash-next-new-prompts-20261110/audit-same-input-operators.py": "3c296bab56c3907258be29ab3574c52285b82cf6b8ede8b5fa73876ee42b8d5a",
+    "reports/flash-next-routing-aware-fresh-20261112/audit-same-input-all-layers.py": "a87f692451eeca900dc1dffeb9f87df9a26bf88c4fc969e7ec5daaf4d1b47c68",
+    "reports/flash-next-routing-aware-fresh-20261112/build-evidence.py": "c33f24095ff67a16666882d8c20d3f9b7d3f7ba0f4f25b51bbdedf34c26cb079",
+    "reports/flash-next-routing-aware-fresh-20261112/cpu-reference.py": "ea97cfcfbe82f8109978606c39b52b8e8506547d281792e622da8a209215dc41",
+    "reports/flash-next-routing-aware-fresh-20261112/freeze-inputs.py": "1107c3fbb05c3e36efedc4bfa3b5fab60be4e156f5181be161e10f74a1304819",
+    "reports/flash-next-routing-aware-fresh-20261112/prepare-runs.js": "27d0e62edef0f3ad2a91182949068e8ada70745612b92aaedcd304b0234d6a84",
+    "reports/flash-next-routing-aware-fresh-20261112/run-fresh.sh": "6e51e9d13319eb2755db62464e052bf91705a7365d8c17f8c10523963a40ba11",
+    "reports/flash-next-routing-aware-fresh-20261112/run-routing-controls.js": "842dc25d69d461f26e6cf88395541e6a9c81e32d27d5c58ac85d9c77407b739c"
+  },
+  "preregisteredChoices": {
+    "runtime": "profiles/flash-next-routed-f32kv-qualification resolved with applyRuntimeProfile (no inline execution graph) for every GPU run",
+    "sameInputCase": "the pinned long-context case with the fewest frozen tokens (ties: lowest id); positions = the prompt set samplePositions for that case",
+    "finalNormFamily": "Flash-Next replaces the final RMSNorm with the root hyper-connection mixer; the final-norm family checks that mixer (norm and mixed output)",
+    "greedyStop": "manifest eos_token_id; CPU and GPU continuations are truncated after the first stop token before comparison",
+    "cpuGreedy": "cache-free re-run of the pinned producer on prompt + the CPU's own earlier greedy tokens; never reads GPU output",
+    "klComputation": "float64 log-softmax of complete CPU and GPU logit rows; cpuTop1MarginLogits = CPU top-1 minus top-2 logit",
+    "tupleDevice": "vendor and architecture from the WebGPU adapter info, architecture with hyphens removed (rdna-3 -> rdna3); adapter = \"vendor | architecture | device | description\"",
+    "observationNeutrality": "unforced observe-run prefill logits vs the plain tests/integration/flash-next-learned-physical.test.js run (no routing or stage hooks)",
+    "routingControls": "observe and forced-indices runs for all cases share one model load (run-routing-controls.js)"
+  },
+  "runsBeforeFreeze": "No pinned prompt has been tokenized or run. Harness smoke runs used only the retained non-pinned marbles and inventory prompts."
+}
