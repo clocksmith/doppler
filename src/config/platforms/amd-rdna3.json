@@ -4,7 +4,7 @@
   "name": "AMD RDNA 3",
   "detection": {
     "vendor": "amd",
-    "architecture": "rdna3"
+    "architecture": ["rdna3", "rdna-3.5"]
   },
   "memoryHints": {
     "preferUnifiedMemory": false,
@@ -12,5 +12,5 @@
     "optimalShardSize": 134217728,
     "maxBufferPoolSize": 4294967296
   },
-  "notes": "AMD RX 7900 series - RDNA 3 architecture, subgroups, F16"
+  "notes": "AMD RX 7900 series - RDNA 3 architecture, subgroups, F16. Routing alias: adapters reporting RDNA 3.5 (Strix Point, Strix Halo, Krackan; Doe reports 'rdna-3.5' for those PCI IDs, Dawn reports 'rdna-3') share this profile, so both runtimes select the same kernels on the same hardware."
 }

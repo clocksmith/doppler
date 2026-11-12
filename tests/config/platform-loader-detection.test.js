@@ -31,6 +31,44 @@ try {
     'AMD RDNA3 adapters with hyphenated architecture labels must resolve to amd-rdna3.'
   );
 
+  // Same Strix Halo (0x1586) hardware as reported by each runtime: Dawn names
+  // the family "rdna-3", Doe names the accurate "rdna-3.5". Both must route to
+  // amd-rdna3 so kernel selection matches across runtimes.
+  const strixHaloAdapters = {
+    dawn: {
+      vendor: 'amd',
+      architecture: 'rdna-3',
+      device: 'radeon-8060s-graphics-radv-strix-halo-',
+      description: 'radv: Mesa 26.0.3-1ubuntu1',
+    },
+    doe: {
+      vendor: 'amd',
+      architecture: 'rdna-3.5',
+      device: 'Radeon 8060S Graphics (RADV STRIX_HALO)',
+      description: 'Radeon 8060S Graphics (RADV STRIX_HALO)',
+    },
+  };
+  for (const [runtime, adapterInfo] of Object.entries(strixHaloAdapters)) {
+    await assertPlatformMatch(
+      adapterInfo,
+      'amd-rdna3',
+      `Strix Halo as reported by ${runtime} must route to amd-rdna3.`
+    );
+  }
+
+  // Other accurate families stay out of the RDNA 3 profile.
+  for (const architecture of ['rdna-4', 'rdna-2', '']) {
+    await assertPlatformMatch({
+      vendor: 'amd',
+      architecture,
+      device: 'AMD Radeon Graphics',
+      description: '',
+    },
+      'generic',
+      `AMD architecture "${architecture}" must not route to an RDNA 3 profile.`
+    );
+  }
+
   await assertPlatformMatch({
     vendor: 'apple',
     architecture: 'metal-3',
