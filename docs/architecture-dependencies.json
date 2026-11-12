@@ -110,6 +110,7 @@
         "src/client/doppler-registry.js",
         "src/client/inspection.js",
         "src/client/model-host/index.js",
+        "src/client/model-host/layer-projection.js",
         "src/client/model-host/model-evidence.js",
         "src/client/model-host/model-session.js",
         "src/client/runtime/capsule-acquisition.js",
@@ -407,6 +408,7 @@
         "src/gpu/kernels/sample.js",
         "src/gpu/kernels/scale.js",
         "src/gpu/kernels/shader-cache.js",
+        "src/gpu/kernels/shader-capability-filter.js",
         "src/gpu/kernels/shader-source-scope.js",
         "src/gpu/kernels/sigmoid-gated-add.js",
         "src/gpu/kernels/silu.js",
@@ -533,6 +535,7 @@
         "src/inference/pipelines/text/generator/diagnostic-sequence.js",
         "src/inference/pipelines/text/generator/diffusion.js",
         "src/inference/pipelines/text/generator/greedy-head-policy.js",
+        "src/inference/pipelines/text/generator/hidden-projection.js",
         "src/inference/pipelines/text/generator/logits-config.js",
         "src/inference/pipelines/text/generator/per-layer-buffer.js",
         "src/inference/pipelines/text/generator/prefill-observation.js",
@@ -706,6 +709,7 @@
         "src/memory/device-budget.js",
         "src/memory/device-residency.js",
         "src/memory/heap-manager.js",
+        "src/memory/sequence-retirement.js",
         "src/memory/unified-detect.js",
         "src/rules/execution-contract.js",
         "src/rules/execution-rules-contract-check.js",
@@ -1243,6 +1247,7 @@
         "src/client/fault-injection.js",
         "src/client/inspection.js",
         "src/client/model-host/index.js",
+        "src/client/model-host/layer-projection.js",
         "src/client/model-host/model-evidence.js",
         "src/client/model-host/model-session.js",
         "src/client/provider.js",
@@ -1710,6 +1715,7 @@
         "src/gpu/kernels/sample.js",
         "src/gpu/kernels/scale.js",
         "src/gpu/kernels/shader-cache.js",
+        "src/gpu/kernels/shader-capability-filter.js",
         "src/gpu/kernels/shader-source-scope.js",
         "src/gpu/kernels/sigmoid-gated-add.js",
         "src/gpu/kernels/silu.js",
@@ -1839,6 +1845,7 @@
         "src/inference/pipelines/text/generator/diagnostic-sequence.js",
         "src/inference/pipelines/text/generator/diffusion.js",
         "src/inference/pipelines/text/generator/greedy-head-policy.js",
+        "src/inference/pipelines/text/generator/hidden-projection.js",
         "src/inference/pipelines/text/generator/logits-config.js",
         "src/inference/pipelines/text/generator/per-layer-buffer.js",
         "src/inference/pipelines/text/generator/prefill-observation.js",
@@ -2013,6 +2020,7 @@
         "src/memory/device-budget.js",
         "src/memory/device-residency.js",
         "src/memory/heap-manager.js",
+        "src/memory/sequence-retirement.js",
         "src/memory/unified-detect.js",
         "src/rules/execution-contract.js",
         "src/rules/execution-rules-contract-check.js",
@@ -2881,6 +2889,7 @@
         "src/gpu/kernels/sample.js",
         "src/gpu/kernels/scale.js",
         "src/gpu/kernels/shader-cache.js",
+        "src/gpu/kernels/shader-capability-filter.js",
         "src/gpu/kernels/shader-source-scope.js",
         "src/gpu/kernels/sigmoid-gated-add.js",
         "src/gpu/kernels/silu.js",
@@ -3020,6 +3029,7 @@
         "src/inference/pipelines/text/generator/diagnostic-sequence.js",
         "src/inference/pipelines/text/generator/diffusion.js",
         "src/inference/pipelines/text/generator/greedy-head-policy.js",
+        "src/inference/pipelines/text/generator/hidden-projection.js",
         "src/inference/pipelines/text/generator/logits-config.js",
         "src/inference/pipelines/text/generator/per-layer-buffer.js",
         "src/inference/pipelines/text/generator/prefill-observation.js",
@@ -3185,6 +3195,7 @@
         "src/memory/device-budget.js",
         "src/memory/device-residency.js",
         "src/memory/heap-manager.js",
+        "src/memory/sequence-retirement.js",
         "src/memory/unified-detect.js",
         "src/rules/execution-contract.js",
         "src/rules/execution-rules-contract-check.js",
@@ -3215,7 +3226,8 @@
         "src/storage/shards/integrity.js",
         "src/storage/shards/lifecycle.js",
         "src/storage/source-storage-context.js",
-        "src/tooling/test-harness.js"
+        "src/tooling/test-harness.js",
+        "src/version.js"
       ],
       "lazyOnly": [
         "src/client/model-host/source-loading.js",
@@ -3292,8 +3304,7 @@
         "src/tooling/source-artifact-adapter.js",
         "src/tooling/source-package-profiles.js",
         "src/tooling/source-runtime-bundle.js",
-        "src/tooling/source-runtime-converter-config.js",
-        "src/version.js"
+        "src/tooling/source-runtime-converter-config.js"
       ]
     },
     "publicPackage": {
@@ -3352,6 +3363,7 @@
         "src/client/fault-injection.js",
         "src/client/inspection.js",
         "src/client/model-host/index.js",
+        "src/client/model-host/layer-projection.js",
         "src/client/model-host/model-evidence.js",
         "src/client/model-host/model-session.js",
         "src/client/model-host/source-loading.js",
@@ -3788,6 +3800,7 @@
         "src/gpu/kernels/sample.js",
         "src/gpu/kernels/scale.js",
         "src/gpu/kernels/shader-cache.js",
+        "src/gpu/kernels/shader-capability-filter.js",
         "src/gpu/kernels/shader-source-scope.js",
         "src/gpu/kernels/sigmoid-gated-add.js",
         "src/gpu/kernels/silu.js",
@@ -3919,6 +3932,7 @@
         "src/inference/pipelines/text/generator/diagnostic-sequence.js",
         "src/inference/pipelines/text/generator/diffusion.js",
         "src/inference/pipelines/text/generator/greedy-head-policy.js",
+        "src/inference/pipelines/text/generator/hidden-projection.js",
         "src/inference/pipelines/text/generator/logits-config.js",
         "src/inference/pipelines/text/generator/per-layer-buffer.js",
         "src/inference/pipelines/text/generator/prefill-observation.js",
@@ -4095,6 +4109,7 @@
         "src/memory/device-budget.js",
         "src/memory/device-residency.js",
         "src/memory/heap-manager.js",
+        "src/memory/sequence-retirement.js",
         "src/memory/unified-detect.js",
         "src/partitions.js",
         "src/rules/execution-contract.js",
@@ -4969,6 +4984,7 @@
         "tests/inference/glmocr-vision-weight-contract.test.js",
         "tests/inference/greedy-policy.test.js",
         "tests/inference/heterogeneous-attention-contract.test.js",
+        "tests/inference/hidden-projection-gpu.test.js",
         "tests/inference/hyper-connection-layer-wiring.test.js",
         "tests/inference/hyper-connection-logits-gpu.test.js",
         "tests/inference/hyper-connection-sequence.test.js",
@@ -5477,6 +5493,7 @@
         "tests/kernels/sampling-nonfinite-physical.test.js",
         "tests/kernels/sampling-penalties-physical.test.js",
         "tests/kernels/seeded-batch-physical.js",
+        "tests/kernels/shader-capability-filter.test.js",
         "tests/kernels/silu-unclamped-physical.test.js",
         "tests/kernels/soft-embedding-split-f16-parity.test.js",
         "tests/kernels/split_qkv_dispatch-contract.test.js",
@@ -5536,6 +5553,7 @@
         "tests/memory/buffer-pool-device-budget.test.js",
         "tests/memory/device-budget.test.js",
         "tests/memory/heap-manager.test.js",
+        "tests/memory/retire-idle-under-device-budget.test.js",
         "tests/memory/unified-detect-node-safe.test.js",
         "tests/production-release/electron-document-search-acceptance.test.js",
         "tests/runtime/canonical-ordinary-generation.test.js",
@@ -5785,6 +5803,7 @@
         "src/client/fault-injection.js",
         "src/client/inspection.js",
         "src/client/model-host/index.js",
+        "src/client/model-host/layer-projection.js",
         "src/client/model-host/model-evidence.js",
         "src/client/model-host/model-session.js",
         "src/client/provider.js",
@@ -6367,6 +6386,7 @@
         "src/gpu/kernels/scale.js",
         "src/gpu/kernels/scatter_add_routes_f32.wgsl",
         "src/gpu/kernels/shader-cache.js",
+        "src/gpu/kernels/shader-capability-filter.js",
         "src/gpu/kernels/shader-source-scope.js",
         "src/gpu/kernels/sigmoid-gated-add.js",
         "src/gpu/kernels/silu.js",
@@ -6525,6 +6545,7 @@
         "src/inference/pipelines/text/generator/diagnostic-sequence.js",
         "src/inference/pipelines/text/generator/diffusion.js",
         "src/inference/pipelines/text/generator/greedy-head-policy.js",
+        "src/inference/pipelines/text/generator/hidden-projection.js",
         "src/inference/pipelines/text/generator/logits-config.js",
         "src/inference/pipelines/text/generator/per-layer-buffer.js",
         "src/inference/pipelines/text/generator/prefill-observation.js",
@@ -6720,6 +6741,7 @@
         "src/memory/device-budget.js",
         "src/memory/device-residency.js",
         "src/memory/heap-manager.js",
+        "src/memory/sequence-retirement.js",
         "src/memory/unified-detect.js",
         "src/partitions.js",
         "src/rules/execution-contract.js",
@@ -7153,55 +7175,61 @@
     {
       "file": "tests/demo/browser-activation.js",
       "kind": "dynamic",
-      "line": 113,
+      "line": 121,
       "expression": "import(new URL('ui/activation-grid/index.js', document.querySelector('script[src$=\"/demo.js\"]').src))"
     },
     {
       "file": "tests/demo/browser-activation.js",
       "kind": "dynamic",
-      "line": 114,
+      "line": 122,
       "expression": "import(new URL('report.js', document.querySelector('script[src$=\"/demo.js\"]').src))"
     },
     {
       "file": "tests/demo/browser-activation.js",
       "kind": "dynamic",
-      "line": 121,
+      "line": 129,
       "expression": "import(new URL('output.js', entry))"
     },
     {
       "file": "tests/demo/browser-activation.js",
       "kind": "dynamic",
-      "line": 147,
+      "line": 155,
       "expression": "import(new URL('output.js', entry))"
-    },
-    {
-      "file": "tests/demo/browser-activation.js",
-      "kind": "dynamic",
-      "line": 148,
-      "expression": "import(new URL('ui/state.js', entry))"
     },
     {
       "file": "tests/demo/browser-activation.js",
       "kind": "dynamic",
       "line": 156,
+      "expression": "import(new URL('ui/state.js', entry))"
+    },
+    {
+      "file": "tests/demo/browser-activation.js",
+      "kind": "dynamic",
+      "line": 164,
       "expression": "import(new URL('data/sample-inspection.js', document.querySelector('script[src$=\"/demo.js\"]').src))"
     },
     {
       "file": "tests/demo/browser-activation.js",
       "kind": "dynamic",
-      "line": 277,
+      "line": 295,
       "expression": "import(new URL('core.js', entry))"
     },
     {
       "file": "tests/demo/browser-activation.js",
       "kind": "dynamic",
-      "line": 278,
+      "line": 296,
       "expression": "import(new URL('data/sample-inspection.js', entry))"
     },
     {
       "file": "tests/demo/browser-activation.js",
       "kind": "dynamic",
-      "line": 291,
+      "line": 309,
+      "expression": "import(new URL('ui/activation-grid/index.js', entry))"
+    },
+    {
+      "file": "tests/demo/browser-activation.js",
+      "kind": "dynamic",
+      "line": 389,
       "expression": "import(new URL('ui/activation-grid/index.js', entry))"
     },
     {
@@ -7225,14 +7253,14 @@
     {
       "file": "tests/demo/browser-streaming.js",
       "kind": "dynamic",
-      "line": 89,
-      "expression": "import(`${base}/demo/output.js`)"
+      "line": 90,
+      "expression": "import(new URL('output.js', entry))"
     },
     {
       "file": "tests/demo/browser-streaming.js",
       "kind": "dynamic",
-      "line": 133,
-      "expression": "import(`${base}/demo/ui/chat-markdown.js`)"
+      "line": 134,
+      "expression": "import(new URL('ui/chat-markdown.js', entry))"
     },
     {
       "file": "tests/fixtures/installed-reploid-acceptance.js",
@@ -7975,7 +8003,7 @@
     {
       "file": "tools/demo-contract-smoke.js",
       "kind": "dynamic",
-      "line": 281,
+      "line": 284,
       "expression": "import(url)"
     },
     {

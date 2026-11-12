@@ -363,7 +363,13 @@ export async function createPipeline(
   );
 
   // Compile or reuse shader module
-  const shaderModule = await getShaderModule(device, config.shaderFile, `${operation}_${variant}`);
+  let shaderModule;
+  try {
+    shaderModule = await getShaderModule(device, config.shaderFile, `${operation}_${variant}`);
+  } catch (error) {
+    // Name the kernel the module was being compiled for; the cause keeps the compiler's report.
+    throw new Error(`${error.message} Kernel ${operation}/${variant}, file ${config.shaderFile}, entry point ${config.entryPoint}.`, { cause: error });
+  }
   assertDeviceValid(device, epoch, requireCurrentDevice);
   if (generation !== cacheGeneration) throw new Error('Pipeline preparation invalidated by cache reset.');
   cacheKey = buildPipelineCacheKey(operation, variant, resolvedConstants, bindGroupLayout, device, getShaderModuleIdentity(shaderModule));

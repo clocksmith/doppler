@@ -4,6 +4,8 @@ import { log } from '../../debug/index.js';
 import { isDeviceLost, observeDeviceLoss } from '../../memory/device-residency.js';
 import { getScopedShaderSource } from './shader-source-scope.js';
 import { hashBytesSha256 } from '../../formats/canonical-hash.js';
+import { filterShaderForCapabilities } from './shader-capability-filter.js';
+import { DOPPLER_VERSION } from '../../version.js';
 
 // ============================================================================
 // Caches
@@ -219,8 +221,14 @@ export async function compileShader(
         log.debug('compileShader', `${label}: ${msg.message} (line ${msg.lineNum}:${msg.linePos})`);
       }
     }
-    if (compilationInfo.messages.some(m => m.type === 'error')) {
-      throw new Error(`Shader compilation failed for ${label}`);
+    const errors = compilationInfo.messages.filter(m => m.type === 'error');
+    if (errors.length > 0) {
+      // The compiler's own words, where it stopped, and what the device offers:
+      // without these a failure on one browser cannot be told from another.
+      const details = errors.slice(0, 3).map(m => `${m.message} (line ${m.lineNum}:${m.linePos})`).join('; ');
+      const features = [...(device.features ?? [])].sort().join(', ') || 'none';
+      throw new Error(`Shader compilation failed for ${label}: ${details}`
+        + `${errors.length > 3 ? `; and ${errors.length - 3} more` : ''}. Device features: ${features}. Doppler ${DOPPLER_VERSION}.`);
     }
   }
 
@@ -234,7 +242,13 @@ export async function getShaderModule(
   label
 ) {
   const shaderModuleCache = moduleCacheFor(device);
-  const shaderSource = await loadShaderSource(shaderFile);
+  const loadedSource = await loadShaderSource(shaderFile);
+  // A device without subgroups is given the module it can compile: see
+  // shader-capability-filter.js. The identity below is of the source compiled.
+  const shaderSource = filterShaderForCapabilities(loadedSource, {
+    hasSubgroups: device.features?.has?.('subgroups') === true,
+    label: shaderFile,
+  }).source;
   const digest = sourceIdentity(shaderFile, shaderSource);
   const cacheKey = `${getDeviceId(device)}:${digest}`;
   const cached = shaderModuleCache.get(cacheKey);
