@@ -284,8 +284,18 @@ KV-cache length contract:
   or override wins; otherwise the manifest session value (stamped from the
   conversion config) applies. The model context (`modelConfig.maxSeqLen`) caps
   the result.
-- When neither declares it, KV allocation and RoPE setup fail fast with an
-  error naming both places; a run never falls back to a hidden length.
+- Published manifests that predate the declaration (Gemma 3/4, TranslateGemma,
+  EmbeddingGemma, LFM2, DiffusionGemma) take their value from
+  `src/config/runtime/model-sessions.json`, keyed by exact `modelId`, without
+  changing manifest bytes. Each entry records the manifest context it was
+  computed from and the length the model ran with before the code default was
+  removed, `min(4096, contextLength)`; a manifest with a different
+  `architecture.maxSeqLen` fails at load instead of taking a stale length. A
+  manifest that declares its own value is used instead of the entry.
+- When none of these declares it, KV allocation and RoPE setup fail fast with
+  an error naming each place; a run never falls back to a hidden length.
+  `tests/config/model-kv-declaration-contract.test.js` checks that every tracked
+  manifest, catalog entry and quickstart model resolves a length.
 
 ## Runtime boundaries
 

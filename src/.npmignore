@@ -86,6 +86,7 @@ config/merge-contract-check.js
 config/merge/execution-patches.d.ts
 config/merge/kernel-path-policy.d.ts
 config/merge/value-selection.d.ts
+config/model-session-declarations.d.ts
 config/param-categories.d.ts
 config/param-validator.d.ts
 config/platforms/loader.d.ts

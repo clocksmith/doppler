@@ -1,0 +1,23 @@
+{
+  "$schema": "doppler.model-session-declarations/v1",
+  "description": "Per-model runtime session declarations for published manifests that do not declare inference.session.kvcache.maxSeqLen. Each value is the KV length the model ran with before the 4096 code default was removed (min(4096, contextLength)). A runtime profile or override still wins; a manifest that declares its own value is used instead of this file. contextLength must equal the manifest architecture.maxSeqLen or loading fails.",
+  "models": {
+    "diffusiongemma-26b-a4b-it-q4k-ehf16-af16": { "contextLength": 262144, "maxSeqLen": 4096 },
+    "gemma-3-1b-it-f16-af32": { "contextLength": 32768, "maxSeqLen": 4096 },
+    "gemma-3-1b-it-q4k-ehf16-af32": { "contextLength": 32768, "maxSeqLen": 4096 },
+    "gemma-3-270m-it-f16-af32": { "contextLength": 32768, "maxSeqLen": 4096 },
+    "gemma-3-270m-it-q4k-ehf16-af32": { "contextLength": 32768, "maxSeqLen": 4096 },
+    "gemma-4-12b-it-text-q4k-ehf16-af16": { "contextLength": 262144, "maxSeqLen": 4096 },
+    "gemma-4-12b-it-text-q4k-ehf16-af32": { "contextLength": 262144, "maxSeqLen": 4096 },
+    "gemma-4-12b-it-text-w4a16-ct-ehf16-af16": { "contextLength": 262144, "maxSeqLen": 4096 },
+    "gemma-4-31b-it-text-q4k-ehf16-af16": { "contextLength": 262144, "maxSeqLen": 4096 },
+    "gemma-4-31b-it-text-q4k-ehf16-af32": { "contextLength": 262144, "maxSeqLen": 4096 },
+    "gemma-4-e2b-it-q4k-ehf16-af16-int4ple": { "contextLength": 131072, "maxSeqLen": 4096 },
+    "gemma-4-e2b-it-q4k-ehf16-af32": { "contextLength": 131072, "maxSeqLen": 4096 },
+    "gemma-4-e2b-it-q4k-ehf16-af32-int4ple": { "contextLength": 131072, "maxSeqLen": 4096 },
+    "google-embeddinggemma-300m-q4k-ehf16-af32": { "contextLength": 2048, "maxSeqLen": 2048 },
+    "lfm2-5-1-2b-instruct-q4k-ehf16-af32": { "contextLength": 128000, "maxSeqLen": 4096 },
+    "translategemma-4b-1b-enes-q4k-ehf16-af32": { "contextLength": 32768, "maxSeqLen": 4096 },
+    "translategemma-4b-it-q4k-ehf16-af32": { "contextLength": 131072, "maxSeqLen": 4096 }
+  }
+}

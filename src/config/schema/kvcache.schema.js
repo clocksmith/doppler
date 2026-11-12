@@ -3,8 +3,9 @@
 // =============================================================================
 
 // maxSeqLen has no code default: the manifest (inference.session.kvcache, stamped
-// from the conversion config) or an explicit runtime profile/override declares
-// it, and KV allocation fails fast when neither does.
+// from the conversion config), the per-model declaration in
+// config/runtime/model-sessions.json, or an explicit runtime profile/override
+// declares it, and KV allocation fails fast when none does.
 export const DEFAULT_KVCACHE_CONFIG = {
   gpuPagedFallbackMaxSeqLen: 4096,
   kvDtype: 'f16',
@@ -46,7 +47,8 @@ export function requireDeclaredKVMaxSeqLen(value) {
   if (!Number.isSafeInteger(value) || value <= 0) {
     throw new Error(
       `KV cache maxSeqLen is not declared (got ${String(value)}). Declare ` +
-      'inference.session.kvcache.maxSeqLen in the conversion config (stamped into the manifest) ' +
+      'inference.session.kvcache.maxSeqLen in the conversion config (stamped into the manifest), ' +
+      'add the published model to src/config/runtime/model-sessions.json, ' +
       'or set runtime.inference.session.kvcache.maxSeqLen in a runtime profile or override.'
     );
   }

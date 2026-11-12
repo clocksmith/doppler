@@ -14,6 +14,7 @@ import { getKernelRegistry } from '../../../gpu/kernels/kernel-configs.js';
 import { initTokenizer } from './init.js';
 import { selectRuleValue } from '../../../rules/rule-registry.js';
 import { mergeRuntimeValues } from '../../../config/runtime-merge.js';
+import { applyModelSessionDeclaration } from '../../../config/model-session-declarations.js';
 import { mergeKernelPathPolicy } from '../../../config/merge/kernel-path-policy.js';
 import { READBACK_MODES } from '../../../config/schema/execution-v1.schema.js';
 import { resolveRuntimeActivationDtype, buildSessionRuntimePatch } from './execution-runtime-builders.js';
@@ -112,8 +113,11 @@ function buildResolvedDecodeLoopRuntimePatch(
     runtimeOverrides,
     useExplicitRuntimeOverrides
   );
+  // The manifest session, with the per-model declaration
+  // (config/runtime/model-sessions.json) filling a KV length the manifest does
+  // not declare; runtime profile/override values still win field by field.
   const resolvedSession = mergeRuntimeValues(
-    manifest?.inference?.session ?? {},
+    applyModelSessionDeclaration(manifest),
     runtimeSession ?? {}
   );
   const decodeLoop = resolvedSession?.decodeLoop;

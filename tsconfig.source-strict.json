@@ -81,6 +81,7 @@
     "src/loader/tensors/w8a8-loader.js",
     "src/gpu/kernels/w8a8.js",
     "src/config/reasoning-output.js",
+    "src/config/model-session-declarations.js",
     "src/inference/generation-output.js",
     "src/inference/pipelines/text/init-tokenizer.js",
     "src/client/runtime/capsule-piece-reader.js",
