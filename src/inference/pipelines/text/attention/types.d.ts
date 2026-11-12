@@ -126,11 +126,6 @@ export interface AttentionDebugFlags {
 export function shouldDebugLayer(layerIdx: number, debugLayers: number[] | null | undefined): boolean;
 
 /**
- * Check if a stage has been logged for a layer, and mark it as logged
- */
-export function markStageLogged(layerIdx: number, stage: string, flags: AttentionDebugFlags): boolean;
-
-/**
  * Release buffer or track for later cleanup (recording mode).
  */
 export function releaseOrTrack(recorder: CommandRecorder | undefined, buffer: GPUBuffer): void;

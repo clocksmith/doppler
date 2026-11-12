@@ -989,6 +989,7 @@
         "tools/emit-training-contract-delta.js",
         "tools/evaluate-document-search-corpus.js",
         "tools/evaluate-installed-search-corpus.js",
+        "tools/evaluate-routing-aware-acceptance.js",
         "tools/evaluate-search-components.js",
         "tools/experiments/activation-grid-browser.js",
         "tools/experiments/activity-grids-browser.js",
@@ -1043,6 +1044,7 @@
         "tools/lib/installed-gpu-observation.js",
         "tools/lib/javascript-dependency-graph.js",
         "tools/lib/json-object-validation.js",
+        "tools/lib/kernel-code-references.js",
         "tools/lib/model-type-taxonomy.js",
         "tools/lib/module-dependencies.js",
         "tools/lib/node-test-command-chain.js",
@@ -1052,6 +1054,7 @@
         "tools/lib/profile-comparison.js",
         "tools/lib/provider-conformance-evidence.js",
         "tools/lib/q4k-projection-reference.js",
+        "tools/lib/routing-aware-acceptance.js",
         "tools/lib/run-browser-oracle.js",
         "tools/lib/runtime-ownership-decision-evidence.js",
         "tools/lib/runtime-ownership-execution-evidence.js",
@@ -1169,6 +1172,7 @@
         "tools/run-check-gate.js",
         "tools/run-distill-bench.js",
         "tools/run-f16-matmul-backward-oracle.js",
+        "tools/run-flash-next-forced-routing.js",
         "tools/run-gdn-same-input.js",
         "tools/run-hc-origin-counterfactual.js",
         "tools/run-layer25-physical-gpu-counterfactual.js",
@@ -4857,13 +4861,16 @@
         "tests/helpers/litert-package-fixture.js",
         "tests/helpers/local-model-fixture.js",
         "tests/helpers/moe-routing-observation-loader.js",
+        "tests/helpers/moe-shared-split-observation-loader.js",
         "tests/helpers/native-port-fixtures.js",
         "tests/helpers/paired-model-binding.js",
         "tests/helpers/physical-browser-regression.js",
         "tests/helpers/physical-kv-cache-observer.js",
+        "tests/helpers/prefill-logit-rows-loader.js",
         "tests/helpers/q4_0-fixture.js",
         "tests/helpers/rdrr-manifest-fixture.js",
         "tests/helpers/reference-router-control.js",
+        "tests/helpers/reference-routing-selection-control.js",
         "tests/helpers/rerank-reference-fixture.js",
         "tests/helpers/resident-partition-physical-config.js",
         "tests/helpers/subgroup-portability.js",
@@ -5134,6 +5141,7 @@
         "tests/inference/qwen35-route-gpu.test.js",
         "tests/inference/qwen35-shared-expert-gpu.test.js",
         "tests/inference/refactor-receipt.test.js",
+        "tests/inference/reference-routing-selection-control.test.js",
         "tests/inference/repeat-channels-contract.test.js",
         "tests/inference/repeat-channels-gpu.test.js",
         "tests/inference/rerank-scoring-details.test.js",
@@ -5281,6 +5289,8 @@
         "tests/integration/flash-next-router-numerical-physical.test.js",
         "tests/integration/flash-next-router-replay-physical.test.js",
         "tests/integration/flash-next-runtime-profile.test.js",
+        "tests/integration/flash-next-same-input-capture-physical.test.js",
+        "tests/integration/flash-next-task-quality-physical.test.js",
         "tests/integration/flash-next-upstream-trace-physical.test.js",
         "tests/integration/frozen-prefix-receipt.test.js",
         "tests/integration/frozen-prefix-resources.test.js",
@@ -5528,7 +5538,6 @@
         "tests/loader/manifest-config.test.js",
         "tests/loader/memory-monitor.test.js",
         "tests/loader/model-executor-shared-expert-context.test.js",
-        "tests/loader/multi-model-loader-lifecycle.test.js",
         "tests/loader/ngram-table-bindings.test.js",
         "tests/loader/parallel-weight-load-cleanup.test.js",
         "tests/loader/per-layer-input-loader.test.js",
@@ -5700,6 +5709,8 @@
         "tests/tooling/reranker-reference-schedule.test.js",
         "tests/tooling/restore-capsule-baseline.test.js",
         "tests/tooling/retained-release-checkpoint.test.js",
+        "tests/tooling/routing-aware-acceptance.test.js",
+        "tests/tooling/routing-aware-fresh-loaders.test.js",
         "tests/tooling/run-check-gate.test.js",
         "tests/tooling/run-node-tests-isolation.test.js",
         "tests/tooling/runtime-closure-graph.test.js",
@@ -6933,7 +6944,6 @@
         "src/inference/pipelines/video/feature-concat.js",
         "src/inference/pipelines/video/frame-sampler.js",
         "src/inference/pipelines/video/index.js",
-        "src/loader/multi-model-loader.js",
         "src/storage/emulated-vram.js",
         "src/tooling/capsule.js",
         "src/tooling/distribution-shard-transport.js",
@@ -7000,7 +7010,6 @@
     "src/inference/pipelines/text/bdpa-steamroller.js",
     "src/inference/pipelines/text/failure-reduction.js",
     "src/inference/pipelines/text/partition-replay.js",
-    "src/loader/multi-model-loader.js",
     "src/storage/preflight.js",
     "src/storage/quickstart-downloader.js",
     "src/tooling/kernel-path-builder/custom-runtime-facts.js",
@@ -7037,7 +7046,7 @@
     {
       "file": "src/inference/pipelines/text/init.js",
       "kind": "external-contract",
-      "line": 897,
+      "line": 899,
       "expression": "import(simulatorEnvSpecifier)",
       "dependencyKind": "dynamic",
       "contract": "host simulator env: setSimulatorEnv",
@@ -7046,7 +7055,7 @@
     {
       "file": "src/inference/pipelines/text/init.js",
       "kind": "external-contract",
-      "line": 901,
+      "line": 903,
       "expression": "import(simulatorIndexSpecifier)",
       "dependencyKind": "dynamic",
       "contract": "host simulator: createEmulationContext, isEmulationSupported",
@@ -7989,6 +7998,12 @@
       "expression": "new URL(`../../${file}`, import.meta.url)"
     },
     {
+      "file": "tests/tooling/routing-aware-fresh-loaders.test.js",
+      "kind": "asset",
+      "line": 8,
+      "expression": "new URL(`../../src/inference/pipelines/text/${relative}`, import.meta.url)"
+    },
+    {
       "file": "tools/benchmark-artifact-hashing.js",
       "kind": "dynamic",
       "line": 38,
@@ -8269,6 +8284,42 @@
       "kind": "dynamic",
       "line": 84,
       "expression": "import(moduleUrl)"
+    },
+    {
+      "file": "tools/run-flash-next-forced-routing.js",
+      "kind": "dynamic",
+      "line": 36,
+      "expression": "import(fromRoot('tests/helpers/reference-routing-selection-control.js'))"
+    },
+    {
+      "file": "tools/run-flash-next-forced-routing.js",
+      "kind": "dynamic",
+      "line": 52,
+      "expression": "import(fromRoot('tests/helpers/moe-routing-observation-loader.js'))"
+    },
+    {
+      "file": "tools/run-flash-next-forced-routing.js",
+      "kind": "dynamic",
+      "line": 59,
+      "expression": "import(fromRoot('src/inference/moe-router.js'))"
+    },
+    {
+      "file": "tools/run-flash-next-forced-routing.js",
+      "kind": "dynamic",
+      "line": 60,
+      "expression": "import(fromRoot('src/memory/buffer-pool.js'))"
+    },
+    {
+      "file": "tools/run-flash-next-forced-routing.js",
+      "kind": "dynamic",
+      "line": 61,
+      "expression": "import(fromRoot('src/gpu/device.js'))"
+    },
+    {
+      "file": "tools/run-flash-next-forced-routing.js",
+      "kind": "dynamic",
+      "line": 76,
+      "expression": "import(fromRoot('tests/integration/flash-next-learned-physical.test.js'))"
     },
     {
       "file": "tools/run-gdn-same-input.js",

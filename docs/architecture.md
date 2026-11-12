@@ -1090,10 +1090,6 @@ materialized buffer → dispatch.
 
 **Gemma 2/3 norm offset:** RMSNorm uses `(1 + weight) * x` instead of `weight * x`. This is applied **at runtime** via the `rmsNormWeightOffset` flag passed to RMSNorm kernels. It is not applied during weight loading. The manifest `inference.normalization.rmsNormWeightOffset` field controls this behavior.
 
-### multi-model-loader.js - Base + Adapter Loading
-
-Loads a base model plus adapters (LoRA) for multi-model and expert scenarios.
-
 ---
 
 ## 4. Storage (`storage/`)

@@ -370,6 +370,8 @@ try {
         },
       },
       session: {
+        // The KV length is declared, never defaulted; the fixture manifest declares none.
+        kvcache: { maxSeqLen: 4096 },
         compute: {
           defaults: {
             activationDtype: 'f32',

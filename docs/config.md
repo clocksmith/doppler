@@ -279,6 +279,14 @@ Kernel-path dtype contract:
   fail closed, including when the resolved path would otherwise match; the
   projection does not mutate the caller or rewrite dtype to fit a shader
 
+KV-cache length contract:
+- `inference.session.kvcache.maxSeqLen` has no code default. A runtime profile
+  or override wins; otherwise the manifest session value (stamped from the
+  conversion config) applies. The model context (`modelConfig.maxSeqLen`) caps
+  the result.
+- When neither declares it, KV allocation and RoPE setup fail fast with an
+  error naming both places; a run never falls back to a hidden length.
+
 ## Runtime boundaries
 
 Runtime config may tune execution policy (for example batching, sampling,

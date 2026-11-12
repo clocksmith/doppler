@@ -18,19 +18,6 @@ export function shouldDebugLayer(layerIdx, debugLayers) {
 }
 
 
-export function markStageLogged(layerIdx, stage, flags) {
-  if (!flags.loggedStages) {
-    flags.loggedStages = new Set();
-  }
-  const key = `L${layerIdx}_${stage}`;
-  if (flags.loggedStages.has(key)) {
-    return true; // Already logged
-  }
-  flags.loggedStages.add(key);
-  return false; // First time
-}
-
-
 export function releaseOrTrack(recorder, buffer) {
   if (recorder) {
     recorder.trackTemporaryBuffer(buffer);

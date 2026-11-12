@@ -221,9 +221,6 @@
     "loader/doppler-loader.js": {
       "reason": "The legacy loader method delegates explicit LoRA loading to the quarantined adapter implementation."
     },
-    "loader/multi-model-loader.js": {
-      "reason": "The compatibility multi-model loader delegates explicit LoRA sources to the quarantined adapter implementation."
-    },
     "tooling/distribution-shard-transport.js": {
       "reason": "Explicit distribution tooling bridge delegates to the quarantined transport."
     },

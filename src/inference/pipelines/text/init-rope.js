@@ -5,6 +5,7 @@ import { isGpuBufferInstance } from '../../../gpu/weight-buffer.js';
 import { log } from '../../../debug/index.js';
 import { runRoPEPrecompute } from '../../../gpu/kernels/rope-precompute.js';
 import { getShaderScopeCacheKey } from '../../../gpu/kernels/shader-source-scope.js';
+import { requireDeclaredKVMaxSeqLen } from '../../../config/schema/kvcache.schema.js';
 
 // ============================================================================
 // RoPE Initialization
@@ -358,10 +359,7 @@ export function isGPURoPEBuffers(buffers) {
 export async function _initRoPE() {
     const config = (this.modelConfig);
     const maxSeqLen = config.maxSeqLen;
-    const sessionMaxSeqLen = this.runtimeConfig.inference.session.kvcache.maxSeqLen;
-    if (!Number.isSafeInteger(sessionMaxSeqLen) || sessionMaxSeqLen < 1) {
-      throw new Error('RoPE requires a positive session maxSeqLen.');
-    }
+    const sessionMaxSeqLen = requireDeclaredKVMaxSeqLen(this.runtimeConfig.inference.session.kvcache.maxSeqLen);
     // Bound storage by the executable session, independently of the model
     // context that selects LongRoPE factors and magnitude.
     const positionCount = Math.min(maxSeqLen, sessionMaxSeqLen);

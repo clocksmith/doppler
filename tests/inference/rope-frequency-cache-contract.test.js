@@ -270,7 +270,7 @@ for (const modelPartition of [null, { index: 0 }]) {
   const existing = state.ropeFrequencyLease;
   for (const maxSeqLen of [undefined, null, 0, -1, 1.5]) {
     state.runtimeConfig.inference.session.kvcache.maxSeqLen = maxSeqLen;
-    await assert.rejects(() => _initRoPE.call(state), /positive session maxSeqLen/);
+    await assert.rejects(() => _initRoPE.call(state), /KV cache maxSeqLen is not declared/);
     assert.equal(state.ropeFrequencyLease, existing, 'Invalid replacement preserves the live lease.');
   }
   releaseRoPEFrequencies(existing);

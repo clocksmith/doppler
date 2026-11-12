@@ -200,6 +200,7 @@ config/schema/provider-conformance-policy.schema.json
 config/schema/provider-conformance-provider-promotion.schema.json
 config/schema/provider-conformance-suite-promotion.schema.json
 config/schema/revocation-registry.schema.json
+config/schema/routing-aware-acceptance.schema.json
 config/schema/runtime-promotion-activation-evidence.schema.json
 config/schema/runtime-promotion-decision-evidence.schema.json
 config/schema/runtime-promotion-monitoring-capture.schema.json
@@ -654,6 +655,7 @@ gpu/kernels/rope.d.ts
 gpu/kernels/rule-registry.d.ts
 gpu/kernels/sample.d.ts
 gpu/kernels/scale.d.ts
+gpu/kernels/shader-capability-filter.d.ts
 gpu/kernels/sigmoid-gated-add.d.ts
 gpu/kernels/silu.d.ts
 gpu/kernels/soft-embedding.d.ts
@@ -930,8 +932,6 @@ loader/load-timing.d.ts
 loader/manifest-config.d.ts
 loader/model-executor.d.ts
 loader/model-load-validation.d.ts
-loader/multi-model-loader.d.ts
-loader/multi-model-loader.js
 loader/per-layer-input-loader.d.ts
 loader/q4k-reference-weight.d.ts
 loader/shard-resolver.d.ts

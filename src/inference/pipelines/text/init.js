@@ -18,6 +18,7 @@ import { createDopplerLoader } from '../../../loader/doppler-loader.js';
 import { log } from '../../../debug/index.js';
 import { getRuntimeConfig } from '../../../config/runtime.js';
 import { PAGED_LAYOUT_SEQ_LEN_THRESHOLD } from '../../../config/schema/index.js';
+import { requireDeclaredKVMaxSeqLen } from '../../../config/schema/kvcache.schema.js';
 import { selectRuleValue } from '../../../rules/rule-registry.js';
 import { resolvePerLayerInputsSession } from './generator/session-context.js';
 import {
@@ -357,10 +358,11 @@ export function createKVCache(modelConfig, useGPU, debug = false, runtimeConfig,
   }
   let slidingWindow = modelConfig.slidingWindow;
 
-  let cacheMaxSeqLen = modelMaxSeqLen;
-  if (Number.isFinite(runtimeKV.maxSeqLen) && runtimeKV.maxSeqLen > 0) {
-    cacheMaxSeqLen = Math.min(cacheMaxSeqLen, runtimeKV.maxSeqLen);
-  }
+  // The session KV limit is declared, never defaulted: a runtime profile or
+  // override wins over the manifest's inference.session.kvcache.maxSeqLen
+  // (merged by applyModelBatchingRuntimeDefaults). The model context caps it.
+  const declaredMaxSeqLen = requireDeclaredKVMaxSeqLen(runtimeKV.maxSeqLen);
+  let cacheMaxSeqLen = Math.min(modelMaxSeqLen, declaredMaxSeqLen);
 
   
   let cacheLayout = runtimeKV.layout;
@@ -568,7 +570,7 @@ export function createKVCache(modelConfig, useGPU, debug = false, runtimeConfig,
 
   // Diagnostic logging: actual vs requested KV cache parameters
   const requestedKvDtype = runtimeKV.kvDtype ?? 'unset';
-  const requestedMaxSeqLen = runtimeKV.maxSeqLen ?? 'unset';
+  const requestedMaxSeqLen = declaredMaxSeqLen;
   const actualKvDtype = kvDtype;
   const actualMaxSeqLen = cacheMaxSeqLen;
 
@@ -579,7 +581,7 @@ export function createKVCache(modelConfig, useGPU, debug = false, runtimeConfig,
       `(rule-based resolution may have changed the dtype due to GPU capabilities or softcap policy)`
     );
   }
-  if (requestedMaxSeqLen !== 'unset' && requestedMaxSeqLen !== actualMaxSeqLen) {
+  if (requestedMaxSeqLen !== actualMaxSeqLen) {
     log.debug(
       'Pipeline',
       `KV cache maxSeqLen adjusted: requested=${requestedMaxSeqLen}, actual=${actualMaxSeqLen}`

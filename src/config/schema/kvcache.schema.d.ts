@@ -103,8 +103,11 @@ export interface KVTieringConfigSchema {
  * control memory allocation, precision, and layout strategies.
  */
 export interface KVCacheConfigSchema {
-  /** Maximum sequence length the cache can hold */
-  maxSeqLen: number;
+  /**
+   * Maximum sequence length the cache can hold. No schema default: declared by
+   * the manifest session or an explicit runtime profile/override.
+   */
+  maxSeqLen?: number;
 
   /** Max sequence length cap when GPU paged layout is unavailable */
   gpuPagedFallbackMaxSeqLen: number;
@@ -145,3 +148,6 @@ export declare const DEFAULT_KVCACHE_CONFIG: KVCacheConfigSchema;
  * Above this threshold, paged layout is preferred for memory efficiency.
  */
 export declare const PAGED_LAYOUT_SEQ_LEN_THRESHOLD: number;
+
+/** Returns the declared session KV maxSeqLen; throws when it is absent or not a positive integer. */
+export declare function requireDeclaredKVMaxSeqLen(value: unknown): number;

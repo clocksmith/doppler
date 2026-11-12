@@ -771,7 +771,6 @@
     "src/loader/memory-monitor.js",
     "src/loader/model-executor.js",
     "src/loader/model-load-validation.js",
-    "src/loader/multi-model-loader.js",
     "src/loader/per-layer-input-loader.js",
     "src/loader/shard-cache.js",
     "src/loader/shard-resolver.js",

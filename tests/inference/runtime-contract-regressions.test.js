@@ -865,7 +865,7 @@ try {
         layerTypes: Array.from({ length: 35 }, (_, index) => index % 5 === 4 ? 'full_attention' : 'sliding_attention'),
         numKvSharedLayers: 20,
         decodeStrategy: 'incremental',
-      }, false, false, DEFAULT_KVCACHE_CONFIG),
+      }, false, false, { ...DEFAULT_KVCACHE_CONFIG, maxSeqLen: 4096 }),
       /requires GPU execution/
     );
   }
