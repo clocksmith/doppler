@@ -58,7 +58,13 @@ const WORKER_SHELL_END = '// END GENERATED DEMO SHELL';
 // this allowance if bundled/normalizer.js leaves the shell; byte limit unchanged.
 // Files outside demo/ and src/ are no longer precached (see SERVED_PREFIXES), which
 // removed the 33 kernel-suite modules under tests/ and 1.79 MB; the ceiling follows.
-const MAX_MODULES = 805;
+// Four reachable runtime owners landed after the ceiling was set, and the shell
+// had not been regenerated: layer projection (client/model-host/layer-projection.js,
+// inference/pipelines/text/generator/hidden-projection.js), budgeted pool
+// retirement (memory/sequence-retirement.js) and the capability filter that lets
+// devices without subgroups compile plain kernels (gpu/kernels/shader-capability-filter.js).
+// Remove an allowance when its module leaves the shell. Byte limit unchanged.
+const MAX_MODULES = 809;
 const MAX_TOTAL_BYTES = 10_000_000;
 // The worker answers only requests under these folders (isDemoAsset in demo/sw.js).
 // A file anywhere else would be downloaded at install and never served from the

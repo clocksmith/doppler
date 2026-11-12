@@ -2,8 +2,8 @@
 // a module. An older registration must be able to update without booting the app.
 // BEGIN GENERATED DEMO SHELL
 const SHELL_MANIFEST_SCHEMA = 'doppler.demo-shell-manifest/v1';
-const SHELL_MANIFEST_DIGEST = 'sha256:7ab1b146fc9eb70dc5a9b4ece5a2822ecbf199744d6bf21823e97e633cdfab41';
-const CACHE_NAME = 'doppler-demo-shell-7ab1b146fc9eb70d';
+const SHELL_MANIFEST_DIGEST = 'sha256:293c61b5223dcb1e94c4e48200d38fc0a4ac0501b6d544d32184f03a6e1fea47';
+const CACHE_NAME = 'doppler-demo-shell-293c61b5223dcb1e';
 const APP_SHELL = Object.freeze([
   "/demo/assets/activity-preview-attention-prefill.png",
   "/demo/assets/activity-preview-contributions.png",
@@ -67,6 +67,7 @@ const APP_SHELL = Object.freeze([
   "/src/client/doppler-registry.js",
   "/src/client/inspection.js",
   "/src/client/model-host/index.js",
+  "/src/client/model-host/layer-projection.js",
   "/src/client/model-host/model-evidence.js",
   "/src/client/model-host/model-session.js",
   "/src/client/runtime/capsule-acquisition.js",
@@ -444,6 +445,7 @@ const APP_SHELL = Object.freeze([
   "/src/gpu/kernels/sample.js",
   "/src/gpu/kernels/scale.js",
   "/src/gpu/kernels/shader-cache.js",
+  "/src/gpu/kernels/shader-capability-filter.js",
   "/src/gpu/kernels/shader-source-scope.js",
   "/src/gpu/kernels/sigmoid-gated-add.js",
   "/src/gpu/kernels/silu.js",
@@ -585,6 +587,7 @@ const APP_SHELL = Object.freeze([
   "/src/inference/pipelines/text/generator/diagnostic-sequence.js",
   "/src/inference/pipelines/text/generator/diffusion.js",
   "/src/inference/pipelines/text/generator/greedy-head-policy.js",
+  "/src/inference/pipelines/text/generator/hidden-projection.js",
   "/src/inference/pipelines/text/generator/logits-config.js",
   "/src/inference/pipelines/text/generator/per-layer-buffer.js",
   "/src/inference/pipelines/text/generator/prefill-observation.js",
@@ -781,6 +784,7 @@ const APP_SHELL = Object.freeze([
   "/src/memory/device-budget.js",
   "/src/memory/device-residency.js",
   "/src/memory/heap-manager.js",
+  "/src/memory/sequence-retirement.js",
   "/src/memory/unified-detect.js",
   "/src/rules/execution-contract.js",
   "/src/rules/execution-rules-contract-check.js",
