@@ -51,17 +51,21 @@ function rankTopK(logits, offset, numExperts, topK) {
   return order.slice(0, topK);
 }
 
+// `differences` lists each differing token with the GPU's own sorted top-k set, so the
+// routing-aware acceptance gate can measure the CPU flip displacement of every one.
 export function countOwnSelectionDifferences(logits, experts, { numTokens, numExperts, topK }) {
   let differingTokens = 0, firstToken = null;
+  const differences = [];
   for (let token = 0; token < numTokens; token++) {
     const own = rankTopK(logits, token * numExperts, numExperts, topK).sort((a, b) => a - b);
     const reference = sortedSet(experts, token * topK, topK);
     if (own.some((expert, i) => expert !== reference[i])) {
       differingTokens++;
       firstToken ??= token;
+      differences.push({ token, experts: own });
     }
   }
-  return { differingTokens, firstToken };
+  return { differingTokens, firstToken, differences };
 }
 
 export function compareRouteSelections(indices, weights, experts, scores, { numTokens, topK }) {
@@ -131,7 +135,11 @@ function maxAbsDiff(a, b) {
 
 // `memory` is the snapshot's buffer-pool module and `device` its GPU device, so
 // the control uses the same module instances as the pipeline under test.
-export function installReferenceRoutingSelectionControl(fixture, mode, { MoERouter, memory, getDevice }) {
+// `selectionDumpDirectory` (optional, existing directory) records each layer's executed
+// GPU expert indices as gpu-experts-<layer>.u32 ([numTokens, topK] little-endian u32)
+// for the routing-aware acceptance evaluator. It changes no GPU buffer.
+export function installReferenceRoutingSelectionControl(fixture, mode, { MoERouter, memory, getDevice },
+  { selectionDumpDirectory = null } = {}) {
   assert.ok(ROUTING_SELECTION_MODES.includes(mode), `mode must be one of ${ROUTING_SELECTION_MODES.join(', ')}`);
   const { numTokens, numExperts, topK } = fixture;
   const control = { kind: 'counterfactual-reference-routing-selection', mode,
@@ -156,7 +164,7 @@ export function installReferenceRoutingSelectionControl(fixture, mode, { MoERout
     const row = { layer: options.layerIdx, gpuLogitsSha256: sha256(new Uint8Array(logits.buffer)),
       routerLogitsMaxAbsDiffVsReference: maxAbsDiff(logits, reference.logits),
       ownSelectionDifferingTokens: own.differingTokens, ownSelectionFirstDifferingToken: own.firstToken,
-      replaced: false };
+      ownSelectionDifferences: own.differences, replaced: false };
     if (mode !== 'observe') {
       const masked = maskRouterLogits(logits, reference.experts, { numTokens, numExperts, topK });
       getDevice().queue.writeBuffer(output, 0, masked);
@@ -178,6 +186,12 @@ export function installReferenceRoutingSelectionControl(fixture, mode, { MoERout
     const before = compareRouteSelections(indices, weights, reference.experts, reference.scores, { numTokens, topK });
     const row = { layer: record.layer, selectedSetDifferingTokens: before.differingTokens,
       firstDifferingToken: before.firstToken, selectedWeightMaxAbsDiff: before.maxWeightAbsDiff, weightsReplaced: false };
+    if (selectionDumpDirectory) {
+      const bytes = new Uint8Array(indices.buffer, indices.byteOffset, indices.byteLength);
+      const file = `gpu-experts-${record.layer}.u32`;
+      await fs.writeFile(path.join(selectionDumpDirectory, file), bytes, { flag: 'wx' });
+      row.executedExperts = { file, sha256: sha256(bytes) };
+    }
     if (mode !== 'observe') assert.equal(before.differingTokens, 0, `layer ${record.layer}: forced selection not applied`);
     if (mode === 'indices-weights') {
       const replacement = referenceWeightsInObservedOrder(indices, reference.experts, reference.scores, { numTokens, topK });

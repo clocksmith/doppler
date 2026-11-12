@@ -1,0 +1,225 @@
+{
+  "schema": "doppler.routing-aware-acceptance-dry-run/v1",
+  "createdUtc": "2026-11-12",
+  "scope": "Dry run on retained artifacts only; no GPU or CPU model execution. Not qualification.",
+  "policySha256": "sha256:7a63c40cfbf0753ebe9946d5c74cd458f6fbcd6d726562a47f193e0b2c9bbbd0",
+  "inputs": {
+    "tools/policies/routing-aware-acceptance.json": "de397c0b424afd38e54bb35208d488b9a718bdd324b219a2a20a623b272eecd9",
+    "tools/data/flash-next-routing-acceptance-prompts-v1.json": "4098bb3d4282c935d6c4442159fb7bbce7e377cb4f8fd6dcfc406dcdead4ce45",
+    "src/config/evidence/boundary-evidence-policy.json": "f1c4629d593ec2517e3628ac68131dc7568c6aba5e0f03db627d26228c720413",
+    "reports/flash-next-forced-routing-20261112/comparison.json": "37372336d7db3c0205ec6f1598e19e79cf254ec0c2800932391492a85d9fe49b",
+    "reports/flash-next-new-prompts-20261110/routing-trace.json": "68ae162bcbc4880dc20de80a47843d96aadce6fecc3576e63dd6d3ce7b084339",
+    "reports/flash-next-new-prompts-20261110/same-input-operator-controls.json": "26248f84659b8293d2183f8736077b90b5e135400209a407c94cb62ab950372f"
+  },
+  "verdict": {
+    "schema": "doppler.routing-aware-acceptance-verdict/v1",
+    "verdict": "fail",
+    "policyId": "doppler.routing-aware-acceptance/v1",
+    "policySha256": "sha256:7a63c40cfbf0753ebe9946d5c74cd458f6fbcd6d726562a47f193e0b2c9bbbd0",
+    "policyStatus": "proposed",
+    "qualifiedTuple": null,
+    "reasons": [
+      {
+        "code": "POLICY_NOT_APPROVED",
+        "message": "policy limits are proposed, not owner-approved; no run can qualify"
+      },
+      {
+        "code": "POLICY_HASH_MISMATCH",
+        "message": "evidence was not recorded against this exact policy"
+      },
+      {
+        "code": "PROMPT_SET_HASH_MISMATCH",
+        "message": "evidence does not bind the pinned prompt set"
+      },
+      {
+        "code": "TUPLE_NOT_QUALIFIABLE",
+        "message": "evidence tuple is not one of the policy qualification tuples"
+      },
+      {
+        "code": "CASE_NOT_PINNED",
+        "caseId": "inventory",
+        "message": "case is not in the pinned prompt set or is duplicated"
+      },
+      {
+        "code": "CASE_MISSING",
+        "caseId": "sum-00",
+        "message": "pinned case has no routing evidence"
+      },
+      {
+        "code": "CASE_MISSING",
+        "caseId": "sum-01",
+        "message": "pinned case has no routing evidence"
+      },
+      {
+        "code": "CASE_MISSING",
+        "caseId": "sum-02",
+        "message": "pinned case has no routing evidence"
+      },
+      {
+        "code": "CASE_MISSING",
+        "caseId": "sum-03",
+        "message": "pinned case has no routing evidence"
+      },
+      {
+        "code": "CASE_MISSING",
+        "caseId": "sum-04",
+        "message": "pinned case has no routing evidence"
+      },
+      {
+        "code": "CASE_MISSING",
+        "caseId": "sum-05",
+        "message": "pinned case has no routing evidence"
+      },
+      {
+        "code": "CASE_MISSING",
+        "caseId": "sum-06",
+        "message": "pinned case has no routing evidence"
+      },
+      {
+        "code": "CASE_MISSING",
+        "caseId": "sum-07",
+        "message": "pinned case has no routing evidence"
+      },
+      {
+        "code": "CASE_MISSING",
+        "caseId": "sum-08",
+        "message": "pinned case has no routing evidence"
+      },
+      {
+        "code": "CASE_MISSING",
+        "caseId": "sum-09",
+        "message": "pinned case has no routing evidence"
+      },
+      {
+        "code": "CASE_MISSING",
+        "caseId": "sum-10",
+        "message": "pinned case has no routing evidence"
+      },
+      {
+        "code": "CASE_MISSING",
+        "caseId": "sum-11",
+        "message": "pinned case has no routing evidence"
+      },
+      {
+        "code": "CASE_MISSING",
+        "caseId": "copy-00",
+        "message": "pinned case has no routing evidence"
+      },
+      {
+        "code": "CASE_MISSING",
+        "caseId": "copy-01",
+        "message": "pinned case has no routing evidence"
+      },
+      {
+        "code": "CASE_MISSING",
+        "caseId": "copy-02",
+        "message": "pinned case has no routing evidence"
+      },
+      {
+        "code": "CASE_MISSING",
+        "caseId": "copy-03",
+        "message": "pinned case has no routing evidence"
+      },
+      {
+        "code": "CASE_MISSING",
+        "caseId": "ledger-00",
+        "message": "pinned case has no routing evidence"
+      },
+      {
+        "code": "CASE_MISSING",
+        "caseId": "ledger-01",
+        "message": "pinned case has no routing evidence"
+      },
+      {
+        "code": "CASE_MISSING",
+        "caseId": "ledger-02",
+        "message": "pinned case has no routing evidence"
+      },
+      {
+        "code": "CASE_MISSING",
+        "caseId": "ledger-03",
+        "message": "pinned case has no routing evidence"
+      },
+      {
+        "code": "CASE_MISSING",
+        "caseId": "ledger-04",
+        "message": "pinned case has no routing evidence"
+      },
+      {
+        "code": "CASE_MISSING",
+        "caseId": "ledger-05",
+        "message": "pinned case has no routing evidence"
+      },
+      {
+        "code": "INPUT_MISSING",
+        "message": "same-input operator checks missing"
+      },
+      {
+        "code": "TASK_QUALITY_MISSING",
+        "message": "task-quality results (doppler.routing-aware-task-quality/v1) missing"
+      }
+    ],
+    "cases": [],
+    "sameInputOperators": null,
+    "taskQuality": null
+  },
+  "informational": {
+    "admissible": false,
+    "inferredRoutingAttribution": {
+      "source": "reports/flash-next-new-prompts-20261110/routing-trace.json (rankings inferred from captured GPU router logits)",
+      "divergentTokenLayers": 9754,
+      "cascadeTokenLayers": 9753,
+      "roots": [
+        {
+          "layer": 24,
+          "token": 112,
+          "cpuFlipDisplacement": 0.00001049041748046875,
+          "bound": 0.000606536865234375,
+          "nearTieUnderProposedBound": true
+        }
+      ],
+      "executedReadbackAgrees": {
+        "firstExecutedDivergence": {
+          "layer": 24,
+          "token": 112
+        },
+        "executedSelectionDifferingTokenLayers": 9754
+      }
+    },
+    "forcedIndicesControl": {
+      "logitViolations": 0,
+      "executedSelectionDifferingTokenLayers": 0,
+      "ownSelectionInterventions": [
+        {
+          "layer": 23,
+          "tokens": 1,
+          "firstToken": 2126
+        },
+        {
+          "layer": 24,
+          "tokens": 1,
+          "firstToken": 112
+        },
+        {
+          "layer": 25,
+          "tokens": 1,
+          "firstToken": 1335
+        }
+      ],
+      "ownSelectionSetsRecorded": false
+    },
+    "sameInputOperatorCoverage": {
+      "caseId": "inventory_prefix113",
+      "layers": [
+        0,
+        24
+      ],
+      "requiredLayers": [
+        0,
+        47
+      ],
+      "position": 112,
+      "recordsQuantizedV1ViolationCounts": false
+    }
+  }
+}

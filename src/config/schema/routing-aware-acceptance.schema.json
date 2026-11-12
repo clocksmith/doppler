@@ -1,0 +1,221 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://clocksmith.dev/doppler/schemas/routing-aware-acceptance-v1.schema.json",
+  "title": "Doppler Routing-Aware Acceptance Policy v1",
+  "description": "Acceptance gate for routed-MoE models. Evaluated by tools/evaluate-routing-aware-acceptance.js; never loosens the numerical tolerance it pins.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["$schema", "schema", "policyVersion", "scope", "approval", "qualificationTuples", "numericalTolerance", "cpuReference", "nearTie", "attribution", "requiredControls", "taskQuality"],
+  "$defs": {
+    "status": { "enum": ["proposed", "approved"] },
+    "sha256Hex": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+    "nonEmpty": { "type": "string", "minLength": 1 },
+    "unit": { "type": "number", "minimum": 0, "maximum": 1 }
+  },
+  "properties": {
+    "$schema": { "const": "../../src/config/schema/routing-aware-acceptance.schema.json" },
+    "schema": { "const": "doppler.routing-aware-acceptance/v1" },
+    "policyVersion": { "type": "integer", "minimum": 1 },
+    "scope": { "$ref": "#/$defs/nonEmpty" },
+    "approval": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["status", "approvedBy", "approvedAtUtc", "proposedAtUtc", "pendingOwnerDecisions"],
+      "properties": {
+        "status": { "$ref": "#/$defs/status" },
+        "approvedBy": { "type": ["string", "null"] },
+        "approvedAtUtc": { "type": ["string", "null"], "format": "date-time" },
+        "proposedAtUtc": { "type": "string", "format": "date-time" },
+        "pendingOwnerDecisions": { "type": "array", "items": { "$ref": "#/$defs/nonEmpty" } }
+      }
+    },
+    "qualificationTuples": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "modelId", "artifactManifestSha256", "precision", "backend", "device"],
+        "properties": {
+          "id": { "$ref": "#/$defs/nonEmpty" },
+          "modelId": { "$ref": "#/$defs/nonEmpty" },
+          "artifactManifestSha256": { "$ref": "#/$defs/sha256Hex" },
+          "precision": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["runtimeProfile", "weights", "activations", "kvCache", "routerLogits"],
+            "properties": {
+              "runtimeProfile": { "$ref": "#/$defs/nonEmpty" },
+              "weights": { "$ref": "#/$defs/nonEmpty" },
+              "activations": { "$ref": "#/$defs/nonEmpty" },
+              "kvCache": { "$ref": "#/$defs/nonEmpty" },
+              "routerLogits": { "$ref": "#/$defs/nonEmpty" }
+            }
+          },
+          "backend": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["surface", "api", "binding"],
+            "properties": {
+              "surface": { "enum": ["node", "browser"] },
+              "api": { "$ref": "#/$defs/nonEmpty" },
+              "binding": { "$ref": "#/$defs/nonEmpty" }
+            }
+          },
+          "device": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["vendor", "architecture"],
+            "properties": {
+              "vendor": { "$ref": "#/$defs/nonEmpty" },
+              "architecture": { "$ref": "#/$defs/nonEmpty" }
+            }
+          }
+        }
+      }
+    },
+    "numericalTolerance": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["policyPath", "policyId", "expected"],
+      "properties": {
+        "policyPath": { "const": "src/config/evidence/boundary-evidence-policy.json" },
+        "policyId": { "const": "doppler.boundary-tolerance/quantized-v1" },
+        "expected": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["absolute", "relative", "requireDtypeMatch"],
+          "properties": {
+            "absolute": { "const": 0.05 },
+            "relative": { "const": 0.05 },
+            "requireDtypeMatch": { "const": false }
+          }
+        }
+      }
+    },
+    "cpuReference": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["fixtureSchema", "producerSha256", "routerScore"],
+      "properties": {
+        "fixtureSchema": { "const": "doppler.flash-next-routing-selection-fixture/v1" },
+        "producerSha256": { "$ref": "#/$defs/sha256Hex" },
+        "routerScore": { "$ref": "#/$defs/nonEmpty" }
+      }
+    },
+    "nearTie": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["status", "margin", "definition", "envelopeControl", "envelope", "envelopeMultiplier", "absoluteCeiling", "rule"],
+      "properties": {
+        "status": { "$ref": "#/$defs/status" },
+        "margin": { "const": "flip-displacement" },
+        "definition": { "$ref": "#/$defs/nonEmpty" },
+        "envelopeControl": { "const": "forced-indices" },
+        "envelope": { "$ref": "#/$defs/nonEmpty" },
+        "envelopeMultiplier": { "type": "number", "exclusiveMinimum": 0 },
+        "absoluteCeiling": { "type": "number", "exclusiveMinimum": 0 },
+        "rule": { "$ref": "#/$defs/nonEmpty" }
+      }
+    },
+    "attribution": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["selectionSource", "causalCone", "coneDefinition", "rootDefinition", "maxIndependentRootsPerCase", "rootsMustBeNearTie"],
+      "properties": {
+        "selectionSource": { "const": "gpu-executed-readback" },
+        "causalCone": { "const": "later-layer-same-or-later-token" },
+        "coneDefinition": { "$ref": "#/$defs/nonEmpty" },
+        "rootDefinition": { "$ref": "#/$defs/nonEmpty" },
+        "maxIndependentRootsPerCase": { "type": "integer", "minimum": 0 },
+        "rootsMustBeNearTie": { "const": true }
+      }
+    },
+    "requiredControls": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["forcedIndices", "observationNeutrality", "sameInputOperators"],
+      "properties": {
+        "forcedIndices": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["mode", "maxExecutedSelectionDifferences", "maxLogitViolations", "ownSelectionDifferencesMustBeNearTie"],
+          "properties": {
+            "mode": { "const": "indices" },
+            "maxExecutedSelectionDifferences": { "const": 0 },
+            "maxLogitViolations": { "const": 0 },
+            "ownSelectionDifferencesMustBeNearTie": { "const": true }
+          }
+        },
+        "observationNeutrality": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["requireByteIdenticalPrefillLogits"],
+          "properties": { "requireByteIdenticalPrefillLogits": { "const": true } }
+        },
+        "sameInputOperators": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["maxViolations", "families"],
+          "properties": {
+            "maxViolations": { "const": 0 },
+            "families": {
+              "type": "array",
+              "minItems": 1,
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": ["family", "coverage"],
+                "properties": {
+                  "family": { "$ref": "#/$defs/nonEmpty" },
+                  "coverage": { "enum": ["model", "all-layers", "sequence-mixer"] }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "taskQuality": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["status", "promptSet", "distribution", "exactAnswer"],
+      "properties": {
+        "status": { "$ref": "#/$defs/status" },
+        "promptSet": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["path", "sha256"],
+          "properties": {
+            "path": { "$ref": "#/$defs/nonEmpty" },
+            "sha256": { "type": "string", "pattern": "^sha256:[0-9a-f]{64}$" }
+          }
+        },
+        "distribution": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["decisiveMarginLogits", "minTop1AgreementDecisive", "minTop1AgreementOverall", "maxMeanKlNats", "maxP99KlNats", "rationale"],
+          "properties": {
+            "decisiveMarginLogits": { "type": "number", "exclusiveMinimum": 0 },
+            "minTop1AgreementDecisive": { "$ref": "#/$defs/unit" },
+            "minTop1AgreementOverall": { "$ref": "#/$defs/unit" },
+            "maxMeanKlNats": { "type": "number", "minimum": 0 },
+            "maxP99KlNats": { "type": "number", "minimum": 0 },
+            "rationale": { "$ref": "#/$defs/nonEmpty" }
+          }
+        },
+        "exactAnswer": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["maxCpuCorrectGpuWrong", "maxNetItemLoss", "minGreedyTokenAgreement", "rationale"],
+          "properties": {
+            "maxCpuCorrectGpuWrong": { "type": "integer", "minimum": 0 },
+            "maxNetItemLoss": { "type": "integer", "minimum": 0 },
+            "minGreedyTokenAgreement": { "$ref": "#/$defs/unit" },
+            "rationale": { "$ref": "#/$defs/nonEmpty" }
+          }
+        }
+      }
+    }
+  }
+}

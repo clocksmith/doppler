@@ -59,7 +59,13 @@ const routeHook = installMoeRoutingObservation(routeUrl, sha256(await fs.readFil
 const { MoERouter } = await import(fromRoot('src/inference/moe-router.js'));
 const memory = await import(fromRoot('src/memory/buffer-pool.js'));
 const { getDevice } = await import(fromRoot('src/gpu/device.js'));
-selection = helper.installReferenceRoutingSelectionControl(fixture, protocol.mode, { MoERouter, memory, getDevice });
+// protocol.recordSelections: true writes each layer's executed GPU expert indices to
+// OUTPUT/selections for tools/evaluate-routing-aware-acceptance.js.
+assert.ok([undefined, true, false].includes(protocol.recordSelections), 'protocol.recordSelections must be boolean');
+const selectionDumpDirectory = protocol.recordSelections ? path.join(output, 'selections') : null;
+if (selectionDumpDirectory) await fs.mkdir(selectionDumpDirectory);
+selection = helper.installReferenceRoutingSelectionControl(fixture, protocol.mode, { MoERouter, memory, getDevice },
+  { selectionDumpDirectory });
 const control = { protocolSha256: sha256(protocolBytes), baseRunSha256: protocol.baseRunSha256,
   driverSha256: sha256(await fs.readFile(new URL(import.meta.url))),
   helperSha256: sha256(await fs.readFile(new URL(fromRoot('tests/helpers/reference-routing-selection-control.js')))) };

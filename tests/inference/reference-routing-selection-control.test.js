@@ -22,8 +22,10 @@ assert.deepEqual(Array.from(masked), [
 assert.throws(() => maskRouterLogits(logits, Uint32Array.from([0, 0, 3, 2]), geometry), /duplicate reference expert/);
 assert.throws(() => maskRouterLogits(logits, Uint32Array.from([0, 4, 3, 2]), geometry), /out of range/);
 
-assert.deepEqual(countOwnSelectionDifferences(logits, experts, geometry), { differingTokens: 1, firstToken: 0 });
-assert.deepEqual(countOwnSelectionDifferences(masked, experts, geometry), { differingTokens: 0, firstToken: null });
+assert.deepEqual(countOwnSelectionDifferences(logits, experts, geometry),
+  { differingTokens: 1, firstToken: 0, differences: [{ token: 0, experts: [0, 1] }] });
+assert.deepEqual(countOwnSelectionDifferences(masked, experts, geometry),
+  { differingTokens: 0, firstToken: null, differences: [] });
 
 // Same sets in a different slot order compare by expert ID.
 const observed = Uint32Array.from([2, 0, 3, 2]);
@@ -49,5 +51,30 @@ assert.equal(installed.control.normalModelQualified, false);
 assert.equal(await new FakeRouter().computeRouterLogitsGPU(null, 3, null, {}), 'original');
 installed.restore();
 assert.equal(FakeRouter.prototype.computeRouterLogitsGPU, original);
+
+// The optional selection dump writes each layer's executed indices with their hash.
+{
+  const os = await import('node:os');
+  const fs = await import('node:fs/promises');
+  const path = await import('node:path');
+  const { createHash } = await import('node:crypto');
+  const dir = await fs.mkdtemp(path.join(os.tmpdir(), 'routing-selection-dump-'));
+  try {
+    const executed = Uint32Array.from([1, 0, 3, 2]);
+    const memory = { readBuffer: async buffer => buffer.slice().buffer };
+    const dumping = installReferenceRoutingSelectionControl(fixture, 'observe', { MoERouter: FakeRouter, memory },
+      { selectionDumpDirectory: dir });
+    await dumping.observeTopK({ layer: 0, numTokens: 2, topK: 2, activationDtype: 'f32',
+      indicesBuffer: executed, weightsBuffer: Float32Array.from([0.5, 0.5, 0.5, 0.5]) });
+    dumping.restore();
+    const bytes = await fs.readFile(path.join(dir, 'gpu-experts-0.u32'));
+    assert.deepEqual(Array.from(new Uint32Array(bytes.buffer, bytes.byteOffset, 4)), [1, 0, 3, 2]);
+    const row = dumping.control.topKLayers[0];
+    assert.equal(row.executedExperts.sha256, createHash('sha256').update(bytes).digest('hex'));
+    assert.equal(row.selectedSetDifferingTokens, 1);
+  } finally {
+    await fs.rm(dir, { recursive: true, force: true });
+  }
+}
 
 console.log('reference-routing-selection-control.test: ok');

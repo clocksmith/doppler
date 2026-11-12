@@ -38,6 +38,11 @@
       "schemaPath": "src/config/schema/revocation-registry.schema.json"
     },
     {
+      "id": "routing-aware-acceptance",
+      "policyPath": "tools/policies/routing-aware-acceptance.json",
+      "schemaPath": "src/config/schema/routing-aware-acceptance.schema.json"
+    },
+    {
       "id": "signed-revocation-authority-qualification",
       "policyPath": "tools/policies/signed-revocation-authority-qualification.json",
       "schemaPath": "src/config/schema/signed-revocation-authority-qualification.schema.json"

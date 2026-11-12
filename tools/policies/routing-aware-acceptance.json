@@ -1,0 +1,120 @@
+{
+  "$schema": "../../src/config/schema/routing-aware-acceptance.schema.json",
+  "schema": "doppler.routing-aware-acceptance/v1",
+  "policyVersion": 1,
+  "scope": "Separate acceptance gate for routed-MoE models whose unforced logits fail the unchanged numerical gate only through discrete expert-selection flips. It never replaces or loosens doppler.boundary-tolerance/quantized-v1; it adds routing attribution, required controls and pre-registered task-quality limits.",
+  "approval": {
+    "status": "proposed",
+    "approvedBy": null,
+    "approvedAtUtc": null,
+    "proposedAtUtc": "2026-11-12T00:00:00Z",
+    "pendingOwnerDecisions": [
+      "nearTie.envelopeMultiplier and nearTie.absoluteCeiling",
+      "attribution.maxIndependentRootsPerCase",
+      "taskQuality.distribution limits",
+      "taskQuality.exactAnswer limits",
+      "taskQuality.promptSet contents",
+      "qualificationTuples"
+    ]
+  },
+  "qualificationTuples": [
+    {
+      "id": "flash-next-q4k-f32kv-node-webgpu-amd-rdna3",
+      "modelId": "qwen-3-8-flash-next-text-q4k-ehf16-af32",
+      "artifactManifestSha256": "4902a0b730a9310903b00bc0f8f587528fa1af9f37a722d2f9287bafceceec09",
+      "precision": {
+        "runtimeProfile": "profiles/flash-next-routed-f32kv-qualification",
+        "weights": "q4k-ehf16",
+        "activations": "f32",
+        "kvCache": "f32",
+        "routerLogits": "f32"
+      },
+      "backend": {
+        "surface": "node",
+        "api": "webgpu",
+        "binding": "webgpu@0.4.0"
+      },
+      "device": {
+        "vendor": "amd",
+        "architecture": "rdna3"
+      }
+    }
+  ],
+  "numericalTolerance": {
+    "policyPath": "src/config/evidence/boundary-evidence-policy.json",
+    "policyId": "doppler.boundary-tolerance/quantized-v1",
+    "expected": {
+      "absolute": 0.05,
+      "relative": 0.05,
+      "requireDtypeMatch": false
+    }
+  },
+  "cpuReference": {
+    "fixtureSchema": "doppler.flash-next-routing-selection-fixture/v1",
+    "producerSha256": "f6bc0f15a6545ab1d205cfc3ec412442415220e541190b63a9c712fa238ba5b0",
+    "routerScore": "pre-softmax router logits in float32 from the independent CPU source producer, one row per token and layer"
+  },
+  "nearTie": {
+    "status": "proposed",
+    "margin": "flip-displacement",
+    "definition": "For a token-layer where the GPU executed expert set differs from the CPU set, dropped = CPU experts the GPU did not execute, added = GPU experts outside the CPU set. flipDisplacement = max(cpuLogit[d] for d in dropped) - min(cpuLogit[a] for a in added), from the CPU reference's own router logits for that token-layer. The rank-k minus rank-(k+1) CPU margin is reported alongside it.",
+    "envelopeControl": "forced-indices",
+    "envelope": "Per layer, the maximum absolute difference between GPU and CPU router logits in the forced-indices control on the same case and tuple: the GPU's rounding drift on the CPU routing trajectory.",
+    "envelopeMultiplier": 2,
+    "absoluteCeiling": 0.001,
+    "rule": "A divergence is a near-tie when flipDisplacement <= min(absoluteCeiling, envelopeMultiplier * envelope[layer]). Two logits each displaced by at most the envelope can exchange order only within twice the envelope."
+  },
+  "attribution": {
+    "selectionSource": "gpu-executed-readback",
+    "causalCone": "later-layer-same-or-later-token",
+    "coneDefinition": "Divergence (L, t) is downstream of root (L0, t0) when L > L0 and t >= t0. The routed MoE output at (L0, t0) reaches later layers at the same token directly and later tokens through causal sequence mixing; it cannot reach the same layer or earlier tokens.",
+    "rootDefinition": "A root is a divergence that is not downstream of any other divergence. Every non-root divergence is a cascade attributed to the roots whose cone contains it.",
+    "maxIndependentRootsPerCase": 1,
+    "rootsMustBeNearTie": true
+  },
+  "requiredControls": {
+    "forcedIndices": {
+      "mode": "indices",
+      "maxExecutedSelectionDifferences": 0,
+      "maxLogitViolations": 0,
+      "ownSelectionDifferencesMustBeNearTie": true
+    },
+    "observationNeutrality": {
+      "requireByteIdenticalPrefillLogits": true
+    },
+    "sameInputOperators": {
+      "maxViolations": 0,
+      "families": [
+        { "family": "token-embedding", "coverage": "model" },
+        { "family": "hyper-connection", "coverage": "all-layers" },
+        { "family": "gated-delta", "coverage": "sequence-mixer" },
+        { "family": "full-attention", "coverage": "sequence-mixer" },
+        { "family": "routed-moe", "coverage": "all-layers" },
+        { "family": "shared-expert", "coverage": "all-layers" },
+        { "family": "final-norm", "coverage": "model" },
+        { "family": "lm-head", "coverage": "model" }
+      ]
+    }
+  },
+  "taskQuality": {
+    "status": "proposed",
+    "promptSet": {
+      "path": "tools/data/flash-next-routing-acceptance-prompts-v1.json",
+      "sha256": "sha256:d87a15ac34b15c595b8eb88b18e8e07c580ae723554bc0288916bcb7406a7a61"
+    },
+    "distribution": {
+      "decisiveMarginLogits": 1,
+      "minTop1AgreementDecisive": 1,
+      "minTop1AgreementOverall": 0.97,
+      "maxMeanKlNats": 0.001,
+      "maxP99KlNats": 0.01,
+      "rationale": "Teacher-forced prefill at the prompt set's sampled positions, CPU F32 reference versus GPU. The retained unforced inventory failure moved no logit more than 0.4673, so a CPU top-1 lead of at least 1 logit cannot change under that size of drift: decisive positions must all agree. Positions below that lead may flip legitimately; at most 3% may disagree. Mean KL(cpu||gpu) of 0.001 nats bounds average information loss per position; the p99 bound of 0.01 nats limits concentrated damage."
+    },
+    "exactAnswer": {
+      "maxCpuCorrectGpuWrong": 1,
+      "maxNetItemLoss": 1,
+      "minGreedyTokenAgreement": 0.9,
+      "rationale": "Greedy answers on 22 exact-answer items. The GPU may lose at most one item the CPU reference answers correctly and at most one item net, and at least 90% of items must produce token-identical greedy continuations. The gate compares the GPU with the CPU reference on the same quantized artifact; it does not set an absolute model-quality bar."
+    }
+  }
+}

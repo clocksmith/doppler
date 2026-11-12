@@ -71,6 +71,7 @@ Primary documentation index.
 - [Potential Doppler optimizations](performance/potential-optimizations.md) - single prepared-execution opportunity inventory, ordered implementation and evidence gates.
 - [Kernel Performance Optimization](developer-guides/16-kernel-performance-optimization.md) - phase-led GPU optimization, negative results, and parity stopping rules.
 - [Kernel Benchmark Baselines](../tests/kernels/benchmarks.md) - expected kernel perf ranges and reference baselines.
+- [Routing-aware acceptance](routing-aware-acceptance.md) - proposed gate for routed-MoE models: near-tie root attribution, forced controls, pre-registered task quality.
 - [Benchmark Methodology](benchmark-methodology.md) - fairness and claim publication policy.
 - [Vendor Registry](../benchmarks/vendors/README.md) - cross-product benchmark contracts and tooling.
 - [Release Matrix](release-matrix.md) - generated model/platform support snapshot.
