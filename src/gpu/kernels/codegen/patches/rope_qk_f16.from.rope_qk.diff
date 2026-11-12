@@ -1,0 +1,60 @@
+--- src/gpu/kernels/rope_qk.wgsl
++++ src/gpu/kernels/rope_qk_f16.wgsl
+@@ -1,5 +1,7 @@
+-// Rotary Position Embeddings for separate Q/K buffers.
++// Rotary Position Embeddings for separate f16 Q/K buffers.
+ 
++enable f16;
++
+ override WORKGROUP_SIZE: u32 = 256u;
+ 
+ struct Uniforms {
+@@ -14,8 +16,8 @@
+ }
+ 
+ @group(0) @binding(0) var<uniform> u: Uniforms;
+-@group(0) @binding(1) var<storage, read_write> q_input: array<f32>;
+-@group(0) @binding(2) var<storage, read_write> k_input: array<f32>;
++@group(0) @binding(1) var<storage, read_write> q_input: array<f16>;
++@group(0) @binding(2) var<storage, read_write> k_input: array<f16>;
+ @group(0) @binding(3) var<storage, read> freqs_cos: array<f32>;
+ @group(0) @binding(4) var<storage, read> freqs_sin: array<f32>;
+ 
+@@ -33,11 +35,10 @@
+     return pair_idx + (pair_span_dim / 2u);
+ }
+ 
+-fn rotate_pair(x0: f32, x1: f32, cos_val: f32, sin_val: f32) -> vec2<f32> {
+-    // Match the separate F32 rotation path with explicit product rounding.
+-    return vec2<f32>(
+-        fma(x0, cos_val, -fma(x1, sin_val, 0.0)),
+-        fma(x0, sin_val, fma(x1, cos_val, 0.0))
++fn rotate_pair(x0: f16, x1: f16, cos_val: f16, sin_val: f16) -> vec2<f16> {
++    return vec2<f16>(
++        x0 * cos_val - x1 * sin_val,
++        x0 * sin_val + x1 * cos_val
+     );
+ }
+ 
+@@ -59,8 +60,8 @@
+         let head_idx = remainder / half_dim;
+         let pair_idx = remainder % half_dim;
+         let freq_idx = (u.start_pos + pos) * half_dim + pair_idx;
+-        let cos_val = freqs_cos[freq_idx];
+-        let sin_val = freqs_sin[freq_idx];
++        let cos_val = f16(freqs_cos[freq_idx]);
++        let sin_val = f16(freqs_sin[freq_idx]);
+         let base_idx = pos * u.num_q_heads * u.head_dim + head_idx * u.head_dim;
+         let first_idx = get_first_rotary_idx(pair_idx);
+         let second_idx = get_second_rotary_idx(pair_idx, u.pair_span_dim);
+@@ -79,8 +80,8 @@
+         let head_idx = remainder / half_dim;
+         let pair_idx = remainder % half_dim;
+         let freq_idx = (u.start_pos + pos) * half_dim + pair_idx;
+-        let cos_val = freqs_cos[freq_idx];
+-        let sin_val = freqs_sin[freq_idx];
++        let cos_val = f16(freqs_cos[freq_idx]);
++        let sin_val = f16(freqs_sin[freq_idx]);
+         let base_idx = pos * u.num_kv_heads * u.head_dim + head_idx * u.head_dim;
+         let first_idx = get_first_rotary_idx(pair_idx);
+         let second_idx = get_second_rotary_idx(pair_idx, u.pair_span_dim);

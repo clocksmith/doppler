@@ -1,0 +1,29 @@
+--- src/gpu/kernels/vision_position_embedding.wgsl
++++ src/gpu/kernels/vision_position_embedding_f16.wgsl
+@@ -1,5 +1,7 @@
+-// vision_position_embedding.wgsl
++// vision_position_embedding_f16.wgsl
+ 
++enable f16;
++
+ override WORKGROUP_SIZE: u32 = 256u;
+ 
+ struct Uniforms {
+@@ -14,7 +16,7 @@
+ }
+ 
+ @group(0) @binding(0) var<uniform> u: Uniforms;
+-@group(0) @binding(1) var<storage, read> table: array<f32>;
++@group(0) @binding(1) var<storage, read> table: array<f16>;
+ @group(0) @binding(2) var<storage, read_write> output: array<f32>;
+ 
+ @compute @workgroup_size(WORKGROUP_SIZE, 1, 1)
+@@ -28,6 +30,6 @@
+     let x = token_idx % u.grid_width;
+     let y = token_idx / u.grid_width;
+     let y_table_offset = u.position_embedding_size * u.hidden_size;
+-    output[output_idx] = table[x * u.hidden_size + hidden_idx]
+-        + table[y_table_offset + y * u.hidden_size + hidden_idx];
++    output[output_idx] = f32(table[x * u.hidden_size + hidden_idx])
++        + f32(table[y_table_offset + y * u.hidden_size + hidden_idx]);
+ }

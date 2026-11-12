@@ -3,6 +3,7 @@ export const WGSL_GENERATED_VARIANTS: readonly ({
     source: string;
     target: string;
     patch: string;
+    byteIdenticalTarget?: boolean;
 } | {
     id: string;
     source: string;

@@ -107,7 +107,7 @@
       "outerResidual": false
      },
      "reachability": {
-      "status": "unused",
+      "status": "code-dispatched",
       "inlineConfigs": [],
       "ruleChains": [],
       "wgslOnDisk": true
@@ -231,7 +231,7 @@
       "outerResidual": false
      },
      "reachability": {
-      "status": "unused",
+      "status": "code-dispatched",
       "inlineConfigs": [],
       "ruleChains": [],
       "wgslOnDisk": true
@@ -344,7 +344,7 @@
       "outerResidual": false
      },
      "reachability": {
-      "status": "unused",
+      "status": "code-dispatched",
       "inlineConfigs": [],
       "ruleChains": [],
       "wgslOnDisk": true
@@ -400,7 +400,7 @@
       "perSlotOutput": true
      },
      "reachability": {
-      "status": "unused",
+      "status": "code-dispatched",
       "inlineConfigs": [],
       "ruleChains": [],
       "wgslOnDisk": true
@@ -424,7 +424,7 @@
       "perSlotOutput": false
      },
      "reachability": {
-      "status": "unused",
+      "status": "code-dispatched",
       "inlineConfigs": [],
       "ruleChains": [],
       "wgslOnDisk": true
@@ -603,7 +603,7 @@
       "reproduces": ["rmsnorm/default","matmul/gemv_f32_subgroup"]
      },
      "reachability": {
-      "status": "unused",
+      "status": "code-dispatched",
       "inlineConfigs": [],
       "ruleChains": [],
       "wgslOnDisk": true
@@ -723,7 +723,7 @@
       "reproduces": ["rmsnorm/default","matmul/gemv_f32_subgroup"]
      },
      "reachability": {
-      "status": "unused",
+      "status": "code-dispatched",
       "inlineConfigs": [],
       "ruleChains": [],
       "wgslOnDisk": true
@@ -972,7 +972,7 @@
      "workgroup": [256,1,1],
      "requires": [],
      "reachability": {
-      "status": "unused",
+      "status": "code-dispatched",
       "inlineConfigs": [],
       "ruleChains": [],
       "wgslOnDisk": true
@@ -1036,7 +1036,7 @@
      "workgroup": [256,1,1],
      "requires": [],
      "reachability": {
-      "status": "unused",
+      "status": "code-dispatched",
       "inlineConfigs": [],
       "ruleChains": [],
       "wgslOnDisk": true
@@ -1120,7 +1120,7 @@
      "workgroup": [256,1,1],
      "requires": [],
      "reachability": {
-      "status": "unused",
+      "status": "code-dispatched",
       "inlineConfigs": [],
       "ruleChains": [],
       "wgslOnDisk": true
@@ -1209,7 +1209,7 @@
      "workgroup": [256,1,1],
      "requires": [],
      "reachability": {
-      "status": "unused",
+      "status": "code-dispatched",
       "inlineConfigs": [],
       "ruleChains": [],
       "wgslOnDisk": true
@@ -1318,7 +1318,7 @@
      "workgroup": [256,1,1],
      "requires": [],
      "reachability": {
-      "status": "unused",
+      "status": "code-dispatched",
       "inlineConfigs": [],
       "ruleChains": [],
       "wgslOnDisk": true
@@ -1392,7 +1392,7 @@
      "workgroup": [256,1,1],
      "requires": [],
      "reachability": {
-      "status": "unused",
+      "status": "code-dispatched",
       "inlineConfigs": [],
       "ruleChains": [],
       "wgslOnDisk": true
@@ -1526,7 +1526,7 @@
      "workgroup": [128,1,1],
      "requires": [],
      "reachability": {
-      "status": "unused",
+      "status": "code-dispatched",
       "inlineConfigs": [],
       "ruleChains": [],
       "wgslOnDisk": true
@@ -1670,7 +1670,7 @@
       "activationElementStrideBytes": 8
      },
      "reachability": {
-      "status": "unused",
+      "status": "code-dispatched",
       "inlineConfigs": [],
       "ruleChains": [],
       "wgslOnDisk": true
@@ -1824,7 +1824,7 @@
       "activationElementStrideBytes": 8
      },
      "reachability": {
-      "status": "unused",
+      "status": "code-dispatched",
       "inlineConfigs": [],
       "ruleChains": [],
       "wgslOnDisk": true
@@ -1973,7 +1973,7 @@
       "activationElementStrideBytes": 8
      },
      "reachability": {
-      "status": "unused",
+      "status": "code-dispatched",
       "inlineConfigs": [],
       "ruleChains": [],
       "wgslOnDisk": true
@@ -2112,7 +2112,7 @@
       "activationElementStrideBytes": 8
      },
      "reachability": {
-      "status": "unused",
+      "status": "code-dispatched",
       "inlineConfigs": [],
       "ruleChains": [],
       "wgslOnDisk": true
@@ -2246,7 +2246,7 @@
      "workgroup": [128,1,1],
      "requires": [],
      "reachability": {
-      "status": "unused",
+      "status": "code-dispatched",
       "inlineConfigs": [],
       "ruleChains": [],
       "wgslOnDisk": true
@@ -2315,7 +2315,7 @@
      "workgroup": [256,1,1],
      "requires": [],
      "reachability": {
-      "status": "unused",
+      "status": "code-dispatched",
       "inlineConfigs": [],
       "ruleChains": [],
       "wgslOnDisk": true
@@ -2379,7 +2379,7 @@
      "workgroup": [256,1,1],
      "requires": [],
      "reachability": {
-      "status": "unused",
+      "status": "code-dispatched",
       "inlineConfigs": [],
       "ruleChains": [],
       "wgslOnDisk": true
@@ -2503,7 +2503,7 @@
      "workgroup": [128,1,1],
      "requires": [],
      "reachability": {
-      "status": "unused",
+      "status": "code-dispatched",
       "inlineConfigs": [],
       "ruleChains": [],
       "wgslOnDisk": true
@@ -3917,7 +3917,7 @@
       "WORKGROUP_SIZE": 64
      },
      "reachability": {
-      "status": "unused",
+      "status": "code-dispatched",
       "inlineConfigs": [],
       "ruleChains": [],
       "wgslOnDisk": true
@@ -4006,7 +4006,7 @@
       "LANES_PER_OUTPUT": 16
      },
      "reachability": {
-      "status": "unused",
+      "status": "code-dispatched",
       "inlineConfigs": [],
       "ruleChains": [],
       "wgslOnDisk": true
@@ -4904,7 +4904,7 @@
      },
      "description": "Subgroup GEMV over packed BF16 checkpoint weights with F32 activations and output.",
      "reachability": {
-      "status": "unused",
+      "status": "repository-evidence",
       "inlineConfigs": [],
       "ruleChains": [],
       "wgslOnDisk": true
@@ -5272,6 +5272,7 @@
       "status": "pinned",
       "inlineConfigs": [
        "diffusiongemma/diffusiongemma-26b-a4b-it-q4k-ehf16-af16",
+       "forge/lineage/qwen3.8-27b",
        "gemma3/gemma-3-1b-it-f16-af32",
        "gemma3/gemma-3-1b-it-q4k-ehf16-af32",
        "gemma3/gemma-3-270m-it-f16-af32",
@@ -5483,7 +5484,7 @@
      },
      "description": "Subgroup GEMV with 8 columns per workgroup (f16 activations/output)",
      "reachability": {
-      "status": "unused",
+      "status": "repository-evidence",
       "inlineConfigs": [],
       "ruleChains": [],
       "wgslOnDisk": true
@@ -5575,7 +5576,7 @@
      },
      "description": "Subgroup GEMV vec4 with 8 columns per workgroup (f16 activations/output)",
      "reachability": {
-      "status": "unused",
+      "status": "repository-evidence",
       "inlineConfigs": [],
       "ruleChains": [],
       "wgslOnDisk": true
@@ -5895,7 +5896,7 @@
      },
      "description": "Cooperative 4-thread GEMV - 64 columns per workgroup, 4 threads per column (experimental)",
      "reachability": {
-      "status": "unused",
+      "status": "repository-evidence",
       "inlineConfigs": [],
       "ruleChains": [],
       "wgslOnDisk": true
@@ -5987,7 +5988,7 @@
      },
      "description": "Cooperative 4-thread GEMV f16a - 64 columns per workgroup, 4 threads per column (experimental)",
      "reachability": {
-      "status": "unused",
+      "status": "repository-evidence",
       "inlineConfigs": [],
       "ruleChains": [],
       "wgslOnDisk": true
@@ -6079,7 +6080,7 @@
      },
      "description": "Cooperative 4-thread GEMV f16a vec4 - 64 columns per workgroup with vec4 loads (experimental)",
      "reachability": {
-      "status": "unused",
+      "status": "repository-evidence",
       "inlineConfigs": [],
       "ruleChains": [],
       "wgslOnDisk": true
@@ -6166,7 +6167,7 @@
      "outputDtype": "f16",
      "weightDtype": "q4k",
      "reachability": {
-      "status": "unused",
+      "status": "code-dispatched",
       "inlineConfigs": [],
       "ruleChains": [],
       "wgslOnDisk": true
@@ -7206,7 +7207,7 @@
      },
      "description": "F16 IO + F32 accumulator twin of q4_fused_multicol_f16a. Closes the f16-accum decode-gemv gap on AMD RDNA3 where f32 accumulation outperforms f16 by ~60%.",
      "reachability": {
-      "status": "unused",
+      "status": "code-dispatched",
       "inlineConfigs": [],
       "ruleChains": [],
       "wgslOnDisk": true
@@ -7738,7 +7739,7 @@
      },
      "description": "Batched Q4_K prefill matmul with f16 activation input, f16 accumulation, and f16 output for experimental all-f16 execution lanes.",
      "reachability": {
-      "status": "unused",
+      "status": "code-dispatched",
       "inlineConfigs": [],
       "ruleChains": [],
       "wgslOnDisk": true
@@ -7784,7 +7785,7 @@
      },
      "description": "Register-tiled Q4_K prefill matmul: 64x64 outputs per WG via 4x4 register tile per thread, amortizing Q4K dequant across 16x the outputs of q4_fused_batched_f16a.",
      "reachability": {
-      "status": "unused",
+      "status": "code-dispatched",
       "inlineConfigs": [],
       "ruleChains": [],
       "wgslOnDisk": true
@@ -7830,7 +7831,7 @@
      },
      "description": "WideTile Q4_K prefill matmul (adapted from ORT MatMulNBitsWideTile, MIT licensed). Each thread owns 1 output column × TILE_M rows; register-tiled accumulation. F32 A, Q4_K B (llama.cpp 256-block), F16 C. ~128x fewer WGs than q4_fused_batched_f16 at Gemma-4 prefill shape.",
      "reachability": {
-      "status": "unused",
+      "status": "code-dispatched",
       "inlineConfigs": [],
       "ruleChains": [],
       "wgslOnDisk": true
@@ -8040,7 +8041,7 @@
      },
      "description": "Fused RMSNorm + Q4_K WideTile matmul. Two-pass: pass 1 computes per-row sum-of-squares across all K; pass 2 reloads A, applies normed*weight + matmul in same tileA buffer. Saves 1 standalone rmsnorm dispatch per fusion point. Bind slot 4 = norm_weight (f32).",
      "reachability": {
-      "status": "unused",
+      "status": "code-dispatched",
       "inlineConfigs": [],
       "ruleChains": [],
       "wgslOnDisk": true
@@ -8139,7 +8140,7 @@
      },
      "description": "WideTile Q4_K matmul fused with residual add in one dispatch. Used at o_proj + attn_residual and ffn_down + ffn_residual call sites to cut 1 dispatch per layer per fusion point (~0.85 ms bubble each).",
      "reachability": {
-      "status": "unused",
+      "status": "code-dispatched",
       "inlineConfigs": [],
       "ruleChains": [],
       "wgslOnDisk": true
@@ -8300,7 +8301,7 @@
      },
      "description": "Opt-in full-F32 single-row GEMV with workgroup reductions, scalar K tails and explicit matrix layout.",
      "reachability": {
-      "status": "unused",
+      "status": "repository-evidence",
       "inlineConfigs": [],
       "ruleChains": [],
       "wgslOnDisk": true
@@ -8387,7 +8388,7 @@
      "outputDtype": "f32",
      "weightDtype": "f32",
      "reachability": {
-      "status": "unused",
+      "status": "repository-evidence",
       "inlineConfigs": [],
       "ruleChains": [],
       "wgslOnDisk": true
@@ -8516,7 +8517,7 @@
      },
      "description": "Opt-in single-F32 matmul with compensated internal product, accumulation and alpha scaling.",
      "reachability": {
-      "status": "unused",
+      "status": "repository-evidence",
       "inlineConfigs": [],
       "ruleChains": [],
       "wgslOnDisk": true
@@ -8607,6 +8608,7 @@
       "inlineConfigs": [
        "esm/esm2-t12-35m-ur50d-f32-af32",
        "esmc/esmc-300m-f32-af32",
+       "forge/forecast/chronos-bolt-tiny",
        "gemma3/translategemma-4b-it-q4k-ehf16-af32",
        "nucleotide-transformer/nucleotide-transformer-v2-50m-f32-af32",
        "qwen3/qwen-3-5-0-8b-canonical-f32",
@@ -9374,7 +9376,7 @@
       }
      },
      "reachability": {
-      "status": "unused",
+      "status": "repository-evidence",
       "inlineConfigs": [],
       "ruleChains": [],
       "wgslOnDisk": true
@@ -9475,7 +9477,7 @@
       }
      },
      "reachability": {
-      "status": "unused",
+      "status": "repository-evidence",
       "inlineConfigs": [],
       "ruleChains": [],
       "wgslOnDisk": true
@@ -9576,7 +9578,7 @@
       }
      },
      "reachability": {
-      "status": "unused",
+      "status": "repository-evidence",
       "inlineConfigs": [],
       "ruleChains": [],
       "wgslOnDisk": true
@@ -9678,7 +9680,7 @@
       }
      },
      "reachability": {
-      "status": "unused",
+      "status": "repository-evidence",
       "inlineConfigs": [],
       "ruleChains": [],
       "wgslOnDisk": true
@@ -9780,7 +9782,7 @@
       }
      },
      "reachability": {
-      "status": "unused",
+      "status": "repository-evidence",
       "inlineConfigs": [],
       "ruleChains": [],
       "wgslOnDisk": true
@@ -9882,7 +9884,7 @@
       }
      },
      "reachability": {
-      "status": "unused",
+      "status": "repository-evidence",
       "inlineConfigs": [],
       "ruleChains": [],
       "wgslOnDisk": true
@@ -11277,7 +11279,7 @@
       "workgroupConstants": ["WORKGROUP_SIZE",null,null]
      },
      "reachability": {
-      "status": "unused",
+      "status": "repository-evidence",
       "inlineConfigs": [],
       "ruleChains": [],
       "wgslOnDisk": true
@@ -11770,7 +11772,7 @@
       "workgroupConstants": ["WORKGROUP_SIZE",null,null]
      },
      "reachability": {
-      "status": "unused",
+      "status": "repository-evidence",
       "inlineConfigs": [],
       "ruleChains": [],
       "wgslOnDisk": true
@@ -11867,7 +11869,7 @@
       "workgroupConstants": ["WORKGROUP_SIZE",null,null]
      },
      "reachability": {
-      "status": "unused",
+      "status": "repository-evidence",
       "inlineConfigs": [],
       "ruleChains": [],
       "wgslOnDisk": true
@@ -11965,7 +11967,7 @@
       "workgroupConstants": ["WORKGROUP_SIZE",null,null]
      },
      "reachability": {
-      "status": "unused",
+      "status": "repository-evidence",
       "inlineConfigs": [],
       "ruleChains": [],
       "wgslOnDisk": true
@@ -12163,7 +12165,7 @@
       "workgroupConstants": ["WORKGROUP_SIZE",null,null]
      },
      "reachability": {
-      "status": "unused",
+      "status": "repository-evidence",
       "inlineConfigs": [],
       "ruleChains": [],
       "wgslOnDisk": true
@@ -12260,7 +12262,7 @@
       "workgroupConstants": ["WORKGROUP_SIZE",null,null]
      },
      "reachability": {
-      "status": "unused",
+      "status": "repository-evidence",
       "inlineConfigs": [],
       "ruleChains": [],
       "wgslOnDisk": true
@@ -12357,7 +12359,7 @@
       "workgroupConstants": ["WORKGROUP_SIZE",null,null]
      },
      "reachability": {
-      "status": "unused",
+      "status": "repository-evidence",
       "inlineConfigs": [],
       "ruleChains": [],
       "wgslOnDisk": true
@@ -12454,7 +12456,7 @@
       "workgroupConstants": ["WORKGROUP_SIZE",null,null]
      },
      "reachability": {
-      "status": "unused",
+      "status": "repository-evidence",
       "inlineConfigs": [],
       "ruleChains": [],
       "wgslOnDisk": true
@@ -12551,7 +12553,7 @@
       "workgroupConstants": ["WORKGROUP_SIZE",null,null]
      },
      "reachability": {
-      "status": "unused",
+      "status": "repository-evidence",
       "inlineConfigs": [],
       "ruleChains": [],
       "wgslOnDisk": true
@@ -12648,7 +12650,7 @@
       "workgroupConstants": ["WORKGROUP_SIZE",null,null]
      },
      "reachability": {
-      "status": "unused",
+      "status": "repository-evidence",
       "inlineConfigs": [],
       "ruleChains": [],
       "wgslOnDisk": true
@@ -12745,7 +12747,7 @@
       "workgroupConstants": ["WORKGROUP_SIZE",null,null]
      },
      "reachability": {
-      "status": "unused",
+      "status": "repository-evidence",
       "inlineConfigs": [],
       "ruleChains": [],
       "wgslOnDisk": true
@@ -12842,7 +12844,7 @@
       "workgroupConstants": ["WORKGROUP_SIZE",null,null]
      },
      "reachability": {
-      "status": "unused",
+      "status": "repository-evidence",
       "inlineConfigs": [],
       "ruleChains": [],
       "wgslOnDisk": true
@@ -12939,7 +12941,7 @@
       "workgroupConstants": ["WORKGROUP_SIZE",null,null]
      },
      "reachability": {
-      "status": "unused",
+      "status": "repository-evidence",
       "inlineConfigs": [],
       "ruleChains": [],
       "wgslOnDisk": true
@@ -13036,7 +13038,7 @@
       "workgroupConstants": ["WORKGROUP_SIZE",null,null]
      },
      "reachability": {
-      "status": "unused",
+      "status": "repository-evidence",
       "inlineConfigs": [],
       "ruleChains": [],
       "wgslOnDisk": true
@@ -13133,7 +13135,7 @@
       "workgroupConstants": ["WORKGROUP_SIZE",null,null]
      },
      "reachability": {
-      "status": "unused",
+      "status": "repository-evidence",
       "inlineConfigs": [],
       "ruleChains": [],
       "wgslOnDisk": true
@@ -13230,7 +13232,7 @@
       "workgroupConstants": ["TILE_SIZE","TILE_SIZE",null]
      },
      "reachability": {
-      "status": "unused",
+      "status": "repository-evidence",
       "inlineConfigs": [],
       "ruleChains": [],
       "wgslOnDisk": true
@@ -13329,7 +13331,7 @@
       "workgroupConstants": ["WORKGROUP_SIZE",null,null]
      },
      "reachability": {
-      "status": "unused",
+      "status": "repository-evidence",
       "inlineConfigs": [],
       "ruleChains": [],
       "wgslOnDisk": true
@@ -13428,7 +13430,7 @@
       "workgroupConstants": ["WORKGROUP_SIZE",null,null]
      },
      "reachability": {
-      "status": "unused",
+      "status": "repository-evidence",
       "inlineConfigs": [],
       "ruleChains": [],
       "wgslOnDisk": true
@@ -13527,7 +13529,7 @@
       "workgroupConstants": ["WORKGROUP_SIZE",null,null]
      },
      "reachability": {
-      "status": "unused",
+      "status": "repository-evidence",
       "inlineConfigs": [],
       "ruleChains": [],
       "wgslOnDisk": true
@@ -13626,7 +13628,7 @@
       "workgroupConstants": ["WORKGROUP_SIZE",null,null]
      },
      "reachability": {
-      "status": "unused",
+      "status": "repository-evidence",
       "inlineConfigs": [],
       "ruleChains": [],
       "wgslOnDisk": true
@@ -13725,7 +13727,7 @@
       "workgroupConstants": ["WORKGROUP_SIZE",null,null]
      },
      "reachability": {
-      "status": "unused",
+      "status": "repository-evidence",
       "inlineConfigs": [],
       "ruleChains": [],
       "wgslOnDisk": true
@@ -13824,7 +13826,7 @@
       "workgroupConstants": ["WORKGROUP_SIZE",null,null]
      },
      "reachability": {
-      "status": "unused",
+      "status": "repository-evidence",
       "inlineConfigs": [],
       "ruleChains": [],
       "wgslOnDisk": true
@@ -13921,7 +13923,7 @@
       "workgroupConstants": ["WORKGROUP_SIZE",null,null]
      },
      "reachability": {
-      "status": "unused",
+      "status": "repository-evidence",
       "inlineConfigs": [],
       "ruleChains": [],
       "wgslOnDisk": true
@@ -14018,7 +14020,7 @@
       "workgroupConstants": ["WORKGROUP_SIZE",null,null]
      },
      "reachability": {
-      "status": "unused",
+      "status": "repository-evidence",
       "inlineConfigs": [],
       "ruleChains": [],
       "wgslOnDisk": true
@@ -14111,7 +14113,7 @@
      "reachability": {
       "status": "model-selectable",
       "inlineConfigs": [],
-      "ruleChains": ["fused-ffn.rules.json#variant"],
+      "ruleChains": ["fused-ffn.rules.json#variant","residual.rules.json#biasAddVariant"],
       "wgslOnDisk": true
      }
     },
@@ -14135,7 +14137,7 @@
      "reachability": {
       "status": "model-selectable",
       "inlineConfigs": [],
-      "ruleChains": ["fused-ffn.rules.json#variant"],
+      "ruleChains": ["fused-ffn.rules.json#variant","residual.rules.json#biasAddVariant"],
       "wgslOnDisk": true
      }
     },
@@ -14198,7 +14200,7 @@
      "reachability": {
       "status": "model-selectable",
       "inlineConfigs": [],
-      "ruleChains": ["fused-ffn.rules.json#variant"],
+      "ruleChains": ["fused-ffn.rules.json#variant","matmul.rules.json#preferredWeightDtype"],
       "wgslOnDisk": true
      },
      "uniformsOverride": {
@@ -14497,7 +14499,7 @@
      "requires": ["shader-f16"],
      "description": "Fused gate + up FFN projections + GeGLU activation (F16 weights, per-layer intermediate_size uniform)",
      "reachability": {
-      "status": "unused",
+      "status": "code-dispatched",
       "inlineConfigs": [],
       "ruleChains": [],
       "wgslOnDisk": true
@@ -14596,7 +14598,7 @@
      ],
      "description": "Fused prenorm plus Q4K gate/up projection and activation.",
      "reachability": {
-      "status": "unused",
+      "status": "code-dispatched",
       "inlineConfigs": [],
       "ruleChains": [],
       "wgslOnDisk": true
@@ -14800,7 +14802,7 @@
      "reachability": {
       "status": "model-selectable",
       "inlineConfigs": [],
-      "ruleChains": ["dequant.rules.json#variant"],
+      "ruleChains": ["attention.rules.json#tier","dequant.rules.json#variant"],
       "wgslOnDisk": true
      }
     },
@@ -14874,7 +14876,7 @@
      "requires": [],
      "description": "MXFP4 dequantization (GPT-OSS)",
      "reachability": {
-      "status": "unused",
+      "status": "code-dispatched",
       "inlineConfigs": [],
       "ruleChains": [],
       "wgslOnDisk": true
@@ -15032,7 +15034,7 @@
      "requires": ["shader-f16"],
      "description": "Q6_K dequantization (GGUF 6-bit quantization)",
      "reachability": {
-      "status": "unused",
+      "status": "code-dispatched",
       "inlineConfigs": [],
       "ruleChains": [],
       "wgslOnDisk": true
@@ -15343,7 +15345,11 @@
      "reachability": {
       "status": "pinned",
       "inlineConfigs": ["esm/esm2-t12-35m-ur50d-f32-af32"],
-      "ruleChains": ["attention.rules.json#phase"],
+      "ruleChains": [
+       "attention.rules.json#phase",
+       "attention.rules.json#variant",
+       "matmul.rules.json#phase"
+      ],
       "wgslOnDisk": true
      },
      "uniformsOverride": {
@@ -15462,7 +15468,11 @@
      "reachability": {
       "status": "model-selectable",
       "inlineConfigs": [],
-      "ruleChains": ["attention.rules.json#phase"],
+      "ruleChains": [
+       "attention.rules.json#phase",
+       "attention.rules.json#variant",
+       "matmul.rules.json#phase"
+      ],
       "wgslOnDisk": true
      }
     },
@@ -15483,7 +15493,7 @@
        "esmc/esmc-300m-f32-af32",
        "nucleotide-transformer/nucleotide-transformer-v2-50m-f32-af32"
       ],
-      "ruleChains": [],
+      "ruleChains": ["attention.rules.json#variant"],
       "wgslOnDisk": true
      }
     },
@@ -15637,7 +15647,7 @@
       "tier": "streaming"
      },
      "reachability": {
-      "status": "unused",
+      "status": "code-dispatched",
       "inlineConfigs": [],
       "ruleChains": [],
       "wgslOnDisk": true
@@ -15756,9 +15766,9 @@
       "tier": "tiled_large"
      },
      "reachability": {
-      "status": "unused",
+      "status": "model-selectable",
       "inlineConfigs": [],
-      "ruleChains": [],
+      "ruleChains": ["attention.rules.json#variant"],
       "wgslOnDisk": true
      },
      "uniformsOverride": {
@@ -15875,9 +15885,9 @@
       "tier": "tiled_large"
      },
      "reachability": {
-      "status": "unused",
+      "status": "model-selectable",
       "inlineConfigs": [],
-      "ruleChains": [],
+      "ruleChains": ["attention.rules.json#variant"],
       "wgslOnDisk": true
      }
     },
@@ -15893,7 +15903,7 @@
      "reachability": {
       "status": "pinned",
       "inlineConfigs": ["gemma4/gemma-4-12b-it-text-w4a16-ct-ehf16-af16"],
-      "ruleChains": [],
+      "ruleChains": ["attention.rules.json#variant"],
       "wgslOnDisk": true
      }
     },
@@ -15925,7 +15935,7 @@
      "reachability": {
       "status": "pinned",
       "inlineConfigs": ["gemma4/gemma-4-12b-it-text-w4a16-ct-ehf16-af16"],
-      "ruleChains": [],
+      "ruleChains": ["attention.rules.json#variant"],
       "wgslOnDisk": true
      },
      "uniformsOverride": {
@@ -16161,9 +16171,9 @@
       "tier": "tiled_large"
      },
      "reachability": {
-      "status": "unused",
+      "status": "model-selectable",
       "inlineConfigs": [],
-      "ruleChains": [],
+      "ruleChains": ["attention.rules.json#variant"],
       "wgslOnDisk": true
      },
      "uniformsOverride": {
@@ -16280,9 +16290,9 @@
       "tier": "tiled_large"
      },
      "reachability": {
-      "status": "unused",
+      "status": "model-selectable",
       "inlineConfigs": [],
-      "ruleChains": [],
+      "ruleChains": ["attention.rules.json#variant"],
       "wgslOnDisk": true
      }
     },
@@ -16317,7 +16327,7 @@
        "lfm2/lfm2.5-1.2b-instruct-q4k-ehf16-af32",
        "qwen3/qwen-3-4b-instruct-2507-q4k-ehf16-af32"
       ],
-      "ruleChains": [],
+      "ruleChains": ["attention.rules.json#variant"],
       "wgslOnDisk": true
      }
     },
@@ -16500,7 +16510,7 @@
       "requiredShared": 32768
      },
      "reachability": {
-      "status": "unused",
+      "status": "code-dispatched",
       "inlineConfigs": [],
       "ruleChains": [],
       "wgslOnDisk": true
@@ -16658,7 +16668,7 @@
       "tier": "flash_reduce"
      },
      "reachability": {
-      "status": "unused",
+      "status": "code-dispatched",
       "inlineConfigs": [],
       "ruleChains": [],
       "wgslOnDisk": true
@@ -16770,7 +16780,7 @@
        "qwen3/qwen3.8-27b-text-f16-af32",
        "qwen3/qwen3.8-27b-text-q4k-ehaf16"
       ],
-      "ruleChains": [],
+      "ruleChains": ["attention.rules.json#variant"],
       "wgslOnDisk": true
      },
      "uniformsOverride": {
@@ -17046,7 +17056,7 @@
      "reachability": {
       "status": "pinned",
       "inlineConfigs": ["gemma4/gemma-4-12b-it-text-w4a16-ct-ehf16-af16"],
-      "ruleChains": ["attention.rules.json#optimizedVariant"],
+      "ruleChains": ["attention.rules.json#optimizedVariant","attention.rules.json#variant"],
       "wgslOnDisk": true
      },
      "uniformsOverride": {
@@ -17187,7 +17197,7 @@
        "qwen3/qwen3.8-27b-text-f16-af32",
        "qwen3/qwen3.8-27b-text-q4k-ehaf16"
       ],
-      "ruleChains": ["attention.rules.json#optimizedVariant"],
+      "ruleChains": ["attention.rules.json#optimizedVariant","attention.rules.json#variant"],
       "wgslOnDisk": true
      },
      "uniformsOverride": {
@@ -17497,7 +17507,7 @@
      "reachability": {
       "status": "model-selectable",
       "inlineConfigs": [],
-      "ruleChains": ["attention.rules.json#chunkedVariant"],
+      "ruleChains": ["attention.rules.json#chunkedVariant","attention.rules.json#variant"],
       "wgslOnDisk": true
      },
      "uniformsOverride": {
@@ -17596,7 +17606,7 @@
      "reachability": {
       "status": "model-selectable",
       "inlineConfigs": [],
-      "ruleChains": ["attention.rules.json#chunkedVariant"],
+      "ruleChains": ["attention.rules.json#chunkedVariant","attention.rules.json#variant"],
       "wgslOnDisk": true
      },
      "uniformsOverride": {
@@ -17694,7 +17704,7 @@
      "reachability": {
       "status": "model-selectable",
       "inlineConfigs": [],
-      "ruleChains": ["attention.rules.json#pagedVariant"],
+      "ruleChains": ["attention.rules.json#pagedVariant","attention.rules.json#variant"],
       "wgslOnDisk": true
      },
      "uniformsOverride": {
@@ -17792,7 +17802,7 @@
      "reachability": {
       "status": "model-selectable",
       "inlineConfigs": [],
-      "ruleChains": ["attention.rules.json#pagedVariant"],
+      "ruleChains": ["attention.rules.json#pagedVariant","attention.rules.json#variant"],
       "wgslOnDisk": true
      },
      "uniformsOverride": {
@@ -18082,7 +18092,7 @@
       ]
      },
      "reachability": {
-      "status": "unused",
+      "status": "code-dispatched",
       "inlineConfigs": [],
       "ruleChains": [],
       "wgslOnDisk": true
@@ -18198,7 +18208,7 @@
       ]
      },
      "reachability": {
-      "status": "unused",
+      "status": "repository-evidence",
       "inlineConfigs": [],
       "ruleChains": [],
       "wgslOnDisk": true
@@ -18238,7 +18248,7 @@
      },
      "description": "Online decode kernel with f32 Q/K/V, f32 compensated accumulation, and subgroup reductions",
      "reachability": {
-      "status": "unused",
+      "status": "code-dispatched",
       "inlineConfigs": [],
       "ruleChains": [],
       "wgslOnDisk": true
@@ -18442,7 +18452,7 @@
      },
      "description": "Per-head merge of decode_gqa_splitk partials in split order",
      "reachability": {
-      "status": "unused",
+      "status": "code-dispatched",
       "inlineConfigs": [],
       "ruleChains": [],
       "wgslOnDisk": true
@@ -18822,7 +18832,7 @@
      },
      "description": "Opt-in F32 query/output online prefill with F16 KV, shared query/key tiles; full-model precision qualification pending.",
      "reachability": {
-      "status": "unused",
+      "status": "repository-evidence",
       "inlineConfigs": [],
       "ruleChains": [],
       "wgslOnDisk": true
@@ -18954,7 +18964,7 @@
      },
      "description": "Opt-in F32 query/output online prefill with F16 KV, shared query/key tiles; full-model precision qualification pending.",
      "reachability": {
-      "status": "unused",
+      "status": "repository-evidence",
       "inlineConfigs": [],
       "ruleChains": [],
       "wgslOnDisk": true
@@ -19241,7 +19251,7 @@
       }
      ],
      "reachability": {
-      "status": "unused",
+      "status": "repository-evidence",
       "inlineConfigs": [],
       "ruleChains": [],
       "wgslOnDisk": true
@@ -19319,7 +19329,7 @@
       "MAX_KV_SPLITS": 16
      },
      "reachability": {
-      "status": "unused",
+      "status": "repository-evidence",
       "inlineConfigs": [],
       "ruleChains": [],
       "wgslOnDisk": true
@@ -19474,9 +19484,9 @@
      },
      "description": "Tiered decode kernel - f16 QKV + f16 output",
      "reachability": {
-      "status": "unused",
+      "status": "selectable",
       "inlineConfigs": [],
-      "ruleChains": [],
+      "ruleChains": ["attention.rules.json#tieredVariant"],
       "wgslOnDisk": true
      }
     },
@@ -19491,9 +19501,9 @@
      },
      "description": "Tiered decode kernel - f32 Q + f16 KV",
      "reachability": {
-      "status": "unused",
+      "status": "selectable",
       "inlineConfigs": [],
-      "ruleChains": [],
+      "ruleChains": ["attention.rules.json#tieredVariant"],
       "wgslOnDisk": true
      }
     }
@@ -19641,9 +19651,9 @@
      },
      "description": "Tiered decode kernel - int8 cold K/V with f16 hot K/V",
      "reachability": {
-      "status": "unused",
+      "status": "selectable",
       "inlineConfigs": [],
-      "ruleChains": [],
+      "ruleChains": ["attention.rules.json#tieredQuantVariant"],
       "wgslOnDisk": true
      }
     },
@@ -19658,9 +19668,9 @@
      },
      "description": "Tiered decode kernel - int4 cold K/V with f16 hot K/V",
      "reachability": {
-      "status": "unused",
+      "status": "selectable",
       "inlineConfigs": [],
-      "ruleChains": [],
+      "ruleChains": ["attention.rules.json#tieredQuantVariant"],
       "wgslOnDisk": true
      }
     },
@@ -19675,9 +19685,9 @@
      },
      "description": "Tiered decode kernel - TurboQuant MSE cold K/V with f16 hot K/V",
      "reachability": {
-      "status": "unused",
+      "status": "selectable",
       "inlineConfigs": [],
-      "ruleChains": [],
+      "ruleChains": ["attention.rules.json#tieredQuantVariant"],
       "wgslOnDisk": true
      },
      "uniformsOverride": {
@@ -19779,9 +19789,9 @@
      },
      "description": "Tiered decode kernel - TurboQuant prod (MSE+QJL) cold K/V with f16 hot K/V",
      "reachability": {
-      "status": "unused",
+      "status": "selectable",
       "inlineConfigs": [],
-      "ruleChains": [],
+      "ruleChains": ["attention.rules.json#tieredQuantVariant"],
       "wgslOnDisk": true
      },
      "uniformsOverride": {
@@ -20000,9 +20010,9 @@
      },
      "description": "Contiguous decode kernel - TurboQuant MSE quantized K/V",
      "reachability": {
-      "status": "unused",
+      "status": "selectable",
       "inlineConfigs": [],
-      "ruleChains": [],
+      "ruleChains": ["attention.rules.json#contiguousQuantVariant"],
       "wgslOnDisk": true
      }
     },
@@ -20017,9 +20027,9 @@
      },
      "description": "Contiguous decode kernel - TurboQuant prod (MSE+QJL) quantized K/V",
      "reachability": {
-      "status": "unused",
+      "status": "selectable",
       "inlineConfigs": [],
-      "ruleChains": [],
+      "ruleChains": ["attention.rules.json#contiguousQuantVariant"],
       "wgslOnDisk": true
      },
      "uniformsOverride": {
@@ -20721,7 +20731,7 @@
      "reachability": {
       "status": "model-selectable",
       "inlineConfigs": [],
-      "ruleChains": ["rmsnorm.rules.json#variant"],
+      "ruleChains": ["attention.rules.json#tier","rmsnorm.rules.json#variant"],
       "wgslOnDisk": true
      }
     },
@@ -20850,7 +20860,7 @@
       "outputPrecision": "two-f32"
      },
      "reachability": {
-      "status": "unused",
+      "status": "code-dispatched",
       "inlineConfigs": [],
       "ruleChains": [],
       "wgslOnDisk": true
@@ -20949,7 +20959,7 @@
       "dispatchGeometry": "tokenSlices"
      },
      "reachability": {
-      "status": "unused",
+      "status": "repository-evidence",
       "inlineConfigs": [],
       "ruleChains": [],
       "wgslOnDisk": true
@@ -21051,7 +21061,7 @@
      "workgroup": [256,1,1],
      "requires": [],
      "reachability": {
-      "status": "unused",
+      "status": "code-dispatched",
       "inlineConfigs": [],
       "ruleChains": [],
       "wgslOnDisk": true
@@ -21063,9 +21073,9 @@
      "workgroup": [256,1,1],
      "requires": ["subgroups"],
      "reachability": {
-      "status": "unused",
+      "status": "selectable",
       "inlineConfigs": [],
-      "ruleChains": [],
+      "ruleChains": ["attention.rules.json#tier"],
       "wgslOnDisk": true
      }
     }
@@ -21160,9 +21170,9 @@
      "workgroup": [256,1,1],
      "requires": ["subgroups"],
      "reachability": {
-      "status": "unused",
+      "status": "selectable",
       "inlineConfigs": [],
-      "ruleChains": [],
+      "ruleChains": ["attention.rules.json#tier"],
       "wgslOnDisk": true
      }
     }
@@ -21476,18 +21486,6 @@
       "wgslOnDisk": true
      }
     },
-    "phase1": {
-     "wgsl": "fused_matmul_rmsnorm.wgsl",
-     "entryPoint": "gemv_rmsnorm_phase1",
-     "workgroup": [256,1,1],
-     "requires": [],
-     "reachability": {
-      "status": "unused",
-      "inlineConfigs": [],
-      "ruleChains": [],
-      "wgslOnDisk": true
-     }
-    },
     "small_f16": {
      "wgsl": "fused_matmul_rmsnorm_f16.wgsl",
      "entryPoint": "gemv_rmsnorm_small",
@@ -21602,7 +21600,10 @@
      "reachability": {
       "status": "selectable",
       "inlineConfigs": [],
-      "ruleChains": ["fused-matmul-residual.rules.json#variant"],
+      "ruleChains": [
+       "fused-matmul-residual.rules.json#variant",
+       "residual.rules.json#biasAddVariant"
+      ],
       "wgslOnDisk": true
      }
     },
@@ -21614,7 +21615,10 @@
      "reachability": {
       "status": "selectable",
       "inlineConfigs": [],
-      "ruleChains": ["fused-matmul-residual.rules.json#variant"],
+      "ruleChains": [
+       "fused-matmul-residual.rules.json#variant",
+       "residual.rules.json#biasAddVariant"
+      ],
       "wgslOnDisk": true
      }
     }
@@ -21710,7 +21714,7 @@
      "reachability": {
       "status": "selectable",
       "inlineConfigs": [],
-      "ruleChains": ["softmax.rules.json#variant"],
+      "ruleChains": ["attention.rules.json#tier","softmax.rules.json#variant"],
       "wgslOnDisk": true
      }
     }
@@ -21794,7 +21798,7 @@
      "workgroup": [8,8,1],
      "requires": ["shader-f16"],
      "reachability": {
-      "status": "unused",
+      "status": "code-dispatched",
       "inlineConfigs": [],
       "ruleChains": [],
       "wgslOnDisk": true
@@ -21870,7 +21874,7 @@
       }
      ],
      "reachability": {
-      "status": "unused",
+      "status": "code-dispatched",
       "inlineConfigs": [],
       "ruleChains": [],
       "wgslOnDisk": true
@@ -21904,7 +21908,7 @@
       }
      ],
      "reachability": {
-      "status": "unused",
+      "status": "code-dispatched",
       "inlineConfigs": [],
       "ruleChains": [],
       "wgslOnDisk": true
@@ -22001,7 +22005,7 @@
      "workgroup": [256,1,1],
      "requires": [],
      "reachability": {
-      "status": "unused",
+      "status": "code-dispatched",
       "inlineConfigs": [],
       "ruleChains": [],
       "wgslOnDisk": true
@@ -22185,7 +22189,7 @@
      "workgroup": [256,1,1],
      "requires": [],
      "reachability": {
-      "status": "unused",
+      "status": "repository-evidence",
       "inlineConfigs": [],
       "ruleChains": [],
       "wgslOnDisk": true
@@ -22197,7 +22201,7 @@
      "workgroup": [256,1,1],
      "requires": ["shader-f16"],
      "reachability": {
-      "status": "unused",
+      "status": "repository-evidence",
       "inlineConfigs": [],
       "ruleChains": [],
       "wgslOnDisk": true
@@ -22209,7 +22213,7 @@
      "workgroup": [256,1,1],
      "requires": [],
      "reachability": {
-      "status": "unused",
+      "status": "repository-evidence",
       "inlineConfigs": [],
       "ruleChains": [],
       "wgslOnDisk": true
@@ -22221,7 +22225,7 @@
      "workgroup": [256,1,1],
      "requires": ["shader-f16"],
      "reachability": {
-      "status": "unused",
+      "status": "repository-evidence",
       "inlineConfigs": [],
       "ruleChains": [],
       "wgslOnDisk": true
@@ -22233,7 +22237,7 @@
      "workgroup": [256,1,1],
      "requires": [],
      "reachability": {
-      "status": "unused",
+      "status": "repository-evidence",
       "inlineConfigs": [],
       "ruleChains": [],
       "wgslOnDisk": true
@@ -22245,7 +22249,7 @@
      "workgroup": [256,1,1],
      "requires": ["shader-f16"],
      "reachability": {
-      "status": "unused",
+      "status": "repository-evidence",
       "inlineConfigs": [],
       "ruleChains": [],
       "wgslOnDisk": true
@@ -22257,7 +22261,7 @@
      "workgroup": [256,1,1],
      "requires": [],
      "reachability": {
-      "status": "unused",
+      "status": "repository-evidence",
       "inlineConfigs": [],
       "ruleChains": [],
       "wgslOnDisk": true
@@ -22269,7 +22273,7 @@
      "workgroup": [256,1,1],
      "requires": ["shader-f16"],
      "reachability": {
-      "status": "unused",
+      "status": "repository-evidence",
       "inlineConfigs": [],
       "ruleChains": [],
       "wgslOnDisk": true
@@ -22748,7 +22752,7 @@
      "workgroup": [256,1,1],
      "requires": [],
      "reachability": {
-      "status": "unused",
+      "status": "code-dispatched",
       "inlineConfigs": [],
       "ruleChains": [],
       "wgslOnDisk": true
@@ -22818,7 +22822,7 @@
      "workgroup": [256,1,1],
      "requires": [],
      "reachability": {
-      "status": "unused",
+      "status": "code-dispatched",
       "inlineConfigs": [],
       "ruleChains": [],
       "wgslOnDisk": true
@@ -23534,6 +23538,7 @@
        "embeddinggemma/google-embeddinggemma-300m-q4k-ehf16-af32",
        "esm/esm2-t12-35m-ur50d-f32-af32",
        "esmc/esmc-300m-f32-af32",
+       "forge/forecast/chronos-bolt-tiny",
        "gemma3/gemma-3-1b-it-f16-af32",
        "gemma3/gemma-3-270m-it-f16-af32",
        "gemma3/gemma-3-270m-it-q4k-ehf16-af16",
@@ -23547,7 +23552,7 @@
        "nucleotide-transformer/nucleotide-transformer-v2-50m-f32-af32",
        "qwen3/qwen-3-5-0-8b-canonical-f32"
       ],
-      "ruleChains": ["gather.rules.json#variant"],
+      "ruleChains": ["gather.rules.json#variant","residual.rules.json#biasAddVariant"],
       "wgslOnDisk": true
      },
      "uniformsOverride": {
@@ -23682,7 +23687,7 @@
        "qwen3/qwen3.8-27b-text-f16-af32",
        "qwen3/qwen3.8-27b-text-q4k-ehaf16"
       ],
-      "ruleChains": ["gather.rules.json#variant"],
+      "ruleChains": ["gather.rules.json#variant","residual.rules.json#biasAddVariant"],
       "wgslOnDisk": true
      },
      "uniformsOverride": {
@@ -24479,7 +24484,7 @@
      "outputDtype": "f32",
      "description": "F16 split embeddings -> F32 output",
      "reachability": {
-      "status": "unused",
+      "status": "code-dispatched",
       "inlineConfigs": [],
       "ruleChains": [],
       "wgslOnDisk": true
@@ -24745,6 +24750,7 @@
        "embeddinggemma/google-embeddinggemma-300m-q4k-ehf16-af32",
        "esm/esm2-t12-35m-ur50d-f32-af32",
        "esmc/esmc-300m-f32-af32",
+       "forge/forecast/chronos-bolt-tiny",
        "gemma3/gemma-3-1b-it-f16-af32",
        "gemma3/gemma-3-1b-it-q4k-ehf16-af32",
        "gemma3/gemma-3-270m-it-f16-af32",
@@ -24898,19 +24904,7 @@
      "workgroup": [32,1,1],
      "requires": [],
      "reachability": {
-      "status": "unused",
-      "inlineConfigs": [],
-      "ruleChains": [],
-      "wgslOnDisk": true
-     }
-    },
-    "small": {
-     "wgsl": "topk.wgsl",
-     "entryPoint": "topk_2_small",
-     "workgroup": [256,1,1],
-     "requires": [],
-     "reachability": {
-      "status": "unused",
+      "status": "code-dispatched",
       "inlineConfigs": [],
       "ruleChains": [],
       "wgslOnDisk": true
@@ -24922,9 +24916,9 @@
      "workgroup": [32,1,1],
      "requires": [],
      "reachability": {
-      "status": "unused",
+      "status": "model-selectable",
       "inlineConfigs": [],
-      "ruleChains": [],
+      "ruleChains": ["matmul.rules.json#q4kMaterializationMode","softmax.rules.json#topkVariant"],
       "wgslOnDisk": true
      }
     },
@@ -24938,9 +24932,9 @@
       "maxTopK": 64
      },
      "reachability": {
-      "status": "unused",
+      "status": "model-selectable",
       "inlineConfigs": [],
-      "ruleChains": [],
+      "ruleChains": ["softmax.rules.json#topkVariant"],
       "wgslOnDisk": true
      }
     },
@@ -24990,9 +24984,9 @@
      "workgroup": [32,1,1],
      "requires": ["shader-f16"],
      "reachability": {
-      "status": "unused",
+      "status": "model-selectable",
       "inlineConfigs": [],
-      "ruleChains": [],
+      "ruleChains": ["softmax.rules.json#topkVariant"],
       "wgslOnDisk": true
      }
     },
@@ -25002,9 +24996,9 @@
      "workgroup": [32,1,1],
      "requires": ["shader-f16"],
      "reachability": {
-      "status": "unused",
+      "status": "model-selectable",
       "inlineConfigs": [],
-      "ruleChains": [],
+      "ruleChains": ["softmax.rules.json#topkVariant"],
       "wgslOnDisk": true
      }
     },
@@ -25023,9 +25017,9 @@
      },
      "description": "GPT-OSS deterministic router top-k kernel (f16 logits/weights).",
      "reachability": {
-      "status": "unused",
+      "status": "model-selectable",
       "inlineConfigs": [],
-      "ruleChains": [],
+      "ruleChains": ["softmax.rules.json#topkVariant"],
       "wgslOnDisk": true
      }
     }
@@ -25093,7 +25087,7 @@
      "workgroup": [256,1,1],
      "requires": [],
      "reachability": {
-      "status": "unused",
+      "status": "code-dispatched",
       "inlineConfigs": [],
       "ruleChains": [],
       "wgslOnDisk": true
@@ -25130,7 +25124,7 @@
      "workgroup": [64,1,1],
      "requires": [],
      "reachability": {
-      "status": "unused",
+      "status": "repository-evidence",
       "inlineConfigs": [],
       "ruleChains": [],
       "wgslOnDisk": true
@@ -25189,9 +25183,9 @@
       }
      ],
      "reachability": {
-      "status": "unused",
+      "status": "selectable",
       "inlineConfigs": [],
-      "ruleChains": [],
+      "ruleChains": ["moe.rules.json#scatterAddVariant"],
       "wgslOnDisk": true
      }
     },
@@ -25228,9 +25222,9 @@
       }
      ],
      "reachability": {
-      "status": "unused",
+      "status": "selectable",
       "inlineConfigs": [],
-      "ruleChains": [],
+      "ruleChains": ["moe.rules.json#scatterAddVariant"],
       "wgslOnDisk": true
      }
     },
@@ -25262,9 +25256,9 @@
       }
      ],
      "reachability": {
-      "status": "unused",
+      "status": "selectable",
       "inlineConfigs": [],
-      "ruleChains": [],
+      "ruleChains": ["moe.rules.json#scatterAddVariant"],
       "wgslOnDisk": true
      }
     },
@@ -25301,9 +25295,9 @@
       }
      ],
      "reachability": {
-      "status": "unused",
+      "status": "selectable",
       "inlineConfigs": [],
-      "ruleChains": [],
+      "ruleChains": ["moe.rules.json#scatterAddVariant"],
       "wgslOnDisk": true
      }
     },
@@ -25335,9 +25329,9 @@
       }
      ],
      "reachability": {
-      "status": "unused",
+      "status": "selectable",
       "inlineConfigs": [],
-      "ruleChains": [],
+      "ruleChains": ["moe.rules.json#scatterAddVariant"],
       "wgslOnDisk": true
      }
     },
@@ -25374,47 +25368,10 @@
       }
      ],
      "reachability": {
-      "status": "unused",
+      "status": "selectable",
       "inlineConfigs": [],
-      "ruleChains": [],
+      "ruleChains": ["moe.rules.json#scatterAddVariant"],
       "wgslOnDisk": true
-     }
-    },
-    "accumulate": {
-     "wgsl": "scatter_add.wgsl",
-     "entryPoint": "scatter_add_accumulate",
-     "workgroup": [256,1,1],
-     "requires": [],
-     "reachability": {
-      "status": "unused",
-      "inlineConfigs": [],
-      "ruleChains": [],
-      "wgslOnDisk": true
-     },
-     "uniformsOverride": {
-      "size": 16,
-      "fields": [
-       {
-        "name": "num_tokens",
-        "type": "u32",
-        "offset": 0
-       },
-       {
-        "name": "hidden_size",
-        "type": "u32",
-        "offset": 4
-       },
-       {
-        "name": "top_k",
-        "type": "u32",
-        "offset": 8
-       },
-       {
-        "name": "num_experts",
-        "type": "u32",
-        "offset": 12
-       }
-      ]
      }
     }
    }
@@ -25505,7 +25462,7 @@
       "THREADS_PER_COL": 64
      },
      "reachability": {
-      "status": "unused",
+      "status": "code-dispatched",
       "inlineConfigs": [],
       "ruleChains": [],
       "wgslOnDisk": true
@@ -25580,7 +25537,7 @@
      "workgroup": [256,1,1],
      "requires": ["shader-f16"],
      "reachability": {
-      "status": "unused",
+      "status": "code-dispatched",
       "inlineConfigs": [],
       "ruleChains": [],
       "wgslOnDisk": true
@@ -25618,7 +25575,7 @@
       }
      ],
      "reachability": {
-      "status": "unused",
+      "status": "code-dispatched",
       "inlineConfigs": [],
       "ruleChains": [],
       "wgslOnDisk": true
@@ -25704,7 +25661,7 @@
      "workgroup": [256,1,1],
      "requires": [],
      "reachability": {
-      "status": "unused",
+      "status": "code-dispatched",
       "inlineConfigs": [],
       "ruleChains": [],
       "wgslOnDisk": true
@@ -25716,7 +25673,7 @@
      "workgroup": [256,1,1],
      "requires": ["shader-f16"],
      "reachability": {
-      "status": "unused",
+      "status": "code-dispatched",
       "inlineConfigs": [],
       "ruleChains": [],
       "wgslOnDisk": true
@@ -25728,7 +25685,7 @@
      "workgroup": [256,1,1],
      "requires": [],
      "reachability": {
-      "status": "unused",
+      "status": "code-dispatched",
       "inlineConfigs": [],
       "ruleChains": [],
       "wgslOnDisk": true
@@ -25740,19 +25697,7 @@
      "workgroup": [256,1,1],
      "requires": ["shader-f16"],
      "reachability": {
-      "status": "unused",
-      "inlineConfigs": [],
-      "ruleChains": [],
-      "wgslOnDisk": true
-     }
-    },
-    "single_pass": {
-     "wgsl": "moe_gather.wgsl",
-     "entryPoint": "gather_single_pass",
-     "workgroup": [256,1,1],
-     "requires": [],
-     "reachability": {
-      "status": "unused",
+      "status": "code-dispatched",
       "inlineConfigs": [],
       "ruleChains": [],
       "wgslOnDisk": true
@@ -25840,7 +25785,7 @@
      "workgroup": [256,1,1],
      "requires": [],
      "reachability": {
-      "status": "unused",
+      "status": "code-dispatched",
       "inlineConfigs": [],
       "ruleChains": [],
       "wgslOnDisk": true
@@ -25909,9 +25854,9 @@
      "workgroup": [256,1,1],
      "requires": [],
      "reachability": {
-      "status": "unused",
+      "status": "selectable",
       "inlineConfigs": [],
-      "ruleChains": [],
+      "ruleChains": ["silu.rules.json#swigluRowsplitBiasVariant"],
       "wgslOnDisk": true
      }
     },
@@ -25921,9 +25866,9 @@
      "workgroup": [256,1,1],
      "requires": ["shader-f16"],
      "reachability": {
-      "status": "unused",
+      "status": "selectable",
       "inlineConfigs": [],
-      "ruleChains": [],
+      "ruleChains": ["silu.rules.json#swigluRowsplitBiasVariant"],
       "wgslOnDisk": true
      }
     }
@@ -26007,9 +25952,10 @@
       "inlineConfigs": [
        "esm/esm2-t12-35m-ur50d-f32-af32",
        "esmc/esmc-300m-f32-af32",
+       "forge/forecast/chronos-bolt-tiny",
        "nucleotide-transformer/nucleotide-transformer-v2-50m-f32-af32"
       ],
-      "ruleChains": [],
+      "ruleChains": ["residual.rules.json#biasAddVariant"],
       "wgslOnDisk": true
      }
     },
@@ -26019,9 +25965,9 @@
      "workgroup": [256,1,1],
      "requires": ["shader-f16"],
      "reachability": {
-      "status": "unused",
+      "status": "model-selectable",
       "inlineConfigs": [],
-      "ruleChains": [],
+      "ruleChains": ["residual.rules.json#biasAddVariant"],
       "wgslOnDisk": true
      }
     }
@@ -26093,7 +26039,7 @@
      "workgroup": [256,1,1],
      "requires": ["shader-f16"],
      "reachability": {
-      "status": "unused",
+      "status": "code-dispatched",
       "inlineConfigs": [],
       "ruleChains": [],
       "wgslOnDisk": true
@@ -26138,7 +26084,7 @@
       "outputPrecision": "two-f32"
      },
      "reachability": {
-      "status": "unused",
+      "status": "code-dispatched",
       "inlineConfigs": [],
       "ruleChains": [],
       "wgslOnDisk": true
@@ -26155,7 +26101,7 @@
       "outputPrecision": "f16"
      },
      "reachability": {
-      "status": "unused",
+      "status": "code-dispatched",
       "inlineConfigs": [],
       "ruleChains": [],
       "wgslOnDisk": true
@@ -26746,7 +26692,7 @@
        "qwen3/qwen-3-embedding-0-6b-f16-af32",
        "qwen3/qwen-3-reranker-0-6b-f16-true-logit-af32"
       ],
-      "ruleChains": ["split-qkv.rules.json#variant"],
+      "ruleChains": ["residual.rules.json#biasAddVariant","split-qkv.rules.json#variant"],
       "wgslOnDisk": true
      }
     },
@@ -26758,7 +26704,7 @@
      "reachability": {
       "status": "model-selectable",
       "inlineConfigs": [],
-      "ruleChains": ["split-qkv.rules.json#variant"],
+      "ruleChains": ["residual.rules.json#biasAddVariant","split-qkv.rules.json#variant"],
       "wgslOnDisk": true
      }
     },
@@ -26888,7 +26834,7 @@
      "workgroup": [256,1,1],
      "requires": [],
      "reachability": {
-      "status": "unused",
+      "status": "code-dispatched",
       "inlineConfigs": [],
       "ruleChains": [],
       "wgslOnDisk": true
@@ -27039,7 +26985,7 @@
      "workgroup": [256,1,1],
      "requires": [],
      "reachability": {
-      "status": "unused",
+      "status": "code-dispatched",
       "inlineConfigs": [],
       "ruleChains": [],
       "wgslOnDisk": true
@@ -27189,7 +27135,7 @@
      "workgroup": [256,1,1],
      "requires": ["shader-f16"],
      "reachability": {
-      "status": "unused",
+      "status": "code-dispatched",
       "inlineConfigs": [],
       "ruleChains": [],
       "wgslOnDisk": true
@@ -27256,7 +27202,7 @@
      "reachability": {
       "status": "selectable",
       "inlineConfigs": [],
-      "ruleChains": ["split-qg.rules.json#variant"],
+      "ruleChains": ["residual.rules.json#biasAddVariant","split-qg.rules.json#variant"],
       "wgslOnDisk": true
      }
     },
@@ -27268,7 +27214,7 @@
      "reachability": {
       "status": "selectable",
       "inlineConfigs": [],
-      "ruleChains": ["split-qg.rules.json#variant"],
+      "ruleChains": ["residual.rules.json#biasAddVariant","split-qg.rules.json#variant"],
       "wgslOnDisk": true
      }
     },
@@ -27465,7 +27411,7 @@
      "workgroup": [256,1,1],
      "requires": [],
      "reachability": {
-      "status": "unused",
+      "status": "code-dispatched",
       "inlineConfigs": [],
       "ruleChains": [],
       "wgslOnDisk": true
@@ -27477,7 +27423,7 @@
      "workgroup": [256,1,1],
      "requires": ["shader-f16"],
      "reachability": {
-      "status": "unused",
+      "status": "code-dispatched",
       "inlineConfigs": [],
       "ruleChains": [],
       "wgslOnDisk": true
@@ -27489,7 +27435,7 @@
      "workgroup": [256,1,1],
      "requires": [],
      "reachability": {
-      "status": "unused",
+      "status": "code-dispatched",
       "inlineConfigs": [],
       "ruleChains": [],
       "wgslOnDisk": true
@@ -27501,7 +27447,7 @@
      "workgroup": [256,1,1],
      "requires": ["shader-f16"],
      "reachability": {
-      "status": "unused",
+      "status": "code-dispatched",
       "inlineConfigs": [],
       "ruleChains": [],
       "wgslOnDisk": true
@@ -27513,7 +27459,7 @@
      "workgroup": [256,1,1],
      "requires": [],
      "reachability": {
-      "status": "unused",
+      "status": "code-dispatched",
       "inlineConfigs": [],
       "ruleChains": [],
       "wgslOnDisk": true
@@ -27525,7 +27471,7 @@
      "workgroup": [256,1,1],
      "requires": ["shader-f16"],
      "reachability": {
-      "status": "unused",
+      "status": "code-dispatched",
       "inlineConfigs": [],
       "ruleChains": [],
       "wgslOnDisk": true
@@ -27537,7 +27483,7 @@
      "workgroup": [256,1,1],
      "requires": [],
      "reachability": {
-      "status": "unused",
+      "status": "code-dispatched",
       "inlineConfigs": [],
       "ruleChains": [],
       "wgslOnDisk": true
@@ -27549,7 +27495,7 @@
      "workgroup": [256,1,1],
      "requires": ["shader-f16"],
      "reachability": {
-      "status": "unused",
+      "status": "code-dispatched",
       "inlineConfigs": [],
       "ruleChains": [],
       "wgslOnDisk": true
@@ -27561,7 +27507,7 @@
      "workgroup": [256,1,1],
      "requires": [],
      "reachability": {
-      "status": "unused",
+      "status": "code-dispatched",
       "inlineConfigs": [],
       "ruleChains": [],
       "wgslOnDisk": true
@@ -27573,7 +27519,7 @@
      "workgroup": [256,1,1],
      "requires": ["shader-f16"],
      "reachability": {
-      "status": "unused",
+      "status": "code-dispatched",
       "inlineConfigs": [],
       "ruleChains": [],
       "wgslOnDisk": true
@@ -27643,7 +27589,7 @@
      "workgroup": [256,1,1],
      "requires": ["shader-f16"],
      "reachability": {
-      "status": "unused",
+      "status": "code-dispatched",
       "inlineConfigs": [],
       "ruleChains": [],
       "wgslOnDisk": true
@@ -27763,7 +27709,7 @@
      "workgroup": [256,1,1],
      "requires": ["shader-f16"],
      "reachability": {
-      "status": "unused",
+      "status": "code-dispatched",
       "inlineConfigs": [],
       "ruleChains": [],
       "wgslOnDisk": true
@@ -27823,7 +27769,7 @@
      "workgroup": [256,1,1],
      "requires": [],
      "reachability": {
-      "status": "unused",
+      "status": "code-dispatched",
       "inlineConfigs": [],
       "ruleChains": [],
       "wgslOnDisk": true
@@ -27910,7 +27856,7 @@
      "workgroup": [16,16,1],
      "requires": [],
      "reachability": {
-      "status": "unused",
+      "status": "code-dispatched",
       "inlineConfigs": [],
       "ruleChains": [],
       "wgslOnDisk": true
@@ -27923,7 +27869,7 @@
      "requires": [],
      "weightDtype": "f16",
      "reachability": {
-      "status": "unused",
+      "status": "code-dispatched",
       "inlineConfigs": [],
       "ruleChains": [],
       "wgslOnDisk": true
@@ -27937,7 +27883,7 @@
      "weightDtype": "q4k",
      "description": "Input gradient through a frozen row-wise Q4_K weight stored as [N,K]",
      "reachability": {
-      "status": "unused",
+      "status": "code-dispatched",
       "inlineConfigs": [],
       "ruleChains": [],
       "wgslOnDisk": true
@@ -28072,7 +28018,7 @@
      "workgroup": [16,16,1],
      "requires": [],
      "reachability": {
-      "status": "unused",
+      "status": "code-dispatched",
       "inlineConfigs": [],
       "ruleChains": [],
       "wgslOnDisk": true
@@ -28134,7 +28080,7 @@
      "workgroup": [256,1,1],
      "requires": [],
      "reachability": {
-      "status": "unused",
+      "status": "code-dispatched",
       "inlineConfigs": [],
       "ruleChains": [],
       "wgslOnDisk": true
@@ -28221,7 +28167,7 @@
      "workgroup": [256,1,1],
      "requires": [],
      "reachability": {
-      "status": "unused",
+      "status": "code-dispatched",
       "inlineConfigs": [],
       "ruleChains": [],
       "wgslOnDisk": true
@@ -28288,7 +28234,7 @@
      "workgroup": [256,1,1],
      "requires": [],
      "reachability": {
-      "status": "unused",
+      "status": "code-dispatched",
       "inlineConfigs": [],
       "ruleChains": [],
       "wgslOnDisk": true
@@ -28354,7 +28300,7 @@
      "workgroup": [256,1,1],
      "requires": [],
      "reachability": {
-      "status": "unused",
+      "status": "code-dispatched",
       "inlineConfigs": [],
       "ruleChains": [],
       "wgslOnDisk": true
@@ -28420,7 +28366,7 @@
      "workgroup": [256,1,1],
      "requires": [],
      "reachability": {
-      "status": "unused",
+      "status": "code-dispatched",
       "inlineConfigs": [],
       "ruleChains": [],
       "wgslOnDisk": true
@@ -28485,7 +28431,7 @@
      "workgroup": [256,1,1],
      "requires": [],
      "reachability": {
-      "status": "unused",
+      "status": "code-dispatched",
       "inlineConfigs": [],
       "ruleChains": [],
       "wgslOnDisk": true
@@ -28555,7 +28501,7 @@
      "workgroup": [256,1,1],
      "requires": [],
      "reachability": {
-      "status": "unused",
+      "status": "code-dispatched",
       "inlineConfigs": [],
       "ruleChains": [],
       "wgslOnDisk": true
@@ -28635,7 +28581,7 @@
      "workgroup": [256,1,1],
      "requires": [],
      "reachability": {
-      "status": "unused",
+      "status": "code-dispatched",
       "inlineConfigs": [],
       "ruleChains": [],
       "wgslOnDisk": true
@@ -28705,7 +28651,7 @@
      "workgroup": [256,1,1],
      "requires": [],
      "reachability": {
-      "status": "unused",
+      "status": "code-dispatched",
       "inlineConfigs": [],
       "ruleChains": [],
       "wgslOnDisk": true
@@ -28820,7 +28766,7 @@
      "workgroup": [128,1,1],
      "requires": [],
      "reachability": {
-      "status": "unused",
+      "status": "code-dispatched",
       "inlineConfigs": [],
       "ruleChains": [],
       "wgslOnDisk": true
@@ -28900,7 +28846,7 @@
      "workgroup": [256,1,1],
      "requires": [],
      "reachability": {
-      "status": "unused",
+      "status": "code-dispatched",
       "inlineConfigs": [],
       "ruleChains": [],
       "wgslOnDisk": true
@@ -28990,7 +28936,7 @@
      "workgroup": [256,1,1],
      "requires": [],
      "reachability": {
-      "status": "unused",
+      "status": "code-dispatched",
       "inlineConfigs": [],
       "ruleChains": [],
       "wgslOnDisk": true
@@ -29056,7 +29002,7 @@
      "workgroup": [256,1,1],
      "requires": [],
      "reachability": {
-      "status": "unused",
+      "status": "code-dispatched",
       "inlineConfigs": [],
       "ruleChains": [],
       "wgslOnDisk": true
@@ -29373,7 +29319,7 @@
      "requires": [],
      "outputDtype": "f32",
      "reachability": {
-      "status": "unused",
+      "status": "code-dispatched",
       "inlineConfigs": [],
       "ruleChains": [],
       "wgslOnDisk": true
@@ -29869,7 +29815,7 @@
      "reachability": {
       "status": "selectable",
       "inlineConfigs": [],
-      "ruleChains": ["modulate.rules.json#variant"],
+      "ruleChains": ["modulate.rules.json#variant","residual.rules.json#biasAddVariant"],
       "wgslOnDisk": true
      }
     },
@@ -29882,7 +29828,7 @@
      "reachability": {
       "status": "selectable",
       "inlineConfigs": [],
-      "ruleChains": ["modulate.rules.json#variant"],
+      "ruleChains": ["modulate.rules.json#variant","residual.rules.json#biasAddVariant"],
       "wgslOnDisk": true
      }
     }
@@ -29963,7 +29909,7 @@
      "reachability": {
       "status": "selectable",
       "inlineConfigs": [],
-      "ruleChains": ["pixel_shuffle.rules.json#variant"],
+      "ruleChains": ["pixel_shuffle.rules.json#variant","residual.rules.json#biasAddVariant"],
       "wgslOnDisk": true
      }
     },
@@ -29976,7 +29922,7 @@
      "reachability": {
       "status": "selectable",
       "inlineConfigs": [],
-      "ruleChains": ["pixel_shuffle.rules.json#variant"],
+      "ruleChains": ["pixel_shuffle.rules.json#variant","residual.rules.json#biasAddVariant"],
       "wgslOnDisk": true
      }
     }
@@ -30044,7 +29990,7 @@
      "workgroup": [256,1,1],
      "requires": [],
      "reachability": {
-      "status": "unused",
+      "status": "code-dispatched",
       "inlineConfigs": [],
       "ruleChains": [],
       "wgslOnDisk": true
@@ -30134,7 +30080,7 @@
      "workgroup": [256,1,1],
      "requires": [],
      "reachability": {
-      "status": "unused",
+      "status": "code-dispatched",
       "inlineConfigs": [],
       "ruleChains": [],
       "wgslOnDisk": true
@@ -30195,7 +30141,7 @@
      "workgroup": [256,1,1],
      "requires": [],
      "reachability": {
-      "status": "unused",
+      "status": "code-dispatched",
       "inlineConfigs": [],
       "ruleChains": [],
       "wgslOnDisk": true
@@ -30276,7 +30222,7 @@
      "workgroup": [256,1,1],
      "requires": [],
      "reachability": {
-      "status": "unused",
+      "status": "code-dispatched",
       "inlineConfigs": [],
       "ruleChains": [],
       "wgslOnDisk": true
@@ -30356,7 +30302,7 @@
      "workgroup": [256,1,1],
      "requires": [],
      "reachability": {
-      "status": "unused",
+      "status": "code-dispatched",
       "inlineConfigs": [],
       "ruleChains": [],
       "wgslOnDisk": true
@@ -30448,7 +30394,7 @@
      "workgroup": [256,1,1],
      "requires": [],
      "reachability": {
-      "status": "unused",
+      "status": "code-dispatched",
       "inlineConfigs": [],
       "ruleChains": [],
       "wgslOnDisk": true
@@ -30580,6 +30526,7 @@
      "reachability": {
       "status": "pinned",
       "inlineConfigs": [
+       "forge/lineage/qwen3.8-27b",
        "qwen3/qwen-3-6-35b-a3b-q4_0-passthrough",
        "qwen3/qwen-3-6-35b-a3b-text-q4k-ehf16-af32",
        "qwen3/qwen-3-8-flash-next-text-q4k-ehf16-af32",
@@ -30598,7 +30545,7 @@
      "requires": ["shader-f16"],
      "outputDtype": "f32",
      "reachability": {
-      "status": "unused",
+      "status": "code-dispatched",
       "inlineConfigs": [],
       "ruleChains": [],
       "wgslOnDisk": true
@@ -30646,7 +30593,7 @@
       "activationElementStrideBytes": 8
      },
      "reachability": {
-      "status": "unused",
+      "status": "code-dispatched",
       "inlineConfigs": [],
       "ruleChains": [],
       "wgslOnDisk": true
@@ -30765,7 +30712,7 @@
      "requires": [],
      "outputDtype": "f32",
      "reachability": {
-      "status": "unused",
+      "status": "repository-evidence",
       "inlineConfigs": [],
       "ruleChains": [],
       "wgslOnDisk": true
@@ -30779,7 +30726,7 @@
      "requires": [],
      "outputDtype": "f32",
      "reachability": {
-      "status": "unused",
+      "status": "repository-evidence",
       "inlineConfigs": [],
       "ruleChains": [],
       "wgslOnDisk": true
@@ -30940,6 +30887,7 @@
      "reachability": {
       "status": "pinned",
       "inlineConfigs": [
+       "forge/lineage/qwen3.8-27b",
        "qwen3/qwen-3-6-35b-a3b-text-q4k-ehf16-af32",
        "qwen3/qwen3.8-27b-text-f16-af32",
        "qwen3/qwen3.8-27b-text-q4k-ehaf16"
@@ -31222,7 +31170,7 @@
       "activationElementStrideBytes": 8
      },
      "reachability": {
-      "status": "unused",
+      "status": "code-dispatched",
       "inlineConfigs": [],
       "ruleChains": [],
       "wgslOnDisk": true
@@ -31368,7 +31316,7 @@
       }
      },
      "reachability": {
-      "status": "unused",
+      "status": "repository-evidence",
       "inlineConfigs": [],
       "ruleChains": [],
       "wgslOnDisk": true
@@ -31522,7 +31470,7 @@
       "activationElementStrideBytes": 8
      },
      "reachability": {
-      "status": "unused",
+      "status": "code-dispatched",
       "inlineConfigs": [],
       "ruleChains": [],
       "wgslOnDisk": true
@@ -31686,7 +31634,7 @@
       "stateRowsPerLane": 8
      },
      "reachability": {
-      "status": "unused",
+      "status": "repository-evidence",
       "inlineConfigs": [],
       "ruleChains": [],
       "wgslOnDisk": true
@@ -31850,7 +31798,7 @@
       "stateRowsPerLane": 8
      },
      "reachability": {
-      "status": "unused",
+      "status": "repository-evidence",
       "inlineConfigs": [],
       "ruleChains": [],
       "wgslOnDisk": true
@@ -31994,7 +31942,7 @@
       "activationElementStrideBytes": 8
      },
      "reachability": {
-      "status": "unused",
+      "status": "code-dispatched",
       "inlineConfigs": [],
       "ruleChains": [],
       "wgslOnDisk": true
@@ -32444,7 +32392,7 @@
       "normGateActivation": "silu"
      },
      "reachability": {
-      "status": "unused",
+      "status": "repository-evidence",
       "inlineConfigs": [],
       "ruleChains": [],
       "wgslOnDisk": true
@@ -32724,6 +32672,7 @@
      "reachability": {
       "status": "pinned",
       "inlineConfigs": [
+       "forge/lineage/qwen3.8-27b",
        "qwen3/qwen-3-6-35b-a3b-q4_0-passthrough",
        "qwen3/qwen-3-6-35b-a3b-text-q4k-ehf16-af32",
        "qwen3/qwen3.8-27b-text-f16-af32",
@@ -33131,8 +33080,8 @@
      "requires": [],
      "outputDtype": "f32",
      "reachability": {
-      "status": "selectable",
-      "inlineConfigs": [],
+      "status": "pinned",
+      "inlineConfigs": ["forge/forecast/chronos-bolt-tiny"],
       "ruleChains": ["relu.rules.json#variant"],
       "wgslOnDisk": true
      }
@@ -33250,7 +33199,7 @@
      "workgroup": [256,1,1],
      "requires": [],
      "reachability": {
-      "status": "unused",
+      "status": "code-dispatched",
       "inlineConfigs": [],
       "ruleChains": [],
       "wgslOnDisk": true
@@ -33356,7 +33305,7 @@
      "workgroup": [256,1,1],
      "requires": [],
      "reachability": {
-      "status": "unused",
+      "status": "code-dispatched",
       "inlineConfigs": [],
       "ruleChains": [],
       "wgslOnDisk": true
@@ -33515,7 +33464,7 @@
      },
      "description": "BDPA decode kernel - f16 Q/basis + packed int8 deltas",
      "reachability": {
-      "status": "unused",
+      "status": "code-dispatched",
       "inlineConfigs": [],
       "ruleChains": [],
       "wgslOnDisk": true
@@ -33549,7 +33498,7 @@
      "workgroup": [256,1,1],
      "requires": ["shader-f16"],
      "reachability": {
-      "status": "unused",
+      "status": "code-dispatched",
       "inlineConfigs": [],
       "ruleChains": [],
       "wgslOnDisk": true
@@ -33560,7 +33509,7 @@
      "entryPoint": "main",
      "workgroup": [256,1,1],
      "reachability": {
-      "status": "unused",
+      "status": "code-dispatched",
       "inlineConfigs": [],
       "ruleChains": [],
       "wgslOnDisk": true
@@ -33629,7 +33578,7 @@
      "workgroup": [1,1,1],
      "requires": [],
      "reachability": {
-      "status": "unused",
+      "status": "code-dispatched",
       "inlineConfigs": [],
       "ruleChains": [],
       "wgslOnDisk": true
@@ -33711,7 +33660,7 @@
      "workgroup": [1,1,1],
      "requires": [],
      "reachability": {
-      "status": "unused",
+      "status": "code-dispatched",
       "inlineConfigs": [],
       "ruleChains": [],
       "wgslOnDisk": true
@@ -33780,7 +33729,7 @@
      "workgroup": [256,1,1],
      "requires": [],
      "reachability": {
-      "status": "unused",
+      "status": "code-dispatched",
       "inlineConfigs": [],
       "ruleChains": [],
       "wgslOnDisk": true
@@ -33845,7 +33794,7 @@
      "workgroup": [256,1,1],
      "requires": [],
      "reachability": {
-      "status": "unused",
+      "status": "code-dispatched",
       "inlineConfigs": [],
       "ruleChains": [],
       "wgslOnDisk": true
@@ -33857,7 +33806,7 @@
      "workgroup": [256,1,1],
      "requires": [],
      "reachability": {
-      "status": "unused",
+      "status": "code-dispatched",
       "inlineConfigs": [],
       "ruleChains": [],
       "wgslOnDisk": true
@@ -33869,7 +33818,7 @@
      "workgroup": [256,1,1],
      "requires": [],
      "reachability": {
-      "status": "unused",
+      "status": "code-dispatched",
       "inlineConfigs": [],
       "ruleChains": [],
       "wgslOnDisk": true
@@ -33928,9 +33877,9 @@
      "workgroup": [256,1,1],
      "requires": ["shader-f16"],
      "reachability": {
-      "status": "unused",
+      "status": "selectable",
       "inlineConfigs": [],
-      "ruleChains": [],
+      "ruleChains": ["inference/moe.rules.json#biasAddCode"],
       "wgslOnDisk": true
      }
     },
@@ -33940,9 +33889,9 @@
      "workgroup": [256,1,1],
      "requires": ["shader-f16"],
      "reachability": {
-      "status": "unused",
+      "status": "selectable",
       "inlineConfigs": [],
-      "ruleChains": [],
+      "ruleChains": ["inference/moe.rules.json#biasAddCode"],
       "wgslOnDisk": true
      }
     },
@@ -33952,9 +33901,9 @@
      "workgroup": [256,1,1],
      "requires": ["shader-f16"],
      "reachability": {
-      "status": "unused",
+      "status": "selectable",
       "inlineConfigs": [],
-      "ruleChains": [],
+      "ruleChains": ["inference/moe.rules.json#biasAddCode"],
       "wgslOnDisk": true
      }
     },
@@ -33964,9 +33913,9 @@
      "workgroup": [256,1,1],
      "requires": [],
      "reachability": {
-      "status": "unused",
+      "status": "selectable",
       "inlineConfigs": [],
-      "ruleChains": [],
+      "ruleChains": ["inference/moe.rules.json#biasAddCode"],
       "wgslOnDisk": true
      }
     }
@@ -34040,9 +33989,9 @@
      "workgroup": [256,1,1],
      "requires": [],
      "reachability": {
-      "status": "unused",
+      "status": "selectable",
       "inlineConfigs": [],
-      "ruleChains": [],
+      "ruleChains": ["rmsnorm.rules.json#statsVariant"],
       "wgslOnDisk": true
      }
     },
@@ -34053,9 +34002,9 @@
      "requires": ["subgroups"],
      "requiredWgslFeatures": ["subgroup_id"],
      "reachability": {
-      "status": "unused",
+      "status": "selectable",
       "inlineConfigs": [],
-      "ruleChains": [],
+      "ruleChains": ["rmsnorm.rules.json#statsVariant"],
       "wgslOnDisk": true
      }
     }
@@ -34176,7 +34125,7 @@
      "workgroup": [256,1,1],
      "requires": ["shader-f16"],
      "reachability": {
-      "status": "unused",
+      "status": "code-dispatched",
       "inlineConfigs": [],
       "ruleChains": [],
       "wgslOnDisk": true
@@ -34323,7 +34272,7 @@
      "workgroup": [256,1,1],
      "requires": [],
      "reachability": {
-      "status": "unused",
+      "status": "code-dispatched",
       "inlineConfigs": [],
       "ruleChains": [],
       "wgslOnDisk": true
@@ -34335,7 +34284,7 @@
      "workgroup": [256,1,1],
      "requires": ["shader-f16"],
      "reachability": {
-      "status": "unused",
+      "status": "code-dispatched",
       "inlineConfigs": [],
       "ruleChains": [],
       "wgslOnDisk": true
@@ -34394,7 +34343,7 @@
      "workgroup": [256,1,1],
      "requires": [],
      "reachability": {
-      "status": "unused",
+      "status": "code-dispatched",
       "inlineConfigs": [],
       "ruleChains": [],
       "wgslOnDisk": true
@@ -34406,7 +34355,7 @@
      "workgroup": [256,1,1],
      "requires": ["shader-f16"],
      "reachability": {
-      "status": "unused",
+      "status": "code-dispatched",
       "inlineConfigs": [],
       "ruleChains": [],
       "wgslOnDisk": true
@@ -34570,7 +34519,7 @@
       }
      ],
      "reachability": {
-      "status": "unused",
+      "status": "code-dispatched",
       "inlineConfigs": [],
       "ruleChains": [],
       "wgslOnDisk": true
@@ -34674,8 +34623,8 @@
      "outputDtype": "f32",
      "weightDtype": "f32",
      "reachability": {
-      "status": "unused",
-      "inlineConfigs": [],
+      "status": "pinned",
+      "inlineConfigs": ["forge/forecast/chronos-bolt-tiny"],
       "ruleChains": [],
       "wgslOnDisk": true
      }
@@ -34721,8 +34670,8 @@
      "outputDtype": "f32",
      "weightDtype": "f32",
      "reachability": {
-      "status": "unused",
-      "inlineConfigs": [],
+      "status": "pinned",
+      "inlineConfigs": ["forge/forecast/chronos-bolt-tiny"],
       "ruleChains": [],
       "wgslOnDisk": true
      }
@@ -34758,8 +34707,8 @@
      "outputDtype": "f32",
      "weightDtype": "f32",
      "reachability": {
-      "status": "unused",
-      "inlineConfigs": [],
+      "status": "pinned",
+      "inlineConfigs": ["forge/forecast/chronos-bolt-tiny"],
       "ruleChains": [],
       "wgslOnDisk": true
      }
@@ -34795,8 +34744,8 @@
      "outputDtype": "f32",
      "weightDtype": "f32",
      "reachability": {
-      "status": "unused",
-      "inlineConfigs": [],
+      "status": "pinned",
+      "inlineConfigs": ["forge/forecast/chronos-bolt-tiny"],
       "ruleChains": [],
       "wgslOnDisk": true
      }
@@ -34847,8 +34796,8 @@
      "outputDtype": "f32",
      "weightDtype": "f32",
      "reachability": {
-      "status": "unused",
-      "inlineConfigs": [],
+      "status": "pinned",
+      "inlineConfigs": ["forge/forecast/chronos-bolt-tiny"],
       "ruleChains": [],
       "wgslOnDisk": true
      }
@@ -34894,8 +34843,8 @@
      "outputDtype": "f32",
      "weightDtype": "f32",
      "reachability": {
-      "status": "unused",
-      "inlineConfigs": [],
+      "status": "pinned",
+      "inlineConfigs": ["forge/forecast/chronos-bolt-tiny"],
       "ruleChains": [],
       "wgslOnDisk": true
      }
@@ -34940,7 +34889,7 @@
      "workgroup": [1,1,1],
      "requires": ["shader-f16"],
      "reachability": {
-      "status": "unused",
+      "status": "code-dispatched",
       "inlineConfigs": [],
       "ruleChains": [],
       "wgslOnDisk": true
@@ -34959,7 +34908,7 @@
       }
      ],
      "reachability": {
-      "status": "unused",
+      "status": "code-dispatched",
       "inlineConfigs": [],
       "ruleChains": [],
       "wgslOnDisk": true
@@ -35010,7 +34959,7 @@
      "workgroup": [256,1,1],
      "requires": [],
      "reachability": {
-      "status": "unused",
+      "status": "code-dispatched",
       "inlineConfigs": [],
       "ruleChains": [],
       "wgslOnDisk": true
@@ -35076,9 +35025,9 @@
      "workgroup": [256,1,1],
      "requires": [],
      "reachability": {
-      "status": "unused",
+      "status": "selectable",
       "inlineConfigs": [],
-      "ruleChains": [],
+      "ruleChains": ["silu.rules.json#pairedVariant"],
       "wgslOnDisk": true
      }
     },
@@ -35089,9 +35038,9 @@
      "workgroup": [256,1,1],
      "requires": [],
      "reachability": {
-      "status": "unused",
+      "status": "selectable",
       "inlineConfigs": [],
-      "ruleChains": [],
+      "ruleChains": ["silu.rules.json#pairedVariant"],
       "wgslOnDisk": true
      },
      "bindings": [
@@ -35119,9 +35068,9 @@
      "workgroup": [256,1,1],
      "requires": [],
      "reachability": {
-      "status": "unused",
+      "status": "selectable",
       "inlineConfigs": [],
-      "ruleChains": [],
+      "ruleChains": ["silu.rules.json#pairedVariant"],
       "wgslOnDisk": true
      }
     },
@@ -35132,9 +35081,9 @@
      "workgroup": [256,1,1],
      "requires": [],
      "reachability": {
-      "status": "unused",
+      "status": "selectable",
       "inlineConfigs": [],
-      "ruleChains": [],
+      "ruleChains": ["silu.rules.json#pairedVariant"],
       "wgslOnDisk": true
      }
     },
@@ -35145,9 +35094,9 @@
      "workgroup": [256,1,1],
      "requires": [],
      "reachability": {
-      "status": "unused",
+      "status": "selectable",
       "inlineConfigs": [],
-      "ruleChains": [],
+      "ruleChains": ["silu.rules.json#pairedVariant"],
       "wgslOnDisk": true
      }
     },
@@ -35158,9 +35107,9 @@
      "workgroup": [256,1,1],
      "requires": [],
      "reachability": {
-      "status": "unused",
+      "status": "selectable",
       "inlineConfigs": [],
-      "ruleChains": [],
+      "ruleChains": ["silu.rules.json#pairedVariant"],
       "wgslOnDisk": true
      },
      "bindings": [
@@ -35183,9 +35132,9 @@
      "workgroup": [256,1,1],
      "requires": [],
      "reachability": {
-      "status": "unused",
+      "status": "selectable",
       "inlineConfigs": [],
-      "ruleChains": [],
+      "ruleChains": ["silu.rules.json#pairedVariant"],
       "wgslOnDisk": true
      },
      "bindings": [
@@ -35300,9 +35249,9 @@
      "weightDtype": "q4k",
      "outputDtype": "f32",
      "reachability": {
-      "status": "unused",
+      "status": "selectable",
       "inlineConfigs": [],
-      "ruleChains": [],
+      "ruleChains": ["matmul.rules.json#routeQ4Variant"],
       "wgslOnDisk": true
      },
      "sharedMemory": 1024,
@@ -35403,9 +35352,9 @@
       "workgroupConstants": ["WORKGROUP_SIZE",null,null]
      },
      "reachability": {
-      "status": "unused",
+      "status": "selectable",
       "inlineConfigs": [],
-      "ruleChains": [],
+      "ruleChains": ["matmul.rules.json#routeQ4Variant"],
       "wgslOnDisk": true
      }
     },
@@ -35502,9 +35451,9 @@
       "workgroupConstants": ["WORKGROUP_SIZE",null,null]
      },
      "reachability": {
-      "status": "unused",
+      "status": "selectable",
       "inlineConfigs": [],
-      "ruleChains": [],
+      "ruleChains": ["matmul.rules.json#routeQ4Variant"],
       "wgslOnDisk": true
      }
     },
@@ -35601,9 +35550,9 @@
       "workgroupConstants": ["WORKGROUP_SIZE",null,null]
      },
      "reachability": {
-      "status": "unused",
+      "status": "selectable",
       "inlineConfigs": [],
-      "ruleChains": [],
+      "ruleChains": ["matmul.rules.json#routeQ4Variant"],
       "wgslOnDisk": true
      }
     },
@@ -35700,9 +35649,9 @@
       "workgroupConstants": ["WORKGROUP_SIZE",null,null]
      },
      "reachability": {
-      "status": "unused",
+      "status": "selectable",
       "inlineConfigs": [],
-      "ruleChains": [],
+      "ruleChains": ["matmul.rules.json#routeQ4Variant"],
       "wgslOnDisk": true
      }
     },
@@ -35804,9 +35753,9 @@
       "workgroupConstants": ["WORKGROUP_SIZE",null,null]
      },
      "reachability": {
-      "status": "unused",
+      "status": "selectable",
       "inlineConfigs": [],
-      "ruleChains": [],
+      "ruleChains": ["matmul.rules.json#routeQ4Variant"],
       "wgslOnDisk": true
      }
     },
@@ -35908,9 +35857,9 @@
       "workgroupConstants": ["WORKGROUP_SIZE",null,null]
      },
      "reachability": {
-      "status": "unused",
+      "status": "selectable",
       "inlineConfigs": [],
-      "ruleChains": [],
+      "ruleChains": ["matmul.rules.json#routeQ4Variant"],
       "wgslOnDisk": true
      }
     },
@@ -36012,9 +35961,9 @@
       "workgroupConstants": ["WORKGROUP_SIZE",null,null]
      },
      "reachability": {
-      "status": "unused",
+      "status": "selectable",
       "inlineConfigs": [],
-      "ruleChains": [],
+      "ruleChains": ["matmul.rules.json#routeQ4Variant"],
       "wgslOnDisk": true
      }
     },
@@ -36116,9 +36065,9 @@
       "workgroupConstants": ["WORKGROUP_SIZE",null,null]
      },
      "reachability": {
-      "status": "unused",
+      "status": "selectable",
       "inlineConfigs": [],
-      "ruleChains": [],
+      "ruleChains": ["matmul.rules.json#routeQ4Variant"],
       "wgslOnDisk": true
      }
     }
@@ -36190,7 +36139,7 @@
       "WORKGROUP_SIZE": 256
      },
      "reachability": {
-      "status": "unused",
+      "status": "code-dispatched",
       "inlineConfigs": [],
       "ruleChains": [],
       "wgslOnDisk": true
@@ -36435,7 +36384,7 @@
       "arithmetic": "scalar-fma-tree32"
      },
      "reachability": {
-      "status": "unused",
+      "status": "repository-evidence",
       "inlineConfigs": [],
       "ruleChains": [],
       "wgslOnDisk": true
@@ -36580,7 +36529,7 @@
       "arithmetic": "scalar-fma-tree32"
      },
      "reachability": {
-      "status": "unused",
+      "status": "repository-evidence",
       "inlineConfigs": [],
       "ruleChains": [],
       "wgslOnDisk": true
@@ -36645,7 +36594,7 @@
      "requires": [],
      "outputDtype": "u32",
      "reachability": {
-      "status": "unused",
+      "status": "code-dispatched",
       "inlineConfigs": [],
       "ruleChains": [],
       "wgslOnDisk": true
@@ -36685,7 +36634,7 @@
       }
      ],
      "reachability": {
-      "status": "unused",
+      "status": "code-dispatched",
       "inlineConfigs": [],
       "ruleChains": [],
       "wgslOnDisk": true
@@ -37460,9 +37409,9 @@
       "WORKGROUP_SIZE": 256
      },
      "reachability": {
-      "status": "unused",
+      "status": "model-selectable",
       "inlineConfigs": [],
-      "ruleChains": [],
+      "ruleChains": ["attention.rules.json#indexedStorage"],
       "wgslOnDisk": true
      }
     },
@@ -37478,7 +37427,7 @@
      "reachability": {
       "status": "pinned",
       "inlineConfigs": ["qwen3/qwen-3-8-flash-next-text-q4k-ehf16-af32"],
-      "ruleChains": [],
+      "ruleChains": ["attention.rules.json#indexedStorage"],
       "wgslOnDisk": true
      }
     }

@@ -8,27 +8,40 @@
  *   - Which conversion configs inline it (via execution.kernels)
  *   - Which runtime profiles pin it (via execution patches)
  *   - Which rule chains can select it (via src/rules/kernels/*.rules.json)
+ *   - Which Rig recipes pin it (src/config/forge, counted with inline configs)
+ *   - Whether shipped JavaScript dispatches it directly (tools/lib/kernel-code-references.js)
+ *   - Whether only repository tests, tools or benchmarks name it
  *   - Whether the WGSL file exists on disk
- *   - A status classification: pinned, model-selectable, selectable, unused, missing-wgsl
+ *   - A status classification: pinned, model-selectable, selectable,
+ *     code-dispatched, repository-evidence, unused, missing-wgsl
  *
  * Usage:
  *   npm run kernels:registry:sync
  *   npm run kernels:registry:check
+ *   node tools/sync-kernel-reachability.js --check --explain <operation/variant>
  */
 
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import {
+  collectForgeRecipeReferences,
+  collectKernelCodeReferences,
+  collectRepositoryEvidenceReferences,
+} from './lib/kernel-code-references.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const repoRoot = path.resolve(__dirname, '..');
 const registryPath = path.join(repoRoot, 'src/config/kernels/registry.json');
 const kernelsDir = path.join(repoRoot, 'src/gpu/kernels');
 const rulesDir = path.join(repoRoot, 'src/rules/kernels');
+const rulesRoot = path.join(repoRoot, 'src/rules');
 const conversionRoot = path.join(repoRoot, 'src/config/conversion');
 const runtimeRoot = path.join(repoRoot, 'src/config/runtime');
 
 const checkMode = process.argv.includes('--check');
+const explainIndex = process.argv.indexOf('--explain');
+const explainKey = explainIndex >= 0 ? process.argv[explainIndex + 1] : null;
 const INLINE_PRIMITIVE_ARRAY_MAX_CHARS = 80;
 const ID_PATTERN = /^[a-z0-9]+(?:_[a-z0-9]+)*$/u;
 const WGSL_SEGMENT_PATTERN = /^[a-z0-9]+(?:_[a-z0-9]+)*(?:\.wgsl)?$/u;
@@ -139,40 +152,108 @@ async function walkJsonFiles(dir) {
 // Pass 2: Collect rule-based references
 // ---------------------------------------------------------------------------
 
-async function collectRuleRefs(registryOpNames) {
+async function collectRuleRefs(registry) {
+  const registryOpNames = new Set(Object.keys(registry.operations ?? {}));
+  const variantsByOp = new Map(Object.entries(registry.operations ?? {})
+    .map(([op, schema]) => [op, new Set(Object.keys(schema.variants ?? {}))]));
   const refs = new Map(); // key = "operation:variantName" -> Set<"file#chain">
+  const addScoped = (op, varName, source) => {
+    const key = `${op}:${varName}`;
+    if (!refs.has(key)) refs.set(key, new Set());
+    refs.get(key).add(source);
+  };
   const ruleFiles = (await fs.readdir(rulesDir))
     .filter((f) => f.endsWith('.rules.json'));
 
   for (const file of ruleFiles) {
     // Infer target operation(s) from filename: kebab-to-snake
     const ruleBase = file.replace('.rules.json', '').replace(/-/g, '_');
-    const targetOps = registryOpNames.has(ruleBase)
+    const fileOps = registryOpNames.has(ruleBase)
       ? [ruleBase]
       : [...registryOpNames].filter((op) => op.startsWith(ruleBase + '_'));
 
-    if (targetOps.length === 0) continue;
-
-    // Collect raw variant names from this rule file
-    const rawRefs = new Map(); // variantName -> Set<source>
     const rules = JSON.parse(await fs.readFile(path.join(rulesDir, file), 'utf8'));
+    // `{ template: "{base}{suffix}" }` values expand placeholders from the
+    // chain of the same name, or from every terminal value in the file when
+    // the placeholder is a caller context (base comes from the phase chain).
+    const chainValues = new Map();
     for (const [chainName, chain] of Object.entries(rules)) {
       if (!Array.isArray(chain)) continue;
-      for (const rule of chain) {
-        extractVariantNames(rule?.value, rawRefs, `${file}#${chainName}`);
-      }
+      const values = new Map();
+      for (const rule of chain) extractVariantNames(rule?.value, values, chainName);
+      chainValues.set(chainName, [...values.keys()]);
     }
-
-    // Scope each variant name to target operations
-    for (const [varName, sources] of rawRefs) {
-      for (const op of targetOps) {
-        const key = `${op}:${varName}`;
-        if (!refs.has(key)) refs.set(key, new Set());
-        for (const s of sources) refs.get(key).add(s);
+    const fileValues = [...new Set([...chainValues.values()].flat())];
+    for (const [chainName, chain] of Object.entries(rules)) {
+      if (!Array.isArray(chain)) continue;
+      const source = `${file}#${chainName}`;
+      const rawRefs = new Map(); // variantName -> Set<source>
+      for (const rule of chain) {
+        extractVariantNames(rule?.value, rawRefs, source);
+        const template = rule?.value?.template;
+        if (typeof template === 'string') {
+          for (const name of expandRuleTemplate(template, chainValues, fileValues)) {
+            if (!rawRefs.has(name)) rawRefs.set(name, new Set());
+            rawRefs.get(name).add(source);
+          }
+        }
+      }
+      const values = [...rawRefs.keys()].filter((name) => [...variantsByOp.values()].some((set) => set.has(name)));
+      // A chain whose variant names all belong to an operation other than the
+      // filename's (moe.rules.json#scatterAddVariant selects scatter_add) is
+      // scoped to every operation that registers all of those names.
+      const coversChain = (op) => values.length > 0 && values.every((name) => variantsByOp.get(op).has(name));
+      const targetOps = fileOps.some(coversChain)
+        ? fileOps
+        : [...new Set([...fileOps, ...[...registryOpNames].filter(coversChain)])];
+      for (const varName of rawRefs.keys()) {
+        for (const op of targetOps) addScoped(op, varName, source);
       }
     }
   }
+  // Rule assets outside src/rules/kernels may select a shader file directly
+  // (inference/moe.rules.json#biasAddCode returns { shaderFile }).
+  const wgslVariants = new Map();
+  for (const [op, schema] of Object.entries(registry.operations ?? {})) {
+    for (const [varName, varDef] of Object.entries(schema.variants ?? {})) {
+      if (!wgslVariants.has(varDef.wgsl)) wgslVariants.set(varDef.wgsl, []);
+      wgslVariants.get(varDef.wgsl).push({ op, varName, entry: varDef.entryPoint ?? 'main' });
+    }
+  }
+  const allRuleFiles = (await walkJsonFiles(rulesRoot))
+    .filter((f) => f.endsWith('.rules.json') && !f.includes(`${path.sep}generated${path.sep}`));
+  for (const filePath of allRuleFiles) {
+    const relative = path.relative(rulesRoot, filePath).split(path.sep).join('/');
+    const rules = JSON.parse(await fs.readFile(filePath, 'utf8'));
+    for (const [chainName, chain] of Object.entries(rules)) {
+      const visit = (value) => {
+        if (Array.isArray(value)) return value.forEach(visit);
+        if (typeof value === 'string' && wgslVariants.has(value)) {
+          const owners = wgslVariants.get(value);
+          for (const owner of owners) {
+            if (owners.length === 1 || owner.entry === 'main') {
+              addScoped(owner.op, owner.varName, `${relative}#${chainName}`);
+            }
+          }
+          return;
+        }
+        if (value && typeof value === 'object') Object.values(value).forEach(visit);
+      };
+      visit(chain);
+    }
+  }
   return refs;
+}
+
+function expandRuleTemplate(template, chainValues, fileValues) {
+  let names = [''];
+  for (const part of template.split(/(\{[a-zA-Z0-9_]+\})/u)) {
+    if (!part) continue;
+    const placeholder = /^\{([a-zA-Z0-9_]+)\}$/u.exec(part)?.[1];
+    const options = placeholder ? ['', ...(chainValues.get(placeholder) ?? fileValues)] : [part];
+    names = names.flatMap((prefix) => options.map((option) => prefix + option));
+  }
+  return [...new Set(names)];
 }
 
 function extractVariantNames(value, refs, source) {
@@ -315,16 +396,27 @@ const registry = JSON.parse(await fs.readFile(registryPath, 'utf8'));
 const registryOpNames = new Set(Object.keys(registry.operations ?? {}));
 const configuredVariantRefs = new Map();
 const inlineRefs = await collectInlineRefs(configuredVariantRefs);
-const ruleRefs = await collectRuleRefs(registryOpNames);
+const ruleRefs = await collectRuleRefs(registry);
 const wgslOnDisk = await collectWgslOnDisk();
 const reverseIndex = buildReverseIndex(registry);
+const forgeRefs = await collectForgeRecipeReferences({ repoRoot, registry, collectKernelRefs });
+for (const [key, sources] of forgeRefs.inlineRefs) {
+  for (const source of sources) addRef(inlineRefs, key, source);
+}
+for (const [key, sources] of forgeRefs.pairRefs) {
+  for (const source of sources) addRef(configuredVariantRefs, key, source);
+}
 const modelExercisedOps = collectModelExercisedOps(inlineRefs, reverseIndex);
+const codeRefs = await collectKernelCodeReferences({ repoRoot, registry });
+const evidenceRefs = await collectRepositoryEvidenceReferences({ repoRoot, registry });
 
 let totalVariants = 0;
 const statusCounts = {
   'pinned': 0,
   'model-selectable': 0,
   'selectable': 0,
+  'code-dispatched': 0,
+  'repository-evidence': 0,
   'unused': 0,
   'missing-wgsl': 0,
 };
@@ -346,6 +438,8 @@ for (const [opName, opSchema] of Object.entries(registry.operations ?? {})) {
     const configuredVariantSet = configuredVariantRefs.get(`${opName}:${varName}`) ?? new Set();
     const inlineConfigs = [...new Set([...inlineConfigSet, ...configuredVariantSet])].sort();
     const ruleChains = [...ruleRefSet].sort();
+    const dispatchSources = [...(codeRefs.get(`${opName}:${varName}`) ?? [])].sort();
+    const evidenceSources = [...(evidenceRefs.get(`${opName}:${varName}`) ?? [])].sort();
 
     let status;
     if (!fileExists) {
@@ -356,12 +450,44 @@ for (const [opName, opSchema] of Object.entries(registry.operations ?? {})) {
       status = 'model-selectable';
     } else if (ruleChains.length > 0) {
       status = 'selectable';
+    } else if (dispatchSources.length > 0) {
+      status = 'code-dispatched';
+    } else if (evidenceSources.length > 0) {
+      status = 'repository-evidence';
     } else {
       status = 'unused';
     }
 
     statusCounts[status]++;
+    // Code and repository evidence stay out of the shipped registry (package
+    // byte budget); `--explain <op/variant>` prints them.
     varDef.reachability = { status, inlineConfigs, ruleChains, wgslOnDisk: fileExists };
+    if (explainKey === `${opName}/${varName}`) {
+      console.log(JSON.stringify({ variant: explainKey, status, inlineConfigs, ruleChains, dispatchSources, evidenceSources }, null, 2));
+    }
+  }
+}
+
+// Companion variants named by a reachable sibling's variantMetadata
+// (`reduceVariant`, `normGateVariant`, ...) are dispatched with that sibling.
+let companionChanged = true;
+while (companionChanged) {
+  companionChanged = false;
+  for (const [opName, opSchema] of Object.entries(registry.operations ?? {})) {
+    for (const [parentName, parentDef] of Object.entries(opSchema.variants ?? {})) {
+      if (parentDef.reachability.status === 'unused') continue;
+      for (const [key, value] of Object.entries(parentDef.variantMetadata ?? {})) {
+        const companion = /Variant$/u.test(key) && typeof value === 'string' ? opSchema.variants[value] : null;
+        if (!companion || companion.reachability.status !== 'unused') continue;
+        statusCounts.unused--;
+        statusCounts['code-dispatched']++;
+        companion.reachability.status = 'code-dispatched';
+        if (explainKey === `${opName}/${value}`) {
+          console.log(`${explainKey}: dispatched with ${opName}/${parentName} (variantMetadata.${key})`);
+        }
+        companionChanged = true;
+      }
+    }
   }
 }
 
@@ -405,6 +531,8 @@ console.log(`[kernels:registry:sync] wrote reachability for ${totalVariants} var
 console.log(`  pinned:           ${statusCounts['pinned']}  (execution graph references this exact wgsl+entry)`);
 console.log(`  model-selectable: ${statusCounts['model-selectable']}  (rule chain can select; models exercise this operation)`);
 console.log(`  selectable:       ${statusCounts['selectable']}  (rule chain can select; no model exercises this operation)`);
+console.log(`  code-dispatched:  ${statusCounts['code-dispatched']}  (shipped JS names this variant or its WGSL; no pin or rule)`);
+console.log(`  repository-evidence: ${statusCounts['repository-evidence']}  (only repository tests, tools or benchmarks name it)`);
 console.log(`  unused:           ${statusCounts['unused']}  (registered, WGSL exists, nothing references it)`);
 console.log(`  missing-wgsl:     ${statusCounts['missing-wgsl']}  (registered but WGSL file not on disk)`);
 console.log(`  model-exercised operations: ${modelExercisedOps.size}/${registryOpNames.size}`);

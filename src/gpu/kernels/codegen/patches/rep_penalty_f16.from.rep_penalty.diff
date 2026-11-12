@@ -1,0 +1,25 @@
+--- src/gpu/kernels/rep_penalty.wgsl
++++ src/gpu/kernels/rep_penalty_f16.wgsl
+@@ -1,5 +1,6 @@
+ // Repetition followed by presence penalty over the ordered recent context.
+ // Only the first occurrence inside the window writes a token's logit.
++enable f16;
+ 
+ override WORKGROUP_SIZE: u32 = 256u;
+ 
+@@ -15,7 +16,7 @@
+ }
+ 
+ @group(0) @binding(0) var<uniform> u: Uniforms;
+-@group(0) @binding(1) var<storage, read_write> logits: array<f32>;
++@group(0) @binding(1) var<storage, read_write> logits: array<f16>;
+ @group(0) @binding(2) var<storage, read> history: array<u32>;
+ @group(0) @binding(3) var<storage, read> batch_tokens: array<u32>;
+ 
+@@ -48,5 +49,5 @@
+     }
+     let logit = f32(logits[token_id]);
+     let repeated = select(logit * u.penalty, logit / u.penalty, logit > 0.0);
+-    logits[token_id] = f32(repeated - u.presence_penalty);
++    logits[token_id] = f16(repeated - u.presence_penalty);
+ }

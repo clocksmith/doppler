@@ -55,34 +55,3 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
 
     output[tid] = sum;
 }
-
-// In-place accumulation version (adds to existing output)
-@compute @workgroup_size(WORKGROUP_SIZE, 1, 1)
-fn scatter_add_accumulate(@builtin(global_invocation_id) gid: vec3<u32>) {
-    let tid = gid.x;
-    let total_elements = u.num_tokens * u.hidden_size;
-
-    if (tid >= total_elements) {
-        return;
-    }
-
-    let token_idx = tid / u.hidden_size;
-    let dim_idx = tid % u.hidden_size;
-    let top_k = u.top_k;
-    let hidden_size = u.hidden_size;
-    let num_tokens = u.num_tokens;
-
-    var sum: f32 = 0.0;
-    let routing_base = token_idx * top_k;
-
-    for (var k: u32 = 0u; k < top_k; k = k + 1u) {
-        let expert_idx = indices[routing_base + k];
-        let weight = weights[routing_base + k];
-
-        let expert_offset = expert_idx * num_tokens * hidden_size + token_idx * hidden_size + dim_idx;
-        sum = sum + weight * expert_outputs[expert_offset];
-    }
-
-    // Accumulate to existing value
-    output[tid] = output[tid] + sum;
-}

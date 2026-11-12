@@ -1,0 +1,42 @@
+--- src/gpu/kernels/matmul_gemv.wgsl
++++ src/gpu/kernels/matmul_gemv_f16a.wgsl
+@@ -7,7 +7,8 @@
+ // 3. Coalesced memory access - adjacent threads read adjacent K elements
+ // 4. Final reduction in shared memory
+ //
+-// A is f32 (activations), B is f16 (weights transposed [N,K]), C is f32.
++// A is f16 (activations), B is f16 (weights transposed [N,K]), C is f16.
++// Accumulation is performed in f32 for stability.
+ 
+ enable f16;
+ 
+@@ -26,9 +27,9 @@
+ }
+ 
+ @group(0) @binding(0) var<uniform> u: Uniforms;
+-@group(0) @binding(1) var<storage, read> A: array<f32>;
++@group(0) @binding(1) var<storage, read> A: array<f16>;
+ @group(0) @binding(2) var<storage, read> B: array<f16>;
+-@group(0) @binding(3) var<storage, read_write> C: array<f32>;
++@group(0) @binding(3) var<storage, read_write> C: array<f16>;
+ 
+ // Shared memory for parallel reduction
+ var<workgroup> shared_sum: array<f32, MAX_WORKGROUP_SIZE>;
+@@ -55,7 +56,7 @@
+     // Stride through K with workgroup-sized steps
+     var k: u32 = local_id;
+     for (; k < u.K; k = k + WORKGROUP_SIZE) {
+-        let a_val = A[k];
++        let a_val = f32(A[k]);
+         let b_val = f32(B[b_row_offset + k]);
+         partial_sum = partial_sum + a_val * b_val;
+     }
+@@ -75,6 +76,6 @@
+ 
+     // Thread 0 writes the final result
+     if (local_id == 0u) {
+-        C[col] = shared_sum[0] * u.alpha;
++        C[col] = f16(shared_sum[0] * u.alpha);
+     }
+ }
+\ No newline at end of file

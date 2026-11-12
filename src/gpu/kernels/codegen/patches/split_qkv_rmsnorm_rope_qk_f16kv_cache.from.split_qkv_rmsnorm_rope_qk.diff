@@ -1,0 +1,47 @@
+--- src/gpu/kernels/split_qkv_rmsnorm_rope_qk.wgsl
++++ src/gpu/kernels/split_qkv_rmsnorm_rope_qk_f16kv_cache.wgsl
+@@ -1,3 +1,5 @@
++enable f16;
++
+ override WORKGROUP_SIZE: u32 = 256u;
+ const MAX_WORKGROUP_SIZE: u32 = 256u;
+ 
+@@ -19,8 +21,8 @@
+     start_pos: u32,
+     rotary_dim: u32,
+     eps: f32,
++    kv_dst_offset: u32,
+     interleaved: u32,
+-    _pad1: u32,
+     _pad2: u32,
+ }
+ 
+@@ -31,8 +33,8 @@
+ @group(0) @binding(4) var<storage, read> freqs_cos: array<f32>;
+ @group(0) @binding(5) var<storage, read> freqs_sin: array<f32>;
+ @group(0) @binding(6) var<storage, read_write> q_output: array<f32>;
+-@group(0) @binding(7) var<storage, read_write> k_output: array<f32>;
+-@group(0) @binding(8) var<storage, read_write> v_output: array<f32>;
++@group(0) @binding(7) var<storage, read_write> kv_cache_k: array<f16>;
++@group(0) @binding(8) var<storage, read_write> kv_cache_v: array<f16>;
+ 
+ var<workgroup> shared_sum: array<f32, MAX_WORKGROUP_SIZE>;
+ 
+@@ -98,7 +100,7 @@
+         q_output[row * u.head_dim + idx] = value;
+     } else {
+         let k_row = row - q_rows();
+-        k_output[k_row * u.head_dim + idx] = value;
++        kv_cache_k[u.kv_dst_offset + k_row * u.head_dim + idx] = f16(value);
+     }
+ }
+ 
+@@ -160,7 +162,7 @@
+     let token = v_idx / u.v_size;
+     let elem = v_idx % u.v_size;
+     let src_idx = token * qkv_size() + u.q_size + u.k_size + elem;
+-    v_output[v_idx] = fused_qkv[src_idx];
++    kv_cache_v[u.kv_dst_offset + v_idx] = f16(fused_qkv[src_idx]);
+ }
+ 
+ @compute @workgroup_size(WORKGROUP_SIZE, 1, 1)

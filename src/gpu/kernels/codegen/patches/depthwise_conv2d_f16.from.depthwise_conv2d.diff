@@ -1,0 +1,46 @@
+--- src/gpu/kernels/depthwise_conv2d.wgsl
++++ src/gpu/kernels/depthwise_conv2d_f16.wgsl
+@@ -1,3 +1,7 @@
++// Depthwise Conv2D Kernel (NCHW, f16)
++
++enable f16;
++
+ override WORKGROUP_SIZE: u32 = 256u;
+ 
+ struct Uniforms {
+@@ -16,10 +20,10 @@
+ }
+ 
+ @group(0) @binding(0) var<uniform> u: Uniforms;
+-@group(0) @binding(1) var<storage, read> input: array<f32>;
+-@group(0) @binding(2) var<storage, read> weight: array<f32>;
+-@group(0) @binding(3) var<storage, read> bias: array<f32>;
+-@group(0) @binding(4) var<storage, read_write> output: array<f32>;
++@group(0) @binding(1) var<storage, read> input: array<f16>;
++@group(0) @binding(2) var<storage, read> weight: array<f16>;
++@group(0) @binding(3) var<storage, read> bias: array<f16>;
++@group(0) @binding(4) var<storage, read_write> output: array<f16>;
+ 
+ @compute @workgroup_size(WORKGROUP_SIZE, 1, 1)
+ fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
+@@ -32,7 +36,7 @@
+     let out_y = spatial_idx / u.out_width;
+     let out_x = spatial_idx - out_y * u.out_width;
+ 
+-    var sum: f32 = bias[channel];
++    var sum: f32 = f32(bias[channel]);
+     let pad = i32(u.pad);
+ 
+     for (var ky: u32 = 0u; ky < u.kernel_h; ky = ky + 1u) {
+@@ -47,9 +51,9 @@
+             }
+             let input_idx = (channel * u.height + u32(in_y)) * u.width + u32(in_x);
+             let weight_idx = ((channel * u.kernel_h + ky) * u.kernel_w + kx);
+-            sum = sum + input[input_idx] * weight[weight_idx];
++            sum = sum + f32(input[input_idx]) * f32(weight[weight_idx]);
+         }
+     }
+ 
+-    output[channel * out_spatial + spatial_idx] = sum;
++    output[channel * out_spatial + spatial_idx] = f16(sum);
+ }

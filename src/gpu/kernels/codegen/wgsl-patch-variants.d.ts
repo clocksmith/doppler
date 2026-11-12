@@ -3,4 +3,5 @@ export const WGSL_PATCH_VARIANTS: readonly {
     source: string;
     target: string;
     patch: string;
+    byteIdenticalTarget?: boolean;
 }[];

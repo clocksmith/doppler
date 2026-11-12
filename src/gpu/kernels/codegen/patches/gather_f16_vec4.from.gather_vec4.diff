@@ -1,0 +1,62 @@
+--- src/gpu/kernels/gather_vec4.wgsl
++++ src/gpu/kernels/gather_f16_vec4.wgsl
+@@ -1,11 +1,13 @@
+-// gather_vec4.wgsl
++// gather_f16_vec4.wgsl
+ 
+ /**
+- * Gather Kernel (vec4) - Token Embedding Lookup
++ * Gather Kernel (F16, vec4) - Token Embedding Lookup
+  *
+- * Vectorized gather for F32 embeddings -> F32 output.
++ * Vectorized gather for F16 embeddings -> F32 output.
+  */
+ 
++enable f16;
++
+ // Tunable workgroup size
+ override WORKGROUP_SIZE_VEC4: u32 = 64u;
+ 
+@@ -22,8 +24,8 @@
+ 
+ @group(0) @binding(0) var<uniform> u: Uniforms;
+ @group(0) @binding(1) var<storage, read> indices: array<u32>;      // Token IDs [num_tokens]
+-@group(0) @binding(2) var<storage, read> embeddings: array<f32>;   // Embedding matrix [vocab_size, hidden_size]
+-@group(0) @binding(3) var<storage, read_write> output: array<f32>; // Output [num_tokens, hidden_size]
++@group(0) @binding(2) var<storage, read> embeddings: array<f16>;   // F16 Embedding matrix [vocab_size, hidden_size]
++@group(0) @binding(3) var<storage, read_write> output: array<f32>; // F32 Output [num_tokens, hidden_size]
+ 
+ // Vectorized version for better memory throughput
+ @compute @workgroup_size(WORKGROUP_SIZE_VEC4, 1, 1)
+@@ -54,22 +56,22 @@
+         return;
+     }
+ 
+-    // Gather 4 elements
++    // Gather 4 F16 elements and convert to F32
+     let out_base = tid * 4u;
+     let dim_base = vec4_idx * 4u;
+ 
+     if (u.transpose == 1u) {
+         // Transposed layout [hidden_size, vocab_size]: elements are strided by vocab_size
+-        output[out_base] = embeddings[(dim_base) * u.vocab_size + token_id];
+-        output[out_base + 1u] = embeddings[(dim_base + 1u) * u.vocab_size + token_id];
+-        output[out_base + 2u] = embeddings[(dim_base + 2u) * u.vocab_size + token_id];
+-        output[out_base + 3u] = embeddings[(dim_base + 3u) * u.vocab_size + token_id];
++        output[out_base] = f32(embeddings[(dim_base) * u.vocab_size + token_id]);
++        output[out_base + 1u] = f32(embeddings[(dim_base + 1u) * u.vocab_size + token_id]);
++        output[out_base + 2u] = f32(embeddings[(dim_base + 2u) * u.vocab_size + token_id]);
++        output[out_base + 3u] = f32(embeddings[(dim_base + 3u) * u.vocab_size + token_id]);
+     } else {
+         // Standard layout [vocab_size, hidden_size]: elements are contiguous
+         let embed_base = token_id * u.hidden_size + dim_base;
+-        output[out_base] = embeddings[embed_base];
+-        output[out_base + 1u] = embeddings[embed_base + 1u];
+-        output[out_base + 2u] = embeddings[embed_base + 2u];
+-        output[out_base + 3u] = embeddings[embed_base + 3u];
++        output[out_base] = f32(embeddings[embed_base]);
++        output[out_base + 1u] = f32(embeddings[embed_base + 1u]);
++        output[out_base + 2u] = f32(embeddings[embed_base + 2u]);
++        output[out_base + 3u] = f32(embeddings[embed_base + 3u]);
+     }
+ }

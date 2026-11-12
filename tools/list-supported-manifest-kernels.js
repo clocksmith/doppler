@@ -39,7 +39,13 @@ const REFERENCE_SCAN_EXCLUDED_SEGMENTS = new Set([
 ]);
 const SESSION_ONLY_TRANSFORMS = new Set(['disableRetainQ4KMaterialization']);
 const REJECTION_TRANSFORMS = new Set(['failClosedLaneMismatch']);
-const REACHABILITY_PROTECTED_STATUSES = new Set(['pinned', 'model-selectable', 'selectable']);
+const REACHABILITY_PROTECTED_STATUSES = new Set([
+  'pinned',
+  'model-selectable',
+  'selectable',
+  'code-dispatched',
+  'repository-evidence',
+]);
 const ALLOWLIST_MATCH_FIELDS = new Set([
   'keys',
   'operations',

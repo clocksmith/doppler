@@ -101,61 +101,6 @@ fn main(
     }
 }
 
-// Optimized version for topK=2, numExperts<=8
-// Each thread handles one token
-@compute @workgroup_size(WORKGROUP_SIZE, 1, 1)
-fn topk_2_small(@builtin(global_invocation_id) gid: vec3<u32>) {
-    let token_idx = gid.x;
-
-    if (token_idx >= u.num_tokens) {
-        return;
-    }
-
-    let num_experts = u.num_experts;
-    let base_offset = token_idx * num_experts;
-
-    // Find top 2 in a single pass
-    var top1_idx: u32 = 0u;
-    var top1_val: f32 = probs[base_offset];
-    var top2_idx: u32 = 1u;
-    var top2_val: f32 = probs[base_offset + 1u];
-
-    // Ensure top1 >= top2
-    if (top2_val > top1_val) {
-        let tmp_idx = top1_idx;
-        let tmp_val = top1_val;
-        top1_idx = top2_idx;
-        top1_val = top2_val;
-        top2_idx = tmp_idx;
-        top2_val = tmp_val;
-    }
-
-    // Scan remaining experts
-    for (var i: u32 = 2u; i < num_experts; i = i + 1u) {
-        let val = probs[base_offset + i];
-        if (val > top1_val) {
-            top2_idx = top1_idx;
-            top2_val = top1_val;
-            top1_idx = i;
-            top1_val = val;
-        } else if (val > top2_val) {
-            top2_idx = i;
-            top2_val = val;
-        }
-    }
-
-    // Renormalize weights
-    let weight_sum = top1_val + top2_val;
-    let inv_sum = select(1.0, 1.0 / weight_sum, u.normalize == 1u && weight_sum > 0.0);
-
-    // Write output
-    let out_base = token_idx * 2u;
-    out_indices[out_base] = top1_idx;
-    out_indices[out_base + 1u] = top2_idx;
-    out_weights[out_base] = top1_val * inv_sum;
-    out_weights[out_base + 1u] = top2_val * inv_sum;
-}
-
 // Fused softmax + top-k for efficiency
 // Avoids separate softmax kernel call
 // Workgroup size WORKGROUP_SIZE to support up to WORKGROUP_SIZE experts

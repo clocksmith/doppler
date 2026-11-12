@@ -269,7 +269,6 @@ export interface KernelUniformValues {
   "layernorm/default_f16": Parameters<typeof writers1.write_layernorm_default>[1];
   "fused_matmul_rmsnorm/small": Parameters<typeof writers1.write_fused_matmul_rmsnorm_small>[1];
   "fused_matmul_rmsnorm/medium": Parameters<typeof writers1.write_fused_matmul_rmsnorm_small>[1];
-  "fused_matmul_rmsnorm/phase1": Parameters<typeof writers1.write_fused_matmul_rmsnorm_small>[1];
   "fused_matmul_rmsnorm/small_f16": Parameters<typeof writers1.write_fused_matmul_rmsnorm_small>[1];
   "fused_matmul_rmsnorm/medium_f16": Parameters<typeof writers1.write_fused_matmul_rmsnorm_small>[1];
   "fused_matmul_residual/default": Parameters<typeof writers0.write_matmul_f16>[1];
@@ -340,7 +339,6 @@ export interface KernelUniformValues {
   "residual/default_f16": Parameters<typeof writers1.write_residual_default>[1];
   "residual/vec4_f16": Parameters<typeof writers1.write_residual_default>[1];
   "topk/default": Parameters<typeof writers1.write_topk_default>[1];
-  "topk/small": Parameters<typeof writers1.write_topk_default>[1];
   "topk/fused": Parameters<typeof writers1.write_topk_default>[1];
   "topk/fused_ranked": Parameters<typeof writers1.write_topk_default>[1];
   "topk/fused_ranked_512": Parameters<typeof writers1.write_topk_default>[1];
@@ -356,7 +354,6 @@ export interface KernelUniformValues {
   "scatter_add/dynamic_f16_expert_scale": Parameters<typeof writers1.write_scatter_add_dynamic>[1];
   "scatter_add/dynamic_f16_w16": Parameters<typeof writers1.write_scatter_add_dynamic>[1];
   "scatter_add/dynamic_f16_w16_expert_scale": Parameters<typeof writers1.write_scatter_add_dynamic>[1];
-  "scatter_add/accumulate": Parameters<typeof writers1.write_scatter_add_default>[1];
   "gemma4_route_q4_matmul/f16a": Parameters<typeof writers1.write_gemma4_route_q4_matmul_f16a>[1];
   "scatter_add_routes/f16_w16_expert_scale": Parameters<typeof writers1.write_scatter_add_routes_f16_w16_expert_scale>[1];
   "scatter_add_routes/f32": Parameters<typeof writers1.write_scatter_add_routes_f16_w16_expert_scale>[1];
@@ -364,7 +361,6 @@ export interface KernelUniformValues {
   "moe_gather/count_f16": Parameters<typeof writers1.write_moe_gather_count>[1];
   "moe_gather/gather": Parameters<typeof writers1.write_moe_gather_count>[1];
   "moe_gather/gather_f16": Parameters<typeof writers1.write_moe_gather_count>[1];
-  "moe_gather/single_pass": Parameters<typeof writers1.write_moe_gather_count>[1];
   "moe_offsets/default": Parameters<typeof writers1.write_moe_offsets_default>[1];
   "swiglu/rowsplit_bias": Parameters<typeof writers1.write_swiglu_rowsplit_bias>[1];
   "swiglu/rowsplit_bias_f16": Parameters<typeof writers1.write_swiglu_rowsplit_bias>[1];

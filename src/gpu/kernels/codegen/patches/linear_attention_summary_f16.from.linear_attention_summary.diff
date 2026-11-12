@@ -1,0 +1,36 @@
+--- src/gpu/kernels/linear_attention_summary.wgsl
++++ src/gpu/kernels/linear_attention_summary_f16.wgsl
+@@ -1,3 +1,5 @@
++enable f16;
++
+ override WORKGROUP_SIZE: u32 = 256u;
+ 
+ struct Uniforms {
+@@ -10,9 +12,9 @@
+ }
+ 
+ @group(0) @binding(0) var<uniform> u: Uniforms;
+-@group(0) @binding(1) var<storage, read> query: array<f32>;
+-@group(0) @binding(2) var<storage, read> key: array<f32>;
+-@group(0) @binding(3) var<storage, read> value: array<f32>;
++@group(0) @binding(1) var<storage, read> query: array<f16>;
++@group(0) @binding(2) var<storage, read> key: array<f16>;
++@group(0) @binding(3) var<storage, read> value: array<f16>;
+ @group(0) @binding(4) var<storage, read_write> summary: array<f32>;
+ 
+ @compute @workgroup_size(WORKGROUP_SIZE, 1, 1)
+@@ -33,11 +35,11 @@
+ 
+     var acc: f32 = 0.0;
+     for (var token: u32 = 0u; token < u.num_tokens; token = token + 1u) {
+-        let query_value = query[token * u.hidden_size + hidden_base + col];
++        let query_value = f32(query[token * u.hidden_size + hidden_base + col]);
+         let key_idx = token * u.hidden_size + hidden_base + col;
+-        let key_value = max(key[key_idx], 0.0);
++        let key_value = max(f32(key[key_idx]), 0.0);
+         let value_value = select(
+-            value[token * u.hidden_size + hidden_base + row],
++            f32(value[token * u.hidden_size + hidden_base + row]),
+             1.0,
+             row == u.head_dim
+         );

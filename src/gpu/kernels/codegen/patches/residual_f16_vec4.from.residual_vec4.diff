@@ -1,0 +1,55 @@
+--- src/gpu/kernels/residual_vec4.wgsl
++++ src/gpu/kernels/residual_f16_vec4.wgsl
+@@ -1,11 +1,13 @@
+-// residual_vec4.wgsl
++// residual_f16_vec4.wgsl
+ 
+ /**
+- * Residual Add Kernel (vec4)
++ * Residual Add Kernel (F16, vec4)
+  *
+- * Vectorized element-wise addition for residual connections.
++ * Vectorized element-wise addition for residual connections in F16.
+  */
+ 
++enable f16;
++
+ struct Uniforms {
+     size: u32,     // Total number of elements
+     scale: f32,    // Output scale
+@@ -16,9 +18,9 @@
+ override WORKGROUP_SIZE_VEC4: u32 = 64u;
+ 
+ @group(0) @binding(0) var<uniform> u: Uniforms;
+-@group(0) @binding(1) var<storage, read> a: array<f32>;
+-@group(0) @binding(2) var<storage, read> b: array<f32>;
+-@group(0) @binding(3) var<storage, read_write> output: array<f32>;
++@group(0) @binding(1) var<storage, read> a: array<f16>;
++@group(0) @binding(2) var<storage, read> b: array<f16>;
++@group(0) @binding(3) var<storage, read_write> output: array<f16>;
+ 
+ // Vectorized version for better throughput
+ @compute @workgroup_size(WORKGROUP_SIZE_VEC4, 1, 1)
+@@ -31,17 +33,16 @@
+         return;
+     }
+ 
+-    // Handle up to 4 elements at a time
+     let remaining = min(4u, size - idx);
+ 
+     if (remaining >= 4u) {
+-        output[idx] = (a[idx] + b[idx]) * u.scale;
+-        output[idx + 1u] = (a[idx + 1u] + b[idx + 1u]) * u.scale;
+-        output[idx + 2u] = (a[idx + 2u] + b[idx + 2u]) * u.scale;
+-        output[idx + 3u] = (a[idx + 3u] + b[idx + 3u]) * u.scale;
++        output[idx] = f16(f32(a[idx] + b[idx]) * u.scale);
++        output[idx + 1u] = f16(f32(a[idx + 1u] + b[idx + 1u]) * u.scale);
++        output[idx + 2u] = f16(f32(a[idx + 2u] + b[idx + 2u]) * u.scale);
++        output[idx + 3u] = f16(f32(a[idx + 3u] + b[idx + 3u]) * u.scale);
+     } else {
+         for (var i = 0u; i < remaining; i = i + 1u) {
+-            output[idx + i] = (a[idx + i] + b[idx + i]) * u.scale;
++            output[idx + i] = f16(f32(a[idx + i] + b[idx + i]) * u.scale);
+         }
+     }
+ }

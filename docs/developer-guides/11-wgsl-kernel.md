@@ -39,6 +39,20 @@ Add a new GPU kernel implementation or a new variant of an existing kernel.
 7. Add correctness tests and browser harness coverage.
 8. Run kernel generation or checks if the kernel participates in generated variants.
 
+A dtype twin (`_f16`, `_f16kv`, `_f16a`) that differs from its source only by a
+small patch belongs in `src/gpu/kernels/codegen/wgsl-patch-variants.js`, not as
+a second hand-edited file. Twins whose digests are already stamped into
+manifests use `byteIdenticalTarget: true`: no generated header, so the checked-in
+bytes and every pinned digest stay unchanged, and `kernels:codegen:check` still
+rejects hand edits.
+
+`npm run kernels:registry:sync` classifies each variant as `pinned`,
+`model-selectable`, `selectable`, `code-dispatched` (shipped JavaScript names the
+variant, its WGSL file, or a template that builds it), `repository-evidence`
+(only tests, tools or benchmarks name it) or `unused`. Delete only `unused`
+variants after reading the call sites; `node tools/sync-kernel-reachability.js
+--check --explain <operation/variant>` prints the evidence behind a status.
+
 For a uniform change, update the registry contract and the shader declaration,
 then run `npm run kernels:uniforms:sync`. Do not add handwritten byte offsets or
 another parameter type definition in a wrapper. Use `createKernelUniformBuffer`

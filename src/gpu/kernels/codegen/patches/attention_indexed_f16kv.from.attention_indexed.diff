@@ -1,0 +1,27 @@
+--- src/gpu/kernels/attention_indexed.wgsl
++++ src/gpu/kernels/attention_indexed_f16kv.wgsl
+@@ -1,11 +1,12 @@
+ // Attention over QSA-selected tokens (qwen4_exp indexed attention).
+ // One workgroup per (query token, head). Query rows are f32 after Q norm and
+-// RoPE; keys and values are the original per-token f32 cache rows (contiguous
++// RoPE; keys and values are the original per-token f16 cache rows (contiguous
+ // [position, kv_head, head_dim] layout). selection_meta[token] = (count, mode):
+ // mode 0 attends to cache rows [0, count); mode 1 attends to the listed rows.
+ // Softmax is computed online in f32 over chunks; excluded tokens contribute
+ // nothing, matching the source's additive mask with exactly zero probability.
+ 
++enable f16;
+ 
+ override WORKGROUP_SIZE: u32 = 256u;
+ 
+@@ -25,8 +26,8 @@
+ 
+ @group(0) @binding(0) var<uniform> u: Uniforms;
+ @group(0) @binding(1) var<storage, read> Q: array<f32>;                 // [num_tokens, num_heads, head_dim]
+-@group(0) @binding(2) var<storage, read> K: array<f32>;                 // [positions, num_kv_heads, head_dim]
+-@group(0) @binding(3) var<storage, read> V: array<f32>;
++@group(0) @binding(2) var<storage, read> K: array<f16>;                 // [positions, num_kv_heads, head_dim]
++@group(0) @binding(3) var<storage, read> V: array<f16>;
+ @group(0) @binding(4) var<storage, read> selection: array<u32>;         // [num_tokens, max_selected]
+ @group(0) @binding(5) var<storage, read> selection_meta: array<u32>;    // [num_tokens, 2]
+ @group(0) @binding(6) var<storage, read_write> output: array<f32>;      // [num_tokens, num_heads, head_dim]

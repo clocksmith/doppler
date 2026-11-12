@@ -178,8 +178,17 @@ function applyUnifiedPatch(sourceText, patchText, variantId, patchPath) {
   return sourceLines.join('\n');
 }
 
-function buildGeneratedText(variant, transformedSource) {
+function buildGeneratedText(variant, transformedSource, sourceText) {
   const source = String(variant.source);
+  // Byte-pinned targets keep their exact pre-generation bytes so the content
+  // digests stamped into conversion configs, manifests and Capsules do not move.
+  // `kernels:codegen:check` still fails if the target is edited by hand.
+  if (variant.byteIdenticalTarget === true) {
+    // Line-based patching does not carry the file's final newline run; the
+    // target inherits the source's run so the bytes round-trip exactly.
+    const trailingNewlines = /\n*$/u.exec(sourceText)[0];
+    return transformedSource.replace(/\n*$/u, '') + trailingNewlines;
+  }
   const header = [
     `// AUTO-GENERATED from ${source}.`,
     '// Edit the source kernel and src/gpu/kernels/codegen/wgsl-variants.js, then run `npm run kernels:codegen:sync`.',
@@ -213,7 +222,7 @@ async function buildVariantContent(rootDir, variant) {
       transformed = applyRule(transformed, rule, variantId);
     }
   }
-  return buildGeneratedText(variant, transformed);
+  return buildGeneratedText(variant, transformed, sourceText);
 }
 
 async function readExistingTarget(rootDir, variant) {

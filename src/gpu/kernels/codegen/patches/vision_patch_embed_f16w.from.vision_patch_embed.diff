@@ -1,0 +1,40 @@
+--- src/gpu/kernels/vision_patch_embed.wgsl
++++ src/gpu/kernels/vision_patch_embed_f16w.wgsl
+@@ -1,5 +1,7 @@
+-// vision_patch_embed.wgsl
++// vision_patch_embed_f16w.wgsl
+ 
++enable f16;
++
+ override WORKGROUP_SIZE: u32 = 256u;
+ 
+ struct Uniforms {
+@@ -15,8 +17,8 @@
+ 
+ @group(0) @binding(0) var<uniform> u: Uniforms;
+ @group(0) @binding(1) var<storage, read> image: array<f32>;
+-@group(0) @binding(2) var<storage, read> weights: array<f32>;
+-@group(0) @binding(3) var<storage, read> bias: array<f32>;
++@group(0) @binding(2) var<storage, read> weights: array<f16>;
++@group(0) @binding(3) var<storage, read> bias: array<f16>;
+ @group(0) @binding(4) var<storage, read_write> output: array<f32>;
+ 
+ @compute @workgroup_size(WORKGROUP_SIZE, 1, 1)
+@@ -37,7 +39,7 @@
+ 
+     var value = 0.0f;
+     if (u.has_bias != 0u) {
+-        value = bias[hidden_idx];
++        value = f32(bias[hidden_idx]);
+     }
+ 
+     for (var channel = 0u; channel < u.channels; channel = channel + 1u) {
+@@ -49,7 +51,7 @@
+                 let spatial_idx = channel * u.patch_size * u.patch_size + local_y * u.patch_size + local_x;
+                 for (var temporal = 0u; temporal < u.temporal_patch_size; temporal = temporal + 1u) {
+                     let weight_idx = hidden_idx * temporal_patch_area + temporal * spatial_patch_area + spatial_idx;
+-                    value = value + image[image_idx] * weights[weight_idx];
++                    value = value + image[image_idx] * f32(weights[weight_idx]);
+                 }
+             }
+         }

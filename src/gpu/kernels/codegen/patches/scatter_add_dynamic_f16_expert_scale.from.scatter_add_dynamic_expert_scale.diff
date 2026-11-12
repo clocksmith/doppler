@@ -1,0 +1,37 @@
+--- src/gpu/kernels/scatter_add_dynamic_expert_scale.wgsl
++++ src/gpu/kernels/scatter_add_dynamic_f16_expert_scale.wgsl
+@@ -1,5 +1,7 @@
+-// scatter_add_dynamic_expert_scale.wgsl
++// scatter_add_dynamic_f16_expert_scale.wgsl
+ 
++enable f16;
++
+ override WORKGROUP_SIZE: u32 = 256u;
+ 
+ struct DynamicUniforms {
+@@ -10,12 +12,12 @@
+ }
+ 
+ @group(0) @binding(0) var<uniform> u_dyn: DynamicUniforms;
+-@group(0) @binding(1) var<storage, read> expert_outputs_flat: array<f32>;
++@group(0) @binding(1) var<storage, read> expert_outputs_flat: array<f16>;
+ @group(0) @binding(2) var<storage, read> routing_indices: array<u32>;
+ @group(0) @binding(3) var<storage, read> routing_weights: array<f32>;
+ @group(0) @binding(4) var<storage, read> token_offsets: array<u32>;
+ @group(0) @binding(5) var<storage, read> expert_scales: array<f32>;
+-@group(0) @binding(6) var<storage, read_write> output_dyn: array<f32>;
++@group(0) @binding(6) var<storage, read_write> output_dyn: array<f16>;
+ 
+ @compute @workgroup_size(WORKGROUP_SIZE, 1, 1)
+ fn scatter_add_dynamic(@builtin(global_invocation_id) gid: vec3<u32>) {
+@@ -40,8 +42,8 @@
+         let data_offset = token_offsets[routing_base + k];
+         let expert_data_idx = data_offset * hidden_size + dim_idx;
+ 
+-        sum = sum + weight * expert_outputs_flat[expert_data_idx];
++        sum = sum + weight * f32(expert_outputs_flat[expert_data_idx]);
+     }
+ 
+-    output_dyn[tid] = sum;
++    output_dyn[tid] = f16(sum);
+ }

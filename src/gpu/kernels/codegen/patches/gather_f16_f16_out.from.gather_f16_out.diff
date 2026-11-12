@@ -1,0 +1,33 @@
+--- src/gpu/kernels/gather_f16_out.wgsl
++++ src/gpu/kernels/gather_f16_f16_out.wgsl
+@@ -1,9 +1,9 @@
+-// gather_f16_out.wgsl
++// gather_f16_f16_out.wgsl
+ 
+ /**
+- * Gather Kernel (F16 output)
++ * Gather Kernel (F16 input -> F16 output)
+  *
+- * F32 embeddings -> F16 output for reduced memory bandwidth.
++ * For F16 activation mode with F16 embeddings.
+  */
+ 
+ enable f16;
+@@ -23,8 +23,8 @@
+ }
+ 
+ @group(0) @binding(0) var<uniform> u: Uniforms;
+-@group(0) @binding(1) var<storage, read> indices: array<u32>;     // Token IDs [num_tokens]
+-@group(0) @binding(2) var<storage, read> embeddings: array<f32>;  // Embedding matrix [vocab_size, hidden_size]
++@group(0) @binding(1) var<storage, read> indices: array<u32>;    // Token IDs [num_tokens]
++@group(0) @binding(2) var<storage, read> embeddings: array<f16>; // F16 Embedding matrix
+ @group(0) @binding(4) var<storage, read_write> output_f16: array<f16>;
+ 
+ @compute @workgroup_size(WORKGROUP_SIZE_MAIN, 1, 1)
+@@ -52,5 +52,5 @@
+     } else {
+         embed_offset = token_id * u.hidden_size + dim_idx;
+     }
+-    output_f16[tid] = f16(embeddings[embed_offset]);
++    output_f16[tid] = embeddings[embed_offset];
+ }

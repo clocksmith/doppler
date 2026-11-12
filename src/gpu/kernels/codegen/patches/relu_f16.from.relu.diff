@@ -1,0 +1,26 @@
+--- src/gpu/kernels/relu.wgsl
++++ src/gpu/kernels/relu_f16.wgsl
+@@ -1,3 +1,5 @@
++enable f16;
++
+ override WORKGROUP_SIZE: u32 = 256u;
+ 
+ struct Uniforms {
+@@ -8,8 +10,8 @@
+ }
+ 
+ @group(0) @binding(0) var<uniform> u: Uniforms;
+-@group(0) @binding(1) var<storage, read> input: array<f32>;
+-@group(0) @binding(2) var<storage, read_write> output: array<f32>;
++@group(0) @binding(1) var<storage, read> input: array<f16>;
++@group(0) @binding(2) var<storage, read_write> output: array<f16>;
+ 
+ @compute @workgroup_size(WORKGROUP_SIZE, 1, 1)
+ fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
+@@ -18,5 +20,5 @@
+     if (idx >= u.size) {
+         return;
+     }
+-    output[idx] = max(input[idx], 0.0);
++    output[idx] = max(input[idx], 0.0h);
+ }
