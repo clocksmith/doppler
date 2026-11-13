@@ -398,6 +398,12 @@ export async function runBranch(forkIndex, tokenId) {
 
 // Opening activity replaces the displayed exchange as one operation. Old files
 // without prompt text remain inspectable, but never borrow the current draft.
+// Names the saved run's own model; the picker above only matters once a message is sent.
+export function recordedRunNote(model) {
+  return `Recorded answer from ${model}. Nothing is running on this device.`
+    + (state.webgpuAvailable ? ' Send runs the model picked above.' : '');
+}
+
 export function showRecordedActivity(recording, { preserveDraft = false } = {}) {
   if (state.generating || state.modelBusy || state.settingsBusy) throw new Error('Wait for the current run to finish before opening a recording.');
   if (matchesSample(recording)) {
@@ -410,7 +416,7 @@ export function showRecordedActivity(recording, { preserveDraft = false } = {}) 
   if (!preserveDraft) setPromptValue(recording.prompt ?? '');
   const note = $('recorded-run-note');
   if (note) {
-    note.textContent = `Recorded ${recording.trace.identity.logicalModelId ?? recording.trace.identity.modelId} run. No model is running on this device.`
+    note.textContent = recordedRunNote(recording.trace.identity.logicalModelId ?? recording.trace.identity.modelId)
       + (recording.prompt ? '' : ' Its prompt text was not saved.')
       + (recording.outputText == null ? ' Its answer text was not saved.' : '');
     note.hidden = false;
@@ -436,7 +442,7 @@ export function loadSampleInspection(receipt, { preserveDraft = false } = {}) {
     // Named from the saved run, never from the model picker above it.
     const recordedModelId = receipt.recording?.modelId ?? '';
     const recordedModel = state.quickModelCatalog?.find((entry) => entry.modelId === recordedModelId)?.label ?? recordedModelId;
-    note.textContent = `Recorded ${recordedModel} run. No model is running on this device. The model selected above is used only when you send a message.`;
+    note.textContent = recordedRunNote(recordedModel);
     note.title = `${recordedModelId} · ${receipt.recording?.publishedAt ?? ''}`;
     note.hidden = false;
   }

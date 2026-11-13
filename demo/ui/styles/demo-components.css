@@ -484,6 +484,12 @@
 #app .model-select-row { display: flex; align-items: stretch; gap: var(--demo-space-1); }
 #app .model-select-row select { flex: 1 1 auto; width: auto; min-width: 0; min-height: var(--demo-control-height); font-weight: 500; }
 #app .model-select-row .btn { min-height: var(--demo-control-height); }
+/* No WebGPU: no model can load, so the picker would name a model that is not running. Only the notice and its retry stay. */
+#app .model-picker--unavailable :is(.model-picker-heading, .model-select-row) { display: none; }
+#app #webgpu-retry { justify-self: start; width: auto; }
+/* Clear has nothing to clear until there is a conversation; an empty toolbar takes no room. */
+#app #clear-history-btn:disabled { display: none; }
+#app .chat-toolbar:has(#clear-history-btn:disabled):has(#output-phase:empty) { display: none; }
 #app .chat-toolbar { display: flex; flex-wrap: nowrap; align-items: center; justify-content: space-between; gap: var(--demo-space-2); padding: 0; }
 #app .chat-run-status { flex: 1 1 auto; }
 #app .chat-toolbar .btn { min-width: 0; }

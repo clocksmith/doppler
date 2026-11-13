@@ -29,9 +29,8 @@ function downloadSize(entry) {
 }
 
 // Shown beside Load when the browser cannot start WebGPU at all.
-export const NO_WEBGPU_NOTE = 'This browser couldn’t start WebGPU, so live inference isn’t available. '
-  + 'You can still explore the recorded run. Reloading the page, updating the browser or turning on '
-  + 'hardware acceleration sometimes helps; another browser or device may not work either.';
+export const NO_WEBGPU_NOTE = 'This browser can’t run models here: WebGPU isn’t available. The recorded answer below still works. '
+  + 'Reloading, updating the browser or turning on hardware acceleration sometimes helps.';
 
 // Asks for an adapter only. Its limits are per-buffer GPU limits, not memory.
 export async function probeWebGpu(gpu = globalThis.navigator?.gpu) {
@@ -158,6 +157,9 @@ export function syncModelControls() {
   }
   const retry = $('webgpu-retry');
   if (retry) retry.hidden = state.webgpuAvailable;
+  // Without WebGPU no model can load, so the picker would only name a model that is not running.
+  const picker = $('model-picker');
+  if (picker) picker.classList.toggle('model-picker--unavailable', !state.webgpuAvailable);
   const select = $('model-select');
   if (select) select.disabled = !catalog.length || busy;
   const profile = $('set-profile');
