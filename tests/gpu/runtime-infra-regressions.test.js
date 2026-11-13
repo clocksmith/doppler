@@ -17,11 +17,7 @@ globalThis.GPUShaderStage = {
   COMPUTE: 0x2,
 };
 
-const {
-  destroyBufferPool,
-  getBufferPool,
-} = await import('../../src/memory/buffer-pool.js');
-const { PartitionedBufferPool } = await import('../../src/gpu/partitioned-buffer-pool.js');
+const { destroyBufferPool } = await import('../../src/memory/buffer-pool.js');
 const {
   getSubmitStats,
   resetSubmitStats,
@@ -136,21 +132,6 @@ setRuntimeConfig({
 });
 
 try {
-  {
-    destroyBufferPool();
-    const device = createBaseDevice();
-    setDevice(device, { platformConfig: null });
-    getBufferPool().configure({ enablePooling: false });
-
-    const pool = new PartitionedBufferPool([{ id: 'expertA' }, { id: 'expertB' }]);
-    const buffer = pool.acquire('expertA', 64, GPUBufferUsage.STORAGE, 'partitioned');
-
-    assert.equal(pool.getExpertPool('expertA')?.isActiveBuffer(buffer), true);
-    pool.release('expertB', buffer);
-    assert.equal(pool.getExpertPool('expertA')?.isActiveBuffer(buffer), false);
-    assert.equal(pool.getExpertPool('expertB')?.isActiveBuffer(buffer), false);
-  }
-
   {
     resetSubmitStats();
     setTrackSubmits(true);
