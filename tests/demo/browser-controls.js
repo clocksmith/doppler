@@ -302,7 +302,7 @@ export async function checkDemoControls(page) {
   assert.equal(await page.locator('#token-inspector-view').isVisible(), true, 'Every recorded answer is underlined');
   await page.locator('.token-chip').first().click();
   assert.match(await page.locator('.token-inspector-note').textContent(), /Only a live answer can branch/);
-  assert.equal(await page.locator('.token-candidate-branch').first().isDisabled(), true, 'Recorded evidence cannot pretend to be a live branch');
+  assert.equal(await page.locator('.token-candidate-branch').count(), 0, 'Recorded evidence cannot pretend to be a live branch');
   assert.equal(await page.locator('#runtime-notice').isVisible(), true, 'Recording stays disclosed');
   if (!sampleSettingsOpen) await page.click('#settings-toggle');
 

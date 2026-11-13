@@ -219,13 +219,16 @@ function renderTokenCard() {
     const value = document.createElement('span');
     value.className = 'token-candidate-pct';
     value.textContent = pct(candidate.probability);
+    // A recorded answer cannot branch; the note below says so once instead of a column of dead buttons.
+    const canBranch = options.branchable && typeof options.onBranch === 'function';
     const action = current
       ? Object.assign(document.createElement('span'), { className: 'token-candidate-current', textContent: 'Shown' })
-      : button('Branch', () => options.onBranch?.(selectedIndex, candidate.tokenId), {
-        disabled: !options.branchable || typeof options.onBranch !== 'function',
-        className: 'btn btn-small token-candidate-branch',
-        label: `Branch with ${JSON.stringify(candidate.text ?? '')} at token ${selectedIndex + 1}`,
-      });
+      : canBranch
+        ? button('Branch', () => options.onBranch(selectedIndex, candidate.tokenId), {
+          className: 'btn btn-small token-candidate-branch',
+          label: `Branch with ${JSON.stringify(candidate.text ?? '')} at token ${selectedIndex + 1}`,
+        })
+        : document.createElement('span');
     row.append(position, text, track, value, action);
     list.append(row);
   }
@@ -241,8 +244,8 @@ function renderTokenCard() {
   const nav = document.createElement('div');
   nav.className = 'token-inspector-nav';
   nav.append(
-    button('Previous', () => stepSelection(-1), { disabled: position <= 0 }),
-    button('Next', () => stepSelection(1), { disabled: position < 0 || position >= chipIndices.length - 1 })
+    button('← Previous word', () => stepSelection(-1), { disabled: position <= 0 }),
+    button('Next word →', () => stepSelection(1), { disabled: position < 0 || position >= chipIndices.length - 1 })
   );
   card.append(nav);
   boundCardContainer.replaceChildren(card);

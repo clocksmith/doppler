@@ -213,7 +213,7 @@ async function main() {
     assert.equal(await page.locator('.token-candidates-list').isVisible(), true);
     await checkTokenGeometry(page);
     assert.match(await page.locator('.token-inspector-note').textContent(), /Only a live answer can branch/);
-    assert.equal(await page.locator('.token-candidate-branch').first().isDisabled(), true, 'A recorded sample cannot branch');
+    assert.equal(await page.locator('.token-candidate-branch').count(), 0, 'A recorded sample cannot branch');
     if (!await page.locator('#model-select').isVisible()) {
       await page.locator('#settings-toggle').click();
     }
