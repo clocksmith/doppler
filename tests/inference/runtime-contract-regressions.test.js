@@ -15,7 +15,6 @@ const { discoverModels } = await import('../../src/tooling/test-harness.js');
 const { TieredKVCache } = await import('../../src/inference/kv-cache/tiered.js');
 const { createKVCache } = await import('../../src/inference/pipelines/text/init.js');
 const { resolveAttentionFrequencyBaseDim } = await import('../../src/inference/pipelines/text/layer.js');
-const { evolveNetwork } = await import('../../src/inference/network-evolution.js');
 const { parseModelConfigFromManifest } = await import('../../src/inference/pipelines/text/config.js');
 const { setDevice } = await import('../../src/gpu/device.js');
 const { extractExecutionContractFacts } = await import('../../src/config/execution-contract-check.js');
@@ -904,18 +903,6 @@ try {
     }
   }
 
-  {
-    await assert.rejects(
-      () => evolveNetwork({
-        populationSize: 2,
-        generations: 1,
-        eliteCount: 1,
-        evaluate: async () => 1,
-        randomGenome: () => ({ topology: { type: 'chain' }, nodes: [], edges: [] }),
-      }),
-      /requires an explicit random\(\) source/
-    );
-  }
 
   {
     assert.ok(

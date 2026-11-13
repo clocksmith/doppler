@@ -845,9 +845,7 @@ Example (skip FFN on layer 0):
 
 **Runtime profiles:** See `src/config/runtime/profiles/` for complete runtime overlay examples.
 
-### network-evolution.js - Topology Search
-
-Evolution helpers for mutating and scoring expert network topologies.
+### Text Pipeline Features
 
 **Key Pipeline Features:**
 - GPU-native hot path: most tensor ops remain on GPU; logits readback cadence is controlled by runtime batching config
