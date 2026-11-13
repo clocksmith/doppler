@@ -7,6 +7,7 @@ import { log } from '../../debug/index.js';
 import { createHasher as createBlake3Hasher, hash as blake3Hash } from '../blake3.js';
 import { isRequestedRangeInsideTensor } from './index.js';
 import { createSha256Hasher, sha256BytesHex } from '../../formats/sha256.js';
+import { isNodeRuntime } from '../runtime-env.js';
 
 let blake3Module = null;
 let hashAlgorithm = null;
@@ -109,6 +110,22 @@ export async function createStreamingHasher(algorithm) {
     throw new Error('createStreamingHasher requires an explicit hash algorithm.');
   }
   if (algorithm === 'sha256') {
+    if (isNodeRuntime()) {
+      // Verify the same bytes incrementally without running SHA rounds on the
+      // JS thread. Do not retain shards or retry native failures in another backend.
+      const { createHash } = await import('node:crypto');
+      const hasher = createHash('sha256');
+      return {
+        update(data) {
+          const bytes = data instanceof ArrayBuffer ? new Uint8Array(data) : data;
+          if (!(bytes instanceof Uint8Array)) throw new Error('SHA-256 update requires a Uint8Array.');
+          hasher.update(bytes);
+        },
+        // Preserve non-destructive finalization: callers can digest again or
+        // continue updating, and each returned digest owns its storage.
+        async finalize() { return new Uint8Array(hasher.copy().digest()); },
+      };
+    }
     return createSha256StreamingHasher();
   }
   if (algorithm !== 'blake3') {

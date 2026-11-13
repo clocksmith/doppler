@@ -55,6 +55,27 @@ const invalid = createSha256Hasher();
 assert.throws(() => invalid.update('invalid'), /Uint8Array/);
 assert.equal(invalid.digestHex(), reference(new Uint8Array()));
 
+// Host acceleration preserves the streaming contract, including strict input
+// validation and borrowed digest ownership. Browser hosts retain portable SHA.
+for (const portable of [false, true]) {
+  const hostProcess = globalThis.process;
+  let stream;
+  try {
+    if (portable) globalThis.process = undefined;
+    stream = await createStreamingHasher('sha256');
+  } finally { globalThis.process = hostProcess; }
+  assert.throws(() => stream.update('invalid'), /Uint8Array/);
+  assert.equal(hex(await stream.finalize()), reference(new Uint8Array()));
+  const bytes = input.subarray(7, 131);
+  stream.update(bytes);
+  const digest = await stream.finalize();
+  assert.equal(hex(digest), reference(bytes));
+  digest.fill(0);
+  assert.equal(hex(await stream.finalize()), reference(bytes));
+  stream.update(new Uint8Array([42]).buffer);
+  assert.equal(hex(await stream.finalize()), createHash('sha256').update(bytes).update(new Uint8Array([42])).digest('hex'));
+}
+
 // Instrument backing allocations, not caller-owned inputs or zero-copy views.
 const originals = { Uint8Array, Uint32Array };
 const allocations = [];
