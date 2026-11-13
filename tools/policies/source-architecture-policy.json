@@ -401,10 +401,6 @@
       "classification": "semantic-owner",
       "semanticOwner": "GPU uniform serialization and buffer construction"
     },
-    "gpu/readback-utils.js": {
-      "classification": "semantic-owner",
-      "semanticOwner": "mapped GPU readback lifecycle"
-    },
     "tooling/browser-harness-contract-helpers.js": {
       "classification": "semantic-owner",
       "semanticOwner": "browser harness contract metric projection"

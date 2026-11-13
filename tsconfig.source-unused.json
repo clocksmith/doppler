@@ -128,7 +128,6 @@
     "src/experimental/training/suite.js",
     "src/experimental/turboquant/codebook.js",
     "src/gpu/submit-tracker.js",
-    "src/inference/pipelines/structured/tsv-grammar-mask.js",
     "src/inference/pipelines/text/model-load.js",
     "src/inference/pipelines/text/weights.js",
     "src/storage/distribution-transport.js",
