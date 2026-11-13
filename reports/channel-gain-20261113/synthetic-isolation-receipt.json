@@ -1,0 +1,291 @@
+{
+  "schema": "doppler.channel-gain-synthetic-isolation/v1",
+  "createdAt": "2026-11-13T12:40:26.655113+00:00",
+  "sourceCommit": "64834f4bd0378ca8ca207af6865f4318b6fe3a16",
+  "sourceTreeHasUnrelatedChanges": true,
+  "implementationFiles": [
+    {
+      "path": "tests/inference/channel-gain-request.test.js",
+      "sha256": "06dd423b15fb8eaee4498c7692d1ab88f9bb25438742d06839e04900376187ed"
+    },
+    {
+      "path": "tests/kernels/channel-gain-physical.test.js",
+      "sha256": "8fea219ce2aa8944ba75115c52a37c534243ff691e0841a9570c89d956055c66"
+    },
+    {
+      "path": "tests/kernels/channel-gain-isolation-physical.test.js",
+      "sha256": "9d6e279ab055ba242c0ded95dafc3f558e92febc364a6dafab69c50d549aa632"
+    },
+    {
+      "path": "src/inference/pipelines/text/channel-gain.js",
+      "sha256": "b1caf6297c3c30585c640595ddfe0c298fda036f38a928f1c26868d6b1e5ec1f"
+    },
+    {
+      "path": "src/inference/pipelines/text/generator.js",
+      "sha256": "a1e0ac716060f2786038257b6049df0d2eda7d2cff38da5531219df7a81f2993"
+    },
+    {
+      "path": "src/inference/pipelines/text/ffn/dense.js",
+      "sha256": "958c354e11bb0c47529510cf86d012bcedcf3ea2859bb2e8d12a6a8ba63fb490"
+    },
+    {
+      "path": "src/gpu/kernels/channel-gain.js",
+      "sha256": "a17a88f4311810bab0c47fdd13c77b8aee9d42c954b89e09ea0a655b6436adcf"
+    },
+    {
+      "path": "src/gpu/device.js",
+      "sha256": "5efe05a5268f0e09c6b06329ffb18740c323f8eeba6b06aa10037a2cdfb7aad0"
+    },
+    {
+      "path": "src/memory/device-budget.js",
+      "sha256": "90b51128e9e20d17e278a839b8df21dabfbed33cbe2686b8b18f5f2828e6b00a"
+    },
+    {
+      "path": "src/memory/buffer-pool.js",
+      "sha256": "41ec2067efc1eae07a6a76ef0b58b3a3979d9f815bf4111e11242806cb8d0809"
+    }
+  ],
+  "runs": [
+    {
+      "command": "node tests/inference/channel-gain-request.test.js",
+      "cwd": "/Users/xyz/deco/doppler",
+      "exitCode": 0,
+      "stdout": "reports/channel-gain-20261113/channel-gain-request-20261113.log",
+      "stdoutSha256": "cbdf8746cfea69f5fd827005f4b74a03c087ea23c06e07012f0e4b229b456a7e",
+      "result": {
+        "passed": true,
+        "classification": "CPU-only mock/request contract checks"
+      }
+    },
+    {
+      "command": "node tests/kernels/channel-gain-physical.test.js",
+      "cwd": "/Users/xyz/deco/doppler",
+      "exitCode": 0,
+      "stdout": "reports/channel-gain-20261113/channel-gain-physical-20261113.log",
+      "stdoutSha256": "31a7d39abbbec0d4477840d42d5f0e3eb77711ac6818fff2545958db7e83188f",
+      "result": {
+        "test": "channel-gain-physical",
+        "passed": true,
+        "adapter": {
+          "vendor": "apple",
+          "architecture": "metal-3",
+          "device": "apple-m3",
+          "description": "Metal driver on macOS Version 26.6.2 (Build 25G83)",
+          "subgroupMinSize": 32,
+          "subgroupMaxSize": 32
+        },
+        "providerReceipt": {
+          "schema": "doe.webgpu-provider-receipt/v1",
+          "contract": "doe.webgpu-provider/v1",
+          "implementation": "doppler",
+          "providers": [
+            {
+              "id": "pre-installed",
+              "kind": "global"
+            },
+            {
+              "id": "webgpu",
+              "kind": "module",
+              "module": "webgpu",
+              "gpu": {
+                "kind": "factory",
+                "path": "create",
+                "args": [
+                  [
+                    "enable-dawn-features=allow_unsafe_apis"
+                  ]
+                ]
+              },
+              "globals": {
+                "GPUBufferUsage": "globals.GPUBufferUsage",
+                "GPUShaderStage": "globals.GPUShaderStage",
+                "GPUMapMode": "globals.GPUMapMode",
+                "GPUTextureUsage": "globals.GPUTextureUsage"
+              }
+            }
+          ],
+          "providerOrder": [
+            "pre-installed",
+            "webgpu"
+          ],
+          "adapterOptions": null,
+          "globals": {
+            "mode": "replace",
+            "installed": [
+              "GPUBufferUsage",
+              "GPUShaderStage",
+              "GPUMapMode",
+              "GPUTextureUsage",
+              "navigator.gpu"
+            ],
+            "restored": false
+          },
+          "attempts": [
+            {
+              "providerId": "pre-installed",
+              "kind": "global",
+              "module": null,
+              "ok": false,
+              "stage": "gpu.validate",
+              "code": "DOPPLER_PROVIDER_UNAVAILABLE",
+              "detail": "Selected provider does not expose GPU.requestAdapter()."
+            },
+            {
+              "providerId": "webgpu",
+              "kind": "module",
+              "module": "webgpu",
+              "ok": true,
+              "stage": "complete",
+              "code": null,
+              "detail": null
+            }
+          ],
+          "selectedProviderId": "webgpu",
+          "ok": true
+        },
+        "timings": [
+          {
+            "transport": "immediate",
+            "wallMsIncludingReadback": 8.561165999999986
+          },
+          {
+            "transport": "recorded",
+            "wallMsIncludingReadback": 2.6578340000000082
+          }
+        ],
+        "totalWallMs": 77.076333,
+        "evidence": "Toy kernel numerical validation only; no model, cache comparison, selection or confirmation. Coexists with desktop services; timing is not a latency claim."
+      }
+    },
+    {
+      "command": "node tests/kernels/channel-gain-isolation-physical.test.js",
+      "cwd": "/Users/xyz/deco/doppler",
+      "exitCode": 0,
+      "stdout": "reports/channel-gain-20261113/channel-gain-isolation-20261113.log",
+      "stdoutSha256": "4b92a75896b53f79b3933bb284e1f81aabbbc7a3a186a552094ecc267823ffed",
+      "result": {
+        "test": "channel-gain-isolation-physical",
+        "passed": true,
+        "adapter": {
+          "vendor": "apple",
+          "architecture": "metal-3",
+          "device": "apple-m3",
+          "description": "Metal driver on macOS Version 26.6.2 (Build 25G83)",
+          "subgroupMinSize": 32,
+          "subgroupMaxSize": 32
+        },
+        "providerReceipt": {
+          "schema": "doe.webgpu-provider-receipt/v1",
+          "contract": "doe.webgpu-provider/v1",
+          "implementation": "doppler",
+          "providers": [
+            {
+              "id": "pre-installed",
+              "kind": "global"
+            },
+            {
+              "id": "webgpu",
+              "kind": "module",
+              "module": "webgpu",
+              "gpu": {
+                "kind": "factory",
+                "path": "create",
+                "args": [
+                  [
+                    "enable-dawn-features=allow_unsafe_apis"
+                  ]
+                ]
+              },
+              "globals": {
+                "GPUBufferUsage": "globals.GPUBufferUsage",
+                "GPUShaderStage": "globals.GPUShaderStage",
+                "GPUMapMode": "globals.GPUMapMode",
+                "GPUTextureUsage": "globals.GPUTextureUsage"
+              }
+            }
+          ],
+          "providerOrder": [
+            "pre-installed",
+            "webgpu"
+          ],
+          "adapterOptions": null,
+          "globals": {
+            "mode": "replace",
+            "installed": [
+              "GPUBufferUsage",
+              "GPUShaderStage",
+              "GPUMapMode",
+              "GPUTextureUsage",
+              "navigator.gpu"
+            ],
+            "restored": false
+          },
+          "attempts": [
+            {
+              "providerId": "pre-installed",
+              "kind": "global",
+              "module": null,
+              "ok": false,
+              "stage": "gpu.validate",
+              "code": "DOPPLER_PROVIDER_UNAVAILABLE",
+              "detail": "Selected provider does not expose GPU.requestAdapter()."
+            },
+            {
+              "providerId": "webgpu",
+              "kind": "module",
+              "module": "webgpu",
+              "ok": true,
+              "stage": "complete",
+              "code": null,
+              "detail": null
+            }
+          ],
+          "selectedProviderId": "webgpu",
+          "ok": true
+        },
+        "checks": [
+          "two_live_distinct_gain_states_alternate_without_cross_talk",
+          "frozen_private_copies_resist_seed_buffer_mutation",
+          "independent_operation_lifetimes_overlap_while_same_state_reentry_is_rejected",
+          "reset_and_discard_a_preserve_b_and_restore_unmodified_base",
+          "failure_cleanup_releases_only_its_borrow_and_other_state_remains_valid",
+          "shared_input_and_weight_buffers_unchanged"
+        ],
+        "memory": {
+          "scope": "device-gpu-buffers",
+          "maxBytes": null,
+          "liveBytes": 4864,
+          "peakBytes": 4912,
+          "allocations": 69,
+          "rejected": 0,
+          "categories": {
+            "weights": 0,
+            "attention": 0,
+            "recurrent": 0,
+            "other": 4864
+          },
+          "labelCount": 6
+        },
+        "totalWallMs": 42.963042,
+        "modelLoads": 0,
+        "modelConcurrencyTested": false,
+        "kernelExecution": "serialized GPU queue with distinct live request states and overlapping asynchronous operation lifetimes",
+        "resetScope": "actual PipelineGenerator reset hook with minimal state fixture; no KV/cache or full-model sequence",
+        "evidence": "Synthetic dense FFN/request isolation and cleanup only; no cross-domain quality, serving concurrency, or latency claim."
+      }
+    }
+  ],
+  "modelLoads": 0,
+  "fullModelConcurrencyTested": false,
+  "crossDomainQualityTested": false,
+  "timingBoundary": "Reported test totalWallMs includes GPU provider setup, compile/dispatch/readback and assertions but excludes final teardown; successful process exit confirms teardown completed. Timings are execution evidence, not benchmark claims.",
+  "scope": "Two distinct concurrently live gain handles, alternating real tiny dense FFN dispatches, overlapping asynchronous request-operation lifetimes, per-state serialization, reset/discard restoration, application-failure cleanup, unchanged shared input/weights. One physical GPU queue; minimal reset fixture without model or KV cache.",
+  "localOverlapCheck": {
+    "processScanFoundModelOrGpuBenchmark": false,
+    "agentBusChecked": true,
+    "frictionMacReportedNoGpuWork": true,
+    "channelGainRuleAgentReportedNoGpuWork": true
+  },
+  "jupiterServicesTouched": false,
+  "receiptSha256": "fcdbb5715cf116817dbe772f6e09ed8b2a53e16b180f557bf6c18fc2bc1bef5c"
+}
