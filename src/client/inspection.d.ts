@@ -59,6 +59,8 @@ export interface DopplerInspectionTokenRecord {
   text: string;
   probability: number | null;
   surprisal: number | null;
+  /** Entropy in nats of the full next-token distribution at this step; null when the logits cannot define one. */
+  entropy: number | null;
   topCandidates: Array<{
     tokenId: number;
     logit: number;
@@ -87,6 +89,7 @@ export declare const OBSERVATION_POLICY_REGISTRY_SCHEMA: 'doppler.observation-po
 export declare const COMPARISON_FINGERPRINT_SCHEMA: 'doppler.comparison-fingerprint/v1';
 export declare const MODEL_INSPECTION_RECEIPT_SCHEMA: 'doppler.model-inspection-receipt/v1';
 export declare const WORD_SEGMENTATION_SCHEMA: 'doppler.word-segmentation/unicode-whitespace-v1';
+export declare function distributionEntropy(logits: ArrayLike<number> | null | undefined): number | null;
 export declare const PERPLEXITY_AGGREGATION_SCHEMA: 'doppler.perplexity/summed-word-surprisal-v1';
 
 export declare function listObservationPolicies(): DopplerObservationPolicy[];

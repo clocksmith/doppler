@@ -215,6 +215,34 @@ function selectedProbability(logits, tokenId) {
   return Math.exp(Number(logits[tokenId]) - maximum) / denominator;
 }
 
+// Entropy, in nats, of the full next-token distribution the logits define:
+// H = -sum(p_i ln p_i) over every vocabulary entry. Masked (-Infinity) entries
+// carry no probability and contribute nothing. Null when the logits cannot
+// define a distribution.
+export function distributionEntropy(logits) {
+  if (!logits || logits.length === 0) return null;
+  let maximum = -Infinity;
+  for (let index = 0; index < logits.length; index += 1) {
+    const value = Number(logits[index]);
+    if (Number.isNaN(value) || value === Infinity) return null;
+    if (value > maximum) maximum = value;
+  }
+  if (!Number.isFinite(maximum)) return null;
+  let denominator = 0;
+  let weighted = 0;
+  for (let index = 0; index < logits.length; index += 1) {
+    const shifted = Number(logits[index]) - maximum;
+    if (!Number.isFinite(shifted)) continue;
+    const weight = Math.exp(shifted);
+    denominator += weight;
+    weighted += weight * shifted;
+  }
+  if (!Number.isFinite(denominator) || denominator <= 0) return null;
+  // With q_i = exp(x_i - m): H = ln(sum q) - sum(q_i (x_i - m)) / sum q.
+  const entropy = Math.log(denominator) - weighted / denominator;
+  return Number.isFinite(entropy) ? Math.max(0, entropy) : null;
+}
+
 export const LAYER_PROJECTION_SCHEMA = 'doppler.layer-projection/v1';
 // One request returns a full vocabulary row per vector before the top candidates
 // are kept, so both bounds limit what a single call can hold.
@@ -346,6 +374,7 @@ export function buildInspectionTokenRecord(tokenId, logits, tokenizer, topKSize 
     text: String(tokenizer.decode([tokenId], true, false)),
     probability,
     surprisal: probability && probability > 0 ? -Math.log(probability) : null,
+    entropy: distributionEntropy(logits),
     topCandidates: topCandidates(logits, tokenizer, topKSize),
   };
 }
