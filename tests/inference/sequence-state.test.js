@@ -151,6 +151,7 @@ try {
     vocabSize: 32,
     layerTypes: ['conv', 'full_attention'],
     hyperConnections: { streamCount: 4, streamWidth: 8 },
+    sourceMetadata: { unsigned64: 18446744073709551615n },
   };
   const runtimeConfig = structuredClone(getRuntimeConfig());
   runtimeConfig.inference.compute.activationDtype = 'f32';
@@ -339,6 +340,18 @@ try {
   assert.equal(qsaBlockBuffer.bytes[0], 9, 'QSA blockKeys prefix must be restored on GPU');
   await finishGenerationContext(pipelineState, [1, 2, 3, 4, 5, 6, 7, 8], true);
   assert.equal(context.getStats().cachedTokens, 6);
+
+  // Exact 64-bit contract changes invalidate the checkpoint. A decimal string
+  // (including the internal tag spelling) must never alias a BigInt contract.
+  for (const changed of [18446744073709551614n, 'bigint:18446744073709551614']) {
+    modelConfig.sourceMetadata.unsigned64 = changed;
+    beginGenerationContext(pipelineState, context, options);
+    assert.deepEqual(generationContextInput(pipelineState, options.inputIds), options.inputIds);
+    assert.equal(pipelineState.stats.reusedPrefixTokens, 0);
+    await prepareGenerationContextPrefill(generator, '', options.inputIds, options);
+    await finishGenerationContext(pipelineState, options.inputIds, true);
+    assert.equal(context.getStats().cachedTokens, 4);
+  }
 
   context.close();
   assert.equal(context.getStats().allocatedBytes, 0);

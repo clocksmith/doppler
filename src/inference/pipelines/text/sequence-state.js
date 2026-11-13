@@ -301,7 +301,15 @@ export function beginGenerationContext(state, context, options) {
   // change the representation of the already validated token prefix.
   const signature = JSON.stringify({ runtime: state.runtimeConfig, model: state.modelConfig,
     partition: state.modelPartition ?? null,
-    plan: options.executionPlan, speculation: options.speculation, adapter: state.lora?.identity?.digest ?? null });
+    plan: options.executionPlan, speculation: options.speculation, adapter: state.lora?.identity?.digest ?? null },
+  (_key, value) => {
+    // Resolved contracts can contain exact 64-bit integers. Encode them without
+    // rounding; tag strings too so a literal string cannot alias an integer.
+    // This signature is local cache state, not a serialized execution contract.
+    if (typeof value === 'bigint') return `bigint:${value}`;
+    if (typeof value === 'string') return `string:${value}`;
+    return value;
+  });
   if (entry.signature !== signature || (state.lora && !state.lora.identity?.digest && entry.adapter !== state.lora)) release(entry);
   entry.reusedTokens = 0;
   const estimated = state.kvCache.getMemoryStats().allocated;
