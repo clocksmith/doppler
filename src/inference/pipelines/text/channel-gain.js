@@ -52,6 +52,8 @@ export async function freezeChannelGains(layers) {
     }
     const frozen = Object.freeze({
       gainHash: hasher.digestHex(),
+      gpuBytes: [...state.layers.values()].reduce((sum, layer) => sum + layer.gains.buffer.size, 0),
+      logicalBytes: [...state.layers.values()].reduce((sum, layer) => sum + layer.channels * 4, 0),
       layers: Object.freeze([...state.layers].map(([layerIdx, layer]) => Object.freeze({ layerIdx, channels: layer.channels }))),
       close() {
         if (state.closed) return;

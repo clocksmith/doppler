@@ -24,6 +24,10 @@ export interface ChannelGainRequest {
 }
 export interface FrozenChannelGains {
   readonly gainHash: string;
+  /** Sum of private GPUBuffer.size at creation, including pool rounding; remains historical after close. */
+  readonly gpuBytes: number;
+  /** Sum of selected channel counts times four f32 bytes, excluding allocation padding. */
+  readonly logicalBytes: number;
   readonly layers: readonly { readonly layerIdx: number; readonly channels: number }[];
   close(): void;
 }

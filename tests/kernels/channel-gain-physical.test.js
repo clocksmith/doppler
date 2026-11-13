@@ -60,6 +60,21 @@ try {
   const expectedHash = createHash('sha256').update('channel-gain-f32-v1:2:3:')
     .update(new Uint8Array(new Float32Array([1, 2, 0.5]).buffer)).digest('hex');
   assert.equal(frozen.gainHash, expectedHash);
+  assert.equal(frozen.logicalBytes, 12);
+  assert.equal(frozen.gpuBytes, original.buffer.size);
+  assert.throws(() => { frozen.gpuBytes = 0; }, TypeError);
+  assert.throws(() => { frozen.logicalBytes = 0; }, TypeError);
+  const extraGains = tensor([1, 2], [2]);
+  const multiLayer = await freezeChannelGains([
+    { layerIdx: 2, channels: 3, gains: original },
+    { layerIdx: 3, channels: 2, gains: extraGains },
+  ]);
+  assert.equal(multiLayer.logicalBytes, 20);
+  assert.equal(multiLayer.gpuBytes, original.buffer.size + extraGains.buffer.size);
+  assert.ok(multiLayer.gpuBytes >= multiLayer.logicalBytes);
+  assert.deepEqual(Object.keys(multiLayer.layers[0]).sort(), ['channels', 'layerIdx']);
+  multiLayer.close();
+  assert.equal(multiLayer.logicalBytes, 20, 'closed handle metadata is an immutable allocation receipt');
   uploadData(original.buffer, new Float32Array([9, 9, 9]));
   const applySpec = { mode: 'apply', requestId: 'toy-apply', gainHash: frozen.gainHash,
     frozenGains: frozen, tokenCount: 2, span: { start: 0, stop: 2, templatePositions: [] },
