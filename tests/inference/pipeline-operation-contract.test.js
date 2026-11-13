@@ -100,3 +100,35 @@ test('standalone batch scheduler needs only request and execution ports and hono
   }), /aborted/);
   assert.deepEqual(calls, ['one']);
 });
+
+test('channel-gain request attachment is synchronous and guarded by the scoped pipeline owner', async () => {
+  const raw = new InferencePipeline();
+  raw.isLoaded = true;
+  const started = Promise.withResolvers();
+  const finish = Promise.withResolvers();
+  raw.generator.prefillWithLogits = async () => { started.resolve(); await finish.promise; return 'prefilled'; };
+  raw.unload = async () => { raw.isLoaded = false; };
+  const scoped = scopePipelineShaders(raw, null);
+  const spec = { mode: 'capture', requestId: 'scoped-capture', gainHash: '', cacheArm: 'base-cache',
+    tokenCount: 3, span: { start: 1, stop: 2, templatePositions: [0, 2] },
+    layers: [{ layerIdx: 1, channels: 2 }] };
+  const request = scoped.beginChannelGainRequest(spec);
+  assert.equal(request.requestId, 'scoped-capture');
+  assert.equal(typeof request.then, 'undefined', 'attachment preserves the synchronous request handle');
+  assert.equal(raw.channelGainRequest, request);
+  const pending = scoped.prefillWithLogits('', { inputIds: [10, 11, 12] });
+  await started.promise;
+  assert.throws(() => scoped.beginChannelGainRequest(spec), /in progress/);
+  assert.throws(() => scoped.reset(), /in progress/);
+  assert.equal(raw.channelGainRequest, request, 'rejected overlapping mutation preserves the attached request');
+  finish.resolve();
+  assert.equal(await pending, 'prefilled');
+  scoped.reset();
+  assert.equal(raw.channelGainRequest, null);
+  assert.throws(() => request.has(1), /closed/);
+  const second = scoped.beginChannelGainRequest({ ...spec, requestId: 'next-capture' });
+  assert.equal(second.requestId, 'next-capture');
+  scoped.reset();
+  await scoped.unload();
+  assert.throws(() => scoped.beginChannelGainRequest(spec), /closed/);
+});
