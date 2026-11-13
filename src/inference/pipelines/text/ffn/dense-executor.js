@@ -403,6 +403,7 @@ export async function runDenseFFNWithFusedPostNormGPU(
   transposeB,
   outputBuffer
 ) {
+  if (context.channelGainRequest?.has(layerIdx)) throw new Error('Channel gain does not support fused post-norm FFN.');
   if (inputTensor.precision !== undefined || residualTensor?.precision !== undefined) {
     throw new Error('[FFN] Paired execution cannot use scalar fused post-normalization.');
   }

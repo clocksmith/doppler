@@ -7,6 +7,8 @@
   },
   "include": [],
   "files": [
+    "src/gpu/kernels/channel-gain.js",
+    "src/inference/pipelines/text/channel-gain.js",
     "src/inference/pipelines/text/sequence-state.js",
     "src/inference/tokenizers/bundled/normalizer.js",
     "demo/ui/precision-replay/live.js",

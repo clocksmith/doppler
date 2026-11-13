@@ -88,6 +88,8 @@ export interface LayerContext {
   debug: boolean;
   /** Config-driven probes */
   debugProbes?: ProbeConfigSchema[];
+  /** Internal channel-gain request, isolated from LoRA comparator execution. */
+  channelGainRequest?: import('./channel-gain.js').ChannelGainRequest | null;
   /** Internal native-LoRA activation capture owned by the training operator. */
   trainingCapture?: {
     layerIdx: number;

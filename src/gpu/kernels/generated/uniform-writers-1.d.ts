@@ -12,6 +12,10 @@ export declare function write_soft_embedding_logits_norm_stats(view: DataView, v
 export declare function write_diffusion_gemma_sampling_entropy_stats(view: DataView, values: { "vocab_size": number; "canvas_length": number; "pad_token_id": number; "temperature": number; "logit_softcap": number }, kernel: string): void;
 export declare function write_rope_default(view: DataView, values: { "seq_len": number; "num_heads": number; "head_dim": number; "start_pos": number; "rope_base": number; "rope_scale": number; "rotary_dim": number; "interleaved": number; "pair_span_dim": number }, kernel: string): void;
 export declare function write_rope_qk_default(view: DataView, values: { "seq_len": number; "num_q_heads": number; "num_kv_heads": number; "head_dim": number; "start_pos": number; "rotary_dim": number; "interleaved": number; "pair_span_dim": number }, kernel: string): void;
+export declare function write_channel_energy_f32(view: DataView, values: { "channels": number; "start": number; "stop": number }, kernel: string): void;
+export declare function write_channel_gain_swiglu_f32(view: DataView, values: { "tokens": number; "channels": number; "clamp_max": number }, kernel: string): void;
+export declare function write_channel_gain_derive_f32(view: DataView, values: { "channels": number; "beta": number; "clip": number; "epsilon": number }, kernel: string): void;
+export declare function write_channel_gain_control_permuted(view: DataView, values: { "channels": number }, kernel: string): void;
 export declare function write_silu_default(view: DataView, values: { "size": number; "rowsplit_dim": number; "clamp_max": number }, kernel: string): void;
 export declare function write_gelu_gelu(view: DataView, values: { "size": number; "rowsplit_dim": number }, kernel: string): void;
 export declare function write_scale_default(view: DataView, values: { "count": number; "scale": number }, kernel: string): void;
@@ -56,7 +60,3 @@ export declare function write_matmul_backward_q4k_weight(view: DataView, values:
 export declare function write_matmul_transpose_a_default(view: DataView, values: { "M": number; "N": number; "K": number; "alpha": number }, kernel: string): void;
 export declare function write_scale_backward_default(view: DataView, values: { "size": number; "scale": number }, kernel: string): void;
 export declare function write_softmax_backward_default(view: DataView, values: { "rows": number; "cols": number }, kernel: string): void;
-export declare function write_attention_backward_default(view: DataView, values: { "rows": number; "cols": number; "causal": number }, kernel: string): void;
-export declare function write_rmsnorm_backward_default(view: DataView, values: { "num_tokens": number; "hidden_size": number; "eps": number }, kernel: string): void;
-export declare function write_gated_rmsnorm_backward_default(view: DataView, values: { "rows": number; "width": number; "eps": number }, kernel: string): void;
-export declare function write_causal_conv1d_silu_backward_default(view: DataView, values: { "num_tokens": number; "channels": number; "kernel_size": number }, kernel: string): void;

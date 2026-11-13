@@ -2,6 +2,34 @@
 // Do not edit; npm run kernels:uniforms:sync.
 import { writeU32, writeI32, writeF32 } from '../uniform-encoding.js';
 
+export function write_attention_backward_default(view, values, kernel) {
+  writeU32(view, 0, values["rows"], kernel, "rows");
+  writeU32(view, 4, values["cols"], kernel, "cols");
+  writeU32(view, 8, values["causal"], kernel, "causal");
+  view.setUint32(12, 0, true);
+}
+
+export function write_rmsnorm_backward_default(view, values, kernel) {
+  writeU32(view, 0, values["num_tokens"], kernel, "num_tokens");
+  writeU32(view, 4, values["hidden_size"], kernel, "hidden_size");
+  writeF32(view, 8, values["eps"], kernel, "eps");
+  view.setUint32(12, 0, true);
+}
+
+export function write_gated_rmsnorm_backward_default(view, values, kernel) {
+  writeU32(view, 0, values["rows"], kernel, "rows");
+  writeU32(view, 4, values["width"], kernel, "width");
+  writeF32(view, 8, values["eps"], kernel, "eps");
+  view.setUint32(12, 0, true);
+}
+
+export function write_causal_conv1d_silu_backward_default(view, values, kernel) {
+  writeU32(view, 0, values["num_tokens"], kernel, "num_tokens");
+  writeU32(view, 4, values["channels"], kernel, "channels");
+  writeU32(view, 8, values["kernel_size"], kernel, "kernel_size");
+  view.setUint32(12, 0, true);
+}
+
 export function write_gated_delta_recurrent_backward_default(view, values, kernel) {
   writeU32(view, 0, values["num_tokens"], kernel, "num_tokens");
   writeU32(view, 4, values["total_tokens"], kernel, "total_tokens");

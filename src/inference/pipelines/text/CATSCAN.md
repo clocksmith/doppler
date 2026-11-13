@@ -25,6 +25,8 @@ Execute manifest-declared transformer generation, embedding, reranking, and decl
 
 ## Invariants
 
+- Research channel-gain requests use isolated dense split-f32 SwiGLU state; reset clears requests.
+
 - Config resolution order and source attribution remain explicit.
 - Prefill and decode choices are resolved before adapter execution.
 - Load, reset, unload, abort, and failure paths release owned resources.

@@ -55,6 +55,16 @@
   ],
   "reviews": [
     {
+      "id": "src/inference/pipelines/text/channel-gain.js#freezeChannelGains",
+      "category": "observation",
+      "reason": "Copies gain buffers GPU-to-GPU into private storage, validates unchanged readback values as finite and positive, and hashes exact bytes. Readback is never modified or uploaded; WGSL derives all gains. Map insertion is resource ownership, not numeric compute."
+    },
+    {
+      "id": "src/inference/pipelines/text/channel-gain.js#createChannelGainRequest",
+      "category": "gpu-orchestration",
+      "reason": "Validates explicit layer and token-span metadata, tracks GPU tensor ownership in Maps, and dispatches registered WGSL reduction and fused SwiGLU operators. No CPU tensor arithmetic or transformed upload."
+    },
+    {
       "id": "src/loader/experts/routed-expert-cache.js#RoutedExpertCache.#prepareWorking",
       "category": "gpu-orchestration",
       "reason": "Allocates working GPU buffers from the declared packed-bank planes and records them in a Map. The detected looped set is Map.set, not a typed-array tensor write; host caching preserves unchanged artifact bytes and performs no tensor arithmetic."

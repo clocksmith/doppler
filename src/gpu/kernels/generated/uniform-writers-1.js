@@ -130,6 +130,34 @@ export function write_rope_qk_default(view, values, kernel) {
   writeU32(view, 28, values["pair_span_dim"], kernel, "pair_span_dim");
 }
 
+export function write_channel_energy_f32(view, values, kernel) {
+  writeU32(view, 0, values["channels"], kernel, "channels");
+  writeU32(view, 4, values["start"], kernel, "start");
+  writeU32(view, 8, values["stop"], kernel, "stop");
+  view.setUint32(12, 0, true);
+}
+
+export function write_channel_gain_swiglu_f32(view, values, kernel) {
+  writeU32(view, 0, values["tokens"], kernel, "tokens");
+  writeU32(view, 4, values["channels"], kernel, "channels");
+  writeF32(view, 8, values["clamp_max"], kernel, "clamp_max");
+  view.setUint32(12, 0, true);
+}
+
+export function write_channel_gain_derive_f32(view, values, kernel) {
+  writeU32(view, 0, values["channels"], kernel, "channels");
+  writeF32(view, 4, values["beta"], kernel, "beta");
+  writeF32(view, 8, values["clip"], kernel, "clip");
+  writeF32(view, 12, values["epsilon"], kernel, "epsilon");
+}
+
+export function write_channel_gain_control_permuted(view, values, kernel) {
+  writeU32(view, 0, values["channels"], kernel, "channels");
+  view.setUint32(4, 0, true);
+  view.setUint32(8, 0, true);
+  view.setUint32(12, 0, true);
+}
+
 export function write_silu_default(view, values, kernel) {
   writeU32(view, 0, values["size"], kernel, "size");
   writeU32(view, 4, values["rowsplit_dim"], kernel, "rowsplit_dim");
@@ -570,33 +598,5 @@ export function write_softmax_backward_default(view, values, kernel) {
   writeU32(view, 0, values["rows"], kernel, "rows");
   writeU32(view, 4, values["cols"], kernel, "cols");
   view.setUint32(8, 0, true);
-  view.setUint32(12, 0, true);
-}
-
-export function write_attention_backward_default(view, values, kernel) {
-  writeU32(view, 0, values["rows"], kernel, "rows");
-  writeU32(view, 4, values["cols"], kernel, "cols");
-  writeU32(view, 8, values["causal"], kernel, "causal");
-  view.setUint32(12, 0, true);
-}
-
-export function write_rmsnorm_backward_default(view, values, kernel) {
-  writeU32(view, 0, values["num_tokens"], kernel, "num_tokens");
-  writeU32(view, 4, values["hidden_size"], kernel, "hidden_size");
-  writeF32(view, 8, values["eps"], kernel, "eps");
-  view.setUint32(12, 0, true);
-}
-
-export function write_gated_rmsnorm_backward_default(view, values, kernel) {
-  writeU32(view, 0, values["rows"], kernel, "rows");
-  writeU32(view, 4, values["width"], kernel, "width");
-  writeF32(view, 8, values["eps"], kernel, "eps");
-  view.setUint32(12, 0, true);
-}
-
-export function write_causal_conv1d_silu_backward_default(view, values, kernel) {
-  writeU32(view, 0, values["num_tokens"], kernel, "num_tokens");
-  writeU32(view, 4, values["channels"], kernel, "channels");
-  writeU32(view, 8, values["kernel_size"], kernel, "kernel_size");
   view.setUint32(12, 0, true);
 }

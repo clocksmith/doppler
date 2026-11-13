@@ -294,6 +294,11 @@ export interface KernelUniformValues {
   "rope_qk/default": Parameters<typeof writers1.write_rope_qk_default>[1];
   "rope_qk/default_f16": Parameters<typeof writers1.write_rope_qk_default>[1];
   "rope_qk/paired": Parameters<typeof writers1.write_rope_qk_default>[1];
+  "channel_energy/f32": Parameters<typeof writers1.write_channel_energy_f32>[1];
+  "channel_gain_swiglu/f32": Parameters<typeof writers1.write_channel_gain_swiglu_f32>[1];
+  "channel_gain_derive/f32": Parameters<typeof writers1.write_channel_gain_derive_f32>[1];
+  "channel_gain_control/permuted": Parameters<typeof writers1.write_channel_gain_control_permuted>[1];
+  "channel_gain_control/random_z": Parameters<typeof writers1.write_channel_gain_control_permuted>[1];
   "silu/default": Parameters<typeof writers1.write_silu_default>[1];
   "silu/default_f16": Parameters<typeof writers1.write_silu_default>[1];
   "gelu/gelu": Parameters<typeof writers1.write_gelu_gelu>[1];
@@ -413,10 +418,10 @@ export interface KernelUniformValues {
   "gelu_backward/default": Parameters<typeof writers1.write_cast_f32_to_f16>[1];
   "scale_backward/default": Parameters<typeof writers1.write_scale_backward_default>[1];
   "softmax_backward/default": Parameters<typeof writers1.write_softmax_backward_default>[1];
-  "attention_backward/default": Parameters<typeof writers1.write_attention_backward_default>[1];
-  "rmsnorm_backward/default": Parameters<typeof writers1.write_rmsnorm_backward_default>[1];
-  "gated_rmsnorm_backward/default": Parameters<typeof writers1.write_gated_rmsnorm_backward_default>[1];
-  "causal_conv1d_silu_backward/default": Parameters<typeof writers1.write_causal_conv1d_silu_backward_default>[1];
+  "attention_backward/default": Parameters<typeof writers2.write_attention_backward_default>[1];
+  "rmsnorm_backward/default": Parameters<typeof writers2.write_rmsnorm_backward_default>[1];
+  "gated_rmsnorm_backward/default": Parameters<typeof writers2.write_gated_rmsnorm_backward_default>[1];
+  "causal_conv1d_silu_backward/default": Parameters<typeof writers2.write_causal_conv1d_silu_backward_default>[1];
   "gated_delta_recurrent_backward/default": Parameters<typeof writers2.write_gated_delta_recurrent_backward_default>[1];
   "layernorm_backward/default": Parameters<typeof writers1.write_layernorm_default>[1];
   "rope_backward/default": Parameters<typeof writers2.write_rope_backward_default>[1];

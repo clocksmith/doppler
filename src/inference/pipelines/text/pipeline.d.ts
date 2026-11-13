@@ -219,6 +219,7 @@ export declare class InferencePipeline extends PipelineState {
 
   getActiveLoRA(): LoRAAdapter | null;
 
+  beginChannelGainRequest(spec: import('./channel-gain.js').ChannelGainSpec): import('./channel-gain.js').ChannelGainRequest;
   reset(): void;
 
   releaseGPUResources(): void;

@@ -164,6 +164,7 @@ export function buildLayerContext(
     layerRouterWeights: state.layerRouterWeights,
     recorder,
     lora: state.lora,
+    channelGainRequest: state.channelGainRequest,
     decodeBuffers: isDecodeMode && state.decodeBuffers?.hasBuffers() ? state.decodeBuffers : null,
     runtimeComputeConfig: effectiveComputeConfig,
     runtimeMoERoutingConfig: config.useMoE ? { ...state.runtimeConfig.inference.moe?.routing } : undefined,

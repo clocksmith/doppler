@@ -20,7 +20,7 @@ export function assertPreparedDecodeWorkspaceCompatible(context) {
     && resolveMoeExecutionProfile(context.config, { modelType: context.config.modelType }).supportsPreparedDecode === true;
   if (!context.decodeBuffers || context.activationDtype !== 'f32' || context.activationPrecision === 'two-f32'
       || (context.config.useMoE && !preparedMoE) || context.lora
-      || context.operatorDiagnostics || context.trainingCapture || context.debugProbes?.length) {
+      || context.operatorDiagnostics || context.trainingCapture || context.channelGainRequest || context.debugProbes?.length) {
     throw new Error('Prepared decode workspace requires dense or supported GPU-route MoE F32 buffers without training, LoRA or diagnostics.');
   }
 }

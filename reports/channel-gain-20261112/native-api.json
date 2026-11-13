@@ -1,0 +1,60 @@
+{
+  "scope": "Internal incremental dense split ordinary f32 SwiGLU research requests; not signed Capsule/model qualification",
+  "imports": {
+    "request": "src/inference/pipelines/text/channel-gain.js",
+    "operators": "src/gpu/kernels/channel-gain.js"
+  },
+  "captureOrder": [
+    "pipeline.resetGenerationState()",
+    "request = pipeline.beginChannelGainRequest({mode:\"capture\",requestId,gainHash:\"\",cacheArm:\"base-cache\",tokenCount,span:{start,stop,templatePositions},layers:[{layerIdx,channels}]})",
+    "prefill = await pipeline.prefillWithLogits(\"\", {inputIds: exactIds,useChatTemplate:false,...frozenGenerationSettings})",
+    "energies = request.takeEnergies() after prefill completion transfers owned GPU tensors",
+    "pipeline.resetGenerationState() closes and clears request; caller retains transferred energies"
+  ],
+  "deriveFreeze": [
+    "Fresh reference prefill with its independently declared exact span; never slice old hidden states after removing instruction.",
+    "deriveChannelGains(null,instructionEnergy,referenceEnergy,{channels,beta,clip,epsilon}) produces GPU tensor.",
+    "Await submitted work; freezeChannelGains([{layerIdx,channels,gains}]) copies into private GPU storage, validates finite positive values, hashes bytes.",
+    "Both cache arms borrow the SAME opaque frozen handle; close requests before frozen.close()."
+  ],
+  "baseCacheOrder": [
+    "Reset sequence, perform unmodified full prefillWithLogits.",
+    "Attach apply request with cacheArm:\"base-cache\", frozenGains:handle and gainHash:handle.gainHash.",
+    "Sample first token from BASE prefill logits.",
+    "For each continuation use decodeStepLogits with exact accumulated prefix per pipeline contract.",
+    "Capture teacher-forced cache diagnostics separately from natural samples. Reset closes request."
+  ],
+  "rePrefillOrder": [
+    "Reset all sequence state.",
+    "Attach apply request cacheArm:\"re-prefill\" with same frozen handle and hash.",
+    "Perform full prefillWithLogits; do not recalculate statistics/gains.",
+    "First logits come from transformed full prefill; subsequent single-token decode uses same gains.",
+    "Reset closes request."
+  ],
+  "controls": [
+    "controlChannelGains(recorderOrNull,sourceGains,{channels,mode:\"permuted\",seeds:GPUBuffer}) consumes independent SHA u32 permutation indices.",
+    "mode:\"random-z\" consumes independent SHA uniform f32 seed values; shader centers them, matches RMS(log(sourceGains)), exponentiates.",
+    "No readback/CPU-transform/upload of gains; host seeds never depend on model tensors.",
+    "Control outputs remain caller-owned; settle then freeze using same opaque API."
+  ],
+  "unsupported": [
+    "MoE, ungated or non-SiLU activation, paired/f16 activations, combined gateUp weights and fused gate/up paths",
+    "LoRA simultaneous with channel gains; trained adapter comparator uses separate requests",
+    "Chunked or reused-prefix capture/re-prefill; exact full prompt required",
+    "Prepared decode workspace with active channel-gain request",
+    "General streaming generate() with attached request: use explicit incremental prefill/decode order",
+    "Attaching/resetting gains during active generation or supported incremental operations"
+  ],
+  "cacheObservation": [
+    "Contiguous kvCache: await syncToCPU(); use kv.layerIndices for model-index mapping and copy only seqLen*kvSize valid elements from each local layer.",
+    "Paged/other cache layouts require separate supported extraction; missing buffers are unavailable, never zero.",
+    "cloneLinearAttentionRuntime from linear-attention.js synchronizes and copies per-layer convState/recurrentState including precision/components metadata.",
+    "Compare same forced prefix and report KV, recurrent state and output/logits separately."
+  ],
+  "remaining": [
+    "Full exact-model source/runtime/adapter provisioning and identity checks",
+    "End-to-end smoke/control/comparator orchestration and measured model timing",
+    "Model-state cache comparison under same forced prefix",
+    "Frozen selection/confirmation campaign under declared budget; no toy success establishes it."
+  ]
+}

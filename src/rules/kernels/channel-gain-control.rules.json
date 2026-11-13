@@ -1,0 +1,6 @@
+{
+  "variant": [
+    { "match": { "mode": "permuted" }, "value": "permuted" },
+    { "match": { "mode": "random-z" }, "value": "random_z" }
+  ]
+}

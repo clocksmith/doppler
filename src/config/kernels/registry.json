@@ -22400,6 +22400,279 @@
     }
    }
   },
+  "channel_energy": {
+   "description": "Experimental first MLP channel-gain operator; qualification pending",
+   "baseBindings": [
+    {
+     "index": 0,
+     "name": "uniforms",
+     "type": "uniform"
+    },
+    {
+     "index": 1,
+     "name": "input",
+     "type": "read-only-storage"
+    },
+    {
+     "index": 2,
+     "name": "output",
+     "type": "storage"
+    }
+   ],
+   "baseUniforms": {
+    "size": 16,
+    "fields": [
+     {
+      "name": "channels",
+      "type": "u32",
+      "offset": 0
+     },
+     {
+      "name": "start",
+      "type": "u32",
+      "offset": 4
+     },
+     {
+      "name": "stop",
+      "type": "u32",
+      "offset": 8
+     },
+     {
+      "name": "_pad",
+      "type": "u32",
+      "offset": 12,
+      "padding": true
+     }
+    ]
+   },
+   "variants": {
+    "f32": {
+     "wgsl": "channel_energy.wgsl",
+     "entryPoint": "main",
+     "workgroup": [256,1,1],
+     "requires": [],
+     "reachability": {
+      "status": "code-dispatched",
+      "inlineConfigs": [],
+      "ruleChains": [],
+      "wgslOnDisk": true
+     }
+    }
+   }
+  },
+  "channel_gain_swiglu": {
+   "description": "Experimental first MLP channel-gain operator; qualification pending",
+   "baseBindings": [
+    {
+     "index": 0,
+     "name": "uniforms",
+     "type": "uniform"
+    },
+    {
+     "index": 1,
+     "name": "up",
+     "type": "read-only-storage"
+    },
+    {
+     "index": 2,
+     "name": "gate",
+     "type": "read-only-storage"
+    },
+    {
+     "index": 3,
+     "name": "gains",
+     "type": "read-only-storage"
+    },
+    {
+     "index": 4,
+     "name": "output",
+     "type": "storage"
+    }
+   ],
+   "baseUniforms": {
+    "size": 16,
+    "fields": [
+     {
+      "name": "tokens",
+      "type": "u32",
+      "offset": 0
+     },
+     {
+      "name": "channels",
+      "type": "u32",
+      "offset": 4
+     },
+     {
+      "name": "clamp_max",
+      "type": "f32",
+      "offset": 8
+     },
+     {
+      "name": "_pad",
+      "type": "u32",
+      "offset": 12,
+      "padding": true
+     }
+    ]
+   },
+   "variants": {
+    "f32": {
+     "wgsl": "channel_gain_swiglu.wgsl",
+     "entryPoint": "main",
+     "workgroup": [256,1,1],
+     "requires": [],
+     "reachability": {
+      "status": "code-dispatched",
+      "inlineConfigs": [],
+      "ruleChains": [],
+      "wgslOnDisk": true
+     }
+    }
+   }
+  },
+  "channel_gain_derive": {
+   "description": "Experimental clipped and log-centered channel gains",
+   "baseBindings": [
+    {
+     "index": 0,
+     "name": "uniforms",
+     "type": "uniform"
+    },
+    {
+     "index": 1,
+     "name": "instruction",
+     "type": "read-only-storage"
+    },
+    {
+     "index": 2,
+     "name": "reference",
+     "type": "read-only-storage"
+    },
+    {
+     "index": 3,
+     "name": "output",
+     "type": "storage"
+    }
+   ],
+   "baseUniforms": {
+    "size": 16,
+    "fields": [
+     {
+      "name": "channels",
+      "type": "u32",
+      "offset": 0
+     },
+     {
+      "name": "beta",
+      "type": "f32",
+      "offset": 4
+     },
+     {
+      "name": "clip",
+      "type": "f32",
+      "offset": 8
+     },
+     {
+      "name": "epsilon",
+      "type": "f32",
+      "offset": 12
+     }
+    ]
+   },
+   "variants": {
+    "f32": {
+     "wgsl": "channel_gain_derive.wgsl",
+     "entryPoint": "main",
+     "workgroup": [256,1,1],
+     "requires": [],
+     "reachability": {
+      "status": "code-dispatched",
+      "inlineConfigs": [],
+      "ruleChains": [],
+      "wgslOnDisk": true
+     }
+    }
+   }
+  },
+  "channel_gain_control": {
+   "description": "Native permuted gain and matched-log-RMS random-z controls",
+   "baseBindings": [
+    {
+     "index": 0,
+     "name": "uniforms",
+     "type": "uniform"
+    },
+    {
+     "index": 1,
+     "name": "gains",
+     "type": "read-only-storage"
+    },
+    {
+     "index": 2,
+     "name": "seeds",
+     "type": "read-only-storage"
+    },
+    {
+     "index": 3,
+     "name": "output",
+     "type": "storage"
+    }
+   ],
+   "baseUniforms": {
+    "size": 16,
+    "fields": [
+     {
+      "name": "channels",
+      "type": "u32",
+      "offset": 0
+     },
+     {
+      "name": "_pad0",
+      "type": "u32",
+      "offset": 4,
+      "padding": true
+     },
+     {
+      "name": "_pad1",
+      "type": "u32",
+      "offset": 8,
+      "padding": true
+     },
+     {
+      "name": "_pad2",
+      "type": "u32",
+      "offset": 12,
+      "padding": true
+     }
+    ]
+   },
+   "variants": {
+    "permuted": {
+     "wgsl": "channel_gain_control.wgsl",
+     "entryPoint": "permuted",
+     "workgroup": [256,1,1],
+     "requires": [],
+     "reachability": {
+      "status": "selectable",
+      "inlineConfigs": [],
+      "ruleChains": ["channel-gain-control.rules.json#variant"],
+      "wgslOnDisk": true
+     }
+    },
+    "random_z": {
+     "wgsl": "channel_gain_control.wgsl",
+     "entryPoint": "random_z",
+     "workgroup": [256,1,1],
+     "requires": [],
+     "reachability": {
+      "status": "selectable",
+      "inlineConfigs": [],
+      "ruleChains": ["channel-gain-control.rules.json#variant"],
+      "wgslOnDisk": true
+     }
+    }
+   }
+  },
   "silu": {
    "description": "SiLU activation kernels",
    "baseBindings": [

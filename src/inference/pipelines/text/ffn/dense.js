@@ -61,6 +61,10 @@ export async function runDenseFFNGPU(
   context,
   layerWeights
 ) {
+  const channelGain = context.channelGainRequest?.has(layerIdx) ? context.channelGainRequest : null;
+  if (channelGain && (inputTensor.precision !== undefined || layerWeights?.gateUp)) {
+    throw new Error('Channel gain requires split ordinary f32 SwiGLU.');
+  }
   if (inputTensor.precision !== undefined) {
     return runPairedFFNGPU(layerIdx, inputTensor, numTokens, context, layerWeights);
   }
@@ -70,6 +74,7 @@ export async function runDenseFFNGPU(
   const { config, recorder } = context;
   const { hiddenSize, hiddenActivation, swigluLimit, useDoubleWideMlp } = config;
   const intermediateSize = resolveLayerIntermediateSize(config, layerIdx);
+  channelGain?.validateLayer(layerIdx, context, numTokens, intermediateSize);
   const lastTokenIdx = Math.max(0, numTokens - 1);
   const lora = context.lora || null;
   const ffnStepPrecision = context.ffnStepPrecision ?? null;
@@ -345,6 +350,7 @@ export async function runDenseFFNGPU(
     `largeBatchF16F32FusedGateUp=${context.useLargeBatchF16F32FusedGateUp === true} batchSize=${numTokens}`
   );
 
+  if (channelGain && useFusedGateUp) throw new Error('Channel gain requires an explicit split gate/up execution path.');
   if (useFusedGateUp) {
     const {
       fusedGateUpInputDtype,
@@ -795,7 +801,9 @@ export async function runDenseFFNGPU(
   enqueueRecordedDenseHealth(context, layerIdx, 'ffn_gate', gateOutput, numTokens * intermediateSize);
   enqueueRecordedDenseHealth(context, layerIdx, 'ffn_up', upOutput, numTokens * intermediateSize);
 
-  const activatedOutput = await dispatchActivation(hiddenActivation, upOutput, {
+  const activatedOutput = channelGain?.mode === 'apply'
+    ? await channelGain.activate(layerIdx, upOutput, gateOutput, numTokens, intermediateSize, swigluLimit, recorder ?? null)
+    : await dispatchActivation(hiddenActivation, upOutput, {
     kernelPath,
     phase,
     size: numTokens * intermediateSize,
@@ -824,6 +832,7 @@ export async function runDenseFFNGPU(
     operatorDiagnostics: context.operatorDiagnostics,
     dtype: activatedOutput.dtype,
   });
+  await channelGain?.capture(layerIdx, activatedOutput, numTokens, intermediateSize, recorder ?? null);
   enqueueRecordedDenseHealth(context, layerIdx, 'ffn_act', activatedOutput, numTokens * intermediateSize);
   await captureTrainingActivation(context, layerIdx, activatedOutput, numTokens, intermediateSize);
 

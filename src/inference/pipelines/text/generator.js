@@ -123,6 +123,8 @@ export class PipelineGenerator {
     if (this._state.isGenerating) {
       throw new Error('InferencePipeline.resetGenerationState: cannot reset while generation is in progress');
     }
+    this._state.channelGainRequest?.close();
+    this._state.channelGainRequest = null;
     this._resetReplayPrefillRuntimeState();
     this._resetDecodeRuntimeState();
   }

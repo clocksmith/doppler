@@ -133,6 +133,7 @@ export class PipelineState {
 
   // LoRA adapter (optional)
   lora: LoRAAdapter | null;
+  channelGainRequest: import('./channel-gain.js').ChannelGainRequest | null;
   revocationIdentity: {
     logicalModelId?: string | null;
     modelId?: string | null;

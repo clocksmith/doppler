@@ -1,0 +1,135 @@
+{
+  "schema": "doppler-channel-gain-native-development/v1",
+  "recordedAtUtc": "2026-11-13T02:18:14.583812+00:00",
+  "baseCommit": "1c796e618de0d3c725227ae609baf33431b12536",
+  "workingTreeChanges": true,
+  "classification": "operator-and-request-development-evidence",
+  "modelRequests": 0,
+  "modelConfirmation": false,
+  "physical": {
+    "test": "channel-gain-physical",
+    "passed": true,
+    "adapter": {
+      "vendor": "apple",
+      "architecture": "metal-3",
+      "device": "apple-m3",
+      "description": "Metal driver on macOS Version 26.6.2 (Build 25G83)",
+      "subgroupMinSize": 32,
+      "subgroupMaxSize": 32
+    },
+    "providerReceipt": {
+      "schema": "doe.webgpu-provider-receipt/v1",
+      "contract": "doe.webgpu-provider/v1",
+      "implementation": "doppler",
+      "providers": [
+        {
+          "id": "pre-installed",
+          "kind": "global"
+        },
+        {
+          "id": "webgpu",
+          "kind": "module",
+          "module": "webgpu",
+          "gpu": {
+            "kind": "factory",
+            "path": "create",
+            "args": [
+              [
+                "enable-dawn-features=allow_unsafe_apis"
+              ]
+            ]
+          },
+          "globals": {
+            "GPUBufferUsage": "globals.GPUBufferUsage",
+            "GPUShaderStage": "globals.GPUShaderStage",
+            "GPUMapMode": "globals.GPUMapMode",
+            "GPUTextureUsage": "globals.GPUTextureUsage"
+          }
+        }
+      ],
+      "providerOrder": [
+        "pre-installed",
+        "webgpu"
+      ],
+      "adapterOptions": null,
+      "globals": {
+        "mode": "replace",
+        "installed": [
+          "GPUBufferUsage",
+          "GPUShaderStage",
+          "GPUMapMode",
+          "GPUTextureUsage",
+          "navigator.gpu"
+        ],
+        "restored": false
+      },
+      "attempts": [
+        {
+          "providerId": "pre-installed",
+          "kind": "global",
+          "module": null,
+          "ok": false,
+          "stage": "gpu.validate",
+          "code": "DOPPLER_PROVIDER_UNAVAILABLE",
+          "detail": "Selected provider does not expose GPU.requestAdapter()."
+        },
+        {
+          "providerId": "webgpu",
+          "kind": "module",
+          "module": "webgpu",
+          "ok": true,
+          "stage": "complete",
+          "code": null,
+          "detail": null
+        }
+      ],
+      "selectedProviderId": "webgpu",
+      "ok": true
+    },
+    "timings": [
+      {
+        "transport": "immediate",
+        "wallMsIncludingReadback": 5.069333999999998
+      },
+      {
+        "transport": "recorded",
+        "wallMsIncludingReadback": 1.9872499999999889
+      }
+    ],
+    "totalWallMs": 111.97566600000002,
+    "evidence": "Toy kernel numerical validation only; no model, cache comparison, selection or confirmation. Coexists with desktop services; timing is not a latency claim."
+  },
+  "checksExercised": [
+    "Exact instruction-span per-channel post-SwiGLU squared energy",
+    "Clipped ratio then centered log gains for both beta signs",
+    "Fused SwiGLU multiply immediate and recorded transports",
+    "Opaque copied GPU gains: source mutation cannot alter applied values",
+    "Private gain byte hash against independent Node SHA256",
+    "Same frozen gain handle for re-prefill and base-cache decode request roles",
+    "Active owner close and forged/closed handle rejection",
+    "Nonpositive/invalid derived gains rejected before application",
+    "GPU permuted gain preserves values and source unchanged",
+    "GPU random-z centers independent seed vector and matches log RMS",
+    "Actual runDenseFFNGPU split capture path transfers correct energies",
+    "Actual runDenseFFNGPU split apply path changes projection output, base weights unchanged"
+  ],
+  "developmentFailuresResolved": [
+    "Initial derive shader constant NaN rejected by WGSL compiler; invalid-input flag and zero sentinel now rejected at freeze boundary.",
+    "Direct integration review found capture inserted in unsupported gateUp branch; moved to split path and added real tiny dense GPU integration assertion."
+  ],
+  "timingLimits": [
+    "Physical stdout wall timings include setup/readback and differing shader cache warmth.",
+    "Mac desktop browser and fleet coordinator remained live; no services touched.",
+    "No model smoke, end-to-end overhead, model ETA or experimental confirmation inferred."
+  ],
+  "sourceSha256": {
+    "src/gpu/kernels/channel-gain.js": "a17a88f4311810bab0c47fdd13c77b8aee9d42c954b89e09ea0a655b6436adcf",
+    "src/gpu/kernels/channel_energy.wgsl": "1708d4be209a8b444e0096ff6984c198e96903740036789a615508065f886c60",
+    "src/gpu/kernels/channel_gain_derive.wgsl": "bb8f6544efd337ceff5293d2bb0c69203914b150990f482bc7fda0f549cdc5cc",
+    "src/gpu/kernels/channel_gain_swiglu.wgsl": "33f2841dcbd2122110cbdfc32b6d9417bab35b429bc0b2b7e173435f1c0cb6fd",
+    "src/gpu/kernels/channel_gain_control.wgsl": "464a66f061376ab7c316efd3234f9216c6fc4a720ba19d44e84be2383aba9aaa",
+    "src/inference/pipelines/text/channel-gain.js": "862102e1fad00185667a30d11a3fca51b41ab649c34f85fba46f82c5e125f62b",
+    "src/inference/pipelines/text/ffn/dense.js": "958c354e11bb0c47529510cf86d012bcedcf3ea2859bb2e8d12a6a8ba63fb490",
+    "tests/kernels/channel-gain-physical.test.js": "7fec72670956ed008d5097d6fe2606d7a0eb73c2b44d61f8706d23e918429cd2"
+  }
+}

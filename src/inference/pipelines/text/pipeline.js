@@ -11,6 +11,7 @@ import { applyPipelineContexts, restorePipelineContexts } from '../context.js';
 import { createInitializedPipeline } from '../factory.js';
 
 // Pipeline sub-modules
+import { createChannelGainRequest, assertChannelGainIdle, withChannelGainOperation } from './channel-gain.js';
 import { PipelineState } from './state.js';
 import { PipelineGenerator } from './generator.js';
 import { createGenerationContext, closeGenerationContexts, supportsGenerationContext } from './sequence-state.js';
@@ -251,12 +252,13 @@ export class InferencePipeline extends PipelineState {
   }
 
   resetGenerationState() {
+    assertChannelGainIdle(this);
     return this.generator.resetGenerationState();
   }
 
   decodeStepLogits(currentIds, options = {}) {
     assertNotAborted(options?.signal);
-    return this.generator.decodeStepLogits(currentIds, options);
+    return withChannelGainOperation(this, () => this.generator.decodeStepLogits(currentIds, options));
   }
 
   beginDiagnosticSequence(options = {}) {
@@ -289,7 +291,7 @@ export class InferencePipeline extends PipelineState {
 
   prefillKVOnly(prompt, options = {}) {
     assertNotAborted(options?.signal);
-    return this.generator.prefillKVOnly(prompt, options);
+    return withChannelGainOperation(this, () => this.generator.prefillKVOnly(prompt, options));
   }
 
   prefillForLoRATraining(inputIds, options) {
@@ -350,7 +352,7 @@ export class InferencePipeline extends PipelineState {
 
   prefillWithLogits(prompt, options = {}) {
     if (this.modelConfig?.hyperConnections) throw new Error('[HyperConnection] prefillWithLogits requires complete composite-state support and is not supported.');
-    return this.generator.prefillWithLogits(prompt, options);
+    return withChannelGainOperation(this, () => this.generator.prefillWithLogits(prompt, options));
   }
 
   prefillWithTokenLogits(prompt, tokenIds, options = {}) {
@@ -553,6 +555,7 @@ export class InferencePipeline extends PipelineState {
   }
 
   setLoRAAdapter(adapter) {
+    if (this.channelGainRequest) throw new Error('Close the channel gain request before changing LoRA.');
     if (this.modelConfig?.hyperConnections) throw new Error('[HyperConnection] LoRA is not supported.');
     if (this.isGenerating) throw new Error('Cannot change LoRA adapter while generation is in progress.');
     if (this.isLoaded === false) throw new Error('Cannot change LoRA adapter on an unloaded pipeline.');
@@ -564,7 +567,20 @@ export class InferencePipeline extends PipelineState {
     return this.lora;
   }
 
+  beginChannelGainRequest(spec) {
+    assertChannelGainIdle(this);
+    if (!this.isLoaded) throw new Error('Channel gain requires a loaded pipeline.');
+    if (this.lora) throw new Error('Channel gain and LoRA must run as separate comparator requests.');
+    if (this.channelGainRequest) throw new Error('Close the previous channel gain request before attaching another.');
+    if (this.modelConfig?.useMoE) throw new Error('Channel gain does not support MoE.');
+    this.channelGainRequest = createChannelGainRequest(spec);
+    return this.channelGainRequest;
+  }
+
   reset() {
+    if (this.channelGainRequest) assertChannelGainIdle(this);
+    this.channelGainRequest?.close();
+    this.channelGainRequest = null;
     this.hyperConnectionSession?.reset();
     this.kvCache?.clear();
     this.linearAttentionRuntime = resetLinearAttentionSequence(this.linearAttentionRuntime);
@@ -589,6 +605,9 @@ export class InferencePipeline extends PipelineState {
   }
 
   resetForBatch() {
+    if (this.channelGainRequest) assertChannelGainIdle(this);
+    this.channelGainRequest?.close();
+    this.channelGainRequest = null;
     this.hyperConnectionSession?.reset();
     this.kvCache?.clear();
     this.linearAttentionRuntime = resetLinearAttentionSequence(this.linearAttentionRuntime);
@@ -599,6 +618,8 @@ export class InferencePipeline extends PipelineState {
   }
 
   releaseGPUResources() {
+    this.channelGainRequest?.close();
+    this.channelGainRequest = null;
     this.wholeTokenProgram?.program.destroy();
     this.wholeTokenProgram = null;
     this.decodeBuffers?.release();
