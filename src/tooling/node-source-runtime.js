@@ -447,20 +447,27 @@ async function parseLiteRTPackageInput(packagePath, sourceKind, fileAccess) {
 }
 
 async function parseGgufInput(ggufPath, fileAccess) {
-  const ggufStats = await getPathStats(ggufPath, 'GGUF file');
-  const fileSize = Number(ggufStats.size);
-  const ggufSource = {
-    sourceType: 'node-file',
-    name: path.basename(ggufPath),
-    size: fileSize,
-    file: {
-      name: path.basename(ggufPath),
+  const inputPaths = Array.isArray(ggufPath) ? ggufPath : [ggufPath];
+  const sources = [];
+  for (const sourcePath of inputPaths) {
+    const ggufStats = await getPathStats(sourcePath, 'GGUF file');
+    if (!ggufStats.isFile()) throw new Error(`GGUF source is not a regular file: ${sourcePath}.`);
+    const fileSize = Number(ggufStats.size);
+    sources.push({
+      sourceType: 'node-file',
+      sourcePath,
+      name: path.basename(sourcePath),
       size: fileSize,
-    },
-    async readRange(offset, length) {
-      return fileAccess.readRange(ggufPath, offset, length);
-    },
-  };
+      file: {
+        name: path.basename(sourcePath),
+        size: fileSize,
+      },
+      async readRange(offset, length) {
+        return fileAccess.readRange(sourcePath, offset, length);
+      },
+    });
+  }
+  const ggufSource = sources[0];
 
   const parseGGUFHeaderFromSource = async (source) => {
     const resolved = source && typeof source.readRange === 'function' ? source : ggufSource;
@@ -475,27 +482,24 @@ async function parseGgufInput(ggufPath, fileAccess) {
 
   const parsed = await parseGGUFModel({
     file: ggufSource,
+    files: sources,
     parseGGUFHeaderFromSource,
-    normalizeTensorSource(source) {
-      if (source && typeof source.readRange === 'function' && Number.isFinite(source.size)) {
-        return source;
-      }
-      return ggufSource;
-    },
+    // Every source above is already a bounded Node file reader.
+    normalizeTensorSource: source => source,
     onProgress() {},
     signal: null,
   });
 
   const tensors = parsed.tensors.map((tensor) => ({
     ...tensor,
-    sourcePath: ggufPath,
+    sourcePath: tensor.source.sourcePath,
   }));
 
   return {
     sourceKind: 'gguf',
     modelType: parsed.modelType, excludedTensors: parsed.excludedTensors,
-    sourceRoot: path.dirname(ggufPath),
-    sourcePathForModelId: ggufPath,
+    sourceRoot: path.dirname(parsed.source.sourcePath),
+    sourcePathForModelId: parsed.source.sourcePath,
     config: parsed.config,
     tensors,
     architectureHint: parsed.architecture,
@@ -508,7 +512,7 @@ async function parseGgufInput(ggufPath, fileAccess) {
     tokenizerJsonPath: parsed.tokenizerJson ? '@gguf/tokenizer.json' : null,
     tokenizerConfigPath: null,
     tokenizerModelPath: null,
-    sourceFiles: [{ path: ggufPath, size: fileSize }],
+    sourceFiles: sources.map(source => ({ path: source.sourcePath, size: source.size })),
     auxiliaryFiles: [],
   };
 }
@@ -668,15 +672,11 @@ export async function resolveNodeSourceRuntimeBundle(options = {}) {
       if (!parsed) {
         const entries = await fs.readdir(resolvedInputPath, { withFileTypes: true });
         const ggufFiles = entries
-          .filter((entry) => entry.isFile() && isGgufPath(entry.name))
+          .filter((entry) => (entry.isFile() || entry.isSymbolicLink()) && isGgufPath(entry.name))
           .map((entry) => entry.name)
           .sort((left, right) => left.localeCompare(right));
-        if (ggufFiles.length === 1) {
-          parsed = await parseGgufInput(path.join(resolvedInputPath, ggufFiles[0]), fileAccess);
-        } else if (ggufFiles.length > 1) {
-          throw new Error(
-            `node source runtime: multiple GGUF files found in "${resolvedInputPath}": ${ggufFiles.join(', ')}.`
-          );
+        if (ggufFiles.length > 0) {
+          parsed = await parseGgufInput(ggufFiles.map(name => path.join(resolvedInputPath, name)), fileAccess);
         }
         if (!parsed) {
           const tfliteFiles = entries

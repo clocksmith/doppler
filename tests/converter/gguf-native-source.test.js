@@ -51,4 +51,35 @@ const preservedNorm = transformTensorBytes({
 }, normBytes, { targetQuant: 'q4_0', quantizationInfo: { preserveSourceTensors: true } });
 assert.equal(preservedNorm.outDtype, 'F32');
 assert.deepEqual(preservedNorm.tensorData, normBytes, 'Source preservation must not subtract one from GGUF norm weights');
+
+// Split metadata is a complete-set contract, not permission to concatenate
+// arbitrary GGUF files. Tensor byte offsets stay relative to their own source.
+const first = { ...source, name: 'part0', file: { name: 'part0' } };
+const second = { ...source, name: 'part1', file: { name: 'part1' } };
+const headers = new Map([
+ [first, { architecture: 'qwen35moe', metadata: { ...metadata, 'split.no': 0, 'split.count': 2, 'split.tensors.count': 2 },
+   config: {}, tensors: [{ name: 'blk.0.attn_norm.weight', dtype: 'F32', shape: [32], offset: 128, size: 128 }], quantization: 'Q4_0' }],
+ [second, { architecture: 'unknown', metadata: { 'split.no': 1, 'split.count': 2, 'split.tensors.count': 2 },
+   config: {}, tensors: [{ name: 'blk.1.attn_norm.weight', dtype: 'F32', shape: [32], offset: 256, size: 128 }] }],
+]);
+const parseSplit = (files, edits = new Map()) => parseGGUFModel({ file: files[0], files,
+ normalizeTensorSource: value => value, parseGGUFHeaderFromSource: async value => edits.get(value) ?? headers.get(value) });
+const split = await parseSplit([second, first]);
+assert.equal(split.architecture, 'qwen35moe');
+assert.equal(split.source, first);
+assert.equal(split.tokenizerJson.model.vocab['<|im_end|>'], 2);
+assert.equal(split.tensors[0].source, first);
+assert.equal(split.tensors[1].source, second);
+assert.equal(split.tensors[1].file, second.file);
+assert.equal(split.tensors[1].offset, 256);
+await assert.rejects(parseSplit([first]), /every declared part/);
+await assert.rejects(parseSplit([first, first]), /duplicate/);
+await assert.rejects(parseSplit([first, second], new Map([[second, { ...headers.get(second),
+ metadata: { ...headers.get(second).metadata, 'split.tensors.count': 3 } }]])), /inconsistent/);
+await assert.rejects(parseSplit([first, second], new Map([[second, { ...headers.get(second), tensors: [] }]])), /tensor count/);
+await assert.rejects(parseSplit([first, second], new Map([[second, { ...headers.get(second), tensors: headers.get(first).tensors }]])), /duplicate tensor/);
+await assert.rejects(parseSplit([first, second], new Map([[second, { ...headers.get(second),
+ tensors: [{ ...headers.get(second).tensors[0], offset: 4096 }] }]])), /source byte extent/);
+await assert.rejects(parseSplit([first, second], new Map([[second, { ...headers.get(second),
+ metadata: { ...headers.get(second).metadata, 'qwen35moe.embedding_length': 64 } }]])), /metadata differs/);
 console.log('gguf-native-source.test: ok');

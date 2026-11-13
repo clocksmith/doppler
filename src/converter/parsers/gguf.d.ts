@@ -11,6 +11,8 @@ export interface TensorSource {
 
 export interface GGUFParserAdapter {
   file: File | TensorSource;
+  /** Explicit complete split, validated against split.no/count/tensors.count. */
+  files?: Array<File | TensorSource>;
   parseGGUFHeaderFromSource: (source: TensorSource) => Promise<Record<string, unknown>>;
   normalizeTensorSource: (file: File | TensorSource) => TensorSource;
   onProgress?: (update: { stage?: string; message?: string }) => void;
