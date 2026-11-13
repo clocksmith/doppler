@@ -41,7 +41,7 @@
     "artifact-identity:check": "node tools/artifact-identity-inventory.js --check",
     "adapter-artifacts:check": "node tools/check-adapter-artifact-catalog.js",
     "adapter-artifacts:verify-local": "node tools/check-adapter-artifact-catalog.js --verify-local-bytes",
-    "ci:check": "npm run kernels:check && npm run check:all",
+    "ci:check": "npm run kernels:check -- --defer-digests && npm run check:all",
     "ci:contracts:check": "node tools/check-contract-artifacts.js --with-lean --lean-require-manifest-match",
     "ci:diffusion:contract": "node tools/ci-diffusion-contract-gates.js",
     "ci:training:contract": "node tools/ci-training-contract-gates.js",

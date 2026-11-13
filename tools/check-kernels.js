@@ -2,6 +2,15 @@
 
 import { spawnSync } from 'node:child_process';
 
+// Composed CI validates reference and conversion digests together in check:all.
+// Standalone kernels:check retains its reference-digest validation.
+const args = process.argv.slice(2);
+if (args.some((arg) => arg !== '--defer-digests')) {
+  console.error('Usage: node tools/check-kernels.js [--defer-digests]');
+  process.exit(1);
+}
+const deferDigests = args.includes('--defer-digests');
+
 const checks = [
   { name: 'compensated-state-helpers', command: ['node', 'tools/generate-linear-state-kernels.js', '--check'] },
   {
@@ -29,6 +38,7 @@ const checks = [
 const failures = [];
 
 for (const check of checks) {
+  if (deferDigests && check.name === 'digests') continue;
   console.log(`[kernels:check] ${check.name}`);
   const result = spawnSync(check.command[0], check.command.slice(1), {
     stdio: 'inherit',
