@@ -490,6 +490,11 @@
 /* Clear has nothing to clear until there is a conversation; an empty toolbar takes no room. */
 #app #clear-history-btn:disabled { display: none; }
 #app .chat-toolbar:has(#clear-history-btn:disabled):has(#output-phase:empty) { display: none; }
+/* Clear acts on the conversation, so it sits under the message box, not alone above the answer. */
+#app #dialogue-section > .chat-toolbar { order: 1; padding-block: 0; }
+#app #dialogue-section > #advanced-settings { order: 2; }
+/* Its last disclosure already ends in a rule; bottom padding only added an empty band. */
+#app #precision-section { padding-bottom: 0; }
 #app .chat-toolbar { display: flex; flex-wrap: nowrap; align-items: center; justify-content: space-between; gap: var(--demo-space-2); padding: 0; }
 #app .chat-run-status { flex: 1 1 auto; }
 #app .chat-toolbar .btn { min-width: 0; }

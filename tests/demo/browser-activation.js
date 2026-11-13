@@ -345,9 +345,11 @@ export async function checkLiveActivity(page) {
     assert.equal(await page.locator('#activity-coverage').isVisible(), false);
     assert.equal(await page.locator('#activity-legend').isVisible(), true);
     assert.equal(await page.locator('#activation-caption').textContent(), 'Decode · token 1');
-    for (const heading of ['dialogue-heading', 'activity-heading', 'precision-heading']) {
+    for (const heading of ['dialogue-heading', 'activity-heading']) {
       assert.equal(await page.locator('#' + heading).evaluate(node => getComputedStyle(node.parentElement).clipPath), 'inset(50%)');
     }
+    // "Your prompt" and "Recorded examples" need their section's name to make sense.
+    assert.equal(await page.locator('#precision-heading').isVisible(), true);
     await page.screenshot({ path: `.cache/demo-quiet-progress/live-${width}.png`, fullPage: true });
   }
   await page.setViewportSize(viewport);
