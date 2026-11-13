@@ -1,0 +1,11 @@
+{
+  "schema": "doppler.routing-aware-fresh-run-deviations/v1",
+  "note": "Orchestration and tooling deviations from run-fresh.sh at b826337d. No policy limit, prompt, input, threshold or acceptance rule was changed.",
+  "deviations": [
+    {"atUtc": "2026-11-12T23:02:44Z", "kind": "host-safety", "what": "pressure-guard-run2.sh replaces pressure-guard.sh with the same thresholds (PSI some avg10 > 2 or MemAvailable < 20 GiB) and a bracketed pgrep pattern; stopped run-1 output kept at cpu/all-stopped-20261112T163444Z."},
+    {"atUtc": "2026-11-12T23:05:54Z", "kind": "host-safety", "what": "gpu-track.sh runs the run-fresh.sh gpu commands verbatim with a precheck before each GPU job (MemAvailable >= 30 GiB, swap <= 1 GiB, no BO_VA kernel message, no D-state amdgpu process)."},
+    {"atUtc": "2026-11-12T23:07:17Z", "kind": "sequencing", "what": "The guard stopped the CPU chain (PSI 2.03, 71 GiB available) while the GPU task-quality job loaded; output kept at cpu/all-stopped-20261112T230717Z. CPU and GPU jobs were then run sequentially: gpu-track.sh was stopped in its CPU-wait loop after same-input-capture, the CPU chain restarted alone at 23:52:06Z, and gpu-track-part2.sh queued behind it."},
+    {"atUtc": "2026-11-13T00:27:21Z", "kind": "host-safety", "what": "The guard stopped the CPU chain alone in greedy round 2 (PSI 2.86, 92 GiB available, 247 MiB swap). Rounds 0 and 1 are complete (cpu/all/cpu-greedy.json completedSteps=2)."},
+    {"atUtc": "2026-11-13T00:29:00Z", "kind": "tooling-defect", "what": "Frozen prepare-routing-fixture.py (sha256 b1373c6f...) rejected ledger-00 L35: its consistency check compares the CPU experts with one stable argsort's indices, which fails on exact float32 rank-10/11 ties (5 rows: ledger-00 L35 t1234, ledger-01 L23 t2350, ledger-02 L0 t2318, ledger-02 L21 t1023, ledger-04 L13 t2583; each has the 10th and 11th logits bitwise equal and the CPU chose the other tied expert). tooling-patch/prepare-routing-fixture.py (sha256 62a7592f...) checks that no unselected logit exceeds the smallest selected logit; fixture bytes are unchanged apart from converterSha256. All 22 fixtures were regenerated with it; the partial frozen-tool output is kept at fixture-frozen-tool-partial."}
+  ]
+}

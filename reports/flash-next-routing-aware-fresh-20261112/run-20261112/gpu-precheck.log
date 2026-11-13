@@ -1,0 +1,4 @@
+2026-11-12T23:05:54Z precheck task-quality availGiB=87 swapUsedMiB=0 bova=0 dstateAmdgpu=0
+2026-11-12T23:36:16Z precheck same-input-capture availGiB=103 swapUsedMiB=109 bova=0 dstateAmdgpu=0
+2026-11-13T00:32:49Z precheck plain availGiB=103 swapUsedMiB=243 bova=0 dstateAmdgpu=0
+2026-11-13T01:02:58Z precheck routing-controls availGiB=103 swapUsedMiB=331 bova=0 dstateAmdgpu=0
