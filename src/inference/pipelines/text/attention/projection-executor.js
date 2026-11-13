@@ -206,7 +206,7 @@ export async function projectQueryWithOptionalGate({
   const qSize = numHeads * headDim;
   const qWeight = layerWeights?.qProj;
   const separateGateWeight = attentionOutputGate === true ? layerWeights?.qGateProj : null;
-  const hasGateProjection = !separateGateWeight && attentionOutputGate === true
+  const hasGateProjection = attentionOutputGate === true
     && !!qWeight
     && !!getWeightBuffer
     && (resolveProjectionOutputSize(qWeight, hiddenSize) ?? 0) >= (qSize * 2);

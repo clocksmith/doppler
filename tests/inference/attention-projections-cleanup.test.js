@@ -23,6 +23,7 @@ const { createWeightBuffer } = await import('../../src/gpu/weight-buffer.js');
 const { projectAttentionQKV } = await import('../../src/inference/pipelines/text/attention/projections.js');
 const { clearDequantCache, setCachedDequant } = await import('../../src/inference/pipelines/text/moe-cache.js');
 const { applyLoRA } = await import('../../src/inference/pipelines/text/lora-apply.js');
+const { projectQueryWithOptionalGate } = await import('../../src/inference/pipelines/text/attention/projection-executor.js');
 const {
   acquireBuffer,
   destroyBufferPool,
@@ -145,6 +146,51 @@ function assertPoolIsClean() {
 }
 
 try {
+  // Loading may synthesize a separate gate for fused QKV while retaining the
+  // original interleaved Q+gate projection. LoRA must still update both halves.
+  for (const combinedQuery of [true, false]) {
+    const device = createFakeDevice();
+    const boundBuffers = new Set();
+    device.createBindGroup = ({ entries }) => {
+      for (const entry of entries) if (entry.resource?.buffer) boundBuffers.add(entry.resource.buffer);
+      return {};
+    };
+    resetRuntime(device);
+    const qSize = 8;
+    const hiddenSize = 16;
+    const outputSize = combinedQuery ? qSize * 2 : qSize;
+    const weight = (rows, columns, label) => createWeightBuffer(
+      new FakeBuffer({ size: rows * columns * 4, usage: GPUBufferUsage.STORAGE }),
+      'f32', 'row', [rows, columns], label
+    );
+    const qProj = weight(outputSize, hiddenSize, 'q_proj');
+    const qGateProj = weight(qSize, hiddenSize, 'q_gate_proj');
+    const a = weight(2, hiddenSize, 'lora_a');
+    const b = weight(outputSize, 2, 'lora_b');
+    const result = await projectQueryWithOptionalGate({
+      normed: createExternalTensor(hiddenSize, 'f32', 'gated_lora_input'),
+      layerWeights: { qProj, qGateProj }, numTokens: 1, numHeads: 2, headDim: 4,
+      hiddenSize, layerIdx: 0, kernelPath: null, matmulOutputDtype: 'f32',
+      getWeightBuffer: value => value,
+      lora: { targetModules: ['q_proj'], layers: new Map([[0, { q_proj: {
+        a, b, aShape: [2, hiddenSize], bShape: [outputSize, 2], rank: 2,
+        scale: 1, weightsLayout: 'peft',
+      } }]]) },
+      attentionOutputGate: true, releaseTemporary: releaseBuffer,
+    });
+    assert.equal(result.qTensor.shape.at(-1), qSize);
+    assert.equal(result.qGateTensor.shape.at(-1), qSize);
+    assert.ok(boundBuffers.has(qProj.buffer));
+    assert.ok(boundBuffers.has(a.buffer));
+    assert.ok(boundBuffers.has(b.buffer));
+    assert.equal(boundBuffers.has(qGateProj.buffer), !combinedQuery,
+      'synthesized gate must not replace the adapter-updated gate from full Q+gate output');
+    for (const tensor of Object.values(result)) releaseBuffer(tensor.buffer);
+    assertPoolIsClean();
+    for (const tensor of [qProj, qGateProj, a, b]) assert.equal(tensor.buffer.destroyed, false);
+    resetRuntime();
+  }
+
   {
     await assert.rejects(
       () => projectAttentionQKV({
