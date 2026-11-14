@@ -502,3 +502,58 @@ console.log('Routed expert cache: range extents, identity, hot reuse, budgets, c
     assert.equal(direct.cache.getStats().sourceReadIntoBytes, direct.cache.getStats().sourceReadBytes);
   } finally { await old.cache.destroy(); await direct.cache.destroy(); }
 }
+
+{
+  const f = fixture(true, 256, true);
+  const firstPlan = f.plan(0);
+  const nextDown = f.locations.get('blk.1.ffn_down_exps.weight');
+  nextDown.dtype = 'Q4_0';
+  nextDown.size = ggufBlockSourceBytes(nextDown.shape, nextDown.dtype);
+  const nextPlan = f.plan(1);
+  const first = await f.cache.prepare(firstPlan, [0, 1]);
+  const before = f.cache.getStats();
+  const second = await f.cache.prepare(nextPlan, [0, 1]);
+  assert.equal(second.gate.buffer, first.gate.buffer);
+  assert.equal(second.up.buffer, first.up.buffer);
+  assert.notEqual(second.down.buffer, first.down.buffer);
+  assert(first.down.buffer.destroyed, 'only changed-size down plane retires');
+  assert(!first.gate.buffer.destroyed && !first.up.buffer.destroyed);
+  assert.equal(second.down.dtype, 'q4_0', 'fresh typed view follows current source');
+  const after = f.cache.getStats();
+  assert.equal(after.workingBufferAllocations - before.workingBufferAllocations, 1);
+  assert.equal(after.workingBufferReuses - before.workingBufferReuses, 2);
+  assert.equal(after.workingBytes, nextPlan.bankBytes);
+  for (const plane of nextPlan.planes) assert.deepEqual(
+    second[plane.role].buffer.data.slice(0, 2 * plane.expertBytes),
+    f.shards.get(plane.location.shardIndex).slice(0, 2 * plane.expertBytes));
+  const third = await f.cache.prepare(firstPlan, [0, 1]);
+  assert.equal(third.gate.buffer, first.gate.buffer);
+  assert.equal(third.up.buffer, first.up.buffer);
+  assert.equal(third.down.dtype, 'q4_1');
+  assert.equal(f.cache.getStats().workingBytes, firstPlan.bankBytes);
+  assert(f.cache.getStats().peakAccountedGpuBytes <= f.policy.gpuBudgetBytes - f.policy.reserveBytes);
+  await f.cache.destroy();
+  assert(f.buffers.every(buffer => buffer.destroyed));
+}
+
+{
+  const f = fixture(true, 256, true);
+  const first = await f.cache.prepare(f.plan(0), [0]);
+  const down = f.locations.get('blk.1.ffn_down_exps.weight');
+  down.dtype = 'Q4_0'; down.size = ggufBlockSourceBytes(down.shape, down.dtype);
+  const create = f.gpu.createBuffer;
+  f.gpu.createBuffer = options => {
+    if (options.label === 'routed_working_down') throw new Error('replacement allocation failed');
+    return create(options);
+  };
+  await assert.rejects(f.cache.prepare(f.plan(1), [0]), /replacement allocation failed/);
+  assert(!first.gate.buffer.destroyed && !first.up.buffer.destroyed, 'failed down replacement preserves owned unchanged planes');
+  assert(first.down.buffer.destroyed);
+  assert.equal(f.cache.getStats().workingBytes, first.gate.buffer.size + first.up.buffer.size);
+  f.gpu.createBuffer = create;
+  const recovered = await f.cache.prepare(f.plan(1), [0]);
+  assert.equal(recovered.gate.buffer, first.gate.buffer);
+  assert.equal(f.cache.getStats().workingBytes, f.plan(1).bankBytes);
+  await f.cache.destroy();
+  assert(f.buffers.every(buffer => buffer.destroyed));
+}

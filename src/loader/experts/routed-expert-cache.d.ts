@@ -41,6 +41,10 @@ export interface RoutedExpertCacheStats {
   cacheHits: number;
   cacheMisses: number;
   workingHits: number;
+  workingBufferAllocations: number;
+  workingBufferAllocatedBytes: number;
+  workingBufferReuses: number;
+  workingBufferReusedBytes: number;
   evictions: number;
   evictionFenceWaits: number;
   evictionFenceSkips: number;

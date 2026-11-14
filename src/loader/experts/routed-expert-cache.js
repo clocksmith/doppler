@@ -39,7 +39,7 @@ export class RoutedExpertCache {
   /** @type {import('./routed-expert-cache.js').RoutedExpertPhaseProfile | null} */
   #activeProfile = null;
   #stats = { sourceReadIntoBytes: 0, sourceReadBytes: 0, sourceReads: 0, uploadBytes: 0,
-    cacheHits: 0, cacheMisses: 0, workingHits: 0, evictions: 0, evictionFenceWaits: 0, evictionFenceSkips: 0, bufferReuses: 0, expertCopySubmissions: 0, hitBatchSubmissions: 0, batchedHitExperts: 0,
+    cacheHits: 0, cacheMisses: 0, workingHits: 0, workingBufferAllocations: 0, workingBufferAllocatedBytes: 0, workingBufferReuses: 0, workingBufferReusedBytes: 0, evictions: 0, evictionFenceWaits: 0, evictionFenceSkips: 0, bufferReuses: 0, expertCopySubmissions: 0, hitBatchSubmissions: 0, batchedHitExperts: 0,
     residentBytes: 0, peakResidentBytes: 0, peakAccountedGpuBytes: 0, peakStagingBytes: 0,
     ioWaitMs: 0, sourceReadWaitMs: 0, uploadEnqueueMs: 0, initialQueueIdleForWeightsMs: 0,
     hostPrefillAdmissionSkips: 0, hostPrefillAdmissions: 0, hostDecodeAdmissions: 0, hostCacheHits: 0, hostCacheMisses: 0, hostEvictions: 0, hostAdmissionSkips: 0, peakHostOwnedOrReservedBytes: 0 };
@@ -178,22 +178,34 @@ export class RoutedExpertCache {
     if (this.#working.size && signature !== this.#signature) {
       await this.#waitForSubmitted();
       signal.throwIfAborted();
+      // Retain only exact-size same-role allocation storage. Typed views and
+      // selected expert contents are rebuilt from the current layer's plan.
       for (const [role, buffer] of this.#working) {
+        const next = plan.planes.find(plane => plane.role === role);
+        if (next && buffer.size === next.bytes) {
+          this.#stats.workingBufferReuses++;
+          this.#stats.workingBufferReusedBytes += buffer.size;
+          continue;
+        }
         this.#destroyBuffer(buffer);
         this.#working.delete(role);
+        this.#workingBytes -= buffer.size;
       }
-      this.#workingBytes = 0;
+      this.#loaded.clear();
     }
-    if (!this.#working.size) {
-      await this.#makeRoom(plan.bankBytes, 0, signal);
+    const missing = plan.planes.filter(plane => !this.#working.has(plane.role));
+    if (missing.length) {
+      await this.#makeRoom(missing.reduce((bytes, plane) => bytes + plane.bytes, 0), 0, signal);
       signal.throwIfAborted();
-      for (const plane of plan.planes) {
+      for (const plane of missing) {
         const buffer = this.#allocate(plane.bytes, `routed_working_${plane.role}`);
         this.#working.set(plane.role, buffer);
         this.#workingBytes += plane.bytes;
+        this.#stats.workingBufferAllocations++;
+        this.#stats.workingBufferAllocatedBytes += plane.bytes;
       }
-      this.#signature = signature;
     }
+    this.#signature = signature;
     if (this.#layer !== plan.layer) {
       this.#loaded.clear();
       this.#layer = plan.layer;
