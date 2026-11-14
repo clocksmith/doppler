@@ -189,6 +189,16 @@ async function collectRuleRefs(registry) {
       const source = `${file}#${chainName}`;
       const rawRefs = new Map(); // variantName -> Set<source>
       for (const rule of chain) {
+        // Compound dispatch plans explicitly bind operation and variant.
+        const operation = rule?.value?.operation;
+        const variant = rule?.value?.variant;
+        if (typeof operation === 'string' && typeof variant === 'string') {
+          if (!variantsByOp.get(operation)?.has(variant)) {
+            throw new Error(`Unknown kernel dispatch plan ${operation}:${variant} in ${source}`);
+          }
+          addScoped(operation, variant, source);
+          continue;
+        }
         extractVariantNames(rule?.value, rawRefs, source);
         const template = rule?.value?.template;
         if (typeof template === 'string') {

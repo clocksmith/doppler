@@ -1,9 +1,10 @@
+import { selectRuleValue } from './rule-registry.js';
 import { getDevice } from '../device.js';
 import { createTensor } from '../tensor.js';
 import { acquireBuffer, releaseBuffer } from '../../memory/buffer-pool.js';
 import { unifiedKernelWrapper, withKernelOutput } from './kernel-execution.js';
 
-// qwen4_exp PLE operators: BF16 row decode, the signed-square-root sigmoid
+// qwen4_exp PLE operators: BF16/Q4_0 row decode, the signed-square-root sigmoid
 // gate, and the dilated depthwise short convolution with owned state and the
 // residual into the streams. Projections and grouped norms are separate ops.
 
@@ -41,17 +42,20 @@ function releaseFor(target, buffer) {
  * @param {GPUBuffer} rows
  * @param {import('./ple.js').PleRowDecodeOptions} options
  */
-async function executeDecode(target, rows, { numTokens, embedDim }) {
+async function executeDecode(target, rows, { numTokens, embedDim, tableDtype }) {
   integer(numTokens, 'numTokens');
   integer(embedDim, 'embedDim', 2);
-  if (embedDim % 2 !== 0) fail('embedDim must be even for packed BF16 decoding.');
+  const plan = selectRuleValue('dequant', 'pleRowDecode', { tableDtype });
+  if (!plan) fail('tableDtype must be bf16 or q4_0.');
+  if (embedDim % plan.blockElements !== 0) fail('embedDim must align to the table encoding block.');
   const elements = numTokens * embedDim;
-  if (!Number.isSafeInteger(rows?.size) || rows.size < elements * 2) fail('row bytes buffer is too small.');
-  const pairs = elements / 2;
-  const groups = Math.ceil(pairs / WORKGROUP_SIZE);
+  const bytes = elements / plan.blockElements * plan.blockBytes;
+  if (!Number.isSafeInteger(elements) || elements > 0xffffffff) fail('decoded element count exceeds u32.');
+  if (!Number.isSafeInteger(rows?.size) || rows.size < Math.ceil(bytes / 4) * 4) fail('row bytes buffer is too small.');
+  const groups = Math.ceil(elements / plan.elementsPerThread / WORKGROUP_SIZE);
   const grid = groups > MAX_X_GROUPS ? [MAX_X_GROUPS, Math.ceil(groups / MAX_X_GROUPS), 1] : [groups, 1, 1];
   return withKernelOutput(target, null, elements * 4, 'ple_embedding', async (output) => {
-    await unifiedKernelWrapper('bf16_to_f32', target, 'default', [rows, output],
+    await unifiedKernelWrapper(plan.operation, target, plan.variant, [rows, output],
       { num_elements: elements, input_offset: 0, output_offset: 0, _pad: 0 }, grid, { WORKGROUP_SIZE });
     return createTensor(output, 'f32', [numTokens, embedDim], 'ple_embedding');
   });

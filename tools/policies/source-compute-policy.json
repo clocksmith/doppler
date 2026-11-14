@@ -55,6 +55,11 @@
   ],
   "reviews": [
     {
+      "id": "src/inference/pipelines/text/hyper-connection/session.js#createHyperConnectionSession",
+      "category": "gpu-orchestration",
+      "reason": "Constructs per-layer session state and records it in a Map. The looped set is Map.set, not tensor arithmetic; packed-row staging elsewhere in this module only pads unchanged bytes for WebGPU alignment."
+    },
+    {
       "id": "src/inference/pipelines/text/channel-gain.js#freezeChannelGains",
       "category": "observation",
       "reason": "Copies gain buffers GPU-to-GPU into private storage, validates unchanged readback values as finite and positive, and hashes exact bytes. Readback is never modified or uploaded; WGSL derives all gains. Map insertion is resource ownership, not numeric compute."

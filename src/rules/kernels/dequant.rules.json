@@ -1,4 +1,9 @@
 {
+  "pleRowDecode": [
+    { "match": { "tableDtype": "bf16" }, "value": { "operation": "bf16_to_f32", "variant": "default", "blockElements": 2, "blockBytes": 4, "elementsPerThread": 2 } },
+    { "match": { "tableDtype": "q4_0" }, "value": { "operation": "ple_q4_0_to_f32", "variant": "default", "blockElements": 32, "blockBytes": 18, "elementsPerThread": 1 } },
+    { "match": {}, "value": null }
+  ],
   "variant": [
     { "match": { "hasSubgroups": true, "wantsF16Out": true, "useVec4": true }, "value": "subgroup_vec4_f16out" },
     { "match": { "hasSubgroups": true, "wantsF16Out": true }, "value": "subgroup_f16out" },

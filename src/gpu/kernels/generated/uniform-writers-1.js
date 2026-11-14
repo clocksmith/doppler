@@ -551,7 +551,7 @@ export function write_sample_argmax(view, values, kernel) {
   writeF32(view, 28, values["top_p"], kernel, "top_p");
 }
 
-export function write_bf16_to_f32_default(view, values, kernel) {
+export function write_ple_q4_0_to_f32_default(view, values, kernel) {
   writeU32(view, 0, values["num_elements"], kernel, "num_elements");
   writeU32(view, 4, values["input_offset"], kernel, "input_offset");
   writeU32(view, 8, values["output_offset"], kernel, "output_offset");

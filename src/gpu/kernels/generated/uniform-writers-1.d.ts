@@ -54,7 +54,7 @@ export declare function write_split_qkv_rmsnorm_rope_qk_f16kv_cache_default(view
 export declare function write_split_qg_default(view: DataView, values: { "num_tokens": number; "num_heads": number; "head_dim": number }, kernel: string): void;
 export declare function write_rep_penalty_default(view: DataView, values: { "vocab_size": number; "history_count": number; "penalty": number; "batch_count": number; "batch_offset": number; "presence_penalty": number; "repetition_penalty_window": number }, kernel: string): void;
 export declare function write_sample_argmax(view: DataView, values: { "vocab_size": number; "top_k": number; "temperature": number; "random_value": number; "pad_token_id": number; "logit_softcap": number; "output_index": number; "top_p": number }, kernel: string): void;
-export declare function write_bf16_to_f32_default(view: DataView, values: { "num_elements": number; "input_offset": number; "output_offset": number }, kernel: string): void;
+export declare function write_ple_q4_0_to_f32_default(view: DataView, values: { "num_elements": number; "input_offset": number; "output_offset": number }, kernel: string): void;
 export declare function write_transpose_default(view: DataView, values: { "rows": number; "cols": number; "_pad0": number }, kernel: string): void;
 export declare function write_matmul_backward_q4k_weight(view: DataView, values: { "M": number; "N": number; "K": number; "alpha": number; "transpose_b": number; "num_blocks_per_row": number }, kernel: string): void;
 export declare function write_matmul_transpose_a_default(view: DataView, values: { "M": number; "N": number; "K": number; "alpha": number }, kernel: string): void;

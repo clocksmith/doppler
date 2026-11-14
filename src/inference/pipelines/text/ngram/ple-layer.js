@@ -82,8 +82,8 @@ export async function runPleLayer(target, { streams, rows, weights, state, ngram
     : runHyperConnectionNorm(input, weight, normOptions));
   try {
     const embedding = keep(recorded
-      ? await recordPleRowDecode(target, rows, { numTokens, embedDim: ngram.embedDim })
-      : await runPleRowDecode(rows, { numTokens, embedDim: ngram.embedDim }));
+      ? await recordPleRowDecode(target, rows, { numTokens, embedDim: ngram.embedDim, tableDtype: ngram.tableDtype })
+      : await runPleRowDecode(rows, { numTokens, embedDim: ngram.embedDim, tableDtype: ngram.tableDtype }));
     const key = keep(await project('ple_key_proj', embedding, weights.keyProj, channels, ngram.embedDim));
     const keyNormed = keep(await norm(key, weights.normKey));
     const value = keep(await project('ple_value_proj', embedding, weights.valueProj, hyper.streamWidth, ngram.embedDim));

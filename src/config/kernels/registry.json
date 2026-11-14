@@ -27870,6 +27870,66 @@
     }
    }
   },
+  "ple_q4_0_to_f32": {
+   "description": "Packed GGML Q4_0 PLE rows to F32",
+   "baseBindings": [
+    {
+     "index": 0,
+     "name": "uniforms",
+     "type": "uniform"
+    },
+    {
+     "index": 1,
+     "name": "input",
+     "type": "read-only-storage"
+    },
+    {
+     "index": 2,
+     "name": "output",
+     "type": "storage"
+    }
+   ],
+   "baseUniforms": {
+    "size": 16,
+    "fields": [
+     {
+      "name": "num_elements",
+      "type": "u32",
+      "offset": 0
+     },
+     {
+      "name": "input_offset",
+      "type": "u32",
+      "offset": 4
+     },
+     {
+      "name": "output_offset",
+      "type": "u32",
+      "offset": 8
+     },
+     {
+      "name": "_pad",
+      "type": "u32",
+      "offset": 12,
+      "padding": true
+     }
+    ]
+   },
+   "variants": {
+    "default": {
+     "wgsl": "ple_q4_0_to_f32.wgsl",
+     "entryPoint": "main",
+     "workgroup": [256,1,1],
+     "requires": [],
+     "reachability": {
+      "status": "selectable",
+      "inlineConfigs": [],
+      "ruleChains": ["dequant.rules.json#pleRowDecode"],
+      "wgslOnDisk": true
+     }
+    }
+   }
+  },
   "bf16_to_f32": {
    "description": "BF16 to F32 conversion",
    "baseBindings": [
@@ -27924,7 +27984,7 @@
      "reachability": {
       "status": "pinned",
       "inlineConfigs": ["qwen3/qwen-3-8-flash-next-text-q4k-ehf16-af32"],
-      "ruleChains": [],
+      "ruleChains": ["dequant.rules.json#pleRowDecode"],
       "wgslOnDisk": true
      }
     }

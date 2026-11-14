@@ -3,8 +3,9 @@ import type { Tensor } from '../tensor.js';
 
 export interface PleRowDecodeOptions {
   numTokens: number;
-  /** headCount * rowWidth BF16 values per token. */
+  /** headCount * rowWidth decoded values per token. */
   embedDim: number;
+  tableDtype: 'bf16' | 'q4_0';
 }
 
 export interface PleGateOptions {

@@ -406,8 +406,9 @@ export interface KernelUniformValues {
   "sample/softmax_and_sample_f16": Parameters<typeof writers1.write_sample_argmax>[1];
   "sample/single_pass": Parameters<typeof writers1.write_sample_argmax>[1];
   "sample/single_pass_f16": Parameters<typeof writers1.write_sample_argmax>[1];
-  "bf16_to_f32/default": Parameters<typeof writers1.write_bf16_to_f32_default>[1];
-  "bf16_to_f16/default": Parameters<typeof writers1.write_bf16_to_f32_default>[1];
+  "ple_q4_0_to_f32/default": Parameters<typeof writers1.write_ple_q4_0_to_f32_default>[1];
+  "bf16_to_f32/default": Parameters<typeof writers1.write_ple_q4_0_to_f32_default>[1];
+  "bf16_to_f16/default": Parameters<typeof writers1.write_ple_q4_0_to_f32_default>[1];
   "transpose/default": Parameters<typeof writers1.write_transpose_default>[1];
   "matmul_backward/default": Parameters<typeof writers0.write_matmul_f16>[1];
   "matmul_backward/f16_weight": Parameters<typeof writers0.write_matmul_f16>[1];

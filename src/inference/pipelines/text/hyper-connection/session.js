@@ -51,9 +51,13 @@ export class HyperConnectionSession {
       signal.throwIfAborted();
       const device = getDevice();
       if (!device) fail('GPU device is unavailable.');
-      const buffer = acquireBuffer(rows.byteLength, undefined, 'ngram_rows');
+      // Q4_0 rows occupy 18 bytes per 32 values; WebGPU uploads require four-byte alignment.
+      const uploadBytes = Math.ceil(rows.byteLength / 4) * 4;
+      const packedRows = uploadBytes === rows.byteLength ? rows : new Uint8Array(uploadBytes);
+      if (packedRows !== rows) packedRows.set(rows);
+      const buffer = acquireBuffer(uploadBytes, undefined, 'ngram_rows');
       try {
-        device.queue.writeBuffer(buffer, 0, rows);
+        device.queue.writeBuffer(buffer, 0, packedRows);
         const result = await runPleLayer(context.recorder ?? null, { streams, rows: buffer, weights,
           state: layer.conv, ngram: this.ngram, hyper: this.hyper, numTokens: tokens.length, project });
         releaseOrTrack(context.recorder, result.gateInput.buffer);
