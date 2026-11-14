@@ -1,5 +1,10 @@
 # Doppler General Style Guide
 
+<!-- style-rules: JS-002, SOURCE-001, SOURCE-003, SEMANTIC-001 -->
+Mechanical coverage and review-only limits: [style rule registry](../../tools/policies/style-guide-rules.json).
+Run `npm run check:fast` while editing; `npm run style:guides:check` scans all files.
+These checks do not replace the semantic requirements below.
+
 Canonical source for DOPPLER's shared cross-language rules: naming, logging,
 testing, and anti-patterns. Language-specific guides document only deltas.
 

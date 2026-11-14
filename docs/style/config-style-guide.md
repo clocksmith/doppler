@@ -1,6 +1,20 @@
 # Doppler Config Style Guide
 
+<!-- style-rules: JSON-001, JSON-002, JSON-003 -->
+Mechanical coverage and review-only limits: [style rule registry](../../tools/policies/style-guide-rules.json).
+Run `npm run check:fast` while editing; `npm run style:guides:check` scans all files.
+These checks do not replace the semantic requirements below.
+
 Rules and conventions for configuration ownership, merge order, and overrides.
+
+## JSON file baseline
+
+`JSON-001` requires strict JSON, except TypeScript's declared `tsconfig*.json`
+JSONC dialect (comments/trailing commas). `JSON-002` rejects duplicate decoded
+object keys; `JSON-003` rejects numbers that overflow to non-finite JavaScript
+values. All JSON files are inventoried, including fixtures and retained reports.
+An explicit historical debt record preserves captured non-JSON stdout without
+rewriting evidence. These format checks do not replace schema/domain validation.
 
 ## Config Schema Layout
 

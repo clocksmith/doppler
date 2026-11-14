@@ -1,5 +1,10 @@
 # Doppler JavaScript Style Guide
 
+<!-- style-rules: JS-001, SOURCE-002 -->
+Mechanical coverage and review-only limits: [style rule registry](../../tools/policies/style-guide-rules.json).
+Run `npm run check:fast` while editing; `npm run style:guides:check` scans all files.
+These checks do not replace the semantic requirements below.
+
 JavaScript conventions for kernel wrappers and pipeline code. Shared naming,
 logging, testing, and anti-pattern policy, and the
 [JavaScript-first rationale](./general-style-guide.md#language-policy-javascript--declaration-files),

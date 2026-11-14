@@ -1,0 +1,24 @@
+import assert from 'node:assert/strict';
+import { checkJavaScriptSource } from '../../tools/check-javascript-style.js';
+import { diagnosticKey, listStyleFiles, validateStyleRegistry } from '../../tools/check-style-guides.js';
+import fs from 'node:fs';
+
+assert.deepEqual(checkJavaScriptSource('export const n = 1;', 'tools/valid.js'), []);
+assert.equal(checkJavaScriptSource('export const = ;', 'tests/bad.js')[0].ruleId, 'JS-001');
+assert.equal(checkJavaScriptSource('const value: number = 1;', 'tools/types.js')[0].ruleId, 'JS-001', 'TypeScript syntax is not JavaScript');
+assert.equal(checkJavaScriptSource('export const n = 1;', 'tools/new.mjs')[0].ruleId, 'JS-002');
+assert.deepEqual(checkJavaScriptSource('export const n = 1;', 'legacy.mjs', [{ path: 'legacy.mjs' }]), []);
+assert.equal(checkJavaScriptSource('export const = ;', 'legacy.mjs', [{ path: 'legacy.mjs' }])[0].ruleId, 'JS-001', 'legacy extensions do not skip parsing');
+const files = listStyleFiles();
+for (const file of ['package.json', 'tools/check-style-guides.js', 'tests/tooling/style-guide-check.test.js']) assert.ok(files.includes(file), `${file} must be covered`);
+assert.equal(new Set(files).size, files.length);
+const registry = JSON.parse(fs.readFileSync(new URL('../../tools/policies/style-guide-rules.json', import.meta.url), 'utf8'));
+assert.deepEqual(validateStyleRegistry(registry), []);
+const duplicate = structuredClone(registry);
+duplicate.rules.push(duplicate.rules[0]);
+assert.ok(validateStyleRegistry(duplicate).some(error => error.includes('Duplicate rule ID')));
+const missing = structuredClone(registry);
+missing.rules = missing.rules.filter(rule => rule.id !== 'JS-001');
+assert.ok(validateStyleRegistry(missing).some(error => error.includes('Unregistered detector rule JS-001')));
+assert.notEqual(diagnosticKey('a.wgsl', { ruleId: 'x', message: 'bad', line: 1 }, 'old'), diagnosticKey('a.wgsl', { ruleId: 'x', message: 'bad', line: 1 }, 'new'), 'editing offending source must not consume unrelated old debt');
+console.log('style-guide-check.test: JavaScript positive/negative rules, registry drift and inventory passed');

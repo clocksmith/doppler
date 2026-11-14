@@ -1,0 +1,165 @@
+{
+  "schemaVersion": 1,
+  "entries": [
+    {
+      "file": "examples/document-search/capsules/embedding/artifacts/program/wgsl/residual-e5d606c42ae57cb7.wgsl",
+      "ruleId": "wgsl-padding-access",
+      "sourceLine": "let dispatch_stride = max(u._pad1, 1u);",
+      "count": 3,
+      "reason": "Retained captured evidence or packaged artifact. Preserve original bytes and identity.",
+      "removalCondition": "Remove only when owner deliberately retires or regenerates this artifact with references updated."
+    },
+    {
+      "file": "examples/document-search/capsules/embedding/artifacts/program/wgsl/residual_vec4-04781252bb73f1a2.wgsl",
+      "ruleId": "wgsl-padding-access",
+      "sourceLine": "let dispatch_stride = max(u._pad1, 4u);",
+      "count": 1,
+      "reason": "Retained captured evidence or packaged artifact. Preserve original bytes and identity.",
+      "removalCondition": "Remove only when owner deliberately retires or regenerates this artifact with references updated."
+    },
+    {
+      "file": "examples/document-search/capsules/reranker/artifacts/program/wgsl/residual-e5d606c42ae57cb7.wgsl",
+      "ruleId": "wgsl-padding-access",
+      "sourceLine": "let dispatch_stride = max(u._pad1, 1u);",
+      "count": 3,
+      "reason": "Retained captured evidence or packaged artifact. Preserve original bytes and identity.",
+      "removalCondition": "Remove only when owner deliberately retires or regenerates this artifact with references updated."
+    },
+    {
+      "file": "examples/document-search/capsules/reranker/artifacts/program/wgsl/residual_vec4-04781252bb73f1a2.wgsl",
+      "ruleId": "wgsl-padding-access",
+      "sourceLine": "let dispatch_stride = max(u._pad1, 4u);",
+      "count": 1,
+      "reason": "Retained captured evidence or packaged artifact. Preserve original bytes and identity.",
+      "removalCondition": "Remove only when owner deliberately retires or regenerates this artifact with references updated."
+    },
+    {
+      "file": "examples/program-bundles/program/wgsl/residual-e5d606c42ae57cb7.wgsl",
+      "ruleId": "wgsl-padding-access",
+      "sourceLine": "let dispatch_stride = max(u._pad1, 1u);",
+      "count": 3,
+      "reason": "Retained captured evidence or packaged artifact. Preserve original bytes and identity.",
+      "removalCondition": "Remove only when owner deliberately retires or regenerates this artifact with references updated."
+    },
+    {
+      "file": "reports/f16w-tiled-shared-layout-20261021/node-parity.json",
+      "ruleId": "JSON-001",
+      "sourceLine": "Warning: maxDynamicUniformBuffersPerPipelineLayout artificially reduced from 500000 to 16 to fit dynamic offset allocation limit.",
+      "count": 1,
+      "reason": "Retained captured evidence or packaged artifact. Preserve original bytes and identity.",
+      "removalCondition": "Remove only when owner deliberately retires or regenerates this artifact with references updated."
+    },
+    {
+      "file": "src/gpu/kernels/backward/layernorm_backward.wgsl",
+      "ruleId": "wgsl-function-name",
+      "sourceLine": "fn atomicAddFloat(address: ptr<storage, atomic<u32>, read_write>, val: f32) {",
+      "count": 1,
+      "reason": "Pre-existing shader style debt. Preserve execution behavior until owner validates synchronized shader/ABI/digest changes.",
+      "removalCondition": "Remove when the owning shader change passes focused interface/numerical checks; do not broaden this record."
+    },
+    {
+      "file": "src/gpu/kernels/energy_quintel_grad.wgsl",
+      "ruleId": "wgsl-function-name",
+      "sourceLine": "fn hasFlag(mask: u32) -> bool {",
+      "count": 1,
+      "reason": "Pre-existing shader style debt. Preserve execution behavior until owner validates synchronized shader/ABI/digest changes.",
+      "removalCondition": "Remove when the owning shader change passes focused interface/numerical checks; do not broaden this record."
+    },
+    {
+      "file": "src/gpu/kernels/energy_quintel_grad_f16.wgsl",
+      "ruleId": "wgsl-function-name",
+      "sourceLine": "fn hasFlag(mask: u32) -> bool {",
+      "count": 1,
+      "reason": "Pre-existing shader style debt. Preserve execution behavior until owner validates synchronized shader/ABI/digest changes.",
+      "removalCondition": "Remove when the owning shader change passes focused interface/numerical checks; do not broaden this record."
+    },
+    {
+      "file": "src/gpu/kernels/energy_quintel_reduce.wgsl",
+      "ruleId": "wgsl-function-name",
+      "sourceLine": "fn hasFlag(mask: u32) -> bool {",
+      "count": 1,
+      "reason": "Pre-existing shader style debt. Preserve execution behavior until owner validates synchronized shader/ABI/digest changes.",
+      "removalCondition": "Remove when the owning shader change passes focused interface/numerical checks; do not broaden this record."
+    },
+    {
+      "file": "src/gpu/kernels/energy_quintel_reduce_f16.wgsl",
+      "ruleId": "wgsl-function-name",
+      "sourceLine": "fn hasFlag(mask: u32) -> bool {",
+      "count": 1,
+      "reason": "Pre-existing shader style debt. Preserve execution behavior until owner validates synchronized shader/ABI/digest changes.",
+      "removalCondition": "Remove when the owning shader change passes focused interface/numerical checks; do not broaden this record."
+    },
+    {
+      "file": "src/gpu/kernels/energy_quintel_update.wgsl",
+      "ruleId": "wgsl-function-name",
+      "sourceLine": "fn hasFlag(mask: u32) -> bool {",
+      "count": 1,
+      "reason": "Pre-existing shader style debt. Preserve execution behavior until owner validates synchronized shader/ABI/digest changes.",
+      "removalCondition": "Remove when the owning shader change passes focused interface/numerical checks; do not broaden this record."
+    },
+    {
+      "file": "src/gpu/kernels/energy_quintel_update_f16.wgsl",
+      "ruleId": "wgsl-function-name",
+      "sourceLine": "fn hasFlag(mask: u32) -> bool {",
+      "count": 1,
+      "reason": "Pre-existing shader style debt. Preserve execution behavior until owner validates synchronized shader/ABI/digest changes.",
+      "removalCondition": "Remove when the owning shader change passes focused interface/numerical checks; do not broaden this record."
+    },
+    {
+      "file": "src/gpu/kernels/relu.wgsl",
+      "ruleId": "wgsl-padding-access",
+      "sourceLine": "let dispatch_stride = max(u._pad0, 1u);",
+      "count": 1,
+      "reason": "Pre-existing shader style debt. Preserve execution behavior until owner validates synchronized shader/ABI/digest changes.",
+      "removalCondition": "Remove when the owning shader change passes focused interface/numerical checks; do not broaden this record."
+    },
+    {
+      "file": "src/gpu/kernels/relu_f16.wgsl",
+      "ruleId": "wgsl-padding-access",
+      "sourceLine": "let dispatch_stride = max(u._pad0, 1u);",
+      "count": 1,
+      "reason": "Pre-existing shader style debt. Preserve execution behavior until owner validates synchronized shader/ABI/digest changes.",
+      "removalCondition": "Remove when the owning shader change passes focused interface/numerical checks; do not broaden this record."
+    },
+    {
+      "file": "src/gpu/kernels/residual.wgsl",
+      "ruleId": "wgsl-padding-access",
+      "sourceLine": "let dispatch_stride = max(u._pad1, 1u);",
+      "count": 3,
+      "reason": "Pre-existing shader style debt. Preserve execution behavior until owner validates synchronized shader/ABI/digest changes.",
+      "removalCondition": "Remove when the owning shader change passes focused interface/numerical checks; do not broaden this record."
+    },
+    {
+      "file": "src/gpu/kernels/residual_f16.wgsl",
+      "ruleId": "wgsl-padding-access",
+      "sourceLine": "let dispatch_stride = max(u._pad1, 1u);",
+      "count": 1,
+      "reason": "Pre-existing shader style debt. Preserve execution behavior until owner validates synchronized shader/ABI/digest changes.",
+      "removalCondition": "Remove when the owning shader change passes focused interface/numerical checks; do not broaden this record."
+    },
+    {
+      "file": "src/gpu/kernels/residual_f16_vec4.wgsl",
+      "ruleId": "wgsl-padding-access",
+      "sourceLine": "let dispatch_stride = max(u._pad1, 4u);",
+      "count": 1,
+      "reason": "Pre-existing shader style debt. Preserve execution behavior until owner validates synchronized shader/ABI/digest changes.",
+      "removalCondition": "Remove when the owning shader change passes focused interface/numerical checks; do not broaden this record."
+    },
+    {
+      "file": "src/gpu/kernels/residual_vec4.wgsl",
+      "ruleId": "wgsl-padding-access",
+      "sourceLine": "let dispatch_stride = max(u._pad1, 4u);",
+      "count": 1,
+      "reason": "Pre-existing shader style debt. Preserve execution behavior until owner validates synchronized shader/ABI/digest changes.",
+      "removalCondition": "Remove when the owning shader change passes focused interface/numerical checks; do not broaden this record."
+    },
+    {
+      "file": "src/gpu/kernels/transpose.wgsl",
+      "ruleId": "wgsl-padding-access",
+      "sourceLine": "let dispatch_stride = max(u._pad0, 1u);",
+      "count": 1,
+      "reason": "Pre-existing shader style debt. Preserve execution behavior until owner validates synchronized shader/ABI/digest changes.",
+      "removalCondition": "Remove when the owning shader change passes focused interface/numerical checks; do not broaden this record."
+    }
+  ]
+}

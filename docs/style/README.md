@@ -75,3 +75,30 @@ shared benchmark contract + engine overlay → runtime payload per engine → ru
 | `kebab-case.js` | `model-config.js` | JavaScript source |
 | `kebab-case.d.ts` | `model-config.d.ts` | Type declarations (required for modules) |
 | `snake_case.wgsl` | `matmul_f16.wgsl` | WGSL shaders |
+
+## Executable coverage
+
+The [rule registry](../../tools/policies/style-guide-rules.json) maps every guide
+to stable rule IDs, detectors, positive/negative fixtures where applicable, and
+honest limitations. Guide markers and detector IDs are checked for drift.
+
+- `npm run check:fast`: existing scoped source/architecture gates plus baseline
+  checks on the last commit and staged, unstaged and nonignored new files.
+- `npm run style:guides:check`: full tracked + nonignored new JS/MJS, JSON,
+  WGSL and WGSL include scan, independent of directory. Automatic CI runs this
+  complete baseline. Reports, examples, tools and tests are not silently skipped.
+- `npm run style:guides:test`: detector and registry positive/negative fixtures.
+- `npm run kernels:check`: generated interface/codegen/registry/digest parity for
+  kernel changes; shader compilation and numerical GPU tests remain separate.
+
+Full **file** coverage means each file receives applicable baseline checks, not
+that every semantic sentence is lint-provable. Existing type/unused-local gates
+remain explicitly scoped. Benchmark fairness, resource lifecycle, semantic DRY,
+performance and output correctness need focused tests and review. Emoji policy
+remains contextual review; tokenizer data and quoted evidence are not prose.
+
+[Retained debt](../../tools/policies/style-guide-debt.json) identifies exact
+file/rule/source-line/count exceptions with reasons and removal conditions.
+New or changed violations fail. Removed debt must be removed from the ledger;
+there is no automatic baseline-refresh switch. Existing `.mjs` artifacts and
+examples have exact legacy paths in the rule registry, not a folder exemption.

@@ -1,5 +1,10 @@
 # Emoji Policy: STRICT NO EMOJIS
 
+<!-- style-rules: EMOJI-001 -->
+Mechanical coverage and review-only limits: [style rule registry](../../tools/policies/style-guide-rules.json).
+Run `npm run check:fast` while editing; `npm run style:guides:check` scans all files.
+These checks do not replace the semantic requirements below.
+
 Use the Unicode symbols below for visual indicators.
 
 ## Approved Unicode Symbols

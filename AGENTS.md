@@ -35,6 +35,11 @@ simple, portable execution.
 
 ### MANDATORY: Read Style Guides First
 
+Use the [read-first matrix](docs/style/README.md#read-first-matrix) and
+[rule coverage](tools/policies/style-guide-rules.json). Run `npm run check:fast`
+for edits; `npm run style:guides:check` checks every tracked/nonignored new
+JS/JSON/WGSL file. Full file coverage is not semantic proof; run affected tests.
+
 Before a non-trivial edit, read the [engineering checklist](docs/style/general-style-guide.md#invariants-quick-reference).
 Then read the linked sections and JavaScript/config invariants relevant to the
 changed behavior. Full guides remain references, not a mandatory 2,200-line

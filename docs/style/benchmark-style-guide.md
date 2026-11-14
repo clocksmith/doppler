@@ -1,5 +1,10 @@
 # Doppler Benchmark Style Guide
 
+<!-- style-rules: BENCHMARK-001 -->
+Mechanical coverage and review-only limits: [style rule registry](../../tools/policies/style-guide-rules.json).
+Run `npm run check:fast` while editing; `npm run style:guides:check` scans all files.
+These checks do not replace the semantic requirements below.
+
 Claim policy is canonical in [../benchmark-methodology.md](../benchmark-methodology.md).
 Vendor registry/toolchain contract is canonical in
 [../../benchmarks/vendors/README.md](../../benchmarks/vendors/README.md).

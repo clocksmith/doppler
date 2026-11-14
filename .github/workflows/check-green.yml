@@ -21,10 +21,14 @@ jobs:
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@v7
+        with:
+          fetch-depth: 2
       - uses: actions/setup-node@v6
         with:
           node-version: '22'
           cache: npm
       - run: npm ci --ignore-scripts --omit=optional --no-audit --no-fund
       - run: npm run check:fast
+      - run: npm run style:guides:check
+      - run: npm run style:guides:test
       - run: npm run package:smoke

@@ -1,5 +1,10 @@
 # Doppler Harness Interface Style Guide
 
+<!-- style-rules: HARNESS-001 -->
+Mechanical coverage and review-only limits: [style rule registry](../../tools/policies/style-guide-rules.json).
+Run `npm run check:fast` while editing; `npm run style:guides:check` scans all files.
+These checks do not replace the semantic requirements below.
+
 Harness-specific rules for browser and Node execution surfaces.
 
 Command semantics, intent mapping, and envelope contracts are canonical in

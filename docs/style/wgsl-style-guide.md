@@ -1,5 +1,10 @@
 # Doppler WGSL Style Guide
 
+<!-- style-rules: wgsl-comments, wgsl-override-name, wgsl-function-name, wgsl-padding-access, wgsl-f16-enable, wgsl-binding-unique -->
+Mechanical coverage and review-only limits: [style rule registry](../../tools/policies/style-guide-rules.json).
+Run `npm run check:fast` while editing; `npm run style:guides:check` scans all files.
+These checks do not replace the semantic requirements below.
+
 WebGPU Shading Language conventions for DOPPLER kernels.
 Shared naming/logging/testing policy is canonical in [General Style Guide](./general-style-guide.md).
 

@@ -1,0 +1,254 @@
+{
+  "schemaVersion": 1,
+  "description": "Executable baseline coverage for every tracked or nonignored new JS/MJS, JSON and WGSL file. Scoped existing checks and review obligations are separate; baseline file coverage is not full semantic-rule coverage.",
+  "guides": [
+    "docs/style/general-style-guide.md",
+    "docs/style/javascript-style-guide.md",
+    "docs/style/config-style-guide.md",
+    "docs/style/wgsl-style-guide.md",
+    "docs/style/command-interface-design-guide.md",
+    "docs/style/harness-style-guide.md",
+    "docs/style/benchmark-style-guide.md",
+    "docs/style/emoji.md"
+  ],
+  "rules": [
+    {
+      "id": "JS-001",
+      "guide": "docs/style/javascript-style-guide.md",
+      "rule": "JavaScript parser syntax",
+      "coverage": "baseline",
+      "checker": "tools/check-javascript-style.js",
+      "fixture": "tests/tooling/style-guide-check.test.js",
+      "limits": "Every tracked or nonignored new .js/.mjs file; parser syntax only, not module execution or type correctness."
+    },
+    {
+      "id": "JS-002",
+      "guide": "docs/style/general-style-guide.md",
+      "rule": "Use .js, not new .mjs",
+      "coverage": "baseline",
+      "checker": "tools/check-javascript-style.js",
+      "fixture": "tests/tooling/style-guide-check.test.js",
+      "limits": "Exact legacy .mjs paths retained; no evidence rewrite required."
+    },
+    {
+      "id": "JSON-001",
+      "guide": "docs/style/config-style-guide.md",
+      "rule": "Strict JSON syntax",
+      "coverage": "baseline",
+      "checker": "tools/check-json-style.js",
+      "fixture": "tests/config/json-style-check.test.js",
+      "limits": "Every .json file; tsconfig*.json uses its declared JSONC dialect. Domain semantics require the owning schema."
+    },
+    {
+      "id": "JSON-002",
+      "guide": "docs/style/config-style-guide.md",
+      "rule": "No duplicate object member names",
+      "coverage": "baseline",
+      "checker": "tools/check-json-style.js",
+      "fixture": "tests/config/json-style-check.test.js",
+      "limits": "Decoded key identity, not textual similarity."
+    },
+    {
+      "id": "JSON-003",
+      "guide": "docs/style/config-style-guide.md",
+      "rule": "Finite numeric values",
+      "coverage": "baseline",
+      "checker": "tools/check-json-style.js",
+      "fixture": "tests/config/json-style-check.test.js",
+      "limits": "Overflow must not silently create Infinity."
+    },
+    {
+      "id": "SOURCE-001",
+      "guide": "docs/style/general-style-guide.md",
+      "rule": "Declarations, logging, geometry and compute boundary",
+      "coverage": "scoped",
+      "checker": "tools/check-source-style.js",
+      "fixture": null,
+      "limits": "src/demo only. AST/regex numeric candidates are heuristics, not proof that arbitrary tensor work is absent."
+    },
+    {
+      "id": "SOURCE-002",
+      "guide": "docs/style/javascript-style-guide.md",
+      "rule": "Unused implementation bindings",
+      "coverage": "scoped",
+      "checker": "tools/check-unused-locals.js",
+      "fixture": null,
+      "limits": "Only roots listed in tsconfig.source-unused.json; noUnusedParameters is disabled."
+    },
+    {
+      "id": "SOURCE-003",
+      "guide": "docs/style/general-style-guide.md",
+      "rule": "Ownership, dependencies and bounded modules",
+      "coverage": "scoped",
+      "checker": "tools/check-source-architecture.js",
+      "fixture": "tests/tooling/source-architecture-debt.test.js",
+      "limits": "Production source owners. Semantic equivalence and whether an abstraction is worthwhile require review."
+    },
+    {
+      "id": "COMMAND-001",
+      "guide": "docs/style/command-interface-design-guide.md",
+      "rule": "Shared command contract and parity",
+      "coverage": "scoped",
+      "checker": "tools/check-command-surface-contract.js",
+      "fixture": "tests/tooling/command-surface-style.test.js",
+      "limits": "Declared surfaces; requires behavior tests for new execution paths."
+    },
+    {
+      "id": "HARNESS-001",
+      "guide": "docs/style/harness-style-guide.md",
+      "rule": "Harness command boundary",
+      "coverage": "scoped",
+      "checker": "tools/check-command-surface-contract.js",
+      "fixture": "tests/integration/node-browser-command-relay-contract.test.js",
+      "limits": "Static surface checks plus focused integration test, not proof of every browser environment."
+    },
+    {
+      "id": "BENCHMARK-001",
+      "guide": "docs/style/benchmark-style-guide.md",
+      "rule": "Benchmark schema contract",
+      "coverage": "scoped",
+      "checker": "tests/benchmarks/benchmark-schema-contract.test.js",
+      "fixture": "tests/benchmarks/benchmark-schema-contract.test.js",
+      "limits": "Schema contract test; experimental fairness, representative workloads and measured speed require review and evidence."
+    },
+    {
+      "id": "EMOJI-001",
+      "guide": "docs/style/emoji.md",
+      "rule": "Approved symbols in authored output",
+      "coverage": "review",
+      "checker": null,
+      "fixture": null,
+      "limits": "Review user-facing authored text against approved symbols; data, tokenizer fixtures and quoted evidence may contain emoji. No blanket Unicode ban."
+    },
+    {
+      "id": "SEMANTIC-001",
+      "guide": "docs/style/general-style-guide.md",
+      "rule": "Ownership, DRY and lifecycle semantics",
+      "coverage": "review",
+      "checker": null,
+      "fixture": null,
+      "limits": "Review all normative prose not explicitly mechanically covered: semantic duplication, cleanup, compatibility, correctness and performance are not established by lexical checks."
+    },
+    {
+      "id": "wgsl-comments",
+      "guide": "docs/style/wgsl-style-guide.md",
+      "rule": "Balanced nested block comments",
+      "coverage": "baseline",
+      "checker": "tools/check-wgsl-style.js",
+      "fixture": "tests/config/wgsl-style-check.test.js",
+      "limits": "Lexical validation, not shader compilation."
+    },
+    {
+      "id": "wgsl-override-name",
+      "guide": "docs/style/wgsl-style-guide.md",
+      "rule": "UPPER_SNAKE_CASE override names",
+      "coverage": "baseline",
+      "checker": "tools/check-wgsl-style.js",
+      "fixture": "tests/config/wgsl-style-check.test.js",
+      "limits": "Scans overrides including template includes."
+    },
+    {
+      "id": "wgsl-function-name",
+      "guide": "docs/style/wgsl-style-guide.md",
+      "rule": "snake_case function names",
+      "coverage": "baseline",
+      "checker": "tools/check-wgsl-style.js",
+      "fixture": "tests/config/wgsl-style-check.test.js",
+      "limits": "Declared functions; builtins are not renamed."
+    },
+    {
+      "id": "wgsl-padding-access",
+      "guide": "docs/style/wgsl-style-guide.md",
+      "rule": "Padding is not runtime state",
+      "coverage": "baseline",
+      "checker": "tools/check-wgsl-style.js",
+      "fixture": "tests/config/wgsl-style-check.test.js",
+      "limits": "Detects member access to _pad fields; ABI migrations require synchronized wrappers and numerical tests."
+    },
+    {
+      "id": "wgsl-f16-enable",
+      "guide": "docs/style/wgsl-style-guide.md",
+      "rule": "f16 source declares enable f16",
+      "coverage": "baseline",
+      "checker": "tools/check-wgsl-style.js",
+      "fixture": "tests/config/wgsl-style-check.test.js",
+      "limits": "Full shader files only; .wgslinc inherits its enclosing shader directives."
+    },
+    {
+      "id": "wgsl-binding-unique",
+      "guide": "docs/style/wgsl-style-guide.md",
+      "rule": "Unique literal group/binding pairs",
+      "coverage": "baseline",
+      "checker": "tools/check-wgsl-style.js",
+      "fixture": "tests/config/wgsl-style-check.test.js",
+      "limits": "Numeric literal annotations; not expression evaluation, layout proof or bounds checking."
+    }
+  ],
+  "legacyMjs": [
+    {
+      "path": "artifacts/qwen35-08b-capsule-intake-20261012/signed-0fad-candidate/build.mjs",
+      "reason": "Pre-existing retained artifact or example; do not rename historical evidence or break standalone consumers for style.",
+      "removalCondition": "Remove this exception when its owning file is deliberately deleted or migrated with its consumers."
+    },
+    {
+      "path": "examples/js-wgsl-quines/compiler/assemble.mjs",
+      "reason": "Pre-existing retained artifact or example; do not rename historical evidence or break standalone consumers for style.",
+      "removalCondition": "Remove this exception when its owning file is deliberately deleted or migrated with its consumers."
+    },
+    {
+      "path": "examples/js-wgsl-quines/compiler/compile.mjs",
+      "reason": "Pre-existing retained artifact or example; do not rename historical evidence or break standalone consumers for style.",
+      "removalCondition": "Remove this exception when its owning file is deliberately deleted or migrated with its consumers."
+    },
+    {
+      "path": "examples/js-wgsl-quines/tests/cpu.mjs",
+      "reason": "Pre-existing retained artifact or example; do not rename historical evidence or break standalone consumers for style.",
+      "removalCondition": "Remove this exception when its owning file is deliberately deleted or migrated with its consumers."
+    },
+    {
+      "path": "examples/js-wgsl-quines/tests/gpu.mjs",
+      "reason": "Pre-existing retained artifact or example; do not rename historical evidence or break standalone consumers for style.",
+      "removalCondition": "Remove this exception when its owning file is deliberately deleted or migrated with its consumers."
+    },
+    {
+      "path": "examples/js-wgsl-quines/tests/reference.mjs",
+      "reason": "Pre-existing retained artifact or example; do not rename historical evidence or break standalone consumers for style.",
+      "removalCondition": "Remove this exception when its owning file is deliberately deleted or migrated with its consumers."
+    },
+    {
+      "path": "examples/program-bundles/program/host/text-generation-efe3ad193b2271bc.mjs",
+      "reason": "Pre-existing retained artifact or example; do not rename historical evidence or break standalone consumers for style.",
+      "removalCondition": "Remove this exception when its owning file is deliberately deleted or migrated with its consumers."
+    },
+    {
+      "path": "reports/qwen-delivery-attribution-20261017/browser-trace.mjs",
+      "reason": "Pre-existing retained artifact or example; do not rename historical evidence or break standalone consumers for style.",
+      "removalCondition": "Remove this exception when its owning file is deliberately deleted or migrated with its consumers."
+    },
+    {
+      "path": "reports/qwen-package-candidate-20261017/browser-lifecycle.mjs",
+      "reason": "Pre-existing retained artifact or example; do not rename historical evidence or break standalone consumers for style.",
+      "removalCondition": "Remove this exception when its owning file is deliberately deleted or migrated with its consumers."
+    },
+    {
+      "path": "reports/qwen-sampling-correction-20261017/browser-lifecycle.mjs",
+      "reason": "Pre-existing retained artifact or example; do not rename historical evidence or break standalone consumers for style.",
+      "removalCondition": "Remove this exception when its owning file is deliberately deleted or migrated with its consumers."
+    },
+    {
+      "path": "reports/qwen-service-qualification-20261017/tjs-service-control.mjs",
+      "reason": "Pre-existing retained artifact or example; do not rename historical evidence or break standalone consumers for style.",
+      "removalCondition": "Remove this exception when its owning file is deliberately deleted or migrated with its consumers."
+    },
+    {
+      "path": "reports/weight-representation-20261017/browser-compare.mjs",
+      "reason": "Pre-existing retained artifact or example; do not rename historical evidence or break standalone consumers for style.",
+      "removalCondition": "Remove this exception when its owning file is deliberately deleted or migrated with its consumers."
+    },
+    {
+      "path": "reports/weight-representation-20261017/browser-materialization.mjs",
+      "reason": "Pre-existing retained artifact or example; do not rename historical evidence or break standalone consumers for style.",
+      "removalCondition": "Remove this exception when its owning file is deliberately deleted or migrated with its consumers."
+    }
+  ]
+}
