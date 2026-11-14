@@ -36,9 +36,9 @@ const hooks = registerHooks({ resolve(specifier, context, next) {
 } });
 try {
   const { processHyperConnectionLayer } = await import(target);
-  const hyper = { streamCount: 4, streamWidth: 4, projectionRank: 2, normEps: 1e-6 };
+  const hyper = { streamCount: 4, streamWidth: 4, normWeightOffset: true, projectionRank: 2, normEps: 1e-6 };
   const weights = { inputNorm: buffer('ordinary norm'), hyperConnections: { attention: {}, mlp: {} }, qsaIndexer: {} };
-  const config = { hyperConnections: hyper, hiddenSize: 4, numLayers: 4, layerTypes: ['linear_attention', 'linear_attention', 'linear_attention', 'full_attention'],
+  const config = { rmsNormWeightOffset: true, hyperConnections: hyper, hiddenSize: 4, numLayers: 4, layerTypes: ['linear_attention', 'linear_attention', 'linear_attention', 'full_attention'],
     numHeads: 2, numKVHeads: 1, headDim: 2, rmsNormEps: 1e-6, slidingWindow: null,
     attnLogitSoftcapping: null, queryPreAttnScalar: null, queryScale: 1, queryKeyNorm: true,
     queryKeyNormType: 'rmsnorm', queryKeyNormAxis: 'head', queryKeyNormWeightLayers: null, valueNorm: false,

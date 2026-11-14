@@ -2,6 +2,8 @@ import type { CommandRecorder } from '../../../../gpu/command-recorder.js';
 import type { Tensor } from '../../../../gpu/tensor.js';
 import type { ResolvedHyperConnections } from '../../../../config/schema/hyper-connection-decoder.schema.js';
 
+export type RuntimeHyperConnections = ResolvedHyperConnections & { normWeightOffset: boolean };
+
 /** Caller-owned projection; roles are `${attn_hc|mlp_hc|hc_mixer}_{down|up|inject}`. */
 export type HyperConnectionProjection = (
   role: string,
@@ -23,7 +25,7 @@ export interface GatedResidualWeights {
 export interface GatedResidualInput {
   streams: Tensor;
   weights: GatedResidualWeights;
-  hyper: ResolvedHyperConnections;
+  hyper: RuntimeHyperConnections;
   numTokens: number;
   project: HyperConnectionProjection;
   role: string;
@@ -39,7 +41,7 @@ export interface HyperConnectionDecoderLayerInput {
   /** Caller-owned streams [numTokens, streamCount * streamWidth]; not released. */
   streams: Tensor;
   numTokens: number;
-  hyper: ResolvedHyperConnections;
+  hyper: RuntimeHyperConnections;
   weights: { attention: GatedResidualWeights; mlp: GatedResidualWeights };
   /** PLE on the incoming streams for PLE layers; returns new streams owned by the layer. */
   ple?: ((streams: Tensor) => Promise<Tensor>) | null;
@@ -53,7 +55,7 @@ export interface HyperConnectionDecoderLayerInput {
 export declare function replicateEmbeddings(
   target: CommandRecorder | null,
   embeds: Tensor,
-  options: { hyper: ResolvedHyperConnections; numTokens: number }
+  options: { hyper: RuntimeHyperConnections; numTokens: number }
 ): Promise<Tensor>;
 
 /** Branch input [numTokens, streamWidth] and injection gate [numTokens, streamCount] (null without inject weights). */

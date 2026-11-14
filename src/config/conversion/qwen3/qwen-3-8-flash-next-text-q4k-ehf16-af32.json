@@ -528,7 +528,7 @@
       "hc_norm": {
         "kernel": "hyper_connection_norm.wgsl",
         "entry": "main",
-        "digest": "sha256:e2a043cd9550609292c3d6b0c83093fcf41f4a224d228196a50071a6672f2a5c"
+        "digest": "sha256:dbfe58075401793602e14163cce1649191c802890c02324e489b66f63b9dfeb1"
       },
       "hc_low_rank_silu": {
         "kernel": "hyper_connection_activation.wgsl",
@@ -563,12 +563,12 @@
       "qsa_prepare": {
         "kernel": "qsa_prepare.wgsl",
         "entry": "main",
-        "digest": "sha256:5b58df0c1bef2cfa9865aea4b98e6227cd186ac2c2e34ed953665f0f37cb15ab"
+        "digest": "sha256:5205700912f865fa0a1a591f7ce98ba5ea5f384d431ec38bfafbf8e7a86f86fe"
       },
       "qsa_block_keys": {
         "kernel": "qsa_block_keys.wgsl",
         "entry": "main",
-        "digest": "sha256:ad046522ad0f52554bf1fdbccf7c296f684d8bc15cd2002c9c4775eb2191e8bb"
+        "digest": "sha256:aba0c74b869d4032e101b27a4754f32090425d2c9c39ce82e1b0bfff72523952"
       },
       "qsa_block_scores": {
         "kernel": "qsa_block_scores.wgsl",

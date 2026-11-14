@@ -75,7 +75,7 @@ export async function runPleLayer(target, { streams, rows, weights, state, ngram
   };
   let retainedGate = null;
   let returned = false;
-  const normOptions = { numTokens, streamCount: hyper.streamCount, streamWidth: hyper.streamWidth, eps: ngram.normEps };
+  const normOptions = { numTokens, streamCount: hyper.streamCount, streamWidth: hyper.streamWidth, eps: ngram.normEps, normWeightOffset: hyper.normWeightOffset };
   /** @param {import('../../../../gpu/tensor.js').Tensor} input @param {import('../../../../gpu/tensor.js').Tensor} weight */
   const norm = (input, weight) => (recorded
     ? recordHyperConnectionNorm(target, input, weight, normOptions)

@@ -26,10 +26,10 @@ if (probe.ready) {
       up: projection(new Array(16).fill(0), [8, 2], 'mix_up'), inject: null },
     lmHead: projection([1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1], [4, 4], 'lm_head') };
   const postLayer = ['hc_mixer_down', 'hc_mixer_up', 'lm_head', 'lm_head_prefill'].map(op => ({ op, kernel: 'matmul_f32.wgsl', entry: 'main' }));
-  const config = { hiddenSize: 4, vocabSize: 4, activationDtype: 'f32', executionPhase: 'prefill',
+  const config = { hiddenSize: 4, vocabSize: 4, rmsNormWeightOffset: true, activationDtype: 'f32', executionPhase: 'prefill',
     normalizationType: 'rmsnorm', rmsNormEps: 1e-6, rmsNormWeightOffset: true,
     finalLogitSoftcapping: null, logitInputScale: 1, logitOutputScale: 1, useTiedEmbeddings: false,
-    hyperConnections: { streamCount: 2, streamWidth: 4, projectionRank: 2, normEps: 1e-6 },
+    hyperConnections: { streamCount: 2, streamWidth: 4, normWeightOffset: true, projectionRank: 2, normEps: 1e-6 },
     kernelPath: { id: 'root-mixer-test', preLayer: [], decode: { steps: [] }, prefill: { steps: [] }, postLayer } };
   // Independent closed-form case: zero mixing projections yield sigmoid(0)=1/2.
   // The mixer averages the two separately normalized streams; no final RMSNorm follows.
@@ -71,7 +71,7 @@ if (probe.ready) {
       device.queue.writeBuffer(rows, 0, new Uint16Array(4));
       const borrowed = getBufferPool().getStats().activeBuffers;
       await assert.rejects(runPleLayer(null, { streams: createTensor(hidden, 'f32', [1, 8]), rows,
-        weights: pleWeights, state: convState, ngram: { embedDim: 4, normEps: 1e-6, convKernelSize: 4, convDilation: 3, convStateLength: 9 },
+        weights: pleWeights, state: convState, ngram: { tableDtype: 'bf16', embedDim: 4, normEps: 1e-6, convKernelSize: 4, convDilation: 3, convStateLength: 9 },
         hyper: config.hyperConnections, numTokens: 1, project: async (_role, _input, _weight, outFeatures) => {
           const buffer = acquireBuffer(outFeatures * 4); device.queue.writeBuffer(buffer, 0, new Float32Array(outFeatures));
           return createTensor(buffer, 'f32', [1, outFeatures]);

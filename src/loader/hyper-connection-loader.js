@@ -1,5 +1,8 @@
+import { acquireBuffer, releaseBuffer } from '../memory/buffer-pool.js';
+import { ggufBlockBytes, isGgufBlockDtype } from '../formats/gguf/block-storage.js';
+import { getDevice } from '../gpu/device.js';
 import { createTensor } from '../gpu/tensor.js';
-import { getWeightDtype, isWeightBuffer } from '../gpu/weight-buffer.js';
+import { createWeightBuffer, getWeightDtype, isWeightBuffer } from '../gpu/weight-buffer.js';
 import { castF16ToF32 } from '../gpu/kernels/cast.js';
 import {
   GATED_RESIDUAL_SUFFIXES, HYPER_CONNECTION_MIXER_PREFIXES, HYPER_CONNECTION_SUFFIXES,
@@ -15,13 +18,16 @@ function fail(message) {
  * @param {readonly string[]} prefixes @param {readonly string[]} suffixes
  * @param {readonly number[]} shape @param {string | null} role @param {boolean} tensor */
 function binding(ctx, prefixes, suffixes, shape, role, tensor) {
-  const candidates = prefixes.flatMap(prefix => suffixes.map(suffix => `${prefix}.${suffix}`));
+  const candidates = prefixes.flatMap(prefix => suffixes.map(suffix => prefix ? `${prefix}.${suffix}` : suffix));
   const matches = candidates.filter(name => ctx.tensorLocations.has(name));
   if (matches.length !== 1) fail(`Expected one ${candidates[0]}; found ${matches.length}.`);
   const name = matches[0];
   const location = ctx.tensorLocations.get(name);
   if (!location) fail(`Missing location for ${name}.`);
-  const logicalShape = location.originalShape ?? location.shape;
+  const storedShape = location.originalShape ?? location.shape;
+  // GGUF removes the unit group axis from the depthwise convolution.
+  const logicalShape = name.endsWith('.ple_conv1d.weight') && storedShape.length === 2
+    ? [storedShape[0], 1, storedShape[1]] : storedShape;
   if (logicalShape.length !== shape.length || logicalShape.some((value, index) => value !== shape[index])) {
     fail(`${name} requires shape [${shape}]; got [${logicalShape}].`);
   }
@@ -55,17 +61,23 @@ async function materialize(ctx, bindings) {
         result[key] = converted;
       } else result[key] = vector;
     } else {
-      if (!isWeightBuffer(loaded) || (dtype !== 'f16' && dtype !== 'f32')) {
-        fail(`${spec.name} requires a WeightBuffer with declared f16 or f32 projection storage and layout.`);
+      if (!isWeightBuffer(loaded) || (dtype !== 'f16' && dtype !== 'f32' && !isGgufBlockDtype(dtype))) {
+        fail(`${spec.name} requires a WeightBuffer with supported floating or GGUF block projection storage and layout.`);
       }
       if (loaded.shape.length !== spec.shape.length || loaded.shape.some((value, index) => value !== spec.shape[index])
-        || buffer.size < elements * (dtype === 'f16' ? 2 : 4)) {
+        || buffer.size < projectionBytes(loaded) || (isGgufBlockDtype(dtype) && loaded.layout !== 'row')) {
         fail(`${spec.name} has an incomplete or mismatched projection representation.`);
       }
       result[key] = loaded;
     }
   }
   return result;
+}
+
+/** @param {import('../gpu/weight-buffer.js').WeightBuffer} weight */
+function projectionBytes(weight) {
+  if (isGgufBlockDtype(weight.dtype)) return ggufBlockBytes(weight.shape, weight.dtype);
+  return weight.shape.reduce((a, b) => a * b, 1) * (weight.dtype === 'f16' ? 2 : 4);
 }
 
 /** @param {Awaited<ReturnType<typeof materialize>>} weights @param {string} key */
@@ -108,6 +120,56 @@ function gatedBindings(ctx, prefixes, suffixes, role, inject) {
   return bindings;
 }
 
+/** @param {import('./hyper-connection-loader.js').MechanismLoaderContext} ctx
+ * @param {readonly string[]} prefixes
+ * @param {import('../config/schema/hyper-connection-decoder.schema.js').ResolvedIndexedAttention} indexed
+ * @returns {Record<string, ReturnType<typeof binding>>} */
+function indexerBindings(ctx, prefixes, indexed) {
+  const has = (/** @type {readonly string[]} */ suffixes) => prefixes.some(prefix => suffixes.some(suffix => ctx.tensorLocations.has(`${prefix}.${suffix}`)));
+  const fused = has(QSA_SUFFIXES.projection);
+  const split = has(QSA_SUFFIXES.qProjection) || has(QSA_SUFFIXES.kProjection);
+  if (fused && split) fail('Indexer cannot declare both fused and separate q/k projections.');
+  if (!ctx.hyperConnections) fail('Indexer requires hyperConnections.');
+  const width = ctx.hyperConnections.streamWidth;
+  if (!split) return { projection: binding(ctx, prefixes, QSA_SUFFIXES.projection,
+    [(indexed.queryHeads + indexed.keyHeads) * indexed.headDim, width], 'qsa_index_qk', false) };
+  return {
+    qProjection: binding(ctx, prefixes, QSA_SUFFIXES.qProjection, [indexed.queryHeads * indexed.headDim, width], 'qsa_index_qk', false),
+    kProjection: binding(ctx, prefixes, QSA_SUFFIXES.kProjection, [indexed.keyHeads * indexed.headDim, width], 'qsa_index_qk', false),
+  };
+}
+
+/** GGUF stores Q then K as separate row-major matrices. Join their already
+ * materialized rows once on the GPU, retaining the existing fused runtime op.
+ * @param {import('./hyper-connection-loader.js').MechanismLoaderContext} ctx
+ * @param {Awaited<ReturnType<typeof materialize>>} weights */
+function fuseIndexer(ctx, weights) {
+  if (weights.projection) return projectionWeight(weights, 'projection');
+  const q = projectionWeight(weights, 'qProjection');
+  const k = projectionWeight(weights, 'kProjection');
+  if (q.layout !== 'row' || k.layout !== 'row' || q.dtype !== k.dtype || q.shape[1] !== k.shape[1]) {
+    fail('Separate indexer projections require matching row-major storage.');
+  }
+  if (!(ctx.gpuBuffers instanceof Set)) fail('Separate indexer projections require a GPU buffer owner.');
+  const device = getDevice();
+  if (!device) fail('Separate indexer projections require a GPU device.');
+  const qBytes = projectionBytes(q);
+  const kBytes = projectionBytes(k);
+  if (qBytes % 4 || kBytes % 4) fail('Separate indexer projection rows require copy-aligned byte lengths.');
+  const buffer = acquireBuffer(qBytes + kBytes, undefined, 'qsa_index_qk');
+  try {
+    const encoder = device.createCommandEncoder();
+    encoder.copyBufferToBuffer(q.buffer, 0, buffer, 0, qBytes);
+    encoder.copyBufferToBuffer(k.buffer, 0, buffer, qBytes, kBytes);
+    device.queue.submit([encoder.finish()]);
+    ctx.gpuBuffers.add(buffer);
+    return createWeightBuffer(buffer, q.dtype, 'row', [q.shape[0] + k.shape[0], q.shape[1]], 'qsa_index_qk');
+  } catch (error) {
+    releaseBuffer(buffer);
+    throw error;
+  }
+}
+
 /** @type {typeof import('./hyper-connection-loader.js').loadHyperConnectionLayerWeights} */
 export async function loadHyperConnectionLayerWeights(ctx, layerIdx) {
   if (ctx.hyperConnections == null) return {};
@@ -118,8 +180,7 @@ export async function loadHyperConnectionLayerWeights(ctx, layerIdx) {
   const ngram = ctx.ngramEmbedding;
   const width = ctx.hyperConnections.streamCount * ctx.hyperConnections.streamWidth;
   const qsa = indexed?.layers.includes(layerIdx) ? {
-    projection: binding(ctx, prefixes, QSA_SUFFIXES.projection,
-      [(indexed.queryHeads + indexed.keyHeads) * indexed.headDim, ctx.hyperConnections.streamWidth], 'qsa_index_qk', false),
+    ...indexerBindings(ctx, prefixes, indexed),
     qNorm: binding(ctx, prefixes, QSA_SUFFIXES.qNorm, [indexed.headDim], null, true),
     kNorm: binding(ctx, prefixes, QSA_SUFFIXES.kNorm, [indexed.headDim], null, true),
   } : null;
@@ -135,7 +196,7 @@ export async function loadHyperConnectionLayerWeights(ctx, layerIdx) {
   const qsaWeights = qsa ? await materialize(ctx, qsa) : null;
   const pleWeights = ple ? await materialize(ctx, ple) : null;
   return { hyperConnections,
-    qsaIndexer: qsaWeights ? { projection: projectionWeight(qsaWeights, 'projection'),
+    qsaIndexer: qsaWeights ? { projection: fuseIndexer(ctx, qsaWeights),
       qNorm: vectorWeight(qsaWeights, 'qNorm'), kNorm: vectorWeight(qsaWeights, 'kNorm') } : null,
     ple: pleWeights ? { keyProj: projectionWeight(pleWeights, 'keyProj'), valueProj: projectionWeight(pleWeights, 'valueProj'),
       normKey: vectorWeight(pleWeights, 'normKey'), normQuery: vectorWeight(pleWeights, 'normQuery'),
@@ -145,6 +206,6 @@ export async function loadHyperConnectionLayerWeights(ctx, layerIdx) {
 /** @type {typeof import('./hyper-connection-loader.js').loadHyperConnectionMixerWeights} */
 export async function loadHyperConnectionMixerWeights(ctx) {
   if (ctx.hyperConnections == null) return null;
-  const suffixes = Object.fromEntries(Object.entries(GATED_RESIDUAL_SUFFIXES).map(([key, value]) => [key, [value]]));
-  return materializeGated(ctx, gatedBindings(ctx, HYPER_CONNECTION_MIXER_PREFIXES, suffixes, 'hc_mixer', false));
+  const suffixes = Object.fromEntries(Object.entries(GATED_RESIDUAL_SUFFIXES).map(([key, value]) => [key, [value, `output_hc_${key}.weight`]]));
+  return materializeGated(ctx, gatedBindings(ctx, [...HYPER_CONNECTION_MIXER_PREFIXES, ''], suffixes, 'hc_mixer', false));
 }

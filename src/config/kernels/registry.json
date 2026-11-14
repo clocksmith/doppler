@@ -37018,10 +37018,9 @@
       "offset": 8
      },
      {
-      "name": "_pad0",
-      "type": "u32",
-      "offset": 12,
-      "padding": true
+      "name": "weight_offset",
+      "type": "f32",
+      "offset": 12
      }
     ]
    },

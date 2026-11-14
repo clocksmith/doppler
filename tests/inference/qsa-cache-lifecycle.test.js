@@ -79,7 +79,7 @@ const contract = Object.freeze({
 });
 const fakeTensor = (shape) => createTensor(new FakeBuffer({ size: shape.reduce((a, b) => a * b, 1) * 4, usage: 128 }), 'f32', shape);
 const appendInput = (startPos, numTokens) => ({
-  projection: fakeTensor([numTokens, 5 * 128]), qNormWeight: fakeTensor([128]), kNormWeight: fakeTensor([128]),
+  projection: fakeTensor([numTokens, 5 * 128]), normWeightOffset: true, qNormWeight: fakeTensor([128]), kNormWeight: fakeTensor([128]),
   rope: { cos: new FakeBuffer({ size: 1 << 20, usage: 128 }), sin: new FakeBuffer({ size: 1 << 20, usage: 128 }) },
   startPos, numTokens,
 });

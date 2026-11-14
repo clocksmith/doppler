@@ -18,6 +18,7 @@ export interface QsaPrepareOptions extends QsaIndexerGeometry {
   /** Cache row and position of the first token; positions are contiguous cache rows. */
   startPos: number;
   eps: number;
+  normWeightOffset: boolean;
   /** Raw key cache capacity in tokens. */
   capacity: number;
   outputBuffer?: GPUBuffer | null;
@@ -30,6 +31,7 @@ export interface QsaBlockKeyOptions {
   rotaryDim: number;
   compressRatio: number;
   eps: number;
+  normWeightOffset: boolean;
   capacity: number;
 }
 

@@ -82,12 +82,13 @@ function validateIndexerGeometry({ queryHeads, headDim, rotaryDim }) {
  * @param {import('./qsa-indexer.js').QsaPrepareOptions} options
  */
 async function executePrepare(target, projection, qNormWeight, rope, rawKeys, options) {
-  const { numTokens, startPos, queryHeads, headDim, rotaryDim, eps, capacity, outputBuffer = null } = options;
+  const { numTokens, startPos, queryHeads, headDim, rotaryDim, eps, normWeightOffset, capacity, outputBuffer = null } = options;
   validateIndexerGeometry({ queryHeads, headDim, rotaryDim });
   integer(numTokens, 'numTokens');
   integer(startPos, 'startPos', 0);
   integer(capacity, 'capacity');
   positive(eps, 'eps');
+  if (typeof normWeightOffset !== 'boolean') fail('normWeightOffset must be explicit boolean.');
   if (startPos + numTokens > capacity) fail(`append of ${numTokens} rows at ${startPos} exceeds cache capacity ${capacity}.`);
   assertTensor(projection, [numTokens, (queryHeads + 1) * headDim], 'index_qk projection');
   assertTensor(qNormWeight, [headDim], 'q_layernorm weight');
@@ -102,7 +103,7 @@ async function executePrepare(target, projection, qNormWeight, rope, rawKeys, op
     await unifiedKernelWrapper('qsa_prepare', target, 'f32',
       [projection, qNormWeight, rope.cos, rope.sin, output, rawKeys],
       { num_tokens: numTokens, start_pos: startPos, group_stride: columns, eps }, grid,
-      { WORKGROUP_SIZE: NORM_WORKGROUP, QUERY_HEADS: queryHeads, HEAD_DIM: headDim, ROTARY_DIM: rotaryDim });
+      { WORKGROUP_SIZE: NORM_WORKGROUP, QUERY_HEADS: queryHeads, HEAD_DIM: headDim, ROTARY_DIM: rotaryDim, NORM_WEIGHT_OFFSET: Number(normWeightOffset) });
     return createTensor(output, 'f32', [numTokens, queryHeads * headDim], 'qsa_query');
   });
 }
@@ -116,13 +117,14 @@ async function executePrepare(target, projection, qNormWeight, rope, rawKeys, op
  * @param {import('./qsa-indexer.js').QsaBlockKeyOptions} options
  */
 async function executeBlockKeys(target, rawKeys, kNormWeight, rope, blockKeys, options) {
-  const { firstBlock, blockCount, headDim, rotaryDim, compressRatio, eps, capacity } = options;
+  const { firstBlock, blockCount, headDim, rotaryDim, compressRatio, eps, normWeightOffset, capacity } = options;
   validateIndexerGeometry({ queryHeads: 1, headDim, rotaryDim });
   integer(firstBlock, 'firstBlock', 0);
   integer(blockCount, 'blockCount', 0);
   integer(compressRatio, 'compressRatio');
   integer(capacity, 'capacity');
   positive(eps, 'eps');
+  if (typeof normWeightOffset !== 'boolean') fail('normWeightOffset must be explicit boolean.');
   if (blockCount === 0) return;
   const lastToken = (firstBlock + blockCount) * compressRatio;
   if (lastToken > capacity) fail(`blocks through ${firstBlock + blockCount} exceed cache capacity ${capacity}.`);
@@ -134,7 +136,7 @@ async function executeBlockKeys(target, rawKeys, kNormWeight, rope, blockKeys, o
   await unifiedKernelWrapper('qsa_block_keys', target, 'f32',
     [rawKeys, kNormWeight, rope.cos, rope.sin, blockKeys],
     { first_block: firstBlock, block_count: blockCount, group_stride: columns, eps }, grid,
-    { WORKGROUP_SIZE: NORM_WORKGROUP, HEAD_DIM: headDim, ROTARY_DIM: rotaryDim, COMPRESS_RATIO: compressRatio });
+    { WORKGROUP_SIZE: NORM_WORKGROUP, HEAD_DIM: headDim, ROTARY_DIM: rotaryDim, COMPRESS_RATIO: compressRatio, NORM_WEIGHT_OFFSET: Number(normWeightOffset) });
 }
 
 /** @param {import('./qsa-indexer.js').QsaSelectionGeometry} options */

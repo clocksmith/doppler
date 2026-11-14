@@ -123,7 +123,7 @@ export class QsaIndexerCache {
 
   /** @type {import('./qsa-cache.js').QsaIndexerCache['append']} */
   // Async so precondition failures reject; the reservation still happens synchronously at call time.
-  async append(target, layerIdx, { projection, qNormWeight, kNormWeight, rope, startPos, numTokens }) {
+  async append(target, layerIdx, { projection, qNormWeight, kNormWeight, rope, startPos, numTokens, normWeightOffset }) {
     const layer = this.#layer(layerIdx);
     if (startPos !== layer.length || layer.reservedEnd !== layer.length) {
       fail(`layer ${layerIdx} append at position ${startPos} but holds ${layer.length} rows`
@@ -136,7 +136,7 @@ export class QsaIndexerCache {
     layer.reservedEnd = startPos + numTokens;
     return this.#track(async () => {
       const { queryHeads, headDim, rotaryDim, normEps: eps, compressRatio } = this.contract;
-      const common = { numTokens, startPos, queryHeads, headDim, rotaryDim, eps, capacity: this.capacity };
+      const common = { numTokens, startPos, queryHeads, headDim, rotaryDim, eps, normWeightOffset, capacity: this.capacity };
       /** @type {import('../../../../gpu/tensor.js').Tensor | null} */
       let query = null;
       try {
@@ -148,7 +148,7 @@ export class QsaIndexerCache {
         const blockOptions = {
           firstBlock,
           blockCount: Math.floor((startPos + numTokens) / compressRatio) - firstBlock,
-          headDim, rotaryDim, compressRatio, eps, capacity: this.capacity,
+          headDim, rotaryDim, compressRatio, eps, normWeightOffset, capacity: this.capacity,
         };
         if (isRecorder(target)) await recordQsaBlockKeys(target, layer.rawKeys, kNormWeight, rope, layer.blockKeys, blockOptions);
         else await runQsaBlockKeys(layer.rawKeys, kNormWeight, rope, layer.blockKeys, blockOptions);

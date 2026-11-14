@@ -472,7 +472,7 @@ export function write_hyper_connection_norm_f32(view, values, kernel) {
   writeU32(view, 0, values["group_count"], kernel, "group_count");
   writeU32(view, 4, values["group_stride"], kernel, "group_stride");
   writeF32(view, 8, values["eps"], kernel, "eps");
-  view.setUint32(12, 0, true);
+  writeF32(view, 12, values["weight_offset"], kernel, "weight_offset");
 }
 
 export function write_hyper_connection_activation_low_rank_silu(view, values, kernel) {

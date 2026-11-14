@@ -12,7 +12,7 @@ import { createHyperConnectionProjection } from './projection.js';
 /** @type {typeof import('./layer-executor.js').processHyperConnectionLayer} */
 export async function processHyperConnectionLayer(layerIdx, inputBuffer, numTokens, isPrefill, context) {
   const { config, recorder, hyperConnectionSession: session } = context;
-  const hyper = config.hyperConnections;
+  const hyper = config.hyperConnections ? { ...config.hyperConnections, normWeightOffset: config.rmsNormWeightOffset } : null;
   const resolvedRuntimeSession = context.resolvedRuntimeSession;
   const intermediatePrecision = config.sessionSettings.intermediatePrecision;
   const weights = /** @type {import('../weights.js').LayerWeights | undefined} */ (context.weights.get(`layer_${layerIdx}`));

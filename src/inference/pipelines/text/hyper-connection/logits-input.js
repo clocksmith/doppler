@@ -5,7 +5,8 @@ import { createHyperConnectionProjection } from './projection.js';
 
 /** @type {typeof import('./logits-input.js').mixHyperConnectionLogitsInput} */
 export async function mixHyperConnectionLogitsInput(recorder, hidden, numTokens, weights, config) {
-  const hyper = config.hyperConnections;
+  if (typeof config.rmsNormWeightOffset !== 'boolean') throw new Error('[HyperConnection] Explicit norm weight convention required.');
+  const hyper = config.hyperConnections ? { ...config.hyperConnections, normWeightOffset: config.rmsNormWeightOffset } : null;
   const mixer = weights.hyperConnectionMixer;
   if (!hyper || !mixer || weights.finalNorm || !isGpuBufferInstance(hidden)
     || config.activationDtype !== 'f32' || config.activationPrecision) {

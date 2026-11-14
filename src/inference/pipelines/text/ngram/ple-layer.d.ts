@@ -1,7 +1,7 @@
 import type { CommandRecorder } from '../../../../gpu/command-recorder.js';
 import type { Tensor } from '../../../../gpu/tensor.js';
 import type { ResolvedNgramEmbedding } from '../../../../config/schema/ngram-embedding.schema.js';
-import type { ResolvedHyperConnections } from '../../../../config/schema/hyper-connection-decoder.schema.js';
+import type { RuntimeHyperConnections } from '../hyper-connection/decoder-layer.js';
 
 export declare class PleConvState {
   constructor(options: { channels: number; stateLength: number });
@@ -42,7 +42,7 @@ export interface PleLayerInput {
   weights: PleLayerWeights;
   state: PleConvState;
   ngram: ResolvedNgramEmbedding;
-  hyper: ResolvedHyperConnections;
+  hyper: RuntimeHyperConnections;
   numTokens: number;
   project: PleProjection;
 }

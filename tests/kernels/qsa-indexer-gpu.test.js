@@ -15,6 +15,7 @@ import { resolveIndexedAttentionContract } from '../../src/config/schema/hyper-c
 // (A + B * eps, eps = measured RoPE table error) and select the same blocks as
 // the float64 truth and the unchanged upstream indexer wherever the bound
 // decides membership. Synthetic dyadic weights; not learned-weight evidence.
+const foldedScales = process.argv.includes('--folded-scales');
 const probe = await probeNodeGPU({ installFileFetchShim: true });
 if (!probe.ready) throw new Error(`Physical QSA indexer check unavailable: ${probe.reason}`);
 const capabilities = getKernelCapabilities();
@@ -86,8 +87,8 @@ try {
   const bound = (entry, index) => entry.boundA[index] + entry.boundB[index] * eps;
 
   cache = new QsaIndexerCache({ contract, capacity: T });
-  const qNormTensor = upload(qNorm, [g.headDim]);
-  const kNormTensor = upload(kNorm, [g.headDim]);
+  const qNormTensor = upload(foldedScales ? Float32Array.from(qNorm, value => 1 + value) : qNorm, [g.headDim]);
+  const kNormTensor = upload(foldedScales ? Float32Array.from(kNorm, value => 1 + value) : kNorm, [g.headDim]);
   const wqkBuffer = upload(wqk, [width, H]).buffer;
   const samples = new Map(stage.samples.map((s) => [s.query, s]));
   const querySamples = stage.querySamples;
@@ -98,7 +99,7 @@ try {
     const projection = await runMatmul(input, wqkBuffer, size, width, H, { transposeB: true, outputDtype: 'f32', bDtype: 'f32' });
     owned.add(projection.buffer);
     const query = await cache.append(null, g.queryHeads >= 1 ? contract.layers[0] : -1,
-      { projection, qNormWeight: qNormTensor, kNormWeight: kNormTensor, rope, startPos: start, numTokens: size });
+      { projection, normWeightOffset: !foldedScales, qNormWeight: qNormTensor, kNormWeight: kNormTensor, rope, startPos: start, numTokens: size });
     owned.add(query.buffer);
     const call = await cache.select(null, contract.layers[0], query, { startPos: start, numTokens: size });
     owned.add(call.selection);
@@ -202,9 +203,9 @@ try {
   // Cache ownership contracts.
   const layer = contract.layers[0];
   const probeInput = upload(new Float32Array(width), [1, width]);
-  await assert.rejects(cache.append(null, layer, { projection: probeInput, qNormWeight: qNormTensor, kNormWeight: kNormTensor,
+  await assert.rejects(cache.append(null, layer, { projection: probeInput, normWeightOffset: !foldedScales, qNormWeight: qNormTensor, kNormWeight: kNormTensor,
     rope, startPos: T - 1, numTokens: 1 }), /contiguous/);
-  await assert.rejects(cache.append(null, 5, { projection: probeInput, qNormWeight: qNormTensor, kNormWeight: kNormTensor,
+  await assert.rejects(cache.append(null, 5, { projection: probeInput, normWeightOffset: !foldedScales, qNormWeight: qNormTensor, kNormWeight: kNormTensor,
     rope, startPos: 0, numTokens: 1 }), /not an indexed layer/);
   const checkpoint = cache.checkpoint();
   cache.truncate(T - 10);

@@ -29,7 +29,7 @@ const readJson = async (path) => JSON.parse(await readFile(new URL(path, import.
 const fixture = await readJson(`${prep}decoder-composition-reference.json`);
 const flashNext = await readJson(`${prep}source/config.json`);
 const source = resolveQwen4ExpSourceContracts(flashNext);
-const hyper = resolveHyperConnectionsContract(source.hyperConnections, { hiddenSize: 2560 });
+const hyper = { ...resolveHyperConnectionsContract(source.hyperConnections, { hiddenSize: 2560 }), normWeightOffset: true };
 const ngram = resolveNgramEmbeddingContract(source.ngramEmbedding,
   { hiddenSize: 2560, numLayers: 48, vocabSize: 248320, layerTypes: flashNext.text_config.layer_types });
 const T = fixture.tokens.length;

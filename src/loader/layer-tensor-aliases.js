@@ -102,23 +102,26 @@ export const GATED_RESIDUAL_SUFFIXES = Object.freeze({
 export const HYPER_CONNECTION_SUFFIXES = Object.freeze(Object.fromEntries(
   ['attention', 'mlp'].map(branch => [branch, Object.freeze(Object.fromEntries(
     Object.entries(GATED_RESIDUAL_SUFFIXES).map(([key, suffix]) =>
-      [key, Object.freeze([`${branch === 'attention' ? 'attn' : 'mlp'}_hyper_connection.${suffix}`])])
+      [key, Object.freeze([`${branch === 'attention' ? 'attn' : 'mlp'}_hyper_connection.${suffix}`,
+        `hc_${branch === 'attention' ? 'attn' : 'ffn'}_${key}.weight`])])
   ))])
 ));
 
 export const QSA_SUFFIXES = Object.freeze({
   projection: Object.freeze(['self_attn.indexer.index_qk_proj.weight']),
-  qNorm: Object.freeze(['self_attn.indexer.q_layernorm.weight']),
-  kNorm: Object.freeze(['self_attn.indexer.k_layernorm.weight']),
+  qProjection: Object.freeze(['indexer.q_proj.weight']),
+  kProjection: Object.freeze(['indexer.k_proj.weight']),
+  qNorm: Object.freeze(['self_attn.indexer.q_layernorm.weight', 'indexer.q_norm.weight']),
+  kNorm: Object.freeze(['self_attn.indexer.k_layernorm.weight', 'indexer.k_norm.weight']),
 });
 
 export const NGRAM_PLE_SUFFIXES = Object.freeze({
-  keyProj: Object.freeze(['ple.key_proj.weight']),
-  valueProj: Object.freeze(['ple.value_proj.weight']),
-  normKey: Object.freeze(['ple.norm_key.weight']),
-  normQuery: Object.freeze(['ple.norm_query.weight']),
-  normConv: Object.freeze(['ple.norm_conv.weight']),
-  conv: Object.freeze(['ple.conv1d.weight']),
+  keyProj: Object.freeze(['ple.key_proj.weight', 'ple_key.weight']),
+  valueProj: Object.freeze(['ple.value_proj.weight', 'ple_value.weight']),
+  normKey: Object.freeze(['ple.norm_key.weight', 'ple_norm_key.weight']),
+  normQuery: Object.freeze(['ple.norm_query.weight', 'ple_norm_query.weight']),
+  normConv: Object.freeze(['ple.norm_conv.weight', 'ple_norm_conv.weight']),
+  conv: Object.freeze(['ple.conv1d.weight', 'ple_conv1d.weight']),
 });
 
 export const HYPER_CONNECTION_MIXER_PREFIXES = Object.freeze([
@@ -131,7 +134,7 @@ export const HYPER_CONNECTION_MIXER_PREFIXES = Object.freeze([
 
 export const ROOT_WEIGHT_CONSUMERS = Object.freeze(['down', 'up'].map(key => Object.freeze({
   role: `hc_mixer_${key}`,
-  names: Object.freeze(HYPER_CONNECTION_MIXER_PREFIXES.map(prefix => `${prefix}.${GATED_RESIDUAL_SUFFIXES[key]}`)),
+  names: Object.freeze([...HYPER_CONNECTION_MIXER_PREFIXES.map(prefix => `${prefix}.${GATED_RESIDUAL_SUFFIXES[key]}`), `output_hc_${key}.weight`]),
 })));
 
 
@@ -160,6 +163,6 @@ export const LAYER_WEIGHT_CONSUMERS = Object.freeze([
   ['ffn_gate', FFN_SUFFIXES.ffnGate, ['ffn_gate_up']], ['ffn_up', FFN_SUFFIXES.ffnUp, ['ffn_gate_up']], ['ffn_down', FFN_SUFFIXES.ffnDown],
   ...['attention', 'mlp'].flatMap(branch => ['down', 'up', 'inject'].map(key =>
     [`${branch === 'attention' ? 'attn' : 'mlp'}_hc_${key}`, HYPER_CONNECTION_SUFFIXES[branch][key]])),
-  ['qsa_index_qk', QSA_SUFFIXES.projection],
+  ['qsa_index_qk', [...QSA_SUFFIXES.projection, ...QSA_SUFFIXES.qProjection, ...QSA_SUFFIXES.kProjection]],
   ['ple_key_proj', NGRAM_PLE_SUFFIXES.keyProj], ['ple_value_proj', NGRAM_PLE_SUFFIXES.valueProj],
 ].map(([role, suffixes, additionalRoles = []]) => Object.freeze({ role, suffixes, additionalRoles: Object.freeze(additionalRoles) })));

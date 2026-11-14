@@ -14,6 +14,7 @@ export interface HyperConnectionStreamOptions extends HyperConnectionGeometry {
 
 export interface HyperConnectionNormOptions extends HyperConnectionStreamOptions {
   eps: number;
+  normWeightOffset: boolean;
 }
 
 export type HyperConnectionActivationMode = 'low_rank_silu' | 'mix_sigmoid' | 'inject_gate';

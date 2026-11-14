@@ -5,6 +5,7 @@
 // the position of the block's first token. Positions equal cache rows: the
 // owning cache admits only contiguous text positions.
 
+override NORM_WEIGHT_OFFSET: f32;
 override WORKGROUP_SIZE: u32 = 128u;
 override HEAD_DIM: u32;
 override ROTARY_DIM: u32;
@@ -86,7 +87,7 @@ fn main(
     }
     let inverse_rms = inverse_root_refined(divide_refined(partial[0], f32(HEAD_DIM)) + u.eps);
     for (var d = local; d < HEAD_DIM; d = d + WORKGROUP_SIZE) {
-        normalized[d] = (normalized[d] * inverse_rms) * (1.0 + k_norm_weight[d]);
+        normalized[d] = (normalized[d] * inverse_rms) * (NORM_WEIGHT_OFFSET + k_norm_weight[d]);
     }
     workgroupBarrier();
 

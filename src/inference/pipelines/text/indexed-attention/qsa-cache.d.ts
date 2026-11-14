@@ -12,6 +12,7 @@ export interface QsaIndexerCacheOptions {
 export interface QsaAppendInput {
   /** index_qk_proj output [numTokens, (queryHeads + 1) * headDim]. */
   projection: Tensor;
+  normWeightOffset: boolean;
   qNormWeight: Tensor;
   kNormWeight: Tensor;
   rope: QsaRopeTables;

@@ -1,6 +1,6 @@
 // Grouped RMSNorm over qwen4_exp hyper-connection streams.
 // A token holds STREAM_COUNT streams of STREAM_WIDTH values. Each stream is
-// normalized by its own root mean square, then scaled by (1 + weight) using
+// normalized by its own root mean square, then scaled by (weight_offset + weight) using
 // that stream's weight slice (Qwen4ExpTextRMSNorm with group_size = width).
 
 override WORKGROUP_SIZE: u32 = 256u;
@@ -11,7 +11,7 @@ struct Uniforms {
     group_count: u32,   // numTokens * STREAM_COUNT
     group_stride: u32,  // workgroups dispatched along x
     eps: f32,
-    _pad0: u32,
+    weight_offset: f32,
 }
 
 @group(0) @binding(0) var<uniform> u: Uniforms;
@@ -67,6 +67,6 @@ fn main(
 
     for (var column = local; column < STREAM_WIDTH; column = column + WORKGROUP_SIZE) {
         let normalized = input[base + column] * inverse_rms;
-        output[base + column] = normalized * (1.0 + weight[weight_base + column]);
+        output[base + column] = normalized * (u.weight_offset + weight[weight_base + column]);
     }
 }

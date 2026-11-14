@@ -59,7 +59,7 @@ export async function runGatedResidual(target, { streams, weights, hyper, numTok
   const temporaries = [];
   const keep = (/** @type {import('../../../../gpu/tensor.js').Tensor} */ tensor) => { temporaries.push(tensor); return tensor; };
   try {
-    const normed = keep(await ops.norm(streams, weights.norm, { ...geometry, eps: normEps }));
+    const normed = keep(await ops.norm(streams, weights.norm, { ...geometry, eps: normEps, normWeightOffset: hyper.normWeightOffset }));
     const down = keep(await project(`${role}_down`, normed, weights.down, projectionRank, width));
     const lowRank = keep(await ops.activate(down, { mode: 'low_rank_silu', rows: numTokens, columns: projectionRank, streamCount }));
     const up = keep(await project(`${role}_up`, lowRank, weights.up, width, projectionRank));

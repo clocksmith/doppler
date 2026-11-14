@@ -14,7 +14,7 @@ export interface PleCheckpoint { history: NgramHistoryCheckpoint; conv: GPUBuffe
 export interface HyperConnectionCheckpoint { epoch: number; qsa: QsaCacheCheckpoint | null; layers: Map<number, PleCheckpoint>; }
 export interface PreparedQsaSelection extends QsaCallSelection { layerIdx: number; numTokens: number; visibleRows: number; }
 export interface HyperConnectionSessionInput {
-  hyper: NonNullable<ParsedModelConfig['hyperConnections']>;
+  hyper: NonNullable<ParsedModelConfig['hyperConnections']> & { normWeightOffset: boolean };
   ngram: ParsedModelConfig['ngramEmbedding'];
   qsa: QsaIndexerCache | null;
   layers: Map<number, { table: NgramTableReader; history: NgramTokenHistory; conv: PleConvState }>;

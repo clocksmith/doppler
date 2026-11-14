@@ -68,12 +68,14 @@ try {
     const branch = recorder ? recordHyperConnectionBranch.bind(null, recorder) : runHyperConnectionBranch;
     const inject = recorder ? recordHyperConnectionInject.bind(null, recorder) : runHyperConnectionInject;
     const matmul = recorder ? recordMatmul.bind(null, recorder) : runMatmul;
-    const streamOptions = { numTokens: geometry.tokens, streamCount: geometry.streams, streamWidth: geometry.width };
+    const streamOptions = { numTokens: geometry.tokens, streamCount: geometry.streams, streamWidth: geometry.width, normWeightOffset: true };
     try {
       // Independent operators on exactly representable inputs.
       const x = upload(input, [geometry.tokens, hc]);
       const normWeight = upload(weights.norm, [hc]);
       const normed = await norm(x, normWeight, { ...streamOptions, eps: geometry.eps });
+      const folded = upload(Float32Array.from(weights.norm, value => 1 + value), [hc]);
+      const rawNormed = await norm(x, folded, { ...streamOptions, eps: geometry.eps, normWeightOffset: false });
 
       const edges = [0, -0, 1e-30, -1e-30, 3, -3, 40, -40, 100, -100, 1e4, -1e4];
       const activationInput = Float32Array.from({ length: 4096 }, (_, i) => (i < edges.length ? edges[i] : Math.sin(i * 0.37) * 30));
@@ -106,6 +108,7 @@ try {
       const gate = await activate(injectLogits, { mode: 'inject_gate', rows: geometry.tokens, columns: geometry.streams, streamCount: geometry.streams });
       if (recorder) await recorder.submitAndWait();
 
+      assert.deepEqual(await read(rawNormed, geometry.tokens * hc), await read(normed, geometry.tokens * hc), 'folded GGUF scales equal HF residual scales');
       check('norm', mode, await read(normed, geometry.tokens * hc),
         groupedNormReference(input, weights.norm, { tokens: geometry.tokens, streams: geometry.streams, width: geometry.width, eps: geometry.eps }));
       const activationValues = Float64Array.from(activationInput);
@@ -139,7 +142,7 @@ try {
   // Validation fails before dispatch.
   const x = upload(input, [geometry.tokens, hc]);
   const normWeight = upload(weights.norm, [hc]);
-  const streamOptions = { numTokens: geometry.tokens, streamCount: geometry.streams, streamWidth: geometry.width };
+  const streamOptions = { numTokens: geometry.tokens, streamCount: geometry.streams, streamWidth: geometry.width, normWeightOffset: true };
   await assert.rejects(runHyperConnectionNorm(x, normWeight, { ...streamOptions, streamWidth: 2048, eps: 1e-6 }), /shape/);
   await assert.rejects(runHyperConnectionNorm(x, normWeight, { ...streamOptions, eps: 0 }), /eps/);
   await assert.rejects(runHyperConnectionNorm(x, normWeight, { ...streamOptions, streamCount: 1, eps: 1e-6 }), /streamCount/);

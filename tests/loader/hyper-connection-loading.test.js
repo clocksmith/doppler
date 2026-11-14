@@ -160,3 +160,38 @@ for (const corrupt of ['capacity', 'shape']) {
   assert.equal(calls.length, 36);
 }
 console.log('hyper-connection-loading.test: ok (contract doubles; no physical GPU)');
+
+// Native GGUF mechanism aliases preserve the same logical dimensions.
+{
+  const { ctx, loaded, calls } = fixture();
+  const rename = name => name
+    .replace(`${root}.layers.1.attn_hyper_connection.hc_norm`, 'blk.1.hc_attn_norm')
+    .replace(`${root}.layers.1.mlp_hyper_connection.hc_norm`, 'blk.1.hc_ffn_norm')
+    .replace(`${root}.layers.1.attn_hyper_connection.input_mix_weight_down`, 'blk.1.hc_attn_down')
+    .replace(`${root}.layers.1.attn_hyper_connection.input_mix_weight_up`, 'blk.1.hc_attn_up')
+    .replace(`${root}.layers.1.attn_hyper_connection.block_inject_weight`, 'blk.1.hc_attn_inject')
+    .replace(`${root}.layers.1.mlp_hyper_connection.input_mix_weight_down`, 'blk.1.hc_ffn_down')
+    .replace(`${root}.layers.1.mlp_hyper_connection.input_mix_weight_up`, 'blk.1.hc_ffn_up')
+    .replace(`${root}.layers.1.mlp_hyper_connection.block_inject_weight`, 'blk.1.hc_ffn_inject')
+    .replace(`${root}.hyper_connection_mixer.hc_norm`, 'output_hc_norm')
+    .replace(`${root}.hyper_connection_mixer.input_mix_weight_down`, 'output_hc_down')
+    .replace(`${root}.hyper_connection_mixer.input_mix_weight_up`, 'output_hc_up')
+    .replace(`${root}.layers.1.ple.key_proj`, 'blk.1.ple_key')
+    .replace(`${root}.layers.1.ple.value_proj`, 'blk.1.ple_value')
+    .replace(`${root}.layers.1.ple.norm_`, 'blk.1.ple_norm_')
+    .replace(`${root}.layers.1.ple.conv1d`, 'blk.1.ple_conv1d');
+  for (const [name, location] of [...ctx.tensorLocations]) {
+    const target = rename(name);
+    if (target === name) continue;
+    ctx.tensorLocations.delete(name); ctx.tensorLocations.set(target, location);
+    loaded.set(target, loaded.get(name)); loaded.delete(name);
+  }
+  const weights = await loadHyperConnectionLayerWeights(ctx, 1);
+  assert.ok(weights.ple && weights.hyperConnections);
+  assert.ok(await loadHyperConnectionMixerWeights(ctx));
+  assert.ok(calls.some(call => call.name === 'output_hc_down.weight'));
+  ctx.tensorLocations.set('blk.1.indexer.q_proj.weight', { shape: [4, 4] });
+  await assert.rejects(loadHyperConnectionLayerWeights(ctx, 1), /both fused and separate/);
+  ctx.tensorLocations.delete(`${root}.layers.1.self_attn.indexer.index_qk_proj.weight`);
+  await assert.rejects(loadHyperConnectionLayerWeights(ctx, 1), /indexer.k_proj.weight/);
+}

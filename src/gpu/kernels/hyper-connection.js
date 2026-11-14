@@ -83,9 +83,10 @@ function dispatchGrid(target, units, unitsPerGroup) {
  * @param {import('./hyper-connection.js').HyperConnectionNormOptions} options
  */
 async function executeNorm(target, input, weight, options) {
-  const { numTokens, streamCount, streamWidth, eps, outputBuffer = null } = options;
+  const { numTokens, streamCount, streamWidth, eps, normWeightOffset, outputBuffer = null } = options;
   const elements = validateHyperConnectionGeometry({ numTokens, streamCount, streamWidth });
   if (typeof eps !== 'number' || !Number.isFinite(eps) || eps <= 0) fail('eps must be a positive finite number.');
+  if (typeof normWeightOffset !== 'boolean') fail('normWeightOffset must be explicit boolean.');
   assertF32Tensor(input, [numTokens, streamCount * streamWidth], 'norm input');
   assertF32Tensor(weight, [streamCount * streamWidth], 'norm weight');
   assertOutputBuffer(outputBuffer, elements * 4, [input, weight]);
@@ -93,7 +94,7 @@ async function executeNorm(target, input, weight, options) {
   const { columns, grid } = dispatchGrid(target, groups, 1);
   return withKernelOutput(target, outputBuffer, elements * 4, 'hyper_connection_norm_output', async (output) => {
     await unifiedKernelWrapper('hyper_connection_norm', target, 'f32', [input, weight, output],
-      { group_count: groups, group_stride: columns, eps, _pad0: 0 }, grid,
+      { group_count: groups, group_stride: columns, eps, weight_offset: Number(normWeightOffset) }, grid,
       { WORKGROUP_SIZE, STREAM_COUNT: streamCount, STREAM_WIDTH: streamWidth });
     return createTensor(output, 'f32', [numTokens, streamCount * streamWidth], 'hyper_connection_norm_output');
   });

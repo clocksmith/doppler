@@ -5,6 +5,7 @@
 // The key head is appended raw (pre-norm, pre-RoPE) to the owned key cache at
 // cache row start_pos + token; every call appends, dense or sparse.
 
+override NORM_WEIGHT_OFFSET: f32;
 override WORKGROUP_SIZE: u32 = 128u;
 override QUERY_HEADS: u32;
 override HEAD_DIM: u32;
@@ -92,7 +93,7 @@ fn main(
     }
     let inverse_rms = inverse_root_refined(divide_refined(partial[0], f32(HEAD_DIM)) + u.eps);
     for (var d = local; d < HEAD_DIM; d = d + WORKGROUP_SIZE) {
-        normalized[d] = (projection[source + d] * inverse_rms) * (1.0 + q_norm_weight[d]);
+        normalized[d] = (projection[source + d] * inverse_rms) * (NORM_WEIGHT_OFFSET + q_norm_weight[d]);
     }
     workgroupBarrier();
 

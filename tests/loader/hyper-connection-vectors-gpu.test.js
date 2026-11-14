@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { probeNodeGPU } from '../helpers/gpu-probe.js';
-import { loadHyperConnectionMixerWeights } from '../../src/loader/hyper-connection-loader.js';
+import { loadHyperConnectionLayerWeights, loadHyperConnectionMixerWeights } from '../../src/loader/hyper-connection-loader.js';
 import { createWeightBuffer, tagBufferDtype } from '../../src/gpu/weight-buffer.js';
 import { acquireBuffer, releaseBuffer, readBuffer, getBufferPool, destroyBufferPool } from '../../src/memory/buffer-pool.js';
 import { getDevice, destroyDevice } from '../../src/gpu/device.js';
@@ -47,6 +47,34 @@ if (!gpu.ready) {
     assert.ok(gpuBuffers.has(result.norm.buffer), 'the loader must own the converted vector');
     assert.deepEqual([...new Float32Array(await readBuffer(result.norm.buffer))].slice(0, 8), [0, .25, -.5, 1, 2, -1, .5, 1.5]);
     assert.equal(result.down.dtype, 'f32', 'the projection follows its declared F32 consumer');
+    // Native split Q/K rows must fuse once, in Q-then-K order, without readback.
+    const locations = new Map();
+    const nativeWeights = new Map();
+    const addNative = (name, shape, values, projection = true) => {
+      const buffer = acquireBuffer(values.byteLength);
+      gpuBuffers.add(buffer);
+      getDevice().queue.writeBuffer(buffer, 0, values);
+      tagBufferDtype(buffer, 'f32');
+      locations.set(name, { dtype: 'F32', shape, size: values.byteLength, layout: 'row' });
+      nativeWeights.set(name, projection ? createWeightBuffer(buffer, 'f32', 'row', shape, name) : buffer);
+    };
+    for (const branch of ['attn', 'ffn']) {
+      for (const [key, shape] of [['norm', [8]], ['down', [3, 8]], ['up', [8, 3]], ['inject', [2, 8]]]) {
+        addNative(`blk.1.hc_${branch}_${key}.weight`, shape, new Float32Array(shape.reduce((a, b) => a * b, 1)), key !== 'norm');
+      }
+    }
+    addNative('blk.1.indexer.q_proj.weight', [4, 4], Float32Array.from({ length: 16 }, (_, i) => i));
+    addNative('blk.1.indexer.k_proj.weight', [2, 4], Float32Array.from({ length: 8 }, (_, i) => 100 + i));
+    addNative('blk.1.indexer.q_norm.weight', [2], new Float32Array(2), false);
+    addNative('blk.1.indexer.k_norm.weight', [2], new Float32Array(2), false);
+    const joined = await loadHyperConnectionLayerWeights({ tensorLocations: locations, gpuBuffers,
+      hyperConnections: { streamCount: 2, streamWidth: 4, projectionRank: 3 },
+      indexedAttention: { layers: [1], queryHeads: 2, keyHeads: 1, headDim: 2 },
+      loadTensor: async name => nativeWeights.get(name) }, 1);
+    assert.deepEqual(joined.qsaIndexer.projection.shape, [6, 4]);
+    assert.deepEqual([...new Float32Array(await readBuffer(joined.qsaIndexer.projection.buffer, 24 * 4))],
+      [...Array.from({ length: 16 }, (_, i) => i), ...Array.from({ length: 8 }, (_, i) => 100 + i)]);
+    assert.ok(gpuBuffers.has(joined.qsaIndexer.projection.buffer));
     console.log('physical GPU: F16 mechanism vector -> exact F32 values with tracked ownership');
   } finally {
     await getDevice().queue.onSubmittedWorkDone();

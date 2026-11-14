@@ -82,7 +82,7 @@ export class HyperConnectionSession {
       let query = null;
       try {
         query = await cache.append(context.recorder ?? null, layerIdx, { projection,
-          qNormWeight: weights.qNorm, kNormWeight: weights.kNorm,
+          qNormWeight: weights.qNorm, kNormWeight: weights.kNorm, normWeightOffset: this.hyper.normWeightOffset,
           rope: { cos: context.ropeFreqsCos, sin: context.ropeFreqsSin },
           startPos: context.currentSeqLen, numTokens: input.shape[0] });
         const call = { startPos: context.currentSeqLen, numTokens: input.shape[0] };
@@ -204,7 +204,7 @@ export class HyperConnectionSession {
 /** @type {typeof import('./session.js').createHyperConnectionSession} */
 export async function createHyperConnectionSession(config, loader, capacity, layerRange = null) {
   if (!config.hyperConnections) return null;
-  const hyper = config.hyperConnections;
+  const hyper = { ...config.hyperConnections, normWeightOffset: config.rmsNormWeightOffset };
   if (layerRange !== null && (!Array.isArray(layerRange) || layerRange.length !== 2
     || !layerRange.every(Number.isSafeInteger) || layerRange[0] < 0
     || layerRange[1] < layerRange[0] || layerRange[1] >= config.numLayers)) {
