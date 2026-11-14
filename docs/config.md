@@ -416,3 +416,13 @@ When adding new runtime-visible behavior:
 - [rdrr-format.md](rdrr-format.md)
 - [operations.md](operations.md)
 - [testing.md](testing.md)
+
+### Hashed n-gram table storage
+
+`inference.ngramEmbedding.tableDtype` declares retained `bf16` or `q4_0` rows.
+Q4_0 uses 32 values per 18-byte block; `headDim` must be divisible by 32.
+For example, a 160-value row occupies 90 bytes, not 320. Row caches and bounded
+range reads account for stored bytes. Tensor dtype, shape and physical byte
+length must agree with the declared storage format before binding. The source
+converter may supply `ngram_table_dtype` independently of the model's other
+weight precisions. This does not qualify a mixed-precision model end to end.

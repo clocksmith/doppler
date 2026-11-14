@@ -188,3 +188,13 @@ assert.throws(() => new NgramTableReader({ rows: layer.rows, rowWidth: 160, dtyp
   readRange: fakeRange, session: session({ maxRows: 1, maxBytes: 320 }) }), /unsupported table dtype/);
 
 console.log('ngram-embedding-host.test: ok');
+
+// Table encoding comes from the retained table, not unrelated model tensors.
+const q4Source = structuredClone(flashNext);
+q4Source.text_config.ngram_table_dtype = 'q4_0';
+q4Source.text_config.dtype = 'float16';
+const q4Contract = resolveQwen4ExpSourceContracts(q4Source).ngramEmbedding;
+assert.equal(q4Contract.tableDtype, 'q4_0');
+assert.equal(q4Contract.headDim, 160);
+assert.deepEqual(q4Contract.layers, resolveQwen4ExpSourceContracts(flashNext).ngramEmbedding.layers);
+console.log('ngram host: table-specific Q4_0 source dtype preserved');

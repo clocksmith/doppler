@@ -1,3 +1,5 @@
+import { ngramTableRowBytes } from '../../../../config/schema/ngram-embedding.schema.js';
+
 // Host-resident reader of one qwen4_exp n-gram embedding table.
 //
 // The table is one logical [rows, rowWidth] matrix stored as row-contiguous
@@ -10,10 +12,9 @@
 // maxBytes; one read batch stages at most staging.maxRows rows; at most
 // reads.maxConcurrent range reads are in flight. Cancellation aborts pending
 // reads and inserts nothing from an incomplete batch. Row bytes are returned
-// as stored (bf16); this reader authenticates the row-to-part mapping, not the
+// as stored (bf16 or block-packed q4_0); this reader authenticates the row-to-part mapping, not the
 // bytes of individual rows (see `rowBytesVerified` in stats).
 
-const ROW_ELEMENT_BYTES = Object.freeze({ bf16: 2 });
 
 /** @param {string} message @returns {never} */
 function fail(message) {
@@ -33,8 +34,6 @@ export class NgramTableReader {
 
   /** @param {import('./ngram-table.js').NgramTableReaderOptions} options */
   constructor({ rows, rowWidth, dtype, parts, readRange, session, rowBytesVerified = false }) {
-    const elementBytes = ROW_ELEMENT_BYTES[/** @type {'bf16'} */ (dtype)];
-    if (!elementBytes) fail(`unsupported table dtype ${JSON.stringify(dtype)}.`);
     if (!Number.isSafeInteger(rows) || rows < 1 || rows > 2 ** 32) fail('rows must be a positive count within u32 addressing.');
     if (!Number.isSafeInteger(rowWidth) || rowWidth < 1) fail('rowWidth must be positive.');
     if (typeof readRange !== 'function') fail('a readRange(part, offset, length, signal) port is required.');
@@ -42,7 +41,7 @@ export class NgramTableReader {
     this.rows = rows;
     this.rowWidth = rowWidth;
     this.dtype = dtype;
-    this.rowBytes = rowWidth * elementBytes;
+    this.rowBytes = ngramTableRowBytes(rowWidth, dtype);
     this.readRange = readRange;
     this.session = session;
     this.rowBytesVerified = rowBytesVerified === true;
@@ -214,7 +213,7 @@ export class NgramTableReader {
 export function ngramTablePartsFromCheckpointHeaders(receipt) {
   const table = receipt?.ngramTable;
   if (!table || !Array.isArray(table.shards)) fail('checkpoint header receipt lacks ngramTable.shards.');
-  const rowBytes = table.rowWidth * ROW_ELEMENT_BYTES[/** @type {'bf16'} */ (String(table.dtype).toLowerCase())];
+  const rowBytes = ngramTableRowBytes(table.rowWidth, String(table.dtype).toLowerCase());
   return table.shards.map((shard) => {
     if (shard.fileByteEnd - shard.fileByteBegin !== (shard.rowEnd - shard.rowBegin) * rowBytes) {
       fail(`shard ${shard.shard} byte span does not match its rows.`);

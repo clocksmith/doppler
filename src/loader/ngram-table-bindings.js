@@ -1,3 +1,4 @@
+import { ngramTableRowBytes } from '../config/schema/ngram-embedding.schema.js';
 import { LAYER_PREFIXES } from './layer-tensor-aliases.js';
 
 /** @param {string} message @returns {never} */
@@ -12,7 +13,7 @@ export function bindNgramTables(loader, contract, session) {
     const matches = prefixes.filter(prefix => [...loader.tensorLocations.keys()].some(name => name.startsWith(`${prefix}.shard_`)));
     if (matches.length !== 1) tableError(`Missing or ambiguous table for layer ${layer.decoderLayerIndex}.`);
     const parts = ngramTablePartsFromTensorLocations(loader.tensorLocations,
-      { tensorPrefix: matches[0], rows: layer.rows, rowWidth: contract.headDim });
+      { tensorPrefix: matches[0], rows: layer.rows, rowWidth: contract.headDim, dtype: contract.tableDtype });
     tables.set(layer.decoderLayerIndex, { rows: layer.rows, rowWidth: contract.headDim, dtype: contract.tableDtype,
       parts, session, rowBytesVerified: false,
       readRange: async (source, offset, length, signal) => {
@@ -27,8 +28,8 @@ export function bindNgramTables(loader, contract, session) {
 }
 
 /** @type {typeof import('./ngram-table-bindings.js').ngramTablePartsFromTensorLocations} */
-export function ngramTablePartsFromTensorLocations(tensorLocations, { tensorPrefix, rows, rowWidth }) {
-  const rowBytes = rowWidth * 2;
+export function ngramTablePartsFromTensorLocations(tensorLocations, { tensorPrefix, rows, rowWidth, dtype }) {
+  const rowBytes = ngramTableRowBytes(rowWidth, dtype);
   const parts = [];
   let rowBegin = 0;
   for (let k = 0; tensorLocations.has(`${tensorPrefix}.shard_${k}.weight`); k += 1) {
@@ -36,8 +37,8 @@ export function ngramTablePartsFromTensorLocations(tensorLocations, { tensorPref
     const location = /** @type {import('../inference/pipelines/text/ngram/ngram-table.js').NgramTableTensorLocation} */ (tensorLocations.get(name));
     if (!location || typeof location !== 'object') throw new Error(`[NgramTable] Invalid location for ${name}.`);
     if ('sourceTransform' in location && location.sourceTransform != null) throw new Error(`[NgramTable] ${name} must retain untransformed source rows.`);
-    if (location.role !== 'ngram_table' || String(location.dtype).toUpperCase() !== 'BF16') {
-      tableError(`${name} must be a retained BF16 ngram_table tensor; got role ${location.role}, dtype ${location.dtype}.`);
+    if (location.role !== 'ngram_table' || String(location.dtype).toLowerCase() !== dtype) {
+      tableError(`${name} must be a retained ${dtype} ngram_table tensor; got role ${location.role}, dtype ${location.dtype}.`);
     }
     if ((location.spans?.length ?? 0) > 0 || !Number.isSafeInteger(location.shardIndex)) {
       tableError(`${name} must lie in one shard.`);
@@ -45,7 +46,7 @@ export function ngramTablePartsFromTensorLocations(tensorLocations, { tensorPref
     const [partRows, width] = location.shape ?? [];
     if (location.shape?.length !== 2 || width !== rowWidth || !Number.isSafeInteger(partRows) || partRows <= 0
       || location.size !== partRows * rowBytes) {
-      tableError(`${name} has shape [${location.shape}] and ${location.size} bytes; rows of ${rowWidth} bf16 values are required.`);
+      tableError(`${name} has shape [${location.shape}] and ${location.size} bytes; rows of ${rowWidth} ${dtype} values are required.`);
     }
     parts.push({ rowBegin, rowEnd: rowBegin + partRows, source: location.shardIndex, byteOffset: location.offset, byteLength: location.size });
     rowBegin += partRows;

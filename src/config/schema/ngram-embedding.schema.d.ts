@@ -1,7 +1,7 @@
 /** Supported hashed n-gram embedding semantics. */
 export type NgramEmbeddingSemantics = 'qwen4_exp_ple';
 /** Supported stored dtypes of the n-gram embedding table. */
-export type NgramEmbeddingTableDtype = 'bf16';
+export type NgramEmbeddingTableDtype = 'bf16' | 'q4_0';
 export type NgramRowCacheEviction = 'lru';
 
 export declare const NGRAM_EMBEDDING_SEMANTICS: readonly NgramEmbeddingSemantics[];
@@ -114,3 +114,5 @@ export declare function resolveNgramEmbeddingSession(
   contract: ResolvedNgramEmbedding | null,
   label?: string
 ): ResolvedNgramEmbeddingSession | null;
+
+export declare function ngramTableRowBytes(rowWidth: number, dtype: string): number;

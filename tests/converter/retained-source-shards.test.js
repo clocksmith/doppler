@@ -112,22 +112,22 @@ await reader.closeAll();
 const normalized = new Map(Object.entries(tensorLocations).filter(([name]) => name !== 'packed')
   .map(([name, location]) => [name, { ...location, shardIndex: location.shard, spans: undefined }]));
 normalized.set('model.language_model.layers.1.ple.key_proj.weight', { shardIndex: 0, offset: 0, size: 8, shape: [2, 2], dtype: 'F16', role: 'matmul' });
-const parts = ngramTablePartsFromTensorLocations(normalized, { tensorPrefix: prefix, rows: 10, rowWidth: 4 });
+const parts = ngramTablePartsFromTensorLocations(normalized, { tensorPrefix: prefix, rows: 10, rowWidth: 4, dtype: 'bf16' });
 assert.deepEqual(parts, [
   { rowBegin: 0, rowEnd: 4, source: 1, byteOffset: 16, byteLength: 32 },
   { rowBegin: 4, rowEnd: 8, source: 2, byteOffset: 8, byteLength: 32 },
   { rowBegin: 8, rowEnd: 10, source: 2, byteOffset: 80, byteLength: 16 },
 ]);
-assert.throws(() => ngramTablePartsFromTensorLocations(normalized, { tensorPrefix: prefix, rows: 12, rowWidth: 4 }), /cover 10 rows; the contract declares 12/);
+assert.throws(() => ngramTablePartsFromTensorLocations(normalized, { tensorPrefix: prefix, rows: 12, rowWidth: 4, dtype: 'bf16' }), /cover 10 rows; the contract declares 12/);
 const gap = new Map(normalized);
 gap.set(`${prefix}.shard_4.weight`, gap.get(`${prefix}.shard_2.weight`));
-assert.throws(() => ngramTablePartsFromTensorLocations(gap, { tensorPrefix: prefix, rows: 10, rowWidth: 4 }), /shard_4.weight is not part of the contiguous/);
+assert.throws(() => ngramTablePartsFromTensorLocations(gap, { tensorPrefix: prefix, rows: 10, rowWidth: 4, dtype: 'bf16' }), /shard_4.weight is not part of the contiguous/);
 const split = new Map(normalized);
 split.set(`${prefix}.shard_1.weight`, { ...split.get(`${prefix}.shard_1.weight`), spans: [{}, {}] });
-assert.throws(() => ngramTablePartsFromTensorLocations(split, { tensorPrefix: prefix, rows: 10, rowWidth: 4 }), /must lie in one shard/);
+assert.throws(() => ngramTablePartsFromTensorLocations(split, { tensorPrefix: prefix, rows: 10, rowWidth: 4, dtype: 'bf16' }), /must lie in one shard/);
 const transcoded = new Map(normalized);
 transcoded.set(`${prefix}.shard_0.weight`, { ...transcoded.get(`${prefix}.shard_0.weight`), dtype: 'F16' });
-assert.throws(() => ngramTablePartsFromTensorLocations(transcoded, { tensorPrefix: prefix, rows: 10, rowWidth: 4 }), /retained BF16 ngram_table/);
+assert.throws(() => ngramTablePartsFromTensorLocations(transcoded, { tensorPrefix: prefix, rows: 10, rowWidth: 4, dtype: 'bf16' }), /retained bf16 ngram_table/);
 
 await fs.rm(dir, { recursive: true, force: true });
 console.log('retained-source-shards.test: ok');

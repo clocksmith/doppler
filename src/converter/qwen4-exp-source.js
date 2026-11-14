@@ -18,8 +18,8 @@ const QSA_FIELDS = Object.freeze([
   'indexer_n_heads', 'indexer_kv_heads', 'indexer_head_dim', 'indexer_budget', 'indexer_compress_ratio',
 ]);
 const CONTRACT_FIELDS = Object.freeze(['hyperConnections', 'indexedAttention', 'ngramEmbedding']);
-/** @type {Readonly<Record<string, 'bf16'>>} */
-const SOURCE_TABLE_DTYPES = Object.freeze({ bfloat16: 'bf16' });
+/** @type {Readonly<Record<string, 'bf16' | 'q4_0'>>} */
+const SOURCE_TABLE_DTYPES = Object.freeze({ bfloat16: 'bf16', bf16: 'bf16', q4_0: 'q4_0' });
 
 /** @param {Record<string, any> | null | undefined} rawConfig @returns {Record<string, any> | null} */
 function textConfigOf(rawConfig) {
@@ -97,7 +97,7 @@ function lowerNgramEmbedding(text, layerTypes) {
   const vocabPadMultiple = requireInteger(sourceField(text, 'make_ngram_vocab_size_divisible_by'), 'make_ngram_vocab_size_divisible_by');
   const seed = requireInteger(sourceField(text, 'seed'), 'seed');
   const convKernelSize = requireInteger(sourceField(text, 'ple_conv_kernel_size'), 'ple_conv_kernel_size');
-  const sourceDtype = String(text.dtype ?? text.torch_dtype ?? '');
+  const sourceDtype = String(text.ngram_table_dtype ?? text.dtype ?? text.torch_dtype ?? '').toLowerCase();
   const tableDtype = SOURCE_TABLE_DTYPES[sourceDtype];
   if (!tableDtype) throw new Error(`qwen4_exp n-gram table dtype ${JSON.stringify(sourceDtype)} is not a supported stored dtype.`);
   const layers = sourceLayerIds.map((sourceLayerId, pleLayerIndex) => {

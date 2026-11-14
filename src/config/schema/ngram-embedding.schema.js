@@ -1,3 +1,5 @@
+import { Q4_0_BLOCK_SIZE, Q4_0_BLOCK_BYTES } from './quantization.schema.js';
+
 // Hashed n-gram per-layer embedding (qwen4_exp "PLE") contract.
 //
 // Source semantics are pinned in artifacts/qwen38-flash-next-20261013/source
@@ -8,7 +10,7 @@
 // strings; JavaScript Number cannot represent them.
 
 export const NGRAM_EMBEDDING_SEMANTICS = Object.freeze(['qwen4_exp_ple']);
-export const NGRAM_EMBEDDING_TABLE_DTYPES = Object.freeze(['bf16']);
+export const NGRAM_EMBEDDING_TABLE_DTYPES = Object.freeze(['bf16', 'q4_0']);
 export const NGRAM_ROW_CACHE_EVICTIONS = Object.freeze(['lru']);
 
 const MASK64 = (1n << 64n) - 1n;
@@ -214,6 +216,7 @@ export function resolveNgramEmbeddingContract(contract, geometry, label = 'infer
   if (!NGRAM_EMBEDDING_TABLE_DTYPES.includes(contract.tableDtype)) {
     fail(`${label}.tableDtype`, `must be one of ${NGRAM_EMBEDDING_TABLE_DTYPES.join(', ')}.`);
   }
+  ngramTableRowBytes(contract.headDim, contract.tableDtype);
   if (contract.ngramSize < 2) fail(`${label}.ngramSize`, 'must be at least 2.');
   if (contract.unigramVocabSize !== vocabSize) {
     fail(`${label}.unigramVocabSize`, `${contract.unigramVocabSize} must equal architecture.vocabSize ${vocabSize}.`);
@@ -309,4 +312,16 @@ export function resolveNgramEmbeddingSession(session, contract, label = 'inferen
     staging: Object.freeze({ maxRows: stagingRows }),
     reads: Object.freeze({ maxConcurrent: positiveInteger(session.reads.maxConcurrent, `${label}.reads.maxConcurrent`) }),
   });
+}
+
+/** Stored bytes in one independently addressable n-gram row.
+ * @param {number} rowWidth @param {string} dtype @returns {number} */
+export function ngramTableRowBytes(rowWidth, dtype) {
+  if (!Number.isSafeInteger(rowWidth) || rowWidth < 1) fail('rowWidth', 'must be a positive integer.');
+  if (dtype === 'bf16') return rowWidth * 2;
+  if (dtype === 'q4_0') {
+    if (rowWidth % Q4_0_BLOCK_SIZE !== 0) fail('rowWidth', `must be divisible by ${Q4_0_BLOCK_SIZE} for q4_0 rows.`);
+    return rowWidth / Q4_0_BLOCK_SIZE * Q4_0_BLOCK_BYTES;
+  }
+  return fail('tableDtype', `unsupported table dtype ${JSON.stringify(dtype)}.`);
 }

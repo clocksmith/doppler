@@ -49,3 +49,37 @@ delayed.resolve(new Uint8Array(4));
 await rejected;
 assert.equal(concurrent.stats().cachedRows, 0);
 console.log('ngram-table-bindings: bounded row I/O and fail-closed whole-file fallback passed');
+
+// Q4_0 keeps exact packed source rows: 160 values = five 18-byte blocks.
+const qCalls = [];
+const qSource = Uint8Array.from({ length: 400 }, (_, i) => i % 251);
+const qLoader = { tensorLocations: new Map([
+  [name(0), { shape: [2, 160], dtype: 'Q4_0', role: 'ngram_table', size: 180, shardIndex: 0, offset: 7 }],
+  [name(1), { shape: [2, 160], dtype: 'Q4_0', role: 'ngram_table', size: 180, shardIndex: 0, offset: 200 }],
+]), shardCache: { loadRange: async (index, offset, length, opts) => {
+  qCalls.push({ index, offset, length, opts }); return qSource.slice(offset, offset + length);
+} } };
+const qContract = { ...contract, tableDtype: 'q4_0', headDim: 160 };
+const qReader = new NgramTableReader(bindNgramTables(qLoader, qContract, session).get(1));
+assert.equal(qReader.rowBytes, 90);
+assert.deepEqual(await qReader.gather([3, 0, 3]), Uint8Array.from([
+  ...qSource.slice(290, 380), ...qSource.slice(7, 97), ...qSource.slice(290, 380),
+]));
+assert.deepEqual(qCalls.map(({offset,length}) => [offset,length]), [[7,90],[290,90]]);
+assert.ok(qCalls.every(c => c.opts.requireRange));
+assert.throws(() => bindNgramTables(qLoader, {...qContract, headDim: 159}, session), /divisible by 32/);
+assert.throws(() => bindNgramTables(qLoader, {...qContract, tableDtype: 'bf16'}, session), /retained bf16/);
+console.log('ngram-table-bindings: Q4_0 90-byte rows and nonaligned range offsets passed');
+
+// The actual Flash table is > 4 GiB. Addressing must not truncate to u32 bytes.
+const largeRows = 320001536;
+let largeRead;
+const largeReader = new NgramTableReader({ ...bindNgramTables(qLoader, qContract, session).get(1),
+  rows: largeRows,
+  parts: [{ rowBegin: 0, rowEnd: largeRows, source: 0, byteOffset: 4096, byteLength: largeRows * 90 }],
+  readRange: async (_source, offset, length) => { largeRead = [offset, length]; return new Uint8Array(length); },
+});
+await largeReader.gather([largeRows - 1]);
+assert.deepEqual(largeRead, [4096 + (largeRows - 1) * 90, 90]);
+assert.equal(largeRows * 90, 28800138240);
+console.log('ngram-table-bindings: 28.8 GB Q4_0 table uses exact high-offset addressing');

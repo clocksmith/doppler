@@ -60,7 +60,7 @@ const locations = await buildTensorLocations(manifest, {
   loadTensorsJson: manifest.tensorsFile ? async () => fs.readFile(path.join(artifactDir, manifest.tensorsFile), 'utf8') : undefined,
 });
 const tensorPrefix = `model.language_model.layers.${layer.decoderLayerIndex}.ple.ple_embedding.ngram_embedding`;
-const parts = ngramTablePartsFromTensorLocations(locations, { tensorPrefix, rows: layer.rows, rowWidth: contract.headDim });
+const parts = ngramTablePartsFromTensorLocations(locations, { tensorPrefix, rows: layer.rows, rowWidth: contract.headDim, dtype: contract.tableDtype });
 const shardsUsed = [...new Set(parts.map((part) => part.source))].sort((a, b) => Number(a) - Number(b));
 
 // Seeded token sequences: uniform ids over the unigram vocabulary plus boundary tokens.

@@ -22,7 +22,7 @@ export type NgramTableRangePort = (
 export interface NgramTableReaderOptions {
   rows: number;
   rowWidth: number;
-  dtype: 'bf16';
+  dtype: 'bf16' | 'q4_0';
   /** Must tile [0, rows) in order. */
   parts: NgramTablePart[];
   readRange: NgramTableRangePort;
@@ -48,7 +48,7 @@ export declare class NgramTableReader {
   constructor(options: NgramTableReaderOptions);
   readonly rows: number;
   readonly rowWidth: number;
-  readonly dtype: 'bf16';
+  readonly dtype: 'bf16' | 'q4_0';
   readonly rowBytes: number;
   readonly parts: readonly Readonly<Omit<NgramTablePart, 'byteLength'>>[];
   readonly rowBytesVerified: boolean;
