@@ -53,6 +53,8 @@ export declare function createLayerPartitionPlan(options: {
 /** Explicit ordered layer cuts. This metadata contract does not itself enable resident execution. */
 export interface OrderedLayerPartitionPlan extends Omit<LayerPartitionPlan, 'schema' | 'splitLayer'> {
   readonly schema: typeof ORDERED_LAYER_PARTITION_SCHEMA;
+  /** Optional explicit f32 execution with f16 wire boundaries; absence preserves existing precision semantics. */
+  readonly executionPrecision?: 'f32';
   readonly stageCount: number;
   readonly splitLayers: readonly number[];
   readonly activationPrecision: ActivationPrecision;
@@ -63,6 +65,7 @@ export interface OrderedLayerPartitionPlan extends Omit<LayerPartitionPlan, 'sch
 }
 export type AnyLayerPartitionPlan = LayerPartitionPlan | OrderedLayerPartitionPlan;
 export interface OrderedLayerPartitionRequest {
+  executionPrecision?: 'f32';
   splitLayers: readonly number[]; activationDtype: ActivationDtype;
   activationPrecision: ActivationPrecision; adapterIdentities?: readonly string[];
 }
@@ -75,6 +78,7 @@ export declare function createOrderedLayerPartitionPlan(options: {
   modelId: string; numLayers: number; hiddenSize: number; vocabSize: number;
   adapterIdentities?: readonly string[];
   splitLayers: readonly number[]; activationDtype?: ActivationDtype; activationPrecision?: ActivationPrecision;
+  executionPrecision?: 'f32';
   residualStreams?: { streamCount: number; streamWidth: number };
 }): OrderedLayerPartitionPlan;
 export declare function validateOrderedLayerPartitionPlan(manifest: {

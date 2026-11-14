@@ -93,3 +93,11 @@ test('matches simple exhaustive oracle across heterogeneous memory, timing and t
     assert.deepEqual(result.memoryBytes, choices[0].memory);
   }
 });
+test('hardware proposal preserves explicit f32 execution with f16 wire contract', () => {
+  const input = request();
+  input.activation = { activationDtype: 'f16', activationPrecision: 'f16', executionPrecision: 'f32' };
+  const result = proposeHardwarePartitionPlan(manifest, input);
+  assert.equal(result.plan.executionPrecision, 'f32');
+  assert.equal(result.plan.activationElementStrideBytes, 2);
+  assert.deepEqual(validateOrderedLayerPartitionPlan(manifest, result.plan), result.plan);
+});

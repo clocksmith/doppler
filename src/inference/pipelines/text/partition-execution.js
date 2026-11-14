@@ -4,6 +4,10 @@ import { log } from '../../../debug/index.js';
 import { acquireBuffer, releaseBuffer, discardBuffer, readBuffer, uploadData } from '../../../memory/buffer-pool.js';
 import { retireIdleBuffersUnderDeviceBudget } from '../../../memory/sequence-retirement.js';
 import { getDevice } from '../../../gpu/device.js';
+import { createTensor } from '../../../gpu/tensor.js';
+import { castF16ToF32, recordCastF16ToF32 } from '../../../gpu/kernels/cast.js';
+import { readPartitionF16Boundary } from './partition-wire.js';
+import { writeBufferAligned } from '../../../loader/tensors/buffer-write.js';
 import { getWeightDtype, getWeightMetadata, isWeightBuffer, isCpuWeightBuffer, isGpuBufferInstance, isSplitWeightBuffer } from '../../../gpu/weight-buffer.js';
 import { selectRuleValue } from '../../../rules/rule-registry.js';
 import { embed } from './embed.js';
@@ -59,7 +63,14 @@ export function assertPartitionExecutionSupported(state, plan, requireAdapter = 
     || execution.activationComponents !== 2 || execution.activationElementStrideBytes !== 8)) {
     throw new Error('Paired partition execution requires a bound paired kernel representation.');
   }
-  if (execution.activationDtype !== plan.activationDtype) {
+  if ('executionPrecision' in plan && plan.executionPrecision !== undefined
+    && (plan.executionPrecision !== 'f32' || precision !== 'f32'
+      || plan.activationDtype !== 'f16' || plan.activationPrecision !== 'f16'
+      || !getDevice()?.features.has('shader-f16'))) {
+    throw new Error('Explicit f16 partition transport requires f32 execution and shader-f16.');
+  }
+  if (execution.activationDtype !== ('executionPrecision' in plan && plan.executionPrecision !== undefined
+    ? plan.executionPrecision : plan.activationDtype)) {
     throw new Error('Partition activation dtype must match the resolved execution plan; implicit casts are forbidden.');
   }
 }
@@ -68,8 +79,9 @@ export function assertPartitionExecutionSupported(state, plan, requireAdapter = 
  * @param {import('./partition-execution.js').PartitionExecutionState} state
  * @param {Parameters<import('./partition-execution.js').ExecutePartitionChunk>[1]} input
  * @param {boolean} prefill
+ * @param {boolean} validatePayload
  */
-function resolvePartitionInput(state, input, prefill) {
+function resolvePartitionInput(state, input, prefill, validatePayload) {
   const config = state.modelConfig;
   if (!config || !state.executionPlanState || !state.manifest || !state.modelPartition) {
     throw new Error('Resident partition requires a resolved model and bound partition plan.');
@@ -103,14 +115,28 @@ function resolvePartitionInput(state, input, prefill) {
   const plan = state.modelPartition.plan;
   const boundaryWidth = 'residualStreams' in plan && plan.residualStreams
     ? getPartitionActivationContract(plan).hiddenSize : config.hiddenSize;
-  const { expectedBytes: byteLength } = validateActivationTensorShape({ shape: [1, numTokens, boundaryWidth], dtype,
+  const wireCast = 'executionPrecision' in plan && plan.executionPrecision === 'f32';
+  const shape = [1, numTokens, boundaryWidth];
+  const { expectedBytes: wireByteLength } = validateActivationTensorShape({ shape, dtype: plan.activationDtype,
     precision: plan.activationPrecision, components: plan.activationComponents,
     elementStrideBytes: plan.activationElementStrideBytes });
+  const { expectedBytes: byteLength } = validateActivationTensorShape({ shape, dtype,
+    ...(wireCast ? {} : { precision: plan.activationPrecision, components: plan.activationComponents,
+      elementStrideBytes: plan.activationElementStrideBytes }) });
   if (!Number.isSafeInteger(byteLength)) throw new Error('Resident activation size exceeds the safe integer range.');
-  if (!partition.hasEmbedding && input.activationBytes?.byteLength !== byteLength) {
+  if (!partition.hasEmbedding && input.activationBytes?.byteLength !== wireByteLength) {
     throw new Error('Partition activation byte length mismatch.');
   }
-  return { config, partition, executionPlan, dtype, numTokens, byteLength };
+  if (validatePayload && wireCast && input.activationBytes) {
+    const bytes = input.activationBytes;
+    const view = ArrayBuffer.isView(bytes) ? new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength) : new DataView(bytes);
+    for (let offset = 0; offset < wireByteLength; offset += 2) {
+      if ((view.getUint16(offset, true) & 0x7c00) === 0x7c00) {
+        throw new Error('Partition f16 transport contains a nonfinite value.');
+      }
+    }
+  }
+  return { config, partition, executionPlan, dtype, numTokens, byteLength, wireByteLength, wireCast, shape };
 }
 
 function createPartitionTiming() {
@@ -122,7 +148,7 @@ function createPartitionTiming() {
 export async function executePartitionLayers(state, input, signal) {
   signal.throwIfAborted();
   const prefill = state.currentSeqLen === 0;
-  const setup = resolvePartitionInput(state, input, prefill);
+  const setup = resolvePartitionInput(state, input, prefill, false);
   // A sequence's first prefill starts from its owned state under a device budget.
   if (prefill) await retireIdleBuffersUnderDeviceBudget(getDevice());
   signal.throwIfAborted();
@@ -141,13 +167,13 @@ export async function executePartitionLayers(state, input, signal) {
     throw new Error('Resident partition produced no boundary result.');
   }
   const originalSeqLen = state.currentSeqLen;
-  const rowBytes = setup.byteLength / setup.numTokens;
+  const rowBytes = setup.wireByteLength / setup.numTokens;
   const source = input.activationBytes;
   const bytes = source ? ArrayBuffer.isView(source)
     ? new Uint8Array(source.buffer, source.byteOffset, source.byteLength) : new Uint8Array(source) : null;
   // Assemble the public byte payload in its existing contiguous row order.
   // Model arithmetic remains in the same declared GPU layer programs.
-  const activation = setup.partition.hasLmHead ? null : new Uint8Array(new ArrayBuffer(setup.byteLength));
+  const activation = setup.partition.hasLmHead ? null : new Uint8Array(new ArrayBuffer(setup.wireByteLength));
   const timing = createPartitionTiming();
   try {
     for (let offset = 0; offset < input.numTokens; offset += chunkSize) {
@@ -181,7 +207,7 @@ export async function executePartitionLayers(state, input, signal) {
 
 /** @type {import('./partition-execution.js').ExecutePartitionChunk} */
 async function executePartitionChunk(state, input, signal, prefill, finalChunk) {
-  const { config, partition, executionPlan, dtype, numTokens, byteLength } = resolvePartitionInput(state, input, prefill);
+  const { config, partition, executionPlan, dtype, numTokens, byteLength, wireByteLength, wireCast, shape } = resolvePartitionInput(state, input, prefill, true);
   const chunkLayers = resolvePrefillRecorderChunkLayers({
     configuredPrefillChunkLayers: state.runtimeConfig.inference.session.prefillChunkLayers,
     hasGpuSplitPerLayerInputs: false,
@@ -260,10 +286,21 @@ async function executePartitionChunk(state, input, signal, prefill, finalChunk) 
       });
       hidden = tensor.buffer;
     } else {
-      if (input.activationBytes?.byteLength !== byteLength) throw new Error('Partition activation byte length mismatch.');
-      hidden = acquireBuffer(byteLength, undefined, 'resident_partition_input');
+      if (input.activationBytes?.byteLength !== wireByteLength) throw new Error('Partition activation byte length mismatch.');
+      hidden = acquireBuffer(wireByteLength, undefined, 'resident_partition_input');
       const uploadStarted = performance.now();
-      uploadData(hidden, input.activationBytes);
+      if (wireCast) {
+        const device = getDevice();
+        if (!device) throw new Error('Partition wire upload requires its GPU device.');
+        writeBufferAligned(device, hidden, input.activationBytes);
+      }
+      else uploadData(hidden, input.activationBytes);
+      if (wireCast) {
+        const incoming = createTensor(hidden, 'f16', shape, 'resident_partition_wire');
+        const decoded = recordLayers ? await recordCastF16ToF32(recorder, incoming) : await castF16ToF32(incoming);
+        boundaryOwner.trackTemporaryBuffer(hidden);
+        hidden = decoded.buffer;
+      }
       timing.inputUploadMs = performance.now() - uploadStarted;
     }
     for (let layer = partition.layerRange[0]; layer <= partition.layerRange[1]; layer++) {
@@ -305,7 +342,7 @@ async function executePartitionChunk(state, input, signal, prefill, finalChunk) 
     signal.throwIfAborted();
     if (!partition.hasLmHead) {
       const readbackStarted = performance.now();
-      const activationBytes = await readBuffer(output, byteLength);
+      const activationBytes = wireCast ? await readPartitionF16Boundary(output, shape, signal) : await readBuffer(output, byteLength);
       timing.activationReadbackMs = performance.now() - readbackStarted;
       signal.throwIfAborted();
       return { activationBytes, timing };

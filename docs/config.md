@@ -486,3 +486,19 @@ This is not a global optimum, throughput model or measured speedup. Before use,
 qualify the proposed allocation through the existing admission/output checks;
 compare predicted and observed costs. Multi-device optimization, overlapping
 execution, cache contention and thermal prediction are outside this helper.
+
+### Explicit partition wire precision
+
+An ordered partition request may explicitly pair `activationDtype: "f16"` and
+`activationPrecision: "f16"` with `executionPrecision: "f32"`. This optional,
+digest-bound contract keeps model layers in f32 and uses existing GPU casts only
+at stage boundaries. It requires `shader-f16`; there is no automatic fallback.
+Omitting the field preserves existing plan identities and strict precision matching.
+
+The outgoing GPU guard rejects nonfinite values and magnitudes above 65504 before
+returning wire bytes. Incoming half values are checked before each chunk dispatch.
+Wire bytes govern transfer limits and token-chunk slicing; f32 execution bytes
+still govern intermediate GPU storage and its device budget. This is lossy
+transport, not a lossless encoding or a change to model weights. Qualification is
+per model, hardware and workload; one exact-answer fixture does not establish
+general quality equivalence or a throughput advantage.

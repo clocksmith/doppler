@@ -127,7 +127,11 @@ export function createLayerPartitionPlan({
 /** Ordered model geometry only; resident execution admits supported plan versions separately.
  * @type {import('./layer-partition-plan.js').createOrderedLayerPartitionPlan} */
 export function createOrderedLayerPartitionPlan(options) {
-  const { splitLayers, residualStreams } = options;
+  const { splitLayers, residualStreams, executionPrecision } = options;
+  if (executionPrecision !== undefined && (executionPrecision !== 'f32'
+    || options.activationDtype !== 'f16' || options.activationPrecision !== 'f16')) {
+    throw new TypeError('Separate execution precision requires explicit f32 execution with f16 wire dtype and precision.');
+  }
   if (!Array.isArray(splitLayers) || splitLayers.length < 1) {
     throw new TypeError('Ordered partitions require at least one explicit split layer.');
   }
@@ -143,7 +147,7 @@ export function createOrderedLayerPartitionPlan(options) {
   if (residualStreams !== undefined && (!residualStreams || typeof residualStreams !== 'object'
     || Object.keys(residualStreams).length !== 2
     || !Number.isSafeInteger(residualStreams.streamCount) || residualStreams.streamCount < 1
-    || residualStreams.streamWidth !== base.hiddenSize || layout.precision !== 'f32'
+    || residualStreams.streamWidth !== base.hiddenSize || (executionPrecision ?? layout.precision) !== 'f32'
     || !Number.isSafeInteger(residualStreams.streamCount * residualStreams.streamWidth))) {
     throw new TypeError('Residual streams require explicit positive streamCount, model streamWidth and scalar f32 activations.');
   }
@@ -163,6 +167,7 @@ export function createOrderedLayerPartitionPlan(options) {
   }));
   return Object.freeze({
     schema: ORDERED_LAYER_PARTITION_SCHEMA, modelId: base.modelId, totalLayers: base.totalLayers,
+    ...(executionPrecision === undefined ? {} : { executionPrecision }),
     hiddenSize: base.hiddenSize, vocabSize: base.vocabSize, stageCount,
     ...(residualStreams === undefined ? {} : { residualStreams: Object.freeze({ ...residualStreams }) }),
     ...(base.adapterIdentities === undefined ? {} : { adapterIdentities: base.adapterIdentities }),
@@ -186,7 +191,7 @@ function matchesPartitionRecord(actual, expected) {
  * @type {import('./layer-partition-plan.js').createOrderedLayerPartitionPlanFromManifest} */
 export function createOrderedLayerPartitionPlanFromManifest(manifest, request) {
   if (!request || typeof request !== 'object' || Array.isArray(request)
-    || Object.keys(request).some(key => !['splitLayers', 'activationDtype', 'activationPrecision', 'adapterIdentities'].includes(key))
+    || Object.keys(request).some(key => !['splitLayers', 'activationDtype', 'activationPrecision', 'executionPrecision', 'adapterIdentities'].includes(key))
     || !['f32', 'f16'].includes(request.activationDtype) || !['f32', 'f16', 'two-f32'].includes(request.activationPrecision)) {
     throw new TypeError('Partition request requires explicit splitLayers, activationDtype and activationPrecision.');
   }
@@ -210,7 +215,8 @@ export function createOrderedLayerPartitionPlanFromManifest(manifest, request) {
 export function validateOrderedLayerPartitionPlan(manifest, plan) {
   if (plan?.schema !== ORDERED_LAYER_PARTITION_SCHEMA) throw new Error('Ordered partition plan schema mismatch.');
   const canonical = createOrderedLayerPartitionPlanFromManifest(manifest, {
-    splitLayers: plan.splitLayers, activationDtype: plan.activationDtype, activationPrecision: plan.activationPrecision, adapterIdentities: plan.adapterIdentities,
+    splitLayers: plan.splitLayers, activationDtype: plan.activationDtype, activationPrecision: plan.activationPrecision,
+    executionPrecision: plan.executionPrecision, adapterIdentities: plan.adapterIdentities,
   });
   if (!matchesPartitionRecord(plan, canonical)) throw new Error('Ordered partition plan does not match the model manifest.');
   return canonical;

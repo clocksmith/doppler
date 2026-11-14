@@ -7,6 +7,7 @@
   },
   "include": [],
   "files": [
+    "src/inference/pipelines/text/partition-wire.js",
     "src/config/hardware-partition-plan.js",
     "src/tooling/node-runtime-bridge.js",
     "src/gpu/kernels/channel-gain.js",

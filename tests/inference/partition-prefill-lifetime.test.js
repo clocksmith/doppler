@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
 import { registerHooks } from 'node:module';
+import { float32ToFloat16, float16ToFloat32 } from '../../src/formats/float16.js';
 import { dispatch, beginImmediateDispatchProfile } from '../../src/gpu/kernels/dispatch.js';
 
 // Inject GPU ports only: exercise real partition orchestration and configured
@@ -9,7 +10,7 @@ let probe;
 let expectRecordedLayers = true;
 globalThis.partitionLifetime = {
   acquire(size) {
-    if (probe.live.size >= 7) throw Error('allocation budget exceeded');
+    if (probe.live.size >= (probe.wire ? 8 : 7)) throw Error('allocation budget exceeded');
     const buffer = { size, bytes: new Uint8Array(size), __dopplerFakeGPUBuffer: true };
     probe.live.add(buffer); probe.peak = Math.max(probe.peak, probe.live.size); return buffer;
   },
@@ -60,7 +61,23 @@ globalThis.partitionLifetime = {
     return output;
   },
 };
+globalThis.partitionLifetime.getDevice = () => probe.wire ? { features: new Set(['shader-f16']), queue: { writeBuffer(buffer, _offset, bytes) { buffer.bytes.set(bytes); } } } : undefined;
+globalThis.partitionLifetime.castInput = async (_recorder, input) => {
+  const out = globalThis.partitionLifetime.acquire(input.shape.reduce((a, b) => a * b, 1) * 4);
+  const target = new Float32Array(out.bytes.buffer);
+  const source = new Uint16Array(input.buffer.bytes.buffer);
+  target.set(Array.from(source, float16ToFloat32));
+  return { buffer: out };
+};
+globalThis.partitionLifetime.castOutput = async buffer => {
+  if (probe.fail === 'wire') throw Error('wire failed');
+  return Uint16Array.from(new Float32Array(buffer.bytes.buffer), float32ToFloat16).buffer;
+};
 const modules = {
+  '../../../gpu/device.js': 'export const getDevice = () => partitionLifetime.getDevice();',
+  '../../../gpu/kernels/cast.js': `export const recordCastF16ToF32 = (...args) => partitionLifetime.castInput(...args);
+    export const castF16ToF32 = input => partitionLifetime.castInput(null, input);`,
+  './partition-wire.js': 'export const readPartitionF16Boundary = (...args) => partitionLifetime.castOutput(...args);',
   '../../../gpu/command-recorder.js': 'export const createCommandRecorder = () => partitionLifetime.recorder();',
   '../../../memory/buffer-pool.js': `export const acquireBuffer = size => partitionLifetime.acquire(size);
     export const releaseBuffer = buffer => partitionLifetime.release(buffer);
@@ -208,5 +225,33 @@ try {
   probe = { live: new Set(), peak: 0, submissions: 0, controller: new AbortController() };
   await assert.rejects(executePartitionLayers(state, { numTokens: 8, activationBytes: pairedBytes }, probe.controller.signal), /precision.*match/);
   assert.equal(probe.live.size, 0); assert.equal(probe.submissions, 0);
+
+  // Explicit wire f16 is expanded on GPU before f32 layers; chunks use wire
+  // row bytes while layer carries use execution row bytes. GPU ports are injected.
+  state.modelPartition.plan = { activationDtype: 'f16', activationPrecision: 'f16',
+    activationComponents: 1, activationElementStrideBytes: 2, executionPrecision: 'f32' };
+  delete state.executionPlanState.primaryPlan.activationPrecision;
+  delete state.executionPlanState.primaryPlan.activationComponents;
+  delete state.executionPlanState.primaryPlan.activationElementStrideBytes;
+  const wireInput = Uint16Array.from({ length: 34 }, (_, i) => float32ToFloat16(i / 8)).subarray(1, 33);
+  for (const recorded of [true, false]) for (const fail of recorded ? [null, 'layer', 'cancel', 'wire'] : [null, 'later-layer', 'later-cancel', 'wire']) {
+    state.runtimeConfig.inference.session.prefillTokenChunkSize = recorded ? null : 3;
+    expectRecordedLayers = recorded;
+    state.executionPlanState.primaryPlan.defaultDisableCommandBatching = !recorded;
+    state.linearAttentionRuntime = { layers: new Map() };
+    probe = { live: new Set(), peak: 0, submissions: 0, fail, wire: true,
+      controller: new AbortController(), chunks: [] };
+    const operation = executePartitionLayers(state, { numTokens: 8, activationBytes: wireInput }, probe.controller.signal);
+    if (fail) await assert.rejects(operation, fail.includes('cancel') ? /abort/i : new RegExp(fail + ' failed'));
+    else assert.deepEqual(new Uint16Array((await operation).activationBytes), wireInput, 'explicit f16 rows preserved around f32 execution');
+    assert.equal(probe.live.size, 0, 'wire conversion success/failure settles every buffer');
+  }
+  for (const invalid of [0x7c00, 0xfc00, 0x7e00]) {
+    state.linearAttentionRuntime = { layers: new Map() };
+    probe = { live: new Set(), peak: 0, submissions: 0, wire: true, controller: new AbortController() };
+    const bytes = new Uint16Array(4); bytes[2] = invalid;
+    await assert.rejects(executePartitionLayers(state, { numTokens: 1, activationBytes: bytes }, probe.controller.signal), /nonfinite/);
+    assert.equal(probe.live.size, 0); assert.equal(probe.submissions, 0);
+  }
 } finally { hooks.deregister(); delete globalThis.partitionLifetime; }
 console.log('partition-prefill-lifetime: bounded chunks, carry, failures and cancellation passed');
