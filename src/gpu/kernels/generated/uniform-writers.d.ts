@@ -472,6 +472,8 @@ export interface KernelUniformValues {
   "gated_delta_recurrent/register_prefill_norm_gate": Parameters<typeof writers2.write_gated_delta_recurrent_default>[1];
   "gated_delta_recurrent/gguf_register_prefill": Parameters<typeof writers2.write_gated_delta_recurrent_default>[1];
   "gated_delta_recurrent/gguf_f32": Parameters<typeof writers2.write_gated_delta_recurrent_default>[1];
+  "gated_delta_recurrent/gguf_sigmoid_f32": Parameters<typeof writers2.write_gated_delta_recurrent_default>[1];
+  "gated_delta_recurrent/gguf_register_prefill_sigmoid": Parameters<typeof writers2.write_gated_delta_recurrent_default>[1];
   "gated_delta_fused_decode/paired_default": Parameters<typeof writers2.write_gated_delta_recurrent_default>[1];
   "gated_delta_fused_decode/paired_default_f16": Parameters<typeof writers2.write_gated_delta_recurrent_default>[1];
   "gated_delta_fused_decode/paired_sigmoid_gate": Parameters<typeof writers2.write_gated_delta_recurrent_default>[1];
