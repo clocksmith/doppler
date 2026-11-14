@@ -398,7 +398,17 @@ export async function createPipeline(
   };
   const task = Promise.resolve().then(async () => {
     assertDeviceValid(device, epoch, requireCurrentDevice);
-    const pipeline = await device.createComputePipelineAsync(pipelineDescriptor);
+    let pipeline;
+    try {
+      pipeline = await device.createComputePipelineAsync(pipelineDescriptor);
+    } catch (cause) {
+      throw new Error(
+        `GPU pipeline creation failed for ${operation}/${variant}: file ${config.shaderFile}, ` +
+        `entry point ${config.entryPoint}, source ${provenance.shaderHash}, ` +
+        `constants ${JSON.stringify(provenance.constants)}. ${cause?.message ?? String(cause)}`,
+        { cause }
+      );
+    }
     assertDeviceValid(device, epoch, requireCurrentDevice);
     pipelineProvenance.set(pipeline, provenance);
     if (generation === cacheGeneration && pipelineTasks.get(cacheKey) === task) pipelineCache.set(cacheKey, pipeline);

@@ -107,8 +107,18 @@ test('concurrent compilation is shared, failures retry, and sync lookup never re
   await new Promise(resolve => setImmediate(resolve));
   const concurrentCalls = calls;
   assert.equal(getCachedPipeline('scale', 'default'), null);
-  compilation.reject(new Error('compile failed'));
-  await Promise.all([assert.rejects(first, /compile failed/), assert.rejects(second, /compile failed/)]);
+  const backendError = new Error('backend rejected generated HLSL');
+  compilation.reject(backendError);
+  const identifiesKernel = error => {
+    assert.match(error.message, /GPU pipeline creation failed for scale\/default/);
+    assert.match(error.message, /file scale\.wgsl, entry point main/);
+    assert.match(error.message, /source sha256:[a-f0-9]{64}/);
+    assert.match(error.message, /constants \{/);
+    assert.match(error.message, /backend rejected generated HLSL/);
+    assert.equal(error.cause, backendError, 'preserve the original backend error for diagnostics');
+    return true;
+  };
+  await Promise.all([assert.rejects(first, identifiesKernel), assert.rejects(second, identifiesKernel)]);
   assert.equal(concurrentCalls, 1);
   device.createComputePipelineAsync = async descriptor => { calls++; return { ...descriptor }; };
   const retried = await getPipelineFast('scale', 'default');
