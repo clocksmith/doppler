@@ -351,3 +351,21 @@ console.log('Routed expert cache: range extents, identity, hot reuse, budgets, c
   assert(stats.peakAccountedGpuBytes <= f.policy.gpuBudgetBytes - f.policy.reserveBytes);
   await f.cache.destroy();
 }
+
+{
+  const f = fixture();
+  await f.cache.prepare(f.plan(0), [0, 1]);
+  const allocations = f.buffers.length;
+  const oldPayloads = f.buffers.slice(-2);
+  await f.cache.prepare(f.plan(1), [0, 1]);
+  assert.equal(f.buffers.length, allocations, 'exact-size completed victims replace payloads without allocation');
+  assert(oldPayloads.every(buffer => !buffer.destroyed), 'transferred payloads stay owned');
+  assert.equal(f.cache.getStats().bufferReuses, 2);
+  for (const [index, plane] of f.plan(1).planes.entries()) {
+    const working = f.buffers[index];
+    const source = f.shards.get(plane.location.shardIndex);
+    assert.deepEqual(working.data.slice(0, 2 * plane.expertBytes), source.slice(0, 2 * plane.expertBytes));
+  }
+  await f.cache.destroy();
+  assert(f.buffers.every(buffer => buffer.destroyed), 'reused resources retire on unload');
+}

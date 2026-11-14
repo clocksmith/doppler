@@ -29,6 +29,7 @@ export interface RoutedExpertCacheStats {
   evictions: number;
   evictionFenceWaits: number;
   evictionFenceSkips: number;
+  bufferReuses: number;
   residentBytes: number;
   peakResidentBytes: number;
   peakAccountedGpuBytes: number;

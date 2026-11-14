@@ -34,7 +34,7 @@ export class RoutedExpertCache {
   /** @type {Promise<import('./routed-expert-cache.js').RoutedExpertWeights> | null} */
   #active = null;
   #stats = { sourceReadBytes: 0, sourceReads: 0, uploadBytes: 0,
-    cacheHits: 0, cacheMisses: 0, workingHits: 0, evictions: 0, evictionFenceWaits: 0, evictionFenceSkips: 0,
+    cacheHits: 0, cacheMisses: 0, workingHits: 0, evictions: 0, evictionFenceWaits: 0, evictionFenceSkips: 0, bufferReuses: 0,
     residentBytes: 0, peakResidentBytes: 0, peakAccountedGpuBytes: 0, peakStagingBytes: 0,
     ioWaitMs: 0, sourceReadWaitMs: 0, uploadEnqueueMs: 0, initialQueueIdleForWeightsMs: 0,
     hostCacheHits: 0, hostCacheMisses: 0, hostEvictions: 0, hostAdmissionSkips: 0, peakHostOwnedOrReservedBytes: 0 };
@@ -85,29 +85,43 @@ export class RoutedExpertCache {
     this.#completedSerial = Math.max(this.#completedSerial, serial);
   }
 
-  /** @param {number} bytes @param {number} cacheAddition @param {AbortSignal} signal */
-  async #makeRoom(bytes, cacheAddition, signal) {
+  /** @param {number} bytes @param {number} cacheAddition @param {AbortSignal} signal
+   * @param {boolean} reusePayload @returns {Promise<GPUBuffer | null>} */
+  async #makeRoom(bytes, cacheAddition, signal, reusePayload = false) {
     const { policy } = this.#options;
-    while (this.#cacheBytes + cacheAddition > policy.cacheBytes
-      || this.#options.otherGpuBytes() + this.#stats.residentBytes + bytes > policy.gpuBudgetBytes - policy.reserveBytes) {
-      let victim;
-      // LRU order already lives in Map: do not allocate the entire cache on
-      // every eviction just to inspect its first unpinned entry.
-      for (const candidate of this.#entries) {
-        if (candidate[1].users === 0) { victim = candidate; break; }
+    /** @type {GPUBuffer | null} */
+    let replacement = null;
+    try {
+      while (this.#cacheBytes + cacheAddition > policy.cacheBytes
+        || this.#options.otherGpuBytes() + this.#stats.residentBytes + bytes > policy.gpuBudgetBytes - policy.reserveBytes) {
+        let victim;
+        // LRU order already lives in Map: do not allocate the entire cache on
+        // every eviction just to inspect its first unpinned entry.
+        for (const candidate of this.#entries) {
+          if (candidate[1].users === 0) { victim = candidate; break; }
+        }
+        if (!victim) throw new Error('Routed expert budget cannot accommodate the working set and concurrent readers.');
+        // Pins are changed under the mutation lock. A victim cannot acquire a new
+        // copy lease while this fence settles its previously submitted work.
+        if (victim[1].lastUseSerial > this.#completedSerial) {
+          this.#stats.evictionFenceWaits++;
+          await this.#waitForSubmitted();
+        } else this.#stats.evictionFenceSkips++;
+        signal.throwIfAborted();
+        // Transfer only an exact-size, unpinned, completed payload. It remains
+        // owned and resident; no spare pool or extra budget is introduced.
+        if (reusePayload && replacement === null && victim[1].bytes === bytes) {
+          replacement = victim[1].buffer;
+          bytes = 0;
+        } else this.#destroyBuffer(victim[1].buffer);
+        this.#cacheBytes -= victim[1].bytes;
+        this.#entries.delete(victim[0]);
+        this.#stats.evictions++;
       }
-      if (!victim) throw new Error('Routed expert budget cannot accommodate the working set and concurrent readers.');
-      // Pins are changed under the mutation lock. A victim cannot acquire a new
-      // copy lease while this fence settles its previously submitted work.
-      if (victim[1].lastUseSerial > this.#completedSerial) {
-        this.#stats.evictionFenceWaits++;
-        await this.#waitForSubmitted();
-      } else this.#stats.evictionFenceSkips++;
-      signal.throwIfAborted();
-      this.#destroyBuffer(victim[1].buffer);
-      this.#cacheBytes -= victim[1].bytes;
-      this.#entries.delete(victim[0]);
-      this.#stats.evictions++;
+      return replacement;
+    } catch (error) {
+      if (replacement) this.#destroyBuffer(replacement);
+      throw error;
     }
   }
 
@@ -185,9 +199,13 @@ export class RoutedExpertCache {
     }
     this.#stats.cacheMisses++;
     const entry = await this.#locked(async () => {
-      await this.#makeRoom(plan.expertBytes, plan.expertBytes, signal);
-      signal.throwIfAborted();
-      const buffer = this.#allocate(plan.expertBytes, `routed_expert_${key}`);
+      const replacement = await this.#makeRoom(plan.expertBytes, plan.expertBytes, signal, true);
+      if (signal.aborted) {
+        if (replacement) this.#destroyBuffer(replacement);
+        signal.throwIfAborted();
+      }
+      const buffer = replacement ?? this.#allocate(plan.expertBytes, `routed_expert_${key}`);
+      if (replacement) this.#stats.bufferReuses++;
       this.#cacheBytes += plan.expertBytes;
       return { buffer, bytes: plan.expertBytes, users: 1, lastUseSerial: 0 };
     });
