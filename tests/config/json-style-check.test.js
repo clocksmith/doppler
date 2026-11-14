@@ -1,0 +1,25 @@
+import assert from 'node:assert/strict';
+import { checkJsonSource } from '../../tools/check-json-style.js';
+
+const check = (text, path = 'src/config/example.json') => checkJsonSource(text, path);
+const ids = (text, path) => check(text, path).map((issue) => issue.ruleId);
+assert.deepEqual(check('{"id":"a","nested":{"id":"b"},"values":[null,true,1.5,-3e2]}'), []);
+assert.deepEqual(ids('{"a":1,}'), ['JSON-001']);
+assert.deepEqual(ids('{/*comment*/"a":1}'), ['JSON-001']);
+assert.deepEqual(ids('{"a":1,"a":2}'), ['JSON-002']);
+assert.deepEqual(ids('{"a":1,"\\u0061":2}'), ['JSON-002']);
+assert.deepEqual(ids('{"nested":{"a":1,"a":2}}'), ['JSON-002']);
+assert.deepEqual(check('[{"a":1},{"a":2}]'), []);
+assert.deepEqual(check('{"__proto__":1,"constructor":2}'), []);
+assert.deepEqual(check('{"text":"a: { \\\"a\\\": 1}","exponent":"1e999"}'), []);
+assert.deepEqual(ids('{"value":1e999}'), ['JSON-003']);
+assert.deepEqual(ids('[-1e999]'), ['JSON-003']);
+assert.deepEqual(check('{"value":1e308}'), []);
+assert.equal(check('{\n "a":1,\n "a":2\n}')[0].line, 3);
+const jsonc = '{// description\n "url":"https://example.com", /* block */ "values":[1,],}';
+assert.deepEqual(check(jsonc, 'tsconfig.json'), []);
+assert.deepEqual(check(jsonc, 'tsconfig.source-strict.json'), []);
+assert.deepEqual(ids(jsonc, 'src/config/example.json'), ['JSON-001']);
+assert.deepEqual(ids('{/*c*/"a":1,"a":2,}', 'tsconfig.json'), ['JSON-002']);
+assert.deepEqual(ids('{/*unterminated}', 'tsconfig.json'), ['JSON-001']);
+console.log('json-style-check: positive and negative JSON/JSONC fixtures passed');
