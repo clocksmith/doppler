@@ -197,7 +197,10 @@ function fixture(separate = false, intermediate = 256, native = false) {
   const controller = new AbortController();
   const operation = f.cache.prepare(f.plan(1), [2], controller.signal);
   operation.catch(() => {});
-  while (!unblock) await new Promise(resolve => setImmediate(resolve));
+  for (let turn = 0; turn < 50 && f.cache.getStats().evictionFenceWaits === 0; turn++) {
+    await new Promise(resolve => setImmediate(resolve));
+  }
+  assert.equal(f.cache.getStats().evictionFenceWaits, 1, 'the earlier preparation fence cannot cover copies submitted after its snapshot');
   controller.abort(new DOMException('cancelled', 'AbortError'));
   assert(cached.every(b => !b.destroyed), 'a cancelled miss cannot evict buffers before their GPU work completes');
   f.gpu.queue.onSubmittedWorkDone = async () => {};
@@ -335,4 +338,16 @@ console.log('Routed expert cache: range extents, identity, hot reuse, budgets, c
   const down = plan.planes.find(plane => plane.role === 'down');
   down.location.size -= 4;
   assert.throws(() => f.plan(0), /extent/);
+}
+
+{
+  const f = fixture(), plan = f.plan(0);
+  await f.cache.prepare(plan, [0, 1]);
+  await f.cache.prepare(f.plan(1), [0, 1]);
+  const stats = f.cache.getStats();
+  assert.equal(stats.evictionFenceWaits, 0, 'the next preparation already fenced both old payload copies');
+  assert.equal(stats.evictionFenceSkips, 2, 'completed LRU payloads need no second queue fence');
+  assert.equal(stats.evictions, 2);
+  assert(stats.peakAccountedGpuBytes <= f.policy.gpuBudgetBytes - f.policy.reserveBytes);
+  await f.cache.destroy();
 }

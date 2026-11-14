@@ -17,6 +17,8 @@ export class RoutedExpertCache {
   #layer = -1;
   #signature = '';
   #cacheBytes = 0;
+  #submittedSerial = 0;
+  #completedSerial = 0;
   /** @type {Map<string, import('./routed-expert-cache.js').RoutedHostExpertEntry>} */
   #hostEntries = new Map();
   #hostBytes = 0;
@@ -32,7 +34,7 @@ export class RoutedExpertCache {
   /** @type {Promise<import('./routed-expert-cache.js').RoutedExpertWeights> | null} */
   #active = null;
   #stats = { sourceReadBytes: 0, sourceReads: 0, uploadBytes: 0,
-    cacheHits: 0, cacheMisses: 0, workingHits: 0, evictions: 0,
+    cacheHits: 0, cacheMisses: 0, workingHits: 0, evictions: 0, evictionFenceWaits: 0, evictionFenceSkips: 0,
     residentBytes: 0, peakResidentBytes: 0, peakAccountedGpuBytes: 0, peakStagingBytes: 0,
     ioWaitMs: 0, sourceReadWaitMs: 0, uploadEnqueueMs: 0, initialQueueIdleForWeightsMs: 0,
     hostCacheHits: 0, hostCacheMisses: 0, hostEvictions: 0, hostAdmissionSkips: 0, peakHostOwnedOrReservedBytes: 0 };
@@ -75,16 +77,32 @@ export class RoutedExpertCache {
     if (this.#owned.delete(buffer)) this.#stats.residentBytes -= buffer.size;
   }
 
+  // A fence covers only submissions issued before that call. Never mark later
+  // copies complete when an earlier fence resolves; entries may still be in use.
+  async #waitForSubmitted() {
+    const serial = this.#submittedSerial;
+    await this.#options.device.queue.onSubmittedWorkDone();
+    this.#completedSerial = Math.max(this.#completedSerial, serial);
+  }
+
   /** @param {number} bytes @param {number} cacheAddition @param {AbortSignal} signal */
   async #makeRoom(bytes, cacheAddition, signal) {
-    const { policy, device } = this.#options;
+    const { policy } = this.#options;
     while (this.#cacheBytes + cacheAddition > policy.cacheBytes
       || this.#options.otherGpuBytes() + this.#stats.residentBytes + bytes > policy.gpuBudgetBytes - policy.reserveBytes) {
-      const victim = [...this.#entries].find(([, entry]) => entry.users === 0);
+      let victim;
+      // LRU order already lives in Map: do not allocate the entire cache on
+      // every eviction just to inspect its first unpinned entry.
+      for (const candidate of this.#entries) {
+        if (candidate[1].users === 0) { victim = candidate; break; }
+      }
       if (!victim) throw new Error('Routed expert budget cannot accommodate the working set and concurrent readers.');
       // Pins are changed under the mutation lock. A victim cannot acquire a new
       // copy lease while this fence settles its previously submitted work.
-      await device.queue.onSubmittedWorkDone();
+      if (victim[1].lastUseSerial > this.#completedSerial) {
+        this.#stats.evictionFenceWaits++;
+        await this.#waitForSubmitted();
+      } else this.#stats.evictionFenceSkips++;
       signal.throwIfAborted();
       this.#destroyBuffer(victim[1].buffer);
       this.#cacheBytes -= victim[1].bytes;
@@ -108,6 +126,7 @@ export class RoutedExpertCache {
   #upload(entry, offset, bytes, beforeSubmit) {
     beforeSubmit();
     const started = performance.now();
+    entry.lastUseSerial = ++this.#submittedSerial;
     this.#options.device.queue.writeBuffer(entry.buffer, offset, bytes);
     this.#stats.uploadEnqueueMs += performance.now() - started;
     this.#stats.uploadBytes += bytes.byteLength;
@@ -117,7 +136,7 @@ export class RoutedExpertCache {
   async #prepareWorking(plan, signal) {
     const signature = JSON.stringify(plan.planes.map(p => [p.role, p.dtype, p.location.shape, p.bytes]));
     if (this.#working.size && signature !== this.#signature) {
-      await this.#options.device.queue.onSubmittedWorkDone();
+      await this.#waitForSubmitted();
       signal.throwIfAborted();
       for (const [role, buffer] of this.#working) {
         this.#destroyBuffer(buffer);
@@ -170,7 +189,7 @@ export class RoutedExpertCache {
       signal.throwIfAborted();
       const buffer = this.#allocate(plan.expertBytes, `routed_expert_${key}`);
       this.#cacheBytes += plan.expertBytes;
-      return { buffer, bytes: plan.expertBytes, users: 1 };
+      return { buffer, bytes: plan.expertBytes, users: 1, lastUseSerial: 0 };
     });
     // loadTensorRange owns an assembled output as well as its source payload.
     const chunkBytes = Math.floor(this.#options.policy.stagingBytes / (2 * this.#options.policy.readConcurrency * 4)) * 4;
@@ -245,7 +264,7 @@ export class RoutedExpertCache {
       return entry;
     } catch (error) {
       try {
-        await this.#options.device.queue.onSubmittedWorkDone();
+        await this.#waitForSubmitted();
         await this.#locked(async () => { this.#destroyBuffer(entry.buffer); this.#cacheBytes -= entry.bytes; });
       } catch (cleanup) { throw new AggregateError([error, cleanup], 'Routed expert load and cleanup failed.'); }
       throw error;
@@ -294,7 +313,7 @@ export class RoutedExpertCache {
     let readyAt = 0, submitted = false;
     // Only the first proven queue-idle gap is counted. Uploads and later gaps
     // are excluded; this is a lower bound, not global hardware utilization.
-    const fence = this.#options.device.queue.onSubmittedWorkDone().then(() => { if (!submitted) readyAt = performance.now(); });
+    const fence = this.#waitForSubmitted().then(() => { if (!submitted) readyAt = performance.now(); });
     fence.catch(() => undefined);
     const beforeSubmit = () => {
       if (!submitted && readyAt) this.#stats.initialQueueIdleForWeightsMs += performance.now() - readyAt;
@@ -317,6 +336,7 @@ export class RoutedExpertCache {
             offset += plane.expertBytes;
           }
           beforeSubmit();
+          entry.lastUseSerial = ++this.#submittedSerial;
           this.#options.device.queue.submit([encoder.finish()]);
           this.#loaded.add(expert);
         } finally { entry.users--; }
@@ -329,7 +349,7 @@ export class RoutedExpertCache {
     try { await fence; } catch (error) { errors.push(error); }
     if (errors.length || signal.aborted) {
       this.#loaded.clear();
-      try { await this.#options.device.queue.onSubmittedWorkDone(); } catch (error) { errors.push(error); }
+      try { await this.#waitForSubmitted(); } catch (error) { errors.push(error); }
       if (errors.length > 1) throw new AggregateError(errors, 'Routed expert preparation failed.');
       if (errors.length) throw errors[0];
       signal.throwIfAborted();
@@ -358,7 +378,7 @@ export class RoutedExpertCache {
     this.#hostEntries.clear(); this.#hostSeen.clear(); this.#hostBytes = 0; this.#hostReserved = 0;
     const errors = [];
     if (this.#owned.size) {
-      try { await this.#options.device.queue.onSubmittedWorkDone(); } catch (error) { errors.push(error); }
+      try { await this.#waitForSubmitted(); } catch (error) { errors.push(error); }
     }
     for (const buffer of this.#owned) {
       try { this.#destroyBuffer(buffer); } catch (error) { errors.push(error); }

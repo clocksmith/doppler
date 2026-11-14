@@ -7,7 +7,7 @@ export interface RoutedExpertCacheOptions {
   readRange: (shard: number, offset: number, length: number, signal: AbortSignal) => Promise<ArrayBuffer>;
   otherGpuBytes: () => number;
 }
-export interface RoutedExpertEntry { buffer: GPUBuffer; bytes: number; users: number }
+export interface RoutedExpertEntry { buffer: GPUBuffer; bytes: number; users: number; lastUseSerial: number }
 export interface RoutedHostExpertEntry { bytes: number; chunks: Array<{ offset: number; data: Uint8Array }> }
 export interface RoutedExpertWeights {
   expertIdx: number;
@@ -27,6 +27,8 @@ export interface RoutedExpertCacheStats {
   cacheMisses: number;
   workingHits: number;
   evictions: number;
+  evictionFenceWaits: number;
+  evictionFenceSkips: number;
   residentBytes: number;
   peakResidentBytes: number;
   peakAccountedGpuBytes: number;
