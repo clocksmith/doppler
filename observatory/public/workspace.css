@@ -119,3 +119,18 @@
 .ws-tokens .token-chip.ws-inherited { color: var(--doppler-muted); }
 .ws-tokens .token-chip.ws-forked { outline: 1.5px dashed var(--fg); outline-offset: 1px; border-radius: 3px; }
 .ws-token-origin { display: block; margin-top: 4px; font-weight: 400; font-size: 13px; }
+
+/* Activity: the pixel grids. */
+.ws-act-modes { display: flex; flex-wrap: wrap; gap: 4px; margin: 8px 0 12px; }
+.ws-act-overview-wrap { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 8px; align-items: center; }
+.ws-act-axis { writing-mode: vertical-rl; transform: rotate(180deg); font-size: 11px; }
+.ws-act-map { position: relative; }
+.ws-act-overview { display: block; width: 100%; height: 180px; image-rendering: pixelated; cursor: crosshair; border-radius: 6px; }
+.ws-act-marker { position: absolute; top: -4px; bottom: -4px; width: 2px; margin-left: -1px; background: var(--fg); pointer-events: none; }
+.ws-act-title { margin: 18px 0 8px; font: 600 15px/1.4 var(--font-sans); }
+.ws-act-tiles { display: grid; grid-template-columns: repeat(auto-fill, minmax(68px, 1fr)); gap: 10px 8px; }
+.ws-act-cell { display: grid; gap: 3px; justify-items: center; padding: 0; border: 0; background: none; color: var(--fg); cursor: pointer; }
+.ws-act-tile, .ws-act-missing { display: block; width: 100%; aspect-ratio: 1; image-rendering: pixelated; border-radius: 4px; border: 2px solid transparent; }
+.ws-act-tile.is-selected { border-color: var(--fg); }
+.ws-act-missing { background: repeating-linear-gradient(135deg, transparent 0 4px, var(--doppler-line) 4px 5px); }
+.ws-act-label { font: 500 11px/1.2 var(--font-sans); color: var(--doppler-muted); }

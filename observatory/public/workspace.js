@@ -13,6 +13,7 @@ import { $, h, percent, visible } from './viz/dom.js';
 import { answerSignals, DIVERSITY_WINDOW, perplexity } from './viz/signals.js';
 import { renderForestTree, renderTokenPanel } from './views/forest.js';
 import { renderJourney } from './views/journey.js';
+import { renderActivity } from './views/activity.js';
 import { renderAttention } from './views/attention.js';
 import { renderMemory } from './views/memory.js';
 import { renderGearbox } from './views/gearbox.js';
@@ -24,6 +25,7 @@ import { assertRunModel, validateProjection } from './projection-contract.js';
 const DEMO = '/doppler/demo';
 const EXAMPLE_PROMPTS = ['Explain why the sky is blue in one sentence.', 'Write a haiku about rain.', 'What is 17 × 23?', 'Name three uses of a paperclip.'];
 const VIEWS = [
+  { id: 'activity', label: 'Activity', render: renderActivity },
   { id: 'journey', label: 'Layer journey', render: renderJourney },
   { id: 'attention', label: 'Attention', render: renderAttention },
   { id: 'memory', label: 'Memory (KV cache)', render: renderMemory },
@@ -37,7 +39,7 @@ const selection = createSelection();
 const state = {
   runs: [],
   live: null, // { prompt, tokens } while an answer streams in
-  view: 'journey',
+  view: 'activity',
   device: null,
   choice: null,
   runtime: null, // { dr, version, commit, channel, selection }
@@ -442,8 +444,9 @@ function renderInside(run, display) {
   const view = VIEWS.find((item) => item.id === state.view);
   view.render?.(context);
   // A recorded example without its activity offers to open it here.
-  holder.querySelector('.ws-load-activity')?.remove();
-  if (run.kind === 'recorded-example' && !run.layerOutputs && ['journey', 'attention', 'memory', 'gearbox'].includes(state.view)) {
+  // Only the visible view carries the offer; a hidden one would keep a stale copy.
+  for (const stale of document.querySelectorAll('.ws-load-activity')) stale.remove();
+  if (run.kind === 'recorded-example' && !run.layerOutputs && ['activity', 'journey', 'attention', 'memory', 'gearbox'].includes(state.view)) {
     holder.prepend(h('div', { className: 'ws-load-activity status-row' }, h('span', {}, 'This recorded answer\'s inside-the-model activity is a separate 23 MB file.'),
       h('button', { type: 'button', className: 'btn btn-small', disabled: state.busy, on: { click: openExampleActivity } }, 'Open it')));
   }

@@ -50,7 +50,7 @@ try {
   await page.waitForFunction(() => !document.querySelector('.ws-load-activity') && globalThis.__DOPPLER_WORKSPACE__.runs.some((run) => run.layerOutputs), null, { timeout: 120_000 });
   assert.match(await page.textContent('#ws-selection'), /^Word 4:/, 'Opening the activity keeps the selected word');
   await page.selectOption('#ws-layer', '7');
-  for (const id of ['journey', 'attention', 'memory', 'gearbox', 'forest', 'atlas', 'time']) {
+  for (const id of ['activity', 'journey', 'attention', 'memory', 'gearbox', 'forest', 'atlas', 'time']) {
     await page.click(`#ws-tab-${id}`);
     const text = (await page.locator(`#ws-view-${id}`).innerText()).trim();
     console.log(`  view ${id}: ${text.slice(0, 90).replace(/\s+/g, ' ')}`);
@@ -96,6 +96,11 @@ try {
     const answer = (await ws(page)).runs.find((run) => run.kind === 'answer');
     console.log(`  answer: ${JSON.stringify(answer)}`);
     assert.ok(answer.tokens > 0 && answer.layers, 'A live answer with layer outputs');
+    // The pixel grids are drawn for this very answer: a map and one tile per layer.
+    await page.click('#ws-tab-activity');
+    const grids = await page.evaluate(() => ({ map: Boolean(document.querySelector('#activity canvas.ws-act-overview')), tiles: document.querySelectorAll('#activity canvas.ws-act-tile').length, layers: globalThis.__DOPPLER_WORKSPACE__.runs.find((run) => run.kind === 'answer').layerOutputs.layers }));
+    console.log(`  activity grids: ${JSON.stringify(grids)}`);
+    assert.ok(grids.map && grids.tiles === grids.layers, 'A live answer gets its own activity map and a tile per layer');
     const labels = await page.locator('.ws-row-label > span:first-child').allTextContents();
     const entropy = await page.evaluate(() => globalThis.__DOPPLER_WORKSPACE__.runs.find((run) => run.kind === 'answer').tokens.slice(0, 3).map((token) => token.entropy));
     console.log(`  signals: ${labels.join(', ')} · first entropies ${JSON.stringify(entropy)}`);
