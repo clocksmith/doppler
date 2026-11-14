@@ -29,7 +29,9 @@ export function sliceGdnFixture(f, start, count) {
     b: f.b.slice(start * f.NV, (start + count) * f.NV) };
 }
 
-export function gdnReference(f) {
+export function gdnReference(f, normGateActivation = 'silu') {
+  if (!['silu', 'sigmoid'].includes(normGateActivation)) throw new Error('Unsupported oracle norm gate.');
+  const gate = normGateActivation === 'sigmoid' ? x => 1 / (1 + Math.exp(-x)) : silu;
   const { T, K, V, NK, NV, Q, D, C, window } = f;
   const convState = f.convState.slice(), state = f.state.slice();
   const output = new Float32Array(T * D);
@@ -70,7 +72,7 @@ export function gdnReference(f) {
       const invRms = 1 / Math.sqrt(row.reduce((sum, x) => sum + x * x, 0) / V + f.rmsEps);
       for (let v = 0; v < V; v++) {
         const norm = f.norm[f.normMode === 'per_head' ? h * V + v : v];
-        output[t * D + h * V + v] = row[v] * invRms * norm * silu(f.z[t * D + h * V + v]);
+        output[t * D + h * V + v] = row[v] * invRms * norm * gate(f.z[t * D + h * V + v]);
       }
     }
   }

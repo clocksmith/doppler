@@ -14,8 +14,9 @@ import { getKernelConfig } from '../../src/gpu/kernels/kernel-configs.js';
 import { getKernelBindGroupLayout } from '../../src/gpu/kernels/kernel-bindings.js';
 import { runLinearAttentionCoreGPU } from '../../src/gpu/kernels/linear-attention-core.js';
 
-const { values: options } = parseArgs({ options: { 'adapter-match': { type: 'string' }, bench: { type: 'boolean', default: false } } });
+const { values: options } = parseArgs({ options: { 'adapter-match': { type: 'string' }, 'norm-gate': { type: 'string', default: 'silu' }, bench: { type: 'boolean', default: false } } });
 assert(options['adapter-match'], '--adapter-match is required');
+assert(['silu', 'sigmoid'].includes(options['norm-gate']), '--norm-gate must be silu or sigmoid');
 const emit = value => console.log(JSON.stringify(value));
 const canary = 12345.5;
 const bits = values => new Uint32Array(values.buffer, values.byteOffset, values.length);
@@ -78,7 +79,7 @@ async function run(f, enabled, chunks, packed, recorded, profile = false) {
       const recorder = recorded ? new CommandRecorder(device, 'gdn-prefill-continuation', { profile, profilePhase: 'prefill' }) : null;
       if (recorder) recorders.push(recorder);
       const result = await runLinearAttentionCoreGPU(tensor(data.qkv), tensor(data.z), tensor(data.a), tensor(data.b), layer, {
-        numTokens: count, outputDtype: 'f32', normGateActivation: 'silu', qkL2NormEps: f.eps,
+        numTokens: count, outputDtype: 'f32', normGateActivation: options['norm-gate'], qkL2NormEps: f.eps,
         abPacked: packed[0], qkvzPacked: packed[1], bProjOffsetElements: data.bOffset, recorder,
         runtimeSession: { useLinearAttentionRegisterPrefill: enabled, useLinearAttentionRegisterDecode: false, useLinearAttentionFusedDecodeCore: false },
       });
@@ -115,7 +116,8 @@ try {
   assert(!/llvmpipe|lavapipe|swiftshader|software/i.test(identity), 'Software adapter cannot establish physical evidence');
   assert(new RegExp(options['adapter-match'], 'i').test(identity), `Unexpected physical adapter: ${identity}`);
   device.addEventListener('uncapturederror', event => errors.push(String(event.error)));
-  await compile('gguf_f32'); await compile('gguf_register_prefill');
+  await compile(options['norm-gate'] === 'silu' ? 'gguf_f32' : 'gguf_sigmoid_f32');
+  await compile(options['norm-gate'] === 'silu' ? 'gguf_register_prefill' : 'gguf_register_prefill_sigmoid');
   const cases = [
     { T: 5, V: 17, packed: [false, false] },
     { T: 2, V: 128, window: 1, scale: 1e-5, eps: 1e-4, normMode: 'shared', packed: [true, false] },
@@ -127,7 +129,7 @@ try {
   ];
   for (const spec of cases) {
     emit({ event: 'case-start', spec });
-    const f = makeGdnFixture(spec), reference = gdnReference(f);
+    const f = makeGdnFixture(spec), reference = gdnReference(f, options['norm-gate']);
     const baseline = await run(f, false, [f.T], spec.packed, false);
     const candidate = await run(f, true, [f.T], spec.packed, false);
     const maxima = {};
