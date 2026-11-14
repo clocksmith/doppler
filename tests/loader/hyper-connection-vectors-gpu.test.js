@@ -47,6 +47,21 @@ if (!gpu.ready) {
     assert.ok(gpuBuffers.has(result.norm.buffer), 'the loader must own the converted vector');
     assert.deepEqual([...new Float32Array(await readBuffer(result.norm.buffer))].slice(0, 8), [0, .25, -.5, 1, 2, -1, .5, 1.5]);
     assert.equal(result.down.dtype, 'f32', 'the projection follows its declared F32 consumer');
+    // Source GGUF HC injection/indexer projections are BF16 with generic
+    // source role "other". The bound graph, not the source heuristic, owns
+    // whether materialization produces a declared projection WeightBuffer.
+    const bf16Values = new Uint16Array([0x3f80, 0x4000, 0x4040, 0x4080]);
+    const bf16Projection = await loadTensorToGPU(new Uint8Array(bf16Values.buffer), {
+      dtype: 'BF16', role: 'other', layout: 'row', shape: [2, 2], size: bf16Values.byteLength,
+    }, 'blk.0.hc_attn_inject.weight', {
+      gpuCapabilities: { hasF16: true }, keepF32Weights: true,
+      representationRequirement: { complete: true, mode: 'dense-only', dtypes: ['f32'], consumers: [{ role: 'attn_hc_inject' }] },
+    });
+    for (const buffer of bf16Projection.allocatedBuffers) gpuBuffers.add(buffer);
+    assert.equal(bf16Projection.data.dtype, 'f32');
+    assert.equal(bf16Projection.data.layout, 'row');
+    assert.deepEqual(bf16Projection.data.shape, [2, 2]);
+    assert.deepEqual([...new Float32Array(await readBuffer(bf16Projection.data.buffer, 16))], [1, 2, 3, 4]);
     // Native split Q/K rows must fuse once, in Q-then-K order, without readback.
     const locations = new Map();
     const nativeWeights = new Map();

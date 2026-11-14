@@ -32,7 +32,8 @@ export async function loadBF16(shardData, location, name, config) {
 
     const numElements = location.size / 2;
     const caps = config.gpuCapabilities || getKernelCapabilities();
-    const isMatmulWeight = shouldDequantizeToF16(location);
+    const isMatmulWeight = shouldDequantizeToF16(location)
+      || (config.representationRequirement?.complete === true && config.representationRequirement.consumers?.length > 0);
     const keepF32Weights = config.keepF32Weights === true;
     const keepPackedBF16 = config.keepBF16Weights === true
       && (isMatmulWeight || location.role === 'embedding');
