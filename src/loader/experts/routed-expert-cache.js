@@ -34,7 +34,7 @@ export class RoutedExpertCache {
   /** @type {Promise<import('./routed-expert-cache.js').RoutedExpertWeights> | null} */
   #active = null;
   #stats = { sourceReadBytes: 0, sourceReads: 0, uploadBytes: 0,
-    cacheHits: 0, cacheMisses: 0, workingHits: 0, evictions: 0, evictionFenceWaits: 0, evictionFenceSkips: 0, bufferReuses: 0,
+    cacheHits: 0, cacheMisses: 0, workingHits: 0, evictions: 0, evictionFenceWaits: 0, evictionFenceSkips: 0, bufferReuses: 0, expertCopySubmissions: 0, hitBatchSubmissions: 0, batchedHitExperts: 0,
     residentBytes: 0, peakResidentBytes: 0, peakAccountedGpuBytes: 0, peakStagingBytes: 0,
     ioWaitMs: 0, sourceReadWaitMs: 0, uploadEnqueueMs: 0, initialQueueIdleForWeightsMs: 0,
     hostCacheHits: 0, hostCacheMisses: 0, hostEvictions: 0, hostAdmissionSkips: 0, peakHostOwnedOrReservedBytes: 0 };
@@ -185,18 +185,13 @@ export class RoutedExpertCache {
       signal.throwIfAborted();
       const entry = this.#entries.get(key);
       if (entry) {
-        this.#entries.delete(key);
-        this.#entries.set(key, entry);
+        this.#touchEntry(key, entry);
         entry.users++;
         this.#stats.cacheHits++;
       }
       return entry;
     });
-    if (cached) {
-      const host = this.#hostEntries.get(key);
-      if (host) { this.#hostEntries.delete(key); this.#hostEntries.set(key, host); }
-      return cached;
-    }
+    if (cached) return cached;
     this.#stats.cacheMisses++;
     const entry = await this.#locked(async () => {
       const replacement = await this.#makeRoom(plan.expertBytes, plan.expertBytes, signal, true);
@@ -291,6 +286,65 @@ export class RoutedExpertCache {
     }
   }
 
+  /** @param {string} key @param {import('./routed-expert-cache.js').RoutedExpertEntry} entry */
+  #touchEntry(key, entry) {
+    this.#entries.delete(key); this.#entries.set(key, entry);
+    const host = this.#hostEntries.get(key);
+    if (host) { this.#hostEntries.delete(key); this.#hostEntries.set(key, host); }
+  }
+
+  /** @param {GPUCommandEncoder} encoder
+   * @param {import('./routed-expert-plan.js').RoutedExpertBankPlan} plan
+   * @param {number} expert @param {import('./routed-expert-cache.js').RoutedExpertEntry} entry */
+  #encodeExpertCopy(encoder, plan, expert, entry) {
+    let offset = 0;
+    for (const plane of plan.planes) {
+      const destination = this.#working.get(plane.role);
+      if (!destination) throw new Error('Routed working bank is incomplete.');
+      encoder.copyBufferToBuffer(entry.buffer, offset, destination, expert * plane.expertBytes, plane.expertBytes);
+      offset += plane.expertBytes;
+    }
+  }
+
+  /** @param {import('./routed-expert-plan.js').RoutedExpertBankPlan} plan
+   * @param {number[]} ids @param {AbortSignal} signal @param {() => void} beforeSubmit */
+  #copyCachedHits(plan, ids, signal, beforeSubmit) {
+    return this.#locked(async () => {
+      signal.throwIfAborted();
+      const hits = ids.flatMap(expert => {
+        const key = `${plan.layer}:${expert}`;
+        const entry = this.#entries.get(key);
+        return entry && !this.#loaded.has(expert) ? [{ expert, key, entry }] : [];
+      });
+      const copied = new Set();
+      if (!hits.length) return copied;
+      // No miss starts until this batch is submitted. Pins protect all encoded
+      // sources, without requiring capacity for a whole layer's missing experts.
+      for (const { entry } of hits) entry.users++;
+      try {
+        const encoder = this.#options.device.createCommandEncoder({ label: 'routed_expert_hit_batch' });
+        for (const { expert, entry } of hits) this.#encodeExpertCopy(encoder, plan, expert, entry);
+        const commands = encoder.finish();
+        signal.throwIfAborted();
+        beforeSubmit();
+        const serial = ++this.#submittedSerial;
+        for (const { entry } of hits) entry.lastUseSerial = serial;
+        this.#options.device.queue.submit([commands]);
+        this.#stats.expertCopySubmissions++;
+        this.#stats.hitBatchSubmissions++;
+        this.#stats.batchedHitExperts += hits.length;
+        for (const { expert, key, entry } of hits) {
+          this.#touchEntry(key, entry);
+          this.#stats.cacheHits++;
+          this.#loaded.add(expert); copied.add(expert);
+        }
+        return copied;
+      } finally {
+        for (const { entry } of hits) entry.users--;
+      }
+    });
+  }
+
   /** @type {import('./routed-expert-cache.js').RoutedExpertCache['prepare']} */
   prepare(plan, expertIds, externalSignal) {
     if (this.#closed || this.#active) throw new Error('Routed expert cache is closed or already preparing a layer.');
@@ -337,25 +391,23 @@ export class RoutedExpertCache {
       if (!submitted && readyAt) this.#stats.initialQueueIdleForWeightsMs += performance.now() - readyAt;
       submitted = true;
     };
+    const hitBatch = this.#copyCachedHits(plan, ids, signal, beforeSubmit);
     const work = async () => {
+      const copiedHits = await hitBatch;
       while (cursor < ids.length) {
         signal.throwIfAborted();
         const expert = ids[cursor++];
+        if (copiedHits.has(expert)) continue;
         if (this.#loaded.has(expert)) { this.#stats.workingHits++; continue; }
         const entry = await this.#get(plan, expert, signal, beforeSubmit);
         try {
           signal.throwIfAborted();
           const encoder = this.#options.device.createCommandEncoder({ label: 'routed_expert_copy' });
-          let offset = 0;
-          for (const plane of plan.planes) {
-            const destination = this.#working.get(plane.role);
-            if (!destination) throw new Error('Routed working bank is incomplete.');
-            encoder.copyBufferToBuffer(entry.buffer, offset, destination, expert * plane.expertBytes, plane.expertBytes);
-            offset += plane.expertBytes;
-          }
+          this.#encodeExpertCopy(encoder, plan, expert, entry);
           beforeSubmit();
           entry.lastUseSerial = ++this.#submittedSerial;
           this.#options.device.queue.submit([encoder.finish()]);
+          this.#stats.expertCopySubmissions++;
           this.#loaded.add(expert);
         } finally { entry.users--; }
       }

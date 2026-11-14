@@ -369,3 +369,39 @@ console.log('Routed expert cache: range extents, identity, hot reuse, budgets, c
   await f.cache.destroy();
   assert(f.buffers.every(buffer => buffer.destroyed), 'reused resources retire on unload');
 }
+
+{
+  const f = fixture();
+  f.policy.cacheBytes *= 2;
+  await f.cache.prepare(f.plan(0), [0, 1]);
+  await f.cache.prepare(f.plan(1), [0, 1]);
+  const before = f.cache.getStats();
+  await f.cache.prepare(f.plan(0), [0, 1, 2]);
+  const after = f.cache.getStats();
+  assert.equal(after.hitBatchSubmissions - before.hitBatchSubmissions, 1);
+  assert.equal(after.batchedHitExperts - before.batchedHitExperts, 2);
+  assert.equal(after.expertCopySubmissions - before.expertCopySubmissions, 2, 'two hits use one submit; one miss retains its own submit');
+  assert.equal(after.cacheHits - before.cacheHits, 2);
+  assert.equal(after.cacheMisses - before.cacheMisses, 1);
+  for (const [index, plane] of f.plan(0).planes.entries()) {
+    assert.deepEqual(f.buffers[index].data.slice(0, 3 * plane.expertBytes),
+      f.shards.get(plane.location.shardIndex).slice(0, 3 * plane.expertBytes));
+  }
+  await f.cache.destroy();
+  assert(f.buffers.every(buffer => buffer.destroyed));
+}
+
+{
+  const f = fixture();
+  f.policy.cacheBytes *= 2;
+  await f.cache.prepare(f.plan(0), [0, 1]);
+  await f.cache.prepare(f.plan(1), [0, 1]);
+  const submit = f.gpu.queue.submit;
+  f.gpu.queue.submit = () => { throw new Error('hit batch submit failed'); };
+  await assert.rejects(f.cache.prepare(f.plan(0), [0, 1]), /hit batch submit failed/);
+  f.gpu.queue.submit = submit;
+  await f.cache.prepare(f.plan(2), [0, 1, 2, 3]);
+  assert(f.cache.getStats().evictions >= 4, 'failed batch releases every pin for subsequent eviction');
+  await f.cache.destroy();
+  assert(f.buffers.every(buffer => buffer.destroyed));
+}
