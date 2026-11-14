@@ -4,6 +4,27 @@ Historical package notes are preserved outside the runtime archive in
 `docs/status/archive/package-changelog-through-0.6.1.md` and the earlier
 `package-changelog-through-0.4.15.md` snapshot in that directory.
 
+## [0.7.4] - 2026-11-14
+
+### Added
+
+- Hardware-profile-based two-device partition proposals with explicit evidence,
+  budgets and canonical plan identities; estimates are not runtime optimality proof.
+- Explicit F32 execution with F16 partition transport, guarded conversion and
+  preserved plan identity. Existing transport precision defaults are unchanged.
+
+### Fixed
+
+- Direct-source artifacts use canonical manifest-bound filenames in authenticated
+  piece storage. Original machine-local paths no longer prevent selective reads;
+  every returned piece remains verified and unrelated shards need not be fetched.
+- Include the partition finite-value guard in installed runtime packages.
+
+### Performance
+
+- Includes the published reusable expert staging and opt-in Flash control GEMV
+  profile. Qualification is workload/device-specific, not a universal speed claim.
+
 ## [0.7.3] - 2026-11-11
 
 ### Fixed

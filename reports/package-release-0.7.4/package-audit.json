@@ -1,0 +1,674 @@
+{
+  "previous": {
+    "version": "0.7.3",
+    "size": 3697740,
+    "unpackedSize": 15770014,
+    "entryCount": 1936,
+    "integrity": "sha512-HXyHr+YPwufA9Ego8WLfm9DaKOkNdZ0m7z191QyFzdKy+5n7A+RkzQJ9ho8/A9Qh4u/iUISaEXWhqhIzHTb3yQ=="
+  },
+  "candidate": {
+    "version": "0.7.4",
+    "size": 3762667,
+    "unpackedSize": 16038629,
+    "entryCount": 1963,
+    "integrity": "sha512-7Cxp0WueqtBMuj/ie0mS5ZUOSIBZoYc8QMkv/QadcEVzH2uKhpdmFk9aMML2h8j0XqSsPzFb9JNbuWLLrRX3Kw=="
+  },
+  "added": [
+    {
+      "path": "src/config/runtime/model-sessions.json",
+      "bytes": 2039
+    },
+    {
+      "path": "src/inference/pipelines/text/partition-wire.js",
+      "bytes": 2671
+    },
+    {
+      "path": "src/formats/gguf/qwen4-exp-source.js",
+      "bytes": 6154
+    },
+    {
+      "path": "src/gpu/kernels/channel_energy.wgsl",
+      "bytes": 741
+    },
+    {
+      "path": "src/config/runtime/profiles/flash-next-gguf-control-gemv.json",
+      "bytes": 2171
+    },
+    {
+      "path": "src/config/hardware-partition-plan.d.ts",
+      "bytes": 1735
+    },
+    {
+      "path": "src/gpu/kernels/ple_q4_0_to_f32.wgsl",
+      "bytes": 1181
+    },
+    {
+      "path": "src/config/conversion/qwen3/qwen4exp-gguf-source-policy.json",
+      "bytes": 1556
+    },
+    {
+      "path": "src/config/model-session-declarations.js",
+      "bytes": 3640
+    },
+    {
+      "path": "src/gpu/kernels/shader-capability-filter.js",
+      "bytes": 4907
+    },
+    {
+      "path": "src/gpu/kernels/check-finiteness-f32.js",
+      "bytes": 1455
+    },
+    {
+      "path": "src/inference/pipelines/text/channel-gain.js",
+      "bytes": 9880
+    },
+    {
+      "path": "src/formats/qwen4-exp-source-defaults.json",
+      "bytes": 1256
+    },
+    {
+      "path": "src/gpu/kernels/moe_route_q4_1_block_f32.wgsl",
+      "bytes": 3020
+    },
+    {
+      "path": "src/tooling/node-runtime-bridge.js",
+      "bytes": 1432
+    },
+    {
+      "path": "src/gpu/kernels/channel-gain.js",
+      "bytes": 4303
+    },
+    {
+      "path": "src/config/hardware-partition-plan.js",
+      "bytes": 5368
+    },
+    {
+      "path": "src/gpu/kernels/gated_delta_recurrent_gguf_sigmoid_gate.wgsl",
+      "bytes": 21336
+    },
+    {
+      "path": "src/inference/pipelines/text/channel-gain.d.ts",
+      "bytes": 2513
+    },
+    {
+      "path": "src/gpu/kernels/gated_delta_recurrent_gguf_register_prefill_sigmoid_gate.wgsl",
+      "bytes": 64318
+    },
+    {
+      "path": "src/formats/gguf/block-storage.d.ts",
+      "bytes": 748
+    },
+    {
+      "path": "src/formats/qwen4-exp-source-contracts.js",
+      "bytes": 10070
+    },
+    {
+      "path": "src/converter/qwen4-exp-source-execution.js",
+      "bytes": 5568
+    },
+    {
+      "path": "src/gpu/kernels/channel_gain_derive.wgsl",
+      "bytes": 1622
+    },
+    {
+      "path": "src/gpu/kernels/channel_gain_swiglu.wgsl",
+      "bytes": 2394
+    },
+    {
+      "path": "src/gpu/kernels/moe_route_q4_0_split_block_f32.wgsl",
+      "bytes": 3297
+    },
+    {
+      "path": "src/gpu/kernels/channel_gain_control.wgsl",
+      "bytes": 2438
+    },
+    {
+      "path": "src/config/kernels/kernel-ref-digests.js",
+      "bytes": 53552
+    }
+  ],
+  "removed": [
+    {
+      "path": "src/converter/qwen4-exp-source-defaults.json",
+      "bytes": 1256
+    }
+  ],
+  "changed": [
+    {
+      "path": "src/config/kernels/registry.json",
+      "delta": 12064
+    },
+    {
+      "path": "src/loader/experts/routed-expert-cache.js",
+      "delta": 11470
+    },
+    {
+      "path": "src/converter/qwen4-exp-source.js",
+      "delta": -9784
+    },
+    {
+      "path": "src/loader/hyper-connection-loader.js",
+      "delta": 3632
+    },
+    {
+      "path": "src/converter/parsers/gguf.js",
+      "delta": 2815
+    },
+    {
+      "path": "src/inference/pipelines/text/partition-execution.js",
+      "delta": 2363
+    },
+    {
+      "path": "src/gpu/kernels/moe_gather.wgsl",
+      "delta": -2257
+    },
+    {
+      "path": "src/gpu/kernels/fused_matmul_rmsnorm.wgsl",
+      "delta": -1755
+    },
+    {
+      "path": "src/storage/verified-piece-storage.js",
+      "delta": 1644
+    },
+    {
+      "path": "src/loader/shard-cache.js",
+      "delta": 1621
+    },
+    {
+      "path": "src/gpu/kernels/topk.wgsl",
+      "delta": -1578
+    },
+    {
+      "path": "src/tooling/source-runtime-converter-config.js",
+      "delta": 1544
+    },
+    {
+      "path": "src/inference/pipelines/text/moe/qwen-route-executor.js",
+      "delta": 1332
+    },
+    {
+      "path": "src/loader/experts/loader-bindings.js",
+      "delta": 1316
+    },
+    {
+      "path": "src/inference/pipelines/text/pipeline.js",
+      "delta": 1276
+    },
+    {
+      "path": "src/client/inspection.js",
+      "delta": 1261
+    },
+    {
+      "path": "src/tooling/source-runtime/node-loader.js",
+      "delta": 1216
+    },
+    {
+      "path": "src/gpu/kernels/generated/uniform-writers-2.js",
+      "delta": 1198
+    },
+    {
+      "path": "src/loader/experts/routed-expert-cache.d.ts",
+      "delta": 1149
+    },
+    {
+      "path": "src/tooling/diagnose-runner.js",
+      "delta": -1101
+    },
+    {
+      "path": "src/tooling/node-command-execution.js",
+      "delta": -1034
+    },
+    {
+      "path": "src/rules/generated/rule-bundle.json",
+      "delta": 1028
+    },
+    {
+      "path": "src/gpu/kernels/shader-cache.js",
+      "delta": 983
+    },
+    {
+      "path": "src/loader/tensors/tensor-reader.js",
+      "delta": 963
+    },
+    {
+      "path": "src/gpu/kernels/scatter_add.wgsl",
+      "delta": -957
+    },
+    {
+      "path": "CHANGELOG.md",
+      "delta": 871
+    },
+    {
+      "path": "src/config/schema/kvcache.schema.js",
+      "delta": 857
+    },
+    {
+      "path": "src/storage/shards/integrity.js",
+      "delta": 855
+    },
+    {
+      "path": "src/storage/source-storage-context.js",
+      "delta": 789
+    },
+    {
+      "path": "src/config/schema/ngram-embedding.schema.js",
+      "delta": 775
+    },
+    {
+      "path": "src/inference/pipelines/text/ffn/dense.js",
+      "delta": 728
+    },
+    {
+      "path": "src/gpu/kernels/pipeline-cache.js",
+      "delta": 674
+    },
+    {
+      "path": "src/loader/experts/routed-expert-plan.js",
+      "delta": 663
+    },
+    {
+      "path": "src/config/layer-partition-plan.js",
+      "delta": 474
+    },
+    {
+      "path": "src/gpu/kernels/generated/uniform-writers.js",
+      "delta": 467
+    },
+    {
+      "path": "src/loader/layer-tensor-aliases.js",
+      "delta": 461
+    },
+    {
+      "path": "src/inference/pipelines/text/init.js",
+      "delta": 448
+    },
+    {
+      "path": "src/formats/gguf/block-storage.js",
+      "delta": 436
+    },
+    {
+      "path": "src/inference/pipelines/text/sequence-state.js",
+      "delta": 406
+    },
+    {
+      "path": "src/inference/pipelines/text/hyper-connection/session.js",
+      "delta": 406
+    },
+    {
+      "path": "src/gpu/kernels/ple.js",
+      "delta": 406
+    },
+    {
+      "path": "src/loader/doppler-loader.d.ts",
+      "delta": 384
+    },
+    {
+      "path": "package.json",
+      "delta": 377
+    },
+    {
+      "path": "src/storage/verified-piece-reader.js",
+      "delta": 365
+    },
+    {
+      "path": "src/gpu/kernels/dispatch.js",
+      "delta": 351
+    },
+    {
+      "path": "src/loader/doppler-loader.js",
+      "delta": 348
+    },
+    {
+      "path": "src/storage/node-file-access.js",
+      "delta": 333
+    },
+    {
+      "path": "src/inference/pipelines/text/moe/routed-expert-chunks.js",
+      "delta": 329
+    },
+    {
+      "path": "src/gpu/kernels/qsa-indexer.js",
+      "delta": 322
+    },
+    {
+      "path": "src/loader/shard-cache.d.ts",
+      "delta": 314
+    },
+    {
+      "path": "src/inference/pipelines/text/model-load.js",
+      "delta": 312
+    },
+    {
+      "path": "src/inference/pipelines/text/attention/types.js",
+      "delta": -307
+    },
+    {
+      "path": "src/memory/buffer-pool.d.ts",
+      "delta": 300
+    },
+    {
+      "path": "src/config/schema/kvcache.schema.d.ts",
+      "delta": 287
+    },
+    {
+      "path": "src/storage/source-storage-context.d.ts",
+      "delta": 284
+    },
+    {
+      "path": "src/loader/loader-types.d.ts",
+      "delta": 265
+    },
+    {
+      "path": "src/client/inspection.d.ts",
+      "delta": 247
+    },
+    {
+      "path": "src/config/platforms/amd-rdna3.json",
+      "delta": 241
+    },
+    {
+      "path": "src/inference/pipelines/text/hyper-connection/logits-input.js",
+      "delta": 221
+    },
+    {
+      "path": "src/config/schema/loading.schema.js",
+      "delta": 221
+    },
+    {
+      "path": "src/config/layer-partition-plan.d.ts",
+      "delta": 214
+    },
+    {
+      "path": "src/formats/gguf/qwen-source.js",
+      "delta": 188
+    },
+    {
+      "path": "src/tooling/command-runtime-execution.js",
+      "delta": -164
+    },
+    {
+      "path": "src/inference/pipelines/text/types.d.ts",
+      "delta": 159
+    },
+    {
+      "path": "src/gpu/kernels/hyper-connection.js",
+      "delta": 146
+    },
+    {
+      "path": "src/loader/ngram-table-bindings.js",
+      "delta": 146
+    },
+    {
+      "path": "src/formats/gguf/qwen-source.json",
+      "delta": 142
+    },
+    {
+      "path": "src/storage/artifact-storage-context.d.ts",
+      "delta": 140
+    },
+    {
+      "path": "src/config/schema/loading.schema.d.ts",
+      "delta": 139
+    },
+    {
+      "path": "src/config/schema/execution-v1.schema.d.ts",
+      "delta": 135
+    },
+    {
+      "path": "src/inference/pipelines/text/pipeline.d.ts",
+      "delta": 126
+    },
+    {
+      "path": "src/rules/rule-registry.js",
+      "delta": 121
+    },
+    {
+      "path": "src/loader/tensors/bf16-loader.js",
+      "delta": 121
+    },
+    {
+      "path": "src/inference/pipelines/text/ffn/dense-executor.js",
+      "delta": 120
+    },
+    {
+      "path": "src/inference/pipelines/text/ngram/ngram-table.js",
+      "delta": -111
+    },
+    {
+      "path": "src/inference/pipelines/text/init.d.ts",
+      "delta": 109
+    },
+    {
+      "path": "src/inference/pipelines/text/ngram/ple-layer.js",
+      "delta": 102
+    },
+    {
+      "path": "src/config/schema/ngram-embedding.schema.d.ts",
+      "delta": 95
+    },
+    {
+      "path": "src/inference/pipelines/text/hyper-connection/decoder-layer.d.ts",
+      "delta": 94
+    },
+    {
+      "path": "src/inference/pipelines/text/generator.js",
+      "delta": 88
+    },
+    {
+      "path": "src/inference/pipelines/text/hyper-connection/layer-executor.js",
+      "delta": 86
+    },
+    {
+      "path": "src/partitions.js",
+      "delta": 84
+    },
+    {
+      "path": "src/partitions.d.ts",
+      "delta": 84
+    },
+    {
+      "path": "src/tooling/source-artifact-adapter.js",
+      "delta": 82
+    },
+    {
+      "path": "src/loader/experts/routed-expert-plan.d.ts",
+      "delta": 79
+    },
+    {
+      "path": "src/inference/pipelines/text/state.d.ts",
+      "delta": 77
+    },
+    {
+      "path": "src/memory/buffer-pool.js",
+      "delta": 74
+    },
+    {
+      "path": "src/gpu/kernels/linear-attention-core.js",
+      "delta": -60
+    },
+    {
+      "path": "src/tooling/node-source-runtime.js",
+      "delta": 59
+    },
+    {
+      "path": "src/gpu/kernels/qsa-indexer.d.ts",
+      "delta": 58
+    },
+    {
+      "path": "src/tooling/browser-harness/runtime-isolation.js",
+      "delta": -56
+    },
+    {
+      "path": "src/inference/pipelines/text/indexed-attention/qsa-cache.js",
+      "delta": 54
+    },
+    {
+      "path": "src/inference/pipelines/text/generator/session-context.js",
+      "delta": 50
+    },
+    {
+      "path": "src/gpu/kernels/qsa_block_keys.wgsl",
+      "delta": 49
+    },
+    {
+      "path": "src/gpu/kernels/qsa_prepare.wgsl",
+      "delta": 49
+    },
+    {
+      "path": "src/inference/pipelines/text/hyper-connection/decoder-layer.js",
+      "delta": 42
+    },
+    {
+      "path": "src/gpu/kernels/residual.wgsl",
+      "delta": 40
+    },
+    {
+      "path": "src/inference/pipelines/shader-scoped-pipeline.js",
+      "delta": 39
+    },
+    {
+      "path": "src/inference/pipelines/text/init-rope.js",
+      "delta": -36
+    },
+    {
+      "path": "src/inference/pipelines/text/state.js",
+      "delta": 36
+    },
+    {
+      "path": "src/loader/ngram-table-bindings.d.ts",
+      "delta": 34
+    },
+    {
+      "path": "src/inference/pipelines/text/hyper-connection/session.d.ts",
+      "delta": 32
+    },
+    {
+      "path": "src/gpu/kernels/hyper_connection_norm.wgsl",
+      "delta": 32
+    },
+    {
+      "path": "src/inference/pipelines/text/execution-plan.js",
+      "delta": 30
+    },
+    {
+      "path": "src/inference/pipelines/text/indexed-attention/qsa-cache.d.ts",
+      "delta": 29
+    },
+    {
+      "path": "src/inference/pipelines/text/ngram/ple-layer.d.ts",
+      "delta": -26
+    },
+    {
+      "path": "src/inference/pipelines/text/attention/projection-executor.js",
+      "delta": -23
+    },
+    {
+      "path": "src/gpu/kernels/residual_f16.wgsl",
+      "delta": 20
+    },
+    {
+      "path": "src/gpu/kernels/relu_f16.wgsl",
+      "delta": 20
+    },
+    {
+      "path": "src/gpu/kernels/relu.wgsl",
+      "delta": 20
+    },
+    {
+      "path": "src/gpu/kernels/residual_vec4.wgsl",
+      "delta": 20
+    },
+    {
+      "path": "src/gpu/kernels/residual_f16_vec4.wgsl",
+      "delta": 20
+    },
+    {
+      "path": "src/gpu/kernels/transpose.wgsl",
+      "delta": 20
+    },
+    {
+      "path": "src/inference/pipelines/text/ngram/ngram-table.d.ts",
+      "delta": 18
+    },
+    {
+      "path": "src/config/conversion/gemma4/gemma-4-31b-it-text-q4k-ehf16-af32.json",
+      "delta": -14
+    },
+    {
+      "path": "src/config/conversion/gemma4/gemma-4-12b-it-text-w4a16-ct-ehf16-af16.json",
+      "delta": -14
+    },
+    {
+      "path": "src/config/conversion/gemma4/gemma-4-e2b-it-q4k-ehf16-af32-int4ple.json",
+      "delta": -14
+    },
+    {
+      "path": "src/config/conversion/gemma4/gemma-4-e2b-it-q4k-ehf16-af32.json",
+      "delta": -14
+    },
+    {
+      "path": "src/config/conversion/gemma4/gemma-4-12b-it-text-q4k-ehf16-af32.json",
+      "delta": -14
+    },
+    {
+      "path": "src/config/conversion/gemma4/gemma-4-e2b-it-q4k-ehf16-af16-int4ple.json",
+      "delta": -14
+    },
+    {
+      "path": "src/config/conversion/gemma4/gemma-4-31b-it-text-q4k-ehf16-af16.json",
+      "delta": -14
+    },
+    {
+      "path": "src/config/conversion/gemma4/gemma-4-12b-it-text-q4k-ehf16-hq4k-af16.json",
+      "delta": -14
+    },
+    {
+      "path": "src/config/conversion/gemma4/gemma-4-12b-it-text-q4k-ehf16-af16.json",
+      "delta": -14
+    },
+    {
+      "path": "src/gpu/kernels/residual.js",
+      "delta": 10
+    },
+    {
+      "path": "src/gpu/kernels/relu.js",
+      "delta": 10
+    },
+    {
+      "path": "src/gpu/kernels/transpose.js",
+      "delta": 10
+    },
+    {
+      "path": "src/gpu/kernels/generated/uniform-writers-1.js",
+      "delta": -9
+    },
+    {
+      "path": "src/gpu/kernels/energy_quintel_grad_f16.wgsl",
+      "delta": 7
+    },
+    {
+      "path": "src/gpu/kernels/energy_quintel_update_f16.wgsl",
+      "delta": 7
+    },
+    {
+      "path": "src/gpu/kernels/energy_quintel_grad.wgsl",
+      "delta": 7
+    },
+    {
+      "path": "src/gpu/kernels/energy_quintel_update.wgsl",
+      "delta": 7
+    },
+    {
+      "path": "src/gpu/kernels/energy_quintel_reduce_f16.wgsl",
+      "delta": 6
+    },
+    {
+      "path": "src/gpu/kernels/energy_quintel_reduce.wgsl",
+      "delta": 6
+    },
+    {
+      "path": "src/gpu/kernels/backward/layernorm_backward.wgsl",
+      "delta": 6
+    }
+  ]
+}

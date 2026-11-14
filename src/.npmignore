@@ -1101,6 +1101,7 @@ tooling/node-converter.d.ts
 tooling/node-converter/input.d.ts
 tooling/node-converter/output.d.ts
 tooling/node-file-fetch.d.ts
+tooling/node-runtime-bridge.d.ts
 tooling/node-source-runtime.d.ts
 tooling/node-webgpu.d.ts
 tooling/portable-source-path.d.ts

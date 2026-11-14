@@ -193,7 +193,11 @@ const PACKAGE_CONTENT_LIMITS = Object.freeze({
   // 0.7.2: projection snapshot fix, version and release notes; 3,697,347
   // measured plus the existing 2,158-byte npm allowance. Exact delta:
   // reports/package-release-0.7.2/package-audit.json.
-  maxPackedSize: 3_699_505,
+  // 0.7.4: committed Flash source kernels/contracts, channel gains, canonical
+  // partition transport/planning and registry digests: 1963 entries, 3,762,667
+  // packed / 16,038,629 unpacked. Preserve the existing 2,158-byte npm allowance.
+  // Exact inventory: reports/package-release-0.7.4/package-audit.json.
+  maxPackedSize: 3_764_825,
   // Capsule naming changes identifiers and declarations, not the shipped file count.
   // Measured 0.6.0 payload: 2,097,039 packed / 10,835,420 unpacked bytes.
   // The remaining GPU diagnostic label adds three uncompressed bytes.
@@ -283,7 +287,7 @@ const PACKAGE_CONTENT_LIMITS = Object.freeze({
   // to the physically tested archive. See the 0.7.2 package audit.
   // 0.7.3: doppler and doppler-serve compare real paths (bin-link start fix,
   // 2e4ecb2e) plus its changelog section; measured below, no new entries.
-  maxUnpackedSize: 15_770_014,
+  maxUnpackedSize: 16_038_629,
 });
 const REQUIRED_PACKAGE_FILES = Object.freeze([
   'README.md',

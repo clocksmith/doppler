@@ -1,0 +1,24 @@
+{
+  "schema": "doppler.release-status/v1",
+  "version": "0.7.4",
+  "state": "qualified-not-published",
+  "sourceCommit": "8be48c03",
+  "contents": "Committed source plus scoped 0.7.4 version, closure and release metadata; unrelated working-tree experiments excluded.",
+  "candidate": {
+    "version": "0.7.4",
+    "size": 3762667,
+    "unpackedSize": 16038629,
+    "entryCount": 1963,
+    "integrity": "sha512-7Cxp0WueqtBMuj/ie0mS5ZUOSIBZoYc8QMkv/QadcEVzH2uKhpdmFk9aMML2h8j0XqSsPzFb9JNbuWLLrRX3Kw=="
+  },
+  "qualification": [
+    "public:boundaries:check",
+    "runtime:closure:check",
+    "package:closure:check",
+    "release-claims:check",
+    "kernels:package-digests:check",
+    "package:smoke"
+  ],
+  "registryPublication": "Not attempted: npm whoami returned E401 on 2026-11-14.",
+  "consumerQualification": "22 Reploid native-model-files tests passed with direct-source manifests and isolated source alias before version bump; registry and live consumers unchanged."
+}

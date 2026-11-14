@@ -3,7 +3,7 @@
   "entrypoint": "src/capsule-runtime.js",
   "scope": "injected-capsule-core; excludes host-supplied program executors",
   "fileCount": 88,
-  "sourceBytes": 1236991,
+  "sourceBytes": 1245576,
   "forbiddenPatterns": [
     "/src/converter/",
     "/src/training/",
@@ -269,13 +269,13 @@
     },
     {
       "path": "src/config/kernels/registry.json",
-      "sizeBytes": 783717,
-      "hash": "sha256:77c992081a9742eaefc1ba6010d8b74c258e69f203cf07b941d3d1d8bee57596"
+      "sizeBytes": 791463,
+      "hash": "sha256:f0818cbb22023bb5c408c108bb6045d67708a5edfac74c9633bdf4dc17e72465"
     },
     {
       "path": "src/config/layer-partition-plan.js",
-      "sizeBytes": 15452,
-      "hash": "sha256:04d702297fda4224b185acd48fa6c9ca6225eb054cea8788171a75741f6e3bd7"
+      "sizeBytes": 15926,
+      "hash": "sha256:25f627261b829f5622577831c645b73c7fdefd31f0cf942749381f482cc47bd2"
     },
     {
       "path": "src/config/lora-layouts.js",
@@ -464,13 +464,13 @@
     },
     {
       "path": "src/storage/verified-piece-reader.js",
-      "sizeBytes": 7488,
-      "hash": "sha256:d8a72192c6f63272dda2beb483ffbdbfab67bc5248f1352a38582bb12783ee72"
+      "sizeBytes": 7853,
+      "hash": "sha256:8e3d81406020bb750151e055137e1f5a470883d6ed4c95977df22c116f359a82"
     },
     {
       "path": "src/version.js",
       "sizeBytes": 97,
-      "hash": "sha256:14bd279198b279689a6da9ba3dbf56eb955b3eccfd80f7af2cb9ba5c55a16077"
+      "hash": "sha256:312346343d42216ac98f66a26c1e35c4a156e42d8477e52dd038f7f23a72d01f"
     }
   ],
   "passed": true
