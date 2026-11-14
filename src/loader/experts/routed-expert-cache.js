@@ -38,7 +38,7 @@ export class RoutedExpertCache {
   #phaseProfiles = {};
   /** @type {import('./routed-expert-cache.js').RoutedExpertPhaseProfile | null} */
   #activeProfile = null;
-  #stats = { sourceReadBytes: 0, sourceReads: 0, uploadBytes: 0,
+  #stats = { sourceReadIntoBytes: 0, sourceReadBytes: 0, sourceReads: 0, uploadBytes: 0,
     cacheHits: 0, cacheMisses: 0, workingHits: 0, evictions: 0, evictionFenceWaits: 0, evictionFenceSkips: 0, bufferReuses: 0, expertCopySubmissions: 0, hitBatchSubmissions: 0, batchedHitExperts: 0,
     residentBytes: 0, peakResidentBytes: 0, peakAccountedGpuBytes: 0, peakStagingBytes: 0,
     ioWaitMs: 0, sourceReadWaitMs: 0, uploadEnqueueMs: 0, initialQueueIdleForWeightsMs: 0,
@@ -231,7 +231,8 @@ export class RoutedExpertCache {
       this.#cacheBytes += plan.expertBytes;
       return { buffer, bytes: plan.expertBytes, users: 1, lastUseSerial: 0 };
     });
-    // loadTensorRange owns an assembled output as well as its source payload.
+    // Keep read granularity unchanged; direct fill owns only the assembled output.
+    const readRangeInto = this.#options.readRangeInto;
     const chunkBytes = Math.floor(this.#options.policy.stagingBytes / (2 * this.#options.policy.readConcurrency * 4)) * 4;
     let targetOffset = 0;
     let hostReservation = 0;
@@ -271,7 +272,8 @@ export class RoutedExpertCache {
         for (let offset = 0; offset < plane.expertBytes;) {
           signal.throwIfAborted();
           const length = Math.min(chunkBytes, plane.expertBytes - offset);
-          this.#staging += 2 * length;
+          const ownedStagingBytes = (readRangeInto ? 1 : 2) * length;
+          this.#staging += ownedStagingBytes;
           this.#sampleProfileMemory();
           this.#stats.peakStagingBytes = Math.max(this.#stats.peakStagingBytes, this.#staging);
           const started = performance.now();
@@ -286,13 +288,23 @@ export class RoutedExpertCache {
                 this.#stats.sourceReads++;
                 this.#stats.sourceReadBytes += data.byteLength;
                 return data;
-              });
+              }, readRangeInto ? async (shard, start, destination) => {
+                signal.throwIfAborted();
+                const readStarted = performance.now();
+                const count = await readRangeInto(shard, start, destination, signal);
+                this.#stats.sourceReadWaitMs += performance.now() - readStarted;
+                if (count !== destination.byteLength) throw new Error('Routed expert source must fill exactly the requested destination.');
+                this.#stats.sourceReads++;
+                this.#stats.sourceReadBytes += count;
+                this.#stats.sourceReadIntoBytes += count;
+                return count;
+              } : null);
             signal.throwIfAborted();
             this.#upload(entry, targetOffset + offset, bytes, beforeSubmit);
             chunks?.push({ offset: targetOffset + offset, data: bytes });
           } finally {
             this.#stats.ioWaitMs += performance.now() - started;
-            this.#staging -= 2 * length;
+            this.#staging -= ownedStagingBytes;
           }
           offset += length;
         }

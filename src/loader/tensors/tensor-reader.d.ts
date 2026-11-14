@@ -29,5 +29,7 @@ export declare function loadTensorRange(
   name: string,
   byteOffset: number,
   byteLength: number,
-  loadShardRange: (index: number, offset: number, length: number) => Promise<ArrayBuffer>
+  loadShardRange: (index: number, offset: number, length: number) => Promise<ArrayBuffer>,
+  /** Optional caller-owned destination fill. Source must not retain or mutate it after resolution. */
+  loadShardRangeInto?: ((index: number, offset: number, destination: Uint8Array) => Promise<number>) | null
 ): Promise<Uint8Array>;

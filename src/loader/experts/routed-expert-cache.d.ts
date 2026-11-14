@@ -5,6 +5,7 @@ export interface RoutedExpertCacheOptions {
   device: GPUDevice;
   policy: Qwen35RoutedConfig;
   readRange: (shard: number, offset: number, length: number, signal: AbortSignal) => Promise<ArrayBuffer>;
+  readRangeInto?: (shard: number, offset: number, destination: Uint8Array, signal: AbortSignal) => Promise<number>;
   otherGpuBytes: () => number;
 }
 export interface RoutedExpertEntry { buffer: GPUBuffer; bytes: number; users: number; lastUseSerial: number }
@@ -32,6 +33,7 @@ export interface RoutedExpertPhaseProfile {
   counters: Record<string, number>;
 }
 export interface RoutedExpertCacheStats {
+  sourceReadIntoBytes: number;
   phaseProfiles: Record<string, RoutedExpertPhaseProfile>;
   sourceReadBytes: number;
   sourceReads: number;

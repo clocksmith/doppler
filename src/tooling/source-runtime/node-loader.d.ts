@@ -4,12 +4,16 @@ import type { ParsedSafetensorsHeader } from '../../formats/safetensors/types.js
 export const MAX_NODE_READ_BYTES: number;
 
 export interface NodeFileAccess {
+  /** Fill only the caller-owned view; return actual bytes read, including short EOF. */
+  readInto(filePath: string, offset: number, destination: Uint8Array): Promise<number>;
   readRange(filePath: string, offset: number, length: number): Promise<ArrayBuffer>;
   getSize(filePath: string): Promise<number>;
   close(): Promise<void>;
 }
 
 export interface NodeFileReaders {
+  /** Fill only the caller-owned view; return actual bytes read, including short EOF. */
+  readInto(filePath: string, offset: number, destination: Uint8Array): Promise<number>;
   readRange(filePath: string, offset: number, length: number): Promise<ArrayBuffer>;
   streamRange(
     filePath: string,

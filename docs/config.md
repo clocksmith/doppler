@@ -147,6 +147,14 @@ from measured throughput improvements.
 host cache with repeat-read admission and the existing F32-KV profile. It is a
 Node investigation profile, not a new default or a model qualification claim.
 
+Node direct-source readers expose an explicit `readInto` capability: the tensor
+reader owns its final output and the file reader fills only the supplied byte
+view. This avoids an intermediate source allocation and assembly copy for
+untransformed expert ranges, including multi-shard spans. Generic sources without
+the capability retain read-and-copy behavior, so borrowed source buffers cannot
+alias retained host cache payloads. Source verification, exact-length checks,
+cancellation, staging budgets, and quantized bytes are unchanged.
+
 With `runtime.shared.debug.profiler.enabled: true`, routed expert statistics also
 include `phaseProfiles` for prefill, decode, and unspecified callers. Each bucket
 reports preparation wall time, host lookup time, existing queue-fence wait time,

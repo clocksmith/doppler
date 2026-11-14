@@ -34,7 +34,7 @@ function device() {
   };
   return { gpu, buffers };
 }
-function fixture(separate = false, intermediate = 256, native = false) {
+function fixture(separate = false, intermediate = 256, native = false, direct = false) {
   const manifest = { architecture: { numLayers: 3, hiddenSize: 256 },
     moeConfig: { expertFormat: 'qwen3_5', numExperts: 4, expertIntermediateSize: intermediate } };
   const locations = new Map(), shards = new Map();
@@ -56,6 +56,12 @@ function fixture(separate = false, intermediate = 256, native = false) {
   const { gpu, buffers } = device(), reads = [];
   let readHook = async () => {};
   const cache = new RoutedExpertCache({ device: gpu, policy, otherGpuBytes: () => 0,
+    readRangeInto: direct ? async (shard, offset, destination, signal) => {
+      reads.push({ shard, offset, bytes: destination.byteLength });
+      await readHook(signal);
+      destination.set(shards.get(shard).subarray(offset, offset + destination.byteLength));
+      return destination.byteLength;
+    } : undefined,
     readRange: async (shard, offset, bytes, signal) => {
       reads.push({ shard, offset, bytes });
       await readHook(signal);
@@ -481,4 +487,18 @@ console.log('Routed expert cache: range extents, identity, hot reuse, budgets, c
     await f.cache.prepare(f.plan(2), [0], undefined, 'decode');
     assert.deepEqual(f.cache.getStats().phaseProfiles, profiles, 'disabled profiling stops attribution');
   } finally { setRuntimeConfig(prior); await f.cache.destroy(); }
+}
+
+{
+  const old = fixture(true, 256, true), direct = fixture(true, 256, true, true);
+  try {
+    const a = await old.cache.prepare(old.plan(0), [0, 2], undefined, 'decode');
+    const b = await direct.cache.prepare(direct.plan(0), [0, 2], undefined, 'decode');
+    for (const role of ['gate', 'up', 'down']) assert.deepEqual(a[role].buffer.data, b[role].buffer.data);
+    assert.deepEqual(old.reads, direct.reads, 'readInto preserves source ranges and ordering');
+    assert.equal(old.cache.getStats().sourceReadBytes, direct.cache.getStats().sourceReadBytes);
+    assert.equal(old.cache.getStats().uploadBytes, direct.cache.getStats().uploadBytes);
+    assert.equal(old.cache.getStats().sourceReadIntoBytes, 0);
+    assert.equal(direct.cache.getStats().sourceReadIntoBytes, direct.cache.getStats().sourceReadBytes);
+  } finally { await old.cache.destroy(); await direct.cache.destroy(); }
 }

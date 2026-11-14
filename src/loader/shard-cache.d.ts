@@ -4,6 +4,7 @@ import type { ShardCacheConfigSchema } from '../config/schema/loading.schema.js'
 import type {
   CustomShardLoader,
   CustomShardRangeLoader,
+  CustomShardRangeIntoLoader,
   CustomShardStreamLoader,
   CustomShardStreamOptions,
   ShardLoadOptions,
@@ -14,6 +15,7 @@ export interface ShardCacheConfig {
   maxEntries: number;
   customLoader?: CustomShardLoader | null;
   customRangeLoader?: CustomShardRangeLoader | null;
+  customRangeIntoLoader?: CustomShardRangeIntoLoader | null;
   customStreamLoader?: CustomShardStreamLoader | null;
   verifyHashes?: boolean;
   manifest?: (RDRRManifest | RuntimeModelContract) | null;
@@ -31,12 +33,14 @@ export class ShardCache {
     verify?: boolean,
     options?: {
       loadRange?: CustomShardRangeLoader | null;
+      loadRangeInto?: CustomShardRangeIntoLoader | null;
       streamRange?: CustomShardStreamLoader | null;
     }
   ): void;
   setManifest(manifest: RDRRManifest | RuntimeModelContract | null): void;
   get hasCustomLoader(): boolean;
   get hasCustomRangeLoader(): boolean;
+  get hasCustomRangeIntoLoader(): boolean;
   get hasCustomStreamLoader(): boolean;
   get canStreamRanges(): boolean;
   resetCustomReadStats(): void;
@@ -45,6 +49,7 @@ export class ShardCache {
   get size(): number;
   get totalBytes(): number;
   load(shardIndex: number, options?: ShardLoadOptions): Promise<ArrayBuffer>;
+  loadRangeInto(shardIndex: number, offset: number, destination: Uint8Array, options?: ShardLoadOptions): Promise<number>;
   loadRange(shardIndex: number, offset?: number, length?: number | null, options?: ShardLoadOptions): Promise<ArrayBuffer>;
   streamRange(
     shardIndex: number,

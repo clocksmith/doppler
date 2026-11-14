@@ -1,3 +1,4 @@
+import { getRuntimeConfig } from '../../config/runtime.js';
 import { getDevice } from '../../gpu/device.js';
 import { getBufferPool } from '../../memory/buffer-pool.js';
 import { RoutedExpertCache } from './routed-expert-cache.js';
@@ -23,6 +24,12 @@ export async function prepareRoutedExperts(loader, layer, expertIds, signal, pha
     const device = getDevice();
     if (!device) throw new Error('Routed experts require the owning GPU device.');
     loader.routedExpertCache = new RoutedExpertCache({ device, policy,
+      readRangeInto: loader.shardCache.hasCustomRangeIntoLoader ? async (shard, offset, destination, activeSignal) => {
+        activeSignal.throwIfAborted();
+        const count = await loader.shardCache.loadRangeInto(shard, offset, destination, { requireRange: true });
+        activeSignal.throwIfAborted();
+        return count;
+      } : undefined,
       otherGpuBytes: () => getBufferPool(device).getStats().currentBytesAllocated,
       readRange: async (shard, offset, length, activeSignal) => {
         activeSignal.throwIfAborted();
@@ -50,4 +57,22 @@ export function createExpertLoaderContext(loader) {
     loadShard: loader._getLoadShard(), shardCache: loader.shardCache,
     expertCache: loader.expertCache, experts: loader.experts,
     gpuBuffers: loader.gpuBuffers, keepF32Weights: loader.keepF32Weights };
+}
+
+/** @type {typeof import('./loader-bindings.js').recordRoutedReadback} */
+export function recordRoutedReadback(loader, phase, elapsedMs, bytes) {
+  if (!getRuntimeConfig().shared.debug.profiler.enabled) return;
+  const key = phase === 'prefill' || phase === 'decode' ? phase : 'unspecified';
+  const bucket = loader.routedReadbackStats[key] ??= { calls: 0, bytes: 0, wallMs: 0 };
+  bucket.calls++;
+  bucket.bytes += bytes;
+  bucket.wallMs += elapsedMs;
+}
+
+/** @type {typeof import('./loader-bindings.js').getRoutedReadbackStats} */
+export function getRoutedReadbackStats(loader) {
+  return {
+    scope: 'Routing indices readback wall time includes queued GPU work, copy and map wait; not GPU routing compute. May overlap cache preparation in chunked prefill.',
+    phases: Object.fromEntries(Object.entries(loader.routedReadbackStats).map(([phase, bucket]) => [phase, { ...bucket }])),
+  };
 }

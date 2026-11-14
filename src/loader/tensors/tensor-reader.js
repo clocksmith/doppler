@@ -99,7 +99,7 @@ async function assembleLocationBytes(location, name, label, loadShard, loadShard
   return combined;
 }
 
-async function loadLocationRange(location, name, label, byteOffset, byteLength, loadShardRange) {
+async function loadLocationRange(location, name, label, byteOffset, byteLength, loadShardRange, loadShardRangeInto = null) {
   const chunks = getPhysicalChunks(location, name);
   const totalSize = chunks.reduce((sum, chunk) => sum + chunk.size, 0);
   if (byteOffset + byteLength > totalSize) {
@@ -126,6 +126,13 @@ async function loadLocationRange(location, name, label, byteOffset, byteLength, 
     const end = Math.min(rangeEnd, chunkEnd);
     const localOffset = chunk.offset + (start - chunkStart);
     const localSize = end - start;
+    if (loadShardRangeInto) {
+      const count = await loadShardRangeInto(chunk.shardIndex, localOffset, combined.subarray(writeOffset, writeOffset + localSize));
+      if (count !== localSize) throw new Error(`[DopplerLoader] Tensor "${name}" readInto returned ${count} of ${localSize} bytes.`);
+      writeOffset += localSize;
+      if (writeOffset === byteLength) break;
+      continue;
+    }
     const data = await loadShardRange(chunk.shardIndex, localOffset, localSize);
     if (localSize > data.byteLength) {
       throw new Error(
@@ -275,7 +282,7 @@ export async function assembleShardData(location, name, loadShard, loadShardRang
     : bytes;
 }
 
-export async function loadTensorRange(location, name, byteOffset, byteLength, loadShardRange) {
+export async function loadTensorRange(location, name, byteOffset, byteLength, loadShardRange, loadShardRangeInto = null) {
   if (typeof loadShardRange !== 'function') {
     throw new Error(`[DopplerLoader] Tensor "${name}" range loading requires loadShardRange().`);
   }
@@ -410,5 +417,5 @@ export async function loadTensorRange(location, name, byteOffset, byteLength, lo
     return transformed.slice(byteOffset, byteOffset + byteLength);
   }
 
-  return loadLocationRange(location, name, 'tensor', byteOffset, byteLength, loadShardRange);
+  return loadLocationRange(location, name, 'tensor', byteOffset, byteLength, loadShardRange, loadShardRangeInto);
 }

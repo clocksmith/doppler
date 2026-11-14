@@ -54,7 +54,7 @@ import {
 } from './experts/expert-loader.js';
 import { assembleShardData } from './tensors/tensor-reader.js';
 import { hasSourceTransform } from './tensors/source-transform.js';
-import { prepareExpertLayer, prepareRoutedExperts, disposeRoutedExperts, createExpertLoaderContext } from './experts/loader-bindings.js';
+import { prepareExpertLayer, prepareRoutedExperts, disposeRoutedExperts, createExpertLoaderContext, recordRoutedReadback, getRoutedReadbackStats } from './experts/loader-bindings.js';
 import {
   load as loadImpl,
   _loadTensor as _loadTensorImpl,
@@ -196,7 +196,6 @@ export class DopplerLoader {
   _layerShardMap = new Map();
 
   constructor(loadingConfig) {
-    /** @type {import('./doppler-loader.js').DopplerLoader['routedReadbackStats']} */
     this.routedReadbackStats = {};
     if (!loadingConfig) {
       log.debug('Loader', 'No explicit loadingConfig provided; falling back to getRuntimeConfig().loading');
@@ -293,6 +292,7 @@ export class DopplerLoader {
   setCustomShardLoader(loadShardFn, options = {}) {
     this.shardCache.setCustomLoader(loadShardFn, options.verify !== false, {
       loadRange: options.loadShardRange ?? null,
+      loadRangeInto: options.loadShardRangeInto ?? null,
       streamRange: options.streamShardRange ?? null,
     });
     this._loadAuxiliaryFile = typeof options.loadAuxiliaryFile === 'function'
@@ -577,26 +577,9 @@ export class DopplerLoader {
 
   getRoutedExpertPolicy() { return this._loadingConfig.expertCache.qwen35Routed; }
 
-  async prepareRoutedExperts(layer, expertIds, signal, phase) {
-    return prepareRoutedExperts(this, layer, expertIds, signal, phase);
-  }
-
-  /** @param {'prefill' | 'decode' | undefined} phase @param {number} elapsedMs @param {number} bytes */
-  recordRoutedReadback(phase, elapsedMs, bytes) {
-    if (!getRuntimeConfig().shared.debug.profiler.enabled) return;
-    const key = phase === 'prefill' || phase === 'decode' ? phase : 'unspecified';
-    const bucket = this.routedReadbackStats[key] ??= { calls: 0, bytes: 0, wallMs: 0 };
-    bucket.calls++;
-    bucket.bytes += bytes;
-    bucket.wallMs += elapsedMs;
-  }
-
-  getRoutedReadbackStats() {
-    return {
-      scope: 'Routing indices readback wall time includes queued GPU work, copy and map wait; not GPU routing compute. May overlap cache preparation in chunked prefill.',
-      phases: Object.fromEntries(Object.entries(this.routedReadbackStats).map(([phase, bucket]) => [phase, { ...bucket }])),
-    };
-  }
+  prepareRoutedExperts(layer, expertIds, signal, phase) { return prepareRoutedExperts(this, layer, expertIds, signal, phase); }
+  recordRoutedReadback(phase, elapsedMs, bytes) { recordRoutedReadback(this, phase, elapsedMs, bytes); }
+  getRoutedReadbackStats() { return getRoutedReadbackStats(this); }
 
   getRoutedExpertCacheStats() { return this.routedExpertCache?.getStats() ?? null; }
 

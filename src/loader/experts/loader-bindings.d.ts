@@ -16,3 +16,7 @@ export declare function createExpertLoaderContext(loader: {
   experts: ExpertLoaderContext['experts']; gpuBuffers: ExpertLoaderContext['gpuBuffers']; keepF32Weights: boolean;
   _getLoadShard(): ExpertLoaderContext['loadShard']; _loadTensor: ExpertLoaderContext['loadTensor'];
 }): ExpertLoaderContext;
+
+export declare function recordRoutedReadback(loader: DopplerLoader,
+  phase: 'prefill' | 'decode' | undefined, elapsedMs: number, bytes: number): void;
+export declare function getRoutedReadbackStats(loader: DopplerLoader): ReturnType<DopplerLoader['getRoutedReadbackStats']>;

@@ -101,6 +101,20 @@ export function createNodeFileAccess() {
       return sizePromise;
     };
     reader = {
+      async readInto(offset, destination) {
+        if (!Number.isSafeInteger(offset) || offset < 0 || !(destination instanceof Uint8Array)) {
+          throw new Error('Node readInto requires a non-negative offset and Uint8Array destination.');
+        }
+        const handle = await ensureHandle();
+        let position = 0;
+        while (position < destination.byteLength) {
+          const { bytesRead } = await handle.read(destination, position,
+            Math.min(destination.byteLength - position, MAX_NODE_READ_BYTES), offset + position);
+          if (bytesRead === 0) break;
+          position += bytesRead;
+        }
+        return position;
+      },
       async readRange(offset, length) {
         if (!Number.isFinite(offset) || !Number.isFinite(length) || length <= 0) {
           return new ArrayBuffer(0);
@@ -148,6 +162,9 @@ export function createNodeFileAccess() {
   };
 
   return {
+    async readInto(filePath, offset, destination) {
+      return getReader(filePath).readInto(offset, destination);
+    },
     async readRange(filePath, offset, length) {
       return getReader(filePath).readRange(offset, length);
     },
@@ -219,6 +236,7 @@ export function buildNodeFileReaders(fileAccess) {
   };
   return {
     readRange,
+    readInto: (filePath, offset, destination) => fileAccess.readInto(filePath, offset, destination),
     streamRange,
     readText,
     readBinary,

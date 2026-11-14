@@ -53,6 +53,7 @@ export interface PipelineStorageContext {
     offset: number,
     length?: number | null
   ) => Promise<ArrayBuffer | Uint8Array>;
+  loadShardRangeInto?: ((index: number, offset: number, destination: Uint8Array) => Promise<number>) | null;
   streamShardRange?: (
     index: number,
     offset?: number,

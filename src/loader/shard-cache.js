@@ -15,6 +15,7 @@ export class ShardCache {
   #maxEntries;
   #customLoader = null;
   #customRangeLoader = null;
+  #customRangeIntoLoader = null;
   #customStreamLoader = null;
   #verifyHashes;
   #manifest = null;
@@ -34,6 +35,7 @@ export class ShardCache {
     this.#maxEntries = config.maxEntries;
     this.#customLoader = config.customLoader ?? null;
     this.#customRangeLoader = config.customRangeLoader ?? null;
+    this.#customRangeIntoLoader = config.customRangeIntoLoader ?? null;
     this.#customStreamLoader = config.customStreamLoader ?? null;
 
     // verifyHashes is resolved from three sources in priority order:
@@ -68,6 +70,7 @@ export class ShardCache {
     if (config.customRangeLoader !== undefined) {
       this.#customRangeLoader = config.customRangeLoader;
     }
+    if (config.customRangeIntoLoader !== undefined) this.#customRangeIntoLoader = config.customRangeIntoLoader;
     if (config.customStreamLoader !== undefined) {
       this.#customStreamLoader = config.customStreamLoader;
     }
@@ -92,6 +95,10 @@ export class ShardCache {
 
   setCustomLoader(loader, verify = true, options = {}) {
     this.#customLoader = loader;
+    if (options.loadRangeInto != null && typeof options.loadRangeInto !== 'function') {
+      throw new Error('ShardCache loadRangeInto must be a function or null.');
+    }
+    this.#customRangeIntoLoader = options.loadRangeInto ?? null;
     if (options.loadRange != null && typeof options.loadRange !== 'function') {
       throw new Error(
         'ShardCache.setCustomLoader: options.loadRange must be a function or null/undefined. ' +
@@ -254,6 +261,25 @@ export class ShardCache {
       `Shard ${shardIndex} short stream read via ${path}: ` +
       `offset=${start}, expected=${want}, got=${produced}.`
     );
+  }
+
+  get hasCustomRangeIntoLoader() { return typeof this.#customRangeIntoLoader === 'function'; }
+
+  async loadRangeInto(shardIndex, offset, destination, options = {}) {
+    if (!(destination instanceof Uint8Array)) throw new Error('ShardCache readInto requires Uint8Array destination.');
+    const start = this.#toRangeOffset(offset);
+    if (this.#customRangeIntoLoader && !this.#cache.has(shardIndex)) {
+      const started = performance.now();
+      const count = await this.#customRangeIntoLoader(shardIndex, start, destination);
+      if (count !== destination.byteLength) throw new Error(`ShardCache readInto short read: ${count} of ${destination.byteLength}.`);
+      this.#setLastSource('custom', (performance.now() - started) / 1000, 'range', 'custom-range');
+      this.#recordCustomRead(shardIndex, count);
+      return count;
+    }
+    const data = await this.loadRange(shardIndex, start, destination.byteLength, options);
+    if (data.byteLength < destination.byteLength) throw new Error('ShardCache readInto fallback returned a short range.');
+    destination.set(new Uint8Array(data, 0, destination.byteLength));
+    return destination.byteLength;
   }
 
   async loadRange(shardIndex, offset = 0, length = null, options = {}) {

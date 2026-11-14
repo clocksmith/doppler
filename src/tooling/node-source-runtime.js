@@ -755,13 +755,10 @@ export async function resolveNodeSourceRuntimeBundle(options = {}) {
 
     const readers = parsed?.storageReaders ?? buildNodeFileReaders(fileAccess);
     const storageContext = createSourceStorageContext({
+      ...readers,
       model,
       shardSources,
-      readRange: readers.readRange,
-      streamRange: readers.streamRange,
       readText: async path => parsed.tokenizerJson && path === parsed.tokenizerJsonPath ? JSON.stringify(parsed.tokenizerJson) : readers.readText(path),
-      readBinary: readers.readBinary,
-      close: readers.close,
       tokenizerJsonPath: parsed.tokenizerJsonPath,
       tokenizerModelPath: parsed.tokenizerModelPath,
       verifyHashes,

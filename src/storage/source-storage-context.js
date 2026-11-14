@@ -158,6 +158,19 @@ export function createSourceStorageContext(options = {}) {
     return toArrayBuffer(payload, `readRange(${sourcePath})`);
   };
 
+  const loadShardRangeInto = typeof options.readInto === 'function'
+    ? async (index, offset, destination) => {
+      const { sourcePath, shardSize } = resolveSourceEntry(index, model, shardSources);
+      const start = normalizePositiveInteger(offset, `shard offset (${index})`);
+      if (!(destination instanceof Uint8Array) || start + destination.byteLength > shardSize) {
+        throw new Error('Source readInto destination exceeds the declared shard range.');
+      }
+      await ensureVerifiedSource(sourcePath);
+      const count = await options.readInto(sourcePath, start, destination);
+      if (count !== destination.byteLength) throw new Error(`Source readInto short read: ${count} of ${destination.byteLength}.`);
+      return count;
+    } : null;
+
   const loadShard = async (index) => {
     const { shardSize } = resolveSourceEntry(index, model, shardSources);
     return loadShardRange(index, 0, shardSize);
@@ -288,6 +301,7 @@ export function createSourceStorageContext(options = {}) {
   return {
     loadShard,
     loadShardRange,
+    loadShardRangeInto,
     streamShardRange,
     loadTokenizerJson,
     loadTokenizerModel,

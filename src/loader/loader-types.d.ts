@@ -225,6 +225,7 @@ export interface ShardLoadOptions {
 export interface CustomShardLoaderOptions {
   verify?: boolean;
   loadShardRange?: CustomShardRangeLoader;
+  loadShardRangeInto?: CustomShardRangeIntoLoader | null;
   streamShardRange?: CustomShardStreamLoader;
   loadAuxiliaryFile?: CustomAuxiliaryFileLoader | null;
 }
@@ -239,6 +240,9 @@ export type CustomShardLoader = (
 /**
  * Custom shard range loader function
  */
+/** Fill caller-owned bytes; do not retain or mutate the view after resolution. */
+export type CustomShardRangeIntoLoader = (shardIndex: number, offset: number, destination: Uint8Array) => Promise<number>;
+
 export type CustomShardRangeLoader = (
   shardIndex: number,
   offset: number,

@@ -10,6 +10,8 @@ export interface CreateSourceStorageContextOptions {
     offset: number,
     length: number
   ) => Promise<ArrayBuffer | Uint8Array>;
+  /** Fills caller-owned storage without retaining or mutating it after resolution. */
+  readInto?: (path: string, offset: number, destination: Uint8Array) => Promise<number>;
   streamRange?: (
     path: string,
     offset: number,
@@ -34,6 +36,7 @@ export interface SourceStorageContext {
     offset?: number,
     length?: number | null
   ) => Promise<ArrayBuffer | Uint8Array>) | null;
+  loadShardRangeInto: ((index: number, offset: number, destination: Uint8Array) => Promise<number>) | null;
   streamShardRange: ((
     index: number,
     offset?: number,
