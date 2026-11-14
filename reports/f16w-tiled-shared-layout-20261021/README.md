@@ -14,7 +14,7 @@ AMD Radeon 8060S (RADV STRIX_HALO), Linux 7.0.0-38.
 |---|---|
 | Chrome 146 Vulkan, 11 shapes incl. 1×1×1, 65×63×17, 130×151×2000 ([result](chrome-operator-comparison.json), [script](chrome-operator-comparison.js)) | **Byte-identical** on every shape |
 | Same, GPU timestamps, median of 20 | 613×3072×1024: 2.82 → 0.88 ms (3.2×); 613×1024×3072: 2.60 → 0.78 ms (3.3×); 102×3072×1024: 0.66 → 0.17 ms (3.9×); 513×4096×2560: 8.68 → 2.92 ms (3.0×) |
-| Node `webgpu` (Dawn/Vulkan), production dispatch geometry, 7 shapes ([output](node-parity.json)) | Byte-identical to the [previous shader](previous-matmul_f16w_f32a_tiled.wgsl); max error 5.3e-7 against an F64 reference |
+| Node `webgpu` (Dawn/Vulkan), production dispatch geometry, 7 shapes ([captured output](node-parity.log)) | Byte-identical to the [previous shader](previous-matmul_f16w_f32a_tiled.wgsl); max error 5.3e-7 against an F64 reference |
 | End to end: 90 issue-triage requests × 3 `scoreChoices` calls on Qwen3-Reranker-0.6B weights ([summary](continuation-summary.json)) | **90/90 bit-identical** yes/no logits; median 877 → 633 ms per issue |
 
 The end-to-end run used an experiment manifest that also routes the reranker's F16 FFN to this
@@ -24,6 +24,11 @@ separate model-identity change, not part of this commit.
 
 `tests/kernels/matmul-f16w-f32a-tiled-parity.test.js` keeps the F64 tolerance check and accepts
 `--reference-shader <path>` for byte-exact comparison with a prior shader.
+
+The Node parity capture is stored as `node-parity.log` because it includes
+Dawn warnings and a GPU status line before the JSON payload. It was originally
+committed as `node-parity.json`; the rename preserves every byte (SHA-256
+`2ad1318c278a387e8168ea1cde6924cd44bca2e6ad15061bc7662fa46818b687`).
 
 ## Scope
 
