@@ -76,7 +76,6 @@ config/forge/tensor-role-closure/glimmer-30b-text.json
 config/goal-completion-matrix.json
 config/heterogeneous-attention-contract.d.ts
 config/kernels/kernel-ref-digests.d.ts
-config/kernels/kernel-ref-digests.js
 config/kernels/moe/gpt-oss.paths.json
 config/kernels/moe/mixtral.paths.json
 config/kernels/registry.d.ts
@@ -255,6 +254,7 @@ converter/parsers/gguf.d.ts
 converter/parsers/transformer.d.ts
 converter/quantization-info.d.ts
 converter/quantizer.d.ts
+converter/qwen4-exp-source-execution.d.ts
 converter/qwen4-exp-source.d.ts
 converter/release-to-javascript-receipt.d.ts
 converter/release-to-javascript-receipt.js
@@ -489,8 +489,8 @@ formats/encode-utf8.d.ts
 formats/flatbuffer-tables.d.ts
 formats/float16.d.ts
 formats/float8.d.ts
-formats/gguf/block-storage.d.ts
 formats/gguf/qwen-source.d.ts
+formats/gguf/qwen4-exp-source.d.ts
 formats/gguf/tokenizer.d.ts
 formats/gguf/types.d.ts
 formats/litert/types.d.ts
@@ -498,6 +498,7 @@ formats/load-json.d.ts
 formats/paged-source-reader.d.ts
 formats/plain-object.d.ts
 formats/q4k-dequant.d.ts
+formats/qwen4-exp-source-contracts.d.ts
 formats/rdrr/distributed/parsing.d.ts
 formats/rdrr/distributed/validation.d.ts
 formats/rdrr/fp8-contract.d.ts
@@ -562,6 +563,7 @@ gpu/kernels/backward/upsample2d_backward.d.ts
 gpu/kernels/bind-group-validation.d.ts
 gpu/kernels/cast.d.ts
 gpu/kernels/causal_conv1d_silu.d.ts
+gpu/kernels/channel-gain.d.ts
 gpu/kernels/check-finiteness-f32.d.ts
 gpu/kernels/check-finiteness-f32.js
 gpu/kernels/check-finiteness.d.ts
@@ -681,11 +683,7 @@ gpu/kernels/vision-position-embedding.d.ts
 gpu/kernels/vision-rope-2d.d.ts
 gpu/kernels/vision-spatial-merge.d.ts
 gpu/kernels/w8a8.d.ts
-gpu/partitioned-buffer-pool.d.ts
-gpu/partitioned-buffer-pool.js
 gpu/readback-buffer.d.ts
-gpu/readback-utils.d.ts
-gpu/readback-utils.js
 gpu/recorder-timestamps.d.ts
 gpu/submit-probe.d.ts
 index-browser.d.ts
@@ -695,8 +693,6 @@ inference/generation-output.d.ts
 inference/kv-cache/copy-state.d.ts
 inference/kv-cache/layer-range.d.ts
 inference/kv-cache/update.d.ts
-inference/network-evolution.d.ts
-inference/network-evolution.js
 inference/pipelines/audio/index.d.ts
 inference/pipelines/audio/mel.d.ts
 inference/pipelines/context.d.ts
@@ -740,8 +736,6 @@ inference/pipelines/registry.d.ts
 inference/pipelines/rng.d.ts
 inference/pipelines/rng.js
 inference/pipelines/shared/clipped-linear.d.ts
-inference/pipelines/structured/tsv-grammar-mask.d.ts
-inference/pipelines/structured/tsv-grammar-mask.js
 inference/pipelines/text/abort-contract.d.ts
 inference/pipelines/text/activity-weights.d.ts
 inference/pipelines/text/attention/attn-config.d.ts
@@ -787,8 +781,6 @@ inference/pipelines/text/execution-runtime-builders.d.ts
 inference/pipelines/text/execution-v1/plan.d.ts
 inference/pipelines/text/execution-v1/validation.d.ts
 inference/pipelines/text/execution.d.ts
-inference/pipelines/text/failure-reduction.d.ts
-inference/pipelines/text/failure-reduction.js
 inference/pipelines/text/ffn/activation-observation.d.ts
 inference/pipelines/text/ffn/decode-intermediate.d.ts
 inference/pipelines/text/ffn/dense-executor.d.ts
@@ -970,6 +962,7 @@ rules/inference/layer-pattern.rules.json
 rules/inference/layer.rules.json
 rules/inference/moe.rules.json
 rules/kernels/attention.rules.json
+rules/kernels/channel-gain-control.rules.json
 rules/kernels/conv2d.rules.json
 rules/kernels/depthwise-conv2d.rules.json
 rules/kernels/dequant.rules.json
@@ -1029,10 +1022,6 @@ storage/downloader.d.ts
 storage/hf-resolve-url.d.ts
 storage/node-file-access.d.ts
 storage/normalize-model-id.d.ts
-storage/preflight.d.ts
-storage/preflight.js
-storage/quickstart-downloader.d.ts
-storage/quickstart-downloader.js
 storage/runtime-env.d.ts
 storage/shards/index.d.ts
 storage/shards/integrity.d.ts
