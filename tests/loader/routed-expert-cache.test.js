@@ -515,14 +515,14 @@ console.log('Routed expert cache: range extents, identity, hot reuse, budgets, c
   const second = await f.cache.prepare(nextPlan, [0, 1]);
   assert.equal(second.gate.buffer, first.gate.buffer);
   assert.equal(second.up.buffer, first.up.buffer);
-  assert.notEqual(second.down.buffer, first.down.buffer);
-  assert(first.down.buffer.destroyed, 'only changed-size down plane retires');
+  assert.equal(second.down.buffer, first.down.buffer, 'larger capacity survives the dtype transition');
+  assert(!first.down.buffer.destroyed);
   assert(!first.gate.buffer.destroyed && !first.up.buffer.destroyed);
   assert.equal(second.down.dtype, 'q4_0', 'fresh typed view follows current source');
   const after = f.cache.getStats();
-  assert.equal(after.workingBufferAllocations - before.workingBufferAllocations, 1);
-  assert.equal(after.workingBufferReuses - before.workingBufferReuses, 2);
-  assert.equal(after.workingBytes, nextPlan.bankBytes);
+  assert.equal(after.workingBufferAllocations - before.workingBufferAllocations, 0);
+  assert.equal(after.workingBufferReuses - before.workingBufferReuses, 3);
+  assert.equal(after.workingBytes, firstPlan.bankBytes, 'account actual retained capacity, not logical bytes');
   for (const plane of nextPlan.planes) assert.deepEqual(
     second[plane.role].buffer.data.slice(0, 2 * plane.expertBytes),
     f.shards.get(plane.location.shardIndex).slice(0, 2 * plane.expertBytes));
@@ -541,6 +541,8 @@ console.log('Routed expert cache: range extents, identity, hot reuse, budgets, c
   const first = await f.cache.prepare(f.plan(0), [0]);
   const down = f.locations.get('blk.1.ffn_down_exps.weight');
   down.dtype = 'Q4_0'; down.size = ggufBlockSourceBytes(down.shape, down.dtype);
+  const nextPlan = f.plan(1);
+  f.policy.gpuBudgetBytes = f.policy.reserveBytes + nextPlan.bankBytes + nextPlan.expertBytes * f.policy.readConcurrency;
   const create = f.gpu.createBuffer;
   f.gpu.createBuffer = options => {
     if (options.label === 'routed_working_down') throw new Error('replacement allocation failed');
@@ -554,6 +556,29 @@ console.log('Routed expert cache: range extents, identity, hot reuse, budgets, c
   const recovered = await f.cache.prepare(f.plan(1), [0]);
   assert.equal(recovered.gate.buffer, first.gate.buffer);
   assert.equal(f.cache.getStats().workingBytes, f.plan(1).bankBytes);
+  await f.cache.destroy();
+  assert(f.buffers.every(buffer => buffer.destroyed));
+}
+
+{
+  const f = fixture(true, 256, true);
+  const first = await f.cache.prepare(f.plan(0), [0]);
+  const down = f.locations.get('blk.1.ffn_down_exps.weight');
+  down.dtype = 'Q4_0'; down.size = ggufBlockSourceBytes(down.shape, down.dtype);
+  const plan = f.plan(1);
+  const retained = await f.cache.prepare(plan, [0]);
+  assert.equal(retained.down.buffer, first.down.buffer);
+  f.policy.gpuBudgetBytes = f.policy.reserveBytes + plan.bankBytes + plan.expertBytes * f.policy.readConcurrency;
+  const trimmed = await f.cache.prepare(plan, [1]);
+  assert.notEqual(trimmed.down.buffer, first.down.buffer, 'unchanged signature still trims capacity under budget pressure');
+  assert(first.down.buffer.destroyed);
+  assert.equal(trimmed.gate.buffer, first.gate.buffer);
+  assert.equal(trimmed.down.buffer.size, down.size);
+  assert.equal(f.cache.getStats().workingBytes, plan.bankBytes);
+  assert(f.cache.getStats().residentBytes <= f.policy.gpuBudgetBytes - f.policy.reserveBytes);
+  for (const plane of plan.planes) assert.deepEqual(
+    trimmed[plane.role].buffer.data.slice(plane.expertBytes, 2 * plane.expertBytes),
+    f.shards.get(plane.location.shardIndex).slice(plane.expertBytes, 2 * plane.expertBytes));
   await f.cache.destroy();
   assert(f.buffers.every(buffer => buffer.destroyed));
 }

@@ -124,7 +124,13 @@ cleanup before releasing the operation.
 `readConcurrency` readers; backend/driver caches are separate. Prefill deduplicates
 actual selections in `routeChunkTokens` chunks and retains already populated
 working-bank slots within a layer. Reads/uploads for the next chunk can overlap
-previously submitted computation; there is no predicted-expert prefetch.
+previously submitted computation; there is no predicted-expert prefetch. Working
+banks retain same-role allocation capacity across packed-format changes when the
+current GPU budget still accommodates the actual allocation plus concurrent
+reader payloads and the activation/KV reserve. Otherwise oversized banks shrink
+to the required extent. Accounting uses allocated capacity; tensor shapes, copy
+offsets and typed views always use the current plan. Signature changes preserve
+the existing completion fence and invalidate populated slots.
 
 `hostCacheBytes` optionally bounds a separate CPU cache of assembled, unchanged
 expert payloads; zero disables it. `hostCacheAdmission: "all"` retains first-use

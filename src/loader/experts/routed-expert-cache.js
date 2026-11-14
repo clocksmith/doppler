@@ -175,14 +175,19 @@ export class RoutedExpertCache {
   /** @param {import('./routed-expert-plan.js').RoutedExpertBankPlan} plan @param {AbortSignal} signal */
   async #prepareWorking(plan, signal) {
     const signature = JSON.stringify(plan.planes.map(p => [p.role, p.dtype, p.location.shape, p.bytes]));
-    if (this.#working.size && signature !== this.#signature) {
+    const { policy } = this.#options;
+    let spareCapacity = Math.max(0, policy.gpuBudgetBytes - policy.reserveBytes
+      - this.#options.otherGpuBytes() - plan.bankBytes - plan.expertBytes * policy.readConcurrency);
+    if (this.#working.size && (signature !== this.#signature
+      || this.#workingBytes - plan.bankBytes > spareCapacity)) {
       await this.#waitForSubmitted();
       signal.throwIfAborted();
-      // Retain only exact-size same-role allocation storage. Typed views and
-      // selected expert contents are rebuilt from the current layer's plan.
+      // Capacity is owned storage, not tensor geometry. Preserve payload-reader
+      // headroom; trim surplus if the current budget no longer accommodates it.
       for (const [role, buffer] of this.#working) {
         const next = plan.planes.find(plane => plane.role === role);
-        if (next && buffer.size === next.bytes) {
+        if (next && buffer.size >= next.bytes && buffer.size - next.bytes <= spareCapacity) {
+          spareCapacity -= buffer.size - next.bytes;
           this.#stats.workingBufferReuses++;
           this.#stats.workingBufferReusedBytes += buffer.size;
           continue;
