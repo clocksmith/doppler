@@ -80,6 +80,7 @@
     "generation:contract:sync": "node tools/sync-generation-contract.js",
     "source:style:sync": "node tools/check-source-style.js --write",
     "source:unused:check": "node tools/check-unused-locals.js",
+    "check:fast": "npm run source:style:check && npm run source:architecture:check",
     "source:style:check": "node tools/check-unused-locals.js && node tools/check-source-style.js",
     "source:architecture:check": "node tools/check-source-architecture.js",
     "capability-policy:check": "node tools/check-capability-transform-policy.js",

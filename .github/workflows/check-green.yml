@@ -1,6 +1,6 @@
 name: Smoke
 
-# Automatic CI checks the installed package without GPUs, browsers, or model downloads.
+# Automatic CI checks source contracts and the installed package without GPUs, browsers, or model downloads.
 # Hardware and browser qualification stay in the manual workflows.
 on:
   pull_request:
@@ -26,4 +26,5 @@ jobs:
           node-version: '22'
           cache: npm
       - run: npm ci --ignore-scripts --omit=optional --no-audit --no-fund
+      - run: npm run check:fast
       - run: npm run package:smoke

@@ -732,7 +732,15 @@ behaviorally exercised.
 Static gates; run them when a change touches what they check (source modules,
 imports, facades, declarations, numeric boundaries, or their policy files):
 
+For the short edit-feedback loop, `npm run check:fast` composes the existing
+style/unused-local and architecture checks. Automatic push/PR CI runs this same
+command. It does not run the unit suite, use a GPU, download models, or replace
+affected behavior tests. Use `npm run kernels:check` additionally when changing
+WGSL, uniform interfaces, generated kernels or their registry. `check:green` is
+the broader behavior gate, not this fast lint loop.
+
 ```bash
+npm run check:fast
 npm run source:style:check
 npm run source:architecture:check
 npm run source:architecture:check -- --base <git-revision>
