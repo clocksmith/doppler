@@ -38,9 +38,11 @@ try {
       }
       const owned = [];
       const upload = data => {
-        const buffer = acquireBuffer(data.byteLength);
+        const padded = new Uint8Array(Math.ceil(data.byteLength / 4) * 4);
+        padded.set(new Uint8Array(data.buffer, data.byteOffset, data.byteLength));
+        const buffer = acquireBuffer(padded.byteLength);
         owned.push(buffer);
-        uploadData(buffer, data);
+        uploadData(buffer, padded);
         return buffer;
       };
       try {
