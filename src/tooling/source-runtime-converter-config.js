@@ -1,3 +1,5 @@
+import flashSourceProfile from '../config/conversion/qwen3/qwen-3-8-flash-next-text-q4k-ehf16-af32.json' with { type: 'json' };
+import { isQwen4ExpSource, resolveQwen4ExpSourceContracts } from '../converter/qwen4-exp-source.js';
 import {
   createConverterConfig,
   EXECUTION_V1_SCHEMA_ID,
@@ -79,6 +81,14 @@ function normalizeModelFamily(rawConfig) {
 
 function applyFamilyDefaults(inference, rawConfig) {
   const family = normalizeModelFamily(rawConfig);
+  if (isQwen4ExpSource(rawConfig)) {
+    // Reuse the declared family semantics, not its artifact's Q4K execution
+    // or quantization policy. Explicit source facts below still take precedence.
+    for (const section of ['attention', 'normalization', 'ffn', 'output', 'chatTemplate']) {
+      inference[section] = cloneJsonValue(flashSourceProfile.inference[section]);
+    }
+    return family;
+  }
   if (family === 'gemma3') {
     inference.attention.queryPreAttnScalar = 256;
     inference.attention.queryKeyNorm = true;
@@ -275,6 +285,8 @@ export function createSourceRuntimeInference(rawConfig = null) {
   applyExplicitAttentionConfig(inference, rawConfig, linearNormGateActivation !== null);
   applyExplicitFfnConfig(inference, rawConfig);
   applyLayerPatternConfig(inference, rawConfig);
+  const mechanisms = resolveQwen4ExpSourceContracts(rawConfig);
+  if (mechanisms) Object.assign(inference, mechanisms);
 
   return inference;
 }
@@ -300,8 +312,12 @@ function createSourceRuntimeExecution() {
   };
 }
 
-function createSourceRuntimeSession() {
-  return cloneJsonValue(DEFAULT_EXECUTION_V1_SESSION);
+function createSourceRuntimeSession(rawConfig = null) {
+  // Bounded PLE row reads and f32 activations/f16 KV are already declared by
+  // the source-family profile. Do not inherit the generic f16/null defaults.
+  return isQwen4ExpSource(rawConfig)
+    ? { ...cloneJsonValue(DEFAULT_EXECUTION_V1_SESSION), ...cloneJsonValue(flashSourceProfile.session) }
+    : cloneJsonValue(DEFAULT_EXECUTION_V1_SESSION);
 }
 
 export function createSourceRuntimeManifestConfig(rawConfig = null) {
@@ -324,7 +340,10 @@ export function createSourceRuntimeManifestInference(rawConfig = null) {
     layerPattern: inference.layerPattern,
     chatTemplate: inference.chatTemplate,
     pipeline: inference.pipeline ?? null,
-    session: createSourceRuntimeSession(),
+    hyperConnections: inference.hyperConnections ?? null,
+    indexedAttention: inference.indexedAttention ?? null,
+    ngramEmbedding: inference.ngramEmbedding ?? null,
+    session: createSourceRuntimeSession(rawConfig),
     execution: createSourceRuntimeExecution(),
   };
 }
@@ -337,7 +356,7 @@ export function createSourceRuntimeConverterConfig(options = {}) {
       modelBaseId: options.modelId ?? null,
     },
     inference: createSourceRuntimeInference(options.rawConfig ?? null),
-    session: createSourceRuntimeSession(),
+    session: createSourceRuntimeSession(options.rawConfig ?? null),
     execution: createSourceRuntimeExecution(),
   });
 }

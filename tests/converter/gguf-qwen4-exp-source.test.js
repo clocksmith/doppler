@@ -4,6 +4,7 @@ import { normalizeQwenGGUFSource } from '../../src/formats/gguf/qwen-source.js';
 import { bindQwen4ExpGGUFTable } from '../../src/formats/gguf/qwen4-exp-source.js';
 import { resolveQwen4ExpSourceContracts } from '../../src/converter/qwen4-exp-source.js';
 import { extractArchitecture } from '../../src/converter/artifact-identity.js';
+import { createSourceRuntimeManifestInference } from '../../src/tooling/source-runtime-converter-config.js';
 import { parseGGUFModel } from '../../src/converter/parsers/gguf.js';
 
 // Exact scalar/array metadata from the three-part Flash-Next Q4_0 artifact.
@@ -56,4 +57,15 @@ assert.equal(parsed.tensors[0].originalName, table.name);
 assert.deepEqual(parsed.tensors[0].shape, [320001536, 160]);
 assert.equal(parsed.tensors[0].offset, 128);
 assert.equal(parsed.tensors[0].source, source);
+const inference = createSourceRuntimeManifestInference(parsed.config);
+assert.deepEqual(inference.hyperConnections, contracts.hyperConnections);
+assert.deepEqual(inference.indexedAttention, contracts.indexedAttention);
+assert.deepEqual(inference.ngramEmbedding, contracts.ngramEmbedding);
+assert.equal(inference.normalization.rmsNormWeightOffset, false);
+assert.equal(inference.normalization.linearNormGateActivation, 'sigmoid');
+assert.equal(inference.session.compute.defaults.activationDtype, 'f32');
+assert.equal(inference.session.kvcache.kvDtype, 'f16');
+assert.equal(inference.session.ngramEmbedding.reads.maxConcurrent, 16);
+inference.session.ngramEmbedding.reads.maxConcurrent = 1;
+assert.equal(createSourceRuntimeManifestInference(parsed.config).session.ngramEmbedding.reads.maxConcurrent, 16);
 console.log('gguf-qwen4-exp-source.test: ok');
