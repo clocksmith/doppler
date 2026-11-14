@@ -1,3 +1,4 @@
+import { getRuntimeConfig } from '../../../../config/runtime.js';
 import { acquireBuffer, readBufferSlice, releaseBuffer } from '../../../../memory/buffer-pool.js';
 import { getDevice } from '../../../../gpu/device.js';
 import { createTensor } from '../../../../gpu/tensor.js';
@@ -18,7 +19,10 @@ export async function executeRoutedExpertChunks(options, loader, policy, signal)
   const selections = async start => {
     signal?.throwIfAborted();
     const count = Math.min(policy.routeChunkTokens, numTokens - start);
+    const profile = getRuntimeConfig().shared.debug.profiler.enabled;
+    const started = profile ? performance.now() : 0;
     const data = await readBufferSlice(indicesBuffer, start * topK * 4, count * topK * 4);
+    if (profile) loader.recordRoutedReadback?.(options.phase, performance.now() - started, count * topK * 4);
     signal?.throwIfAborted();
     return [...new Set(new Uint32Array(data))];
   };

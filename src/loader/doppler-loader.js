@@ -196,6 +196,8 @@ export class DopplerLoader {
   _layerShardMap = new Map();
 
   constructor(loadingConfig) {
+    /** @type {import('./doppler-loader.js').DopplerLoader['routedReadbackStats']} */
+    this.routedReadbackStats = {};
     if (!loadingConfig) {
       log.debug('Loader', 'No explicit loadingConfig provided; falling back to getRuntimeConfig().loading');
     }
@@ -579,6 +581,23 @@ export class DopplerLoader {
     return prepareRoutedExperts(this, layer, expertIds, signal, phase);
   }
 
+  /** @param {'prefill' | 'decode' | undefined} phase @param {number} elapsedMs @param {number} bytes */
+  recordRoutedReadback(phase, elapsedMs, bytes) {
+    if (!getRuntimeConfig().shared.debug.profiler.enabled) return;
+    const key = phase === 'prefill' || phase === 'decode' ? phase : 'unspecified';
+    const bucket = this.routedReadbackStats[key] ??= { calls: 0, bytes: 0, wallMs: 0 };
+    bucket.calls++;
+    bucket.bytes += bytes;
+    bucket.wallMs += elapsedMs;
+  }
+
+  getRoutedReadbackStats() {
+    return {
+      scope: 'Routing indices readback wall time includes queued GPU work, copy and map wait; not GPU routing compute. May overlap cache preparation in chunked prefill.',
+      phases: Object.fromEntries(Object.entries(this.routedReadbackStats).map(([phase, bucket]) => [phase, { ...bucket }])),
+    };
+  }
+
   getRoutedExpertCacheStats() { return this.routedExpertCache?.getStats() ?? null; }
 
   _getExpertLoaderContext() { return createExpertLoaderContext(this); }
@@ -630,6 +649,7 @@ export class DopplerLoader {
   }
 
   async unload() {
+    this.routedReadbackStats = {};
     debugTrace.loader(' Unloading model...');
     const routedCleanupErrors = await disposeRoutedExperts(this);
 
