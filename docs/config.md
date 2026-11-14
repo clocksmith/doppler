@@ -459,3 +459,30 @@ range reads account for stored bytes. Tensor dtype, shape and physical byte
 length must agree with the declared storage format before binding. The source
 converter may supply `ngram_table_dtype` independently of the model's other
 weight precisions. This does not qualify a mixed-precision model end to end.
+
+### Measured two-device partition proposals
+
+`doppler-gpu/partitions` exports `proposeHardwarePartitionPlan(manifest, request)`.
+It proposes geometry before opening a session; it does not change an active
+allocation, rank existing routes, or qualify a device/model combination.
+
+Supply exactly two ordered hardware profiles for the same manifest digest and
+workload identity, fresh source receipts, explicit memory budgets/reserves,
+per-layer resident bytes (including retained KV/state), reusable scratch peaks,
+and per-layer elapsed time for the entire declared workload. Fixed costs include
+embedding/head and runtime reserves on their respective devices. Scratch uses a
+maximum only when those allocations are reusable; simultaneous retained scratch
+belongs in resident/fixed bytes. Supply transfer time for every interior boundary.
+The workload identity must bind prompt/output limits, activation/quantization,
+adapters, execution settings and measurement conditions. The helper checks
+matching identities and freshness, not the truth or authenticity of receipts.
+
+The bounded linear scan minimizes the supplied additive single-request latency
+estimate over feasible contiguous two-device cuts. Ties choose the earliest cut.
+It returns the existing canonical v3 plan plus cost/evidence metadata, preserving
+manifest hyperconnection geometry. Missing/stale profiles, unsafe aggregates or
+infeasible memory fail instead of inventing priors or falling back to half-splits.
+This is not a global optimum, throughput model or measured speedup. Before use,
+qualify the proposed allocation through the existing admission/output checks;
+compare predicted and observed costs. Multi-device optimization, overlapping
+execution, cache contention and thermal prediction are outside this helper.

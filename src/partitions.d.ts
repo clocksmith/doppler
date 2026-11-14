@@ -19,3 +19,4 @@ export type { ResidentPartitionAllocation, ResidentPartitionDescriptor, Resident
   ResidentCanonicalARequest, ResidentCanonicalBRequest, ResidentCanonicalBResult,
   ResidentCanonicalGeneration, ResidentOrderedPartitionIdentity, ResidentExecutionIdentity,
   ResidentStageRequest, ResidentStageResult } from './inference/pipelines/text/resident-partition-contract.js';
+export { proposeHardwarePartitionPlan } from './config/hardware-partition-plan.js';

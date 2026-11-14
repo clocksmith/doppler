@@ -8,3 +8,4 @@ export * from './config/canonical-generation-policy.js';
 export { createResidentPartitionFactory, createManifestResidentPartitionFactory,
   configureDeviceMemoryBudget, inspectDeviceMemory } from './client/resident-partitions.js';
 export { createVerifiedPieceStorage } from './storage/verified-piece-storage.js';
+export { proposeHardwarePartitionPlan } from './config/hardware-partition-plan.js';
