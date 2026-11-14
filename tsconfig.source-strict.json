@@ -16,6 +16,7 @@
   },
   "include": [],
   "files": [
+    "src/tooling/node-runtime-bridge.js",
     "src/formats/gguf/qwen4-exp-source.js",
     "src/gpu/kernels/channel-gain.js",
     "src/inference/pipelines/text/channel-gain.js",

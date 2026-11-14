@@ -1,23 +1,14 @@
+import { loadRuntimeModules, createRuntimeBridge } from './node-runtime-bridge.js';
 import {
   applyRuntimeInputs,
   buildSuiteOptions,
   runWithRuntimeIsolation,
 } from './command-runtime-execution.js';
-import { loadRuntimeConfigFromRef } from './browser-harness/runtime-config.js';
 import { bootstrapNodeWebGPUProvider } from './node-webgpu.js';
-import { installNodeFileFetchShim } from './node-file-fetch.js';
 import { findFirstDivergence } from '../inference/pipelines/text/operator-events.js';
 import { getDriftTolerance } from '../inference/pipelines/text/drift-policy.js';
 import { destroyDevice, resetDeviceState, getKernelCapabilities } from '../gpu/device.js';
-import {
-  getActiveKernelPath,
-  getActiveKernelPathPolicy,
-  getActiveKernelPathSource,
-  setActiveKernelPath,
-} from '../config/kernel-path-loader.js';
 import { isPlainObject } from '../formats/plain-object.js';
-
-let runtimeModulesPromise = null;
 
 function cloneValue(value) {
   if (value == null) return value;
@@ -43,35 +34,6 @@ function mergeRecords(base, patch) {
     merged[key] = cloneValue(value);
   }
   return merged;
-}
-
-async function loadRuntimeModules() {
-  if (runtimeModulesPromise) {
-    return runtimeModulesPromise;
-  }
-
-  installNodeFileFetchShim();
-  runtimeModulesPromise = Promise.all([
-    import('./browser-harness.js'),
-    import('../config/runtime.js'),
-  ]).then(([harness, runtime]) => ({ harness, runtime }));
-
-  return runtimeModulesPromise;
-}
-
-function createRuntimeBridge(modules) {
-  return {
-    loadRuntimeConfigFromRef,
-    loadRuntimeProfile: modules.harness.loadRuntimeProfile,
-    loadRuntimeConfigFromUrl: modules.harness.loadRuntimeConfigFromUrl,
-    getRuntimeConfig: modules.runtime.getRuntimeConfig,
-    setRuntimeConfig: modules.runtime.setRuntimeConfig,
-    resetRuntimeConfig: modules.runtime.resetRuntimeConfig,
-    getActiveKernelPath,
-    getActiveKernelPathPolicy,
-    getActiveKernelPathSource,
-    setActiveKernelPath,
-  };
 }
 
 function buildDiagnoseRuntimeConfig(currentConfig) {

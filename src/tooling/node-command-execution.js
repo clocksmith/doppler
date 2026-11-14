@@ -1,3 +1,4 @@
+import { loadRuntimeModules, createRuntimeBridge } from './node-runtime-bridge.js';
 import {
   ensureCommandSupportedOnSurface,
 } from './command-api.js';
@@ -7,7 +8,6 @@ import {
 } from './command-envelope.js';
 import { assertCommandRequestIsObject, normalizeCommandOptions } from './command-validation.js';
 import { convertSafetensorsDirectory } from './node-converter.js';
-import { installNodeFileFetchShim } from './node-file-fetch.js';
 import { bootstrapNodeWebGPU } from './node-webgpu.js';
 import { runDiagnoseCommand } from './diagnose-runner.js';
 import {
@@ -17,14 +17,7 @@ import {
 } from './command-runtime-execution.js';
 import { refreshManifestIntegrity } from './rdrr-integrity-refresh.js';
 import { runProductionRelease } from './production-release.js';
-import { loadRuntimeConfigFromRef } from './browser-harness/runtime-config.js';
 import { isPlainObject } from '../formats/plain-object.js';
-import {
-  getActiveKernelPath,
-  getActiveKernelPathPolicy,
-  getActiveKernelPathSource,
-  setActiveKernelPath,
-} from '../config/kernel-path-loader.js';
 
 function asOptionalPlainObject(value, label) {
   if (value == null) return null;
@@ -59,22 +52,7 @@ function assertNoUnsupportedRuntimeInputs(request, reason = null) {
   }
 }
 
-let runtimeModulesPromise = null;
 let trainingOperatorModulesPromise = null;
-
-function loadRuntimeModules() {
-  if (runtimeModulesPromise) {
-    return runtimeModulesPromise;
-  }
-
-  installNodeFileFetchShim();
-  runtimeModulesPromise = Promise.all([
-    import('./browser-harness.js'),
-    import('../config/runtime.js'),
-  ]).then(([harness, runtime]) => ({ harness, runtime }));
-
-  return runtimeModulesPromise;
-}
 
 async function loadTrainingOperatorModules() {
   if (trainingOperatorModulesPromise) {
@@ -205,18 +183,7 @@ export async function runNodeCommandExecution(commandRequest, options = {}) {
 
     await assertNodeWebGPUSupport();
     const modules = await loadRuntimeModules();
-    const runtimeBridge = {
-      loadRuntimeConfigFromRef,
-      loadRuntimeProfile: modules.harness.loadRuntimeProfile,
-      loadRuntimeConfigFromUrl: modules.harness.loadRuntimeConfigFromUrl,
-      getRuntimeConfig: modules.runtime.getRuntimeConfig,
-      setRuntimeConfig: modules.runtime.setRuntimeConfig,
-      resetRuntimeConfig: modules.runtime.resetRuntimeConfig,
-      getActiveKernelPath,
-      getActiveKernelPathPolicy,
-      getActiveKernelPathSource,
-      setActiveKernelPath,
-    };
+    const runtimeBridge = createRuntimeBridge(modules);
 
     return runWithRuntimeIsolation(runtimeBridge, async () => {
       await applyRuntimeInputs(request, runtimeBridge, validatedOptions.runtimeLoadOptions || {});
