@@ -1,3 +1,4 @@
+import { getRuntimeConfig, setRuntimeConfig } from '../../src/config/runtime.js';
 import { prepareRoutedExperts } from '../../src/loader/experts/loader-bindings.js';
 import { ggufBlockSourceBytes } from '../../src/formats/gguf/block-storage.js';
 import assert from 'node:assert/strict';
@@ -453,4 +454,31 @@ console.log('Routed expert cache: range extents, identity, hot reuse, budgets, c
     routedExpertCache: { prepare: async (...args) => { forwarded = args; return {}; } } };
   await prepareRoutedExperts(loader, 0, [1], undefined, 'prefill');
   assert.equal(forwarded[3], 'prefill', 'loader forwards one-token prefill explicitly rather than guessing decode');
+}
+
+{
+  const prior = getRuntimeConfig();
+  const f = fixture();
+  assert.deepEqual(f.cache.getStats().phaseProfiles, {}, 'disabled profiling creates no buckets');
+  try {
+    setRuntimeConfig({ shared: { debug: { profiler: { enabled: true } } } });
+    await f.cache.prepare(f.plan(0), [0, 1], undefined, 'prefill');
+    const before = f.cache.getStats();
+    await f.cache.prepare(f.plan(1), [0], undefined, 'decode');
+    const after = f.cache.getStats();
+    assert.equal(after.phaseProfiles.prefill.preparations, 1);
+    assert.equal(after.phaseProfiles.decode.preparations, 1);
+    assert.equal(after.phaseProfiles.prefill.counters.sourceReadBytes, before.sourceReadBytes);
+    assert.equal(after.phaseProfiles.decode.counters.sourceReadBytes, after.sourceReadBytes - before.sourceReadBytes);
+    assert(after.phaseProfiles.prefill.prepareWallMs >= 0);
+    assert(after.phaseProfiles.prefill.synchronizationWaitMs >= 0);
+    assert(after.phaseProfiles.prefill.peakGpuResidentBytes > 0);
+    assert(after.phaseProfiles.prefill.peakStagingBytes > 0);
+    after.phaseProfiles.decode.counters.sourceReadBytes = -1;
+    assert(f.cache.getStats().phaseProfiles.decode.counters.sourceReadBytes >= 0, 'profile snapshots are detached');
+    setRuntimeConfig(prior);
+    const profiles = f.cache.getStats().phaseProfiles;
+    await f.cache.prepare(f.plan(2), [0], undefined, 'decode');
+    assert.deepEqual(f.cache.getStats().phaseProfiles, profiles, 'disabled profiling stops attribution');
+  } finally { setRuntimeConfig(prior); await f.cache.destroy(); }
 }

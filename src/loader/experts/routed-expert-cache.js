@@ -1,3 +1,4 @@
+import { getRuntimeConfig } from '../../config/runtime.js';
 import { createWeightBuffer } from '../../gpu/weight-buffer.js';
 import { validateQwen35RoutedConfig } from '../../config/schema/loading.schema.js';
 import { loadTensorRange } from '../tensors/tensor-reader.js';
@@ -33,6 +34,10 @@ export class RoutedExpertCache {
   #mutation = Promise.resolve();
   /** @type {Promise<import('./routed-expert-cache.js').RoutedExpertWeights> | null} */
   #active = null;
+  /** @type {Record<string, import('./routed-expert-cache.js').RoutedExpertPhaseProfile>} */
+  #phaseProfiles = {};
+  /** @type {import('./routed-expert-cache.js').RoutedExpertPhaseProfile | null} */
+  #activeProfile = null;
   #stats = { sourceReadBytes: 0, sourceReads: 0, uploadBytes: 0,
     cacheHits: 0, cacheMisses: 0, workingHits: 0, evictions: 0, evictionFenceWaits: 0, evictionFenceSkips: 0, bufferReuses: 0, expertCopySubmissions: 0, hitBatchSubmissions: 0, batchedHitExperts: 0,
     residentBytes: 0, peakResidentBytes: 0, peakAccountedGpuBytes: 0, peakStagingBytes: 0,
@@ -43,6 +48,23 @@ export class RoutedExpertCache {
   constructor(options) {
     validateQwen35RoutedConfig(options.policy);
     this.#options = options;
+  }
+
+  #sampleProfileMemory() {
+    const profile = this.#activeProfile;
+    if (!profile) return;
+    profile.peakGpuResidentBytes = Math.max(profile.peakGpuResidentBytes, this.#stats.residentBytes);
+    profile.peakHostOwnedOrReservedBytes = Math.max(profile.peakHostOwnedOrReservedBytes, this.#hostBytes + this.#hostReserved);
+    profile.peakStagingBytes = Math.max(profile.peakStagingBytes, this.#staging);
+  }
+
+  /** @param {string} key */
+  #lookupHost(key) {
+    if (!this.#activeProfile) return this.#hostEntries.get(key);
+    const start = performance.now();
+    const entry = this.#hostEntries.get(key);
+    this.#activeProfile.hostLookupMs += performance.now() - start;
+    return entry;
   }
 
   /** @template T @param {() => Promise<T>} action @returns {Promise<T>} */
@@ -65,6 +87,7 @@ export class RoutedExpertCache {
       usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_SRC | GPUBufferUsage.COPY_DST, label });
     this.#owned.add(buffer);
     this.#stats.residentBytes += bytes;
+    this.#sampleProfileMemory();
     this.#stats.peakResidentBytes = Math.max(this.#stats.peakResidentBytes, this.#stats.residentBytes);
     this.#stats.peakAccountedGpuBytes = Math.max(this.#stats.peakAccountedGpuBytes,
       this.#options.otherGpuBytes() + this.#stats.residentBytes);
@@ -81,7 +104,10 @@ export class RoutedExpertCache {
   // copies complete when an earlier fence resolves; entries may still be in use.
   async #waitForSubmitted() {
     const serial = this.#submittedSerial;
-    await this.#options.device.queue.onSubmittedWorkDone();
+    const profile = this.#activeProfile;
+    const start = profile ? performance.now() : 0;
+    try { await this.#options.device.queue.onSubmittedWorkDone(); }
+    finally { if (profile) profile.synchronizationWaitMs += performance.now() - start; }
     this.#completedSerial = Math.max(this.#completedSerial, serial);
   }
 
@@ -210,7 +236,7 @@ export class RoutedExpertCache {
     let targetOffset = 0;
     let hostReservation = 0;
     try {
-      const host = this.#hostEntries.get(key);
+      const host = this.#lookupHost(key);
       if (host) {
         this.#hostEntries.delete(key); this.#hostEntries.set(key, host);
         this.#stats.hostCacheHits++;
@@ -235,6 +261,7 @@ export class RoutedExpertCache {
         if (admit) {
           this.#makeHostRoom(plan.expertBytes);
           this.#hostReserved += plan.expertBytes; hostReservation = plan.expertBytes;
+          this.#sampleProfileMemory();
           this.#stats.peakHostOwnedOrReservedBytes = Math.max(this.#stats.peakHostOwnedOrReservedBytes,
             this.#hostBytes + this.#hostReserved);
           chunks = [];
@@ -245,6 +272,7 @@ export class RoutedExpertCache {
           signal.throwIfAborted();
           const length = Math.min(chunkBytes, plane.expertBytes - offset);
           this.#staging += 2 * length;
+          this.#sampleProfileMemory();
           this.#stats.peakStagingBytes = Math.max(this.#stats.peakStagingBytes, this.#staging);
           const started = performance.now();
           try {
@@ -294,7 +322,7 @@ export class RoutedExpertCache {
   /** @param {string} key @param {import('./routed-expert-cache.js').RoutedExpertEntry} entry */
   #touchEntry(key, entry) {
     this.#entries.delete(key); this.#entries.set(key, entry);
-    const host = this.#hostEntries.get(key);
+    const host = this.#lookupHost(key);
     if (host) { this.#hostEntries.delete(key); this.#hostEntries.set(key, host); }
   }
 
@@ -363,9 +391,33 @@ export class RoutedExpertCache {
     externalSignal?.addEventListener('abort', abortExternal, { once: true });
     this.#shutdown.signal.addEventListener('abort', abortShutdown, { once: true });
     if (externalSignal?.aborted) abortExternal();
-    const task = this.#prepare(plan, expertIds, controller, phase);
+    const profileEnabled = getRuntimeConfig().shared.debug.profiler.enabled;
+    const before = profileEnabled ? { ...this.#stats } : null;
+    const started = profileEnabled ? performance.now() : 0;
+    if (profileEnabled) {
+      this.#activeProfile = this.#phaseProfiles[phase ?? 'unspecified'] ??= {
+        preparations: 0, failures: 0, prepareWallMs: 0, hostLookupMs: 0, synchronizationWaitMs: 0,
+        peakGpuResidentBytes: 0, peakHostOwnedOrReservedBytes: 0, peakStagingBytes: 0, counters: {},
+      };
+      this.#activeProfile.preparations++;
+      this.#sampleProfileMemory();
+    }
+    let succeeded = false;
+    const task = this.#prepare(plan, expertIds, controller, phase).then(result => { succeeded = true; return result; });
     this.#active = task;
     return task.finally(() => {
+      const profile = this.#activeProfile;
+      if (profile && before) {
+        profile.prepareWallMs += performance.now() - started;
+        if (!succeeded) profile.failures++;
+        const current = /** @type {Record<string, number>} */ (this.#stats);
+        for (const [key, value] of Object.entries(before)) {
+          // Peaks and gauges are not additive event counters.
+          if (key.startsWith('peak') || key === 'residentBytes') continue;
+          profile.counters[key] = (profile.counters[key] ?? 0) + current[key] - value;
+        }
+      }
+      this.#activeProfile = null;
       externalSignal?.removeEventListener('abort', abortExternal);
       this.#shutdown.signal.removeEventListener('abort', abortShutdown);
       this.#active = null;
@@ -447,7 +499,10 @@ export class RoutedExpertCache {
   getStats() {
     this.#stats.peakAccountedGpuBytes = Math.max(this.#stats.peakAccountedGpuBytes,
       this.#options.otherGpuBytes() + this.#stats.residentBytes);
-    return { ...this.#stats, cacheBytes: this.#cacheBytes, workingBytes: this.#workingBytes, experts: this.#entries.size,
+    return { ...this.#stats,
+      phaseProfiles: Object.fromEntries(Object.entries(this.#phaseProfiles).map(([phase, profile]) =>
+        [phase, { ...profile, counters: { ...profile.counters } }])),
+      cacheBytes: this.#cacheBytes, workingBytes: this.#workingBytes, experts: this.#entries.size,
       hostCacheBytes: this.#hostBytes, hostReservedBytes: this.#hostReserved, hostExperts: this.#hostEntries.size };
   }
 

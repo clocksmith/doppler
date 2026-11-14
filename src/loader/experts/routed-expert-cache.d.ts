@@ -19,7 +19,20 @@ export interface RoutedExpertWeights {
   up?: WeightBuffer;
   down: WeightBuffer;
 }
+/** Optional profiler observations. Operation wait sums overlap and are not a wall-time decomposition. */
+export interface RoutedExpertPhaseProfile {
+  preparations: number;
+  failures: number;
+  prepareWallMs: number;
+  hostLookupMs: number;
+  synchronizationWaitMs: number;
+  peakGpuResidentBytes: number;
+  peakHostOwnedOrReservedBytes: number;
+  peakStagingBytes: number;
+  counters: Record<string, number>;
+}
 export interface RoutedExpertCacheStats {
+  phaseProfiles: Record<string, RoutedExpertPhaseProfile>;
   sourceReadBytes: number;
   sourceReads: number;
   uploadBytes: number;

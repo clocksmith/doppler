@@ -147,6 +147,17 @@ from measured throughput improvements.
 host cache with repeat-read admission and the existing F32-KV profile. It is a
 Node investigation profile, not a new default or a model qualification claim.
 
+With `runtime.shared.debug.profiler.enabled: true`, routed expert statistics also
+include `phaseProfiles` for prefill, decode, and unspecified callers. Each bucket
+reports preparation wall time, host lookup time, existing queue-fence wait time,
+counter deltas (source reads, uploads, hits, evictions, submissions), and observed
+GPU/host/staging peaks. Concurrent read and synchronization durations overlap:
+these operation sums are **not** an additive wall-time decomposition or GPU
+execution timings. No extra fence is inserted. Disabled profiling creates no
+phase snapshots or new timing calls; existing counters remain available. Measure
+the whole profiler toggle's overhead separately because it also enables existing
+runtime profiling outside the cache.
+
 `loader.getRoutedExpertCacheStats()` exposes source/upload bytes, cache and
 working-bank hits, evictions, owned GPU bytes and staging high-water marks.
 Host hits, misses, admission skips, evictions, retained/reserved bytes and their
