@@ -565,7 +565,6 @@ gpu/kernels/cast.d.ts
 gpu/kernels/causal_conv1d_silu.d.ts
 gpu/kernels/channel-gain.d.ts
 gpu/kernels/check-finiteness-f32.d.ts
-gpu/kernels/check-finiteness-f32.js
 gpu/kernels/check-finiteness.d.ts
 gpu/kernels/check-hot-vocab-stop.d.ts
 gpu/kernels/check-stop.d.ts
@@ -874,6 +873,7 @@ inference/pipelines/text/partition-attempt.d.ts
 inference/pipelines/text/partition-execution.d.ts
 inference/pipelines/text/partition-replay.d.ts
 inference/pipelines/text/partition-replay.js
+inference/pipelines/text/partition-wire.d.ts
 inference/pipelines/text/per-layer-inputs.d.ts
 inference/pipelines/text/per-layer/materialize.d.ts
 inference/pipelines/text/per-layer/plan.d.ts
