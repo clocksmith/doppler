@@ -16,6 +16,10 @@ assert.deepEqual(reads,[0]); // Hash checking does not fetch the unrelated secon
 assert.equal(opened.getReceipt().verifiedBytes,4);
 assert.equal(opened.getReceipt().activeReadBytes,0);
 assert.equal(opened.getReceipt().peakReadBytes,2);
+assert.deepEqual([...new Uint8Array(await opened.storage.loadShardRange(0,3,3))],[4,5,6]);
+assert.deepEqual(reads,[0,0,4], 'A cross-boundary range acquires only intersecting pieces');
+assert.equal((await opened.storage.loadShardRange(0,8,0)).byteLength,0);
+assert.deepEqual(reads,[0,0,4], 'An empty end range acquires no pieces');
 await opened.storage.close();await assert.rejects(opened.storage.loadShardRange(0,0,1),/closed|outside/);
 await assert.rejects(createVerifiedPieceStorage({manifestBytes,indexBytes,indexIdentity:'sha256:'+'0'.repeat(64),acquire:async()=>data[0]}),/identity/);
 const corrupt=await createVerifiedPieceStorage({manifestBytes,indexBytes,indexIdentity,acquire:async()=>new Uint8Array(4)});

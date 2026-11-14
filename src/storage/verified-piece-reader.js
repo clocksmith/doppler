@@ -72,8 +72,16 @@ export async function createVerifiedPieceReader({ manifestBytes, indexBytes, ind
     receipt.activeReadBytes += length;
     receipt.peakReadBytes = Math.max(receipt.peakReadBytes, receipt.activeReadBytes);
     try {
-      for (const piece of file.pieces) {
-        if (piece.offset >= offset + length || piece.offset + piece.size <= offset) continue;
+      // Coverage is validated and ordered: locate only the intersecting pieces.
+      let low = 0, high = file.pieces.length;
+      while (low < high) {
+        const middle = Math.floor((low + high) / 2), piece = file.pieces[middle];
+        if (piece.offset + piece.size <= offset) low = middle + 1;
+        else high = middle;
+      }
+      for (let index = low; index < file.pieces.length; index++) {
+        const piece = file.pieces[index];
+        if (piece.offset >= offset + length) break;
         signal?.throwIfAborted();
         const acquisitionStarted = performance.now();
         const received = await waitActive(acquire(Object.freeze({ ...piece, path }), { signal }));
