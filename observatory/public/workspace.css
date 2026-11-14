@@ -1,0 +1,115 @@
+/* The workspace: one column of prompt, answer and signals, then the selected
+   token and the view of the model's inside, side by side on a wide screen. */
+
+.ws-page .ws-main {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 28px;
+  padding-block: 24px 40px;
+}
+@media (min-width: 1100px) {
+  .ws-page .ws-main {
+    grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
+    grid-template-areas: "ask ask" "answer answer" "signals signals" "token inside" "runs runs" "compare compare";
+    align-items: start;
+  }
+  .ws-ask { grid-area: ask; }
+  .ws-answer { grid-area: answer; }
+  .ws-signals { grid-area: signals; }
+  .ws-token { grid-area: token; position: sticky; top: 16px; }
+  .ws-inside { grid-area: inside; }
+  .ws-runs { grid-area: runs; }
+  .ws-compare { grid-area: compare; }
+}
+
+.ws-page h2 { margin: 0; font: 600 17px/1.4 var(--font-sans); letter-spacing: normal; text-transform: none; }
+.ws-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 6px 16px; margin-bottom: 12px; }
+
+/* Header menu: model and recording settings, out of the way. */
+.ws-menu { position: relative; }
+.ws-menu > summary {
+  list-style: none; cursor: pointer; padding: 6px 12px; border: 1px solid var(--doppler-line); border-radius: 999px;
+  font: 500 14px/1.4 var(--font-sans); white-space: nowrap; max-width: 28ch; overflow: hidden; text-overflow: ellipsis;
+}
+.ws-menu > summary::-webkit-details-marker { display: none; }
+.ws-menu > summary::after { content: ' ▾'; color: var(--doppler-muted); }
+.ws-menu-body {
+  position: absolute; z-index: 20; right: 0; top: calc(100% + 8px); width: min(340px, calc(100vw - 32px));
+  display: grid; gap: 12px; padding: 16px; border: 1px solid var(--doppler-line); border-radius: 12px;
+  background: var(--bg); box-shadow: 0 8px 28px rgb(0 0 0 / 12%);
+}
+.ws-field { display: grid; gap: 4px; margin: 0; padding: 0; border: 0; font: 500 13px/1.5 var(--font-sans); }
+.ws-field legend { padding: 0; margin-bottom: 4px; }
+.ws-field input[type="number"] { width: 8ch; }
+.app-header-end { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
+
+/* 1. Ask */
+.ws-input { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 8px; align-items: end; }
+.ws-input textarea {
+  width: 100%; min-height: 56px; resize: vertical; padding: 14px 16px; border: 1px solid var(--doppler-line-strong, var(--doppler-line));
+  border-radius: 14px; background: var(--doppler-surface); font: 400 17px/1.5 var(--font-sans); color: var(--fg);
+}
+.ws-input .btn { min-height: 56px; padding-inline: 22px; }
+.ws-chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+.ws-chip {
+  padding: 5px 12px; border: 1px solid var(--doppler-line); border-radius: 999px; background: transparent;
+  font: 400 13px/1.4 var(--font-sans); color: var(--fg); cursor: pointer;
+}
+.ws-chip:hover:not(:disabled) { border-color: var(--fg); }
+.ws-chip:disabled { opacity: .5; cursor: default; }
+#ws-status:empty { display: none; }
+
+/* Answer */
+.ws-prompt-echo { margin: 0 0 8px; color: var(--doppler-muted); font: 400 15px/1.5 var(--font-sans); }
+.ws-prompt-echo:empty { display: none; }
+.ws-tokens { font-size: 19px; line-height: 1.75; }
+.ws-tokens .token-chip.is-hovered { background: var(--doppler-surface); }
+
+/* 2. Signals: a row of bars per signal, one column per token. */
+.ws-figure { margin: 0; font: 400 14px/1.4 var(--font-sans); color: var(--doppler-muted); }
+.ws-figure strong { color: var(--fg); font-size: 20px; margin-right: 4px; }
+.ws-strip { display: grid; gap: 10px; }
+.ws-row { display: grid; grid-template-columns: minmax(120px, 190px) minmax(0, 1fr); gap: 12px; align-items: end; }
+.ws-row-label { display: grid; font: 600 13px/1.35 var(--font-sans); }
+.ws-row-label .demo-note { font-weight: 400; font-size: 11.5px; }
+.ws-bars { display: grid; grid-template-columns: repeat(var(--ws-columns), minmax(2px, 1fr)); gap: 2px; height: 44px; align-items: end; }
+.ws-bar {
+  display: block; height: calc(var(--ws-value, 0) * 100%); min-height: 2px; padding: 0; border: 0; border-radius: 2px 2px 0 0;
+  background: color-mix(in srgb, #2563eb, #d13b4d calc(var(--ws-value, 0) * 100%)); cursor: pointer;
+}
+.ws-bars--neutral .ws-bar { background: var(--fg); opacity: .55; }
+.ws-bar.is-missing { height: 100%; background: repeating-linear-gradient(135deg, transparent 0 3px, var(--doppler-line) 3px 4px); }
+.ws-bar.is-selected { outline: 2px solid var(--fg); outline-offset: 1px; }
+.ws-bar.is-hovered { filter: brightness(1.25); }
+@media (max-width: 600px) {
+  .ws-row { grid-template-columns: minmax(0, 1fr); gap: 4px; }
+}
+
+/* 3. Selected token */
+.ws-token-title { font: 600 17px/1.4 var(--font-sans); margin: 0 0 10px; }
+.ws-token-panel { display: grid; gap: 12px; }
+
+/* 4. Inside the model: a compact switcher, one view at a time. */
+.ws-tabs { display: flex; flex-wrap: wrap; gap: 4px; padding-bottom: 12px; margin-bottom: 16px; border-bottom: 1px solid var(--doppler-line); }
+.ws-tab {
+  padding: 6px 12px; border: 1px solid transparent; border-radius: 999px; background: transparent;
+  font: 500 13px/1.4 var(--font-sans); color: var(--doppler-muted); cursor: pointer;
+}
+.ws-tab:hover { color: var(--fg); }
+.ws-tab[aria-selected="true"] { border-color: var(--fg); color: var(--fg); }
+.ws-view { min-height: 120px; }
+.ws-load-activity { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 16px; }
+
+/* 5. Runs */
+.ws-runs-list { display: grid; gap: 4px; margin: 0; padding: 0; list-style: none; }
+.ws-runs-list li { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 6px 10px; border-radius: 10px; }
+.ws-runs-list li.is-current { background: var(--doppler-surface); }
+.ws-run { flex: 1 1 auto; min-width: 0; padding: 0; border: 0; background: none; text-align: left; font: 400 14px/1.5 var(--font-sans); color: var(--fg); cursor: pointer; overflow-wrap: anywhere; }
+
+.ws-head-end { display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px 16px; }
+.ws-layer { display: inline-flex; align-items: center; gap: 6px; font: 500 13px/1.4 var(--font-sans); }
+.ws-layer select { width: auto; min-height: 32px; padding: 2px 8px; }
+
+.ws-input .btn.ws-stop { background: transparent; color: var(--fg); border-color: var(--fg); }
+.ws-compare #compare-view { display: grid; gap: 12px; }
+.ws-compare #compare-view[hidden] { display: none; }

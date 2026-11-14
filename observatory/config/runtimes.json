@@ -1,0 +1,22 @@
+{
+  "schema": "doppler.observatory.runtimes/v1",
+  "default": "hosted",
+  "runtimes": {
+    "hosted": {
+      "label": "Hosted runtime",
+      "module": "/doppler/src/index-browser.js",
+      "release": "/doppler/release.json",
+      "preview": false,
+      "flag": null,
+      "notice": null
+    },
+    "preview": {
+      "label": "Preview runtime",
+      "module": "./runtime-preview/src/index-browser.js",
+      "release": "./runtime-preview/release.json",
+      "preview": true,
+      "flag": "runtime.preview",
+      "notice": "A newer Doppler build than the runtime this site hosts. It is not qualified: it passed this site's own checks on one Mac, which says nothing about other devices. Results made with it are marked as preview results."
+    }
+  }
+}

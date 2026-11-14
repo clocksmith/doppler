@@ -1,0 +1,17 @@
+{
+  "id": "./",
+  "name": "Doppler Observatory (preview)",
+  "short_name": "Doppler",
+  "description": "Ask a local model, look inside the answer, and compare runs. A prototype at a temporary address.",
+  "lang": "en-US",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#efefef",
+  "theme_color": "#efefef",
+  "icons": [
+    { "src": "/doppler/demo/assets/pwa/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "/doppler/demo/assets/pwa/icon-512.png", "sizes": "512x512", "type": "image/png" },
+    { "src": "/doppler/demo/assets/pwa/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}

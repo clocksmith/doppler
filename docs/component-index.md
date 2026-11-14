@@ -3,7 +3,7 @@
 Generated from the repository's `CATSCAN.md` files.
 Run `npm run catscan:sync` after adding, removing, or changing a component charter.
 
-Components: 29
+Components: 30
 
 | Component | Target | Charter | Parent |
 | --- | --- | --- | --- |
@@ -12,6 +12,7 @@ Components: 29
 | `doppler.demo` | Give users one dependable browser surface for verified local model execution and inspectable evidence. | [demo/CATSCAN.md](../demo/CATSCAN.md) | `doppler` |
 | `doppler.docs` | Preserve navigable human contracts without competing with machine-readable status or implementation evidence. | [docs/CATSCAN.md](../docs/CATSCAN.md) | `doppler` |
 | `doppler.model-catalog` | Govern the exact model identities and lifecycle facts that Doppler can resolve, qualify, and expose. | [models/CATSCAN.md](../models/CATSCAN.md) | `doppler` |
+| `doppler.observatory` | Let people see how an answer forms: ask, watch it stream, inspect any token inside the model, branch, compare runs, and benchmark a device, in one coherent browser site. | [observatory/CATSCAN.md](../observatory/CATSCAN.md) | `doppler` |
 | `doppler.runtime-source` | Implement Doppler's shipped JavaScript and WGSL contracts with explicit policy resolution and deterministic ownership. | [src/CATSCAN.md](../src/CATSCAN.md) | `doppler` |
 | `doppler.tests` | Provide executable evidence that contracts hold on success, failure, lifecycle, parity, and regression paths. | [tests/CATSCAN.md](../tests/CATSCAN.md) | `doppler` |
 | `doppler.repository-tooling` | Automate repository governance, generation, qualification, and operator workflows without entering the shipped runtime. | [tools/CATSCAN.md](../tools/CATSCAN.md) | `doppler` |

@@ -1,0 +1,149 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#efefef" media="(prefers-color-scheme: light)">
+  <meta name="theme-color" content="#1c1c1c" media="(prefers-color-scheme: dark)">
+  <title>Doppler · Benchmark</title>
+  <link rel="icon" type="image/svg+xml" href="/doppler/demo/favicon.svg">
+  <meta name="robots" content="noindex">
+  <!-- The RD design system and Doppler's demo styles, then this site's layer. -->
+  <link rel="stylesheet" href="/doppler/demo/styles/rd.css">
+  <link rel="stylesheet" href="/doppler/demo/ui/styles/app.css">
+  <link rel="stylesheet" href="/doppler/demo/ui/styles/demo-components.css">
+  <link rel="stylesheet" href="./site.css">
+</head>
+<body>
+  <div id="app" class="app-shell site-page">
+    <header class="app-header">
+      <div class="app-brand">
+        <div class="app-brand-line">
+          <span class="app-brand-mark" aria-hidden="true">D</span>
+          <h1 class="app-brand-name">Doppler</h1>
+        </div>
+      </div>
+      <div class="app-header-end">
+        <nav class="app-links" aria-label="Sections and project links">
+          <a href="https://github.com/clocksmith/doppler">GitHub</a>
+          <a href="https://www.npmjs.com/package/doppler-gpu">npm</a>
+        </nav>
+      </div>
+    </header>
+
+    <main class="demo-sections">
+      <section class="demo-section" aria-labelledby="page-title">
+        <header class="demo-section-head">
+          <h2 id="page-title">Benchmark this device</h2>
+          <p class="site-mode"><span class="badge badge-filled" data-mode="benchmark">Benchmark measurement</span> <span class="demo-note">Run without inspection, so its timings are speeds.</span></p>
+          <p class="demo-note">One fixed workload on this device's GPU. The result is a file; nothing leaves this device.</p>
+        </header>
+
+        <p id="runtime-notice" class="status-row warn" role="status" hidden></p>
+
+        <div class="demo-controls">
+          <button id="run-button" class="btn btn-primary" type="button" disabled>Run benchmark</button>
+          <span id="run-note" class="demo-note" role="status"></span>
+        </div>
+        <ol id="stages" class="site-stages" aria-live="polite"></ol>
+      </section>
+
+      <section id="result" class="demo-section" aria-labelledby="result-title" hidden>
+        <header class="demo-section-head">
+          <h2 id="result-title">Result</h2>
+        </header>
+        <div id="verdict-row" class="status-row">
+          <div class="status-meta">
+            <span id="verdict" class="status-label"></span>
+            <span id="verdict-scope" class="status-detail"></span>
+          </div>
+        </div>
+        <ul id="reasons" class="site-list"></ul>
+        <ul id="notes" class="site-list demo-note"></ul>
+        <div class="site-scroll">
+          <table id="numbers" hidden>
+            <thead><tr><th>Run</th><th class="site-num">Whole run</th><th class="site-num">First token</th><th class="site-num">Decoding</th></tr></thead>
+            <tbody></tbody>
+          </table>
+        </div>
+        <p id="deviation" class="demo-note"></p>
+        <p id="answer" class="site-quote" hidden></p>
+        <div class="demo-controls">
+          <button id="download-button" class="btn" type="button">Download result (JSON)</button>
+          <button id="to-compare" class="btn" type="button">Add to the comparison below</button>
+          <button id="to-explore" class="btn" type="button" hidden>Open this answer in Explore</button>
+        </div>
+        <p id="identity" class="demo-note"></p>
+      </section>
+
+      <section class="demo-section" aria-labelledby="details-title">
+        <header class="demo-section-head sr-only">
+          <h2 id="details-title">What runs, and where</h2>
+        </header>
+        <details class="demo-disclosure" open>
+          <summary>What runs</summary>
+          <div class="demo-disclosure-body">
+            <dl id="protocol-facts" class="site-facts"><dt>Protocol</dt><dd>Loading…</dd></dl>
+            <div class="demo-controls">
+              <span class="demo-note">Runtime: <strong id="runtime-name">checking…</strong></span>
+              <label id="runtime-choice" class="demo-inline-field"></label>
+            </div>
+          </div>
+        </details>
+        <details class="demo-disclosure" open>
+          <summary>This device</summary>
+          <div class="demo-disclosure-body">
+            <dl id="device-facts" class="site-facts"><dt>WebGPU</dt><dd>Checking…</dd></dl>
+          </div>
+        </details>
+        <details class="demo-disclosure">
+          <summary>Switches</summary>
+          <div class="demo-disclosure-body">
+            <p class="demo-note">Switches only; they never change what counts as a valid result.</p>
+            <dl id="flag-facts" class="site-facts"></dl>
+          </div>
+        </details>
+      </section>
+      <section id="compare" class="demo-section" aria-labelledby="cmp-page-title">
+        <header class="demo-section-head">
+          <h2 id="cmp-page-title">Compare benchmark results</h2>
+          <p class="site-mode"><span class="badge badge-filled" data-mode="benchmark">Benchmark measurement</span> <span class="demo-note">Benchmark results only. Answers and recordings are compared in Explore.</span></p>
+          <p class="demo-note">Each result is checked again here; only passing ones are compared. Not a ranking.</p>
+        </header>
+
+        <div class="demo-controls">
+          <button id="cmp-open-button" class="btn" type="button">Open result files</button>
+          <input id="cmp-open" type="file" accept="application/json,.json" multiple hidden>
+          <button id="cmp-clear" class="btn btn-ghost" type="button" hidden>Clear</button>
+          <span id="cmp-open-status" class="demo-note" role="status"></span>
+        </div>
+        <p id="cmp-empty" class="demo-note">No results yet. Run the benchmark on a device, download its result, and open it here.</p>
+        <p id="cmp-summary"></p>
+        <div id="cmp-results-scroll" class="site-scroll" tabindex="0" role="region" aria-label="Benchmark results" hidden>
+          <table id="cmp-results" hidden>
+            <thead><tr>
+              <th data-card="title">Device and browser</th><th>Runtime</th><th>Verdict</th>
+              <th class="site-num">Decoding</th><th class="site-num">Against the first passing result</th>
+              <th class="site-num">First token</th><th class="site-num">Whole run</th><th class="site-num">First run after loading</th><th class="site-num">Model load</th><th data-card="plain"><span class="sr-only">Open</span></th>
+            </tr></thead>
+            <tbody></tbody>
+          </table>
+        </div>
+        <p id="cmp-thin" class="demo-note"></p>
+      </section>
+
+      <section id="cmp-reasons-section" class="demo-section" aria-labelledby="cmp-reasons-title" hidden>
+        <header class="demo-section-head">
+          <h2 id="cmp-reasons-title">Why a result is not compared</h2>
+        </header>
+        <ul id="cmp-reasons" class="site-list"></ul>
+      </section>
+    </main>
+
+    <footer class="site-foot">
+      <p class="demo-note">Prototype. Nothing is uploaded.</p>
+    </footer>
+  </div>
+  <script type="module" src="./benchmark.js"></script>
+</body>
+</html>

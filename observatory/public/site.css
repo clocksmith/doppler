@@ -1,0 +1,296 @@
+/* This site's own layer. It sits on the RD design system and Doppler's demo
+   styles, which every page loads first from /doppler/demo/:
+
+     styles/rd.css                    tokens, primitives, components
+     ui/styles/app.css                Doppler's colors, shell, header, buttons
+     ui/styles/demo-components.css    sections, notes, disclosures, controls
+
+   Colors, type, buttons, form controls and tables come from those files. This
+   one holds only what they do not have: a one-column page in the demo's shell,
+   how RD's badge and status components look in that shell, and this site's
+   layouts and visualizations.
+
+   Every rule is scoped to this site's pages (#app.site-page) or to its section
+   of the front page (#site-runs), so the demo's own components are untouched. */
+
+/* --- The demo's shell, as one column --- */
+#app.site-page { max-width: 1040px; }
+#app.site-page.site-wide { max-width: 1320px; }
+/* The demo lays its sections out as two columns on wide screens; these pages keep one. */
+#app.site-page .demo-sections { display: flex; flex-direction: column; align-items: stretch; gap: 0; }
+#app.site-page .demo-section { font: 400 15px/1.6 var(--font-sans); }
+#app.site-page .site-foot { padding-top: var(--demo-space-2); border-top: 1px solid var(--doppler-line); }
+
+/* --- Navigation: this site's pages, in the demo's header links --- */
+#app .app-links:has(a[data-site-page]) { flex-wrap: wrap; justify-content: flex-end; row-gap: var(--demo-space-1); }
+#app .app-links a[data-site-page] { white-space: nowrap; }
+#app .app-links a[aria-current="page"] { font-weight: 700; border-bottom: 2px solid var(--fg); }
+@media (max-width: 600px) {
+  #app .app-header:has(a[data-site-page]) .app-header-end { width: 100%; margin-left: 0; }
+  #app .app-links:has(a[data-site-page]) { justify-content: flex-start; }
+}
+
+/* --- RD badges and tags, in Doppler's pill (as the demo's "Recorded" tag) ---
+   Filled: a benchmark measurement. Outlined: an instrumented recording. */
+:is(#app.site-page, #site-runs) :is(.badge, .tag, .status-badge) {
+  display: inline-block;
+  padding: 0 8px;
+  border: 1px solid var(--doppler-line-strong);
+  border-radius: 999px;
+  font: 600 11px/1.7 var(--font-sans);
+  letter-spacing: normal;
+  text-transform: none;
+  white-space: nowrap;
+  vertical-align: middle;
+  color: var(--fg);
+}
+:is(#app.site-page, #site-runs) .badge-filled { border-color: var(--fg); background: var(--fg); color: var(--bg); }
+:is(#app.site-page, #site-runs) .site-mode { display: flex; flex-wrap: wrap; align-items: baseline; gap: var(--demo-space-1); margin: 0; }
+:is(#app.site-page, #site-runs) .site-mode .demo-note { flex: 1 1 28ch; }
+
+/* --- RD status rows and badges: the border style carries the meaning ---
+   solid: passed. dashed: a warning, or not comparable. double: failed. */
+:is(#app.site-page, #site-runs) .status-row {
+  justify-content: flex-start;
+  padding: 12px var(--demo-space-2);
+  border: 1px solid var(--doppler-line-strong);
+  border-radius: var(--demo-control-radius);
+  background: var(--doppler-surface);
+  font: 400 14px/1.55 var(--font-sans);
+}
+:is(#app.site-page, #site-runs) .status-label { font: 600 17px/1.4 var(--font-sans); letter-spacing: normal; text-transform: none; }
+:is(#app.site-page, #site-runs) .status-detail { font: 400 13px/1.55 var(--font-sans); color: var(--doppler-muted); opacity: 1; }
+:is(#app.site-page, #site-runs) .status-detail:empty { display: none; }
+:is(#app.site-page, #site-runs) :is(.status-row, .status-badge).ready { border-color: var(--fg); }
+:is(#app.site-page, #site-runs) :is(.status-row, .status-badge).warn { border-style: dashed; border-color: var(--fg); }
+:is(#app.site-page, #site-runs) :is(.status-row, .status-badge).error { border-style: double; border-width: 3px; border-color: var(--fg); }
+:is(#app.site-page, #site-runs) :is(.status-label, .status-badge)::before { font-weight: 700; }
+:is(#app.site-page, #site-runs) :is(.ready > .status-meta > .status-label, .status-badge.ready)::before { content: '✓ '; }
+:is(#app.site-page, #site-runs) :is(.warn > .status-meta > .status-label, .status-badge.warn)::before { content: '! '; }
+:is(#app.site-page, #site-runs) :is(.error > .status-meta > .status-label, .status-badge.error)::before { content: '✕ '; }
+
+/* --- Controls: RD's and the demo's, with the sizes this site needs --- */
+:is(#app.site-page, #site-runs) .btn-small { min-height: 32px; padding: 4px 12px; font-size: 13px; white-space: nowrap; }
+/* A chosen row: filled, as the demo fills its active mode buttons. */
+:is(#app.site-page, #site-runs) .btn[aria-pressed="true"]:not(:disabled) { border-color: var(--fg); background: var(--fg); color: var(--bg); box-shadow: none; }
+:is(#app.site-page, #site-runs) .demo-inline-field :is(input, select) { flex: 0 1 auto; width: auto; }
+:is(#app.site-page, #site-runs) .demo-inline-field input[type="number"] { width: 11ch; }
+:is(#app.site-page, #site-runs) .demo-inline-field select { flex: 1 1 12ch; min-width: 0; max-width: 44ch; }
+:is(#app.site-page, #site-runs) .demo-inline-field { min-width: 0; max-width: 100%; white-space: normal; }
+#app.site-page textarea { min-height: 96px; padding: 12px; border-radius: var(--demo-control-radius); font: 400 15px/1.6 var(--font-sans); }
+#app.site-page .setting-field select { width: 100%; }
+@media (max-width: 600px) {
+  :is(#app.site-page, #site-runs) .btn-small { min-height: 44px; }
+}
+
+/* --- Text blocks --- */
+:is(#app.site-page, #site-runs) .site-list { margin: 0; padding-left: 1.3em; }
+:is(#app.site-page, #site-runs) .site-list:empty { display: none; }
+:is(#app.site-page, #site-runs) .site-list li + li { margin-top: 4px; }
+:is(#app.site-page, #site-runs) .site-list.demo-note { color: var(--doppler-muted); }
+:is(#app.site-page, #site-runs) p:empty { display: none; }
+:is(#app.site-page, #site-runs) .site-quote { margin: 0; padding-left: var(--demo-space-2); border-left: 3px solid var(--doppler-line); white-space: pre-wrap; overflow-wrap: anywhere; }
+
+/* --- Facts: a term and what is known about it --- */
+#app.site-page .site-facts { display: grid; grid-template-columns: minmax(130px, 28%) minmax(0, 1fr); gap: 6px var(--demo-space-2); margin: 0; font: 400 14px/1.55 var(--font-sans); }
+#app.site-page .site-facts dt { color: var(--doppler-muted); }
+#app.site-page .site-facts dd { min-width: 0; overflow-wrap: anywhere; }
+@media (max-width: 600px) {
+  #app.site-page .site-facts { grid-template-columns: minmax(0, 1fr); gap: 0; }
+  #app.site-page .site-facts dd { margin-bottom: var(--demo-space-1); }
+}
+
+/* --- Tables: RD's table, with numbers aligned and room to scroll --- */
+/* Positioned, so that visually hidden header text inside is clipped with the table. */
+:is(#app.site-page, #site-runs) .site-scroll { position: relative; max-width: 100%; overflow-x: auto; }
+:is(#app.site-page, #site-runs) .site-scroll:focus-visible { outline: 2px solid var(--fg); outline-offset: 2px; }
+:is(#app.site-page, #site-runs) table { font: 400 14px/1.5 var(--font-sans); font-variant-numeric: tabular-nums; }
+:is(#app.site-page, #site-runs) :is(th, td) { vertical-align: top; }
+:is(#app.site-page, #site-runs) th { color: var(--doppler-muted); letter-spacing: .04em; }
+:is(#app.site-page, #site-runs) :is(th, td).site-num { text-align: right; }
+:is(#app.site-page, #site-runs) td.site-num { white-space: nowrap; }
+:is(#app.site-page, #site-runs) td .demo-note { display: block; }
+:is(#app.site-page, #site-runs) td code { white-space: pre-wrap; overflow-wrap: anywhere; }
+:is(#app.site-page, #site-runs) tr[data-comparable="false"] td.site-num { color: var(--doppler-muted); }
+:is(#app.site-page, #site-runs) #circumstances td { overflow-wrap: anywhere; }
+@media (min-width: 701px) {
+  #app.site-page #results td { white-space: nowrap; }
+  #app.site-page #results td:is([data-card="title"], :nth-child(2)) { white-space: normal; }
+  #app.site-page #results td[data-card="title"] { min-width: 210px; }
+  #app.site-page #results td:nth-child(2) { min-width: 180px; }
+  #app.site-page #runs { min-width: 680px; }
+  #app.site-page #runs td[data-card="title"] { min-width: 260px; }
+  #site-runs #site-runs-table { min-width: 760px; }
+  /* The run column holds a short id and its origin: wide enough that neither breaks mid-word. */
+  #site-runs #site-runs-table td:first-child { min-width: 17ch; }
+  #site-runs #site-runs-table td:first-child code { white-space: nowrap; }
+  #site-runs #site-runs-table td:last-child { white-space: nowrap; }
+}
+/* On the two-column front page the runs table needs the whole width, not half of it. */
+@media (min-width: 1100px) {
+  #app #site-runs { grid-column: 1 / -1; }
+}
+/* The Runs disclosure draws its own rule; a section rule and padding above it made a double line. */
+#app #site-runs { padding-top: 0; border-top: 0; }
+
+/* On a phone a table of records becomes a list of cards: each row is one
+   record, each value under its column's heading (see cardTable in site.js). */
+@media (max-width: 700px) {
+  :is(#app.site-page, #site-runs) .site-scroll:has(> .site-cards) { overflow: visible; }
+  :is(#app.site-page, #site-runs) .site-cards { display: block; }
+  :is(#app.site-page, #site-runs) .site-cards thead { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
+  :is(#app.site-page, #site-runs) .site-cards tbody { display: grid; gap: var(--demo-space-2); }
+  :is(#app.site-page, #site-runs) .site-cards tr {
+    display: grid;
+    gap: 6px;
+    padding: 12px var(--demo-space-2);
+    border: 1px solid var(--doppler-line);
+    border-radius: var(--demo-control-radius);
+    background: var(--doppler-surface);
+  }
+  :is(#app.site-page, #site-runs) .site-cards td {
+    display: grid;
+    grid-template-columns: minmax(0, 40%) minmax(0, 1fr);
+    align-items: baseline;
+    gap: var(--demo-space-1);
+    min-width: 0;
+    padding: 0;
+    border: 0;
+    text-align: left;
+    white-space: normal;
+  }
+  :is(#app.site-page, #site-runs) .site-cards td::before { content: attr(data-label); font: 600 12px/1.6 var(--font-sans); color: var(--doppler-muted); }
+  :is(#app.site-page, #site-runs) .site-cards td[data-card] { grid-template-columns: minmax(0, 1fr); }
+  :is(#app.site-page, #site-runs) .site-cards td[data-card]::before { content: none; }
+  :is(#app.site-page, #site-runs) .site-cards td[data-card="title"] { order: -1; padding-bottom: 6px; border-bottom: 1px solid var(--doppler-line); }
+  :is(#app.site-page, #site-runs) .site-cards td:empty { display: none; }
+  :is(#app.site-page, #site-runs) .site-cards .site-value { min-width: 0; overflow-wrap: anywhere; }
+  #app.site-page .site-band { flex-basis: 100%; }
+}
+
+/* --- Bars: evidence, in Doppler's spectrum, as the demo's candidate bars --- */
+:is(#app.site-page, #site-runs) .site-bar { display: block; height: 6px; min-width: 60px; overflow: hidden; border: 1px solid var(--doppler-line); border-radius: 999px; background: var(--doppler-surface); }
+:is(#app.site-page, #site-runs) .site-bar > span { display: block; height: 100%; min-width: 1px; border-radius: inherit; background: var(--doppler-spectrum); }
+:is(#app.site-page, #site-runs) td.site-bar-cell { min-width: 110px; vertical-align: middle; }
+:is(#app.site-page, #site-runs) .site-num .site-bar { display: inline-block; width: 64px; margin-left: 6px; vertical-align: middle; }
+
+/* --- Benchmark: the stages of a run --- */
+#app.site-page .site-stages { display: grid; gap: 2px; margin: 0; padding: 0; list-style: none; font: 400 14px/1.55 var(--font-sans); }
+#app.site-page .site-stages li { display: grid; grid-template-columns: 22px minmax(0, 1fr); gap: 6px; color: var(--doppler-muted); }
+#app.site-page .site-stages li[data-state="running"] { color: var(--fg); font-weight: 600; }
+#app.site-page .site-stages li[data-state="done"] { color: var(--fg); }
+#app.site-page .site-stages li[data-state="failed"] { color: var(--fg); font-weight: 600; text-decoration: underline double; text-underline-offset: 3px; }
+#app.site-page .site-stages .site-detail { font-weight: 400; color: var(--doppler-muted); }
+
+/* --- Explore: the answer, its branches and the layer grid --- */
+#app.site-page .token-stream-container { font-size: 18px; line-height: 1.9; }
+#app.site-page .site-forest { margin: 0; padding: 0; list-style: none; overflow-wrap: anywhere; }
+#app.site-page .site-forest .site-forest { margin: 4px 0 0 6px; padding-left: 18px; border-left: 2px solid var(--doppler-line); }
+#app.site-page .site-forest li { padding: 4px 0; }
+
+/* --- Where a drawn value came from (viz/provenance.js): the border says how far
+   it is from a measurement. Solid: measured or derived. Dotted: projected,
+   reconstructed or estimated. Dashed: not run, or not recorded. --- */
+:is(#app.site-page, #site-runs) .badge:is([data-provenance="projected"], [data-provenance="reconstructed"], [data-provenance="estimated"]) { border-style: dotted; border-color: var(--fg); }
+:is(#app.site-page, #site-runs) .badge:is([data-provenance="unrun"], [data-provenance="missing"]) { border-style: dashed; color: var(--doppler-muted); }
+
+/* One cell per layer and token position; the darker, the further apart. */
+:is(#app.site-page, #site-runs) .site-grid { width: auto; border-collapse: separate; border-spacing: 1px; }
+:is(#app.site-page, #site-runs) .site-grid td {
+  width: 22px;
+  height: 18px;
+  padding: 0;
+  border: 1px solid var(--doppler-line);
+  background: color-mix(in srgb, var(--doppler-blue) calc(var(--site-strength, 0) * 100%), transparent);
+}
+:is(#app.site-page, #site-runs) .site-grid th { padding: 1px 6px 1px 0; border: 0; font: 400 11px/1.4 var(--font-sans); letter-spacing: normal; text-transform: none; white-space: nowrap; color: var(--doppler-muted); }
+:is(#app.site-page, #site-runs) .site-grid td.site-not-recorded { background: repeating-linear-gradient(45deg, var(--doppler-line-strong) 0 2px, transparent 2px 6px); }
+:is(#app.site-page, #site-runs) .site-grid td.site-first-difference { outline: 2px solid var(--doppler-red); outline-offset: -1px; }
+
+/* --- Shared view pieces (public/viz/) --- */
+/* Probability ribbon: band width is probability. Filled: taken. Solid: a branch
+   that was run. Dashed: not run. Hatched: every token that is not listed. */
+:is(#app.site-page, #site-runs) .site-ribbon { display: flex; flex-wrap: wrap; gap: 4px; }
+:is(#app.site-page, #site-runs) .site-band {
+  flex: 1 1 9ch;
+  min-width: 9ch;
+  min-height: 36px;
+  padding: 6px 8px;
+  overflow: hidden;
+  border: 1px solid var(--doppler-line-strong);
+  border-radius: 10px;
+  background: var(--doppler-surface);
+  color: var(--fg);
+  font: 500 13px/1.4 var(--font-sans);
+  text-align: left;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+:is(#app.site-page, #site-runs) .site-band[data-state="taken"] { border: 1px solid var(--fg) !important; background: var(--fg) !important; color: var(--bg) !important; }
+:is(#app.site-page, #site-runs) .site-band[data-state="run"] { border-color: var(--fg); }
+:is(#app.site-page, #site-runs) .site-band[data-state="not-run"] { border-style: dashed; }
+:is(#app.site-page, #site-runs) .site-band[data-state="other"] { color: var(--doppler-muted); background: repeating-linear-gradient(45deg, var(--doppler-line) 0 2px, transparent 2px 7px); }
+
+/* Layer track and time strip: stops and segments shaded or sized by a value. */
+:is(#app.site-page, #site-runs) .site-track { display: flex; flex-wrap: wrap; gap: 2px; }
+:is(#app.site-page, #site-runs) .site-stop {
+  min-width: 30px;
+  min-height: 30px;
+  border: 1px solid var(--doppler-line);
+  border-radius: 6px;
+  background: color-mix(in srgb, var(--doppler-blue) calc(var(--site-strength, 0) * 100%), transparent);
+  font: 500 12px/1 var(--font-sans);
+}
+:is(#app.site-page, #site-runs) .site-stop[data-missing] { background: repeating-linear-gradient(45deg, var(--doppler-line-strong) 0 2px, transparent 2px 6px); }
+:is(#app.site-page, #site-runs) :is(.site-stop, .site-segment)[aria-pressed="true"] { border: 2px solid var(--fg); font-weight: 700; }
+:is(#app.site-page, #site-runs) .site-timeline { display: flex; flex-wrap: wrap; gap: 2px; }
+:is(#app.site-page, #site-runs) .site-segment {
+  flex: 1 1 4ch;
+  min-width: 4ch;
+  min-height: 36px;
+  padding: 4px 6px;
+  overflow: hidden;
+  border: 1px solid var(--doppler-line-strong);
+  border-radius: 6px;
+  background: var(--doppler-surface);
+  font: 500 12px/1.3 var(--font-sans);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+:is(#app.site-page, #site-runs) :is(tr, th)[aria-current="true"] > :is(th, td), :is(#app.site-page, #site-runs) th[aria-current="true"] { font-weight: 700; color: var(--fg); }
+:is(#app.site-page, #site-runs) .site-grid td { cursor: pointer; }
+:is(#app.site-page, #site-runs) .site-grid td[aria-selected="true"] { outline: 2px solid var(--fg); outline-offset: -1px; }
+
+/* A gap: something the run did not record. Hatched, labelled, never filled in. */
+:is(#app.site-page, #site-runs) .site-gap {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--demo-space-1);
+  padding: 12px var(--demo-space-2);
+  border: 1px dashed var(--doppler-line-strong);
+  border-radius: var(--demo-control-radius);
+  background: repeating-linear-gradient(45deg, var(--doppler-line) 0 1px, transparent 1px 9px);
+  font: 400 14px/1.5 var(--font-sans);
+}
+
+/* The inspector: one panel for the exact value behind any mark. */
+#app .site-inspector {
+  position: fixed;
+  right: var(--demo-space-2);
+  bottom: var(--demo-space-2);
+  z-index: var(--z-dropdown);
+  width: min(420px, calc(100vw - 2 * var(--demo-space-2)));
+  max-height: 70vh;
+  overflow: auto;
+  border: 1px solid var(--doppler-line-strong);
+  border-radius: var(--demo-panel-radius);
+  background: var(--bg);
+  box-shadow: var(--doppler-shadow);
+}
+#app .site-inspector .panel-header { display: flex; align-items: center; gap: var(--demo-space-1); padding: 12px var(--demo-space-2); border: 0; border-bottom: 1px solid var(--doppler-line); font: 600 14px/1.4 var(--font-sans); letter-spacing: normal; text-transform: none; }
+#app .site-inspector .panel-header .btn { margin-left: auto; }
+#app .site-inspector .panel-body { display: grid; gap: var(--demo-space-1); padding: var(--demo-space-2); }
+#app .site-inspector .site-facts { display: grid; grid-template-columns: minmax(80px, 30%) minmax(0, 1fr); gap: 6px var(--demo-space-2); margin: 0; font: 400 14px/1.55 var(--font-sans); }
+#app .site-inspector .site-facts dt { color: var(--doppler-muted); }
+#app .site-inspector .site-facts dd { min-width: 0; overflow-wrap: anywhere; }

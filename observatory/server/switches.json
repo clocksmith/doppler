@@ -1,0 +1,8 @@
+{
+  "schema": "doppler.observatory.server-switches/v1",
+  "switches": {
+    "results.upload": false,
+    "rankings.community": false,
+    "voting": false
+  }
+}

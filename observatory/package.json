@@ -1,0 +1,19 @@
+{
+  "name": "doppler-observatory",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "dev": "node scripts/dev.js",
+    "test": "node --test \"test/*.test.js\"",
+    "check:benchmark": "node scripts/check-benchmark.js",
+    "check:site": "node scripts/check-site.js",
+    "check:workspace": "node scripts/check-workspace.js",
+    "check:offline": "node scripts/check-offline.js",
+    "check:projection": "node scripts/check-projection.js",
+    "check:resume": "node scripts/check-resume.js"
+  }
+}

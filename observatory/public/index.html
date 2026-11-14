@@ -1,0 +1,164 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#efefef" media="(prefers-color-scheme: light)">
+  <meta name="theme-color" content="#1c1c1c" media="(prefers-color-scheme: dark)">
+  <title>Doppler · Explore</title>
+  <link rel="icon" type="image/svg+xml" href="/doppler/demo/favicon.svg">
+  <meta name="robots" content="noindex">
+  <link rel="manifest" href="./app-manifest.json">
+  <link rel="stylesheet" href="/doppler/demo/styles/rd.css">
+  <link rel="stylesheet" href="/doppler/demo/ui/styles/app.css">
+  <link rel="stylesheet" href="/doppler/demo/ui/token-inspector/styles.css">
+  <link rel="stylesheet" href="/doppler/demo/ui/styles/demo-components.css">
+  <link rel="stylesheet" href="./site.css">
+  <link rel="stylesheet" href="./workspace.css">
+</head>
+<body>
+  <div id="app" class="app-shell site-page ws-page">
+    <header class="app-header">
+      <div class="app-brand">
+        <div class="app-brand-line">
+          <span class="app-brand-mark" aria-hidden="true">D</span>
+          <h1 class="app-brand-name">Doppler</h1>
+        </div>
+      </div>
+      <div class="app-header-end">
+        <details id="ws-menu" class="ws-menu">
+          <summary id="ws-menu-label">Model</summary>
+          <div class="ws-menu-body">
+            <label class="ws-field">Model <select id="ws-model" disabled><option>Checking this browser…</option></select></label>
+            <label class="ws-field">Answer length <input id="ws-length" type="number" min="2" max="256" value="48"> tokens</label>
+            <fieldset class="ws-field">
+              <legend>Record inside the model</legend>
+              <label class="checkbox-label"><input id="ws-layers" type="checkbox" checked> Layer outputs</label>
+              <label class="checkbox-label"><input id="ws-witnesses" type="checkbox"> Attention, memory and weights (larger)</label>
+              <label class="checkbox-label"><input id="ws-timing" type="checkbox"> GPU time per step</label>
+            </fieldset>
+            <p id="ws-runtime" class="demo-note"></p>
+          </div>
+        </details>
+        <nav class="app-links" aria-label="Sections and project links">
+          <a href="https://github.com/clocksmith/doppler">GitHub</a>
+          <a href="https://www.npmjs.com/package/doppler-gpu">npm</a>
+        </nav>
+      </div>
+    </header>
+
+    <main class="ws-main">
+      <!-- 1. Prompt and answer -->
+      <section class="ws-ask" aria-label="Ask">
+        <form id="ws-form" class="ws-input">
+          <textarea id="ws-prompt" rows="2" aria-label="Message Doppler" placeholder="Ask something…"></textarea>
+          <button id="ws-send" class="btn btn-primary" type="submit" disabled>Send</button>
+        </form>
+        <div id="ws-examples" class="ws-chips" aria-label="Examples"></div>
+        <p id="ws-status" class="demo-note" role="status"></p>
+      </section>
+
+      <section class="ws-answer" aria-labelledby="ws-answer-title">
+        <h2 id="ws-answer-title" class="sr-only">Answer</h2>
+        <p id="ws-prompt-echo" class="ws-prompt-echo"></p>
+        <div id="ws-tokens" class="token-stream-container ws-tokens"></div>
+        <p id="ws-answer-note" class="demo-note"></p>
+      </section>
+
+      <!-- 2. Signals over the answer, one column per token -->
+      <section class="ws-signals" aria-labelledby="ws-signals-title">
+        <div class="ws-head">
+          <h2 id="ws-signals-title">Signals</h2>
+          <p id="ws-perplexity" class="ws-figure"></p>
+        </div>
+        <div id="ws-strip" class="ws-strip"></div>
+      </section>
+
+      <!-- 3. The selected token -->
+      <section class="ws-token" aria-labelledby="token-title">
+        <div id="token-panel" class="ws-token-panel" hidden>
+          <h2 id="token-title" class="ws-token-title"></h2>
+          <div id="fork-ribbon"></div>
+          <div class="site-scroll"><table id="candidates"><thead><tr><th>Candidate</th><th class="site-num">Probability</th><th><span class="sr-only">Action</span></th></tr></thead><tbody></tbody></table></div>
+          <p id="token-note" class="demo-note"></p>
+        </div>
+        <p id="ws-token-empty" class="demo-note">Select a word in the answer or a column in the signals.</p>
+      </section>
+
+      <!-- 4. Inside the model: one view at a time, all following the same token -->
+      <section class="ws-inside" aria-labelledby="ws-inside-title">
+        <div class="ws-head">
+          <h2 id="ws-inside-title">Inside the model</h2>
+          <div class="ws-head-end">
+            <label class="ws-layer">Layer <select id="ws-layer" aria-label="Layer"></select></label>
+            <p id="ws-selection" class="demo-note" role="status"></p>
+          </div>
+        </div>
+        <div id="ws-tabs" class="ws-tabs" role="tablist" aria-label="Views"></div>
+        <div id="ws-view-journey" class="ws-view" role="tabpanel"><div id="journey"></div></div>
+        <div id="ws-view-attention" class="ws-view" role="tabpanel" hidden><div id="attention"></div></div>
+        <div id="ws-view-memory" class="ws-view" role="tabpanel" hidden><div id="memory"></div></div>
+        <div id="ws-view-gearbox" class="ws-view" role="tabpanel" hidden><div id="gearbox"></div></div>
+        <div id="ws-view-forest" class="ws-view" role="tabpanel" hidden>
+          <p id="forest-note" class="demo-note"></p>
+          <ul id="forest" class="site-forest"></ul>
+        </div>
+        <div id="ws-view-atlas" class="ws-view" role="tabpanel" hidden><div id="atlas"></div></div>
+        <div id="ws-view-time" class="ws-view" role="tabpanel" hidden>
+          <div id="timing-gap"></div>
+          <p id="timing-note" class="demo-note"></p>
+          <div id="time-strip"></div>
+          <div id="step-detail" class="demo-stack"></div>
+          <div class="site-scroll"><table id="timing" hidden><thead><tr><th>Step</th><th>Produced</th><th class="site-num">GPU time</th><th class="site-num">Against the slowest step</th></tr></thead><tbody></tbody></table></div>
+          <div class="site-scroll"><table id="kernels" hidden><thead><tr><th>Kernel, summed over steps and layers</th><th class="site-num">GPU time</th><th class="site-num">Share</th></tr></thead><tbody></tbody></table></div>
+        </div>
+      </section>
+
+      <!-- 5. Runs -->
+      <section class="ws-runs" aria-labelledby="ws-runs-title">
+        <div class="ws-head">
+          <h2 id="ws-runs-title">Runs</h2>
+          <div class="demo-controls">
+            <button id="ws-open-button" class="btn btn-small" type="button">Open saved runs</button>
+            <input id="ws-open" type="file" accept="application/json,.json,application/gzip,.gz" multiple hidden>
+          </div>
+        </div>
+        <ul id="ws-runs" class="ws-runs-list"></ul>
+      </section>
+
+      <!-- Two runs side by side: first different token, and first numerical difference by layer -->
+      <section class="ws-compare" aria-labelledby="ws-compare-heading">
+        <div class="ws-head">
+          <h2 id="ws-compare-heading">Compare two runs</h2>
+          <label class="ws-layer">With <select id="ws-compare-with" aria-label="Run to compare with"></select></label>
+        </div>
+        <p id="ws-compare-empty" class="demo-note">Ask the same question twice, branch, or open a saved run, then pick it here.</p>
+        <div id="compare-view" hidden>
+          <h3 id="compare-title" class="sr-only">Comparison</h3>
+          <div id="compare-verdict-row" class="status-row">
+            <div class="status-meta"><span id="compare-verdict" class="status-label"></span></div>
+          </div>
+          <ul id="compare-blockers" class="site-list"></ul>
+          <div class="site-scroll"><table id="circumstances" hidden><thead><tr><th>What differs between the runs</th><th>Shown run</th><th>Other run</th></tr></thead><tbody></tbody></table></div>
+          <p id="compare-tokens"></p>
+          <div id="compare-layers" class="demo-stack" hidden>
+            <div class="demo-controls">
+              <label class="demo-inline-field">Call it a difference above <input id="tolerance" type="number" min="0" step="any" value="0.001"> relative</label>
+            </div>
+            <p id="compare-first"></p>
+            <div id="fault-track"></div>
+            <p class="demo-note">Each cell: how far apart the two runs are at one layer and token. Outlined: the first numerical difference. Where, not why.</p>
+            <div class="site-scroll" tabindex="0" role="region" aria-label="Difference by layer and token position"><table id="heat" class="site-grid"><tbody></tbody></table></div>
+          </div>
+          <p id="compare-layers-note" class="demo-note"></p>
+        </div>
+      </section>
+    </main>
+
+    <footer class="site-foot">
+      <p class="demo-note">Prototype. Nothing is uploaded: runs are files on this device.</p>
+    </footer>
+  </div>
+  <script type="module" src="./workspace.js"></script>
+</body>
+</html>

@@ -1,0 +1,47 @@
+{
+  "schema": "doppler.observatory.flags/v1",
+  "flags": {
+    "benchmark.run": {
+      "enabled": true,
+      "enforcedBy": "client",
+      "previewOverride": false,
+      "description": "Run the fixed device benchmark in this browser."
+    },
+    "benchmark.plainPathCheck": {
+      "enabled": true,
+      "enforcedBy": "client",
+      "previewOverride": false,
+      "description": "After the benchmark, time the same workload on the uninstrumented generation path and compare."
+    },
+    "runtime.preview": {
+      "enabled": false,
+      "enforcedBy": "client",
+      "previewOverride": true,
+      "description": "Offers the preview runtime beside the hosted one. A visitor can turn the choice on with ?preview=runtime.preview; results made with it are marked."
+    },
+    "views.experimental": {
+      "enabled": false,
+      "enforcedBy": "client",
+      "previewOverride": true,
+      "description": "Experimental views. A visitor can preview them with ?preview=views.experimental; nothing is published by doing so."
+    },
+    "results.upload": {
+      "enabled": false,
+      "enforcedBy": "server",
+      "previewOverride": false,
+      "description": "Publishing a result. No upload service exists yet, and a page can never turn this on."
+    },
+    "rankings.community": {
+      "enabled": false,
+      "enforcedBy": "server",
+      "previewOverride": false,
+      "description": "Rankings built from contributed results. Depends on results.upload and on an audited eligibility protocol."
+    },
+    "voting": {
+      "enabled": false,
+      "enforcedBy": "server",
+      "previewOverride": false,
+      "description": "Human preference votes. No voting service exists yet."
+    }
+  }
+}
