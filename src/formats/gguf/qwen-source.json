@@ -1,8 +1,15 @@
 {
   "qwen35moe": {
-    "modelType": "qwen3_5_moe"
+    "modelType": "qwen3_5_moe",
+    "moe": true
   },
   "qwen35": {
     "modelType": "qwen3_5"
+  },
+  "qwen4exp": {
+    "modelType": "qwen4_exp",
+    "moe": true,
+    "outputGateType": "sigmoid",
+    "indexerKvHeads": 1
   }
 }

@@ -68,7 +68,8 @@ function resolveRotaryDim(text) {
 
 /** @param {Record<string, any>} text @returns {number} */
 function resolveBoundaryToken(text) {
-  const eos = sourceField(text, 'eos_token_id');
+  // GGUF separates the PLE reset token from the generation EOS token.
+  const eos = text.ple_eos_token_id ?? sourceField(text, 'eos_token_id');
   const value = Array.isArray(eos) ? eos[0] : eos;
   if (!Number.isSafeInteger(value)) {
     throw new Error('qwen4_exp PLE requires text_config.eos_token_id (the n-gram boundary token).');

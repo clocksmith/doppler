@@ -1,6 +1,7 @@
+import { normalizeQwen4ExpGGUFConfig } from './qwen4-exp-source.js';
 import families from './qwen-source.json' with { type: 'json' };
 
-/** @type {Readonly<Record<string, {modelType: string}>>} */
+/** @type {Readonly<Record<string, {modelType: string, moe?: boolean, outputGateType?: string, indexerKvHeads?: number}>>} */
 const declaredFamilies = families;
 
 /** @param {unknown} value @param {string} key */
@@ -49,7 +50,7 @@ export function normalizeQwenGGUFSource(architecture, metadata) {
     model_type: family.modelType,
     num_hidden_layers: textLayers,
     hidden_size: integer('embedding_length'),
-    intermediate_size: architecture === 'qwen35moe' ? integer('expert_feed_forward_length') : integer('feed_forward_length'),
+    intermediate_size: family.moe ? integer('expert_feed_forward_length') : integer('feed_forward_length'),
     num_attention_heads: integer('attention.head_count'),
     num_key_value_heads: integer('attention.head_count_kv'),
     head_dim: headDim,
@@ -77,12 +78,13 @@ export function normalizeQwenGGUFSource(architecture, metadata) {
     eos_token_id: metadata['tokenizer.ggml.eos_token_id'],
     bos_token_id: metadata['tokenizer.ggml.bos_token_id'],
     pad_token_id: metadata['tokenizer.ggml.padding_token_id'],
-    ...(architecture === 'qwen35moe' ? {
+    ...(family.moe ? {
       num_experts: integer('expert_count'),
       num_experts_per_tok: integer('expert_used_count'),
       moe_intermediate_size: integer('expert_feed_forward_length'),
       shared_expert_intermediate_size: integer('expert_shared_feed_forward_length'),
     } : {}),
   };
+  if (architecture === 'qwen4exp') normalizeQwen4ExpGGUFConfig(config, metadata, family);
   return { config, textLayers, modelType: 'transformer' };
 }

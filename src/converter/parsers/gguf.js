@@ -1,3 +1,4 @@
+import { bindQwen4ExpGGUFTable } from '../../formats/gguf/qwen4-exp-source.js';
 import { ConvertStage } from '../core.js';
 import { extractArchitecture } from '../artifact-identity.js';
 import { normalizeQwenGGUFSource } from '../../formats/gguf/qwen-source.js';
@@ -79,6 +80,7 @@ export async function parseGGUFModel(adapter) {
   const ggufInfo = { ...primary, tensors: allTensors };
   const metadata = ggufInfo.metadata ?? {};
   const native = normalizeQwenGGUFSource(ggufInfo.architecture, metadata);
+  const ngramTable = ggufInfo.architecture === 'qwen4exp' ? bindQwen4ExpGGUFTable(native.config, allTensors) : null;
   const tokenizer = native ? buildGGUFTokenizer(metadata) : null;
   const tensors = ggufInfo.tensors.filter(tensor => {
     const layer = /^blk\.(\d+)\./u.exec(tensor.name);
@@ -94,6 +96,7 @@ export async function parseGGUFModel(adapter) {
     tokenizerConfig: tokenizer?.tokenizerConfig ?? null,
     tensors: tensors.map((tensor) => ({
       ...tensor,
+      ...(tensor === ngramTable?.table ? { name: ngramTable.name, originalName: tensor.name, role: 'ngram_table', group: 'ngram_table' } : {}),
       sourceShape: [...tensor.shape],
       shape: native && /ffn_gate_inp_shexp\.weight$/u.test(tensor.name) && tensor.shape.length === 1
         ? [1, ...tensor.shape] : [...tensor.shape].reverse(),
