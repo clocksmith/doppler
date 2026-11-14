@@ -125,7 +125,11 @@ export function createNodeFileAccess() {
           if (bytesRead === 0) break;
           position += bytesRead;
         }
-        return out.buffer.slice(out.byteOffset, out.byteOffset + out.byteLength);
+        // Large Buffer allocations own their exact backing store. Transfer that
+        // ownership to the caller instead of copying every expert range again.
+        // Small pooled buffers and short reads must still return compact bytes.
+        if (out.byteOffset === 0 && position === out.buffer.byteLength) return out.buffer;
+        return out.buffer.slice(out.byteOffset, out.byteOffset + position);
       },
       async getSize() {
         return getSize();
