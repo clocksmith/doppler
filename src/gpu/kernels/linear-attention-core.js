@@ -255,9 +255,8 @@ export async function runLinearAttentionCoreGPU(qkvTensor, zTensor, aTensor, bTe
     throw new Error('GPU prefix recovery requires recorded native GGUF F32 state and activations.');
   }
   if (layerState.sourceLayout === 'gguf-v1' && (qkvTensor?.precision === 'two-f32'
-      || qkvTensor?.dtype !== 'f32' || layerState.recurrentStatePrecision !== 'f32'
-      || options.normGateActivation !== 'silu')) {
-    throw new Error('Native GGUF GDN requires scalar F32 activations/state and SiLU norm gating.');
+      || qkvTensor?.dtype !== 'f32' || layerState.recurrentStatePrecision !== 'f32')) {
+    throw new Error('Native GGUF GDN requires scalar F32 activations and state.');
   }
   if (qkvTensor?.precision === 'two-f32') {
     const session = options.runtimeSession ?? getRuntimeConfig().inference.session;
@@ -338,7 +337,7 @@ export async function runLinearAttentionCoreGPU(qkvTensor, zTensor, aTensor, bTe
     const shape = selected.variantMetadata;
     if (!Number.isSafeInteger(shape?.headKDim) || layerState.headKDim !== shape.headKDim
         || stateComponents !== shape.stateComponents || layerState.headVDim > shape.maxHeadVDim) {
-      throw new Error('Register prefill requires its registered head width, F32 state/inputs and silu norm gating.');
+      throw new Error('Register prefill requires its registered head width, F32 state/inputs and declared norm gating.');
     }
     if (shape.sourceLayout === 'gguf-v1'
         && (!Number.isSafeInteger(numTokens) || !Number.isSafeInteger(layerState.numKHeads)

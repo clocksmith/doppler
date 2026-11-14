@@ -45,5 +45,9 @@
     "dtype": "Q4_0",
     "operation": "ple_q4_0_to_f32",
     "variant": "default"
+  },
+  "linearRecurrent": {
+    "operation": "gated_delta_recurrent",
+    "variant": "gguf_sigmoid_f32"
   }
 }

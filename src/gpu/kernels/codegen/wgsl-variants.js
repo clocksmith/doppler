@@ -745,4 +745,6 @@ override WORKGROUP_SIZE: u32 = 256u;
   },
   MOE_SHARED_SLOT_DOWN_PAIR_COMBINE_RESIDUAL_VARIANT,
   ...WGSL_PATCH_VARIANTS,
+  scalarSigmoidNormGateVariant('gated_delta_recurrent_gguf'),
+  scalarSigmoidNormGateVariant('gated_delta_recurrent_gguf_register_prefill'),
 ]);

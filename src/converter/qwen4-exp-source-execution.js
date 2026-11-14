@@ -84,5 +84,8 @@ export function createQwen4ExpSourceExecution(tensors, numLayers) {
     graph.kernels.ple_row_decode = graph.kernels[key];
     delete graph.kernels[key];
   }
+  const recurrent = install(policy.linearRecurrent.operation, policy.linearRecurrent.variant);
+  graph.kernels.gated_delta_recurrent = graph.kernels[recurrent];
+  delete graph.kernels[recurrent];
   return graph;
 }

@@ -32781,6 +32781,56 @@
       "ruleChains": ["gated-delta-recurrent.rules.json#scalarVariant"],
       "wgslOnDisk": true
      }
+    },
+    "gguf_sigmoid_f32": {
+     "wgsl": "gated_delta_recurrent_gguf_sigmoid_gate.wgsl",
+     "entryPoint": "main",
+     "workgroup": [128,1,1],
+     "requires": [],
+     "outputDtype": "f32",
+     "variantMetadata": {
+      "normGateActivation": "sigmoid",
+      "sourceLayout": "gguf-v1"
+     },
+     "reachability": {
+      "status": "model-selectable",
+      "inlineConfigs": [],
+      "ruleChains": ["gated-delta-recurrent.rules.json#scalarVariant"],
+      "wgslOnDisk": true
+     }
+    },
+    "gguf_register_prefill_sigmoid": {
+     "wgsl": "gated_delta_recurrent_gguf_register_prefill_sigmoid_gate.wgsl",
+     "entryPoint": "main",
+     "workgroup": [128,1,1],
+     "requires": [],
+     "outputDtype": "f32",
+     "variantMetadata": {
+      "normGateActivation": "sigmoid",
+      "sourceLayout": "gguf-v1",
+      "headKDim": 128,
+      "maxHeadVDim": 128,
+      "stateComponents": 1,
+      "convVariant": "prefill_prefix",
+      "parallelConvVariant": "prefill_parallel",
+      "mechanismKernels": [
+       {
+        "operation": "gated_delta_conv",
+        "variant": "prefill_prefix"
+       },
+       {
+        "operation": "gated_delta_conv",
+        "variant": "prefill_parallel"
+       }
+      ]
+     },
+     "reachability": {
+      "status": "model-selectable",
+      "inlineConfigs": [],
+      "ruleChains": ["gated-delta-recurrent.rules.json#scalarVariant"],
+      "wgslOnDisk": true
+     },
+     "description": "Opt-in GGUF F32 K=128 retained-state prefill; preserves ordered two-sweep math. Physical qualification pending."
     }
    }
   },

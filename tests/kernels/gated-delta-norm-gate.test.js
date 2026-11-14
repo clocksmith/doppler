@@ -73,6 +73,8 @@ for (const config of Object.values(KERNEL_CONFIGS).flatMap(variants => Object.va
     : [config.variantMetadata.normGateActivation], `${config.operation}/${config.variant} gate declaration`);
 }
 for (const [sigmoidFile, siluFile] of [
+  ['gated_delta_recurrent_gguf_sigmoid_gate.wgsl', 'gated_delta_recurrent_gguf.wgsl'],
+  ['gated_delta_recurrent_gguf_register_prefill_sigmoid_gate.wgsl', 'gated_delta_recurrent_gguf_register_prefill.wgsl'],
   ['gated_delta_recurrent_sigmoid_gate.wgsl', 'gated_delta_recurrent.wgsl'],
   ['gated_delta_recurrent_sigmoid_gate_f16.wgsl', 'gated_delta_recurrent_f16.wgsl'],
   ['gated_delta_fused_decode_sigmoid_gate.wgsl', 'gated_delta_fused_decode.wgsl'],
@@ -101,3 +103,13 @@ const qwen35 = JSON.parse(await readFile(new URL('../../src/config/conversion/qw
 for (const activation of ['silu', 'sigmoid']) assert.doesNotThrow(() => assertLinearNormGateClosure(qwen35.execution, activation));
 
 console.log('gated-delta-norm-gate.test: rule selection, registry guard, gate-only kernel derivation and graph closure passed');
+
+for (const useRegisterPrefill of [true, false]) {
+  for (const normGateActivation of ['silu', 'sigmoid']) {
+    const selected = resolveGatedDeltaNormGateKernel('gated_delta_recurrent', 'gatedDeltaRecurrent', 'scalarVariant',
+      { sourceLayout: 'gguf-v1', inputDtype: 'f32', useRegisterPrefill, normGateActivation });
+    assert.equal(selected.variantMetadata.sourceLayout, 'gguf-v1');
+    assert.equal(selected.variantMetadata.normGateActivation, normGateActivation);
+    assert.equal(selected.shaderFile.includes('register_prefill'), useRegisterPrefill);
+  }
+}

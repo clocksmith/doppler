@@ -4,6 +4,23 @@
       "match": {
         "sourceLayout": "gguf-v1",
         "inputDtype": "f32",
+        "normGateActivation": "sigmoid",
+        "useRegisterPrefill": true
+      },
+      "value": "gguf_register_prefill_sigmoid"
+    },
+    {
+      "match": {
+        "sourceLayout": "gguf-v1",
+        "inputDtype": "f32",
+        "normGateActivation": "sigmoid"
+      },
+      "value": "gguf_sigmoid_f32"
+    },
+    {
+      "match": {
+        "sourceLayout": "gguf-v1",
+        "inputDtype": "f32",
         "normGateActivation": "silu",
         "useRegisterPrefill": true
       },
