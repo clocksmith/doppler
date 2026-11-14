@@ -171,7 +171,7 @@ export function resolveDirectSourceRuntimePlan(options = {}) {
         ...explicitManifestConfig,
       }
       : baseManifestConfig,
-    manifestInference: explicitManifestInference ?? createSourceRuntimeManifestInference(parsedArtifact.config ?? null),
+    manifestInference: explicitManifestInference ?? createSourceRuntimeManifestInference(parsedArtifact.config ?? null, parsedArtifact.sourceKind === 'gguf' ? parsedArtifact.tensors : null),
     sourceQuantization,
     quantizationInfo: { ...quantizationInfo, ...(parsedArtifact.sourceKind === 'gguf' ? { preserveSourceTensors:true } : {}) },
     manifestQuantization,

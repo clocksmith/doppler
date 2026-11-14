@@ -233,6 +233,7 @@
     "demo/ui/activation-grid/recording-codec.js",
     "src/gpu/kernels/kernel-geometry.js",
     "src/formats/paged-source-reader.js",
-    "src/loader/q4k-reference-weight.js"
+    "src/loader/q4k-reference-weight.js",
+    "src/converter/qwen4-exp-source-execution.js"
   ]
 }

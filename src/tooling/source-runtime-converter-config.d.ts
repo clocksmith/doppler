@@ -9,7 +9,8 @@ export declare function createSourceRuntimeManifestConfig(
 ): ConverterManifestConfigSchema;
 
 export declare function createSourceRuntimeManifestInference(
-  rawConfig?: Record<string, unknown> | null
+  rawConfig?: Record<string, unknown> | null,
+  sourceTensors?: ReadonlyArray<{ name: string; dtype: string }> | null
 ): ManifestInferenceSchema;
 
 export declare function createSourceRuntimeConverterConfig(options?: {

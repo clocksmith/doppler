@@ -1,3 +1,4 @@
+import { createQwen4ExpSourceExecution } from '../converter/qwen4-exp-source-execution.js';
 import flashSourceProfile from '../config/conversion/qwen3/qwen-3-8-flash-next-text-q4k-ehf16-af32.json' with { type: 'json' };
 import { isQwen4ExpSource, resolveQwen4ExpSourceContracts } from '../converter/qwen4-exp-source.js';
 import {
@@ -328,7 +329,7 @@ export function createSourceRuntimeManifestConfig(rawConfig = null) {
   };
 }
 
-export function createSourceRuntimeManifestInference(rawConfig = null) {
+export function createSourceRuntimeManifestInference(rawConfig = null, sourceTensors = null) {
   const inference = createSourceRuntimeInference(rawConfig);
   return {
     schema: EXECUTION_V1_SCHEMA_ID,
@@ -344,7 +345,9 @@ export function createSourceRuntimeManifestInference(rawConfig = null) {
     indexedAttention: inference.indexedAttention ?? null,
     ngramEmbedding: inference.ngramEmbedding ?? null,
     session: createSourceRuntimeSession(rawConfig),
-    execution: createSourceRuntimeExecution(),
+    execution: isQwen4ExpSource(rawConfig) && sourceTensors
+      ? createQwen4ExpSourceExecution(sourceTensors, readRawConfigField(rawConfig, 'num_hidden_layers'))
+      : createSourceRuntimeExecution(),
   };
 }
 

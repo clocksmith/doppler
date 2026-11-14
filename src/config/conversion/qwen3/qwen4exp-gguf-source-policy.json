@@ -1,0 +1,43 @@
+{
+  "layerRoles": {
+    "q_proj": "attn_q.weight",
+    "k_proj": "attn_k.weight",
+    "v_proj": "attn_v.weight",
+    "o_proj": "attn_output.weight",
+    "linear_qkv_proj": "attn_qkv.weight",
+    "linear_z_proj": "attn_gate.weight",
+    "linear_out_proj": "ssm_out.weight",
+    "linear_a_proj": "ssm_alpha.weight",
+    "linear_b_proj": "ssm_beta.weight",
+    "ffn_gate": "ffn_gate_shexp.weight",
+    "ffn_up": "ffn_up_shexp.weight",
+    "ffn_down": "ffn_down_shexp.weight",
+    "moe_router": "ffn_gate_inp.weight",
+    "moe_shared_router": "ffn_gate_inp_shexp.weight",
+    "attn_hc_down": "hc_attn_down.weight",
+    "attn_hc_up": "hc_attn_up.weight",
+    "attn_hc_inject": "hc_attn_inject.weight",
+    "mlp_hc_down": "hc_ffn_down.weight",
+    "mlp_hc_up": "hc_ffn_up.weight",
+    "mlp_hc_inject": "hc_ffn_inject.weight",
+    "qsa_index_qk": "indexer.q_proj.weight",
+    "ple_key_proj": "ple_key.weight",
+    "ple_value_proj": "ple_value.weight"
+  },
+  "rootRoles": {
+    "hc_mixer_down": "output_hc_down.weight",
+    "hc_mixer_up": "output_hc_up.weight",
+    "lm_head": "output.weight",
+    "lm_head_prefill": "output.weight"
+  },
+  "floatVariants": {
+    "F32": "f32",
+    "BF16": "f32",
+    "F16": "f32"
+  },
+  "embedding": "token_embd.weight",
+  "phases": {
+    "decode": 1,
+    "prefill": 2
+  }
+}
