@@ -16,7 +16,8 @@
   .ws-ask { grid-area: ask; }
   .ws-answer { grid-area: answer; }
   .ws-signals { grid-area: signals; }
-  .ws-token { grid-area: token; position: sticky; top: 16px; }
+  /* Not sticky: a tall candidate list would slide over the sections below it. */
+  .ws-token { grid-area: token; }
   .ws-inside { grid-area: inside; }
   .ws-runs { grid-area: runs; }
   .ws-compare { grid-area: compare; }
@@ -113,3 +114,8 @@
 .ws-input .btn.ws-stop { background: transparent; color: var(--fg); border-color: var(--fg); }
 .ws-compare #compare-view { display: grid; gap: 12px; }
 .ws-compare #compare-view[hidden] { display: none; }
+
+/* A branch's answer: inherited words keep their underline but read lighter; the swapped-in word is outlined. */
+.ws-tokens .token-chip.ws-inherited { color: var(--doppler-muted); }
+.ws-tokens .token-chip.ws-forked { outline: 1.5px dashed var(--fg); outline-offset: 1px; border-radius: 3px; }
+.ws-token-origin { display: block; margin-top: 4px; font-weight: 400; font-size: 13px; }

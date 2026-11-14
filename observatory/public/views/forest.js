@@ -9,13 +9,20 @@ import { provenanceMark } from '../viz/provenance.js';
 import { forestRows } from './comparison-model.js';
 import { ribbon } from '../viz/ribbon.js';
 
-export function renderForest({ run, runs, selection, why, canRun, actions }) {
+export function renderForest(context) {
+  renderTokenPanel(context);
+  renderForestTree(context);
+}
+
+// The selected token: what the model could have said there, and the branches run from it.
+export function renderTokenPanel({ run, runs, selection, why, canRun, actions, note = null }) {
   const index = answerIndex(run, selection.get().position);
   const view = index === null ? null : alternatives(run, index, runs);
   $('token-panel').hidden = index === null;
   if (index !== null) {
     const token = run.tokens[index];
-    $('token-title').replaceChildren(`At answer token ${index + 1}: "${visible(token.text)}" `, view ? provenanceMark('measured', 'Next-token probabilities the model gave at this point.') : provenanceMark('missing'));
+    $('token-title').replaceChildren(`At answer token ${index + 1}: "${visible(token.text)}" `, view ? provenanceMark('measured', 'Next-token probabilities the model gave at this point.') : provenanceMark('missing'),
+      note ? h('span', { className: 'demo-note ws-token-origin' }, note) : null);
     const body = $('candidates').tBodies[0];
     if (!view) {
       body.replaceChildren();
@@ -37,35 +44,22 @@ export function renderForest({ run, runs, selection, why, canRun, actions }) {
         h('td', { className: 'site-num' }, percent(candidate.probability)),
         h('td', {}, candidate.state === 'taken' ? 'taken by this run'
           : candidate.state === 'run' ? h('button', { className: 'btn btn-small', type: 'button', on: { click: () => pick(candidate) } }, 'Show this branch')
-            : [provenanceMark('unrun'), canRun ? [' ', h('button', { className: 'btn btn-small', type: 'button', disabled: Boolean(unavailable(candidate)), title: unavailable(candidate), on: { click: () => pick(candidate) } }, 'Continue from here')] : null]),
+            : [provenanceMark('unrun'), canRun ? [' ', h('button', { className: 'btn btn-small', type: 'button', disabled: Boolean(unavailable(candidate)), title: unavailable(candidate), on: { click: () => pick(candidate) } }, 'Branch here')] : null]),
       )), h('tr', {},
         h('td', { className: 'demo-note' }, `every other token (${view.candidates.length} are listed)`),
         h('td', { className: 'site-num demo-note' }, percent(view.unlistedProbability)),
         h('td', { className: 'demo-note' }, 'not listed, so not available to continue from'),
       ));
-      const choices = view.candidates.filter((candidate) => candidate.tokenId !== token.tokenId);
-      // A fork needs a model to run; without one the chooser would only offer a dead button.
-      if (choices.length && canRun) {
-        const chooser = h('select', { ariaLabel: 'Human fork: choose a recorded alternative token' },
-          ...choices.map((candidate) => h('option', { value: String(candidate.tokenId) }, `${visible(candidate.text)} · ${percent(candidate.probability)}`)));
-        const status = h('span', { className: 'demo-note', attrs: { role: 'status' } });
-        const submit = h('button', { className: 'btn btn-small', type: 'button', disabled: !canRun,
-          on: { click: () => {
-            const candidate = choices.find((item) => item.tokenId === Number(chooser.value));
-            const reason = unavailable(candidate);
-            if (reason) { status.textContent = reason; return; }
-            actions.branch(run, index, candidate.tokenId);
-          } } }, 'Run my fork');
-        $('fork-ribbon').append(h('div', { className: 'demo-controls' }, h('label', {}, 'Human fork ', chooser), submit, status),
-          h('p', { className: 'demo-note' }, 'Continue from a recorded alternative.'));
-      }
       const notRun = view.candidates.filter((candidate) => candidate.state === 'not-run').length;
       $('token-note').textContent = [notRun ? `${notRun} listed alternative${notRun === 1 ? ' has' : 's have'} not been run: what would follow is unknown until it is.` : '', why].filter(Boolean).join(' ');
     }
   }
 
-  // Every opened descendant is selectable, including repeated forks from the
-  // same token. Traverse defensively: imported parent links may form cycles.
+}
+
+// Every opened descendant is selectable, including repeated forks from the
+// same token. Traverse defensively: imported parent links may form cycles.
+export function renderForestTree({ run, runs, selection }) {
   const { root, rows, cyclic } = forestRows(run, runs);
   $('forest').replaceChildren(...rows.map(({ run: node, depth }) => h('li', {
     style: `margin-inline-start: ${Math.min(depth, 4)}em`,

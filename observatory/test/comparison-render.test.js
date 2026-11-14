@@ -35,14 +35,14 @@ function run(id = 'run-a') {
     timing: { gpu: null }, layerOutputs: null };
 }
 
-test('forest human fork passes the selected recorded ID; nodes update shared run and branch selection', (t) => {
+test('Branch here passes the recorded token ID; nodes update shared run and branch selection', (t) => {
   const $ = setup(t); const a = run(); const b = run('run-b'); b.parent = { runId: a.id, index: 0, tokenId: 9, tokenText: '9' };
-  const selection = createSelection({ runId: a.id, position: 1 });
+  // Answer token 2 (position 2): its alternative 9 has not been run.
+  const selection = createSelection({ runId: a.id, position: 2 });
   let request;
   renderForest({ run: a, runs: [a, b], selection, canRun: true, actions: { branch: (...args) => { request = args; }, showRun() {} } });
-  const picker = descendants($('fork-ribbon'), 'select')[0]; picker.value = '9';
-  descendants($('fork-ribbon'), 'button').find((node) => text(node).trim() === 'Run my fork').events.click();
-  assert.deepEqual(request, [a, 0, 9]);
+  descendants($('candidates').tBodies[0], 'button').find((node) => text(node).trim() === 'Branch here').events.click();
+  assert.deepEqual(request, [a, 1, 9]);
   descendants($('forest'), 'button')[1].events.click();
   assert.equal(selection.get().runId, b.id); assert.equal(selection.get().branchId, b.id);
 });

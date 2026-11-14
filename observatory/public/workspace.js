@@ -11,7 +11,7 @@ import { answerIndex, choiceVectors, createRun, forkRequest, sequencePosition, s
 import { createSelection } from './selection.js';
 import { $, h, percent, visible } from './viz/dom.js';
 import { answerSignals, DIVERSITY_WINDOW, perplexity } from './viz/signals.js';
-import { renderForest } from './views/forest.js';
+import { renderForestTree, renderTokenPanel } from './views/forest.js';
 import { renderJourney } from './views/journey.js';
 import { renderAttention } from './views/attention.js';
 import { renderMemory } from './views/memory.js';
@@ -49,6 +49,31 @@ const state = {
 };
 
 const shown = () => state.runs.find((run) => run.id === selection.get().runId) ?? null;
+
+// What a run's answer reads as. A branch inherits the words before its fork from
+// the run it continues (with their recorded probabilities and candidates), puts
+// one other word there, then generates its own. Display index k is sequence
+// position base + k in the shown run.
+function displayOf(run, seen = new Set()) {
+  const own = run.tokens.map((token, i) => ({ ...token, owner: run, ownIndex: i }));
+  const start = sequencePosition(run, 0);
+  const parent = run.parent && !seen.has(run.id) ? state.runs.find((item) => item.id === run.parent.runId) : null;
+  if (!parent || start === null) return { tokens: own, inherited: 0, base: start, parent: null };
+  const above = displayOf(parent, new Set([...seen, run.id]));
+  const forkAt = above.inherited + run.parent.index;
+  const replaced = above.tokens[forkAt] ?? null;
+  const fork = { index: forkAt, tokenId: run.parent.tokenId, text: run.parent.tokenText, probability: run.parent.probability ?? null,
+    candidates: replaced?.candidates ?? null, owner: replaced?.owner ?? parent, ownIndex: replaced?.ownIndex ?? run.parent.index, inherited: true, forked: true };
+  return { tokens: [...above.tokens.slice(0, forkAt).map((token) => ({ ...token, inherited: true })), fork, ...own], inherited: forkAt + 1, base: start - (forkAt + 1), parent };
+}
+
+// The display index of the selected position, or null.
+function pickedIndex(run, display) {
+  const position = selection.get().position;
+  if (!run || position === null || display.base === null) return answerIndex(run, position);
+  const k = position - display.base;
+  return k >= 0 && k < display.tokens.length ? k : null;
+}
 // A stopped answer stays on screen only until another run is chosen.
 const showRun = (runId) => { if (state.live?.stopped) state.live = null; selection.select({ runId }); render(); };
 const status = (text) => { $('ws-status').textContent = text; };
@@ -303,8 +328,8 @@ function renderExamples() {
 }
 
 // The answer's tokens, coloured by surprise. Selecting one selects it everywhere.
-function renderAnswer(run, tokens) {
-  const picked = run ? answerIndex(run, selection.get().position) : null;
+function renderAnswer(run, tokens, display) {
+  const picked = run ? pickedIndex(run, display) : null;
   const known = (token) => (token && Number.isFinite(token.probability) ? token.probability : null);
   $('ws-prompt-echo').textContent = run?.prompt ?? state.live?.prompt ?? '';
   $('ws-tokens').replaceChildren(...tokens.map((token, i) => {
@@ -314,18 +339,20 @@ function renderAnswer(run, tokens) {
     const space = !text.trim();
     return h('button', {
       type: 'button',
-      className: ['token-chip', space ? 'token-chip--space' : '', p === null ? 'token-chip--unavailable' : '', i === picked ? 'is-selected' : ''].filter(Boolean).join(' '),
+      className: ['token-chip', space ? 'token-chip--space' : '', p === null ? 'token-chip--unavailable' : '', i === picked ? 'is-selected' : '',
+        token.inherited && !token.forked ? 'ws-inherited' : '', token.forked ? 'ws-forked' : ''].filter(Boolean).join(' '),
       ariaPressed: String(i === picked),
       disabled: !run,
-      title: p === null ? `Token ${i + 1}` : `Token ${i + 1} · ${percent(p)} likely`,
+      title: `${token.forked ? 'The word this branch put here' : token.inherited ? 'Inherited from the run this branched from' : `Token ${i + 1}`}${p === null ? '' : ` · ${percent(p)} likely`}`,
       style: `--token-surprisal: ${p === null ? 0.5 : 1 - p}; --token-gradient-start: ${1 - (near(-1) + (p ?? 0.5)) / 2}; --token-gradient-end: ${1 - (near(1) + (p ?? 0.5)) / 2}`,
       data: { index: i },
-      on: { click: () => run && selection.select({ position: sequencePosition(run, i) }), mouseenter: () => highlight(i), mouseleave: () => highlight(null) },
+      on: { click: () => run && selection.select({ position: display.base === null ? sequencePosition(run, i) : display.base + i }), mouseenter: () => highlight(i), mouseleave: () => highlight(null) },
     }, space && text.includes('\n') ? `↵${text}` : text);
   }));
   const recorded = run?.kind === 'recorded-example';
   if (state.live?.stopped) { $('ws-answer-note').textContent = 'Stopped. This partial answer is not saved as a run.'; return; }
   $('ws-answer-note').textContent = !tokens.length ? ''
+    : display?.parent ? `Branch of run ${display.parent.id.slice(4, 10)}: ${display.inherited === 2 ? 'word 1 is' : `words 1–${display.inherited - 1} are`} inherited from it (lighter), word ${display.inherited} is the one this branch put there (outlined), and the rest it generated. Underline: blue where the model was sure, red where it was surprised.`
     : recorded ? `Recorded answer from ${run.model.modelId ?? 'a model'}. Underline: blue where the model was sure, red where it was surprised.`
       : 'Underline: blue where the model was sure, red where it was surprised. Select a word to look inside.';
 }
@@ -337,9 +364,9 @@ function highlight(index) {
 }
 
 // One column per answer token, in three aligned rows.
-function renderSignals(run, tokens) {
+function renderSignals(run, tokens, display) {
   const rows = answerSignals(tokens);
-  const picked = run ? answerIndex(run, selection.get().position) : null;
+  const picked = run ? pickedIndex(run, display) : null;
   const ppl = perplexity(tokens);
   $('ws-perplexity').replaceChildren(...(ppl
     ? [h('strong', {}, ppl.value.toFixed(2)), ppl.tokens === tokens.length
@@ -360,7 +387,7 @@ function renderSignals(run, tokens) {
         title: `Token ${i + 1} "${visible(tokens[i].text)}": ${describe(signal)}`,
         disabled: !run,
         data: { index: i },
-        on: { click: () => run && selection.select({ position: sequencePosition(run, i) }), mouseenter: () => highlight(i), mouseleave: () => highlight(null) },
+        on: { click: () => run && selection.select({ position: display.base === null ? sequencePosition(run, i) : display.base + i }), mouseenter: () => highlight(i), mouseleave: () => highlight(null) },
       });
     })));
   $('ws-strip').replaceChildren(
@@ -377,7 +404,7 @@ function renderSignals(run, tokens) {
   );
 }
 
-function renderTabs(run) {
+function renderTabs(run, display) {
   $('ws-tabs').replaceChildren(...VIEWS.map((view) => h('button', {
     type: 'button', role: 'tab', className: 'ws-tab', id: `ws-tab-${view.id}`,
     ariaSelected: String(view.id === state.view), attrs: { 'aria-controls': `ws-view-${view.id}` },
@@ -385,24 +412,33 @@ function renderTabs(run) {
   }, view.label)));
   for (const view of VIEWS) $(`ws-view-${view.id}`).hidden = view.id !== state.view;
   const chosen = selection.get();
-  const index = run ? answerIndex(run, chosen.position) : null;
+  const index = run ? pickedIndex(run, display) : null;
   // One layer picker for every view; the journey and attention views can also set it.
   const layers = run ? (run.layerOutputs?.layers ?? run.activityTrace?.geometry?.layers ?? 0) : 0;
   $('ws-layer').replaceChildren(h('option', { value: '' }, 'All'), ...Array.from({ length: layers }, (_, i) => h('option', { value: String(i) }, String(i + 1))));
   $('ws-layer').value = chosen.layer === null || chosen.layer >= layers ? '' : String(chosen.layer);
   $('ws-layer').disabled = !layers;
-  $('ws-selection').textContent = run ? `${index === null ? 'No word selected' : `Word ${index + 1}: "${visible(run.tokens[index].text)}"`} · ${chosen.layer === null ? 'all layers' : `layer ${chosen.layer + 1}`}` : '';
+  $('ws-selection').textContent = run ? `${index === null ? 'No word selected' : `Word ${index + 1}: "${visible(display.tokens[index].text)}"`} · ${chosen.layer === null ? 'all layers' : `layer ${chosen.layer + 1}`}` : '';
 }
 
-function renderInside(run) {
-  renderTabs(run);
+function renderInside(run, display) {
+  renderTabs(run, display);
   const holder = $(`ws-view-${state.view}`);
   if (!run) { return; }
   const canRun = Boolean(state.runtime) && !state.busy;
   const why = state.runtime ? '' : 'Running the model needs WebGPU, which this browser does not provide.';
   const context = { run, runs: state.runs, selection, canRun, why, projections: state.projections, actions: { showRun, branch, recordAgain, project, projectUnavailable } };
-  // The forest renders the selected-token panel too, so it always runs.
-  renderForest(context);
+  // The selected word's panel. An inherited word is shown as its own run recorded it,
+  // so its candidates, branches and actions are the same as on that run.
+  const k = pickedIndex(run, display), word = k === null ? null : display.tokens[k];
+  if (word && word.owner !== run) {
+    const owner = word.owner, position = sequencePosition(owner, word.ownIndex);
+    renderTokenPanel({ ...context, run: owner, selection: { ...selection, get: () => ({ ...selection.get(), runId: owner.id, position }) },
+      note: word.forked ? ` This branch put "${visible(word.text)}" here instead; these are the choices run ${owner.id.slice(4, 10)} had.` : ` Inherited from run ${owner.id.slice(4, 10)}.` });
+  } else {
+    renderTokenPanel(context);
+  }
+  renderForestTree(context);
   const view = VIEWS.find((item) => item.id === state.view);
   view.render?.(context);
   // A recorded example without its activity offers to open it here.
@@ -454,13 +490,14 @@ function renderCompare(run) {
 
 function render() {
   const run = state.live ? null : shown();
-  const tokens = state.live?.tokens ?? run?.tokens ?? [];
+  const display = run ? displayOf(run) : { tokens: state.live?.tokens ?? [], inherited: 0, base: null, parent: null };
+  const tokens = display.tokens;
   renderExamples();
-  renderAnswer(run, tokens);
-  renderSignals(run, tokens);
-  $('ws-token-empty').hidden = Boolean(run && answerIndex(run, selection.get().position) !== null);
+  renderAnswer(run, tokens, display);
+  renderSignals(run, tokens, display);
+  $('ws-token-empty').hidden = Boolean(run && pickedIndex(run, display) !== null);
   if (!run) $('token-panel').hidden = true;
-  renderInside(run);
+  renderInside(run, display);
   renderRuns();
   renderCompare(run);
 }

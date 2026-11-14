@@ -124,13 +124,29 @@ try {
     const answerRun = (await ws(page)).runs.find((run) => run.kind === 'answer');
     await page.locator('#ws-runs li', { hasText: answerRun.id.slice(4, 10) }).locator('button.ws-run').click();
     await page.locator('#ws-tokens .token-chip').nth(1).click();
-    await page.locator('#candidates button', { hasText: 'Continue from here' }).first().click();
+    await page.locator('#candidates button', { hasText: 'Branch here' }).first().click();
     await page.waitForFunction((id) => globalThis.__DOPPLER_WORKSPACE__.runs.some((run) => run.parent?.runId === id), answerRun.id, { timeout: 300_000 });
     const fork = (await page.evaluate((id) => globalThis.__DOPPLER_WORKSPACE__.runs.find((run) => run.parent?.runId === id)?.id ?? null, answerRun.id));
     console.log(`  fork: ${fork} · ${(await ws(page)).status}`);
     assert.ok(fork, 'The fork became a run');
+    // A branch reads as one answer: inherited words with their underlines, the swapped-in word outlined, then its own.
+    await page.locator('#ws-runs li', { hasText: fork.slice(4, 10) }).locator('button.ws-run').click();
+    const shape = await page.evaluate(() => ({ chips: document.querySelectorAll('#ws-tokens .token-chip').length, inherited: document.querySelectorAll('#ws-tokens .ws-inherited').length, forked: document.querySelectorAll('#ws-tokens .ws-forked').length, note: document.getElementById('ws-answer-note').textContent }));
+    console.log(`  branch display: ${JSON.stringify(shape)}`);
+    assert.equal(shape.forked, 1, 'The swapped-in word is marked');
+    assert.equal(shape.inherited, 1, 'The fork was at word 2, so one word is inherited');
+    await page.locator('#ws-tokens .ws-inherited').first().click();
+    assert.equal(await page.isVisible('#token-panel'), true, 'An inherited word opens its candidates');
+    assert.match(await page.textContent('#token-title'), /Inherited from run/);
+    await page.locator('#ws-tokens .ws-forked').click();
+    assert.match(await page.textContent('#token-title'), /This branch put/);
+    assert.ok(await page.locator('#candidates button', { hasText: 'Show this branch' }).count() >= 1, 'The fork word lists this branch among its choices');
+    // The selected word's panel never covers the sections below it.
+    const overlap = await page.evaluate(() => { window.scrollTo(0, document.querySelector('.ws-runs').offsetTop - 200); const a = document.querySelector('.ws-token').getBoundingClientRect(), b = document.querySelector('.ws-runs').getBoundingClientRect(); return a.bottom - b.top; });
+    assert.ok(overlap <= 0, `The word panel ends above Runs (overlap ${overlap}px)`);
     // A fork asked a different question (its input carries the replaced token), so it is not comparable.
-    await page.selectOption('#ws-compare-with', fork);
+    // The fork is shown now; compare it with the run it branched from.
+    await page.selectOption('#ws-compare-with', answerRun.id);
     await page.waitForFunction(() => !document.getElementById('compare-view').hidden);
     assert.match(await page.textContent('#compare-verdict'), /not the same question/);
 
