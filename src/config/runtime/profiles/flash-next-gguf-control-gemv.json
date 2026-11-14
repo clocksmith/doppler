@@ -1,0 +1,72 @@
+{
+  "id": "profiles/flash-next-gguf-control-gemv",
+  "name": "Flash GGUF decode-only F32 control GEMV",
+  "description": "Opt-in native Flash GGUF seven-role decode control GEMV. Requires subgroups and WGSL subgroup_id. Preserves prefill, packed source representations, cache settings, and sampling; not a cross-device default.",
+  "intent": "investigate",
+  "compatibleIntents": [
+    "investigate",
+    "verify",
+    "calibrate"
+  ],
+  "stability": "experimental",
+  "owner": "doppler-core",
+  "createdAtUtc": "2026-11-14T00:00:00Z",
+  "extends": "profiles/default",
+  "runtime": {
+    "inference": {
+      "executionPatch": {
+        "addKernels": [
+          {
+            "key": "flash_control_gemv_candidate",
+            "kernel": {
+              "kernel": "matmul_gemv_f32_subgroup.wgsl",
+              "entry": "main",
+              "digest": "sha256:c5920603ff819e8687cb423bfcf19e3082671162beba59516d7d22180e6b756f",
+              "constants": {
+                "WORKGROUP_SIZE": 128,
+                "COLS_PER_WG": 4
+              }
+            }
+          }
+        ],
+        "set": [
+          {
+            "section": "decode",
+            "op": "linear_a_proj",
+            "kernelKey": "flash_control_gemv_candidate"
+          },
+          {
+            "section": "decode",
+            "op": "linear_b_proj",
+            "kernelKey": "flash_control_gemv_candidate"
+          },
+          {
+            "section": "decode",
+            "op": "moe_router",
+            "kernelKey": "flash_control_gemv_candidate"
+          },
+          {
+            "section": "decode",
+            "op": "moe_shared_router",
+            "kernelKey": "flash_control_gemv_candidate"
+          },
+          {
+            "section": "decode",
+            "op": "attn_hc_inject",
+            "kernelKey": "flash_control_gemv_candidate"
+          },
+          {
+            "section": "decode",
+            "op": "mlp_hc_inject",
+            "kernelKey": "flash_control_gemv_candidate"
+          },
+          {
+            "section": "decode",
+            "op": "qsa_index_qk",
+            "kernelKey": "flash_control_gemv_candidate"
+          }
+        ]
+      }
+    }
+  }
+}
