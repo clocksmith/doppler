@@ -36039,7 +36039,7 @@
      }
     },
     "q4_0_split_f32": {
-     "wgsl": "moe_route_gguf_split_f32.wgsl",
+     "wgsl": "moe_route_q4_0_split_block_f32.wgsl",
      "entryPoint": "main",
      "workgroup": [128,1,1],
      "requires": [],

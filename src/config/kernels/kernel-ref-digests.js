@@ -350,6 +350,7 @@ export const KERNEL_REF_CONTENT_DIGESTS = Object.freeze({
   "moe_offsets.wgsl#build_offsets": "3ea004145fa234659408cdeb0d4d802adff1037c9c5c03af146b3734cc69dd27",
   "moe_route_gguf_split_f32.wgsl#main": "32a342a5b289797719ab6438f0e7d482ac16cb15a5f6315fbbf4758ac724cebd",
   "moe_route_q4_0_f32.wgsl#main": "93701086c9ce454d08a7b22869fc931d186fe3d45e7b6ca95b7b72ee26b1d5be",
+  "moe_route_q4_0_split_block_f32.wgsl#main": "4d6cda4879b0eb3cf1163e3aa28ed6fc80a7d9e69e567c97bbd85296b9023137",
   "moe_route_q4_f32.wgsl#main_multicol": "22a02228b1425e2b7354b4e87c275f7b0de166925fd7cf30945d675c37aa86c8",
   "moe_router_bias_add_f16_f16.wgsl#main": "01e92ab0f98e56f08e79ce3393a1d434063464fd48ffccd5968b87de47bd773d",
   "moe_router_bias_add_f16_f32.wgsl#main": "e3cf5d6ec6d20f1bb4df9716de95c848846ef14cf461a08e5f9f0cc2e0ac67b1",
