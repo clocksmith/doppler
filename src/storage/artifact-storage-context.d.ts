@@ -39,6 +39,8 @@ export interface CreateArtifactStorageContextOptions {
   tensorsJsonPath?: string | null;
   verifyHashes?: boolean;
   hashesTrusted?: boolean;
+  /** Direct-source reads are authenticated by the supplied host reader; skips only whole-source scans. */
+  sourceHashesTrusted?: boolean;
   verificationBufferBytes?: number;
 }
 

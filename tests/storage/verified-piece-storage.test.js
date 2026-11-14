@@ -8,6 +8,47 @@ const manifestBytes = encode({modelId:'test', hashAlgorithm:'sha256',shards:[{fi
 const index = {schema:'doppler.verified-pieces/v1',manifestIdentity:sha(manifestBytes),maxPieceBytes:4,
  files:[{path:'weights.bin',size:8,pieces:data.map((bytes,i)=>({offset:i*4,size:4,identity:sha(bytes)}))}]};
 const indexBytes=encode(index),indexIdentity=sha(indexBytes),reads=[];
+// Production direct-source manifests carry machine-local paths, but the pinned
+// piece index uses portable shard filenames. No filesystem authority is implied.
+const directManifest = {
+  ...JSON.parse(new TextDecoder().decode(manifestBytes)),
+  tokenizer: { type: 'bundled', file: 'tokenizer.json' },
+  metadata: { sourceRuntime: { mode: 'direct-source', sourceKind: 'gguf',
+    sourceFiles: [{ index: 0, path: '/private/model.gguf', filename: 'weights.bin',
+      size: 8, hash: 'a'.repeat(64), hashAlgorithm: 'sha256' }],
+    tokenizer: { jsonPath: '@gguf/tokenizer.json' } } },
+};
+async function directFixture(manifest = directManifest, corrupt = false) {
+  const manifestBytes = encode(manifest), tokenizer = encode({ model: 'tokenizer' });
+  const indexBytes = encode({ ...index, manifestIdentity: sha(manifestBytes), maxPieceBytes: tokenizer.length,
+    files: [...index.files, { path: 'tokenizer.json', size: tokenizer.length,
+      pieces: [{ offset: 0, size: tokenizer.length, identity: sha(tokenizer) }] }] });
+  const acquired = [];
+  const source = await createVerifiedPieceStorage({ manifestBytes, indexBytes, indexIdentity: sha(indexBytes),
+    acquire: async piece => {
+      acquired.push({ path: piece.path, offset: piece.offset });
+      return corrupt ? new Uint8Array(piece.size) : piece.path === 'tokenizer.json' ? tokenizer : data[piece.offset / 4];
+    } });
+  return { source, acquired };
+}
+const direct = await directFixture();
+try {
+  await direct.source.storage.preflight();
+  assert.deepEqual(direct.acquired, []);
+  assert.deepEqual([...new Uint8Array(await direct.source.storage.loadShardRange(0, 1, 2))], [2, 3]);
+  assert.deepEqual(direct.acquired, [{ path: 'weights.bin', offset: 0 }], 'No full-source scan or unrelated piece');
+  assert.deepEqual(await direct.source.storage.loadTokenizerJson(), { model: 'tokenizer' });
+  await assert.rejects(direct.source.storage.loadAuxiliaryFile('/private/undeclared'), /Undeclared/);
+} finally { await direct.source.storage.close(); }
+await assert.rejects(direct.source.storage.loadShardRange(0, 0, 1), /closed|outside/);
+const directCorrupt = await directFixture(directManifest, true);
+try { await assert.rejects(directCorrupt.source.storage.loadShardRange(0, 0, 1), /integrity/); }
+finally { await directCorrupt.source.storage.close(); }
+for (const change of [{ index: 1 }, { filename: 'other.bin' }, { size: 9 }, { hash: 'b'.repeat(64) }, { hashAlgorithm: 'blake3' }]) {
+  const altered = structuredClone(directManifest);
+  Object.assign(altered.metadata.sourceRuntime.sourceFiles[0], change);
+  await assert.rejects(directFixture(altered), /binding mismatch/);
+}
 const opened=await createVerifiedPieceStorage({manifestBytes,indexBytes,indexIdentity,acquire:async p=>{reads.push(p.offset);return data[p.offset/4];}});
 await opened.storage.preflight();
 assert.deepEqual(reads, [], 'preflight must not acquire unassigned shard tails');
