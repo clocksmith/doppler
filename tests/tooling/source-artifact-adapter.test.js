@@ -94,6 +94,12 @@ await assert.rejects(
     async hashFileEntries(entries,hashAlgorithm) { return entries.map(entry=>({...entry,hash:'0'.repeat(64),hashAlgorithm})); } };
   const bundle = await resolveSourceRuntimeBundleFromParsedArtifact(options);
   assert.equal(bundle.model.quantizationInfo.weights,'q4_0');
+  // Exercise the full bundle path without allocating the source table.
+  q40Artifact.tensors.push({ name: 'per_layer_token_embd.weight', dtype: 'Q4_0',
+    shape: [320001536, 160], size: 28800138240, offset: 1024, sourcePath: 'model.gguf' });
+  q40Artifact.sourceFiles[0].size = 28800139264;
+  const largeBundle = await resolveSourceRuntimeBundleFromParsedArtifact(options);
+  assert.equal(largeBundle.model.quantizationInfo.weights, 'q4_0');
   q40Artifact.tensors[1].size=35;
   await assert.rejects(resolveSourceRuntimeBundleFromParsedArtifact(options),/byte length/);
 
