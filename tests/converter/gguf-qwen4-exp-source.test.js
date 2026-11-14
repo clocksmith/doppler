@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import metadata from '../fixtures/gguf/qwen4exp-flash-metadata.json' with { type: 'json' };
 import { normalizeQwenGGUFSource } from '../../src/formats/gguf/qwen-source.js';
 import { bindQwen4ExpGGUFTable } from '../../src/formats/gguf/qwen4-exp-source.js';
-import { resolveQwen4ExpSourceContracts } from '../../src/converter/qwen4-exp-source.js';
+import { resolveQwen4ExpSourceContracts } from '../../src/formats/qwen4-exp-source-contracts.js';
 import { extractArchitecture } from '../../src/converter/artifact-identity.js';
 import { createSourceRuntimeManifestInference } from '../../src/tooling/source-runtime-converter-config.js';
 import { parseGGUFModel } from '../../src/converter/parsers/gguf.js';

@@ -178,6 +178,7 @@
     "src/config/schema/ngram-embedding.schema.js",
     "src/config/schema/hyper-connection-decoder.schema.js",
     "src/converter/qwen4-exp-source.js",
+    "src/formats/qwen4-exp-source-contracts.js",
     "src/gpu/kernels/hyper-connection.js",
     "src/gpu/kernels/qsa-indexer.js",
     "src/inference/pipelines/text/indexed-attention/qsa-cache.js",

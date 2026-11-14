@@ -1,5 +1,5 @@
-import sourceDefaults from '../../converter/qwen4-exp-source-defaults.json' with { type: 'json' };
-import { resolveQwen4ExpSourceContracts } from '../../converter/qwen4-exp-source.js';
+import sourceDefaults from '../qwen4-exp-source-defaults.json' with { type: 'json' };
+import { resolveQwen4ExpSourceContracts } from '../qwen4-exp-source-contracts.js';
 
 // GGUF qwen4exp uses zero-based PLE layer indices and per-head PLE width.
 // HF Qwen4ExpTextConfig uses one-based indices and the concatenated width.

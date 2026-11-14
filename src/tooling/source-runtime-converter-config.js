@@ -1,6 +1,6 @@
 import { createQwen4ExpSourceExecution } from '../converter/qwen4-exp-source-execution.js';
 import flashSourceProfile from '../config/conversion/qwen3/qwen-3-8-flash-next-text-q4k-ehf16-af32.json' with { type: 'json' };
-import { isQwen4ExpSource, resolveQwen4ExpSourceContracts } from '../converter/qwen4-exp-source.js';
+import { isQwen4ExpSource, resolveQwen4ExpSourceContracts } from '../formats/qwen4-exp-source-contracts.js';
 import {
   createConverterConfig,
   EXECUTION_V1_SCHEMA_ID,

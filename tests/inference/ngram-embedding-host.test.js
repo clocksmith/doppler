@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
-import { resolveQwen4ExpSourceContracts } from '../../src/converter/qwen4-exp-source.js';
+import { resolveQwen4ExpSourceContracts } from '../../src/formats/qwen4-exp-source-contracts.js';
 import { resolveNgramEmbeddingContract, resolveNgramEmbeddingSession } from '../../src/config/schema/ngram-embedding.schema.js';
 import { NgramTokenHistory } from '../../src/inference/pipelines/text/ngram/ngram-addresses.js';
 import { NgramTableReader, ngramTablePartsFromCheckpointHeaders } from '../../src/inference/pipelines/text/ngram/ngram-table.js';

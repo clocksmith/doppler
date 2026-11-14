@@ -262,7 +262,7 @@ least one token's `headCount` rows) and `reads.maxConcurrent`.
 
 Conversion lowers the source config with `src/converter/qwen4-exp-source.js`.
 Omitted source fields resolve from the pinned `Qwen4ExpTextConfig` defaults in
-`src/converter/qwen4-exp-source-defaults.json` (for example `seed: 1234`); a
+`src/formats/qwen4-exp-source-defaults.json` (for example `seed: 1234`); a
 test checks that file against the bound Python class. A qwen4_exp conversion
 config must author all three sections exactly as derived; other sources may not
 author them. The derived multipliers, offsets and prime sizes equal the

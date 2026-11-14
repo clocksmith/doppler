@@ -1,10 +1,8 @@
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
-import {
-  assertConvertedQwen4ExpContracts,
-  resolveQwen4ExpSourceContracts,
-} from '../../src/converter/qwen4-exp-source.js';
-import sourceDefaults from '../../src/converter/qwen4-exp-source-defaults.json' with { type: 'json' };
+import { assertConvertedQwen4ExpContracts } from '../../src/converter/qwen4-exp-source.js';
+import { resolveQwen4ExpSourceContracts } from '../../src/formats/qwen4-exp-source-contracts.js';
+import sourceDefaults from '../../src/formats/qwen4-exp-source-defaults.json' with { type: 'json' };
 import { resolveHyperConnectionDecoderContracts } from '../../src/config/schema/hyper-connection-decoder.schema.js';
 
 // Contract: the pinned qwen4_exp source config lowers to explicit Doppler

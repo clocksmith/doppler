@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
-import { authenticateQwen4ExpSourceBuffers, resolveQwen4ExpSourceContracts } from '../../src/converter/qwen4-exp-source.js';
+import { authenticateQwen4ExpSourceBuffers } from '../../src/converter/qwen4-exp-source.js';
+import { resolveQwen4ExpSourceContracts } from '../../src/formats/qwen4-exp-source-contracts.js';
 
 // Contract: conversion accepts the checkpoint's I64 n-gram buffers only when
 // they equal the authored contract exactly, and retains them with SHA-256 in

@@ -6,7 +6,7 @@ import { acquireBuffer, uploadData, readBuffer, releaseBuffer } from '../../src/
 import { createTensor } from '../../src/gpu/tensor.js';
 import { CommandRecorder } from '../../src/gpu/command-recorder.js';
 import { runMatmul, recordMatmul } from '../../src/gpu/kernels/matmul.js';
-import { resolveQwen4ExpSourceContracts } from '../../src/converter/qwen4-exp-source.js';
+import { resolveQwen4ExpSourceContracts } from '../../src/formats/qwen4-exp-source-contracts.js';
 import { resolveHyperConnectionDecoderContracts } from '../../src/config/schema/hyper-connection-decoder.schema.js';
 import { NgramTokenHistory } from '../../src/inference/pipelines/text/ngram/ngram-addresses.js';
 import { PleConvState, runPleLayer } from '../../src/inference/pipelines/text/ngram/ple-layer.js';
