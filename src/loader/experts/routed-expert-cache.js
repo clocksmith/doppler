@@ -3,7 +3,7 @@ import { validateQwen35RoutedConfig } from '../../config/schema/loading.schema.j
 import { loadTensorRange } from '../tensors/tensor-reader.js';
 
 // The cache owns individual expert payloads. One reusable logical bank preserves
-// the existing kernels' expert IDs, Q4K byte offsets and accumulation order.
+// the existing kernels' expert IDs, source-format byte offsets and accumulation order.
 export class RoutedExpertCache {
   /** @type {import('./routed-expert-cache.js').RoutedExpertCacheOptions} */
   #options;
@@ -115,7 +115,7 @@ export class RoutedExpertCache {
 
   /** @param {import('./routed-expert-plan.js').RoutedExpertBankPlan} plan @param {AbortSignal} signal */
   async #prepareWorking(plan, signal) {
-    const signature = JSON.stringify(plan.planes.map(p => [p.role, p.location.shape, p.bytes]));
+    const signature = JSON.stringify(plan.planes.map(p => [p.role, p.dtype, p.location.shape, p.bytes]));
     if (this.#working.size && signature !== this.#signature) {
       await this.#options.device.queue.onSubmittedWorkDone();
       signal.throwIfAborted();
@@ -337,7 +337,7 @@ export class RoutedExpertCache {
     const weights = Object.fromEntries(plan.planes.map(plane => {
       const buffer = this.#working.get(plane.role);
       if (!buffer) throw new Error('Routed working bank is incomplete.');
-      return [plane.role, createWeightBuffer(buffer, 'q4k', 'row', plane.location.shape, plane.name)];
+      return [plane.role, createWeightBuffer(buffer, plane.dtype, 'row', plane.location.shape, plane.name)];
     }));
     if (!weights.down) throw new Error('Routed working bank has no down projection.');
     return { expertIdx: 0, expertFormat: 'qwen3_5', numExperts: plan.numExperts,

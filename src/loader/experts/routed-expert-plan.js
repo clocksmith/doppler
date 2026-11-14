@@ -1,3 +1,5 @@
+import { ggufBlockSourceBytes, ggufBlockFormat, isGgufBlockSourceDtype } from '../../formats/gguf/block-storage.js';
+import { selectRuleValue } from '../../rules/rule-registry.js';
 import { q4kBlockCount, Q4K_BLOCK_BYTES } from '../../config/schema/quantization.schema.js';
 import { resolveWeightLayout } from '../manifest-config.js';
 import { getQwen35ExpertTensorCandidates } from './expert-loader.js';
@@ -26,19 +28,23 @@ export function planRoutedExpertBank(manifest, locations, layer) {
   const planes = names.map(([role, name]) => {
     const location = name ? locations.get(name) : null;
     if (!name || !location || location.sourceTransform != null || resolveWeightLayout(location) !== 'row'
-      || !['Q4_K', 'Q4_K_M'].includes(location.dtype)) {
-      throw new Error(`Routed experts require untransformed row-major Q4K storage: ${name}.`);
+      || (!['Q4_K', 'Q4_K_M'].includes(location.dtype) && !isGgufBlockSourceDtype(location.dtype))) {
+      throw new Error(`Routed experts require untransformed row-major supported packed storage: ${name}.`);
     }
     const shape = role === 'down' ? [numExperts, hiddenSize, intermediateSize]
       : [numExperts, (role === 'gateUp' ? 2 : 1) * intermediateSize, hiddenSize];
     if (JSON.stringify(location.shape) !== JSON.stringify(shape)) {
       throw new Error(`Routed expert tensor geometry disagrees with the manifest: ${name}.`);
     }
-    const bytes = shape[0] * shape[1] * q4kBlockCount(shape[2]) * Q4K_BLOCK_BYTES;
-    if (!Number.isSafeInteger(bytes) || bytes <= 0 || bytes !== location.size) {
-      throw new Error(`Routed expert tensor extent disagrees with Q4K blocks: ${name}.`);
+    /** @type {import('./routed-expert-plan.js').RoutedExpertPlane['dtype']} */
+    const dtype = isGgufBlockSourceDtype(location.dtype) ? ggufBlockFormat(location.dtype).variant : 'q4k';
+    selectRuleValue('inference', 'moe', 'qwenRouteWeightDtype', { dtype });
+    const bytes = isGgufBlockSourceDtype(location.dtype) ? ggufBlockSourceBytes(shape, location.dtype)
+      : shape[0] * shape[1] * q4kBlockCount(shape[2]) * Q4K_BLOCK_BYTES;
+    if (!Number.isSafeInteger(bytes) || bytes <= 0 || bytes !== location.size || (bytes / numExperts) % 4 !== 0) {
+      throw new Error(`Routed expert tensor extent disagrees with packed rows or aligned expert planes: ${name}.`);
     }
-    return { role, name, location, bytes, expertBytes: bytes / numExperts };
+    return { role, name, location, dtype, bytes, expertBytes: bytes / numExperts };
   });
   return { layer, numExperts, intermediateSize, hiddenSize, planes,
     bankBytes: planes.reduce((sum, plane) => sum + plane.bytes, 0),

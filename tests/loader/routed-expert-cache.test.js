@@ -1,3 +1,4 @@
+import { ggufBlockSourceBytes } from '../../src/formats/gguf/block-storage.js';
 import assert from 'node:assert/strict';
 import { RoutedExpertCache } from '../../src/loader/experts/routed-expert-cache.js';
 import { planRoutedExpertBank } from '../../src/loader/experts/routed-expert-plan.js';
@@ -31,19 +32,20 @@ function device() {
   };
   return { gpu, buffers };
 }
-function fixture(separate = false, intermediate = 256) {
+function fixture(separate = false, intermediate = 256, native = false) {
   const manifest = { architecture: { numLayers: 3, hiddenSize: 256 },
     moeConfig: { expertFormat: 'qwen3_5', numExperts: 4, expertIntermediateSize: intermediate } };
   const locations = new Map(), shards = new Map();
   for (let layer = 0; layer < 3; layer++) {
     for (const [kind, shape] of (separate ? [['gate', [4, intermediate, 256]], ['up', [4, intermediate, 256]], ['down', [4, 256, intermediate]]]
       : [['gate_up', [4, 2 * intermediate, 256]], ['down', [4, 256, intermediate]]])) {
-      const bytes = shape[0] * shape[1] * Math.ceil(shape[2] / 256) * 144;
+      const dtype = native ? (kind === 'down' ? 'Q4_1' : 'Q4_0') : 'Q4_K';
+      const bytes = native ? ggufBlockSourceBytes(shape, dtype) : shape[0] * shape[1] * Math.ceil(shape[2] / 256) * 144;
       const shard = shards.size, data = new Uint8Array(bytes);
       for (let expert = 0; expert < 4; expert++) data.fill(1 + layer * 16 + expert * 3 + shard, expert * bytes / 4, (expert + 1) * bytes / 4);
       shards.set(shard, data);
       locations.set(separate ? `blk.${layer}.ffn_${kind}_exps.weight` : `model.language_model.layers.${layer}.mlp.experts.${kind}_proj`,
-        { shape, size: bytes, dtype: 'Q4_K', layout: 'row', shardIndex: shard, offset: 0 });
+        { shape, size: bytes, dtype, layout: 'row', shardIndex: shard, offset: 0 });
     }
   }
   const cacheBytes = [...locations.values()].slice(0, separate ? 3 : 2).reduce((sum, plane) => sum + plane.size / 4, 0) * 2;
@@ -309,4 +311,28 @@ console.log('Routed expert cache: range extents, identity, hot reuse, budgets, c
   f.gpu.queue.onSubmittedWorkDone = async () => {};
   await f.cache.destroy();
   assert(f.buffers.every(b => b.destroyed));
+}
+
+{
+  const f = fixture(true, 256, true), plan = f.plan(0);
+  assert.deepEqual(plan.planes.map(plane => plane.dtype), ['q4_0', 'q4_0', 'q4_1']);
+  assert.deepEqual(plan.planes.map(plane => plane.expertBytes), [256 * 256 / 32 * 18, 256 * 256 / 32 * 18, 256 * 256 / 32 * 20]);
+  const weights = await f.cache.prepare(plan, [1, 3]);
+  assert.equal(f.cache.getStats().sourceReadBytes, 2 * plan.expertBytes);
+  for (const plane of plan.planes) {
+    assert.equal(weights[plane.role].dtype, plane.dtype);
+    for (const id of [1, 3]) assert.deepEqual(
+      weights[plane.role].buffer.data.slice(id * plane.expertBytes, (id + 1) * plane.expertBytes),
+      f.shards.get(plane.location.shardIndex).slice(id * plane.expertBytes, (id + 1) * plane.expertBytes));
+  }
+  const before = f.cache.getStats().sourceReadBytes;
+  await f.cache.prepare(plan, [1, 3]);
+  assert.equal(f.cache.getStats().sourceReadBytes, before);
+  assert(f.cache.getStats().peakAccountedGpuBytes <= f.policy.gpuBudgetBytes - f.policy.reserveBytes);
+  assert(f.cache.getStats().peakStagingBytes <= f.policy.stagingBytes);
+  await f.cache.destroy();
+  assert(f.buffers.every(buffer => buffer.destroyed));
+  const down = plan.planes.find(plane => plane.role === 'down');
+  down.location.size -= 4;
+  assert.throws(() => f.plan(0), /extent/);
 }

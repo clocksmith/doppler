@@ -5,6 +5,7 @@ export interface RoutedExpertPlane {
   role: string;
   name: string;
   location: TensorLocation;
+  dtype: 'q4k' | import('../../formats/gguf/block-storage.js').GGUFBlockDtype;
   bytes: number;
   expertBytes: number;
 }
