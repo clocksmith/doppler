@@ -37,7 +37,7 @@ export class RoutedExpertCache {
     cacheHits: 0, cacheMisses: 0, workingHits: 0, evictions: 0, evictionFenceWaits: 0, evictionFenceSkips: 0, bufferReuses: 0, expertCopySubmissions: 0, hitBatchSubmissions: 0, batchedHitExperts: 0,
     residentBytes: 0, peakResidentBytes: 0, peakAccountedGpuBytes: 0, peakStagingBytes: 0,
     ioWaitMs: 0, sourceReadWaitMs: 0, uploadEnqueueMs: 0, initialQueueIdleForWeightsMs: 0,
-    hostCacheHits: 0, hostCacheMisses: 0, hostEvictions: 0, hostAdmissionSkips: 0, peakHostOwnedOrReservedBytes: 0 };
+    hostPrefillAdmissionSkips: 0, hostPrefillAdmissions: 0, hostDecodeAdmissions: 0, hostCacheHits: 0, hostCacheMisses: 0, hostEvictions: 0, hostAdmissionSkips: 0, peakHostOwnedOrReservedBytes: 0 };
 
   /** @param {import('./routed-expert-cache.js').RoutedExpertCacheOptions} options */
   constructor(options) {
@@ -178,8 +178,9 @@ export class RoutedExpertCache {
   }
 
   /** @param {import('./routed-expert-plan.js').RoutedExpertBankPlan} plan
-   * @param {number} expert @param {AbortSignal} signal @param {() => void} beforeSubmit */
-  async #get(plan, expert, signal, beforeSubmit) {
+   * @param {number} expert @param {AbortSignal} signal @param {() => void} beforeSubmit
+   * @param {'prefill' | 'decode' | undefined} phase */
+  async #get(plan, expert, signal, beforeSubmit, phase) {
     const key = `${plan.layer}:${expert}`;
     const cached = await this.#locked(async () => {
       signal.throwIfAborted();
@@ -227,8 +228,10 @@ export class RoutedExpertCache {
       if (this.#options.policy.hostCacheBytes > 0) {
         this.#stats.hostCacheMisses++;
         const repeatOnly = this.#options.policy.hostCacheAdmission === 'repeat-read';
-        const admit = !repeatOnly || this.#hostSeen.has(key);
-        if (repeatOnly) this.#hostSeen.add(key);
+        const phaseAllowed = this.#options.policy.hostCacheAdmissionPhase === 'all' || phase === 'decode';
+        const admit = phaseAllowed && (!repeatOnly || this.#hostSeen.has(key));
+        if (phaseAllowed && repeatOnly) this.#hostSeen.add(key);
+        if (!phaseAllowed) this.#stats.hostPrefillAdmissionSkips++;
         if (admit) {
           this.#makeHostRoom(plan.expertBytes);
           this.#hostReserved += plan.expertBytes; hostReservation = plan.expertBytes;
@@ -272,6 +275,8 @@ export class RoutedExpertCache {
         this.#hostReserved -= hostReservation; hostReservation = 0;
         this.#hostEntries.set(key, { bytes: plan.expertBytes, chunks });
         this.#hostBytes += plan.expertBytes;
+        if (phase === 'prefill') this.#stats.hostPrefillAdmissions++;
+        if (phase === 'decode') this.#stats.hostDecodeAdmissions++;
       }
       await this.#locked(async () => { this.#entries.set(key, entry); });
       return entry;
@@ -346,7 +351,11 @@ export class RoutedExpertCache {
   }
 
   /** @type {import('./routed-expert-cache.js').RoutedExpertCache['prepare']} */
-  prepare(plan, expertIds, externalSignal) {
+  prepare(plan, expertIds, externalSignal, phase) {
+    if ((phase !== undefined && phase !== 'prefill' && phase !== 'decode')
+        || (this.#options.policy.hostCacheAdmissionPhase === 'decode' && phase === undefined)) {
+      throw new Error('Routed expert phase-aware host admission requires explicit prefill or decode phase.');
+    }
     if (this.#closed || this.#active) throw new Error('Routed expert cache is closed or already preparing a layer.');
     const controller = new AbortController();
     const abortExternal = () => controller.abort(externalSignal?.reason);
@@ -354,7 +363,7 @@ export class RoutedExpertCache {
     externalSignal?.addEventListener('abort', abortExternal, { once: true });
     this.#shutdown.signal.addEventListener('abort', abortShutdown, { once: true });
     if (externalSignal?.aborted) abortExternal();
-    const task = this.#prepare(plan, expertIds, controller);
+    const task = this.#prepare(plan, expertIds, controller, phase);
     this.#active = task;
     return task.finally(() => {
       externalSignal?.removeEventListener('abort', abortExternal);
@@ -365,8 +374,9 @@ export class RoutedExpertCache {
 
   /** @param {import('./routed-expert-plan.js').RoutedExpertBankPlan} plan
    * @param {number[]} expertIds @param {AbortController} controller
+   * @param {'prefill' | 'decode' | undefined} phase
    * @returns {Promise<import('./routed-expert-cache.js').RoutedExpertWeights>} */
-  async #prepare(plan, expertIds, controller) {
+  async #prepare(plan, expertIds, controller, phase) {
     const signal = controller.signal;
     signal.throwIfAborted();
     const ids = [...new Set(expertIds)];
@@ -399,7 +409,7 @@ export class RoutedExpertCache {
         const expert = ids[cursor++];
         if (copiedHits.has(expert)) continue;
         if (this.#loaded.has(expert)) { this.#stats.workingHits++; continue; }
-        const entry = await this.#get(plan, expert, signal, beforeSubmit);
+        const entry = await this.#get(plan, expert, signal, beforeSubmit, phase);
         try {
           signal.throwIfAborted();
           const encoder = this.#options.device.createCommandEncoder({ label: 'routed_expert_copy' });

@@ -93,7 +93,7 @@ python3 reports/qwen-service-qualification-20261017/reproduce.py \
 # --surface node uses the lockfile's provisioned WebGPU provider.
 # --prepare-only verifies/installs inputs without launching a GPU campaign.
 node tests/kernels/fused-matmul-q4-widetile-f16a-parity.test.js --partial-tile
-node reports/qwen-service-qualification-20261017/tjs-service-control.mjs \
+node reports/qwen-service-qualification-20261017/tjs-service-control.js \
   reports/qwen-service-qualification-20261017/service-tasks.json /absolute/tjs-control.json
 ```
 
@@ -102,3 +102,5 @@ The TJS control serves the already-provisioned `.cache/qwen-comparator-relay`, r
 Still open: broad answer-quality acceptance; a qualified recurring movie-selection workload and five actual users; independent return usage; complete service cost and lifecycle comparison with competitors; arbitrary driver-loss recovery; newer-archive qualification including the relay fix; longer prompts and transfer/import/export timings. Reploid's latest hosted unit/integration failures and skipped browser/package checks remain open. Q2/Q3, Flash-Next, catalog expansion and new distributed mechanisms were not started.
 
 Component: installed generation, serving and verification evidence. Intent: preserved. Acceptance: scoped eight-lane lifecycle, scalar recurrent equality, physical partial tiles and retained failed quality results. Boundary effects: no new execution/application ownership; no universal support, quality or promotion claim.
+
+Filename-only migration (2026-11-14): `tjs-service-control.mjs` → `tjs-service-control.js`. Driver bytes and their SHA-256 digests are unchanged; captured outputs retain their original historical filenames. Current indexes below resolve the `.js` names.

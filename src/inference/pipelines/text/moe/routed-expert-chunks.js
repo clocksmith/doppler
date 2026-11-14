@@ -24,7 +24,7 @@ export async function executeRoutedExpertChunks(options, loader, policy, signal)
   };
   let ids = await selections(0);
   if (numTokens <= policy.routeChunkTokens) {
-    const weights = await loader.prepareRoutedExperts(layerIdx, ids, signal);
+    const weights = await loader.prepareRoutedExperts(layerIdx, ids, signal, options.phase);
     signal?.throwIfAborted();
     return runQwenRouteExperts({ ...options, weights });
   }
@@ -38,7 +38,7 @@ export async function executeRoutedExpertChunks(options, loader, policy, signal)
       const next = start + count < numTokens ? selections(start + count) : null;
       // A rejection is observed immediately even if weight preparation fails.
       next?.catch(() => undefined);
-      const preparing = loader.prepareRoutedExperts(layerIdx, ids, signal);
+      const preparing = loader.prepareRoutedExperts(layerIdx, ids, signal, options.phase);
       preparing.catch(() => undefined);
       /** @type {GPUBuffer | null} */
       let input = null, indices = null, routes = null;

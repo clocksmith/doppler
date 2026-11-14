@@ -27,3 +27,6 @@ assert.equal(await prepareExpertLayer({}, routed.loading.expertCache, 0, new Map
 await assert.rejects(prepareExpertLayer({}, routed.loading.expertCache, 0, new Map(), {}, undefined, 'topk-route'), /immediate/);
 await assert.rejects(prepareExpertLayer({}, routed.loading.expertCache, 0, new Map(), null, undefined, 'all'), /immediate/);
 console.log('Routed profile preserves all inference policy and rejects incompatible execution before loading.');
+assert.equal(hostPolicy.hostCacheAdmissionPhase, 'all', 'existing profiles retain phase-independent admission');
+assert.equal(validateQwen35RoutedConfig({ ...hostPolicy, hostCacheAdmissionPhase: 'decode' }).hostCacheAdmissionPhase, 'decode');
+assert.throws(() => validateQwen35RoutedConfig({ ...hostPolicy, hostCacheAdmissionPhase: 'infer' }), /hostCacheAdmissionPhase/);

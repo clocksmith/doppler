@@ -14,7 +14,7 @@ export async function prepareExpertLayer(loader, policy, layer, consumers, recor
 }
 
 /** @type {typeof import('./loader-bindings.js').prepareRoutedExperts} */
-export async function prepareRoutedExperts(loader, layer, expertIds, signal) {
+export async function prepareRoutedExperts(loader, layer, expertIds, signal, phase) {
   const policy = loader.getRoutedExpertPolicy();
   if (!policy.enabled) throw new Error('Routed experts are not enabled.');
   if (!loader.manifest) throw new Error('Routed experts require the loaded manifest.');
@@ -31,7 +31,7 @@ export async function prepareRoutedExperts(loader, layer, expertIds, signal) {
         return bytes;
       } });
   }
-  return loader.routedExpertCache.prepare(plan, expertIds, signal);
+  return loader.routedExpertCache.prepare(plan, expertIds, signal, phase);
 }
 
 /** @type {typeof import('./loader-bindings.js').disposeRoutedExperts} */

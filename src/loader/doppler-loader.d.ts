@@ -80,7 +80,7 @@ export declare class DopplerLoader {
     recorder?: import('../gpu/command-recorder.js').CommandRecorder | null, signal?: AbortSignal, activeSelection?: string
   ): Promise<import('./experts/qwen-paging.js').QwenPagingReceipt | null>;
   getRoutedExpertPolicy(): import('../config/schema/loading.schema.js').Qwen35RoutedConfig;
-  prepareRoutedExperts(layer: number, expertIds: number[], signal?: AbortSignal): Promise<import('./experts/routed-expert-cache.js').RoutedExpertWeights>;
+  prepareRoutedExperts(layer: number, expertIds: number[], signal?: AbortSignal, phase?: 'prefill' | 'decode'): Promise<import('./experts/routed-expert-cache.js').RoutedExpertWeights>;
   getRoutedExpertCacheStats(): import('./experts/routed-expert-cache.js').RoutedExpertCacheStats | null;
   _getExpertLoaderContext(): import('./experts/expert-loader.js').ExpertLoaderContext;
   lmHead: GPUBuffer | WeightBuffer | CpuWeightBuffer | Float32Array | null;

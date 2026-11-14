@@ -32,3 +32,5 @@ artifact bytes and new application-delivery identities, not new model contents.
 
 These checks prove prepared integrity only. No GPU, model generation, public
 publication, deployment or source-quality acceptance occurred in this task.
+
+Filename-only migration (2026-11-14): `build.mjs` → `build.js`. Driver bytes and their SHA-256 digests are unchanged; captured outputs retain their original historical filenames. Current indexes below resolve the `.js` names.

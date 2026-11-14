@@ -103,3 +103,5 @@ effects: none; no release, catalog, production setting, or application authority
 changed. Delivery attribution and per-tensor reachability are the next steps,
 in that order; reusable bindings/scratch follow their measurement. No WAN,
 LoRA, prefix-cache or new-model work is part of this cycle.
+
+Filename-only migration (2026-11-14): `browser-lifecycle.mjs` → `browser-lifecycle.js`. Driver bytes and their SHA-256 digests are unchanged; captured outputs retain their original historical filenames. Current indexes below resolve the `.js` names.

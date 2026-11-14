@@ -20,6 +20,6 @@ export function assemble(text) {
   return p;
 }
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
-  if (process.argv.length !== 3) throw new Error('Usage: node compiler/assemble.mjs program.sprout');
+  if (process.argv.length !== 3) throw new Error('Usage: node compiler/assemble.js program.sprout');
   process.stdout.write(JSON.stringify(assemble(fs.readFileSync(process.argv[2], 'utf8'))) + '\n');
 }

@@ -1,8 +1,8 @@
 [
   {
     "path": "README.md",
-    "bytes": 6249,
-    "sha256": "2606161eaea0e892b079acdd64f63dcef0519ce3e0887e955900b68d8c2a58d7"
+    "bytes": 6492,
+    "sha256": "1d814a305f4dc478658cddc347e878249aa6aac1e2aafa89f0de2572c09cf091"
   },
   {
     "path": "browser-trace-baseline.mjs",
@@ -25,7 +25,7 @@
     "sha256": "3bdea9091481b3958aa560b7dd901ec271dbf6b1d58d0f8da7a096a7042c4f77"
   },
   {
-    "path": "browser-trace.mjs",
+    "path": "browser-trace.js",
     "bytes": 8639,
     "sha256": "157dba51e28d20839ab923b7207351712770590cb24d7c27c8da9df679075c25"
   },

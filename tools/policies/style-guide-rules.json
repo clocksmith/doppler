@@ -186,69 +186,19 @@
   ],
   "legacyMjs": [
     {
-      "path": "artifacts/qwen35-08b-capsule-intake-20261012/signed-0fad-candidate/build.mjs",
-      "reason": "Pre-existing retained artifact or example; do not rename historical evidence or break standalone consumers for style.",
-      "removalCondition": "Remove this exception when its owning file is deliberately deleted or migrated with its consumers."
-    },
-    {
-      "path": "examples/js-wgsl-quines/compiler/assemble.mjs",
-      "reason": "Pre-existing retained artifact or example; do not rename historical evidence or break standalone consumers for style.",
-      "removalCondition": "Remove this exception when its owning file is deliberately deleted or migrated with its consumers."
-    },
-    {
-      "path": "examples/js-wgsl-quines/compiler/compile.mjs",
-      "reason": "Pre-existing retained artifact or example; do not rename historical evidence or break standalone consumers for style.",
-      "removalCondition": "Remove this exception when its owning file is deliberately deleted or migrated with its consumers."
-    },
-    {
-      "path": "examples/js-wgsl-quines/tests/cpu.mjs",
-      "reason": "Pre-existing retained artifact or example; do not rename historical evidence or break standalone consumers for style.",
-      "removalCondition": "Remove this exception when its owning file is deliberately deleted or migrated with its consumers."
-    },
-    {
-      "path": "examples/js-wgsl-quines/tests/gpu.mjs",
-      "reason": "Pre-existing retained artifact or example; do not rename historical evidence or break standalone consumers for style.",
-      "removalCondition": "Remove this exception when its owning file is deliberately deleted or migrated with its consumers."
-    },
-    {
-      "path": "examples/js-wgsl-quines/tests/reference.mjs",
-      "reason": "Pre-existing retained artifact or example; do not rename historical evidence or break standalone consumers for style.",
-      "removalCondition": "Remove this exception when its owning file is deliberately deleted or migrated with its consumers."
-    },
-    {
       "path": "examples/program-bundles/program/host/text-generation-efe3ad193b2271bc.mjs",
-      "reason": "Pre-existing retained artifact or example; do not rename historical evidence or break standalone consumers for style.",
-      "removalCondition": "Remove this exception when its owning file is deliberately deleted or migrated with its consumers."
-    },
-    {
-      "path": "reports/qwen-delivery-attribution-20261017/browser-trace.mjs",
-      "reason": "Pre-existing retained artifact or example; do not rename historical evidence or break standalone consumers for style.",
-      "removalCondition": "Remove this exception when its owning file is deliberately deleted or migrated with its consumers."
-    },
-    {
-      "path": "reports/qwen-package-candidate-20261017/browser-lifecycle.mjs",
-      "reason": "Pre-existing retained artifact or example; do not rename historical evidence or break standalone consumers for style.",
-      "removalCondition": "Remove this exception when its owning file is deliberately deleted or migrated with its consumers."
-    },
-    {
-      "path": "reports/qwen-sampling-correction-20261017/browser-lifecycle.mjs",
-      "reason": "Pre-existing retained artifact or example; do not rename historical evidence or break standalone consumers for style.",
-      "removalCondition": "Remove this exception when its owning file is deliberately deleted or migrated with its consumers."
-    },
-    {
-      "path": "reports/qwen-service-qualification-20261017/tjs-service-control.mjs",
-      "reason": "Pre-existing retained artifact or example; do not rename historical evidence or break standalone consumers for style.",
-      "removalCondition": "Remove this exception when its owning file is deliberately deleted or migrated with its consumers."
+      "reason": "Frozen content-addressed host module referenced by three Program Bundles and their artifact-set identities; preserve the recorded bundle payload/path.",
+      "removalCondition": "Remove when these example bundles are deliberately regenerated and requalified, not by rewriting preserved identities for style."
     },
     {
       "path": "reports/weight-representation-20261017/browser-compare.mjs",
-      "reason": "Pre-existing retained artifact or example; do not rename historical evidence or break standalone consumers for style.",
-      "removalCondition": "Remove this exception when its owning file is deliberately deleted or migrated with its consumers."
+      "reason": "Archived driver bytes and filename are bound into the frozen weight-representation replay contract and driver identity set. Renaming requires rewriting historical replay metadata or adding a compatibility alias.",
+      "removalCondition": "Remove when this archived replay package is deliberately retired or superseded with preserved provenance; do not broaden the exception."
     },
     {
       "path": "reports/weight-representation-20261017/browser-materialization.mjs",
-      "reason": "Pre-existing retained artifact or example; do not rename historical evidence or break standalone consumers for style.",
-      "removalCondition": "Remove this exception when its owning file is deliberately deleted or migrated with its consumers."
+      "reason": "Archived driver bytes and filename are bound into the frozen weight-representation replay contract and driver identity set. Renaming requires rewriting historical replay metadata or adding a compatibility alias.",
+      "removalCondition": "Remove when this archived replay package is deliberately retired or superseded with preserved provenance; do not broaden the exception."
     }
   ]
 }

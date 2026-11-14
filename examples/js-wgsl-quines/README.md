@@ -89,7 +89,7 @@ reference, and independent Sprout interpreter tests pass. All five also pass the
 JavaScript checks in Chromium. Actual WGSL compilation and WebGPU dispatch have
 **not** been verified in the construction environment: browser navigation was
 blocked by administrator policy, and a Node WebGPU binding was unavailable.
-`tests/gpu.mjs` and the browser demo perform real GPU tests and never substitute
+`tests/gpu.js` and the browser demo perform real GPU tests and never substitute
 CPU output for a GPU result. A reported software adapter is not physical GPU proof.
 
 ## Start here
@@ -250,11 +250,11 @@ cmp quines/05-compiler.js /tmp/compiler-child.js
 node quines/05-compiler.js --wgsl > /tmp/compiler-child.wgsl
 cmp quines/05-compiler.wgsl /tmp/compiler-child.wgsl
 
-node compiler/compile.mjs compiler/fibonacci.sprout --target js > /tmp/fibonacci.js
+node compiler/compile.js compiler/fibonacci.sprout --target js > /tmp/fibonacci.js
 node /tmp/fibonacci.js
 # 6765
 
-node compiler/compile.mjs compiler/factorial.sprout --target wgsl > /tmp/factorial.wgsl
+node compiler/compile.js compiler/factorial.sprout --target wgsl > /tmp/factorial.wgsl
 ```
 
 For every construction, `--cpu` prints its JS self-reproduction and `--wgsl`
@@ -303,8 +303,8 @@ used by the quines.
 `build.py` builds the first four fixed points and embeds the complete launcher.
 `compiler/build_compiler.py` contains the bootstrap backend templates and builds
 the Sprout compiler. `compiler/compiler.sprout` is the actual self-hosted source,
-with its generic emission templates as data. `compiler/assemble.mjs` assembles that
-text form. `tests/reference.mjs` independently interprets the numeric language.
+with its generic emission templates as data. `compiler/assemble.js` assembles that
+text form. `tests/reference.js` independently interprets the numeric language.
 
 The Sprout language has unsigned 32-bit registers, explicit data and input reads,
 arithmetic, comparisons, loops, branches, and byte/decimal output. Division and
@@ -344,7 +344,7 @@ gzip sizes, and hashes. These are description-size measurements, not a proof of
 minimal Kolmogorov complexity. Dynamic binary sizes and i32 constants use legal
 five-byte LEB128: fewer compiler rules, somewhat larger emitted binaries.
 
-`node compiler/compile.mjs compiler/fibonacci.sprout --target wasm` emits a real
+`node compiler/compile.js compiler/fibonacci.sprout --target wasm` emits a real
 Wasm module on stdout. `node quines/05-compiler.js --wasm` emits the compiler's
 Wasm form. The default JS and WGSL commands remain unchanged.
 
@@ -363,3 +363,5 @@ A software fallback does not qualify as physical-GPU evidence. Fresh receipts
 and returned descendants go in
 `verification/sprout-three-backend-2026-09-12/`; the original CPU/blocked-GPU
 receipts describe the earlier two-backend construction, not this new run.
+
+Source filenames migrated from `.mjs` to `.js` on 2026-11-14. Archived verification records retain the original command names; current scripts above use the same ES-module execution mode.

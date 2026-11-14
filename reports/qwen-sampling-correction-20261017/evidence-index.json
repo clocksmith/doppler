@@ -1,8 +1,8 @@
 [
   {
     "path": "README.md",
-    "bytes": 6955,
-    "sha256": "f6d971f9e720cc1edbf93acfba9073ebdfb5763c2145f0af8297179c208e2561"
+    "bytes": 7208,
+    "sha256": "d322abc70077f5462aa21f52241324738c892b2abe6cdf245bcbc09a084c33c2"
   },
   {
     "path": "archive-files.json",
@@ -10,7 +10,7 @@
     "sha256": "e53d5e9b01d85cd82cf6c06efdf1b45ca24a24ee41aa14c01d0791cd31783421"
   },
   {
-    "path": "browser-lifecycle.mjs",
+    "path": "browser-lifecycle.js",
     "bytes": 7901,
     "sha256": "0ba549a0c1ba6d8d96ee470d04ba008a2277052f3a4e3f2a18447cf88d3acb9b"
   },

@@ -183,6 +183,8 @@ export interface Qwen35RoutedConfig {
   hostCacheBytes: number;
   /** Retain all requested payloads, or admit only after a second source read. */
   hostCacheAdmission: 'all' | 'repeat-read';
+  /** Decode-only protects retained host payloads from prefill misses; hits remain usable. */
+  hostCacheAdmissionPhase: 'all' | 'decode';
   /** Total payload plus assembled-range capacity across concurrent readers. Backend/driver caches are separate. */
   stagingBytes: number;
   readConcurrency: number;

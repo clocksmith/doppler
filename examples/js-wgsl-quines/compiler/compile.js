@@ -3,14 +3,14 @@ import fs from 'node:fs';
 import vm from 'node:vm';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { assemble } from './assemble.mjs';
+import { assemble } from './assemble.js';
 const root=path.dirname(path.dirname(fileURLToPath(import.meta.url)));
 const args=process.argv.slice(2);
 const targetIndex=args.indexOf('--target');
 const target=targetIndex<0?'js':args[targetIndex+1];
 const input=args[0];
 if(!input || input.startsWith('--') || !['js','wgsl','wasm'].includes(target)) {
- console.error('Usage: node compiler/compile.mjs program.sprout|program.json [--target js|wgsl|wasm]');process.exit(1);
+ console.error('Usage: node compiler/compile.js program.sprout|program.json [--target js|wgsl|wasm]');process.exit(1);
 }
 try {
  const text=fs.readFileSync(input,'utf8');

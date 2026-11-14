@@ -4,8 +4,8 @@ import path from 'node:path';
 import vm from 'node:vm';
 import { createHash } from 'node:crypto';
 import { fileURLToPath } from 'node:url';
-import { assemble } from '../compiler/assemble.mjs';
-import { interpret } from './reference.mjs';
+import { assemble } from '../compiler/assemble.js';
+import { interpret } from './reference.js';
 
 const root = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
 const evidence = path.join(root, 'verification/sprout-three-backend-2026-09-12');

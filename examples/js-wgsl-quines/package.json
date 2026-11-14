@@ -5,9 +5,9 @@
   "type": "module",
   "description": "Five JavaScript/WGSL self-reproducing constructions and a self-hosting toy compiler",
   "scripts": {
-    "test": "node tests/test-minimal.js && node tests/cpu.mjs",
+    "test": "node tests/test-minimal.js && node tests/cpu.js",
     "test:minimal": "node tests/test-minimal.js",
-    "test:gpu": "node tests/gpu.mjs",
+    "test:gpu": "node tests/gpu.js",
     "build": "python3 build.py",
     "serve": "python3 -m http.server 8000 --bind 127.0.0.1",
     "test:wasm": "node tests/wasm.js",

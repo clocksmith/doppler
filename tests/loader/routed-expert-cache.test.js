@@ -1,3 +1,4 @@
+import { prepareRoutedExperts } from '../../src/loader/experts/loader-bindings.js';
 import { ggufBlockSourceBytes } from '../../src/formats/gguf/block-storage.js';
 import assert from 'node:assert/strict';
 import { RoutedExpertCache } from '../../src/loader/experts/routed-expert-cache.js';
@@ -49,7 +50,7 @@ function fixture(separate = false, intermediate = 256, native = false) {
     }
   }
   const cacheBytes = [...locations.values()].slice(0, separate ? 3 : 2).reduce((sum, plane) => sum + plane.size / 4, 0) * 2;
-  const policy = { enabled: true, cacheBytes, hostCacheBytes: 0, hostCacheAdmission: 'all', stagingBytes: 8192, readConcurrency: 2,
+  const policy = { enabled: true, cacheBytes, hostCacheBytes: 0, hostCacheAdmission: 'all', hostCacheAdmissionPhase: 'all', stagingBytes: 8192, readConcurrency: 2,
     routeChunkTokens: 2, gpuBudgetBytes: 16 * 1024 ** 2, reserveBytes: 1024 ** 2 };
   const { gpu, buffers } = device(), reads = [];
   let readHook = async () => {};
@@ -404,4 +405,52 @@ console.log('Routed expert cache: range extents, identity, hot reuse, budgets, c
   assert(f.cache.getStats().evictions >= 4, 'failed batch releases every pin for subsequent eviction');
   await f.cache.destroy();
   assert(f.buffers.every(buffer => buffer.destroyed));
+}
+
+{
+  const f = fixture(), plan = f.plan(0);
+  f.policy.hostCacheBytes = plan.expertBytes * 2;
+  f.policy.hostCacheAdmissionPhase = 'decode';
+  assert.throws(() => f.cache.prepare(plan, [0]), /explicit prefill or decode/);
+  await f.cache.prepare(plan, [0, 1], undefined, 'decode');
+  const retained = f.cache.getStats().hostCacheBytes;
+  await f.cache.prepare(f.plan(1), [0, 1], undefined, 'prefill');
+  assert.equal(f.cache.getStats().hostCacheBytes, retained);
+  assert.equal(f.cache.getStats().hostEvictions, 0, 'prefill misses cannot evict retained decode payloads');
+  const source = f.cache.getStats().sourceReadBytes;
+  await f.cache.prepare(plan, [0], undefined, 'prefill');
+  assert.equal(f.cache.getStats().sourceReadBytes, source, 'one-token prefill can reuse retained decode payload');
+  assert.equal(f.cache.getStats().hostPrefillAdmissionSkips, 2);
+  assert.equal(f.cache.getStats().hostPrefillAdmissions, 0);
+  assert.equal(f.cache.getStats().hostDecodeAdmissions, 2);
+  await f.cache.destroy();
+}
+
+{
+  const f = fixture();
+  f.policy.hostCacheBytes = f.plan(0).expertBytes * 2;
+  f.policy.hostCacheAdmission = 'repeat-read';
+  f.policy.hostCacheAdmissionPhase = 'decode';
+  const sweepPrefill = async () => {
+    await f.cache.prepare(f.plan(1), [0], undefined, 'prefill');
+    await f.cache.prepare(f.plan(2), [0], undefined, 'prefill');
+  };
+  await f.cache.prepare(f.plan(0), [0], undefined, 'prefill');
+  await sweepPrefill();
+  await f.cache.prepare(f.plan(0), [0], undefined, 'decode');
+  assert.equal(f.cache.getStats().hostCacheBytes, 0, 'one-token prefill must not seed repeat-read admission');
+  await sweepPrefill();
+  await f.cache.prepare(f.plan(0), [0], undefined, 'decode');
+  assert.equal(f.cache.getStats().hostDecodeAdmissions, 1, 'second decode read admits normally');
+  await f.cache.destroy();
+}
+
+{
+  const f = fixture();
+  let forwarded;
+  const loader = { manifest: f.manifest, tensorLocations: f.locations,
+    getRoutedExpertPolicy: () => f.policy,
+    routedExpertCache: { prepare: async (...args) => { forwarded = args; return {}; } } };
+  await prepareRoutedExperts(loader, 0, [1], undefined, 'prefill');
+  assert.equal(forwarded[3], 'prefill', 'loader forwards one-token prefill explicitly rather than guessing decode');
 }

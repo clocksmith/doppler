@@ -575,8 +575,8 @@ export class DopplerLoader {
 
   getRoutedExpertPolicy() { return this._loadingConfig.expertCache.qwen35Routed; }
 
-  async prepareRoutedExperts(layer, expertIds, signal) {
-    return prepareRoutedExperts(this, layer, expertIds, signal);
+  async prepareRoutedExperts(layer, expertIds, signal, phase) {
+    return prepareRoutedExperts(this, layer, expertIds, signal, phase);
   }
 
   getRoutedExpertCacheStats() { return this.routedExpertCache?.getStats() ?? null; }

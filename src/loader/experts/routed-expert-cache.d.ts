@@ -45,6 +45,9 @@ export interface RoutedExpertCacheStats {
   /** First proven client-queue idle gap per preparation; a lower bound, not global GPU utilization. */
   initialQueueIdleForWeightsMs: number;
   experts: number;
+  hostPrefillAdmissionSkips: number;
+  hostPrefillAdmissions: number;
+  hostDecodeAdmissions: number;
   hostCacheHits: number;
   hostCacheMisses: number;
   hostEvictions: number;
@@ -56,7 +59,7 @@ export interface RoutedExpertCacheStats {
 }
 export declare class RoutedExpertCache {
   constructor(options: RoutedExpertCacheOptions);
-  prepare(plan: RoutedExpertBankPlan, expertIds: number[], signal?: AbortSignal): Promise<RoutedExpertWeights>;
+  prepare(plan: RoutedExpertBankPlan, expertIds: number[], signal?: AbortSignal, phase?: 'prefill' | 'decode'): Promise<RoutedExpertWeights>;
   getStats(): RoutedExpertCacheStats;
   destroy(): Promise<void>;
 }

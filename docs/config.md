@@ -134,6 +134,14 @@ includes retained payloads and concurrent admission reservations, excludes
 backend/driver caches and metadata, and is separate from GPU accounting.
 Cancellation discards partial payloads; unload drains readers and clears the
 cache. Cache hits still upload the original packed bytes to the GPU.
+`hostCacheAdmissionPhase: "all"` preserves phase-independent admission. Set it to
+`"decode"` to allow prefill hits while preventing prefill misses from admitting
+host entries, evicting retained decode payloads, or seeding repeat-read history.
+This composes with either admission policy and requires the actual runtime phase,
+including for one-token prefill. Hits still refresh recency. GPU LRU and byte
+budgets are unchanged; skipped host admission does not remove transient read or
+upload allocations. Phase admission/skip counters distinguish retention changes
+from measured throughput improvements.
 
 `profiles/flash-next-node-host-cache-qualification` explicitly requests a 16 GiB
 host cache with repeat-read admission and the existing F32-KV profile. It is a

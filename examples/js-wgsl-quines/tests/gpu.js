@@ -5,7 +5,7 @@ import path from 'node:path';
 import crypto from 'node:crypto';
 import assert from 'node:assert/strict';
 import { fileURLToPath } from 'node:url';
-import { referencePixels } from './reference.mjs';
+import { referencePixels } from './reference.js';
 const ROOT=path.dirname(path.dirname(fileURLToPath(import.meta.url)));
 const read=p=>fs.readFileSync(path.join(ROOT,p),'utf8');
 const digest=s=>crypto.createHash('sha256').update(s).digest('hex');

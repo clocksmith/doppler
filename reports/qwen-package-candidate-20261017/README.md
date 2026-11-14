@@ -69,3 +69,5 @@ A new immutable archive and additional physical qualification are required.
 [Machine status](status.json) preserves unresolved gates. No matched performance
 campaign started after this numerical failure. Raw attempts, corrected attempts,
 phase probes, and rejected shader experiments are retained separately.
+
+Filename-only migration (2026-11-14): `browser-lifecycle.mjs` → `browser-lifecycle.js`. Driver bytes and their SHA-256 digests are unchanged; captured outputs retain their original historical filenames. Current indexes below resolve the `.js` names.

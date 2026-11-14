@@ -15,7 +15,7 @@ three untraced requests, then three instrumented requests per invocation. Every
 request checks all generated token IDs against its retained reference. Every
 served runtime file is verified against the immutable archive inventory.
 
-[Summary](summary.json), [reducer](summarize.py), and [probe](browser-trace.mjs)
+[Summary](summary.json), [reducer](summarize.py), and [probe](browser-trace.js)
 retain exact source hashes, receipts, per-request timings and coverage. These are
 controlled diagnostic measurements with a DOM/stream fixture, not replacement
 Transformers.js comparison numbers or Reploid rendering evidence.
@@ -90,7 +90,7 @@ No zero-observation counter is interpreted as zero submission cost.
 
 Raw receipts, logs and all probe versions are in `raw-evidence.tar.gz`; extract
 in this directory. `SHA256SUMS` binds that bundle and the readable report. To
-reproduce, run `node browser-trace.mjs SNAPSHOT MODEL_DIR BASELINE_COMPARE_JSON
+reproduce, run `node browser-trace.js SNAPSHOT MODEL_DIR BASELINE_COMPARE_JSON
 FRESH_OUTPUT_JSON [READBACK_INTERVAL]`, using the archived runtime and provisioned
 dependencies. Omit the final argument for baseline; use `1` for the rejected
 candidate. `summarize.py` verifies served bytes and exact probe hashes.
@@ -107,3 +107,5 @@ Acceptance: exact-token diagnostic runs on both GPUs, frozen-source verification
 baseline/candidate/restored-control receipts. Boundary effects: none. This does
 not close earlier CI failures, establish full release acceptance, or promote an
 artifact.
+
+Filename-only migration (2026-11-14): `browser-trace.mjs` → `browser-trace.js`. Driver bytes and their SHA-256 digests are unchanged; captured outputs retain their original historical filenames. Current indexes below resolve the `.js` names.
