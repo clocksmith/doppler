@@ -178,6 +178,8 @@ export interface ExpertCacheConfigSchema {
 
 export interface Qwen35RoutedConfig {
   enabled: boolean;
+  /** LFU retains causal lifetime counts until unload; LRU remains the default. */
+  evictionPolicy: 'lru' | 'lfu';
   cacheBytes: number;
   /** Bounded assembled expert payloads in host memory; zero disables. Separate from the GPU budget. */
   hostCacheBytes: number;

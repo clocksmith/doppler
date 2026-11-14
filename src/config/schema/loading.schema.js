@@ -94,6 +94,7 @@ export const DEFAULT_EXPERT_CACHE_CONFIG = {
   },
   qwen35Routed: {
     enabled: false,
+    evictionPolicy: 'lru',
     cacheBytes: 2 * GB,
     hostCacheBytes: 0,
     hostCacheAdmission: 'all',
@@ -109,6 +110,9 @@ export const DEFAULT_EXPERT_CACHE_CONFIG = {
 export function validateQwen35RoutedConfig(config) {
   if (!config || typeof config !== 'object' || typeof config.enabled !== 'boolean') {
     throw new Error('runtime.loading.expertCache.qwen35Routed requires resolved configuration.');
+  }
+  if (!['lru', 'lfu'].includes(config.evictionPolicy)) {
+    throw new Error('runtime.loading.expertCache.qwen35Routed.evictionPolicy must be lru or lfu.');
   }
   for (const field of ['cacheBytes', 'stagingBytes', 'readConcurrency', 'routeChunkTokens', 'gpuBudgetBytes', 'reserveBytes']) {
     if (!Number.isSafeInteger(config[field]) || config[field] < 1) {

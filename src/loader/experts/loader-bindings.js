@@ -24,6 +24,9 @@ export async function prepareRoutedExperts(loader, layer, expertIds, signal, pha
     const device = getDevice();
     if (!device) throw new Error('Routed experts require the owning GPU device.');
     loader.routedExpertCache = new RoutedExpertCache({ device, policy,
+      numLayers: typeof loader.manifest.architecture === 'object'
+        && typeof loader.manifest.architecture?.numLayers === 'number'
+        ? loader.manifest.architecture.numLayers : undefined, numExperts: plan.numExperts,
       readRangeInto: loader.shardCache.hasCustomRangeIntoLoader ? async (shard, offset, destination, activeSignal) => {
         activeSignal.throwIfAborted();
         const count = await loader.shardCache.loadRangeInto(shard, offset, destination, { requireRange: true });

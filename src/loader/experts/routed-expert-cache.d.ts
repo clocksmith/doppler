@@ -4,6 +4,8 @@ import type { RoutedExpertBankPlan } from './routed-expert-plan.js';
 export interface RoutedExpertCacheOptions {
   device: GPUDevice;
   policy: Qwen35RoutedConfig;
+  numLayers?: number;
+  numExperts?: number;
   readRange: (shard: number, offset: number, length: number, signal: AbortSignal) => Promise<ArrayBuffer>;
   readRangeInto?: (shard: number, offset: number, destination: Uint8Array, signal: AbortSignal) => Promise<number>;
   otherGpuBytes: () => number;
@@ -33,6 +35,9 @@ export interface RoutedExpertPhaseProfile {
   counters: Record<string, number>;
 }
 export interface RoutedExpertCacheStats {
+  evictionPolicy: 'lru' | 'lfu';
+  frequencyHistoryEntries: number;
+  frequencyResidentEntries: number;
   sourceReadIntoBytes: number;
   stagingAllocations: number;
   stagingReuses: number;

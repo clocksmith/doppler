@@ -1,3 +1,4 @@
+import { ExpertFrequencyIndex } from './expert-frequency-index.js';
 import { getRuntimeConfig } from '../../config/runtime.js';
 import { createWeightBuffer } from '../../gpu/weight-buffer.js';
 import { validateQwen35RoutedConfig } from '../../config/schema/loading.schema.js';
@@ -10,6 +11,10 @@ export class RoutedExpertCache {
   #options;
   /** @type {Map<string, import('./routed-expert-cache.js').RoutedExpertEntry>} */
   #entries = new Map();
+  /** @type {ExpertFrequencyIndex | null} */
+  #frequency = null;
+  #numLayers = 0;
+  #numExperts = 0;
   /** @type {Set<GPUBuffer>} */
   #owned = new Set();
   /** @type {Map<string, GPUBuffer>} */
@@ -50,6 +55,17 @@ export class RoutedExpertCache {
   constructor(options) {
     validateQwen35RoutedConfig(options.policy);
     this.#options = options;
+    if (options.policy.evictionPolicy === 'lfu') {
+      if (typeof options.numLayers !== 'number' || typeof options.numExperts !== 'number'
+        || !Number.isSafeInteger(options.numLayers) || options.numLayers < 1
+        || !Number.isSafeInteger(options.numExperts) || options.numExperts < 1
+        || !Number.isSafeInteger(options.numLayers * options.numExperts)) {
+        throw new Error('LFU requires declared positive safe layer and expert counts.');
+      }
+      this.#numLayers = options.numLayers;
+      this.#numExperts = options.numExperts;
+      this.#frequency = new ExpertFrequencyIndex(options.numLayers * options.numExperts);
+    }
   }
 
   #sampleProfileMemory() {
@@ -141,11 +157,21 @@ export class RoutedExpertCache {
     try {
       while (this.#cacheBytes + cacheAddition > policy.cacheBytes
         || this.#options.otherGpuBytes() + this.#stats.residentBytes + bytes > policy.gpuBudgetBytes - policy.reserveBytes) {
+        /** @type {[string, import('./routed-expert-cache.js').RoutedExpertEntry] | undefined} */
         let victim;
         // LRU order already lives in Map: do not allocate the entire cache on
         // every eviction just to inspect its first unpinned entry.
-        for (const candidate of this.#entries) {
-          if (candidate[1].users === 0) { victim = candidate; break; }
+        if (this.#frequency) {
+          const key = this.#frequency.oldestUnpinned(key => this.#entries.get(key)?.users !== 0);
+          if (key !== null) {
+            const entry = this.#entries.get(key);
+            if (!entry) throw new Error('LFU resident index disagrees with cache ownership.');
+            victim = [key, entry];
+          }
+        } else {
+          for (const candidate of this.#entries) {
+            if (candidate[1].users === 0) { victim = candidate; break; }
+          }
         }
         if (!victim) throw new Error('Routed expert budget cannot accommodate the working set and concurrent readers.');
         // Pins are changed under the mutation lock. A victim cannot acquire a new
@@ -163,6 +189,7 @@ export class RoutedExpertCache {
         } else this.#destroyBuffer(victim[1].buffer);
         this.#cacheBytes -= victim[1].bytes;
         this.#entries.delete(victim[0]);
+        this.#frequency?.remove(victim[0]);
         this.#stats.evictions++;
       }
       return replacement;
@@ -258,6 +285,7 @@ export class RoutedExpertCache {
     });
     if (cached) return cached;
     this.#stats.cacheMisses++;
+    this.#frequency?.observe(key);
     const entry = await this.#locked(async () => {
       const replacement = await this.#makeRoom(plan.expertBytes, plan.expertBytes, signal, true);
       if (signal.aborted) {
@@ -285,7 +313,7 @@ export class RoutedExpertCache {
           signal.throwIfAborted();
           this.#upload(entry, chunk.offset, chunk.data, beforeSubmit);
         }
-        await this.#locked(async () => { this.#entries.set(key, entry); });
+        await this.#locked(async () => { this.#entries.set(key, entry); this.#frequency?.admit(key); });
         return entry;
       }
       /** @type {Array<{offset: number, data: Uint8Array}> | null} */
@@ -360,7 +388,7 @@ export class RoutedExpertCache {
         if (phase === 'prefill') this.#stats.hostPrefillAdmissions++;
         if (phase === 'decode') this.#stats.hostDecodeAdmissions++;
       }
-      await this.#locked(async () => { this.#entries.set(key, entry); });
+      await this.#locked(async () => { this.#entries.set(key, entry); this.#frequency?.admit(key); });
       return entry;
     } catch (error) {
       try {
@@ -375,6 +403,7 @@ export class RoutedExpertCache {
 
   /** @param {string} key @param {import('./routed-expert-cache.js').RoutedExpertEntry} entry */
   #touchEntry(key, entry) {
+    this.#frequency?.observe(key);
     this.#entries.delete(key); this.#entries.set(key, entry);
     const host = this.#lookupHost(key);
     if (host) { this.#hostEntries.delete(key); this.#hostEntries.set(key, host); }
@@ -485,6 +514,13 @@ export class RoutedExpertCache {
   async #prepare(plan, expertIds, controller, phase) {
     const signal = controller.signal;
     signal.throwIfAborted();
+    if ((this.#options.policy.evictionPolicy === 'lfu') !== (this.#frequency !== null)) {
+      throw new Error('Changing routed eviction policy requires recreating the cache.');
+    }
+    if (this.#frequency && (!Number.isSafeInteger(plan.layer) || plan.layer < 0
+      || plan.layer >= this.#numLayers || plan.numExperts !== this.#numExperts)) {
+      throw new Error('LFU plan exceeds the declared model layer/expert bounds.');
+    }
     const ids = [...new Set(expertIds)];
     if (!ids.length || ids.some(id => !Number.isSafeInteger(id) || id < 0 || id >= plan.numExperts)) {
       throw new Error('Routed expert request contains invalid or absent selected expert IDs.');
@@ -520,7 +556,11 @@ export class RoutedExpertCache {
         signal.throwIfAborted();
         const expert = ids[cursor++];
         if (copiedHits.has(expert)) continue;
-        if (this.#loaded.has(expert)) { this.#stats.workingHits++; continue; }
+        if (this.#loaded.has(expert)) {
+          this.#frequency?.observe(`${plan.layer}:${expert}`);
+          this.#stats.workingHits++;
+          continue;
+        }
         const entry = await this.#get(plan, expert, signal, beforeSubmit, phase, reader);
         try {
           signal.throwIfAborted();
@@ -560,6 +600,9 @@ export class RoutedExpertCache {
     this.#stats.peakAccountedGpuBytes = Math.max(this.#stats.peakAccountedGpuBytes,
       this.#options.otherGpuBytes() + this.#stats.residentBytes);
     return { ...this.#stats,
+      evictionPolicy: this.#options.policy.evictionPolicy,
+      frequencyHistoryEntries: this.#frequency?.historySize ?? 0,
+      frequencyResidentEntries: this.#frequency?.residentSize ?? 0,
       phaseProfiles: Object.fromEntries(Object.entries(this.#phaseProfiles).map(([phase, profile]) =>
         [phase, { ...profile, counters: { ...profile.counters } }])),
       cacheBytes: this.#cacheBytes, workingBytes: this.#workingBytes, experts: this.#entries.size,
@@ -580,7 +623,7 @@ export class RoutedExpertCache {
       try { this.#destroyBuffer(buffer); } catch (error) { errors.push(error); }
     }
     if (!this.#owned.size) {
-      this.#entries.clear(); this.#working.clear(); this.#loaded.clear();
+      this.#entries.clear(); this.#frequency?.clear(); this.#working.clear(); this.#loaded.clear();
       this.#cacheBytes = 0; this.#workingBytes = 0;
     }
     if (errors.length) throw new AggregateError(errors, 'Routed expert cache cleanup failed.');

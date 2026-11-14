@@ -34,7 +34,7 @@ function device() {
   };
   return { gpu, buffers };
 }
-function fixture(separate = false, intermediate = 256, native = false, direct = false) {
+function fixture(separate = false, intermediate = 256, native = false, direct = false, evictionPolicy = 'lru') {
   const manifest = { architecture: { numLayers: 3, hiddenSize: 256 },
     moeConfig: { expertFormat: 'qwen3_5', numExperts: 4, expertIntermediateSize: intermediate } };
   const locations = new Map(), shards = new Map();
@@ -51,11 +51,11 @@ function fixture(separate = false, intermediate = 256, native = false, direct = 
     }
   }
   const cacheBytes = [...locations.values()].slice(0, separate ? 3 : 2).reduce((sum, plane) => sum + plane.size / 4, 0) * 2;
-  const policy = { enabled: true, cacheBytes, hostCacheBytes: 0, hostCacheAdmission: 'all', hostCacheAdmissionPhase: 'all', stagingBytes: 8192, readConcurrency: 2,
+  const policy = { enabled: true, evictionPolicy, cacheBytes, hostCacheBytes: 0, hostCacheAdmission: 'all', hostCacheAdmissionPhase: 'all', stagingBytes: 8192, readConcurrency: 2,
     routeChunkTokens: 2, gpuBudgetBytes: 16 * 1024 ** 2, reserveBytes: 1024 ** 2 };
   const { gpu, buffers } = device(), reads = [], destinations = new Set();
   let readHook = async () => {};
-  const cache = new RoutedExpertCache({ device: gpu, policy, otherGpuBytes: () => 0,
+  const cache = new RoutedExpertCache({ device: gpu, policy, numLayers: 3, numExperts: 4, otherGpuBytes: () => 0,
     readRangeInto: direct ? async (shard, offset, destination, signal) => {
       destinations.add(destination.buffer);
       reads.push({ shard, offset, bytes: destination.byteLength });
@@ -224,7 +224,7 @@ function fixture(separate = false, intermediate = 256, native = false, direct = 
   await assert.rejects(f.cache.prepare(f.plan(0), [0]), /source read failed/);
   await f.cache.destroy();
   assert(f.buffers.every(b => b.destroyed));
-  assert.throws(() => validateQwen35RoutedConfig({ enabled: true }), /cacheBytes/);
+  assert.throws(() => validateQwen35RoutedConfig({ enabled: true, evictionPolicy: 'lru' }), /cacheBytes/);
   assert.throws(() => f.plan(9), /declared Qwen/);
   f.locations.values().next().value.sourceTransform = { kind: 'unexpected' };
   assert.throws(() => f.plan(0), /untransformed/);
@@ -625,5 +625,31 @@ console.log('Routed expert cache: range extents, identity, hot reuse, budgets, c
   const f = fixture(true, 256, true, true);
   f.locations.values().next().value.sourceTransform = { kind: 'litert_rowwise_dequant' };
   assert.throws(() => f.plan(0), /untransformed row-major supported packed storage/);
+  await f.cache.destroy();
+}
+
+for (const policy of ['lru', 'lfu']) {
+  const f = fixture(false, 256, false, false, policy);
+  for (const layer of [0, 1, 0, 1, 0, 2]) await f.cache.prepare(f.plan(layer), [0]);
+  const before = f.cache.getStats().sourceReadBytes;
+  for (const layer of [1, 0]) await f.cache.prepare(f.plan(layer), [0]);
+  assert.equal(f.cache.getStats().sourceReadBytes - before, f.plan(0).expertBytes * (policy === 'lfu' ? 1 : 2));
+  assert(f.cache.getStats().cacheBytes <= f.policy.cacheBytes);
+  if (policy === 'lfu') {
+    await assert.rejects(f.cache.prepare({ ...f.plan(0), layer: 3 }, [0]), /bounds/);
+    await assert.rejects(f.cache.prepare({ ...f.plan(0), numExperts: 5 }, [0]), /bounds/);
+    assert.equal(f.cache.getStats().frequencyHistoryEntries, 3);
+  }
+  f.policy.evictionPolicy = policy === 'lfu' ? 'lru' : 'lfu';
+  await assert.rejects(f.cache.prepare(f.plan(0), [0]), /recreating/);
+  await f.cache.destroy();
+  assert.equal(f.cache.getStats().residentBytes, 0);
+  assert.equal(f.cache.getStats().frequencyHistoryEntries, 0);
+}
+{
+  const f = fixture(false, 256, false, false, 'lfu');
+  // Working-bank hits count as use even without a payload lookup.
+  for (const layer of [0, 0, 0, 1, 2, 0]) await f.cache.prepare(f.plan(layer), [0]);
+  assert.equal(f.cache.getStats().cacheMisses, 3);
   await f.cache.destroy();
 }

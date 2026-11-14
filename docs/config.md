@@ -502,3 +502,25 @@ still govern intermediate GPU storage and its device budget. This is lossy
 transport, not a lossless encoding or a change to model weights. Qualification is
 per model, hardware and workload; one exact-answer fixture does not establish
 general quality equivalence or a throughput advantage.
+
+### Routed expert GPU eviction policy
+
+`loading.expertCache.qwen35Routed.evictionPolicy` defaults to `"lru"`.
+Opt-in `"lfu"` retains causal expert-use counts until unload, evicting the least
+frequently used unpinned payload with recency as the tie-breaker. Working-bank
+hits count as use. Source tensors, GPU budgets, staging, host admission, fences
+and model arithmetic are unchanged. Changing policy requires cache recreation.
+
+History is bounded by declared layers times experts. The indexed resident heap
+has no stale-entry growth and updates in O(log resident experts); pinned heads
+are temporarily skipped during eviction. Counts do not age, so formerly hot
+experts can persist after workload changes. Host eviction remains LRU. Stats
+expose the selected policy and history/resident cardinalities.
+
+Qualification: fixed four-task A/B/C/A native Flash, 12 GiB GPU payload cache,
+host cache disabled. All 16 alternating-run outputs had identical token IDs.
+Source reads fell 150.094 to 122.767 GB with unchanged peak accounted GPU memory
+(18.44 GB). Mean sequence wall time fell 10.6%, decode 9.2%; return-to-A decode
+fell 11.6% with near-zero physical disk reads. First-use A was about 0.5% slower;
+B/C physical reads varied. These are workload-specific results, not an isolated
+compute gain or default-policy promotion.
