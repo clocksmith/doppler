@@ -161,6 +161,12 @@ export declare class BufferPool {
    */
   getStats(): PoolStats;
 
+  /** O(1) access to the same maintained scalar as getStats().currentBytesAllocated.
+   * Includes active/reusable pool allocations; preserves existing deferred-retirement
+   * accounting. This is not the device-wide live-byte or system-VRAM measurement.
+   */
+  getCurrentBytesAllocated(): number;
+
   /**
    * Get aggregated stats by buffer label (active buffers only)
    */

@@ -688,7 +688,7 @@ export class BufferPool {
     this.#requestedSizes.clear();
     this.#scheduleDestruction();
   }
-
+  getCurrentBytesAllocated() { return this.#stats.currentBytesAllocated; }
   getStats() {
     const budget = this.#getBudgetConfig();
     const resources = {

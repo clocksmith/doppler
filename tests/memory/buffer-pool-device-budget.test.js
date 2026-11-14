@@ -92,3 +92,33 @@ for (const hardFail of [false, true]) {
   assert.equal(getDeviceMemorySnapshot(device).liveBytes, 0);
 }
 console.log('buffer-pool-device-budget.test: ok');
+
+{
+  const a = fixture(false), b = fixture(false);
+  const same = (pool, expected) => {
+    assert.equal(pool.getCurrentBytesAllocated(), expected);
+    assert.equal(pool.getCurrentBytesAllocated(), pool.getStats().currentBytesAllocated);
+  };
+  same(a.pool, 0); same(b.pool, 0);
+  const first = a.pool.acquire(256, BufferUsage.STORAGE, 'scalar-active');
+  same(a.pool, 256); same(b.pool, 0);
+  a.pool.release(first); same(a.pool, 256);
+  const reused = a.pool.acquire(256, BufferUsage.STORAGE, 'scalar-reused');
+  assert.equal(first, reused); same(a.pool, 256);
+  const second = a.pool.acquire(256, BufferUsage.STORAGE, 'scalar-second');
+  same(a.pool, 512);
+  a.pool.discard(second); same(a.pool, 256);
+  assert.equal(getDeviceMemorySnapshot(a.device).liveBytes, 512,
+    'scalar getter does not change separate pending-destruction device accounting');
+  a.pool.release(reused); a.pool.clearPool(); same(a.pool, 0);
+  a.settle(); await a.pool.settleDeferredDestruction(); same(a.pool, 0);
+  const other = b.pool.acquire(256, BufferUsage.STORAGE, 'other-device');
+  same(b.pool, 256); same(a.pool, 0);
+  let reads = 0;
+  Object.defineProperty(other, 'size', { configurable: true, get() { reads++; return 256; } });
+  for (let i = 0; i < 100; i++) assert.equal(b.pool.getCurrentBytesAllocated(), 256);
+  assert.equal(reads, 0, 'budget accessor never inventories retained GPU buffers');
+  Object.defineProperty(other, 'size', { configurable: true, value: 256 });
+  a.pool.destroy(); b.pool.destroy(); same(a.pool, 0); same(b.pool, 0);
+  b.settle(); await b.pool.settleDeferredDestruction();
+}

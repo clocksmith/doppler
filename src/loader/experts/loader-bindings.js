@@ -30,7 +30,7 @@ export async function prepareRoutedExperts(loader, layer, expertIds, signal, pha
         activeSignal.throwIfAborted();
         return count;
       } : undefined,
-      otherGpuBytes: () => getBufferPool(device).getStats().currentBytesAllocated,
+      otherGpuBytes: () => getBufferPool(device).getCurrentBytesAllocated(),
       readRange: async (shard, offset, length, activeSignal) => {
         activeSignal.throwIfAborted();
         const bytes = await loader.shardCache.loadRange(shard, offset, length, { requireRange: true });
