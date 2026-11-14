@@ -99,7 +99,7 @@ async function assembleLocationBytes(location, name, label, loadShard, loadShard
   return combined;
 }
 
-async function loadLocationRange(location, name, label, byteOffset, byteLength, loadShardRange, loadShardRangeInto = null) {
+async function loadLocationRange(location, name, label, byteOffset, byteLength, loadShardRange, loadShardRangeInto = null, destination = null) {
   const chunks = getPhysicalChunks(location, name);
   const totalSize = chunks.reduce((sum, chunk) => sum + chunk.size, 0);
   if (byteOffset + byteLength > totalSize) {
@@ -108,7 +108,7 @@ async function loadLocationRange(location, name, label, byteOffset, byteLength, 
     );
   }
 
-  const combined = new Uint8Array(byteLength);
+  const combined = destination ?? new Uint8Array(byteLength);
   let logicalOffset = 0;
   let writeOffset = 0;
   const rangeEnd = byteOffset + byteLength;
@@ -282,7 +282,7 @@ export async function assembleShardData(location, name, loadShard, loadShardRang
     : bytes;
 }
 
-export async function loadTensorRange(location, name, byteOffset, byteLength, loadShardRange, loadShardRangeInto = null) {
+export async function loadTensorRange(location, name, byteOffset, byteLength, loadShardRange, loadShardRangeInto = null, destination = null) {
   if (typeof loadShardRange !== 'function') {
     throw new Error(`[DopplerLoader] Tensor "${name}" range loading requires loadShardRange().`);
   }
@@ -292,8 +292,14 @@ export async function loadTensorRange(location, name, byteOffset, byteLength, lo
   if (!Number.isInteger(byteLength) || byteLength < 0) {
     throw new Error(`[DopplerLoader] Tensor "${name}" has invalid byteLength ${byteLength}.`);
   }
+  if (destination !== null && (!(destination instanceof Uint8Array) || destination.byteLength !== byteLength)) {
+    throw new Error(`[DopplerLoader] Tensor "${name}" destination must be exactly ${byteLength} bytes.`);
+  }
+  if (destination !== null && hasSourceTransform(location)) {
+    throw new Error(`[DopplerLoader] Tensor "${name}" caller-owned range destinations require untransformed storage.`);
+  }
   if (byteLength === 0) {
-    return new Uint8Array(0);
+    return destination ?? new Uint8Array(0);
   }
 
   if (hasSourceTransform(location)) {
@@ -417,5 +423,5 @@ export async function loadTensorRange(location, name, byteOffset, byteLength, lo
     return transformed.slice(byteOffset, byteOffset + byteLength);
   }
 
-  return loadLocationRange(location, name, 'tensor', byteOffset, byteLength, loadShardRange, loadShardRangeInto);
+  return loadLocationRange(location, name, 'tensor', byteOffset, byteLength, loadShardRange, loadShardRangeInto, destination);
 }

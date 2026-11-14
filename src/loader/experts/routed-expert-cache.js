@@ -28,6 +28,8 @@ export class RoutedExpertCache {
   #hostSeen = new Set();
   #workingBytes = 0;
   #staging = 0;
+  /** @type {Uint8Array[]} */
+  #readerStaging = [];
   #closed = false;
   #shutdown = new AbortController();
   /** @type {Promise<void>} */
@@ -38,7 +40,7 @@ export class RoutedExpertCache {
   #phaseProfiles = {};
   /** @type {import('./routed-expert-cache.js').RoutedExpertPhaseProfile | null} */
   #activeProfile = null;
-  #stats = { sourceReadIntoBytes: 0, sourceReadBytes: 0, sourceReads: 0, uploadBytes: 0,
+  #stats = { sourceReadIntoBytes: 0, stagingAllocations: 0, stagingReuses: 0, sourceReadBytes: 0, sourceReads: 0, uploadBytes: 0,
     cacheHits: 0, cacheMisses: 0, workingHits: 0, workingBufferAllocations: 0, workingBufferAllocatedBytes: 0, workingBufferReuses: 0, workingBufferReusedBytes: 0, evictions: 0, evictionFenceWaits: 0, evictionFenceSkips: 0, bufferReuses: 0, expertCopySubmissions: 0, hitBatchSubmissions: 0, batchedHitExperts: 0,
     residentBytes: 0, peakResidentBytes: 0, peakAccountedGpuBytes: 0, peakStagingBytes: 0,
     ioWaitMs: 0, sourceReadWaitMs: 0, uploadEnqueueMs: 0, initialQueueIdleForWeightsMs: 0,
@@ -56,6 +58,25 @@ export class RoutedExpertCache {
     profile.peakGpuResidentBytes = Math.max(profile.peakGpuResidentBytes, this.#stats.residentBytes);
     profile.peakHostOwnedOrReservedBytes = Math.max(profile.peakHostOwnedOrReservedBytes, this.#hostBytes + this.#hostReserved);
     profile.peakStagingBytes = Math.max(profile.peakStagingBytes, this.#staging);
+  }
+
+  #clearReaderStaging() {
+    for (const bytes of this.#readerStaging) this.#staging -= bytes?.byteLength ?? 0;
+    this.#readerStaging = [];
+  }
+
+  /** @param {number} reader @param {number} length */
+  #getReaderStaging(reader, length) {
+    let bytes = this.#readerStaging[reader];
+    if (!bytes || bytes.byteLength < length) {
+      const previousBytes = bytes?.byteLength ?? 0;
+      bytes = new Uint8Array(length);
+      this.#staging -= previousBytes;
+      this.#readerStaging[reader] = bytes;
+      this.#staging += bytes.byteLength;
+      this.#stats.stagingAllocations++;
+    } else this.#stats.stagingReuses++;
+    return bytes.subarray(0, length);
   }
 
   /** @param {string} key */
@@ -222,8 +243,8 @@ export class RoutedExpertCache {
 
   /** @param {import('./routed-expert-plan.js').RoutedExpertBankPlan} plan
    * @param {number} expert @param {AbortSignal} signal @param {() => void} beforeSubmit
-   * @param {'prefill' | 'decode' | undefined} phase */
-  async #get(plan, expert, signal, beforeSubmit, phase) {
+   * @param {'prefill' | 'decode' | undefined} phase @param {number} reader */
+  async #get(plan, expert, signal, beforeSubmit, phase, reader) {
     const key = `${plan.layer}:${expert}`;
     const cached = await this.#locked(async () => {
       signal.throwIfAborted();
@@ -289,7 +310,11 @@ export class RoutedExpertCache {
         for (let offset = 0; offset < plane.expertBytes;) {
           signal.throwIfAborted();
           const length = Math.min(chunkBytes, plane.expertBytes - offset);
-          const ownedStagingBytes = (readRangeInto ? 1 : 2) * length;
+          // Each reader owns its destination until writeBuffer has copied it.
+          // Retained host chunks must keep independent immutable backing storage.
+          const destination = readRangeInto && this.#options.policy.hostCacheBytes === 0 && plane.location.sourceTransform == null
+            ? this.#getReaderStaging(reader, length) : null;
+          const ownedStagingBytes = destination ? 0 : (readRangeInto ? 1 : 2) * length;
           this.#staging += ownedStagingBytes;
           this.#sampleProfileMemory();
           this.#stats.peakStagingBytes = Math.max(this.#stats.peakStagingBytes, this.#staging);
@@ -315,7 +340,7 @@ export class RoutedExpertCache {
                 this.#stats.sourceReadBytes += count;
                 this.#stats.sourceReadIntoBytes += count;
                 return count;
-              } : null);
+              } : null, destination);
             signal.throwIfAborted();
             this.#upload(entry, targetOffset + offset, bytes, beforeSubmit);
             chunks?.push({ offset: targetOffset + offset, data: bytes });
@@ -471,6 +496,11 @@ export class RoutedExpertCache {
         && plan.expertBytes * this.#options.policy.readConcurrency > this.#options.policy.hostCacheBytes) {
       throw new Error('Routed host cache must hold one payload per concurrent reader.');
     }
+    // Policy changes cannot leave old scratch charged alongside a different path.
+    const scratchLimit = Math.floor(this.#options.policy.stagingBytes / (2 * this.#options.policy.readConcurrency * 4)) * 4;
+    if (!this.#options.readRangeInto || this.#options.policy.hostCacheBytes > 0
+      || this.#readerStaging.length > this.#options.policy.readConcurrency
+      || this.#readerStaging.some(bytes => bytes.byteLength > scratchLimit)) this.#clearReaderStaging();
     await this.#locked(() => this.#prepareWorking(plan, signal));
     let cursor = 0;
     let readyAt = 0, submitted = false;
@@ -483,14 +513,15 @@ export class RoutedExpertCache {
       submitted = true;
     };
     const hitBatch = this.#copyCachedHits(plan, ids, signal, beforeSubmit);
-    const work = async () => {
+    /** @param {number} reader */
+    const work = async (reader) => {
       const copiedHits = await hitBatch;
       while (cursor < ids.length) {
         signal.throwIfAborted();
         const expert = ids[cursor++];
         if (copiedHits.has(expert)) continue;
         if (this.#loaded.has(expert)) { this.#stats.workingHits++; continue; }
-        const entry = await this.#get(plan, expert, signal, beforeSubmit, phase);
+        const entry = await this.#get(plan, expert, signal, beforeSubmit, phase, reader);
         try {
           signal.throwIfAborted();
           const encoder = this.#options.device.createCommandEncoder({ label: 'routed_expert_copy' });
@@ -503,8 +534,8 @@ export class RoutedExpertCache {
         } finally { entry.users--; }
       }
     };
-    const outcomes = await Promise.allSettled(Array.from({ length: this.#options.policy.readConcurrency }, async () => {
-      try { await work(); } catch (error) { controller.abort(error); throw error; }
+    const outcomes = await Promise.allSettled(Array.from({ length: this.#options.policy.readConcurrency }, async (_, reader) => {
+      try { await work(reader); } catch (error) { controller.abort(error); throw error; }
     }));
     const errors = [...new Set(outcomes.filter(r => r.status === 'rejected').map(r => r.reason))];
     try { await fence; } catch (error) { errors.push(error); }
@@ -539,6 +570,7 @@ export class RoutedExpertCache {
     this.#closed = true;
     this.#shutdown.abort(new DOMException('Routed expert cache unloaded.', 'AbortError'));
     await this.#active?.catch(() => undefined);
+    this.#clearReaderStaging();
     this.#hostEntries.clear(); this.#hostSeen.clear(); this.#hostBytes = 0; this.#hostReserved = 0;
     const errors = [];
     if (this.#owned.size) {

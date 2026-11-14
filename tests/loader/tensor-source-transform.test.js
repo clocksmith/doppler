@@ -478,3 +478,21 @@ assertApproxArray(
 );
 
 console.log('tensor-source-transform.test: ok');
+
+{
+  const location = cpuLocation('U8', 8, [8]);
+  const source = Uint8Array.from([0, 1, 2, 3, 4, 5, 6, 7]);
+  const backing = new Uint8Array(10).fill(99), destination = backing.subarray(2, 6);
+  const read = async (_, offset, length) => source.slice(offset, offset + length).buffer;
+  const into = async (_, offset, target) => { target.set(source.subarray(offset, offset + target.length)); return target.length; };
+  assert.equal(await loadTensorRange(location, 'owned', 2, 4, read, into, destination), destination);
+  assert.deepEqual([...backing], [99, 99, 2, 3, 4, 5, 99, 99, 99, 99]);
+  assert.equal(await loadTensorRange(location, 'owned fallback', 0, 4, read, null, destination), destination);
+  assert.deepEqual([...destination], [0, 1, 2, 3]);
+  await assert.rejects(loadTensorRange(location, 'wrong size', 0, 3, read, into, destination), /exactly 3/);
+  await assert.rejects(loadTensorRange({ ...location, sourceTransform: { kind: 'litert_rowwise_dequant' } },
+    'transformed', 0, 4, read, into, destination), /untransformed/);
+  await assert.rejects(loadTensorRange(location, 'short', 0, 4, read, async () => 2, destination), /returned 2 of 4/);
+  await loadTensorRange(location, 'retry', 4, 4, read, into, destination);
+  assert.deepEqual([...destination], [4, 5, 6, 7]);
+}

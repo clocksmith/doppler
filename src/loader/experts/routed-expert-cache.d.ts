@@ -34,6 +34,8 @@ export interface RoutedExpertPhaseProfile {
 }
 export interface RoutedExpertCacheStats {
   sourceReadIntoBytes: number;
+  stagingAllocations: number;
+  stagingReuses: number;
   phaseProfiles: Record<string, RoutedExpertPhaseProfile>;
   sourceReadBytes: number;
   sourceReads: number;

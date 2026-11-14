@@ -53,10 +53,11 @@ function fixture(separate = false, intermediate = 256, native = false, direct = 
   const cacheBytes = [...locations.values()].slice(0, separate ? 3 : 2).reduce((sum, plane) => sum + plane.size / 4, 0) * 2;
   const policy = { enabled: true, cacheBytes, hostCacheBytes: 0, hostCacheAdmission: 'all', hostCacheAdmissionPhase: 'all', stagingBytes: 8192, readConcurrency: 2,
     routeChunkTokens: 2, gpuBudgetBytes: 16 * 1024 ** 2, reserveBytes: 1024 ** 2 };
-  const { gpu, buffers } = device(), reads = [];
+  const { gpu, buffers } = device(), reads = [], destinations = new Set();
   let readHook = async () => {};
   const cache = new RoutedExpertCache({ device: gpu, policy, otherGpuBytes: () => 0,
     readRangeInto: direct ? async (shard, offset, destination, signal) => {
+      destinations.add(destination.buffer);
       reads.push({ shard, offset, bytes: destination.byteLength });
       await readHook(signal);
       destination.set(shards.get(shard).subarray(offset, offset + destination.byteLength));
@@ -67,7 +68,7 @@ function fixture(separate = false, intermediate = 256, native = false, direct = 
       await readHook(signal);
       return shards.get(shard).slice(offset, offset + bytes).buffer;
     } });
-  return { manifest, locations, shards, policy, gpu, buffers, reads, cache,
+  return { manifest, locations, shards, policy, gpu, buffers, reads, destinations, cache,
     setReadHook(value) { readHook = value; }, plan(layer) { return planRoutedExpertBank(manifest, locations, layer); } };
 }
 
@@ -581,4 +582,48 @@ console.log('Routed expert cache: range extents, identity, hot reuse, budgets, c
     f.shards.get(plane.location.shardIndex).slice(plane.expertBytes, 2 * plane.expertBytes));
   await f.cache.destroy();
   assert(f.buffers.every(buffer => buffer.destroyed));
+}
+
+// Caller-owned scratch is exclusive per reader, reused across layers, and never
+// aliases host-retained chunks. Fake writeBuffer copies synchronously like WebGPU.
+{
+  const f = fixture(true, 256, true, true);
+  for (const layer of [0, 1, 2, 0]) {
+    const plan = f.plan(layer);
+    const weights = await f.cache.prepare(plan, [0, 1, 2, 3], undefined, 'decode');
+    for (const plane of plan.planes) assert.deepEqual(weights[plane.role].buffer.data,
+      f.shards.get(plane.location.shardIndex));
+  }
+  assert.equal(f.destinations.size, f.policy.readConcurrency);
+  assert.equal(f.cache.getStats().stagingAllocations, f.policy.readConcurrency);
+  assert(f.cache.getStats().stagingReuses > 100);
+  assert(f.cache.getStats().peakStagingBytes <= f.policy.stagingBytes);
+  // A canceled read may partially write scratch; a subsequent complete read
+  // must overwrite every byte before the upload becomes visible.
+  f.setReadHook(async () => { throw new Error('source canceled'); });
+  await assert.rejects(f.cache.prepare(f.plan(1), [0, 1], undefined, 'decode'), error => error.message === 'source canceled' || error.errors?.every(inner => inner.message === 'source canceled'));
+  f.setReadHook(async () => {});
+  const plan = f.plan(1), recovered = await f.cache.prepare(plan, [0, 1], undefined, 'decode');
+  for (const plane of plan.planes) assert.deepEqual(recovered[plane.role].buffer.data.slice(0, 2 * plane.expertBytes),
+    f.shards.get(plane.location.shardIndex).slice(0, 2 * plane.expertBytes));
+  await f.cache.destroy();
+}
+{
+  const f = fixture(true, 256, true, true);
+  f.policy.hostCacheBytes = f.plan(0).expertBytes * 8;
+  for (const layer of [0, 1, 2]) await f.cache.prepare(f.plan(layer), [0], undefined, 'decode');
+  const reads = f.reads.length;
+  const plan = f.plan(0), restored = await f.cache.prepare(plan, [0], undefined, 'decode');
+  assert.equal(f.reads.length, reads);
+  assert.equal(f.cache.getStats().stagingAllocations, 0);
+  for (const plane of plan.planes) assert.deepEqual(restored[plane.role].buffer.data.slice(0, plane.expertBytes),
+    f.shards.get(plane.location.shardIndex).slice(0, plane.expertBytes));
+  await f.cache.destroy();
+}
+
+{
+  const f = fixture(true, 256, true, true);
+  f.locations.values().next().value.sourceTransform = { kind: 'litert_rowwise_dequant' };
+  assert.throws(() => f.plan(0), /untransformed row-major supported packed storage/);
+  await f.cache.destroy();
 }
