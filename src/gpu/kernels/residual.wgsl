@@ -10,7 +10,7 @@
 struct Uniforms {
     size: u32,     // Total number of elements
     scale: f32,    // Output scale for main/add_vec4; residual scale for add_scaled
-    _pad1: u32,
+    dispatch_stride: u32,
     _pad2: u32,
 }
 
@@ -23,7 +23,7 @@ override WORKGROUP_SIZE: u32 = 256u;
 
 @compute @workgroup_size(WORKGROUP_SIZE, 1, 1)
 fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
-    let dispatch_stride = max(u._pad1, 1u);
+    let dispatch_stride = max(u.dispatch_stride, 1u);
     let idx = gid.y * dispatch_stride + gid.x;
     if (idx >= u.size) {
         return;
@@ -36,7 +36,7 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
 // This avoids requiring a different bind group layout with read_write on 'a'
 @compute @workgroup_size(WORKGROUP_SIZE, 1, 1)
 fn add_inplace(@builtin(global_invocation_id) gid: vec3<u32>) {
-    let dispatch_stride = max(u._pad1, 1u);
+    let dispatch_stride = max(u.dispatch_stride, 1u);
     let idx = gid.y * dispatch_stride + gid.x;
     if (idx >= u.size) {
         return;
@@ -47,7 +47,7 @@ fn add_inplace(@builtin(global_invocation_id) gid: vec3<u32>) {
 // Fused residual + scale: output = a + scale * b
 @compute @workgroup_size(WORKGROUP_SIZE, 1, 1)
 fn add_scaled(@builtin(global_invocation_id) gid: vec3<u32>) {
-    let dispatch_stride = max(u._pad1, 1u);
+    let dispatch_stride = max(u.dispatch_stride, 1u);
     let idx = gid.y * dispatch_stride + gid.x;
     if (idx >= u.size) {
         return;

@@ -42,7 +42,7 @@ async function _relu(target, input, options = {}) {
       target,
       variant,
       [input, output],
-      { size, _pad0: dispatchPlan.dispatchStride, _pad1: 0, _pad2: 0 },
+      { size, dispatch_stride: dispatchPlan.dispatchStride, _pad1: 0, _pad2: 0 },
       dispatchPlan.workgroups, null, null, null, options.signal
     );
 

@@ -244,7 +244,7 @@ export function write_repeat_channels_default(view, values, kernel) {
 
 export function write_relu_default(view, values, kernel) {
   writeU32(view, 0, values["size"], kernel, "size");
-  writeU32(view, 4, values["_pad0"], kernel, "_pad0");
+  writeU32(view, 4, values["dispatch_stride"], kernel, "dispatch_stride");
   view.setUint32(8, 0, true);
   view.setUint32(12, 0, true);
 }

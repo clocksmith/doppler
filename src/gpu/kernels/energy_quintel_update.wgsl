@@ -32,7 +32,7 @@ struct Uniforms {
 @group(0) @binding(0) var<uniform> u: Uniforms;
 @group(0) @binding(1) var<storage, read_write> state: array<f32>;
 
-fn hasFlag(mask: u32) -> bool {
+fn has_flag(mask: u32) -> bool {
     return (u.flags & mask) != 0u;
 }
 
@@ -49,31 +49,31 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
     let value = state[idx];
     var grad: f32 = 0.0;
 
-    if (hasFlag(FLAG_MIRROR_X)) {
+    if (has_flag(FLAG_MIRROR_X)) {
         let mirrorJ = size - 1u - j;
         let mirrorIdx = i * size + mirrorJ;
         let diff = value - state[mirrorIdx];
         grad = grad + (2.0 * u.symmetryWeight * diff);
     }
 
-    if (hasFlag(FLAG_MIRROR_Y)) {
+    if (has_flag(FLAG_MIRROR_Y)) {
         let mirrorI = size - 1u - i;
         let mirrorIdx = mirrorI * size + j;
         let diff = value - state[mirrorIdx];
         grad = grad + (2.0 * u.symmetryWeight * diff);
     }
 
-    if (hasFlag(FLAG_DIAGONAL)) {
+    if (has_flag(FLAG_DIAGONAL)) {
         let mirrorIdx = j * size + i;
         let diff = value - state[mirrorIdx];
         grad = grad + (2.0 * u.symmetryWeight * diff);
     }
 
-    if (hasFlag(FLAG_COUNT)) {
+    if (has_flag(FLAG_COUNT)) {
         grad = grad + (2.0 * u.countWeight * u.countDiff);
     }
 
-    if (hasFlag(FLAG_CENTER)) {
+    if (has_flag(FLAG_CENTER)) {
         let center = size / 2u;
         let centerIdx = center * size + center;
         if (idx == centerIdx) {
@@ -82,7 +82,7 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
         }
     }
 
-    if (hasFlag(FLAG_BINARIZE)) {
+    if (has_flag(FLAG_BINARIZE)) {
         grad = grad + (u.binarizeWeight * (1.0 - 2.0 * value));
     }
 

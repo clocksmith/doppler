@@ -63,7 +63,7 @@ var<workgroup> shared_dot_w: array<f32, MAX_WORKGROUP_SIZE>;
 var<workgroup> shared_dot_w_norm: array<f32, MAX_WORKGROUP_SIZE>;
 
 // Atomic float add helper using bitcast
-fn atomicAddFloat(address: ptr<storage, atomic<u32>, read_write>, val: f32) {
+fn atomic_add_float(address: ptr<storage, atomic<u32>, read_write>, val: f32) {
     var old = atomicLoad(address);
     loop {
         let new_val = bitcast<u32>(bitcast<f32>(old) + val);
@@ -153,8 +153,8 @@ fn main(
             // dWeight[idx] += dY * norm
             // dBias[idx] += dY
             let norm = (x - mean) * inv_std;
-            atomicAddFloat(&grad_weight[idx], dy * norm);
-            atomicAddFloat(&grad_bias[idx], dy);
+            atomic_add_float(&grad_weight[idx], dy * norm);
+            atomic_add_float(&grad_bias[idx], dy);
         }
     }
 

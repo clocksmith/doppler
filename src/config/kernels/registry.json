@@ -24997,7 +24997,7 @@
       "offset": 4
      },
      {
-      "name": "_pad1",
+      "name": "dispatch_stride",
       "type": "u32",
       "offset": 8
      },
@@ -28083,7 +28083,7 @@
       "offset": 4
      },
      {
-      "name": "_pad0",
+      "name": "dispatch_stride",
       "type": "u32",
       "offset": 8
      },
@@ -33437,7 +33437,7 @@
       "offset": 0
      },
      {
-      "name": "_pad0",
+      "name": "dispatch_stride",
       "type": "u32",
       "offset": 4
      },

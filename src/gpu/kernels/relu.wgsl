@@ -2,7 +2,7 @@ override WORKGROUP_SIZE: u32 = 256u;
 
 struct Uniforms {
     size: u32,
-    _pad0: u32,
+    dispatch_stride: u32,
     _pad1: u32,
     _pad2: u32,
 }
@@ -13,7 +13,7 @@ struct Uniforms {
 
 @compute @workgroup_size(WORKGROUP_SIZE, 1, 1)
 fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
-    let dispatch_stride = max(u._pad0, 1u);
+    let dispatch_stride = max(u.dispatch_stride, 1u);
     let idx = gid.y * dispatch_stride + gid.x;
     if (idx >= u.size) {
         return;

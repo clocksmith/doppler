@@ -303,7 +303,7 @@ export function write_gather_split8_f16_vec4_f16_out(view, values, kernel) {
 export function write_residual_default(view, values, kernel) {
   writeU32(view, 0, values["size"], kernel, "size");
   writeF32(view, 4, values["scale"], kernel, "scale");
-  writeU32(view, 8, values["_pad1"], kernel, "_pad1");
+  writeU32(view, 8, values["dispatch_stride"], kernel, "dispatch_stride");
   view.setUint32(12, 0, true);
 }
 
@@ -561,7 +561,7 @@ export function write_ple_q4_0_to_f32_default(view, values, kernel) {
 export function write_transpose_default(view, values, kernel) {
   writeU32(view, 0, values["rows"], kernel, "rows");
   writeU32(view, 4, values["cols"], kernel, "cols");
-  writeU32(view, 8, values["_pad0"], kernel, "_pad0");
+  writeU32(view, 8, values["dispatch_stride"], kernel, "dispatch_stride");
   view.setUint32(12, 0, true);
 }
 

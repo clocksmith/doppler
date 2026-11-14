@@ -30,7 +30,7 @@ struct Uniforms {
 
 var<workgroup> sharedAccum: array<vec4<f32>, WORKGROUP_SIZE>;
 
-fn hasFlag(mask: u32) -> bool {
+fn has_flag(mask: u32) -> bool {
     return (u.flags & mask) != 0u;
 }
 
@@ -52,7 +52,7 @@ fn main(
         accum.x = value;
 
         var symmetryEnergy: f32 = 0.0;
-        if (hasFlag(FLAG_MIRROR_X)) {
+        if (has_flag(FLAG_MIRROR_X)) {
             let mirrorJ = size - 1u - j;
             if (j < mirrorJ) {
                 let mirrorIdx = i * size + mirrorJ;
@@ -60,7 +60,7 @@ fn main(
                 symmetryEnergy += u.symmetryWeight * diff * diff;
             }
         }
-        if (hasFlag(FLAG_MIRROR_Y)) {
+        if (has_flag(FLAG_MIRROR_Y)) {
             let mirrorI = size - 1u - i;
             if (i < mirrorI) {
                 let mirrorIdx = mirrorI * size + j;
@@ -68,7 +68,7 @@ fn main(
                 symmetryEnergy += u.symmetryWeight * diff * diff;
             }
         }
-        if (hasFlag(FLAG_DIAGONAL)) {
+        if (has_flag(FLAG_DIAGONAL)) {
             if (i < j) {
                 let mirrorIdx = j * size + i;
                 let diff = value - state[mirrorIdx];
@@ -77,11 +77,11 @@ fn main(
         }
         accum.y = symmetryEnergy;
 
-        if (hasFlag(FLAG_BINARIZE)) {
+        if (has_flag(FLAG_BINARIZE)) {
             accum.z = u.binarizeWeight * value * (1.0 - value);
         }
 
-        if (hasFlag(FLAG_CENTER)) {
+        if (has_flag(FLAG_CENTER)) {
             let center = size / 2u;
             let centerIdx = center * size + center;
             if (idx == centerIdx) {

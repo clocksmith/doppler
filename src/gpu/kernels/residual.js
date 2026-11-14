@@ -152,7 +152,7 @@ async function _residualAdd(target, a, b, size, options = {}) {
     await unifiedKernelWrapper(
       'residual', target, variant,
       [aAligned, bAligned, output],
-      { size, scale: outputScale, _pad1: dispatchPlan.dispatchStride, _pad2: 0 },
+      { size, scale: outputScale, dispatch_stride: dispatchPlan.dispatchStride, _pad2: 0 },
       dispatchPlan.workgroups
     );
     return createTensor(output, outputDtype, [size], 'residual_output');

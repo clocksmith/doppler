@@ -29,7 +29,7 @@ export declare function write_gather_vec4(view: DataView, values: { "num_tokens"
 export declare function write_gather_q4_0(view: DataView, values: { "num_tokens": number; "hidden_size": number; "vocab_size": number; "index_offset": number }, kernel: string): void;
 export declare function write_gather_split4_f16_vec4_f32_out(view: DataView, values: { "num_tokens": number; "hidden_size": number; "vocab_size": number; "index_offset": number; "input_hidden_size": number; "hidden_offset": number; "section0_rows": number; "section1_rows": number; "section2_rows": number; "section3_rows": number }, kernel: string): void;
 export declare function write_gather_split8_f16_vec4_f16_out(view: DataView, values: { "num_tokens": number; "hidden_size": number; "vocab_size": number; "index_offset": number; "input_hidden_size": number; "hidden_offset": number; "section0_rows": number; "section1_rows": number; "section2_rows": number; "section3_rows": number; "section4_rows": number; "section5_rows": number; "section6_rows": number; "section7_rows": number }, kernel: string): void;
-export declare function write_residual_default(view: DataView, values: { "size": number; "scale": number; "_pad1": number }, kernel: string): void;
+export declare function write_residual_default(view: DataView, values: { "size": number; "scale": number; "dispatch_stride": number }, kernel: string): void;
 export declare function write_topk_default(view: DataView, values: { "num_tokens": number; "num_experts": number; "top_k": number; "normalize": number }, kernel: string): void;
 export declare function write_scatter_add_default(view: DataView, values: { "num_tokens": number; "hidden_size": number; "top_k": number; "num_experts": number }, kernel: string): void;
 export declare function write_scatter_add_dynamic(view: DataView, values: { "num_tokens": number; "hidden_size": number; "top_k": number }, kernel: string): void;
@@ -55,7 +55,7 @@ export declare function write_split_qg_default(view: DataView, values: { "num_to
 export declare function write_rep_penalty_default(view: DataView, values: { "vocab_size": number; "history_count": number; "penalty": number; "batch_count": number; "batch_offset": number; "presence_penalty": number; "repetition_penalty_window": number }, kernel: string): void;
 export declare function write_sample_argmax(view: DataView, values: { "vocab_size": number; "top_k": number; "temperature": number; "random_value": number; "pad_token_id": number; "logit_softcap": number; "output_index": number; "top_p": number }, kernel: string): void;
 export declare function write_ple_q4_0_to_f32_default(view: DataView, values: { "num_elements": number; "input_offset": number; "output_offset": number }, kernel: string): void;
-export declare function write_transpose_default(view: DataView, values: { "rows": number; "cols": number; "_pad0": number }, kernel: string): void;
+export declare function write_transpose_default(view: DataView, values: { "rows": number; "cols": number; "dispatch_stride": number }, kernel: string): void;
 export declare function write_matmul_backward_q4k_weight(view: DataView, values: { "M": number; "N": number; "K": number; "alpha": number; "transpose_b": number; "num_blocks_per_row": number }, kernel: string): void;
 export declare function write_matmul_transpose_a_default(view: DataView, values: { "M": number; "N": number; "K": number; "alpha": number }, kernel: string): void;
 export declare function write_scale_backward_default(view: DataView, values: { "size": number; "scale": number }, kernel: string): void;

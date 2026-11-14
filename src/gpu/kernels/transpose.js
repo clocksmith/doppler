@@ -29,7 +29,7 @@ async function _transpose(target, input, rows, cols, options = {}) {
       target,
       'default',
       [input, outputBuf],
-      { rows, cols, _pad0: dispatchPlan.dispatchStride, _pad1: 0 },
+      { rows, cols, dispatch_stride: dispatchPlan.dispatchStride, _pad1: 0 },
       [dispatchPlan.workgroups[0], rows, 1]
     );
 

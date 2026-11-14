@@ -84,15 +84,15 @@
       "feature_extractor": {
         "feature_size": 128,
         "sampling_rate": 16000,
-        "frame_length_ms": 20.0,
-        "hop_length_ms": 10.0,
-        "min_frequency": 0.0,
-        "max_frequency": 8000.0,
-        "preemphasis": 0.0,
+        "frame_length_ms": 20,
+        "hop_length_ms": 10,
+        "min_frequency": 0,
+        "max_frequency": 8000,
+        "preemphasis": 0,
         "preemphasis_htk_flavor": true,
         "fft_overdrive": false,
-        "dither": 0.0,
-        "input_scale_factor": 1.0,
+        "dither": 0,
+        "input_scale_factor": 1,
         "mel_floor": 0.001,
         "per_bin_mean": null,
         "per_bin_stddev": null
@@ -376,7 +376,7 @@
       "residual": {
         "kernel": "residual_f16.wgsl",
         "entry": "main",
-        "digest": "sha256:29c34e627ad251f03a8862fb1f459ab488132ef04192d45e40c78fdf21a34fd5"
+        "digest": "sha256:f4164f991aa8e56397f89f748b8f1b302f210e556bd22d163c3686bf7b25284f"
       },
       "gelu": {
         "kernel": "gelu_f16.wgsl",

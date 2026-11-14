@@ -425,7 +425,7 @@
       "residual_vec4": {
         "kernel": "residual_vec4.wgsl",
         "entry": "add_vec4",
-        "digest": "sha256:99e8217beb9ebc661ae8da6dde06196c0746e884421fe803b1a8bcea22e753b1"
+        "digest": "sha256:c571fd73b1227d037778498b25a998f84644724937bf5db1259f1feb76d6ac26"
       },
       "embedding_pool": {
         "kernel": "embedding_pool_f32.wgsl",
@@ -468,7 +468,7 @@
       "residual": {
         "kernel": "residual.wgsl",
         "entry": "main",
-        "digest": "sha256:abd19bc08ad668a7cad562e2bc0a4be1aa8827ad4300d8d474b7fc2af4c27117"
+        "digest": "sha256:4dbfb0a9ca0fb6047a01618f0374b445c243774d039407acdf41b0711ea8eaf4"
       },
       "gelu": {
         "kernel": "gelu.wgsl",
