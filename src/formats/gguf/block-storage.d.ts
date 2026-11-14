@@ -6,3 +6,4 @@ export declare const GGUF_BLOCK_DTYPES: readonly GGUFBlockDtype[];
 export declare function isGgufBlockDtype(dtype: unknown): dtype is GGUFBlockDtype;
 export declare function ggufBlockFormat(dtype: string): GGUFBlockFormat;
 export declare function ggufBlockBytes(shape: readonly number[], dtype: string): number;
+export declare function ggufBlockSourceBytes(shape: readonly number[], dtype: string): number;

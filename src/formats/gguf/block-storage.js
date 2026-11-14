@@ -38,14 +38,23 @@ export function ggufBlockFormat(dtype) {
   if (!isGgufBlockDtype(variant)) throw new Error(`Unsupported packed GGUF kernel variant: ${variant}`);
   return { ...format, variant };
 }
-/** @type {typeof import('./block-storage.js').ggufBlockBytes} */
-export function ggufBlockBytes(shape,dtype) {
+/** Source extents may span files and range-backed tables, not one GPU buffer.
+ * @type {typeof import('./block-storage.js').ggufBlockSourceBytes} */
+export function ggufBlockSourceBytes(shape,dtype) {
   const format=ggufBlockFormat(dtype);
   if (!Array.isArray(shape) || ![2,3].includes(shape.length)
     || shape.some(value=>!Number.isSafeInteger(value)||value<1) || shape.at(-1)%format.values) {
     throw new Error('Packed GGUF matrix/bank requires explicit geometry and complete quantization blocks.');
   }
   const bytes=shape.reduce((a,b)=>a*b,1)/format.values*format.bytes;
-  if (!Number.isSafeInteger(bytes)||bytes>0xffffffff) throw new Error('Packed GGUF storage exceeds addressable byte extents.');
+  if (!Number.isSafeInteger(bytes)) throw new Error('Packed GGUF source storage exceeds safely addressable byte extents.');
+  return bytes;
+}
+
+/** Single-buffer GPU consumers retain their u32 addressing limit.
+ * @type {typeof import('./block-storage.js').ggufBlockBytes} */
+export function ggufBlockBytes(shape, dtype) {
+  const bytes = ggufBlockSourceBytes(shape, dtype);
+  if (bytes > 0xffffffff) throw new Error('Packed GGUF storage exceeds addressable byte extents.');
   return bytes;
 }

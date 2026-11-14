@@ -1,4 +1,4 @@
-import { ggufBlockBytes, isGgufBlockSourceDtype } from '../formats/gguf/block-storage.js';
+import { ggufBlockSourceBytes, isGgufBlockSourceDtype } from '../formats/gguf/block-storage.js';
 import { getKernelConfigs } from '../config/kernel-registry-contract.js';
 import {
   inferSourceWeightQuantization,
@@ -217,7 +217,7 @@ function assertSupportedSourceDtypes(tensors, sourceKind) {
           '(matmul q4_0_gemv and q4_0_prefill).'
         );
       }
-      const declaredBytes = ggufBlockBytes(tensor.shape, dtype);
+      const declaredBytes = ggufBlockSourceBytes(tensor.shape, dtype);
       if (declaredBytes !== tensor.size) {
         throw new Error(
           `${dtype} source tensor "${tensor?.name ?? '(unnamed)'}" byte length ${tensor.size} differs from ` +

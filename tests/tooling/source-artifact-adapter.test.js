@@ -1,3 +1,4 @@
+import { ggufBlockBytes, ggufBlockSourceBytes } from '../../src/formats/gguf/block-storage.js';
 import assert from 'node:assert/strict';
 
 const {
@@ -99,3 +100,10 @@ await assert.rejects(
 }
 
 console.log('source-artifact-adapter.test: ok');
+
+// Source extents describe range-backed storage, not a single GPU allocation.
+assert.equal(ggufBlockSourceBytes([320001536, 160], 'Q4_0'), 28800138240);
+assert.equal(ggufBlockBytes([1, 160], 'Q4_0'), 90);
+assert.throws(() => ggufBlockBytes([320001536, 160], 'Q4_0'), /addressable/);
+assert.throws(() => ggufBlockSourceBytes([320001536, 159], 'Q4_0'), /complete quantization blocks/);
+assert.throws(() => ggufBlockSourceBytes([Number.MAX_SAFE_INTEGER, 160], 'Q4_0'), /safely addressable/);
