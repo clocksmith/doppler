@@ -1,3 +1,6 @@
+import { createCommandRecorder } from '../../../../gpu/command-recorder.js';
+import { getDevice } from '../../../../gpu/device.js';
+import { getImmediateDispatchProfileRecorder } from '../../../../gpu/kernels/dispatch.js';
 import { executeGroupedPrefill } from './grouped-prefill.js';
 import { selectRuleValue } from '../../../../rules/rule-registry.js';
 import { getWeightDtype, isWeightBuffer } from '../../../../gpu/weight-buffer.js';
@@ -119,7 +122,33 @@ async function executeSharedSlot(recorder, options) {
 }
 
 /** @type {typeof import('./qwen-route-executor.js').runQwenRouteExperts} */
-export function runQwenRouteExperts(options) { return execute(null, options); }
+export async function runQwenRouteExperts(options) {
+  const local = selectRuleValue('inference', 'moe', 'localRouteRecording', {
+    phase: options.phase, numTokens: options.numTokens,
+    grouped: options.groupedPrefill === true, shared: options.sharedSlot != null,
+  });
+  if (!local) return execute(null, options);
+  const device = getDevice();
+  if (!device) throw new Error('[MoE] Local route recording requires the owning device.');
+  const borrowed = getImmediateDispatchProfileRecorder(device);
+  const recorder = borrowed ?? createCommandRecorder('qwen_route_operator', {
+    recordLabels: false, recordDispatches: false,
+  }, device);
+  let output = null;
+  try {
+    // Weights and routing are already ready. This groups only one operator's
+    // four passes, never layers/tokens or the readback needed for weight loading.
+    output = await execute(recorder, options);
+    if (borrowed) recorder.submitPartial();
+    else recorder.submit();
+    return output;
+  } catch (error) {
+    if (output) recorder.trackTemporaryBuffer(output.buffer);
+    // Abort owns all partial intermediates, including a diagnostic owner's work.
+    await recorder.abort();
+    throw error;
+  }
+}
 
 /** @type {typeof import('./qwen-route-executor.js').recordQwenRouteExperts} */
 export function recordQwenRouteExperts(recorder, options) { return execute(recorder, options); }

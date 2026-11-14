@@ -127,6 +127,8 @@ export interface ExecutionV1DecodeLoopSchema {
   ringTokens: number | null;
   ringStop: number | null;
   ringStaging: number | null;
+  /** Disables decode-loop recording across operators/tokens, not internal
+   * command grouping inside a single compound operator. */
   disableCommandBatching?: boolean;
 }
 

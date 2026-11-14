@@ -24,6 +24,13 @@ export function beginImmediateDispatchProfile(device, getRecorder) {
   };
 }
 
+// Compound immediate operators borrow the diagnostic owner so every recorded
+// compute pass remains covered. The caller must not finalize a borrowed owner.
+export function getImmediateDispatchProfileRecorder(device) {
+  const profile = immediateProfiles.get(device);
+  return profile ? requireProfileRecorder(device, profile.getRecorder) : null;
+}
+
 function requireDispatchDevice(device, label) {
   if (device) return device;
   const loss = getLastDeviceLossInfo();

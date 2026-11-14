@@ -1,4 +1,8 @@
 {
+  "localRouteRecording": [
+    { "match": { "phase": "decode", "numTokens": 1, "grouped": false, "shared": false }, "value": true },
+    { "match": {}, "value": false }
+  ],
   "executionProfile": [
     {
       "match": {

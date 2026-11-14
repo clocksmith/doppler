@@ -17,6 +17,9 @@ export declare function beginImmediateDispatchProfile(
   getRecorder: () => CommandRecorder
 ): () => void;
 
+/** Borrow the active diagnostic owner for a compound immediate operator. */
+export declare function getImmediateDispatchProfileRecorder(device: GPUDevice): CommandRecorder | null;
+
 /** Validate a direct grid before allocating resources or recording into an existing pass. */
 export declare function assertWorkgroupLimits(
   device: GPUDevice,

@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { beginImmediateDispatchProfile, dispatch, dispatchIndirect } from '../../src/gpu/kernels/dispatch.js';
+import { beginImmediateDispatchProfile, getImmediateDispatchProfileRecorder, dispatch, dispatchIndirect } from '../../src/gpu/kernels/dispatch.js';
 
 const events = [];
 const device = { limits: { maxComputeWorkgroupsPerDimension: 65535 },
@@ -12,7 +12,9 @@ function makeRecorder() {
 }
 let recorder = makeRecorder();
 const pipeline = { label: 'paired_q4k' }, bindings = {}, indirect = {};
+assert.equal(getImmediateDispatchProfileRecorder(device), null);
 const release = beginImmediateDispatchProfile(device, () => recorder);
+assert.equal(getImmediateDispatchProfileRecorder(device), recorder);
 assert.throws(() => beginImmediateDispatchProfile(device, () => recorder), /already leased/);
 dispatch(device, pipeline, bindings, [65535, 15, 1], 'matmul');
 dispatchIndirect(device, pipeline, bindings, indirect, 16, 'indirect');
@@ -33,6 +35,7 @@ assert.equal(events.length, count);
 recorder = { ...makeRecorder(), isProfilingEnabled: () => false };
 assert.throws(() => dispatch(device, pipeline, bindings, 1), /timestamp/);
 release(); release();
+assert.equal(getImmediateDispatchProfileRecorder(device), null);
 assert.throws(() => dispatch(device, pipeline, bindings, 1), /unprofiled encoder/);
 assert.throws(() => beginImmediateDispatchProfile(device, () => recorder), /timestamp/);
 recorder = { ...makeRecorder(), device: {} };
