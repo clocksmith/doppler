@@ -4,7 +4,7 @@ import { compileExecutionV1 } from '../../src/inference/pipelines/text/execution
 import { getKernelPathMatmulVariant } from '../../src/config/kernel-path-loader.js';
 import profile from '../../src/config/conversion/qwen3/qwen-3-8-flash-next-text-q4k-ehf16-af32.json' with { type: 'json' };
 const tensors = Object.entries({
-  'token_embd.weight': 'Q4_0', 'output.weight': 'Q6_K',
+  'per_layer_token_embd.weight': 'Q4_0', 'token_embd.weight': 'Q4_0', 'output.weight': 'Q6_K',
   'output_hc_down.weight': 'BF16', 'output_hc_up.weight': 'BF16',
   'blk.0.attn_q.weight': 'Q6_K', 'blk.0.attn_k.weight': 'Q8_0',
   'blk.0.hc_attn_down.weight': 'Q4_0', 'blk.0.hc_attn_inject.weight': 'BF16',
@@ -12,6 +12,7 @@ const tensors = Object.entries({
   'blk.1.attn_q.weight': 'Q4_1', 'blk.1.ssm_out.weight': 'Q8_0',
 }).map(([name, dtype]) => ({ name, dtype }));
 const graph = createQwen4ExpSourceExecution(tensors, 2);
+assert.equal(graph.kernels.ple_row_decode.kernel, 'ple_q4_0_to_f32.wgsl');
 const compiled = compileExecutionV1({ manifestInference: {
   schema: 'doppler.execution/v1', execution: graph, session: profile.session,
 }, modelId: 'source-test', numLayers: 2 });

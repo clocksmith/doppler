@@ -77,5 +77,12 @@ export function createQwen4ExpSourceExecution(tensors, numLayers) {
     throw new Error('Qwen4Exp GGUF source execution requires a supported packed token embedding.');
   }
   graph.preLayer = [['embed', install('gather', ggufBlockFormat(embedding.dtype).variant), policy.embedding]];
+  const pleTable = byName.get(policy.pleRowDecode.tensor);
+  if (pleTable) {
+    if (pleTable.dtype !== policy.pleRowDecode.dtype) throw new Error('Unsupported Qwen4Exp source PLE row storage.');
+    const key = install(policy.pleRowDecode.operation, policy.pleRowDecode.variant);
+    graph.kernels.ple_row_decode = graph.kernels[key];
+    delete graph.kernels[key];
+  }
   return graph;
 }

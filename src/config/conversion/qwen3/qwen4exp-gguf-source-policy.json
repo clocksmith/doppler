@@ -39,5 +39,11 @@
   "phases": {
     "decode": 1,
     "prefill": 2
+  },
+  "pleRowDecode": {
+    "tensor": "per_layer_token_embd.weight",
+    "dtype": "Q4_0",
+    "operation": "ple_q4_0_to_f32",
+    "variant": "default"
   }
 }
