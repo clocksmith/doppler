@@ -1,17 +1,10 @@
+import { cloneJsonValue as cloneRuntimeConfig } from '../formats/clone-json.js';
 import { resolveOrderedRuntimeInputs } from './runtime-input-composition.js';
 import { createCommandContext } from './command-context.js';
 import {
   assertRuntimeInputIntentCompatibility,
   stripLegacyRuntimeIntent,
 } from './runtime-intent.js';
-
-function cloneRuntimeConfig(runtimeConfig) {
-  if (runtimeConfig == null) return runtimeConfig;
-  if (typeof structuredClone === 'function') {
-    return structuredClone(runtimeConfig);
-  }
-  return JSON.parse(JSON.stringify(runtimeConfig));
-}
 
 function assertCalibrateRuntimeCompatibility(request, runtimeConfig) {
   if (request?.intent !== 'calibrate') {

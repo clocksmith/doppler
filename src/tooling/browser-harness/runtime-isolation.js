@@ -1,3 +1,4 @@
+import { cloneJsonValue } from '../../formats/clone-json.js';
 import {
   getActiveKernelPath,
   getActiveKernelPathPolicy,
@@ -7,11 +8,7 @@ import {
 import { getRuntimeConfig, setRuntimeConfig } from '../../config/runtime.js';
 
 export function cloneRuntimeConfig(runtimeConfig) {
-  if (!runtimeConfig) return null;
-  if (typeof structuredClone === 'function') {
-    return structuredClone(runtimeConfig);
-  }
-  return JSON.parse(JSON.stringify(runtimeConfig));
+  return runtimeConfig ? cloneJsonValue(runtimeConfig) : null;
 }
 
 export function snapshotRuntimeState() {
