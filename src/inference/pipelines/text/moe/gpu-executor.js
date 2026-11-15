@@ -86,12 +86,16 @@ export async function runGemma4RouteExperts({
   intermediateSize,
   activationDtype,
   swigluLimit,
+  hiddenActivation,
 }) {
   const profileLabel = typeof profile?.label === 'string' && profile.label.length > 0
     ? profile.label
     : 'unknown MoE profile';
   if (activationDtype !== 'f16') {
     throw new Error(`[MoE] topk-route ${profileLabel} path requires f16 activations, got ${activationDtype}.`);
+  }
+  if (hiddenActivation !== 'gelu' && hiddenActivation !== 'silu') {
+    throw new Error(`[MoE] topk-route ${profileLabel} path requires a gelu or silu hiddenActivation, got ${String(hiddenActivation)}.`);
   }
   if (!weights?.gateUp || !weights?.down) {
     throw new Error(`[MoE] topk-route ${profileLabel} path missing packed weights for layer ${layerIdx}.`);
@@ -131,7 +135,7 @@ export async function runGemma4RouteExperts({
     activated = await runSiLURowSplit(gateUpOut, {
       numTokens: numRoutes,
       dim: intermediateSize,
-      activation: 'gelu',
+      activation: hiddenActivation,
       swigluLimit,
     });
     releaseBuffer(gateUpOut.buffer);

@@ -55,7 +55,7 @@ export async function executeGroupedPrefill(recorder, options) {
       weights.gate, weights.up, groups, indirect, geometry);
     keep(gateUp.buffer);
     const activated = await activate(gateUp, { numTokens: sizes.numRoutes, dim: intermediateSize,
-      activation: 'silu', swigluLimit });
+      activation: options.hiddenActivation, swigluLimit });
     keep(activated.buffer);
     const down = await executeGroupedProjection(recorder, 'moe_grouped_down', activated,
       weights.down, null, groups, indirect, geometry);
