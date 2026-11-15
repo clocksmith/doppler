@@ -11,39 +11,74 @@ function jsonText(source, filePath) {
   ));
 }
 
+// Sticky match at the token end: a following ':' makes the string a member name.
+const MEMBER_COLON = /\s*:/y;
+function isMemberName(text, end) {
+  MEMBER_COLON.lastIndex = end;
+  return MEMBER_COLON.test(text);
+}
+
+// JSON.parse turns an overflowing number into Infinity; finding one in the parsed
+// value is how the number walk below knows it has work to do.
+function hasNonFiniteNumber(value) {
+  const pending = [value];
+  while (pending.length > 0) {
+    const item = pending.pop();
+    if (typeof item === 'number') {
+      if (!Number.isFinite(item)) return true;
+    } else if (item !== null && typeof item === 'object') {
+      for (const child of Array.isArray(item) ? item : Object.values(item)) pending.push(child);
+    }
+  }
+  return false;
+}
+
+const MEMBER_TOKENS = /"(?:\\[\s\S]|[^"\\])*"|[{}\[\]]/g;
+const ALL_TOKENS = /"(?:\\[\s\S]|[^"\\])*"|-?\d+(?:\.\d+)?(?:[eE][+-]?\d+)?|[{}\[\]]/g;
+
 export function checkJsonSource(source, filePath = '') {
   const text = jsonText(source, filePath);
+  let parsed;
   try {
-    JSON.parse(text);
+    parsed = JSON.parse(text);
   } catch (error) {
     return [{ ruleId: 'JSON-001', message: `Invalid JSON: ${error.message}` }];
   }
+  // Most tracked JSON is numeric reports; skip number tokens unless the parsed
+  // value holds an overflow. A duplicate member can hide one, so rescan then.
+  const fast = scanTokens(text, hasNonFiniteNumber(parsed) ? ALL_TOKENS : MEMBER_TOKENS);
+  return fast.some(issue => issue.ruleId === 'JSON-002') ? scanTokens(text, ALL_TOKENS) : fast;
+}
+
+function scanTokens(text, tokens) {
   const issues = [];
   const stack = [];
   // JSON.parse establishes grammar first. This token walk preserves members that
   // JSON.parse would silently overwrite, including escaped equivalent key names.
-  const tokens = /"(?:\\[\s\S]|[^"\\])*"|-?\d+(?:\.\d+)?(?:[eE][+-]?\d+)?|[{}\[\]:,]|true|false|null/g;
+  // Line numbers are only needed for issues, so count newlines lazily.
   let line = 1;
-  let lastIndex = 0;
+  let counted = 0;
+  const lineAt = (index) => {
+    for (; counted < index; counted += 1) {
+      if (text.charCodeAt(counted) === 10) line += 1;
+    }
+    return line;
+  };
   for (const match of text.matchAll(tokens)) {
     const token = match[0];
-    for (let index = lastIndex; index < match.index; index += 1) {
-      if (text[index] === '\n') line += 1;
-    }
-    lastIndex = match.index;
     if (token === '{' || token === '[') {
       stack.push(token === '{' ? new Set() : null);
     } else if (token === '}' || token === ']') {
       stack.pop();
-    } else if (token.startsWith('"') && /^\s*:/.test(text.slice(match.index + token.length))) {
+    } else if (token.startsWith('"') && isMemberName(text, match.index + token.length)) {
       const keys = stack[stack.length - 1];
       const key = JSON.parse(token);
       if (keys.has(key)) {
-        issues.push({ ruleId: 'JSON-002', line, message: `Duplicate object member ${JSON.stringify(key)}; JSON.parse silently overwrites it.` });
+        issues.push({ ruleId: 'JSON-002', line: lineAt(match.index), message: `Duplicate object member ${JSON.stringify(key)}; JSON.parse silently overwrites it.` });
       }
       keys.add(key);
     } else if (/^-?\d/.test(token) && !Number.isFinite(Number(token))) {
-      issues.push({ ruleId: 'JSON-003', line, message: `Number ${token} overflows JavaScript's finite numeric range.` });
+      issues.push({ ruleId: 'JSON-003', line: lineAt(match.index), message: `Number ${token} overflows JavaScript's finite numeric range.` });
     }
   }
   return issues;
