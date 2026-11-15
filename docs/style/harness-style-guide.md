@@ -2,7 +2,7 @@
 
 <!-- style-rules: HARNESS-001 -->
 Mechanical coverage and review-only limits: [style rule registry](../../tools/policies/style-guide-rules.json).
-Run `npm run check:fast` while editing; `npm run style:guides:check` scans all files.
+`check:fast` covers only file-format baselines here; run `npm run commands:surface:check` and the relay contract test when changing harness surfaces.
 These checks do not replace the semantic requirements below.
 
 Harness-specific rules for browser and Node execution surfaces.

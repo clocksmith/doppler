@@ -2,7 +2,7 @@
 
 <!-- style-rules: EMOJI-001 -->
 Mechanical coverage and review-only limits: [style rule registry](../../tools/policies/style-guide-rules.json).
-Run `npm run check:fast` while editing; `npm run style:guides:check` scans all files.
+No checker enforces this policy; it is applied in review.
 These checks do not replace the semantic requirements below.
 
 Use the Unicode symbols below for visual indicators.

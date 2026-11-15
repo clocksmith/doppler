@@ -97,6 +97,10 @@ round trip is always runtime tensor compute and is forbidden.
 
 Doppler source code is **JavaScript** with **declaration files** (.d.ts) for every module in `src/` and `demo/`. Tests and tools may omit `.d.ts` unless they export public types.
 
+JavaScript files use `.js`; `package.json` sets `"type": "module"`, so `.mjs` is
+never needed. `JS-002` rejects `.mjs` except the exact retained artifact paths
+listed under `legacyMjs` in the rule registry.
+
 ### Why JavaScript
 
 | Reason | Explanation |
@@ -898,8 +902,10 @@ async function runKernel(...args) {
 
 Use the unified debug module (`src/debug/index.js`: `log.*` levels, `trace.*`
 categories), never raw `console.*`, in runtime code. Raw console output is
-allowed in `src/cli/` for command results and diagnostics, and in `tools/` entry points, `tests/` harnesses, demo entry points,
-benchmark result tables, and one-time startup messages in `src/gpu/device.js`.
+allowed in `src/cli/` (command results and diagnostics), `src/debug/` (the log
+sink itself), `demo/`, and one-time startup messages in `src/gpu/device.js`;
+`source:style:check` enforces exactly this list for `src/` and `demo/`. `tools/`,
+`tests/` and `benchmarks/` are outside runtime code and may print directly.
 API details: [JavaScript Style Guide: Logging](./javascript-style-guide.md#logging).
 
 CLI output must honor its output mode and remain outside library execution.

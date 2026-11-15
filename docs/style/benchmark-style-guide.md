@@ -2,7 +2,7 @@
 
 <!-- style-rules: BENCHMARK-001 -->
 Mechanical coverage and review-only limits: [style rule registry](../../tools/policies/style-guide-rules.json).
-Run `npm run check:fast` while editing; `npm run style:guides:check` scans all files.
+`check:fast` covers only file-format baselines here; run `node tests/benchmarks/benchmark-schema-contract.test.js` when changing benchmark output.
 These checks do not replace the semantic requirements below.
 
 Claim policy is canonical in [../benchmark-methodology.md](../benchmark-methodology.md).

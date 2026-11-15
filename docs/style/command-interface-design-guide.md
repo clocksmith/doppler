@@ -2,7 +2,7 @@
 
 <!-- style-rules: COMMAND-001 -->
 Mechanical coverage and review-only limits: [style rule registry](../../tools/policies/style-guide-rules.json).
-Run `npm run check:fast` while editing; `npm run style:guides:check` scans all files.
+`check:fast` covers only file-format baselines here; run `npm run commands:surface:check` when changing a command surface.
 These checks do not replace the semantic requirements below.
 
 Surface-independent design rules for the command interface, applying equally

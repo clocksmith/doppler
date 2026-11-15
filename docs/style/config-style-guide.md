@@ -12,9 +12,8 @@ Rules and conventions for configuration ownership, merge order, and overrides.
 `JSON-001` requires strict JSON, except TypeScript's declared `tsconfig*.json`
 JSONC dialect (comments/trailing commas). `JSON-002` rejects duplicate decoded
 object keys; `JSON-003` rejects numbers that overflow to non-finite JavaScript
-values. All JSON files are inventoried, including fixtures and retained reports.
-An explicit historical debt record preserves captured non-JSON stdout without
-rewriting evidence. These format checks do not replace schema/domain validation.
+values. All JSON files are inventoried, including fixtures and retained reports;
+there is no JSON debt. These format checks do not replace schema/domain validation.
 
 ## Config Schema Layout
 

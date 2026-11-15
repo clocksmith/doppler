@@ -787,7 +787,7 @@ async function runKernel() {
 }
 
 // GOOD - cache and reuse
-const pipelineCache = new Map<string, GPUComputePipeline>();
+const pipelineCache = new Map(); // key -> GPUComputePipeline
 async function runKernel() {
   const pipeline = pipelineCache.get(key) ?? await createPipeline(...);
 }

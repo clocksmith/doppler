@@ -216,7 +216,7 @@ the underlying bug, and add a comment or test stating what it avoids and why.
 
 ### Logging
 
-Use the debug module (`src/debug/index.js`), not raw `console.*`, in runtime code. Direct console output is allowed in `src/cli/` for the requested command result or diagnostic output, and in `tools/` entry points, `tests/` harnesses, `demo/` entry points, and one-time startup in `src/gpu/device.js`.
+Use the debug module (`src/debug/index.js`), not raw `console.*`, in runtime code. Direct console output is allowed in `src/cli/` for the requested command result or diagnostic output, in `src/debug/` (the log sink), `demo/`, `tools/`, `tests/` and `benchmarks/`, and for one-time startup in `src/gpu/device.js`; `source:style:check` enforces the `src/`/`demo/` part.
 
 No throwaway log statements: use existing trace categories, config-driven probes, or permanent trace extensions.
 
