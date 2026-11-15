@@ -58,3 +58,11 @@ for (const content of [{start:0,stop:5},{start:2,stop:4},{start:3,stop:5},{start
 const plain = createChannelGainRequest({...pairSpec,captureContentSpan:undefined});
 assert.throws(() => plain.takeReferenceEnergies(), /absent/);plain.close();
 console.log('same-pass capture span and reference-ownership contracts passed');
+
+const rotationSpec = { ...pairSpec, captureContentSpan: { start: 1, stop: 5 }, transformKind: 'rotation', rotationEpsilon: 1e-6, retainFinalLayerReplay: true };
+const rotationCapture = createChannelGainRequest(rotationSpec);
+assert.throws(() => rotationCapture.captureFinalLayer(2, tensor, null, 6, context, undefined, false), /Unsupported/);
+await assert.rejects(rotationCapture.replayFinalLayer(rotationCapture), /settled capture/);
+rotationCapture.close();
+assert.throws(() => createChannelGainRequest({ ...rotationSpec, layers: [{layerIdx: 1, channels: 2}, {layerIdx: 2, channels: 2}] }), /exactly one/);
+console.log('final-layer replay capture preconditions reject unsupported paths and multiple layers');

@@ -656,6 +656,9 @@ export async function processLayerGPU(layerIdx, inputBuffer, numTokens, isPrefil
     layerScalar,
     residualBranchScale,
   });
+  context.channelGainRequest?.captureFinalLayer(layerIdx, postAttn, fusedResidualForFFN, numTokens,
+    context, layerWeights, !sandwichNorm.useSandwichNorm && !hasPerLayerInputBlock(config)
+      && layerScalar === 1 && residualBranchScale === 1 && !config.hyperConnections && !config.useMoE);
   let layerScalarFused = false;
   if (sandwichNorm.useSandwichNorm) {
     context.__postFfnNextInputNorm = usePostFfnNextInputNormPair

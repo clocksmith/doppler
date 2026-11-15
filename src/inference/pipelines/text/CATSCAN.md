@@ -25,7 +25,7 @@ Execute manifest-declared transformer generation, embedding, reranking, and decl
 
 ## Invariants
 
-- Research channel-gain and rank-two rotation requests share isolated dense split-f32 SwiGLU lifecycle state; reset clears requests. Opaque frozen handles own copied GPU buffers and immutable parameters. Rotation capture requires an exact template-free complement. Base-cache attaches after base prefill (first logits remain base); re-prefill applies the frozen transform throughout the new prefill. Neither arm implies quality improvement.
+- Research channel-gain and rank-two rotation requests share isolated dense split-f32 SwiGLU lifecycle state; reset clears requests. Opaque frozen handles own copied GPU buffers and immutable parameters. Rotation capture requires an exact template-free complement. Base-cache attaches after base prefill (first logits remain base); re-prefill applies the frozen transform throughout the new prefill. Neither arm implies quality improvement. Opt-in final-layer replay retains ordinary f32 post-attention/residual tensors; it re-executes only the standard final FFN and normal output head, with no attention/cache writes. Replay requires its still-attached capture and original model; reset/detach invalidates replay. Sandwich norms, per-layer input, scaling, MoE and hyperconnections reject.
 
 - Config resolution order and source attribution remain explicit.
 - Prefill and decode choices are resolved before adapter execution.

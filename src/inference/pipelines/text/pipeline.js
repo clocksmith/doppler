@@ -10,6 +10,10 @@ import { DecodeRing } from '../../decode-ring.js';
 import { applyPipelineContexts, restorePipelineContexts } from '../context.js';
 import { createInitializedPipeline } from '../factory.js';
 
+import { computeLogits } from './logits/index.js';
+import { getLogitsConfig, getLogitsWeights } from './generator/logits-config.js';
+const researchRequestOwners = new WeakMap();
+
 // Pipeline sub-modules
 import { createChannelGainRequest, assertChannelGainIdle, withChannelGainOperation } from './channel-gain.js';
 import { PipelineState } from './state.js';
@@ -567,6 +571,27 @@ export class InferencePipeline extends PipelineState {
     return this.lora;
   }
 
+  replayChannelRotation(capture, spec) {
+    assertChannelGainIdle(this);
+    const origin = researchRequestOwners.get(capture);
+    if (!this.isLoaded || this.channelGainRequest !== capture || origin?.pipeline !== this
+        || origin?.modelConfig !== this.modelConfig || this.lora) {
+      throw new Error('Final-layer replay requires its still-attached capture and original loaded model without LoRA.');
+    }
+    return withChannelGainOperation(this, async () => {
+      const request = createChannelGainRequest({ ...spec, transformKind: 'rotation', cacheArm: 're-prefill' });
+      let hidden;
+      try {
+        hidden = await capture.replayFinalLayer(request);
+        return await computeLogits(hidden.buffer, spec.tokenCount, getLogitsWeights(this),
+          getLogitsConfig(this, 'prefill'), true, this.debugFlags, undefined, undefined, null, { lastPositionOnly: true });
+      } finally {
+        if (hidden) releaseBuffer(hidden.buffer);
+        request.close();
+      }
+    });
+  }
+
   beginChannelRotationRequest(spec) {
     return this.beginChannelGainRequest({ ...spec, transformKind: 'rotation' });
   }
@@ -578,6 +603,7 @@ export class InferencePipeline extends PipelineState {
     if (this.channelGainRequest) throw new Error('Close the previous channel gain request before attaching another.');
     if (this.modelConfig?.useMoE) throw new Error('Channel gain does not support MoE.');
     this.channelGainRequest = createChannelGainRequest(spec);
+    researchRequestOwners.set(this.channelGainRequest, { pipeline: this, modelConfig: this.modelConfig });
     return this.channelGainRequest;
   }
 

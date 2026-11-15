@@ -1,5 +1,6 @@
 import { channelEnergy, channelEnergyPair, channelGainSwiGLU, validateChannelTensor } from '../../../gpu/kernels/channel-gain.js';
 import { deriveChannelRotation, applyChannelRotation } from '../../../gpu/kernels/channel-rotation.js';
+import { copyReplayTensor, replayFinalFFN } from './final-layer-replay.js';
 import { createTensor } from '../../../gpu/tensor.js';
 import { createSha256Hasher } from '../../../formats/sha256.js';
 import { getDevice } from '../../../gpu/device.js';
@@ -191,6 +192,12 @@ export function createChannelGainRequest(spec) {
   }
   const rotationEpsilon = spec.rotationEpsilon;
   const rotations = new Map();
+  /** @type {import('./final-layer-replay.js').FinalLayerReplayCapture | null} */
+  let finalReplay = null;
+  const retainFinalLayerReplay = spec.retainFinalLayerReplay === true;
+  if (retainFinalLayerReplay && (kind !== 'rotation' || mode !== 'capture' || selected.size !== 1)) {
+    throw new Error('Final-layer replay capture requires exactly one rotation layer.');
+  }
   const frozenContent = content ? Object.freeze({ start: content.start, stop: content.stop }) : null;
   const frozenSpan = Object.freeze({ start: span.start, stop: span.stop });
   /** @type {Map<number, import('../../../gpu/tensor.js').Tensor>} */
@@ -270,6 +277,26 @@ export function createChannelGainRequest(spec) {
         seen.add(layerIdx);
       } finally { pending -= 1; }
     },
+    captureFinalLayer(layerIdx, postAttn, residual, tokens, context, weights, supported) {
+      assertOpen();
+      if (!retainFinalLayerReplay || !selected.has(layerIdx)) return;
+      if (!supported || context.phase !== 'prefill' || layerIdx !== context.config.numLayers - 1
+          || tokens !== tokenCount || finalReplay) throw new Error('Unsupported or repeated final-layer replay capture.');
+      const copy = copyReplayTensor(postAttn, context.recorder ?? null);
+      try {
+        finalReplay = { layerIdx, tokens, postAttn: copy,
+          residual: residual ? copyReplayTensor(residual, context.recorder ?? null) : null,
+          context: { ...context }, weights };
+      } catch (error) { releaseBuffer(copy.buffer); throw error; }
+    },
+    async replayFinalLayer(request) {
+      assertOpen();
+      if (!finalReplay || pending || request.transformKind !== 'rotation' || request.mode !== 'apply'
+          || request.cacheArm !== 're-prefill') throw new Error('Final-layer replay needs settled capture and a fresh re-prefill rotation request.');
+      pending += 1;
+      try { return await replayFinalFFN(finalReplay, request); }
+      finally { pending -= 1; }
+    },
     takeRotations() {
       assertOpen();
       if (kind !== 'rotation' || mode !== 'capture' || pending || rotations.size !== selected.size) {
@@ -303,6 +330,11 @@ export function createChannelGainRequest(spec) {
       const buffers = [...energies.values(), ...referenceEnergies.values()].map(tensor => tensor.buffer);
       for (const rotation of rotations.values()) buffers.push(rotation.basis.buffer, rotation.status.buffer);
       rotations.clear();
+      if (finalReplay) {
+        buffers.push(finalReplay.postAttn.buffer);
+        if (finalReplay.residual) buffers.push(finalReplay.residual.buffer);
+        finalReplay = null;
+      }
       energies.clear();
       referenceEnergies.clear();
       selected.clear();

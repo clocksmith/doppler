@@ -5,6 +5,8 @@ export interface ChannelGainSpec {
   /** Rotation selects split gate/up + post-SwiGLU rotation on selected dense layers only. */
   transformKind?: 'gain' | 'rotation';
   rotationEpsilon?: number;
+  /** Opt-in capture: retain ordinary final-layer FFN inputs for guarded same-sequence replay. */
+  retainFinalLayerReplay?: boolean;
   mode: 'capture' | 'apply'; requestId: string; gainHash: string;
   cacheArm: 'base-cache' | 're-prefill'; tokenCount: number;
   span: { start: number; stop: number; templatePositions: number[] };
@@ -24,6 +26,9 @@ export interface ChannelGainRequest {
     swigluLimit: number | null, recorder: CommandRecorder | null): Promise<Tensor>;
   transform(layerIdx: number, tensor: Tensor, tokens: number, channels: number,
     recorder: CommandRecorder | null): Promise<Tensor>;
+  captureFinalLayer(layerIdx: number, postAttn: Tensor, residual: Tensor | null, tokens: number,
+    context: LayerContext, weights: import('./types.js').LayerWeights | undefined, supported: boolean): void;
+  replayFinalLayer(request: ChannelGainRequest): Promise<Tensor>;
   takeRotations(): Map<number, import('../../../gpu/kernels/channel-rotation.js').ChannelRotation>;
   capture(layerIdx: number, tensor: Tensor, tokens: number, channels: number,
     recorder: CommandRecorder | null): Promise<void>;

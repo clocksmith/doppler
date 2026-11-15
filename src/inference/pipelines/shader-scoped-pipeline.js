@@ -38,6 +38,7 @@ export const PIPELINE_OPERATIONS = Object.freeze({
   embedImage: 'execution', embedAudio: 'execution',
   setLoRAAdapter: 'mutation', setPreloadedWeights: 'mutation', applyKVCacheSnapshot: 'mutation',
   beginDiagnosticSequence: 'mutation', endDiagnosticSequence: 'mutation',
+  replayChannelRotation: 'execution',
   beginChannelGainRequest: 'mutation', beginChannelRotationRequest: 'mutation',
   createGenerationContext: 'mutation',
   reset: 'reset', resetForBatch: 'reset', resetGenerationState: 'reset', resetToSeqLen: 'reset',

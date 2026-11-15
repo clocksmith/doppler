@@ -242,6 +242,7 @@
     "src/converter/qwen4-exp-source-execution.js",
     "src/loader/experts/compact-expert-cache.js",
     "src/loader/experts/routed-expert-source.js",
-    "src/gpu/kernels/channel-rotation.js"
+    "src/gpu/kernels/channel-rotation.js",
+    "src/inference/pipelines/text/final-layer-replay.js"
   ]
 }
