@@ -155,7 +155,11 @@ export class CompactExpertCache {
     for (const expert of ids) {
       if (slots.has(expert)) continue;
       if (!pool.free.length) {
-        const victim = [...pool.entries].find(([key]) => !selected.has(key));
+        /** @type {[number, number] | undefined} */
+        let victim;
+        for (const entry of pool.entries) {
+          if (!selected.has(entry[0])) { victim = entry; break; }
+        }
         if (!victim) throw new Error('Compact selected experts exhausted pinned slots.');
         pool.entries.delete(victim[0]); pool.free.push(victim[1]); this.#stats.evictions++; pool.stats.evictions++;
       }
