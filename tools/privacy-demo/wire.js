@@ -4,8 +4,9 @@ import policy from './policy.json' with { type: 'json' };
 import { modelId } from './model.js';
 const policyId = 'sha256:' + createHash('sha256').update(JSON.stringify(policy)).digest('hex');
 export const fail = () => { throw Error('Encrypted experiment frame rejected'); };
-export function envelope(session, keysId, step) {
-  return { schema: policy.schema, protocol: policy.protocol, policyId, modelId, session, keysId, step };
+export function envelope(session, keysId, step, integrityMode = policy.integrity.defaultMode) {
+  if (!policy.integrity.modes.includes(integrityMode)) fail();
+  return { schema: policy.schema, protocol: policy.protocol, policyId, modelId, session, keysId, step, integrityMode };
 }
 export function validate(value, binding, field) {
   const keys = [...Object.keys(binding), field].sort();

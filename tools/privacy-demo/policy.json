@@ -34,6 +34,15 @@
     "parameters and evaluation keys",
     "ciphertext sizes",
     "timing",
-    "process and transport metadata"
-  ]
+    "process and transport metadata",
+    "selected client integrity-audit mode"
+  ],
+  "integrity": {
+    "defaultMode": "none",
+    "modes": [
+      "none",
+      "client-reference"
+    ],
+    "client-reference": "Full local fixture score recomputation; not verifiable computation or active-adversary privacy"
+  }
 }

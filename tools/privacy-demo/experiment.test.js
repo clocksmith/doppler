@@ -5,6 +5,7 @@ import { once } from 'node:events';
 import { fileURLToPath } from 'node:url';
 import { runExperiment } from './experiment.js';
 import { envelope, readFrames, validate } from './wire.js';
+import { openExperimentContext } from './seal-context.js';
 import { reference } from './model.js';
 import policy from './policy.json' with { type: 'json' };
 
@@ -68,4 +69,41 @@ test('the evaluator rejects malformed client envelopes without reflecting privat
   child.stdin.end(JSON.stringify({ session: '', secretKey: 'private-input-canary' }) + '\n');
   assert.equal((await exit)[0], 1); assert.equal(stdout, '');
   assert.equal(stderr, 'Encrypted experiment provider rejected a frame.\n');
+});
+
+test('full client recomputation detects incorrect scores without claiming a cryptographic proof', async () => {
+  const honest = await runExperiment({ seed: 'b', integrityMode: 'client-reference' });
+  assert.equal(honest.matchesReference, true); assert.equal(honest.clientReferenceAudit.checkedSteps, policy.steps);
+  assert.equal(honest.integrityProvided, false); assert.equal(honest.qualified, false);
+  let inputCiphertext;
+  await assert.rejects(runExperiment({ seed: 'b', integrityMode: 'client-reference',
+    observe({ packet }) { if (packet.inputCiphertext) inputCiphertext = packet.inputCiphertext; },
+    transformResponse: packet => ({ ...packet, scoresCiphertext: inputCiphertext }) }), /Client reference audit rejected/);
+});
+test('demonstrates selective-failure privacy leakage even when client reference integrity checks are enabled', async () => {
+  const continuationCounts = [];
+  for (const seed of ['b', 'c']) {
+    const attacker = await openExperimentContext(), { seal, context, own } = attacker;
+    const keys = own(new seal.GaloisKeys()), input = own(new seal.Ciphertext()), scores = own(new seal.Ciphertext()), rotated = own(new seal.Ciphertext());
+    const evaluator = own(new seal.Evaluator(context));
+    let sent = 0;
+    try {
+      const running = runExperiment({ seed, integrityMode: 'client-reference', observe({ direction, packet }) {
+        if (direction !== 'client') return;
+        sent++;
+        if (packet.evaluationKeys) keys.loadFromBase64(context, packet.evaluationKeys);
+        if (packet.inputCiphertext) input.loadFromBase64(context, packet.inputCiphertext);
+      }, transformResponse(packet) {
+        // Identical attack for both clients, using only public evaluation keys and wire ciphertexts.
+        scores.loadFromBase64(context, packet.scoresCiphertext);
+        evaluator.rotateRows(input, 1, keys, rotated); evaluator.addInplace(scores, rotated);
+        return { ...packet, scoresCiphertext: scores.saveToBase64(seal.ComprModeType.none) };
+      } });
+      if (seed === 'b') await assert.rejects(running, /Client reference audit rejected/);
+      else assert.equal((await running).matchesReference, true);
+      continuationCounts.push(sent);
+    } finally { attacker.close(); }
+  }
+  // A malicious evaluator observes continuation vs early stop, revealing a predicate of the private seed.
+  assert.deepEqual(continuationCounts, [2, policy.steps + 1]);
 });

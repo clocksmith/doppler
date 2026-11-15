@@ -10,7 +10,7 @@ try {
   const frames = readFrames(process.stdin)[Symbol.asyncIterator]();
   const opening = await frames.next(), hello = opening.value;
   if (opening.done || typeof hello.session !== 'string' || !/^[a-f0-9-]{36}$/.test(hello.session) || typeof hello.keysId !== 'string') fail();
-  const binding = envelope(hello.session, hello.keysId, -1);
+  const binding = envelope(hello.session, hello.keysId, -1, hello.integrityMode);
   const serialized = validate(hello, binding, 'evaluationKeys');
   if ('sha256:' + createHash('sha256').update(serialized).digest('hex') !== hello.keysId) fail();
   const keys = own(new seal.GaloisKeys()); keys.loadFromBase64(context, serialized);
@@ -22,11 +22,11 @@ try {
   // No acknowledgement containing any client content is needed.
   for (let step = 0; step < policy.steps; step++) {
     const frame = await frames.next(); if (frame.done) fail();
-    const ciphertext = validate(frame.value, envelope(hello.session, hello.keysId, step), 'inputCiphertext');
+    const ciphertext = validate(frame.value, envelope(hello.session, hello.keysId, step, hello.integrityMode), 'inputCiphertext');
     input.loadFromBase64(context, ciphertext);
     evaluator.multiplyPlain(input, plainWeights, output);
     for (const shift of policy.rotationSteps) { evaluator.rotateRows(output, shift, keys, rotated); evaluator.addInplace(output, rotated); }
-    await writeFrame(process.stdout, { ...envelope(hello.session, hello.keysId, step), scoresCiphertext: output.saveToBase64(seal.ComprModeType.none) });
+    await writeFrame(process.stdout, { ...envelope(hello.session, hello.keysId, step, hello.integrityMode), scoresCiphertext: output.saveToBase64(seal.ComprModeType.none) });
   }
   if (!(await frames.next()).done) fail();
   if (modelId !== binding.modelId) fail();

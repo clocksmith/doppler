@@ -8,10 +8,11 @@ for (let i = 1; i < policy.corpus.length; i++) {
 for (const row of counts) Object.freeze(row);
 Object.freeze(counts);
 export const modelId = 'sha256:' + createHash('sha256').update(JSON.stringify({ vocabulary: policy.vocabulary, counts })).digest('hex');
+export const transitionScores = token => counts.map(row => row[token]);
 export const choose = scores => scores.indexOf(Math.max(...scores));
 export function reference(seed) {
   let token = policy.vocabulary.indexOf(seed), output = '';
   if (token < 0) throw Error('Fixture seed is outside the vocabulary');
-  for (let step = 0; step < policy.steps; step++) { token = choose(counts.map(row => row[token])); output += policy.vocabulary[token]; }
+  for (let step = 0; step < policy.steps; step++) { token = choose(transitionScores(token)); output += policy.vocabulary[token]; }
   return output;
 }
