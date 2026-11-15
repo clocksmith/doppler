@@ -176,26 +176,9 @@ export async function runGemma4RouteExperts({
   }
 }
 
-export async function runGptOssExpert(
-  gathered,
-  expertOutputs,
-  weights,
-  layerIdx,
-  expertIdx,
-  count,
-  inputOffset,
-  outputOffset,
-  hiddenSize,
-  intermediateSize,
-  numExperts,
-  activationDtype,
-  swigluLimit,
-  kernelPath,
-  executionPolicies,
-  modelType,
-  vendorProfile,
-  moeKernelPathProfile
-) {
+export async function runGptOssExpert({
+  gathered, expertOutputs, weights, layerIdx, expertIdx, count, inputOffset, outputOffset, hiddenSize, intermediateSize, numExperts, activationDtype, swigluLimit, kernelPath, executionPolicies, modelType, vendorProfile, moeKernelPathProfile,
+}) {
   const perfEnabled = isTraceEnabled('perf');
   const perfMark = () => (perfEnabled ? performance.now() : 0);
   const perfLog = (label, start, data) => {
@@ -349,21 +332,11 @@ export async function runGptOssExpert(
   }
 }
 
-export async function runGemma4Expert(
-  gathered,
-  expertOutputs,
-  weights,
-  count,
-  inputOffset,
-  outputOffset,
-  hiddenSize,
-  intermediateSize,
-  activationDtype,
-  swigluLimit,
-  kernelPath,
-  hiddenActivation,
-  matmulRoles
-) {
+export async function runGemma4Expert({
+  gathered, expertOutputs, weights, count, inputOffset, outputOffset, hiddenSize,
+  intermediateSize, activationDtype, swigluLimit, kernelPath, hiddenActivation, moeProfile,
+}) {
+  const matmulRoles = moeProfile.matmulRoles;
   const numExperts = weights.numExperts;
   const expertIdx = weights.expertIdx;
   if (!Number.isFinite(numExperts) || numExperts <= 0) {
@@ -458,78 +431,44 @@ export async function runGemma4Expert(
   }
 }
 
-export async function runMixtralExpert(
-  gathered,
-  expertOutputs,
-  weights,
-  count,
-  inputOffset,
-  outputOffset,
-  hiddenSize,
-  intermediateSize,
-  hiddenActivation,
-  activationDtype,
-  swigluLimit,
-  kernelPath
-) {
-  const gateOut = await runMatmul(
-    gathered,
-    weights.gate,
-    count,
-    intermediateSize,
-    hiddenSize,
-    {
-      transposeB: 'auto',
-      aOffset: inputOffset,
-      outputDtype: activationDtype,
-      role: 'moe_gate',
-      kernelPath,
-    }
-  );
-  const upOut = await runMatmul(
-    gathered,
-    weights.up,
-    count,
-    intermediateSize,
-    hiddenSize,
-    {
-      transposeB: 'auto',
-      aOffset: inputOffset,
-      outputDtype: activationDtype,
-      role: 'moe_up',
-      kernelPath,
-    }
-  );
-
+export async function runMixtralExpert({
+  gathered, expertOutputs, weights, count, inputOffset, outputOffset, hiddenSize, intermediateSize, hiddenActivation, activationDtype, swigluLimit, kernelPath,
+}) {
+  const projection = (weight, role) => runMatmul(gathered, weight, count, intermediateSize, hiddenSize, {
+    transposeB: 'auto', aOffset: inputOffset, outputDtype: activationDtype, role, kernelPath,
+  });
   const activationFn = {
     gelu: runGeLU,
     silu: runSiLU,
   }[selectRuleValue('inference', 'ffn', 'activationOp', { hiddenActivation })];
-  const activated = await activationFn(upOut, {
-    size: count * intermediateSize,
-    gate: gateOut,
-    inputActivation: 'identity',
-    swigluLimit,
-  });
-  releaseBuffer(gateOut.buffer);
-  releaseBuffer(upOut.buffer);
-
-  await runMatmul(
-    activated,
-    weights.down,
-    count,
-    hiddenSize,
-    intermediateSize,
-    {
+  let gateOut = null;
+  let upOut = null;
+  let activated = null;
+  try {
+    gateOut = await projection(weights.gate, 'moe_gate');
+    upOut = await projection(weights.up, 'moe_up');
+    activated = await activationFn(upOut, {
+      size: count * intermediateSize,
+      gate: gateOut,
+      inputActivation: 'identity',
+      swigluLimit,
+    });
+    releaseBuffer(gateOut.buffer);
+    releaseBuffer(upOut.buffer);
+    gateOut = upOut = null;
+    await runMatmul(activated, weights.down, count, hiddenSize, intermediateSize, {
       transposeB: 'auto',
       outputBuffer: expertOutputs,
       cOffset: outputOffset,
       outputDtype: activationDtype,
       role: 'moe_down',
       kernelPath,
+    });
+  } finally {
+    for (const tensor of [gateOut, upOut, activated]) {
+      if (tensor) releaseBuffer(tensor.buffer);
     }
-  );
-  releaseBuffer(activated.buffer);
+  }
 }
 
 

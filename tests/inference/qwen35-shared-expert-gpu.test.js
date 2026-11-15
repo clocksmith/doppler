@@ -93,8 +93,10 @@ try {
   const packed = { numExperts: 2, expertIdx: 1, expertFormat: 'qwen3_5',
     gateUp: matrix([...new Array(2 * I * packedHidden).fill(0), ...packedGate, ...packedUp], [2, 2 * I, packedHidden]),
     down: matrix([...new Array(packedHidden * I).fill(0), ...packedDown], [2, packedHidden, I]) };
-  await runGemma4Expert(createTensor(buffer(packedInput), 'f32', [T, packedHidden]), expertOutput, packed,
-    1, tokenOffset, tokenOffset, packedHidden, I, 'f32', null, null, 'silu', {gateUp:'ffn_gate',down:'ffn_down'});
+  await runGemma4Expert({ gathered: createTensor(buffer(packedInput), 'f32', [T, packedHidden]),
+    expertOutputs: expertOutput, weights: packed, count: 1, inputOffset: tokenOffset, outputOffset: tokenOffset,
+    hiddenSize: packedHidden, intermediateSize: I, activationDtype: 'f32', swigluLimit: null, kernelPath: null,
+    hiddenActivation: 'silu', moeProfile: { matmulRoles: { gateUp: 'ffn_gate', down: 'ffn_down' } } });
   const expertValues = new Float32Array(await readBuffer(expertOutput, T * packedHidden * 4));
   const x = packedInput.slice(packedHidden, 2 * packedHidden);
   const act = Array.from({length:I}, (_, i) => {

@@ -10,7 +10,7 @@ export declare function resolvePerExpertScaleBuffer(
 export declare function runGemma4RouteExperts(
   args: Record<string, unknown>
 ): Promise<{ buffer: GPUBuffer; dtype?: string }>;
-export declare function runGptOssExpert(...args: unknown[]): Promise<void>;
-export declare function runGemma4Expert(...args: unknown[]): Promise<void>;
-export declare function runMixtralExpert(...args: unknown[]): Promise<void>;
+export declare function runGptOssExpert(args: Record<string, unknown>): Promise<void>;
+export declare function runGemma4Expert(args: Record<string, unknown>): Promise<void>;
+export declare function runMixtralExpert(args: Record<string, unknown>): Promise<void>;
 

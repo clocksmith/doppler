@@ -75,10 +75,10 @@ const MOE_RECORDED_ROUTE_EXECUTORS = Object.freeze({
 });
 
 const MOE_EXPERT_EXECUTORS = Object.freeze({
-  'gpt-oss': runGptOssProfileExpert,
-  'gemma4-packed': runGemma4ProfileExpert,
-  'qwen35-packed': runGemma4ProfileExpert,
-  mixtral: runMixtralProfileExpert,
+  'gpt-oss': runGptOssExpert,
+  'gemma4-packed': runGemma4Expert,
+  'qwen35-packed': runGemma4Expert,
+  mixtral: runMixtralExpert,
 });
 
 function requireMoeExecutor(registry, id, label) {
@@ -99,64 +99,6 @@ function assertMoeExpertWeights(moeProfile, weights, expertKey) {
   if (moeProfile.expertExecutor === 'mixtral' && (!weights.gate || !weights.up || !weights.down)) {
     throw new Error(`[MoE] Missing Mixtral weights for ${expertKey}`);
   }
-}
-
-async function runGptOssProfileExpert(args) {
-  return runGptOssExpert(
-    args.gathered,
-    args.expertOutputs,
-    args.weights,
-    args.layerIdx,
-    args.expertIdx,
-    args.count,
-    args.inputOffset,
-    args.outputOffset,
-    args.hiddenSize,
-    args.intermediateSize,
-    args.numExperts,
-    args.activationDtype,
-    args.swigluLimit,
-    args.kernelPath,
-    args.executionPolicies,
-    args.modelType,
-    args.vendorProfile,
-    args.moeKernelPathProfile
-  );
-}
-
-async function runGemma4ProfileExpert(args) {
-  return runGemma4Expert(
-    args.gathered,
-    args.expertOutputs,
-    args.weights,
-    args.count,
-    args.inputOffset,
-    args.outputOffset,
-    args.hiddenSize,
-    args.intermediateSize,
-    args.activationDtype,
-    args.swigluLimit,
-    args.kernelPath,
-    args.hiddenActivation,
-    args.moeProfile.matmulRoles
-  );
-}
-
-async function runMixtralProfileExpert(args) {
-  return runMixtralExpert(
-    args.gathered,
-    args.expertOutputs,
-    args.weights,
-    args.count,
-    args.inputOffset,
-    args.outputOffset,
-    args.hiddenSize,
-    args.intermediateSize,
-    args.hiddenActivation,
-    args.activationDtype,
-    args.swigluLimit,
-    args.kernelPath
-  );
 }
 
 export async function moeFeedForwardGPU(
