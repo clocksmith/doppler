@@ -629,6 +629,7 @@ try {
     });
     await assert.rejects(
       () => runSoftmaxTopK(logits, 1, 4, 2, {
+        normalize: true,
         inputDtype: 'f32',
         weightsDtype: 'f32',
       }),

@@ -63,10 +63,10 @@ export async function recordSoftmax(recorder, input, axis, options = {}) {
 
 async function softmaxTopK(target, logits, numTokens, numExperts, topK, options = {}) {
   const device = target?.device ?? getDevice();
-  const {
-    normalize = true,
-    modelType = null,
-  } = options;
+  const { normalize, modelType = null } = options;
+  if (typeof normalize !== 'boolean') {
+    throw new Error(`SoftmaxTopK requires options.normalize from the router's normalizeWeights, got ${String(normalize)}.`);
+  }
   const inputDtype = options.inputDtype;
   const weightsDtype = options.weightsDtype;
 

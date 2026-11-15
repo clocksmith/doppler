@@ -10,11 +10,18 @@ let dequantCacheMisses = 0;
 export function resolveMaxTokensPerExpert(numTokens, numExperts, topK, hiddenSize, activationDtype) {
   const routingConfig = getRuntimeConfig().inference.moe.routing;
   const {
-    maxTokensPerExpert = 0,
-    maxTokensPerExpertHeadroom = 2.0,
-    maxTokensPerExpertMin = 4,
-    maxTokensPerExpertCap = 0,
+    maxTokensPerExpert,
+    maxTokensPerExpertHeadroom,
+    maxTokensPerExpertMin,
+    maxTokensPerExpertCap,
   } = routingConfig;
+  for (const [name, value] of Object.entries({
+    maxTokensPerExpert, maxTokensPerExpertHeadroom, maxTokensPerExpertMin, maxTokensPerExpertCap,
+  })) {
+    if (!Number.isFinite(value) || value < 0) {
+      throw new Error(`runtime.inference.moe.routing.${name} must be a finite non-negative number, got ${String(value)}.`);
+    }
+  }
 
   let target = maxTokensPerExpert > 0
     ? maxTokensPerExpert

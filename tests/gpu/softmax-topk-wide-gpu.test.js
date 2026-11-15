@@ -45,9 +45,9 @@ if (!gpu.ready) {
           }
         }
         await assert.rejects(runSoftmaxTopK(input, 1, 513, k,
-          { inputDtype: 'f32', weightsDtype: 'f32', variant: 'fused_ranked_512' }), /at most 512/);
+          { normalize, inputDtype: 'f32', weightsDtype: 'f32', variant: 'fused_ranked_512' }), /at most 512/);
         if (n > 256) await assert.rejects(runSoftmaxTopK(input, tokens, n, k,
-          { inputDtype: 'f32', weightsDtype: 'f32', variant: 'fused_ranked' }), /at most 256/);
+          { normalize, inputDtype: 'f32', weightsDtype: 'f32', variant: 'fused_ranked' }), /at most 256/);
       } finally {
         await getDevice().queue.onSubmittedWorkDone();
         for (const buffer of owned) releaseBuffer(buffer);
