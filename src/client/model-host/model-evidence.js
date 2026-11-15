@@ -253,3 +253,5 @@ export async function buildEmbeddingEvidence({
     stats: snapshotModelEvidenceStats(stats),
   };
 }
+
+export { buildProviderPrivacyReceipt } from './privacy-receipt.js';

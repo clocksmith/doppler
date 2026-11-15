@@ -49,3 +49,5 @@ export declare function buildEmbeddingEvidence(input: ResolutionEvidenceInput & 
   result: { embedding: ArrayLike<number>; tokens: ArrayLike<number>; seqLen: number; embeddingMode: string };
   stats: PipelineStats | null;
 }): Promise<DopplerEmbeddingEvidence>;
+
+export { buildProviderPrivacyReceipt } from './privacy-receipt.js';

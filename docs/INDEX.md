@@ -96,3 +96,5 @@ Primary documentation index.
 - [Training Engine](../src/experimental/training/GUIDE.md)
 - [Inference Guide](../src/inference/GUIDE.md)
 - [Kernel Tests](../tests/kernels/GUIDE.md)
+
+[Execution backend privacy boundary](execution-privacy-contract.md).

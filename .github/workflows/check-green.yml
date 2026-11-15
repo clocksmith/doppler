@@ -28,6 +28,7 @@ jobs:
           node-version: '22'
           cache: npm
       - run: npm ci --ignore-scripts --omit=optional --no-audit --no-fund
+      - run: node tests/inference/execution-backend-contract.test.js
       - run: npm run check:fast
       - run: npm run style:guides:check
       - run: npm run style:guides:test

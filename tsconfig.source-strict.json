@@ -243,6 +243,8 @@
     "src/loader/experts/compact-expert-cache.js",
     "src/loader/experts/routed-expert-source.js",
     "src/gpu/kernels/channel-rotation.js",
-    "src/inference/pipelines/text/final-layer-replay.js"
+    "src/inference/pipelines/text/final-layer-replay.js",
+    "src/inference/execution-backend-contract.js",
+    "src/client/model-host/privacy-receipt.js"
   ]
 }
