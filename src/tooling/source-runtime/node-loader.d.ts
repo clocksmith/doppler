@@ -1,4 +1,5 @@
 import type { Stats } from 'node:fs';
+import type { StorageStreamingConfigSchema } from '../../config/schema/storage.schema.js';
 import type { ParsedSafetensorsHeader } from '../../formats/safetensors/types.js';
 
 export const MAX_NODE_READ_BYTES: number;
@@ -50,5 +51,6 @@ export function readSafetensorsHeaderFromFile(
 export function buildNodeFileReaders(fileAccess: NodeFileAccess): NodeFileReaders;
 export function addHashesToFileEntries(
   entries: SourceFileEntry[],
-  hashAlgorithm: string
+  hashAlgorithm: string,
+  streaming: Pick<StorageStreamingConfigSchema, 'readChunkBytes' | 'maxInFlightBytes'>
 ): Promise<SourceFileEntry[]>;

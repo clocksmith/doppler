@@ -750,7 +750,9 @@ export async function resolveNodeSourceRuntimeBundle(options = {}) {
       logCategory: 'NodeSourceRuntime',
       hashFileEntries: typeof parsed?.hashFileEntries === 'function'
         ? (entries, hashAlgorithm) => parsed.hashFileEntries(entries, hashAlgorithm)
-        : addHashesToFileEntries,
+        : (entries, hashAlgorithm) => addHashesToFileEntries(
+          entries, hashAlgorithm, loadingConfig.storage.backend.streaming
+        ),
     });
 
     const readers = parsed?.storageReaders ?? buildNodeFileReaders(fileAccess);

@@ -244,10 +244,10 @@ export function buildNodeFileReaders(fileAccess) {
   };
 }
 
-async function computeFileHash(filePath, hashAlgorithm) {
+async function computeFileHash(filePath, hashAlgorithm, chunkBytes) {
   return new Promise((resolve, reject) => {
     const hash = createHash(hashAlgorithm);
-    const stream = createReadStream(filePath);
+    const stream = createReadStream(filePath, { highWaterMark: chunkBytes });
 
     stream.on('data', (chunk) => {
       hash.update(chunk);
@@ -262,7 +262,12 @@ async function computeFileHash(filePath, hashAlgorithm) {
   });
 }
 
-export async function addHashesToFileEntries(entries, hashAlgorithm) {
+export async function addHashesToFileEntries(entries, hashAlgorithm, streaming) {
+  const { readChunkBytes, maxInFlightBytes } = streaming ?? {};
+  if (![readChunkBytes, maxInFlightBytes].every(value => Number.isSafeInteger(value) && value > 0)) {
+    throw new Error('Source hash streaming chunkBytes and maxInFlightBytes must be positive integers.');
+  }
+  const chunkBytes = Math.min(readChunkBytes, maxInFlightBytes, MAX_NODE_READ_BYTES);
   const normalized = [];
   for (const entry of Array.isArray(entries) ? entries : []) {
     const filePath = normalizePath(entry?.path);
@@ -272,7 +277,7 @@ export async function addHashesToFileEntries(entries, hashAlgorithm) {
       ...entry,
       path: filePath,
       size: Number.isFinite(entry?.size) ? Math.max(0, Math.floor(Number(entry.size))) : Number(stats.size),
-      hash: await computeFileHash(filePath, hashAlgorithm),
+      hash: await computeFileHash(filePath, hashAlgorithm, chunkBytes),
       hashAlgorithm,
     });
   }
