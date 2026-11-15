@@ -65,12 +65,6 @@ export class MoERouter {
   perExpertScale = null;
 
   
-  activeExperts;
-
-  
-  loadBalanceStats;
-
-  
   _biasAddPipelines = new Map();
 
   
@@ -111,15 +105,6 @@ export class MoERouter {
     this.topK = config.topK;
     this.hiddenSize = config.hiddenSize;
     this.normalizeWeights = config.normalizeWeights;
-
-    // Track active experts for the current batch
-    this.activeExperts = new Set();
-
-    // Auxiliary load balancing stats
-    this.loadBalanceStats = {
-      expertCounts: new Uint32Array(this.numExperts),
-      totalTokens: 0
-    };
   }
 
   
@@ -169,15 +154,6 @@ export class MoERouter {
     this.gateScale = null;
     this.perExpertScale = null;
     this._biasAddPipelines.clear();
-  }
-
-  
-  computeRouterLogitsCPU(hiddenStates, numTokens) {
-    void hiddenStates;
-    void numTokens;
-    throw new Error(
-      'MoERouter.computeRouterLogitsCPU is unavailable: runtime routing mathematics requires the WebGPU path.'
-    );
   }
 
   
@@ -354,132 +330,7 @@ export class MoERouter {
       if (!recorder) uniformBuffer.destroy();
     }
   }
-
-  
-  async routeGPU(hiddenStates, numTokens, options = {}) {
-    void hiddenStates;
-    void numTokens;
-    void options;
-    throw new Error(
-      'MoERouter.routeGPU cannot read routing tensors back to JavaScript; use the GPU MoE executor.'
-    );
-  }
-
-  
-  softmax(logits, size) {
-    void logits;
-    void size;
-    throw new Error('MoERouter.softmax is unavailable: runtime softmax requires the WebGPU path.');
-  }
-
-  
-  selectExpertsForToken(logits) {
-    void logits;
-    throw new Error(
-      'MoERouter.selectExpertsForToken is unavailable: top-k routing requires the WebGPU path.'
-    );
-  }
-
-  
-  route(hiddenStates, numTokens) {
-    void hiddenStates;
-    void numTokens;
-    throw new Error('MoERouter.route is unavailable: runtime MoE routing requires WebGPU.');
-  }
-
-  
-  getActiveExperts() {
-    return Array.from(this.activeExperts).sort((a, b) => a - b);
-  }
-
-  
-  computeLoadBalanceLoss() {
-    if (this.loadBalanceStats.totalTokens === 0) return 0;
-
-    const numTokens = this.loadBalanceStats.totalTokens;
-    let loss = 0;
-    const idealFraction = 1 / this.numExperts;
-    for (let i = 0; i < this.numExperts; i++) {
-      const expertFraction = this.loadBalanceStats.expertCounts[i] / numTokens;
-      const deviation = expertFraction - idealFraction;
-      loss += deviation * deviation;
-    }
-
-    return loss * this.numExperts;
-  }
-
-  
-  resetStats() {
-    this.loadBalanceStats.expertCounts.fill(0);
-    this.loadBalanceStats.totalTokens = 0;
-    this.activeExperts.clear();
-  }
-
-  
-  getUtilizationStats() {
-    const total = this.loadBalanceStats.totalTokens;
-    if (total === 0) {
-      return { experts: [], totalTokens: 0, loadBalanceLoss: 0 };
-    }
-
-    
-    const experts = [];
-    for (let i = 0; i < this.numExperts; i++) {
-      experts.push({
-        index: i,
-        count: this.loadBalanceStats.expertCounts[i],
-        percentage: (this.loadBalanceStats.expertCounts[i] / total) * 100
-      });
-    }
-
-    return {
-      experts,
-      totalTokens: total,
-      loadBalanceLoss: this.computeLoadBalanceLoss()
-    };
-  }
 }
 
-
-export function createExpertExecutionPlan(selections, numExperts) {
-  
-  const plan = new Map();
-
-  // Initialize empty plans for each expert
-  for (let e = 0; e < numExperts; e++) {
-    plan.set(e, { tokenIndices: [], weights:  ( ([])) });
-  }
-
-  // Group tokens by expert
-  for (let t = 0; t < selections.length; t++) {
-    const sel = selections[t];
-    for (let k = 0; k < sel.indices.length; k++) {
-      const expertIdx = sel.indices[k];
-      const weight = sel.weights[k];
-      const entry =  (plan.get(expertIdx));
-      entry.tokenIndices.push(t);
-       ( (entry.weights)).push(weight);
-    }
-  }
-
-  // Convert weight arrays to Float32Array
-  for (const [expertIdx, data] of plan) {
-    plan.set(expertIdx, {
-      tokenIndices: data.tokenIndices,
-      weights: new Float32Array( ( (data.weights)))
-    });
-  }
-
-  return plan;
-}
-
-
-export function combineExpertOutputs(expertOutputs, selections, numTokens, hiddenSize) {
-  void expertOutputs;
-  void selections;
-  void numTokens;
-  void hiddenSize;
-  throw new Error('combineExpertOutputs is unavailable: expert aggregation requires WebGPU.');
-}
 
 export default MoERouter;

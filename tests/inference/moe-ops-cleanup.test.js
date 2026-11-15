@@ -23,7 +23,6 @@ const {
   destroyBufferPool,
   getBufferPool,
 } = await import('../../src/memory/buffer-pool.js');
-const { moeFeedForwardCPU } = await import('../../src/inference/pipelines/text/moe-cpu.js');
 const { doConv } = await import('../../src/inference/pipelines/text/ops.js');
 
 class FakeBuffer {
@@ -142,48 +141,6 @@ function createExternalTensor(values, shape, label) {
 }
 
 try {
-  {
-    const device = createFakeDevice({ createBindGroupThrowAt: 1 });
-    resetRuntime(device);
-
-    await assert.rejects(
-      () => moeFeedForwardCPU(
-        new Float32Array([1]),
-        1,
-        {
-          expertFormat: 'mixtral',
-          numExperts: 1,
-          hiddenSize: 1,
-          intermediateSize: 1,
-          hiddenActivation: 'silu',
-          swigluLimit: null,
-          kernelPath: null,
-        },
-        {
-          route() {
-            return [{ indices: [0], weights: [1] }];
-          },
-        },
-        new Map([
-          ['layer_0_expert_0', {
-            gate: new FakeBuffer({ size: 4, usage: GPUBufferUsage.STORAGE }),
-            gateDtype: 'f32',
-            up: new FakeBuffer({ size: 4, usage: GPUBufferUsage.STORAGE }),
-            upDtype: 'f32',
-            down: new FakeBuffer({ size: 4, usage: GPUBufferUsage.STORAGE }),
-            downDtype: 'f32',
-          }],
-        ]),
-        null,
-        0
-      ),
-      /production MoE execution requires the WebGPU gather, expert, and scatter path/
-    );
-
-    assertPoolIsClean();
-    resetRuntime();
-  }
-
   {
     const device = createFakeDevice({ createBindGroupThrowAt: 2 });
     resetRuntime(device);

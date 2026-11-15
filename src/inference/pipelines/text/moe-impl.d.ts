@@ -116,19 +116,6 @@ export interface ExpertLoader {
 }
 
 /**
- * MoE feed-forward with CPU routing.
- */
-export function moeFeedForwardCPU(
-  hiddenStates: Float32Array,
-  numTokens: number,
-  config: MoEConfig,
-  moeRouter: MoERouter,
-  expertWeights: Map<string, MoEExpertWeights>,
-  expertLoader: ExpertLoader,
-  layerIdx: number
-): Promise<Float32Array>;
-
-/**
  * MoE feed-forward fully on GPU.
  */
 export function moeFeedForwardGPU(

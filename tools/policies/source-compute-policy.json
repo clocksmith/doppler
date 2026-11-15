@@ -570,11 +570,6 @@
       "reason": "The browser harness decodes application-supplied image or protocol bytes before creating a runtime model tensor."
     },
     {
-      "id": "src/inference/moe-router.js#createExpertExecutionPlan",
-      "category": "scalar-control",
-      "reason": "Groups already-selected token and expert indices into dispatch metadata and copies declared scalar routing weights without performing tensor arithmetic."
-    },
-    {
       "id": "src/experimental/audio/gemma4.js#runConformerFFN",
       "category": "quarantined-experimental",
       "reason": "The unqualified Gemma 4 audio prototype is isolated under src/experimental, excluded from Capsule Runtime closure, and cannot satisfy production support claims."

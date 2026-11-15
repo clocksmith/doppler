@@ -237,26 +237,6 @@ function resetDevice(device = null) {
 }
 
 {
-  const router = new MoERouter({
-    numExperts: 3,
-    topK: 2,
-    hiddenSize: 2,
-    normalizeWeights: true,
-  });
-  router.loadWeights(
-    new Float32Array([1, 0, 0, 1, 1, 1]),
-    null,
-    null,
-    new Float32Array([10, 0.5, 2])
-  );
-
-  assert.throws(
-    () => router.selectExpertsForToken(new Float32Array([0, 2, 1])),
-    /top-k routing requires the WebGPU path/
-  );
-}
-
-{
   const pipeline = new InferencePipeline();
   let destroyCalls = 0;
   pipeline.moeRouter = {

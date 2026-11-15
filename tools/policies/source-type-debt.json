@@ -705,7 +705,6 @@
     "src/inference/pipelines/text/modality-token-contract.js",
     "src/inference/pipelines/text/model-load.js",
     "src/inference/pipelines/text/moe-cache.js",
-    "src/inference/pipelines/text/moe-cpu.js",
     "src/inference/pipelines/text/moe-gpu.js",
     "src/inference/pipelines/text/moe-impl.js",
     "src/inference/pipelines/text/moe-shape-validator.js",
