@@ -7,11 +7,20 @@ import time
 import uuid
 import numpy as np
 import concrete_ml_extensions as ext
-from protocol import POLICY, binding, check, digest, receive, send
+from protocol import POLICY, check, digest, receive, send
+from profiles import load_profile
 
 
 class EvaluatorBridge:
-    def __init__(self, model_id, compression_key, matrices, mutate=None, cancelled=None):
+    def __init__(self, model_id, compression_key, matrices, mutate=None, cancelled=None, profile=None):
+        self.profile = load_profile() if profile is None else profile
+        if len(matrices) != self.profile.projection_count:
+            raise ValueError('Incomplete public projection set')
+        for weight_id, matrix in matrices.items():
+            if (matrix.shape != (self.profile.input_width, self.profile.output_width)
+                    or digest(matrix.tobytes(order='C')) != weight_id
+                    or self.profile.expected_weight_ids and weight_id not in self.profile.expected_weight_ids):
+                raise ValueError('Unsupported public projection identity or geometry')
         self.model_id, self.session = model_id, uuid.uuid4().hex
         self.key_bytes = compression_key.serialize()
         self.key_id = digest(self.key_bytes)
@@ -19,7 +28,7 @@ class EvaluatorBridge:
         self.mutate, self.cancelled = mutate, cancelled
         self.sequence = self.sent_bytes = self.received_bytes = self.calls = 0
         self.replay_seconds = self.remote_seconds = 0.0
-        self.child = subprocess.Popen([sys.executable, str(Path(__file__).with_name('provider.py')), model_id],
+        self.child = subprocess.Popen([sys.executable, str(Path(__file__).with_name('provider.py')), model_id, self.profile.name],
                                       stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.DEVNULL,
                                       bufsize=0, env={'RAYON_NUM_THREADS': '2', 'OMP_NUM_THREADS': '2'})
         try:
@@ -33,11 +42,11 @@ class EvaluatorBridge:
     def exchange(self, kind, payload, weight_id=''):
         if self.cancelled is not None and self.cancelled.is_set():
             raise InterruptedError('Encrypted experiment cancelled')
-        header = binding(self.model_id, self.session, self.key_id, self.sequence, kind, weight_id)
+        header = self.profile.frame(self.model_id, self.session, self.key_id, self.sequence, kind, weight_id)
         self.sent_bytes += send(self.child.stdin, header, payload, cancelled=self.cancelled)
         response, result, size = receive(self.child.stdout, cancelled=self.cancelled)
         self.received_bytes += size
-        check(response, binding(self.model_id, self.session, self.key_id, self.sequence,
+        check(response, self.profile.frame(self.model_id, self.session, self.key_id, self.sequence,
                                 'result' if kind == 'evaluate' else 'ready', weight_id))
         self.sequence += 1
         if self.cancelled is not None and self.cancelled.is_set():
@@ -66,7 +75,7 @@ class EvaluatorBridge:
         return ext.CompressedResultEncryptedMatrix.deserialize(result)
 
     def finish(self):
-        self.sent_bytes += send(self.child.stdin, binding(self.model_id, self.session, self.key_id, self.sequence, 'finish'), cancelled=self.cancelled)
+        self.sent_bytes += send(self.child.stdin, self.profile.frame(self.model_id, self.session, self.key_id, self.sequence, 'finish'), cancelled=self.cancelled)
         self.child.stdin.close()
         if self.child.wait(timeout=POLICY['timeoutSeconds']) != 0 or self.child.stdout.read(1):
             raise ValueError('Encrypted evaluator did not finish cleanly')

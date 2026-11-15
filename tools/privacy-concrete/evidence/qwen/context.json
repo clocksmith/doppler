@@ -1,0 +1,31 @@
+{
+  "schema": "doppler.qwen-encrypted-projection-measurement/v1",
+  "scope": "Real Qwen2.5-0.5B-Instruct generation with one named key-projection matrix product encrypted; all other operations and full replay client-side",
+  "publicPrompts": {
+    "capital": "The capital of France is",
+    "computer": "A computer is"
+  },
+  "runsPerPrompt": 1,
+  "warmupRuns": 0,
+  "freshClientKeysPerRun": true,
+  "fixedContextPositions": 16,
+  "generatedTokensPerRun": 4,
+  "commands": [
+    "DOPPLER_CONCRETE_NATIVE=1 DOPPLER_CONCRETE_MODEL_DIR=<local-tiny-fixture> OMP_NUM_THREADS=2 VECLIB_MAXIMUM_THREADS=2 RAYON_NUM_THREADS=2 python -m unittest discover -s tools/privacy-concrete -p test_*.py -v (before Qwen tests were added: 19 passed)",
+    "DOPPLER_CONCRETE_NATIVE=1 python -m unittest discover -s tools/privacy-concrete -p test_bridge_profiles.py -v (1 passed)",
+    "DOPPLER_QWEN_MODEL_DIR=<pinned-local-qwen> DOPPLER_QWEN_REPORT_DIR=<reports> TOKENIZERS_PARALLELISM=false OMP_NUM_THREADS=2 VECLIB_MAXIMUM_THREADS=2 RAYON_NUM_THREADS=2 python -m unittest discover -s tools/privacy-concrete -p test_real_model.py -v (2 passed, 124.250 seconds)",
+    "python tools/privacy-concrete/scaling_audit.py --model-dir <pinned-local-qwen>"
+  ],
+  "timingScope": "Function timing excludes dependency imports and source hashing; includes model loading/calibration/keys/upload, four generation steps, complete client encrypted replay and local reference checks. Host concurrent work was not excluded.",
+  "memoryScope": "Operating-system process high-water across tests, not incremental request memory; child high-water may include earlier evaluator processes.",
+  "trafficScope": "Actual binary local-pipe bytes including public evaluation key/weights; not a network or full-model measurement.",
+  "sourceScope": "Each report hashes source files present when that run began; all captured source bytes verified unchanged at publication.",
+  "qualification": {
+    "productionBackendAvailable": false,
+    "fullModelEncrypted": false,
+    "maliciousSecurityQualified": false,
+    "independentCryptographicReview": false,
+    "gpuMeasured": false,
+    "separateMachineMeasured": false
+  }
+}

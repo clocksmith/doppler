@@ -1,0 +1,31 @@
+{
+  "schema": "doppler.flash-readiness-source/v1",
+  "repository": "Qwen/Qwen3.8-Flash-Next",
+  "revision": "812d96e10a0dd82b69d749e68693698cf6c36daa",
+  "configUrl": "https://huggingface.co/Qwen/Qwen3.8-Flash-Next/resolve/812d96e10a0dd82b69d749e68693698cf6c36daa/config.json",
+  "cardUrl": "https://huggingface.co/Qwen/Qwen3.8-Flash-Next/blob/812d96e10a0dd82b69d749e68693698cf6c36daa/README.md",
+  "config": {
+    "hidden_size": 2560,
+    "num_hidden_layers": 48,
+    "num_experts": 512,
+    "num_experts_per_tok": 10,
+    "max_position_embeddings": 262144,
+    "ngram_vocab_size_base": 20000000,
+    "linear_num_value_heads": 48,
+    "linear_num_key_heads": 16,
+    "linear_value_head_dim": 128,
+    "linear_key_head_dim": 128,
+    "num_attention_heads": 24,
+    "num_key_value_heads": 2,
+    "head_dim": 256,
+    "indexer_budget": 2048,
+    "model_type": "qwen4_exp",
+    "transformers_version": "5.8.0.dev0"
+  },
+  "publisherRoundedParameterCounts": {
+    "main": 125000000000,
+    "ngram": 51000000000,
+    "mtp": 4000000000
+  },
+  "measuredEncryptedExecution": false
+}

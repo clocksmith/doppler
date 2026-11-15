@@ -1,6 +1,8 @@
-# Encrypted transformer process experiment
+# Encrypted transformer process experiments
 
-This quarantined CPU experiment runs real cryptographic operations from pinned Concrete ML 1.9.0 and concrete-ml-extensions 0.1.9. It uses the public `sshleifer/tiny-gpt2` checkpoint at revision `5f91d94bd9cd7190a9f3216ff93cd1dd95f2c7be`. This is a two-layer, two-hidden-dimension test checkpoint, not the full GPT-2 model or useful language-model quality. It does not add a supported Doppler model family or enable a production privacy profile. No independent cryptographic review has occurred.
+The [small-Qwen guide](QWEN.md) covers real Qwen2.5-0.5B-Instruct generation with one encrypted key-projection matrix product and its explicit limits. Immutable installed profiles, transport/lifecycle and trusted client projection preparation are shared; the protocols and model/weight identities remain distinct. No remote advertisement can add a profile.
+
+The tiny-GPT2 baseline below runs real cryptographic operations from pinned Concrete ML 1.9.0 and concrete-ml-extensions 0.1.9. It uses the public `sshleifer/tiny-gpt2` checkpoint at revision `5f91d94bd9cd7190a9f3216ff93cd1dd95f2c7be`. This is a two-layer, two-hidden-dimension test checkpoint, not the full GPT-2 model or useful language-model quality. It does not add a supported Doppler model family or enable a production privacy profile. No independent cryptographic review has occurred.
 
 The client owns embeddings, attention, normalization, activation functions, final vocabulary projection, quantization/dequantization, masks, token selection and secret keys. A fresh evaluator interpreter receives the eight public projection matrices, a public compression/evaluation key and serialized encrypted matrices. It evaluates all eight projections for each of four autoregressive steps. Each new client activation is freshly encrypted. Tokens, clear activations, masks, scales, zero points and decrypted results are never evaluator inputs. There is no provider KV cache and no plaintext feedback. This is hybrid encrypted inference, not a claim that every transformer operation runs remotely under encryption.
 
@@ -31,7 +33,7 @@ On the tested macOS arm64 Python 3.12 environment, `onnxoptimizer` 0.3.13 builds
 Dependency-free protocol tests:
 
 ```sh
-python3 -m unittest discover -s tools/privacy-concrete -p test_protocol.py -v
+python3 -m unittest discover -s tools/privacy-concrete -p 'test_*.py' -v
 ```
 
 Actual native ciphertext transport, replay, mutation, cancellation and disappearing-evaluator tests:

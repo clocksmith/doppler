@@ -1,0 +1,46 @@
+{
+  "schema": "doppler.encrypted-projection-profile/v1",
+  "id": "qwen05b-k-projection",
+  "protocol": "concrete-glwe-qwen05b-k-projection-replay/v1",
+  "productionBackendAvailable": false,
+  "source": {
+    "repository": "Qwen/Qwen2.5-0.5B-Instruct",
+    "revision": "7ae557604adf67be50417f59c2c2f167def9a775",
+    "license": "Apache-2.0",
+    "files": {
+      "model.safetensors": "fdf756fa7fcbe7404d5c60e26bff1a0c8b8aa1f72ced49e7dd0210fe288fb7fe",
+      "tokenizer_config.json": "5b5d4f65d0acd3b2d56a35b56d374a36cbc1c8fa5cf3b3febbbfabf22f359583",
+      "config.json": "18e18afcaccafade98daf13a54092927904649e1dd4eba8299ab717d5d94ff45",
+      "tokenizer.json": "c0382117ea329cdf097041132f6d735924b697924d6f6fc3945713e96ce87539",
+      "generation_config.json": "e558847a8b4402616f1273797b015104dc266fe4b520056fca88823ba8f8ebe6",
+      "merges.txt": "599bab54075088774b1733fde865d5bd747cbcc7a547c5bc12610e874e26f5e3",
+      "vocab.json": "ca10d7e9fb3ed18575dd1e277a2579c16d108e32f27439684afa0e10b1440910"
+    }
+  },
+  "projection": {
+    "name": "model.layers.0.self_attn.k_proj",
+    "inputWidth": 896,
+    "outputWidth": 128,
+    "quantizedWeightSha256": "8a35b11f144d393688c9b6bc09722e090a8fbdb159aa614bffa571ea4a073ad8"
+  },
+  "projectionCount": 1,
+  "steps": 4,
+  "contextLength": 16,
+  "maxPromptTokens": 13,
+  "maxPromptUtf8Bytes": 4096,
+  "vocabularySize": 151936,
+  "padTokenId": 151643,
+  "quantizationBits": 8,
+  "maxEncryptedVsQuantizedLogitError": 0.01,
+  "requireFloatGreedyEquality": true,
+  "clientOwnership": "All model operations except the named projection, all nonlinear operations, masks, token selection, keys and replay verification",
+  "integrity": "Full local deterministic encrypted replay; no compute saving, succinct proof or independently reviewed malicious security",
+  "leakage": [
+    "public model/projection and parameter identities",
+    "fixed context bucket and four-step schedule",
+    "public evaluation material",
+    "ciphertext sizes",
+    "timing",
+    "local process/transport metadata"
+  ]
+}

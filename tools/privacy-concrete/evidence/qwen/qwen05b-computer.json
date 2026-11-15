@@ -1,0 +1,122 @@
+{
+  "schema": "doppler.real-model-encrypted-projection/v1",
+  "qualified": false,
+  "productionBackendAvailable": false,
+  "source": {
+    "files": {
+      "config.json": "18e18afcaccafade98daf13a54092927904649e1dd4eba8299ab717d5d94ff45",
+      "generation_config.json": "e558847a8b4402616f1273797b015104dc266fe4b520056fca88823ba8f8ebe6",
+      "merges.txt": "599bab54075088774b1733fde865d5bd747cbcc7a547c5bc12610e874e26f5e3",
+      "model.safetensors": "fdf756fa7fcbe7404d5c60e26bff1a0c8b8aa1f72ced49e7dd0210fe288fb7fe",
+      "tokenizer.json": "c0382117ea329cdf097041132f6d735924b697924d6f6fc3945713e96ce87539",
+      "tokenizer_config.json": "5b5d4f65d0acd3b2d56a35b56d374a36cbc1c8fa5cf3b3febbbfabf22f359583",
+      "vocab.json": "ca10d7e9fb3ed18575dd1e277a2579c16d108e32f27439684afa0e10b1440910"
+    },
+    "license": "Apache-2.0",
+    "repository": "Qwen/Qwen2.5-0.5B-Instruct",
+    "revision": "7ae557604adf67be50417f59c2c2f167def9a775"
+  },
+  "sourceDigests": {
+    "bridge.py": "c24b223f3305a8f7fe39d65ea487a14ffe42c768e5d3a332a42e252e44512312",
+    "experiment.py": "388e309c838914a2c6689ca066b013798d9a7be3bb6e6343372705906bd0892f",
+    "linear.py": "93c0037ae870562360b4d7d2a9c550c4b308f5a75e84a8af6370fccb1aad4b6a",
+    "prepare.py": "a798ce1e9632a77fdb5fe51b30f1b4f345ed7011b6e841468814d126d6f026dc",
+    "profiles.py": "637c4309dbdbd9bd74e82b3cfc243165f22f52f8fbbbb44c444b8ef38f9e3d2b",
+    "protocol.py": "c83b214b35a688dc2d93ec76a9a2ab934bc07476c798e3c4f4b5e09c88d1f142",
+    "provider.py": "41d38eeb814471056a950a4341bf7d04535f1e1997835d73f54c6c7b86be8724",
+    "real_model.py": "690ed749f80383a3dbdb407d936da58ea446e09587f7863031604d5a1615d04c",
+    "scaling_audit.py": "5c9cef94cca1cd1da9b6bcae5d0b53d6c19d01f71545be58def4e139c096aad5",
+    "test_bridge_profiles.py": "95effaf6b1b1bbd50cf6c1a22688a82d4b118315031f6f431999c490b44496e1",
+    "test_native.py": "bf9668c9fee6bd4cde4e1a27cb373317d61bffb3f802e7c9a0a55f7ff538d7fc",
+    "test_profiles.py": "b9a599732bfee7927b33c7d0cb595eb554f9fcf35cdd6e6da8a3e962fb69fb30",
+    "test_protocol.py": "2a3412a797bbad57421ff6c47b0be7e33d8f96bc5b62b8e3fe9f4aae89133cec",
+    "test_real_model.py": "d137ff8bb2aaf497d5f0051e2ac5f44275f6ac27c865250f15f2219eb8dca166",
+    "test_transformer.py": "4f895f46df062e8164fbb9cf5be656d984d8bed1decb16a8c874c955356fe08e",
+    "policy.json": "a8f8af6d2c6bcb4aa8ebaf463aa42031076f83c96c2c869837aab3253325a135",
+    "qwen05b.json": "f01775dfc772dcef79f09a7eeafed4c2f46bb0b393d6c0eb7bd8d13841df7a11"
+  },
+  "modelId": "5360295c7944b85d201e91a2c38d9874e06d1260f982fe729546c1a08ab87037",
+  "policyId": "4d32b9653d2a9005905348ac37551c07c0a0c8f1e7973e795df95b557b016182",
+  "keyContextId": "307e5983e4f104501de7aa17b0b8ca7de93f7df5a0500f642328c585b19fc1d8",
+  "evaluationBackend": "cpu",
+  "projection": {
+    "inputWidth": 896,
+    "name": "model.layers.0.self_attn.k_proj",
+    "outputWidth": 128,
+    "quantizedWeightSha256": "8a35b11f144d393688c9b6bc09722e090a8fbdb159aa614bffa571ea4a073ad8"
+  },
+  "clientLocalOutputTokenIds": [
+    55068,
+    311,
+    6923,
+    264
+  ],
+  "clientLocalOutputText": " programmed to generate a",
+  "matchesQuantizedGreedyReference": true,
+  "matchesFloatGreedyReference": true,
+  "fullModelEncrypted": false,
+  "modelParameterCount": 494032768,
+  "encryptedProjectionCalls": 4,
+  "steps": 4,
+  "setupMs": 3137.7534580024076,
+  "stepMs": [
+    14678.763708005135,
+    14317.154709002352,
+    14872.652666002978,
+    15857.036958004755
+  ],
+  "floatReferenceMs": [
+    108.31283300649375,
+    134.91141599661205,
+    121.70966600388056,
+    184.60899999627145
+  ],
+  "quantizedReferenceMs": [
+    103.72325000207638,
+    131.3887079959386,
+    120.87108300329419,
+    190.52370900317328
+  ],
+  "elapsedMs": 63982.66991600394,
+  "encryptedReplayMs": 29714.906958994106,
+  "evaluatorRoundTripMs": 29306.92204099614,
+  "sentBytes": 135784092,
+  "receivedBytes": 460400,
+  "publicEvaluationKeyBytes": 134217808,
+  "maxEncryptedVsQuantizedLogitErrors": [
+    0.0008087158203125,
+    0.0005764961242675781,
+    0.0005588531494140625,
+    0.0005049705505371094
+  ],
+  "quantizationLogitErrors": [
+    0.00946187973022461,
+    0.025130748748779297,
+    0.018004417419433594,
+    0.013700485229492188
+  ],
+  "integrity": "Full local deterministic encrypted replay; no compute saving, succinct proof or independently reviewed malicious security",
+  "leakage": [
+    "public model/projection and parameter identities",
+    "fixed context bucket and four-step schedule",
+    "public evaluation material",
+    "ciphertext sizes",
+    "timing",
+    "local process/transport metadata"
+  ],
+  "clientPeakRssBytes": 4342431744,
+  "providerPeakRssBytes": 460210176,
+  "environment": {
+    "system": "Darwin",
+    "machine": "arm64",
+    "python": "3.12.8",
+    "dependencies": {
+      "concrete-ml": "1.9.0",
+      "concrete-ml-extensions": "0.1.9",
+      "concrete-python": "2.10.0",
+      "torch": "2.3.1",
+      "transformers": "4.44.2",
+      "numpy": "1.26.4"
+    }
+  }
+}

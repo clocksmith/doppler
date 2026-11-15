@@ -1,0 +1,2423 @@
+{
+  "schema": "doppler.qwen-encrypted-scaling-audit/v1",
+  "scope": "Pinned tensor/config inspection and conservative integer bounds; no unmeasured latency or full-model privacy qualification",
+  "smallQwenSource": {
+    "files": {
+      "config.json": "18e18afcaccafade98daf13a54092927904649e1dd4eba8299ab717d5d94ff45",
+      "generation_config.json": "e558847a8b4402616f1273797b015104dc266fe4b520056fca88823ba8f8ebe6",
+      "merges.txt": "599bab54075088774b1733fde865d5bd747cbcc7a547c5bc12610e874e26f5e3",
+      "model.safetensors": "fdf756fa7fcbe7404d5c60e26bff1a0c8b8aa1f72ced49e7dd0210fe288fb7fe",
+      "tokenizer.json": "c0382117ea329cdf097041132f6d735924b697924d6f6fc3945713e96ce87539",
+      "tokenizer_config.json": "5b5d4f65d0acd3b2d56a35b56d374a36cbc1c8fa5cf3b3febbbfabf22f359583",
+      "vocab.json": "ca10d7e9fb3ed18575dd1e277a2579c16d108e32f27439684afa0e10b1440910"
+    },
+    "license": "Apache-2.0",
+    "repository": "Qwen/Qwen2.5-0.5B-Instruct",
+    "revision": "7ae557604adf67be50417f59c2c2f167def9a775"
+  },
+  "sourceTensorParameterCount": 494032768,
+  "decoderProjectionTensorCount": 168,
+  "decoderUint64PublicWeightBytes": 2862612480,
+  "decoderProjectionsOutsidePinnedArithmetic": 24,
+  "pinnedSignedRawDotLimit": 67108864,
+  "projections": [
+    {
+      "name": "model.layers.0.mlp.down_proj.weight",
+      "shape": [
+        896,
+        4864
+      ],
+      "inputWidth": 4864,
+      "outputWidth": 896,
+      "conservativeRawDotBound": 158760960,
+      "withinPinnedArithmeticRange": false,
+      "arithmeticBlocker": "Unqualified encrypted integer range; reparameterization or a qualified tiled protocol required",
+      "publicUint64WeightBytes": 34865152,
+      "selectedProjection": false
+    },
+    {
+      "name": "model.layers.0.mlp.gate_proj.weight",
+      "shape": [
+        4864,
+        896
+      ],
+      "inputWidth": 896,
+      "outputWidth": 4864,
+      "conservativeRawDotBound": 29245440,
+      "withinPinnedArithmeticRange": true,
+      "arithmeticBlocker": null,
+      "publicUint64WeightBytes": 34865152,
+      "selectedProjection": false
+    },
+    {
+      "name": "model.layers.0.mlp.up_proj.weight",
+      "shape": [
+        4864,
+        896
+      ],
+      "inputWidth": 896,
+      "outputWidth": 4864,
+      "conservativeRawDotBound": 29245440,
+      "withinPinnedArithmeticRange": true,
+      "arithmeticBlocker": null,
+      "publicUint64WeightBytes": 34865152,
+      "selectedProjection": false
+    },
+    {
+      "name": "model.layers.0.self_attn.k_proj.weight",
+      "shape": [
+        128,
+        896
+      ],
+      "inputWidth": 896,
+      "outputWidth": 128,
+      "conservativeRawDotBound": 29245440,
+      "withinPinnedArithmeticRange": true,
+      "arithmeticBlocker": null,
+      "publicUint64WeightBytes": 917504,
+      "selectedProjection": true
+    },
+    {
+      "name": "model.layers.0.self_attn.o_proj.weight",
+      "shape": [
+        896,
+        896
+      ],
+      "inputWidth": 896,
+      "outputWidth": 896,
+      "conservativeRawDotBound": 29245440,
+      "withinPinnedArithmeticRange": true,
+      "arithmeticBlocker": null,
+      "publicUint64WeightBytes": 6422528,
+      "selectedProjection": false
+    },
+    {
+      "name": "model.layers.0.self_attn.q_proj.weight",
+      "shape": [
+        896,
+        896
+      ],
+      "inputWidth": 896,
+      "outputWidth": 896,
+      "conservativeRawDotBound": 29245440,
+      "withinPinnedArithmeticRange": true,
+      "arithmeticBlocker": null,
+      "publicUint64WeightBytes": 6422528,
+      "selectedProjection": false
+    },
+    {
+      "name": "model.layers.0.self_attn.v_proj.weight",
+      "shape": [
+        128,
+        896
+      ],
+      "inputWidth": 896,
+      "outputWidth": 128,
+      "conservativeRawDotBound": 29245440,
+      "withinPinnedArithmeticRange": true,
+      "arithmeticBlocker": null,
+      "publicUint64WeightBytes": 917504,
+      "selectedProjection": false
+    },
+    {
+      "name": "model.layers.1.mlp.down_proj.weight",
+      "shape": [
+        896,
+        4864
+      ],
+      "inputWidth": 4864,
+      "outputWidth": 896,
+      "conservativeRawDotBound": 158760960,
+      "withinPinnedArithmeticRange": false,
+      "arithmeticBlocker": "Unqualified encrypted integer range; reparameterization or a qualified tiled protocol required",
+      "publicUint64WeightBytes": 34865152,
+      "selectedProjection": false
+    },
+    {
+      "name": "model.layers.1.mlp.gate_proj.weight",
+      "shape": [
+        4864,
+        896
+      ],
+      "inputWidth": 896,
+      "outputWidth": 4864,
+      "conservativeRawDotBound": 29245440,
+      "withinPinnedArithmeticRange": true,
+      "arithmeticBlocker": null,
+      "publicUint64WeightBytes": 34865152,
+      "selectedProjection": false
+    },
+    {
+      "name": "model.layers.1.mlp.up_proj.weight",
+      "shape": [
+        4864,
+        896
+      ],
+      "inputWidth": 896,
+      "outputWidth": 4864,
+      "conservativeRawDotBound": 29245440,
+      "withinPinnedArithmeticRange": true,
+      "arithmeticBlocker": null,
+      "publicUint64WeightBytes": 34865152,
+      "selectedProjection": false
+    },
+    {
+      "name": "model.layers.1.self_attn.k_proj.weight",
+      "shape": [
+        128,
+        896
+      ],
+      "inputWidth": 896,
+      "outputWidth": 128,
+      "conservativeRawDotBound": 29245440,
+      "withinPinnedArithmeticRange": true,
+      "arithmeticBlocker": null,
+      "publicUint64WeightBytes": 917504,
+      "selectedProjection": false
+    },
+    {
+      "name": "model.layers.1.self_attn.o_proj.weight",
+      "shape": [
+        896,
+        896
+      ],
+      "inputWidth": 896,
+      "outputWidth": 896,
+      "conservativeRawDotBound": 29245440,
+      "withinPinnedArithmeticRange": true,
+      "arithmeticBlocker": null,
+      "publicUint64WeightBytes": 6422528,
+      "selectedProjection": false
+    },
+    {
+      "name": "model.layers.1.self_attn.q_proj.weight",
+      "shape": [
+        896,
+        896
+      ],
+      "inputWidth": 896,
+      "outputWidth": 896,
+      "conservativeRawDotBound": 29245440,
+      "withinPinnedArithmeticRange": true,
+      "arithmeticBlocker": null,
+      "publicUint64WeightBytes": 6422528,
+      "selectedProjection": false
+    },
+    {
+      "name": "model.layers.1.self_attn.v_proj.weight",
+      "shape": [
+        128,
+        896
+      ],
+      "inputWidth": 896,
+      "outputWidth": 128,
+      "conservativeRawDotBound": 29245440,
+      "withinPinnedArithmeticRange": true,
+      "arithmeticBlocker": null,
+      "publicUint64WeightBytes": 917504,
+      "selectedProjection": false
+    },
+    {
+      "name": "model.layers.10.mlp.down_proj.weight",
+      "shape": [
+        896,
+        4864
+      ],
+      "inputWidth": 4864,
+      "outputWidth": 896,
+      "conservativeRawDotBound": 158760960,
+      "withinPinnedArithmeticRange": false,
+      "arithmeticBlocker": "Unqualified encrypted integer range; reparameterization or a qualified tiled protocol required",
+      "publicUint64WeightBytes": 34865152,
+      "selectedProjection": false
+    },
+    {
+      "name": "model.layers.10.mlp.gate_proj.weight",
+      "shape": [
+        4864,
+        896
+      ],
+      "inputWidth": 896,
+      "outputWidth": 4864,
+      "conservativeRawDotBound": 29245440,
+      "withinPinnedArithmeticRange": true,
+      "arithmeticBlocker": null,
+      "publicUint64WeightBytes": 34865152,
+      "selectedProjection": false
+    },
+    {
+      "name": "model.layers.10.mlp.up_proj.weight",
+      "shape": [
+        4864,
+        896
+      ],
+      "inputWidth": 896,
+      "outputWidth": 4864,
+      "conservativeRawDotBound": 29245440,
+      "withinPinnedArithmeticRange": true,
+      "arithmeticBlocker": null,
+      "publicUint64WeightBytes": 34865152,
+      "selectedProjection": false
+    },
+    {
+      "name": "model.layers.10.self_attn.k_proj.weight",
+      "shape": [
+        128,
+        896
+      ],
+      "inputWidth": 896,
+      "outputWidth": 128,
+      "conservativeRawDotBound": 29245440,
+      "withinPinnedArithmeticRange": true,
+      "arithmeticBlocker": null,
+      "publicUint64WeightBytes": 917504,
+      "selectedProjection": false
+    },
+    {
+      "name": "model.layers.10.self_attn.o_proj.weight",
+      "shape": [
+        896,
+        896
+      ],
+      "inputWidth": 896,
+      "outputWidth": 896,
+      "conservativeRawDotBound": 29245440,
+      "withinPinnedArithmeticRange": true,
+      "arithmeticBlocker": null,
+      "publicUint64WeightBytes": 6422528,
+      "selectedProjection": false
+    },
+    {
+      "name": "model.layers.10.self_attn.q_proj.weight",
+      "shape": [
+        896,
+        896
+      ],
+      "inputWidth": 896,
+      "outputWidth": 896,
+      "conservativeRawDotBound": 29245440,
+      "withinPinnedArithmeticRange": true,
+      "arithmeticBlocker": null,
+      "publicUint64WeightBytes": 6422528,
+      "selectedProjection": false
+    },
+    {
+      "name": "model.layers.10.self_attn.v_proj.weight",
+      "shape": [
+        128,
+        896
+      ],
+      "inputWidth": 896,
+      "outputWidth": 128,
+      "conservativeRawDotBound": 29245440,
+      "withinPinnedArithmeticRange": true,
+      "arithmeticBlocker": null,
+      "publicUint64WeightBytes": 917504,
+      "selectedProjection": false
+    },
+    {
+      "name": "model.layers.11.mlp.down_proj.weight",
+      "shape": [
+        896,
+        4864
+      ],
+      "inputWidth": 4864,
+      "outputWidth": 896,
+      "conservativeRawDotBound": 158760960,
+      "withinPinnedArithmeticRange": false,
+      "arithmeticBlocker": "Unqualified encrypted integer range; reparameterization or a qualified tiled protocol required",
+      "publicUint64WeightBytes": 34865152,
+      "selectedProjection": false
+    },
+    {
+      "name": "model.layers.11.mlp.gate_proj.weight",
+      "shape": [
+        4864,
+        896
+      ],
+      "inputWidth": 896,
+      "outputWidth": 4864,
+      "conservativeRawDotBound": 29245440,
+      "withinPinnedArithmeticRange": true,
+      "arithmeticBlocker": null,
+      "publicUint64WeightBytes": 34865152,
+      "selectedProjection": false
+    },
+    {
+      "name": "model.layers.11.mlp.up_proj.weight",
+      "shape": [
+        4864,
+        896
+      ],
+      "inputWidth": 896,
+      "outputWidth": 4864,
+      "conservativeRawDotBound": 29245440,
+      "withinPinnedArithmeticRange": true,
+      "arithmeticBlocker": null,
+      "publicUint64WeightBytes": 34865152,
+      "selectedProjection": false
+    },
+    {
+      "name": "model.layers.11.self_attn.k_proj.weight",
+      "shape": [
+        128,
+        896
+      ],
+      "inputWidth": 896,
+      "outputWidth": 128,
+      "conservativeRawDotBound": 29245440,
+      "withinPinnedArithmeticRange": true,
+      "arithmeticBlocker": null,
+      "publicUint64WeightBytes": 917504,
+      "selectedProjection": false
+    },
+    {
+      "name": "model.layers.11.self_attn.o_proj.weight",
+      "shape": [
+        896,
+        896
+      ],
+      "inputWidth": 896,
+      "outputWidth": 896,
+      "conservativeRawDotBound": 29245440,
+      "withinPinnedArithmeticRange": true,
+      "arithmeticBlocker": null,
+      "publicUint64WeightBytes": 6422528,
+      "selectedProjection": false
+    },
+    {
+      "name": "model.layers.11.self_attn.q_proj.weight",
+      "shape": [
+        896,
+        896
+      ],
+      "inputWidth": 896,
+      "outputWidth": 896,
+      "conservativeRawDotBound": 29245440,
+      "withinPinnedArithmeticRange": true,
+      "arithmeticBlocker": null,
+      "publicUint64WeightBytes": 6422528,
+      "selectedProjection": false
+    },
+    {
+      "name": "model.layers.11.self_attn.v_proj.weight",
+      "shape": [
+        128,
+        896
+      ],
+      "inputWidth": 896,
+      "outputWidth": 128,
+      "conservativeRawDotBound": 29245440,
+      "withinPinnedArithmeticRange": true,
+      "arithmeticBlocker": null,
+      "publicUint64WeightBytes": 917504,
+      "selectedProjection": false
+    },
+    {
+      "name": "model.layers.12.mlp.down_proj.weight",
+      "shape": [
+        896,
+        4864
+      ],
+      "inputWidth": 4864,
+      "outputWidth": 896,
+      "conservativeRawDotBound": 158760960,
+      "withinPinnedArithmeticRange": false,
+      "arithmeticBlocker": "Unqualified encrypted integer range; reparameterization or a qualified tiled protocol required",
+      "publicUint64WeightBytes": 34865152,
+      "selectedProjection": false
+    },
+    {
+      "name": "model.layers.12.mlp.gate_proj.weight",
+      "shape": [
+        4864,
+        896
+      ],
+      "inputWidth": 896,
+      "outputWidth": 4864,
+      "conservativeRawDotBound": 29245440,
+      "withinPinnedArithmeticRange": true,
+      "arithmeticBlocker": null,
+      "publicUint64WeightBytes": 34865152,
+      "selectedProjection": false
+    },
+    {
+      "name": "model.layers.12.mlp.up_proj.weight",
+      "shape": [
+        4864,
+        896
+      ],
+      "inputWidth": 896,
+      "outputWidth": 4864,
+      "conservativeRawDotBound": 29245440,
+      "withinPinnedArithmeticRange": true,
+      "arithmeticBlocker": null,
+      "publicUint64WeightBytes": 34865152,
+      "selectedProjection": false
+    },
+    {
+      "name": "model.layers.12.self_attn.k_proj.weight",
+      "shape": [
+        128,
+        896
+      ],
+      "inputWidth": 896,
+      "outputWidth": 128,
+      "conservativeRawDotBound": 29245440,
+      "withinPinnedArithmeticRange": true,
+      "arithmeticBlocker": null,
+      "publicUint64WeightBytes": 917504,
+      "selectedProjection": false
+    },
+    {
+      "name": "model.layers.12.self_attn.o_proj.weight",
+      "shape": [
+        896,
+        896
+      ],
+      "inputWidth": 896,
+      "outputWidth": 896,
+      "conservativeRawDotBound": 29245440,
+      "withinPinnedArithmeticRange": true,
+      "arithmeticBlocker": null,
+      "publicUint64WeightBytes": 6422528,
+      "selectedProjection": false
+    },
+    {
+      "name": "model.layers.12.self_attn.q_proj.weight",
+      "shape": [
+        896,
+        896
+      ],
+      "inputWidth": 896,
+      "outputWidth": 896,
+      "conservativeRawDotBound": 29245440,
+      "withinPinnedArithmeticRange": true,
+      "arithmeticBlocker": null,
+      "publicUint64WeightBytes": 6422528,
+      "selectedProjection": false
+    },
+    {
+      "name": "model.layers.12.self_attn.v_proj.weight",
+      "shape": [
+        128,
+        896
+      ],
+      "inputWidth": 896,
+      "outputWidth": 128,
+      "conservativeRawDotBound": 29245440,
+      "withinPinnedArithmeticRange": true,
+      "arithmeticBlocker": null,
+      "publicUint64WeightBytes": 917504,
+      "selectedProjection": false
+    },
+    {
+      "name": "model.layers.13.mlp.down_proj.weight",
+      "shape": [
+        896,
+        4864
+      ],
+      "inputWidth": 4864,
+      "outputWidth": 896,
+      "conservativeRawDotBound": 158760960,
+      "withinPinnedArithmeticRange": false,
+      "arithmeticBlocker": "Unqualified encrypted integer range; reparameterization or a qualified tiled protocol required",
+      "publicUint64WeightBytes": 34865152,
+      "selectedProjection": false
+    },
+    {
+      "name": "model.layers.13.mlp.gate_proj.weight",
+      "shape": [
+        4864,
+        896
+      ],
+      "inputWidth": 896,
+      "outputWidth": 4864,
+      "conservativeRawDotBound": 29245440,
+      "withinPinnedArithmeticRange": true,
+      "arithmeticBlocker": null,
+      "publicUint64WeightBytes": 34865152,
+      "selectedProjection": false
+    },
+    {
+      "name": "model.layers.13.mlp.up_proj.weight",
+      "shape": [
+        4864,
+        896
+      ],
+      "inputWidth": 896,
+      "outputWidth": 4864,
+      "conservativeRawDotBound": 29245440,
+      "withinPinnedArithmeticRange": true,
+      "arithmeticBlocker": null,
+      "publicUint64WeightBytes": 34865152,
+      "selectedProjection": false
+    },
+    {
+      "name": "model.layers.13.self_attn.k_proj.weight",
+      "shape": [
+        128,
+        896
+      ],
+      "inputWidth": 896,
+      "outputWidth": 128,
+      "conservativeRawDotBound": 29245440,
+      "withinPinnedArithmeticRange": true,
+      "arithmeticBlocker": null,
+      "publicUint64WeightBytes": 917504,
+      "selectedProjection": false
+    },
+    {
+      "name": "model.layers.13.self_attn.o_proj.weight",
+      "shape": [
+        896,
+        896
+      ],
+      "inputWidth": 896,
+      "outputWidth": 896,
+      "conservativeRawDotBound": 29245440,
+      "withinPinnedArithmeticRange": true,
+      "arithmeticBlocker": null,
+      "publicUint64WeightBytes": 6422528,
+      "selectedProjection": false
+    },
+    {
+      "name": "model.layers.13.self_attn.q_proj.weight",
+      "shape": [
+        896,
+        896
+      ],
+      "inputWidth": 896,
+      "outputWidth": 896,
+      "conservativeRawDotBound": 29245440,
+      "withinPinnedArithmeticRange": true,
+      "arithmeticBlocker": null,
+      "publicUint64WeightBytes": 6422528,
+      "selectedProjection": false
+    },
+    {
+      "name": "model.layers.13.self_attn.v_proj.weight",
+      "shape": [
+        128,
+        896
+      ],
+      "inputWidth": 896,
+      "outputWidth": 128,
+      "conservativeRawDotBound": 29245440,
+      "withinPinnedArithmeticRange": true,
+      "arithmeticBlocker": null,
+      "publicUint64WeightBytes": 917504,
+      "selectedProjection": false
+    },
+    {
+      "name": "model.layers.14.mlp.down_proj.weight",
+      "shape": [
+        896,
+        4864
+      ],
+      "inputWidth": 4864,
+      "outputWidth": 896,
+      "conservativeRawDotBound": 158760960,
+      "withinPinnedArithmeticRange": false,
+      "arithmeticBlocker": "Unqualified encrypted integer range; reparameterization or a qualified tiled protocol required",
+      "publicUint64WeightBytes": 34865152,
+      "selectedProjection": false
+    },
+    {
+      "name": "model.layers.14.mlp.gate_proj.weight",
+      "shape": [
+        4864,
+        896
+      ],
+      "inputWidth": 896,
+      "outputWidth": 4864,
+      "conservativeRawDotBound": 29245440,
+      "withinPinnedArithmeticRange": true,
+      "arithmeticBlocker": null,
+      "publicUint64WeightBytes": 34865152,
+      "selectedProjection": false
+    },
+    {
+      "name": "model.layers.14.mlp.up_proj.weight",
+      "shape": [
+        4864,
+        896
+      ],
+      "inputWidth": 896,
+      "outputWidth": 4864,
+      "conservativeRawDotBound": 29245440,
+      "withinPinnedArithmeticRange": true,
+      "arithmeticBlocker": null,
+      "publicUint64WeightBytes": 34865152,
+      "selectedProjection": false
+    },
+    {
+      "name": "model.layers.14.self_attn.k_proj.weight",
+      "shape": [
+        128,
+        896
+      ],
+      "inputWidth": 896,
+      "outputWidth": 128,
+      "conservativeRawDotBound": 29245440,
+      "withinPinnedArithmeticRange": true,
+      "arithmeticBlocker": null,
+      "publicUint64WeightBytes": 917504,
+      "selectedProjection": false
+    },
+    {
+      "name": "model.layers.14.self_attn.o_proj.weight",
+      "shape": [
+        896,
+        896
+      ],
+      "inputWidth": 896,
+      "outputWidth": 896,
+      "conservativeRawDotBound": 29245440,
+      "withinPinnedArithmeticRange": true,
+      "arithmeticBlocker": null,
+      "publicUint64WeightBytes": 6422528,
+      "selectedProjection": false
+    },
+    {
+      "name": "model.layers.14.self_attn.q_proj.weight",
+      "shape": [
+        896,
+        896
+      ],
+      "inputWidth": 896,
+      "outputWidth": 896,
+      "conservativeRawDotBound": 29245440,
+      "withinPinnedArithmeticRange": true,
+      "arithmeticBlocker": null,
+      "publicUint64WeightBytes": 6422528,
+      "selectedProjection": false
+    },
+    {
+      "name": "model.layers.14.self_attn.v_proj.weight",
+      "shape": [
+        128,
+        896
+      ],
+      "inputWidth": 896,
+      "outputWidth": 128,
+      "conservativeRawDotBound": 29245440,
+      "withinPinnedArithmeticRange": true,
+      "arithmeticBlocker": null,
+      "publicUint64WeightBytes": 917504,
+      "selectedProjection": false
+    },
+    {
+      "name": "model.layers.15.mlp.down_proj.weight",
+      "shape": [
+        896,
+        4864
+      ],
+      "inputWidth": 4864,
+      "outputWidth": 896,
+      "conservativeRawDotBound": 158760960,
+      "withinPinnedArithmeticRange": false,
+      "arithmeticBlocker": "Unqualified encrypted integer range; reparameterization or a qualified tiled protocol required",
+      "publicUint64WeightBytes": 34865152,
+      "selectedProjection": false
+    },
+    {
+      "name": "model.layers.15.mlp.gate_proj.weight",
+      "shape": [
+        4864,
+        896
+      ],
+      "inputWidth": 896,
+      "outputWidth": 4864,
+      "conservativeRawDotBound": 29245440,
+      "withinPinnedArithmeticRange": true,
+      "arithmeticBlocker": null,
+      "publicUint64WeightBytes": 34865152,
+      "selectedProjection": false
+    },
+    {
+      "name": "model.layers.15.mlp.up_proj.weight",
+      "shape": [
+        4864,
+        896
+      ],
+      "inputWidth": 896,
+      "outputWidth": 4864,
+      "conservativeRawDotBound": 29245440,
+      "withinPinnedArithmeticRange": true,
+      "arithmeticBlocker": null,
+      "publicUint64WeightBytes": 34865152,
+      "selectedProjection": false
+    },
+    {
+      "name": "model.layers.15.self_attn.k_proj.weight",
+      "shape": [
+        128,
+        896
+      ],
+      "inputWidth": 896,
+      "outputWidth": 128,
+      "conservativeRawDotBound": 29245440,
+      "withinPinnedArithmeticRange": true,
+      "arithmeticBlocker": null,
+      "publicUint64WeightBytes": 917504,
+      "selectedProjection": false
+    },
+    {
+      "name": "model.layers.15.self_attn.o_proj.weight",
+      "shape": [
+        896,
+        896
+      ],
+      "inputWidth": 896,
+      "outputWidth": 896,
+      "conservativeRawDotBound": 29245440,
+      "withinPinnedArithmeticRange": true,
+      "arithmeticBlocker": null,
+      "publicUint64WeightBytes": 6422528,
+      "selectedProjection": false
+    },
+    {
+      "name": "model.layers.15.self_attn.q_proj.weight",
+      "shape": [
+        896,
+        896
+      ],
+      "inputWidth": 896,
+      "outputWidth": 896,
+      "conservativeRawDotBound": 29245440,
+      "withinPinnedArithmeticRange": true,
+      "arithmeticBlocker": null,
+      "publicUint64WeightBytes": 6422528,
+      "selectedProjection": false
+    },
+    {
+      "name": "model.layers.15.self_attn.v_proj.weight",
+      "shape": [
+        128,
+        896
+      ],
+      "inputWidth": 896,
+      "outputWidth": 128,
+      "conservativeRawDotBound": 29245440,
+      "withinPinnedArithmeticRange": true,
+      "arithmeticBlocker": null,
+      "publicUint64WeightBytes": 917504,
+      "selectedProjection": false
+    },
+    {
+      "name": "model.layers.16.mlp.down_proj.weight",
+      "shape": [
+        896,
+        4864
+      ],
+      "inputWidth": 4864,
+      "outputWidth": 896,
+      "conservativeRawDotBound": 158760960,
+      "withinPinnedArithmeticRange": false,
+      "arithmeticBlocker": "Unqualified encrypted integer range; reparameterization or a qualified tiled protocol required",
+      "publicUint64WeightBytes": 34865152,
+      "selectedProjection": false
+    },
+    {
+      "name": "model.layers.16.mlp.gate_proj.weight",
+      "shape": [
+        4864,
+        896
+      ],
+      "inputWidth": 896,
+      "outputWidth": 4864,
+      "conservativeRawDotBound": 29245440,
+      "withinPinnedArithmeticRange": true,
+      "arithmeticBlocker": null,
+      "publicUint64WeightBytes": 34865152,
+      "selectedProjection": false
+    },
+    {
+      "name": "model.layers.16.mlp.up_proj.weight",
+      "shape": [
+        4864,
+        896
+      ],
+      "inputWidth": 896,
+      "outputWidth": 4864,
+      "conservativeRawDotBound": 29245440,
+      "withinPinnedArithmeticRange": true,
+      "arithmeticBlocker": null,
+      "publicUint64WeightBytes": 34865152,
+      "selectedProjection": false
+    },
+    {
+      "name": "model.layers.16.self_attn.k_proj.weight",
+      "shape": [
+        128,
+        896
+      ],
+      "inputWidth": 896,
+      "outputWidth": 128,
+      "conservativeRawDotBound": 29245440,
+      "withinPinnedArithmeticRange": true,
+      "arithmeticBlocker": null,
+      "publicUint64WeightBytes": 917504,
+      "selectedProjection": false
+    },
+    {
+      "name": "model.layers.16.self_attn.o_proj.weight",
+      "shape": [
+        896,
+        896
+      ],
+      "inputWidth": 896,
+      "outputWidth": 896,
+      "conservativeRawDotBound": 29245440,
+      "withinPinnedArithmeticRange": true,
+      "arithmeticBlocker": null,
+      "publicUint64WeightBytes": 6422528,
+      "selectedProjection": false
+    },
+    {
+      "name": "model.layers.16.self_attn.q_proj.weight",
+      "shape": [
+        896,
+        896
+      ],
+      "inputWidth": 896,
+      "outputWidth": 896,
+      "conservativeRawDotBound": 29245440,
+      "withinPinnedArithmeticRange": true,
+      "arithmeticBlocker": null,
+      "publicUint64WeightBytes": 6422528,
+      "selectedProjection": false
+    },
+    {
+      "name": "model.layers.16.self_attn.v_proj.weight",
+      "shape": [
+        128,
+        896
+      ],
+      "inputWidth": 896,
+      "outputWidth": 128,
+      "conservativeRawDotBound": 29245440,
+      "withinPinnedArithmeticRange": true,
+      "arithmeticBlocker": null,
+      "publicUint64WeightBytes": 917504,
+      "selectedProjection": false
+    },
+    {
+      "name": "model.layers.17.mlp.down_proj.weight",
+      "shape": [
+        896,
+        4864
+      ],
+      "inputWidth": 4864,
+      "outputWidth": 896,
+      "conservativeRawDotBound": 158760960,
+      "withinPinnedArithmeticRange": false,
+      "arithmeticBlocker": "Unqualified encrypted integer range; reparameterization or a qualified tiled protocol required",
+      "publicUint64WeightBytes": 34865152,
+      "selectedProjection": false
+    },
+    {
+      "name": "model.layers.17.mlp.gate_proj.weight",
+      "shape": [
+        4864,
+        896
+      ],
+      "inputWidth": 896,
+      "outputWidth": 4864,
+      "conservativeRawDotBound": 29245440,
+      "withinPinnedArithmeticRange": true,
+      "arithmeticBlocker": null,
+      "publicUint64WeightBytes": 34865152,
+      "selectedProjection": false
+    },
+    {
+      "name": "model.layers.17.mlp.up_proj.weight",
+      "shape": [
+        4864,
+        896
+      ],
+      "inputWidth": 896,
+      "outputWidth": 4864,
+      "conservativeRawDotBound": 29245440,
+      "withinPinnedArithmeticRange": true,
+      "arithmeticBlocker": null,
+      "publicUint64WeightBytes": 34865152,
+      "selectedProjection": false
+    },
+    {
+      "name": "model.layers.17.self_attn.k_proj.weight",
+      "shape": [
+        128,
+        896
+      ],
+      "inputWidth": 896,
+      "outputWidth": 128,
+      "conservativeRawDotBound": 29245440,
+      "withinPinnedArithmeticRange": true,
+      "arithmeticBlocker": null,
+      "publicUint64WeightBytes": 917504,
+      "selectedProjection": false
+    },
+    {
+      "name": "model.layers.17.self_attn.o_proj.weight",
+      "shape": [
+        896,
+        896
+      ],
+      "inputWidth": 896,
+      "outputWidth": 896,
+      "conservativeRawDotBound": 29245440,
+      "withinPinnedArithmeticRange": true,
+      "arithmeticBlocker": null,
+      "publicUint64WeightBytes": 6422528,
+      "selectedProjection": false
+    },
+    {
+      "name": "model.layers.17.self_attn.q_proj.weight",
+      "shape": [
+        896,
+        896
+      ],
+      "inputWidth": 896,
+      "outputWidth": 896,
+      "conservativeRawDotBound": 29245440,
+      "withinPinnedArithmeticRange": true,
+      "arithmeticBlocker": null,
+      "publicUint64WeightBytes": 6422528,
+      "selectedProjection": false
+    },
+    {
+      "name": "model.layers.17.self_attn.v_proj.weight",
+      "shape": [
+        128,
+        896
+      ],
+      "inputWidth": 896,
+      "outputWidth": 128,
+      "conservativeRawDotBound": 29245440,
+      "withinPinnedArithmeticRange": true,
+      "arithmeticBlocker": null,
+      "publicUint64WeightBytes": 917504,
+      "selectedProjection": false
+    },
+    {
+      "name": "model.layers.18.mlp.down_proj.weight",
+      "shape": [
+        896,
+        4864
+      ],
+      "inputWidth": 4864,
+      "outputWidth": 896,
+      "conservativeRawDotBound": 158760960,
+      "withinPinnedArithmeticRange": false,
+      "arithmeticBlocker": "Unqualified encrypted integer range; reparameterization or a qualified tiled protocol required",
+      "publicUint64WeightBytes": 34865152,
+      "selectedProjection": false
+    },
+    {
+      "name": "model.layers.18.mlp.gate_proj.weight",
+      "shape": [
+        4864,
+        896
+      ],
+      "inputWidth": 896,
+      "outputWidth": 4864,
+      "conservativeRawDotBound": 29245440,
+      "withinPinnedArithmeticRange": true,
+      "arithmeticBlocker": null,
+      "publicUint64WeightBytes": 34865152,
+      "selectedProjection": false
+    },
+    {
+      "name": "model.layers.18.mlp.up_proj.weight",
+      "shape": [
+        4864,
+        896
+      ],
+      "inputWidth": 896,
+      "outputWidth": 4864,
+      "conservativeRawDotBound": 29245440,
+      "withinPinnedArithmeticRange": true,
+      "arithmeticBlocker": null,
+      "publicUint64WeightBytes": 34865152,
+      "selectedProjection": false
+    },
+    {
+      "name": "model.layers.18.self_attn.k_proj.weight",
+      "shape": [
+        128,
+        896
+      ],
+      "inputWidth": 896,
+      "outputWidth": 128,
+      "conservativeRawDotBound": 29245440,
+      "withinPinnedArithmeticRange": true,
+      "arithmeticBlocker": null,
+      "publicUint64WeightBytes": 917504,
+      "selectedProjection": false
+    },
+    {
+      "name": "model.layers.18.self_attn.o_proj.weight",
+      "shape": [
+        896,
+        896
+      ],
+      "inputWidth": 896,
+      "outputWidth": 896,
+      "conservativeRawDotBound": 29245440,
+      "withinPinnedArithmeticRange": true,
+      "arithmeticBlocker": null,
+      "publicUint64WeightBytes": 6422528,
+      "selectedProjection": false
+    },
+    {
+      "name": "model.layers.18.self_attn.q_proj.weight",
+      "shape": [
+        896,
+        896
+      ],
+      "inputWidth": 896,
+      "outputWidth": 896,
+      "conservativeRawDotBound": 29245440,
+      "withinPinnedArithmeticRange": true,
+      "arithmeticBlocker": null,
+      "publicUint64WeightBytes": 6422528,
+      "selectedProjection": false
+    },
+    {
+      "name": "model.layers.18.self_attn.v_proj.weight",
+      "shape": [
+        128,
+        896
+      ],
+      "inputWidth": 896,
+      "outputWidth": 128,
+      "conservativeRawDotBound": 29245440,
+      "withinPinnedArithmeticRange": true,
+      "arithmeticBlocker": null,
+      "publicUint64WeightBytes": 917504,
+      "selectedProjection": false
+    },
+    {
+      "name": "model.layers.19.mlp.down_proj.weight",
+      "shape": [
+        896,
+        4864
+      ],
+      "inputWidth": 4864,
+      "outputWidth": 896,
+      "conservativeRawDotBound": 158760960,
+      "withinPinnedArithmeticRange": false,
+      "arithmeticBlocker": "Unqualified encrypted integer range; reparameterization or a qualified tiled protocol required",
+      "publicUint64WeightBytes": 34865152,
+      "selectedProjection": false
+    },
+    {
+      "name": "model.layers.19.mlp.gate_proj.weight",
+      "shape": [
+        4864,
+        896
+      ],
+      "inputWidth": 896,
+      "outputWidth": 4864,
+      "conservativeRawDotBound": 29245440,
+      "withinPinnedArithmeticRange": true,
+      "arithmeticBlocker": null,
+      "publicUint64WeightBytes": 34865152,
+      "selectedProjection": false
+    },
+    {
+      "name": "model.layers.19.mlp.up_proj.weight",
+      "shape": [
+        4864,
+        896
+      ],
+      "inputWidth": 896,
+      "outputWidth": 4864,
+      "conservativeRawDotBound": 29245440,
+      "withinPinnedArithmeticRange": true,
+      "arithmeticBlocker": null,
+      "publicUint64WeightBytes": 34865152,
+      "selectedProjection": false
+    },
+    {
+      "name": "model.layers.19.self_attn.k_proj.weight",
+      "shape": [
+        128,
+        896
+      ],
+      "inputWidth": 896,
+      "outputWidth": 128,
+      "conservativeRawDotBound": 29245440,
+      "withinPinnedArithmeticRange": true,
+      "arithmeticBlocker": null,
+      "publicUint64WeightBytes": 917504,
+      "selectedProjection": false
+    },
+    {
+      "name": "model.layers.19.self_attn.o_proj.weight",
+      "shape": [
+        896,
+        896
+      ],
+      "inputWidth": 896,
+      "outputWidth": 896,
+      "conservativeRawDotBound": 29245440,
+      "withinPinnedArithmeticRange": true,
+      "arithmeticBlocker": null,
+      "publicUint64WeightBytes": 6422528,
+      "selectedProjection": false
+    },
+    {
+      "name": "model.layers.19.self_attn.q_proj.weight",
+      "shape": [
+        896,
+        896
+      ],
+      "inputWidth": 896,
+      "outputWidth": 896,
+      "conservativeRawDotBound": 29245440,
+      "withinPinnedArithmeticRange": true,
+      "arithmeticBlocker": null,
+      "publicUint64WeightBytes": 6422528,
+      "selectedProjection": false
+    },
+    {
+      "name": "model.layers.19.self_attn.v_proj.weight",
+      "shape": [
+        128,
+        896
+      ],
+      "inputWidth": 896,
+      "outputWidth": 128,
+      "conservativeRawDotBound": 29245440,
+      "withinPinnedArithmeticRange": true,
+      "arithmeticBlocker": null,
+      "publicUint64WeightBytes": 917504,
+      "selectedProjection": false
+    },
+    {
+      "name": "model.layers.2.mlp.down_proj.weight",
+      "shape": [
+        896,
+        4864
+      ],
+      "inputWidth": 4864,
+      "outputWidth": 896,
+      "conservativeRawDotBound": 158760960,
+      "withinPinnedArithmeticRange": false,
+      "arithmeticBlocker": "Unqualified encrypted integer range; reparameterization or a qualified tiled protocol required",
+      "publicUint64WeightBytes": 34865152,
+      "selectedProjection": false
+    },
+    {
+      "name": "model.layers.2.mlp.gate_proj.weight",
+      "shape": [
+        4864,
+        896
+      ],
+      "inputWidth": 896,
+      "outputWidth": 4864,
+      "conservativeRawDotBound": 29245440,
+      "withinPinnedArithmeticRange": true,
+      "arithmeticBlocker": null,
+      "publicUint64WeightBytes": 34865152,
+      "selectedProjection": false
+    },
+    {
+      "name": "model.layers.2.mlp.up_proj.weight",
+      "shape": [
+        4864,
+        896
+      ],
+      "inputWidth": 896,
+      "outputWidth": 4864,
+      "conservativeRawDotBound": 29245440,
+      "withinPinnedArithmeticRange": true,
+      "arithmeticBlocker": null,
+      "publicUint64WeightBytes": 34865152,
+      "selectedProjection": false
+    },
+    {
+      "name": "model.layers.2.self_attn.k_proj.weight",
+      "shape": [
+        128,
+        896
+      ],
+      "inputWidth": 896,
+      "outputWidth": 128,
+      "conservativeRawDotBound": 29245440,
+      "withinPinnedArithmeticRange": true,
+      "arithmeticBlocker": null,
+      "publicUint64WeightBytes": 917504,
+      "selectedProjection": false
+    },
+    {
+      "name": "model.layers.2.self_attn.o_proj.weight",
+      "shape": [
+        896,
+        896
+      ],
+      "inputWidth": 896,
+      "outputWidth": 896,
+      "conservativeRawDotBound": 29245440,
+      "withinPinnedArithmeticRange": true,
+      "arithmeticBlocker": null,
+      "publicUint64WeightBytes": 6422528,
+      "selectedProjection": false
+    },
+    {
+      "name": "model.layers.2.self_attn.q_proj.weight",
+      "shape": [
+        896,
+        896
+      ],
+      "inputWidth": 896,
+      "outputWidth": 896,
+      "conservativeRawDotBound": 29245440,
+      "withinPinnedArithmeticRange": true,
+      "arithmeticBlocker": null,
+      "publicUint64WeightBytes": 6422528,
+      "selectedProjection": false
+    },
+    {
+      "name": "model.layers.2.self_attn.v_proj.weight",
+      "shape": [
+        128,
+        896
+      ],
+      "inputWidth": 896,
+      "outputWidth": 128,
+      "conservativeRawDotBound": 29245440,
+      "withinPinnedArithmeticRange": true,
+      "arithmeticBlocker": null,
+      "publicUint64WeightBytes": 917504,
+      "selectedProjection": false
+    },
+    {
+      "name": "model.layers.20.mlp.down_proj.weight",
+      "shape": [
+        896,
+        4864
+      ],
+      "inputWidth": 4864,
+      "outputWidth": 896,
+      "conservativeRawDotBound": 158760960,
+      "withinPinnedArithmeticRange": false,
+      "arithmeticBlocker": "Unqualified encrypted integer range; reparameterization or a qualified tiled protocol required",
+      "publicUint64WeightBytes": 34865152,
+      "selectedProjection": false
+    },
+    {
+      "name": "model.layers.20.mlp.gate_proj.weight",
+      "shape": [
+        4864,
+        896
+      ],
+      "inputWidth": 896,
+      "outputWidth": 4864,
+      "conservativeRawDotBound": 29245440,
+      "withinPinnedArithmeticRange": true,
+      "arithmeticBlocker": null,
+      "publicUint64WeightBytes": 34865152,
+      "selectedProjection": false
+    },
+    {
+      "name": "model.layers.20.mlp.up_proj.weight",
+      "shape": [
+        4864,
+        896
+      ],
+      "inputWidth": 896,
+      "outputWidth": 4864,
+      "conservativeRawDotBound": 29245440,
+      "withinPinnedArithmeticRange": true,
+      "arithmeticBlocker": null,
+      "publicUint64WeightBytes": 34865152,
+      "selectedProjection": false
+    },
+    {
+      "name": "model.layers.20.self_attn.k_proj.weight",
+      "shape": [
+        128,
+        896
+      ],
+      "inputWidth": 896,
+      "outputWidth": 128,
+      "conservativeRawDotBound": 29245440,
+      "withinPinnedArithmeticRange": true,
+      "arithmeticBlocker": null,
+      "publicUint64WeightBytes": 917504,
+      "selectedProjection": false
+    },
+    {
+      "name": "model.layers.20.self_attn.o_proj.weight",
+      "shape": [
+        896,
+        896
+      ],
+      "inputWidth": 896,
+      "outputWidth": 896,
+      "conservativeRawDotBound": 29245440,
+      "withinPinnedArithmeticRange": true,
+      "arithmeticBlocker": null,
+      "publicUint64WeightBytes": 6422528,
+      "selectedProjection": false
+    },
+    {
+      "name": "model.layers.20.self_attn.q_proj.weight",
+      "shape": [
+        896,
+        896
+      ],
+      "inputWidth": 896,
+      "outputWidth": 896,
+      "conservativeRawDotBound": 29245440,
+      "withinPinnedArithmeticRange": true,
+      "arithmeticBlocker": null,
+      "publicUint64WeightBytes": 6422528,
+      "selectedProjection": false
+    },
+    {
+      "name": "model.layers.20.self_attn.v_proj.weight",
+      "shape": [
+        128,
+        896
+      ],
+      "inputWidth": 896,
+      "outputWidth": 128,
+      "conservativeRawDotBound": 29245440,
+      "withinPinnedArithmeticRange": true,
+      "arithmeticBlocker": null,
+      "publicUint64WeightBytes": 917504,
+      "selectedProjection": false
+    },
+    {
+      "name": "model.layers.21.mlp.down_proj.weight",
+      "shape": [
+        896,
+        4864
+      ],
+      "inputWidth": 4864,
+      "outputWidth": 896,
+      "conservativeRawDotBound": 158760960,
+      "withinPinnedArithmeticRange": false,
+      "arithmeticBlocker": "Unqualified encrypted integer range; reparameterization or a qualified tiled protocol required",
+      "publicUint64WeightBytes": 34865152,
+      "selectedProjection": false
+    },
+    {
+      "name": "model.layers.21.mlp.gate_proj.weight",
+      "shape": [
+        4864,
+        896
+      ],
+      "inputWidth": 896,
+      "outputWidth": 4864,
+      "conservativeRawDotBound": 29245440,
+      "withinPinnedArithmeticRange": true,
+      "arithmeticBlocker": null,
+      "publicUint64WeightBytes": 34865152,
+      "selectedProjection": false
+    },
+    {
+      "name": "model.layers.21.mlp.up_proj.weight",
+      "shape": [
+        4864,
+        896
+      ],
+      "inputWidth": 896,
+      "outputWidth": 4864,
+      "conservativeRawDotBound": 29245440,
+      "withinPinnedArithmeticRange": true,
+      "arithmeticBlocker": null,
+      "publicUint64WeightBytes": 34865152,
+      "selectedProjection": false
+    },
+    {
+      "name": "model.layers.21.self_attn.k_proj.weight",
+      "shape": [
+        128,
+        896
+      ],
+      "inputWidth": 896,
+      "outputWidth": 128,
+      "conservativeRawDotBound": 29245440,
+      "withinPinnedArithmeticRange": true,
+      "arithmeticBlocker": null,
+      "publicUint64WeightBytes": 917504,
+      "selectedProjection": false
+    },
+    {
+      "name": "model.layers.21.self_attn.o_proj.weight",
+      "shape": [
+        896,
+        896
+      ],
+      "inputWidth": 896,
+      "outputWidth": 896,
+      "conservativeRawDotBound": 29245440,
+      "withinPinnedArithmeticRange": true,
+      "arithmeticBlocker": null,
+      "publicUint64WeightBytes": 6422528,
+      "selectedProjection": false
+    },
+    {
+      "name": "model.layers.21.self_attn.q_proj.weight",
+      "shape": [
+        896,
+        896
+      ],
+      "inputWidth": 896,
+      "outputWidth": 896,
+      "conservativeRawDotBound": 29245440,
+      "withinPinnedArithmeticRange": true,
+      "arithmeticBlocker": null,
+      "publicUint64WeightBytes": 6422528,
+      "selectedProjection": false
+    },
+    {
+      "name": "model.layers.21.self_attn.v_proj.weight",
+      "shape": [
+        128,
+        896
+      ],
+      "inputWidth": 896,
+      "outputWidth": 128,
+      "conservativeRawDotBound": 29245440,
+      "withinPinnedArithmeticRange": true,
+      "arithmeticBlocker": null,
+      "publicUint64WeightBytes": 917504,
+      "selectedProjection": false
+    },
+    {
+      "name": "model.layers.22.mlp.down_proj.weight",
+      "shape": [
+        896,
+        4864
+      ],
+      "inputWidth": 4864,
+      "outputWidth": 896,
+      "conservativeRawDotBound": 158760960,
+      "withinPinnedArithmeticRange": false,
+      "arithmeticBlocker": "Unqualified encrypted integer range; reparameterization or a qualified tiled protocol required",
+      "publicUint64WeightBytes": 34865152,
+      "selectedProjection": false
+    },
+    {
+      "name": "model.layers.22.mlp.gate_proj.weight",
+      "shape": [
+        4864,
+        896
+      ],
+      "inputWidth": 896,
+      "outputWidth": 4864,
+      "conservativeRawDotBound": 29245440,
+      "withinPinnedArithmeticRange": true,
+      "arithmeticBlocker": null,
+      "publicUint64WeightBytes": 34865152,
+      "selectedProjection": false
+    },
+    {
+      "name": "model.layers.22.mlp.up_proj.weight",
+      "shape": [
+        4864,
+        896
+      ],
+      "inputWidth": 896,
+      "outputWidth": 4864,
+      "conservativeRawDotBound": 29245440,
+      "withinPinnedArithmeticRange": true,
+      "arithmeticBlocker": null,
+      "publicUint64WeightBytes": 34865152,
+      "selectedProjection": false
+    },
+    {
+      "name": "model.layers.22.self_attn.k_proj.weight",
+      "shape": [
+        128,
+        896
+      ],
+      "inputWidth": 896,
+      "outputWidth": 128,
+      "conservativeRawDotBound": 29245440,
+      "withinPinnedArithmeticRange": true,
+      "arithmeticBlocker": null,
+      "publicUint64WeightBytes": 917504,
+      "selectedProjection": false
+    },
+    {
+      "name": "model.layers.22.self_attn.o_proj.weight",
+      "shape": [
+        896,
+        896
+      ],
+      "inputWidth": 896,
+      "outputWidth": 896,
+      "conservativeRawDotBound": 29245440,
+      "withinPinnedArithmeticRange": true,
+      "arithmeticBlocker": null,
+      "publicUint64WeightBytes": 6422528,
+      "selectedProjection": false
+    },
+    {
+      "name": "model.layers.22.self_attn.q_proj.weight",
+      "shape": [
+        896,
+        896
+      ],
+      "inputWidth": 896,
+      "outputWidth": 896,
+      "conservativeRawDotBound": 29245440,
+      "withinPinnedArithmeticRange": true,
+      "arithmeticBlocker": null,
+      "publicUint64WeightBytes": 6422528,
+      "selectedProjection": false
+    },
+    {
+      "name": "model.layers.22.self_attn.v_proj.weight",
+      "shape": [
+        128,
+        896
+      ],
+      "inputWidth": 896,
+      "outputWidth": 128,
+      "conservativeRawDotBound": 29245440,
+      "withinPinnedArithmeticRange": true,
+      "arithmeticBlocker": null,
+      "publicUint64WeightBytes": 917504,
+      "selectedProjection": false
+    },
+    {
+      "name": "model.layers.23.mlp.down_proj.weight",
+      "shape": [
+        896,
+        4864
+      ],
+      "inputWidth": 4864,
+      "outputWidth": 896,
+      "conservativeRawDotBound": 158760960,
+      "withinPinnedArithmeticRange": false,
+      "arithmeticBlocker": "Unqualified encrypted integer range; reparameterization or a qualified tiled protocol required",
+      "publicUint64WeightBytes": 34865152,
+      "selectedProjection": false
+    },
+    {
+      "name": "model.layers.23.mlp.gate_proj.weight",
+      "shape": [
+        4864,
+        896
+      ],
+      "inputWidth": 896,
+      "outputWidth": 4864,
+      "conservativeRawDotBound": 29245440,
+      "withinPinnedArithmeticRange": true,
+      "arithmeticBlocker": null,
+      "publicUint64WeightBytes": 34865152,
+      "selectedProjection": false
+    },
+    {
+      "name": "model.layers.23.mlp.up_proj.weight",
+      "shape": [
+        4864,
+        896
+      ],
+      "inputWidth": 896,
+      "outputWidth": 4864,
+      "conservativeRawDotBound": 29245440,
+      "withinPinnedArithmeticRange": true,
+      "arithmeticBlocker": null,
+      "publicUint64WeightBytes": 34865152,
+      "selectedProjection": false
+    },
+    {
+      "name": "model.layers.23.self_attn.k_proj.weight",
+      "shape": [
+        128,
+        896
+      ],
+      "inputWidth": 896,
+      "outputWidth": 128,
+      "conservativeRawDotBound": 29245440,
+      "withinPinnedArithmeticRange": true,
+      "arithmeticBlocker": null,
+      "publicUint64WeightBytes": 917504,
+      "selectedProjection": false
+    },
+    {
+      "name": "model.layers.23.self_attn.o_proj.weight",
+      "shape": [
+        896,
+        896
+      ],
+      "inputWidth": 896,
+      "outputWidth": 896,
+      "conservativeRawDotBound": 29245440,
+      "withinPinnedArithmeticRange": true,
+      "arithmeticBlocker": null,
+      "publicUint64WeightBytes": 6422528,
+      "selectedProjection": false
+    },
+    {
+      "name": "model.layers.23.self_attn.q_proj.weight",
+      "shape": [
+        896,
+        896
+      ],
+      "inputWidth": 896,
+      "outputWidth": 896,
+      "conservativeRawDotBound": 29245440,
+      "withinPinnedArithmeticRange": true,
+      "arithmeticBlocker": null,
+      "publicUint64WeightBytes": 6422528,
+      "selectedProjection": false
+    },
+    {
+      "name": "model.layers.23.self_attn.v_proj.weight",
+      "shape": [
+        128,
+        896
+      ],
+      "inputWidth": 896,
+      "outputWidth": 128,
+      "conservativeRawDotBound": 29245440,
+      "withinPinnedArithmeticRange": true,
+      "arithmeticBlocker": null,
+      "publicUint64WeightBytes": 917504,
+      "selectedProjection": false
+    },
+    {
+      "name": "model.layers.3.mlp.down_proj.weight",
+      "shape": [
+        896,
+        4864
+      ],
+      "inputWidth": 4864,
+      "outputWidth": 896,
+      "conservativeRawDotBound": 158760960,
+      "withinPinnedArithmeticRange": false,
+      "arithmeticBlocker": "Unqualified encrypted integer range; reparameterization or a qualified tiled protocol required",
+      "publicUint64WeightBytes": 34865152,
+      "selectedProjection": false
+    },
+    {
+      "name": "model.layers.3.mlp.gate_proj.weight",
+      "shape": [
+        4864,
+        896
+      ],
+      "inputWidth": 896,
+      "outputWidth": 4864,
+      "conservativeRawDotBound": 29245440,
+      "withinPinnedArithmeticRange": true,
+      "arithmeticBlocker": null,
+      "publicUint64WeightBytes": 34865152,
+      "selectedProjection": false
+    },
+    {
+      "name": "model.layers.3.mlp.up_proj.weight",
+      "shape": [
+        4864,
+        896
+      ],
+      "inputWidth": 896,
+      "outputWidth": 4864,
+      "conservativeRawDotBound": 29245440,
+      "withinPinnedArithmeticRange": true,
+      "arithmeticBlocker": null,
+      "publicUint64WeightBytes": 34865152,
+      "selectedProjection": false
+    },
+    {
+      "name": "model.layers.3.self_attn.k_proj.weight",
+      "shape": [
+        128,
+        896
+      ],
+      "inputWidth": 896,
+      "outputWidth": 128,
+      "conservativeRawDotBound": 29245440,
+      "withinPinnedArithmeticRange": true,
+      "arithmeticBlocker": null,
+      "publicUint64WeightBytes": 917504,
+      "selectedProjection": false
+    },
+    {
+      "name": "model.layers.3.self_attn.o_proj.weight",
+      "shape": [
+        896,
+        896
+      ],
+      "inputWidth": 896,
+      "outputWidth": 896,
+      "conservativeRawDotBound": 29245440,
+      "withinPinnedArithmeticRange": true,
+      "arithmeticBlocker": null,
+      "publicUint64WeightBytes": 6422528,
+      "selectedProjection": false
+    },
+    {
+      "name": "model.layers.3.self_attn.q_proj.weight",
+      "shape": [
+        896,
+        896
+      ],
+      "inputWidth": 896,
+      "outputWidth": 896,
+      "conservativeRawDotBound": 29245440,
+      "withinPinnedArithmeticRange": true,
+      "arithmeticBlocker": null,
+      "publicUint64WeightBytes": 6422528,
+      "selectedProjection": false
+    },
+    {
+      "name": "model.layers.3.self_attn.v_proj.weight",
+      "shape": [
+        128,
+        896
+      ],
+      "inputWidth": 896,
+      "outputWidth": 128,
+      "conservativeRawDotBound": 29245440,
+      "withinPinnedArithmeticRange": true,
+      "arithmeticBlocker": null,
+      "publicUint64WeightBytes": 917504,
+      "selectedProjection": false
+    },
+    {
+      "name": "model.layers.4.mlp.down_proj.weight",
+      "shape": [
+        896,
+        4864
+      ],
+      "inputWidth": 4864,
+      "outputWidth": 896,
+      "conservativeRawDotBound": 158760960,
+      "withinPinnedArithmeticRange": false,
+      "arithmeticBlocker": "Unqualified encrypted integer range; reparameterization or a qualified tiled protocol required",
+      "publicUint64WeightBytes": 34865152,
+      "selectedProjection": false
+    },
+    {
+      "name": "model.layers.4.mlp.gate_proj.weight",
+      "shape": [
+        4864,
+        896
+      ],
+      "inputWidth": 896,
+      "outputWidth": 4864,
+      "conservativeRawDotBound": 29245440,
+      "withinPinnedArithmeticRange": true,
+      "arithmeticBlocker": null,
+      "publicUint64WeightBytes": 34865152,
+      "selectedProjection": false
+    },
+    {
+      "name": "model.layers.4.mlp.up_proj.weight",
+      "shape": [
+        4864,
+        896
+      ],
+      "inputWidth": 896,
+      "outputWidth": 4864,
+      "conservativeRawDotBound": 29245440,
+      "withinPinnedArithmeticRange": true,
+      "arithmeticBlocker": null,
+      "publicUint64WeightBytes": 34865152,
+      "selectedProjection": false
+    },
+    {
+      "name": "model.layers.4.self_attn.k_proj.weight",
+      "shape": [
+        128,
+        896
+      ],
+      "inputWidth": 896,
+      "outputWidth": 128,
+      "conservativeRawDotBound": 29245440,
+      "withinPinnedArithmeticRange": true,
+      "arithmeticBlocker": null,
+      "publicUint64WeightBytes": 917504,
+      "selectedProjection": false
+    },
+    {
+      "name": "model.layers.4.self_attn.o_proj.weight",
+      "shape": [
+        896,
+        896
+      ],
+      "inputWidth": 896,
+      "outputWidth": 896,
+      "conservativeRawDotBound": 29245440,
+      "withinPinnedArithmeticRange": true,
+      "arithmeticBlocker": null,
+      "publicUint64WeightBytes": 6422528,
+      "selectedProjection": false
+    },
+    {
+      "name": "model.layers.4.self_attn.q_proj.weight",
+      "shape": [
+        896,
+        896
+      ],
+      "inputWidth": 896,
+      "outputWidth": 896,
+      "conservativeRawDotBound": 29245440,
+      "withinPinnedArithmeticRange": true,
+      "arithmeticBlocker": null,
+      "publicUint64WeightBytes": 6422528,
+      "selectedProjection": false
+    },
+    {
+      "name": "model.layers.4.self_attn.v_proj.weight",
+      "shape": [
+        128,
+        896
+      ],
+      "inputWidth": 896,
+      "outputWidth": 128,
+      "conservativeRawDotBound": 29245440,
+      "withinPinnedArithmeticRange": true,
+      "arithmeticBlocker": null,
+      "publicUint64WeightBytes": 917504,
+      "selectedProjection": false
+    },
+    {
+      "name": "model.layers.5.mlp.down_proj.weight",
+      "shape": [
+        896,
+        4864
+      ],
+      "inputWidth": 4864,
+      "outputWidth": 896,
+      "conservativeRawDotBound": 158760960,
+      "withinPinnedArithmeticRange": false,
+      "arithmeticBlocker": "Unqualified encrypted integer range; reparameterization or a qualified tiled protocol required",
+      "publicUint64WeightBytes": 34865152,
+      "selectedProjection": false
+    },
+    {
+      "name": "model.layers.5.mlp.gate_proj.weight",
+      "shape": [
+        4864,
+        896
+      ],
+      "inputWidth": 896,
+      "outputWidth": 4864,
+      "conservativeRawDotBound": 29245440,
+      "withinPinnedArithmeticRange": true,
+      "arithmeticBlocker": null,
+      "publicUint64WeightBytes": 34865152,
+      "selectedProjection": false
+    },
+    {
+      "name": "model.layers.5.mlp.up_proj.weight",
+      "shape": [
+        4864,
+        896
+      ],
+      "inputWidth": 896,
+      "outputWidth": 4864,
+      "conservativeRawDotBound": 29245440,
+      "withinPinnedArithmeticRange": true,
+      "arithmeticBlocker": null,
+      "publicUint64WeightBytes": 34865152,
+      "selectedProjection": false
+    },
+    {
+      "name": "model.layers.5.self_attn.k_proj.weight",
+      "shape": [
+        128,
+        896
+      ],
+      "inputWidth": 896,
+      "outputWidth": 128,
+      "conservativeRawDotBound": 29245440,
+      "withinPinnedArithmeticRange": true,
+      "arithmeticBlocker": null,
+      "publicUint64WeightBytes": 917504,
+      "selectedProjection": false
+    },
+    {
+      "name": "model.layers.5.self_attn.o_proj.weight",
+      "shape": [
+        896,
+        896
+      ],
+      "inputWidth": 896,
+      "outputWidth": 896,
+      "conservativeRawDotBound": 29245440,
+      "withinPinnedArithmeticRange": true,
+      "arithmeticBlocker": null,
+      "publicUint64WeightBytes": 6422528,
+      "selectedProjection": false
+    },
+    {
+      "name": "model.layers.5.self_attn.q_proj.weight",
+      "shape": [
+        896,
+        896
+      ],
+      "inputWidth": 896,
+      "outputWidth": 896,
+      "conservativeRawDotBound": 29245440,
+      "withinPinnedArithmeticRange": true,
+      "arithmeticBlocker": null,
+      "publicUint64WeightBytes": 6422528,
+      "selectedProjection": false
+    },
+    {
+      "name": "model.layers.5.self_attn.v_proj.weight",
+      "shape": [
+        128,
+        896
+      ],
+      "inputWidth": 896,
+      "outputWidth": 128,
+      "conservativeRawDotBound": 29245440,
+      "withinPinnedArithmeticRange": true,
+      "arithmeticBlocker": null,
+      "publicUint64WeightBytes": 917504,
+      "selectedProjection": false
+    },
+    {
+      "name": "model.layers.6.mlp.down_proj.weight",
+      "shape": [
+        896,
+        4864
+      ],
+      "inputWidth": 4864,
+      "outputWidth": 896,
+      "conservativeRawDotBound": 158760960,
+      "withinPinnedArithmeticRange": false,
+      "arithmeticBlocker": "Unqualified encrypted integer range; reparameterization or a qualified tiled protocol required",
+      "publicUint64WeightBytes": 34865152,
+      "selectedProjection": false
+    },
+    {
+      "name": "model.layers.6.mlp.gate_proj.weight",
+      "shape": [
+        4864,
+        896
+      ],
+      "inputWidth": 896,
+      "outputWidth": 4864,
+      "conservativeRawDotBound": 29245440,
+      "withinPinnedArithmeticRange": true,
+      "arithmeticBlocker": null,
+      "publicUint64WeightBytes": 34865152,
+      "selectedProjection": false
+    },
+    {
+      "name": "model.layers.6.mlp.up_proj.weight",
+      "shape": [
+        4864,
+        896
+      ],
+      "inputWidth": 896,
+      "outputWidth": 4864,
+      "conservativeRawDotBound": 29245440,
+      "withinPinnedArithmeticRange": true,
+      "arithmeticBlocker": null,
+      "publicUint64WeightBytes": 34865152,
+      "selectedProjection": false
+    },
+    {
+      "name": "model.layers.6.self_attn.k_proj.weight",
+      "shape": [
+        128,
+        896
+      ],
+      "inputWidth": 896,
+      "outputWidth": 128,
+      "conservativeRawDotBound": 29245440,
+      "withinPinnedArithmeticRange": true,
+      "arithmeticBlocker": null,
+      "publicUint64WeightBytes": 917504,
+      "selectedProjection": false
+    },
+    {
+      "name": "model.layers.6.self_attn.o_proj.weight",
+      "shape": [
+        896,
+        896
+      ],
+      "inputWidth": 896,
+      "outputWidth": 896,
+      "conservativeRawDotBound": 29245440,
+      "withinPinnedArithmeticRange": true,
+      "arithmeticBlocker": null,
+      "publicUint64WeightBytes": 6422528,
+      "selectedProjection": false
+    },
+    {
+      "name": "model.layers.6.self_attn.q_proj.weight",
+      "shape": [
+        896,
+        896
+      ],
+      "inputWidth": 896,
+      "outputWidth": 896,
+      "conservativeRawDotBound": 29245440,
+      "withinPinnedArithmeticRange": true,
+      "arithmeticBlocker": null,
+      "publicUint64WeightBytes": 6422528,
+      "selectedProjection": false
+    },
+    {
+      "name": "model.layers.6.self_attn.v_proj.weight",
+      "shape": [
+        128,
+        896
+      ],
+      "inputWidth": 896,
+      "outputWidth": 128,
+      "conservativeRawDotBound": 29245440,
+      "withinPinnedArithmeticRange": true,
+      "arithmeticBlocker": null,
+      "publicUint64WeightBytes": 917504,
+      "selectedProjection": false
+    },
+    {
+      "name": "model.layers.7.mlp.down_proj.weight",
+      "shape": [
+        896,
+        4864
+      ],
+      "inputWidth": 4864,
+      "outputWidth": 896,
+      "conservativeRawDotBound": 158760960,
+      "withinPinnedArithmeticRange": false,
+      "arithmeticBlocker": "Unqualified encrypted integer range; reparameterization or a qualified tiled protocol required",
+      "publicUint64WeightBytes": 34865152,
+      "selectedProjection": false
+    },
+    {
+      "name": "model.layers.7.mlp.gate_proj.weight",
+      "shape": [
+        4864,
+        896
+      ],
+      "inputWidth": 896,
+      "outputWidth": 4864,
+      "conservativeRawDotBound": 29245440,
+      "withinPinnedArithmeticRange": true,
+      "arithmeticBlocker": null,
+      "publicUint64WeightBytes": 34865152,
+      "selectedProjection": false
+    },
+    {
+      "name": "model.layers.7.mlp.up_proj.weight",
+      "shape": [
+        4864,
+        896
+      ],
+      "inputWidth": 896,
+      "outputWidth": 4864,
+      "conservativeRawDotBound": 29245440,
+      "withinPinnedArithmeticRange": true,
+      "arithmeticBlocker": null,
+      "publicUint64WeightBytes": 34865152,
+      "selectedProjection": false
+    },
+    {
+      "name": "model.layers.7.self_attn.k_proj.weight",
+      "shape": [
+        128,
+        896
+      ],
+      "inputWidth": 896,
+      "outputWidth": 128,
+      "conservativeRawDotBound": 29245440,
+      "withinPinnedArithmeticRange": true,
+      "arithmeticBlocker": null,
+      "publicUint64WeightBytes": 917504,
+      "selectedProjection": false
+    },
+    {
+      "name": "model.layers.7.self_attn.o_proj.weight",
+      "shape": [
+        896,
+        896
+      ],
+      "inputWidth": 896,
+      "outputWidth": 896,
+      "conservativeRawDotBound": 29245440,
+      "withinPinnedArithmeticRange": true,
+      "arithmeticBlocker": null,
+      "publicUint64WeightBytes": 6422528,
+      "selectedProjection": false
+    },
+    {
+      "name": "model.layers.7.self_attn.q_proj.weight",
+      "shape": [
+        896,
+        896
+      ],
+      "inputWidth": 896,
+      "outputWidth": 896,
+      "conservativeRawDotBound": 29245440,
+      "withinPinnedArithmeticRange": true,
+      "arithmeticBlocker": null,
+      "publicUint64WeightBytes": 6422528,
+      "selectedProjection": false
+    },
+    {
+      "name": "model.layers.7.self_attn.v_proj.weight",
+      "shape": [
+        128,
+        896
+      ],
+      "inputWidth": 896,
+      "outputWidth": 128,
+      "conservativeRawDotBound": 29245440,
+      "withinPinnedArithmeticRange": true,
+      "arithmeticBlocker": null,
+      "publicUint64WeightBytes": 917504,
+      "selectedProjection": false
+    },
+    {
+      "name": "model.layers.8.mlp.down_proj.weight",
+      "shape": [
+        896,
+        4864
+      ],
+      "inputWidth": 4864,
+      "outputWidth": 896,
+      "conservativeRawDotBound": 158760960,
+      "withinPinnedArithmeticRange": false,
+      "arithmeticBlocker": "Unqualified encrypted integer range; reparameterization or a qualified tiled protocol required",
+      "publicUint64WeightBytes": 34865152,
+      "selectedProjection": false
+    },
+    {
+      "name": "model.layers.8.mlp.gate_proj.weight",
+      "shape": [
+        4864,
+        896
+      ],
+      "inputWidth": 896,
+      "outputWidth": 4864,
+      "conservativeRawDotBound": 29245440,
+      "withinPinnedArithmeticRange": true,
+      "arithmeticBlocker": null,
+      "publicUint64WeightBytes": 34865152,
+      "selectedProjection": false
+    },
+    {
+      "name": "model.layers.8.mlp.up_proj.weight",
+      "shape": [
+        4864,
+        896
+      ],
+      "inputWidth": 896,
+      "outputWidth": 4864,
+      "conservativeRawDotBound": 29245440,
+      "withinPinnedArithmeticRange": true,
+      "arithmeticBlocker": null,
+      "publicUint64WeightBytes": 34865152,
+      "selectedProjection": false
+    },
+    {
+      "name": "model.layers.8.self_attn.k_proj.weight",
+      "shape": [
+        128,
+        896
+      ],
+      "inputWidth": 896,
+      "outputWidth": 128,
+      "conservativeRawDotBound": 29245440,
+      "withinPinnedArithmeticRange": true,
+      "arithmeticBlocker": null,
+      "publicUint64WeightBytes": 917504,
+      "selectedProjection": false
+    },
+    {
+      "name": "model.layers.8.self_attn.o_proj.weight",
+      "shape": [
+        896,
+        896
+      ],
+      "inputWidth": 896,
+      "outputWidth": 896,
+      "conservativeRawDotBound": 29245440,
+      "withinPinnedArithmeticRange": true,
+      "arithmeticBlocker": null,
+      "publicUint64WeightBytes": 6422528,
+      "selectedProjection": false
+    },
+    {
+      "name": "model.layers.8.self_attn.q_proj.weight",
+      "shape": [
+        896,
+        896
+      ],
+      "inputWidth": 896,
+      "outputWidth": 896,
+      "conservativeRawDotBound": 29245440,
+      "withinPinnedArithmeticRange": true,
+      "arithmeticBlocker": null,
+      "publicUint64WeightBytes": 6422528,
+      "selectedProjection": false
+    },
+    {
+      "name": "model.layers.8.self_attn.v_proj.weight",
+      "shape": [
+        128,
+        896
+      ],
+      "inputWidth": 896,
+      "outputWidth": 128,
+      "conservativeRawDotBound": 29245440,
+      "withinPinnedArithmeticRange": true,
+      "arithmeticBlocker": null,
+      "publicUint64WeightBytes": 917504,
+      "selectedProjection": false
+    },
+    {
+      "name": "model.layers.9.mlp.down_proj.weight",
+      "shape": [
+        896,
+        4864
+      ],
+      "inputWidth": 4864,
+      "outputWidth": 896,
+      "conservativeRawDotBound": 158760960,
+      "withinPinnedArithmeticRange": false,
+      "arithmeticBlocker": "Unqualified encrypted integer range; reparameterization or a qualified tiled protocol required",
+      "publicUint64WeightBytes": 34865152,
+      "selectedProjection": false
+    },
+    {
+      "name": "model.layers.9.mlp.gate_proj.weight",
+      "shape": [
+        4864,
+        896
+      ],
+      "inputWidth": 896,
+      "outputWidth": 4864,
+      "conservativeRawDotBound": 29245440,
+      "withinPinnedArithmeticRange": true,
+      "arithmeticBlocker": null,
+      "publicUint64WeightBytes": 34865152,
+      "selectedProjection": false
+    },
+    {
+      "name": "model.layers.9.mlp.up_proj.weight",
+      "shape": [
+        4864,
+        896
+      ],
+      "inputWidth": 896,
+      "outputWidth": 4864,
+      "conservativeRawDotBound": 29245440,
+      "withinPinnedArithmeticRange": true,
+      "arithmeticBlocker": null,
+      "publicUint64WeightBytes": 34865152,
+      "selectedProjection": false
+    },
+    {
+      "name": "model.layers.9.self_attn.k_proj.weight",
+      "shape": [
+        128,
+        896
+      ],
+      "inputWidth": 896,
+      "outputWidth": 128,
+      "conservativeRawDotBound": 29245440,
+      "withinPinnedArithmeticRange": true,
+      "arithmeticBlocker": null,
+      "publicUint64WeightBytes": 917504,
+      "selectedProjection": false
+    },
+    {
+      "name": "model.layers.9.self_attn.o_proj.weight",
+      "shape": [
+        896,
+        896
+      ],
+      "inputWidth": 896,
+      "outputWidth": 896,
+      "conservativeRawDotBound": 29245440,
+      "withinPinnedArithmeticRange": true,
+      "arithmeticBlocker": null,
+      "publicUint64WeightBytes": 6422528,
+      "selectedProjection": false
+    },
+    {
+      "name": "model.layers.9.self_attn.q_proj.weight",
+      "shape": [
+        896,
+        896
+      ],
+      "inputWidth": 896,
+      "outputWidth": 896,
+      "conservativeRawDotBound": 29245440,
+      "withinPinnedArithmeticRange": true,
+      "arithmeticBlocker": null,
+      "publicUint64WeightBytes": 6422528,
+      "selectedProjection": false
+    },
+    {
+      "name": "model.layers.9.self_attn.v_proj.weight",
+      "shape": [
+        128,
+        896
+      ],
+      "inputWidth": 896,
+      "outputWidth": 128,
+      "conservativeRawDotBound": 29245440,
+      "withinPinnedArithmeticRange": true,
+      "arithmeticBlocker": null,
+      "publicUint64WeightBytes": 917504,
+      "selectedProjection": false
+    }
+  ],
+  "flash": {
+    "schema": "doppler.flash-readiness-source/v1",
+    "repository": "Qwen/Qwen3.8-Flash-Next",
+    "revision": "812d96e10a0dd82b69d749e68693698cf6c36daa",
+    "configUrl": "https://huggingface.co/Qwen/Qwen3.8-Flash-Next/resolve/812d96e10a0dd82b69d749e68693698cf6c36daa/config.json",
+    "cardUrl": "https://huggingface.co/Qwen/Qwen3.8-Flash-Next/blob/812d96e10a0dd82b69d749e68693698cf6c36daa/README.md",
+    "config": {
+      "hidden_size": 2560,
+      "num_hidden_layers": 48,
+      "num_experts": 512,
+      "num_experts_per_tok": 10,
+      "max_position_embeddings": 262144,
+      "ngram_vocab_size_base": 20000000,
+      "linear_num_value_heads": 48,
+      "linear_num_key_heads": 16,
+      "linear_value_head_dim": 128,
+      "linear_key_head_dim": 128,
+      "num_attention_heads": 24,
+      "num_key_value_heads": 2,
+      "head_dim": 256,
+      "indexer_budget": 2048,
+      "model_type": "qwen4_exp",
+      "transformers_version": "5.8.0.dev0"
+    },
+    "publisherRoundedParameterCounts": {
+      "main": 125000000000,
+      "ngram": 51000000000,
+      "mtp": 4000000000
+    },
+    "measuredEncryptedExecution": false,
+    "conservativeRawDotBound": 83558400,
+    "arithmeticBlocker": "Unqualified encrypted integer range; reparameterization or a qualified tiled protocol required",
+    "weightMemoryEstimate": {
+      "scope": "Rounded publisher counts, excluding vision/overhead; not measured residency",
+      "twoBytesPerParameterGB": 360.0,
+      "fourBytesPerParameterGB": 720.0
+    },
+    "blockers": [
+      "Pinned Transformers 4.44.2 does not implement this declared qwen4_exp architecture",
+      "Hidden-width raw dots exceed the pinned conservative 27-bit signed computation budget",
+      "Expert, sparse-indexer and n-gram access patterns need an explicit privacy protocol",
+      "Recurrent/attention state needs validated policy, key and cache isolation",
+      "Full encrypted replay gives no client compute saving or reviewed malicious security",
+      "One selected small-Qwen projection is not a full encrypted model"
+    ]
+  }
+}

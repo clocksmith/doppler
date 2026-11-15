@@ -10,29 +10,25 @@ import sys
 import time
 from types import SimpleNamespace
 
-import numpy as np
 import torch
 from torch import nn
 from transformers import AutoModelForCausalLM
 from transformers.pytorch_utils import Conv1D
-from concrete.ml.torch.compile import build_quantized_module
 from concrete.ml.quantization.linear_op_glwe_backend import GLWELinearLayerExecutor
-from concrete.ml.common.utils import HybridFHEMode
 import concrete_ml_extensions as ext
+from linear import ClientLinearProjection
 from bridge import EvaluatorBridge
 from protocol import POLICY, POLICY_ID, digest
 
 
-class PaddedProjection(nn.Module):
+class PaddedProjection(ClientLinearProjection):
     """Explicit public zero-input padding; extra outputs are discarded on the client."""
     def __init__(self, source):
-        super().__init__()
-        self.inputs, self.outputs = source.weight.shape
+        inputs, outputs = source.weight.shape
         width = POLICY['matrixWidth']
-        if max(self.inputs, self.outputs) > width:
+        if max(inputs, outputs) > width:
             raise ValueError('Unsupported fixture geometry')
-        self.remote = nn.Linear(width, width)
-        self.mode, self.calibration, self.quantized, self.executor = 'calibrate', None, None, None
+        super().__init__(nn.Linear(width, width), input_width=inputs, crop_width=outputs)
         with torch.no_grad():
             # Symmetric unused public coefficients avoid the library's asymmetric-weight rejection.
             # They multiply padded zeros or produce discarded outputs, preserving the original map.
@@ -42,15 +38,6 @@ class PaddedProjection(nn.Module):
             self.remote.weight[:self.outputs, :self.inputs] = source.weight.T
             self.remote.bias[:self.outputs] = source.bias
 
-    def forward(self, value):
-        padded = torch.nn.functional.pad(value, (0, POLICY['matrixWidth'] - self.inputs))
-        if self.mode == 'calibrate':
-            self.calibration = padded.detach().clone()
-            return self.remote(padded)[..., :self.outputs]
-        modes = {'clear-reference': HybridFHEMode.DISABLE, 'execute': HybridFHEMode.EXECUTE}
-        if self.mode not in modes or self.quantized is None or self.executor is None:
-            raise ValueError('Unprepared encrypted projection')
-        return self.executor.forward(padded.detach(), self.quantized, modes[self.mode])[..., :self.outputs]
 
 
 def fixed_inputs(tokens):
@@ -99,18 +86,9 @@ def run(model_dir, seed=15496, mutate=None, cancelled=None, progress=lambda step
     with torch.no_grad():
         model(**fixed_inputs([0, 1, 2, 3]))
     executor = GLWELinearLayerExecutor(use_dynamic_quantization=True)
-    for projection in projections:
-        projection.quantized = build_quantized_module(projection.remote, projection.calibration,
-                                                     n_bits=POLICY['quantizationBits'], keep_onnx=False)
-        projection.executor = executor
-        projection.calibration = None
     matrices = {}
     for projection in projections:
-        quantized = projection.quantized
-        _, operation = next(iter(quantized.quant_layers_dict.values()))
-        weight, _ = executor._extract_weight_params(operation, bool(operation.attrs.get('transB', 0)))
-        quantized_weight, *_ = executor._per_channel_weight_quantization(weight, quantized, torch.device('cpu'))
-        matrix = np.ascontiguousarray(quantized_weight.long().numpy().astype(np.uint64), dtype='<u8')
+        matrix = projection.prepare(executor, POLICY['quantizationBits'])
         matrices[digest(matrix.tobytes(order='C'))] = matrix
     if len(matrices) != POLICY['projectionCount']:
         raise ValueError('Unexpected public weight identities')
