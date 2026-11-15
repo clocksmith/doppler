@@ -33,3 +33,14 @@ jobs:
       - run: npm run style:guides:check
       - run: npm run style:guides:test
       - run: npm run package:smoke
+
+  privacy-protocol-experiment:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '22'
+      - run: npm ci --prefix tools/privacy-demo --ignore-scripts --no-audit --no-fund
+      - run: npm test --prefix tools/privacy-demo

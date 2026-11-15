@@ -1,0 +1,39 @@
+{
+  "schema": "doppler.bfv-autoregression-experiment/v1",
+  "protocol": "seal-bfv-client-refresh/v1",
+  "qualified": false,
+  "parameters": {
+    "polyModulusDegree": 4096,
+    "plainModulusBits": 20,
+    "securityLevel": 128,
+    "compression": "none"
+  },
+  "vocabulary": [
+    "a",
+    "b",
+    "c",
+    "d",
+    "e",
+    "f",
+    "g",
+    "h"
+  ],
+  "corpus": "abcdefghabcdefghabcdefghabcdfghabcdefgabcdefgh",
+  "steps": 4,
+  "rotationSteps": [
+    1,
+    2,
+    4
+  ],
+  "maxFrameBytes": 4194304,
+  "timeoutMs": 15000,
+  "adversary": "semi-honest only; no active-adversary qualification",
+  "leakage": [
+    "public model and protocol",
+    "fixed generation step count",
+    "parameters and evaluation keys",
+    "ciphertext sizes",
+    "timing",
+    "process and transport metadata"
+  ]
+}
