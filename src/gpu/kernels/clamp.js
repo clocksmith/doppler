@@ -1,5 +1,5 @@
-import { createTensor } from '../tensor.js';
-import { dtypeBytes } from '../tensor.js';
+import { createTensor, dtypeBytes } from '../tensor.js';
+
 import { WORKGROUP_SIZES } from './constants.js';
 import { unifiedKernelWrapper } from './kernel-execution.js';
 

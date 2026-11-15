@@ -1,5 +1,5 @@
 import { log } from '../../debug/index.js';
-import { computeHash, createStreamingHasher } from '../shard-manager.js';
+
 import * as defaultStore from '../shard-manager.js';
 import { DISTRIBUTION_SOURCE_HTTP, createShardSizeMismatchError, normalizeRequiredInteger } from './http-contract.js';
 
@@ -268,7 +268,7 @@ export function createHttpShardTransport(store) {
     const normalizedResumeOffset = Number.isInteger(resumeOffset) && resumeOffset > 0
       ? resumeOffset
       : 0;
-    const hasher = await createStreamingHasher(algorithm);
+    const hasher = await defaultStore.createStreamingHasher(algorithm);
     if (normalizedResumeOffset > 0) {
       await seedHasherFromStoredPrefix(hasher, shardIndex, normalizedResumeOffset);
     }
@@ -289,7 +289,7 @@ export function createHttpShardTransport(store) {
 
   async function resetHttpTransferState(state, writeToStore, shardIndex, algorithm) {
     await state.writer?.abort?.();
-    state.hasher = await createStreamingHasher(algorithm);
+    state.hasher = await defaultStore.createStreamingHasher(algorithm);
     state.chunks = writeToStore ? null : [];
     state.writer = writeToStore ? await createShardWriter(shardIndex) : null;
     state.writerClosed = false;
@@ -416,7 +416,7 @@ export function createHttpShardTransport(store) {
       return {
         buffer: null,
         bytes: buffer.byteLength,
-        hash: await computeHash(buffer, algorithm),
+        hash: await defaultStore.computeHash(buffer, algorithm),
         wrote: true,
         source: DISTRIBUTION_SOURCE_HTTP,
         path: 'http-stream-store',

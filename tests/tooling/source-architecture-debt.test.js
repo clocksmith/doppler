@@ -225,6 +225,9 @@ assert.equal(resolvePolicyBaseRef([], {}), 'HEAD');
 assert.equal(resolvePolicyBaseRef([], { DOPPLER_POLICY_BASE_REF: '' }), 'HEAD');
 assert.equal(resolvePolicyBaseRef([], { DOPPLER_POLICY_BASE_REF: '000000' }), 'HEAD');
 assert.equal(resolvePolicyBaseRef([], { DOPPLER_POLICY_BASE_REF: 'base-sha' }), 'base-sha');
+assert.throws(() => resolvePolicyBaseRef([], { GITHUB_ACTIONS: 'true' }), /CI requires DOPPLER_POLICY_BASE_REF/);
+assert.throws(() => resolvePolicyBaseRef([], { GITHUB_ACTIONS: 'true', DOPPLER_POLICY_BASE_REF: '000000' }), /CI requires/);
+assert.equal(resolvePolicyBaseRef([], { GITHUB_ACTIONS: 'true', DOPPLER_POLICY_BASE_REF: 'base-sha' }), 'base-sha');
 assert.equal(resolvePolicyBaseRef(['--base', 'explicit'], {}), 'explicit');
 
 console.log('source-architecture-debt.test: ok');

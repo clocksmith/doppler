@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import { registerHooks } from 'node:module';
 
 const target = new URL('../../src/inference/pipelines/text/generator/decode.js', import.meta.url).href;
+const decoderModules = new Set([target, new URL('./decode-step.js', target).href, new URL('./decode-mechanics.js', target).href]);
 const probe = globalThis.partialDecodeOwnershipProbe = {};
 const modules = {
   '../../../../gpu/device.js': 'export const getDevice=()=>partialDecodeOwnershipProbe.device; export const setTrackSubmits=()=>{};',
@@ -15,7 +16,7 @@ const modules = {
   '../per-layer-inputs.js': 'export const preparePerLayerInputs=async()=>null; export const prefetchPerLayerRow=()=>{};',
 };
 const hooks = registerHooks({ resolve(specifier, context, next) {
-  if (context.parentURL === target && modules[specifier]) {
+  if (decoderModules.has(context.parentURL) && modules[specifier]) {
     return { url: 'data:text/javascript,' + encodeURIComponent(modules[specifier]), shortCircuit: true };
   }
   return next(specifier, context);

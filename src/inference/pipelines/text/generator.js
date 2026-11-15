@@ -1,4 +1,8 @@
-import { withHyperConnectionTransaction, assertClassicSequenceState } from './hyper-connection/sequence-transaction.js';
+import { CAPTURE_LEVELS, createDefaultCaptureConfig, validateCaptureConfig } from '../../../debug/index.js';
+import { OperatorEventEmitter } from './operator-events.js';
+import { createTsirFixtureState } from './tsir-fixture-writer.js';
+import { resolveSuppressedSamplingTokenIds } from './generator/text.js';
+import { withHyperConnectionTransaction, assertClassicSequenceState, assertHyperConnectionOperation } from './hyper-connection/sequence-transaction.js';
 import '../../../gpu/device.js'; // Preserve declared device initialization side effects.
 import { beginDiagnosticSequence, endDiagnosticSequence } from './generator/diagnostic-sequence.js';
 import { prefillWithToken, decodeStepWithToken } from './generator/capsule-generation.js';
@@ -14,6 +18,7 @@ import { getLogitsConfig, getLogitsWeights } from './generator/logits-config.js'
 import { releaseSharedAttentionState } from './generator/attention-lifecycle.js';
 import { resetSequenceState } from './sequence-state.js';
 import {
+  settleGenerationStats,
   assertTokenIdsInRange,
   assertTokenIdInRange,
   resolveStepOptions,
@@ -32,7 +37,7 @@ import { resetLinearAttentionSequence } from './linear-attention.js';
 // Extracted standalone helpers
 import { resolvePromptInput } from './generator/prompt-input.js';
 import { resolvePrefillTokenChunkSize } from './generator/prefill-policy.js';
-import { usesReplayPrefillDecode } from './generator-decode-policy.js';
+import { usesReplayPrefillDecode, summarizeExecutionPlan } from './generator-decode-policy.js';
 import {
   _createDiffusionGemmaSelfConditioningEmbeddings as _createDiffusionGemmaSelfConditioningEmbeddingsImpl,
   _createDiffusionGemmaSelfConditioningSoftEmbeddingState as _createDiffusionGemmaSelfConditioningSoftEmbeddingStateImpl,
@@ -96,6 +101,119 @@ export class PipelineGenerator {
   constructor(state) {
     this._state = state;
     this._finitenessFallbackWindow = null;
+  }
+
+  beginGeneration(opts, options) {
+    assertHyperConnectionOperation(this._state, opts);
+    this._resetReplayPrefillRuntimeState();
+    this._state.isGenerating = true;
+    this._resetDecodeRuntimeState();
+    delete this._state.stats.outputUsage;
+    this._state.stats.speculationAttempts = 0;
+    this._state.stats.speculationAccepted = 0;
+    this._state.stats.gpuTimePrefillMs = undefined;
+    this._state.stats.gpuTimeDecodeMs = undefined;
+    this._state.stats.decodeRecordMs = 0;
+    this._state.stats.decodeRecordOps = 0;
+    this._state.stats.decodeRecordPasses = 0;
+    this._state.stats.decodeRecordOpLabels = {};
+    this._state.stats.decodeSubmitWaitMs = 0;
+    this._state.stats.decodeReadbackWaitMs = 0;
+    this._state.stats.decodeReadbackMapWaitMs = 0;
+    this._state.stats.decodeReadbackCleanupMs = 0;
+    this._state.stats.decodeReadbackCopyMs = 0;
+    this._state.stats.prefillRecordMs = 0;
+    this._state.stats.prefillRecordOps = 0;
+    this._state.stats.prefillRecordPasses = 0;
+    this._state.stats.prefillRecordOpLabels = {};
+    this._state.stats.prefillSubmitWaitMs = 0;
+    this._state.stats.singleTokenSubmitWaitMs = 0;
+    this._state.stats.singleTokenReadbackWaitMs = 0;
+    this._state.stats.singleTokenReadbackMapWaitMs = 0;
+    this._state.stats.singleTokenReadbackCleanupMs = 0;
+    this._state.stats.singleTokenReadbackCopyMs = 0;
+    this._state.stats.singleTokenOrchestrationMs = 0;
+    this._state.stats.pleHotVocabularyHits = 0;
+    this._state.stats.pleHotVocabularyMisses = 0;
+    this._state.stats.plePreparedTokenCacheHits = 0;
+    this._state.stats.plePreparedTokenCacheMisses = 0;
+    this._state.stats.plePreparedTokenCacheEntries = 0;
+    this._state.stats.plePreparedTokenCacheBytes = 0;
+    this._state.stats.decodeMode = null;
+    this._state.stats.batchGuardReason = null;
+    this._state.stats.stopReason = null;
+    this._state.stats.stopTokenId = null;
+    this._state.stats.ttftMs = 0;
+    this._state.stats.prefillTimeMs = 0;
+    this._state.stats.decodeTimeMs = 0;
+    this._state.stats.prefillTokens = 0;
+    this._state.stats.reusedPrefixTokens = 0;
+    this._state.stats.prefillComputedTokens = 0;
+    this._state.stats.tokensGenerated = 0;
+    this._state.stats.decodeTokens = 0;
+    this._state.stats.totalTimeMs = 0;
+    const startTime = performance.now();
+  
+    opts.onLogits = typeof options.onLogits === 'function' ? options.onLogits : null;
+    // Validate and normalize sampling parameters through single source of truth
+    const samplingConfig = opts;
+    opts.suppressTokenIds = resolveSuppressedSamplingTokenIds(this._state, samplingConfig);
+    const diagnosticsEnabled = options?.diagnostics?.enabled === true
+      || this._state.runtimeConfig?.shared?.harness?.mode === 'diagnose';
+    const tsirFixtureCfg = this._state.runtimeConfig?.shared?.harness?.tsirFixture ?? null;
+    if (diagnosticsEnabled || tsirFixtureCfg) {
+      const captureConfig = {
+        ...createDefaultCaptureConfig(),
+        enabled: true,
+        defaultLevel: CAPTURE_LEVELS.SLICE,
+        ...(options?.diagnostics?.captureConfig ?? {}),
+      };
+      validateCaptureConfig(captureConfig);
+      this._state.operatorDiagnostics = {
+        enabled: diagnosticsEnabled === true,
+        captureConfig,
+        emitter: diagnosticsEnabled ? new OperatorEventEmitter({
+          modelHash: this._state.manifest?.modelId ?? null,
+          runtimeConfigHash: this._state.resolvedKernelPath?.id ?? null,
+          executionPlanHash: opts.executionPlan?.id ?? null,
+        }) : null,
+        tsirFixture: createTsirFixtureState(tsirFixtureCfg),
+      };
+    }
+    if (opts.__activationTrace?.activity) {
+      this._state.operatorDiagnostics ??= { enabled: false };
+      this._state.operatorDiagnostics.activity = opts.__activationTrace.activity;
+    }
+    const activePlan = resolveActiveExecutionPlan(this._state);
+    this._state.stats.executionPlan = {
+      primary: summarizeExecutionPlan(this._state.executionPlanState?.primaryPlan ?? null),
+      fallback: summarizeExecutionPlan(this._state.executionPlanState?.fallbackPlan ?? null),
+      activePlanIdAtStart: activePlan?.id ?? null,
+      finalActivePlanId: activePlan?.id ?? null,
+      transitions: [],
+    };
+    this._state.stats.kernelPathId = activePlan?.kernelPathId ?? this._state.resolvedKernelPath?.id ?? null;
+    this._state.stats.kernelPathSource = activePlan?.kernelPathSource ?? this._state.kernelPathSource ?? 'none';
+    return startTime;
+  }
+
+  finishGeneration(options, startTime, generatedIds, promptTokenCount) {
+    settleGenerationStats(this._state.stats, startTime,
+      Math.max(0, generatedIds.length - promptTokenCount), options.signal?.aborted === true);
+    this._state.stats.batching = { ...this._state.batchingStats };
+    if (this._state.stats.executionPlan) {
+      this._state.stats.executionPlan.finalActivePlanId = this._state.executionPlanState?.activePlanId ?? null;
+    }
+    resetActiveExecutionPlan(this._state);
+    this._state.stats.operatorDiagnostics = this._state.operatorDiagnostics?.emitter
+      ? {
+        enabled: true,
+        timeline: this._state.operatorDiagnostics.emitter.getTimeline(),
+        recordCount: this._state.operatorDiagnostics.emitter.length,
+      }
+      : null;
+    this._state.operatorDiagnostics = null;
+    this._state.isGenerating = false;
   }
 
   _resolveDeferredRoundingWindowTokens() {

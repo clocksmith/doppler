@@ -1,5 +1,5 @@
 
-import { getKernelCapabilities } from '../device.js';
+import { getKernelCapabilities, getDevice } from '../device.js';
 import { acquireBuffer, releaseBuffer } from '../../memory/buffer-pool.js';
 import { createTensor } from '../tensor.js';
 import { unifiedKernelWrapper } from './kernel-execution.js';
@@ -10,7 +10,7 @@ import { dispatchKernel } from './dispatch.js';
 import { trace, isTraceEnabled } from '../../debug/index.js';
 import { getKernelThresholdSnapshot } from '../../config/schema/index.js';
 import { selectRuleValue } from './rule-registry.js';
-import { getDevice } from '../device.js';
+
 import { getKernelConfig } from '../../config/kernel-registry-contract.js';
 
 function selectSoftmaxVariant(innerSize) {

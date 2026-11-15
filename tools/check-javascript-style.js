@@ -1,6 +1,6 @@
 import ts from 'typescript';
 
-export const RULE_IDS = ["JS-001", "JS-002"];
+export const RULE_IDS = ["JS-001", "JS-002", "JS-003"];
 
 // Parser-only baseline: semantic/type checking remains in its owning source gates.
 export function checkJavaScriptSource(source, file, legacyMjs = []) {
@@ -16,6 +16,21 @@ export function checkJavaScriptSource(source, file, legacyMjs = []) {
   }));
   if (file.endsWith('.mjs') && !legacyMjs.some(entry => entry.path === file)) {
     diagnostics.push({ ruleId: 'JS-002', line: 1, message: 'Use .js for new modules; legacy .mjs paths are explicitly inventoried.' });
+  }
+  if (/^(?:src|demo)\//u.test(file)) {
+    const imports = new Set();
+    for (const statement of ast.statements) {
+      if (!ts.isImportDeclaration(statement) || !ts.isStringLiteral(statement.moduleSpecifier)) continue;
+      const specifier = statement.moduleSpecifier.text;
+      if (imports.has(specifier)) {
+        diagnostics.push({
+          ruleId: 'JS-003',
+          line: ast.getLineAndCharacterOfPosition(statement.getStart(ast)).line + 1,
+          message: `Merge duplicate imports from ${specifier}.`,
+        });
+      }
+      imports.add(specifier);
+    }
   }
   return diagnostics;
 }

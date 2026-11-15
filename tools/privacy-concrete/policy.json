@@ -1,0 +1,52 @@
+{
+  "schema": "doppler.concrete-transformer-experiment/v1",
+  "protocol": "concrete-glwe-fixed-transformer-replay/v1",
+  "qualified": false,
+  "source": {
+    "repository": "sshleifer/tiny-gpt2",
+    "revision": "5f91d94bd9cd7190a9f3216ff93cd1dd95f2c7be",
+    "safetensorsSha256": "5b562022d3f53a1e503c997949586b1a322db296f4a4bf6aa5127c44ab7cda43",
+    "configSha256": "5b2862b81a2e62a60adfe3f5f78b693de27da1904f8e07d6a8bb196520cba6cb"
+  },
+  "dependencies": {
+    "concrete-ml": "1.9.0",
+    "concrete-ml-extensions": "0.1.9",
+    "concrete-python": "2.10.0",
+    "torch": "2.3.1",
+    "transformers": "4.44.2",
+    "numpy": "1.26.4"
+  },
+  "steps": 4,
+  "contextLength": 4,
+  "matrixWidth": 16,
+  "projectionCount": 8,
+  "quantizationBits": 8,
+  "maxLogitError": 0.01,
+  "maxHeaderBytes": 4096,
+  "maxPayloadBytes": 150000000,
+  "timeoutSeconds": 180,
+  "leakage": [
+    "public model and fixed padded circuit",
+    "fixed four-step schedule",
+    "fixed context and matrix dimensions",
+    "public evaluation key",
+    "ciphertext sizes",
+    "timing",
+    "local process/transport metadata"
+  ],
+  "parameters": {
+    "bits_reserved_for_computation": 27,
+    "glwe_encryption_noise_distribution_stdev": 2.84526747960191e-15,
+    "encryption_glwe_dimension": 1,
+    "polynomial_size": 2048,
+    "ciphertext_modulus_bit_count": 64,
+    "input_storage_ciphertext_modulus": 39,
+    "packing_ks_level": 2,
+    "packing_ks_base_log": 14,
+    "packing_ks_polynomial_size": 2048,
+    "packing_ks_glwe_dimension": 1,
+    "output_storage_ciphertext_modulus": 26,
+    "pks_noise_distrubution_stdev": 2.84526747960191e-15
+  },
+  "evaluationBackend": "cpu"
+}

@@ -118,27 +118,43 @@
   "cleanupDecisions": {
     "inference/pipelines/text/execution.js": {
       "decision": "retain",
-      "consumerEvidence": ["inference/pipelines/text.js delegates public embedding and multimodal operations here", "tests/inference/pipeline-operation-contract.test.js tests independent embedding scheduling"],
+      "consumerEvidence": [
+        "inference/pipelines/text.js delegates public embedding and multimodal operations here",
+        "tests/inference/pipeline-operation-contract.test.js tests independent embedding scheduling"
+      ],
       "migration": "Remove unused loader, factory, registry, model-lifecycle and generator imports left by extraction; retain execution imports and public forwarding methods. No public path removal."
     },
     "experimental/training": {
       "decision": "retain",
-      "consumerEvidence": ["package.json exports ./training", "training.js and training-browser.js expose training APIs", "tooling/node-command-execution.js loads operator-command", "tooling/browser-harness/benchmark-execution.js imports TRAINING_SUITE_MODULE_PATH pointing to experimental/training/suite.js; this is now a declared, checked graph edge"],
+      "consumerEvidence": [
+        "package.json exports ./training",
+        "training.js and training-browser.js expose training APIs",
+        "tooling/node-command-execution.js loads operator-command",
+        "tooling/browser-harness/benchmark-execution.js imports TRAINING_SUITE_MODULE_PATH pointing to experimental/training/suite.js; this is now a declared, checked graph edge"
+      ],
       "migration": "Retain existing training APIs and browser benchmark behavior through the explicitly reviewed quarantine bridge. Computed module targets are checked; external provider contracts remain separately inventoried. Remove the browser bridge if training suite acquisition moves outside the benchmark harness."
     },
     "experimental/distribution": {
       "decision": "retain",
-      "consumerEvidence": ["tooling/distribution-shard-transport.js and tooling/test-harness.js load shard delivery"],
+      "consumerEvidence": [
+        "tooling/distribution-shard-transport.js and tooling/test-harness.js load shard delivery"
+      ],
       "migration": "Keep optional transport outside storage and inference. Reploid supplies transport policy; no core peer-discovery dependency is introduced."
     },
     "experimental/energy": {
       "decision": "retain",
-      "consumerEvidence": ["rules/inference/config.rules.json pipelineModules selects energy", "inference/pipelines/energy/index.js forwards the selected implementation"],
+      "consumerEvidence": [
+        "rules/inference/config.rules.json pipelineModules selects energy",
+        "inference/pipelines/energy/index.js forwards the selected implementation"
+      ],
       "migration": "Retain the experimental registration. Computed selection is declared in the shared dependency inventory; test-only graph status was incomplete evidence."
     },
     "experimental/hotswap": {
       "decision": "retain",
-      "consumerEvidence": ["inference/pipelines/text/generator/text.js lazily loads intent-bundle", "tooling/test-harness.js loads manifest, runtime and intent-bundle"],
+      "consumerEvidence": [
+        "inference/pipelines/text/generator/text.js lazily loads intent-bundle",
+        "tooling/test-harness.js loads manifest, runtime and intent-bundle"
+      ],
       "migration": "Retain until these consumers migrate; do not classify the implementation as unused or silently promote it to stable inference."
     }
   },
@@ -179,24 +195,155 @@
     "version": "config"
   },
   "allowedDependencies": {
-    "cli": ["cli", "client", "config", "formats", "storage", "tooling"],
-    "client": ["client", "config", "converter", "debug", "errors", "experimental", "formats", "generation", "gpu", "inference", "loader", "memory", "storage", "tooling"],
-    "config": ["config", "debug", "formats", "errors"],
-    "converter": ["config", "converter", "debug", "formats", "inference", "rules"],
-    "debug": ["config", "debug", "formats"],
-    "errors": ["errors"],
-    "experimental": ["client", "config", "converter", "debug", "errors", "experimental", "formats", "gpu", "inference", "memory", "storage", "tooling"],
-    "formats": ["config", "debug", "errors", "formats"],
-    "generation": ["generation", "inference"],
-    "gpu": ["config", "debug", "errors", "formats", "gpu", "memory", "rules"],
-    "inference": ["client", "config", "converter", "debug", "errors", "experimental", "formats", "gpu", "inference", "loader", "memory", "rules", "storage", "tooling"],
-    "loader": ["config", "debug", "experimental", "formats", "gpu", "inference", "loader", "memory", "rules", "storage"],
-    "memory": ["config", "debug", "memory"],
-    "rules": ["config", "formats", "rules"],
-    "storage": ["config", "debug", "errors", "formats", "memory", "storage"],
-    "tooling": ["config", "converter", "debug", "experimental", "formats", "gpu", "inference", "memory", "rules", "storage", "tooling"],
-    "tooling-exports": ["client", "config", "formats", "gpu", "inference", "storage", "tooling", "tooling-exports"],
-    "types": ["types"]
+    "cli": [
+      "cli",
+      "client",
+      "config",
+      "formats",
+      "storage",
+      "tooling"
+    ],
+    "client": [
+      "client",
+      "config",
+      "converter",
+      "debug",
+      "errors",
+      "experimental",
+      "formats",
+      "generation",
+      "gpu",
+      "inference",
+      "loader",
+      "memory",
+      "storage",
+      "tooling"
+    ],
+    "config": [
+      "config",
+      "debug",
+      "formats",
+      "errors"
+    ],
+    "converter": [
+      "config",
+      "converter",
+      "debug",
+      "formats",
+      "inference",
+      "rules"
+    ],
+    "debug": [
+      "config",
+      "debug",
+      "formats"
+    ],
+    "errors": [
+      "errors"
+    ],
+    "experimental": [
+      "client",
+      "config",
+      "converter",
+      "debug",
+      "errors",
+      "experimental",
+      "formats",
+      "gpu",
+      "inference",
+      "memory",
+      "storage",
+      "tooling"
+    ],
+    "formats": [
+      "config",
+      "debug",
+      "errors",
+      "formats"
+    ],
+    "generation": [
+      "generation",
+      "inference"
+    ],
+    "gpu": [
+      "config",
+      "debug",
+      "errors",
+      "formats",
+      "gpu",
+      "memory",
+      "rules"
+    ],
+    "inference": [
+      "config",
+      "converter",
+      "debug",
+      "errors",
+      "experimental",
+      "formats",
+      "gpu",
+      "inference",
+      "loader",
+      "memory",
+      "rules",
+      "storage"
+    ],
+    "loader": [
+      "config",
+      "debug",
+      "experimental",
+      "formats",
+      "gpu",
+      "inference",
+      "loader",
+      "memory",
+      "rules",
+      "storage"
+    ],
+    "memory": [
+      "config",
+      "debug",
+      "memory"
+    ],
+    "rules": [
+      "config",
+      "formats",
+      "rules"
+    ],
+    "storage": [
+      "config",
+      "debug",
+      "errors",
+      "formats",
+      "memory",
+      "storage"
+    ],
+    "tooling": [
+      "config",
+      "converter",
+      "debug",
+      "experimental",
+      "formats",
+      "gpu",
+      "inference",
+      "memory",
+      "rules",
+      "storage",
+      "tooling"
+    ],
+    "tooling-exports": [
+      "client",
+      "config",
+      "formats",
+      "gpu",
+      "inference",
+      "storage",
+      "tooling",
+      "tooling-exports"
+    ],
+    "types": [
+      "types"
+    ]
   },
   "compatibilityOnlyOwners": [],
   "experimentalBridges": {
@@ -239,8 +386,16 @@
     }
   },
   "reachability": {
-    "roots": ["bootstrap.js", "sw.js"],
-    "externalRoots": ["benchmarks", "demo", "tests", "tools"],
+    "roots": [
+      "bootstrap.js",
+      "sw.js"
+    ],
+    "externalRoots": [
+      "benchmarks",
+      "demo",
+      "tests",
+      "tools"
+    ],
     "standaloneModules": {
       "tooling/kernel-path-builder/index.js": {
         "reason": "Operator-loaded kernel path builder retained as a standalone advanced tooling entrypoint."
@@ -254,7 +409,10 @@
     }
   },
   "constitutionalRenames": {
-    "domains": { "pack": "capsule", "pack-http": "capsule-http" },
+    "domains": {
+      "pack": "capsule",
+      "pack-http": "capsule-http"
+    },
     "files": {
       "config/pack-v2.js": "config/capsule-v2.js",
       "cli/serve/pack-handler.js": "cli/serve/capsule-handler.js",
@@ -290,8 +448,15 @@
     "inference/browser-harness/timing-diagnostics.js": "tooling/browser-harness/timing-diagnostics.js"
   },
   "constitutionalDomains": {
-    "registry-contracts": ["rules/rule-registry.js", "config/kernel-registry-contract.js", "config/execution-registry-contract.js"],
-    "capsule-http": ["cli/serve/capsule-handler.js", "cli/serve/capsule-http.js"],
+    "registry-contracts": [
+      "rules/rule-registry.js",
+      "config/kernel-registry-contract.js",
+      "config/execution-registry-contract.js"
+    ],
+    "capsule-http": [
+      "cli/serve/capsule-handler.js",
+      "cli/serve/capsule-http.js"
+    ],
     "capsule": [
       "config/model-ir.js",
       "config/target-plan.js",
@@ -319,16 +484,38 @@
   "constitutionalImportGraphs": [
     {
       "domain": "registry-contracts",
-      "entryPoints": ["rules/rule-registry.js", "config/kernel-registry-contract.js", "config/execution-registry-contract.js"],
-      "forbiddenPathPrefixes": ["client/", "gpu/", "inference/", "loader/", "converter/", "tooling/"]
+      "entryPoints": [
+        "rules/rule-registry.js",
+        "config/kernel-registry-contract.js",
+        "config/execution-registry-contract.js"
+      ],
+      "forbiddenPathPrefixes": [
+        "client/",
+        "gpu/",
+        "inference/",
+        "loader/",
+        "converter/",
+        "tooling/"
+      ]
     },
     {
       "domain": "capsule-http",
-      "entryPoints": ["cli/serve/capsule-handler.js"],
+      "entryPoints": [
+        "cli/serve/capsule-handler.js"
+      ],
       "forbiddenPathPrefixes": [
-        "client/", "converter/", "gpu/", "inference/", "loader/", "memory/",
-        "storage/", "tooling/", "experimental/", "models/",
-        "cli/doppler-serve.js", "cli/serve/receipt.js"
+        "client/",
+        "converter/",
+        "gpu/",
+        "inference/",
+        "loader/",
+        "memory/",
+        "storage/",
+        "tooling/",
+        "experimental/",
+        "models/",
+        "cli/doppler-serve.js",
+        "cli/serve/receipt.js"
       ]
     },
     {
@@ -364,7 +551,11 @@
     },
     {
       "domain": "forge",
-      "entryPoints": ["converter/forge-stages.js", "converter/execution-candidate-forge.js", "converter/forge-candidate-evaluation.js"],
+      "entryPoints": [
+        "converter/forge-stages.js",
+        "converter/execution-candidate-forge.js",
+        "converter/forge-candidate-evaluation.js"
+      ],
       "forbiddenPathPrefixes": [
         "client/model-host/",
         "client/runtime/",
@@ -374,8 +565,16 @@
     },
     {
       "domain": "host-evidence",
-      "entryPoints": ["client/model-host/model-evidence.js"],
-      "forbiddenPathPrefixes": ["gpu/", "loader/", "inference/", "converter/", "tooling/"]
+      "entryPoints": [
+        "client/model-host/model-evidence.js"
+      ],
+      "forbiddenPathPrefixes": [
+        "gpu/",
+        "loader/",
+        "inference/",
+        "converter/",
+        "tooling/"
+      ]
     }
   ],
   "dependencyExceptions": [
@@ -456,13 +655,18 @@
       "reviewedLines": 765,
       "debtAuthorization": "sha256:66797cdee28d91342930af4179ca9cc290da31cdd7634bce1786aaabe1a6fc4f",
       "reason": "Existing acquisition lifecycle now pins one model store through reads, writes, resume, cancellation and cleanup.",
-      "extractTo": ["storage/download/transport.js"]
+      "extractTo": [
+        "storage/download/transport.js"
+      ]
     },
     "storage/shard-manager.js": {
       "reviewedLines": 787,
       "debtAuthorization": "sha256:66797cdee28d91342930af4179ca9cc290da31cdd7634bce1786aaabe1a6fc4f",
       "reason": "Reuse existing integrity and byte access for scoped handles and an outer compatibility default without duplicating integrity algorithms.",
-      "extractTo": ["storage/model-read-session.js", "storage/shards/integrity.js"]
+      "extractTo": [
+        "storage/model-read-session.js",
+        "storage/shards/integrity.js"
+      ]
     },
     "cli/commands/bundle.js": {
       "reviewedLines": 828,
@@ -635,39 +839,11 @@
         "inference/pipelines/text/attention/projections-components.js"
       ]
     },
-    "inference/pipelines/text/config.js": {
-      "reviewedLines": 837,
-      "reason": "The module remains one named runtime or tooling lifecycle; the component boundary ratchets further growth.",
-      "extractTo": [
-        "inference/pipelines/text/config-components.js"
-      ]
-    },
-    "inference/pipelines/text/execution-v1.js": {
-      "reviewedLines": 813,
-      "reason": "The module remains one named runtime or tooling lifecycle; the component boundary ratchets further growth.",
-      "extractTo": [
-        "inference/pipelines/text/execution-v1-components.js"
-      ]
-    },
     "inference/pipelines/text/ffn/dense.js": {
       "reviewedLines": 943,
       "reason": "The module remains one named runtime or tooling lifecycle; the component boundary ratchets further growth.",
       "extractTo": [
         "inference/pipelines/text/ffn/dense-components.js"
-      ]
-    },
-    "inference/pipelines/text/generator/decode-runtime.js": {
-      "reviewedLines": 991,
-      "reason": "The module remains one named runtime or tooling lifecycle; the component boundary ratchets further growth.",
-      "extractTo": [
-        "inference/pipelines/text/generator/decode-runtime-components.js"
-      ]
-    },
-    "inference/pipelines/text/generator/decode.js": {
-      "reviewedLines": 968,
-      "reason": "The module remains one named runtime or tooling lifecycle; the component boundary ratchets further growth.",
-      "extractTo": [
-        "inference/pipelines/text/generator/decode-components.js"
       ]
     },
     "inference/pipelines/text/generator/prefill-runtime.js": {
@@ -684,32 +860,11 @@
         "inference/pipelines/text/generator-steps-components.js"
       ]
     },
-    "inference/pipelines/text/init.js": {
-      "reviewedLines": 951,
-      "reason": "The module remains one named runtime or tooling lifecycle; the component boundary ratchets further growth.",
-      "extractTo": [
-        "inference/pipelines/text/init-components.js"
-      ]
-    },
     "inference/pipelines/text/layer.js": {
       "reviewedLines": 816,
       "reason": "The module remains one named runtime or tooling lifecycle; the component boundary ratchets further growth.",
       "extractTo": [
         "inference/pipelines/text/layer-components.js"
-      ]
-    },
-    "inference/pipelines/text/model-load.js": {
-      "reviewedLines": 843,
-      "reason": "The module remains one named runtime or tooling lifecycle; the component boundary ratchets further growth.",
-      "extractTo": [
-        "inference/pipelines/text/model-load-components.js"
-      ]
-    },
-    "inference/pipelines/text/per-layer-inputs.js": {
-      "reviewedLines": 925,
-      "reason": "The module remains one named runtime or tooling lifecycle; the component boundary ratchets further growth.",
-      "extractTo": [
-        "inference/pipelines/text/per-layer-inputs-components.js"
       ]
     },
     "inference/pipelines/text/types.d.ts": {
@@ -782,7 +937,6 @@
         "tooling/node-source-runtime-components.js"
       ]
     }
-  }
-,
+  },
   "legacyOversize": {}
 }

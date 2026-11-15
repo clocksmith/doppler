@@ -9,7 +9,7 @@ import { getBufferStats } from '../debug-utils/health-metrics.js';
 import { shouldDebugLayerOutput } from '../debug-utils/config.js';
 import { getNormWeightBuffer } from '../weights.js';
 import { runProbes } from '../probes.js';
-import { isMoELayerLocal, hasLoggedFusedDownNorm, setLoggedFusedDownNorm } from './types.js';
+import { isMoELayer, hasLoggedFusedDownNorm, setLoggedFusedDownNorm } from './types.js';
 import { runDenseFFNGPU, runDenseFFNWithFusedPostNormGPU } from './dense.js';
 import { runMoEFFNGPU } from './moe.js';
 import { resolveLayerIntermediateSize } from '../config.js';
@@ -27,14 +27,14 @@ async function debugFFNBuffer(context, layerIdx, label, tensor, numTokens, hidde
 function shouldUseDensePlusMoeFFN(layerIdx, config, layerWeights) {
   return config.ffnBranchMode === 'dense_plus_moe'
     && config.useMoE
-    && isMoELayerLocal(layerIdx, config, layerWeights);
+    && isMoELayer(layerIdx, config);
 }
 
 function shouldUseLegacyMoeOnlyFFN(layerIdx, config, layerWeights) {
   return config.ffnBranchMode !== 'dense'
     && config.ffnBranchMode !== 'dense_plus_moe'
     && config.useMoE
-    && isMoELayerLocal(layerIdx, config, layerWeights);
+    && isMoELayer(layerIdx, config);
 }
 
 function requireNormWeight(layerIdx, layerWeights, key) {
@@ -233,7 +233,6 @@ export async function processFFNWithSandwichNorm(
 
   let canUseFusedDownNorm = numTokens === 1
     && !config.useMoE
-    && !isMoELayerLocal(layerIdx, config, layerWeights)
     && sandwichNorm.hasPostFeedforwardNorm
     && layerWeights?.postFeedforwardNorm
     && layerWeights?.down

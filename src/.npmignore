@@ -28,6 +28,7 @@ client/failure-taxonomy.d.ts
 client/fault-injection.d.ts
 client/model-host/layer-projection.d.ts
 client/model-host/model-evidence.d.ts
+client/model-host/privacy-receipt.d.ts
 client/model-host/source-loading.d.ts
 client/receipt.d.ts
 client/runtime/capsule-artifact-source.d.ts
@@ -688,6 +689,8 @@ gpu/submit-probe.d.ts
 index-browser.d.ts
 index-browser.js
 inference/choice-scoring.d.ts
+inference/execution-backend-contract.d.ts
+inference/execution-backend-contract.js
 inference/generation-output.d.ts
 inference/kv-cache/copy-state.d.ts
 inference/kv-cache/layer-range.d.ts
@@ -791,6 +794,7 @@ inference/pipelines/text/ffn/qwen-shared-expert.d.ts
 inference/pipelines/text/ffn/sandwich.d.ts
 inference/pipelines/text/ffn/standard.d.ts
 inference/pipelines/text/ffn/types.d.ts
+inference/pipelines/text/final-layer-replay.d.ts
 inference/pipelines/text/finiteness-guard-status.d.ts
 inference/pipelines/text/finiteness-policy.d.ts
 inference/pipelines/text/generator-decode-policy.d.ts
@@ -802,10 +806,14 @@ inference/pipelines/text/generator/batch-retry-policy.d.ts
 inference/pipelines/text/generator/capsule-generation.d.ts
 inference/pipelines/text/generator/compiled-greedy-window.d.ts
 inference/pipelines/text/generator/decode-components.d.ts
+inference/pipelines/text/generator/decode-loop.d.ts
+inference/pipelines/text/generator/decode-mechanics.d.ts
 inference/pipelines/text/generator/decode-readback.d.ts
 inference/pipelines/text/generator/decode-runtime.d.ts
+inference/pipelines/text/generator/decode-step.d.ts
 inference/pipelines/text/generator/decode.d.ts
 inference/pipelines/text/generator/diffusion.d.ts
+inference/pipelines/text/generator/generation-runtime.d.ts
 inference/pipelines/text/generator/greedy-head-policy.d.ts
 inference/pipelines/text/generator/logits-config.d.ts
 inference/pipelines/text/generator/per-layer-buffer.d.ts
@@ -832,6 +840,11 @@ inference/pipelines/text/indexed-attention/attention-runner.d.ts
 inference/pipelines/text/init-chat-templates.d.ts
 inference/pipelines/text/init-qkv-fusion.d.ts
 inference/pipelines/text/init-tokenizer.d.ts
+inference/pipelines/text/initialization/init-emulation.d.ts
+inference/pipelines/text/initialization/init-kv-cache.d.ts
+inference/pipelines/text/initialization/init-moe.d.ts
+inference/pipelines/text/initialization/init-speculative.d.ts
+inference/pipelines/text/initialization/init-weights.d.ts
 inference/pipelines/text/kernel-trace.d.ts
 inference/pipelines/text/layer-execution-contract.d.ts
 inference/pipelines/text/layer-input-execution.d.ts
@@ -918,6 +931,7 @@ loader/dtype-utils.d.ts
 loader/embedding-limit-preflight.d.ts
 loader/embedding-loader.d.ts
 loader/experts/compact-expert-cache.d.ts
+loader/experts/expert-frequency-index.d.ts
 loader/experts/loader-bindings.d.ts
 loader/experts/routed-expert-source.d.ts
 loader/gpu-tensor-materialization.d.ts

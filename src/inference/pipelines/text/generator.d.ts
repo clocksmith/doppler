@@ -67,6 +67,8 @@ export declare class PipelineGenerator {
     prompt: PromptInput,
     options?: GenerateOptions
   ): Promise<{ tokenIds: number[]; inputTokenIds: number[]; stats: import('./types.js').PipelineStats }>;
+  beginGeneration(opts: import('./generator-runtime.js').GenerateOptionsResolved, options: GenerateOptions): number;
+  finishGeneration(options: GenerateOptions, startTime: number, generatedIds: readonly number[], promptTokenCount: number): void;
   resetGenerationState(): void;
   resetToSeqLen(seqLen: number): void;
   prefillKVOnly(prompt: PromptInput, options?: GenerateOptions): Promise<KVCacheSnapshot>;

@@ -87,7 +87,8 @@ for (const relativePath of probeForwardingFiles) {
 {
   const source = [
     'src/inference/pipelines/text/generator.js',
-    'src/inference/pipelines/text/generator/decode.js',
+    'src/inference/pipelines/text/generator/decode-step.js',
+    'src/inference/pipelines/text/generator/decode-mechanics.js',
     'src/inference/pipelines/text/generator/prefill-runtime.js',
   ].map(readSource).join('\n');
   assertCallBlocksContain(source, 'await embed(', 'operatorDiagnostics', 'src/inference/pipelines/text/generator.js');
@@ -98,7 +99,8 @@ for (const relativePath of probeForwardingFiles) {
 {
   const source = [
     'src/inference/pipelines/text/generator-steps.js',
-    'src/inference/pipelines/text/generator/decode.js',
+    'src/inference/pipelines/text/generator/decode-step.js',
+    'src/inference/pipelines/text/generator/decode-mechanics.js',
     'src/inference/pipelines/text/generator/diffusion.js',
   ].map(readSource).join('\n');
   assertCallBlocksContain(source, 'await embed(', 'operatorDiagnostics', 'src/inference/pipelines/text/generator-steps.js');

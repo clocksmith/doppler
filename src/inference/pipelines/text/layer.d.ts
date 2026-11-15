@@ -29,8 +29,7 @@ export function detectSandwichNorm(config: ParsedModelConfig | null): SandwichNo
  */
 export function isMoELayer(
   layerIdx: number,
-  config: ParsedModelConfig,
-  layerWeights?: LayerWeights | null
+  config: Pick<ParsedModelConfig, 'useMoE' | 'layerTypes'>
 ): boolean;
 
 /**

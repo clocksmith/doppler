@@ -12,6 +12,7 @@ import {
 } from './ops.js';
 import { processFFNWithSandwichNorm } from './ffn/sandwich.js';
 import { processFFNStandard } from './ffn/standard.js';
+import { isMoELayer } from './ffn/types.js';
 import { getWeightBuffer, getNormWeightBuffer } from './weights.js';
 import { logLayer, logAttn } from './debug-utils/logging.js';
 import { getBufferStats } from './debug-utils/health-metrics.js';
@@ -132,18 +133,6 @@ export function shouldUseStandardPostFfnNextInputRMSNormPairFusion({
   return true;
 }
 
-export function isMoELayer(layerIdx, config) {
-  if (!config.useMoE) return false;
-
-  // Manifest-first: check layerTypes from config (derived from manifest.inference.layerPattern)
-  const layerTypes = config.layerTypes;
-  if (Array.isArray(layerTypes) && layerIdx < layerTypes.length) {
-    return layerTypes[layerIdx] === 'moe';
-  }
-
-  // No layerTypes available: assume all layers are MoE
-  return true;
-}
 
 export function normalizeLayerType(layerType) {
   return typeof layerType === 'string' ? layerType.trim().toLowerCase() : '';
@@ -434,3 +423,5 @@ export async function processLayerPerLayerInputProjection(
     context.recorder
   );
 }
+
+export { isMoELayer };

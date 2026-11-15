@@ -64,16 +64,6 @@
       "../demo/demo.js"
     ]
   },
-  "src/inference/pipelines/text/init.js": {
-    "import(simulatorEnvSpecifier)": {
-      "externalContract": "host simulator env: setSimulatorEnv",
-      "validatedBy": "src/inference/pipelines/text/init.js"
-    },
-    "import(simulatorIndexSpecifier)": {
-      "externalContract": "host simulator: createEmulationContext, isEmulationSupported",
-      "validatedBy": "src/inference/pipelines/text/init.js"
-    }
-  },
   "src/experimental/training/lora/recovery.js": {
     "import(pathToFileURL(absoluteModulePath).href)": {
       "externalContract": "configured trainer module with callable trainer.exportName",
@@ -107,5 +97,15 @@
       "../../assets/activity-preview-recurrent-memory.png",
       "../../assets/activity-preview-weights.png"
     ]
+  },
+  "src/inference/pipelines/text/initialization/init-emulation.js": {
+    "import(simulatorEnvSpecifier)": {
+      "externalContract": "host simulator env: setSimulatorEnv",
+      "validatedBy": "src/inference/pipelines/text/initialization/init-emulation.js"
+    },
+    "import(simulatorIndexSpecifier)": {
+      "externalContract": "host simulator: createEmulationContext, isEmulationSupported",
+      "validatedBy": "src/inference/pipelines/text/initialization/init-emulation.js"
+    }
   }
 }

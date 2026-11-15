@@ -15,6 +15,9 @@ export function resolvePolicyBaseRef(argv, environment = process.env) {
   if (explicit) return explicit;
   const environmentRef = String(environment.DOPPLER_POLICY_BASE_REF ?? '').trim();
   if (environmentRef && !/^0+$/u.test(environmentRef)) return environmentRef;
+  if (environment.GITHUB_ACTIONS === 'true') {
+    throw new Error('CI requires DOPPLER_POLICY_BASE_REF naming the pre-change revision; refusing to compare policy with HEAD.');
+  }
   return 'HEAD';
 }
 

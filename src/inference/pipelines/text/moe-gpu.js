@@ -263,14 +263,18 @@ export async function moeFeedForwardGPU(
   let activeExpertSchedule = null;
 
   const layerRouter = layerRouterWeights?.get(layerIdx) || null;
-  if (layerRouter) {
-    moeRouter.loadWeights(
-      layerRouter.weight,
-      layerRouter.bias || null,
-      layerRouter.scale || null,
-      layerRouter.perExpertScale || null
+  if (!layerRouter) {
+    throw new Error(
+      `[MoE] Layer ${layerIdx} is an MoE layer but has no router weight; ` +
+      'refusing to reuse another layer\'s router. Re-convert the model with per-layer router tensors.'
     );
   }
+  moeRouter.loadWeights(
+    layerRouter.weight,
+    layerRouter.bias || null,
+    layerRouter.scale || null,
+    layerRouter.perExpertScale || null
+  );
 
   // Immediate-only adapters must execute after their recorded producers.
   // Keep the parent recorder open for following residuals and layers.

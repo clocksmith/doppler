@@ -6,11 +6,10 @@ import process from 'node:process';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 
 import { isPlainObject } from '../src/formats/plain-object.js';
-import { TOOLING_COMMANDS, TOOLING_SURFACES } from '../src/tooling/command-api.js';
+import { TOOLING_COMMANDS, TOOLING_SURFACES, ensureCommandSupportedOnSurface } from '../src/tooling/command-api.js';
 
 const REPO_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const DEFAULT_POLICY_PATH = path.join(REPO_ROOT, 'tools', 'policies', 'command-surface-contract.json');
-const COMMAND_API_PATH = path.join(REPO_ROOT, 'src', 'tooling', 'command-api.js');
 const CLI_PATH = path.join(REPO_ROOT, 'src', 'cli', 'doppler-cli.js');
 
 function normalizeText(value) {
@@ -101,39 +100,60 @@ function validateCliUsage(policy, cliSource, errors) {
   }
 }
 
-function validateBrowserFailClosed(policy, commandApiSource, errors) {
-  if (!Array.isArray(policy?.commands)) return;
-  const browserBlocked = policy.commands
-    .filter((command) => !command.surfaces.includes('browser'))
-    .map((command) => command.id);
-  const browserAllowed = policy.commands
-    .filter((command) => command.surfaces.includes('browser'))
-    .map((command) => command.id);
+const COMMAND_PROBES = {
+  convert: { inputDir: '/contract/input', convertPayload: { converterConfig: {} } },
+  'refresh-integrity': { modelDir: '/contract/model' },
+  release: {
+    action: 'decide', manifestPath: '/contract/release.json', outputDirectory: '/contract/output',
+    capsuleTrustedSignersPath: '/contract/trust.json', signingPrivateKeyPath: '/contract/private.json',
+    signingPublicKeyPath: '/contract/public.json', signingAuthority: 'contract-probe',
+    fleetTrustedSignersPath: '/contract/fleet.json',
+  },
+  lora: { action: 'run', workloadPath: '/contract/workload.json' },
+  distill: { action: 'run', workloadPath: '/contract/workload.json' },
+  debug: { workload: 'inference', modelId: 'contract-probe' },
+  bench: { workload: 'inference', modelId: 'contract-probe' },
+  verify: { workload: 'inference', modelId: 'contract-probe' },
+  diagnose: { workload: 'inference', modelId: 'contract-probe' },
+};
 
-  for (const id of browserBlocked) {
-    if (!commandApiSource.includes(`request.command === '${id}'`)) {
-      errors.push(`${id}: browser Node-only guard is missing from command-api.js`);
+// Probe normalization and admission only: no command is executed and no file is read.
+export function validateCommandAdmission(policy, admit = ensureCommandSupportedOnSurface) {
+  const errors = [];
+  for (const command of policy.commands ?? []) {
+    if (!Object.hasOwn(COMMAND_PROBES, command.id)) {
+      errors.push(`${command.id}: add an admission probe for this command`);
+      continue;
+    }
+    for (const surface of TOOLING_SURFACES) {
+      const allowed = command.surfaces.includes(surface);
+      try {
+        const result = admit({ command: command.id, ...COMMAND_PROBES[command.id] }, surface);
+        if (!allowed) errors.push(`${command.id}: ${surface} admitted a forbidden command`);
+        if (result.request.command !== command.id || result.surface !== surface) {
+          errors.push(`${command.id}: admission changed the command or surface`);
+        }
+      } catch (error) {
+        if (allowed || !/currently Node-only/u.test(error.message)) {
+          errors.push(`${command.id}: unexpected ${surface} admission failure: ${error.message}`);
+        }
+      }
     }
   }
-  for (const id of browserAllowed) {
-    if (commandApiSource.includes(`request.command === '${id}'`)) {
-      errors.push(`${id}: browser-supported command appears in the Node-only browser guard`);
-    }
-  }
+  return errors;
 }
 
 export async function buildCommandSurfaceContractReport(options = {}) {
   const policyPath = options.policyPath || DEFAULT_POLICY_PATH;
-  const [policy, commandApiSource, cliSource] = await Promise.all([
+  const [policy, cliSource] = await Promise.all([
     readJson(policyPath),
-    fs.readFile(options.commandApiPath || COMMAND_API_PATH, 'utf8'),
     fs.readFile(options.cliPath || CLI_PATH, 'utf8'),
   ]);
   const errors = [];
   const policyCommandIds = validatePolicy(policy, errors);
   validateCommandSet(policyCommandIds, errors);
   validateCliUsage(policy, cliSource, errors);
-  validateBrowserFailClosed(policy, commandApiSource, errors);
+  errors.push(...validateCommandAdmission(policy));
   const commands = Array.isArray(policy?.commands) ? policy.commands : [];
   return {
     ok: errors.length === 0,

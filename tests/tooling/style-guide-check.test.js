@@ -4,6 +4,9 @@ import { diagnosticKey, listStyleFiles, validateStyleRegistry } from '../../tool
 import fs from 'node:fs';
 
 assert.deepEqual(checkJavaScriptSource('export const n = 1;', 'tools/valid.js'), []);
+assert.equal(checkJavaScriptSource("import { a } from './dep.js'; import { b } from './dep.js';", 'src/duplicate.js')[0].ruleId, 'JS-003');
+assert.deepEqual(checkJavaScriptSource("import { a, b } from './dep.js'; export { a } from './dep.js';", 'src/merged.js'), []);
+assert.deepEqual(checkJavaScriptSource("import { a } from './dep.js'; import { b } from './dep.js';", 'artifacts/captured.js'), [], 'retained source bytes are not rewritten for import hygiene');
 assert.equal(checkJavaScriptSource('export const = ;', 'tests/bad.js')[0].ruleId, 'JS-001');
 assert.equal(checkJavaScriptSource('const value: number = 1;', 'tools/types.js')[0].ruleId, 'JS-001', 'TypeScript syntax is not JavaScript');
 assert.equal(checkJavaScriptSource('export const n = 1;', 'tools/new.mjs')[0].ruleId, 'JS-002');

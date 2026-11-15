@@ -1,6 +1,6 @@
 import { once } from 'node:events';
-import { createReadStream } from 'node:fs';
-import { promises as fs } from 'node:fs';
+import { createReadStream, promises as fs } from 'node:fs';
+
 import { createServer } from 'node:http';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';

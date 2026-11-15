@@ -9,9 +9,9 @@ import { getDevice } from '../../../gpu/device.js';
 import { allowReadback } from '../../../debug/perf-guards.js';
 import { f16ToF32 } from '../../../loader/dtype-utils.js';
 import { readBufferSlice } from '../../../memory/buffer-pool.js';
-import { PROBE_TO_CANONICAL } from './stage-names.js';
+import { PROBE_TO_CANONICAL, getOperatorClass } from './stage-names.js';
 import { buildOpId } from './operator-identity.js';
-import { getOperatorClass } from './stage-names.js';
+
 import { getDriftPolicyId } from './drift-policy.js';
 import { maybeWriteFixtureSnapshot } from './tsir-fixture-writer.js';
 

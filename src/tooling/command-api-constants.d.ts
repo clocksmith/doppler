@@ -1,5 +1,6 @@
 export declare const TOOLING_COMMAND_SET: readonly string[];
 export declare const TOOLING_SURFACE_SET: readonly string[];
+export declare const NODE_ONLY_TOOLING_COMMANDS: readonly string[];
 export declare const TOOLING_WORKLOAD_SET: readonly string[];
 export declare const TOOLING_INTENT_SET: readonly string[];
 export declare const VERIFY_WORKLOADS: readonly string[];

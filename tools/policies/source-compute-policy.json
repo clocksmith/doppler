@@ -700,12 +700,12 @@
       "reason": "The CPU sequence-pooling reference is isolated under src/experimental and excluded from Capsule Runtime execution."
     },
     {
-      "id": "src/inference/pipelines/text/generator/decode.js#runDecodeLayers",
+      "id": "src/inference/pipelines/text/generator/decode-mechanics.js#runDecodeLayers",
       "category": "gpu-orchestration",
       "reason": "The method sequences declared layer dispatches and resource releases; indexed writes clear ownership slots rather than tensor values."
     },
     {
-      "id": "src/inference/pipelines/text/generator/decode.js#decodeStepBody",
+      "id": "src/inference/pipelines/text/generator/decode-step.js#decodeStepBody",
       "category": "gpu-orchestration",
       "reason": "The method sequences declared GPU operations and bounded debug observation; it does not compute tensor output values in JavaScript."
     },
@@ -745,7 +745,7 @@
       "reason": "The method coordinates declared GPU decode batches, stop checks, and token histories; model tensor math remains in registered kernels."
     },
     {
-      "id": "src/inference/pipelines/text/init.js#loadWeights",
+      "id": "src/inference/pipelines/text/initialization/init-weights.js#loadWeights",
       "category": "gpu-orchestration",
       "reason": "This symbol assembles declared weight or state buffer resources without performing model tensor arithmetic."
     },
@@ -810,7 +810,7 @@
       "reason": "The method materializes a policy-declared hot-vocabulary weight cache before the cached rows enter execution."
     },
     {
-      "id": "src/inference/pipelines/text/per-layer-inputs.js#preparePerLayerInputs",
+      "id": "src/inference/pipelines/text/per-layer/prepare.js#preparePerLayerInputs",
       "category": "gpu-orchestration",
       "reason": "The method binds declared per-layer input weights, token IDs, and GPU dispatch resources without implementing their tensor arithmetic."
     },

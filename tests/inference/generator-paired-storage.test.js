@@ -7,6 +7,7 @@ import { decodeReadback } from '../../src/inference/pipelines/text/debug-utils/r
 // No GPU computation, shader accuracy or whole-model acceptance is claimed.
 const prefillURL = new URL('../../src/inference/pipelines/text/generator/prefill-runtime.js', import.meta.url).href;
 const decodeURL = new URL('../../src/inference/pipelines/text/generator/decode.js', import.meta.url).href;
+const decodeModules = [decodeURL, new URL('./decode-step.js', decodeURL).href, new URL('./decode-mechanics.js', decodeURL).href];
 const pair = { precision: 'two-f32', components: 2, elementStrideBytes: 8 };
 const probe = globalThis.generatorStorageProbe = {
   calls: [], reads: [], copies: [], live: new Set(), failure: null,
@@ -60,11 +61,11 @@ const shared = {
 };
 const onlyPrefill = {
   './session-context.js': 'export const buildLayerContext=()=>({useGPU:true}); export const debugCheckBuffer=()=>{};',
-  './prefill-observation.js': `export const logPrefillCacheState=()=>{}; export const tracePrefillEmbeddingIds=()=>{};
+  './prefill-observation.js': `export const snapshotPrefillPhase=(stats,phase)=>phase; export const logPrefillCacheState=()=>{}; export const tracePrefillEmbeddingIds=()=>{};
     export const probePrefillEmbedding=async name=>{if(generatorStorageProbe.failure===name)throw Error('injected '+name);};`,
 };
 const hooks = registerHooks({ resolve(specifier, context, next) {
-  const source = [prefillURL, decodeURL].includes(context.parentURL)
+  const source = [prefillURL, ...decodeModules].includes(context.parentURL)
     ? (context.parentURL === prefillURL ? onlyPrefill[specifier] : null) || shared[specifier] : null;
   if (source) return { url: 'data:text/javascript,' + encodeURIComponent(source), shortCircuit: true };
   return next(specifier, context);

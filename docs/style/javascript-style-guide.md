@@ -1,6 +1,6 @@
 # Doppler JavaScript Style Guide
 
-<!-- style-rules: JS-001, SOURCE-002 -->
+<!-- style-rules: JS-001, SOURCE-002, JS-003 -->
 Mechanical coverage and review-only limits: [style rule registry](../../tools/policies/style-guide-rules.json).
 Run `npm run check:fast` while editing; `npm run style:guides:check` scans all files.
 These checks do not replace the semantic requirements below.
@@ -981,3 +981,7 @@ export function matmulReference(a, b, m, n, k) {
 
 - [WGSL Style Guide](./wgsl-style-guide.md) - Shader conventions
 - [General Style Guide](./general-style-guide.md) - General patterns
+
+### Import hygiene
+
+Use one static import declaration per module specifier. Merge named bindings; when a namespace is required, access its exports through that namespace. A separate re-export may preserve a compatibility surface without duplicating its implementation.

@@ -7,16 +7,14 @@
  */
 
 import type { ParsedModelConfig } from '../config.js';
-import type { LayerWeights } from '../types.js';
 
 /**
- * Checks if a layer uses MoE (Mixture of Experts) FFN.
- * Inlined to avoid circular dependency with layer.ts.
+ * The single MoE-layer test: every layer of a useMoE model, unless the manifest's
+ * layerTypes declares explicit 'moe' entries.
  */
-export declare function isMoELayerLocal(
+export declare function isMoELayer(
   layerIdx: number,
-  config: ParsedModelConfig,
-  layerWeights?: LayerWeights | null
+  config: Pick<ParsedModelConfig, 'useMoE' | 'layerTypes'>
 ): boolean;
 
 /**

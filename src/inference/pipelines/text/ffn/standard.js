@@ -11,7 +11,7 @@ import {
 } from '../ops.js';
 import { getNormWeightBuffer, getVectorTensor } from '../weights.js';
 import { runProbes } from '../probes.js';
-import { isMoELayerLocal } from './types.js';
+import { isMoELayer } from './types.js';
 import { runDenseFFNGPU } from './dense.js';
 import { runMoEFFNGPU } from './moe.js';
 import { resolveQwenNormRouter } from './qwen-shared-expert.js';
@@ -95,7 +95,7 @@ export async function processFFNStandard(
   const useLegacyMoeOnlyFFN = config.ffnBranchMode !== 'dense'
     && config.ffnBranchMode !== 'dense_plus_moe'
     && config.useMoE
-    && isMoELayerLocal(layerIdx, config, layerWeights);
+    && isMoELayer(layerIdx, config);
   // A declared moe_norm_router step moves this norm into the MoE's router dispatch.
   const normRouterDeclared = useLegacyMoeOnlyFFN
     && resolveQwenNormRouter({ kernelPath: context.kernelPath ?? null, phase: context.phase, layerIdx });

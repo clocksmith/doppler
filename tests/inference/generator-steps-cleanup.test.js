@@ -3,7 +3,8 @@ import { readFileSync } from 'node:fs';
 
 const generatorStepsSource = [
   '../../src/inference/pipelines/text/generator-steps.js',
-  '../../src/inference/pipelines/text/generator/decode.js',
+  '../../src/inference/pipelines/text/generator/decode-step.js',
+  '../../src/inference/pipelines/text/generator/decode-mechanics.js',
 ].map((relativePath) => readFileSync(new URL(relativePath, import.meta.url), 'utf8')).join('\n');
 
 globalThis.GPUMapMode = {

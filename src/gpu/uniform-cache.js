@@ -60,6 +60,7 @@ export class UniformBufferCache {
     misses: 0,
     evictions: 0,
     currentSize: 0,
+    transientFallbacks: 0,
   };
 
   
@@ -71,16 +72,24 @@ export class UniformBufferCache {
   
   #maxAgeMs;
   #device;
+  #completedLeases;
+  #leaseEntries = new WeakMap();
+  #transientLeases = new WeakSet();
+  #outstandingLeases = 0;
+  #retiredActiveEntries = 0;
+  #transientOutstandingLeases = 0;
 
   
   constructor(
     maxEntries = getRuntimeConfig().shared.gpuCache.uniformCacheMaxEntries,
     maxAgeMs = getRuntimeConfig().shared.gpuCache.uniformCacheMaxAgeMs,
-    device = getDevice()
+    device = getDevice(),
+    completedLeases = false
   ) {
     this.#maxEntries = maxEntries;
     this.#maxAgeMs = maxAgeMs;
     this.#device = device;
+    this.#completedLeases = completedLeases;
     observeDeviceLoss(device);
     device?.lost?.then(() => this.clear(), () => this.clear());
   }
@@ -99,6 +108,7 @@ export class UniformBufferCache {
         existing.lastUsed = performance.now();
         existing.refCount++;
         this.#stats.hits++;
+        if (this.#completedLeases) this.#outstandingLeases++;
         return existing.buffer;
       }
       suffix += 1;
@@ -106,6 +116,7 @@ export class UniformBufferCache {
       existing = this.#cache.get(key);
     }
 
+    const admitted = !this.#completedLeases || this.#cache.size < this.#maxEntries || this.#evictLRU();
     const dataBytes = copyUniformBytes(dataView);
 
     // Cache miss - create new buffer
@@ -128,20 +139,36 @@ export class UniformBufferCache {
       buffer.destroy();
       throw error;
     }
+    // If every cached lease is still in flight, preserve the bound and return
+    // an uncached buffer. Owner-aware release destroys it after completion.
+    if (!admitted) {
+      this.#stats.transientFallbacks++;
+      this.#outstandingLeases++;
+      this.#transientOutstandingLeases++;
+      this.#transientLeases.add(buffer);
+      uniformOwners.set(buffer, this);
+      return buffer;
+    }
     uniformOwners.set(buffer, this);
     uniformContents.set(buffer, dataBytes);
 
     // Evict if at capacity
-    if (this.#cache.size >= this.#maxEntries) {
+    if (!this.#completedLeases && this.#cache.size >= this.#maxEntries) {
       this.#evictLRU();
     }
 
-    this.#cache.set(key, {
+    const entry = {
       buffer,
       bytes: dataBytes,
       lastUsed: performance.now(),
       refCount: 1,
-    });
+      retired: false,
+    };
+    this.#cache.set(key, entry);
+    if (this.#completedLeases) {
+      this.#leaseEntries.set(buffer, entry);
+      this.#outstandingLeases++;
+    }
     this.#stats.currentSize = this.#cache.size;
 
     return buffer;
@@ -149,6 +176,23 @@ export class UniformBufferCache {
 
   
   release(buffer) {
+    if (this.#completedLeases) {
+      if (this.#transientLeases.delete(buffer)) {
+        this.#outstandingLeases--;
+        this.#transientOutstandingLeases--;
+        buffer.destroy();
+        return;
+      }
+      const entry = this.#leaseEntries.get(buffer);
+      if (!entry || entry.refCount === 0) return;
+      entry.refCount--;
+      this.#outstandingLeases--;
+      if (entry.retired && entry.refCount === 0) {
+        this.#retiredActiveEntries--;
+        buffer.destroy();
+      }
+      return;
+    }
     // Find entry by buffer reference
     for (const [hash, entry] of this.#cache) {
       if (entry.buffer === buffer) {
@@ -174,6 +218,8 @@ export class UniformBufferCache {
       }
     }
 
+    if (oldestHash === null && this.#completedLeases) return false;
+
     // If all entries are in use, evict oldest anyway
     if (oldestHash === null) {
       for (const [hash, entry] of this.#cache) {
@@ -188,12 +234,15 @@ export class UniformBufferCache {
       const entry = this.#cache.get(oldestHash);
       if (entry) {
         // DON'T destroy immediately - defer until GPU work completes
-        this.#pendingDestruction.push(entry.buffer);
+        if (this.#completedLeases) { entry.retired = true; entry.buffer.destroy(); }
+        else this.#pendingDestruction.push(entry.buffer);
         this.#cache.delete(oldestHash);
         this.#stats.evictions++;
         this.#stats.currentSize = this.#cache.size;
+        return true;
       }
     }
+    return false;
   }
 
 
@@ -203,7 +252,11 @@ export class UniformBufferCache {
 
     // Destroy all cached buffers
     for (const entry of this.#cache.values()) {
-      entry.buffer.destroy();
+      if (this.#completedLeases) {
+        entry.retired = true;
+        if (entry.refCount > 0) this.#retiredActiveEntries++;
+      }
+      if (!this.#completedLeases || entry.refCount === 0) entry.buffer.destroy();
     }
     this.#cache.clear();
     this.#stats.currentSize = 0;
@@ -234,7 +287,12 @@ export class UniformBufferCache {
   getStats() {
     const total = this.#stats.hits + this.#stats.misses;
     const hitRate = total > 0 ? ((this.#stats.hits / total) * 100).toFixed(1) + '%' : '0%';
-    return { ...this.#stats, hitRate, pendingDestruction: this.#pendingDestruction.length };
+    const leaseStats = this.#completedLeases ? {
+      outstandingLeases: this.#outstandingLeases,
+      retiredActiveEntries: this.#retiredActiveEntries,
+      transientOutstandingLeases: this.#transientOutstandingLeases,
+    } : {};
+    return { ...this.#stats, ...leaseStats, hitRate, pendingDestruction: this.#pendingDestruction.length };
   }
 }
 
@@ -271,4 +329,21 @@ export function getUniformCacheStats(device = getDevice()) {
 export function resetUniformCache(device = getDevice()) {
   deviceUniformCaches.get(device)?.clear();
   if (device) deviceUniformCaches.delete(device);
+}
+
+// Separate ownership domain: only wrappers releasing after queue completion use
+// this cache. Legacy recorded callers and their flush lifecycle remain separate.
+const completedUniformCaches = new WeakMap();
+export function getCompletedUniformCache(device) {
+  if (!device || isDeviceLost(device)) throw new Error('Completed uniform cache requires a live device.');
+  let cache = completedUniformCaches.get(device);
+  if (!cache) {
+    cache = new UniformBufferCache(undefined, undefined, device, true);
+    completedUniformCaches.set(device, cache);
+  }
+  return cache;
+}
+
+export function getCompletedUniformCacheStats(device) {
+  return completedUniformCaches.get(device)?.getStats() ?? null;
 }

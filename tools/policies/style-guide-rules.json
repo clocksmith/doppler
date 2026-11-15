@@ -182,6 +182,15 @@
       "checker": "tools/check-wgsl-style.js",
       "fixture": "tests/config/wgsl-style-check.test.js",
       "limits": "Numeric literal annotations; not expression evaluation, layout proof or bounds checking."
+    },
+    {
+      "id": "JS-003",
+      "guide": "docs/style/javascript-style-guide.md",
+      "rule": "One static import declaration per module specifier",
+      "coverage": "scoped",
+      "checker": "tools/check-javascript-style.js",
+      "fixture": "tests/tooling/style-guide-check.test.js",
+      "limits": "src/demo JavaScript only; separate re-exports remain allowed. Retained artifacts are unchanged."
     }
   ],
   "legacyMjs": [

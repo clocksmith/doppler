@@ -18,7 +18,15 @@ export interface UniformCacheStats {
   misses: number;
   evictions: number;
   currentSize: number;
+  transientFallbacks: number;
+  /** Completed-lease namespace only; includes transient fallback leases. */
+  outstandingLeases?: number;
+  /** Retired admitted entries still held by at least one outstanding lease. */
+  retiredActiveEntries?: number;
+  /** Uncached fallback buffers waiting for their completion release. */
+  transientOutstandingLeases?: number;
   hitRate?: string;
+  /** Legacy deferred-destruction queue only; excludes retired active completed leases. */
   pendingDestruction?: number;
 }
 
@@ -40,7 +48,7 @@ export declare class UniformBufferCache {
   private readonly maxEntries: number;
   private readonly maxAgeMs: number;
 
-  constructor(maxEntries?: number, maxAgeMs?: number, device?: GPUDevice | null);
+  constructor(maxEntries?: number, maxAgeMs?: number, device?: GPUDevice | null, completedLeases?: boolean);
 
   /**
    * Get or create a uniform buffer with the given contents.
@@ -109,3 +117,9 @@ export function getUniformCacheStats(device?: GPUDevice | null): (UniformCacheSt
  * Reset the global uniform cache (useful for testing or device loss)
  */
 export function resetUniformCache(device?: GPUDevice | null): void;
+
+/** Device-isolated cache for callers releasing leases only after queue completion. */
+export function getCompletedUniformCache(device: GPUDevice): UniformBufferCache;
+
+/** Snapshot only. currentSize counts admitted entries, not all outstanding leases. */
+export function getCompletedUniformCacheStats(device: GPUDevice): UniformCacheStats | null;

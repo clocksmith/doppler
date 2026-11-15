@@ -1,0 +1,7 @@
+# Isolated Python 3.12 CPU experiment; no Doppler runtime dependency.
+concrete-ml==1.9.0
+concrete-ml-extensions==0.1.9
+concrete-python==2.10.0
+torch==2.3.1
+transformers==4.44.2
+numpy==1.26.4

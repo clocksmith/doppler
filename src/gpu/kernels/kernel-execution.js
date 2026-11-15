@@ -2,7 +2,8 @@ import { getKernelRegistry } from './kernel-configs.js';
 import { getCachedPipeline, getPipelineFast, getPipelineBindGroupLayout } from './pipeline-cache.js';
 import { getDevice } from '../device.js';
 import { dispatchKernel, dispatchIndirect, recordDispatchIndirect } from './dispatch.js';
-import { createKernelUniformBuffer } from './uniform-utils.js';
+import { getCompletedUniformCache, releaseUniformBuffer } from '../uniform-cache.js';
+import { createKernelUniformBuffer, getUniformByteLength, writeUniformsFromObject } from './uniform-utils.js';
 import { acquireBuffer, releaseBuffer } from '../../memory/buffer-pool.js';
 
 const dataBindingsByConfig = new WeakMap();
@@ -98,9 +99,15 @@ export async function unifiedKernelWrapper(
   }
 
   let uniformBuffer = null;
+  let dispatchAttempted = false;
   try {
     if (config.uniforms !== null) {
-      uniformBuffer = createKernelUniformBuffer(`${opName}_uniforms`, config, uniforms, recorder, device);
+      if (recorder) uniformBuffer = createKernelUniformBuffer(`${opName}_uniforms`, config, uniforms, recorder, device);
+      else {
+        const data = new ArrayBuffer(getUniformByteLength(config));
+        writeUniformsFromObject(new DataView(data), config, uniforms);
+        uniformBuffer = getCompletedUniformCache(device).getOrCreate(data, `${opName}_uniforms`);
+      }
       const uniformBinding = config.bindings.find(binding => binding.type === 'uniform');
       if (!uniformBinding) throw new Error(`Kernel ${opName}/${variant} declares uniforms without a binding.`);
       bindGroupEntries.unshift({ binding: uniformBinding.index, resource: { buffer: uniformBuffer } });
@@ -122,6 +129,7 @@ export async function unifiedKernelWrapper(
     const label = typeof dispatchLabel === 'string' && dispatchLabel.length > 0
       ? dispatchLabel
       : opName;
+    dispatchAttempted = true;
     if (workgroups && typeof workgroups === 'object' && workgroups.indirectBuffer) {
       const indirectOffset = workgroups.indirectOffset ?? 0;
       if (recorder) {
@@ -133,8 +141,11 @@ export async function unifiedKernelWrapper(
       dispatchKernel(recorder ?? device, pipeline, bindGroup, workgroups, label);
     }
   } catch (error) {
-    if (!recorder) {
-      uniformBuffer?.destroy();
+    if (!recorder && uniformBuffer) {
+      const leased = uniformBuffer;
+      if (dispatchAttempted) device.queue.onSubmittedWorkDone().then(
+        () => releaseUniformBuffer(leased), () => releaseUniformBuffer(leased));
+      else releaseUniformBuffer(leased);
     }
     throw error;
   }
@@ -145,16 +156,16 @@ export async function unifiedKernelWrapper(
     try {
       await device.queue.onSubmittedWorkDone();
     } finally {
-      uniformBuffer?.destroy();
+      if (uniformBuffer) releaseUniformBuffer(uniformBuffer);
     }
     signal?.throwIfAborted();
   } else if (!recorder && uniformBuffer) {
     device.queue.onSubmittedWorkDone()
       .then(() => {
-        uniformBuffer.destroy();
+        releaseUniformBuffer(uniformBuffer);
       })
       .catch(() => {
-        uniformBuffer.destroy();
+        releaseUniformBuffer(uniformBuffer);
       });
   }
 

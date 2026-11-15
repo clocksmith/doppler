@@ -143,7 +143,3 @@ export function moeFeedForwardGPU(
   recorder?: import('../../../gpu/command-recorder.js').CommandRecorder | null
 ): Promise<GPUBuffer>;
 
-/**
- * Check if layer is MoE layer (some models have dense layers too).
- */
-export function isMoELayer(layerIdx: number): boolean;

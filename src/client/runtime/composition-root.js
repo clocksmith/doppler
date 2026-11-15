@@ -1,5 +1,5 @@
 import { resolveExecutionRegistries, assertExecutionRegistriesAccepted } from '../../config/execution-registry-contract.js';
-import { hashTargetPlan, assertQualifiedTargetOperation, assertQualifiedResidentPartition, normalizeTargetPlanSelectionPolicy } from '../../config/target-plan.js';
+import { hashTargetPlan, assertQualifiedTargetOperation, assertQualifiedResidentPartition, normalizeTargetPlanSelectionPolicy, selectQualifiedTargetPlan as selectTargetPlan } from '../../config/target-plan.js';
 import { GENERATION_CONTRACT } from '../../config/generation-contract.js';
 import { ORDERED_LAYER_PARTITION_SCHEMA } from '../../config/layer-partition-plan.js';
 import { canonicalGenerationIdentity } from '../../config/canonical-generation-policy.js';
@@ -13,7 +13,7 @@ import { createVerifiedCapsuleArtifactStore } from './verified-capsule-artifact-
 import { createResourceBinder, createDeviceAvailabilityCheck } from './resource-binder.js';
 import { createCommandExecutor } from './command-executor.js';
 import { createSessionController } from './session-controller.js';
-import { selectQualifiedTargetPlan as selectTargetPlan } from '../../config/target-plan.js';
+
 import { executeCapsuleRerank } from './capsule-rerank.js';
 import { snapshotChoiceScoringRequest, validateChoiceScoringResult } from '../../config/choice-scoring.js';
 import { createCapsuleOperationAdapters } from './capsule-operation-adapters.js';

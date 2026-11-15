@@ -1,28 +1,16 @@
-import { isGgufBlockDtype } from '../../../formats/gguf/block-storage.js';
-import { expandExecutionV1, EXECUTION_V1_SCHEMA_ID } from '../../../config/schema/index.js';
-import {
-  buildInlineKernelPath,
-  buildLayerPipelineFromExecution,
-  buildSessionRuntimePatch,
-  PIPELINE_COMPATIBLE_OPS,
-  requireSessionActivationDtype,
-  requireSessionKVDtype,
-} from './execution-runtime-builders.js';
-import { mergeKernelPathPolicy } from '../../../config/merge/kernel-path-policy.js';
-import { mergeRuntimeValues } from '../../../config/runtime-merge.js';
-import { selectRuleValue } from '../../../rules/rule-registry.js';
-import { buildOpIdFromExecutionStep } from './operator-identity.js';
-import { resolveCapabilityTransforms, resolveFinitenessFallbackTransform } from '../../../converter/capability-transform-resolver.js';
-import { composeTransforms } from '../../../converter/execution-graph-transforms.js';
-import { log } from '../../../debug/index.js';
-import { kernelPathRequiresWeightDtype } from '../../../config/kernel-path-loader.js';
-import { resolveRangeAwareSelectiveWideningConfig } from './finiteness-policy.js';
-import { applyExecutionPatch } from './execution-v1/validation.js';
-import {
-  preserveConfiguredKernelPath,
-  preserveRuntimeDecodeLoop,
-  resolveRuntimeInferenceOverrideSection,
-} from './execution-v1/plan.js';
+import { expandExecutionV1, EXECUTION_V1_SCHEMA_ID } from "../../../config/schema/index.js";
+import { buildInlineKernelPath, buildLayerPipelineFromExecution, buildSessionRuntimePatch, requireSessionActivationDtype, requireSessionKVDtype } from "./execution-runtime-builders.js";
+import { mergeKernelPathPolicy } from "../../../config/merge/kernel-path-policy.js";
+import { mergeRuntimeValues } from "../../../config/runtime-merge.js";
+import { selectRuleValue } from "../../../rules/rule-registry.js";
+import { buildOpIdFromExecutionStep } from "./operator-identity.js";
+import { resolveCapabilityTransforms, resolveFinitenessFallbackTransform } from "../../../converter/capability-transform-resolver.js";
+import { composeTransforms } from "../../../converter/execution-graph-transforms.js";
+import { log } from "../../../debug/index.js";
+import { resolveRangeAwareSelectiveWideningConfig } from "./finiteness-policy.js";
+import { applyExecutionPatch } from "./execution-v1/validation.js";
+import { preserveConfiguredKernelPath, preserveRuntimeDecodeLoop, resolveRuntimeInferenceOverrideSection } from "./execution-v1/plan.js";
+import { assertHybridLinearProjectionIsolation } from "./execution-v1/hybrid-projection-contract.js";
 
 const SESSION_CAPABILITY_TRANSFORMS = new Set([
   'disableRetainQ4KMaterialization',
@@ -176,162 +164,6 @@ function summarizeExecutionGraphContext(execution) {
   return summary;
 }
 
-function normalizeExecutionLayerType(layerType) {
-  return typeof layerType === 'string' ? layerType.trim().toLowerCase() : '';
-}
-
-function isLinearExecutionLayerType(layerType) {
-  const normalized = normalizeExecutionLayerType(layerType);
-  return normalized === 'linear_attention'
-    || normalized === 'linear'
-    || normalized === 'gated_delta'
-    || normalized === 'gated_delta_net';
-}
-
-function isFullAttentionExecutionLayerType(layerType) {
-  const normalized = normalizeExecutionLayerType(layerType);
-  return normalized === 'full_attention'
-    || normalized === 'full'
-    || normalized === 'global'
-    || normalized === 'standard';
-}
-
-// Linear-attention layers alias q_proj/o_proj: global programs must match packed storage.
-function isPackedProjectionKernel(kernelEntry, packedDtype) {
-  return kernelEntry != null && kernelPathRequiresWeightDtype(
-    { decode: { steps: [kernelEntry] } }, packedDtype, 'matmul'
-  );
-}
-
-function collectPhaseOpEntries(phaseEntries, kernels, ops) {
-  const entries = [];
-  for (const entry of phaseEntries ?? []) {
-    if (Array.isArray(entry)) {
-      if (!ops.has(entry[0])) {
-        continue;
-      }
-      entries.push({
-        op: entry[0],
-        layers: 'all',
-        kernelEntry: kernels?.[entry[1]] ?? null,
-      });
-      continue;
-    }
-    if (!entry || typeof entry !== 'object' || !Array.isArray(entry.layers) || !Array.isArray(entry.steps)) {
-      continue;
-    }
-    for (const step of entry.steps) {
-      if (!Array.isArray(step) || !ops.has(step[0])) {
-        continue;
-      }
-      entries.push({
-        op: step[0],
-        layers: entry.layers,
-        kernelEntry: kernels?.[step[1]] ?? null,
-      });
-    }
-  }
-  return entries;
-}
-
-function collectCoveredLayers(entries, targetLayers, predicate) {
-  const covered = new Set();
-  for (const entry of entries) {
-    if (!predicate(entry.kernelEntry)) {
-      continue;
-    }
-    if (entry.layers === 'all') {
-      for (const layerIdx of targetLayers) {
-        covered.add(layerIdx);
-      }
-      continue;
-    }
-    for (const layerIdx of entry.layers ?? []) {
-      if (targetLayers.includes(layerIdx)) {
-        covered.add(layerIdx);
-      }
-    }
-  }
-  return covered;
-}
-
-function assertHybridLinearProjectionIsolation(execution, layerTypes, modelId, weightDtype) {
-  if (!Array.isArray(layerTypes) || layerTypes.length === 0) {
-    return;
-  }
-  const normalizedWeightDtype = String(weightDtype || '').trim().toLowerCase();
-  if (normalizedWeightDtype === 'f16' || normalizedWeightDtype === 'f32') {
-    return;
-  }
-  const packedDtype = isGgufBlockDtype(normalizedWeightDtype) ? normalizedWeightDtype : 'q4k';
-
-  const linearLayers = layerTypes
-    .map((layerType, layerIdx) => ({ layerType, layerIdx }))
-    .filter(({ layerType }) => isLinearExecutionLayerType(layerType))
-    .map(({ layerIdx }) => layerIdx);
-  const fullAttentionLayers = layerTypes
-    .map((layerType, layerIdx) => ({ layerType, layerIdx }))
-    .filter(({ layerType }) => isFullAttentionExecutionLayerType(layerType))
-    .map(({ layerIdx }) => layerIdx);
-
-  if (linearLayers.length === 0 || fullAttentionLayers.length === 0) {
-    return;
-  }
-
-  const guardedOps = [
-    {
-      phase: 'decode',
-      label: 'q_proj/linear_qkv_proj',
-      ops: new Set(['q_proj', 'qkv_proj', 'linear_qkv_proj']),
-    },
-    {
-      phase: 'decode',
-      label: 'o_proj/linear_out_proj',
-      ops: new Set(['o_proj', 'linear_out_proj']),
-    },
-    {
-      phase: 'prefill',
-      label: 'q_proj/linear_qkv_proj',
-      ops: new Set(['q_proj', 'qkv_proj', 'linear_qkv_proj']),
-    },
-    {
-      phase: 'prefill',
-      label: 'o_proj/linear_out_proj',
-      ops: new Set(['o_proj', 'linear_out_proj']),
-    },
-  ];
-
-  for (const guard of guardedOps) {
-    const entries = collectPhaseOpEntries(execution?.[guard.phase], execution?.kernels, guard.ops);
-    if (entries.length === 0) {
-      continue;
-    }
-
-    const hasUnsafeGlobalEntry = entries.some(
-      (entry) => entry.layers === 'all' && !isPackedProjectionKernel(entry.kernelEntry, packedDtype)
-    );
-    if (!hasUnsafeGlobalEntry) {
-      continue;
-    }
-
-    const coveredLinearLayers = collectCoveredLayers(
-      entries,
-      linearLayers,
-      (kernelEntry) => isPackedProjectionKernel(kernelEntry, packedDtype)
-    );
-    const missingLinearLayers = linearLayers.filter((layerIdx) => !coveredLinearLayers.has(layerIdx));
-    if (missingLinearLayers.length === 0) {
-      continue;
-    }
-
-    throw new Error(
-      `[ExecutionV1] Hybrid linear-attention model "${modelId}" cannot apply a global non-Q4 ` +
-      `${guard.phase} ${guard.label} kernel because linear-attention layers alias that role. ` +
-      `Missing declared Q4 coverage for linear layers [${missingLinearLayers.join(', ')}]. ` +
-      'Keep the linear-attention path on registered Q4 weight kernels or isolate those layers with explicit execution-v1 overrides.'
-    );
-  }
-}
 function expandV1ToResolvedSteps(execution, options = {}) {
   const expanded = expandExecutionV1(execution, options);
   return expanded.map((step, index) => {
@@ -451,7 +283,6 @@ function buildFinitenessFallbackKernelPath({
     finitenessFallbackTransform: fallback.name,
   };
 }
-
 
 export function compileExecutionV1(options = {}) {
   const manifestInference = options.manifestInference;
@@ -740,7 +571,6 @@ export function compileExecutionV1(options = {}) {
     fallbackKernelPath,
   };
 }
-
 
 // Patch order contract for applyExecutionV1RuntimeConfig:
 //   1. compileExecutionV1 — resolves execution graph, applies capability transforms,

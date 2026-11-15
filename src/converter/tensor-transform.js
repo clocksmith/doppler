@@ -2,14 +2,7 @@ import { ggufBlockBytes, isGgufBlockSourceDtype } from '../formats/gguf/block-st
 import { validateQ40Storage } from '../formats/rdrr/q4_0-storage.js';
 import { fp8SourceEncoding, packFP8Source, materializeFP8Source } from './fp8-source.js';
 import { quantizeToW8A8Rows } from './w8a8-quantizer.js';
-import {
-  // Constants
-  SHARD_SIZE as SCHEMA_SHARD_SIZE,
-  RDRR_VERSION as SCHEMA_RDRR_VERSION,
-  ConversionStage as SchemaConversionStage,
-  DEFAULT_MANIFEST_INFERENCE,
-  formatBytes,
-} from '../config/schema/index.js';
+import { SHARD_SIZE as SCHEMA_SHARD_SIZE, RDRR_VERSION as SCHEMA_RDRR_VERSION, ConversionStage as SchemaConversionStage, DEFAULT_MANIFEST_INFERENCE, formatBytes, createConverterConfig } from '../config/schema/index.js';
 import {
   classifyTensorRole,
   generateShardFilename,
@@ -21,7 +14,7 @@ import {
   getInferenceLayerPatternContractArtifact,
   selectRuleValue,
 } from '../rules/rule-registry.js';
-import { createConverterConfig } from '../config/schema/index.js';
+
 import { buildExecutionContractArtifact } from '../config/execution-contract-check.js';
 import { buildManifestRequiredInferenceFieldsArtifact } from '../config/required-inference-fields-contract-check.js';
 import { resolveEosTokenId } from './tokenizer-special-tokens.js';

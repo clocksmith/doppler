@@ -2,6 +2,7 @@ import { isPlainObject } from '../formats/plain-object.js';
 import {
   TOOLING_COMMAND_SET,
   TOOLING_SURFACE_SET,
+  NODE_ONLY_TOOLING_COMMANDS,
   TOOLING_WORKLOAD_SET,
   VERIFY_WORKLOADS,
   TRAINING_COMMAND_SCHEMA_VERSION,
@@ -24,24 +25,24 @@ export const TOOLING_WORKLOADS = Object.freeze([...TOOLING_WORKLOAD_SET]);
 export const TOOLING_VERIFY_WORKLOADS = Object.freeze([...VERIFY_WORKLOADS]);
 export const TOOLING_TRAINING_COMMAND_SCHEMA_VERSION = TRAINING_COMMAND_SCHEMA_VERSION;
 
+const COMMAND_NORMALIZERS = Object.freeze({
+  convert: normalizeConvert,
+  'refresh-integrity': normalizeRefreshIntegrity,
+  release: normalizeRelease,
+  lora: normalizeTrainingOperatorCommand,
+  distill: normalizeTrainingOperatorCommand,
+  debug: normalizeSuiteCommand,
+  bench: normalizeSuiteCommand,
+  verify: normalizeSuiteCommand,
+  diagnose: normalizeSuiteCommand,
+});
+
 export function normalizeToolingCommandRequest(input) {
   if (!isPlainObject(input)) {
     throw new Error('tooling command: request must be an object.');
   }
   const command = assertCommand(input.command);
-  if (command === 'convert') {
-    return normalizeConvert(input);
-  }
-  if (command === 'refresh-integrity') {
-    return normalizeRefreshIntegrity(input);
-  }
-  if (command === 'release') {
-    return normalizeRelease(input);
-  }
-  if (command === 'lora' || command === 'distill') {
-    return normalizeTrainingOperatorCommand(input, command);
-  }
-  return normalizeSuiteCommand(input, command);
+  return COMMAND_NORMALIZERS[command](input, command);
 }
 
 export function ensureCommandSupportedOnSurface(commandRequest, surface) {
@@ -53,14 +54,7 @@ export function ensureCommandSupportedOnSurface(commandRequest, surface) {
 
   if (
     normalizedSurface === 'browser'
-    && (
-      request.command === 'lora'
-      || request.command === 'distill'
-      || request.command === 'diagnose'
-      || request.command === 'convert'
-      || request.command === 'refresh-integrity'
-      || request.command === 'release'
-    )
+    && NODE_ONLY_TOOLING_COMMANDS.includes(request.command)
   ) {
     throw new Error(`tooling command: ${request.command} is currently Node-only and must fail closed on browser.`);
   }

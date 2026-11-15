@@ -32,7 +32,7 @@ export const DISTRIBUTION_SOURCE_CACHE = 'cache';
 
 export const DISTRIBUTION_SOURCE_P2P = 'p2p';
 
-import { DISTRIBUTION_SOURCE_HTTP } from '../../../storage/download/http-contract.js';
+import { DISTRIBUTION_SOURCE_HTTP, normalizeRequiredInteger, createShardSizeMismatchError, createSourceCounter, createLatencySummary, createDeliveryMetrics } from '../../../storage/download/http-contract.js';
 export { DISTRIBUTION_SOURCE_HTTP };
 
 export const DISTRIBUTION_DELIVERY_METRICS_SCHEMA_VERSION = 1;
@@ -55,7 +55,7 @@ export const DEFAULT_P2P_QUARANTINE_MS = DEFAULT_DISTRIBUTION_CONFIG.p2p.abuse.q
 
 export const DEFAULT_P2P_CONTROL_PLANE_TOKEN_REFRESH_SKEW_MS = DEFAULT_DISTRIBUTION_CONFIG.p2p.controlPlane.tokenRefreshSkewMs;
 
-import { normalizeRequiredInteger, createShardSizeMismatchError } from '../../../storage/download/http-contract.js';
+
 export { normalizeRequiredInteger, createShardSizeMismatchError };
 
 export function normalizeOptionalToken(value) {
@@ -282,5 +282,5 @@ export function enforceP2PSecurityAndAbusePolicy(p2pConfig, state, shardIndex, n
 
 
 
-import { createSourceCounter, createLatencySummary, createDeliveryMetrics } from '../../../storage/download/http-contract.js';
+
 export { createSourceCounter, createLatencySummary, createDeliveryMetrics };

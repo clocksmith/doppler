@@ -8,20 +8,8 @@ import { isDeviceLost } from '../../memory/device-residency.js';
 import { applyDebugConfig, setGPUDevice } from '../../debug/index.js';
 import { getRuntimeConfig, resolveRuntimeConfig, enterRuntimeConfig } from '../../config/runtime.js';
 import { kernelTrace } from './text/kernel-trace.js';
-import {
-  getLogLevel,
-  getTrace,
-  isSilentMode,
-  setLogLevel,
-  setSilentMode,
-  setTrace,
-} from '../../debug/config.js';
-import {
-  gpuDevice as debugGpuDevice,
-  traceBreakOnAnomaly,
-  traceLayerFilter,
-  traceMaxDecodeSteps,
-} from '../../debug/config.js';
+import { getLogLevel, getTrace, isSilentMode, setLogLevel, setSilentMode, setTrace, gpuDevice as debugGpuDevice, traceBreakOnAnomaly, traceLayerFilter, traceMaxDecodeSteps } from '../../debug/config.js';
+
 
 const RESTORE_PIPELINE_CONTEXTS = Symbol('restorePipelineContexts');
 const RELEASE_PIPELINE_GLOBALS = Symbol('releasePipelineGlobals');
