@@ -24,8 +24,8 @@ fn main(@builtin(global_invocation_id) global_id: vec3<u32>) {
   let non_finite = (bits & 0x7F800000u) == 0x7F800000u;
   let exceeds_abs_threshold = abs(value) > u.abs_threshold;
   if (non_finite || exceeds_abs_threshold) {
-    let old = atomicCompareExchangeWeak(&status[0], 0u, 1u);
-    if (old.exchanged) {
+    let old = atomicOr(&status[0], 1u);
+    if (old == 0u) {
       atomicStore(&status[1], u.layer);
       atomicStore(&status[2], u.step);
     }
