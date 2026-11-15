@@ -560,4 +560,6 @@ export const UNIFORM_WRITERS = Object.freeze({
   "ple_gate/f32": { size: 16, write: writers2.write_ple_gate_f32 },
   "ple_conv/f32": { size: 16, write: writers2.write_ple_conv_f32 },
   "channel_energy_pair/f32": { size: 32, write: writers2.write_channel_energy_pair_f32 },
+  "channel_rotation_derive/f32": { size: 32, write: writers2.write_channel_rotation_derive_f32 },
+  "channel_rotation_apply/f32": { size: 16, write: writers2.write_channel_rotation_apply_f32 },
 });

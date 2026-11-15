@@ -59,3 +59,5 @@ export declare function write_attention_indexed_f32kv(view: DataView, values: { 
 export declare function write_ple_gate_f32(view: DataView, values: { "num_tokens": number; "group_stride": number; "divisor": number; "clamp_min": number }, kernel: string): void;
 export declare function write_ple_conv_f32(view: DataView, values: { "num_tokens": number; "channels": number }, kernel: string): void;
 export declare function write_channel_energy_pair_f32(view: DataView, values: { "channels": number; "start": number; "stop": number; "content_start": number; "content_stop": number }, kernel: string): void;
+export declare function write_channel_rotation_derive_f32(view: DataView, values: { "channels": number; "start": number; "stop": number; "content_start": number; "content_stop": number; "epsilon": number }, kernel: string): void;
+export declare function write_channel_rotation_apply_f32(view: DataView, values: { "channels": number; "tokens": number; "theta": number }, kernel: string): void;

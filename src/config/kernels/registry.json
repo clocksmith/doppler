@@ -38133,6 +38133,162 @@
      }
     }
    }
+  },
+  "channel_rotation_derive": {
+   "description": "Experimental signed-mean rank-two channel plane",
+   "baseBindings": [
+    {
+     "index": 0,
+     "name": "uniforms",
+     "type": "uniform"
+    },
+    {
+     "index": 1,
+     "name": "input",
+     "type": "read-only-storage"
+    },
+    {
+     "index": 2,
+     "name": "basis",
+     "type": "storage"
+    },
+    {
+     "index": 3,
+     "name": "status",
+     "type": "storage"
+    }
+   ],
+   "baseUniforms": {
+    "size": 32,
+    "fields": [
+     {
+      "name": "channels",
+      "type": "u32",
+      "offset": 0
+     },
+     {
+      "name": "start",
+      "type": "u32",
+      "offset": 4
+     },
+     {
+      "name": "stop",
+      "type": "u32",
+      "offset": 8
+     },
+     {
+      "name": "content_start",
+      "type": "u32",
+      "offset": 12
+     },
+     {
+      "name": "content_stop",
+      "type": "u32",
+      "offset": 16
+     },
+     {
+      "name": "epsilon",
+      "type": "f32",
+      "offset": 20
+     },
+     {
+      "name": "_pad0",
+      "type": "u32",
+      "offset": 24,
+      "padding": true
+     },
+     {
+      "name": "_pad1",
+      "type": "u32",
+      "offset": 28,
+      "padding": true
+     }
+    ]
+   },
+   "variants": {
+    "f32": {
+     "wgsl": "channel_rotation_derive.wgsl",
+     "entryPoint": "main",
+     "workgroup": [256,1,1],
+     "requires": [],
+     "reachability": {
+      "status": "code-dispatched",
+      "inlineConfigs": [],
+      "ruleChains": [],
+      "wgslOnDisk": true
+     }
+    }
+   }
+  },
+  "channel_rotation_apply": {
+   "description": "Experimental norm-preserving channel rotation",
+   "baseBindings": [
+    {
+     "index": 0,
+     "name": "uniforms",
+     "type": "uniform"
+    },
+    {
+     "index": 1,
+     "name": "input",
+     "type": "read-only-storage"
+    },
+    {
+     "index": 2,
+     "name": "basis",
+     "type": "read-only-storage"
+    },
+    {
+     "index": 3,
+     "name": "status",
+     "type": "read-only-storage"
+    },
+    {
+     "index": 4,
+     "name": "output",
+     "type": "storage"
+    }
+   ],
+   "baseUniforms": {
+    "size": 16,
+    "fields": [
+     {
+      "name": "channels",
+      "type": "u32",
+      "offset": 0
+     },
+     {
+      "name": "tokens",
+      "type": "u32",
+      "offset": 4
+     },
+     {
+      "name": "theta",
+      "type": "f32",
+      "offset": 8
+     },
+     {
+      "name": "_pad0",
+      "type": "u32",
+      "offset": 12,
+      "padding": true
+     }
+    ]
+   },
+   "variants": {
+    "f32": {
+     "wgsl": "channel_rotation_apply.wgsl",
+     "entryPoint": "main",
+     "workgroup": [256,1,1],
+     "requires": [],
+     "reachability": {
+      "status": "code-dispatched",
+      "inlineConfigs": [],
+      "ruleChains": [],
+      "wgslOnDisk": true
+     }
+    }
+   }
   }
  }
 }

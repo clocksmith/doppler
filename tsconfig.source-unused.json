@@ -214,6 +214,7 @@
     "demo/ui/activation-grid/recording-codec.js",
     "src/converter/qwen4-exp-source-execution.js",
     "src/loader/experts/compact-expert-cache.js",
-    "src/loader/experts/routed-expert-source.js"
+    "src/loader/experts/routed-expert-source.js",
+    "src/gpu/kernels/channel-rotation.js"
   ]
 }

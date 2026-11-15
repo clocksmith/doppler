@@ -560,5 +560,7 @@ export interface KernelUniformValues {
   "ple_gate/f32": Parameters<typeof writers2.write_ple_gate_f32>[1];
   "ple_conv/f32": Parameters<typeof writers2.write_ple_conv_f32>[1];
   "channel_energy_pair/f32": Parameters<typeof writers2.write_channel_energy_pair_f32>[1];
+  "channel_rotation_derive/f32": Parameters<typeof writers2.write_channel_rotation_derive_f32>[1];
+  "channel_rotation_apply/f32": Parameters<typeof writers2.write_channel_rotation_apply_f32>[1];
 }
 export declare const UNIFORM_WRITERS: { readonly [K in keyof KernelUniformValues]: { readonly size: number; readonly write: (view: DataView, values: KernelUniformValues[K], kernel: string) => void } };

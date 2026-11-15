@@ -98,6 +98,8 @@ export const KERNEL_REF_CONTENT_DIGESTS = Object.freeze({
   "channel_gain_control.wgsl#random_z": "af48123b3951f19f36632ead977505b853659ba5006aeff9b815be17341ac7b8",
   "channel_gain_derive.wgsl#main": "0c62ee49830c7685a52ba1810946139c7125ba835d2657f3955b7a5e6c6df162",
   "channel_gain_swiglu.wgsl#main": "975e71c577ace2b3042c5c596adf247e35146e9ea67e06f01315382973b01a76",
+  "channel_rotation_apply.wgsl#main": "a8f38cd72ab8ce45df8286d1a95f6f71e2958d08b87fef53dc52cffffa95ba0d",
+  "channel_rotation_derive.wgsl#main": "7d25414f0c94114454aa4ec7e5e03b30d518d3b933792fbb8eb8167ba5fab764",
   "check_finiteness_f32.wgsl#main": "beaa2edff73446edb50ac7b361f3c1987860a310459e828958376ef7c9d11de7",
   "check_finiteness.wgsl#main": "cfd7ce41b455bc53356c1c1c2f0eb11e6128fe5202ece5eb9084575284b9c87c",
   "check_hot_vocab_stop.wgsl#main": "2e7ffd9cbdaf3e5a172d8416a12adcd07d423fa72b183a683854aa6a13bff4f4",
