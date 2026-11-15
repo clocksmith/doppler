@@ -58,3 +58,4 @@ export declare function write_qsa_select_u32(view: DataView, values: { "num_toke
 export declare function write_attention_indexed_f32kv(view: DataView, values: { "num_tokens": number; "num_heads": number; "num_kv_heads": number; "head_dim": number; "max_selected": number; "scale": number }, kernel: string): void;
 export declare function write_ple_gate_f32(view: DataView, values: { "num_tokens": number; "group_stride": number; "divisor": number; "clamp_min": number }, kernel: string): void;
 export declare function write_ple_conv_f32(view: DataView, values: { "num_tokens": number; "channels": number }, kernel: string): void;
+export declare function write_channel_energy_pair_f32(view: DataView, values: { "channels": number; "start": number; "stop": number; "content_start": number; "content_stop": number }, kernel: string): void;

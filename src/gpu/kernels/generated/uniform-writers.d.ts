@@ -559,5 +559,6 @@ export interface KernelUniformValues {
   "attention_indexed/f16kv": Parameters<typeof writers2.write_attention_indexed_f32kv>[1];
   "ple_gate/f32": Parameters<typeof writers2.write_ple_gate_f32>[1];
   "ple_conv/f32": Parameters<typeof writers2.write_ple_conv_f32>[1];
+  "channel_energy_pair/f32": Parameters<typeof writers2.write_channel_energy_pair_f32>[1];
 }
 export declare const UNIFORM_WRITERS: { readonly [K in keyof KernelUniformValues]: { readonly size: number; readonly write: (view: DataView, values: KernelUniformValues[K], kernel: string) => void } };

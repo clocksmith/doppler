@@ -92,6 +92,7 @@ export const KERNEL_REF_CONTENT_DIGESTS = Object.freeze({
   "cast_f32_to_two_f32.wgsl#main": "4f79cf40e2b469745c53f11f12f5791b8429a6ada4d055c5bd6e418033860945",
   "cast_two_f32_to_f16.wgsl#main": "c849fddd43cc81e8d1b3e60cffc54275484df53ab29dde0371d17b2048844d01",
   "causal_conv1d_silu.wgsl#main": "112819d4486cc25414d68cd0697418d9e66179bcec776dcae1a45e1616984d1e",
+  "channel_energy_pair.wgsl#main": "0034ebc3a055e0d5a76efc7ebac3769ef51f263ec39f073647ed599626bde241",
   "channel_energy.wgsl#main": "d4d16d299a1a5ff508b7d5cd272cb6ef2f5f2031f6bd0c2822aeeb8cdfe8f0bb",
   "channel_gain_control.wgsl#permuted": "30056fb3e9537705efb0db269c80dae5ab0e2ffa3c6ce58a7fbeba66ac74b56c",
   "channel_gain_control.wgsl#random_z": "af48123b3951f19f36632ead977505b853659ba5006aeff9b815be17341ac7b8",

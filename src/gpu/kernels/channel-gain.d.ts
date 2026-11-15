@@ -15,3 +15,9 @@ export function deriveChannelGains(recorder: CommandRecorder | null, instruction
  * These inputs contain no data computed from model activations or gains. Output transfers to caller. */
 export function controlChannelGains(recorder: CommandRecorder | null, gains: Tensor,
   options: { channels: number; mode: 'permuted' | 'random-z'; seeds: GPUBuffer }): Promise<Tensor>;
+
+/** Both outputs transfer to caller. Reference is full-context content excluding instruction,
+ * NOT a second prefill with instruction removed. Template tokens must be outside content. */
+export function channelEnergyPair(recorder: CommandRecorder | null, input: Tensor,
+  options: { tokens: number; channels: number; start: number; stop: number;
+    contentStart: number; contentStop: number }): Promise<{ instruction: Tensor; reference: Tensor }>;

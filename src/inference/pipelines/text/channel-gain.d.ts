@@ -7,6 +7,8 @@ export interface ChannelGainSpec {
   span: { start: number; stop: number; templatePositions: number[] };
   layers: { layerIdx: number; channels: number }[];
   frozenGains?: FrozenChannelGains;
+  /** Capture-only: original full-prompt content span. Enables same-pass complement reference. */
+  captureContentSpan?: { start: number; stop: number };
 }
 export interface ChannelGainRequest {
   readonly requestId: string; readonly mode: 'capture' | 'apply'; readonly gainHash: string;
@@ -19,6 +21,8 @@ export interface ChannelGainRequest {
     recorder: CommandRecorder | null): Promise<void>;
   /** After submitted prefill completion, transfers energy-buffer ownership to caller. */
   takeEnergies(): Map<number, Tensor>;
+  /** Transfers optional same-pass reference buffers independently of instruction buffers. */
+  takeReferenceEnergies(): Map<number, Tensor>;
   /** Caller must finish/discard recorders first. Frozen gain buffers are borrowed, never released. */
   close(): void;
 }

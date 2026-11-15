@@ -42,3 +42,19 @@ complete(); await operation;
 assert.doesNotThrow(() => assertChannelGainIdle(operationState));
 assert.throws(() => assertChannelGainIdle({ isGenerating: true }), /active operation/);
 console.log('channel-gain request CPU contracts passed; no GPU dispatch performed');
+
+// Same-pass capture is opt-in and has its own exact, template-free content span.
+const pairSpec = { mode: 'capture', requestId: 'pair', gainHash: '', cacheArm: 'base-cache',
+  tokenCount: 6, span: { start: 2, stop: 4, templatePositions: [0, 5] },
+  captureContentSpan: { start: 1, stop: 5 }, layers: [{ layerIdx: 2, channels: 2 }] };
+const pair = createChannelGainRequest(pairSpec);
+pairSpec.captureContentSpan.start = 0;
+assert.throws(() => pair.takeReferenceEnergies(), /incomplete/);
+assert.doesNotThrow(() => pair.validateLayer(2, context, 6, 2));
+pair.close(); assert.throws(() => pair.takeReferenceEnergies(), /closed/);
+for (const content of [{start:0,stop:5},{start:2,stop:4},{start:3,stop:5},{start:1,stop:7}]) {
+  assert.throws(() => createChannelGainRequest({...pairSpec,captureContentSpan:content}), /Same-pass capture/);
+}
+const plain = createChannelGainRequest({...pairSpec,captureContentSpan:undefined});
+assert.throws(() => plain.takeReferenceEnergies(), /absent/);plain.close();
+console.log('same-pass capture span and reference-ownership contracts passed');

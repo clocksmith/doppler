@@ -559,4 +559,5 @@ export const UNIFORM_WRITERS = Object.freeze({
   "attention_indexed/f16kv": { size: 32, write: writers2.write_attention_indexed_f32kv },
   "ple_gate/f32": { size: 16, write: writers2.write_ple_gate_f32 },
   "ple_conv/f32": { size: 16, write: writers2.write_ple_conv_f32 },
+  "channel_energy_pair/f32": { size: 32, write: writers2.write_channel_energy_pair_f32 },
 });

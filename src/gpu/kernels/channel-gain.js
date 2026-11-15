@@ -1,7 +1,7 @@
 import { selectRuleValue } from './rule-registry.js';
 import { createTensor } from '../tensor.js';
 import { WORKGROUP_SIZES } from './constants.js';
-import { unifiedKernelWrapper, withKernelOutput } from './kernel-execution.js';
+import { unifiedKernelWrapper, withKernelOutput, withKernelOutputs } from './kernel-execution.js';
 
 /** @type {typeof import('./channel-gain.js').validateChannelTensor} */
 export function validateChannelTensor(input, tokens, channels) {
@@ -72,5 +72,29 @@ export async function controlChannelGains(recorder, gains, options) {
     await unifiedKernelWrapper('channel_gain_control', recorder, variant, [gains, seeds, output],
       { channels }, workgroups);
     return createTensor(output, 'f32', [channels], 'channel_gain_control');
+  });
+}
+
+/** @type {typeof import('./channel-gain.js').channelEnergyPair} */
+export async function channelEnergyPair(recorder, input, options) {
+  const { tokens, channels, start, stop, contentStart, contentStop } = options;
+  validateChannelTensor(input, tokens, channels);
+  if (![start, stop, contentStart, contentStop].every(Number.isInteger)
+      || contentStart < 0 || contentStop > tokens || start < contentStart
+      || stop > contentStop || start >= stop
+      || contentStop - contentStart <= stop - start) {
+    throw new Error('Paired energy requires exact nested instruction/content spans and a nonempty complement.');
+  }
+  return withKernelOutputs(recorder, {
+    instruction: { bytes: channels * 4, label: 'channel_instruction_energy' },
+    reference: { bytes: channels * 4, label: 'channel_reference_energy' },
+  }, async ({ instruction, reference }) => {
+    await unifiedKernelWrapper('channel_energy_pair', recorder, 'f32', [input, instruction, reference],
+      { channels, start, stop, content_start: contentStart, content_stop: contentStop },
+      Math.ceil(channels / WORKGROUP_SIZES.DEFAULT));
+    return {
+      instruction: createTensor(instruction, 'f32', [channels], 'channel_instruction_energy'),
+      reference: createTensor(reference, 'f32', [channels], 'channel_reference_energy'),
+    };
   });
 }

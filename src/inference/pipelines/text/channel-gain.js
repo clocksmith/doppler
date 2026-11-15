@@ -1,4 +1,4 @@
-import { channelEnergy, channelGainSwiGLU, validateChannelTensor } from '../../../gpu/kernels/channel-gain.js';
+import { channelEnergy, channelEnergyPair, channelGainSwiGLU, validateChannelTensor } from '../../../gpu/kernels/channel-gain.js';
 import { createTensor } from '../../../gpu/tensor.js';
 import { createSha256Hasher } from '../../../formats/sha256.js';
 import { getDevice } from '../../../gpu/device.js';
@@ -105,9 +105,20 @@ export function createChannelGainRequest(spec) {
     }
     selected.set(layer.layerIdx, Object.freeze({ ...layer }));
   }
+  const content = spec.captureContentSpan;
+  if (content !== undefined && (mode !== 'capture'
+      || !Number.isInteger(content.start) || !Number.isInteger(content.stop)
+      || content.start < 0 || content.stop > tokenCount || content.start > span.start
+      || content.stop < span.stop || content.stop - content.start <= span.stop - span.start
+      || span.templatePositions.some(p => p >= content.start && p < content.stop))) {
+    throw new Error('Same-pass capture requires content containing the instruction plus a nonempty template-free complement.');
+  }
+  const frozenContent = content ? Object.freeze({ start: content.start, stop: content.stop }) : null;
   const frozenSpan = Object.freeze({ start: span.start, stop: span.stop });
   /** @type {Map<number, import('../../../gpu/tensor.js').Tensor>} */
   const energies = new Map();
+  /** @type {Map<number, import('../../../gpu/tensor.js').Tensor>} */
+  const referenceEnergies = new Map();
   const seen = new Set();
   let closed = false;
   let pending = 0;
@@ -155,8 +166,15 @@ export function createChannelGainRequest(spec) {
       if (seen.has(layerIdx)) throw new Error('Channel energy already captured for this layer.');
       pending += 1;
       try {
-        const energy = await channelEnergy(recorder, tensor, { tokens, channels, ...frozenSpan });
-        energies.set(layerIdx, energy);
+        if (frozenContent) {
+          const pair = await channelEnergyPair(recorder, tensor, { tokens, channels, ...frozenSpan,
+            contentStart: frozenContent.start, contentStop: frozenContent.stop });
+          energies.set(layerIdx, pair.instruction);
+          referenceEnergies.set(layerIdx, pair.reference);
+        } else {
+          const energy = await channelEnergy(recorder, tensor, { tokens, channels, ...frozenSpan });
+          energies.set(layerIdx, energy);
+        }
         seen.add(layerIdx);
       } finally { pending -= 1; }
     },
@@ -169,13 +187,23 @@ export function createChannelGainRequest(spec) {
       energies.clear();
       return result;
     },
+    takeReferenceEnergies() {
+      assertOpen();
+      if (!frozenContent || mode !== 'capture' || pending || referenceEnergies.size !== selected.size) {
+        throw new Error('Same-pass reference capture is absent or incomplete.');
+      }
+      const result = new Map(referenceEnergies);
+      referenceEnergies.clear();
+      return result;
+    },
     close() {
       if (closed) return;
       if (pending) throw new Error('Cannot close channel gain request during an active dispatch.');
       closed = true;
       if (mode === 'apply' && frozenState) frozenState.users -= 1;
-      const buffers = [...energies.values()].map(tensor => tensor.buffer);
+      const buffers = [...energies.values(), ...referenceEnergies.values()].map(tensor => tensor.buffer);
       energies.clear();
+      referenceEnergies.clear();
       selected.clear();
       seen.clear();
       if (buffers.length) {

@@ -556,3 +556,14 @@ export function write_ple_conv_f32(view, values, kernel) {
   view.setUint32(8, 0, true);
   view.setUint32(12, 0, true);
 }
+
+export function write_channel_energy_pair_f32(view, values, kernel) {
+  writeU32(view, 0, values["channels"], kernel, "channels");
+  writeU32(view, 4, values["start"], kernel, "start");
+  writeU32(view, 8, values["stop"], kernel, "stop");
+  writeU32(view, 12, values["content_start"], kernel, "content_start");
+  writeU32(view, 16, values["content_stop"], kernel, "content_stop");
+  view.setUint32(20, 0, true);
+  view.setUint32(24, 0, true);
+  view.setUint32(28, 0, true);
+}

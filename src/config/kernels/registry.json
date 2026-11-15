@@ -38046,6 +38046,93 @@
      }
     }
    }
+  },
+  "channel_energy_pair": {
+   "description": "Experimental same-pass instruction/complement channel energies; model qualification pending",
+   "baseBindings": [
+    {
+     "index": 0,
+     "name": "uniforms",
+     "type": "uniform"
+    },
+    {
+     "index": 1,
+     "name": "input",
+     "type": "read-only-storage"
+    },
+    {
+     "index": 2,
+     "name": "instruction",
+     "type": "storage"
+    },
+    {
+     "index": 3,
+     "name": "reference",
+     "type": "storage"
+    }
+   ],
+   "baseUniforms": {
+    "size": 32,
+    "fields": [
+     {
+      "name": "channels",
+      "type": "u32",
+      "offset": 0
+     },
+     {
+      "name": "start",
+      "type": "u32",
+      "offset": 4
+     },
+     {
+      "name": "stop",
+      "type": "u32",
+      "offset": 8
+     },
+     {
+      "name": "content_start",
+      "type": "u32",
+      "offset": 12
+     },
+     {
+      "name": "content_stop",
+      "type": "u32",
+      "offset": 16
+     },
+     {
+      "name": "_pad0",
+      "type": "u32",
+      "offset": 20,
+      "padding": true
+     },
+     {
+      "name": "_pad1",
+      "type": "u32",
+      "offset": 24,
+      "padding": true
+     },
+     {
+      "name": "_pad2",
+      "type": "u32",
+      "offset": 28,
+      "padding": true
+     }
+    ]
+   },
+   "variants": {
+    "f32": {
+     "wgsl": "channel_energy_pair.wgsl",
+     "entryPoint": "main",
+     "workgroup": [256,1,1],
+     "requires": [],
+     "reachability": {
+      "status": "code-dispatched",
+      "inlineConfigs": [],
+      "ruleChains": [],
+      "wgslOnDisk": true
+     }
+    }
+   }
   }
  }
 }
