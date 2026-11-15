@@ -816,3 +816,34 @@ for (const policy of ['lru', 'lfu']) {
   assert.throws(() => validateQwen35RoutedConfig({ ...f.policy, compactPrefillBytes: f.policy.cacheBytes }), /reservation/);
   await f.cache.destroy();
 }
+
+{
+  const f = fixture(true, 256, true, true), plan = f.plan(0);
+  f.policy.storageMode = 'compact-decode';
+  f.policy.cacheBytes = (plan.expertBytes * 2 + plan.numExperts * 4) * 3;
+  const weights = await f.cache.prepare(plan, [0, 1], undefined, 'decode');
+  assert.equal(f.destinations.size, 2, 'each concurrent reader reuses one immutable-until-upload staging allocation');
+  assert.equal(f.cache.getStats().stagingAllocations, 2);
+  assert(f.cache.getStats().stagingReuses > 2);
+  assert(f.cache.getStats().peakStagingBytes <= f.policy.stagingBytes);
+  for (const plane of plan.planes) {
+    assert.deepEqual(weights[plane.role].buffer.data.slice(0, plane.expertBytes * 2),
+      f.shards.get(plane.location.shardIndex).slice(0, plane.expertBytes * 2));
+  }
+  const abort = new AbortController();
+  f.setReadHook(async () => { abort.abort(new Error('cancel compact staging')); });
+  await assert.rejects(f.cache.prepare(plan, [2, 3], abort.signal, 'decode'), /cancel compact staging/);
+  f.setReadHook(async () => {});
+  const recovered = await f.cache.prepare(plan, [2, 3], undefined, 'decode');
+  for (const plane of plan.planes) {
+    const uploaded = recovered[plane.role].buffer.data;
+    const expected = f.shards.get(plane.location.shardIndex);
+    const map = new Uint32Array(recovered.sourceExpertToSlot.data.buffer);
+    for (const expert of [2, 3]) {
+      assert.deepEqual(uploaded.slice(map[expert] * plane.expertBytes, (map[expert] + 1) * plane.expertBytes),
+        expected.slice(expert * plane.expertBytes, (expert + 1) * plane.expertBytes));
+    }
+  }
+  assert(f.cache.getStats().peakStagingBytes <= f.policy.stagingBytes, 'cancelled readers release staging before retry');
+  await f.cache.destroy();
+}

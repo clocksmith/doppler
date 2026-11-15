@@ -92,19 +92,30 @@ export class CompactExpertCache {
 
   /** @param {import('./routed-expert-plan.js').RoutedExpertBankPlan} plan
    * @param {import('./compact-expert-cache.js').CompactExpertPool} pool
-   * @param {number} expert @param {number} slot @param {AbortSignal} signal */
-  async #fill(plan, pool, expert, slot, signal) {
+   * @param {number} expert @param {number} slot @param {AbortSignal} signal
+   * @param {{ bytes: Uint8Array | null }} reader */
+  async #fill(plan, pool, expert, slot, signal, reader) {
     const chunkBytes = Math.floor(this.#options.policy.stagingBytes / (2 * this.#options.policy.readConcurrency * 4)) * 4;
     for (const plane of plan.planes) {
       for (let offset = 0; offset < plane.expertBytes;) {
         signal.throwIfAborted();
         const length = Math.min(chunkBytes, plane.expertBytes - offset);
-        const staging = (this.#options.readRangeInto ? 1 : 2) * length;
+        let destination = null;
+        if (this.#options.readRangeInto && plane.location.sourceTransform == null) {
+          if (!reader.bytes) {
+            reader.bytes = new Uint8Array(chunkBytes);
+            this.#staging += chunkBytes;
+            this.#stats.stagingAllocations++;
+          } else this.#stats.stagingReuses++;
+          // writeBuffer copies before returning, so only this reader may reuse the bytes.
+          destination = reader.bytes.subarray(0, length);
+        }
+        const staging = destination ? 0 : (this.#options.readRangeInto ? 1 : 2) * length;
         this.#staging += staging;
         this.#stats.peakStagingBytes = Math.max(this.#stats.peakStagingBytes, this.#staging);
         const start = performance.now();
         try {
-          const data = await readRoutedExpertRange(this.#options, this.#stats, plane, expert, offset, length, signal);
+          const data = await readRoutedExpertRange(this.#options, this.#stats, plane, expert, offset, length, signal, destination);
           pool.stats.sourceReadBytes += data.byteLength;
           pool.stats.sourceReadWaitMs += performance.now() - start;
           signal.throwIfAborted();
@@ -159,11 +170,14 @@ export class CompactExpertCache {
     if (signal.aborted) abort();
     try {
       const outcomes = await Promise.allSettled(Array.from({ length: this.#options.policy.readConcurrency }, async () => {
-        while (cursor < misses.length) {
-          const { expert, slot } = misses[cursor++];
-          try { await this.#fill(plan, pool, expert, slot, controller.signal); }
-          catch (error) { controller.abort(error); throw error; }
-        }
+        const reader = { bytes: /** @type {Uint8Array | null} */ (null) };
+        try {
+          while (cursor < misses.length) {
+            const { expert, slot } = misses[cursor++];
+            try { await this.#fill(plan, pool, expert, slot, controller.signal, reader); }
+            catch (error) { controller.abort(error); throw error; }
+          }
+        } finally { this.#staging -= reader.bytes?.byteLength ?? 0; }
       }));
       const failed = outcomes.find(result => result.status === 'rejected');
       if (failed) throw failed.reason;
