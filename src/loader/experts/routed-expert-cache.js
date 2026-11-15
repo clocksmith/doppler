@@ -155,6 +155,8 @@ export class RoutedExpertCache {
     let replacement = null;
     try {
       while (this.#cacheBytes + cacheAddition > policy.cacheBytes
+        || (policy.compactPrefillBytes > 0 && this.#stats.residentBytes
+          - (this.#compact?.residentBytes ?? 0) + bytes > policy.compactPrefillBytes)
         || this.#options.otherGpuBytes() + this.#stats.residentBytes + bytes > policy.gpuBudgetBytes - policy.reserveBytes) {
         /** @type {[string, import('./routed-expert-cache.js').RoutedExpertEntry] | undefined} */
         let victim;
@@ -521,10 +523,12 @@ export class RoutedExpertCache {
       if (phase === 'decode') {
         await this.#waitForSubmitted();
         signal.throwIfAborted();
-        if (!this.#compact) {
+        if (this.#owned.size) {
           for (const buffer of this.#owned) this.#destroyBuffer(buffer);
           this.#entries.clear(); this.#working.clear(); this.#loaded.clear();
           this.#cacheBytes = 0; this.#workingBytes = 0; this.#signature = ''; this.#layer = -1;
+        }
+        if (!this.#compact) {
           const compactLayerCount = this.#options.compactLayerCount;
           if (!Number.isSafeInteger(compactLayerCount) || !compactLayerCount) throw new Error('Compact experts require declared layer count.');
           this.#compact = new CompactExpertCache({ ...this.#options, compactLayerCount }, this.#stats);
@@ -533,7 +537,11 @@ export class RoutedExpertCache {
         this.#sampleProfileMemory();
         return weights;
       }
-      if (this.#compact) { await this.#compact.destroy(); this.#compact = null; }
+      if (this.#options.policy.compactPrefillBytes > 0) {
+        if (plan.bankBytes + plan.expertBytes * this.#options.policy.readConcurrency > this.#options.policy.compactPrefillBytes) {
+          throw new Error('Compact prefill reservation cannot hold the working bank and concurrent expert payloads.');
+        }
+      } else if (this.#compact) { await this.#compact.destroy(); this.#compact = null; }
     }
     await this.#locked(() => this.#prepareWorking(plan, signal));
     let cursor = 0;

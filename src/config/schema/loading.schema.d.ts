@@ -181,6 +181,8 @@ export interface Qwen35RoutedConfig {
   storageMode: 'payload-copy' | 'compact-decode';
   /** Null uses equal quotas; explicit original-layer byte quotas include source maps and sum to at most cacheBytes. */
   compactLayerBytes: Record<string, number> | null;
+  /** Zero retires pools on prefill; positive reserves transient bytes inside cacheBytes and preserves compact pools. */
+  compactPrefillBytes: number;
   /** LFU retains causal lifetime counts until unload; LRU remains the default. */
   evictionPolicy: 'lru' | 'lfu';
   cacheBytes: number;

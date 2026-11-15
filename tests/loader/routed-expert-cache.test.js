@@ -51,7 +51,7 @@ function fixture(separate = false, intermediate = 256, native = false, direct = 
     }
   }
   const cacheBytes = [...locations.values()].slice(0, separate ? 3 : 2).reduce((sum, plane) => sum + plane.size / 4, 0) * 2;
-  const policy = { enabled: true, evictionPolicy, storageMode: 'payload-copy', compactLayerBytes: null, cacheBytes, hostCacheBytes: 0, hostCacheAdmission: 'all', hostCacheAdmissionPhase: 'all', stagingBytes: 8192, readConcurrency: 2,
+  const policy = { enabled: true, evictionPolicy, storageMode: 'payload-copy', compactLayerBytes: null, compactPrefillBytes: 0, cacheBytes, hostCacheBytes: 0, hostCacheAdmission: 'all', hostCacheAdmissionPhase: 'all', stagingBytes: 8192, readConcurrency: 2,
     routeChunkTokens: 2, gpuBudgetBytes: 16 * 1024 ** 2, reserveBytes: 1024 ** 2 };
   const { gpu, buffers } = device(), reads = [], destinations = new Set();
   let readHook = async () => {};
@@ -224,7 +224,7 @@ function fixture(separate = false, intermediate = 256, native = false, direct = 
   await assert.rejects(f.cache.prepare(f.plan(0), [0]), /source read failed/);
   await f.cache.destroy();
   assert(f.buffers.every(b => b.destroyed));
-  assert.throws(() => validateQwen35RoutedConfig({ enabled: true, evictionPolicy: 'lru', storageMode: 'payload-copy', compactLayerBytes: null }), /cacheBytes/);
+  assert.throws(() => validateQwen35RoutedConfig({ enabled: true, evictionPolicy: 'lru', storageMode: 'payload-copy', compactLayerBytes: null, compactPrefillBytes: 0 }), /cacheBytes/);
   assert.throws(() => f.plan(9), /declared Qwen/);
   f.locations.values().next().value.sourceTransform = { kind: 'unexpected' };
   assert.throws(() => f.plan(0), /untransformed/);
@@ -777,5 +777,42 @@ for (const policy of ['lru', 'lfu']) {
   f.policy.compactLayerBytes = { 0: f.policy.cacheBytes };
   await assert.rejects(f.cache.prepare(plan, [0], undefined, 'decode'), /every assigned routed layer/);
   assert.equal(f.buffers.length, 0, 'incomplete quotas fail before allocation');
+  await f.cache.destroy();
+}
+
+{
+  const f = fixture(true, 256, true, true), plan = f.plan(0);
+  f.policy.storageMode = 'compact-decode';
+  f.policy.compactPrefillBytes = plan.bankBytes + plan.expertBytes * f.policy.readConcurrency;
+  f.policy.cacheBytes = f.policy.compactPrefillBytes + (plan.expertBytes * 2 + plan.numExperts * 4) * 3;
+  const resident = await f.cache.prepare(plan, [0, 1], undefined, 'decode');
+  assert.equal(resident.numExperts, 2, 'prefill reservation is subtracted before slot allocation');
+  const prefill = await f.cache.prepare(plan, [2, 3], undefined, 'prefill');
+  assert(!resident.down.buffer.destroyed, 'prefill keeps the separately owned compact slots alive');
+  assert(f.cache.getStats().residentBytes <= f.policy.cacheBytes, 'compact and transient storage share one budget');
+  const before = f.cache.getStats();
+  const reused = await f.cache.prepare(plan, [1, 0], undefined, 'decode');
+  const after = f.cache.getStats();
+  assert.equal(reused.down.buffer, resident.down.buffer);
+  assert(prefill.down.buffer.destroyed, 'decode retires only transient prefill storage');
+  assert.equal(after.sourceReadBytes, before.sourceReadBytes, 'retained decode hits do not reread experts');
+  assert.equal(after.uploadBytes, before.uploadBytes);
+  f.setReadHook(async () => { throw new Error('persistent prefill source failure'); });
+  await assert.rejects(f.cache.prepare(plan, [2], undefined, 'prefill'), /persistent prefill source failure/);
+  assert(!resident.down.buffer.destroyed, 'prefill failure preserves independent immutable compact weights');
+  f.setReadHook(async () => {});
+  const recovered = await f.cache.prepare(plan, [0], undefined, 'decode');
+  assert.equal(recovered.down.buffer, resident.down.buffer);
+  await f.cache.destroy();
+  assert(f.buffers.every(buffer => buffer.destroyed), 'both storage owners retire on unload');
+}
+{
+  const f = fixture(true, 256, true, true), plan = f.plan(0);
+  f.policy.storageMode = 'compact-decode';
+  f.policy.compactPrefillBytes = plan.bankBytes;
+  f.policy.cacheBytes += f.policy.compactPrefillBytes;
+  await assert.rejects(f.cache.prepare(plan, [0], undefined, 'prefill'), /reservation cannot hold/);
+  assert.equal(f.buffers.length, 0);
+  assert.throws(() => validateQwen35RoutedConfig({ ...f.policy, compactPrefillBytes: f.policy.cacheBytes }), /reservation/);
   await f.cache.destroy();
 }

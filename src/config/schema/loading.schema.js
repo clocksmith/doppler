@@ -96,6 +96,7 @@ export const DEFAULT_EXPERT_CACHE_CONFIG = {
     enabled: false,
     storageMode: 'payload-copy',
     compactLayerBytes: null,
+    compactPrefillBytes: 0,
     evictionPolicy: 'lru',
     cacheBytes: 2 * GB,
     hostCacheBytes: 0,
@@ -122,6 +123,11 @@ export function validateQwen35RoutedConfig(config) {
   if (config.storageMode === 'compact-decode' && config.hostCacheBytes !== 0) {
     throw new Error('Compact decode currently requires hostCacheBytes=0.');
   }
+  if (!Number.isSafeInteger(config.compactPrefillBytes) || config.compactPrefillBytes < 0
+    || config.compactPrefillBytes % 4 || config.compactPrefillBytes >= config.cacheBytes
+    || (config.compactPrefillBytes > 0 && config.storageMode !== 'compact-decode')) {
+    throw new Error('compactPrefillBytes must be zero or an aligned compact-decode reservation below cacheBytes.');
+  }
   if (config.compactLayerBytes !== null) {
     const entries = Object.entries(config.compactLayerBytes ?? {});
     if (config.storageMode !== 'compact-decode' || Array.isArray(config.compactLayerBytes) || !entries.length
@@ -130,8 +136,8 @@ export function validateQwen35RoutedConfig(config) {
       throw new Error('compactLayerBytes requires null or explicit aligned byte quotas keyed by original layer index in compact-decode mode.');
     }
     const total = entries.reduce((sum, [, bytes]) => sum + bytes, 0);
-    if (!Number.isSafeInteger(total) || total > config.cacheBytes) {
-      throw new Error('compactLayerBytes exceeds cacheBytes.');
+    if (!Number.isSafeInteger(total) || total > config.cacheBytes - config.compactPrefillBytes) {
+      throw new Error('compactLayerBytes exceeds cacheBytes after the prefill reservation.');
     }
   }
   if (!['lru', 'lfu'].includes(config.evictionPolicy)) {

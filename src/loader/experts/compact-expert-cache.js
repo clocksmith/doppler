@@ -11,7 +11,7 @@ export function compactExpertCapacity(plan, options) {
     || Object.keys(quotas).some(layer => Number(layer) >= plan.numLayers))) {
     throw new Error('compactLayerBytes must cover every assigned routed layer at its original index.');
   }
-  const layerBytes = quotas === null ? Math.floor(options.policy.cacheBytes / layers) : quotas[plan.layer];
+  const layerBytes = quotas === null ? Math.floor((options.policy.cacheBytes - options.policy.compactPrefillBytes) / layers) : quotas[plan.layer];
   const quota = layerBytes - plan.numExperts * 4;
   const limit = Math.min(options.device.limits.maxBufferSize, options.device.limits.maxStorageBufferBindingSize);
   const capacity = Math.min(plan.numExperts, Math.floor(quota / plan.expertBytes),
@@ -189,6 +189,8 @@ export class CompactExpertCache {
       throw error;
     } finally { signal.removeEventListener('abort', abort); }
   }
+
+  get residentBytes() { return this.#bytes; }
 
   getStats() {
     return { cacheBytes: this.#bytes, workingBytes: 0,

@@ -144,9 +144,18 @@ reads are not physical disk reads; summed concurrent read durations are not wall
 time or GPU upload-completion time. No speed improvement is established by these
 counters or by fewer cache misses alone.
 
-Prefill continues through the existing payload-copy path, without changed token
-chunking. Transitions drain and retire the outgoing strategy before allocating
-the incoming one, preserving the same budget and reserve. This deliberately
+`compactPrefillBytes: 0` keeps the original phase transition behavior: drain and
+retire the outgoing strategy before allocating the incoming one. A positive
+aligned reservation opts into persistent compact pools. This reservation is
+subtracted from `cacheBytes` before equal slot quotas are assigned (explicit
+`compactLayerBytes` must also fit the remainder), not added to the memory budget.
+It must hold a full transient working bank plus one payload per concurrent reader.
+Prefill uses only that reserved transient space; decode drains and retires those
+transient buffers while retaining immutable compact expert slots. Both owners
+are released on unload, and failed prefill never authorizes reuse of incomplete
+transient payloads. No KV or model-state continuation is implied.
+
+Prefill still uses payload-copy with unchanged token chunking. The zero default
 loses cache warmth across phases; fewer copies do not imply fewer source reads.
 This is an opt-in mechanism to measure, not a default or cross-device speed claim.
 
