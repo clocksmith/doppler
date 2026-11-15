@@ -1,7 +1,7 @@
 import type { RoutedExpertCacheOptions, RoutedExpertCacheStats } from './routed-expert-cache.js';
 import type { RoutedExpertPlane } from './routed-expert-plan.js';
 export type RoutedExpertCounters = Omit<RoutedExpertCacheStats,
-  'phaseProfiles' | 'evictionPolicy' | 'frequencyHistoryEntries' | 'frequencyResidentEntries' |
+  'compactLayers' | 'phaseProfiles' | 'evictionPolicy' | 'frequencyHistoryEntries' | 'frequencyResidentEntries' |
   'cacheBytes' | 'workingBytes' | 'experts' | 'hostCacheBytes' | 'hostReservedBytes' | 'hostExperts'>;
 export declare function createRoutedExpertCounters(): RoutedExpertCounters;
 export declare function readRoutedExpertRange(options: RoutedExpertCacheOptions, stats: RoutedExpertCounters,

@@ -38,6 +38,7 @@ export interface RoutedExpertPhaseProfile {
   counters: Record<string, number>;
 }
 export interface RoutedExpertCacheStats {
+  compactLayers?: Record<string, import('./compact-expert-cache.js').CompactLayerStats & { capacity: number }>;
   evictionPolicy: 'lru' | 'lfu';
   frequencyHistoryEntries: number;
   frequencyResidentEntries: number;

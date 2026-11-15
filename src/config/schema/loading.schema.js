@@ -95,6 +95,7 @@ export const DEFAULT_EXPERT_CACHE_CONFIG = {
   qwen35Routed: {
     enabled: false,
     storageMode: 'payload-copy',
+    compactLayerBytes: null,
     evictionPolicy: 'lru',
     cacheBytes: 2 * GB,
     hostCacheBytes: 0,
@@ -120,6 +121,18 @@ export function validateQwen35RoutedConfig(config) {
   }
   if (config.storageMode === 'compact-decode' && config.hostCacheBytes !== 0) {
     throw new Error('Compact decode currently requires hostCacheBytes=0.');
+  }
+  if (config.compactLayerBytes !== null) {
+    const entries = Object.entries(config.compactLayerBytes ?? {});
+    if (config.storageMode !== 'compact-decode' || Array.isArray(config.compactLayerBytes) || !entries.length
+      || entries.some(([layer, bytes]) => !/^(0|[1-9][0-9]*)$/.test(layer)
+        || !Number.isSafeInteger(Number(layer)) || !Number.isSafeInteger(bytes) || bytes < 4 || bytes % 4)) {
+      throw new Error('compactLayerBytes requires null or explicit aligned byte quotas keyed by original layer index in compact-decode mode.');
+    }
+    const total = entries.reduce((sum, [, bytes]) => sum + bytes, 0);
+    if (!Number.isSafeInteger(total) || total > config.cacheBytes) {
+      throw new Error('compactLayerBytes exceeds cacheBytes.');
+    }
   }
   if (!['lru', 'lfu'].includes(config.evictionPolicy)) {
     throw new Error('runtime.loading.expertCache.qwen35Routed.evictionPolicy must be lru or lfu.');

@@ -51,7 +51,7 @@ function fixture(separate = false, intermediate = 256, native = false, direct = 
     }
   }
   const cacheBytes = [...locations.values()].slice(0, separate ? 3 : 2).reduce((sum, plane) => sum + plane.size / 4, 0) * 2;
-  const policy = { enabled: true, evictionPolicy, storageMode: 'payload-copy', cacheBytes, hostCacheBytes: 0, hostCacheAdmission: 'all', hostCacheAdmissionPhase: 'all', stagingBytes: 8192, readConcurrency: 2,
+  const policy = { enabled: true, evictionPolicy, storageMode: 'payload-copy', compactLayerBytes: null, cacheBytes, hostCacheBytes: 0, hostCacheAdmission: 'all', hostCacheAdmissionPhase: 'all', stagingBytes: 8192, readConcurrency: 2,
     routeChunkTokens: 2, gpuBudgetBytes: 16 * 1024 ** 2, reserveBytes: 1024 ** 2 };
   const { gpu, buffers } = device(), reads = [], destinations = new Set();
   let readHook = async () => {};
@@ -224,7 +224,7 @@ function fixture(separate = false, intermediate = 256, native = false, direct = 
   await assert.rejects(f.cache.prepare(f.plan(0), [0]), /source read failed/);
   await f.cache.destroy();
   assert(f.buffers.every(b => b.destroyed));
-  assert.throws(() => validateQwen35RoutedConfig({ enabled: true, evictionPolicy: 'lru', storageMode: 'payload-copy' }), /cacheBytes/);
+  assert.throws(() => validateQwen35RoutedConfig({ enabled: true, evictionPolicy: 'lru', storageMode: 'payload-copy', compactLayerBytes: null }), /cacheBytes/);
   assert.throws(() => f.plan(9), /declared Qwen/);
   f.locations.values().next().value.sourceTransform = { kind: 'unexpected' };
   assert.throws(() => f.plan(0), /untransformed/);
@@ -739,5 +739,43 @@ for (const policy of ['lru', 'lfu']) {
   const plan = planRoutedExpertBank(f.manifest, f.locations, 0);
   await assert.rejects(f.cache.prepare(plan, [0], undefined, 'decode'), /requires evictionPolicy=lru/);
   assert.equal(f.buffers.length, 0, 'unsupported policy fails before GPU allocation');
+  await f.cache.destroy();
+}
+
+// Synthetic lifecycle evidence only: explicit quotas conserve total bytes.
+{
+  const f = fixture(true, 256, true, true), plan = f.plan(0);
+  f.policy.storageMode = 'compact-decode';
+  const bytes = slots => slots * plan.expertBytes + plan.numExperts * 4;
+  f.policy.cacheBytes = bytes(2) * 3;
+  f.policy.compactLayerBytes = { 0: bytes(3), 1: bytes(2), 2: bytes(1) };
+  validateQwen35RoutedConfig(f.policy);
+  for (let layer = 0; layer < 3; layer++) {
+    const weights = await f.cache.prepare(f.plan(layer), [0], undefined, 'decode');
+    assert.equal(weights.numExperts, 3 - layer);
+  }
+  await f.cache.prepare(plan, [1, 2], undefined, 'decode');
+  const before = f.cache.getStats();
+  await f.cache.prepare(plan, [2, 0, 1], undefined, 'decode');
+  const after = f.cache.getStats();
+  assert.equal(after.compactLayers[0].cacheHits - before.compactLayers[0].cacheHits, 3);
+  assert.equal(after.compactLayers[0].sourceReadBytes, before.compactLayers[0].sourceReadBytes);
+  assert.equal(after.compactLayers[0].evictions, 0);
+  assert.equal(after.compactLayers[0].uploadBytes, plan.expertBytes * 3);
+  assert.equal(after.cacheBytes, f.policy.cacheBytes);
+  assert.equal(after.compactLayers[2].cacheMisses, 1);
+  assert.throws(() => validateQwen35RoutedConfig({ ...f.policy, compactLayerBytes: { 0: bytes(7) } }), /exceeds/);
+  assert.throws(() => validateQwen35RoutedConfig({ ...f.policy, compactLayerBytes: { 0: 5 } }), /aligned/);
+  assert.throws(() => validateQwen35RoutedConfig({ ...f.policy, storageMode: 'payload-copy' }), /compact-decode/);
+  assert.throws(() => validateQwen35RoutedConfig({ ...f.policy, compactLayerBytes: [4, 4, 4] }), /aligned/);
+  await f.cache.destroy();
+  assert(f.buffers.every(buffer => buffer.destroyed));
+}
+{
+  const f = fixture(true, 256, true, true), plan = f.plan(0);
+  f.policy.storageMode = 'compact-decode';
+  f.policy.compactLayerBytes = { 0: f.policy.cacheBytes };
+  await assert.rejects(f.cache.prepare(plan, [0], undefined, 'decode'), /every assigned routed layer/);
+  assert.equal(f.buffers.length, 0, 'incomplete quotas fail before allocation');
   await f.cache.destroy();
 }

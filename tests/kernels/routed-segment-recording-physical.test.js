@@ -24,7 +24,7 @@ try {
   const slots = upload(new Uint32Array([2, 0])), routes = upload(new Float32Array([0.3, 0.7]));
   const map = upload(new Uint32Array([0xffffffff, 0, 0xffffffff, 2]));
   const gate = bank('q4_0', [E, I, H]), up = bank('q4_0', [E, I, H]);
-  const policy = { storageMode: 'compact-decode', routeChunkTokens: 256 };
+  const policy = { storageMode: 'compact-decode', compactLayerBytes: null, routeChunkTokens: 256 };
   for (const dtype of ['q4_0', 'q4_1']) {
     const weights = { numExperts: E, expertFormat: 'qwen3_5', gate, up, down: bank(dtype, [E, H, I]) };
     const options = { inputTensor: input, indicesBuffer: slots, weightsBuffer: routes, weights,

@@ -124,11 +124,25 @@ cleanup before releasing the operation.
 `"compact-decode"` mode keeps native packed expert slots in per-layer GPU banks
 and remaps source expert IDs with WGSL, so resident decode hits need no upload or
 working-bank copy. It currently requires `hostCacheBytes: 0`, `evictionPolicy: "lru"`, and explicit
-prefill/decode phases. Each layer receives an equal byte share of `cacheBytes`,
+prefill/decode phases. `compactLayerBytes: null` gives each layer an equal byte share of `cacheBytes`,
 including its source-ID map; slots also respect device binding limits. A decode
 selection that cannot fit its layer's slots fails before dispatch. LFU remains
 available with `payload-copy`; combining LFU with compact decode is rejected
 rather than silently running LRU.
+
+An explicit `compactLayerBytes` object maps every assigned routed layer's original
+index to a positive 4-byte-aligned quota (including its source map). Its sum must
+not exceed `cacheBytes`; missing assigned layers fail before allocation. This
+opt-in policy does not change kernels, packed precision or LRU eviction. Freeze
+quotas using separate calibration requests before verification; do not tune on
+verification results. Compare equal and explicit quotas at the same total budget,
+record actual allocated bytes (slot rounding and binding limits can reduce them),
+output correctness, prefill/decode wall times and physical disk reads. The
+`compactLayers` statistics report per-layer capacity, hits, misses, evictions,
+logical source/upload bytes and source-read/upload-enqueue durations. Logical
+reads are not physical disk reads; summed concurrent read durations are not wall
+time or GPU upload-completion time. No speed improvement is established by these
+counters or by fewer cache misses alone.
 
 Prefill continues through the existing payload-copy path, without changed token
 chunking. Transitions drain and retire the outgoing strategy before allocating

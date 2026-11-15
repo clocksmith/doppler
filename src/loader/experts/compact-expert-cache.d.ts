@@ -6,11 +6,16 @@ export declare function compactExpertCapacity(plan: RoutedExpertBankPlan, option
 export declare class CompactExpertCache {
   constructor(options: CompactExpertCacheOptions, stats: RoutedExpertCounters);
   prepare(plan: RoutedExpertBankPlan, ids: number[], signal: AbortSignal): Promise<RoutedExpertWeights>;
-  getStats(): { cacheBytes: number; workingBytes: number; experts: number };
+  getStats(): { cacheBytes: number; workingBytes: number; experts: number; compactLayers: Record<string, CompactLayerStats & { capacity: number }> };
   destroy(): Promise<void>;
 }
 
+export interface CompactLayerStats {
+  cacheHits: number; cacheMisses: number; evictions: number; sourceReadBytes: number;
+  uploadBytes: number; sourceReadWaitMs: number; uploadEnqueueMs: number;
+}
 export interface CompactExpertPool {
+  stats: CompactLayerStats;
   capacity: number;
   planes: Map<string, GPUBuffer>;
   map: GPUBuffer;

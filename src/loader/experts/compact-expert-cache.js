@@ -6,7 +6,13 @@ import { readRoutedExpertRange } from './routed-expert-source.js';
 export function compactExpertCapacity(plan, options) {
   const layers = options.compactLayerCount;
   if (!Number.isSafeInteger(layers) || layers < 1) throw new Error('Compact experts require the declared layer count.');
-  const quota = Math.floor(options.policy.cacheBytes / layers) - plan.numExperts * 4;
+  const quotas = options.policy.compactLayerBytes;
+  if (quotas !== null && (Object.keys(quotas).length !== layers || !Object.hasOwn(quotas, plan.layer)
+    || Object.keys(quotas).some(layer => Number(layer) >= plan.numLayers))) {
+    throw new Error('compactLayerBytes must cover every assigned routed layer at its original index.');
+  }
+  const layerBytes = quotas === null ? Math.floor(options.policy.cacheBytes / layers) : quotas[plan.layer];
+  const quota = layerBytes - plan.numExperts * 4;
   const limit = Math.min(options.device.limits.maxBufferSize, options.device.limits.maxStorageBufferBindingSize);
   const capacity = Math.min(plan.numExperts, Math.floor(quota / plan.expertBytes),
     ...plan.planes.map(plane => Math.floor(limit / plane.expertBytes)));
@@ -66,7 +72,7 @@ export class CompactExpertCache {
       }
       const map = this.#allocate(plan.numExperts * 4, `compact_${plan.layer}_source_map`);
       allocated.push(map);
-      pool = { capacity, planes, map, entries: new Map(), free: Array.from({ length: capacity }, (_, i) => capacity - i - 1) };
+      pool = { capacity, planes, map, stats: { cacheHits: 0, cacheMisses: 0, evictions: 0, sourceReadBytes: 0, uploadBytes: 0, sourceReadWaitMs: 0, uploadEnqueueMs: 0 }, entries: new Map(), free: Array.from({ length: capacity }, (_, i) => capacity - i - 1) };
       this.#pools.set(plan.layer, pool);
       return pool;
     } catch (error) {
@@ -99,12 +105,17 @@ export class CompactExpertCache {
         const start = performance.now();
         try {
           const data = await readRoutedExpertRange(this.#options, this.#stats, plane, expert, offset, length, signal);
+          pool.stats.sourceReadBytes += data.byteLength;
+          pool.stats.sourceReadWaitMs += performance.now() - start;
           signal.throwIfAborted();
           const uploadStart = performance.now();
           const buffer = pool.planes.get(plane.role);
           if (!buffer) throw new Error('Compact expert plane is missing.');
           this.#options.device.queue.writeBuffer(buffer, slot * plane.expertBytes + offset, data);
-          this.#stats.uploadEnqueueMs += performance.now() - uploadStart;
+          const uploadMs = performance.now() - uploadStart;
+          this.#stats.uploadEnqueueMs += uploadMs;
+          pool.stats.uploadEnqueueMs += uploadMs;
+          pool.stats.uploadBytes += length;
           this.#stats.uploadBytes += length;
         } finally {
           this.#stats.ioWaitMs += performance.now() - start;
@@ -127,7 +138,7 @@ export class CompactExpertCache {
       const slot = pool.entries.get(expert);
       if (slot !== undefined) {
         pool.entries.delete(expert); pool.entries.set(expert, slot);
-        slots.set(expert, slot); this.#stats.cacheHits++;
+        slots.set(expert, slot); this.#stats.cacheHits++; pool.stats.cacheHits++;
       }
     }
     for (const expert of ids) {
@@ -135,11 +146,11 @@ export class CompactExpertCache {
       if (!pool.free.length) {
         const victim = [...pool.entries].find(([key]) => !selected.has(key));
         if (!victim) throw new Error('Compact selected experts exhausted pinned slots.');
-        pool.entries.delete(victim[0]); pool.free.push(victim[1]); this.#stats.evictions++;
+        pool.entries.delete(victim[0]); pool.free.push(victim[1]); this.#stats.evictions++; pool.stats.evictions++;
       }
       const slot = pool.free.pop();
       if (slot === undefined) throw new Error('Compact expert slot allocation failed.');
-      slots.set(expert, slot); misses.push({ expert, slot }); this.#stats.cacheMisses++;
+      slots.set(expert, slot); misses.push({ expert, slot }); this.#stats.cacheMisses++; pool.stats.cacheMisses++;
     }
     let cursor = 0;
     const controller = new AbortController();
@@ -181,6 +192,7 @@ export class CompactExpertCache {
 
   getStats() {
     return { cacheBytes: this.#bytes, workingBytes: 0,
+      compactLayers: Object.fromEntries([...this.#pools].map(([layer, pool]) => [layer, { capacity: pool.capacity, ...pool.stats }])),
       experts: [...this.#pools.values()].reduce((sum, pool) => sum + pool.entries.size, 0) };
   }
 

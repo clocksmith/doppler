@@ -179,6 +179,8 @@ export interface ExpertCacheConfigSchema {
 export interface Qwen35RoutedConfig {
   enabled: boolean;
   storageMode: 'payload-copy' | 'compact-decode';
+  /** Null uses equal quotas; explicit original-layer byte quotas include source maps and sum to at most cacheBytes. */
+  compactLayerBytes: Record<string, number> | null;
   /** LFU retains causal lifetime counts until unload; LRU remains the default. */
   evictionPolicy: 'lru' | 'lfu';
   cacheBytes: number;
