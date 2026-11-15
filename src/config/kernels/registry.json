@@ -25245,6 +25245,10 @@
      "entryPoint": "main",
      "workgroup": [32,1,1],
      "requires": [],
+     "variantMetadata": {
+      "maxExperts": 256,
+      "maxTopK": 256
+     },
      "reachability": {
       "status": "code-dispatched",
       "inlineConfigs": [],
@@ -25257,6 +25261,10 @@
      "entryPoint": "softmax_topk",
      "workgroup": [32,1,1],
      "requires": [],
+     "variantMetadata": {
+      "maxExperts": 256,
+      "maxTopK": 256
+     },
      "reachability": {
       "status": "model-selectable",
       "inlineConfigs": [],
@@ -25325,6 +25333,10 @@
      "entryPoint": "softmax_topk",
      "workgroup": [32,1,1],
      "requires": ["shader-f16"],
+     "variantMetadata": {
+      "maxExperts": 256,
+      "maxTopK": 256
+     },
      "reachability": {
       "status": "model-selectable",
       "inlineConfigs": [],
@@ -25337,6 +25349,10 @@
      "entryPoint": "softmax_topk",
      "workgroup": [32,1,1],
      "requires": ["shader-f16"],
+     "variantMetadata": {
+      "maxExperts": 256,
+      "maxTopK": 256
+     },
      "reachability": {
       "status": "model-selectable",
       "inlineConfigs": [],
@@ -25355,7 +25371,9 @@
       "routerDtype": "f16",
       "weightsDtype": "f16",
       "tileShape": "token-major",
-      "groupSize": 32
+      "groupSize": 32,
+      "maxExperts": 256,
+      "maxTopK": 256
      },
      "description": "GPT-OSS deterministic router top-k kernel (f16 logits/weights).",
      "reachability": {

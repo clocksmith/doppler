@@ -100,12 +100,12 @@ async function softmaxTopK(target, logits, numTokens, numExperts, topK, options 
       throw new Error(`SoftmaxTopK fused_logit_rank needs subgroups of at least top-${topK} lanes; got ${minSubgroup}.`);
     }
   }
+  // Every top-k variant declares the expert count its workgroup storage holds.
   const limits = getKernelConfig('topk', variant).variantMetadata;
-  if (limits?.maxExperts != null && (typeof limits.maxExperts !== 'number' || typeof limits.maxTopK !== 'number'
-    || !Number.isSafeInteger(limits.maxExperts) || !Number.isSafeInteger(limits.maxTopK))) {
-    throw new Error(`SoftmaxTopK ${variant} requires declared integer expert and top-k limits.`);
+  if (!Number.isSafeInteger(limits?.maxExperts) || !Number.isSafeInteger(limits?.maxTopK)) {
+    throw new Error(`SoftmaxTopK ${variant} requires declared integer variantMetadata.maxExperts and maxTopK.`);
   }
-  if (limits?.maxExperts != null && (numExperts > limits.maxExperts || topK > limits.maxTopK || topK > numExperts)) {
+  if (numExperts > limits.maxExperts || topK > limits.maxTopK || topK > numExperts) {
     throw new Error(`SoftmaxTopK ${variant} supports at most ${limits.maxExperts} experts and top-${limits.maxTopK}; got experts=${numExperts} topK=${topK}.`);
   }
   const pipeline = await createPipeline('topk', variant);
