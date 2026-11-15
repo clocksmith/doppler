@@ -8200,6 +8200,7 @@
      "reachability": {
       "status": "pinned",
       "inlineConfigs": [
+       "runtime/profiles/flash-next-gguf-control-gemv",
        "runtime/profiles/qwen3-6-35b-a3b-q4_0-candidate",
        "runtime/profiles/qwen3-6-35b-a3b-q4_0-pooled-q8-common-diagnostic"
       ],
