@@ -338,7 +338,9 @@ export async function runDenseFFNGPU(
       gateDtype,
       upDtype,
     });
-  const useFusedGateUp = gateUpPathMode === 'split' && !splitPrefillF16FusionAllowed
+  // Rotation's declared contract needs the post-SwiGLU tensor before down projection.
+  const requiresRotationActivation = channelGain?.transformKind === 'rotation';
+  const useFusedGateUp = requiresRotationActivation || (gateUpPathMode === 'split' && !splitPrefillF16FusionAllowed)
     ? false
     : useFusedGateUpByRule;
   trace.ffn(
@@ -801,7 +803,7 @@ export async function runDenseFFNGPU(
   enqueueRecordedDenseHealth(context, layerIdx, 'ffn_gate', gateOutput, numTokens * intermediateSize);
   enqueueRecordedDenseHealth(context, layerIdx, 'ffn_up', upOutput, numTokens * intermediateSize);
 
-  const activatedOutput = channelGain?.mode === 'apply'
+  let activatedOutput = channelGain?.mode === 'apply' && channelGain.transformKind === 'gain'
     ? await channelGain.activate(layerIdx, upOutput, gateOutput, numTokens, intermediateSize, swigluLimit, recorder ?? null)
     : await dispatchActivation(hiddenActivation, upOutput, {
     kernelPath,
@@ -813,6 +815,15 @@ export async function runDenseFFNGPU(
     label: `L${layerIdx}.ffn_activation`,
     layerIdx,
   }, recorder);
+
+  if (channelGain?.mode === 'apply' && channelGain.transformKind === 'rotation') {
+    const originalActivation = activatedOutput;
+    try {
+      activatedOutput = await channelGain.transform(layerIdx, originalActivation, numTokens, intermediateSize, recorder ?? null);
+    } finally {
+      releaseOrTrack(recorder, originalActivation.buffer, context.decodeBuffers);
+    }
+  }
 
   if (isKernelDebugEnabled(layerIdx) && !recorder) {
     await dumpTokenVector(activatedOutput.buffer, 'ffn_activated', {

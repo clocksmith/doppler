@@ -567,6 +567,10 @@ export class InferencePipeline extends PipelineState {
     return this.lora;
   }
 
+  beginChannelRotationRequest(spec) {
+    return this.beginChannelGainRequest({ ...spec, transformKind: 'rotation' });
+  }
+
   beginChannelGainRequest(spec) {
     assertChannelGainIdle(this);
     if (!this.isLoaded) throw new Error('Channel gain requires a loaded pipeline.');

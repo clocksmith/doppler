@@ -1,4 +1,5 @@
 import { channelEnergy, channelEnergyPair, channelGainSwiGLU, validateChannelTensor } from '../../../gpu/kernels/channel-gain.js';
+import { deriveChannelRotation, applyChannelRotation } from '../../../gpu/kernels/channel-rotation.js';
 import { createTensor } from '../../../gpu/tensor.js';
 import { createSha256Hasher } from '../../../formats/sha256.js';
 import { getDevice } from '../../../gpu/device.js';
@@ -22,14 +23,14 @@ export async function withChannelGainOperation(state, operation) {
   finally { activeOperations.delete(state); }
 }
 
-/** @type {WeakMap<import('./channel-gain.js').FrozenChannelGains, { layers: Map<number, { channels: number; gains: import('../../../gpu/tensor.js').Tensor }>; users: number; closed: boolean }>} */
+/** @type {WeakMap<import('./channel-gain.js').FrozenChannelGains, { layers: Map<number, { channels: number; gains?: import('../../../gpu/tensor.js').Tensor; rotation?: import('../../../gpu/kernels/channel-rotation.js').ChannelRotation; theta?: number }>; kind: 'gain' | 'rotation'; users: number; closed: boolean }>} */
 const frozenStates = new WeakMap();
 
 /** @type {typeof import('./channel-gain.js').freezeChannelGains} */
 export async function freezeChannelGains(layers) {
   const device = getDevice();
   if (!device || !Array.isArray(layers) || !layers.length) throw new Error('Freezing gains requires a device and selected layers.');
-  const state = { layers: new Map(), users: 0, closed: false };
+  const state = { layers: new Map(), kind: /** @type {const} */ ('gain'), users: 0, closed: false };
   const hasher = createSha256Hasher();
   try {
     for (const layer of [...layers].sort((a, b) => a.layerIdx - b.layerIdx)) {
@@ -74,10 +75,80 @@ export async function freezeChannelGains(layers) {
   }
 }
 
+/** @type {typeof import('./channel-gain.js').freezeChannelRotations} */
+export async function freezeChannelRotations(layers) {
+  const device = getDevice();
+  if (!device || !Array.isArray(layers) || !layers.length) throw new Error('Freezing rotations requires a device and selected layers.');
+  const state = { layers: new Map(), kind: /** @type {const} */ ('rotation'), users: 0, closed: false };
+  const hasher = createSha256Hasher();
+  /** @type {GPUBuffer[]} */
+  const buffers = [];
+  try {
+    for (const layer of [...layers].sort((a, b) => a.layerIdx - b.layerIdx)) {
+      if (!Number.isInteger(layer.layerIdx) || layer.layerIdx < 0 || state.layers.has(layer.layerIdx)
+          || !Number.isFinite(layer.theta) || !Number.isFinite(Math.fround(layer.theta))) {
+        throw new Error('Frozen rotations require unique layers and finite f32 angles.');
+      }
+      validateChannelTensor(layer.rotation.basis, 2, layer.channels);
+      validateChannelTensor(layer.rotation.status, 1, 1);
+      const basis = acquireBuffer(layer.channels * 8, undefined, 'frozen_rotation_basis');
+      buffers.push(basis);
+      const status = acquireBuffer(4, undefined, 'frozen_rotation_status');
+      buffers.push(status);
+      const encoder = device.createCommandEncoder({ label: 'freeze_channel_rotation' });
+      encoder.copyBufferToBuffer(layer.rotation.basis.buffer, 0, basis, 0, layer.channels * 8);
+      encoder.copyBufferToBuffer(layer.rotation.status.buffer, 0, status, 0, 4);
+      device.queue.submit([encoder.finish()]);
+      const bytes = await readBuffer(basis, layer.channels * 8);
+      const statusBytes = await readBuffer(status, 4);
+      const value = new Float32Array(statusBytes)[0];
+      const plane = new Float32Array(bytes);
+      let uu = 0; let vv = 0; let uv = 0;
+      for (let i = 0; i < layer.channels; i += 1) {
+        uu += plane[i] * plane[i]; vv += plane[i + layer.channels] ** 2;
+        uv += plane[i] * plane[i + layer.channels];
+      }
+      if (plane.some(x => !Number.isFinite(x)) || ![0, 1].includes(value)
+          || (value === 0 && plane.some(x => x !== 0))
+          || (value === 1 && (Math.abs(uu - 1) > 2e-5 || Math.abs(vv - 1) > 2e-5 || Math.abs(uv) > 2e-5))) {
+        throw new Error('Frozen rotation must be an orthonormal plane or explicit degenerate identity.');
+      }
+      const theta = Math.fround(layer.theta);
+      hasher.update(new TextEncoder().encode(`channel-rotation-f32-v1:${layer.layerIdx}:${layer.channels}:${theta}:`));
+      hasher.update(new Uint8Array(bytes)); hasher.update(new Uint8Array(statusBytes));
+      state.layers.set(layer.layerIdx, { channels: layer.channels, theta, rotation: {
+        basis: createTensor(basis, 'f32', [2, layer.channels]), status: createTensor(status, 'f32', [1]),
+      } });
+    }
+    const frozen = Object.freeze({ gainHash: hasher.digestHex(),
+      gpuBytes: buffers.reduce((sum, buffer) => sum + buffer.size, 0),
+      logicalBytes: layers.reduce((sum, layer) => sum + layer.channels * 8 + 4, 0),
+      layers: Object.freeze([...state.layers].map(([layerIdx, layer]) => Object.freeze({ layerIdx, channels: layer.channels }))),
+      close() {
+        if (state.closed) return;
+        if (state.users) throw new Error('Close active rotation requests before releasing frozen rotations.');
+        state.closed = true; state.layers.clear();
+        const release = () => { for (const buffer of buffers) releaseBuffer(buffer); };
+        device.queue.onSubmittedWorkDone().then(release, release);
+      },
+    });
+    frozenStates.set(frozen, state);
+    return frozen;
+  } catch (error) {
+    await device.queue.onSubmittedWorkDone().catch(() => {});
+    for (const buffer of buffers) releaseBuffer(buffer);
+    throw error;
+  }
+}
+
 /** @type {typeof import('./channel-gain.js').createChannelGainRequest} */
 export function createChannelGainRequest(spec) {
   const { mode, requestId, gainHash, cacheArm, tokenCount, span, layers, frozenGains } = spec;
   const frozenState = frozenGains ? frozenStates.get(frozenGains) : null;
+  const kind = spec.transformKind ?? 'gain';
+  if (!['gain', 'rotation'].includes(kind) || (frozenState && frozenState.kind !== kind)) {
+    throw new Error('Research transform kind must match its opaque frozen handle.');
+  }
   if (!['capture', 'apply'].includes(mode) || !requestId || !['base-cache', 're-prefill'].includes(cacheArm)
       || !Number.isSafeInteger(tokenCount) || tokenCount < 1 || !Array.isArray(layers) || layers.length === 0) {
     throw new Error('Channel gain request requires explicit mode, requestId, cacheArm, tokenCount and selected layers.');
@@ -113,6 +184,13 @@ export function createChannelGainRequest(spec) {
       || span.templatePositions.some(p => p >= content.start && p < content.stop))) {
     throw new Error('Same-pass capture requires content containing the instruction plus a nonempty template-free complement.');
   }
+  if (kind === 'rotation' && mode === 'capture' && (!content
+      || !Number.isFinite(spec.rotationEpsilon) || Math.fround(spec.rotationEpsilon ?? 0) <= 0
+      || !Number.isFinite(Math.fround(spec.rotationEpsilon ?? 0)))) {
+    throw new Error('Rotation capture requires an explicit content complement and finite positive f32 epsilon.');
+  }
+  const rotationEpsilon = spec.rotationEpsilon;
+  const rotations = new Map();
   const frozenContent = content ? Object.freeze({ start: content.start, stop: content.stop }) : null;
   const frozenSpan = Object.freeze({ start: span.start, stop: span.stop });
   /** @type {Map<number, import('../../../gpu/tensor.js').Tensor>} */
@@ -125,7 +203,7 @@ export function createChannelGainRequest(spec) {
   const assertOpen = () => { if (closed) throw new Error('Channel gain request is closed.'); };
   /** @type {import('./channel-gain.js').ChannelGainRequest} */
   const request = {
-    requestId, mode, gainHash, cacheArm,
+    requestId, mode, gainHash, cacheArm, transformKind: kind,
     has(layerIdx) { assertOpen(); return selected.has(layerIdx); },
     validateLayer(layerIdx, context, tokens, channels) {
       assertOpen();
@@ -160,13 +238,27 @@ export function createChannelGainRequest(spec) {
         return output;
       } finally { pending -= 1; }
     },
+    async transform(layerIdx, tensor, tokens, channels, recorder) {
+      assertOpen();
+      const layer = frozenState?.layers.get(layerIdx);
+      if (kind !== 'rotation' || mode !== 'apply' || !layer?.rotation) throw new Error('No frozen rotation selected.');
+      pending += 1;
+      try {
+        const output = await applyChannelRotation(recorder, tensor, layer.rotation, { tokens, channels, theta: layer.theta ?? NaN });
+        seen.add(layerIdx);
+        return output;
+      } finally { pending -= 1; }
+    },
     async capture(layerIdx, tensor, tokens, channels, recorder) {
       assertOpen();
       if (!selected.has(layerIdx) || mode !== 'capture') return;
       if (seen.has(layerIdx)) throw new Error('Channel energy already captured for this layer.');
       pending += 1;
       try {
-        if (frozenContent) {
+        if (kind === 'rotation' && frozenContent && rotationEpsilon !== undefined) {
+          rotations.set(layerIdx, await deriveChannelRotation(recorder, tensor, { tokens, channels, ...frozenSpan,
+            contentStart: frozenContent.start, contentStop: frozenContent.stop, epsilon: rotationEpsilon }));
+        } else if (frozenContent) {
           const pair = await channelEnergyPair(recorder, tensor, { tokens, channels, ...frozenSpan,
             contentStart: frozenContent.start, contentStop: frozenContent.stop });
           energies.set(layerIdx, pair.instruction);
@@ -177,6 +269,13 @@ export function createChannelGainRequest(spec) {
         }
         seen.add(layerIdx);
       } finally { pending -= 1; }
+    },
+    takeRotations() {
+      assertOpen();
+      if (kind !== 'rotation' || mode !== 'capture' || pending || rotations.size !== selected.size) {
+        throw new Error('Rotation capture is absent or incomplete; settle prefill before transferring outputs.');
+      }
+      const result = new Map(rotations); rotations.clear(); return result;
     },
     takeEnergies() {
       assertOpen();
@@ -202,6 +301,8 @@ export function createChannelGainRequest(spec) {
       closed = true;
       if (mode === 'apply' && frozenState) frozenState.users -= 1;
       const buffers = [...energies.values(), ...referenceEnergies.values()].map(tensor => tensor.buffer);
+      for (const rotation of rotations.values()) buffers.push(rotation.basis.buffer, rotation.status.buffer);
+      rotations.clear();
       energies.clear();
       referenceEnergies.clear();
       selected.clear();

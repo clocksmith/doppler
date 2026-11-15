@@ -55,6 +55,11 @@
   ],
   "reviews": [
     {
+      "id": "src/inference/pipelines/text/channel-gain.js#freezeChannelRotations",
+      "category": "observation",
+      "reason": "Copies planes and status GPU-to-GPU into private buffers; validates unchanged readback finiteness, orthonormality and degenerate identity, then hashes unchanged bytes. Validation reductions only accept or reject a handle; no computed tensor is uploaded or used as a model result. Map.set tracks ownership. WGSL derives and applies every rotation."
+    },
+    {
       "id": "src/inference/pipelines/text/hyper-connection/session.js#createHyperConnectionSession",
       "category": "gpu-orchestration",
       "reason": "Constructs per-layer session state and records it in a Map. The looped set is Map.set, not tensor arithmetic; packed-row staging elsewhere in this module only pads unchanged bytes for WebGPU alignment."

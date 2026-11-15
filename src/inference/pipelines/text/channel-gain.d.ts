@@ -2,21 +2,29 @@ import type { Tensor } from '../../../gpu/tensor.js';
 import type { CommandRecorder } from '../../../gpu/command-recorder.js';
 import type { LayerContext } from './types.js';
 export interface ChannelGainSpec {
+  /** Rotation selects split gate/up + post-SwiGLU rotation on selected dense layers only. */
+  transformKind?: 'gain' | 'rotation';
+  rotationEpsilon?: number;
   mode: 'capture' | 'apply'; requestId: string; gainHash: string;
   cacheArm: 'base-cache' | 're-prefill'; tokenCount: number;
   span: { start: number; stop: number; templatePositions: number[] };
   layers: { layerIdx: number; channels: number }[];
+  /** Historical field name; rotation uses the opaque handle from freezeChannelRotations. */
   frozenGains?: FrozenChannelGains;
   /** Capture-only: original full-prompt content span. Enables same-pass complement reference. */
   captureContentSpan?: { start: number; stop: number };
 }
 export interface ChannelGainRequest {
+  readonly transformKind: 'gain' | 'rotation';
   readonly requestId: string; readonly mode: 'capture' | 'apply'; readonly gainHash: string;
   readonly cacheArm: 'base-cache' | 're-prefill';
   has(layerIdx: number): boolean;
   validateLayer(layerIdx: number, context: LayerContext, tokens: number, channels: number): void;
   activate(layerIdx: number, up: Tensor, gate: Tensor, tokens: number, channels: number,
     swigluLimit: number | null, recorder: CommandRecorder | null): Promise<Tensor>;
+  transform(layerIdx: number, tensor: Tensor, tokens: number, channels: number,
+    recorder: CommandRecorder | null): Promise<Tensor>;
+  takeRotations(): Map<number, import('../../../gpu/kernels/channel-rotation.js').ChannelRotation>;
   capture(layerIdx: number, tensor: Tensor, tokens: number, channels: number,
     recorder: CommandRecorder | null): Promise<void>;
   /** After submitted prefill completion, transfers energy-buffer ownership to caller. */
@@ -43,3 +51,6 @@ export function createChannelGainRequest(spec: ChannelGainSpec): ChannelGainRequ
 
 export function assertChannelGainIdle(state: { isGenerating?: boolean }): void;
 export function withChannelGainOperation<T>(state: object, operation: () => Promise<T>): Promise<T>;
+
+/** Copies/validates plane+status and seals angle in opaque immutable request-local ownership. */
+export function freezeChannelRotations(layers: { layerIdx: number; channels: number; theta: number; rotation: import('../../../gpu/kernels/channel-rotation.js').ChannelRotation }[]): Promise<FrozenChannelGains>;
