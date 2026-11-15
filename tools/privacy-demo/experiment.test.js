@@ -48,7 +48,7 @@ test('settles cancellation without another feedback message or returning a parti
 });
 test('demonstrates the missing malicious-computation guarantee with a valid substituted ciphertext', async () => {
   let inputCiphertext;
-  const result = await runExperiment({ seed: 'b', observe({ packet }) { if (packet.inputCiphertext) inputCiphertext = packet.inputCiphertext; },
+  const result = await runExperiment({ seed: 'b', integrityMode: 'none', observe({ packet }) { if (packet.inputCiphertext) inputCiphertext = packet.inputCiphertext; },
     transformResponse: packet => ({ ...packet, scoresCiphertext: inputCiphertext }) });
   assert.notEqual(result.output, reference('b')); assert.equal(result.matchesReference, false);
   assert.equal(result.integrityProvided, false); assert.equal(result.qualified, false);
@@ -106,4 +106,42 @@ test('demonstrates selective-failure privacy leakage even when client reference 
   }
   // A malicious evaluator observes continuation vs early stop, revealing a predicate of the private seed.
   assert.deepEqual(continuationCounts, [2, policy.steps + 1]);
+});
+
+test('public ciphertext replay rejects the same selective-failure attack for every seed before secret-key operations', async () => {
+  const continuationCounts = [];
+  for (const seed of policy.vocabulary) {
+    const attacker = await openExperimentContext(), { seal, context, own } = attacker;
+    const keys = own(new seal.GaloisKeys()), input = own(new seal.Ciphertext()), scores = own(new seal.Ciphertext()), rotated = own(new seal.Ciphertext());
+    const evaluator = own(new seal.Evaluator(context));
+    let sent = 0;
+    try {
+      await assert.rejects(runExperiment({ seed, integrityMode: 'ciphertext-replay', observe({ direction, packet }) {
+        if (direction !== 'client') return;
+        sent++;
+        if (packet.evaluationKeys) keys.loadFromBase64(context, packet.evaluationKeys);
+        if (packet.inputCiphertext) input.loadFromBase64(context, packet.inputCiphertext);
+      }, transformResponse(packet) {
+        scores.loadFromBase64(context, packet.scoresCiphertext);
+        evaluator.rotateRows(input, 1, keys, rotated); evaluator.addInplace(scores, rotated);
+        return { ...packet, scoresCiphertext: scores.saveToBase64(seal.ComprModeType.none) };
+      } }), /Ciphertext replay rejected evaluator output before decryption/);
+      continuationCounts.push(sent);
+    } finally { attacker.close(); }
+  }
+  assert.deepEqual(continuationCounts, policy.vocabulary.map(() => 2));
+});
+test('replay checks all four encrypted circuits, rejects valid substitution and binds integrity mode', async () => {
+  for (const seed of policy.vocabulary) {
+    const report = await runExperiment({ seed, integrityMode: 'ciphertext-replay' });
+    assert.equal(report.output, reference(seed)); assert.equal(report.ciphertextReplay.checkedSteps, policy.steps);
+    assert.ok(report.ciphertextReplay.elapsedMs > 0); assert.ok(report.minimumNoiseBits > 0);
+    assert.equal(report.productionBackendAvailable, false); assert.equal(report.integrityProvided, false);
+  }
+  let inputCiphertext;
+  await assert.rejects(runExperiment({ seed: 'b', observe({ packet }) { if (packet.inputCiphertext) inputCiphertext = packet.inputCiphertext; },
+    transformResponse: packet => ({ ...packet, scoresCiphertext: inputCiphertext }) }), /Ciphertext replay rejected/);
+  await assert.rejects(runExperiment({ seed: 'b', transformResponse: packet => ({ ...packet, integrityMode: 'none' }) }), /frame rejected/);
+  const unaudited = await runExperiment({ seed: 'b', integrityMode: 'none' });
+  assert.equal(unaudited.minimumNoiseBits, null); assert.equal(unaudited.ciphertextReplay.checkedSteps, 0);
 });

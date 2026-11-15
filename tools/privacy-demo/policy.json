@@ -38,11 +38,13 @@
     "selected client integrity-audit mode"
   ],
   "integrity": {
-    "defaultMode": "none",
+    "defaultMode": "ciphertext-replay",
     "modes": [
       "none",
-      "client-reference"
+      "client-reference",
+      "ciphertext-replay"
     ],
-    "client-reference": "Full local fixture score recomputation; not verifiable computation or active-adversary privacy"
+    "client-reference": "Full local fixture score recomputation; not verifiable computation or active-adversary privacy",
+    "ciphertext-replay": "Full deterministic encrypted-circuit re-execution on the client; compare exact ciphertext bytes before any decryption or noise-budget query. No outsourcing savings, succinct proof or independent review."
   }
 }

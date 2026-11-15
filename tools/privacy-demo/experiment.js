@@ -1,11 +1,12 @@
 /** Client-owned autoregression. Decrypt and select locally, then freshly encrypt every feedback step. */
 import { spawn } from 'node:child_process';
 import { once } from 'node:events';
-import { createHash, randomUUID } from 'node:crypto';
+import { createHash, randomUUID, timingSafeEqual } from 'node:crypto';
 import { fileURLToPath } from 'node:url';
 import { performance } from 'node:perf_hooks';
 import policy from './policy.json' with { type: 'json' };
 import { openExperimentContext } from './seal-context.js';
+import { createScoreEvaluation } from './evaluation.js';
 import { choose, modelId, reference, transitionScores } from './model.js';
 import { envelope, readFrames, validate, writeFrame } from './wire.js';
 export async function runExperiment({ seed, integrityMode = policy.integrity.defaultMode, signal = null, observe = () => {}, transformResponse = value => value } = {}) {
@@ -16,7 +17,8 @@ export async function runExperiment({ seed, integrityMode = policy.integrity.def
   const began = performance.now(), runtime = await openExperimentContext();
   const { seal, context, own } = runtime;
   let provider, exited, timer, cancel;
-  let clientBytes = 0, providerBytes = 0, output = '', minimumNoiseBits = Infinity;
+  let clientBytes = 0, providerBytes = 0, output = '', minimumNoiseBits = null;
+  const ciphertextReplay = { checkedSteps: 0, elapsedMs: 0 };
   const stepMs = [], clientReferenceAudit = { checkedSteps: 0, elapsedMs: 0 };
   try {
     signal?.throwIfAborted();
@@ -26,6 +28,7 @@ export async function runExperiment({ seed, integrityMode = policy.integrity.def
     const keysId = 'sha256:' + createHash('sha256').update(serialized).digest('hex'), session = randomUUID();
     const encoder = own(new seal.BatchEncoder(context)), encryptor = own(new seal.Encryptor(context, publicKey));
     const decryptor = own(new seal.Decryptor(context, secret)), plain = own(new seal.Plaintext()), cipher = own(new seal.Ciphertext());
+    const replay = integrityMode === 'ciphertext-replay' ? createScoreEvaluation(runtime, keys) : null;
     provider = spawn(process.execPath, [fileURLToPath(new URL('./provider.js', import.meta.url))], { stdio: ['pipe', 'pipe', 'pipe'], env: {} });
     exited = once(provider, 'exit');
     provider.stdin.on('error', () => {});
@@ -43,16 +46,26 @@ export async function runExperiment({ seed, integrityMode = policy.integrity.def
       const started = performance.now(), vector = new BigInt64Array(encoder.slotCount()), n = policy.vocabulary.length;
       for (let row = 0; row < n; row++) vector[row * n + token] = 1n;
       encoder.encode(vector, plain); encryptor.encrypt(plain, cipher);
-      await send({ ...envelope(session, keysId, step, integrityMode), inputCiphertext: cipher.saveToBase64(seal.ComprModeType.none) });
+      const inputCiphertext = cipher.saveToBase64(seal.ComprModeType.none);
+      await send({ ...envelope(session, keysId, step, integrityMode), inputCiphertext });
       const received = await responses.next(); signal?.throwIfAborted();
       if (received.done) throw Error('Encrypted experiment provider ended early');
       providerBytes += Buffer.byteLength(JSON.stringify(received.value) + '\n');
       observe({ direction: 'provider', packet: structuredClone(received.value) });
       const checked = validate(transformResponse(structuredClone(received.value)), envelope(session, keysId, step, integrityMode), 'scoresCiphertext');
+      // Never query a secret-key-dependent noise budget for unauthenticated evaluator output.
+      // Replay uses only public ciphertexts/evaluation keys and rejects before any secret-key operation.
+      if (replay) {
+        const auditStarted = performance.now(), expected = Buffer.from(replay(inputCiphertext), 'base64'), actual = Buffer.from(checked, 'base64');
+        if (actual.length !== expected.length || !timingSafeEqual(actual, expected)) throw Error('Ciphertext replay rejected evaluator output before decryption');
+        ciphertextReplay.checkedSteps++; ciphertextReplay.elapsedMs += performance.now() - auditStarted;
+      }
       cipher.loadFromBase64(context, checked);
-      const noise = decryptor.invariantNoiseBudget(cipher);
-      if (noise <= 0) throw Error('Encrypted experiment exhausted noise budget');
-      minimumNoiseBits = Math.min(noise, minimumNoiseBits);
+      if (replay) {
+        const noise = decryptor.invariantNoiseBudget(cipher);
+        if (noise <= 0) throw Error('Encrypted experiment exhausted noise budget');
+        minimumNoiseBits = minimumNoiseBits === null ? noise : Math.min(noise, minimumNoiseBits);
+      }
       decryptor.decrypt(cipher, plain);
       const slots = encoder.decodeBigInt64(plain), scores = policy.vocabulary.map((_value, row) => Number(slots[row * n]));
       if (integrityMode === 'client-reference') {
@@ -69,7 +82,7 @@ export async function runExperiment({ seed, integrityMode = policy.integrity.def
     const referenceStarted = performance.now(), expected = reference(seed), referenceElapsedMs = performance.now() - referenceStarted;
     return { schema: policy.schema, qualified: false, modelId, protocol: policy.protocol, output,
       matchesReference: output === expected, referenceElapsedMs, steps: policy.steps, setupMs, stepMs, elapsedMs: performance.now() - began,
-      clientBytes, providerBytes, minimumNoiseBits, integrityMode, clientReferenceAudit, maxRssKiB: process.resourceUsage().maxRSS,
+      clientBytes, providerBytes, minimumNoiseBits, integrityMode, clientReferenceAudit, ciphertextReplay, maxRssKiB: process.resourceUsage().maxRSS,
       adversary: policy.adversary, leakage: policy.leakage, integrityProvided: false, productionBackendAvailable: false };
   } finally {
     clearTimeout(timer); signal?.removeEventListener('abort', cancel);
