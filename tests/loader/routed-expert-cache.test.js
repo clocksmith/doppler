@@ -28,7 +28,7 @@ function device() {
     },
     queue: {
       onSubmittedWorkDone: async () => {},
-      writeBuffer(buffer, offset, bytes) { assert(!buffer.destroyed); buffer.data.set(bytes, offset); },
+      writeBuffer(buffer, offset, bytes) { assert(!buffer.destroyed); buffer.data.set(new Uint8Array(bytes.buffer, bytes.byteOffset, bytes.byteLength), offset); },
       submit(batch) { for (const commands of batch) for (const command of commands) command(); },
     },
   };
@@ -51,11 +51,11 @@ function fixture(separate = false, intermediate = 256, native = false, direct = 
     }
   }
   const cacheBytes = [...locations.values()].slice(0, separate ? 3 : 2).reduce((sum, plane) => sum + plane.size / 4, 0) * 2;
-  const policy = { enabled: true, evictionPolicy, cacheBytes, hostCacheBytes: 0, hostCacheAdmission: 'all', hostCacheAdmissionPhase: 'all', stagingBytes: 8192, readConcurrency: 2,
+  const policy = { enabled: true, evictionPolicy, storageMode: 'payload-copy', cacheBytes, hostCacheBytes: 0, hostCacheAdmission: 'all', hostCacheAdmissionPhase: 'all', stagingBytes: 8192, readConcurrency: 2,
     routeChunkTokens: 2, gpuBudgetBytes: 16 * 1024 ** 2, reserveBytes: 1024 ** 2 };
   const { gpu, buffers } = device(), reads = [], destinations = new Set();
   let readHook = async () => {};
-  const cache = new RoutedExpertCache({ device: gpu, policy, numLayers: 3, numExperts: 4, otherGpuBytes: () => 0,
+  const cache = new RoutedExpertCache({ device: gpu, policy, compactLayerCount: 3, numLayers: 3, numExperts: 4, otherGpuBytes: () => 0,
     readRangeInto: direct ? async (shard, offset, destination, signal) => {
       destinations.add(destination.buffer);
       reads.push({ shard, offset, bytes: destination.byteLength });
@@ -224,7 +224,7 @@ function fixture(separate = false, intermediate = 256, native = false, direct = 
   await assert.rejects(f.cache.prepare(f.plan(0), [0]), /source read failed/);
   await f.cache.destroy();
   assert(f.buffers.every(b => b.destroyed));
-  assert.throws(() => validateQwen35RoutedConfig({ enabled: true, evictionPolicy: 'lru' }), /cacheBytes/);
+  assert.throws(() => validateQwen35RoutedConfig({ enabled: true, evictionPolicy: 'lru', storageMode: 'payload-copy' }), /cacheBytes/);
   assert.throws(() => f.plan(9), /declared Qwen/);
   f.locations.values().next().value.sourceTransform = { kind: 'unexpected' };
   assert.throws(() => f.plan(0), /untransformed/);
@@ -628,6 +628,82 @@ console.log('Routed expert cache: range extents, identity, hot reuse, budgets, c
   await f.cache.destroy();
 }
 
+{
+  const f = fixture(true, 256, true, true);
+  const plan = f.plan(0);
+  f.policy.storageMode = 'compact-decode';
+  f.policy.cacheBytes = (plan.expertBytes * 2 + plan.numExperts * 4) * 3;
+  const legacy = await f.cache.prepare(plan, [0], undefined, 'prefill');
+  const first = await f.cache.prepare(plan, [0, 2], undefined, 'decode');
+  assert(legacy.down.buffer.destroyed, 'phase transition retires legacy storage before compact allocations');
+  assert.equal(first.numExperts, 2);
+  assert.equal(first.sourceNumExperts, 4);
+  let map = new Uint32Array(first.sourceExpertToSlot.data.buffer);
+  assert.deepEqual([...map], [0, 0xffffffff, 1, 0xffffffff]);
+  for (const plane of plan.planes) {
+    for (const expert of [0, 2]) assert.deepEqual(
+      first[plane.role].buffer.data.slice(map[expert] * plane.expertBytes, (map[expert] + 1) * plane.expertBytes),
+      f.shards.get(plane.location.shardIndex).slice(expert * plane.expertBytes, (expert + 1) * plane.expertBytes));
+    assert.equal(first[plane.role].shape[0], 2);
+  }
+  const before = f.cache.getStats();
+  await f.cache.prepare(plan, [2, 0], undefined, 'decode');
+  const hit = f.cache.getStats();
+  assert.equal(hit.uploadBytes, before.uploadBytes, 'resident compact hits upload no expert payload');
+  assert.equal(hit.sourceReadBytes, before.sourceReadBytes);
+  assert.equal(hit.expertCopySubmissions, before.expertCopySubmissions, 'compact hits never copy to working banks');
+  const replaced = await f.cache.prepare(plan, [2, 1], undefined, 'decode');
+  map = new Uint32Array(replaced.sourceExpertToSlot.data.buffer);
+  assert.equal(map[2], 1, 'selected hit stays pinned while another slot is evicted');
+  assert.equal(map[1], 0);
+  assert.equal(map[0], 0xffffffff);
+  assert.equal(f.cache.getStats().workingBytes, 0);
+  assert(f.cache.getStats().cacheBytes <= f.policy.cacheBytes);
+  const again = await f.cache.prepare(plan, [0], undefined, 'prefill');
+  assert(replaced.down.buffer.destroyed, 'return to prefill retires compact storage before legacy allocation');
+  assert.equal(again.numExperts, 4);
+  assert.equal(again.sourceExpertToSlot, undefined);
+  await f.cache.destroy();
+  assert(f.buffers.every(buffer => buffer.destroyed));
+}
+{
+  const f = fixture(true, 256, true, true), plan = f.plan(0);
+  f.policy.storageMode = 'compact-decode';
+  f.policy.cacheBytes = (plan.expertBytes * 2 + plan.numExperts * 4) * 3;
+  f.setReadHook(async () => { throw new Error('compact source failure'); });
+  await assert.rejects(f.cache.prepare(plan, [0, 1], undefined, 'decode'), /compact source failure/);
+  f.setReadHook(async () => {});
+  const result = await f.cache.prepare(plan, [0, 1], undefined, 'decode');
+  assert.deepEqual([...new Uint32Array(result.sourceExpertToSlot.data.buffer)].slice(0, 2).sort(), [0, 1]);
+  await assert.rejects(f.cache.prepare(plan, [0, 1, 2], undefined, 'decode'), /slot capacity/);
+  await f.cache.destroy();
+  assert(f.buffers.every(buffer => buffer.destroyed));
+}
+
+{
+  const f = fixture(true, 256, true), plan = f.plan(0);
+  f.policy.storageMode = 'compact-decode';
+  f.policy.cacheBytes = (plan.expertBytes * 2 + plan.numExperts * 4) * 3;
+  const create = f.gpu.createBuffer;
+  f.gpu.createBuffer = options => {
+    if (options.label === 'compact_0_up') throw new Error('compact allocation failure');
+    return create(options);
+  };
+  await assert.rejects(f.cache.prepare(plan, [0], undefined, 'decode'), /compact allocation failure/);
+  assert(f.buffers.every(buffer => buffer.destroyed), 'partial compact arena allocation stays owned and is retired');
+  assert.equal(f.cache.getStats().residentBytes, 0);
+  f.gpu.createBuffer = create;
+  const abort = new AbortController();
+  f.setReadHook(async () => { abort.abort(new Error('compact cancelled')); });
+  await assert.rejects(f.cache.prepare(plan, [0, 1], abort.signal, 'decode'), /compact cancelled/);
+  f.setReadHook(async () => {});
+  await f.cache.prepare(plan, [1, 0], undefined, 'decode');
+  f.gpu.queue.onSubmittedWorkDone = async () => { throw new Error('lost queue'); };
+  await assert.rejects(f.cache.destroy(), /cleanup failed/);
+  assert(f.buffers.every(buffer => buffer.destroyed), 'queue failure still retires compact ownership');
+  assert.equal(f.cache.getStats().residentBytes, 0);
+}
+
 for (const policy of ['lru', 'lfu']) {
   const f = fixture(false, 256, false, false, policy);
   for (const layer of [0, 1, 0, 1, 0, 2]) await f.cache.prepare(f.plan(layer), [0]);
@@ -651,5 +727,17 @@ for (const policy of ['lru', 'lfu']) {
   // Working-bank hits count as use even without a payload lookup.
   for (const layer of [0, 0, 0, 1, 2, 0]) await f.cache.prepare(f.plan(layer), [0]);
   assert.equal(f.cache.getStats().cacheMisses, 3);
+  await f.cache.destroy();
+}
+
+// Compact residency does not implement LFU; never silently ignore the policy.
+{
+  const f = fixture(false, 256, true, false, 'lfu');
+  assert.equal(validateQwen35RoutedConfig(f.policy), f.policy, 'payload-copy retains LFU');
+  f.policy.storageMode = 'compact-decode';
+  assert.throws(() => validateQwen35RoutedConfig(f.policy), /requires evictionPolicy=lru/);
+  const plan = planRoutedExpertBank(f.manifest, f.locations, 0);
+  await assert.rejects(f.cache.prepare(plan, [0], undefined, 'decode'), /requires evictionPolicy=lru/);
+  assert.equal(f.buffers.length, 0, 'unsupported policy fails before GPU allocation');
   await f.cache.destroy();
 }

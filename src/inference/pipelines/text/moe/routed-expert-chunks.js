@@ -2,43 +2,79 @@ import { getRuntimeConfig } from '../../../../config/runtime.js';
 import { acquireBuffer, readBufferSlice, releaseBuffer } from '../../../../memory/buffer-pool.js';
 import { getDevice } from '../../../../gpu/device.js';
 import { createTensor } from '../../../../gpu/tensor.js';
-import { runQwenRouteExperts } from './qwen-route-executor.js';
+import { runRouteRemap } from '../../../../gpu/kernels/moe-route.js';
+import { runQwenRouteExperts, recordQwenRouteExperts } from './qwen-route-executor.js';
 
 // Actual GPU selections, not predictions. The next metadata read precedes the
 // current chunk's dispatch, so known-route I/O can overlap that dispatch.
 /** @type {typeof import('./routed-expert-chunks.js').executeRoutedExpertChunks} */
-export async function executeRoutedExpertChunks(options, loader, policy, signal) {
+export async function executeRoutedExpertChunks(options, loader, policy, signal, recorder = null) {
   if (options.sharedSlot || options.groupedPrefill || options.activationDtype !== 'f32') {
     throw new Error('Routed expert loading requires the ordinary immediate F32 route executor.');
+  }
+  if (recorder && (options.phase !== 'decode' || options.numTokens !== 1)) {
+    throw new Error('Recorded routed experts require single-token decode.');
   }
   const { numTokens, topK, hiddenSize, indicesBuffer, weightsBuffer, inputTensor, layerIdx } = options;
   if (typeof layerIdx !== 'number' || !Number.isSafeInteger(layerIdx)) throw new Error('Routed expert loading requires an explicit layer.');
   const device = getDevice();
   if (!device) throw new Error('Routed expert loading requires the owning GPU device.');
+  const capacity = policy.storageMode === 'compact-decode' && options.phase === 'decode'
+    ? loader.getRoutedExpertCapacity?.(layerIdx, options.phase) : undefined;
+  if (capacity !== undefined && (!Number.isSafeInteger(capacity) || capacity < topK)) {
+    throw new Error('Routed expert capacity cannot fit one complete top-K selection.');
+  }
+  const chunkTokens = capacity === undefined ? policy.routeChunkTokens
+    : Math.min(policy.routeChunkTokens, Math.floor(capacity / topK));
   /** @param {number} start */
   const selections = async start => {
     signal?.throwIfAborted();
-    const count = Math.min(policy.routeChunkTokens, numTokens - start);
+    const count = Math.min(chunkTokens, numTokens - start);
     const profile = getRuntimeConfig().shared.debug.profiler.enabled;
     const started = profile ? performance.now() : 0;
+    // Submit routing and all earlier bank consumers before CPU selections or
+    // cache reuse. The outer owner keeps temporaries until its final submission.
+    recorder?.submitPartial();
     const data = await readBufferSlice(indicesBuffer, start * topK * 4, count * topK * 4);
     if (profile) loader.recordRoutedReadback?.(options.phase, performance.now() - started, count * topK * 4);
     signal?.throwIfAborted();
     return [...new Set(new Uint32Array(data))];
   };
   let ids = await selections(0);
-  if (numTokens <= policy.routeChunkTokens) {
+  if (numTokens <= chunkTokens) {
     const weights = await loader.prepareRoutedExperts(layerIdx, ids, signal, options.phase);
     signal?.throwIfAborted();
-    return runQwenRouteExperts({ ...options, weights });
+    if (!weights.sourceExpertToSlot) return recorder
+      ? recordQwenRouteExperts(recorder, { ...options, weights })
+      : runQwenRouteExperts({ ...options, weights });
+    const sourceNumExperts = weights.sourceNumExperts;
+    if (options.phase !== 'decode' || numTokens !== 1 || !sourceNumExperts
+        || ids.some(id => id >= sourceNumExperts)) {
+      throw new Error('Compact expert slots require valid single-token decode source IDs.');
+    }
+    const remapped = await runRouteRemap(indicesBuffer, weights.sourceExpertToSlot,
+      numTokens * topK, sourceNumExperts, weights.numExperts, recorder);
+    if (recorder) {
+      recorder.trackTemporaryBuffer(remapped);
+      return recordQwenRouteExperts(recorder, { ...options, weights, indicesBuffer: remapped });
+    }
+    let submitted = false;
+    try {
+      const result = await runQwenRouteExperts({ ...options, weights, indicesBuffer: remapped });
+      submitted = true;
+      return result;
+    } finally {
+      try { if (!submitted) await device.queue.onSubmittedWorkDone(); }
+      finally { releaseBuffer(remapped); }
+    }
   }
   const output = acquireBuffer(numTokens * hiddenSize * 4, undefined, 'routed_prefill_output');
   let completed = false;
   let failure;
   try {
-    for (let start = 0; start < numTokens; start += policy.routeChunkTokens) {
+    for (let start = 0; start < numTokens; start += chunkTokens) {
       signal?.throwIfAborted();
-      const count = Math.min(policy.routeChunkTokens, numTokens - start);
+      const count = Math.min(chunkTokens, numTokens - start);
       const next = start + count < numTokens ? selections(start + count) : null;
       // A rejection is observed immediately even if weight preparation fails.
       next?.catch(() => undefined);

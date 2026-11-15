@@ -178,6 +178,7 @@ export interface ExpertCacheConfigSchema {
 
 export interface Qwen35RoutedConfig {
   enabled: boolean;
+  storageMode: 'payload-copy' | 'compact-decode';
   /** LFU retains causal lifetime counts until unload; LRU remains the default. */
   evictionPolicy: 'lru' | 'lfu';
   cacheBytes: number;

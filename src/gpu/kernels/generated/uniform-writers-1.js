@@ -2,6 +2,17 @@
 // Do not edit; npm run kernels:uniforms:sync.
 import { writeU32, writeI32, writeF32 } from '../uniform-encoding.js';
 
+export function write_rmsnorm_default(view, values, kernel) {
+  writeU32(view, 0, values["size"], kernel, "size");
+  writeU32(view, 4, values["num_tokens"], kernel, "num_tokens");
+  writeF32(view, 8, values["eps"], kernel, "eps");
+  writeU32(view, 12, values["has_residual"], kernel, "has_residual");
+  writeU32(view, 16, values["token_stride"], kernel, "token_stride");
+  writeF32(view, 20, values["output_scale"], kernel, "output_scale");
+  view.setUint32(24, 0, true);
+  view.setUint32(28, 0, true);
+}
+
 export function write_rmsnorm_paired(view, values, kernel) {
   writeU32(view, 0, values["size"], kernel, "size");
   writeU32(view, 4, values["num_tokens"], kernel, "num_tokens");
@@ -585,18 +596,4 @@ export function write_matmul_transpose_a_default(view, values, kernel) {
   view.setUint32(20, 0, true);
   view.setUint32(24, 0, true);
   view.setUint32(28, 0, true);
-}
-
-export function write_scale_backward_default(view, values, kernel) {
-  writeU32(view, 0, values["size"], kernel, "size");
-  writeF32(view, 4, values["scale"], kernel, "scale");
-  view.setUint32(8, 0, true);
-  view.setUint32(12, 0, true);
-}
-
-export function write_softmax_backward_default(view, values, kernel) {
-  writeU32(view, 0, values["rows"], kernel, "rows");
-  writeU32(view, 4, values["cols"], kernel, "cols");
-  view.setUint32(8, 0, true);
-  view.setUint32(12, 0, true);
 }

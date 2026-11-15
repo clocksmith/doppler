@@ -11,6 +11,7 @@ export interface RoutedExpertPlane {
 }
 export interface RoutedExpertBankPlan {
   layer: number;
+  numLayers: number;
   numExperts: number;
   intermediateSize: number;
   hiddenSize: number;

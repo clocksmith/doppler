@@ -133,3 +133,17 @@ export function runRouteScatter(input, weights, options) {
 export function recordRouteScatter(recorder, input, weights, options) {
   return scatter(recorder, input, weights, options);
 }
+
+/** @type {typeof import('./moe-route.js').runRouteRemap} */
+export async function runRouteRemap(indices, sourceToSlot, numRoutes, sourceNumExperts, slotCount, recorder = null) {
+  for (const [name, value] of Object.entries({ numRoutes, sourceNumExperts, slotCount })) positive(value, name);
+  extent(indices, numRoutes * 4, 'source route indices');
+  extent(sourceToSlot, sourceNumExperts * 4, 'source expert slot map');
+  const config = getKernelConfig('moe_route_remap', 'u32');
+  return withKernelOutput(recorder, null, numRoutes * 4, 'moe_route_remap', async output => {
+    await unifiedKernelWrapper('moe_route_remap', recorder, 'u32', [indices, sourceToSlot, output], {
+      num_routes: numRoutes, source_experts: sourceNumExperts, slot_count: slotCount,
+    }, [Math.ceil(numRoutes / config.workgroupSize[0]), 1, 1]);
+    return output;
+  });
+}

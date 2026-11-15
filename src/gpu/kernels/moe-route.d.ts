@@ -27,3 +27,6 @@ export declare function runRouteScatter(input: Tensor, weights: GPUBuffer,
   options: RouteScatterOptions): Promise<Tensor>;
 export declare function recordRouteScatter(recorder: CommandRecorder, input: Tensor,
   weights: GPUBuffer, options: RouteScatterOptions): Promise<Tensor>;
+
+export declare function runRouteRemap(indices: GPUBuffer, sourceToSlot: GPUBuffer,
+  numRoutes: number, sourceNumExperts: number, slotCount: number, recorder?: CommandRecorder | null): Promise<GPUBuffer>;

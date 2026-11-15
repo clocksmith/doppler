@@ -5,6 +5,7 @@ import * as writers1 from './uniform-writers-1.js';
 import * as writers2 from './uniform-writers-2.js';
 
 export interface KernelUniformValues {
+  "moe_route_remap/u32": Parameters<typeof writers0.write_moe_route_remap_u32>[1];
   "moe_shared_slot_gu/native_f32": Parameters<typeof writers0.write_moe_shared_slot_gu_native_f32>[1];
   "moe_shared_slot_gu/pair_f32": Parameters<typeof writers0.write_moe_shared_slot_gu_native_f32>[1];
   "moe_shared_slot_combine/f32": Parameters<typeof writers0.write_moe_shared_slot_gu_native_f32>[1];
@@ -251,13 +252,13 @@ export interface KernelUniformValues {
   "lm_head_argmax/phase2": Parameters<typeof writers0.write_lm_head_argmax_phase1_f16w_f32a>[1];
   "lm_head_argmax/phase2_q4k": Parameters<typeof writers0.write_lm_head_argmax_phase1_f16w_f32a>[1];
   "lm_head_select_logits/f16w_f32a": Parameters<typeof writers0.write_lm_head_select_logits_f16w_f32a>[1];
-  "rmsnorm/default": Parameters<typeof writers0.write_rmsnorm_default>[1];
-  "rmsnorm/small": Parameters<typeof writers0.write_rmsnorm_default>[1];
-  "rmsnorm/residual": Parameters<typeof writers0.write_rmsnorm_default>[1];
-  "rmsnorm/subgroup": Parameters<typeof writers0.write_rmsnorm_default>[1];
-  "rmsnorm/small_subgroup": Parameters<typeof writers0.write_rmsnorm_default>[1];
-  "rmsnorm/default_f16": Parameters<typeof writers0.write_rmsnorm_default>[1];
-  "rmsnorm/small_f16": Parameters<typeof writers0.write_rmsnorm_default>[1];
+  "rmsnorm/default": Parameters<typeof writers1.write_rmsnorm_default>[1];
+  "rmsnorm/small": Parameters<typeof writers1.write_rmsnorm_default>[1];
+  "rmsnorm/residual": Parameters<typeof writers1.write_rmsnorm_default>[1];
+  "rmsnorm/subgroup": Parameters<typeof writers1.write_rmsnorm_default>[1];
+  "rmsnorm/small_subgroup": Parameters<typeof writers1.write_rmsnorm_default>[1];
+  "rmsnorm/default_f16": Parameters<typeof writers1.write_rmsnorm_default>[1];
+  "rmsnorm/small_f16": Parameters<typeof writers1.write_rmsnorm_default>[1];
   "rmsnorm/paired": Parameters<typeof writers1.write_rmsnorm_paired>[1];
   "rmsnorm/paired_sliced": Parameters<typeof writers1.write_rmsnorm_paired>[1];
   "rmsnorm_pair/default": Parameters<typeof writers1.write_rmsnorm_pair_default>[1];
@@ -417,8 +418,8 @@ export interface KernelUniformValues {
   "silu_backward/default": Parameters<typeof writers1.write_cast_f32_to_f16>[1];
   "embed_backward/default": Parameters<typeof writers1.write_gather_vec4>[1];
   "gelu_backward/default": Parameters<typeof writers1.write_cast_f32_to_f16>[1];
-  "scale_backward/default": Parameters<typeof writers1.write_scale_backward_default>[1];
-  "softmax_backward/default": Parameters<typeof writers1.write_softmax_backward_default>[1];
+  "scale_backward/default": Parameters<typeof writers2.write_scale_backward_default>[1];
+  "softmax_backward/default": Parameters<typeof writers2.write_softmax_backward_default>[1];
   "attention_backward/default": Parameters<typeof writers2.write_attention_backward_default>[1];
   "rmsnorm_backward/default": Parameters<typeof writers2.write_rmsnorm_backward_default>[1];
   "gated_rmsnorm_backward/default": Parameters<typeof writers2.write_gated_rmsnorm_backward_default>[1];

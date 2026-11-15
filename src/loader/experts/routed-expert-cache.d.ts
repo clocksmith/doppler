@@ -3,6 +3,7 @@ import type { WeightBuffer } from '../../gpu/weight-buffer.js';
 import type { RoutedExpertBankPlan } from './routed-expert-plan.js';
 export interface RoutedExpertCacheOptions {
   device: GPUDevice;
+  compactLayerCount?: number;
   policy: Qwen35RoutedConfig;
   numLayers?: number;
   numExperts?: number;
@@ -13,6 +14,8 @@ export interface RoutedExpertCacheOptions {
 export interface RoutedExpertEntry { buffer: GPUBuffer; bytes: number; users: number; lastUseSerial: number }
 export interface RoutedHostExpertEntry { bytes: number; chunks: Array<{ offset: number; data: Uint8Array }> }
 export interface RoutedExpertWeights {
+  sourceNumExperts?: number;
+  sourceExpertToSlot?: GPUBuffer;
   expertIdx: number;
   expertFormat: string;
   numExperts: number;

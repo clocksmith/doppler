@@ -1,6 +1,7 @@
 import { getRuntimeConfig } from '../../config/runtime.js';
 import { getDevice } from '../../gpu/device.js';
 import { getBufferPool } from '../../memory/buffer-pool.js';
+import { compactExpertCapacity } from './compact-expert-cache.js';
 import { RoutedExpertCache } from './routed-expert-cache.js';
 import { planRoutedExpertBank } from './routed-expert-plan.js';
 import { prepareQwenExpertLayer } from './qwen-paging.js';
@@ -14,6 +15,17 @@ export async function prepareExpertLayer(loader, policy, layer, consumers, recor
   return prepareQwenExpertLayer(loader._getExpertLoaderContext(), layer, consumers, policy.qwen35Pager, recorder, signal);
 }
 
+/** @type {typeof import('./loader-bindings.js').getRoutedExpertCapacity} */
+export function getRoutedExpertCapacity(loader, layer, phase) {
+  if (!loader.manifest) throw new Error('Routed experts require the loaded manifest.');
+  const plan = planRoutedExpertBank(loader.manifest, loader.tensorLocations, layer);
+  const policy = loader.getRoutedExpertPolicy();
+  if (policy.storageMode !== 'compact-decode' || phase !== 'decode') return plan.numExperts;
+  const device = getDevice();
+  if (!device) throw new Error('Compact experts require the owning device.');
+  return compactExpertCapacity(plan, { device, policy, compactLayerCount: plan.numLayers });
+}
+
 /** @type {typeof import('./loader-bindings.js').prepareRoutedExperts} */
 export async function prepareRoutedExperts(loader, layer, expertIds, signal, phase) {
   const policy = loader.getRoutedExpertPolicy();
@@ -23,7 +35,7 @@ export async function prepareRoutedExperts(loader, layer, expertIds, signal, pha
   if (!loader.routedExpertCache) {
     const device = getDevice();
     if (!device) throw new Error('Routed experts require the owning GPU device.');
-    loader.routedExpertCache = new RoutedExpertCache({ device, policy,
+    loader.routedExpertCache = new RoutedExpertCache({ device, policy, compactLayerCount: plan.numLayers,
       numLayers: typeof loader.manifest.architecture === 'object'
         && typeof loader.manifest.architecture?.numLayers === 'number'
         ? loader.manifest.architecture.numLayers : undefined, numExperts: plan.numExperts,

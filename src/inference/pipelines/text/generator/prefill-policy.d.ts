@@ -1,6 +1,7 @@
 import type { InputSpan } from './prefix-embedding.js';
 
 export interface PrefillPolicyState {
+  dopplerLoader?: { getRoutedExpertPolicy?(): { enabled: boolean } | null } | null;
   runtimeConfig?: { inference?: { session?: {
     prefillTokenChunkSize?: number | null;
     prefillMaxInFlightChunks?: number;

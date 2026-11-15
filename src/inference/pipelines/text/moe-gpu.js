@@ -194,7 +194,18 @@ export async function moeFeedForwardGPU(
   const moeProfile = resolveMoeExecutionProfile(config, { modelType });
   const activeExpertSelection = config.activeExpertSelection === undefined
     ? resolveConfiguredMoEActiveExpertSelection() : resolveMoEActiveExpertSelection(config.activeExpertSelection);
-  await expertLoader.prepareExpertLayer?.(layerIdx, expertWeights, requestedRecorder, config.signal, activeExpertSelection);
+  const segmentedRoute = requestedRecorder && expertLoader.getRoutedExpertPolicy?.()?.enabled;
+  if (segmentedRoute) {
+    if (config.phase !== 'decode' || numTokens !== 1 || config.activationDtype !== 'f32'
+        || config.groupedPrefill || config.sharedSlot || activeExpertSelection !== 'topk-route'
+        || moeProfile.topkRouteExecutor !== 'qwen35-route') {
+      throw new Error('Recorded paged experts require single-token ordinary F32 Qwen decode.');
+    }
+    // Routed loading's preparation hook is admission-only. The supported recorded
+    // path flushes routing and prepares actual banks at its dependency boundary.
+  } else {
+    await expertLoader.prepareExpertLayer?.(layerIdx, expertWeights, requestedRecorder, config.signal, activeExpertSelection);
+  }
   const recordRouteExecutor = activeExpertSelection === 'topk-route'
     ? MOE_RECORDED_ROUTE_EXECUTORS[moeProfile.topkRouteExecutor] : null;
   const recorder = recordRouteExecutor ? requestedRecorder : null;
@@ -491,7 +502,7 @@ export async function moeFeedForwardGPU(
       hiddenActivation,
     };
     outputTensor = routedPolicy?.enabled
-      ? await executeRoutedExpertChunks(routeOptions, expertLoader, routedPolicy, config.signal)
+      ? await executeRoutedExpertChunks(routeOptions, expertLoader, routedPolicy, config.signal, recorder)
       : recorder
       ? await recordRouteExecutor(recorder, routeOptions)
       : await routeExecutor(routeOptions);

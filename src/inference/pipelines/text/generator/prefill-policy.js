@@ -52,6 +52,11 @@ export function shouldDisablePrefillCommandBatching(state, opts, multimodalBidir
   ) {
     return true;
   }
+  // Paged routed experts support dependency-segmented recording only for
+  // single-token decode. Prefill retains its explicit immediate chunk executor.
+  if (state?.dopplerLoader?.getRoutedExpertPolicy?.()?.enabled === true) {
+    return true;
+  }
   if (state?.kvCache?.layout === 'bdpa_paged') {
     return true;
   }

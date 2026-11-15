@@ -79,6 +79,7 @@ export declare class DopplerLoader {
   prepareExpertLayer(layerIdx: number, consumerExperts: Map<string, unknown>,
     recorder?: import('../gpu/command-recorder.js').CommandRecorder | null, signal?: AbortSignal, activeSelection?: string
   ): Promise<import('./experts/qwen-paging.js').QwenPagingReceipt | null>;
+  getRoutedExpertCapacity(layer: number, phase?: 'prefill' | 'decode'): number;
   getRoutedExpertPolicy(): import('../config/schema/loading.schema.js').Qwen35RoutedConfig;
   prepareRoutedExperts(layer: number, expertIds: number[], signal?: AbortSignal, phase?: 'prefill' | 'decode'): Promise<import('./experts/routed-expert-cache.js').RoutedExpertWeights>;
   routedReadbackStats: Partial<Record<'prefill' | 'decode' | 'unspecified', { calls: number; bytes: number; wallMs: number }>>;

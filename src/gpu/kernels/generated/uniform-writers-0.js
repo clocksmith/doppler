@@ -2,6 +2,13 @@
 // Do not edit; npm run kernels:uniforms:sync.
 import { writeU32, writeI32, writeF32 } from '../uniform-encoding.js';
 
+export function write_moe_route_remap_u32(view, values, kernel) {
+  writeU32(view, 0, values["num_routes"], kernel, "num_routes");
+  writeU32(view, 4, values["source_experts"], kernel, "source_experts");
+  writeU32(view, 8, values["slot_count"], kernel, "slot_count");
+  view.setUint32(12, 0, true);
+}
+
 export function write_moe_shared_slot_gu_native_f32(view, values, kernel) {
   writeU32(view, 0, values["num_tokens"], kernel, "num_tokens");
   writeU32(view, 4, values["hidden_size"], kernel, "hidden_size");
@@ -584,17 +591,6 @@ export function write_lm_head_select_logits_f16w_f32a(view, values, kernel) {
   writeU32(view, 12, values["hidden_offset"], kernel, "hidden_offset");
   writeU32(view, 16, values["transpose_b"], kernel, "transpose_b");
   writeF32(view, 20, values["logit_softcap"], kernel, "logit_softcap");
-  view.setUint32(24, 0, true);
-  view.setUint32(28, 0, true);
-}
-
-export function write_rmsnorm_default(view, values, kernel) {
-  writeU32(view, 0, values["size"], kernel, "size");
-  writeU32(view, 4, values["num_tokens"], kernel, "num_tokens");
-  writeF32(view, 8, values["eps"], kernel, "eps");
-  writeU32(view, 12, values["has_residual"], kernel, "has_residual");
-  writeU32(view, 16, values["token_stride"], kernel, "token_stride");
-  writeF32(view, 20, values["output_scale"], kernel, "output_scale");
   view.setUint32(24, 0, true);
   view.setUint32(28, 0, true);
 }

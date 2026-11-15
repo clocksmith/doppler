@@ -120,6 +120,22 @@ growth. It is a process accounting limit, not a system-wide GPU-memory cap.
 Eviction waits for submitted GPU work, and cancellation drains owned reads and
 cleanup before releasing the operation.
 
+`storageMode: "payload-copy"` is the unchanged default. The opt-in
+`"compact-decode"` mode keeps native packed expert slots in per-layer GPU banks
+and remaps source expert IDs with WGSL, so resident decode hits need no upload or
+working-bank copy. It currently requires `hostCacheBytes: 0`, `evictionPolicy: "lru"`, and explicit
+prefill/decode phases. Each layer receives an equal byte share of `cacheBytes`,
+including its source-ID map; slots also respect device binding limits. A decode
+selection that cannot fit its layer's slots fails before dispatch. LFU remains
+available with `payload-copy`; combining LFU with compact decode is rejected
+rather than silently running LRU.
+
+Prefill continues through the existing payload-copy path, without changed token
+chunking. Transitions drain and retire the outgoing strategy before allocating
+the incoming one, preserving the same budget and reserve. This deliberately
+loses cache warmth across phases; fewer copies do not imply fewer source reads.
+This is an opt-in mechanism to measure, not a default or cross-device speed claim.
+
 `stagingBytes` bounds source payload plus assembled ranges across
 `readConcurrency` readers; backend/driver caches are separate. Prefill deduplicates
 actual selections in `routeChunkTokens` chunks and retains already populated

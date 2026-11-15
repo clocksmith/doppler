@@ -2,6 +2,20 @@
 // Do not edit; npm run kernels:uniforms:sync.
 import { writeU32, writeI32, writeF32 } from '../uniform-encoding.js';
 
+export function write_scale_backward_default(view, values, kernel) {
+  writeU32(view, 0, values["size"], kernel, "size");
+  writeF32(view, 4, values["scale"], kernel, "scale");
+  view.setUint32(8, 0, true);
+  view.setUint32(12, 0, true);
+}
+
+export function write_softmax_backward_default(view, values, kernel) {
+  writeU32(view, 0, values["rows"], kernel, "rows");
+  writeU32(view, 4, values["cols"], kernel, "cols");
+  view.setUint32(8, 0, true);
+  view.setUint32(12, 0, true);
+}
+
 export function write_attention_backward_default(view, values, kernel) {
   writeU32(view, 0, values["rows"], kernel, "rows");
   writeU32(view, 4, values["cols"], kernel, "cols");

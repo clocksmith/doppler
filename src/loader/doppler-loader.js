@@ -54,7 +54,7 @@ import {
 } from './experts/expert-loader.js';
 import { assembleShardData } from './tensors/tensor-reader.js';
 import { hasSourceTransform } from './tensors/source-transform.js';
-import { prepareExpertLayer, prepareRoutedExperts, disposeRoutedExperts, createExpertLoaderContext, recordRoutedReadback, getRoutedReadbackStats } from './experts/loader-bindings.js';
+import { getRoutedExpertCapacity, prepareExpertLayer, prepareRoutedExperts, disposeRoutedExperts, createExpertLoaderContext, recordRoutedReadback, getRoutedReadbackStats } from './experts/loader-bindings.js';
 import {
   load as loadImpl,
   _loadTensor as _loadTensorImpl,
@@ -575,8 +575,8 @@ export class DopplerLoader {
     return prepareExpertLayer(this, this._loadingConfig.expertCache, layerIdx, consumerExperts, recorder, signal, activeSelection);
   }
 
+  getRoutedExpertCapacity(layer, phase) { return getRoutedExpertCapacity(this, layer, phase); }
   getRoutedExpertPolicy() { return this._loadingConfig.expertCache.qwen35Routed; }
-
   prepareRoutedExperts(layer, expertIds, signal, phase) { return prepareRoutedExperts(this, layer, expertIds, signal, phase); }
   recordRoutedReadback(phase, elapsedMs, bytes) { recordRoutedReadback(this, phase, elapsedMs, bytes); }
   getRoutedReadbackStats() { return getRoutedReadbackStats(this); }

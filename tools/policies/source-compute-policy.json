@@ -1258,6 +1258,16 @@
       "id": "src/debug/activity-trace.js#capture",
       "category": "observation",
       "reason": "Computes block RMS summaries of bounded readback windows for replay. These observations never modify or feed tensors into model execution; raw window and summary coverage remain explicit."
+    },
+    {
+      "id": "src/loader/experts/compact-expert-cache.js#CompactExpertCache.#pool",
+      "category": "gpu-orchestration",
+      "reason": "Allocates compact GPU planes using explicit packed source extents and records owned buffers in a Map; Map.set does not transform tensor values."
+    },
+    {
+      "id": "src/loader/experts/compact-expert-cache.js#CompactExpertCache.prepare",
+      "category": "gpu-orchestration",
+      "reason": "Maintains expert-ID to retained-slot allocation metadata and uploads a bounded slot lookup table; the registered WGSL remap applies that table to route tensors. Expert payload bytes are unchanged and native WGSL performs all tensor arithmetic."
     }
   ]
 }

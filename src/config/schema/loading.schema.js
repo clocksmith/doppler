@@ -94,6 +94,7 @@ export const DEFAULT_EXPERT_CACHE_CONFIG = {
   },
   qwen35Routed: {
     enabled: false,
+    storageMode: 'payload-copy',
     evictionPolicy: 'lru',
     cacheBytes: 2 * GB,
     hostCacheBytes: 0,
@@ -110,6 +111,15 @@ export const DEFAULT_EXPERT_CACHE_CONFIG = {
 export function validateQwen35RoutedConfig(config) {
   if (!config || typeof config !== 'object' || typeof config.enabled !== 'boolean') {
     throw new Error('runtime.loading.expertCache.qwen35Routed requires resolved configuration.');
+  }
+  if (!['payload-copy', 'compact-decode'].includes(config.storageMode)) {
+    throw new Error('Qwen routed storageMode must be payload-copy or compact-decode.');
+  }
+  if (config.storageMode === 'compact-decode' && config.evictionPolicy !== 'lru') {
+    throw new Error('Compact decode currently requires evictionPolicy=lru; LFU remains available with payload-copy.');
+  }
+  if (config.storageMode === 'compact-decode' && config.hostCacheBytes !== 0) {
+    throw new Error('Compact decode currently requires hostCacheBytes=0.');
   }
   if (!['lru', 'lfu'].includes(config.evictionPolicy)) {
     throw new Error('runtime.loading.expertCache.qwen35Routed.evictionPolicy must be lru or lfu.');

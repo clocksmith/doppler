@@ -1,8 +1,9 @@
 import { ExpertFrequencyIndex } from './expert-frequency-index.js';
 import { getRuntimeConfig } from '../../config/runtime.js';
+import { CompactExpertCache } from './compact-expert-cache.js';
 import { createWeightBuffer } from '../../gpu/weight-buffer.js';
 import { validateQwen35RoutedConfig } from '../../config/schema/loading.schema.js';
-import { loadTensorRange } from '../tensors/tensor-reader.js';
+import { createRoutedExpertCounters, readRoutedExpertRange } from './routed-expert-source.js';
 
 // The cache owns individual expert payloads. One reusable logical bank preserves
 // the existing kernels' expert IDs, source-format byte offsets and accumulation order.
@@ -31,6 +32,8 @@ export class RoutedExpertCache {
   #hostReserved = 0;
   /** @type {Set<string>} */
   #hostSeen = new Set();
+  /** @type {CompactExpertCache | null} */
+  #compact = null;
   #workingBytes = 0;
   #staging = 0;
   /** @type {Uint8Array[]} */
@@ -45,11 +48,7 @@ export class RoutedExpertCache {
   #phaseProfiles = {};
   /** @type {import('./routed-expert-cache.js').RoutedExpertPhaseProfile | null} */
   #activeProfile = null;
-  #stats = { sourceReadIntoBytes: 0, stagingAllocations: 0, stagingReuses: 0, sourceReadBytes: 0, sourceReads: 0, uploadBytes: 0,
-    cacheHits: 0, cacheMisses: 0, workingHits: 0, workingBufferAllocations: 0, workingBufferAllocatedBytes: 0, workingBufferReuses: 0, workingBufferReusedBytes: 0, evictions: 0, evictionFenceWaits: 0, evictionFenceSkips: 0, bufferReuses: 0, expertCopySubmissions: 0, hitBatchSubmissions: 0, batchedHitExperts: 0,
-    residentBytes: 0, peakResidentBytes: 0, peakAccountedGpuBytes: 0, peakStagingBytes: 0,
-    ioWaitMs: 0, sourceReadWaitMs: 0, uploadEnqueueMs: 0, initialQueueIdleForWeightsMs: 0,
-    hostPrefillAdmissionSkips: 0, hostPrefillAdmissions: 0, hostDecodeAdmissions: 0, hostCacheHits: 0, hostCacheMisses: 0, hostEvictions: 0, hostAdmissionSkips: 0, peakHostOwnedOrReservedBytes: 0 };
+  #stats = createRoutedExpertCounters();
 
   /** @param {import('./routed-expert-cache.js').RoutedExpertCacheOptions} options */
   constructor(options) {
@@ -348,27 +347,7 @@ export class RoutedExpertCache {
           this.#stats.peakStagingBytes = Math.max(this.#stats.peakStagingBytes, this.#staging);
           const started = performance.now();
           try {
-            const bytes = await loadTensorRange(plane.location, plane.name, expert * plane.expertBytes + offset, length,
-              async (shard, start, size) => {
-                signal.throwIfAborted();
-                const readStarted = performance.now();
-                const data = await this.#options.readRange(shard, start, size, signal);
-                this.#stats.sourceReadWaitMs += performance.now() - readStarted;
-                if (data.byteLength !== size) throw new Error('Routed expert source must return exactly the requested byte range.');
-                this.#stats.sourceReads++;
-                this.#stats.sourceReadBytes += data.byteLength;
-                return data;
-              }, readRangeInto ? async (shard, start, destination) => {
-                signal.throwIfAborted();
-                const readStarted = performance.now();
-                const count = await readRangeInto(shard, start, destination, signal);
-                this.#stats.sourceReadWaitMs += performance.now() - readStarted;
-                if (count !== destination.byteLength) throw new Error('Routed expert source must fill exactly the requested destination.');
-                this.#stats.sourceReads++;
-                this.#stats.sourceReadBytes += count;
-                this.#stats.sourceReadIntoBytes += count;
-                return count;
-              } : null, destination);
+            const bytes = await readRoutedExpertRange(this.#options, this.#stats, plane, expert, offset, length, signal, destination);
             signal.throwIfAborted();
             this.#upload(entry, targetOffset + offset, bytes, beforeSubmit);
             chunks?.push({ offset: targetOffset + offset, data: bytes });
@@ -537,6 +516,25 @@ export class RoutedExpertCache {
     if (!this.#options.readRangeInto || this.#options.policy.hostCacheBytes > 0
       || this.#readerStaging.length > this.#options.policy.readConcurrency
       || this.#readerStaging.some(bytes => bytes.byteLength > scratchLimit)) this.#clearReaderStaging();
+    if (this.#options.policy.storageMode === 'compact-decode') {
+      if (phase !== 'prefill' && phase !== 'decode') throw new Error('Compact experts require an explicit execution phase.');
+      if (phase === 'decode') {
+        await this.#waitForSubmitted();
+        signal.throwIfAborted();
+        if (!this.#compact) {
+          for (const buffer of this.#owned) this.#destroyBuffer(buffer);
+          this.#entries.clear(); this.#working.clear(); this.#loaded.clear();
+          this.#cacheBytes = 0; this.#workingBytes = 0; this.#signature = ''; this.#layer = -1;
+          const compactLayerCount = this.#options.compactLayerCount;
+          if (!Number.isSafeInteger(compactLayerCount) || !compactLayerCount) throw new Error('Compact experts require declared layer count.');
+          this.#compact = new CompactExpertCache({ ...this.#options, compactLayerCount }, this.#stats);
+        }
+        const weights = await this.#compact.prepare(plan, ids, signal);
+        this.#sampleProfileMemory();
+        return weights;
+      }
+      if (this.#compact) { await this.#compact.destroy(); this.#compact = null; }
+    }
     await this.#locked(() => this.#prepareWorking(plan, signal));
     let cursor = 0;
     let readyAt = 0, submitted = false;
@@ -606,7 +604,8 @@ export class RoutedExpertCache {
       phaseProfiles: Object.fromEntries(Object.entries(this.#phaseProfiles).map(([phase, profile]) =>
         [phase, { ...profile, counters: { ...profile.counters } }])),
       cacheBytes: this.#cacheBytes, workingBytes: this.#workingBytes, experts: this.#entries.size,
-      hostCacheBytes: this.#hostBytes, hostReservedBytes: this.#hostReserved, hostExperts: this.#hostEntries.size };
+      hostCacheBytes: this.#hostBytes, hostReservedBytes: this.#hostReserved, hostExperts: this.#hostEntries.size,
+      ...this.#compact?.getStats() };
   }
 
   async destroy() {
@@ -616,6 +615,9 @@ export class RoutedExpertCache {
     this.#clearReaderStaging();
     this.#hostEntries.clear(); this.#hostSeen.clear(); this.#hostBytes = 0; this.#hostReserved = 0;
     const errors = [];
+    if (this.#compact) {
+      try { await this.#compact.destroy(); this.#compact = null; } catch (error) { errors.push(error); }
+    }
     if (this.#owned.size) {
       try { await this.#waitForSubmitted(); } catch (error) { errors.push(error); }
     }

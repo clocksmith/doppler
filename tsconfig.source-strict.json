@@ -239,6 +239,8 @@
     "src/gpu/kernels/kernel-geometry.js",
     "src/formats/paged-source-reader.js",
     "src/loader/q4k-reference-weight.js",
-    "src/converter/qwen4-exp-source-execution.js"
+    "src/converter/qwen4-exp-source-execution.js",
+    "src/loader/experts/compact-expert-cache.js",
+    "src/loader/experts/routed-expert-source.js"
   ]
 }

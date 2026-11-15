@@ -212,6 +212,8 @@
     "demo/ui/activation-grid/validation.js",
     "src/inference/pipelines/text/linear-attention/activity.js",
     "demo/ui/activation-grid/recording-codec.js",
-    "src/converter/qwen4-exp-source-execution.js"
+    "src/converter/qwen4-exp-source-execution.js",
+    "src/loader/experts/compact-expert-cache.js",
+    "src/loader/experts/routed-expert-source.js"
   ]
 }

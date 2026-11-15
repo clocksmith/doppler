@@ -2,6 +2,74 @@
  "$schema": "./kernel-registry.schema.json",
  "version": "1.0",
  "operations": {
+  "moe_route_remap": {
+   "description": "Preserve route order while translating source expert IDs to compact resident slots",
+   "baseBindings": [
+    {
+     "index": 0,
+     "name": "uniforms",
+     "type": "uniform"
+    },
+    {
+     "index": 1,
+     "name": "source_indices",
+     "type": "read-only-storage"
+    },
+    {
+     "index": 2,
+     "name": "source_to_slot",
+     "type": "read-only-storage"
+    },
+    {
+     "index": 3,
+     "name": "output",
+     "type": "storage"
+    }
+   ],
+   "baseUniforms": {
+    "size": 16,
+    "fields": [
+     {
+      "name": "num_routes",
+      "type": "u32",
+      "offset": 0
+     },
+     {
+      "name": "source_experts",
+      "type": "u32",
+      "offset": 4
+     },
+     {
+      "name": "slot_count",
+      "type": "u32",
+      "offset": 8
+     },
+     {
+      "name": "_pad0",
+      "type": "u32",
+      "offset": 12,
+      "padding": true
+     }
+    ]
+   },
+   "variants": {
+    "u32": {
+     "wgsl": "moe_route_remap.wgsl",
+     "entryPoint": "remap_routes",
+     "workgroup": [256,1,1],
+     "wgslOverrides": {
+      "WORKGROUP_SIZE": 256
+     },
+     "requires": [],
+     "reachability": {
+      "status": "code-dispatched",
+      "inlineConfigs": [],
+      "ruleChains": [],
+      "wgslOnDisk": true
+     }
+    }
+   }
+  },
   "moe_shared_slot_gu": {
    "description": "Explicit native GGUF F32 shared-slot gu without outer residual",
    "baseBindings": [

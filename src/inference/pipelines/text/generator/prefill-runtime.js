@@ -38,7 +38,6 @@ import {
 } from './prefix-embedding.js';
 import { recordPrefillProfileStep, resolveTokenText } from '../generator-decode-policy.js';
 import { FINITENESS_RESET_WORDS, normalizeSelectedLogitTokenIds, recordPrefillRecorderStats, resolvePrefillChunkSubmitMode, traceActivationHealth } from './text.js';
-
 export async function _commitPrefillHiddenChunk(prefillResult) {
     const {
       numTokens,
@@ -191,7 +190,6 @@ export async function _prefill(inputIds, opts) {
       const embedSize = isGpuBufferInstance(embedBuffer) ? embedBuffer.size : 'N/A';
       log.debug('Pipeline', `Embed buffer: type=${embedBuffer?.constructor?.name}, size=${embedSize}, dtype=${embedDtype}`);
     }
-
     const device = getDevice();
     const bufferPool = device ? getBufferPool(device) : null;
     const useCheckpoints = opts.debugLayers && opts.debugLayers.length > 0;
@@ -201,6 +199,8 @@ export async function _prefill(inputIds, opts) {
       multimodalBidirectionalSpan,
       { startPos, returnHidden }
     );
+    if (this._state.dopplerLoader?.getRoutedExpertPolicy?.()?.enabled === true) log.debug('Prefill',
+      'Command recording disabled: paged experts support segmented recording only in single-token decode.');
     const createRecorder = (label) => {
       if (!device || disableCommandBatching) return undefined;
       const recorderOptions = {

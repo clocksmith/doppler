@@ -46,7 +46,7 @@ export function planRoutedExpertBank(manifest, locations, layer) {
     }
     return { role, name, location, dtype, bytes, expertBytes: bytes / numExperts };
   });
-  return { layer, numExperts, intermediateSize, hiddenSize, planes,
+  return { layer, numLayers: manifest.architecture.numLayers, numExperts, intermediateSize, hiddenSize, planes,
     bankBytes: planes.reduce((sum, plane) => sum + plane.bytes, 0),
     expertBytes: planes.reduce((sum, plane) => sum + plane.expertBytes, 0) };
 }

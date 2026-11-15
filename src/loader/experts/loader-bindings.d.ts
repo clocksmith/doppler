@@ -20,3 +20,5 @@ export declare function createExpertLoaderContext(loader: {
 export declare function recordRoutedReadback(loader: DopplerLoader,
   phase: 'prefill' | 'decode' | undefined, elapsedMs: number, bytes: number): void;
 export declare function getRoutedReadbackStats(loader: DopplerLoader): ReturnType<DopplerLoader['getRoutedReadbackStats']>;
+
+export declare function getRoutedExpertCapacity(loader: DopplerLoader, layer: number, phase?: 'prefill' | 'decode'): number;
