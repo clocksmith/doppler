@@ -1,0 +1,27 @@
+{
+  "schema": "doppler.concrete-transformer-functional-measurement/v1",
+  "scope": "Two public one-token tiny-GPT2 fixtures; actual CPU cryptographic operations in separate client/evaluator processes; not simulation or a full-model performance qualification",
+  "seedTokenIds": [
+    15496,
+    464
+  ],
+  "runsPerSeed": 1,
+  "warmupRuns": 0,
+  "freshClientKeyPerRun": true,
+  "command": "DOPPLER_CONCRETE_NATIVE=1 DOPPLER_CONCRETE_MODEL_DIR=<pinned-local-fixture> DOPPLER_CONCRETE_REPORT_DIR=<local-evidence-directory> OMP_NUM_THREADS=2 VECLIB_MAXIMUM_THREADS=2 RAYON_NUM_THREADS=2 python -m unittest discover -s tools/privacy-concrete -p test_*.py -v",
+  "tests": {
+    "passed": 15,
+    "skipped": 0,
+    "elapsedSeconds": 55.459
+  },
+  "memoryScope": "Operating-system process high-water marks in one test interpreter, including preceding native tests; child high-water may include earlier evaluator processes. Not per-request incremental memory or a total across simultaneous processes.",
+  "timingScope": "Function-entry-to-return and per-step clocks; Python/library import time excluded. Each function run includes model loading, public calibration, fresh key generation, key/weight upload, four encrypted steps, full local encrypted replay and local reference checks. Concurrent repository/host work was not excluded.",
+  "trafficScope": "Actual binary frame bytes including fresh public evaluation-key and public-weight upload; local pipes, not a network measurement.",
+  "qualification": {
+    "productionBackendAvailable": false,
+    "independentCryptographicReview": false,
+    "fullGpt2Model": false,
+    "gpuMeasurement": false,
+    "separateMachineMeasurement": false
+  }
+}

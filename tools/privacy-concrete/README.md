@@ -43,6 +43,19 @@ DOPPLER_CONCRETE_NATIVE=1 OMP_NUM_THREADS=2 RAYON_NUM_THREADS=2 \
 
 The client-local JSON report contains the generated token IDs, reference comparisons, actual traffic, setup/step/replay/round-trip time and process peak memory. Keep such output on the client; it is not a provider-safe receipt. Reported overhead belongs to this padded tiny checkpoint and this replay policy. It cannot be substituted for full GPT-2, Llama, GPU or network performance.
 
+## Actual checkpoint tests and retained evidence
+
+```sh
+DOPPLER_CONCRETE_NATIVE=1 DOPPLER_CONCRETE_MODEL_DIR=/tmp/tiny-gpt2-fixture \
+DOPPLER_CONCRETE_REPORT_DIR=/tmp/concrete-evidence \
+OMP_NUM_THREADS=2 VECLIB_MAXIMUM_THREADS=2 RAYON_NUM_THREADS=2 \
+  /tmp/doppler-concrete-env/bin/python -m unittest discover -s tools/privacy-concrete -p 'test_*.py' -v
+```
+
+[Retained measurement context](evidence/context.json) and the [Hello-token fixture](evidence/tiny-gpt2-seed-15496.json) / [The-token fixture](evidence/tiny-gpt2-seed-464.json) record actual four-step runs on macOS arm64 Python 3.12.8. All 15 tests passed, including both seeds, fresh key bindings, fixed byte counts, valid malicious evaluation (including zero input), cancellation, evaluator loss, pre-payload unsupported models, framing limits and key-reference release on evaluator startup failure.
+
+The two recorded runs took about 19.2 and 23.4 seconds, including about 7.8 and 10.0 seconds of redundant client encrypted replay. Each sent 135,545,072 bytes and received 887,958 bytes; 134,217,808 sent bytes were the fresh public evaluation key. Both returned four greedy tokens equal to the quantized and floating-point references, with maximum encrypted-versus-quantized logit error below 0.000021. The client/test interpreter's process high-water was approximately 1 GB and child high-water approximately 510 MB; these include earlier tests, not incremental request memory. These are single functional observations with source digests, not latency distributions or full GPT-2/GPU/network benchmarks. Explicit key-reference release is not a claim of physical memory zeroization.
+
 ## Primary implementation references
 
 - [Concrete ML hybrid inference documentation](https://docs.zama.org/concrete-ml/llms/inference).

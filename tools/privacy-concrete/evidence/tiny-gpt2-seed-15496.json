@@ -1,0 +1,88 @@
+{
+  "schema": "doppler.concrete-transformer-experiment/v1",
+  "qualified": false,
+  "productionBackendAvailable": false,
+  "modelId": "4107eae775f1894dc030b1f09862d570b1bf9560be3c3d952a0fc1b6bc6ca139",
+  "keyContextId": "5424ff66e92270168467f4764950d765c36049c2ca7f19904fae7ba1701989cf",
+  "evaluationBackend": "cpu",
+  "sourceDigests": {
+    "bridge.py": "e53dc1bad60207e11050a195be93fac7cfe740b6fb1ed6a2c914eb58cd62d1f9",
+    "experiment.py": "513a4e7ef2265bbc6710f41a9400283ec4199a526f5a3c718e54f80174b1946b",
+    "prepare.py": "a58bc3d3d9cf73228244d51702d928d6bd5f8c011980e3298cdffd0adb31c7d0",
+    "protocol.py": "c83b214b35a688dc2d93ec76a9a2ab934bc07476c798e3c4f4b5e09c88d1f142",
+    "provider.py": "6a27b09ad0d2214693fa489e0ea0f172797a165cd4c46a7562071eec04eaa13a",
+    "test_native.py": "bf9668c9fee6bd4cde4e1a27cb373317d61bffb3f802e7c9a0a55f7ff538d7fc",
+    "test_protocol.py": "2a3412a797bbad57421ff6c47b0be7e33d8f96bc5b62b8e3fe9f4aae89133cec",
+    "test_transformer.py": "4f895f46df062e8164fbb9cf5be656d984d8bed1decb16a8c874c955356fe08e",
+    "policy.json": "a8f8af6d2c6bcb4aa8ebaf463aa42031076f83c96c2c869837aab3253325a135"
+  },
+  "source": {
+    "repository": "sshleifer/tiny-gpt2",
+    "revision": "5f91d94bd9cd7190a9f3216ff93cd1dd95f2c7be",
+    "safetensorsSha256": "5b562022d3f53a1e503c997949586b1a322db296f4a4bf6aa5127c44ab7cda43",
+    "configSha256": "5b2862b81a2e62a60adfe3f5f78b693de27da1904f8e07d6a8bb196520cba6cb"
+  },
+  "environment": {
+    "system": "Darwin",
+    "machine": "arm64",
+    "python": "3.12.8",
+    "dependencies": {
+      "concrete-ml": "1.9.0",
+      "concrete-ml-extensions": "0.1.9",
+      "concrete-python": "2.10.0",
+      "torch": "2.3.1",
+      "transformers": "4.44.2",
+      "numpy": "1.26.4"
+    }
+  },
+  "clientLocalOutputTokenIds": [
+    16046,
+    16046,
+    16046,
+    16046
+  ],
+  "matchesQuantizedReference": true,
+  "matchesFloatGreedyReference": true,
+  "steps": 4,
+  "encryptedProjectionCalls": 32,
+  "privateKeySent": false,
+  "withKeyMs": 2741.659667000931,
+  "setupMs": 3126.453833996493,
+  "stepMs": [
+    3481.3237089983886,
+    4254.9859159989865,
+    4224.376250000205,
+    4038.0870000008144
+  ],
+  "elapsedMs": 19189.24858399987,
+  "encryptedReplayMs": 7798.688128968934,
+  "evaluatorRoundTripMs": 8009.982333001972,
+  "sentBytes": 135545072,
+  "receivedBytes": 887958,
+  "publicEvaluationKeyBytes": 134217808,
+  "maxLogitErrors": [
+    5.960464477539063e-08,
+    2.2351741790771484e-08,
+    1.4901161193847656e-08,
+    1.4901161193847656e-08
+  ],
+  "quantizationLogitErrors": [
+    7.450580596923828e-08,
+    1.4901161193847656e-08,
+    1.4901161193847656e-08,
+    7.450580596923828e-09
+  ],
+  "paddingMaxError": 1.4901161193847656e-08,
+  "clientPeakRssBytes": 992247808,
+  "providerPeakRssBytes": 510263296,
+  "integrity": "Full redundant encrypted replay before response decryption; no succinct proof or independent review",
+  "leakage": [
+    "public model and fixed padded circuit",
+    "fixed four-step schedule",
+    "fixed context and matrix dimensions",
+    "public evaluation key",
+    "ciphertext sizes",
+    "timing",
+    "local process/transport metadata"
+  ]
+}

@@ -117,8 +117,9 @@ def run(model_dir, seed=15496, mutate=None, cancelled=None, progress=lambda step
     model_id = digest(json.dumps(dict(source=POLICY['source'], policyId=POLICY_ID, matrices=sorted(matrices)), sort_keys=True).encode())
     executor.private_key, executor.compression_key = ext.cpu_create_private_key(executor.glwe_crypto_params)
     with_key_ms = (time.perf_counter() - started) * 1000
-    bridge = EvaluatorBridge(model_id, executor.compression_key, matrices, mutate=mutate, cancelled=cancelled)
+    bridge = None
     try:
+        bridge = EvaluatorBridge(model_id, executor.compression_key, matrices, mutate=mutate, cancelled=cancelled)
         # An instance proxy routes only encrypted matmul; upstream encryption and decryption remain client-owned.
         executor.fhext = SimpleNamespace(**{name: getattr(ext, name) for name in dir(ext) if not name.startswith('_')})
         executor.fhext.matrix_multiplication = bridge.matrix_multiplication
@@ -150,7 +151,7 @@ def run(model_dir, seed=15496, mutate=None, cancelled=None, progress=lambda step
             raise ValueError('Incomplete encrypted transformer route')
         bridge.finish()
         return dict(schema=POLICY['schema'], qualified=False, productionBackendAvailable=False,
-                    modelId=model_id, evaluationBackend=POLICY['evaluationBackend'], sourceDigests=source_digests, source=POLICY['source'], environment=dict(system=platform.system(), machine=platform.machine(), python=platform.python_version(), dependencies=POLICY['dependencies']),
+                    modelId=model_id, keyContextId=bridge.key_id, evaluationBackend=POLICY['evaluationBackend'], sourceDigests=source_digests, source=POLICY['source'], environment=dict(system=platform.system(), machine=platform.machine(), python=platform.python_version(), dependencies=POLICY['dependencies']),
                     clientLocalOutputTokenIds=private_tokens[1:], matchesQuantizedReference=True, matchesFloatGreedyReference=True,
                     steps=POLICY['steps'], encryptedProjectionCalls=bridge.calls, privateKeySent=False,
                     withKeyMs=with_key_ms, setupMs=setup_ms, stepMs=step_ms, elapsedMs=(time.perf_counter() - started) * 1000,
@@ -163,7 +164,8 @@ def run(model_dir, seed=15496, mutate=None, cancelled=None, progress=lambda step
                     leakage=POLICY['leakage'])
     finally:
         try:
-            bridge.close()
+            if bridge is not None:
+                bridge.close()
         finally:
             executor.private_key = None
             executor.compression_key = None
