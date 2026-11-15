@@ -37,8 +37,12 @@ export interface RoutedExpertPhaseProfile {
   peakStagingBytes: number;
   counters: Record<string, number>;
 }
+export interface CompactLayerStats {
+  cacheHits: number; cacheMisses: number; evictions: number; sourceReadBytes: number;
+  uploadBytes: number; sourceReadWaitMs: number; uploadEnqueueMs: number;
+}
 export interface RoutedExpertCacheStats {
-  compactLayers?: Record<string, import('./compact-expert-cache.js').CompactLayerStats & { capacity: number }>;
+  compactLayers?: Record<string, CompactLayerStats & { capacity: number }>;
   evictionPolicy: 'lru' | 'lfu';
   frequencyHistoryEntries: number;
   frequencyResidentEntries: number;

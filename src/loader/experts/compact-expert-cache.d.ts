@@ -1,4 +1,4 @@
-import type { RoutedExpertCacheOptions, RoutedExpertWeights } from './routed-expert-cache.js';
+import type { CompactLayerStats, RoutedExpertCacheOptions, RoutedExpertWeights } from './routed-expert-cache.js';
 import type { RoutedExpertBankPlan } from './routed-expert-plan.js';
 import type { RoutedExpertCounters } from './routed-expert-source.js';
 export interface CompactExpertCacheOptions extends RoutedExpertCacheOptions { compactLayerCount: number }
@@ -10,10 +10,6 @@ export declare class CompactExpertCache {
   destroy(): Promise<void>;
 }
 
-export interface CompactLayerStats {
-  cacheHits: number; cacheMisses: number; evictions: number; sourceReadBytes: number;
-  uploadBytes: number; sourceReadWaitMs: number; uploadEnqueueMs: number;
-}
 export interface CompactExpertPool {
   stats: CompactLayerStats;
   capacity: number;
