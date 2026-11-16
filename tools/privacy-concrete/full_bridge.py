@@ -11,6 +11,7 @@ from protocol import check, digest, receive, require_active, send
 from full_plan import load_plan
 from full_admission import FullRouteAdmission
 from full_status import ExecutionRejected
+from public_weights import bind_public_tiles
 
 
 class FullBridge:
@@ -24,7 +25,7 @@ class FullBridge:
             raise ValueError('Client full-model admission differs from the prepared plan')
         bound=validated if deployment is None else deployment.bind(validated)
         self.admission=FullRouteAdmission(bound)
-        self.public_weights={row['name']:np.memmap(Path(directory)/(row['weightId']+'.i8'),dtype=np.int8,mode='r',shape=(row['inputWidth'],row['outputWidth'])) for row in validated.definition()['projections']}
+        self.public_tile_digests=bind_public_tiles(directory,validated)
         self.plan, self.key, self.cancelled, self.observe = bound, key, cancelled, observe
         self.check_active()
         self.session, data = uuid.uuid4().hex, key.serialize()
@@ -61,8 +62,11 @@ class FullBridge:
         try:
             self.check_active()
             expected_tile=self.admission.admit_tile(tile,matrix.shape,self.sequence)
-            cached=self.public_weights[expected_tile['name']][expected_tile['inputBegin']:expected_tile['inputEnd'],expected_tile['outputBegin']:expected_tile['outputEnd']]
-            if matrix.dtype!=np.uint64 or not np.array_equal(matrix.view(np.int64),cached):
+            if matrix.dtype!=np.uint64:
+                raise ValueError('Encrypted route requires unsigned native matrix representation')
+            signed=matrix.view(np.int64)
+            owned=np.ascontiguousarray(signed,dtype=np.int8)
+            if not np.array_equal(signed,owned) or digest(owned.tobytes())!=self.public_tile_digests[expected_tile['id']]:
                 raise ValueError('Encrypted route public weight changed before disclosure')
             start = time.perf_counter()
             result = self.exchange('evaluate',encrypted.serialize(),'result',tile['id'])

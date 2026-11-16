@@ -8,6 +8,7 @@ import unittest
 from unittest.mock import patch
 from full_admission import FullRouteAdmission
 from full_plan import tiles
+from protocol import digest
 
 
 class Plan:
@@ -15,16 +16,13 @@ class Plan:
     def schedule(self):return tiles(dict(name='first',weightId='public',inputWidth=16,outputWidth=16))
 
 
-class Cache:
-    def __getitem__(self,index):return 'pinned-public-weight'
-
-
 class FullBridgeOrderingTests(unittest.TestCase):
     def setUp(self):
         self.serialized=[];self.exchanged=[];self.deserialized=[]
         native=SimpleNamespace(cpu_matrix_multiplication=lambda *args:SimpleNamespace(serialize=lambda:b'valid-circuit-output'),
                                CompressedResultEncryptedMatrix=SimpleNamespace(deserialize=lambda value:self.deserialized.append(value)))
-        numpy=SimpleNamespace(uint64='u64',int64='i64',array_equal=lambda actual,expected:actual==expected)
+        numpy=SimpleNamespace(uint64='u64',int64='i64',int8='i8',array_equal=lambda actual,expected:actual.encode()==expected.tobytes(),
+                              ascontiguousarray=lambda value,dtype:SimpleNamespace(tobytes=lambda:value.encode()))
         spec=importlib.util.spec_from_file_location('_tested_full_bridge',Path(__file__).with_name('full_bridge.py'))
         module=importlib.util.module_from_spec(spec)
         with patch.dict(sys.modules,{'concrete_ml_extensions':native,'numpy':numpy}):spec.loader.exec_module(module)
@@ -32,7 +30,6 @@ class FullBridgeOrderingTests(unittest.TestCase):
         self.bridge=module.FullBridge.__new__(module.FullBridge)
         self.bridge.admission=FullRouteAdmission(Plan())
         self.bridge.admission.admit_projection('first',16,16,8)
-        self.bridge.public_weights={'first':Cache()}
         self.bridge.cancelled=None
         self.native=native
         self.bridge.sequence=1;self.bridge.key=object()
@@ -43,6 +40,7 @@ class FullBridgeOrderingTests(unittest.TestCase):
         self.encrypted=SimpleNamespace(serialize=lambda:self.serialized.append(True) or b'ciphertext-only')
         self.matrix=SimpleNamespace(shape=(16,16),dtype='u64',view=lambda dtype:'pinned-public-weight')
         self.tile=dict(self.bridge.admission.next_tile())
+        self.bridge.public_tile_digests={self.tile['id']:digest(b'pinned-public-weight')}
 
     def test_unsupported_plan_rejects_before_key_export_or_provider_start(self):
         key=SimpleNamespace(serialize=lambda:self.fail('evaluation key exported'))
@@ -54,6 +52,13 @@ class FullBridgeOrderingTests(unittest.TestCase):
         key=SimpleNamespace(serialize=lambda:self.fail('evaluation key exported'))
         with patch.object(self.module,'load_plan',return_value=SimpleNamespace(identity='replaced')), patch.object(self.module.subprocess,'Popen') as spawn:
             with self.assertRaises(ValueError):self.module.FullBridge('unused',SimpleNamespace(identity='expected'),key)
+            spawn.assert_not_called()
+
+    def test_cache_change_during_admission_rejects_before_key_export_or_process(self):
+        key=SimpleNamespace(serialize=lambda:self.fail('evaluation key exported'))
+        plan=Plan();plan.identity='expected'
+        with patch.object(self.module,'load_plan',return_value=plan), patch.object(self.module,'bind_public_tiles',side_effect=ValueError('cache changed')), patch.object(self.module.subprocess,'Popen') as spawn:
+            with self.assertRaises(ValueError):self.module.FullBridge('unused',plan,key)
             spawn.assert_not_called()
 
     def test_cancelled_constructor_does_not_prepare_or_export_key(self):
