@@ -152,3 +152,30 @@ The quantized-versus-floating error was `0.013162888586521149` and elapsed time
 84,928 ms. The [retained evidence](evidence/flash/mlp-source-reference.json)
 records zero encrypted tiles: this validates the composed client graph, not
 ciphertext execution, model tokens or a full Flash backend.
+
+## Local n-gram storage mapping
+
+The [installed storage inventory](flash-ngram-storage.json) now binds all 128
+numeric checkpoint partitions to 320,001,536 by 160 BF16 rows. Its 33 complete
+shards total 104,298,732,704 bytes; the logical table is 102,400,491,520 bytes.
+Only bounded safetensors headers and public LFS hashes were acquired. Table
+weights have not been provisioned or executed.
+
+The mapping follows the exact pinned Transformers
+[conversion registry](https://github.com/huggingface/transformers/blob/cf13eb97cddb3655cd83bada097a7ecfcf108ace/src/transformers/conversion_mapping.py)
+and [loader](https://github.com/huggingface/transformers/blob/cf13eb97cddb3655cd83bada097a7ecfcf108ace/src/transformers/core_model_loading.py):
+numeric shard suffix order, concatenation along rows. Header geometry, offsets,
+whole-file sizes/hashes, config/index identity and source hashes are recorded.
+Source-backed tests compare the actual configuration's meta table shape and
+numeric order, and compare local row reads with the official concatenation on a
+small public fixture. Complete real-table loading and model parity remain gates.
+
+`local_ngram_rows.py` provides bounded local BF16 row reads without constructing
+one contiguous 102 GB tensor. It verifies every complete shard before accepting
+indices, maps only local files, checks source mutation before/after reads, owns
+its handles and rejects missing material, cancellation or budget failure without
+network fallback. It caches neither selected indices nor private outputs. Local
+filesystem access patterns remain visible to the trusted client host; this is not
+PIR or protection from that host. This storage interface is not yet wired into
+the PLE model adapter or production admission. Actual PLE projections/weights,
+all-layer composition and full Flash autoregression remain unavailable.

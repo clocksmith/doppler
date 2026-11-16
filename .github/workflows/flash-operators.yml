@@ -24,6 +24,10 @@ on:
       - 'tools/privacy-concrete/test_flash_delta_reference.py'
       - 'tools/privacy-concrete/test_flash_reference.py'
       - 'tools/privacy-concrete/flash-readiness.json'
+      - 'tools/privacy-concrete/flash-ngram-storage.json'
+      - 'tools/privacy-concrete/local_ngram_rows.py'
+      - 'tools/privacy-concrete/test_local_ngram_rows.py'
+      - 'tools/privacy-concrete/test_ngram_mapping_reference.py'
 permissions:
   contents: read
 jobs:
@@ -50,6 +54,14 @@ jobs:
               with urllib.request.urlopen(item['url'],timeout=30) as response:data=response.read()
               if hashlib.sha256(data).hexdigest()!=item['sha256']:raise ValueError('Pinned source mismatch')
               (target/name).write_bytes(data)
+          extra=json.loads(Path('tools/privacy-concrete/flash-ngram-storage.json').read_text())['conversionReference']
+          for name,item in extra['files'].items():
+              path=target/name
+              if path.exists():data=path.read_bytes()
+              else:
+                  with urllib.request.urlopen(item['url'],timeout=30) as response:data=response.read(1024*1024+1)
+              if hashlib.sha256(data).hexdigest()!=item['sha256']:raise ValueError('Pinned conversion source mismatch')
+              if not path.exists():path.write_bytes(data)
           PY
       - name: Compare MoE and four-step hyperconnection branch against official FP32 reference
         env:
@@ -61,3 +73,5 @@ jobs:
           python -m unittest discover -s tools/privacy-concrete -p test_flash_delta_reference.py -v
           python -m unittest discover -s tools/privacy-concrete -p test_flash_attention_reference.py -v
           python -m unittest discover -s tools/privacy-concrete -p test_flash_ple_reference.py -v
+          python -m unittest discover -s tools/privacy-concrete -p test_local_ngram_rows.py -v
+          python -m unittest discover -s tools/privacy-concrete -p test_ngram_mapping_reference.py -v
