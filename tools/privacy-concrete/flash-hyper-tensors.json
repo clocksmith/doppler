@@ -1,0 +1,33 @@
+{
+  "model.language_model.layers.0.mlp_hyper_connection.block_inject_weight.weight": {
+    "shard": "model-00003-of-00131.safetensors",
+    "dtype": "BF16",
+    "shape": [
+      4,
+      10240
+    ]
+  },
+  "model.language_model.layers.0.mlp_hyper_connection.hc_norm.weight": {
+    "shard": "model-00003-of-00131.safetensors",
+    "dtype": "BF16",
+    "shape": [
+      10240
+    ]
+  },
+  "model.language_model.layers.0.mlp_hyper_connection.input_mix_weight_down.weight": {
+    "shard": "model-00003-of-00131.safetensors",
+    "dtype": "BF16",
+    "shape": [
+      320,
+      10240
+    ]
+  },
+  "model.language_model.layers.0.mlp_hyper_connection.input_mix_weight_up.weight": {
+    "shard": "model-00003-of-00131.safetensors",
+    "dtype": "BF16",
+    "shape": [
+      10240,
+      320
+    ]
+  }
+}

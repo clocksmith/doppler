@@ -20,7 +20,8 @@ class StreamedFlashMoETests(unittest.TestCase):
             source=flash_weights.FlashSource.__new__(flash_weights.FlashSource)
             source.directory=Path(directory);source.signatures={shard:signature}
             spec=dict(tensors={name:dict(shard=shard,shape=[2,2],dtype='BF16')})
-            with patch.object(flash_weights,'SPEC',spec),patch.object(flash_weights,'file_signature',side_effect=[signature,('changed',)]):
+            source.spec=spec
+            with patch.object(flash_weights,'file_signature',side_effect=[signature,('changed',)]):
                 with self.assertRaises(ValueError):source.tensor(name)
 
     def test_combined_gate_up_lowering_matches_separate_complete_operator_reference(self):

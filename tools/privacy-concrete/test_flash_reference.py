@@ -21,13 +21,14 @@ class FlashReferenceTests(unittest.TestCase):
         data=path.read_bytes()
         if hashlib.sha256(data).hexdigest()!=record['files'][path.name]['sha256']:
             raise ValueError('Pinned official Flash reference source required')
-        allowed={'Qwen4ExpTextMLP','Qwen4ExpTextExperts','Qwen4ExpTextTopKRouter','Qwen4ExpTextSparseMoeBlock'}
+        allowed={'Qwen4ExpTextMLP','Qwen4ExpTextExperts','Qwen4ExpTextTopKRouter','Qwen4ExpTextSparseMoeBlock',
+                 'Qwen4ExpTextRMSNorm','Qwen4ExpTextGatedResidual'}
         nodes=[node for node in ast.parse(data).body if isinstance(node,ast.ClassDef) and node.name in allowed]
         if {node.name for node in nodes}!=allowed:raise ValueError('Complete reviewed reference classes required')
         # Use only the inspected pure-PyTorch classes, without the optional fused dispatch
         # decorator or any imports/model code from the downloaded module.
         for node in nodes:node.decorator_list=[]
-        scope=dict(torch=torch,nn=nn,F=F,ACT2FN={'silu':F.silu})
+        scope=dict(torch=torch,nn=nn,F=F,ACT2FN={'silu':F.silu},Qwen4ExpTextConfig=SimpleNamespace)
         exec(compile(ast.fix_missing_locations(ast.Module(body=nodes,type_ignores=[])),str(path),'exec'),scope)
         cls.classes=scope
 
@@ -82,6 +83,41 @@ class FlashReferenceTests(unittest.TestCase):
             self.assertTrue(attempt.failed);prefixes.append(trace)
         self.assertEqual(*prefixes)
         self.assertEqual(prefixes[0][-1],'expert/0/up')
+
+    def test_complete_hyper_moe_residual_branch_matches_source_over_four_updates(self):
+        from flash_hyper_ops import HyperProgram,TorchHyperConnection
+        torch=self.torch;moe,spec,moe_project=self.fixture()
+        config=SimpleNamespace(hc_count=3,hidden_size=2,hc_lowrank=2,rms_norm_eps=1e-6)
+        reference=self.classes['Qwen4ExpTextGatedResidual'](config).eval()
+        with torch.no_grad():
+            for index,parameter in enumerate(reference.parameters()):
+                parameter.copy_(torch.linspace(-.2,.3,parameter.numel()).reshape(parameter.shape)+(index+1)*.02)
+        names={'hyper/down':'input_mix_weight_down','hyper/up':'input_mix_weight_up','hyper/inject':'block_inject_weight'}
+        trace=[]
+        def projection(operation,value):
+            trace.append(operation['id'])
+            return getattr(reference,names[operation['id']])(value)
+        candidate=TorchHyperConnection(HyperProgram('a'*64,'b'*64,3,2,2,1e-6),reference.hc_norm.weight,projection)
+        def local_moe(value):
+            return torch.tensor(spec.attempt().run(value.reshape(-1).tolist(),moe_project)).reshape_as(value)
+        for initial in [[.1,-.3,.5,-.7,.9,-.2],[-.4,.2,.7,.3,-.1,.8]]:
+            state=torch.tensor(initial).reshape(1,1,6);expected=state.clone();trace.clear()
+            with torch.no_grad():
+                for _step in range(4):
+                    mixed,residual,inject=reference(expected)
+                    expected=residual+(moe(mixed).unsqueeze(-2)*inject.unsqueeze(-1)).flatten(-2)
+                    state=candidate.mlp_branch(state,local_moe)
+                    torch.testing.assert_close(state,expected,rtol=1e-5,atol=1e-6)
+            self.assertEqual(trace,['hyper/down','hyper/up','hyper/inject']*4)
+
+    def test_hyper_input_shape_and_failed_projection_cannot_reach_the_moe_branch(self):
+        from flash_hyper_ops import HyperProgram,TorchHyperConnection
+        torch=self.torch
+        def rejected(*args):raise ValueError('public rejected projection')
+        candidate=TorchHyperConnection(HyperProgram('a'*64,'b'*64,3,2,2,1e-6),torch.zeros(6),rejected)
+        def forbidden(*args):self.fail('unverified hyperconnection reached MoE')
+        for value in [torch.zeros(1,5),torch.full((1,6),float('nan')),torch.zeros(1,6)]:
+            with self.assertRaises(ValueError):candidate.mlp_branch(value,forbidden)
 
     def test_router_normalization_and_ties_use_official_torch_semantics(self):
         from oblivious_experts import torch_router

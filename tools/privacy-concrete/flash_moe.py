@@ -120,8 +120,9 @@ def run(source_dir,cache_dir,execution):
                     sentBytes=bridge.sent,receivedBytes=bridge.received,clientEncryptedReplayMs=bridge.replay_seconds*1000,
                     evaluatorRoundTripMs=bridge.remote_seconds*1000)
     finally:
-        if bridge is not None:bridge.close()
-        secret=key=None
+        try:
+            if bridge is not None:bridge.close()
+        finally:secret=key=None
 
 
 if __name__=='__main__':

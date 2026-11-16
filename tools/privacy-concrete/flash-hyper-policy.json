@@ -1,0 +1,18 @@
+{
+  "schema": "doppler.flash-hyper-policy/v1",
+  "profile": "flash-mlp-hyper",
+  "planSchema": "doppler.flash-hyper-plan/v1",
+  "protocol": "concrete-glwe-flash-mlp-hyper-replay/v1",
+  "productionBackendAvailable": false,
+  "steps": 4,
+  "contextBucket": 1,
+  "inputTileWidth": 2048,
+  "outputTileWidth": 2048,
+  "cpuThreads": 4,
+  "operationTimeoutSeconds": 900,
+  "additionalDependencies": {
+    "safetensors": "0.8.0"
+  },
+  "maxAbsoluteError": 0.01,
+  "maxRelativeError": 0.01
+}

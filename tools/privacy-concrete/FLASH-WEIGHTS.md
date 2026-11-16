@@ -50,3 +50,23 @@ passed replay; maximum encrypted-versus-quantized error was 0.000676, with
 41.62 seconds of encrypted execution including 20.95 seconds of client replay.
 The full model is not copied per request: the client retains a digest table,
 derived from one verified public projection snapshot at a time.
+
+
+## Hyperconnection and complete MLP residual composition
+
+`flash_hyper_ops.py` implements the source's grouped `(1 + weight)` RMSNorm,
+low-rank gated input mixing, injection weights and residual combination. Its
+trusted client projection callback composes directly with the complete all-expert
+MoE graph. Source-reference checks cover four successive full hyperconnection /
+MoE / residual updates, including exact operation order and fail-before-MoE
+behavior after invalid input or a rejected projection.
+
+The separately installed `flash-mlp-hyper` research protocol admits the actual
+first-layer MLP hyperconnection weights from the whole pinned third shard.
+`flash_hyper.py` attempts four encrypted gated-residual updates with a public
+identity block: 3 linear modules and 15 tiles per update, 60 total. The client
+retains normalization, sigmoid, SiLU and residual operations; the evaluator only
+receives encrypted linear inputs. The identity block is an explicitly named test
+fixture, not Flash attention, MoE or autoregressive token generation. No result
+or security qualification is claimed before its workflow completes. Its source
+scope does not change the existing MoE/fixed-expert identities.

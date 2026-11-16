@@ -6,6 +6,7 @@ on:
     paths:
       - '.github/workflows/flash-operators.yml'
       - 'tools/privacy-concrete/oblivious_experts.py'
+      - 'tools/privacy-concrete/flash_hyper_ops.py'
       - 'tools/privacy-concrete/test_flash_reference.py'
       - 'tools/privacy-concrete/flash-readiness.json'
 permissions:
@@ -35,7 +36,7 @@ jobs:
               if hashlib.sha256(data).hexdigest()!=item['sha256']:raise ValueError('Pinned source mismatch')
               (target/name).write_bytes(data)
           PY
-      - name: Compare complete MoE component against official FP32 reference
+      - name: Compare MoE and four-step hyperconnection branch against official FP32 reference
         env:
           DOPPLER_FLASH_REFERENCE: '1'
           DOPPLER_FLASH_SOURCE_DIR: ${{ runner.temp }}/flash-reference

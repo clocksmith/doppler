@@ -19,9 +19,10 @@ def component_versions(policy):
     return found
 
 
-def validate_component(directory,policy,geometry,semantics,installed):
+def validate_component(directory,policy,geometry,semantics,installed,source=WEIGHTS):
+    source_id=digest(canonical(source))
     directory=Path(directory);raw=(directory/'plan.json').read_bytes();value=json.loads(raw)
-    required=dict(schema=policy['planSchema'],protocol=policy['protocol'],sourceId=SOURCE_ID,source=WEIGHTS,
+    required=dict(schema=policy['planSchema'],protocol=policy['protocol'],sourceId=source_id,source=source,
                   productionBackendAvailable=False,implementationVersions=installed,
                   parameters={key:POLICY[key] for key in ['dependencies','parameters','evaluationBackend']},
                   **{key:policy[key] for key in LIMITS},**semantics)
@@ -39,6 +40,6 @@ def validate_component(directory,policy,geometry,semantics,installed):
         with path.open('rb') as handle:
             if hashlib.file_digest(handle,'sha256').hexdigest()!=identity:raise ValueError('Public component weight corruption')
         tiles(row,value['inputTileWidth'],value['outputTileWidth'])
-    model_id=digest(canonical(dict(sourceId=SOURCE_ID,**semantics,projections=value['projections'])))
+    model_id=digest(canonical(dict(sourceId=source_id,**semantics,projections=value['projections'])))
     if value['modelId']!=model_id:raise ValueError('Public component model identity changed')
     return raw
