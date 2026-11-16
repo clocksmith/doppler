@@ -90,3 +90,19 @@ teacher-forced logit errors/cosines. Keys and encryption calls are mechanically
 forbidden in this lane. The workflow is isolated CPU-only and does not repeat or
 restart any existing encrypted run. These are small public quality fixtures, not a
 corpus benchmark, full-model encrypted evidence or a qualification shortcut.
+
+The [actual eight-fixture int8 check](evidence/full-qwen/quantization-eight-fixtures.json)
+completed in 56.75 s with 4,701,478,912 bytes client lifetime peak RSS. Independent
+four-token sequences matched FP32 on **5/8** fixtures; teacher-forced greedy choices
+matched **28/32**. Japan, freezing and sky completions differed. Maximum logit error
+reached 3.6714. This is a measured precision limitation, not evidence of lossless
+Qwen behavior. Keys/encryption were forbidden, so this difference is independent
+of the NTT evaluator. The [context](evidence/full-qwen/quantization-context.json)
+binds the exact revision/run and public source.
+
+`quantization_probe.py` adds one fixed sky-prompt boundary diagnostic from embedding
+and input norm through the first Q projection, plus a **clear-only** 12-bit
+full-model control. Records include bounded public slices, full tensor digests,
+statistics and an explicit tolerance-policy ID. `wide_reference.py` stores wide
+coefficients as int16 and accumulates products in int64; it rejects encrypted mode.
+No 12-bit encrypted backend or production path is installed by this control.

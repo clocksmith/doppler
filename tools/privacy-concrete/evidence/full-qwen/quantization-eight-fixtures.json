@@ -1,0 +1,378 @@
+{
+  "schema": "doppler.full-qwen-public-quantization-check/v1",
+  "model": "Qwen/Qwen2.5-0.5B-Instruct",
+  "modelId": "6bb05bf2d3e974f37e4a0f7246d50f448e569b440e78b564d6336702997baf0b",
+  "planId": "93af517a8ad1d093844397978a23ba2f3b295f502b0686215468bc3433be322a",
+  "linearModules": 169,
+  "fixtureCount": 8,
+  "stepsPerFixture": 4,
+  "encryptedExecution": false,
+  "keyGenerationAllowed": false,
+  "productionBackendAvailable": false,
+  "securityQualified": false,
+  "implementationVersions": {
+    "concrete-ml": "1.9.0",
+    "concrete-ml-extensions": "0.1.9",
+    "concrete-python": "2.10.0",
+    "torch": "2.3.1+cpu",
+    "transformers": "4.44.2",
+    "numpy": "1.26.4"
+  },
+  "results": [
+    {
+      "fixtureId": "capital-france",
+      "publicPrompt": "The capital of France is",
+      "inputTokens": 5,
+      "quantizedOutputTokens": [
+        12095,
+        13,
+        1084,
+        374
+      ],
+      "floatingOutputTokens": [
+        12095,
+        13,
+        1084,
+        374
+      ],
+      "quantizedOutputText": " Paris. It is",
+      "floatingOutputText": " Paris. It is",
+      "independentGreedySequenceMatches": true,
+      "teacherForcedGreedyMatches": [
+        true,
+        true,
+        true,
+        true
+      ],
+      "maxTeacherForcedLogitErrors": [
+        2.442843437194824,
+        2.364591598510742,
+        1.9354147911071777,
+        1.2084259986877441
+      ],
+      "teacherForcedLogitCosines": [
+        0.994875967502594,
+        0.9891476035118103,
+        0.9919939041137695,
+        0.9966720938682556
+      ],
+      "quantizedStepMs": [
+        1495.8855649999805,
+        1315.6451199999992,
+        1290.3506929999935,
+        1361.6136859999983
+      ]
+    },
+    {
+      "fixtureId": "capital-japan",
+      "publicPrompt": "The capital of Japan is",
+      "inputTokens": 5,
+      "quantizedOutputTokens": [
+        7407,
+        389,
+        279,
+        16462
+      ],
+      "floatingOutputTokens": [
+        7407,
+        304,
+        279,
+        30743
+      ],
+      "quantizedOutputText": " located on the Pacific",
+      "floatingOutputText": " located in the ____",
+      "independentGreedySequenceMatches": false,
+      "teacherForcedGreedyMatches": [
+        true,
+        false,
+        true,
+        false
+      ],
+      "maxTeacherForcedLogitErrors": [
+        2.3705990314483643,
+        1.966538667678833,
+        1.9059659242630005,
+        1.96786630153656
+      ],
+      "teacherForcedLogitCosines": [
+        0.9945929050445557,
+        0.9945821762084961,
+        0.9941772818565369,
+        0.9966875314712524
+      ],
+      "quantizedStepMs": [
+        1483.1535449999933,
+        1298.5812509999732,
+        1301.3682190000395,
+        1330.3517429999943
+      ]
+    },
+    {
+      "fixtureId": "arithmetic",
+      "publicPrompt": "2 + 2 =",
+      "inputTokens": 5,
+      "quantizedOutputTokens": [
+        220,
+        19,
+        198,
+        59
+      ],
+      "floatingOutputTokens": [
+        220,
+        19,
+        198,
+        59
+      ],
+      "quantizedOutputText": " 4\n\\",
+      "floatingOutputText": " 4\n\\",
+      "independentGreedySequenceMatches": true,
+      "teacherForcedGreedyMatches": [
+        true,
+        true,
+        true,
+        true
+      ],
+      "maxTeacherForcedLogitErrors": [
+        1.4541006088256836,
+        1.1815792322158813,
+        1.6054778099060059,
+        1.523808240890503
+      ],
+      "teacherForcedLogitCosines": [
+        0.9947152733802795,
+        0.9909321069717407,
+        0.9904210567474365,
+        0.9922816157341003
+      ],
+      "quantizedStepMs": [
+        1506.9388439999898,
+        1301.2843050000242,
+        1335.5753550000031,
+        1351.693054000009
+      ]
+    },
+    {
+      "fixtureId": "story",
+      "publicPrompt": "Once upon a time",
+      "inputTokens": 4,
+      "quantizedOutputTokens": [
+        11,
+        1052,
+        572,
+        264
+      ],
+      "floatingOutputTokens": [
+        11,
+        1052,
+        572,
+        264
+      ],
+      "quantizedOutputText": ", there was a",
+      "floatingOutputText": ", there was a",
+      "independentGreedySequenceMatches": true,
+      "teacherForcedGreedyMatches": [
+        true,
+        true,
+        true,
+        true
+      ],
+      "maxTeacherForcedLogitErrors": [
+        2.180205821990967,
+        1.756866216659546,
+        1.15714430809021,
+        1.973689079284668
+      ],
+      "teacherForcedLogitCosines": [
+        0.9902538061141968,
+        0.9941800832748413,
+        0.9964646100997925,
+        0.9954422116279602
+      ],
+      "quantizedStepMs": [
+        1595.849022999971,
+        1333.900956999969,
+        1344.0841020000107,
+        1352.4788990000047
+      ]
+    },
+    {
+      "fixtureId": "opposite",
+      "publicPrompt": "The opposite of hot is",
+      "inputTokens": 5,
+      "quantizedOutputTokens": [
+        1304,
+        12148,
+        32,
+        13
+      ],
+      "floatingOutputTokens": [
+        1304,
+        12148,
+        32,
+        13
+      ],
+      "quantizedOutputText": " ____\nA.",
+      "floatingOutputText": " ____\nA.",
+      "independentGreedySequenceMatches": true,
+      "teacherForcedGreedyMatches": [
+        true,
+        true,
+        true,
+        true
+      ],
+      "maxTeacherForcedLogitErrors": [
+        3.06298565864563,
+        2.5058722496032715,
+        1.5274347066879272,
+        2.8171393871307373
+      ],
+      "teacherForcedLogitCosines": [
+        0.9828634262084961,
+        0.9901034832000732,
+        0.9918513298034668,
+        0.9749570488929749
+      ],
+      "quantizedStepMs": [
+        1501.0670039999923,
+        1342.1807280000166,
+        1368.4901670000045,
+        1345.3044389999604
+      ]
+    },
+    {
+      "fixtureId": "python",
+      "publicPrompt": "Python is a",
+      "inputTokens": 3,
+      "quantizedOutputTokens": [
+        15473,
+        4128,
+        429,
+        374
+      ],
+      "floatingOutputTokens": [
+        15473,
+        4128,
+        429,
+        374
+      ],
+      "quantizedOutputText": " programming language that is",
+      "floatingOutputText": " programming language that is",
+      "independentGreedySequenceMatches": true,
+      "teacherForcedGreedyMatches": [
+        true,
+        true,
+        true,
+        true
+      ],
+      "maxTeacherForcedLogitErrors": [
+        1.5314786434173584,
+        1.6518614292144775,
+        2.493533134460449,
+        1.532009243965149
+      ],
+      "teacherForcedLogitCosines": [
+        0.9967691898345947,
+        0.9962660074234009,
+        0.9838941097259521,
+        0.9938640594482422
+      ],
+      "quantizedStepMs": [
+        1522.7616290000014,
+        1364.3138170000384,
+        1380.1248569999984,
+        1414.650015999996
+      ]
+    },
+    {
+      "fixtureId": "freezing",
+      "publicPrompt": "Water freezes at",
+      "inputTokens": 3,
+      "quantizedOutputTokens": [
+        220,
+        18,
+        17,
+        12348
+      ],
+      "floatingOutputTokens": [
+        220,
+        15,
+        12348,
+        61347
+      ],
+      "quantizedOutputText": " 32 degrees",
+      "floatingOutputText": " 0 degrees Celsius",
+      "independentGreedySequenceMatches": false,
+      "teacherForcedGreedyMatches": [
+        true,
+        false,
+        true,
+        true
+      ],
+      "maxTeacherForcedLogitErrors": [
+        2.6732707023620605,
+        2.4953367710113525,
+        2.007917642593384,
+        2.061870574951172
+      ],
+      "teacherForcedLogitCosines": [
+        0.9900217056274414,
+        0.9880040884017944,
+        0.9945107698440552,
+        0.9924790859222412
+      ],
+      "quantizedStepMs": [
+        1523.6664200000405,
+        1351.9766250000202,
+        1354.5462009999483,
+        1318.251733000011
+      ]
+    },
+    {
+      "fixtureId": "sky",
+      "publicPrompt": "The sky is",
+      "inputTokens": 3,
+      "quantizedOutputTokens": [
+        6303,
+        1576,
+        315,
+        279
+      ],
+      "floatingOutputTokens": [
+        264,
+        6233,
+        1992,
+        13
+      ],
+      "quantizedOutputText": " blue because of the",
+      "floatingOutputText": " a beautiful place.",
+      "independentGreedySequenceMatches": false,
+      "teacherForcedGreedyMatches": [
+        false,
+        true,
+        true,
+        true
+      ],
+      "maxTeacherForcedLogitErrors": [
+        2.3687424659729004,
+        3.6713850498199463,
+        2.0418105125427246,
+        2.0663766860961914
+      ],
+      "teacherForcedLogitCosines": [
+        0.9949027299880981,
+        0.98508220911026,
+        0.9939577579498291,
+        0.9962818622589111
+      ],
+      "quantizedStepMs": [
+        1481.9580810000161,
+        1304.2107299999088,
+        1290.6191719999924,
+        1315.1137440000866
+      ]
+    }
+  ],
+  "elapsedMs": 56748.882799,
+  "clientLifetimePeakRssBytes": 4701478912,
+  "interpretation": "Fixed public prompt quality checks only; not a corpus benchmark or encrypted execution evidence"
+}

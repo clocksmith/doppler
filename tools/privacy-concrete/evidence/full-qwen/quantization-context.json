@@ -1,0 +1,22 @@
+{
+  "schema": "doppler.qwen-public-quality-context/v1",
+  "revision": "3bb3396fd803037e678d830f16d18799ce0cae62",
+  "workflowRun": 43830550725,
+  "artifactId": 14208473502,
+  "artifactZipSha256": "bc8930c6395b378d1c9721901f93a148ada13ab935ab690a0bf1d54387904596",
+  "encryptedExecution": false,
+  "keyGenerationAllowed": false,
+  "productionBackendAvailable": false,
+  "securityQualified": false,
+  "fixtureCount": 8,
+  "stepsPerFixture": 4,
+  "independentSequenceMatches": 5,
+  "teacherForcedGreedyMatches": 28,
+  "totalTeacherForcedSteps": 32,
+  "limitations": [
+    "Small public completion fixtures, not a corpus benchmark",
+    "Int8 differs from FP32 on three independent sequences; no lossless-model claim",
+    "This lane forbids keys/encryption and cannot substitute for pending encrypted output",
+    "Public model identity and cache binding remain independently verified"
+  ]
+}

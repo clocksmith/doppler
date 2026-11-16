@@ -8,6 +8,21 @@ from unittest.mock import patch
 
 @unittest.skipUnless(os.environ.get('DOPPLER_CONCRETE_NATIVE')=='1','opt-in pinned native/Torch implementation')
 class StreamedFlashMoETests(unittest.TestCase):
+    def test_wide_reference_preserves_coefficients_and_cannot_enter_encrypted_mode(self):
+        import torch
+        from torch import nn
+        from concrete.ml.quantization.linear_op_glwe_backend import GLWELinearLayerExecutor
+        from wide_reference import WideReferenceLinear
+        with tempfile.TemporaryDirectory() as directory:
+            layer=nn.Linear(4,3,bias=False).eval().requires_grad_(False)
+            with torch.no_grad():layer.weight.copy_(torch.arange(12,dtype=torch.float32).reshape(3,4)*.07-.4)
+            reference=WideReferenceLinear(SimpleNamespace(name='public',remote=layer),GLWELinearLayerExecutor(use_dynamic_quantization=True),directory,12)
+            self.assertGreater(int(abs(reference.weights).max()),127)
+            value=torch.tensor([[.1,-.2,.3,-.4]],dtype=torch.float32);reference.mode='clear-reference'
+            torch.testing.assert_close(reference(value),layer(value),rtol=.01,atol=.001)
+            reference.mode='execute'
+            with self.assertRaises(ValueError):reference(value)
+
     def test_model_step_preserves_bucket_and_rejects_cache_history_mismatch(self):
         import torch
         from full_model import model_step
