@@ -32,6 +32,8 @@ class ClientProjection(nn.Module):
         execution=_CURRENT.get()
         if execution is None:raise ValueError('No bound Flash client execution')
         state=execution.state;state.projection(self.operation['id'])
+        state.require(isinstance(value,torch.Tensor) and value.dtype==torch.float32 and value.ndim>=2
+                      and value.shape[-1]==self.operation['inputWidth'] and torch.isfinite(value).all())
         owned=value.clone()
         result=self.source(owned) if execution.callback is None else execution.callback(self.operation,owned)
         state.require(tuple(result.shape)==(*value.shape[:-1],self.operation['outputWidth']) and torch.isfinite(result).all())

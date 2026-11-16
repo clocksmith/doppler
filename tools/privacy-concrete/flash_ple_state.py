@@ -13,6 +13,9 @@ class PLERequestState(ClientRequestState):
         if self.local_rows_lease is not None:self.local_rows_lease.close()
         self.local_rows_lease=None
 
+    def ple_state_for(self,layer_idx):
+        self.require(self.active and layer_idx==self.layer_index);return self
+
     def _slot(self,layer_idx,state_idx=0):
         self.require(self.active and type(layer_idx) is int and layer_idx==self.layer_index
                      and type(state_idx) is int and state_idx in [1,2])

@@ -242,3 +242,24 @@ Actual PLE execution/quantization costs are still unavailable: no complete 104.3
 GB table file set has been provisioned on an authorized execution host. The wired
 path remains unqualified and outside production admission until real material,
 model-wide correctness, security and deployment gates pass.
+
+## Complete client reference assembly
+
+`flash_model_graph.py` now assembles trusted materialized source components from
+embedding through every decoder, final stream mixer and vocabulary head. It keeps
+a fixed all-expert projection route, client text rotary/attention, PLE and
+hyperconnections, and owns no private cache in shared weights.
+`flash_model_state.py` routes each request's cache calls to the existing
+DeltaNet/QSA/PLE owners. A failure clears the entire request, and all intermediate
+projection geometry, dtype and finiteness checks occur before a trusted client
+projection callback receives it.
+
+The new source comparisons use three small public decoder layers mixing both
+attention families and PLE, four autoregressive token steps, complete-prefix
+sparse-source comparisons, concurrent cache isolation and terminal cancellation.
+They execute the inspected decoder forward with an explicitly declared eval-only
+`nn.Module` base in place of the upstream gradient-checkpointing wrapper. This
+assembly is an unpadded text client reference, not actual 48-layer Flash weights,
+full-model encrypted execution, an authenticated network backend or production
+qualification. Actual full Flash artifacts and model-wide quantization evidence
+remain required.

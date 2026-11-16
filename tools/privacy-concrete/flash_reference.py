@@ -43,6 +43,9 @@ def declaration_name(node):
 def inspected_transforms(nodes,group):
     transforms=SPEC.get('transforms',{}).get(group,[])
     for transform in transforms:
+        if transform=='decoder-eval-module-base/v1':
+            if group!='decoder':raise ValueError('Eval-only decoder base used outside its inspected group')
+            continue
         if transform=='ngram-register-buffer/v1':
             promote_ngram_buffers(nodes);continue
         if transform!='qsa-scatter-index64/v1':raise ValueError('Unsupported inspected source transform')
@@ -87,6 +90,9 @@ def load_reference(path,group):
     scope=dict(__name__='doppler_pinned_flash_reference',__referenceTransforms__=transforms,torch=torch,nn=nn,F=F,math=math,
                ACT2FN={'silu':F.silu,'sigmoid':torch.sigmoid},is_torchdynamo_exporting=lambda:False,
                ALL_ATTENTION_FUNCTIONS=EagerReferenceOnly())
+    if group=='decoder':
+        # Eval-only reference: no downloaded checkpointing wrapper or training behavior.
+        scope['GradientCheckpointingLayer']=nn.Module
     code=compile(ast.fix_missing_locations(ast.Module(body=nodes,type_ignores=[])),
                  'pinned-flash-reference','exec',flags=__future__.annotations.compiler_flag)
     exec(code,scope)

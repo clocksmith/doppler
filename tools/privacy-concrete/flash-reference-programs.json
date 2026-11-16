@@ -42,6 +42,40 @@
       "_find_nth_prime_after",
       "Qwen4ExpTextNGramEmbedding",
       "Qwen4ExpTextPLELayer"
+    ],
+    "decoder": [
+      "Qwen4ExpTextRMSNorm",
+      "Qwen4ExpTextMLP",
+      "Qwen4ExpTextExperts",
+      "Qwen4ExpTextTopKRouter",
+      "Qwen4ExpTextSparseMoeBlock",
+      "Qwen4ExpTextGatedResidual",
+      "Qwen4ExpTextRMSNormGated",
+      "apply_mask_to_padding_states",
+      "causal_conv1d_update",
+      "causal_conv1d_fn",
+      "l2norm",
+      "torch_chunk_gated_delta_rule",
+      "torch_recurrent_gated_delta_rule",
+      "Qwen4ExpTextGatedDeltaNet",
+      "rotate_half",
+      "apply_rotary_pos_emb",
+      "Qwen4ExpTextQSAIndexer",
+      "repeat_kv",
+      "eager_attention_forward",
+      "Qwen4ExpTextAttention",
+      "_MASK64",
+      "_SPLITMIX_GAMMA",
+      "_SPLITMIX_M1",
+      "_SPLITMIX_M2",
+      "_PRIME_1",
+      "_splitmix64",
+      "_build_layer_multipliers",
+      "_is_prime",
+      "_find_nth_prime_after",
+      "Qwen4ExpTextNGramEmbedding",
+      "Qwen4ExpTextPLELayer",
+      "Qwen4ExpTextDecoderLayer"
     ]
   },
   "removedDecorators": [
@@ -58,6 +92,11 @@
     ],
     "ple": [
       "ngram-register-buffer/v1"
+    ],
+    "decoder": [
+      "qsa-scatter-index64/v1",
+      "ngram-register-buffer/v1",
+      "decoder-eval-module-base/v1"
     ]
   }
 }

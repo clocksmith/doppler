@@ -59,5 +59,8 @@ class ClientRequestState:
         self.require(self.active and type(layer_idx) is int and layer_idx==self.layer_index and type(state_idx) is int and state_idx==0)
         return layer_idx,state_idx
 
+    def ple_state_for(self,layer_idx):
+        self.require(False)
+
     def clear_private_state(self):raise NotImplementedError
     def close(self):self.fail()

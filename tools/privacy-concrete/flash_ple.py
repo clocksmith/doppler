@@ -44,7 +44,7 @@ class ClientPLE(nn.Module):
         if tuple(CONFIG['sourceTransforms'])!=source['__referenceTransforms__']:raise ValueError('PLE source transform contract changed')
         with torch.device('meta'):candidate=source['Qwen4ExpTextPLELayer'](config,layer_index,ple_layer_index)
         shape=tuple(candidate.ple_embedding.ngram_embedding.weight.shape)
-        embedding=LocalNgramEmbedding(storage,max_lookup_bytes=max_lookup_bytes)
+        embedding=LocalNgramEmbedding(storage,max_lookup_bytes=max_lookup_bytes,layer_index=layer_index)
         if shape!=(embedding.num_embeddings,embedding.embedding_dim):raise ValueError('Complete local ngram geometry differs from the source configuration')
         expected={name:value for name,value in candidate.state_dict().items() if name!='ple_embedding.ngram_embedding.weight'}
         if not isinstance(parameters,dict) or set(parameters)!=set(expected):raise ValueError('Complete local PLE parameter material required')
