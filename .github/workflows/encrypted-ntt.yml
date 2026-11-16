@@ -55,6 +55,10 @@ jobs:
         run: |
           python tools/privacy-concrete/native-ntt/benchmark.py --lock "$RUNNER_TEMP/concrete-ntt-source/rust/Cargo.lock" \
             > "$RUNNER_TEMP/ntt-public-result.json" 2> "$RUNNER_TEMP/ntt-client-diagnostics.txt"
+      - name: Reject native ciphertext corruption and replay cancellation before parser entry
+        env:
+          PYTHONPATH: tools/privacy-concrete
+        run: python tools/privacy-concrete/native-ntt/test_integrity.py -v
       - uses: actions/upload-artifact@v6
         if: always()
         with:

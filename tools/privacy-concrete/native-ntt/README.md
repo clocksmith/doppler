@@ -48,3 +48,11 @@ and [tfhe-ntt 0.7.1](https://crates.io/crates/tfhe-ntt/0.7.1), with exact source
 crate and lock hashes in `build-policy.json`. Both identify their license as
 BSD-3-Clause-Clear. No native wheel, key or ciphertext fixture is published; only
 source, measurements and the public dependency lock are retained.
+
+`test_integrity.py` additionally uses actual encrypted inputs and a valid but wrong
+native evaluation to exercise the shared bridge rejection boundary. It checks
+wrong/corrupt ciphertexts, cancellation during real replay, terminal retry denial,
+public-weight corruption before disclosure, and parser ordering for accepted
+responses. These are bounded in-process verification tests; they bypass the
+full-model constructor and do not qualify model admission, transport, malicious
+security or cryptographic confidentiality.
