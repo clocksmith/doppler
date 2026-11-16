@@ -3,7 +3,7 @@
   "entrypoint": "src/capsule-runtime.js",
   "scope": "injected-capsule-core; excludes host-supplied program executors",
   "fileCount": 88,
-  "sourceBytes": 1253291,
+  "sourceBytes": 1254370,
   "forbiddenPatterns": [
     "/src/converter/",
     "/src/training/",
@@ -219,8 +219,8 @@
     },
     {
       "path": "src/config/capsule/capsule.js",
-      "sizeBytes": 2865,
-      "hash": "sha256:308db418eee32849f829372784d7c9056b67739e99e00f5ec334b80e156d6343"
+      "sizeBytes": 3944,
+      "hash": "sha256:10fb5467a566cb43de6578084f013b92d6ca4629ffa626b06c44a6656632d390"
     },
     {
       "path": "src/config/choice-scoring.js",

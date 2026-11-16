@@ -40,6 +40,8 @@ jobs:
       - run: node tests/config/runtime-transform-ownership.test.js
       - run: node tests/config/error-taxonomy.test.js
       - run: node tests/config/public-error-contract.test.js
+      - run: npm run typecheck:source
+      - run: node tools/run-node-tests.js tests/capsule/capsule-v2.test.js tests/capsule/capsule-v3.test.js tests/capsule/capsule-retained-local-use.test.js tests/runtime/capsule-artifact-source.test.js tests/runtime/capsule-load-options.test.js
       - run: node tests/integration/execution-graph-transforms.test.js
       - run: npm run check:fast
       - run: npm run style:guides:check

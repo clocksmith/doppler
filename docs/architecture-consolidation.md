@@ -162,3 +162,15 @@ HTTP envelope types and normalize runtime codes and causes at that boundary;
 they do not acquire an additional dependency on runtime error infrastructure.
 Cross-process messages still require their own admitted code/shape validation:
 JavaScript prototype identity is not a remote trust claim.
+
+
+### Capsule version compatibility
+
+V2 and v3 retain distinct signed semantic payloads: v2 binds inline release
+metadata; v3 separates executable identity from signed release history. Opening
+never migrates or relabels either format. They already share executable validation
+and artifact verification. The shared admission facade is now strictly checked
+against both versions; this exposed and corrected v2-only declarations on the
+version-independent envelope hash and artifact verifier. V3 admission rejects
+missing history, release policy or trusted release signers before artifact reads.
+Retained-local-use, revocation and migration tests remain separate contracts.

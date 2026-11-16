@@ -98,7 +98,6 @@
     "src/config/capsule/capsule-v0-trusted-signers.js",
     "src/config/capsule/capsule-v2.js",
     "src/config/capsule/capsule-v3.js",
-    "src/config/capsule/capsule.js",
     "src/config/dtype-transition-contract.js",
     "src/config/embedding-contract.js",
     "src/config/embedding-reference.js",

@@ -108,6 +108,18 @@ await assert.rejects(deniedRuntime.openCapsule(capsule, { ...options, releaseEve
   persistReleaseCheckpoint(checkpoint) { denialCheckpoint = checkpoint; } }), /blocked/);
 assert.equal(deniedReads, 0);
 assert.equal(denialCheckpoint.digest, revoked.digest);
+for (const [missing, expected] of [
+  ['releaseEvents', /signed release event history/],
+  ['releasePolicy', /Invalid release policy/],
+  ['releaseTrustedSigners', /trusted release signers/],
+]) {
+  await assert.rejects(verifyCapsule(capsule, { ...options, trustedSigners, [missing]: undefined,
+    artifactStore: { async readArtifact() { throw new Error('Missing admission input fetched artifacts.'); } },
+  }), expected);
+}
+assert.equal(validateCapsule(null).ok, false);
+assert.equal(validateCapsule({ schema: 'doppler.capsule/v99' }).ok, false);
+
 await assert.rejects(verifyCapsule(capsule, {
   ...options, trustedSigners,
   artifactStore: { hashArtifact: fixture.artifactStore.hashArtifact, readArtifact: async (artifact) => new Uint8Array(artifact.sizeBytes) },
