@@ -64,6 +64,7 @@ class FullBridge:
     def check_active(self):
         try:
             require_active(self.cancelled)
+            if self.admission.failed:raise ValueError('Encrypted attempt is terminally unavailable')
         except BaseException:
             self.admission.fail()
             self._release_projection_inputs()

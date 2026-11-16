@@ -74,8 +74,8 @@ def provision_spec(directory,specification,*,cancelled=None):
 
 
 class FlashSource:
-    def __init__(self,directory,scope='moe'):
-        self._open(directory,source_spec(scope))
+    def __init__(self,directory,scope='moe',*,cancelled=None):
+        self._open(directory,source_spec(scope),cancelled=cancelled)
 
     def _open(self,directory,specification,*,cancelled=None):
         require_active(cancelled)

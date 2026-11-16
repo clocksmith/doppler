@@ -16,7 +16,7 @@ from flash_component_plan import write_component
 from flash_moe_plan import CONFIG,PROGRAM,SOURCE_ID,WEIGHTS,lowered_operations
 from flash_weights import FlashSource
 from full_status import ExecutionRejected,failure_event
-from protocol import POLICY
+from protocol import POLICY,require_active
 from plan_backends import moe_backend,MOE_PROFILES
 
 PREFIX='model.language_model.layers.0.mlp.'
@@ -24,10 +24,13 @@ PREFIX='model.language_model.layers.0.mlp.'
 
 class StreamedMoE:
     """Only one public expert's FP32 material is resident at once; private state is attempt-local."""
-    def __init__(self,source_dir,cache_dir,backend_profile=CONFIG['profile']):
+    def __init__(self,source_dir,cache_dir,backend_profile=CONFIG['profile'],*,cancelled=None):
+        require_active(cancelled)
         self.config,self.plan_loader,self.version_check=moe_backend(backend_profile)
         self.implementation=self.version_check()
-        self.source=FlashSource(source_dir)
+        require_active(cancelled)
+        self.source=FlashSource(source_dir,cancelled=cancelled)
+        require_active(cancelled)
         self.directory=Path(cache_dir);self.directory.mkdir(parents=True,exist_ok=True)
         self.executor=GLWELinearLayerExecutor(use_dynamic_quantization=True);self.prepared={}
 
@@ -47,30 +50,48 @@ class StreamedMoE:
         source.weight=nn.Parameter(weight,requires_grad=False)
         return FullLinear(name,source,self.executor,self.directory)
 
-    def prepare(self):
+    def prepare(self,*,cancelled=None):
+        require_active(cancelled)
         installed=self.implementation
         if json.loads(ext.default_params())!=POLICY['parameters']:raise ValueError('Pinned native parameters required')
-        definitions=self.prepare_projections(lowered_operations())
+        definitions=self.prepare_projections(lowered_operations(),cancelled=cancelled)
+        require_active(cancelled)
         write_component(self.directory,self.config,definitions,dict(programId=PROGRAM.identity),installed)
-        return self.plan_loader(self.directory)
+        plan=self.plan_loader(self.directory)
+        require_active(cancelled)
+        return plan
 
-    def prepare_projections(self,operations):
+    def prepare_projections(self,operations,*,cancelled=None):
+        require_active(cancelled)
         self.prepared={};prepared={};definitions=[];operations=tuple(operations)
         names=[row['name'] for row in operations]
         if len(names)!=len(set(names)):raise ValueError('Distinct prepared Flash projection names required')
         for row in operations:
+            require_active(cancelled)
             projection=self.projection(row['name'])
+            require_active(cancelled)
             if any(projection.definition[key]!=value for key,value in row.items()):raise ValueError('Flash projection lowering changed')
             definitions.append(dict(projection.definition))
             projection.release_float_reference();prepared[projection.name]=projection
+        require_active(cancelled)
         self.prepared=prepared
         return definitions
 
-    def evaluate(self,hidden,mode,plan,bridge=None,secret=None,projection_definitions=None):
+    def evaluate(self,hidden,mode,plan,bridge=None,secret=None,projection_definitions=None,*,cancelled=None):
+        if (mode not in ['float-reference','clear-reference','execute']
+                or (mode=='execute' and (bridge is None or secret is None))
+                or (mode!='execute' and (bridge is not None or secret is not None))
+                or (bridge is not None and cancelled is not None and bridge.cancelled is not cancelled)):
+            raise ValueError('Explicit matching Flash execution and cancellation context required')
+        def check_active():
+            if bridge is not None:bridge.check_active()
+            require_active(cancelled)
+        check_active()
         definitions=plan.definition()['projections'] if projection_definitions is None else projection_definitions
         expected=iter(definitions);pending=None;position=0
         def project(operation,values):
             nonlocal pending,position
+            check_active()
             name=operation['id']
             if name.startswith('expert/') and name.endswith('/up'):
                 if pending is None or pending[0]!=name:raise ValueError('Flash combined projection order changed')
@@ -80,11 +101,13 @@ class StreamedMoE:
             combined=name.startswith('expert/') and name.endswith('/gate')
             lowered=name[:-4]+'gate_up' if combined else name
             definition=next(expected);projection=self.projection(lowered,mode)
+            check_active()
             if projection.definition!=definition:raise ValueError('Public Flash projection changed after admission')
             projection.mode=mode;projection.bridge=bridge;projection.secret=secret
             projection.parameters=self.executor.glwe_crypto_params
             try:
                 result=projection(torch.tensor(values,dtype=torch.float32).reshape(1,-1)).reshape(-1).tolist()
+                check_active()
             finally:projection.secret=projection.bridge=projection.parameters=None
             position+=1
             if combined:
@@ -92,20 +115,22 @@ class StreamedMoE:
                 pending=(name[:-4]+'up',result[width:]);result=result[:width]
             return result
         with torch.no_grad():result=PROGRAM.attempt().run(hidden,project)
+        check_active()
         if pending is not None or position!=len(definitions):raise ValueError('Incomplete Flash lowered route')
         return torch.tensor(result,dtype=torch.float32)
 
 
-def run(source_dir,cache_dir,execution,backend_profile=CONFIG['profile']):
+def run(source_dir,cache_dir,execution,backend_profile=CONFIG['profile'],*,cancelled=None):
+    require_active(cancelled)
     if execution not in ['public-reference','encrypted']:raise ValueError('Explicit Flash execution mode required')
     config,_,_=moe_backend(backend_profile)
     if os.environ.get('RAYON_NUM_THREADS')!=str(config['cpuThreads']):raise ValueError('Explicit component CPU budget required')
     torch.set_num_threads(config['cpuThreads']);began=time.perf_counter()
-    model=StreamedMoE(source_dir,cache_dir,backend_profile);plan=model.prepare()
+    model=StreamedMoE(source_dir,cache_dir,backend_profile,cancelled=cancelled);plan=model.prepare(cancelled=cancelled)
     # An explicitly public fixture; no private input channel is supported by this experiment.
     hidden=torch.sin(torch.arange(PROGRAM.experts.hidden_width,dtype=torch.float32)*.013).tolist()
-    floating=model.evaluate(hidden,'float-reference',plan)
-    quantized=model.evaluate(hidden,'clear-reference',plan)
+    floating=model.evaluate(hidden,'float-reference',plan,cancelled=cancelled)
+    quantized=model.evaluate(hidden,'clear-reference',plan,cancelled=cancelled)
     report=dict(schema='doppler.actual-flash-dense-moe-execution/v1',fixtureId='flash-dense-moe-sine-2560',
                 productionBackendAvailable=False,securityQualified=False,fullFlashModelExecuted=False,
                 sourceId=SOURCE_ID,sourceRevision=WEIGHTS['revision'],programId=PROGRAM.identity,planId=plan.identity,
@@ -114,16 +139,19 @@ def run(source_dir,cache_dir,execution,backend_profile=CONFIG['profile']):
                 linearModules=len(plan.definition()['projections']),plannedEncryptedTiles=len(plan.schedule()),
                 allExpertsVisited=True,encryptedExecutionCompleted=False,encryptedTiles=0,
                 maxQuantizedVsFloatingError=float((quantized-floating).abs().max()),execution=execution)
+    require_active(cancelled)
     if execution=='public-reference':return dict(report,elapsedMs=(time.perf_counter()-began)*1000)
     secret,key=ext.cpu_create_private_key(model.executor.glwe_crypto_params);bridge=None
     try:
-        bridge=FullBridge(cache_dir,plan,key,backend_profile=backend_profile,
+        require_active(cancelled)
+        bridge=FullBridge(cache_dir,plan,key,backend_profile=backend_profile,cancelled=cancelled,
                           observe=lambda event,value:print(json.dumps(dict(event=event,**value)),file=sys.stderr,flush=True))
         def validate(step,actual):
+            require_active(cancelled)
             if not torch.allclose(actual,quantized,rtol=config['maxRelativeError'],atol=config['maxAbsoluteError']):
                 raise ExecutionRejected('component-reference-mismatch')
         started=time.perf_counter()
-        actual=complete_verified_route(bridge,1,lambda step:model.evaluate(hidden,'execute',plan,bridge,secret),validate)[0]
+        actual=complete_verified_route(bridge,1,lambda step:model.evaluate(hidden,'execute',plan,bridge,secret,cancelled=cancelled),validate)[0]
         return dict(report,encryptedExecutionCompleted=True,validationBoundary=VALIDATION_BOUNDARY,encryptedTiles=bridge.sequence-1,
                     maxEncryptedVsQuantizedError=float((actual-quantized).abs().max()),
                     quantizedReferenceCheckPassed=True,executeMs=(time.perf_counter()-started)*1000,

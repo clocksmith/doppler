@@ -670,3 +670,21 @@ from the existing streamed MoE adapter, not a full-model disk-eviction controlle
 Metadata still scales with the number of prepared output channels. No native
 crypto speedup, full Flash generation or end-to-end memory qualification follows
 from the small Torch adapter checks.
+
+
+## Prepared MoE cancellation ownership
+
+The source constructor and streaming MoE client accept an optional cancellation
+signal. It reaches existing shard verification, preparation boundaries and each
+projection, including combined gate/up results. A cancelled preparation publishes
+no partial prepared metadata and leaves existing public coefficient files alone.
+Encrypted evaluation requires the same explicit signal as its bridge; bridge
+activity checks reject a previously failed attempt even after an event is cleared.
+Attempt copies release bridge/key/parameter bindings on cancellation.
+
+The component runner checks cancellation before key creation and after native
+work, and passes its signal into the transport. Native quantization, encryption
+and evaluation already in progress remain cooperative; immediate interruption is
+not promised. Focused simulated-crypto control tests exercise these boundaries,
+separately from the real quantizer adapter checks. This adds no model, endpoint
+or cryptographic qualification.

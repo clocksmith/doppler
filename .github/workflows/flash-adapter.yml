@@ -9,6 +9,7 @@ on:
       - 'tools/privacy-concrete/full_model.py'
       - 'tools/privacy-concrete/full_bridge.py'
       - 'tools/privacy-concrete/test_full_bridge.py'
+      - 'tools/privacy-concrete/test_flash_moe_cancellation.py'
       - 'tools/privacy-concrete/flash_moe.py'
       - 'tools/privacy-concrete/flash_component_plan.py'
       - 'tools/privacy-concrete/flash_ple_model.py'
@@ -43,6 +44,7 @@ jobs:
         run: |
           python -m unittest discover -s tools/privacy-concrete -p test_flash_moe_native.py -v
           python -m unittest discover -s tools/privacy-concrete -p test_full_bridge.py -v
+          python -m unittest discover -s tools/privacy-concrete -p test_flash_moe_cancellation.py -v
       - name: Provision only the exact public Flash tokenizer
         run: python tools/privacy-concrete/prepare_flash_tokenizer.py --destination "$RUNNER_TEMP/flash-tokenizer"
       - name: Check real Flash text input and output using local pinned files
