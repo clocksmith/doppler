@@ -49,6 +49,7 @@ export async function prepareRoutedExperts(loader, layer, expertIds, signal, pha
       numLayers: typeof loader.manifest.architecture === 'object'
         && typeof loader.manifest.architecture?.numLayers === 'number'
         ? loader.manifest.architecture.numLayers : undefined, numExperts: plan.numExperts,
+      rangeLease: loader.shardCache.rangeLease ?? undefined,
       readRangeInto: loader.shardCache.hasCustomRangeIntoLoader ? async (shard, offset, destination, activeSignal) => {
         activeSignal.throwIfAborted();
         const count = await loader.shardCache.loadRangeInto(shard, offset, destination, { requireRange: true });

@@ -40,11 +40,18 @@ export class CompactExpertCache {
     validateQwen35RoutedConfig(options.policy);
     this.#options = options;
     this.#stats = stats;
+    const lease = options.rangeLease;
+    if (lease && (!Number.isSafeInteger(lease.maxPartBytes) || lease.maxPartBytes < 4
+      || !Number.isSafeInteger(lease.memoryBytes) || lease.memoryBytes < lease.maxPartBytes
+      || lease.memoryBytes > options.policy.stagingBytes - 8 * options.policy.readConcurrency)) {
+      throw new Error('Owned expert ranges must fit the aggregate staging budget with fallback scratch.');
+    }
+    this.#staging = lease?.memoryBytes ?? 0;
   }
 
   #chunkBytes() {
     const { stagingBytes, readConcurrency } = this.#options.policy;
-    return Math.floor(stagingBytes / (2 * readConcurrency * 4)) * 4;
+    return Math.floor((stagingBytes - (this.#options.rangeLease?.memoryBytes ?? 0)) / (2 * readConcurrency * 4)) * 4;
   }
 
   #clearReaderStaging() {
@@ -111,9 +118,13 @@ export class CompactExpertCache {
     for (const plane of plan.planes) {
       for (let offset = 0; offset < plane.expertBytes;) {
         signal.throwIfAborted();
-        const length = Math.min(chunkBytes, plane.expertBytes - offset);
+        const port = this.#options.rangeLease;
+        const location = plane.location;
+        const physical = location.spans?.length === 1 ? location.spans[0] : location;
+        const leased = port && location.sourceTransform == null && (!location.spans || location.spans.length <= 1);
+        const length = Math.min(leased ? Math.floor(port.maxPartBytes / 4) * 4 : chunkBytes, plane.expertBytes - offset);
         let destination = null;
-        if (this.#options.readRangeInto && plane.location.sourceTransform == null) {
+        if (!leased && this.#options.readRangeInto && plane.location.sourceTransform == null) {
           if (!reader.bytes) {
             reader.bytes = new Uint8Array(chunkBytes);
             this.#staging += chunkBytes;
@@ -122,12 +133,27 @@ export class CompactExpertCache {
           // writeBuffer copies before returning, so only this reader may reuse the bytes.
           destination = reader.bytes.subarray(0, length);
         }
-        const staging = destination ? 0 : (this.#options.readRangeInto ? 1 : 2) * length;
+        const staging = leased || destination ? 0 : (this.#options.readRangeInto ? 1 : 2) * length;
         this.#staging += staging;
         this.#stats.peakStagingBytes = Math.max(this.#stats.peakStagingBytes, this.#staging);
         const start = performance.now();
+        /** @type {import('../../storage/verified-piece-gather.js').VerifiedRangeLease | null} */
+        let lease = null;
         try {
-          const data = await readRoutedExpertRange(this.#options, this.#stats, plane, expert, offset, length, signal, destination);
+          if (leased) {
+            const shard = physical.shardIndex;
+            if (typeof shard !== 'number' || typeof physical.offset !== 'number' || !Number.isSafeInteger(shard) || shard < 0 || !Number.isSafeInteger(physical.offset)
+              || physical.offset < 0 || !Number.isSafeInteger(physical.size) || physical.size < 0
+              || !Number.isSafeInteger(expert) || expert < 0 || offset + length > plane.expertBytes || (expert + 1) * plane.expertBytes > physical.size) {
+              throw new Error('Owned expert range exceeds its declared physical plane.');
+            }
+            lease = await port.read(shard, physical.offset + expert * plane.expertBytes + offset, length, signal);
+            if (lease.bytes.byteLength !== length) throw new Error('Owned expert range length mismatch.');
+            this.#stats.sourceReads++;
+            this.#stats.sourceReadBytes += length;
+            this.#stats.sourceReadWaitMs += performance.now() - start;
+          }
+          const data = lease ? lease.bytes : await readRoutedExpertRange(this.#options, this.#stats, plane, expert, offset, length, signal, destination);
           pool.stats.sourceReadBytes += data.byteLength;
           pool.stats.sourceReadWaitMs += performance.now() - start;
           signal.throwIfAborted();
@@ -141,6 +167,8 @@ export class CompactExpertCache {
           pool.stats.uploadBytes += length;
           this.#stats.uploadBytes += length;
         } finally {
+          // queue.writeBuffer synchronously copies its source, including leased views.
+          lease?.release();
           this.#stats.ioWaitMs += performance.now() - start;
           this.#staging -= staging;
         }
@@ -190,7 +218,7 @@ export class CompactExpertCache {
     signal.addEventListener('abort', abort, { once: true });
     if (signal.aborted) abort();
     try {
-      const outcomes = await Promise.allSettled(Array.from({ length: this.#options.policy.readConcurrency }, async (_, index) => {
+      const outcomes = await Promise.allSettled(Array.from({ length: this.#options.rangeLease ? 1 : this.#options.policy.readConcurrency }, async (_, index) => {
         const reader = this.#readers[index] ??= { bytes: null };
         while (cursor < misses.length) {
           const { expert, slot } = misses[cursor++];

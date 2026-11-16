@@ -9,6 +9,8 @@ export interface RoutedExpertCacheOptions {
   numExperts?: number;
   readRange: (shard: number, offset: number, length: number, signal: AbortSignal) => Promise<ArrayBuffer>;
   readRangeInto?: (shard: number, offset: number, destination: Uint8Array, signal: AbortSignal) => Promise<number>;
+  /** Authenticated owned ranges; the consumer releases only after upload copies bytes. */
+  rangeLease?: import('../../storage/verified-piece-gather.js').VerifiedRangeLeasePort;
   otherGpuBytes: () => number;
 }
 export interface RoutedExpertEntry { buffer: GPUBuffer; bytes: number; users: number; lastUseSerial: number }

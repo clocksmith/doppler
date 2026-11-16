@@ -1,0 +1,49 @@
+# Node verified-piece gathering
+
+`src/storage/verified-piece-gather.js` provides an opt-in Node worker adapter for
+compact routed experts. It is not a new qualification or trust policy. The host
+supplies the pinned index identity and approved local filenames; the worker
+validates the index-to-manifest binding and hashes every complete piece before
+publishing a gathered range. Runtime metadata is snapshotted before admission.
+
+Create the adapter with `createVerifiedPieceGather({ manifestBytes, indexBytes,
+indexIdentity, files, maxPartBytes, memoryBudgetBytes })`. `files` maps authenticated
+index filenames to approved local paths. Set `maxPartBytes` to cover a plane
+when whole-plane gathering is desired. A larger plane is read in bounded parts.
+
+Pass the returned `rangeLease` through the existing custom shard loader options:
+
+```js
+loader.setCustomShardLoader(loadShard, {
+  loadShardRange,
+  loadShardRangeInto,
+  rangeLease: gather.rangeLease,
+});
+```
+
+The ordinary shard/range callbacks still own other loads and unsupported source
+transforms or multispan tensors. Compact decoding uses verified owned bytes
+directly for GPU uploads instead of copying them into main-thread scratch.
+Reading, hashing and gathering happen inside the worker; gathering itself still
+copies bytes. No shared scratch backing buffer is transferred.
+
+One adapter permits one outstanding read or lease. Compact loading uses one
+reader while this port is enabled. It releases each lease in `finally` after
+`queue.writeBuffer` has copied the bytes, including upload failures. Released
+views are detached. Repeated release is harmless. The buffer is reused, not
+reallocated for each range. Direct callers must release before their next read.
+
+The admitted byte bound is one maximum output plus two complete-piece byte
+buffers. It excludes immutable metadata, native digest internals and VM overhead;
+it is not an RSS limit. Compact staging admission reserves that bound plus its
+fallback scratch. Do not share the adapter between concurrently preparing caches.
+
+Cancellation prevents publication and is checked after the bounded worker read;
+it does not interrupt a synchronous disk read or native hash. `gather.close()`
+terminates the worker and rejects outstanding reads. The host owns closing it,
+after consumers finish or cancel. Closing one adapter does not close another.
+
+CPU tests cover authentication, short reads, transfers, aggregate admission,
+upload failure, retry, cancellation and independent owners. They do not qualify
+model correctness, GPU behavior or performance against other engines. No speedup
+is claimed without a matched complete-request comparison.

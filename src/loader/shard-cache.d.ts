@@ -34,6 +34,7 @@ export class ShardCache {
     options?: {
       loadRange?: CustomShardRangeLoader | null;
       loadRangeInto?: CustomShardRangeIntoLoader | null;
+      rangeLease?: import('../storage/verified-piece-gather.js').VerifiedRangeLeasePort | null;
       streamRange?: CustomShardStreamLoader | null;
     }
   ): void;
@@ -41,6 +42,7 @@ export class ShardCache {
   get hasCustomLoader(): boolean;
   get hasCustomRangeLoader(): boolean;
   get hasCustomRangeIntoLoader(): boolean;
+  get rangeLease(): import('../storage/verified-piece-gather.js').VerifiedRangeLeasePort | null;
   get hasCustomStreamLoader(): boolean;
   get canStreamRanges(): boolean;
   resetCustomReadStats(): void;

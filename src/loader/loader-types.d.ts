@@ -226,6 +226,7 @@ export interface CustomShardLoaderOptions {
   verify?: boolean;
   loadShardRange?: CustomShardRangeLoader;
   loadShardRangeInto?: CustomShardRangeIntoLoader | null;
+  rangeLease?: import('../storage/verified-piece-gather.js').VerifiedRangeLeasePort | null;
   streamShardRange?: CustomShardStreamLoader;
   loadAuxiliaryFile?: CustomAuxiliaryFileLoader | null;
 }

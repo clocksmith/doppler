@@ -16,6 +16,7 @@ export class ShardCache {
   #customLoader = null;
   #customRangeLoader = null;
   #customRangeIntoLoader = null;
+  #rangeLease = null;
   #customStreamLoader = null;
   #verifyHashes;
   #manifest = null;
@@ -99,6 +100,10 @@ export class ShardCache {
       throw new Error('ShardCache loadRangeInto must be a function or null.');
     }
     this.#customRangeIntoLoader = options.loadRangeInto ?? null;
+    if (options.rangeLease != null && typeof options.rangeLease.read !== 'function') {
+      throw new Error('ShardCache rangeLease requires an owned range reader.');
+    }
+    this.#rangeLease = options.rangeLease ?? null;
     if (options.loadRange != null && typeof options.loadRange !== 'function') {
       throw new Error(
         'ShardCache.setCustomLoader: options.loadRange must be a function or null/undefined. ' +
@@ -262,6 +267,8 @@ export class ShardCache {
       `offset=${start}, expected=${want}, got=${produced}.`
     );
   }
+
+  get rangeLease() { return this.#rangeLease; }
 
   get hasCustomRangeIntoLoader() { return typeof this.#customRangeIntoLoader === 'function'; }
 

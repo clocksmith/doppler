@@ -296,7 +296,7 @@ export class DopplerLoader {
     this.shardCache.setCustomLoader(loadShardFn, options.verify !== false, {
       loadRange: options.loadShardRange ?? null,
       loadRangeInto: options.loadShardRangeInto ?? null,
-      streamRange: options.streamShardRange ?? null,
+      streamRange: options.streamShardRange ?? null, rangeLease: options.rangeLease ?? null,
     });
     this._loadAuxiliaryFile = typeof options.loadAuxiliaryFile === 'function'
       ? options.loadAuxiliaryFile

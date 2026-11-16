@@ -254,6 +254,8 @@
     "src/config/schema/platform/index.js",
     "src/config/schema/policy/index.js",
     "src/config/schema/runtime/index.js",
-    "src/config/schema/training/index.js"
+    "src/config/schema/training/index.js",
+    "src/storage/verified-piece-gather.js",
+    "src/storage/verified-piece-gather-worker.js"
   ]
 }
