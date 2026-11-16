@@ -1,0 +1,13 @@
+# All-expert operator baseline
+
+`oblivious_experts.py` implements trusted-client SwiGLU expert composition over a fixed public schedule. Every invocation evaluates gate, up and down projections for **every** expert, validates every returned vector and completes all verification callbacks before locally combining private selected experts and routing weights. Selected IDs and weights are never arguments to the projection adapter. No selected-only calls, weight fetches or integrity checks occur. A failure in an unselected expert aborts just as it does for a selected expert, avoiding that selective-failure distinction.
+
+Private inputs, routing and returned vectors are owned snapshots; a reused adapter buffer or concurrent caller mutation cannot rewrite prior expert results. Operation metadata is immutable. Cancellation is checked before and after each projection; rejected and completed attempts cannot be resumed or reused. No private request state is stored globally.
+
+The projection callback is a **trusted client** interface returning an already-verified local result. This routine does not encrypt its arguments or authenticate a service. It must not be pointed directly at a network API. The existing full-Qwen encrypted backend does not admit this operator program: it still validates its specific 169-module dense-model plan. No adapter flag or capability advertisement can promote this helper into Flash cryptographic support.
+
+The pinned Flash configuration declares 512 routed experts, top-10 routing, hidden width 2,560, expert intermediate width 640 and SiLU activation. Its complete configuration digest is recorded in `flash-readiness.json`. The helper builds the corresponding 1,536-projection all-expert program for one routed expert block. This is a geometry declaration, **not** execution of those Flash weights or verification of the full Flash implementation.
+
+Focused CPU reference tests exercise numeric composition, differing private selections with identical public operator traces, unselected-expert rejection, cancellation, bad geometry and mutable-buffer isolation. They do not establish ciphertext indistinguishability, constant-time behavior or encrypted Flash execution. Timing remains unpadded, and dense access can be expensive; no Flash latency has been measured.
+
+A complete Flash backend still needs source-verified router/normalization and shared-expert semantics, an admitted encrypted adapter bound to actual weights, full attention/recurrent/indexer/n-gram/hyperconnection operators, cache isolation, full-model reference generation and qualified adversary/leakage/integrity guarantees. An efficient sparse alternative needs its own reviewed private-access protocol. Production availability remains false.

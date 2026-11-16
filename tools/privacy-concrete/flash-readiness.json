@@ -20,12 +20,16 @@
     "head_dim": 256,
     "indexer_budget": 2048,
     "model_type": "qwen4_exp",
-    "transformers_version": "5.8.0.dev0"
+    "transformers_version": "5.8.0.dev0",
+    "moe_intermediate_size": 640,
+    "shared_expert_intermediate_size": 640,
+    "hidden_act": "silu"
   },
   "publisherRoundedParameterCounts": {
     "main": 125000000000,
     "ngram": 51000000000,
     "mtp": 4000000000
   },
-  "measuredEncryptedExecution": false
+  "measuredEncryptedExecution": false,
+  "sourceConfigSha256": "889658f2508e8c61d409b02e70e0d78d8d4452ec65aaafbe129805d213d2e74b"
 }
