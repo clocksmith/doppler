@@ -31,6 +31,9 @@ class FlashCheckpointAssemblyTests(unittest.TestCase):
         self.assertEqual(len(config.layer_types),config.num_hidden_layers)
         invalid=copy.deepcopy(raw);invalid['layer_types'][0]='unsupported'
         with self.assertRaises(ValueError):resolve_text_config(invalid,source,attention_implementation='eager')
+        for layers in [None,[],raw['layer_types'][:-1]]:
+            invalid=copy.deepcopy(raw);invalid['layer_types']=layers
+            with self.assertRaises(ValueError):resolve_text_config(invalid,source,attention_implementation='eager')
         invalid=copy.deepcopy(raw);invalid['ple_layer_ids']=[4]
         with self.assertRaises(ValueError):resolve_text_config(invalid,source,attention_implementation='eager')
 

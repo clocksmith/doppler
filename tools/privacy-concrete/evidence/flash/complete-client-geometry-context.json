@@ -1,0 +1,17 @@
+{
+  "schema": "doppler.flash-complete-client-geometry-context/v1",
+  "revision": "9e1c47a8f33baf43e2010d0d1b331f14f0b6f32a",
+  "workflowRun": 43866623353,
+  "artifactId": 14225177941,
+  "artifactZipSha256": "aa4c28ab541458f6806762c4cccd161d48910bbe0ee332f5f7c01619be6bf4e9",
+  "evidence": "complete-client-geometry.json",
+  "sourceReferenceTests": 42,
+  "geometryOnly": true,
+  "weightsMaterialized": false,
+  "forwardExecuted": false,
+  "fullFlashModelExecuted": false,
+  "encryptedExecution": false,
+  "productionBackendAvailable": false,
+  "securityQualified": false,
+  "interpretation": "Actual full checkpoint configuration and hash-pinned source assemble48 decoder geometries matching1294 actual tensor entries, including96 packed expert banks and the128-part logicalPLE table. No weight payload, forward pass, model output, cost benchmark or cryptographic qualification."
+}

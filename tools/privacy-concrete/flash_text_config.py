@@ -31,6 +31,7 @@ def configuration_declarations(data):
 
 def resolve_text_config(raw,configuration_source,*,attention_implementation):
     if (not isinstance(raw,dict) or attention_implementation!='eager'
+            or not isinstance(raw.get('layer_types'),list) or not raw['layer_types']
             or any(not isinstance(key,str) or key.startswith('__') or key=='validate_architecture' for key in raw)
             or raw.get('_attn_implementation',attention_implementation)!=attention_implementation):
         raise ValueError('Explicit inspected eager client configuration required')
@@ -44,7 +45,9 @@ def resolve_text_config(raw,configuration_source,*,attention_implementation):
                  'pinned-flash-client-configuration','exec',flags=__future__.annotations.compiler_flag),scope)
     candidate=scope['InspectedClientConfig']()
     candidate.__dict__.update(json.loads(json.dumps(defaults)))
-    candidate.__dict__.update(json.loads(json.dumps(raw)))
+    candidate.__dict__.update(json.loads(json.dumps(raw,allow_nan=False)))
     candidate.__post_init__();candidate.validate_architecture()
+    if type(candidate.num_hidden_layers) is not int or len(candidate.layer_types)!=candidate.num_hidden_layers:
+        raise ValueError('Explicit complete checkpoint layer schedule required')
     result=dict(vars(candidate),_attn_implementation=attention_implementation)
     return SimpleNamespace(**result)

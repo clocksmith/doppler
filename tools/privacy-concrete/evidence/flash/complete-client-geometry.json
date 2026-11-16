@@ -1,0 +1,24 @@
+{
+  "schema": "doppler.actual-flash-client-geometry-assembly/v1",
+  "sourceId": "1165149f49bfbe8e6bab1f9ea30669e1468c5dfc5833f6498a44050f7807a067",
+  "configurationId": "a6302bad660f2902d79edde0b791316ef4579967ccf9cefc17bd45c6adc53a6a",
+  "sourceRevision": "812d96e10a0dd82b69d749e68693698cf6c36daa",
+  "layerCount": 48,
+  "linearAttentionLayers": 36,
+  "indexedAttentionLayers": 12,
+  "checkpointTensors": 1294,
+  "assembledStateEntries": 1167,
+  "allTensorGeometryMatched": true,
+  "packedExpertBanks": 96,
+  "localTableShape": [
+    320001536,
+    160
+  ],
+  "geometryOnly": true,
+  "weightsMaterialized": false,
+  "forwardExecuted": false,
+  "fullFlashModelExecuted": false,
+  "encryptedExecution": false,
+  "productionBackendAvailable": false,
+  "securityQualified": false
+}

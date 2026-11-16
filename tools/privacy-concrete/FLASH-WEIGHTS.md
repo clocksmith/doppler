@@ -491,3 +491,15 @@ the phase-ordering fix, with unchanged numerical limits. The driver control test
 also exercise reference rejection at multiple Qwen steps after all four encrypted
 steps complete; those use real Torch with mocked model/transport and are not
 additional full-Qwen encrypted executions or constant-time/security qualification.
+
+
+The [retained complete geometry result](evidence/flash/complete-client-geometry.json)
+matched all **1,294 checkpoint tensor entries** against **1,167 assembled state
+entries**, with 128 PLE partitions represented by one logical table. This covers
+**48 decoder geometries: 36 linear-attention, 12 indexed-attention and 96 packed
+expert banks**. All **42 source-reference checks** passed, including existing
+small-fixture autoregression and ownership tests. The [context](evidence/flash/complete-client-geometry-context.json)
+records the exact source revision/run/artifact. No actual checkpoint weight payloads,
+forward operations, encrypted full-model steps or generated tokens were involved.
+The resolver now requires an explicit complete layer schedule; it does not infer
+an omitted schedule through the excluded upstream configuration base.
