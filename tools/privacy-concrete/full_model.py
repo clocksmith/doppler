@@ -59,26 +59,25 @@ class FullLinear(nn.Module):
             else:
                 if self.bridge is None or self.secret is None:
                     raise ValueError('No bound encrypted evaluator')
-                self.bridge.check_active()
-                self.bridge.admission.admit_projection(self.name,self.definition['inputWidth'],self.definition['outputWidth'],q_input.shape[0])
-                integer_input = np.ascontiguousarray(q_input.long().numpy(),dtype=np.uint64)
-                if integer_input.ndim != 2 or not np.all(integer_input<2**self.encoding['quantizationBits']):
-                    raise ValueError('Only one private request per key context is admitted')
-                geometry=self.bridge.execution_geometry
-                encrypted = {}
-                for begin,end in ranges(self.definition['inputWidth'],geometry['inputTileWidth']):
-                    validate_declared_arithmetic_capacity(end-begin,self.encoding['quantizationBits'],geometry['arithmeticBits'])
-                    encrypted[begin] = ext.encrypt_matrix(pkey=self.secret,crypto_params=self.parameters,
-                                                         data=np.ascontiguousarray(integer_input[:,begin:end]))
-                result = np.zeros((integer_input.shape[0],self.definition['outputWidth']),dtype=np.int64)
-                for tile in tiles(self.definition,geometry['inputTileWidth'],geometry['outputTileWidth']):
-                    matrix = np.ascontiguousarray(weights[tile['inputBegin']:tile['inputEnd'],tile['outputBegin']:tile['outputEnd']],dtype=np.int64).astype(np.uint64)
-                    answer = self.bridge.evaluate(encrypted[tile['inputBegin']],matrix,tile)
-                    self.bridge.check_active()
-                    decoded = ext.decrypt_matrix(answer,self.secret,self.parameters,tile['outputEnd']-tile['outputBegin']).astype(np.int64)
-                    # Exact signed integer accumulation precedes one global correction/dequantization.
-                    result[:,tile['outputBegin']:tile['outputEnd']] += decoded
-                raw = torch.from_numpy(result)
+                with self.bridge.projection(self.name,self.definition['inputWidth'],self.definition['outputWidth'],q_input.shape[0]):
+                    integer_input = np.ascontiguousarray(q_input.long().numpy(),dtype=np.uint64)
+                    if integer_input.ndim != 2 or not np.all(integer_input<2**self.encoding['quantizationBits']):
+                        raise ValueError('Only one private request per key context is admitted')
+                    geometry=self.bridge.execution_geometry
+                    encrypted = {}
+                    for begin,end in ranges(self.definition['inputWidth'],geometry['inputTileWidth']):
+                        validate_declared_arithmetic_capacity(end-begin,self.encoding['quantizationBits'],geometry['arithmeticBits'])
+                        encrypted[begin] = ext.encrypt_matrix(pkey=self.secret,crypto_params=self.parameters,
+                                                             data=np.ascontiguousarray(integer_input[:,begin:end]))
+                    result = np.zeros((integer_input.shape[0],self.definition['outputWidth']),dtype=np.int64)
+                    for tile in tiles(self.definition,geometry['inputTileWidth'],geometry['outputTileWidth']):
+                        matrix = np.ascontiguousarray(weights[tile['inputBegin']:tile['inputEnd'],tile['outputBegin']:tile['outputEnd']],dtype=np.int64).astype(np.uint64)
+                        answer = self.bridge.evaluate(encrypted[tile['inputBegin']],matrix,tile)
+                        self.bridge.check_active()
+                        decoded = ext.decrypt_matrix(answer,self.secret,self.parameters,tile['outputEnd']-tile['outputBegin']).astype(np.int64)
+                        # Exact signed integer accumulation precedes one global correction/dequantization.
+                        result[:,tile['outputBegin']:tile['outputEnd']] += decoded
+                    raw = torch.from_numpy(result)
         output = self.executor._apply_correction_and_dequantize(raw,q_input,zero,self.zero_point,
                                                                self.sum_weights,self.definition['inputWidth'],scale,self.scale)
         output = output.view(*original_shape[:-1],self.definition['outputWidth'])

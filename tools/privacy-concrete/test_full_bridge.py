@@ -43,6 +43,163 @@ class FullBridgeOrderingTests(unittest.TestCase):
         self.tile=dict(self.bridge.admission.next_tile())
         self.bridge.public_tile_digests={self.tile['id']:digest(b'pinned-public-weight')}
 
+    def projection_route(self, input_width=16, output_width=48, steps=2):
+        plan=SimpleNamespace(definition=lambda:dict(steps=steps,contextBucket=8),
+            schedule=lambda:tiles(dict(name='first',weightId='public',inputWidth=input_width,outputWidth=output_width),16,16))
+        self.bridge.admission=FullRouteAdmission(plan)
+        self.bridge.public_tile_digests={tile['id']:digest(b'pinned-public-weight') for tile in plan.schedule()}
+        self.replayed=[]
+        def exchange(*args):
+            self.exchanged.append(args);self.bridge.sequence+=1;return b'valid-circuit-output'
+        self.bridge.exchange=exchange
+        self.native.cpu_matrix_multiplication=lambda *args:self.replayed.append(args) or SimpleNamespace(serialize=lambda:b'valid-circuit-output')
+        return plan.schedule()
+
+    def test_projection_reuses_ciphertext_bytes_but_replays_every_output_tile(self):
+        schedule=self.projection_route(output_width=16*75)
+        for step in range(2):
+            with self.bridge.projection('first',16,16*75,8 if step==0 else 1):
+                for tile in schedule:self.bridge.evaluate(self.encrypted,self.matrix,tile)
+                self.assertEqual(len(self.bridge._projection_inputs),1)
+            self.assertIsNone(self.bridge._projection_inputs)
+        self.bridge.admission.complete()
+        self.assertEqual(len(self.serialized),2)
+        self.assertEqual(len(self.exchanged),150);self.assertEqual(len(self.replayed),150)
+        self.assertTrue(all(args[1]==b'ciphertext-only' for args in self.exchanged))
+
+    def test_cached_input_cannot_bypass_changed_route_or_public_weight(self):
+        for change in ['route','weight']:
+            with self.subTest(change=change):
+                self.setUp();schedule=self.projection_route()
+                with self.assertRaises(ValueError):
+                    with self.bridge.projection('first',16,48,8):
+                        self.bridge.evaluate(self.encrypted,self.matrix,schedule[0])
+                        retained=self.bridge._projection_inputs
+                        if change=='route':tile=dict(schedule[1],id='changed')
+                        else:
+                            tile=schedule[1];self.matrix.view=lambda dtype:'changed-public-weight'
+                        self.bridge.evaluate(self.encrypted,self.matrix,tile)
+                self.assertEqual(retained,[]);self.assertIsNone(self.bridge._projection_inputs)
+                self.assertEqual(len(self.serialized),1);self.assertEqual(len(self.exchanged),1)
+                self.assertTrue(self.bridge.admission.failed)
+
+    def test_payload_is_released_on_cancellation_transport_replay_and_projection_failure(self):
+        for failure in ['cancel','transport','replay','projection']:
+            with self.subTest(failure=failure):
+                self.setUp();schedule=self.projection_route()
+                with self.assertRaises((ValueError,InterruptedError,TimeoutError)):
+                    with self.bridge.projection('first',16,48,8):
+                        self.bridge.evaluate(self.encrypted,self.matrix,schedule[0])
+                        retained=self.bridge._projection_inputs
+                        if failure=='projection':raise ValueError('projection failed')
+                        if failure=='cancel':
+                            self.bridge.cancelled=threading.Event();self.bridge.cancelled.set()
+                        if failure=='transport':
+                            self.bridge.exchange=lambda *args:(_ for _ in ()).throw(TimeoutError('lost evaluator'))
+                        if failure=='replay':self.bridge.exchange=lambda *args:b'wrong-ciphertext'
+                        self.bridge.evaluate(self.encrypted,self.matrix,schedule[1])
+                self.assertEqual(retained,[]);self.assertIsNone(self.bridge._projection_inputs)
+                self.assertTrue(self.bridge.admission.failed)
+                with self.assertRaises((ValueError,InterruptedError)):
+                    self.bridge.evaluate(self.encrypted,self.matrix,schedule[1])
+                self.assertEqual(len(self.serialized),1)
+
+    def test_single_cached_payload_tracks_input_geometry_and_object_identity(self):
+        schedule=self.projection_route(input_width=32,output_width=32,steps=1)
+        other=SimpleNamespace(serialize=lambda:self.serialized.append(True) or b'different-ciphertext')
+        with self.bridge.projection('first',32,32,8):
+            for tile,encrypted in zip(schedule,[self.encrypted,self.encrypted,other,other]):
+                self.bridge.evaluate(encrypted,self.matrix,tile)
+                self.assertEqual(len(self.bridge._projection_inputs),1)
+        self.assertEqual(len(self.serialized),4)
+        self.assertEqual([args[1] for args in self.exchanged],[b'ciphertext-only']*2+[b'different-ciphertext']*2)
+
+    def test_changed_ciphertext_or_key_cannot_reuse_cached_bytes(self):
+        for changed in ['ciphertext','key']:
+            self.setUp();schedule=self.projection_route(output_width=32,steps=1)
+            with self.bridge.projection('first',16,32,8):
+                self.bridge.evaluate(self.encrypted,self.matrix,schedule[0])
+                encrypted=self.encrypted
+                if changed=='key':self.bridge.key=object()
+                else:encrypted=SimpleNamespace(serialize=lambda:self.serialized.append(True) or b'new-ciphertext')
+                self.bridge.evaluate(encrypted,self.matrix,schedule[1])
+            self.assertEqual(len(self.serialized),2)
+            self.assertEqual(self.exchanged[-1][1],b'new-ciphertext' if changed=='ciphertext' else b'ciphertext-only')
+
+    def test_cancellation_during_serialization_does_not_retain_or_disclose_bytes(self):
+        self.projection_route();self.bridge.cancelled=threading.Event()
+        def cancelled_payload():self.bridge.cancelled.set();return b'ciphertext-only'
+        self.encrypted.serialize=cancelled_payload
+        with self.assertRaises(InterruptedError):
+            with self.bridge.projection('first',16,48,8):
+                self.bridge.evaluate(self.encrypted,self.matrix,self.bridge.admission.next_tile())
+        self.assertIsNone(self.bridge._projection_inputs);self.assertEqual(self.exchanged,[])
+        self.assertTrue(self.bridge.admission.failed)
+
+    def test_actual_full_linear_reuses_one_payload_and_releases_it_on_decrypt_failure(self):
+        try:
+            import numpy as np
+            import torch
+            import transformers
+        except ImportError:self.skipTest('Torch/NumPy/Transformers adapter dependencies unavailable')
+        from contextlib import nullcontext
+        from full_plan import FullPlan,canonical
+        spec=importlib.util.spec_from_file_location('_tested_full_model',Path(__file__).with_name('full_model.py'))
+        model=importlib.util.module_from_spec(spec)
+        serialized=[];exchanged=[];replayed=[];decrypted=[]
+        native=SimpleNamespace(CompressedResultEncryptedMatrix=SimpleNamespace(deserialize=lambda raw:np.frombuffer(raw,dtype=np.int64).reshape(1,-1)))
+        with patch.dict(sys.modules,{'full_bridge':self.module,'concrete_ml_extensions':native,
+            'concrete.ml.quantization.linear_op_glwe_backend':SimpleNamespace(GLWELinearLayerExecutor=object)}):spec.loader.exec_module(model)
+        self.module.np=np;self.module.ext=native
+        for fail_decrypt in [False,True]:
+            serialized.clear();exchanged.clear();replayed.clear();decrypted.clear()
+            weights=np.arange(10,dtype=np.int8).reshape(2,5);value=torch.tensor([[3.,4.]])
+            projection=model.FullLinear.__new__(model.FullLinear);torch.nn.Module.__init__(projection)
+            projection.name='first';projection.definition=dict(name='first',weightId='public',inputWidth=2,outputWidth=5)
+            projection.mode='execute';projection.context=None;projection.encoding=dict(quantizationBits=8)
+            projection.scale=projection.zero_point=projection.sum_weights=None;projection.remote=SimpleNamespace(bias=None)
+            projection.secret=object();projection.parameters=object();projection.coefficient_matrix=lambda:nullcontext(weights)
+            projection.executor=SimpleNamespace(_dynamic_input_quantization=lambda *args:(value.long(),1,0,value.shape),
+                _apply_correction_and_dequantize=lambda raw,*args:raw)
+            bridge=self.module.FullBridge.__new__(self.module.FullBridge);projection.bridge=bridge
+            bridge.plan=FullPlan(canonical(dict(steps=1,contextBucket=1,inputTileWidth=2,outputTileWidth=2,
+                parameters=dict(parameters=dict(bits_reserved_for_computation=27)),projections=[projection.definition])))
+            bridge.admission=FullRouteAdmission(bridge.plan);bridge.cancelled=None;bridge.key=object();bridge.sequence=1
+            bridge.weight_dtype=np.int8;bridge.remote_seconds=bridge.replay_seconds=0.;bridge.observe=lambda *args:None
+            schedule=bridge.plan.schedule()
+            bridge.public_tile_digests={tile['id']:digest(np.ascontiguousarray(weights[:,tile['outputBegin']:tile['outputEnd']]).tobytes()) for tile in schedule}
+            def encrypt(**kwargs):
+                data=kwargs['data'];return SimpleNamespace(data=data,serialize=lambda:serialized.append(True) or data.tobytes())
+            def replay(encrypted,matrix,key):
+                replayed.append(True);return SimpleNamespace(serialize=lambda:(encrypted.data.view(np.int64)@matrix.view(np.int64)).tobytes())
+            def exchange(kind,payload,response,tile_id):
+                tile=schedule[bridge.admission.position];exchanged.append(payload);bridge.sequence+=1
+                return (value.long().numpy()@weights[:,tile['outputBegin']:tile['outputEnd']].astype(np.int64)).tobytes()
+            def decrypt(answer,*args):
+                decrypted.append(True)
+                if fail_decrypt and len(decrypted)==2:raise ValueError('simulated decrypt failure')
+                return answer
+            native.encrypt_matrix=encrypt;native.decrypt_matrix=decrypt;bridge.matrix_multiplication=replay;bridge.exchange=exchange
+            if fail_decrypt:
+                with self.assertRaises(ValueError):projection(value)
+                self.assertTrue(bridge.admission.failed)
+            else:
+                actual=projection(value);bridge.admission.complete()
+                torch.testing.assert_close(actual,torch.from_numpy(value.long().numpy()@weights.astype(np.int64)),rtol=0,atol=0)
+            self.assertEqual(len(serialized),1);self.assertEqual(len(replayed),2 if fail_decrypt else 3)
+            self.assertEqual(len(exchanged),len(replayed));self.assertTrue(all(payload==exchanged[0] for payload in exchanged))
+            self.assertIsNone(bridge._projection_inputs)
+
+    def test_early_scope_exit_and_nesting_fail_terminally(self):
+        for nested in [False,True]:
+            self.setUp();self.projection_route()
+            with self.assertRaises(ValueError):
+                with self.bridge.projection('first',16,48,8):
+                    if nested:
+                        with self.bridge.projection('first',16,48,8):pass
+            self.assertIsNone(self.bridge._projection_inputs)
+            self.assertTrue(self.bridge.admission.failed);self.assertEqual(self.serialized,[])
+
     def test_numerical_rejection_follows_the_same_complete_actual_pipe_transcript(self):
         import json
         import subprocess

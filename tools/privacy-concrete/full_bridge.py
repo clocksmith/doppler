@@ -1,5 +1,6 @@
 """One immutable all-layer route; verify each exact encrypted tile before client decryption."""
 import hmac
+from contextlib import contextmanager
 from functools import cached_property
 from types import MappingProxyType
 from pathlib import Path
@@ -65,7 +66,44 @@ class FullBridge:
             require_active(self.cancelled)
         except BaseException:
             self.admission.fail()
+            self._release_projection_inputs()
             raise
+
+    def _release_projection_inputs(self):
+        inputs=getattr(self,'_projection_inputs',None)
+        if inputs is not None:inputs.clear()
+        self._projection_inputs=None
+
+    @contextmanager
+    def projection(self,name,input_width,output_width,rows):
+        """Own at most one serialized input for this admitted projection and key."""
+        try:
+            self.check_active()
+            if getattr(self,'_projection_inputs',None) is not None:
+                raise ValueError('Encrypted projection scope is already active')
+            self.admission.admit_projection(name,input_width,output_width,rows)
+            self._projection_inputs=[]
+            yield
+            if self.admission.failed or self.admission.projection is not None:
+                raise ValueError('Incomplete encrypted projection scope')
+        except BaseException:
+            self.admission.fail()
+            raise
+        finally:
+            self._release_projection_inputs()
+
+    def _serialize_input(self,encrypted,tile):
+        inputs=getattr(self,'_projection_inputs',None)
+        geometry=(tile['inputBegin'],tile['inputEnd'])
+        if inputs and inputs[0][0]==geometry and inputs[0][1] is encrypted and inputs[0][2] is self.key:
+            return inputs[0][3]
+        # Release the previous payload before allocating its replacement. In
+        # particular, never retain every input tile's serialized ciphertext.
+        if inputs is not None:inputs.clear()
+        payload=encrypted.serialize()
+        self.check_active()
+        if inputs is not None:inputs.append((geometry,encrypted,self.key,payload))
+        return payload
 
     def exchange(self, kind, payload, response_kind, tile_id=''):
         header = self.plan.frame(self.session,self.key_id,self.sequence,kind,tile_id)
@@ -87,7 +125,7 @@ class FullBridge:
             if not np.array_equal(signed,owned) or digest(owned.tobytes())!=self.public_tile_digests[expected_tile['id']]:
                 raise ValueError('Encrypted route public weight changed before disclosure')
             start = time.perf_counter()
-            result = self.exchange('evaluate',encrypted.serialize(),'result',tile['id'])
+            result = self.exchange('evaluate',self._serialize_input(encrypted,expected_tile),'result',tile['id'])
             self.remote_seconds += time.perf_counter()-start
             self.check_active()
             start = time.perf_counter()
@@ -102,6 +140,7 @@ class FullBridge:
             return answer
         except BaseException:
             self.admission.fail()
+            self._release_projection_inputs()
             raise
 
     def finish(self):
@@ -119,6 +158,7 @@ class FullBridge:
 
     def close(self):
         self.admission.fail()
+        self._release_projection_inputs()
         try:
             if self.child.poll() is None:
                 self.child.kill()
