@@ -31,5 +31,22 @@
     "mtp": 4000000000
   },
   "measuredEncryptedExecution": false,
-  "sourceConfigSha256": "889658f2508e8c61d409b02e70e0d78d8d4452ec65aaafbe129805d213d2e74b"
+  "sourceConfigSha256": "889658f2508e8c61d409b02e70e0d78d8d4452ec65aaafbe129805d213d2e74b",
+  "operatorReference": {
+    "repository": "huggingface/transformers",
+    "revision": "cf13eb97cddb3655cd83bada097a7ecfcf108ace",
+    "files": {
+      "modeling_qwen4_exp.py": {
+        "sha256": "8ed12cd3e11276bda51b1141093224ccb9cf041cec1edb079e8d7d313e3e314c",
+        "url": "https://raw.githubusercontent.com/huggingface/transformers/cf13eb97cddb3655cd83bada097a7ecfcf108ace/src/transformers/models/qwen4_exp/modeling_qwen4_exp.py"
+      },
+      "configuration_qwen4_exp.py": {
+        "sha256": "4d31881e1a595a69c1fba595a374287f5a7cd2f02202c10c87ecf29dab86bdbd",
+        "url": "https://raw.githubusercontent.com/huggingface/transformers/cf13eb97cddb3655cd83bada097a7ecfcf108ace/src/transformers/models/qwen4_exp/configuration_qwen4_exp.py"
+      }
+    }
+  },
+  "resolvedOperatorDefaults": {
+    "normTopKProbability": true
+  }
 }
