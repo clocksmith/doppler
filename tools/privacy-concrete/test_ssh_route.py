@@ -41,6 +41,9 @@ class SSHRouteTests(unittest.TestCase):
         plan,value=fixture();route=SSHRoute(validate(value))
         with self.assertRaises(ValueError):route.bind(plan,[])
         with self.assertRaises(ValueError):route.bind(FullPlan(canonical(dict(modelId='c'*64))),('research-provider',))
+        from types import SimpleNamespace
+        mismatched=SimpleNamespace(identity=plan.identity,protocol_id='different-native-protocol',definition=plan.definition)
+        with self.assertRaises(ValueError):route.bind(mismatched,('research-provider',))
         with self.assertRaises(ValueError):SSHRoute(validate(dict(value,backendProtocol='unqualified')))
         with self.assertRaises(ValueError):SSHRoute(validate(dict(value,attested=True)))
         first=public_key(value['hostKey']);raw=base64.b64decode(value['hostKey']['base64'])

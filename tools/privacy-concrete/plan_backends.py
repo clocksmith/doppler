@@ -1,5 +1,6 @@
 """Installed research plan loaders. Advertisements cannot register or replace executable profiles."""
-PROFILES=('qwen-all-linear','flash-expert0')
+DEFAULT_PROFILE='qwen-all-linear'
+PROFILES=(DEFAULT_PROFILE,'flash-expert0')
 
 
 def load_backend_plan(directory,profile):
@@ -9,3 +10,12 @@ def load_backend_plan(directory,profile):
         from flash_expert_plan import load_plan
     else:raise ValueError('Unsupported installed encrypted plan backend')
     return load_plan(directory)
+
+
+def provider_arguments(arguments):
+    import argparse
+    parser=argparse.ArgumentParser()
+    parser.add_argument('directory');parser.add_argument('plan_id')
+    parser.add_argument('--profile',choices=PROFILES,default=DEFAULT_PROFILE)
+    parser.add_argument('--ssh-route',nargs=2)
+    return parser.parse_args(arguments)

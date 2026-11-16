@@ -1,18 +1,13 @@
 """All-linear evaluator. Receives only evaluation material and ciphertexts; reads public int8 weights."""
 import sys
-import argparse
 import numpy as np
 import concrete_ml_extensions as ext
 from protocol import check, digest, receive, send
 
 
 def serve():
-    from plan_backends import PROFILES, load_backend_plan
-    parser=argparse.ArgumentParser()
-    parser.add_argument('directory');parser.add_argument('plan_id')
-    parser.add_argument('--profile',choices=PROFILES,default='qwen-all-linear')
-    parser.add_argument('--ssh-route',nargs=2)
-    args=parser.parse_args()
+    from plan_backends import load_backend_plan, provider_arguments
+    args=provider_arguments(sys.argv[1:])
     directory,plan_id=args.directory,args.plan_id
     plan=load_backend_plan(directory,args.profile)
     if plan.identity!=plan_id:raise ValueError('Installed plan mismatch')

@@ -41,6 +41,18 @@ class WeightAdmissionTests(unittest.TestCase):
                     fetch_blob('https://public.invalid/model',path,record)
                 self.assertEqual(list(Path(directory).iterdir()),[])
 
+    def test_provider_extension_preserves_legacy_default_and_explicit_ssh_arguments(self):
+        from plan_backends import provider_arguments
+        legacy=provider_arguments(['/public/cache','plan-id'])
+        self.assertEqual(legacy.profile,'qwen-all-linear');self.assertIsNone(legacy.ssh_route)
+        remote=provider_arguments(['/public/cache','plan-id','--ssh-route','/public/route.json','route-id'])
+        self.assertEqual(remote.profile,'qwen-all-linear');self.assertEqual(remote.ssh_route,['/public/route.json','route-id'])
+        component=provider_arguments(['/public/cache','plan-id','--profile','flash-expert0'])
+        self.assertEqual(component.profile,'flash-expert0')
+        from contextlib import redirect_stderr
+        with redirect_stderr(io.StringIO()),self.assertRaises(SystemExit):
+            provider_arguments(['/public/cache','plan-id','--profile','unadvertised-flash-full'])
+
     def test_component_protocol_cannot_masquerade_as_full_qwen(self):
         component=FlashExpertPlan(canonical(dict(modelId='a'*64)))
         full=FullPlan(canonical(dict(modelId='a'*64)))
