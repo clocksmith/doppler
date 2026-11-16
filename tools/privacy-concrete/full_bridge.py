@@ -14,21 +14,22 @@ from full_status import ExecutionRejected
 
 
 class FullBridge:
-    def __init__(self, directory, plan, key, cancelled=None, observe=lambda kind, value: None):
+    def __init__(self, directory, plan, key, cancelled=None, observe=lambda kind, value: None, deployment=None):
         require_active(cancelled)
         validated=load_plan(directory)
         if validated.identity!=plan.identity:
             raise ValueError('Client full-model admission differs from the prepared plan')
-        self.admission=FullRouteAdmission(validated)
+        bound=validated if deployment is None else deployment.bind(validated)
+        self.admission=FullRouteAdmission(bound)
         self.public_weights={row['name']:np.memmap(Path(directory)/(row['weightId']+'.i8'),dtype=np.int8,mode='r',shape=(row['inputWidth'],row['outputWidth'])) for row in validated.definition()['projections']}
-        self.plan, self.key, self.cancelled, self.observe = validated, key, cancelled, observe
+        self.plan, self.key, self.cancelled, self.observe = bound, key, cancelled, observe
         self.check_active()
         self.session, data = uuid.uuid4().hex, key.serialize()
         self.check_active()
         self.key_id, self.key_bytes = digest(data), len(data)
         self.sequence, self.sent, self.received = 0, 0, 0
         self.remote_seconds = self.replay_seconds = 0.0
-        self.child = subprocess.Popen([sys.executable,str(Path(__file__).with_name('full_provider.py')),str(Path(directory).resolve()),plan.identity],
+        self.child = deployment.spawn() if deployment is not None else subprocess.Popen([sys.executable,str(Path(__file__).with_name('full_provider.py')),str(Path(directory).resolve()),plan.identity],
                                       stdin=subprocess.PIPE,stdout=subprocess.PIPE,stderr=subprocess.DEVNULL,bufsize=0,
                                       env={'RAYON_NUM_THREADS':str(FULL_POLICY['cpuThreads']),'OMP_NUM_THREADS':str(FULL_POLICY['cpuThreads'])})
         try:

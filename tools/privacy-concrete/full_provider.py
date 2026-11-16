@@ -7,10 +7,17 @@ from protocol import check, digest, receive, send
 
 
 def serve():
-    directory, plan_id = sys.argv[1:]
+    if len(sys.argv) not in [3,6]:raise ValueError('Explicit evaluator route arguments required')
+    directory, plan_id = sys.argv[1:3]
     plan = load_plan(directory)
     if plan.identity != plan_id:
         raise ValueError('Installed plan mismatch')
+    if len(sys.argv)==6:
+        from ssh_route import SSHRoute
+        if sys.argv[3]!='--ssh-route':raise ValueError('Unsupported evaluator route')
+        route=SSHRoute.from_file(sys.argv[4])
+        if route.identity!=sys.argv[5]:raise ValueError('SSH route identity changed')
+        plan=route.bind(plan,[route.definition()['operatorId']])
     timeout=plan.definition()['operationTimeoutSeconds']
     source, target = sys.stdin.buffer.raw, sys.stdout.buffer.raw
     header, data, _ = receive(source,timeout=timeout)

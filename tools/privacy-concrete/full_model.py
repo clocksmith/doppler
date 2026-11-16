@@ -128,13 +128,14 @@ def prepare(model_dir,cache_dir):
     return model,tokenizer,executor,projections,frozen
 
 
-def run(model_dir,cache_dir,prompt,progress=lambda event:None,cancelled=None):
+def run(model_dir,cache_dir,prompt,progress=lambda event:None,cancelled=None,deployment=None):
     require_active(cancelled)
     if os.environ.get('RAYON_NUM_THREADS') != str(FULL_POLICY['cpuThreads']):
         raise ValueError('The full-model process must declare the installed CPU thread budget before native initialization')
     started=time.perf_counter()
     model,tokenizer,executor,projections,plan=prepare(model_dir,cache_dir)
     require_active(cancelled)
+    if deployment is not None:deployment.bind(plan)
     tokens=tokenizer.encode(prompt)
     if not 1<=len(tokens)<=8:
         raise ValueError('Prompt exceeds full-model fixed prefill bucket')
@@ -143,7 +144,7 @@ def run(model_dir,cache_dir,prompt,progress=lambda event:None,cancelled=None):
     secret,key=ext.cpu_create_private_key(parameters)
     bridge=None
     try:
-        bridge=FullBridge(cache_dir,plan,key,cancelled=cancelled,observe=lambda kind,value:progress(dict(event=kind,**value)))
+        bridge=FullBridge(cache_dir,plan,key,cancelled=cancelled,deployment=deployment,observe=lambda kind,value:progress(dict(event=kind,**value)))
         for projection in projections:
             projection.bridge,projection.secret,projection.parameters=bridge,secret,parameters
         caches={mode:DynamicCache() for mode in ['float-reference','clear-reference','execute']}
@@ -204,7 +205,16 @@ if __name__=='__main__':
     parser.add_argument('--model-dir',required=True);parser.add_argument('--cache-dir',required=True)
     parser.add_argument('--prepare-only',action='store_true')
     parser.add_argument('--public-fixture',choices=['qwen05b-capital'])
+    parser.add_argument('--ssh-deployment')
+    parser.add_argument('--ssh-identity-file')
+    parser.add_argument('--allowed-operator',action='append')
     args=parser.parse_args()
+    deployment=None
+    if any([args.ssh_deployment,args.ssh_identity_file,args.allowed_operator]):
+        if not all([args.ssh_deployment,args.ssh_identity_file,args.allowed_operator]):
+            raise ValueError('SSH requires an explicit deployment, client identity and requester operator allowlist')
+        from ssh_route import SSHRoute, SSHDeployment
+        deployment=SSHDeployment(SSHRoute.from_file(args.ssh_deployment),args.ssh_identity_file,tuple(args.allowed_operator))
     if args.prepare_only:
         _,_,_,_,plan=prepare(args.model_dir,args.cache_dir)
         print(json.dumps(dict(planId=plan.identity,linearProjections=len(plan.definition()['projections']),encryptedTilesPerStep=len(plan.schedule()),available=False)))
@@ -213,7 +223,7 @@ if __name__=='__main__':
         if len(prompt.encode())>4096:raise ValueError('Bounded client prompt required')
         began=time.perf_counter()
         try:
-            report=run(args.model_dir,args.cache_dir,prompt,progress=lambda event:print(json.dumps(event),file=sys.stderr,flush=True))
+            report=run(args.model_dir,args.cache_dir,prompt,deployment=deployment,progress=lambda event:print(json.dumps(event),file=sys.stderr,flush=True))
         except BaseException as error:
             print(json.dumps(failure_event(error,(time.perf_counter()-began)*1000)),file=sys.stderr,flush=True)
             raise

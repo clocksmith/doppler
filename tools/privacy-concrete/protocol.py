@@ -90,6 +90,14 @@ def receive(stream, timeout=None, cancelled=None):
     if header_size > POLICY['maxHeaderBytes'] or payload_size > POLICY['maxPayloadBytes']:
         raise ValueError('Encrypted protocol frame rejected')
 
+    header = parse_unique_json(exact(header_size))
+    if not isinstance(header, dict) or set(header) != FIELDS:
+        raise ValueError('Encrypted protocol frame rejected')
+    return header, exact(payload_size), 12 + header_size + payload_size
+
+
+
+def parse_unique_json(data):
     def unique(pairs):
         value = {}
         for key, item in pairs:
@@ -97,11 +105,7 @@ def receive(stream, timeout=None, cancelled=None):
                 raise ValueError('Encrypted protocol duplicate field')
             value[key] = item
         return value
-
-    header = json.loads(exact(header_size), object_pairs_hook=unique)
-    if not isinstance(header, dict) or set(header) != FIELDS:
-        raise ValueError('Encrypted protocol frame rejected')
-    return header, exact(payload_size), 12 + header_size + payload_size
+    return json.loads(data, object_pairs_hook=unique)
 
 
 def check(actual, expected):
