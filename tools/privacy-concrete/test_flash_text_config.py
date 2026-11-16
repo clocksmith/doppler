@@ -4,16 +4,18 @@ import json
 import os
 from pathlib import Path
 import unittest
+from unittest.mock import patch
 from flash_text_config import resolve_text_config
 
 
 class FlashConfigBoundaryTests(unittest.TestCase):
     def test_unpinned_configuration_cannot_execute_any_declarations(self):
-        with self.assertRaises(ValueError):resolve_text_config({},b"raise RuntimeError('untrusted source executed')",attention_implementation='eager')
+        with self.assertRaises(ValueError):resolve_text_config({'layer_types':['linear_attention']},b"raise RuntimeError('untrusted source executed')",attention_implementation='eager')
 
     def test_unsupported_dispatch_or_method_override_fails_before_source_execution(self):
         for raw,implementation in [({},'flash_attention_2'),({'__post_init__':'untrusted'},'eager'),({'validate_architecture':None},'eager'),({'_attn_implementation':'unknown'},'eager')]:
-            with self.assertRaises(ValueError):resolve_text_config(raw,b'not executed',attention_implementation=implementation)
+            with patch('flash_text_config.configuration_declarations',side_effect=AssertionError('source parsed before input admission')):
+                with self.assertRaises(ValueError):resolve_text_config(dict(layer_types=['linear_attention'],**raw),b'not executed',attention_implementation=implementation)
 
 
 @unittest.skipUnless(os.environ.get('DOPPLER_FLASH_REFERENCE')=='1','opt-in pinned source/meta-Torch assembly')
