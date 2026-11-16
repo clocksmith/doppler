@@ -1,0 +1,31 @@
+{
+  "schema": "doppler.flash-inspected-reference-programs/v1",
+  "groups": {
+    "moe": [
+      "Qwen4ExpTextRMSNorm",
+      "Qwen4ExpTextMLP",
+      "Qwen4ExpTextExperts",
+      "Qwen4ExpTextTopKRouter",
+      "Qwen4ExpTextSparseMoeBlock",
+      "Qwen4ExpTextGatedResidual"
+    ],
+    "delta": [
+      "Qwen4ExpTextRMSNormGated",
+      "apply_mask_to_padding_states",
+      "causal_conv1d_update",
+      "causal_conv1d_fn",
+      "l2norm",
+      "torch_chunk_gated_delta_rule",
+      "torch_recurrent_gated_delta_rule",
+      "Qwen4ExpTextGatedDeltaNet"
+    ]
+  },
+  "removedDecorators": [
+    "use_kernel_forward_from_hub",
+    "use_kernel_func_from_hub_with_fallback",
+    "use_kernelized_func",
+    "use_experts_implementation",
+    "force_accelerate_hooks",
+    "deprecate_kwarg"
+  ]
+}

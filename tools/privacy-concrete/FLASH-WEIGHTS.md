@@ -84,3 +84,28 @@ repeating that expensive execution. Small actual Torch/quantizer adapter tests
 check full operator order and rejection before any projection after a changed
 hyperconnection plan. No full MLP ciphertext completion or Flash generation is
 claimed from those tests.
+
+
+## Client linear-attention prefill and decode
+
+`flash_delta.py` loads only inspected, hash-pinned official pure-Torch DeltaNet,
+normalization, convolution and gated-delta declarations. The source loader removes
+only enumerated acceleration/deprecation decorators and executes no downloaded
+imports, model loader or network dispatch. It retains the eager non-export
+triangular-solver path. The same loader owns existing MoE reference extraction.
+
+The client graph has explicit projection callbacks and one request-owned cache
+for convolution/recurrent state, bound to tenant, privacy, model, key, request and
+execution mode. Shared model weights hold no private request cache. The callback
+is trusted local code; its name does not appraise encryption or remote integrity.
+A missing callback in `verified-projections` mode fails without clear fallback.
+Context changes, incorrect projection order and cancellation are terminal; later
+projections cannot continue after the cancellation boundary.
+
+Source-reference tests compare a three-token prefill plus three single-token
+cached decode steps with full-prefix official evaluation, check two concurrent
+request states, and exercise context changes/cancellation. These are small public
+FP32 operator fixtures, not actual Flash attention weights or encrypted DeltaNet
+execution. No DeltaNet backend is registered for production or encrypted research
+admission by this client graph. Full attention/QSA indexing, ngram embedding and
+whole-model autoregressive generation remain unfinished.

@@ -7,6 +7,11 @@ on:
       - '.github/workflows/flash-operators.yml'
       - 'tools/privacy-concrete/oblivious_experts.py'
       - 'tools/privacy-concrete/flash_hyper_ops.py'
+      - 'tools/privacy-concrete/flash_reference.py'
+      - 'tools/privacy-concrete/flash-reference-programs.json'
+      - 'tools/privacy-concrete/flash_delta.py'
+      - 'tools/privacy-concrete/flash_delta_state.py'
+      - 'tools/privacy-concrete/test_flash_delta_reference.py'
       - 'tools/privacy-concrete/test_flash_reference.py'
       - 'tools/privacy-concrete/flash-readiness.json'
 permissions:
@@ -41,4 +46,6 @@ jobs:
           DOPPLER_FLASH_REFERENCE: '1'
           DOPPLER_FLASH_SOURCE_DIR: ${{ runner.temp }}/flash-reference
           OMP_NUM_THREADS: '2'
-        run: python -m unittest discover -s tools/privacy-concrete -p test_flash_reference.py -v
+        run: |
+          python -m unittest discover -s tools/privacy-concrete -p test_flash_reference.py -v
+          python -m unittest discover -s tools/privacy-concrete -p test_flash_delta_reference.py -v

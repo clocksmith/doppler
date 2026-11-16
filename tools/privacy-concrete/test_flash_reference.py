@@ -1,7 +1,4 @@
 """Opt-in pinned official-source component comparison; public small FP32 fixtures, not Flash weights."""
-import ast
-import hashlib
-import json
 import os
 from pathlib import Path
 from types import SimpleNamespace
@@ -16,21 +13,9 @@ class FlashReferenceTests(unittest.TestCase):
         from torch import nn
         from torch.nn import functional as F
         cls.torch=torch
-        record=json.loads(Path(__file__).with_name('flash-readiness.json').read_text())['operatorReference']
+        from flash_reference import load_reference
         path=Path(os.environ['DOPPLER_FLASH_SOURCE_DIR'])/'modeling_qwen4_exp.py'
-        data=path.read_bytes()
-        if hashlib.sha256(data).hexdigest()!=record['files'][path.name]['sha256']:
-            raise ValueError('Pinned official Flash reference source required')
-        allowed={'Qwen4ExpTextMLP','Qwen4ExpTextExperts','Qwen4ExpTextTopKRouter','Qwen4ExpTextSparseMoeBlock',
-                 'Qwen4ExpTextRMSNorm','Qwen4ExpTextGatedResidual'}
-        nodes=[node for node in ast.parse(data).body if isinstance(node,ast.ClassDef) and node.name in allowed]
-        if {node.name for node in nodes}!=allowed:raise ValueError('Complete reviewed reference classes required')
-        # Use only the inspected pure-PyTorch classes, without the optional fused dispatch
-        # decorator or any imports/model code from the downloaded module.
-        for node in nodes:node.decorator_list=[]
-        scope=dict(torch=torch,nn=nn,F=F,ACT2FN={'silu':F.silu},Qwen4ExpTextConfig=SimpleNamespace)
-        exec(compile(ast.fix_missing_locations(ast.Module(body=nodes,type_ignores=[])),str(path),'exec'),scope)
-        cls.classes=scope
+        cls.classes=load_reference(path,'moe')
 
     def fixture(self):
         from oblivious_experts import ExpertProgram,FlashMoEProgram
