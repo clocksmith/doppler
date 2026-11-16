@@ -4,7 +4,7 @@
 
 `flash_expert.py` composes the complete fixed public expert 0 SwiGLU component from actual weights. Its combined gate/up projection is 2,560 → 1,280; its down projection is 640 → 2,560. It reuses `FullLinear` quantization, admitted tiling, framed evaluator and exact pre-decryption replay. The admitted component program has two linear modules, three logical projections and four encrypted products, with client SiLU and encrypted feedback into the down projection. No plaintext activation is sent to the evaluator.
 
-This is a component integration, **not full Flash execution or private expert selection**. Expert 0 is fixed/public. The all-expert client program has separate source-reference evidence but has not been admitted as an encrypted Flash backend. The component entry point accepts only a fixed public sine-vector fixture; there is no private-input or prompt option. Production cryptographic admission remains closed.
+This is a component integration, **not full Flash execution or private expert selection**. Expert 0 is fixed/public. The all-expert client program has separate source-reference evidence and the research integration described below; it has not completed encrypted qualification or been admitted for production. The component entry point accepts only a fixed public sine-vector fixture; there is no private-input or prompt option. Production cryptographic admission remains closed.
 
 The installed research profile `flash-expert0` has its own protocol/model identity and exact source/parameter/dependency admission. Unknown profile advertisements fail before key export. It cannot masquerade as the full dense-Qwen protocol, and the current SSH manifest contract rejects this different underlying protocol rather than silently substituting it.
 
@@ -40,3 +40,13 @@ state, ngram embedding, other layers and autoregressive Flash generation are not
 implemented by this component. Timing/padding, remote deployment, parameter and
 implementation review and malicious-security qualification remain open. Full
 client encrypted replay is still required.
+
+
+The [cache-integrity regression result](evidence/flash/expert0-cache-binding.json)
+and [exact revision context](evidence/flash/cache-binding-context.json) record a
+second successful actual-weight encrypted run after replacing mutable read-only
+weight mappings with immutable public tile digests. All four encrypted products
+passed replay; maximum encrypted-versus-quantized error was 0.000676, with
+41.62 seconds of encrypted execution including 20.95 seconds of client replay.
+The full model is not copied per request: the client retains a digest table,
+derived from one verified public projection snapshot at a time.

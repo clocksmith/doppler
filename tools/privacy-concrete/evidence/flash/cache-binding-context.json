@@ -1,0 +1,17 @@
+{
+  "scope": "Actual fixed expert 0 regression after immutable public tile binding; not full Flash",
+  "revision": "576a0435112c6ac7dbe3b5539f4f6b6400797ed9",
+  "workflowRun": 43807687947,
+  "artifactId": 14199675682,
+  "artifactZipSha256": "2c9006dd47528e5c9e18b7047eb4e22bf8fd97f81bd6d36094d49443813fb5ba",
+  "result": "success",
+  "productionBackendAvailable": false,
+  "securityQualified": false,
+  "measurementLimitations": [
+    "Fixed public fixture",
+    "Local process pipes, not separate-machine network traffic",
+    "Full client encrypted replay",
+    "Dependency installation and source acquisition excluded from reported elapsedMs",
+    "Process-lifetime RSS, not isolated evaluator RSS"
+  ]
+}
