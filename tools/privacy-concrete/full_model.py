@@ -45,7 +45,7 @@ class FullLinear(nn.Module):
             raise ValueError('Unsupported full-model projection execution')
         q_input, scale, zero, original_shape = self.executor._dynamic_input_quantization(value,self.context,False)
         if self.mode == 'clear-reference':
-            raw = torch.matmul(q_input,torch.from_numpy(np.array(self.weights,dtype=np.float32))).long()
+            raw = torch.matmul(q_input.to(torch.int64),torch.from_numpy(np.array(self.weights,dtype=np.int64)))
         else:
             if self.bridge is None or self.secret is None:
                 raise ValueError('No bound encrypted evaluator')

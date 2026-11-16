@@ -6,6 +6,7 @@ on:
     paths:
       - '.github/workflows/flash-adapter.yml'
       - 'tools/privacy-concrete/flash_mlp.py'
+      - 'tools/privacy-concrete/full_model.py'
       - 'tools/privacy-concrete/flash_moe.py'
       - 'tools/privacy-concrete/flash_component_plan.py'
       - 'tools/privacy-concrete/test_flash_moe_native.py'

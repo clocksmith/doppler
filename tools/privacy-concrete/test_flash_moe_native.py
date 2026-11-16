@@ -8,6 +8,22 @@ from unittest.mock import patch
 
 @unittest.skipUnless(os.environ.get('DOPPLER_CONCRETE_NATIVE')=='1','opt-in pinned native/Torch implementation')
 class StreamedFlashMoETests(unittest.TestCase):
+    def test_clear_quantized_reference_accumulates_exact_integers_above_float32_precision(self):
+        import numpy as np
+        import torch
+        from full_model import FullLinear
+        width=4098;values=torch.full((1,width),255,dtype=torch.float32);values[0,0]=0
+        projection=FullLinear.__new__(FullLinear);torch.nn.Module.__init__(projection)
+        projection.mode='clear-reference';projection.definition=dict(inputWidth=width,outputWidth=1)
+        projection.context=None;projection.weights=np.full((width,1),127,dtype=np.int8)
+        projection.scale=projection.zero_point=projection.sum_weights=None;projection.remote=SimpleNamespace(bias=None)
+        projection.executor=SimpleNamespace(_dynamic_input_quantization=lambda *args:(values,1,0,values.shape),
+                                            _apply_correction_and_dequantize=lambda raw,*args:raw)
+        result=projection(values)
+        expected=(width-1)*255*127
+        self.assertEqual(result.dtype,torch.int64);self.assertEqual(int(result[0,0]),expected)
+        self.assertNotEqual(int(torch.tensor(expected,dtype=torch.float32)),expected)
+
     def test_source_rewrite_during_tensor_copy_is_rejected(self):
         from pathlib import Path
         import torch

@@ -44,3 +44,11 @@ The client `run(..., cancelled=threading.Event())` path checks cancellation befo
 The current client emits bounded failure codes before progress observers; exception messages stay in client-local diagnostics. Constructed public evidence accepts only known codes, validated fixed-fixture output types and complete success reports, and rejects a contradictory terminal failure. The collector is intended for the trusted fixed-fixture workflow; a fixture label supplied in an arbitrary file is not authentication or authority to declassify private output.
 
 The [authenticated evaluator interface](SSH-DEPLOYMENT.md) binds an explicitly pinned SSH endpoint/account and complete model plan. It requires pre-provisioned files and requester authorization, installs nothing and has no local fallback. Its transport qualification is separate from full-model and cryptographic qualification.
+
+
+The clear quantized reference uses signed int64 dot-product accumulation. A
+float32 matmul followed by an integer cast can round wide integer sums before
+comparison; a dedicated regression uses a nonrepresentable odd sum above 2^24.
+This correction does not alter the encrypted circuit, parameters or verification
+boundary, and does not establish full-model parity by itself. Previously retained
+measurements remain scoped to their exact recorded revisions.
