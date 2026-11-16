@@ -11,9 +11,9 @@ import torch
 from torch import nn
 from flash_reference import load_reference
 from flash_delta_state import DeltaRequestState
+from flash_delta_program import ORDER
 
 _CURRENT=ContextVar('doppler_flash_delta_request',default=None)
-ORDER=('in_proj_qkv','in_proj_z','in_proj_b','in_proj_a','out_proj')
 
 
 @dataclass(frozen=True)

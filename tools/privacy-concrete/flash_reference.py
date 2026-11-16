@@ -32,8 +32,21 @@ def load_reference(path,group):
     from torch import nn
     from torch.nn import functional as F
     scope=dict(__name__='doppler_pinned_flash_reference',torch=torch,nn=nn,F=F,math=math,
-               ACT2FN={'silu':F.silu},is_torchdynamo_exporting=lambda:False)
+               ACT2FN={'silu':F.silu,'sigmoid':torch.sigmoid},is_torchdynamo_exporting=lambda:False)
     code=compile(ast.fix_missing_locations(ast.Module(body=nodes,type_ignores=[])),
                  'pinned-flash-reference','exec',flags=__future__.annotations.compiler_flag)
     exec(code,scope)
     return scope
+
+
+def provision_reference(directory):
+    """Provision only the two inspected public source files; corrupted cached code rejects."""
+    import urllib.request
+    directory=Path(directory);directory.mkdir(parents=True,exist_ok=True)
+    for name,item in SOURCE['files'].items():
+        path=directory/name
+        if path.exists():data=path.read_bytes()
+        else:
+            with urllib.request.urlopen(item['url'],timeout=30) as response:data=response.read(1024*1024+1)
+        if hashlib.sha256(data).hexdigest()!=item['sha256']:raise ValueError('Pinned reference source mismatch')
+        if not path.exists():path.write_bytes(data)

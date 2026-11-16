@@ -1,0 +1,81 @@
+{
+  "schema": "doppler.flash-linear-attention-weight-scope/v1",
+  "shards": {
+    "model-00001-of-00131.safetensors": {
+      "bytes": 1040155944,
+      "sha256": "3a092d3a9a542093a9c3524023f05f9e1289ccf23324735ce32ae70bf58700ec"
+    }
+  },
+  "tensors": {
+    "model.language_model.layers.0.linear_attn.A_log": {
+      "shard": "model-00001-of-00131.safetensors",
+      "shape": [
+        48
+      ],
+      "dtype": "BF16"
+    },
+    "model.language_model.layers.0.linear_attn.conv1d.weight": {
+      "shard": "model-00001-of-00131.safetensors",
+      "shape": [
+        10240,
+        1,
+        4
+      ],
+      "dtype": "BF16"
+    },
+    "model.language_model.layers.0.linear_attn.dt_bias": {
+      "shard": "model-00001-of-00131.safetensors",
+      "shape": [
+        48
+      ],
+      "dtype": "BF16"
+    },
+    "model.language_model.layers.0.linear_attn.in_proj_a.weight": {
+      "shard": "model-00001-of-00131.safetensors",
+      "shape": [
+        48,
+        2560
+      ],
+      "dtype": "BF16"
+    },
+    "model.language_model.layers.0.linear_attn.in_proj_b.weight": {
+      "shard": "model-00001-of-00131.safetensors",
+      "shape": [
+        48,
+        2560
+      ],
+      "dtype": "BF16"
+    },
+    "model.language_model.layers.0.linear_attn.in_proj_qkv.weight": {
+      "shard": "model-00001-of-00131.safetensors",
+      "shape": [
+        10240,
+        2560
+      ],
+      "dtype": "BF16"
+    },
+    "model.language_model.layers.0.linear_attn.in_proj_z.weight": {
+      "shard": "model-00001-of-00131.safetensors",
+      "shape": [
+        6144,
+        2560
+      ],
+      "dtype": "BF16"
+    },
+    "model.language_model.layers.0.linear_attn.norm.weight": {
+      "shard": "model-00001-of-00131.safetensors",
+      "shape": [
+        128
+      ],
+      "dtype": "BF16"
+    },
+    "model.language_model.layers.0.linear_attn.out_proj.weight": {
+      "shard": "model-00001-of-00131.safetensors",
+      "shape": [
+        2560,
+        6144
+      ],
+      "dtype": "BF16"
+    }
+  }
+}

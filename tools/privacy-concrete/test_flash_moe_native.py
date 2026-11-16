@@ -24,6 +24,25 @@ class StreamedFlashMoETests(unittest.TestCase):
         self.assertEqual(result.dtype,torch.int64);self.assertEqual(int(result[0,0]),expected)
         self.assertNotEqual(int(torch.tensor(expected,dtype=torch.float32)),expected)
 
+    def test_client_convolution_tensor_is_whole_and_expert_banks_require_slicing(self):
+        from pathlib import Path
+        import torch
+        import flash_weights
+        from safetensors.torch import save_file
+        for name,shape,expert_bank in [('model.language_model.layers.0.linear_attn.conv1d.weight',(4,1,3),False),
+                                       ('model.language_model.layers.0.mlp.experts.gate_up_proj',(2,4,3),True)]:
+            with tempfile.TemporaryDirectory() as directory:
+                shard='tiny.safetensors';path=Path(directory)/shard;expected=torch.ones(shape,dtype=torch.bfloat16)
+                save_file({name:expected},str(path));source=flash_weights.FlashSource.__new__(flash_weights.FlashSource)
+                source.directory=Path(directory);source.signatures={shard:flash_weights.file_signature(path)}
+                source.spec=dict(tensors={name:dict(shard=shard,shape=list(shape),dtype='BF16')})
+                if expert_bank:
+                    with self.assertRaises(ValueError):source.tensor(name)
+                    torch.testing.assert_close(source.tensor(name,expert=0),expected[0].float())
+                else:
+                    torch.testing.assert_close(source.tensor(name),expected.float())
+                    with self.assertRaises(ValueError):source.tensor(name,expert=0)
+
     def test_source_rewrite_during_tensor_copy_is_rejected(self):
         from pathlib import Path
         import torch

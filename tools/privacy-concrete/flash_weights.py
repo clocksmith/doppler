@@ -8,7 +8,7 @@ import struct
 import tempfile
 import urllib.request
 from protocol import parse_unique_json
-from flash_source_scopes import source_spec,SCOPES
+from flash_source_scopes import source_spec,SCOPES,EXPERT_TENSORS
 
 def verify_blob(path,record):
     path=Path(path)
@@ -89,7 +89,8 @@ class FlashSource:
         from safetensors import safe_open
         expected=self.spec['tensors'][name];path=self.directory/expected['shard']
         if file_signature(path)!=self.signatures[expected['shard']]:raise ValueError('Verified model source changed')
-        if len(expected['shape'])==3 and expert is None:raise ValueError('Explicit streamed expert required')
+        if name in EXPERT_TENSORS and expert is None:raise ValueError('Explicit streamed expert required')
+        if expert is not None and name not in EXPERT_TENSORS:raise ValueError('Expert slicing is unavailable for this tensor')
         with safe_open(path,framework='pt',device='cpu') as source:
             value=source.get_slice(name)
             if value.get_shape()!=expected['shape']:raise ValueError('Pinned tensor geometry required')

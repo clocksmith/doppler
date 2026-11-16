@@ -18,7 +18,7 @@ class DeltaReferenceTests(unittest.TestCase):
         path=Path(os.environ['DOPPLER_FLASH_SOURCE_DIR'])/'modeling_qwen4_exp.py'
         config=SimpleNamespace(hidden_size=4,linear_num_value_heads=2,linear_num_key_heads=1,
                                linear_key_head_dim=2,linear_value_head_dim=2,linear_conv_kernel_dim=3,
-                               hidden_act='silu',rms_norm_eps=1e-6,output_gate_type='silu',layer_types=['linear_attention'])
+                               hidden_act='silu',rms_norm_eps=1e-6,output_gate_type='sigmoid',layer_types=['linear_attention'])
         candidate=ClientDeltaNet(path,config)
         with torch.no_grad():
             for index,parameter in enumerate(candidate.parameters()):

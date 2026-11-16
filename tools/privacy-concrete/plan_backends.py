@@ -1,6 +1,6 @@
 """Installed research plan loaders. Advertisements cannot register or replace executable profiles."""
 DEFAULT_PROFILE='qwen-all-linear'
-PROFILES=(DEFAULT_PROFILE,'flash-expert0','flash-dense-moe','flash-mlp-hyper','flash-mlp-block')
+PROFILES=(DEFAULT_PROFILE,'flash-expert0','flash-dense-moe','flash-mlp-hyper','flash-mlp-block','flash-first-delta')
 
 
 def load_backend_plan(directory,profile):
@@ -14,6 +14,8 @@ def load_backend_plan(directory,profile):
         from flash_hyper_plan import load_plan
     elif profile=='flash-mlp-block':
         from flash_mlp_plan import load_plan
+    elif profile=='flash-first-delta':
+        from flash_delta_plan import load_plan
     else:raise ValueError('Unsupported installed encrypted plan backend')
     return load_plan(directory)
 

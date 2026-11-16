@@ -5,7 +5,9 @@ from pathlib import Path
 
 BASE=json.loads(Path(__file__).with_name('flash-weights.json').read_text())
 HYPER=json.loads(Path(__file__).with_name('flash-hyper-tensors.json').read_text())
-SCOPES=('moe','mlp-hyper','mlp-block')
+DELTA=json.loads(Path(__file__).with_name('flash-delta-weights.json').read_text())
+EXPERT_TENSORS=frozenset(name for name in BASE['tensors'] if '.experts.' in name)
+SCOPES=('moe','mlp-hyper','mlp-block','linear-attention')
 
 
 def source_spec(scope):
@@ -13,6 +15,9 @@ def source_spec(scope):
     result=copy.deepcopy(BASE)
     if scope=='moe':return result
     result['schema']='doppler.flash-component-weights/v1'
+    if scope=='linear-attention':
+        result['shards']=copy.deepcopy(DELTA['shards']);result['tensors']=copy.deepcopy(DELTA['tensors'])
+        return result
     if scope=='mlp-hyper':result['tensors']={}
     result['tensors'].update(copy.deepcopy(HYPER))
     required={row['shard'] for row in result['tensors'].values()}

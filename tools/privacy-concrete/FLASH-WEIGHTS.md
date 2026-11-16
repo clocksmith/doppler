@@ -118,3 +118,15 @@ state/mixed/injection trajectory drift, stops at the first failed comparison and
 keeps the nonzero exit status. It publishes only bounded aggregate measurements
 from this fixed public fixture. No private-input diagnostics channel or relaxed
 acceptance threshold is introduced.
+
+
+`flash_delta_model.py` integrates the actual first-layer attention weights from
+the complete pinned first shard (1,040,155,944 bytes). The separately named
+`flash-first-delta` research route has five encrypted linear modules and 26
+tiles per cached step, 104 over four fixed public layer inputs. Actual source
+configuration selects sigmoid output gating; both SiLU and sigmoid are explicit
+inspected reference functions. Depthwise convolution, gated-delta recurrence,
+normalization and activations remain on the trusted client. No plaintext layer
+input or cache state is passed to the evaluator. The new bounded workflow
+attempts this component; a running job is not a successful result. This is not
+full Flash token generation or complete-model encrypted inference.
