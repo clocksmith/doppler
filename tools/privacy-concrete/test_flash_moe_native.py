@@ -8,6 +8,25 @@ from unittest.mock import patch
 
 @unittest.skipUnless(os.environ.get('DOPPLER_CONCRETE_NATIVE')=='1','opt-in pinned native/Torch implementation')
 class StreamedFlashMoETests(unittest.TestCase):
+    def test_full_model_source_mutation_during_loader_is_rejected(self):
+        import hashlib
+        import json
+        from pathlib import Path
+        import full_model
+        for rewrite in [False,True]:
+            with tempfile.TemporaryDirectory() as directory:
+                root=Path(directory);weights=root/'public.bin';weights.write_bytes(b'original')
+                metadata=root/'source.json';metadata.write_text(json.dumps(dict(source=dict(files={'public.bin':hashlib.sha256(b'original').hexdigest()}))))
+                def load(*args,**kwargs):
+                    if rewrite:weights.write_bytes(b'changed!')
+                    return SimpleNamespace(eval=lambda:None)
+                settings=dict(cpuThreads=1)
+                with patch.object(full_model,'qwen_backend',return_value=(settings,None,lambda:{},None)), \
+                     patch.object(full_model,'Path',return_value=SimpleNamespace(with_name=lambda name:metadata)), \
+                     patch.object(full_model.AutoModelForCausalLM,'from_pretrained',side_effect=load), \
+                     patch.object(full_model.AutoTokenizer,'from_pretrained',side_effect=RuntimeError('public stop after materialization')):
+                    with self.assertRaises(ValueError if rewrite else RuntimeError):full_model.prepare(directory,root/'cache')
+
     def test_clear_quantized_reference_accumulates_exact_integers_above_float32_precision(self):
         import numpy as np
         import torch

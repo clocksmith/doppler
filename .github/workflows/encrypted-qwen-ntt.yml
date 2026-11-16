@@ -55,6 +55,7 @@ jobs:
         run: |
           python -m unittest discover -s tools/privacy-concrete -p test_full_admission.py -v
           python -m unittest discover -s tools/privacy-concrete -p test_full_evidence.py -v
+          python -m unittest discover -s tools/privacy-concrete -p test_source_snapshot.py -v
           python -m unittest discover -s tools/privacy-concrete -p test_native_runtime.py -v
       - name: Provision exact public Qwen source
         run: python tools/privacy-concrete/prepare.py --profile qwen05b-k-projection --destination "$RUNNER_TEMP/qwen-source"

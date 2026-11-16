@@ -20,6 +20,7 @@ from full_status import ExecutionRejected, failure_event
 from full_plan import canonical,ranges,tiles
 from protocol import POLICY, digest, require_active
 from plan_backends import DEFAULT_PROFILE,QWEN_PROFILES,qwen_backend
+from source_snapshot import pinned_source
 
 
 class FullLinear(nn.Module):
@@ -77,58 +78,46 @@ class FullLinear(nn.Module):
         return output
 
 
-def verify_source(directory,source):
-    import hashlib
-    for name,identity in source['files'].items():
-        try:
-            with (Path(directory)/name).open('rb') as handle:
-                actual = hashlib.file_digest(handle,'sha256').hexdigest()
-        except OSError:
-            raise ValueError('Pinned full-model source required') from None
-        if actual != identity:
-            raise ValueError('Pinned full-model source required')
-
-
 def prepare(model_dir,cache_dir,backend_profile=DEFAULT_PROFILE):
     settings,plan_loader,installed_versions,parameters=qwen_backend(backend_profile)
     specification = json.loads(Path(__file__).with_name('qwen05b.json').read_text())
     versions=installed_versions()
     if json.loads(ext.default_params()) != POLICY['parameters']:
         raise ValueError('Unsupported encrypted parameter change')
-    verify_source(model_dir,specification['source'])
-    torch.set_num_threads(settings['cpuThreads'])
-    model = AutoModelForCausalLM.from_pretrained(model_dir,local_files_only=True,use_safetensors=True,
-                                              trust_remote_code=False,torch_dtype=torch.float32,attn_implementation='eager').eval()
-    tokenizer = AutoTokenizer.from_pretrained(model_dir,local_files_only=True,trust_remote_code=False)
-    executor = GLWELinearLayerExecutor(use_dynamic_quantization=True)
-    directory = Path(cache_dir);directory.mkdir(parents=True,exist_ok=True)
-    projections = []
-    for name,module in list(model.named_modules()):
-        if isinstance(module,nn.Linear):
-            replacement = FullLinear(name,module,executor,directory)
-            parent,separator,leaf = name.rpartition('.')
-            setattr(model.get_submodule(parent) if separator else model,leaf,replacement)
-            projections.append(replacement)
-    definitions = [projection.definition for projection in projections]
-    source = specification['source']
-    plan = dict(schema=settings['planSchema'],protocol=settings['protocol'],source=source,
-                modelId=digest(canonical(dict(source=source,projections=definitions))),
-                productionBackendAvailable=False,implementationVersions=versions,
-                **{key:settings[key] for key in ['steps','contextBucket','inputTileWidth','outputTileWidth','operationTimeoutSeconds','cpuThreads']},
-                parameters=parameters,projections=definitions)
-    (directory/'plan.json').write_bytes(canonical(plan))
-    frozen = plan_loader(directory)
-    # Trace every real linear operator under public input, before keys/private input.
-    visited=[]
-    handles=[projection.register_forward_pre_hook(lambda module,args:visited.append(module.name)) for projection in projections]
-    try:
-        with torch.no_grad():
-            model(input_ids=torch.arange(8).reshape(1,8),use_cache=False)
-    finally:
-        for handle in handles:handle.remove()
-    if visited != [row['name'] for row in definitions]:
-        raise ValueError('Actual full-model route differs from its declared all-linear order')
-    return model,tokenizer,executor,projections,frozen
+    with pinned_source(model_dir,specification['source']['files']):
+        torch.set_num_threads(settings['cpuThreads'])
+        model = AutoModelForCausalLM.from_pretrained(model_dir,local_files_only=True,use_safetensors=True,
+                                                  trust_remote_code=False,torch_dtype=torch.float32,attn_implementation='eager').eval()
+        tokenizer = AutoTokenizer.from_pretrained(model_dir,local_files_only=True,trust_remote_code=False)
+        executor = GLWELinearLayerExecutor(use_dynamic_quantization=True)
+        directory = Path(cache_dir);directory.mkdir(parents=True,exist_ok=True)
+        projections = []
+        for name,module in list(model.named_modules()):
+            if isinstance(module,nn.Linear):
+                replacement = FullLinear(name,module,executor,directory)
+                parent,separator,leaf = name.rpartition('.')
+                setattr(model.get_submodule(parent) if separator else model,leaf,replacement)
+                projections.append(replacement)
+        definitions = [projection.definition for projection in projections]
+        source = specification['source']
+        plan = dict(schema=settings['planSchema'],protocol=settings['protocol'],source=source,
+                    modelId=digest(canonical(dict(source=source,projections=definitions))),
+                    productionBackendAvailable=False,implementationVersions=versions,
+                    **{key:settings[key] for key in ['steps','contextBucket','inputTileWidth','outputTileWidth','operationTimeoutSeconds','cpuThreads']},
+                    parameters=parameters,projections=definitions)
+        (directory/'plan.json').write_bytes(canonical(plan))
+        frozen = plan_loader(directory)
+        # Trace every real linear operator under public input, before keys/private input.
+        visited=[]
+        handles=[projection.register_forward_pre_hook(lambda module,args:visited.append(module.name)) for projection in projections]
+        try:
+            with torch.no_grad():
+                model(input_ids=torch.arange(8).reshape(1,8),use_cache=False)
+        finally:
+            for handle in handles:handle.remove()
+        if visited != [row['name'] for row in definitions]:
+            raise ValueError('Actual full-model route differs from its declared all-linear order')
+        return model,tokenizer,executor,projections,frozen
 
 
 def run(model_dir,cache_dir,prompt,progress=lambda event:None,cancelled=None,deployment=None,backend_profile=DEFAULT_PROFILE):

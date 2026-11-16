@@ -9,6 +9,7 @@ import tempfile
 import urllib.request
 from protocol import parse_unique_json
 from flash_source_scopes import source_spec,SCOPES,EXPERT_TENSORS
+from source_snapshot import file_signature
 
 def verify_blob(path,record):
     path=Path(path)
@@ -52,11 +53,6 @@ def provision(directory,scope='moe'):
         raise ValueError('Insufficient space for the complete pinned public shards')
     base='https://huggingface.co/'+specification['repository']+'/resolve/'+specification['revision']+'/'
     for name,record in artifacts.items():fetch_blob(base+name+'?download=true',directory/name,record)
-
-
-def file_signature(path):
-    value=Path(path).stat()
-    return value.st_dev,value.st_ino,value.st_size,value.st_mtime_ns,value.st_ctime_ns
 
 
 class FlashSource:

@@ -73,3 +73,10 @@ the unchanged six-hour candidate. Successful full-model output must still be
 collected before claiming this candidate works end to end. Its process-pipe
 execution is not a qualified separate-machine deployment; the existing SSH
 profile does not accept the new protocol.
+
+Source-file identity is now guarded across the complete client model/tokenizer
+materialization and public route trace, before any private key generation.
+Same-length rewrites, replacements and restore-after-read mutations terminate
+preparation. Public tile snapshots still independently bind the later int8 replay
+weights. Filesystem checks do not protect against a malicious client kernel or
+constitute an atomic snapshot of an adversarial filesystem.
