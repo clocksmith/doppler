@@ -1,0 +1,23 @@
+{
+  "schema": "doppler.exact-ntt-research-build/v1",
+  "repository": "https://github.com/zama-ai/concrete-ml-extensions.git",
+  "revision": "6d3fdd1fab324874e3a2fc4a42cb3a708d5a80b4",
+  "nativeVersion": "0.1.9+ntt.1",
+  "rustToolchain": "1.91.1",
+  "nttCrate": {
+    "name": "tfhe-ntt",
+    "version": "0.7.1",
+    "sha256": "10650c743ade46b166c698c8349902ed5986784a7db418c51f810bea25f09e3d"
+  },
+  "files": {
+    "rust/Cargo.toml": "1f1370290ea595563c4e4262d3084d52708830a3921a03a596ab78055dceb5bf",
+    "rust/src/ml.rs": "68b5916656755a749167e08798a492788069cca3a08642d87fcb7521094e0f31",
+    "rust/src/fhext_classes.rs": "32dbaf397d71f1ee5131e57eb09f8afa8f265feef0f3ea615c8189cf6cfcb308",
+    "rust/src/lib_python.rs": "99d4b56f836d7898147684f63e8fe226fd8cf4382bed3ddca28567fc20411d5a",
+    "rust/src/lib_switcher.rs": "07f05ca6c1b6317b72b570cabb9aebc3ec20672be7231a514bf503dcba3a9f11",
+    "pyproject.toml": "f39aff7eff63aed2d8694355206c7247556321e18213c20c6e56ad964f6e8b10",
+    "src/concrete_ml_extensions/__init__.py": "991ad2faca9d8aefc0f6ae43efe2de3f3e4afe9245b32c2dc64ea8c6b33bc662"
+  },
+  "productionBackendAvailable": false,
+  "securityQualified": false
+}
