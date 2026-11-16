@@ -17,7 +17,7 @@ from concrete.ml.quantization.linear_op_glwe_backend import GLWELinearLayerExecu
 import concrete_ml_extensions as ext
 from full_bridge import FullBridge
 from full_plan import FULL_POLICY, SCHEMA, PROTOCOL, canonical, implementation_versions, load_plan, ranges, tiles
-from protocol import POLICY, digest
+from protocol import POLICY, digest, require_active
 
 
 class FullLinear(nn.Module):
@@ -48,6 +48,7 @@ class FullLinear(nn.Module):
         else:
             if self.bridge is None or self.secret is None:
                 raise ValueError('No bound encrypted evaluator')
+            self.bridge.check_active()
             self.bridge.admission.admit_projection(self.name,self.definition['inputWidth'],self.definition['outputWidth'],q_input.shape[0])
             integer_input = np.ascontiguousarray(q_input.long().numpy(),dtype=np.uint64)
             if integer_input.ndim != 2:
@@ -60,6 +61,7 @@ class FullLinear(nn.Module):
             for tile in tiles(self.definition):
                 matrix = np.ascontiguousarray(self.weights[tile['inputBegin']:tile['inputEnd'],tile['outputBegin']:tile['outputEnd']],dtype=np.int64).astype(np.uint64)
                 answer = self.bridge.evaluate(encrypted[tile['inputBegin']],matrix,tile)
+                self.bridge.check_active()
                 decoded = ext.decrypt_matrix(answer,self.secret,self.parameters,tile['outputEnd']-tile['outputBegin']).astype(np.int64)
                 # Exact signed integer accumulation precedes one global correction/dequantization.
                 result[:,tile['outputBegin']:tile['outputEnd']] += decoded
@@ -125,11 +127,13 @@ def prepare(model_dir,cache_dir):
     return model,tokenizer,executor,projections,frozen
 
 
-def run(model_dir,cache_dir,prompt,progress=lambda event:None):
+def run(model_dir,cache_dir,prompt,progress=lambda event:None,cancelled=None):
+    require_active(cancelled)
     if os.environ.get('RAYON_NUM_THREADS') != str(FULL_POLICY['cpuThreads']):
         raise ValueError('The full-model process must declare the installed CPU thread budget before native initialization')
     started=time.perf_counter()
     model,tokenizer,executor,projections,plan=prepare(model_dir,cache_dir)
+    require_active(cancelled)
     tokens=tokenizer.encode(prompt)
     if not 1<=len(tokens)<=8:
         raise ValueError('Prompt exceeds full-model fixed prefill bucket')
@@ -138,7 +142,7 @@ def run(model_dir,cache_dir,prompt,progress=lambda event:None):
     secret,key=ext.cpu_create_private_key(parameters)
     bridge=None
     try:
-        bridge=FullBridge(cache_dir,plan,key,observe=lambda kind,value:progress(dict(event=kind,**value)))
+        bridge=FullBridge(cache_dir,plan,key,cancelled=cancelled,observe=lambda kind,value:progress(dict(event=kind,**value)))
         for projection in projections:
             projection.bridge,projection.secret,projection.parameters=bridge,secret,parameters
         caches={mode:DynamicCache() for mode in ['float-reference','clear-reference','execute']}
@@ -148,6 +152,7 @@ def run(model_dir,cache_dir,prompt,progress=lambda event:None):
             for step in range(4):
                 logits={}
                 for mode in ['float-reference','clear-reference','execute']:
+                    require_active(cancelled)
                     for projection in projections:projection.mode=mode
                     if step==0:
                         values=tokens+[151643]*(8-len(tokens))

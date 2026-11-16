@@ -3,6 +3,7 @@ import importlib.util
 from pathlib import Path
 from types import SimpleNamespace
 import sys
+import threading
 import unittest
 from unittest.mock import patch
 from full_admission import FullRouteAdmission
@@ -31,6 +32,8 @@ class FullBridgeOrderingTests(unittest.TestCase):
         self.bridge.admission=FullRouteAdmission(Plan())
         self.bridge.admission.admit_projection('first',16,16,8)
         self.bridge.public_weights={'first':Cache()}
+        self.bridge.cancelled=None
+        self.native=native
         self.bridge.sequence=1;self.bridge.key=object()
         self.bridge.remote_seconds=self.bridge.replay_seconds=0.0
         self.bridge.observe=lambda *args:None
@@ -57,6 +60,31 @@ class FullBridgeOrderingTests(unittest.TestCase):
         self.assertEqual(self.exchanged[0][1],b'ciphertext-only')
         with self.assertRaises(ValueError):self.bridge.evaluate(self.encrypted,self.matrix,self.tile)
         self.assertEqual(len(self.serialized),1)
+
+    def test_cancelled_attempt_cannot_serialize_or_resume_after_event_is_cleared(self):
+        self.bridge.cancelled=threading.Event();self.bridge.cancelled.set()
+        with self.assertRaises(InterruptedError):self.bridge.evaluate(self.encrypted,self.matrix,self.tile)
+        self.bridge.cancelled.clear()
+        with self.assertRaises(ValueError):self.bridge.evaluate(self.encrypted,self.matrix,self.tile)
+        self.assertEqual(self.serialized,[]);self.assertEqual(self.exchanged,[])
+
+    def test_cancellation_during_round_trip_stops_before_replay_or_deserialization(self):
+        self.bridge.cancelled=threading.Event()
+        def cancel(*args):self.bridge.cancelled.set();return b'valid-circuit-output'
+        self.bridge.exchange=cancel
+        self.native.cpu_matrix_multiplication=lambda *args:self.fail('replay started after cancellation')
+        with self.assertRaises(InterruptedError):self.bridge.evaluate(self.encrypted,self.matrix,self.tile)
+        self.assertEqual(self.deserialized,[]);self.assertTrue(self.bridge.admission.failed)
+
+    def test_cancellation_during_native_replay_stops_before_deserialization(self):
+        self.bridge.cancelled=threading.Event()
+        self.bridge.exchange=lambda *args:b'valid-circuit-output'
+        def cancel(*args):
+            self.bridge.cancelled.set()
+            return SimpleNamespace(serialize=lambda:b'valid-circuit-output')
+        self.native.cpu_matrix_multiplication=cancel
+        with self.assertRaises(InterruptedError):self.bridge.evaluate(self.encrypted,self.matrix,self.tile)
+        self.assertEqual(self.deserialized,[]);self.assertTrue(self.bridge.admission.failed)
 
     def test_lost_evaluator_cannot_retry_or_deserialize(self):
         def disappear(*args):raise TimeoutError('evaluator disappeared')

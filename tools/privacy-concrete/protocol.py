@@ -21,6 +21,11 @@ def binding(model_id, session, key_id, sequence, kind, weight_id=''):
                 session=session, keyId=key_id, sequence=sequence, kind=kind, weightId=weight_id)
 
 
+def require_active(cancelled):
+    if cancelled is not None and cancelled.is_set():
+        raise InterruptedError('Encrypted experiment cancelled')
+
+
 def send(stream, header, payload=b'', timeout=None, cancelled=None):
     encoded = json.dumps(header, separators=(',', ':'), allow_nan=False).encode()
     if set(header) != FIELDS or len(encoded) > POLICY['maxHeaderBytes'] or len(payload) > POLICY['maxPayloadBytes']:
@@ -39,8 +44,7 @@ def send(stream, header, payload=b'', timeout=None, cancelled=None):
         for chunk in (data, payload):
             view = memoryview(chunk)
             while view:
-                if cancelled is not None and cancelled.is_set():
-                    raise InterruptedError('Encrypted experiment cancelled')
+                require_active(cancelled)
                 remaining = deadline - time.monotonic()
                 if remaining <= 0:
                     raise TimeoutError('Encrypted protocol deadline exceeded')
@@ -69,8 +73,7 @@ def receive(stream, timeout=None, cancelled=None):
     def exact(size):
         data = bytearray()
         while len(data) < size:
-            if cancelled is not None and cancelled.is_set():
-                raise InterruptedError('Encrypted experiment cancelled')
+            require_active(cancelled)
             remaining = deadline - time.monotonic()
             if remaining <= 0:
                 raise TimeoutError('Encrypted protocol deadline exceeded')
