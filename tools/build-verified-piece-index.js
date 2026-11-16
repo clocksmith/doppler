@@ -3,10 +3,10 @@ import { createHash } from 'node:crypto';
 import { resolve } from 'node:path';
 import { createStreamingHasher } from '../src/storage/shard-manager.js';
 
-const [directory, destination, bytesArgument, manifestPath] = process.argv.slice(2);
+const [directory, destination, bytesArgument, manifestPath, layoutPath] = process.argv.slice(2);
 const maxPieceBytes = Number(bytesArgument);
 if (!directory || !destination || !Number.isSafeInteger(maxPieceBytes) || maxPieceBytes < 4096) {
-  throw new Error('Usage: node tools/build-verified-piece-index.js MODEL_DIRECTORY OUTPUT_JSON MAX_PIECE_BYTES');
+  throw new Error('Usage: node tools/build-verified-piece-index.js MODEL_DIRECTORY OUTPUT_JSON MAX_PIECE_BYTES [MANIFEST_JSON] [PIECE_LAYOUT_JSON]');
 }
 const sha = bytes => 'sha256:' + createHash('sha256').update(bytes).digest('hex');
 const manifestBytes = await readFile(manifestPath || resolve(directory, 'manifest.json'));
@@ -25,6 +25,33 @@ for (const shard of manifest.shards) {
 for (const path of [manifest.tokenizer.file]) {
   const bytes = await readFile(resolve(directory, path));
   files.push({ path, size: bytes.length, boundaries: [0, bytes.length] });
+}
+let pieceLayoutIdentity = null;
+if (layoutPath) {
+  const bytes = await readFile(layoutPath);
+  const layout = JSON.parse(bytes);
+  if (!layout || layout.schema !== 'doppler.verified-piece-layout/v1' || !Array.isArray(layout.files)
+    || Object.keys(layout).some(key => !['schema', 'files'].includes(key))) {
+    throw new Error('Invalid verified piece layout.');
+  }
+  const known = new Map(files.map(file => [file.path, file]));
+  const declared = new Set();
+  for (const entry of layout.files) {
+    const file = known.get(entry?.path);
+    const cuts = entry?.boundaries;
+    if (!file || declared.has(entry.path) || entry.size !== file.size
+      || Object.keys(entry).some(key => !['path', 'size', 'boundaries'].includes(key))
+      || !Array.isArray(cuts) || cuts.length < 2 || cuts[0] !== 0 || cuts.at(-1) !== file.size
+      || cuts.some((offset, i) => !Number.isSafeInteger(offset) || offset < 0
+        || offset > file.size || (i > 0 && offset <= cuts[i - 1]))) {
+      throw new Error('Invalid verified piece layout file: ' + String(entry?.path));
+    }
+    // The caller owns complete boundary geometry for this declared file.
+    // Every byte is still hashed into the original whole-shard identity below.
+    file.boundaries = cuts;
+    declared.add(entry.path);
+  }
+  pieceLayoutIdentity = sha(bytes);
 }
 const index = { schema: 'doppler.verified-pieces/v1', manifestIdentity: sha(manifestBytes), maxPieceBytes, files: [] };
 for (const file of files) {
@@ -48,4 +75,5 @@ for (const file of files) {
 const output = JSON.stringify(index, null, 2) + '\n';
 await writeFile(destination, output);
 console.log(JSON.stringify({ indexIdentity: sha(output), manifestIdentity: index.manifestIdentity,
+  ...(pieceLayoutIdentity ? { pieceLayoutIdentity } : {}),
   files: index.files.length, pieces: index.files.reduce((count,file) => count + file.pieces.length, 0) }));
