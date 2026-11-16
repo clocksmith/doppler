@@ -341,7 +341,7 @@ export class RoutedExpertCache {
           const length = Math.min(chunkBytes, plane.expertBytes - offset);
           // Each reader owns its destination until writeBuffer has copied it.
           // Retained host chunks must keep independent immutable backing storage.
-          const destination = readRangeInto && this.#options.policy.hostCacheBytes === 0 && plane.location.sourceTransform == null
+          const destination = readRangeInto && chunks === null && plane.location.sourceTransform == null
             ? this.#getReaderStaging(reader, length) : null;
           const ownedStagingBytes = destination ? 0 : (readRangeInto ? 1 : 2) * length;
           this.#staging += ownedStagingBytes;
@@ -515,7 +515,7 @@ export class RoutedExpertCache {
     }
     // Policy changes cannot leave old scratch charged alongside a different path.
     const scratchLimit = Math.floor(this.#options.policy.stagingBytes / (2 * this.#options.policy.readConcurrency * 4)) * 4;
-    if (!this.#options.readRangeInto || this.#options.policy.hostCacheBytes > 0
+    if (!this.#options.readRangeInto
       || this.#readerStaging.length > this.#options.policy.readConcurrency
       || this.#readerStaging.some(bytes => bytes.byteLength > scratchLimit)) this.#clearReaderStaging();
     if (this.#options.policy.storageMode === 'compact-decode') {

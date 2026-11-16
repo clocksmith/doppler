@@ -873,3 +873,27 @@ for (const policy of ['lru', 'lfu']) {
   assert.equal(capacity(stage), 3, 'assigned-layer quotas preserve original indices');
   await f.cache.destroy();
 }
+
+// Skipped host admission still reuses scratch without aliasing retained payloads.
+{
+  const f = fixture(false, 256, false, true), plan = f.plan(0);
+  f.policy.hostCacheBytes = plan.expertBytes * 6;
+  f.policy.hostCacheAdmissionPhase = 'decode';
+  await f.cache.prepare(plan, [0, 1], undefined, 'prefill');
+  assert.equal(f.cache.getStats().hostCacheBytes, 0);
+  assert(f.cache.getStats().stagingReuses > 0);
+  assert(f.destinations.size <= f.policy.readConcurrency);
+  await f.cache.prepare(plan, [2], undefined, 'decode');
+  assert(f.cache.getStats().hostCacheBytes > 0);
+  await f.cache.prepare(f.plan(1), [0, 1], undefined, 'prefill');
+  const reads = f.reads.length;
+  const restored = await f.cache.prepare(plan, [2], undefined, 'decode');
+  assert.equal(f.reads.length, reads, 'retained payload survives intervening scratch reuse');
+  for (const plane of plan.planes) {
+    assert.deepEqual(restored[plane.role].buffer.data.slice(2 * plane.expertBytes, 3 * plane.expertBytes),
+      f.shards.get(plane.location.shardIndex).slice(2 * plane.expertBytes, 3 * plane.expertBytes));
+  }
+  assert(f.cache.getStats().peakStagingBytes <= f.policy.stagingBytes);
+  await f.cache.destroy();
+  assert.equal(f.cache.getStats().hostCacheBytes, 0);
+}
