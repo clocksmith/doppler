@@ -37,6 +37,13 @@ export async function readRoutedExpertRange(options, stats, plane, expert, offse
 /** @param {import('./routed-expert-cache.js').RoutedExpertCacheOptions} options
  * @param {import('./routed-expert-plan.js').RoutedExpertBankPlan} plan */
 export function assertExpertReadShape(options, plan) {
+  if (options.policy.sourceReadMode === 'lease-parallel') {
+    if (!options.rangeLease || plan.planes.some(plane => plane.location.sourceTransform != null
+      || (plane.location.spans && plane.location.spans.length !== 1))) {
+      throw new Error('Parallel leased planes require an owned range port and unchanged single-span planes.');
+    }
+    return;
+  }
   if (options.policy.sourceReadMode !== 'expert-parallel') return;
   const limit = Math.floor(options.policy.stagingBytes / (2 * options.policy.readConcurrency * 4)) * 4;
   if (options.rangeLease || !options.readRangeInto || plan.expertBytes > limit

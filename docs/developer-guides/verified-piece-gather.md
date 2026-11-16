@@ -70,6 +70,11 @@ still copies intersections. No shared scratch backing buffer is transferred.
 The optional explicit `concurrency` declares worker lanes; omission preserves
 one lane. Each lane permits one outstanding read or lease with its own buffer.
 Compact loading dispatches up to the smaller of this count and `readConcurrency`.
+With explicit `sourceReadMode: "lease-parallel"`, compact decode dispatches
+expert-plane tasks rather than assigning a lane to a whole expert. A small miss
+set can therefore use the existing lanes concurrently. The default plane order
+and the worker byte reservation remain unchanged; this mode requires unchanged
+single-span source planes and never adds a main-thread expert scratch payload.
 Saturation rejects another read rather than allocating beyond the admitted bound. It releases each lease in `finally` after
 `queue.writeBuffer` has copied the bytes, including upload failures. Released
 views are detached. Repeated release is harmless. Each lane buffer is reused, not

@@ -113,8 +113,9 @@ export class CompactExpertCache {
   /** @param {import('./routed-expert-plan.js').RoutedExpertBankPlan} plan
    * @param {import('./compact-expert-cache.js').CompactExpertPool} pool
    * @param {number} expert @param {number} slot @param {AbortSignal} signal
-   * @param {{ bytes: Uint8Array | null }} reader */
-  async #fill(plan, pool, expert, slot, signal, reader) {
+   * @param {{ bytes: Uint8Array | null }} reader
+   * @param {import('./routed-expert-plan.js').RoutedExpertPlane | null} selectedPlane */
+  async #fill(plan, pool, expert, slot, signal, reader, selectedPlane) {
     const chunkBytes = this.#chunkBytes();
     if (this.#options.policy.sourceReadMode === 'expert-parallel') {
       if (!reader.bytes) {
@@ -145,7 +146,7 @@ export class CompactExpertCache {
       } finally { this.#stats.ioWaitMs += performance.now() - started; }
       return;
     }
-    for (const plane of plan.planes) {
+    for (const plane of selectedPlane === null ? plan.planes : [selectedPlane]) {
       for (let offset = 0; offset < plane.expertBytes;) {
         signal.throwIfAborted();
         const port = this.#options.rangeLease;
@@ -273,11 +274,18 @@ export class CompactExpertCache {
           this.#stats.prefillSeedSubmissions++;
         }
       } else {
+        // A small miss set must still use the admitted lease lanes. Flatten only
+        // the explicit leased mode; slots stay unpublished until every plane settles.
+        const parallelPlanes = this.#options.policy.sourceReadMode === 'lease-parallel';
+        const tasksPerExpert = parallelPlanes ? plan.planes.length : 1;
+        const taskCount = misses.length * tasksPerExpert;
         const outcomes = await Promise.allSettled(Array.from({ length: this.#options.rangeLease ? Math.min(this.#options.policy.readConcurrency, this.#options.rangeLease.concurrency ?? 1) : this.#options.policy.readConcurrency }, async (_, index) => {
           const reader = this.#readers[index] ??= { bytes: null };
-          while (cursor < misses.length) {
-            const { expert, slot } = misses[cursor++];
-            try { await this.#fill(plan, pool, expert, slot, controller.signal, reader); }
+          while (cursor < taskCount) {
+            const task = cursor++;
+            const { expert, slot } = misses[Math.floor(task / tasksPerExpert)];
+            const plane = parallelPlanes ? plan.planes[task % tasksPerExpert] : null;
+            try { await this.#fill(plan, pool, expert, slot, controller.signal, reader, plane); }
             catch (error) { controller.abort(error); throw error; }
           }
         }));

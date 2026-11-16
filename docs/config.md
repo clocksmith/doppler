@@ -135,8 +135,16 @@ Three opt-in controls preserve the loading work across prefill and decode.
 `"expert-parallel"` reads each expert's unchanged planes into disjoint views of
 one bounded scratch payload, settling every read before reuse. It requires a
 direct range-into reader, compact decode and no host payload cache. A worker
-`rangeLease` port owns its own bounded scheduling and requires `"plane-serial"`;
-combining both concurrency mechanisms fails explicitly.
+`rangeLease` port owns its own bounded scheduling. `"plane-serial"` retains
+per-expert plane ordering. The explicit `"lease-parallel"` mode schedules compact
+decode misses as expert-plane tasks through the existing admitted lanes. Even
+one missing expert can use multiple lanes; neither worker count nor staging
+reservation increases. It requires compact decode, no host payload cache and
+owned leases for unchanged single-span planes. Missing ports and unsupported
+source layouts fail before allocation. Partial plane chunks remain sequential
+within each task, and no expert slot or source map publishes until all its
+sibling work settles. Generic `"expert-parallel"` cannot be combined with a lease
+port. Prefill scheduling and resident-GPU seeding retain their existing behavior.
 
 `prefillUploadMode: "direct-bank"` writes authenticated ranges directly at their
 original logical expert offsets, avoiding temporary expert GPU buffers and their
