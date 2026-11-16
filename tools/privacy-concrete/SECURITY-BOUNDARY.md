@@ -51,3 +51,8 @@ range is checked independently of the legacy eight-bit validator. Existing noise
 and key geometry do not establish security for this parameter combination. Native
 boundary fixtures and a full-model result are functional evidence only; independent
 cryptographic, active-adversary, leakage and failure analysis are still required.
+
+Explicit bridge closure now terminates route admission before process cleanup.
+Even if cleanup fails, a later evaluation cannot serialize another payload, and
+the bridge releases its evaluation-key reference. This is request/resource
+ownership enforcement, not physical memory zeroization or a new security claim.

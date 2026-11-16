@@ -107,9 +107,13 @@ class FullBridge:
             raise ValueError('Full evaluator failed to finish')
 
     def close(self):
-        if self.child.poll() is None:
-            self.child.kill()
-        self.child.wait()
-        for stream in (self.child.stdin,self.child.stdout):
-            if stream and not stream.closed:
-                stream.close()
+        self.admission.fail()
+        try:
+            if self.child.poll() is None:
+                self.child.kill()
+            self.child.wait()
+        finally:
+            self.key=None
+            for stream in (self.child.stdin,self.child.stdout):
+                if stream and not stream.closed:
+                    stream.close()

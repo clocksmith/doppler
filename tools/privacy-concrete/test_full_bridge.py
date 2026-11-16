@@ -43,6 +43,25 @@ class FullBridgeOrderingTests(unittest.TestCase):
         self.tile=dict(self.bridge.admission.next_tile())
         self.bridge.public_tile_digests={self.tile['id']:digest(b'pinned-public-weight')}
 
+    def test_close_is_terminal_before_payload_serialization_and_releases_evaluation_key(self):
+        import io
+        self.bridge.child=SimpleNamespace(poll=lambda:0,wait=lambda:0,stdin=io.BytesIO(),stdout=io.BytesIO())
+        self.bridge.close();self.bridge.close()
+        self.assertTrue(self.bridge.admission.failed);self.assertIsNone(self.bridge.key)
+        self.assertTrue(self.bridge.child.stdin.closed);self.assertTrue(self.bridge.child.stdout.closed)
+        with self.assertRaises(ValueError):self.bridge.evaluate(self.encrypted,self.matrix,self.tile)
+        self.assertEqual(self.serialized,[]);self.assertEqual(self.exchanged,[])
+
+    def test_cleanup_failure_still_terminates_attempt_and_releases_evaluation_material(self):
+        import io
+        def fail_wait():raise OSError('public process cleanup failure')
+        self.bridge.child=SimpleNamespace(poll=lambda:0,wait=fail_wait,stdin=io.BytesIO(),stdout=io.BytesIO())
+        with self.assertRaises(OSError):self.bridge.close()
+        self.assertTrue(self.bridge.admission.failed);self.assertIsNone(self.bridge.key)
+        self.assertTrue(self.bridge.child.stdin.closed);self.assertTrue(self.bridge.child.stdout.closed)
+        with self.assertRaises(ValueError):self.bridge.evaluate(self.encrypted,self.matrix,self.tile)
+        self.assertEqual(self.serialized,[]);self.assertEqual(self.exchanged,[])
+
     def test_unsupported_plan_rejects_before_key_export_or_provider_start(self):
         key=SimpleNamespace(serialize=lambda:self.fail('evaluation key exported'))
         with patch.object(self.module,'load_plan',side_effect=ValueError('unsupported model')), patch.object(self.module.subprocess,'Popen') as spawn:
