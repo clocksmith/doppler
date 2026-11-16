@@ -339,3 +339,16 @@ owns its [cache map](https://github.com/huggingface/tokenizers/blob/v0.19.1/toke
 inside each model instance. Fresh, locally loaded instances provide separate
 cache ownership for these helper calls; this does not establish memory zeroization
 or isolation from the trusted client host.
+
+The [actual public tokenizer observation](evidence/flash/public-text-io.json)
+roundtripped “The capital of France is” as IDs `[760, 6511, 314, 9338, 369]` under
+Transformers 4.44.2/tokenizers 0.19.1. Encode plus decode, each with a fresh tokenizer
+and source verification, took 1,490 ms in one hosted CPU observation. This is text
+I/O rather than model-generated output. The [context](evidence/flash/public-text-context.json)
+binds the exact revision/run and artifact hash.
+
+The complete text-source scope now includes these pinned tokenizer files and
+binds their source identity to the actual embedding/head vocabulary. Provisioning
+accounts separately for auxiliary metadata/tokenizer bytes and whole weight-shard
+bytes. This closes the source association; it does not complete encrypted model
+assembly or validate a full Flash forward pass.

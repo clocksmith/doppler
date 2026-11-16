@@ -1,0 +1,18 @@
+{
+  "schema": "doppler.actual-flash-client-text-context/v1",
+  "revision": "d0f8ea78afabba387077c135fdd07a113fea0271",
+  "workflowRun": 43848312705,
+  "artifactId": 14217265558,
+  "artifactZipSha256": "6b9b4be06cd01f533b0b5a0cf94e6ab6e7e3f8abd5786706266b259c8f7d0ebe",
+  "evidence": "public-text-io.json",
+  "sourceId": "7c09da34a38e3639c4121c2d147c89263caae199c1be68e61595f79965ad73b2",
+  "productionBackendAvailable": false,
+  "securityQualified": false,
+  "fullModelExecuted": false,
+  "encryptedExecution": false,
+  "limitations": [
+    "Actual pinned Flash tokenizer only; no model generated token",
+    "Fresh tokenizer per encode/decode and complete source verification included in one 1490ms observation",
+    "Not a latency distribution, model benchmark, request-wide memory isolation proof or security qualification"
+  ]
+}

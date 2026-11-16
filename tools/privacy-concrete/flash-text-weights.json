@@ -12,8 +12,19 @@
     "model.safetensors.index.json": {
       "bytes": 170726,
       "sha256": "99e815241ef03325536b0aaa4441deea45174c17fae31e10f0bb456410c590de"
+    },
+    "tokenizer_config.json": {
+      "bytes": 9984,
+      "sha256": "207c03c41a06a9c3b0cc527d8a56115159c1eac6b59a4ffae85b646e773d074e"
+    },
+    "tokenizer.json": {
+      "bytes": 12809320,
+      "sha256": "0997f410c57a1f4e53b09e4be8f4a172d90edd9564368fb0847030937229b9f3"
     }
   },
+  "tokenizerSourceId": "7c09da34a38e3639c4121c2d147c89263caae199c1be68e61595f79965ad73b2",
+  "auxiliarySourceBytes": 12994775,
+  "wholeSourceBytes": 360013187663,
   "shards": {
     "model-00001-of-00131.safetensors": {
       "bytes": 1040155944,

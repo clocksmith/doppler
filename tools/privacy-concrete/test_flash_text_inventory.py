@@ -1,6 +1,10 @@
 """Complete real checkpoint metadata and explicit source scopes; no weight payloads or keys."""
 import copy
 import unittest
+from unittest.mock import patch
+from protocol import digest
+from full_plan import canonical
+from flash_tokenizer import SOURCE
 from flash_source_scopes import BASE,TEXT,source_spec
 from inventory_flash_text import assemble
 
@@ -17,6 +21,9 @@ class CompleteTextInventoryTests(unittest.TestCase):
         metadata,headers=self.metadata();self.assertEqual(assemble(metadata,headers),TEXT)
         self.assertEqual(TEXT['tensorCount'],1294);self.assertEqual(len(TEXT['shards']),131)
         self.assertEqual(TEXT['logicalTensorBytes'],353887799320);self.assertEqual(TEXT['wholeShardBytes'],360000192888)
+        self.assertEqual(TEXT['tokenizerSourceId'],digest(canonical(SOURCE)))
+        self.assertTrue(set(SOURCE['files']).issubset(TEXT['files']))
+        self.assertEqual(TEXT['wholeSourceBytes'],TEXT['wholeShardBytes']+TEXT['auxiliarySourceBytes'])
         self.assertFalse(TEXT['weightsProvisioned']);self.assertFalse(TEXT['fullModelExecuted']);self.assertFalse(TEXT['securityQualified'])
         self.assertTrue(all(name.startswith('model.language_model.') or name=='lm_head.weight' for name in TEXT['tensors']))
         self.assertEqual(sum('.mlp.experts.' in name for name in TEXT['tensors']),96)
@@ -30,6 +37,20 @@ class CompleteTextInventoryTests(unittest.TestCase):
             elif change=='unsupported-dtype':headers[file][1][name]['dtype']='advertised-opaque'
             else:metadata['config.json']['text_config']['num_hidden_layers']=1
             with self.subTest(change=change),self.assertRaises(ValueError):assemble(metadata,headers)
+
+    def test_tokenizer_mismatch_or_missing_artifact_rejects_before_weight_materialization(self):
+        metadata,headers=self.metadata()
+        with patch('inventory_flash_text.TOKENIZER',dict(SOURCE,vocabSize=SOURCE['vocabSize']-1)):
+            with self.assertRaises(ValueError):assemble(metadata,headers)
+        from flash_weights import FlashSource
+        visited=[]
+        def verify(path,record):
+            visited.append(path.name)
+            if path.name=='tokenizer.json':raise ValueError('required tokenizer missing')
+        with patch('flash_weights.verify_blob',side_effect=verify):
+            with self.assertRaises(ValueError):FlashSource('/unused','text')
+        self.assertIn('tokenizer.json',visited)
+        self.assertFalse(any(name.endswith('.safetensors') for name in visited))
 
     def test_full_text_acquisition_is_explicit_and_legacy_component_scopes_do_not_expand(self):
         self.assertEqual(source_spec('moe'),BASE);self.assertNotIn('lm_head.weight',source_spec('moe')['tensors'])

@@ -1,0 +1,24 @@
+{
+  "schema": "doppler.public-flash-client-text-io/v1",
+  "fixtureId": "flash-public-capital-text",
+  "sourceId": "7c09da34a38e3639c4121c2d147c89263caae199c1be68e61595f79965ad73b2",
+  "productionBackendAvailable": false,
+  "securityQualified": false,
+  "fullModelExecuted": false,
+  "encryptedExecution": false,
+  "promptTokens": [
+    760,
+    6511,
+    314,
+    9338,
+    369
+  ],
+  "roundtripText": "The capital of France is",
+  "elapsedMs": 1490.0248199999737,
+  "implementationVersions": {
+    "transformers": "4.44.2",
+    "tokenizers": "0.19.1"
+  },
+  "ownership": "Fresh local tokenizer per encode/decode call; no shared request-text cache",
+  "interpretation": "One fixed public text fixture; no model output, encrypted inference, security or latency-distribution qualification"
+}

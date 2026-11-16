@@ -9,6 +9,9 @@ import math
 from pathlib import Path
 from flash_source_scopes import BASE
 from flash_inventory_metadata import model_metadata,shard_headers
+from flash_tokenizer import SOURCE as TOKENIZER
+from full_plan import canonical
+from protocol import digest
 
 DTYPE_BYTES={'BF16':2,'F32':4,'I64':8}
 MODEL=json.loads(Path(__file__).with_name('flash-readiness.json').read_text())['config']
@@ -20,6 +23,8 @@ def assemble(metadata,headers):
     if (config['num_hidden_layers']!=count or config['num_experts']!=MODEL['num_experts'] or len(config['layer_types'])!=count
             or set(headers)!=set(names.values()) or 'lm_head.weight' not in names or 'model.language_model.embed_tokens.weight' not in names):
         raise ValueError('Complete installed Flash text model required')
+    if TOKENIZER['repository']!=BASE['repository'] or TOKENIZER['revision']!=BASE['revision'] or TOKENIZER['files']['config.json']!=BASE['files']['config.json']:
+        raise ValueError('Complete text weights and tokenizer must share the exact source configuration')
     tensors={};logical_bytes=0
     for name,file in sorted(names.items()):
         record,header=headers[file];value=header.get(name)
@@ -33,8 +38,14 @@ def assemble(metadata,headers):
     experts=[name for name in tensors if '.mlp.experts.' in name]
     if set(experts)!={f'model.language_model.layers.{i}.mlp.experts.{kind}' for i in range(count) for kind in ['gate_up_proj','down_proj']}:
         raise ValueError('All installed text expert banks required')
+    if any(tensors[name]['shape'][0]!=TOKENIZER['vocabSize'] for name in ['lm_head.weight','model.language_model.embed_tokens.weight']):
+        raise ValueError('Tokenizer vocabulary differs from actual embedding or output head')
+    files=dict(BASE['files'],**TOKENIZER['files'])
+    auxiliary_bytes=sum(value['bytes'] for value in files.values())
     return dict(schema='doppler.flash-complete-text-weights/v1',repository=BASE['repository'],revision=BASE['revision'],
-                configSha256=BASE['configSha256'],indexSha256=BASE['indexSha256'],files=BASE['files'],
+                configSha256=BASE['configSha256'],indexSha256=BASE['indexSha256'],files=files,
+                tokenizerSourceId=digest(canonical(TOKENIZER)),auxiliarySourceBytes=auxiliary_bytes,
+                wholeSourceBytes=sum(v[0]['bytes'] for v in headers.values())+auxiliary_bytes,
                 shards={name:headers[name][0] for name in sorted(headers)},tensors=tensors,
                 tensorCount=len(tensors),logicalTensorBytes=logical_bytes,wholeShardBytes=sum(v[0]['bytes'] for v in headers.values()),
                 layerCount=count,expertsPerLayer=MODEL['num_experts'],includesVision=False,includesMTP=False,
