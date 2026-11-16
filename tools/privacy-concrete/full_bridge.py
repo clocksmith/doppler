@@ -10,6 +10,7 @@ import concrete_ml_extensions as ext
 from protocol import check, digest, receive, require_active, send
 from full_plan import FULL_POLICY, load_plan
 from full_admission import FullRouteAdmission
+from full_status import ExecutionRejected
 
 
 class FullBridge:
@@ -68,7 +69,7 @@ class FullBridge:
             self.replay_seconds += time.perf_counter()-start
             self.check_active()
             if not hmac.compare_digest(expected,result):
-                raise ValueError('Full encrypted tile rejected before decryption')
+                raise ExecutionRejected('ciphertext-verification-failed')
             answer=ext.CompressedResultEncryptedMatrix.deserialize(result)
             self.admission.verified()
             self.observe('verified-tile',dict(sequence=self.sequence-1,projection=tile['name'],tileId=tile['id']))

@@ -16,6 +16,7 @@ from transformers.cache_utils import DynamicCache
 from concrete.ml.quantization.linear_op_glwe_backend import GLWELinearLayerExecutor
 import concrete_ml_extensions as ext
 from full_bridge import FullBridge
+from full_status import ExecutionRejected, failure_event
 from full_plan import FULL_POLICY, SCHEMA, PROTOCOL, canonical, implementation_versions, load_plan, ranges, tiles
 from protocol import POLICY, digest, require_active
 
@@ -172,7 +173,7 @@ def run(model_dir,cache_dir,prompt,progress=lambda event:None,cancelled=None):
                 errors.append(float((logits['execute']-logits['clear-reference']).abs().max()))
                 next_token=int(logits['execute'].argmax())
                 if next_token!=int(logits['clear-reference'].argmax()):
-                    raise ValueError('Full encrypted token differs from full quantized reference')
+                    raise ExecutionRejected('token-reference-mismatch')
                 float_matches.append(next_token==int(logits['float-reference'].argmax()))
                 tokens.append(next_token)
                 progress(dict(event='step-complete',step=step+1,encryptedTiles=bridge.sequence-1))
@@ -210,6 +211,11 @@ if __name__=='__main__':
     else:
         prompt='The capital of France is' if args.public_fixture=='qwen05b-capital' else sys.stdin.buffer.read(4097).decode('utf-8')
         if len(prompt.encode())>4096:raise ValueError('Bounded client prompt required')
-        report=run(args.model_dir,args.cache_dir,prompt,progress=lambda event:print(json.dumps(event),file=sys.stderr,flush=True))
+        began=time.perf_counter()
+        try:
+            report=run(args.model_dir,args.cache_dir,prompt,progress=lambda event:print(json.dumps(event),file=sys.stderr,flush=True))
+        except BaseException as error:
+            print(json.dumps(failure_event(error,(time.perf_counter()-began)*1000)),file=sys.stderr,flush=True)
+            raise
         if args.public_fixture:report['publicFixtureId']=args.public_fixture
         print(json.dumps(report,indent=2))

@@ -18,7 +18,7 @@ class FullEvidenceTests(unittest.TestCase):
     def test_fixed_fixture_evidence_drops_nested_arbitrary_fields(self):
         with tempfile.TemporaryDirectory() as directory:
             report=Path(directory)/'result.json';progress=Path(directory)/'progress.jsonl'
-            value=dict(publicFixtureId='qwen05b-capital',qualified=False,productionBackendAvailable=False,
+            value=dict(schema='doppler.full-qwen-hybrid-execution/v1',planId='a'*64,modelId='b'*64,publicFixtureId='qwen05b-capital',qualified=False,productionBackendAvailable=False,
                        linearProjectionCount=169,encryptedSteps=4,encryptedTileCount=1548,
                        matchesFullQuantizedGreedyReference=True,clientLocalOutputText='public fixture output',
                        clientLocalOutputTokens=[1,2,3,4],descriptor={'secretKey':'private-canary'},
@@ -27,6 +27,12 @@ class FullEvidenceTests(unittest.TestCase):
             result=collect(report,progress,'public-revision')
             self.assertTrue(result['completed'])
             self.assertNotIn('private-canary',json.dumps(result))
+            for change in [dict(clientLocalOutputText={'private':'private-canary'}),dict(clientLocalOutputTokens=[True,2,3,4]),dict(schema='unknown'),dict(planId='unknown')]:
+                report.write_text(json.dumps(dict(value,**change)))
+                rejected=collect(report,progress,'public-revision')
+                self.assertFalse(rejected['completed']);self.assertNotIn('private-canary',json.dumps(rejected))
+            report.write_text(json.dumps(value));progress.write_text(json.dumps(dict(event='run-failed',failureCode='cancelled'))+'\n')
+            self.assertFalse(collect(report,progress,'public-revision')['completed'])
 
     def test_private_or_unqualified_reports_cannot_publish_text(self):
         with tempfile.TemporaryDirectory() as directory:

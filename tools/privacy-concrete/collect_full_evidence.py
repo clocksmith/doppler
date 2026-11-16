@@ -4,6 +4,7 @@ import json
 from pathlib import Path
 import re
 import math
+from full_status import FAILURE_CODES
 
 PUBLIC_FIXTURE='qwen05b-capital'
 REPORT_FIELDS=['schema','planId','modelId','linearProjectionCount','encryptedTileCount','encryptedSteps',
@@ -15,21 +16,30 @@ PROJECTION=re.compile(r'(?:model\.layers\.(?:[0-9]|1[0-9]|2[0-3])\.(?:self_attn\
 
 
 def collect(report_path,progress_path,revision):
-    progress=[]
+    progress=[];failure=None
     if Path(progress_path).is_file():
         for line in Path(progress_path).read_text(errors='replace').splitlines():
             try:value=json.loads(line)
             except (ValueError,TypeError):continue
             if not isinstance(value,dict):continue
+            if value.get('event')=='run-failed' and isinstance(value.get('failureCode'),str) and value['failureCode'] in FAILURE_CODES:
+                failure=value['failureCode']
             if value.get('event')=='verified-tile' and type(value.get('sequence')) is int and PROJECTION.fullmatch(str(value.get('projection',''))):
                 progress.append(dict(sequence=value['sequence'],projection=value['projection']))
     result=dict(schema='doppler.public-full-qwen-ci-evidence/v1',revision=revision,fixtureId=PUBLIC_FIXTURE,
                 completed=False,productionBackendAvailable=False,securityQualified=False,
                 verifiedTilesObserved=len(progress),lastVerifiedTile=progress[-1] if progress else None)
+    if failure is not None:result['failureCode']=failure
     if Path(report_path).is_file():
         try:report=json.loads(Path(report_path).read_text())
         except ValueError:return result
-        if (report.get('publicFixtureId')==PUBLIC_FIXTURE and report.get('qualified') is False
+        if not isinstance(report,dict):return result
+        output=report.get('clientLocalOutputText');tokens=report.get('clientLocalOutputTokens')
+        if (failure is None and report.get('schema')=='doppler.full-qwen-hybrid-execution/v1'
+                and all(isinstance(report.get(key),str) and re.fullmatch(r'[0-9a-f]{64}',report[key]) for key in ['planId','modelId'])
+                and isinstance(output,str) and len(output.encode('utf-8'))<=4096
+                and isinstance(tokens,list) and len(tokens)==4 and all(type(token) is int and 0<=token<151936 for token in tokens)
+                and report.get('publicFixtureId')==PUBLIC_FIXTURE and report.get('qualified') is False
                 and report.get('productionBackendAvailable') is False and report.get('linearProjectionCount')==169
                 and report.get('encryptedSteps')==4 and report.get('encryptedTileCount')==1548 and report.get('matchesFullQuantizedGreedyReference') is True):
             safe={}
@@ -49,10 +59,12 @@ def collect(report_path,progress_path,revision):
             safe['clientComputation']='Client nonlinearities, embeddings, caches, quantization, decoding and full encrypted replay'
             safe['integrity']='Full deterministic replay; no qualified malicious-security claim'
             versions=report.get('implementationVersions',{})
+            if not isinstance(versions,dict):versions={}
             dependencies=['concrete-ml','concrete-ml-extensions','concrete-python','torch','transformers','numpy']
             safe['implementationVersions']={key:versions[key] for key in dependencies if isinstance(versions.get(key),str) and re.fullmatch(r'[0-9][0-9A-Za-z.+_-]{0,63}',versions[key])}
             result.update(completed=True,report=safe,
                           publicFixtureOutputText=report['clientLocalOutputText'],publicFixtureOutputTokens=report['clientLocalOutputTokens'])
+
     return result
 
 
