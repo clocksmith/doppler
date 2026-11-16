@@ -58,18 +58,22 @@ class FullPlan:
 
 
 def load_plan(directory):
+    common={key:POLICY[key] for key in ['dependencies','parameters','evaluationBackend']}
+    return load_qwen_plan(directory,FULL_POLICY,implementation_versions,common,FullPlan)
+
+
+def load_qwen_plan(directory,policy,versions,common,plan_type):
     directory = Path(directory)
     raw = (directory / 'plan.json').read_bytes()
     value = json.loads(raw)
     source = json.loads(Path(__file__).with_name('qwen05b.json').read_text())['source']
-    if (raw != canonical(value) or value['schema'] != SCHEMA or value['protocol'] != PROTOCOL
+    if (raw != canonical(value) or value['schema'] != policy['planSchema'] or value['protocol'] != policy['protocol']
             or value['source'] != source or value['productionBackendAvailable'] is not False
-            or any(value[key] != FULL_POLICY[key] for key in ['steps','contextBucket','inputTileWidth','outputTileWidth','operationTimeoutSeconds','cpuThreads'])
+            or any(value[key] != policy[key] for key in ['steps','contextBucket','inputTileWidth','outputTileWidth','operationTimeoutSeconds','cpuThreads'])
             or len(value['projections']) != 169):
         raise ValueError('Unsupported full-model plan')
-    if value['implementationVersions'] != implementation_versions():
+    if value['implementationVersions'] != versions():
         raise ValueError('Full-model implementation version mismatch')
-    common = {key: POLICY[key] for key in ['dependencies', 'parameters', 'evaluationBackend']}
     if value['parameters'] != common:
         raise ValueError('Unqualified full-model parameters')
     expected_names = []
@@ -97,14 +101,18 @@ def load_plan(directory):
     model_id = digest(canonical(dict(source=source, projections=value['projections'])))
     if value['modelId'] != model_id:
         raise ValueError('Full-model identity mismatch')
-    return FullPlan(raw)
+    return plan_type(raw)
 
 
 def implementation_versions():
+    return dependency_versions(POLICY['dependencies'],FULL_POLICY['dependencyVariants'])
+
+
+def dependency_versions(expected_versions,variants):
     actual = {}
-    for dependency, expected in POLICY['dependencies'].items():
+    for dependency, expected in expected_versions.items():
         found = version(dependency)
-        allowed = FULL_POLICY['dependencyVariants'].get(dependency, [expected])
+        allowed = variants.get(dependency, [expected])
         if found not in allowed:
             raise ValueError('Pinned full-model dependencies required')
         actual[dependency] = found

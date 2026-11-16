@@ -19,5 +19,6 @@
     "src/concrete_ml_extensions/__init__.py": "991ad2faca9d8aefc0f6ae43efe2de3f3e4afe9245b32c2dc64ea8c6b33bc662"
   },
   "productionBackendAvailable": false,
-  "securityQualified": false
+  "securityQualified": false,
+  "cargoLockSha256": "0fcf2b53be36418f5ed0a9ae16c0927b37a5c460516a94d46a934a9bcd04f60c"
 }

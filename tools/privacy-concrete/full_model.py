@@ -17,8 +17,9 @@ from concrete.ml.quantization.linear_op_glwe_backend import GLWELinearLayerExecu
 import concrete_ml_extensions as ext
 from full_bridge import FullBridge
 from full_status import ExecutionRejected, failure_event
-from full_plan import FULL_POLICY, SCHEMA, PROTOCOL, canonical, implementation_versions, load_plan, ranges, tiles
+from full_plan import canonical,ranges,tiles
 from protocol import POLICY, digest, require_active
+from plan_backends import DEFAULT_PROFILE,QWEN_PROFILES,qwen_backend
 
 
 class FullLinear(nn.Module):
@@ -88,13 +89,14 @@ def verify_source(directory,source):
             raise ValueError('Pinned full-model source required')
 
 
-def prepare(model_dir,cache_dir):
+def prepare(model_dir,cache_dir,backend_profile=DEFAULT_PROFILE):
+    settings,plan_loader,installed_versions,parameters=qwen_backend(backend_profile)
     specification = json.loads(Path(__file__).with_name('qwen05b.json').read_text())
-    versions=implementation_versions()
+    versions=installed_versions()
     if json.loads(ext.default_params()) != POLICY['parameters']:
         raise ValueError('Unsupported encrypted parameter change')
     verify_source(model_dir,specification['source'])
-    torch.set_num_threads(FULL_POLICY['cpuThreads'])
+    torch.set_num_threads(settings['cpuThreads'])
     model = AutoModelForCausalLM.from_pretrained(model_dir,local_files_only=True,use_safetensors=True,
                                               trust_remote_code=False,torch_dtype=torch.float32,attn_implementation='eager').eval()
     tokenizer = AutoTokenizer.from_pretrained(model_dir,local_files_only=True,trust_remote_code=False)
@@ -109,13 +111,13 @@ def prepare(model_dir,cache_dir):
             projections.append(replacement)
     definitions = [projection.definition for projection in projections]
     source = specification['source']
-    plan = dict(schema=SCHEMA,protocol=PROTOCOL,source=source,
+    plan = dict(schema=settings['planSchema'],protocol=settings['protocol'],source=source,
                 modelId=digest(canonical(dict(source=source,projections=definitions))),
                 productionBackendAvailable=False,implementationVersions=versions,
-                **{key:FULL_POLICY[key] for key in ['steps','contextBucket','inputTileWidth','outputTileWidth','operationTimeoutSeconds','cpuThreads']},
-                parameters={key:POLICY[key] for key in ['dependencies','parameters','evaluationBackend']},projections=definitions)
+                **{key:settings[key] for key in ['steps','contextBucket','inputTileWidth','outputTileWidth','operationTimeoutSeconds','cpuThreads']},
+                parameters=parameters,projections=definitions)
     (directory/'plan.json').write_bytes(canonical(plan))
-    frozen = load_plan(directory)
+    frozen = plan_loader(directory)
     # Trace every real linear operator under public input, before keys/private input.
     visited=[]
     handles=[projection.register_forward_pre_hook(lambda module,args:visited.append(module.name)) for projection in projections]
@@ -129,12 +131,13 @@ def prepare(model_dir,cache_dir):
     return model,tokenizer,executor,projections,frozen
 
 
-def run(model_dir,cache_dir,prompt,progress=lambda event:None,cancelled=None,deployment=None):
+def run(model_dir,cache_dir,prompt,progress=lambda event:None,cancelled=None,deployment=None,backend_profile=DEFAULT_PROFILE):
+    settings,_,installed_versions,_=qwen_backend(backend_profile)
     require_active(cancelled)
-    if os.environ.get('RAYON_NUM_THREADS') != str(FULL_POLICY['cpuThreads']):
+    if os.environ.get('RAYON_NUM_THREADS') != str(settings['cpuThreads']):
         raise ValueError('The full-model process must declare the installed CPU thread budget before native initialization')
     started=time.perf_counter()
-    model,tokenizer,executor,projections,plan=prepare(model_dir,cache_dir)
+    model,tokenizer,executor,projections,plan=prepare(model_dir,cache_dir,backend_profile)
     require_active(cancelled)
     if deployment is not None:deployment.bind(plan)
     tokens=tokenizer.encode(prompt)
@@ -145,14 +148,14 @@ def run(model_dir,cache_dir,prompt,progress=lambda event:None,cancelled=None,dep
     secret,key=ext.cpu_create_private_key(parameters)
     bridge=None
     try:
-        bridge=FullBridge(cache_dir,plan,key,cancelled=cancelled,deployment=deployment,observe=lambda kind,value:progress(dict(event=kind,**value)))
+        bridge=FullBridge(cache_dir,plan,key,cancelled=cancelled,deployment=deployment,backend_profile=None if backend_profile==DEFAULT_PROFILE else backend_profile,observe=lambda kind,value:progress(dict(event=kind,**value)))
         for projection in projections:
             projection.bridge,projection.secret,projection.parameters=bridge,secret,parameters
         caches={mode:DynamicCache() for mode in ['float-reference','clear-reference','execute']}
         setup_ms=(time.perf_counter()-started)*1000
         step_ms=[];reference_ms=[];errors=[];float_matches=[]
         with torch.no_grad():
-            for step in range(4):
+            for step in range(settings['steps']):
                 logits={}
                 for mode in ['float-reference','clear-reference','execute']:
                     require_active(cancelled)
@@ -181,17 +184,18 @@ def run(model_dir,cache_dir,prompt,progress=lambda event:None,cancelled=None,dep
                 progress(dict(event='step-complete',step=step+1,encryptedTiles=bridge.sequence-1))
         bridge.finish()
         return dict(schema='doppler.full-qwen-hybrid-execution/v1',qualified=False,productionBackendAvailable=False,
-                    descriptor=dict(schema='doppler.execution-backend/v1',id='concrete-qwen-all-linear-tiled',version=1,kind='cryptographic',
+                    descriptor=dict(schema='doppler.execution-backend/v1',id='concrete-qwen-all-linear-tiled' if backend_profile==DEFAULT_PROFILE else 'concrete-qwen-all-linear-ntt',version=1,kind='cryptographic',
                                     modelIdentities=['sha256:'+plan.definition()['modelId']],operations=['generate'],protocol=bridge.plan.protocol_id,
                                     inputRepresentation='opaque',outputRepresentation='opaque'),
-                    executionRouteId=bridge.plan.identity,transport='local-process' if deployment is None else 'ssh-ed25519-pinned',
+                    backendProfile=backend_profile,protocol=bridge.plan.protocol_id,executionRouteId=bridge.plan.identity,transport='local-process' if deployment is None else 'ssh-ed25519-pinned',
                     planId=plan.identity,modelId=plan.definition()['modelId'],linearProjectionCount=len(projections),
-                    encryptedTileCount=bridge.sequence-1,encryptedSteps=4,clientLocalOutputTokens=tokens[original_count:],
+                    encryptedTileCount=bridge.sequence-1,encryptedSteps=settings['steps'],clientLocalOutputTokens=tokens[original_count:],
                     clientLocalOutputText=tokenizer.decode(tokens[original_count:]),matchesFullQuantizedGreedyReference=True,
                     floatGreedyMatches=float_matches,maxLogitErrors=errors,setupMs=setup_ms,stepMs=step_ms,quantizedReferenceMs=reference_ms,
-                    elapsedMs=(time.perf_counter()-started)*1000,implementationVersions=implementation_versions(),clientEncryptedReplayMs=bridge.replay_seconds*1000,
+                    elapsedMs=(time.perf_counter()-started)*1000,implementationVersions=installed_versions(),clientEncryptedReplayMs=bridge.replay_seconds*1000,
                     evaluatorRoundTripMs=bridge.remote_seconds*1000,sentBytes=bridge.sent,receivedBytes=bridge.received,
                     evaluationKeyBytes=bridge.key_bytes,clientPeakRss=resource.getrusage(resource.RUSAGE_SELF).ru_maxrss,
+                    clientLifetimePeakRssBytes=resource.getrusage(resource.RUSAGE_SELF).ru_maxrss*(1 if platform.system()=='Darwin' else 1024),
                     clientComputation='All nonlinear/attention/embedding/cache/quantization/decoding plus full encrypted replay; not all operations homomorphically evaluated',
                     integrity='Full deterministic replay; no client compute saving or independently reviewed malicious security')
     finally:
@@ -205,6 +209,7 @@ def run(model_dir,cache_dir,prompt,progress=lambda event:None,cancelled=None,dep
 if __name__=='__main__':
     parser=argparse.ArgumentParser()
     parser.add_argument('--model-dir',required=True);parser.add_argument('--cache-dir',required=True)
+    parser.add_argument('--backend-profile',choices=QWEN_PROFILES,default=DEFAULT_PROFILE)
     parser.add_argument('--prepare-only',action='store_true')
     parser.add_argument('--public-fixture',choices=['qwen05b-capital'])
     parser.add_argument('--ssh-deployment')
@@ -218,14 +223,14 @@ if __name__=='__main__':
         from ssh_route import SSHRoute, SSHDeployment
         deployment=SSHDeployment(SSHRoute.from_file(args.ssh_deployment),args.ssh_identity_file,tuple(args.allowed_operator))
     if args.prepare_only:
-        _,_,_,_,plan=prepare(args.model_dir,args.cache_dir)
+        _,_,_,_,plan=prepare(args.model_dir,args.cache_dir,args.backend_profile)
         print(json.dumps(dict(planId=plan.identity,linearProjections=len(plan.definition()['projections']),encryptedTilesPerStep=len(plan.schedule()),available=False)))
     else:
         prompt='The capital of France is' if args.public_fixture=='qwen05b-capital' else sys.stdin.buffer.read(4097).decode('utf-8')
         if len(prompt.encode())>4096:raise ValueError('Bounded client prompt required')
         began=time.perf_counter()
         try:
-            report=run(args.model_dir,args.cache_dir,prompt,deployment=deployment,progress=lambda event:print(json.dumps(event),file=sys.stderr,flush=True))
+            report=run(args.model_dir,args.cache_dir,prompt,deployment=deployment,backend_profile=args.backend_profile,progress=lambda event:print(json.dumps(event),file=sys.stderr,flush=True))
         except BaseException as error:
             print(json.dumps(failure_event(error,(time.perf_counter()-began)*1000)),file=sys.stderr,flush=True)
             raise

@@ -38,6 +38,9 @@ def prepare(directory):
         'm.add_function(wrap_pyfunction!(cpu_matrix_multiplication, m)?)?;\n    m.add_function(wrap_pyfunction!(cpu_prepare_ntt_key, m)?)?;\n    m.add_function(wrap_pyfunction!(cpu_matrix_multiplication_ntt, m)?)?;')
     text+='\n'+(ROOT/'python_api.rs').read_text();p.write_text(text)
     (directory/'rust/src/ntt_cpu.rs').write_bytes((ROOT/'ntt_cpu.rs').read_bytes())
+    lock=(ROOT/'Cargo.lock').read_bytes()
+    if hashlib.sha256(lock).hexdigest()!=POLICY['cargoLockSha256']:raise ValueError('Pinned native dependency lock changed')
+    (directory/'rust/Cargo.lock').write_bytes(lock)
     build_id=hashlib.sha256(json.dumps(POLICY,sort_keys=True).encode()+(ROOT/'ntt_cpu.rs').read_bytes()+(ROOT/'python_api.rs').read_bytes()).hexdigest()
     for name in ['pyproject.toml','src/concrete_ml_extensions/__init__.py']:
         p=directory/name;p.write_text(p.read_text().replace('"0.1.9"','"0.1.9+ntt.1"'))

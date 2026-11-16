@@ -1,0 +1,18 @@
+{
+  "schema": "doppler.native-exact-ntt-measurement-context/v1",
+  "revision": "04ed459671632b23bcf0bee1cb8e555f6282feed",
+  "workflowRun": 43819739489,
+  "artifactId": 14204291404,
+  "artifactZipSha256": "28b3c52cef4d32efb477e77eaeb55ddbb4d20b49a9e0c70ba745f9353f5d3388",
+  "environment": "GitHub-hosted Ubuntu CPU, Rust 1.91.1, four Rayon threads, two build jobs",
+  "evidence": "byte-equivalence.json",
+  "productionBackendAvailable": false,
+  "securityQualified": false,
+  "limitations": [
+    "Eight public native fixtures, one timing observation per geometry; not full-model throughput",
+    "Small output widths regress; no universal speedup claim",
+    "Complete ciphertext byte equivalence is correctness evidence, not independent cryptographic or side-channel review",
+    "Client lifetime peak RSS includes all test cases and keys",
+    "Build policy now pins the retained identical dependency lock; that policy addition changes the source identity and requires a fresh identity-bound build"
+  ]
+}

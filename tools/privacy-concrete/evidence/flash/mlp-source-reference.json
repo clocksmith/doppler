@@ -1,0 +1,23 @@
+{
+  "schema": "doppler.actual-flash-mlp-block-execution/v1",
+  "fixtureId": "flash-first-mlp-block-sine",
+  "scope": "First-layer MLP hyperconnection, shared/router/all-512-expert MoE and residual; excludes attention and Flash generation",
+  "productionBackendAvailable": false,
+  "securityQualified": false,
+  "fullFlashModelExecuted": false,
+  "sourceId": "c7c2d172bd119d394f165abee6e33eda5df9a8fa971b8e4b30894dfa1ae6c4e2",
+  "sourceRevision": "812d96e10a0dd82b69d749e68693698cf6c36daa",
+  "planId": "0dfdd13772b26647e2cfe8191fc4eeb73832a835630deaeca10b830d1f3bec39",
+  "modelId": "822da09baa8de7dcadf03a3143b3f7a031faa046f570cfeda27e5ded2eff0b27",
+  "protocol": "concrete-glwe-flash-mlp-block-replay/v2",
+  "linearModules": 1032,
+  "plannedEncryptedTiles": 2073,
+  "allExpertsVisited": true,
+  "officialSparseReferenceCheckPassed": true,
+  "maxFloatingVsOfficialSparseReferenceError": 7.450580596923828e-09,
+  "encryptedExecutionCompleted": false,
+  "encryptedTiles": 0,
+  "execution": "public-reference",
+  "maxQuantizedVsFloatingError": 0.013162888586521149,
+  "elapsedMs": 84927.66431699999
+}

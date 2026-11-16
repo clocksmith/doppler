@@ -52,3 +52,24 @@ comparison; a dedicated regression uses a nonrepresentable odd sum above 2^24.
 This correction does not alter the encrypted circuit, parameters or verification
 boundary, and does not establish full-model parity by itself. Previously retained
 measurements remain scoped to their exact recorded revisions.
+
+## Explicit exact-arithmetic candidate
+
+`qwen-all-linear-ntt` binds a separate protocol and actual native source/binary
+identities to the same complete 169-module route. The stock-library profile is
+unchanged. This candidate uses the [measured exact NTT arithmetic variant](native-ntt/README.md),
+without changing cryptographic parameters or removing client replay. Eight public
+native cases produced byte-identical original/fast/replay ciphertexts; large
+matrices improved while tiny output widths regressed. Those measurements do not
+establish full-model speed, model quality or security qualification.
+
+`.github/workflows/encrypted-qwen-ntt.yml` builds the pinned CPU source with its
+retained exact dependency lock, repeats the native comparisons, admits the actual
+installed identity, and executes four all-linear model steps. It has a separate
+non-cancelling concurrency group and a three-hour budget; trigger only manually or
+with `[qwen-ntt-e2e]`. The original stock Qwen and Flash MoE runs are neither
+restarted nor cancelled. This is a changed implementation test, not a repeat of
+the unchanged six-hour candidate. Successful full-model output must still be
+collected before claiming this candidate works end to end. Its process-pipe
+execution is not a qualified separate-machine deployment; the existing SSH
+profile does not accept the new protocol.

@@ -144,3 +144,11 @@ authenticated separate-machine execution; and independent cryptographic,
 malformed-input, side-channel and active-adversary review. Full client encrypted
 replay still gives no client compute saving. No attestation or production security
 claim follows from these functional results.
+
+The actual first-layer composed MLP also passed a separate client FP32 comparison
+against the pinned official sparse reference: maximum error
+`7.450580596923828e-09` on the fixed public sine input, visiting all 512 experts.
+The quantized-versus-floating error was `0.013162888586521149` and elapsed time
+84,928 ms. The [retained evidence](evidence/flash/mlp-source-reference.json)
+records zero encrypted tiles: this validates the composed client graph, not
+ciphertext execution, model tokens or a full Flash backend.

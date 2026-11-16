@@ -33,6 +33,12 @@ class FullEvidenceTests(unittest.TestCase):
                 report.write_text(json.dumps(dict(value,**change)))
                 rejected=collect(report,progress,'public-revision')
                 self.assertFalse(rejected['completed']);self.assertNotIn('private-canary',json.dumps(rejected))
+            fast=dict(value,backendProfile='qwen-all-linear-ntt',protocol='concrete-glwe-qwen-all-linear-ntt-replay/v1',implementationVersions={'concrete-ml-extensions':'0.1.9+ntt.1','native-source-id':'d'*64,'native-binary-sha256':'e'*64,'private':'private-canary'})
+            report.write_text(json.dumps(fast));accepted=collect(report,progress,'public-revision')
+            self.assertTrue(accepted['completed']);self.assertEqual(accepted['report']['backendProfile'],'qwen-all-linear-ntt')
+            self.assertEqual(len(accepted['report']['nativeImplementation']),2);self.assertNotIn('private-canary',json.dumps(accepted))
+            for change in [dict(protocol='unknown'),dict(backendProfile={}),dict(protocol=[]),dict(implementationVersions={})]:
+                report.write_text(json.dumps(dict(fast,**change)));self.assertFalse(collect(report,progress,'public-revision')['completed'])
             report.write_text(json.dumps(value));progress.write_text(json.dumps(dict(event='run-failed',failureCode='cancelled'))+'\n')
             self.assertFalse(collect(report,progress,'public-revision')['completed'])
 

@@ -12,6 +12,7 @@ from full_plan import load_plan
 from full_admission import FullRouteAdmission
 from full_status import ExecutionRejected
 from public_weights import bind_public_tiles
+from native_runtime import matrix_evaluator,prepare_evaluator_key
 
 
 class FullBridge:
@@ -28,6 +29,9 @@ class FullBridge:
         self.public_tile_digests=bind_public_tiles(directory,validated)
         self.plan, self.key, self.cancelled, self.observe = bound, key, cancelled, observe
         self.payload_limit=self.plan.definition()['parameters'].get('maxPayloadBytes')
+        self.check_active()
+        self.matrix_multiplication=matrix_evaluator(self.plan)
+        prepare_evaluator_key(self.plan,key)
         self.check_active()
         self.session, data = uuid.uuid4().hex, key.serialize()
         self.check_active()
@@ -74,7 +78,7 @@ class FullBridge:
             self.remote_seconds += time.perf_counter()-start
             self.check_active()
             start = time.perf_counter()
-            expected = ext.cpu_matrix_multiplication(encrypted,matrix,self.key).serialize()
+            expected = self.matrix_multiplication(encrypted,matrix,self.key).serialize()
             self.replay_seconds += time.perf_counter()-start
             self.check_active()
             if not hmac.compare_digest(expected,result):

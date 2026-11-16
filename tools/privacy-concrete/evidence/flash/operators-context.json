@@ -29,6 +29,15 @@
       "artifactZipSha256": "5b840d6eedb53d5724dc8ee37ed16023fa6aabd83d8ee7f4a8080443180a4dfd",
       "result": "failed-quantized-reference-bound",
       "evidence": "hyper-default-precision-failure.json"
+    },
+    {
+      "component": "Actual first-layer complete MLP client FP32 versus pinned sparse source, no encrypted execution",
+      "revision": "72c29c181b303de1d4f65760b38b740407f07e5c",
+      "workflowRun": 43815996564,
+      "artifactId": 14203145553,
+      "artifactZipSha256": "edc7b187069b95297d7cfc17a5f2abed38fa51917566d5f2244fdd3b6fdf5e9b",
+      "result": "success-source-reference-only",
+      "evidence": "mlp-source-reference.json"
     }
   ],
   "environment": "Isolated GitHub-hosted Ubuntu CPU, pinned Python 3.12 / Torch 2.3.1+cpu / Concrete ML 1.9.0 / extensions 0.1.9",

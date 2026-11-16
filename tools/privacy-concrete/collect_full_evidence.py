@@ -7,11 +7,15 @@ import math
 from full_status import FAILURE_CODES
 
 PUBLIC_FIXTURE='qwen05b-capital'
-REPORT_FIELDS=['schema','planId','modelId','executionRouteId','transport','linearProjectionCount','encryptedTileCount','encryptedSteps',
+REPORT_FIELDS=['backendProfile','protocol','clientLifetimePeakRssBytes','schema','planId','modelId','executionRouteId','transport','linearProjectionCount','encryptedTileCount','encryptedSteps',
                'matchesFullQuantizedGreedyReference','floatGreedyMatches','maxLogitErrors','setupMs','stepMs',
                'quantizedReferenceMs','elapsedMs','clientEncryptedReplayMs',
                'evaluatorRoundTripMs','sentBytes','receivedBytes','evaluationKeyBytes','clientPeakRss',
                'clientComputation','integrity']
+QWEN_PROTOCOLS={
+    'qwen-all-linear':{json.loads(Path(__file__).with_name('full-policy.json').read_text())['protocol'],json.loads(Path(__file__).with_name('ssh-policy.json').read_text())['protocol']},
+    'qwen-all-linear-ntt':{json.loads(Path(__file__).with_name('full-ntt-policy.json').read_text())['protocol']}
+}
 PROJECTION=re.compile(r'(?:model\.layers\.(?:[0-9]|1[0-9]|2[0-3])\.(?:self_attn\.[qkvo]_proj|mlp\.(?:gate|up|down)_proj)|lm_head)\Z')
 
 
@@ -34,6 +38,8 @@ def collect(report_path,progress_path,revision):
         try:report=json.loads(Path(report_path).read_text())
         except ValueError:return result
         if not isinstance(report,dict):return result
+        backend=report.get('backendProfile')
+        if backend is not None and (not isinstance(backend,str) or backend not in QWEN_PROTOCOLS or not isinstance(report.get('protocol'),str) or report['protocol'] not in QWEN_PROTOCOLS[backend]):return result
         output=report.get('clientLocalOutputText');tokens=report.get('clientLocalOutputTokens')
         if (failure is None and report.get('schema')=='doppler.full-qwen-hybrid-execution/v1'
                 and all(isinstance(report.get(key),str) and re.fullmatch(r'[0-9a-f]{64}',report[key]) for key in ['planId','modelId'])
@@ -50,6 +56,10 @@ def collect(report_path,progress_path,revision):
                     safe[key]=value
                 elif key in {'planId','modelId','executionRouteId'} and isinstance(value,str) and re.fullmatch(r'[0-9a-f]{64}',value):
                     safe[key]=value
+                elif key=='backendProfile' and isinstance(value,str) and value in QWEN_PROTOCOLS:
+                    safe[key]=value
+                elif key=='protocol' and isinstance(backend,str) and backend in QWEN_PROTOCOLS and isinstance(value,str) and value in QWEN_PROTOCOLS[backend]:
+                    safe[key]=value
                 elif key=='transport' and value in ['local-process','ssh-ed25519-pinned']:
                     safe[key]=value
                 elif key in numeric_arrays and isinstance(value,list) and len(value)<=4 and all(isinstance(item,(int,float)) and math.isfinite(item) for item in value):
@@ -64,6 +74,10 @@ def collect(report_path,progress_path,revision):
             if not isinstance(versions,dict):versions={}
             dependencies=['concrete-ml','concrete-ml-extensions','concrete-python','torch','transformers','numpy']
             safe['implementationVersions']={key:versions[key] for key in dependencies if isinstance(versions.get(key),str) and re.fullmatch(r'[0-9][0-9A-Za-z.+_-]{0,63}',versions[key])}
+            native_ids={key:versions[key] for key in ['native-source-id','native-binary-sha256'] if isinstance(versions.get(key),str) and re.fullmatch(r'[0-9a-f]{64}',versions[key])}
+            if backend=='qwen-all-linear-ntt':
+                if len(native_ids)!=2:return result
+                safe['nativeImplementation']=native_ids
             result.update(completed=True,report=safe,
                           publicFixtureOutputText=report['clientLocalOutputText'],publicFixtureOutputTokens=report['clientLocalOutputTokens'])
 

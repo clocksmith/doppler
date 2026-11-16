@@ -10,6 +10,7 @@ POLICY=json.loads((ROOT/'build-policy.json').read_text())
 
 
 def check(path):
+    if hashlib.sha256(Path(path).read_bytes()).hexdigest()!=POLICY['cargoLockSha256']:raise ValueError('Exact retained native dependency lock required')
     value=tomllib.loads(Path(path).read_text())
     ntt=[package for package in value['package'] if package['name']=='tfhe-ntt' and package['version']==POLICY['nttCrate']['version']]
     if len(ntt)!=1 or ntt[0]['checksum']!=POLICY['nttCrate']['sha256']:raise ValueError('Exact NTT dependency checksum required')

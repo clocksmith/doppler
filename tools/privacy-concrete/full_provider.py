@@ -3,6 +3,7 @@ import sys
 import numpy as np
 import concrete_ml_extensions as ext
 from protocol import check, digest, receive, send
+from native_runtime import matrix_evaluator,prepare_evaluator_key
 
 
 def serve():
@@ -16,6 +17,7 @@ def serve():
         route=SSHRoute.from_file(args.ssh_route[0])
         if route.identity!=args.ssh_route[1]:raise ValueError('SSH route identity changed')
         plan=route.bind(plan,(route.definition()['operatorId'],))
+    evaluate=matrix_evaluator(plan)
     timeout=plan.definition()['operationTimeoutSeconds']
     payload_limit=plan.definition()['parameters'].get('maxPayloadBytes')
     source, target = sys.stdin.buffer.raw, sys.stdout.buffer.raw
@@ -25,6 +27,7 @@ def serve():
     if digest(data) != key_id or len(session) != 32:
         raise ValueError('Invalid key context')
     key = ext.CpuCompressionKey.deserialize(data)
+    prepare_evaluator_key(plan,key)
     send(target, plan.frame(session, key_id, 0, 'ready'),timeout=timeout,max_payload_bytes=payload_limit)
     weights = {row['name']: np.memmap(f"{directory}/{row['weightId']}.i8", dtype=np.int8, mode='r',
                                      shape=(row['inputWidth'],row['outputWidth'])) for row in plan.definition()['projections']}
@@ -35,7 +38,7 @@ def serve():
             check(header, plan.frame(session, key_id, sequence, 'evaluate', tile['id']))
             encrypted = ext.EncryptedMatrix.deserialize(data)
             matrix = np.ascontiguousarray(weights[tile['name']][tile['inputBegin']:tile['inputEnd'],tile['outputBegin']:tile['outputEnd']], dtype=np.int64).astype(np.uint64)
-            result = ext.cpu_matrix_multiplication(encrypted, matrix, key)
+            result = evaluate(encrypted, matrix, key)
             send(target, plan.frame(session, key_id, sequence, 'result', tile['id']), result.serialize(),timeout=timeout,max_payload_bytes=payload_limit)
             sequence += 1
     header, data, _ = receive(source,timeout=timeout,max_payload_bytes=payload_limit)
