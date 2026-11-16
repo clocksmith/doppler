@@ -11,15 +11,19 @@ Flash generation, independent malicious-security review or trusted hardware.
 | Fixed public expert 0 | First-layer gate/up/down | Four encrypted tiles and quantized-reference check passed |
 | First-layer DeltaNet | Five projections, convolution, norm and recurrence | Four cached component steps; 104 encrypted tiles passed |
 | MLP hyperconnection | Three projections and grouped norm | Four identity-block feedback updates; 60 encrypted tiles passed under a separately versioned precision profile |
-| Complete first-layer MoE | Shared/router and all 512 experts | 1,029 encrypted modules / 2,058 tiles implemented; original encrypted run still pending |
+| Complete first-layer MoE | Shared/router and all 512 experts | 1,029 encrypted modules / 2,058 tiles implemented; stock reached six-hour limit; distinct native NTT attempt running |
 | Complete first-layer MLP branch | Hyperconnection plus all-expert MoE and residual | 1,032 modules / 2,073 planned tiles composed; actual FP32 sparse-source comparison is separate; full ciphertext composition not yet run |
 | Full attention / QSA | Five actual layer-3 projections and client normalization | Four cached public-input steps; 96 encrypted tiles passed under a distinct NTT profile; no token generation |
 | Ngram / PLE | Small local-table FP32 source fixtures | EOS-aware cached updates, local lookup and history isolation checks passed; actual Flash table unsupported |
 
-The [dense Qwen attempts](FULL-QWEN.md) remain separate: stock exhausted its
-six-hour budget, and default NTT failed the third-step numerical gate after 1,161
-verified tiles. A separately bound high-precision correction is being qualified.
-Component results cannot substitute for complete full-model output.
+The [dense Qwen results](FULL-QWEN.md) remain separate: stock exhausted its
+six-hour budget, and both int8 NTT variants failed the third-step numerical gate
+after 1,161 verified tiles. The distinct twelve-bit profile completed all 24
+Qwen2.5-0.5B decoder layers plus head over four autoregressive steps and 1,548
+encrypted tiles, matching greedy reference tokens on one public prompt. This is
+full small-Qwen hybrid functional evidence, with client nonlinear operations and
+full replay/reference validation; it does not establish full Flash output or
+cryptographic qualification. Component results cannot substitute for either.
 
 ## Actual measured components
 
@@ -122,11 +126,11 @@ declared transforms, not an unmodified upstream runtime claim.
 
 QSA currently admits only bounded FP32 eager execution with an explicit rotary
 width. Boolean, noncausal and fully masked query rows fail before projection.
-PLE currently admits only a complete locally materialized embedding under an
-explicit pre-allocation budget. It has no remote row-fetch/cache-miss fallback.
-The actual huge table and checkpoint shard-to-logical-row mapping remain
-unqualified; a mapped-table implementation must verify complete local shards and
-row mapping before accepting private tokens.
+PLE admits an explicitly budgeted materialized embedding or a mapped row store
+that verifies all complete local shards before accepting private token indices.
+Neither path has a remote row-fetch/cache-miss fallback. The checkpoint
+shard-to-logical-row mapping is now source-pinned and fixture-tested below, but
+the actual huge table has not been provisioned or executed.
 
 ## Running and remaining qualification
 
@@ -138,11 +142,13 @@ raw vectors, source weights, private caches and raw diagnostics are excluded.
 `flash_mlp.py` requires an explicit `public-reference` or `encrypted` mode and a
 pinned `--reference-source`. Clear mode cannot report encrypted completion. Its
 actual FP32 sparse-source gate runs before key generation. Full ciphertext MLP
-composition has not been launched while the original all-expert job is pending.
+composition has not been launched; the stock all-expert job exhausted its budget
+and its distinct native NTT candidate remains in progress.
 
-Remaining gates include the two original complete runs; whole-model weights and
-ngram mapping; all-layer/cache/tokenizer/rotary and autoregressive integration;
-actual-weight full attention/PLE qualification; model-quality and cost evidence;
+Remaining gates include the changed native all-expert run; complete Flash weight
+provisioning and actual mapped-table qualification; actual-weight all-layer
+assembly and encrypted autoregression; complete-model quantization, quality and
+cost evidence;
 authenticated separate-machine execution; and independent cryptographic,
 malformed-input, side-channel and active-adversary review. Full client encrypted
 replay still gives no client compute saving. No attestation or production security
