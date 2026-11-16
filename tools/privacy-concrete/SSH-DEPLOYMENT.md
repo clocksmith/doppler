@@ -1,6 +1,6 @@
 # Authenticated research evaluator interface
 
-The all-linear client can use an explicitly configured OpenSSH endpoint instead of spawning its evaluator locally. This interface installs nothing and transfers no repository source. It does not authorize any connection or deployment to Jupiter, and the prior Jupiter source-transfer denial remains unresolved.
+The all-linear client can use an explicitly configured OpenSSH endpoint instead of spawning its evaluator locally. This interface installs nothing and transfers no repository source. It does not provision or authorize a host connection; use an independently authorized endpoint.
 
 The client requires a locally supplied route manifest, an explicit private SSH identity file and a requester operator allowlist. The manifest pins one Ed25519 host key, host/port/account, exact base model/plan/protocol and pre-provisioned interpreter/provider/cache/manifest paths. Its immutable identity includes the SSH policy and is bound into every encrypted frame. Endpoint, key, participant or executable-path changes produce a different route; no local fallback or retry is selected after failure.
 
@@ -46,3 +46,31 @@ cryptographic security. All candidates retain full trusted-client replay and
 production admission remains closed. A genuine separate-machine execution still
 requires an authorized, independently provisioned endpoint and matching complete
 source/binary/model identities.
+
+
+## Prepare an exact route from an installed cache
+
+`ssh_route.py` derives the base plan, model and backend protocol from the same
+installed cache loader used by execution. Supply a private endpoint JSON containing
+exactly `operatorId`, `host`, `port`, `user`, `hostKey`, `remotePython`,
+`remoteProvider`, `remoteCache` and `remoteManifest`. These are the endpoint fields
+described above; `hostKey` must be an independently authenticated Ed25519 key.
+Do not put credentials in this file or supply model/plan identity overrides.
+
+```sh
+python tools/privacy-concrete/ssh_route.py \
+  --cache-dir /client/prepared-qwen-cache \
+  --backend-profile qwen-all-linear-ntt12 \
+  --endpoint /client/pinned-endpoint.json \
+  --allowed-operator research-provider \
+  --output /client/prepared-route.json
+```
+
+Endpoint syntax and requester permission are checked before cache admission.
+The command creates a version-two manifest with mode `0600`, refuses to replace
+an existing file or symlink, and prints only its route identity and research
+status. It connects nowhere and reads no private SSH identity. Place the resulting
+manifest on the independently provisioned evaluator at its declared path, then
+use it with the client invocation above and the same backend profile. Creating
+a manifest provides neither endpoint appraisal nor cryptographic qualification;
+execution still rechecks the complete plan and requester binding.

@@ -1,4 +1,5 @@
 """Explicit, pinned SSH endpoint; no source installation, ambient SSH config or plaintext fallback."""
+import argparse
 import base64
 from dataclasses import dataclass
 import hashlib
@@ -11,13 +12,13 @@ import struct
 import subprocess
 import tempfile
 from full_plan import FULL_POLICY, canonical
-from plan_backends import DEFAULT_PROFILE,qwen_backend
+from plan_backends import DEFAULT_PROFILE,QWEN_PROFILES,qwen_backend
 from protocol import digest, parse_unique_json
 
 POLICY=json.loads(Path(__file__).with_name('ssh-policy.json').read_text())
 POLICY_V2=json.loads(Path(__file__).with_name('ssh-v2-policy.json').read_text())
-FIELDS={'schema','operatorId','host','port','user','hostKey','basePlanId','modelId','backendProtocol',
-        'remotePython','remoteProvider','remoteCache','remoteManifest'}
+ENDPOINT_FIELDS=frozenset({'operatorId','host','port','user','hostKey','remotePython','remoteProvider','remoteCache','remoteManifest'})
+FIELDS=ENDPOINT_FIELDS|{'schema','basePlanId','modelId','backendProtocol'}
 SHA=re.compile(r'[0-9a-f]{64}\Z')
 
 
@@ -52,27 +53,39 @@ def route_backend(value):
     return profile,settings
 
 
-def validate(value):
-    policy=route_policy(value)
-    fields=FIELDS if policy is POLICY else FIELDS|{'backendProfile'}
-    if set(value)!=fields:
-        raise ValueError('Exact versioned encrypted SSH route required')
+def valid_operator(value):return isinstance(value,str) and re.fullmatch(r'[A-Za-z0-9_.:@/-]{1,128}',value) is not None
+
+
+def require_operator(operator,allowed_operators):
+    if (not isinstance(allowed_operators,tuple) or not all(valid_operator(value) for value in allowed_operators)
+            or operator not in allowed_operators):
+        raise ValueError('SSH operator is not explicitly allowed by this requester')
+
+
+def validate_endpoint(value):
     if (not isinstance(value['host'],str) or not re.fullmatch(r'[a-z0-9](?:[a-z0-9.-]{0,251}[a-z0-9])?',value['host'])
             or '..' in value['host'] or type(value['port']) is not int or not 1<=value['port']<=65535
             or not isinstance(value['user'],str) or not re.fullmatch(r'[a-z_][a-z0-9_-]{0,63}',value['user'])
-            or not isinstance(value['operatorId'],str) or not re.fullmatch(r'[A-Za-z0-9_.:@/-]{1,128}',value['operatorId'])):
+            or not valid_operator(value['operatorId'])):
         raise ValueError('Bounded explicit SSH endpoint and operator required')
-    for key in ['basePlanId','modelId']:
-        if not isinstance(value[key],str) or not SHA.fullmatch(value[key]):
-            raise ValueError('Exact SSH model and plan identities required')
-    if value['backendProtocol']!=route_backend(value)[1]['protocol']:
-        raise ValueError('Unsupported SSH evaluator protocol')
     public_key(value['hostKey'])
     for key in ['remotePython','remoteProvider','remoteCache','remoteManifest']:
         path=value[key]
         if (not isinstance(path,str) or len(path)>1024 or not re.fullmatch(r'/[A-Za-z0-9_./-]+',path)
                 or path=='/' or str(PurePosixPath(path))!=path or '..' in PurePosixPath(path).parts):
             raise ValueError('Canonical pre-provisioned remote paths required')
+
+
+def validate(value):
+    policy=route_policy(value)
+    fields=FIELDS if policy is POLICY else FIELDS|{'backendProfile'}
+    if set(value)!=fields:raise ValueError('Exact versioned encrypted SSH route required')
+    validate_endpoint(value)
+    for key in ['basePlanId','modelId']:
+        if not isinstance(value[key],str) or not SHA.fullmatch(value[key]):
+            raise ValueError('Exact SSH model and plan identities required')
+    if value['backendProtocol']!=route_backend(value)[1]['protocol']:
+        raise ValueError('Unsupported SSH evaluator protocol')
     return canonical(value)
 
 
@@ -90,14 +103,38 @@ class SSHRoute:
         value=parse_unique_json(Path(path).read_bytes())
         return cls(validate(value))
 
+    @classmethod
+    def for_cache(cls,directory,profile,endpoint,allowed_operators):
+        """Derive identities from an installed validated cache, without connecting."""
+        if not isinstance(endpoint,dict) or set(endpoint)!=ENDPOINT_FIELDS:
+            raise ValueError('Exact explicit SSH endpoint fields required')
+        validate_endpoint(endpoint)
+        require_operator(endpoint['operatorId'],allowed_operators)
+        settings,load,_,_=qwen_backend(profile)
+        plan=load(directory)
+        value=dict(endpoint,schema=POLICY_V2['routeSchema'],backendProfile=profile,backendProtocol=settings['protocol'],
+                   basePlanId=plan.identity,modelId=plan.definition()['modelId'])
+        route=cls(validate(value));route.bind(plan,allowed_operators)
+        return route
+
+    def write_file(self,path):
+        """Private create-only publication; never overwrite an existing route."""
+        target=Path(path);temporary=None
+        try:
+            with tempfile.NamedTemporaryFile(dir=target.parent,prefix='.encrypted-route-',delete=False) as handle:
+                temporary=Path(handle.name)
+                os.fchmod(handle.fileno(),0o600);handle.write(self.encoded);handle.flush();os.fsync(handle.fileno())
+            os.link(temporary,target)
+        finally:
+            if temporary is not None:temporary.unlink(missing_ok=True)
+
     def definition(self):return json.loads(self.encoded)
 
     @property
     def identity(self):return digest(canonical(dict(policy=route_policy(self.definition()),route=self.definition())))
 
     def require_requester(self,allowed_operators):
-        if not isinstance(allowed_operators,tuple) or self.definition()['operatorId'] not in allowed_operators:
-            raise ValueError('SSH operator is not explicitly allowed by this requester')
+        require_operator(self.definition()['operatorId'],allowed_operators)
 
     def bind(self,plan,allowed_operators):
         value=self.definition()
@@ -189,3 +226,21 @@ class SSHDeployment:
         except BaseException:
             directory.cleanup()
             raise
+
+
+def prepare_route(arguments):
+    parser=argparse.ArgumentParser(description='Prepare a private pinned research route; never connect or provision a host.')
+    parser.add_argument('--cache-dir',required=True);parser.add_argument('--backend-profile',required=True,choices=QWEN_PROFILES)
+    parser.add_argument('--endpoint',required=True);parser.add_argument('--allowed-operator',required=True,action='append')
+    parser.add_argument('--output',required=True)
+    args=parser.parse_args(arguments)
+    endpoint=parse_unique_json(Path(args.endpoint).read_bytes())
+    route=SSHRoute.for_cache(args.cache_dir,args.backend_profile,endpoint,tuple(args.allowed_operator))
+    route.write_file(args.output)
+    return route
+
+
+if __name__=='__main__':
+    import sys
+    route=prepare_route(sys.argv[1:])
+    print(json.dumps(dict(schema=route.definition()['schema'],routeId=route.identity,productionBackendAvailable=False)))

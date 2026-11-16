@@ -5,11 +5,11 @@ from pathlib import Path
 import struct
 import tempfile
 import unittest
-from unittest.mock import patch
+from unittest.mock import patch,Mock
 from types import SimpleNamespace
 from full_plan import FullPlan, canonical, PROTOCOL
 from protocol import check
-from ssh_route import SSHRoute, SSHDeployment, public_key, validate
+from ssh_route import SSHRoute, SSHDeployment, public_key, validate, ENDPOINT_FIELDS, prepare_route
 
 
 def fixture(**overrides):
@@ -23,6 +23,70 @@ def fixture(**overrides):
 
 
 class SSHRouteTests(unittest.TestCase):
+    def test_route_preparation_derives_complete_cache_binding_and_preserves_backend(self):
+        from plan_backends import QWEN_PROFILES,qwen_backend
+        base,value=fixture();endpoint={name:value[name] for name in ENDPOINT_FIELDS}
+        for profile in QWEN_PROFILES:
+            settings,_,_,_=qwen_backend(profile)
+            plan=SimpleNamespace(identity=base.identity,protocol_id=settings['protocol'],definition=base.definition)
+            load=Mock(return_value=plan)
+            with patch('ssh_route.qwen_backend',return_value=(settings,load,None,None)),patch('ssh_route.subprocess.Popen') as spawn:
+                route=SSHRoute.for_cache('installed-cache',profile,endpoint,('research-provider',))
+                load.assert_called_once_with('installed-cache');spawn.assert_not_called()
+            actual=route.definition()
+            self.assertEqual(actual['basePlanId'],base.identity);self.assertEqual(actual['modelId'],'b'*64)
+            self.assertEqual(actual['backendProfile'],profile);self.assertEqual(actual['backendProtocol'],settings['protocol'])
+            self.assertEqual(actual['schema'],'doppler.encrypted-ssh-route/v2')
+            original_key=endpoint['hostKey']['base64'];endpoint['host']='different.invalid';endpoint['hostKey']['base64']='changed'
+            self.assertEqual(route.definition()['host'],'provider.invalid')
+            self.assertEqual(route.definition()['hostKey']['base64'],original_key)
+            endpoint['host']='provider.invalid';endpoint['hostKey']['base64']=original_key
+
+    def test_route_preparation_rejects_disallowed_or_malformed_endpoint_before_cache_or_process(self):
+        _,value=fixture();endpoint={name:value[name] for name in ENDPOINT_FIELDS}
+        for endpoint_value,allowed in [(endpoint,()),(dict(endpoint,host='-oProxyCommand=evil'),('research-provider',)),
+                (dict(endpoint,attested=True),('research-provider',)),(dict(endpoint,basePlanId='a'*64),('research-provider',)),
+                (endpoint,('research-provider',None))]:
+            with patch('ssh_route.qwen_backend') as backend,patch('ssh_route.subprocess.Popen') as spawn:
+                with self.assertRaises(ValueError):SSHRoute.for_cache('unused','qwen-all-linear',endpoint_value,allowed)
+                backend.assert_not_called();spawn.assert_not_called()
+        with self.assertRaises(ValueError):SSHRoute.for_cache('unused','advertised-backend',endpoint,('research-provider',))
+
+    def test_private_route_output_is_atomic_create_only_and_preserves_existing_symlink(self):
+        import stat
+        _,value=fixture();route=SSHRoute(validate(value))
+        with tempfile.TemporaryDirectory() as directory:
+            target=Path(directory)/'route.json';route.write_file(target)
+            self.assertEqual(stat.S_IMODE(target.stat().st_mode),0o600)
+            self.assertEqual(SSHRoute.from_file(target),route)
+            with self.assertRaises(FileExistsError):route.write_file(target)
+            alias=Path(directory)/'alias.json';alias.symlink_to(target)
+            with self.assertRaises(FileExistsError):route.write_file(alias)
+            self.assertTrue(alias.is_symlink());self.assertEqual(target.read_bytes(),route.encoded)
+            self.assertEqual(set(path.name for path in Path(directory).iterdir()),{'route.json','alias.json'})
+            with patch('ssh_route.os.link',side_effect=OSError('simulated publication failure')):
+                with self.assertRaises(OSError):route.write_file(Path(directory)/'failed.json')
+            self.assertEqual(set(path.name for path in Path(directory).iterdir()),{'route.json','alias.json'})
+
+    def test_preparation_cli_uses_duplicate_rejecting_input_and_never_reads_credentials(self):
+        from plan_backends import qwen_backend
+        plan,value=fixture();endpoint={name:value[name] for name in ENDPOINT_FIELDS}
+        settings,_,_,_=qwen_backend('qwen-all-linear')
+        with tempfile.TemporaryDirectory() as directory:
+            source=Path(directory)/'endpoint.json';target=Path(directory)/'route.json'
+            arguments=['--cache-dir','installed','--backend-profile','qwen-all-linear','--endpoint',str(source),
+                       '--allowed-operator','research-provider','--output',str(target)]
+            source.write_text(json.dumps(endpoint)[:-1]+',"host":"replacement.invalid"}')
+            with patch('ssh_route.qwen_backend') as backend:
+                with self.assertRaises(ValueError):prepare_route(arguments)
+                backend.assert_not_called();self.assertFalse(target.exists())
+            source.write_text(json.dumps(endpoint))
+            with patch('ssh_route.qwen_backend',return_value=(settings,Mock(return_value=plan),None,None)), \
+                 patch.object(SSHDeployment,'private_identity',side_effect=AssertionError('credential access')), \
+                 patch('ssh_route.subprocess.Popen') as spawn:
+                route=prepare_route(arguments);spawn.assert_not_called()
+            self.assertEqual(route,SSHRoute.from_file(target))
+
     def test_complete_endpoint_route_is_immutable_and_bound_before_disclosure(self):
         plan,value=fixture();route=SSHRoute(validate(value))
         bound=route.bind(plan,('research-provider',))
