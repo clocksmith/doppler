@@ -9,7 +9,7 @@ import tempfile
 import unittest
 from unittest.mock import patch
 from full_plan import tiles
-from public_weights import bind_public_tiles,PreparedPublicTiles,PUBLIC_TILE_BINDING_INTERFACE,PublicTileReader
+from public_weights import bind_public_tiles,PreparedPublicTiles,PUBLIC_TILE_BINDING_INTERFACE,PublicTileReader,store_public_matrix
 from protocol import digest
 
 
@@ -180,6 +180,88 @@ class PublicTileReaderTests(unittest.TestCase):
                     reader.read(tiles(rows[0],2,3)[0]);active=reader.handle
                     raise RuntimeError('cancelled owner')
             self.assertTrue(active.closed);self.assertEqual(set(Path(directory).iterdir()),paths)
+
+
+class PublicMatrixStoreTests(unittest.TestCase):
+    def store(self,directory,payload=b'abcdef',**changes):
+        arguments=dict(name='public',input_width=2,output_width=3,parameters={},payload=payload)
+        arguments.update(changes)
+        return store_public_matrix(directory,**arguments)
+
+    def test_content_addressed_install_reuse_and_explicit_regeneration(self):
+        for payload,parameters,suffix in [(b'abcdef',{},'.i8'),(struct.pack('<6h',-2048,-17,0,1,127,2047),dict(weightEncoding='signed-int12-in-int16',quantizationBits=12),'.i16')]:
+            with tempfile.TemporaryDirectory() as directory:
+                path,row=self.store(directory,payload,parameters=parameters)
+                self.assertEqual(path.name,digest(payload)+suffix);self.assertEqual(path.read_bytes(),payload)
+                self.assertEqual(row,dict(name='public',inputWidth=2,outputWidth=3,weightId=digest(payload)))
+                with patch('public_weights.tempfile.NamedTemporaryFile',side_effect=AssertionError('valid cache rewritten')):
+                    self.assertEqual(self.store(directory,payload,parameters=parameters),(path,row))
+                path.unlink() # Public preparation can explicitly recreate an evicted entry.
+                self.assertEqual(self.store(directory,payload,parameters=parameters),(path,row))
+                self.assertEqual(path.read_bytes(),payload);self.assertEqual(set(Path(directory).iterdir()),{path})
+
+    def test_invalid_encoding_geometry_or_ownership_rejects_before_filesystem(self):
+        for changes in [dict(input_width=True),dict(output_width=0),dict(name=''),dict(payload=bytearray(b'abcdef')),dict(payload=b'short'),dict(parameters=dict(weightEncoding='unqualified'))]:
+            with patch('public_weights.tempfile.NamedTemporaryFile',side_effect=AssertionError('invalid cache wrote a file')),patch.object(Path,'exists',side_effect=AssertionError('invalid cache accessed filesystem')):
+                with self.assertRaises(ValueError):self.store('/unused',**changes)
+
+    def test_existing_corruption_and_symlinks_are_preserved_and_rejected(self):
+        with tempfile.TemporaryDirectory() as directory:
+            path,row=self.store(directory);path.write_bytes(b'broken')
+            with self.assertRaises(ValueError):self.store(directory)
+            self.assertEqual(path.read_bytes(),b'broken')
+            path.unlink();other=Path(directory)/'unrelated';other.write_bytes(b'abcdef');path.symlink_to(other)
+            with self.assertRaises(ValueError):self.store(directory)
+            self.assertTrue(path.is_symlink());self.assertEqual(other.read_bytes(),b'abcdef')
+
+    def test_write_or_install_failure_cleans_only_its_owned_temporary_file(self):
+        for failure in ['write','install']:
+            with tempfile.TemporaryDirectory() as directory:
+                sibling=Path(directory)/'unrelated';sibling.write_bytes(b'preserve')
+                from tempfile import NamedTemporaryFile
+                class InterruptedFile:
+                    def __init__(self,*args,**kwargs):self.handle=NamedTemporaryFile(*args,**kwargs);self.name=self.handle.name
+                    def __enter__(self):return self
+                    def __exit__(self,*args):return self.handle.__exit__(*args)
+                    def write(self,chunk):raise InterruptedError('cancelled public preparation')
+                name='public_weights.tempfile.NamedTemporaryFile' if failure=='write' else 'public_weights.os.link'
+                replacement=InterruptedFile if failure=='write' else lambda *args:(_ for _ in ()).throw(OSError('link rejected'))
+                with patch(name,side_effect=replacement):
+                    with self.assertRaises(OSError):self.store(directory)
+                self.assertEqual(set(Path(directory).iterdir()),{sibling});self.assertEqual(sibling.read_bytes(),b'preserve')
+
+    def test_concurrent_identical_writers_share_one_complete_cache_entry(self):
+        from concurrent.futures import ThreadPoolExecutor
+        import os
+        import threading
+        with tempfile.TemporaryDirectory() as directory:
+            barrier=threading.Barrier(2);link=os.link
+            def race(source,target):barrier.wait(timeout=5);return link(source,target)
+            with patch('public_weights.os.link',side_effect=race),ThreadPoolExecutor(max_workers=2) as pool:
+                futures=[pool.submit(self.store,directory) for _index in range(2)]
+                results=[future.result(timeout=10) for future in futures]
+            self.assertEqual(results[0],results[1]);path,_row=results[0]
+            self.assertEqual(path.read_bytes(),b'abcdef');self.assertEqual(set(Path(directory).iterdir()),{path})
+
+    def test_content_verification_accepts_only_harmless_link_metadata_changes(self):
+        import hashlib
+        import os
+        with tempfile.TemporaryDirectory() as directory:
+            path,_row=self.store(directory);original=hashlib.file_digest
+            def verify(handle,algorithm):
+                alias=Path(directory)/'owned-link';os.link(path,alias);alias.unlink()
+                return original(handle,algorithm)
+            with patch('public_weights.hashlib.file_digest',side_effect=verify):
+                self.assertEqual(self.store(directory)[0],path)
+            self.assertEqual(path.read_bytes(),b'abcdef')
+
+    def test_conflicting_concurrent_entry_is_never_overwritten(self):
+        with tempfile.TemporaryDirectory() as directory:
+            def conflict(source,target):Path(target).write_bytes(b'broken');raise FileExistsError('raced cache')
+            with patch('public_weights.os.link',side_effect=conflict):
+                with self.assertRaises(ValueError):self.store(directory)
+            path=Path(directory)/(digest(b'abcdef')+'.i8')
+            self.assertEqual(path.read_bytes(),b'broken');self.assertEqual(set(Path(directory).iterdir()),{path})
 
 
 if __name__=='__main__':unittest.main()

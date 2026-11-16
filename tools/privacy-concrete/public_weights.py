@@ -9,6 +9,7 @@ from contextlib import contextmanager
 from dataclasses import dataclass
 import hashlib
 import os
+import tempfile
 from pathlib import Path
 from types import MappingProxyType
 from full_plan import canonical,tiles
@@ -19,12 +20,18 @@ from source_snapshot import file_signature
 PUBLIC_TILE_BINDING_INTERFACE='doppler.public-tile-binding/v1'
 
 
-def projection_schedule(row,definition):
+def validate_public_projection(row):
     if (not isinstance(row,dict) or set(row)!={'name','weightId','inputWidth','outputWidth'}
             or not isinstance(row['name'],str) or not row['name']
             or not isinstance(row['weightId'],str) or len(row['weightId'])!=64
             or any(char not in '0123456789abcdef' for char in row['weightId'])):
         raise ValueError('Exact public projection identity required')
+    if any(type(row[key]) is not int or row[key]<=0 for key in ['inputWidth','outputWidth']):
+        raise ValueError('Explicit positive public projection geometry required')
+
+
+def projection_schedule(row,definition):
+    validate_public_projection(row)
     return tiles(row,definition['inputTileWidth'],definition['outputTileWidth'])
 
 
@@ -163,6 +170,13 @@ class PublicTileReader:
             raise
 
 
+def coefficient_signature(path):
+    # Atomic cache publication uses a temporary hard link. Removing that owned
+    # link changes ctime without changing content; bind inode/size/mtime instead.
+    # Whole-file admission and before-disclosure tile digests remain required.
+    return file_signature(path)[:4]
+
+
 @contextmanager
 def mapped_public_matrix(path,shape,dtype):
     """Borrow one read-only matrix for this scope; copies may outlive the mapping.
@@ -176,13 +190,50 @@ def mapped_public_matrix(path,shape,dtype):
             or any(type(width) is not int or width<=0 for width in shape)
             or np.dtype(dtype) not in [np.dtype('int8'),np.dtype('<i2')]):
         raise ValueError('Explicit signed public matrix geometry/encoding required')
-    path=Path(path);before=file_signature(path)
+    path=Path(path);before=coefficient_signature(path)
     if before[2]!=shape[0]*shape[1]*np.dtype(dtype).itemsize:
         raise ValueError('Public matrix cache geometry changed')
     matrix=np.memmap(path,dtype=dtype,mode='r',shape=shape)
     try:
-        if file_signature(path)!=before:raise ValueError('Public matrix changed while opening')
+        if coefficient_signature(path)!=before:raise ValueError('Public matrix changed while opening')
         yield matrix
     finally:
         matrix._mmap.close()
-        if file_signature(path)!=before:raise ValueError('Public matrix changed while in use')
+        if coefficient_signature(path)!=before:raise ValueError('Public matrix changed while in use')
+
+
+def store_public_matrix(directory,name,input_width,output_width,parameters,payload):
+    """Install complete trusted public coefficients without replacing existing data.
+
+    Only public weight preparation calls this owner. An existing cache must match;
+    concurrent identical writers share it. Partial writes stay under an owned
+    temporary name and cannot become a content-addressed cache entry.
+    """
+    encoding=weight_encoding(parameters)
+    if not isinstance(payload,bytes):raise ValueError('Owned immutable public coefficient bytes required')
+    row=dict(name=name,inputWidth=input_width,outputWidth=output_width,weightId=digest(payload))
+    validate_public_projection(row)
+    if len(payload)!=input_width*output_width*encoding['bytes']:
+        raise ValueError('Complete public coefficient matrix required')
+    path=Path(directory)/(row['weightId']+encoding['suffix'])
+    def verify_existing():
+        if path.is_symlink() or not path.is_file():raise ValueError('Regular public coefficient cache required')
+        before=coefficient_signature(path)
+        with path.open('rb') as handle:actual=hashlib.file_digest(handle,'sha256').hexdigest()
+        if before[2]!=len(payload) or actual!=row['weightId'] or coefficient_signature(path)!=before:
+            raise ValueError('Public coefficient cache corruption')
+    if path.exists():
+        verify_existing();return path,row
+    temporary=None
+    try:
+        with tempfile.NamedTemporaryFile(dir=path.parent,prefix='.'+row['weightId']+'.',suffix='.partial',delete=False) as handle:
+            temporary=Path(handle.name)
+            view=memoryview(payload)
+            for begin in range(0,len(view),1024*1024):
+                chunk=view[begin:begin+1024*1024]
+                if handle.write(chunk)!=len(chunk):raise OSError('Incomplete public coefficient write')
+        try:os.link(temporary,path) # Atomic create-only publication on the same filesystem.
+        except FileExistsError:verify_existing()
+        return path,row
+    finally:
+        if temporary is not None:temporary.unlink(missing_ok=True)

@@ -206,6 +206,7 @@ class StreamedFlashMoETests(unittest.TestCase):
                     try:
                         with mapped_public_matrix(path,(5,3),dtype) as matrix:
                             self.assertFalse(matrix.flags.writeable);owned=np.array(matrix,copy=True)
+                            alias=path.with_suffix('.owned-link');os.link(path,alias);alias.unlink()
                             if fail:raise RuntimeError('cancelled computation')
                     except RuntimeError:
                         if not fail:raise

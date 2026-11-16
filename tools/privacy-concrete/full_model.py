@@ -16,7 +16,7 @@ from transformers.cache_utils import DynamicCache
 from concrete.ml.quantization.linear_op_glwe_backend import GLWELinearLayerExecutor
 import concrete_ml_extensions as ext
 from full_bridge import FullBridge
-from public_weights import mapped_public_matrix
+from public_weights import mapped_public_matrix,store_public_matrix
 from full_status import ExecutionRejected, failure_event
 from verified_execution import complete_verified_route,VALIDATION_BOUNDARY
 from public_qwen_fixtures import PUBLIC_FIXTURES
@@ -41,12 +41,8 @@ class FullLinear(nn.Module):
         quantized, self.scale, self.zero_point, self.sum_weights = executor._per_channel_weight_quantization(weight,self.context,torch.device('cpu'))
         data = np.ascontiguousarray(quantized.numpy(),dtype=self.encoding['dtype'])
         if not np.array_equal(data,quantized.numpy()):raise ValueError('Quantized public coefficient truncation')
-        weight_id = digest(data.tobytes())
-        path = Path(directory)/(weight_id+self.encoding['suffix'])
-        if not path.exists():
-            path.write_bytes(data.tobytes())
-        self.definition = dict(name=name,inputWidth=source.in_features,outputWidth=source.out_features,weightId=weight_id)
-        self.weight_path=path
+        self.weight_path,self.definition=store_public_matrix(directory,name,source.in_features,source.out_features,
+            dict(weightEncoding=self.encoding['id'],quantizationBits=quantization_bits),data.tobytes())
 
     def coefficient_matrix(self):
         return mapped_public_matrix(self.weight_path,(self.definition['inputWidth'],self.definition['outputWidth']),self.encoding['dtype'])

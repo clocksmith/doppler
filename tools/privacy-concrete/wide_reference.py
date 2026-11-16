@@ -1,5 +1,4 @@
 """Clear-only high-precision control. No encryption/backend registration or narrow truncation."""
-from pathlib import Path
 from types import SimpleNamespace
 import numpy as np
 import torch
@@ -8,7 +7,7 @@ from full_model import prepare
 from full_plan import canonical
 from protocol import digest
 from integer_reference import integer_dot
-from public_weights import mapped_public_matrix
+from public_weights import mapped_public_matrix,store_public_matrix
 
 
 class WideReferenceLinear(nn.Module):
@@ -19,11 +18,9 @@ class WideReferenceLinear(nn.Module):
         q,self.scale,self.zero,self.sum_weights=executor._per_channel_weight_quantization(self.source.weight.detach().numpy().T,self.context,torch.device('cpu'))
         values=np.ascontiguousarray(q.numpy(),dtype=np.int16)
         if not np.array_equal(q.numpy(),values):raise ValueError('Wide reference coefficient truncation')
-        identity=digest(values.tobytes());path=Path(directory)/(identity+'.i16')
-        if not path.exists():path.write_bytes(values.tobytes())
-        if path.stat().st_size!=values.nbytes or digest(path.read_bytes())!=identity:raise ValueError('Wide public reference cache corruption')
-        self.weight_path=path
-        self.definition=dict(name=self.name,inputWidth=self.source.in_features,outputWidth=self.source.out_features,weightId=identity,quantizationBits=bits)
+        self.weight_path,definition=store_public_matrix(directory,self.name,self.source.in_features,self.source.out_features,
+            dict(weightEncoding='signed-int12-in-int16',quantizationBits=bits),values.tobytes())
+        self.definition=dict(definition,quantizationBits=bits)
 
     def coefficient_matrix(self):
         return mapped_public_matrix(self.weight_path,(self.definition['inputWidth'],self.definition['outputWidth']),'<i2')
