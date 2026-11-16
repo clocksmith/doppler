@@ -43,6 +43,46 @@ class FullBridgeOrderingTests(unittest.TestCase):
         self.tile=dict(self.bridge.admission.next_tile())
         self.bridge.public_tile_digests={self.tile['id']:digest(b'pinned-public-weight')}
 
+    def test_numerical_rejection_follows_the_same_complete_actual_pipe_transcript(self):
+        import json
+        import subprocess
+        import tempfile
+        from full_plan import FullPlan,canonical
+        from verified_execution import complete_verified_route
+        transcripts=[]
+        for reject in [None,0,2,3]:
+            with tempfile.TemporaryDirectory() as directory:
+                trace=Path(directory)/'public-transcript.json';plan=FullPlan(canonical(dict(modelId='a'*64,steps=4,contextBucket=8,
+                    operationTimeoutSeconds=5,inputTileWidth=16,outputTileWidth=16,
+                    projections=[dict(name='first',weightId='b'*64,inputWidth=16,outputWidth=16)])))
+                bridge=self.module.FullBridge.__new__(self.module.FullBridge)
+                bridge.plan=plan;bridge.admission=FullRouteAdmission(plan);bridge.key=object();bridge.cancelled=None
+                bridge.session='0'*32;bridge.key_id=digest(b'public-evaluation-fixture');bridge.key_bytes=25
+                bridge.sequence=bridge.sent=bridge.received=0;bridge.remote_seconds=bridge.replay_seconds=0.
+                bridge.payload_limit=None;bridge.weight_dtype='int8';bridge.observe=lambda *args:None
+                bridge.matrix_multiplication=lambda *args:self.native.cpu_matrix_multiplication(*args)
+                tile=plan.schedule()[0];bridge.public_tile_digests={tile['id']:digest(b'pinned-public-weight')}
+                bridge.child=subprocess.Popen([sys.executable,str(Path(__file__).parent/'fixtures/framed_completion_provider.py'),plan.encoded.hex(),str(trace)],
+                    stdin=subprocess.PIPE,stdout=subprocess.PIPE,stderr=subprocess.DEVNULL,bufsize=0)
+                try:
+                    bridge.exchange('evaluation-key',b'public-evaluation-fixture','ready')
+                    def execute(step):
+                        bridge.admission.admit_projection('first',16,16,8 if step==0 else 1)
+                        bridge.evaluate(self.encrypted,self.matrix,tile)
+                        return step
+                    def validate(step,result):
+                        self.assertEqual(bridge.child.poll(),0)
+                        self.assertTrue(bridge.child.stdin.closed);self.assertTrue(bridge.child.stdout.closed)
+                        if step==reject:raise ValueError('local numerical rejection')
+                    if reject is None:self.assertEqual(complete_verified_route(bridge,4,execute,validate),[0,1,2,3])
+                    else:
+                        with self.assertRaises(ValueError):complete_verified_route(bridge,4,execute,validate)
+                    transcripts.append(json.loads(trace.read_text()))
+                    self.assertIsNone(bridge.key);self.assertTrue(bridge.admission.failed)
+                finally:bridge.close()
+        self.assertEqual(transcripts[0],['evaluation-key']+['evaluate']*4+['finish'])
+        self.assertTrue(all(trace==transcripts[0] for trace in transcripts))
+
     def test_close_is_terminal_before_payload_serialization_and_releases_evaluation_key(self):
         import io
         self.bridge.child=SimpleNamespace(poll=lambda:0,wait=lambda:0,stdin=io.BytesIO(),stdout=io.BytesIO())

@@ -8,6 +8,21 @@ from unittest.mock import patch
 
 @unittest.skipUnless(os.environ.get('DOPPLER_CONCRETE_NATIVE')=='1','opt-in pinned native/Torch implementation')
 class StreamedFlashMoETests(unittest.TestCase):
+    def test_owned_staged_whole_object_materialization_survives_source_cleanup(self):
+        import torch
+        from pathlib import Path
+        from flash_stage_source import staged_source
+        from test_flash_staging import fixture
+        name,spec,files=fixture()
+        with tempfile.TemporaryDirectory() as parent:
+            def acquire(directory,unused):
+                for file,data in files.items():(Path(directory)/file).write_bytes(data)
+            with patch('flash_stage_source.staging_spec',return_value=spec),patch('flash_stage_source.provision_spec',side_effect=acquire):
+                with staged_source(parent,'decoder',0) as source:owned=source.tensor(name)
+            self.assertTrue(source.closed);self.assertEqual(list(Path(parent).iterdir()),[])
+            self.assertEqual(owned.dtype,torch.float32);torch.testing.assert_close(owned,torch.tensor([[1.,2.],[3.,4.]]),rtol=0,atol=0)
+            with self.assertRaises(ValueError):source.tensor(name)
+
     def test_full_qwen_reference_rejection_cannot_truncate_the_provider_route(self):
         import torch
         import full_model

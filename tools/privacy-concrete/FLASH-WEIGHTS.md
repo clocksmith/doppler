@@ -503,3 +503,32 @@ records the exact source revision/run/artifact. No actual checkpoint weight payl
 forward operations, encrypted full-model steps or generated tokens were involved.
 The resolver now requires an explicit complete layer schedule; it does not infer
 an omitted schedule through the excluded upstream configuration base.
+
+
+## Owned source staging and concrete storage options
+
+`flash_stage_source.py` now stages one explicit decoder or output-head part using
+the existing whole-object acquisition, index, checksum and tensor verifier.
+Every one of the 48 decoder parameter sets is covered; input embeddings and PLE
+rows retain their separate complete local row-store owners. The staged contract
+binds the full checkpoint/table identity and lists the separately owned PLE table
+tensors. It cannot masquerade as a complete executable model or extend a legacy
+component scope. Unsupported parts reject before filesystem/network work.
+Temporary stages close terminally and remove only their own files; returned tensor
+copies remain owned after source cleanup.
+
+`flash_storage_plan.py --quantization-bits 8` (or `12`) computes whole-object disk
+budgets from the pinned inventory without downloads. PLE plus input row stores
+require **107,273,520,840 bytes**. With those persistent stores, peak staged raw
+source is **119,340,160,567 bytes**. Conservatively including one stage's complete
+coefficient cache gives **121,934,139,671 bytes** at eight bits or
+**124,528,118,775 bytes** at twelve bits. Complete resident source plus all stage
+cache upper bounds is **485,121,142,223 / 610,229,096,783 bytes** respectively.
+These estimates exclude filesystem reserves, dependencies/build products, runtime
+memory and provider storage; no deduplication saving is assumed.
+
+The source-stage owner is implemented and fixture-tested. Per-stage coefficient
+cache eviction/admission in the encrypted client/evaluator is **unfinished**;
+the smaller disk figures do not describe the current full-model backend. Actual
+Flash forward/quality/security qualification is still unavailable. No large model
+files were acquired during this resource investigation.

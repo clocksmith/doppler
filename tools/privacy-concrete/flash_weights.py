@@ -45,7 +45,10 @@ def fetch_blob(url,path,record):
 
 
 def provision(directory,scope='moe'):
-    specification=source_spec(scope)
+    return provision_spec(directory,source_spec(scope))
+
+
+def provision_spec(directory,specification):
     directory=Path(directory);directory.mkdir(parents=True,exist_ok=True)
     artifacts=dict(specification['files'],**specification['shards'])
     missing=sum(item['bytes'] for name,item in artifacts.items() if not (directory/name).exists())
@@ -57,7 +60,10 @@ def provision(directory,scope='moe'):
 
 class FlashSource:
     def __init__(self,directory,scope='moe'):
-        self.spec=source_spec(scope)
+        self._open(directory,source_spec(scope))
+
+    def _open(self,directory,specification):
+        self.spec=specification
         self.directory=Path(directory).resolve();self.signatures={};self.headers={}
         for name,record in self.spec['files'].items():verify_blob(self.directory/name,record)
         self.config=parse_unique_json((self.directory/'config.json').read_bytes())

@@ -1,6 +1,6 @@
 # Encrypted transformer process experiments
 
-The [all-linear Qwen candidate](FULL-QWEN.md) implements the complete dense linear route; its original four-step encrypted run remains unfinished. The [Flash guide](FLASH-WEIGHTS.md) records actual-weight encrypted expert, cached linear-attention and gated-residual results, plus source-backed client graphs for the remaining operators. These component results do not establish full Flash generation or production security.
+[Run the demonstrated full small-Qwen prototype](QWEN-QUICKSTART.md): the explicit twelve-bit route completed all 169 linear modules and four autoregressive steps. The [complete Qwen guide](FULL-QWEN.md) separates that result from failed older profiles and remaining qualification. The [Flash guide](FLASH-WEIGHTS.md) records actual-weight encrypted expert, cached linear-attention and gated-residual results, plus source-backed client graphs for the remaining operators. These component results do not establish full Flash generation or production security.
 
 The [security boundary](SECURITY-BOUNDARY.md) owns cryptographic claims and remaining qualification gates. [Pinned SSH transport](SSH-DEPLOYMENT.md) has loopback authentication evidence; separately deployed model execution remains unqualified. Production cryptographic admission stays closed.
 

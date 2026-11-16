@@ -1,5 +1,7 @@
 # All-linear Qwen backend candidate — isolated qualification
 
+[Run the demonstrated twelve-bit path](QWEN-QUICKSTART.md); the default stock profile is not the successful route.
+
 The [research security boundary](SECURITY-BOUNDARY.md) declares parties, leakage, cohosting limits and unfinished admission gates. This implementation covers the complete Qwen2.5-0.5B-Instruct linear route: all 24 decoder layers and the vocabulary head, 169 linear modules in total. The separately bound **12-bit candidate completed four autoregressive steps** on one fixed public fixture: 1,548 encrypted tiles, with all four greedy choices matching quantized and FP32 references. Its [functional evidence](evidence/full-qwen/ntt12-four-step-success.json) records actual output and costs. Production availability remains false: this is one functional observation, not security or general model-quality qualification. The run used an isolated GitHub-hosted Linux CPU without A1 measurement machines.
 
 `full_model.py` owns source validation, declared eight/twelve-bit dynamic quantization, public int8/int16 weight-cache construction, model orchestration and client keys. `full_plan.py` binds source, parameters, every operator, public weights and input/output tiles into an immutable plan. `full_provider.py` processes that exact tile schedule with native Concrete GLWE. `full_bridge.py` checks the session/key/model/plan/tile/order binding and repeats each encrypted tile before any result decryption. The plan includes 387 encrypted products per model step, 1,548 across four steps. Unknown, reordered, corrupt or differently shaped model plans fail admission. The client also checks the entire bound projection/tile cursor, fixed prefill/decode row counts and public tile weights before ciphertext disclosure. An incomplete attempt or any rejection is terminal; retries cannot skip or replace an admitted tile.
@@ -15,10 +17,10 @@ The v2 plan records the actual implementation versions, admits the explicitly pi
 The complete path can run as a fresh attempt on an independently reserved machine:
 
 ```sh
-printf 'The capital of France is' | \
-  env TOKENIZERS_PARALLELISM=false OMP_NUM_THREADS=4 VECLIB_MAXIMUM_THREADS=4 RAYON_NUM_THREADS=4 \
+env TOKENIZERS_PARALLELISM=false OMP_NUM_THREADS=4 VECLIB_MAXIMUM_THREADS=4 RAYON_NUM_THREADS=4 \
   /tmp/doppler-concrete-env/bin/python tools/privacy-concrete/full_model.py \
-    --model-dir /tmp/qwen05b-source --cache-dir /tmp/qwen-public-int8-cache
+    --model-dir /tmp/qwen05b-source --cache-dir /tmp/qwen-public-int16-cache \
+    --backend-profile qwen-all-linear-ntt12 --public-fixture qwen05b-capital
 ```
 
 Preparation-only mode (`--prepare-only`) validates/traces the real model without keys or private input. The cache is reusable public model material; each actual run creates fresh client keys and an evaluator. Full-model execution may be expensive on this CPU-only environment. CUDA availability was not detected through `nvidia-smi` on the checked Linux fleet hosts; no fleet model execution or source transfer followed those checks. The old denied Jupiter source-transfer action remains blocked, not bypassed.
