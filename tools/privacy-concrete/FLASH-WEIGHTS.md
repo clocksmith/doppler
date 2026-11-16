@@ -263,3 +263,11 @@ assembly is an unpadded text client reference, not actual 48-layer Flash weights
 full-model encrypted execution, an authenticated network backend or production
 qualification. Actual full Flash artifacts and model-wide quantization evidence
 remain required.
+
+The complete client reference also accepts a local mapped PLE table inside a
+mixed-layer autoregressive request. Its model identity includes the local table
+inventory, not an empty placeholder tensor. The source comparison checks four
+cached autoregressive steps against the sparse full-prefix decoder and verifies
+that request closure releases its lease while preserving the shared public table.
+This uses complete small public BF16 files; it does not remove the actual Flash
+checkpoint/table provisioning gate.

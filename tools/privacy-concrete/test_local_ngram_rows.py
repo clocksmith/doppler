@@ -40,11 +40,22 @@ class LocalRowsTests(unittest.TestCase):
             with LocalNgramRows(directory,spec,local_storage_limit_bytes=4096) as storage:
                 first=storage.lease(context);other_context=replace(context,tenant_id='other',key_id='other',request_id='other')
                 other=storage.lease(other_context);event=threading.Event();event.set()
+                with self.assertRaises(AttributeError):first.context=other_context
+                with self.assertRaises(AttributeError):first.storage=other
                 with self.assertRaises(InterruptedError):first.read_rows([0],context,max_output_bytes=4,cancelled=event)
                 self.assertTrue(first.closed);self.assertFalse(storage.closed)
                 self.assertEqual(other.read_rows([5],other_context,max_output_bytes=4),all_rows[20:24])
                 with self.assertRaises(ValueError):other.read_rows([0],context,max_output_bytes=4)
                 self.assertTrue(other.closed);self.assertFalse(storage.closed)
+
+    def test_external_inventory_snapshot_cannot_rewrite_the_bound_table_layout(self):
+        with tempfile.TemporaryDirectory() as directory:
+            spec,all_rows=self.fixture(directory)
+            with LocalNgramRows(directory,spec,local_storage_limit_bytes=4096) as storage:
+                exposed=storage.spec;exposed['parts'][0]['dataOffsets']=[999,999]
+                exposed['shards']['public-0.safetensors']['headerBytes']=0
+                self.assertEqual(storage.spec,spec)
+                self.assertEqual(storage.read_rows([0],max_output_bytes=4),all_rows[:4])
 
     def test_missing_corrupt_or_oversized_material_rejects_before_lookup(self):
         with tempfile.TemporaryDirectory() as directory:

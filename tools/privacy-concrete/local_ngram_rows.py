@@ -18,13 +18,13 @@ class LocalNgramRows:
     def __init__(self,directory,inventory,*,local_storage_limit_bytes):
         self.handles={};self.maps={};self.signatures={};self.closed=False
         try:
-            self.spec=copy.deepcopy(inventory);self.directory=Path(directory).resolve()
+            self._spec=copy.deepcopy(inventory);self.directory=Path(directory).resolve()
             self._validate(local_storage_limit_bytes)
             # Preflight the complete set before hashing large files or accepting private indices.
-            for name,record in self.spec['shards'].items():
+            for name,record in self._spec['shards'].items():
                 if (self.directory/name).stat().st_size!=record['bytes']:raise ValueError('Complete local ngram file set required')
             # Verify all public material before accepting indices; never acquire on cache miss.
-            for name,record in self.spec['shards'].items():
+            for name,record in self._spec['shards'].items():
                 path=self.directory/name;before=file_signature(path);verify_blob(path,record)
                 handle=path.open('rb');self.handles[name]=handle
                 raw=handle.read(8)
@@ -33,7 +33,7 @@ class LocalNgramRows:
                 import hashlib
                 if hashlib.sha256(header).hexdigest()!=record['headerSha256']:raise ValueError('Pinned local table header required')
                 fields=parse_unique_json(header)
-                for part in self.parts:
+                for part in self._parts:
                     if part['shard']==name and fields.get(part['name'])!={key:part[key] for key in ['dtype','shape','data_offsets']}:
                         raise ValueError('Pinned local table offsets required')
                 if file_signature(path)!=before:raise ValueError('Local table changed during verification')
@@ -42,13 +42,16 @@ class LocalNgramRows:
         except BaseException:
             self.close();raise
 
+    @property
+    def spec(self):return copy.deepcopy(self._spec)
+
     @classmethod
     def flash(cls,directory,*,local_storage_limit_bytes):
         spec=json.loads(Path(__file__).with_name('flash-ngram-storage.json').read_text())
         return cls(directory,spec,local_storage_limit_bytes=local_storage_limit_bytes)
 
     def _validate(self,limit):
-        s=self.spec
+        s=self._spec
         if (type(limit) is not int or limit<=0 or not isinstance(s,dict)
                 or s.get('schema')!='doppler.flash-local-ngram-storage-inventory/v1'
                 or not isinstance(s.get('shards'),dict) or not s['shards']
@@ -73,7 +76,7 @@ class LocalNgramRows:
             names.add(part['name']);used.add(name);row+=part['rows']
         if row!=s['logicalShape'][0] or s['logicalBytes']!=row*s['logicalShape'][1]*2 or used!=set(s['shards']):
             raise ValueError('Complete local ngram layout required')
-        self.parts=tuple(parts);self.starts=tuple(p['firstRow'] for p in self.parts)
+        self._parts=tuple(parts);self._starts=tuple(p['firstRow'] for p in self._parts)
         self.rows,self.columns=s['logicalShape']
 
     def _unchanged(self):
@@ -90,7 +93,7 @@ class LocalNgramRows:
         result=bytearray()
         for index in indices:
             require_active(cancelled)
-            part=self.parts[bisect_right(self.starts,index)-1];record=self.spec['shards'][part['shard']]
+            part=self._parts[bisect_right(self._starts,index)-1];record=self._spec['shards'][part['shard']]
             offset=8+record['headerBytes']+part['dataOffsets'][0]+(index-part['firstRow'])*self.columns*2
             result.extend(self.maps[part['shard']][offset:offset+self.columns*2])
         require_active(cancelled);self._unchanged();return bytes(result)
@@ -120,7 +123,13 @@ class LocalRowsLease:
     def __init__(self,storage,context):
         from flash_request_state import ClientContext
         if not isinstance(context,ClientContext):raise ValueError('Explicit local row request context required')
-        self.storage=storage;self.context=context;self.closed=False
+        self._storage=storage;self._context=context;self.closed=False
+
+    @property
+    def storage(self):return self._storage
+
+    @property
+    def context(self):return self._context
 
     def read_rows(self,indices,context,*,max_output_bytes,cancelled=None):
         try:

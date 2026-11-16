@@ -12,7 +12,7 @@ import unittest
 
 @unittest.skipUnless(os.environ.get('DOPPLER_FLASH_REFERENCE')=='1','opt-in pinned source/Torch reference')
 class FlashModelReferenceTests(unittest.TestCase):
-    def fixture(self):
+    def fixture(self,storage=None):
         import torch
         from torch import nn
         from flash_reference import load_reference
@@ -33,7 +33,13 @@ class FlashModelReferenceTests(unittest.TestCase):
         with torch.no_grad():
             for index,parameter in enumerate(nn.ModuleList([embedding,layers,mixer,head]).parameters()):
                 parameter.copy_(torch.linspace(-.08,.11,parameter.numel()).reshape(parameter.shape)+(index+1)*.001)
+        if storage is not None:
+            table=torch.frombuffer(bytearray(storage.read_rows(list(range(storage.rows)),max_output_bytes=storage.rows*storage.columns*2)),dtype=torch.bfloat16).reshape(storage.rows,storage.columns).float()
+            with torch.no_grad():layers[1].ple.ple_embedding.ngram_embedding.weight.copy_(table)
         reference=copy.deepcopy((embedding,layers,mixer,head))
+        if storage is not None:
+            from local_ngram_embedding import LocalNgramEmbedding
+            layers[1].ple.ple_embedding.ngram_embedding=LocalNgramEmbedding(storage,max_lookup_bytes=65536,layer_index=1)
         model=ClientFlashGraph(path,config,embedding,layers,mixer,head,context_limit=12)
         context=ClientContext('tenant','privacy',model.identity,'key','request')
         return torch,model,reference,context
@@ -62,6 +68,24 @@ class FlashModelReferenceTests(unittest.TestCase):
         self.assertEqual(len(generated),4);self.assertEqual(trace,list(model.order)*4);self.assertEqual(state.tokens,7)
         self.assertEqual(state.ple[1].tokens,7);self.assertTrue(state.attention[0].recurrent);self.assertTrue(state.attention[1].indexer)
         self.assertEqual(len([name for name in model.order if '.mlp.ops.expert_' in name]),3*3*3)
+
+    def test_four_autoregressive_steps_use_request_bound_local_mapped_ple_inside_complete_model(self):
+        import tempfile
+        import test_flash_ple_local_reference as local_fixtures
+        with tempfile.TemporaryDirectory() as directory:
+            prepared=local_fixtures.LocalPLETests().fixture(directory);storage=prepared[6]
+            try:
+                torch,model,reference,context=self.fixture(storage);state=model.new_state(context);tokens=torch.tensor([[1,2,0,3]],dtype=torch.int64)
+                for step in range(4):
+                    current=tokens if step==0 else tokens[:,-1:]
+                    actual=model(current,state,context,execution='public-reference')
+                    expected=self.full_prefix(torch,model,reference,tokens)
+                    torch.testing.assert_close(actual[:,-1],expected[:,-1],rtol=3e-4,atol=3e-5)
+                    token=int(actual[0,-1].argmax());self.assertEqual(token,int(expected[0,-1].argmax()))
+                    tokens=torch.cat([tokens,torch.tensor([[token]],dtype=torch.int64)],dim=1)
+                self.assertIs(state.ple[1].local_rows_lease.storage,storage)
+                state.close();self.assertFalse(storage.closed)
+            finally:storage.close()
 
     def test_two_requests_share_public_weights_and_isolate_all_actual_cache_stores(self):
         torch,model,reference,context=self.fixture();contexts=[context,replace(context,tenant_id='other',key_id='other',request_id='other')]

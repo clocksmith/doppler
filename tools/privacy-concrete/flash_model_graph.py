@@ -17,6 +17,7 @@ from flash_attention import ORDER as QSA_ORDER
 from flash_ple import ORDER as PLE_ORDER
 from flash_rotary import text_rotary
 from flash_reference import SOURCE,SPEC
+from local_ngram_embedding import LocalNgramEmbedding
 
 HYPER=('input_mix_weight_down','input_mix_weight_up','block_inject_weight')
 
@@ -82,6 +83,8 @@ class ClientFlashGraph(nn.Module):
         self.order=tuple(order);self.projections=public
         hasher=hashlib.sha256()
         hasher.update(canonical(dict(sourceReferenceId=digest(canonical(SOURCE)),sourceTransforms=SPEC['transforms']['decoder'],layerTypes=config.layer_types,pleLayers=list(self.ple_layers),contextLimit=context_limit,operations=[dict(public[name].operation) for name in order])))
+        for name,module in self.named_modules():
+            if type(module) is LocalNgramEmbedding:hasher.update(canonical(dict(name=name,localTableId=digest(canonical(module.storage.spec)))))
         for name,value in self.state_dict().items():
             hasher.update(canonical(dict(name=name,dtype=str(value.dtype),shape=list(value.shape))));hasher.update(value.detach().cpu().contiguous().reshape(-1).view(torch.uint8).numpy().tobytes())
         self.identity=hasher.hexdigest();self.eval().requires_grad_(False)
