@@ -1,0 +1,28 @@
+{
+  "schema": "doppler.qwen-public-precision-context/v1",
+  "productionBackendAvailable": false,
+  "securityQualified": false,
+  "observations": [
+    {
+      "revision": "c9ae31f9d2b18426d2904fd5ce68cb1af5c31b1d",
+      "workflowRun": 43833324762,
+      "artifactId": 14209673903,
+      "artifactZipSha256": "36047c5db50b1fbcfb92518e344ca322ffc76f9be38ec055091d9349bcf0e452",
+      "evidence": "clear-twelve-bit-control.json",
+      "encryptedExecution": false,
+      "independentSequenceMatches": 8,
+      "teacherForcedMatches": 32,
+      "interpretation": "All 169 quantized linear modules, eight fixed public prompts, four steps; clear-only control, no encrypted-model or corpus qualification"
+    },
+    {
+      "revision": "e5afd2ff3cc8dda319f57107cf8c4af095ab8714",
+      "workflowRun": 43836083105,
+      "artifactId": 14211875486,
+      "artifactZipSha256": "4153e5979ef838f30bf71649b4a50a03c0971bcf8d2a0e385df91f4490648c13",
+      "evidence": "same-input-storage-precision.json",
+      "encryptedExecution": true,
+      "fullModelExecuted": false,
+      "interpretation": "Same public first-Q inputs and weights; default/high precision integer error 73/1 and dequantized error .0023136/.00008154; full high-precision run remains independent"
+    }
+  ]
+}

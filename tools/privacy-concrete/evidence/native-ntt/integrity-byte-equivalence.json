@@ -1,0 +1,119 @@
+{
+  "schema": "doppler.native-exact-ntt-experiment/v1",
+  "productionBackendAvailable": false,
+  "securityQualified": false,
+  "upstreamRevision": "6d3fdd1fab324874e3a2fc4a42cb3a708d5a80b4",
+  "nativeVersion": "0.1.9+ntt.1",
+  "nativeBuildId": "8cb2cbd212d05c6646fb3132ebef58624738b0d0dcf7f59daebe3e0766e17bf9",
+  "binarySha256": "f9e7daf5e9f4ccbd94e7c8c5e18b71ecc288c2765519dac51fa45886b4c33887",
+  "cargoLockSha256": "0fcf2b53be36418f5ed0a9ae16c0927b37a5c460516a94d46a934a9bcd04f60c",
+  "nttCrate": {
+    "name": "tfhe-ntt",
+    "version": "0.7.1",
+    "sha256": "10650c743ade46b166c698c8349902ed5986784a7db418c51f810bea25f09e3d"
+  },
+  "keyPreparations": [
+    {
+      "profile": "upstream-default",
+      "keyPrecomputeMs": 119.2547779999984,
+      "evaluationKeyBytes": 134217808
+    },
+    {
+      "profile": "declared-high-precision",
+      "keyPrecomputeMs": 216.684368000017,
+      "evaluationKeyBytes": 268435536
+    }
+  ],
+  "cases": [
+    {
+      "profile": "upstream-default",
+      "rows": 1,
+      "inputWidth": 16,
+      "outputWidth": 2,
+      "byteIdenticalToOriginal": true,
+      "originalMs": 7.450697999985323,
+      "nttMs": 266.5650959999937,
+      "nttReplayMs": 267.15877600000226,
+      "resultBytes": 6752
+    },
+    {
+      "profile": "upstream-default",
+      "rows": 1,
+      "inputWidth": 896,
+      "outputWidth": 128,
+      "byteIdenticalToOriginal": true,
+      "originalMs": 444.99504499998466,
+      "nttMs": 281.8814100000111,
+      "nttReplayMs": 276.00849499998503,
+      "resultBytes": 7160
+    },
+    {
+      "profile": "upstream-default",
+      "rows": 1,
+      "inputWidth": 2048,
+      "outputWidth": 2048,
+      "byteIdenticalToOriginal": true,
+      "originalMs": 7094.855249999995,
+      "nttMs": 448.1626399999925,
+      "nttReplayMs": 442.1622660000253,
+      "resultBytes": 13400
+    },
+    {
+      "profile": "upstream-default",
+      "rows": 1,
+      "inputWidth": 2048,
+      "outputWidth": 2051,
+      "byteIdenticalToOriginal": true,
+      "originalMs": 6847.410965999984,
+      "nttMs": 691.4365230000215,
+      "nttReplayMs": 680.2310120000072,
+      "resultBytes": 20144
+    },
+    {
+      "profile": "upstream-default",
+      "rows": 2,
+      "inputWidth": 16,
+      "outputWidth": 2,
+      "byteIdenticalToOriginal": true,
+      "originalMs": 18.053847999993877,
+      "nttMs": 547.3385509999957,
+      "nttReplayMs": 531.5775200000132,
+      "resultBytes": 13496
+    },
+    {
+      "profile": "upstream-default",
+      "rows": 1,
+      "inputWidth": 4098,
+      "outputWidth": 3,
+      "byteIdenticalToOriginal": true,
+      "originalMs": 11.490665000025047,
+      "nttMs": 268.56469999998467,
+      "nttReplayMs": 265.5190399999867,
+      "resultBytes": 6760
+    },
+    {
+      "profile": "declared-high-precision",
+      "rows": 1,
+      "inputWidth": 2048,
+      "outputWidth": 2,
+      "byteIdenticalToOriginal": true,
+      "originalMs": 12.763280000001487,
+      "nttMs": 545.9990280000113,
+      "nttReplayMs": 543.5064280000006,
+      "resultBytes": 12392
+    },
+    {
+      "profile": "declared-high-precision",
+      "rows": 1,
+      "inputWidth": 2048,
+      "outputWidth": 513,
+      "byteIdenticalToOriginal": true,
+      "originalMs": 3237.1864659999974,
+      "nttMs": 602.6658840000039,
+      "nttReplayMs": 616.67300000002,
+      "resultBytes": 15456
+    }
+  ],
+  "clientLifetimePeakRssBytes": 2092695552,
+  "interpretation": "Fixed public native arithmetic fixtures, including full packing/multi-block/multi-row; one timing observation, no model throughput or independent security review"
+}

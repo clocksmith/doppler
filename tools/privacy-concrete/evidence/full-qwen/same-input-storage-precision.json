@@ -1,0 +1,30 @@
+{
+  "schema": "doppler.public-qwen-same-input-fhe-precision-probe/v1",
+  "fixtureId": "qwen05b-capital",
+  "modelId": "6bb05bf2d3e974f37e4a0f7246d50f448e569b440e78b564d6336702997baf0b",
+  "projection": "model.layers.0.self_attn.q_proj",
+  "productionBackendAvailable": false,
+  "securityQualified": false,
+  "fullModelExecuted": false,
+  "results": [
+    {
+      "parameterProfile": "default",
+      "rows": 8,
+      "inputWidth": 896,
+      "outputWidth": 896,
+      "maxIntegerError": 73,
+      "maxDequantizedError": 0.0023136138916015625,
+      "evaluationKeyBytes": 134217808
+    },
+    {
+      "parameterProfile": "glwe-precision-48-level4/v1",
+      "rows": 8,
+      "inputWidth": 896,
+      "outputWidth": 896,
+      "maxIntegerError": 1,
+      "maxDequantizedError": 8.153915405273438e-05,
+      "evaluationKeyBytes": 268435536
+    }
+  ],
+  "interpretation": "Disposable public-fixture keys, same actual first-Q input/weights; not production decryption diagnostics or proof of the third-step failure cause"
+}

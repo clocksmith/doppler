@@ -1,0 +1,22 @@
+{
+  "schema": "doppler.native-exact-ntt-integrity-context/v1",
+  "revision": "6d29e8fa069e0f621627eb1d18ad94ea683dc9c5",
+  "workflowRun": 43831805042,
+  "artifactId": 14208403950,
+  "artifactZipSha256": "1bb90e992bf118de433309806c54e9fe5df8ce436e34c7830d676190127f9d4d",
+  "evidence": "integrity-byte-equivalence.json",
+  "productionBackendAvailable": false,
+  "securityQualified": false,
+  "nativeEquivalenceCases": 8,
+  "nativeIntegrityTests": 4,
+  "coverage": [
+    "Valid but wrong zero-matrix evaluation rejected before deserialization",
+    "Corrupt ciphertext rejected before native parser",
+    "Cancellation terminal before payload/decryption",
+    "Public cache corruption rejected before ciphertext serialization"
+  ],
+  "limitations": [
+    "One public observation per geometry, not a model benchmark",
+    "Full trusted-client replay remains necessary and is not independent malicious-security qualification"
+  ]
+}

@@ -105,7 +105,7 @@ and input norm through the first Q projection, plus a **clear-only** 12-bit
 full-model control. Records include bounded public slices, full tensor digests,
 statistics and an explicit tolerance-policy ID. `wide_reference.py` stores wide
 coefficients as int16 and accumulates products in int64; it rejects encrypted mode.
-No 12-bit encrypted backend or production path is installed by this control.
+This clear-only control cannot itself enter encrypted mode or register a production path. The separately bound encrypted candidate below has independent execution gates.
 
 ## Completed attempt outcomes and explicit precision correction
 
@@ -160,3 +160,22 @@ quantizer and int64 reference arithmetic. Changing the plaintext/message domain
 requires new correctness and independent parameter/implementation security review.
 Production cryptographic admission remains closed; the model does not silently
 fall back to eight-bit or provider-visible execution.
+
+## Retained precision evidence
+
+The [clear twelve-bit control](evidence/full-qwen/clear-twelve-bit-control.json)
+matched all eight independent four-token FP32 sequences and all 32 teacher-forced
+greedy choices. Maximum teacher-forced logit error was 0.4394; these small public
+fixtures do not establish corpus quality. In the eight-bit sky fixture, embeddings,
+input normalization and the first Q input were exactly equal; the first Q output
+introduced maximum absolute error 0.0585842. No encryption or key generation ran
+in that control.
+
+The [same-input actual encrypted first-Q probe](evidence/full-qwen/same-input-storage-precision.json)
+measured integer error 73 under default storage and 1 under the separate 48-bit
+storage profile; dequantized errors were 0.00231361 and 0.0000815392. The key grew
+from 134,217,808 to 268,435,536 bytes. This supports the numerical correction
+hypothesis on this input, without proving the earlier third-step failure cause.
+The [measurement context](evidence/full-qwen/precision-context.json) binds both
+records to their exact revisions and artifact hashes. Neither result qualifies
+a complete encrypted model or the altered cryptographic parameters.

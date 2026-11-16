@@ -1,0 +1,629 @@
+{
+  "schema": "doppler.public-qwen-precision-control/v1",
+  "productionBackendAvailable": false,
+  "securityQualified": false,
+  "encryptedExecution": false,
+  "probe": {
+    "fixtureId": "sky",
+    "publicPrompt": "The sky is",
+    "inputTokenIds": [
+      785,
+      12884,
+      374
+    ],
+    "policy": {
+      "id": "doppler.public-qwen-first-quantization-boundary/v1",
+      "exactInputAbsoluteTolerance": 0.0,
+      "projectionAbsoluteTolerance": 0.001,
+      "projectionRelativeTolerance": 0.01
+    },
+    "modelId": "6bb05bf2d3e974f37e4a0f7246d50f448e569b440e78b564d6336702997baf0b",
+    "boundaries": [
+      {
+        "name": "embedding",
+        "float": {
+          "shape": [
+            1,
+            8,
+            896
+          ],
+          "dtype": "float32",
+          "sha256": "315a23829d5849b6c445ac45f693c2dc14b5241109b2fa505f26424fedd98b65",
+          "firstCoordinates": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7
+          ],
+          "firstValues": [
+            -0.031982421875,
+            -0.00174713134765625,
+            0.01214599609375,
+            -0.01556396484375,
+            0.01556396484375,
+            -0.029541015625,
+            0.00244140625,
+            -0.015625
+          ],
+          "minimum": -0.054443359375,
+          "maximum": 0.0576171875,
+          "mean": 0.0007240819977596402,
+          "rms": 0.01735994964838028
+        },
+        "quantized": {
+          "shape": [
+            1,
+            8,
+            896
+          ],
+          "dtype": "float32",
+          "sha256": "315a23829d5849b6c445ac45f693c2dc14b5241109b2fa505f26424fedd98b65",
+          "firstCoordinates": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7
+          ],
+          "firstValues": [
+            -0.031982421875,
+            -0.00174713134765625,
+            0.01214599609375,
+            -0.01556396484375,
+            0.01556396484375,
+            -0.029541015625,
+            0.00244140625,
+            -0.015625
+          ],
+          "minimum": -0.054443359375,
+          "maximum": 0.0576171875,
+          "mean": 0.0007240819977596402,
+          "rms": 0.01735994964838028
+        },
+        "maxAbsoluteError": 0.0,
+        "exactEqual": true,
+        "withinProjectionTolerance": true
+      },
+      {
+        "name": "input-norm",
+        "float": {
+          "shape": [
+            1,
+            8,
+            896
+          ],
+          "dtype": "float32",
+          "sha256": "df6082e5086c33114b20a9d3759f7db8444aa2b48dbcddfd8f88110e6b156623",
+          "firstCoordinates": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7
+          ],
+          "firstValues": [
+            0.12138499319553375,
+            -0.006285637617111206,
+            -0.02497001923620701,
+            -0.10645075142383575,
+            -0.05507134273648262,
+            -0.0934324711561203,
+            -0.00825255736708641,
+            0.03382100909948349
+          ],
+          "minimum": -1.6901252269744873,
+          "maximum": 1.2014694213867188,
+          "mean": 0.0001047284240485169,
+          "rms": 0.11198192089796066
+        },
+        "quantized": {
+          "shape": [
+            1,
+            8,
+            896
+          ],
+          "dtype": "float32",
+          "sha256": "df6082e5086c33114b20a9d3759f7db8444aa2b48dbcddfd8f88110e6b156623",
+          "firstCoordinates": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7
+          ],
+          "firstValues": [
+            0.12138499319553375,
+            -0.006285637617111206,
+            -0.02497001923620701,
+            -0.10645075142383575,
+            -0.05507134273648262,
+            -0.0934324711561203,
+            -0.00825255736708641,
+            0.03382100909948349
+          ],
+          "minimum": -1.6901252269744873,
+          "maximum": 1.2014694213867188,
+          "mean": 0.0001047284240485169,
+          "rms": 0.11198192089796066
+        },
+        "maxAbsoluteError": 0.0,
+        "exactEqual": true,
+        "withinProjectionTolerance": true
+      },
+      {
+        "name": "q-input",
+        "float": {
+          "shape": [
+            1,
+            8,
+            896
+          ],
+          "dtype": "float32",
+          "sha256": "df6082e5086c33114b20a9d3759f7db8444aa2b48dbcddfd8f88110e6b156623",
+          "firstCoordinates": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7
+          ],
+          "firstValues": [
+            0.12138499319553375,
+            -0.006285637617111206,
+            -0.02497001923620701,
+            -0.10645075142383575,
+            -0.05507134273648262,
+            -0.0934324711561203,
+            -0.00825255736708641,
+            0.03382100909948349
+          ],
+          "minimum": -1.6901252269744873,
+          "maximum": 1.2014694213867188,
+          "mean": 0.0001047284240485169,
+          "rms": 0.11198192089796066
+        },
+        "quantized": {
+          "shape": [
+            1,
+            8,
+            896
+          ],
+          "dtype": "float32",
+          "sha256": "df6082e5086c33114b20a9d3759f7db8444aa2b48dbcddfd8f88110e6b156623",
+          "firstCoordinates": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7
+          ],
+          "firstValues": [
+            0.12138499319553375,
+            -0.006285637617111206,
+            -0.02497001923620701,
+            -0.10645075142383575,
+            -0.05507134273648262,
+            -0.0934324711561203,
+            -0.00825255736708641,
+            0.03382100909948349
+          ],
+          "minimum": -1.6901252269744873,
+          "maximum": 1.2014694213867188,
+          "mean": 0.0001047284240485169,
+          "rms": 0.11198192089796066
+        },
+        "maxAbsoluteError": 0.0,
+        "exactEqual": true,
+        "withinProjectionTolerance": true
+      },
+      {
+        "name": "q-output",
+        "float": {
+          "shape": [
+            1,
+            8,
+            896
+          ],
+          "dtype": "float32",
+          "sha256": "ca0dd480e80938fa7bfd83b79c5ce57cd97beaa597a101d8290d20918a49db8a",
+          "firstCoordinates": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7
+          ],
+          "firstValues": [
+            -0.00036230345722287893,
+            0.1133272647857666,
+            -0.12092514336109161,
+            -0.41200944781303406,
+            -14.278716087341309,
+            0.3531329333782196,
+            0.33531397581100464,
+            0.26596778631210327
+          ],
+          "minimum": -79.93682098388672,
+          "maximum": 49.080833435058594,
+          "mean": -0.13337871432304382,
+          "rms": 7.969127655029297
+        },
+        "quantized": {
+          "shape": [
+            1,
+            8,
+            896
+          ],
+          "dtype": "float32",
+          "sha256": "9095046090ae04c07431143ea7cd5a2614fefe3f8e3778e7a0fa971156abe2b8",
+          "firstCoordinates": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7
+          ],
+          "firstValues": [
+            -1.2886710464954376e-05,
+            0.11398150771856308,
+            -0.11986212432384491,
+            -0.41302862763404846,
+            -14.285811424255371,
+            0.3517545461654663,
+            0.33283257484436035,
+            0.26667386293411255
+          ],
+          "minimum": -79.93269348144531,
+          "maximum": 49.07422637939453,
+          "mean": -0.13359233736991882,
+          "rms": 7.968964576721191
+        },
+        "maxAbsoluteError": 0.05858421325683594,
+        "exactEqual": false,
+        "withinProjectionTolerance": false
+      },
+      {
+        "name": "logits",
+        "float": {
+          "shape": [
+            151936
+          ],
+          "dtype": "float32",
+          "sha256": "dda550f4c6a615d8bb95a8c923e4912cf36ee8df3c3d68bb8f4b6eb04808e35f",
+          "firstCoordinates": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7
+          ],
+          "firstValues": [
+            -1.422961950302124,
+            3.0717580318450928,
+            1.0138158798217773,
+            3.730928897857666,
+            -0.06463396549224854,
+            -4.624789714813232,
+            0.3231550455093384,
+            1.240344762802124
+          ],
+          "minimum": -20.384174346923828,
+          "maximum": 14.878348350524902,
+          "mean": -3.7766287326812744,
+          "rms": 5.053859710693359
+        },
+        "quantized": {
+          "shape": [
+            151936
+          ],
+          "dtype": "float32",
+          "sha256": "8853cf57265e7529a892cdde3d1ee5d8460c80df23d319c50718ee3824b4a5aa",
+          "firstCoordinates": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7
+          ],
+          "firstValues": [
+            -1.9413866996765137,
+            2.2030513286590576,
+            1.0112344026565552,
+            3.9216978549957275,
+            -0.45175471901893616,
+            -5.337125301361084,
+            -0.6029977798461914,
+            1.1755411624908447
+          ],
+          "minimum": -19.850521087646484,
+          "maximum": 14.661771774291992,
+          "mean": -3.6296770572662354,
+          "rms": 4.909718036651611
+        },
+        "maxAbsoluteError": 2.3687424659729004,
+        "exactEqual": false,
+        "withinProjectionTolerance": false
+      }
+    ]
+  },
+  "wideControl": {
+    "arithmetic": "clear-int64-quantization12/v1",
+    "modelId": "7f23e94f75990440316954e05b1c0e5cc43bb624b400313740e9ed08c021b5d0",
+    "linearModules": 169,
+    "results": [
+      {
+        "fixtureId": "capital-france",
+        "quantizedOutputTokens": [
+          12095,
+          13,
+          1084,
+          374
+        ],
+        "floatingOutputTokens": [
+          12095,
+          13,
+          1084,
+          374
+        ],
+        "quantizedOutputText": " Paris. It is",
+        "floatingOutputText": " Paris. It is",
+        "independentGreedySequenceMatches": true,
+        "teacherForcedGreedyMatches": [
+          true,
+          true,
+          true,
+          true
+        ],
+        "maxTeacherForcedLogitErrors": [
+          0.29310131072998047,
+          0.37156248092651367,
+          0.2937779426574707,
+          0.13759422302246094
+        ]
+      },
+      {
+        "fixtureId": "capital-japan",
+        "quantizedOutputTokens": [
+          7407,
+          304,
+          279,
+          30743
+        ],
+        "floatingOutputTokens": [
+          7407,
+          304,
+          279,
+          30743
+        ],
+        "quantizedOutputText": " located in the ____",
+        "floatingOutputText": " located in the ____",
+        "independentGreedySequenceMatches": true,
+        "teacherForcedGreedyMatches": [
+          true,
+          true,
+          true,
+          true
+        ],
+        "maxTeacherForcedLogitErrors": [
+          0.3065962791442871,
+          0.2860108017921448,
+          0.310589075088501,
+          0.29458487033843994
+        ]
+      },
+      {
+        "fixtureId": "arithmetic",
+        "quantizedOutputTokens": [
+          220,
+          19,
+          198,
+          59
+        ],
+        "floatingOutputTokens": [
+          220,
+          19,
+          198,
+          59
+        ],
+        "quantizedOutputText": " 4\n\\",
+        "floatingOutputText": " 4\n\\",
+        "independentGreedySequenceMatches": true,
+        "teacherForcedGreedyMatches": [
+          true,
+          true,
+          true,
+          true
+        ],
+        "maxTeacherForcedLogitErrors": [
+          0.13735604286193848,
+          0.11731147766113281,
+          0.42386722564697266,
+          0.17190194129943848
+        ]
+      },
+      {
+        "fixtureId": "story",
+        "quantizedOutputTokens": [
+          11,
+          1052,
+          572,
+          264
+        ],
+        "floatingOutputTokens": [
+          11,
+          1052,
+          572,
+          264
+        ],
+        "quantizedOutputText": ", there was a",
+        "floatingOutputText": ", there was a",
+        "independentGreedySequenceMatches": true,
+        "teacherForcedGreedyMatches": [
+          true,
+          true,
+          true,
+          true
+        ],
+        "maxTeacherForcedLogitErrors": [
+          0.3500669002532959,
+          0.21394777297973633,
+          0.11458873748779297,
+          0.11388611793518066
+        ]
+      },
+      {
+        "fixtureId": "opposite",
+        "quantizedOutputTokens": [
+          1304,
+          12148,
+          32,
+          13
+        ],
+        "floatingOutputTokens": [
+          1304,
+          12148,
+          32,
+          13
+        ],
+        "quantizedOutputText": " ____\nA.",
+        "floatingOutputText": " ____\nA.",
+        "independentGreedySequenceMatches": true,
+        "teacherForcedGreedyMatches": [
+          true,
+          true,
+          true,
+          true
+        ],
+        "maxTeacherForcedLogitErrors": [
+          0.294231653213501,
+          0.32633399963378906,
+          0.24223780632019043,
+          0.22834444046020508
+        ]
+      },
+      {
+        "fixtureId": "python",
+        "quantizedOutputTokens": [
+          15473,
+          4128,
+          429,
+          374
+        ],
+        "floatingOutputTokens": [
+          15473,
+          4128,
+          429,
+          374
+        ],
+        "quantizedOutputText": " programming language that is",
+        "floatingOutputText": " programming language that is",
+        "independentGreedySequenceMatches": true,
+        "teacherForcedGreedyMatches": [
+          true,
+          true,
+          true,
+          true
+        ],
+        "maxTeacherForcedLogitErrors": [
+          0.12927532196044922,
+          0.20353221893310547,
+          0.4393606185913086,
+          0.17513084411621094
+        ]
+      },
+      {
+        "fixtureId": "freezing",
+        "quantizedOutputTokens": [
+          220,
+          15,
+          12348,
+          61347
+        ],
+        "floatingOutputTokens": [
+          220,
+          15,
+          12348,
+          61347
+        ],
+        "quantizedOutputText": " 0 degrees Celsius",
+        "floatingOutputText": " 0 degrees Celsius",
+        "independentGreedySequenceMatches": true,
+        "teacherForcedGreedyMatches": [
+          true,
+          true,
+          true,
+          true
+        ],
+        "maxTeacherForcedLogitErrors": [
+          0.23149871826171875,
+          0.1647639274597168,
+          0.22981667518615723,
+          0.22826147079467773
+        ]
+      },
+      {
+        "fixtureId": "sky",
+        "quantizedOutputTokens": [
+          264,
+          6233,
+          1992,
+          13
+        ],
+        "floatingOutputTokens": [
+          264,
+          6233,
+          1992,
+          13
+        ],
+        "quantizedOutputText": " a beautiful place.",
+        "floatingOutputText": " a beautiful place.",
+        "independentGreedySequenceMatches": true,
+        "teacherForcedGreedyMatches": [
+          true,
+          true,
+          true,
+          true
+        ],
+        "maxTeacherForcedLogitErrors": [
+          0.3383646011352539,
+          0.3195171356201172,
+          0.3337606191635132,
+          0.3233935832977295
+        ]
+      }
+    ]
+  },
+  "elapsedMs": 65927.68878099992,
+  "interpretation": "Public source-precision boundary and clear-only quality control; 12-bit encrypted execution is unavailable"
+}
