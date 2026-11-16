@@ -74,3 +74,13 @@ manifest on the independently provisioned evaluator at its declared path, then
 use it with the client invocation above and the same backend profile. Creating
 a manifest provides neither endpoint appraisal nor cryptographic qualification;
 execution still rechecks the complete plan and requester binding.
+
+
+## Retained separate-host model evidence
+
+The [completed public Qwen research run](FULL-QWEN.md#completed-two-machine-ssh-research-execution)
+exercised the v2 twelve-bit route across two authorized Linux hosts and verified
+all four model steps after route closure. Its trusted client host held the keys;
+this was neither a browser client nor hardware attestation. The evidence records
+the pinned older experiment revision and actual costs, and does not qualify
+subsequent repository changes, arbitrary private inputs or production security.

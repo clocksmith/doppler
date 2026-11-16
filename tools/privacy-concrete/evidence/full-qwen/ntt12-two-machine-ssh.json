@@ -1,0 +1,81 @@
+{
+  "schema": "doppler.public-full-qwen-ci-evidence/v1",
+  "revision": "ef04c5dc9791bf36688703c3c3a9f21fe2d67622",
+  "fixtureId": "qwen05b-capital",
+  "completed": true,
+  "productionBackendAvailable": false,
+  "securityQualified": false,
+  "verifiedTilesObserved": 1548,
+  "lastVerifiedTile": {
+    "sequence": 1548,
+    "projection": "lm_head"
+  },
+  "report": {
+    "validationBoundary": "after-route-close/v1",
+    "backendProfile": "qwen-all-linear-ntt12",
+    "protocol": "concrete-glwe-qwen-research-ssh-replay/v2",
+    "clientLifetimePeakRssBytes": 5082132480,
+    "schema": "doppler.full-qwen-hybrid-execution/v1",
+    "planId": "bde4c943e98373df2998462c75deeafa5f9ab7dc95e350c6db107b62f3c4f44a",
+    "modelId": "4223289199791c6713ba2c98eb8f9d43a37597b09db0b2c778434dec431a6d24",
+    "executionRouteId": "6ce6b4407f3b53281605a29a8b1b0379a40f594d9bf55bbb6d125809665608d9",
+    "transport": "ssh-ed25519-pinned",
+    "linearProjectionCount": 169,
+    "encryptedTileCount": 1548,
+    "encryptedSteps": 4,
+    "matchesFullQuantizedGreedyReference": true,
+    "floatGreedyMatches": [
+      true,
+      true,
+      true,
+      true
+    ],
+    "maxLogitErrors": [
+      0.16046322882175446,
+      0.11863207817077637,
+      0.11942148208618164,
+      0.07912003993988037
+    ],
+    "setupMs": 206762.90612504818,
+    "stepMs": [
+      5822296.585784061,
+      756487.7126468346,
+      757670.1463460922,
+      753923.4705711715
+    ],
+    "quantizedReferenceMs": [
+      9060.197040904313,
+      2428.533004131168,
+      2656.6302590072155,
+      2726.230336818844
+    ],
+    "elapsedMs": 8319392.465088051,
+    "clientEncryptedReplayMs": 5382318.347130436,
+    "evaluatorRoundTripMs": 2679039.419580018,
+    "sentBytes": 321926348,
+    "receivedBytes": 86299136,
+    "evaluationKeyBytes": 268435536,
+    "clientPeakRss": 4963020,
+    "clientComputation": "Client nonlinearities, embeddings, caches, quantization, decoding and full encrypted replay",
+    "integrity": "Full deterministic replay; no qualified malicious-security claim",
+    "implementationVersions": {
+      "concrete-ml": "1.9.0",
+      "concrete-ml-extensions": "0.1.9+ntt.1",
+      "concrete-python": "2.10.0",
+      "torch": "2.3.1+cpu",
+      "transformers": "4.44.2",
+      "numpy": "1.26.4"
+    },
+    "nativeImplementation": {
+      "native-source-id": "8cb2cbd212d05c6646fb3132ebef58624738b0d0dcf7f59daebe3e0766e17bf9",
+      "native-binary-sha256": "c9ef1fd9327c9a416d91ec52b10d3968b52ade6ab458027f287ca046e1958f55"
+    }
+  },
+  "publicFixtureOutputText": " Paris. It is",
+  "publicFixtureOutputTokens": [
+    12095,
+    13,
+    1084,
+    374
+  ]
+}

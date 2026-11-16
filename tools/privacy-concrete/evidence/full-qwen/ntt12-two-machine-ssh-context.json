@@ -1,0 +1,90 @@
+{
+  "schema": "doppler.operator-observed-two-machine-qwen-context/v1",
+  "experimentRevision": "ef04c5dc9791bf36688703c3c3a9f21fe2d67622",
+  "archiveSha256": "75303815ff668ff44f4954d667224659a29ad016c5893a2936c21105b4dd32e5",
+  "fixtureId": "qwen05b-capital",
+  "basePlanId": "bde4c943e98373df2998462c75deeafa5f9ab7dc95e350c6db107b62f3c4f44a",
+  "modelId": "4223289199791c6713ba2c98eb8f9d43a37597b09db0b2c778434dec431a6d24",
+  "executionRouteId": "6ce6b4407f3b53281605a29a8b1b0379a40f594d9bf55bbb6d125809665608d9",
+  "protocol": "concrete-glwe-qwen-research-ssh-replay/v2",
+  "backendProfile": "qwen-all-linear-ntt12",
+  "model": {
+    "repository": "Qwen/Qwen2.5-0.5B-Instruct",
+    "revision": "7ae557604adf67be50417f59c2c2f167def9a775",
+    "decoderLayers": 24,
+    "linearOperations": 169,
+    "tilesPerStep": 387,
+    "plannedSteps": 4
+  },
+  "operatorObservedInstalledArtifacts": {
+    "bytes": 2142696,
+    "sha256": "a5cfb3802673c358e703273add68b7936181dbd8e4b037b69f3213f30f3f7e43",
+    "nativeBinarySha256": "c9ef1fd9327c9a416d91ec52b10d3968b52ade6ab458027f287ca046e1958f55",
+    "nativeSourceId": "8cb2cbd212d05c6646fb3132ebef58624738b0d0dcf7f59daebe3e0766e17bf9",
+    "bothEndpointIdentitiesMatched": true
+  },
+  "execution": {
+    "client": "Trusted authorized Linux CPU client host",
+    "evaluator": "Separate authorized pinned SSH endpoint",
+    "clientOperations": "Embeddings, nonlinearities, attention, private KV state, quantization, decoding, decryption and full encrypted replay",
+    "evaluatorOperations": "All 169 admitted model linear operations on ciphertexts and public evaluation material; no decryption key",
+    "endUserBrowserKeyCustody": false,
+    "providerSoftwareAttested": false,
+    "underlyingPhysicalSeparationAttested": false
+  },
+  "resourceControls": {
+    "cpuQuotaPercent": 400,
+    "memoryMaxBytes": 8589934592,
+    "memorySwapMaxBytes": 0,
+    "nice": 19,
+    "ioWeight": 10,
+    "diskCeilingBytes": 21474836480,
+    "diskStopBytes": 19327352832,
+    "diskEnforcement": "Monitored dedicated-root stop, not filesystem quota"
+  },
+  "productionBackendAvailable": false,
+  "securityQualified": false,
+  "independentlyReviewed": false,
+  "fullFlashModelExecuted": false,
+  "limitations": [
+    "The client host operator is trusted with plaintext and the secret key; this is not browser-local key custody.",
+    "Full encrypted replay provides no client compute saving or independently reviewed malicious security.",
+    "Native changes, parameter selection, interaction leakage and selective failures are not independently qualified.",
+    "SSH pins an endpoint/account; it does not attest applications, hardware or accelerators.",
+    "Protocol byte counters exclude SSH/TCP overhead and one-time dependency, source and model provisioning.",
+    "One public four-token fixture is neither corpus quality evidence nor a full Flash run.",
+    "Low-priority shared-host measurements are not an isolated comparison against ordinary Doppler or another FHE system.",
+    "Later repository scheduling, prepared-cache and source-owner changes are not deployed in this experiment."
+  ],
+  "completed": true,
+  "evidence": "ntt12-two-machine-ssh.json",
+  "validationBoundary": "after-route-close/v1",
+  "parameterProfile": "glwe-quant12-message35-storage48/v1",
+  "observationClass": "Operator-observed authorized research execution, not independent attestation",
+  "lifecycle": {
+    "clientExitCode": 0,
+    "evaluatorExitCode": 0,
+    "bothUnitsInactiveObserved": true,
+    "noTestRestart": true
+  },
+  "measurements": {
+    "modelReportedElapsedMs": 8319392.465088051,
+    "clientGuardElapsedMs": 8324927.336215973,
+    "clientLifetimePeakRssBytes": 5082132480,
+    "modelStageCgroupPeaksBytes": {
+      "client": 4302102528,
+      "evaluator": 1264091136
+    },
+    "ownedDiskPeaksBytes": {
+      "client": 6568677949,
+      "evaluator": 3369726001
+    },
+    "applicationSentBytes": 321926348,
+    "applicationReceivedBytes": 86299136,
+    "evaluationKeyBytes": 268435536,
+    "maximumEncryptedVsQuantizedLogitError": 0.16046322882175446
+  },
+  "evidenceSha256": "67d7dc79daacb363dc79bc74acff3a526008c3d9f115e012fc213a76a20464ab",
+  "sourceArchiveBytes": 1566720,
+  "sourceArchiveTrackedFileCount": 234
+}

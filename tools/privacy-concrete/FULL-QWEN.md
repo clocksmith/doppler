@@ -84,9 +84,10 @@ non-cancelling concurrency group and a three-hour budget; trigger only manually 
 with `[qwen-ntt-e2e]`. The original stock Qwen and Flash MoE runs are neither
 restarted nor cancelled. This is a changed implementation test, not a repeat of
 the unchanged six-hour candidate. The default-precision variant subsequently failed its third-step token check;
-its separate outcome is retained below. It is not the successful twelve-bit route. Its process-pipe
-execution is not a qualified separate-machine deployment; the existing SSH
-profile does not accept the new protocol.
+its separate outcome is retained below. It is not the successful twelve-bit route. That historical process-pipe execution does not establish separate-host
+execution. Version-one SSH manifests retain their original stock protocol;
+version-two routes can explicitly bind installed research profiles through the
+[authenticated evaluator interface](SSH-DEPLOYMENT.md).
 
 Source-file identity is now guarded across the complete client model/tokenizer
 materialization and public route trace, before any private key generation.
@@ -286,3 +287,48 @@ coverage to two prompts and exercises the closed-route validation boundary.
 Client nonlinearities and full replay remain; timing/failure leakage, arbitrary
 input correctness, independent malicious-security review and full Flash generation
 remain unqualified. Production admission stays closed.
+
+
+## Completed two-machine SSH research execution
+
+The [retained two-machine result](evidence/full-qwen/ntt12-two-machine-ssh.json)
+completed all **24 decoders and output head**, **169 linear operations**,
+**1,548 verified encrypted tiles and four autoregressive steps**. The fixed public
+capital fixture produced ` Paris. It is`; all four greedy choices matched both
+the quantized and FP32 references. Maximum encrypted-versus-quantized logit error
+was **0.16046**, so this is not numerical equivalence or a general quality result.
+The fixed route finished and closed before the numerical acceptance checks.
+Both client and evaluator units exited zero and were observed inactive.
+
+The trusted Linux client held the secret key and performed embeddings, attention,
+nonlinearities, private cache handling, quantization, decoding and full encrypted
+replay. A separate pinned SSH evaluator processed every admitted model linear
+operation on ciphertexts and public evaluation material. This is hybrid
+execution with a trusted client host; it does not establish browser-local key
+custody or confidentiality from the operator of that client host.
+
+Model-reported elapsed time was **138.66 minutes**, including **89.71 minutes**
+client encrypted replay and **44.65 minutes** evaluator round trips. Application
+frames sent/received were **321,926,348 / 86,299,136 bytes**, including the
+**268,435,536-byte** evaluation key. Client lifetime peak RSS was
+**5,082,132,480 bytes**. Kernel memory peaks for the client/evaluator test units
+were **4,302,102,528 / 1,264,091,136 bytes**, under their respective 8 GiB limits.
+Owned disk peaks were **6,568,677,949 / 3,369,726,001 bytes**; the disk guard is
+a monitored stop, not a filesystem quota. SSH/TCP overhead and one-time dependency,
+native-build and prior source/model provisioning costs are excluded from those
+application counters and model-reported elapsed time.
+
+The [context](evidence/full-qwen/ntt12-two-machine-ssh-context.json) binds the
+public evidence checksum, exact experiment revision `ef04c5dc9`, source archive,
+checkpoint, native source/binary and route identities. This pinned revision
+executes round trip and replay sequentially; later overlap, prepared-cache and
+source-owner changes were neither deployed nor measured in this run. It is one
+operator-observed low-priority CPU experiment, not independent attestation, a
+matched performance comparison or a latency distribution.
+
+Full client replay provides no client compute saving. Protocol, parameter, native
+variant, timing and failure leakage still require independent qualification.
+Full Flash execution and production cryptographic admission remain unavailable.
+The [route preparation command](SSH-DEPLOYMENT.md#prepare-an-exact-route-from-an-installed-cache)
+now derives a private manifest from an installed cache; it does not provision,
+connect to or appraise an endpoint.
