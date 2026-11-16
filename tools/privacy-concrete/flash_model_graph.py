@@ -1,8 +1,8 @@
-"""Complete client Flash reference assembly over trusted materialized source components.
+"""Complete client Flash reference over materialized or source-bound public components.
 
 Includes embeddings, every decoder, dense all-expert routing, final stream mixer,
 vocabulary head and request-local autoregressive cache routing. This is a reference
-composition, not an actual-weight model loader, encrypted backend or qualification.
+composition, not a complete actual-checkpoint loader, encrypted backend or qualification.
 Callbacks are trusted client code, never directly a plaintext network service.
 """
 import hashlib
@@ -13,6 +13,8 @@ from torch import nn
 from full_plan import canonical
 from protocol import digest
 from flash_client_projections import ClientProjection,client_execution
+from flash_dense_moe import DenseClientMoE
+from flash_streamed_moe import SourceLinear
 from flash_model_state import FlashModelState
 from flash_delta_program import ORDER as DELTA_ORDER
 from flash_attention import ORDER as QSA_ORDER
@@ -23,35 +25,6 @@ from local_ngram_embedding import LocalNgramEmbedding
 from local_token_embedding import LocalTokenEmbedding
 
 HYPER=('input_mix_weight_down','input_mix_weight_up','block_inject_weight')
-
-
-class DenseClientMoE(nn.Module):
-    def __init__(self,source,config):
-        super().__init__();self.config=config;self.ops=nn.ModuleDict()
-        def add(name,weight):
-            with torch.device('meta'):layer=nn.Linear(weight.shape[1],weight.shape[0],bias=False)
-            layer.weight=nn.Parameter(weight.detach(),requires_grad=False);self.ops[name]=layer
-        for name in ['gate','up','down']:add('shared_'+name,getattr(source.shared_expert,name+'_proj').weight)
-        add('router',source.gate.weight)
-        for index in range(config.num_experts):
-            packed=source.experts.gate_up_proj[index];width=config.moe_intermediate_size
-            add(f'expert_{index}_gate',packed[:width]);add(f'expert_{index}_up',packed[width:])
-            add(f'expert_{index}_down',source.experts.down_proj[index])
-        add('shared_mix',source.shared_expert_gate.weight)
-
-    def forward(self,value):
-        ops=self.ops
-        shared=ops['shared_down'](torch.nn.functional.silu(ops['shared_gate'](value))*ops['shared_up'](value))
-        probabilities=torch.softmax(ops['router'](value),dim=-1,dtype=torch.float32)
-        weights,indices=probabilities.topk(self.config.num_experts_per_tok,dim=-1)
-        if self.config.norm_topk_prob:weights=weights/weights.sum(-1,keepdim=True)
-        all_outputs=[]
-        for i in range(self.config.num_experts):
-            all_outputs.append(ops[f'expert_{i}_down'](torch.nn.functional.silu(ops[f'expert_{i}_gate'](value))*ops[f'expert_{i}_up'](value)))
-        all_outputs=torch.stack(all_outputs,dim=-2)
-        routing=torch.zeros_like(probabilities).scatter(-1,indices,weights)
-        routed=(all_outputs*routing.unsqueeze(-1)).sum(-2)
-        return routed+torch.sigmoid(ops['shared_mix'](value))*shared
 
 
 class ClientFlashGraph(nn.Module):
@@ -76,7 +49,9 @@ class ClientFlashGraph(nn.Module):
             kind='linear_attn' if layer.layer_type=='linear_attention' else 'self_attn'
             order.extend(prefix+kind+'.'+name for name in (DELTA_ORDER if kind=='linear_attn' else QSA_ORDER))
             order.extend(prefix+'mlp_hyper_connection.'+name for name in HYPER)
-            layer.mlp=DenseClientMoE(layer.mlp,config)
+            if isinstance(layer.mlp,DenseClientMoE):
+                if canonical(vars(layer.mlp.config))!=self.config_snapshot:raise ValueError('Client expert configuration differs from model')
+            else:layer.mlp=DenseClientMoE(layer.mlp,config)
             order.extend(prefix+'mlp.ops.'+name for name in layer.mlp.ops)
         order.extend('final_mixer.'+name for name in HYPER[:2]);order.append('head')
         public={}
@@ -90,8 +65,18 @@ class ClientFlashGraph(nn.Module):
         hasher.update(canonical(dict(sourceReferenceId=digest(canonical(SOURCE)),sourceTransforms=SPEC['transforms']['decoder'],configuration=json.loads(self.config_snapshot),layerTypes=config.layer_types,pleLayers=list(self.ple_layers),contextLimit=context_limit,operations=[dict(public[name].operation) for name in order])))
         for name,module in self.named_modules():
             if type(module) in [LocalNgramEmbedding,LocalTokenEmbedding]:hasher.update(canonical(dict(name=name,localTableId=digest(canonical(module.storage.spec)))))
+        source_meta=set();source_checks={}
+        for name,module in self.named_modules():
+            if isinstance(module,SourceLinear):
+                module.require_source();hasher.update(canonical(dict(name=name,sourceBinding=json.loads(module.source_binding))))
+                source_meta.add(name+'.weight')
+                source_checks[(id(module._source),module._shard)]=module
         for name,value in self.state_dict().items():
+            if value.device.type=='meta':
+                if name not in source_meta:raise ValueError('Unbound meta parameter in client model')
+                continue
             hasher.update(canonical(dict(name=name,dtype=str(value.dtype),shape=list(value.shape))));hasher.update(value.detach().cpu().contiguous().reshape(-1).view(torch.uint8).numpy().tobytes())
+        self.source_checks=tuple(source_checks.values())
         self.identity=hasher.hexdigest();self.eval().requires_grad_(False)
 
     def new_state(self,context):return FlashModelState(context,self.config.layer_types,self.ple_layers,self.identity)
@@ -99,6 +84,7 @@ class ClientFlashGraph(nn.Module):
     def forward(self,tokens,state,context,*,execution,verified_client_projection=None,cancelled=None):
         if type(state) is not FlashModelState:raise ValueError('Request-owned complete Flash state required')
         with client_execution(state,context,self.order,execution,verified_client_projection,cancelled):
+            for source in self.source_checks:source.require_source()
             state.require(type(self.config) is SimpleNamespace and canonical(vars(self.config))==self.config_snapshot)
             state.require(state.model_id==self.identity and tokens.dtype==torch.int64 and tokens.device.type=='cpu'
                           and tokens.ndim==2 and tokens.shape[0]==1 and tokens.shape[1]>0

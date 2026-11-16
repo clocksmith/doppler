@@ -6,6 +6,7 @@ from types import MappingProxyType
 import torch
 from torch import nn
 from flash_request_state import ClientRequestState
+from flash_streamed_moe import SourceLinear
 
 _CURRENT=ContextVar('doppler_flash_client_request',default=None)
 
@@ -34,6 +35,7 @@ class ClientProjection(nn.Module):
         state=execution.state;state.projection(self.operation['id'])
         state.require(isinstance(value,torch.Tensor) and value.dtype==torch.float32 and value.ndim>=2
                       and value.shape[-1]==self.operation['inputWidth'] and torch.isfinite(value).all())
+        if isinstance(self.source,SourceLinear):self.source.require_source()
         owned=value.clone()
         result=self.source(owned) if execution.callback is None else execution.callback(self.operation,owned)
         state.require(tuple(result.shape)==(*value.shape[:-1],self.operation['outputWidth']) and torch.isfinite(result).all())

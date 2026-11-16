@@ -623,3 +623,28 @@ metadata changes are accepted. Source-checkpoint verification retains its separa
 signature policy. Neither file metadata nor this cache writer replaces full plan
 admission or before-disclosure tile verification. This is not a malicious-kernel
 or power-loss durability guarantee, nor full Flash disk-stage orchestration.
+
+
+## Source-bound client MoE loading
+
+`SourceDenseClientMoE` now supplies the complete fixed all-expert operator from an
+already verified decoder-stage source, without materializing every expert bank
+in its constructor. The shared dense operator preserves the same operation order;
+each source-bound linear reads only its public matrix (or one packed expert),
+executes locally and releases that floating material. The client graph binds
+immutable tensor/slice/source identities for these meta parameters and checks
+all contributing source leases before embedding or any projection callback.
+A closed lease, changed source or changed configuration fails the attempt.
+
+Five focused tests use real small BF16 SafeTensors files and actual Torch math,
+including four cached steps through the complete inspected mixed-attention/PLE
+reference graph in local and trusted-adapter modes. They exercise fixed expert
+visitation, released weight ownership and revocation before disclosure. These are
+small synthetic weights, not actual full Flash generation or encrypted execution.
+No large source objects are downloaded by this change.
+
+This removes eager expert-bank retention from that graph composition. It does
+not yet provide an out-of-core loader for every decoder parameter, disk-stage
+eviction, a complete encrypted Flash plan or measured full-model memory/latency.
+Packed gate/up material is reread for the two client projections; no cache saving
+is assumed. Production and cryptographic qualification remain unavailable.

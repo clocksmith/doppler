@@ -21,6 +21,9 @@ on:
       - 'tools/privacy-concrete/flash_request_state.py'
       - 'tools/privacy-concrete/flash_model_state.py'
       - 'tools/privacy-concrete/flash_model_graph.py'
+      - 'tools/privacy-concrete/flash_streamed_moe.py'
+      - 'tools/privacy-concrete/flash_dense_moe.py'
+      - 'tools/privacy-concrete/test_flash_streamed_moe.py'
       - 'tools/privacy-concrete/flash_text_config.py'
       - 'tools/privacy-concrete/flash_model_assembly.py'
       - 'tools/privacy-concrete/test_flash_text_config.py'
@@ -56,7 +59,7 @@ jobs:
       - name: Install pinned CPU reference
         run: |
           python -m pip install --no-cache-dir 'torch==2.3.1' --index-url https://download.pytorch.org/whl/cpu
-          python -m pip install --no-cache-dir 'numpy==1.26.4'
+          python -m pip install --no-cache-dir 'numpy==1.26.4' 'safetensors==0.8.0'
       - name: Provision exact inspected official reference source
         run: |
           python - <<'PY'
@@ -97,6 +100,7 @@ jobs:
           python -m unittest discover -s tools/privacy-concrete -p test_ngram_mapping_reference.py -v
           python -m unittest discover -s tools/privacy-concrete -p test_flash_rotary_reference.py -v
           python -m unittest discover -s tools/privacy-concrete -p test_flash_model_reference.py -v
+          python -m unittest discover -s tools/privacy-concrete -p test_flash_streamed_moe.py -v
           python -m unittest discover -s tools/privacy-concrete -p test_local_token_embedding_reference.py -v
           python -m unittest discover -s tools/privacy-concrete -p test_flash_text_config.py -v
       - name: Retain source-bound complete-model geometry without weight or inference claims
