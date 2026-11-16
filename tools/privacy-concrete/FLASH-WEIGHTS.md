@@ -13,3 +13,30 @@ The installed research profile `flash-expert0` has its own protocol/model identi
 A successful result must verify all four encrypted responses before decryption and satisfy the declared quantized-reference error bounds. It records actual output-error, wire/key sizes, execution/replay time and process-lifetime memory high-water. This does not establish full-model tokens, useful service throughput, BF16 parity, hardware appraisal or independently reviewed malicious security. No success is claimed until the actual workflow result exists.
 
 The [retained result](evidence/flash/expert0-sine-2560.json) and [measurement context](evidence/flash/context.json) record a successful actual-weight run on [revision d83f3697](https://github.com/clocksmith/doppler/actions/runs/43803495772). All four encrypted products passed exact replay and the output passed its quantized-reference check. Encrypted-versus-quantized maximum error was 0.0003564; quantized-versus-floating error was 0.003536. Execution took 42.04 seconds, including 21.44 seconds of client replay; process elapsed was 48.75 seconds, excluding dependency installation and the earlier 5.19 GB public source acquisition. The fresh evaluation key was 134,217,808 bytes; the component sent 134,260,838 bytes and received 45,796 bytes. Client lifetime peak RSS was about 1.08 GB. These are scoped functional measurements, not full-model throughput or production security qualification.
+
+
+## Complete first-layer MoE integration
+
+`flash_moe.py --execution encrypted` streams every first-layer expert and the
+shared/router weights through one fixed source-bound route. It lowers 1,541
+logical projections to 1,029 encrypted linear modules and 2,058 width-safe tiles,
+combining each expert's gate/up projection. The client performs the SiLU,
+softmax/top-k, shared sigmoid and weighted combination. Every expert is computed
+and replay-verified before selection affects the client result. Only one public
+expert's floating-point material is resident at a time; public int8 files remain
+reusable across attempts. Secret state and the pending up-vector are local to
+one attempt. No private prompt/input CLI is exposed.
+
+The separately named `flash-dense-moe` research protocol cannot substitute for
+fixed expert 0, full Qwen generation or production crypto admission. The hosted
+`Actual Flash dense MoE encrypted integration` workflow tests the actual
+Torch/quantizer lowering, then attempts this complete fixed public fixture with
+six-hour cancellation. Its implementation and a running job do not establish a
+completed encrypted MoE execution. `--execution public-reference` is explicitly
+a clear computation and reports `encryptedExecutionCompleted: false`.
+
+This remains one first-layer MoE block. Hyperconnections, attention, recurrent
+state, ngram embedding, other layers and autoregressive Flash generation are not
+implemented by this component. Timing/padding, remote deployment, parameter and
+implementation review and malicious-security qualification remain open. Full
+client encrypted replay is still required.

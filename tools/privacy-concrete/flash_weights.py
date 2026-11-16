@@ -99,6 +99,7 @@ class FlashSource:
             if result.dtype!=torch.bfloat16:raise ValueError('Pinned BF16 tensor required')
             result=result.to(dtype=torch.float32)
             if not torch.isfinite(result).all():raise ValueError('Finite pinned public tensor required')
+            if file_signature(path)!=self.signatures[expected['shard']]:raise ValueError('Verified model source changed during tensor read')
             return result
 
 
