@@ -1,0 +1,49 @@
+name: Actual Flash expert encrypted integration
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/flash-weights.yml'
+      - 'tools/privacy-concrete/**'
+permissions:
+  contents: read
+jobs:
+  actual-expert:
+    if: github.event_name == 'workflow_dispatch' || contains(github.event.head_commit.message, '[flash-expert-e2e]')
+    concurrency:
+      group: actual-flash-expert
+      cancel-in-progress: false
+    runs-on: ubuntu-24.04
+    timeout-minutes: 120
+    env:
+      OMP_NUM_THREADS: '4'
+      RAYON_NUM_THREADS: '4'
+      TOKENIZERS_PARALLELISM: 'false'
+      HF_HUB_DISABLE_IMPLICIT_TOKEN: '1'
+      CMAKE_ARGS: '-DCMAKE_POLICY_VERSION_MINIMUM=3.5'
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+      - name: Install pinned CPU implementation
+        run: |
+          python -m pip install --no-cache-dir 'torch==2.3.1' --index-url https://download.pytorch.org/whl/cpu
+          python -m pip install --no-cache-dir -r tools/privacy-concrete/requirements.txt 'safetensors==0.8.0'
+      - name: Provision complete immutable public Flash shards
+        run: python tools/privacy-concrete/flash_weights.py --destination "$RUNNER_TEMP/flash-source"
+      - name: Execute complete fixed expert with ciphertext-only provider inputs
+        run: |
+          python tools/privacy-concrete/flash_expert.py \
+            --source-dir "$RUNNER_TEMP/flash-source" \
+            --cache-dir "$RUNNER_TEMP/flash-public-cache" \
+            > "$RUNNER_TEMP/flash-expert-public-result.json" \
+            2> "$RUNNER_TEMP/flash-expert-client-diagnostics.txt"
+      - uses: actions/upload-artifact@v6
+        if: always()
+        with:
+          name: actual-flash-expert-public-evidence
+          path: ${{ runner.temp }}/flash-expert-public-result.json
+          if-no-files-found: warn
+          retention-days: 7

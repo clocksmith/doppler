@@ -1,0 +1,19 @@
+{
+  "schema": "doppler.flash-fixed-expert-policy/v1",
+  "profile": "flash-expert0",
+  "planSchema": "doppler.flash-fixed-expert-plan/v1",
+  "protocol": "concrete-glwe-flash-fixed-expert-replay/v1",
+  "productionBackendAvailable": false,
+  "expertIndex": 0,
+  "steps": 1,
+  "contextBucket": 1,
+  "inputTileWidth": 2048,
+  "outputTileWidth": 2048,
+  "cpuThreads": 4,
+  "operationTimeoutSeconds": 900,
+  "additionalDependencies": {
+    "safetensors": "0.8.0"
+  },
+  "maxAbsoluteError": 0.01,
+  "maxRelativeError": 0.01
+}

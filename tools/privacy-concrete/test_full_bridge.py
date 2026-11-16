@@ -71,6 +71,12 @@ class FullBridgeOrderingTests(unittest.TestCase):
             with self.assertRaises(ValueError):self.module.FullBridge('unused',plan,key,deployment=deployment)
             spawn.assert_not_called()
 
+    def test_unknown_installed_backend_rejects_before_key_export_or_process(self):
+        key=SimpleNamespace(serialize=lambda:self.fail('evaluation key exported'))
+        with patch.object(self.module.subprocess,'Popen') as spawn:
+            with self.assertRaises(ValueError):self.module.FullBridge('unused',SimpleNamespace(identity='expected'),key,backend_profile='remote-advertised-full-flash')
+            spawn.assert_not_called()
+
     def test_route_change_is_rejected_before_ciphertext_serialization(self):
         with self.assertRaises(ValueError):self.bridge.evaluate(self.encrypted,self.matrix,dict(self.tile,id='replacement'))
         self.assertEqual(self.serialized,[]);self.assertEqual(self.exchanged,[])

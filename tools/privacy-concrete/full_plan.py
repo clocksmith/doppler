@@ -48,7 +48,7 @@ class FullPlan:
 
     def frame(self, session, key_id, sequence, kind, tile_id=''):
         value = binding(self.definition()['modelId'], session, key_id, sequence, kind, tile_id)
-        value.update(schema=PROTOCOL, policyId=self.identity)
+        value.update(schema=self.protocol_id, policyId=self.identity)
         return value
 
     def schedule(self):

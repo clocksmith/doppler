@@ -81,7 +81,7 @@ class SSHRoute:
     def bind(self,plan,allowed_operators):
         value=self.definition()
         self.require_requester(allowed_operators)
-        if (plan.identity!=value['basePlanId'] or plan.definition()['modelId']!=value['modelId']):
+        if (plan.protocol_id!=value['backendProtocol'] or plan.identity!=value['basePlanId'] or plan.definition()['modelId']!=value['modelId']):
             raise ValueError('SSH endpoint is not bound to the requested complete model plan')
         return BoundSSHPlan(plan,self)
 

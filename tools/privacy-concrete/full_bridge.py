@@ -8,15 +8,18 @@ import uuid
 import numpy as np
 import concrete_ml_extensions as ext
 from protocol import check, digest, receive, require_active, send
-from full_plan import FULL_POLICY, load_plan
+from full_plan import load_plan
 from full_admission import FullRouteAdmission
 from full_status import ExecutionRejected
 
 
 class FullBridge:
-    def __init__(self, directory, plan, key, cancelled=None, observe=lambda kind, value: None, deployment=None):
+    def __init__(self, directory, plan, key, cancelled=None, observe=lambda kind, value: None, deployment=None, backend_profile=None):
         require_active(cancelled)
-        validated=load_plan(directory)
+        if backend_profile is None:validated=load_plan(directory)
+        else:
+            from plan_backends import load_backend_plan
+            validated=load_backend_plan(directory,backend_profile)
         if validated.identity!=plan.identity:
             raise ValueError('Client full-model admission differs from the prepared plan')
         bound=validated if deployment is None else deployment.bind(validated)
@@ -29,9 +32,9 @@ class FullBridge:
         self.key_id, self.key_bytes = digest(data), len(data)
         self.sequence, self.sent, self.received = 0, 0, 0
         self.remote_seconds = self.replay_seconds = 0.0
-        self.child = deployment.spawn(validated) if deployment is not None else subprocess.Popen([sys.executable,str(Path(__file__).with_name('full_provider.py')),str(Path(directory).resolve()),plan.identity],
+        self.child = deployment.spawn(validated) if deployment is not None else subprocess.Popen([sys.executable,str(Path(__file__).with_name('full_provider.py')),str(Path(directory).resolve()),plan.identity,*(['--profile',backend_profile] if backend_profile is not None else [])],
                                       stdin=subprocess.PIPE,stdout=subprocess.PIPE,stderr=subprocess.DEVNULL,bufsize=0,
-                                      env={'RAYON_NUM_THREADS':str(FULL_POLICY['cpuThreads']),'OMP_NUM_THREADS':str(FULL_POLICY['cpuThreads'])})
+                                      env={'RAYON_NUM_THREADS':str(self.plan.definition()['cpuThreads']),'OMP_NUM_THREADS':str(self.plan.definition()['cpuThreads'])})
         try:
             self.exchange('evaluation-key', data, 'ready')
         except BaseException:

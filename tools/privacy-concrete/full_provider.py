@@ -1,22 +1,25 @@
 """All-linear evaluator. Receives only evaluation material and ciphertexts; reads public int8 weights."""
 import sys
+import argparse
 import numpy as np
 import concrete_ml_extensions as ext
-from full_plan import load_plan
 from protocol import check, digest, receive, send
 
 
 def serve():
-    if len(sys.argv) not in [3,6]:raise ValueError('Explicit evaluator route arguments required')
-    directory, plan_id = sys.argv[1:3]
-    plan = load_plan(directory)
-    if plan.identity != plan_id:
-        raise ValueError('Installed plan mismatch')
-    if len(sys.argv)==6:
+    from plan_backends import PROFILES, load_backend_plan
+    parser=argparse.ArgumentParser()
+    parser.add_argument('directory');parser.add_argument('plan_id')
+    parser.add_argument('--profile',choices=PROFILES,default='qwen-all-linear')
+    parser.add_argument('--ssh-route',nargs=2)
+    args=parser.parse_args()
+    directory,plan_id=args.directory,args.plan_id
+    plan=load_backend_plan(directory,args.profile)
+    if plan.identity!=plan_id:raise ValueError('Installed plan mismatch')
+    if args.ssh_route:
         from ssh_route import SSHRoute
-        if sys.argv[3]!='--ssh-route':raise ValueError('Unsupported evaluator route')
-        route=SSHRoute.from_file(sys.argv[4])
-        if route.identity!=sys.argv[5]:raise ValueError('SSH route identity changed')
+        route=SSHRoute.from_file(args.ssh_route[0])
+        if route.identity!=args.ssh_route[1]:raise ValueError('SSH route identity changed')
         plan=route.bind(plan,(route.definition()['operatorId'],))
     timeout=plan.definition()['operationTimeoutSeconds']
     source, target = sys.stdin.buffer.raw, sys.stdout.buffer.raw

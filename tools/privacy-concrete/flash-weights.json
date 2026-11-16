@@ -1,0 +1,87 @@
+{
+  "schema": "doppler.flash-moe-weights/v1",
+  "repository": "Qwen/Qwen3.8-Flash-Next",
+  "revision": "812d96e10a0dd82b69d749e68693698cf6c36daa",
+  "indexSha256": "99e815241ef03325536b0aaa4441deea45174c17fae31e10f0bb456410c590de",
+  "configSha256": "889658f2508e8c61d409b02e70e0d78d8d4452ec65aaafbe129805d213d2e74b",
+  "shards": {
+    "model-00002-of-00131.safetensors": {
+      "bytes": 3355443368,
+      "sha256": "1da92de7cf72dcca86faf05007925389ceb24427609e8d3b478d53d97fd97a63"
+    },
+    "model-00003-of-00131.safetensors": {
+      "bytes": 1832518264,
+      "sha256": "b783fbb3bdf185b4576ffee9ba786dbd9a218ec3cac9d92706d99216567b37a6"
+    }
+  },
+  "tensors": {
+    "model.language_model.layers.0.mlp.experts.gate_up_proj": {
+      "shard": "model-00002-of-00131.safetensors",
+      "dtype": "BF16",
+      "shape": [
+        512,
+        1280,
+        2560
+      ]
+    },
+    "model.language_model.layers.0.mlp.experts.down_proj": {
+      "shard": "model-00003-of-00131.safetensors",
+      "dtype": "BF16",
+      "shape": [
+        512,
+        2560,
+        640
+      ]
+    },
+    "model.language_model.layers.0.mlp.gate.weight": {
+      "shard": "model-00003-of-00131.safetensors",
+      "dtype": "BF16",
+      "shape": [
+        512,
+        2560
+      ]
+    },
+    "model.language_model.layers.0.mlp.shared_expert.down_proj.weight": {
+      "shard": "model-00003-of-00131.safetensors",
+      "dtype": "BF16",
+      "shape": [
+        2560,
+        640
+      ]
+    },
+    "model.language_model.layers.0.mlp.shared_expert.gate_proj.weight": {
+      "shard": "model-00003-of-00131.safetensors",
+      "dtype": "BF16",
+      "shape": [
+        640,
+        2560
+      ]
+    },
+    "model.language_model.layers.0.mlp.shared_expert.up_proj.weight": {
+      "shard": "model-00003-of-00131.safetensors",
+      "dtype": "BF16",
+      "shape": [
+        640,
+        2560
+      ]
+    },
+    "model.language_model.layers.0.mlp.shared_expert_gate.weight": {
+      "shard": "model-00003-of-00131.safetensors",
+      "dtype": "BF16",
+      "shape": [
+        1,
+        2560
+      ]
+    }
+  },
+  "files": {
+    "config.json": {
+      "bytes": 4745,
+      "sha256": "889658f2508e8c61d409b02e70e0d78d8d4452ec65aaafbe129805d213d2e74b"
+    },
+    "model.safetensors.index.json": {
+      "bytes": 170726,
+      "sha256": "99e815241ef03325536b0aaa4441deea45174c17fae31e10f0bb456410c590de"
+    }
+  }
+}

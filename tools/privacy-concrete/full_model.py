@@ -54,12 +54,13 @@ class FullLinear(nn.Module):
             integer_input = np.ascontiguousarray(q_input.long().numpy(),dtype=np.uint64)
             if integer_input.ndim != 2:
                 raise ValueError('Only one private request per key context is admitted')
+            geometry=self.bridge.plan.definition()
             encrypted = {}
-            for begin,end in ranges(self.definition['inputWidth'],2048):
+            for begin,end in ranges(self.definition['inputWidth'],geometry['inputTileWidth']):
                 encrypted[begin] = ext.encrypt_matrix(pkey=self.secret,crypto_params=self.parameters,
                                                      data=np.ascontiguousarray(integer_input[:,begin:end]))
             result = np.zeros((integer_input.shape[0],self.definition['outputWidth']),dtype=np.int64)
-            for tile in tiles(self.definition):
+            for tile in tiles(self.definition,geometry['inputTileWidth'],geometry['outputTileWidth']):
                 matrix = np.ascontiguousarray(self.weights[tile['inputBegin']:tile['inputEnd'],tile['outputBegin']:tile['outputEnd']],dtype=np.int64).astype(np.uint64)
                 answer = self.bridge.evaluate(encrypted[tile['inputBegin']],matrix,tile)
                 self.bridge.check_active()
