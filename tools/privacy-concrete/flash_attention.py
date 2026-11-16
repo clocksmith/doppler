@@ -19,6 +19,8 @@ class ClientQSAAttention(nn.Module):
                 or rotary_width<=0 or rotary_width%2 or rotary_width>min(config.head_dim,config.indexer_head_dim)):
             raise ValueError('Explicit bounded inspected eager-attention configuration required')
         source=load_reference(reference_path,'attention')
+        if tuple(CONFIG['sourceTransforms'])!=source['__referenceTransforms__']:raise ValueError('QSA source transform contract changed')
+        self.reference_transforms=source['__referenceTransforms__']
         self.model=source['Qwen4ExpTextAttention'](config,layer_index).eval().requires_grad_(False)
         self.hidden_width=config.hidden_size;self.context_limit=context_limit;self.rotary_width=rotary_width;self.layer_index=layer_index
         for name in ORDER:

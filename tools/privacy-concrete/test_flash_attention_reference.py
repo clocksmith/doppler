@@ -33,6 +33,14 @@ class QSAReferenceTests(unittest.TestCase):
         mask=torch.full((1,1,length-past,length),torch.finfo(torch.float32).min).masked_fill(visible[None,None],0)
         return (angles.cos(),angles.sin()),mask
 
+    def test_index_promotion_preserves_integer_values_for_torch23_scatter(self):
+        torch,candidate,reference,context=self.fixture()
+        self.assertEqual(candidate.reference_transforms,('qsa-scatter-index64/v1',))
+        indices=torch.tensor([[0,3],[1,2]],dtype=torch.int32)
+        mask=torch.zeros((2,4),dtype=torch.bool).scatter(-1,indices.to(torch.int64),True)
+        self.assertEqual(indices.to(torch.int64).tolist(),indices.tolist())
+        self.assertEqual(mask.tolist(),[[True,False,False,True],[False,True,True,False]])
+
     def test_prefill_and_three_cached_qsa_decode_steps_match_full_prefix_source(self):
         from flash_attention import ORDER
         from flash_attention_state import AttentionRequestState

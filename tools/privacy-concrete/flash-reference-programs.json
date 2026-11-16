@@ -36,5 +36,10 @@
     "use_experts_implementation",
     "force_accelerate_hooks",
     "deprecate_kwarg"
-  ]
+  ],
+  "transforms": {
+    "attention": [
+      "qsa-scatter-index64/v1"
+    ]
+  }
 }

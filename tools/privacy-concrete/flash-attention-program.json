@@ -7,5 +7,8 @@
     "v_proj",
     "o_proj"
   ],
-  "attentionImplementation": "eager"
+  "attentionImplementation": "eager",
+  "sourceTransforms": [
+    "qsa-scatter-index64/v1"
+  ]
 }

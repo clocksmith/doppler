@@ -147,3 +147,13 @@ attention, keep the projection route fixed across input/selection changes, and
 verify independent KV/indexer buffers. This graph has no actual Flash weight or
 encrypted-execution qualification and is not registered as an encrypted backend.
 Ngram/PLE and complete-model generation remain unfinished.
+
+
+The pinned upstream QSA scatter uses int32 indices, which the pinned Torch 2.3
+runtime rejects. The explicit inspected transform `qsa-scatter-index64/v1`
+promotes that one named scatter argument to int64; its integer values and token
+selection are unchanged. The loader requires exactly one known source site and
+the attention program binds the transform identifier. It changes no weights,
+mask arithmetic or projection route and is not a runtime fallback. Reference
+comparisons for this lane use the pinned source with this declared compatibility
+transform, rather than claiming an unmodified Torch 2.3 upstream execution.
