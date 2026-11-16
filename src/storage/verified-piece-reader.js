@@ -61,6 +61,27 @@ export async function createVerifiedPieceReader({ manifestBytes, indexBytes, ind
   const receipt = { indexIdentity, manifestIdentity: index.manifestIdentity, requestedBytes: 0, verifiedBytes: 0, pieces: [], ranges: [],
     acquisitionMs: 0, verificationMs: 0, copyMs: 0, activeReadBytes: 0, peakReadBytes: 0 };
   const seen = new Set(), ranges = new Set();
+  /** @param {Array<Omit<import('./verified-piece-reader.js').VerifiedPiece, 'path'>>} pieces
+   * @param {number} offset */
+  function firstPiece(pieces, offset) {
+    let low = 0, high = pieces.length;
+    while (low < high) {
+      const middle = Math.floor((low + high) / 2), piece = pieces[middle];
+      if (piece.offset + piece.size <= offset) low = middle + 1;
+      else high = middle;
+    }
+    return low;
+  }
+  /** Pinned expected metadata only; this lookup does not authenticate acquired bytes.
+   * @param {string} path @param {number} offset @param {number} length */
+  function resolveCompletePiece(path, offset, length) {
+    signal?.throwIfAborted();
+    if (closed) throw new Error('Piece storage closed.');
+    const file = files.get(path);
+    if (!file || !Number.isSafeInteger(offset) || offset < 0 || !Number.isSafeInteger(length) || length < 1) return null;
+    const piece = file.pieces[firstPiece(file.pieces, offset)];
+    return piece?.offset === offset && piece.size === length ? Object.freeze({ ...piece, path }) : null;
+  }
   /** @param {string} path @param {number} offset @param {number | null} length
    * @param {Uint8Array | null} destination */
   async function readOwnedRange(path, offset, length, destination) {
@@ -75,12 +96,7 @@ export async function createVerifiedPieceReader({ manifestBytes, indexBytes, ind
     receipt.peakReadBytes = Math.max(receipt.peakReadBytes, receipt.activeReadBytes);
     try {
       // Coverage is validated and ordered: locate only the intersecting pieces.
-      let low = 0, high = file.pieces.length;
-      while (low < high) {
-        const middle = Math.floor((low + high) / 2), piece = file.pieces[middle];
-        if (piece.offset + piece.size <= offset) low = middle + 1;
-        else high = middle;
-      }
+      const low = firstPiece(file.pieces, offset);
       for (let index = low; index < file.pieces.length; index++) {
         const piece = file.pieces[index];
         if (piece.offset >= offset + length) break;
@@ -136,7 +152,7 @@ export async function createVerifiedPieceReader({ manifestBytes, indexBytes, ind
     if (!file) throw new Error('Undeclared auxiliary artifact: ' + path);
     return readRange(path, 0, file.size);
   };
-  return Object.freeze({ manifest, readRange, readInto, readBinary,
+  return Object.freeze({ manifest, readRange, readInto, readBinary, resolveCompletePiece,
     getReceipt: () => structuredClone(receipt),
     async preflight() {
       signal?.throwIfAborted();

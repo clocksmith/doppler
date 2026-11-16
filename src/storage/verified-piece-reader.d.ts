@@ -20,6 +20,8 @@ export function createVerifiedPieceReader(options: VerifiedPieceReaderOptions): 
    * Failure may leave a verified prefix; no writes occur after settlement. */
   readInto(path: string, offset: number, destination: Uint8Array): Promise<number>;
   readBinary(path: string): Promise<ArrayBuffer>;
+  /** Expected metadata from the authenticated index; never a claim that source bytes were read or verified. */
+  resolveCompletePiece(path: string, offset: number, length: number): Readonly<VerifiedPiece> | null;
   getReceipt(): VerifiedPieceReceipt;
   preflight(): Promise<void>;
   close(): Promise<void>;

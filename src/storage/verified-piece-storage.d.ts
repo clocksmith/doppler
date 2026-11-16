@@ -5,5 +5,5 @@ export function createVerifiedPieceStorage(options: VerifiedPieceReaderOptions &
   storage: ReturnType<typeof import('./artifact-storage-context.js').createArtifactStorageContext>;
   /** Generic reader evidence. Gather evidence is separate, never silently merged. */
   getReceipt(): VerifiedPieceReceipt;
-  getGatherReceipt: (() => Promise<VerifiedPieceReceipt>) | null;
+  getGatherReceipt: (() => Promise<import('./verified-piece-gather.js').VerifiedPieceGatherReceipt>) | null;
 }>;

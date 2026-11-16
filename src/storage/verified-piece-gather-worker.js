@@ -1,5 +1,6 @@
 import { parentPort, workerData } from 'node:worker_threads';
 import { openSync, readSync, closeSync } from 'node:fs';
+import { createHash } from 'node:crypto';
 import { createVerifiedPieceReader } from './verified-piece-reader.js';
 
 // This worker owns acquisition, complete-piece authentication and range gathering.
@@ -8,30 +9,66 @@ import { createVerifiedPieceReader } from './verified-piece-reader.js';
 const handles = new Map();
 if (!parentPort) throw new Error('Gather requires a worker port.');
 const port = parentPort;
+/** @param {Readonly<import('./verified-piece-reader.js').VerifiedPiece>} piece
+ * @param {Uint8Array} bytes */
+function readFile(piece, bytes) {
+  if (bytes.byteLength !== piece.size) throw new Error('Direct source read must cover its complete piece.');
+  const filename = workerData.files[piece.path];
+  if (typeof filename !== 'string') throw new Error('Missing approved piece file.');
+  let handle = handles.get(piece.path);
+  if (handle === undefined) {
+    handle = openSync(filename, 'r');
+    handles.set(piece.path, handle);
+  }
+  let read = 0;
+  while (read < bytes.length) {
+    const count = readSync(handle, bytes, read, bytes.length - read, piece.offset + read);
+    if (!count) throw new Error('Incomplete authenticated piece.');
+    read += count;
+  }
+}
 const reader = await createVerifiedPieceReader({ ...workerData.metadata,
   acquire: async piece => {
-    const filename = workerData.files[piece.path];
-    if (typeof filename !== 'string') throw new Error('Missing approved piece file.');
-    let handle = handles.get(piece.path);
-    if (handle === undefined) {
-      handle = openSync(filename, 'r');
-      handles.set(piece.path, handle);
-    }
     const bytes = new Uint8Array(piece.size);
-    let read = 0;
-    while (read < bytes.length) {
-      const count = readSync(handle, bytes, read, bytes.length - read, piece.offset + read);
-      if (!count) throw new Error('Incomplete authenticated piece.');
-      read += count;
-    }
+    readFile(piece, bytes);
     return bytes;
   },
 });
+// Only the common verifier's authenticated index may select the direct path.
+// This worker owns the FD and transferred output; no external acquisition callback
+// can mutate the bytes between synchronous full-piece SHA and publication.
+let directPieceReads = 0, directPieceBytes = 0, acquisitionMs = 0, verificationMs = 0;
+/** @type {Map<string, Readonly<import('./verified-piece-reader.js').VerifiedPiece>>} */
+const directRanges = new Map();
+/** @returns {import('./verified-piece-gather.js').VerifiedPieceGatherReceipt} */
+function getReceipt() {
+  const generic = reader.getReceipt();
+  const ranges = new Map(generic.ranges.map(range => [`${range.path}:${range.offset}`, range]));
+  for (const [key, range] of directRanges) ranges.set(key, range);
+  const pieces = new Map([...ranges.values()].map(range => [range.identity, range.size]));
+  return { ...generic, ranges: [...ranges.values()], pieces: [...pieces.keys()],
+    verifiedBytes: [...pieces.values()].reduce((sum, size) => sum + size, 0),
+    requestedBytes: generic.requestedBytes + directPieceBytes,
+    acquisitionMs: generic.acquisitionMs + acquisitionMs, verificationMs: generic.verificationMs + verificationMs,
+    directPieceReads, directPieceBytes };
+}
 port.postMessage({ ready: true });
 port.on('message', async ({ path, offset, length, buffer, receipt }) => {
-  if (receipt === true) { port.postMessage({ receipt: reader.getReceipt() }); return; }
+  if (receipt === true) { port.postMessage({ receipt: getReceipt() }); return; }
   try {
-    await reader.readInto(path, offset, new Uint8Array(buffer, 0, length));
+    const output = new Uint8Array(buffer, 0, length);
+    const piece = reader.resolveCompletePiece(path, offset, length);
+    if (piece) {
+      const readStart = performance.now();
+      try { readFile(piece, output); }
+      finally { acquisitionMs += performance.now() - readStart; }
+      const hashStart = performance.now();
+      const identity = 'sha256:' + createHash('sha256').update(output).digest('hex');
+      verificationMs += performance.now() - hashStart;
+      if (identity !== piece.identity) throw new Error('Acquired piece integrity mismatch.');
+      directRanges.set(`${path}:${offset}`, piece);
+      directPieceReads++; directPieceBytes += length;
+    } else await reader.readInto(path, offset, output);
     port.postMessage({ buffer, length }, [buffer]);
   } catch (error) {
     // Never publish a verified prefix after a later piece fails verification.

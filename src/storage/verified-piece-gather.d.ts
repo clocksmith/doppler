@@ -1,3 +1,4 @@
+import type { VerifiedPieceReceipt } from './verified-piece-reader.js';
 export interface VerifiedPieceGatherOptions {
   manifestBytes: Uint8Array<ArrayBuffer>;
   indexBytes: Uint8Array<ArrayBuffer>;
@@ -17,12 +18,17 @@ export interface VerifiedRangeLease {
   /** Idempotent. Detaches bytes; call only after the consumer has copied them. */
   release(): void;
 }
+export interface VerifiedPieceGatherReceipt extends VerifiedPieceReceipt {
+  /** Successful full-piece reads directly into the worker-owned output, authenticated before transfer. */
+  directPieceReads: number;
+  directPieceBytes: number;
+}
 export function createVerifiedPieceGather(options: VerifiedPieceGatherOptions): Promise<Readonly<{
   /** At most concurrency in-flight reads or outstanding leases. Cancellation is checked before
    * publishing; close terminates the worker and rejects any pending read immediately. */
   readLease(path: string, offset: number, length: number, signal?: AbortSignal): Promise<VerifiedRangeLease>;
   /** Snapshot of worker verification evidence; requires no outstanding lease. */
-  getReceipt(): Promise<import('./verified-piece-reader.js').VerifiedPieceReceipt>;
+  getReceipt(): Promise<VerifiedPieceGatherReceipt>;
   close(): Promise<void>;
   rangeLease: VerifiedRangeLeasePort;
 }>>;

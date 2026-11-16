@@ -33,6 +33,18 @@ not successfully delivered request bytes: they may include verified prefixes of
 failed reads and work completed before cancellation prevents publication. Do not
 report the generic receipt as a total for both readers.
 
+When a requested range exactly covers one complete authenticated piece, the
+worker reads that piece directly into its reusable owned output and hashes the
+full output with Node SHA-256 before transferring it. It resolves the range
+against the common reader's validated index; lookup alone is not authentication
+evidence. This avoids the generic acquisition allocation, verification clone and
+intersection copy for that case. Partial and multi-piece requests retain generic
+complete-piece verification and gathering. Neither path skips authentication.
+`directPieceReads` and `directPieceBytes` count successful exact-piece worker
+reads, including work whose publication is later prevented by cancellation.
+`copyMs` measures explicit generic gathering only, not native digest or I/O
+internals. All timing fields remain cumulative worker time, not request latency.
+
 Lower-level hosts can pass `rangeLease` through custom shard loader options:
 
 ```js
@@ -46,8 +58,8 @@ loader.setCustomShardLoader(loadShard, {
 The ordinary shard/range callbacks still own other loads and unsupported source
 transforms or multispan tensors. Compact decoding uses verified owned bytes
 directly for GPU uploads instead of copying them into main-thread scratch.
-Reading, hashing and gathering happen inside the worker; gathering itself still
-copies bytes. No shared scratch backing buffer is transferred.
+Reading, hashing and gathering happen inside the worker; non-exact gathering
+still copies intersections. No shared scratch backing buffer is transferred.
 
 The optional explicit `concurrency` declares worker lanes; omission preserves
 one lane. Each lane permits one outstanding read or lease with its own buffer.

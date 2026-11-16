@@ -26,7 +26,7 @@ export async function createVerifiedPieceGatherLane(options) {
   let buffer = new ArrayBuffer(maxPartBytes);
   /** @type {((error: Error) => void) | null} */
   let failPending = null;
-  /** @type {((message: { ready?: boolean, buffer: ArrayBuffer, error?: string, receipt?: import('./verified-piece-reader.js').VerifiedPieceReceipt }) => void) | null} */
+  /** @type {((message: { ready?: boolean, buffer: ArrayBuffer, error?: string, receipt?: import('./verified-piece-gather.js').VerifiedPieceGatherReceipt }) => void) | null} */
   let receive = null;
   /** @type {Promise<void>} */
   const ready = new Promise((resolve, reject) => {
