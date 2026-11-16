@@ -16,6 +16,9 @@ export interface VerifiedPieceReaderOptions {
 export function createVerifiedPieceReader(options: VerifiedPieceReaderOptions): Promise<Readonly<{
   manifest: import('../formats/rdrr/index.js').RDRRManifest;
   readRange(path: string, offset: number, length: number | null): Promise<ArrayBuffer>;
+  /** Authenticates complete pieces before copying into caller-owned storage.
+   * Failure may leave a verified prefix; no writes occur after settlement. */
+  readInto(path: string, offset: number, destination: Uint8Array): Promise<number>;
   readBinary(path: string): Promise<ArrayBuffer>;
   getReceipt(): VerifiedPieceReceipt;
   preflight(): Promise<void>;

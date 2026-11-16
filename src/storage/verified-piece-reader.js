@@ -61,15 +61,17 @@ export async function createVerifiedPieceReader({ manifestBytes, indexBytes, ind
   const receipt = { indexIdentity, manifestIdentity: index.manifestIdentity, requestedBytes: 0, verifiedBytes: 0, pieces: [], ranges: [],
     acquisitionMs: 0, verificationMs: 0, copyMs: 0, activeReadBytes: 0, peakReadBytes: 0 };
   const seen = new Set(), ranges = new Set();
-  /** @param {string} path @param {number} offset @param {number | null} length */
-  async function readOwnedRange(path, offset, length) {
+  /** @param {string} path @param {number} offset @param {number | null} length
+   * @param {Uint8Array | null} destination */
+  async function readOwnedRange(path, offset, length, destination) {
     signal?.throwIfAborted();
     const file = files.get(path);
     if (length === null) length = file ? file.size - offset : 0;
     if (closed || !file || !Number.isSafeInteger(offset) || offset < 0 || !Number.isSafeInteger(length)
       || length < 0 || !Number.isSafeInteger(offset + length) || offset + length > file.size) throw new Error('Piece range outside its declared file.');
-    const output = new Uint8Array(length);
-    receipt.activeReadBytes += length;
+    const output = destination ?? new Uint8Array(length);
+    const ownedBytes = destination === null ? length : 0;
+    receipt.activeReadBytes += ownedBytes;
     receipt.peakReadBytes = Math.max(receipt.peakReadBytes, receipt.activeReadBytes);
     try {
       // Coverage is validated and ordered: locate only the intersecting pieces.
@@ -105,16 +107,28 @@ export async function createVerifiedPieceReader({ manifestBytes, indexBytes, ind
         }
         if (!seen.has(piece.identity)) { seen.add(piece.identity); receipt.verifiedBytes += bytes.byteLength; receipt.pieces.push(piece.identity); }
       }
-      return output.buffer;
-    } finally { receipt.activeReadBytes -= length; }
+      return output;
+    } finally { receipt.activeReadBytes -= ownedBytes; }
   }
-  /** @param {string} path @param {number} offset @param {number | null} length */
-  function readRange(path, offset, length) {
-    const task = readOwnedRange(path, offset, length);
+  /** @template T @param {Promise<T>} task @returns {Promise<T>} */
+  function trackRead(task) {
     activeReads.add(task);
     const settled = () => activeReads.delete(task);
     task.then(settled, settled);
     return task;
+  }
+  /** @param {string} path @param {number} offset @param {number | null} length */
+  async function readRange(path, offset, length) {
+    const output = await trackRead(readOwnedRange(path, offset, length, null));
+    // A null destination creates an owned, non-shared ArrayBuffer above.
+    return /** @type {ArrayBuffer} */ (output.buffer);
+  }
+  /** @param {string} path @param {number} offset @param {Uint8Array} destination */
+  async function readInto(path, offset, destination) {
+    if (!(destination instanceof Uint8Array)) throw new Error('Piece readInto requires a byte destination.');
+    const length = destination.byteLength;
+    await trackRead(readOwnedRange(path, offset, length, destination));
+    return length;
   }
   /** @param {string} path */
   const readBinary = path => {
@@ -122,7 +136,7 @@ export async function createVerifiedPieceReader({ manifestBytes, indexBytes, ind
     if (!file) throw new Error('Undeclared auxiliary artifact: ' + path);
     return readRange(path, 0, file.size);
   };
-  return Object.freeze({ manifest, readRange, readBinary,
+  return Object.freeze({ manifest, readRange, readInto, readBinary,
     getReceipt: () => structuredClone(receipt),
     async preflight() {
       signal?.throwIfAborted();

@@ -6,7 +6,7 @@ import { getSourceRuntimeMetadata } from '../formats/source-runtime.js';
  * @type {import('./verified-piece-storage.js').createVerifiedPieceStorage} */
 export async function createVerifiedPieceStorage(options) {
   const reader = await createVerifiedPieceReader(options);
-  const { manifest, readRange, readBinary } = reader;
+  const { manifest, readRange, readInto, readBinary } = reader;
   try {
     const directSource = getArtifactFormat(manifest) === ARTIFACT_FORMAT_DIRECT_SOURCE;
     const shardSources = directSource
@@ -31,7 +31,7 @@ export async function createVerifiedPieceStorage(options) {
         }
       }
     }
-    const storage = createArtifactStorageContext({ manifest, readRange, readBinary, shardSources,
+    const storage = createArtifactStorageContext({ manifest, readRange, readInto, readBinary, shardSources,
       tokenizerJsonPath: directSource ? manifest.tokenizer?.file : undefined,
       readText: async path => new TextDecoder().decode(await readBinary(path)),
       // The approved index binds canonical shards to the manifest. Every returned
