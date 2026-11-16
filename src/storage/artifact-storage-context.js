@@ -1,3 +1,4 @@
+import { createArtifactRangeLoaders } from './artifact-range-loaders.js';
 import { createNodeFileAccess } from './node-file-access.js';
 import {
   DIRECT_SOURCE_RUNTIME_MODE,
@@ -173,6 +174,7 @@ function createPathBackedStorageContext(options) {
   if (typeof readRange !== 'function') {
     throw new Error('artifact storage context: readRange(path, offset, length) is required.');
   }
+  const readInto = typeof options?.readInto === 'function' ? options.readInto : null;
 
   const streamRange = typeof options?.streamRange === 'function'
     ? options.streamRange
@@ -296,23 +298,9 @@ function createPathBackedStorageContext(options) {
     await task;
   }
 
-  const loadShardRange = async (index, offset = 0, length = null) => {
-    const descriptor = shardSources[index];
-    if (!descriptor) {
-      throw new Error(`Artifact shard index out of bounds: ${index}`);
-    }
-    const start = normalizePositiveInteger(offset, `artifact shard offset (${index})`);
-    const maxLength = Math.max(0, descriptor.size - start);
-    const requested = length == null
-      ? maxLength
-      : Math.min(maxLength, normalizePositiveInteger(length, `artifact shard length (${index})`));
-    if (requested <= 0) {
-      return new ArrayBuffer(0);
-    }
-    await ensureVerifiedSource(descriptor.path);
-    const payload = await readRange(descriptor.path, start, requested);
-    return toArrayBuffer(payload, `readRange(${descriptor.path})`);
-  };
+  const { loadShardRange, loadShardRangeInto } = createArtifactRangeLoaders({
+    shardSources, readRange, readInto, ensureVerifiedSource
+  });
 
   const loadShard = async (index) => {
     const descriptor = shardSources[index];
@@ -417,6 +405,7 @@ function createPathBackedStorageContext(options) {
     preflight,
     loadShard,
     loadShardRange,
+    loadShardRangeInto,
     streamShardRange,
     loadTokenizerJson: readText && tokenizerJsonPath
       ? async () => {
@@ -492,6 +481,7 @@ export function createArtifactStorageContext(options = {}) {
   return createPathBackedStorageContext({
     shardSources: buildRDRRShardSources(manifest),
     readRange: options.readRange,
+    readInto: options.readInto,
     streamRange: options.streamRange,
     readText: options.readText,
     readBinary: options.readBinary,

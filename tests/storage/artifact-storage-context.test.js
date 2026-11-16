@@ -44,6 +44,32 @@ import {
 }
 
 // Partial consumers continue to verify incrementally before returning ranges.
+{
+  const bytes = Uint8Array.of(1, 2, 3, 4);
+  let stored = Uint8Array.of(1, 2, 3, 9), calls = 0, short = false;
+  const context = createArtifactStorageContext({
+    manifest: { modelId: 'range-into', hashAlgorithm: 'sha256', shards: [
+      { filename: 'weights.bin', size: 4, hash: createHash('sha256').update(bytes).digest('hex') }
+    ] }, verifyHashes: true,
+    async readRange(_path, offset, length) { return stored.slice(offset, offset + length); },
+    async readInto(name, offset, destination) {
+      calls++; assert.equal(name, 'weights.bin');
+      destination.set(stored.subarray(offset, offset + destination.length));
+      return short ? destination.length - 1 : destination.length;
+    }
+  });
+  const destination = new Uint8Array(2);
+  await assert.rejects(context.loadShardRangeInto(0, 1, destination), /hash mismatch/);
+  assert.equal(calls, 0, 'Range-into never bypasses whole-source verification');
+  assert.deepEqual([...destination], [0, 0]);
+  stored = bytes;
+  assert.equal(await context.loadShardRangeInto(0, 1, destination), 2);
+  assert.deepEqual([...destination], [2, 3]);
+  await assert.rejects(context.loadShardRangeInto(0, 3, destination), /exceeds/);
+  short = true;
+  await assert.rejects(context.loadShardRangeInto(0, 0, destination), /short read/);
+}
+
 for (const verificationBufferBytes of [undefined, 0, 72]) {
   const bytes = Uint8Array.from({ length: 73 }, (_, index) => index);
   let streamed = 0;

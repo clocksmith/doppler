@@ -1050,6 +1050,7 @@ rules/layer-pattern-contract-check.d.ts
 rules/loader/tensor-loader.rules.json
 rules/loader/weights.rules.json
 rules/tooling/command-runtime.rules.json
+storage/artifact-range-loaders.d.ts
 storage/backend-selection.d.ts
 storage/distribution-transport.d.ts
 storage/download-types.d.ts

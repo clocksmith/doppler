@@ -25,7 +25,7 @@ export interface CreateArtifactStorageContextOptions {
     offset: number,
     length: number | null
   ) => Promise<ArrayBuffer | Uint8Array>;
-  /** Direct-source caller storage, authenticated by the supplied host reader. */
+  /** Caller-owned range destination for either artifact format; authenticated by the supplied host reader. */
   readInto?: (path: string, offset: number, destination: Uint8Array) => Promise<number>;
   streamRange?: (
     path: string,

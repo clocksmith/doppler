@@ -124,6 +124,7 @@
     "src/client/resident-partitions.js",
     "src/partitions.js",
     "src/storage/verified-piece-storage.js",
+    "src/storage/artifact-range-loaders.js",
     "src/storage/verified-piece-reader.js",
     "src/memory/device-budget.js",
     "src/memory/sequence-retirement.js",
