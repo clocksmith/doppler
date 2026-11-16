@@ -28,7 +28,8 @@ const reader = await createVerifiedPieceReader({ ...workerData.metadata,
   },
 });
 port.postMessage({ ready: true });
-port.on('message', async ({ path, offset, length, buffer }) => {
+port.on('message', async ({ path, offset, length, buffer, receipt }) => {
+  if (receipt === true) { port.postMessage({ receipt: reader.getReceipt() }); return; }
   try {
     await reader.readInto(path, offset, new Uint8Array(buffer, 0, length));
     port.postMessage({ buffer, length }, [buffer]);

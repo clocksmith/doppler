@@ -46,6 +46,7 @@ import type { ExecutionV1PerLayerInputsSessionSchema } from "../../../config/sch
 import type { DopplerLoader } from '../../../loader/doppler-loader.js';
 
 export interface PipelineStorageContext {
+  rangeLease?: import('../../../storage/verified-piece-gather.js').VerifiedRangeLeasePort;
   preflight?: () => Promise<void>;
   loadShard?: (index: number) => Promise<ArrayBuffer | Uint8Array>;
   loadShardRange?: (

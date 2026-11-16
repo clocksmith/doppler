@@ -26,6 +26,7 @@ try {
   const lease = await reader.readLease('weights.bin', 2, 5);
   assert.deepEqual([...lease.bytes], [3, 4, 5, 6, 7]);
   await assert.rejects(reader.readLease('weights.bin', 0, 4), /Release/);
+  await assert.rejects(reader.getReceipt(), /Release/);
   lease.release(); lease.release();
   assert.equal(lease.bytes.byteLength, 0);
   const again = await reader.readLease('weights.bin', 0, 8);

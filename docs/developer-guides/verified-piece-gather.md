@@ -11,7 +11,29 @@ indexIdentity, files, maxPartBytes, memoryBudgetBytes })`. `files` maps authenti
 index filenames to approved local paths. Set `maxPartBytes` to cover a plane
 when whole-plane gathering is desired. A larger plane is read in bounded parts.
 
-Pass the returned `rangeLease` through the existing custom shard loader options:
+Production hosts using `createVerifiedPieceStorage` can supply `nodeGather`:
+
+```js
+const source = await createVerifiedPieceStorage({
+  manifestBytes, indexBytes, indexIdentity, acquire, signal,
+  nodeGather: { files, maxPartBytes, memoryBudgetBytes },
+});
+```
+
+`source.storage` owns both readers and closes them together. Text pipeline weight
+initialization forwards its owned-range port automatically. `acquire` continues
+to serve generic loads, auxiliary artifacts and unsupported tensor layouts. This
+option is Node-only and requires explicit approved local files; it must not be
+used to bypass custody, remote acquisition or source authorization.
+
+`source.getReceipt()` describes only generic reads. Await
+`source.getGatherReceipt()` for worker authentication evidence while no lease is
+outstanding, before closing storage. These counts describe authentication work,
+not successfully delivered request bytes: they may include verified prefixes of
+failed reads and work completed before cancellation prevents publication. Do not
+report the generic receipt as a total for both readers.
+
+Lower-level hosts can pass `rangeLease` through custom shard loader options:
 
 ```js
 loader.setCustomShardLoader(loadShard, {

@@ -29,6 +29,7 @@ export interface CreateSourceStorageContextOptions {
 }
 
 export interface SourceStorageContext {
+  rangeLease?: import('./verified-piece-gather.js').VerifiedRangeLeasePort;
   preflight?: () => Promise<void>;
   loadShard: (index: number) => Promise<ArrayBuffer | Uint8Array>;
   loadShardRange: ((

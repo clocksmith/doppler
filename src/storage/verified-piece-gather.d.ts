@@ -17,6 +17,8 @@ export function createVerifiedPieceGather(options: VerifiedPieceGatherOptions): 
   /** One in-flight read or outstanding lease per reader. Cancellation is checked before
    * publishing; close terminates the worker and rejects any pending read immediately. */
   readLease(path: string, offset: number, length: number, signal?: AbortSignal): Promise<VerifiedRangeLease>;
+  /** Snapshot of worker verification evidence; requires no outstanding lease. */
+  getReceipt(): Promise<import('./verified-piece-reader.js').VerifiedPieceReceipt>;
   close(): Promise<void>;
   rangeLease: VerifiedRangeLeasePort;
 }>>;

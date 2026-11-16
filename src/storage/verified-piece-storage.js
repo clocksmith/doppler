@@ -5,9 +5,24 @@ import { getSourceRuntimeMetadata } from '../formats/source-runtime.js';
 /** Artifact host adapter over the shared authenticated piece reader.
  * @type {import('./verified-piece-storage.js').createVerifiedPieceStorage} */
 export async function createVerifiedPieceStorage(options) {
-  const reader = await createVerifiedPieceReader(options);
+  const manifestBytes = new Uint8Array(options.manifestBytes instanceof Uint8Array ? options.manifestBytes : new Uint8Array(options.manifestBytes));
+  const indexBytes = new Uint8Array(options.indexBytes instanceof Uint8Array ? options.indexBytes : new Uint8Array(options.indexBytes));
+  const pinned = { ...options, manifestBytes, indexBytes };
+  const nodeGather = options.nodeGather ? { ...options.nodeGather, files: { ...options.nodeGather.files } } : null;
+  const reader = await createVerifiedPieceReader(pinned);
+  /** @type {Awaited<ReturnType<import('./verified-piece-gather.js').createVerifiedPieceGather>> | null} */
+  let gather = null;
   const { manifest, readRange, readInto, readBinary } = reader;
   try {
+    if (nodeGather) {
+      const { createVerifiedPieceGather } = await import('./verified-piece-gather.js');
+      gather = await createVerifiedPieceGather({ ...nodeGather, manifestBytes, indexBytes, indexIdentity: pinned.indexIdentity });
+    }
+    const close = async () => {
+      const results = await Promise.allSettled([reader.close(), gather?.close()]);
+      const failed = results.find(result => result.status === 'rejected');
+      if (failed) throw failed.reason;
+    };
     const directSource = getArtifactFormat(manifest) === ARTIFACT_FORMAT_DIRECT_SOURCE;
     const shardSources = directSource
       ? buildRDRRShardSources(manifest).map(shard => {
@@ -37,11 +52,20 @@ export async function createVerifiedPieceStorage(options) {
       // The approved index binds canonical shards to the manifest. Every returned
       // byte still passes owned-copy piece verification; whole-source scans would
       // fetch unrelated partitions. Neither flag bypasses the authenticated reader.
-      verifyHashes: true, hashesTrusted: true, sourceHashesTrusted: directSource, close: reader.close });
+      verifyHashes: true, hashesTrusted: true, sourceHashesTrusted: directSource, close });
     storage.preflight = reader.preflight;
-    return { manifest, storage, getReceipt: reader.getReceipt };
+    if (gather) {
+      const port = gather.rangeLease;
+      /** @type {import('./verified-piece-gather.js').VerifiedRangeLeasePort} */
+      const scopedPort = { ...port, read: (shard, offset, length, signal) => {
+        const activeSignal = pinned.signal ? AbortSignal.any([pinned.signal, signal]) : signal;
+        return port.read(shard, offset, length, activeSignal);
+      } };
+      storage.rangeLease = Object.freeze(scopedPort);
+    }
+    return { manifest, storage, getReceipt: reader.getReceipt, getGatherReceipt: gather ? gather.getReceipt : null };
   } catch (error) {
-    await reader.close();
+    await Promise.allSettled([reader.close(), gather?.close()]);
     throw error;
   }
 }

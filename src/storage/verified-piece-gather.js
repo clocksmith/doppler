@@ -26,7 +26,7 @@ export async function createVerifiedPieceGather(options) {
   let buffer = new ArrayBuffer(maxPartBytes);
   /** @type {((error: Error) => void) | null} */
   let failPending = null;
-  /** @type {((message: { ready?: boolean, buffer: ArrayBuffer, error?: string }) => void) | null} */
+  /** @type {((message: { ready?: boolean, buffer: ArrayBuffer, error?: string, receipt?: import('./verified-piece-reader.js').VerifiedPieceReceipt }) => void) | null} */
   let receive = null;
   /** @type {Promise<void>} */
   const ready = new Promise((resolve, reject) => {
@@ -46,7 +46,7 @@ export async function createVerifiedPieceGather(options) {
   try { await ready; } catch (error) { await worker.terminate(); throw error; }
   /** @type {Promise<void> | null} */
   let closing = null;
-/** @type {Pick<Awaited<ReturnType<import('./verified-piece-gather.js').createVerifiedPieceGather>>, 'readLease' | 'close'>} */
+/** @type {Pick<Awaited<ReturnType<import('./verified-piece-gather.js').createVerifiedPieceGather>>, 'readLease' | 'close' | 'getReceipt'>} */
   const result = {
     async readLease(path, offset, length, signal) {
       signal?.throwIfAborted();
@@ -79,6 +79,22 @@ export async function createVerifiedPieceGather(options) {
         busy = false;
         throw error;
       }
+    },
+    async getReceipt() {
+      if (closed) throw new Error('Gather reader closed.');
+      if (busy) throw new Error('Release the current gather lease before reading its receipt.');
+      busy = true;
+      try {
+        return await new Promise((resolve, reject) => {
+          failPending = reject;
+          receive = message => {
+            failPending = null; receive = null;
+            if (!message.receipt) reject(new Error('Missing gather receipt.'));
+            else resolve(message.receipt);
+          };
+          worker.postMessage({ receipt: true });
+        });
+      } finally { busy = false; }
     },
     close() {
       if (!closing) {

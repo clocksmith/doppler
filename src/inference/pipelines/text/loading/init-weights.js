@@ -157,6 +157,7 @@ export async function loadWeights(manifest, modelConfig, options = {}) {
     dopplerLoader.setCustomShardLoader(loadShard, {
       verify: verifyHashes,
       loadShardRange,
+      rangeLease: runtimeStorageContext.rangeLease ?? null,
       loadShardRangeInto: typeof runtimeStorageContext.loadShardRangeInto === 'function'
         ? (index, offset, destination) => runtimeStorageContext.loadShardRangeInto(index, offset, destination)
         : null,
