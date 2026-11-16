@@ -1,7 +1,7 @@
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import { createHash } from 'node:crypto';
-import { assessGpuBenchmarkMemory } from '../pooled-equal-weights/gpu-memory-budget.js';
+import { assessGpuBenchmarkMemory } from '../lib/gpu-memory-budget.js';
 
 const options = {};
 for (let index = 2; index < process.argv.length; index += 2) {

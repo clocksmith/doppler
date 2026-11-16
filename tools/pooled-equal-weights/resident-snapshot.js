@@ -1,6 +1,6 @@
 import fs from 'node:fs/promises';
 import os from 'node:os';
-import { createReadStream, createWriteStream } from 'node:fs';
+import { createWriteStream } from 'node:fs';
 import path from 'node:path';
 import { createHash } from 'node:crypto';
 import { execFile, spawn } from 'node:child_process';
@@ -8,11 +8,8 @@ import { promisify } from 'node:util';
 import { pipeline } from 'node:stream/promises';
 const exec = promisify(execFile);
 export const hashJson = value => createHash('sha256').update(JSON.stringify(value)).digest('hex');
-export async function hashFile(file) {
-  const hash = createHash('sha256');
-  for await (const chunk of createReadStream(file)) hash.update(chunk);
-  return hash.digest('hex');
-}
+import { hashFile } from '../lib/hash-file.js';
+export { hashFile } from '../lib/hash-file.js';
 export async function fileInventory(root) {
   const files = [];
   async function visit(directory) {
@@ -62,6 +59,9 @@ export async function freezeResidentInputs(config, configBytes, output) {
   const harness = await archive(config.dopplerRoot, `${config.harnessCommit}:tools/pooled-equal-weights`, path.join(output, 'harness'));
   await fs.mkdir(path.join(runtime, 'tools'), { recursive: true });
   await fs.rename(path.join(output, 'harness'), path.join(runtime, 'tools/pooled-equal-weights'));
+  const helpers = await archive(config.dopplerRoot, `${config.harnessCommit}:tools/lib`, path.join(output, 'helpers'),
+    ['hash-file.js', 'probe-server.js', 'gpu-memory-budget.js']);
+  await fs.rename(path.join(output, 'helpers'), path.join(runtime, 'tools/lib'));
   await fs.mkdir(vendor);
   const pooledReference = config.pooledSourceIdentity;
   if (!pooledReference?.path || !/^[a-f0-9]{64}$/.test(pooledReference.sha256)
@@ -85,7 +85,7 @@ export async function freezeResidentInputs(config, configBytes, output) {
   const canonical = await fileInventory(config.canonicalDir), rdrr = await fileInventory(config.rdrrDir);
   const frozenConfig = { ...config, outputDir: output };
   const identity = { host: { hostname: os.hostname(), platform: process.platform, architecture: process.arch, release: os.release() }, schema: 'doppler.equal-weight-resident-snapshot.v1', configSha256: createHash('sha256').update(configBytes).digest('hex'),
-    doppler, pooled, harness, runtimeFiles, vendorFiles, artifacts: { canonical, rdrr, gguf: await hashFile(config.ggufPath) },
+    doppler, pooled, harness, helpers, runtimeFiles, vendorFiles, artifacts: { canonical, rdrr, gguf: await hashFile(config.ggufPath) },
     browser: { path: config.browserExecutable, sha256: await hashFile(config.browserExecutable),
       version: (await exec(config.browserExecutable, ['--version'])).stdout.trim(), args: config.browserArgs },
     node: { path: process.execPath, sha256: await hashFile(process.execPath), version: process.version } };

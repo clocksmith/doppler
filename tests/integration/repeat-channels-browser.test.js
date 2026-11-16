@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { chromium } from 'playwright';
-import { createProbeServer, closeProbeServer, probeOrigin } from '../../tools/pooled-equal-weights/probe-server.js';
+import { createProbeServer, closeProbeServer, probeOrigin } from '../../tools/lib/probe-server.js';
 
 const root = fileURLToPath(new URL('../../', import.meta.url));
 const server = await createProbeServer({ entry: 'unused', config: {}, routes: [['/src/', path.join(root, 'src')]] });
