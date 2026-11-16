@@ -55,17 +55,33 @@ class FlashReferenceTests(unittest.TestCase):
         return model,spec,project
 
     def test_complete_shared_router_and_dense_experts_match_official_sparse_block(self):
-        torch=self.torch;model,spec,project=self.fixture();traces=[]
+        torch=self.torch;model,spec,project=self.fixture();traces=[];selections=[]
         with torch.no_grad():
-            for hidden in [[.4,-.2],[-.5,.9],[1.2,.3]]:
-                expected=model(torch.tensor(hidden).reshape(1,1,2)).reshape(-1)
+            for hidden in [[.4,-.2],[-.5,.9],[1.2,.3],[-.4,-.6]]:
+                values=torch.tensor(hidden)
+                selections.append(tuple(model.gate(values.reshape(1,2))[2].reshape(-1).tolist()))
+                expected=model(values.reshape(1,1,2)).reshape(-1)
                 trace=[]
                 def observed(operation,values):trace.append(dict(operation));return project(operation,values)
                 actual=spec.attempt().run(hidden,observed)
                 torch.testing.assert_close(torch.tensor(actual),expected,rtol=1e-5,atol=1e-6)
                 traces.append(trace)
-        self.assertEqual(traces[0],traces[1]);self.assertEqual(traces[1],traces[2])
+        self.assertGreater(len(set(selections)),1)
+        self.assertTrue(all(trace==traces[0] for trace in traces))
         self.assertEqual(len(traces[0]),14)
+
+    def test_official_routing_changes_do_not_skip_unselected_verification(self):
+        model,spec,project=self.fixture();prefixes=[]
+        for hidden in [[.4,-.2],[-.4,-.6]]:
+            trace=[];attempt=spec.attempt()
+            def reject(operation,values):
+                trace.append(operation['id'])
+                if operation['id']=='expert/0/up':raise ValueError('public verification fixture rejected')
+                return project(operation,values)
+            with self.assertRaises(ValueError):attempt.run(hidden,reject)
+            self.assertTrue(attempt.failed);prefixes.append(trace)
+        self.assertEqual(*prefixes)
+        self.assertEqual(prefixes[0][-1],'expert/0/up')
 
     def test_router_normalization_and_ties_use_official_torch_semantics(self):
         from oblivious_experts import torch_router
