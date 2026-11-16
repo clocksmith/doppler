@@ -1,3 +1,4 @@
+import { DopplerErrorBase } from '../../errors/doppler-error.js';
 import type { DopplerCapsuleV2 } from './capsule-v2.js';
 import type { DopplerCapsuleV3 } from './capsule-v3.js';
 import type { CapsuleSigner, CapsuleSignature } from './capsule-signature.js';
@@ -25,7 +26,7 @@ export interface CapsuleReleaseAuthorization {
   unseenRevocations: 'unknown';
   retainedLocalUse: CapsuleRetainedLocalUse | null;
 }
-export declare class CapsuleReleaseStateError extends Error {
+export declare class CapsuleReleaseStateError extends DopplerErrorBase {
   readonly checkpoint: ReleaseCheckpoint;
   constructor(cause: Error, checkpoint: ReleaseCheckpoint);
 }

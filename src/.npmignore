@@ -285,7 +285,6 @@ converter/tokenizer-special-tokens.d.ts
 converter/w8a8-quantizer.d.ts
 debug/perf-guards.d.ts
 debug/pipeline-config.d.ts
-errors/doppler-error.d.ts
 experimental/adapters/adapter-manager.d.ts
 experimental/adapters/adapter-manager.js
 experimental/adapters/adapter-registry.d.ts

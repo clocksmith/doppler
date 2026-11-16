@@ -3,7 +3,7 @@
   "entrypoint": "src/capsule-runtime.js",
   "scope": "injected-capsule-core; excludes host-supplied program executors",
   "fileCount": 88,
-  "sourceBytes": 1252632,
+  "sourceBytes": 1253291,
   "forbiddenPatterns": [
     "/src/converter/",
     "/src/training/",
@@ -189,8 +189,8 @@
     },
     {
       "path": "src/config/capsule/capsule-release-events.js",
-      "sizeBytes": 11233,
-      "hash": "sha256:c0ba69bd005d187d62a82ab22f925746b1963cef5fe18268911c697d795e0c7b"
+      "sizeBytes": 11310,
+      "hash": "sha256:43fca7b43d91f7be3b6a670208eaceb5350dbcdade038dd0fe0f07fd39b311bf"
     },
     {
       "path": "src/config/capsule/capsule-sequence-receipt.js",
@@ -249,8 +249,8 @@
     },
     {
       "path": "src/config/generation-contract.js",
-      "sizeBytes": 3397,
-      "hash": "sha256:1c21c5ac2b854c30eede19ec1caa3ef29607d91e90f1076fbc56633e3e082a59"
+      "sizeBytes": 3471,
+      "hash": "sha256:26a9b3aaa3b321bdc24932a06639513ad4471efc3cae1cb4c5a9380a53693b7e"
     },
     {
       "path": "src/config/generation-contract.json",
@@ -304,8 +304,8 @@
     },
     {
       "path": "src/config/revocation-policy.js",
-      "sizeBytes": 10720,
-      "hash": "sha256:9730047acd9a9345fb77be9f9a19d9eb7dda50e04d81f9292dd301be0b0ad31f"
+      "sizeBytes": 10794,
+      "hash": "sha256:07ec981c81e767bf641f46f95aac98c188a2c200a14461d1d97638fdf6c60218"
     },
     {
       "path": "src/config/revocation-registry.json",
@@ -384,8 +384,8 @@
     },
     {
       "path": "src/errors/doppler-error.js",
-      "sizeBytes": 3548,
-      "hash": "sha256:6123116a41b6dd2d3f690521e46c2c50f0ae1bace0412777ceb87be257950975"
+      "sizeBytes": 3982,
+      "hash": "sha256:1784a9b4935a2f56d3cf21469980a39cff6f6f907fe84ba337211c7f8161dd2c"
     },
     {
       "path": "src/formats/canonical-hash.js",

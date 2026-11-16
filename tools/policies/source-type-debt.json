@@ -235,7 +235,6 @@
     "src/debug/stats.js",
     "src/debug/tensor.js",
     "src/debug/trace.js",
-    "src/errors/doppler-error.js",
     "src/experimental/adapters/adapter-manager.js",
     "src/experimental/adapters/adapter-manifest.js",
     "src/experimental/adapters/adapter-registry.js",

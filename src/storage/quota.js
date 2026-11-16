@@ -1,3 +1,4 @@
+import { DopplerErrorBase } from '../errors/doppler-error.js';
 
 
 import { log } from '../debug/index.js';
@@ -227,7 +228,7 @@ export async function getStorageReport() {
 }
 
 
-export class QuotaExceededError extends Error {
+export class QuotaExceededError extends DopplerErrorBase {
   
   constructor(required, available) {
     super(`Insufficient storage: need ${formatBytes(required)}, have ${formatBytes(available)}`);

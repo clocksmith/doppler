@@ -1,3 +1,8 @@
+export declare class DopplerErrorBase extends Error {
+  code?: string;
+  constructor(message: string, options?: ErrorOptions & { code?: string });
+}
+
 export declare const ERROR_CODES: {
   readonly CONFIG_INVALID: 'DOPPLER_CONFIG_INVALID';
   readonly GPU_UNAVAILABLE: 'DOPPLER_GPU_UNAVAILABLE';
@@ -42,7 +47,7 @@ export declare const ERROR_CODES: {
 };
 
 export type DopplerErrorCode = typeof ERROR_CODES[keyof typeof ERROR_CODES];
-export type DopplerError<Code extends DopplerErrorCode = DopplerErrorCode> = Error & { code: Code };
+export type DopplerError<Code extends DopplerErrorCode = DopplerErrorCode> = DopplerErrorBase & { code: Code };
 
 export declare function createDopplerError<Code extends DopplerErrorCode>(
   code: Code, message: string, options?: ErrorOptions

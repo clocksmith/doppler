@@ -1,3 +1,4 @@
+import { DopplerErrorBase } from '../errors/doppler-error.js';
 /**
  * quota.ts - Storage Quota Management
  *
@@ -122,7 +123,7 @@ export declare function getStorageReport(): Promise<StorageReport>;
 /**
  * Error class for quota-related errors
  */
-export declare class QuotaExceededError extends Error {
+export declare class QuotaExceededError extends DopplerErrorBase {
   readonly required: number;
   readonly available: number;
   readonly shortfall: number;

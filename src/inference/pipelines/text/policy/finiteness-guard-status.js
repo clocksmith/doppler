@@ -1,3 +1,4 @@
+import { DopplerErrorBase } from '../../../../errors/doppler-error.js';
 export function parseFinitenessStatusWords(words, offset = 0) {
   const status = Number(words[offset] ?? 0);
   if (status <= 0) {
@@ -22,7 +23,7 @@ export function parseFinitenessStatusWords(words, offset = 0) {
 
 export const FINITENESS_RESET_WORDS = new Uint32Array(4);
 
-export class FinitenessError extends Error {
+export class FinitenessError extends DopplerErrorBase {
   constructor(message) {
     super(message);
     this.name = 'FinitenessError';

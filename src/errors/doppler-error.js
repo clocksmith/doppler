@@ -1,4 +1,13 @@
-export const ERROR_CODES = {
+/** Shared local error identity; domain subclasses retain their names, codes and details. */
+export class DopplerErrorBase extends Error {
+  /** @param {string} message @param {ErrorOptions & { code?: string }} [options] */
+  constructor(message, options) {
+    super(message, options);
+    if (options?.code !== undefined) this.code = options.code;
+  }
+}
+
+export const ERROR_CODES = Object.freeze({
   CONFIG_INVALID: 'DOPPLER_CONFIG_INVALID',
   GPU_UNAVAILABLE: 'DOPPLER_GPU_UNAVAILABLE',
   GPU_DEVICE_FAILED: 'DOPPLER_GPU_DEVICE_FAILED',
@@ -39,7 +48,7 @@ export const ERROR_CODES = {
   COLLECTIVE_PAYLOAD_INVALID: 'DOPPLER_COLLECTIVE_PAYLOAD_INVALID',
   COLLECTIVE_INTEGRITY_MISMATCH: 'DOPPLER_COLLECTIVE_INTEGRITY_MISMATCH',
   DISTRIBUTED_STAGE_UNRECOVERABLE: 'DOPPLER_DISTRIBUTED_STAGE_UNRECOVERABLE',
-};
+});
 
 // Validate that all error code values are unique at module init time.
 // Duplicate values would cause ambiguous error identification.
@@ -51,11 +60,10 @@ for (const [key, value] of Object.entries(ERROR_CODES)) {
   seenCodeValues.add(value);
 }
 
+/** @type {typeof import('./doppler-error.js').createDopplerError} */
 export function createDopplerError(code, message, options) {
   if (!seenCodeValues.has(code)) {
     throw new Error(`DopplerError: unknown error code "${code}". Register it in ERROR_CODES first.`);
   }
-  const error = new Error(`[${code}] ${message}`, options);
-  error.code = code;
-  return error;
+  return Object.assign(new DopplerErrorBase(`[${code}] ${message}`, options), { code });
 }

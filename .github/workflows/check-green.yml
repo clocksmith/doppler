@@ -38,6 +38,8 @@ jobs:
       - run: npm ci --ignore-scripts --omit=optional --no-audit --no-fund
       - run: node tests/inference/execution-backend-contract.test.js
       - run: node tests/config/runtime-transform-ownership.test.js
+      - run: node tests/config/error-taxonomy.test.js
+      - run: node tests/config/public-error-contract.test.js
       - run: node tests/integration/execution-graph-transforms.test.js
       - run: npm run check:fast
       - run: npm run style:guides:check

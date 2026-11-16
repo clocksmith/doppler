@@ -1,3 +1,4 @@
+import { DopplerErrorBase } from '../errors/doppler-error.js';
 import { isPlainObject } from '../formats/plain-object.js';
 import { loadJson } from '../formats/load-json.js';
 
@@ -138,7 +139,7 @@ function normalizeRevocation(value, index) {
   };
 }
 
-class DopplerRevocationError extends Error {
+class DopplerRevocationError extends DopplerErrorBase {
   constructor(revocation, matches) {
     const hasReplacement = TARGET_FIELDS.some((field) => revocation.replacements[field].length > 0);
     super(

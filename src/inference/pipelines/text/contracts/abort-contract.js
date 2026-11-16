@@ -1,6 +1,7 @@
+import { DopplerErrorBase } from '../../../../errors/doppler-error.js';
 // AbortSignal contract: public inference primitives reject with AbortError at
 // checkpoints between dispatches. WebGPU does not expose mid-dispatch cancel.
-export class AbortError extends Error {
+export class AbortError extends DopplerErrorBase {
   constructor(message = 'Doppler: aborted') {
     super(message);
     this.name = 'AbortError';

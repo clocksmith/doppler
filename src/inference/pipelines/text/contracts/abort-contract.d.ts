@@ -1,4 +1,5 @@
-export declare class AbortError extends Error {
+import { DopplerErrorBase } from '../../../../errors/doppler-error.js';
+export declare class AbortError extends DopplerErrorBase {
   code: 'ABORT_ERR';
   constructor(message?: string);
 }

@@ -1,3 +1,4 @@
+import { DopplerErrorBase } from '../../../../errors/doppler-error.js';
 export interface FinitenessStatus {
   triggered: boolean;
   layer: number;
@@ -14,6 +15,6 @@ export declare function parseFinitenessStatusWords(
 export declare const FINITENESS_RESET_WORDS: Uint32Array;
 
 /** Raised when the finiteness guard reports a non-finite or out-of-range activation. */
-export declare class FinitenessError extends Error {
+export declare class FinitenessError extends DopplerErrorBase {
   constructor(message: string);
 }

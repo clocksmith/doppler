@@ -1,3 +1,4 @@
+import { DopplerErrorBase } from '../errors/doppler-error.js';
 import definition from './generation-contract.json' with { type: 'json' };
 // Validation is independently consumable; importing it must not load an engine,
 // storage implementation, or Capsule verifier.
@@ -9,7 +10,7 @@ function freezeGeneration(value) {
 
 export const GENERATION_CONTRACT = freezeGeneration(definition);
 
-export class GenerationError extends Error {
+export class GenerationError extends DopplerErrorBase {
   constructor(kind, message, options = {}) {
     super(message, options);
     this.name = 'GenerationError';

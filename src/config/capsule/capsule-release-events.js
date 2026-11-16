@@ -1,3 +1,4 @@
+import { DopplerErrorBase } from '../../errors/doppler-error.js';
 import { computeCanonicalSha256 } from "../../formats/canonical-hash.js";
 import { freezeCapsuleV2, hashCapsuleV2Envelope, hashCapsuleV2PublicKey } from './capsule-v2.js';
 import { validateCapsuleReleaseContract } from './capsule-release-contract.js';
@@ -10,7 +11,7 @@ const DIGEST = /^sha256:[0-9a-f]{64}$/;
 const FIELDS = ['schema', 'capsule', 'sequence', 'previousEventDigest', 'issuedAtUtc', 'expiresAtUtc', 'action', 'release', 'migratedFrom', 'nextSigner', 'digest', 'signature'];
 
 // Only a fully authenticated, contiguous history may advance durable state on denial.
-export class CapsuleReleaseStateError extends Error {
+export class CapsuleReleaseStateError extends DopplerErrorBase {
   constructor(cause, checkpoint) {
     super(cause.message, { cause });
     this.name = 'CapsuleReleaseStateError';

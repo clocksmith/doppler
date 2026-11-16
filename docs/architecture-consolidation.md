@@ -151,3 +151,14 @@ When comparing this change against its old policy baseline, the maintainer's
 `DOPPLER_ARCHITECTURE_DEBT_AUTHORIZATION` must match that digest. No CI variable,
 remote branch, publication, trust key or release claim is changed by local
 validation.
+
+### Operational errors and command envelopes
+
+Runtime error factories and domain subclasses share `DopplerErrorBase` locally.
+Existing class names, registered codes, messages, causes and domain fields remain
+unchanged; the code registry is immutable. A plain programmer `Error` is not
+silently converted into a runtime failure. CLI/tooling retain their command and
+HTTP envelope types and normalize runtime codes and causes at that boundary;
+they do not acquire an additional dependency on runtime error infrastructure.
+Cross-process messages still require their own admitted code/shape validation:
+JavaScript prototype identity is not a remote trust claim.
