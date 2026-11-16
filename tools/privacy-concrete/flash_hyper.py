@@ -11,14 +11,13 @@ import concrete_ml_extensions as ext
 from concrete.ml.quantization.linear_op_glwe_backend import GLWELinearLayerExecutor
 from full_model import FullLinear
 from full_bridge import FullBridge
-from full_plan import canonical
 from full_status import ExecutionRejected,failure_event
-from flash_component_plan import LIMITS
+from flash_component_plan import write_component
 from flash_hyper_ops import TorchHyperConnection
 from flash_hyper_program import require_source_config
 from flash_hyper_plan import CONFIG,WEIGHTS,SOURCE_ID,PROGRAM,load_plan,versions
 from flash_weights import FlashSource
-from protocol import POLICY,digest
+from protocol import POLICY
 
 PREFIX='model.language_model.layers.0.mlp_hyper_connection.'
 PROJECTIONS={'hyper/down':'input_mix_weight_down.weight','hyper/up':'input_mix_weight_up.weight',
@@ -44,13 +43,9 @@ class FlashHyperModel:
     def prepare(self):
         installed=versions()
         if json.loads(ext.default_params())!=POLICY['parameters']:raise ValueError('Pinned native parameters required')
-        definitions=[projection.definition for projection in self.projections];semantics=dict(programId=PROGRAM.identity)
-        plan=dict(schema=CONFIG['planSchema'],protocol=CONFIG['protocol'],sourceId=SOURCE_ID,source=WEIGHTS,
-                  modelId=digest(canonical(dict(sourceId=SOURCE_ID,**semantics,projections=definitions))),
-                  productionBackendAvailable=False,implementationVersions=installed,
-                  parameters={key:POLICY[key] for key in ['dependencies','parameters','evaluationBackend']},
-                  **semantics,**{key:CONFIG[key] for key in LIMITS},projections=definitions)
-        (self.directory/'plan.json').write_bytes(canonical(plan));return load_plan(self.directory)
+        definitions=[projection.definition for projection in self.projections]
+        write_component(self.directory,CONFIG,definitions,dict(programId=PROGRAM.identity),installed,source=WEIGHTS)
+        return load_plan(self.directory)
 
     def evaluate(self,value,mode,bridge=None,secret=None,block=None):
         for projection in self.projections:

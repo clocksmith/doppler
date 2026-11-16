@@ -13,11 +13,11 @@ import concrete_ml_extensions as ext
 from concrete.ml.quantization.linear_op_glwe_backend import GLWELinearLayerExecutor
 from full_model import FullLinear
 from full_bridge import FullBridge
-from full_plan import canonical
+from flash_component_plan import write_component
 from flash_expert_plan import POLICY_EXPERT as CONFIG, SOURCE_ID, WEIGHTS, load_plan, versions
 from flash_weights import FlashSource
 from full_status import ExecutionRejected, failure_event
-from protocol import POLICY, digest
+from protocol import POLICY
 
 PREFIX='model.language_model.layers.0.mlp.experts.'
 
@@ -35,12 +35,7 @@ def prepare(source_dir,cache_dir):
         linear.weight=nn.Parameter(weight,requires_grad=False)
         projections.append(FullLinear('expert/0/'+leaf,linear,executor,directory))
     definitions=[projection.definition for projection in projections]
-    model_id=digest(canonical(dict(sourceId=SOURCE_ID,expertIndex=CONFIG['expertIndex'],projections=definitions)))
-    plan=dict(schema=CONFIG['planSchema'],protocol=CONFIG['protocol'],sourceId=SOURCE_ID,source=WEIGHTS,
-              modelId=model_id,productionBackendAvailable=False,implementationVersions=installed,
-              parameters={key:POLICY[key] for key in ['dependencies','parameters','evaluationBackend']},projections=definitions,
-              **{key:CONFIG[key] for key in ['expertIndex','steps','contextBucket','inputTileWidth','outputTileWidth','cpuThreads','operationTimeoutSeconds']})
-    (directory/'plan.json').write_bytes(canonical(plan))
+    write_component(directory,CONFIG,definitions,dict(expertIndex=CONFIG['expertIndex']),installed)
     return projections,executor,load_plan(directory)
 
 

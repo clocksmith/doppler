@@ -70,3 +70,17 @@ receives encrypted linear inputs. The identity block is an explicitly named test
 fixture, not Flash attention, MoE or autoregressive token generation. No result
 or security qualification is claimed before its workflow completes. Its source
 scope does not change the existing MoE/fixed-expert identities.
+
+
+`flash_mlp.py` composes the actual MLP hyperconnection and complete streamed
+all-expert block under one route, then applies the source residual update. Its
+`flash-mlp-block` research profile binds both program identities, all eleven
+source tensors, 1,032 linear modules and 2,073 planned encrypted tiles. It uses
+one client key/session for the full route and has no selected-only expert calls.
+Its CLI requires an explicit `public-reference` or `encrypted` mode; the clear
+mode cannot report encrypted success. The composed actual-weight encrypted run
+has not been launched while the existing full MoE run is pending, to avoid
+repeating that expensive execution. Small actual Torch/quantizer adapter tests
+check full operator order and rejection before any projection after a changed
+hyperconnection plan. No full MLP ciphertext completion or Flash generation is
+claimed from those tests.

@@ -43,3 +43,14 @@ def validate_component(directory,policy,geometry,semantics,installed,source=WEIG
     model_id=digest(canonical(dict(sourceId=source_id,**semantics,projections=value['projections'])))
     if value['modelId']!=model_id:raise ValueError('Public component model identity changed')
     return raw
+
+
+def write_component(directory,policy,definitions,semantics,installed,source=WEIGHTS):
+    """One owner for canonical component identity; admission still revalidates stored public bytes."""
+    source_id=digest(canonical(source))
+    value=dict(schema=policy['planSchema'],protocol=policy['protocol'],sourceId=source_id,source=source,
+               productionBackendAvailable=False,implementationVersions=installed,
+               parameters={key:POLICY[key] for key in ['dependencies','parameters','evaluationBackend']},
+               **{key:policy[key] for key in LIMITS},**semantics,projections=definitions,
+               modelId=digest(canonical(dict(sourceId=source_id,**semantics,projections=definitions))))
+    (Path(directory)/'plan.json').write_bytes(canonical(value))

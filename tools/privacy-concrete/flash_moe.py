@@ -11,12 +11,11 @@ import concrete_ml_extensions as ext
 from concrete.ml.quantization.linear_op_glwe_backend import GLWELinearLayerExecutor
 from full_model import FullLinear
 from full_bridge import FullBridge
-from full_plan import canonical
-from flash_component_plan import LIMITS
+from flash_component_plan import write_component
 from flash_moe_plan import CONFIG,PROGRAM,SOURCE_ID,WEIGHTS,lowered_operations,load_plan,versions
 from flash_weights import FlashSource
 from full_status import ExecutionRejected,failure_event
-from protocol import POLICY,digest
+from protocol import POLICY
 
 PREFIX='model.language_model.layers.0.mlp.'
 
@@ -49,17 +48,12 @@ class StreamedMoE:
             if any(projection.definition[key]!=value for key,value in row.items()):raise ValueError('Flash projection lowering changed')
             definitions.append(projection.definition)
             del projection
-        semantics=dict(programId=PROGRAM.identity)
-        plan=dict(schema=CONFIG['planSchema'],protocol=CONFIG['protocol'],sourceId=SOURCE_ID,source=WEIGHTS,
-                  modelId=digest(canonical(dict(sourceId=SOURCE_ID,**semantics,projections=definitions))),
-                  productionBackendAvailable=False,implementationVersions=installed,
-                  parameters={key:POLICY[key] for key in ['dependencies','parameters','evaluationBackend']},
-                  **semantics,**{key:CONFIG[key] for key in LIMITS},projections=definitions)
-        (self.directory/'plan.json').write_bytes(canonical(plan))
+        write_component(self.directory,CONFIG,definitions,dict(programId=PROGRAM.identity),installed)
         return load_plan(self.directory)
 
-    def evaluate(self,hidden,mode,plan,bridge=None,secret=None):
-        expected=iter(plan.definition()['projections']);pending=None;position=0
+    def evaluate(self,hidden,mode,plan,bridge=None,secret=None,projection_definitions=None):
+        definitions=plan.definition()['projections'] if projection_definitions is None else projection_definitions
+        expected=iter(definitions);pending=None;position=0
         def project(operation,values):
             nonlocal pending,position
             name=operation['id']
@@ -83,7 +77,7 @@ class StreamedMoE:
                 pending=(name[:-4]+'up',result[width:]);result=result[:width]
             return result
         with torch.no_grad():result=PROGRAM.attempt().run(hidden,project)
-        if pending is not None or position!=len(plan.definition()['projections']):raise ValueError('Incomplete Flash lowered route')
+        if pending is not None or position!=len(definitions):raise ValueError('Incomplete Flash lowered route')
         return torch.tensor(result,dtype=torch.float32)
 
 

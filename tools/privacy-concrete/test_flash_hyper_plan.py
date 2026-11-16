@@ -5,6 +5,7 @@ from flash_hyper_program import flash_hyper_program,require_source_config
 from flash_hyper_plan import FlashHyperPlan
 from flash_expert_plan import FlashExpertPlan
 from flash_moe_plan import FlashMoEPlan
+from flash_mlp_plan import FlashMLPPlan,OPERATIONS
 from full_plan import canonical,tiles
 from protocol import digest
 
@@ -30,9 +31,15 @@ class HyperPlanTests(unittest.TestCase):
         count=sum(len(tiles(dict(name=row['id'],inputWidth=row['inputWidth'],outputWidth=row['outputWidth'],weightId='a'*64))) for row in operations)
         self.assertEqual(count,15)
 
+    def test_complete_mlp_route_includes_all_hyper_and_moe_operations(self):
+        self.assertEqual(len(OPERATIONS),1032)
+        self.assertEqual([row['name'] for row in OPERATIONS[:3]],['hyper/down','hyper/up','hyper/inject'])
+        self.assertEqual(OPERATIONS[3]['name'],'shared/gate')
+        self.assertEqual(sum(len(tiles(dict(row,weightId='a'*64))) for row in OPERATIONS),2073)
+
     def test_hyper_feedback_protocol_does_not_admit_other_flash_components(self):
-        raw=canonical(dict(modelId='a'*64));plans=[FlashHyperPlan(raw),FlashExpertPlan(raw),FlashMoEPlan(raw)]
-        self.assertEqual(len({plan.protocol_id for plan in plans}),3)
+        raw=canonical(dict(modelId='a'*64));plans=[FlashHyperPlan(raw),FlashExpertPlan(raw),FlashMoEPlan(raw),FlashMLPPlan(raw)]
+        self.assertEqual(len({plan.protocol_id for plan in plans}),4)
 
 
 if __name__=='__main__':unittest.main()
