@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { chromium } from 'playwright';
-import { createProbeServer, closeProbeServer, probeOrigin } from '../../tools/pooled-equal-weights/probe-server.js';
+import { createProbeServer, closeProbeServer, probeOrigin } from '../../tools/lib/probe-server.js';
 import { quantizeToQ4KMRowWise } from '../../src/converter/quantizer.js';
 import { dequantizeQ4KMRowWise } from '../../src/formats/q4k-dequant.js';
 

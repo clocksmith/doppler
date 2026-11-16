@@ -26,7 +26,7 @@ Repeated decode: baseline 13.334/13.328 s, candidate 11.715/11.689 s (about 12.2
 less time); repeated total: 24.143/24.158 s versus 22.252/22.472 s (about 7.4% less).
 All repeated decode physical reads were zero. Disk-bound fresh decode had a
 smaller benefit. These are workload/device-specific measurements, not a general
-speed guarantee or Pooled comparison. Broader quality and hardware qualification
+speed guarantee or end-to-end advantage over peer engines. Broader quality and hardware qualification
 remain open.
 
 F32 storage and accumulation remain F32, but subgroup reduction changes rounding

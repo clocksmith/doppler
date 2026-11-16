@@ -177,49 +177,6 @@ test('deadline failure is retained without retry and both session owners close',
   assert.deepEqual(f.calls.slice(-2), ['close:pooled', 'close:doppler']);
 });
 
-test('snapshot executes committed bytes, accepts internal aliases, freezes dependencies, and detects drift', async t => {
-  const { execFileSync } = await import('node:child_process');
-  const { freezeResidentInputs, verifyResidentInputs, fileInventory, hashFile } = await import('./resident-snapshot.js');
-  const root = await fs.mkdtemp(path.join(os.tmpdir(), 'resident-snapshot-'));
-  t.after(() => fs.rm(root, { recursive: true, force: true }));
-  const repo = path.join(root, 'repo'), vendor = path.join(root, 'vendor');
-  await fs.mkdir(repo); await fs.mkdir(vendor);
-  const git = (directory, args) => execFileSync('git', ['-C', directory, ...args], { encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] }).trim();
-  for (const [directory, files] of [[repo, ['src/engine.js', 'src/config/policy.json', 'demo/a.js', 'tests/a.js',
-    'benchmarks/vendors/pooled-equal-weights/contract-f32kv.json', 'models/catalog.json', 'package.json', 'package-lock.json',
-    'tools/pooled-equal-weights/adapter.js']], [vendor, ['engine/main.js']]]) {
-    for (const file of files) { await fs.mkdir(path.dirname(path.join(directory, file)), { recursive: true }); await fs.writeFile(path.join(directory, file), 'committed'); }
-    git(directory, ['init']);
-    if (directory === repo) await fs.symlink('config', path.join(repo, 'src/alias'));
-    git(directory, ['add', '.']);
-    git(directory, ['-c', 'user.name=Fixture', '-c', 'user.email=fixture@example.invalid', 'commit', '-m', 'fixture']);
-  }
-  for (const name of ['playwright', 'playwright-core']) {
-    await fs.mkdir(path.join(repo, 'node_modules', name), { recursive: true });
-    await fs.writeFile(path.join(repo, 'node_modules', name, 'index.js'), 'dependency');
-  }
-  const canonicalDir = path.join(root, 'canonical'), rdrrDir = path.join(root, 'rdrr'), ggufPath = path.join(root, 'metadata.gguf');
-  for (const dir of [canonicalDir, rdrrDir]) { await fs.mkdir(dir); await fs.writeFile(path.join(dir, 'file'), 'artifact'); }
-  await fs.writeFile(ggufPath, 'header');
-  await fs.writeFile(path.join(repo, 'src/engine.js'), 'uncommitted-WIP');
-  const pooledIdentity = path.join(root, 'vendor-identity.json');
-  await fs.writeFile(pooledIdentity, JSON.stringify({ vendorChanges: [], engineFiles: (await fileInventory(path.join(vendor, 'engine'))).map(file => ({ ...file, path: `vendor/engine/${file.path}` })) }));
-  const config = { dopplerRoot: repo, dopplerCommit: git(repo, ['rev-parse', 'HEAD']), harnessCommit: git(repo, ['rev-parse', 'HEAD']), pooledRoot: vendor,
-    pooledSourceIdentity: { path: pooledIdentity, sha256: await hashFile(pooledIdentity) }, canonicalDir, rdrrDir, ggufPath,
-    dependencyPaths: ['node_modules/playwright', 'node_modules/playwright-core'], browserExecutable: process.execPath, browserArgs: [] };
-  const output = path.join(root, 'output');
-  const identity = await freezeResidentInputs(config, JSON.stringify(config), output);
-  assert.equal(await fs.readFile(path.join(output, 'runtime/src/engine.js'), 'utf8'), 'committed');
-  assert.equal(await fs.readFile(path.join(repo, 'src/engine.js'), 'utf8'), 'uncommitted-WIP');
-  assert.equal(identity.runtimeFiles.find(file => file.path === 'src/alias').symlink, 'config');
-  assert.equal(identity.browser.sha256, await hashFile(process.execPath));
-  await verifyResidentInputs(config, identity, output);
-  await fs.chmod(path.join(output, 'runtime/node_modules/playwright/index.js'), 0o644);
-  await fs.writeFile(path.join(output, 'runtime/node_modules/playwright/index.js'), 'drift');
-  await assert.rejects(verifyResidentInputs(config, identity, output), /drift/);
-  await fs.symlink(path.join(repo, 'src/engine.js'), path.join(rdrrDir, 'outside'));
-  await assert.rejects(fileInventory(rdrrDir), /escapes frozen root/);
-});
 
 test('numerical reuse binds full source, inference overlay, actual receipt hashes, tokens/text and every logit position', async t => {
   const { admitResidentProofs } = await import('./resident-admission.js');

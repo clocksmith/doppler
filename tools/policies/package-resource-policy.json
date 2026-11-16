@@ -31,7 +31,6 @@
     "src/config/runtime/profiles/qwen-3-reranker-0-6b-metal-stability.json",
     "src/config/runtime/profiles/qwen-3-reranker-0-6b-metal-throughput.json",
     "src/config/runtime/profiles/qwen3-6-35b-a3b-q4_0-candidate.json",
-    "src/config/runtime/profiles/qwen3-6-35b-a3b-q4_0-pooled-q8-common-diagnostic.json",
     "src/config/runtime/profiles/qwen3-6-35b-a3b-route-f32-candidate.json",
     "src/config/runtime/profiles/qwen3-6-35b-a3b-route-f32-workspace-candidate.json",
     "src/config/runtime/profiles/rerank-stability.json",

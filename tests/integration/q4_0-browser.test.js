@@ -4,7 +4,7 @@ import fs from 'node:fs/promises';
 import os from 'node:os';
 import { fileURLToPath } from 'node:url';
 import { chromium } from 'playwright';
-import { createProbeServer,closeProbeServer,probeOrigin } from '../../tools/pooled-equal-weights/probe-server.js';
+import { createProbeServer,closeProbeServer,probeOrigin } from '../../tools/lib/probe-server.js';
 import { packedFixture } from '../helpers/q4_0-fixture.js';
 import { buildGGUFFixture } from '../helpers/gguf-fixture.js';
 const root=fileURLToPath(new URL('../../',import.meta.url)),temp=await fs.mkdtemp(path.join(os.tmpdir(),'q40-browser-'));

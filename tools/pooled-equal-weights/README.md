@@ -130,3 +130,15 @@ resident browser rejects using that initializer for the native contract. Native
 Pooled repacking/requantization needs its own actual-resource bindings and
 numerical admission; do not reuse the F32 runner's proof packet. The new Doppler
 candidate is ready for functional model testing, not an equal-weight speed claim.
+
+## Explicit common-weight diagnostic
+
+`profiles/qwen3-6-35b-a3b-q4_0-pooled-q8-common-diagnostic.json` is retained
+only for this peer comparison. It is no longer a registered or shipped runtime
+profile. Its bytes, model identity and pinned kernels are unchanged; it must
+not be substituted for a native-weight artifact. Existing frozen runs keep
+their original source and identity. For a new peer experiment, read this
+file explicitly and pass its `runtime` member as `request.runtimeConfig`
+with the existing default runtime configuration. Record this file's hash and
+the exact executed source with the experiment. The historical profile name
+is deliberately not an alias to a different runtime or model.
