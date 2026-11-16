@@ -9,6 +9,9 @@ on:
       - 'tools/privacy-concrete/full_model.py'
       - 'tools/privacy-concrete/flash_moe.py'
       - 'tools/privacy-concrete/flash_component_plan.py'
+      - 'tools/privacy-concrete/flash_ple_model.py'
+      - 'tools/privacy-concrete/flash_ple_plan.py'
+      - 'tools/privacy-concrete/flash_weights.py'
       - 'tools/privacy-concrete/test_flash_moe_native.py'
 permissions:
   contents: read

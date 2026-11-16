@@ -20,6 +20,9 @@ class LocalNgramRows:
         try:
             self.spec=copy.deepcopy(inventory);self.directory=Path(directory).resolve()
             self._validate(local_storage_limit_bytes)
+            # Preflight the complete set before hashing large files or accepting private indices.
+            for name,record in self.spec['shards'].items():
+                if (self.directory/name).stat().st_size!=record['bytes']:raise ValueError('Complete local ngram file set required')
             # Verify all public material before accepting indices; never acquire on cache miss.
             for name,record in self.spec['shards'].items():
                 path=self.directory/name;before=file_signature(path);verify_blob(path,record)

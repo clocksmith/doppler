@@ -8,6 +8,31 @@ from unittest.mock import patch
 
 @unittest.skipUnless(os.environ.get('DOPPLER_CONCRETE_NATIVE')=='1','opt-in pinned native/Torch implementation')
 class StreamedFlashMoETests(unittest.TestCase):
+    def test_integer_source_buffers_keep_exact_int64_values(self):
+        from pathlib import Path
+        import torch
+        import flash_weights
+        from safetensors.torch import save_file
+        with tempfile.TemporaryDirectory() as directory:
+            path=Path(directory)/'public.safetensors';name='public.hash_multipliers'
+            expected=torch.tensor([2**60+3,-(2**59)+7],dtype=torch.int64)
+            save_file({name:expected},str(path));source=flash_weights.FlashSource.__new__(flash_weights.FlashSource)
+            source.directory=Path(directory);source.signatures={path.name:flash_weights.file_signature(path)}
+            source.spec=dict(tensors={name:dict(shard=path.name,shape=[2],dtype='I64')})
+            actual=source.tensor(name)
+            self.assertEqual(actual.dtype,torch.int64);self.assertEqual(actual.tolist(),expected.tolist())
+            path.unlink();self.assertEqual(actual.tolist(),expected.tolist())
+
+    def test_missing_complete_ple_table_rejects_before_any_private_key_creation(self):
+        import concrete_ml_extensions as ext
+        import flash_ple_model
+        with tempfile.TemporaryDirectory() as directory:
+            with patch.object(flash_ple_model,'versions',return_value={}), \
+                 patch.dict(os.environ,{'RAYON_NUM_THREADS':'4'}), \
+                 patch.object(ext,'cpu_create_private_key',side_effect=AssertionError('missing table generated a key')) as keys:
+                with self.assertRaises(FileNotFoundError):flash_ple_model.run(directory,directory,'unused-public-reference',local_storage_limit_bytes=110000000000)
+                keys.assert_not_called()
+
     def test_full_model_source_mutation_during_loader_is_rejected(self):
         import hashlib
         import json

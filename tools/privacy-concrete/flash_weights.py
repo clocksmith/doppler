@@ -94,8 +94,9 @@ class FlashSource:
                 if type(expert) is not int or not 0<=expert<expected['shape'][0]:raise ValueError('Invalid public expert component')
                 result=value[expert]
             else:result=source.get_tensor(name)
-            if result.dtype!=torch.bfloat16:raise ValueError('Pinned BF16 tensor required')
-            result=result.to(dtype=torch.float32)
+            expected_dtype={'BF16':torch.bfloat16,'I64':torch.int64}.get(expected['dtype'])
+            if expected_dtype is None or result.dtype!=expected_dtype:raise ValueError('Pinned BF16 or int64 tensor required')
+            result=result.to(dtype=torch.float32) if expected_dtype==torch.bfloat16 else result.clone()
             if not torch.isfinite(result).all():raise ValueError('Finite pinned public tensor required')
             if file_signature(path)!=self.signatures[expected['shard']]:raise ValueError('Verified model source changed during tensor read')
             return result

@@ -1,0 +1,82 @@
+{
+  "schema": "doppler.flash-ple-public-parameter-scope/v1",
+  "shards": {
+    "model-00005-of-00131.safetensors": {
+      "bytes": 3355888504,
+      "sha256": "54fdc7adf431d6b94d9292fc8bd7938d906b0cffe0997d76ac1a176413aa80f2"
+    },
+    "model-00037-of-00131.safetensors": {
+      "bytes": 1742347160,
+      "sha256": "73b53c94d23589bdfde55b20538a515525f22fd37c7cdf24e85738ed771218e1"
+    }
+  },
+  "tensors": {
+    "model.language_model.layers.1.ple.key_proj.weight": {
+      "shard": "model-00005-of-00131.safetensors",
+      "dtype": "BF16",
+      "shape": [
+        10240,
+        2560
+      ]
+    },
+    "model.language_model.layers.1.ple.norm_conv.weight": {
+      "shard": "model-00005-of-00131.safetensors",
+      "dtype": "BF16",
+      "shape": [
+        10240
+      ]
+    },
+    "model.language_model.layers.1.ple.norm_key.weight": {
+      "shard": "model-00005-of-00131.safetensors",
+      "dtype": "BF16",
+      "shape": [
+        10240
+      ]
+    },
+    "model.language_model.layers.1.ple.norm_query.weight": {
+      "shard": "model-00005-of-00131.safetensors",
+      "dtype": "BF16",
+      "shape": [
+        10240
+      ]
+    },
+    "model.language_model.layers.1.ple.ple_embedding.layer_multipliers": {
+      "shard": "model-00005-of-00131.safetensors",
+      "dtype": "I64",
+      "shape": [
+        3
+      ]
+    },
+    "model.language_model.layers.1.ple.conv1d.weight": {
+      "shard": "model-00037-of-00131.safetensors",
+      "dtype": "BF16",
+      "shape": [
+        10240,
+        1,
+        4
+      ]
+    },
+    "model.language_model.layers.1.ple.ple_embedding.ngram_heads_offsets": {
+      "shard": "model-00037-of-00131.safetensors",
+      "dtype": "I64",
+      "shape": [
+        16
+      ]
+    },
+    "model.language_model.layers.1.ple.ple_embedding.ngram_heads_vocab_sizes": {
+      "shard": "model-00037-of-00131.safetensors",
+      "dtype": "I64",
+      "shape": [
+        16
+      ]
+    },
+    "model.language_model.layers.1.ple.value_proj.weight": {
+      "shard": "model-00037-of-00131.safetensors",
+      "dtype": "BF16",
+      "shape": [
+        2560,
+        2560
+      ]
+    }
+  }
+}

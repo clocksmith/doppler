@@ -218,3 +218,27 @@ metadata and bounded headers. `--output <path>` writes a reviewable candidate;
 neither command downloads table weights or enables a backend. The generator also
 verifies the pinned conversion sources and resolves the absent seed from the
 exact configuration declaration rather than introducing a runtime default.
+
+## Wired PLE candidate and remaining data gate
+
+`flash_ple_model.py` now composes the actual pinned PLE parameter scope, complete
+local table store, EOS-aware token/conv cache, both encrypted projections and full
+ciphertext replay under `flash-first-ple-ntt`. Its immutable plan binds the table
+inventory identity as well as source, program, parameters, native implementation
+and projection schedule. All table files must already exist, have the complete
+expected sizes and verify their whole hashes before any private key is created.
+There is no download, row-fetch fallback or partial-table admission in this driver.
+The CLI requires an explicit `--local-storage-limit-bytes` budget.
+
+The public parameter scope contains six BF16 tensors and three int64 hashing
+buffers from shards 5 and 37. Integer buffers remain owned int64 values; converting
+multipliers through floating point would change the model's hash function. The
+local source tests cover the full PLE client graph across EOS and cached updates
+using complete small BF16 tables, including request cancellation and shared-table
+ownership. These are implementation checks, not the actual 51B table or Flash
+model execution.
+
+Actual PLE execution/quantization costs are still unavailable: no complete 104.30
+GB table file set has been provisioned on an authorized execution host. The wired
+path remains unqualified and outside production admission until real material,
+model-wide correctness, security and deployment gates pass.

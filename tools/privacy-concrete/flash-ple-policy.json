@@ -1,0 +1,24 @@
+{
+  "schema": "doppler.flash-ple-ntt-policy/v1",
+  "profile": "flash-first-ple-ntt",
+  "planSchema": "doppler.flash-ple-ntt-plan/v1",
+  "protocol": "concrete-glwe-flash-ple-ntt-replay/v1",
+  "productionBackendAvailable": false,
+  "steps": 4,
+  "contextBucket": 4,
+  "inputTileWidth": 2048,
+  "outputTileWidth": 2048,
+  "cpuThreads": 4,
+  "operationTimeoutSeconds": 900,
+  "additionalDependencies": {
+    "safetensors": "0.8.0"
+  },
+  "maxAbsoluteError": 0.01,
+  "maxRelativeError": 0.01,
+  "projectionOrder": [
+    "key_proj",
+    "value_proj"
+  ],
+  "nativeVariant": "cpu-exact-ntt/v1",
+  "maxLookupBytes": 32768
+}
