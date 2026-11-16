@@ -1,12 +1,12 @@
 # All-linear Qwen backend candidate — isolated qualification
 
-The [research security boundary](SECURITY-BOUNDARY.md) declares parties, leakage, cohosting limits and unfinished admission gates. This implementation covers the complete Qwen2.5-0.5B-Instruct linear route: all 24 decoder layers and the vocabulary head, 169 linear modules in total. It remains an internal candidate. The full encrypted run has **not** completed, no full-model output/cost qualification exists, and production availability remains false. A dedicated GitHub-hosted Linux CPU workflow runs the fixed public fixture without using A1 measurement machines.
+The [research security boundary](SECURITY-BOUNDARY.md) declares parties, leakage, cohosting limits and unfinished admission gates. This implementation covers the complete Qwen2.5-0.5B-Instruct linear route: all 24 decoder layers and the vocabulary head, 169 linear modules in total. The separately bound **12-bit candidate completed four autoregressive steps** on one fixed public fixture: 1,548 encrypted tiles, with all four greedy choices matching quantized and FP32 references. Its [functional evidence](evidence/full-qwen/ntt12-four-step-success.json) records actual output and costs. Production availability remains false: this is one functional observation, not security or general model-quality qualification. The run used an isolated GitHub-hosted Linux CPU without A1 measurement machines.
 
-`full_model.py` owns source validation, global dynamic eight-bit quantization, public int8 weight-cache construction, model orchestration and client keys. `full_plan.py` binds source, parameters, every operator, public weights and input/output tiles into an immutable plan. `full_provider.py` processes that exact tile schedule with native Concrete GLWE. `full_bridge.py` checks the session/key/model/plan/tile/order binding and repeats each encrypted tile before any result decryption. The plan includes 387 encrypted products per model step, 1,548 across four steps. Unknown, reordered, corrupt or differently shaped model plans fail admission. The client also checks the entire bound projection/tile cursor, fixed prefill/decode row counts and public tile weights before ciphertext disclosure. An incomplete attempt or any rejection is terminal; retries cannot skip or replace an admitted tile.
+`full_model.py` owns source validation, declared eight/twelve-bit dynamic quantization, public int8/int16 weight-cache construction, model orchestration and client keys. `full_plan.py` binds source, parameters, every operator, public weights and input/output tiles into an immutable plan. `full_provider.py` processes that exact tile schedule with native Concrete GLWE. `full_bridge.py` checks the session/key/model/plan/tile/order binding and repeats each encrypted tile before any result decryption. The plan includes 387 encrypted products per model step, 1,548 across four steps. Unknown, reordered, corrupt or differently shaped model plans fail admission. The client also checks the entire bound projection/tile cursor, fixed prefill/decode row counts and public tile weights before ciphertext disclosure. An incomplete attempt or any rejection is terminal; retries cannot skip or replace an admitted tile.
 
 Input products wider than the conservative single-dot range are split into at most 2,048 inputs; vocabulary/output products are split into at most 2,048 outputs. Quantization and scales are computed across the whole projection. Only the resulting integer products are tiled, summed on the client and corrected/dequantized once. A native regression reconstructs a 4,864-wide raw dot outside the old signed range using three admitted tiles. This is a numerical test, not a new cryptographic security-level claim.
 
-The client owns embeddings, all nonlinearities/attention, quantization/dequantization, bias, KV caches, sampling and **full encrypted replay**. Only matrix products are outsourced homomorphically. The driver uses a fixed eight-position prefill bucket, then one encrypted row per decode step; three independent client KV caches support floating-point, full-quantized and encrypted reference comparisons. Private prompt input uses client stdin, never provider arguments. Public int8 weight caches contain no request state or secret keys.
+The client owns embeddings, all nonlinearities/attention, quantization/dequantization, bias, KV caches, sampling and **full encrypted replay**. Only matrix products are outsourced homomorphically. The driver uses a fixed eight-position prefill bucket, then one encrypted row per decode step; three independent client KV caches support floating-point, full-quantized and encrypted reference comparisons. Private prompt input uses client stdin, never provider arguments. Public coefficient caches contain no request state or secret keys.
 
 The [pause record](evidence/full-qwen/paused-status.json) retains an earlier local attempt: the real public route trace covered 169 modules; four pure plan checks and one native wide-dot regression passed. The encrypted attempt was stopped at an owned computation/wait boundary when A1 was explicitly prioritized. No generated token result is claimed. CPU client/evaluator processes were stopped, preparation/cache writes were complete, GPU was unused and Jupiter's public provider was not changed.
 
@@ -69,8 +69,8 @@ installed identity, and executes four all-linear model steps. It has a separate
 non-cancelling concurrency group and a three-hour budget; trigger only manually or
 with `[qwen-ntt-e2e]`. The original stock Qwen and Flash MoE runs are neither
 restarted nor cancelled. This is a changed implementation test, not a repeat of
-the unchanged six-hour candidate. Successful full-model output must still be
-collected before claiming this candidate works end to end. Its process-pipe
+the unchanged six-hour candidate. The default-precision variant subsequently failed its third-step token check;
+its separate outcome is retained below. It is not the successful twelve-bit route. Its process-pipe
 execution is not a qualified separate-machine deployment; the existing SSH
 profile does not accept the new protocol.
 
@@ -152,8 +152,8 @@ A conservative 2,048-input raw-dot bound is 17,175,674,880, below the signed
 of decryption failure or cryptographic-security proof. A public signed-boundary
 native probe precedes one complete four-step model run in
 `encrypted-qwen-ntt12.yml`. The probe has an explicit empirical error criterion;
-passing it alone cannot qualify model output or privacy. No completed encrypted
-12-bit result is claimed until that full-model artifact exists.
+passing it alone cannot qualify model output or privacy. The separate full-model
+artifact now records the completed four-step public fixture.
 
 The wider clear control and this encrypted candidate share the pinned source
 quantizer and int64 reference arithmetic. Changing the plaintext/message domain
@@ -186,7 +186,8 @@ completed on the candidate's exact native build before full-model execution. At
 dots were -17,175,674,880 and 17,167,288,320; maximum measured integer error was 9.
 Complete repeated ciphertext bytes matched. This is one disposable-key numerical
 observation, not a cryptographic noise-failure bound or full-model result. The
-complete four-step twelve-bit Qwen run remains a separate acceptance gate.
+complete four-step twelve-bit Qwen run passed its separate public-fixture gate;
+independent security and broader model-quality gates remain open.
 
 The [higher-storage full-model attempt](evidence/full-qwen/ntt48-numerical-failure.json)
 also stopped at **1,161 verified tiles**, with `token-reference-mismatch` on its
@@ -197,3 +198,29 @@ the [attempt context](evidence/full-qwen/attempts-context.json). This unchanged
 candidate has not been retried. The independently declared twelve-bit candidate
 retains its own full-model gate; no plaintext correction or relaxed greedy
 acceptance substitutes for an encrypted result.
+
+## Completed twelve-bit full-model functional observation
+
+The [exact-revision run](https://github.com/clocksmith/doppler/actions/runs/43841061585)
+executed every linear module across all 24 decoder layers and the vocabulary head,
+then returned four tokens `[12095, 13, 1084, 374]`: “ Paris. It is”. All **1,548**
+encrypted tile responses passed replay verification. All four greedy choices
+matched both the quantized and FP32 references on this public prompt. Maximum
+encrypted-versus-quantized logit error was **0.1350**, so matching greedy choices
+is not numerical equivalence or an arbitrary-prompt accuracy guarantee.
+
+One hosted CPU observation took **5,926,799 ms (98.8 minutes)** end to end.
+Encrypted prefill took 71.16 minutes; the three decode steps took 9.16, 9.08 and
+9.01 minutes. Client encrypted replay consumed 49.05 minutes and evaluator round
+trips 49.14 minutes. The run sent **321,932,548 bytes**, received **86,305,332 bytes**
+and used a **268,435,536-byte** evaluation key. Client lifetime peak RSS was
+**5,265,190,912 bytes**. Complete quantized-reference comparisons added about
+2.9 seconds; floating references also ran on the client. These costs are not a
+matched production overhead benchmark or evidence of useful client offloading.
+
+The [context](evidence/full-qwen/ntt12-functional-context.json) binds the exact
+checkpoint, protocol, native source/binary, parameter profile and artifact hash.
+This establishes a working real small-Qwen hybrid prototype, beyond an isolated
+projection. It does not establish full Flash execution, separate-machine privacy,
+independently reviewed malicious security or production admission. All normal
+cryptographic capability gates remain closed.

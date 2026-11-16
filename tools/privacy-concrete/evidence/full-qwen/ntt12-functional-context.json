@@ -1,0 +1,24 @@
+{
+  "schema": "doppler.full-qwen-twelve-bit-functional-context/v1",
+  "revision": "dc1b4a3dc75a50319b4f691c6d2f9334b8925ab7",
+  "workflowRun": 43841061585,
+  "artifactId": 14221535660,
+  "artifactZipSha256": "9fae60585925957bdaf17bf642ef25f876e82af126e4cc6992546363a242a96a",
+  "evidence": "ntt12-four-step-success.json",
+  "modelRepository": "Qwen/Qwen2.5-0.5B-Instruct",
+  "modelRevision": "7ae557604adf67be50417f59c2c2f167def9a775",
+  "parameterProfile": "glwe-quant12-message35-storage48/v1",
+  "transport": "local-process",
+  "productionBackendAvailable": false,
+  "securityQualified": false,
+  "functionalFixtureComplete": true,
+  "limitations": [
+    "One fixed public prompt and four greedy steps, not corpus-wide or arbitrary-private-input correctness",
+    "Maximum encrypted-vs-quantized logit error 0.13504266738891602 despite matching all greedy choices; not numerical equivalence",
+    "Only linear products are outsourced homomorphically; attention, nonlinearities, embedding, caches, quantization and decoding remain client-side",
+    "Client performs full encrypted replay plus floating/quantized full-model validation; no client compute-saving or production malicious-security claim",
+    "Single hosted Ubuntu CPU observation; no GPU, network deployment or latency-distribution benchmark",
+    "35-bit message/storage/key parameters and changed native implementation require independent security/side-channel/protocol review",
+    "No qualified separate-machine endpoint/appraisal or full Flash-model generation established"
+  ]
+}

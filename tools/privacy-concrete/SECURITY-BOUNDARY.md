@@ -56,3 +56,13 @@ Explicit bridge closure now terminates route admission before process cleanup.
 Even if cleanup fails, a later evaluation cannot serialize another payload, and
 the bridge releases its evaluation-key reference. This is request/resource
 ownership enforcement, not physical memory zeroization or a new security claim.
+
+## Recorded full-Qwen functional result
+
+The twelve-bit route completed all 169 linear modules and four greedy steps for
+one actual Qwen2.5-0.5B-Instruct public prompt. Replay verified all 1,548 tiles;
+greedy choices matched quantized/FP32 references, while logit error still reached
+0.1350. The client/evaluator ran as separate processes on one trusted test host,
+and the client performed complete encrypted replay and full-model plaintext
+validation. This is functional hybrid-computation evidence; it changes none of
+the uncompleted deployment, parameter, leakage or security gates above.

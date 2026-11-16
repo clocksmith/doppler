@@ -1,0 +1,80 @@
+{
+  "schema": "doppler.public-full-qwen-ci-evidence/v1",
+  "revision": "dc1b4a3dc75a50319b4f691c6d2f9334b8925ab7",
+  "fixtureId": "qwen05b-capital",
+  "completed": true,
+  "productionBackendAvailable": false,
+  "securityQualified": false,
+  "verifiedTilesObserved": 1548,
+  "lastVerifiedTile": {
+    "sequence": 1548,
+    "projection": "lm_head"
+  },
+  "report": {
+    "backendProfile": "qwen-all-linear-ntt12",
+    "protocol": "concrete-glwe-qwen-all-linear-ntt12-replay/v1",
+    "clientLifetimePeakRssBytes": 5265190912,
+    "schema": "doppler.full-qwen-hybrid-execution/v1",
+    "planId": "39dee3c63b419dd89bdedbc06361ab7331406c2917dee35d49722a8633d72750",
+    "modelId": "4223289199791c6713ba2c98eb8f9d43a37597b09db0b2c778434dec431a6d24",
+    "executionRouteId": "39dee3c63b419dd89bdedbc06361ab7331406c2917dee35d49722a8633d72750",
+    "transport": "local-process",
+    "linearProjectionCount": 169,
+    "encryptedTileCount": 1548,
+    "encryptedSteps": 4,
+    "matchesFullQuantizedGreedyReference": true,
+    "floatGreedyMatches": [
+      true,
+      true,
+      true,
+      true
+    ],
+    "maxLogitErrors": [
+      0.12158083915710449,
+      0.13504266738891602,
+      0.1101231575012207,
+      0.0893343985080719
+    ],
+    "setupMs": 18717.773448000004,
+    "stepMs": [
+      4269621.414464,
+      549497.9318409996,
+      544746.7134220005,
+      540626.3999480007
+    ],
+    "quantizedReferenceMs": [
+      833.005443999923,
+      732.7706309997666,
+      749.0471760002038,
+      597.1593900003427
+    ],
+    "elapsedMs": 5926798.8491859995,
+    "clientEncryptedReplayMs": 2943299.792827011,
+    "evaluatorRoundTripMs": 2948286.7145229857,
+    "sentBytes": 321932548,
+    "receivedBytes": 86305332,
+    "evaluationKeyBytes": 268435536,
+    "clientPeakRss": 5141788,
+    "clientComputation": "Client nonlinearities, embeddings, caches, quantization, decoding and full encrypted replay",
+    "integrity": "Full deterministic replay; no qualified malicious-security claim",
+    "implementationVersions": {
+      "concrete-ml": "1.9.0",
+      "concrete-ml-extensions": "0.1.9+ntt.1",
+      "concrete-python": "2.10.0",
+      "torch": "2.3.1+cpu",
+      "transformers": "4.44.2",
+      "numpy": "1.26.4"
+    },
+    "nativeImplementation": {
+      "native-source-id": "8cb2cbd212d05c6646fb3132ebef58624738b0d0dcf7f59daebe3e0766e17bf9",
+      "native-binary-sha256": "f9e7daf5e9f4ccbd94e7c8c5e18b71ecc288c2765519dac51fa45886b4c33887"
+    }
+  },
+  "publicFixtureOutputText": " Paris. It is",
+  "publicFixtureOutputTokens": [
+    12095,
+    13,
+    1084,
+    374
+  ]
+}
