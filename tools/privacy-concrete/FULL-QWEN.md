@@ -80,3 +80,13 @@ Same-length rewrites, replacements and restore-after-read mutations terminate
 preparation. Public tile snapshots still independently bind the later int8 replay
 weights. Filesystem checks do not protect against a malicious client kernel or
 constitute an atomic snapshot of an adversarial filesystem.
+
+## Separate clear quantization checks
+
+`qwen_quantization.py` compares all 169 real-model linear modules on eight fixed
+public prompts, four steps each, using the same prefill/decode helper as encrypted
+execution. It records independent quantized/floating greedy sequences and
+teacher-forced logit errors/cosines. Keys and encryption calls are mechanically
+forbidden in this lane. The workflow is isolated CPU-only and does not repeat or
+restart any existing encrypted run. These are small public quality fixtures, not a
+corpus benchmark, full-model encrypted evidence or a qualification shortcut.

@@ -8,6 +8,27 @@ from unittest.mock import patch
 
 @unittest.skipUnless(os.environ.get('DOPPLER_CONCRETE_NATIVE')=='1','opt-in pinned native/Torch implementation')
 class StreamedFlashMoETests(unittest.TestCase):
+    def test_model_step_preserves_bucket_and_rejects_cache_history_mismatch(self):
+        import torch
+        from full_model import model_step
+        class Cache:
+            length=0
+            def get_seq_length(self):return self.length
+            def crop(self,length):self.length=length
+        cache=Cache();calls=[];projection=SimpleNamespace(mode=None)
+        def model(**arguments):
+            values=arguments['input_ids'];calls.append(arguments)
+            cache.length+=values.shape[1]
+            return SimpleNamespace(logits=torch.arange(values.shape[1]*4,dtype=torch.float32).reshape(1,values.shape[1],4))
+        logits,_=model_step(model,[projection],cache,[1,2,3],3,0,'clear-reference',8,151643)
+        self.assertEqual(logits.tolist(),[8,9,10,11]);self.assertEqual(cache.length,3)
+        self.assertEqual(calls[0]['input_ids'].tolist(),[[1,2,3]+[151643]*5])
+        self.assertEqual(calls[0]['attention_mask'].tolist(),[[1,1,1,0,0,0,0,0]])
+        model_step(model,[projection],cache,[1,2,3,4],3,1,'clear-reference',8,151643)
+        self.assertEqual(calls[1]['attention_mask'].shape,(1,4));cache.length=5
+        with self.assertRaises(ValueError):model_step(model,[projection],cache,[1,2,3,4,5],3,2,'execute',8,151643)
+        self.assertEqual(len(calls),2)
+
     def test_integer_source_buffers_keep_exact_int64_values(self):
         from pathlib import Path
         import torch

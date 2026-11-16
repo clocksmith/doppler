@@ -1,0 +1,41 @@
+{
+  "schema": "doppler.qwen-public-quantization-fixtures/v1",
+  "model": "Qwen/Qwen2.5-0.5B-Instruct",
+  "steps": 4,
+  "prefillRows": 8,
+  "padTokenId": 151643,
+  "fixtures": [
+    {
+      "id": "capital-france",
+      "prompt": "The capital of France is"
+    },
+    {
+      "id": "capital-japan",
+      "prompt": "The capital of Japan is"
+    },
+    {
+      "id": "arithmetic",
+      "prompt": "2 + 2 ="
+    },
+    {
+      "id": "story",
+      "prompt": "Once upon a time"
+    },
+    {
+      "id": "opposite",
+      "prompt": "The opposite of hot is"
+    },
+    {
+      "id": "python",
+      "prompt": "Python is a"
+    },
+    {
+      "id": "freezing",
+      "prompt": "Water freezes at"
+    },
+    {
+      "id": "sky",
+      "prompt": "The sky is"
+    }
+  ]
+}

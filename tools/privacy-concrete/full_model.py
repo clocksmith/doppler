@@ -120,6 +120,27 @@ def prepare(model_dir,cache_dir,backend_profile=DEFAULT_PROFILE):
         return model,tokenizer,executor,projections,frozen
 
 
+def model_step(model,projections,cache,tokens,original_count,step,mode,context_bucket,pad_token_id):
+    """One shared prefill/decode contract for encrypted execution and clear quality checks."""
+    if (mode not in ['float-reference','clear-reference','execute'] or type(step) is not int or step<0
+            or not 1<=original_count<=context_bucket or len(tokens)!=original_count+step):
+        raise ValueError('Exact model step and token history required')
+    for projection in projections:projection.mode=mode
+    if step==0:
+        if cache.get_seq_length()!=0:raise ValueError('Fresh model prefill cache required')
+        values=tokens+[pad_token_id]*(context_bucket-len(tokens))
+        args=dict(input_ids=torch.tensor([values]),attention_mask=torch.tensor([[1]*len(tokens)+[0]*(context_bucket-len(tokens))]))
+        index=len(tokens)-1
+    else:
+        length=cache.get_seq_length()
+        if length!=original_count+step-1:raise ValueError('Model cache does not match this token history')
+        args=dict(input_ids=torch.tensor([[tokens[-1]]]),attention_mask=torch.ones((1,length+1),dtype=torch.long));index=0
+    began=time.perf_counter();output=model(**args,past_key_values=cache,use_cache=True)
+    logits=output.logits[0,index]
+    if step==0:cache.crop(original_count)
+    return logits,(time.perf_counter()-began)*1000
+
+
 def run(model_dir,cache_dir,prompt,progress=lambda event:None,cancelled=None,deployment=None,backend_profile=DEFAULT_PROFILE):
     settings,_,installed_versions,_=qwen_backend(backend_profile)
     require_active(cancelled)
@@ -148,20 +169,7 @@ def run(model_dir,cache_dir,prompt,progress=lambda event:None,cancelled=None,dep
                 logits={}
                 for mode in ['float-reference','clear-reference','execute']:
                     require_active(cancelled)
-                    for projection in projections:projection.mode=mode
-                    if step==0:
-                        values=tokens+[151643]*(8-len(tokens))
-                        args=dict(input_ids=torch.tensor([values]),attention_mask=torch.tensor([[1]*len(tokens)+[0]*(8-len(tokens))]))
-                        index=len(tokens)-1
-                    else:
-                        length=caches[mode].get_seq_length()
-                        args=dict(input_ids=torch.tensor([[tokens[-1]]]),attention_mask=torch.ones((1,length+1),dtype=torch.long))
-                        index=0
-                    began=time.perf_counter()
-                    output=model(**args,past_key_values=caches[mode],use_cache=True)
-                    logits[mode]=output.logits[0,index]
-                    if step==0:caches[mode].crop(original_count)
-                    duration=(time.perf_counter()-began)*1000
+                    logits[mode],duration=model_step(model,projections,caches[mode],tokens,original_count,step,mode,settings['contextBucket'],151643)
                     if mode=='execute':step_ms.append(duration)
                     elif mode=='clear-reference':reference_ms.append(duration)
                 errors.append(float((logits['execute']-logits['clear-reference']).abs().max()))
