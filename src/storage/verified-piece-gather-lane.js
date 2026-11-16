@@ -16,6 +16,9 @@ export async function createVerifiedPieceGatherLane(options) {
     || !Number.isSafeInteger(maxPartBytes + 2 * pieceBytes) || !Number.isSafeInteger(memoryBudgetBytes) || memoryBudgetBytes < maxPartBytes + 2 * pieceBytes) {
     throw new Error('Gather budget must hold one output and two complete piece buffers.');
   }
+  // Acquire the output before starting a worker so allocation failure cannot
+  // strand an unregistered thread during asynchronous factory admission.
+  let buffer = new ArrayBuffer(maxPartBytes);
   // Metadata is copied by workerData; authentication completes before admission.
   const { Worker } = await import('node:worker_threads');
   const worker = new Worker(new URL('./verified-piece-gather-worker.js', import.meta.url), {
@@ -23,7 +26,6 @@ export async function createVerifiedPieceGatherLane(options) {
   });
   let closed = false;
   let busy = false;
-  let buffer = new ArrayBuffer(maxPartBytes);
   /** @type {((error: Error) => void) | null} */
   let failPending = null;
   /** @type {((message: { ready?: boolean, buffer: ArrayBuffer, error?: string, receipt?: import('./verified-piece-gather.js').VerifiedPieceGatherReceipt }) => void) | null} */
