@@ -25,21 +25,30 @@ simple, portable execution.
 
 ## Build boldly
 
-- Build the ambitious version. Implement the bold idea end to end, run it, then
-  fix what breaks. A working rough cut beats a careful plan.
-- Act without asking on reversible work in your lane: new features, rewrites,
-  large refactors, deleting dead code, wild experiments. Ask only before
-  irreversible or outward-facing steps: force-push, deleting data, spending
-  money, publishing, or touching another session's uncommitted work.
-- Reading is lookup, not a gate. Read the code you change; consult GOALS,
-  CATSCAN, charters and contracts when a question needs them, never as a
-  checklist before editing.
-- Qualification, receipts and frozen comparisons govern what we claim, not
-  whether code may be written, merged or tried. Measure once something is in use.
-- Breaking an experiment is fine. Fix breakage you cause before you stop, and
-  leave `main` runnable.
-- Report what you built and what it did. Never claim faster, better or qualified
-  without a measurement.
+Understand → inspect → build → run → diagnose → improve → deliver.
+
+- Start from the requested outcome and the existing implementation. Read the
+  relevant code, and compare with working alternatives, before guessing.
+- Make the most direct substantive change. Large refactors, replacement
+  implementations, aggressive prototypes and speculative ideas are allowed when
+  they serve the goal.
+- Run the changed system early. Fix the failures you cause; don't stop at a
+  plan, scaffold or failing test.
+- If the result misses the goal, find the reason in the code and behavior,
+  change it and repeat. Sweep parameters only to answer a real question. When a
+  strategy is clearly failing, try a materially different one.
+- Make routine design and implementation choices yourself. Ask only for a
+  consequential product choice, access you lack, or a blocker you can't
+  resolve safely.
+- Commit coherent, tested progress often, and keep going while the requested
+  outcome is unfinished.
+- Done means the requested behavior works and was exercised against a
+  real-world or competitive baseline. A passing unit test, receipt, report,
+  scaffold or milestone is not completion.
+- GOALS, INTENT, CATSCAN and charters are references to look up, not reading
+  required before editing.
+- Report results: what changed, the evidence, what remains, and blockers only
+  when they need the owner or unavailable access. No completion percentages.
 
 ## Git workflow: direct to main
 
@@ -51,20 +60,18 @@ simple, portable execution.
   overwriting unrelated work.
 - Report the pushed commit or the concrete blocker. A local commit is not a push.
 
-### MANDATORY: Read Style Guides First
+### Style guides
 
-Use the [read-first matrix](docs/style/README.md#read-first-matrix) and
-[rule coverage](tools/policies/style-guide-rules.json). Run `npm run check:fast`
-for edits; `npm run style:guides:check` checks every tracked/nonignored new
-JS/JSON/WGSL file. Full file coverage is not semantic proof; run affected tests.
+Run `npm run check:fast` for edits; `npm run style:guides:check` checks every
+tracked/nonignored new JS/JSON/WGSL file, and affected tests prove behavior.
+The [read-first matrix](docs/style/README.md#read-first-matrix),
+[rule coverage](tools/policies/style-guide-rules.json) and
+[engineering checklist](docs/style/general-style-guide.md#invariants-quick-reference)
+are references: open the sections that bear on the change. Deep kernel,
+buffer-lifecycle, config-resolution or shader work benefits from the applicable
+full guides below.
 
-Before a non-trivial edit, read the [engineering checklist](docs/style/general-style-guide.md#invariants-quick-reference).
-Then read the linked sections and JavaScript/config invariants relevant to the
-changed behavior. Full guides remain references, not a mandatory 2,200-line
-preflight for an ordinary edit. Deep kernel, buffer-lifecycle, config-resolution
-or shader work still reads the applicable full guides below.
-
-Read only the owner documents for the change at hand; there is no repository-wide reading list.
+Owner documents are lookups for the change at hand; there is no reading list.
 
 | Change | Read at the owner |
 | --- | --- |
@@ -131,26 +138,12 @@ for example, `src/capsule-runtime.js` and `src/training.js` are root facades.
 
 ### Component Intent
 
-Before modifying a file, read the canonical project goals and every
-`CATSCAN.md` from the project root to the target directory, parent first (the
-union of chains for changes spanning directories).
-
-Target, Authority, Scope, Contracts, Invariants, Acceptance, and Non-goals are
-implementation constraints. A child CATSCAN may narrow its parent but never
-silently broaden authority, weaken an invariant, or contradict it. Existing code
-does not overrule a charter; code may itself have drifted.
-
-Explicit user direction may change component intent: identify the boundary
-change and update the affected CATSCAN with the implementation. Never rewrite a
-charter to excuse failing code or evidence. CATSCAN constrains outcomes and
-authority, not internal algorithms.
-
-Repository-change handoffs must state:
-
-- `Component: <component ID>`
-- `Intent: preserved | changed`
-- `Acceptance evidence: <commands or artifacts>`
-- `Boundary effects: none | <named components>`
+CATSCAN.md files record a component's owner, contracts and invariants. Look up
+the one for the component you change when you need its contract; you don't
+have to read the chain before editing. When code and a charter disagree, decide
+which is right: fix the code if it broke the contract, or move the boundary and
+update the charter in the same commit. Never rewrite a charter to excuse a
+failure.
 
 When you change a charter, component boundary, or the CATSCAN policy inventory,
 run `npm run catscan:check`.
