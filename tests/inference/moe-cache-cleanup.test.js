@@ -33,12 +33,8 @@ const {
   destroyBufferPool,
   getBufferPool,
 } = await import('../../src/memory/buffer-pool.js');
-const {
-  clearDequantCache,
-  getCachedDequant,
-  setCachedDequant,
-  setDequantCacheMaxEntries,
-} = await import('../../src/inference/pipelines/text/moe-cache.js');
+const { ExpertDequantCache } = await import('../../src/loader/experts/expert-dequant-cache.js');
+const { DopplerLoader } = await import('../../src/loader/doppler-loader.js');
 
 function createFakeDevice() {
   return {
@@ -74,7 +70,6 @@ function createFakeDevice() {
 }
 
 function resetRuntime(device = null) {
-  clearDequantCache();
   destroyBufferPool();
   setDevice(device, { platformConfig: null });
   if (device) {
@@ -89,27 +84,44 @@ async function flushDeferredCleanup() {
 
 try {
   resetRuntime(createFakeDevice());
-  setDequantCacheMaxEntries(1);
+  const cache = new ExpertDequantCache();
+  cache.setMaxEntries(1);
 
   const gateUpA = acquireBuffer(16, GPUBufferUsage.STORAGE, 'gate_up_a');
   const downA = acquireBuffer(16, GPUBufferUsage.STORAGE, 'down_a');
-  setCachedDequant(0, 0, 'f16', gateUpA, downA);
+  cache.set(0, 0, 'f16', gateUpA, downA);
 
   const gateUpB = acquireBuffer(16, GPUBufferUsage.STORAGE, 'gate_up_b');
   const downB = acquireBuffer(16, GPUBufferUsage.STORAGE, 'down_b');
-  setCachedDequant(0, 1, 'f16', gateUpB, downB);
+  cache.set(0, 1, 'f16', gateUpB, downB);
   await flushDeferredCleanup();
 
   assert.equal(gateUpA.destroyed, true);
   assert.equal(downA.destroyed, true);
-  assert.equal(getCachedDequant(0, 0, 'f16'), undefined);
+  assert.equal(cache.get(0, 0, 'f16'), undefined);
 
-  clearDequantCache();
+  cache.clear();
   await flushDeferredCleanup();
   assert.equal(gateUpB.destroyed, true);
   assert.equal(downB.destroyed, true);
+
+  // Each loaded model owns its cache: identical layer/expert/dtype keys never
+  // cross models, and unloading one model releases only its entries.
+  const modelA = new DopplerLoader();
+  const modelB = new DopplerLoader();
+  const ownedA = [acquireBuffer(16, GPUBufferUsage.STORAGE, 'a_gate_up'), acquireBuffer(16, GPUBufferUsage.STORAGE, 'a_down')];
+  const ownedB = [acquireBuffer(16, GPUBufferUsage.STORAGE, 'b_gate_up'), acquireBuffer(16, GPUBufferUsage.STORAGE, 'b_down')];
+  modelA.expertDequantCache.set(0, 3, 'f32', ...ownedA);
+  assert.equal(modelB.expertDequantCache.get(0, 3, 'f32'), undefined, 'model B never sees model A dequantized experts');
+  modelB.expertDequantCache.set(0, 3, 'f32', ...ownedB);
+  await modelA.unload();
+  await flushDeferredCleanup();
+  assert.equal(ownedA.every(buffer => buffer.destroyed), true, 'unload releases the model\'s dequantized experts');
+  assert.equal(modelA.expertDequantCache.get(0, 3, 'f32'), undefined);
+  assert.equal(ownedB.some(buffer => buffer.destroyed), false, 'the other model keeps its entries');
+  assert.equal(modelB.expertDequantCache.get(0, 3, 'f32').gateUp, ownedB[0]);
+  await modelB.unload();
 } finally {
-  setDequantCacheMaxEntries(null);
   resetRuntime();
 }
 

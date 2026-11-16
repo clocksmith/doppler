@@ -16,7 +16,6 @@ import {
   isWeightBuffer,
 } from '../../../../gpu/weight-buffer.js';
 import { trace, isTraceEnabled } from '../../../../debug/index.js';
-import { getCachedDequant, setCachedDequant } from '../moe-cache.js';
 import { selectRuleValue } from '../../../../rules/rule-registry.js';
 import { assertImplicitDtypeTransitionAllowed } from "../policy/dtype-contract.js";
 import { QK_K, Q4K_BLOCK_BYTES } from '../../../../config/schema/index.js';
@@ -181,8 +180,9 @@ export async function runGemma4RouteExperts({
 }
 
 export async function runGptOssExpert({
-  gathered, expertOutputs, weights, layerIdx, expertIdx, count, inputOffset, outputOffset, hiddenSize, intermediateSize, numExperts, activationDtype, swigluLimit, kernelPath, executionPolicies, modelType, vendorProfile, moeKernelPathProfile,
+  gathered, expertOutputs, weights, layerIdx, expertIdx, count, inputOffset, outputOffset, hiddenSize, intermediateSize, numExperts, activationDtype, swigluLimit, kernelPath, executionPolicies, modelType, vendorProfile, moeKernelPathProfile, dequantCache,
 }) {
+  if (!dequantCache) throw new Error('[MoE] GPT-OSS experts require the model loader\'s expertDequantCache.');
   const perfEnabled = isTraceEnabled('perf');
   const perfMark = () => (perfEnabled ? performance.now() : 0);
   const perfLog = (label, start, data) => {
@@ -212,7 +212,7 @@ export async function runGptOssExpert({
   let gateUpWeight;
   let downWeight;
   let stepStart = perfMark();
-  const cached = getCachedDequant(layerIdx, expertIdx, activationDtype);
+  const cached = dequantCache.get(layerIdx, expertIdx, activationDtype);
 
   if (cached) {
     gateUpWeight = cached.gateUp;
@@ -249,7 +249,7 @@ export async function runGptOssExpert({
     );
     gateUpWeight = gateUpTensor.buffer;
     downWeight = downTensor.buffer;
-    setCachedDequant(layerIdx, expertIdx, activationDtype, gateUpWeight, downWeight);
+    dequantCache.set(layerIdx, expertIdx, activationDtype, gateUpWeight, downWeight);
     perfLog(`MoE L${layerIdx} expert ${expertIdx} dequant`, stepStart, {
       hit: false,
       dequantTileShape: vendorProfile.dequantTileShape,

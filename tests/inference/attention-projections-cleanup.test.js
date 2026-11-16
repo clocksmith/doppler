@@ -21,7 +21,7 @@ const { setDevice } = await import('../../src/gpu/device.js');
 const { createTensor } = await import('../../src/gpu/tensor.js');
 const { createWeightBuffer } = await import('../../src/gpu/weight-buffer.js');
 const { projectAttentionQKV } = await import('../../src/inference/pipelines/text/attention/projections.js');
-const { clearDequantCache, setCachedDequant } = await import('../../src/inference/pipelines/text/moe-cache.js');
+const { ExpertDequantCache } = await import('../../src/loader/experts/expert-dequant-cache.js');
 const { applyLoRA } = await import('../../src/inference/pipelines/text/lora-apply.js');
 const { projectQueryWithOptionalGate } = await import('../../src/inference/pipelines/text/attention/projection-executor.js');
 const {
@@ -248,8 +248,9 @@ try {
     resetRuntime(device);
     const gateUp = acquireBuffer(64, GPUBufferUsage.STORAGE, 'moe_gate_up');
     const down = acquireBuffer(64, GPUBufferUsage.STORAGE, 'moe_down');
-    setCachedDequant(0, 0, 'f32', gateUp, down);
-    clearDequantCache();
+    const dequantCache = new ExpertDequantCache();
+    dequantCache.set(0, 0, 'f32', gateUp, down);
+    dequantCache.clear();
     assertPoolIsClean();
     resetRuntime();
   }
@@ -294,7 +295,6 @@ try {
     resetRuntime();
   }
 } finally {
-  clearDequantCache();
   resetRuntime();
 }
 

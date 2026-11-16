@@ -23,26 +23,6 @@ import type { ExecutionV1PoliciesSchema } from "../../../config/schema/execution
 import type { WeightBuffer } from '../../../gpu/weight-buffer.js';
 
 /**
- * Clear the dequantization cache (call on model unload).
- */
-export function clearDequantCache(): void;
-
-/**
- * Get cache stats for debugging.
- */
-export function getDequantCacheStats(): {
-  hits: number;
-  misses: number;
-  size: number;
-  maxEntries: number;
-};
-
-/**
- * Configure dequant cache max entries at runtime.
- */
-export function setDequantCacheMaxEntries(maxEntries: number): void;
-
-/**
  * Configuration for MoE feed-forward.
  */
 export interface MoEConfig {

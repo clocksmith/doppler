@@ -241,6 +241,7 @@
     "src/loader/q4k-reference-weight.js",
     "src/converter/qwen4-exp-source-execution.js",
     "src/loader/experts/compact-expert-cache.js",
+    "src/loader/experts/expert-dequant-cache.js",
     "src/loader/experts/routed-expert-source.js",
     "src/gpu/kernels/channel-rotation.js",
     "src/inference/pipelines/text/generator/activation/final-layer-replay.js",

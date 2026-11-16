@@ -102,6 +102,8 @@ export declare class DopplerLoader {
 
   // Expert cache for MoE models (LRU eviction)
   expertCache: ExpertCache | null;
+  /** Dequantized MXFP4 experts of this model only; cleared by unload(). */
+  expertDequantCache: import('./experts/expert-dequant-cache.js').ExpertDequantCache;
 
   // Loading state
   loadedShards: Set<number>;

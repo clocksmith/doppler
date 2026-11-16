@@ -197,6 +197,7 @@
     "src/inference/pipelines/vision/support.js",
     "src/inference/tokenizers/bundled/normalizer.js",
     "src/loader/experts/compact-expert-cache.js",
+    "src/loader/experts/expert-dequant-cache.js",
     "src/loader/experts/expert-frequency-index.js",
     "src/loader/experts/expert-preparation.js",
     "src/loader/experts/loader-bindings.js",

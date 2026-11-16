@@ -54,6 +54,7 @@ import {
   predictNextLayerExperts as predictNextLayerExpertsFromModule,
 } from './experts/expert-loader.js';
 import { assembleShardData } from './tensors/tensor-reader.js';
+import { ExpertDequantCache } from './experts/expert-dequant-cache.js';
 import { hasSourceTransform } from './tensors/source-transform.js';
 import { getRoutedExpertCapacity, prepareExpertLayer, prepareRoutedExperts, disposeRoutedExperts, createExpertLoaderContext, recordRoutedReadback, getRoutedReadbackStats } from './experts/loader-bindings.js';
 import {
@@ -147,6 +148,7 @@ export class DopplerLoader {
   // Expert cache for MoE models (LRU eviction)
   
   expertCache = null;
+  expertDequantCache = new ExpertDequantCache();
   routedExpertCache = null;
 
   // Loading state
@@ -672,6 +674,7 @@ export class DopplerLoader {
     if (this.expertCache) {
       this.expertCache.clear();
     }
+    this.expertDequantCache.clear();
 
     for (const packed of this.experts.values()) {
       if (!packed || typeof packed !== 'object') continue;

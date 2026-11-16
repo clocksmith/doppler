@@ -8,7 +8,7 @@ import { runSoftmaxTopK, recordSoftmaxTopK } from '../../../gpu/kernels/softmax.
 import { runMoEGather, runMoEBuildTokenOffsets, runScatterAddDynamic } from '../../../gpu/kernels/moe.js';
 import { trace, isTraceEnabled } from '../../../debug/index.js';
 import { f16ToF32Array } from '../../kv-cache/types.js';
-import { resolveMaxTokensPerExpert, getDequantCacheStats } from './moe-cache.js';
+import { resolveMaxTokensPerExpert } from './moe-cache.js';
 import { ensureExpertLoaded } from './moe/expert-loading.js';
 import { selectRuleValue } from '../../../rules/rule-registry.js';
 import { getRuntimeConfig } from '../../../config/runtime.js';
@@ -580,6 +580,7 @@ export async function moeFeedForwardGPU(
         vendorProfile,
         moeKernelPathProfile,
         hiddenActivation,
+        dequantCache: expertLoader.expertDequantCache ?? null,
       });
     perfLog(`MoE L${layerIdx} expert_exec`, stepStart, { expertIdx, count });
   }
@@ -622,7 +623,7 @@ export async function moeFeedForwardGPU(
     weightsBuffer = null;
 
     if (perfEnabled) {
-      const cacheStats = getDequantCacheStats();
+      const cacheStats = expertLoader.expertDequantCache?.getStats() ?? null;
       trace.perf(`MoE L${layerIdx} done`, {
         numTokens,
         topK,
@@ -631,8 +632,8 @@ export async function moeFeedForwardGPU(
         activeExpertSelection: activeExpertSchedule?.selection ?? null,
         rowsPerExpert,
         maxTokensPerExpert,
-        dequantCacheHits: cacheStats.hits,
-        dequantCacheMisses: cacheStats.misses,
+        dequantCacheHits: cacheStats?.hits ?? null,
+        dequantCacheMisses: cacheStats?.misses ?? null,
         expertCache: typeof expertLoader?.getExpertCacheStats === 'function'
           ? expertLoader.getExpertCacheStats()
           : null,

@@ -1,11 +1,5 @@
 import { getRuntimeConfig } from '../../../config/runtime.js';
 import { QK_K } from '../../../config/schema/index.js';
-import { releaseBuffer } from '../../../memory/buffer-pool.js';
-
-const dequantCache = new Map();
-let dequantCacheMaxEntriesOverride = null;
-let dequantCacheHits = 0;
-let dequantCacheMisses = 0;
 
 export function resolveMaxTokensPerExpert(numTokens, numExperts, topK, hiddenSize, activationDtype) {
   const routingConfig = getRuntimeConfig().inference.moe.routing;
@@ -45,71 +39,4 @@ export function resolveMaxTokensPerExpert(numTokens, numExperts, topK, hiddenSiz
     target = Math.min(target, maxTokensPerExpertCap);
   }
   return Math.min(target, numTokens);
-}
-
-function getDequantCacheMaxEntries() {
-  return dequantCacheMaxEntriesOverride ?? getRuntimeConfig().inference.moe.cache.dequantCacheMaxEntries;
-}
-
-function getDequantCacheKey(layerIdx, expertIdx, outputDtype) {
-  return `${layerIdx}_${expertIdx}_${outputDtype}`;
-}
-
-export function getCachedDequant(layerIdx, expertIdx, outputDtype) {
-  const key = getDequantCacheKey(layerIdx, expertIdx, outputDtype);
-  const cached = dequantCache.get(key);
-  if (cached) {
-    cached.lastUsed = performance.now();
-    dequantCacheHits++;
-  }
-  return cached;
-}
-
-export function setCachedDequant(layerIdx, expertIdx, outputDtype, gateUp, down) {
-  const key = getDequantCacheKey(layerIdx, expertIdx, outputDtype);
-  dequantCacheMisses++;
-
-  if (dequantCache.size >= getDequantCacheMaxEntries()) {
-    let oldestKey = '';
-    let oldestTime = Infinity;
-    for (const [k, v] of dequantCache.entries()) {
-      if (v.lastUsed < oldestTime) {
-        oldestTime = v.lastUsed;
-        oldestKey = k;
-      }
-    }
-    if (oldestKey) {
-      const evicted = dequantCache.get(oldestKey);
-      if (evicted) {
-        releaseBuffer(evicted.gateUp);
-        releaseBuffer(evicted.down);
-      }
-      dequantCache.delete(oldestKey);
-    }
-  }
-
-  dequantCache.set(key, { gateUp, down, lastUsed: performance.now() });
-}
-
-export function clearDequantCache() {
-  for (const cached of dequantCache.values()) {
-    releaseBuffer(cached.gateUp);
-    releaseBuffer(cached.down);
-  }
-  dequantCache.clear();
-  dequantCacheHits = 0;
-  dequantCacheMisses = 0;
-}
-
-export function getDequantCacheStats() {
-  return {
-    hits: dequantCacheHits,
-    misses: dequantCacheMisses,
-    size: dequantCache.size,
-    maxEntries: getDequantCacheMaxEntries(),
-  };
-}
-
-export function setDequantCacheMaxEntries(maxEntries) {
-  dequantCacheMaxEntriesOverride = maxEntries;
 }
