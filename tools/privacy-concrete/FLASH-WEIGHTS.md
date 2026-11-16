@@ -157,3 +157,23 @@ the attention program binds the transform identifier. It changes no weights,
 mask arithmetic or projection route and is not a runtime fallback. Reference
 comparisons for this lane use the pinned source with this declared compatibility
 transform, rather than claiming an unmodified Torch 2.3 upstream execution.
+
+
+## Client ngram/PLE graph
+
+`flash_ple.py` adds the source ngram hashing, EOS-aware private token history,
+local embedding lookup, projected key/value gating and dilated convolution.
+Only a complete locally materialized embedding is supported under an explicit
+pre-allocation budget. There is no remote row-fetch or cache-miss fallback.
+The actual Flash table and its checkpoint shard-to-logical-row mapping are not
+qualified by this implementation; the large table fails the materialization
+budget before private token processing. A future mapped-table adapter must verify
+complete local public shards and row mapping before accepting private inputs.
+
+The explicit `ngram-register-buffer/v1` transform replaces the three inspected
+`nn.Buffer` assignments with equivalent registered buffers for pinned Torch 2.3.
+Hashing arithmetic, table values and EOS behavior are unchanged. Small public
+source checks cover prefill plus four cached updates across EOS, local-only
+lookup, budget rejection and independent private histories. This is not actual
+Flash ngram-weight or full-model execution, and no encrypted PLE backend is
+registered from these operator tests.

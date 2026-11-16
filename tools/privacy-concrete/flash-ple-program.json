@@ -1,0 +1,11 @@
+{
+  "schema": "doppler.flash-client-ple-program/v1",
+  "projectionOrder": [
+    "key_proj",
+    "value_proj"
+  ],
+  "sourceTransforms": [
+    "ngram-register-buffer/v1"
+  ],
+  "embeddingMode": "local-materialized"
+}

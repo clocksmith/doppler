@@ -15,9 +15,36 @@ class EagerReferenceOnly:
         return reference
 
 
+def promote_ngram_buffers(nodes):
+    expected={'layer_multipliers','ngram_heads_vocab_sizes','ngram_heads_offsets'};changed=[]
+    class RegisterBuffers(ast.NodeTransformer):
+        def visit_Assign(self,node):
+            if (len(node.targets)==1 and isinstance(node.targets[0],ast.Attribute)
+                    and isinstance(node.targets[0].value,ast.Name) and node.targets[0].value.id=='self'
+                    and node.targets[0].attr in expected and isinstance(node.value,ast.Call)
+                    and isinstance(node.value.func,ast.Attribute) and node.value.func.attr=='Buffer'
+                    and isinstance(node.value.func.value,ast.Name) and node.value.func.value.id=='nn'
+                    and len(node.value.args)==1 and not node.value.keywords):
+                name=node.targets[0].attr;changed.append(name)
+                return ast.Expr(value=ast.Call(func=ast.Attribute(value=ast.Name(id='self',ctx=ast.Load()),
+                    attr='register_buffer',ctx=ast.Load()),args=[ast.Constant(value=name),node.value.args[0]],keywords=[]))
+            return node
+    for node in nodes:
+        if isinstance(node,ast.ClassDef) and node.name=='Qwen4ExpTextNGramEmbedding':RegisterBuffers().visit(node)
+    if len(changed)!=3 or set(changed)!=expected:raise ValueError('Pinned ngram buffer registration sites changed')
+
+
+def declaration_name(node):
+    if isinstance(node,(ast.ClassDef,ast.FunctionDef)):return node.name
+    if isinstance(node,ast.Assign) and len(node.targets)==1 and isinstance(node.targets[0],ast.Name):return node.targets[0].id
+    return None
+
+
 def inspected_transforms(nodes,group):
     transforms=SPEC.get('transforms',{}).get(group,[])
     for transform in transforms:
+        if transform=='ngram-register-buffer/v1':
+            promote_ngram_buffers(nodes);continue
         if transform!='qsa-scatter-index64/v1':raise ValueError('Unsupported inspected source transform')
         changed=0
         for root in nodes:
@@ -40,8 +67,8 @@ def load_reference(path,group):
     if hashlib.sha256(data).hexdigest()!=SOURCE['files']['modeling_qwen4_exp.py']['sha256']:
         raise ValueError('Pinned official Flash reference source required')
     allowed=set(SPEC['groups'][group])
-    nodes=[node for node in ast.parse(data).body if isinstance(node,(ast.ClassDef,ast.FunctionDef)) and node.name in allowed]
-    if {node.name for node in nodes}!=allowed:raise ValueError('Complete inspected Flash declarations required')
+    nodes=[node for node in ast.parse(data).body if declaration_name(node) in allowed]
+    if {declaration_name(node) for node in nodes}!=allowed:raise ValueError('Complete inspected Flash declarations required')
     for root in nodes:
         for node in ast.walk(root):
             if not isinstance(node,(ast.ClassDef,ast.FunctionDef)):continue

@@ -27,6 +27,21 @@
       "repeat_kv",
       "eager_attention_forward",
       "Qwen4ExpTextAttention"
+    ],
+    "ple": [
+      "Qwen4ExpTextRMSNorm",
+      "apply_mask_to_padding_states",
+      "_MASK64",
+      "_SPLITMIX_GAMMA",
+      "_SPLITMIX_M1",
+      "_SPLITMIX_M2",
+      "_PRIME_1",
+      "_splitmix64",
+      "_build_layer_multipliers",
+      "_is_prime",
+      "_find_nth_prime_after",
+      "Qwen4ExpTextNGramEmbedding",
+      "Qwen4ExpTextPLELayer"
     ]
   },
   "removedDecorators": [
@@ -40,6 +55,9 @@
   "transforms": {
     "attention": [
       "qsa-scatter-index64/v1"
+    ],
+    "ple": [
+      "ngram-register-buffer/v1"
     ]
   }
 }
