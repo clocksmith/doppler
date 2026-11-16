@@ -9,7 +9,7 @@ from verified_execution import VALIDATION_BOUNDARY
 from public_qwen_fixtures import PUBLIC_FIXTURES,DEFAULT_PUBLIC_FIXTURE
 
 PUBLIC_FIXTURE=DEFAULT_PUBLIC_FIXTURE
-REPORT_FIELDS=['validationBoundary','backendProfile','protocol','clientLifetimePeakRssBytes','schema','planId','modelId','executionRouteId','transport','linearProjectionCount','encryptedTileCount','encryptedSteps',
+REPORT_FIELDS=['timingSemantics','validationBoundary','backendProfile','protocol','clientLifetimePeakRssBytes','schema','planId','modelId','executionRouteId','transport','linearProjectionCount','encryptedTileCount','encryptedSteps',
                'matchesFullQuantizedGreedyReference','floatGreedyMatches','maxLogitErrors','setupMs','stepMs',
                'quantizedReferenceMs','elapsedMs','clientEncryptedReplayMs',
                'evaluatorRoundTripMs','sentBytes','receivedBytes','evaluationKeyBytes','clientPeakRss',
@@ -70,6 +70,8 @@ def collect(report_path,progress_path,revision,fixture_id=PUBLIC_FIXTURE):
                 elif key=='protocol' and isinstance(backend,str) and backend in QWEN_PROTOCOLS and isinstance(value,str) and value in QWEN_PROTOCOLS[backend]:
                     safe[key]=value
                 elif key=='validationBoundary' and value==VALIDATION_BOUNDARY:
+                    safe[key]=value
+                elif key=='timingSemantics' and value=='round-trip-includes-client-replay/v1':
                     safe[key]=value
                 elif key=='transport' and value in ['local-process','ssh-ed25519-pinned']:
                     safe[key]=value

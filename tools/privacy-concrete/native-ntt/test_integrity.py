@@ -34,7 +34,11 @@ class NativeNttIntegrityTests(unittest.TestCase):
         bridge.admission=FullRouteAdmission(plan);bridge.admission.admit_projection('public-test',16,2,1)
         tile=plan.schedule()[0];bridge.public_tile_digests={tile['id']:row['weightId']}
         bridge.remote_seconds=bridge.replay_seconds=0.;events=[]
-        def exchange(*args):events.append('exchange');bridge.sequence+=1;return response
+        def exchange(*args,while_pending=None):
+            events.append('exchange')
+            if while_pending is not None:while_pending()
+            bridge.sequence+=1
+            return response
         def replay(*args):
             result=ext.cpu_matrix_multiplication_ntt(*args);events.append('replay')
             if cancel_during_replay:event.set()

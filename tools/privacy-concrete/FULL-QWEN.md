@@ -45,6 +45,18 @@ The client `run(..., cancelled=threading.Event())` path checks cancellation befo
 
 The current client emits bounded failure codes before progress observers; exception messages stay in client-local diagnostics. Constructed public evidence accepts only known codes, validated fixed-fixture output types and complete success reports, and rejects a contradictory terminal failure. The collector is intended for the trusted fixed-fixture workflow; a fixture label supplied in an arbitrary file is not authentication or authority to declassify private output.
 
+The current bridge sends each admitted encrypted tile, performs its mandatory
+local encrypted replay while the evaluator computes, then receives and checks the
+bound response. Exact replay comparison still precedes response deserialization
+and decryption; only one tile is in flight. Sending, replay and receiving share
+one operation deadline. An already executing native call remains cooperative:
+a deadline or cancellation is enforced when that call returns. The reported
+`evaluatorRoundTripMs` includes the overlapping `clientEncryptedReplayMs`; do not
+add those intervals. New full-Qwen reports label this with
+`timingSemantics: round-trip-includes-client-replay/v1`. This scheduling change
+has no measured full-model speedup yet, and does not change existing retained
+measurements or the code in an already running deployment.
+
 The [authenticated evaluator interface](SSH-DEPLOYMENT.md) binds an explicitly pinned SSH endpoint/account and complete model plan. It requires pre-provisioned files and requester authorization, installs nothing and has no local fallback. Its transport qualification is separate from full-model and cryptographic qualification.
 
 

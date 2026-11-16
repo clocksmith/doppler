@@ -105,12 +105,24 @@ class FullBridge:
         if inputs is not None:inputs.append((geometry,encrypted,self.key,payload))
         return payload
 
-    def exchange(self, kind, payload, response_kind, tile_id=''):
+    def exchange(self, kind, payload, response_kind, tile_id='', while_pending=None):
+        # Sending first lets the evaluator compute while the client performs its
+        # mandatory deterministic replay. There is still only one admitted tile.
+        deadline=time.monotonic()+self.operation_timeout
+        def remaining():
+            self.check_active()
+            value=deadline-time.monotonic()
+            if value<=0:raise TimeoutError('Encrypted operation deadline exceeded')
+            return value
         header = self.plan.frame(self.session,self.key_id,self.sequence,kind,tile_id)
-        self.sent += send(self.child.stdin,header,payload,timeout=self.operation_timeout,cancelled=self.cancelled,max_payload_bytes=self.payload_limit)
-        reply, result, size = receive(self.child.stdout,timeout=self.operation_timeout,cancelled=self.cancelled,max_payload_bytes=self.payload_limit)
+        self.sent += send(self.child.stdin,header,payload,timeout=remaining(),cancelled=self.cancelled,max_payload_bytes=self.payload_limit)
+        if while_pending is not None:
+            remaining()
+            while_pending()
+        reply, result, size = receive(self.child.stdout,timeout=remaining(),cancelled=self.cancelled,max_payload_bytes=self.payload_limit)
         self.received += size
         check(reply,self.plan.frame(self.session,self.key_id,self.sequence,response_kind,tile_id))
+        remaining()
         self.sequence += 1
         return result
 
@@ -124,13 +136,23 @@ class FullBridge:
             owned=np.ascontiguousarray(signed,dtype=self.weight_dtype)
             if not np.array_equal(signed,owned) or digest(owned.tobytes())!=self.public_tile_digests[expected_tile['id']]:
                 raise ValueError('Encrypted route public weight changed before disclosure')
-            start = time.perf_counter()
-            result = self.exchange('evaluate',self._serialize_input(encrypted,expected_tile),'result',tile['id'])
-            self.remote_seconds += time.perf_counter()-start
-            self.check_active()
-            start = time.perf_counter()
-            expected = self.matrix_multiplication(encrypted,matrix,self.key).serialize()
-            self.replay_seconds += time.perf_counter()-start
+            expected=None
+            def replay():
+                nonlocal expected
+                self.check_active()
+                start=time.perf_counter()
+                try:
+                    expected=self.matrix_multiplication(encrypted,matrix,self.key).serialize()
+                finally:
+                    self.replay_seconds+=time.perf_counter()-start
+                self.check_active()
+            start=time.perf_counter()
+            try:
+                result=self.exchange('evaluate',self._serialize_input(encrypted,expected_tile),'result',tile['id'],while_pending=replay)
+            finally:
+                # The round trip contains replay; these two intervals overlap
+                # and must never be added to estimate elapsed wall time.
+                self.remote_seconds+=time.perf_counter()-start
             self.check_active()
             if not hmac.compare_digest(expected,result):
                 raise ExecutionRejected('ciphertext-verification-failed')

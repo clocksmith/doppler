@@ -17,6 +17,14 @@ class Plan:
 
 
 class FullBridgeOrderingTests(unittest.TestCase):
+    def transport(self,action):
+        """Synthetic transport executes the real replay callback while pending."""
+        def exchange(*args,while_pending=None):
+            result=action(*args)
+            if while_pending is not None:while_pending()
+            return result
+        return exchange
+
     def setUp(self):
         self.serialized=[];self.exchanged=[];self.deserialized=[]
         native=SimpleNamespace(cpu_matrix_multiplication=lambda *args:SimpleNamespace(serialize=lambda:b'valid-circuit-output'),
@@ -37,7 +45,7 @@ class FullBridgeOrderingTests(unittest.TestCase):
         self.bridge.remote_seconds=self.bridge.replay_seconds=0.0
         self.bridge.observe=lambda *args:None
         def exchange(*args):self.exchanged.append(args);return b'invalid-circuit-output'
-        self.bridge.exchange=exchange
+        self.bridge.exchange=self.transport(exchange)
         self.encrypted=SimpleNamespace(serialize=lambda:self.serialized.append(True) or b'ciphertext-only')
         self.matrix=SimpleNamespace(shape=(16,16),dtype='u64',view=lambda dtype:'pinned-public-weight')
         self.tile=dict(self.bridge.admission.next_tile())
@@ -51,7 +59,7 @@ class FullBridgeOrderingTests(unittest.TestCase):
         self.replayed=[]
         def exchange(*args):
             self.exchanged.append(args);self.bridge.sequence+=1;return b'valid-circuit-output'
-        self.bridge.exchange=exchange
+        self.bridge.exchange=self.transport(exchange)
         self.native.cpu_matrix_multiplication=lambda *args:self.replayed.append(args) or SimpleNamespace(serialize=lambda:b'valid-circuit-output')
         return plan.schedule()
 
@@ -95,8 +103,8 @@ class FullBridgeOrderingTests(unittest.TestCase):
                         if failure=='cancel':
                             self.bridge.cancelled=threading.Event();self.bridge.cancelled.set()
                         if failure=='transport':
-                            self.bridge.exchange=lambda *args:(_ for _ in ()).throw(TimeoutError('lost evaluator'))
-                        if failure=='replay':self.bridge.exchange=lambda *args:b'wrong-ciphertext'
+                            self.bridge.exchange=self.transport(lambda *args:(_ for _ in ()).throw(TimeoutError('lost evaluator')))
+                        if failure=='replay':self.bridge.exchange=self.transport(lambda *args:b'wrong-ciphertext')
                         self.bridge.evaluate(self.encrypted,self.matrix,schedule[1])
                 self.assertEqual(retained,[]);self.assertIsNone(self.bridge._projection_inputs)
                 self.assertTrue(self.bridge.admission.failed)
@@ -179,7 +187,7 @@ class FullBridgeOrderingTests(unittest.TestCase):
                 decrypted.append(True)
                 if fail_decrypt and len(decrypted)==2:raise ValueError('simulated decrypt failure')
                 return answer
-            native.encrypt_matrix=encrypt;native.decrypt_matrix=decrypt;bridge.matrix_multiplication=replay;bridge.exchange=exchange
+            native.encrypt_matrix=encrypt;native.decrypt_matrix=decrypt;bridge.matrix_multiplication=replay;bridge.exchange=self.transport(exchange)
             if fail_decrypt:
                 with self.assertRaises(ValueError):projection(value)
                 self.assertTrue(bridge.admission.failed)
@@ -318,6 +326,60 @@ class FullBridgeOrderingTests(unittest.TestCase):
         self.assertEqual(self.serialized,[]);self.assertEqual(self.exchanged,[])
         self.assertTrue(self.bridge.admission.failed)
 
+    def real_exchange_fixture(self):
+        from full_plan import FullPlan,canonical
+        self.bridge.plan=FullPlan(canonical(dict(modelId='a'*64,operationTimeoutSeconds=5)))
+        self.bridge.session='session';self.bridge.key_id='key'
+        self.bridge.sent=self.bridge.received=0;self.bridge.payload_limit=None
+        self.bridge.child=SimpleNamespace(stdin=object(),stdout=object())
+        self.bridge.exchange=self.module.FullBridge.exchange.__get__(self.bridge)
+        return self.bridge.plan.frame('session','key',1,'result',self.tile['id'])
+
+    def test_send_then_replay_then_bound_response_before_deserialization(self):
+        header=self.real_exchange_fixture();events=[];timeouts=[]
+        def send(*args,**options):
+            events.append('send');timeouts.append(options['timeout']);return 12
+        def receive(*args,**options):
+            events.append('receive');timeouts.append(options['timeout']);return header,b'valid-circuit-output',23
+        def replay(*args):
+            events.append('replay');return SimpleNamespace(serialize=lambda:b'valid-circuit-output')
+        self.bridge.matrix_multiplication=replay
+        self.native.CompressedResultEncryptedMatrix.deserialize=lambda raw:events.append('deserialize')
+        self.bridge.observe=lambda *args:events.append('verified')
+        with patch.object(self.module,'send',side_effect=send),patch.object(self.module,'receive',side_effect=receive), \
+             patch.object(self.module.time,'monotonic',side_effect=[0,.5,1,4,4.5]):
+            self.bridge.evaluate(self.encrypted,self.matrix,self.tile)
+        self.assertEqual(events,['send','replay','receive','deserialize','verified'])
+        self.assertEqual(timeouts,[4.5,1]);self.assertEqual(self.bridge.sequence,2)
+        self.assertEqual((self.bridge.sent,self.bridge.received),(12,23))
+        self.assertGreaterEqual(self.bridge.remote_seconds,self.bridge.replay_seconds)
+
+    def test_deadline_or_cancellation_during_replay_cannot_receive_parse_or_retry(self):
+        for cancel in [False,True]:
+            self.setUp();self.real_exchange_fixture();self.bridge.cancelled=threading.Event()
+            def replay(*args):
+                if cancel:self.bridge.cancelled.set()
+                return SimpleNamespace(serialize=lambda:b'valid-circuit-output')
+            self.bridge.matrix_multiplication=replay
+            with patch.object(self.module,'send',return_value=12) as send,patch.object(self.module,'receive') as receive, \
+                 patch.object(self.module.time,'monotonic',side_effect=[0,.5,1,6]):
+                with self.assertRaises(InterruptedError if cancel else TimeoutError):
+                    self.bridge.evaluate(self.encrypted,self.matrix,self.tile)
+                self.bridge.cancelled.clear()
+                with self.assertRaises(ValueError):self.bridge.evaluate(self.encrypted,self.matrix,self.tile)
+            self.assertEqual(send.call_count,1);receive.assert_not_called()
+            self.assertEqual(self.deserialized,[]);self.assertTrue(self.bridge.admission.failed)
+            self.assertEqual(self.bridge.sequence,1)
+
+    def test_response_binding_is_checked_after_replay_before_deserialization(self):
+        header=self.real_exchange_fixture();header['sequence']=2;replayed=[]
+        self.bridge.matrix_multiplication=lambda *args:replayed.append(True) or SimpleNamespace(serialize=lambda:b'valid-circuit-output')
+        with patch.object(self.module,'send',return_value=12), \
+             patch.object(self.module,'receive',return_value=(header,b'valid-circuit-output',23)):
+            with self.assertRaises(ValueError):self.bridge.evaluate(self.encrypted,self.matrix,self.tile)
+        self.assertEqual(replayed,[True]);self.assertEqual(self.deserialized,[])
+        self.assertTrue(self.bridge.admission.failed);self.assertEqual(self.bridge.sequence,1)
+
     def test_weight_change_is_rejected_before_ciphertext_serialization(self):
         self.matrix.view=lambda dtype:'changed-public-weight'
         with self.assertRaises(ValueError):self.bridge.evaluate(self.encrypted,self.matrix,self.tile)
@@ -341,14 +403,14 @@ class FullBridgeOrderingTests(unittest.TestCase):
     def test_cancellation_during_round_trip_stops_before_replay_or_deserialization(self):
         self.bridge.cancelled=threading.Event()
         def cancel(*args):self.bridge.cancelled.set();return b'valid-circuit-output'
-        self.bridge.exchange=cancel
+        self.bridge.exchange=self.transport(cancel)
         self.native.cpu_matrix_multiplication=lambda *args:self.fail('replay started after cancellation')
         with self.assertRaises(InterruptedError):self.bridge.evaluate(self.encrypted,self.matrix,self.tile)
         self.assertEqual(self.deserialized,[]);self.assertTrue(self.bridge.admission.failed)
 
     def test_cancellation_during_native_replay_stops_before_deserialization(self):
         self.bridge.cancelled=threading.Event()
-        self.bridge.exchange=lambda *args:b'valid-circuit-output'
+        self.bridge.exchange=self.transport(lambda *args:b'valid-circuit-output')
         def cancel(*args):
             self.bridge.cancelled.set()
             return SimpleNamespace(serialize=lambda:b'valid-circuit-output')
@@ -358,7 +420,7 @@ class FullBridgeOrderingTests(unittest.TestCase):
 
     def test_lost_evaluator_cannot_retry_or_deserialize(self):
         def disappear(*args):raise TimeoutError('evaluator disappeared')
-        self.bridge.exchange=disappear
+        self.bridge.exchange=self.transport(disappear)
         with self.assertRaises(TimeoutError):self.bridge.evaluate(self.encrypted,self.matrix,self.tile)
         with self.assertRaises(ValueError):self.bridge.evaluate(self.encrypted,self.matrix,self.tile)
         self.assertEqual(len(self.serialized),1);self.assertEqual(self.deserialized,[])
