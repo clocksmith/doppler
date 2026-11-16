@@ -1,0 +1,14 @@
+{
+  "schema": "doppler.flash-expert-measurement-context/v1",
+  "revision": "d83f36973ceb352e15762292027b69d9a64a4f87",
+  "workflowRun": 43803495772,
+  "artifactId": 14197243083,
+  "artifactZipSha256": "da344730ad7ff7c3791e740e4b36ee31501745eab95b9688b8136a16b809403b",
+  "environment": "GitHub-hosted ubuntu-24.04 CPU; four declared threads; no GPU",
+  "fixture": "Public fixed sine vector, 2560 elements; first-layer public expert 0",
+  "scope": "One actual-weight component execution; not full Flash, private routing or a latency distribution",
+  "timing": "Execution and process elapsed exclude earlier dependency installation and public shard download",
+  "memory": "Process-lifetime RSS high-water; reaped-child accounting can inherit fork high-water and is not isolated incremental evaluator memory",
+  "productionBackendAvailable": false,
+  "securityQualified": false
+}
