@@ -183,6 +183,8 @@ export interface Qwen35RoutedConfig {
   compactLayerBytes: Record<string, number> | null;
   /** Zero retires pools on prefill; positive reserves transient bytes inside cacheBytes and preserves compact pools. */
   compactPrefillBytes: number;
+  /** Copy resident compact slots into full prefill banks; preserves decode retention. */
+  compactPrefillReuse: 'none' | 'resident-gpu';
   /** LFU retains causal lifetime counts until unload; LRU remains the default. */
   evictionPolicy: 'lru' | 'lfu';
   cacheBytes: number;

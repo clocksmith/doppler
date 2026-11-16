@@ -1,7 +1,7 @@
 import { loadTensorRange } from '../tensors/tensor-reader.js';
 
 export function createRoutedExpertCounters() {
-  return { sourceReadIntoBytes: 0, stagingAllocations: 0, stagingReuses: 0, sourceReadBytes: 0, sourceReads: 0, uploadBytes: 0,
+  return { prefillGpuReuseBytes: 0, prefillGpuReuseExperts: 0, prefillGpuReuseSubmissions: 0, sourceReadIntoBytes: 0, stagingAllocations: 0, stagingReuses: 0, sourceReadBytes: 0, sourceReads: 0, uploadBytes: 0,
     cacheHits: 0, cacheMisses: 0, workingHits: 0, workingBufferAllocations: 0, workingBufferAllocatedBytes: 0, workingBufferReuses: 0, workingBufferReusedBytes: 0, evictions: 0, evictionFenceWaits: 0, evictionFenceSkips: 0, bufferReuses: 0, expertCopySubmissions: 0, hitBatchSubmissions: 0, batchedHitExperts: 0,
     residentBytes: 0, peakResidentBytes: 0, peakAccountedGpuBytes: 0, peakStagingBytes: 0,
     ioWaitMs: 0, sourceReadWaitMs: 0, uploadEnqueueMs: 0, initialQueueIdleForWeightsMs: 0,

@@ -60,7 +60,7 @@ export class CompactExpertCache {
       throw new Error('Compact expert allocation exceeds the owning device or GPU reserve.');
     }
     const buffer = device.createBuffer({ size: bytes,
-      usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST, label });
+      usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST | GPUBufferUsage.COPY_SRC, label });
     this.#owned.add(buffer);
     this.#bytes += buffer.size;
     this.#stats.residentBytes += buffer.size;
@@ -221,6 +221,42 @@ export class CompactExpertCache {
       if (cleanup) throw new AggregateError([error, cleanup], 'Compact expert loading and drain failed.');
       throw error;
     } finally { signal.removeEventListener('abort', abort); }
+  }
+
+  /** @param {number} layer @param {number[]} ids */
+  getResidentSlots(layer, ids) {
+    const pool = this.#pools.get(layer);
+    const slots = new Map();
+    for (const expert of ids) {
+      const slot = pool?.entries.get(expert);
+      if (slot !== undefined) slots.set(expert, slot);
+    }
+    return slots;
+  }
+
+  /** Encode verified resident bytes at their original logical expert offsets.
+   * This does not publish working-bank readiness or change compact LRU order.
+   * @param {import('./routed-expert-plan.js').RoutedExpertBankPlan} plan
+   * @param {ReadonlyMap<number, number>} slots
+   * @param {ReadonlyMap<string, GPUBuffer>} destinations
+   * @param {GPUCommandEncoder} encoder */
+  encodeResidentCopies(plan, slots, destinations, encoder) {
+    const pool = this.#pools.get(plan.layer);
+    if (!pool) throw new Error('Resident prefill copy requires the owning compact pool.');
+    for (const [expert, slot] of slots) {
+      if (pool.entries.get(expert) !== slot) throw new Error('Resident prefill source slot changed.');
+      for (const plane of plan.planes) {
+        const source = pool.planes.get(plane.role);
+        const target = destinations.get(plane.role);
+        if (!source || !target || source.size < pool.capacity * plane.expertBytes
+            || target.size < plane.bytes || !(source.usage & GPUBufferUsage.COPY_SRC)
+            || !(target.usage & GPUBufferUsage.COPY_DST)) {
+          throw new Error('Resident prefill plane does not satisfy the declared copy contract.');
+        }
+        encoder.copyBufferToBuffer(source, slot * plane.expertBytes,
+          target, expert * plane.expertBytes, plane.expertBytes);
+      }
+    }
   }
 
   get residentBytes() { return this.#bytes; }

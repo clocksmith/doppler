@@ -408,18 +408,22 @@ export class RoutedExpertCache {
   #copyCachedHits(plan, ids, signal, beforeSubmit) {
     return this.#locked(async () => {
       signal.throwIfAborted();
+      const compact = this.#options.policy.compactPrefillReuse === 'resident-gpu' ? this.#compact : null;
+      const residentSlots = compact?.getResidentSlots(plan.layer,
+        ids.filter(expert => !this.#loaded.has(expert))) ?? new Map();
       const hits = ids.flatMap(expert => {
         const key = `${plan.layer}:${expert}`;
         const entry = this.#entries.get(key);
-        return entry && !this.#loaded.has(expert) ? [{ expert, key, entry }] : [];
+        return entry && !this.#loaded.has(expert) && !residentSlots.has(expert) ? [{ expert, key, entry }] : [];
       });
       const copied = new Set();
-      if (!hits.length) return copied;
+      if (!hits.length && !residentSlots.size) return copied;
       // No miss starts until this batch is submitted. Pins protect all encoded
       // sources, without requiring capacity for a whole layer's missing experts.
       for (const { entry } of hits) entry.users++;
       try {
         const encoder = this.#options.device.createCommandEncoder({ label: 'routed_expert_hit_batch' });
+        if (compact && residentSlots.size) compact.encodeResidentCopies(plan, residentSlots, this.#working, encoder);
         for (const { expert, entry } of hits) this.#encodeExpertCopy(encoder, plan, expert, entry);
         const commands = encoder.finish();
         signal.throwIfAborted();
@@ -430,6 +434,16 @@ export class RoutedExpertCache {
         this.#stats.expertCopySubmissions++;
         this.#stats.hitBatchSubmissions++;
         this.#stats.batchedHitExperts += hits.length;
+        if (residentSlots.size) {
+          this.#stats.prefillGpuReuseBytes += residentSlots.size * plan.expertBytes;
+          this.#stats.prefillGpuReuseExperts += residentSlots.size;
+          this.#stats.prefillGpuReuseSubmissions++;
+          this.#stats.cacheHits += residentSlots.size;
+          for (const expert of residentSlots.keys()) {
+            this.#loaded.add(expert);
+            copied.add(expert);
+          }
+        }
         for (const { expert, key, entry } of hits) {
           this.#touchEntry(key, entry);
           this.#stats.cacheHits++;

@@ -42,6 +42,9 @@ export interface CompactLayerStats {
   uploadBytes: number; sourceReadWaitMs: number; uploadEnqueueMs: number;
 }
 export interface RoutedExpertCacheStats {
+  prefillGpuReuseBytes: number;
+  prefillGpuReuseExperts: number;
+  prefillGpuReuseSubmissions: number;
   compactLayers?: Record<string, CompactLayerStats & { capacity: number }>;
   evictionPolicy: 'lru' | 'lfu';
   frequencyHistoryEntries: number;

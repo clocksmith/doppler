@@ -52,7 +52,7 @@ function fixture(separate = false, intermediate = 256, native = false, direct = 
     }
   }
   const cacheBytes = [...locations.values()].slice(0, separate ? 3 : 2).reduce((sum, plane) => sum + plane.size / 4, 0) * 2;
-  const policy = { enabled: true, evictionPolicy, storageMode: 'payload-copy', compactLayerBytes: null, compactPrefillBytes: 0, cacheBytes, hostCacheBytes: 0, hostCacheAdmission: 'all', hostCacheAdmissionPhase: 'all', stagingBytes: 8192, readConcurrency: 2,
+  const policy = { enabled: true, evictionPolicy, storageMode: 'payload-copy', compactLayerBytes: null, compactPrefillBytes: 0, compactPrefillReuse: 'none', cacheBytes, hostCacheBytes: 0, hostCacheAdmission: 'all', hostCacheAdmissionPhase: 'all', stagingBytes: 8192, readConcurrency: 2,
     routeChunkTokens: 2, gpuBudgetBytes: 16 * 1024 ** 2, reserveBytes: 1024 ** 2 };
   const { gpu, buffers } = device(), reads = [], destinations = new Set();
   let readHook = async () => {};
@@ -225,7 +225,7 @@ function fixture(separate = false, intermediate = 256, native = false, direct = 
   await assert.rejects(f.cache.prepare(f.plan(0), [0]), /source read failed/);
   await f.cache.destroy();
   assert(f.buffers.every(b => b.destroyed));
-  assert.throws(() => validateQwen35RoutedConfig({ enabled: true, evictionPolicy: 'lru', storageMode: 'payload-copy', compactLayerBytes: null, compactPrefillBytes: 0 }), /cacheBytes/);
+  assert.throws(() => validateQwen35RoutedConfig({ enabled: true, evictionPolicy: 'lru', storageMode: 'payload-copy', compactLayerBytes: null, compactPrefillBytes: 0, compactPrefillReuse: 'none' }), /cacheBytes/);
   assert.throws(() => f.plan(9), /declared Qwen/);
   f.locations.values().next().value.sourceTransform = { kind: 'unexpected' };
   assert.throws(() => f.plan(0), /untransformed/);
@@ -861,7 +861,7 @@ for (const policy of ['lru', 'lfu']) {
 
 {
   const f = fixture(), plan = f.plan(2);
-  const policy = { ...f.policy, storageMode: 'compact-decode', compactPrefillBytes: 0,
+  const policy = { ...f.policy, storageMode: 'compact-decode', compactPrefillBytes: 0, compactPrefillReuse: 'none',
     compactLayerBytes: null, cacheBytes: 3 * (plan.expertBytes + plan.numExperts * 4) };
   const whole = { layers: new Map([[0, {}], [1, {}], [2, {}]]) };
   const stage = { layers: new Map([[2, {}]]) };

@@ -64,7 +64,7 @@ function fixture(direct) {
   };
   const policy = {
     enabled: true, storageMode: 'compact-decode', evictionPolicy: 'lru',
-    compactLayerBytes: null, compactPrefillBytes: 0,
+    compactLayerBytes: null, compactPrefillBytes: 0, compactPrefillReuse: 'none',
     cacheBytes: 2 * plan.expertBytes + plan.numExperts * 4,
     hostCacheBytes: 0, hostCacheAdmission: 'all', hostCacheAdmissionPhase: 'all',
     stagingBytes: 8192, readConcurrency: 2, routeChunkTokens: 2,

@@ -97,6 +97,7 @@ export const DEFAULT_EXPERT_CACHE_CONFIG = {
     storageMode: 'payload-copy',
     compactLayerBytes: null,
     compactPrefillBytes: 0,
+    compactPrefillReuse: 'none',
     evictionPolicy: 'lru',
     cacheBytes: 2 * GB,
     hostCacheBytes: 0,
@@ -127,6 +128,11 @@ export function validateQwen35RoutedConfig(config) {
     || config.compactPrefillBytes % 4 || config.compactPrefillBytes >= config.cacheBytes
     || (config.compactPrefillBytes > 0 && config.storageMode !== 'compact-decode')) {
     throw new Error('compactPrefillBytes must be zero or an aligned compact-decode reservation below cacheBytes.');
+  }
+  if (!['none', 'resident-gpu'].includes(config.compactPrefillReuse)
+    || (config.compactPrefillReuse === 'resident-gpu'
+      && (config.storageMode !== 'compact-decode' || config.compactPrefillBytes === 0))) {
+    throw new Error('compactPrefillReuse requires none or resident-gpu with a compact-decode prefill reservation.');
   }
   if (config.compactLayerBytes !== null) {
     const entries = Object.entries(config.compactLayerBytes ?? {});
