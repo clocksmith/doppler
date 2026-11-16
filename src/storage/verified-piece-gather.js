@@ -24,7 +24,7 @@ export async function createVerifiedPieceGather(options) {
       pinned.startupSignal?.throwIfAborted();
     }
   } catch (error) {
-    const outcomes = await Promise.allSettled(lanes.map(lane => lane.reader.close()));
+    const outcomes = await Promise.allSettled(lanes.map(async lane => lane.reader.close()));
     const failures = outcomes.flatMap(outcome => outcome.status === 'rejected' ? [outcome.reason] : []);
     if (failures.length) throw new AggregateError([error, ...failures], 'Gather startup and cleanup failed.');
     throw error;
@@ -80,11 +80,13 @@ export async function createVerifiedPieceGather(options) {
     close() {
       if (!closing) {
         closed = true;
-        closing = (async () => {
-          const outcomes = await Promise.allSettled(lanes.map(lane => lane.reader.close()));
+        const operation = (async () => {
+          const outcomes = await Promise.allSettled(lanes.map(async lane => lane.reader.close()));
           const failed = outcomes.find(outcome => outcome.status === 'rejected');
           if (failed) throw failed.reason;
         })();
+        closing = operation;
+        operation.catch(() => { if (closing === operation) closing = null; });
       }
       return closing;
     },

@@ -10,6 +10,12 @@ Create the adapter with `createVerifiedPieceGather({ manifestBytes, indexBytes,
 indexIdentity, files, maxPartBytes, memoryBudgetBytes, concurrency })`. `files` maps authenticated
 index filenames to approved local paths. Set `maxPartBytes` to cover a plane
 when whole-plane gathering is desired. A larger plane is read in bounded parts.
+Pass canonical regular-file paths; the worker rejects leaf symlinks and
+non-regular files before reading. Nonblocking descriptor admission prevents a
+replaced FIFO from stranding shutdown. An admitted descriptor owns its original
+regular file until worker retirement; every acquired piece is still hashed.
+Platforms without no-follow and nonblocking file-open flags reject this adapter's
+file acquisition explicitly.
 
 Production hosts using `createVerifiedPieceStorage` can supply `nodeGather`:
 
@@ -79,6 +85,10 @@ Cancellation prevents publication and is checked after the bounded worker read;
 it does not interrupt a synchronous disk read or native hash. `gather.close()`
 terminates the worker and rejects outstanding reads. The host owns closing it,
 after consumers finish or cancel. Closing one adapter does not close another.
+Close stops admission permanently and can be retried after a retirement failure.
+The closed pool drops its buffer reference. Already published leases remain
+caller-owned until release; a late release detaches that lease's own views and
+does not return storage to the closed pool.
 
 CPU tests cover authentication, short reads, transfers, aggregate admission,
 upload failure, retry, cancellation and independent owners. They do not qualify

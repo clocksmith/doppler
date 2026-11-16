@@ -1,5 +1,5 @@
 import { parentPort, workerData } from 'node:worker_threads';
-import { openSync, readSync, closeSync } from 'node:fs';
+import { openSync, readSync, closeSync, fstatSync, constants } from 'node:fs';
 import { createHash } from 'node:crypto';
 import { createVerifiedPieceReader } from './verified-piece-reader.js';
 
@@ -17,7 +17,20 @@ function readFile(piece, bytes) {
   if (typeof filename !== 'string') throw new Error('Missing approved piece file.');
   let handle = handles.get(piece.path);
   if (handle === undefined) {
-    handle = openSync(filename, 'r');
+    if (!Number.isInteger(constants.O_NOFOLLOW) || !Number.isInteger(constants.O_NONBLOCK)) {
+      throw new Error('Gather regular-file admission is unsupported on this platform.');
+    }
+    // A replaced leaf must not follow a symlink or block admission on a FIFO.
+    // Once admitted, the retained FD owns this regular file; every read still
+    // authenticates complete piece bytes against the pinned index.
+    handle = openSync(filename, constants.O_RDONLY | constants.O_NOFOLLOW | constants.O_NONBLOCK);
+    try {
+      if (!fstatSync(handle).isFile()) throw new Error('Gather source must be a regular file.');
+    } catch (error) {
+      try { closeSync(handle); }
+      catch (cleanup) { throw new AggregateError([error, cleanup], 'Gather file admission and cleanup failed.'); }
+      throw error;
+    }
     handles.set(piece.path, handle);
   }
   let read = 0;

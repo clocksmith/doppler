@@ -3,7 +3,8 @@ export interface VerifiedPieceGatherOptions {
   manifestBytes: Uint8Array<ArrayBuffer>;
   indexBytes: Uint8Array<ArrayBuffer>;
   indexIdentity: string;
-  /** Explicit approved local paths, indexed by authenticated piece-index filename. */
+  /** Explicit approved regular files, indexed by authenticated piece-index filename.
+   * Resolve authorized links before passing their canonical paths; leaf symlinks are rejected. */
   files: Record<string, string>;
   maxPartBytes: number;
   /** Explicit worker count; omission preserves one lane. */
@@ -29,6 +30,8 @@ export function createVerifiedPieceGather(options: VerifiedPieceGatherOptions): 
   readLease(path: string, offset: number, length: number, signal?: AbortSignal): Promise<VerifiedRangeLease>;
   /** Snapshot of worker verification evidence; requires no outstanding lease. */
   getReceipt(): Promise<VerifiedPieceGatherReceipt>;
+  /** Stops admission permanently; failed worker retirement remains retryable.
+   * Published leases remain caller-owned until release, even after close. */
   close(): Promise<void>;
   rangeLease: VerifiedRangeLeasePort;
 }>>;

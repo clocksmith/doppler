@@ -37,6 +37,9 @@ export async function createVerifiedPieceGatherLane(options) {
   /** @param {Error} error */
   const fail = error => {
     closed = true;
+    // Pending transfers belong to the worker; published leases own their own
+    // captured buffer until release. The closed pool retains neither allocation.
+    buffer = new ArrayBuffer(0);
     failPending?.(error);
     failPending = null;
     receive = null;
@@ -63,16 +66,19 @@ export async function createVerifiedPieceGatherLane(options) {
           receive = result => { failPending = null; receive = null; resolve(result); };
           worker.postMessage({ path, offset, length, buffer }, [buffer]);
         });
+        if (closed) throw new Error('Gather reader closed.');
         buffer = message.buffer;
         if (message.error) throw new Error(message.error);
         signal?.throwIfAborted();
         if (closed) throw new Error('Gather reader closed.');
+        const owned = buffer;
         let released = false;
-        return Object.freeze({ bytes: new Uint8Array(buffer, 0, length), release() {
+        return Object.freeze({ bytes: new Uint8Array(owned, 0, length), release() {
           if (released) return;
           released = true;
           // Detach the old views immediately so stale leases cannot mutate the pool.
-          buffer = structuredClone(buffer, { transfer: [buffer] });
+          const recycled = structuredClone(owned, { transfer: [owned] });
+          if (!closed) buffer = recycled;
           busy = false;
         } });
       } catch (error) {
@@ -99,7 +105,9 @@ export async function createVerifiedPieceGatherLane(options) {
     close() {
       if (!closing) {
         fail(new Error('Gather reader closed.'));
-        closing = worker.terminate().then(() => {});
+        const operation = worker.terminate().then(() => {});
+        closing = operation;
+        operation.catch(() => { if (closing === operation) closing = null; });
       }
       return closing;
     },
