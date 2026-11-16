@@ -1,0 +1,206 @@
+"""Complete Qwen all-linear hybrid backend. Native GLWE operations; client nonlinearities and replay."""
+import argparse
+from importlib.metadata import version
+import json
+from pathlib import Path
+import platform
+import resource
+import sys
+import time
+from types import SimpleNamespace
+import numpy as np
+import torch
+from torch import nn
+from transformers import AutoModelForCausalLM, AutoTokenizer
+from transformers.cache_utils import DynamicCache
+from concrete.ml.quantization.linear_op_glwe_backend import GLWELinearLayerExecutor
+import concrete_ml_extensions as ext
+from full_bridge import FullBridge
+from full_plan import SCHEMA, PROTOCOL, FullPlan, canonical, load_plan, ranges, tiles
+from protocol import POLICY, digest
+
+
+class FullLinear(nn.Module):
+    """Quantize the entire input/weight once; tile only integer encrypted products, never scales."""
+    def __init__(self, name, source, executor, directory):
+        super().__init__()
+        self.name, self.remote, self.executor = name, source, executor
+        self.mode, self.bridge, self.secret, self.parameters = 'float-reference', None, None, None
+        self.context = SimpleNamespace(input_quantizers=[SimpleNamespace(quant_options=SimpleNamespace(n_bits=8))])
+        weight = source.weight.detach().numpy().T
+        quantized, self.scale, self.zero_point, self.sum_weights = executor._per_channel_weight_quantization(weight,self.context,torch.device('cpu'))
+        data = np.ascontiguousarray(quantized.numpy(),dtype=np.int8)
+        weight_id = digest(data.tobytes())
+        path = Path(directory)/(weight_id+'.i8')
+        if not path.exists():
+            path.write_bytes(data.tobytes())
+        self.definition = dict(name=name,inputWidth=source.in_features,outputWidth=source.out_features,weightId=weight_id)
+        self.weights = np.memmap(path,dtype=np.int8,mode='r',shape=data.shape)
+
+    def forward(self,value):
+        if self.mode == 'float-reference':
+            return self.remote(value)
+        if self.mode not in ['clear-reference','execute'] or value.shape[-1] != self.definition['inputWidth']:
+            raise ValueError('Unsupported full-model projection execution')
+        q_input, scale, zero, original_shape = self.executor._dynamic_input_quantization(value,self.context,False)
+        if self.mode == 'clear-reference':
+            raw = torch.matmul(q_input,torch.from_numpy(np.array(self.weights,dtype=np.float32))).long()
+        else:
+            if self.bridge is None or self.secret is None:
+                raise ValueError('No bound encrypted evaluator')
+            integer_input = np.ascontiguousarray(q_input.long().numpy(),dtype=np.uint64)
+            if integer_input.ndim != 2:
+                raise ValueError('Only one private request per key context is admitted')
+            encrypted = {}
+            for begin,end in ranges(self.definition['inputWidth'],2048):
+                encrypted[begin] = ext.encrypt_matrix(pkey=self.secret,crypto_params=self.parameters,
+                                                     data=np.ascontiguousarray(integer_input[:,begin:end]))
+            result = np.zeros((integer_input.shape[0],self.definition['outputWidth']),dtype=np.int64)
+            for tile in tiles(self.definition):
+                matrix = np.ascontiguousarray(self.weights[tile['inputBegin']:tile['inputEnd'],tile['outputBegin']:tile['outputEnd']],dtype=np.int64).astype(np.uint64)
+                answer = self.bridge.evaluate(encrypted[tile['inputBegin']],matrix,tile)
+                decoded = ext.decrypt_matrix(answer,self.secret,self.parameters,tile['outputEnd']-tile['outputBegin']).astype(np.int64)
+                # Exact signed integer accumulation precedes one global correction/dequantization.
+                result[:,tile['outputBegin']:tile['outputEnd']] += decoded
+            raw = torch.from_numpy(result)
+        output = self.executor._apply_correction_and_dequantize(raw,q_input,zero,self.zero_point,
+                                                               self.sum_weights,self.definition['inputWidth'],scale,self.scale)
+        output = output.view(*original_shape[:-1],self.definition['outputWidth'])
+        if self.remote.bias is not None:
+            output = output+self.remote.bias
+        return output
+
+
+def verify_source(directory,source):
+    import hashlib
+    for name,identity in source['files'].items():
+        try:
+            with (Path(directory)/name).open('rb') as handle:
+                actual = hashlib.file_digest(handle,'sha256').hexdigest()
+        except OSError:
+            raise ValueError('Pinned full-model source required') from None
+        if actual != identity:
+            raise ValueError('Pinned full-model source required')
+
+
+def prepare(model_dir,cache_dir):
+    specification = json.loads(Path(__file__).with_name('qwen05b.json').read_text())
+    for dependency,expected in POLICY['dependencies'].items():
+        if version(dependency) != expected:
+            raise ValueError('Pinned full-model dependencies required')
+    if json.loads(ext.default_params()) != POLICY['parameters']:
+        raise ValueError('Unsupported encrypted parameter change')
+    verify_source(model_dir,specification['source'])
+    torch.set_num_threads(2)
+    model = AutoModelForCausalLM.from_pretrained(model_dir,local_files_only=True,use_safetensors=True,
+                                              trust_remote_code=False,torch_dtype=torch.float32,attn_implementation='eager').eval()
+    tokenizer = AutoTokenizer.from_pretrained(model_dir,local_files_only=True,trust_remote_code=False)
+    executor = GLWELinearLayerExecutor(use_dynamic_quantization=True)
+    directory = Path(cache_dir);directory.mkdir(parents=True,exist_ok=True)
+    projections = []
+    for name,module in list(model.named_modules()):
+        if isinstance(module,nn.Linear):
+            replacement = FullLinear(name,module,executor,directory)
+            parent,separator,leaf = name.rpartition('.')
+            setattr(model.get_submodule(parent) if separator else model,leaf,replacement)
+            projections.append(replacement)
+    definitions = [projection.definition for projection in projections]
+    source = specification['source']
+    plan = dict(schema=SCHEMA,protocol=PROTOCOL,source=source,
+                modelId=digest(canonical(dict(source=source,projections=definitions))),
+                productionBackendAvailable=False,steps=4,contextBucket=8,inputTileWidth=2048,outputTileWidth=2048,
+                parameters={key:POLICY[key] for key in ['dependencies','parameters','evaluationBackend']},projections=definitions)
+    (directory/'plan.json').write_bytes(canonical(plan))
+    frozen = load_plan(directory)
+    # Trace every real linear operator under public input, before keys/private input.
+    visited=[]
+    handles=[projection.register_forward_pre_hook(lambda module,args:visited.append(module.name)) for projection in projections]
+    try:
+        with torch.no_grad():
+            model(input_ids=torch.arange(8).reshape(1,8),use_cache=False)
+    finally:
+        for handle in handles:handle.remove()
+    if visited != [row['name'] for row in definitions]:
+        raise ValueError('Actual full-model route differs from its declared all-linear order')
+    return model,tokenizer,executor,projections,frozen
+
+
+def run(model_dir,cache_dir,prompt,progress=lambda event:None):
+    started=time.perf_counter()
+    model,tokenizer,executor,projections,plan=prepare(model_dir,cache_dir)
+    tokens=tokenizer.encode(prompt)
+    if not 1<=len(tokens)<=8:
+        raise ValueError('Prompt exceeds full-model fixed prefill bucket')
+    original_count=len(tokens)
+    parameters=executor.glwe_crypto_params
+    secret,key=ext.cpu_create_private_key(parameters)
+    bridge=None
+    try:
+        bridge=FullBridge(cache_dir,plan,key,observe=lambda kind,value:progress(dict(event=kind,**value)))
+        for projection in projections:
+            projection.bridge,projection.secret,projection.parameters=bridge,secret,parameters
+        caches={mode:DynamicCache() for mode in ['float-reference','clear-reference','execute']}
+        setup_ms=(time.perf_counter()-started)*1000
+        step_ms=[];reference_ms=[];errors=[];float_matches=[]
+        with torch.no_grad():
+            for step in range(4):
+                logits={}
+                for mode in ['float-reference','clear-reference','execute']:
+                    for projection in projections:projection.mode=mode
+                    if step==0:
+                        values=tokens+[151643]*(8-len(tokens))
+                        args=dict(input_ids=torch.tensor([values]),attention_mask=torch.tensor([[1]*len(tokens)+[0]*(8-len(tokens))]))
+                        index=len(tokens)-1
+                    else:
+                        length=caches[mode].get_seq_length()
+                        args=dict(input_ids=torch.tensor([[tokens[-1]]]),attention_mask=torch.ones((1,length+1),dtype=torch.long))
+                        index=0
+                    began=time.perf_counter()
+                    output=model(**args,past_key_values=caches[mode],use_cache=True)
+                    logits[mode]=output.logits[0,index]
+                    if step==0:caches[mode].crop(original_count)
+                    duration=(time.perf_counter()-began)*1000
+                    if mode=='execute':step_ms.append(duration)
+                    elif mode=='clear-reference':reference_ms.append(duration)
+                errors.append(float((logits['execute']-logits['clear-reference']).abs().max()))
+                next_token=int(logits['execute'].argmax())
+                if next_token!=int(logits['clear-reference'].argmax()):
+                    raise ValueError('Full encrypted token differs from full quantized reference')
+                float_matches.append(next_token==int(logits['float-reference'].argmax()))
+                tokens.append(next_token)
+                progress(dict(event='step-complete',step=step+1,encryptedTiles=bridge.sequence-1))
+        bridge.finish()
+        return dict(schema='doppler.full-qwen-hybrid-execution/v1',qualified=False,productionBackendAvailable=False,
+                    descriptor=dict(schema='doppler.execution-backend/v1',id='concrete-qwen-all-linear-tiled',version=1,kind='cryptographic',
+                                    modelIdentities=['sha256:'+plan.definition()['modelId']],operations=['generate'],protocol=PROTOCOL,
+                                    inputRepresentation='opaque',outputRepresentation='opaque'),
+                    planId=plan.identity,modelId=plan.definition()['modelId'],linearProjectionCount=len(projections),
+                    encryptedTileCount=bridge.sequence-1,encryptedSteps=4,clientLocalOutputTokens=tokens[original_count:],
+                    clientLocalOutputText=tokenizer.decode(tokens[original_count:]),matchesFullQuantizedGreedyReference=True,
+                    floatGreedyMatches=float_matches,maxLogitErrors=errors,setupMs=setup_ms,stepMs=step_ms,quantizedReferenceMs=reference_ms,
+                    elapsedMs=(time.perf_counter()-started)*1000,clientEncryptedReplayMs=bridge.replay_seconds*1000,
+                    evaluatorRoundTripMs=bridge.remote_seconds*1000,sentBytes=bridge.sent,receivedBytes=bridge.received,
+                    evaluationKeyBytes=bridge.key_bytes,clientPeakRss=resource.getrusage(resource.RUSAGE_SELF).ru_maxrss,
+                    clientComputation='All nonlinear/attention/embedding/cache/quantization/decoding plus full encrypted replay; not all operations homomorphically evaluated',
+                    integrity='Full deterministic replay; no client compute saving or independently reviewed malicious security')
+    finally:
+        try:
+            if bridge is not None:bridge.close()
+        finally:
+            for projection in projections:projection.secret=projection.bridge=projection.parameters=None
+            secret=key=None
+
+
+if __name__=='__main__':
+    parser=argparse.ArgumentParser()
+    parser.add_argument('--model-dir',required=True);parser.add_argument('--cache-dir',required=True)
+    parser.add_argument('--prepare-only',action='store_true')
+    args=parser.parse_args()
+    if args.prepare_only:
+        _,_,_,_,plan=prepare(args.model_dir,args.cache_dir)
+        print(json.dumps(dict(planId=plan.identity,linearProjections=len(plan.definition()['projections']),encryptedTilesPerStep=len(plan.schedule()),available=False)))
+    else:
+        prompt=sys.stdin.buffer.read(4097).decode('utf-8')
+        if len(prompt.encode())>4096:raise ValueError('Bounded client prompt required')
+        report=run(args.model_dir,args.cache_dir,prompt,progress=lambda event:print(json.dumps(event),file=sys.stderr,flush=True))
+        print(json.dumps(report,indent=2))

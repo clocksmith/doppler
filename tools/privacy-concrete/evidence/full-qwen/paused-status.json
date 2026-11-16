@@ -1,0 +1,45 @@
+{
+  "schema": "doppler.full-qwen-paused-qualification/v1",
+  "reason": "A2 explicitly paused so A1 performance can take priority",
+  "completedEncryptedGeneration": false,
+  "productionBackendAvailable": false,
+  "securityQualified": false,
+  "preparedLinearModules": 169,
+  "encryptedTilesPerStep": 387,
+  "plannedSteps": 4,
+  "planId": "dcd999791f6fc78cd70c316e071c6dde72031241a59c5d0e3bbd8a777945c113",
+  "verifiedEncryptedTilesBeforePause": 5,
+  "lastProgress": {
+    "event": "verified-tile",
+    "sequence": 5,
+    "projection": "model.layers.0.mlp.gate_proj",
+    "tileId": "fb5f85a2bff101f90536ebfb7da528586d7d8b1f8a7bb48fdd4c6f9dd6124294"
+  },
+  "validation": {
+    "fullRealModelPublicRouteTrace": "169 actual linear modules including vocabulary head, exact declared order",
+    "purePlanChecksPassed": 4,
+    "nativeWidthRegressionPassed": 1,
+    "nativeWidthRegression": "Three native GLWE tiles reconstructed a 4864-wide signed dot outside the previous 27-bit single-dot bound; replay checked before decryption"
+  },
+  "resources": {
+    "ownedCpuClientStopped": true,
+    "ownedCpuEvaluatorStopped": true,
+    "gpuUsed": false,
+    "jupiterProviderTouched": false
+  },
+  "stillRequired": [
+    "Finish the full four-step encrypted run and assess quantized/full-reference correctness",
+    "Measure complete full-model costs and failure/cancellation paths",
+    "Qualified integrity alternative to full replay",
+    "Private MoE routing and Flash model support",
+    "Independent cryptographic review and production admission"
+  ],
+  "sourceDigests": {
+    "full_plan.py": "a5c611d1a76c817af6848d40c11866bea33d1b25b15bc2a3671553599752673b",
+    "full_provider.py": "3c0658b1b6c044871e500660d7b8da9d6535c669efa3e09b538c037639dd3e0e",
+    "full_bridge.py": "cedcc831b70ba3bde842349ddd7b618cf760d1aa89dda1af1b6c044e1eec1935",
+    "full_model.py": "e656073f49030b7341d0659c6928290e50e612b51580121bd446f10c6b38978b",
+    "test_full_plan.py": "802730e0988970bd60cc12974d646fc043d5887dc188f9c2ee6a90527b4b0842",
+    "test_full_native.py": "f9126955eb0349693ab94ee0ef21f6726120434947d6e045835776dd8153c037"
+  }
+}

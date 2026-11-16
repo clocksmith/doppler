@@ -1,5 +1,7 @@
 # Encrypted transformer process experiments
 
+The [all-linear Qwen candidate](FULL-QWEN.md) implements the complete dense linear route; its full encrypted qualification is paused and unfinished.
+
 The [small-Qwen guide](QWEN.md) covers real Qwen2.5-0.5B-Instruct generation with one encrypted key-projection matrix product and its explicit limits. Immutable installed profiles, transport/lifecycle and trusted client projection preparation are shared; the protocols and model/weight identities remain distinct. No remote advertisement can add a profile.
 
 The tiny-GPT2 baseline below runs real cryptographic operations from pinned Concrete ML 1.9.0 and concrete-ml-extensions 0.1.9. It uses the public `sshleifer/tiny-gpt2` checkpoint at revision `5f91d94bd9cd7190a9f3216ff93cd1dd95f2c7be`. This is a two-layer, two-hidden-dimension test checkpoint, not the full GPT-2 model or useful language-model quality. It does not add a supported Doppler model family or enable a production privacy profile. No independent cryptographic review has occurred.

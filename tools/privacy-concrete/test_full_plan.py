@@ -1,0 +1,36 @@
+import json
+import unittest
+from full_plan import FullPlan, canonical, ranges, tiles
+from protocol import check
+
+
+class FullPlanTests(unittest.TestCase):
+    def test_wide_dots_are_covered_once_by_admitted_tiles(self):
+        projection=dict(name='wide',weightId='a'*64,inputWidth=4864,outputWidth=896)
+        layout=tiles(projection)
+        self.assertEqual([(row['inputBegin'],row['inputEnd']) for row in layout],[(0,2048),(2048,4096),(4096,4864)])
+        self.assertEqual(len(set(row['id'] for row in layout)),3)
+        self.assertEqual(sum(row['inputEnd']-row['inputBegin'] for row in layout),4864)
+
+    def test_large_vocabulary_output_is_tiled_and_bound_to_each_submatrix(self):
+        row=dict(name='lm_head',weightId='b'*64,inputWidth=896,outputWidth=151936)
+        layout=tiles(row)
+        self.assertEqual(len(layout),75)
+        self.assertEqual(layout[-1]['outputEnd'],151936)
+        self.assertEqual(layout[-1]['outputEnd']-layout[-1]['outputBegin'],384)
+        self.assertNotEqual(layout[0]['id'],layout[1]['id'])
+        with self.assertRaises(ValueError):tiles(row,input_limit=4096,output_limit=0)
+
+    def test_reply_cannot_change_tile_or_plan_identity(self):
+        plan=FullPlan(canonical(dict(modelId='c'*64)))
+        expected=plan.frame('s','k',1,'result','tile-one')
+        for changed in [plan.frame('s','k',1,'result','tile-two'),plan.frame('s','other',1,'result','tile-one')]:
+            with self.assertRaises(ValueError):check(changed,expected)
+
+    def test_invalid_geometry_has_no_fallback(self):
+        for width in [0,-1,True]:
+            with self.assertRaises(ValueError):ranges(width,2048)
+        with self.assertRaises(ValueError):tiles(dict(name='x',weightId='x',inputWidth=4864,outputWidth=1),input_limit=4096)
+
+
+if __name__=='__main__':unittest.main()
