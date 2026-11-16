@@ -58,7 +58,7 @@ class SSHTransportTests(unittest.TestCase):
 
     def test_real_pinned_ssh_transports_bound_opaque_frames(self):
         deployment=self.deployment();bound=deployment.bind(self.plan)
-        child=deployment.spawn()
+        child=deployment.spawn(self.plan)
         try:
             header=bound.frame('public-session','public-key-context',1,'evaluate','public-tile')
             payload=b'opaque-public-ciphertext-fixture\x00\xff'
@@ -82,7 +82,7 @@ class SSHTransportTests(unittest.TestCase):
         self.reject(self.deployment(identity='unallowed-client'))
 
     def reject(self,deployment):
-        child=deployment.spawn()
+        child=deployment.spawn(self.plan)
         try:
             child.stdin.close()
             self.assertNotEqual(child.wait(timeout=10),0)

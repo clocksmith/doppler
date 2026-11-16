@@ -74,10 +74,13 @@ class SSHRoute:
     @property
     def identity(self):return digest(canonical(dict(policy=POLICY,route=self.definition())))
 
+    def require_requester(self,allowed_operators):
+        if not isinstance(allowed_operators,tuple) or self.definition()['operatorId'] not in allowed_operators:
+            raise ValueError('SSH operator is not explicitly allowed by this requester')
+
     def bind(self,plan,allowed_operators):
         value=self.definition()
-        if not isinstance(allowed_operators,(list,tuple)) or value['operatorId'] not in allowed_operators:
-            raise ValueError('SSH operator is not explicitly allowed by this requester')
+        self.require_requester(allowed_operators)
         if (plan.identity!=value['basePlanId'] or plan.definition()['modelId']!=value['modelId']):
             raise ValueError('SSH endpoint is not bound to the requested complete model plan')
         return BoundSSHPlan(plan,self)
@@ -88,6 +91,8 @@ class BoundSSHPlan:
     base: object
     route: SSHRoute
 
+    @property
+    def protocol_id(self):return POLICY['protocol']
     @property
     def identity(self):return self.route.identity
     def definition(self):return self.base.definition()
@@ -131,6 +136,7 @@ class SSHDeployment:
         return identity
 
     def command(self,known_hosts):
+        self.route.require_requester(self.allowed_operators)
         value=self.route.definition()
         identity=self.private_identity()
         remote=['env','RAYON_NUM_THREADS='+str(FULL_POLICY['cpuThreads']),
@@ -144,7 +150,8 @@ class SSHDeployment:
         return ['/usr/bin/ssh','-F','/dev/null',*[item for option in options for item in ['-o',option]],
                 '-p',str(value['port']),'-i',str(identity),value['user']+'@'+value['host'],shlex.join(remote)]
 
-    def spawn(self):
+    def spawn(self,plan):
+        self.bind(plan)
         directory=tempfile.TemporaryDirectory(prefix='doppler-ssh-pin-')
         try:
             value=self.route.definition()

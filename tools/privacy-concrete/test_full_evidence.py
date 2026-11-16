@@ -21,11 +21,13 @@ class FullEvidenceTests(unittest.TestCase):
             value=dict(schema='doppler.full-qwen-hybrid-execution/v1',planId='a'*64,modelId='b'*64,publicFixtureId='qwen05b-capital',qualified=False,productionBackendAvailable=False,
                        linearProjectionCount=169,encryptedSteps=4,encryptedTileCount=1548,
                        matchesFullQuantizedGreedyReference=True,clientLocalOutputText='public fixture output',
-                       clientLocalOutputTokens=[1,2,3,4],descriptor={'secretKey':'private-canary'},
+                       clientLocalOutputTokens=[1,2,3,4],executionRouteId='c'*64,transport='ssh-ed25519-pinned',descriptor={'secretKey':'private-canary'},
                        implementationVersions={'torch':'2.3.1+cpu','private':'private-canary'},integrity='private-canary')
             report.write_text(json.dumps(value))
             result=collect(report,progress,'public-revision')
             self.assertTrue(result['completed'])
+            self.assertEqual(result['report']['executionRouteId'],'c'*64)
+            self.assertEqual(result['report']['transport'],'ssh-ed25519-pinned')
             self.assertNotIn('private-canary',json.dumps(result))
             for change in [dict(clientLocalOutputText={'private':'private-canary'}),dict(clientLocalOutputTokens=[True,2,3,4]),dict(schema='unknown'),dict(planId='unknown')]:
                 report.write_text(json.dumps(dict(value,**change)))

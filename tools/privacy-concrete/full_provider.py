@@ -17,7 +17,7 @@ def serve():
         if sys.argv[3]!='--ssh-route':raise ValueError('Unsupported evaluator route')
         route=SSHRoute.from_file(sys.argv[4])
         if route.identity!=sys.argv[5]:raise ValueError('SSH route identity changed')
-        plan=route.bind(plan,[route.definition()['operatorId']])
+        plan=route.bind(plan,(route.definition()['operatorId'],))
     timeout=plan.definition()['operationTimeoutSeconds']
     source, target = sys.stdin.buffer.raw, sys.stdout.buffer.raw
     header, data, _ = receive(source,timeout=timeout)

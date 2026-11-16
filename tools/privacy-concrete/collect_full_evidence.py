@@ -7,7 +7,7 @@ import math
 from full_status import FAILURE_CODES
 
 PUBLIC_FIXTURE='qwen05b-capital'
-REPORT_FIELDS=['schema','planId','modelId','linearProjectionCount','encryptedTileCount','encryptedSteps',
+REPORT_FIELDS=['schema','planId','modelId','executionRouteId','transport','linearProjectionCount','encryptedTileCount','encryptedSteps',
                'matchesFullQuantizedGreedyReference','floatGreedyMatches','maxLogitErrors','setupMs','stepMs',
                'quantizedReferenceMs','elapsedMs','clientEncryptedReplayMs',
                'evaluatorRoundTripMs','sentBytes','receivedBytes','evaluationKeyBytes','clientPeakRss',
@@ -48,7 +48,9 @@ def collect(report_path,progress_path,revision):
                 value=report.get(key)
                 if key=='schema' and value=='doppler.full-qwen-hybrid-execution/v1':
                     safe[key]=value
-                elif key in {'planId','modelId'} and isinstance(value,str) and re.fullmatch(r'[0-9a-f]{64}',value):
+                elif key in {'planId','modelId','executionRouteId'} and isinstance(value,str) and re.fullmatch(r'[0-9a-f]{64}',value):
+                    safe[key]=value
+                elif key=='transport' and value in ['local-process','ssh-ed25519-pinned']:
                     safe[key]=value
                 elif key in numeric_arrays and isinstance(value,list) and len(value)<=4 and all(isinstance(item,(int,float)) and math.isfinite(item) for item in value):
                     safe[key]=value

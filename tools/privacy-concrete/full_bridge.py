@@ -29,7 +29,7 @@ class FullBridge:
         self.key_id, self.key_bytes = digest(data), len(data)
         self.sequence, self.sent, self.received = 0, 0, 0
         self.remote_seconds = self.replay_seconds = 0.0
-        self.child = deployment.spawn() if deployment is not None else subprocess.Popen([sys.executable,str(Path(__file__).with_name('full_provider.py')),str(Path(directory).resolve()),plan.identity],
+        self.child = deployment.spawn(validated) if deployment is not None else subprocess.Popen([sys.executable,str(Path(__file__).with_name('full_provider.py')),str(Path(directory).resolve()),plan.identity],
                                       stdin=subprocess.PIPE,stdout=subprocess.PIPE,stderr=subprocess.DEVNULL,bufsize=0,
                                       env={'RAYON_NUM_THREADS':str(FULL_POLICY['cpuThreads']),'OMP_NUM_THREADS':str(FULL_POLICY['cpuThreads'])})
         try:

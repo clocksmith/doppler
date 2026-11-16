@@ -181,8 +181,9 @@ def run(model_dir,cache_dir,prompt,progress=lambda event:None,cancelled=None,dep
         bridge.finish()
         return dict(schema='doppler.full-qwen-hybrid-execution/v1',qualified=False,productionBackendAvailable=False,
                     descriptor=dict(schema='doppler.execution-backend/v1',id='concrete-qwen-all-linear-tiled',version=1,kind='cryptographic',
-                                    modelIdentities=['sha256:'+plan.definition()['modelId']],operations=['generate'],protocol=PROTOCOL,
+                                    modelIdentities=['sha256:'+plan.definition()['modelId']],operations=['generate'],protocol=bridge.plan.protocol_id,
                                     inputRepresentation='opaque',outputRepresentation='opaque'),
+                    executionRouteId=bridge.plan.identity,transport='local-process' if deployment is None else 'ssh-ed25519-pinned',
                     planId=plan.identity,modelId=plan.definition()['modelId'],linearProjectionCount=len(projections),
                     encryptedTileCount=bridge.sequence-1,encryptedSteps=4,clientLocalOutputTokens=tokens[original_count:],
                     clientLocalOutputText=tokenizer.decode(tokens[original_count:]),matchesFullQuantizedGreedyReference=True,

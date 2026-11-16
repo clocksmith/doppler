@@ -25,27 +25,29 @@ def fixture(**overrides):
 class SSHRouteTests(unittest.TestCase):
     def test_complete_endpoint_route_is_immutable_and_bound_before_disclosure(self):
         plan,value=fixture();route=SSHRoute(validate(value))
-        bound=route.bind(plan,['research-provider'])
+        bound=route.bind(plan,('research-provider',))
         self.assertNotEqual(bound.identity,plan.identity)
         expected=bound.frame('session','key',1,'result','tile')
+        self.assertEqual(bound.protocol_id,expected['schema'])
+        self.assertNotEqual(bound.protocol_id,plan.protocol_id)
         check(expected,expected)
         for field,changed in [('host','other.invalid'),('port',2223),('user','other'),('operatorId','other-operator'),('remoteProvider','/srv/doppler/other.py')]:
             _,alternative=fixture(**{field:changed})
-            other=SSHRoute(validate(alternative)).bind(plan,[alternative['operatorId']])
+            other=SSHRoute(validate(alternative)).bind(plan,(alternative['operatorId'],))
             with self.assertRaises(ValueError):check(other.frame('session','key',1,'result','tile'),expected)
         with self.assertRaises(ValueError):SSHRoute(bytearray(route.encoded))
 
     def test_host_key_participant_and_plan_changes_cannot_expand_permission(self):
         plan,value=fixture();route=SSHRoute(validate(value))
         with self.assertRaises(ValueError):route.bind(plan,[])
-        with self.assertRaises(ValueError):route.bind(FullPlan(canonical(dict(modelId='c'*64))),['research-provider'])
+        with self.assertRaises(ValueError):route.bind(FullPlan(canonical(dict(modelId='c'*64))),('research-provider',))
         with self.assertRaises(ValueError):SSHRoute(validate(dict(value,backendProtocol='unqualified')))
         with self.assertRaises(ValueError):SSHRoute(validate(dict(value,attested=True)))
         first=public_key(value['hostKey']);raw=base64.b64decode(value['hostKey']['base64'])
         altered=dict(algorithm='ssh-ed25519',base64=base64.b64encode(raw[:-1]+b'X').decode())
         self.assertNotEqual(first,public_key(altered))
-        other=SSHRoute(validate(dict(value,hostKey=altered))).bind(plan,['research-provider'])
-        with self.assertRaises(ValueError):check(other.frame('s','k',1,'result','t'),route.bind(plan,['research-provider']).frame('s','k',1,'result','t'))
+        other=SSHRoute(validate(dict(value,hostKey=altered))).bind(plan,('research-provider',))
+        with self.assertRaises(ValueError):check(other.frame('s','k',1,'result','t'),route.bind(plan,('research-provider',)).frame('s','k',1,'result','t'))
 
     def test_options_paths_and_untrusted_fields_reject_before_any_process(self):
         for change in [dict(host='-oProxyCommand=evil'),dict(host='provider.invalid\nother'),dict(port=True),dict(user='root;evil'),
@@ -77,8 +79,18 @@ class SSHRouteTests(unittest.TestCase):
             identity.chmod(0o644)
             with self.assertRaises(ValueError):deployment.bind(plan)
 
+    def test_spawn_cannot_bypass_requester_or_model_binding(self):
+        plan,value=fixture()
+        with tempfile.TemporaryDirectory() as directory:
+            identity=Path(directory)/'identity';identity.touch(mode=0o600)
+            with patch('ssh_route.subprocess.Popen') as spawn:
+                with self.assertRaises(ValueError):SSHDeployment(SSHRoute(validate(value)),str(identity),()).spawn(plan)
+                wrong=FullPlan(canonical(dict(modelId='c'*64)))
+                with self.assertRaises(ValueError):SSHDeployment(SSHRoute(validate(value)),str(identity),('research-provider',)).spawn(wrong)
+                spawn.assert_not_called()
+
     def test_failed_spawn_cleans_public_pin_without_fallback(self):
-        _,value=fixture()
+        plan,value=fixture()
         with tempfile.TemporaryDirectory() as directory:
             identity=Path(directory)/'identity';identity.touch(mode=0o600)
             deployment=SSHDeployment(SSHRoute(validate(value)),str(identity),('research-provider',))
@@ -88,7 +100,7 @@ class SSHRouteTests(unittest.TestCase):
                 self.assertEqual(options['env'],{})
                 raise OSError('connection failed')
             with patch('ssh_route.subprocess.Popen',side_effect=reject) as spawn:
-                with self.assertRaises(OSError):deployment.spawn()
+                with self.assertRaises(OSError):deployment.spawn(plan)
                 self.assertEqual(spawn.call_count,1)
             self.assertFalse(captured[0].exists())
 

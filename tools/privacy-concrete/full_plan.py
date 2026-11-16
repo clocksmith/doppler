@@ -37,6 +37,9 @@ class FullPlan:
     encoded: bytes
 
     @property
+    def protocol_id(self):return PROTOCOL
+
+    @property
     def identity(self):
         return digest(self.encoded)
 
