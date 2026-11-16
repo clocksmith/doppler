@@ -6,8 +6,9 @@ import re
 import math
 from full_status import FAILURE_CODES
 from verified_execution import VALIDATION_BOUNDARY
+from public_qwen_fixtures import PUBLIC_FIXTURES,DEFAULT_PUBLIC_FIXTURE
 
-PUBLIC_FIXTURE='qwen05b-capital'
+PUBLIC_FIXTURE=DEFAULT_PUBLIC_FIXTURE
 REPORT_FIELDS=['validationBoundary','backendProfile','protocol','clientLifetimePeakRssBytes','schema','planId','modelId','executionRouteId','transport','linearProjectionCount','encryptedTileCount','encryptedSteps',
                'matchesFullQuantizedGreedyReference','floatGreedyMatches','maxLogitErrors','setupMs','stepMs',
                'quantizedReferenceMs','elapsedMs','clientEncryptedReplayMs',
@@ -24,7 +25,8 @@ for protocols in QWEN_PROTOCOLS.values():protocols.add(SSH_V2_PROTOCOL)
 PROJECTION=re.compile(r'(?:model\.layers\.(?:[0-9]|1[0-9]|2[0-3])\.(?:self_attn\.[qkvo]_proj|mlp\.(?:gate|up|down)_proj)|lm_head)\Z')
 
 
-def collect(report_path,progress_path,revision):
+def collect(report_path,progress_path,revision,fixture_id=PUBLIC_FIXTURE):
+    if not isinstance(fixture_id,str) or fixture_id not in PUBLIC_FIXTURES:raise ValueError('Installed public Qwen fixture identity required')
     progress=[];failure=None
     if Path(progress_path).is_file():
         for line in Path(progress_path).read_text(errors='replace').splitlines():
@@ -35,7 +37,7 @@ def collect(report_path,progress_path,revision):
                 failure=value['failureCode']
             if value.get('event')=='verified-tile' and type(value.get('sequence')) is int and PROJECTION.fullmatch(str(value.get('projection',''))):
                 progress.append(dict(sequence=value['sequence'],projection=value['projection']))
-    result=dict(schema='doppler.public-full-qwen-ci-evidence/v1',revision=revision,fixtureId=PUBLIC_FIXTURE,
+    result=dict(schema='doppler.public-full-qwen-ci-evidence/v1',revision=revision,fixtureId=fixture_id,
                 completed=False,productionBackendAvailable=False,securityQualified=False,
                 verifiedTilesObserved=len(progress),lastVerifiedTile=progress[-1] if progress else None)
     if failure is not None:result['failureCode']=failure
@@ -52,7 +54,7 @@ def collect(report_path,progress_path,revision):
                 and all(isinstance(report.get(key),str) and re.fullmatch(r'[0-9a-f]{64}',report[key]) for key in ['planId','modelId'])
                 and isinstance(output,str) and len(output.encode('utf-8'))<=4096
                 and isinstance(tokens,list) and len(tokens)==4 and all(type(token) is int and 0<=token<151936 for token in tokens)
-                and report.get('publicFixtureId')==PUBLIC_FIXTURE and report.get('qualified') is False
+                and report.get('publicFixtureId')==fixture_id and report.get('qualified') is False
                 and report.get('productionBackendAvailable') is False and report.get('linearProjectionCount')==169
                 and report.get('encryptedSteps')==4 and report.get('encryptedTileCount')==1548 and report.get('matchesFullQuantizedGreedyReference') is True):
             safe={}
@@ -97,5 +99,6 @@ if __name__=='__main__':
     parser=argparse.ArgumentParser()
     parser.add_argument('--report',required=True);parser.add_argument('--progress',required=True)
     parser.add_argument('--revision',required=True);parser.add_argument('--output',required=True)
+    parser.add_argument('--fixture',choices=tuple(PUBLIC_FIXTURES),default=PUBLIC_FIXTURE)
     args=parser.parse_args()
-    Path(args.output).write_text(json.dumps(collect(args.report,args.progress,args.revision),indent=2)+'\n')
+    Path(args.output).write_text(json.dumps(collect(args.report,args.progress,args.revision,args.fixture),indent=2)+'\n')

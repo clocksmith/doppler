@@ -1,6 +1,13 @@
 name: Full Qwen 12-bit encrypted model candidate
 on:
   workflow_dispatch:
+    inputs:
+      public_fixture:
+        description: Installed fixed public Qwen fixture
+        type: choice
+        required: true
+        default: qwen05b-capital
+        options: [qwen05b-capital, qwen05b-arithmetic]
   push:
     branches: [main]
     paths:
@@ -10,13 +17,14 @@ permissions:
   contents: read
 jobs:
   all-linear-ntt:
-    if: github.event_name == 'workflow_dispatch' || contains(github.event.head_commit.message, '[qwen-ntt12-e2e]')
+    if: github.event_name == 'workflow_dispatch' || contains(github.event.head_commit.message, '[qwen-ntt12-e2e]') || contains(github.event.head_commit.message, '[qwen-ntt12-arithmetic-e2e]')
     concurrency:
       group: encrypted-qwen-ntt12
       cancel-in-progress: false
     runs-on: ubuntu-24.04
     timeout-minutes: 240
     env:
+      PUBLIC_FIXTURE: ${{ inputs.public_fixture || (contains(github.event.head_commit.message, '[qwen-ntt12-arithmetic-e2e]') && 'qwen05b-arithmetic') || 'qwen05b-capital' }}
       CARGO_BUILD_JOBS: '2'
       RUSTUP_TOOLCHAIN: '1.91.1'
       OMP_NUM_THREADS: '4'
@@ -79,7 +87,7 @@ jobs:
             --model-dir "$RUNNER_TEMP/qwen-source" \
             --cache-dir "$RUNNER_TEMP/qwen-public-cache" \
             --backend-profile qwen-all-linear-ntt12 \
-            --public-fixture qwen05b-capital \
+            --public-fixture "$PUBLIC_FIXTURE" \
             > "$RUNNER_TEMP/full-qwen-result.json" 2> "$RUNNER_TEMP/full-qwen-progress.jsonl"
       - name: Construct public fixture evidence
         if: always()
@@ -87,7 +95,7 @@ jobs:
           mkdir -p "$RUNNER_TEMP/public-evidence"
           python tools/privacy-concrete/collect_full_evidence.py \
             --report "$RUNNER_TEMP/full-qwen-result.json" --progress "$RUNNER_TEMP/full-qwen-progress.jsonl" \
-            --revision "$GITHUB_SHA" --output "$RUNNER_TEMP/public-evidence/full-qwen.json"
+            --fixture "$PUBLIC_FIXTURE" --revision "$GITHUB_SHA" --output "$RUNNER_TEMP/public-evidence/full-qwen.json"
           if test -f "$RUNNER_TEMP/qwen-fhe-precision-probe.json"; then cp "$RUNNER_TEMP/qwen-fhe-precision-probe.json" "$RUNNER_TEMP/public-evidence/qwen-fhe-precision-probe.json"; fi
           if test -f "$RUNNER_TEMP/ntt-public-result.json"; then cp "$RUNNER_TEMP/ntt-public-result.json" "$RUNNER_TEMP/public-evidence/native-ntt.json"; fi
       - uses: actions/upload-artifact@v6

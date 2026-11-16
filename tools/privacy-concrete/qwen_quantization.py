@@ -2,7 +2,6 @@
 import argparse
 import json
 import os
-from pathlib import Path
 import resource
 import platform
 import time
@@ -14,7 +13,7 @@ from full_model import prepare,model_step
 from full_plan import implementation_versions
 from full_status import failure_event
 
-FIXTURES=json.loads(Path(__file__).with_name('quantization-fixtures.json').read_text())
+from public_qwen_fixtures import SPEC as FIXTURES
 
 
 def forbidden(*args,**kwargs):raise AssertionError('Clear quantization check attempted encrypted/key execution')

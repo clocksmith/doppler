@@ -234,3 +234,13 @@ integrity/cancellation still fail immediately. New reports mark
 `validationBoundary: after-route-close/v1`; the retained four-step result above
 predates that change. Runtime/timing leakage and production security remain
 unqualified, and no additional full-model performance run is implied by the fix.
+
+
+The eight installed public quality prompts now also own encrypted fixture IDs in
+`quantization-fixtures.json`. CLI prompt selection and safe evidence collection
+share `public_qwen_fixtures.py`; an unknown fixture rejects before artifact reads,
+and the selected identity must match the report before output can be published.
+The legacy capital default is preserved. A separately marked arithmetic attempt
+uses the same all-layer/twelve-bit route and four steps, testing a second prompt
+and the new closed-route boundary. Scheduling it establishes no numerical result;
+only a completed, inspected artifact can extend encrypted quality coverage.

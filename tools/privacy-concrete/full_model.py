@@ -18,6 +18,7 @@ import concrete_ml_extensions as ext
 from full_bridge import FullBridge
 from full_status import ExecutionRejected, failure_event
 from verified_execution import complete_verified_route,VALIDATION_BOUNDARY
+from public_qwen_fixtures import PUBLIC_FIXTURES
 from full_plan import canonical,ranges,tiles
 from protocol import POLICY, digest, require_active
 from plan_backends import DEFAULT_PROFILE,QWEN_PROFILES,qwen_backend
@@ -160,7 +161,7 @@ def run(model_dir,cache_dir,prompt,progress=lambda event:None,cancelled=None,dep
     require_active(cancelled)
     if deployment is not None:deployment.bind(plan)
     tokens=tokenizer.encode(prompt)
-    if not 1<=len(tokens)<=8:
+    if not 1<=len(tokens)<=settings['contextBucket']:
         raise ValueError('Prompt exceeds full-model fixed prefill bucket')
     original_count=len(tokens)
     parameters=executor.glwe_crypto_params
@@ -220,7 +221,7 @@ if __name__=='__main__':
     parser.add_argument('--model-dir',required=True);parser.add_argument('--cache-dir',required=True)
     parser.add_argument('--backend-profile',choices=QWEN_PROFILES,default=DEFAULT_PROFILE)
     parser.add_argument('--prepare-only',action='store_true')
-    parser.add_argument('--public-fixture',choices=['qwen05b-capital'])
+    parser.add_argument('--public-fixture',choices=tuple(PUBLIC_FIXTURES))
     parser.add_argument('--ssh-deployment')
     parser.add_argument('--ssh-identity-file')
     parser.add_argument('--allowed-operator',action='append')
@@ -235,7 +236,7 @@ if __name__=='__main__':
         _,_,_,_,plan=prepare(args.model_dir,args.cache_dir,args.backend_profile)
         print(json.dumps(dict(planId=plan.identity,linearProjections=len(plan.definition()['projections']),encryptedTilesPerStep=len(plan.schedule()),available=False)))
     else:
-        prompt='The capital of France is' if args.public_fixture=='qwen05b-capital' else sys.stdin.buffer.read(4097).decode('utf-8')
+        prompt=PUBLIC_FIXTURES[args.public_fixture] if args.public_fixture else sys.stdin.buffer.read(4097).decode('utf-8')
         if len(prompt.encode())>4096:raise ValueError('Bounded client prompt required')
         began=time.perf_counter()
         try:

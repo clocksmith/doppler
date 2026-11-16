@@ -7,35 +7,43 @@
   "fixtures": [
     {
       "id": "capital-france",
-      "prompt": "The capital of France is"
+      "prompt": "The capital of France is",
+      "publicFixtureId": "qwen05b-capital"
     },
     {
       "id": "capital-japan",
-      "prompt": "The capital of Japan is"
+      "prompt": "The capital of Japan is",
+      "publicFixtureId": "qwen05b-capital-japan"
     },
     {
       "id": "arithmetic",
-      "prompt": "2 + 2 ="
+      "prompt": "2 + 2 =",
+      "publicFixtureId": "qwen05b-arithmetic"
     },
     {
       "id": "story",
-      "prompt": "Once upon a time"
+      "prompt": "Once upon a time",
+      "publicFixtureId": "qwen05b-story"
     },
     {
       "id": "opposite",
-      "prompt": "The opposite of hot is"
+      "prompt": "The opposite of hot is",
+      "publicFixtureId": "qwen05b-opposite"
     },
     {
       "id": "python",
-      "prompt": "Python is a"
+      "prompt": "Python is a",
+      "publicFixtureId": "qwen05b-python"
     },
     {
       "id": "freezing",
-      "prompt": "Water freezes at"
+      "prompt": "Water freezes at",
+      "publicFixtureId": "qwen05b-freezing"
     },
     {
       "id": "sky",
-      "prompt": "The sky is"
+      "prompt": "The sky is",
+      "publicFixtureId": "qwen05b-sky"
     }
   ]
 }
