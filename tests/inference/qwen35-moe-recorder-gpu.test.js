@@ -41,7 +41,7 @@ try {
   const context = { config: { modelType: 'transformer', hiddenSize: H, intermediateSize: I,
     moeExpertIntermediateSize: I, moeSharedExpertIntermediateSize: S, numExperts: E, moeTopK: 2,
     expertFormat: 'qwen3_5', hiddenActivation: 'silu', swigluLimit: null, rmsNormEps: 1e-6 },
-    moeRouter: router, expertWeights, expertLoader: { loadExpert() { throw Error('Resident banks must not reload'); } },
+    moeRouter: router, expertWeights, expertLoader: { isExpertResident: () => true, loadExpert() { throw Error('Resident banks must not reload'); } },
     weights: new Map([['layer_0', shared]]), kernelPath: null, executionPolicies: null };
   context.runtimeMoERoutingConfig = { ...getRuntimeConfig().inference.moe.routing, activeExpertSelection: 'topk-route' };
   control = await runMoEFFNGPU(0, createTensor(source, 'f32', [T, H]), T, context);

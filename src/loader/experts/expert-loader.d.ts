@@ -114,3 +114,6 @@ export declare function loadExpert(
 ): Promise<ExpertWeights>;
 
 export declare function supportsResidentExpertPreparation(expertFormat: unknown): boolean;
+
+/** False once the LRU expert cache evicted (and released) `weights`. */
+export declare function isExpertResident(ctx: unknown, layerIdx: number, expertIdx: number, weights: unknown): boolean;

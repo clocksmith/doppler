@@ -128,7 +128,7 @@ try {
     const result = await moeFeedForwardGPU(coreInput, T, { modelType: 'transformer', hiddenSize: H,
       intermediateSize: I, expertIntermediateSize: I, numExperts: E, moeTopK: topK,
       expertFormat: 'qwen3_5', hiddenActivation: 'silu', swigluLimit: null, activationDtype: 'f32', kernelPath: null },
-    router, expertWeights, { loadExpert() { throw new Error('Resident bank must not reload individual experts'); } }, 0, null);
+    router, expertWeights, { isExpertResident: () => true, loadExpert() { throw new Error('Resident bank must not reload individual experts'); } }, 0, null);
     try { receipts.push({ coreWithFixtureRouter: true,
       maxAbs: check(new Float32Array(await readBuffer(result, expected.length * 4)), expected, 'moe core') }); }
     finally { releaseBuffer(result); }

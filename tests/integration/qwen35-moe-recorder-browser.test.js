@@ -51,7 +51,7 @@ try {
         moeExpertIntermediateSize: I, moeSharedExpertIntermediateSize: S, numExperts: E, moeTopK: 2,
         expertFormat: 'qwen3_5', hiddenActivation: 'silu', swigluLimit: null, rmsNormEps: 1e-6 },
         moeRouter: router, expertWeights: new Map([['layer_0_expert_0', packed]]),
-        expertLoader: { loadExpert() { throw Error('Resident bank must not reload'); } },
+        expertLoader: { isExpertResident: () => true, loadExpert() { throw Error('Resident bank must not reload'); } },
         weights: new Map([['layer_0', { sharedExpertGate: matrix(f.sharedGate, [S, H]),
           sharedExpertUp: matrix(f.sharedUp, [S, H]), sharedExpertDown: matrix(f.sharedDown, [H, S]),
           sharedExpertRouter: matrix(f.sharedRouter, [1, H]) }]]), kernelPath: null, executionPolicies: null };

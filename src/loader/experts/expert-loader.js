@@ -186,6 +186,15 @@ function getExpertFormat(expertFormat) {
 }
 
 // Resident preparation excludes per-expert LRU and layer-paged banks.
+// The loader is the single residency authority. LRU-cached experts can be evicted
+// (and their buffers released) at any later load; a consumer holding an older
+// weights object must reload instead of dispatching on released buffers.
+export function isExpertResident(ctx, layerIdx, expertIdx, weights) {
+  const format = EXPERT_FORMATS[resolveExpertFormat(ctx)];
+  if (!format.lruCached || !ctx.expertCache) return true;
+  return ctx.expertCache.get(layerIdx, expertIdx) === weights;
+}
+
 export function supportsResidentExpertPreparation(expertFormat) {
   return getExpertFormat(expertFormat)?.residentPreparation === true;
 }

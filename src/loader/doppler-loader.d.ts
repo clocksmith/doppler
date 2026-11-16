@@ -158,6 +158,8 @@ export declare class DopplerLoader {
   predictNextLayerExperts(currentExperts: number[]): number[];
 
   loadExpert(layerIdx: number, expertIdx: number): Promise<ExpertWeights>;
+  /** False once the LRU expert cache evicted (and released) `weights`; reload before dispatch. */
+  isExpertResident(layerIdx: number, expertIdx: number, weights: unknown): boolean;
 
   getLayerWeights(layerIdx: number): LayerWeights | null;
 

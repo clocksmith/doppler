@@ -49,6 +49,7 @@ import { cloneJsonValue } from '../formats/clone-json.js';
 import { assertFunctionalDescriptorManifest } from '../formats/rdrr/functional-descriptor.js';
 import {
   loadExpert as loadExpertFromModule,
+  isExpertResident as isExpertResidentInModule,
   prefetchExperts as prefetchExpertsFromModule,
   predictNextLayerExperts as predictNextLayerExpertsFromModule,
 } from './experts/expert-loader.js';
@@ -559,17 +560,11 @@ export class DopplerLoader {
     return this.isMoE;
   }
 
-  prefetchExperts(nextLayerIdx, expertIndices) {
-    prefetchExpertsFromModule(this._getExpertLoaderContext(), nextLayerIdx, expertIndices, this.isMoE);
-  }
-
-  predictNextLayerExperts(currentExperts) {
-    return predictNextLayerExpertsFromModule(currentExperts);
-  }
-
-  async loadExpert(layerIdx, expertIdx) {
-    return loadExpertFromModule(this._getExpertLoaderContext(), layerIdx, expertIdx);
-  }
+  prefetchExperts(nextLayer, experts) { prefetchExpertsFromModule(this._getExpertLoaderContext(), nextLayer, experts, this.isMoE); }
+  predictNextLayerExperts(currentExperts) { return predictNextLayerExpertsFromModule(currentExperts); }
+  async loadExpert(layer, expert) { return loadExpertFromModule(this._getExpertLoaderContext(), layer, expert); }
+  // Residency is the loader's: false once the LRU cache evicted these weights.
+  isExpertResident(layer, expert, weights) { return isExpertResidentInModule(this._getExpertLoaderContext(), layer, expert, weights); }
 
   async prepareExpertLayer(layerIdx, consumerExperts, recorder = null, signal, activeSelection) {
     return prepareExpertLayer(this, this._loadingConfig.expertCache, layerIdx, consumerExperts, recorder, signal, activeSelection);

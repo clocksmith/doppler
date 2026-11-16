@@ -113,6 +113,8 @@ export interface ExpertLoader {
     recorder: import('../../../gpu/command-recorder.js').CommandRecorder | null,
     signal?: AbortSignal): Promise<unknown>;
   loadExpert(layerIdx: number, expertIdx: number): Promise<MoEExpertWeights | null>;
+  /** False once the loader's LRU cache evicted (and released) `weights`. */
+  isExpertResident(layerIdx: number, expertIdx: number, weights: unknown): boolean;
 }
 
 /**
