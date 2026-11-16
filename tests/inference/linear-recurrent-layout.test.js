@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { assertRecurrentStateLayout, resolveRecurrentStateLayout } from '../../src/inference/pipelines/text/linear-attention/state-layout.js';
-import { createLinearAttentionRuntime, cloneLinearAttentionRuntime, restoreLinearAttentionRuntime, resetLinearAttentionRuntime } from '../../src/inference/pipelines/text/linear-attention.js';
+import { createLinearAttentionRuntime, cloneLinearAttentionRuntime, restoreLinearAttentionRuntime, resetLinearAttentionRuntime } from "../../src/inference/pipelines/text/linear-attention/linear-attention.js";
 import { setRuntimeConfig, resetRuntimeConfig } from '../../src/config/runtime.js';
 
 function state(precision) {

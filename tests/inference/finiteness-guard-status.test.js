@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { parseFinitenessStatusWords } from '../../src/inference/pipelines/text/finiteness-guard-status.js';
+import { parseFinitenessStatusWords } from "../../src/inference/pipelines/text/policy/finiteness-guard-status.js";
 
 {
   const status = parseFinitenessStatusWords(new Uint32Array([0, 7, 9]), 0);

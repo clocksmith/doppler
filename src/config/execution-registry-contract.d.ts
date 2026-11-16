@@ -11,8 +11,8 @@ export interface ResolvedExecutionRegistries extends ExecutionRegistries {
 export declare function resolveExecutionRegistries(registries?: ExecutionRegistries | null): ResolvedExecutionRegistries | null;
 export declare function assertExecutionRegistriesAccepted(targetPlan: TargetPlan, registries: ResolvedExecutionRegistries | null): void;
 export declare function assertExecutionMechanismClosure(
-  graph: import('./schema/execution-v1.schema.js').ExecutionV1GraphSchema,
-  steps: import('./schema/execution-v1.schema.js').ExecutionV1ExpandedStepSchema[]
+  graph: import("./schema/execution/execution-v1.schema.js").ExecutionV1GraphSchema,
+  steps: import("./schema/execution/execution-v1.schema.js").ExecutionV1ExpandedStepSchema[]
 ): void;
 
 /**
@@ -21,12 +21,12 @@ export declare function assertExecutionMechanismClosure(
  * specialization constants the graph's mechanismKernels declare. Empty without a graph.
  */
 export declare function resolveDeclaredMechanismReplacements(
-  graph: import('./schema/execution-v1.schema.js').ExecutionV1GraphSchema | null | undefined
+  graph: import("./schema/execution/execution-v1.schema.js").ExecutionV1GraphSchema | null | undefined
 ): Readonly<Record<string, string>>;
 
 /** Throw when a declared kernel's registry norm-gate activation differs from the manifest's. */
 export declare function assertLinearNormGateClosure(
-  graph: import('./schema/execution-v1.schema.js').ExecutionV1GraphSchema,
+  graph: import("./schema/execution/execution-v1.schema.js").ExecutionV1GraphSchema,
   normGateActivation: 'silu' | 'sigmoid'
 ): void;
 
@@ -36,6 +36,6 @@ export declare function assertLinearNormGateClosure(
  * `kernels.gatedDeltaRecurrent` rules (see paired-execution.js).
  */
 export declare function assertPairedExecutionMechanismClosure(
-  graph: import('./schema/execution-v1.schema.js').ExecutionV1GraphSchema,
+  graph: import("./schema/execution/execution-v1.schema.js").ExecutionV1GraphSchema,
   normGateMechanisms: ReadonlyArray<readonly [string, string]>
 ): void;

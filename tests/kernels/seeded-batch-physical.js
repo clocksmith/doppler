@@ -3,8 +3,8 @@ export async function auditSeededBatches() {
   const { initDevice, getKernelCapabilities, destroyDevice } = await import('/src/gpu/device.js');
   const { acquireBuffer, releaseBuffer, getBufferPool, destroyBufferPool } = await import('/src/memory/buffer-pool.js');
   const { getRuntimeConfig } = await import('/src/config/runtime.js');
-  const { generateNTokensGPU } = await import('/src/inference/pipelines/text/generator-steps.js');
-  const { PipelineGenerator } = await import('/src/inference/pipelines/text/generator.js');
+  const { generateNTokensGPU } = await import("/src/inference/pipelines/text/generator/generator-steps.js");
+  const { PipelineGenerator } = await import("/src/inference/pipelines/text/generator/generator.js");
   const device = await initDevice();
   const adapter = getKernelCapabilities().adapterInfo;
   if (/software|swiftshader|llvmpipe/i.test(JSON.stringify(adapter))) throw new Error('Physical adapter required');

@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { PipelineGenerator } from '../../src/inference/pipelines/text/generator.js';
+import { PipelineGenerator } from "../../src/inference/pipelines/text/generator/generator.js";
 import { createDopplerConfig } from '../../src/config/schema/index.js';
 
 // Exercise the actual generation entry points and reset owner, stopping before

@@ -1,4 +1,4 @@
-import type { BackwardRegistrySchema } from '../../config/schema/backward-registry.schema.js';
+import type { BackwardRegistrySchema } from "../../config/schema/training/backward-registry.schema.js";
 import type { TrainingConfigSchema } from '../../config/training-defaults.d.ts';
 import type { Tensor } from '../../gpu/tensor.js';
 import type { TrainingObjective } from './objectives/base.js';

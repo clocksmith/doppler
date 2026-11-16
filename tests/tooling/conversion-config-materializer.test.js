@@ -8,7 +8,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
 
-import { expandExecutionV1 } from '../../src/config/schema/execution-v1.schema.js';
+import { expandExecutionV1 } from "../../src/config/schema/execution/execution-v1.schema.js";
 import {
   inferConversionConfigModelId,
   resolveMaterializedManifestFromConversionConfig,

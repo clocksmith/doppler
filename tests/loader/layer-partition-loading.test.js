@@ -1,8 +1,8 @@
 import assert from 'node:assert/strict';
 import { load } from '../../src/loader/model-executor.js';
-import { createLayerPartitionPlan, createOrderedLayerPartitionPlan, resolveLayerPartition } from '../../src/inference/pipelines/text/layer-partition-contract.js';
+import { createLayerPartitionPlan, createOrderedLayerPartitionPlan, resolveLayerPartition } from "../../src/inference/pipelines/text/execution/layer-partition-contract.js";
 import { createRDRRManifestFixture } from '../helpers/rdrr-manifest-fixture.js';
-import { DEFAULT_EXPERT_CACHE_CONFIG, DEFAULT_EXPERT_PREPARATION_CONFIG } from '../../src/config/schema/loading.schema.js';
+import { DEFAULT_EXPERT_CACHE_CONFIG, DEFAULT_EXPERT_PREPARATION_CONFIG } from "../../src/config/schema/runtime/loading.schema.js";
 
 // Exercise the production load coordinator with observed materialization ports.
 // This does not claim GPU execution or selective artifact acquisition.

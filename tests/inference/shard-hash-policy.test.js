@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { resolveShardHashVerification, resolveKVCacheAllocation } from '../../src/inference/pipelines/text/load-policy.js';
+import { resolveShardHashVerification, resolveKVCacheAllocation } from "../../src/inference/pipelines/text/loading/load-policy.js";
 
 // The runtime config owns hash verification. A storage context created without
 // an explicit decision used to report verifyHashes=false and that value shadowed

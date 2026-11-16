@@ -3,7 +3,7 @@ import { pathToFileURL } from 'node:url';
 import {
   verifyClosedProgramBundle,
 } from './program-bundle.js';
-import { validateProgramBundle } from '../config/schema/program-bundle.schema.js';
+import { validateProgramBundle } from "../config/schema/capsule/program-bundle.schema.js";
 import {
   bootstrapNodeWebGPU,
   releaseNodeWebGPU,

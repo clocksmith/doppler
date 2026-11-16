@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { resolveDecodeLayerSubmitInterval } from '../../src/inference/pipelines/text/generator/decode.js';
+import { resolveDecodeLayerSubmitInterval } from "../../src/inference/pipelines/text/generator/decode/decode.js";
 
 const recorder = {};
 assert.equal(resolveDecodeLayerSubmitInterval(undefined, recorder), null);

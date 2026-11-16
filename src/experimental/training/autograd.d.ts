@@ -1,5 +1,5 @@
 import type { Tensor } from '../../gpu/tensor.js';
-import type { BackwardRegistrySchema } from '../../config/schema/backward-registry.schema.js';
+import type { BackwardRegistrySchema } from "../../config/schema/training/backward-registry.schema.js";
 
 export const OpType: {
   EMBED: 'embed';

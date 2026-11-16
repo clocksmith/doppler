@@ -1,4 +1,4 @@
-import { DEFAULT_ENTRY } from './schema/kernel-path.schema.js';
+import { DEFAULT_ENTRY } from "./schema/execution/kernel-path.schema.js";
 import { getKernelConfigs, getKernelRegistryIdentity } from './kernel-registry-contract.js';
 import { mergeKernelPathPolicy } from './merge/kernel-path-policy.js';
 

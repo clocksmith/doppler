@@ -3,7 +3,7 @@
   "entrypoint": "src/capsule-runtime.js",
   "scope": "injected-capsule-core; excludes host-supplied program executors",
   "fileCount": 88,
-  "sourceBytes": 1245576,
+  "sourceBytes": 1251842,
   "forbiddenPatterns": [
     "/src/converter/",
     "/src/training/",
@@ -39,18 +39,18 @@
     },
     {
       "path": "src/client/runtime/capsule-acquisition.js",
-      "sizeBytes": 4680,
-      "hash": "sha256:53dfec0be18db4194408cde3b52860d8571d121d53ae586b7bf4add0dc2e9699"
+      "sizeBytes": 4688,
+      "hash": "sha256:367c85887daf3cd1576ec772a70b8e177b1a451576e5d8940ec5bbf8c1650f30"
     },
     {
       "path": "src/client/runtime/capsule-adapter-execution.js",
-      "sizeBytes": 3958,
-      "hash": "sha256:248d62a140e3de4b0c9097db2e3b1084a49723089b4ff0203f0205d06412ddb7"
+      "sizeBytes": 3982,
+      "hash": "sha256:1d56a82109df48272c26fbdb6aac67f1e20e16e3a2ec6a409bd79a7aa2b6bbb2"
     },
     {
       "path": "src/client/runtime/capsule-embedding.js",
-      "sizeBytes": 4535,
-      "hash": "sha256:075a9189eb6fc3b06a1265f2fb5d5d00d0d32d5ca675c881fb581df74876b3c0"
+      "sizeBytes": 4543,
+      "hash": "sha256:fe157a2fa0e4d2f2eae15765d3d6d7f1437640836d835ed6ba202185070931c2"
     },
     {
       "path": "src/client/runtime/capsule-forecast-program.js",
@@ -59,38 +59,38 @@
     },
     {
       "path": "src/client/runtime/capsule-forecast.js",
-      "sizeBytes": 2386,
-      "hash": "sha256:ff5740dbebc1ae55ea359d8955561f7a8032646c0748d04db2c300815f27a845"
+      "sizeBytes": 2394,
+      "hash": "sha256:c0237b168b3be995a69f99705abe268c25c48a8b57d49e0e3146ea69bfd9ffaa"
     },
     {
       "path": "src/client/runtime/capsule-operation-adapters.js",
-      "sizeBytes": 5412,
-      "hash": "sha256:536ef60b0a79c76d0a11e3b16a2d7b42f87ce0c59276afd0830ce4d6d9ac8104"
+      "sizeBytes": 5420,
+      "hash": "sha256:1205694f5ec1d0250e58becf6817ba9571fad4f6b4582c44cf041baf5a1df4e1"
     },
     {
       "path": "src/client/runtime/capsule-operation-deltas.js",
-      "sizeBytes": 2751,
-      "hash": "sha256:e7b58193175460b93a5c08430d7d61551eea590e5f70fc4c0829e1219133dfbe"
+      "sizeBytes": 2759,
+      "hash": "sha256:434b917cf20630637f4371fee7623f3af91244b0ca3e7698f8f396136e163c00"
     },
     {
       "path": "src/client/runtime/capsule-operation-executor.js",
-      "sizeBytes": 6061,
-      "hash": "sha256:1c1546e31eecadf57f2c114d3b697d31f3d5438bb545e1b28b92263a39fa0e95"
+      "sizeBytes": 6077,
+      "hash": "sha256:a7817d174e9d23fab4583205b99bfb21c6689635dbfd765ccdb8da10bff647dc"
     },
     {
       "path": "src/client/runtime/capsule-operation-stream.js",
-      "sizeBytes": 5080,
-      "hash": "sha256:7a346de8789fece43e375ade36bcfb77740c7a8e97d5a6101f6f3f4f53a85901"
+      "sizeBytes": 5096,
+      "hash": "sha256:f83c004fdca8ea9791c68126773eaa955982afb5feba4f3df4650a645a60cd4b"
     },
     {
       "path": "src/client/runtime/capsule-piece-reader.js",
-      "sizeBytes": 5439,
-      "hash": "sha256:e062b813b6bb91cd93e8930c2ea1426954621ccde244fea272388abf24b756d2"
+      "sizeBytes": 5447,
+      "hash": "sha256:af8c9676f495e90eea25449a7cdd93af8b501b7e84d739f8a47712e34c06f848"
     },
     {
       "path": "src/client/runtime/capsule-release-authorization.js",
-      "sizeBytes": 1099,
-      "hash": "sha256:d20d0533206abeb65da83298e72015d4b08f7a928023c7b8d50c0c34f9c471fb"
+      "sizeBytes": 1107,
+      "hash": "sha256:37c94c7a5d8f5062dc4f33209a1baafef9b0cd6f1d378ae774a9e18774ec3cd1"
     },
     {
       "path": "src/client/runtime/capsule-rerank.js",
@@ -109,13 +109,13 @@
     },
     {
       "path": "src/client/runtime/composition-root.js",
-      "sizeBytes": 30179,
-      "hash": "sha256:3f222cc432ca76475e3c3ccf8aef80440d53e23496d5d488a60ad3c1f17273c3"
+      "sizeBytes": 30166,
+      "hash": "sha256:f3121b355ecfc9f2f4135c1be3dfa77cf83c9dbf1516ef6d0a8216707af84086"
     },
     {
       "path": "src/client/runtime/fetch-capsule-artifact-store.js",
-      "sizeBytes": 4398,
-      "hash": "sha256:de6988ea2f55fd33eca500ae866ebc4853cee1eb5d8e6b5ee95875c31771005e"
+      "sizeBytes": 4406,
+      "hash": "sha256:e1769d9b936bed9705cd6640041f1686b4868e4acd48423edc15fc9cd9008dfa"
     },
     {
       "path": "src/client/runtime/resource-binder.js",
@@ -129,8 +129,8 @@
     },
     {
       "path": "src/client/runtime/verified-capsule-artifact-store.js",
-      "sizeBytes": 15927,
-      "hash": "sha256:6a102c8638ebed10c761fef020636ca870997509263924512066409d2998c949"
+      "sizeBytes": 15935,
+      "hash": "sha256:cad1258ce8ce240b422ae7e36ca22d3f4e116dc4bb47ac0b95d2118d11033674"
     },
     {
       "path": "src/config/canonical-contract-codec.js",
@@ -143,24 +143,9 @@
       "hash": "sha256:d6a318d5c57775380874709199bc7744aebdba4582830dc1ee02b2cdc1e40d90"
     },
     {
-      "path": "src/config/capsule-adapter-policy.js",
-      "sizeBytes": 2420,
-      "hash": "sha256:234d879e345dd0d5d238fccaa232f03dfa9bde504777f26e270c01c4632d7cdb"
-    },
-    {
-      "path": "src/config/capsule-adapters.js",
-      "sizeBytes": 3069,
-      "hash": "sha256:25fbc59ae2b23b21d7d712951c6e31ef90d9f1d8f99b54f7917f3cd6d1196c08"
-    },
-    {
       "path": "src/config/capsule-adapters.json",
       "sizeBytes": 273,
       "hash": "sha256:fdc319264ebd39573a354d63246bf2c5d1a1a7897be566b5a7fd853615dea621"
-    },
-    {
-      "path": "src/config/capsule-loading.js",
-      "sizeBytes": 637,
-      "hash": "sha256:6607947823b7daee40ddf329765544d13686e79e15218a5d574588c8ab0d941f"
     },
     {
       "path": "src/config/capsule-loading.schema.json",
@@ -168,39 +153,9 @@
       "hash": "sha256:11f67624761b5c2f5abda9044890aa70b12e5771f8e83a625591baeb2e0a2f50"
     },
     {
-      "path": "src/config/capsule-operation.js",
-      "sizeBytes": 4362,
-      "hash": "sha256:ae8452d84b2588ace687f60699b8a14c920f5ab3e7fcded2c86ba2cdaadd2792"
-    },
-    {
       "path": "src/config/capsule-operations.json",
       "sizeBytes": 1385,
       "hash": "sha256:7377169b1a4ae16ca03dd5e452cba17fc2097205e3f2cefa87d762a21f9345a8"
-    },
-    {
-      "path": "src/config/capsule-release-contract.js",
-      "sizeBytes": 10058,
-      "hash": "sha256:a9b12f5ce93d937ef683b28553250338b5197c4f2a8a995308b3f232d7dc8249"
-    },
-    {
-      "path": "src/config/capsule-release-events.js",
-      "sizeBytes": 11230,
-      "hash": "sha256:75ca59b81b02639aa31f51e5c3ae53a0f5d103c6a39eed40530e5d04d724c0c7"
-    },
-    {
-      "path": "src/config/capsule-sequence-receipt.js",
-      "sizeBytes": 820,
-      "hash": "sha256:5b52d469257959959968a79b81f60d383d12440b9ea7392b30528bf3fbd026f3"
-    },
-    {
-      "path": "src/config/capsule-signature.js",
-      "sizeBytes": 2841,
-      "hash": "sha256:7468fbe5b96ab3f2275b9ca0c43a9849d90cb5ff22dfc0386aef6595d72f4057"
-    },
-    {
-      "path": "src/config/capsule-token-selection.js",
-      "sizeBytes": 2711,
-      "hash": "sha256:a66302a574c4f9c8832c4db14b0417fbd5b9ee3a20a75261ffc47fa6880a4567"
     },
     {
       "path": "src/config/capsule-token-selection.json",
@@ -208,24 +163,69 @@
       "hash": "sha256:2b5f496ee8768df816c0ca441ddc5ab9d501fddb91a8bd3616483033ff9c6746"
     },
     {
-      "path": "src/config/capsule-v2.js",
-      "sizeBytes": 20034,
-      "hash": "sha256:fb7b7b4bb4f8764bacdcc5338ee6c931f4c39d0655009e9bc16b7c6c7cb4ad86"
+      "path": "src/config/capsule/capsule-adapter-policy.js",
+      "sizeBytes": 2422,
+      "hash": "sha256:49e0b2aaab3fd98bbd7180578e8df5724e3f76d7725651854eba6139b915195b"
     },
     {
-      "path": "src/config/capsule-v3.js",
-      "sizeBytes": 3868,
-      "hash": "sha256:3514a2c71fa4ac621e223ac0aaf1a767498ad2fc120cd8a4589f78dfd072fd27"
+      "path": "src/config/capsule/capsule-adapters.js",
+      "sizeBytes": 3071,
+      "hash": "sha256:74544d681d49c7935360976307af602bc17314249b632177b9dab8f566041ecf"
     },
     {
-      "path": "src/config/capsule.js",
-      "sizeBytes": 2862,
-      "hash": "sha256:62fd94410eeb76488a99869bd408402a20df3259e21e94140d3d2c2437d312cb"
+      "path": "src/config/capsule/capsule-loading.js",
+      "sizeBytes": 638,
+      "hash": "sha256:d6f4a96c0a978dea30f0bf46c7fd31384e91888be13f1c2f6beafc99d36704d6"
+    },
+    {
+      "path": "src/config/capsule/capsule-operation.js",
+      "sizeBytes": 4367,
+      "hash": "sha256:90c096a4ca5c91f2180a15b7fd840f256e1f5d505be114c8d0359564b0272b42"
+    },
+    {
+      "path": "src/config/capsule/capsule-release-contract.js",
+      "sizeBytes": 10064,
+      "hash": "sha256:b95fee17387720487661633b3e05bcd9d9966f6b5140c62cc47d09944a208ab6"
+    },
+    {
+      "path": "src/config/capsule/capsule-release-events.js",
+      "sizeBytes": 11233,
+      "hash": "sha256:c0ba69bd005d187d62a82ab22f925746b1963cef5fe18268911c697d795e0c7b"
+    },
+    {
+      "path": "src/config/capsule/capsule-sequence-receipt.js",
+      "sizeBytes": 823,
+      "hash": "sha256:ad5bd9c28ab3c2e23b6aa7e6efba850cdd110a5094450edba2935d6cc3996ce1"
+    },
+    {
+      "path": "src/config/capsule/capsule-signature.js",
+      "sizeBytes": 2841,
+      "hash": "sha256:7468fbe5b96ab3f2275b9ca0c43a9849d90cb5ff22dfc0386aef6595d72f4057"
+    },
+    {
+      "path": "src/config/capsule/capsule-token-selection.js",
+      "sizeBytes": 2713,
+      "hash": "sha256:7776adf3c3593cb2156c426a9d5284646b410a2c3d2003714b4af708987663c1"
+    },
+    {
+      "path": "src/config/capsule/capsule-v2.js",
+      "sizeBytes": 20048,
+      "hash": "sha256:b0b8c2a44b128ff806620e67cbd5fe6f472ddb9f9829a1d6ccab1be6444ab2cd"
+    },
+    {
+      "path": "src/config/capsule/capsule-v3.js",
+      "sizeBytes": 3871,
+      "hash": "sha256:e95e8d1f5a4aaa01f301b7e300a1fc73593dd91879a65a04a53302e66f8bc5f8"
+    },
+    {
+      "path": "src/config/capsule/capsule.js",
+      "sizeBytes": 2865,
+      "hash": "sha256:308db418eee32849f829372784d7c9056b67739e99e00f5ec334b80e156d6343"
     },
     {
       "path": "src/config/choice-scoring.js",
-      "sizeBytes": 3669,
-      "hash": "sha256:fb3342e5a9aeb0c9faa29b93fdb70693fab56ea88077061b1fef203efab756f0"
+      "sizeBytes": 3677,
+      "hash": "sha256:835846858d3ea08925c7a6ed6b57978d49f08e75ccd011776de57dce940fd4a8"
     },
     {
       "path": "src/config/choice-scoring.json",
@@ -234,13 +234,13 @@
     },
     {
       "path": "src/config/embedding-contract.js",
-      "sizeBytes": 2139,
-      "hash": "sha256:d51cb415bc9b343f7382d6698a215cbbd3562ca95ee06126500894af22578700"
+      "sizeBytes": 2147,
+      "hash": "sha256:c4fb3218dbdba853a79722b7ccea3695c2311ffa52b9618272a968107718437b"
     },
     {
       "path": "src/config/execution-registry-contract.js",
-      "sizeBytes": 10749,
-      "hash": "sha256:16b1b678d197c0dcc33ece360f8a19834b5420b755cad7ae28da109168cfadd3"
+      "sizeBytes": 10799,
+      "hash": "sha256:732457bbc80993722a98cd8696ec755ac1929f2e23dc8d689474ed9d3c5ae84c"
     },
     {
       "path": "src/config/forecast-manifest.js",
@@ -264,13 +264,13 @@
     },
     {
       "path": "src/config/kernel-registry-contract.js",
-      "sizeBytes": 5455,
-      "hash": "sha256:eb93e3bcbe9e305b1b73f27e77d4ad432786027d93f7dbbacfbabf78d45c1a6b"
+      "sizeBytes": 5465,
+      "hash": "sha256:84ebeb0dfe48253c6823cf3657d484e88f3c9228dad71edec72933053f903e83"
     },
     {
       "path": "src/config/kernels/registry.json",
-      "sizeBytes": 791463,
-      "hash": "sha256:f0818cbb22023bb5c408c108bb6045d67708a5edfac74c9633bdf4dc17e72465"
+      "sizeBytes": 797470,
+      "hash": "sha256:7ae68e3e65628b923610f00874271ff7f3ce9b91b4f7ce31af33af9404698bc4"
     },
     {
       "path": "src/config/layer-partition-plan.js",
@@ -318,19 +318,19 @@
       "hash": "sha256:35ce10b989052c732a0c7b9a94476c7e543599e39cc2bcf5a66c1778bfb585ad"
     },
     {
-      "path": "src/config/schema/debug.schema.js",
-      "sizeBytes": 4207,
-      "hash": "sha256:2e93df23cf8dbc54f3548cb38a5cba00bd1e96b3827de29ae409038f8992c59f"
-    },
-    {
-      "path": "src/config/schema/kernel-registry.schema.js",
+      "path": "src/config/schema/execution/kernel-registry.schema.js",
       "sizeBytes": 2098,
       "hash": "sha256:da2d1f7e8c884764b20194e2fdcd3dd4bd60d955b1343679fad1f792564a9bda"
     },
     {
+      "path": "src/config/schema/runtime/debug.schema.js",
+      "sizeBytes": 4207,
+      "hash": "sha256:2e93df23cf8dbc54f3548cb38a5cba00bd1e96b3827de29ae409038f8992c59f"
+    },
+    {
       "path": "src/config/target-plan.js",
-      "sizeBytes": 24013,
-      "hash": "sha256:d265b8e2d5c7c81a200f36d289fe084cbf4fafffba8cadf6467d844dc6ab035e"
+      "sizeBytes": 24029,
+      "hash": "sha256:afe08c8656138e6b422da43d79927cdfa6068b5644b34305299fdd647cdf442e"
     },
     {
       "path": "src/config/wgsl-language-contract.js",
@@ -344,8 +344,8 @@
     },
     {
       "path": "src/debug/config.js",
-      "sizeBytes": 8923,
-      "hash": "sha256:a0a763a5ecd9c90d479650e9dd31cd80721d36fedb139c2c12659b519d811d58"
+      "sizeBytes": 8931,
+      "hash": "sha256:3b6f0b4f6f4a439ef0877d958affc3f033808815487eae5d1caf95a2c20f3f15"
     },
     {
       "path": "src/debug/history.js",

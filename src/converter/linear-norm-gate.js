@@ -1,4 +1,4 @@
-import { LINEAR_NORM_GATE_ACTIVATIONS } from '../config/schema/manifest.schema.js';
+import { LINEAR_NORM_GATE_ACTIVATIONS } from "../config/schema/manifest/manifest.schema.js";
 
 // Source semantics of the linear-attention gated RMSNorm activation, as pinned
 // in artifacts/qwen38-flash-next-20261013/source (Transformers e0eb2810):

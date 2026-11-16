@@ -1,5 +1,5 @@
 import { loadJson } from '../formats/load-json.js';
-import { validateBackwardRegistry } from './schema/backward-registry.schema.js';
+import { validateBackwardRegistry } from "./schema/training/backward-registry.schema.js";
 
 function deepFreeze(value, seen = new WeakSet()) {
   if (!value || typeof value !== 'object' || seen.has(value)) {

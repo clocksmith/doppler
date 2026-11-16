@@ -1,5 +1,5 @@
 {
-  "$schema": "../../src/config/schema/translation-artifact-competition.schema.json",
+  "$schema": "../../src/config/schema/runtime/translation-artifact-competition.schema.json",
   "schemaVersion": 1,
   "contractId": "doppler.translation.selected-bf16-artifact-competition.v1",
   "state": "blocked_awaiting_gamma_selection",

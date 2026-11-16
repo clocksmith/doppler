@@ -175,7 +175,7 @@ const diagnosticTransformCtx = {
 // =============================================================================
 {
   const { compileExecutionV1 } = await import(
-    '../../src/inference/pipelines/text/execution-v1.js'
+    "../../src/inference/pipelines/text/execution/execution-v1.js"
   );
 
   const manifestInference = {

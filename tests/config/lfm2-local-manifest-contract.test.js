@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 
-import { validateManifestInference } from '../../src/config/schema/manifest.schema.js';
+import { validateManifestInference } from "../../src/config/schema/manifest/manifest.schema.js";
 
 function readJson(path) {
   return JSON.parse(readFileSync(path, 'utf8'));

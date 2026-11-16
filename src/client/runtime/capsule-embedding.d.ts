@@ -1,6 +1,6 @@
-import type { CapsuleReleaseContract } from '../../config/capsule-release-contract.js';
+import type { CapsuleReleaseContract } from "../../config/capsule/capsule-release-contract.js";
 import type { DopplerEmbeddingEvidence } from './model-session.js';
-import type { CapsuleReleaseAuthorization } from '../../config/capsule-release-events.js';
+import type { CapsuleReleaseAuthorization } from "../../config/capsule/capsule-release-events.js";
 
 export interface CapsuleEmbeddingRequest {
   application: CapsuleReleaseContract['application'];

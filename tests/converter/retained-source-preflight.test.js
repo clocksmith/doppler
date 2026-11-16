@@ -7,7 +7,7 @@ import { createHash } from 'node:crypto';
 import { createNodeConvertIO, createFileRangeReader } from '../../src/tooling/node-converter/output.js';
 import { appendRetainedSourceShards } from '../../src/converter/retained-source-shards.js';
 import { convertModel } from '../../src/converter/core.js';
-import { createConverterConfig } from '../../src/config/schema/converter.schema.js';
+import { createConverterConfig } from "../../src/config/schema/manifest/converter.schema.js";
 import { createNodeFileArtifactStorageContext } from '../../src/storage/artifact-storage-context.js';
 
 // Filesystems without links must still admit in-root source rows, and reject an

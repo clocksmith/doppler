@@ -52,10 +52,10 @@ export async function admitResidentProofs(config, identity, output) {
   if (!observation.completed || observation.numericPrototype !== null) throw new Error('Invalid original observation boundary');
   const originalFiles = new Map(source.files.map(file => [file.path, file.sha256]));
   for (const [file, sha] of [[observation.file, observation.originalSha256],
-    ['src/inference/pipelines/text/probes.js', observation.probeOriginalSha256],
-    ['src/inference/pipelines/text/generator.js', observation.logitObservation?.originalSha256],
-    ['src/inference/pipelines/text/generator-steps.js', observation.logitObservation?.originalStepsSha256],
-    ['src/inference/pipelines/text/generator/decode.js', observation.logitObservation?.originalDecodeSha256]]) {
+    ["src/inference/pipelines/text/observation/probes.js", observation.probeOriginalSha256],
+    ["src/inference/pipelines/text/generator/generator.js", observation.logitObservation?.originalSha256],
+    ["src/inference/pipelines/text/generator/generator-steps.js", observation.logitObservation?.originalStepsSha256],
+    ["src/inference/pipelines/text/generator/decode/decode.js", observation.logitObservation?.originalDecodeSha256]]) {
     if (!sha || originalFiles.get(file) !== sha) throw new Error(`Observer original-source binding failed: ${file}`);
   }
   const numerical = await read(binding.numerical, 'numerical');

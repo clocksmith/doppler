@@ -32,7 +32,7 @@ const {
   embed,
   resolveEmbeddingScale,
   selectPreloadedCpuEmbeddingValues,
-} = await import('../../src/inference/pipelines/text/embed.js');
+} = await import("../../src/inference/pipelines/text/embedding/embed.js");
 const { releaseBuffer } = await import('../../src/memory/buffer-pool.js');
 
 const fakeDevice = {

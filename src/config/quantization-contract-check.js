@@ -8,7 +8,7 @@ import {
   QK_K,
   padToQ4KBlock,
   q4kBlockCount,
-} from './schema/quantization.schema.js';
+} from "./schema/manifest/quantization.schema.js";
 
 const EXPECTED_CONSTANTS = Object.freeze({
   QK_K: 256,

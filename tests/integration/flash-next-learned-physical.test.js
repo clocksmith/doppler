@@ -10,7 +10,7 @@ import { destroyDevice, getDevice } from '../../src/gpu/device.js';
 import { releaseNodeWebGPU } from '../../src/tooling/node-webgpu.js';
 import { compareLearnedLayerCapture } from '../helpers/learned-layer-observation.js';
 import { createDefaultCaptureConfig } from '../../src/debug/capture-policy.js';
-import { buildOpId } from '../../src/inference/pipelines/text/operator-identity.js';
+import { buildOpId } from "../../src/inference/pipelines/text/execution/operator-identity.js";
 import { getBufferPool } from '../../src/memory/buffer-pool.js';
 import { checkLearnedLifecycle } from '../helpers/flash-next-lifecycle.js';
 import { observeLearnedQsa } from '../helpers/learned-qsa-observation.js';

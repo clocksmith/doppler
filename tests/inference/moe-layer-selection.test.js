@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { isMoELayer } from '../../src/inference/pipelines/text/ffn/types.js';
-import { isMoELayer as isMoELayerFromLayer } from '../../src/inference/pipelines/text/layer-input-execution.js';
+import { isMoELayer as isMoELayerFromLayer } from "../../src/inference/pipelines/text/execution/layer-input-execution.js";
 
 assert.equal(isMoELayerFromLayer, isMoELayer, 'layer execution re-exports the single MoE-layer test');
 

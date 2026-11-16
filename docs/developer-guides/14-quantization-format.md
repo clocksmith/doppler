@@ -15,8 +15,8 @@ Add a new weight quantization format from conversion through runtime execution.
 
 ## Required Touch Points
 
-- `src/config/schema/converter.schema.js`
-- `src/config/schema/manifest.schema.js` and `.d.ts`
+- `src/config/schema/manifest/converter.schema.js`
+- `src/config/schema/manifest/manifest.schema.js` and `.d.ts`
 - `src/converter/quantization-info.js`, `src/converter/conversion-plan.js`, and quantizer code under `src/converter/`
 - Loader code under `src/loader/`
 - Dequant or fused runtime kernels under `src/gpu/kernels/`
@@ -56,7 +56,7 @@ Add a new weight quantization format from conversion through runtime execution.
 ## Canonical References
 
 - [../conversion-runtime-contract.md](../conversion-runtime-contract.md)
-- `src/config/schema/converter.schema.js`
-- `src/config/schema/manifest.schema.d.ts`
+- `src/config/schema/manifest/converter.schema.js`
+- `src/config/schema/manifest/manifest.schema.d.ts`
 - `src/converter/quantization-info.js`
 - `tests/converter/quantizer.test.js`

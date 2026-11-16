@@ -34,8 +34,8 @@ import { runWithShaderSourceScope } from '../../gpu/kernels/shader-source-scope.
 import { createDopplerRun } from '../runtime/composition-root.js';
 import { createCapsuleArtifactBacking } from '../runtime/verified-capsule-artifact-store.js';
 import { createCapsuleProgramAdapter } from '../runtime/capsule-program-adapter.js';
-import { createResidentPartitionSession } from '../../inference/pipelines/text/resident-partition.js';
-import { resolveResidentPartitionAllocation } from '../../inference/pipelines/text/resident-partition-contract.js';
+import { createResidentPartitionSession } from "../../inference/pipelines/text/partitions/resident-partition.js";
+import { resolveResidentPartitionAllocation } from "../../inference/pipelines/text/partitions/resident-partition-contract.js";
 import { createCapsuleArtifactSource } from '../runtime/capsule-artifact-source.js';
 import { resolveProgramLoadRuntimeConfig } from '../../config/initial-execution-identity.js';
 import { normalizeTargetPlanSelectionPolicy } from '../../config/target-plan.js';

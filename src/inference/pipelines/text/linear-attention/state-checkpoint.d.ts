@@ -1,4 +1,4 @@
-import type { LinearAttentionRuntime, LinearLayerRuntimeState } from '../linear-attention.js';
+import type { LinearAttentionRuntime, LinearLayerRuntimeState } from "./linear-attention.js";
 export interface RecordedLinearAttentionCheckpoint {
   /** Capture in the owner's existing command buffer, before tentative updates. No submission or host wait. */
   recordCapture(encoder: GPUCommandEncoder): void;

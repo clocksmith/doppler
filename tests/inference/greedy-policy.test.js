@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { isGreedySampling } from '../../src/rules/greedy-sampling.js';
-import { shouldUseGreedyLmHeadArgmaxFusion } from '../../src/inference/pipelines/text/generator/greedy-head-policy.js';
+import { shouldUseGreedyLmHeadArgmaxFusion } from "../../src/inference/pipelines/text/generator/decode/greedy-head-policy.js";
 
 for (const [temperature, topK, threshold, expected] of [
   [0, 0, 0, true], [0, 40, 0, true], [0.8, 1, 0, true],

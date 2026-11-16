@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
-import { getActivationRepresentation } from '../../src/inference/pipelines/text/generator/activation-storage.js';
+import { getActivationRepresentation } from "../../src/inference/pipelines/text/generator/session/activation-storage.js";
 import { tensorElementBytes } from '../../src/gpu/tensor.js';
-import { extractEmbeddingFromHiddenGPU } from '../../src/inference/pipelines/text/embedding-extraction.js';
+import { extractEmbeddingFromHiddenGPU } from "../../src/inference/pipelines/text/embedding/embedding-extraction.js";
 const paired = { activationDtype: 'f32', activationPrecision: 'two-f32', activationComponents: 2, activationElementStrideBytes: 8 };
 const scalar = { activationDtype: 'f32' };
 const state = { executionPlanState: { activePlanId: 'primary', primaryPlan: paired, fallbackPlan: scalar } };

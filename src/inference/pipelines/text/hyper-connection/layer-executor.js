@@ -1,11 +1,11 @@
 import { createTensor } from '../../../../gpu/tensor.js';
 import { isGpuBufferInstance } from '../../../../gpu/weight-buffer.js';
-import { doAttention, releaseOrTrack } from '../ops.js';
-import { getWeightBuffer, getNormWeightBuffer } from '../weights.js';
-import { runLinearAttentionLayer } from '../linear-attention.js';
+import { doAttention, releaseOrTrack } from "../execution/ops.js";
+import { getWeightBuffer, getNormWeightBuffer } from "../loading/weights.js";
+import { runLinearAttentionLayer } from "../linear-attention/linear-attention.js";
 import { runMoEFFNGPU } from '../ffn/moe.js';
 import { validateAttnConfig } from '../attention/attn-config.js';
-import { runProbes } from '../probes.js';
+import { runProbes } from "../observation/probes.js";
 import { replicateEmbeddings, runHyperConnectionDecoderLayer } from './decoder-layer.js';
 import { createHyperConnectionProjection } from './projection.js';
 
@@ -15,7 +15,7 @@ export async function processHyperConnectionLayer(layerIdx, inputBuffer, numToke
   const hyper = config.hyperConnections ? { ...config.hyperConnections, normWeightOffset: config.rmsNormWeightOffset } : null;
   const resolvedRuntimeSession = context.resolvedRuntimeSession;
   const intermediatePrecision = config.sessionSettings.intermediatePrecision;
-  const weights = /** @type {import('../weights.js').LayerWeights | undefined} */ (context.weights.get(`layer_${layerIdx}`));
+  const weights = /** @type {import("../loading/weights.js").LayerWeights | undefined} */ (context.weights.get(`layer_${layerIdx}`));
   if (!hyper || !session || !weights?.hyperConnections || context.activationDtype !== 'f32'
     || context.activationPrecision || context.pipelinePlan || context.lora || context.skipKVCacheWrites
     || !resolvedRuntimeSession || intermediatePrecision !== 'f32') {
@@ -39,7 +39,7 @@ export async function processHyperConnectionLayer(layerIdx, inputBuffer, numToke
             layerIdx, executionPhase: context.phase ?? undefined, numTokens, hiddenSize: config.hiddenSize, config: { ...config, sessionSettings: { ...config.sessionSettings, intermediatePrecision } },
             currentSeqLen: context.currentSeqLen, activationDtype: input.dtype, kernelPath: context.kernelPath,
             linearRuntime: context.linearAttentionRuntime,
-            runtimeSession: /** @type {import('../linear-attention.js').RunLinearAttentionLayerOptions['runtimeSession']} */ (resolvedRuntimeSession.runtime.session),
+            runtimeSession: /** @type {import("../linear-attention/linear-attention.js").RunLinearAttentionLayerOptions['runtimeSession']} */ (resolvedRuntimeSession.runtime.session),
             getWeightBuffer, getNormWeightBuffer: (weight, label) => getNormWeightBuffer(weight, label, context.weightConfig, context.debugFlags),
             debugProbes: context.debugProbes, operatorDiagnostics: context.operatorDiagnostics, recorder: recorder ?? null,
           });

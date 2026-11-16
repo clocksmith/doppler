@@ -1,8 +1,8 @@
 import assert from 'node:assert/strict';
 import { registerHooks } from 'node:module';
-const owner = new URL('../../src/inference/pipelines/text/embedding-normalization.js', import.meta.url).href;
+const owner = new URL("../../src/inference/pipelines/text/embedding/embedding-normalization.js", import.meta.url).href;
 const calls = [];
-const embedOwner = new URL('../../src/inference/pipelines/text/embed.js', import.meta.url).href;
+const embedOwner = new URL("../../src/inference/pipelines/text/embedding/embed.js", import.meta.url).href;
 const released = [];
 class FakeBuffer {}
 globalThis.GPUBuffer = FakeBuffer;
@@ -10,16 +10,16 @@ globalThis.embeddingProbeState = {released, gather:{buffer:new FakeBuffer(),dtyp
   paired:{buffer:new FakeBuffer(),dtype:'f32',shape:[2,4],precision:'two-f32',components:2,elementStrideBytes:8}};
 globalThis.embeddingProbeTest = (...args) => { calls.push(args); };
 const hooks = registerHooks({resolve(name, context, next) {
-  if([owner,embedOwner].includes(context.parentURL) && name === './probes.js') return {
+  if([owner,embedOwner].includes(context.parentURL) && name === "../observation/probes.js") return {
     url:'data:text/javascript,export const runProbes=(...args)=>globalThis.embeddingProbeTest(...args)', shortCircuit:true,
   };
   if(context.parentURL === embedOwner) {
     const sources = {
-      '../../../gpu/device.js': 'export const getDevice=()=>({});export const getKernelCapabilities=()=>({hasF16:true})',
-      '../../../memory/buffer-pool.js': 'export const acquireBuffer=()=>{throw Error("unexpected allocation")};export const readBuffer=()=>{};export const releaseBuffer=b=>embeddingProbeState.released.push(b)',
-      '../../../gpu/kernels/gather.js': 'export const runGather=async()=>embeddingProbeState.gather;export const recordGather=runGather;export const runGatherSplit=runGather;export const recordGatherSplit=runGather',
-      '../../../gpu/kernels/scale.js': 'export const runScale=()=>{};export const recordScale=runScale',
-      '../../../gpu/kernels/paired-cast.js': 'export const expandF32ToPaired=async()=>embeddingProbeState.paired;export const recordExpandF32ToPaired=expandF32ToPaired',
+      "../../../../gpu/device.js": 'export const getDevice=()=>({});export const getKernelCapabilities=()=>({hasF16:true})',
+      "../../../../memory/buffer-pool.js": 'export const acquireBuffer=()=>{throw Error("unexpected allocation")};export const readBuffer=()=>{};export const releaseBuffer=b=>embeddingProbeState.released.push(b)',
+      "../../../../gpu/kernels/gather.js": 'export const runGather=async()=>embeddingProbeState.gather;export const recordGather=runGather;export const runGatherSplit=runGather;export const recordGatherSplit=runGather',
+      "../../../../gpu/kernels/scale.js": 'export const runScale=()=>{};export const recordScale=runScale',
+      "../../../../gpu/kernels/paired-cast.js": 'export const expandF32ToPaired=async()=>embeddingProbeState.paired;export const recordExpandF32ToPaired=expandF32ToPaired',
     };
     if(sources[name]) return {url:'data:text/javascript,'+encodeURIComponent(sources[name]),shortCircuit:true};
   }

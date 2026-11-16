@@ -24,20 +24,20 @@ import type { LayerWeights, ExpertWeights, RouterWeights, PipelineStats, Batchin
 import type { WeightBuffer, CpuWeightBuffer } from '../../../gpu/weight-buffer.js';
 import type { DopplerLoader } from '../../../loader/doppler-loader.js';
 import type { LoadedEmbeddingPostprocessor } from '../../../loader/final-weights-loader.js';
-import type { CompiledLayerPipeline } from './layer-plan.js';
-import type { ExecutionPlanState } from './execution-plan.js';
-import type { ExecutionV1CompiledState } from './execution-v1.js';
+import type { CompiledLayerPipeline } from "./execution/layer-plan.js";
+import type { ExecutionPlanState } from "./execution/execution-plan.js";
+import type { ExecutionV1CompiledState } from "./execution/execution-v1.js";
 import type { LoRAAdapter } from './lora.js';
 import type { RuntimeConfigSchema, KernelPathSchema } from '../../../config/schema/index.js';
-import type { WeightDebugFlags } from './weights.js';
+import type { WeightDebugFlags } from "./loading/weights.js";
 import type { LogitsDebugFlags } from './logits/index.js';
 import type { KernelPathSource } from '../../../config/kernel-path-loader.js';
 import type { EmulationContext, PipelineStorageContext } from './init.js';
-import type { LinearAttentionRuntime } from './linear-attention.js';
+import type { LinearAttentionRuntime } from "./linear-attention/linear-attention.js";
 import type { PerLayerInputWeights } from '../../../loader/loader-types.js';
 import type { CommandContext } from '../../../tooling/command-context.js';
 import type { ObservationContext } from '../../observation-context.js';
-import type { ResolvedRuntimeSession } from './resolved-runtime-session.js';
+import type { ResolvedRuntimeSession } from "./configuration/resolved-runtime-session.js";
 
 export class PipelineState {
   // Components
@@ -60,7 +60,7 @@ export class PipelineState {
   debugFlags: WeightDebugFlags & LogitsDebugFlags;
   decodeStepCount: number;
   wholeTokenProgram: {
-    program: import('./generator/whole-token-program.js').WholeTokenProgram;
+    program: import("./generator/whole-token/whole-token-program.js").WholeTokenProgram;
     advancers: Array<{ kind: 'kv'; owner: { seqLen: number }; layerIdx: number } | { kind: 'linear'; owner: { seqLen: number } }> | null;
     /** Position of the step 1 its kept program was verified for ahead of time, if any. */
     verifiedAhead?: number | null;
@@ -111,7 +111,7 @@ export class PipelineState {
 
   // RoPE frequency buffers (global for full_attention layers)
   ropeFreqsCos: Float32Array | GPUBuffer | null;
-  ropeFrequencyLease: import('./init-rope.js').GPURoPEBuffers | null;
+  ropeFrequencyLease: import("./initialization/init-rope.js").GPURoPEBuffers | null;
   ropeFreqsSin: Float32Array | GPUBuffer | null;
   // Local RoPE frequencies for sliding_attention layers (Gemma 3: 10K theta vs 1M global)
   ropeLocalCos: Float32Array | GPUBuffer | null;
@@ -133,7 +133,7 @@ export class PipelineState {
 
   // LoRA adapter (optional)
   lora: LoRAAdapter | null;
-  channelGainRequest: import('./channel-gain.js').ChannelGainRequest | null;
+  channelGainRequest: import("./generator/activation/channel-gain.js").ChannelGainRequest | null;
   revocationIdentity: {
     logicalModelId?: string | null;
     modelId?: string | null;

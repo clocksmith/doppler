@@ -387,7 +387,7 @@ await assert.rejects(forgeModelCapsule({ ...embeddingOptions, qualificationRepor
 console.log('forge-model-capsule: embedding qualification passed (synthetic reference)');
 
 // Entirely synthetic producer wiring. These records do not qualify a physical model.
-const partitionContract = await import('../../src/inference/pipelines/text/layer-partition-contract.js');
+const partitionContract = await import("../../src/inference/pipelines/text/execution/layer-partition-contract.js");
 const physicalManifest = JSON.parse(await fs.readFile(manifestPath, 'utf8'));
 const partitionPlan = partitionContract.createLayerPartitionPlan({ modelId: physicalManifest.modelId,
   ...physicalManifest.architecture, splitLayer: 1, activationDtype: 'f32' });

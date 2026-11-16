@@ -6,7 +6,7 @@ import path from 'node:path';
 import { applySourceTensorRules } from '../../src/converter/source-tensor-rules.js';
 import { appendRetainedSourceShards, partitionRetainedSourceTensors } from '../../src/converter/retained-source-shards.js';
 import { createFileRangeReader, createNodeConvertIO, normalizeExecutionConfig } from '../../src/tooling/node-converter/output.js';
-import { DEFAULT_CONVERTER_EXECUTION_CONFIG } from '../../src/config/schema/converter.schema.js';
+import { DEFAULT_CONVERTER_EXECUTION_CONFIG } from "../../src/config/schema/manifest/converter.schema.js";
 import { computeHash } from '../../src/storage/shards/integrity.js';
 import { ngramTablePartsFromTensorLocations } from '../../src/inference/pipelines/text/ngram/ngram-table.js';
 

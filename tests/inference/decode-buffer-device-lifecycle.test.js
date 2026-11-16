@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import { DecodeBufferManager } from '../../src/inference/decode-buffers.js';
 import { setDevice } from '../../src/gpu/device.js';
 import { CommandRecorder } from '../../src/gpu/command-recorder.js';
-import { attachPreparedDecodeWorkspace } from '../../src/inference/pipelines/text/execution-plan.js';
+import { attachPreparedDecodeWorkspace } from "../../src/inference/pipelines/text/execution/execution-plan.js";
 import { getBufferDevice } from '../../src/memory/device-residency.js';
 
 globalThis.GPUBufferUsage ??= { STORAGE: 128, COPY_DST: 8, COPY_SRC: 4 };

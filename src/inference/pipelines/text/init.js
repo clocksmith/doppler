@@ -1,4 +1,4 @@
-export { initRoPEFrequencies, isGPURoPEBuffers } from './init-rope.js';
+export { initRoPEFrequencies, isGPURoPEBuffers } from "./initialization/init-rope.js";
 export {
   applyChatTemplate,
   applyGemmaChatTemplate,
@@ -7,12 +7,12 @@ export {
   applyGptOssChatTemplate,
   applyQwenChatTemplate,
   isStopToken,
-} from './init-chat-templates.js';
-export { fuseQKVWeights } from './init-qkv-fusion.js';
-export { resolveWeightLoadingConfig, resolveQ4KConfig } from './weight-loading-config.js';
-export { initTokenizer } from './init-tokenizer.js';
+} from "./initialization/init-chat-templates.js";
+export { fuseQKVWeights } from "./initialization/init-qkv-fusion.js";
+export { resolveWeightLoadingConfig, resolveQ4KConfig } from "./loading/weight-loading-config.js";
+export { initTokenizer } from "./initialization/init-tokenizer.js";
 export { createKVCache } from './initialization/init-kv-cache.js';
-export { createNodeFileShardStorageContext, loadWeights } from './initialization/init-weights.js';
+export { createNodeFileShardStorageContext, loadWeights } from "./loading/init-weights.js";
 export { initMoERouter } from './initialization/init-moe.js';
 export { initSpeculativeDecoder } from './initialization/init-speculative.js';
 export { initEmulation, destroyEmulation } from './initialization/init-emulation.js';

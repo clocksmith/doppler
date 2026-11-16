@@ -1,58 +1,33 @@
-import {
-  doBiasAdd, doMatmul, doSiLU, doGeLU, doSiLURowSplit, doMatmulRMSNormFused,
-  releaseOrTrack
-} from '../ops.js';
-import { createTensor } from '../../../../gpu/tensor.js';
-import {
-  getWeightDtype,
-  isGpuBufferInstance,
-  isWeightBuffer,
-  resolveWeightBufferMaterialization,
-} from '../../../../gpu/weight-buffer.js';
-import { getDevice, getKernelCapabilities } from '../../../../gpu/device.js';
-import { getRuntimeConfig } from '../../../../config/runtime.js';
-import { acquireBuffer, releaseBuffer, readBuffer } from '../../../../memory/buffer-pool.js';
-import { runFusedFFN, recordFusedFFN, runFusedFFNFromRMSNormStats, recordFusedFFNFromRMSNormStats } from '../../../../gpu/kernels/fused_ffn.js';
-import { castF16ToF32, castF32ToF16, recordCastF16ToF32, recordCastF32ToF16 } from '../../../../gpu/kernels/cast.js';
-import { isFusedQ4KDisabled } from '../../../../gpu/kernels/matmul.js';
-import { log, trace, isTraceEnabled } from '../../../../debug/index.js';
-import { isKernelDebugEnabled, dumpTokenVector } from '../debug-utils/tensor.js';
-import { decodeReadback } from '../debug-utils/readback-decoding.js';
-import { getLogitsHealth } from '../debug-utils/health-metrics.js';
-import { shouldDebugLayerOutput } from '../debug-utils/config.js';
-import { applyLoRA } from '../lora-apply.js';
-import { getLoRAModule } from '../lora.js';
-import { getWeightBuffer, getNormWeightBuffer, getVectorTensor } from '../weights.js';
-import { runProbes } from '../probes.js';
-import { selectRuleValue } from '../../../../rules/rule-registry.js';
-import {
-  getKernelPathMatmulConstants,
-  getKernelPathMatmulPrecision,
-  getKernelPathMatmulVariant,
-} from '../../../../config/kernel-path-loader.js';
-import { resolveLayerIntermediateSize } from '../config.js';
-import { assertImplicitDtypeTransitionAllowed } from '../dtype-contract.js';
-import { canFuseSplitPrefillF16GateUpPath, hasQ4KMaterialization, resolveDenseFFNFusedPathDtypes, resolveDenseFFNMatmulStepDtype, resolveFusedGateUpPipelineConstants, resolveFusedGateUpVariant, resolveFusedGateUpWeights, resolveGateUpPathMode } from './dense-plan.js';
-import { coerceTensorDtype, dispatchActivation, dispatchFusedGateUp, requireFusedWeightDtype, resolveActivationOp, resolveMatmulStepDtype, runDenseUngatedFFNGPU } from './dense-executor.js';
-import { runPairedFFNGPU } from './paired.js';
-import { captureTrainingActivation, captureProjectionInput, enqueueRecordedDenseHealth } from './activation-observation.js';
-import { borrowDecodeFfnIntermediate } from './decode-intermediate.js';
+import { runFusedGateUpFFNGPU } from "./fused-gate-up.js";
+import { runPackedGateUpFFNGPU } from "./packed-gate-up.js";
+import { doMatmul, releaseOrTrack } from "../execution/ops.js";
+import { createTensor } from "../../../../gpu/tensor.js";
+import { getWeightDtype, isGpuBufferInstance, isWeightBuffer, resolveWeightBufferMaterialization } from "../../../../gpu/weight-buffer.js";
+import { getDevice, getKernelCapabilities } from "../../../../gpu/device.js";
+
+import { acquireBuffer, releaseBuffer } from "../../../../memory/buffer-pool.js";
+
+import { isFusedQ4KDisabled } from "../../../../gpu/kernels/matmul.js";
+import { log, trace } from "../../../../debug/index.js";
+import { isKernelDebugEnabled, dumpTokenVector } from "../debug-utils/tensor.js";
+
+import { applyLoRA } from "../lora-apply.js";
+import { getLoRAModule } from "../lora.js";
+import { getWeightBuffer } from "../loading/weights.js";
+import { runProbes } from "../observation/probes.js";
+import { selectRuleValue } from "../../../../rules/rule-registry.js";
+
+import { resolveLayerIntermediateSize } from "../config.js";
+
+import { canFuseSplitPrefillF16GateUpPath, resolveFusedGateUpWeights, resolveGateUpPathMode } from "./dense-plan.js";
+import { coerceTensorDtype, dispatchActivation, requireFusedWeightDtype, resolveMatmulStepDtype, runDenseUngatedFFNGPU } from "./dense-executor.js";
+import { runPairedFFNGPU } from "./paired.js";
+import { captureTrainingActivation, captureProjectionInput, enqueueRecordedDenseHealth } from "./activation-observation.js";
 
 // Lazily loaded once: each dynamic import() makes the browser re-walk the module graph.
 let fusedGateUpGeluModule = null;
 export { canUseNativeF16FusedGateUp, runDenseFFNWithFusedPostNormGPU } from './dense-executor.js';
 export { canFuseSplitPrefillF16GateUpPath, resolveDenseFFNFusedPathDtypes, resolveDenseFFNMatmulStepDtype, resolveFusedGateUpPipelineConstants, resolveFusedGateUpVariant, resolveFusedGateUpWeights, resolveGateUpPathMode } from './dense-plan.js';
-function isWideTileQ4KPhaseEnabled(session, phase) {
-  return phase === 'decode'
-    ? session?.useWideTileQ4KDecode === true
-    : session?.useWideTileQ4KPrefill === true;
-}
-function shouldMarkWideTileResidualFused(session, phase) {
-  return getKernelCapabilities().hasF16 === true
-    && session?.useWideTileResidualFusion === true
-    && session?.retainQ4KMaterialization === true
-    && isWideTileQ4KPhaseEnabled(session, phase);
-}
 
 export async function runDenseFFNGPU(
   layerIdx,
@@ -87,194 +62,23 @@ export async function runDenseFFNGPU(
   }
 
   if (layerWeights?.gateUp && layerWeights?.down) {
-    const gateUpWeight = getWeightBuffer(layerWeights.gateUp, 'ffn_gate_up');
-    const downWeight = getWeightBuffer(layerWeights.down, 'ffn_down');
-
-    const useF16 = inputTensor.dtype === 'f16';
-    const defaultMatmulOutputDtype = selectRuleValue('shared', 'dtype', 'f16OrFallbackByFlag', {
-      useF16,
-      fallback: inputTensor.dtype,
-    });
-    const matmulOutputDtype = resolveMatmulStepDtype(
-      'ffn_gate_up',
+    return runPackedGateUpFFNGPU({
+      layerWeights,
+      inputTensor,
       phase,
       layerIdx,
       kernelPath,
-      defaultMatmulOutputDtype,
-      'outputDtype',
-      ffnStepPrecision
-    );
-    const downOutputDtype = resolveMatmulStepDtype(
-      'ffn_down',
-      phase,
-      layerIdx,
-      kernelPath,
-      'f32',
-      'outputDtype',
-      ffnStepPrecision
-    );
-    let gateUpOutput = await doMatmul(
-      inputTensor, gateUpWeight,
-      numTokens, intermediateSize * 2, hiddenSize,
-      {
-        transposeB: 'auto',
-        label: `L${layerIdx}.ffn_gate_up`,
-        layerIdx,
-        kernelPath,
-        outputDtype: matmulOutputDtype,
-        role: 'ffn_gate_up',
-        executionPolicies: context.executionPolicies ?? null,
-      },
-      recorder
-    );
-
-    const loraGateUp = getLoRAModule(lora, layerIdx, 'gate_up_proj');
-    if (loraGateUp) {
-      const combined = await applyLoRA(
-        inputTensor,
-        gateUpOutput,
-        loraGateUp,
-        { M: numTokens, N: intermediateSize * 2, K: hiddenSize },
-        getWeightBuffer,
-        recorder,
-        { kernelPath }
-      );
-      if (combined.buffer !== gateUpOutput.buffer) {
-        if (recorder) {
-          recorder.trackTemporaryBuffer(gateUpOutput.buffer);
-        } else {
-          releaseBuffer(gateUpOutput.buffer);
-        }
-        gateUpOutput = combined;
-      }
-    }
-
-    if (isKernelDebugEnabled(layerIdx) && !recorder) {
-      await dumpTokenVector(gateUpOutput.buffer, 'ffn_gate_up', {
-        layerIdx,
-        tokenIdx: lastTokenIdx,
-        rowSize: intermediateSize * 2,
-        dtype: gateUpOutput.dtype,
-      });
-    }
-    enqueueRecordedDenseHealth(context, layerIdx, 'ffn_gate_up', gateUpOutput, numTokens * intermediateSize * 2);
-
-    if (!isGpuBufferInstance(layerWeights.gateUp) && !isWeightBuffer(layerWeights.gateUp)) {
-      releaseOrTrack(recorder, isWeightBuffer(gateUpWeight) ? gateUpWeight.buffer : gateUpWeight);
-    }
-
-    const activatedOutput = await doSiLURowSplit(gateUpOutput, {
+      ffnStepPrecision,
       numTokens,
-      dim: intermediateSize,
-      activation: resolveActivationOp(hiddenActivation),
-      swigluLimit,
-      label: `L${layerIdx}.ffn_activation`,
-      layerIdx,
-    }, recorder);
-
-    if (isKernelDebugEnabled(layerIdx) && !recorder) {
-      await dumpTokenVector(activatedOutput.buffer, 'ffn_activated', {
-        layerIdx,
-        tokenIdx: lastTokenIdx,
-        rowSize: intermediateSize,
-        dtype: activatedOutput.dtype,
-      });
-    }
-    enqueueRecordedDenseHealth(context, layerIdx, 'ffn_act', activatedOutput, numTokens * intermediateSize);
-    await captureTrainingActivation(context, layerIdx, activatedOutput, numTokens, intermediateSize);
-
-    if (recorder) {
-      recorder.trackTemporaryBuffer(gateUpOutput.buffer);
-    } else {
-      releaseBuffer(gateUpOutput.buffer);
-    }
-
-    // Opt-in WideTile+residual fusion: if the caller (processFFNStandard)
-    // staged a residual tensor on the context AND no LoRA is present on
-    // down_proj (LoRA requires the pre-residual output for its add), route
-    // this matmul to the q4_fused_widetile_residual variant which produces
-    // (ffn_down_result + residual) in one dispatch. Tell the caller via a
-    // context flag so processFFNStandard skips its downstream doResidualAdd.
-    const pendingResidual = context.__pendingFfnResidualTensor;
-    const downLoraProbe = getLoRAModule(lora, layerIdx, 'down_proj');
-    const mergedSession = getRuntimeConfig().inference?.session;
-    const tryFuseDownResidual = pendingResidual != null
-      && !downLoraProbe
-      && activatedOutput.dtype === 'f32'
-      && downOutputDtype === 'f32'
-      && pendingResidual.dtype === 'f32';
-    let residualFusedHere = false;
-    await captureProjectionInput(context, layerIdx, activatedOutput, numTokens, intermediateSize);
-    let output = await doMatmul(
-      activatedOutput, downWeight,
-      numTokens, hiddenSize, intermediateSize,
-      {
-        transposeB: 'auto',
-        label: `L${layerIdx}.ffn_down`,
-        layerIdx,
-        kernelPath,
-        outputDtype: downOutputDtype,
-        role: 'ffn_down',
-        executionPolicies: context.executionPolicies ?? null,
-        residualTensor: tryFuseDownResidual ? pendingResidual : null,
-      },
-      recorder
-    );
-    // Detect whether the fusion fired: if the selected variant for ffn_down
-    // matmul was q4_fused_widetile_residual, then output IS post-residual.
-    // We infer this cheaply by re-checking the conditions the selector uses.
-    // (A cleaner signal would require a return-shape change across all
-    // dense.js paths; this local signal is enough for correctness.)
-    {
-      if (tryFuseDownResidual
-          && shouldMarkWideTileResidualFused(mergedSession, phase)
-      ) {
-        residualFusedHere = true;
-        context.__ffnResidualFusedFired = true;
-      }
-    }
-
-    const loraDown = getLoRAModule(lora, layerIdx, 'down_proj');
-    if (loraDown) {
-      const combined = await applyLoRA(
-        activatedOutput,
-        output,
-        loraDown,
-        { M: numTokens, N: hiddenSize, K: intermediateSize },
-        getWeightBuffer,
-        recorder,
-        { kernelPath }
-      );
-      if (combined.buffer !== output.buffer) {
-        if (recorder) {
-          recorder.trackTemporaryBuffer(output.buffer);
-        } else {
-          releaseBuffer(output.buffer);
-        }
-        output = combined;
-      }
-    }
-
-    if (isKernelDebugEnabled(layerIdx) && !recorder) {
-      await dumpTokenVector(output.buffer, 'ffn_down_out', {
-        layerIdx,
-        tokenIdx: lastTokenIdx,
-        rowSize: hiddenSize,
-        dtype: output.dtype,
-      });
-    }
-    enqueueRecordedDenseHealth(context, layerIdx, 'ffn_down', output, numTokens * hiddenSize);
-
-    if (!isGpuBufferInstance(layerWeights.down) && !isWeightBuffer(layerWeights.down)) {
-      releaseOrTrack(recorder, isWeightBuffer(downWeight) ? downWeight.buffer : downWeight);
-    }
-    if (recorder) {
-      recorder.trackTemporaryBuffer(activatedOutput.buffer);
-    } else {
-      releaseBuffer(activatedOutput.buffer);
-    }
-
-    return output;
+      intermediateSize,
+      hiddenSize,
+      context,
+      recorder,
+      lora,
+      lastTokenIdx,
+      hiddenActivation,
+      swigluLimit
+    });
   }
 
   const hasGate = Boolean(layerWeights?.gate);
@@ -354,169 +158,25 @@ export async function runDenseFFNGPU(
 
   if (channelGain && useFusedGateUp) throw new Error('Channel gain requires an explicit split gate/up execution path.');
   if (useFusedGateUp) {
-    const {
-      fusedGateUpInputDtype,
-      downInputDtype,
-    } = resolveDenseFFNFusedPathDtypes({
+    return runFusedGateUpFFNGPU({
       phase,
       layerIdx,
       kernelPath,
       ffnStepPrecision,
-      fallbackInputDtype: inputTensor.dtype,
-      fallbackOutputDtype: defaultMatmulOutputDtype,
-    });
-    const gateWeight = getWeightBuffer(fusedGateUpWeights.gate ?? layerWeights.gate, 'ffn_gate');
-    const upWeight = getWeightBuffer(fusedGateUpWeights.up ?? layerWeights.up, 'ffn_up');
-    const downWeight = getWeightBuffer(layerWeights.down, 'ffn_down');
-    const fusedRuntimeSession = context.resolvedRuntimeSession?.runtime?.session;
-    const fusedGateUpPipelineConstants = resolveFusedGateUpPipelineConstants({
-      runtimeSession: fusedRuntimeSession,
-      kernelPath,
-      phase,
-      layerIdx,
-    });
-    const fusedGateUpVariant = resolveFusedGateUpVariant({ phase, runtimeSession: fusedRuntimeSession });
-    const fusedDownOutputDtype = resolveMatmulStepDtype(
-      'ffn_down',
-      phase,
-      layerIdx,
-      kernelPath,
-      'f32',
-      'outputDtype',
-      ffnStepPrecision
-    );
-    let fusedInput = inputTensor;
-    let fusedInputOwned = false;
-    if (fusedGateUpInputDtype && fusedGateUpInputDtype !== inputTensor.dtype) {
-      fusedInput = await coerceTensorDtype(inputTensor, fusedGateUpInputDtype, recorder, {
-        executionPolicies: context.executionPolicies ?? null,
-        op: 'ffn_gate_up_input',
-        transitionDeclaredBy: 'step_precision',
-      });
-      fusedInputOwned = fusedInput !== inputTensor;
-    }
-    const fusedOutput = await dispatchFusedGateUp({
-      inputTensor: fusedInput, gateWeight, upWeight, gateDtype,
-      hiddenSize, intermediateSize, numTokens,
-      hiddenActivation, swigluLimit, recorder, layerIdx,
-      executionPolicies: context.executionPolicies ?? null,
-      normStats: context.__pendingFfnInputNormStats ?? null,
-      pipelineConstants: fusedGateUpPipelineConstants,
-      variant: fusedGateUpVariant,
-      outputBuffer: borrowDecodeFfnIntermediate(context, numTokens, intermediateSize, fusedInput.dtype),
-    });
-    await runProbes('ffn_act', fusedOutput.buffer, {
-      layerIdx,
-      numTokens,
-      hiddenSize: intermediateSize,
-      probes: context.debugProbes,
+      inputTensor,
+      defaultMatmulOutputDtype,
+      fusedGateUpWeights,
+      layerWeights,
+      context,
       recorder,
-      operatorDiagnostics: context.operatorDiagnostics,
-      dtype: fusedOutput.dtype,
-    });
-    enqueueRecordedDenseHealth(context, layerIdx, 'ffn_fused_gate_up', fusedOutput, numTokens * intermediateSize);
-    await captureTrainingActivation(context, layerIdx, fusedOutput, numTokens, intermediateSize);
-
-    let downInput = fusedOutput;
-    if (downInputDtype && fusedOutput.dtype !== downInputDtype) {
-      downInput = await coerceTensorDtype(fusedOutput, downInputDtype, recorder, {
-        executionPolicies: context.executionPolicies ?? null,
-        op: 'ffn_down_input',
-        transitionDeclaredBy: 'step_precision',
-      });
-      if (recorder) {
-        recorder.trackTemporaryBuffer(downInput.buffer);
-      }
-    }
-
-    if (!isGpuBufferInstance(layerWeights.gate) && !isWeightBuffer(layerWeights.gate)) {
-      releaseOrTrack(recorder, isWeightBuffer(gateWeight) ? gateWeight.buffer : gateWeight);
-    }
-    if (!isGpuBufferInstance(layerWeights.up) && !isWeightBuffer(layerWeights.up)) {
-      releaseOrTrack(recorder, isWeightBuffer(upWeight) ? upWeight.buffer : upWeight);
-    }
-
-    // Opt-in WideTile+residual fusion (fused-gate-up path).
-    const pendingResidualFused = context.__pendingFfnResidualTensor;
-    const downLoraProbeFused = getLoRAModule(lora, layerIdx, 'down_proj');
-    const mergedSessionFused = getRuntimeConfig().inference?.session;
-    const tryFuseDownResidualFused = pendingResidualFused != null
-      && !downLoraProbeFused
-      && downInput.dtype === 'f32'
-      && fusedDownOutputDtype === 'f32'
-      && pendingResidualFused.dtype === 'f32';
-    await captureProjectionInput(context, layerIdx, downInput, numTokens, intermediateSize);
-    let output = await doMatmul(
-      downInput,
-      downWeight,
-      numTokens,
+      gateDtype,
       hiddenSize,
       intermediateSize,
-      {
-        transposeB: 'auto',
-        label: `L${layerIdx}.ffn_down`,
-        layerIdx,
-        kernelPath,
-        outputDtype: fusedDownOutputDtype,
-        role: 'ffn_down',
-        executionPolicies: context.executionPolicies ?? null,
-        residualTensor: tryFuseDownResidualFused ? pendingResidualFused : null,
-      },
-      recorder
-    );
-    enqueueRecordedDenseHealth(context, layerIdx, 'ffn_down', output, numTokens * hiddenSize);
-    {
-      if (tryFuseDownResidualFused
-          && shouldMarkWideTileResidualFused(mergedSessionFused, phase)
-      ) {
-        context.__ffnResidualFusedFired = true;
-      }
-    }
-
-    const loraDown = getLoRAModule(lora, layerIdx, 'down_proj');
-    if (loraDown) {
-      const combined = await applyLoRA(
-        downInput,
-        output,
-        loraDown,
-        { M: numTokens, N: hiddenSize, K: intermediateSize },
-        getWeightBuffer,
-        recorder,
-        { kernelPath }
-      );
-      if (combined.buffer !== output.buffer) {
-        if (recorder) {
-          recorder.trackTemporaryBuffer(output.buffer);
-        } else {
-          releaseBuffer(output.buffer);
-        }
-        output = combined;
-      }
-    }
-
-    if (!isGpuBufferInstance(layerWeights.down) && !isWeightBuffer(layerWeights.down)) {
-      releaseOrTrack(recorder, isWeightBuffer(downWeight) ? downWeight.buffer : downWeight);
-    }
-
-    if (recorder) {
-      if (downInput !== fusedOutput) {
-        recorder.trackTemporaryBuffer(downInput.buffer);
-      }
-      if (fusedInputOwned) {
-        recorder.trackTemporaryBuffer(fusedInput.buffer);
-      }
-      releaseOrTrack(recorder, fusedOutput.buffer, context.decodeBuffers);
-    } else {
-      if (downInput !== fusedOutput) {
-        releaseBuffer(downInput.buffer);
-      }
-      if (fusedInputOwned) {
-        releaseBuffer(fusedInput.buffer);
-      }
-      releaseOrTrack(null, fusedOutput.buffer, context.decodeBuffers);
-    }
-
-    return output;
+      numTokens,
+      hiddenActivation,
+      swigluLimit,
+      lora
+    });
   }
 
   if (context.__pendingFfnInputNormStats) {

@@ -6,8 +6,8 @@ import { mergeRuntimeValues } from '../../config/runtime-merge.js';
 import { extractExecutionContractFacts } from '../../config/execution-contract-check.js';
 import { validateKernelPath } from '../../config/kernel-path-loader.js';
 import { DEFAULT_RUNTIME_CONFIG, expandExecutionV1 } from '../../config/schema/index.js';
-import { compileExecutionPlanState } from '../../inference/pipelines/text/execution-plan.js';
-import { compileExecutionV1, hasExecutionV1 } from '../../inference/pipelines/text/execution-v1.js';
+import { compileExecutionPlanState } from "../../inference/pipelines/text/execution/execution-plan.js";
+import { compileExecutionV1, hasExecutionV1 } from "../../inference/pipelines/text/execution/execution-v1.js";
 import {
   assertKernelPathSessionCompatibility,
   buildInlineKernelPath,
@@ -16,7 +16,7 @@ import {
   normalizeDtype,
   requireSessionActivationDtype,
   stepHasLayer,
-} from '../../inference/pipelines/text/execution-runtime-builders.js';
+} from "../../inference/pipelines/text/execution/execution-runtime-builders.js";
 import { buildCustomRuntimeFacts } from './custom-runtime-facts.js';
 import {
   aggregateTopDecodeTimers,

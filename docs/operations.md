@@ -840,7 +840,7 @@ await recorder.submitAndWait();
 | `gpu/command-recorder.js` | Batched command recording |
 | `gpu/submit-tracker.js` | GPU submit statistics |
 | `src/inference/pipelines/text.js` | Forward pass orchestration |
-| `src/inference/pipelines/text/layer.js` | do* wrappers for run/record variants |
+| `src/inference/pipelines/text/execution/layer.js` | do* wrappers for run/record variants |
 
 ---
 
@@ -875,7 +875,7 @@ When debugging DOPPLER issues:
 | File | Debug Focus |
 |------|-------------|
 | `src/inference/pipelines/text.js` | Overall flow, token loop |
-| `src/inference/pipelines/text/layer.js` | Per-layer processing |
+| `src/inference/pipelines/text/execution/layer.js` | Per-layer processing |
 | `src/inference/pipelines/text/attention/` | KV cache, RoPE, attention |
 | `src/inference/pipelines/text/ffn/` | FFN activation gating |
 | `src/gpu/kernels/*.js` | Kernel selection and dispatch |

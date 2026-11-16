@@ -1,6 +1,6 @@
 import type { Tensor } from '../tensor.js';
 import type { LinearAttentionCoreLayerState, RunLinearAttentionCoreGPUOptions } from './linear-attention-core.js';
-import type { LinearNormGateActivation } from '../../config/schema/inference.schema.js';
+import type { LinearNormGateActivation } from "../../config/schema/execution/inference.schema.js";
 import type { KernelPipelineRequest } from './pipeline-cache.js';
 /**
  * The nine pipelines executePairedLinearAttention dispatches, in dispatch order.

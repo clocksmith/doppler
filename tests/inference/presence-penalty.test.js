@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
-import { resolveSamplingConfig } from '../../src/inference/pipelines/text/sampling-config.js';
-import { applyPresencePenalty } from '../../src/inference/pipelines/text/sampling.js';
+import { resolveSamplingConfig } from "../../src/inference/pipelines/text/generator/sampling/sampling-config.js";
+import { applyPresencePenalty } from "../../src/inference/pipelines/text/generator/sampling/sampling.js";
 
 const runtimeConfig = {
   inference: {

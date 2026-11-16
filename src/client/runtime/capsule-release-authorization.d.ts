@@ -1,4 +1,4 @@
-import type { CapsuleReleaseAuthorization } from '../../config/capsule-release-events.js';
+import type { CapsuleReleaseAuthorization } from "../../config/capsule/capsule-release-events.js";
 export declare function createCapsuleReleaseAuthorization(lifecycle: { authorization: CapsuleReleaseAuthorization } | null): {
   receiptFields: { releaseAuthorization?: CapsuleReleaseAuthorization };
   assertAssignment(assignment: unknown): void;

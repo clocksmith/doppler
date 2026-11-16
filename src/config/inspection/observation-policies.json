@@ -1,5 +1,5 @@
 {
-  "$schema": "../schema/observation-policy-registry.schema.json",
+  "$schema": "../schema/policy/observation-policy-registry.schema.json",
   "schema": "doppler.observation-policy-registry/v1",
   "defaultPolicyId": "demo/always-on",
   "policies": [

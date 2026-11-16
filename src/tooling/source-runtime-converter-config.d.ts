@@ -1,6 +1,6 @@
-import type { ConverterConfigSchema } from '../config/schema/converter.schema.js';
-import type { ManifestInferenceSchema } from '../config/schema/manifest.schema.js';
-import type { ConverterManifestConfigSchema } from '../config/schema/converter.schema.js';
+import type { ConverterConfigSchema } from "../config/schema/manifest/converter.schema.js";
+import type { ManifestInferenceSchema } from "../config/schema/manifest/manifest.schema.js";
+import type { ConverterManifestConfigSchema } from "../config/schema/manifest/converter.schema.js";
 
 export declare function createSourceRuntimeInference(rawConfig?: Record<string, unknown> | null): ManifestInferenceSchema;
 

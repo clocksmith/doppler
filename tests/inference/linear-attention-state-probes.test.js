@@ -3,7 +3,7 @@ import { readFile } from 'node:fs/promises';
 
 // The actual observation adapter runs with a stubbed probe transport. This is
 // ownership/geometry coverage, not GPU execution or evidence of a state fix.
-const source = await readFile(new URL('../../src/inference/pipelines/text/linear-attention.js', import.meta.url), 'utf8');
+const source = await readFile(new URL("../../src/inference/pipelines/text/linear-attention/linear-attention.js", import.meta.url), 'utf8');
 const start = source.indexOf('async function observeLinearAttentionState(');
 const end = source.indexOf('async function syncLayerRuntimeStateFromGPU(', start);
 assert(start >= 0 && end > start);

@@ -1,5 +1,5 @@
 import { createVerifiedPieceReader } from '../../storage/verified-piece-reader.js';
-import { normalizeCapsuleLoadingPolicy } from '../../config/capsule-loading.js';
+import { normalizeCapsuleLoadingPolicy } from "../../config/capsule/capsule-loading.js";
 import { createCapsuleLoadScope, waitForCapsuleRead } from './capsule-acquisition.js';
 
 /** Internal adapter: signed metadata authenticates piece identities, never the host reader.

@@ -3,7 +3,7 @@ import { applyPipelineContexts, restorePipelineContexts } from '../context.js';
 import { createInitializedPipeline } from '../factory.js';
 import { registerPipeline } from '../registry.js';
 import { InferencePipeline } from '../text/pipeline.js';
-import { initTokenizerFromManifest } from '../text/model-load.js';
+import { initTokenizerFromManifest } from "../text/loading/model-load.js";
 import { parseDiffusionGemmaConfig } from './config.js';
 import { createSeededRandom, denoiseCanvas, denoiseCanvasWithStatsProvider } from './sampling.js';
 

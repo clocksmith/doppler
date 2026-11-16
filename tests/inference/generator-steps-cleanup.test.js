@@ -2,9 +2,11 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 
 const generatorStepsSource = [
-  '../../src/inference/pipelines/text/generator-steps.js',
-  '../../src/inference/pipelines/text/generator/decode-step.js',
-  '../../src/inference/pipelines/text/generator/decode-mechanics.js',
+  "../../src/inference/pipelines/text/generator/decode/batch-generation.js",
+  "../../src/inference/pipelines/text/generator/decode/batch-readback.js",
+  "../../src/inference/pipelines/text/generator/decode/advance-token.js",
+  "../../src/inference/pipelines/text/generator/decode/decode-step.js",
+  "../../src/inference/pipelines/text/generator/decode/decode-mechanics.js",
 ].map((relativePath) => readFileSync(new URL(relativePath, import.meta.url), 'utf8')).join('\n');
 
 globalThis.GPUMapMode = {
@@ -19,8 +21,8 @@ const {
   readBatchTokensFromStagingBuffers,
   resolveBatchStop,
   shouldUseFusedDecodeSampling,
-} = await import('../../src/inference/pipelines/text/generator-steps.js');
-const { emitObservedLogits } = await import('../../src/inference/pipelines/text/generator-logits-observation.js');
+} = await import("../../src/inference/pipelines/text/generator/generator-steps.js");
+const { emitObservedLogits } = await import("../../src/inference/pipelines/text/observation/generator-logits-observation.js");
 
 {
   const calls = [];

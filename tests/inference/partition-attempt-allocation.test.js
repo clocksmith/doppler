@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { registerHooks } from 'node:module';
 
-const target = new URL('../../src/inference/pipelines/text/partition-attempt.js', import.meta.url).href;
+const target = new URL("../../src/inference/pipelines/text/partitions/partition-attempt.js", import.meta.url).href;
 const allocations = [];
 globalThis.partitionCacheAllocation = (config, range) => {
   const cache = { maxSeqLen: config.session.kvcache.maxSeqLen, destroyed: false,
@@ -9,9 +9,9 @@ globalThis.partitionCacheAllocation = (config, range) => {
   allocations.push({ config, range, cache }); return cache;
 };
 const modules = {
-  './init.js': 'export const createKVCache = (_model, _gpu, _debug, config, range) => partitionCacheAllocation(config, range);',
+  "../init.js": 'export const createKVCache = (_model, _gpu, _debug, config, range) => partitionCacheAllocation(config, range);',
   './partition-execution.js': 'export const assertPartitionExecutionSupported = () => {};',
-  './layer-partition-contract.js': 'export const resolveLayerPartition = () => ({layerRange:[12,23]});',
+  "../execution/layer-partition-contract.js": 'export const resolveLayerPartition = () => ({layerRange:[12,23]});',
 };
 const hooks = registerHooks({ resolve(specifier, context, next) {
   if (context.parentURL === target && modules[specifier]) return {

@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { BufferPool, BufferUsage } from '../../src/memory/buffer-pool.js';
-import { DEFAULT_BUFFER_POOL_CONFIG } from '../../src/config/schema/buffer-pool.schema.js';
+import { DEFAULT_BUFFER_POOL_CONFIG } from "../../src/config/schema/runtime/buffer-pool.schema.js";
 import { setDeviceMemoryBudget, getDeviceMemorySnapshot } from '../../src/memory/device-budget.js';
 
 function fixture(hardFailOnBudgetExceeded) {

@@ -14,7 +14,7 @@ import {
 import {
   CAPSULE_V0_DEVELOPMENT_AUTHORITY,
   CAPSULE_V0_TRUSTED_SIGNERS,
-} from '../src/config/capsule-v0-trusted-signers.js';
+} from "../src/config/capsule/capsule-v0-trusted-signers.js";
 
 const DEVELOPMENT_PRIVATE_KEY_PATH = fileURLToPath(
   new URL('./fixtures/capsule-v0-development-signing-private.jwk.json', import.meta.url)

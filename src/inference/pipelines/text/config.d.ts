@@ -18,12 +18,12 @@ import type {
   ArchitectureSchema,
   LinearNormMode,
 } from '../../../config/schema/index.js';
-import type { LinearNormGateActivation } from '../../../config/schema/inference.schema.js';
+import type { LinearNormGateActivation } from "../../../config/schema/execution/inference.schema.js";
 import type { MergedConfig, RuntimeInferenceOverrides } from '../../../config/merge.js';
-import type { ExecutionV1PerLayerInputsSessionSchema } from '../../../config/schema/execution-v1.schema.js';
-import type { HyperConnectionDecoderContracts } from '../../../config/schema/hyper-connection-decoder.schema.js';
+import type { ExecutionV1PerLayerInputsSessionSchema } from "../../../config/schema/execution/execution-v1.schema.js";
+import type { HyperConnectionDecoderContracts } from "../../../config/schema/execution/hyper-connection-decoder.schema.js";
 import type { RuntimeModelContract } from '../../runtime-model.js';
-import type { WeightlessEmbeddingNormalization } from './embedding-contract.js';
+import type { WeightlessEmbeddingNormalization } from "./embedding/embedding-contract.js";
 
 export type ActivationType = 'silu' | 'gelu';
 export type ParsedLayerType =

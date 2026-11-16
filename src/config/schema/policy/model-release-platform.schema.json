@@ -1,0 +1,620 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://doppler.local/schemas/model-release-platform.schema.json",
+  "title": "Doppler model release platform contract",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "$schema",
+    "schemaVersion",
+    "contractVersion",
+    "id",
+    "architecture",
+    "modelIR",
+    "capsule",
+    "providers",
+    "apiConvergence",
+    "recovery",
+    "releaseContract",
+    "referenceIntegrations",
+    "promotionSequence",
+    "compatibilityGraph",
+    "dataCustody",
+    "claimBoundary",
+    "adoptionGate",
+    "networkAcceptance",
+    "promotionSequenceScope",
+    "standaloneAdoptionGate"
+  ],
+  "properties": {
+    "$schema": {
+      "type": "string",
+      "const": "../../src/config/schema/policy/model-release-platform.schema.json"
+    },
+    "schemaVersion": {
+      "type": "integer",
+      "const": 7
+    },
+    "contractVersion": {
+      "type": "string",
+      "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$"
+    },
+    "id": {
+      "type": "string",
+      "const": "doppler-model-release-platform"
+    },
+    "architecture": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "authorityPaths",
+        "invariant",
+        "forgeStages",
+        "runtimeSteps",
+        "runtimeForbidden"
+      ],
+      "properties": {
+        "authorityPaths": {
+          "$ref": "#/$defs/pathList"
+        },
+        "invariant": {
+          "type": "string",
+          "minLength": 1
+        },
+        "forgeStages": {
+          "$ref": "#/$defs/idList"
+        },
+        "runtimeSteps": {
+          "$ref": "#/$defs/idList"
+        },
+        "runtimeForbidden": {
+          "$ref": "#/$defs/stringList"
+        }
+      }
+    },
+    "modelIR": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "authorityPaths",
+        "requirements"
+      ],
+      "properties": {
+        "authorityPaths": {
+          "$ref": "#/$defs/pathList"
+        },
+        "requirements": {
+          "$ref": "#/$defs/idList"
+        }
+      }
+    },
+    "capsule": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "authorityPaths",
+        "authoritativeFor",
+        "requiredReleaseElements"
+      ],
+      "properties": {
+        "authorityPaths": {
+          "$ref": "#/$defs/pathList"
+        },
+        "authoritativeFor": {
+          "$ref": "#/$defs/idList"
+        },
+        "requiredReleaseElements": {
+          "type": "array",
+          "minItems": 12,
+          "items": {
+            "$ref": "#/$defs/trackedRequirement"
+          }
+        }
+      }
+    },
+    "providers": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "selectionLaw",
+        "runtimeMayInventPlan",
+        "doeRequired",
+        "targets"
+      ],
+      "properties": {
+        "selectionLaw": {
+          "type": "string",
+          "const": "qualified-only"
+        },
+        "runtimeMayInventPlan": {
+          "type": "boolean",
+          "const": false
+        },
+        "doeRequired": {
+          "type": "boolean",
+          "const": false
+        },
+        "targets": {
+          "type": "array",
+          "minItems": 6,
+          "items": {
+            "$ref": "#/$defs/provider"
+          }
+        }
+      }
+    },
+    "apiConvergence": {
+      "type": "array",
+      "minItems": 6,
+      "items": {
+        "$ref": "#/$defs/apiSurface"
+      }
+    },
+    "recovery": {
+      "type": "array",
+      "minItems": 3,
+      "items": {
+        "$ref": "#/$defs/trackedRequirement"
+      }
+    },
+    "releaseContract": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "promise",
+        "applicationClasses",
+        "intake",
+        "deliverables",
+        "activationAuthority",
+        "selfPromotionAllowed"
+      ],
+      "properties": {
+        "promise": {
+          "type": "string",
+          "minLength": 1
+        },
+        "applicationClasses": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "const": "electron-reranking"
+          }
+        },
+        "intake": {
+          "$ref": "#/$defs/stringList"
+        },
+        "deliverables": {
+          "$ref": "#/$defs/stringList"
+        },
+        "activationAuthority": {
+          "type": "string",
+          "const": "customer-controlled"
+        },
+        "selfPromotionAllowed": {
+          "type": "boolean",
+          "const": false
+        }
+      }
+    },
+    "referenceIntegrations": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "classification",
+        "externalAdoptionEvidence",
+        "commercialDemandEvidence",
+        "integrations"
+      ],
+      "properties": {
+        "classification": {
+          "type": "string",
+          "const": "Internally controlled reference integrations proving application-integration mechanics."
+        },
+        "externalAdoptionEvidence": {
+          "type": "boolean",
+          "const": false
+        },
+        "commercialDemandEvidence": {
+          "type": "boolean",
+          "const": false
+        },
+        "integrations": {
+          "type": "array",
+          "minItems": 3,
+          "maxItems": 3,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "id",
+              "workload"
+            ],
+            "properties": {
+              "id": {
+                "$ref": "#/$defs/id"
+              },
+              "workload": {
+                "type": "string",
+                "enum": [
+                  "generation",
+                  "embedding",
+                  "reranking"
+                ]
+              }
+            }
+          }
+        }
+      }
+    },
+    "promotionSequence": {
+      "type": "array",
+      "minItems": 8,
+      "maxItems": 8,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "order",
+          "id",
+          "gate",
+          "completionState",
+          "evidencePaths",
+          "blockerCode"
+        ],
+        "properties": {
+          "order": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 8
+          },
+          "id": {
+            "$ref": "#/$defs/id"
+          },
+          "gate": {
+            "type": "string",
+            "minLength": 1
+          },
+          "completionState": {
+            "type": "string",
+            "enum": [
+              "implemented",
+              "external-evidence-required"
+            ]
+          },
+          "evidencePaths": {
+            "$ref": "#/$defs/pathList"
+          },
+          "blockerCode": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/$defs/id"
+              }
+            ]
+          }
+        }
+      }
+    },
+    "compatibilityGraph": {
+      "$ref": "#/$defs/idList"
+    },
+    "dataCustody": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "defaultRule",
+        "shareableClasses"
+      ],
+      "properties": {
+        "defaultRule": {
+          "type": "string",
+          "minLength": 1
+        },
+        "shareableClasses": {
+          "$ref": "#/$defs/stringList"
+        }
+      }
+    },
+    "claimBoundary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "goalStateAuthority",
+        "forbiddenInferences"
+      ],
+      "properties": {
+        "goalStateAuthority": {
+          "$ref": "#/$defs/path"
+        },
+        "forbiddenInferences": {
+          "$ref": "#/$defs/stringList"
+        }
+      }
+    },
+    "adoptionGate": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "primary",
+        "requiredEvidence",
+        "p2pRequired",
+        "paymentRequired",
+        "goalId"
+      ],
+      "properties": {
+        "primary": {
+          "const": true
+        },
+        "requiredEvidence": {
+          "const": [
+            "unrelated-maintainer-acceptance",
+            "application-owned-outcome-improvement",
+            "parity-qualified-incumbent-comparison",
+            "customer-operated-devices",
+            "rejected-candidate-and-recovery",
+            "retained-use",
+            "second-revision-less-release-effort"
+          ]
+        },
+        "p2pRequired": {
+          "const": false
+        },
+        "paymentRequired": {
+          "const": false
+        },
+        "goalId": {
+          "const": "local-webgpu-product-surface"
+        }
+      }
+    },
+    "networkAcceptance": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "goalId",
+        "firstModelId",
+        "operation",
+        "requiredEvidence",
+        "paymentRequired",
+        "doeRequired",
+        "agentCapsuleImprovementRequired",
+        "electronCustomerRequired",
+        "privateInputDefault",
+        "redistribution",
+        "delegation",
+        "protocols"
+      ],
+      "properties": {
+        "goalId": {
+          "const": "open-execution-network"
+        },
+        "firstModelId": {
+          "const": "esm2-t12-35m-ur50d-f32-af32"
+        },
+        "operation": {
+          "const": "encodeSequence"
+        },
+        "requiredEvidence": {
+          "const": [
+            "actual-signed-esm2-capsule-and-weights",
+            "public-open-capsule-encode-sequence",
+            "local-execution-without-delegation",
+            "explicit-complete-job-delegation",
+            "authorized-optional-redistribution",
+            "independent-machines-and-operator-provenance",
+            "fresh-receiver-origin-and-mirrors-disabled",
+            "multi-source-reconstruction",
+            "corruption-rejection-and-participant-loss-recovery",
+            "frozen-public-sequence-corpus-and-correctness-oracle",
+            "assignment-bound-accepted-useful-results",
+            "connected-capsule-assignment-receipt-lineage",
+            "admitted-history-before-held-out-jobs",
+            "no-history-and-competent-frozen-scheduler-controls",
+            "predeclared-benefit-with-uncertainty-and-unchanged-correctness",
+            "all-attempt-resource-accounting",
+            "revoked-stale-duplicate-insufficient-history-negatives",
+            "private-inputs-local-by-default",
+            "forkable-protocols-and-evidence-export",
+            "voluntary-independent-repeat-use"
+          ]
+        },
+        "paymentRequired": {
+          "const": false
+        },
+        "doeRequired": {
+          "const": false
+        },
+        "agentCapsuleImprovementRequired": {
+          "const": false
+        },
+        "electronCustomerRequired": {
+          "const": false
+        },
+        "privateInputDefault": {
+          "const": "local-only"
+        },
+        "redistribution": {
+          "const": "explicit-opt-in"
+        },
+        "delegation": {
+          "const": "explicit-complete-jobs"
+        },
+        "protocols": {
+          "const": "forkable"
+        }
+      }
+    },
+    "promotionSequenceScope": {
+      "const": "standalone-release"
+    },
+    "standaloneAdoptionGate": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "primary",
+        "requiredEvidence",
+        "p2pRequired",
+        "currentAssessment"
+      ],
+      "properties": {
+        "primary": {
+          "const": true
+        },
+        "p2pRequired": {
+          "const": false
+        },
+        "currentAssessment": {
+          "const": "unestablished"
+        },
+        "requiredEvidence": {
+          "const": [
+            "unrelated-maintainer-acceptance",
+            "application-owned-outcome-improvement",
+            "parity-qualified-incumbent-comparison",
+            "customer-operated-devices",
+            "rejected-candidate-and-recovery",
+            "retained-use",
+            "second-revision-less-release-effort"
+          ]
+        }
+      }
+    }
+  },
+  "$defs": {
+    "id": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9-]*$"
+    },
+    "path": {
+      "type": "string",
+      "pattern": "^(?!/)(?!.*(?:^|/)\\.\\.(?:/|$)).+$"
+    },
+    "stringList": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    },
+    "idList": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": {
+        "$ref": "#/$defs/id"
+      }
+    },
+    "pathList": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": {
+        "$ref": "#/$defs/path"
+      }
+    },
+    "trackedRequirement": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "implementationState",
+        "evidencePaths",
+        "blockerCode"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/id"
+        },
+        "implementationState": {
+          "type": "string",
+          "enum": [
+            "implemented",
+            "partial"
+          ]
+        },
+        "evidencePaths": {
+          "$ref": "#/$defs/pathList"
+        },
+        "blockerCode": {
+          "oneOf": [
+            {
+              "type": "null"
+            },
+            {
+              "$ref": "#/$defs/id"
+            }
+          ]
+        }
+      }
+    },
+    "provider": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "role",
+        "qualificationAuthority"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/id"
+        },
+        "role": {
+          "type": "string",
+          "enum": [
+            "owned",
+            "incumbent",
+            "optional",
+            "reference"
+          ]
+        },
+        "qualificationAuthority": {
+          "$ref": "#/$defs/path"
+        }
+      }
+    },
+    "apiSurface": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "mode",
+        "evidencePaths",
+        "blockerCode"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/id"
+        },
+        "mode": {
+          "type": "string",
+          "enum": [
+            "capsule-authoritative",
+            "compatibility-intake",
+            "migration-required"
+          ]
+        },
+        "evidencePaths": {
+          "$ref": "#/$defs/pathList"
+        },
+        "blockerCode": {
+          "oneOf": [
+            {
+              "type": "null"
+            },
+            {
+              "$ref": "#/$defs/id"
+            }
+          ]
+        }
+      }
+    }
+  }
+}

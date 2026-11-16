@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 
-import { sample } from '../../src/inference/pipelines/text/sampling.js';
+import { sample } from "../../src/inference/pipelines/text/generator/sampling/sampling.js";
 
 function seededRandom(seed) {
   const x = Math.sin(seed) * 10000;

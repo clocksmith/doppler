@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 
 const {
   detectSandwichNorm,
-} = await import('../../src/inference/pipelines/text/layer.js');
+} = await import("../../src/inference/pipelines/text/execution/layer.js");
 
 // Import the layer module source to access the non-exported helpers via a
 // dynamic re-import pattern. The routing functions (isLinearLayerType,

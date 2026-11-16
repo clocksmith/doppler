@@ -1,10 +1,14 @@
 {
-  "$schema": "../../src/config/schema/bun-product-qualification.schema.json",
+  "$schema": "../../src/config/schema/runtime/bun-product-qualification.schema.json",
   "schemaVersion": 1,
   "source": "doppler",
   "supportSubsystemId": "runtime.bun-webgpu",
   "releaseEngineId": "doppler-bun",
-  "requiredWorkloads": ["generation", "embedding", "reranking"],
+  "requiredWorkloads": [
+    "generation",
+    "embedding",
+    "reranking"
+  ],
   "minimumQualifiedWorkloads": 3,
   "qualificationMaxAgeDays": 90,
   "requiredEvidenceFields": [
@@ -48,7 +52,9 @@
         "promotion": null
       },
       "claimAllowed": false,
-      "blockers": ["bun-generation-product-receipt-missing"]
+      "blockers": [
+        "bun-generation-product-receipt-missing"
+      ]
     },
     {
       "id": "embeddinggemma-bun-product",
@@ -77,7 +83,9 @@
         "promotion": null
       },
       "claimAllowed": false,
-      "blockers": ["bun-embedding-product-receipt-missing"]
+      "blockers": [
+        "bun-embedding-product-receipt-missing"
+      ]
     },
     {
       "id": "qwen3-reranking-bun-product",
@@ -106,7 +114,9 @@
         "promotion": null
       },
       "claimAllowed": false,
-      "blockers": ["bun-reranking-product-receipt-missing"]
+      "blockers": [
+        "bun-reranking-product-receipt-missing"
+      ]
     }
   ]
 }

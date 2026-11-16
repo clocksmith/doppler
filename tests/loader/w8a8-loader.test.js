@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { W8A8_POLICY } from '../../src/config/schema/w8a8.schema.js';
+import { W8A8_POLICY } from "../../src/config/schema/manifest/w8a8.schema.js";
 import { quantizeToW8A8Rows } from '../../src/converter/w8a8-quantizer.js';
 
 globalThis.GPUBufferUsage = { MAP_READ: 1, MAP_WRITE: 2, COPY_SRC: 4, COPY_DST: 8, UNIFORM: 64, STORAGE: 128, INDIRECT: 256, QUERY_RESOLVE: 512 };

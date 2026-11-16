@@ -1,0 +1,323 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://clocksmith.dev/doppler/schemas/product-integration-qualification-v4.schema.json",
+  "title": "Doppler Product Integration Qualification v4",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "$schema",
+    "schemaVersion",
+    "source",
+    "goalId",
+    "minimumQualifiedIntegrations",
+    "requiredWorkloads",
+    "ownerConfirmationMaxAgeDays",
+    "integrations"
+  ],
+  "properties": {
+    "$schema": {
+      "const": "../../src/config/schema/policy/product-integration-qualification.schema.json"
+    },
+    "schemaVersion": {
+      "const": 4
+    },
+    "source": {
+      "const": "doppler"
+    },
+    "goalId": {
+      "const": "local-webgpu-product-surface"
+    },
+    "minimumQualifiedIntegrations": {
+      "const": 3
+    },
+    "requiredWorkloads": {
+      "const": [
+        "generation",
+        "embedding-retrieval",
+        "reranking"
+      ]
+    },
+    "ownerConfirmationMaxAgeDays": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 365
+    },
+    "integrations": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/integration"
+      }
+    }
+  },
+  "$defs": {
+    "nullableString": {
+      "anyOf": [
+        {
+          "type": "string",
+          "minLength": 1
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "nullableSha256": {
+      "anyOf": [
+        {
+          "type": "string",
+          "pattern": "^sha256:[0-9a-f]{64}$"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "nullableRevision": {
+      "anyOf": [
+        {
+          "type": "string",
+          "pattern": "^[0-9a-f]{40}$"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "nullableDateTime": {
+      "anyOf": [
+        {
+          "type": "string",
+          "format": "date-time"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "nullableRepoPath": {
+      "anyOf": [
+        {
+          "type": "string",
+          "minLength": 1,
+          "not": {
+            "anyOf": [
+              {
+                "pattern": "^/"
+              },
+              {
+                "pattern": "\\\\"
+              },
+              {
+                "pattern": "(^|/)\\.\\.(/|$)"
+              }
+            ]
+          }
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "evidenceRef": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "path",
+        "digest"
+      ],
+      "properties": {
+        "path": {
+          "type": "string",
+          "minLength": 1,
+          "not": {
+            "anyOf": [
+              {
+                "pattern": "^/"
+              },
+              {
+                "pattern": "\\\\"
+              },
+              {
+                "pattern": "(^|/)\\.\\.(/|$)"
+              }
+            ]
+          }
+        },
+        "digest": {
+          "type": "string",
+          "pattern": "^sha256:[0-9a-f]{64}$"
+        }
+      }
+    },
+    "nullableEvidenceRef": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/evidenceRef"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "evidence": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "ownerConfirmation",
+        "installToFirstVerifiedOutput",
+        "identity",
+        "sourceTaskQualityRetention",
+        "reliability",
+        "memory",
+        "coldWarmResponse",
+        "browserHardwareQualification",
+        "incumbentControl",
+        "upgradeRequalification",
+        "rollbackRevocation",
+        "promotion"
+      ],
+      "properties": {
+        "ownerConfirmation": {
+          "$ref": "#/$defs/nullableEvidenceRef"
+        },
+        "installToFirstVerifiedOutput": {
+          "$ref": "#/$defs/nullableEvidenceRef"
+        },
+        "identity": {
+          "$ref": "#/$defs/nullableEvidenceRef"
+        },
+        "sourceTaskQualityRetention": {
+          "$ref": "#/$defs/nullableEvidenceRef"
+        },
+        "reliability": {
+          "$ref": "#/$defs/nullableEvidenceRef"
+        },
+        "memory": {
+          "$ref": "#/$defs/nullableEvidenceRef"
+        },
+        "coldWarmResponse": {
+          "$ref": "#/$defs/nullableEvidenceRef"
+        },
+        "browserHardwareQualification": {
+          "$ref": "#/$defs/nullableEvidenceRef"
+        },
+        "incumbentControl": {
+          "$ref": "#/$defs/nullableEvidenceRef"
+        },
+        "upgradeRequalification": {
+          "$ref": "#/$defs/nullableEvidenceRef"
+        },
+        "rollbackRevocation": {
+          "$ref": "#/$defs/nullableEvidenceRef"
+        },
+        "promotion": {
+          "$ref": "#/$defs/nullableEvidenceRef"
+        }
+      }
+    },
+    "integration": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "applicationName",
+        "workload",
+        "owner",
+        "ownerConfirmedAtUtc",
+        "qualificationLevel",
+        "lifecycle",
+        "claimAllowed",
+        "logicalModelId",
+        "resolvedArtifactVariantId",
+        "resolvedExecutionId",
+        "applicationRevision",
+        "harnessRevision",
+        "environmentFingerprint",
+        "qualifiedAtUtc",
+        "expiresAtUtc",
+        "evidence",
+        "blockers"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
+        },
+        "applicationName": {
+          "type": "string",
+          "minLength": 1
+        },
+        "workload": {
+          "enum": [
+            "generation",
+            "embedding-retrieval",
+            "reranking"
+          ]
+        },
+        "owner": {
+          "$ref": "#/$defs/nullableString"
+        },
+        "ownerConfirmedAtUtc": {
+          "$ref": "#/$defs/nullableDateTime"
+        },
+        "qualificationLevel": {
+          "enum": [
+            "contract-ready",
+            "runtime-verified",
+            "task-qualified",
+            "performance-qualified",
+            "product-supported"
+          ]
+        },
+        "lifecycle": {
+          "enum": [
+            "candidate",
+            "active",
+            "deprecated",
+            "quarantined",
+            "revoked",
+            "retired"
+          ]
+        },
+        "claimAllowed": {
+          "type": "boolean"
+        },
+        "logicalModelId": {
+          "$ref": "#/$defs/nullableString"
+        },
+        "resolvedArtifactVariantId": {
+          "$ref": "#/$defs/nullableSha256"
+        },
+        "resolvedExecutionId": {
+          "$ref": "#/$defs/nullableSha256"
+        },
+        "applicationRevision": {
+          "$ref": "#/$defs/nullableRevision"
+        },
+        "harnessRevision": {
+          "$ref": "#/$defs/nullableRevision"
+        },
+        "environmentFingerprint": {
+          "$ref": "#/$defs/nullableSha256"
+        },
+        "qualifiedAtUtc": {
+          "$ref": "#/$defs/nullableDateTime"
+        },
+        "expiresAtUtc": {
+          "$ref": "#/$defs/nullableDateTime"
+        },
+        "evidence": {
+          "$ref": "#/$defs/evidence"
+        },
+        "blockers": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      }
+    }
+  }
+}

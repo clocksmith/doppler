@@ -43,17 +43,17 @@ globalThis.pairedFfnTest = {
   },
 };
 const hooks = registerHooks({ resolve(specifier, context, next) {
-  if (context.parentURL === target && specifier === '../ops.js') {
+  if (context.parentURL === target && specifier === "../execution/ops.js") {
     return { url: 'data:text/javascript,' + encodeURIComponent(`
       export const doMatmul=(...args)=>pairedFfnTest.matmul(...args);
       export const doSiLU=(...args)=>pairedFfnTest.silu(...args);
       export const releaseOrTrack=(recorder,buffer)=>recorder ? recorder.trackTemporaryBuffer(buffer) : pairedFfnTest.release(buffer);
     `), shortCircuit: true };
   }
-  if (context.parentURL === target && specifier === '../weights.js') {
+  if (context.parentURL === target && specifier === "../loading/weights.js") {
     return { url: 'data:text/javascript,export const getWeightBuffer=value=>value;', shortCircuit: true };
   }
-  if (context.parentURL === target && specifier === '../probes.js') {
+  if (context.parentURL === target && specifier === "../observation/probes.js") {
     return { url: 'data:text/javascript,export const runProbes=(...args)=>pairedFfnTest.probe(...args);', shortCircuit: true };
   }
   return next(specifier, context);

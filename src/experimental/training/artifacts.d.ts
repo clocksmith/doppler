@@ -1,6 +1,6 @@
 import type { TrainingConfigSchema } from '../../config/training-defaults.d.ts';
-import type { DistillTrainingStage } from '../../config/schema/distill-training.schema.js';
-import type { UlTrainingStage } from '../../config/schema/ul-training.schema.js';
+import type { DistillTrainingStage } from "../../config/schema/training/distill-training.schema.js";
+import type { UlTrainingStage } from "../../config/schema/training/ul-training.schema.js";
 
 export interface UlTrainingContract {
   enabled: boolean;

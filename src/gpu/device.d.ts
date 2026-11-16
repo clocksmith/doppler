@@ -9,7 +9,7 @@
  */
 
 import type { GpuCapabilities, GpuLimits } from '../types/gpu.js';
-import type { ResolvedPlatformConfig } from '../config/schema/platform.schema.js';
+import type { ResolvedPlatformConfig } from "../config/schema/platform/platform.schema.js";
 
 // Re-export types for convenience
 export type { GpuCapabilities, GpuLimits };

@@ -1,5 +1,5 @@
-import type { DopplerCapsule } from '../../config/capsule.js';
-import type { CapsuleV2Artifact } from '../../config/capsule-v2.js';
+import type { DopplerCapsule } from "../../config/capsule/capsule.js";
+import type { CapsuleV2Artifact } from "../../config/capsule/capsule-v2.js";
 export declare function createCapsuleArtifactSource(capsule: DopplerCapsule, artifactStore: {
   readArtifact(artifact: CapsuleV2Artifact): Promise<Uint8Array>;
   readArtifactRange?(artifact: CapsuleV2Artifact, offset: number, length: number): Promise<Uint8Array>;

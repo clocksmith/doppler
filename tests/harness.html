@@ -694,7 +694,7 @@
     async function initSimulationMode() {
       const { createTestState } = await import('../src/tooling/test-harness.js');
       const { createEmulationContext, isEmulationSupported, getEmulationCapabilities } = await import('/proto/simulator/index.js');
-      const { formatBytes } = await import('../src/config/schema/emulation.schema.js');
+      const { formatBytes } = await import('../src/config/schema/platform/emulation.schema.js');
 
       const paramAutorun = harnessConfig.autorun;
 

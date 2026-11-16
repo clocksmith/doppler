@@ -5,7 +5,7 @@ import { execFileSync } from 'node:child_process';
 import { createCapsuleOperationAdapters } from '../src/client/runtime/capsule-operation-adapters.js';
 import { createCapsuleOperationExecutor } from '../src/client/runtime/capsule-operation-executor.js';
 import { createCapsuleStreamAccumulator } from '../src/client/runtime/capsule-operation-stream.js';
-import { hashCapsuleObservation } from '../src/config/capsule-operation.js';
+import { hashCapsuleObservation } from "../src/config/capsule/capsule-operation.js";
 import { BundledTokenizer } from '../src/inference/tokenizers/bundled.js';
 
 // CPU output-processing experiment. Synthetic IDs replace inference entirely.

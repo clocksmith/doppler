@@ -1,5 +1,5 @@
-import type { InferenceConfigSchema } from '../config/schema/inference.schema.js';
-import type { ManifestInferenceSchema } from '../config/schema/manifest.schema.js';
+import type { InferenceConfigSchema } from "../config/schema/execution/inference.schema.js";
+import type { ManifestInferenceSchema } from "../config/schema/manifest/manifest.schema.js";
 
 /**
  * Build RoPE configuration from explicit converter config and HF config.

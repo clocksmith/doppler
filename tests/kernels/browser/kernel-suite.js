@@ -9,7 +9,7 @@ import {
 import {
   applyPrefixEmbeddingOverride,
   normalizePrefixEmbeddingOverride,
-} from '../../../src/inference/pipelines/text/generator/prefix-embedding.js';
+} from "../../../src/inference/pipelines/text/generator/prefill/prefix-embedding.js";
 import { runGather } from '../../../src/gpu/kernels/gather.js';
 import { runRMSNorm, recordRMSNorm } from '../../../src/gpu/kernels/rmsnorm.js';
 import { runMatmul, recordMatmul } from '../../../src/gpu/kernels/matmul.js';

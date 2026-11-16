@@ -7,8 +7,8 @@ import { DiffusionPipeline } from '../../src/experimental/diffusion/pipeline.js'
 import { DiffusionGemmaPipeline } from '../../src/inference/pipelines/diffusion-gemma/pipeline.js';
 import { StructuredJsonHeadPipeline } from '../../src/inference/pipelines/structured/json-head-pipeline.js';
 import { EnergyRowHeadPipeline } from '../../src/experimental/orchestration/energy-row-head-pipeline.js';
-import { embedBatch } from '../../src/inference/pipelines/text/execution.js';
-import { executeEmbeddingBatch } from '../../src/inference/pipelines/text/embedding-batch.js';
+import { embedBatch } from "../../src/inference/pipelines/text/operations/execution.js";
+import { executeEmbeddingBatch } from "../../src/inference/pipelines/text/embedding/embedding-batch.js";
 import { getRuntimeConfig, snapshotRuntimeConfig } from '../../src/config/runtime.js';
 
 test('every exposed pipeline method declares ownership', () => {

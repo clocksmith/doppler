@@ -1,4 +1,4 @@
-import type { ManifestEmbeddingPostprocessorSchema } from './schema/manifest.schema.js';
+import type { ManifestEmbeddingPostprocessorSchema } from "./schema/manifest/manifest.schema.js";
 
 export interface CapsuleEmbeddingContract {
   dimension: number;

@@ -1,4 +1,4 @@
-import type { CapsuleV2Artifact } from '../../config/capsule-v2.js';
+import type { CapsuleV2Artifact } from "../../config/capsule/capsule-v2.js";
 import type { CapsuleAcquisitionOptions, CapsuleArtifactStreamOptions } from './capsule-acquisition.js';
 
 export interface FetchCapsuleArtifactStore {

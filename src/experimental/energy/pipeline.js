@@ -7,7 +7,7 @@ import { runAdam } from '../../gpu/kernels/backward/index.js';
 import { WORKGROUP_SIZES } from '../../gpu/kernels/constants.js';
 import { computeArrayStats } from '../../debug/stats.js';
 import { log, trace } from '../../debug/index.js';
-import { DEFAULT_ENERGY_CONFIG } from '../../config/schema/energy.schema.js';
+import { DEFAULT_ENERGY_CONFIG } from "../../config/schema/execution/energy.schema.js";
 import { f32ToF16Array, f16ToF32Array } from '../../inference/kv-cache/types.js';
 import { registerPipeline } from '../../inference/pipelines/registry.js';
 import { applyPipelineContexts, restorePipelineContexts } from '../../inference/pipelines/context.js';

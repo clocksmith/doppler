@@ -1,4 +1,4 @@
-import type { ConverterConfigSchema } from '../config/schema/converter.schema.js';
+import type { ConverterConfigSchema } from "../config/schema/manifest/converter.schema.js";
 
 export type ToolingCommand = 'convert' | 'refresh-integrity' | 'release' | 'debug' | 'bench' | 'verify' | 'lora' | 'distill' | 'diagnose';
 export type ToolingSurface = 'browser' | 'node';

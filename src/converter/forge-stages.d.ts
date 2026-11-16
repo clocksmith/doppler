@@ -1,4 +1,4 @@
-import type { DopplerCapsuleV2 } from '../config/capsule-v2.js';
+import type { DopplerCapsuleV2 } from "../config/capsule/capsule-v2.js";
 import type { ForgeEvaluationInput } from './forge-candidate-evaluation.js';
 
 export const RIG_PIPELINE_VERSION: '2.0.0';

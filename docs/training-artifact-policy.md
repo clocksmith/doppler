@@ -157,7 +157,7 @@ Each claimable artifact should carry:
 ## Trainer-to-Doppler Handoff
 
 The canonical Gamma-to-Doppler translation handoff shape is
-`src/config/schema/trainer-artifact-handoff.schema.json`. A handoff binds the
+`src/config/schema/policy/trainer-artifact-handoff.schema.json`. A handoff binds the
 source checkpoint bytes, tokenizer and prompt assets, architecture, conversion
 lineage, evaluation inputs, parity requirements, and the authority that may
 select the candidate.
@@ -169,7 +169,7 @@ translation artifact comparison. That transition requires a Gamma-owned BF16
 selection receipt from the new translation campaign.
 
 The environment-neutral bridge descriptor is
-`src/config/schema/trainer-artifact-bridge.schema.json`. The executable bridge
+`src/config/schema/policy/trainer-artifact-bridge.schema.json`. The executable bridge
 helpers live in
 `src/experimental/bridge/trainer-artifact-bridge.js`, and the Node byte verifier
 and importer live in `src/tooling/trainer-artifact-handoff.js`. The

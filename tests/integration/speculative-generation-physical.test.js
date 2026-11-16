@@ -17,7 +17,7 @@ assert.equal((await probeNodeGPU({ installFileFetchShim: true })).ready,true);
 const pipeline = await createPipeline(manifest, { storage: createNodeFileArtifactStorageContext(pathToFileURL(directory).href, manifest), runtimeConfig: { inference: { session: { kvcache: { maxSeqLen: 512 } } } } });
 const adapter = process.env.LORA_CONFIG ? JSON.parse(await fs.readFile(process.env.LORA_CONFIG)) : null;
 const sourceFiles = {};
-for (const name of ['src/inference/pipelines/text/generator/speculative-runtime.js', 'src/inference/pipelines/text/linear-attention/state-checkpoint.js', 'src/inference/pipelines/text/generator/decode-runtime.js', 'src/inference/pipelines/text/generator/prefill-runtime.js', 'src/inference/pipelines/text/generation-request.js', 'src/inference/pipelines/text/generator-runtime.js', 'src/config/schema/speculation-self.schema.js']) {
+for (const name of ["src/inference/pipelines/text/generator/session/speculative-runtime.js", 'src/inference/pipelines/text/linear-attention/state-checkpoint.js', "src/inference/pipelines/text/generator/decode/decode-runtime.js", "src/inference/pipelines/text/generator/prefill/prefill-runtime.js", "src/inference/pipelines/text/generator/request/generation-request.js", "src/inference/pipelines/text/generator/session/generator-runtime.js", "src/config/schema/execution/speculation-self.schema.js"]) {
  sourceFiles[name] = createHash('sha256').update(await fs.readFile(new URL('../../' + name, import.meta.url))).digest('hex');
 }
 try {

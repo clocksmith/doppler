@@ -1,7 +1,7 @@
 import type { CommandRecorder } from '../../../../gpu/command-recorder.js';
 import type { Tensor } from '../../../../gpu/tensor.js';
 import type { QsaRopeTables, QsaSelection } from '../../../../gpu/kernels/qsa-indexer.js';
-import type { ResolvedIndexedAttention } from '../../../../config/schema/hyper-connection-decoder.schema.js';
+import type { ResolvedIndexedAttention } from "../../../../config/schema/execution/hyper-connection-decoder.schema.js";
 
 export interface QsaIndexerCacheOptions {
   contract: ResolvedIndexedAttention;

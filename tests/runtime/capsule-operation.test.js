@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { createDopplerRuntime } from '../../src/client/runtime/composition-root.js';
 import { createCapsuleOperationExecutor } from '../../src/client/runtime/capsule-operation-executor.js';
-import { CAPSULE_OPERATION_REQUEST_SCHEMA, hashCapsuleObservation, normalizeCapsuleObservation } from '../../src/config/capsule-operation.js';
+import { CAPSULE_OPERATION_REQUEST_SCHEMA, hashCapsuleObservation, normalizeCapsuleObservation } from "../../src/config/capsule/capsule-operation.js";
 import { TEST_CAPSULE_AUTHORITY, TEST_CAPSULE_PUBLIC_KEY, createSignedCapsuleFixture } from '../helpers/capsule-v2-fixture.js';
 
 // Signed artifact/operation contract test. The injected program is not model qualification.

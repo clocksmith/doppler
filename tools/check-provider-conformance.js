@@ -658,7 +658,7 @@ export async function validateProviderConformancePolicy(policy, options = {}) {
   }
   if (policy.schemaVersion !== 3) errors.push('provider conformance policy schemaVersion must be 3');
   if (policy.source !== 'doppler') errors.push('provider conformance policy source must be "doppler"');
-  if (policy.$schema !== '../../src/config/schema/provider-conformance-policy.schema.json') {
+  if (policy.$schema !== "../../src/config/schema/policy/provider-conformance-policy.schema.json") {
     errors.push('provider conformance policy $schema is invalid');
   }
   const goalIds = validateStringArray(policy.goalIds, 'provider conformance policy goalIds', errors);

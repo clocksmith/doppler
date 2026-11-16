@@ -1,5 +1,5 @@
 import type { Tensor } from '../../gpu/tensor.js';
-import type { UlTrainingConfigSchema } from '../../config/schema/ul-training.schema.js';
+import type { UlTrainingConfigSchema } from "../../config/schema/training/ul-training.schema.js";
 
 export interface UlLatentStats {
   mean: number;

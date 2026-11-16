@@ -24,13 +24,13 @@ const shared = {
 const manifestModules = {
   '../inference/pipelines/text.js': shared.pipeline,
   './model-host/model-session.js': shared.handle,
-  '../inference/pipelines/text/resident-partition.js': shared.resident,
-  '../inference/pipelines/text/resident-partition-contract.js': shared.allocation,
+  "../inference/pipelines/text/partitions/resident-partition.js": shared.resident,
+  "../inference/pipelines/text/partitions/resident-partition-contract.js": shared.allocation,
 };
 const signedModules = {
   '../../inference/pipelines/text.js': shared.pipeline,
   './model-session.js': shared.handle,
-  '../../inference/pipelines/text/resident-partition.js': shared.resident,
+  "../../inference/pipelines/text/partitions/resident-partition.js": shared.resident,
   '../runtime/composition-root.js': `export const createDopplerRun=ports=>({openCapsule:async(capsule,options)=>(await ports.device.getProfile(),ports.programFactory({capsule,targetPlan:{},artifactStore:{releaseBacking:async()=>{}},registries:null,options:{...options,residentPartition:residentFactoryControl.allocation}}))});`,
   '../runtime/capsule-artifact-source.js': 'export const createCapsuleArtifactSource=async()=>residentFactoryControl.source;',
   '../runtime/capsule-program-adapter.js': 'export const createCapsuleProgramAdapter=()=>({});',

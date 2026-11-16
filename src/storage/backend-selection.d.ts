@@ -1,4 +1,4 @@
-import type { OpfsPathConfigSchema, StorageBackendConfigSchema } from '../config/schema/loading.schema.js';
+import type { OpfsPathConfigSchema, StorageBackendConfigSchema } from "../config/schema/runtime/loading.schema.js";
 
 export interface SelectedStorageBackend {
   type: 'opfs' | 'indexeddb' | 'memory';

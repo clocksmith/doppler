@@ -1,5 +1,5 @@
 import { resolveGenerationOptions, validateGenerationInput } from '../../config/generation-contract.js';
-import { resolveCapsuleStreamFormat } from '../../config/capsule-operation.js';
+import { resolveCapsuleStreamFormat } from "../../config/capsule/capsule-operation.js";
 import { snapshotChoiceScoringRequest } from '../../config/choice-scoring.js';
 
 const text = (value) => typeof value === 'string' && value.trim().length > 0;

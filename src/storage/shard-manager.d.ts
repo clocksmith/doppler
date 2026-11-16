@@ -1,5 +1,5 @@
 import type { RDRRManifest, HashAlgorithm } from '../formats/rdrr/types.js';
-import type { OpfsPathConfigSchema } from '../config/schema/loading.schema.js';
+import type { OpfsPathConfigSchema } from "../config/schema/runtime/loading.schema.js";
 
 export { getManifest } from '../formats/rdrr/parsing.js';
 

@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import { createCommandExecutor } from '../../src/client/runtime/command-executor.js';
 import { readbackBuffer } from '../../src/gpu/readback-buffer.js';
 import { executeCapsuleForecast } from '../../src/client/runtime/capsule-forecast.js';
-import { validateCapsuleReleaseContract } from '../../src/config/capsule-release-contract.js';
+import { validateCapsuleReleaseContract } from "../../src/config/capsule/capsule-release-contract.js";
 import { createCapsuleReleaseFixture } from '../helpers/capsule-v2-fixture.js';
 import { validateTargetPlan } from '../../src/config/target-plan.js';
 

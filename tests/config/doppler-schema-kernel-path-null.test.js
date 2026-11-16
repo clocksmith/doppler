@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 
 import { chooseDefined } from '../../src/config/merge/value-selection.js';
-import { createDopplerConfig } from '../../src/config/schema/doppler.schema.js';
+import { createDopplerConfig } from "../../src/config/schema/runtime/doppler.schema.js";
 
 assert.equal(
   chooseDefined(undefined, 'manifest-path'),

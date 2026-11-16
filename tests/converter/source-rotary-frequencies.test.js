@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { readSourceRotaryFrequencies } from '../../src/converter/source-rotary-frequencies.js';
-import { createConverterConfig } from '../../src/config/schema/converter.schema.js';
+import { createConverterConfig } from "../../src/config/schema/manifest/converter.schema.js";
 
 const values = [1, 0.464111328125, 0.2154541015625];
 const bytes = Float32Array.from(values).buffer;

@@ -1,0 +1,33 @@
+import type { ExecutionV1PerLayerInputsSessionSchema } from "../../../../../config/schema/execution/execution-v1.schema.js";
+import type { ExecutionSessionPlan, StaticExecutionPlan } from "../../execution/execution-plan.js";
+import type { PipelineState } from "../../state.js";
+import type { LayerContext } from "../../types.js";
+
+export declare function resolvePerLayerInputsSession(
+  manifestSession: ExecutionV1PerLayerInputsSessionSchema | null | undefined,
+  runtimeSession: ExecutionV1PerLayerInputsSessionSchema | Record<string, unknown> | null | undefined
+): ExecutionV1PerLayerInputsSessionSchema | null;
+
+export declare function debugCheckBuffer(
+  state: PipelineState,
+  buffer: GPUBuffer,
+  label: string,
+  numTokens: number,
+  expectedDim?: number,
+    representation?: import("../../../../../debug/tensor.js").TensorRepresentation & { dtype: 'f16' | 'f32' | 'bf16' }
+): Promise<void>;
+
+export declare function buildLayerContext(
+  state: PipelineState,
+  recorder: unknown,
+  isDecodeMode: boolean,
+  debugLayers: number[] | null | undefined,
+  debugCheckBufferFn?: (
+    buffer: GPUBuffer,
+    label: string,
+    numTokens: number,
+    expectedDim?: number,
+    representation?: import("../../../../../debug/tensor.js").TensorRepresentation & { dtype: 'f16' | 'f32' | 'bf16' }
+  ) => Promise<void>,
+  executionPlan?: ExecutionSessionPlan | StaticExecutionPlan | null
+): LayerContext;

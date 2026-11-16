@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 
 import { ERROR_CODES } from '../../src/errors/doppler-error.js';
-import { annotateWeightLoadError, rewriteWeightLoadError } from '../../src/inference/pipelines/text/load-errors.js';
+import { annotateWeightLoadError, rewriteWeightLoadError } from "../../src/inference/pipelines/text/loading/load-errors.js";
 
 test('rewriteWeightLoadError preserves unrelated errors', () => {
   const original = new Error('manifest shard 3 missing');

@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import { createKernelRegistry, enterKernelRegistry, setKernelValidator } from '../../src/gpu/kernels/kernel-configs.js';
 import { listPrewarmKernels } from '../../src/gpu/kernels/kernel-prewarm.js';
 
-const { resolveKernelPathState } = await import('../../src/inference/pipelines/text/model-load.js');
+const { resolveKernelPathState } = await import("../../src/inference/pipelines/text/loading/model-load.js");
 
 function createKernelPath(activationDtype = 'f32') {
   return {

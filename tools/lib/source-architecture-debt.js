@@ -7,6 +7,74 @@ function isAuthorized(review, authorizationDigest) {
   );
 }
 
+export function validateComponentSourceSize(policy, relativePath, lines, options = {}) {
+  const errors = [];
+  for (const [prefix, limit] of Object.entries(policy.componentLineLimits ?? {})) {
+    if (!prefix.endsWith('/') || prefix.startsWith('/') || prefix.includes('..')
+      || !Number.isInteger(limit) || limit < 1 || limit > policy.lineLimit) {
+      errors.push(`invalid component line limit: ${prefix}`);
+    } else if (relativePath.startsWith(prefix) && lines > limit) {
+      errors.push(`${relativePath}: ${lines} lines exceeds component blocking limit ${limit}`);
+    }
+  }
+  if (lines > policy.softLineLimit && Number.isInteger(options.baselineLines) && lines > options.baselineLines) {
+    const review = policy.softLimitReviews?.[relativePath];
+    const freshlyAuthorized = isAuthorized(review, options.authorizationDigest)
+      && review.debtAuthorization !== options.baselineReview?.debtAuthorization;
+    if (!freshlyAuthorized) {
+      errors.push(`${relativePath}: grew from ${options.baselineLines} baseline lines to ${lines} without fresh soft-limit authorization`);
+    }
+  }
+  return errors;
+}
+
+export function validateSoftLimitReviewMetadata(relativePath, review) {
+  const errors = [];
+  if (review.owner !== relativePath.split('/')[0]) errors.push(`${relativePath}: soft-limit review owner must match its source owner`);
+  const date = review.reviewedAt;
+  if (typeof date !== 'string' || !/^\d{4}-\d{2}-\d{2}$/u.test(date)
+    || Number.isNaN(Date.parse(`${date}T00:00:00Z`))
+    || new Date(`${date}T00:00:00Z`).toISOString().slice(0, 10) !== date) {
+    errors.push(`${relativePath}: soft-limit review requires a valid reviewedAt date`);
+  }
+  if (!review.reviewedBy || !review.removalCondition) errors.push(`${relativePath}: soft-limit review requires reviewer and removalCondition`);
+  return errors;
+}
+
+export function validateCleanupConsumers(policy, observedConsumers) {
+  const errors = [];
+  for (const [target, decision] of Object.entries(policy.cleanupDecisions ?? {})) {
+    if (!decision.removalCondition) errors.push(`${target}: cleanup decision lacks removalCondition`);
+    const declared = [...new Set(decision.consumers ?? [])].sort();
+    const observed = [...new Set(observedConsumers[target] ?? [])].sort();
+    if (decision.decision === 'retain' && observed.length === 0) errors.push(`${target}: retained implementation has no consumers; retirement review is required`);
+    if (JSON.stringify(declared) !== JSON.stringify(observed)) errors.push(`${target}: cleanup consumer inventory is stale; observed=${observed.join(', ')}`);
+  }
+  return errors;
+}
+
+export function validateRuntimeToolDependency(importer, dependency) {
+  return importer.startsWith('src/') && dependency.startsWith('tools/')
+    ? [`${importer}: runtime code cannot import repository-only tooling ${dependency}`]
+    : [];
+}
+
+export function validateConstitutionalImportGraph(rule, graph) {
+  const errors = [];
+  const pending = [...(rule.entryPoints ?? [])];
+  const visited = new Set();
+  while (pending.length) {
+    const relative = pending.pop();
+    if (visited.has(relative)) continue;
+    visited.add(relative);
+    for (const prefix of rule.forbiddenPathPrefixes ?? []) {
+      if (relative.startsWith(prefix)) errors.push(`constitutional ${rule.domain} import graph reaches forbidden path ${relative}`);
+    }
+    for (const dependency of graph.get(relative) ?? []) pending.push(dependency);
+  }
+  return errors;
+}
+
 export function validateSoftLimitReviewDelta(currentPolicy, baselinePolicy, authorizationDigest = null) {
   const errors = [];
   const currentReviews = currentPolicy?.softLimitReviews ?? {};
@@ -19,7 +87,8 @@ export function validateSoftLimitReviewDelta(currentPolicy, baselinePolicy, auth
       && Number(currentReview?.reviewedLines) > Number(baselineReview?.reviewedLines)
     );
     if (!added && !raised) continue;
-    if (isAuthorized(currentReview, authorizationDigest)) continue;
+    if (isAuthorized(currentReview, authorizationDigest)
+      && currentReview.debtAuthorization !== baselineReview?.debtAuthorization) continue;
     const action = added
       ? 'adds a soft-limit review'
       : `raises reviewedLines from ${String(baselineReview.reviewedLines)} to ${String(currentReview.reviewedLines)}`;
@@ -93,6 +162,10 @@ function baselineFacadeReach(baselinePolicy, facade, removedForwarders = {}) {
 
 export function findArchitecturePolicyRelaxations(currentPolicy, baselinePolicy, removedForwarders = {}) {
   const relaxations = [];
+  for (const [prefix, limit] of Object.entries(baselinePolicy.componentLineLimits ?? {})) {
+    const currentLimit = currentPolicy.componentLineLimits?.[prefix] ?? currentPolicy.lineLimit;
+    if (currentLimit > limit) relaxations.push(`component line limit relaxed ${prefix} from ${limit} to ${currentLimit}`);
+  }
   for (const key of ['softLineLimit', 'lineLimit']) {
     if (Number(currentPolicy?.[key]) > Number(baselinePolicy?.[key])) {
       relaxations.push(`${key} increased from ${baselinePolicy[key]} to ${currentPolicy[key]}`);
@@ -240,11 +313,13 @@ export function resolveMovedPaths(currentPolicy, baselinePolicy, fileState = nul
   const sources = new Set(entries.map(([source]) => source));
   const targets = entries.map(([, target]) => target);
   const malformed = entries.some(([source, target]) => (
-    typeof target !== 'string' || !target.endsWith('.js') || !source.endsWith('.js')
+    typeof target !== 'string'
+    || !/\.(?:js|d\.ts|wgsl)$/u.test(source) || !/\.(?:js|d\.ts|wgsl)$/u.test(target)
+    || (source.endsWith('.d.ts') ? !target.endsWith('.d.ts') : source.slice(source.lastIndexOf('.')) !== target.slice(target.lastIndexOf('.')))
     || source === target || sources.has(target)
   ));
   if (malformed || new Set(targets).size !== targets.length) {
-    return { moves: {}, errors: ['movedPaths must be one-to-one .js paths without chains'] };
+    return { moves: {}, errors: ['movedPaths must be one-to-one governed source paths of the same extension without chains'] };
   }
   const baselineReferences = baselinePathReferences(baselinePolicy);
   const moves = {};

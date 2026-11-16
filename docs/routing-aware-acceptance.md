@@ -1,7 +1,7 @@
 # Routing-aware acceptance for routed-MoE models
 
 Policy: [`doppler.routing-aware-acceptance/v1`](../tools/policies/routing-aware-acceptance.json)
-([schema](../src/config/schema/routing-aware-acceptance.schema.json)).
+([schema](../src/config/schema/runtime/routing-aware-acceptance.schema.json)).
 Evaluator: [`tools/evaluate-routing-aware-acceptance.js`](../tools/evaluate-routing-aware-acceptance.js).
 Tests: [`tests/tooling/routing-aware-acceptance.test.js`](../tests/tooling/routing-aware-acceptance.test.js).
 

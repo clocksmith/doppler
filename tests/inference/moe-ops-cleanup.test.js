@@ -23,7 +23,7 @@ const {
   destroyBufferPool,
   getBufferPool,
 } = await import('../../src/memory/buffer-pool.js');
-const { doConv } = await import('../../src/inference/pipelines/text/ops.js');
+const { doConv } = await import("../../src/inference/pipelines/text/execution/ops.js");
 
 class FakeBuffer {
   constructor({ size, usage, initialBytes = null }) {

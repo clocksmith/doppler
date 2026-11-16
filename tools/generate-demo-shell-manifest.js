@@ -64,7 +64,10 @@ const WORKER_SHELL_END = '// END GENERATED DEMO SHELL';
 // retirement (memory/sequence-retirement.js) and the capability filter that lets
 // devices without subgroups compile plain kernels (gpu/kernels/shader-capability-filter.js).
 // Remove an allowance when its module leaves the shell. Byte limit unchanged.
-const MAX_MODULES = 809;
+// e8b8edd2 has 833 reachable modules (the prior 809 budget was stale).
+// The reviewed concern extraction adds 21; generated manifests enumerate all 854.
+// This changes file boundaries, not model support; retain the existing byte limit.
+const MAX_MODULES = 854;
 const MAX_TOTAL_BYTES = 10_000_000;
 // The worker answers only requests under these folders (isDemoAsset in demo/sw.js).
 // A file anywhere else would be downloaded at install and never served from the

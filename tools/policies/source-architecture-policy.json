@@ -18,7 +18,7 @@
       "client/doppler-api.browser.js",
       "version.js"
     ],
-    "config/schema/platform.schema.js": [],
+    "config/schema/platform/platform.schema.js": [],
     "config/execution-contract-check.js": [
       "rules/execution-contract.js"
     ],
@@ -48,7 +48,7 @@
     "inference/pipelines/energy-head/row-head-pipeline.js": [
       "experimental/orchestration/energy-row-head-pipeline.js"
     ],
-    "inference/pipelines/text/buffer-types.js": [],
+    "inference/pipelines/text/contracts/buffer-types.js": [],
     "inference/pipelines/text/bdpa-steamroller.js": [
       "experimental/bdpa/steamroller.js"
     ],
@@ -59,7 +59,6 @@
     "inference/pipelines/text/logits/cpu-output.js": [
       "experimental/logits/cpu-output.js"
     ],
-    "inference/pipelines/text/types.js": [],
     "inference/tokenizers/types.js": [],
     "tooling-exports.js": [
       "tooling-exports.shared.js",
@@ -77,8 +76,8 @@
     "tooling-exports.shared.js": [
       "config/runtime.js",
       "config/schema/index.js",
-      "config/schema/program-bundle.schema.js",
-      "config/schema/tooling.schema.js",
+      "config/schema/capsule/program-bundle.schema.js",
+      "config/schema/runtime/tooling.schema.js",
       "converter/core.js",
       "debug/index.js",
       "tooling/browser-harness-text-helpers.js",
@@ -111,18 +110,21 @@
       "experimental/training/native-qwen-lora.js",
       "experimental/training/optimizer.js",
       "experimental/training/trainer.js"
-    ],
-    "types/chrome.js": []
+    ]
   },
   "sourceRoot": "src",
   "cleanupDecisions": {
-    "inference/pipelines/text/execution.js": {
+    "inference/pipelines/text/operations/execution.js": {
       "decision": "retain",
       "consumerEvidence": [
         "inference/pipelines/text.js delegates public embedding and multimodal operations here",
         "tests/inference/pipeline-operation-contract.test.js tests independent embedding scheduling"
       ],
-      "migration": "Remove unused loader, factory, registry, model-lifecycle and generator imports left by extraction; retain execution imports and public forwarding methods. No public path removal."
+      "migration": "Remove unused loader, factory, registry, model-lifecycle and generator imports left by extraction; retain execution imports and public forwarding methods. No public path removal.",
+      "consumers": [
+        "inference/pipelines/text/pipeline.js"
+      ],
+      "removalCondition": "Retire inference/pipelines/text/operations/execution.js or register an explicit standalone contract when its last declared external consumer is removed; any consumer-set change requires review."
     },
     "experimental/training": {
       "decision": "retain",
@@ -132,14 +134,26 @@
         "tooling/node-command-execution.js loads operator-command",
         "tooling/browser-harness/benchmark-execution.js imports TRAINING_SUITE_MODULE_PATH pointing to experimental/training/suite.js; this is now a declared, checked graph edge"
       ],
-      "migration": "Retain existing training APIs and browser benchmark behavior through the explicitly reviewed quarantine bridge. Computed module targets are checked; external provider contracts remain separately inventoried. Remove the browser bridge if training suite acquisition moves outside the benchmark harness."
+      "migration": "Retain existing training APIs and browser benchmark behavior through the explicitly reviewed quarantine bridge. Computed module targets are checked; external provider contracts remain separately inventoried. Remove the browser bridge if training suite acquisition moves outside the benchmark harness.",
+      "consumers": [
+        "training.js",
+        "training-browser.js",
+        "tooling/browser-harness/benchmark-execution.js",
+        "tooling/node-command-execution.js"
+      ],
+      "removalCondition": "Retire experimental/training or register an explicit standalone contract when its last declared external consumer is removed; any consumer-set change requires review."
     },
     "experimental/distribution": {
       "decision": "retain",
       "consumerEvidence": [
         "tooling/distribution-shard-transport.js and tooling/test-harness.js load shard delivery"
       ],
-      "migration": "Keep optional transport outside storage and inference. Reploid supplies transport policy; no core peer-discovery dependency is introduced."
+      "migration": "Keep optional transport outside storage and inference. Reploid supplies transport policy; no core peer-discovery dependency is introduced.",
+      "consumers": [
+        "tooling/test-harness.js",
+        "tooling/distribution-shard-transport.js"
+      ],
+      "removalCondition": "Retire experimental/distribution or register an explicit standalone contract when its last declared external consumer is removed; any consumer-set change requires review."
     },
     "experimental/energy": {
       "decision": "retain",
@@ -147,15 +161,24 @@
         "rules/inference/config.rules.json pipelineModules selects energy",
         "inference/pipelines/energy/index.js forwards the selected implementation"
       ],
-      "migration": "Retain the experimental registration. Computed selection is declared in the shared dependency inventory; test-only graph status was incomplete evidence."
+      "migration": "Retain the experimental registration. Computed selection is declared in the shared dependency inventory; test-only graph status was incomplete evidence.",
+      "consumers": [
+        "inference/pipelines/energy/index.js"
+      ],
+      "removalCondition": "Retire experimental/energy or register an explicit standalone contract when its last declared external consumer is removed; any consumer-set change requires review."
     },
     "experimental/hotswap": {
       "decision": "retain",
       "consumerEvidence": [
-        "inference/pipelines/text/generator/text.js lazily loads intent-bundle",
+        "inference/pipelines/text/generator/session/text.js lazily loads intent-bundle",
         "tooling/test-harness.js loads manifest, runtime and intent-bundle"
       ],
-      "migration": "Retain until these consumers migrate; do not classify the implementation as unused or silently promote it to stable inference."
+      "migration": "Retain until these consumers migrate; do not classify the implementation as unused or silently promote it to stable inference.",
+      "consumers": [
+        "tooling/test-harness.js",
+        "inference/pipelines/text/generator/session/text.js"
+      ],
+      "removalCondition": "Retire experimental/hotswap or register an explicit standalone contract when its last declared external consumer is removed; any consumer-set change requires review."
     }
   },
   "softLineLimit": 750,
@@ -356,7 +379,7 @@
     "client/wrap-pipeline-handle.js": {
       "reason": "Dream-compatible LoRA attachment delegates to the quarantined adapter implementation."
     },
-    "inference/pipelines/text/generator/text.js": {
+    "inference/pipelines/text/generator/session/text.js": {
       "reason": "Explicit hotswap drift enforcement is an experimental observation bridge."
     },
     "inference/pipelines/audio/index.js": {
@@ -408,44 +431,350 @@
       }
     }
   },
-  "constitutionalRenames": {
-    "domains": {
-      "pack": "capsule",
-      "pack-http": "capsule-http"
-    },
-    "files": {
-      "config/pack-v2.js": "config/capsule-v2.js",
-      "cli/serve/pack-handler.js": "cli/serve/capsule-handler.js",
-      "cli/serve/pack-http.js": "cli/serve/capsule-http.js",
-      "client/runtime/pack-rerank.js": "client/runtime/capsule-rerank.js",
-      "client/runtime/pack-program-adapter.js": "client/runtime/capsule-program-adapter.js",
-      "client/runtime/fetch-pack-artifact-store.js": "client/runtime/fetch-capsule-artifact-store.js"
-    }
-  },
   "movedPaths": {
-    "inference/browser-harness-contract-helpers.js": "tooling/browser-harness-contract-helpers.js",
-    "inference/browser-harness-diffusion-energy-suites.js": "tooling/browser-harness-diffusion-energy-suites.js",
-    "inference/browser-harness-report-helpers.js": "tooling/browser-harness-report-helpers.js",
-    "inference/browser-harness-text-helpers.js": "tooling/browser-harness-text-helpers.js",
-    "inference/browser-harness.js": "tooling/browser-harness.js",
-    "inference/browser-harness/benchmark-execution.js": "tooling/browser-harness/benchmark-execution.js",
-    "inference/browser-harness/benchmark-rerank.js": "tooling/browser-harness/benchmark-rerank.js",
-    "inference/browser-harness/decode-diagnostics.js": "tooling/browser-harness/decode-diagnostics.js",
-    "inference/browser-harness/diffusion-performance.js": "tooling/browser-harness/diffusion-performance.js",
-    "inference/browser-harness/inference-execution.js": "tooling/browser-harness/inference-execution.js",
-    "inference/browser-harness/model-initialization.js": "tooling/browser-harness/model-initialization.js",
-    "inference/browser-harness/model-resolution.js": "tooling/browser-harness/model-resolution.js",
-    "inference/browser-harness/report.js": "tooling/browser-harness/report.js",
-    "inference/browser-harness/request-timing.js": "tooling/browser-harness/request-timing.js",
-    "inference/browser-harness/request.js": "tooling/browser-harness/request.js",
-    "inference/browser-harness/runtime-config.js": "tooling/browser-harness/runtime-config.js",
-    "inference/browser-harness/runtime-isolation.js": "tooling/browser-harness/runtime-isolation.js",
-    "inference/browser-harness/runtime-report.js": "tooling/browser-harness/runtime-report.js",
-    "inference/browser-harness/suite-summary.js": "tooling/browser-harness/suite-summary.js",
-    "inference/browser-harness/text-evidence.js": "tooling/browser-harness/text-evidence.js",
-    "inference/browser-harness/text-execution.js": "tooling/browser-harness/text-execution.js",
-    "inference/browser-harness/text-input.js": "tooling/browser-harness/text-input.js",
-    "inference/browser-harness/timing-diagnostics.js": "tooling/browser-harness/timing-diagnostics.js"
+    "inference/pipelines/text/embed.js": "inference/pipelines/text/embedding/embed.js",
+    "inference/pipelines/text/embed.d.ts": "inference/pipelines/text/embedding/embed.d.ts",
+    "inference/pipelines/text/embedding-batch.js": "inference/pipelines/text/embedding/embedding-batch.js",
+    "inference/pipelines/text/embedding-batch.d.ts": "inference/pipelines/text/embedding/embedding-batch.d.ts",
+    "inference/pipelines/text/embedding-contract.js": "inference/pipelines/text/embedding/embedding-contract.js",
+    "inference/pipelines/text/embedding-contract.d.ts": "inference/pipelines/text/embedding/embedding-contract.d.ts",
+    "inference/pipelines/text/embedding-extraction.js": "inference/pipelines/text/embedding/embedding-extraction.js",
+    "inference/pipelines/text/embedding-extraction.d.ts": "inference/pipelines/text/embedding/embedding-extraction.d.ts",
+    "inference/pipelines/text/embedding-normalization.js": "inference/pipelines/text/embedding/embedding-normalization.js",
+    "inference/pipelines/text/embedding-normalization.d.ts": "inference/pipelines/text/embedding/embedding-normalization.d.ts",
+    "inference/pipelines/text/execution-plan.js": "inference/pipelines/text/execution/execution-plan.js",
+    "inference/pipelines/text/execution-plan.d.ts": "inference/pipelines/text/execution/execution-plan.d.ts",
+    "inference/pipelines/text/execution-runtime-builders.js": "inference/pipelines/text/execution/execution-runtime-builders.js",
+    "inference/pipelines/text/execution-runtime-builders.d.ts": "inference/pipelines/text/execution/execution-runtime-builders.d.ts",
+    "inference/pipelines/text/execution-v1.js": "inference/pipelines/text/execution/execution-v1.js",
+    "inference/pipelines/text/execution-v1.d.ts": "inference/pipelines/text/execution/execution-v1.d.ts",
+    "inference/pipelines/text/layer-execution-contract.js": "inference/pipelines/text/execution/layer-execution-contract.js",
+    "inference/pipelines/text/layer-execution-contract.d.ts": "inference/pipelines/text/execution/layer-execution-contract.d.ts",
+    "inference/pipelines/text/layer-input-execution.js": "inference/pipelines/text/execution/layer-input-execution.js",
+    "inference/pipelines/text/layer-input-execution.d.ts": "inference/pipelines/text/execution/layer-input-execution.d.ts",
+    "inference/pipelines/text/layer-partition-contract.js": "inference/pipelines/text/execution/layer-partition-contract.js",
+    "inference/pipelines/text/layer-partition-contract.d.ts": "inference/pipelines/text/execution/layer-partition-contract.d.ts",
+    "inference/pipelines/text/layer-plan-gpu.js": "inference/pipelines/text/execution/layer-plan-gpu.js",
+    "inference/pipelines/text/layer-plan-gpu.d.ts": "inference/pipelines/text/execution/layer-plan-gpu.d.ts",
+    "inference/pipelines/text/layer-plan.js": "inference/pipelines/text/execution/layer-plan.js",
+    "inference/pipelines/text/layer-plan.d.ts": "inference/pipelines/text/execution/layer-plan.d.ts",
+    "inference/pipelines/text/layer.js": "inference/pipelines/text/execution/layer.js",
+    "inference/pipelines/text/layer.d.ts": "inference/pipelines/text/execution/layer.d.ts",
+    "inference/pipelines/text/ops.js": "inference/pipelines/text/execution/ops.js",
+    "inference/pipelines/text/ops.d.ts": "inference/pipelines/text/execution/ops.d.ts",
+    "inference/pipelines/text/paired-execution.js": "inference/pipelines/text/execution/paired-execution.js",
+    "inference/pipelines/text/paired-execution.d.ts": "inference/pipelines/text/execution/paired-execution.d.ts",
+    "inference/pipelines/text/precomputed-input-norm.js": "inference/pipelines/text/execution/precomputed-input-norm.js",
+    "inference/pipelines/text/precomputed-input-norm.d.ts": "inference/pipelines/text/execution/precomputed-input-norm.d.ts",
+    "inference/pipelines/text/operator-identity.js": "inference/pipelines/text/execution/operator-identity.js",
+    "inference/pipelines/text/operator-identity.d.ts": "inference/pipelines/text/execution/operator-identity.d.ts",
+    "inference/pipelines/text/init-chat-templates.js": "inference/pipelines/text/initialization/init-chat-templates.js",
+    "inference/pipelines/text/init-chat-templates.d.ts": "inference/pipelines/text/initialization/init-chat-templates.d.ts",
+    "inference/pipelines/text/init-qkv-fusion.js": "inference/pipelines/text/initialization/init-qkv-fusion.js",
+    "inference/pipelines/text/init-qkv-fusion.d.ts": "inference/pipelines/text/initialization/init-qkv-fusion.d.ts",
+    "inference/pipelines/text/init-rope.js": "inference/pipelines/text/initialization/init-rope.js",
+    "inference/pipelines/text/init-rope.d.ts": "inference/pipelines/text/initialization/init-rope.d.ts",
+    "inference/pipelines/text/init-tokenizer.js": "inference/pipelines/text/initialization/init-tokenizer.js",
+    "inference/pipelines/text/init-tokenizer.d.ts": "inference/pipelines/text/initialization/init-tokenizer.d.ts",
+    "inference/pipelines/text/load-errors.js": "inference/pipelines/text/loading/load-errors.js",
+    "inference/pipelines/text/load-errors.d.ts": "inference/pipelines/text/loading/load-errors.d.ts",
+    "inference/pipelines/text/load-policy.js": "inference/pipelines/text/loading/load-policy.js",
+    "inference/pipelines/text/load-policy.d.ts": "inference/pipelines/text/loading/load-policy.d.ts",
+    "inference/pipelines/text/model-load.js": "inference/pipelines/text/loading/model-load.js",
+    "inference/pipelines/text/model-load.d.ts": "inference/pipelines/text/loading/model-load.d.ts",
+    "inference/pipelines/text/pipeline-load-timing.js": "inference/pipelines/text/loading/pipeline-load-timing.js",
+    "inference/pipelines/text/pipeline-load-timing.d.ts": "inference/pipelines/text/loading/pipeline-load-timing.d.ts",
+    "inference/pipelines/text/weight-loading-config.js": "inference/pipelines/text/loading/weight-loading-config.js",
+    "inference/pipelines/text/weight-loading-config.d.ts": "inference/pipelines/text/loading/weight-loading-config.d.ts",
+    "inference/pipelines/text/weights.js": "inference/pipelines/text/loading/weights.js",
+    "inference/pipelines/text/weights.d.ts": "inference/pipelines/text/loading/weights.d.ts",
+    "inference/pipelines/text/initialization/init-weights.js": "inference/pipelines/text/loading/init-weights.js",
+    "inference/pipelines/text/initialization/init-weights.d.ts": "inference/pipelines/text/loading/init-weights.d.ts",
+    "inference/pipelines/text/partition-attempt.js": "inference/pipelines/text/partitions/partition-attempt.js",
+    "inference/pipelines/text/partition-attempt.d.ts": "inference/pipelines/text/partitions/partition-attempt.d.ts",
+    "inference/pipelines/text/partition-execution.js": "inference/pipelines/text/partitions/partition-execution.js",
+    "inference/pipelines/text/partition-execution.d.ts": "inference/pipelines/text/partitions/partition-execution.d.ts",
+    "inference/pipelines/text/partition-replay.js": "inference/pipelines/text/partitions/partition-replay.js",
+    "inference/pipelines/text/partition-replay.d.ts": "inference/pipelines/text/partitions/partition-replay.d.ts",
+    "inference/pipelines/text/partition-wire.js": "inference/pipelines/text/partitions/partition-wire.js",
+    "inference/pipelines/text/partition-wire.d.ts": "inference/pipelines/text/partitions/partition-wire.d.ts",
+    "inference/pipelines/text/resident-partition-contract.js": "inference/pipelines/text/partitions/resident-partition-contract.js",
+    "inference/pipelines/text/resident-partition-contract.d.ts": "inference/pipelines/text/partitions/resident-partition-contract.d.ts",
+    "inference/pipelines/text/resident-partition.js": "inference/pipelines/text/partitions/resident-partition.js",
+    "inference/pipelines/text/resident-partition.d.ts": "inference/pipelines/text/partitions/resident-partition.d.ts",
+    "inference/pipelines/text/resident-pipeline-preparation.js": "inference/pipelines/text/partitions/resident-pipeline-preparation.js",
+    "inference/pipelines/text/resident-pipeline-preparation.d.ts": "inference/pipelines/text/partitions/resident-pipeline-preparation.d.ts",
+    "inference/pipelines/text/probes.js": "inference/pipelines/text/observation/probes.js",
+    "inference/pipelines/text/probes.d.ts": "inference/pipelines/text/observation/probes.d.ts",
+    "inference/pipelines/text/operator-events.js": "inference/pipelines/text/observation/operator-events.js",
+    "inference/pipelines/text/operator-events.d.ts": "inference/pipelines/text/observation/operator-events.d.ts",
+    "inference/pipelines/text/stage-names.js": "inference/pipelines/text/observation/stage-names.js",
+    "inference/pipelines/text/stage-names.d.ts": "inference/pipelines/text/observation/stage-names.d.ts",
+    "inference/pipelines/text/tsir-fixture-writer.js": "inference/pipelines/text/observation/tsir-fixture-writer.js",
+    "inference/pipelines/text/tsir-fixture-writer.d.ts": "inference/pipelines/text/observation/tsir-fixture-writer.d.ts",
+    "inference/pipelines/text/kernel-trace.js": "inference/pipelines/text/observation/kernel-trace.js",
+    "inference/pipelines/text/kernel-trace.d.ts": "inference/pipelines/text/observation/kernel-trace.d.ts",
+    "inference/pipelines/text/generator-logits-observation.js": "inference/pipelines/text/observation/generator-logits-observation.js",
+    "inference/pipelines/text/generator-logits-observation.d.ts": "inference/pipelines/text/observation/generator-logits-observation.d.ts",
+    "inference/pipelines/text/drift-policy.js": "inference/pipelines/text/policy/drift-policy.js",
+    "inference/pipelines/text/drift-policy.d.ts": "inference/pipelines/text/policy/drift-policy.d.ts",
+    "inference/pipelines/text/dtype-contract.js": "inference/pipelines/text/policy/dtype-contract.js",
+    "inference/pipelines/text/dtype-contract.d.ts": "inference/pipelines/text/policy/dtype-contract.d.ts",
+    "inference/pipelines/text/finiteness-policy.js": "inference/pipelines/text/policy/finiteness-policy.js",
+    "inference/pipelines/text/finiteness-policy.d.ts": "inference/pipelines/text/policy/finiteness-policy.d.ts",
+    "inference/pipelines/text/finiteness-guard-status.js": "inference/pipelines/text/policy/finiteness-guard-status.js",
+    "inference/pipelines/text/finiteness-guard-status.d.ts": "inference/pipelines/text/policy/finiteness-guard-status.d.ts",
+    "inference/pipelines/text/generator-decode-policy.js": "inference/pipelines/text/policy/generator-decode-policy.js",
+    "inference/pipelines/text/generator-decode-policy.d.ts": "inference/pipelines/text/policy/generator-decode-policy.d.ts",
+    "inference/pipelines/text/abort-contract.js": "inference/pipelines/text/contracts/abort-contract.js",
+    "inference/pipelines/text/abort-contract.d.ts": "inference/pipelines/text/contracts/abort-contract.d.ts",
+    "inference/pipelines/text/buffer-types.js": "inference/pipelines/text/contracts/buffer-types.js",
+    "inference/pipelines/text/buffer-types.d.ts": "inference/pipelines/text/contracts/buffer-types.d.ts",
+    "inference/pipelines/text/resolved-runtime-session.js": "inference/pipelines/text/configuration/resolved-runtime-session.js",
+    "inference/pipelines/text/resolved-runtime-session.d.ts": "inference/pipelines/text/configuration/resolved-runtime-session.d.ts",
+    "inference/pipelines/text/config-components.js": "inference/pipelines/text/configuration/config-components.js",
+    "inference/pipelines/text/config-components.d.ts": "inference/pipelines/text/configuration/config-components.d.ts",
+    "inference/pipelines/text/linear-attention.js": "inference/pipelines/text/linear-attention/linear-attention.js",
+    "inference/pipelines/text/linear-attention.d.ts": "inference/pipelines/text/linear-attention/linear-attention.d.ts",
+    "inference/pipelines/text/linear-attention-ab-fusion.js": "inference/pipelines/text/linear-attention/linear-attention-ab-fusion.js",
+    "inference/pipelines/text/linear-attention-ab-fusion.d.ts": "inference/pipelines/text/linear-attention/linear-attention-ab-fusion.d.ts",
+    "inference/pipelines/text/execution.js": "inference/pipelines/text/operations/execution.js",
+    "inference/pipelines/text/execution.d.ts": "inference/pipelines/text/operations/execution.d.ts",
+    "inference/pipelines/text/image-transcription.js": "inference/pipelines/text/operations/image-transcription.js",
+    "inference/pipelines/text/image-transcription.d.ts": "inference/pipelines/text/operations/image-transcription.d.ts",
+    "inference/pipelines/text/per-layer-inputs.js": "inference/pipelines/text/per-layer/per-layer-inputs.js",
+    "inference/pipelines/text/per-layer-inputs.d.ts": "inference/pipelines/text/per-layer/per-layer-inputs.d.ts",
+    "inference/pipelines/text/generator.js": "inference/pipelines/text/generator/generator.js",
+    "inference/pipelines/text/generator.d.ts": "inference/pipelines/text/generator/generator.d.ts",
+    "inference/pipelines/text/generator-steps.js": "inference/pipelines/text/generator/generator-steps.js",
+    "inference/pipelines/text/generator-steps.d.ts": "inference/pipelines/text/generator/generator-steps.d.ts",
+    "inference/pipelines/text/generator-runtime.js": "inference/pipelines/text/generator/session/generator-runtime.js",
+    "inference/pipelines/text/generator-runtime.d.ts": "inference/pipelines/text/generator/session/generator-runtime.d.ts",
+    "inference/pipelines/text/sequence-state.js": "inference/pipelines/text/generator/session/sequence-state.js",
+    "inference/pipelines/text/sequence-state.d.ts": "inference/pipelines/text/generator/session/sequence-state.d.ts",
+    "inference/pipelines/text/warm-generation.js": "inference/pipelines/text/generator/session/warm-generation.js",
+    "inference/pipelines/text/warm-generation.d.ts": "inference/pipelines/text/generator/session/warm-generation.d.ts",
+    "inference/pipelines/text/generation-request.js": "inference/pipelines/text/generator/request/generation-request.js",
+    "inference/pipelines/text/generation-request.d.ts": "inference/pipelines/text/generator/request/generation-request.d.ts",
+    "inference/pipelines/text/chat-format.js": "inference/pipelines/text/generator/request/chat-format.js",
+    "inference/pipelines/text/chat-format.d.ts": "inference/pipelines/text/generator/request/chat-format.d.ts",
+    "inference/pipelines/text/sampling.js": "inference/pipelines/text/generator/sampling/sampling.js",
+    "inference/pipelines/text/sampling.d.ts": "inference/pipelines/text/generator/sampling/sampling.d.ts",
+    "inference/pipelines/text/sampling-config.js": "inference/pipelines/text/generator/sampling/sampling-config.js",
+    "inference/pipelines/text/sampling-config.d.ts": "inference/pipelines/text/generator/sampling/sampling-config.d.ts",
+    "inference/pipelines/text/stopping.js": "inference/pipelines/text/generator/sampling/stopping.js",
+    "inference/pipelines/text/stopping.d.ts": "inference/pipelines/text/generator/sampling/stopping.d.ts",
+    "inference/pipelines/text/activity-weights.js": "inference/pipelines/text/generator/activation/activity-weights.js",
+    "inference/pipelines/text/activity-weights.d.ts": "inference/pipelines/text/generator/activation/activity-weights.d.ts",
+    "inference/pipelines/text/channel-gain.js": "inference/pipelines/text/generator/activation/channel-gain.js",
+    "inference/pipelines/text/channel-gain.d.ts": "inference/pipelines/text/generator/activation/channel-gain.d.ts",
+    "inference/pipelines/text/final-layer-replay.js": "inference/pipelines/text/generator/activation/final-layer-replay.js",
+    "inference/pipelines/text/final-layer-replay.d.ts": "inference/pipelines/text/generator/activation/final-layer-replay.d.ts",
+    "inference/pipelines/text/generator/batch-retry-policy.js": "inference/pipelines/text/generator/decode/batch-retry-policy.js",
+    "inference/pipelines/text/generator/batch-retry-policy.d.ts": "inference/pipelines/text/generator/decode/batch-retry-policy.d.ts",
+    "inference/pipelines/text/generator/compiled-greedy-window.js": "inference/pipelines/text/generator/decode/compiled-greedy-window.js",
+    "inference/pipelines/text/generator/compiled-greedy-window.d.ts": "inference/pipelines/text/generator/decode/compiled-greedy-window.d.ts",
+    "inference/pipelines/text/generator/decode-components.js": "inference/pipelines/text/generator/decode/decode-components.js",
+    "inference/pipelines/text/generator/decode-components.d.ts": "inference/pipelines/text/generator/decode/decode-components.d.ts",
+    "inference/pipelines/text/generator/decode-loop.js": "inference/pipelines/text/generator/decode/decode-loop.js",
+    "inference/pipelines/text/generator/decode-loop.d.ts": "inference/pipelines/text/generator/decode/decode-loop.d.ts",
+    "inference/pipelines/text/generator/decode-mechanics.js": "inference/pipelines/text/generator/decode/decode-mechanics.js",
+    "inference/pipelines/text/generator/decode-mechanics.d.ts": "inference/pipelines/text/generator/decode/decode-mechanics.d.ts",
+    "inference/pipelines/text/generator/decode-readback.js": "inference/pipelines/text/generator/decode/decode-readback.js",
+    "inference/pipelines/text/generator/decode-readback.d.ts": "inference/pipelines/text/generator/decode/decode-readback.d.ts",
+    "inference/pipelines/text/generator/decode-runtime.js": "inference/pipelines/text/generator/decode/decode-runtime.js",
+    "inference/pipelines/text/generator/decode-runtime.d.ts": "inference/pipelines/text/generator/decode/decode-runtime.d.ts",
+    "inference/pipelines/text/generator/decode-step.js": "inference/pipelines/text/generator/decode/decode-step.js",
+    "inference/pipelines/text/generator/decode-step.d.ts": "inference/pipelines/text/generator/decode/decode-step.d.ts",
+    "inference/pipelines/text/generator/decode.js": "inference/pipelines/text/generator/decode/decode.js",
+    "inference/pipelines/text/generator/decode.d.ts": "inference/pipelines/text/generator/decode/decode.d.ts",
+    "inference/pipelines/text/generator/greedy-head-policy.js": "inference/pipelines/text/generator/decode/greedy-head-policy.js",
+    "inference/pipelines/text/generator/greedy-head-policy.d.ts": "inference/pipelines/text/generator/decode/greedy-head-policy.d.ts",
+    "inference/pipelines/text/generator/recorded-step-executor.js": "inference/pipelines/text/generator/decode/recorded-step-executor.js",
+    "inference/pipelines/text/generator/recorded-step-executor.d.ts": "inference/pipelines/text/generator/decode/recorded-step-executor.d.ts",
+    "inference/pipelines/text/generator/prefill-observation.js": "inference/pipelines/text/generator/prefill/prefill-observation.js",
+    "inference/pipelines/text/generator/prefill-observation.d.ts": "inference/pipelines/text/generator/prefill/prefill-observation.d.ts",
+    "inference/pipelines/text/generator/prefill-policy.js": "inference/pipelines/text/generator/prefill/prefill-policy.js",
+    "inference/pipelines/text/generator/prefill-policy.d.ts": "inference/pipelines/text/generator/prefill/prefill-policy.d.ts",
+    "inference/pipelines/text/generator/prefill-runtime.js": "inference/pipelines/text/generator/prefill/prefill-runtime.js",
+    "inference/pipelines/text/generator/prefill-runtime.d.ts": "inference/pipelines/text/generator/prefill/prefill-runtime.d.ts",
+    "inference/pipelines/text/generator/prefix-embedding.js": "inference/pipelines/text/generator/prefill/prefix-embedding.js",
+    "inference/pipelines/text/generator/prefix-embedding.d.ts": "inference/pipelines/text/generator/prefill/prefix-embedding.d.ts",
+    "inference/pipelines/text/generator/activation-storage.js": "inference/pipelines/text/generator/session/activation-storage.js",
+    "inference/pipelines/text/generator/activation-storage.d.ts": "inference/pipelines/text/generator/session/activation-storage.d.ts",
+    "inference/pipelines/text/generator/attention-lifecycle.js": "inference/pipelines/text/generator/session/attention-lifecycle.js",
+    "inference/pipelines/text/generator/attention-lifecycle.d.ts": "inference/pipelines/text/generator/session/attention-lifecycle.d.ts",
+    "inference/pipelines/text/generator/generation-runtime.js": "inference/pipelines/text/generator/session/generation-runtime.js",
+    "inference/pipelines/text/generator/generation-runtime.d.ts": "inference/pipelines/text/generator/session/generation-runtime.d.ts",
+    "inference/pipelines/text/generator/diagnostic-sequence.js": "inference/pipelines/text/generator/session/diagnostic-sequence.js",
+    "inference/pipelines/text/generator/diagnostic-sequence.d.ts": "inference/pipelines/text/generator/session/diagnostic-sequence.d.ts",
+    "inference/pipelines/text/generator/recorder-stats.js": "inference/pipelines/text/generator/session/recorder-stats.js",
+    "inference/pipelines/text/generator/recorder-stats.d.ts": "inference/pipelines/text/generator/session/recorder-stats.d.ts",
+    "inference/pipelines/text/generator/recovery.js": "inference/pipelines/text/generator/session/recovery.js",
+    "inference/pipelines/text/generator/recovery.d.ts": "inference/pipelines/text/generator/session/recovery.d.ts",
+    "inference/pipelines/text/generator/session-context.js": "inference/pipelines/text/generator/session/session-context.js",
+    "inference/pipelines/text/generator/session-context.d.ts": "inference/pipelines/text/generator/session/session-context.d.ts",
+    "inference/pipelines/text/generator/speculative-runtime.js": "inference/pipelines/text/generator/session/speculative-runtime.js",
+    "inference/pipelines/text/generator/speculative-runtime.d.ts": "inference/pipelines/text/generator/session/speculative-runtime.d.ts",
+    "inference/pipelines/text/generator/text.js": "inference/pipelines/text/generator/session/text.js",
+    "inference/pipelines/text/generator/text.d.ts": "inference/pipelines/text/generator/session/text.d.ts",
+    "inference/pipelines/text/generator/whole-token-lane.js": "inference/pipelines/text/generator/whole-token/whole-token-lane.js",
+    "inference/pipelines/text/generator/whole-token-lane.d.ts": "inference/pipelines/text/generator/whole-token/whole-token-lane.d.ts",
+    "inference/pipelines/text/generator/whole-token-observation.js": "inference/pipelines/text/generator/whole-token/whole-token-observation.js",
+    "inference/pipelines/text/generator/whole-token-observation.d.ts": "inference/pipelines/text/generator/whole-token/whole-token-observation.d.ts",
+    "inference/pipelines/text/generator/whole-token-program.js": "inference/pipelines/text/generator/whole-token/whole-token-program.js",
+    "inference/pipelines/text/generator/whole-token-program.d.ts": "inference/pipelines/text/generator/whole-token/whole-token-program.d.ts",
+    "inference/pipelines/text/generator/whole-token-template.js": "inference/pipelines/text/generator/whole-token/whole-token-template.js",
+    "inference/pipelines/text/generator/whole-token-template.d.ts": "inference/pipelines/text/generator/whole-token/whole-token-template.d.ts",
+    "inference/pipelines/text/generator/capsule-generation.js": "inference/pipelines/text/generator/adapters/capsule-generation.js",
+    "inference/pipelines/text/generator/capsule-generation.d.ts": "inference/pipelines/text/generator/adapters/capsule-generation.d.ts",
+    "inference/pipelines/text/generator/diffusion.js": "inference/pipelines/text/generator/adapters/diffusion.js",
+    "inference/pipelines/text/generator/diffusion.d.ts": "inference/pipelines/text/generator/adapters/diffusion.d.ts",
+    "inference/pipelines/text/generator/training.js": "inference/pipelines/text/generator/adapters/training.js",
+    "inference/pipelines/text/generator/training.d.ts": "inference/pipelines/text/generator/adapters/training.d.ts",
+    "inference/pipelines/text/generator/prompt-input.js": "inference/pipelines/text/generator/request/prompt-input.js",
+    "inference/pipelines/text/generator/prompt-input.d.ts": "inference/pipelines/text/generator/request/prompt-input.d.ts",
+    "inference/pipelines/text/generator/token-selection.js": "inference/pipelines/text/generator/sampling/token-selection.js",
+    "inference/pipelines/text/generator/token-selection.d.ts": "inference/pipelines/text/generator/sampling/token-selection.d.ts",
+    "inference/pipelines/text/generator/logits-config.js": "inference/pipelines/text/logits/logits-config.js",
+    "inference/pipelines/text/generator/logits-config.d.ts": "inference/pipelines/text/logits/logits-config.d.ts",
+    "inference/pipelines/text/generator/hidden-projection.js": "inference/pipelines/text/logits/hidden-projection.js",
+    "inference/pipelines/text/generator/hidden-projection.d.ts": "inference/pipelines/text/logits/hidden-projection.d.ts",
+    "inference/pipelines/text/generator/per-layer-buffer.js": "inference/pipelines/text/per-layer/per-layer-buffer.js",
+    "inference/pipelines/text/generator/per-layer-buffer.d.ts": "inference/pipelines/text/per-layer/per-layer-buffer.d.ts",
+    "config/capsule-adapter-policy.js": "config/capsule/capsule-adapter-policy.js",
+    "config/capsule-adapter-policy.d.ts": "config/capsule/capsule-adapter-policy.d.ts",
+    "config/capsule-adapters.js": "config/capsule/capsule-adapters.js",
+    "config/capsule-adapters.d.ts": "config/capsule/capsule-adapters.d.ts",
+    "config/capsule-loading.js": "config/capsule/capsule-loading.js",
+    "config/capsule-loading.d.ts": "config/capsule/capsule-loading.d.ts",
+    "config/capsule-operation.js": "config/capsule/capsule-operation.js",
+    "config/capsule-operation.d.ts": "config/capsule/capsule-operation.d.ts",
+    "config/capsule-release-contract.js": "config/capsule/capsule-release-contract.js",
+    "config/capsule-release-contract.d.ts": "config/capsule/capsule-release-contract.d.ts",
+    "config/capsule-release-events.js": "config/capsule/capsule-release-events.js",
+    "config/capsule-release-events.d.ts": "config/capsule/capsule-release-events.d.ts",
+    "config/capsule-sequence-receipt.js": "config/capsule/capsule-sequence-receipt.js",
+    "config/capsule-sequence-receipt.d.ts": "config/capsule/capsule-sequence-receipt.d.ts",
+    "config/capsule-serve.js": "config/capsule/capsule-serve.js",
+    "config/capsule-serve.d.ts": "config/capsule/capsule-serve.d.ts",
+    "config/capsule-signature.js": "config/capsule/capsule-signature.js",
+    "config/capsule-signature.d.ts": "config/capsule/capsule-signature.d.ts",
+    "config/capsule-token-selection.js": "config/capsule/capsule-token-selection.js",
+    "config/capsule-token-selection.d.ts": "config/capsule/capsule-token-selection.d.ts",
+    "config/capsule-v0-trusted-signers.js": "config/capsule/capsule-v0-trusted-signers.js",
+    "config/capsule-v0-trusted-signers.d.ts": "config/capsule/capsule-v0-trusted-signers.d.ts",
+    "config/capsule-v2.js": "config/capsule/capsule-v2.js",
+    "config/capsule-v2.d.ts": "config/capsule/capsule-v2.d.ts",
+    "config/capsule-v3.js": "config/capsule/capsule-v3.js",
+    "config/capsule-v3.d.ts": "config/capsule/capsule-v3.d.ts",
+    "config/capsule.js": "config/capsule/capsule.js",
+    "config/capsule.d.ts": "config/capsule/capsule.d.ts",
+    "config/schema/adapter.schema.d.ts": "config/schema/runtime/adapter.schema.d.ts",
+    "config/schema/adapter.schema.js": "config/schema/runtime/adapter.schema.js",
+    "config/schema/backward-registry.schema.d.ts": "config/schema/training/backward-registry.schema.d.ts",
+    "config/schema/backward-registry.schema.js": "config/schema/training/backward-registry.schema.js",
+    "config/schema/benchmark.schema.d.ts": "config/schema/runtime/benchmark.schema.d.ts",
+    "config/schema/benchmark.schema.js": "config/schema/runtime/benchmark.schema.js",
+    "config/schema/bridge.schema.d.ts": "config/schema/runtime/bridge.schema.d.ts",
+    "config/schema/bridge.schema.js": "config/schema/runtime/bridge.schema.js",
+    "config/schema/browser-suite-metrics.schema.d.ts": "config/schema/runtime/browser-suite-metrics.schema.d.ts",
+    "config/schema/browser-suite-metrics.schema.js": "config/schema/runtime/browser-suite-metrics.schema.js",
+    "config/schema/buffer-pool.schema.d.ts": "config/schema/runtime/buffer-pool.schema.d.ts",
+    "config/schema/buffer-pool.schema.js": "config/schema/runtime/buffer-pool.schema.js",
+    "config/schema/conversion-report.schema.d.ts": "config/schema/manifest/conversion-report.schema.d.ts",
+    "config/schema/conversion-report.schema.js": "config/schema/manifest/conversion-report.schema.js",
+    "config/schema/conversion.schema.d.ts": "config/schema/manifest/conversion.schema.d.ts",
+    "config/schema/conversion.schema.js": "config/schema/manifest/conversion.schema.js",
+    "config/schema/converter.schema.d.ts": "config/schema/manifest/converter.schema.d.ts",
+    "config/schema/converter.schema.js": "config/schema/manifest/converter.schema.js",
+    "config/schema/debug.schema.d.ts": "config/schema/runtime/debug.schema.d.ts",
+    "config/schema/debug.schema.js": "config/schema/runtime/debug.schema.js",
+    "config/schema/diffusion.schema.d.ts": "config/schema/execution/diffusion.schema.d.ts",
+    "config/schema/diffusion.schema.js": "config/schema/execution/diffusion.schema.js",
+    "config/schema/distill-training.schema.d.ts": "config/schema/training/distill-training.schema.d.ts",
+    "config/schema/distill-training.schema.js": "config/schema/training/distill-training.schema.js",
+    "config/schema/distribution.schema.d.ts": "config/schema/runtime/distribution.schema.d.ts",
+    "config/schema/distribution.schema.js": "config/schema/runtime/distribution.schema.js",
+    "config/schema/doppler.schema.d.ts": "config/schema/runtime/doppler.schema.d.ts",
+    "config/schema/doppler.schema.js": "config/schema/runtime/doppler.schema.js",
+    "config/schema/ecosystem.schema.d.ts": "config/schema/runtime/ecosystem.schema.d.ts",
+    "config/schema/ecosystem.schema.js": "config/schema/runtime/ecosystem.schema.js",
+    "config/schema/emulation.schema.d.ts": "config/schema/platform/emulation.schema.d.ts",
+    "config/schema/emulation.schema.js": "config/schema/platform/emulation.schema.js",
+    "config/schema/energy.schema.d.ts": "config/schema/execution/energy.schema.d.ts",
+    "config/schema/energy.schema.js": "config/schema/execution/energy.schema.js",
+    "config/schema/execution-v1.schema.d.ts": "config/schema/execution/execution-v1.schema.d.ts",
+    "config/schema/execution-v1.schema.js": "config/schema/execution/execution-v1.schema.js",
+    "config/schema/fp8.schema.d.ts": "config/schema/manifest/fp8.schema.d.ts",
+    "config/schema/fp8.schema.js": "config/schema/manifest/fp8.schema.js",
+    "config/schema/gpu-cache.schema.d.ts": "config/schema/platform/gpu-cache.schema.d.ts",
+    "config/schema/gpu-cache.schema.js": "config/schema/platform/gpu-cache.schema.js",
+    "config/schema/harness.schema.d.ts": "config/schema/runtime/harness.schema.d.ts",
+    "config/schema/harness.schema.js": "config/schema/runtime/harness.schema.js",
+    "config/schema/hotswap.schema.d.ts": "config/schema/runtime/hotswap.schema.d.ts",
+    "config/schema/hotswap.schema.js": "config/schema/runtime/hotswap.schema.js",
+    "config/schema/hyper-connection-decoder.schema.d.ts": "config/schema/execution/hyper-connection-decoder.schema.d.ts",
+    "config/schema/hyper-connection-decoder.schema.js": "config/schema/execution/hyper-connection-decoder.schema.js",
+    "config/schema/inference.schema.d.ts": "config/schema/execution/inference.schema.d.ts",
+    "config/schema/inference.schema.js": "config/schema/execution/inference.schema.js",
+    "config/schema/intent-bundle.schema.d.ts": "config/schema/runtime/intent-bundle.schema.d.ts",
+    "config/schema/intent-bundle.schema.js": "config/schema/runtime/intent-bundle.schema.js",
+    "config/schema/kernel-path.schema.d.ts": "config/schema/execution/kernel-path.schema.d.ts",
+    "config/schema/kernel-path.schema.js": "config/schema/execution/kernel-path.schema.js",
+    "config/schema/kernel-registry.schema.d.ts": "config/schema/execution/kernel-registry.schema.d.ts",
+    "config/schema/kernel-registry.schema.js": "config/schema/execution/kernel-registry.schema.js",
+    "config/schema/kernel-thresholds.schema.d.ts": "config/schema/execution/kernel-thresholds.schema.d.ts",
+    "config/schema/kernel-thresholds.schema.js": "config/schema/execution/kernel-thresholds.schema.js",
+    "config/schema/kernel-warmup.schema.d.ts": "config/schema/execution/kernel-warmup.schema.d.ts",
+    "config/schema/kernel-warmup.schema.js": "config/schema/execution/kernel-warmup.schema.js",
+    "config/schema/kvcache.schema.d.ts": "config/schema/execution/kvcache.schema.d.ts",
+    "config/schema/kvcache.schema.js": "config/schema/execution/kvcache.schema.js",
+    "config/schema/loading.schema.d.ts": "config/schema/runtime/loading.schema.d.ts",
+    "config/schema/loading.schema.js": "config/schema/runtime/loading.schema.js",
+    "config/schema/lora.schema.d.ts": "config/schema/training/lora.schema.d.ts",
+    "config/schema/lora.schema.js": "config/schema/training/lora.schema.js",
+    "config/schema/manifest-rope.schema.d.ts": "config/schema/manifest/manifest-rope.schema.d.ts",
+    "config/schema/manifest.schema.d.ts": "config/schema/manifest/manifest.schema.d.ts",
+    "config/schema/manifest.schema.js": "config/schema/manifest/manifest.schema.js",
+    "config/schema/memory-limits.schema.d.ts": "config/schema/platform/memory-limits.schema.d.ts",
+    "config/schema/memory-limits.schema.js": "config/schema/platform/memory-limits.schema.js",
+    "config/schema/ngram-embedding.schema.d.ts": "config/schema/execution/ngram-embedding.schema.d.ts",
+    "config/schema/ngram-embedding.schema.js": "config/schema/execution/ngram-embedding.schema.js",
+    "config/schema/platform.schema.d.ts": "config/schema/platform/platform.schema.d.ts",
+    "config/schema/platform.schema.js": "config/schema/platform/platform.schema.js",
+    "config/schema/program-bundle-json-schema.d.ts": "config/schema/capsule/program-bundle-json-schema.d.ts",
+    "config/schema/program-bundle-json-schema.js": "config/schema/capsule/program-bundle-json-schema.js",
+    "config/schema/program-bundle.schema.d.ts": "config/schema/capsule/program-bundle.schema.d.ts",
+    "config/schema/program-bundle.schema.js": "config/schema/capsule/program-bundle.schema.js",
+    "config/schema/quantization-defaults.schema.d.ts": "config/schema/manifest/quantization-defaults.schema.d.ts",
+    "config/schema/quantization-defaults.schema.js": "config/schema/manifest/quantization-defaults.schema.js",
+    "config/schema/quantization.schema.d.ts": "config/schema/manifest/quantization.schema.d.ts",
+    "config/schema/quantization.schema.js": "config/schema/manifest/quantization.schema.js",
+    "config/schema/runtime-profile.schema.d.ts": "config/schema/runtime/runtime-profile.schema.d.ts",
+    "config/schema/runtime-profile.schema.js": "config/schema/runtime/runtime-profile.schema.js",
+    "config/schema/shared-runtime.schema.d.ts": "config/schema/runtime/shared-runtime.schema.d.ts",
+    "config/schema/shared-runtime.schema.js": "config/schema/runtime/shared-runtime.schema.js",
+    "config/schema/speculation-self.schema.d.ts": "config/schema/execution/speculation-self.schema.d.ts",
+    "config/schema/speculation-self.schema.js": "config/schema/execution/speculation-self.schema.js",
+    "config/schema/speculative.schema.d.ts": "config/schema/execution/speculative.schema.d.ts",
+    "config/schema/speculative.schema.js": "config/schema/execution/speculative.schema.js",
+    "config/schema/storage.schema.d.ts": "config/schema/runtime/storage.schema.d.ts",
+    "config/schema/storage.schema.js": "config/schema/runtime/storage.schema.js",
+    "config/schema/support-tiers.schema.d.ts": "config/schema/policy/support-tiers.schema.d.ts",
+    "config/schema/support-tiers.schema.js": "config/schema/policy/support-tiers.schema.js",
+    "config/schema/tooling.schema.d.ts": "config/schema/runtime/tooling.schema.d.ts",
+    "config/schema/tooling.schema.js": "config/schema/runtime/tooling.schema.js",
+    "config/schema/training-metrics.schema.d.ts": "config/schema/training/training-metrics.schema.d.ts",
+    "config/schema/training-metrics.schema.js": "config/schema/training/training-metrics.schema.js",
+    "config/schema/training.schema.d.ts": "config/schema/training/training.schema.d.ts",
+    "config/schema/training.schema.js": "config/schema/training/training.schema.js",
+    "config/schema/ul-training.schema.d.ts": "config/schema/training/ul-training.schema.d.ts",
+    "config/schema/ul-training.schema.js": "config/schema/training/ul-training.schema.js",
+    "config/schema/units.schema.d.ts": "config/schema/runtime/units.schema.d.ts",
+    "config/schema/units.schema.js": "config/schema/runtime/units.schema.js",
+    "config/schema/w8a8.schema.d.ts": "config/schema/manifest/w8a8.schema.d.ts",
+    "config/schema/w8a8.schema.js": "config/schema/manifest/w8a8.schema.js"
   },
   "constitutionalDomains": {
     "registry-contracts": [
@@ -460,7 +789,7 @@
     "capsule": [
       "config/model-ir.js",
       "config/target-plan.js",
-      "config/capsule-v2.js"
+      "config/capsule/capsule-v2.js"
     ],
     "forge": [
       "converter/forge-stages.js",
@@ -540,7 +869,7 @@
       "entryPoints": [
         "config/model-ir.js",
         "config/target-plan.js",
-        "config/capsule-v2.js"
+        "config/capsule/capsule-v2.js"
       ],
       "forbiddenPathPrefixes": [
         "converter/",
@@ -582,17 +911,19 @@
       "from": "tooling/test-harness.js",
       "toOwner": "client",
       "reason": "Host-level test assembly resolves artifact sources through the client source contract.",
-      "extractTo": "client/runtime/model-source.js"
+      "extractTo": "client/runtime/model-source.js",
+      "removalCondition": "Move the cross-owner integration to client/runtime/model-source.js and remove the tooling/test-harness.js -> client dependency; the checker rejects this exception once unused."
     },
     {
       "from": "tooling/browser-harness/benchmark-comparison.js",
       "toOwner": "client",
       "reason": "Benchmark receipts reuse canonical comparison fingerprints and observed backend identity; tooling does not select or execute client policy.",
-      "extractTo": "client/inspection.js"
+      "extractTo": "client/inspection.js",
+      "removalCondition": "Move the cross-owner integration to client/inspection.js and remove the tooling/browser-harness/benchmark-comparison.js -> client dependency; the checker rejects this exception once unused."
     }
   ],
   "genericModuleReviews": {
-    "config/schema/shared-runtime.schema.js": {
+    "config/schema/runtime/shared-runtime.schema.js": {
       "classification": "semantic-owner",
       "semanticOwner": "shared runtime schema defaults"
     },
@@ -626,7 +957,7 @@
     "inference/test-harness.js",
     "index.js",
     "index-browser.js",
-    "config/schema/platform.schema.js",
+    "config/schema/platform/platform.schema.js",
     "config/execution-contract-check.js",
     "gpu/kernels/types.js",
     "gpu/kernels/turboquant-codebook.js",
@@ -636,307 +967,370 @@
     "inference/pipelines/diffusion/types.js",
     "inference/pipelines/energy/index.js",
     "inference/pipelines/energy-head/row-head-pipeline.js",
-    "inference/pipelines/text/buffer-types.js",
+    "inference/pipelines/text/contracts/buffer-types.js",
     "inference/pipelines/text/bdpa-steamroller.js",
     "inference/pipelines/text/logits/types.js",
     "inference/pipelines/text/logits/cpu.js",
     "inference/pipelines/text/logits/cpu-output.js",
-    "inference/pipelines/text/types.js",
     "inference/tokenizers/types.js",
     "tooling-exports.js",
     "tooling-exports.browser.js",
     "tooling-exports.shared.js",
     "tooling/node-browser-command-runner.js",
-    "training-browser.js",
-    "types/chrome.js"
+    "training-browser.js"
   ],
   "softLimitReviews": {
     "storage/downloader.js": {
-      "reviewedLines": 765,
-      "debtAuthorization": "sha256:66797cdee28d91342930af4179ca9cc290da31cdd7634bce1786aaabe1a6fc4f",
-      "reason": "Existing acquisition lifecycle now pins one model store through reads, writes, resume, cancellation and cleanup.",
+      "reviewedLines": 764,
+      "reason": "Model-scoped download orchestration retains pause, resume and cancellation across one session; transport extraction must preserve the pinned model and writer.",
       "extractTo": [
-        "storage/download/transport.js"
-      ]
+        "storage/download/model-session.js"
+      ],
+      "owner": "storage",
+      "reviewedAt": "2026-11-15",
+      "reviewedBy": "codex-da5723",
+      "reviewScope": "Inherited size debt and named extraction boundary; numerical qualification is separate.",
+      "removalCondition": "Extract the named responsibility into storage/download/model-session.js with affected consumer tests passing; remove this review when the original module is at most 750 lines."
     },
     "storage/shard-manager.js": {
       "reviewedLines": 787,
-      "debtAuthorization": "sha256:66797cdee28d91342930af4179ca9cc290da31cdd7634bce1786aaabe1a6fc4f",
-      "reason": "Reuse existing integrity and byte access for scoped handles and an outer compatibility default without duplicating integrity algorithms.",
+      "reason": "The shard-manager factory closes over one backend and model; move scoped byte access without reintroducing mutable global source selection.",
       "extractTo": [
-        "storage/model-read-session.js",
-        "storage/shards/integrity.js"
-      ]
+        "storage/shards/scoped-session.js"
+      ],
+      "owner": "storage",
+      "reviewedAt": "2026-11-15",
+      "reviewedBy": "codex-da5723",
+      "reviewScope": "Inherited size debt and named extraction boundary; numerical qualification is separate.",
+      "removalCondition": "Extract the named responsibility into storage/shards/scoped-session.js with affected consumer tests passing; remove this review when the original module is at most 750 lines."
     },
     "cli/commands/bundle.js": {
       "reviewedLines": 828,
-      "reason": "The module remains one named runtime or tooling lifecycle; the component boundary ratchets further growth.",
+      "reason": "CLI boundary, intake and command-surface dispatch currently share this entry; extract boundary command parsing while preserving response envelopes.",
       "extractTo": [
-        "cli/commands/bundle-components.js"
-      ]
+        "cli/commands/boundary.js"
+      ],
+      "owner": "cli",
+      "reviewedAt": "2026-11-15",
+      "reviewedBy": "codex-da5723",
+      "reviewScope": "Inherited size debt and named extraction boundary; numerical qualification is separate.",
+      "removalCondition": "Extract the named responsibility into cli/commands/boundary.js with affected consumer tests passing; remove this review when the original module is at most 750 lines."
     },
     "client/model-host/source-loading.js": {
-      "debtAuthorization": "sha256:66797cdee28d91342930af4179ca9cc290da31cdd7634bce1786aaabe1a6fc4f",
       "reviewedLines": 910,
-      "reason": "The module remains one named runtime or tooling lifecycle; the component boundary ratchets further growth.",
+      "reason": "Native bridge readers and per-format parsers share source identity and range-read contracts; separate bridge readers from format interpretation.",
       "extractTo": [
-        "client/runtime/source-runtime-components.js"
-      ]
-    },
-    "config/schema/index.d.ts": {
-      "reviewedLines": 909,
-      "reason": "Large declaration surface mirrors one runtime contract; the paired component declaration is the named extraction boundary.",
-      "extractTo": [
-        "config/schema/index-components.d.ts"
-      ]
-    },
-    "config/schema/manifest.schema.d.ts": {
-      "reviewedLines": 859,
-      "reason": "Large declaration surface mirrors one runtime contract; the paired component declaration is the named extraction boundary.",
-      "extractTo": [
-        "config/schema/manifest.schema-components.d.ts"
-      ]
+        "client/model-host/bridge-source-readers.js"
+      ],
+      "owner": "client",
+      "reviewedAt": "2026-11-15",
+      "reviewedBy": "codex-da5723",
+      "reviewScope": "Inherited size debt and named extraction boundary; numerical qualification is separate.",
+      "removalCondition": "Extract the named responsibility into client/model-host/bridge-source-readers.js with affected consumer tests passing; remove this review when the original module is at most 750 lines."
     },
     "converter/execution-graph-transforms.js": {
-      "debtAuthorization": "sha256:66797cdee28d91342930af4179ca9cc290da31cdd7634bce1786aaabe1a6fc4f",
-      "reviewedLines": 987,
-      "reason": "The module remains one named runtime or tooling lifecycle; the component boundary ratchets further growth.",
+      "reviewedLines": 927,
+      "reason": "Graph transformation entry points still combine prefill attention and decode projection passes; isolate the prefill attention passes while preserving transform composition order.",
       "extractTo": [
-        "config/transforms/execution-graph-transforms-components.js"
-      ]
-    },
-    "converter/core.js": {
-      "reviewedLines": 847,
-      "reason": "The module remains one named runtime or tooling lifecycle; the component boundary ratchets further growth.",
-      "extractTo": [
-        "converter/core-components.js"
-      ]
+        "converter/execution-graph/prefill-attention.js"
+      ],
+      "owner": "converter",
+      "reviewedAt": "2026-11-15",
+      "reviewedBy": "codex-da5723",
+      "reviewScope": "Inherited size debt and named extraction boundary; numerical qualification is separate.",
+      "removalCondition": "Extract the named responsibility into converter/execution-graph/prefill-attention.js with affected consumer tests passing; remove this review when the original module is at most 750 lines."
     },
     "converter/forge-stages.js": {
-      "reviewedLines": 811,
-      "reason": "The module remains one named runtime or tooling lifecycle; the component boundary ratchets further growth.",
+      "reviewedLines": 805,
+      "reason": "Rig stage orchestration binds source facts, qualification and signing in order; move target qualification without changing stage authority or receipt lineage.",
       "extractTo": [
-        "converter/forge-qualification.js"
-      ]
+        "converter/forge/target-qualification.js"
+      ],
+      "owner": "converter",
+      "reviewedAt": "2026-11-15",
+      "reviewedBy": "codex-da5723",
+      "reviewScope": "Inherited size debt and named extraction boundary; numerical qualification is separate.",
+      "removalCondition": "Extract the named responsibility into converter/forge/target-qualification.js with affected consumer tests passing; remove this review when the original module is at most 750 lines."
     },
     "experimental/browser/browser-converter.js": {
       "reviewedLines": 978,
-      "reason": "Quarantined subsystem module remains below the hard ceiling; the named component boundary ratchets further growth.",
+      "reason": "Browser conversion coordinates source reads, output writes and progress; extract browser conversion I/O while preserving cancellation and artifact byte identity.",
       "extractTo": [
-        "experimental/browser/browser-converter-components.js"
-      ]
+        "experimental/browser/conversion-io.js"
+      ],
+      "owner": "experimental",
+      "reviewedAt": "2026-11-15",
+      "reviewedBy": "codex-da5723",
+      "reviewScope": "Inherited size debt and named extraction boundary; numerical qualification is separate.",
+      "removalCondition": "Extract the named responsibility into experimental/browser/conversion-io.js with affected consumer tests passing; remove this review when the original module is at most 750 lines."
     },
     "storage/download/http-transport.js": {
-      "reviewedLines": 831,
-      "debtAuthorization": "sha256:66797cdee28d91342930af4179ca9cc290da31cdd7634bce1786aaabe1a6fc4f",
-      "reason": "Existing resumable HTTP transfer lifecycle moved unchanged below optional distribution orchestration; growth remains bounded.",
+      "reviewedLines": 824,
+      "reason": "Resumable HTTP transfer owns range delivery, hashing and cancellation settlement; isolate the streaming transfer state without changing scoped storage ownership.",
       "extractTo": [
-        "storage/download/http-contract.js"
-      ]
+        "storage/download/streaming-transfer.js"
+      ],
+      "owner": "storage",
+      "reviewedAt": "2026-11-15",
+      "reviewedBy": "codex-da5723",
+      "reviewScope": "Inherited size debt and named extraction boundary; numerical qualification is separate.",
+      "removalCondition": "Extract the named responsibility into storage/download/streaming-transfer.js with affected consumer tests passing; remove this review when the original module is at most 750 lines."
     },
     "experimental/training/artifacts.js": {
-      "reviewedLines": 883,
-      "reason": "Quarantined subsystem module remains below the hard ceiling; the named component boundary ratchets further growth.",
+      "reviewedLines": 880,
+      "reason": "Training artifact envelopes, piece inventories and verification remain coupled; isolate piece verification without rewriting retained checkpoint identities.",
       "extractTo": [
-        "experimental/training/artifacts-components.js"
-      ]
+        "experimental/training/artifacts/piece-verification.js"
+      ],
+      "owner": "experimental",
+      "reviewedAt": "2026-11-15",
+      "reviewedBy": "codex-da5723",
+      "reviewScope": "Inherited size debt and named extraction boundary; numerical qualification is separate.",
+      "removalCondition": "Extract the named responsibility into experimental/training/artifacts/piece-verification.js with affected consumer tests passing; remove this review when the original module is at most 750 lines."
     },
     "experimental/training/distillation/student-fixture.js": {
-      "reviewedLines": 994,
-      "reason": "Quarantined subsystem module remains below the hard ceiling; the named component boundary ratchets further growth.",
+      "reviewedLines": 991,
+      "reason": "Student fixture assembly includes tensor construction and fixture lifecycle; extract student tensor construction while preserving the deterministic reference inputs.",
       "extractTo": [
-        "experimental/training/distillation/student-fixture-components.js"
-      ]
+        "experimental/training/distillation/student-tensors.js"
+      ],
+      "owner": "experimental",
+      "reviewedAt": "2026-11-15",
+      "reviewedBy": "codex-da5723",
+      "reviewScope": "Inherited size debt and named extraction boundary; numerical qualification is separate.",
+      "removalCondition": "Extract the named responsibility into experimental/training/distillation/student-tensors.js with affected consumer tests passing; remove this review when the original module is at most 750 lines."
     },
     "experimental/training/runner.js": {
-      "reviewedLines": 978,
-      "reason": "Quarantined subsystem module remains below the hard ceiling; the named component boundary ratchets further growth.",
+      "reviewedLines": 975,
+      "reason": "Training execution dispatches distinct objective stages through shared step state; extract the training-step lifecycle without promoting experimental support.",
       "extractTo": [
-        "experimental/training/runner-components.js"
-      ]
+        "experimental/training/training-step.js"
+      ],
+      "owner": "experimental",
+      "reviewedAt": "2026-11-15",
+      "reviewedBy": "codex-da5723",
+      "reviewScope": "Inherited size debt and named extraction boundary; numerical qualification is separate.",
+      "removalCondition": "Extract the named responsibility into experimental/training/training-step.js with affected consumer tests passing; remove this review when the original module is at most 750 lines."
     },
     "experimental/training/suite/execution.js": {
-      "reviewedLines": 879,
-      "reason": "Quarantined subsystem module remains below the hard ceiling; the named component boundary ratchets further growth.",
+      "reviewedLines": 877,
+      "reason": "UL and distillation stage execution share suite reporting; isolate distillation stages while preserving their distinct names and artifact preflight.",
       "extractTo": [
-        "experimental/training/suite/execution-components.js"
-      ]
+        "experimental/training/suite/distill-stages.js"
+      ],
+      "owner": "experimental",
+      "reviewedAt": "2026-11-15",
+      "reviewedBy": "codex-da5723",
+      "reviewScope": "Inherited size debt and named extraction boundary; numerical qualification is separate.",
+      "removalCondition": "Extract the named responsibility into experimental/training/suite/distill-stages.js with affected consumer tests passing; remove this review when the original module is at most 750 lines."
     },
     "experimental/training/suite/plan.js": {
-      "reviewedLines": 855,
-      "reason": "Quarantined subsystem module remains below the hard ceiling; the named component boundary ratchets further growth.",
+      "reviewedLines": 840,
+      "reason": "Suite request normalization and stage planning share this module; isolate training request normalization while retaining separate UL and distillation stage contracts.",
       "extractTo": [
-        "experimental/training/suite/plan-components.js"
-      ]
+        "experimental/training/suite/training-request.js"
+      ],
+      "owner": "experimental",
+      "reviewedAt": "2026-11-15",
+      "reviewedBy": "codex-da5723",
+      "reviewScope": "Inherited size debt and named extraction boundary; numerical qualification is separate.",
+      "removalCondition": "Extract the named responsibility into experimental/training/suite/training-request.js with affected consumer tests passing; remove this review when the original module is at most 750 lines."
     },
     "experimental/training/wgsl-repair.js": {
-      "reviewedLines": 826,
-      "reason": "Quarantined subsystem module remains below the hard ceiling; the named component boundary ratchets further growth.",
+      "reviewedLines": 823,
+      "reason": "WGSL repair coordinates training checkpoints, evaluation and recovery; extract checkpoint handling without changing frozen evaluator or promotion boundaries.",
       "extractTo": [
-        "experimental/training/wgsl-repair-components.js"
-      ]
-    },
-    "gpu/kernels/attention.js": {
-      "reviewedLines": 883,
-      "reason": "The module remains one named runtime or tooling lifecycle; the component boundary ratchets further growth.",
-      "extractTo": [
-        "gpu/kernels/attention-components.js"
-      ]
+        "experimental/training/wgsl-repair/checkpoints.js"
+      ],
+      "owner": "experimental",
+      "reviewedAt": "2026-11-15",
+      "reviewedBy": "codex-da5723",
+      "reviewScope": "Inherited size debt and named extraction boundary; numerical qualification is separate.",
+      "removalCondition": "Extract the named responsibility into experimental/training/wgsl-repair/checkpoints.js with affected consumer tests passing; remove this review when the original module is at most 750 lines."
     },
     "tooling/browser-harness/benchmark-execution.js": {
-      "reviewedLines": 872,
-      "reason": "The module remains one named runtime or tooling lifecycle; the component boundary ratchets further growth.",
+      "reviewedLines": 865,
+      "reason": "Browser benchmark execution combines command transport and evidence reporting; isolate benchmark receipts without changing timing or fairness semantics.",
       "extractTo": [
-        "tooling/browser-harness/benchmark-execution-components.js"
-      ]
+        "tooling/browser-harness/benchmark-receipts.js"
+      ],
+      "owner": "tooling",
+      "reviewedAt": "2026-11-15",
+      "reviewedBy": "codex-da5723",
+      "reviewScope": "Inherited size debt and named extraction boundary; numerical qualification is separate.",
+      "removalCondition": "Extract the named responsibility into tooling/browser-harness/benchmark-receipts.js with affected consumer tests passing; remove this review when the original module is at most 750 lines."
     },
     "inference/kv-cache/base.js": {
       "reviewedLines": 957,
-      "reason": "The module remains one named runtime or tooling lifecycle; the component boundary ratchets further growth.",
+      "reason": "Contiguous KV-cache storage binds allocation, updates and snapshots; isolate contiguous update mechanics without changing layer ownership or cache geometry.",
       "extractTo": [
-        "inference/kv-cache/base-components.js"
-      ]
+        "inference/kv-cache/contiguous-update.js"
+      ],
+      "owner": "inference",
+      "reviewedAt": "2026-11-15",
+      "reviewedBy": "codex-da5723",
+      "reviewScope": "Inherited size debt and named extraction boundary; numerical qualification is separate.",
+      "removalCondition": "Extract the named responsibility into inference/kv-cache/contiguous-update.js with affected consumer tests passing; remove this review when the original module is at most 750 lines."
     },
     "inference/kv-cache/tiered.js": {
       "reviewedLines": 756,
-      "reason": "The module remains one named runtime or tooling lifecycle; the component boundary ratchets further growth.",
+      "reason": "Tiered cache coordinates hot storage and ring advancement; extract ring bookkeeping while preserving context positions and deferred buffer ownership.",
       "extractTo": [
-        "inference/kv-cache/tiered-components.js"
-      ]
+        "inference/kv-cache/tiered-ring.js"
+      ],
+      "owner": "inference",
+      "reviewedAt": "2026-11-15",
+      "reviewedBy": "codex-da5723",
+      "reviewScope": "Inherited size debt and named extraction boundary; numerical qualification is separate.",
+      "removalCondition": "Extract the named responsibility into inference/kv-cache/tiered-ring.js with affected consumer tests passing; remove this review when the original module is at most 750 lines."
     },
     "inference/pipelines/diffusion/sd3/execution.js": {
       "reviewedLines": 805,
-      "reason": "The module remains one named runtime or tooling lifecycle; the component boundary ratchets further growth.",
+      "reason": "SD3 orchestration binds denoising steps to declared diffusion settings; extract the denoising loop without changing scheduling or numerical policy.",
       "extractTo": [
-        "inference/pipelines/diffusion/sd3/execution-components.js"
-      ]
+        "inference/pipelines/diffusion/sd3/denoising-loop.js"
+      ],
+      "owner": "inference",
+      "reviewedAt": "2026-11-15",
+      "reviewedBy": "codex-da5723",
+      "reviewScope": "Inherited size debt and named extraction boundary; numerical qualification is separate.",
+      "removalCondition": "Extract the named responsibility into inference/pipelines/diffusion/sd3/denoising-loop.js with affected consumer tests passing; remove this review when the original module is at most 750 lines."
     },
     "experimental/diffusion/text-encoder-gpu.js": {
-      "reviewedLines": 947,
-      "reason": "The module remains one named runtime or tooling lifecycle; the component boundary ratchets further growth.",
+      "reviewedLines": 946,
+      "reason": "The experimental GPU text encoder combines encoder orchestration and projection dispatch; isolate projection adapters without introducing a CPU fallback.",
       "extractTo": [
-        "experimental/diffusion/text-encoder-gpu-components.js"
-      ]
+        "experimental/diffusion/text-encoder/projection.js"
+      ],
+      "owner": "experimental",
+      "reviewedAt": "2026-11-15",
+      "reviewedBy": "codex-da5723",
+      "reviewScope": "Inherited size debt and named extraction boundary; numerical qualification is separate.",
+      "removalCondition": "Extract the named responsibility into experimental/diffusion/text-encoder/projection.js with affected consumer tests passing; remove this review when the original module is at most 750 lines."
     },
     "inference/pipelines/diffusion/vae/execution.js": {
       "reviewedLines": 803,
-      "reason": "The module remains one named runtime or tooling lifecycle; the component boundary ratchets further growth.",
+      "reason": "VAE execution sequences decoder blocks and owned intermediates; extract decoder blocks while preserving release order and output layout.",
       "extractTo": [
-        "inference/pipelines/diffusion/vae/execution-components.js"
-      ]
-    },
-    "inference/pipelines/text/attention/interpreter.js": {
-      "reviewedLines": 984,
-      "reason": "The module remains one named runtime or tooling lifecycle; the component boundary ratchets further growth.",
-      "extractTo": [
-        "inference/pipelines/text/attention/interpreter-components.js"
-      ]
-    },
-    "inference/pipelines/text/attention/projections.js": {
-      "reviewedLines": 815,
-      "reason": "The module remains one named runtime or tooling lifecycle; the component boundary ratchets further growth.",
-      "extractTo": [
-        "inference/pipelines/text/attention/projections-components.js"
-      ]
-    },
-    "inference/pipelines/text/ffn/dense.js": {
-      "reviewedLines": 943,
-      "reason": "The module remains one named runtime or tooling lifecycle; the component boundary ratchets further growth.",
-      "extractTo": [
-        "inference/pipelines/text/ffn/dense-components.js"
-      ]
-    },
-    "inference/pipelines/text/generator/prefill-runtime.js": {
-      "reviewedLines": 896,
-      "reason": "The module remains one named runtime or tooling lifecycle; the component boundary ratchets further growth.",
-      "extractTo": [
-        "inference/pipelines/text/generator/prefill-observation.js"
-      ]
-    },
-    "inference/pipelines/text/generator-steps.js": {
-      "reviewedLines": 939,
-      "reason": "The module remains one named runtime or tooling lifecycle; the component boundary ratchets further growth.",
-      "extractTo": [
-        "inference/pipelines/text/generator-steps-components.js"
-      ]
-    },
-    "inference/pipelines/text/layer.js": {
-      "reviewedLines": 816,
-      "reason": "The module remains one named runtime or tooling lifecycle; the component boundary ratchets further growth.",
-      "extractTo": [
-        "inference/pipelines/text/layer-components.js"
-      ]
-    },
-    "inference/pipelines/text/types.d.ts": {
-      "reviewedLines": 866,
-      "reason": "Large declaration surface mirrors one runtime contract; the paired component declaration is the named extraction boundary.",
-      "extractTo": [
-        "inference/pipelines/text/types-components.d.ts"
-      ]
+        "inference/pipelines/diffusion/vae/decoder-blocks.js"
+      ],
+      "owner": "inference",
+      "reviewedAt": "2026-11-15",
+      "reviewedBy": "codex-da5723",
+      "reviewScope": "Inherited size debt and named extraction boundary; numerical qualification is separate.",
+      "removalCondition": "Extract the named responsibility into inference/pipelines/diffusion/vae/decoder-blocks.js with affected consumer tests passing; remove this review when the original module is at most 750 lines."
     },
     "inference/tokenizers/bundled.js": {
-      "reviewedLines": 997,
-      "reason": "The module remains one named runtime or tooling lifecycle; the component boundary ratchets further growth.",
+      "reviewedLines": 980,
+      "reason": "Bundled tokenizer state covers full and incremental decoding; isolate incremental Unicode handling while preserving token IDs and continuation boundaries.",
       "extractTo": [
-        "inference/tokenizers/bundled-components.js"
-      ]
+        "inference/tokenizers/bundled-incremental.js"
+      ],
+      "owner": "inference",
+      "reviewedAt": "2026-11-15",
+      "reviewedBy": "codex-da5723",
+      "reviewScope": "Inherited size debt and named extraction boundary; numerical qualification is separate.",
+      "removalCondition": "Extract the named responsibility into inference/tokenizers/bundled-incremental.js with affected consumer tests passing; remove this review when the original module is at most 750 lines."
     },
     "loader/tensors/source-transform.js": {
       "reviewedLines": 810,
-      "reason": "The module remains one named runtime or tooling lifecycle; the component boundary ratchets further growth.",
+      "reason": "Source-transform decoding handles declared source layouts and encodings; extract layout decoding without inferring missing geometry or changing materialized bytes.",
       "extractTo": [
-        "loader/tensors/source-transform-components.js"
-      ]
+        "loader/tensors/source-transform/layout-decode.js"
+      ],
+      "owner": "loader",
+      "reviewedAt": "2026-11-15",
+      "reviewedBy": "codex-da5723",
+      "reviewScope": "Inherited size debt and named extraction boundary; numerical qualification is separate.",
+      "removalCondition": "Extract the named responsibility into loader/tensors/source-transform/layout-decode.js with affected consumer tests passing; remove this review when the original module is at most 750 lines."
     },
     "memory/buffer-pool.js": {
       "reviewedLines": 848,
-      "reason": "The module remains one named runtime or tooling lifecycle; the component boundary ratchets further growth.",
+      "reason": "The buffer pool binds budget accounting, reuse and deferred destruction; extract settlement while preserving charged bytes until queue completion is known.",
       "extractTo": [
-        "memory/buffer-pool-components.js"
-      ]
+        "memory/buffer-pool/settlement.js"
+      ],
+      "owner": "memory",
+      "reviewedAt": "2026-11-15",
+      "reviewedBy": "codex-da5723",
+      "reviewScope": "Inherited size debt and named extraction boundary; numerical qualification is separate.",
+      "removalCondition": "Extract the named responsibility into memory/buffer-pool/settlement.js with affected consumer tests passing; remove this review when the original module is at most 750 lines."
     },
     "storage/artifact-storage-context.js": {
-      "reviewedLines": 897,
-      "reason": "The module remains one named runtime or tooling lifecycle; the component boundary ratchets further growth.",
+      "reviewedLines": 854,
+      "reason": "Artifact storage contexts bind source identity to file, HTTP and range access; isolate range readers without weakening verification or close semantics.",
       "extractTo": [
-        "storage/node-file-access.js"
-      ]
+        "storage/artifact-context/range-readers.js"
+      ],
+      "owner": "storage",
+      "reviewedAt": "2026-11-15",
+      "reviewedBy": "codex-da5723",
+      "reviewScope": "Inherited size debt and named extraction boundary; numerical qualification is separate.",
+      "removalCondition": "Extract the named responsibility into storage/artifact-context/range-readers.js with affected consumer tests passing; remove this review when the original module is at most 750 lines."
     },
     "tooling/kernel-path-builder/index.js": {
-      "reviewedLines": 939,
-      "reason": "The module remains one named runtime or tooling lifecycle; the component boundary ratchets further growth.",
+      "reviewedLines": 919,
+      "reason": "Kernel-path builder analysis and Markdown rendering share the entry; extract report rendering while preserving the generated builder data.",
       "extractTo": [
-        "tooling/kernel-path-builder/index-components.js"
-      ]
+        "tooling/kernel-path-builder/report.js"
+      ],
+      "owner": "tooling",
+      "reviewedAt": "2026-11-15",
+      "reviewedBy": "codex-da5723",
+      "reviewScope": "Inherited size debt and named extraction boundary; numerical qualification is separate.",
+      "removalCondition": "Extract the named responsibility into tooling/kernel-path-builder/report.js with affected consumer tests passing; remove this review when the original module is at most 750 lines."
     },
     "tooling/litert/package.js": {
       "reviewedLines": 863,
-      "reason": "The module remains one named runtime or tooling lifecycle; the component boundary ratchets further growth.",
+      "reason": "LiteRT package normalization includes Gemma-specific tensor layouts; isolate Gemma tensor normalization without changing scale or blocked-axis contracts.",
       "extractTo": [
-        "tooling/litert/package-components.js"
-      ]
+        "tooling/litert/gemma4-tensors.js"
+      ],
+      "owner": "tooling",
+      "reviewedAt": "2026-11-15",
+      "reviewedBy": "codex-da5723",
+      "reviewScope": "Inherited size debt and named extraction boundary; numerical qualification is separate.",
+      "removalCondition": "Extract the named responsibility into tooling/litert/gemma4-tensors.js with affected consumer tests passing; remove this review when the original module is at most 750 lines."
     },
     "tooling/litert-package-runtime.js": {
-      "reviewedLines": 993,
-      "reason": "The module remains one named runtime or tooling lifecycle; the component boundary ratchets further growth.",
+      "reviewedLines": 896,
+      "reason": "LiteRT package parsing and virtual source construction share runtime preparation; isolate package parsing while retaining explicit package profiles and source identity.",
       "extractTo": [
-        "tooling/litert-package-runtime-components.js"
-      ]
+        "tooling/litert/package-runtime.js"
+      ],
+      "owner": "tooling",
+      "reviewedAt": "2026-11-15",
+      "reviewedBy": "codex-da5723",
+      "reviewScope": "Inherited size debt and named extraction boundary; numerical qualification is separate.",
+      "removalCondition": "Extract the named responsibility into tooling/litert/package-runtime.js with affected consumer tests passing; remove this review when the original module is at most 750 lines."
     },
     "tooling/node-converter.js": {
-      "reviewedLines": 948,
-      "reason": "The module remains one named runtime or tooling lifecycle; the component boundary ratchets further growth.",
+      "reviewedLines": 947,
+      "reason": "Node conversion combines local source discovery, output preparation and conversion orchestration; extract source discovery while preserving configured output and progress.",
       "extractTo": [
-        "tooling/node-converter-components.js"
-      ]
+        "tooling/node-converter/source-discovery.js"
+      ],
+      "owner": "tooling",
+      "reviewedAt": "2026-11-15",
+      "reviewedBy": "codex-da5723",
+      "reviewScope": "Inherited size debt and named extraction boundary; numerical qualification is separate.",
+      "removalCondition": "Extract the named responsibility into tooling/node-converter/source-discovery.js with affected consumer tests passing; remove this review when the original module is at most 750 lines."
     },
     "tooling/node-source-runtime.js": {
-      "reviewedLines": 788,
-      "reason": "The module remains one named runtime or tooling lifecycle; the component boundary ratchets further growth.",
+      "reviewedLines": 787,
+      "reason": "Node source preparation combines format readers with resident-budget admission; extract budget admission without changing memory rejection or source selection.",
       "extractTo": [
-        "tooling/node-source-runtime-components.js"
-      ]
+        "tooling/source-runtime/node-budget.js"
+      ],
+      "owner": "tooling",
+      "reviewedAt": "2026-11-15",
+      "reviewedBy": "codex-da5723",
+      "reviewScope": "Inherited size debt and named extraction boundary; numerical qualification is separate.",
+      "removalCondition": "Extract the named responsibility into tooling/source-runtime/node-budget.js with affected consumer tests passing; remove this review when the original module is at most 750 lines."
     }
   },
-  "legacyOversize": {}
+  "legacyOversize": {},
+  "componentLineLimits": {
+    "inference/pipelines/text/": 750
+  }
 }

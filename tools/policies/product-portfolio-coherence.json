@@ -1,5 +1,5 @@
 {
-  "$schema": "../../src/config/schema/product-portfolio-coherence.schema.json",
+  "$schema": "../../src/config/schema/policy/product-portfolio-coherence.schema.json",
   "schemaVersion": 1,
   "source": "doppler",
   "goalIds": [

@@ -1,4 +1,4 @@
-import { validateExpertPreparationConfig } from '../../config/schema/loading.schema.js';
+import { validateExpertPreparationConfig } from "../../config/schema/runtime/loading.schema.js";
 import { supportsResidentExpertPreparation } from './expert-loader.js';
 import { getDevice } from '../../gpu/device.js';
 

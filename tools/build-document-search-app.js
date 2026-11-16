@@ -2,11 +2,11 @@
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { migrateCapsuleV2 } from '../src/config/capsule-v3.js';
-import { getCapsuleIdentity, verifyCapsule } from '../src/config/capsule.js';
-import { signCapsuleReleaseEvent, verifyCapsuleReleaseEvents } from '../src/config/capsule-release-events.js';
+import { migrateCapsuleV2 } from "../src/config/capsule/capsule-v3.js";
+import { getCapsuleIdentity, verifyCapsule } from "../src/config/capsule/capsule.js";
+import { signCapsuleReleaseEvent, verifyCapsuleReleaseEvents } from "../src/config/capsule/capsule-release-events.js";
 import { computeCanonicalSha256, hashBytesSha256 } from '../src/formats/canonical-hash.js';
-import { normalizeCapsuleLoadingPolicy } from '../src/config/capsule-loading.js';
+import { normalizeCapsuleLoadingPolicy } from "../src/config/capsule/capsule-loading.js";
 import { prepareRequirements } from '../examples/document-search/prepare.js';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');

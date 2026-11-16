@@ -1,8 +1,8 @@
 import { getDevice } from '../../../../gpu/device.js';
 import { acquireBuffer, releaseBuffer } from '../../../../memory/buffer-pool.js';
-import { resetLinearAttentionRuntime } from '../linear-attention.js';
+import { resetLinearAttentionRuntime } from "../linear-attention/linear-attention.js";
 import { isGpuBufferInstance } from '../../../../gpu/weight-buffer.js';
-import { resolveLayerPartition, ORDERED_LAYER_PARTITION_SCHEMA } from '../layer-partition-contract.js';
+import { resolveLayerPartition, ORDERED_LAYER_PARTITION_SCHEMA } from "../execution/layer-partition-contract.js";
 
 const TRANSACTION = Symbol('hyper-connection transaction');
 /** @type {WeakMap<object, object>} */
@@ -71,7 +71,7 @@ export async function withHyperConnectionTransaction(state, opts, action) {
   const savedLength = state.currentSeqLen;
   const savedSteps = state.decodeStepCount;
   const originalLayers = new Map(state.linearAttentionRuntime?.layers);
-  /** @type {Array<{ owner: import('../linear-attention.js').LinearLayerRuntimeState, field: 'convStateGPU' | 'recurrentStateGPU', target: GPUBuffer, backup: GPUBuffer }>} */
+  /** @type {Array<{ owner: import("../linear-attention/linear-attention.js").LinearLayerRuntimeState, field: 'convStateGPU' | 'recurrentStateGPU', target: GPUBuffer, backup: GPUBuffer }>} */
   const buffers = [];
   const lengths = new Map([...originalLayers].map(([index, layer]) => [index, layer.seqLen]));
   let snapshot = null;

@@ -1,4 +1,4 @@
-import { W8A8_POLICY } from '../../config/schema/w8a8.schema.js';
+import { W8A8_POLICY } from "../../config/schema/manifest/w8a8.schema.js";
 
 /** @param {number} columns @returns {import('./w8a8-storage.js').W8A8StorageDescriptor} */
 export function createW8A8StorageDescriptor(columns) {

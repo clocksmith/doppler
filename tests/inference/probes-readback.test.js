@@ -18,8 +18,8 @@ globalThis.GPUMapMode = {
   WRITE: 1 << 1,
 };
 
-const { runProbes } = await import('../../src/inference/pipelines/text/probes.js');
-const { OperatorEventEmitter } = await import('../../src/inference/pipelines/text/operator-events.js');
+const { runProbes } = await import("../../src/inference/pipelines/text/observation/probes.js");
+const { OperatorEventEmitter } = await import("../../src/inference/pipelines/text/observation/operator-events.js");
 const { createDefaultCaptureConfig } = await import('../../src/debug/capture-policy.js');
 const { CommandRecorder } = await import('../../src/gpu/command-recorder.js');
 const { setDevice } = await import('../../src/gpu/device.js');

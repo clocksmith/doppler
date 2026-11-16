@@ -1,5 +1,5 @@
 {
-  "$schema": "../../src/config/schema/model-release-platform.schema.json",
+  "$schema": "../../src/config/schema/policy/model-release-platform.schema.json",
   "schemaVersion": 7,
   "contractVersion": "6.0.0",
   "id": "doppler-model-release-platform",
@@ -59,11 +59,11 @@
   },
   "capsule": {
     "authorityPaths": [
-      "src/config/capsule-v2.js",
-      "src/config/schema/capsule-v2.schema.json",
+      "src/config/capsule/capsule-v2.js",
+      "src/config/schema/capsule/capsule-v2.schema.json",
       "docs/api/root.md",
-      "src/config/capsule-v3.js",
-      "src/config/capsule-release-events.js",
+      "src/config/capsule/capsule-v3.js",
+      "src/config/capsule/capsule-release-events.js",
       "docs/capsule-identity-migration.md"
     ],
     "authoritativeFor": [
@@ -80,8 +80,8 @@
         "implementationState": "implemented",
         "evidencePaths": [
           "docs/model-ir-v2-source-truth-forge.md",
-          "src/config/capsule-release-contract.js",
-          "src/config/capsule-v2.js",
+          "src/config/capsule/capsule-release-contract.js",
+          "src/config/capsule/capsule-v2.js",
           "tests/capsule/capsule-v2.test.js"
         ],
         "blockerCode": null
@@ -90,7 +90,7 @@
         "id": "tokenizer-preprocessing-assets",
         "implementationState": "implemented",
         "evidencePaths": [
-          "src/config/capsule-v2.js",
+          "src/config/capsule/capsule-v2.js",
           "src/tooling/program-bundle.js"
         ],
         "blockerCode": null
@@ -99,7 +99,7 @@
         "id": "weights-shards-tensor-hashes",
         "implementationState": "implemented",
         "evidencePaths": [
-          "src/config/capsule-v2.js",
+          "src/config/capsule/capsule-v2.js",
           "src/storage/shard-manager.js"
         ],
         "blockerCode": null
@@ -109,7 +109,7 @@
         "implementationState": "implemented",
         "evidencePaths": [
           "src/config/model-ir-v2.js",
-          "src/config/capsule-v2.js"
+          "src/config/capsule/capsule-v2.js"
         ],
         "blockerCode": null
       },
@@ -118,7 +118,7 @@
         "implementationState": "implemented",
         "evidencePaths": [
           "src/config/target-plan.js",
-          "src/config/capsule-v2.js"
+          "src/config/capsule/capsule-v2.js"
         ],
         "blockerCode": null
       },
@@ -126,7 +126,7 @@
         "id": "reachable-wgsl-host-closure",
         "implementationState": "implemented",
         "evidencePaths": [
-          "src/config/capsule-v2.js",
+          "src/config/capsule/capsule-v2.js",
           "src/tooling/program-bundle.js"
         ],
         "blockerCode": null
@@ -154,8 +154,8 @@
         "implementationState": "implemented",
         "evidencePaths": [
           "tools/policies/product-integration-qualification.json",
-          "src/config/capsule-release-contract.js",
-          "src/config/capsule-v2.js",
+          "src/config/capsule/capsule-release-contract.js",
+          "src/config/capsule/capsule-v2.js",
           "tests/capsule/capsule-v2.test.js"
         ],
         "blockerCode": null
@@ -165,8 +165,8 @@
         "implementationState": "implemented",
         "evidencePaths": [
           "docs/model-support-matrix.md",
-          "src/config/capsule-release-contract.js",
-          "src/config/capsule-v2.js",
+          "src/config/capsule/capsule-release-contract.js",
+          "src/config/capsule/capsule-v2.js",
           "tests/capsule/capsule-v2.test.js"
         ],
         "blockerCode": null
@@ -175,8 +175,8 @@
         "id": "version-supersession-migration",
         "implementationState": "implemented",
         "evidencePaths": [
-          "src/config/capsule-release-contract.js",
-          "src/config/capsule-v2.js",
+          "src/config/capsule/capsule-release-contract.js",
+          "src/config/capsule/capsule-v2.js",
           "docs/revocation.md",
           "tests/capsule/capsule-v2.test.js"
         ],
@@ -186,7 +186,7 @@
         "id": "signing-and-verification",
         "implementationState": "implemented",
         "evidencePaths": [
-          "src/config/capsule-v2.js",
+          "src/config/capsule/capsule-v2.js",
           "tests/capsule/capsule-v2.test.js"
         ],
         "blockerCode": null
@@ -195,8 +195,8 @@
         "id": "revocation-policy",
         "implementationState": "implemented",
         "evidencePaths": [
-          "src/config/capsule-release-contract.js",
-          "src/config/capsule-v2.js",
+          "src/config/capsule/capsule-release-contract.js",
+          "src/config/capsule/capsule-v2.js",
           "src/config/revocation-registry.json",
           "tests/capsule/capsule-v2.test.js"
         ],
@@ -323,8 +323,8 @@
       "implementationState": "implemented",
       "evidencePaths": [
         "docs/revocation.md",
-        "src/config/capsule-release-contract.js",
-        "src/config/capsule-v2.js",
+        "src/config/capsule/capsule-release-contract.js",
+        "src/config/capsule/capsule-v2.js",
         "src/client/electron/release-state.js",
         "tests/capsule/capsule-v2.test.js",
         "tests/client/electron-release-adapter.test.js"
@@ -336,7 +336,7 @@
       "implementationState": "implemented",
       "evidencePaths": [
         "docs/architecture.md",
-        "src/config/capsule-release-contract.js",
+        "src/config/capsule/capsule-release-contract.js",
         "src/client/model-host/model-session.js",
         "tests/capsule/capsule-v2.test.js"
       ],
@@ -407,7 +407,7 @@
       "completionState": "implemented",
       "evidencePaths": [
         "src/config/production-release.js",
-        "src/config/schema/production-release.schema.json",
+        "src/config/schema/capsule/production-release.schema.json",
         "tests/fixtures/production-release/electron-document-search-reranker.json",
         "tests/config/production-release.test.js"
       ],
@@ -419,8 +419,8 @@
       "gate": "All seven Capsule release requirements are immutable, validated, typed, hash-bound, and rejection-tested.",
       "completionState": "implemented",
       "evidencePaths": [
-        "src/config/capsule-release-contract.js",
-        "src/config/capsule-v2.js",
+        "src/config/capsule/capsule-release-contract.js",
+        "src/config/capsule/capsule-v2.js",
         "tests/capsule/capsule-v2.test.js"
       ],
       "blockerCode": null

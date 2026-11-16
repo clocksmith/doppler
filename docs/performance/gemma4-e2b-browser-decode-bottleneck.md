@@ -77,10 +77,10 @@ submit/readback wait. Same fence, slightly different absolute numbers.
 Within the `batched_gpu` decode path, every batch must:
 
 1. Sample 8 tokens on the GPU (`recordArgmax` at
-   `src/inference/pipelines/text/generator-steps.js:1478`, already wired).
+   `src/inference/pipelines/text/generator/generator-steps.js:1478`, already wired).
 2. Read the sampled token IDs back to the CPU
    (`readGpuTokenIdsForCpuEmbeddingGather` at
-   `src/inference/pipelines/text/embed.js:144`) **because**
+   `src/inference/pipelines/text/embedding/embed.js:144`) **because**
    `embed_tokens.weight` for Gemma 4 E2B is loaded as a CPU-resident
    range-backed source.
 3. Run the CPU embedding gather row-by-row using `loadRange` against the
@@ -130,7 +130,7 @@ cost unchanged.
 
 **Not** moving sampling to GPU. The on-GPU sampler
 (`recordArgmax` / `recordGPUSample` in `src/gpu/kernels/sample.js`,
-dispatched from `src/inference/pipelines/text/generator-steps.js` lines
+dispatched from `src/inference/pipelines/text/generator/generator-steps.js` lines
 ~649 and 1478) **already ships** in both the single-token fused path and
 the batched `generateNTokensGPU` path. Only 4 bytes of token IDs are read
 back per batch — sampling is not the fence.
@@ -169,15 +169,15 @@ manifests now set:
 ```
 
 This routes `embed_tokens.weight` through the GPU `recordGather` /
-`runGather` path at `src/inference/pipelines/text/embed.js:309-336` instead
+`runGather` path at `src/inference/pipelines/text/embedding/embed.js:309-336` instead
 of the CPU `readGpuTokenIdsForCpuEmbeddingGather` branch. Token IDs stay on
 the GPU; no per-batch CPU↔GPU sync is needed for the embedding lookup.
 
 Schema and contract:
 
-- `src/config/schema/doppler.schema.js` —
+- `src/config/schema/runtime/doppler.schema.js` —
   `DEFAULT_LARGE_WEIGHT_CONFIG.gpuResidentOverrides: null`
-- `src/config/schema/doppler.schema.d.ts` —
+- `src/config/schema/runtime/doppler.schema.d.ts` —
   `LargeWeightConfigSchema.gpuResidentOverrides: string[] | null`
 - `src/loader/manifest-config.js` `shouldStreamLargeWeight()` checks the
   override list before the size estimate

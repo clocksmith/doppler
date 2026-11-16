@@ -5,7 +5,7 @@ const {
   buildDecodeRecordTopOpGroups,
   runGeneration,
 } = await import('../../src/tooling/browser-harness-text-helpers.js');
-const { createDopplerConfig } = await import('../../src/config/schema/doppler.schema.js');
+const { createDopplerConfig } = await import("../../src/config/schema/runtime/doppler.schema.js");
 const { getRuntimeConfig, setRuntimeConfig } = await import('../../src/config/runtime.js');
 
 {

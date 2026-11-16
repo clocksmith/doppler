@@ -1,5 +1,5 @@
 import { computeCanonicalSha256 } from '../../formats/canonical-hash.js';
-import { freezeCapsuleV2 } from '../../config/capsule-v2.js';
+import { freezeCapsuleV2 } from "../../config/capsule/capsule-v2.js";
 import { resolveCapsuleEmbeddingContract } from '../../config/embedding-contract.js';
 
 function requireObject(value, label) {

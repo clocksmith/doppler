@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
-import { PipelineGenerator } from '../../src/inference/pipelines/text/generator.js';
-import { createChannelGainRequest, assertChannelGainIdle, withChannelGainOperation } from '../../src/inference/pipelines/text/channel-gain.js';
+import { PipelineGenerator } from "../../src/inference/pipelines/text/generator/generator.js";
+import { createChannelGainRequest, assertChannelGainIdle, withChannelGainOperation } from "../../src/inference/pipelines/text/generator/activation/channel-gain.js";
 import { validateChannelTensor, deriveChannelGains, channelEnergy } from '../../src/gpu/kernels/channel-gain.js';
 
 const tensor = { dtype: 'f32', shape: [2], buffer: { size: 8 } };

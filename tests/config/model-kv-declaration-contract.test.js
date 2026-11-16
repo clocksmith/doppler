@@ -1,13 +1,13 @@
 import assert from 'node:assert/strict';
 import { execFileSync } from 'node:child_process';
 import { readFileSync } from 'node:fs';
-import { createDopplerConfig } from '../../src/config/schema/doppler.schema.js';
-import { requireDeclaredKVMaxSeqLen } from '../../src/config/schema/kvcache.schema.js';
+import { createDopplerConfig } from "../../src/config/schema/runtime/doppler.schema.js";
+import { requireDeclaredKVMaxSeqLen } from "../../src/config/schema/execution/kvcache.schema.js";
 import {
   applyModelSessionDeclaration,
   listModelSessionDeclarations,
 } from '../../src/config/model-session-declarations.js';
-import { applyModelBatchingRuntimeDefaults } from '../../src/inference/pipelines/text/model-load.js';
+import { applyModelBatchingRuntimeDefaults } from "../../src/inference/pipelines/text/loading/model-load.js";
 
 // Every tracked manifest, catalog entry and quickstart model must resolve a KV
 // length without a runtime override, so a missing declaration fails here rather

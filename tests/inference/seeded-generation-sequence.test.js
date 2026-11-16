@@ -69,17 +69,17 @@ for (const stream of streams) await stream.return();
 
 // Stub only GPU execution/storage. Real resident admission, continuation,
 // sampling, attempt isolation, cancellation and settlement remain exercised.
-const residentURL = new URL('../../src/inference/pipelines/text/resident-partition.js', import.meta.url).href;
-const decodeURL = new URL('../../src/inference/pipelines/text/generator/decode-runtime.js', import.meta.url).href;
+const residentURL = new URL("../../src/inference/pipelines/text/partitions/resident-partition.js", import.meta.url).href;
+const decodeURL = new URL("../../src/inference/pipelines/text/generator/decode/decode-runtime.js", import.meta.url).href;
 const modules = {
-  '../shader-scoped-pipeline.js': 'export const runPipelineOperation = async (owner, operation) => operation(owner);',
-  '../../../memory/buffer-pool.js': 'export const readBuffer = async () => new Float32Array(4).buffer; export const releaseBuffer = () => {};',
+  "../../shader-scoped-pipeline.js": 'export const runPipelineOperation = async (owner, operation) => operation(owner);',
+  "../../../../memory/buffer-pool.js": 'export const readBuffer = async () => new Float32Array(4).buffer; export const releaseBuffer = () => {};',
   './partition-execution.js': 'export const assertPartitionExecutionSupported = () => {}; export const executePartitionLayers = async () => ({ logits: {logitsBuffer: {}, vocabSize: 4}, timing: {} });',
   './partition-attempt.js': 'export const createPartitionAttempt = () => ({state:{currentSeqLen:0,decodeStepCount:0},close(){}});',
 };
 const hooks = registerHooks({ resolve(specifier, context, next) {
-  if (context.parentURL === decodeURL && specifier === '../generator-steps.js') {
-    const original = new URL('../../src/inference/pipelines/text/generator-steps.js', import.meta.url).href;
+  if ([decodeURL, new URL('./decode-loop.js', decodeURL).href, new URL('./generation-runtime.js', decodeURL).href].includes(context.parentURL) && specifier === '../generator-steps.js') {
+    const original = new URL("../../src/inference/pipelines/text/generator/generator-steps.js", import.meta.url).href;
     return { url: `data:text/javascript,${encodeURIComponent(`
       export * from ${JSON.stringify(original)};
       export const decodeStep = async (state, ids, options) => {
@@ -94,7 +94,7 @@ const hooks = registerHooks({ resolve(specifier, context, next) {
   return next(specifier, context);
 } });
 try {
-  const { PipelineGenerator } = await import('../../src/inference/pipelines/text/generator.js');
+  const { PipelineGenerator } = await import("../../src/inference/pipelines/text/generator/generator.js");
   const pipeline = Object.create(PipelineGenerator.prototype);
   pipeline._state = { modelConfig: {}, seeds: [] };
   pipeline._getDecodeHelpers = () => ({});

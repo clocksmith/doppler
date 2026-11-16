@@ -19,7 +19,7 @@ export interface Qwen4ExpSourceBufferReceipt {
 export declare function authenticateQwen4ExpSourceBuffers(
   tensors: ReadonlyArray<{ name: string; dtype: string }>,
   converterConfig: {
-    inference?: { ngramEmbedding?: import('../config/schema/ngram-embedding.schema.js').NgramEmbeddingSchema | null } | null;
+    inference?: { ngramEmbedding?: import("../config/schema/execution/ngram-embedding.schema.js").NgramEmbeddingSchema | null } | null;
     manifest?: { conversion?: Record<string, unknown> | null } & Record<string, unknown>;
   },
   readTensor: (tensor: { name: string; dtype: string }) => Promise<Uint8Array | ArrayBuffer>

@@ -1,7 +1,7 @@
 import { getDevice } from '../../gpu/device.js';
 import { releaseBuffer } from '../../memory/buffer-pool.js';
 import { createWeightBuffer } from '../../gpu/weight-buffer.js';
-import { validateW8A8Policy } from '../../config/schema/w8a8.schema.js';
+import { validateW8A8Policy } from "../../config/schema/manifest/w8a8.schema.js";
 import { validateW8A8StorageBytes } from '../../formats/rdrr/w8a8-storage.js';
 import { acquireAlignedBuffer, writeBufferAligned } from './load-executor.js';
 

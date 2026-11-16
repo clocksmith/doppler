@@ -8,8 +8,8 @@ import { fileURLToPath } from 'node:url';
 import { writeProgramBundle } from '../src/tooling/program-bundle.js';
 import { rigModelCapsule } from '../src/tooling/model-capsule-rig.js';
 import { hashTargetPlan } from '../src/config/target-plan.js';
-import { getCapsuleIdentity } from '../src/config/capsule.js';
-import { resolveCapsuleAdapterSet } from '../src/config/capsule-adapters.js';
+import { getCapsuleIdentity } from "../src/config/capsule/capsule.js";
+import { resolveCapsuleAdapterSet } from "../src/config/capsule/capsule-adapters.js";
 import { computeCanonicalSha256, hashBytesSha256 } from '../src/formats/canonical-hash.js';
 
 const read = async file => JSON.parse(await fs.readFile(file, 'utf8'));

@@ -28,7 +28,7 @@ import {
   resolveAttentionQKNormState,
 } from '../projections.js';
 import { prepareAttentionProjectionInput } from '../output-projection.js';
-import { runProbes } from '../../probes.js';
+import { runProbes } from "../../observation/probes.js";
 import { shouldDebugLayer } from '../types.js';
 import {
   getKernelPathMatmulPrecision,
@@ -44,14 +44,14 @@ import {
   buildTieredQuantAttentionOptions,
   buildContiguousQuantAttentionOptions,
 } from '../quant-options.js';
-import { assertImplicitDtypeTransitionAllowed } from '../../dtype-contract.js';
+import { assertImplicitDtypeTransitionAllowed } from "../../policy/dtype-contract.js";
 import {
   resolveAttentionPrecisionContract,
   isAttentionKvDtypeExplicit,
 } from '../precision-contract.js';
 import { canUseRmsNormWideTileProjectionFusion } from '../rmsnorm-fusion-gate.js';
-import { getVectorTensor } from '../../weights.js';
-import { resolveAttentionRuntimeSession } from '../../resolved-runtime-session.js';
+import { getVectorTensor } from "../../loading/weights.js";
+import { resolveAttentionRuntimeSession } from "../../configuration/resolved-runtime-session.js";
 import {
   bindAttentionPlan,
   createAttentionExecutor,

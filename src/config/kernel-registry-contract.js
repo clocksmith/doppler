@@ -1,6 +1,6 @@
 import { computeCanonicalSha256 } from '../formats/canonical-hash.js';
 import { loadJson } from '../formats/load-json.js';
-import { resolveKernelConfig } from './schema/kernel-registry.schema.js';
+import { resolveKernelConfig } from "./schema/execution/kernel-registry.schema.js";
 
 const registry = await loadJson('./kernels/registry.json', import.meta.url, 'Failed to load registry');
 

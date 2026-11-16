@@ -348,8 +348,8 @@ export async function buildCapabilityTransformPolicyReport(providedPolicy) {
       errors: ['policy must be an object'],
     };
   }
-  if (policy.$schema !== '../../config/schema/capability-transform-policy.schema.json') {
-    errors.push('policy $schema must be ../../config/schema/capability-transform-policy.schema.json');
+  if (policy.$schema !== "../../config/schema/policy/capability-transform-policy.schema.json") {
+    errors.push("policy $schema must be ../../config/schema/policy/capability-transform-policy.schema.json");
   }
   if (policy.schemaVersion !== 1) {
     errors.push('policy schemaVersion must be 1');

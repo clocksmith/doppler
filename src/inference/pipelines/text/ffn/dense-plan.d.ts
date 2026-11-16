@@ -10,3 +10,10 @@ export declare const resolveFusedGateUpPipelineConstants: any;
 export declare const resolveFusedGateUpVariant: any;
 export declare const resolveFusedGateUpWeights: any;
 export declare const resolveGateUpPathMode: any;
+
+export function shouldMarkWideTileResidualFused(session: {
+  useWideTileResidualFusion?: boolean;
+  retainQ4KMaterialization?: boolean;
+  useWideTileQ4KDecode?: boolean;
+  useWideTileQ4KPrefill?: boolean;
+} | null | undefined, phase: 'prefill' | 'decode'): boolean;

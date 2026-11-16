@@ -1,8 +1,8 @@
 import type {
   HyperConnectionsSchema,
   IndexedAttentionSchema,
-} from '../config/schema/hyper-connection-decoder.schema.js';
-import type { NgramEmbeddingSchema } from '../config/schema/ngram-embedding.schema.js';
+} from "../config/schema/execution/hyper-connection-decoder.schema.js";
+import type { NgramEmbeddingSchema } from "../config/schema/execution/ngram-embedding.schema.js";
 
 export interface Qwen4ExpSourceContracts {
   hyperConnections: HyperConnectionsSchema;

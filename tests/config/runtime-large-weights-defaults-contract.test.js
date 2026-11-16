@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 
-import { createDopplerConfig } from '../../src/config/schema/doppler.schema.js';
+import { createDopplerConfig } from "../../src/config/schema/runtime/doppler.schema.js";
 
 const defaultLargeWeights = createDopplerConfig().runtime.inference.largeWeights;
 

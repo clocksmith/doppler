@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { readPartitionF16Boundary } from '../../src/inference/pipelines/text/partition-wire.js';
+import { readPartitionF16Boundary } from "../../src/inference/pipelines/text/partitions/partition-wire.js";
 import { acquireBuffer, releaseBuffer, readBuffer, uploadData } from '../../src/memory/buffer-pool.js';
 import { writeBufferAligned } from '../../src/loader/tensors/buffer-write.js';
 import { createTensor } from '../../src/gpu/tensor.js';

@@ -18,10 +18,10 @@ const {
   isProfileDecodeRecorderEnabled,
   resolveMaxBatchDecodeTokens,
   resolvePrefillRecorderChunkLayers,
-} = await import('../../src/inference/pipelines/text/execution-plan.js');
+} = await import("../../src/inference/pipelines/text/execution/execution-plan.js");
 const {
   summarizeExecutionPlan,
-} = await import('../../src/inference/pipelines/text/generator-decode-policy.js');
+} = await import("../../src/inference/pipelines/text/policy/generator-decode-policy.js");
 
 const minimalKernelPath = {
   id: 'gemma3-f16-fused-f16a-online',

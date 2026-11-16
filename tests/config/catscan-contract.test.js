@@ -67,7 +67,7 @@ try {
   await fs.writeFile(path.join(fixtureRoot, 'src', 'evidence.txt'), 'child evidence\n', 'utf8');
 
   const policy = {
-    $schema: '../../src/config/schema/catscan-policy.schema.json',
+    $schema: "../../src/config/schema/policy/catscan-policy.schema.json",
     schemaVersion: 1,
     source: 'doppler',
     charterFilename: 'CATSCAN.md',

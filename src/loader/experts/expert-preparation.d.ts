@@ -1,4 +1,4 @@
-import type { ExpertPreparationConfigSchema } from '../../config/schema/loading.schema.js';
+import type { ExpertPreparationConfigSchema } from "../../config/schema/runtime/loading.schema.js";
 import type { ModelLoadOwner } from '../model-load.js';
 import type { LoadOptions } from '../loader-types.js';
 

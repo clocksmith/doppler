@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
-import { resolveHyperConnectionDecoderContracts } from '../../src/config/schema/hyper-connection-decoder.schema.js';
-import { deriveNgramLayerTable, deriveNgramMultipliers } from '../../src/config/schema/ngram-embedding.schema.js';
+import { resolveHyperConnectionDecoderContracts } from "../../src/config/schema/execution/hyper-connection-decoder.schema.js";
+import { deriveNgramLayerTable, deriveNgramMultipliers } from "../../src/config/schema/execution/ngram-embedding.schema.js";
 import { resolveQwen4ExpSourceContracts } from '../../src/formats/qwen4-exp-source-contracts.js';
 import { mergeConfig } from '../../src/config/merge.js';
 

@@ -5,9 +5,9 @@ import { readFile } from 'node:fs/promises';
 // This does not execute shaders or establish physical readback correctness.
 const source = await readFile(process.argv[2]
   ?? new URL('../../src/inference/pipelines/text/logits/output-transform.js', import.meta.url), 'utf8');
-const imports = source.match(/import[\s\S]*?from '[^']+';/g);
+const imports = source.match(/import[\s\S]*?from ['"][^'"]+['"];/g);
 assert.equal(imports.length, 4);
-const body = source.replace(/import[\s\S]*?from '[^']+';/g, '')
+const body = source.replace(/import[\s\S]*?from ['"][^'"]+['"];/g, '')
   .replace('export async function finalizeLogitOutputTensor', 'async function finalizeLogitOutputTensor');
 const instantiate = new Function('releaseBuffer', 'runProbes', 'resolveLogitOutputScale',
   'recordFinalizeLogitsTensor', 'runFinalizeLogitsTensor',

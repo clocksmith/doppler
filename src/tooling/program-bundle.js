@@ -1,7 +1,7 @@
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { expandExecutionV1 } from '../config/schema/execution-v1.schema.js';
+import { expandExecutionV1 } from "../config/schema/execution/execution-v1.schema.js";
 import {
   PROGRAM_BUNDLE_SCHEMA_ID,
   PROGRAM_BUNDLE_SCHEMA_VERSION,
@@ -10,7 +10,7 @@ import {
   PROGRAM_BUNDLE_CAPTURE_PROFILE_SCHEMA_ID,
   PROGRAM_BUNDLE_PACKAGE_SCHEMA_ID,
   validateProgramBundle,
-} from '../config/schema/program-bundle.schema.js';
+} from "../config/schema/capsule/program-bundle.schema.js";
 import { sha256BytesHex, sha256Hex } from '../formats/sha256.js';
 import { computeHash } from '../storage/shard-manager.js';
 import { assertRerankSourceIdentity } from '../config/rerank-reference.js';

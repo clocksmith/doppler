@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
-import { resolvePrefillTokenChunkSize, shouldDisablePrefillCommandBatching } from '../../src/inference/pipelines/text/generator/prefill-policy.js';
-import { _prefillInputIdsToLogits } from '../../src/inference/pipelines/text/generator/prefill-runtime.js';
+import { resolvePrefillTokenChunkSize, shouldDisablePrefillCommandBatching } from "../../src/inference/pipelines/text/generator/prefill/prefill-policy.js";
+import { _prefillInputIdsToLogits } from "../../src/inference/pipelines/text/generator/prefill/prefill-runtime.js";
 
 const state = { runtimeConfig: { inference: { session: { prefillTokenChunkSize: 256 } } },
   modelConfig: { sessionSettings: { prefillTokenChunkSize: null } } };

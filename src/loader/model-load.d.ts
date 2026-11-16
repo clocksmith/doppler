@@ -1,6 +1,6 @@
 import type { DopplerLoader } from './doppler-loader.js';
 import type { LoadOptions, ShardLoadOptions } from './loader-types.js';
-import type { LoadingConfigSchema } from '../config/schema/loading.schema.js';
+import type { LoadingConfigSchema } from "../config/schema/runtime/loading.schema.js";
 export interface ModelLoadOwner extends DopplerLoader {
   _memoryMonitor: object | null;
   _loadingConfig: LoadingConfigSchema;

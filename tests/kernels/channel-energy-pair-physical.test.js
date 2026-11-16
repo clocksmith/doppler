@@ -5,7 +5,7 @@ import {releaseNodeWebGPU} from '../../src/tooling/node-webgpu.js';
 import {acquireBuffer, uploadData, readBuffer, releaseBuffer} from '../../src/memory/buffer-pool.js';
 import {createTensor} from '../../src/gpu/tensor.js';
 import {createCommandRecorder} from '../../src/gpu/command-recorder.js';
-import {createChannelGainRequest} from '../../src/inference/pipelines/text/channel-gain.js';
+import {createChannelGainRequest} from "../../src/inference/pipelines/text/generator/activation/channel-gain.js";
 import {deriveChannelGains} from '../../src/gpu/kernels/channel-gain.js';
 const probe=await probeNodeGPU({installFileFetchShim:true});
 assert.ok(probe.ready,probe.reason);

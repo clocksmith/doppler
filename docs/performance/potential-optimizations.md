@@ -62,7 +62,7 @@ or model arithmetic. Count packed and dense lifetimes separately.
 ## 2 Static dispatch and memory plans
 
 Extend [execution-v1 preparation](../../src/inference/pipelines/text/execution-v1/plan.js)
-and [resident pipeline preparation](../../src/inference/pipelines/text/resident-pipeline-preparation.js).
+and [resident pipeline preparation](../../src/inference/pipelines/text/partitions/resident-pipeline-preparation.js).
 TargetPlan should declare binding recipes, uniform-ring ownership, kernel
 constants, tensor lifetimes, scratch requirements, alias-compatible arena
 offsets, and invalidation rules.
@@ -100,7 +100,7 @@ including context and concurrency bounds, instead of assuming one static
 allocation fits all requests.
 
 Also retain validated immutable parameter preparation across fresh sequences.
-The [linear-attention owner](../../src/inference/pipelines/text/linear-attention.js)
+The [linear-attention owner](../../src/inference/pipelines/text/linear-attention/linear-attention.js)
 separates prepared parameters from dynamic recurrent state. Qualify reuse against
 changed weights, precision, reset failures, cancellation, and device loss; never
 reuse the previous conversation's recurrent state implicitly.
@@ -154,7 +154,7 @@ Use tokenizer-bound suffix tries or compact n-gram structures derived from
 accepted corpora and permitted prior outputs to draft multiple likely tokens.
 Verify drafts with the target model; correct and resume target execution at the
 first rejection. Reuse the existing
-[speculative runtime](../../src/inference/pipelines/text/generator/speculative-runtime.js),
+[speculative runtime](../../src/inference/pipelines/text/generator/session/speculative-runtime.js),
 [sampling support](../../src/inference/speculative.js), and rollback machinery.
 Avoid a second speculative execution path.
 

@@ -6,10 +6,10 @@ import { acquireBuffer, releaseBuffer, readBuffer, uploadData } from '../../src/
 import { getDeviceMemorySnapshot } from '../../src/memory/device-budget.js';
 import { createTensor } from '../../src/gpu/tensor.js';
 import { runDenseFFNGPU } from '../../src/inference/pipelines/text/ffn/dense.js';
-import { PipelineGenerator } from '../../src/inference/pipelines/text/generator.js';
+import { PipelineGenerator } from "../../src/inference/pipelines/text/generator/generator.js";
 import {
   createChannelGainRequest, freezeChannelGains, withChannelGainOperation, assertChannelGainIdle,
-} from '../../src/inference/pipelines/text/channel-gain.js';
+} from "../../src/inference/pipelines/text/generator/activation/channel-gain.js";
 
 // Two independent request states share tiny immutable input/weight buffers. This
 // exercises the actual dense GPU path and reset hook, not a full model or KV cache.

@@ -86,8 +86,8 @@ test('diagnostic snapshots exclude local model caches and never alter the source
     await fs.mkdir(path.join(source, dir), { recursive: true });
   }
   await fs.mkdir(path.join(source, 'src/inference/pipelines/text'), { recursive: true });
-  await fs.writeFile(path.join(source, 'src/inference/pipelines/text/probes.js'), 'export async function runProbes(stage, buffer, options) {}');
-  await fs.writeFile(path.join(source, 'src/inference/pipelines/text/generator-steps.js'), '        logitsBuffer = logits.logitsBuffer;');
+  await fs.writeFile(path.join(source, "src/inference/pipelines/text/observation/probes.js"), 'export async function runProbes(stage, buffer, options) {}');
+  await fs.writeFile(path.join(source, "src/inference/pipelines/text/generator/generator-steps.js"), '        logitsBuffer = logits.logitsBuffer;');
   const original = '  const loadTimings = resolvePipelineLoadTimings(harness.pipeline);';
   await fs.writeFile(path.join(source, owner), original);
   await fs.writeFile(path.join(source, 'models/local/cache.bin'), 'must-not-copy');
@@ -128,15 +128,15 @@ test('numerical observations capture raw finite logits before sampling masks', a
     + '    for (let i = 0; i < warmupRuns + timedRuns; i++) {\n'
     + '      const run = await withHarnessPhase(\n        `bench.runTextInference[${i}]`, options, callback);\n}\n'
     + '  const loadTimings = resolvePipelineLoadTimings(harness.pipeline);');
-  await fs.writeFile(path.join(source, 'src/inference/pipelines/text/probes.js'), 'export async function runProbes(stage, buffer, options) {}');
-  await fs.writeFile(path.join(source, 'src/inference/pipelines/text/generator.js'), `export class Probe {
+  await fs.writeFile(path.join(source, "src/inference/pipelines/text/observation/probes.js"), 'export async function runProbes(stage, buffer, options) {}');
+  await fs.writeFile(path.join(source, "src/inference/pipelines/text/generator/generator.js"), `export class Probe {
   _sampleNextTokenFromLogits(logits, generatedIds, opts) {
     const sampled = Float32Array.from(logits); sampled[1] = -Infinity; return sampled;
   }
 }`);
-  await fs.writeFile(path.join(source, 'src/inference/pipelines/text/generator-steps.js'), '        logitsBuffer = logits.logitsBuffer;');
+  await fs.writeFile(path.join(source, "src/inference/pipelines/text/generator/generator-steps.js"), '        logitsBuffer = logits.logitsBuffer;');
   await fs.mkdir(path.join(source, 'src/inference/pipelines/text/generator'), { recursive: true });
-  await fs.writeFile(path.join(source, 'src/inference/pipelines/text/generator/decode.js'), `
+  await fs.writeFile(path.join(source, "src/inference/pipelines/text/generator/decode/decode.js"), `
 export function recorded(resources, logitsBuffer) {
       resources.register(logitsBuffer, 'decode logits');
 }
@@ -155,12 +155,12 @@ export function immediate(rawLogits, numTokens, config, currentIds) {
   assert.equal(syntax.status, 0, syntax.stderr);
   delete globalThis.__canonicalPromptLength; delete globalThis.__canonicalFullLogitRows;
   try {
-    const { Probe } = await import(pathToFileURL(path.join(output, 'src/inference/pipelines/text/generator.js')));
+    const { Probe } = await import(pathToFileURL(path.join(output, "src/inference/pipelines/text/generator/generator.js")));
     const sampled = new Probe()._sampleNextTokenFromLogits(new Float32Array([1, 42]), [], {});
     assert.equal(sampled[1], -Infinity);
     assert.deepEqual(globalThis.__canonicalFullLogitRows, [{ index: 0, stage: 'pre-sampling', values: [1, 42] }]);
     globalThis.__canonicalLogitCaptureActive = true;
-    const { immediate } = await import(pathToFileURL(path.join(output, 'src/inference/pipelines/text/generator/decode.js')));
+    const { immediate } = await import(pathToFileURL(path.join(output, "src/inference/pipelines/text/generator/decode/decode.js")));
     const next = immediate(new Float32Array([2, 43]), 1, { vocabSize: 2 }, [5]);
     assert.equal(next[1], -Infinity);
     assert.deepEqual(globalThis.__canonicalFullLogitRows[1], { index: 1, stage: 'pre-sampling', values: [2, 43] });

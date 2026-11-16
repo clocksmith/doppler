@@ -3,7 +3,7 @@ import { readFile } from 'node:fs/promises';
 import { assertConvertedQwen4ExpContracts } from '../../src/converter/qwen4-exp-source.js';
 import { resolveQwen4ExpSourceContracts } from '../../src/formats/qwen4-exp-source-contracts.js';
 import sourceDefaults from '../../src/formats/qwen4-exp-source-defaults.json' with { type: 'json' };
-import { resolveHyperConnectionDecoderContracts } from '../../src/config/schema/hyper-connection-decoder.schema.js';
+import { resolveHyperConnectionDecoderContracts } from "../../src/config/schema/execution/hyper-connection-decoder.schema.js";
 
 // Contract: the pinned qwen4_exp source config lowers to explicit Doppler
 // contracts whose derived values equal the checkpoint's retained buffers, and

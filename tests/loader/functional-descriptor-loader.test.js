@@ -32,7 +32,7 @@ globalThis.GPUBuffer = FakeBuffer;
 
 const { setDevice } = await import('../../src/gpu/device.js');
 const { destroyBufferPool, getBufferPool, releaseBuffer } = await import('../../src/memory/buffer-pool.js');
-const { DEFAULT_LOADING_CONFIG } = await import('../../src/config/schema/loading.schema.js');
+const { DEFAULT_LOADING_CONFIG } = await import("../../src/config/schema/runtime/loading.schema.js");
 const { DopplerLoader } = await import('../../src/loader/doppler-loader.js');
 const { loadTensorToGPU, loadTensorToCPU } = await import('../../src/loader/tensors/tensor-loader.js');
 const { loadFunctionalDescriptor } = await import(

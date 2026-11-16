@@ -1,5 +1,5 @@
 import { computeCanonicalSha256 } from '../../formats/canonical-hash.js';
-import { freezeCapsuleV2 } from '../../config/capsule-v2.js';
+import { freezeCapsuleV2 } from "../../config/capsule/capsule-v2.js";
 
 export async function executeCapsuleForecast({ identity, release, targetPlan, targetPlanDigest, program, request, artifactReceipts, releaseEventDigest }) {
   const { signal, ...input } = request;

@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { registerHooks } from 'node:module';
-const target = new URL('../../src/inference/pipelines/text/generator/token-selection.js', import.meta.url).href;
+const target = new URL("../../src/inference/pipelines/text/generator/sampling/token-selection.js", import.meta.url).href;
 globalThis.GPUBufferUsage ??= { COPY_DST: 8, MAP_READ: 1 };
 globalThis.GPUMapMode ??= { READ: 1 };
 const createDevice = () => ({ createBuffer: () => ({
@@ -10,16 +10,16 @@ const createDevice = () => ({ createBuffer: () => ({
 const state = { device: createDevice(), released: [], submitted: 0, aborted: 0, output: {} };
 globalThis.tokenSelectionLifecycle = state;
 const modules = {
-  '../../../../gpu/command-recorder.js': `export const createCommandRecorder = () => ({ device: globalThis.tokenSelectionLifecycle.device,
+  "../../../../../gpu/command-recorder.js": `export const createCommandRecorder = () => ({ device: globalThis.tokenSelectionLifecycle.device,
     getEncoder: () => ({ copyBufferToBuffer() {} }), submit() { globalThis.tokenSelectionLifecycle.submitted++; }, abort() { globalThis.tokenSelectionLifecycle.aborted++; } });`,
-  '../../../../gpu/kernels/sample.js': `export const recordArgmax = async () => { await globalThis.tokenSelectionLifecycle.compile(); return globalThis.tokenSelectionLifecycle.output; };
+  "../../../../../gpu/kernels/sample.js": `export const recordArgmax = async () => { await globalThis.tokenSelectionLifecycle.compile(); return globalThis.tokenSelectionLifecycle.output; };
     export const recordGPUSample = recordArgmax;`,
-  '../../../../gpu/kernels/rep-penalty.js': 'export const recordHistoryPenalties = async () => {};',
-  '../../../../gpu/kernels/logit-suppress.js': 'export const recordSuppressLogits = async () => {};',
-  '../../../../memory/buffer-pool.js': `export const releaseBuffer = buffer => globalThis.tokenSelectionLifecycle.released.push(buffer);
+  "../../../../../gpu/kernels/rep-penalty.js": 'export const recordHistoryPenalties = async () => {};',
+  "../../../../../gpu/kernels/logit-suppress.js": 'export const recordSuppressLogits = async () => {};',
+  "../../../../../memory/buffer-pool.js": `export const releaseBuffer = buffer => globalThis.tokenSelectionLifecycle.released.push(buffer);
 `,
-  '../../../../gpu/device.js': 'export const getDevice = () => globalThis.tokenSelectionLifecycle.device;',
-  '../../../../memory/device-residency.js': 'export const isDeviceLost = () => globalThis.tokenSelectionLifecycle.lost === true;',
+  "../../../../../gpu/device.js": 'export const getDevice = () => globalThis.tokenSelectionLifecycle.device;',
+  "../../../../../memory/device-residency.js": 'export const isDeviceLost = () => globalThis.tokenSelectionLifecycle.lost === true;',
 };
 const hooks = registerHooks({ resolve(specifier, context, next) {
   if (context.parentURL === target && modules[specifier]) return { url: `data:text/javascript,${encodeURIComponent(modules[specifier])}`, shortCircuit: true };

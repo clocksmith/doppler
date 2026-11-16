@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { validateCapsuleTokenSelection } from '../../src/config/capsule-token-selection.js';
+import { validateCapsuleTokenSelection } from "../../src/config/capsule/capsule-token-selection.js";
 import { createTargetPlanV2, hashTargetPlan } from '../../src/config/target-plan.js';
 import { createSignedCapsuleFixture } from '../helpers/capsule-v2-fixture.js';
 import { createInitialExecutionIdentity } from '../../src/config/initial-execution-identity.js';

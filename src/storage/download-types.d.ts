@@ -155,7 +155,7 @@ export declare const DB_NAME: string;
 export declare const DB_VERSION: number;
 export declare const STORE_NAME: string;
 
-export declare function getDistributionConfig(): import('../config/schema/distribution.schema.js').DistributionConfigSchema;
+export declare function getDistributionConfig(): import("../config/schema/runtime/distribution.schema.js").DistributionConfigSchema;
 export declare function getDefaultConcurrency(): number;
 export declare function getMaxRetries(): number;
 export declare function getInitialRetryDelayMs(): number;

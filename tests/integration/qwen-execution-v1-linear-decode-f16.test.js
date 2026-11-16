@@ -1,9 +1,9 @@
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 
-const { compileExecutionV1 } = await import('../../src/inference/pipelines/text/execution-v1.js');
-const { applyExecutionV1RuntimeConfig } = await import('../../src/inference/pipelines/text/execution-v1.js');
-const { resolveKernelPathState } = await import('../../src/inference/pipelines/text/model-load.js');
+const { compileExecutionV1 } = await import("../../src/inference/pipelines/text/execution/execution-v1.js");
+const { applyExecutionV1RuntimeConfig } = await import("../../src/inference/pipelines/text/execution/execution-v1.js");
+const { resolveKernelPathState } = await import("../../src/inference/pipelines/text/loading/model-load.js");
 const { getLayerSteps } = await import('../../src/config/kernel-path-loader.js');
 
 // Contract: the selective f16 lane (useQwenF16PrimaryMatmuls) changes only the

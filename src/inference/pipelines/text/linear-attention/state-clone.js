@@ -71,7 +71,7 @@ export async function cloneLinearAttentionRuntimeOnGPU(runtime) {
   if (!device) throw new Error('Resident recurrent clone requires a live GPU device.');
   /** @type {GPUBuffer[]} */
   const allocated = [];
-  /** @type {import('../linear-attention.js').LinearAttentionRuntime} */
+  /** @type {import("./linear-attention.js").LinearAttentionRuntime} */
   const cloned = { schemaVersion: LINEAR_RUNTIME_SCHEMA_VERSION, layers: new Map() };
   try {
     const encoder = device.createCommandEncoder({ label: 'resident_linear_clone' });

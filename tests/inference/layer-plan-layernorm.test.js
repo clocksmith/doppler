@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { expandExecutionV1 } from '../../src/config/schema/execution-v1.schema.js';
+import { expandExecutionV1 } from "../../src/config/schema/execution/execution-v1.schema.js";
 import { KERNEL_REF_CONTENT_DIGESTS } from '../../src/config/kernels/kernel-ref-digests.js';
 import { probeNodeGPU } from '../helpers/gpu-probe.js';
 import { getDevice } from '../../src/gpu/device.js';
@@ -8,9 +8,9 @@ import { createWeightBuffer } from '../../src/gpu/weight-buffer.js';
 import {
   acquireBuffer, uploadData, readBuffer, releaseBuffer, getBufferPool, isBufferActive,
 } from '../../src/memory/buffer-pool.js';
-import { resolveLayerPipeline } from '../../src/inference/pipelines/text/layer-plan.js';
-import { processLayerPlanGPU } from '../../src/inference/pipelines/text/layer-plan-gpu.js';
-import { buildLayerPipelineFromExecution } from '../../src/inference/pipelines/text/execution-runtime-builders.js';
+import { resolveLayerPipeline } from "../../src/inference/pipelines/text/execution/layer-plan.js";
+import { processLayerPlanGPU } from "../../src/inference/pipelines/text/execution/layer-plan-gpu.js";
+import { buildLayerPipelineFromExecution } from "../../src/inference/pipelines/text/execution/execution-runtime-builders.js";
 
 const normStep = { op: 'layernorm', src: 'state', dst: 'state', weight: 'post_attn' };
 assert.throws(() => resolveLayerPipeline({ steps: [{ ...normStep, residual: 'state' }] }, null, 1), /explicit residual_add/);

@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import { registerHooks } from 'node:module';
 import { createTensor } from '../../src/gpu/tensor.js';
 
-const target = new URL('../../src/inference/pipelines/text/linear-attention.js', import.meta.url).href;
+const target = new URL("../../src/inference/pipelines/text/linear-attention/linear-attention.js", import.meta.url).href;
 const stateModule = new URL('../../src/inference/pipelines/text/linear-attention/state-clone.js', import.meta.url).href;
 const released = new Set();
 let creations = 0;
@@ -59,7 +59,7 @@ export const discardBuffer=b=>linearPreparedTest.release(b);
 export const uploadData=()=>{throw Error('unexpected upload');};
 export const readBuffer=()=>{throw Error('unexpected readback');};`;
 const modules = {
-  [target]: { './linear-attention/plan.js': plan, '../../../memory/buffer-pool.js': pool },
+  [target]: { "./plan.js": plan, "../../../../memory/buffer-pool.js": pool },
   [stateModule]: { './plan.js': plan, '../../../../memory/buffer-pool.js': pool,
     '../../../../gpu/device.js': 'export const getDevice=()=>linearPreparedTest.device;' },
 };

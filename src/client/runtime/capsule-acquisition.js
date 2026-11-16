@@ -1,4 +1,4 @@
-import { normalizeCapsuleLoadingPolicy } from '../../config/capsule-loading.js';
+import { normalizeCapsuleLoadingPolicy } from "../../config/capsule/capsule-loading.js";
 
 const deadlineChecks = new WeakMap();
 

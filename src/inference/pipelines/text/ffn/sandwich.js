@@ -1,14 +1,14 @@
 
 
-import { doRMSNorm, doResidualAdd, doSandwichRMSNormPair, releaseOrTrack } from '../ops.js';
+import { doRMSNorm, doResidualAdd, doSandwichRMSNormPair, releaseOrTrack } from "../execution/ops.js";
 import { getLayout, getWeightDtype, isCpuWeightBuffer, isGpuBufferInstance, isWeightBuffer } from '../../../../gpu/weight-buffer.js';
 import { trace } from '../../../../debug/index.js';
 import { isKernelDebugEnabled, dumpTokenVector } from '../debug-utils/tensor.js';
 import { logFFN } from '../debug-utils/logging.js';
 import { getBufferStats } from '../debug-utils/health-metrics.js';
 import { shouldDebugLayerOutput } from '../debug-utils/config.js';
-import { getNormWeightBuffer } from '../weights.js';
-import { runProbes } from '../probes.js';
+import { getNormWeightBuffer } from "../loading/weights.js";
+import { runProbes } from "../observation/probes.js";
 import { isMoELayer, hasLoggedFusedDownNorm, setLoggedFusedDownNorm } from './types.js';
 import { runDenseFFNGPU, runDenseFFNWithFusedPostNormGPU } from './dense.js';
 import { runMoEFFNGPU } from './moe.js';

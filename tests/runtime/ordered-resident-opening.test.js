@@ -5,7 +5,7 @@ import { createDopplerRun } from '../../src/client/runtime/composition-root.js';
 import { createTargetPlanV2 } from '../../src/config/target-plan.js';
 import { createInitialExecutionIdentity } from '../../src/config/initial-execution-identity.js';
 import { createOrderedLayerPartitionPlan, hashLayerPartitionPlan } from '../../src/partitions.js';
-import { resolveResidentPartitionAllocation } from '../../src/inference/pipelines/text/resident-partition-contract.js';
+import { resolveResidentPartitionAllocation } from "../../src/inference/pipelines/text/partitions/resident-partition-contract.js";
 import { computeCanonicalSha256 as hash } from '../../src/formats/canonical-hash.js';
 import { createSignedCapsuleFixture, TEST_CAPSULE_AUTHORITY, TEST_CAPSULE_PUBLIC_KEY } from '../helpers/capsule-v2-fixture.js';
 

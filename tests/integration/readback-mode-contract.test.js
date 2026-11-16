@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
 
-import { READBACK_MODES } from '../../src/config/schema/execution-v1.schema.js';
+import { READBACK_MODES } from "../../src/config/schema/execution/execution-v1.schema.js";
 
 // Inline minimal session resolution logic to test validation without
 // requiring a full GPU device or pipeline init.

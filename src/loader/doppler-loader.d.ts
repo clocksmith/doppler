@@ -36,9 +36,9 @@ import type {
   ModelConfig,
 } from './loader-types.js';
 import type { ShardCache } from './shard-cache.js';
-import type { LoadingConfigSchema } from '../config/schema/loading.schema.js';
-import type { LoaderDebugConfigSchema } from '../config/schema/debug.schema.js';
-import type { ExecutionV1PerLayerInputsSessionSchema } from '../config/schema/execution-v1.schema.js';
+import type { LoadingConfigSchema } from "../config/schema/runtime/loading.schema.js";
+import type { LoaderDebugConfigSchema } from "../config/schema/runtime/debug.schema.js";
+import type { ExecutionV1PerLayerInputsSessionSchema } from "../config/schema/execution/execution-v1.schema.js";
 
 // Re-export types for backward compatibility
 export type {
@@ -80,7 +80,7 @@ export declare class DopplerLoader {
     recorder?: import('../gpu/command-recorder.js').CommandRecorder | null, signal?: AbortSignal, activeSelection?: string
   ): Promise<import('./experts/qwen-paging.js').QwenPagingReceipt | null>;
   getRoutedExpertCapacity(layer: number, phase?: 'prefill' | 'decode'): number;
-  getRoutedExpertPolicy(): import('../config/schema/loading.schema.js').Qwen35RoutedConfig;
+  getRoutedExpertPolicy(): import("../config/schema/runtime/loading.schema.js").Qwen35RoutedConfig;
   prepareRoutedExperts(layer: number, expertIds: number[], signal?: AbortSignal, phase?: 'prefill' | 'decode'): Promise<import('./experts/routed-expert-cache.js').RoutedExpertWeights>;
   routedReadbackStats: Partial<Record<'prefill' | 'decode' | 'unspecified', { calls: number; bytes: number; wallMs: number }>>;
   recordRoutedReadback(phase: 'prefill' | 'decode' | undefined, elapsedMs: number, bytes: number): void;
@@ -122,7 +122,7 @@ export declare class DopplerLoader {
   q4kFusedRoles: string[];
   /** Roles with only packed consumers across all selected phases and layers. */
   q4kPackedOnlyRoles: string[];
-  representationPaths: import('../config/schema/kernel-path.schema.js').KernelPathSchema[];
+  representationPaths: import("../config/schema/execution/kernel-path.schema.js").KernelPathSchema[];
   weightRepresentationPlan: import('./weight-representation-plan.js').WeightRepresentationPlan | null;
 
   constructor(loadingConfig?: LoadingConfigSchema);

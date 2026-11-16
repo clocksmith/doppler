@@ -1,4 +1,4 @@
-import { assertCapsuleOperationFields, normalizeCapsuleObservation } from '../../config/capsule-operation.js';
+import { assertCapsuleOperationFields, normalizeCapsuleObservation } from "../../config/capsule/capsule-operation.js";
 
 const encoder = new TextEncoder();
 const size = value => encoder.encode(JSON.stringify(value)).length;

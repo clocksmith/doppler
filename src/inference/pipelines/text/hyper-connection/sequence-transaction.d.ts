@@ -1,5 +1,5 @@
 import type { PipelineState } from '../state.js';
-import type { AnyLayerPartitionPlan } from '../layer-partition-contract.js';
+import type { AnyLayerPartitionPlan } from "../execution/layer-partition-contract.js";
 export interface HyperConnectionOptions {
   signal?: AbortSignal;
   useSpeculative?: boolean;

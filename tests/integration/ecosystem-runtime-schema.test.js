@@ -1,12 +1,12 @@
 import assert from 'node:assert/strict';
 
-const { createDopplerConfig } = await import('../../src/config/schema/doppler.schema.js');
+const { createDopplerConfig } = await import("../../src/config/schema/runtime/doppler.schema.js");
 const { validateRuntimeConfig } = await import('../../src/config/param-validator.js');
 const {
   DEFAULT_ECOSYSTEM_CONFIG,
   createEcosystemConfig,
   validateEcosystemConfig,
-} = await import('../../src/config/schema/ecosystem.schema.js');
+} = await import("../../src/config/schema/runtime/ecosystem.schema.js");
 
 {
   validateEcosystemConfig(DEFAULT_ECOSYSTEM_CONFIG);

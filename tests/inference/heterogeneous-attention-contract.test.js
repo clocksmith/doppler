@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 
-import { DEFAULT_MANIFEST_INFERENCE } from '../../src/config/schema/manifest.schema.js';
+import { DEFAULT_MANIFEST_INFERENCE } from "../../src/config/schema/manifest/manifest.schema.js";
 import { validateRequiredInferenceFields } from '../../src/inference/pipelines/text/config.js';
 import { isRoPEDisabledForLayer } from '../../src/config/heterogeneous-attention-contract.js';
 import { projectSeparateAttentionGate } from '../../src/inference/pipelines/text/attention/gate-projection.js';

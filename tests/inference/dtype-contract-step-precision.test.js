@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 
-import { assertImplicitDtypeTransitionAllowed } from '../../src/inference/pipelines/text/dtype-contract.js';
+import { assertImplicitDtypeTransitionAllowed } from "../../src/inference/pipelines/text/policy/dtype-contract.js";
 
 assert.doesNotThrow(() => {
   assertImplicitDtypeTransitionAllowed({

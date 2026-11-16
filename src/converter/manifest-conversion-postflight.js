@@ -1,7 +1,7 @@
 import { isPlainObject as isObject } from '../formats/plain-object.js';
 import { hashSortedJson as digest } from '../formats/sorted-json.js';
-import { validateConversionReport } from '../config/schema/conversion-report.schema.js';
-import { createConverterConfig } from '../config/schema/converter.schema.js';
+import { validateConversionReport } from "../config/schema/manifest/conversion-report.schema.js";
+import { createConverterConfig } from "../config/schema/manifest/converter.schema.js";
 import { sanitizeModelId } from './core.js';
 
 export const MANIFEST_CONVERSION_POSTFLIGHT_SCHEMA_ID = 'doppler.manifest-conversion-postflight/v1';

@@ -8,9 +8,9 @@ import {
   doResidualAdd,
   doResidualNextRMSNormPair,
   releaseOrTrack,
-} from '../ops.js';
-import { getNormWeightBuffer, getVectorTensor } from '../weights.js';
-import { runProbes } from '../probes.js';
+} from "../execution/ops.js";
+import { getNormWeightBuffer, getVectorTensor } from "../loading/weights.js";
+import { runProbes } from "../observation/probes.js";
 import { isMoELayer } from './types.js';
 import { runDenseFFNGPU } from './dense.js';
 import { runMoEFFNGPU } from './moe.js';

@@ -3,7 +3,7 @@ import { mergeConfig } from '../../src/config/merge.js';
 import {
   DEFAULT_MANIFEST_INFERENCE,
   resolveLinearNormGateActivation,
-} from '../../src/config/schema/manifest.schema.js';
+} from "../../src/config/schema/manifest/manifest.schema.js";
 import { validateCallTimeOptions } from '../../src/config/param-validator.js';
 import { validateRequiredInferenceFields } from '../../src/config/manifest-inference-validation.js';
 import { parseModelConfig } from '../../src/inference/pipelines/text/config.js';

@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { registerHooks } from 'node:module';
 import { setRuntimeConfig } from '../../src/config/runtime.js';
-const target = new URL('../../src/inference/pipelines/text/linear-attention-ab-fusion.js', import.meta.url).href;
+const target = new URL("../../src/inference/pipelines/text/linear-attention/linear-attention-ab-fusion.js", import.meta.url).href;
 const live = new Set();
 let failure = '';
 const fail = stage => { if (failure === stage) throw Error(`injected ${stage}`); };
@@ -12,7 +12,7 @@ globalThis.projectionFusionDevice = {
 };
 globalThis.GPUBufferUsage = { STORAGE: 1, COPY_DST: 2 };
 const hooks = registerHooks({ resolve(specifier, context, next) {
-  if (context.parentURL === target && specifier === '../../../gpu/device.js') return { url: 'data:text/javascript,export const getDevice=()=>globalThis.projectionFusionDevice;', shortCircuit: true };
+  if (context.parentURL === target && specifier === "../../../../gpu/device.js") return { url: 'data:text/javascript,export const getDevice=()=>globalThis.projectionFusionDevice;', shortCircuit: true };
   return next(specifier, context);
 } });
 try {

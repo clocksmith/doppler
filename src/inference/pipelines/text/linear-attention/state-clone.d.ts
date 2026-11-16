@@ -1,4 +1,4 @@
-import type { LinearAttentionRuntime, LinearLayerRuntimeState } from '../linear-attention.js';
+import type { LinearAttentionRuntime, LinearLayerRuntimeState } from "./linear-attention.js";
 
 export const LINEAR_RUNTIME_SCHEMA_VERSION: 4;
 export function cloneLayerRuntimeState(state: LinearLayerRuntimeState): LinearLayerRuntimeState;

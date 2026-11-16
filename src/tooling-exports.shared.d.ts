@@ -15,7 +15,7 @@ export { log, installDebugGlobal } from './debug/index.js';
 // Config
 export { createConverterConfig } from './config/schema/index.js';
 export { getRuntimeConfig, setRuntimeConfig } from './config/runtime.js';
-export { TOOLING_INTENTS } from './config/schema/tooling.schema.js';
+export { TOOLING_INTENTS } from "./config/schema/runtime/tooling.schema.js";
 export {
   PROGRAM_BUNDLE_SCHEMA_VERSION,
   PROGRAM_BUNDLE_SCHEMA_ID,
@@ -24,13 +24,13 @@ export {
   PROGRAM_BUNDLE_CAPTURE_PROFILE_SCHEMA_ID,
   PROGRAM_BUNDLE_REFERENCE_TRANSCRIPT_SCHEMA_ID,
   validateProgramBundle,
-} from './config/schema/program-bundle.schema.js';
+} from "./config/schema/capsule/program-bundle.schema.js";
 export type {
   ProgramBundle,
   ProgramBundleArtifact,
   ProgramBundleReferenceTranscript,
   ProgramBundleWgslModule,
-} from './config/schema/program-bundle.schema.js';
+} from "./config/schema/capsule/program-bundle.schema.js";
 
 // Storage + manifests (sourced from narrow slices)
 export * from './tooling-exports/storage.js';

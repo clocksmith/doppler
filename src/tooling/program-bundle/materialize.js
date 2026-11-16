@@ -1,6 +1,6 @@
 import fs from 'node:fs/promises';
 import path from 'node:path';
-import { PROGRAM_BUNDLE_REFERENCE_TRANSCRIPT_SCHEMA_ID } from '../../config/schema/program-bundle.schema.js';
+import { PROGRAM_BUNDLE_REFERENCE_TRANSCRIPT_SCHEMA_ID } from "../../config/schema/capsule/program-bundle.schema.js";
 import { sha256Hex } from '../../formats/sha256.js';
 import { stableSortObject } from '../../formats/stable-sort-object.js';
 import { normalizeDigest, requirePlainObject } from './validation.js';

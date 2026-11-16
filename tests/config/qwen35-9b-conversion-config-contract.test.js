@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
-import { detectSandwichNorm } from '../../src/inference/pipelines/text/layer.js';
+import { detectSandwichNorm } from "../../src/inference/pipelines/text/execution/layer.js";
 
 const CONFIG_PATHS = [
   'src/config/conversion/qwen3/qwen-3-5-9b-f16-af32.json',

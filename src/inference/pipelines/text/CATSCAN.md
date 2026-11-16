@@ -6,41 +6,39 @@ Parent: [Pipeline Registry](../CATSCAN.md)
 
 ## Target
 
-Execute manifest-declared transformer generation, embedding, reranking, and declared multimodal decoder workloads.
+Execute manifest-declared transformer generation, embedding, reranking, and multimodal decoding.
 
 ## Authority
 
-- Owns text-pipeline config resolution, model loading coordination, prefill/decode plans, layer execution, sampling, and pipeline lifecycle.
-- Does not own source artifact facts, application prompt policy, or undeclared modality support.
+- Owns config resolution, loading coordination, prefill/decode, layers, sampling, and lifecycle.
+- Does not own artifact facts, application prompt policy, or undeclared modalities.
 
 ## Scope
 
-- Transformer pipeline state, generators, layers, attention, FFN, logits, and declared encoder bridges.
-- Bounded layer partitions preserve original model indices, precision, and cache-layout policy; partition execution owns no peer transport or grant authority.
+- State, generators, layers, attention, FFN, logits, and declared encoder bridges.
+- Partitions preserve model indices, precision, and cache policy; exclude peer transport/grants.
 
 ## Contracts
 
-- Input: [Pipeline facade](../text.js), resolved runtime session, loaded weights, tokenizer, and execution graph.
-- Output: Tokens, text, embeddings, rankings, cache state, and phase-specific runtime statistics.
+- Input: [Facade](../text.js), resolved session, weights, tokenizer, execution graph.
+- Output: Tokens, text, embeddings, rankings, caches, phase statistics.
 
 ## Invariants
 
-- Research channel-gain and rank-two rotation requests share isolated dense split-f32 SwiGLU lifecycle state; reset clears requests. Opaque frozen handles own copied GPU buffers and immutable parameters. Rotation capture requires an exact template-free complement. Base-cache attaches after base prefill (first logits remain base); re-prefill applies the frozen transform throughout the new prefill. Neither arm implies quality improvement. Opt-in final-layer replay retains ordinary f32 post-attention/residual tensors; it re-executes only the standard final FFN and normal output head, with no attention/cache writes. Replay requires its still-attached capture and original model; reset/detach invalidates replay. Sandwich norms, per-layer input, scaling, MoE and hyperconnections reject.
+- Research channel-gain/rank-two rotation share isolated dense split-f32 SwiGLU state; reset clears requests. Frozen opaque handles own copied GPU buffers/immutable parameters. Rotation requires exact template-free complements. Base-cache attaches after base prefill; first logits stay base. Re-prefill transforms its entire prefill. Neither implies quality. Final-layer replay retains ordinary f32 post-attention/residual tensors, reruns standard final FFN/output head without attention/cache writes, requires attached capture/original model; reset/detach invalidates it. Reject sandwich norms, per-layer input, scaling, MoE, hyperconnections.
 
-- Config resolution order and source attribution remain explicit.
-- Prefill and decode choices are resolved before adapter execution.
-- Load, reset, unload, abort, and failure paths release owned resources.
-- Partial pipelines allocate only assigned layer caches. Unsupported cross-partition dependencies fail before weight materialization. Local numerical agreement does not qualify a resident session or distributed inference.
+- Explicit config precedence/attribution; resolve prefill/decode before adapters.
+- Release resources on load/reset/unload/abort/failure.
+- Allocate assigned caches only; reject unsupported partition dependencies before materialization. Local agreement never qualifies resident/distributed inference.
 
 ## Acceptance
 
-- Text generation parity, dtype, attention, resource, and workload tests pass.
-- Evidence: [text inference tests](../../../../tests/inference).
-- Partition evidence: [physical layer comparison](../../../../tests/integration/partition-layers-physical.test.js) and [retained local diagnostic](../../../../reports/resident-partitions/20260927/README.md).
+- Evidence: [parity/dtype/attention/resource/workload tests](../../../../tests/inference).
+- Partitions: [physical comparison](../../../../tests/integration/partition-layers-physical.test.js), [retained diagnostic](../../../../reports/resident-partitions/20260927/README.md).
 
 ## Non-goals
 
-- Silently treating an exported method as a qualified product workload.
+- Exported methods imply no qualification.
 
 ## Freedom
 

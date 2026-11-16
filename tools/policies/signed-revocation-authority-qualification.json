@@ -1,5 +1,5 @@
 {
-  "$schema": "../../src/config/schema/signed-revocation-authority-qualification.schema.json",
+  "$schema": "../../src/config/schema/policy/signed-revocation-authority-qualification.schema.json",
   "schemaVersion": 3,
   "source": "doppler",
   "goalId": "evidence-backed-correctness-performance",

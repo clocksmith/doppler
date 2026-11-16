@@ -106,7 +106,7 @@ pinned manifest, exact digest, explicit runtime configuration, and injected
 verified artifact storage. It preserves numerical and allocation checks but does
 not claim signed Capsule or partition qualification. See the
 [public declarations](../../src/client/resident-partitions.d.ts) and
-[session contract](../../src/inference/pipelines/text/resident-partition-contract.d.ts).
+[session contract](../../src/inference/pipelines/text/partitions/resident-partition-contract.d.ts).
 
 Resident Capsule opening requires a signed TargetPlan v2 qualification record
 for each assigned group on the observed surface. The record's

@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 
-import { createDopplerConfig } from '../../src/config/schema/doppler.schema.js';
-import { KB } from '../../src/config/schema/units.schema.js';
+import { createDopplerConfig } from "../../src/config/schema/runtime/doppler.schema.js";
+import { KB } from "../../src/config/schema/runtime/units.schema.js";
 
 const defaults = createDopplerConfig().runtime.shared.bufferPool;
 

@@ -1,4 +1,4 @@
-import type { DopplerCapsule } from './capsule.js';
+import type { DopplerCapsule } from "./capsule/capsule.js";
 import type { TargetPlan } from './target-plan.js';
 export const FORECAST_MANIFEST_SCHEMA: 'doppler.forecast-manifest/v1';
 export interface ForecastContract {

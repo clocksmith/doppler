@@ -1,11 +1,11 @@
 import assert from 'node:assert/strict';
 import { registerHooks } from 'node:module';
 import { scopePipelineShaders } from '../../src/inference/pipelines/shader-scoped-pipeline.js';
-import { createLayerPartitionPlan, hashLayerPartitionPlan } from '../../src/inference/pipelines/text/layer-partition-contract.js';
+import { createLayerPartitionPlan, hashLayerPartitionPlan } from "../../src/inference/pipelines/text/execution/layer-partition-contract.js";
 
 // Readiness ownership only. Enumeration and real pipeline creation are covered
 // by resident-pipeline-preparation.test.js.
-const target = new URL('../../src/inference/pipelines/text/resident-partition.js', import.meta.url).href;
+const target = new URL("../../src/inference/pipelines/text/partitions/resident-partition.js", import.meta.url).href;
 const helper = './resident-pipeline-preparation.js';
 const calls = [];
 let resolvePreparation, rejectPreparation;

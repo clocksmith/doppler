@@ -3,11 +3,11 @@ import fs from 'node:fs';
 import path from 'node:path';
 
 const { createDopplerConfig } = await import('../../src/config/schema/index.js');
-const { applyExecutionV1RuntimeConfig } = await import('../../src/inference/pipelines/text/execution-v1.js');
+const { applyExecutionV1RuntimeConfig } = await import("../../src/inference/pipelines/text/execution/execution-v1.js");
 const {
   compileExecutionPlanState,
   hasFallbackExecutionPlan,
-} = await import('../../src/inference/pipelines/text/execution-plan.js');
+} = await import("../../src/inference/pipelines/text/execution/execution-plan.js");
 
 const catalog = JSON.parse(fs.readFileSync('models/catalog.json', 'utf8'));
 

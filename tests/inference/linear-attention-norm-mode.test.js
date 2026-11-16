@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 
 const { inferLinearNormMode, applyLinearNormWeightOffset } = await import(
-  '../../src/inference/pipelines/text/linear-attention.js'
+  "../../src/inference/pipelines/text/linear-attention/linear-attention.js"
 );
 
 const layout = { headVDim: 128, valueDim: 2048 };

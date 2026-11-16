@@ -5,67 +5,67 @@
     {
       "id": "observation-policy-registry",
       "policyPath": "src/config/inspection/observation-policies.json",
-      "schemaPath": "src/config/schema/observation-policy-registry.schema.json"
+      "schemaPath": "src/config/schema/policy/observation-policy-registry.schema.json"
     },
     {
       "id": "claim-evidence-contract",
       "policyPath": "tools/policies/claim-evidence-contract.json",
-      "schemaPath": "src/config/schema/claim-evidence-contract.schema.json"
+      "schemaPath": "src/config/schema/policy/claim-evidence-contract.schema.json"
     },
     {
       "id": "catscan-policy",
       "policyPath": "tools/policies/catscan-policy.json",
-      "schemaPath": "src/config/schema/catscan-policy.schema.json"
+      "schemaPath": "src/config/schema/policy/catscan-policy.schema.json"
     },
     {
       "id": "command-surface-contract",
       "policyPath": "tools/policies/command-surface-contract.json",
-      "schemaPath": "src/config/schema/command-surface-contract.schema.json"
+      "schemaPath": "src/config/schema/policy/command-surface-contract.schema.json"
     },
     {
       "id": "model-artifact-contract",
       "policyPath": "tools/policies/model-artifact-contract.json",
-      "schemaPath": "src/config/schema/model-artifact-contract.schema.json"
+      "schemaPath": "src/config/schema/policy/model-artifact-contract.schema.json"
     },
     {
       "id": "model-release-platform",
       "policyPath": "tools/policies/model-release-platform.json",
-      "schemaPath": "src/config/schema/model-release-platform.schema.json"
+      "schemaPath": "src/config/schema/policy/model-release-platform.schema.json"
     },
     {
       "id": "model-revocation-registry",
       "policyPath": "src/config/revocation-registry.json",
-      "schemaPath": "src/config/schema/revocation-registry.schema.json"
+      "schemaPath": "src/config/schema/runtime/revocation-registry.schema.json"
     },
     {
       "id": "routing-aware-acceptance",
       "policyPath": "tools/policies/routing-aware-acceptance.json",
-      "schemaPath": "src/config/schema/routing-aware-acceptance.schema.json"
+      "schemaPath": "src/config/schema/runtime/routing-aware-acceptance.schema.json"
     },
     {
       "id": "signed-revocation-authority-qualification",
       "policyPath": "tools/policies/signed-revocation-authority-qualification.json",
-      "schemaPath": "src/config/schema/signed-revocation-authority-qualification.schema.json"
+      "schemaPath": "src/config/schema/policy/signed-revocation-authority-qualification.schema.json"
     },
     {
       "id": "product-integration-qualification",
       "policyPath": "tools/policies/product-integration-qualification.json",
-      "schemaPath": "src/config/schema/product-integration-qualification.schema.json"
+      "schemaPath": "src/config/schema/policy/product-integration-qualification.schema.json"
     },
     {
       "id": "product-portfolio-coherence",
       "policyPath": "tools/policies/product-portfolio-coherence.json",
-      "schemaPath": "src/config/schema/product-portfolio-coherence.schema.json"
+      "schemaPath": "src/config/schema/policy/product-portfolio-coherence.schema.json"
     },
     {
       "id": "provider-conformance",
       "policyPath": "tools/policies/provider-conformance.json",
-      "schemaPath": "src/config/schema/provider-conformance-policy.schema.json"
+      "schemaPath": "src/config/schema/policy/provider-conformance-policy.schema.json"
     },
     {
       "id": "bun-product-qualification",
       "policyPath": "tools/policies/bun-product-qualification.json",
-      "schemaPath": "src/config/schema/bun-product-qualification.schema.json"
+      "schemaPath": "src/config/schema/runtime/bun-product-qualification.schema.json"
     },
     {
       "id": "runtime-ownership-decisions",
@@ -75,12 +75,12 @@
     {
       "id": "runtime-promotion-monitoring",
       "policyPath": "tools/policies/runtime-promotion-monitoring.json",
-      "schemaPath": "src/config/schema/runtime-promotion-monitoring.schema.json"
+      "schemaPath": "src/config/schema/policy/runtime-promotion-monitoring.schema.json"
     },
     {
       "id": "capability-transform-policy",
       "policyPath": "src/rules/inference/capability-transforms.rules.json",
-      "schemaPath": "src/config/schema/capability-transform-policy.schema.json"
+      "schemaPath": "src/config/schema/policy/capability-transform-policy.schema.json"
     },
     {
       "id": "support-rollout-policy",
@@ -90,17 +90,17 @@
     {
       "id": "subsystem-support-contract",
       "policyPath": "tools/policies/subsystem-support-contract.json",
-      "schemaPath": "src/config/schema/subsystem-support-contract.schema.json"
+      "schemaPath": "src/config/schema/policy/subsystem-support-contract.schema.json"
     },
     {
       "id": "nativekd2-bf16-baseline-handoff",
       "policyPath": "tools/policies/nativekd2-bf16-baseline-handoff.json",
-      "schemaPath": "src/config/schema/trainer-artifact-handoff.schema.json"
+      "schemaPath": "src/config/schema/policy/trainer-artifact-handoff.schema.json"
     },
     {
       "id": "translation-artifact-competition",
       "policyPath": "tools/policies/translation-artifact-competition.json",
-      "schemaPath": "src/config/schema/translation-artifact-competition.schema.json"
+      "schemaPath": "src/config/schema/runtime/translation-artifact-competition.schema.json"
     }
   ]
 }

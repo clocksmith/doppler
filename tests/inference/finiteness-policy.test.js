@@ -6,7 +6,7 @@ import {
   resolveDeferredRoundingWindowTokens,
   resolveRangeAwareSelectiveWideningConfig,
   shouldRunFinitenessGuard,
-} from '../../src/inference/pipelines/text/finiteness-policy.js';
+} from "../../src/inference/pipelines/text/policy/finiteness-policy.js";
 
 {
   const policy = resolveRangeAwareSelectiveWideningConfig(undefined);

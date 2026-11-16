@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 
-const { inferLinearNormMode } = await import('../../src/inference/pipelines/text/linear-attention.js');
+const { inferLinearNormMode } = await import("../../src/inference/pipelines/text/linear-attention/linear-attention.js");
 
 const projectionLayout = {
   headVDim: 128,

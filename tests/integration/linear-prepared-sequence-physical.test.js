@@ -6,7 +6,7 @@ import { createHash } from 'node:crypto';
 import { probeNodeGPU } from '../helpers/gpu-probe.js';
 import { createPipeline } from '../../src/inference/pipelines/text.js';
 import { createNodeFileArtifactStorageContext } from '../../src/storage/artifact-storage-context.js';
-import { resetLinearAttentionRuntime } from '../../src/inference/pipelines/text/linear-attention.js';
+import { resetLinearAttentionRuntime } from "../../src/inference/pipelines/text/linear-attention/linear-attention.js";
 import { destroyDevice, getDevice } from '../../src/gpu/device.js';
 import { releaseNodeWebGPU } from '../../src/tooling/node-webgpu.js';
 

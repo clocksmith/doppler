@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 
 const generatorStepsSource = readFileSync(
-  new URL('../../src/inference/pipelines/text/generator-steps.js', import.meta.url),
+  new URL("../../src/inference/pipelines/text/generator/decode/batch-generation.js", import.meta.url),
   'utf8'
 );
 

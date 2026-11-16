@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import { validateTensorConfigConsistency } from '../../src/formats/rdrr/tensor-config-validator.js';
-import { compileExecutionV1 } from '../../src/inference/pipelines/text/execution-v1.js';
+import { compileExecutionV1 } from "../../src/inference/pipelines/text/execution/execution-v1.js";
 import { getKernelPathActivationSpec } from '../../src/config/kernel-path-loader.js';
 
 const config = JSON.parse(await readFile(new URL('../../src/config/conversion/lfm2/lfm2.5-1.2b-instruct-q4k-ehf16-af32.json', import.meta.url), 'utf8'));

@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import { registerHooks } from 'node:module';
 import { readFileSync } from 'node:fs';
 import { createTensor } from '../../src/gpu/tensor.js';
-const target = new URL('../../src/inference/pipelines/text/linear-attention.js', import.meta.url).href;
+const target = new URL("../../src/inference/pipelines/text/linear-attention/linear-attention.js", import.meta.url).href;
 const live = new Set(), held = new Set();
 const representation = { precision: 'two-f32', components: 2, elementStrideBytes: 8 };
 const allocate = label => { const buffer = { size: 48, gpu: true }; live.add(buffer); return createTensor(buffer, 'f32', [1, 6], label, representation); };
@@ -29,14 +29,14 @@ export const projectLinearTensor=args=>linearProjectionFailure.project(args);
 export const applyProjectionLoRA=({baseOutput})=>baseOutput;
 `;
 const modules = {
-  './linear-attention/plan.js': plan,
-  '../../../gpu/kernels/rmsnorm.js': 'export const runRMSNorm=()=>linearProjectionFailure.norm(); export const recordRMSNorm=runRMSNorm;',
-  '../../../gpu/kernels/matmul.js': 'export const runMatmul=()=>linearProjectionFailure.output(); export const recordMatmul=runMatmul;',
-  '../../../gpu/kernels/cast.js': `export const castF32ToF16=()=>{throw Error('unexpected cast');};export const castF16ToF32=castF32ToF16;
+  "./plan.js": plan,
+  "../../../../gpu/kernels/rmsnorm.js": 'export const runRMSNorm=()=>linearProjectionFailure.norm(); export const recordRMSNorm=runRMSNorm;',
+  "../../../../gpu/kernels/matmul.js": 'export const runMatmul=()=>linearProjectionFailure.output(); export const recordMatmul=runMatmul;',
+  "../../../../gpu/kernels/cast.js": `export const castF32ToF16=()=>{throw Error('unexpected cast');};export const castF16ToF32=castF32ToF16;
     export const recordCastF32ToF16=castF32ToF16;export const recordCastF16ToF32=castF32ToF16;`,
   './linear-attention-ab-fusion.js': 'export const resolveLinearAttentionABProjection=()=>null;export const resolveLinearAttentionQKVZProjection=()=>null;',
-  '../../../gpu/kernels/linear-attention-core.js': 'export const runLinearAttentionCoreGPU=async()=>linearProjectionFailure.core();',
-  './probes.js': 'export const runProbes=async stage=>linearProjectionFailure.probe(stage);',
+  "../../../../gpu/kernels/linear-attention-core.js": 'export const runLinearAttentionCoreGPU=async()=>linearProjectionFailure.core();',
+  "../observation/probes.js": 'export const runProbes=async stage=>linearProjectionFailure.probe(stage);',
 };
 const hooks = registerHooks({ load(url, context, next) {
   if (url === target && process.env.LINEAR_SOURCE_OVERRIDE) return { format: 'module', source: readFileSync(process.env.LINEAR_SOURCE_OVERRIDE, 'utf8'), shortCircuit: true };

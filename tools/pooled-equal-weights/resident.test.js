@@ -228,8 +228,8 @@ test('numerical reuse binds full source, inference overlay, actual receipt hashe
   const root = await fs.mkdtemp(path.join(os.tmpdir(), 'resident-admission-'));
   t.after(() => fs.rm(root, { recursive: true, force: true }));
   const git = args => execFileSync('git', ['-C', root, ...args], { encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] }).trim();
-  const sourcePaths = ['src/tooling/browser-harness/benchmark-execution.js', 'src/inference/pipelines/text/probes.js',
-    'src/inference/pipelines/text/generator.js', 'src/inference/pipelines/text/generator-steps.js', 'src/inference/pipelines/text/generator/decode.js'];
+  const sourcePaths = ['src/tooling/browser-harness/benchmark-execution.js', "src/inference/pipelines/text/observation/probes.js",
+    "src/inference/pipelines/text/generator/generator.js", "src/inference/pipelines/text/generator/generator-steps.js", "src/inference/pipelines/text/generator/decode/decode.js"];
   for (const file of sourcePaths) { await fs.mkdir(path.dirname(path.join(root, file)), { recursive: true }); await fs.writeFile(path.join(root, file), 'source'); }
   const sourceFiles = await fileInventory(root);
   git(['init']); git(['add', '.']); git(['-c', 'user.name=Fixture', '-c', 'user.email=fixture@example.invalid', 'commit', '-m', 'fixture']);

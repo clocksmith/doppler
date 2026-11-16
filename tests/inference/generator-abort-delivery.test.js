@@ -4,7 +4,7 @@ import { createDopplerConfig } from '../../src/config/schema/index.js';
 import { setDevice } from '../../src/gpu/device.js';
 
 installNodeFileFetchShim();
-const { _runDecodeLoop } = await import('../../src/inference/pipelines/text/generator/decode-runtime.js');
+const { _runDecodeLoop } = await import("../../src/inference/pipelines/text/generator/decode/decode-runtime.js");
 
 // Keep the real delivery loop. Synthetic computation lets cancellation occur at
 // exact suspension boundaries, without conflating transport or GPU completion.

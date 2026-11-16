@@ -8,7 +8,7 @@
  */
 
 import type { ExpertWeights } from '../weights.js';
-import type { ExpertCacheConfigSchema } from '../../config/schema/loading.schema.js';
+import type { ExpertCacheConfigSchema } from "../../config/schema/runtime/loading.schema.js";
 
 /**
  * Cache statistics

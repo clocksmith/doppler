@@ -1,5 +1,5 @@
-import type { CapsuleReleaseContract } from '../../config/capsule-release-contract.js';
-import type { CapsuleReleaseAuthorization } from '../../config/capsule-release-events.js';
+import type { CapsuleReleaseContract } from "../../config/capsule/capsule-release-contract.js";
+import type { CapsuleReleaseAuthorization } from "../../config/capsule/capsule-release-events.js";
 export interface CapsuleForecastRequest {
   application: CapsuleReleaseContract['application'];
   context: number[];

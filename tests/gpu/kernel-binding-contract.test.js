@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { createKernelBindingEntries } from '../../src/gpu/kernels/kernel-bindings.js';
 import { KERNEL_CONFIGS } from '../../src/config/kernel-registry-contract.js';
-import { resolveKernelConfig } from '../../src/config/schema/kernel-registry.schema.js';
+import { resolveKernelConfig } from "../../src/config/schema/execution/kernel-registry.schema.js";
 import { getRegistry, resolveKernelConfig as resolveLoaded } from '../../src/config/kernels/registry.js';
 
 const registry = await getRegistry();

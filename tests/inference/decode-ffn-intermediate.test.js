@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { borrowDecodeFfnIntermediate } from '../../src/inference/pipelines/text/ffn/decode-intermediate.js';
-import { releaseOrTrack } from '../../src/inference/pipelines/text/ops.js';
+import { releaseOrTrack } from "../../src/inference/pipelines/text/execution/ops.js";
 const buffer = { size: 4096 };
 const owner = { getFFNIntermediateBuffer: () => buffer, ownsBuffer: value => value === buffer };
 const context = { phase: 'decode', decodeBuffers: owner };

@@ -11,7 +11,7 @@ import { installNodeFileFetchShim } from '../../src/tooling/node-file-fetch.js';
 installNodeFileFetchShim();
 
 const { convertModel } = await import('../../src/converter/core.js');
-const { createConverterConfig } = await import('../../src/config/schema/converter.schema.js');
+const { createConverterConfig } = await import("../../src/config/schema/manifest/converter.schema.js");
 const { DEFAULT_MANIFEST_INFERENCE } = await import('../../src/config/schema/index.js');
 
 // Synthetic large PLE tensor: claim 4.37 GB F16 (matches gemma-4-E2B-it) so

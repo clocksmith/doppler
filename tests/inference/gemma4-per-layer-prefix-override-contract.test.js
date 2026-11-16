@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 
 const generatorSource = readFileSync(
-  new URL('../../src/inference/pipelines/text/generator/prefill-runtime.js', import.meta.url),
+  new URL("../../src/inference/pipelines/text/generator/prefill/prefill-execution.js", import.meta.url),
   'utf8'
 );
 

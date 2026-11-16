@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { setDevice } from '../../src/gpu/device.js';
 import { destroyBufferPool, isBufferActive } from '../../src/memory/buffer-pool.js';
-import { prepareWholeTokenBatch } from '../../src/inference/pipelines/text/generator/whole-token-lane.js';
+import { prepareWholeTokenBatch } from "../../src/inference/pipelines/text/generator/whole-token/whole-token-lane.js";
 const savedBuffer = globalThis.GPUBuffer, savedUsage = globalThis.GPUBufferUsage;
 globalThis.GPUBuffer = class GPUBuffer { constructor(size) { this.size = size; this.bytes = new Uint8Array(size); } destroy() {} };
 globalThis.GPUBufferUsage = { STORAGE: 128, COPY_SRC: 4, COPY_DST: 8 };

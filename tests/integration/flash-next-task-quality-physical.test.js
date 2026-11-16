@@ -36,7 +36,7 @@ if (!runPath) {
   assert.ok(Number.isSafeInteger(maxNewTokens) && maxNewTokens > 0);
   const output = path.resolve(run.outputDirectory);
   await fs.mkdir(output);
-  const sourceUrl = new URL('../../src/inference/pipelines/text/generator/prefill-runtime.js', import.meta.url);
+  const sourceUrl = new URL("../../src/inference/pipelines/text/generator/prefill/prefill-logits.js", import.meta.url);
   let pending = null;
   const observer = installPrefillLogitRowsObservation(sourceUrl.href, hash(await fs.readFile(sourceUrl)), async record => {
     if (!pending || pending.done || record.startPos !== 0) return;

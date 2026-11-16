@@ -1,5 +1,5 @@
-import { validateFP8Policy } from '../config/schema/fp8.schema.js';
-import { validateW8A8Policy } from '../config/schema/w8a8.schema.js';
+import { validateFP8Policy } from "../config/schema/manifest/fp8.schema.js";
+import { validateW8A8Policy } from "../config/schema/manifest/w8a8.schema.js";
 
 import { DEFAULT_QUANTIZATION_DEFAULTS, DEFAULT_Q4K_LAYOUT } from '../config/schema/index.js';
 import { classifyTensorRole } from '../formats/rdrr/index.js';

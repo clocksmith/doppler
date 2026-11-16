@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 
-import { sample } from '../../src/inference/pipelines/text/sampling.js';
+import { sample } from "../../src/inference/pipelines/text/generator/sampling/sampling.js";
 
 {
   const logits = new Float32Array([123, Number.NaN, 5]);

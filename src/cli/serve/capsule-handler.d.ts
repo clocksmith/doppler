@@ -1,6 +1,6 @@
 import type { DopplerRuntimeSession } from '../../client/runtime/composition-root.js';
-import type { CapsuleServePolicy } from '../../config/capsule-serve.js';
-export type { CapsuleServePolicy } from '../../config/capsule-serve.js';
+import type { CapsuleServePolicy } from "../../config/capsule/capsule-serve.js";
+export type { CapsuleServePolicy } from "../../config/capsule/capsule-serve.js";
 /** Structural Node HTTP boundary; consumers of other exports need no Node typings. */
 export interface CapsuleHttpEvents {
   once(event: string, listener: (...args: unknown[]) => void): unknown;

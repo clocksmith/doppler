@@ -1,4 +1,4 @@
-import { runProbes, tensorProbeOptions } from '../probes.js';
+import { runProbes, tensorProbeOptions } from "../observation/probes.js";
 
 export async function observeAttentionRoPE(options) {
   const {

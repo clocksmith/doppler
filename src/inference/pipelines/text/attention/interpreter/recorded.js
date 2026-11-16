@@ -1,70 +1,23 @@
-import { observeActivityAttention } from '../rope-observation.js';
-import { isGpuBufferInstance, isWeightBuffer, getWeightDtype } from '../../../../../gpu/weight-buffer.js';
-import { getKernelCapabilities } from '../../../../../gpu/device.js';
-import { acquireBuffer } from '../../../../../memory/buffer-pool.js';
-import { recordMatmul } from '../../../../../gpu/kernels/matmul.js';
-import { recordRMSNorm } from '../../../../../gpu/kernels/rmsnorm.js';
-import { recordLayerNorm } from '../../../../../gpu/kernels/layernorm.js';
-import { recordBiasAdd } from '../../../../../gpu/kernels/residual.js';
-import { recordRoPE } from '../../../../../gpu/kernels/rope.js';
-import { canUseRoPEQK, recordRoPEQK } from '../../../../../gpu/kernels/rope-qk.js';
-import { recordAttention, recordAttentionTiered, recordAttentionTieredQuant, recordAttentionContiguousQuant, recordAttentionBDPA } from '../../../../../gpu/kernels/attention.js';
-import { recordSiLU } from '../../../../../gpu/kernels/silu.js';
-import { recordCastF16ToF32, recordCastF32ToF16 } from '../../../../../gpu/kernels/cast.js';
-import { recordMatmulResidualFused } from '../../../../../gpu/kernels/fused_matmul_residual.js';
-import { createTensor } from '../../../../../gpu/tensor.js';
-import { applyLoRA } from '../../lora-apply.js';
-import { getLoRAModule } from '../../lora.js';
-import { log, trace } from '../../../../../debug/index.js';
-import { selectRuleValue } from '../../../../../rules/rule-registry.js';
-import {
-  recordAttentionInputs,
-  shouldForceF32AttentionProjectionForRoPE,
-  resolveAttentionProjectionOutputDtype,
-  projectAttentionQKV,
-  applyAttentionQKNorm,
-  applyAttentionValueNorm,
-  hasAttentionProjectionDiagnostics,
-  hasAttentionStageDiagnostics,
-  resolveAttentionQKNormState,
-} from '../projections.js';
-import { prepareAttentionProjectionInput } from '../output-projection.js';
-import { runProbes, tensorProbeOptions } from '../../probes.js';
-import { shouldDebugLayer } from '../types.js';
-import {
-  getKernelPathMatmulPrecision,
-  getKernelPathMatmulVariant,
-} from '../../../../../config/kernel-path-loader.js';
-import {
-  resolveKVCacheState,
-  createDiffusionGemmaDecoderKVState,
-  buildAttentionDispatchParams,
-  buildAttentionInputsData,
-} from '../dispatch-params.js';
-import {
-  buildTieredQuantAttentionOptions,
-  buildContiguousQuantAttentionOptions,
-} from '../quant-options.js';
-import { assertImplicitDtypeTransitionAllowed } from '../../dtype-contract.js';
-import {
-  resolveAttentionPrecisionContract,
-  isAttentionKvDtypeExplicit,
-} from '../precision-contract.js';
-import { canUseRmsNormWideTileProjectionFusion } from '../rmsnorm-fusion-gate.js';
-import { getVectorTensor } from '../../weights.js';
-import { resolveAttentionRuntimeSession } from '../../resolved-runtime-session.js';
-import {
-  bindAttentionPlan,
-  createAttentionExecutor,
-  executeBoundAttentionPlan,
-  resolveAttentionPlanForDispatch,
-} from '../plan.js';
-import { createRecordedResourceScope } from '../../../../resource-scope.js';
-import { captureAttentionRefactorReceipt } from '../receipt.js';
-import { applyAttentionQueryScale } from '../query-transform.js';
-import { resolveQueryScale } from '../../../../../config/heterogeneous-attention-contract.js';
-import { enqueueRecordedTensorHealth, shouldTraceRecordedHealth } from '../recorded-health.js';
-import { runQsaIndexedAttention } from '../../indexed-attention/attention-runner.js';
+import { observeActivityAttention } from "../rope-observation.js";
+
+import { recordAttention, recordAttentionTiered, recordAttentionTieredQuant, recordAttentionContiguousQuant, recordAttentionBDPA } from "../../../../../gpu/kernels/attention.js";
+import { recordSiLU } from "../../../../../gpu/kernels/silu.js";
+import { recordCastF16ToF32, recordCastF32ToF16 } from "../../../../../gpu/kernels/cast.js";
+
+import { createTensor } from "../../../../../gpu/tensor.js";
+
+import { runProbes, tensorProbeOptions } from "../../observation/probes.js";
+
+import { buildTieredQuantAttentionOptions, buildContiguousQuantAttentionOptions } from "../quant-options.js";
+
+import { isAttentionKvDtypeExplicit } from "../precision-contract.js";
+
+import { bindAttentionPlan, createAttentionExecutor, executeBoundAttentionPlan } from "../plan.js";
+
+import { captureAttentionRefactorReceipt } from "../receipt.js";
+
+import { enqueueRecordedTensorHealth, shouldTraceRecordedHealth } from "../recorded-health.js";
+import { runQsaIndexedAttention } from "../../indexed-attention/attention-runner.js";
 
 export function resolveDirectF16KVCacheWrite(options) {
   const {
@@ -447,4 +400,76 @@ export function finalizeRecordedAttentionSuccess(options) {
     plan: attentionPlan,
     resourceEvents,
   });
+}
+
+export function failRecordedAttention({
+  resourceScope,
+  attnForProjection,
+  attnOutput,
+  qGateTensor,
+  qTensor,
+  kTensor,
+  retainSharedKvBuffers,
+  vTensor,
+  normed,
+  attentionInput,
+  attentionInputTemp,
+  decoderKTemp,
+  decoderVTemp,
+  decoderKVState,
+  state,
+  attentionPlan,
+  error
+}) {
+    const trackOnce = (buffer) => resourceScope.release(buffer, 'attention-failure');
+    if (attnForProjection?.buffer && attnForProjection.buffer !== attnOutput?.buffer) {
+      trackOnce(attnForProjection.buffer);
+    }
+    if (attnOutput?.buffer) {
+      trackOnce(attnOutput.buffer);
+    }
+    if (qGateTensor?.buffer) {
+      trackOnce(qGateTensor.buffer);
+    }
+    if (qTensor?.buffer) {
+      trackOnce(qTensor.buffer);
+    }
+    if (kTensor?.buffer && !retainSharedKvBuffers) {
+      trackOnce(kTensor.buffer);
+    }
+    if (vTensor?.buffer && !retainSharedKvBuffers) {
+      trackOnce(vTensor.buffer);
+    }
+    if (normed?.buffer && normed.buffer !== attentionInput?.buffer) {
+      trackOnce(normed.buffer);
+    }
+    if (attentionInputTemp && attentionInput?.buffer) {
+      trackOnce(attentionInput.buffer);
+    }
+    if (decoderKTemp?.buffer) {
+      trackOnce(decoderKTemp.buffer);
+    }
+    if (decoderVTemp?.buffer) {
+      trackOnce(decoderVTemp.buffer);
+    }
+    if (decoderKVState?.ownedBuffers) {
+      for (const buffer of decoderKVState.ownedBuffers) {
+        trackOnce(buffer);
+      }
+      decoderKVState.ownedBuffers = null;
+    }
+    const resourceEvents = resourceScope.close('failure');
+    if (state.observationContext?.receiptPolicy !== 'off') {
+      state.stats.attentionResourceEvents ??= [];
+      state.stats.attentionResourceEvents.push(...resourceEvents);
+    }
+    captureAttentionRefactorReceipt({
+      state,
+      plan: attentionPlan,
+      resourceEvents,
+      error,
+      failureBoundary: attentionPlan ? 'execute-bound-attention-plan' : 'bind-attention-plan',
+    });
+    throw error;
+
 }

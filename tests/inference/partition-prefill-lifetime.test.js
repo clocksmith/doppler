@@ -5,7 +5,7 @@ import { dispatch, beginImmediateDispatchProfile } from '../../src/gpu/kernels/d
 
 // Inject GPU ports only: exercise real partition orchestration and configured
 // chunk boundaries. This is lifetime evidence, not numerical GPU evidence.
-const target = new URL('../../src/inference/pipelines/text/partition-execution.js', import.meta.url).href;
+const target = new URL("../../src/inference/pipelines/text/partitions/partition-execution.js", import.meta.url).href;
 let probe;
 let expectRecordedLayers = true;
 globalThis.partitionLifetime = {
@@ -74,27 +74,27 @@ globalThis.partitionLifetime.castOutput = async buffer => {
   return Uint16Array.from(new Float32Array(buffer.bytes.buffer), float32ToFloat16).buffer;
 };
 const modules = {
-  '../../../gpu/device.js': 'export const getDevice = () => partitionLifetime.getDevice();',
-  '../../../gpu/kernels/cast.js': `export const recordCastF16ToF32 = (...args) => partitionLifetime.castInput(...args);
+  "../../../../gpu/device.js": 'export const getDevice = () => partitionLifetime.getDevice();',
+  "../../../../gpu/kernels/cast.js": `export const recordCastF16ToF32 = (...args) => partitionLifetime.castInput(...args);
     export const castF16ToF32 = input => partitionLifetime.castInput(null, input);`,
   './partition-wire.js': 'export const readPartitionF16Boundary = (...args) => partitionLifetime.castOutput(...args);',
-  '../../../gpu/command-recorder.js': 'export const createCommandRecorder = () => partitionLifetime.recorder();',
-  '../../../memory/buffer-pool.js': `export const acquireBuffer = size => partitionLifetime.acquire(size);
+  "../../../../gpu/command-recorder.js": 'export const createCommandRecorder = () => partitionLifetime.recorder();',
+  "../../../../memory/buffer-pool.js": `export const acquireBuffer = size => partitionLifetime.acquire(size);
     export const releaseBuffer = buffer => partitionLifetime.release(buffer);
     export const discardBuffer = buffer => { partitionLifetime.release(buffer); (partitionLifetime.discarded ??= []).push(buffer); };
     export const uploadData = (buffer, source) => buffer.bytes.set(ArrayBuffer.isView(source)
       ? new Uint8Array(source.buffer, source.byteOffset, source.byteLength) : new Uint8Array(source));
     export const readBuffer = async (buffer, size) => buffer.bytes.slice(0, size).buffer;`,
-  './layer.js': 'export const processLayer = (...args) => partitionLifetime.layer(...args);',
-  './generator/session-context.js': 'export const buildLayerContext = (state, recorder) => ({ state, recorder, currentSeqLen: state.currentSeqLen });',
-  './layer-partition-contract.js': `export { validateActivationTensorShape, getPartitionActivationContract } from '${new URL('../../src/inference/pipelines/text/layer-partition-contract.js', import.meta.url).href}';
+  '../execution/layer.js': 'export const processLayer = (...args) => partitionLifetime.layer(...args);',
+  "../generator/session/session-context.js": 'export const buildLayerContext = (state, recorder) => ({ state, recorder, currentSeqLen: state.currentSeqLen });',
+  '../execution/layer-partition-contract.js': `export { validateActivationTensorShape, getPartitionActivationContract } from '${new URL("../../src/inference/pipelines/text/execution/layer-partition-contract.js", import.meta.url).href}';
     export const resolveLayerPartition = () => ({layerRange: [0, 11], hasEmbedding: false, hasLmHead: partitionLifetime.hasLmHead()});`,
-  './generator/logits-config.js': `export const getLogitsWeights = () => ({});
+  "../logits/logits-config.js": `export const getLogitsWeights = () => ({});
     export const getLogitsConfig = (_state, phase) => {
       if (!['prefill', 'decode'].includes(phase)) throw Error('Missing stage logits phase');
       return {executionPhase: phase};
     };`,
-  './logits/index.js': 'export const computeLogits = (...args) => partitionLifetime.logits(...args);',
+  "../logits/index.js": 'export const computeLogits = (...args) => partitionLifetime.logits(...args);',
 };
 globalThis.partitionLifetime.hasLmHead = () => probe.hasLmHead === true;
 globalThis.partitionLifetime.logits = (_output, tokens) => {

@@ -8,7 +8,7 @@ import {
   PROGRAM_BUNDLE_SCHEMA_ID,
   PROGRAM_BUNDLE_SCHEMA_VERSION,
   validateProgramBundle,
-} from '../../src/config/schema/program-bundle.schema.js';
+} from "../../src/config/schema/capsule/program-bundle.schema.js";
 import { sha256Hex } from '../../src/formats/sha256.js';
 import { stableSortObject } from '../../src/formats/stable-sort-object.js';
 

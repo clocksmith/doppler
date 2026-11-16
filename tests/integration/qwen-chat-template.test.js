@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 
 const {
   formatChatMessages,
-} = await import('../../src/inference/pipelines/text/chat-format.js');
+} = await import("../../src/inference/pipelines/text/generator/request/chat-format.js");
 const {
   applyChatTemplate,
 } = await import('../../src/inference/pipelines/text/init.js');

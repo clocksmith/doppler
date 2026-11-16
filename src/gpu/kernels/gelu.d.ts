@@ -7,7 +7,7 @@
 import type { Tensor } from '../tensor.js';
 import type { CommandRecorder } from '../command-recorder.js';
 import type { OutputBufferOptions } from './types.js';
-import type { KernelPathSchema } from '../../config/schema/kernel-path.schema.js';
+import type { KernelPathSchema } from "../../config/schema/execution/kernel-path.schema.js";
 
 /** GeLU kernel options */
 export interface GeLUOptions extends OutputBufferOptions {

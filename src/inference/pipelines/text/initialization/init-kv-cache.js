@@ -13,10 +13,10 @@ import { selectRuleValue as selectKernelRuleValue } from "../../../../gpu/kernel
 import { log } from "../../../../debug/index.js";
 import { getRuntimeConfig } from "../../../../config/runtime.js";
 import { PAGED_LAYOUT_SEQ_LEN_THRESHOLD } from "../../../../config/schema/index.js";
-import { requireDeclaredKVMaxSeqLen } from "../../../../config/schema/kvcache.schema.js";
+import { requireDeclaredKVMaxSeqLen } from "../../../../config/schema/execution/kvcache.schema.js";
 import { selectRuleValue } from "../../../../rules/rule-registry.js";
-import { hasLinearAttentionLayers } from "../linear-attention.js";
-import { isConvLayerType } from "../layer-input-execution.js";
+import { hasLinearAttentionLayers } from "../linear-attention/linear-attention.js";
+import { isConvLayerType } from "../execution/layer-input-execution.js";
 
 function isRuntimeInferenceConfigInput(value) {
   if (!isPlainObject(value)) {

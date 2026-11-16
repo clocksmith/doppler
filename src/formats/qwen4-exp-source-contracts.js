@@ -2,7 +2,7 @@ import sourceDefaults from './qwen4-exp-source-defaults.json' with { type: 'json
 import {
   deriveNgramLayerTable,
   deriveNgramMultipliers,
-} from '../config/schema/ngram-embedding.schema.js';
+} from "../config/schema/execution/ngram-embedding.schema.js";
 
 // Lowers a qwen4_exp (Qwen3.8 Flash-Next) source config into Doppler's
 // hyper-connection decoder contracts. Omitted source fields resolve from the
@@ -77,7 +77,7 @@ function resolveBoundaryToken(text) {
 
 /**
  * @param {Record<string, any>} text @param {string[]} layerTypes
- * @returns {import('../config/schema/ngram-embedding.schema.js').NgramEmbeddingSchema | null}
+ * @returns {import("../config/schema/execution/ngram-embedding.schema.js").NgramEmbeddingSchema | null}
  */
 function lowerNgramEmbedding(text, layerTypes) {
   const rawIds = sourceField(text, 'ple_layer_ids') ?? [];
@@ -141,7 +141,7 @@ function lowerNgramEmbedding(text, layerTypes) {
 
 /**
  * @param {Record<string, any>} text @param {string[]} layerTypes
- * @returns {import('../config/schema/hyper-connection-decoder.schema.js').IndexedAttentionSchema | null}
+ * @returns {import("../config/schema/execution/hyper-connection-decoder.schema.js").IndexedAttentionSchema | null}
  */
 function lowerIndexedAttention(text, layerTypes) {
   const values = Object.fromEntries(QSA_FIELDS.map((field) => [field, sourceField(text, field)]));

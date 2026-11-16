@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 
-import { kernelTrace } from '../../src/inference/pipelines/text/kernel-trace.js';
+import { kernelTrace } from "../../src/inference/pipelines/text/observation/kernel-trace.js";
 import { applyPipelineContexts, restorePipelineContexts } from '../../src/inference/pipelines/context.js';
 import { resolveRuntimeConfig } from '../../src/config/runtime.js';
 

@@ -1,5 +1,5 @@
 import type { Tensor } from '../../../../gpu/tensor.js';
-import type { LayerWeights } from '../weights.js';
+import type { LayerWeights } from "../loading/weights.js";
 export interface PairedAttentionAdmissionConfig {
   activationDtype?: string; inputDtype?: string; outputDtype?: string;
   normalizationType?: string; valueNorm?: boolean;

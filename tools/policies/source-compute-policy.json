@@ -55,7 +55,7 @@
   ],
   "reviews": [
     {
-      "id": "src/inference/pipelines/text/channel-gain.js#freezeChannelRotations",
+      "id": "src/inference/pipelines/text/generator/activation/channel-gain.js#freezeChannelRotations",
       "category": "observation",
       "reason": "Copies planes and status GPU-to-GPU into private buffers; validates unchanged readback finiteness, orthonormality and degenerate identity, then hashes unchanged bytes. Validation reductions only accept or reject a handle; no computed tensor is uploaded or used as a model result. Map.set tracks ownership. WGSL derives and applies every rotation."
     },
@@ -65,12 +65,12 @@
       "reason": "Constructs per-layer session state and records it in a Map. The looped set is Map.set, not tensor arithmetic; packed-row staging elsewhere in this module only pads unchanged bytes for WebGPU alignment."
     },
     {
-      "id": "src/inference/pipelines/text/channel-gain.js#freezeChannelGains",
+      "id": "src/inference/pipelines/text/generator/activation/channel-gain.js#freezeChannelGains",
       "category": "observation",
       "reason": "Copies gain buffers GPU-to-GPU into private storage, validates unchanged readback values as finite and positive, and hashes exact bytes. Readback is never modified or uploaded; WGSL derives all gains. Map insertion is resource ownership, not numeric compute."
     },
     {
-      "id": "src/inference/pipelines/text/channel-gain.js#createChannelGainRequest",
+      "id": "src/inference/pipelines/text/generator/activation/channel-gain.js#createChannelGainRequest",
       "category": "gpu-orchestration",
       "reason": "Validates explicit layer and token-span metadata, tracks GPU tensor ownership in Maps, and dispatches registered WGSL reduction and fused SwiGLU operators. No CPU tensor arithmetic or transformed upload."
     },
@@ -90,7 +90,7 @@
       "reason": "Validates signed artifact and piece metadata and copies unchanged artifact bytes into the verified storage reader. Map insertion and byte materialization do not compute or transform model tensors."
     },
     {
-      "id": "src/inference/pipelines/text/partition-execution.js#executePartitionLayers",
+      "id": "src/inference/pipelines/text/partitions/partition-execution.js#executePartitionLayers",
       "category": "gpu-orchestration",
       "reason": "Slices and assembles unchanged contiguous activation bytes at declared hidden-size and dtype row boundaries for configured prefill chunks. It performs no tensor arithmetic, layout transformation, or kernel substitution."
     },
@@ -685,7 +685,7 @@
       "reason": "The unqualified energy-row-head prototype is isolated under src/experimental, excluded from Capsule Runtime closure, and cannot satisfy production support claims."
     },
     {
-      "id": "src/inference/pipelines/text/embed.js#decodeRangeChunkIntoOutput",
+      "id": "src/inference/pipelines/text/embedding/embed.js#decodeRangeChunkIntoOutput",
       "category": "artifact-codec-materialization",
       "reason": "The symbol decodes descriptor-bound embedding source bytes into their declared materialization dtype before GPU dispatch."
     },
@@ -695,32 +695,32 @@
       "reason": "The CPU sequence-pooling reference is isolated under src/experimental and excluded from Capsule Runtime execution."
     },
     {
-      "id": "src/inference/pipelines/text/generator/decode-mechanics.js#runDecodeLayers",
+      "id": "src/inference/pipelines/text/generator/decode/decode-mechanics.js#runDecodeLayers",
       "category": "gpu-orchestration",
       "reason": "The method sequences declared layer dispatches and resource releases; indexed writes clear ownership slots rather than tensor values."
     },
     {
-      "id": "src/inference/pipelines/text/generator/decode-step.js#decodeStepBody",
+      "id": "src/inference/pipelines/text/generator/decode/decode-step.js#decodeStepBody",
       "category": "gpu-orchestration",
       "reason": "The method sequences declared GPU operations and bounded debug observation; it does not compute tensor output values in JavaScript."
     },
     {
-      "id": "src/inference/pipelines/text/generator/whole-token-program.js#WholeTokenProgram.#materialize",
+      "id": "src/inference/pipelines/text/generator/whole-token/whole-token-program.js#WholeTokenProgram.#materialize",
       "category": "gpu-orchestration",
       "reason": "The method copies observed uniform bytes into the program's packed uniform buffer and builds bind groups and staging; it computes no tensor values."
     },
     {
-      "id": "src/inference/pipelines/text/generator/prefill-runtime.js#_prefill",
+      "id": "src/inference/pipelines/text/generator/prefill/prefill-execution.js#_prefill",
       "category": "gpu-orchestration",
       "reason": "The method sequences prefill dispatch and initializes declared resource buffers; detected writes are lifecycle bookkeeping and zero-state upload."
     },
     {
-      "id": "src/inference/pipelines/text/generator/training.js#prefillWithTokenLogits",
+      "id": "src/inference/pipelines/text/generator/adapters/training.js#prefillWithTokenLogits",
       "category": "scalar-control",
       "reason": "The method maps selected read-back scalar logits by token ID for the caller and does not redispatch a modified tensor."
     },
     {
-      "id": "src/inference/pipelines/text/generator/training.js#prefillWithTokenLogitsFromKV",
+      "id": "src/inference/pipelines/text/generator/adapters/training.js#prefillWithTokenLogitsFromKV",
       "category": "scalar-control",
       "reason": "The method maps selected read-back scalar logits by token ID for the caller and does not redispatch a modified tensor."
     },
@@ -735,12 +735,12 @@
       "reason": "The CPU embedding reference is isolated under src/experimental and excluded from Capsule Runtime execution."
     },
     {
-      "id": "src/inference/pipelines/text/generator-steps.js#generateNTokensGPU",
+      "id": "src/inference/pipelines/text/generator/decode/batch-generation.js#generateNTokensGPU",
       "category": "scalar-control",
       "reason": "The method coordinates declared GPU decode batches, stop checks, and token histories; model tensor math remains in registered kernels."
     },
     {
-      "id": "src/inference/pipelines/text/initialization/init-weights.js#loadWeights",
+      "id": "src/inference/pipelines/text/loading/init-weights.js#loadWeights",
       "category": "gpu-orchestration",
       "reason": "This symbol assembles declared weight or state buffer resources without performing model tensor arithmetic."
     },
@@ -810,12 +810,12 @@
       "reason": "The method binds declared per-layer input weights, token IDs, and GPU dispatch resources without implementing their tensor arithmetic."
     },
     {
-      "id": "src/inference/pipelines/text/embed.js#selectPreloadedCpuEmbeddingValues",
+      "id": "src/inference/pipelines/text/embedding/embed.js#selectPreloadedCpuEmbeddingValues",
       "category": "artifact-codec-materialization",
       "reason": "The symbol copies a declared hidden slice from a hash-verified range-backed artifact row before that row becomes a runtime tensor."
     },
     {
-      "id": "src/inference/pipelines/text/probes.js#readTokenRow",
+      "id": "src/inference/pipelines/text/observation/probes.js#readTokenRow",
       "category": "observation",
       "reason": "This symbol records or decodes bounded diagnostic evidence and cannot feed modified tensor values back into execution."
     },
@@ -850,7 +850,7 @@
       "reason": "RD-CANON/1 explicitly assigns the versioned final-stage categorical sampler to CPU control after logits readback; transformed scores never return to model execution."
     },
     {
-      "id": "src/inference/pipelines/text/tsir-fixture-writer.js#trackQkvPartialAndMaybeWrite",
+      "id": "src/inference/pipelines/text/observation/tsir-fixture-writer.js#trackQkvPartialAndMaybeWrite",
       "category": "observation",
       "reason": "This symbol records or decodes bounded diagnostic evidence and cannot feed modified tensor values back into execution."
     },
@@ -1110,12 +1110,12 @@
       "reason": "The lookup table supports descriptor-bound immutable weight materialization before GPU execution."
     },
     {
-      "id": "src/inference/pipelines/text/probes.js#decodeSnapshotBytes",
+      "id": "src/inference/pipelines/text/observation/probes.js#decodeSnapshotBytes",
       "category": "observation",
       "reason": "The probe decodes bounded tensor evidence for diagnostics and cannot feed modified values back into execution."
     },
     {
-      "id": "src/inference/pipelines/text/tsir-fixture-writer.js#decodeBuffer",
+      "id": "src/inference/pipelines/text/observation/tsir-fixture-writer.js#decodeBuffer",
       "category": "observation",
       "reason": "The fixture writer decodes captured GPU evidence for serialization and cannot feed modified values back into execution."
     },
@@ -1190,17 +1190,17 @@
       "reason": "This compatibility codec is used by tests, experimental owners, and declared host-input materialization; canonical runtime tensor paths do not call it."
     },
     {
-      "id": "src/inference/pipelines/text/embedding-extraction.js#buildSequencePoolControl",
+      "id": "src/inference/pipelines/text/embedding/embedding-extraction.js#buildSequencePoolControl",
       "category": "non-tensor-data",
       "reason": "This method builds a declared token-identity mask and scalar counts; embedding tensor pooling remains in WGSL."
     },
     {
-      "id": "src/inference/pipelines/text/linear-attention.js#cloneLinearAttentionRuntime",
+      "id": "src/inference/pipelines/text/linear-attention/linear-attention.js#cloneLinearAttentionRuntime",
       "category": "gpu-orchestration",
       "reason": "This method copies explicitly requested recurrent-state snapshot bytes without performing tensor arithmetic."
     },
     {
-      "id": "src/inference/pipelines/text/linear-attention.js#restoreLinearAttentionRuntime",
+      "id": "src/inference/pipelines/text/linear-attention/linear-attention.js#restoreLinearAttentionRuntime",
       "category": "gpu-orchestration",
       "reason": "This method restores explicitly supplied recurrent-state snapshot bytes without performing tensor arithmetic."
     },
@@ -1250,7 +1250,7 @@
       "reason": "Copies unchanged stored n-gram table row bytes (policy-bounded host cache and range reads) into a contiguous staging array in address order before the rows enter execution; no arithmetic. BF16 decoding and every projection run in WGSL."
     },
     {
-      "id": "src/inference/pipelines/text/activity-weights.js#visit",
+      "id": "src/inference/pipelines/text/generator/activation/activity-weights.js#visit",
       "category": "observation",
       "reason": "Computes bounded RMS tiles and per-column squared-weight summaries from unchanged loaded weights. These diagnostic arrays are retained only in activity receipts and never uploaded or used as model execution inputs."
     },

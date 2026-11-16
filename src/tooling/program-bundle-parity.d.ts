@@ -1,4 +1,4 @@
-import type { ProgramBundle } from '../config/schema/program-bundle.schema.js';
+import type { ProgramBundle } from "../config/schema/capsule/program-bundle.schema.js";
 
 import type { NodeWebGPUProviderOptions } from './provider-v1-contract.js';
 

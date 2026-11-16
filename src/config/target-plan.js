@@ -3,8 +3,8 @@ import { isPlainObject as isObject } from '../formats/plain-object.js';
 import { requireString, requireDigest } from '../formats/contract-validation.js';
 import { assertOrderedResidentQualificationSet, assertOrderedResidentRecord } from './ordered-resident-qualification.js';
 import { computeCanonicalSha256 } from '../formats/canonical-hash.js';
-import { validateCapsuleAdapterExecution } from './capsule-adapter-policy.js';
-import { validateCapsuleTokenSelection } from './capsule-token-selection.js';
+import { validateCapsuleAdapterExecution } from "./capsule/capsule-adapter-policy.js";
+import { validateCapsuleTokenSelection } from "./capsule/capsule-token-selection.js";
 import { validateInitialExecutionIdentity } from './initial-execution-identity.js';
 
 export const TARGET_PLAN_SCHEMA_ID = 'doppler.target-plan/v1';

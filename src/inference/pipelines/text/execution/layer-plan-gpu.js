@@ -1,0 +1,672 @@
+
+
+import { getDevice } from "../../../../gpu/device.js";
+import { releaseBuffer } from "../../../../memory/buffer-pool.js";
+import { createTensor } from "../../../../gpu/tensor.js";
+import { doAttention, doRMSNorm, doLayerNorm, doResidualAdd, doConv, doCast, releaseOrTrack } from './ops.js';
+import { getWeightBuffer, getNormWeightBuffer } from "../loading/weights.js";
+import { runProbes } from "../observation/probes.js";
+import { getLayerPlanSteps, filterLayerPlanStepsByPhase } from './layer-plan.js';
+import { selectRuleValue } from "../../../../rules/rule-registry.js";
+import { recordCheckFiniteness } from "../../../../gpu/kernels/check-finiteness.js";
+import { shouldRunFinitenessGuard } from "../policy/finiteness-policy.js";
+import { isRoPEDisabledForLayer } from "../../../../config/heterogeneous-attention-contract.js";
+import { isGpuBufferInstance, isWeightBuffer, requireWeightDtype } from "../../../../gpu/weight-buffer.js";
+import {
+  isSlidingLayerType,
+  resolveActivationDtype,
+  resolveAttentionHeadDim,
+  resolveAttentionNumKVHeads,
+  resolveAttentionRotaryDim,
+  resolveAttentionFrequencyBaseDim,
+  getConvLayerState,
+  applyLayerScalar,
+  resolveLayerScalarValue,
+} from './layer-execution-contract.js';
+import {
+  applyPerLayerInputBlock,
+  hasPerLayerInputBlock,
+  isMoELayer,
+  resolveAttentionKVSharing,
+} from './layer-input-execution.js';
+
+// Lazily loaded once: each dynamic import() makes the browser re-walk the module graph.
+let moeFfnModule = null;
+
+// ============================================================================
+// Configurable Layer Pipeline (JSON-Driven)
+// ============================================================================
+
+function isFinalResidualOutputStep(steps, stepIndex) {
+  const step = steps[stepIndex];
+  return step?.op === 'residual_add'
+    && step.dst === 'state'
+    && !step.probeStage
+    && stepIndex === steps.length - 1;
+}
+
+function resolveResidualOutputScaleForPlan(steps, stepIndex, config, context, layerWeights, residualDtype) {
+  if (!isFinalResidualOutputStep(steps, stepIndex)) {
+    return 1;
+  }
+  if (hasPerLayerInputBlock(config)) {
+    return 1;
+  }
+  if (residualDtype !== resolveActivationDtype(context.activationDtype)) {
+    return 1;
+  }
+  if (context.debugProbes?.length) {
+    return 1;
+  }
+  return resolveLayerScalarValue(layerWeights?.layerScalar ?? null);
+}
+
+const PLAN_NORM_BIAS_FIELDS = Object.freeze({
+  input: 'inputNormBias',
+  post_attn: 'postAttentionNormBias',
+  pre_ffn: 'preFeedforwardNormBias',
+  post_ffn: 'postFeedforwardNormBias',
+});
+
+function resolveNormWeightForPlan(weight, layerWeights) {
+  if (!layerWeights) return null;
+  switch (weight) {
+    case 'input':
+      return layerWeights.inputNorm;
+    case 'post_attention':
+      return layerWeights.postAttentionNorm ?? layerWeights.postAttnNorm ?? null;
+    case 'post_attn':
+      return layerWeights.postAttnNorm ?? layerWeights.postAttentionNorm ?? null;
+    case 'pre_ffn':
+      return layerWeights.preFeedforwardNorm ?? null;
+    case 'post_ffn':
+      return layerWeights.postFeedforwardNorm ?? null;
+    default:
+      return null;
+  }
+}
+
+
+export async function processLayerPlanGPU(layerIdx, inputBuffer, numTokens, isPrefill, size, context, layerWeights, sandwichNorm) {
+  const { config, weightConfig, debugFlags, kvCache, ropeFreqsCos, ropeFreqsSin, recorder } = context;
+  const { hiddenSize, numHeads, rmsNormEps } = config;
+
+  if (!context.pipelinePlan) {
+    throw new Error('Layer pipeline plan missing from context');
+  }
+
+  const planSteps = getLayerPlanSteps(context.pipelinePlan, layerIdx);
+  const steps = filterLayerPlanStepsByPhase(planSteps, isPrefill);
+  const device = recorder?.device ?? getDevice();
+  if (!device) throw new Error('No GPU device available');
+
+  const layerType = config.layerTypes?.[layerIdx];
+  const isLocalLayer = isSlidingLayerType(layerType);
+  const activationDtype = resolveActivationDtype(context.activationDtype);
+  const representation = { precision: context.activationPrecision, components: context.activationComponents,
+    elementStrideBytes: context.activationElementStrideBytes };
+  const paired = representation.precision === 'two-f32';
+  createTensor(inputBuffer, activationDtype, [numTokens, hiddenSize], 'plan_input_contract', representation);
+  if (paired && (steps.some(step => (step.op === 'cast' && step.toDtype !== 'f32') || step.op === 'layernorm' || step.op === 'conv')
+    || hasPerLayerInputBlock(config))) {
+    throw new Error('Paired layer plan requires preserving activation storage; scalar casts, LayerNorm, generic convolution and per-layer input blocks are unsupported.');
+  }
+
+  const attnState = {
+    ropeFreqsCos: (isLocalLayer && context.ropeLocalCos)
+      ? (context.ropeLocalCos)
+      : (ropeFreqsCos),
+    ropeFreqsSin: (isLocalLayer && context.ropeLocalSin)
+      ? (context.ropeLocalSin)
+      : (ropeFreqsSin),
+    sharedAttentionState: context.sharedAttentionState ?? null,
+    kvCache: ((kvCache)),
+    linearRuntime: context.linearAttentionRuntime ?? null,
+    resolvedRuntimeSession: context.resolvedRuntimeSession,
+    observationContext: context.observationContext ?? null,
+    operatorDiagnostics: context.operatorDiagnostics,
+    executionPolicies: context.executionPolicies ?? null,
+  };
+
+  const allowResidualFuse = numTokens === 1 && !(sandwichNorm.useSandwichNorm && sandwichNorm.hasPostAttentionNorm);
+
+
+  const slots = new Map();
+  const slotDtypes = new Map();
+
+  const refCounts = new Map();
+  const protectedBuffers = new Set([inputBuffer]);
+
+
+  const addRef = (buf) => {
+    refCounts.set(buf, (refCounts.get(buf) ?? 0) + 1);
+  };
+
+  const releaseRef = (buf) => {
+    const next = (refCounts.get(buf) ?? 0) - 1;
+    if (next > 0) {
+      refCounts.set(buf, next);
+      return;
+    }
+    refCounts.delete(buf);
+    if (protectedBuffers.has(buf)) return;
+    if (recorder) {
+      recorder.trackTemporaryBuffer(buf);
+    } else {
+      releaseBuffer(buf);
+    }
+  };
+
+  const getSlot = (name) => {
+    const key = name.trim() || 'state';
+    const buf = slots.get(key);
+    if (!buf) {
+      throw new Error(`Layer pipeline missing slot "${key}" at L${layerIdx}`);
+    }
+    return buf;
+  };
+
+  const getSlotDtype = (name) => {
+    const key = name.trim() || 'state';
+    return slotDtypes.get(key) ?? null;
+  };
+
+  const resolveStepInputDtype = (step, slotName) => {
+    const slotDtype = getSlotDtype(slotName) ?? resolveActivationDtype(context.activationDtype);
+    if (!step.inputDtype) {
+      return slotDtype;
+    }
+    const required = resolveActivationDtype(step.inputDtype);
+    if (slotDtype !== required) {
+      throw new Error(
+        `Layer pipeline dtype mismatch at L${layerIdx} step "${step.op}": ` +
+        `slot "${slotName}" is ${slotDtype} but step requires ${required}. ` +
+        'Insert an explicit cast step.'
+      );
+    }
+    return required;
+  };
+
+  const resolveStepOutputDtype = (step, actualOutputDtype) => {
+    if (!step.outputDtype) {
+      return actualOutputDtype;
+    }
+    const required = resolveActivationDtype(step.outputDtype);
+    if (actualOutputDtype !== required) {
+      throw new Error(
+        `Layer pipeline output dtype mismatch at L${layerIdx} step "${step.op}": ` +
+        `kernel produced ${actualOutputDtype} but step declares ${required}.`
+      );
+    }
+    return required;
+  };
+
+  const setSlot = (name, buf, dtype, actualRepresentation = representation) => {
+    if (paired && (dtype !== 'f32' || actualRepresentation.precision !== 'two-f32'
+      || actualRepresentation.components !== 2 || actualRepresentation.elementStrideBytes !== 8)) {
+      if (!protectedBuffers.has(buf) && !refCounts.has(buf)) releaseOrTrack(recorder, buf);
+      throw new Error('Layer pipeline kernel discarded paired activation storage.');
+    }
+    const key = name.trim() || 'state';
+    const prev = slots.get(key);
+    if (prev && prev !== buf) {
+      releaseRef(prev);
+    }
+    slots.set(key, buf);
+    if (dtype) {
+      slotDtypes.set(key, dtype);
+    }
+    if (prev !== buf) addRef(buf);
+  };
+
+  const clearSlot = (name) => {
+    const key = name.trim() || 'state';
+    const prev = slots.get(key);
+    if (!prev) return;
+    slots.delete(key);
+    slotDtypes.delete(key);
+    releaseRef(prev);
+  };
+
+  const storeStepOutput = (step, tensor) => {
+    const actual = resolveActivationDtype(tensor.dtype);
+    setSlot(step.dst, tensor.buffer, actual, tensor);
+    if (paired && (tensor.shape?.length !== 2 || tensor.shape[0] !== numTokens || tensor.shape[1] !== hiddenSize)) {
+      throw new Error('Layer pipeline kernel changed the paired logical activation shape.');
+    }
+    return resolveStepOutputDtype(step, actual);
+  };
+
+  setSlot('state', inputBuffer, activationDtype);
+
+  const cleanupSlots = () => {
+    for (const buf of refCounts.keys()) {
+      if (!protectedBuffers.has(buf)) releaseOrTrack(recorder, buf);
+    }
+    refCounts.clear();
+  };
+
+  try {
+    let layerScalarFused = false;
+    for (let stepIndex = 0; stepIndex < steps.length; stepIndex++) {
+      const step = steps[stepIndex];
+      switch (step.op) {
+        case 'save': {
+          const src = getSlot(step.src);
+          const srcDtype = getSlotDtype(step.src) ?? resolveActivationDtype(context.activationDtype);
+          setSlot((step.name), src, srcDtype);
+          break;
+        }
+        case 'load': {
+          const src = getSlot((step.name));
+          const srcDtype = getSlotDtype(step.name) ?? resolveActivationDtype(context.activationDtype);
+          setSlot(step.dst, src, srcDtype);
+          break;
+        }
+        case 'attention': {
+          const srcBuf = getSlot(step.src);
+          const residualBuf = step.residual ? getSlot(step.residual) : null;
+
+
+          const activationDtype = resolveStepInputDtype(step, step.src);
+          const srcTensor = createTensor(srcBuf, activationDtype, [numTokens, hiddenSize], 'plan_attn_src', representation);
+          const residualTensor = (residualBuf && allowResidualFuse)
+            ? createTensor(residualBuf, activationDtype, [numTokens, hiddenSize], 'plan_attn_residual', representation)
+            : null;
+
+
+          const attentionHeadDim = resolveAttentionHeadDim(config, layerType);
+          const attentionNumKVHeads = resolveAttentionNumKVHeads(config, layerType, layerWeights, attentionHeadDim);
+
+          const attnConfig = {
+            layerIdx,
+            numTokens,
+            isPrefill,
+            numHeads,
+            numKVHeads: attentionNumKVHeads,
+            headDim: attentionHeadDim,
+            hiddenSize,
+            rmsNormEps,
+            currentSeqLen: context.currentSeqLen,
+            slidingWindow: config.slidingWindow,
+            layerType,
+            residualTensor,
+            attnSoftcap: config.attnLogitSoftcapping === null ? 0 : config.attnLogitSoftcapping,
+            queryPreAttnScalar: config.queryPreAttnScalar,
+            queryScale: config.queryScale,
+            queryKeyNorm: config.queryKeyNorm,
+            queryKeyNormType: config.queryKeyNormType,
+            queryKeyNormAxis: config.queryKeyNormAxis,
+            queryKeyNormWeightLayers: config.queryKeyNormWeightLayers,
+            valueNorm: config.valueNorm,
+            attentionOutputGate: config.attentionOutputGate,
+            outputGateType: config.outputGateType ?? null,
+            causalAttention: config.causalAttention,
+            rmsNormWeightOffset: config.rmsNormWeightOffset,
+            ropeRotaryDim: resolveAttentionRotaryDim(config, layerType),
+            ropeFrequencyBaseDim: resolveAttentionFrequencyBaseDim(config, layerType),
+            ropeInterleaved: config.ropeInterleaved,
+            disableRoPE: isRoPEDisabledForLayer(config, layerIdx),
+            tokenIds: context.currentTokenIds ?? null,
+            skipInputNorm: step.skipInputNorm === true,
+            activationDtype,
+            inputDtype: step.inputDtype ?? undefined,
+            outputDtype: step.outputDtype ?? undefined,
+            kvDtype: step.kvDtype ?? undefined,
+            kernelPath: context.kernelPath ?? null,
+            sessionSettings: config.sessionSettings ?? null,
+            ...resolveAttentionKVSharing(config, layerIdx, layerType),
+          };
+
+          const result = await doAttention(
+            srcTensor,
+            layerWeights ?? null,
+            attnConfig,
+            attnState,
+            context.debug,
+            { debugLayers: context.debugLayers },
+            (weight, label) => getWeightBuffer(weight, label, device),
+            (weight, label) => getNormWeightBuffer(weight, label, weightConfig, debugFlags, device),
+            context.debugCheckBuffer,
+            recorder,
+            context.lora
+          );
+
+          const outputDtype = storeStepOutput(step, result.output);
+          if (step.probeStage) {
+            await runProbes(step.probeStage, result.output.buffer, {
+              layerIdx,
+              numTokens,
+              hiddenSize,
+              probes: context.debugProbes,
+              recorder,
+              operatorDiagnostics: context.operatorDiagnostics,
+              dtype: outputDtype,
+              ...representation,
+            });
+          }
+          break;
+        }
+        case 'conv': {
+          const srcBuf = getSlot(step.src);
+          const inputDtype = resolveStepInputDtype(step, step.src);
+          const srcTensor = createTensor(srcBuf, inputDtype, [numTokens, hiddenSize], 'plan_conv_src', representation);
+
+          const convInProj = layerWeights?.convInProj ?? null;
+          const convOutProj = layerWeights?.convOutProj ?? null;
+          if (!convInProj || !convOutProj) {
+            throw new Error(
+              `Layer pipeline conv step missing conv weights at L${layerIdx}. ` +
+              'Expected conv.in_proj.weight and conv.out_proj.weight.'
+            );
+          }
+          const convKernel = layerWeights?.convKernel ?? null;
+
+          const outputTensor = await doConv(
+            srcTensor,
+            getWeightBuffer(convInProj, `L${layerIdx}.plan_conv_in_proj`, device),
+            convKernel ? getWeightBuffer(convKernel, `L${layerIdx}.plan_conv_kernel`, device) : null,
+            getWeightBuffer(convOutProj, `L${layerIdx}.plan_conv_out_proj`, device),
+            {
+              numTokens,
+              hiddenSize,
+              layerIdx,
+              label: `L${layerIdx}.plan_conv`,
+              swigluLimit: config.swigluLimit,
+              kernelPath: context.kernelPath ?? null,
+              executionPolicies: context.executionPolicies ?? null,
+              convState: getConvLayerState(context.convLayerStates, layerIdx),
+            },
+            recorder
+          );
+          const outputDtype = storeStepOutput(step, outputTensor);
+          if (step.probeStage) {
+            await runProbes(step.probeStage, outputTensor.buffer, {
+              layerIdx,
+              numTokens,
+              hiddenSize,
+              probes: context.debugProbes,
+              recorder,
+              operatorDiagnostics: context.operatorDiagnostics,
+              dtype: outputDtype,
+              ...representation,
+            });
+          }
+          break;
+        }
+        case 'layernorm': {
+          const inputDtype = resolveStepInputDtype(step, step.src);
+          const outputDtype = resolveStepOutputDtype(step, inputDtype);
+          const weight = resolveNormWeightForPlan(step.weight, layerWeights);
+          const bias = layerWeights?.[PLAN_NORM_BIAS_FIELDS[step.weight]];
+          if (!weight || !bias) {
+            throw new Error(`Layer pipeline LayerNorm requires affine weight and bias for "${step.weight}" at L${layerIdx}.`);
+          }
+          const srcTensor = createTensor(
+            getSlot(step.src), inputDtype, [numTokens, hiddenSize], 'plan_layernorm_src', representation);
+          let weightBuffer = null;
+          let biasBuffer = null;
+          try {
+            weightBuffer = getNormWeightBuffer(weight, 'plan_layernorm_weight', weightConfig, debugFlags, device);
+            biasBuffer = getNormWeightBuffer(bias, 'plan_layernorm_bias', weightConfig, debugFlags, device);
+            const output = await doLayerNorm(srcTensor, weightBuffer, biasBuffer, rmsNormEps, {
+              batchSize: numTokens,
+              hiddenSize,
+              normWeightDtype: requireWeightDtype(weightBuffer, 'plan LayerNorm weight'),
+              label: `L${layerIdx}.layernorm_${step.weight}`,
+              layerIdx,
+            }, recorder);
+            setSlot(step.dst, output.buffer, outputDtype, output);
+          } finally {
+            if (weightBuffer && !isGpuBufferInstance(weight) && !isWeightBuffer(weight)) {
+              releaseOrTrack(recorder, weightBuffer);
+            }
+            if (biasBuffer && !isGpuBufferInstance(bias) && !isWeightBuffer(bias)) {
+              releaseOrTrack(recorder, biasBuffer);
+            }
+          }
+          if (step.probeStage) {
+            await runProbes(step.probeStage, getSlot(step.dst), {
+              layerIdx, numTokens, hiddenSize, probes: context.debugProbes,
+              recorder, operatorDiagnostics: context.operatorDiagnostics, dtype: outputDtype,
+            });
+          }
+          break;
+        }
+        case 'rmsnorm': {
+          const srcBuf = getSlot(step.src);
+          const weight = resolveNormWeightForPlan((step.weight), layerWeights);
+          if (!weight) {
+            throw new Error(`Layer pipeline rmsnorm missing weights for "${step.weight}" at L${layerIdx}`);
+          }
+          const residualBuf = step.residual ? getSlot(step.residual) : null;
+
+          const activationDtype = resolveStepInputDtype(step, step.src);
+          const srcTensor = createTensor(srcBuf, activationDtype, [numTokens, hiddenSize], 'plan_rmsnorm_src', representation);
+          const residualTensor = residualBuf ? createTensor(residualBuf, activationDtype, [numTokens, hiddenSize], 'plan_rmsnorm_residual', representation) : null;
+          const normWeightBuf = getNormWeightBuffer(weight, `rmsnorm_${step.weight}`, weightConfig, debugFlags, device);
+          let outputTensor;
+          try {
+            const normWeightTensor = paired
+              ? createTensor(normWeightBuf, requireWeightDtype(weight, 'paired plan norm weight'), [hiddenSize], 'norm_weight')
+              : normWeightBuf;
+            outputTensor = await doRMSNorm(srcTensor, normWeightTensor, rmsNormEps, {
+              batchSize: numTokens,
+              hiddenSize,
+              residual: residualTensor,
+              label: `L${layerIdx}.rmsnorm_${step.weight}`,
+              layerIdx,
+              rmsNormWeightOffset: weightConfig.rmsNormWeightOffset,
+            }, recorder);
+          } finally {
+            if (!isGpuBufferInstance(weight) && !isWeightBuffer(weight)) releaseOrTrack(recorder, normWeightBuf);
+          }
+          const outputDtype = storeStepOutput(step, outputTensor);
+          if (step.probeStage) {
+            await runProbes(step.probeStage, outputTensor.buffer, {
+              layerIdx,
+              numTokens,
+              hiddenSize,
+              probes: context.debugProbes,
+              recorder,
+              operatorDiagnostics: context.operatorDiagnostics,
+              dtype: outputDtype,
+              ...representation,
+            });
+          }
+          break;
+        }
+        case 'ffn': {
+          const srcBuf = getSlot(step.src);
+
+          const activationDtype = resolveStepInputDtype(step, step.src);
+          const srcTensor = createTensor(srcBuf, activationDtype, [numTokens, hiddenSize], 'plan_ffn_src', representation);
+          const ffnContext = step.inputDtype || step.outputDtype
+            ? {
+              ...context,
+              ffnStepPrecision: {
+                inputDtype: step.inputDtype ?? null,
+                outputDtype: step.outputDtype ?? null,
+              },
+            }
+            : context;
+
+          let outputTensor;
+          const { runMoEFFNGPU } = await (moeFfnModule ??= import("../ffn/moe.js"));
+const { runDenseFFNGPU } = await import("../ffn/dense.js");
+
+          if (config.ffnBranchMode === 'dense_plus_moe') {
+            throw new Error(
+              `Layer ${layerIdx} uses ffn.branchMode="dense_plus_moe", but execution-v1 generic ffn steps ` +
+              'cannot express separate dense, expert, and router inputs. Use the sandwich FFN runtime path or add a dedicated plan op.'
+            );
+          }
+
+          const canAutoMoe = config.useMoE && isMoELayer(layerIdx, config);
+          const useMoe = selectRuleValue(
+            'inference',
+            'layer',
+            'ffnMode',
+            { variant: step.variant, canAutoMoe }
+          );
+          if (useMoe && paired) throw new Error('Paired layer plan has no declared MoE execution.');
+          if (useMoe) {
+            outputTensor = await runMoEFFNGPU(layerIdx, srcTensor, numTokens, ffnContext);
+          } else {
+            outputTensor = await runDenseFFNGPU(layerIdx, srcTensor, numTokens, ffnContext, layerWeights);
+          }
+          const outputDtype = storeStepOutput(step, outputTensor);
+          if (step.probeStage) {
+            await runProbes(step.probeStage, outputTensor.buffer, {
+              layerIdx,
+              numTokens,
+              hiddenSize,
+              probes: context.debugProbes,
+              recorder,
+              operatorDiagnostics: context.operatorDiagnostics,
+              dtype: outputDtype,
+              ...representation,
+            });
+          }
+          break;
+        }
+        case 'residual_add': {
+          const aBuf = getSlot(step.a ?? 'state');
+          const bBuf = getSlot(step.b ?? 'residual');
+
+          const activationDtype = resolveStepInputDtype(step, step.a ?? 'state');
+          const aTensor = createTensor(aBuf, activationDtype, [numTokens, hiddenSize], 'plan_residual_a', representation);
+          const bTensor = createTensor(bBuf, activationDtype, [numTokens, hiddenSize], 'plan_residual_b', representation);
+          const outputScale = resolveResidualOutputScaleForPlan(
+            steps,
+            stepIndex,
+            config,
+            context,
+            layerWeights,
+            activationDtype
+          );
+          const outputTensor = await doResidualAdd(aTensor, bTensor, size, recorder, {
+            label: `L${layerIdx}.residual_add`,
+            layerIdx,
+            outputScale,
+            executionPolicies: context.executionPolicies ?? null,
+          });
+          if (outputScale !== 1) {
+            layerScalarFused = true;
+          }
+          const outputDtype = storeStepOutput(step, outputTensor);
+          if (step.probeStage) {
+            await runProbes(step.probeStage, outputTensor.buffer, {
+              layerIdx,
+              numTokens,
+              hiddenSize,
+              probes: context.debugProbes,
+              recorder,
+              operatorDiagnostics: context.operatorDiagnostics,
+              dtype: outputDtype,
+              ...representation,
+            });
+          }
+          break;
+        }
+        case 'cast': {
+          const srcBuf = getSlot(step.src);
+          const inputDtype = resolveStepInputDtype(step, step.src);
+          const srcTensor = createTensor(srcBuf, inputDtype, [numTokens, hiddenSize], 'plan_cast_src', representation);
+          if (step.fromDtype) {
+            const expected = resolveActivationDtype(step.fromDtype);
+            if (inputDtype !== expected) {
+              throw new Error(
+                `Layer pipeline cast mismatch at L${layerIdx}: fromDtype=${expected}, actual=${inputDtype}`
+              );
+            }
+          }
+          const toDtype = resolveActivationDtype(step.toDtype);
+          const outputTensor = await doCast(srcTensor, toDtype, recorder);
+          setSlot(step.dst, outputTensor.buffer, toDtype, outputTensor);
+          if (step.probeStage) {
+            await runProbes(step.probeStage, outputTensor.buffer, {
+              layerIdx,
+              numTokens,
+              hiddenSize,
+              probes: context.debugProbes,
+              recorder,
+              operatorDiagnostics: context.operatorDiagnostics,
+              dtype: toDtype,
+            });
+          }
+          break;
+        }
+        case 'noop':
+          break;
+        default:
+          throw new Error(`Unknown layer pipeline op "${step.op}" at L${layerIdx}`);
+      }
+    }
+
+    // Normal cleanup
+    for (const name of Array.from(slots.keys())) {
+      if (name !== 'state') {
+        clearSlot(name);
+      }
+    }
+
+    if (hasPerLayerInputBlock(config)) {
+      const stateBuffer = getSlot('state');
+      const stateDtype = getSlotDtype('state') ?? activationDtype;
+      const stateTensor = createTensor(stateBuffer, stateDtype, [numTokens, hiddenSize], 'plan_state', representation);
+      const outputTensor = await applyPerLayerInputBlock(
+        layerIdx,
+        stateTensor,
+        numTokens,
+        size,
+        context,
+        layerWeights
+      );
+      const outputDtype = resolveActivationDtype(outputTensor.dtype);
+      setSlot('state', outputTensor.buffer, outputDtype, outputTensor);
+    }
+    if (!layerScalarFused) {
+      const stateBuffer = getSlot('state');
+      const stateDtype = getSlotDtype('state') ?? activationDtype;
+      const stateTensor = createTensor(stateBuffer, stateDtype, [numTokens, hiddenSize], 'plan_state_layer_scalar', representation);
+      const scaledTensor = await applyLayerScalar(layerIdx, stateTensor, size, context, layerWeights);
+      if (scaledTensor.buffer !== stateTensor.buffer) {
+        setSlot('state', scaledTensor.buffer, resolveActivationDtype(scaledTensor.dtype), scaledTensor);
+      }
+    }
+
+    const output = getSlot('state');
+    await runProbes('layer_out', output, {
+      layerIdx,
+      numTokens,
+      hiddenSize,
+      probes: context.debugProbes,
+      recorder,
+      operatorDiagnostics: context.operatorDiagnostics,
+      dtype: getSlotDtype('state') ?? activationDtype,
+      ...representation,
+    });
+
+    const computeConfig = context.runtimeComputeConfig ?? null;
+    const shouldCheckFiniteness = context.finitenessGuardEnabled !== undefined
+      ? context.finitenessGuardEnabled
+      : shouldRunFinitenessGuard(context.activationDtype, computeConfig);
+    if (context.finitenessBuffer && context.activationDtype === 'f16' && shouldCheckFiniteness) {
+      await recordCheckFiniteness(
+        recorder,
+        output,
+        size,
+        context.finitenessBuffer,
+        layerIdx,
+        context.step,
+        context.finitenessAbsThreshold
+      );
+    }
+
+    return output;
+  } catch (err) {
+    cleanupSlots();
+    throw err;
+  }
+}

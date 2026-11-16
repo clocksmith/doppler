@@ -7,7 +7,7 @@ import {
   advanceDecodeStepCount,
   createTsirFixtureState,
   maybeWriteFixtureSnapshot,
-} from '../../src/inference/pipelines/text/tsir-fixture-writer.js';
+} from "../../src/inference/pipelines/text/observation/tsir-fixture-writer.js";
 
 const root = await fs.mkdtemp(path.join(os.tmpdir(), 'doppler-tsir-fixture-'));
 

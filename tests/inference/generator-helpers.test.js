@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 
 import { createDopplerConfig } from '../../src/config/schema/index.js';
-import { buildLayerContext, resolvePerLayerInputsSession } from '../../src/inference/pipelines/text/generator/session-context.js';
+import { buildLayerContext, resolvePerLayerInputsSession } from "../../src/inference/pipelines/text/generator/session/session-context.js";
 
 function createMinimalState() {
   const runtimeConfig = createDopplerConfig().runtime;

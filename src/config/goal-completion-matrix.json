@@ -145,7 +145,7 @@
             "GOALS.md",
             "docs/model-release-platform.md",
             "tools/policies/model-release-platform.json",
-            "src/config/schema/model-release-platform.schema.json",
+            "src/config/schema/policy/model-release-platform.schema.json",
             "tools/check-model-release-platform.js",
             "tests/config/model-release-platform.test.js"
           ],
@@ -164,7 +164,7 @@
           "evidencePaths": [
             "docs/model-release-platform.md",
             "src/config/production-release.js",
-            "src/config/schema/production-release.schema.json",
+            "src/config/schema/capsule/production-release.schema.json",
             "tests/fixtures/production-release/electron-document-search-reranker.json",
             "tests/config/production-release.test.js",
             "tests/production-release/electron-document-search-acceptance.test.js"
@@ -341,7 +341,7 @@
             "docs/model-support-matrix.md",
             "tools/policies/model-artifact-contract.json",
             "tools/check-model-artifact-contract.js",
-            "src/config/schema/model-artifact-contract.schema.json"
+            "src/config/schema/policy/model-artifact-contract.schema.json"
           ],
           "blockers": []
         },
@@ -410,11 +410,11 @@
           "evidencePaths": [
             "docs/provider-conformance.md",
             "tools/policies/provider-conformance.json",
-            "src/config/schema/provider-conformance-policy.schema.json",
-            "src/config/schema/provider-conformance-capture.schema.json",
-            "src/config/schema/provider-conformance-evidence.schema.json",
-            "src/config/schema/provider-conformance-provider-promotion.schema.json",
-            "src/config/schema/provider-conformance-suite-promotion.schema.json",
+            "src/config/schema/policy/provider-conformance-policy.schema.json",
+            "src/config/schema/policy/provider-conformance-capture.schema.json",
+            "src/config/schema/policy/provider-conformance-evidence.schema.json",
+            "src/config/schema/policy/provider-conformance-provider-promotion.schema.json",
+            "src/config/schema/policy/provider-conformance-suite-promotion.schema.json",
             "tools/check-provider-conformance.js",
             "tools/record-provider-conformance.js",
             "tools/lib/provider-conformance-evidence.js",
@@ -496,7 +496,7 @@
           "smokeCommand": "npm run test:unit",
           "evidencePaths": [
             "docs/model-support-matrix.md",
-            "src/config/schema/quantization.schema.js",
+            "src/config/schema/manifest/quantization.schema.js",
             "src/config/quantization-contract-check.js"
           ],
           "blockers": []
@@ -512,7 +512,7 @@
           "packageExport": null,
           "smokeCommand": "npm run kernels:digests:check",
           "evidencePaths": [
-            "src/config/schema/execution-v1.schema.js",
+            "src/config/schema/execution/execution-v1.schema.js",
             "src/config/kernels/registry.json",
             "tools/sync-kernel-ref-digests.js"
           ],
@@ -530,7 +530,7 @@
           "smokeCommand": "npm run config:single-source:check",
           "evidencePaths": [
             "docs/style/config-style-guide.md",
-            "src/config/schema/inference.schema.js",
+            "src/config/schema/execution/inference.schema.js",
             "src/config/runtime/profiles/turboquant-contiguous-prod.json",
             "src/config/schema/policy-schema-registry.json",
             "tools/check-policy-schema-registry.js"
@@ -572,7 +572,7 @@
             "tools/policies/release-claim-policy.json",
             "tools/policies/product-integration-qualification.json",
             "tools/policies/product-portfolio-coherence.json",
-            "src/config/schema/product-portfolio-coherence.schema.json",
+            "src/config/schema/policy/product-portfolio-coherence.schema.json",
             "tools/check-product-portfolio-coherence.js",
             "tests/config/product-portfolio-coherence.test.js"
           ],
@@ -592,10 +592,10 @@
             "docs/model-release-platform.md",
             "docs/architecture.md",
             "tools/policies/model-release-platform.json",
-            "src/config/schema/model-release-platform.schema.json",
-            "src/config/capsule-v2.js",
-            "src/config/capsule-release-contract.js",
-            "src/config/schema/capsule-v2.schema.json",
+            "src/config/schema/policy/model-release-platform.schema.json",
+            "src/config/capsule/capsule-v2.js",
+            "src/config/capsule/capsule-release-contract.js",
+            "src/config/schema/capsule/capsule-v2.schema.json",
             "tools/check-model-release-platform.js",
             "tests/config/model-release-platform.test.js",
             "tests/capsule/capsule-v2.test.js"
@@ -664,7 +664,7 @@
             "tools/check-release-claims.js",
             "tools/policies/claim-evidence-contract.json",
             "tools/check-claim-evidence-contract.js",
-            "src/config/schema/claim-evidence-contract.schema.json"
+            "src/config/schema/policy/claim-evidence-contract.schema.json"
           ],
           "blockers": []
         },
@@ -703,7 +703,7 @@
             "tests/config/vendor-bench-cli-contract.test.js",
             "tools/policies/command-surface-contract.json",
             "tools/check-command-surface-contract.js",
-            "src/config/schema/command-surface-contract.schema.json"
+            "src/config/schema/policy/command-surface-contract.schema.json"
           ],
           "blockers": []
         },
@@ -724,7 +724,7 @@
             "tools/sync-subsystem-support-matrix.js",
             "tools/policies/subsystem-support-contract.json",
             "tools/check-subsystem-support-contract.js",
-            "src/config/schema/subsystem-support-contract.schema.json"
+            "src/config/schema/policy/subsystem-support-contract.schema.json"
           ],
           "blockers": []
         },
@@ -739,7 +739,7 @@
           "packageExport": null,
           "smokeCommand": "npm run kernels:registry:check",
           "evidencePaths": [
-            "src/config/schema/execution-v1.schema.js",
+            "src/config/schema/execution/execution-v1.schema.js",
             "src/config/kernels/registry.json",
             "tools/sync-kernel-reachability.js"
           ],
@@ -796,8 +796,8 @@
             "src/tooling/runtime-optimization.js",
             "src/tooling/runtime-optimization-campaign.js",
             "src/tooling/runtime-optimization-index.js",
-            "src/config/schema/optimization-contract.schema.json",
-            "src/config/schema/optimization-receipt.schema.json",
+            "src/config/schema/policy/optimization-contract.schema.json",
+            "src/config/schema/runtime/optimization-receipt.schema.json",
             "tools/check-evidence-workflow-ownership.js",
             "tests/tooling/runtime-optimization.test.js",
             "tests/tooling/runtime-optimization-index.test.js"
@@ -817,11 +817,11 @@
           "evidencePaths": [
             "docs/evidence-loop.md",
             "tools/policies/runtime-promotion-monitoring.json",
-            "src/config/schema/runtime-promotion-monitoring.schema.json",
-            "src/config/schema/runtime-promotion-observation-evidence.schema.json",
-            "src/config/schema/runtime-promotion-activation-evidence.schema.json",
-            "src/config/schema/runtime-promotion-decision-evidence.schema.json",
-            "src/config/schema/runtime-promotion-monitoring-capture.schema.json",
+            "src/config/schema/policy/runtime-promotion-monitoring.schema.json",
+            "src/config/schema/policy/runtime-promotion-observation-evidence.schema.json",
+            "src/config/schema/policy/runtime-promotion-activation-evidence.schema.json",
+            "src/config/schema/policy/runtime-promotion-decision-evidence.schema.json",
+            "src/config/schema/policy/runtime-promotion-monitoring-capture.schema.json",
             "tools/check-runtime-promotion-monitoring.js",
             "tools/record-runtime-promotion-monitoring.js",
             "tools/lib/runtime-promotion-monitoring-evidence.js",
@@ -845,7 +845,7 @@
           "evidencePaths": [
             "docs/revocation.md",
             "src/config/revocation-registry.json",
-            "src/config/schema/revocation-registry.schema.json",
+            "src/config/schema/runtime/revocation-registry.schema.json",
             "tools/check-revocation-registry.js",
             "tools/sync-quickstart-registry.js",
             "tests/config/revocation-policy.test.js"
@@ -865,17 +865,17 @@
           "evidencePaths": [
             "docs/revocation.md",
             "src/config/revocation-registry.json",
-            "src/config/schema/revocation-registry.schema.json",
+            "src/config/schema/runtime/revocation-registry.schema.json",
             "src/config/revocation-updates.js",
             "src/client/runtime/index.js",
-            "src/inference/pipelines/text/generator/session-context.js",
+            "src/inference/pipelines/text/generator/session/session-context.js",
             "tests/config/signed-revocation-updates.test.js",
             "tools/policies/signed-revocation-authority-qualification.json",
-            "src/config/schema/signed-revocation-authority-qualification.schema.json",
-            "src/config/schema/signed-revocation-authority-owner-confirmation.schema.json",
-            "src/config/schema/signed-revocation-authority-evidence.schema.json",
-            "src/config/schema/signed-revocation-authority-promotion-evidence.schema.json",
-            "src/config/schema/signed-revocation-authority-evaluation-capture.schema.json",
+            "src/config/schema/policy/signed-revocation-authority-qualification.schema.json",
+            "src/config/schema/policy/signed-revocation-authority-owner-confirmation.schema.json",
+            "src/config/schema/policy/signed-revocation-authority-evidence.schema.json",
+            "src/config/schema/policy/signed-revocation-authority-promotion-evidence.schema.json",
+            "src/config/schema/policy/signed-revocation-authority-evaluation-capture.schema.json",
             "tools/check-signed-revocation-authority-qualification.js",
             "tools/record-signed-revocation-authority-evaluation.js",
             "tools/lib/signed-revocation-authority-evidence.js",
@@ -905,11 +905,11 @@
             "tools/check-provider-conformance.js",
             "tools/record-provider-conformance.js",
             "tools/lib/provider-conformance-evidence.js",
-            "src/config/schema/provider-conformance-policy.schema.json",
-            "src/config/schema/provider-conformance-capture.schema.json",
-            "src/config/schema/provider-conformance-evidence.schema.json",
-            "src/config/schema/provider-conformance-provider-promotion.schema.json",
-            "src/config/schema/provider-conformance-suite-promotion.schema.json",
+            "src/config/schema/policy/provider-conformance-policy.schema.json",
+            "src/config/schema/policy/provider-conformance-capture.schema.json",
+            "src/config/schema/policy/provider-conformance-evidence.schema.json",
+            "src/config/schema/policy/provider-conformance-provider-promotion.schema.json",
+            "src/config/schema/policy/provider-conformance-suite-promotion.schema.json",
             "src/tooling/program-bundle-parity.js",
             "tests/config/provider-conformance.test.js",
             "tests/tooling/record-provider-conformance.test.js",
@@ -1055,10 +1055,10 @@
       "evidencePaths": [
         "docs/evidence-loop.md",
         "tools/policies/runtime-promotion-monitoring.json",
-        "src/config/schema/runtime-promotion-observation-evidence.schema.json",
-        "src/config/schema/runtime-promotion-activation-evidence.schema.json",
-        "src/config/schema/runtime-promotion-decision-evidence.schema.json",
-        "src/config/schema/runtime-promotion-monitoring-capture.schema.json",
+        "src/config/schema/policy/runtime-promotion-observation-evidence.schema.json",
+        "src/config/schema/policy/runtime-promotion-activation-evidence.schema.json",
+        "src/config/schema/policy/runtime-promotion-decision-evidence.schema.json",
+        "src/config/schema/policy/runtime-promotion-monitoring-capture.schema.json",
         "tools/check-runtime-promotion-monitoring.js",
         "tools/record-runtime-promotion-monitoring.js",
         "tools/lib/runtime-promotion-monitoring-evidence.js",
@@ -1079,14 +1079,14 @@
         "src/config/revocation-registry.json",
         "src/config/revocation-updates.js",
         "src/client/runtime/index.js",
-        "src/inference/pipelines/text/generator/session-context.js",
+        "src/inference/pipelines/text/generator/session/session-context.js",
         "tests/config/signed-revocation-updates.test.js",
         "tools/policies/signed-revocation-authority-qualification.json",
-        "src/config/schema/signed-revocation-authority-qualification.schema.json",
-        "src/config/schema/signed-revocation-authority-owner-confirmation.schema.json",
-        "src/config/schema/signed-revocation-authority-evidence.schema.json",
-        "src/config/schema/signed-revocation-authority-promotion-evidence.schema.json",
-        "src/config/schema/signed-revocation-authority-evaluation-capture.schema.json",
+        "src/config/schema/policy/signed-revocation-authority-qualification.schema.json",
+        "src/config/schema/policy/signed-revocation-authority-owner-confirmation.schema.json",
+        "src/config/schema/policy/signed-revocation-authority-evidence.schema.json",
+        "src/config/schema/policy/signed-revocation-authority-promotion-evidence.schema.json",
+        "src/config/schema/policy/signed-revocation-authority-evaluation-capture.schema.json",
         "tools/check-signed-revocation-authority-qualification.js",
         "tools/record-signed-revocation-authority-evaluation.js",
         "tools/lib/signed-revocation-authority-evidence.js",
@@ -1108,11 +1108,11 @@
         "tools/check-provider-conformance.js",
         "tools/record-provider-conformance.js",
         "tools/lib/provider-conformance-evidence.js",
-        "src/config/schema/provider-conformance-policy.schema.json",
-        "src/config/schema/provider-conformance-capture.schema.json",
-        "src/config/schema/provider-conformance-evidence.schema.json",
-        "src/config/schema/provider-conformance-provider-promotion.schema.json",
-        "src/config/schema/provider-conformance-suite-promotion.schema.json",
+        "src/config/schema/policy/provider-conformance-policy.schema.json",
+        "src/config/schema/policy/provider-conformance-capture.schema.json",
+        "src/config/schema/policy/provider-conformance-evidence.schema.json",
+        "src/config/schema/policy/provider-conformance-provider-promotion.schema.json",
+        "src/config/schema/policy/provider-conformance-suite-promotion.schema.json",
         "tests/tooling/record-provider-conformance.test.js",
         "GOALS.md"
       ]

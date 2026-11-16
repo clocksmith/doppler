@@ -129,7 +129,7 @@
       ],
       "entrypoints": [
         "src/inference/pipelines/text.js",
-        "src/inference/pipelines/text/model-load.js"
+        "src/inference/pipelines/text/loading/model-load.js"
       ],
       "notes": "Mainline runtime contract for verified browser and Node text generation workloads."
     },

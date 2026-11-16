@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { assertPreparedDecodeWorkspaceCompatible, attachPreparedDecodeWorkspace } from '../../src/inference/pipelines/text/execution-plan.js';
+import { assertPreparedDecodeWorkspaceCompatible, attachPreparedDecodeWorkspace } from "../../src/inference/pipelines/text/execution/execution-plan.js";
 
 const context = { decodeBuffers: {}, activationDtype: 'f32', config: { modelType: 'transformer',
   useMoE: true, expertFormat: 'qwen3_5' }, runtimeMoERoutingConfig: { activeExpertSelection: 'topk-route' } };

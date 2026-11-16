@@ -1,5 +1,5 @@
 import type { TensorLocation } from './loader-types.js';
-import type { KernelPathSchema } from '../config/schema/kernel-path.schema.js';
+import type { KernelPathSchema } from "../config/schema/execution/kernel-path.schema.js";
 export interface WeightConsumer {
   readonly tensor: string;
   readonly role: string;

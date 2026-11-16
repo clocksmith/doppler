@@ -18,11 +18,11 @@ import {
   CAPSULE_V2_PROGRAM_SCHEMA_ID,
   buildCapsuleV2,
   signCapsuleV2,
-} from '../config/capsule-v2.js';
+} from "../config/capsule/capsule-v2.js";
 import { sha256Hex } from '../formats/sha256.js';
 import { buildQualificationRecords, promoteQualifiedModelIRV2, normalizeQualificationEvidence } from './forge-qualification.js';
 import { resolveCapsuleEmbeddingContract } from '../config/embedding-contract.js';
-import { assertPairedLinearMechanismClosure, assertPairedQKNormClosure } from '../inference/pipelines/text/paired-execution.js';
+import { assertPairedLinearMechanismClosure, assertPairedQKNormClosure } from "../inference/pipelines/text/execution/paired-execution.js";
 import { evaluateForgeCandidates } from './forge-candidate-evaluation.js';
 
 export const RIG_PIPELINE_VERSION = '2.0.0';

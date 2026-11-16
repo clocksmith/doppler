@@ -4,7 +4,7 @@
 import assert from 'node:assert/strict';
 
 const { observeAttentionRoPE } = await import('../../src/inference/pipelines/text/attention/rope-observation.js');
-const { OperatorEventEmitter } = await import('../../src/inference/pipelines/text/operator-events.js');
+const { OperatorEventEmitter } = await import("../../src/inference/pipelines/text/observation/operator-events.js");
 const { createDefaultCaptureConfig } = await import('../../src/debug/capture-policy.js');
 
 const numTokens = 2, numHeads = 2, numKVHeads = 1, headDim = 4;

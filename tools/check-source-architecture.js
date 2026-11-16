@@ -6,7 +6,7 @@ import path from 'node:path';
 import process from 'node:process';
 import { fileURLToPath } from 'node:url';
 import { pathExistsAtGitRef, readJsonAtGitRef, readTextAtGitRef, resolvePolicyBaseRef } from './lib/policy-base.js';
-import { validateArchitecturePolicyDelta } from './lib/source-architecture-debt.js';
+import { validateArchitecturePolicyDelta, validateComponentSourceSize, validateSoftLimitReviewMetadata, validateCleanupConsumers, validateRuntimeToolDependency, validateConstitutionalImportGraph } from './lib/source-architecture-debt.js';
 import { collectModuleSpecifiers, collectStronglyConnectedComponents, buildDependencyGraph, dependencyPolicyErrors } from './lib/module-dependencies.js';
 
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
@@ -138,6 +138,9 @@ async function validateProductionGraph(policy, sourceRoot, files, facadePaths, e
     const source = await fs.readFile(filePath, 'utf8');
     const dependencies = [];
     for (const { specifier, target, kind } of parsed.graph.get(filePath) ?? []) {
+      if (target) errors.push(...validateRuntimeToolDependency(
+        toPosix(path.relative(repoRoot, filePath)), toPosix(path.relative(repoRoot, target))
+      ));
       if (!specifier.startsWith('.')) continue;
       if (kind === 'asset' && !target) continue;
       const imported = sourceFiles.has(target) ? target : null;
@@ -168,6 +171,19 @@ async function validateProductionGraph(policy, sourceRoot, files, facadePaths, e
       errors.push(`experimental quarantine bridge is stale: ${relative}`);
     }
   }
+
+  const cleanupConsumers = {};
+  for (const target of Object.keys(policy.cleanupDecisions ?? {})) {
+    const targetPath = path.join(sourceRoot, target);
+    cleanupConsumers[target] = [];
+    for (const [filePath, dependencies] of fullGraph) {
+      if (filePath === targetPath || filePath.startsWith(`${targetPath}${path.sep}`)) continue;
+      if (dependencies.some(imported => imported === targetPath || imported.startsWith(`${targetPath}${path.sep}`))) {
+        cleanupConsumers[target].push(toPosix(path.relative(sourceRoot, filePath)));
+      }
+    }
+  }
+  errors.push(...validateCleanupConsumers(policy, cleanupConsumers));
 
   for (const component of collectStronglyConnectedComponents(fullGraph)) {
     const members = component
@@ -211,10 +227,14 @@ async function validateProductionGraph(policy, sourceRoot, files, facadePaths, e
     if (owner === 'experimental' || facadePaths.has(relative)) continue;
     if (!reachable.has(filePath)) errors.push(`${relative}: unreachable production module`);
   }
+  return fullGraph;
 }
 
-async function validateConstitutionalDomains(policy, sourceRoot, files, errors) {
+function validateConstitutionalDomains(policy, sourceRoot, files, graph, errors) {
   const sourceFiles = new Set(files.filter((filePath) => path.extname(filePath) === '.js'));
+  const relativeGraph = new Map([...graph].map(([file, dependencies]) => [
+    toPosix(path.relative(sourceRoot, file)), dependencies.map(dependency => toPosix(path.relative(sourceRoot, dependency))),
+  ]));
   const domainFiles = new Map();
   for (const [domain, relativePaths] of Object.entries(policy.constitutionalDomains ?? {})) {
     const resolved = new Set();
@@ -230,29 +250,11 @@ async function validateConstitutionalDomains(policy, sourceRoot, files, errors) 
       errors.push(`constitutional import graph references unknown domain: ${rule.domain}`);
       continue;
     }
-    const pending = [];
     for (const relative of rule.entryPoints ?? []) {
       const entryPath = path.join(sourceRoot, relative);
       if (!sourceFiles.has(entryPath)) errors.push(`constitutional ${rule.domain} entry point is missing: ${relative}`);
-      else pending.push(entryPath);
     }
-    const visited = new Set();
-    while (pending.length > 0) {
-      const filePath = pending.pop();
-      if (visited.has(filePath)) continue;
-      visited.add(filePath);
-      const relative = toPosix(path.relative(sourceRoot, filePath));
-      for (const prefix of rule.forbiddenPathPrefixes ?? []) {
-        if (relative.startsWith(prefix)) {
-          errors.push(`constitutional ${rule.domain} import graph reaches forbidden path ${relative}`);
-        }
-      }
-      const source = await fs.readFile(filePath, 'utf8');
-      for (const specifier of collectSpecifiers(source)) {
-        const imported = resolveSourceImport(filePath, specifier, sourceFiles);
-        if (imported && !visited.has(imported)) pending.push(imported);
-      }
-    }
+    errors.push(...validateConstitutionalImportGraph(rule, relativeGraph));
   }
 }
 
@@ -309,8 +311,8 @@ async function main() {
 
   const exceptions = new Map();
   for (const entry of policy.dependencyExceptions) {
-    if (!entry.reason || !entry.extractTo) {
-      errors.push(`dependency exception lacks reason or extractTo: ${JSON.stringify(entry)}`);
+    if (!entry.reason || !entry.extractTo || !entry.removalCondition) {
+      errors.push(`dependency exception lacks reason, extractTo or removalCondition: ${JSON.stringify(entry)}`);
       continue;
     }
     const key = exceptionKey(entry.from, entry.toOwner);
@@ -326,8 +328,8 @@ async function main() {
   const observedGenericModules = new Set();
   const facadePaths = new Set(policy.facades ?? []);
   const files = await walk(sourceRoot);
-  await validateConstitutionalDomains(policy, sourceRoot, files, errors);
-  await validateProductionGraph(policy, sourceRoot, files, facadePaths, errors);
+  const sourceGraph = await validateProductionGraph(policy, sourceRoot, files, facadePaths, errors);
+  validateConstitutionalDomains(policy, sourceRoot, files, sourceGraph, errors);
   for (const filePath of files) {
     const relative = toPosix(path.relative(sourceRoot, filePath));
     const source = await fs.readFile(filePath, 'utf8');
@@ -342,6 +344,15 @@ async function main() {
     }
     if (governedExtensions.has(extension)) {
       const lineCount = countLines(source);
+      const previousRelative = Object.entries(policy.movedPaths ?? {}).find(([, target]) => target === relative)?.[0] ?? relative;
+      const baselinePath = toPosix(path.join(baselinePolicy.sourceRoot, previousRelative));
+      const baselineLines = lineCount > policy.softLineLimit && pathExistsAtGitRef(repoRoot, baseRef, baselinePath)
+        ? countLines(readTextAtGitRef(repoRoot, baseRef, baselinePath)) : null;
+      errors.push(...validateComponentSourceSize(policy, relative, lineCount, {
+        baselineLines,
+        baselineReview: baselinePolicy.softLimitReviews?.[previousRelative],
+        authorizationDigest: process.env.DOPPLER_ARCHITECTURE_DEBT_AUTHORIZATION ?? null,
+      }));
       const legacy = legacyOversize.get(relative);
       if (legacy) {
         observedLegacy.add(relative);
@@ -363,6 +374,7 @@ async function main() {
         if (!softReview) {
           errors.push(`${relative}: ${lineCount} lines exceeds soft limit ${policy.softLineLimit} without review`);
         } else {
+          errors.push(...validateSoftLimitReviewMetadata(relative, softReview));
           if (!Number.isInteger(softReview.reviewedLines) || softReview.reviewedLines < lineCount) {
             errors.push(`${relative}: grew beyond reviewed soft-limit ceiling ${String(softReview.reviewedLines)} to ${lineCount}`);
           }
@@ -385,11 +397,7 @@ async function main() {
       continue;
     }
     const observedFacadeEdges = new Set();
-    for (const specifier of collectSpecifiers(source)) {
-      if (!specifier.startsWith('.')) continue;
-      const sourceFiles = new Set(files.filter((candidate) => path.extname(candidate) === '.js'));
-      const imported = resolveSourceImport(filePath, specifier, sourceFiles);
-      if (!imported) continue;
+    for (const imported of sourceGraph.get(filePath) ?? []) {
       const dependencyRelative = toPosix(path.relative(sourceRoot, imported));
       if (facadePaths.has(relative)) {
         observedFacadeEdges.add(dependencyRelative);

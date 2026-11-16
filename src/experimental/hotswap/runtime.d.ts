@@ -1,5 +1,5 @@
 import type { HotSwapManifest } from './manifest.js';
-import type { HotSwapConfigSchema } from '../../config/schema/hotswap.schema.js';
+import type { HotSwapConfigSchema } from "../../config/schema/runtime/hotswap.schema.js";
 
 export interface HotSwapRolloutContext {
   subjectId?: string | null;

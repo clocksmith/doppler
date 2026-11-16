@@ -1,5 +1,5 @@
 import type { RDRRManifest } from '../formats/rdrr/index.js';
-import type { AnyLayerPartitionPlan } from '../inference/pipelines/text/layer-partition-contract.js';
+import type { AnyLayerPartitionPlan } from "../inference/pipelines/text/execution/layer-partition-contract.js";
 import type { InitialExecutionIdentity } from '../config/initial-execution-identity.js';
 export interface ResidentQualificationReport {
   schema: string; operation: string; status: string; modelId: string; manifestIdentity: string;

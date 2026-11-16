@@ -1,4 +1,4 @@
-import { DEFAULT_LOG_HISTORY_CONFIG } from '../config/schema/debug.schema.js';
+import { DEFAULT_LOG_HISTORY_CONFIG } from "../config/schema/runtime/debug.schema.js";
 
 // Log level values (higher = less verbose)
 export const LOG_LEVELS = {

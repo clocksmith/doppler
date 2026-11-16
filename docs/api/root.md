@@ -386,7 +386,7 @@ correctness. This additive source API is not present in previously packed archiv
 immutable `adapterSet` in the request. Each `doppler.capsule-adapter/v1` entry binds
 its application-approved identity, exact base model (`modelId`, `semanticRoot`,
 `envelopeDigest`, `artifactClosureDigest`), format, manifest, and weight artifact.
-See the [adapter declarations](../../src/config/capsule-adapters.d.ts) for the full
+See the [adapter declarations](../../src/config/capsule/capsule-adapters.d.ts) for the full
 request shape. The request hash and completion receipt bind the adapter set.
 
 The application owns publication admission, distribution permission and fetching.

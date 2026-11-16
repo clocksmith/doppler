@@ -67,7 +67,7 @@ import { parseDiffusionModel as parseSharedDiffusionModel } from '../../converte
 import { parseGGUFModel as parseSharedGGUFModel } from '../../converter/parsers/gguf.js';
 
 import { createConverterConfig } from '../../config/schema/index.js';
-import { MB, GB } from '../../config/schema/units.schema.js';
+import { MB, GB } from "../../config/schema/runtime/units.schema.js";
 import { log, trace } from '../../debug/index.js';
 
 // Re-export types for consumers

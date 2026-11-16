@@ -3,7 +3,7 @@ import fs from 'node:fs/promises';
 import { createSignedCapsuleFixture, TEST_CAPSULE_AUTHORITY, TEST_CAPSULE_PRIVATE_KEY, TEST_CAPSULE_PUBLIC_KEY } from './capsule-v2-fixture.js';
 import { createInitialExecutionIdentityV2 } from '../../src/config/initial-execution-identity.js';
 import { createTargetPlanV2 } from '../../src/config/target-plan.js';
-import { buildCapsuleV2, signCapsuleV2 } from '../../src/config/capsule-v2.js';
+import { buildCapsuleV2, signCapsuleV2 } from "../../src/config/capsule/capsule-v2.js";
 import { sha256Hex } from '../../src/formats/sha256.js';
 
 export async function createInstalledTokenSelectionFixture() {

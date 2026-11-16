@@ -7,9 +7,9 @@
  */
 import assert from 'node:assert/strict';
 import { createHash } from 'node:crypto';
-import { createLayerPartitionPlan, hashLayerPartitionPlan } from '../../src/inference/pipelines/text/layer-partition-contract.js';
+import { createLayerPartitionPlan, hashLayerPartitionPlan } from "../../src/inference/pipelines/text/execution/layer-partition-contract.js";
 import { resolveGenerationOptions } from '../../src/config/generation-contract.js';
-import { resolveResidentPartitionAllocation } from '../../src/inference/pipelines/text/resident-partition-contract.js';
+import { resolveResidentPartitionAllocation } from "../../src/inference/pipelines/text/partitions/resident-partition-contract.js";
 
 const LIMIT_KEYS = ['maxTokens', 'maxPromptTokens', 'maxActivationBytes', 'maxOutputCharacters',
   'maxAttempts', 'maxConcurrentAttempts', 'maxPreparationMs'];

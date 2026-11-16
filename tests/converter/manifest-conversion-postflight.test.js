@@ -1,8 +1,8 @@
 import assert from 'node:assert/strict';
 import fs from 'node:fs/promises';
 
-import { CONVERSION_REPORT_SCHEMA_VERSION } from '../../src/config/schema/conversion-report.schema.js';
-import { createConverterConfig } from '../../src/config/schema/converter.schema.js';
+import { CONVERSION_REPORT_SCHEMA_VERSION } from "../../src/config/schema/manifest/conversion-report.schema.js";
+import { createConverterConfig } from "../../src/config/schema/manifest/converter.schema.js";
 import {
   createManifestConversionPostflightReceipt,
   validateManifestConversionPostflightReceipt,

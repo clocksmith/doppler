@@ -1,7 +1,7 @@
 import path from 'node:path';
 
 import { createConverterConfig } from '../config/schema/index.js';
-import { resolveLinearNormGateActivation } from '../config/schema/manifest.schema.js';
+import { resolveLinearNormGateActivation } from "../config/schema/manifest/manifest.schema.js";
 import { resolveConversionPlan } from '../converter/conversion-plan.js';
 import { normalizeQuantTag } from '../converter/quantization-info.js';
 

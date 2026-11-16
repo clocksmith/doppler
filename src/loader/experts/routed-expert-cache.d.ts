@@ -1,4 +1,4 @@
-import type { Qwen35RoutedConfig } from '../../config/schema/loading.schema.js';
+import type { Qwen35RoutedConfig } from "../../config/schema/runtime/loading.schema.js";
 import type { WeightBuffer } from '../../gpu/weight-buffer.js';
 import type { RoutedExpertBankPlan } from './routed-expert-plan.js';
 export interface RoutedExpertCacheOptions {

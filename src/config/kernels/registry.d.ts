@@ -13,8 +13,8 @@ import type {
   KernelVariantSchema,
   BindingSchema,
   ResolvedKernelConfig,
-} from '../schema/kernel-registry.schema.js';
-import type { RuntimeCapabilities } from '../schema/platform.schema.js';
+} from "../schema/execution/kernel-registry.schema.js";
+import type { RuntimeCapabilities } from "../schema/platform/platform.schema.js";
 
 /**
  * Set the URL for loading the registry.

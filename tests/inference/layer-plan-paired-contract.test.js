@@ -1,9 +1,9 @@
 import assert from 'node:assert/strict';
 import { registerHooks } from 'node:module';
 import { createTensor } from '../../src/gpu/tensor.js';
-import { resolveLayerPipeline } from '../../src/inference/pipelines/text/layer-plan.js';
+import { resolveLayerPipeline } from "../../src/inference/pipelines/text/execution/layer-plan.js";
 
-const target = new URL('../../src/inference/pipelines/text/layer-plan-gpu.js', import.meta.url).href;
+const target = new URL("../../src/inference/pipelines/text/execution/layer-plan-gpu.js", import.meta.url).href;
 const live = new Set(), pending = new Set();
 const pair = { precision: 'two-f32', components: 2, elementStrideBytes: 8 };
 globalThis.pairedPlanControl = {
@@ -21,10 +21,10 @@ globalThis.pairedPlanControl = {
 const hooks = registerHooks({ resolve(specifier, context, next) {
   if (context.parentURL !== target) return next(specifier, context);
   let source;
-  if (specifier === '../../../gpu/device.js') source = 'export const getDevice=()=>({});';
-  if (specifier === '../../../memory/buffer-pool.js') source = 'export const releaseBuffer=b=>pairedPlanControl.release(b);';
-  if (specifier === './weights.js') source = 'export const getNormWeightBuffer=()=>pairedPlanControl.weight(); export const getWeightBuffer=x=>x;';
-  if (specifier === './probes.js') source = 'export const runProbes=async(stage,buffer,options)=>{if(options.precision!=="two-f32")throw Error("lost probe metadata")};';
+  if (specifier === "../../../../gpu/device.js") source = 'export const getDevice=()=>({});';
+  if (specifier === "../../../../memory/buffer-pool.js") source = 'export const releaseBuffer=b=>pairedPlanControl.release(b);';
+  if (specifier === "../loading/weights.js") source = 'export const getNormWeightBuffer=()=>pairedPlanControl.weight(); export const getWeightBuffer=x=>x;';
+  if (specifier === "../observation/probes.js") source = 'export const runProbes=async(stage,buffer,options)=>{if(options.precision!=="two-f32")throw Error("lost probe metadata")};';
   if (specifier === './ops.js') source = `
     export const doRMSNorm=(...args)=>pairedPlanControl.norm(...args);
     export const releaseOrTrack=(r,b)=>pairedPlanControl.retain(r,b);

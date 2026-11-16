@@ -114,8 +114,8 @@ if (!runPath) {
       import('../helpers/gpu-probe.js'), import('../../src/inference/pipelines/text.js'),
       import('../../src/storage/artifact-storage-context.js'), import('../../src/memory/buffer-pool.js'),
       import('../../src/gpu/device.js'), import('../../src/tooling/node-webgpu.js'),
-      import('../../src/debug/capture-policy.js'), import('../../src/inference/pipelines/text/operator-identity.js'),
-      import('../../src/inference/pipelines/text/stage-names.js'),
+      import('../../src/debug/capture-policy.js'), import("../../src/inference/pipelines/text/execution/operator-identity.js"),
+      import("../../src/inference/pipelines/text/observation/stage-names.js"),
       import('../helpers/learned-qsa-observation.js'),
     ]);
     readBuffer = memory.readBuffer;

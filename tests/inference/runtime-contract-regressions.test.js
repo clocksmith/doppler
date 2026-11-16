@@ -4,7 +4,7 @@ import { createExecutionV1Session } from '../helpers/execution-v1-fixtures.js';
 
 const originalFetch = globalThis.fetch;
 const linearAttentionSource = [
-  '../../src/inference/pipelines/text/linear-attention.js',
+  "../../src/inference/pipelines/text/linear-attention/linear-attention.js",
   '../../src/inference/pipelines/text/linear-attention/plan.js',
 ].map((relativePath) => readFileSync(new URL(relativePath, import.meta.url), 'utf8')).join('\n');
 
@@ -14,7 +14,7 @@ const { Tokenizer } = await import('../../src/inference/tokenizer.js');
 const { discoverModels } = await import('../../src/tooling/test-harness.js');
 const { TieredKVCache } = await import('../../src/inference/kv-cache/tiered.js');
 const { createKVCache } = await import('../../src/inference/pipelines/text/init.js');
-const { resolveAttentionFrequencyBaseDim } = await import('../../src/inference/pipelines/text/layer.js');
+const { resolveAttentionFrequencyBaseDim } = await import("../../src/inference/pipelines/text/execution/layer.js");
 const { parseModelConfigFromManifest } = await import('../../src/inference/pipelines/text/config.js');
 const { setDevice } = await import('../../src/gpu/device.js');
 const { extractExecutionContractFacts } = await import('../../src/config/execution-contract-check.js');
@@ -27,7 +27,7 @@ const {
 const {
   createLinearAttentionRuntime,
   runLinearAttentionLayer,
-} = await import('../../src/inference/pipelines/text/linear-attention.js');
+} = await import("../../src/inference/pipelines/text/linear-attention/linear-attention.js");
 
 function createKernelCapsOnlyDevice() {
   return {

@@ -2,7 +2,7 @@ import { getKernelCapabilities } from "../../../../gpu/device.js";
 import { log } from "../../../../debug/index.js";
 import { mergeRuntimeValues } from "../../../../config/runtime-merge.js";
 import { applyModelSessionDeclaration } from "../../../../config/model-session-declarations.js";
-import { READBACK_MODES } from "../../../../config/schema/execution-v1.schema.js";
+import { READBACK_MODES } from "../../../../config/schema/execution/execution-v1.schema.js";
 
 function normalizePositiveInt(value) {
   if (!Number.isFinite(value)) return null;

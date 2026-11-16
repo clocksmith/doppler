@@ -7,7 +7,7 @@ import { fileURLToPath } from 'node:url';
 import { openCapsule } from '../src/index.js';
 import { destroyDevice } from '../src/gpu/device.js';
 import { releaseNodeWebGPU } from '../src/tooling/node-webgpu.js';
-import { CAPSULE_V0_TRUSTED_SIGNERS } from '../src/config/capsule-v0-trusted-signers.js';
+import { CAPSULE_V0_TRUSTED_SIGNERS } from "../src/config/capsule/capsule-v0-trusted-signers.js";
 
 const REPO_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 

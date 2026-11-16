@@ -2,7 +2,7 @@
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { resolveKernelConfig } from '../src/config/schema/kernel-registry.schema.js';
+import { resolveKernelConfig } from "../src/config/schema/execution/kernel-registry.schema.js";
 import { compareUniformInterface, reflectWgslInterface } from './lib/wgsl-interface.js';
 
 const repoRoot = fileURLToPath(new URL('../', import.meta.url));

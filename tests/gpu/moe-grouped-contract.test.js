@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { groupedPrefillGeometry, executeGroupedProjection } from '../../src/gpu/kernels/moe-grouped.js';
 import { resolveGroupedPrefill } from '../../src/inference/pipelines/text/moe/grouped-prefill.js';
-import { buildInlineKernelPath } from '../../src/inference/pipelines/text/execution-runtime-builders.js';
+import { buildInlineKernelPath } from "../../src/inference/pipelines/text/execution/execution-runtime-builders.js";
 import { KERNEL_REF_CONTENT_DIGESTS } from '../../src/config/kernels/kernel-ref-digests.js';
 import { getKernelConfig } from '../../src/gpu/kernels/kernel-configs.js';
 

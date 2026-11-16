@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { createResidentPartitionSession } from '../../src/inference/pipelines/text/resident-partition.js';
+import { createResidentPartitionSession } from "../../src/inference/pipelines/text/partitions/resident-partition.js";
 import { scopePipelineShaders } from '../../src/inference/pipelines/shader-scoped-pipeline.js';
 import { markDeviceLost } from '../../src/memory/device-residency.js';
 import { computeCanonicalSha256 } from '../../src/formats/canonical-hash.js';

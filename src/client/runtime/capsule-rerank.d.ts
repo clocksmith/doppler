@@ -1,7 +1,7 @@
-import type { DopplerCapsuleV2 } from '../../config/capsule-v2.js';
+import type { DopplerCapsuleV2 } from "../../config/capsule/capsule-v2.js";
 import type { TargetPlan } from '../../config/target-plan.js';
 import type { DopplerRerankEvidence } from './model-session.js';
-import type { CapsuleReleaseAuthorization } from '../../config/capsule-release-events.js';
+import type { CapsuleReleaseAuthorization } from "../../config/capsule/capsule-release-events.js";
 
 export const CAPSULE_RERANK_RECEIPT_SCHEMA: 'doppler.capsule-rerank-receipt/v1';
 

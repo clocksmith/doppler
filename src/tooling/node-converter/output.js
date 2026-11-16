@@ -1,5 +1,5 @@
 import { createHash, randomUUID } from 'node:crypto';
-import { DEFAULT_CONVERTER_EXECUTION_CONFIG } from '../../config/schema/converter.schema.js';
+import { DEFAULT_CONVERTER_EXECUTION_CONFIG } from "../../config/schema/manifest/converter.schema.js";
 import { createReadStream } from 'node:fs';
 import fs from 'node:fs/promises';
 import os from 'node:os';
@@ -23,7 +23,7 @@ import { saveReport } from '../../storage/reports.js';
 import {
   CONVERSION_REPORT_SCHEMA_VERSION,
   validateConversionReport,
-} from '../../config/schema/conversion-report.schema.js';
+} from "../../config/schema/manifest/conversion-report.schema.js";
 import { createNodeGpuTensorTransformer, createNodeLargeTensorTransformer, createNodeTensorTransformer } from './input.js';
 
 export function asPositiveInteger(value, label) {

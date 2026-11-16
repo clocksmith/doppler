@@ -1,5 +1,5 @@
-export { hashPartitionGeneration } from './inference/pipelines/text/resident-partition-contract.js';
-export * from './inference/pipelines/text/layer-partition-contract.js';
+export { hashPartitionGeneration } from "./inference/pipelines/text/partitions/resident-partition-contract.js";
+export * from "./inference/pipelines/text/execution/layer-partition-contract.js";
 export * from './inference/resident-state-contract.js';
 export * from './inference/resident-block-contract.js';
 export * from './inference/resident-publication-contract.js';
@@ -18,5 +18,5 @@ export type { ResidentPartitionAllocation, ResidentPartitionDescriptor, Resident
   ResidentPartitionBResult, ResidentPartitionMetrics, PartitionTiming,
   ResidentCanonicalARequest, ResidentCanonicalBRequest, ResidentCanonicalBResult,
   ResidentCanonicalGeneration, ResidentOrderedPartitionIdentity, ResidentExecutionIdentity,
-  ResidentStageRequest, ResidentStageResult } from './inference/pipelines/text/resident-partition-contract.js';
+  ResidentStageRequest, ResidentStageResult } from "./inference/pipelines/text/partitions/resident-partition-contract.js";
 export { proposeHardwarePartitionPlan } from './config/hardware-partition-plan.js';

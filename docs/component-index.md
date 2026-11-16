@@ -36,6 +36,6 @@ Components: 30
 | `doppler.runtime-source.formats.rdrr` | Define and validate Doppler's canonical manifest-first runtime artifact contract. | [src/formats/rdrr/CATSCAN.md](../src/formats/rdrr/CATSCAN.md) | `doppler.runtime-source.formats` |
 | `doppler.runtime-source.gpu.kernels` | Implement registered deterministic tensor operations whose numeric behavior and dispatch identity can be verified. | [src/gpu/kernels/CATSCAN.md](../src/gpu/kernels/CATSCAN.md) | `doppler.runtime-source.gpu` |
 | `doppler.runtime-source.inference.pipelines` | Bind declared model types to pipeline implementations without changing normalized command or session semantics. | [src/inference/pipelines/CATSCAN.md](../src/inference/pipelines/CATSCAN.md) | `doppler.runtime-source.inference` |
-| `doppler.runtime-source.inference.pipelines.text` | Execute manifest-declared transformer generation, embedding, reranking, and declared multimodal decoder workloads. | [src/inference/pipelines/text/CATSCAN.md](../src/inference/pipelines/text/CATSCAN.md) | `doppler.runtime-source.inference.pipelines` |
+| `doppler.runtime-source.inference.pipelines.text` | Execute manifest-declared transformer generation, embedding, reranking, and multimodal decoding. | [src/inference/pipelines/text/CATSCAN.md](../src/inference/pipelines/text/CATSCAN.md) | `doppler.runtime-source.inference.pipelines` |
 
 Child charters narrow inherited authority. They do not replace or broaden their parent contracts.

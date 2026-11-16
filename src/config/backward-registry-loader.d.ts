@@ -1,3 +1,3 @@
-import type { BackwardRegistrySchema } from './schema/backward-registry.schema.js';
+import type { BackwardRegistrySchema } from "./schema/training/backward-registry.schema.js";
 
 export declare function loadBackwardRegistry(): BackwardRegistrySchema;

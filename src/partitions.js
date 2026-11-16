@@ -1,5 +1,5 @@
-export { hashPartitionGeneration } from './inference/pipelines/text/resident-partition-contract.js';
-export * from './inference/pipelines/text/layer-partition-contract.js';
+export { hashPartitionGeneration } from "./inference/pipelines/text/partitions/resident-partition-contract.js";
+export * from "./inference/pipelines/text/execution/layer-partition-contract.js";
 export * from './inference/resident-state-contract.js';
 export * from './inference/resident-block-contract.js';
 export * from './inference/resident-publication-contract.js';

@@ -25,8 +25,8 @@ export class NgramTokenHistory {
   #epoch = 0;
 
   /**
-   * @param {import('../../../../config/schema/ngram-embedding.schema.js').ResolvedNgramEmbedding} contract
-   * @param {import('../../../../config/schema/ngram-embedding.schema.js').ResolvedNgramEmbeddingLayer} layer
+   * @param {import("../../../../config/schema/execution/ngram-embedding.schema.js").ResolvedNgramEmbedding} contract
+   * @param {import("../../../../config/schema/execution/ngram-embedding.schema.js").ResolvedNgramEmbeddingLayer} layer
    * @param {number} [initialCapacity]
    */
   constructor(contract, layer, initialCapacity = 256) {

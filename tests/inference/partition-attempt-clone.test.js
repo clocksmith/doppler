@@ -4,8 +4,8 @@ globalThis.GPUBufferUsage = { MAP_READ: 1, MAP_WRITE: 2, COPY_SRC: 4, COPY_DST: 
 const { setDevice } = await import('../../src/gpu/device.js');
 const { KVCache } = await import('../../src/inference/kv-cache/base.js');
 const { getBufferPool, destroyBufferPool } = await import('../../src/memory/buffer-pool.js');
-const target = new URL('../../src/inference/pipelines/text/partition-attempt.js', import.meta.url).href;
-const replayURL = new URL('../../src/inference/pipelines/text/partition-replay.js', import.meta.url).href;
+const target = new URL("../../src/inference/pipelines/text/partitions/partition-attempt.js", import.meta.url).href;
+const replayURL = new URL("../../src/inference/pipelines/text/partitions/partition-replay.js", import.meta.url).href;
 const buffers = [], caches = [];
 let submitted = 0, wait = async () => {};
 const device = { features: new Set(), limits: { maxStorageBufferBindingSize: 1e6, maxBufferSize: 1e6 },
@@ -34,14 +34,14 @@ globalThis.cloneTestCreateCache = config => {
   caches.push(cache); return cache;
 };
 const modules = {
-  './init.js': 'export const createKVCache = (_model, _gpu, _debug, config) => cloneTestCreateCache(config);',
+  "../init.js": 'export const createKVCache = (_model, _gpu, _debug, config) => cloneTestCreateCache(config);',
   './partition-execution.js': 'export const assertPartitionExecutionSupported = () => {};',
-  './layer-partition-contract.js': 'export const resolveLayerPartition = () => ({layerRange:[0,0]});',
+  "../execution/layer-partition-contract.js": 'export const resolveLayerPartition = () => ({layerRange:[0,0]});',
 };
 const hooks = registerHooks({ resolve(specifier, context, next) {
   if (context.parentURL === replayURL && specifier === './partition-execution.js') return {
     url: 'data:text/javascript,export const executePartitionLayers = (...args) => runPartitionReplayFixture(...args);', shortCircuit: true };
-  if (context.parentURL === replayURL && specifier === '../../../memory/buffer-pool.js') return {
+  if (context.parentURL === replayURL && specifier === "../../../../memory/buffer-pool.js") return {
     url: 'data:text/javascript,export const releaseBuffer = buffer => { buffer.released = true; };', shortCircuit: true };
   if (context.parentURL === target && modules[specifier]) return { url: 'data:text/javascript,' + encodeURIComponent(modules[specifier]), shortCircuit: true };
   return next(specifier, context);

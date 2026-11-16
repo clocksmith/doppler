@@ -1,0 +1,153 @@
+import type { FP8Policy } from './fp8.schema.js';
+import type { W8A8Policy } from './w8a8.schema.js';
+/**
+ * Converter Config Schema Definitions
+ *
+ * Converter configuration for GGUF/SafeTensors -> RDRR output.
+ *
+ * @module config/schema/converter
+ */
+
+import type {
+  HashAlgorithm,
+  QuantizationValue,
+  SourceQuantizationFormat,
+  SourceQuantizationTarget,
+  SourceTrainingQuantization,
+  RuntimeOptimizationsSchema,
+  ConversionInfoSchema,
+  ManifestArtifactIdentitySchema,
+  ManifestWeightsRefSchema,
+  MoEConfigSchema,
+  ArchitectureSchema,
+} from './manifest.schema.js';
+import type {
+  ExecutionV1GraphSchema,
+  ExecutionV1SessionSchema,
+} from "../execution/execution-v1.schema.js";
+import type { SourceTensorPolicy } from "../../../converter/source-tensor-rules.js";
+import type { SourceRotaryFrequencyPolicy } from "../../../converter/source-rotary-frequencies.js";
+import type { SourceTokenizerPolicy } from "../../../converter/source-tokenizer.js";
+
+export type ComputePrecision = 'f16' | 'f32' | 'auto' | null;
+/** Q4K layout: 'row' = fused kernel (fast), 'col' = dequant fallback */
+export type Q4KLayout = 'row' | 'col' | null;
+export type ConverterWorkerCountPolicy = 'cap' | 'error';
+
+export interface ConverterQuantizationConfigSchema {
+  weights: QuantizationValue | null;
+  w8a8: W8A8Policy | null;
+  fp8: FP8Policy | null;
+  embeddings: QuantizationValue | null;
+  lmHead: QuantizationValue | null;
+  sourceTrainingQuantization: SourceTrainingQuantization | null;
+  sourceQuantizationTarget: SourceQuantizationTarget | null;
+  preserveSourceTensors: boolean;
+  sourceQuantizationFormat: SourceQuantizationFormat | null;
+  vision: QuantizationValue | null;
+  audio: QuantizationValue | null;
+  projector: QuantizationValue | null;
+  perLayerEmbeddings: 'int4_per_row' | null;
+  modulesToNotConvert: string[] | null;
+  q4kLayout: Q4KLayout;
+  computePrecision: ComputePrecision;
+}
+
+export interface ConverterShardingConfigSchema {
+  shardSizeBytes: number;
+}
+
+export interface ConverterStreamingConfigSchema {
+  chunkSizeBytes: number;
+}
+
+export interface ConverterHttpConfigSchema {
+  allowDownloadFallback: boolean;
+  maxDownloadBytes: number | null;
+}
+
+export interface ConverterWeightLayoutConfigSchema {
+  transposeWeights: boolean;
+  fuseGateUp: boolean;
+}
+
+export interface ConverterManifestConfigSchema {
+  hashAlgorithm: HashAlgorithm;
+  eosTokenId: number | number[] | null;
+  optimizations: RuntimeOptimizationsSchema | null;
+  conversion: ConversionInfoSchema | null;
+  artifactIdentity: ManifestArtifactIdentitySchema | null;
+  weightsRef: ManifestWeightsRefSchema | null;
+  visionConfig?: Record<string, unknown> | null;
+  audioConfig?: Record<string, unknown> | null;
+}
+
+export interface ConverterInferenceConfigSchema {
+  session: ExecutionV1SessionSchema | null;
+  execution: ExecutionV1GraphSchema | null;
+}
+
+export interface ConverterOutputConfigSchema {
+  modelBaseId: string | null;
+  dir: string | null;
+  baseDir: string | null;
+  textOnly: boolean;
+  fast: boolean;
+}
+
+export interface GGUFParserDefaultsSchema {
+  contextLength: number;
+  attentionLayerNormEpsilon: number;
+  attentionLayerNormRMSEpsilon: number;
+  ropeFreqBase: number;
+}
+
+/** Node convert command execution defaults (worker scheduling policy) */
+export interface ConverterExecutionConfigSchema {
+  workers: number;
+  workerCountPolicy: ConverterWorkerCountPolicy;
+  rowChunkRows: number | null;
+  rowChunkMinTensorBytes: number;
+  maxInFlightJobs: number | null;
+  useGpuCast: boolean;
+  gpuCastMinTensorBytes: number;
+  /** How retained source files become artifact shards; the bytes are identical either way. */
+  retainedSourceFiles: 'link' | 'copy';
+}
+
+export interface ConverterConfigSchema {
+  quantization: ConverterQuantizationConfigSchema;
+  sharding: ConverterShardingConfigSchema;
+  streaming: ConverterStreamingConfigSchema;
+  http: ConverterHttpConfigSchema;
+  weightLayout: ConverterWeightLayoutConfigSchema;
+  manifest: ConverterManifestConfigSchema;
+  inference: ConverterInferenceConfigSchema;
+  output: ConverterOutputConfigSchema;
+  /** Explicit architecture for custom checkpoints whose source config omits standard HF fields. */
+  architecture: ArchitectureSchema | null;
+  sourceTensors: SourceTensorPolicy | null;
+  sourceTokenizer: SourceTokenizerPolicy | null;
+  sourceRotaryFrequencies: SourceRotaryFrequencyPolicy | null;
+  moeConfig?: MoEConfigSchema | null;
+  execution?: ExecutionV1GraphSchema;
+  session?: ExecutionV1SessionSchema;
+  /** Required for v1 conversion plans: runtime pipeline ID, not source model_type. */
+  modelType?: string;
+}
+
+export declare const DEFAULT_CONVERTER_QUANTIZATION_CONFIG: ConverterQuantizationConfigSchema;
+export declare const DEFAULT_CONVERTER_SHARDING_CONFIG: ConverterShardingConfigSchema;
+export declare const DEFAULT_CONVERTER_STREAMING_CONFIG: ConverterStreamingConfigSchema;
+export declare const DEFAULT_CONVERTER_HTTP_CONFIG: ConverterHttpConfigSchema;
+export declare const DEFAULT_CONVERTER_WEIGHT_LAYOUT_CONFIG: ConverterWeightLayoutConfigSchema;
+export declare const DEFAULT_CONVERTER_MANIFEST_CONFIG: ConverterManifestConfigSchema;
+export declare const DEFAULT_CONVERTER_INFERENCE_CONFIG: ConverterInferenceConfigSchema;
+export declare const DEFAULT_CONVERTER_OUTPUT_CONFIG: ConverterOutputConfigSchema;
+export declare const DEFAULT_GGUF_PARSER_DEFAULTS: GGUFParserDefaultsSchema;
+export declare const DEFAULT_CONVERTER_EXECUTION_CONFIG: ConverterExecutionConfigSchema;
+export declare const DEFAULT_CONVERTER_CONFIG: ConverterConfigSchema;
+
+export declare function createConverterConfig(
+  overrides?: Partial<ConverterConfigSchema>
+): ConverterConfigSchema;

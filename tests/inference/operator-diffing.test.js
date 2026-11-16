@@ -11,7 +11,7 @@ import assert from 'node:assert/strict';
     getOperatorClass,
     canonicalizeProbeStage,
     isValidStage,
-  } = await import('../../src/inference/pipelines/text/stage-names.js');
+  } = await import("../../src/inference/pipelines/text/observation/stage-names.js");
 
   assert.equal(typeof STAGES, 'object', 'STAGES must be an object');
   assert.ok(Object.isFrozen(STAGES), 'STAGES must be frozen');
@@ -75,7 +75,7 @@ import assert from 'node:assert/strict';
     buildOpIdFromExecutionStep,
     buildOperatorMeta,
     OperatorSequence,
-  } = await import('../../src/inference/pipelines/text/operator-identity.js');
+  } = await import("../../src/inference/pipelines/text/execution/operator-identity.js");
 
   assert.equal(buildOpId('attn.q_proj', 12), 'layer.12.attn.q_proj');
   assert.equal(buildOpId('attn.softmax', 0), 'layer.0.attn.softmax');
@@ -160,7 +160,7 @@ import assert from 'node:assert/strict';
     createOperatorExecutionRecord,
     OperatorEventEmitter,
     findFirstDivergence,
-  } = await import('../../src/inference/pipelines/text/operator-events.js');
+  } = await import("../../src/inference/pipelines/text/observation/operator-events.js");
 
   const record = createOperatorExecutionRecord({
     stageName: 'attn.q_proj',
@@ -259,7 +259,7 @@ import assert from 'node:assert/strict';
     getOperatorClasses,
     checkDrift,
     checkPropagationBound,
-  } = await import('../../src/inference/pipelines/text/drift-policy.js');
+  } = await import("../../src/inference/pipelines/text/policy/drift-policy.js");
 
   const classes = getOperatorClasses();
   assert.ok(classes.length >= 13, 'must have at least 13 operator classes');

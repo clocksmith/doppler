@@ -20,7 +20,7 @@ Set a conversion config to emit one of Doppler's built-in chat template types.
 
 ## Recommended Order
 
-1. Check the built-in keys in `src/inference/pipelines/text/chat-format.js`.
+1. Check the built-in keys in `src/inference/pipelines/text/generator/request/chat-format.js`.
 2. Set `inference.chatTemplate.type` and `inference.chatTemplate.enabled` in the conversion config.
 3. Re-run conversion if you need existing artifacts to pick up the new manifest value.
 4. Run a debug pass with multi-turn messages and inspect the resulting prompt formatting.
@@ -45,6 +45,6 @@ Set a conversion config to emit one of Doppler's built-in chat template types.
 
 ## Canonical References
 
-- `src/inference/pipelines/text/chat-format.js`
+- `src/inference/pipelines/text/generator/request/chat-format.js`
 - `src/config/conversion/gemma3/gemma-3-1b-it-q4k-ehf16-af32.json`
 - `src/converter/manifest-inference.js`

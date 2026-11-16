@@ -3,12 +3,12 @@ import { resolve } from 'node:path';
 
 import { isPlainObject } from '../../formats/plain-object.js';
 import { sha256Hex } from '../../formats/sha256.js';
-import { VALID_LORA_TARGET_MODULES } from '../../config/schema/adapter.schema.js';
+import { VALID_LORA_TARGET_MODULES } from "../../config/schema/runtime/adapter.schema.js";
 import {
   DEFAULT_TRAINING_GRADIENT_CONFIG,
   DEFAULT_TRAINING_OPTIMIZER_CONFIG,
   DEFAULT_TRAINING_PRECISION_CONFIG,
-} from '../../config/schema/training.schema.js';
+} from "../../config/schema/training/training.schema.js";
 
 export const TRAINING_WORKLOAD_SCHEMA_VERSION = 1;
 export const TRAINING_WORKLOAD_KINDS = Object.freeze(['lora', 'distill', 'ul']);

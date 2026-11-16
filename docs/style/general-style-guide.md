@@ -97,6 +97,11 @@ round trip is always runtime tensor compute and is forbidden.
 
 Doppler source code is **JavaScript** with **declaration files** (.d.ts) for every module in `src/` and `demo/`. Tests and tools may omit `.d.ts` unless they export public types.
 
+Every runtime JavaScript module needs its declaration. Type-only contracts may
+exist as `.d.ts` alone; do not create empty JavaScript files just to mirror them.
+Sibling existence and declaration checking do not prove that every JavaScript
+implementation is strictly checked; `tsconfig.source-strict.json` names that scope.
+
 JavaScript files use `.js`; `package.json` sets `"type": "module"`, so `.mjs` is
 never needed. `JS-002` rejects `.mjs` except the exact retained artifact paths
 listed under `legacyMjs` in the rule registry.
@@ -681,20 +686,42 @@ The ceiling is not a target. A file that owns multiple state machines,
 execution planes, workload families, or lifecycle boundaries must split even
 when it remains below 999 lines.
 
+The text pipeline has a **750-line blocking component ceiling**, including its
+JavaScript and declaration files. It has no soft-limit waivers. The policy's
+`componentLineLimits` owns component ceilings; removing or raising one is a
+policy relaxation requiring external authorization.
+
 Existing over-limit files are governed in
 `tools/policies/source-architecture-policy.json`; each entry records the
-file's current maximum and named extraction boundaries. An inherited file may
-shrink but not grow; once it reaches the limit, its entry must be removed.
+file's reviewed maximum, source owner, reviewer, review date, specific extraction
+boundary and observable removal condition. These are bounded inherited debts,
+not numerical qualification or a permanent exemption. An inherited file may
+shrink but not grow; once it reaches the soft limit, its entry must be removed.
 The architecture check compares this ledger with `DOPPLER_POLICY_BASE_REF`
-(`HEAD` for an uncommitted local change). Adding a soft-limit review or raising
+(`HEAD` for an uncommitted local change; CI must supply the pre-change revision).
+It also compares actual source line counts with that revision, so a file cannot
+regain previously removed lines just because an older ceiling was higher.
+Adding a soft-limit review, growing inherited over-limit source, or raising
 `reviewedLines` fails unless the changed review records a `debtAuthorization`
-SHA-256 digest exactly matching the externally supplied
+fresh SHA-256 digest, different from that entry's baseline authorization and
+exactly matching the externally supplied
 `DOPPLER_ARCHITECTURE_DEBT_AUTHORIZATION`. Lowering or removing debt never
 needs authorization. Every other policy relaxation (global limit increases,
 new legacy ceilings, cross-owner dependency additions, exceptions, facades,
 experimental bridges, standalone reachability exemptions, weaker
 constitutional graphs) needs a fresh top-level `debtAuthorization` matching
 the same externally administered CI variable.
+
+The dependency matrix and constitutional graphs are cumulative: the matrix
+permits owner-to-owner edges, while constitutional graphs further restrict
+transitive reach from named entry points. Both must pass. Declared compatibility
+facades forward only their exact inventoried dependencies. Cleanup retain
+decisions list actual ingress modules; removing the last consumer or changing
+that set fails the check until the retirement decision is reviewed.
+
+Code imported by `src/` belongs to a shipped source owner such as `src/tooling/`.
+Repository-only automation belongs to `tools/`; runtime imports into `tools/`
+are rejected by the architecture check.
 
 ## Semantic Ownership
 
@@ -850,6 +877,16 @@ const workgroupSize = WORKGROUP_SIZES[vendor].matmul;
 ---
 
 ## Error Handling
+
+Use `createDopplerError` and the shared registry when callers need a stable
+machine-readable code across subsystem boundaries. Keep those code values
+stable, including namespaced distribution codes; their declaration does not
+authorize a dependency on an experimental implementation. Public error classes
+such as `AbortError` and `ToolingCommandError` remain explicit API contracts.
+Module-specific validation or control-flow classes may retain structured fields;
+document their escaping contract in the owning declaration rather than silently
+changing their constructor, `name`, `code`, or `instanceof` behavior. Do not
+create a parallel generic error factory.
 
 ### Validation Errors (Fail Fast)
 

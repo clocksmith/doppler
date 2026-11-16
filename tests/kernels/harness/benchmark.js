@@ -1,7 +1,7 @@
 
 
 import { computeSampleStats } from '../../../src/debug/stats.js';
-import { DEFAULT_BENCHMARK_STATS_CONFIG } from '../../../src/config/schema/benchmark.schema.js';
+import { DEFAULT_BENCHMARK_STATS_CONFIG } from "../../../src/config/schema/runtime/benchmark.schema.js";
 
 
 export class KernelBenchmark {

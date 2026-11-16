@@ -7,8 +7,8 @@ import { createTensor } from '../../src/gpu/tensor.js';
 import { createGreedySpeculativeSession } from '../../src/gpu/greedy-speculative-frame.js';
 import { runLinearAttentionCoreGPU } from '../../src/gpu/kernels/linear-attention-core.js';
 import { createLinearAttentionCheckpoint } from '../../src/inference/pipelines/text/linear-attention/state-checkpoint.js';
-import { WholeTokenProgram } from '../../src/inference/pipelines/text/generator/whole-token-program.js';
-import { createCompiledGreedyWindow } from '../../src/inference/pipelines/text/generator/whole-token-lane.js';
+import { WholeTokenProgram } from "../../src/inference/pipelines/text/generator/whole-token/whole-token-program.js";
+import { createCompiledGreedyWindow } from "../../src/inference/pipelines/text/generator/whole-token/whole-token-lane.js";
 
 assert.ok((await probeNodeGPU({ installFileFetchShim: true })).ready);
 const device=getDevice(), owned=[], errors=[], cases=[];

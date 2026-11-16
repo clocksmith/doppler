@@ -1,0 +1,467 @@
+import { readBuffer, releaseBuffer } from "../../../../memory/buffer-pool.js";
+
+import { formatChatMessages } from "../generator/request/chat-format.js";
+
+import { assertNotAborted } from "../contracts/abort-contract.js";
+import { describeVisionUnavailable } from "../../vision/support.js";
+import { executeEmbeddingBatch } from "../embedding/embedding-batch.js";
+import {
+  buildConservativeMultimodalGenerationOptions,
+  expandImagePlaceholderTokenIds,
+  resolveMultimodalMaxTokens,
+  resolveSingleSpecialTokenId,
+} from "../modality-token-contract.js";
+
+import { createTensor } from "../../../../gpu/tensor.js";
+import { runEmbeddingPool } from "../../../../gpu/kernels/embedding-pool.js";
+
+async function readMeanPooledEmbedding(featuresBuffer, numTokens, hiddenSize, label) {
+  const pooled = await runEmbeddingPool(
+    createTensor(featuresBuffer, 'f32', [numTokens, hiddenSize], label),
+    { rowCount: numTokens, hiddenSize, mode: 'mean' }
+  );
+  try {
+    const bytes = await readBuffer(
+      pooled.buffer,
+      hiddenSize * Float32Array.BYTES_PER_ELEMENT
+    );
+    return new Float32Array(bytes);
+  } finally {
+    releaseBuffer(pooled.buffer);
+  }
+}
+
+export {
+  createImageTranscriptionResourceScope,
+  transcribeImage,
+} from './image-transcription.js';
+
+export async function transcribeVideo({ frames, prompt, maxTokens, maxFrames, perFrameSoftTokenBudget, signal }) {
+    assertNotAborted(signal);
+    if (!this.visionCapable) {
+      throw new Error(describeVisionUnavailable(this, 'video transcription'));
+    }
+    await this._ensureVisionWeightsLoaded();
+
+    this.reset();
+
+    // Lazy-load video module
+    const { encodeVideo } = await import("../../video/index.js");
+
+    // Step 1: Encode video frames through vision pipeline
+    const encodeResult = await encodeVideo({
+      frames,
+      visionConfig: this.visionConfig,
+      weights: this.visionWeights,
+      maxFrames: maxFrames ?? 8,
+      perFrameSoftTokenBudget,
+    });
+
+    const tokens = [];
+    try {
+      if (encodeResult.featureSize !== this.modelConfig.hiddenSize) {
+        throw new Error(
+          `[Pipeline] transcribeVideo: vision features are ${encodeResult.featureSize} values per token, ` +
+          `but the text model hidden size is ${this.modelConfig.hiddenSize}.`
+        );
+      }
+
+      // Step 2: Build the multimodal prompt with <|video|> placeholder
+      const requestedPrompt = prompt ?? 'Describe the video in one short sentence.';
+      const videoTokenId = this.tokenizer?.model?.tokenToId?.('<|video_token|>')
+        ?? this.tokenizer?.encode?.('<|video|>')?.find?.((id) => id !== undefined)
+        ?? null;
+      // Fall back to image token ID for video placeholder expansion
+      const placeholderTokenId = videoTokenId ?? this.visionConfig?.imageTokenId ?? this.imageTokenId;
+      if (placeholderTokenId == null) {
+        throw new Error(
+          'Pipeline missing video/image token ID for video placeholder expansion.'
+        );
+      }
+
+      const templateType = this.modelConfig?.chatTemplateType ?? 'gemma4';
+      const chatOptions = this.modelConfig?.chatTemplateThinking === true ? { thinking: true } : undefined;
+      const multimodalPrompt = formatChatMessages([
+        {
+          role: 'user',
+          content: [
+            { type: 'video' },
+            { type: 'text', text: requestedPrompt },
+          ],
+        },
+      ], templateType, chatOptions);
+      const promptTokenIds = this.tokenizer.encode(multimodalPrompt);
+      const videoTokenSpanLength = encodeResult.numTokens;
+
+      // Resolve BOV/EOV tokens (reuse image BOI/EOI if video-specific ones don't exist)
+      const bovTokenId = resolveSingleSpecialTokenId(this.tokenizer, '<|video|>', 'Gemma 4 BOV token');
+      const eovTokenId = resolveSingleSpecialTokenId(this.tokenizer, '<video|>', 'Gemma 4 EOV token');
+
+      const { inputIds: fullTokenIds, imageStartOffset: videoStartOffset } = expandImagePlaceholderTokenIds(
+        promptTokenIds,
+        placeholderTokenId,
+        videoTokenSpanLength,
+        { boiTokenId: bovTokenId, eoiTokenId: eovTokenId }
+      );
+
+      const padTokenId = this.tokenizer?.getSpecialTokens?.()?.pad;
+      if (!Number.isFinite(padTokenId) || Math.floor(padTokenId) !== padTokenId || padTokenId < 0) {
+        throw new Error(
+          `[Pipeline] transcribeVideo: Gemma 4 multimodal prefill requires a tokenizer pad token ID, got ${padTokenId}.`
+        );
+      }
+
+      // Step 3: Generate with embedding override at the video token offset
+      const maxGen = resolveMultimodalMaxTokens(this.runtimeConfig, maxTokens);
+      const stopTokenIds = this.modelConfig.stopTokenIds;
+
+      const generation = await this.generator.generateTokenIds('', buildConservativeMultimodalGenerationOptions({
+        inputIds: fullTokenIds,
+        embeddingOverrides: {
+          prefixLength: encodeResult.numTokens,
+          offset: videoStartOffset,
+          embeddings: encodeResult.features,
+        },
+        __internalEmbeddingInputSpan: {
+          offset: videoStartOffset,
+          length: encodeResult.numTokens,
+          tokenId: padTokenId,
+        },
+        __internalMultimodalBidirectionalSpan: {
+          offset: videoStartOffset,
+          length: encodeResult.numTokens,
+        },
+        maxTokens: maxGen,
+        temperature: 0,
+        topK: 1,
+        topP: 1,
+        repetitionPenalty: 1,
+      }));
+      for (const token of generation.tokenIds ?? []) {
+        if (Array.isArray(stopTokenIds) && stopTokenIds.includes(token)) break;
+        tokens.push(token);
+      }
+    } finally {
+      if (encodeResult.features) {
+        releaseBuffer(encodeResult.features);
+      }
+    }
+
+    const text = this.tokenizer.decode(tokens);
+    return { text, tokens };
+  }
+
+export async function transcribeAudio({ audio, prompt, maxTokens, signal }) {
+    assertNotAborted(signal);
+    if (!this.audioCapable) {
+      throw new Error(
+        'Pipeline does not support audio transcription (no audio_token_id in manifest).'
+      );
+    }
+    await this._ensureAudioWeightsLoaded();
+
+    this.reset();
+
+    // Lazy-load audio modules
+    const { encodeAudio } = await import("../../audio/index.js");
+
+    let encodeResult;
+    if (this.audioConfig.depth === 0) {
+      encodeResult = await encodeAudio({
+        rawAudio: audio,
+        audioConfig: this.audioConfig,
+        weights: this.audioWeights,
+      });
+    } else {
+      const { extractLogMelSpectrogram } = await import("../../audio/mel.js");
+      const featureExtractor = this.audioConfig.featureExtractor;
+      if (!featureExtractor) {
+        throw new Error(
+          'Manifest audio_config has no feature_extractor block, so the log-mel front end the encoder was trained on ' +
+          'is unknown. Re-convert the model with audio_config.feature_extractor set from its preprocessor_config.json.'
+        );
+      }
+      const { features: melFeatures, numFrames, nMels } = extractLogMelSpectrogram(audio, featureExtractor);
+      encodeResult = await encodeAudio({
+        melFeatures,
+        numFrames,
+        nMels,
+        audioConfig: this.audioConfig,
+        weights: this.audioWeights,
+      });
+    }
+
+    // Step 3: Build the multimodal prompt with <|audio|> placeholder
+    const requestedPrompt = prompt ?? 'Transcribe the audio.';
+    const audioTokenId = this.audioConfig?.audioTokenId ?? this.audioTokenId;
+    if (audioTokenId == null) {
+      throw new Error(
+        'Pipeline missing audio_token_id. Re-convert the model with audio token metadata.'
+      );
+    }
+    const templateType = this.modelConfig?.chatTemplateType ?? 'gemma4';
+    const chatOptions = this.modelConfig?.chatTemplateThinking === true ? { thinking: true } : undefined;
+    const multimodalPrompt = formatChatMessages([
+      {
+        role: 'user',
+        content: [
+          { type: 'audio' },
+          { type: 'text', text: requestedPrompt },
+        ],
+      },
+    ], templateType, chatOptions);
+    const promptTokenIds = this.tokenizer.encode(multimodalPrompt);
+    const audioTokenSpanLength = encodeResult.numTokens;
+
+    // Resolve BOA/EOA tokens
+    const boaTokenId = resolveSingleSpecialTokenId(this.tokenizer, '<|audio|>', 'Gemma 4 BOA token');
+    const eoaTokenId = resolveSingleSpecialTokenId(this.tokenizer, '<audio|>', 'Gemma 4 EOA token');
+
+    // Expand single audio placeholder token into the full audio token span
+    const { inputIds: fullTokenIds, imageStartOffset: audioStartOffset } = expandImagePlaceholderTokenIds(
+      promptTokenIds,
+      audioTokenId,
+      audioTokenSpanLength,
+      { boiTokenId: boaTokenId, eoiTokenId: eoaTokenId }
+    );
+
+    const padTokenId = this.tokenizer?.getSpecialTokens?.()?.pad;
+    if (!Number.isFinite(padTokenId) || Math.floor(padTokenId) !== padTokenId || padTokenId < 0) {
+      throw new Error(
+        `[Pipeline] transcribeAudio: Gemma 4 multimodal prefill requires a tokenizer pad token ID, got ${padTokenId}.`
+      );
+    }
+
+    // Step 4: Generate with embedding override at the audio token offset
+    const tokens = [];
+    const maxGen = resolveMultimodalMaxTokens(this.runtimeConfig, maxTokens);
+    const stopTokenIds = this.modelConfig.stopTokenIds;
+
+    try {
+      const generation = await this.generator.generateTokenIds('', buildConservativeMultimodalGenerationOptions({
+        inputIds: fullTokenIds,
+        embeddingOverrides: {
+          prefixLength: encodeResult.numTokens,
+          offset: audioStartOffset,
+          embeddings: encodeResult.features,
+        },
+        __internalEmbeddingInputSpan: {
+          offset: audioStartOffset,
+          length: encodeResult.numTokens,
+          tokenId: padTokenId,
+        },
+        __internalMultimodalBidirectionalSpan: {
+          offset: audioStartOffset,
+          length: encodeResult.numTokens,
+        },
+        maxTokens: maxGen,
+        temperature: 0,
+        topK: 1,
+        topP: 1,
+        repetitionPenalty: 1,
+      }));
+      for (const token of generation.tokenIds ?? []) {
+        if (Array.isArray(stopTokenIds) && stopTokenIds.includes(token)) break;
+        tokens.push(token);
+      }
+    } finally {
+      if (encodeResult.features) {
+        releaseBuffer(encodeResult.features);
+      }
+    }
+
+    const text = this.tokenizer.decode(tokens);
+    return { text, tokens };
+  }
+
+export async function embed(prompt, options = {}) {
+    assertNotAborted(options?.signal);
+    this.resetForBatch();
+    try {
+      const result = await this.prefillWithEmbedding(prompt, {
+        ...options,
+        __skipStateSnapshot: true,
+      });
+      assertNotAborted(options?.signal);
+      return {
+        embedding: result.embedding,
+        tokens: result.tokens,
+        seqLen: result.seqLen,
+        embeddingMode: result.embeddingMode,
+        phase: result.phase ?? null,
+      };
+    } finally {
+      this.resetForBatch();
+    }
+  }
+
+export async function embedBatch(prompts, options = {}) {
+    const batchOptions = { ...options, __skipStateSnapshot: true };
+    return executeEmbeddingBatch(prompts, batchOptions, prompt => this.embed(prompt, batchOptions));
+  }
+
+export async function encodeSequence(sequence, options = {}) {
+    assertNotAborted(options?.signal);
+    const contract = this.manifest?.inference?.sequence ?? null;
+    if (this.manifest?.inference?.supportsSequence !== true || !contract) {
+      throw new Error('Model manifest does not declare sequence encoding support.');
+    }
+    if (typeof sequence !== 'string' || sequence.length === 0) {
+      throw new Error('encodeSequence expects a non-empty sequence string.');
+    }
+    const includeTokenEmbeddings = options.includeTokenEmbeddings
+      ?? contract.tokenEmbeddings;
+    const includeLogits = options.includeLogits === true;
+    if (includeTokenEmbeddings && contract.tokenEmbeddings !== true) {
+      throw new Error('Model manifest does not permit token-level sequence embeddings.');
+    }
+    if (includeLogits && contract.logits !== true) {
+      throw new Error('Model manifest does not permit sequence logits.');
+    }
+    const needsTokenEmbeddings = includeTokenEmbeddings || contract.pooledEmbedding !== null;
+
+    this.resetForBatch();
+    try {
+      const result = await this.prefillWithEmbedding(sequence, {
+        ...options,
+        embeddingMode: contract.pooledEmbedding?.mode ?? 'last',
+        __skipStateSnapshot: true,
+        __returnTokenEmbeddings: needsTokenEmbeddings,
+        __returnSequenceLogits: includeLogits,
+        __sequencePooling: contract.pooledEmbedding,
+      });
+      assertNotAborted(options?.signal);
+      const hiddenSize = this.modelConfig.hiddenSize;
+      return {
+        alphabet: contract.alphabet,
+        tokens: result.tokens,
+        tokenMask: result.tokenMask ?? new Uint8Array(result.tokens.length),
+        includedTokenCount: result.includedTokenCount ?? 0,
+        tokenEmbeddings: includeTokenEmbeddings ? result.tokenEmbeddings : null,
+        pooledEmbedding: result.pooledSequenceEmbedding ?? null,
+        logits: includeLogits ? result.logits : null,
+        embeddingDim: hiddenSize,
+        vocabSize: this.modelConfig.vocabSize,
+        phase: result.phase ?? null,
+      };
+    } finally {
+      this.resetForBatch();
+    }
+  }
+
+export async function embedImage({ pixels, width, height, softTokenBudget, signal } = {}) {
+    assertNotAborted(signal);
+    if (!this.visionCapable) {
+      throw new Error(describeVisionUnavailable(this, 'image embedding'));
+    }
+    if (pixels == null) {
+      throw new Error('[Pipeline] embedImage: pixels are required.');
+    }
+    if (!Number.isFinite(width) || width <= 0 || !Number.isFinite(height) || height <= 0) {
+      throw new Error('[Pipeline] embedImage: width and height must be positive integers.');
+    }
+    await this._ensureVisionWeightsLoaded();
+    this.reset();
+
+    const { encodeImage } = await import("../../vision/index.js");
+    const encodeResult = await encodeImage({
+      pixels,
+      width,
+      height,
+      visionConfig: this.visionConfig,
+      weights: this.visionWeights,
+      softTokenBudget,
+    });
+
+    const hiddenSize = this.modelConfig.hiddenSize;
+    const numTokens = encodeResult.numTokens;
+    if (!Number.isFinite(numTokens) || numTokens < 1) {
+      releaseBuffer(encodeResult.features);
+      throw new Error(`[Pipeline] embedImage: encoder produced ${numTokens} soft tokens; expected >= 1.`);
+    }
+    try {
+      const pooled = await readMeanPooledEmbedding(
+        encodeResult.features,
+        numTokens,
+        hiddenSize,
+        'image_embedding_features'
+      );
+      return {
+        embedding: pooled,
+        embeddingDim: hiddenSize,
+        numTokens,
+        embeddingMode: 'mean',
+      };
+    } finally {
+      releaseBuffer(encodeResult.features);
+    }
+  }
+
+export async function embedAudio({ audio, signal } = {}) {
+    assertNotAborted(signal);
+    if (!this.audioCapable) {
+      throw new Error(
+        'Pipeline does not support audio embedding (no audio_token_id in manifest).'
+      );
+    }
+    if (audio == null) {
+      throw new Error('[Pipeline] embedAudio: audio is required.');
+    }
+    await this._ensureAudioWeightsLoaded();
+    this.reset();
+
+    const { encodeAudio } = await import("../../audio/index.js");
+
+    let encodeResult;
+    if (this.audioConfig.depth === 0) {
+      encodeResult = await encodeAudio({
+        rawAudio: audio,
+        audioConfig: this.audioConfig,
+        weights: this.audioWeights,
+      });
+    } else {
+      const { extractLogMelSpectrogram } = await import("../../audio/mel.js");
+      const featureExtractor = this.audioConfig.featureExtractor;
+      if (!featureExtractor) {
+        throw new Error(
+          'Manifest audio_config has no feature_extractor block, so the log-mel front end the encoder was trained on ' +
+          'is unknown. Re-convert the model with audio_config.feature_extractor set from its preprocessor_config.json.'
+        );
+      }
+      const { features: melFeatures, numFrames, nMels } = extractLogMelSpectrogram(audio, featureExtractor);
+      encodeResult = await encodeAudio({
+        melFeatures,
+        numFrames,
+        nMels,
+        audioConfig: this.audioConfig,
+        weights: this.audioWeights,
+      });
+    }
+
+    const hiddenSize = Number(this.audioConfig?.outputProjDims ?? this.modelConfig?.hiddenSize);
+    const numTokens = encodeResult.numTokens;
+    if (!Number.isFinite(hiddenSize) || hiddenSize < 1) {
+      releaseBuffer(encodeResult.features);
+      throw new Error('[Pipeline] embedAudio: audioConfig.outputProjDims is missing or invalid.');
+    }
+    if (!Number.isFinite(numTokens) || numTokens < 1) {
+      releaseBuffer(encodeResult.features);
+      throw new Error(`[Pipeline] embedAudio: encoder produced ${numTokens} tokens; expected >= 1.`);
+    }
+    try {
+      const pooled = await readMeanPooledEmbedding(
+        encodeResult.features,
+        numTokens,
+        hiddenSize,
+        'audio_embedding_features'
+      );
+      return {
+        embedding: pooled,
+        embeddingDim: hiddenSize,
+        numTokens,
+        embeddingMode: 'mean',
+      };
+    } finally {
+      releaseBuffer(encodeResult.features);
+    }
+  }

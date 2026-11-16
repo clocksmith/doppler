@@ -1,6 +1,6 @@
 import { getInferenceLayerPatternContractArtifact } from '../rules/rule-registry.js';
 import { isPlainObject } from '../formats/plain-object.js';
-import { validateBrowserSuiteMetrics } from '../config/schema/browser-suite-metrics.schema.js';
+import { validateBrowserSuiteMetrics } from "../config/schema/runtime/browser-suite-metrics.schema.js";
 import { buildExecutionContractArtifact } from '../config/execution-contract-check.js';
 import { buildManifestRequiredInferenceFieldsArtifact } from '../config/required-inference-fields-contract-check.js';
 

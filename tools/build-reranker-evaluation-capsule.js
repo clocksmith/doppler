@@ -7,7 +7,7 @@ import { writeProgramBundle } from '../src/tooling/program-bundle.js';
 import { rigModelCapsule } from '../src/tooling/model-capsule-rig.js';
 import { computeCanonicalSha256, hashBytesSha256 } from '../src/formats/canonical-hash.js';
 import { hashTargetPlan } from '../src/config/target-plan.js';
-import { getCapsuleIdentity } from '../src/config/capsule.js';
+import { getCapsuleIdentity } from "../src/config/capsule/capsule.js";
 import { evaluateRerankReference } from '../src/config/rerank-reference.js';
 import { evaluateEmbeddingReference } from '../src/config/embedding-reference.js';
 import kernelRegistry from '../src/config/kernels/registry.json' with { type: 'json' };

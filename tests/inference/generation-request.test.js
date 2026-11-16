@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { createDopplerConfig } from '../../src/config/schema/index.js';
-import { resolveTextGenerationRequest, generationRequestEvidence } from '../../src/inference/pipelines/text/generation-request.js';
+import { resolveTextGenerationRequest, generationRequestEvidence } from "../../src/inference/pipelines/text/generator/request/generation-request.js";
 const runtime = createDopplerConfig().runtime;
 const request = resolveTextGenerationRequest({ presencePenalty: 0.75 }, runtime);
 assert.equal(generationRequestEvidence(request).presencePenalty, 0.75);

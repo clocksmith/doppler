@@ -1,9 +1,9 @@
-import { resetSequenceState } from '../../src/inference/pipelines/text/sequence-state.js';
-import { matchesStopSequence } from '../../src/inference/pipelines/text/stopping.js';
+import { resetSequenceState } from "../../src/inference/pipelines/text/generator/session/sequence-state.js";
+import { matchesStopSequence } from "../../src/inference/pipelines/text/generator/sampling/stopping.js";
 import { getCachedPipeline } from '../../src/gpu/kernels/pipeline-cache.js';
 import { getBufferPool } from '../../src/memory/buffer-pool.js';
-import { generationRequestEvidence } from '../../src/inference/pipelines/text/generation-request.js';
-import { executeEmbeddingBatch } from '../../src/inference/pipelines/text/embedding-batch.js';
+import { generationRequestEvidence } from "../../src/inference/pipelines/text/generator/request/generation-request.js";
+import { executeEmbeddingBatch } from "../../src/inference/pipelines/text/embedding/embedding-batch.js";
 import { scopePipelineShaders } from '../../src/inference/pipelines/shader-scoped-pipeline.js';
 
 // Compile-only negative contracts: removing a required field or confusing a
@@ -36,7 +36,7 @@ function checkStore(store) {
 void checkStore;
 
 /** @param {import('../../src/client/runtime/capsule-acquisition.js').CapsuleArtifactReader} reader
- * @param {import('../../src/config/capsule-v2.js').CapsuleV2Artifact} artifact */
+ * @param {import("../../src/config/capsule/capsule-v2.js").CapsuleV2Artifact} artifact */
 function checkArtifactReader(reader, artifact) {
   // @ts-expect-error A stream must declare its acquisition bound.
   reader.streamArtifact?.(artifact, {});

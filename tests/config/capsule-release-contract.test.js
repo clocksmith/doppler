@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { validateCapsuleReleaseContract } from '../../src/config/capsule-release-contract.js';
+import { validateCapsuleReleaseContract } from "../../src/config/capsule/capsule-release-contract.js";
 import { createCapsuleReleaseFixture } from '../helpers/capsule-v2-fixture.js';
 
 const upgrade = createCapsuleReleaseFixture();

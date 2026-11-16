@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import {createLayerPartitionPlan,hashLayerPartitionPlan} from '../../src/partitions.js';
-import {createResidentPartitionSession} from '../../src/inference/pipelines/text/resident-partition.js';
+import {createResidentPartitionSession} from "../../src/inference/pipelines/text/partitions/resident-partition.js";
 import {scopePipelineShaders} from '../../src/inference/pipelines/shader-scoped-pipeline.js';
 import {resolveGenerationOptions} from '../../src/config/generation-contract.js';
 const plan=createLayerPartitionPlan({modelId:'paired',numLayers:2,hiddenSize:2,vocabSize:8,activationPrecision:'two-f32'});

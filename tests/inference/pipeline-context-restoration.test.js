@@ -85,7 +85,7 @@ function createFakeDevice(label) {
   assert.equal(getDevice(), null, 'closing a lost pipeline must not restore its destroyed device');
   assert.throws(() => setDevice(device), /lost GPU device/);
   const priorConfig = getRuntimeConfig();
-  const { kernelTrace } = await import('../../src/inference/pipelines/text/kernel-trace.js');
+  const { kernelTrace } = await import("../../src/inference/pipelines/text/observation/kernel-trace.js");
   const priorTrace = kernelTrace.captureState();
   assert.throws(() => applyPipelineContexts({}, {
     gpu: { device },

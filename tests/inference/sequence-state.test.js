@@ -12,7 +12,7 @@ import {
   prepareGenerationContextPrefill,
   resetSequenceState,
   supportsGenerationContext,
-} from '../../src/inference/pipelines/text/sequence-state.js';
+} from "../../src/inference/pipelines/text/generator/session/sequence-state.js";
 
 const truncated = [];
 const state = { isGenerating: false, currentSeqLen: 8, kvCache: { truncate: n => truncated.push(n) } };

@@ -1,6 +1,6 @@
 import type { CommandRecorder } from '../../../../gpu/command-recorder.js';
 import type { Tensor } from '../../../../gpu/tensor.js';
-import type { ResolvedNgramEmbedding } from '../../../../config/schema/ngram-embedding.schema.js';
+import type { ResolvedNgramEmbedding } from "../../../../config/schema/execution/ngram-embedding.schema.js";
 import type { RuntimeHyperConnections } from '../hyper-connection/decoder-layer.js';
 
 export declare class PleConvState {

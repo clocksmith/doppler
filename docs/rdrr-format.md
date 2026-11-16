@@ -192,7 +192,7 @@ Raw SafeTensors bytes are not this RDRR block layout and cannot be loaded as it.
 Encoding follows the [SafeTensors dtype mapping](https://github.com/safetensors/safetensors/blob/main/bindings/python/py_src/safetensors/torch.py) and [OFP8 specification](https://www.opencompute.org/documents/ocp-8-bit-floating-point-specification-ofp8-revision-1-0-2023-06-20-pdf).
 
 `quantizationInfo.fp8` must declare every field of the
-[FP8 policy](../src/config/schema/fp8.schema.d.ts); an executable example is the
+[FP8 policy](../src/config/schema/manifest/fp8.schema.d.ts); an executable example is the
 [operator contract](../tests/fixtures/fp8-operator-contract.json).
 `quantizationInfo.weights` is `fp8e4` or `fp8e5`, compute is explicitly `f32`,
 and embedding/head storage remains explicitly dense F16/F32. This weight-storage

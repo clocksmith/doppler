@@ -5,7 +5,7 @@ import { runMatmul, recordMatmul } from '../../../../gpu/kernels/matmul.js';
 import { runSiLU, recordSiLU } from '../../../../gpu/kernels/silu.js';
 import { runRepeatChannels, recordRepeatChannels } from '../../../../gpu/kernels/repeat_channels.js';
 import { runResidualAdd, recordResidualAdd } from '../../../../gpu/kernels/residual.js';
-import { releaseOrTrack } from '../ops.js';
+import { releaseOrTrack } from "../execution/ops.js";
 import { getKernelConfigs } from '../../../../config/kernel-registry-contract.js';
 import { getLayerSteps, getKernelPathStepConfig } from '../../../../config/kernel-path-loader.js';
 import { runSigmoidGatedAdd, recordSigmoidGatedAdd } from '../../../../gpu/kernels/sigmoid-gated-add.js';

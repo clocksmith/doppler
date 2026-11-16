@@ -1,7 +1,7 @@
 import { GENERATION_CONTRACT } from '../../config/generation-contract.js';
 import { releaseBuffer } from '../../memory/buffer-pool.js';
 import { observeInitialExecutionIdentity, createInitialExecutionIdentityV2 } from '../../config/initial-execution-identity.js';
-import { validateCapsuleTokenSelection } from '../../config/capsule-token-selection.js';
+import { validateCapsuleTokenSelection } from "../../config/capsule/capsule-token-selection.js";
 
 function arraysEqual(left, right) {
   return Array.isArray(left)

@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 
-const { runWarmGeneration } = await import('../../src/inference/pipelines/text/warm-generation.js');
+const { runWarmGeneration } = await import("../../src/inference/pipelines/text/generator/session/warm-generation.js");
 
 // A pipeline whose generator yields `count` tokens (or throws after them) and records
 // the options it was given and every reset.

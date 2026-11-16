@@ -8,7 +8,7 @@ import { fileURLToPath, pathToFileURL } from 'node:url';
 const REPO_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const POLICY_PATH = path.join(REPO_ROOT, 'tools', 'policies', 'model-release-platform.json');
 const MATRIX_PATH = path.join(REPO_ROOT, 'src', 'config', 'goal-completion-matrix.json');
-const POLICY_SCHEMA = JSON.parse(await fs.readFile(new URL('../src/config/schema/model-release-platform.schema.json', import.meta.url), 'utf8'));
+const POLICY_SCHEMA = JSON.parse(await fs.readFile(new URL("../src/config/schema/policy/model-release-platform.schema.json", import.meta.url), 'utf8'));
 
 const EXPECTED = Object.freeze({
   forgeStages: ['inspect', 'normalize', 'analyze', 'lower', 'specialize', 'search', 'verify', 'qualify', 'package', 'sign'],

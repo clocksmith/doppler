@@ -14,7 +14,7 @@ import { parseManifest } from '../src/formats/rdrr/parsing.js';
 import { createPipeline } from '../src/inference/pipelines/text.js';
 import { createDopplerConfig } from '../src/config/schema/index.js';
 import { computeSampleStats } from '../src/debug/stats.js';
-import { applyRepetitionPenalty, sample } from '../src/inference/pipelines/text/sampling.js';
+import { applyRepetitionPenalty, sample } from "../src/inference/pipelines/text/generator/sampling/sampling.js";
 
 const DEFAULT_MODEL_DIR = 'models/local/gemma-3-1b-it-f16-af32';
 const DEFAULT_PROMPT = 'The weather is nice today.';

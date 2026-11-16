@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { quantizeW8A8Reference } from '../kernels/reference/w8a8.js';
 import { validateManifest } from '../../src/formats/rdrr/validation.js';
-import { W8A8_POLICY, validateW8A8Policy } from '../../src/config/schema/w8a8.schema.js';
+import { W8A8_POLICY, validateW8A8Policy } from "../../src/config/schema/manifest/w8a8.schema.js";
 import { quantizeToW8A8Rows, roundW8A8Code } from '../../src/converter/w8a8-quantizer.js';
 import { validateW8A8StorageBytes } from '../../src/formats/rdrr/w8a8-storage.js';
 import { transformTensorBytes } from '../../src/converter/tensor-transform.js';

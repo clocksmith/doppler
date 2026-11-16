@@ -1,5 +1,5 @@
-import type { DopplerConfigSchema } from './schema/doppler.schema.js';
-import type { TrainingSettingsSchema } from './schema/training.schema.js';
+import type { DopplerConfigSchema } from "./schema/runtime/doppler.schema.js";
+import type { TrainingSettingsSchema } from "./schema/training/training.schema.js";
 
 export interface TrainingConfigSchema extends DopplerConfigSchema {
   training: TrainingSettingsSchema;

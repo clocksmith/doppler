@@ -1,4 +1,4 @@
-import { validateQwen35RoutedConfig } from '../../config/schema/loading.schema.js';
+import { validateQwen35RoutedConfig } from "../../config/schema/runtime/loading.schema.js";
 import { createWeightBuffer } from '../../gpu/weight-buffer.js';
 import { readRoutedExpertRange } from './routed-expert-source.js';
 

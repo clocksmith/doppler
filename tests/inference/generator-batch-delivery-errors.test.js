@@ -4,7 +4,7 @@ import { createDopplerConfig } from '../../src/config/schema/index.js';
 import { setDevice } from '../../src/gpu/device.js';
 
 installNodeFileFetchShim();
-const { _runDecodeLoop } = await import('../../src/inference/pipelines/text/generator/decode-runtime.js');
+const { _runDecodeLoop } = await import("../../src/inference/pipelines/text/generator/decode/decode-runtime.js");
 setDevice({ features: new Set(), limits: { maxStorageBufferBindingSize: 1048576,
   maxBufferSize: 1048576, maxComputeInvocationsPerWorkgroup: 256, maxComputeWorkgroupStorageSize: 16384 },
 queue: { submit() {} }, createBuffer() { return { destroy() {} }; }, createBindGroup() { return {}; } }, { platformConfig: null });

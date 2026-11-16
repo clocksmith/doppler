@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 
 import { buildMergeContractArtifact } from '../../src/config/merge-contract-check.js';
-import { createDopplerConfig } from '../../src/config/schema/doppler.schema.js';
+import { createDopplerConfig } from "../../src/config/schema/runtime/doppler.schema.js";
 
 const artifact = buildMergeContractArtifact();
 

@@ -1,7 +1,7 @@
 import { getDevice } from '../../gpu/device.js';
 import { createWeightBuffer } from '../../gpu/weight-buffer.js';
 import { releaseBuffer } from '../../memory/buffer-pool.js';
-import { validateFP8Policy } from '../../config/schema/fp8.schema.js';
+import { validateFP8Policy } from "../../config/schema/manifest/fp8.schema.js";
 import { validateFP8GPUStorageBytes } from '../../formats/rdrr/fp8-storage.js';
 import { acquireAlignedBuffer, writeBufferAligned } from './load-executor.js';
 

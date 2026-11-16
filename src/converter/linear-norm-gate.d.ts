@@ -1,4 +1,4 @@
-import type { LinearNormGateActivation } from '../config/schema/inference.schema.js';
+import type { LinearNormGateActivation } from "../config/schema/execution/inference.schema.js";
 
 /** Lowercased source `model_type`, top-level first, then `text_config`. */
 export declare function normalizeSourceModelFamily(rawConfig: Record<string, unknown> | null | undefined): string;

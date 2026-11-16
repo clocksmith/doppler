@@ -10,7 +10,7 @@
 import type { Tensor } from '../tensor.js';
 import type { CommandRecorder } from '../command-recorder.js';
 import type { OutputBufferOptions } from './types.js';
-import type { ExecutionV1PoliciesSchema } from '../../config/schema/execution-v1.schema.js';
+import type { ExecutionV1PoliciesSchema } from "../../config/schema/execution/execution-v1.schema.js";
 
 /** RoPE kernel options */
 export interface RoPEOptions extends OutputBufferOptions {

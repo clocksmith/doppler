@@ -8,7 +8,7 @@ import { runDenseFFNGPU } from '../../src/inference/pipelines/text/ffn/dense.js'
 import { createTensor } from '../../src/gpu/tensor.js';
 import { createCommandRecorder } from '../../src/gpu/command-recorder.js';
 import { channelEnergy, deriveChannelGains, channelGainSwiGLU, controlChannelGains } from '../../src/gpu/kernels/channel-gain.js';
-import { createChannelGainRequest, freezeChannelGains } from '../../src/inference/pipelines/text/channel-gain.js';
+import { createChannelGainRequest, freezeChannelGains } from "../../src/inference/pipelines/text/generator/activation/channel-gain.js";
 
 const began = performance.now();
 const probe = await probeNodeGPU({ installFileFetchShim: true });

@@ -7,7 +7,7 @@ import { resolveRuntimeConfig } from '../../src/config/runtime.js';
 import { stripLegacyRuntimeIntent } from '../../src/tooling/runtime-intent.js';
 import { mergeRuntimeValues } from '../../src/config/runtime-merge.js';
 import { readFile } from 'node:fs/promises';
-import { compileExecutionV1 } from '../../src/inference/pipelines/text/execution-v1.js';
+import { compileExecutionV1 } from "../../src/inference/pipelines/text/execution/execution-v1.js";
 import { getLayerSteps } from '../../src/config/kernel-path-loader.js';
 import { getKernelConfig } from '../../src/gpu/kernels/kernel-configs.js';
 

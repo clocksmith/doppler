@@ -13,7 +13,7 @@ export function requireNormGateActivation(value, label) {
       `(${NORM_GATE_ACTIVATIONS.join(' | ')}); got ${JSON.stringify(value)}.`
     );
   }
-  return /** @type {import('../../config/schema/inference.schema.js').LinearNormGateActivation} */ (value);
+  return /** @type {import("../../config/schema/execution/inference.schema.js").LinearNormGateActivation} */ (value);
 }
 
 /**

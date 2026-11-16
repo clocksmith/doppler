@@ -10,12 +10,12 @@ import {
   getActiveKernelPathSource,
   getActiveKernelPathPolicy,
 } from '../config/kernel-path-loader.js';
-import { validateTrainingMetricsReport } from '../config/schema/training-metrics.schema.js';
+import { validateTrainingMetricsReport } from "../config/schema/training/training-metrics.schema.js";
 import {
   modelSupportsEmbedding,
   modelSupportsRerank,
   modelSupportsSequence,
-} from '../config/schema/manifest.schema.js';
+} from "../config/schema/manifest/manifest.schema.js";
 import {
   resolveRuntime,
   loadRuntimeConfigFromUrl,

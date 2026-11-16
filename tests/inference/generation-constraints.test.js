@@ -3,8 +3,8 @@ import { installNodeFileFetchShim } from '../../src/tooling/node-file-fetch.js';
 import { createDopplerConfig } from '../../src/config/schema/index.js';
 
 installNodeFileFetchShim();
-const { PipelineGenerator } = await import('../../src/inference/pipelines/text/generator.js');
-const { resolveGenerateOptions } = await import('../../src/inference/pipelines/text/generator-runtime.js');
+const { PipelineGenerator } = await import("../../src/inference/pipelines/text/generator/generator.js");
+const { resolveGenerateOptions } = await import("../../src/inference/pipelines/text/generator/session/generator-runtime.js");
 
 const state = {
   debug: false, modelConfig: { vocabSize: 3, chatTemplateEnabled: false },
@@ -36,7 +36,7 @@ console.log('generation-constraints.test: ok');
 // Exercise the real decode dispatcher with a batch-capable GPU test double.
 // A constraint must visit every sampled token, even when batching is enabled.
 const { setDevice } = await import('../../src/gpu/device.js');
-const { _runDecodeLoop } = await import('../../src/inference/pipelines/text/generator/decode-runtime.js');
+const { _runDecodeLoop } = await import("../../src/inference/pipelines/text/generator/decode/decode-runtime.js");
 setDevice({ features: new Set(), limits: { maxStorageBufferBindingSize: 1048576,
   maxBufferSize: 1048576, maxComputeInvocationsPerWorkgroup: 256, maxComputeWorkgroupStorageSize: 16384 },
 queue: { submit() {} }, createBuffer() { return { destroy() {} }; }, createBindGroup() { return {}; } }, { platformConfig: null });

@@ -1,4 +1,4 @@
-import { validateW8A8Policy } from '../config/schema/w8a8.schema.js';
+import { validateW8A8Policy } from "../config/schema/manifest/w8a8.schema.js";
 import { createW8A8StorageDescriptor } from '../formats/rdrr/w8a8-storage.js';
 
 // All operands are F32 dyadics. Multiplication by a half-integer <=126.5
@@ -21,7 +21,7 @@ export function roundW8A8Code(value, scale) {
   return value < 0 ? -lower : lower;
 }
 
-/** @param {Float32Array} values @param {number[]} shape @param {import('../config/schema/w8a8.schema.js').W8A8Policy} policy */
+/** @param {Float32Array} values @param {number[]} shape @param {import("../config/schema/manifest/w8a8.schema.js").W8A8Policy} policy */
 export function quantizeToW8A8Rows(values, shape, policy) {
   validateW8A8Policy(policy);
   if (!(values instanceof Float32Array) || !Array.isArray(shape) || shape.length !== 2

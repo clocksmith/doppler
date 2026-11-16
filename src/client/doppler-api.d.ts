@@ -1,4 +1,4 @@
-import type { ChatMessage } from '../inference/pipelines/text/chat-format.js';
+import type { ChatMessage } from "../inference/pipelines/text/generator/request/chat-format.js";
 import type { GenerateOptions } from '../generation/index.js';
 import type {
   LogitsStepResult,
@@ -21,7 +21,7 @@ import type {
   DopplerCapsuleOpenOptions,
   LoRAManifest,
 } from './runtime/index.js';
-import type { DopplerCapsule } from '../config/capsule.js';
+import type { DopplerCapsule } from "../config/capsule/capsule.js";
 import type { DopplerRuntimeSession } from './runtime/composition-root.js';
 import type {
   DopplerSignedRevocationAuthorityOptions,

@@ -1,6 +1,6 @@
 import type { ConvertResult, ConvertProgress } from '../converter/core.js';
-import type { ConverterConfigSchema, ConverterExecutionConfigSchema } from '../config/schema/converter.schema.js';
-import type { ConversionReportSchema } from '../config/schema/conversion-report.schema.js';
+import type { ConverterConfigSchema, ConverterExecutionConfigSchema } from "../config/schema/manifest/converter.schema.js";
+import type { ConversionReportSchema } from "../config/schema/manifest/conversion-report.schema.js";
 import type { SavedReportInfo } from '../storage/reports.js';
 
 export interface NodeConvertOptions {

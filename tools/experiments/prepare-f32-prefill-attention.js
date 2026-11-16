@@ -8,9 +8,9 @@ import { createHash } from 'node:crypto';
 import { parseManifest } from '../../src/formats/rdrr/index.js';
 import { fetchManifestPayloadFromBaseUrl } from '../../src/client/runtime/model-source.js';
 import { resolveRuntimeConfig } from '../../src/config/runtime.js';
-import { compileExecutionV1 } from '../../src/inference/pipelines/text/execution-v1.js';
+import { compileExecutionV1 } from "../../src/inference/pipelines/text/execution/execution-v1.js";
 import { applyExecutionPatch } from '../../src/inference/pipelines/text/execution-v1/validation.js';
-import { expandExecutionV1 } from '../../src/config/schema/execution-v1.schema.js';
+import { expandExecutionV1 } from "../../src/config/schema/execution/execution-v1.schema.js";
 import { getKernelPathAttentionVariant, getLayerSteps } from '../../src/config/kernel-path-loader.js';
 import { KERNEL_REF_CONTENT_DIGESTS } from '../../src/config/kernels/kernel-ref-digests.js';
 

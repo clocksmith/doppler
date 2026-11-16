@@ -5,8 +5,9 @@ import { decodeReadback } from '../../src/inference/pipelines/text/debug-utils/r
 
 // Import-only executor substitutions exercise the real generation orchestrators.
 // No GPU computation, shader accuracy or whole-model acceptance is claimed.
-const prefillURL = new URL('../../src/inference/pipelines/text/generator/prefill-runtime.js', import.meta.url).href;
-const decodeURL = new URL('../../src/inference/pipelines/text/generator/decode.js', import.meta.url).href;
+const prefillURL = new URL("../../src/inference/pipelines/text/generator/prefill/prefill-runtime.js", import.meta.url).href;
+const prefillModules = [prefillURL, new URL('./prefill-execution.js', prefillURL).href, new URL('./prefill-sequence.js', prefillURL).href, new URL('./prefill-logits.js', prefillURL).href];
+const decodeURL = new URL("../../src/inference/pipelines/text/generator/decode/decode.js", import.meta.url).href;
 const decodeModules = [decodeURL, new URL('./decode-step.js', decodeURL).href, new URL('./decode-mechanics.js', decodeURL).href];
 const pair = { precision: 'two-f32', components: 2, elementStrideBytes: 8 };
 const probe = globalThis.generatorStorageProbe = {
@@ -39,34 +40,34 @@ const probe = globalThis.generatorStorageProbe = {
   },
 };
 const shared = {
-  '../../../../gpu/device.js': 'export const getDevice=()=>generatorStorageProbe.device; export const setTrackSubmits=()=>{};',
-  '../../../../memory/buffer-pool.js': `export const acquireBuffer=(...a)=>generatorStorageProbe.allocate(...a);
+  "../../../../../gpu/device.js": 'export const getDevice=()=>generatorStorageProbe.device; export const setTrackSubmits=()=>{};',
+  "../../../../../memory/buffer-pool.js": `export const acquireBuffer=(...a)=>generatorStorageProbe.allocate(...a);
     export const releaseBuffer=b=>generatorStorageProbe.release(b); export const discardBuffer=b=>generatorStorageProbe.release(b);
     export const readBuffer=(b,n)=>generatorStorageProbe.read(b,n);
     export const readBufferSlice=(b,o,n)=>generatorStorageProbe.read(b,n,o);
     export const getBufferPool=()=>({settleDeferredDestruction:async()=>{generatorStorageProbe.cleanup.push('settle');}}); export const uploadData=()=>{};`,
-  '../../../../gpu/command-recorder.js': `export const createCommandRecorder=()=>generatorStorageProbe.recorder;
+  "../../../../../gpu/command-recorder.js": `export const createCommandRecorder=()=>generatorStorageProbe.recorder;
     export const createProfilingRecorder=createCommandRecorder; export class CommandRecorder {}`,
-  '../../../../gpu/kernels/sample.js': `export const isGPUSamplingAvailable=()=>generatorStorageProbe.gpuSampling; export const recordArgmax=(r,b,n,o)=>generatorStorageProbe.sample(o); export const recordGPUSample=recordArgmax;`,
-  '../../../../gpu/kernels/rep-penalty.js': `export const recordHistoryPenalties=async()=>{if(generatorStorageProbe.failure==='penalty')throw Error('injected penalty');};`,
-  '../sampling.js': `export const sample=()=>{if(generatorStorageProbe.failure==='sampling')throw Error('injected sampling');return 2;}; export const applyRepetitionPenalty=()=>{}; export const applyPresencePenalty=()=>{}; export const logitsSanity=()=>{};`,
-  '../logits/index.js': `export const computeLogits=async()=>{if(generatorStorageProbe.failure==='logits')throw Error('injected logits');return new Float32Array(8);};
+  "../../../../../gpu/kernels/sample.js": `export const isGPUSamplingAvailable=()=>generatorStorageProbe.gpuSampling; export const recordArgmax=(r,b,n,o)=>generatorStorageProbe.sample(o); export const recordGPUSample=recordArgmax;`,
+  "../../../../../gpu/kernels/rep-penalty.js": `export const recordHistoryPenalties=async()=>{if(generatorStorageProbe.failure==='penalty')throw Error('injected penalty');};`,
+  "../sampling/sampling.js": `export const sample=()=>{if(generatorStorageProbe.failure==='sampling')throw Error('injected sampling');return 2;}; export const applyRepetitionPenalty=()=>{}; export const applyPresencePenalty=()=>{}; export const logitsSanity=()=>{};`,
+  "../../logits/index.js": `export const computeLogits=async()=>{if(generatorStorageProbe.failure==='logits')throw Error('injected logits');return new Float32Array(8);};
     export const computeLogitsGPU=async()=>({logitsBuffer:generatorStorageProbe.allocate(32),vocabSize:8,logitsDtype:'f32'}); export const recordLogitsGPU=computeLogitsGPU; export const extractLastPositionLogits=v=>v;`,
-  '../embed.js': 'export const embed=(...a)=>generatorStorageProbe.embed(...a);',
-  '../layer.js': `export const hasConvLayers=()=>false;
+  "../../embedding/embed.js": 'export const embed=(...a)=>generatorStorageProbe.embed(...a);',
+  "../../execution/layer.js": `export const hasConvLayers=()=>false;
     export const processLayer=async(l,b)=>{if(generatorStorageProbe.failure==='layer'||(l===1&&generatorStorageProbe.failure==='layer-second'))throw Error('injected layer');return generatorStorageProbe.replaceLayer?generatorStorageProbe.allocate(b.size):b;};`,
-  '../per-layer-inputs.js': `export const preparePerLayerInputs=async()=>{if(generatorStorageProbe.failure==='ple')throw Error('injected ple');return null;};
+  "../../per-layer/per-layer-inputs.js": `export const preparePerLayerInputs=async()=>{if(generatorStorageProbe.failure==='ple')throw Error('injected ple');return null;};
     export const prefetchPerLayerRow=()=>{};`,
   '../debug-utils/index.js': 'export const decodeReadback=(...a)=>generatorStorageProbe.decode(...a); export const getLogitsHealth=()=>({});',
 };
 const onlyPrefill = {
-  './session-context.js': 'export const buildLayerContext=()=>({useGPU:true}); export const debugCheckBuffer=()=>{};',
+  "../session/session-context.js": 'export const buildLayerContext=()=>({useGPU:true}); export const debugCheckBuffer=()=>{};',
   './prefill-observation.js': `export const snapshotPrefillPhase=(stats,phase)=>phase; export const logPrefillCacheState=()=>{}; export const tracePrefillEmbeddingIds=()=>{};
     export const probePrefillEmbedding=async name=>{if(generatorStorageProbe.failure===name)throw Error('injected '+name);};`,
 };
 const hooks = registerHooks({ resolve(specifier, context, next) {
-  const source = [prefillURL, ...decodeModules].includes(context.parentURL)
-    ? (context.parentURL === prefillURL ? onlyPrefill[specifier] : null) || shared[specifier] : null;
+  const source = [...prefillModules, ...decodeModules].includes(context.parentURL)
+    ? (prefillModules.includes(context.parentURL) ? onlyPrefill[specifier] : null) || shared[specifier] : null;
   if (source) return { url: 'data:text/javascript,' + encodeURIComponent(source), shortCircuit: true };
   return next(specifier, context);
 } });

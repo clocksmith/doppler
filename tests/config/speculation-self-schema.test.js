@@ -3,7 +3,7 @@ import { describe, it } from 'node:test';
 import {
   DEFAULT_SELF_SPECULATION_CONFIG,
   validateSelfSpeculationConfig,
-} from '../../src/config/schema/speculation-self.schema.js';
+} from "../../src/config/schema/execution/speculation-self.schema.js";
 
 describe('speculation-self schema', () => {
   it('has frozen defaults', () => {

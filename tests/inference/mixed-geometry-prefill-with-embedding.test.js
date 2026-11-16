@@ -21,8 +21,8 @@ const { destroyBufferPool, acquireBuffer, uploadData } = await import('../../src
 const { createDopplerConfig, DEFAULT_KVCACHE_CONFIG } = await import('../../src/config/schema/index.js');
 const { parseModelConfigFromManifest } = await import('../../src/inference/pipelines/text/config.js');
 const { createKVCache } = await import('../../src/inference/pipelines/text/init.js');
-const { PipelineGenerator } = await import('../../src/inference/pipelines/text/generator.js');
-const { compileExecutionPlanState } = await import('../../src/inference/pipelines/text/execution-plan.js');
+const { PipelineGenerator } = await import("../../src/inference/pipelines/text/generator/generator.js");
+const { compileExecutionPlanState } = await import("../../src/inference/pipelines/text/execution/execution-plan.js");
 const { MixedGeometryKVCache } = await import('../../src/inference/kv-cache/mixed-geometry.js');
 import { createExecutionV1Session } from '../helpers/execution-v1-fixtures.js';
 

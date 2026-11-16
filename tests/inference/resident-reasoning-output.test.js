@@ -8,10 +8,10 @@ import { computeCanonicalSha256 } from '../../src/formats/canonical-hash.js';
 // Only numeric/GPU owners are stubs. Real resident admission, decoder, limits,
 // continuation and attempt settlement execute together.
 const fixture = globalThis.residentReasoningFixture = { token: 0, released: 0, closed: 0 };
-const residentURL = new URL('../../src/inference/pipelines/text/resident-partition.js', import.meta.url).href;
+const residentURL = new URL("../../src/inference/pipelines/text/partitions/resident-partition.js", import.meta.url).href;
 const modules = {
-  '../shader-scoped-pipeline.js': 'export const runPipelineOperation = async (owner, operation) => operation(owner);',
-  '../../../memory/buffer-pool.js': `export const readBuffer = async () => {
+  "../../shader-scoped-pipeline.js": 'export const runPipelineOperation = async (owner, operation) => operation(owner);',
+  "../../../../memory/buffer-pool.js": `export const readBuffer = async () => {
     const scores = new Float32Array(6).fill(-100); scores[globalThis.residentReasoningFixture.token] = 100;
     return scores.buffer;
   }; export const releaseBuffer = () => { globalThis.residentReasoningFixture.released++; };`,

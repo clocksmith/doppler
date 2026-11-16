@@ -8,12 +8,12 @@ import { probeNodeGPU } from '../helpers/gpu-probe.js';
 import { createPipeline } from '../../src/inference/pipelines/text.js';
 import { createNodeFileArtifactStorageContext } from '../../src/storage/artifact-storage-context.js';
 import { runPipelineOperation } from '../../src/inference/pipelines/shader-scoped-pipeline.js';
-import { createLayerPartitionPlan, comparePartitionExecution } from '../../src/inference/pipelines/text/layer-partition-contract.js';
-import { assertPartitionExecutionSupported, executePartitionLayers } from '../../src/inference/pipelines/text/partition-execution.js';
+import { createLayerPartitionPlan, comparePartitionExecution } from "../../src/inference/pipelines/text/execution/layer-partition-contract.js";
+import { assertPartitionExecutionSupported, executePartitionLayers } from "../../src/inference/pipelines/text/partitions/partition-execution.js";
 import { readBuffer, releaseBuffer, isBufferActive } from '../../src/memory/buffer-pool.js';
 import { destroyDevice, getDevice, getKernelCapabilities } from '../../src/gpu/device.js';
 import { releaseNodeWebGPU } from '../../src/tooling/node-webgpu.js';
-import { hasLinearAttentionLayers } from '../../src/inference/pipelines/text/linear-attention.js';
+import { hasLinearAttentionLayers } from "../../src/inference/pipelines/text/linear-attention/linear-attention.js";
 
 const modelDirectory = process.env.DOPPLER_PARTITION_MODEL_DIR;
 if (!modelDirectory) {

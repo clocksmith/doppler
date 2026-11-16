@@ -9,7 +9,7 @@ import { promisify } from 'node:util';
 import { fileURLToPath } from 'node:url';
 import { parseManifest } from '../../src/formats/rdrr/index.js';
 import { resolveRuntimeConfig } from '../../src/config/runtime.js';
-import { applyExecutionV1RuntimeConfig, compileExecutionV1 } from '../../src/inference/pipelines/text/execution-v1.js';
+import { applyExecutionV1RuntimeConfig, compileExecutionV1 } from "../../src/inference/pipelines/text/execution/execution-v1.js";
 import { getKernelPathAttentionVariant } from '../../src/config/kernel-path-loader.js';
 
 const execute = promisify(execFile);

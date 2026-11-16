@@ -27,7 +27,7 @@ export declare const UNDECLARED_PAIRED_QK_NORM_VARIANT: 'paired';
  * path, and fails closed unless the registry declares a paired program.
  */
 export declare function resolvePairedQKNormVariant(op: 'q_norm' | 'k_norm', phase: 'prefill' | 'decode',
-  layerIdx: number, kernelPath: import('../../config/schema/kernel-path.schema.js').KernelPathSchema | null | undefined): string;
+  layerIdx: number, kernelPath: import("../../config/schema/execution/kernel-path.schema.js").KernelPathSchema | null | undefined): string;
 /** Resolve the pipeline executePairedRMSNorm dispatches; it does not depend on token or hidden counts. */
 export declare function resolvePairedRMSNormPipeline(weightDtype: string | null | undefined,
   fusion: PairedRMSNormFusion, variant: string): KernelPipelineRequest;

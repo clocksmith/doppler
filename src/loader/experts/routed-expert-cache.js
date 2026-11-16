@@ -2,7 +2,7 @@ import { ExpertFrequencyIndex } from './expert-frequency-index.js';
 import { getRuntimeConfig } from '../../config/runtime.js';
 import { CompactExpertCache } from './compact-expert-cache.js';
 import { createWeightBuffer } from '../../gpu/weight-buffer.js';
-import { validateQwen35RoutedConfig } from '../../config/schema/loading.schema.js';
+import { validateQwen35RoutedConfig } from "../../config/schema/runtime/loading.schema.js";
 import { createRoutedExpertCounters, readRoutedExpertRange } from './routed-expert-source.js';
 
 // The cache owns individual expert payloads. One reusable logical bank preserves

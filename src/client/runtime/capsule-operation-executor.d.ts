@@ -1,5 +1,5 @@
 import type { CapsuleAdapterArtifactStore, PreparedCapsuleAdapterExecution } from './capsule-adapter-execution.js';
-import type { CapsuleOperationRequest } from '../../config/capsule-operation.js';
+import type { CapsuleOperationRequest } from "../../config/capsule/capsule-operation.js";
 import type { CapsuleOperationAdapter } from './capsule-operation-adapters.js';
 export interface CapsuleOperationEvent {
   schema: 'doppler.capsule-operation-event/v1' | 'doppler.capsule-operation-event/v2';

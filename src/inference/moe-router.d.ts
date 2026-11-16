@@ -41,7 +41,7 @@ interface GpuContext {
 }
 
 interface RouterLogitsOptions {
-  kernelPath?: import('../config/schema/kernel-path.schema.js').KernelPathSchema | null;
+  kernelPath?: import("../config/schema/execution/kernel-path.schema.js").KernelPathSchema | null;
   phase?: 'prefill' | 'decode';
   layerIdx?: number;
   outputBuffer?: GPUBuffer | null;

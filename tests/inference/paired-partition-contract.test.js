@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { createLayerPartitionPlan, hashLayerPartitionPlan, resolveLayerPartition, serializeActivationFrame,
- deserializeActivationFrame, validateActivationTensorShape, getPartitionActivationContract, validateActivationFrameForPlan } from '../../src/inference/pipelines/text/layer-partition-contract.js';
+ deserializeActivationFrame, validateActivationTensorShape, getPartitionActivationContract, validateActivationFrameForPlan } from "../../src/inference/pipelines/text/execution/layer-partition-contract.js";
 const dimensions={modelId:'paired-fixture',numLayers:24,hiddenSize:1024,vocabSize:10};
 const scalar=createLayerPartitionPlan(dimensions);
 assert.equal(hashLayerPartitionPlan(scalar),'sha256:b6985918551275cd4f11f9cf7134cc4c5fbef5a10c2224e64bda607e782ebb4c');

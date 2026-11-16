@@ -1,4 +1,4 @@
-import type { DopplerCapsule } from '../../config/capsule.js';
+import type { DopplerCapsule } from "../../config/capsule/capsule.js";
 import type { TargetPlan } from '../../config/target-plan.js';
 import type { InitialExecutionIdentity } from '../../config/initial-execution-identity.js';
 import type { DopplerModelHandle } from './model-session.js';
@@ -6,7 +6,7 @@ import type { CapsuleRerankRequest } from './capsule-rerank.js';
 import type { LoRAWeightLayoutName } from '../../config/lora-layouts.js';
 
 export interface CapsuleProgramAdapter {
-  residentPartition?: import('../../inference/pipelines/text/resident-partition-contract.js').ResidentPartitionSession;
+  residentPartition?: import("../../inference/pipelines/text/partitions/resident-partition-contract.js").ResidentPartitionSession;
   executionGraphHash: string;
   getActiveAdapterIdentity(): Readonly<Record<string, unknown>> | null;
   loadAdapter(manifest: Record<string, unknown>, control: { bytes: Uint8Array; signal: AbortSignal; weightsLayout: LoRAWeightLayoutName }): Promise<void>;

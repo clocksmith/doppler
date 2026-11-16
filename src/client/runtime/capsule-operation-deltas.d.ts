@@ -2,4 +2,4 @@ export type CapsuleOperationDelta = { tokenIds: number[]; text: string } | { ite
 export function createCapsuleDeltaBudget(request: CapsuleOperationRequest): {
   accept(value: unknown): CapsuleOperationDelta;
 };
-import type { CapsuleOperationRequest } from '../../config/capsule-operation.js';
+import type { CapsuleOperationRequest } from "../../config/capsule/capsule-operation.js";

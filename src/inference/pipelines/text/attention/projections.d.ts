@@ -3,7 +3,7 @@ import type { Tensor } from '../../../../gpu/tensor.js';
 import type { WeightBuffer, CpuWeightBuffer } from '../../../../gpu/weight-buffer.js';
 import type { LayerWeights } from '../types.js';
 import type { LoRAAdapter } from '../lora.js';
-import type { MatmulDebugConfigSchema } from '../../../../config/schema/debug.schema.js';
+import type { MatmulDebugConfigSchema } from "../../../../config/schema/runtime/debug.schema.js";
 
 export interface AttentionInputInfo {
   phase: 'prefill' | 'decode';
@@ -203,7 +203,7 @@ export interface ApplyAttentionQKNormOptions {
    * head-normalization programs, and the phase and layer they run in. Paired input must take the
    * per-head RMSNorm path; any other paired Q/K normalization fails closed.
    */
-  kernelPath?: import('../../../../config/schema/kernel-path.schema.js').KernelPathSchema | null;
+  kernelPath?: import("../../../../config/schema/execution/kernel-path.schema.js").KernelPathSchema | null;
   phase?: 'prefill' | 'decode';
   layerIdx?: number;
 }

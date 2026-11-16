@@ -8,7 +8,7 @@ import { fileURLToPath } from 'node:url';
 import {
   SUPPORT_TIERS,
   validateSupportTierRegistry,
-} from '../src/config/schema/support-tiers.schema.js';
+} from "../src/config/schema/policy/support-tiers.schema.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);

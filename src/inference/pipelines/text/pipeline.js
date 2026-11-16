@@ -11,14 +11,14 @@ import { applyPipelineContexts, restorePipelineContexts } from '../context.js';
 import { createInitializedPipeline } from '../factory.js';
 
 import { computeLogits } from './logits/index.js';
-import { getLogitsConfig, getLogitsWeights } from './generator/logits-config.js';
+import { getLogitsConfig, getLogitsWeights } from "./logits/logits-config.js";
 const researchRequestOwners = new WeakMap();
 
 // Pipeline sub-modules
-import { createChannelGainRequest, assertChannelGainIdle, withChannelGainOperation } from './channel-gain.js';
+import { createChannelGainRequest, assertChannelGainIdle, withChannelGainOperation } from "./generator/activation/channel-gain.js";
 import { PipelineState } from './state.js';
-import { PipelineGenerator } from './generator.js';
-import { createGenerationContext, closeGenerationContexts, supportsGenerationContext } from './sequence-state.js';
+import { PipelineGenerator } from "./generator/generator.js";
+import { createGenerationContext, closeGenerationContexts, supportsGenerationContext } from "./generator/session/sequence-state.js";
 import { parseModelConfig } from './config.js';
 import {
   initRoPEFrequencies,
@@ -30,21 +30,21 @@ import {
   initEmulation,
   destroyEmulation,
 } from './init.js';
-import { formatChatMessages } from './chat-format.js';
+import { formatChatMessages } from "./generator/request/chat-format.js";
 import {
   runKernelWarmup,
   applyModelBatchingRuntimeDefaults,
   resolveKernelPathState,
   initTokenizerFromManifest,
   assertManifestComputeLaneBinding,
-} from './model-load.js';
-import { resolvePerLayerInputsSession } from './generator/session-context.js';
+} from "./loading/model-load.js";
+import { resolvePerLayerInputsSession } from "./generator/session/session-context.js";
 import { getKernelPathActivationDtype } from '../../../config/kernel-path-loader.js';
 import { applyPipelineDebugConfig } from './debug-utils/config.js';
-import { resolveLayerPipeline } from './layer-plan.js';
-import { compileExecutionPlanState, resolveActiveExecutionPlan } from './execution-plan.js';
-import { assertDtypeConsistency } from './dtype-contract.js';
-import { applyExecutionV1RuntimeConfig, hasExecutionV1 } from './execution-v1.js';
+import { resolveLayerPipeline } from "./execution/layer-plan.js";
+import { compileExecutionPlanState, resolveActiveExecutionPlan } from "./execution/execution-plan.js";
+import { assertDtypeConsistency } from "./policy/dtype-contract.js";
+import { applyExecutionV1RuntimeConfig, hasExecutionV1 } from "./execution/execution-v1.js";
 import { getPlatform } from '../../../config/platforms/loader.js';
 import {
   createLinearAttentionRuntime,
@@ -52,17 +52,17 @@ import {
   resetLinearAttentionRuntime,
   resetLinearAttentionSequence,
   restoreLinearAttentionRuntime,
-} from './linear-attention.js';
+} from "./linear-attention/linear-attention.js";
 import { createObservationContext } from '../../observation-context.js';
-import { createResolvedRuntimeSession } from './resolved-runtime-session.js';
+import { createResolvedRuntimeSession } from "./configuration/resolved-runtime-session.js";
 import { assertBundledAdapterAuthorized } from '../../../config/revocation-policy.js';
-import { assertNotAborted } from './abort-contract.js';
-export { AbortError, isAbortError } from './abort-contract.js';
-import { destroyMoERouter } from './pipeline-load-timing.js';
-import { releaseRoPEFrequencies } from './init-rope.js';
+import { assertNotAborted } from "./contracts/abort-contract.js";
+export { AbortError, isAbortError } from "./contracts/abort-contract.js";
+import { destroyMoERouter } from "./loading/pipeline-load-timing.js";
+import { releaseRoPEFrequencies } from "./initialization/init-rope.js";
 export { buildConservativeMultimodalGenerationOptions } from './modality-token-contract.js';
-import { initConvLayerState } from './ops.js';
-import { destroyPleBufferCache, destroyPleRuntimeCache } from './per-layer-inputs.js';
+import { initConvLayerState } from "./execution/ops.js";
+import { destroyPleBufferCache, destroyPleRuntimeCache } from "./per-layer/per-layer-inputs.js";
 import {
   initialize as initializeImpl,
   loadModel as loadModelImpl,
@@ -82,8 +82,8 @@ import {
   encodeSequence as encodeSequenceImpl,
   embedImage as embedImageImpl,
   embedAudio as embedAudioImpl,
-} from './execution.js';
-import { transcribeImage as transcribeImageImpl } from './image-transcription.js';
+} from "./operations/execution.js";
+import { transcribeImage as transcribeImageImpl } from "./operations/image-transcription.js";
 
 // ============================================================================
 // Main Inference Pipeline Class

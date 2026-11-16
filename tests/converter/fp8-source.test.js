@@ -6,11 +6,11 @@ import { float8ToFloat32 } from '../../src/formats/float8.js';
 import { packFP8Source, materializeFP8Source, prepareFP8SourceTensors, readFP8CompanionScales } from '../../src/converter/fp8-source.js';
 import { transformTensorBytes } from '../../src/converter/tensor-transform.js';
 import { buildQuantizationInfo } from '../../src/converter/quantization-info.js';
-import { validateFP8Policy } from '../../src/config/schema/fp8.schema.js';
+import { validateFP8Policy } from "../../src/config/schema/manifest/fp8.schema.js";
 import { validateFP8ManifestContract } from '../../src/formats/rdrr/fp8-contract.js';
 import { validateFP8StorageBytes } from '../../src/formats/rdrr/fp8-storage.js';
 import { normalizeTensorStorageDescriptor } from '../../src/formats/rdrr/storage-descriptor.js';
-import { createConverterConfig } from '../../src/config/schema/converter.schema.js';
+import { createConverterConfig } from "../../src/config/schema/manifest/converter.schema.js";
 import { DEFAULT_MANIFEST_INFERENCE } from '../../src/config/schema/index.js';
 
 installNodeFileFetchShim();

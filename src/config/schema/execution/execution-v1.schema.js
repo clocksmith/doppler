@@ -1,0 +1,324 @@
+import { log } from "../../../debug/index.js";
+import { assertExecutionMechanismClosure } from "../../execution-registry-contract.js";
+
+// =============================================================================
+// Execution v1 Schema
+// =============================================================================
+
+export const EXECUTION_V1_SCHEMA_ID = 'doppler.execution/v1';
+
+const DIGEST_PATTERN = /^sha256:[0-9a-f]{64}$/;
+const EXECUTION_V1_DTYPE_SET = new Set(['f16', 'f32']);
+
+export const DEFAULT_EXECUTION_V1_COMPUTE_DEFAULTS = {
+  activationDtype: 'f16',
+  mathDtype: 'f16',
+  accumDtype: 'f32',
+  outputDtype: 'f16',
+};
+
+export const READBACK_MODES = Object.freeze(['sequential', 'overlapped', 'auto']);
+export const PREFILL_CHUNK_SUBMIT_MODES = Object.freeze(['sync', 'async']);
+export const PER_LAYER_INPUT_MATERIALIZATION_MODES = Object.freeze([
+  'auto',
+  'range_backed',
+  'cpu_resident',
+  'gpu_resident',
+  'gpu_split_tables',
+]);
+export const PER_LAYER_INPUT_ROW_CACHE_MODES = Object.freeze(['off', 'lru']);
+export const PER_LAYER_INPUT_PREFETCH_MODES = Object.freeze(['off', 'next_token']);
+export const PER_LAYER_INPUT_GPU_UPLOAD_MODES = Object.freeze([
+  'per_step_slices',
+  'per_batch_slices',
+]);
+export const PER_LAYER_INPUT_HOT_CACHE_MODES = Object.freeze([
+  'off',
+  'prepared_tokens',
+  'tokenizer_scores',
+]);
+
+const DEFAULT_EXECUTION_V1_PER_LAYER_INPUTS_SESSION = {
+  materialization: 'auto',
+  rowCache: {
+    mode: 'lru',
+    maxRows: 256,
+    maxBytes: 134217728,
+    decodedDtype: 'f32',
+  },
+  prefetch: {
+    mode: 'next_token',
+    rowsAhead: 1,
+  },
+  gpuUpload: {
+    mode: 'per_step_slices',
+    stagingRows: 2,
+  },
+  hotCache: {
+    mode: 'prepared_tokens',
+    maxTokens: 1024,
+    maxBytes: 134217728,
+    outputDtype: 'f32',
+  },
+};
+
+export const DEFAULT_EXECUTION_V1_SESSION = {
+  compute: {
+    defaults: { ...DEFAULT_EXECUTION_V1_COMPUTE_DEFAULTS },
+  },
+  kvcache: null,
+  decodeLoop: null,
+  perLayerInputs: { ...DEFAULT_EXECUTION_V1_PER_LAYER_INPUTS_SESSION },
+  ngramEmbedding: null,
+  speculation: null,
+  prefillChunkSubmitMode: 'sync',
+  prefillTokenChunkSize: null,
+  skipEmbeddingKVCacheWrites: false,
+  useFlashPrefillAttention: false,
+  useLargeBatchF16F32FusedGateUp: false,
+  useWideTileQ4KPrefill: false,
+  useWideTileQ4KDecode: false,
+  useSandwichRMSNormPairFusion: false,
+  usePostFfnNextInputRMSNormPairFusion: false,
+  usePostAttnNormFusedGateUp: false,
+  lmHeadArgmaxQ4K: null,
+  attentionDecodeOnline: null,
+  useLinearAttentionABProjectionFusion: false,
+  useLinearAttentionQKVZProjectionFusion: false,
+  useLinearAttentionFusedDecodeCore: false,
+  useLinearAttentionRegisterPrefill: false,
+  useLinearAttentionRegisterDecode: false,
+  linearRecurrentStatePrecision: 'f32',
+  intermediatePrecision: 'f32',
+  useWideTileResidualFusion: false,
+  useFusedRmsnormWideTile: false,
+  useFusedQKVSplitQKNorm: false,
+  useFusedQKVSplitQKNormRoPE: false,
+  retainQ4KMaterialization: false,
+  useF32AccumF16ioMatmul: false,
+  useGreedyLmHeadArgmaxFusion: false,
+  usePreparedDecodeWorkspace: false,
+};
+
+export const DEFAULT_EXECUTION_V1_POLICIES = {
+  unsupportedPrecision: 'error',
+  dtypeTransition: 'require_cast_step',
+  unresolvedKernel: 'error',
+};
+
+export const DEFAULT_EXECUTION_V1_PATCH = {
+  addKernels: [],
+  set: [],
+  remove: [],
+  add: [],
+};
+
+export function isExecutionV1Digest(value) {
+  return typeof value === 'string' && DIGEST_PATTERN.test(value);
+}
+
+export function hasExecutionV1(inference) {
+  return inference?.schema === EXECUTION_V1_SCHEMA_ID;
+}
+
+
+function validateKernelMap(kernels, options = {}) {
+  const { skipDigestValidation = false } = options;
+  if (!kernels || typeof kernels !== 'object' || Array.isArray(kernels)) {
+    throw new Error('execution.kernels must be a non-null object.');
+  }
+  for (const [key, decl] of Object.entries(kernels)) {
+    if (!decl || typeof decl !== 'object') {
+      throw new Error(`execution.kernels["${key}"] must be an object.`);
+    }
+    if (typeof decl.kernel !== 'string' || !decl.kernel.trim()) {
+      throw new Error(`execution.kernels["${key}"].kernel must be a non-empty string.`);
+    }
+    if (typeof decl.entry !== 'string' || !decl.entry.trim()) {
+      throw new Error(`execution.kernels["${key}"].entry must be a non-empty string.`);
+    }
+    if (!skipDigestValidation && !isExecutionV1Digest(decl.digest)) {
+      throw new Error(`execution.kernels["${key}"].digest must match sha256:<64 hex chars>.`);
+    }
+    if (decl.constants != null && typeof decl.constants !== 'object') {
+      throw new Error(`execution.kernels["${key}"].constants must be an object or null.`);
+    }
+    if (decl.precision != null) {
+      if (typeof decl.precision !== 'object' || Array.isArray(decl.precision)) {
+        throw new Error(`execution.kernels["${key}"].precision must be an object or null.`);
+      }
+      for (const field of ['activationDtype', 'kvDtype', 'inputDtype', 'outputDtype']) {
+        const value = decl.precision[field];
+        if (value === undefined) continue;
+        const normalized = String(value).trim().toLowerCase();
+        if (!EXECUTION_V1_DTYPE_SET.has(normalized)) {
+          throw new Error(
+            `execution.kernels["${key}"].precision.${field} must be "f16" or "f32"; got "${value}".`
+          );
+        }
+      }
+    }
+  }
+}
+
+function validateMechanismKernels(mechanismKernels, kernels) {
+  if (mechanismKernels == null) return;
+  if (!Array.isArray(mechanismKernels) || mechanismKernels.length === 0) {
+    throw new Error('execution.mechanismKernels must be a non-empty kernel-key array when provided.');
+  }
+  const seen = new Set();
+  for (const [index, kernelKey] of mechanismKernels.entries()) {
+    if (typeof kernelKey !== 'string' || !kernelKey.trim()) {
+      throw new Error(`execution.mechanismKernels[${index}] must be a non-empty kernel key.`);
+    }
+    if (seen.has(kernelKey)) {
+      throw new Error(`execution.mechanismKernels contains duplicate kernel key "${kernelKey}".`);
+    }
+    resolveKernel(kernels, kernelKey, `execution.mechanismKernels[${index}]`);
+    seen.add(kernelKey);
+  }
+}
+
+
+function resolveKernel(kernels, kernelKey, context) {
+  const decl = kernels[kernelKey];
+  if (!decl) {
+    throw new Error(`${context}: kernel key "${kernelKey}" not found in execution.kernels.`);
+  }
+  return decl;
+}
+
+
+function expandTuple(tuple, kernels, phase, section, layers, context) {
+  if (!Array.isArray(tuple) || tuple.length < 2 || tuple.length > 3) {
+    throw new Error(`${context}: step must be [op, kernelKey] or [op, kernelKey, weights].`);
+  }
+  const [op, kernelKey, weights] = tuple;
+  if (typeof op !== 'string' || !op.trim()) {
+    throw new Error(`${context}: step op must be a non-empty string.`);
+  }
+  if (typeof kernelKey !== 'string' || !kernelKey.trim()) {
+    throw new Error(`${context}: step kernelKey must be a non-empty string.`);
+  }
+  if (weights !== undefined && typeof weights !== 'string') {
+    throw new Error(`${context}: step weights must be a string if provided.`);
+  }
+  const decl = resolveKernel(kernels, kernelKey, `${context}[${op}]`);
+  const precision = decl.precision ?? null;
+  const castDtypes = {};
+  if (op === 'cast') {
+    if (!precision?.inputDtype || !precision?.outputDtype) {
+      throw new Error(
+        `${context}[cast]: cast steps require kernel precision.inputDtype and precision.outputDtype.`
+      );
+    }
+    castDtypes.fromDtype = precision.inputDtype;
+    castDtypes.toDtype = precision.outputDtype;
+  }
+  return {
+    op,
+    src: 'state',
+    dst: 'state',
+    kernel: decl.kernel,
+    entry: decl.entry,
+    digest: decl.digest,
+    weights: weights ?? null,
+    constants: decl.constants ?? null,
+    ...(precision ? { precision } : {}),
+    ...castDtypes,
+    layers,
+    phase,
+    section,
+  };
+}
+
+function expandStepEntries(entries, kernels, phase, context) {
+  const expanded = [];
+  for (let i = 0; i < entries.length; i++) {
+    const entry = entries[i];
+    const entryCtx = `${context}[${i}]`;
+
+    if (Array.isArray(entry)) {
+      expanded.push(expandTuple(entry, kernels, phase, 'layer', 'all', entryCtx));
+    } else if (entry && typeof entry === 'object' && Array.isArray(entry.layers) && Array.isArray(entry.steps)) {
+      if (!entry.layers.every((l) => Number.isInteger(l) && l >= 0)) {
+        throw new Error(`${entryCtx}: layers must be an array of non-negative integers.`);
+      }
+      for (let j = 0; j < entry.steps.length; j++) {
+        expanded.push(expandTuple(entry.steps[j], kernels, phase, 'layer', entry.layers, `${entryCtx}.steps[${j}]`));
+      }
+    } else {
+      throw new Error(`${entryCtx}: must be a step tuple or a { layers, steps } group.`);
+    }
+  }
+  return expanded;
+}
+
+
+function expandBoundarySteps(entries, kernels, section, context) {
+  const expanded = [];
+  for (let i = 0; i < entries.length; i++) {
+    expanded.push(expandTuple(entries[i], kernels, 'both', section, 'all', `${context}[${i}]`));
+  }
+  return expanded;
+}
+
+
+export function expandExecutionV1(graph, options = {}) {
+  const { knownOps = null, strict = false, skipDigestValidation = false } = options;
+  if (!graph || typeof graph !== 'object') {
+    throw new Error('execution graph must be a non-null object.');
+  }
+  if (graph.inlineKernelPath !== undefined && typeof graph.inlineKernelPath !== 'boolean') {
+    throw new Error('execution.inlineKernelPath must be a boolean when provided.');
+  }
+
+  const kernels = graph.kernels;
+  validateKernelMap(kernels, { skipDigestValidation });
+  validateMechanismKernels(graph.mechanismKernels, kernels);
+
+  const MAX_STEPS_PER_SECTION = 200;
+
+  const preLayer = expandBoundarySteps(graph.preLayer ?? [], kernels, 'preLayer', 'execution.preLayer');
+  const decode = expandStepEntries(graph.decode ?? [], kernels, 'decode', 'execution.decode');
+  const prefill = expandStepEntries(graph.prefill ?? [], kernels, 'prefill', 'execution.prefill');
+  const postLayer = expandBoundarySteps(graph.postLayer ?? [], kernels, 'postLayer', 'execution.postLayer');
+
+  const sections = { preLayer, decode, prefill, postLayer };
+  for (const [name, steps] of Object.entries(sections)) {
+    if (steps.length > MAX_STEPS_PER_SECTION) {
+      log.warn(
+        'ExecutionV1',
+        `[ExecutionV1] Section "${name}" has ${steps.length} expanded steps ` +
+        `(max recommended: ${MAX_STEPS_PER_SECTION}). This may indicate a misconfigured execution graph.`
+      );
+    }
+  }
+
+  const allSteps = [...preLayer, ...decode, ...prefill, ...postLayer];
+  assertExecutionMechanismClosure(graph, allSteps);
+
+  if (knownOps) {
+    const unknownOps = [];
+    for (let i = 0; i < allSteps.length; i++) {
+      const step = allSteps[i];
+      if (!knownOps.has(step.op)) {
+        unknownOps.push({ op: step.op, index: i, section: step.section });
+      }
+    }
+    if (unknownOps.length > 0) {
+      const details = unknownOps
+        .map((u) => `"${u.op}" at step ${u.index} (${u.section})`)
+        .join(', ');
+      const message =
+        `[ExecutionV1] Expanded graph contains unknown ops: ${details}. ` +
+        `Known ops: ${[...knownOps].join(', ')}.`;
+      if (strict) {
+        throw new Error(message);
+      }
+      log.warn('ExecutionV1', message);
+    }
+  }
+
+  return allSteps;
+}

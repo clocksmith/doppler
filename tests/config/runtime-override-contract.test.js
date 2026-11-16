@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 
-import { createDopplerConfig } from '../../src/config/schema/doppler.schema.js';
+import { createDopplerConfig } from "../../src/config/schema/runtime/doppler.schema.js";
 import { mergeKernelPathPolicy } from '../../src/config/merge/kernel-path-policy.js';
 import { validateModelOverrides, validateRuntimeConfig } from '../../src/config/param-validator.js';
 import { getRuntimeConfig, setRuntimeConfig } from '../../src/config/runtime.js';

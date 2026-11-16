@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 
 const { setDevice } = await import('../../src/gpu/device.js');
 const { resolveWeightLoadingConfig } = await import(
-  '../../src/inference/pipelines/text/weight-loading-config.js'
+  "../../src/inference/pipelines/text/loading/weight-loading-config.js"
 );
 const { resolveQ4KConfig } = await import('../../src/inference/pipelines/text/init.js');
 const { selectRuleValue } = await import('../../src/rules/rule-registry.js');

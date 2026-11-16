@@ -3,7 +3,7 @@ import fs from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-import { compileExecutionV1 } from '../../src/inference/pipelines/text/execution-v1.js';
+import { compileExecutionV1 } from "../../src/inference/pipelines/text/execution/execution-v1.js";
 import { getLayerSteps } from '../../src/config/kernel-path-loader.js';
 
 const testDir = path.dirname(fileURLToPath(import.meta.url));

@@ -1,8 +1,8 @@
 import assert from 'node:assert/strict';
 import { registerHooks } from 'node:module';
-import { createOrderedLayerPartitionPlan, hashLayerPartitionPlan } from '../../src/inference/pipelines/text/layer-partition-contract.js';
+import { createOrderedLayerPartitionPlan, hashLayerPartitionPlan } from "../../src/inference/pipelines/text/execution/layer-partition-contract.js";
 import { hashPartitionGeneration } from '../../src/partitions.js';
-import { resolveResidentPartitionAllocation } from '../../src/inference/pipelines/text/resident-partition-contract.js';
+import { resolveResidentPartitionAllocation } from "../../src/inference/pipelines/text/partitions/resident-partition-contract.js";
 import { resolveGenerationOptions } from '../../src/config/generation-contract.js';
 import { computeCanonicalSha256 } from '../../src/formats/canonical-hash.js';
 import { createBundledIncrementalDecoder } from '../../src/inference/tokenizers/bundled/incremental-decoder.js';
@@ -28,13 +28,13 @@ globalThis.orderedResidentFixture = {
     return { logits: { logitsBuffer: logits, vocabSize: 16 }, timing: {} };
   },
 };
-const target = new URL('../../src/inference/pipelines/text/resident-partition.js', import.meta.url).href;
+const target = new URL("../../src/inference/pipelines/text/partitions/resident-partition.js", import.meta.url).href;
 const substitutions = {
   './partition-execution.js': 'export const assertPartitionExecutionSupported = () => {}; export const executePartitionLayers = (...args) => orderedResidentFixture.execute(...args);',
   './partition-attempt.js': 'export const createPartitionAttempt = owner => orderedResidentFixture.create(owner);',
   // Fixture owners load no model; real stage preparation is covered by resident-pipeline-preparation.test.js.
   './resident-pipeline-preparation.js': 'export const prepareResidentPartitionPipelines = async () => ({ schema: "doppler.resident-pipeline-preparation/v1", complete: true, count: 0, durationMs: 0, pipelines: [], lazy: [] });',
-  '../../../memory/buffer-pool.js': 'export const readBuffer = async row => row.buffer; export const releaseBuffer = () => {};',
+  "../../../../memory/buffer-pool.js": 'export const readBuffer = async row => row.buffer; export const releaseBuffer = () => {};',
 };
 const hooks = registerHooks({ resolve(name, context, next) {
   if (context.parentURL === target && substitutions[name]) return { url: 'data:text/javascript,' + encodeURIComponent(substitutions[name]), shortCircuit: true };

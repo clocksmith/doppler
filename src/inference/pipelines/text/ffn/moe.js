@@ -1,7 +1,7 @@
 import { resolveGroupedPrefill } from '../moe/grouped-prefill.js';
 
 
-import { releaseOrTrack } from '../ops.js';
+import { releaseOrTrack } from "../execution/ops.js";
 import { runQwenSharedExpert, resolveDeclaredTopK, resolveQwenNormRouter, resolveQwenSharedSlot, resolveQwenSharedSlotVariants } from './qwen-shared-expert.js';
 import { createTensor } from '../../../../gpu/tensor.js';
 

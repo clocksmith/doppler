@@ -1,7 +1,7 @@
 import { getDevice } from '../../gpu/device.js';
 import { isWeightBuffer, isGpuBufferInstance } from '../../gpu/weight-buffer.js';
 import { isBufferActive, releaseBuffer } from '../../memory/buffer-pool.js';
-import { validateQwen35PagerConfig } from '../../config/schema/loading.schema.js';
+import { validateQwen35PagerConfig } from "../../config/schema/runtime/loading.schema.js";
 
 /** @type {typeof import('./qwen-paging.js').prepareQwenExpertLayer} */
 export async function prepareQwenExpertLayer(context, layer, consumerExperts, policy, recorder, signal) {

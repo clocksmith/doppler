@@ -5,10 +5,10 @@ import { ORDERED_LAYER_PARTITION_SCHEMA } from '../../config/layer-partition-pla
 import { canonicalGenerationIdentity } from '../../config/canonical-generation-policy.js';
 import { getRequiredWgslFeatures, assertWgslFeaturesSupported } from '../../config/wgsl-language-contract.js';
 import { assertInitialExecutionIdentity } from '../../config/initial-execution-identity.js';
-import { freezeCapsuleV2, verifyCapsuleV2Artifacts } from '../../config/capsule-v2.js';
-import { verifyCapsuleMetadata } from '../../config/capsule.js';
+import { freezeCapsuleV2, verifyCapsuleV2Artifacts } from "../../config/capsule/capsule-v2.js";
+import { verifyCapsuleMetadata } from "../../config/capsule/capsule.js";
 import { computeCanonicalSha256 } from '../../formats/canonical-hash.js';
-import { hashCapsuleSequenceInput, hashCapsuleSequenceOutput } from '../../config/capsule-sequence-receipt.js';
+import { hashCapsuleSequenceInput, hashCapsuleSequenceOutput } from "../../config/capsule/capsule-sequence-receipt.js";
 import { createVerifiedCapsuleArtifactStore } from './verified-capsule-artifact-store.js';
 import { createResourceBinder, createDeviceAvailabilityCheck } from './resource-binder.js';
 import { createCommandExecutor } from './command-executor.js';
@@ -22,7 +22,7 @@ import { createCapsuleOperationExecutor } from './capsule-operation-executor.js'
 import { createCapsuleSessionExecution } from './capsule-session-execution.js';
 import { executeCapsuleForecast } from './capsule-forecast.js';
 import { executeCapsuleEmbedding } from './capsule-embedding.js';
-import { CapsuleReleaseStateError } from '../../config/capsule-release-events.js';
+import { CapsuleReleaseStateError } from "../../config/capsule/capsule-release-events.js";
 import { createCapsuleReleaseAuthorization } from './capsule-release-authorization.js';
 import { createCapsuleLoadScope, assertCapsuleLoadActive } from './capsule-acquisition.js';
 

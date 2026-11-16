@@ -4,14 +4,14 @@ export type { GenerationInput, GenerationOptions, ResolvedGenerationOptions, Gen
 export { createDopplerRun, createDopplerRuntime, createForecastProgramFactory, RUN_CORE_VERSION, RUNTIME_CORE_VERSION } from './client/runtime/composition-root.js';
 export { createFetchCapsuleArtifactStore } from './client/runtime/fetch-capsule-artifact-store.js';
 export { createCapsuleStreamAccumulator, capsuleOperationSnapshots } from './client/runtime/capsule-operation-stream.js';
-export type { CapsuleOperationRequest } from './config/capsule-operation.js';
+export type { CapsuleOperationRequest } from "./config/capsule/capsule-operation.js";
 export type { CapsuleOperationEvent } from './client/runtime/capsule-operation-executor.js';
 export type { ChoiceScoringRequest, ChoiceScoringResult } from './config/choice-scoring.js';
 export { CHOICE_SCORING_CONTRACT, snapshotChoiceScoringRequest, validateChoiceScoringResult } from './config/choice-scoring.js';
 export { resolveEmbeddingBatchSemantics } from './config/embedding-contract.js';
 export type { EmbeddingBatchSemantics } from './config/embedding-contract.js';
 
-import type { DopplerCapsule } from './config/capsule.js';
+import type { DopplerCapsule } from "./config/capsule/capsule.js";
 import type {
   DopplerRunSession,
   RunPorts,

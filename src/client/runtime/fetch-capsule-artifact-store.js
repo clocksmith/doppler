@@ -1,7 +1,7 @@
 import { hashBytesSha256 } from '../../formats/canonical-hash.js';
 import { assertCapsuleLoadActive, fetchCapsuleBytes, waitForCapsuleRead } from './capsule-acquisition.js';
 
-/** @param {string} baseUrl @param {import('../../config/capsule-v2.js').CapsuleV2Artifact} artifact */
+/** @param {string} baseUrl @param {import("../../config/capsule/capsule-v2.js").CapsuleV2Artifact} artifact */
 function resolveUrl(baseUrl, artifact) {
   return new URL(artifact.path, baseUrl).href;
 }

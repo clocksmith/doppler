@@ -56,8 +56,8 @@ Schema: `doppler.program-bundle/v1`
 
 Implementation:
 
-- schema and validator: `src/config/schema/program-bundle.schema.js`
-- generated JSON Schema: `src/config/schema/program-bundle.schema.json`
+- schema and validator: `src/config/schema/capsule/program-bundle.schema.js`
+- generated JSON Schema: `src/config/schema/capsule/program-bundle.schema.json`
 - Node exporter/checker API: `src/tooling/program-bundle.js`
 - CLI wrapper: `doppler program-bundle`
 - tools: `tools/export-program-bundle.js`, `tools/check-program-bundle.js`

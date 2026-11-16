@@ -6,7 +6,7 @@ installNodeFileFetchShim();
 const { createManifest } = await import('../../src/converter/core.js');
 const { DEFAULT_MANIFEST_INFERENCE } = await import('../../src/config/schema/index.js');
 const { convertModel } = await import('../../src/converter/core.js');
-const { createConverterConfig } = await import('../../src/config/schema/converter.schema.js');
+const { createConverterConfig } = await import("../../src/config/schema/manifest/converter.schema.js");
 import { createExecutionContractSession } from '../helpers/execution-v1-fixtures.js';
 
 const model = {

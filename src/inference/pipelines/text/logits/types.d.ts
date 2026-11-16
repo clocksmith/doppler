@@ -8,14 +8,14 @@
  */
 
 import type { LargeWeightConfigSchema, KernelPathSchema } from '../../../../config/schema/index.js';
-import type { ExecutionV1PoliciesSchema } from '../../../../config/schema/execution-v1.schema.js';
+import type { ExecutionV1PoliciesSchema } from "../../../../config/schema/execution/execution-v1.schema.js";
 import type { WeightBuffer, CpuWeightBuffer, SplitWeightBuffer } from '../../../../gpu/weight-buffer.js';
 
 /**
  * Configuration for logits computation.
  */
 export interface LogitsConfig {
-  hyperConnections?: import('../../../../config/schema/hyper-connection-decoder.schema.js').ResolvedHyperConnections | null;
+  hyperConnections?: import("../../../../config/schema/execution/hyper-connection-decoder.schema.js").ResolvedHyperConnections | null;
   executionPhase?: 'prefill' | 'decode';
   hiddenSize: number;
   vocabSize: number;

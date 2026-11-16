@@ -2,8 +2,8 @@ import { createBenchmarkComparisonCapture, resolveBenchmarkEnvironment } from '.
 import { summarizeRequestTiming } from './request-timing.js';
 import { getRuntimeConfig } from '../../config/runtime.js';
 import { computeSampleStats as computeStats } from '../../debug/stats.js';
-import { validateTrainingMetricsReport } from '../../config/schema/training-metrics.schema.js';
-import { modelSupportsEmbedding, modelSupportsRerank } from '../../config/schema/manifest.schema.js';
+import { validateTrainingMetricsReport } from "../../config/schema/training/training-metrics.schema.js";
+import { modelSupportsEmbedding, modelSupportsRerank } from "../../config/schema/manifest/manifest.schema.js";
 import { buildSuiteSummary, normalizeCacheMode, normalizeLoadMode, normalizeWorkloadType } from './suite-summary.js';
 import {
   toTimingNumber,

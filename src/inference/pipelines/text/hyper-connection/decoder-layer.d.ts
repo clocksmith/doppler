@@ -1,6 +1,6 @@
 import type { CommandRecorder } from '../../../../gpu/command-recorder.js';
 import type { Tensor } from '../../../../gpu/tensor.js';
-import type { ResolvedHyperConnections } from '../../../../config/schema/hyper-connection-decoder.schema.js';
+import type { ResolvedHyperConnections } from "../../../../config/schema/execution/hyper-connection-decoder.schema.js";
 
 export type RuntimeHyperConnections = ResolvedHyperConnections & { normWeightOffset: boolean };
 

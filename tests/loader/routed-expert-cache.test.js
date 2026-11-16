@@ -4,7 +4,7 @@ import { ggufBlockSourceBytes } from '../../src/formats/gguf/block-storage.js';
 import assert from 'node:assert/strict';
 import { RoutedExpertCache } from '../../src/loader/experts/routed-expert-cache.js';
 import { planRoutedExpertBank } from '../../src/loader/experts/routed-expert-plan.js';
-import { validateQwen35RoutedConfig } from '../../src/config/schema/loading.schema.js';
+import { validateQwen35RoutedConfig } from "../../src/config/schema/runtime/loading.schema.js";
 
 globalThis.GPUBufferUsage ??= { STORAGE: 128, COPY_SRC: 4, COPY_DST: 8 };
 class FakeBuffer {

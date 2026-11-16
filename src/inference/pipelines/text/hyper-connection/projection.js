@@ -1,4 +1,4 @@
-import { doMatmul } from '../ops.js';
+import { doMatmul } from "../execution/ops.js";
 import { isWeightBuffer } from '../../../../gpu/weight-buffer.js';
 import { getKernelPathMatmulVariant } from '../../../../config/kernel-path-loader.js';
 

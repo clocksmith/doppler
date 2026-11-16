@@ -3,10 +3,10 @@ import { installNodeFileFetchShim } from '../../src/tooling/node-file-fetch.js';
 
 installNodeFileFetchShim();
 
-const { PipelineGenerator } = await import('../../src/inference/pipelines/text/generator.js');
+const { PipelineGenerator } = await import("../../src/inference/pipelines/text/generator/generator.js");
 const { createDopplerConfig } = await import('../../src/config/schema/index.js');
-const { compileExecutionPlanState } = await import('../../src/inference/pipelines/text/execution-plan.js');
-const { createLinearAttentionRuntime } = await import('../../src/inference/pipelines/text/linear-attention.js');
+const { compileExecutionPlanState } = await import("../../src/inference/pipelines/text/execution/execution-plan.js");
+const { createLinearAttentionRuntime } = await import("../../src/inference/pipelines/text/linear-attention/linear-attention.js");
 
 // =============================================================================
 // Behavioral parity test: generateTokenIds() vs generate()

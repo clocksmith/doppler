@@ -25,7 +25,7 @@ export interface VariantMetadata {
   [key: string]: unknown;
 }
 
-import type { BindingSchema, UniformsSchema } from './schema/kernel-registry.schema.js';
+import type { BindingSchema, UniformsSchema } from "./schema/execution/kernel-registry.schema.js";
 
 export type DeepReadonly<T> = T extends (...args: never[]) => unknown ? T
   : T extends readonly unknown[] ? { readonly [K in keyof T]: DeepReadonly<T[K]> }
@@ -76,7 +76,7 @@ export interface KernelRegistry {
   getKernelValidator(operation: string, variant: string): KernelValidator['validate'] | null;
 }
 export interface KernelRegistryOptions {
-  extensions?: Record<string, Partial<import('./schema/kernel-registry.schema.js').OperationSchema>>;
+  extensions?: Record<string, Partial<import("./schema/execution/kernel-registry.schema.js").OperationSchema>>;
   validators?: Record<string, Record<string, KernelValidator>>;
 }
 export declare function createKernelRegistry(options?: KernelRegistryOptions): KernelRegistry;

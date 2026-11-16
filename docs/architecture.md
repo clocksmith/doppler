@@ -6,6 +6,11 @@ These implementation views were checked against `edefc11b`. They explain the
 standalone runtime and its partition boundary; they are not new model or hardware
 qualification claims. The README contains the graphical system overview and
 component map; this guide retains lifecycle diagrams, call sequences, and source contracts.
+The diagrams are maintained by hand; the stamp records their last manual review.
+Recheck the affected sequence when changing its lifecycle or authority boundary.
+The generated [dependency inventory](architecture-dependencies.json), checked by
+`source:dependencies:check`, describes current import edges separately from calls
+and data movement in these diagrams.
 
 ### Preparation, host, and execution ownership
 
@@ -108,9 +113,9 @@ from reopening it. Pool retention and owned live state are different memory
 categories; a device allocation budget is not a physical RAM measurement.
 
 [resident-partitions.js](../src/client/resident-partitions.js) owns public factory
-composition; [resident-partition-contract.js](../src/inference/pipelines/text/resident-partition-contract.js)
-owns allocation validation; [resident-partition.js](../src/inference/pipelines/text/resident-partition.js)
-owns attempt state; [partition-execution.js](../src/inference/pipelines/text/partition-execution.js)
+composition; [resident-partition-contract.js](../src/inference/pipelines/text/partitions/resident-partition-contract.js)
+owns allocation validation; [resident-partition.js](../src/inference/pipelines/text/partitions/resident-partition.js)
+owns attempt state; [partition-execution.js](../src/inference/pipelines/text/partitions/partition-execution.js)
 owns numerical layer execution. Reploid supplies peer selection, reservations,
 transport, and transfer permissions; Doppler defines valid tensors, computation,
 sampling, and continuation semantics.
@@ -267,13 +272,13 @@ Use these code/doc locations to validate architecture claims in this file:
   - `src/client/electron/release-state.js`
 - Runtime config + kernel-path precedence:
   - `docs/config.md`
-  - `src/inference/pipelines/text/model-load.js`
+  - `src/inference/pipelines/text/loading/model-load.js`
   - `src/config/merge.js`
 - Manifest/build-time conversion behavior:
   - `src/converter/conversion-plan.js`
   - `src/converter/rope-config.js`
 - RDRR shard/manifest layout:
-  - `src/config/schema/manifest.schema.js`
+  - `src/config/schema/manifest/manifest.schema.js`
   - `src/formats/rdrr/manifest.js`
   - `src/formats/rdrr/validation.js`
 - Benchmark/claim methodology:
@@ -405,14 +410,14 @@ This comparison is about architecture and control surfaces, not blanket speed cl
 
 For public claims, tie statements to benchmark artifacts in `benchmarks/vendors/results/` and the exact compare command used.
 Source anchors for this comparison:
-- Doppler command/runtime contract: `src/tooling/command-api.js`, `src/inference/pipelines/text/model-load.js`
+- Doppler command/runtime contract: `src/tooling/command-api.js`, `src/inference/pipelines/text/loading/model-load.js`
 - Benchmark claim policy: `docs/benchmark-methodology.md`, `benchmarks/vendors/README.md`
 
 ### Progressive Fusion in Practice
 
 Doppler begins with discrete WGSL operations (for example `gate_proj`, `up_proj`, `down_proj`) to maximize observability and debuggability. The architecture also supports progressively fused execution plans.
 
-Through kernel-path and execution-plan selection (`runtime.inference.kernelPath` and the v1 execution graph), the runtime can switch from decomposed paths to fused paths without changing command semantics. See `src/inference/pipelines/text/model-load.js` and `src/config/kernel-path-loader.js`.
+Through kernel-path and execution-plan selection (`runtime.inference.kernelPath` and the v1 execution graph), the runtime can switch from decomposed paths to fused paths without changing command semantics. See `src/inference/pipelines/text/loading/model-load.js` and `src/config/kernel-path-loader.js`.
 
 ### GPU Execution Footprint
 
@@ -437,7 +442,7 @@ Default parity decode is typically per-token, but batched decode modes can amort
 Recorded batches keep their declared submission boundaries while sharing a
 deferred token readback. A recording failure waits for an already submitted
 prefix before releasing its resources.
-See `src/inference/pipelines/text/generator-steps.js`.
+See `src/inference/pipelines/text/generator/generator-steps.js`.
 
 ### Capability vs Performance Tradeoff
 
@@ -791,7 +796,7 @@ The core generate loop:
 **Layer Pipeline Plans (experimental):**
 
 The default layer order is fixed and optimized in
-`src/inference/pipelines/text/layer.js`. For advanced experimentation, you can
+`src/inference/pipelines/text/execution/layer.js`. For advanced experimentation, you can
 supply a JSON plan under `runtime.inference.pipeline` (runtime override) or
 `inference.pipeline` in the manifest. The plan executes via a small interpreter and
 is slower than the default path.
@@ -861,19 +866,19 @@ Example (skip FFN on layer 0):
 | `src/inference/pipelines/context.js` | Runtime context and mode settings |
 | `src/inference/pipelines/text/config.js` | Pipeline configuration and model params |
 | `src/inference/pipelines/text/state.js` | Runtime state container |
-| `src/inference/pipelines/text/generator.js` | Main generation loop |
-| `src/inference/pipelines/text/generator-steps.js` | Step orchestration for prefill and decode |
+| `src/inference/pipelines/text/generator/generator.js` | Main generation loop |
+| `src/inference/pipelines/text/generator/generator-steps.js` | Step orchestration for prefill and decode |
 | `src/inference/pipelines/text/generator/` | Shared generation helpers (attention lifecycle, logits config, session context) |
-| `src/inference/pipelines/text/layer.js` | Per-layer processing |
-| `src/inference/pipelines/text/embed.js` | Token embedding |
-| `src/inference/pipelines/text/sampling.js` | Token sampling (top-k, top-p, temperature) |
-| `src/inference/pipelines/text/kernel-trace.js` | Kernel trace and instrumentation |
-| `src/inference/pipelines/text/probes.js` | Debug probes |
+| `src/inference/pipelines/text/execution/layer.js` | Per-layer processing |
+| `src/inference/pipelines/text/embedding/embed.js` | Token embedding |
+| `src/inference/pipelines/text/generator/sampling/sampling.js` | Token sampling (top-k, top-p, temperature) |
+| `src/inference/pipelines/text/observation/kernel-trace.js` | Kernel trace and instrumentation |
+| `src/inference/pipelines/text/observation/probes.js` | Debug probes |
 | `src/inference/pipelines/text/attention/` | Attention kernels and helpers |
 | `src/inference/pipelines/text/ffn/` | Feed-forward kernels and helpers |
 | `src/inference/pipelines/text/logits/` | Logits projection |
 
-**Note:** `src/inference/pipelines/text.js` composes these modules. Some helpers are used indirectly via `src/inference/pipelines/text/init.js` and `src/inference/pipelines/text/generator-steps.js`.
+**Note:** `src/inference/pipelines/text.js` composes these modules. Some helpers are used indirectly via `src/inference/pipelines/text/init.js` and `src/inference/pipelines/text/generator/generator-steps.js`.
 
 ### Manifest-First Config Architecture
 
@@ -1428,7 +1433,7 @@ User prompt: "Hello"
 
 ### 1. GPU-Native Pipeline
 Hot-path tensor operations execute on GPU, with readback cadence controlled by runtime batching policy. This minimizes CPU↔GPU transfers during decode.  
-Source: `src/inference/pipelines/text/generator-steps.js`,
+Source: `src/inference/pipelines/text/generator/generator-steps.js`,
 `src/inference/pipelines/text/attention/plan.js`,
 `src/inference/pipelines/text/attention/interpreter.js`
 
@@ -1442,7 +1447,7 @@ Shard size balances:
 - Large enough to minimize request overhead
 - Aligned with OPFS block allocation
   
-Source: `src/config/schema/manifest.schema.js` (`SHARD_SIZE`)
+Source: `src/config/schema/manifest/manifest.schema.js` (`SHARD_SIZE`)
 
 ### 4. Streaming Weight Load
 Large tensors (embeddings, LM head) are streamed directly to GPU buffers to avoid JS heap exhaustion.
@@ -1466,7 +1471,7 @@ See `config.md` for kernel selection rules and runtime overrides.
 | `src/client/doppler-api.js` | Root facade implementation |
 | `src/client/doppler-api.d.ts` | Root facade types |
 | `src/inference/pipelines/text.js` | Main inference orchestration |
-| `src/inference/pipelines/text/generator.js` | Generation loop |
+| `src/inference/pipelines/text/generator/generator.js` | Generation loop |
 | `src/inference/kv-cache/` | KV cache management |
 | `src/inference/tokenizer.js` | Tokenizer selection and initialization |
 | `src/inference/moe-router.js` | MoE expert routing |
@@ -1493,7 +1498,7 @@ See `config.md` for kernel selection rules and runtime overrides.
 
 - `src/formats/tokenizer/` owns tokenizer file parsing and metadata normalization.
 - `src/inference/tokenizer.js` owns tokenizer runtime setup and output shaping.
-- `src/inference/pipelines/text/chat-format.js` owns prompt-format-specific behavior.
+- `src/inference/pipelines/text/generator/request/chat-format.js` owns prompt-format-specific behavior.
 - Keep format parsing and runtime inference logic in separate layers; avoid importing
   tokenizer parser internals directly into inference execution paths.
 

@@ -1,6 +1,6 @@
 import { acquireBuffer, releaseBuffer, uploadData } from '../memory/buffer-pool.js';
 import { createWeightBuffer } from '../gpu/weight-buffer.js';
-import { QK_K, Q4K_BLOCK_BYTES } from '../config/schema/quantization.schema.js';
+import { QK_K, Q4K_BLOCK_BYTES } from "../config/schema/manifest/quantization.schema.js";
 import { dequantizeQ4KM, dequantizeQ4KMRowWise } from '../formats/q4k-dequant.js';
 
 /** @param {string} dtype */

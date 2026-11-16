@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 
-import { resolveLayerScalarValue } from '../../src/inference/pipelines/text/layer.js';
+import { resolveLayerScalarValue } from "../../src/inference/pipelines/text/execution/layer.js";
 
 assert.equal(resolveLayerScalarValue(null), 1);
 assert.equal(resolveLayerScalarValue(undefined), 1);

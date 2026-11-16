@@ -1,5 +1,5 @@
 import { releaseBuffer } from '../../../../memory/buffer-pool.js';
-import { runProbes } from '../probes.js';
+import { runProbes } from "../observation/probes.js";
 import { resolveLogitOutputScale } from './scale-policy.js';
 import {
   recordFinalizeLogitsTensor,

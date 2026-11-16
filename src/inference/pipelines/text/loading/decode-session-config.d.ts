@@ -1,1 +1,1 @@
-export { applyModelBatchingRuntimeDefaults } from '../model-load.js';
+export { applyModelBatchingRuntimeDefaults } from "./model-load.js";

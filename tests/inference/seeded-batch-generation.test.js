@@ -4,7 +4,8 @@ import { samplingSeedForToken } from '../../src/inference/token-sampling.js';
 
 // Exercise both real batch control loops, replacing only GPU/storage operations.
 // This checks the seed crossing the recorded-sampling boundary, not GPU math.
-const owner = new URL('../../src/inference/pipelines/text/generator-steps.js', import.meta.url).href;
+const owner = new URL("../../src/inference/pipelines/text/generator/generator-steps.js", import.meta.url).href;
+const owners = new Set([owner, new URL('./decode/batch-generation.js', owner).href, new URL('./decode/advance-token.js', owner).href]);
 const previous = Object.fromEntries(['GPUBufferUsage', 'GPUMapMode', '__seedBatchFixture']
   .map(key => [key, globalThis[key]]));
 class Buffer {
@@ -41,36 +42,37 @@ globalThis.GPUBufferUsage = { STORAGE: 1, COPY_SRC: 2, COPY_DST: 4, MAP_READ: 8 
 globalThis.GPUMapMode = { READ: 1 };
 globalThis.__seedBatchFixture = fixture;
 const overrides = {
-  '../../../gpu/device.js': 'export const getDevice = () => f.device;',
-  '../../../gpu/command-recorder.js': 'export const createCommandRecorder = () => f.recorder();',
-  '../../../gpu/kernels/sample.js': `export const recordGPUSample = async (r, l, v, o) => f.sample(o);
+  "../../../../gpu/device.js": 'export const getDevice = () => f.device;',
+  "../../../../gpu/command-recorder.js": 'export const createCommandRecorder = () => f.recorder();',
+  "../../../../gpu/kernels/sample.js": `export const recordGPUSample = async (r, l, v, o) => f.sample(o);
     export const recordArgmax = async (r, l, v, o) => {
       new Uint32Array(o.outputBuffer.bytes)[o.outputIndex] = 1;
     };`,
-  '../../../gpu/weight-buffer.js': `export const isGpuBufferInstance = x => !!x?.bytes;
+  "../../../../gpu/weight-buffer.js": `export const isGpuBufferInstance = x => !!x?.bytes;
     export const isCpuWeightBuffer = () => false; export const isWeightBuffer = () => false;
     export const isSplitWeightBuffer = () => false; export const getWeightDtype = () => 'f32';
     export const getWeightMetadata = () => null;`,
-  '../../../debug/perf-guards.js': 'export const allowReadback = () => true;',
-  '../../../gpu/uniform-cache.js': 'export const getUniformCache = () => ({flushPendingDestruction(){}});',
-  './embed.js': 'export const embed = async () => ({buffer:f.device.createBuffer({size:4})});',
-  './logits/index.js': 'export const recordLogitsGPU = async () => ({logitsBuffer:{},vocabSize:10,logitsDtype:"f32"});',
-  './per-layer-inputs.js': `export const hasRangeBackedPerLayerInputEmbeddings = () => f.rangeBacked;
+  "../../../../debug/perf-guards.js": 'export const allowReadback = () => true;',
+  "../../../../gpu/uniform-cache.js": 'export const getUniformCache = () => ({flushPendingDestruction(){}});',
+  "../embedding/embed.js": 'export const embed = async () => ({buffer:f.device.createBuffer({size:4})});',
+  "../logits/index.js": 'export const recordLogitsGPU = async () => ({logitsBuffer:{},vocabSize:10,logitsDtype:"f32"});',
+  "../per-layer/per-layer-inputs.js": `export const hasRangeBackedPerLayerInputEmbeddings = () => f.rangeBacked;
     export const hasGpuSplitPerLayerInputEmbeddings = () => false;
     export const getPleHotVocabularyRuntime = () => null;
     export const preparePerLayerInputs = async () => null;`,
-  './generator/session-context.js': 'export const resolvePerLayerInputsSession = () => null;',
-  './generator/decode.js': `export const getEffectiveActivationDtype = () => 'f32';
+  "./session/session-context.js": 'export const resolvePerLayerInputsSession = () => null;',
+  "./decode/decode.js": `export const getEffectiveActivationDtype = () => 'f32';
     export const decodeStep = async (state, ids, options) => {
       f.seeds.push(options.seed); state.currentSeqLen++;
       return options.temperature === 0 ? 1 : (options.seed === undefined ? 1 : Math.floor(options.seed % 7) + 1);
     };`,
 };
 const hooks = registerHooks({ resolve(specifier, context, next) {
-  if (context.parentURL === owner && overrides[specifier]) {
-    const original = new URL(specifier, owner).href;
+  const mockKey = owners.has(context.parentURL) ? Object.keys(overrides).find(key => new URL(key, owner).href === new URL(specifier, context.parentURL).href) : null;
+  if (mockKey) {
+    const original = new URL(mockKey, owner).href;
     const source = `export * from ${JSON.stringify(original)};
-      const f = globalThis.__seedBatchFixture; ${overrides[specifier]}`;
+      const f = globalThis.__seedBatchFixture; ${overrides[mockKey]}`;
     return { url: `data:text/javascript,${encodeURIComponent(source)}`, shortCircuit: true };
   }
   return next(specifier, context);

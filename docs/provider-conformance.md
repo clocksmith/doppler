@@ -47,7 +47,7 @@ its resolved digest remains null and blocked until current evidence captures it.
 `npm run provider:conformance:record -- --capture <capture.json> --out
 <candidate-policy.json>` joins a retained `doppler_provider_receipt_v1` to one
 declared suite and provider lane. The capture uses
-`src/config/schema/provider-conformance-capture.schema.json` and supplies only
+`src/config/schema/policy/provider-conformance-capture.schema.json` and supplies only
 the suite, lane, dates, and retained evidence paths. The recorder derives
 resolved identities from the provider receipt and derives implementation,
 harness, environment, operation, lifecycle, and correctness state from the five

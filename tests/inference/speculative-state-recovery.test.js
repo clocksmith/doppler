@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { setDevice } from '../../src/gpu/device.js';
 import { destroyBufferPool, isBufferActive } from '../../src/memory/buffer-pool.js';
-import { verifySpeculativeTokens } from '../../src/inference/pipelines/text/generator/speculative-runtime.js';
+import { verifySpeculativeTokens } from "../../src/inference/pipelines/text/generator/session/speculative-runtime.js";
 import { createLinearAttentionCheckpoint } from '../../src/inference/pipelines/text/linear-attention/state-checkpoint.js';
 const savedBuffer = globalThis.GPUBuffer, savedUsage = globalThis.GPUBufferUsage;
 globalThis.GPUBuffer = class GPUBuffer { constructor(size) { this.size = size; this.bytes = new Uint8Array(size); } destroy() {} };

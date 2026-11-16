@@ -11,7 +11,7 @@ import {
   streamShardRange,
 } from '../../../storage/shard-manager.js';
 import { ERROR_CODES, createDopplerError } from '../../../errors/doppler-error.js';
-import { DEFAULT_DISTRIBUTION_CONFIG } from '../../../config/schema/distribution.schema.js';
+import { DEFAULT_DISTRIBUTION_CONFIG } from "../../../config/schema/runtime/distribution.schema.js";
 import {
   P2P_TRANSPORT_CONTRACT_VERSION,
   P2P_TRANSPORT_ERROR_CODES,

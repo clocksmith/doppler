@@ -1,37 +1,13 @@
-import {
-  doBiasAdd, doMatmul, doSiLU, doGeLU, doSiLURowSplit, doMatmulRMSNormFused,
-  releaseOrTrack
-} from '../ops.js';
-import { createTensor } from '../../../../gpu/tensor.js';
-import {
-  getWeightDtype,
-  isGpuBufferInstance,
-  isWeightBuffer,
-  resolveWeightBufferMaterialization,
-} from '../../../../gpu/weight-buffer.js';
-import { getDevice, getKernelCapabilities } from '../../../../gpu/device.js';
-import { getRuntimeConfig } from '../../../../config/runtime.js';
-import { acquireBuffer, releaseBuffer, readBuffer } from '../../../../memory/buffer-pool.js';
-import { runFusedFFN, recordFusedFFN, runFusedFFNFromRMSNormStats, recordFusedFFNFromRMSNormStats } from '../../../../gpu/kernels/fused_ffn.js';
-import { castF16ToF32, castF32ToF16, recordCastF16ToF32, recordCastF32ToF16 } from '../../../../gpu/kernels/cast.js';
-import { isFusedQ4KDisabled } from '../../../../gpu/kernels/matmul.js';
-import { log, trace, isTraceEnabled } from '../../../../debug/index.js';
-import { isKernelDebugEnabled, dumpTokenVector } from '../debug-utils/tensor.js';
-import { decodeReadback } from '../debug-utils/readback-decoding.js';
-import { getLogitsHealth } from '../debug-utils/health-metrics.js';
-import { shouldDebugLayerOutput } from '../debug-utils/config.js';
-import { applyLoRA } from '../lora-apply.js';
-import { getLoRAModule } from '../lora.js';
-import { getWeightBuffer, getNormWeightBuffer, getVectorTensor } from '../weights.js';
-import { runProbes } from '../probes.js';
-import { selectRuleValue } from '../../../../rules/rule-registry.js';
-import {
-  getKernelPathMatmulConstants,
-  getKernelPathMatmulPrecision,
-  getKernelPathMatmulVariant,
-} from '../../../../config/kernel-path-loader.js';
-import { resolveLayerIntermediateSize } from '../config.js';
-import { assertImplicitDtypeTransitionAllowed } from '../dtype-contract.js';
+import { getKernelCapabilities } from "../../../../gpu/device.js";
+
+import { getWeightDtype, isWeightBuffer, resolveWeightBufferMaterialization } from "../../../../gpu/weight-buffer.js";
+
+import { getRuntimeConfig } from "../../../../config/runtime.js";
+
+import { isFusedQ4KDisabled } from "../../../../gpu/kernels/matmul.js";
+
+import { selectRuleValue } from "../../../../rules/rule-registry.js";
+import { getKernelPathMatmulConstants, getKernelPathMatmulPrecision, getKernelPathMatmulVariant } from "../../../../config/kernel-path-loader.js";
 
 export function hasQ4KMaterialization(weight) {
   return isWeightBuffer(weight) && !!weight.materializations?.q4k?.buffer;
@@ -325,4 +301,17 @@ export function resolveFusedGateUpWeights(layerWeights, options = {}) {
     upDtype: resolvedUp ? getWeightDtype(resolvedUp) : null,
     hasQ4KMaterialization: hasMixedQ4KMaterialization,
   };
+}
+
+function isWideTileQ4KPhaseEnabled(session, phase) {
+  return phase === 'decode'
+    ? session?.useWideTileQ4KDecode === true
+    : session?.useWideTileQ4KPrefill === true;
+}
+
+export function shouldMarkWideTileResidualFused(session, phase) {
+  return getKernelCapabilities().hasF16 === true
+    && session?.useWideTileResidualFusion === true
+    && session?.retainQ4KMaterialization === true
+    && isWideTileQ4KPhaseEnabled(session, phase);
 }

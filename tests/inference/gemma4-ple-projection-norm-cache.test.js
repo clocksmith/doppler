@@ -23,7 +23,7 @@ const {
   inferPleProjectionNormDtype,
   loadRangeBackedPleProjectionSliceBytes,
   resolveDensePleProjectionWeight,
-} = await import('../../src/inference/pipelines/text/per-layer-inputs.js');
+} = await import("../../src/inference/pipelines/text/per-layer/per-layer-inputs.js");
 
 class FakeBuffer {
   constructor({ size, usage, label = '' }) {

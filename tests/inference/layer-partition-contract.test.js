@@ -11,7 +11,7 @@ import {
   deserializeActivationFrame,
   createPartitionContinuation,
   comparePartitionExecution
-} from '../../src/inference/pipelines/text/layer-partition-contract.js';
+} from "../../src/inference/pipelines/text/execution/layer-partition-contract.js";
 import { computeCanonicalSha256 } from '../../src/formats/canonical-hash.js';
 
 // 1. Partition Plan Creation

@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { submitDecodeRecorderProfile } from '../../src/inference/pipelines/text/generator/decode.js';
+import { submitDecodeRecorderProfile } from "../../src/inference/pipelines/text/generator/decode/decode.js";
 
 // Exercise the generation consumer, independently of recorder coverage tests.
 for (const enabled of [true, false]) {

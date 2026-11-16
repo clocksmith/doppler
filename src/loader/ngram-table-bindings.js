@@ -1,4 +1,4 @@
-import { ngramTableRowBytes } from '../config/schema/ngram-embedding.schema.js';
+import { ngramTableRowBytes } from "../config/schema/execution/ngram-embedding.schema.js";
 import { LAYER_PREFIXES } from './layer-tensor-aliases.js';
 
 /** @param {string} message @returns {never} */

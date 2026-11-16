@@ -9,10 +9,10 @@
 import type { CommandRecorder } from '../../../../gpu/command-recorder.js';
 import type { KVCacheInterface } from '../types.js';
 import type { Tensor } from '../../../../gpu/tensor.js';
-import type { LinearAttentionRuntime } from '../linear-attention.js';
-import type { ResolvedRuntimeSession } from '../resolved-runtime-session.js';
+import type { LinearAttentionRuntime } from "../linear-attention/linear-attention.js";
+import type { ResolvedRuntimeSession } from "../configuration/resolved-runtime-session.js";
 import type { ObservationContext } from '../../../observation-context.js';
-import type { ExecutionV1PoliciesSchema } from '../../../../config/schema/execution-v1.schema.js';
+import type { ExecutionV1PoliciesSchema } from "../../../../config/schema/execution/execution-v1.schema.js";
 
 /**
  * Attention configuration for a layer.
@@ -76,7 +76,7 @@ export interface AttentionConfig {
   /** Token IDs for the current micro-batch (required by BDPA KV ingestion). */
   tokenIds?: number[] | null;
   /** Kernel path override for attention dispatch. */
-  kernelPath?: import('../../../../config/schema/kernel-path.schema.js').KernelPathSchema | null;
+  kernelPath?: import("../../../../config/schema/execution/kernel-path.schema.js").KernelPathSchema | null;
   /** Disable RoPE for this layer (e.g., non-rotary attention). */
   disableRoPE?: boolean;
 }

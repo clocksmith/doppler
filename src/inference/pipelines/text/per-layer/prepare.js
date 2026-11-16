@@ -1,10 +1,10 @@
 import { createWeightBuffer, isCpuWeightBuffer, isGpuBufferInstance, isWeightBuffer } from "../../../../gpu/weight-buffer.js";
 import { createTensor } from "../../../../gpu/tensor.js";
 import { recordScale, runScale } from "../../../../gpu/kernels/scale.js";
-import { getNormWeightBuffer, getWeightBuffer } from "../weights.js";
-import { doCast, doMatmul, doRMSNorm, releaseOrTrack } from "../ops.js";
-import { runProbes } from "../probes.js";
-import { embed, isRangeBackedCpuEmbeddingSource } from "../embed.js";
+import { getNormWeightBuffer, getWeightBuffer } from "../loading/weights.js";
+import { doCast, doMatmul, doRMSNorm, releaseOrTrack } from "../execution/ops.js";
+import { runProbes } from "../observation/probes.js";
+import { embed, isRangeBackedCpuEmbeddingSource } from "../embedding/embed.js";
 import { selectRuleValue } from "../../../../rules/rule-registry.js";
 import { getDevice } from "../../../../gpu/device.js";
 import { acquireBuffer, releaseBuffer } from "../../../../memory/buffer-pool.js";

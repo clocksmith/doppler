@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { createCapsuleAdapterExecution } from '../../src/client/runtime/capsule-adapter-execution.js';
 import { createCapsuleOperationExecutor } from '../../src/client/runtime/capsule-operation-executor.js';
-import { hashCapsuleObservation } from '../../src/config/capsule-operation.js';
+import { hashCapsuleObservation } from "../../src/config/capsule/capsule-operation.js";
 import { createHash } from 'node:crypto';
 
 // Contract-only injected program: no model output or physical GPU claim.

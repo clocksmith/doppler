@@ -31,7 +31,7 @@ const { setDevice } = await import('../../src/gpu/device.js');
 const { destroyBufferPool, getBufferPool } = await import('../../src/memory/buffer-pool.js');
 const { _initRoPE } = await import('../../src/inference/pipelines/text/lifecycle.js');
 const { initRoPEFrequencies } = await import('../../src/inference/pipelines/text/init.js');
-const { releaseRoPEFrequencies } = await import('../../src/inference/pipelines/text/init-rope.js');
+const { releaseRoPEFrequencies } = await import("../../src/inference/pipelines/text/initialization/init-rope.js");
 const { createShaderSourceScope, runWithShaderSourceScope } = await import('../../src/gpu/kernels/shader-source-scope.js');
 
 function createFakeDevice() {

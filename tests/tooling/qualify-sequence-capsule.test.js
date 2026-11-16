@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import { mkdtemp, readFile, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { getCapsuleIdentity } from '../../src/config/capsule.js';
+import { getCapsuleIdentity } from "../../src/config/capsule/capsule.js";
 import { hashTargetPlan } from '../../src/config/target-plan.js';
 import { qualifySequenceCapsule, validateSequenceCapsuleQualificationConfig } from '../../tools/qualify-sequence-capsule.js';
 import { createSignedCapsuleFixture, TEST_CAPSULE_AUTHORITY, TEST_CAPSULE_PUBLIC_KEY } from '../helpers/capsule-v2-fixture.js';

@@ -16,7 +16,7 @@ const modules = {
     export const executeSharedSlotDown=async()=>sharedSlotExecutionTest.down();`,
   '../ffn/qwen-shared-expert.js': `export const validateQwenSharedExpert=()=>{};
     export const resolveQwenSharedSlotVariants=()=>({ gu: 'native_f32', down: 'native_f32' });`,
-  '../ops.js': 'export const releaseOrTrack=(r,b)=>sharedSlotExecutionTest.release(r,b);',
+  "../execution/ops.js": 'export const releaseOrTrack=(r,b)=>sharedSlotExecutionTest.release(r,b);',
 };
 const hooks = registerHooks({ resolve(specifier, context, next) {
   if (context.parentURL === target && modules[specifier]) return { url: `data:text/javascript,${encodeURIComponent(modules[specifier])}`, shortCircuit: true };

@@ -1,6 +1,6 @@
 import { createHyperConnectionSession } from './hyper-connection/session.js';
 import { assertHyperConnectionLoad } from './hyper-connection/sequence-transaction.js';
-export { _initRoPE } from './init-rope.js';
+export { _initRoPE } from "./initialization/init-rope.js";
 import { getDevice, initDevice, getKernelCapabilities } from '../../../gpu/device.js';
 import { getUniformCacheStats } from '../../../gpu/uniform-cache.js';
 import { getBufferPool as getGlobalBufferPool, readBuffer, releaseBuffer } from '../../../memory/buffer-pool.js';
@@ -12,7 +12,7 @@ import { DecodeRing } from '../../decode-ring.js';
 import { applyPipelineContexts, restorePipelineContexts } from '../context.js';
 import { createInitializedPipeline } from '../factory.js';
 import { PipelineState } from './state.js';
-import { PipelineGenerator } from './generator.js';
+import { PipelineGenerator } from "./generator/generator.js";
 import { parseModelConfig } from './config.js';
 import {
   createKVCache,
@@ -23,49 +23,49 @@ import {
   initEmulation,
   destroyEmulation,
 } from './init.js';
-import { formatChatMessages } from './chat-format.js';
+import { formatChatMessages } from "./generator/request/chat-format.js";
 import {
   runKernelWarmup,
   applyModelBatchingRuntimeDefaults,
   resolveKernelPathState,
   initTokenizerFromManifest,
   assertManifestComputeLaneBinding,
-} from './model-load.js';
-import { resolvePerLayerInputsSession } from './generator/session-context.js';
+} from "./loading/model-load.js";
+import { resolvePerLayerInputsSession } from "./generator/session/session-context.js";
 import { getKernelPathActivationDtype } from '../../../config/kernel-path-loader.js';
 import { applyPipelineDebugConfig } from './debug-utils/config.js';
-import { resolveLayerPipeline } from './layer-plan.js';
-import { compileExecutionPlanState, resolveActiveExecutionPlan } from './execution-plan.js';
-import { assertDtypeConsistency } from './dtype-contract.js';
-import { applyExecutionV1RuntimeConfig, hasExecutionV1 } from './execution-v1.js';
+import { resolveLayerPipeline } from "./execution/layer-plan.js";
+import { compileExecutionPlanState, resolveActiveExecutionPlan } from "./execution/execution-plan.js";
+import { assertDtypeConsistency } from "./policy/dtype-contract.js";
+import { applyExecutionV1RuntimeConfig, hasExecutionV1 } from "./execution/execution-v1.js";
 import { getPlatform } from '../../../config/platforms/loader.js';
 import {
   createLinearAttentionRuntime,
   hasLinearAttentionLayers,
   resetLinearAttentionRuntime,
   restoreLinearAttentionRuntime,
-} from './linear-attention.js';
+} from "./linear-attention/linear-attention.js";
 import { createDopplerLoader } from '../../../loader/doppler-loader.js';
 import { registerPipeline, getPipelineFactory } from '../registry.js';
 import { selectRuleValue } from '../../../rules/rule-registry.js';
 import { createObservationContext } from '../../observation-context.js';
-import { createResolvedRuntimeSession } from './resolved-runtime-session.js';
-import { resolveLayerPartition } from './layer-partition-contract.js';
-import { assertPartitionExecutionSupported } from './partition-execution.js';
+import { createResolvedRuntimeSession } from "./configuration/resolved-runtime-session.js";
+import { resolveLayerPartition } from "./execution/layer-partition-contract.js";
+import { assertPartitionExecutionSupported } from "./partitions/partition-execution.js";
 import { assertBundledAdapterAuthorized } from '../../../config/revocation-policy.js';
-import { initConvLayerState } from './ops.js';
-import { destroyPleBufferCache, destroyPleRuntimeCache } from './per-layer-inputs.js';
+import { initConvLayerState } from "./execution/ops.js";
+import { destroyPleBufferCache, destroyPleRuntimeCache } from "./per-layer/per-layer-inputs.js";
 import {
   createPipelineLoadTiming,
   destroyMoERouter,
   finishPipelineLoadTimingPhase,
   roundPipelineTimingMs,
   timedPipelineLoadPhase,
-} from './pipeline-load-timing.js';
+} from "./loading/pipeline-load-timing.js";
 import { resolveVisionWeightLoader } from '../vision/weight-loading.js';
 import { resolveVisionCapability, describeVisionUnavailable } from '../vision/support.js';
-import { resolveKVCacheAllocation } from './load-policy.js';
-import { runWarmGeneration } from './warm-generation.js';
+import { resolveKVCacheAllocation } from "./loading/load-policy.js";
+import { runWarmGeneration } from "./generator/session/warm-generation.js";
 export async function initialize(contexts = {}) {
     this.modelPartition = contexts.partition == null ? null : structuredClone(contexts.partition);
     const { runtimeConfig, sharedDebug } = applyPipelineContexts(this, contexts, {

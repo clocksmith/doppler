@@ -1,8 +1,8 @@
 import type { ExecutionRegistries, ResolvedExecutionRegistries } from '../../config/execution-registry-contract.js';
 import type { CapsuleAdapterArtifactStore } from './capsule-adapter-execution.js';
-import type { CapsuleV2Artifact } from '../../config/capsule-v2.js';
-import type { DopplerCapsule, CapsuleIdentity, verifyCapsule } from '../../config/capsule.js';
-import type { CapsuleReleaseEvent, CapsuleReleasePolicy, ReleaseCheckpoint } from '../../config/capsule-release-events.js';
+import type { CapsuleV2Artifact } from "../../config/capsule/capsule-v2.js";
+import type { DopplerCapsule, CapsuleIdentity, verifyCapsule } from "../../config/capsule/capsule.js";
+import type { CapsuleReleaseEvent, CapsuleReleasePolicy, ReleaseCheckpoint } from "../../config/capsule/capsule-release-events.js";
 import type { TargetPlan, TargetPlanSelectionPolicy } from '../../config/target-plan.js';
 import type { InitialExecutionIdentity } from '../../config/initial-execution-identity.js';
 import type { DeviceProfile } from './target-selector.js';
@@ -10,7 +10,7 @@ import type { GenerationRunOptions, GenerationResult } from './session-controlle
 import type { GenerationOutput } from '../../config/generation-contract.js';
 import type { GENERATION_CONTRACT } from '../../config/generation-contract.js';
 import type { CapsuleRerankReceipt, CapsuleRerankRequest } from './capsule-rerank.js';
-import type { CapsuleOperationRequest } from '../../config/capsule-operation.js';
+import type { CapsuleOperationRequest } from "../../config/capsule/capsule-operation.js";
 import type { CapsuleOperationEvent } from './capsule-operation-executor.js';
 import type { CapsuleForecastRequest, CapsuleForecastResult } from './capsule-forecast.js';
 import type { CapsuleEmbeddingRequest, CapsuleEmbeddingResult } from './capsule-embedding.js';
@@ -24,7 +24,7 @@ export const RUN_CORE_VERSION: '2.0.0';
 
 export interface CapsuleSessionOptions extends TargetPlanSelectionPolicy, CapsuleAcquisitionOptions {
   /** Explicit placement of the verified program; whole-model qualification does not qualify distributed execution. */
-  residentPartition?: import('../../inference/pipelines/text/resident-partition-contract.js').ResidentPartitionAllocation;
+  residentPartition?: import("../../inference/pipelines/text/partitions/resident-partition-contract.js").ResidentPartitionAllocation;
   releaseEvents?: CapsuleReleaseEvent[];
   releaseTrustedSigners?: Map<string, JsonWebKey> | Record<string, JsonWebKey>;
   releasePolicy?: CapsuleReleasePolicy;
@@ -55,7 +55,7 @@ export interface RunPorts {
 }
 
 export interface DopplerRunSession {
-  readonly residentPartition?: import('../../inference/pipelines/text/resident-partition-contract.js').ResidentPartitionSession;
+  readonly residentPartition?: import("../../inference/pipelines/text/partitions/resident-partition-contract.js").ResidentPartitionSession;
   readonly generationContract: typeof GENERATION_CONTRACT;
   schema: 'doppler.capsule-session/v1';
   readonly loaded: boolean;

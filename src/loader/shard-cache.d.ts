@@ -1,6 +1,6 @@
 import type { RDRRManifest } from '../formats/rdrr/index.js';
 import type { RuntimeModelContract } from '../inference/runtime-model.js';
-import type { ShardCacheConfigSchema } from '../config/schema/loading.schema.js';
+import type { ShardCacheConfigSchema } from "../config/schema/runtime/loading.schema.js";
 import type {
   CustomShardLoader,
   CustomShardRangeLoader,

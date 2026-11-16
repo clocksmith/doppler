@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { affineLastPosition, classifyWord } from '../../src/inference/pipelines/text/generator/whole-token-template.js';
+import { affineLastPosition, classifyWord } from "../../src/inference/pipelines/text/generator/whole-token/whole-token-template.js";
 
 const positions = [40, 41, 42, 43];
 assert.deepEqual(classifyWord([5, 5, 5, 5], positions), { kind: 'const', value: 5 });

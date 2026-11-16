@@ -3,9 +3,9 @@ import { createHash } from 'node:crypto';
 import * as nodeModule from 'node:module';
 
 export const PREFILL_LOGIT_ROWS_KEY = Symbol.for('doppler.test.prefill-logit-rows');
-export const PREFILL_LOGIT_ROWS_ANCHOR = '        const logits = await computeLogits(\n          currentHiddenBuffer,\n          numTokens,\n';
+export const PREFILL_LOGIT_ROWS_ANCHOR = '        const logits = await computeLogits(\n          prefillBuffers.hidden,\n          numTokens,\n';
 
-// Test-process-only teacher-forced logit rows (src/inference/pipelines/text/generator/prefill-runtime.js).
+// Test-process-only teacher-forced logit rows (src/inference/pipelines/text/generator/prefill/prefill-logits.js).
 // Before the unchanged last-position logits call, the callback may evaluate the same
 // computeLogits path (root mixer / final norm, last-row copy, LM head) for a prefix of
 // `rows` hidden rows, which yields the GPU's logits at position rows - 1. The original
@@ -14,11 +14,11 @@ export const PREFILL_LOGIT_ROWS_ANCHOR = '        const logits = await computeLo
 export function instrumentPrefillLogitRowsSource(text) {
   assert.equal(text.split(PREFILL_LOGIT_ROWS_ANCHOR).length - 1, 1, 'unambiguous prefill logits boundary');
   return text.replace(PREFILL_LOGIT_ROWS_ANCHOR, `        await globalThis[Symbol.for('doppler.test.prefill-logit-rows')]?.({
-          numTokens, startPos, vocabSize: logitsVocabSize,
-          compute: rows => computeLogits(currentHiddenBuffer, rows, getLogitsWeights(this._state),
-            getLogitsConfig(this._state, 'prefill'), this._state.useGPU, this._state.debugFlags, undefined,
-            debugCheckBuffer, this._state.runtimeConfig.shared.debug.probes, { lastPositionOnly: true },
-            this._state.operatorDiagnostics),
+          numTokens, startPos: state.currentSeqLen, vocabSize: logitsVocabSize,
+          compute: rows => computeLogits(prefillBuffers.hidden, rows, getLogitsWeights(state),
+            getLogitsConfig(state, 'prefill'), state.useGPU, state.debugFlags, undefined,
+            debugCheckBuffer, state.runtimeConfig.shared.debug.probes, { lastPositionOnly: true },
+            state.operatorDiagnostics),
         });
 ${PREFILL_LOGIT_ROWS_ANCHOR}`);
 }

@@ -35,7 +35,7 @@ try {
     const { createTensor } = await import('/src/gpu/tensor.js');
     const { createWeightBuffer } = await import('/src/gpu/weight-buffer.js');
     const { CommandRecorder } = await import('/src/gpu/command-recorder.js');
-    const { getNormWeightBuffer } = await import('/src/inference/pipelines/text/weights.js');
+    const { getNormWeightBuffer } = await import("/src/inference/pipelines/text/loading/weights.js");
     const { KVCache } = await import('/src/inference/kv-cache/base.js');
     const { runLayerAttentionGPU } = await import('/src/inference/pipelines/text/attention/executor-immediate.js');
     const { recordLayerAttentionGPU } = await import('/src/inference/pipelines/text/attention/executor-recorded.js');

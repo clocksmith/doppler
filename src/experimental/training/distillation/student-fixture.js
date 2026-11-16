@@ -16,7 +16,7 @@ import { OpType } from '../autograd.js';
 import { LoraAdapter } from '../lora.js';
 import { normalizeOptionalString } from './suite-data.js';
 import { LORA_MODULE_ALIASES } from '../../../inference/pipelines/text/lora.js';
-import { resolveEmbeddingScale } from '../../../inference/pipelines/text/embed.js';
+import { resolveEmbeddingScale } from "../../../inference/pipelines/text/embedding/embed.js";
 import { isSlidingLayerType } from '../../../inference/pipelines/text/attention/dispatch-params.js';
 import { createDistillStudentProjectionModelFixture, ensureTrainableTensor, normalizeTransformerLoraConfig, releaseTensor, resolvePhasePrompts, resolveTensorDtype } from './student-fixture/model.js';
 import { DISTILL_STUDENT_GRAPH_PROJECTION, createRowSliceTensor, createTransformerLoraAdapters, disposeTransformerLoraAdapters, makeTensorFromUint32, normalizeDistillStudentGraphMode, recordTensorView, resolveLayerFfnIntermediateSize } from './student-fixture/execution.js';

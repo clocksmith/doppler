@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
-import { shouldDisablePrefillCommandBatching } from '../../src/inference/pipelines/text/generator/prefill-policy.js';
-import { isDecodeRecorderEnabled } from '../../src/inference/pipelines/text/execution-plan.js';
+import { shouldDisablePrefillCommandBatching } from "../../src/inference/pipelines/text/generator/prefill/prefill-policy.js";
+import { isDecodeRecorderEnabled } from "../../src/inference/pipelines/text/execution/execution-plan.js";
 
 const call = { startPos: 0, returnHidden: false };
 const opts = { disableCommandBatching: false, debug: false };

@@ -23,7 +23,7 @@ import { saveReport } from '../storage/reports.js';
 import {
   CONVERSION_REPORT_SCHEMA_VERSION,
   validateConversionReport,
-} from '../config/schema/conversion-report.schema.js';
+} from "../config/schema/manifest/conversion-report.schema.js";
 import { sortTensorsByDeterministicLocality, createNodeGpuTensorTransformer, createNodeLargeTensorTransformer, createNodeTensorTransformer } from './node-converter/input.js';
 import { buildConvertReport, createFileRangeReader, createNodeConvertIO, normalizeExecutionConfig } from './node-converter/output.js';
 

@@ -2,7 +2,7 @@ import { createCapsulePieceReader } from './capsule-piece-reader.js';
 import { computeCanonicalSha256 } from '../../formats/canonical-hash.js';
 import { createSha256Hasher } from '../../formats/sha256.js';
 import { assertCapsuleLoadActive, createCapsuleLoadScope, waitForCapsuleRead } from './capsule-acquisition.js';
-import { normalizeCapsuleLoadingPolicy } from '../../config/capsule-loading.js';
+import { normalizeCapsuleLoadingPolicy } from "../../config/capsule/capsule-loading.js";
 
 // Explicit host owners only; no process-wide content lookup or mutable backing port.
 const backingOwners = new WeakMap();

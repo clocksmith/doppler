@@ -1,6 +1,6 @@
-import type { LinearNormGateActivation } from '../config/schema/inference.schema.js';
-import type { ConverterConfigSchema } from '../config/schema/converter.schema.js';
-import type { MoEConfigSchema } from '../config/schema/manifest.schema.js';
+import type { LinearNormGateActivation } from "../config/schema/execution/inference.schema.js";
+import type { ConverterConfigSchema } from "../config/schema/manifest/converter.schema.js";
+import type { MoEConfigSchema } from "../config/schema/manifest/manifest.schema.js";
 
 export interface ConversionPlanInputTensor {
   name: string;

@@ -101,7 +101,7 @@ if (config.canonicalInventoryPath) {
 let instrumented = original.replace(anchor, hook + weightHook + '\n' + anchor);
 if (config.canonicalInventoryPath) instrumented = "import { readBuffer as readCanonicalGpuBuffer } from '../../memory/buffer-pool.js';\n" + instrumented;
 await fs.writeFile(file, instrumented);
-const probeFile = path.join(output, 'src/inference/pipelines/text/probes.js');
+const probeFile = path.join(output, "src/inference/pipelines/text/observation/probes.js");
 const probes = await fs.readFile(probeFile, 'utf8');
 const probeAnchor = 'export async function runProbes(stage, buffer, options) {';
 if (probes.split(probeAnchor).length !== 2) throw new Error('Doppler boundary observation owner changed');
@@ -122,7 +122,7 @@ let logitObservation = null;
 if (config.captureLogitPositions) {
   const positions = config.captureLogitPositions;
   if (!Array.isArray(positions) || positions.some(x => !Number.isSafeInteger(x) || x < 0) || new Set(positions).size !== positions.length) throw new Error('Invalid logit observation positions');
-  const owner = path.join(output, 'src/inference/pipelines/text/generator.js');
+  const owner = path.join(output, "src/inference/pipelines/text/generator/generator.js");
   const source = await fs.readFile(owner, 'utf8');
   const marker = '  _sampleNextTokenFromLogits(logits, generatedIds, opts) {';
   if (source.split(marker).length !== 2) throw new Error('Full-logit observation boundary changed');
@@ -136,7 +136,7 @@ if (config.captureLogitPositions) {
 `;
   const observed = source.replace(marker, marker + observation);
   await fs.writeFile(owner, observed);
-  const stepsOwner = path.join(output, 'src/inference/pipelines/text/generator-steps.js');
+  const stepsOwner = path.join(output, "src/inference/pipelines/text/generator/generator-steps.js");
   const stepsSource = await fs.readFile(stepsOwner, 'utf8');
   const stepsMarker = '        logitsBuffer = logits.logitsBuffer;';
   if (stepsSource.split(stepsMarker).length !== 2) throw new Error('Recorded pre-sampling logit boundary changed');
@@ -153,7 +153,7 @@ if (config.captureLogitPositions) {
 `;
   const observedSteps = stepsSource.replace(stepsMarker, stepsMarker + stepsHook);
   await fs.writeFile(stepsOwner, observedSteps);
-  const decodeOwner = path.join(output, 'src/inference/pipelines/text/generator/decode.js');
+  const decodeOwner = path.join(output, "src/inference/pipelines/text/generator/decode/decode.js");
   const decodeSource = await fs.readFile(decodeOwner, 'utf8');
   const decodeMarker = "\n      resources.register(logitsBuffer, 'decode logits');";
   if (decodeSource.split(decodeMarker).length !== 2) throw new Error('Single-step recorded pre-sampling boundary changed');

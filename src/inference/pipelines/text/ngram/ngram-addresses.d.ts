@@ -1,7 +1,7 @@
 import type {
   ResolvedNgramEmbedding,
   ResolvedNgramEmbeddingLayer,
-} from '../../../../config/schema/ngram-embedding.schema.js';
+} from "../../../../config/schema/execution/ngram-embedding.schema.js";
 
 export interface NgramHistoryCheckpoint {
   readonly epoch: number;

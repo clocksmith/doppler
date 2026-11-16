@@ -15,10 +15,10 @@ import {
 } from '../../src/tooling-exports/structured.js';
 import { parseModelConfig, parseModelConfigFromManifest } from '../../src/inference/pipelines/text/config.js';
 import { loadWeights, initTokenizer, isStopToken } from '../../src/inference/pipelines/text/init.js';
-import { initTokenizerFromManifest } from '../../src/inference/pipelines/text/model-load.js';
+import { initTokenizerFromManifest } from "../../src/inference/pipelines/text/loading/model-load.js";
 
 import { applyChatTemplate } from '../../src/inference/pipelines/text/init.js';
-import { formatChatMessages } from '../../src/inference/pipelines/text/chat-format.js';
+import { formatChatMessages } from "../../src/inference/pipelines/text/generator/request/chat-format.js";
 
 // =============================================================================
 // Public API shape

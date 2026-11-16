@@ -9,8 +9,8 @@ import { createNodeFileArtifactStorageContext } from '../../src/storage/artifact
 import { runPipelineOperation } from '../../src/inference/pipelines/shader-scoped-pipeline.js';
 import { getKernelCapabilities, destroyDevice } from '../../src/gpu/device.js';
 import { releaseNodeWebGPU } from '../../src/tooling/node-webgpu.js';
-import { beginGenerationContext, finishGenerationContext } from '../../src/inference/pipelines/text/sequence-state.js';
-import { resolveGenerateOptions } from '../../src/inference/pipelines/text/generator-runtime.js';
+import { beginGenerationContext, finishGenerationContext } from "../../src/inference/pipelines/text/generator/session/sequence-state.js";
+import { resolveGenerateOptions } from "../../src/inference/pipelines/text/generator/session/generator-runtime.js";
 import { createKVCache } from '../../src/inference/pipelines/text/init.js';
 
 const directory = process.env.DOPPLER_CONTEXT_MODEL_DIR;

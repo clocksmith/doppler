@@ -30,7 +30,7 @@ const contract = {
     { id: 'memory', unit: 'bytes', direction: 'minimize', limit: null }],
   selection: 'observed-range-pareto',
 };
-const schema = JSON.parse(await fs.readFile('src/config/schema/forge-candidate-evaluation.schema.json', 'utf8'));
+const schema = JSON.parse(await fs.readFile("src/config/schema/runtime/forge-candidate-evaluation.schema.json", 'utf8'));
 assert.deepEqual([...schema.required].sort(), Object.keys(contract).sort());
 assert.equal(schema.properties.schema.const, contract.schema);
 assert.equal(schema.additionalProperties, false);

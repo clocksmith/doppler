@@ -1,22 +1,22 @@
 import assert from 'node:assert/strict';
 import { registerHooks } from 'node:module';
-const target = new URL('../../src/inference/pipelines/text/generator/decode.js', import.meta.url).href;
+const target = new URL("../../src/inference/pipelines/text/generator/decode/decode.js", import.meta.url).href;
 const decoderModules = new Set([target, new URL('./decode-step.js', target).href, new URL('./decode-mechanics.js', target).href]);
 const hidden = { __dopplerFakeGPUBuffer: true, size: 16, usage: 0 };
 const logits = { __dopplerFakeGPUBuffer: true, size: 16, usage: 0 };
 globalThis.decodeOwnershipProbe = { hidden, logits, released: [], fail: 'readback' };
 const modules = {
-  '../../../../gpu/kernels/sample.js': `export const isGPUSamplingAvailable = () => true;
+  "../../../../../gpu/kernels/sample.js": `export const isGPUSamplingAvailable = () => true;
     export const recordArgmax = () => {}; export const recordGPUSample = () => {};`,
-  '../../../../gpu/device.js': 'export const getDevice = () => null; export const setTrackSubmits = () => {};',
-  '../../../../memory/buffer-pool.js': `export const releaseBuffer = buffer => globalThis.decodeOwnershipProbe.released.push(buffer); export const discardBuffer = releaseBuffer;
+  "../../../../../gpu/device.js": 'export const getDevice = () => null; export const setTrackSubmits = () => {};',
+  "../../../../../memory/buffer-pool.js": `export const releaseBuffer = buffer => globalThis.decodeOwnershipProbe.released.push(buffer); export const discardBuffer = releaseBuffer;
     export const readBuffer = async () => { if (globalThis.decodeOwnershipProbe.fail === 'readback') throw Error('readback failed'); return new Float32Array([1, 2, 3, 4]).buffer; };`,
-  '../embed.js': 'export const embed = async () => ({ buffer: globalThis.decodeOwnershipProbe.hidden, dtype: "f32", shape: [1, 4] });',
-  '../layer.js': 'export const hasConvLayers = () => false; export const processLayer = async () => { if (globalThis.decodeOwnershipProbe.fail === "layer") throw Error("layer failed"); return globalThis.decodeOwnershipProbe.hidden; };',
-  '../logits/index.js': `export const computeLogitsGPU = async () => ({ logitsBuffer: globalThis.decodeOwnershipProbe.logits, logitsDtype: 'f32', vocabSize: 4 });
+  "../../embedding/embed.js": 'export const embed = async () => ({ buffer: globalThis.decodeOwnershipProbe.hidden, dtype: "f32", shape: [1, 4] });',
+  "../../execution/layer.js": 'export const hasConvLayers = () => false; export const processLayer = async () => { if (globalThis.decodeOwnershipProbe.fail === "layer") throw Error("layer failed"); return globalThis.decodeOwnershipProbe.hidden; };',
+  "../../logits/index.js": `export const computeLogitsGPU = async () => ({ logitsBuffer: globalThis.decodeOwnershipProbe.logits, logitsDtype: 'f32', vocabSize: 4 });
     export const computeLogits = computeLogitsGPU; export const recordLogitsGPU = computeLogitsGPU;
     export const extractLastPositionLogits = value => value;`,
-  '../per-layer-inputs.js': 'export const preparePerLayerInputs = async () => null; export const prefetchPerLayerRow = () => {};',
+  "../../per-layer/per-layer-inputs.js": 'export const preparePerLayerInputs = async () => null; export const prefetchPerLayerRow = () => {};',
 };
 const hooks = registerHooks({ resolve(specifier, context, next) {
   if (decoderModules.has(context.parentURL) && modules[specifier]) return { url: `data:text/javascript,${encodeURIComponent(modules[specifier])}`, shortCircuit: true };

@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
-import { lookupDraft } from '../../src/inference/pipelines/text/generator/speculative-runtime.js';
-import { validateSelfSpeculationConfig } from '../../src/config/schema/speculation-self.schema.js';
+import { lookupDraft } from "../../src/inference/pipelines/text/generator/session/speculative-runtime.js";
+import { validateSelfSpeculationConfig } from "../../src/config/schema/execution/speculation-self.schema.js";
 
 assert.deepEqual(lookupDraft([1, 2, 3, 4, 1, 2], 3, 4, 1), [3, 4, 1]);
 assert.deepEqual(lookupDraft([1, 2, 3, 4, 1, 2], 1, 4, 1), [3]);

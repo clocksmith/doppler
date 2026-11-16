@@ -1,6 +1,6 @@
 import { getWeightDtype, isCpuWeightBuffer, isGpuBufferInstance, isWeightBuffer } from "../../../../gpu/weight-buffer.js";
-import { releaseOrTrack } from "../ops.js";
-import { isRangeBackedCpuEmbeddingSource } from "../embed.js";
+import { releaseOrTrack } from "../execution/ops.js";
+import { isRangeBackedCpuEmbeddingSource } from "../embedding/embed.js";
 import { acquireBuffer, releaseBuffer } from "../../../../memory/buffer-pool.js";
 import { destroyPleHotVocabularyRuntime, destroyPleRuntimeCacheEntry, getPleSplitTablePolicy, pleRuntimeCache } from "./materialize.js";
 import { loadRangeBackedPleRow, pleRangeRowCache } from "./plan.js";

@@ -21,9 +21,9 @@ Add a new FFN activation implementation across WGSL, runtime wiring, and config.
 - `src/rules/inference/ffn.rules.json` if FFN activation selection needs a new rule outcome
 - `src/inference/pipelines/text/ffn/dense.js`
 - If manifest values need a new enum:
-  `src/config/schema/inference.schema.d.ts`
+  `src/config/schema/execution/inference.schema.d.ts`
   and
-  `src/config/schema/manifest.schema.d.ts`
+  `src/config/schema/manifest/manifest.schema.d.ts`
 - Conversion logic or config assets that should emit the new activation value
 - Kernel and runtime tests
 

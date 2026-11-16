@@ -7,7 +7,7 @@ import {
   hashCapsuleV2,
   hashCapsuleV2Envelope,
   validateCapsuleV2,
-} from '../config/capsule-v2.js';
+} from "../config/capsule/capsule-v2.js";
 
 export {
   CAPSULE_V2_PROGRAM_SCHEMA_ID,
@@ -25,7 +25,7 @@ export {
   verifyCapsuleV2,
   verifyCapsuleV2Artifacts,
   verifyCapsuleV2Signature,
-} from '../config/capsule-v2.js';
+} from "../config/capsule/capsule-v2.js";
 
 export async function writeCapsuleV2(outputPath, capsule) {
   const validation = validateCapsuleV2(capsule);

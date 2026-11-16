@@ -10,7 +10,7 @@ import { createLoadTiming, finishLoadPhase, finishLoadTiming, nowMs, roundLoadTi
 import { resolveLayerPartition } from '../config/layer-partition-plan.js';
 import { requiresTiedEmbeddingLoad } from './final-weights-loader.js';
 import { createExpertPreparation } from './experts/expert-preparation.js';
-import { validateQwen35PagerConfig, validateQwen35RoutedConfig } from '../config/schema/loading.schema.js';
+import { validateQwen35PagerConfig, validateQwen35RoutedConfig } from "../config/schema/runtime/loading.schema.js";
 
 /** @type {import('./model-load.js').load} */
 export async function load(modelId, options) {

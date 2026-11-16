@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { PipelineGenerator } from '../../src/inference/pipelines/text/generator.js';
+import { PipelineGenerator } from "../../src/inference/pipelines/text/generator/generator.js";
 const generator = new PipelineGenerator({ tokenizer: { getSpecialTokens: () => ({ pad: 2 }) }, modelConfig: { vocabSize: 4 } });
 const input = Float32Array.of(1, 3, 100, 2), observations = [];
 const options = { repetitionPenalty: 1, repetitionPenaltyWindow: 0, presencePenalty: 0,

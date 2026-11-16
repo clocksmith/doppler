@@ -1,0 +1,43 @@
+{
+  "schemaVersion": 1,
+  "resourceDirectories": [
+    "src/config/conversion/",
+    "src/config/platforms/"
+  ],
+  "runtimeResources": [
+    "src/config/runtime/compute/f16-activations.json",
+    "src/config/runtime/compute/f16-batched.json",
+    "src/config/runtime/default.json",
+    "src/config/runtime/model-sessions.json",
+    "src/config/runtime/platform/metal-apple-q4k.json",
+    "src/config/runtime/profiles/default.json",
+    "src/config/runtime/profiles/demo-f16-comparison.json",
+    "src/config/runtime/profiles/flash-next-gguf-control-gemv.json",
+    "src/config/runtime/profiles/flash-next-node-host-cache-qualification.json",
+    "src/config/runtime/profiles/flash-next-paged-qualification.json",
+    "src/config/runtime/profiles/flash-next-routed-f32kv-qualification.json",
+    "src/config/runtime/profiles/flash-next-routed-qualification.json",
+    "src/config/runtime/profiles/low-memory.json",
+    "src/config/runtime/profiles/production.json",
+    "src/config/runtime/profiles/qwen-3-5-0-8b-metal-parity.json",
+    "src/config/runtime/profiles/qwen-3-5-0-8b-vulkan-parity.json",
+    "src/config/runtime/profiles/qwen-3-5-0-8b-vulkan-subgroup8.json",
+    "src/config/runtime/profiles/qwen-3-5-0-8b-vulkan-throughput.json",
+    "src/config/runtime/profiles/qwen-3-5-2b-metal-parity.json",
+    "src/config/runtime/profiles/qwen-3-5-2b-metal-throughput.json",
+    "src/config/runtime/profiles/qwen-3-5-2b-vulkan-parity.json",
+    "src/config/runtime/profiles/qwen-3-embedding-0-6b-metal-stability.json",
+    "src/config/runtime/profiles/qwen-3-embedding-0-6b-metal-throughput.json",
+    "src/config/runtime/profiles/qwen-3-reranker-0-6b-metal-stability.json",
+    "src/config/runtime/profiles/qwen-3-reranker-0-6b-metal-throughput.json",
+    "src/config/runtime/profiles/qwen3-6-35b-a3b-q4_0-candidate.json",
+    "src/config/runtime/profiles/qwen3-6-35b-a3b-q4_0-pooled-q8-common-diagnostic.json",
+    "src/config/runtime/profiles/qwen3-6-35b-a3b-route-f32-candidate.json",
+    "src/config/runtime/profiles/qwen3-6-35b-a3b-route-f32-workspace-candidate.json",
+    "src/config/runtime/profiles/rerank-stability.json",
+    "src/config/runtime/profiles/rerank-throughput.json",
+    "src/config/runtime/profiles/throughput.json",
+    "src/config/runtime/profiles/vector-stability.json",
+    "src/config/runtime/profiles/vector-throughput.json"
+  ]
+}

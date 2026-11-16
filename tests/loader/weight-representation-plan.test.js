@@ -103,7 +103,7 @@ assert.equal(compile(controls, manifest, [missingControlPath], defaults)[name(0,
 // Exercise the actual conversion recipe through the execution compiler rather
 // than testing a hand-authored path alone.
 const { readFile } = await import('node:fs/promises');
-const { compileExecutionV1 } = await import('../../src/inference/pipelines/text/execution-v1.js');
+const { compileExecutionV1 } = await import("../../src/inference/pipelines/text/execution/execution-v1.js");
 const recipe = JSON.parse(await readFile(new URL('../../src/config/conversion/qwen3/qwen-3-6-35b-a3b-text-q4k-ehf16-af32.json', import.meta.url), 'utf8'));
 const prepared = compileExecutionV1({ modelId: recipe.output.modelBaseId, numLayers: 40, headDim: 256,
   weightDtype: 'q4k', manifestInference: { ...recipe.inference, schema: 'doppler.execution/v1',

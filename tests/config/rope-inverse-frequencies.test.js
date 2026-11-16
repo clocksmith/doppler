@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { validateRoPEInverseFrequencies } from '../../src/config/rope-frequencies.js';
-import { DEFAULT_MANIFEST_INFERENCE } from '../../src/config/schema/manifest.schema.js';
+import { DEFAULT_MANIFEST_INFERENCE } from "../../src/config/schema/manifest/manifest.schema.js";
 import { mergeConfig } from '../../src/config/merge.js';
 
 const frequencies = [1, 0.464111328125];

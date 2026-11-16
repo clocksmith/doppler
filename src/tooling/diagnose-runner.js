@@ -5,8 +5,8 @@ import {
   runWithRuntimeIsolation,
 } from './command-runtime-execution.js';
 import { bootstrapNodeWebGPUProvider } from './node-webgpu.js';
-import { findFirstDivergence } from '../inference/pipelines/text/operator-events.js';
-import { getDriftTolerance } from '../inference/pipelines/text/drift-policy.js';
+import { findFirstDivergence } from "../inference/pipelines/text/observation/operator-events.js";
+import { getDriftTolerance } from "../inference/pipelines/text/policy/drift-policy.js";
 import { destroyDevice, resetDeviceState, getKernelCapabilities } from '../gpu/device.js';
 import { isPlainObject } from '../formats/plain-object.js';
 

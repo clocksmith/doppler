@@ -1,6 +1,6 @@
 import type { DopplerLoader } from '../doppler-loader.js';
 import type { ExpertLoaderContext } from './expert-loader.js';
-import type { ExpertCacheConfigSchema } from '../../config/schema/loading.schema.js';
+import type { ExpertCacheConfigSchema } from "../../config/schema/runtime/loading.schema.js";
 import type { CommandRecorder } from '../../gpu/command-recorder.js';
 import type { QwenPagingReceipt } from './qwen-paging.js';
 import type { RoutedExpertWeights } from './routed-expert-cache.js';

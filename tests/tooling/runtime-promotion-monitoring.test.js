@@ -199,7 +199,7 @@ function policy(status = 'monitoring') {
     receipt,
     evidence,
     value: {
-      $schema: '../../src/config/schema/runtime-promotion-monitoring.schema.json',
+      $schema: "../../src/config/schema/policy/runtime-promotion-monitoring.schema.json",
       schemaVersion: 3,
       source: 'doppler',
       requiredChangeClasses: CHANGE_CLASSES,

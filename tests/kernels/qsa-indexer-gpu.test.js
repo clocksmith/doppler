@@ -8,7 +8,7 @@ import { runMatmul } from '../../src/gpu/kernels/matmul.js';
 import { runRoPEPrecompute } from '../../src/gpu/kernels/rope-precompute.js';
 import { QsaIndexerCache } from '../../src/inference/pipelines/text/indexed-attention/qsa-cache.js';
 import { resolveQwen4ExpSourceContracts } from '../../src/formats/qwen4-exp-source-contracts.js';
-import { resolveIndexedAttentionContract } from '../../src/config/schema/hyper-connection-decoder.schema.js';
+import { resolveIndexedAttentionContract } from "../../src/config/schema/execution/hyper-connection-decoder.schema.js";
 
 // Contract: the QSA indexer operators, driven through the owning cache in the
 // upstream chunk schedule, reproduce float64 truth within the derived F32 bound

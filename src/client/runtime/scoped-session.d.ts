@@ -1,4 +1,4 @@
-import type { ChatMessage } from '../../inference/pipelines/text/chat-format.js';
+import type { ChatMessage } from "../../inference/pipelines/text/generator/request/chat-format.js";
 import type { GenerationCompletion } from '../../config/generation-contract.js';
 import type { SequenceEncodeOptions, SequenceEncodeResult } from '../../inference/pipelines/text/types.d.ts';
 import type {
@@ -103,7 +103,7 @@ export interface DopplerScopedModelSession {
   readonly advanced: DopplerModelHandle['advanced'];
   supports(capability: DopplerCapability): boolean;
   require(capability: DopplerCapability): true;
-  createGenerationContext(options: { maxBytes: number }): import('../../inference/pipelines/text/sequence-state.js').GenerationContext;
+  createGenerationContext(options: { maxBytes: number }): import("../../inference/pipelines/text/generator/session/sequence-state.js").GenerationContext;
   generate(input: DopplerPromptInput, options?: DopplerScopedGenerateOptions): Promise<DopplerGenerationResult>;
   stream(input: DopplerPromptInput, options?: DopplerScopedGenerateOptions): AsyncGenerator<DopplerGenerationEvent, void, void>;
   inspect(

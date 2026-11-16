@@ -7,7 +7,7 @@ import {
 import { isDeviceLost } from '../../memory/device-residency.js';
 import { applyDebugConfig, setGPUDevice } from '../../debug/index.js';
 import { getRuntimeConfig, resolveRuntimeConfig, enterRuntimeConfig } from '../../config/runtime.js';
-import { kernelTrace } from './text/kernel-trace.js';
+import { kernelTrace } from "./text/observation/kernel-trace.js";
 import { getLogLevel, getTrace, isSilentMode, setLogLevel, setSilentMode, setTrace, gpuDevice as debugGpuDevice, traceBreakOnAnomaly, traceLayerFilter, traceMaxDecodeSteps } from '../../debug/config.js';
 
 

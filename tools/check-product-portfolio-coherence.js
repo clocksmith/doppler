@@ -206,7 +206,7 @@ export function validateProductPortfolioCoherence(sources) {
   );
   compare(
     contract?.$schema,
-    '../../src/config/schema/product-portfolio-coherence.schema.json',
+    "../../src/config/schema/policy/product-portfolio-coherence.schema.json",
     'portfolio contract.$schema',
     errors
   );

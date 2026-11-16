@@ -8,7 +8,7 @@ import { createOpfsStore } from './backends/opfs-store.js';
 import { normalizeModelId } from './normalize-model-id.js';
 import { isNodeRuntime } from '../storage/runtime-env.js';
 import { toArrayBuffer } from '../formats/array-buffer.js';
-import { resolveShardVerificationBufferBytes } from '../config/schema/loading.schema.js';
+import { resolveShardVerificationBufferBytes } from "../config/schema/runtime/loading.schema.js";
 
 export const ARTIFACT_FORMAT_RDRR = 'rdrr';
 export const ARTIFACT_FORMAT_DIRECT_SOURCE = 'direct-source';

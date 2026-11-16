@@ -2,7 +2,7 @@ import { isPlainObject as isObject } from '../formats/plain-object.js';
 import { requireObject, requireExactKeys, requireString, requireDigest } from '../formats/contract-validation.js';
 import { sha256Hex } from '../formats/sha256.js';
 import { stableSortObject } from '../formats/stable-sort-object.js';
-import { hashCapsuleV2PublicKey } from './capsule-v2.js';
+import { hashCapsuleV2PublicKey } from "./capsule/capsule-v2.js";
 
 export const APPLICATION_GATE_RECEIPT_SCHEMA = 'doppler.application-gate-receipt/v1';
 export const ELECTRON_FLEET_RECEIPT_SCHEMA = 'doppler.electron-fleet-receipt/v1';

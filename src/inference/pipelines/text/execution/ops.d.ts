@@ -1,0 +1,257 @@
+/**
+ * Kernel Operation Wrappers (Ops)
+ *
+ * This module provides high-level wrappers around GPU kernels (run/record variants)
+ * and handles tensor creation, tracing, and buffer management.
+ *
+ * @module inference/pipelines/text/ops
+ */
+
+import type { SiLURowSplitOptions } from "../../../../gpu/kernels/silu.js";
+import type { CommandRecorder } from "../../../../gpu/command-recorder.js";
+import type { SandwichRMSNormPairOptions, SandwichRMSNormPairResult, ResidualNextRMSNormPairOptions, ResidualNextRMSNormPairResult } from "../../../../gpu/kernels/rmsnorm-pair.js";
+import type { RMSNormStatsOptions, RMSNormStatsResult } from "../../../../gpu/kernels/rmsnorm-stats.js";
+import type { Tensor } from "../../../../gpu/tensor.js";
+import type { WeightBuffer, CpuWeightBuffer } from "../../../../gpu/weight-buffer.js";
+import type { DecodeBufferManager } from "../../../decode-buffers.js";
+import type { ExecutionV1PoliciesSchema } from "../../../../config/schema/execution/execution-v1.schema.js";
+import type { AttentionConfig, AttentionState, AttentionDebugFlags, AttentionResult } from "../attention/types.js";
+import type { LayerWeights } from "../types.js";
+import type { LoRAAdapter } from "../lora.js";
+import type { MatmulOptions } from "../../../../gpu/kernels/matmul.js";
+import type { SiLUOptions } from "../../../../gpu/kernels/silu.js";
+
+export function releaseOrTrack(
+  recorder: CommandRecorder | null | undefined,
+  buffer: GPUBuffer,
+  decodeBuffers?: DecodeBufferManager | null
+): void;
+
+/**
+ * RMSNorm that uses record variant when recorder is provided.
+ * Input and residual are Tensor, returns Tensor.
+ */
+export function doRMSNorm(
+  input: Tensor,
+  weight: GPUBuffer,
+  eps: number,
+  options: {
+    batchSize: number;
+    hiddenSize: number;
+    residual?: Tensor | null;
+    preResidual?: Tensor | null;
+    residualSumOutput?: GPUBuffer | Tensor | null;
+    outputBuffer?: GPUBuffer | null;
+    outputScale?: number | null;
+    label?: string;
+    layerIdx?: number;
+    rmsNormWeightOffset?: boolean;
+  },
+  recorder?: CommandRecorder
+): Promise<Tensor>;
+
+export function doLayerNorm(
+  input: Tensor,
+  weight: GPUBuffer,
+  bias: GPUBuffer,
+  eps: number,
+  options: {
+    batchSize: number;
+    hiddenSize: number;
+    outputBuffer?: GPUBuffer | null;
+    label?: string;
+    layerIdx?: number;
+  },
+  recorder?: CommandRecorder
+): Promise<Tensor>;
+
+export function doBiasAdd(
+  data: Tensor,
+  bias: Tensor,
+  numTokens: number,
+  dim: number,
+  options?: {
+    dataOffset?: number;
+    biasOffset?: number;
+    label?: string;
+    layerIdx?: number;
+    executionPolicies?: ExecutionV1PoliciesSchema | null;
+  },
+  recorder?: CommandRecorder
+): Promise<Tensor>;
+
+export function doRMSNormStats(
+  input: Tensor,
+  residual: Tensor,
+  eps: number,
+  options: RMSNormStatsOptions,
+  recorder?: CommandRecorder
+): Promise<RMSNormStatsResult>;
+
+export function doSandwichRMSNormPair(
+  input: Tensor,
+  residual: Tensor | null,
+  postWeight: GPUBuffer | WeightBuffer | CpuWeightBuffer,
+  preWeight: GPUBuffer | WeightBuffer | CpuWeightBuffer,
+  eps: number,
+  options?: SandwichRMSNormPairOptions,
+  recorder?: CommandRecorder
+): Promise<SandwichRMSNormPairResult>;
+
+export function doResidualNextRMSNormPair(
+  input: Tensor,
+  residual: Tensor,
+  normWeight: GPUBuffer | WeightBuffer | CpuWeightBuffer,
+  eps: number,
+  options?: ResidualNextRMSNormPairOptions,
+  recorder?: CommandRecorder
+): Promise<ResidualNextRMSNormPairResult>;
+
+/**
+ * ResidualAdd that uses record variant when recorder is provided.
+ * Accepts Tensor for inputs, returns Tensor.
+ */
+export function doResidualAdd(
+  a: Tensor,
+  b: Tensor,
+  size: number,
+  recorder?: CommandRecorder,
+  traceOptions?: {
+    label?: string;
+    layerIdx?: number;
+    outputBuffer?: GPUBuffer | null;
+    outputScale?: number | null;
+    executionPolicies?: ExecutionV1PoliciesSchema | null;
+  }
+): Promise<Tensor>;
+
+/**
+ * Matmul that uses record variant when recorder is provided.
+ * A is activation Tensor, B is weight (GPUBuffer or WeightBuffer), returns Tensor.
+ */
+export function doMatmul(
+  A: Tensor,
+  B: GPUBuffer | WeightBuffer,
+  M: number,
+  N: number,
+  K: number,
+  options?: MatmulOptions & { label?: string },
+  recorder?: CommandRecorder
+): Promise<Tensor>;
+
+/**
+ * SiLU that uses record variant when recorder is provided.
+ * Supports gated variant (SiLU with gate multiplication).
+ */
+export function doSiLU(
+  input: Tensor,
+  options?: SiLUOptions & { label?: string; layerIdx?: number },
+  recorder?: CommandRecorder
+): Promise<Tensor>;
+
+/**
+ * GeLU that uses record variant when recorder is provided.
+ * Supports gated variant (GeGLU).
+ */
+export function doGeLU(
+  input: Tensor,
+  options?: { size?: number; gate?: Tensor | null; label?: string; layerIdx?: number },
+  recorder?: CommandRecorder
+): Promise<Tensor>;
+
+/**
+ * SiLURowSplit that uses record variant when recorder is provided.
+ * Used for fused gate+up FFN path: splits combined output and applies activation.
+ */
+export function doSiLURowSplit(
+  input: Tensor,
+  options: Omit<SiLURowSplitOptions, 'activationDtype'> & { label?: string; layerIdx?: number },
+  recorder?: CommandRecorder
+): Promise<Tensor>;
+
+/**
+ * Fused Matmul + RMSNorm that uses record variant when recorder is provided.
+ * Used for down projection + post-FFN norm fusion during decode (M=1).
+ */
+export function doMatmulRMSNormFused(
+  input: Tensor,
+  weight: GPUBuffer | WeightBuffer,
+  normWeight: GPUBuffer,
+  options: { N: number; K: number; eps: number; residual?: Tensor | null; outputBuffer?: GPUBuffer | null; transposeB?: boolean; label?: string; layerIdx?: number; rmsNormWeightOffset?: boolean },
+  recorder?: CommandRecorder
+): Promise<Tensor>;
+
+/**
+ * Hybrid conv block helper for per-layer conv schedules.
+ * Uses linear projections and optional conv2d dispatch when shape metadata is provided.
+ */
+export function doConv(
+  inputTensor: Tensor,
+  convInProj: GPUBuffer | WeightBuffer,
+  convKernel: GPUBuffer | WeightBuffer | Float32Array | null,
+  convOutProj: GPUBuffer | WeightBuffer,
+  options: {
+    numTokens: number;
+    hiddenSize: number;
+    swigluLimit?: number | null;
+    layerIdx?: number;
+    label?: string;
+    kernelPath?: unknown;
+    weightDtype?: 'f16' | 'f32' | 'q4k';
+    convInProjDtype?: 'f16' | 'f32' | 'q4k';
+    convOutProjDtype?: 'f16' | 'f32' | 'q4k';
+    conv2d?: {
+      enabled: boolean;
+      inChannels: number;
+      outChannels: number;
+      height: number;
+      width: number;
+      kernelH: number;
+      kernelW: number;
+      stride?: number;
+      pad?: number;
+    } | null;
+    executionPolicies?: ExecutionV1PoliciesSchema | null;
+  },
+  recorder?: CommandRecorder
+): Promise<Tensor>;
+
+/**
+ * Dtype cast helper that uses record variants when recorder is provided.
+ */
+export function doCast(
+  input: Tensor,
+  toDtype: 'f16' | 'f32',
+  recorder?: CommandRecorder
+): Promise<Tensor>;
+
+/**
+ * Attention that uses record variant when recorder is provided.
+ * Input is Tensor for dtype-aware processing.
+ */
+export function doAttention(
+  inputTensor: Tensor,
+  layerWeights: LayerWeights | null,
+  config: AttentionConfig,
+  state: AttentionState,
+  debug: boolean,
+  debugFlags: AttentionDebugFlags,
+  getWeightBufferFn: (weight: GPUBuffer | WeightBuffer | Float32Array | ArrayBuffer | CpuWeightBuffer, label: string) => GPUBuffer | WeightBuffer,
+  getNormWeightBufferFn: (weight: GPUBuffer | Float32Array | ArrayBuffer | CpuWeightBuffer, label: string) => GPUBuffer,
+  debugCheckBuffer?: (buffer: GPUBuffer, label: string, numTokens: number, expectedDim?: number, representation?: import("../../../../debug/tensor.js").TensorRepresentation & { dtype: 'f16' | 'f32' | 'bf16' }) => Promise<void>,
+  recorder?: CommandRecorder,
+  lora?: LoRAAdapter | null
+): Promise<AttentionResult>;
+
+/**
+ * Initialize per-layer convolution state from the loaded weight buffer.
+ * Resolves kernel shape, dtype, and input projection bindings.
+ */
+export declare function initConvLayerState(
+  convState: Record<string, unknown>,
+  convKernel: GPUBuffer | WeightBuffer | Float32Array | ArrayBuffer | CpuWeightBuffer,
+  convInProj: GPUBuffer | WeightBuffer | Float32Array | ArrayBuffer | CpuWeightBuffer | null,
+  hiddenSize: number,
+  label: string,
+  layerIdx: number
+): Promise<void>;

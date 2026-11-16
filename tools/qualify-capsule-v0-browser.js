@@ -76,7 +76,7 @@ export async function qualifyCapsuleV0Browser(options = parseArgs(process.argv.s
       const adapterInfo = adapter.info ?? await adapter.requestAdapterInfo?.() ?? {};
       const [{ openCapsule }, { CAPSULE_V0_TRUSTED_SIGNERS }] = await Promise.all([
         import('/src/index-browser.js'),
-        import('/src/config/capsule-v0-trusted-signers.js'),
+        import("/src/config/capsule/capsule-v0-trusted-signers.js"),
       ]);
       const referenceResponse = await fetch(`/${referencePath}`);
       if (!referenceResponse.ok) throw new Error(`Reference fetch failed: ${referenceResponse.status}`);

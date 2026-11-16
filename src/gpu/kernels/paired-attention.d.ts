@@ -12,7 +12,7 @@ export declare function resolvePairedAttentionPipeline(variant: string): KernelP
  * layer; `paired` when no path pins one. Fails closed on a non-paired variant.
  */
 export declare function resolvePairedAttentionVariant(
-  kernelPath: import('../../config/schema/kernel-path.schema.js').KernelPathSchema | null,
+  kernelPath: import("../../config/schema/execution/kernel-path.schema.js").KernelPathSchema | null,
   phase: 'prefill' | 'decode',
   layerIdx: number | undefined
 ): string;

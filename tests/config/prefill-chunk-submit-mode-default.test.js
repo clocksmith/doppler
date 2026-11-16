@@ -15,7 +15,7 @@
 //      decodeLoop-specific state.
 
 import assert from 'node:assert/strict';
-import { createDopplerConfig } from '../../src/config/schema/doppler.schema.js';
+import { createDopplerConfig } from "../../src/config/schema/runtime/doppler.schema.js";
 
 {
   const defaults = createDopplerConfig();

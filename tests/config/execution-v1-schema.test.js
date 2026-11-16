@@ -5,8 +5,8 @@ import {
   DEFAULT_EXECUTION_V1_POLICIES,
 } from '../../src/config/schema/index.js';
 import assert from 'node:assert/strict';
-import { createDopplerConfig } from '../../src/config/schema/doppler.schema.js';
-import { applyExecutionV1RuntimeConfig, compileExecutionV1 } from '../../src/inference/pipelines/text/execution-v1.js';
+import { createDopplerConfig } from "../../src/config/schema/runtime/doppler.schema.js";
+import { applyExecutionV1RuntimeConfig, compileExecutionV1 } from "../../src/inference/pipelines/text/execution/execution-v1.js";
 
 const D = (c) => 'sha256:' + c.repeat(64);
 

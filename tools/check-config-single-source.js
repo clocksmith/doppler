@@ -10,8 +10,8 @@ const __dirname = path.dirname(__filename);
 const ROOT = path.resolve(__dirname, '..');
 
 const TEXT_FILES = Object.freeze([
-  'src/config/schema/kernel-path.schema.d.ts',
-  'src/config/schema/inference.schema.d.ts',
+  "src/config/schema/execution/kernel-path.schema.d.ts",
+  "src/config/schema/execution/inference.schema.d.ts",
   'src/config/schema/index.d.ts',
   'src/config/kernel-path-loader.d.ts',
   'src/config/GUIDE.md',
@@ -126,22 +126,22 @@ const CODE_RULES = Object.freeze([
     pattern: /max\(u\.dispatch_stride,\s*1u\)/g,
   },
   {
-    file: 'src/inference/pipelines/text/weights.js',
+    file: "src/inference/pipelines/text/loading/weights.js",
     label: 'Text weight buffer dtype runtime fallback',
     pattern: /weight\.dtype\s*\?\?\s*['"]f32['"]/g,
   },
   {
-    file: 'src/inference/pipelines/text/embed.js',
+    file: "src/inference/pipelines/text/embedding/embed.js",
     label: 'Embedding range-backed dtype runtime fallback',
     pattern: /sourceDtype\s*\?\?\s*embedBuffer\.dtype\s*\?\?\s*['"]f32['"]/g,
   },
   {
-    file: 'src/inference/pipelines/text/per-layer-inputs.js',
+    file: "src/inference/pipelines/text/per-layer/per-layer-inputs.js",
     label: 'Per-layer input projection norm dtype runtime fallback',
     pattern: /getPleProjectionNormDtype[\s\S]{0,120}\?\?\s*['"]f32['"]/g,
   },
   {
-    file: 'src/inference/pipelines/text/per-layer-inputs.js',
+    file: "src/inference/pipelines/text/per-layer/per-layer-inputs.js",
     label: 'Per-layer input source dtype runtime fallback',
     pattern: /embedTokensPerLayer[\s\S]{0,160}\?\?\s*['"]f32['"]/g,
   },
@@ -221,7 +221,7 @@ const CODE_RULES = Object.freeze([
     pattern: /maxTokens\s*\?\?\s*512/g,
   },
   {
-    file: 'src/inference/pipelines/text/execution-plan.js',
+    file: "src/inference/pipelines/text/execution/execution-plan.js",
     label: 'Execution plan maxTokens runtime fallback',
     pattern: /DEFAULT_MAX_TOKENS|generationConfig\.maxTokens\s*\?\?/g,
   },
@@ -296,7 +296,7 @@ const CODE_RULES = Object.freeze([
     pattern: /kernelTraceCfg\.\w+\s*\?\?/g,
   },
   {
-    file: 'src/inference/pipelines/text/kernel-trace.js',
+    file: "src/inference/pipelines/text/observation/kernel-trace.js",
     label: 'Kernel trace option runtime fallback',
     pattern: /options\.(layers|breakOnAnomaly|explosionThreshold|collapseThreshold|maxSteps)\s*\?\?/g,
   },
@@ -356,17 +356,17 @@ const CODE_RULES = Object.freeze([
     pattern: /lastLogitsDtype\s*=\s*['"]f32['"]/g,
   },
   {
-    file: 'src/inference/pipelines/text/generator-runtime.js',
+    file: "src/inference/pipelines/text/generator/session/generator-runtime.js",
     label: 'Generator runtime local dtype default',
     pattern: /DEFAULT_DTYPE|fallback:\s*['"]f32['"]/g,
   },
   {
-    file: 'src/inference/pipelines/text/generator-runtime.js',
+    file: "src/inference/pipelines/text/generator/session/generator-runtime.js",
     label: 'Generator self-speculation runtime fallback',
     pattern: /sessionSpeculation\?\.mode\s*\?\?\s*['"]none['"]|sessionSpeculation\?\.tokens\s*\?\?\s*1|sessionSpeculation\?\.verify\s*\?\?\s*['"]greedy['"]|sessionSpeculation\?\.rollbackOnReject\s*\?\?\s*true/g,
   },
   {
-    file: 'src/inference/pipelines/text/generator.js',
+    file: "src/inference/pipelines/text/generator/generator.js",
     label: 'Self-speculation token runtime fallback',
     pattern: /speculation\?\.tokens\s*\?\?\s*1/g,
   },

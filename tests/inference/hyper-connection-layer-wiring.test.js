@@ -17,18 +17,18 @@ const mocks = {
       await call.mlpBranch(p.tensor('mlp input'));
       return p.tensor('layer result');
     };`,
-  '../ops.js': `const p = globalThis.hyperWiring;
+  "../execution/ops.js": `const p = globalThis.hyperWiring;
     export const releaseOrTrack = (_recorder, value) => { p.events.push('release:' + value.label); };
     export const doAttention = async (_input, weights, config, state) => {
       p.attention = { weights, config, state }; p.events.push('attention');
       return { output: p.tensor('attention output'), residualFused: p.residual };
     };`,
-  '../linear-attention.js': `const p = globalThis.hyperWiring;
+  "../linear-attention/linear-attention.js": `const p = globalThis.hyperWiring;
     export const runLinearAttentionLayer = async (_input, weights, options) => {
       p.linear = { weights, options }; p.events.push('linear'); return p.tensor('linear output');
     };`,
   '../ffn/moe.js': `export const runMoEFFNGPU = async (_layer, input) => { globalThis.hyperWiring.events.push('moe'); return input; };`,
-  '../probes.js': 'export const runProbes = async () => {};',
+  "../observation/probes.js": 'export const runProbes = async () => {};',
 };
 const hooks = registerHooks({ resolve(specifier, context, next) {
   const source = context.parentURL === target ? mocks[specifier] : null;

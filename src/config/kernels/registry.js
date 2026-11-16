@@ -1,5 +1,5 @@
-import { resolveKernelConfig as resolveSchema } from '../schema/kernel-registry.schema.js';
-export { mergeBindings } from '../schema/kernel-registry.schema.js';
+import { resolveKernelConfig as resolveSchema } from "../schema/execution/kernel-registry.schema.js";
+export { mergeBindings } from "../schema/execution/kernel-registry.schema.js";
 import { loadJson } from '../../formats/load-json.js';
 
 let cachedRegistry = null;

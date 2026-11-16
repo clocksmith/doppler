@@ -17,7 +17,7 @@ import { getKernelPathMatmulPrecision } from '../../../../config/kernel-path-loa
 import { applyLoRA } from '../lora-apply.js';
 import { getLoRAModule } from '../lora.js';
 import { getQKNormOnesBuffer, getQKNormZerosBuffer } from './types.js';
-import { getVectorTensor } from '../weights.js';
+import { getVectorTensor } from "../loading/weights.js";
 import { projectSeparateAttentionGate } from './gate-projection.js';
 import { getRmsNormRunner, normBufferMatchesSize, ownsNormBuffer, releaseOwnedNormBuffer } from './projection-plan.js';
 

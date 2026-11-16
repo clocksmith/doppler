@@ -13,7 +13,7 @@ const GATE_CONSTANTS = Object.freeze({ WORKGROUP_SIZE: 64 });
 const RECURRENT_CONSTANTS = Object.freeze({ WORKGROUP_SIZE: 128 });
 
 /** The paired gate phase is selected by rule and must declare the model's activation.
- * @param {import('../../config/schema/inference.schema.js').LinearNormGateActivation} normGateActivation */
+ * @param {import("../../config/schema/execution/inference.schema.js").LinearNormGateActivation} normGateActivation */
 function resolvePairedGateVariant(normGateActivation) {
   return resolveGatedDeltaNormGateKernel('gated_delta_recurrent', 'gatedDeltaRecurrent', 'pairedGateVariant',
     { normGateActivation }).variant;

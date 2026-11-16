@@ -1,7 +1,7 @@
 import { DOPPLER_VERSION } from '../../version.js';
 import { GenerationError } from '../../config/generation-contract.js';
-import { freezeCapsuleV2 } from '../../config/capsule-v2.js';
-import { resolveCapsuleStreamFormat, hashCapsuleObservation, normalizeCapsuleObservation, snapshotCapsuleOperationRequest } from '../../config/capsule-operation.js';
+import { freezeCapsuleV2 } from "../../config/capsule/capsule-v2.js";
+import { resolveCapsuleStreamFormat, hashCapsuleObservation, normalizeCapsuleObservation, snapshotCapsuleOperationRequest } from "../../config/capsule/capsule-operation.js";
 import { createCapsuleDeltaBudget } from './capsule-operation-deltas.js';
 
 export function createCapsuleOperationExecutor({ adapters, identity, assertCurrent, prepareExecution = null }) {

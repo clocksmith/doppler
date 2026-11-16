@@ -1,225 +1,495 @@
 {
   "schema": "doppler.supported-operations/v1",
-  "description": "Canonical catalog of execution-v1 step ops recognized by Doppler's WebGPU runtime. Used by verify to pre-flight manifests and fail fast when a new model family references an op that has no runtime coverage. Keep this file in lock-step with src/inference/pipelines/text/layer-plan.js switch(op) and src/inference/pipelines/text/layer-plan-gpu.js switch(step.op).",
+  "description": "Canonical catalog of execution-v1 step ops recognized by Doppler's WebGPU runtime. Used by verify to pre-flight manifests and fail fast when a new model family references an op that has no runtime coverage. Keep this file in lock-step with src/inference/pipelines/text/execution/layer-plan.js switch(op) and src/inference/pipelines/text/execution/layer-plan-gpu.js switch(step.op).",
   "executionV1Ops": {
     "embed": {
-      "section": ["preLayer"],
+      "section": [
+        "preLayer"
+      ],
       "description": "Token-embedding gather into the hidden-state residual slot.",
-      "kernelFamily": ["embed"]
+      "kernelFamily": [
+        "embed"
+      ]
     },
     "cast": {
-      "section": ["preLayer", "prefill", "decode", "postLayer"],
+      "section": [
+        "preLayer",
+        "prefill",
+        "decode",
+        "postLayer"
+      ],
       "description": "Explicit dtype transition declared by the execution graph.",
-      "kernelFamily": ["cast"]
+      "kernelFamily": [
+        "cast"
+      ]
     },
     "input_norm": {
-      "section": ["prefill", "decode"],
+      "section": [
+        "prefill",
+        "decode"
+      ],
       "description": "Pre-attention RMS norm.",
-      "kernelFamily": ["rmsnorm"]
+      "kernelFamily": [
+        "rmsnorm"
+      ]
     },
     "linear_qkv_proj": {
-      "section": ["prefill", "decode"],
+      "section": [
+        "prefill",
+        "decode"
+      ],
       "description": "Declared convolutional recurrent Q/K/V projection.",
-      "kernelFamily": ["tiled", "gemv", "matmul_q4k"]
+      "kernelFamily": [
+        "tiled",
+        "gemv",
+        "matmul_q4k"
+      ]
     },
     "linear_z_proj": {
-      "section": ["prefill", "decode"],
+      "section": [
+        "prefill",
+        "decode"
+      ],
       "description": "Declared recurrent output-gate projection.",
-      "kernelFamily": ["tiled", "gemv", "matmul_q4k"]
+      "kernelFamily": [
+        "tiled",
+        "gemv",
+        "matmul_q4k"
+      ]
     },
     "linear_a_proj": {
-      "section": ["prefill", "decode"],
+      "section": [
+        "prefill",
+        "decode"
+      ],
       "description": "Declared recurrent decay projection with its own weight encoding.",
-      "kernelFamily": ["tiled", "gemv", "matmul_q4k"]
+      "kernelFamily": [
+        "tiled",
+        "gemv",
+        "matmul_q4k"
+      ]
     },
     "linear_b_proj": {
-      "section": ["prefill", "decode"],
+      "section": [
+        "prefill",
+        "decode"
+      ],
       "description": "Declared recurrent update-gate projection with its own weight encoding.",
-      "kernelFamily": ["tiled", "gemv", "matmul_q4k"]
+      "kernelFamily": [
+        "tiled",
+        "gemv",
+        "matmul_q4k"
+      ]
     },
     "linear_out_proj": {
-      "section": ["prefill", "decode"],
+      "section": [
+        "prefill",
+        "decode"
+      ],
       "description": "Declared recurrent output projection, separate from attention o_proj when its weight encoding differs.",
-      "kernelFamily": ["tiled", "gemv", "matmul_q4k"]
+      "kernelFamily": [
+        "tiled",
+        "gemv",
+        "matmul_q4k"
+      ]
     },
     "q_proj": {
-      "section": ["prefill", "decode"],
+      "section": [
+        "prefill",
+        "decode"
+      ],
       "description": "Query projection. Tiled matmul in prefill, GEMV in decode.",
-      "kernelFamily": ["tiled", "gemv", "matmul_q4k"]
+      "kernelFamily": [
+        "tiled",
+        "gemv",
+        "matmul_q4k"
+      ]
     },
     "k_proj": {
-      "section": ["prefill", "decode"],
+      "section": [
+        "prefill",
+        "decode"
+      ],
       "description": "Key projection. Tiled matmul in prefill, GEMV in decode.",
-      "kernelFamily": ["tiled", "gemv", "matmul_q4k"]
+      "kernelFamily": [
+        "tiled",
+        "gemv",
+        "matmul_q4k"
+      ]
     },
     "v_proj": {
-      "section": ["prefill", "decode"],
+      "section": [
+        "prefill",
+        "decode"
+      ],
       "description": "Value projection. Tiled matmul in prefill, GEMV in decode.",
-      "kernelFamily": ["tiled", "gemv", "matmul_q4k"]
+      "kernelFamily": [
+        "tiled",
+        "gemv",
+        "matmul_q4k"
+      ]
     },
     "q_norm": {
-      "section": ["prefill", "decode"],
+      "section": [
+        "prefill",
+        "decode"
+      ],
       "description": "Per-head query RMS norm after the query projection. Paired (two-F32) graphs only; the step's program runs the head normalization.",
-      "kernelFamily": ["rmsnorm"]
+      "kernelFamily": [
+        "rmsnorm"
+      ]
     },
     "k_norm": {
-      "section": ["prefill", "decode"],
+      "section": [
+        "prefill",
+        "decode"
+      ],
       "description": "Per-head key RMS norm after the key projection. Paired (two-F32) graphs only; the step's program runs the head normalization.",
-      "kernelFamily": ["rmsnorm"]
+      "kernelFamily": [
+        "rmsnorm"
+      ]
     },
     "rope_q": {
-      "section": ["prefill", "decode"],
+      "section": [
+        "prefill",
+        "decode"
+      ],
       "description": "Rotary embedding applied to the query projection.",
-      "kernelFamily": ["rope"]
+      "kernelFamily": [
+        "rope"
+      ]
     },
     "rope_k": {
-      "section": ["prefill", "decode"],
+      "section": [
+        "prefill",
+        "decode"
+      ],
       "description": "Rotary embedding applied to the key projection.",
-      "kernelFamily": ["rope"]
+      "kernelFamily": [
+        "rope"
+      ]
     },
     "attention": {
-      "section": ["prefill", "decode"],
+      "section": [
+        "prefill",
+        "decode"
+      ],
       "description": "Core attention operator. Variants include attn_decode, attn_stream, attn_small, attn_sliding.",
-      "kernelFamily": ["attn_decode", "attn_stream", "attn_small", "attn_sliding", "attn_tiled"]
+      "kernelFamily": [
+        "attn_decode",
+        "attn_stream",
+        "attn_small",
+        "attn_sliding",
+        "attn_tiled"
+      ]
     },
     "o_proj": {
-      "section": ["prefill", "decode"],
+      "section": [
+        "prefill",
+        "decode"
+      ],
       "description": "Attention output projection.",
-      "kernelFamily": ["tiled", "gemv", "matmul_q4k"]
+      "kernelFamily": [
+        "tiled",
+        "gemv",
+        "matmul_q4k"
+      ]
     },
     "attn_residual": {
-      "section": ["prefill", "decode"],
+      "section": [
+        "prefill",
+        "decode"
+      ],
       "description": "Residual add after attention block.",
-      "kernelFamily": ["residual"]
+      "kernelFamily": [
+        "residual"
+      ]
     },
     "post_attn_norm": {
-      "section": ["prefill", "decode"],
+      "section": [
+        "prefill",
+        "decode"
+      ],
       "description": "Post-attention RMS norm.",
-      "kernelFamily": ["rmsnorm"]
+      "kernelFamily": [
+        "rmsnorm"
+      ]
     },
     "gate_proj": {
-      "section": ["prefill", "decode"],
+      "section": [
+        "prefill",
+        "decode"
+      ],
       "description": "Feed-forward gate projection for split FFN execution graphs.",
-      "kernelFamily": ["tiled", "gemv", "matmul_q4k"]
+      "kernelFamily": [
+        "tiled",
+        "gemv",
+        "matmul_q4k"
+      ]
     },
     "up_proj": {
-      "section": ["prefill", "decode"],
+      "section": [
+        "prefill",
+        "decode"
+      ],
       "description": "Feed-forward up projection for split FFN execution graphs.",
-      "kernelFamily": ["tiled", "gemv", "matmul_q4k"]
+      "kernelFamily": [
+        "tiled",
+        "gemv",
+        "matmul_q4k"
+      ]
     },
     "activation": {
-      "section": ["prefill", "decode"],
+      "section": [
+        "prefill",
+        "decode"
+      ],
       "description": "Feed-forward activation/gating step for split FFN execution graphs.",
-      "kernelFamily": ["gelu", "silu"]
+      "kernelFamily": [
+        "gelu",
+        "silu"
+      ]
     },
     "down_proj": {
-      "section": ["prefill", "decode"],
+      "section": [
+        "prefill",
+        "decode"
+      ],
       "description": "Feed-forward down projection for split FFN execution graphs.",
-      "kernelFamily": ["tiled", "gemv", "matmul_q4k"]
+      "kernelFamily": [
+        "tiled",
+        "gemv",
+        "matmul_q4k"
+      ]
     },
     "ffn": {
-      "section": ["prefill", "decode"],
+      "section": [
+        "prefill",
+        "decode"
+      ],
       "description": "Gated feed-forward block (gate/up/down with GELU or SiLU).",
-      "kernelFamily": ["gelu", "silu", "tiled", "gemv"]
+      "kernelFamily": [
+        "gelu",
+        "silu",
+        "tiled",
+        "gemv"
+      ]
     },
     "ffn_residual": {
-      "section": ["prefill", "decode"],
+      "section": [
+        "prefill",
+        "decode"
+      ],
       "description": "Residual add after FFN block.",
-      "kernelFamily": ["residual"]
+      "kernelFamily": [
+        "residual"
+      ]
     },
     "final_norm": {
-      "section": ["postLayer"],
+      "section": [
+        "postLayer"
+      ],
       "description": "Final RMS norm before the LM head.",
-      "kernelFamily": ["rmsnorm", "final_norm_stable"]
+      "kernelFamily": [
+        "rmsnorm",
+        "final_norm_stable"
+      ]
     },
     "lm_head": {
-      "section": ["postLayer"],
+      "section": [
+        "postLayer"
+      ],
       "description": "Language-model head GEMV for decode-step token logits.",
-      "kernelFamily": ["lm_head_gemv", "lm_head_gemv_stable"]
+      "kernelFamily": [
+        "lm_head_gemv",
+        "lm_head_gemv_stable"
+      ]
     },
     "lm_head_prefill": {
-      "section": ["postLayer"],
+      "section": [
+        "postLayer"
+      ],
       "description": "Language-model head matmul for prefill-phase full-sequence logits.",
-      "kernelFamily": ["lm_head_prefill_stable"]
+      "kernelFamily": [
+        "lm_head_prefill_stable"
+      ]
     },
     "sample": {
-      "section": ["postLayer"],
+      "section": [
+        "postLayer"
+      ],
       "description": "Token sampling from logits.",
-      "kernelFamily": ["sample"]
+      "kernelFamily": [
+        "sample"
+      ]
     },
     "moe_router": {
-      "section": ["prefill", "decode"],
+      "section": [
+        "prefill",
+        "decode"
+      ],
       "description": "Declared MoE router projection (per-expert logits) with its own control precision.",
-      "kernelFamily": ["tiled", "gemv", "matmul_f32"]
+      "kernelFamily": [
+        "tiled",
+        "gemv",
+        "matmul_f32"
+      ]
     },
     "moe_topk": {
-      "section": ["prefill", "decode"],
+      "section": [
+        "prefill",
+        "decode"
+      ],
       "description": "Declared GPU top-k expert selection and routing weights consumed by the MoE executor.",
-      "kernelFamily": ["topk"]
+      "kernelFamily": [
+        "topk"
+      ]
     },
     "moe_shared_router": {
-      "section": ["prefill", "decode"],
+      "section": [
+        "prefill",
+        "decode"
+      ],
       "description": "Declared shared-expert gate projection with its own control precision.",
-      "kernelFamily": ["tiled", "gemv", "matmul_f32"]
+      "kernelFamily": [
+        "tiled",
+        "gemv",
+        "matmul_f32"
+      ]
     },
     "attn_hc_down": {
-      "section": ["prefill", "decode"],
+      "section": [
+        "prefill",
+        "decode"
+      ],
       "description": "Hyper-connection low-rank down projection before the attention branch (qwen4_exp).",
-      "kernelFamily": ["tiled", "gemv", "matmul_f32"]
+      "kernelFamily": [
+        "tiled",
+        "gemv",
+        "matmul_f32"
+      ]
     },
     "attn_hc_up": {
-      "section": ["prefill", "decode"],
+      "section": [
+        "prefill",
+        "decode"
+      ],
       "description": "Hyper-connection low-rank up projection before the attention branch (qwen4_exp).",
-      "kernelFamily": ["tiled", "gemv", "matmul_f32"]
+      "kernelFamily": [
+        "tiled",
+        "gemv",
+        "matmul_f32"
+      ]
     },
     "attn_hc_inject": {
-      "section": ["prefill", "decode"],
+      "section": [
+        "prefill",
+        "decode"
+      ],
       "description": "Hyper-connection injection-weight projection for the attention branch (qwen4_exp).",
-      "kernelFamily": ["tiled", "gemv", "matmul_f32"]
+      "kernelFamily": [
+        "tiled",
+        "gemv",
+        "matmul_f32"
+      ]
     },
     "mlp_hc_down": {
-      "section": ["prefill", "decode"],
+      "section": [
+        "prefill",
+        "decode"
+      ],
       "description": "Hyper-connection low-rank down projection before the MLP branch (qwen4_exp).",
-      "kernelFamily": ["tiled", "gemv", "matmul_f32"]
+      "kernelFamily": [
+        "tiled",
+        "gemv",
+        "matmul_f32"
+      ]
     },
     "mlp_hc_up": {
-      "section": ["prefill", "decode"],
+      "section": [
+        "prefill",
+        "decode"
+      ],
       "description": "Hyper-connection low-rank up projection before the MLP branch (qwen4_exp).",
-      "kernelFamily": ["tiled", "gemv", "matmul_f32"]
+      "kernelFamily": [
+        "tiled",
+        "gemv",
+        "matmul_f32"
+      ]
     },
     "mlp_hc_inject": {
-      "section": ["prefill", "decode"],
+      "section": [
+        "prefill",
+        "decode"
+      ],
       "description": "Hyper-connection injection-weight projection for the MLP branch (qwen4_exp).",
-      "kernelFamily": ["tiled", "gemv", "matmul_f32"]
+      "kernelFamily": [
+        "tiled",
+        "gemv",
+        "matmul_f32"
+      ]
     },
     "qsa_index_qk": {
-      "section": ["prefill", "decode"],
+      "section": [
+        "prefill",
+        "decode"
+      ],
       "description": "QSA indexer query/key projection on indexed full-attention layers (qwen4_exp).",
-      "kernelFamily": ["tiled", "gemv", "matmul_f32"]
+      "kernelFamily": [
+        "tiled",
+        "gemv",
+        "matmul_f32"
+      ]
     },
     "ple_key_proj": {
-      "section": ["prefill", "decode"],
+      "section": [
+        "prefill",
+        "decode"
+      ],
       "description": "N-gram PLE key projection on PLE layers (qwen4_exp).",
-      "kernelFamily": ["tiled", "gemv", "matmul_f32"]
+      "kernelFamily": [
+        "tiled",
+        "gemv",
+        "matmul_f32"
+      ]
     },
     "ple_value_proj": {
-      "section": ["prefill", "decode"],
+      "section": [
+        "prefill",
+        "decode"
+      ],
       "description": "N-gram PLE value projection on PLE layers (qwen4_exp).",
-      "kernelFamily": ["tiled", "gemv", "matmul_f32"]
+      "kernelFamily": [
+        "tiled",
+        "gemv",
+        "matmul_f32"
+      ]
     },
     "hc_mixer_down": {
-      "section": ["postLayer"],
+      "section": [
+        "postLayer"
+      ],
       "description": "Root hyper-connection mixer down projection; replaces the final norm (qwen4_exp).",
-      "kernelFamily": ["tiled", "gemv", "matmul_f32"]
+      "kernelFamily": [
+        "tiled",
+        "gemv",
+        "matmul_f32"
+      ]
     },
     "hc_mixer_up": {
-      "section": ["postLayer"],
+      "section": [
+        "postLayer"
+      ],
       "description": "Root hyper-connection mixer up projection (qwen4_exp).",
-      "kernelFamily": ["tiled", "gemv", "matmul_f32"]
+      "kernelFamily": [
+        "tiled",
+        "gemv",
+        "matmul_f32"
+      ]
     }
   },
   "runtimeOps": {
-    "description": "Coarser ops used by the JS pipeline layer-plan runtime (src/inference/pipelines/text/layer-plan.js). execution-v1 ops map onto these via the runtime dispatch.",
+    "description": "Coarser ops used by the JS pipeline layer-plan runtime (src/inference/pipelines/text/execution/layer-plan.js). execution-v1 ops map onto these via the runtime dispatch.",
     "ops": [
       "save",
       "load",

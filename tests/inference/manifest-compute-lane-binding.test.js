@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 
 const { assertManifestComputeLaneBinding } = await import(
-  '../../src/inference/pipelines/text/model-load.js'
+  "../../src/inference/pipelines/text/loading/model-load.js"
 );
 
 function makeRuntimeConfig({ activationDtype, mathDtype, accumDtype, kvDtype }) {

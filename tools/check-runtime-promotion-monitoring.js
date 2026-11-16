@@ -438,7 +438,7 @@ export async function validateRuntimePromotionMonitoringPolicy(policy, options =
     return { ok: false, promotions: 0, monitoring: 0, retained: 0, revoked: 0, coverageSatisfied: false, errors: [error.message] };
   }
   exactObject(policy, ['$schema', 'schemaVersion', 'source', 'requiredChangeClasses', 'promotions'], 'monitoring policy', errors);
-  if (policy?.$schema !== '../../src/config/schema/runtime-promotion-monitoring.schema.json') errors.push('monitoring policy $schema is not recognized');
+  if (policy?.$schema !== "../../src/config/schema/policy/runtime-promotion-monitoring.schema.json") errors.push('monitoring policy $schema is not recognized');
   if (policy?.schemaVersion !== 3) errors.push('monitoring policy schemaVersion must be 3');
   if (policy?.source !== 'doppler') errors.push('monitoring policy source must be doppler');
   const requiredClasses = uniqueStrings(policy?.requiredChangeClasses, 'monitoring policy requiredChangeClasses', errors);

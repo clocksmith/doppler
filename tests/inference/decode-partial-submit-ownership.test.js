@@ -1,19 +1,19 @@
 import assert from 'node:assert/strict';
 import { registerHooks } from 'node:module';
 
-const target = new URL('../../src/inference/pipelines/text/generator/decode.js', import.meta.url).href;
+const target = new URL("../../src/inference/pipelines/text/generator/decode/decode.js", import.meta.url).href;
 const decoderModules = new Set([target, new URL('./decode-step.js', target).href, new URL('./decode-mechanics.js', target).href]);
 const probe = globalThis.partialDecodeOwnershipProbe = {};
 const modules = {
-  '../../../../gpu/device.js': 'export const getDevice=()=>partialDecodeOwnershipProbe.device; export const setTrackSubmits=()=>{};',
-  '../../../../memory/buffer-pool.js': `export const releaseBuffer=b=>partialDecodeOwnershipProbe.release(b);
+  "../../../../../gpu/device.js": 'export const getDevice=()=>partialDecodeOwnershipProbe.device; export const setTrackSubmits=()=>{};',
+  "../../../../../memory/buffer-pool.js": `export const releaseBuffer=b=>partialDecodeOwnershipProbe.release(b);
     export const discardBuffer=releaseBuffer; export const readBuffer=()=>{throw Error('unexpected readback');};`,
-  '../../../../gpu/command-recorder.js': `export const createCommandRecorder=()=>partialDecodeOwnershipProbe.recorder;
+  "../../../../../gpu/command-recorder.js": `export const createCommandRecorder=()=>partialDecodeOwnershipProbe.recorder;
     export const createProfilingRecorder=createCommandRecorder; export class CommandRecorder {}`,
-  '../embed.js': 'export const embed=async()=>({buffer:partialDecodeOwnershipProbe.hidden,dtype:"f32",shape:[1,4]});',
-  '../layer.js': `export const hasConvLayers=()=>false;
+  "../../embedding/embed.js": 'export const embed=async()=>({buffer:partialDecodeOwnershipProbe.hidden,dtype:"f32",shape:[1,4]});',
+  "../../execution/layer.js": `export const hasConvLayers=()=>false;
     export const processLayer=async()=>partialDecodeOwnershipProbe.output;`,
-  '../per-layer-inputs.js': 'export const preparePerLayerInputs=async()=>null; export const prefetchPerLayerRow=()=>{};',
+  "../../per-layer/per-layer-inputs.js": 'export const preparePerLayerInputs=async()=>null; export const prefetchPerLayerRow=()=>{};',
 };
 const hooks = registerHooks({ resolve(specifier, context, next) {
   if (decoderModules.has(context.parentURL) && modules[specifier]) {

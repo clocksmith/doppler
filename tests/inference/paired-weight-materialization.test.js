@@ -1,8 +1,8 @@
 import assert from 'node:assert/strict';
 import { registerHooks } from 'node:module';
-const target = new URL('../../src/inference/pipelines/text/weight-loading-config.js', import.meta.url).href;
+const target = new URL("../../src/inference/pipelines/text/loading/weight-loading-config.js", import.meta.url).href;
 const hooks = registerHooks({resolve(name, context, next) {
- if(context.parentURL===target && name==='../../../gpu/device.js') return {url:'data:text/javascript,export const getKernelCapabilities=()=>({hasSubgroups:false});',shortCircuit:true};
+ if(context.parentURL===target && name==="../../../../gpu/device.js") return {url:'data:text/javascript,export const getKernelCapabilities=()=>({hasSubgroups:false});',shortCircuit:true};
  return next(name,context);
 }});
 const {resolveWeightLoadingConfig}=await import(target);

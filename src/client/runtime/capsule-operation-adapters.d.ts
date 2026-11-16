@@ -1,4 +1,4 @@
-import type { CapsuleOperationRequest } from '../../config/capsule-operation.js';
+import type { CapsuleOperationRequest } from "../../config/capsule/capsule-operation.js";
 export interface CapsuleOperationAdapter {
   validate(request: Readonly<CapsuleOperationRequest>): void;
   execute(request: Readonly<CapsuleOperationRequest>, signal: AbortSignal): AsyncGenerator<{ delta: unknown; output?: unknown }, unknown, void>;

@@ -7,7 +7,7 @@ const {
 } = await import('../../src/converter/quantization-info.js');
 const { convertModel, transformTensorBytes } = await import('../../src/converter/core.js');
 const { loadTensorToCPU } = await import('../../src/loader/tensors/tensor-loader.js');
-const { createConverterConfig } = await import('../../src/config/schema/converter.schema.js');
+const { createConverterConfig } = await import("../../src/config/schema/manifest/converter.schema.js");
 const { DEFAULT_MANIFEST_INFERENCE } = await import('../../src/config/schema/index.js');
 
 function f16Bytes(values) {

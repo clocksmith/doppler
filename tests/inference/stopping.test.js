@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { matchesStopSequence } from '../../src/inference/pipelines/text/stopping.js';
+import { matchesStopSequence } from "../../src/inference/pipelines/text/generator/sampling/stopping.js";
 const tokenizer = { decode: ids => String.fromCodePoint(...ids) };
 const ids = text => [...text].map(value => value.codePointAt(0));
 assert.equal(matchesStopSequence(tokenizer, ids('promptSTOP'), 6, ['STOP']), true);

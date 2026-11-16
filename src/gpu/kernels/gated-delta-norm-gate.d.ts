@@ -1,4 +1,4 @@
-import type { LinearNormGateActivation } from '../../config/schema/inference.schema.js';
+import type { LinearNormGateActivation } from "../../config/schema/execution/inference.schema.js";
 import type { KernelConfig } from './kernel-configs.js';
 
 /** Return the activation unchanged, or throw when it is not a supported gated-RMSNorm activation. */

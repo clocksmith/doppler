@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { createDopplerConfig } from '../../src/config/schema/index.js';
-import { prefillWithEmbedding, prefillWithLogits, prefillWithTokenLogits, prefillWithTokenLogitsFromKV } from '../../src/inference/pipelines/text/generator/training.js';
+import { prefillWithEmbedding, prefillWithLogits, prefillWithTokenLogits, prefillWithTokenLogitsFromKV } from "../../src/inference/pipelines/text/generator/adapters/training.js";
 
 const diagnostics = { enabled: true, captureConfig: { defaultLevel: 'none', targetOpIds: ['layer.0.attn.q_proj'], targetLevel: 'full' } };
 const failure = new Error('projection failed');

@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 
-const { buildInlineKernelPath } = await import('../../src/inference/pipelines/text/execution-runtime-builders.js');
+const { buildInlineKernelPath } = await import("../../src/inference/pipelines/text/execution/execution-runtime-builders.js");
 const { getLayerSteps, getKernelPathAttentionVariant } = await import('../../src/config/kernel-path-loader.js');
 
 const session = {

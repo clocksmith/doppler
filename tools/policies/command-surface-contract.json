@@ -1,5 +1,5 @@
 {
-  "$schema": "../../src/config/schema/command-surface-contract.schema.json",
+  "$schema": "../../src/config/schema/policy/command-surface-contract.schema.json",
   "schemaVersion": 1,
   "source": "doppler",
   "commands": [

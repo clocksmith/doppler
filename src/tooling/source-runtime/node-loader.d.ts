@@ -1,5 +1,5 @@
 import type { Stats } from 'node:fs';
-import type { StorageStreamingConfigSchema } from '../../config/schema/storage.schema.js';
+import type { StorageStreamingConfigSchema } from "../../config/schema/runtime/storage.schema.js";
 import type { ParsedSafetensorsHeader } from '../../formats/safetensors/types.js';
 
 export const MAX_NODE_READ_BYTES: number;

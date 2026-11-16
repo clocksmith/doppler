@@ -5,7 +5,7 @@
  */
 
 import type { ArrayStats } from '../../debug/stats.js';
-import type { EnergyQuintelConfigSchema } from '../../config/schema/energy.schema.js';
+import type { EnergyQuintelConfigSchema } from "../../config/schema/execution/energy.schema.js";
 
 export type EnergyProblem = 'l2' | 'quintel';
 

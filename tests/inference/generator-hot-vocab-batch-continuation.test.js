@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 const {
   shouldDisableBatchDecodeAfterShortBatch,
   resolveHotVocabularyBatchDecodeAvailability,
-} = await import('../../src/inference/pipelines/text/generator-decode-policy.js');
+} = await import("../../src/inference/pipelines/text/policy/generator-decode-policy.js");
 
 assert.equal(
   shouldDisableBatchDecodeAfterShortBatch({

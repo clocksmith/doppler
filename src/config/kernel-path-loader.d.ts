@@ -12,7 +12,7 @@ import type {
   KernelPathSchema,
   KernelPathRef,
   KernelStepSchema,
-} from './schema/kernel-path.schema.js';
+} from "./schema/execution/kernel-path.schema.js";
 
 /**
  * Return activation dtype required by a kernel path.

@@ -22,11 +22,11 @@ import { readFileSync } from 'node:fs';
 // =============================================================================
 
 const generatorFacadeSource = readFileSync(
-  new URL('../../src/inference/pipelines/text/generator.js', import.meta.url),
+  new URL("../../src/inference/pipelines/text/generator/generator.js", import.meta.url),
   'utf8'
 );
 const generatorSource = readFileSync(
-  new URL('../../src/inference/pipelines/text/generator/decode-runtime.js', import.meta.url),
+  new URL("../../src/inference/pipelines/text/generator/session/generation-runtime.js", import.meta.url),
   'utf8'
 );
 
@@ -58,15 +58,16 @@ function extractMethodBody(source, marker) {
 }
 
 const generateTokenIdsBody = extractMethodBody(generatorSource, 'export async function generateTokenIds(prompt');
-const runDecodeLoopBody = extractMethodBody(generatorSource, 'export async function* _runDecodeLoop(generatedIds');
+const decodeLoopSource = readFileSync(new URL('../../src/inference/pipelines/text/generator/decode/decode-loop.js', import.meta.url), 'utf8');
+const runDecodeLoopBody = extractMethodBody(decodeLoopSource, 'export async function* _runDecodeLoop(generatedIds');
 const generateTokensInternalBody = extractMethodBody(generatorSource, 'export async function* _generateTokensInternal(prompt');
-const prepareBody = extractMethodBody(generatorSource, 'function prepareGenerationRuntime(');
+const prepareBody = extractMethodBody(generatorFacadeSource, 'beginGeneration(');
 const sampleBody = extractMethodBody(generatorSource, 'async function samplePrefillToken(');
-const finishBody = extractMethodBody(generatorSource, 'function finishGenerationRuntime(');
+const finishBody = extractMethodBody(generatorFacadeSource, 'finishGeneration(');
 for (const body of [generateTokenIdsBody, generateTokensInternalBody]) {
-  assert.ok(body.includes('prepareGenerationRuntime(this,'));
+  assert.ok(body.includes('this.beginGeneration('));
   assert.ok(body.includes('samplePrefillToken(this,'));
-  assert.ok(body.slice(body.lastIndexOf('finally')).includes('finishGenerationRuntime(this,'));
+  assert.ok(body.slice(body.lastIndexOf('finally')).includes('this.finishGeneration('));
 }
 assert.ok(sampleBody.includes('_shouldUseFinitenessFallback'));
 assert.ok(sampleBody.includes('_retryWithPersistentFinitenessFallback'));
@@ -129,7 +130,7 @@ const STATS_CONTRACT = [
 
 // Cleanup that must be in finally blocks
 const CLEANUP_CONTRACT = [
-  'finishGenerationRuntime(',
+  'this.finishGeneration(',
   '_closeFinitenessFallbackWindow',
 ];
 
@@ -192,7 +193,7 @@ for (const pattern of BATCH_STOP_DIAGNOSTICS_CONTRACT) {
 
 // === 5. Cleanup in generateTokenIds finally block ===
 
-const tokenIdsFinallyIdx = generateTokenIdsBody.lastIndexOf('finally');
+const tokenIdsFinallyIdx = generateTokenIdsBody.indexOf('} finally {');
 assert.ok(tokenIdsFinallyIdx !== -1, 'generateTokenIds must have a finally block');
 const tokenIdsFinallyBlock = generateTokenIdsBody.slice(tokenIdsFinallyIdx);
 
@@ -214,7 +215,7 @@ for (const marker of DIAGNOSTICS_CONTRACT) {
 
 // === 6. Cleanup in _generateTokensInternal finally block ===
 
-const internalFinallyIdx = generateTokensInternalBody.lastIndexOf('finally');
+const internalFinallyIdx = generateTokensInternalBody.indexOf('} finally {');
 assert.ok(internalFinallyIdx !== -1, '_generateTokensInternal must have a finally block');
 const internalFinallyBlock = generateTokensInternalBody.slice(internalFinallyIdx);
 

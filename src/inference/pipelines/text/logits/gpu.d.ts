@@ -79,7 +79,7 @@ export function computeChunkedLogitsGPU(
   operatorDiagnostics: unknown,
   largeWeightConfig: LargeWeightConfigSchema,
   kernelPath?: KernelPathSchema | null,
-  executionPolicies?: import('../../../../config/schema/execution-v1.schema.js').ExecutionV1PoliciesSchema | null
+  executionPolicies?: import("../../../../config/schema/execution/execution-v1.schema.js").ExecutionV1PoliciesSchema | null
 ): Promise<Float32Array>;
 
 export function computeChunkedLogitsTensorGPU(
@@ -93,7 +93,7 @@ export function computeChunkedLogitsTensorGPU(
   operatorDiagnostics: unknown,
   largeWeightConfig: LargeWeightConfigSchema,
   kernelPath?: KernelPathSchema | null,
-  executionPolicies?: import('../../../../config/schema/execution-v1.schema.js').ExecutionV1PoliciesSchema | null
+  executionPolicies?: import("../../../../config/schema/execution/execution-v1.schema.js").ExecutionV1PoliciesSchema | null
 ): Promise<Tensor>;
 
 /**
@@ -109,7 +109,7 @@ export function computeSplitLogitsGPU(
   debugProbes: ProbeConfigSchema[] | null | undefined,
   operatorDiagnostics: unknown,
   kernelPath?: KernelPathSchema | null,
-  executionPolicies?: import('../../../../config/schema/execution-v1.schema.js').ExecutionV1PoliciesSchema | null
+  executionPolicies?: import("../../../../config/schema/execution/execution-v1.schema.js").ExecutionV1PoliciesSchema | null
 ): Promise<Float32Array>;
 
 export function computeSplitLogitsTensorGPU(
@@ -122,7 +122,7 @@ export function computeSplitLogitsTensorGPU(
   debugProbes: ProbeConfigSchema[] | null | undefined,
   operatorDiagnostics: unknown,
   kernelPath?: KernelPathSchema | null,
-  executionPolicies?: import('../../../../config/schema/execution-v1.schema.js').ExecutionV1PoliciesSchema | null
+  executionPolicies?: import("../../../../config/schema/execution/execution-v1.schema.js").ExecutionV1PoliciesSchema | null
 ): Promise<Tensor>;
 
 /**

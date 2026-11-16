@@ -1,6 +1,6 @@
 import { validateFP8StorageDescriptor } from './fp8-storage.js';
 import { validateW8A8StorageDescriptor } from './w8a8-storage.js';
-import { Q4K_BLOCK_BYTES, QK_K } from '../../config/schema/quantization.schema.js';
+import { Q4K_BLOCK_BYTES, QK_K } from "../../config/schema/manifest/quantization.schema.js";
 
 const SUPPORTED_PACKINGS = new Set(['dense', 'fp8-block-v1', 'w8a8-row-v1', 'q4k', 'q4_0', 'w4a16', 'gguf-block-v2']);
 const Q4_0_BLOCK_BYTES = 18;

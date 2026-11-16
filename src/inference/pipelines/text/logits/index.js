@@ -24,9 +24,9 @@ import { runLmHeadSelectLogitsF16 } from '../../../../gpu/kernels/lm-head-select
 import { createTensor, tensorElementBytes } from '../../../../gpu/tensor.js';
 import { createLogitsInputTensor, resolveLogitsNormWeight } from './gpu-executor.js';
 import { isWeightBuffer, isCpuWeightBuffer, isGpuBufferInstance, isSplitWeightBuffer, getWeightDtype, requireWeightDtype } from '../../../../gpu/weight-buffer.js';
-import { kernelTrace, traceStep } from '../kernel-trace.js';
+import { kernelTrace, traceStep } from "../observation/kernel-trace.js";
 import { log, trace, isTraceEnabled } from '../../../../debug/index.js';
-import { runProbes } from '../probes.js';
+import { runProbes } from "../observation/probes.js";
 import { decodeFloat16Array } from '../../../../formats/float16.js';
 import {
   resolveCpuWeightDims,
@@ -40,7 +40,7 @@ import { getLogitsHealth } from '../debug-utils/health-metrics.js';
 import { getRuntimeConfig } from '../../../../config/runtime.js';
 import { getKernelPathMatmulPrecision, getKernelPathStepPrecision } from '../../../../config/kernel-path-loader.js';
 import { selectRuleValue } from '../../../../rules/rule-registry.js';
-import { assertImplicitDtypeTransitionAllowed } from '../dtype-contract.js';
+import { assertImplicitDtypeTransitionAllowed } from "../policy/dtype-contract.js";
 import { shouldForceStableF32Logits, createStableF32LogitsKernelPath } from './precision-policy.js';
 import { runFinalizeLogitsTensor } from '../../../../gpu/kernels/logit-finalize.js';
 

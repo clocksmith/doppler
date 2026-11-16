@@ -23,7 +23,7 @@ import {
   resolveStage1ArtifactContext,
 } from './artifacts.js';
 import { loadCheckpoint, saveCheckpoint } from './checkpoint.js';
-import { validateTrainingMetricsEntry } from '../../config/schema/training-metrics.schema.js';
+import { validateTrainingMetricsEntry } from "../../config/schema/training/training-metrics.schema.js";
 import { sha256Hex } from '../../formats/sha256.js';
 import { stableSortObject } from '../../formats/stable-sort-object.js';
 import { buildProgressSnapshot, buildTrainableParamRefs, evaluateTelemetryAlerts, normalizeOptionalString, resolveModelParamGroups, restoreTrainingCheckpointState, selectTrainableParamGroups } from './runner/lifecycle.js';

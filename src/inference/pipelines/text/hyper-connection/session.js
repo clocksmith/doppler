@@ -6,7 +6,7 @@ import { QsaIndexerCache } from '../indexed-attention/qsa-cache.js';
 import { NgramTokenHistory } from '../ngram/ngram-addresses.js';
 import { NgramTableReader } from '../ngram/ngram-table.js';
 import { PleConvState, runPleLayer } from '../ngram/ple-layer.js';
-import { releaseOrTrack } from '../ops.js';
+import { releaseOrTrack } from "../execution/ops.js";
 
 /** @param {string} message @returns {never} */
 function fail(message) { throw new Error(`[HyperConnectionSession] ${message}`); }

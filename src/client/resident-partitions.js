@@ -54,7 +54,7 @@ export function createManifestResidentPartitionFactory({ manifest, manifestIdent
       input = { ...structuredClone(request), signal: requestSignal };
       const [{ createPipeline, InferencePipeline }, { createModelHandle }, { createResidentPartitionSession }, { resolveResidentPartitionAllocation }] = await Promise.all([
         import('../inference/pipelines/text.js'), import('./model-host/model-session.js'),
-        import('../inference/pipelines/text/resident-partition.js'), import('../inference/pipelines/text/resident-partition-contract.js'),
+        import("../inference/pipelines/text/partitions/resident-partition.js"), import("../inference/pipelines/text/partitions/resident-partition-contract.js"),
       ]);
       input.signal.throwIfAborted();
       const { signal, ...allocationInput } = input;
@@ -90,7 +90,7 @@ export function createManifestResidentPartitionFactory({ manifest, manifestIdent
           await opened.loadLoRA(acquired.manifest, acquired.options);
           signal.throwIfAborted();
         }
-        /** @type {import('../inference/pipelines/text/resident-partition-contract.js').ResidentPartitionTokenPorts} */
+        /** @type {import("../inference/pipelines/text/partitions/resident-partition-contract.js").ResidentPartitionTokenPorts} */
         const tokens = {
           tokenize: (prompt, options) => opened.advanced.tokenizePrompt(prompt, options),
           createIncrementalDecoder: () => opened.advanced.createIncrementalDecoder(),

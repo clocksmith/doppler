@@ -55,7 +55,7 @@ export function createLinearAttentionCheckpoint(runtime) {
   }
 }
 
-/** @param {import('../linear-attention.js').LinearAttentionRuntime} runtime @param {boolean} waitForCapture */
+/** @param {import("./linear-attention.js").LinearAttentionRuntime} runtime @param {boolean} waitForCapture */
 async function captureLinearAttentionRuntime(runtime, waitForCapture) {
   const device = getDevice();
   if (!device) throw new Error('Recurrent checkpoint requires a live GPU device.');

@@ -1,0 +1,378 @@
+/**
+ * Inference Schema Definitions
+ *
+ * Configuration for model inference behavior.
+ * These are runtime settings that affect how the model executes.
+ *
+ * @module config/schema/inference
+ */
+
+import type { ProbeStage } from "../runtime/debug.schema.js";
+import type { KernelPathRef } from './kernel-path.schema.js';
+
+/** RoPE configuration for positional embeddings */
+export interface RoPEConfigSchema {
+  /** Base frequency for RoPE (default 10000, modern models use 1000000) */
+  ropeTheta?: number;
+
+  /** Local RoPE theta for sliding window layers (Gemma 3 uses 10000) */
+  ropeLocalTheta?: number;
+
+  /** Layer indices that bypass rotary position embeddings. */
+  disabledLayers?: number[];
+
+  /** Apply adjacent-pair rotary layout instead of rotate-half layout for standard RoPE. */
+  ropeInterleaved?: boolean;
+
+  /** Apply adjacent-pair rotary layout for mRoPE section pairing. */
+  mropeInterleaved?: boolean;
+
+  /** mRoPE section sizes before the Qwen doubling step. */
+  mropeSection?: number[] | null;
+
+  /** Fraction of the head dimension that participates in rotary embedding. */
+  partialRotaryFactor?: number | null;
+
+  /** Fraction of the local/sliding head dimension that participates in rotary embedding. */
+  ropeLocalPartialRotaryFactor?: number | null;
+
+  /** Frequency exponent base dimension for full/global attention RoPE (null = use rotary dim). */
+  ropeFrequencyBaseDim?: number | null;
+
+  /** Frequency exponent base dimension for local/sliding attention RoPE (null = use local rotary dim). */
+  ropeLocalFrequencyBaseDim?: number | null;
+
+  /** RoPE scaling type */
+  ropeScalingType?: 'linear' | 'dynamic' | 'yarn' | 'longrope' | null;
+
+  /** RoPE scaling factor */
+  ropeScalingFactor?: number;
+
+  /** Local RoPE scaling type for sliding window layers */
+  ropeLocalScalingType?: 'linear' | 'dynamic' | 'yarn' | 'longrope' | null;
+
+  /** Local RoPE scaling factor for sliding window layers */
+  ropeLocalScalingFactor?: number;
+
+  /** YARN beta_fast parameter */
+  yarnBetaFast?: number;
+
+  /** YARN beta_slow parameter */
+  yarnBetaSlow?: number;
+
+  /** YARN original max position embeddings */
+  yarnOriginalMaxPos?: number;
+  /** LongRoPE short-context factors */
+  longropeShortFactor?: number[] | null;
+  /** LongRoPE long-context factors */
+  longropeLongFactor?: number[] | null;
+  /** LongRoPE original max position embeddings */
+  longropeOriginalMaxPos?: number | null;
+
+  /** Local YARN beta_fast parameter */
+  ropeLocalYarnBetaFast?: number;
+
+  /** Local YARN beta_slow parameter */
+  ropeLocalYarnBetaSlow?: number;
+
+  /** Local YARN original max position embeddings */
+  ropeLocalYarnOriginalMaxPos?: number;
+}
+
+/** Attention mechanism configuration */
+export interface AttentionSchema {
+  /** Multiplier applied to Q after optional Q/K normalization and before RoPE. */
+  queryScale?: number;
+  /** Use sliding window attention */
+  slidingWindow?: number | null;
+  /** Softcap attention logits before softmax */
+  attnLogitSoftcapping?: number | null;
+  /** Use query-key normalization */
+  queryKeyNorm?: boolean;
+  /** Numerical family used for Q/K normalization. */
+  queryKeyNormType?: 'rmsnorm' | 'layernorm';
+  /** Normalize each head independently or the complete projection before head reshaping. */
+  queryKeyNormAxis?: 'head' | 'projection';
+  /** Layers that apply query-key normalization; null means all layers when queryKeyNorm=true */
+  queryKeyNormLayers?: number[] | null;
+  /** Layers that have explicit Q/K RMSNorm scale tensors; null means every normalized layer must have weights */
+  queryKeyNormWeightLayers?: number[] | null;
+  /** Apply unit-scale RMSNorm to values before attention */
+  valueNorm?: boolean;
+  /** Apply sigmoid gate from q_proj split to attention output */
+  attentionOutputGate?: boolean;
+  /** @deprecated Use RoPEConfigSchema.ropeScalingType instead */
+  ropeScalingType?: 'linear' | 'dynamic' | 'yarn' | 'longrope' | null;
+  /** @deprecated Use RoPEConfigSchema.ropeScalingFactor instead */
+  ropeScalingFactor?: number;
+}
+
+/** Normalization configuration */
+export interface NormalizationSchema {
+  /** Transformer normalization family. */
+  type?: 'rmsnorm' | 'layernorm';
+  /** Add 1.0 to RMSNorm weights (Gemma-style) */
+  rmsNormWeightOffset?: boolean;
+  /** RMSNorm epsilon */
+  rmsNormEps?: number;
+  /** Post-sublayer RMSNorm epsilon; null inherits rmsNormEps. */
+  postNormEps?: number | null;
+  /** Post-sublayer centered-weight offset; null inherits rmsNormWeightOffset. */
+  postNormWeightOffset?: boolean | null;
+  /** Use post-attention norm */
+  postAttentionNorm?: boolean;
+  /** Use pre-feedforward norm */
+  preFeedforwardNorm?: boolean;
+  /** Canonical final LayerNorm bias tensor, or null for a bias-free LayerNorm. */
+  finalNormBiasTensor?: string | null;
+  /** Use post-feedforward norm */
+  postFeedforwardNorm?: boolean;
+}
+
+/** Feed-forward network configuration */
+export interface FFNSchema {
+  /** Activation function */
+  activation?: 'silu' | 'gelu' | 'relu' | 'swiglu';
+  /** Whether activation is gated (e.g., SwiGLU, GeGLU) */
+  gatedActivation?: boolean;
+  /** FFN branch composition. */
+  branchMode?: 'auto' | 'dense' | 'moe' | 'dense_plus_moe';
+  /** Double the FFN intermediate width on KV-shared layers. */
+  useDoubleWideMlp?: boolean;
+  /** Clamp SwiGLU output (null = disabled) */
+  swigluLimit?: number | null;
+}
+
+/** Built-in chat template types */
+export type ChatTemplateType =
+  | 'gemma'
+  | 'gemma4'
+  | 'llama3'
+  | 'gpt-oss'
+  | 'chatml'
+  | 'qwen'
+  | 'glmocr'
+  | 'translategemma'
+  | null;
+
+/** Chat template configuration for instruct models */
+export interface ChatTemplateSchema {
+  /** Template type identifier (gemma, gemma4, llama3, gpt-oss, chatml, qwen, glmocr, translategemma) */
+  type?: ChatTemplateType;
+
+  /** Whether to apply chat template by default (null = no runtime override, instruct manifests should set true) */
+  enabled?: boolean | null;
+
+  /** Thinking/reasoning control; null leaves the template-specific control unspecified. */
+  thinking?: boolean | null;
+
+  /** Custom template with {prompt} placeholder (overrides type) */
+  custom?: string;
+}
+
+export type LayerPipelineOp =
+  | 'save'
+  | 'load'
+  | 'conv'
+  | 'attention'
+  | 'rmsnorm'
+  | 'layernorm'
+  | 'ffn'
+  | 'residual_add'
+  | 'cast'
+  | 'noop';
+
+export type LayerPipelinePhase = 'prefill' | 'decode' | 'both';
+export type LayerPipelineDtype = 'f16' | 'f32';
+
+export type LayerPipelineNormWeight =
+  | 'input'
+  | 'post_attention'
+  | 'post_attn'
+  | 'pre_ffn'
+  | 'post_ffn';
+
+export interface LayerPipelineStepSchema {
+  op: LayerPipelineOp;
+  /** Optional phase gate for this step (default: both) */
+  phase?: LayerPipelinePhase;
+  /** Source slot (default: "state") */
+  src?: string;
+  /** Destination slot (default: "state") */
+  dst?: string;
+  /** Slot name for save/load operations */
+  name?: string;
+  /** Norm affine parameter selector (rmsnorm or layernorm) */
+  weight?: LayerPipelineNormWeight;
+  /** Residual slot for fused ops (optional) */
+  residual?: string | null;
+  /** Residual add inputs (defaults: a="state", b="residual") */
+  a?: string;
+  b?: string;
+  /** FFN variant override */
+  variant?: 'auto' | 'dense' | 'moe';
+  /** Skip input norm inside attention (use when providing explicit normalization) */
+  skipInputNorm?: boolean;
+  /** Optional probe stage to emit for this step */
+  probeStage?: ProbeStage;
+  /** Explicit input dtype requirement for this step */
+  inputDtype?: LayerPipelineDtype;
+  /** Explicit output dtype contract for this step */
+  outputDtype?: LayerPipelineDtype;
+  /** Explicit KV-cache dtype contract for attention steps */
+  kvDtype?: LayerPipelineDtype;
+  /** Cast source dtype (cast op only) */
+  fromDtype?: LayerPipelineDtype;
+  /** Cast target dtype (cast op only) */
+  toDtype?: LayerPipelineDtype;
+}
+
+export interface LayerPipelineOverrideSchema {
+  layers: number[];
+  steps: LayerPipelineStepSchema[];
+}
+
+export interface LayerPipelineSchema {
+  steps: LayerPipelineStepSchema[];
+  overrides?: LayerPipelineOverrideSchema[];
+}
+
+/** Output/sampling configuration */
+export interface OutputSchema {
+  /** Softcap final logits */
+  finalLogitSoftcapping?: number | null;
+  /** Tie embeddings to output */
+  tieWordEmbeddings?: boolean;
+  /** Scale embeddings by sqrt(hiddenSize). */
+  scaleEmbeddings?: boolean;
+  /** Explicit embedding multiplier, null to use scaleEmbeddings semantics. */
+  embeddingScale?: number | null;
+  /** Optional weightless normalization applied after embedding scaling. */
+  embeddingNormalization?: {
+    type: 'rmsnorm';
+    withScale: false;
+    eps: number;
+    position: 'after-scale';
+  } | null;
+  /** Multiplier applied after final norm before LM head projection. */
+  logitInputScale?: number;
+  /** Multiplier applied to LM-head logits before final softcapping. */
+  logitOutputScale?: number;
+}
+
+/** Layer type for hybrid models */
+export type LayerType =
+  | 'attention'
+  | 'full_attention'
+  | 'sliding_attention'
+  | 'linear_attention'
+  | 'conv'
+  | 'mamba'
+  | 'rwkv';
+
+/** Linear-attention RMS norm vector layout */
+export type LinearNormMode =
+  | 'shared'      // one [head_v_dim] vector shared across all value heads
+  | 'per_head';   // one [num_v_heads * head_v_dim] vector
+
+/** Activation applied to z in the linear-attention gated RMSNorm (norm(x) * w * act(z)) */
+export type LinearNormGateActivation =
+  | 'silu'        // Qwen3.5 Qwen3_5RMSNormGated (hardcoded); legacy meaning of an absent field
+  | 'sigmoid';    // qwen4_exp output_gate_type="sigmoid" (Qwen3.8 Flash-Next)
+
+/** Global layer pattern (computed at runtime from numLayers) */
+export type GlobalLayerPattern =
+  | 'even'       // Layers 0, 2, 4, ... are global (Gemma 2)
+  | 'odd'        // Layers 1, 3, 5, ... are global
+  | 'every_n';   // Every Nth layer is global (Gemma 3: every 6th)
+
+/** Layer pattern for hybrid architectures */
+export interface LayerPatternSchema {
+  /** Pattern type: 'all_attention', 'alternating', 'every_n', 'custom' */
+  type: 'all_attention' | 'alternating' | 'every_n' | 'custom';
+  /** For 'alternating': pattern for global/full attention layers */
+  globalPattern?: GlobalLayerPattern;
+  /** For 'every_n': the period value (e.g., 6 for Gemma 3) */
+  period?: number;
+  /** For 'every_n': first global layer index modulo period (default: 0) */
+  offset?: number;
+  /** @deprecated Use globalPattern/period instead */
+  attentionLayers?: number[];
+  /** For 'custom': explicit layer type mapping */
+  layerTypes?: LayerType[];
+  /** Multiplier applied to attention and FFN branches before residual add. */
+  residualBranchScale?: number;
+}
+
+/**
+ * Compute global attention layer indices from pattern.
+ * Used at runtime when numLayers is known.
+ */
+export declare function computeGlobalLayers(
+  pattern: LayerPatternSchema,
+  numLayers: number
+): number[];
+
+/** Complete inference configuration */
+export interface InferenceConfigSchema {
+  attention?: AttentionSchema;
+  normalization?: NormalizationSchema;
+  ffn?: FFNSchema;
+  moe?: {
+    kernelProfileId?: string | null;
+    supportedActivationDtypes?: string[];
+    preferredActivationDtype?: string | null;
+    shapeConstraints?: {
+      hiddenSizeDivisor?: number;
+      intermediateSizeDivisor?: number;
+      groupSize?: number;
+    };
+  } | null;
+  output?: OutputSchema;
+  layerPattern?: LayerPatternSchema;
+  rope?: RoPEConfigSchema;
+  pipeline?: LayerPipelineSchema | null;
+  /** Chat template for instruct models */
+  chatTemplate?: ChatTemplateSchema;
+  /**
+   * Inline kernel path for explicit kernel dispatch ordering.
+   * String registry IDs were removed; execution-v1 manifests normally derive
+   * this object during compile. Use null for no explicit override.
+   */
+  kernelPath?: KernelPathRef;
+}
+
+/** Sampling parameters */
+export interface SamplingSchema {
+  temperature?: number;
+  topK?: number;
+  topP?: number;
+  repetitionPenalty?: number;
+  repetitionPenaltyWindow?: number;
+  greedyThreshold?: number;
+  suppressSpecialTokens?: boolean;
+  suppressSpecialLikeTokens?: boolean;
+  suppressTokenIds?: number[];
+}
+
+/** Tokenizer runtime configuration */
+export interface TokenizerConfigSchema {
+  /** BOS token string */
+  bosToken?: string;
+  /** EOS token strings (can be multiple) */
+  eosTokens?: string[];
+  /** Pad token string */
+  padToken?: string;
+  /** Add BOS token to input */
+  addBosToken?: boolean;
+  /** Add EOS token to output */
+  addEosToken?: boolean;
+  /** Defer special-token validation until tokenizer metadata is fully loaded */
+  deferSpecialTokens?: boolean;
+  /** HuggingFace model ID for tokenizer fallback */
+  hfModel?: string;
+  /** Allow architecture-based fallback when hfModel is missing */
+  allowArchFallback?: boolean;
+  /** Chat template (jinja2-style) */
+  chatTemplate?: string;
+}

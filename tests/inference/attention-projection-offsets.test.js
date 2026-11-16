@@ -5,7 +5,7 @@ import {
   projectAttentionQKV,
   resolveProjectionSliceOffsetBytes,
 } from '../../src/inference/pipelines/text/attention/projections.js';
-import { resolveAttentionNumKVHeads } from '../../src/inference/pipelines/text/layer.js';
+import { resolveAttentionNumKVHeads } from "../../src/inference/pipelines/text/execution/layer.js";
 
 function makeWeight(dtype, layout = 'row', shape = [2048, 1024]) {
   return {
@@ -63,7 +63,7 @@ function makeWeight(dtype, layout = 'row', shape = [2048, 1024]) {
 }
 
 {
-  const planSource = fs.readFileSync('src/inference/pipelines/text/layer-plan-gpu.js', 'utf8');
+  const planSource = fs.readFileSync("src/inference/pipelines/text/execution/layer-plan-gpu.js", 'utf8');
   assert.match(
     planSource,
     /resolveAttentionNumKVHeads\(config, layerType, layerWeights, attentionHeadDim\)/,

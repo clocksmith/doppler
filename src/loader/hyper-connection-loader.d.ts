@@ -1,6 +1,6 @@
 import type { LayerLoaderContext } from './layer-loader.js';
-import type { ResolvedHyperConnections, ResolvedIndexedAttention } from '../config/schema/hyper-connection-decoder.schema.js';
-import type { ResolvedNgramEmbedding } from '../config/schema/ngram-embedding.schema.js';
+import type { ResolvedHyperConnections, ResolvedIndexedAttention } from "../config/schema/execution/hyper-connection-decoder.schema.js";
+import type { ResolvedNgramEmbedding } from "../config/schema/execution/ngram-embedding.schema.js";
 import type { GatedResidualWeights } from '../inference/pipelines/text/hyper-connection/decoder-layer.js';
 import type { PleLayerWeights } from '../inference/pipelines/text/ngram/ple-layer.js';
 import type { Tensor } from '../gpu/tensor.js';

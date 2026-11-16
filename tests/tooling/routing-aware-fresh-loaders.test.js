@@ -12,7 +12,7 @@ const moeOut = instrumentMoeSharedSplitSource(moe);
 assert.ok(moeOut.includes("Symbol.for('doppler.test.moe-shared-split-observation')"));
 assert.equal(moeOut.replace(/\n  await globalThis\[Symbol\.for\('doppler\.test\.moe-shared-split-observation'\)\][\s\S]*?\}\);/, ''), moe);
 
-const prefill = await read('generator/prefill-runtime.js');
+const prefill = await read('generator/prefill/prefill-logits.js');
 const prefillOut = instrumentPrefillLogitRowsSource(prefill);
 assert.ok(prefillOut.includes("Symbol.for('doppler.test.prefill-logit-rows')"));
 assert.equal(prefillOut.replace(/        await globalThis\[Symbol\.for\('doppler\.test\.prefill-logit-rows'\)\][\s\S]*?\n        \}\);\n/, ''), prefill);

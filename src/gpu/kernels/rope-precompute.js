@@ -1,7 +1,7 @@
 import { planRoPEPrecomputeDispatch } from './rope-dispatch.js';
 import { runPairedRoPEPrecompute } from './paired-rope.js';
 import { validateRoPEInverseFrequencies } from '../../config/rope-frequencies.js';
-import { DEFAULT_MANIFEST_INFERENCE } from '../../config/schema/manifest.schema.js';
+import { DEFAULT_MANIFEST_INFERENCE } from "../../config/schema/manifest/manifest.schema.js";
 import { getDevice } from '../device.js';
 import { acquireBuffer, releaseBuffer } from '../../memory/buffer-pool.js';
 import { unifiedKernelWrapper } from './kernel-execution.js';

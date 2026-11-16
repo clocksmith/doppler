@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
-import { createDopplerConfig } from '../../src/config/schema/doppler.schema.js';
-import { requireDeclaredKVMaxSeqLen } from '../../src/config/schema/kvcache.schema.js';
-import { applyModelBatchingRuntimeDefaults } from '../../src/inference/pipelines/text/model-load.js';
+import { createDopplerConfig } from "../../src/config/schema/runtime/doppler.schema.js";
+import { requireDeclaredKVMaxSeqLen } from "../../src/config/schema/execution/kvcache.schema.js";
+import { applyModelBatchingRuntimeDefaults } from "../../src/inference/pipelines/text/loading/model-load.js";
 
 // The KV-cache length has no code default: schema defaults must not mask the
 // manifest declaration, and an undeclared length fails fast.

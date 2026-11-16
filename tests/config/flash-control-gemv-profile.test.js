@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import candidate from '../../src/config/runtime/profiles/flash-next-gguf-control-gemv.json' with { type: 'json' };
 import policy from '../../src/config/conversion/qwen3/qwen4exp-gguf-source-policy.json' with { type: 'json' };
-import { validateRuntimeProfileMetadata } from '../../src/config/schema/runtime-profile.schema.js';
+import { validateRuntimeProfileMetadata } from "../../src/config/schema/runtime/runtime-profile.schema.js";
 import { createQwen4ExpSourceExecution } from '../../src/converter/qwen4-exp-source-execution.js';
 import { applyExecutionPatch } from '../../src/inference/pipelines/text/execution-v1/validation.js';
 import { getKernelConfig } from '../../src/gpu/kernels/kernel-configs.js';

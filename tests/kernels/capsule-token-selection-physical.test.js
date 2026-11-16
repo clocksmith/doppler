@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import { probeNodeGPU } from '../helpers/gpu-probe.js';
 import { getDevice, getKernelCapabilities, destroyDevice } from '../../src/gpu/device.js';
 import { sampleCapsuleLogits } from '../../src/client/runtime/session-controller.js';
-import { selectTokenFromGpuLogits } from '../../src/inference/pipelines/text/generator/token-selection.js';
+import { selectTokenFromGpuLogits } from "../../src/inference/pipelines/text/generator/sampling/token-selection.js";
 import { clearPipelineCaches } from '../../src/gpu/kernels/pipeline-cache.js';
 
 const probe = await probeNodeGPU({ installFileFetchShim: true });

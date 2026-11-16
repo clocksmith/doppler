@@ -9,7 +9,7 @@ import { executeSharedSlotGateUp, executeSharedSlotDown } from '../../../../gpu/
 import { validateQwenSharedExpert, resolveQwenSharedSlotVariants } from '../ffn/qwen-shared-expert.js';
 import { runRouteQ4Matmul, recordRouteQ4Matmul, runRouteScatter, recordRouteScatter } from '../../../../gpu/kernels/moe-route.js';
 import { runSiLURowSplit, recordSiLURowSplit } from '../../../../gpu/kernels/silu.js';
-import { releaseOrTrack } from '../ops.js';
+import { releaseOrTrack } from "../execution/ops.js";
 
 /** @param {import('../../../../gpu/command-recorder.js').CommandRecorder | null} recorder
  * @param {import('./qwen-route-executor.js').QwenRouteExpertOptions} options */

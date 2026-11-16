@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { createKernelRegistry, enterKernelRegistry } from '../../src/config/kernel-registry-contract.js';
-import { expandExecutionV1 } from '../../src/config/schema/execution-v1.schema.js';
+import { expandExecutionV1 } from "../../src/config/schema/execution/execution-v1.schema.js";
 
 const variant = (wgsl, constants = {}) => ({
   wgsl, entryPoint: 'main', workgroup: [1, 1, 1], wgslOverrides: constants,

@@ -4,8 +4,8 @@ import {
 } from '../conversion-config-materializer.js';
 import { extractExecutionContractFacts } from '../../config/execution-contract-check.js';
 import { expandExecutionV1 } from '../../config/schema/index.js';
-import { compileExecutionV1, hasExecutionV1 } from '../../inference/pipelines/text/execution-v1.js';
-import { buildInlineKernelPath } from '../../inference/pipelines/text/execution-runtime-builders.js';
+import { compileExecutionV1, hasExecutionV1 } from "../../inference/pipelines/text/execution/execution-v1.js";
+import { buildInlineKernelPath } from "../../inference/pipelines/text/execution/execution-runtime-builders.js";
 import { buildCustomRuntimeFacts } from './custom-runtime-facts.js';
 import {
   aggregateTopDecodeTimers,

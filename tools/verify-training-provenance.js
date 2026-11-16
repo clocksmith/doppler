@@ -7,7 +7,7 @@ import { dirname, isAbsolute, join, resolve } from 'node:path';
 
 import { createTrainingConfig } from '../src/config/training-defaults.js';
 import { createUlArtifactSession } from '../src/experimental/training/artifacts.js';
-import { validateTrainingMetricsReport } from '../src/config/schema/training-metrics.schema.js';
+import { validateTrainingMetricsReport } from "../src/config/schema/training/training-metrics.schema.js";
 
 function parseArgs(argv) {
   const parsed = {

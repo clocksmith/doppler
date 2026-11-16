@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 
-import { formatChatMessages } from '../../src/inference/pipelines/text/chat-format.js';
+import { formatChatMessages } from "../../src/inference/pipelines/text/generator/request/chat-format.js";
 
 const prompt = formatChatMessages([
   {

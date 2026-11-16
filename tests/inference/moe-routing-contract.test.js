@@ -32,7 +32,7 @@ import { DEFAULT_MOE_ROUTING_CONFIG, DEFAULT_MOE_CACHE_CONFIG } from '../../src/
 // === Expert cache schema defaults are reasonable for MoE ===
 
 {
-  const { DEFAULT_EXPERT_CACHE_CONFIG } = await import('../../src/config/schema/loading.schema.js');
+  const { DEFAULT_EXPERT_CACHE_CONFIG } = await import("../../src/config/schema/runtime/loading.schema.js");
 
   assert.ok(DEFAULT_EXPERT_CACHE_CONFIG.defaultSizeBytes > 0,
     'expert cache default size must be > 0');
@@ -52,7 +52,7 @@ import { DEFAULT_MOE_ROUTING_CONFIG, DEFAULT_MOE_CACHE_CONFIG } from '../../src/
 // === Buffer pool budget defaults support fail-closed enforcement ===
 
 {
-  const { DEFAULT_BUFFER_POOL_BUDGET_CONFIG } = await import('../../src/config/schema/buffer-pool.schema.js');
+  const { DEFAULT_BUFFER_POOL_BUDGET_CONFIG } = await import("../../src/config/schema/runtime/buffer-pool.schema.js");
 
   assert.equal(DEFAULT_BUFFER_POOL_BUDGET_CONFIG.hardFailOnBudgetExceeded, true,
     'default budget must fail closed');

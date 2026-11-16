@@ -8,7 +8,7 @@ import { castF16ToF32, castF32ToF16 } from '../../gpu/kernels/cast.js';
 import { createTensor } from '../../gpu/tensor.js';
 import { createWeightBuffer, isWeightBuffer } from '../../gpu/weight-buffer.js';
 import { f16ToF32, shouldDequantizeToF16, applyBufferLayout } from '../dtype-utils.js';
-import { QK_K, Q4K_BLOCK_BYTES, Q6K_BLOCK_BYTES } from '../../config/schema/quantization.schema.js';
+import { QK_K, Q4K_BLOCK_BYTES, Q6K_BLOCK_BYTES } from "../../config/schema/manifest/quantization.schema.js";
 import { log, trace as debugTrace } from '../../debug/index.js';
 import { selectRuleValue } from '../../rules/rule-registry.js';
 import { dequantizeQ4KM, dequantizeQ4KMRowWise } from '../../formats/q4k-dequant.js';

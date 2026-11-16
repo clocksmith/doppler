@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import { registerHooks } from 'node:module';
 
 const target = new URL('../../src/inference/pipelines/text/lifecycle.js', import.meta.url).href;
-const partition = new URL('../../src/inference/pipelines/text/partition-execution.js', import.meta.url).href;
+const partition = new URL("../../src/inference/pipelines/text/partitions/partition-execution.js", import.meta.url).href;
 const planModule = `
   export const compileExecutionPlanState = ({ runtimeConfig }) => ({ active: {
     id: 'test-plan', activationDtype: 'f32',
@@ -14,14 +14,14 @@ const planModule = `
 `;
 const modules = {
   './config.js': `export const parseModelConfig = manifest => manifest.testConfig;`,
-  './model-load.js': `
+  './loading/model-load.js': `
     export const runKernelWarmup = async () => {};
     export const applyModelBatchingRuntimeDefaults = config => config;
     export const resolveKernelPathState = ({ runtimeConfig }) => ({ runtimeConfig, resolvedKernelPath: null, kernelPathSource: 'test' });
     export const initTokenizerFromManifest = async () => ({ getVocabSize: () => 32 });
     export const assertManifestComputeLaneBinding = () => {};
   `,
-  './execution-v1.js': `export const hasExecutionV1 = () => false; export const applyExecutionV1RuntimeConfig = () => {};`,
+  './execution/execution-v1.js': `export const hasExecutionV1 = () => false; export const applyExecutionV1RuntimeConfig = () => {};`,
   './init.js': `
     export const createKVCache = () => ({ maxSeqLen: 32 });
     export const loadWeights = () => {};
@@ -31,15 +31,15 @@ const modules = {
     export const initEmulation = () => {};
     export const destroyEmulation = () => {};
   `,
-  './layer-partition-contract.js': `export const resolveLayerPartition = () => ({ layerRange: [0, 0] });`,
-  './execution-plan.js': planModule,
-  './dtype-contract.js': `export const assertDtypeConsistency = () => {};`,
-  './resolved-runtime-session.js': `export const createResolvedRuntimeSession = ({ runtimeConfig }) =>
+  './execution/layer-partition-contract.js': `export const resolveLayerPartition = () => ({ layerRange: [0, 0] });`,
+  './execution/execution-plan.js': planModule,
+  './policy/dtype-contract.js': `export const assertDtypeConsistency = () => {};`,
+  './configuration/resolved-runtime-session.js': `export const createResolvedRuntimeSession = ({ runtimeConfig }) =>
     Object.freeze({ runtime: Object.freeze({ session: Object.freeze({ ...runtimeConfig.inference.session }) }) });`,
 };
 const hooks = registerHooks({ resolve(specifier, context, next) {
   const source = context.parentURL === target ? modules[specifier]
-    : context.parentURL === partition && specifier === './execution-plan.js' ? planModule : undefined;
+    : context.parentURL === partition && specifier === '../execution/execution-plan.js' ? planModule : undefined;
   return source ? { url: `data:text/javascript,${encodeURIComponent(source)}`, shortCircuit: true }
     : next(specifier, context);
 } });

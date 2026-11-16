@@ -1,5 +1,5 @@
 import type { HashAlgorithm } from '../../config/schema/index.js';
-import type { HotSwapConfigSchema } from '../../config/schema/hotswap.schema.js';
+import type { HotSwapConfigSchema } from "../../config/schema/runtime/hotswap.schema.js";
 
 export interface HotSwapArtifact {
   path: string;

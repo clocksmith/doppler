@@ -1,4 +1,4 @@
-import { assertRuntimeProfileIntentCompatibility } from '../config/schema/runtime-profile.schema.js';
+import { assertRuntimeProfileIntentCompatibility } from "../config/schema/runtime/runtime-profile.schema.js";
 
 export function getLegacyRuntimeIntent(runtimeConfig) {
   return runtimeConfig?.shared?.tooling?.intent ?? null;

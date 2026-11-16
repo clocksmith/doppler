@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 
 import { buildLayerPatternContractArtifact } from '../../src/rules/layer-pattern-contract-check.js';
 import { getInferenceLayerPatternContractArtifact } from '../../src/rules/rule-registry.js';
-import { computeGlobalLayers } from '../../src/config/schema/inference.schema.js';
+import { computeGlobalLayers } from "../../src/config/schema/execution/inference.schema.js";
 import ruleBundle from '../../src/rules/generated/rule-bundle.json' with { type: 'json' };
 
 const checkedIn = ruleBundle.files['inference/layer-pattern.rules.json'];

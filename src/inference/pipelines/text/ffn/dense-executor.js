@@ -1,7 +1,7 @@
 import {
   doBiasAdd, doMatmul, doSiLU, doGeLU, doSiLURowSplit, doMatmulRMSNormFused,
   releaseOrTrack
-} from '../ops.js';
+} from "../execution/ops.js";
 import { createTensor } from '../../../../gpu/tensor.js';
 import {
   isGpuBufferInstance,
@@ -20,8 +20,8 @@ import { getLogitsHealth } from '../debug-utils/health-metrics.js';
 import { shouldDebugLayerOutput } from '../debug-utils/config.js';
 import { applyLoRA } from '../lora-apply.js';
 import { getLoRAModule } from '../lora.js';
-import { getWeightBuffer, getNormWeightBuffer, getVectorTensor } from '../weights.js';
-import { runProbes } from '../probes.js';
+import { getWeightBuffer, getNormWeightBuffer, getVectorTensor } from "../loading/weights.js";
+import { runProbes } from "../observation/probes.js";
 import { selectRuleValue } from '../../../../rules/rule-registry.js';
 import {
   getKernelPathMatmulConstants,
@@ -29,7 +29,7 @@ import {
   getKernelPathMatmulVariant,
 } from '../../../../config/kernel-path-loader.js';
 import { resolveLayerIntermediateSize } from '../config.js';
-import { assertImplicitDtypeTransitionAllowed } from '../dtype-contract.js';
+import { assertImplicitDtypeTransitionAllowed } from "../policy/dtype-contract.js";
 import { canFuseSplitPrefillF16GateUpPath, resolveDenseFFNFusedPathDtypes, resolveDenseFFNMatmulStepDtype, resolveFusedGateUpPipelineConstants, resolveFusedGateUpVariant, resolveFusedGateUpWeights, resolveGateUpPathMode } from './dense-plan.js';
 
 export const ACTIVATION_FN_MAP = {

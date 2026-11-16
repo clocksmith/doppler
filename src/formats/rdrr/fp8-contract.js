@@ -1,4 +1,4 @@
-import { validateFP8Policy } from '../../config/schema/fp8.schema.js';
+import { validateFP8Policy } from "../../config/schema/manifest/fp8.schema.js";
 import { validateFP8StorageDescriptor, fp8StorageBytes } from './fp8-storage.js';
 
 /** @type {typeof import('./fp8-contract.js').validateFP8ManifestContract} */

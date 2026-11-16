@@ -1,6 +1,6 @@
 import { validateFP8ManifestContract } from './fp8-contract.js';
 import { isPlainObject } from '../plain-object.js';
-import { validateW8A8Policy } from '../../config/schema/w8a8.schema.js';
+import { validateW8A8Policy } from "../../config/schema/manifest/w8a8.schema.js";
 import { validateW8A8StorageDescriptor } from './w8a8-storage.js';
 import { validateTensorConfigConsistency } from './tensor-config-validator.js';
 import { validateManifestExecutionContract } from '../../config/execution-contract-check.js';

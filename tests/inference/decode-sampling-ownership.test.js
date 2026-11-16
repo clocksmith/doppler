@@ -1,11 +1,11 @@
 import assert from 'node:assert/strict';
 import { registerHooks } from 'node:module';
 
-const target = new URL('../../src/inference/pipelines/text/generator.js', import.meta.url).href;
+const target = new URL("../../src/inference/pipelines/text/generator/generator.js", import.meta.url).href;
 const buffer = { size: 1048576 };
 globalThis.decodeSamplingOwnership = { released: [] };
 const hooks = registerHooks({ resolve(specifier, context, next) {
-  if (context.parentURL === target && specifier === '../../../memory/buffer-pool.js') {
+  if (context.parentURL === target && specifier === "../../../../memory/buffer-pool.js") {
     return { url: `data:text/javascript,${encodeURIComponent(`
       export const releaseBuffer = buffer => globalThis.decodeSamplingOwnership.released.push(buffer);
       export const acquireBuffer = () => {};

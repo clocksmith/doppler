@@ -9,6 +9,11 @@ import { collectModuleSpecifiers, collectRelativeAssetSpecifiers } from './lib/m
 const ROOT_DIR = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const SOURCE_DIR = path.join(ROOT_DIR, 'src');
 const SOURCE_IGNORE_PATH = path.join(SOURCE_DIR, '.npmignore');
+const REFERENCE_DIR = path.join(ROOT_DIR, 'tests/kernels/reference');
+const REFERENCE_IGNORE_PATH = path.join(REFERENCE_DIR, '.npmignore');
+const RESOURCE_POLICY = JSON.parse(await fs.readFile(
+  new URL('./policies/package-resource-policy.json', import.meta.url), 'utf8'
+));
 const EXTRA_RUNTIME_ENTRIES = Object.freeze(['tools/convert-safetensors-node.js']);
 const PACKAGE_RUNTIME_PREFIXES = Object.freeze([
   'src/',
@@ -17,11 +22,6 @@ const PACKAGE_RUNTIME_PREFIXES = Object.freeze([
   'tests/kernels/reference/',
 ]);
 const PACKAGE_RUNTIME_FILES = Object.freeze(new Set(EXTRA_RUNTIME_ENTRIES));
-const PUBLIC_RESOURCE_DIRS = Object.freeze([
-  'src/config/conversion/',
-  'src/config/platforms/',
-  'src/config/runtime/',
-]);
 const REQUIRED_RESOURCE_FILES = Object.freeze([
   'models/catalog.json',
   'src/tooling/command-runner.html',
@@ -220,8 +220,8 @@ async function scanTypeGraph(entrypoints) {
   return { typeFiles, issues };
 }
 
-// Publication policy lives in package.json.files. Resource exclusions support
-// exact paths and directory/** entries; unrelated npm globs stay npm-owned.
+// npm exclusions must still be checked: they cannot hide an imported resource
+// or a published profile's ancestor. Resource admission has one explicit owner.
 function excludesResource(packageJson, repoPath) {
   return (packageJson.files ?? []).some((entry) => {
     if (!entry.startsWith('!')) return false;
@@ -231,14 +231,26 @@ function excludesResource(packageJson, repoPath) {
   });
 }
 
-async function collectPublicResourceFiles(resourceFiles, packageJson) {
+async function collectPublicResourceFiles(resourceFiles, packageJson, policy) {
+  if (policy.schemaVersion !== 1 || !Array.isArray(policy.resourceDirectories)
+    || !Array.isArray(policy.runtimeResources)) throw new Error('Invalid package resource policy');
   const output = new Set(resourceFiles);
-  for (const resourceDir of PUBLIC_RESOURCE_DIRS) {
+  for (const resourceDir of policy.resourceDirectories) {
+    if (!['src/config/conversion/', 'src/config/platforms/'].includes(resourceDir)) {
+      throw new Error(`Unsupported public resource directory: ${resourceDir}`);
+    }
     const absoluteDir = path.join(ROOT_DIR, resourceDir);
     for (const filePath of await walkFiles(absoluteDir, (entry) => entry.endsWith('.json'))) {
       const repoPath = normalizePath(filePath);
       if (!excludesResource(packageJson, repoPath)) output.add(repoPath);
     }
+  }
+  for (const resource of policy.runtimeResources) {
+    if (!resource.startsWith('src/config/runtime/') || !resource.endsWith('.json')
+      || resource.split('/').includes('..') || await pathKind(path.join(ROOT_DIR, resource)) !== 'file') {
+      throw new Error(`Invalid published runtime resource: ${resource}`);
+    }
+    if (!excludesResource(packageJson, resource)) output.add(resource);
   }
 
   const registryPath = path.join(ROOT_DIR, 'src/config/kernels/registry.json');
@@ -254,17 +266,20 @@ async function collectPublicResourceFiles(resourceFiles, packageJson) {
   return output;
 }
 
-export async function buildPackageSourceClosure(packageJson) {
+export async function buildPackageSourceClosure(packageJson, resourcePolicy = RESOURCE_POLICY) {
   const entrypoints = collectEntrypoints(packageJson);
   const runtime = await scanRuntimeGraph(entrypoints.runtime);
   const types = await scanTypeGraph(entrypoints.types);
-  const packageResourceFiles = await collectPublicResourceFiles(runtime.resourceFiles, packageJson);
+  const packageResourceFiles = await collectPublicResourceFiles(runtime.resourceFiles, packageJson, resourcePolicy);
   const issues = [...runtime.issues, ...types.issues];
   for (const resource of packageResourceFiles) {
     if (excludesResource(packageJson, resource)) {
       issues.push(`required runtime resource is excluded from publication: ${resource}`);
     }
     if (!resource.startsWith('src/config/runtime/') || !resource.endsWith('.json')) continue;
+    if (!resourcePolicy.runtimeResources.includes(resource)) {
+      issues.push(`required runtime profile is not declared for publication: ${resource}`);
+    }
     const profile = JSON.parse(await fs.readFile(path.join(ROOT_DIR, resource), 'utf8'));
     const parents = Array.isArray(profile.extends) ? profile.extends : [profile.extends];
     for (const parent of parents.filter((value) => typeof value === 'string')) {
@@ -300,8 +315,17 @@ export async function buildPackageSourceClosure(packageJson) {
     typeFiles: types.typeFiles,
     packageResourceFiles,
     ignoredSourceFiles,
+    ignoredReferenceFiles: new Set((await walkFiles(REFERENCE_DIR)).map(normalizePath)
+      .filter(file => !file.endsWith('/.npmignore') && !runtime.runtimeFiles.has(file))
+      .map(file => file.slice('tests/kernels/reference/'.length))),
     issues,
   };
+}
+
+export function renderReferenceNpmIgnore(closure) {
+  return ['# Generated by tools/package-source-closure.js --write.',
+    '# Only references reachable from the installed kernel suite ship.',
+    ...[...closure.ignoredReferenceFiles].sort(), ''].join('\n');
 }
 
 export function renderSourceNpmIgnore(closure) {
@@ -334,6 +358,9 @@ export async function assertPackageSourceClosure(packageJson) {
   if (actual !== expected) {
     throw new Error('src/.npmignore is stale; run npm run package:closure:sync.');
   }
+  if (await fs.readFile(REFERENCE_IGNORE_PATH, 'utf8').catch(() => '') !== renderReferenceNpmIgnore(closure)) {
+    throw new Error('tests/kernels/reference/.npmignore is stale; run npm run package:closure:sync.');
+  }
   return closure;
 }
 
@@ -346,6 +373,7 @@ async function main() {
   const content = renderSourceNpmIgnore(closure);
   if (process.argv.includes('--write')) {
     await fs.writeFile(SOURCE_IGNORE_PATH, content, 'utf8');
+    await fs.writeFile(REFERENCE_IGNORE_PATH, renderReferenceNpmIgnore(closure), 'utf8');
     console.log(
       `package source closure synced (${closure.runtimeFiles.size} runtime JS, `
       + `${closure.typeFiles.size} declarations, ${closure.packageResourceFiles.size} resources)`
@@ -355,6 +383,9 @@ async function main() {
   const current = await fs.readFile(SOURCE_IGNORE_PATH, 'utf8').catch(() => '');
   if (current !== content) {
     throw new Error('src/.npmignore is stale; run npm run package:closure:sync.');
+  }
+  if (await fs.readFile(REFERENCE_IGNORE_PATH, 'utf8').catch(() => '') !== renderReferenceNpmIgnore(closure)) {
+    throw new Error('tests/kernels/reference/.npmignore is stale; run npm run package:closure:sync.');
   }
   console.log(
     `package source closure check passed (${closure.runtimeFiles.size} runtime JS, `

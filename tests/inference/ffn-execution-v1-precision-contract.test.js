@@ -5,7 +5,7 @@ import { requireFusedWeightDtype } from '../../src/inference/pipelines/text/ffn/
 const {
   buildInlineKernelPath,
   buildLayerPipelineFromExecution,
-} = await import('../../src/inference/pipelines/text/execution-runtime-builders.js');
+} = await import("../../src/inference/pipelines/text/execution/execution-runtime-builders.js");
 const { getKernelPathMatmulPrecision } = await import('../../src/config/kernel-path-loader.js');
 const { resetRuntimeConfig, setRuntimeConfig } = await import('../../src/config/runtime.js');
 const {

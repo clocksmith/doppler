@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 
-import { resolveEffectivePrefillTokenChunkSize, shouldDisablePrefillCommandBatching } from '../../src/inference/pipelines/text/generator/prefill-policy.js';
+import { resolveEffectivePrefillTokenChunkSize, shouldDisablePrefillCommandBatching } from "../../src/inference/pipelines/text/generator/prefill/prefill-policy.js";
 
 // One direct prefill call of a fresh sequence (no other token chunk shares its KV).
 const SINGLE_CALL = { startPos: 0, returnHidden: false };

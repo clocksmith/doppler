@@ -5,7 +5,7 @@ import { resolveConversionPlan } from '../../src/converter/conversion-plan.js';
 import { extractArchitecture } from '../../src/converter/artifact-identity.js';
 import { createManifest } from '../../src/converter/manifest-builder.js';
 import { parseModelConfigFromManifest } from '../../src/inference/pipelines/text/config.js';
-import { compileExecutionV1 } from '../../src/inference/pipelines/text/execution-v1.js';
+import { compileExecutionV1 } from "../../src/inference/pipelines/text/execution/execution-v1.js";
 import { getKernelPathMatmulVariant } from '../../src/config/kernel-path-loader.js';
 import { assertHyperConnectionLoad } from '../../src/inference/pipelines/text/hyper-connection/sequence-transaction.js';
 import { assertLinearNormGateClosure } from '../../src/config/execution-registry-contract.js';

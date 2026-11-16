@@ -1,45 +1,21 @@
-import { prepareFP8SourceTensors, readFP8CompanionScales } from './fp8-source.js';
-import { appendRetainedSourceShards, partitionRetainedSourceTensors, preflightRetainedSourceShards } from './retained-source-shards.js';
-
-import { SHARD_SIZE as SCHEMA_SHARD_SIZE, RDRR_VERSION as SCHEMA_RDRR_VERSION, ConversionStage as SchemaConversionStage, DEFAULT_MANIFEST_INFERENCE, formatBytes, createConverterConfig } from '../config/schema/index.js';
-
-import {
-  classifyTensorRole,
-  generateShardFilename,
-  resolveTensorGroup,
-  resolveTensorRole,
-} from '../formats/rdrr/index.js';
-import { log } from '../debug/index.js';
-import {
-  getInferenceLayerPatternContractArtifact,
-  selectRuleValue,
-} from '../rules/rule-registry.js';
-
-import { buildExecutionContractArtifact } from '../config/execution-contract-check.js';
-import { buildManifestRequiredInferenceFieldsArtifact } from '../config/required-inference-fields-contract-check.js';
-import { resolveEosTokenId } from './tokenizer-special-tokens.js';
-import { inferBundledTokenizerBehaviorFlags } from '../inference/tokenizers/behavior-flags.js';
-import {
-  normalizeQ4KLayout,
-  resolveManifestQuantization,
-  resolveEffectiveQuantizationInfo,
-} from './quantization-info.js';
-import {
-  float16ToFloat32,
-  float32ToFloat16,
-  quantizeToQ4KM,
-  quantizeToQ4KMRowWise,
-  quantizeToQ4KMColumnWise,
-  quantizeToInt4PerRowSymmetric,
-} from './quantizer.js';
-import { cloneJsonValue } from '../formats/clone-json.js';
-import { SOURCE_PACKED_QUANT_DTYPES, isGemma4PerLayerEmbedTensor, normalizeModulesToNotConvert, normalizeStorageQuant, resolveQuantizeEmbeddings, transformTensorBytes } from './tensor-transform.js';
-import { buildArtifactIdentity, extractArchitecture, getNestedTextConfig, sanitizeModelId } from './artifact-identity.js';
-import { RDRR_VERSION, createManifest, modelHasMoETensors } from './manifest-builder.js';
-import { normalizeCompressedTensorsW4A16, normalizeTensorName } from './tokenizer-contract.js';
-export { RDRR_VERSION, buildBundledTokenizer, buildSentencepieceTokenizer, createManifest, inferEmbeddingOutputConfig, resolveBundledTokenizerVocabSize, resolveConvertedAt, resolveManifestMoEConfig, resolveManifestMultimodalConfig } from './manifest-builder.js';
-export { extractArchitecture, sanitizeModelId } from './artifact-identity.js';
-export { isGemma4PerLayerEmbedTensor, normalizeStorageQuant, resolveTensorTargetQuant, shouldQuantize, transformTensorBytes } from './tensor-transform.js';
+import { prepareFP8SourceTensors, readFP8CompanionScales } from "./fp8-source.js";
+import { appendRetainedSourceShards, partitionRetainedSourceTensors, preflightRetainedSourceShards } from "./retained-source-shards.js";
+import { SHARD_SIZE as SCHEMA_SHARD_SIZE, ConversionStage as SchemaConversionStage, formatBytes, createConverterConfig } from "../config/schema/index.js";
+import { generateShardFilename, resolveTensorGroup, resolveTensorRole } from "../formats/rdrr/index.js";
+import { getInferenceLayerPatternContractArtifact } from "../rules/rule-registry.js";
+import { buildExecutionContractArtifact } from "../config/execution-contract-check.js";
+import { buildManifestRequiredInferenceFieldsArtifact } from "../config/required-inference-fields-contract-check.js";
+import { normalizeQ4KLayout, resolveManifestQuantization, resolveEffectiveQuantizationInfo } from "./quantization-info.js";
+import { SOURCE_PACKED_QUANT_DTYPES, normalizeModulesToNotConvert, normalizeStorageQuant, resolveQuantizeEmbeddings, transformTensorBytes } from "./tensor-transform.js";
+import { buildArtifactIdentity, sanitizeModelId } from "./artifact-identity.js";
+import { createManifest } from "./manifest-builder.js";
+import { normalizeCompressedTensorsW4A16, normalizeTensorName } from "./tokenizer-contract.js";
+import { assertSupportedGemma4Conversion, validateInt4PleMaterializationContract } from "./gemma4/validation.js";
+export { RDRR_VERSION, buildBundledTokenizer, buildSentencepieceTokenizer, createManifest, inferEmbeddingOutputConfig, resolveBundledTokenizerVocabSize, resolveConvertedAt, resolveManifestMoEConfig, resolveManifestMultimodalConfig } from "./manifest-builder.js";
+export { extractArchitecture, sanitizeModelId } from "./artifact-identity.js";
+export { isGemma4PerLayerEmbedTensor, normalizeStorageQuant, resolveTensorTargetQuant, shouldQuantize, transformTensorBytes } from "./tensor-transform.js";
+export { formatBytes };
+export { generateShardFilename };
 
 // ============================================================================
 // Re-exports for Backward Compatibility
@@ -217,115 +193,6 @@ function materializeTiedLmHeadTensor(tensors, options) {
       sourceTensorName: embedding.name,
     },
   ];
-}
-
-// Re-export formatBytes from schema for backward compatibility
-export { formatBytes };
-
-function validateInt4PleMaterializationContract(tensorLocations, inference, modelId) {
-  const materialization = inference?.session?.perLayerInputs?.materialization;
-  if (materialization !== 'gpu_split_tables') {
-    return;
-  }
-  for (const [name, location] of Object.entries(tensorLocations ?? {})) {
-    const sourceTransform = location?.sourceTransform ?? null;
-    if (
-      isGemma4PerLayerEmbedTensor(name)
-      && sourceTransform?.kind === 'litert_axis_dequant'
-      && String(sourceTransform?.sourceDtype ?? '').toUpperCase() === 'INT4'
-    ) {
-      throw new Error(
-        `Manifest "${modelId}" Gemma 4 INT4 PLE tensor "${name}" cannot use ` +
-        'inference.session.perLayerInputs.materialization="gpu_split_tables". ' +
-        'Use materialization="range_backed" or disable INT4 PLE quantization.'
-      );
-    }
-  }
-}
-
-function resolveGemma4TextConfig(rawConfig) {
-  const textConfig = getNestedTextConfig(rawConfig);
-  const modelType = String(textConfig?.model_type ?? rawConfig?.model_type ?? '').trim().toLowerCase();
-  if (
-    modelType !== 'gemma4'
-    && modelType !== 'gemma4_text'
-    && modelType !== 'gemma4_unified'
-    && modelType !== 'gemma4_unified_text'
-  ) {
-    return null;
-  }
-  return textConfig ?? rawConfig ?? null;
-}
-
-function collectGemma4UnsupportedTensorFlags(tensors) {
-  const names = Array.isArray(tensors) ? tensors.map((tensor) => normalizeTensorName(tensor).toLowerCase()) : [];
-  const flags = [];
-  if (names.some((name) => name.includes('.experts.gate_up_proj'))) {
-    flags.push('experts.gate_up_proj');
-  }
-  if (names.some((name) => name.includes('.experts.down_proj'))) {
-    flags.push('experts.down_proj');
-  }
-  if (names.some((name) => name.includes('.router.per_expert_scale'))) {
-    flags.push('router.per_expert_scale');
-  }
-  if (names.some((name) => name.includes('.router.scale'))) {
-    flags.push('router.scale');
-  }
-  if (names.some((name) => name.includes('.post_feedforward_layernorm_1.'))) {
-    flags.push('post_feedforward_layernorm_1');
-  }
-  if (names.some((name) => name.includes('.post_feedforward_layernorm_2.'))) {
-    flags.push('post_feedforward_layernorm_2');
-  }
-  if (names.some((name) => name.includes('.pre_feedforward_layernorm_2.'))) {
-    flags.push('pre_feedforward_layernorm_2');
-  }
-  return flags;
-}
-
-function assertSupportedGemma4Conversion(model, tensors, modelId) {
-  const rawConfig = model?.config ?? null;
-  const textConfig = resolveGemma4TextConfig(rawConfig);
-  if (!textConfig) return;
-
-  const hiddenSizePerLayerInput = Number(textConfig.hidden_size_per_layer_input ?? 0);
-  if (Number.isFinite(hiddenSizePerLayerInput) && hiddenSizePerLayerInput > 0) {
-    const names = Array.isArray(tensors)
-      ? tensors.map((tensor) => String(tensor?.name ?? '').trim())
-      : [];
-    const requiredNames = [
-      'embed_tokens_per_layer.weight',
-      'per_layer_input_gate.weight',
-      'per_layer_projection.weight',
-      'post_per_layer_input_norm.weight',
-      'per_layer_model_projection.weight',
-      'per_layer_projection_norm.weight',
-    ];
-    const missing = requiredNames.filter((suffix) => !names.some((name) => name.endsWith(suffix)));
-    if (missing.length > 0) {
-      throw new Error(
-        `Gemma 4 model "${modelId}" declares hidden_size_per_layer_input=${hiddenSizePerLayerInput}, ` +
-        `but the checkpoint is missing required per-layer input tensors: ${missing.join(', ')}.`
-      );
-    }
-  }
-
-  if (textConfig.enable_moe_block !== true) {
-    return;
-  }
-
-  const unsupportedFlags = collectGemma4UnsupportedTensorFlags(tensors);
-  if (unsupportedFlags.length === 0 && !modelHasMoETensors({ tensors })) {
-    return;
-  }
-
-  throw new Error(
-    `Gemma 4 model "${modelId}" is not supported yet: Gemma 4 MoE decoder blocks require ` +
-    'Gemma-specific router scaling and dual dense+MoE FFN execution, but current Doppler MoE runtime ' +
-    'only supports Mixtral/GPT-OSS semantics. ' +
-    `Detected: ${unsupportedFlags.length > 0 ? unsupportedFlags.join(', ') : 'Gemma 4 MoE tensors'}.`
-  );
 }
 
 export function buildTensorMap(tensors, shardSize) {
@@ -831,9 +698,3 @@ export async function convertModel(model, io, options = {}) {
     requiredInferenceFieldsArtifact,
   };
 }
-
-// ============================================================================
-// Utility Exports
-// ============================================================================
-
-export { generateShardFilename };

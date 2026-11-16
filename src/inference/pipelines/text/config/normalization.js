@@ -4,7 +4,7 @@ import { validateModelOverrides, validateUnsupportedSessionOptions } from '../..
 import { selectRuleValue } from '../../../../rules/rule-registry.js';
 import { appendHeterogeneousAttentionValidation, resolveHeterogeneousAttentionContract } from '../../../../config/heterogeneous-attention-contract.js';
 import { resolvePostNormContract } from '../normalization-contract.js';
-import { resolveEmbeddingNormalization } from '../embedding-contract.js';
+import { resolveEmbeddingNormalization } from "../embedding/embedding-contract.js";
 import { resolveVisionConfigNormalizer } from './vision-normalizers.js';
 import {
   PER_LAYER_INPUT_MATERIALIZATION_MODES,
@@ -13,7 +13,7 @@ import {
   PER_LAYER_INPUT_GPU_UPLOAD_MODES,
   PER_LAYER_INPUT_HOT_CACHE_MODES,
   PREFILL_CHUNK_SUBMIT_MODES,
-} from '../../../../config/schema/execution-v1.schema.js';
+} from "../../../../config/schema/execution/execution-v1.schema.js";
 import { assertSupportedManifestInference, validateLayerIntermediateSizesAgainstManifest, validateRequiredInferenceFields } from '../../../../config/manifest-inference-validation.js';
 
 export function resolvePerLayerInputsSession(inferenceConfig, modelId) {

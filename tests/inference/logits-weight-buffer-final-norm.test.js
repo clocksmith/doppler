@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 
-import { getLogitsWeights } from '../../src/inference/pipelines/text/generator/logits-config.js';
+import { getLogitsWeights } from "../../src/inference/pipelines/text/logits/logits-config.js";
 
 const finalNormBuffer = {
   buffer: { __dopplerFakeGPUBuffer: true, size: 8, usage: 0 },

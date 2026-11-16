@@ -15,8 +15,8 @@ Add a new built-in chat template type that can be referenced by `manifest.infere
 
 ## Required Touch Points
 
-- `src/inference/pipelines/text/chat-format.js`
-- `src/inference/pipelines/text/chat-format.d.ts`
+- `src/inference/pipelines/text/generator/request/chat-format.js`
+- `src/inference/pipelines/text/generator/request/chat-format.d.ts`
 - If you expose a named helper on the provider surface:
   `src/client/runtime/model-session.js`
   `src/client/runtime/model-session.d.ts`
@@ -27,7 +27,7 @@ Add a new built-in chat template type that can be referenced by `manifest.infere
 
 ## Recommended Order
 
-1. Implement the formatter in `src/inference/pipelines/text/chat-format.js`.
+1. Implement the formatter in `src/inference/pipelines/text/generator/request/chat-format.js`.
 2. Register the new key in `CHAT_FORMATTERS`.
 3. Update `chat-format.d.ts` and any provider exports you want to keep public.
 4. Point a conversion config or test case at the new template key.
@@ -52,7 +52,7 @@ Add a new built-in chat template type that can be referenced by `manifest.infere
 
 ## Canonical References
 
-- `src/inference/pipelines/text/chat-format.js`
-- `src/inference/pipelines/text/chat-format.d.ts`
+- `src/inference/pipelines/text/generator/request/chat-format.js`
+- `src/inference/pipelines/text/generator/request/chat-format.d.ts`
 - `tests/integration/qwen-chat-template.test.js`
 - `tests/integration/translate-request-shape.test.js`

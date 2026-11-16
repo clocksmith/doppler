@@ -4,11 +4,11 @@ import { readFileSync } from 'node:fs';
 const {
   applyExecutionV1RuntimeConfig,
   compileExecutionV1,
-} = await import('../../src/inference/pipelines/text/execution-v1.js');
+} = await import("../../src/inference/pipelines/text/execution/execution-v1.js");
 const {
   applyModelBatchingRuntimeDefaults,
   resolveKernelPathState,
-} = await import('../../src/inference/pipelines/text/model-load.js');
+} = await import("../../src/inference/pipelines/text/loading/model-load.js");
 
 const kernelRegistry = JSON.parse(readFileSync('src/config/kernels/registry.json', 'utf8'));
 const shaderF16KernelFiles = new Set();

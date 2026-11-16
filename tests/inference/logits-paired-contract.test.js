@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { getLogitsConfig } from '../../src/inference/pipelines/text/generator/logits-config.js';
+import { getLogitsConfig } from "../../src/inference/pipelines/text/logits/logits-config.js";
 import { createLogitsInputTensor, resolveLogitsNormWeight, coerceTensorDtype,
   recordGreedyLmHeadArgmaxGPU } from '../../src/inference/pipelines/text/logits/gpu-executor.js';
 

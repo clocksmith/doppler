@@ -1,5 +1,5 @@
 {
-  "$schema": "../../src/config/schema/runtime-promotion-monitoring.schema.json",
+  "$schema": "../../src/config/schema/policy/runtime-promotion-monitoring.schema.json",
   "schemaVersion": 3,
   "source": "doppler",
   "requiredChangeClasses": [

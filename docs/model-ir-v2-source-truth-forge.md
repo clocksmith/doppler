@@ -61,7 +61,7 @@ unproven state descriptions remain invalid. This representation does not supply
 a lowering or qualify an executable implementation.
 
 The implementation is validated by `src/config/model-ir-v2.js` and
-`src/config/schema/model-ir-v2.schema.json`. ModelIR v1 remains valid only for
+`src/config/schema/capsule/model-ir-v2.schema.json`. ModelIR v1 remains valid only for
 its homogeneous scope.
 
 ## Provenance law
@@ -129,7 +129,7 @@ empty in that mode.
 
 `src/converter/forge-candidate-evaluation.js` owns replayable evaluation and
 selection. The explicit contract follows
-`src/config/schema/forge-candidate-evaluation.schema.json`. It freezes candidate
+`src/config/schema/runtime/forge-candidate-evaluation.schema.json`. It freezes candidate
 hashes, ModelIR, source/oracle reference, inputs, runtime/environment scope,
 cache/load policy, warmup/timed counts, rotation seed, complete output checks,
 metric units, directions, and nullable limits. Retain the bytes behind every

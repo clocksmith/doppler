@@ -4,7 +4,7 @@ import {
   CONVERSION_REPORT_SCHEMA_VERSION,
   DEFAULT_CONVERSION_REPORT,
   validateConversionReport,
-} from '../../src/config/schema/conversion-report.schema.js';
+} from "../../src/config/schema/manifest/conversion-report.schema.js";
 
 {
   const report = validateConversionReport({

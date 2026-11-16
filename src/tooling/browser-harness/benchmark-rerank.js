@@ -1,11 +1,11 @@
 import { getRuntimeConfig, setRuntimeConfig } from '../../config/runtime.js';
 import { computeSampleStats } from '../../debug/stats.js';
-import { validateTrainingMetricsReport } from '../../config/schema/training-metrics.schema.js';
+import { validateTrainingMetricsReport } from "../../config/schema/training/training-metrics.schema.js";
 import {
   modelSupportsEmbedding,
   modelSupportsRerank,
   modelSupportsSequence,
-} from '../../config/schema/manifest.schema.js';
+} from "../../config/schema/manifest/manifest.schema.js";
 import {
   buildSuiteSummary,
   normalizeCacheMode,

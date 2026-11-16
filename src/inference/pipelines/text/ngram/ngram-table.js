@@ -1,4 +1,4 @@
-import { ngramTableRowBytes } from '../../../../config/schema/ngram-embedding.schema.js';
+import { ngramTableRowBytes } from "../../../../config/schema/execution/ngram-embedding.schema.js";
 
 // Host-resident reader of one qwen4_exp n-gram embedding table.
 //

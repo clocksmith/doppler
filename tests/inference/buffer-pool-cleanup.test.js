@@ -19,7 +19,7 @@ globalThis.GPUMapMode = {
 };
 
 const { BufferPool, BufferUsage, PersistentBufferSet } = await import('../../src/memory/buffer-pool.js');
-const { DEFAULT_BUFFER_POOL_CONFIG } = await import('../../src/config/schema/buffer-pool.schema.js');
+const { DEFAULT_BUFFER_POOL_CONFIG } = await import("../../src/config/schema/runtime/buffer-pool.schema.js");
 const { setDevice } = await import('../../src/gpu/device.js');
 
 function createSchemaConfig() {

@@ -1,11 +1,11 @@
-import type { CapsuleLoadingPolicy } from '../../config/capsule-loading.js';
-import type { CapsuleV2Artifact } from '../../config/capsule-v2.js';
+import type { CapsuleLoadingPolicy } from "../../config/capsule/capsule-loading.js";
+import type { CapsuleV2Artifact } from "../../config/capsule/capsule-v2.js";
 export interface CapsuleAcquisitionProgress {
   phase: 'metadata' | 'artifact'; artifactId: string | null; loadedBytes: number; totalBytes: number | null;
 }
 /** Byte acquisition, then (resident openings only) pipeline preparation before readiness. */
 export type CapsuleLoadProgress = CapsuleAcquisitionProgress
-  | import('../../inference/pipelines/text/resident-partition-contract.js').ResidentPipelinePreparationProgress;
+  | import("../../inference/pipelines/text/partitions/resident-partition-contract.js").ResidentPipelinePreparationProgress;
 export interface CapsuleAcquisitionOptions extends Partial<CapsuleLoadingPolicy> {
   signal?: AbortSignal | null;
   onLoadProgress?: ((event: CapsuleLoadProgress) => void) | null;

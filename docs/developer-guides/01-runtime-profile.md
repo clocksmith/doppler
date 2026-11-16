@@ -69,4 +69,4 @@ node src/cli/doppler-cli.js debug \
 - [../config.md](../config.md)
 - [../style/config-style-guide.md](../style/config-style-guide.md)
 - `src/config/runtime/default.json`
-- `src/config/schema/doppler.schema.js`
+- `src/config/schema/runtime/doppler.schema.js`

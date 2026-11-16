@@ -2,8 +2,8 @@
 export async function runW8A8BoundaryScenario(config, reference, observe) {
   const base = new URL(config.poolObservationModule, globalThis.location?.href ?? import.meta.url);
   const moduleUrl = path => new URL('../' + path, base).href;
-  const { PipelineGenerator } = await import(moduleUrl('inference/pipelines/text/generator.js'));
-  const { OperatorEventEmitter } = await import(moduleUrl('inference/pipelines/text/operator-events.js'));
+  const { PipelineGenerator } = await import(moduleUrl("inference/pipelines/text/generator/generator.js"));
+  const { OperatorEventEmitter } = await import(moduleUrl("inference/pipelines/text/observation/operator-events.js"));
   const { createDefaultCaptureConfig, validateCaptureConfig } = await import(moduleUrl('debug/index.js'));
   const api = await import(config.apiModule);
   const { getDevice } = await import(config.deviceModule);

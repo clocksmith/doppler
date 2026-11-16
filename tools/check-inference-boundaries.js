@@ -7,7 +7,7 @@ const attentionRoots = [
   'src/inference/pipelines/text/attention',
   'src/inference/pipelines/text/linear-attention',
 ];
-const attentionFiles = ['src/inference/pipelines/text/linear-attention-ab-fusion.js'];
+const attentionFiles = ["src/inference/pipelines/text/linear-attention/linear-attention-ab-fusion.js"];
 const violations = [];
 
 async function visit(directory) {

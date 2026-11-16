@@ -1,4 +1,4 @@
-import { Q4_0_BLOCK_SIZE, Q4_0_BLOCK_BYTES } from '../../config/schema/quantization.schema.js';
+import { Q4_0_BLOCK_SIZE, Q4_0_BLOCK_BYTES } from "../../config/schema/manifest/quantization.schema.js";
 
 /** @type {typeof import('./q4_0-storage.js').q40StorageBytes} */
 export function q40StorageBytes(shape) {

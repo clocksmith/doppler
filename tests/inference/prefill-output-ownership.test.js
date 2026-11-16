@@ -3,30 +3,31 @@ import { registerHooks } from 'node:module';
 
 // Import-only substitutions: exercise the unchanged prefill orchestrator with
 // deterministic failures at the layer and logits boundaries, without a GPU.
-const target = new URL('../../src/inference/pipelines/text/generator/prefill-runtime.js', import.meta.url).href;
+const target = new URL("../../src/inference/pipelines/text/generator/prefill/prefill-runtime.js", import.meta.url).href;
+const prefillModules = new Set([target, new URL('./prefill-execution.js', target).href, new URL('./prefill-sequence.js', target).href, new URL('./prefill-logits.js', target).href]);
 const hidden = { __dopplerFakeGPUBuffer: true, size: 32, usage: 0 };
 globalThis.prefillOwnershipProbe = { hidden, released: [], fail: 'logits' };
 const modules = {
-  '../../../../gpu/device.js': 'export const getDevice = () => globalThis.prefillOwnershipProbe.device ?? null; export const setTrackSubmits = () => {};',
-  '../../../../memory/buffer-pool.js': `export const releaseBuffer = buffer => globalThis.prefillOwnershipProbe.released.push(buffer);
+  "../../../../../gpu/device.js": 'export const getDevice = () => globalThis.prefillOwnershipProbe.device ?? null; export const setTrackSubmits = () => {};',
+  "../../../../../memory/buffer-pool.js": `export const releaseBuffer = buffer => globalThis.prefillOwnershipProbe.released.push(buffer);
     export const getBufferRequestedSize = buffer => buffer.size;
     export const getBufferPool = device => { const probe = globalThis.prefillOwnershipProbe; probe.poolDevice = device; return probe.pool; };
     export const acquireBuffer = () => { throw Error('unexpected acquire'); }; export const readBuffer = acquireBuffer;
     export const readBufferSlice = acquireBuffer; export const uploadData = acquireBuffer;`,
-  '../../../../gpu/command-recorder.js': `export const createCommandRecorder = () => globalThis.prefillOwnershipProbe.recorder;
+  "../../../../../gpu/command-recorder.js": `export const createCommandRecorder = () => globalThis.prefillOwnershipProbe.recorder;
     export const createProfilingRecorder = createCommandRecorder; export class CommandRecorder {}`,
-  '../embed.js': 'export const embed = async () => ({ buffer: globalThis.prefillOwnershipProbe.hidden, dtype: "f32", shape: [2, 4] });',
-  '../layer.js': 'export const processLayer = async () => { if (globalThis.prefillOwnershipProbe.fail === "layer") throw Error("layer failed"); return globalThis.prefillOwnershipProbe.hidden; };',
-  '../logits/index.js': `export const computeLogits = async () => { if(globalThis.prefillOwnershipProbe.fail === 'logits') throw Error('logits failed'); return { logitsBuffer: 'caller-owned' }; };
+  "../../embedding/embed.js": 'export const embed = async () => ({ buffer: globalThis.prefillOwnershipProbe.hidden, dtype: "f32", shape: [2, 4] });',
+  "../../execution/layer.js": 'export const processLayer = async () => { if (globalThis.prefillOwnershipProbe.fail === "layer") throw Error("layer failed"); return globalThis.prefillOwnershipProbe.hidden; };',
+  "../../logits/index.js": `export const computeLogits = async () => { if(globalThis.prefillOwnershipProbe.fail === 'logits') throw Error('logits failed'); return { logitsBuffer: 'caller-owned' }; };
     export const recordLogitsGPU = computeLogits; export const extractLastPositionLogits = value => value;`,
-  './session-context.js': 'export const buildLayerContext = () => ({ useGPU: true }); export const debugCheckBuffer = () => {};',
-  './logits-config.js': 'export const getLogitsWeights = () => ({}); export const getLogitsConfig = () => ({});',
-  '../per-layer-inputs.js': 'export const preparePerLayerInputs = async () => null;',
+  "../session/session-context.js": 'export const buildLayerContext = () => ({ useGPU: true }); export const debugCheckBuffer = () => {};',
+  "../../logits/logits-config.js": 'export const getLogitsWeights = () => ({}); export const getLogitsConfig = () => ({});',
+  "../../per-layer/per-layer-inputs.js": 'export const preparePerLayerInputs = async () => null;',
   './prefill-observation.js': `export const probePrefillEmbedding = async () => {}; export const tracePrefillEmbeddingIds = () => {}; export const logPrefillCacheState = () => {};
     export { snapshotPrefillPhase } from ${JSON.stringify(new URL('./prefill-observation.js', target).href)};`,
 };
 const hooks = registerHooks({ resolve(specifier, context, next) {
-  if (context.parentURL === target && modules[specifier]) return { url: `data:text/javascript,${encodeURIComponent(modules[specifier])}`, shortCircuit: true };
+  if (prefillModules.has(context.parentURL) && modules[specifier]) return { url: `data:text/javascript,${encodeURIComponent(modules[specifier])}`, shortCircuit: true };
   return next(specifier, context);
 } });
 try {

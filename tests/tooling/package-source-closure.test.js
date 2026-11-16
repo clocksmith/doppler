@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import fs from 'node:fs/promises';
-import { buildPackageSourceClosure } from '../../tools/package-source-closure.js';
+import { buildPackageSourceClosure, renderReferenceNpmIgnore } from '../../tools/package-source-closure.js';
 
 const packageJson = JSON.parse(await fs.readFile(new URL('../../package.json', import.meta.url)));
 const closure = await buildPackageSourceClosure(packageJson);
@@ -8,6 +8,17 @@ assert.deepEqual(closure.issues, []);
 assert(closure.runtimeFiles.has('src/tooling/program-bundle-host.js'),
   'Forge reads its host module through a package-root file literal, not a module import');
 assert(!closure.ignoredSourceFiles.has('tooling/program-bundle-host.js'));
+assert(closure.ignoredReferenceFiles.has('channel-rotation.js'),
+  'An unreferenced research oracle must stay outside the installed kernel suite');
+assert.match(renderReferenceNpmIgnore(closure), /channel-rotation\.js/u);
+const resourcePolicy = JSON.parse(await fs.readFile(new URL('../../tools/policies/package-resource-policy.json', import.meta.url)));
+const missingPublishedAncestor = structuredClone(resourcePolicy);
+missingPublishedAncestor.runtimeResources = missingPublishedAncestor.runtimeResources.filter(file => !file.endsWith('/throughput.json'));
+assert((await buildPackageSourceClosure(packageJson, missingPublishedAncestor)).issues
+  .some(issue => issue.includes('extends an unpublished runtime profile: profiles/throughput')));
+await assert.rejects(buildPackageSourceClosure(packageJson, {
+  ...resourcePolicy, runtimeResources: [...resourcePolicy.runtimeResources, 'src/config/runtime/../../package.json'],
+}), /Invalid published runtime resource/u);
 
 // Publication exclusions cannot hide an imported asset or a profile ancestor.
 const missingAncestor = structuredClone(packageJson);

@@ -14,13 +14,13 @@ export function createQwen4ExpSourceExecution(tensors, numLayers) {
   }
   const byName = new Map(tensors.map(t => [t.name, t]));
   if (byName.size !== tensors.length) throw new Error('Duplicate Qwen4Exp source tensor names.');
-  const graph = /** @type {import('../config/schema/execution-v1.schema.js').ExecutionV1GraphSchema} */ (/** @type {unknown} */ (cloneJsonValue(profile.execution)));
+  const graph = /** @type {import("../config/schema/execution/execution-v1.schema.js").ExecutionV1GraphSchema} */ (/** @type {unknown} */ (cloneJsonValue(profile.execution)));
   for (const spec of Object.values(graph.kernels)) {
     const digest = KERNEL_REF_CONTENT_DIGESTS[`${spec.kernel}#${spec.entry}`];
     if (!digest) throw new Error(`Missing family kernel digest for ${spec.kernel}.`);
     spec.digest = `sha256:${digest}`;
   }
-  const operations = /** @type {import('../config/schema/kernel-registry.schema.js').KernelRegistrySchema} */ (/** @type {unknown} */ (registry)).operations;
+  const operations = /** @type {import("../config/schema/execution/kernel-registry.schema.js").KernelRegistrySchema} */ (/** @type {unknown} */ (registry)).operations;
   const floats = /** @type {Record<string, string>} */ (policy.floatVariants);
   const phases = /** @type {Record<string, number>} */ (policy.phases);
   /** @param {string} operation @param {string} variant */
@@ -35,7 +35,7 @@ export function createQwen4ExpSourceExecution(tensors, numLayers) {
     return key;
   };
   /** @param {string} role @param {string} name @param {string} phase
-   * @returns {import('../config/schema/execution-v1.schema.js').ExecutionV1StepTuple} */
+   * @returns {import("../config/schema/execution/execution-v1.schema.js").ExecutionV1StepTuple} */
   const projection = (role, name, phase) => {
     const tensor = byName.get(name);
     if (!tensor) throw new Error(`Missing Qwen4Exp projection ${name}.`);
@@ -50,7 +50,7 @@ export function createQwen4ExpSourceExecution(tensors, numLayers) {
     // Retain non-projection semantics. Each physical projection is then bound
     // explicitly per layer, including mixed attention and shared-expert types.
     const unweighted = graph[phase].filter(step => Array.isArray(step) && step.length < 3);
-    /** @type {Map<string, import('../config/schema/execution-v1.schema.js').ExecutionV1LayerGroupSchema>} */
+    /** @type {Map<string, import("../config/schema/execution/execution-v1.schema.js").ExecutionV1LayerGroupSchema>} */
     const groups = new Map();
     for (let layer = 0; layer < numLayers; layer++) {
       const steps = [

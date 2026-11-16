@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import { installNodeFileFetchShim } from '../../src/tooling/node-file-fetch.js';
 
 installNodeFileFetchShim();
-const { applyModelBatchingRuntimeDefaults } = await import('../../src/inference/pipelines/text/model-load.js');
+const { applyModelBatchingRuntimeDefaults } = await import("../../src/inference/pipelines/text/loading/model-load.js");
 
 function resolve(layerSubmitInterval, runtimeValue) {
   const decodeLoop = { batchSize: 1, stopCheckMode: 'per-token', readbackInterval: 1,

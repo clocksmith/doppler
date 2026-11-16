@@ -3,7 +3,7 @@ import { loadRuntimeProfile } from '../../src/tooling/browser-harness/runtime-co
 import { installNodeFileFetchShim } from '../../src/tooling/node-file-fetch.js';
 import { resolveRuntimeConfig } from '../../src/config/runtime.js';
 import { stripLegacyRuntimeIntent } from '../../src/tooling/runtime-intent.js';
-import { validateQwen35RoutedConfig } from '../../src/config/schema/loading.schema.js';
+import { validateQwen35RoutedConfig } from "../../src/config/schema/runtime/loading.schema.js";
 import { prepareExpertLayer } from '../../src/loader/experts/loader-bindings.js';
 
 installNodeFileFetchShim();

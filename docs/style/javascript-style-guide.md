@@ -645,7 +645,7 @@ This pattern applies to: `gather.js`, `residual.js`, and any kernel using `vec4<
 Quantization block sizes are **invariants** derived from the format spec, defined once in a single module and never redefined.
 
 ```javascript
-// config/schema/quantization.schema.js
+// config/schema/manifest/quantization.schema.js
 export { QK_K, K_SCALE_SIZE } from '../converter/quantizer.js';
 
 // Block byte sizes - derived from format spec, never hardcode elsewhere
@@ -910,7 +910,7 @@ Use consistent module names matching the file/class:
 |------|-------------|
 | `gpu/kernels/matmul.js` | `'Matmul'` |
 | `gpu/kernels/attention.js` | `'Attention'` |
-| `inference/pipelines/text/layer.js` | `'Layer'` or `'Pipeline'` |
+| `inference/pipelines/text/execution/layer.js` | `'Layer'` or `'Pipeline'` |
 | `loader/doppler-loader.js` | `'Loader'` |
 | `demo/demo.js` | `'DopplerDemo'` |
 

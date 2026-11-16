@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 
 import { createDopplerConfig } from '../../src/config/schema/index.js';
-import { resolvePrefillChunkSubmitMode } from '../../src/inference/pipelines/text/generator.js';
+import { resolvePrefillChunkSubmitMode } from "../../src/inference/pipelines/text/generator/generator.js";
 
 function createRuntimeConfig(prefillChunkSubmitMode) {
   const runtimeConfig = createDopplerConfig().runtime;

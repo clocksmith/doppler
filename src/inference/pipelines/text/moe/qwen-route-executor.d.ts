@@ -24,7 +24,7 @@ export interface QwenRouteExpertOptions {
   swigluLimit: number | null;
 }
 export interface QwenSharedSlot {
-  weights: import('../weights.js').LayerWeights;
+  weights: import("../loading/weights.js").LayerWeights;
   intermediateSize: number;
   kernelPath: import('../../../../config/schema/index.js').KernelPathSchema;
   phase: 'decode' | 'prefill';

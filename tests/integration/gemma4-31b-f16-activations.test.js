@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 
-const { compileExecutionV1 } = await import('../../src/inference/pipelines/text/execution-v1.js');
+const { compileExecutionV1 } = await import("../../src/inference/pipelines/text/execution/execution-v1.js");
 const { getLayerSteps } = await import('../../src/config/kernel-path-loader.js');
 
 // Contract: the Gemma 4 31B af16 manifest variant is an all-f16 activation lane.

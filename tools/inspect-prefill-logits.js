@@ -12,7 +12,7 @@ import { activateLoRAFromTrainingOutputForPipeline } from '../src/client/runtime
 import { destroyDevice, resetDeviceState } from '../src/gpu/device.js';
 import { initializeInference } from '../src/tooling/test-harness.js';
 import { applyRuntimeProfile } from '../src/tooling/browser-harness/runtime-config.js';
-import { getTopK } from '../src/inference/pipelines/text/sampling.js';
+import { getTopK } from "../src/inference/pipelines/text/generator/sampling/sampling.js";
 import { destroyBufferPool } from '../src/memory/buffer-pool.js';
 import { installNodeFileFetchShim } from '../src/tooling/node-file-fetch.js';
 import { bootstrapNodeWebGPU } from '../src/tooling/node-webgpu.js';

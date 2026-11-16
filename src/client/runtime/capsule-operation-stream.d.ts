@@ -1,4 +1,4 @@
-import type { CapsuleOperationRequest } from '../../config/capsule-operation.js';
+import type { CapsuleOperationRequest } from "../../config/capsule/capsule-operation.js";
 import type { CapsuleOperationEvent } from './capsule-operation-executor.js';
 export function createCapsuleStreamAccumulator(request: CapsuleOperationRequest): {
   accept(event: CapsuleOperationEvent): void;

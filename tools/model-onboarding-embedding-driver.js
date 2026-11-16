@@ -6,7 +6,7 @@ import { fileURLToPath } from 'node:url';
 import { hashOnboardingFile } from '../src/tooling/model-onboarding-custody.js';
 import { computeCanonicalSha256 } from '../src/formats/canonical-hash.js';
 import { assertEmbeddingReference, assertEmbeddingSourceIdentity, evaluateEmbeddingReference } from '../src/config/embedding-reference.js';
-import { getCapsuleIdentity, verifyCapsuleMetadata } from '../src/config/capsule.js';
+import { getCapsuleIdentity, verifyCapsuleMetadata } from "../src/config/capsule/capsule.js";
 import { qualifyEmbeddingBrowser } from './qualify-embedding-browser.js';
 import { buildEmbeddingEvaluationCapsule } from './build-reranker-evaluation-capsule.js';
 

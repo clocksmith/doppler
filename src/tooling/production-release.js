@@ -22,7 +22,7 @@ import {
 import {
   hashCapsuleV2Envelope,
   verifyCapsuleV2Signature,
-} from '../config/capsule-v2.js';
+} from "../config/capsule/capsule-v2.js";
 import { selectQualifiedTargetPlan } from '../config/target-plan.js';
 import { stableSortObject } from '../formats/stable-sort-object.js';
 import { rigModelCapsule } from './model-capsule-rig.js';

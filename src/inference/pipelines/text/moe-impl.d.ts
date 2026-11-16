@@ -19,7 +19,7 @@ import type { Tensor, TensorDtype } from '../../../gpu/tensor.js';
 import type { MoERouter } from '../../moe-router.js';
 import type { ExpertWeights } from './types.js';
 import type { KernelPathSchema } from '../../../config/schema/index.js';
-import type { ExecutionV1PoliciesSchema } from '../../../config/schema/execution-v1.schema.js';
+import type { ExecutionV1PoliciesSchema } from "../../../config/schema/execution/execution-v1.schema.js";
 import type { WeightBuffer } from '../../../gpu/weight-buffer.js';
 
 /**

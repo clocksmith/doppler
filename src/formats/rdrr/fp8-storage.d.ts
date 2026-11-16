@@ -1,4 +1,4 @@
-import type { FP8Encoding, FP8Policy } from '../../config/schema/fp8.schema.js';
+import type { FP8Encoding, FP8Policy } from "../../config/schema/manifest/fp8.schema.js";
 export interface FP8StorageDescriptor {
   packing: 'fp8-block-v1';
   encoding: FP8Encoding;

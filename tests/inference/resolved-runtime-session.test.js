@@ -4,7 +4,7 @@ import test from 'node:test';
 import {
   createResolvedRuntimeSession,
   resolveAttentionRuntimeSession,
-} from '../../src/inference/pipelines/text/resolved-runtime-session.js';
+} from "../../src/inference/pipelines/text/configuration/resolved-runtime-session.js";
 import { createObservationContext } from '../../src/inference/observation-context.js';
 
 function createInputs() {

@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import fs from 'node:fs/promises';
 import { getKernelPathActivationSpec } from '../../src/config/kernel-path-loader.js';
-import { compileExecutionV1 } from '../../src/inference/pipelines/text/execution-v1.js';
+import { compileExecutionV1 } from "../../src/inference/pipelines/text/execution/execution-v1.js";
 
 const step = { op: 'activation', kernel: 'gelu.wgsl', entry: 'main', constants: { GELU_ERF: true, HAS_GATE: false } };
 const path = steps => ({ decode: { steps }, prefill: { steps } });

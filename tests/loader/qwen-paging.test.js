@@ -3,7 +3,7 @@ import { test } from 'node:test';
 import { setDevice } from '../../src/gpu/device.js';
 import { createWeightBuffer } from '../../src/gpu/weight-buffer.js';
 import { prepareQwenExpertLayer } from '../../src/loader/experts/qwen-paging.js';
-import { validateQwen35PagerConfig } from '../../src/config/schema/loading.schema.js';
+import { validateQwen35PagerConfig } from "../../src/config/schema/runtime/loading.schema.js";
 
 const policy = { enabled: true, maxResidentLayers: 2 };
 function fixture() {

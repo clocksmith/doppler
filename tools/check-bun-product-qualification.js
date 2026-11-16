@@ -321,7 +321,7 @@ export async function validateBunProductQualificationPolicy(policy, options = {}
   if (!exactKeys(policy, fields, 'Bun qualification policy', errors)) {
     return { errors, qualifications: [], qualifiedWorkloads: 0, gateSatisfied: false };
   }
-  if (policy.$schema !== '../../src/config/schema/bun-product-qualification.schema.json') {
+  if (policy.$schema !== "../../src/config/schema/runtime/bun-product-qualification.schema.json") {
     errors.push('Bun qualification policy $schema is invalid');
   }
   if (policy.schemaVersion !== 1) errors.push('Bun qualification policy schemaVersion must be 1');

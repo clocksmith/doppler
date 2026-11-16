@@ -28,7 +28,7 @@ import {
   getActiveKernelPathSource,
   setActiveKernelPath,
 } from '../config/kernel-path-loader.js';
-import { validateProgramBundle } from '../config/schema/program-bundle.schema.js';
+import { validateProgramBundle } from "../config/schema/capsule/program-bundle.schema.js";
 
 let browserHarnessModulePromise = null;
 

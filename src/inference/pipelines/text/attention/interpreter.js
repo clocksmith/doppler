@@ -1,72 +1,42 @@
-import { assertPairedAttentionExecution } from './paired-contract.js';
-import { recordAttentionCacheCast } from './cache-cast.js';
-import { isGpuBufferInstance, isWeightBuffer, getWeightDtype, requireWeightDtype } from '../../../../gpu/weight-buffer.js';
-import { getKernelCapabilities } from '../../../../gpu/device.js';
-import { acquireBuffer } from '../../../../memory/buffer-pool.js';
-import { recordMatmul } from '../../../../gpu/kernels/matmul.js';
-import { recordRMSNorm } from '../../../../gpu/kernels/rmsnorm.js';
-import { recordLayerNorm } from '../../../../gpu/kernels/layernorm.js';
-import { recordBiasAdd } from '../../../../gpu/kernels/residual.js';
-import { recordRoPE } from '../../../../gpu/kernels/rope.js';
-import { canUseRoPEQK, recordRoPEQK } from '../../../../gpu/kernels/rope-qk.js';
-import { recordSiLU } from '../../../../gpu/kernels/silu.js';
-import { recordCastF16ToF32, recordCastF32ToF16 } from '../../../../gpu/kernels/cast.js';
-import { recordMatmulResidualFused } from '../../../../gpu/kernels/fused_matmul_residual.js';
-import { createTensor } from '../../../../gpu/tensor.js';
-import { applyLoRA } from '../lora-apply.js';
-import { getLoRAModule } from '../lora.js';
-import { log, trace } from '../../../../debug/index.js';
-import { selectRuleValue } from '../../../../rules/rule-registry.js';
-import {
-  recordAttentionInputs,
-  shouldForceF32AttentionProjectionForRoPE,
-  resolveAttentionProjectionOutputDtype,
-  projectAttentionQKV,
-  applyAttentionQKNorm,
-  applyAttentionValueNorm,
-  hasAttentionProjectionDiagnostics,
-  hasAttentionStageDiagnostics,
-  resolveAttentionQKNormState,
-} from './projections.js';
-import { prepareAttentionProjectionInput } from './output-projection.js';
-import { runProbes, tensorProbeOptions } from '../probes.js';
-import { shouldDebugLayer } from './types.js';
-import {
-  getKernelPathMatmulPrecision,
-  getKernelPathMatmulVariant,
-} from '../../../../config/kernel-path-loader.js';
-import {
-  resolveKVCacheState,
-  createDiffusionGemmaDecoderKVState,
-  buildAttentionDispatchParams,
-  buildAttentionInputsData,
-} from './dispatch-params.js';
-import {
-  buildTieredQuantAttentionOptions,
-  buildContiguousQuantAttentionOptions,
-} from './quant-options.js';
-import { assertImplicitDtypeTransitionAllowed } from '../dtype-contract.js';
-import {
-  resolveAttentionPrecisionContract,
-  isAttentionKvDtypeExplicit,
-} from './precision-contract.js';
-import { canUseRmsNormWideTileProjectionFusion } from './rmsnorm-fusion-gate.js';
-import { getVectorTensor } from '../weights.js';
-import { resolveAttentionRuntimeSession } from '../resolved-runtime-session.js';
-import {
-  bindAttentionPlan,
-  createAttentionExecutor,
-  executeBoundAttentionPlan,
-  resolveAttentionPlanForDispatch,
-} from './plan.js';
-import { createRecordedResourceScope } from '../../../resource-scope.js';
-import { captureAttentionRefactorReceipt } from './receipt.js';
-import { observeAttentionRoPE } from './rope-observation.js';
-import { applyAttentionQueryScale } from './query-transform.js';
-import { resolveQueryScale } from '../../../../config/heterogeneous-attention-contract.js';
-import { enqueueRecordedTensorHealth, shouldTraceRecordedHealth } from './recorded-health.js';
-import { finalizeRecordedAttentionSuccess, resolveDirectF16KVCacheWrite, runRecordedAttentionCore } from './interpreter/recorded.js';
-import { assertAttentionDtypeTransitionAllowed, resolveRecordedAttentionDispatch } from './interpreter/immediate.js';
+import { recordAttentionOutputProjection } from "./interpreter/output.js";
+import { assertPairedAttentionExecution } from "./paired-contract.js";
+import { recordAttentionCacheCast } from "./cache-cast.js";
+import { isGpuBufferInstance, isWeightBuffer, requireWeightDtype } from "../../../../gpu/weight-buffer.js";
+
+import { acquireBuffer } from "../../../../memory/buffer-pool.js";
+
+import { recordRMSNorm } from "../../../../gpu/kernels/rmsnorm.js";
+import { recordLayerNorm } from "../../../../gpu/kernels/layernorm.js";
+
+import { recordRoPE } from "../../../../gpu/kernels/rope.js";
+import { canUseRoPEQK, recordRoPEQK } from "../../../../gpu/kernels/rope-qk.js";
+
+import { recordCastF16ToF32, recordCastF32ToF16 } from "../../../../gpu/kernels/cast.js";
+
+import { createTensor } from "../../../../gpu/tensor.js";
+
+import { trace } from "../../../../debug/index.js";
+import { selectRuleValue } from "../../../../rules/rule-registry.js";
+import { shouldForceF32AttentionProjectionForRoPE, resolveAttentionProjectionOutputDtype, projectAttentionQKV, applyAttentionQKNorm, applyAttentionValueNorm, hasAttentionProjectionDiagnostics, hasAttentionStageDiagnostics, resolveAttentionQKNormState } from "./projections.js";
+
+import { runProbes, tensorProbeOptions } from "../observation/probes.js";
+import { shouldDebugLayer } from "./types.js";
+import { getKernelPathMatmulPrecision, getKernelPathMatmulVariant } from "../../../../config/kernel-path-loader.js";
+import { resolveKVCacheState, createDiffusionGemmaDecoderKVState } from "./dispatch-params.js";
+
+import { resolveAttentionPrecisionContract, isAttentionKvDtypeExplicit } from "./precision-contract.js";
+import { canUseRmsNormWideTileProjectionFusion } from "./rmsnorm-fusion-gate.js";
+import { getVectorTensor } from "../loading/weights.js";
+import { resolveAttentionRuntimeSession } from "../configuration/resolved-runtime-session.js";
+
+import { createRecordedResourceScope } from "../../../resource-scope.js";
+
+import { observeAttentionRoPE } from "./rope-observation.js";
+import { applyAttentionQueryScale } from "./query-transform.js";
+import { resolveQueryScale } from "../../../../config/heterogeneous-attention-contract.js";
+import { observeRecordedAttentionProjections, observeRecordedAttentionQKNorm, shouldTraceRecordedHealth } from "./recorded-health.js";
+import { failRecordedAttention, resolveDirectF16KVCacheWrite, runRecordedAttentionCore } from "./interpreter/recorded.js";
+import { assertAttentionDtypeTransitionAllowed, resolveRecordedAttentionDispatch } from "./interpreter/immediate.js";
 const ATTENTION_DTYPE_LOGGED = new Set();
 export async function interpretAttentionWithRecorder(
   recorder,
@@ -142,9 +112,6 @@ export async function interpretAttentionWithRecorder(
   let vTensor = null;
   let attnOutput = null;
   let attnForProjection = null;
-  let output = null;
-  let finalOutput = null;
-  let oProjInputTemp = null;
   let retainSharedKvBuffers = false;
   let valueAliasesKey = false;
   let decoderKVState = null;
@@ -174,8 +141,6 @@ export async function interpretAttentionWithRecorder(
     resourceScope.close('success');
     return { output, residualFused: false };
   }
-  const qSize = numTokens * numHeads * headDim;
-  const kvSize = numTokens * numKVHeads * headDim;
   // 1. Input norm
   // Opt-in fusion: when useFusedRmsnormWideTile is set, defer the standalone
   // rmsnorm into each q/k/v_proj matmul (fused kernel runs norm internally).
@@ -410,50 +375,7 @@ export async function interpretAttentionWithRecorder(
   if (fusedNormWeightRec && fusedNormOwnedRec) {
     resourceScope.release(fusedNormWeightRec);
   }
-  if (qTensor) {
-    await runProbes('q_proj', qTensor.buffer, {
-      layerIdx, numTokens, hiddenSize: numHeads * headDim,
-      probes: state.debugProbes, recorder,
-      operatorDiagnostics: state.operatorDiagnostics, ...tensorProbeOptions(qTensor),
-    });
-  }
-  if (kTensor) {
-    await runProbes('k_proj', kTensor.buffer, {
-      layerIdx, numTokens, hiddenSize: numKVHeads * headDim,
-      probes: state.debugProbes, recorder,
-      operatorDiagnostics: state.operatorDiagnostics, ...tensorProbeOptions(kTensor),
-    });
-  }
-  if (vTensor) {
-    await runProbes('v_proj', vTensor.buffer, {
-      layerIdx, numTokens, hiddenSize: numKVHeads * headDim,
-      probes: state.debugProbes, recorder,
-      operatorDiagnostics: state.operatorDiagnostics, ...tensorProbeOptions(vTensor),
-    });
-  }
-  if (qTensor && shouldTraceRecordedHealth(layerIdx, debugFlags)) {
-    enqueueRecordedTensorHealth(
-      recorder,
-      `L${layerIdx}.q_proj_HEALTH`,
-      qTensor,
-      qTensor.dtype,
-      numTokens * numHeads * headDim
-    );
-    enqueueRecordedTensorHealth(
-      recorder,
-      `L${layerIdx}.k_proj_HEALTH`,
-      kTensor,
-      kTensor?.dtype ?? null,
-      numTokens * numKVHeads * headDim
-    );
-    enqueueRecordedTensorHealth(
-      recorder,
-      `L${layerIdx}.v_proj_HEALTH`,
-      vTensor,
-      vTensor?.dtype ?? null,
-      numTokens * numKVHeads * headDim
-    );
-  }
+  await observeRecordedAttentionProjections({ qTensor, kTensor, vTensor, config, state, debugFlags, recorder });
   // Optional Q/K normalization. The manifest owns both its numerical family
   // and whether it applies per head or across the complete projection.
   if (qkNormState.wantsQKNorm && !qkNormApplied) {
@@ -478,34 +400,7 @@ export async function interpretAttentionWithRecorder(
     }));
   }
   if (qkNormState.wantsQKNorm) {
-    await runProbes('q_norm', qTensor.buffer, {
-      layerIdx, numTokens, hiddenSize: numHeads * headDim,
-      probes: state.debugProbes, recorder,
-      operatorDiagnostics: state.operatorDiagnostics, ...tensorProbeOptions(qTensor),
-    });
-    if (kTensor) {
-      await runProbes('k_norm', kTensor.buffer, {
-        layerIdx, numTokens, hiddenSize: numKVHeads * headDim,
-        probes: state.debugProbes, recorder,
-        operatorDiagnostics: state.operatorDiagnostics, ...tensorProbeOptions(kTensor),
-      });
-    }
-    if (shouldTraceRecordedHealth(layerIdx, debugFlags)) {
-      enqueueRecordedTensorHealth(
-        recorder,
-        `L${layerIdx}.q_norm_HEALTH`,
-        qTensor,
-        qTensor.dtype,
-        numTokens * numHeads * headDim
-      );
-      enqueueRecordedTensorHealth(
-        recorder,
-        `L${layerIdx}.k_norm_HEALTH`,
-        kTensor,
-        kTensor?.dtype ?? null,
-        numTokens * numKVHeads * headDim
-      );
-    }
+    await observeRecordedAttentionQKNorm({ qTensor, kTensor, config, state, debugFlags, recorder });
   }
   qTensor = await applyAttentionQueryScale({
     recorder, tensor: qTensor, scale: resolvedQueryScale,
@@ -763,218 +658,50 @@ export async function interpretAttentionWithRecorder(
     vTensor,
   }));
 
-  // 6. Output projection (with optional fused residual for decode)
-
-  output = null;
-  let residualFused = false;
-  let oProjInput = attnForProjection;
-  oProjInputTemp = null;
-  if (layerWeights.oProj && getWeightBuffer) {
-    ({ oProjInput, oProjInputTemp } = await prepareAttentionProjectionInput(
-      attnForProjection,
-      oProjInputDtype,
-      (tensor) => {
-        assertAttentionDtypeTransitionAllowed(
-          state,
-          tensor.dtype,
-          oProjInputDtype,
-          'Attention output projection would change activations implicitly.',
-          'step_precision'
-        );
-        return oProjInputDtype === 'f16'
-          ? recordCastF32ToF16(recorder, tensor)
-          : recordCastF16ToF32(recorder, tensor);
-      }
-    ));
-    const oProjBuf = getWeightBuffer(layerWeights.oProj, 'o_proj');
-    const loraO = getLoRAModule(lora, layerIdx, 'o_proj');
-
-    // Use fused o_proj + residual for decode when possible
-    // Note: dtype from WeightBuffer metadata (buffer-dtypes WeakMap removed)
-    const oProjDtype = getWeightDtype(oProjBuf);
-    const canUseFused = attentionPlan.outputProjection.residualMode === 'matmul-residual';
-    const canUseWideTileResidual =
-      attentionPlan.outputProjection.residualMode === 'wide-tile-epilogue';
-    if (
-      attentionPlan.outputProjection.weightDtype != null
-      && oProjDtype !== attentionPlan.outputProjection.weightDtype
-    ) {
-      throw new Error(
-        `Attention output projection dtype changed after planning at layer ${layerIdx}: ` +
-        `plan=${attentionPlan.outputProjection.weightDtype}, bound=${oProjDtype}.`
-      );
-    }
-    if (canUseFused && residualTensor) {
-      // FUSED PATH: o_proj matmul + residual add in one dispatch
-      output = await recordMatmulResidualFused(recorder, oProjInput, oProjBuf, residualTensor, {
-        N: hiddenSize,
-        K: numHeads * headDim,
-      });
-      residualFused = true;
-    } else {
-      // STANDARD PATH: o_proj matmul only unless Q4K WideTile fuses residual in the epilogue
-      output = await recordMatmul(recorder, oProjInput, oProjBuf, numTokens, hiddenSize, numHeads * headDim, {
-        transposeB: 'auto',
-        role: 'o_proj',
-        layerIdx,
-        kernelPath,
-        outputDtype: oProjOutputDtype,
-        executionPolicies: state.executionPolicies ?? null,
-        residualTensor: canUseWideTileResidual ? residualTensor : null,
-      });
-      residualFused = canUseWideTileResidual;
-    }
-    // Release temporary buffer if we created it (original was not already on GPU)
-    if (!isGpuBufferInstance(layerWeights.oProj) && !isWeightBuffer(layerWeights.oProj)) {
-      resourceScope.release(isWeightBuffer(oProjBuf) ? oProjBuf.buffer : oProjBuf);
-    }
-  } else {
-    output = oProjInput;
-  }
-
-  // Apply LoRA to output projection if present (only if not using fused path)
-  if (!residualFused) {
-    const loraO = getLoRAModule(lora, layerIdx, 'o_proj');
-    if (loraO && getWeightBuffer) {
-      const combined = await applyLoRA(
-        oProjInput,
-        output,
-        loraO,
-        { M: numTokens, N: hiddenSize, K: numHeads * headDim },
-        getWeightBuffer,
-        recorder,
-        { kernelPath }
-      );
-      if (combined.buffer !== output.buffer) {
-        resourceScope.release(output.buffer);
-        output = combined;
-      }
-    }
-  }
-
-  if (layerWeights.oProjBias) {
-    const { tensor: oProjBiasTensor, owned } = getVectorTensor(
-      layerWeights.oProjBias,
-      `L${layerIdx}.o_proj_bias`,
-      hiddenSize,
-      {},
-      debugFlags
-    );
-    output = await recordBiasAdd(
-      recorder,
-      output,
-      oProjBiasTensor,
-      numTokens,
-      hiddenSize,
-      {
-        label: `L${layerIdx}.o_proj_bias`,
-        layerIdx,
-        executionPolicies: state.executionPolicies ?? null,
-      }
-    );
-    if (owned) resourceScope.release(oProjBiasTensor.buffer);
-  }
-
-  finalOutput = output;
-  if (shouldTraceRecordedHealth(layerIdx, debugFlags)) {
-    enqueueRecordedTensorHealth(
-      recorder,
-      `L${layerIdx}.o_proj_HEALTH`,
-      output,
-      output.dtype,
-      numTokens * hiddenSize
-    );
-  }
-
-  const buffersToTrack = [];
-  if (output.buffer !== attnForProjection.buffer) {
-    buffersToTrack.push(attnForProjection.buffer);
-  }
-  if (oProjInputTemp && oProjInputTemp.buffer !== attnForProjection.buffer) {
-    buffersToTrack.push(oProjInputTemp.buffer);
-  }
-  if (output.dtype !== oProjOutputDtype) {
-    assertAttentionDtypeTransitionAllowed(state, output.dtype, oProjOutputDtype, 'Attention output would change implicitly before leaving the layer.');
-    const coercedOutput = oProjOutputDtype === 'f16'
-      ? await recordCastF32ToF16(recorder, output)
-      : await recordCastF16ToF32(recorder, output);
-    buffersToTrack.push(output.buffer);
-    finalOutput = coercedOutput;
-    resourceScope.register(finalOutput.buffer, 'coerced-attention-output', 'submitOwned');
-  }
-
-  finalizeRecordedAttentionSuccess({
+  return await recordAttentionOutputProjection({
+    attnForProjection,
+    layerWeights,
+    getWeightBuffer,
+    oProjInputDtype,
+    state,
+    recorder,
+    lora,
+    layerIdx,
     attentionPlan,
-    buffersToTrack,
-    finalOutput,
+    residualTensor,
+    hiddenSize,
+    numHeads,
+    headDim,
+    numTokens,
+    kernelPath,
+    oProjOutputDtype,
+    resourceScope,
+    debugFlags,
     kTensor,
     qGateTensor,
     qTensor,
-    resourceScope,
     retainSharedKvBuffers,
-    state,
-    vTensor,
+    vTensor
   });
-  return { output: finalOutput, residualFused };
   } catch (error) {
-    const trackOnce = (buffer) => resourceScope.release(buffer, 'attention-failure');
-    if (finalOutput?.buffer && finalOutput.buffer !== output?.buffer) {
-      trackOnce(finalOutput.buffer);
-    }
-    if (output?.buffer && output.buffer !== attnForProjection?.buffer) {
-      trackOnce(output.buffer);
-    }
-    if (oProjInputTemp?.buffer) {
-      trackOnce(oProjInputTemp.buffer);
-    }
-    if (attnForProjection?.buffer && attnForProjection.buffer !== attnOutput?.buffer) {
-      trackOnce(attnForProjection.buffer);
-    }
-    if (attnOutput?.buffer) {
-      trackOnce(attnOutput.buffer);
-    }
-    if (qGateTensor?.buffer) {
-      trackOnce(qGateTensor.buffer);
-    }
-    if (qTensor?.buffer) {
-      trackOnce(qTensor.buffer);
-    }
-    if (kTensor?.buffer && !retainSharedKvBuffers) {
-      trackOnce(kTensor.buffer);
-    }
-    if (vTensor?.buffer && !retainSharedKvBuffers) {
-      trackOnce(vTensor.buffer);
-    }
-    if (normed?.buffer && normed.buffer !== attentionInput?.buffer) {
-      trackOnce(normed.buffer);
-    }
-    if (attentionInputTemp && attentionInput?.buffer) {
-      trackOnce(attentionInput.buffer);
-    }
-    if (decoderKTemp?.buffer) {
-      trackOnce(decoderKTemp.buffer);
-    }
-    if (decoderVTemp?.buffer) {
-      trackOnce(decoderVTemp.buffer);
-    }
-    if (decoderKVState?.ownedBuffers) {
-      for (const buffer of decoderKVState.ownedBuffers) {
-        trackOnce(buffer);
-      }
-      decoderKVState.ownedBuffers = null;
-    }
-    const resourceEvents = resourceScope.close('failure');
-    if (state.observationContext?.receiptPolicy !== 'off') {
-      state.stats.attentionResourceEvents ??= [];
-      state.stats.attentionResourceEvents.push(...resourceEvents);
-    }
-    captureAttentionRefactorReceipt({
+    return failRecordedAttention({
+      resourceScope,
+      attnForProjection,
+      attnOutput,
+      qGateTensor,
+      qTensor,
+      kTensor,
+      retainSharedKvBuffers,
+      vTensor,
+      normed,
+      attentionInput,
+      attentionInputTemp,
+      decoderKTemp,
+      decoderVTemp,
+      decoderKVState,
       state,
-      plan: attentionPlan,
-      resourceEvents,
-      error,
-      failureBoundary: attentionPlan ? 'execute-bound-attention-plan' : 'bind-attention-plan',
+      attentionPlan,
+      error
     });
-    throw error;
   }
 }

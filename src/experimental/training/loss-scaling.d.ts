@@ -1,4 +1,4 @@
-import type { TrainingLossScalingConfigSchema } from '../../config/schema/training.schema.js';
+import type { TrainingLossScalingConfigSchema } from "../../config/schema/training/training.schema.js";
 import type { Tensor } from '../../gpu/tensor.js';
 
 export declare function detectOverflow(grads: Map<Tensor, Tensor>): Promise<boolean>;

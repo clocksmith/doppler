@@ -1,5 +1,5 @@
 import { ERROR_CODES, createDopplerError } from '../../errors/doppler-error.js';
-import { DEFAULT_DISTRIBUTION_CONFIG } from '../../config/schema/distribution.schema.js';
+import { DEFAULT_DISTRIBUTION_CONFIG } from "../../config/schema/runtime/distribution.schema.js";
 export const DISTRIBUTION_SOURCE_HTTP = 'http';
 
 export function normalizeRequiredInteger(value, label, { allowZero = false, fallback = null } = {}) {

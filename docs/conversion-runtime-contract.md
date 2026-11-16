@@ -13,12 +13,12 @@ re-conversion or can be changed per-run.
 
 ## Single Sources of Truth
 
-- Converter schema defaults: `src/config/schema/converter.schema.js`
+- Converter schema defaults: `src/config/schema/manifest/converter.schema.js`
 - Conversion behavior: `src/converter/core.js`, `src/converter/quantization-info.js`
 - Kernel-path and execution runtime behavior:
   - `docs/rdrr-format.md` (artifact contract)
   - `docs/style/config-style-guide.md` (runtime overlay rules)
-  - `src/inference/pipelines/text/execution-v1.js` (strict runtime compile)
+  - `src/inference/pipelines/text/execution/execution-v1.js` (strict runtime compile)
 
 ## Field Matrix
 
@@ -69,7 +69,7 @@ Notes:
 ## W8A8 linear projections
 
 The versioned numerical contract lives in
-[`w8a8.schema.js`](../src/config/schema/w8a8.schema.js). Conversion must explicitly
+[`w8a8.schema.js`](../src/config/schema/manifest/w8a8.schema.js). Conversion must explicitly
 declare it in `quantization.w8a8` and retain it in `quantizationInfo.w8a8`.
 The distinct `W8A8` tensor encoding is not GGUF Q8_0, reconstructed-F32 activation
 quantization, or the existing WNA8O8 metadata. Runtime cannot reinterpret one as
@@ -175,7 +175,7 @@ activation that a gated-delta layer's gated RMSNorm applies to `z`:
 `norm(x) * w * act(z)`. The field is source-owned, so runtime and call-time
 overrides are rejected. Manifests and Capsules converted before the field
 existed omit it. Merge resolves the omission to the schema default `silu` in
-`src/config/schema/manifest.schema.js` and in no other place; their converted
+`src/config/schema/manifest/manifest.schema.js` and in no other place; their converted
 bytes and pinned kernels are unchanged.
 
 Source semantics come from the upstream family, not from `output_gate_type`

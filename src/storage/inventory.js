@@ -1,7 +1,7 @@
 import { getRuntimeConfig } from '../config/runtime.js';
 import { isIndexedDBAvailable, isOPFSAvailable } from './quota.js';
 import { createIdbStore } from './backends/idb-store.js';
-import { DEFAULT_OPFS_PATH_CONFIG } from '../config/schema/loading.schema.js';
+import { DEFAULT_OPFS_PATH_CONFIG } from "../config/schema/runtime/loading.schema.js";
 
 const LEGACY_OPFS_ROOTS = ['models'];
 const SYSTEM_DIRS = new Set(['reports']);

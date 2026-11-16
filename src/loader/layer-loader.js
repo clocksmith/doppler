@@ -8,7 +8,7 @@ import {
 import { dequantize, dequantizeRowwise } from '../gpu/kernels/dequant.js';
 import { releaseBuffer } from '../memory/buffer-pool.js';
 import { batchDowncastWeights } from './weight-downcast.js';
-import { QK_K } from '../config/schema/quantization.schema.js';
+import { QK_K } from "../config/schema/manifest/quantization.schema.js";
 import { log, trace as debugTrace } from '../debug/index.js';
 import { createTensor } from '../gpu/tensor.js';
 import { castF16ToF32 } from '../gpu/kernels/cast.js';

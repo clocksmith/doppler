@@ -8,14 +8,14 @@ import { createPipeline } from '../../src/inference/pipelines/text.js';
 import { createNodeFileArtifactStorageContext } from '../../src/storage/artifact-storage-context.js';
 import { deserializeActivationFrame, serializeActivationFrame,
   comparePartitionExecution } from '../../src/partitions.js';
-import { resolveResidentPartitionAllocation } from '../../src/inference/pipelines/text/resident-partition-contract.js';
-import { createResidentPartitionSession } from '../../src/inference/pipelines/text/resident-partition.js';
+import { resolveResidentPartitionAllocation } from "../../src/inference/pipelines/text/partitions/resident-partition-contract.js";
+import { createResidentPartitionSession } from "../../src/inference/pipelines/text/partitions/resident-partition.js";
 import { createModelHandle } from '../../src/client/model-host/model-session.js';
 import { createCapsuleProgramAdapter } from '../../src/client/runtime/capsule-program-adapter.js';
 import { resolveGenerationOptions } from '../../src/config/generation-contract.js';
 import { sampleCapsuleLogits, stoppingReason } from '../../src/inference/generation-step.js';
 import { samplingSeedForToken } from '../../src/inference/token-sampling.js';
-import { createPartitionAttempt } from '../../src/inference/pipelines/text/partition-attempt.js';
+import { createPartitionAttempt } from "../../src/inference/pipelines/text/partitions/partition-attempt.js";
 import { acquireBuffer, isBufferActive } from '../../src/memory/buffer-pool.js';
 import { destroyDevice, getDevice } from '../../src/gpu/device.js';
 import { releaseNodeWebGPU } from '../../src/tooling/node-webgpu.js';

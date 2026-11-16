@@ -56,12 +56,12 @@ function assertCallBlocksContain(source, marker, needle, label) {
 
 const probeForwardingFiles = [
   'src/inference/pipelines/text/attention/interpreter.js',
-  'src/inference/pipelines/text/layer.js',
+  "src/inference/pipelines/text/execution/layer.js",
   'src/inference/pipelines/text/ffn/standard.js',
   'src/inference/pipelines/text/ffn/sandwich.js',
-  'src/inference/pipelines/text/linear-attention.js',
+  "src/inference/pipelines/text/linear-attention/linear-attention.js",
   'src/inference/pipelines/text/attention/rope-observation.js',
-  'src/inference/pipelines/text/embedding-normalization.js',
+  "src/inference/pipelines/text/embedding/embedding-normalization.js",
   'src/inference/pipelines/text/logits/index.js',
   'src/experimental/logits/cpu-output.js',
   'src/inference/pipelines/text/logits/gpu.js',
@@ -86,27 +86,29 @@ for (const relativePath of probeForwardingFiles) {
 
 {
   const source = [
-    'src/inference/pipelines/text/generator.js',
-    'src/inference/pipelines/text/generator/decode-step.js',
-    'src/inference/pipelines/text/generator/decode-mechanics.js',
-    'src/inference/pipelines/text/generator/prefill-runtime.js',
+    "src/inference/pipelines/text/generator/generator.js",
+    "src/inference/pipelines/text/generator/decode/decode-step.js",
+    "src/inference/pipelines/text/generator/decode/decode-mechanics.js",
+    "src/inference/pipelines/text/generator/prefill/prefill-execution.js",
+    "src/inference/pipelines/text/generator/prefill/prefill-logits.js",
   ].map(readSource).join('\n');
-  assertCallBlocksContain(source, 'await embed(', 'operatorDiagnostics', 'src/inference/pipelines/text/generator.js');
-  assertCallBlocksContain(source, 'recordLogitsGPU(', 'operatorDiagnostics', 'src/inference/pipelines/text/generator.js');
-  assertCallBlocksContain(source, 'computeLogits(', 'operatorDiagnostics', 'src/inference/pipelines/text/generator.js');
+  assertCallBlocksContain(source, 'await embed(', 'operatorDiagnostics', "src/inference/pipelines/text/generator/generator.js");
+  assertCallBlocksContain(source, 'recordLogitsGPU(', 'operatorDiagnostics', "src/inference/pipelines/text/generator/generator.js");
+  assertCallBlocksContain(source, 'computeLogits(', 'operatorDiagnostics', "src/inference/pipelines/text/generator/generator.js");
 }
 
 {
   const source = [
-    'src/inference/pipelines/text/generator-steps.js',
-    'src/inference/pipelines/text/generator/decode-step.js',
-    'src/inference/pipelines/text/generator/decode-mechanics.js',
-    'src/inference/pipelines/text/generator/diffusion.js',
+    "src/inference/pipelines/text/generator/decode/batch-generation.js",
+    "src/inference/pipelines/text/generator/decode/advance-token.js",
+    "src/inference/pipelines/text/generator/decode/decode-step.js",
+    "src/inference/pipelines/text/generator/decode/decode-mechanics.js",
+    "src/inference/pipelines/text/generator/adapters/diffusion.js",
   ].map(readSource).join('\n');
-  assertCallBlocksContain(source, 'await embed(', 'operatorDiagnostics', 'src/inference/pipelines/text/generator-steps.js');
-  assertCallBlocksContain(source, 'recordLogitsGPU(', 'operatorDiagnostics', 'src/inference/pipelines/text/generator-steps.js');
-  assertCallBlocksContain(source, 'computeLogitsGPU(', 'operatorDiagnostics', 'src/inference/pipelines/text/generator-steps.js');
-  assertCallBlocksContain(source, 'computeLogits(', 'operatorDiagnostics', 'src/inference/pipelines/text/generator-steps.js');
+  assertCallBlocksContain(source, 'await embed(', 'operatorDiagnostics', "src/inference/pipelines/text/generator/generator-steps.js");
+  assertCallBlocksContain(source, 'recordLogitsGPU(', 'operatorDiagnostics', "src/inference/pipelines/text/generator/generator-steps.js");
+  assertCallBlocksContain(source, 'computeLogitsGPU(', 'operatorDiagnostics', "src/inference/pipelines/text/generator/generator-steps.js");
+  assertCallBlocksContain(source, 'computeLogits(', 'operatorDiagnostics', "src/inference/pipelines/text/generator/generator-steps.js");
 }
 
 console.log('operator-diagnostics-forwarding-contract.test: ok');

@@ -9,7 +9,7 @@ gate. Doppler promotion uses `doppler boundary capture` and
 operator observations, but only the semantic boundary-comparison receipt owns
 the Doppler correctness decision.
 
-The fixture writer at [`src/inference/pipelines/text/tsir-fixture-writer.js`](../src/inference/pipelines/text/tsir-fixture-writer.js) is fully model-agnostic. The stage→TSIR boundary map already covers all the stages emitted by both standard attention (Gemma 4 31B, Qwen 3.6 27B standard-attention layers) and Qwen non-attention layers via `linear_qkv_proj`. No per-model code change is required to capture a new model — only the canonical invocation differs.
+The fixture writer at [`src/inference/pipelines/text/observation/tsir-fixture-writer.js`](../src/inference/pipelines/text/observation/tsir-fixture-writer.js) is fully model-agnostic. The stage→TSIR boundary map already covers all the stages emitted by both standard attention (Gemma 4 31B, Qwen 3.6 27B standard-attention layers) and Qwen non-attention layers via `linear_qkv_proj`. No per-model code change is required to capture a new model — only the canonical invocation differs.
 
 `.npy` fixture capture requires `--surface node`, because the writer uses the Node filesystem. Browser runs can still produce reference transcripts and coherence evidence, but they do not write Doe fixture files without a separate filesystem relay.
 

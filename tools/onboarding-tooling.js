@@ -7,7 +7,7 @@ import { fileURLToPath } from 'node:url';
 import { resolveConvertedModelId } from '../src/converter/conversion-plan.js';
 import { buildQuantizationInfo } from '../src/converter/quantization-info.js';
 import { checkProgramBundleFile } from '../src/tooling/program-bundle.js';
-import { validateRuntimeProfileMetadata } from '../src/config/schema/runtime-profile.schema.js';
+import { validateRuntimeProfileMetadata } from "../src/config/schema/runtime/runtime-profile.schema.js";
 import { generateWgslVariants } from './wgsl-variant-generator.js';
 import {
   isObject,

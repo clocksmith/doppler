@@ -27,7 +27,7 @@ else {
       await exec('tar', ['-xf', archive, '-C', directory]);
     }
     if (process.argv[3] === '--candidate-decode-runtime') {
-      const path = 'src/inference/pipelines/text/generator/decode-runtime.js';
+      const path = "src/inference/pipelines/text/generator/decode/decode-runtime.js";
       const candidate = await readFile(path);
       receipt.candidate = { path, baseSha256: hash(await readFile(join(directory, path))), sha256: hash(candidate) };
       await writeFile(join(directory, path), candidate);

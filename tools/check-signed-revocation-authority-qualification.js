@@ -498,7 +498,7 @@ export async function validateSignedRevocationAuthorityQualification(policy, opt
       gateSatisfied: false,
     };
   }
-  if (policy.$schema !== '../../src/config/schema/signed-revocation-authority-qualification.schema.json') {
+  if (policy.$schema !== "../../src/config/schema/policy/signed-revocation-authority-qualification.schema.json") {
     errors.push('policy.$schema is not supported');
   }
   if (policy.schemaVersion !== 3) errors.push('policy.schemaVersion must be 3');

@@ -45,7 +45,7 @@ export function buildCustomRuntimeFacts(options = {}) {
         decodeBatchingConstraint: 'batch-capable',
       },
       sourceRefs: [
-        'src/inference/pipelines/text/linear-attention.js',
+        "src/inference/pipelines/text/linear-attention/linear-attention.js",
         'src/gpu/kernels/linear-attention-core.js',
       ],
     });
@@ -62,8 +62,8 @@ export function buildCustomRuntimeFacts(options = {}) {
         runtimeLowering: 'execution-graph-only',
       },
       sourceRefs: [
-        'src/config/schema/execution-v1.schema.js',
-        'src/inference/pipelines/text/execution-v1.js',
+        "src/config/schema/execution/execution-v1.schema.js",
+        "src/inference/pipelines/text/execution/execution-v1.js",
       ],
     });
   }

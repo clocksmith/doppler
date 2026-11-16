@@ -8,8 +8,8 @@ import assert from 'node:assert/strict';
 import { existsSync, readFileSync } from 'node:fs';
 
 import { validateRequiredInferenceFields } from '../../src/inference/pipelines/text/config.js';
-import { inferLinearNormMode } from '../../src/inference/pipelines/text/linear-attention.js';
-import { expandExecutionV1 } from '../../src/config/schema/execution-v1.schema.js';
+import { inferLinearNormMode } from "../../src/inference/pipelines/text/linear-attention/linear-attention.js";
+import { expandExecutionV1 } from "../../src/config/schema/execution/execution-v1.schema.js";
 import { resolveMaterializedManifestFromConversionConfig } from '../../src/tooling/conversion-config-materializer.js';
 
 const QWEN_MODEL_IDS = ['qwen-3-5-0-8b-q4k-ehaf16', 'qwen-3-5-2b-q4k-ehaf16'];

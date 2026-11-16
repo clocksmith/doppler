@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 
-import { resolveEmbeddingNormalization } from '../../src/inference/pipelines/text/embedding-contract.js';
+import { resolveEmbeddingNormalization } from "../../src/inference/pipelines/text/embedding/embedding-contract.js";
 
 assert.equal(resolveEmbeddingNormalization(null), null);
 assert.deepEqual(resolveEmbeddingNormalization({

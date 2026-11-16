@@ -11,6 +11,8 @@ async function createTransformerPipeline(manifest, contexts = {}) {
 }
 
 registerPipeline('transformer', createTransformerPipeline);
+// Both manifest model types use this transformer lifecycle; model-specific
+// geometry and execution remain explicit in the resolved manifest/config.
 registerPipeline('gemma4', createTransformerPipeline);
 
 /** @param {import('../../config/schema/index.js').ManifestSchema} manifest

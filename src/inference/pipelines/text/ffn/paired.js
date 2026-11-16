@@ -1,11 +1,11 @@
-import { doMatmul, doSiLU, releaseOrTrack } from '../ops.js';
-import { getWeightBuffer } from '../weights.js';
+import { doMatmul, doSiLU, releaseOrTrack } from "../execution/ops.js";
+import { getWeightBuffer } from "../loading/weights.js";
 import { resolveLayerIntermediateSize } from '../config.js';
 import { getLayerSteps, getKernelPathMatmulVariant } from '../../../../config/kernel-path-loader.js';
 import { getKernelConfigs } from '../../../../config/kernel-registry-contract.js';
 import { isGpuBufferInstance, isWeightBuffer } from '../../../../gpu/weight-buffer.js';
 import { tensorBytes } from '../../../../gpu/tensor.js';
-import { runProbes } from '../probes.js';
+import { runProbes } from "../observation/probes.js";
 
 /** @type {typeof import('./paired.js').validatePairedFFN} */
 export function validatePairedFFN(layerIdx, input, numTokens, context, weights) {

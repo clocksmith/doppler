@@ -1,5 +1,5 @@
 import type { RetainedSourceBinding } from './source-tensor-rules.js';
-import type { ConversionIOSchema } from '../config/schema/conversion.schema.js';
+import type { ConversionIOSchema } from "../config/schema/manifest/conversion.schema.js";
 
 export interface RetainedSourceTensor {
   name: string;

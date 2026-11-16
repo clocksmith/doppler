@@ -4,7 +4,7 @@ import {
   BROWSER_SUITE_METRICS_SCHEMA_VERSION,
   DEFAULT_BROWSER_SUITE_METRICS,
   validateBrowserSuiteMetrics,
-} from '../../src/config/schema/browser-suite-metrics.schema.js';
+} from "../../src/config/schema/runtime/browser-suite-metrics.schema.js";
 
 const metrics = validateBrowserSuiteMetrics({
   ...DEFAULT_BROWSER_SUITE_METRICS,

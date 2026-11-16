@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 
-import { applyModelBatchingRuntimeDefaults } from '../../src/inference/pipelines/text/model-load.js';
+import { applyModelBatchingRuntimeDefaults } from "../../src/inference/pipelines/text/loading/model-load.js";
 
 const manifest = {
   modelId: 'large-weights-runtime-override-fixture',

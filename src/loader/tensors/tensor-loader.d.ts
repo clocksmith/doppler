@@ -1,5 +1,5 @@
-import type { FP8Policy } from '../../config/schema/fp8.schema.js';
-import type { W8A8Policy } from '../../config/schema/w8a8.schema.js';
+import type { FP8Policy } from "../../config/schema/manifest/fp8.schema.js";
+import type { W8A8Policy } from "../../config/schema/manifest/w8a8.schema.js";
 /**
  * Tensor Loader - Dtype-specific tensor loading and conversion.
  *
@@ -14,7 +14,7 @@ import type { W8A8Policy } from '../../config/schema/w8a8.schema.js';
 
 import type { WeightBuffer, WeightLayout } from '../../gpu/weight-buffer.js';
 import type { TensorLocation, KernelCapabilities } from '../loader-types.js';
-import type { LoaderDebugConfigSchema } from '../../config/schema/debug.schema.js';
+import type { LoaderDebugConfigSchema } from "../../config/schema/runtime/debug.schema.js";
 
 export interface TensorLoadConfig {
   representationRequirement?: import('../weight-representation-plan.js').WeightRepresentationRequirement | null;

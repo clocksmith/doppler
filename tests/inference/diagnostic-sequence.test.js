@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { beginDiagnosticSequence, markDiagnosticSequenceStep, endDiagnosticSequence } from '../../src/inference/pipelines/text/generator/diagnostic-sequence.js';
+import { beginDiagnosticSequence, markDiagnosticSequenceStep, endDiagnosticSequence } from "../../src/inference/pipelines/text/generator/session/diagnostic-sequence.js";
 
 // A forced-prefix diagnostic sequence keeps one emitter across the prefill call and the
 // decode steps that follow it, labelling every record with the call's phase, absolute

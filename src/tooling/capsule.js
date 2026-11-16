@@ -1,7 +1,7 @@
 import fs from 'node:fs/promises';
 import path from 'node:path';
-import { freezeCapsuleV2 } from '../config/capsule-v2.js';
-import { validateCapsule, getCapsuleIdentity } from '../config/capsule.js';
+import { freezeCapsuleV2 } from "../config/capsule/capsule-v2.js";
+import { validateCapsule, getCapsuleIdentity } from "../config/capsule/capsule.js";
 import { stableSortObject } from '../formats/stable-sort-object.js';
 
 export async function loadCapsule(capsulePath, options = {}) {

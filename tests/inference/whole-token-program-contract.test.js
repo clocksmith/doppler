@@ -9,7 +9,7 @@ globalThis.GPUBufferUsage ??= {
 };
 globalThis.GPUMapMode ??= { READ: 0x1, WRITE: 0x2 };
 
-const { WholeTokenProgram } = await import('../../src/inference/pipelines/text/generator/whole-token-program.js');
+const { WholeTokenProgram } = await import("../../src/inference/pipelines/text/generator/whole-token/whole-token-program.js");
 const { declareStepContract } = await import('../../src/gpu/step-contract.js');
 
 const U = GPUBufferUsage;

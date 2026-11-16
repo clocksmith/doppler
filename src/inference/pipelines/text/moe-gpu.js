@@ -33,7 +33,7 @@ import {
 } from './moe/plan.js';
 import { runQwenRouteExperts, recordQwenRouteExperts } from './moe/qwen-route-executor.js';
 import { executeRoutedExpertChunks } from './moe/routed-expert-chunks.js';
-import { releaseOrTrack } from './ops.js';
+import { releaseOrTrack } from "./execution/ops.js";
 
 export { buildActiveExpertScheduleFromIndices } from './moe/plan.js';
 

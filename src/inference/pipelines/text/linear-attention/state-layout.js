@@ -17,7 +17,7 @@ export function resolveRecurrentStateLayout(sessionSettings = null) {
   return { precision, components: recurrentStateComponents(precision) };
 }
 
-/** @param {import('../linear-attention.js').LinearLayerRuntimeState} state @returns {1 | 2} */
+/** @param {import("./linear-attention.js").LinearLayerRuntimeState} state @returns {1 | 2} */
 export function assertRecurrentStateLayout(state) {
   const components = recurrentStateComponents(state.recurrentStatePrecision);
   const scalarCount = state.numVHeads * state.headKDim * state.headVDim;
@@ -31,7 +31,7 @@ export function assertRecurrentStateLayout(state) {
   return components;
 }
 
-/** @param {import('../linear-attention.js').LinearLayerRuntimeState} state */
+/** @param {import("./linear-attention.js").LinearLayerRuntimeState} state */
 export function assertConvolutionStateLayout(state) {
   const components = recurrentStateComponents(state.convStatePrecision);
   const count = state.convDim * state.convKernelSize;

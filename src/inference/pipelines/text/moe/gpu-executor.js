@@ -18,7 +18,7 @@ import {
 import { trace, isTraceEnabled } from '../../../../debug/index.js';
 import { getCachedDequant, setCachedDequant } from '../moe-cache.js';
 import { selectRuleValue } from '../../../../rules/rule-registry.js';
-import { assertImplicitDtypeTransitionAllowed } from '../dtype-contract.js';
+import { assertImplicitDtypeTransitionAllowed } from "../policy/dtype-contract.js";
 import { QK_K, Q4K_BLOCK_BYTES } from '../../../../config/schema/index.js';
 
 export function resolvePerExpertScaleBuffer(device, value) {

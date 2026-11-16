@@ -28,7 +28,7 @@ const { setDevice } = await import('../../src/gpu/device.js');
 const { getRuntimeConfig, setRuntimeConfig } = await import('../../src/config/runtime.js');
 const { getPerfConfig } = await import('../../src/debug/perf-guards.js');
 const { UniformBufferCache } = await import('../../src/gpu/uniform-cache.js');
-const { DEFAULT_PERF_GUARDS_CONFIG } = await import('../../src/config/schema/debug.schema.js');
+const { DEFAULT_PERF_GUARDS_CONFIG } = await import("../../src/config/schema/runtime/debug.schema.js");
 
 class FakeBuffer {
   constructor({ size, usage }) {

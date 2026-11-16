@@ -15,7 +15,7 @@ Add a new KV-cache layout or inference memory-management strategy.
 
 ## Required Touch Points
 
-- `src/config/schema/kvcache.schema.js` and `.d.ts`
+- `src/config/schema/execution/kvcache.schema.js` and `.d.ts`
 - `src/inference/pipelines/text/init.js`
 - `src/inference/kv-cache/*`
 - Attention run and record integration when the new layout changes how keys or values are accessed
@@ -54,7 +54,7 @@ Add a new KV-cache layout or inference memory-management strategy.
 
 ## Canonical References
 
-- `src/config/schema/kvcache.schema.js`
+- `src/config/schema/execution/kvcache.schema.js`
 - `src/inference/pipelines/text/init.js`
 - `src/inference/kv-cache/base.js`
 - `src/inference/GUIDE.md`

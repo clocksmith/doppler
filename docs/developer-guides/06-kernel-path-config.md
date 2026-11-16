@@ -117,8 +117,8 @@ activation/scatter checked separately, before the unchanged full-model gate.
 ## Canonical References
 
 - `src/config/conversion/gemma4/gemma-4-e2b-it-q4k-ehf16-af32-int4ple.json`
-- `src/config/schema/execution-v1.schema.d.ts`
+- `src/config/schema/execution/execution-v1.schema.d.ts`
 - [../config.md](../config.md)
 - [../conversion-runtime-contract.md](../conversion-runtime-contract.md)
 - [../style/config-style-guide.md](../style/config-style-guide.md)
-- `src/inference/pipelines/text/execution-v1.js`
+- `src/inference/pipelines/text/execution/execution-v1.js`

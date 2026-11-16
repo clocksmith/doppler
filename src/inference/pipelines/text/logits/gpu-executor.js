@@ -23,8 +23,8 @@ import {
   getKernelPathStepPrecision,
 } from '../../../../config/kernel-path-loader.js';
 import { selectRuleValue } from '../../../../rules/rule-registry.js';
-import { runProbes } from '../probes.js';
-import { assertImplicitDtypeTransitionAllowed } from '../dtype-contract.js';
+import { runProbes } from "../observation/probes.js";
+import { assertImplicitDtypeTransitionAllowed } from "../policy/dtype-contract.js";
 import { resolveLogitInputScale } from './scale-policy.js';
 import { finalizeLogitOutputTensor } from './output-transform.js';
 import {

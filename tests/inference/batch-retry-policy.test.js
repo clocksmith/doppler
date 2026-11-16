@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import {
   assertBatchRetryInPlaceAllowed,
   hasUnrewindableDecodeState,
-} from '../../src/inference/pipelines/text/generator/batch-retry-policy.js';
+} from "../../src/inference/pipelines/text/generator/decode/batch-retry-policy.js";
 
 const attentionOnly = { linearAttentionRuntime: { layers: new Map() }, convLayerStates: new Map() };
 const linear = { linearAttentionRuntime: { layers: new Map([[0, {}]]) }, convLayerStates: new Map() };

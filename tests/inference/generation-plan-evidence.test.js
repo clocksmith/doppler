@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { PipelineGenerator } from '../../src/inference/pipelines/text/generator.js';
+import { PipelineGenerator } from "../../src/inference/pipelines/text/generator/generator.js";
 import { createDopplerConfig } from '../../src/config/schema/index.js';
 import { buildGenerationBackendIdentity } from '../../src/client/model-host/model-evidence.js';
 

@@ -40,9 +40,9 @@ import type {
   SpeculativeConfigSchema,
   KernelPathSchema,
 } from '../../../config/schema/index.js';
-import type { LoaderDebugConfigSchema } from '../../../config/schema/debug.schema.js';
+import type { LoaderDebugConfigSchema } from "../../../config/schema/runtime/debug.schema.js";
 import type { KernelPathSource } from '../../../config/kernel-path-loader.js';
-import type { ExecutionV1PerLayerInputsSessionSchema } from '../../../config/schema/execution-v1.schema.js';
+import type { ExecutionV1PerLayerInputsSessionSchema } from "../../../config/schema/execution/execution-v1.schema.js";
 import type { DopplerLoader } from '../../../loader/doppler-loader.js';
 
 export interface PipelineStorageContext {

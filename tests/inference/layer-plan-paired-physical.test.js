@@ -3,8 +3,8 @@ import { probeNodeGPU } from '../helpers/gpu-probe.js';
 import { getDevice, destroyDevice } from '../../src/gpu/device.js';
 import { CommandRecorder } from '../../src/gpu/command-recorder.js';
 import { acquireBuffer, releaseBuffer, readBuffer, getBufferPool } from '../../src/memory/buffer-pool.js';
-import { processLayerPlanGPU } from '../../src/inference/pipelines/text/layer-plan-gpu.js';
-import { resolveLayerPipeline } from '../../src/inference/pipelines/text/layer-plan.js';
+import { processLayerPlanGPU } from "../../src/inference/pipelines/text/execution/layer-plan-gpu.js";
+import { resolveLayerPipeline } from "../../src/inference/pipelines/text/execution/layer-plan.js";
 
 const probe = await probeNodeGPU({ installFileFetchShim: true });
 if (probe.ready) {

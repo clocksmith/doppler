@@ -1,4 +1,4 @@
-import { validateFP8Policy } from '../config/schema/fp8.schema.js';
+import { validateFP8Policy } from "../config/schema/manifest/fp8.schema.js";
 import { float8ToFloat32 } from '../formats/float8.js';
 import { createFP8StorageDescriptor, fp8StorageBytes, validateFP8StorageBytes } from '../formats/rdrr/fp8-storage.js';
 

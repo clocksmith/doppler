@@ -6,7 +6,7 @@ const { acquireBuffer, releaseBuffer, readBuffer, uploadData } = await import('.
 const { createWeightBuffer, isWeightBuffer } = await import('../../src/gpu/weight-buffer.js');
 const { loadLayer } = await import('../../src/loader/layer-loader.js');
 const { quantizeToQ4KM } = await import('../../src/converter/quantizer.js');
-const { embed } = await import('../../src/inference/pipelines/text/embed.js');
+const { embed } = await import("../../src/inference/pipelines/text/embedding/embed.js");
 
 let webgpuReady = false;
 try {

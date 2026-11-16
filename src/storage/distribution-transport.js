@@ -2,7 +2,7 @@ import { log } from '../debug/index.js';
 import { getExpectedShardHash } from '../formats/rdrr/index.js';
 import { computeHash, loadShard as loadShardFromStore, shardExists } from './shard-manager.js';
 import { ERROR_CODES, createDopplerError } from '../errors/doppler-error.js';
-import { DEFAULT_DISTRIBUTION_CONFIG } from '../config/schema/distribution.schema.js';
+import { DEFAULT_DISTRIBUTION_CONFIG } from "../config/schema/runtime/distribution.schema.js";
 import { downloadShardFromHttp, createHttpShardTransport } from './download/http-transport.js';
 import { createDeliveryMetrics, assertExpectedHash, assertExpectedSize,
   assertExpectedManifestVersionSet, createAbortError, normalizeManifestVersionSet } from './download/http-contract.js';

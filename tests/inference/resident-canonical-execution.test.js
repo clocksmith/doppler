@@ -23,11 +23,11 @@ globalThis.canonicalResidentFixture = {
   create: owner => { allocations++; return { state: { index: owner.modelPartition.index, currentSeqLen: 0, decodeStepCount: 0 }, close() { closes++; } }; },
   release: () => { releases++; },
 };
-const target = new URL('../../src/inference/pipelines/text/resident-partition.js', import.meta.url).href;
+const target = new URL("../../src/inference/pipelines/text/partitions/resident-partition.js", import.meta.url).href;
 const modules = {
   './partition-execution.js': 'export const assertPartitionExecutionSupported = () => {}; export const executePartitionLayers = (...args) => canonicalResidentFixture.execute(...args);',
   './partition-attempt.js': 'export const createPartitionAttempt = owner => canonicalResidentFixture.create(owner);',
-  '../../../memory/buffer-pool.js': 'export const readBuffer = async row => row.buffer; export const releaseBuffer = () => canonicalResidentFixture.release();',
+  "../../../../memory/buffer-pool.js": 'export const readBuffer = async row => row.buffer; export const releaseBuffer = () => canonicalResidentFixture.release();',
 };
 const hooks = registerHooks({ resolve(name, context, next) {
   if (context.parentURL === target && modules[name]) return { url: 'data:text/javascript,' + encodeURIComponent(modules[name]), shortCircuit: true };

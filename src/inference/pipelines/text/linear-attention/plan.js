@@ -9,13 +9,13 @@ import { runLinearAttentionCoreGPU } from '../../../../gpu/kernels/linear-attent
 import {
   resolveLinearAttentionABProjection,
   resolveLinearAttentionQKVZProjection,
-} from '../linear-attention-ab-fusion.js';
-import { runProbes } from '../probes.js';
+} from "./linear-attention-ab-fusion.js";
+import { runProbes } from "../observation/probes.js";
 import { QK_K, Q4K_BLOCK_BYTES } from '../../../../config/schema/index.js';
 import { dequantizeQ4KM } from '../../../../converter/quantizer.js';
 import { getKernelPathMatmulPrecision } from '../../../../config/kernel-path-loader.js';
 import { selectRuleValue } from '../../../../rules/rule-registry.js';
-import { assertImplicitDtypeTransitionAllowed } from '../dtype-contract.js';
+import { assertImplicitDtypeTransitionAllowed } from "../policy/dtype-contract.js";
 import { applyLoRA } from '../lora-apply.js';
 import { getLoRAModule } from '../lora.js';
 import { resolveRecurrentStateLayout } from './state-layout.js';

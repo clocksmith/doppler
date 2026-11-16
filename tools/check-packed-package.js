@@ -356,14 +356,14 @@ async function runPartitionApiSmoke(consumerDir, packageJson) {
   const installedRoot = path.join(consumerDir, 'node_modules', packageJson.name);
   const policy = JSON.parse(await fs.readFile(path.join(ROOT_DIR, 'tools/policies/runtime-closure-policy.json')));
   const closure = await buildRuntimeClosure(installedRoot, policy);
-  const hostOnly = new Set(['src/inference/pipelines/text/layer-partition-contract.js',
+  const hostOnly = new Set(["src/inference/pipelines/text/execution/layer-partition-contract.js",
     'src/storage/artifact-storage-context.js', 'src/storage/source-storage-context.js']);
   if (!closure.passed || closure.files.some(file => hostOnly.has(file.path))) {
     throw new Error('Installed root import owns an inference or host-storage dependency.');
   }
   // Freshness of the checked-in closure receipt belongs to `npm run runtime:closure:check`, not this smoke.
   for (const suffix of ['.js', '.d.ts']) {
-    const name = path.join(installedRoot, 'src/inference/pipelines/text/layer-partition-contract' + suffix);
+    const name = path.join(installedRoot, 'src/inference/pipelines/text/execution/layer-partition-contract' + suffix);
     await fs.access(name);
   }
   // Reuse the source contract fixture against installed bytes; the execution and
@@ -371,14 +371,18 @@ async function runPartitionApiSmoke(consumerDir, packageJson) {
   for (const relative of ['runtime/resident-piece-acquisition.test.js', 'helpers/capsule-v2-fixture.js']) {
     const target = path.join(consumerDir, 'contracts', relative);
     await fs.mkdir(path.dirname(target), { recursive: true });
-    const source = (await fs.readFile(path.join(ROOT_DIR, 'tests', relative), 'utf8'))
-      .replaceAll("'../../src/capsule-runtime.js'", "'doppler-gpu'")
-      .replaceAll("'../../src/partitions.js'", "'doppler-gpu/partitions'")
-      .replaceAll("'../../src/", "'../../node_modules/doppler-gpu/src/");
+    const source = installedContractSource(await fs.readFile(path.join(ROOT_DIR, 'tests', relative), 'utf8'));
     await fs.writeFile(target, source);
   }
   process.stdout.write(run(process.execPath, ['contracts/runtime/resident-piece-acquisition.test.js'], { cwd: consumerDir }));
   console.log('installed minimal runtime closure and explicit partition entry checks passed');
+}
+
+function installedContractSource(source) {
+  return source.replace(/(['"])\.\.\/\.\.\/src\/([^'"]+)\1/gu, (_match, _quote, relative) => {
+    const publicEntry = { 'capsule-runtime.js': 'doppler-gpu', 'partitions.js': 'doppler-gpu/partitions' }[relative];
+    return JSON.stringify(publicEntry ?? `../../node_modules/doppler-gpu/src/${relative}`);
+  });
 }
 
 async function runInstalledGenerationImplementationChecks(consumerDir) {
@@ -388,8 +392,7 @@ async function runInstalledGenerationImplementationChecks(consumerDir) {
     'inference/generation-output.test.js', 'inference/resident-reasoning-output.test.js']) {
     const target = path.join(consumerDir, 'contracts', relative);
     await fs.mkdir(path.dirname(target), { recursive: true });
-    const source = (await fs.readFile(path.join(ROOT_DIR, 'tests', relative), 'utf8'))
-      .replaceAll("'../../src/", "'../../node_modules/doppler-gpu/src/");
+    const source = installedContractSource(await fs.readFile(path.join(ROOT_DIR, 'tests', relative), 'utf8'));
     await fs.writeFile(target, source);
     process.stdout.write(run(process.execPath, [target], { cwd: consumerDir }));
   }

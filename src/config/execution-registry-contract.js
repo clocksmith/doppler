@@ -32,8 +32,8 @@ export function assertExecutionRegistriesAccepted(targetPlan, registries) {
 
 /** Auxiliary dispatches are part of the accepted shader closure, even when a
  * projection wrapper orchestrates them rather than separate semantic steps.
- * @param {import('./schema/execution-v1.schema.js').ExecutionV1GraphSchema} graph
- * @param {import('./schema/execution-v1.schema.js').ExecutionV1ExpandedStepSchema[]} steps */
+ * @param {import("./schema/execution/execution-v1.schema.js").ExecutionV1GraphSchema} graph
+ * @param {import("./schema/execution/execution-v1.schema.js").ExecutionV1ExpandedStepSchema[]} steps */
 export function assertExecutionMechanismClosure(graph, steps) {
   const configs = Object.values(getKernelConfigs()).flatMap(variants => Object.values(variants));
   const declarations = (graph.mechanismKernels ?? []).map(key => graph.kernels[key]);
@@ -67,7 +67,7 @@ export function assertExecutionMechanismClosure(graph, steps) {
  * binding layout runs in that mechanism's place exactly when the graph's mechanismKernels declare
  * it with its shader, entry and specialization constants. Two declared replacements of one
  * mechanism fail closed.
- * @param {import('./schema/execution-v1.schema.js').ExecutionV1GraphSchema | null | undefined} graph */
+ * @param {import("./schema/execution/execution-v1.schema.js").ExecutionV1GraphSchema | null | undefined} graph */
 export function resolveDeclaredMechanismReplacements(graph) {
   /** @type {Record<string, string>} */
   const replacements = {};
@@ -99,7 +99,7 @@ export function resolveDeclaredMechanismReplacements(graph) {
 
 /** Lane-mismatch guard: every kernel the graph declares whose registry entry
  * applies a gated-RMSNorm gate must declare the manifest's activation.
- * @param {import('./schema/execution-v1.schema.js').ExecutionV1GraphSchema} graph
+ * @param {import("./schema/execution/execution-v1.schema.js").ExecutionV1GraphSchema} graph
  * @param {'silu' | 'sigmoid'} normGateActivation */
 export function assertLinearNormGateClosure(graph, normGateActivation) {
   if (!graph || !graph.kernels) throw new Error('[NormGate] An explicit execution graph is required.');
@@ -126,7 +126,7 @@ export function assertLinearNormGateClosure(graph, normGateActivation) {
  * paths; this validates source reachability without selecting a runtime path.
  * The norm-gate mechanisms (gate phase and, for silu, the monolithic anchor)
  * depend on the manifest activation and are selected by the caller's rule map.
- * @param {import('./schema/execution-v1.schema.js').ExecutionV1GraphSchema} graph
+ * @param {import("./schema/execution/execution-v1.schema.js").ExecutionV1GraphSchema} graph
  * @param {ReadonlyArray<readonly [string, string]>} normGateMechanisms */
 export function assertPairedExecutionMechanismClosure(graph, normGateMechanisms) {
   if (!graph || !graph.kernels) throw new Error('[PairedExecution] An explicit execution graph is required.');

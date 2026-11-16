@@ -1,5 +1,5 @@
 {
-  "$schema": "../../src/config/schema/product-integration-qualification.schema.json",
+  "$schema": "../../src/config/schema/policy/product-integration-qualification.schema.json",
   "schemaVersion": 4,
   "source": "doppler",
   "goalId": "local-webgpu-product-surface",

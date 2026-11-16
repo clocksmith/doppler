@@ -8,9 +8,9 @@ const {
   releaseBuffer,
 } = await import('../../src/memory/buffer-pool.js');
 const { createWeightBuffer } = await import('../../src/gpu/weight-buffer.js');
-const { processLayer } = await import('../../src/inference/pipelines/text/layer.js');
-const { resolveLayerPipeline } = await import('../../src/inference/pipelines/text/layer-plan.js');
-const { initConvLayerState } = await import('../../src/inference/pipelines/text/ops.js');
+const { processLayer } = await import("../../src/inference/pipelines/text/execution/layer.js");
+const { resolveLayerPipeline } = await import("../../src/inference/pipelines/text/execution/layer-plan.js");
+const { initConvLayerState } = await import("../../src/inference/pipelines/text/execution/ops.js");
 
 const gpuProbe = await probeNodeGPU();
 if (!gpuProbe.ready) {

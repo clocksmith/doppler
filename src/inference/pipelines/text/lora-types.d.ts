@@ -4,7 +4,7 @@
  * @module inference/pipelines/text/lora-types
  */
 
-import type { MaybeGPUBuffer } from './buffer-types.js';
+import type { MaybeGPUBuffer } from "./contracts/buffer-types.js";
 import type { LoRAWeightLayoutName } from '../../../config/lora-layouts.js';
 
 export type LoRAModuleName =

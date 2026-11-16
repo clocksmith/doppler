@@ -6,8 +6,8 @@ import { writeCapsuleEvent } from '../../src/cli/serve/capsule-http.js';
 import { createDopplerRuntime } from '../../src/capsule-runtime.js';
 import { createModelHandle } from '../../src/client/runtime/model-session.js';
 import { createCapsuleProgramAdapter } from '../../src/client/runtime/capsule-program-adapter.js';
-import { hashCapsuleObservation } from '../../src/config/capsule-operation.js';
-import { normalizeCapsuleServePolicy } from '../../src/config/capsule-serve.js';
+import { hashCapsuleObservation } from "../../src/config/capsule/capsule-operation.js";
+import { normalizeCapsuleServePolicy } from "../../src/config/capsule/capsule-serve.js";
 import { createSignedCapsuleFixture, TEST_CAPSULE_AUTHORITY, TEST_CAPSULE_PUBLIC_KEY } from '../helpers/capsule-v2-fixture.js';
 
 // Real HTTP -> public signed Capsule session -> existing operation adapters.

@@ -1,5 +1,5 @@
 import contract from './choice-scoring.json' with { type: 'json' };
-import { freezeCapsuleV2 } from './capsule-v2.js';
+import { freezeCapsuleV2 } from "./capsule/capsule-v2.js";
 
 export const CHOICE_SCORING_CONTRACT = freezeCapsuleV2(contract);
 

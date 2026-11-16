@@ -5,7 +5,7 @@ import path from 'node:path';
 import process from 'node:process';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 
-import { validateSupportTierRegistry } from '../src/config/schema/support-tiers.schema.js';
+import { validateSupportTierRegistry } from "../src/config/schema/policy/support-tiers.schema.js";
 
 const REPO_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const PACKAGE_PATH = path.join(REPO_ROOT, 'package.json');

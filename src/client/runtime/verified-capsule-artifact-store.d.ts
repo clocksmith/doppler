@@ -1,5 +1,5 @@
-import type { DopplerCapsule } from '../../config/capsule.js';
-import type { CapsuleV2Artifact } from '../../config/capsule-v2.js';
+import type { DopplerCapsule } from "../../config/capsule/capsule.js";
+import type { CapsuleV2Artifact } from "../../config/capsule/capsule-v2.js";
 import type { CapsuleAcquisitionOptions, CapsuleArtifactReader } from './capsule-acquisition.js';
 declare const backingBrand: unique symbol;
 export interface CapsuleArtifactBacking { readonly [backingBrand]: true }

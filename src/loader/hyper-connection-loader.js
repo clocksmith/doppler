@@ -122,7 +122,7 @@ function gatedBindings(ctx, prefixes, suffixes, role, inject) {
 
 /** @param {import('./hyper-connection-loader.js').MechanismLoaderContext} ctx
  * @param {readonly string[]} prefixes
- * @param {import('../config/schema/hyper-connection-decoder.schema.js').ResolvedIndexedAttention} indexed
+ * @param {import("../config/schema/execution/hyper-connection-decoder.schema.js").ResolvedIndexedAttention} indexed
  * @returns {Record<string, ReturnType<typeof binding>>} */
 function indexerBindings(ctx, prefixes, indexed) {
   const has = (/** @type {readonly string[]} */ suffixes) => prefixes.some(prefix => suffixes.some(suffix => ctx.tensorLocations.has(`${prefix}.${suffix}`)));

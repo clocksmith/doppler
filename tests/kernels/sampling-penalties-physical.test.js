@@ -4,7 +4,7 @@ import { getDevice, getKernelCapabilities, destroyDevice } from '../../src/gpu/d
 import { createCommandRecorder } from '../../src/gpu/command-recorder.js';
 import { recordRepPenalty } from '../../src/gpu/kernels/rep-penalty.js';
 import { readBuffer } from '../../src/memory/buffer-pool.js';
-import { applyPresencePenalty, applyRepetitionPenalty } from '../../src/inference/pipelines/text/sampling.js';
+import { applyPresencePenalty, applyRepetitionPenalty } from "../../src/inference/pipelines/text/generator/sampling/sampling.js";
 import { f16ToF32 } from '../../src/loader/dtype-utils.js';
 
 const probe = await probeNodeGPU({ installFileFetchShim: true });

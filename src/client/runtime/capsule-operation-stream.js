@@ -1,5 +1,5 @@
-import { hashCapsuleObservation, normalizeCapsuleObservation, resolveCapsuleStreamFormat, snapshotCapsuleOperationRequest } from '../../config/capsule-operation.js';
-import { freezeCapsuleV2 } from '../../config/capsule-v2.js';
+import { hashCapsuleObservation, normalizeCapsuleObservation, resolveCapsuleStreamFormat, snapshotCapsuleOperationRequest } from "../../config/capsule/capsule-operation.js";
+import { freezeCapsuleV2 } from "../../config/capsule/capsule-v2.js";
 import { createCapsuleDeltaBudget } from './capsule-operation-deltas.js';
 
 const requireValue = (value, message) => { if (!value) throw new Error(`Capsule stream: ${message}`); };

@@ -1,6 +1,6 @@
 import { ggufBlockSourceBytes, ggufBlockFormat, isGgufBlockSourceDtype } from '../../formats/gguf/block-storage.js';
 import { selectRuleValue } from '../../rules/rule-registry.js';
-import { q4kBlockCount, Q4K_BLOCK_BYTES } from '../../config/schema/quantization.schema.js';
+import { q4kBlockCount, Q4K_BLOCK_BYTES } from "../../config/schema/manifest/quantization.schema.js";
 import { resolveWeightLayout } from '../manifest-config.js';
 import { getQwen35ExpertTensorCandidates } from './expert-loader.js';
 

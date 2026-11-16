@@ -13,8 +13,8 @@ import type { WeightBuffer } from '../weight-buffer.js';
 import type { CommandRecorder } from '../command-recorder.js';
 import type { OutputBufferOptions, OutputDtypeOptions, Vec4Options } from './types.js';
 import type { KernelPathSchema } from '../../config/schema/index.js';
-import type { MatmulDebugConfigSchema } from '../../config/schema/debug.schema.js';
-import type { ExecutionV1PoliciesSchema } from '../../config/schema/execution-v1.schema.js';
+import type { MatmulDebugConfigSchema } from "../../config/schema/runtime/debug.schema.js";
+import type { ExecutionV1PoliciesSchema } from "../../config/schema/execution/execution-v1.schema.js";
 import type { KernelPipelineRequest } from './pipeline-cache.js';
 
 /** Matmul kernel options */

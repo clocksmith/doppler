@@ -4,7 +4,7 @@ import { createDopplerConfig } from '../../src/config/schema/index.js';
 import { setDevice } from '../../src/gpu/device.js';
 
 installNodeFileFetchShim();
-const { _runDecodeLoop } = await import('../../src/inference/pipelines/text/generator/decode-runtime.js');
+const { _runDecodeLoop } = await import("../../src/inference/pipelines/text/generator/decode/decode-runtime.js");
 
 // Synthetic token production exercises the actual decode-loop ownership boundary.
 // The terminal token belongs to the transcript; tokens after it never do.

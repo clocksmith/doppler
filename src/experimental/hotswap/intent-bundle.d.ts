@@ -1,4 +1,4 @@
-import type { Manifest } from '../../config/schema/manifest.schema.js';
+import type { Manifest } from "../../config/schema/manifest/manifest.schema.js";
 
 export interface IntentBundleVerifyContext {
   manifest?: Manifest | null;

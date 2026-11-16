@@ -4,10 +4,10 @@ import { PARAM_CATEGORIES, CategoryRules } from './param-categories.js';
 import {
   REFACTOR_RECEIPT_POLICIES,
   TOOLING_DIAGNOSTICS,
-} from './schema/tooling.schema.js';
-import { validateEcosystemConfig } from './schema/ecosystem.schema.js';
+} from "./schema/runtime/tooling.schema.js";
+import { validateEcosystemConfig } from "./schema/runtime/ecosystem.schema.js";
 import { isPlainObject } from '../formats/plain-object.js';
-import { validateExpertPreparationConfig } from './schema/loading.schema.js';
+import { validateExpertPreparationConfig } from "./schema/runtime/loading.schema.js";
 
 const MODEL_OVERRIDE_ALLOWED_PREFIXES = Object.freeze([
   'vision_config',

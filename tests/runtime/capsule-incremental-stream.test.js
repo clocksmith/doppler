@@ -3,7 +3,7 @@ import { createCapsuleOperationExecutor } from '../../src/client/runtime/capsule
 import { createCapsuleOperationAdapters } from '../../src/client/runtime/capsule-operation-adapters.js';
 import { createSessionController } from '../../src/client/runtime/session-controller.js';
 import { createCapsuleStreamAccumulator, capsuleOperationSnapshots } from '../../src/client/runtime/capsule-operation-stream.js';
-import { hashCapsuleObservation } from '../../src/config/capsule-operation.js';
+import { hashCapsuleObservation } from "../../src/config/capsule/capsule-operation.js";
 import { createCapsuleDeltaBudget } from '../../src/client/runtime/capsule-operation-deltas.js';
 import * as browserHost from '../../src/client/capsule-host.browser.js';
 import { BundledTokenizer } from '../../src/inference/tokenizers/bundled.js';

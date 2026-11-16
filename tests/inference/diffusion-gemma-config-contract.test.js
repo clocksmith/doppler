@@ -9,8 +9,8 @@ const {
 } = await import('../../src/inference/pipelines/text/config.js');
 const {
   expandExecutionV1,
-} = await import('../../src/config/schema/execution-v1.schema.js');
-const { resolvePrefixEmbeddingOverrideTransitionDeclaredBy } = await import('../../src/inference/pipelines/text/generator/prefix-embedding.js');
+} = await import("../../src/config/schema/execution/execution-v1.schema.js");
+const { resolvePrefixEmbeddingOverrideTransitionDeclaredBy } = await import("../../src/inference/pipelines/text/generator/prefill/prefix-embedding.js");
 
 function createDiffusionGemmaManifest(branchMode = 'dense_plus_moe') {
   return {

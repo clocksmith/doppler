@@ -83,4 +83,4 @@ export function computeLogits(
   debugCheckBuffer: ((buffer: GPUBuffer, label: string, numTokens: number, expectedDim?: number, representation?: import('../../../../debug/tensor.js').TensorRepresentation & { dtype: 'f16' | 'f32' | 'bf16' }) => Promise<void>) | undefined,
   debugProbes: ProbeConfigSchema[] | null | undefined,
   options: ComputeLogitsOptions & { returnGpuBuffer: true }, operatorDiagnostics?: unknown
-): Promise<import('../generator/token-selection.js').GpuLogitsResult & { rawVocabSize: number }>;
+): Promise<import("../generator/sampling/token-selection.js").GpuLogitsResult & { rawVocabSize: number }>;

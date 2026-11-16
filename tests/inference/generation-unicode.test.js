@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { PipelineGenerator } from '../../src/inference/pipelines/text/generator.js';
+import { PipelineGenerator } from "../../src/inference/pipelines/text/generator/generator.js";
 import { BundledTokenizer } from '../../src/inference/tokenizers/bundled.js';
 
 const tokenizer = new BundledTokenizer({ vocabSize: 0, deferSpecialTokens: true, addBosToken: false, addEosToken: false });

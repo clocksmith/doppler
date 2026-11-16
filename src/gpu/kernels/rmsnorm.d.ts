@@ -8,7 +8,7 @@ import type { Tensor } from '../tensor.js';
 import type { CommandRecorder } from '../command-recorder.js';
 import type { OutputBufferOptions } from './types.js';
 import type { WeightBuffer, TensorLike } from '../weight-buffer.js';
-import type { KernelPathSchema } from '../../config/schema/kernel-path.schema.js';
+import type { KernelPathSchema } from "../../config/schema/execution/kernel-path.schema.js";
 import type { KernelPathPhase, KernelPathSection } from '../../config/kernel-path-loader.js';
 
 /** Maximum hidden size supported by the cached residual RMSNorm variant. */

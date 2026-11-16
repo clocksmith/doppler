@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { createLayerPartitionPlan } from '../../src/partitions.js';
-import { executePartitionLayers, assertPartitionExecutionSupported } from '../../src/inference/pipelines/text/partition-execution.js';
+import { executePartitionLayers, assertPartitionExecutionSupported } from "../../src/inference/pipelines/text/partitions/partition-execution.js";
 
 const manifest = { modelId: 'recurrent', architecture: { numLayers: 4, hiddenSize: 8, vocabSize: 128 } };
 const plan = createLayerPartitionPlan({ modelId: manifest.modelId, ...manifest.architecture, activationDtype: 'f32' });

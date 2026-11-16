@@ -1,4 +1,4 @@
-import { DEFAULT_MANIFEST_INFERENCE, resolveLinearNormGateActivation } from './schema/manifest.schema.js';
+import { DEFAULT_MANIFEST_INFERENCE, resolveLinearNormGateActivation } from "./schema/manifest/manifest.schema.js";
 import { chooseDefined, chooseDefinedWithSource } from './merge/value-selection.js';
 import { log } from '../debug/index.js';
 import { validateReasoningOutput } from './reasoning-output.js';

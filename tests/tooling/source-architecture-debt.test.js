@@ -4,10 +4,45 @@ import {
   findArchitecturePolicyRelaxations,
   validateArchitecturePolicyDelta,
   validateSoftLimitReviewDelta,
+  validateComponentSourceSize,
+  validateSoftLimitReviewMetadata,
+  validateCleanupConsumers,
+  validateRuntimeToolDependency,
+  validateConstitutionalImportGraph,
 } from '../../tools/lib/source-architecture-debt.js';
 import { resolvePolicyBaseRef } from '../../tools/lib/policy-base.js';
 
 const digest = `sha256:${'a'.repeat(64)}`;
+assert.match(validateRuntimeToolDependency('src/tooling/runtime.js', 'tools/developer.js').join(';'), /runtime code cannot import/);
+assert.deepEqual(validateRuntimeToolDependency('src/inference/runtime.js', 'src/tooling/command.js'), []);
+assert.deepEqual(validateRuntimeToolDependency('tools/check.js', 'tools/helper.js'), []);
+const graphRule = { domain: 'capsule', entryPoints: ["config/capsule/capsule.js"], forbiddenPathPrefixes: ['converter/'] };
+assert.deepEqual(validateConstitutionalImportGraph(graphRule, new Map([["config/capsule/capsule.js", ['formats/hash.js']]])), []);
+assert.match(validateConstitutionalImportGraph(graphRule, new Map([
+  ["config/capsule/capsule.js", ['config/computed-loader.js']],
+  ['config/computed-loader.js', ['converter/implementation.js']],
+  ['converter/implementation.js', ["config/capsule/capsule.js"]],
+])).join(';'), /forbidden path converter\/implementation/);
+const review = { owner: 'storage', reviewedAt: '2026-11-15', reviewedBy: 'fixture', removalCondition: 'Split range transport and fall below the soft limit' };
+assert.deepEqual(validateSoftLimitReviewMetadata('storage/source.js', review), []);
+assert.match(validateSoftLimitReviewMetadata('storage/source.js', { ...review, owner: 'client' }).join(';'), /source owner/);
+assert.match(validateSoftLimitReviewMetadata('storage/source.js', { ...review, reviewedAt: '2026-02-31' }).join(';'), /valid reviewedAt/);
+assert.match(validateSoftLimitReviewMetadata('storage/source.js', { ...review, removalCondition: '' }).join(';'), /removalCondition/);
+const retention = { cleanupDecisions: { 'experimental/fixture': { decision: 'retain', consumers: ['tooling/consumer.js'], removalCondition: 'Retire when its last ingress is removed' } } };
+assert.deepEqual(validateCleanupConsumers(retention, { 'experimental/fixture': ['tooling/consumer.js'] }), []);
+assert.match(validateCleanupConsumers(retention, {}).join(';'), /no consumers/);
+assert.match(validateCleanupConsumers(retention, { 'experimental/fixture': ['tooling/another.js'] }).join(';'), /inventory is stale/);
+const scoped = {
+  softLineLimit: 750, lineLimit: 999,
+  componentLineLimits: { 'inference/pipelines/text/': 750 },
+  softLimitReviews: { 'inference/pipelines/text/large.js': { reviewedLines: 999 } },
+};
+assert.match(validateComponentSourceSize(scoped, 'inference/pipelines/text/large.js', 751).join(';'), /component blocking limit/);
+assert.deepEqual(validateComponentSourceSize(scoped, 'inference/pipelines/text/small.js', 750), []);
+assert.match(validateComponentSourceSize(scoped, 'storage/large.js', 790, { baselineLines: 780 }).join(';'), /grew from 780/);
+assert.deepEqual(validateComponentSourceSize(scoped, 'storage/large.js', 770, { baselineLines: 780 }), []);
+assert.match(validateArchitecturePolicyDelta({ ...scoped, componentLineLimits: {} }, scoped).join(';'), /component line limit relaxed/);
+assert.match(validateArchitecturePolicyDelta({ ...scoped, componentLineLimits: { 'inference/pipelines/text/': 800 } }, scoped).join(';'), /component line limit relaxed/);
 const baseline = {
   softLimitReviews: {
     'inference/existing.js': { reviewedLines: 800 },
@@ -214,6 +249,14 @@ const mergedMove = { ...movedPolicy, movedPaths: { ...moves, 'inference/other.js
 assert.match(validateArchitecturePolicyDelta(mergedMove, moveBaseline).join('; '), /one-to-one/);
 const chainedMove = { ...movedPolicy, movedPaths: { ...moves, 'tooling/harness.js': 'tooling/other.js' } };
 assert.match(validateArchitecturePolicyDelta(chainedMove, moveBaseline).join('; '), /without chains/);
+assert.deepEqual(validateArchitecturePolicyDelta({
+  ...baselinePolicy,
+  softLimitReviews: { 'config/schema/manifest/fixture.schema.d.ts': { reviewedLines: 800 } },
+  movedPaths: { 'config/schema/fixture.schema.d.ts': 'config/schema/manifest/fixture.schema.d.ts' },
+}, {
+  ...baselinePolicy,
+  softLimitReviews: { 'config/schema/fixture.schema.d.ts': { reviewedLines: 800 } },
+}), []);
 const ontoExistingEntry = {
   ...movedPolicy,
   movedPaths: { 'inference/harness/a.js': 'tooling-exports.js' },

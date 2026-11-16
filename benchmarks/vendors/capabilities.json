@@ -192,7 +192,7 @@
       },
       "evidence": [
         "src/gpu/command-recorder.js",
-        "src/inference/pipelines/text/generator-steps.js",
+        "src/inference/pipelines/text/generator/generator-steps.js",
         "src/tooling/source-runtime-bundle.js",
         "src/tooling/node-source-runtime.js",
         "docs/operations.md",

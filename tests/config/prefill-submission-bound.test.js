@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
-import { createDopplerConfig } from '../../src/config/schema/doppler.schema.js';
+import { createDopplerConfig } from "../../src/config/schema/runtime/doppler.schema.js";
 import { validateRuntimeConfig } from '../../src/config/param-validator.js';
-import { resolvePrefillMaxInFlightChunks } from '../../src/inference/pipelines/text/generator/prefill-policy.js';
+import { resolvePrefillMaxInFlightChunks } from "../../src/inference/pipelines/text/generator/prefill/prefill-policy.js";
 
 const defaults = createDopplerConfig().runtime;
 assert.doesNotThrow(() => resolvePrefillMaxInFlightChunks({ runtimeConfig: defaults }));

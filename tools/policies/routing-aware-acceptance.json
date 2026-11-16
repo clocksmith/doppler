@@ -1,5 +1,5 @@
 {
-  "$schema": "../../src/config/schema/routing-aware-acceptance.schema.json",
+  "$schema": "../../src/config/schema/runtime/routing-aware-acceptance.schema.json",
   "schema": "doppler.routing-aware-acceptance/v1",
   "policyVersion": 1,
   "scope": "Separate acceptance gate for routed-MoE models whose unforced logits fail the unchanged numerical gate only through discrete expert-selection flips. It never replaces or loosens doppler.boundary-tolerance/quantized-v1; it adds routing attribution, required controls and pre-registered task-quality limits.",
@@ -85,14 +85,38 @@
     "sameInputOperators": {
       "maxViolations": 0,
       "families": [
-        { "family": "token-embedding", "coverage": "model" },
-        { "family": "hyper-connection", "coverage": "all-layers" },
-        { "family": "gated-delta", "coverage": "sequence-mixer" },
-        { "family": "full-attention", "coverage": "sequence-mixer" },
-        { "family": "routed-moe", "coverage": "all-layers" },
-        { "family": "shared-expert", "coverage": "all-layers" },
-        { "family": "final-norm", "coverage": "model" },
-        { "family": "lm-head", "coverage": "model" }
+        {
+          "family": "token-embedding",
+          "coverage": "model"
+        },
+        {
+          "family": "hyper-connection",
+          "coverage": "all-layers"
+        },
+        {
+          "family": "gated-delta",
+          "coverage": "sequence-mixer"
+        },
+        {
+          "family": "full-attention",
+          "coverage": "sequence-mixer"
+        },
+        {
+          "family": "routed-moe",
+          "coverage": "all-layers"
+        },
+        {
+          "family": "shared-expert",
+          "coverage": "all-layers"
+        },
+        {
+          "family": "final-norm",
+          "coverage": "model"
+        },
+        {
+          "family": "lm-head",
+          "coverage": "model"
+        }
       ]
     }
   },

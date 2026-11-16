@@ -12,11 +12,11 @@
  */
 
 import { PipelineState } from './state.js';
-import { PipelineGenerator } from './generator.js';
+import { PipelineGenerator } from "./generator/generator.js";
 import type { Manifest } from './config.js';
 import type { WeightLoadResult, PipelineContexts } from './init.js';
 import type { GenerateOptions, KVCacheSnapshot, LogitsStepResult, PrefillResult, PrefillEmbeddingResult, SequenceEncodeOptions, SequenceEncodeResult, AdvanceEmbeddingResult, LayerWeights, ExpertWeights, RouterWeights, GenerationResult, PipelineStats, BatchingStats, WorkloadPhaseTiming, NativeLoRAPrefillOptions, NativeLoRAPrefillResult } from './types.js';
-import type { ChatMessage } from './chat-format.js';
+import type { ChatMessage } from "./generator/request/chat-format.js";
 import type { LoRAAdapter } from './lora.js';
 import { getBufferPool as getGlobalBufferPool } from '../../../memory/buffer-pool.js';
 import type { EmulationStats } from '../../../config/schema/index.js';
@@ -24,7 +24,7 @@ import type {
   DiffusionGemmaCanvasLogitsInput,
   DiffusionGemmaCanvasStepInput,
   DiffusionGemmaCanvasStepResult,
-} from './generator.js';
+} from "./generator/generator.js";
 
 // Re-export types for external use
 export type { GenerateOptions, KVCacheSnapshot, LogitsStepResult, PrefillResult, PrefillEmbeddingResult, SequenceEncodeOptions, SequenceEncodeResult, AdvanceEmbeddingResult, LayerWeights, ExpertWeights, RouterWeights, GenerationResult, PipelineStats, BatchingStats, NativeLoRAPrefillOptions, NativeLoRAPrefillResult };
@@ -53,7 +53,7 @@ export declare function isAbortError(err: unknown): boolean;
 
 export declare class InferencePipeline extends PipelineState {
   readonly supportsGenerationContext: boolean;
-  createGenerationContext(options: { maxBytes: number }): import('./sequence-state.js').GenerationContext;
+  createGenerationContext(options: { maxBytes: number }): import("./generator/session/sequence-state.js").GenerationContext;
   private generator;
 
   // Progress callback
@@ -95,8 +95,8 @@ export declare class InferencePipeline extends PipelineState {
   resetGenerationState(): void;
 
   decodeStepLogits(currentIds: number[], options?: GenerateOptions): Promise<LogitsStepResult>;
-  prefillWithToken(prompt: PromptInput, options: GenerateOptions, tokenContract: { padTokenId: number | null }): Promise<import('./generator/token-selection.js').SelectedTokenResult>;
-  decodeStepWithToken(currentIds: number[], options: GenerateOptions, tokenContract: { padTokenId: number | null }): Promise<import('./generator/token-selection.js').SelectedTokenResult>;
+  prefillWithToken(prompt: PromptInput, options: GenerateOptions, tokenContract: { padTokenId: number | null }): Promise<import("./generator/sampling/token-selection.js").SelectedTokenResult>;
+  decodeStepWithToken(currentIds: number[], options: GenerateOptions, tokenContract: { padTokenId: number | null }): Promise<import("./generator/sampling/token-selection.js").SelectedTokenResult>;
 
   advanceWithToken(tokenId: number, options?: GenerateOptions): Promise<void>;
 
@@ -120,7 +120,7 @@ export declare class InferencePipeline extends PipelineState {
    * are a projection, not what the model produced at an earlier layer. Does
    * not read or change sequence state.
    */
-  projectHiddenStates(hiddenStates: Float32Array, rowCount: number): Promise<import('./generator/hidden-projection.js').HiddenProjectionResult>;
+  projectHiddenStates(hiddenStates: Float32Array, rowCount: number): Promise<import("./logits/hidden-projection.js").HiddenProjectionResult>;
 
   computeDiffusionGemmaCanvasStep(
     args: DiffusionGemmaCanvasStepInput,
@@ -154,7 +154,7 @@ export declare class InferencePipeline extends PipelineState {
    */
   beginDiagnosticSequence(options?: { captureConfig?: Partial<import('../../../debug/capture-policy.js').CaptureConfig> }): void;
   /** Close the open diagnostic sequence and return its timeline. */
-  endDiagnosticSequence(): import('./generator/diagnostic-sequence.js').DiagnosticSequenceResult;
+  endDiagnosticSequence(): import("./generator/session/diagnostic-sequence.js").DiagnosticSequenceResult;
 
   prefillWithTokenLogits(prompt: PromptInput, tokenIds: readonly number[], options?: GenerateOptions): Promise<{
     seqLen: number;
@@ -219,9 +219,9 @@ export declare class InferencePipeline extends PipelineState {
 
   getActiveLoRA(): LoRAAdapter | null;
 
-  replayChannelRotation(capture: import('./channel-gain.js').ChannelGainRequest, spec: import('./channel-gain.js').ChannelGainSpec): Promise<Float32Array>;
-  beginChannelRotationRequest(spec: import('./channel-gain.js').ChannelGainSpec): import('./channel-gain.js').ChannelGainRequest;
-  beginChannelGainRequest(spec: import('./channel-gain.js').ChannelGainSpec): import('./channel-gain.js').ChannelGainRequest;
+  replayChannelRotation(capture: import("./generator/activation/channel-gain.js").ChannelGainRequest, spec: import("./generator/activation/channel-gain.js").ChannelGainSpec): Promise<Float32Array>;
+  beginChannelRotationRequest(spec: import("./generator/activation/channel-gain.js").ChannelGainSpec): import("./generator/activation/channel-gain.js").ChannelGainRequest;
+  beginChannelGainRequest(spec: import("./generator/activation/channel-gain.js").ChannelGainSpec): import("./generator/activation/channel-gain.js").ChannelGainRequest;
   reset(): void;
 
   releaseGPUResources(): void;

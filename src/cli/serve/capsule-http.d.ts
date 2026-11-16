@@ -1,5 +1,5 @@
 import type { CapsuleHttpRequest, CapsuleHttpResponse } from './capsule-handler.js';
-import type { CapsuleServePolicy } from '../../config/capsule-serve.js';
+import type { CapsuleServePolicy } from "../../config/capsule/capsule-serve.js";
 export class CapsuleServeError extends Error {
   code: string;
   statusCode: number;

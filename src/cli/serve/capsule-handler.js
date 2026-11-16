@@ -1,5 +1,5 @@
-import { normalizeCapsuleServePolicy } from '../../config/capsule-serve.js';
-import { CAPSULE_OPERATIONS, snapshotCapsuleOperationRequest } from '../../config/capsule-operation.js';
+import { normalizeCapsuleServePolicy } from "../../config/capsule/capsule-serve.js";
+import { CAPSULE_OPERATIONS, snapshotCapsuleOperationRequest } from "../../config/capsule/capsule-operation.js";
 import { assertQualifiedTargetOperation } from '../../config/target-plan.js';
 import { createCapsuleRequestAuthorization, endCapsuleError, CapsuleServeError, readCapsuleRequest, writeCapsuleEvent } from './capsule-http.js';
 

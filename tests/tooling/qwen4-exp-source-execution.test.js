@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { createQwen4ExpSourceExecution } from '../../src/converter/qwen4-exp-source-execution.js';
-import { compileExecutionV1 } from '../../src/inference/pipelines/text/execution-v1.js';
+import { compileExecutionV1 } from "../../src/inference/pipelines/text/execution/execution-v1.js";
 import { getKernelPathMatmulVariant } from '../../src/config/kernel-path-loader.js';
 import profile from '../../src/config/conversion/qwen3/qwen-3-8-flash-next-text-q4k-ehf16-af32.json' with { type: 'json' };
 const tensors = Object.entries({

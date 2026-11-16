@@ -1,6 +1,6 @@
 import type { Tensor } from '../../../../gpu/tensor.js';
 import type { KernelPathSchema } from '../../../../config/schema/index.js';
-import type { LayerWeights } from '../weights.js';
+import type { LayerWeights } from "../loading/weights.js";
 export interface QwenSharedExpertOptions {
   /** Required whenever an explicit kernel path is supplied. */
   phase?: 'decode' | 'prefill';
@@ -48,7 +48,7 @@ export declare function resolveDeclaredTopK(options: {
 
 /** Registered shared-slot variants declared by the layer's kernel-path steps. */
 export declare function resolveQwenSharedSlotVariants(options: {
-  kernelPath: import('../../../../config/schema/kernel-path.schema.js').KernelPathSchema | null;
+  kernelPath: import("../../../../config/schema/execution/kernel-path.schema.js").KernelPathSchema | null;
   phase: 'prefill' | 'decode';
   layerIdx: number;
 }): Readonly<{ gu: 'native_f32' | 'pair_f32'; down: 'native_f32' | 'pair_f32' | 'pair_combine_f32' | 'pair_combine_residual_f32' }>;

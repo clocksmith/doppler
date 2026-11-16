@@ -3,7 +3,7 @@ import { installNodeFileFetchShim } from '../../src/tooling/node-file-fetch.js';
 
 installNodeFileFetchShim();
 
-const { applyModelBatchingRuntimeDefaults } = await import('../../src/inference/pipelines/text/model-load.js');
+const { applyModelBatchingRuntimeDefaults } = await import("../../src/inference/pipelines/text/loading/model-load.js");
 const { createDopplerConfig } = await import('../../src/config/schema/index.js');
 
 function createRuntimeConfig(session = {}) {

@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import {
   validateTrainingMetricsEntry,
   validateTrainingMetricsReport,
-} from '../../src/config/schema/training-metrics.schema.js';
+} from "../../src/config/schema/training/training-metrics.schema.js";
 
 function makeBaseEntry(overrides = {}) {
   return {

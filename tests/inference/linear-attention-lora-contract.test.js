@@ -2,13 +2,13 @@ import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 
 const source = await Promise.all([
-  '../../src/inference/pipelines/text/linear-attention.js',
+  "../../src/inference/pipelines/text/linear-attention/linear-attention.js",
   '../../src/inference/pipelines/text/linear-attention/plan.js',
 ].map((relativePath) => readFile(new URL(relativePath, import.meta.url), 'utf8'))).then(
   (sources) => sources.join('\n')
 );
 const opsSource = await readFile(
-  new URL('../../src/inference/pipelines/text/ops.js', import.meta.url),
+  new URL("../../src/inference/pipelines/text/execution/ops.js", import.meta.url),
   'utf8'
 );
 

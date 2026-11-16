@@ -5,7 +5,7 @@ import { calculateMatmulDispatch } from './matmul-dispatch.js';
 import { hasRequiredFeatures, getKernelWgslRequirements } from './feature-check.js';
 import { unifiedKernelWrapper, withKernelOutput } from './kernel-execution.js';
 import { acquireBuffer, releaseBuffer, readBuffer } from '../../memory/buffer-pool.js';
-import { W8A8_POLICY } from '../../config/schema/w8a8.schema.js';
+import { W8A8_POLICY } from "../../config/schema/manifest/w8a8.schema.js";
 
 /** @type {ReadonlyArray<readonly [number, string]>} */
 const STATUS_MESSAGES = Object.freeze([

@@ -1,6 +1,6 @@
-import { CAPSULE_ADAPTER_POLICY, resolveCapsuleAdapterSet } from '../../config/capsule-adapters.js';
-import { hashCapsuleObservation, normalizeCapsuleObservation } from '../../config/capsule-operation.js';
-import { freezeCapsuleV2 } from '../../config/capsule-v2.js';
+import { CAPSULE_ADAPTER_POLICY, resolveCapsuleAdapterSet } from "../../config/capsule/capsule-adapters.js";
+import { hashCapsuleObservation, normalizeCapsuleObservation } from "../../config/capsule/capsule-operation.js";
+import { freezeCapsuleV2 } from "../../config/capsule/capsule-v2.js";
 import { sha256BytesHex } from '../../formats/sha256.js';
 import { assertBundledResolutionNotRevoked } from '../../config/revocation-policy.js';
 import { resolveLoRAFormatLayout } from '../../config/lora-layouts.js';

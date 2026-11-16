@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 
-const { compileExecutionV1 } = await import('../../src/inference/pipelines/text/execution-v1.js');
+const { compileExecutionV1 } = await import("../../src/inference/pipelines/text/execution/execution-v1.js");
 
 const DIGEST = 'sha256:0000000000000000000000000000000000000000000000000000000000000000';
 

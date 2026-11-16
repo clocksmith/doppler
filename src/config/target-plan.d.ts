@@ -1,4 +1,4 @@
-import type { CapsuleAdapterExecutionDeclaration } from './capsule-adapters.js';
+import type { CapsuleAdapterExecutionDeclaration } from "./capsule/capsule-adapters.js";
 import type { InitialExecutionIdentity } from './initial-execution-identity.js';
 
 export const TARGET_PLAN_SCHEMA_ID: 'doppler.target-plan/v1';
@@ -69,7 +69,7 @@ export interface TargetPlanV2 extends Omit<TargetPlanV1, 'schema' | 'schemaVersi
   schemaVersion: 2;
   initialExecutionIdentity: InitialExecutionIdentity;
   adapterExecution?: CapsuleAdapterExecutionDeclaration;
-  tokenSelection?: import('./capsule-token-selection.js').CapsuleTokenSelection;
+  tokenSelection?: import("./capsule/capsule-token-selection.js").CapsuleTokenSelection;
   qualification: Array<TargetPlanV1['qualification'][number] | {
     surface: string; status: 'passed'; operation: 'residentPartition';
     evidenceArtifactId: string; evidenceHash: `sha256:${string}`;

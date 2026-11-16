@@ -1,0 +1,118 @@
+/**
+ * Pipeline Generation Logic
+ *
+ * Handles the token generation loop, batching, and decoding strategies.
+ * Separated from main pipeline to isolate execution logic from state management.
+ *
+ * @module inference/pipelines/text/generator
+ */
+
+import type { CommandRecorder, ProfileTimings } from "../../../../gpu/command-recorder.js";
+import type { PipelineState } from "../state.js";
+import type { GenerateOptions, KVCacheSnapshot, LogitsStepResult, PrefillResult, PrefillEmbeddingResult, AdvanceEmbeddingResult, LayerContext, WorkloadPhaseTiming, NativeLoRAPrefillOptions, NativeLoRAPrefillResult } from "../types.js";
+import type { LogitsConfig, LogitsWeights } from "../logits/index.js";
+import type { WeightBufferConfig } from "../loading/weights.js";
+import type { ChatMessage } from "./request/chat-format.js";
+
+export interface ChatRequestInput {
+  messages: ChatMessage[];
+}
+
+export type PromptInput = string | ChatMessage[] | ChatRequestInput;
+
+export interface DiffusionGemmaCanvasLogitsInput {
+  canvas: number[] | Int32Array | Uint32Array;
+  selfConditioningLogits?: Float32Array | number[] | DiffusionGemmaGpuLogitsState | null;
+}
+
+export interface DiffusionGemmaGpuLogitsState {
+  logitsBuffer: GPUBuffer;
+  logitsDtype: 'f32';
+  vocabSize: number;
+  canvasLength: number;
+  temperature: number;
+  releaseOnUse?: boolean;
+  release?: () => void;
+}
+
+export interface DiffusionGemmaCanvasStepInput extends DiffusionGemmaCanvasLogitsInput {
+  temperature: number;
+  /** One uniform draw in [0, 1) per canvas position. */
+  uniformDraws: Float32Array;
+}
+
+export interface DiffusionGemmaCanvasStepResult {
+  argmaxCanvas: Int32Array;
+  sampledCanvas: Int32Array;
+  entropies: Float32Array;
+  selfConditioningLogits: DiffusionGemmaGpuLogitsState;
+}
+
+export declare function resolvePrefillChunkSubmitMode(
+  runtimeConfig: unknown,
+  modelConfig: unknown
+): 'sync' | 'async';
+
+export declare class PipelineGenerator {
+  constructor(state: PipelineState);
+
+  /**
+   * Batching and readback cadence are controlled by runtime.inference.batching.
+   */
+  generate(prompt: PromptInput, options?: GenerateOptions): AsyncGenerator<string, void, void>;
+  /** Raw generated IDs, including declared reasoning markers and hidden reasoning. */
+  generateTokens(prompt: PromptInput, options?: GenerateOptions): AsyncGenerator<number, void, void>;
+  /** Raw token evidence; text consumers apply the manifest-owned output contract. */
+  generateTokenIds(
+    prompt: PromptInput,
+    options?: GenerateOptions
+  ): Promise<{ tokenIds: number[]; inputTokenIds: number[]; stats: import("../types.js").PipelineStats }>;
+  beginGeneration(opts: import("./session/generator-runtime.js").GenerateOptionsResolved, options: GenerateOptions): number;
+  finishGeneration(options: GenerateOptions, startTime: number, generatedIds: readonly number[], promptTokenCount: number): void;
+  resetGenerationState(): void;
+  resetToSeqLen(seqLen: number): void;
+  prefillKVOnly(prompt: PromptInput, options?: GenerateOptions): Promise<KVCacheSnapshot>;
+  prefillForLoRATraining(
+    inputIds: readonly number[] | Int32Array | Uint32Array,
+    options: NativeLoRAPrefillOptions
+  ): Promise<NativeLoRAPrefillResult>;
+  computeDiffusionGemmaCanvasLogits(
+    args: DiffusionGemmaCanvasLogitsInput,
+    options?: GenerateOptions & { __internalGenerate?: boolean }
+  ): Promise<Float32Array>;
+  computeDiffusionGemmaCanvasStep(
+    args: DiffusionGemmaCanvasStepInput,
+    options?: GenerateOptions & { __internalGenerate?: boolean }
+  ): Promise<DiffusionGemmaCanvasStepResult>;
+  prefillWithEmbedding(prompt: PromptInput, options?: GenerateOptions): Promise<PrefillEmbeddingResult>;
+  prefillWithLogits(prompt: PromptInput, options?: GenerateOptions): Promise<PrefillResult>;
+  prefillWithTokenLogits(prompt: PromptInput, tokenIds: readonly number[], options?: GenerateOptions): Promise<{
+    seqLen: number;
+    tokens: number[];
+    tokenIds: number[];
+    logits: Float32Array;
+    logitsByTokenId: Record<number, number>;
+    phase?: WorkloadPhaseTiming | null;
+  }>;
+  prefillWithTokenLogitsFromKV(prefix: KVCacheSnapshot, prompt: PromptInput, tokenIds: readonly number[], options?: GenerateOptions): Promise<{
+    seqLen: number;
+    prefixTokens: number[];
+    tokens: number[];
+    tokenIds: number[];
+    logits: Float32Array;
+    logitsByTokenId: Record<number, number>;
+    phase?: WorkloadPhaseTiming | null;
+  }>;
+  decodeStepLogits(currentIds: number[], options?: GenerateOptions): Promise<LogitsStepResult>;
+  beginDiagnosticSequence(options?: { captureConfig?: Partial<import("../../../../debug/capture-policy.js").CaptureConfig> }): void;
+  endDiagnosticSequence(): import("./session/diagnostic-sequence.js").DiagnosticSequenceResult;
+  prefillWithToken(prompt: PromptInput, options: GenerateOptions, tokenContract: { padTokenId: number | null }): Promise<import("./sampling/token-selection.js").SelectedTokenResult>;
+  decodeStepWithToken(currentIds: number[], options: GenerateOptions, tokenContract: { padTokenId: number | null }): Promise<import("./sampling/token-selection.js").SelectedTokenResult>;
+  advanceWithToken(tokenId: number, options?: GenerateOptions): Promise<void>;
+  advanceWithTokenAndEmbedding(tokenId: number, options?: GenerateOptions): Promise<AdvanceEmbeddingResult>;
+  generateWithPrefixKV(
+    prefix: KVCacheSnapshot,
+    prompt: PromptInput,
+    options?: GenerateOptions
+  ): AsyncGenerator<string, void, void>;
+}

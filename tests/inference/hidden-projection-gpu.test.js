@@ -4,7 +4,7 @@ import { getDevice, destroyDevice } from '../../src/gpu/device.js';
 import { acquireBuffer, getBufferPool, releaseBuffer } from '../../src/memory/buffer-pool.js';
 import { createWeightBuffer } from '../../src/gpu/weight-buffer.js';
 import { computeLogits } from '../../src/inference/pipelines/text/logits/index.js';
-import { projectHiddenStates } from '../../src/inference/pipelines/text/generator/hidden-projection.js';
+import { projectHiddenStates } from "../../src/inference/pipelines/text/logits/hidden-projection.js";
 
 // The smallest pipeline state the projection reads: weights, model config, the
 // active plan's activation dtype and the debug settings.

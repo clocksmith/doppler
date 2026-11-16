@@ -1,6 +1,6 @@
 import { log } from './log.js';
 import { trace } from './trace.js';
-import { DEFAULT_PERF_GUARDS_CONFIG } from '../config/schema/debug.schema.js';
+import { DEFAULT_PERF_GUARDS_CONFIG } from "../config/schema/runtime/debug.schema.js";
 
 let config = { ...DEFAULT_PERF_GUARDS_CONFIG };
 

@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { log } from '../../src/debug/index.js';
-import { logPrefillCacheState } from '../../src/inference/pipelines/text/generator/prefill-observation.js';
+import { logPrefillCacheState } from "../../src/inference/pipelines/text/generator/prefill/prefill-observation.js";
 
 const messages = [];
 const debug = log.debug, warn = log.warn;

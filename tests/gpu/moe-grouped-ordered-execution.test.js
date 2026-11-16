@@ -6,7 +6,7 @@ import { ggufBlockBytes } from '../../src/formats/gguf/block-storage.js';
 const wrapperURL = new URL('../../src/gpu/kernels/moe-grouped.js', import.meta.url).href;
 const groupedURL = new URL('../../src/inference/pipelines/text/moe/grouped-prefill.js', import.meta.url).href;
 const executorURL = new URL('../../src/gpu/kernels/kernel-execution.js', import.meta.url).href;
-const opsURL = new URL('../../src/inference/pipelines/text/ops.js', import.meta.url).href;
+const opsURL = new URL("../../src/inference/pipelines/text/execution/ops.js", import.meta.url).href;
 const limits = { maxComputeInvocationsPerWorkgroup: 256, maxComputeWorkgroupSizeX: 256,
   maxComputeWorkgroupStorageSize: 16384, maxStorageBuffersPerShaderStage: 8,
   maxComputeWorkgroupsPerDimension: 65535, maxStorageBufferBindingSize: 128 * 1024 * 1024,
@@ -49,7 +49,7 @@ const modules = {
       export const unifiedKernelWrapper=(...args)=>groupedOrderedExecutionTest.dispatch(...args);`,
   },
   [executorURL]: { '../../memory/buffer-pool.js': poolModule },
-  [opsURL]: { '../../../memory/buffer-pool.js': poolModule },
+  [opsURL]: { "../../../../memory/buffer-pool.js": poolModule },
   [groupedURL]: {
     '../../../../gpu/device.js': 'export const getDevice=()=>groupedOrderedExecutionTest.device;',
     '../../../../memory/buffer-pool.js': poolModule,

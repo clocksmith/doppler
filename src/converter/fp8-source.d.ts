@@ -1,4 +1,4 @@
-import type { FP8Policy } from '../config/schema/fp8.schema.js';
+import type { FP8Policy } from "../config/schema/manifest/fp8.schema.js";
 import type { FP8StorageDescriptor } from '../formats/rdrr/fp8-storage.js';
 export interface FP8SourceTensor { name: string; dtype: string; shape: number[]; layout?: string; }
 export interface FP8SourcePlan { tensors: FP8SourceTensor[]; companions: Map<string, FP8SourceTensor>; }

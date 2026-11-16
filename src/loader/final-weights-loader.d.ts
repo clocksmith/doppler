@@ -45,7 +45,7 @@ export interface LoadedEmbeddingPostprocessor
  * Context required for final weights loading.
  */
 export interface FinalWeightsContext {
-  hyperConnections?: import('../config/schema/hyper-connection-decoder.schema.js').ResolvedHyperConnections | null;
+  hyperConnections?: import("../config/schema/execution/hyper-connection-decoder.schema.js").ResolvedHyperConnections | null;
   /** Tensor locations map */
   tensorLocations: Map<string, TensorLocation>;
   weightRepresentationPlan?: import('./weight-representation-plan.js').WeightRepresentationPlan | null;

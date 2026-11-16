@@ -4,6 +4,22 @@ Doppler 0.6.0 replaces the product name **Pack** with **Capsule**. This is a
 breaking source, package, CLI, and signed-format change, not an alias layer.
 The version in this checkout does not imply an npm publication.
 
+## Format ownership and retirement
+
+`src/config/capsule/capsule.js` dispatches the supported Capsule v2 and v3
+formats. V3 adds release lifecycle semantics; retained v2 Capsules remain
+accepted. `src/config/capsule/capsule-v2.js` validates format data, while
+`src/tooling/capsule-v2.js` performs Node artifact/signing I/O. Their boundaries
+are different despite the shared format name. The `capsule-v0-trusted-signers`
+module supplies development authority keys to Rig and qualification tools; its
+filename does not establish support for a Capsule v0 serialized format.
+
+ModelIR v1 and v2 are separately validated by `src/config/model-ir.js`; v2's
+implementation lives in `model-ir-v2.js`. A serialized version can retire only
+after its writers and readers migrate and retained signed artifacts have an
+explicit migration or rejection contract. File numbering alone is not a
+retirement condition, and source moves never relabel signed bytes.
+
 ## Consumer changes
 
 | Previous contract | Current contract |

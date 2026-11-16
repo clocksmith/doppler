@@ -9,7 +9,7 @@ const {
   releaseBuffer,
 } = await import('../../src/memory/buffer-pool.js');
 const { createWeightBuffer } = await import('../../src/gpu/weight-buffer.js');
-const { initConvLayerState } = await import('../../src/inference/pipelines/text/ops.js');
+const { initConvLayerState } = await import("../../src/inference/pipelines/text/execution/ops.js");
 const {
   quantizeToQ4KM,
   dequantizeQ4KM,

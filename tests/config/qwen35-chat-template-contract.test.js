@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 
-import { formatChatMessages } from '../../src/inference/pipelines/text/chat-format.js';
+import { formatChatMessages } from "../../src/inference/pipelines/text/generator/request/chat-format.js";
 
 const config = JSON.parse(await readFile(
   new URL('../../src/config/conversion/qwen3/qwen-3-5-0-8b-q4k-ehaf16.json', import.meta.url),

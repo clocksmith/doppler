@@ -1,5 +1,5 @@
 import type { ExpertLoaderContext } from './expert-loader.js';
-import type { Qwen35PagerConfig } from '../../config/schema/loading.schema.js';
+import type { Qwen35PagerConfig } from "../../config/schema/runtime/loading.schema.js";
 import type { CommandRecorder } from '../../gpu/command-recorder.js';
 
 export interface QwenPagingReceipt {

@@ -1,0 +1,62 @@
+import type {
+  RuntimeConfigSchema,
+  KernelWarmupConfigSchema,
+  KernelPathSchema,
+} from "../../../../config/schema/index.js";
+import type { KernelPathPolicy, KernelPathSource } from "../../../../config/kernel-path-loader.js";
+import type { ParsedModelConfig, Manifest } from "../config.js";
+import type { Tokenizer } from "../../../tokenizer.js";
+import type { PipelineStorageContext } from "../init.js";
+import type { ExecutionV1CompiledState } from "../execution/execution-v1.js";
+
+export interface KernelWarmupOptions {
+  useGPU: boolean;
+  kernelWarmup?: KernelWarmupConfigSchema | null;
+}
+
+export interface KernelPathResolutionOptions {
+  manifest: Manifest;
+  runtimeConfig: RuntimeConfigSchema;
+  modelConfig: ParsedModelConfig;
+  runtimeOverrides?: Record<string, unknown> | null;
+  executionV1State?: ExecutionV1CompiledState | null;
+  kernelCapabilities?: {
+    hasSubgroups?: boolean;
+    hasF16?: boolean;
+  } | null;
+}
+
+export interface KernelPathResolutionResult {
+  resolvedKernelPath: KernelPathSchema | null;
+  kernelPathSource: KernelPathSource;
+  kernelPathPolicy: KernelPathPolicy;
+  runtimeConfig: RuntimeConfigSchema;
+}
+
+export function runKernelWarmup(options: KernelWarmupOptions): Promise<void>;
+
+export function applyModelBatchingRuntimeDefaults(
+  runtimeConfig: RuntimeConfigSchema,
+  manifest: Manifest,
+  modelConfig: ParsedModelConfig | null | undefined,
+  runtimeOverrides?: Record<string, unknown> | null
+): RuntimeConfigSchema;
+
+export function resolveKernelPathState(
+  options: KernelPathResolutionOptions
+): KernelPathResolutionResult;
+
+export function activateKernelPathState(
+  kernelPathState: KernelPathResolutionResult | null | undefined
+): void;
+
+export function initTokenizerFromManifest(
+  manifest: Manifest,
+  baseUrl?: string | null,
+  storageContext?: PipelineStorageContext | null
+): Promise<Tokenizer>;
+
+export function assertManifestComputeLaneBinding(options: {
+  manifest: Manifest;
+  runtimeConfig: RuntimeConfigSchema;
+}): void;

@@ -1,5 +1,5 @@
 {
-  "$schema": "../../src/config/schema/model-artifact-contract.schema.json",
+  "$schema": "../../src/config/schema/policy/model-artifact-contract.schema.json",
   "schemaVersion": 1,
   "source": "doppler",
   "catalogPath": "models/catalog.json",

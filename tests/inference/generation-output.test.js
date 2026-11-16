@@ -3,8 +3,8 @@ import { BundledTokenizer } from '../../src/inference/tokenizers/bundled.js';
 import { createGenerationOutputDecoder, decodeGenerationOutput, decodeGenerationStream } from '../../src/inference/generation-output.js';
 import { validateReasoningOutput } from '../../src/config/reasoning-output.js';
 import { createCapsuleOperationAdapters } from '../../src/client/runtime/capsule-operation-adapters.js';
-import { PipelineGenerator } from '../../src/inference/pipelines/text/generator.js';
-import { matchesStopSequence } from '../../src/inference/pipelines/text/stopping.js';
+import { PipelineGenerator } from "../../src/inference/pipelines/text/generator/generator.js";
+import { matchesStopSequence } from "../../src/inference/pipelines/text/generator/sampling/stopping.js";
 import { createModelHandle } from '../../src/client/model-host/model-session.js';
 
 const tokenizer = new BundledTokenizer({ vocabSize: 0, deferSpecialTokens: true, addBosToken: false, addEosToken: false });

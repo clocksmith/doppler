@@ -6,7 +6,7 @@ import { acquireBuffer, releaseBuffer, readBuffer, uploadData } from '../../src/
 import { createTensor } from '../../src/gpu/tensor.js';
 import { createCommandRecorder } from '../../src/gpu/command-recorder.js';
 import { runDenseFFNGPU } from '../../src/inference/pipelines/text/ffn/dense.js';
-import { createChannelGainRequest, freezeChannelRotations } from '../../src/inference/pipelines/text/channel-gain.js';
+import { createChannelGainRequest, freezeChannelRotations } from "../../src/inference/pipelines/text/generator/activation/channel-gain.js";
 import { rotationReference, applyRotationReference } from './reference/channel-rotation.js';
 
 const probe = await probeNodeGPU({ installFileFetchShim: true });

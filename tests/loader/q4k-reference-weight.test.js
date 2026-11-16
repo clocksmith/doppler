@@ -23,7 +23,7 @@ const hooks = registerHooks({ resolve(specifier, context, next) {
   return next(specifier, context);
 } });
 const { loadReferenceQ4KWeight, acquireUploadedBuffer, isQ4KLocationDtype, toUint8Array } = await import(target);
-const { QK_K, Q4K_BLOCK_BYTES } = await import('../../src/config/schema/quantization.schema.js');
+const { QK_K, Q4K_BLOCK_BYTES } = await import("../../src/config/schema/manifest/quantization.schema.js");
 
 const rows = 2, cols = QK_K;
 const blocks = Math.ceil((rows * cols) / QK_K);

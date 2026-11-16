@@ -29,7 +29,7 @@ export async function initEmulation(runtimeConfig) {
 
     // Dynamically import to avoid loading emulation code when disabled
     const { setSimulatorEnv } = await import(simulatorEnvSpecifier);
-    const { createEmulationConfig, formatBytes, formatBandwidth } = await import("../../../../config/schema/emulation.schema.js");
+    const { createEmulationConfig, formatBytes, formatBandwidth } = await import("../../../../config/schema/platform/emulation.schema.js");
     const { EmulatedVramStore, detectLocalResources } = await import("../../../../storage/emulated-vram.js");
     const { getBufferPool } = await import("../../../../memory/buffer-pool.js");
     const { createEmulationContext, isEmulationSupported } = await import(simulatorIndexSpecifier);

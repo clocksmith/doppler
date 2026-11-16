@@ -1,4 +1,4 @@
-import type { ResolvedNgramEmbeddingSession } from '../../../../config/schema/ngram-embedding.schema.js';
+import type { ResolvedNgramEmbeddingSession } from "../../../../config/schema/execution/ngram-embedding.schema.js";
 
 export type NgramTablePartSource = string | number;
 

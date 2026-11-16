@@ -3,7 +3,7 @@
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import { pathToFileURL } from 'node:url';
-import { validateConversionReport } from '../src/config/schema/conversion-report.schema.js';
+import { validateConversionReport } from "../src/config/schema/manifest/conversion-report.schema.js";
 
 function parseArgs(argv) {
   const args = {

@@ -1,5 +1,5 @@
 import { float8ToFloat32 } from '../float8.js';
-import { validateFP8Policy } from '../../config/schema/fp8.schema.js';
+import { validateFP8Policy } from "../../config/schema/manifest/fp8.schema.js";
 
 /** @type {typeof import('./fp8-storage.js').createFP8StorageDescriptor} */
 export function createFP8StorageDescriptor(policy) {

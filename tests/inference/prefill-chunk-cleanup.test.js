@@ -3,7 +3,8 @@ import { registerHooks } from 'node:module';
 
 // Real prefill and CommandRecorder lifecycle; only GPU operations and tensor
 // kernels are substituted. No numerical or hardware qualification is implied.
-const target = new URL('../../src/inference/pipelines/text/generator/prefill-runtime.js', import.meta.url).href;
+const target = new URL("../../src/inference/pipelines/text/generator/prefill/prefill-runtime.js", import.meta.url).href;
+const prefillModules = new Set([target, new URL('./prefill-execution.js', target).href, new URL('./prefill-sequence.js', target).href, new URL('./prefill-logits.js', target).href]);
 const recorderUrl = new URL('../../src/gpu/command-recorder.js', import.meta.url).href;
 const active = new Set();
 const probe = { active, gates: [], submissions: 0, gateCompletion: false };
@@ -38,8 +39,8 @@ const poolModule = `
   export const readBufferSlice = readBuffer; export const uploadData = readBuffer;
 `;
 const modules = {
-  '../../../../gpu/device.js': 'export const getDevice = () => globalThis.prefillChunkProbe.device; export const setTrackSubmits = () => {};',
-  '../embed.js': `export const embed = async (_ids, _weights, options) => {
+  "../../../../../gpu/device.js": 'export const getDevice = () => globalThis.prefillChunkProbe.device; export const setTrackSubmits = () => {};',
+  "../../embedding/embed.js": `export const embed = async (_ids, _weights, options) => {
     const p = globalThis.prefillChunkProbe;
     if (p.failEmbedding) {
       options.recorder.trackTemporaryBuffer(p.acquire());
@@ -47,7 +48,7 @@ const modules = {
     }
     return { buffer: p.acquire(), dtype: 'f32', shape: [2, 4] };
   };`,
-  '../layer.js': `export const processLayer = async (layer, input, tokens, prefill, context) => {
+  "../../execution/layer.js": `export const processLayer = async (layer, input, tokens, prefill, context) => {
     const p = globalThis.prefillChunkProbe;
     p.layerOrder?.push(layer);
     if (layer === 2 && p.fail) throw Error('layer failed');
@@ -56,17 +57,17 @@ const modules = {
     context.recorder.trackTemporaryBuffer(temporary);
     return p.acquire();
   };`,
-  '../logits/index.js': 'export const computeLogits = async () => ({ logitsBuffer: "caller-owned" }); export const recordLogitsGPU = computeLogits; export const extractLastPositionLogits = value => value;',
-  './session-context.js': 'export const buildLayerContext = () => ({ useGPU: true }); export const debugCheckBuffer = () => {};',
-  './logits-config.js': 'export const getLogitsWeights = () => ({}); export const getLogitsConfig = () => ({});',
-  '../per-layer-inputs.js': 'export const preparePerLayerInputs = async () => null;',
+  "../../logits/index.js": 'export const computeLogits = async () => ({ logitsBuffer: "caller-owned" }); export const recordLogitsGPU = computeLogits; export const extractLastPositionLogits = value => value;',
+  "../session/session-context.js": 'export const buildLayerContext = () => ({ useGPU: true }); export const debugCheckBuffer = () => {};',
+  "../../logits/logits-config.js": 'export const getLogitsWeights = () => ({}); export const getLogitsConfig = () => ({});',
+  "../../per-layer/per-layer-inputs.js": 'export const preparePerLayerInputs = async () => null;',
   './prefill-observation.js': `export const probePrefillEmbedding = async () => {}; export const tracePrefillEmbeddingIds = () => {}; export const logPrefillCacheState = () => {};
     export { snapshotPrefillPhase } from ${JSON.stringify(new URL('./prefill-observation.js', target).href)};`,
 };
 const hooks = registerHooks({ resolve(specifier, context, next) {
   let source;
-  if ([target, recorderUrl].includes(context.parentURL) && specifier.endsWith('/buffer-pool.js')) source = poolModule;
-  else if (context.parentURL === target) source = modules[specifier];
+  if ((prefillModules.has(context.parentURL) || context.parentURL === recorderUrl) && specifier.endsWith('/buffer-pool.js')) source = poolModule;
+  else if (prefillModules.has(context.parentURL)) source = modules[specifier];
   if (source) return { url: `data:text/javascript,${encodeURIComponent(source)}`, shortCircuit: true };
   return next(specifier, context);
 } });

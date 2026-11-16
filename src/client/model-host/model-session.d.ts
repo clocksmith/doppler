@@ -1,7 +1,7 @@
 import type { InferencePipeline, KVCacheSnapshot, PromptInput } from '../../inference/pipelines/text.js';
-import type { ChatMessage } from '../../inference/pipelines/text/chat-format.js';
+import type { ChatMessage } from "../../inference/pipelines/text/generator/request/chat-format.js";
 import type { GenerateOptions } from '../../generation/index.js';
-import type { GenerationRequestEvidence } from '../../inference/pipelines/text/generation-request.js';
+import type { GenerationRequestEvidence } from "../../inference/pipelines/text/generator/request/generation-request.js";
 import type { RDRRManifest } from '../../formats/rdrr/index.js';
 import type { LogitsStepResult, PipelineStats, PrefillResult, SequenceEncodeOptions, SequenceEncodeResult } from '../../inference/pipelines/text/types.d.ts';
 import type { LoRAManifest } from '../runtime/types.js';
@@ -157,7 +157,7 @@ export interface DopplerChatResponse {
 
 export interface DopplerModelHandle {
   readonly supportsGenerationContext: boolean;
-  createGenerationContext(options: { maxBytes: number }): import('../../inference/pipelines/text/sequence-state.js').GenerationContext;
+  createGenerationContext(options: { maxBytes: number }): import("../../inference/pipelines/text/generator/session/sequence-state.js").GenerationContext;
   scoreChoices(request: import('../../config/choice-scoring.js').ChoiceScoringRequest,
     control?: { signal?: AbortSignal }): Promise<import('../../config/choice-scoring.js').ChoiceScoringResult>;
   generate(prompt: string, options?: DopplerGenerateOptions): AsyncGenerator<string, void, void>;
@@ -320,8 +320,8 @@ export interface DopplerModelHandle {
       phase?: Record<string, unknown> | null;
     }>;
     decodeStepLogits(currentIds: number[], options?: DopplerGenerateOptions): Promise<LogitsStepResult>;
-    prefillWithToken(prompt: string, options: DopplerGenerateOptions, tokenContract: { padTokenId: number | null }): Promise<import('../../inference/pipelines/text/generator/token-selection.js').SelectedTokenResult>;
-    decodeStepWithToken(currentIds: number[], options: DopplerGenerateOptions, tokenContract: { padTokenId: number | null }): Promise<import('../../inference/pipelines/text/generator/token-selection.js').SelectedTokenResult>;
+    prefillWithToken(prompt: string, options: DopplerGenerateOptions, tokenContract: { padTokenId: number | null }): Promise<import("../../inference/pipelines/text/generator/sampling/token-selection.js").SelectedTokenResult>;
+    decodeStepWithToken(currentIds: number[], options: DopplerGenerateOptions, tokenContract: { padTokenId: number | null }): Promise<import("../../inference/pipelines/text/generator/sampling/token-selection.js").SelectedTokenResult>;
     generateWithPrefixKV(
       prefix: KVCacheSnapshot,
       prompt: string,

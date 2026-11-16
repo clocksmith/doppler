@@ -17,7 +17,7 @@ const { NgramTokenHistory } = await import('../../src/inference/pipelines/text/n
 const { PleConvState } = await import('../../src/inference/pipelines/text/ngram/ple-layer.js');
 const { withHyperConnectionTransaction, assertHyperConnectionLoad } = await import('../../src/inference/pipelines/text/hyper-connection/sequence-transaction.js');
 const { InferencePipeline } = await import('../../src/inference/pipelines/text/pipeline.js');
-const { PipelineGenerator } = await import('../../src/inference/pipelines/text/generator.js');
+const { PipelineGenerator } = await import("../../src/inference/pipelines/text/generator/generator.js");
 
 const device = {
   features: new Set(), limits: { maxStorageBufferBindingSize: 1 << 20, maxBufferSize: 1 << 20 },

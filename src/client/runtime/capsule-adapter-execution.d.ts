@@ -1,5 +1,5 @@
-import type { CapsuleOperationRequest } from '../../config/capsule-operation.js';
-import type { CapsuleExecutionAdapter } from '../../config/capsule-adapters.js';
+import type { CapsuleOperationRequest } from "../../config/capsule/capsule-operation.js";
+import type { CapsuleExecutionAdapter } from "../../config/capsule/capsule-adapters.js";
 import type { TargetPlan } from '../../config/target-plan.js';
 export interface CapsuleAdapterArtifactStore { readArtifact(artifact: CapsuleExecutionAdapter['artifact']): Promise<Uint8Array> }
 export interface PreparedCapsuleAdapterExecution {

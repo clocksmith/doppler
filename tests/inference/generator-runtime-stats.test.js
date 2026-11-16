@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { PipelineGenerator } from '../../src/inference/pipelines/text/generator.js';
+import { PipelineGenerator } from "../../src/inference/pipelines/text/generator/generator.js";
 
 // Warmup must not inflate the next request's replay time, and an EOS at prefill
 // must not falsely report that the prior generation's cached program ran.

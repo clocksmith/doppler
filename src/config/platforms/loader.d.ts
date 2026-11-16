@@ -10,7 +10,7 @@ import type {
   PlatformSchema,
   RuntimeCapabilities,
   ResolvedPlatformConfig,
-} from '../schema/platform.schema.js';
+} from "../schema/platform/platform.schema.js";
 
 /**
  * Set the base URL for loading platform configs.

@@ -1,5 +1,5 @@
 {
-  "$schema": "../../src/config/schema/provider-conformance-policy.schema.json",
+  "$schema": "../../src/config/schema/policy/provider-conformance-policy.schema.json",
   "schemaVersion": 3,
   "source": "doppler",
   "goalIds": [

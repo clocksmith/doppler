@@ -4,8 +4,8 @@ import { createHash } from 'node:crypto';
 import { createSignedCapsuleFixture, TEST_CAPSULE_AUTHORITY, TEST_CAPSULE_PRIVATE_KEY, TEST_CAPSULE_PUBLIC_KEY } from './capsule-v2-fixture.js';
 import { createInitialExecutionIdentityV2 } from '../../src/config/initial-execution-identity.js';
 import { createTargetPlanV2 } from '../../src/config/target-plan.js';
-import { buildCapsuleV2, signCapsuleV2 } from '../../src/config/capsule-v2.js';
-import { getCapsuleIdentity } from '../../src/config/capsule.js';
+import { buildCapsuleV2, signCapsuleV2 } from "../../src/config/capsule/capsule-v2.js";
+import { getCapsuleIdentity } from "../../src/config/capsule/capsule.js";
 
 export async function createInstalledAdapterFixture() {
   const base = await createSignedCapsuleFixture();

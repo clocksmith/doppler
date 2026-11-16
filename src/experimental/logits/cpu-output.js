@@ -1,4 +1,4 @@
-import { runProbes } from '../../inference/pipelines/text/probes.js';
+import { runProbes } from "../../inference/pipelines/text/observation/probes.js";
 import { applySoftcapping } from './cpu.js';
 import { resolveLogitOutputScale } from '../../inference/pipelines/text/logits/scale-policy.js';
 

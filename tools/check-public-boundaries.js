@@ -79,7 +79,12 @@ const PACKAGE_CONTENT_LIMITS = Object.freeze({
   // DRY extraction adds five reachable JS owners for FlatBuffers, range-backed
   // weights, aligned writes, per-layer buffer release and recorder statistics.
   // Audited npm dry-run: 2004 entries; declarations stay repository-only.
-  maxEntryCount: 2004,
+  // Source review inventory on Node 22.20.0/npm 10.9.3: 2020 files.
+  // e8b8edd2 packed 1995 files / 3,781,051 bytes / 16,107,590 unpacked bytes.
+  // Concern extraction and a refreshed closure add 25 entries; the candidate
+  // packs to 3,788,822 bytes / 16,107,174 unpacked bytes. Retain the
+  // existing 2,158-byte cross-npm allowance; no model payloads or extra references ship.
+  maxEntryCount: 2020,
   // add14e4b: npm 9.2.0 produces 2,104,958 bytes; CI Node 22.23.2/npm 10.9.8
   // produces 2,107,073. Keep the measured cross-toolchain compression allowance.
   // Evidence: reports/capsule-baseline/20260907-release/remote-package-budget-failure.log.
@@ -197,7 +202,7 @@ const PACKAGE_CONTENT_LIMITS = Object.freeze({
   // partition transport/planning and registry digests: 1963 entries, 3,762,667
   // packed / 16,038,629 unpacked. Preserve the existing 2,158-byte npm allowance.
   // Exact inventory: reports/package-release-0.7.4/package-audit.json.
-  maxPackedSize: 3_764_825,
+  maxPackedSize: 3_790_977,
   // Capsule naming changes identifiers and declarations, not the shipped file count.
   // Measured 0.6.0 payload: 2,097,039 packed / 10,835,420 unpacked bytes.
   // The remaining GPU diagnostic label adds three uncompressed bytes.
@@ -287,7 +292,7 @@ const PACKAGE_CONTENT_LIMITS = Object.freeze({
   // to the physically tested archive. See the 0.7.2 package audit.
   // 0.7.3: doppler and doppler-serve compare real paths (bin-link start fix,
   // 2e4ecb2e) plus its changelog section; measured below, no new entries.
-  maxUnpackedSize: 16_038_629,
+  maxUnpackedSize: 16_107_174,
 });
 const REQUIRED_PACKAGE_FILES = Object.freeze([
   'README.md',
@@ -339,8 +344,8 @@ const FILE_RULES = [
       './config/generation-contract.js',
       './config/choice-scoring.js',
       './config/embedding-contract.js',
-      './config/capsule.js',
-      './config/capsule-operation.js',
+      "./config/capsule/capsule.js",
+      "./config/capsule/capsule-operation.js",
       './client/runtime/composition-root.js',
       './client/runtime/fetch-capsule-artifact-store.js',
       './client/runtime/capsule-forecast-program.js',
@@ -439,7 +444,7 @@ const FILE_RULES = [
       'export * from',
       '../inference/pipelines/text/config.js',
       '../inference/pipelines/text/init.js',
-      '../inference/pipelines/text/model-load.js',
+      "../inference/pipelines/text/loading/model-load.js",
       '../inference/pipelines/structured/',
       '../inference/pipelines/energy-head/',
       '../gpu/',
@@ -451,13 +456,13 @@ const FILE_RULES = [
     allowed: new Set([
       '../inference/pipelines/text.js',
       '../inference/pipelines/text/config.js',
-      '../inference/pipelines/text/sampling.js',
+      "../inference/pipelines/text/generator/sampling/sampling.js",
       '../inference/pipelines/text/lora-types.js',
     ]),
     forbidden: [
       'export * from',
       '../inference/pipelines/text/init.js',
-      '../inference/pipelines/text/model-load.js',
+      "../inference/pipelines/text/loading/model-load.js",
       '../inference/pipelines/structured/',
       '../inference/pipelines/energy-head/',
       '../gpu/',

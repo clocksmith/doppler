@@ -1,0 +1,638 @@
+import { releasePerLayerInputBuffer } from "../../per-layer/per-layer-buffer.js";
+import { isGreedySampling } from "../../../../../rules/greedy-sampling.js";
+import { tensorElementBytes } from "../../../../../gpu/tensor.js";
+import { getActivationRepresentation } from "../session/activation-storage.js";
+import { createDecodeStepResources } from "./decode-components.js";
+import { getDevice, setTrackSubmits } from "../../../../../gpu/device.js";
+import { releaseBuffer, discardBuffer, readBuffer } from "../../../../../memory/buffer-pool.js";
+import { recordArgmax, recordGPUSample, isGPUSamplingAvailable } from "../../../../../gpu/kernels/sample.js";
+import { recordHistoryPenalties } from "../../../../../gpu/kernels/rep-penalty.js";
+import { resetSubmitStats, logSubmitStats } from "../../../../../gpu/submit-tracker.js";
+import { CommandRecorder } from "../../../../../gpu/command-recorder.js";
+import { allowReadback } from "../../../../../debug/perf-guards.js";
+import { log } from "../../../../../debug/index.js";
+import { selectRuleValue } from "../../../../../rules/rule-registry.js";
+import { attachPreparedDecodeWorkspace } from "../../execution/execution-plan.js";
+import { sample, applyRepetitionPenalty, applyPresencePenalty, logitsSanity } from "../sampling/sampling.js";
+import { embed } from "../../embedding/embed.js";
+import { processLayer } from "../../execution/layer.js";
+import { computeLogits, computeLogitsGPU, recordLogitsGPU, extractLastPositionLogits } from "../../logits/index.js";
+import { isWeightBuffer, isCpuWeightBuffer, isGpuBufferInstance, isSplitWeightBuffer, getWeightDtype, getWeightMetadata } from "../../../../../gpu/weight-buffer.js";
+import { decodeReadback } from "../../debug-utils/readback-decoding.js";
+import { captureObservedFusedDecodeLogits, emitObservedLogits } from "../../observation/generator-logits-observation.js";
+import { FINITENESS_RESET_WORDS, FinitenessError, parseFinitenessStatusWords } from "../../policy/finiteness-guard-status.js";
+import { advanceDecodeStepCount } from "../../observation/tsir-fixture-writer.js";
+import { WHOLE_TOKEN_DRY_STEP_STOP, decodeWholeTokenStep, verifyWholeTokenProgramAhead, wholeTokenProgramRequested } from "../whole-token/whole-token-lane.js";
+import { readMappedBufferCopy, readSampledTokenFromStagingBuffer } from "./decode-readback.js";
+import { preparePerLayerInputs } from "../../per-layer/per-layer-inputs.js";
+import { createDecodeRecorder, getTokenTextOrUnknown, resolveDecodeLayerSubmitInterval, getEffectiveActivationDtype, isOwnedDecodeBuffer, shouldUseFusedDecodeSampling, getReusableSampleReadbackBuffer, schedulePlePrefetchForToken, sumProfileTimings, recordDecodeProfileStep, shouldLogProfileStep, submitDecodeRecorderProfile, runDecodeLayers } from "./decode-mechanics.js";
+
+// With `attach`, the whole-token lane observes the step through its recorder.
+const recordedStep = (state, currentIds, opts, helpers, dryRun) => (attach) => decodeStepBody(state, currentIds, opts, helpers,
+  (s, o) => { const recorder = createDecodeRecorder(s, o); attach?.(recorder); return recorder; }, dryRun);
+
+export async function decodeStep(state, currentIds, opts, helpers) {
+  const runRecorded = recordedStep(state, currentIds, opts, helpers, false);
+  return wholeTokenProgramRequested(state, opts) ? decodeWholeTokenStep(state, currentIds, runRecorded) : runRecorded(null);
+}
+
+// Verify a kept whole-token program on decode step 1 before it runs: the ordinary step at
+// `position`, with a placeholder input token, is recorded and stopped before its submit.
+export function verifyDecodeStepAhead(state, position, placeholderToken, opts, helpers) {
+  return verifyWholeTokenProgramAhead(state, position, placeholderToken,
+    recordedStep(state, new Array(position + 1).fill(placeholderToken), opts, helpers, true));
+}
+
+// dryRun: no partial submits; WHOLE_TOKEN_DRY_STEP_STOP is thrown in place of the submit.
+async function decodeStepBody(state, currentIds, opts, helpers, makeRecorder, dryRun = false) {
+  const stepWallStart = performance.now();
+  const lastToken = currentIds[currentIds.length - 1];
+  const numTokens = 1;
+  const config = state.modelConfig;
+  const samplingDefaults = state.runtimeConfig.inference.sampling;
+  const executionPlan = opts.executionPlan;
+  const debugCheckBuffer = state.debug ? helpers.debugCheckBuffer : undefined;
+  advanceDecodeStepCount(state);
+  const isDebugStep = opts.debug && state.decodeStepCount <= 5;
+  if (isDebugStep) {
+    const tokenText = getTokenTextOrUnknown(state.tokenizer, lastToken);
+    log.debug('Decode', `[${state.decodeStepCount}] token="${tokenText}" pos=${state.currentSeqLen}`);
+  }
+  const device = getDevice();
+  const recorder = makeRecorder(state, opts);
+  const lifecycle = createDecodeStepResources(recorder, releaseBuffer, discardBuffer);
+  const { resources } = lifecycle;
+  let failed = false;
+  let failure;
+  try {
+    if (state.finitenessBuffer && device) {
+      device.queue.writeBuffer(state.finitenessBuffer, 0, FINITENESS_RESET_WORDS);
+    }
+    const context = helpers.buildLayerContext(recorder, true, opts.debugLayers, executionPlan);
+    context.currentTokenIds = [lastToken];
+    opts.__activationTrace?.activity?.begin('decode', state.currentSeqLen, [lastToken]);
+    context.signal = opts.signal;
+    const decodeSession = state.resolvedRuntimeSession?.runtime?.session ?? state.runtimeConfig.inference.session;
+    attachPreparedDecodeWorkspace(decodeSession.usePreparedDecodeWorkspace, recorder, context, device);
+    const layerSubmitInterval = dryRun ? null : resolveDecodeLayerSubmitInterval(decodeSession.decodeLoop, recorder);
+    state.decodeBuffers.resetPingPong();
+    const decodeHiddenBuffer = state.decodeBuffers.getHiddenBuffer();
+    const decodeAltBuffer = state.decodeBuffers.getOutputHiddenBuffer();
+    const embedBufferRaw = state.weights.get('embed');
+    if (!isGpuBufferInstance(embedBufferRaw) && !isWeightBuffer(embedBufferRaw) && !isCpuWeightBuffer(embedBufferRaw) && !isSplitWeightBuffer(embedBufferRaw) && !(embedBufferRaw instanceof Float32Array)) {
+      throw new Error('Embed buffer not found or not a supported buffer type');
+    }
+    const embedBuffer = isWeightBuffer(embedBufferRaw) ? embedBufferRaw.buffer : embedBufferRaw;
+    const embedDtype = isCpuWeightBuffer(embedBufferRaw)
+      ? embedBufferRaw.dtype
+      : getWeightDtype(embedBufferRaw);
+    const embedMetadata = getWeightMetadata(embedBufferRaw);
+    const activationDtype = getEffectiveActivationDtype(state, opts);
+    const representation = getActivationRepresentation(state, opts.executionPlan);
+    const activationBytes = tensorElementBytes(activationDtype, representation);
+    const embedTensor = await embed([lastToken], embedBuffer, {
+      hiddenSize: config.hiddenSize,
+      vocabSize: config.vocabSize,
+      scaleEmbeddings: config.scaleEmbeddings,
+      embeddingScale: config.embeddingScale, embeddingNormalization: config.embeddingNormalization,
+      recorder,
+      outputBuffer: decodeHiddenBuffer ?? undefined,
+      transpose: state.embeddingTranspose,
+      debugProbes: state.runtimeConfig.shared.debug.probes,
+      operatorDiagnostics: state.operatorDiagnostics,
+      activationDtype,
+      intermediatePrecision: representation.precision,
+      embeddingDtype: selectRuleValue('inference', 'dtype', 'embeddingDtype', { dtype: embedDtype }),
+      embeddingStorageEncoding: embedMetadata?.storageEncoding ?? null,
+      executionPolicies: state.executionV1State?.policies ?? null,
+    });
+    let hiddenStates = embedTensor.buffer;
+    const ownHidden = buffer => resources.register(buffer, 'decode hidden',
+      isOwnedDecodeBuffer(buffer, decodeHiddenBuffer, decodeAltBuffer) ? 'borrowed' : 'scopeOwned');
+    ownHidden(hiddenStates);
+    let perLayerInputs = null;
+    const benchmarkSubmits = state.decodeStepCount <= 3 && opts.debug;
+    try {
+      // Resolve pending PLE prefetch from previous decode step
+      let plePrefetchResult = null;
+      if (state.plePrefetchPending) {
+        plePrefetchResult = await state.plePrefetchPending;
+        state.plePrefetchPending = null;
+      }
+      perLayerInputs = await preparePerLayerInputs([lastToken], embedTensor, context, {
+        numTokens: 1,
+        pleCache: state.pleCache ?? null,
+        prefetchedRow: plePrefetchResult,
+      });
+      if (opts.debug && state.decodeStepCount === 1) {
+        const validSize = config.hiddenSize * activationBytes;
+        const embedData = await readBuffer(hiddenStates, validSize);
+        const embedArr = decodeReadback(embedData, activationDtype, representation);
+        const sample = embedArr.slice(0, 5);
+        const maxAbs = Math.max(...embedArr.map(Math.abs));
+        const nonZero = embedArr.filter(x => Math.abs(x) > 1e-10).length;
+        log.debug('Decode', `[1] Embed check: maxAbs=${maxAbs.toFixed(2)}, nonZero=${nonZero}/${embedArr.length}, sample=[${Array.from(sample).map(v => v.toFixed(3)).join(', ')}]`);
+      }
+      if (benchmarkSubmits) {
+        setTrackSubmits(true);
+        resetSubmitStats();
+      }
+      if (opts.debug && state.decodeStepCount === 1) {
+        log.debug('Decode', `KV cache check: hasGPUCache=${context.kvCache?.hasGPUCache?.() ?? false}, currentSeqLen=${context.currentSeqLen}`);
+      }
+
+      for (let l = 0; l < config.numLayers; l++) {
+        context.perLayerInputBuffer = perLayerInputs?.[l] ?? null;
+        const prevStates = hiddenStates;
+        hiddenStates = (await processLayer(l, hiddenStates, numTokens, false, context));
+        ownHidden(hiddenStates);
+        opts.__activationTrace?.capture(hiddenStates, { layer: l, phase: 'decode', tokenStart: state.currentSeqLen,
+          tokenIds: [lastToken], dtype: activationDtype, recorder, ...representation });
+
+        state.decodeBuffers.swapPingPong();
+        releasePerLayerInputBuffer(
+          context.perLayerInputBuffer,
+          recorder,
+          context.decodeBuffers,
+          state.pleCache ?? null
+        );
+        if (perLayerInputs) {
+          perLayerInputs[l] = null;
+        }
+        context.perLayerInputBuffer = null;
+        // Encode-ahead: queue order keeps every later layer behind this prefix.
+        if (layerSubmitInterval && (l + 1) % layerSubmitInterval === 0 && l + 1 < config.numLayers) {
+          recorder.submitPartial();
+        }
+
+        if (isGpuBufferInstance(prevStates) && prevStates !== hiddenStates) {
+          const isPreAllocated = isOwnedDecodeBuffer(prevStates, decodeHiddenBuffer, decodeAltBuffer);
+          if (!isPreAllocated) {
+            if (recorder) {
+              recorder.trackTemporaryBuffer(prevStates);
+              resources.transfer(prevStates, 'transferred');
+            } else {
+              resources.release(prevStates);
+            }
+          }
+        }
+      }
+    } finally {
+      context.perLayerInputBuffer = null;
+      if (perLayerInputs) {
+        for (const buffer of perLayerInputs) {
+          releasePerLayerInputBuffer(
+            buffer,
+            recorder,
+            context.decodeBuffers,
+            state.pleCache ?? null
+          );
+        }
+      }
+      helpers.releaseSharedAttentionState?.(context.sharedAttentionState, recorder);
+    }
+
+    const logitSoftcap = config.finalLogitSoftcapping === null
+      ? 0
+      : config.finalLogitSoftcapping;
+    const padTokenId = state.tokenizer?.getSpecialTokens?.()?.pad ?? null;
+    const lmHeadIsCpu = isCpuWeightBuffer(state.weights.get('lm_head'));
+    const useGPUSampling = state.useGPU && isGPUSamplingAvailable() && !lmHeadIsCpu;
+    const useFusedDecode = shouldUseFusedDecodeSampling({
+      recorderEnabled: Boolean(recorder),
+      gpuSamplingEnabled: useGPUSampling,
+      fusedDecodeDisabled: state.disableFusedDecode || opts.suppressTokenIds.length > 0 || typeof opts.logitMaskFn === 'function',
+      layerTypes: config.layerTypes,
+    });
+
+    if (useFusedDecode) {
+      const ring = state.decodeRing;
+      let ringSlot = null;
+      if (ring) {
+        ring.ensure({
+          batchSize: 1,
+          tokensPerInterval: 1,
+          stopCheckMode: executionPlan?.stopCheckMode ?? opts.stopCheckMode,
+          ringTokens: executionPlan?.ringTokens ?? state.runtimeConfig.inference.batching.ringTokens,
+          ringStop: executionPlan?.ringStop ?? state.runtimeConfig.inference.batching.ringStop,
+          ringStaging: executionPlan?.ringStaging ?? state.runtimeConfig.inference.batching.ringStaging,
+        });
+        ringSlot = ring.acquire();
+      }
+
+      const { logitsBuffer, vocabSize, logitsDtype } = await recordLogitsGPU(
+        recorder,
+        hiddenStates,
+        numTokens,
+        helpers.getLogitsWeights(),
+        helpers.getLogitsConfig(),
+        state.operatorDiagnostics,
+      );
+
+      resources.register(logitsBuffer, 'decode logits');
+      const ringTokensBuffer = ringSlot?.tokens ?? null;
+      await recordHistoryPenalties(recorder, logitsBuffer, currentIds, { ...opts, vocabSize, logitsDtype });
+      const sampleOutputBuffer = isGreedySampling(opts.temperature, opts.topK, samplingDefaults.greedyThreshold)
+        ? await recordArgmax(recorder, logitsBuffer, vocabSize, {
+          padTokenId,
+          logitSoftcap,
+          logitsDtype,
+          outputBuffer: ringTokensBuffer ?? undefined,
+          outputIndex: 0,
+        })
+        : await recordGPUSample(recorder, logitsBuffer, vocabSize, {
+          temperature: opts.temperature,
+          topK: opts.topK,
+          topP: opts.topP,
+          padTokenId,
+          logitSoftcap,
+          logitsDtype,
+          outputBuffer: ringTokensBuffer ?? undefined,
+          outputIndex: 0,
+          greedyThreshold: samplingDefaults.greedyThreshold,
+          randomSeed: opts.seed,
+        });
+
+      resources.register(sampleOutputBuffer, 'decode sampled token',
+        sampleOutputBuffer === ringTokensBuffer ? 'borrowed' : 'scopeOwned');
+      const ringStagingBuffer = ringSlot?.stagingTokens ?? null;
+      const stagingSize = state.finitenessBuffer ? 20 : 4;
+      const stagingBuffer = ringStagingBuffer && ringStagingBuffer.size >= stagingSize
+        ? ringStagingBuffer
+        : getReusableSampleReadbackBuffer(state, device, stagingSize);
+      const ownsStagingBuffer = false;
+
+      const encoder = recorder.getEncoder();
+      encoder.copyBufferToBuffer(sampleOutputBuffer, 0, stagingBuffer, 0, 4);
+      if (state.finitenessBuffer) {
+        encoder.copyBufferToBuffer(state.finitenessBuffer, 0, stagingBuffer, 4, 16);
+      }
+
+      if (dryRun) throw WHOLE_TOKEN_DRY_STEP_STOP;
+      const readbackMode = executionPlan?.readbackMode;
+      const isOverlapped = readbackMode === 'overlapped';
+
+      // In overlapped mode, advance ring BEFORE submit so the GPU's next copy
+      // target is a fresh slot while we read the current one.
+      if (isOverlapped) {
+        ring?.advance();
+      }
+
+      if (!allowReadback('pipeline.decode.sample')) {
+        throw new Error('[Pipeline] GPU readback disabled for sampling');
+      }
+
+      const submitStart = performance.now();
+      recorder.submit({ cleanup: 'deferred' });
+      const submitWaitMs = performance.now() - submitStart;
+
+      const readbackStart = performance.now();
+      const readbackResult = await readSampledTokenFromStagingBuffer(stagingBuffer, {
+        ownsStagingBuffer,
+        hasFinitenessBuffer: Boolean(state.finitenessBuffer),
+        ring: isOverlapped ? null : ring,
+        cleanupRecorder: recorder,
+      });
+      const readbackWaitMs = performance.now() - readbackStart;
+
+      state.stats.singleTokenSubmitWaitMs = (state.stats.singleTokenSubmitWaitMs ?? 0) + submitWaitMs;
+      state.stats.singleTokenReadbackWaitMs = (state.stats.singleTokenReadbackWaitMs ?? 0) + readbackWaitMs;
+      if (readbackResult.timing) {
+        state.stats.singleTokenReadbackMapWaitMs = (state.stats.singleTokenReadbackMapWaitMs ?? 0)
+          + readbackResult.timing.mapWaitMs;
+        state.stats.singleTokenReadbackCleanupMs = (state.stats.singleTokenReadbackCleanupMs ?? 0)
+          + readbackResult.timing.cleanupMs;
+        state.stats.singleTokenReadbackCopyMs = (state.stats.singleTokenReadbackCopyMs ?? 0)
+          + readbackResult.timing.copyMs;
+      }
+
+      const { nextToken: fusedNextToken, finitenessStatus } = readbackResult;
+
+      if (finitenessStatus.triggered) {
+        resources.release(logitsBuffer);
+        resources.release(sampleOutputBuffer);
+        resources.release(hiddenStates);
+        throw new FinitenessError(`F16 bounds exceeded during generation${finitenessStatus.metadata}`);
+      }
+
+      log.debug('Decode', `Step ${state.decodeStepCount}: token=${fusedNextToken} (vocabSize=${config.vocabSize})`);
+
+      const invalidToken = fusedNextToken >= config.vocabSize
+        || (padTokenId != null && fusedNextToken === padTokenId)
+        || (padTokenId == null && fusedNextToken === 0);
+      if (!invalidToken) await captureObservedFusedDecodeLogits(state, opts, logitsBuffer, vocabSize, logitsDtype, fusedNextToken, currentIds);
+      if (!invalidToken) {
+        schedulePlePrefetchForToken(state, fusedNextToken);
+      }
+      if (invalidToken) {
+        log.warn('Decode', `Suspicious token ${fusedNextToken} (vocabSize=${config.vocabSize}, step=${state.decodeStepCount})`);
+        if (allowReadback('pipeline.decode.debug-logits')) {
+          const logitsBytes = selectRuleValue('shared', 'dtype', 'bytesFromDtype', { dtype: logitsDtype });
+          const logitSample = await readBuffer(logitsBuffer, Math.min(config.vocabSize * logitsBytes, 4096));
+          const logitArr = decodeReadback(logitSample, logitsDtype);
+          const maxLogit = Math.max(...logitArr);
+          const minLogit = Math.min(...logitArr);
+          const hasNaN = logitArr.some((v) => Number.isNaN(v));
+          const hasInf = logitArr.some((v) => !Number.isFinite(v));
+          let argmaxIdx = 0;
+          let argmaxVal = logitArr[0];
+          for (let i = 1; i < logitArr.length; i++) {
+            if (logitArr[i] > argmaxVal) {
+              argmaxVal = logitArr[i];
+              argmaxIdx = i;
+            }
+          }
+          log.warn('Decode', `Logits: max=${maxLogit.toFixed(4)} at [${argmaxIdx}], min=${minLogit.toFixed(4)}, hasNaN=${hasNaN}, hasInf=${hasInf}`);
+          log.warn('Decode', `First 10 logits: ${Array.from(logitSample.slice(0, 10)).map((v) => v.toFixed(4)).join(', ')}`);
+          log.warn('Decode', `Logit[0] (pad): ${logitArr[0].toFixed(4)}, Logit[${argmaxIdx}]: ${argmaxVal.toFixed(4)}`);
+        }
+      }
+
+      resources.release(logitsBuffer);
+      resources.release(sampleOutputBuffer);
+
+      if (benchmarkSubmits) {
+        logSubmitStats(`Decode step ${state.decodeStepCount} (${config.numLayers} layers, fused)`);
+        setTrackSubmits(false);
+      }
+
+      if (opts.profile) {
+        const timings = await recorder.resolveProfileTimings({ requireComplete: true });
+        const total = sumProfileTimings(timings);
+        if (total !== null) {
+          state.stats.gpuTimeDecodeMs = (state.stats.gpuTimeDecodeMs ?? 0) + total;
+        }
+        if (timings || opts.executionObserver) {
+          recordDecodeProfileStep(state, {
+            step: state.decodeStepCount,
+            timings,
+            totalMs: total ?? undefined,
+            recorderStats: recorder.getStats(),
+          });
+          if (!opts.executionObserver && shouldLogProfileStep(state, state.decodeStepCount)) {
+            log.warn('Profile', `Decode step ${state.decodeStepCount}:`);
+            log.warn('Profile', CommandRecorder.formatProfileReport(timings));
+          }
+        }
+      }
+
+      if (invalidToken) {
+        state.disableFusedDecode = true;
+        log.warn('Decode', 'Fused sampling produced invalid token; falling back to CPU sampling.');
+        const fallbackLogits = await computeLogits(
+          hiddenStates,
+          numTokens,
+          helpers.getLogitsWeights(),
+          helpers.getLogitsConfig(),
+          state.useGPU,
+          state.debugFlags,
+          undefined,
+          debugCheckBuffer,
+          state.runtimeConfig.shared.debug.probes,
+          null,
+          state.operatorDiagnostics
+        );
+        applyRepetitionPenalty(fallbackLogits, currentIds, opts.repetitionPenalty, opts.repetitionPenaltyWindow);
+        if (opts.presencePenalty) {
+          applyPresencePenalty(fallbackLogits, currentIds, opts.presencePenalty, opts.repetitionPenaltyWindow);
+        }
+        const fallbackToken = sample(fallbackLogits, {
+          temperature: opts.temperature,
+          topP: opts.topP,
+          topK: opts.topK,
+          padTokenId,
+          seed: opts.seed,
+        });
+        schedulePlePrefetchForToken(state, fallbackToken);
+        resources.release(hiddenStates);
+        state.currentSeqLen++;
+        return fallbackToken;
+      }
+
+      resources.release(hiddenStates);
+
+      state.currentSeqLen++;
+      const stepWallMs = performance.now() - stepWallStart;
+      state.stats.singleTokenOrchestrationMs = (state.stats.singleTokenOrchestrationMs ?? 0)
+        + Math.max(0, stepWallMs - submitWaitMs - readbackWaitMs);
+      return fusedNextToken;
+    }
+
+    await submitDecodeRecorderProfile(state, opts, recorder, ' (layers only)');
+
+    if (benchmarkSubmits) {
+      logSubmitStats(`Decode step ${state.decodeStepCount} (${config.numLayers} layers)`);
+      setTrackSubmits(false);
+    }
+
+    if (opts.debug && state.decodeStepCount === 1 && isGpuBufferInstance(hiddenStates)) {
+      const debugDevice = getDevice();
+      if (debugDevice) {
+        if (allowReadback('pipeline.decode.debug-hidden')) {
+          const debugReadbackSize = state.runtimeConfig.shared.debug.pipeline.readbackSampleSize;
+          const sampleSize = Math.floor(Math.min(debugReadbackSize, hiddenStates.size) / activationBytes) * activationBytes;
+          const staging = debugDevice.createBuffer({
+            size: sampleSize,
+            usage: GPUBufferUsage.COPY_DST | GPUBufferUsage.MAP_READ,
+          });
+          const enc = debugDevice.createCommandEncoder();
+          enc.copyBufferToBuffer(hiddenStates, 0, staging, 0, sampleSize);
+          debugDevice.queue.submit([enc.finish()]);
+          const data = decodeReadback(await readMappedBufferCopy(staging), activationDtype, representation);
+          const nanCount = Array.from(data).filter(x => !Number.isFinite(x)).length;
+          const nonZero = Array.from(data).filter(x => Number.isFinite(x) && x !== 0).slice(0, 5);
+          log.debug('Decode', `[1] HIDDEN_AFTER_LAYERS: nan=${nanCount}/${data.length}, nonZero=${nonZero.length}, sample=[${nonZero.map(x => x.toFixed(4)).join(', ')}]`);
+        }
+      }
+    }
+
+    if (useGPUSampling) {
+      const logitsResult = await computeLogitsGPU(
+        hiddenStates,
+        numTokens,
+        helpers.getLogitsWeights(),
+        helpers.getLogitsConfig(),
+        state.debugFlags,
+        state.operatorDiagnostics,
+        { applySoftcap: true }
+      );
+      if (logitsResult) {
+        const { logitsBuffer, vocabSize, logitsDtype } = logitsResult;
+        resources.register(logitsBuffer, 'decode logits');
+        const logitsBytes = selectRuleValue('shared', 'dtype', 'bytesFromDtype', { dtype: logitsDtype });
+        const nfReadbackStart = performance.now();
+        const logitsData = await readBuffer(logitsBuffer, numTokens * vocabSize * logitsBytes);
+        const nfReadbackMs = performance.now() - nfReadbackStart;
+        state.stats.singleTokenReadbackWaitMs = (state.stats.singleTokenReadbackWaitMs ?? 0) + nfReadbackMs;
+        resources.release(logitsBuffer);
+
+        const rawLogits = decodeReadback(logitsData, logitsDtype);
+        const sampledLogits = extractLastPositionLogits(rawLogits, numTokens, config.vocabSize);
+
+        applyRepetitionPenalty(sampledLogits, currentIds, opts.repetitionPenalty, opts.repetitionPenaltyWindow);
+        if (opts.presencePenalty) {
+          applyPresencePenalty(sampledLogits, currentIds, opts.presencePenalty, opts.repetitionPenaltyWindow);
+        }
+        const observedLogits = typeof opts.onLogits === 'function' ? sampledLogits.slice() : sampledLogits;
+        const nextToken = sample(sampledLogits, {
+          temperature: opts.temperature,
+          topP: opts.topP,
+          topK: opts.topK,
+          padTokenId,
+          seed: opts.seed,
+        });
+        emitObservedLogits(opts.onLogits, observedLogits, nextToken, currentIds);
+        resources.release(hiddenStates);
+        state.currentSeqLen++;
+        const nfStepWallMs = performance.now() - stepWallStart;
+        state.stats.singleTokenOrchestrationMs = (state.stats.singleTokenOrchestrationMs ?? 0)
+          + Math.max(0, nfStepWallMs - nfReadbackMs);
+        return nextToken;
+      }
+    }
+
+    if (dryRun) throw new Error('A decode step verified ahead requires recorded fused GPU sampling.');
+    if (state.finitenessBuffer) {
+      const isInfiniteData = await readBuffer(state.finitenessBuffer, 16);
+      const u32 = new Uint32Array(isInfiniteData.buffer, isInfiniteData.byteOffset, 4);
+      const finitenessStatus = parseFinitenessStatusWords(u32, 0);
+      if (finitenessStatus.triggered) {
+        resources.release(hiddenStates);
+        throw new FinitenessError(`F16 bounds exceeded during generation${finitenessStatus.metadata}`);
+      }
+    }
+
+    const logits = await computeLogits(
+      hiddenStates,
+      numTokens,
+      helpers.getLogitsWeights(),
+      helpers.getLogitsConfig(),
+      state.useGPU,
+      state.debugFlags,
+      undefined,
+      debugCheckBuffer,
+      state.runtimeConfig.shared.debug.probes,
+      null,
+      state.operatorDiagnostics
+    );
+
+    resources.release(hiddenStates);
+
+    if (isDebugStep) {
+      logitsSanity(logits, `Decode[${state.decodeStepCount}]`, opts.decode);
+    }
+
+    applyRepetitionPenalty(logits, currentIds, opts.repetitionPenalty, opts.repetitionPenaltyWindow);
+    if (opts.presencePenalty) {
+      applyPresencePenalty(logits, currentIds, opts.presencePenalty, opts.repetitionPenaltyWindow);
+    }
+    const nextToken = sample(logits, {
+      temperature: opts.temperature,
+      topP: opts.topP,
+      topK: opts.topK,
+      padTokenId,
+      seed: opts.seed,
+    });
+
+    state.currentSeqLen++;
+    const cpuStepWallMs = performance.now() - stepWallStart;
+    state.stats.singleTokenOrchestrationMs = (state.stats.singleTokenOrchestrationMs ?? 0) + cpuStepWallMs;
+    return nextToken;
+  } catch (error) {
+    failed = true;
+    failure = error;
+    throw error;
+  } finally {
+    await lifecycle.close(failed, failure);
+  }
+}
+
+export async function decodeStepLogits(state, currentIds, opts, helpers) {
+  const lastToken = currentIds[currentIds.length - 1];
+  const numTokens = 1;
+  const config = state.modelConfig;
+
+  advanceDecodeStepCount(state);
+  const recorder = createDecodeRecorder(state, opts);
+
+  let hiddenStates, decodeHiddenBuffer, decodeAltBuffer, debugCheckBuffer;
+  let logitsBuffer = null, returned = false;
+  try {
+    ({ hiddenStates, decodeHiddenBuffer, decodeAltBuffer, debugCheckBuffer } = await runDecodeLayers(
+      state,
+      lastToken,
+      opts,
+      {
+        ...helpers,
+        buildLayerContext: (ignoredRecorder, isDecode, debugLayers, executionPlan) => {
+          const context = helpers.buildLayerContext(recorder, isDecode, debugLayers, executionPlan);
+          attachPreparedDecodeWorkspace((state.resolvedRuntimeSession?.runtime?.session
+            ?? state.runtimeConfig.inference.session).usePreparedDecodeWorkspace, recorder, context, getDevice());
+          return context;
+        },
+      }
+    ));
+
+    await submitDecodeRecorderProfile(state, opts, recorder, ' (layers only)');
+
+    let logitsDtype = null;
+    let rawVocabSize = config.vocabSize;
+    let logits = null;
+
+    if (state.useGPU && !isCpuWeightBuffer(state.weights.get('lm_head'))) {
+      const logitsResult = await computeLogitsGPU(
+        hiddenStates,
+        numTokens,
+        helpers.getLogitsWeights(),
+        helpers.getLogitsConfig(),
+        state.debugFlags,
+        state.operatorDiagnostics,
+        { applySoftcap: true }
+      );
+
+      if (logitsResult) {
+        logitsBuffer = logitsResult.logitsBuffer;
+        logitsDtype = logitsResult.logitsDtype;
+        rawVocabSize = logitsResult.vocabSize;
+
+        if (opts._returnGpuLogits !== true) {
+          const logitsBytes = selectRuleValue('shared', 'dtype', 'bytesFromDtype', { dtype: logitsDtype });
+          const logitsData = await readBuffer(logitsBuffer, numTokens * rawVocabSize * logitsBytes);
+          const rawLogits = decodeReadback(logitsData, logitsDtype);
+          logits = extractLastPositionLogits(rawLogits, numTokens, config.vocabSize);
+          releaseBuffer(logitsBuffer);
+          logitsBuffer = null;
+        }
+      }
+    }
+
+    if (!logits && !(opts._returnGpuLogits === true && logitsBuffer)) {
+      const rawLogits = await computeLogits(
+        hiddenStates,
+        numTokens,
+        helpers.getLogitsWeights(),
+        helpers.getLogitsConfig(),
+        state.useGPU,
+        state.debugFlags,
+        undefined,
+        debugCheckBuffer,
+        state.runtimeConfig.shared.debug.probes,
+        { returnGpuBuffer: opts._returnGpuLogits === true },
+        state.operatorDiagnostics
+      );
+      if (opts._returnGpuLogits === true) {
+        ({ logitsBuffer, logitsDtype, rawVocabSize } = rawLogits);
+      } else {
+        logits = extractLastPositionLogits(rawLogits, numTokens, config.vocabSize);
+      }
+    }
+
+    state.currentSeqLen++;
+    returned = true;
+    return { logits, logitsBuffer, logitsDtype, rawVocabSize, vocabSize: config.vocabSize };
+  } finally {
+    if (hiddenStates && !isOwnedDecodeBuffer(hiddenStates, decodeHiddenBuffer, decodeAltBuffer)) releaseBuffer(hiddenStates);
+    if (!returned && logitsBuffer) releaseBuffer(logitsBuffer);
+    recorder?.abort();
+  }
+}
