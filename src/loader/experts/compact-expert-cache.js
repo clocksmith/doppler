@@ -31,6 +31,8 @@ export class CompactExpertCache {
   #owned = new Set();
   #bytes = 0;
   #staging = 0;
+  /** @type {Array<{ bytes: Uint8Array | null }>} */
+  #readers = [];
 
   /** @param {import('./compact-expert-cache.js').CompactExpertCacheOptions} options
    * @param {import('./routed-expert-source.js').RoutedExpertCounters} stats */
@@ -38,6 +40,16 @@ export class CompactExpertCache {
     validateQwen35RoutedConfig(options.policy);
     this.#options = options;
     this.#stats = stats;
+  }
+
+  #chunkBytes() {
+    const { stagingBytes, readConcurrency } = this.#options.policy;
+    return Math.floor(stagingBytes / (2 * readConcurrency * 4)) * 4;
+  }
+
+  #clearReaderStaging() {
+    for (const reader of this.#readers) this.#staging -= reader.bytes?.byteLength ?? 0;
+    this.#readers = [];
   }
 
   /** @param {number} bytes @param {string} label */
@@ -95,7 +107,7 @@ export class CompactExpertCache {
    * @param {number} expert @param {number} slot @param {AbortSignal} signal
    * @param {{ bytes: Uint8Array | null }} reader */
   async #fill(plan, pool, expert, slot, signal, reader) {
-    const chunkBytes = Math.floor(this.#options.policy.stagingBytes / (2 * this.#options.policy.readConcurrency * 4)) * 4;
+    const chunkBytes = this.#chunkBytes();
     for (const plane of plan.planes) {
       for (let offset = 0; offset < plane.expertBytes;) {
         signal.throwIfAborted();
@@ -139,6 +151,11 @@ export class CompactExpertCache {
 
   /** @type {import('./compact-expert-cache.js').CompactExpertCache['prepare']} */
   async prepare(plan, ids, signal) {
+    const chunkBytes = this.#chunkBytes();
+    if (!this.#options.readRangeInto || this.#readers.length > this.#options.policy.readConcurrency
+      || this.#readers.some(reader => (reader.bytes?.byteLength ?? 0) > chunkBytes)) {
+      this.#clearReaderStaging();
+    }
     const pool = this.#pool(plan);
     if (ids.length > pool.capacity) throw new Error('Compact expert selection exceeds slot capacity; reduce route chunks.');
     const selected = new Set(ids);
@@ -173,15 +190,13 @@ export class CompactExpertCache {
     signal.addEventListener('abort', abort, { once: true });
     if (signal.aborted) abort();
     try {
-      const outcomes = await Promise.allSettled(Array.from({ length: this.#options.policy.readConcurrency }, async () => {
-        const reader = { bytes: /** @type {Uint8Array | null} */ (null) };
-        try {
-          while (cursor < misses.length) {
-            const { expert, slot } = misses[cursor++];
-            try { await this.#fill(plan, pool, expert, slot, controller.signal, reader); }
-            catch (error) { controller.abort(error); throw error; }
-          }
-        } finally { this.#staging -= reader.bytes?.byteLength ?? 0; }
+      const outcomes = await Promise.allSettled(Array.from({ length: this.#options.policy.readConcurrency }, async (_, index) => {
+        const reader = this.#readers[index] ??= { bytes: null };
+        while (cursor < misses.length) {
+          const { expert, slot } = misses[cursor++];
+          try { await this.#fill(plan, pool, expert, slot, controller.signal, reader); }
+          catch (error) { controller.abort(error); throw error; }
+        }
       }));
       const failed = outcomes.find(result => result.status === 'rejected');
       if (failed) throw failed.reason;
@@ -219,6 +234,7 @@ export class CompactExpertCache {
   async destroy() {
     const errors = [];
     try { await this.#options.device.queue.onSubmittedWorkDone(); } catch (error) { errors.push(error); }
+    this.#clearReaderStaging();
     for (const buffer of this.#owned) {
       try { this.#retire(buffer); } catch (error) { errors.push(error); }
     }

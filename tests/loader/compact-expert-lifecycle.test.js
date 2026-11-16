@@ -33,6 +33,7 @@ function fixture(direct) {
   const plan = planRoutedExpertBank(manifest, locations, 0);
   const buffers = [];
   const reads = [];
+  const destinations = new Set();
   const uploads = [];
   const hooks = {
     allocation() {},
@@ -77,6 +78,7 @@ function fixture(direct) {
       return shards.get(shard).slice(offset, offset + length).buffer;
     },
     readRangeInto: direct ? async (shard, offset, destination, signal) => {
+      destinations.add(destination.buffer);
       reads.push({ shard, offset, length: destination.byteLength });
       // A cancelled source is allowed to have partially written its destination.
       destination.fill(0xff);
@@ -85,7 +87,7 @@ function fixture(direct) {
       return destination.byteLength;
     } : undefined,
   };
-  return { cache: new RoutedExpertCache(options), options, plan, buffers, reads, uploads, hooks, policy, shards };
+  return { cache: new RoutedExpertCache(options), options, plan, buffers, reads, destinations, uploads, hooks, policy, shards };
 }
 
 function checkWeights(f, weights, experts) {
@@ -196,6 +198,22 @@ for (const boundary of ['partial-upload', 'before-publication']) {
   await other.destroy();
   assert(f.buffers.every(buffer => buffer.destroyed));
   assert.equal(other.getStats().residentBytes, 0);
+}
+
+{
+  const f = fixture(true);
+  for (const experts of [[0, 1], [2, 3], [0, 1]]) {
+    checkWeights(f, await f.cache.prepare(f.plan, experts, undefined, 'decode'), experts);
+  }
+  assert.equal(f.cache.getStats().stagingAllocations, f.policy.readConcurrency,
+    'sequential preparations reuse each reader\'s bounded scratch');
+  assert.equal(f.destinations.size, f.policy.readConcurrency);
+  f.policy.stagingBytes /= 2;
+  checkWeights(f, await f.cache.prepare(f.plan, [2, 3], undefined, 'decode'), [2, 3]);
+  assert.equal(f.cache.getStats().stagingAllocations, 2 * f.policy.readConcurrency,
+    'a smaller scratch budget replaces the previous reservations');
+  assert(f.cache.getStats().peakStagingBytes <= f.policy.stagingBytes);
+  await f.cache.destroy();
 }
 
 console.log('Compact expert lifecycle: cancellation, allocation/publication failure, deferred drain, recovery and owner isolation passed (CPU mocks).');
