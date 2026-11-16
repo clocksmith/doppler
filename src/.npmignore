@@ -1066,6 +1066,7 @@ storage/runtime-env.d.ts
 storage/shards/index.d.ts
 storage/shards/integrity.d.ts
 storage/shards/lifecycle.d.ts
+storage/verified-piece-gather-lane.d.ts
 storage/verified-piece-gather-worker.d.ts
 sw.d.ts
 sw.js

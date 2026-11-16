@@ -22,7 +22,7 @@ let worker, cache;
 try {
   await writeFile(path, bytes);
   worker = await createVerifiedPieceGather({ manifestBytes, indexBytes, indexIdentity: sha(indexBytes),
-    files: { 'weights.bin': path }, maxPartBytes: 8, memoryBudgetBytes: 16 });
+    files: { 'weights.bin': path }, maxPartBytes: 8, memoryBudgetBytes: 32, concurrency: 2 });
   const shards = new ShardCache({ maxEntries: 1 });
   shards.setCustomLoader(null, true, { rangeLease: worker.rangeLease });
   assert.equal(shards.rangeLease, worker.rangeLease);
@@ -30,6 +30,7 @@ try {
   assert.equal(shards.rangeLease, null, 'Switching storage clears the old model lease port');
   let failUpload = false;
   const leases = [];
+  let activeReads = 0, peakReads = 0;
   const device = { limits: { maxBufferSize: 4096, maxStorageBufferBindingSize: 4096 },
     createBuffer: ({ size }) => ({ size, data: new Uint8Array(size), destroy() {} }),
     queue: { async onSubmittedWorkDone() {}, writeBuffer(buffer, offset, data) {
@@ -38,7 +39,7 @@ try {
     } } };
   const policy = { enabled: true, storageMode: 'compact-decode', evictionPolicy: 'lru', compactLayerBytes: null,
     compactPrefillBytes: 0, compactPrefillReuse: 'none', cacheBytes: 24, hostCacheBytes: 0,
-    hostCacheAdmission: 'all', hostCacheAdmissionPhase: 'all', stagingBytes: 32, readConcurrency: 2,
+    hostCacheAdmission: 'all', hostCacheAdmissionPhase: 'all', stagingBytes: 48, readConcurrency: 2,
     routeChunkTokens: 2, gpuBudgetBytes: 4096, reserveBytes: 16 };
   const plan = { layer: 0, numLayers: 1, numExperts: 2, expertBytes: 8, intermediateSize: 2,
     planes: [{ role: 'down', dtype: 'f32', name: 'down', expertBytes: 8,
@@ -46,13 +47,18 @@ try {
   const options = { device, policy, compactLayerCount: 1, otherGpuBytes: () => 0,
     async readRange() { throw new Error('Generic read must not run for admitted whole parts'); },
     rangeLease: { ...worker.rangeLease, async read(...args) {
-      const lease = await worker.rangeLease.read(...args); leases.push(lease); return lease;
+      activeReads++; peakReads = Math.max(peakReads, activeReads);
+      try {
+        const lease = await worker.rangeLease.read(...args); leases.push(lease);
+        return { bytes: lease.bytes, release() { lease.release(); activeReads--; } };
+      } catch (error) { activeReads--; throw error; }
     } } };
   assert.throws(() => new CompactExpertCache({ ...options, policy: { ...policy, stagingBytes: 16 } }, createRoutedExpertCounters()), /aggregate/);
   const stats = createRoutedExpertCounters();
   cache = new CompactExpertCache(options, stats);
   await cache.prepare(plan, [0, 1], new AbortController().signal);
   assert.equal(leases.length, 2);
+  assert.equal(peakReads, 2, 'Compact decode dispatches independently admitted lanes concurrently');
   assert(leases.every(lease => lease.bytes.byteLength === 0), 'Uploaded ranges returned and detached');
   assert.equal(stats.stagingAllocations, 0, 'No main-thread scratch allocated');
   assert.equal(stats.sourceReadBytes, 16);

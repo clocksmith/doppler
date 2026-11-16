@@ -1,117 +1,96 @@
-/*
- * Node-only bounded whole-part gathering. The host explicitly pins the index and
- * maps authenticated filenames to approved local files. A lease remains owned by
- * the caller until release; release is safe after queue.writeBuffer returns.
- */
+import { createVerifiedPieceGatherLane } from './verified-piece-gather-lane.js';
+
 /** @type {import('./verified-piece-gather.js').createVerifiedPieceGather} */
 export async function createVerifiedPieceGather(options) {
-  const { maxPartBytes, memoryBudgetBytes, indexIdentity } = options;
-  const manifestBytes = new Uint8Array(options.manifestBytes);
-  const indexBytes = new Uint8Array(options.indexBytes);
-  const files = { ...options.files };
-  const index = JSON.parse(new TextDecoder().decode(indexBytes));
-  const pieceBytes = index.maxPieceBytes;
-  if (!Number.isSafeInteger(maxPartBytes) || maxPartBytes < 1
-    || !Number.isSafeInteger(pieceBytes) || pieceBytes < 1
-    || !Number.isSafeInteger(maxPartBytes + 2 * pieceBytes) || !Number.isSafeInteger(memoryBudgetBytes) || memoryBudgetBytes < maxPartBytes + 2 * pieceBytes) {
-    throw new Error('Gather budget must hold one output and two complete piece buffers.');
+  // Omission preserves the original single-lane contract, not automatic tuning.
+  const concurrency = options.concurrency ?? 1;
+  const pinned = { ...options, manifestBytes: new Uint8Array(options.manifestBytes),
+    indexBytes: new Uint8Array(options.indexBytes), files: { ...options.files } };
+  const pieceBytes = JSON.parse(new TextDecoder().decode(pinned.indexBytes)).maxPieceBytes;
+  const laneBytes = pinned.maxPartBytes + 2 * pieceBytes;
+  const memoryBytes = concurrency * laneBytes;
+  if (!Number.isSafeInteger(concurrency) || concurrency < 1
+    || !Number.isSafeInteger(memoryBytes) || !Number.isSafeInteger(pinned.memoryBudgetBytes)
+    || pinned.memoryBudgetBytes < memoryBytes) {
+    throw new Error('Gather budget must cover every concurrent output and complete-piece buffer.');
   }
-  // Metadata is copied by workerData; authentication completes before admission.
-  const { Worker } = await import('node:worker_threads');
-  const worker = new Worker(new URL('./verified-piece-gather-worker.js', import.meta.url), {
-    workerData: { files, metadata: { manifestBytes, indexBytes, indexIdentity } },
-  });
-  let closed = false;
-  let busy = false;
-  let buffer = new ArrayBuffer(maxPartBytes);
-  /** @type {((error: Error) => void) | null} */
-  let failPending = null;
-  /** @type {((message: { ready?: boolean, buffer: ArrayBuffer, error?: string, receipt?: import('./verified-piece-reader.js').VerifiedPieceReceipt }) => void) | null} */
-  let receive = null;
-  /** @type {Promise<void>} */
-  const ready = new Promise((resolve, reject) => {
-    failPending = reject;
-    receive = message => { if (message.ready) { failPending = null; resolve(); } };
-  });
-  worker.on('message', message => receive?.(message));
-  /** @param {Error} error */
-  const fail = error => {
-    closed = true;
-    failPending?.(error);
-    failPending = null;
-    receive = null;
-  };
-  worker.on('error', fail);
-  worker.on('exit', () => fail(new Error('Gather worker closed.')));
-  try { await ready; } catch (error) { await worker.terminate(); throw error; }
+  /** @type {Array<{ reader: Awaited<ReturnType<typeof createVerifiedPieceGatherLane>>, busy: boolean }>} */
+  const lanes = [];
+  try {
+    for (let index = 0; index < concurrency; index++) {
+      lanes.push({ reader: await createVerifiedPieceGatherLane({ ...pinned, memoryBudgetBytes: laneBytes }), busy: false });
+    }
+  } catch (error) {
+    await Promise.allSettled(lanes.map(lane => lane.reader.close()));
+    throw error;
+  }
+  let closed = false, collecting = false;
   /** @type {Promise<void> | null} */
   let closing = null;
-/** @type {Pick<Awaited<ReturnType<import('./verified-piece-gather.js').createVerifiedPieceGather>>, 'readLease' | 'close' | 'getReceipt'>} */
+  /** @type {Pick<Awaited<ReturnType<import('./verified-piece-gather.js').createVerifiedPieceGather>>, 'readLease' | 'getReceipt' | 'close'>} */
   const result = {
     async readLease(path, offset, length, signal) {
       signal?.throwIfAborted();
       if (closed) throw new Error('Gather reader closed.');
-      if (busy) throw new Error('Release the current gather lease before another read.');
-      if (!Number.isSafeInteger(length) || length < 0 || length > maxPartBytes) {
-        throw new Error('Gather part exceeds its admitted output bound.');
-      }
-      busy = true;
+      const lane = collecting ? null : lanes.find(candidate => !candidate.busy);
+      if (!lane) throw new Error('Release a current gather lease before another read.');
+      lane.busy = true;
       try {
-        /** @type {{ buffer: ArrayBuffer, error?: string }} */
-        const message = await new Promise((resolve, reject) => {
-          failPending = reject;
-          receive = result => { failPending = null; receive = null; resolve(result); };
-          worker.postMessage({ path, offset, length, buffer }, [buffer]);
-        });
-        buffer = message.buffer;
-        if (message.error) throw new Error(message.error);
-        signal?.throwIfAborted();
-        if (closed) throw new Error('Gather reader closed.');
+        const owned = await lane.reader.readLease(path, offset, length, signal);
+        if (closed) { owned.release(); throw new Error('Gather reader closed.'); }
         let released = false;
-        return Object.freeze({ bytes: new Uint8Array(buffer, 0, length), release() {
+        return Object.freeze({ bytes: owned.bytes, release() {
           if (released) return;
           released = true;
-          // Detach the old views immediately so stale leases cannot mutate the pool.
-          buffer = structuredClone(buffer, { transfer: [buffer] });
-          busy = false;
+          try { owned.release(); } finally { lane.busy = false; }
         } });
-      } catch (error) {
-        busy = false;
-        throw error;
-      }
+      } catch (error) { lane.busy = false; throw error; }
     },
     async getReceipt() {
       if (closed) throw new Error('Gather reader closed.');
-      if (busy) throw new Error('Release the current gather lease before reading its receipt.');
-      busy = true;
+      if (collecting || lanes.some(lane => lane.busy)) throw new Error('Release all current gather leases before reading receipts.');
+      collecting = true;
       try {
-        return await new Promise((resolve, reject) => {
-          failPending = reject;
-          receive = message => {
-            failPending = null; receive = null;
-            if (!message.receipt) reject(new Error('Missing gather receipt.'));
-            else resolve(message.receipt);
-          };
-          worker.postMessage({ receipt: true });
-        });
-      } finally { busy = false; }
+        // Await all owners even if one failed, before allowing another read.
+        const outcomes = await Promise.allSettled(lanes.map(lane => lane.reader.getReceipt()));
+        const failed = outcomes.find(outcome => outcome.status === 'rejected');
+        if (failed) throw failed.reason;
+        if (closed) throw new Error('Gather reader closed.');
+        const receipts = outcomes.flatMap(outcome => outcome.status === 'fulfilled' ? [outcome.value] : []);
+        const merged = { ...receipts[0] };
+        const fields = /** @type {const} */ (['requestedBytes', 'acquisitionMs', 'verificationMs', 'copyMs', 'activeReadBytes', 'peakReadBytes']);
+        for (const field of fields) {
+          merged[field] = receipts.reduce((total, receipt) => total + receipt[field], 0);
+        }
+        /** @type {Map<string, import('./verified-piece-reader.js').VerifiedPiece>} */
+        const ranges = new Map();
+        for (const receipt of receipts) for (const range of receipt.ranges) ranges.set(`${range.path}:${range.offset}`, range);
+        merged.ranges = [...ranges.values()];
+        const pieces = new Map(merged.ranges.map(range => [range.identity, range.size]));
+        merged.pieces = [...pieces.keys()];
+        merged.verifiedBytes = [...pieces.values()].reduce((total, bytes) => total + bytes, 0);
+        return merged;
+      } finally { collecting = false; }
     },
     close() {
       if (!closing) {
-        fail(new Error('Gather reader closed.'));
-        closing = worker.terminate().then(() => {});
+        closed = true;
+        closing = (async () => {
+          const outcomes = await Promise.allSettled(lanes.map(lane => lane.reader.close()));
+          const failed = outcomes.find(outcome => outcome.status === 'rejected');
+          if (failed) throw failed.reason;
+        })();
       }
       return closing;
     },
   };
-  const manifest = JSON.parse(new TextDecoder().decode(manifestBytes));
-/** @type {import('./verified-piece-gather.js').VerifiedRangeLeasePort} */
-  const rangeLease = { maxPartBytes, memoryBytes: maxPartBytes + 2 * pieceBytes,
-    read: (shard, offset, length, signal) => {
+  const manifest = JSON.parse(new TextDecoder().decode(pinned.manifestBytes));
+  /** @type {import('./verified-piece-gather.js').VerifiedRangeLeasePort} */
+  const rangeLease = { concurrency, maxPartBytes: pinned.maxPartBytes, memoryBytes,
+    read(shard, offset, length, signal) {
       const file = manifest.shards[shard];
       if (!file) return Promise.reject(new Error('Undeclared gather shard.'));
       return result.readLease(file.filename, offset, length, signal);
-    },
-  };
+    } };
   return Object.freeze({ ...result, rangeLease: Object.freeze(rangeLease) });
 }

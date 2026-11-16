@@ -41,8 +41,9 @@ export class CompactExpertCache {
     this.#options = options;
     this.#stats = stats;
     const lease = options.rangeLease;
-    if (lease && (!Number.isSafeInteger(lease.maxPartBytes) || lease.maxPartBytes < 4
-      || !Number.isSafeInteger(lease.memoryBytes) || lease.memoryBytes < lease.maxPartBytes
+    if (lease && (!Number.isSafeInteger(lease.concurrency ?? 1) || (lease.concurrency ?? 1) < 1
+      || !Number.isSafeInteger(lease.maxPartBytes) || lease.maxPartBytes < 4
+      || !Number.isSafeInteger(lease.memoryBytes) || lease.memoryBytes < lease.maxPartBytes * (lease.concurrency ?? 1)
       || lease.memoryBytes > options.policy.stagingBytes - 8 * options.policy.readConcurrency)) {
       throw new Error('Owned expert ranges must fit the aggregate staging budget with fallback scratch.');
     }
@@ -218,7 +219,7 @@ export class CompactExpertCache {
     signal.addEventListener('abort', abort, { once: true });
     if (signal.aborted) abort();
     try {
-      const outcomes = await Promise.allSettled(Array.from({ length: this.#options.rangeLease ? 1 : this.#options.policy.readConcurrency }, async (_, index) => {
+      const outcomes = await Promise.allSettled(Array.from({ length: this.#options.rangeLease ? Math.min(this.#options.policy.readConcurrency, this.#options.rangeLease.concurrency ?? 1) : this.#options.policy.readConcurrency }, async (_, index) => {
         const reader = this.#readers[index] ??= { bytes: null };
         while (cursor < misses.length) {
           const { expert, slot } = misses[cursor++];

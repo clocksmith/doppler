@@ -260,6 +260,7 @@
     "src/config/transforms/execution-graph/correctness-fallback.js",
     "src/config/transforms/execution-graph/prefill-attention.js",
     "src/converter/execution-graph-transforms.js",
-    "src/converter/capability-transform-resolver.js"
+    "src/converter/capability-transform-resolver.js",
+    "src/storage/verified-piece-gather-lane.js"
   ]
 }

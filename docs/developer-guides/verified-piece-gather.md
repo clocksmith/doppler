@@ -7,7 +7,7 @@ validates the index-to-manifest binding and hashes every complete piece before
 publishing a gathered range. Runtime metadata is snapshotted before admission.
 
 Create the adapter with `createVerifiedPieceGather({ manifestBytes, indexBytes,
-indexIdentity, files, maxPartBytes, memoryBudgetBytes })`. `files` maps authenticated
+indexIdentity, files, maxPartBytes, memoryBudgetBytes, concurrency })`. `files` maps authenticated
 index filenames to approved local paths. Set `maxPartBytes` to cover a plane
 when whole-plane gathering is desired. A larger plane is read in bounded parts.
 
@@ -16,7 +16,7 @@ Production hosts using `createVerifiedPieceStorage` can supply `nodeGather`:
 ```js
 const source = await createVerifiedPieceStorage({
   manifestBytes, indexBytes, indexIdentity, acquire, signal,
-  nodeGather: { files, maxPartBytes, memoryBudgetBytes },
+  nodeGather: { files, maxPartBytes, memoryBudgetBytes, concurrency },
 });
 ```
 
@@ -49,16 +49,19 @@ directly for GPU uploads instead of copying them into main-thread scratch.
 Reading, hashing and gathering happen inside the worker; gathering itself still
 copies bytes. No shared scratch backing buffer is transferred.
 
-One adapter permits one outstanding read or lease. Compact loading uses one
-reader while this port is enabled. It releases each lease in `finally` after
+The optional explicit `concurrency` declares worker lanes; omission preserves
+one lane. Each lane permits one outstanding read or lease with its own buffer.
+Compact loading dispatches up to the smaller of this count and `readConcurrency`.
+Saturation rejects another read rather than allocating beyond the admitted bound. It releases each lease in `finally` after
 `queue.writeBuffer` has copied the bytes, including upload failures. Released
-views are detached. Repeated release is harmless. The buffer is reused, not
-reallocated for each range. Direct callers must release before their next read.
+views are detached. Repeated release is harmless. Each lane buffer is reused, not
+reallocated for each range. Direct callers must release a lane before exceeding the declared count.
 
-The admitted byte bound is one maximum output plus two complete-piece byte
-buffers. It excludes immutable metadata, native digest internals and VM overhead;
+The admitted byte bound is `concurrency * (maxPartBytes + 2 * maxPieceBytes)`:
+every worker's maximum output and two complete-piece buffers are reserved. It excludes immutable metadata, native digest internals and VM overhead;
 it is not an RSS limit. Compact staging admission reserves that bound plus its
-fallback scratch. Do not share the adapter between concurrently preparing caches.
+fallback scratch. Do not share the adapter between concurrently preparing caches. Multiple lanes
+remove an enforced serialization point; they do not establish a measured speedup.
 
 Cancellation prevents publication and is checked after the bounded worker read;
 it does not interrupt a synchronous disk read or native hash. `gather.close()`
