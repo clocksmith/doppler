@@ -1,7 +1,7 @@
 import math
 import threading
 import unittest
-from oblivious_experts import ExpertProgram, flash_expert_program
+from oblivious_experts import ExpertProgram, FlashMoEProgram, flash_expert_program
 
 
 class ExpertTests(unittest.TestCase):
@@ -67,6 +67,13 @@ class ExpertTests(unittest.TestCase):
         self.assertEqual(len(calls),9)
         def mutate(operation,value):operation['id']='selected-only'
         with self.assertRaises(TypeError):self.program().attempt().run([1,2],[0],[1],mutate)
+
+    def test_local_routing_semantics_are_bound_even_when_remote_schedule_is_identical(self):
+        first=FlashMoEProgram(self.program(),2,True,'b'*64)
+        second=FlashMoEProgram(ExpertProgram('a'*64,3,2,2,2),2,True,'b'*64)
+        self.assertEqual(first.contract()['operations'],second.contract()['operations'])
+        self.assertNotEqual(first.identity,second.identity)
+        self.assertNotEqual(first.identity,FlashMoEProgram(self.program(),2,False,'b'*64).identity)
 
     def test_pinned_flash_geometry_builds_all_experts_without_claiming_execution(self):
         program=flash_expert_program();contract=program.contract()

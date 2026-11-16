@@ -138,7 +138,7 @@ class FlashMoEProgram:
                     operation('shared/down',shared,hidden),operation('router/logits',hidden,self.experts.expert_count)]
         operations+=self.experts.contract()['operations']
         operations.append(operation('shared/mix',hidden,1))
-        return dict(schema='doppler.client-flash-moe-reference/v1',sourceConfigId=self.experts.source_config_id,
+        return dict(schema='doppler.client-flash-moe-reference/v1',sourceConfigId=self.experts.source_config_id,expertProgramId=self.experts.identity,
                     operatorReferenceId=self.reference_id,normalizeTopK=self.normalize_topk,rows=1,operations=operations)
 
     @property
