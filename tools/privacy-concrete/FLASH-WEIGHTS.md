@@ -316,3 +316,26 @@ a source/materialization capability, not an installed encrypted full-Flash backe
 No complete weight set has been provisioned or executed by this inventory step.
 Actual complete-model streaming/assembly, quantization and autoregressive encrypted
 execution remain unverified; production cryptographic admission stays closed.
+
+## Pinned client tokenizer path
+
+`prepare_flash_tokenizer.py` acquires only the exact public tokenizer/configuration
+files (12.8 MB tokenizer JSON plus its configuration), without model weights.
+`flash_tokenizer.encode` and `decode` require local verified files, explicit token
+limits and the installed fixed fast tokenizer implementation. Each call owns a
+fresh tokenizer so private BPE/text caches are not shared across requests. Source
+identity spans construction and tokenization/decoding; mutation, cancellation,
+unsupported implementations and out-of-vocabulary IDs fail before returning data.
+The helper runs neither downloaded Python nor chat-template code and performs no
+network fetch during private text processing. Reference release is not zeroization.
+
+The isolated adapter workflow qualifies the actual public vocabulary and records
+one fixed public roundtrip with source/dependency identities and elapsed time.
+Tokenization is client text I/O, not Flash model execution or encrypted inference.
+The complete Flash model/weight/route and security acceptance gates remain closed.
+
+The pinned tokenizers 0.19.1 [BPE implementation](https://github.com/huggingface/tokenizers/blob/v0.19.1/tokenizers/src/models/bpe/model.rs)
+owns its [cache map](https://github.com/huggingface/tokenizers/blob/v0.19.1/tokenizers/src/utils/cache.rs)
+inside each model instance. Fresh, locally loaded instances provide separate
+cache ownership for these helper calls; this does not establish memory zeroization
+or isolation from the trusted client host.

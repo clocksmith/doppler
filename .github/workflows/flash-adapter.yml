@@ -13,6 +13,9 @@ on:
       - 'tools/privacy-concrete/flash_ple_plan.py'
       - 'tools/privacy-concrete/flash_weights.py'
       - 'tools/privacy-concrete/test_flash_moe_native.py'
+      - 'tools/privacy-concrete/flash*tokenizer*'
+      - 'tools/privacy-concrete/prepare_flash_tokenizer.py'
+      - 'tools/privacy-concrete/test_flash_tokenizer*'
 permissions:
   contents: read
 jobs:
@@ -36,3 +39,17 @@ jobs:
         env:
           DOPPLER_CONCRETE_NATIVE: '1'
         run: python -m unittest discover -s tools/privacy-concrete -p test_flash_moe_native.py -v
+      - name: Provision only the exact public Flash tokenizer
+        run: python tools/privacy-concrete/prepare_flash_tokenizer.py --destination "$RUNNER_TEMP/flash-tokenizer"
+      - name: Check real Flash text input and output using local pinned files
+        env:
+          DOPPLER_FLASH_TOKENIZER_DIR: ${{ runner.temp }}/flash-tokenizer
+        run: |
+          python -m unittest discover -s tools/privacy-concrete -p test_flash_tokenizer_native.py -v
+          python tools/privacy-concrete/flash_tokenizer.py --source-dir "$RUNNER_TEMP/flash-tokenizer" --public-fixture flash-public-capital-text > "$RUNNER_TEMP/flash-public-text-io.json"
+      - uses: actions/upload-artifact@v6
+        with:
+          name: actual-flash-public-text-io
+          path: ${{ runner.temp }}/flash-public-text-io.json
+          if-no-files-found: error
+          retention-days: 7

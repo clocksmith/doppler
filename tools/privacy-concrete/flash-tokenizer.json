@@ -1,0 +1,34 @@
+{
+  "schema": "doppler.flash-client-tokenizer-source/v1",
+  "repository": "Qwen/Qwen3.8-Flash-Next",
+  "revision": "812d96e10a0dd82b69d749e68693698cf6c36daa",
+  "tokenizerClass": "Qwen2Tokenizer",
+  "vocabSize": 248320,
+  "maxPositionEmbeddings": 262144,
+  "maxPromptBytes": 4096,
+  "maxOutputBytes": 4096,
+  "files": {
+    "config.json": {
+      "bytes": 4745,
+      "sha256": "889658f2508e8c61d409b02e70e0d78d8d4452ec65aaafbe129805d213d2e74b"
+    },
+    "tokenizer_config.json": {
+      "bytes": 9984,
+      "sha256": "207c03c41a06a9c3b0cc527d8a56115159c1eac6b59a4ffae85b646e773d074e"
+    },
+    "tokenizer.json": {
+      "bytes": 12809320,
+      "sha256": "0997f410c57a1f4e53b09e4be8f4a172d90edd9564368fb0847030937229b9f3"
+    }
+  },
+  "productionBackendAvailable": false,
+  "securityQualified": false,
+  "additionalDependencies": {
+    "tokenizers": "0.19.1"
+  },
+  "publicFixture": {
+    "id": "flash-public-capital-text",
+    "text": "The capital of France is",
+    "maxTokens": 8
+  }
+}
