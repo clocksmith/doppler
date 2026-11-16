@@ -11,6 +11,29 @@ try {
     "globalThis.__dopplerIsolationLeak = 1;\nconsole.log('a-first.test: ok');\n",
     'utf8'
   );
+
+  writeFileSync(path.join(tempDir, 'owned-worker.js'), [
+    "import { parentPort } from 'node:worker_threads';",
+    "parentPort.on('message', value => parentPort.postMessage(value + '-ok'));",
+    "parentPort.postMessage('ready');",
+  ].join('\n'));
+  writeFileSync(path.join(tempDir, 'c-owned-worker.test.js'), [
+    "import assert from 'node:assert/strict';",
+    "import { Worker } from 'node:worker_threads';",
+    "const worker = new Worker(new URL('./owned-worker.js', import.meta.url));",
+    'try {',
+    '  const response = await new Promise((resolve, reject) => {',
+    "    worker.once('error', reject);",
+    "    worker.once('exit', code => reject(new Error('Owned worker exited before its probe: ' + code)));",
+    "    worker.on('message', value => {",
+    "      if (value === 'ready') setTimeout(() => worker.postMessage('probe'), 25);",
+    "      else resolve(value);",
+    '    });',
+    '  });',
+    "  assert.equal(response, 'probe-ok');",
+    '} finally { await worker.terminate(); }',
+    "console.log('c-owned-worker.test: ok');",
+  ].join('\n'));
   writeFileSync(
     path.join(tempDir, 'b-second.test.js'),
     [
@@ -33,7 +56,7 @@ try {
   });
 
   assert.equal(result.status, 0, result.stderr || result.stdout);
-  assert.match(result.stdout, /\[node-tests\] ok: 2 files/);
+  assert.match(result.stdout, /\[node-tests\] ok: 3 files/);
 } finally {
   rmSync(tempDir, { recursive: true, force: true });
 }

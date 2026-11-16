@@ -1,8 +1,12 @@
 import './node-test-runtime-setup.js';
 import { resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
+import { isMainThread } from 'node:worker_threads';
 
-if (process.env.NODE_TEST_CONTEXT === 'child-v8') {
+// --import and NODE_TEST_CONTEXT propagate to workers owned by a test. Those
+// workers execute application code; registering a native test there would let
+// --test-force-exit terminate their still-owned message ports after startup.
+if (isMainThread && process.env.NODE_TEST_CONTEXT === 'child-v8') {
   const { after, test } = await import('node:test');
   // Finish plain scripts' top-level assertions before enabling native test cleanup.
   // The worker's subsequent entrypoint import reuses this module evaluation.
