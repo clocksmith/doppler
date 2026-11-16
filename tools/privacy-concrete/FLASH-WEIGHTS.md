@@ -688,3 +688,12 @@ and evaluation already in progress remain cooperative; immediate interruption is
 not promised. Focused simulated-crypto control tests exercise these boundaries,
 separately from the real quantizer adapter checks. This adds no model, endpoint
 or cryptographic qualification.
+
+
+Source-backed projections now share one `ProjectionSource` per decoder stage.
+It owns one immutable source snapshot and read-only tensor/signature records,
+without tenant, key or activation state. Complete graph entry checks each source
+owner; each projection still checks its exact tensor record, directory, file
+signature and lease before use. Source bindings and model identity inputs are
+unchanged. This removes repeated full-manifest copies from individual expert
+projections; no full-model memory or latency measurement is claimed.

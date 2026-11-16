@@ -70,7 +70,7 @@ class ClientFlashGraph(nn.Module):
             if isinstance(module,SourceLinear):
                 module.require_source();hasher.update(canonical(dict(name=name,sourceBinding=json.loads(module.source_binding))))
                 source_meta.add(name+'.weight')
-                source_checks[(id(module._source),module._shard)]=module
+                source_checks[id(module.source_owner)]=module.source_owner
         for name,value in self.state_dict().items():
             if value.device.type=='meta':
                 if name not in source_meta:raise ValueError('Unbound meta parameter in client model')

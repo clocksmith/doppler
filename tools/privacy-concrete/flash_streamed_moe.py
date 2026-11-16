@@ -4,7 +4,7 @@ No downloads, private routing to a provider, encrypted admission or full-model
 qualification. The caller owns the already verified public decoder-stage lease.
 """
 from pathlib import Path
-from types import SimpleNamespace
+from types import SimpleNamespace,MappingProxyType
 import torch
 from torch import nn
 from flash_dense_moe import DenseClientMoE
@@ -15,9 +15,38 @@ from protocol import digest
 from source_snapshot import file_signature
 
 
+class ProjectionSource:
+    """One public source snapshot shared across its projections; no request state."""
+    def __init__(self,source):
+        if not isinstance(source,FlashSource):raise ValueError('Verified public projection source required')
+        self.source=source;self.directory=Path(source.directory)
+        self.snapshot=canonical(source.spec);self.identity=digest(self.snapshot)
+        self.records=MappingProxyType({name:canonical(row) for name,row in source.spec['tensors'].items()})
+        self.shards=MappingProxyType({name:row['shard'] for name,row in source.spec['tensors'].items()})
+        self.signatures=MappingProxyType(dict(source.signatures))
+        self.require_source()
+
+    def require_source(self):
+        if (getattr(self.source,'closed',False) or Path(self.source.directory)!=self.directory
+                or canonical(self.source.spec)!=self.snapshot):
+            raise ValueError('Verified public source changed or stage closed')
+        for shard in set(self.shards.values()):self.require_file(shard)
+
+    def require_file(self,shard):
+        if (self.source.signatures.get(shard)!=self.signatures[shard]
+                or file_signature(self.directory/shard)!=self.signatures[shard]):
+            raise ValueError('Verified public projection file changed')
+
+    def require_tensor(self,name):
+        if (getattr(self.source,'closed',False) or Path(self.source.directory)!=self.directory
+                or canonical(self.source.spec['tensors'].get(name))!=self.records[name]):
+            raise ValueError('Verified public projection source changed or stage closed')
+        self.require_file(self.shards[name])
+
+
 class SourceLinear(nn.Linear):
     """Meta geometry plus immutable source binding; never retain a floating weight."""
-    def __init__(self,source,name,input_width,output_width,*,expert=None,rows=None):
+    def __init__(self,source,name,input_width,output_width,*,expert=None,rows=None,source_owner=None):
         if not isinstance(source,FlashSource):raise ValueError('Verified public projection source required')
         record=source.spec['tensors'][name];shape=record['shape']
         if expert is not None:
@@ -32,21 +61,17 @@ class SourceLinear(nn.Linear):
             raise ValueError('Exact public projection geometry required')
         with torch.device('meta'):super().__init__(input_width,output_width,bias=False)
         self._source=source;self._name=name;self._expert=expert;self._rows=rows
-        self._source_snapshot=canonical(source.spec)
-        record=source.spec['tensors'][name]
-        self._shard=record['shard'];self._signature=source.signatures[self._shard]
-        self._source_binding=canonical(dict(sourceId=digest(self._source_snapshot),tensor=name,expert=expert,
+        self.source_owner=ProjectionSource(source) if source_owner is None else source_owner
+        if type(self.source_owner) is not ProjectionSource or self.source_owner.source is not source:
+            raise ValueError('Matching verified public source owner required')
+        self._source_binding=canonical(dict(sourceId=self.source_owner.identity,tensor=name,expert=expert,
             rows=rows,inputWidth=input_width,outputWidth=output_width))
         self.require_source()
 
     @property
     def source_binding(self):return self._source_binding
 
-    def require_source(self):
-        if (getattr(self._source,'closed',False) or canonical(self._source.spec)!=self._source_snapshot
-                or self._source.signatures.get(self._shard)!=self._signature
-                or file_signature(Path(self._source.directory)/self._shard)!=self._signature):
-            raise ValueError('Verified public projection source changed or stage closed')
+    def require_source(self):self.source_owner.require_tensor(self._name)
 
     def forward(self,value):
         self.require_source()
@@ -70,6 +95,7 @@ class SourceDenseClientMoE(DenseClientMoE):
         if (any(type(getattr(config,name,None)) is not int or getattr(config,name)<=0 for name in names)
                 or config.num_experts_per_tok>config.num_experts or type(getattr(config,'norm_topk_prob',None)) is not bool):
             raise ValueError('Bound client MoE geometry required')
+        self.source_owner=ProjectionSource(source)
         self.config=config;self._config_snapshot=canonical(vars(config));self.ops=nn.ModuleDict()
         prefix=f'model.language_model.layers.{layer_index}.mlp.'
         hidden,inner,shared=config.hidden_size,config.moe_intermediate_size,config.shared_expert_intermediate_size
@@ -79,7 +105,7 @@ class SourceDenseClientMoE(DenseClientMoE):
             if not isinstance(row,dict) or row.get('shape')!=full_shape or row.get('dtype')!='BF16':
                 raise ValueError('Pinned public MoE projection geometry required')
             height=shape[0] if rows is None else rows[1]-rows[0]
-            self.ops[operation]=SourceLinear(source,prefix+tensor,shape[1],height,expert=expert,rows=rows)
+            self.ops[operation]=SourceLinear(source,prefix+tensor,shape[1],height,expert=expert,rows=rows,source_owner=self.source_owner)
         add('shared_gate','shared_expert.gate_proj.weight',[shared,hidden])
         add('shared_up','shared_expert.up_proj.weight',[shared,hidden])
         add('shared_down','shared_expert.down_proj.weight',[hidden,shared])
@@ -92,5 +118,6 @@ class SourceDenseClientMoE(DenseClientMoE):
         self.eval().requires_grad_(False)
 
     def forward(self,value):
+        self.source_owner.require_source()
         if canonical(vars(self.config))!=self._config_snapshot:raise ValueError('Client MoE configuration changed')
         return super().forward(value)

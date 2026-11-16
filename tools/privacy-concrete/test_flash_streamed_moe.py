@@ -60,6 +60,7 @@ class FlashStreamedMoETests(unittest.TestCase):
                     torch.testing.assert_close(actual,expected,rtol=0,atol=0)
                     gc.collect();self.assertTrue(all(lease() is None for lease in leases))
             self.assertTrue(all(value.device.type=='meta' for value in streamed.parameters()))
+            self.assertTrue(all(op.source_owner is streamed.source_owner for op in streamed.ops.values()))
             self.assertEqual(len(calls),4*(5+3*3))
             for step in range(4):
                 experts=[index for name,index in calls[step*14:(step+1)*14] if '.experts.' in name]
@@ -103,7 +104,7 @@ class FlashStreamedMoETests(unittest.TestCase):
                 for parameter in layers[0].mlp.parameters():parameter.copy_(parameter.to(torch.bfloat16).float())
             expected=copy.deepcopy((embedding,layers,mixer,head));layers[0].mlp=streamed
             model=ClientFlashGraph(original.reference_path,config,embedding,layers,mixer,head,context_limit=12)
-            self.assertGreater(len(model.source_checks),0)
+            self.assertEqual(model.source_checks,(streamed.source_owner,))
             for mode in ['public-reference','verified-projections']:
                 context=ClientContext('tenant','privacy',model.identity,'key',mode);state=model.new_state(context)
                 tokens=torch.tensor([[1,2,0,3]],dtype=torch.int64)
