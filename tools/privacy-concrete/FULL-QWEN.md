@@ -224,3 +224,10 @@ This establishes a working real small-Qwen hybrid prototype, beyond an isolated
 projection. It does not establish full Flash execution, separate-machine privacy,
 independently reviewed malicious security or production admission. All normal
 cryptographic capability gates remain closed.
+
+The [reference-validation feedback analysis](SECURITY-BOUNDARY.md#observable-reference-validation-feedback)
+records another unfinished privacy gate: per-step validation can expose an
+input/decryption-correlated stopping position, and component completion can expose
+a final acceptance bit. Plaintext token/activation values are not fed back, but
+that alone does not establish the requested leakage contract. Public fixture
+qualification and private execution still require separate reviewed handling.

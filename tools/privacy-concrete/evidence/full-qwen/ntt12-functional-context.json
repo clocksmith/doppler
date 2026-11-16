@@ -19,6 +19,7 @@
     "Client performs full encrypted replay plus floating/quantized full-model validation; no client compute-saving or production malicious-security claim",
     "Single hosted Ubuntu CPU observation; no GPU, network deployment or latency-distribution benchmark",
     "35-bit message/storage/key parameters and changed native implementation require independent security/side-channel/protocol review",
-    "No qualified separate-machine endpoint/appraisal or full Flash-model generation established"
+    "No qualified separate-machine endpoint/appraisal or full Flash-model generation established",
+    "Research reference checks can cause input/decryption-correlated early termination; component finish-vs-close also exposes acceptance. Neither channel is hidden or qualified for arbitrary private requests."
   ]
 }

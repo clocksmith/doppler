@@ -8,7 +8,7 @@ The trusted client holds secret keys, prompt/output tokens, embeddings, attentio
 
 A future remote deployment must tolerate every remote operator colluding without obtaining the client key. That is a qualification target, **not an established security property of this implementation**. The current process harness runs client and evaluator on one host. Separate interpreters test dataflow and protocol behavior; they do not isolate the client's memory from that host's operator, root, a debugger or another sufficiently privileged process. GitHub Actions is the trusted test-client host and uses a fixed public prompt.
 
-The client also performs every encrypted multiplication again. Only an exact serialized result from that trusted deterministic replay reaches the native result deserializer/decryptor. This rejects response substitutions tested by the harness, but gives no client compute saving, succinct proof or independently reviewed malicious-security guarantee. A malformed, missing, reordered or rejected response terminates the attempt. No noise-budget or decryption diagnostic is returned to the evaluator.
+The client also performs every encrypted multiplication again. Only an exact serialized result from that trusted deterministic replay reaches the native result deserializer/decryptor. This rejects response substitutions tested by the harness, but gives no client compute saving, succinct proof or independently reviewed malicious-security guarantee. A malformed, missing, reordered or rejected response terminates the attempt. No token/activation values, numerical error magnitude or noise-budget diagnostic is sent to the evaluator. The research driver's reference-validation outcome can nevertheless affect observable protocol termination, as described below.
 
 ## Leakage and state
 
@@ -66,3 +66,26 @@ greedy choices matched quantized/FP32 references, while logit error still reache
 and the client performed complete encrypted replay and full-model plaintext
 validation. This is functional hybrid-computation evidence; it changes none of
 the uncompleted deployment, parameter, leakage or security gates above.
+
+## Observable reference-validation feedback
+
+The research Qwen driver compares decrypted model logits with a complete local
+quantized reference after each step. A mismatch currently terminates that attempt
+early. Both failed int8 attempts demonstrate the externally observable pattern: a
+valid replay-verified route stopped after its third model pass. On an arbitrary
+private prompt, that stopping position can depend on the prompt, approximate
+decryption and reference comparison. It must be included in the leakage analysis;
+absence of plaintext feedback messages does not remove this signal.
+
+Component drivers also condition their final `finish` versus connection closure
+on a client reference comparison. A peer can observe that distinction even when
+all encrypted products have already completed. These checks are research
+qualification checks, not a reviewed private-execution protocol. Exact encrypted
+replay blocks tested response substitutions before decryption, but does not itself
+hide application-level accept/reject behavior, timing or runtime failures.
+
+A production candidate must separate public qualification from private execution
+or specify and validate an appropriate fixed-traffic/failure policy, together with
+its explicit adversary and leakage contract. No such guarantee is admitted here.
+The recorded workflows use fixed public inputs and fresh disposable keys; they
+do not establish that arbitrary private requests satisfy the intended contract.
