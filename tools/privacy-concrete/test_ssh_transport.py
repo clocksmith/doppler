@@ -73,6 +73,27 @@ class SSHTransportTests(unittest.TestCase):
             for stream in [child.stdin,child.stdout]:
                 if not stream.closed:stream.close()
 
+    def test_version_two_research_profile_transports_bound_frames_with_real_authentication(self):
+        from types import SimpleNamespace
+        from plan_backends import QWEN_PROFILES,qwen_backend
+        for profile in QWEN_PROFILES:
+            with self.subTest(profile=profile):
+                settings,_,_,_=qwen_backend(profile)
+                plan=SimpleNamespace(identity=self.plan.identity,protocol_id=settings['protocol'],definition=self.plan.definition,frame=self.plan.frame,schedule=self.plan.schedule)
+                value=dict(self.value,schema='doppler.encrypted-ssh-route/v2',backendProfile=profile,backendProtocol=settings['protocol'])
+                deployment=self.deployment(value);bound=deployment.bind(plan);child=deployment.spawn(plan)
+                try:
+                    header=bound.frame('public-session','public-key-context',1,'evaluate','public-tile')
+                    payload=b'opaque-public-v2-ciphertext-fixture'
+                    send(child.stdin,header,payload,timeout=10);echoed,data,_=receive(child.stdout,timeout=10)
+                    self.assertEqual(echoed,header);self.assertEqual(data,payload)
+                    child.stdin.close();self.assertEqual(child.wait(timeout=5),0)
+                finally:
+                    if child.poll() is None:child.kill()
+                    child.wait()
+                    for stream in [child.stdin,child.stdout]:
+                        if not stream.closed:stream.close()
+
     def test_wrong_host_pin_fails_without_remote_output_or_local_fallback(self):
         raw=base64.b64decode(self.value['hostKey']['base64'])
         wrong=dict(self.value,hostKey=dict(algorithm='ssh-ed25519',base64=base64.b64encode(raw[:-1]+bytes([raw[-1]^1])).decode()))

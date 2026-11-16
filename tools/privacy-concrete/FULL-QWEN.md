@@ -179,3 +179,11 @@ hypothesis on this input, without proving the earlier third-step failure cause.
 The [measurement context](evidence/full-qwen/precision-context.json) binds both
 records to their exact revisions and artifact hashes. Neither result qualifies
 a complete encrypted model or the altered cryptographic parameters.
+
+The [actual twelve-bit message-domain probe](evidence/full-qwen/twelve-bit-message-domain.json)
+completed on the candidate's exact native build before full-model execution. At
+2,048 inputs and extreme signed coefficients, the expected negative/positive raw
+dots were -17,175,674,880 and 17,167,288,320; maximum measured integer error was 9.
+Complete repeated ciphertext bytes matched. This is one disposable-key numerical
+observation, not a cryptographic noise-failure bound or full-model result. The
+complete four-step twelve-bit Qwen run remains a separate acceptance gate.

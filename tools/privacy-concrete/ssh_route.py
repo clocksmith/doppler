@@ -10,10 +10,12 @@ import shlex
 import struct
 import subprocess
 import tempfile
-from full_plan import FULL_POLICY, PROTOCOL, canonical
+from full_plan import FULL_POLICY, canonical
+from plan_backends import DEFAULT_PROFILE,qwen_backend
 from protocol import digest, parse_unique_json
 
 POLICY=json.loads(Path(__file__).with_name('ssh-policy.json').read_text())
+POLICY_V2=json.loads(Path(__file__).with_name('ssh-v2-policy.json').read_text())
 FIELDS={'schema','operatorId','host','port','user','hostKey','basePlanId','modelId','backendProtocol',
         'remotePython','remoteProvider','remoteCache','remoteManifest'}
 SHA=re.compile(r'[0-9a-f]{64}\Z')
@@ -33,8 +35,27 @@ def public_key(value):
     return 'SHA256:'+base64.b64encode(hashlib.sha256(raw).digest()).decode().rstrip('=')
 
 
+def route_policy(value):
+    if not isinstance(value,dict):raise ValueError('Exact versioned encrypted SSH route required')
+    schema=value.get('schema')
+    if schema==POLICY['routeSchema']:return POLICY
+    if schema==POLICY_V2['routeSchema']:return POLICY_V2
+    raise ValueError('Unsupported versioned encrypted SSH route')
+
+
+def route_backend(value):
+    policy=route_policy(value)
+    if policy is POLICY:return DEFAULT_PROFILE,FULL_POLICY
+    profile=value.get('backendProfile')
+    settings,_,_,_=qwen_backend(profile)
+    if settings['productionBackendAvailable'] is not False:raise ValueError('Research-only SSH backend required')
+    return profile,settings
+
+
 def validate(value):
-    if not isinstance(value,dict) or set(value)!=FIELDS or value['schema']!=POLICY['routeSchema']:
+    policy=route_policy(value)
+    fields=FIELDS if policy is POLICY else FIELDS|{'backendProfile'}
+    if set(value)!=fields:
         raise ValueError('Exact versioned encrypted SSH route required')
     if (not isinstance(value['host'],str) or not re.fullmatch(r'[a-z0-9](?:[a-z0-9.-]{0,251}[a-z0-9])?',value['host'])
             or '..' in value['host'] or type(value['port']) is not int or not 1<=value['port']<=65535
@@ -44,7 +65,7 @@ def validate(value):
     for key in ['basePlanId','modelId']:
         if not isinstance(value[key],str) or not SHA.fullmatch(value[key]):
             raise ValueError('Exact SSH model and plan identities required')
-    if value['backendProtocol']!=PROTOCOL:
+    if value['backendProtocol']!=route_backend(value)[1]['protocol']:
         raise ValueError('Unsupported SSH evaluator protocol')
     public_key(value['hostKey'])
     for key in ['remotePython','remoteProvider','remoteCache','remoteManifest']:
@@ -72,7 +93,7 @@ class SSHRoute:
     def definition(self):return json.loads(self.encoded)
 
     @property
-    def identity(self):return digest(canonical(dict(policy=POLICY,route=self.definition())))
+    def identity(self):return digest(canonical(dict(policy=route_policy(self.definition()),route=self.definition())))
 
     def require_requester(self,allowed_operators):
         if not isinstance(allowed_operators,tuple) or self.definition()['operatorId'] not in allowed_operators:
@@ -92,14 +113,14 @@ class BoundSSHPlan:
     route: SSHRoute
 
     @property
-    def protocol_id(self):return POLICY['protocol']
+    def protocol_id(self):return route_policy(self.route.definition())['protocol']
     @property
     def identity(self):return self.route.identity
     def definition(self):return self.base.definition()
     def schedule(self):return self.base.schedule()
     def frame(self,*args):
         value=self.base.frame(*args)
-        value.update(schema=POLICY['protocol'],policyId=self.identity)
+        value.update(schema=self.protocol_id,policyId=self.identity)
         return value
 
 
@@ -139,14 +160,17 @@ class SSHDeployment:
         self.route.require_requester(self.allowed_operators)
         value=self.route.definition()
         identity=self.private_identity()
-        remote=['env','RAYON_NUM_THREADS='+str(FULL_POLICY['cpuThreads']),
-                'OMP_NUM_THREADS='+str(FULL_POLICY['cpuThreads']),value['remotePython'],value['remoteProvider'],
-                value['remoteCache'],value['basePlanId'],'--ssh-route',value['remoteManifest'],self.route.identity]
+        profile,settings=route_backend(value)
+        remote=['env','RAYON_NUM_THREADS='+str(settings['cpuThreads']),
+                'OMP_NUM_THREADS='+str(settings['cpuThreads']),value['remotePython'],value['remoteProvider'],
+                value['remoteCache'],value['basePlanId']]
+        if route_policy(value) is POLICY_V2:remote+=['--profile',profile]
+        remote+=['--ssh-route',value['remoteManifest'],self.route.identity]
         options=['HostKeyAlgorithms=ssh-ed25519','PreferredAuthentications=publickey','GSSAPIAuthentication=no','HostbasedAuthentication=no','BatchMode=yes','StrictHostKeyChecking=yes','UserKnownHostsFile='+str(known_hosts),
                  'GlobalKnownHostsFile=/dev/null','IdentitiesOnly=yes','IdentityAgent=none','ForwardAgent=no',
                  'ClearAllForwardings=yes','PermitLocalCommand=no','RequestTTY=no','PasswordAuthentication=no',
                  'KbdInteractiveAuthentication=no','UpdateHostKeys=no','VerifyHostKeyDNS=no',
-                 'ConnectTimeout='+str(POLICY['connectTimeoutSeconds'])]
+                 'ConnectTimeout='+str(route_policy(value)['connectTimeoutSeconds'])]
         return ['/usr/bin/ssh','-F','/dev/null',*[item for option in options for item in ['-o',option]],
                 '-p',str(value['port']),'-i',str(identity),value['user']+'@'+value['host'],shlex.join(remote)]
 

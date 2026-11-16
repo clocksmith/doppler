@@ -23,6 +23,16 @@
       "encryptedExecution": true,
       "fullModelExecuted": false,
       "interpretation": "Same public first-Q inputs and weights; default/high precision integer error 73/1 and dequantized error .0023136/.00008154; full high-precision run remains independent"
+    },
+    {
+      "revision": "dc1b4a3dc75a50319b4f691c6d2f9334b8925ab7",
+      "workflowRun": 43841061585,
+      "artifactId": 14212943877,
+      "artifactZipSha256": "5dfb555060e8494d16e4a2dfd6f202b368c3c1cfd53473413b85a4c0b893fcf1",
+      "evidence": "twelve-bit-message-domain.json",
+      "encryptedExecution": true,
+      "fullModelExecuted": false,
+      "interpretation": "Actual signed 35-bit ciphertext-domain boundary; worst raw dot 17175674880, measured integer error9 and deterministic replay; empirical diagnostic, not a noise-failure or security bound"
     }
   ]
 }

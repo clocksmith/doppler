@@ -1,0 +1,27 @@
+{
+  "schema": "doppler.public-qwen12-message-domain-probe/v1",
+  "productionBackendAvailable": false,
+  "securityQualified": false,
+  "fullModelExecuted": false,
+  "quantizationBits": 12,
+  "messageBits": 35,
+  "signedMessageLimit": 17179869184,
+  "worstRawDot": 17175674880,
+  "actualRawDots": [
+    [
+      -17175674873,
+      17167288311
+    ]
+  ],
+  "expectedRawDots": [
+    [
+      -17175674880,
+      17167288320
+    ]
+  ],
+  "maxIntegerError": 9,
+  "diagnosticErrorCriterion": 4096,
+  "deterministicReplay": true,
+  "evaluationKeyBytes": 268435536,
+  "interpretation": "Disposable public boundary values; no model quality, privacy or malicious-security qualification"
+}

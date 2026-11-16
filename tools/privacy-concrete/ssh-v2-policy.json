@@ -1,0 +1,8 @@
+{
+  "schema": "doppler.encrypted-ssh-policy/v2",
+  "routeSchema": "doppler.encrypted-ssh-route/v2",
+  "protocol": "concrete-glwe-qwen-research-ssh-replay/v2",
+  "productionBackendAvailable": false,
+  "hostKeyAlgorithm": "ssh-ed25519",
+  "connectTimeoutSeconds": 15
+}

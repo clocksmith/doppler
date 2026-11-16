@@ -21,3 +21,28 @@ The client invocation adds:
 The isolated transport workflow exercises a real loopback SSH daemon with ephemeral fixture keys, opaque framing, wrong-host-key rejection and wrong-client-key rejection. It does not establish separate-machine model execution, endpoint software appraisal, hardware attestation or production cryptographic privacy. SSH authenticates an endpoint/account; it does not attest its application, accelerators or complete downstream execution. The existing pre-decryption replay remains required. Production admission stays closed.
 
 Direct transport launch rechecks the requester allowlist, base plan/model binding and private identity file; callers cannot bypass admission by skipping bridge construction. Client evidence carries the bound execution-route identity and actual frame protocol. The constructed public-fixture artifact may include only the route digest and a closed transport-kind label, never the endpoint manifest or credential path.
+
+## Explicit version-two research profiles
+
+Version-one manifests still accept only their original stock full-Qwen protocol.
+They cannot acquire another backend by adding a field or changing a protocol. A
+separate `doppler.encrypted-ssh-route/v2` manifest requires `backendProfile` as well
+as `backendProtocol`; both must identify the same installed Qwen research route.
+The supported profiles are those registered by `plan_backends.qwen_backend`,
+including the separate NTT, higher-storage and twelve-bit candidates. Flash and
+advertised/unknown backends fail before any process or evaluation-key export.
+
+The immutable v2 route binds the explicit profile, exact base plan/model, endpoint,
+Ed25519 key, participant and executable paths. Every frame has a distinct v2
+transport schema and route identity. The remote command includes the admitted
+`--profile`; CPU limits come from that installed backend's policy. Client selection
+must use the same `--backend-profile`. A mismatch is rejected rather than retried
+with the stock implementation.
+
+Version-two support adds no provisioning or connection authority. Its isolated
+loopback tests use an authenticated echo service and opaque public fixture bytes;
+they cannot qualify remote model execution, native ciphertext processing or
+cryptographic security. All candidates retain full trusted-client replay and
+production admission remains closed. A genuine separate-machine execution still
+requires an authorized, independently provisioned endpoint and matching complete
+source/binary/model identities.

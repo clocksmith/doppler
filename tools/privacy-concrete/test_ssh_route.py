@@ -37,6 +37,37 @@ class SSHRouteTests(unittest.TestCase):
             with self.assertRaises(ValueError):check(other.frame('session','key',1,'result','tile'),expected)
         with self.assertRaises(ValueError):SSHRoute(bytearray(route.encoded))
 
+    def test_version_two_pins_each_installed_qwen_profile_without_expanding_legacy_routes(self):
+        from plan_backends import QWEN_PROFILES,qwen_backend
+        for profile in QWEN_PROFILES:
+            with self.subTest(profile=profile),tempfile.TemporaryDirectory() as directory:
+                base,value=fixture();settings,_,_,_=qwen_backend(profile)
+                plan=SimpleNamespace(identity=base.identity,protocol_id=settings['protocol'],definition=base.definition,frame=base.frame,schedule=base.schedule)
+                value.update(schema='doppler.encrypted-ssh-route/v2',backendProfile=profile,backendProtocol=settings['protocol'])
+                route=SSHRoute(validate(value));bound=route.bind(plan,('research-provider',))
+                identity=Path(directory)/'identity';identity.touch(mode=0o600)
+                command=SSHDeployment(route,str(identity),('research-provider',)).command('/explicit/known_hosts')
+                self.assertIn('--profile '+profile,command[-1]);self.assertIn(bound.identity,command[-1])
+                self.assertEqual(bound.protocol_id,'concrete-glwe-qwen-research-ssh-replay/v2')
+                self.assertEqual(bound.frame('s','k',1,'evaluate','t')['schema'],bound.protocol_id)
+                with self.assertRaises(ValueError):route.bind(plan,())
+                if profile!='qwen-all-linear':
+                    with self.assertRaises(ValueError):validate(dict(value,schema='doppler.encrypted-ssh-route/v1'))
+                    with self.assertRaises(ValueError):validate(dict(fixture()[1],backendProtocol=settings['protocol']))
+
+    def test_version_two_rejects_profile_changes_unknown_backends_and_protocol_downgrade(self):
+        from plan_backends import qwen_backend
+        base,value=fixture();settings,_,_,_=qwen_backend('qwen-all-linear-ntt12')
+        value.update(schema='doppler.encrypted-ssh-route/v2',backendProfile='qwen-all-linear-ntt12',backendProtocol=settings['protocol'])
+        for changes in [dict(backendProfile='qwen-all-linear'),dict(backendProtocol=PROTOCOL),dict(backendProfile='flash-first-ple-ntt'),dict(backendProfile=None),dict(backendProfile='advertised')]:
+            with self.subTest(changes=changes),patch('ssh_route.subprocess.Popen') as spawn:
+                with self.assertRaises(ValueError):SSHRoute(validate(dict(value,**changes)))
+                spawn.assert_not_called()
+        with self.assertRaises(ValueError):validate({key:entry for key,entry in value.items() if key!='backendProfile'})
+        with self.assertRaises(ValueError):validate(dict(fixture()[1],backendProfile='qwen-all-linear'))
+        route=SSHRoute(validate(value))
+        with self.assertRaises(ValueError):route.bind(base,('research-provider',))
+
     def test_host_key_participant_and_plan_changes_cannot_expand_permission(self):
         plan,value=fixture();route=SSHRoute(validate(value))
         with self.assertRaises(ValueError):route.bind(plan,[])
