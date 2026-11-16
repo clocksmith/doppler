@@ -11,7 +11,7 @@ Resolve runtime policy from validated, traceable configuration contracts.
 ## Authority
 
 - Owns schemas, registries, merges, profiles, support tiers, and configuration resolution.
-- Executable graph transformations belong to Rig under `src/converter/`; historical transform imports are compatibility exports only.
+- Transforms live in `transforms/`; rules select them. Rig prepares; development executes declared transforms. Signed programs remain immutable.
 - Does not own numeric execution, request intent, or conversion facts after artifact materialization.
 
 ## Scope

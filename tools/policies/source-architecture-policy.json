@@ -2,9 +2,6 @@
   "schemaVersion": 4,
   "debtAuthorization": "sha256:ea060d2b41e2b40b824cc34cd45956e882b65049cf23b1cb96fae0fe8deb86ab",
   "facadeDependencies": {
-    "config/transforms/execution-graph-transforms.js": [
-      "converter/execution-graph-transforms.js"
-    ],
     "inference/test-harness.js": [
       "tooling/test-harness.js"
     ],
@@ -299,7 +296,6 @@
     ],
     "inference": [
       "config",
-      "converter",
       "debug",
       "errors",
       "experimental",
@@ -953,7 +949,6 @@
     }
   },
   "facades": [
-    "config/transforms/execution-graph-transforms.js",
     "inference/test-harness.js",
     "index.js",
     "index-browser.js",
@@ -1027,18 +1022,6 @@
       "reviewedBy": "codex-da5723",
       "reviewScope": "Inherited size debt and named extraction boundary; numerical qualification is separate.",
       "removalCondition": "Extract the named responsibility into client/model-host/bridge-source-readers.js with affected consumer tests passing; remove this review when the original module is at most 750 lines."
-    },
-    "converter/execution-graph-transforms.js": {
-      "reviewedLines": 927,
-      "reason": "Graph transformation entry points still combine prefill attention and decode projection passes; isolate the prefill attention passes while preserving transform composition order.",
-      "extractTo": [
-        "converter/execution-graph/prefill-attention.js"
-      ],
-      "owner": "converter",
-      "reviewedAt": "2026-11-15",
-      "reviewedBy": "codex-da5723",
-      "reviewScope": "Inherited size debt and named extraction boundary; numerical qualification is separate.",
-      "removalCondition": "Extract the named responsibility into converter/execution-graph/prefill-attention.js with affected consumer tests passing; remove this review when the original module is at most 750 lines."
     },
     "converter/forge-stages.js": {
       "reviewedLines": 805,

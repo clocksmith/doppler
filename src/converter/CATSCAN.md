@@ -16,7 +16,7 @@ Compile source facts into ModelIR, qualified TargetPlans, and immutable Capsules
 ## Scope
 
 - [Rig stages](forge-stages.js), source-fact validation, candidate evaluation, quantizers, tokenizer copying, and shard packing.
-- [Execution graph transforms](execution-graph-transforms.js) and capability-selected preparation passes. Development loading can invoke these passes; a signed execution cannot acquire permission to rewrite its selected program through this API.
+- Preparation applies shared [pure execution-graph transforms](../config/transforms/execution-graph-transforms.js) selected by the [capability rules](../rules/capability-transform-resolver.js). Historical converter imports remain compatibility exports. Development loading can invoke these passes; a signed execution cannot acquire permission to rewrite its selected program through this API.
 - [Command orchestration](../tooling/model-capsule-rig.js) supplies file and signing inputs; compiler algorithms remain here.
 
 ## Contracts

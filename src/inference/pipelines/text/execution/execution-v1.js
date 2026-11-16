@@ -4,8 +4,8 @@ import { mergeKernelPathPolicy } from "../../../../config/merge/kernel-path-poli
 import { mergeRuntimeValues } from "../../../../config/runtime-merge.js";
 import { selectRuleValue } from "../../../../rules/rule-registry.js";
 import { buildOpIdFromExecutionStep } from "./operator-identity.js";
-import { resolveCapabilityTransforms, resolveFinitenessFallbackTransform } from "../../../../converter/capability-transform-resolver.js";
-import { composeTransforms } from "../../../../converter/execution-graph-transforms.js";
+import { resolveCapabilityTransforms, resolveFinitenessFallbackTransform } from "../../../../rules/capability-transform-resolver.js";
+import { composeTransforms } from "../../../../config/transforms/execution-graph-transforms.js";
 import { log } from "../../../../debug/index.js";
 import { resolveRangeAwareSelectiveWideningConfig } from "../policy/finiteness-policy.js";
 import { applyExecutionPatch } from "../execution-v1/validation.js";

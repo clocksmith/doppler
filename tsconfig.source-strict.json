@@ -229,7 +229,7 @@
     "src/loader/experts/expert-frequency-index.js",
     "src/inference/pipelines/text/moe/routed-expert-chunks.js",
     "src/loader/experts/loader-bindings.js",
-    "src/converter/execution-graph/kv-storage.js",
+    "src/config/transforms/execution-graph/kv-storage.js",
     "src/debug/activity-trace.js",
     "src/inference/pipelines/text/generator/activation/activity-weights.js",
     "demo/ui/activation-grid/views.js",
@@ -256,6 +256,10 @@
     "src/config/schema/runtime/index.js",
     "src/config/schema/training/index.js",
     "src/storage/verified-piece-gather.js",
-    "src/storage/verified-piece-gather-worker.js"
+    "src/storage/verified-piece-gather-worker.js",
+    "src/config/transforms/execution-graph/correctness-fallback.js",
+    "src/config/transforms/execution-graph/prefill-attention.js",
+    "src/converter/execution-graph-transforms.js",
+    "src/converter/capability-transform-resolver.js"
   ]
 }

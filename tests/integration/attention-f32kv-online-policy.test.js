@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { removeSubgroups, widenToF32Activations } from '../../src/converter/execution-graph/validation.js';
+import { removeSubgroups, widenToF32Activations } from '../../src/config/transforms/execution-graph/validation.js';
 import { widenToF32CorrectnessFallback } from '../../src/converter/execution-graph-transforms.js';
 import { validateAttentionVariant } from '../../src/gpu/kernels/attention/plan.js';
 

@@ -3,7 +3,7 @@
   "entrypoint": "src/capsule-runtime.js",
   "scope": "injected-capsule-core; excludes host-supplied program executors",
   "fileCount": 88,
-  "sourceBytes": 1251842,
+  "sourceBytes": 1252632,
   "forbiddenPatterns": [
     "/src/converter/",
     "/src/training/",
@@ -464,8 +464,8 @@
     },
     {
       "path": "src/storage/verified-piece-reader.js",
-      "sizeBytes": 7853,
-      "hash": "sha256:8e3d81406020bb750151e055137e1f5a470883d6ed4c95977df22c116f359a82"
+      "sizeBytes": 8643,
+      "hash": "sha256:b8f801d69be856c6fac9daea06d31616ecc1f9ebe06501572baac50fd767e4eb"
     },
     {
       "path": "src/version.js",

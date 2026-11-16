@@ -104,7 +104,7 @@
     "reports/capsule-baseline": {"retentionClass":"frozen-evidence","files":8,"bytes":15399020,"inventoryHash":"sha256:b5bbbc21944c4f9c702c723a8a6c3505eafb344e67024785ecdb1481bb3c603f"},
     "reports/capsule-migration": {"retentionClass":"frozen-evidence","files":3,"bytes":157370,"inventoryHash":"sha256:c440563c0e123a80a982e905713775048a3dd3d0072e904ae0303f609c36a8a9"},
     "reports/capsule-open-hashing-20261022": {"retentionClass":"frozen-evidence","files":7,"bytes":85440,"inventoryHash":"sha256:f988ff493f9ce76031f42fc305ab218319fd7fd79203ebf83ec8f25aac237424"},
-    "reports/capsule-runtime": {"retentionClass":"runtime-source-inventory","files":3,"bytes":17761,"inventoryHash":"sha256:6d6bb729ebded531d9d69249cd0c473ead9382935c629f8faa42ec87e2a1f156"},
+    "reports/capsule-runtime": {"retentionClass":"runtime-source-inventory","files":3,"bytes":17761,"inventoryHash":"sha256:09630d9805d361b9fc515cd336cc1d8638cc6a788ca2c4e3f7752f09f5ac1a5e"},
     "reports/channel-gain-20261112": {"retentionClass":"frozen-evidence","files":5,"bytes":14877,"inventoryHash":"sha256:f3ead54a4fcaf21f54969fb7fe2bbcc21092c7bc4870a543303d2c485e28e991"},
     "reports/channel-gain-20261113": {"retentionClass":"frozen-evidence","files":4,"bytes":14878,"inventoryHash":"sha256:3bb0adf17ded094967e3331ad8967a945201218d01da00d637167a860e75baa9"},
     "reports/choice-scoring-successor-20261021": {"retentionClass":"frozen-evidence","files":8,"bytes":244901,"inventoryHash":"sha256:fae388aa1fa8c951ee6730646d7871e6f5a8ea724eb3788f80c3687f4e9f72e3"},

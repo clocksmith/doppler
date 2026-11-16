@@ -387,7 +387,7 @@ export async function initConvLayerState(convState, convKernel, convInProj, hidd
   // Dequantize conv kernel weights to F32
   const totalElements = hiddenSize * kernelSize;
   const { QK_K, Q4K_BLOCK_BYTES } = await import("../../../../config/schema/index.js");
-  const { dequantizeQ4KM } = await import("../../../../converter/quantizer.js");
+  const { dequantizeQ4KM } = await import("../../../../formats/q4k-dequant.js");
   const { getDevice } = await import("../../../../gpu/device.js");
   const device = getDevice();
 
