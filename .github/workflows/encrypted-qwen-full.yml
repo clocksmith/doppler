@@ -37,10 +37,13 @@ jobs:
         run: |
           python -m pip install --no-cache-dir 'torch==2.3.1' --index-url https://download.pytorch.org/whl/cpu
           python -m pip install --no-cache-dir -r tools/privacy-concrete/requirements.txt
-          python -m pip check
+          # Validate the implementation actually used; optional XGBoost's old wheel
+          # platform metadata is unrelated to this GLWE/Torch execution route.
+          PYTHONPATH=tools/privacy-concrete python -c 'import torch, concrete_ml_extensions; from concrete.ml.quantization.linear_op_glwe_backend import GLWELinearLayerExecutor; from full_plan import implementation_versions; print(implementation_versions())'
       - name: Focused width and plan checks
         run: |
           python -m unittest discover -s tools/privacy-concrete -p test_full_plan.py -v
+          python -m unittest discover -s tools/privacy-concrete -p test_full_admission.py -v
           python -m unittest discover -s tools/privacy-concrete -p test_full_evidence.py -v
           DOPPLER_CONCRETE_NATIVE=1 python -m unittest discover -s tools/privacy-concrete -p test_full_native.py -v
       - name: Provision exact public Qwen source

@@ -48,6 +48,7 @@ class FullLinear(nn.Module):
         else:
             if self.bridge is None or self.secret is None:
                 raise ValueError('No bound encrypted evaluator')
+            self.bridge.admission.admit_projection(self.name,self.definition['inputWidth'],self.definition['outputWidth'],q_input.shape[0])
             integer_input = np.ascontiguousarray(q_input.long().numpy(),dtype=np.uint64)
             if integer_input.ndim != 2:
                 raise ValueError('Only one private request per key context is admitted')

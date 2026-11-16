@@ -5,14 +5,21 @@ import subprocess
 import sys
 import time
 import uuid
+import numpy as np
 import concrete_ml_extensions as ext
 from protocol import check, digest, receive, send
-from full_plan import FULL_POLICY
+from full_plan import FULL_POLICY, load_plan
+from full_admission import FullRouteAdmission
 
 
 class FullBridge:
     def __init__(self, directory, plan, key, cancelled=None, observe=lambda kind, value: None):
-        self.plan, self.key, self.cancelled, self.observe = plan, key, cancelled, observe
+        validated=load_plan(directory)
+        if validated.identity!=plan.identity:
+            raise ValueError('Client full-model admission differs from the prepared plan')
+        self.admission=FullRouteAdmission(validated)
+        self.public_weights={row['name']:np.memmap(Path(directory)/(row['weightId']+'.i8'),dtype=np.int8,mode='r',shape=(row['inputWidth'],row['outputWidth'])) for row in validated.definition()['projections']}
+        self.plan, self.key, self.cancelled, self.observe = validated, key, cancelled, observe
         self.session, data = uuid.uuid4().hex, key.serialize()
         self.key_id, self.key_bytes = digest(data), len(data)
         self.sequence, self.sent, self.received = 0, 0, 0
@@ -36,18 +43,29 @@ class FullBridge:
         return result
 
     def evaluate(self, encrypted, matrix, tile):
-        start = time.perf_counter()
-        result = self.exchange('evaluate',encrypted.serialize(),'result',tile['id'])
-        self.remote_seconds += time.perf_counter()-start
-        start = time.perf_counter()
-        expected = ext.cpu_matrix_multiplication(encrypted,matrix,self.key).serialize()
-        self.replay_seconds += time.perf_counter()-start
-        if not hmac.compare_digest(expected,result):
-            raise ValueError('Full encrypted tile rejected before decryption')
-        self.observe('verified-tile',dict(sequence=self.sequence-1,projection=tile['name'],tileId=tile['id']))
-        return ext.CompressedResultEncryptedMatrix.deserialize(result)
+        try:
+            expected_tile=self.admission.admit_tile(tile,matrix.shape,self.sequence)
+            cached=self.public_weights[expected_tile['name']][expected_tile['inputBegin']:expected_tile['inputEnd'],expected_tile['outputBegin']:expected_tile['outputEnd']]
+            if matrix.dtype!=np.uint64 or not np.array_equal(matrix.view(np.int64),cached):
+                raise ValueError('Encrypted route public weight changed before disclosure')
+            start = time.perf_counter()
+            result = self.exchange('evaluate',encrypted.serialize(),'result',tile['id'])
+            self.remote_seconds += time.perf_counter()-start
+            start = time.perf_counter()
+            expected = ext.cpu_matrix_multiplication(encrypted,matrix,self.key).serialize()
+            self.replay_seconds += time.perf_counter()-start
+            if not hmac.compare_digest(expected,result):
+                raise ValueError('Full encrypted tile rejected before decryption')
+            answer=ext.CompressedResultEncryptedMatrix.deserialize(result)
+            self.admission.verified()
+            self.observe('verified-tile',dict(sequence=self.sequence-1,projection=tile['name'],tileId=tile['id']))
+            return answer
+        except BaseException:
+            self.admission.fail()
+            raise
 
     def finish(self):
+        self.admission.complete()
         count = len(self.plan.schedule())*self.plan.definition()['steps']
         if self.sequence != count+1:
             raise ValueError('Incomplete full encrypted route')
