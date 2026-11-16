@@ -1,0 +1,8 @@
+{
+  "schema": "doppler.flash-client-token-embedding-policy/v1",
+  "storageSchema": "doppler.flash-local-token-embedding-storage/v1",
+  "tensorName": "model.language_model.embed_tokens.weight",
+  "productionBackendAvailable": false,
+  "securityQualified": false,
+  "ciLocalStorageLimitBytes": 3300000000
+}

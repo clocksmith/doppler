@@ -10,13 +10,15 @@ class FlashModelState(ClientRequestState):
         super().__init__(context)
         if context.model_id!=model_id or any(kind not in ['linear_attention','indexed_attention'] for kind in layer_types):
             raise ValueError('Exact client reference model state required')
-        self.model_id=model_id;self.layer_types=tuple(layer_types);self.ple_layers=tuple(ple_layers)
+        self.model_id=model_id;self.layer_types=tuple(layer_types);self.ple_layers=tuple(ple_layers);self.token_embedding_lease=None
         self.attention=tuple((DeltaRequestState if kind=='linear_attention' else AttentionRequestState)(context,i) for i,kind in enumerate(layer_types))
         self.ple={i:PLERequestState(context,i) for i in ple_layers}
 
     def children(self):return (*self.attention,*self.ple.values())
 
     def clear_private_state(self):
+        if self.token_embedding_lease is not None and self.token_embedding_lease.context==self.context:self.token_embedding_lease.close()
+        self.token_embedding_lease=None
         for state in self.children():state.close()
 
     def begin(self,context,operations,cancelled,execution):

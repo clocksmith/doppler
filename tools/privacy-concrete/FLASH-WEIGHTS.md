@@ -352,3 +352,28 @@ binds their source identity to the actual embedding/head vocabulary. Provisionin
 accounts separately for auxiliary metadata/tokenizer bytes and whole weight-shard
 bytes. This closes the source association; it does not complete encrypted model
 assembly or validate a full Flash forward pass.
+
+## Mapped client input embedding integration
+
+The input embedding now uses the same complete-file BF16 row-storage owner as PLE,
+with separate installed layout contracts. The existing PLE interface is preserved.
+`LocalTokenEmbedding` reads owned rows through a request/context-bound lease;
+failure closes only that request's owned lease and leaves shared public mappings
+available to other requests. The complete client graph includes the mapped input
+source in its model identity. It also binds every supplied JSON configuration
+field and rejects changes before input embedding or projection callbacks.
+
+The actual input tensor is `[248320, 2560]` in checkpoint object
+`model-00130-of-00131.safetensors`; the whole object is 2,974,788,136 bytes.
+`flash-embedding.yml` qualifies the actual tokenizer-to-input-activation path on an
+isolated hosted CPU, comparing mapped results with independent safetensors rows.
+It downloads that entire public object before accepting any indices and uploads
+only the fixed public fixture's shape/digest/cost evidence. No full FP32 embedding
+table is constructed by the adapter. Client-host/filesystem access patterns remain
+visible; this is neither PIR nor encrypted lookup.
+
+The separate source-reference tests exercise four autoregressive updates through
+the complete mixed-layer small graph with mapped input embeddings and isolated
+request leases. Actual full Flash decoder/model execution, cryptographic routing
+and security qualification are separate uncompleted gates. An input activation or
+reference-fixture pass must not be reported as a generated model token.

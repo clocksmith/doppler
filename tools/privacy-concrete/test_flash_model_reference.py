@@ -12,7 +12,7 @@ import unittest
 
 @unittest.skipUnless(os.environ.get('DOPPLER_FLASH_REFERENCE')=='1','opt-in pinned source/Torch reference')
 class FlashModelReferenceTests(unittest.TestCase):
-    def fixture(self,storage=None):
+    def fixture(self,storage=None,token_storage=None):
         import torch
         from torch import nn
         from flash_reference import load_reference
@@ -36,7 +36,13 @@ class FlashModelReferenceTests(unittest.TestCase):
         if storage is not None:
             table=torch.frombuffer(bytearray(storage.read_rows(list(range(storage.rows)),max_output_bytes=storage.rows*storage.columns*2)),dtype=torch.bfloat16).reshape(storage.rows,storage.columns).float()
             with torch.no_grad():layers[1].ple.ple_embedding.ngram_embedding.weight.copy_(table)
+        if token_storage is not None:
+            table=torch.frombuffer(bytearray(token_storage.read_rows(list(range(token_storage.rows)),max_output_bytes=token_storage.rows*token_storage.columns*2)),dtype=torch.bfloat16).reshape(token_storage.rows,token_storage.columns).float()
+            with torch.no_grad():embedding.weight.copy_(table)
         reference=copy.deepcopy((embedding,layers,mixer,head))
+        if token_storage is not None:
+            from local_token_embedding import LocalTokenEmbedding
+            embedding=LocalTokenEmbedding(token_storage,max_lookup_rows=12)
         if storage is not None:
             from local_ngram_embedding import LocalNgramEmbedding
             layers[1].ple.ple_embedding.ngram_embedding=LocalNgramEmbedding(storage,max_lookup_bytes=65536,layer_index=1)
@@ -87,6 +93,29 @@ class FlashModelReferenceTests(unittest.TestCase):
                 state.close();self.assertFalse(storage.closed)
             finally:storage.close()
 
+    def test_mapped_input_embeddings_integrate_with_complete_autoregression_and_isolated_leases(self):
+        import tempfile
+        from test_local_token_embedding_reference import fixture_rows
+        with tempfile.TemporaryDirectory() as directory:
+            storage=fixture_rows(directory)
+            try:
+                torch,model,reference,context=self.fixture(token_storage=storage)
+                states=[model.new_state(context),model.new_state(replace(context,tenant_id='other',request_id='other',key_id='other'))]
+                contexts=[context,states[1].context];histories=[torch.tensor([[1,2,0,3]],dtype=torch.int64),torch.tensor([[4,5,0,6]],dtype=torch.int64)]
+                for step in range(4):
+                    for index in range(2):
+                        tokens=histories[index];current=tokens if step==0 else tokens[:,-1:]
+                        actual=model(current,states[index],contexts[index],execution='public-reference')
+                        expected=self.full_prefix(torch,model,reference,tokens)
+                        torch.testing.assert_close(actual[:,-1],expected[:,-1],rtol=3e-4,atol=3e-5)
+                        next_token=int(actual[0,-1].argmax());histories[index]=torch.cat([tokens,torch.tensor([[next_token]],dtype=torch.int64)],dim=1)
+                self.assertIsNot(states[0].token_embedding_lease,states[1].token_embedding_lease)
+                first_lease=states[0].token_embedding_lease;states[0].close();self.assertTrue(first_lease.closed)
+                self.assertIsNone(states[0].token_embedding_lease)
+                self.assertFalse(states[1].token_embedding_lease.closed);self.assertFalse(storage.closed)
+                for state in states:state.close()
+            finally:storage.close()
+
     def test_two_requests_share_public_weights_and_isolate_all_actual_cache_stores(self):
         torch,model,reference,context=self.fixture();contexts=[context,replace(context,tenant_id='other',key_id='other',request_id='other')]
         states=[model.new_state(c) for c in contexts];tokens=[torch.tensor([[1,2,0,3,4]],dtype=torch.int64),torch.tensor([[5,6,0,7,8]],dtype=torch.int64)]
@@ -101,6 +130,14 @@ class FlashModelReferenceTests(unittest.TestCase):
                      (states[0].attention[1].indexer,states[1].attention[1].indexer),
                      (states[0].ple[1].conv,states[1].ple[1].conv)]:
             for key in pair[0]:self.assertNotEqual(pair[0][key].data_ptr(),pair[1][key].data_ptr())
+
+    def test_changed_complete_configuration_fails_before_embedding_or_projection_disclosure(self):
+        torch,model,reference,context=self.fixture();calls=[];state=model.new_state(context)
+        model.config.rms_norm_eps*=2
+        def reject(*args,**kwargs):calls.append('disclosed');raise AssertionError('changed configuration disclosed')
+        with patch.object(model.embedding,'forward',side_effect=reject),self.assertRaises(ValueError):
+            model(torch.tensor([[1]],dtype=torch.int64),state,context,execution='verified-projections',verified_client_projection=reject)
+        self.assertEqual(calls,[]);self.assertTrue(state.failed)
 
     def test_invalid_client_intermediate_never_reaches_projection_callback(self):
         torch,model,reference,context=self.fixture();calls=[]

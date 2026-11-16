@@ -1,0 +1,50 @@
+name: Actual Flash client input embedding
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/flash-embedding.yml'
+      - 'tools/privacy-concrete/**'
+permissions:
+  contents: read
+jobs:
+  actual-input-embedding:
+    if: github.event_name == 'workflow_dispatch' || contains(github.event.head_commit.message, '[flash-embedding-e2e]')
+    concurrency:
+      group: actual-flash-client-input-embedding
+      cancel-in-progress: false
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    env:
+      OMP_NUM_THREADS: '2'
+      TOKENIZERS_PARALLELISM: 'false'
+      HF_HUB_DISABLE_IMPLICIT_TOKEN: '1'
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+      - name: Install only pinned CPU text and safetensors implementation
+        run: |
+          python -m pip install --no-cache-dir 'torch==2.3.1' --index-url https://download.pytorch.org/whl/cpu
+          python -m pip install --no-cache-dir 'numpy==1.26.4' 'transformers==4.44.2' 'tokenizers==0.19.1' 'safetensors==0.8.0'
+      - name: Check shared row storage and installed source admission
+        run: |
+          python -m unittest discover -s tools/privacy-concrete -p test_local_ngram_rows.py -v
+          python -m unittest discover -s tools/privacy-concrete -p test_local_token_rows.py -v
+      - name: Acquire complete public object and tokenizer before accepting token indices
+        run: |
+          embedding_budget="$(PYTHONPATH=tools/privacy-concrete python -c 'from local_token_rows import POLICY; print(POLICY["ciLocalStorageLimitBytes"])')"
+          python tools/privacy-concrete/prepare_flash_embedding.py --destination "$RUNNER_TEMP/flash-embedding" --local-storage-limit-bytes "$embedding_budget"
+          python tools/privacy-concrete/prepare_flash_tokenizer.py --destination "$RUNNER_TEMP/flash-tokenizer"
+      - name: Compare actual client token embedding with independent safetensors rows
+        run: |
+          embedding_budget="$(PYTHONPATH=tools/privacy-concrete python -c 'from local_token_rows import POLICY; print(POLICY["ciLocalStorageLimitBytes"])')"
+          python tools/privacy-concrete/flash_embedding.py --source-dir "$RUNNER_TEMP/flash-embedding" --tokenizer-dir "$RUNNER_TEMP/flash-tokenizer" --local-storage-limit-bytes "$embedding_budget" --public-fixture flash-public-capital-text > "$RUNNER_TEMP/flash-public-embedding.json"
+      - uses: actions/upload-artifact@v6
+        with:
+          name: actual-flash-public-input-embedding
+          path: ${{ runner.temp }}/flash-public-embedding.json
+          if-no-files-found: error
+          retention-days: 7

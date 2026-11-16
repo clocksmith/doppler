@@ -6,6 +6,8 @@ composition, not an actual-weight model loader, encrypted backend or qualificati
 Callbacks are trusted client code, never directly a plaintext network service.
 """
 import hashlib
+import json
+from types import SimpleNamespace
 import torch
 from torch import nn
 from full_plan import canonical
@@ -18,6 +20,7 @@ from flash_ple import ORDER as PLE_ORDER
 from flash_rotary import text_rotary
 from flash_reference import SOURCE,SPEC
 from local_ngram_embedding import LocalNgramEmbedding
+from local_token_embedding import LocalTokenEmbedding
 
 HYPER=('input_mix_weight_down','input_mix_weight_up','block_inject_weight')
 
@@ -54,12 +57,14 @@ class DenseClientMoE(nn.Module):
 class ClientFlashGraph(nn.Module):
     def __init__(self,reference_path,config,embedding,layers,final_mixer,head,*,context_limit):
         super().__init__()
-        if (type(context_limit) is not int or not 0<context_limit<=config.max_position_embeddings
+        if (type(config) is not SimpleNamespace or type(context_limit) is not int or not 0<context_limit<=config.max_position_embeddings
+                or getattr(embedding,'num_embeddings',None)!=config.vocab_size or getattr(embedding,'embedding_dim',None)!=config.hidden_size
                 or len(layers)!=config.num_hidden_layers or len(config.layer_types)!=len(layers)
                 or any(kind not in ['linear_attention','indexed_attention'] for kind in config.layer_types)
                 or config._attn_implementation!='eager' or config.rope_parameters['rope_type']!='default'):
             raise ValueError('Complete bounded inspected client model components required')
         self.reference_path=reference_path;self.config=config;self.context_limit=context_limit
+        self.config_snapshot=canonical(vars(config))
         self.embedding=embedding;self.layers=nn.ModuleList(layers);self.final_mixer=final_mixer;self.head=head
         self.ple_layers=tuple(i for i in range(len(layers)) if i+1 in config.ple_layer_ids)
         order=[]
@@ -82,9 +87,9 @@ class ClientFlashGraph(nn.Module):
         if set(public)!=set(order):raise ValueError('Unaccounted client model projection')
         self.order=tuple(order);self.projections=public
         hasher=hashlib.sha256()
-        hasher.update(canonical(dict(sourceReferenceId=digest(canonical(SOURCE)),sourceTransforms=SPEC['transforms']['decoder'],layerTypes=config.layer_types,pleLayers=list(self.ple_layers),contextLimit=context_limit,operations=[dict(public[name].operation) for name in order])))
+        hasher.update(canonical(dict(sourceReferenceId=digest(canonical(SOURCE)),sourceTransforms=SPEC['transforms']['decoder'],configuration=json.loads(self.config_snapshot),layerTypes=config.layer_types,pleLayers=list(self.ple_layers),contextLimit=context_limit,operations=[dict(public[name].operation) for name in order])))
         for name,module in self.named_modules():
-            if type(module) is LocalNgramEmbedding:hasher.update(canonical(dict(name=name,localTableId=digest(canonical(module.storage.spec)))))
+            if type(module) in [LocalNgramEmbedding,LocalTokenEmbedding]:hasher.update(canonical(dict(name=name,localTableId=digest(canonical(module.storage.spec)))))
         for name,value in self.state_dict().items():
             hasher.update(canonical(dict(name=name,dtype=str(value.dtype),shape=list(value.shape))));hasher.update(value.detach().cpu().contiguous().reshape(-1).view(torch.uint8).numpy().tobytes())
         self.identity=hasher.hexdigest();self.eval().requires_grad_(False)
@@ -94,6 +99,7 @@ class ClientFlashGraph(nn.Module):
     def forward(self,tokens,state,context,*,execution,verified_client_projection=None,cancelled=None):
         if type(state) is not FlashModelState:raise ValueError('Request-owned complete Flash state required')
         with client_execution(state,context,self.order,execution,verified_client_projection,cancelled):
+            state.require(type(self.config) is SimpleNamespace and canonical(vars(self.config))==self.config_snapshot)
             state.require(state.model_id==self.identity and tokens.dtype==torch.int64 and tokens.device.type=='cpu'
                           and tokens.ndim==2 and tokens.shape[0]==1 and tokens.shape[1]>0
                           and (tokens>=0).all() and (tokens<self.config.vocab_size).all() and state.tokens+tokens.shape[1]<=self.context_limit)

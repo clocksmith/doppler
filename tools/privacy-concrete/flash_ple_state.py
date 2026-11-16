@@ -10,7 +10,7 @@ class PLERequestState(ClientRequestState):
 
     def clear_private_state(self):
         self.conv.clear()
-        if self.local_rows_lease is not None:self.local_rows_lease.close()
+        if self.local_rows_lease is not None and self.local_rows_lease.context==self.context:self.local_rows_lease.close()
         self.local_rows_lease=None
 
     def ple_state_for(self,layer_idx):

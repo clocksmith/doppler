@@ -23,7 +23,7 @@ class LocalNgramEmbedding(nn.Module):
                       and indices.device.type=='cpu' and indices.numel()>0)
         if state.local_rows_lease is None:state.local_rows_lease=self.storage.lease(state.context)
         lease=state.local_rows_lease
-        state.require(lease.storage is self.storage)
+        state.require(lease.storage is self.storage and lease.context==state.context)
         data=lease.read_rows(indices.reshape(-1).tolist(),state.context,max_output_bytes=self.max_lookup_bytes,cancelled=state.cancelled)
         result=torch.frombuffer(bytearray(data),dtype=torch.bfloat16).reshape(*indices.shape,self.embedding_dim).to(dtype=torch.float32)
         state.require(torch.isfinite(result).all())
