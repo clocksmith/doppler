@@ -2,11 +2,13 @@
 DEFAULT_PROFILE='qwen-all-linear'
 QWEN_PROFILES=(DEFAULT_PROFILE,'qwen-all-linear-ntt','qwen-all-linear-ntt-48','qwen-all-linear-ntt12')
 MOE_PROFILES=('flash-dense-moe','flash-dense-moe-ntt')
-PROFILES=(*QWEN_PROFILES,'flash-expert0',*MOE_PROFILES,'flash-mlp-hyper','flash-mlp-block','flash-first-delta','flash-first-qsa-ntt','flash-first-ple-ntt')
+PROFILES=(*QWEN_PROFILES,'flash-expert0',*MOE_PROFILES,'flash-mlp-hyper','flash-mlp-block','flash-first-delta','flash-first-qsa-ntt','flash-first-ple-ntt','flash-text-all-linear-research')
 
 
 def load_backend_plan(directory,profile):
-    if profile=='qwen-all-linear':
+    if profile=='flash-text-all-linear-research':
+        from flash_text_plan import load_plan
+    elif profile=='qwen-all-linear':
         from full_plan import load_plan
     elif profile=='qwen-all-linear-ntt12':
         from full_ntt12_plan import load_plan

@@ -389,6 +389,20 @@ Bindings are cleared on every return or failure; any failed attempt terminally
 invalidates the graph state and bridge. The complete-graph adapter test now uses
 this helper, including negative graph-plan and request-session binding cases.
 
-No installed loader yet admits this full-Flash plan shape. The existing Qwen
-loader remains fixed to its pinned 169 projections; this helper does not change
-that policy or convert a synthetic test plan into qualified admission.
+The Qwen loader remains fixed to its pinned 169 projections. A separate installed
+`flash-text-all-linear-research` profile now admits the full Flash text route,
+derived from the shipped tensor inventory: 74,501 projections across 48 layers,
+including all 512 experts per layer, plus the output mixer and vocabulary head.
+Its plan binds the source, operator transforms, graph identity, ordered geometry,
+quantized coefficient hashes, native versions and fixed research resource limits.
+It accepts only regular coefficient files and rejects changed bytes, altered
+source/route metadata or positive production/security/qualification claims.
+The provider and FullBridge use the existing mandatory replay implementation.
+
+This research loader removes the Qwen-only admission limitation, not the remaining
+materialization or qualification work. Complete actual-weight graph construction,
+full coefficient-cache provisioning, native full-Flash generation and useful
+integrity without full client replay remain unfinished. Metadata-only tests cover
+the complete installed route; tiny patched cache fixtures cover admission/rejection.
+A tiny reference test separately checks the route builder against actual complete
+graph operation order and geometry. No full model was downloaded or executed.

@@ -92,6 +92,21 @@ class FlashEncryptedGraphAdapterTests(unittest.TestCase):
                 clear_state.close();encrypted_state.close()
                 self.assertTrue(all(p.secret is None and p.bridge is None and p.parameters is None for p in prepared.values()))
 
+    def test_installed_route_builder_matches_complete_reference_operation_order(self):
+        from test_flash_model_reference import FlashModelReferenceTests
+        from flash_text_plan import geometry
+        _,graph,parts,_=FlashModelReferenceTests().fixture()
+        tensors={}
+        def add(prefix,module):
+            for name,value in module.state_dict().items():tensors[prefix+name]=dict(shape=list(value.shape),dtype='BF16')
+        for i,layer in enumerate(parts[1]):add(f'model.language_model.layers.{i}.',layer)
+        add('model.language_model.hyper_connection_mixer.',parts[2]);add('lm_head.',parts[3])
+        actual=geometry(dict(tensors=tensors,layerCount=graph.config.num_hidden_layers,expertsPerLayer=graph.config.num_experts))
+        self.assertEqual(list(actual),list(graph.order))
+        for name,shape in actual.items():
+            operation=graph.projections[name].operation
+            self.assertEqual(shape,(operation['inputWidth'],operation['outputWidth']))
+
     def test_complete_two_steps_and_every_tile_replayed(self):self.run_case()
     def test_modified_reply_rejects_before_decryption(self):self.run_case('tamper')
     def test_cancelled_reply_rejects_before_decryption(self):self.run_case('cancel')
