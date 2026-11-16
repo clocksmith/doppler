@@ -29,9 +29,13 @@ class StreamedMoE:
         self.implementation=self.version_check()
         self.source=FlashSource(source_dir)
         self.directory=Path(cache_dir);self.directory.mkdir(parents=True,exist_ok=True)
-        self.executor=GLWELinearLayerExecutor(use_dynamic_quantization=True)
+        self.executor=GLWELinearLayerExecutor(use_dynamic_quantization=True);self.prepared={}
 
-    def projection(self,name):
+    def projection(self,name,mode='float-reference'):
+        if mode not in ['float-reference','clear-reference','execute']:raise ValueError('Explicit Flash projection mode required')
+        if mode!='float-reference':
+            if name not in self.prepared:raise ValueError('Complete client projection preparation required')
+            return self.prepared[name].prepared_copy()
         if name.startswith('expert/'):
             _,index,leaf=name.split('/')
             weight=self.source.tensor(PREFIX+'experts.'+leaf+'_proj',expert=int(index))
@@ -46,14 +50,21 @@ class StreamedMoE:
     def prepare(self):
         installed=self.implementation
         if json.loads(ext.default_params())!=POLICY['parameters']:raise ValueError('Pinned native parameters required')
-        definitions=[]
-        for row in lowered_operations():
-            projection=self.projection(row['name'])
-            if any(projection.definition[key]!=value for key,value in row.items()):raise ValueError('Flash projection lowering changed')
-            definitions.append(projection.definition)
-            del projection
+        definitions=self.prepare_projections(lowered_operations())
         write_component(self.directory,self.config,definitions,dict(programId=PROGRAM.identity),installed)
         return self.plan_loader(self.directory)
+
+    def prepare_projections(self,operations):
+        self.prepared={};prepared={};definitions=[];operations=tuple(operations)
+        names=[row['name'] for row in operations]
+        if len(names)!=len(set(names)):raise ValueError('Distinct prepared Flash projection names required')
+        for row in operations:
+            projection=self.projection(row['name'])
+            if any(projection.definition[key]!=value for key,value in row.items()):raise ValueError('Flash projection lowering changed')
+            definitions.append(dict(projection.definition))
+            projection.release_float_reference();prepared[projection.name]=projection
+        self.prepared=prepared
+        return definitions
 
     def evaluate(self,hidden,mode,plan,bridge=None,secret=None,projection_definitions=None):
         definitions=plan.definition()['projections'] if projection_definitions is None else projection_definitions
@@ -68,7 +79,7 @@ class StreamedMoE:
             if pending is not None:raise ValueError('Incomplete Flash combined projection')
             combined=name.startswith('expert/') and name.endswith('/gate')
             lowered=name[:-4]+'gate_up' if combined else name
-            definition=next(expected);projection=self.projection(lowered)
+            definition=next(expected);projection=self.projection(lowered,mode)
             if projection.definition!=definition:raise ValueError('Public Flash projection changed after admission')
             projection.mode=mode;projection.bridge=bridge;projection.secret=secret
             projection.parameters=self.executor.glwe_crypto_params

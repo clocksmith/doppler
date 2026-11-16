@@ -62,7 +62,7 @@ class StreamedFlashMoETests(unittest.TestCase):
         from test_flash_staging import fixture
         name,spec,files=fixture()
         with tempfile.TemporaryDirectory() as parent:
-            def acquire(directory,unused):
+            def acquire(directory,unused,**kwargs):
                 for file,data in files.items():(Path(directory)/file).write_bytes(data)
             with patch('flash_stage_source.staging_spec',return_value=spec),patch('flash_stage_source.provision_spec',side_effect=acquire):
                 with staged_source(parent,'decoder',0) as source:owned=source.tensor(name)
@@ -185,14 +185,55 @@ class StreamedFlashMoETests(unittest.TestCase):
                 bridge.admission.admit_tile(tile,matrix.shape,bridge.sequence)
                 result=encrypted.astype(np.int64)@matrix.view(np.int64)
                 bridge.admission.verified();bridge.sequence+=1;return result
-            bridge.evaluate=evaluate;projection.bridge=bridge;projection.secret=object();projection.parameters=object()
-            projection.mode='execute'
+            bridge.evaluate=evaluate
+            projection.release_float_reference();projection=projection.prepared_copy()
+            projection.bridge=bridge;projection.secret=object();projection.parameters=object();projection.mode='execute'
             # Exercise actual Torch/NumPy quantization, route admission, tile
             # accumulation and dequantization; crypto is explicitly simulated.
             native=SimpleNamespace(encrypt_matrix=lambda **kwargs:kwargs['data'].copy(),decrypt_matrix=lambda result,*args:result)
             with patch.object(full_model,'ext',native):actual=projection(value)
             bridge.admission.complete();self.assertEqual(bridge.sequence,7)
             torch.testing.assert_close(actual,expected,rtol=0,atol=0)
+
+    def test_prepared_projection_releases_float_weights_and_isolates_attempt_state(self):
+        import gc
+        import weakref
+        import torch
+        from full_model import FullLinear
+        from concrete.ml.quantization.linear_op_glwe_backend import GLWELinearLayerExecutor
+        for bits in [8,12]:
+            with tempfile.TemporaryDirectory() as directory:
+                layer=torch.nn.Linear(5,3,bias=True).eval().requires_grad_(False)
+                projection=FullLinear('prepared',layer,GLWELinearLayerExecutor(use_dynamic_quantization=True),directory,bits)
+                value=torch.tensor([[.1,-.2,.3,-.4,.5]])
+                projection.mode='clear-reference';expected=projection(value)
+                weight=weakref.ref(layer.weight);del layer
+                with self.assertRaises(ValueError):projection.prepared_copy()
+                projection.release_float_reference();projection.release_float_reference();gc.collect()
+                self.assertIsNone(weight());self.assertIsNone(projection.remote)
+                first=projection.prepared_copy();second=projection.prepared_copy()
+                torch.testing.assert_close(first(value),expected,rtol=0,atol=0)
+                torch.testing.assert_close(second(value),expected,rtol=0,atol=0)
+                self.assertNotEqual(first.scale.data_ptr(),second.scale.data_ptr())
+                first.scale.zero_();self.assertFalse(torch.equal(first.scale,second.scale))
+                first.definition['weightId']='changed';self.assertNotEqual(first.definition,second.definition)
+                first.context.input_quantizers[0].quant_options.n_bits=1
+                self.assertEqual(second.context.input_quantizers[0].quant_options.n_bits,bits)
+                first.bridge=object();first.secret=object();first.parameters=object()
+                self.assertIsNone(second.bridge);self.assertIsNone(second.secret);self.assertIsNone(projection.secret)
+                second.mode='float-reference'
+                with self.assertRaisesRegex(ValueError,'explicitly released'):second(value)
+                second.mode='clear-reference';path=first.weight_path;original=path.read_bytes()
+                changed=bytes([original[0]^1])+original[1:];path.write_bytes(changed)
+                with self.assertRaisesRegex(ValueError,'coefficient identity changed'):second(value)
+                path.write_bytes(original)
+                torch.testing.assert_close(second(value),expected,rtol=0,atol=0)
+                def cancel():raise InterruptedError('cancelled before prepared coefficients used')
+                second.bridge=SimpleNamespace(check_active=cancel)
+                with self.assertRaises(InterruptedError):second(value)
+                second.bridge=None
+                path.unlink()
+                with self.assertRaises(FileNotFoundError):second(value)
 
     def test_public_matrix_scope_closes_on_success_failure_and_cache_changes(self):
         from pathlib import Path
@@ -427,7 +468,7 @@ class StreamedFlashMoETests(unittest.TestCase):
             model=flash_moe.StreamedMoE.__new__(flash_moe.StreamedMoE)
             model.source=SimpleNamespace(tensor=source_tensor);model.directory=directory
             model.executor=GLWELinearLayerExecutor(use_dynamic_quantization=True)
-            definitions=[model.projection(row['name']).definition for row in flash_moe.lowered_operations(program)]
+            definitions=model.prepare_projections(flash_moe.lowered_operations(program))
             plan=SimpleNamespace(definition=lambda:dict(projections=definitions))
             for hidden in [[.4,-.2],[-.4,-.6]]:
                 reads.clear()
@@ -436,8 +477,13 @@ class StreamedFlashMoETests(unittest.TestCase):
                 torch.testing.assert_close(actual,expected,rtol=1e-5,atol=1e-6)
                 self.assertEqual(len(reads),11)
                 self.assertEqual([expert for name,expert in reads if expert is not None],[0,0,1,1,2,2])
-                quantized=model.evaluate(hidden,'clear-reference',plan)
+                reads.clear();quantized=model.evaluate(hidden,'clear-reference',plan)
+                self.assertEqual(reads,[]);self.assertTrue(all(projection.remote is None for projection in model.prepared.values()))
                 self.assertTrue(torch.isfinite(quantized).all())
+                fresh=model.projection
+                with patch.object(model,'projection',side_effect=lambda name,mode:fresh(name)):
+                    rebuilt=model.evaluate(hidden,'clear-reference',plan)
+                torch.testing.assert_close(quantized,rebuilt,rtol=0,atol=0)
             # Compose the actual streaming adapter with normalization and three real
             # quantized hyperconnection modules, under one complete ordered route.
             import flash_mlp
@@ -457,7 +503,7 @@ class StreamedFlashMoETests(unittest.TestCase):
             all_definitions=prefix+definitions
             complete_plan=SimpleNamespace(definition=lambda:dict(projections=all_definitions))
             trace=[];original_projection=model.projection
-            def observed(name):trace.append(name);return original_projection(name)
+            def observed(name,mode='float-reference'):trace.append(name);return original_projection(name,mode)
             model.projection=observed
             handles=[projection.register_forward_pre_hook(lambda module,args:trace.append(module.name)) for projection in hyper.projections]
             try:

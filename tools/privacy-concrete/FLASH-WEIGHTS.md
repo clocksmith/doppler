@@ -648,3 +648,25 @@ not yet provide an out-of-core loader for every decoder parameter, disk-stage
 eviction, a complete encrypted Flash plan or measured full-model memory/latency.
 Packed gate/up material is reread for the two client projections; no cache saving
 is assumed. Production and cryptographic qualification remain unavailable.
+
+## Reusing prepared expert projections
+
+The streamed MoE adapter retains client-owned prepared quantization metadata and
+coefficient identities after its preparation pass. Each template releases its
+FP32 source module. Clear and encrypted evaluations create fresh attempt bindings
+from that template rather than rereading and requantizing every expert. Only
+per-output-channel scale, zero-point, coefficient sum and optional bias remain in
+RAM; coefficient matrices are still borrowed from bounded read-only mappings.
+Returned copies own their metadata tensors and cannot retain another attempt's
+key, bridge or mode. Floating-reference evaluation explicitly reloads source
+weights; asking a released prepared projection for floating execution rejects.
+
+The complete ordered all-expert route, cached coefficient identity comparison,
+whole-file reauthentication of borrowed prepared coefficients before use,
+before-disclosure tile verification, full encrypted replay and production gate
+are unchanged. A missing coefficient file rejects instead of falling back or
+regenerating weights during inference. This removes repeated source preparation
+from the existing streamed MoE adapter, not a full-model disk-eviction controller.
+Metadata still scales with the number of prepared output channels. No native
+crypto speedup, full Flash generation or end-to-end memory qualification follows
+from the small Torch adapter checks.

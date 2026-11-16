@@ -1,5 +1,8 @@
 """Complete Qwen all-linear hybrid backend. Native GLWE operations; client nonlinearities and replay."""
 import argparse
+import copy
+from contextlib import contextmanager
+import hashlib
 import json
 import os
 from pathlib import Path
@@ -44,11 +47,46 @@ class FullLinear(nn.Module):
         self.weight_path,self.definition=store_public_matrix(directory,name,source.in_features,source.out_features,
             dict(weightEncoding=self.encoding['id'],quantizationBits=quantization_bits),data.tobytes())
 
+    def release_float_reference(self):
+        """Drop owned FP32 weights after preparation; no implicit source reload."""
+        if self.bridge is not None or self.secret is not None or self.parameters is not None:
+            raise ValueError('Cannot release a bound encrypted projection')
+        if self.remote is not None:
+            self.prepared_bias=None if self.remote.bias is None else self.remote.bias.detach().clone()
+            self.remote=None
+
+    def prepared_copy(self):
+        """Fresh attempt bindings over trusted client preparation, never wire metadata."""
+        if self.remote is not None or self.bridge is not None or self.secret is not None or self.parameters is not None:
+            raise ValueError('Unbound released public projection required')
+        result=FullLinear.__new__(FullLinear);nn.Module.__init__(result)
+        result.name=self.name;result.executor=self.executor;result.weight_path=self.weight_path
+        result.encoding=copy.deepcopy(self.encoding);result.definition=copy.deepcopy(self.definition)
+        result.context=copy.deepcopy(self.context)
+        result.scale=self.scale.clone();result.zero_point=self.zero_point.clone();result.sum_weights=self.sum_weights.clone()
+        result.prepared_bias=None if self.prepared_bias is None else self.prepared_bias.clone()
+        result.remote=None;result.mode='clear-reference';result.bridge=result.secret=result.parameters=None
+        return result
+
+    @contextmanager
     def coefficient_matrix(self):
-        return mapped_public_matrix(self.weight_path,(self.definition['inputWidth'],self.definition['outputWidth']),self.encoding['dtype'])
+        prepared=self.remote is None
+        if prepared and self.weight_path.is_symlink():raise ValueError('Regular public coefficient cache required')
+        with mapped_public_matrix(self.weight_path,(self.definition['inputWidth'],self.definition['outputWidth']),self.encoding['dtype']) as matrix:
+            if prepared:
+                # Reuse skips preparation's store_public_matrix verification. Bind
+                # the exact borrowed bytes before either clear or encrypted use.
+                hasher=hashlib.sha256()
+                with memoryview(matrix).cast('B') as payload:
+                    for begin in range(0,len(payload),1024*1024):
+                        if self.bridge is not None:self.bridge.check_active()
+                        hasher.update(payload[begin:begin+1024*1024])
+                if hasher.hexdigest()!=self.definition['weightId']:raise ValueError('Prepared public coefficient identity changed')
+            yield matrix
 
     def forward(self,value):
         if self.mode == 'float-reference':
+            if self.remote is None:raise ValueError('Floating reference weights were explicitly released')
             return self.remote(value)
         if self.mode not in ['clear-reference','execute'] or not torch.isfinite(value).all() or value.shape[-1] != self.definition['inputWidth']:
             raise ValueError('Unsupported full-model projection execution')
@@ -81,8 +119,9 @@ class FullLinear(nn.Module):
         output = self.executor._apply_correction_and_dequantize(raw,q_input,zero,self.zero_point,
                                                                self.sum_weights,self.definition['inputWidth'],scale,self.scale)
         output = output.view(*original_shape[:-1],self.definition['outputWidth'])
-        if self.remote.bias is not None:
-            output = output+self.remote.bias
+        bias=self.remote.bias if self.remote is not None else self.prepared_bias
+        if bias is not None:
+            output = output+bias
         return output
 
 
