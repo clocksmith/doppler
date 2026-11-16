@@ -12,7 +12,12 @@ LIMITS=('steps','contextBucket','inputTileWidth','outputTileWidth','cpuThreads',
 
 
 def component_versions(policy):
-    found=implementation_versions()
+    variant=policy.get('nativeVariant')
+    if variant is None:found=implementation_versions()
+    elif variant=='cpu-exact-ntt/v1':
+        from native_runtime import ntt_versions
+        found=ntt_versions()
+    else:raise ValueError('Unsupported installed component arithmetic variant')
     for dependency,expected in policy['additionalDependencies'].items():
         found[dependency]=version(dependency)
         if found[dependency]!=expected:raise ValueError('Pinned Flash component dependencies required')
@@ -20,7 +25,12 @@ def component_versions(policy):
 
 
 def component_parameters(policy):
-    result=json.loads(canonical({key:POLICY[key] for key in ['dependencies','parameters','evaluationBackend']}))
+    variant=policy.get('nativeVariant')
+    if variant is None:result=json.loads(canonical({key:POLICY[key] for key in ['dependencies','parameters','evaluationBackend']}))
+    elif variant=='cpu-exact-ntt/v1':
+        from native_runtime import ntt_parameters
+        result=ntt_parameters()
+    else:raise ValueError('Unsupported installed component arithmetic variant')
     if 'parameterProfile' in policy:
         profile_id=policy['parameterProfile']
         profile=json.loads(Path(__file__).with_name('precision-policy.json').read_text())

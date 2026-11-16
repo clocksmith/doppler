@@ -28,6 +28,8 @@ on:
       - 'tools/privacy-concrete/local_ngram_rows.py'
       - 'tools/privacy-concrete/test_local_ngram_rows.py'
       - 'tools/privacy-concrete/test_ngram_mapping_reference.py'
+      - 'tools/privacy-concrete/flash_rotary.py'
+      - 'tools/privacy-concrete/test_flash_rotary_reference.py'
 permissions:
   contents: read
 jobs:
@@ -75,3 +77,4 @@ jobs:
           python -m unittest discover -s tools/privacy-concrete -p test_flash_ple_reference.py -v
           python -m unittest discover -s tools/privacy-concrete -p test_local_ngram_rows.py -v
           python -m unittest discover -s tools/privacy-concrete -p test_ngram_mapping_reference.py -v
+          python -m unittest discover -s tools/privacy-concrete -p test_flash_rotary_reference.py -v

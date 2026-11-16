@@ -23,6 +23,14 @@ class NativeSelectionTests(unittest.TestCase):
         raw=canonical(dict(modelId='a'*64))
         self.assertNotEqual(FullPlan(raw).frame('s','k',1,'evaluate'),FullNttPlan(raw).frame('s','k',1,'evaluate'))
 
+    def test_component_variant_is_explicit_and_does_not_change_stock_parameters(self):
+        from flash_component_plan import component_parameters
+        stock=component_parameters({})
+        fast=component_parameters({'nativeVariant':'cpu-exact-ntt/v1'})
+        self.assertEqual(stock['evaluationBackend'],'cpu');self.assertEqual(fast['evaluationBackend'],'cpu-exact-ntt')
+        self.assertEqual(stock['parameters'],fast['parameters'])
+        with self.assertRaises(ValueError):component_parameters({'nativeVariant':'advertised-unknown'})
+
     def test_unknown_evaluator_does_not_import_or_invoke_a_native_module(self):
         plan=SimpleNamespace(definition=lambda:dict(parameters=dict(evaluationBackend='advertised-unknown')))
         with patch('native_runtime.importlib.import_module',side_effect=AssertionError('native module imported')):

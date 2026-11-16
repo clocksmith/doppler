@@ -1,0 +1,80 @@
+{
+  "schema": "doppler.flash-qsa-weight-scope/v1",
+  "shards": {
+    "model-00082-of-00131.safetensors": {
+      "bytes": 1935433136,
+      "sha256": "0fe8d836b886ac8942f74e835e17487f53454e96bf38263d45fb329006dde7a9"
+    }
+  },
+  "tensors": {
+    "model.language_model.layers.3.self_attn.indexer.index_qk_proj.weight": {
+      "shard": "model-00082-of-00131.safetensors",
+      "shape": [
+        640,
+        2560
+      ],
+      "dtype": "BF16"
+    },
+    "model.language_model.layers.3.self_attn.indexer.k_layernorm.weight": {
+      "shard": "model-00082-of-00131.safetensors",
+      "shape": [
+        128
+      ],
+      "dtype": "BF16"
+    },
+    "model.language_model.layers.3.self_attn.indexer.q_layernorm.weight": {
+      "shard": "model-00082-of-00131.safetensors",
+      "shape": [
+        128
+      ],
+      "dtype": "BF16"
+    },
+    "model.language_model.layers.3.self_attn.k_norm.weight": {
+      "shard": "model-00082-of-00131.safetensors",
+      "shape": [
+        256
+      ],
+      "dtype": "BF16"
+    },
+    "model.language_model.layers.3.self_attn.k_proj.weight": {
+      "shard": "model-00082-of-00131.safetensors",
+      "shape": [
+        512,
+        2560
+      ],
+      "dtype": "BF16"
+    },
+    "model.language_model.layers.3.self_attn.o_proj.weight": {
+      "shard": "model-00082-of-00131.safetensors",
+      "shape": [
+        2560,
+        6144
+      ],
+      "dtype": "BF16"
+    },
+    "model.language_model.layers.3.self_attn.q_norm.weight": {
+      "shard": "model-00082-of-00131.safetensors",
+      "shape": [
+        256
+      ],
+      "dtype": "BF16"
+    },
+    "model.language_model.layers.3.self_attn.q_proj.weight": {
+      "shard": "model-00082-of-00131.safetensors",
+      "shape": [
+        12288,
+        2560
+      ],
+      "dtype": "BF16"
+    },
+    "model.language_model.layers.3.self_attn.v_proj.weight": {
+      "shard": "model-00082-of-00131.safetensors",
+      "shape": [
+        512,
+        2560
+      ],
+      "dtype": "BF16"
+    }
+  },
+  "headerSha256": "ce840d1d64f034886f1774712a1f0c16d89560f5ac8f5194624b9c9f5249eb95"
+}

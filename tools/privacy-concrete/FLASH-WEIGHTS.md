@@ -179,3 +179,21 @@ filesystem access patterns remain visible to the trusted client host; this is no
 PIR or protection from that host. This storage interface is not yet wired into
 the PLE model adapter or production admission. Actual PLE projections/weights,
 all-layer composition and full Flash autoregression remain unavailable.
+
+## Actual cached QSA candidate
+
+`flash_qsa_model.py` binds the first full-attention layer (layer 3) to the complete
+five-projection QSA route. Its whole BF16 shard is pinned by SHA-256 and size
+(1,935,433,136 bytes). The client uses the inspected default text rotary methods,
+QSA indexing, attention/normalization/output gate, separate per-mode KV/indexer
+state and full encrypted replay. Its installed NTT profile has a distinct
+protocol, native source/binary identities and no substitution into stock profiles.
+The fixed public-input fixture is a four-row prefill followed by three cached
+single-row updates. It is not model token generation or full Flash inference.
+
+The isolated `flash-qsa.yml` workflow builds the retained native lock, verifies
+native ciphertext equivalence and admission before provisioning the complete
+public shard, then runs that component. Trigger only manually or with
+`[flash-qsa-e2e]`; original Qwen/MoE runs remain untouched. The candidate has no
+completed actual-weight encrypted result until its artifact is collected, and
+production admission remains closed.
