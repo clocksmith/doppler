@@ -18,6 +18,15 @@
       "torch_chunk_gated_delta_rule",
       "torch_recurrent_gated_delta_rule",
       "Qwen4ExpTextGatedDeltaNet"
+    ],
+    "attention": [
+      "Qwen4ExpTextRMSNorm",
+      "rotate_half",
+      "apply_rotary_pos_emb",
+      "Qwen4ExpTextQSAIndexer",
+      "repeat_kv",
+      "eager_attention_forward",
+      "Qwen4ExpTextAttention"
     ]
   },
   "removedDecorators": [

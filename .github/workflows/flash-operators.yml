@@ -10,6 +10,12 @@ on:
       - 'tools/privacy-concrete/flash_reference.py'
       - 'tools/privacy-concrete/flash-reference-programs.json'
       - 'tools/privacy-concrete/flash_delta.py'
+      - 'tools/privacy-concrete/flash_attention.py'
+      - 'tools/privacy-concrete/flash_attention_state.py'
+      - 'tools/privacy-concrete/flash-attention-program.json'
+      - 'tools/privacy-concrete/flash_client_projections.py'
+      - 'tools/privacy-concrete/flash_request_state.py'
+      - 'tools/privacy-concrete/test_flash_attention_reference.py'
       - 'tools/privacy-concrete/flash_delta_state.py'
       - 'tools/privacy-concrete/test_flash_delta_reference.py'
       - 'tools/privacy-concrete/test_flash_reference.py'
@@ -49,3 +55,4 @@ jobs:
         run: |
           python -m unittest discover -s tools/privacy-concrete -p test_flash_reference.py -v
           python -m unittest discover -s tools/privacy-concrete -p test_flash_delta_reference.py -v
+          python -m unittest discover -s tools/privacy-concrete -p test_flash_attention_reference.py -v

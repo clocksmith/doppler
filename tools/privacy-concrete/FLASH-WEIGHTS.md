@@ -130,3 +130,20 @@ normalization and activations remain on the trusted client. No plaintext layer
 input or cache state is passed to the evaluator. The new bounded workflow
 attempts this component; a running job is not a successful result. This is not
 full Flash token generation or complete-model encrypted inference.
+
+
+## Client full attention and QSA indexing
+
+`flash_attention.py` adds the inspected eager full-attention/QSA graph with
+client-owned KV and compressed-indexer buffers. It shares the request transaction
+and immutable projection boundary with DeltaNet. Query/key/value/indexer/output
+projections follow one fixed order; sparse token selection and mask processing
+stay on the client. Only explicit FP32 eager execution, declared rotary width
+and a bounded context are admitted. Boolean, noncausal and fully masked query
+rows are currently unsupported and fail before projection dispatch.
+
+Source checks compare prefill plus three cached decode steps with full-prefix
+attention, keep the projection route fixed across input/selection changes, and
+verify independent KV/indexer buffers. This graph has no actual Flash weight or
+encrypted-execution qualification and is not registered as an encrypted backend.
+Ngram/PLE and complete-model generation remain unfinished.
