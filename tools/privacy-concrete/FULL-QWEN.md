@@ -21,7 +21,7 @@ printf 'The capital of France is' | \
     --model-dir /tmp/qwen05b-source --cache-dir /tmp/qwen-public-int8-cache
 ```
 
-Preparation-only mode (`--prepare-only`) validates/traces the real model without keys or private input. The cache is reusable public model material; each actual run creates fresh client keys and an evaluator. Full-model execution may be expensive on this CPU-only environment. CUDA availability was not detected through `nvidia-smi` on the checked Linux fleet hosts; no remote execution or source transfer was attempted. The old denied Jupiter source-transfer action remains blocked, not bypassed.
+Preparation-only mode (`--prepare-only`) validates/traces the real model without keys or private input. The cache is reusable public model material; each actual run creates fresh client keys and an evaluator. Full-model execution may be expensive on this CPU-only environment. CUDA availability was not detected through `nvidia-smi` on the checked Linux fleet hosts; no fleet model execution or source transfer followed those checks. The old denied Jupiter source-transfer action remains blocked, not bypassed.
 
 Production Doppler/Reploid cryptographic admission remains closed. A matching backend descriptor is returned only as unqualified metadata after successful research execution; a descriptor does not enable the production availability gate. Malicious-security qualification, authenticated separate-machine transport, implementation/side-channel review and full failure testing are unfinished.
 

@@ -1,6 +1,6 @@
 # Encrypted transformer process experiments
 
-The [all-linear Qwen candidate](FULL-QWEN.md) implements the complete dense linear route; its full encrypted qualification is paused and unfinished.
+The [all-linear Qwen candidate](FULL-QWEN.md) implements the complete dense linear route; its full encrypted qualification is running on an isolated GitHub-hosted CPU and remains unfinished.
 
 The [small-Qwen guide](QWEN.md) covers real Qwen2.5-0.5B-Instruct generation with one encrypted key-projection matrix product and its explicit limits. Immutable installed profiles, transport/lifecycle and trusted client projection preparation are shared; the protocols and model/weight identities remain distinct. No remote advertisement can add a profile.
 
