@@ -22,3 +22,5 @@ export declare function recordRoutedReadback(loader: DopplerLoader,
 export declare function getRoutedReadbackStats(loader: DopplerLoader): ReturnType<DopplerLoader['getRoutedReadbackStats']>;
 
 export declare function getRoutedExpertCapacity(loader: DopplerLoader, layer: number, phase?: 'prefill' | 'decode'): number;
+
+export declare function getRoutedExpertLayerCount(loader: Pick<DopplerLoader, "layers">, layer: number, numLayers: number): number;

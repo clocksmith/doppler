@@ -1,7 +1,8 @@
 import { getRuntimeConfig, setRuntimeConfig } from '../../src/config/runtime.js';
-import { prepareRoutedExperts } from '../../src/loader/experts/loader-bindings.js';
+import { prepareRoutedExperts, getRoutedExpertLayerCount } from '../../src/loader/experts/loader-bindings.js';
 import { ggufBlockSourceBytes } from '../../src/formats/gguf/block-storage.js';
 import assert from 'node:assert/strict';
+import { compactExpertCapacity } from '../../src/loader/experts/compact-expert-cache.js';
 import { RoutedExpertCache } from '../../src/loader/experts/routed-expert-cache.js';
 import { planRoutedExpertBank } from '../../src/loader/experts/routed-expert-plan.js';
 import { validateQwen35RoutedConfig } from "../../src/config/schema/runtime/loading.schema.js";
@@ -845,5 +846,30 @@ for (const policy of ['lru', 'lfu']) {
     }
   }
   assert(f.cache.getStats().peakStagingBytes <= f.policy.stagingBytes, 'cancelled readers release staging before retry');
+  await f.cache.destroy();
+}
+
+// Residency budgets belong to loaded stages, not absent layers on other peers.
+{
+  const stage = { layers: new Map([[44, {}], [45, {}], [46, {}], [47, {}]]) };
+  assert.equal(getRoutedExpertLayerCount(stage, 44, 48), 4);
+  assert.equal(getRoutedExpertLayerCount({ layers: new Map(Array.from({ length: 48 }, (_, i) => [i, {}])) }, 0, 48), 48);
+  assert.throws(() => getRoutedExpertLayerCount(stage, 43, 48), /loaded partition/);
+  assert.throws(() => getRoutedExpertLayerCount({ layers: new Map() }, 44, 48), /loaded partition/);
+  assert.throws(() => getRoutedExpertLayerCount({ layers: new Map([[48, {}]]) }, 48, 48), /loaded partition/);
+}
+
+{
+  const f = fixture(), plan = f.plan(2);
+  const policy = { ...f.policy, storageMode: 'compact-decode', compactPrefillBytes: 0,
+    compactLayerBytes: null, cacheBytes: 3 * (plan.expertBytes + plan.numExperts * 4) };
+  const whole = { layers: new Map([[0, {}], [1, {}], [2, {}]]) };
+  const stage = { layers: new Map([[2, {}]]) };
+  const capacity = loader => compactExpertCapacity(plan, { device: f.gpu, policy,
+    compactLayerCount: getRoutedExpertLayerCount(loader, 2, plan.numLayers) });
+  assert.equal(capacity(whole), 1);
+  assert.equal(capacity(stage), 3);
+  policy.compactLayerBytes = { 2: policy.cacheBytes };
+  assert.equal(capacity(stage), 3, 'assigned-layer quotas preserve original indices');
   await f.cache.destroy();
 }

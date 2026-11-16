@@ -15,6 +15,16 @@ export async function prepareExpertLayer(loader, policy, layer, consumers, recor
   return prepareQwenExpertLayer(loader._getExpertLoaderContext(), layer, consumers, policy.qwen35Pager, recorder, signal);
 }
 
+/** @type {typeof import('./loader-bindings.js').getRoutedExpertLayerCount} */
+export function getRoutedExpertLayerCount(loader, layer, numLayers) {
+  const count = loader.layers.size;
+  if (!Number.isSafeInteger(numLayers) || numLayers < 1 || count < 1 || count > numLayers
+    || !Number.isSafeInteger(layer) || layer < 0 || layer >= numLayers || !loader.layers.has(layer)) {
+    throw new Error('Routed expert residency requires the loaded partition layers at their original indices.');
+  }
+  return count;
+}
+
 /** @type {typeof import('./loader-bindings.js').getRoutedExpertCapacity} */
 export function getRoutedExpertCapacity(loader, layer, phase) {
   if (!loader.manifest) throw new Error('Routed experts require the loaded manifest.');
@@ -23,7 +33,7 @@ export function getRoutedExpertCapacity(loader, layer, phase) {
   if (policy.storageMode !== 'compact-decode' || phase !== 'decode') return plan.numExperts;
   const device = getDevice();
   if (!device) throw new Error('Compact experts require the owning device.');
-  return compactExpertCapacity(plan, { device, policy, compactLayerCount: plan.numLayers });
+  return compactExpertCapacity(plan, { device, policy, compactLayerCount: getRoutedExpertLayerCount(loader, layer, plan.numLayers) });
 }
 
 /** @type {typeof import('./loader-bindings.js').prepareRoutedExperts} */
@@ -35,7 +45,7 @@ export async function prepareRoutedExperts(loader, layer, expertIds, signal, pha
   if (!loader.routedExpertCache) {
     const device = getDevice();
     if (!device) throw new Error('Routed experts require the owning GPU device.');
-    loader.routedExpertCache = new RoutedExpertCache({ device, policy, compactLayerCount: plan.numLayers,
+    loader.routedExpertCache = new RoutedExpertCache({ device, policy, compactLayerCount: getRoutedExpertLayerCount(loader, layer, plan.numLayers),
       numLayers: typeof loader.manifest.architecture === 'object'
         && typeof loader.manifest.architecture?.numLayers === 'number'
         ? loader.manifest.architecture.numLayers : undefined, numExperts: plan.numExperts,
