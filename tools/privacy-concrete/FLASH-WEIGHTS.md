@@ -532,3 +532,27 @@ cache eviction/admission in the encrypted client/evaluator is **unfinished**;
 the smaller disk figures do not describe the current full-model backend. Actual
 Flash forward/quality/security qualification is still unavailable. No large model
 files were acquired during this resource investigation.
+
+
+## Public coefficient binding after cache eviction
+
+`public_weights.py` now derives complete-file and strided-tile SHA-256 values from
+the **same single owned byte stream**, reading at most one output-tile row of
+coefficients at a time. The existing bridge uses this bounded binder in place of
+a model-sized `read_bytes` snapshot. This removes that particular allocation;
+it is not a measured reduction in whole-model peak RSS, and model preparation
+still owns larger quantization tensors.
+
+The versioned `PreparedPublicTiles` interface accepts only a trusted client-side
+public projection source. It checks every route projection's identity/geometry
+before opening any source and seals an immutable complete-plan binding only after
+all whole-file digests match. A source context can remove each owned coefficient
+file before opening the next; completed tile bindings remain valid after eviction.
+A different model/parameter/route plan cannot reuse them. No serialized provider
+catalog or advertisement is accepted as proof, and this interface is not a newly
+admitted cryptographic backend.
+
+Focused tests cover partial input/output tiles, fragmented int8/int16 reads,
+mutation during a read, same-inode mutation after binding, file eviction, immutable
+outputs and rejection before source I/O. Full Flash encrypted cache loading and
+client/evaluator stage transitions remain separate unfinished integration work.

@@ -23,8 +23,8 @@ test client as well as the evaluator; it is not a private-data deployment.
 
 Download `full-qwen-ntt12-public-evidence` from the completed run. In
 `full-qwen.json`, require `completed: true`, `verifiedTilesObserved: 1548`,
-`encryptedSteps: 4` and `matchesFullQuantizedGreedyReference: true`. A new report
-also identifies `validationBoundary: after-route-close/v1`. A failed comparison
+`report.encryptedSteps: 4` and `report.matchesFullQuantizedGreedyReference: true`. A new report
+also identifies `report.validationBoundary: after-route-close/v1`. A failed comparison
 returns no partial model result. Do not treat an incomplete artifact as success.
 
 The [completed reference run](https://github.com/clocksmith/doppler/actions/runs/43841061585)
