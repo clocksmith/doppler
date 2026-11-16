@@ -5,7 +5,8 @@ import json
 from importlib.metadata import version
 from pathlib import Path
 from protocol import POLICY, binding, digest
-from profiles import validate_arithmetic_capacity
+from profiles import validate_arithmetic_capacity,validate_declared_arithmetic_capacity
+from weight_encoding import weight_encoding
 
 FULL_POLICY = json.loads(Path(__file__).with_name('full-policy.json').read_text())
 SCHEMA, PROTOCOL = FULL_POLICY['planSchema'], FULL_POLICY['protocol']
@@ -70,13 +71,14 @@ def load_qwen_plan(directory,policy,versions,common,plan_type):
     required={'schema','protocol','source','modelId','productionBackendAvailable','implementationVersions','steps','contextBucket','inputTileWidth','outputTileWidth','operationTimeoutSeconds','cpuThreads','parameters','projections'}
     if (not isinstance(value,dict) or set(value)!=required or raw != canonical(value) or value['schema'] != policy['planSchema'] or value['protocol'] != policy['protocol']
             or value['source'] != source or value['productionBackendAvailable'] is not False
-            or any(value[key] != policy[key] for key in ['steps','contextBucket','inputTileWidth','outputTileWidth','operationTimeoutSeconds','cpuThreads'])
+            or any(canonical(value[key]) != canonical(policy[key]) for key in ['steps','contextBucket','inputTileWidth','outputTileWidth','operationTimeoutSeconds','cpuThreads'])
             or len(value['projections']) != 169):
         raise ValueError('Unsupported full-model plan')
     if value['implementationVersions'] != versions():
         raise ValueError('Full-model implementation version mismatch')
-    if value['parameters'] != common:
+    if canonical(value['parameters']) != canonical(common):
         raise ValueError('Unqualified full-model parameters')
+    encoding=weight_encoding(common)
     expected_names = []
     for layer in range(24):
         expected_names += [f'model.layers.{layer}.self_attn.{name}_proj' for name in ['q','k','v','o']]
@@ -89,16 +91,24 @@ def load_qwen_plan(directory,policy,versions,common,plan_type):
     for projection in value['projections']:
         if set(projection)!={'name','inputWidth','outputWidth','weightId'}:raise ValueError('Exact versioned projection fields required')
         expected=shapes[projection['name'].rsplit('.',1)[-1]]
-        if (projection['inputWidth'],projection['outputWidth']) != expected:
+        if (type(projection['inputWidth']) is not int or type(projection['outputWidth']) is not int
+                or (projection['inputWidth'],projection['outputWidth']) != expected):
             raise ValueError('Unsupported full-model geometry')
-        path = directory / (projection['weightId'] + '.i8')
+        path = directory / (projection['weightId'] + encoding['suffix'])
         if len(projection['weightId']) != 64 or any(c not in '0123456789abcdef' for c in projection['weightId']):
             raise ValueError('Invalid public weight identity')
-        if path.stat().st_size != projection['inputWidth'] * projection['outputWidth']:
+        if path.stat().st_size != projection['inputWidth'] * projection['outputWidth'] * encoding['bytes']:
             raise ValueError('Invalid public weight geometry')
         with path.open('rb') as handle:
             if hashlib.file_digest(handle, 'sha256').hexdigest() != projection['weightId']:
                 raise ValueError('Public model cache corruption')
+        for begin,end in ranges(projection['inputWidth'],value['inputTileWidth']):
+            validate_declared_arithmetic_capacity(end-begin,encoding['quantizationBits'],common['parameters']['bits_reserved_for_computation'])
+        if encoding['bytes']>1:
+            import numpy as np
+            coefficients=np.memmap(path,dtype=encoding['dtype'],mode='r')
+            bound=2**(encoding['quantizationBits']-1)
+            if coefficients.min() < -bound or coefficients.max() >= bound:raise ValueError('Public coefficient exceeds its declared precision')
         tiles(projection, value['inputTileWidth'], value['outputTileWidth'])
     model_id = digest(canonical(dict(source=source, projections=value['projections'])))
     if value['modelId'] != model_id:

@@ -135,3 +135,28 @@ while avoiding a full vocabulary-head int64 temporary; geometry limits come from
 Increasing stored precision and evaluation-key samples has no independent security
 review. Unchanged encryption noise does not establish unchanged security. Production
 admission remains closed even if the numerical variant completes successfully.
+
+## Complete 12-bit encrypted candidate
+
+`qwen-all-linear-ntt12` now wires the complete same 169-module autoregressive
+route to 12-bit dynamic quantization, signed int16 public coefficient caches and
+a separately declared 35-bit message domain with 48-bit storage/four-level packing.
+It has its own immutable plan/protocol, encoding and parameter identities. Cache
+byte strides, lengths, hashes and coefficient ranges are validated before key
+export; both client and evaluator load the same explicit int16 representation.
+Legacy profiles retain signed int8 caches and their original message domains.
+The client still owns nonlinearities, attention, decoding and full replay.
+
+A conservative 2,048-input raw-dot bound is 17,175,674,880, below the signed
+35-bit limit of 17,179,869,184. This is an arithmetic-range check, not a probability
+of decryption failure or cryptographic-security proof. A public signed-boundary
+native probe precedes one complete four-step model run in
+`encrypted-qwen-ntt12.yml`. The probe has an explicit empirical error criterion;
+passing it alone cannot qualify model output or privacy. No completed encrypted
+12-bit result is claimed until that full-model artifact exists.
+
+The wider clear control and this encrypted candidate share the pinned source
+quantizer and int64 reference arithmetic. Changing the plaintext/message domain
+requires new correctness and independent parameter/implementation security review.
+Production cryptographic admission remains closed; the model does not silently
+fall back to eight-bit or provider-visible execution.

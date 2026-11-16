@@ -14,7 +14,7 @@ The client also performs every encrypted multiplication again. Only an exact ser
 
 The evaluator sees public model/projection/parameter identities, the complete fixed operator/tile order, eight prefill rows followed by three single-row decode steps, public evaluation keys, frame/ciphertext lengths, session/sequence identifiers and timing. Host, process and transport metadata are also visible. Timing is not padded; it can depend on client preparation, attention and execution. The client model and its weights are public; model confidentiality is not a goal.
 
-Each run creates fresh keys, a fresh session and fresh request-local KV caches. Reusable int8 caches contain public model weights only. Before exporting keys, the client derives immutable per-tile digests from owned, whole-projection bytes verified against the admitted weight identity. Each matrix must match that binding before disclosure and replay; a read-only memory map is not treated as immutable. Only the small digest table is retained, not another full model per request. Secret-reference release and process cleanup do not establish physical zeroization. Cancellation is cooperative at the documented boundaries; it cannot immediately interrupt an active native call.
+Each run creates fresh keys, a fresh session and fresh request-local KV caches. Reusable int8/int16 coefficient caches contain public model weights only. Before exporting keys, the client derives immutable per-tile digests from owned, whole-projection bytes verified against the admitted weight identity. Each matrix must match that binding before disclosure and replay; a read-only memory map is not treated as immutable. Only the small digest table is retained, not another full model per request. Secret-reference release and process cleanup do not establish physical zeroization. Cancellation is cooperative at the documented boundaries; it cannot immediately interrupt an active native call.
 
 The process pipe protocol binds model, plan, key, session, sequence and tile identities. Its hashes are content bindings, not endpoint authentication or signatures. There is no qualified authenticated separate-machine transport or participant identity appraisal for this research backend.
 
@@ -43,3 +43,11 @@ evaluation-key samples and different modulus/decomposition choices require revie
 unchanged encryption noise is not proof of an unchanged security level. Production
 admission remains closed. Native exact-product/replay checks and actual-weight
 numerical validation are required before claiming this research path works.
+
+
+The 12-bit candidate additionally changes the plaintext/message domain to 35 bits
+and public coefficient storage to signed int16. The conservative per-tile signed
+range is checked independently of the legacy eight-bit validator. Existing noise
+and key geometry do not establish security for this parameter combination. Native
+boundary fixtures and a full-model result are functional evidence only; independent
+cryptographic, active-adversary, leakage and failure analysis are still required.

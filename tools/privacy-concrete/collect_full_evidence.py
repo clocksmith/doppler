@@ -14,6 +14,7 @@ REPORT_FIELDS=['backendProfile','protocol','clientLifetimePeakRssBytes','schema'
                'clientComputation','integrity']
 QWEN_PROTOCOLS={
     'qwen-all-linear':{json.loads(Path(__file__).with_name('full-policy.json').read_text())['protocol'],json.loads(Path(__file__).with_name('ssh-policy.json').read_text())['protocol']},
+    'qwen-all-linear-ntt12':{json.loads(Path(__file__).with_name('full-ntt12-policy.json').read_text())['protocol']},
     'qwen-all-linear-ntt-48':{json.loads(Path(__file__).with_name('full-ntt48-policy.json').read_text())['protocol']},
     'qwen-all-linear-ntt':{json.loads(Path(__file__).with_name('full-ntt-policy.json').read_text())['protocol']}
 }
@@ -76,7 +77,7 @@ def collect(report_path,progress_path,revision):
             dependencies=['concrete-ml','concrete-ml-extensions','concrete-python','torch','transformers','numpy']
             safe['implementationVersions']={key:versions[key] for key in dependencies if isinstance(versions.get(key),str) and re.fullmatch(r'[0-9][0-9A-Za-z.+_-]{0,63}',versions[key])}
             native_ids={key:versions[key] for key in ['native-source-id','native-binary-sha256'] if isinstance(versions.get(key),str) and re.fullmatch(r'[0-9a-f]{64}',versions[key])}
-            if backend in ['qwen-all-linear-ntt','qwen-all-linear-ntt-48']:
+            if backend in ['qwen-all-linear-ntt','qwen-all-linear-ntt-48','qwen-all-linear-ntt12']:
                 if len(native_ids)!=2:return result
                 safe['nativeImplementation']=native_ids
             result.update(completed=True,report=safe,

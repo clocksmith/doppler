@@ -12,6 +12,7 @@ from full_plan import load_plan
 from full_admission import FullRouteAdmission
 from full_status import ExecutionRejected
 from public_weights import bind_public_tiles
+from weight_encoding import weight_encoding
 from native_runtime import matrix_evaluator,prepare_evaluator_key
 
 
@@ -28,6 +29,7 @@ class FullBridge:
         self.admission=FullRouteAdmission(bound)
         self.public_tile_digests=bind_public_tiles(directory,validated)
         self.plan, self.key, self.cancelled, self.observe = bound, key, cancelled, observe
+        self.weight_dtype=weight_encoding(self.plan.definition()['parameters'])['dtype']
         self.payload_limit=self.plan.definition()['parameters'].get('maxPayloadBytes')
         self.check_active()
         self.matrix_multiplication=matrix_evaluator(self.plan)
@@ -70,7 +72,7 @@ class FullBridge:
             if matrix.dtype!=np.uint64:
                 raise ValueError('Encrypted route requires unsigned native matrix representation')
             signed=matrix.view(np.int64)
-            owned=np.ascontiguousarray(signed,dtype=np.int8)
+            owned=np.ascontiguousarray(signed,dtype=self.weight_dtype)
             if not np.array_equal(signed,owned) or digest(owned.tobytes())!=self.public_tile_digests[expected_tile['id']]:
                 raise ValueError('Encrypted route public weight changed before disclosure')
             start = time.perf_counter()

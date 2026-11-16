@@ -41,6 +41,8 @@ class FullEvidenceTests(unittest.TestCase):
                 report.write_text(json.dumps(dict(fast,**change)));self.assertFalse(collect(report,progress,'public-revision')['completed'])
             high=dict(fast,backendProfile='qwen-all-linear-ntt-48',protocol='concrete-glwe-qwen-all-linear-ntt-48-replay/v1')
             report.write_text(json.dumps(high));self.assertTrue(collect(report,progress,'public-revision')['completed'])
+            wide=dict(fast,backendProfile='qwen-all-linear-ntt12',protocol='concrete-glwe-qwen-all-linear-ntt12-replay/v1')
+            report.write_text(json.dumps(wide));self.assertTrue(collect(report,progress,'public-revision')['completed'])
             report.write_text(json.dumps(value));progress.write_text(json.dumps(dict(event='run-failed',failureCode='cancelled'))+'\n')
             self.assertFalse(collect(report,progress,'public-revision')['completed'])
 

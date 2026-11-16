@@ -33,7 +33,7 @@ class FullBridgeOrderingTests(unittest.TestCase):
         self.bridge.cancelled=None
         self.native=native
         self.bridge.matrix_multiplication=lambda *args:self.native.cpu_matrix_multiplication(*args)
-        self.bridge.sequence=1;self.bridge.key=object()
+        self.bridge.sequence=1;self.bridge.key=object();self.bridge.weight_dtype='int8'
         self.bridge.remote_seconds=self.bridge.replay_seconds=0.0
         self.bridge.observe=lambda *args:None
         def exchange(*args):self.exchanged.append(args);return b'invalid-circuit-output'

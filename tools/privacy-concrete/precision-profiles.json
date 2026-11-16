@@ -1,0 +1,7 @@
+{
+  "schema": "doppler.installed-research-precision-profiles/v1",
+  "profiles": {
+    "glwe-precision-48-level4/v1": "precision-policy.json",
+    "glwe-quant12-message35-storage48/v1": "precision12-policy.json"
+  }
+}

@@ -52,6 +52,13 @@ class NativeSelectionTests(unittest.TestCase):
             with patch('full_plan.implementation_versions',side_effect=AssertionError('unknown plan entered implementation admission')):
                 with self.assertRaises(ValueError):load_plan(directory)
 
+    def test_twelve_bit_profile_uses_a_distinct_installed_message_domain(self):
+        policy,_,_,parameters=qwen_backend('qwen-all-linear-ntt12')
+        self.assertEqual(policy['quantizationBits'],12);self.assertEqual(parameters['quantizationBits'],12)
+        self.assertEqual(parameters['weightEncoding'],'signed-int12-in-int16')
+        self.assertEqual(parameters['parameters']['bits_reserved_for_computation'],35)
+        self.assertEqual(parameters['maxPayloadBytes'],300000000)
+
     def test_unknown_evaluator_does_not_import_or_invoke_a_native_module(self):
         plan=SimpleNamespace(definition=lambda:dict(parameters=dict(evaluationBackend='advertised-unknown')))
         with patch('native_runtime.importlib.import_module',side_effect=AssertionError('native module imported')):

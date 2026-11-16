@@ -22,29 +22,33 @@ from protocol import POLICY, digest, require_active
 from plan_backends import DEFAULT_PROFILE,QWEN_PROFILES,qwen_backend
 from source_snapshot import pinned_source
 from integer_reference import integer_dot
+from weight_encoding import encoding_for_bits
+from profiles import validate_declared_arithmetic_capacity
 
 
 class FullLinear(nn.Module):
     """Quantize the entire input/weight once; tile only integer encrypted products, never scales."""
-    def __init__(self, name, source, executor, directory):
+    def __init__(self, name, source, executor, directory, quantization_bits=POLICY['quantizationBits']):
         super().__init__()
         self.name, self.remote, self.executor = name, source, executor
+        self.encoding=encoding_for_bits(quantization_bits)
         self.mode, self.bridge, self.secret, self.parameters = 'float-reference', None, None, None
-        self.context = SimpleNamespace(input_quantizers=[SimpleNamespace(quant_options=SimpleNamespace(n_bits=8))])
+        self.context = SimpleNamespace(input_quantizers=[SimpleNamespace(quant_options=SimpleNamespace(n_bits=quantization_bits))])
         weight = source.weight.detach().numpy().T
         quantized, self.scale, self.zero_point, self.sum_weights = executor._per_channel_weight_quantization(weight,self.context,torch.device('cpu'))
-        data = np.ascontiguousarray(quantized.numpy(),dtype=np.int8)
+        data = np.ascontiguousarray(quantized.numpy(),dtype=self.encoding['dtype'])
+        if not np.array_equal(data,quantized.numpy()):raise ValueError('Quantized public coefficient truncation')
         weight_id = digest(data.tobytes())
-        path = Path(directory)/(weight_id+'.i8')
+        path = Path(directory)/(weight_id+self.encoding['suffix'])
         if not path.exists():
             path.write_bytes(data.tobytes())
         self.definition = dict(name=name,inputWidth=source.in_features,outputWidth=source.out_features,weightId=weight_id)
-        self.weights = np.memmap(path,dtype=np.int8,mode='r',shape=data.shape)
+        self.weights = np.memmap(path,dtype=self.encoding['dtype'],mode='r',shape=data.shape)
 
     def forward(self,value):
         if self.mode == 'float-reference':
             return self.remote(value)
-        if self.mode not in ['clear-reference','execute'] or value.shape[-1] != self.definition['inputWidth']:
+        if self.mode not in ['clear-reference','execute'] or not torch.isfinite(value).all() or value.shape[-1] != self.definition['inputWidth']:
             raise ValueError('Unsupported full-model projection execution')
         q_input, scale, zero, original_shape = self.executor._dynamic_input_quantization(value,self.context,False)
         if self.mode == 'clear-reference':
@@ -55,11 +59,12 @@ class FullLinear(nn.Module):
             self.bridge.check_active()
             self.bridge.admission.admit_projection(self.name,self.definition['inputWidth'],self.definition['outputWidth'],q_input.shape[0])
             integer_input = np.ascontiguousarray(q_input.long().numpy(),dtype=np.uint64)
-            if integer_input.ndim != 2:
+            if integer_input.ndim != 2 or not np.all(integer_input<2**self.encoding['quantizationBits']):
                 raise ValueError('Only one private request per key context is admitted')
             geometry=self.bridge.plan.definition()
             encrypted = {}
             for begin,end in ranges(self.definition['inputWidth'],geometry['inputTileWidth']):
+                validate_declared_arithmetic_capacity(end-begin,self.encoding['quantizationBits'],geometry['parameters']['parameters']['bits_reserved_for_computation'])
                 encrypted[begin] = ext.encrypt_matrix(pkey=self.secret,crypto_params=self.parameters,
                                                      data=np.ascontiguousarray(integer_input[:,begin:end]))
             result = np.zeros((integer_input.shape[0],self.definition['outputWidth']),dtype=np.int64)
@@ -97,7 +102,7 @@ def prepare(model_dir,cache_dir,backend_profile=DEFAULT_PROFILE):
         projections = []
         for name,module in list(model.named_modules()):
             if isinstance(module,nn.Linear):
-                replacement = FullLinear(name,module,executor,directory)
+                replacement = FullLinear(name,module,executor,directory,settings['quantizationBits'])
                 parent,separator,leaf = name.rpartition('.')
                 setattr(model.get_submodule(parent) if separator else model,leaf,replacement)
                 projections.append(replacement)
@@ -184,7 +189,7 @@ def run(model_dir,cache_dir,prompt,progress=lambda event:None,cancelled=None,dep
                 progress(dict(event='step-complete',step=step+1,encryptedTiles=bridge.sequence-1))
         bridge.finish()
         return dict(schema='doppler.full-qwen-hybrid-execution/v1',qualified=False,productionBackendAvailable=False,
-                    descriptor=dict(schema='doppler.execution-backend/v1',id='concrete-qwen-all-linear-tiled' if backend_profile==DEFAULT_PROFILE else ('concrete-qwen-all-linear-ntt-48' if backend_profile=='qwen-all-linear-ntt-48' else 'concrete-qwen-all-linear-ntt'),version=1,kind='cryptographic',
+                    descriptor=dict(schema='doppler.execution-backend/v1',id=settings['backendId'],version=1,kind='cryptographic',
                                     modelIdentities=['sha256:'+plan.definition()['modelId']],operations=['generate'],protocol=bridge.plan.protocol_id,
                                     inputRepresentation='opaque',outputRepresentation='opaque'),
                     backendProfile=backend_profile,protocol=bridge.plan.protocol_id,executionRouteId=bridge.plan.identity,transport='local-process' if deployment is None else 'ssh-ed25519-pinned',

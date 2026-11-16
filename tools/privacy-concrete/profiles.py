@@ -54,3 +54,13 @@ def validate_arithmetic_capacity(input_width, quantization_bits):
     if worst_case >= signed_limit:
         raise ValueError('Unqualified encrypted integer range; reparameterization or a qualified tiled protocol required')
     return worst_case
+
+
+def validate_declared_arithmetic_capacity(input_width,quantization_bits,computation_bits):
+    """Explicit research domains; the legacy 8-bit validator remains unchanged."""
+    if (type(input_width) is not int or input_width<=0 or type(quantization_bits) is not int
+            or type(computation_bits) is not int or (quantization_bits,computation_bits) not in [(8,27),(12,35)]):
+        raise ValueError('Unsupported declared encrypted arithmetic domain')
+    worst=input_width*(2**quantization_bits-1)*2**(quantization_bits-1)
+    if worst>=2**(computation_bits-1):raise ValueError('Declared encrypted raw dot can exceed its signed message domain')
+    return worst

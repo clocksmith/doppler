@@ -8,12 +8,30 @@ from unittest.mock import patch
 
 @unittest.skipUnless(os.environ.get('DOPPLER_CONCRETE_NATIVE')=='1','opt-in pinned native/Torch implementation')
 class StreamedFlashMoETests(unittest.TestCase):
+    def test_full_linear_uses_wide_cache_and_matches_the_clear_twelve_bit_reference(self):
+        import numpy as np
+        import torch
+        from torch import nn
+        from concrete.ml.quantization.linear_op_glwe_backend import GLWELinearLayerExecutor
+        from full_model import FullLinear
+        from wide_reference import WideReferenceLinear
+        with tempfile.TemporaryDirectory() as directory:
+            layer=nn.Linear(4,3,bias=True).eval().requires_grad_(False)
+            with torch.no_grad():
+                layer.weight.copy_(torch.arange(12,dtype=torch.float32).reshape(3,4)*.07-.4);layer.bias.zero_()
+            executor=GLWELinearLayerExecutor(use_dynamic_quantization=True)
+            actual=FullLinear('public',layer,executor,directory,12)
+            control=WideReferenceLinear(SimpleNamespace(name='public',remote=layer),executor,directory,12)
+            self.assertEqual(actual.weights.dtype,np.dtype('<i2'));self.assertGreater(int(abs(actual.weights).max()),127)
+            value=torch.tensor([[.1,-.2,.3,-.4]],dtype=torch.float32);actual.mode=control.mode='clear-reference'
+            torch.testing.assert_close(actual(value),control(value),rtol=0,atol=0)
+
     def test_bounded_integer_reference_matches_full_int64_product_without_float_rounding(self):
         import numpy as np
         import torch
         from integer_reference import integer_dot,POLICY
-        values=torch.arange(2*4098,dtype=torch.int64).reshape(2,4098)%251
-        weights=(np.arange(4098*7,dtype=np.int64).reshape(4098,7)%255-128).astype(np.int16)
+        values=torch.arange(2*2050,dtype=torch.int64).reshape(2,2050)%251
+        weights=(np.arange(2050*2051,dtype=np.int64).reshape(2050,2051)%255-128).astype(np.int16)
         expected=torch.matmul(values,torch.from_numpy(weights.astype(np.int64)))
         sizes=[];original=np.array
         def bounded(value,*args,**kwargs):sizes.append(value.shape);return original(value,*args,**kwargs)

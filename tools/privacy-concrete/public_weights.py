@@ -2,6 +2,7 @@
 from pathlib import Path
 from full_plan import tiles
 from protocol import digest
+from weight_encoding import weight_encoding
 
 
 def bind_public_tiles(directory,plan):
@@ -13,16 +14,17 @@ def bind_public_tiles(directory,plan):
     """
     result={}
     definition=plan.definition()
+    encoding=weight_encoding(definition.get('parameters',{}));size=encoding['bytes']
     for row in definition['projections']:
         identity=row['weightId']
         if not isinstance(identity,str) or len(identity)!=64 or any(char not in '0123456789abcdef' for char in identity):
             raise ValueError('Public weight identity required')
-        data=(Path(directory)/(identity+'.i8')).read_bytes()
-        if len(data)!=row['inputWidth']*row['outputWidth'] or digest(data)!=identity:
+        data=(Path(directory)/(identity+encoding['suffix'])).read_bytes()
+        if len(data)!=row['inputWidth']*row['outputWidth']*size or digest(data)!=identity:
             raise ValueError('Public model cache changed before tile binding')
-        stride=row['outputWidth']
+        stride=row['outputWidth']*size
         for tile in tiles(row,definition['inputTileWidth'],definition['outputTileWidth']):
-            payload=b''.join(data[index*stride+tile['outputBegin']:index*stride+tile['outputEnd']]
+            payload=b''.join(data[index*stride+tile['outputBegin']*size:index*stride+tile['outputEnd']*size]
                              for index in range(tile['inputBegin'],tile['inputEnd']))
             result[tile['id']]=digest(payload)
     return result

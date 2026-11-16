@@ -15,5 +15,7 @@
     ]
   },
   "cpuThreads": 4,
-  "evaluationBackend": "cpu-exact-ntt"
+  "evaluationBackend": "cpu-exact-ntt",
+  "quantizationBits": 8,
+  "backendId": "concrete-qwen-all-linear-ntt"
 }

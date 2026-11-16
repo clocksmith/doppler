@@ -1,0 +1,23 @@
+{
+  "schema": "doppler.qwen-all-linear-ntt12-policy/v1",
+  "planSchema": "doppler.qwen-all-linear-ntt12-plan/v1",
+  "protocol": "concrete-glwe-qwen-all-linear-ntt12-replay/v1",
+  "productionBackendAvailable": false,
+  "steps": 4,
+  "contextBucket": 8,
+  "inputTileWidth": 2048,
+  "outputTileWidth": 2048,
+  "operationTimeoutSeconds": 900,
+  "dependencyVariants": {
+    "torch": [
+      "2.3.1",
+      "2.3.1+cpu"
+    ]
+  },
+  "cpuThreads": 4,
+  "evaluationBackend": "cpu-exact-ntt",
+  "nativeVariant": "cpu-exact-ntt/v1",
+  "parameterProfile": "glwe-quant12-message35-storage48/v1",
+  "quantizationBits": 12,
+  "backendId": "concrete-qwen-all-linear-ntt12"
+}

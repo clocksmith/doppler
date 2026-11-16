@@ -17,5 +17,7 @@
   "cpuThreads": 4,
   "evaluationBackend": "cpu-exact-ntt",
   "nativeVariant": "cpu-exact-ntt/v1",
-  "parameterProfile": "glwe-precision-48-level4/v1"
+  "parameterProfile": "glwe-precision-48-level4/v1",
+  "quantizationBits": 8,
+  "backendId": "concrete-qwen-all-linear-ntt-48"
 }

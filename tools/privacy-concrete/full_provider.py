@@ -1,8 +1,9 @@
-"""All-linear evaluator. Receives only evaluation material and ciphertexts; reads public int8 weights."""
+"""All-linear evaluator. Receives only evaluation material and ciphertexts; reads the admitted public coefficient encoding."""
 import sys
 import numpy as np
 import concrete_ml_extensions as ext
 from protocol import check, digest, receive, send
+from weight_encoding import weight_encoding
 from native_runtime import matrix_evaluator,prepare_evaluator_key
 
 
@@ -29,7 +30,8 @@ def serve():
     key = ext.CpuCompressionKey.deserialize(data)
     prepare_evaluator_key(plan,key)
     send(target, plan.frame(session, key_id, 0, 'ready'),timeout=timeout,max_payload_bytes=payload_limit)
-    weights = {row['name']: np.memmap(f"{directory}/{row['weightId']}.i8", dtype=np.int8, mode='r',
+    encoding=weight_encoding(plan.definition()['parameters'])
+    weights = {row['name']: np.memmap(f"{directory}/{row['weightId']}{encoding['suffix']}", dtype=encoding['dtype'], mode='r',
                                      shape=(row['inputWidth'],row['outputWidth'])) for row in plan.definition()['projections']}
     sequence = 1
     for _step in range(plan.definition()['steps']):

@@ -30,7 +30,7 @@ class NativeNttIntegrityTests(unittest.TestCase):
         row=dict(name='public-test',weightId=digest(self.weights.view(np.int64).astype(np.int8).tobytes()),inputWidth=16,outputWidth=2)
         plan=FullPlan(canonical(dict(modelId='a'*64,steps=1,contextBucket=1,inputTileWidth=2048,outputTileWidth=2048,projections=[row])))
         bridge=full_bridge.FullBridge.__new__(full_bridge.FullBridge)
-        bridge.plan=plan;bridge.key=self.key;bridge.cancelled=event;bridge.sequence=1
+        bridge.plan=plan;bridge.key=self.key;bridge.cancelled=event;bridge.sequence=1;bridge.weight_dtype='int8'
         bridge.admission=FullRouteAdmission(plan);bridge.admission.admit_projection('public-test',16,2,1)
         tile=plan.schedule()[0];bridge.public_tile_digests={tile['id']:row['weightId']}
         bridge.remote_seconds=bridge.replay_seconds=0.;events=[]
