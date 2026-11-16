@@ -199,10 +199,7 @@
      },
      "reachability": {
       "status": "pinned",
-      "inlineConfigs": [
-       "runtime/profiles/qwen3-6-35b-a3b-q4_0-candidate",
-       "runtime/profiles/qwen3-6-35b-a3b-q4_0-pooled-q8-common-diagnostic"
-      ],
+      "inlineConfigs": ["runtime/profiles/qwen3-6-35b-a3b-q4_0-candidate"],
       "ruleChains": [],
       "wgslOnDisk": true
      }
@@ -564,10 +561,7 @@
      },
      "reachability": {
       "status": "pinned",
-      "inlineConfigs": [
-       "runtime/profiles/qwen3-6-35b-a3b-q4_0-candidate",
-       "runtime/profiles/qwen3-6-35b-a3b-q4_0-pooled-q8-common-diagnostic"
-      ],
+      "inlineConfigs": ["runtime/profiles/qwen3-6-35b-a3b-q4_0-candidate"],
       "ruleChains": [],
       "wgslOnDisk": true
      }
@@ -694,10 +688,7 @@
      },
      "reachability": {
       "status": "pinned",
-      "inlineConfigs": [
-       "runtime/profiles/qwen3-6-35b-a3b-q4_0-candidate",
-       "runtime/profiles/qwen3-6-35b-a3b-q4_0-pooled-q8-common-diagnostic"
-      ],
+      "inlineConfigs": ["runtime/profiles/qwen3-6-35b-a3b-q4_0-candidate"],
       "ruleChains": [],
       "wgslOnDisk": true
      }
@@ -814,10 +805,7 @@
      },
      "reachability": {
       "status": "pinned",
-      "inlineConfigs": [
-       "runtime/profiles/qwen3-6-35b-a3b-q4_0-candidate",
-       "runtime/profiles/qwen3-6-35b-a3b-q4_0-pooled-q8-common-diagnostic"
-      ],
+      "inlineConfigs": ["runtime/profiles/qwen3-6-35b-a3b-q4_0-candidate"],
       "ruleChains": [],
       "wgslOnDisk": true
      }
@@ -3228,10 +3216,7 @@
      },
      "reachability": {
       "status": "pinned",
-      "inlineConfigs": [
-       "runtime/profiles/qwen3-6-35b-a3b-q4_0-candidate",
-       "runtime/profiles/qwen3-6-35b-a3b-q4_0-pooled-q8-common-diagnostic"
-      ],
+      "inlineConfigs": ["runtime/profiles/qwen3-6-35b-a3b-q4_0-candidate"],
       "ruleChains": [],
       "wgslOnDisk": true
      }
@@ -3327,10 +3312,7 @@
      },
      "reachability": {
       "status": "pinned",
-      "inlineConfigs": [
-       "runtime/profiles/qwen3-6-35b-a3b-q4_0-candidate",
-       "runtime/profiles/qwen3-6-35b-a3b-q4_0-pooled-q8-common-diagnostic"
-      ],
+      "inlineConfigs": ["runtime/profiles/qwen3-6-35b-a3b-q4_0-candidate"],
       "ruleChains": [],
       "wgslOnDisk": true
      }
@@ -3426,10 +3408,7 @@
      },
      "reachability": {
       "status": "pinned",
-      "inlineConfigs": [
-       "runtime/profiles/qwen3-6-35b-a3b-q4_0-candidate",
-       "runtime/profiles/qwen3-6-35b-a3b-q4_0-pooled-q8-common-diagnostic"
-      ],
+      "inlineConfigs": ["runtime/profiles/qwen3-6-35b-a3b-q4_0-candidate"],
       "ruleChains": [],
       "wgslOnDisk": true
      }
@@ -3525,10 +3504,7 @@
      },
      "reachability": {
       "status": "pinned",
-      "inlineConfigs": [
-       "runtime/profiles/qwen3-6-35b-a3b-q4_0-candidate",
-       "runtime/profiles/qwen3-6-35b-a3b-q4_0-pooled-q8-common-diagnostic"
-      ],
+      "inlineConfigs": ["runtime/profiles/qwen3-6-35b-a3b-q4_0-candidate"],
       "ruleChains": [],
       "wgslOnDisk": true
      }
@@ -8269,8 +8245,7 @@
       "status": "pinned",
       "inlineConfigs": [
        "runtime/profiles/flash-next-gguf-control-gemv",
-       "runtime/profiles/qwen3-6-35b-a3b-q4_0-candidate",
-       "runtime/profiles/qwen3-6-35b-a3b-q4_0-pooled-q8-common-diagnostic"
+       "runtime/profiles/qwen3-6-35b-a3b-q4_0-candidate"
       ],
       "ruleChains": ["matmul.rules.json#denseDecodeCandidate"],
       "wgslOnDisk": true
@@ -8685,8 +8660,7 @@
        "qwen3/qwen-3-6-35b-a3b-text-q4k-ehf16-af32",
        "qwen3/qwen-3-8-flash-next-text-q4k-ehf16-af32",
        "qwen3/qwen3.8-27b-q4_0-passthrough",
-       "runtime/profiles/qwen3-6-35b-a3b-q4_0-candidate",
-       "runtime/profiles/qwen3-6-35b-a3b-q4_0-pooled-q8-common-diagnostic"
+       "runtime/profiles/qwen3-6-35b-a3b-q4_0-candidate"
       ],
       "ruleChains": ["matmul.rules.json#gemvVariant","matmul.rules.json#matmulKernel"],
       "wgslOnDisk": true
@@ -10059,8 +10033,7 @@
       "inlineConfigs": [
        "qwen3/qwen-3-6-35b-a3b-q4_0-passthrough",
        "qwen3/qwen3.8-27b-q4_0-passthrough",
-       "runtime/profiles/qwen3-6-35b-a3b-q4_0-candidate",
-       "runtime/profiles/qwen3-6-35b-a3b-q4_0-pooled-q8-common-diagnostic"
+       "runtime/profiles/qwen3-6-35b-a3b-q4_0-candidate"
       ],
       "ruleChains": ["matmul.rules.json#q40Variant"],
       "wgslOnDisk": true
@@ -10255,10 +10228,7 @@
      },
      "reachability": {
       "status": "pinned",
-      "inlineConfigs": [
-       "runtime/profiles/qwen3-6-35b-a3b-q4_0-candidate",
-       "runtime/profiles/qwen3-6-35b-a3b-q4_0-pooled-q8-common-diagnostic"
-      ],
+      "inlineConfigs": ["runtime/profiles/qwen3-6-35b-a3b-q4_0-candidate"],
       "ruleChains": [],
       "wgslOnDisk": true
      }
@@ -10358,8 +10328,7 @@
       "inlineConfigs": [
        "qwen3/qwen-3-6-35b-a3b-q4_0-passthrough",
        "qwen3/qwen3.8-27b-q4_0-passthrough",
-       "runtime/profiles/qwen3-6-35b-a3b-q4_0-candidate",
-       "runtime/profiles/qwen3-6-35b-a3b-q4_0-pooled-q8-common-diagnostic"
+       "runtime/profiles/qwen3-6-35b-a3b-q4_0-candidate"
       ],
       "ruleChains": ["matmul.rules.json#q40Variant"],
       "wgslOnDisk": true
@@ -10460,8 +10429,7 @@
       "inlineConfigs": [
        "qwen3/qwen-3-6-35b-a3b-q4_0-passthrough",
        "qwen3/qwen3.8-27b-q4_0-passthrough",
-       "runtime/profiles/qwen3-6-35b-a3b-q4_0-candidate",
-       "runtime/profiles/qwen3-6-35b-a3b-q4_0-pooled-q8-common-diagnostic"
+       "runtime/profiles/qwen3-6-35b-a3b-q4_0-candidate"
       ],
       "ruleChains": ["matmul.rules.json#q40Variant"],
       "wgslOnDisk": true
@@ -10656,10 +10624,7 @@
      },
      "reachability": {
       "status": "pinned",
-      "inlineConfigs": [
-       "runtime/profiles/qwen3-6-35b-a3b-q4_0-candidate",
-       "runtime/profiles/qwen3-6-35b-a3b-q4_0-pooled-q8-common-diagnostic"
-      ],
+      "inlineConfigs": ["runtime/profiles/qwen3-6-35b-a3b-q4_0-candidate"],
       "ruleChains": [],
       "wgslOnDisk": true
      }
@@ -10853,10 +10818,7 @@
      },
      "reachability": {
       "status": "pinned",
-      "inlineConfigs": [
-       "runtime/profiles/qwen3-6-35b-a3b-q4_0-candidate",
-       "runtime/profiles/qwen3-6-35b-a3b-q4_0-pooled-q8-common-diagnostic"
-      ],
+      "inlineConfigs": ["runtime/profiles/qwen3-6-35b-a3b-q4_0-candidate"],
       "ruleChains": [],
       "wgslOnDisk": true
      }
@@ -10956,8 +10918,7 @@
       "inlineConfigs": [
        "qwen3/qwen-3-6-35b-a3b-q4_0-passthrough",
        "qwen3/qwen3.8-27b-q4_0-passthrough",
-       "runtime/profiles/qwen3-6-35b-a3b-q4_0-candidate",
-       "runtime/profiles/qwen3-6-35b-a3b-q4_0-pooled-q8-common-diagnostic"
+       "runtime/profiles/qwen3-6-35b-a3b-q4_0-candidate"
       ],
       "ruleChains": ["matmul.rules.json#q40Variant"],
       "wgslOnDisk": true
@@ -11152,10 +11113,7 @@
      },
      "reachability": {
       "status": "pinned",
-      "inlineConfigs": [
-       "runtime/profiles/qwen3-6-35b-a3b-q4_0-candidate",
-       "runtime/profiles/qwen3-6-35b-a3b-q4_0-pooled-q8-common-diagnostic"
-      ],
+      "inlineConfigs": ["runtime/profiles/qwen3-6-35b-a3b-q4_0-candidate"],
       "ruleChains": [],
       "wgslOnDisk": true
      }
@@ -11546,8 +11504,7 @@
       "inlineConfigs": [
        "qwen3/qwen-3-6-35b-a3b-q4_0-passthrough",
        "qwen3/qwen3.8-27b-q4_0-passthrough",
-       "runtime/profiles/qwen3-6-35b-a3b-q4_0-candidate",
-       "runtime/profiles/qwen3-6-35b-a3b-q4_0-pooled-q8-common-diagnostic"
+       "runtime/profiles/qwen3-6-35b-a3b-q4_0-candidate"
       ],
       "ruleChains": ["matmul.rules.json#q40Variant"],
       "wgslOnDisk": true
@@ -11742,10 +11699,7 @@
      },
      "reachability": {
       "status": "pinned",
-      "inlineConfigs": [
-       "runtime/profiles/qwen3-6-35b-a3b-q4_0-candidate",
-       "runtime/profiles/qwen3-6-35b-a3b-q4_0-pooled-q8-common-diagnostic"
-      ],
+      "inlineConfigs": ["runtime/profiles/qwen3-6-35b-a3b-q4_0-candidate"],
       "ruleChains": [],
       "wgslOnDisk": true
      }
@@ -18419,10 +18373,7 @@
      "description": "Split-K single-query decode over f32 contiguous KV: one workgroup per (split, KV head) serving eight query heads; per-split partials merged by decode_gqa_splitk_combine",
      "reachability": {
       "status": "pinned",
-      "inlineConfigs": [
-       "runtime/profiles/qwen3-6-35b-a3b-q4_0-candidate",
-       "runtime/profiles/qwen3-6-35b-a3b-q4_0-pooled-q8-common-diagnostic"
-      ],
+      "inlineConfigs": ["runtime/profiles/qwen3-6-35b-a3b-q4_0-candidate"],
       "ruleChains": [],
       "wgslOnDisk": true
      },
@@ -18632,10 +18583,7 @@
      "description": "Opt-in F32 online prefill query tile; component and model qualification pending.",
      "reachability": {
       "status": "pinned",
-      "inlineConfigs": [
-       "runtime/profiles/qwen3-6-35b-a3b-q4_0-candidate",
-       "runtime/profiles/qwen3-6-35b-a3b-q4_0-pooled-q8-common-diagnostic"
-      ],
+      "inlineConfigs": ["runtime/profiles/qwen3-6-35b-a3b-q4_0-candidate"],
       "ruleChains": [],
       "wgslOnDisk": true
      },
@@ -18767,10 +18715,7 @@
      "description": "Opt-in F32 online prefill, 16 queries share one key/value tile; requires 512-invocation workgroups.",
      "reachability": {
       "status": "pinned",
-      "inlineConfigs": [
-       "runtime/profiles/qwen3-6-35b-a3b-q4_0-candidate",
-       "runtime/profiles/qwen3-6-35b-a3b-q4_0-pooled-q8-common-diagnostic"
-      ],
+      "inlineConfigs": ["runtime/profiles/qwen3-6-35b-a3b-q4_0-candidate"],
       "ruleChains": [],
       "wgslOnDisk": true
      },
@@ -20761,8 +20706,7 @@
        "qwen3/qwen3.8-27b-q4_0-passthrough",
        "qwen3/qwen3.8-27b-text-f16-af32",
        "qwen3/qwen3.8-27b-text-q4k-ehaf16",
-       "runtime/profiles/qwen3-6-35b-a3b-q4_0-candidate",
-       "runtime/profiles/qwen3-6-35b-a3b-q4_0-pooled-q8-common-diagnostic"
+       "runtime/profiles/qwen3-6-35b-a3b-q4_0-candidate"
       ],
       "ruleChains": ["rmsnorm.rules.json#variant"],
       "wgslOnDisk": true
@@ -22233,8 +22177,7 @@
        "qwen3/qwen3.8-27b-q4_0-passthrough",
        "qwen3/qwen3.8-27b-text-f16-af32",
        "qwen3/qwen3.8-27b-text-q4k-ehaf16",
-       "runtime/profiles/qwen3-6-35b-a3b-q4_0-candidate",
-       "runtime/profiles/qwen3-6-35b-a3b-q4_0-pooled-q8-common-diagnostic"
+       "runtime/profiles/qwen3-6-35b-a3b-q4_0-candidate"
       ],
       "ruleChains": ["rope.rules.json#variant"],
       "wgslOnDisk": true
@@ -22828,8 +22771,7 @@
        "qwen3/qwen3.8-27b-q4_0-passthrough",
        "qwen3/qwen3.8-27b-text-f16-af32",
        "qwen3/qwen3.8-27b-text-q4k-ehaf16",
-       "runtime/profiles/qwen3-6-35b-a3b-q4_0-candidate",
-       "runtime/profiles/qwen3-6-35b-a3b-q4_0-pooled-q8-common-diagnostic"
+       "runtime/profiles/qwen3-6-35b-a3b-q4_0-candidate"
       ],
       "ruleChains": ["silu.rules.json#variant"],
       "wgslOnDisk": true
@@ -24398,8 +24340,7 @@
       "inlineConfigs": [
        "qwen3/qwen-3-6-35b-a3b-q4_0-passthrough",
        "qwen3/qwen3.8-27b-q4_0-passthrough",
-       "runtime/profiles/qwen3-6-35b-a3b-q4_0-candidate",
-       "runtime/profiles/qwen3-6-35b-a3b-q4_0-pooled-q8-common-diagnostic"
+       "runtime/profiles/qwen3-6-35b-a3b-q4_0-candidate"
       ],
       "ruleChains": ["gather.rules.json#q40Variant"],
       "wgslOnDisk": true
@@ -24474,8 +24415,7 @@
       "inlineConfigs": [
        "qwen3/qwen-3-6-35b-a3b-q4_0-passthrough",
        "qwen3/qwen3.8-27b-q4_0-passthrough",
-       "runtime/profiles/qwen3-6-35b-a3b-q4_0-candidate",
-       "runtime/profiles/qwen3-6-35b-a3b-q4_0-pooled-q8-common-diagnostic"
+       "runtime/profiles/qwen3-6-35b-a3b-q4_0-candidate"
       ],
       "ruleChains": ["gather.rules.json#q40Variant"],
       "wgslOnDisk": true
@@ -24550,8 +24490,7 @@
       "inlineConfigs": [
        "qwen3/qwen-3-6-35b-a3b-q4_0-passthrough",
        "qwen3/qwen3.8-27b-q4_0-passthrough",
-       "runtime/profiles/qwen3-6-35b-a3b-q4_0-candidate",
-       "runtime/profiles/qwen3-6-35b-a3b-q4_0-pooled-q8-common-diagnostic"
+       "runtime/profiles/qwen3-6-35b-a3b-q4_0-candidate"
       ],
       "ruleChains": ["gather.rules.json#q40Variant"],
       "wgslOnDisk": true
@@ -24626,8 +24565,7 @@
       "inlineConfigs": [
        "qwen3/qwen-3-6-35b-a3b-q4_0-passthrough",
        "qwen3/qwen3.8-27b-q4_0-passthrough",
-       "runtime/profiles/qwen3-6-35b-a3b-q4_0-candidate",
-       "runtime/profiles/qwen3-6-35b-a3b-q4_0-pooled-q8-common-diagnostic"
+       "runtime/profiles/qwen3-6-35b-a3b-q4_0-candidate"
       ],
       "ruleChains": ["gather.rules.json#q40Variant"],
       "wgslOnDisk": true
@@ -24702,8 +24640,7 @@
       "inlineConfigs": [
        "qwen3/qwen-3-6-35b-a3b-q4_0-passthrough",
        "qwen3/qwen3.8-27b-q4_0-passthrough",
-       "runtime/profiles/qwen3-6-35b-a3b-q4_0-candidate",
-       "runtime/profiles/qwen3-6-35b-a3b-q4_0-pooled-q8-common-diagnostic"
+       "runtime/profiles/qwen3-6-35b-a3b-q4_0-candidate"
       ],
       "ruleChains": ["gather.rules.json#q40Variant"],
       "wgslOnDisk": true
@@ -25137,8 +25074,7 @@
        "qwen3/qwen3.8-27b-q4_0-passthrough",
        "qwen3/qwen3.8-27b-text-f16-af32",
        "qwen3/qwen3.8-27b-text-q4k-ehaf16",
-       "runtime/profiles/qwen3-6-35b-a3b-q4_0-candidate",
-       "runtime/profiles/qwen3-6-35b-a3b-q4_0-pooled-q8-common-diagnostic"
+       "runtime/profiles/qwen3-6-35b-a3b-q4_0-candidate"
       ],
       "ruleChains": ["residual.rules.json#biasAddVariant","residual.rules.json#residualVariant"],
       "wgslOnDisk": true
@@ -25320,10 +25256,7 @@
      "description": "Renormalized top-k by logit rank: weights are the softmax over the picked logits (normalize only).",
      "reachability": {
       "status": "pinned",
-      "inlineConfigs": [
-       "runtime/profiles/qwen3-6-35b-a3b-q4_0-candidate",
-       "runtime/profiles/qwen3-6-35b-a3b-q4_0-pooled-q8-common-diagnostic"
-      ],
+      "inlineConfigs": ["runtime/profiles/qwen3-6-35b-a3b-q4_0-candidate"],
       "ruleChains": [],
       "wgslOnDisk": true
      }
@@ -27936,8 +27869,7 @@
        "qwen3/qwen3.8-27b-q4_0-passthrough",
        "qwen3/qwen3.8-27b-text-f16-af32",
        "qwen3/qwen3.8-27b-text-q4k-ehaf16",
-       "runtime/profiles/qwen3-6-35b-a3b-q4_0-candidate",
-       "runtime/profiles/qwen3-6-35b-a3b-q4_0-pooled-q8-common-diagnostic"
+       "runtime/profiles/qwen3-6-35b-a3b-q4_0-candidate"
       ],
       "ruleChains": [],
       "wgslOnDisk": true
@@ -36707,10 +36639,7 @@
      },
      "reachability": {
       "status": "pinned",
-      "inlineConfigs": [
-       "runtime/profiles/qwen3-6-35b-a3b-q4_0-candidate",
-       "runtime/profiles/qwen3-6-35b-a3b-q4_0-pooled-q8-common-diagnostic"
-      ],
+      "inlineConfigs": ["runtime/profiles/qwen3-6-35b-a3b-q4_0-candidate"],
       "ruleChains": [],
       "wgslOnDisk": true
      }
@@ -36822,10 +36751,7 @@
      },
      "reachability": {
       "status": "pinned",
-      "inlineConfigs": [
-       "runtime/profiles/qwen3-6-35b-a3b-q4_0-candidate",
-       "runtime/profiles/qwen3-6-35b-a3b-q4_0-pooled-q8-common-diagnostic"
-      ],
+      "inlineConfigs": ["runtime/profiles/qwen3-6-35b-a3b-q4_0-candidate"],
       "ruleChains": [],
       "wgslOnDisk": true
      }
@@ -36967,10 +36893,7 @@
      },
      "reachability": {
       "status": "pinned",
-      "inlineConfigs": [
-       "runtime/profiles/qwen3-6-35b-a3b-q4_0-candidate",
-       "runtime/profiles/qwen3-6-35b-a3b-q4_0-pooled-q8-common-diagnostic"
-      ],
+      "inlineConfigs": ["runtime/profiles/qwen3-6-35b-a3b-q4_0-candidate"],
       "ruleChains": [],
       "wgslOnDisk": true
      }
