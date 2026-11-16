@@ -5,6 +5,8 @@ import { KERNEL_REF_CONTENT_DIGESTS } from '../config/kernels/kernel-ref-digests
 import { ggufBlockFormat, isGgufBlockSourceDtype } from '../formats/gguf/block-storage.js';
 import { selectRuleValue } from '../rules/rule-registry.js';
 import { cloneJsonValue } from '../formats/clone-json.js';
+import { expandExecutionV1 } from '../config/schema/execution/execution-v1.schema.js';
+import { SUPPORTED_EXECUTION_V1_OPS } from '../config/supported-operations.js';
 
 /** Compile the GGUF source's physical projection types, never the HF Q4K recipe.
  * @type {typeof import('./qwen4-exp-source-execution.js').createQwen4ExpSourceExecution} */
@@ -87,5 +89,6 @@ export function createQwen4ExpSourceExecution(tensors, numLayers) {
   const recurrent = install(policy.linearRecurrent.operation, policy.linearRecurrent.variant);
   graph.kernels.gated_delta_recurrent = graph.kernels[recurrent];
   delete graph.kernels[recurrent];
+  expandExecutionV1(graph, { knownOps: SUPPORTED_EXECUTION_V1_OPS, strict: true });
   return graph;
 }

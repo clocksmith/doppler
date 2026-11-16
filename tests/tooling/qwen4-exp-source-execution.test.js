@@ -2,16 +2,21 @@ import assert from 'node:assert/strict';
 import { createQwen4ExpSourceExecution } from '../../src/converter/qwen4-exp-source-execution.js';
 import { compileExecutionV1 } from "../../src/inference/pipelines/text/execution/execution-v1.js";
 import { getKernelPathMatmulVariant } from '../../src/config/kernel-path-loader.js';
+import { expandExecutionV1 } from '../../src/config/schema/execution/execution-v1.schema.js';
+import { SUPPORTED_EXECUTION_V1_OPS } from '../../src/config/supported-operations.js';
 import profile from '../../src/config/conversion/qwen3/qwen-3-8-flash-next-text-q4k-ehf16-af32.json' with { type: 'json' };
 const tensors = Object.entries({
   'per_layer_token_embd.weight': 'Q4_0', 'token_embd.weight': 'Q4_0', 'output.weight': 'Q6_K',
   'output_hc_down.weight': 'BF16', 'output_hc_up.weight': 'BF16',
   'blk.0.attn_q.weight': 'Q6_K', 'blk.0.attn_k.weight': 'Q8_0',
   'blk.0.hc_attn_down.weight': 'Q4_0', 'blk.0.hc_attn_inject.weight': 'BF16',
+  'blk.0.ffn_gate_shexp.weight': 'Q8_0', 'blk.0.ffn_up_shexp.weight': 'Q8_0',
   'blk.0.ffn_down_shexp.weight': 'Q8_0', 'blk.0.ple_key.weight': 'Q4_0',
   'blk.1.attn_q.weight': 'Q4_1', 'blk.1.ssm_out.weight': 'Q8_0',
 }).map(([name, dtype]) => ({ name, dtype }));
 const graph = createQwen4ExpSourceExecution(tensors, 2);
+assert.doesNotThrow(() => expandExecutionV1(graph, { knownOps: SUPPORTED_EXECUTION_V1_OPS, strict: true }),
+  'Prepared source projections must be admitted by the ordinary manifest execution validator');
 assert.equal(graph.kernels.ple_row_decode.kernel, 'ple_q4_0_to_f32.wgsl');
 const compiled = compileExecutionV1({ manifestInference: {
   schema: 'doppler.execution/v1', execution: graph, session: profile.session,
@@ -23,6 +28,8 @@ for (const [role, layer, decode, prefill] of [
   ['k_proj', 0, 'q8_0_gemv', 'q8_0_prefill'],
   ['attn_hc_down', 0, 'q4_0_gemv', 'q4_0_prefill'],
   ['attn_hc_inject', 0, 'f32', 'f32'],
+  ['ffn_gate', 0, 'q8_0_gemv', 'q8_0_prefill'],
+  ['ffn_up', 0, 'q8_0_gemv', 'q8_0_prefill'],
   ['ffn_down', 0, 'q8_0_gemv', 'q8_0_prefill'],
   ['ple_key_proj', 0, 'q4_0_gemv', 'q4_0_prefill'],
   ['linear_out_proj', 1, 'q8_0_gemv', 'q8_0_prefill'],

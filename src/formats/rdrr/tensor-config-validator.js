@@ -30,14 +30,14 @@ const TENSOR_CONFIG_MAPPINGS = [
   },
   {
     configPath: 'inference.normalization.postAttentionNorm',
-    tensorPattern: /(post_self_attn_layernorm|post_attention_layernorm|post_attention_norm|ffn_norm)\.weight$/,
+    tensorPattern: /(?:^|\.)(post_self_attn_layernorm|post_attention_layernorm|post_attention_norm|ffn_norm)\.weight$/,
     resolveMatches(tensorNames) {
       const distinctMatches = tensorNames.filter(
-        name => /post_self_attn_layernorm\.weight$/.test(name)
+        name => /(?:^|\.)post_self_attn_layernorm\.weight$/.test(name)
       );
       if (distinctMatches.length > 0) return distinctMatches;
       return tensorNames.filter(
-        name => /(post_attention_layernorm|post_attention_norm|ffn_norm)\.weight$/.test(name)
+        name => /(?:^|\.)(post_attention_layernorm|post_attention_norm|ffn_norm)\.weight$/.test(name)
       );
     },
     description: 'post-attention normalization',
