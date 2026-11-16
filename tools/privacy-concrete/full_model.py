@@ -17,6 +17,7 @@ from concrete.ml.quantization.linear_op_glwe_backend import GLWELinearLayerExecu
 import concrete_ml_extensions as ext
 from full_bridge import FullBridge
 from full_status import ExecutionRejected, failure_event
+from verified_execution import complete_verified_route,VALIDATION_BOUNDARY
 from full_plan import canonical,ranges,tiles
 from protocol import POLICY, digest, require_active
 from plan_backends import DEFAULT_PROFILE,QWEN_PROFILES,qwen_backend
@@ -172,23 +173,26 @@ def run(model_dir,cache_dir,prompt,progress=lambda event:None,cancelled=None,dep
         caches={mode:DynamicCache() for mode in ['float-reference','clear-reference','execute']}
         setup_ms=(time.perf_counter()-started)*1000
         step_ms=[];reference_ms=[];errors=[];float_matches=[]
-        with torch.no_grad():
-            for step in range(settings['steps']):
-                logits={}
-                for mode in ['float-reference','clear-reference','execute']:
-                    require_active(cancelled)
-                    logits[mode],duration=model_step(model,projections,caches[mode],tokens,original_count,step,mode,settings['contextBucket'],151643)
-                    if mode=='execute':step_ms.append(duration)
-                    elif mode=='clear-reference':reference_ms.append(duration)
-                errors.append(float((logits['execute']-logits['clear-reference']).abs().max()))
-                next_token=int(logits['execute'].argmax())
-                if next_token!=int(logits['clear-reference'].argmax()):
-                    raise ExecutionRejected('token-reference-mismatch')
-                float_matches.append(next_token==int(logits['float-reference'].argmax()))
-                tokens.append(next_token)
-                progress(dict(event='step-complete',step=step+1,encryptedTiles=bridge.sequence-1))
-        bridge.finish()
-        return dict(schema='doppler.full-qwen-hybrid-execution/v1',qualified=False,productionBackendAvailable=False,
+        def execute(step):
+            require_active(cancelled)
+            logits,duration=model_step(model,projections,caches['execute'],tokens,original_count,step,'execute',settings['contextBucket'],151643)
+            step_ms.append(duration);tokens.append(int(logits.argmax()))
+            progress(dict(event='step-executed',step=step+1,encryptedTiles=bridge.sequence-1))
+            return logits.detach().clone()
+        def validate(step,actual):
+            # The exact encrypted token history is teacher-forced into both local
+            # references, preserving the old checks without remote acceptance feedback.
+            history=tokens[:original_count+step];logits={}
+            for mode in ['float-reference','clear-reference']:
+                require_active(cancelled)
+                logits[mode],duration=model_step(model,projections,caches[mode],history,original_count,step,mode,settings['contextBucket'],151643)
+                if mode=='clear-reference':reference_ms.append(duration)
+            errors.append(float((actual-logits['clear-reference']).abs().max()))
+            next_token=int(actual.argmax())
+            if next_token!=int(logits['clear-reference'].argmax()):raise ExecutionRejected('token-reference-mismatch')
+            float_matches.append(next_token==int(logits['float-reference'].argmax()))
+        with torch.no_grad():complete_verified_route(bridge,settings['steps'],execute,validate)
+        return dict(schema='doppler.full-qwen-hybrid-execution/v1',qualified=False,productionBackendAvailable=False,validationBoundary=VALIDATION_BOUNDARY,
                     descriptor=dict(schema='doppler.execution-backend/v1',id=settings['backendId'],version=1,kind='cryptographic',
                                     modelIdentities=['sha256:'+plan.definition()['modelId']],operations=['generate'],protocol=bridge.plan.protocol_id,
                                     inputRepresentation='opaque',outputRepresentation='opaque'),

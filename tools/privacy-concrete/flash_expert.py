@@ -13,6 +13,7 @@ import concrete_ml_extensions as ext
 from concrete.ml.quantization.linear_op_glwe_backend import GLWELinearLayerExecutor
 from full_model import FullLinear
 from full_bridge import FullBridge
+from verified_execution import complete_verified_route,VALIDATION_BOUNDARY
 from flash_component_plan import write_component
 from flash_expert_plan import POLICY_EXPERT as CONFIG, SOURCE_ID, WEIGHTS, load_plan, versions
 from flash_weights import FlashSource
@@ -62,16 +63,16 @@ def run(source_dir,cache_dir):
         for projection in projections:
             projection.bridge,projection.secret,projection.parameters=bridge,secret,executor.glwe_crypto_params
         began=time.perf_counter()
-        with torch.no_grad():encrypted=evaluate(projections,hidden,'execute')
+        def validate(step,actual):
+            if not torch.allclose(actual,quantized,rtol=CONFIG['maxRelativeError'],atol=CONFIG['maxAbsoluteError']):
+                raise ExecutionRejected('component-reference-mismatch')
+        with torch.no_grad():encrypted=complete_verified_route(bridge,1,lambda step:evaluate(projections,hidden,'execute'),validate)[0]
         execute_ms=(time.perf_counter()-began)*1000
-        if not torch.allclose(encrypted,quantized,rtol=CONFIG['maxRelativeError'],atol=CONFIG['maxAbsoluteError']):
-            raise ExecutionRejected('component-reference-mismatch')
-        bridge.finish()
         def rss(kind):
             value=resource.getrusage(kind).ru_maxrss
             return value if platform.system()=='Darwin' else value*1024
         return dict(schema='doppler.actual-flash-expert-execution/v1',fixtureId='flash-expert0-sine-2560',
-                    scope='First-layer fixed public expert 0, complete gated/up/down component; client SiLU and full encrypted replay',
+                    validationBoundary=VALIDATION_BOUNDARY,scope='First-layer fixed public expert 0, complete gated/up/down component; client SiLU and full encrypted replay',
                     productionBackendAvailable=False,securityQualified=False,fullFlashModelExecuted=False,
                     sourceId=SOURCE_ID,sourceRevision=WEIGHTS['revision'],modelId=plan.definition()['modelId'],
                     planId=plan.identity,executionRouteId=bridge.plan.identity,protocol=plan.protocol_id,

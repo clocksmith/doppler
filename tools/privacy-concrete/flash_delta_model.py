@@ -12,6 +12,7 @@ import concrete_ml_extensions as ext
 from concrete.ml.quantization.linear_op_glwe_backend import GLWELinearLayerExecutor
 from full_model import FullLinear
 from full_bridge import FullBridge
+from verified_execution import complete_verified_route,VALIDATION_BOUNDARY
 from full_status import ExecutionRejected,failure_event
 from flash_component_plan import write_component
 from flash_delta import ClientDeltaNet
@@ -77,18 +78,20 @@ def run(source_dir,cache_dir,reference_path):
                           observe=lambda event,value:print(json.dumps(dict(event=event,**value)),file=sys.stderr,flush=True))
         context=DeltaContext('public-fixture',plan.identity,plan.definition()['modelId'],bridge.key_id,bridge.session)
         state=DeltaRequestState(context);errors=[];step_ms=[]
-        for index,value in enumerate(inputs):
-            started=time.perf_counter();actual=model.evaluate(value,state,context,'execute',bridge,secret)
-            if not torch.allclose(actual,references['clear-reference'][index],rtol=CONFIG['maxRelativeError'],atol=CONFIG['maxAbsoluteError']):
-                raise ExecutionRejected('component-reference-mismatch')
-            errors.append(float((actual-references['clear-reference'][index]).abs().max()));step_ms.append((time.perf_counter()-started)*1000)
-        bridge.finish()
+        def execute(index):
+            started=time.perf_counter();actual=model.evaluate(inputs[index],state,context,'execute',bridge,secret)
+            step_ms.append((time.perf_counter()-started)*1000)
+            return actual
+        def validate(index,actual):
+            if not torch.allclose(actual,references['clear-reference'][index],rtol=CONFIG['maxRelativeError'],atol=CONFIG['maxAbsoluteError']):raise ExecutionRejected('component-reference-mismatch')
+            errors.append(float((actual-references['clear-reference'][index]).abs().max()))
+        complete_verified_route(bridge,len(inputs),execute,validate)
         return dict(schema='doppler.actual-flash-delta-execution/v1',fixtureId='flash-first-delta-four-public-inputs',
                     scope='Four actual-weight cached first-layer DeltaNet steps, encrypted linear projections; client convolution, recurrence and nonlinear operations',
                     productionBackendAvailable=False,securityQualified=False,fullFlashModelExecuted=False,
                     sourceId=SOURCE_ID,sourceRevision=WEIGHTS['revision'],programId=PROGRAM_ID,
                     modelId=plan.definition()['modelId'],planId=plan.identity,protocol=plan.protocol_id,
-                    componentSteps=CONFIG['steps'],linearModules=len(ORDER),encryptedTiles=bridge.sequence-1,
+                    validationBoundary=VALIDATION_BOUNDARY,componentSteps=CONFIG['steps'],linearModules=len(ORDER),encryptedTiles=bridge.sequence-1,
                     quantizedReferenceCheckPassed=True,maxEncryptedVsQuantizedErrors=errors,
                     maxQuantizedVsFloatingErrors=[float((left-right).abs().max()) for left,right in zip(references['clear-reference'],references['float-reference'])],
                     stepMs=step_ms,elapsedMs=(time.perf_counter()-began)*1000,evaluationKeyBytes=bridge.key_bytes,

@@ -57,6 +57,8 @@ jobs:
           python -m unittest discover -s tools/privacy-concrete -p test_full_evidence.py -v
           python -m unittest discover -s tools/privacy-concrete -p test_source_snapshot.py -v
           python -m unittest discover -s tools/privacy-concrete -p test_native_runtime.py -v
+          python -m unittest discover -s tools/privacy-concrete -p test_verified_execution.py -v
+          DOPPLER_CONCRETE_NATIVE=1 python -m unittest discover -s tools/privacy-concrete -p test_flash_moe_native.py -v
       - name: Provision complete immutable QSA shard and inspected source
         run: |
           python tools/privacy-concrete/flash_weights.py --scope full-attention --destination "$RUNNER_TEMP/flash-source"

@@ -15,6 +15,7 @@ from concrete.ml.quantization.linear_op_glwe_backend import GLWELinearLayerExecu
 import concrete_ml_extensions as ext
 from full_model import FullLinear
 from full_bridge import FullBridge
+from verified_execution import complete_verified_route,VALIDATION_BOUNDARY
 from full_status import ExecutionRejected,failure_event
 from flash_weights import FlashSource
 from flash_component_plan import write_component
@@ -86,15 +87,17 @@ def run(source_dir,cache_dir,reference_path,*,local_storage_limit_bytes,prepare_
             finally:reference_state.close()
         secret,key=ext.cpu_create_private_key(model.executor.glwe_crypto_params);bridge=FullBridge(cache_dir,plan,key,backend_profile=CONFIG['profile'])
         context=ClientContext('public-fixture',plan.identity,plan.definition()['modelId'],bridge.key_id,bridge.session);state=PLERequestState(context);errors=[]
-        for index,(value,ids) in enumerate(inputs):
-            actual=model.evaluate(value,ids,state,context,'execute',bridge,secret)
+        def execute(index):
+            value,ids=inputs[index]
+            return model.evaluate(value,ids,state,context,'execute',bridge,secret)
+        def validate(index,actual):
             if not torch.allclose(actual,references['clear-reference'][index],rtol=CONFIG['maxRelativeError'],atol=CONFIG['maxAbsoluteError']):raise ExecutionRejected('component-reference-mismatch')
             errors.append(float((actual-references['clear-reference'][index]).abs().max()))
-        bridge.finish()
+        complete_verified_route(bridge,len(inputs),execute,validate)
         return dict(schema='doppler.actual-flash-ple-execution/v1',fixtureId='flash-first-ple-four-public-inputs',
                     productionBackendAvailable=False,securityQualified=False,fullFlashModelExecuted=False,
                     sourceId=SOURCE_ID,localTableId=TABLE_ID,planId=plan.identity,modelId=plan.definition()['modelId'],protocol=plan.protocol_id,
-                    encryptedTiles=bridge.sequence-1,componentSteps=4,linearModules=2,quantizedReferenceCheckPassed=True,maxEncryptedVsQuantizedErrors=errors,
+                    validationBoundary=VALIDATION_BOUNDARY,encryptedTiles=bridge.sequence-1,componentSteps=4,linearModules=2,quantizedReferenceCheckPassed=True,maxEncryptedVsQuantizedErrors=errors,
                     maxQuantizedVsFloatingErrors=[float((a-b).abs().max()) for a,b in zip(references['clear-reference'],references['float-reference'])],
                     elapsedMs=(time.perf_counter()-began)*1000,evaluationKeyBytes=bridge.key_bytes,sentBytes=bridge.sent,receivedBytes=bridge.received,
                     clientEncryptedReplayMs=bridge.replay_seconds*1000,evaluatorRoundTripMs=bridge.remote_seconds*1000)

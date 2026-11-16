@@ -8,6 +8,54 @@ from unittest.mock import patch
 
 @unittest.skipUnless(os.environ.get('DOPPLER_CONCRETE_NATIVE')=='1','opt-in pinned native/Torch implementation')
 class StreamedFlashMoETests(unittest.TestCase):
+    def test_full_qwen_reference_rejection_cannot_truncate_the_provider_route(self):
+        import torch
+        import full_model
+        from full_status import ExecutionRejected
+        from verified_execution import VALIDATION_BOUNDARY
+        transcripts=[]
+        for reject_step in [None,0,2,3]:
+            trace=[];wire=[];bridge=None
+            plan=SimpleNamespace(identity='a'*64,protocol_id='test-only',definition=lambda:dict(modelId='b'*64))
+            class Bridge:
+                def __init__(self,*args,**kwargs):
+                    self.plan=plan;self.sequence=1;self.closed=False;self.replay_seconds=self.remote_seconds=0
+                    self.sent=self.received=self.key_bytes=0
+                def finish(self):
+                    self.assert_complete();wire.append('finish')
+                def assert_complete(self):
+                    if self.sequence!=1549:raise AssertionError('incomplete route')
+                def close(self):
+                    if not self.closed:wire.append('close');self.closed=True
+            def spawn(*args,**kwargs):
+                nonlocal bridge
+                bridge=Bridge();return bridge
+            def step(model,projections,cache,tokens,original_count,index,mode,bucket,pad):
+                trace.append((mode,index));self.assertEqual(tokens,[7,8]+[0]*index)
+                if mode=='execute':
+                    self.assertFalse(bridge.closed);bridge.sequence+=387;wire.append(('execute',index))
+                else:self.assertTrue(bridge.closed,'reference comparison ran with live provider transport')
+                chosen=1 if mode=='clear-reference' and index==reject_step else 0
+                return torch.tensor([2.,1.] if chosen==0 else [1.,2.]),.1
+            projection=SimpleNamespace(bridge=None,secret=None,parameters=None)
+            settings=dict(cpuThreads=2,steps=4,contextBucket=8,backendId='test-only')
+            prepared=(None,SimpleNamespace(encode=lambda text:[7,8],decode=lambda tokens:'public-fixture'),
+                      SimpleNamespace(glwe_crypto_params=None),[projection],plan)
+            with patch.object(full_model,'qwen_backend',return_value=(settings,None,lambda:{},None)), \
+                 patch.object(full_model,'prepare',return_value=prepared),patch.object(full_model,'FullBridge',side_effect=spawn), \
+                 patch.object(full_model,'model_step',side_effect=step),patch.object(full_model.ext,'cpu_create_private_key',return_value=(object(),object())), \
+                 patch.dict(os.environ,{'RAYON_NUM_THREADS':'2'}):
+                if reject_step is None:
+                    report=full_model.run('unused','unused','public-fixture')
+                    self.assertEqual(report['validationBoundary'],VALIDATION_BOUNDARY)
+                    self.assertEqual(report['clientLocalOutputTokens'],[0,0,0,0])
+                else:
+                    with self.assertRaises(ExecutionRejected):full_model.run('unused','unused','public-fixture')
+            self.assertEqual(trace[:4],[('execute',i) for i in range(4)])
+            self.assertIsNone(projection.secret);self.assertIsNone(projection.bridge)
+            transcripts.append(wire)
+        for transcript in transcripts[1:]:self.assertEqual(transcript,transcripts[0])
+
     def test_unavailable_requested_native_moe_rejects_before_source_or_key_creation(self):
         import flash_moe
         import concrete_ml_extensions as ext

@@ -18,6 +18,7 @@ from concrete.ml.quantization.linear_op_glwe_backend import GLWELinearLayerExecu
 import concrete_ml_extensions as ext
 from linear import ClientLinearProjection
 from bridge import EvaluatorBridge
+from verified_execution import complete_verified_route,VALIDATION_BOUNDARY
 from protocol import POLICY, POLICY_ID, digest
 
 
@@ -104,37 +105,34 @@ def run(model_dir, seed=15496, mutate=None, cancelled=None, progress=lambda step
         private_tokens, quantized_tokens, float_tokens = [seed], [seed], [seed]
         step_ms, logit_errors, quantization_errors = [], [], []
         setup_ms = (time.perf_counter() - started) * 1000
-        with torch.no_grad():
-            for _ in range(POLICY['steps']):
-                if cancelled is not None and cancelled.is_set():
-                    raise InterruptedError('Encrypted experiment cancelled')
-                began = time.perf_counter()
-                for projection in projections:
-                    projection.mode = 'execute'
-                encrypted_logits = model(**fixed_inputs(private_tokens)).logits[0, len(private_tokens) - 1]
-                step_ms.append((time.perf_counter() - began) * 1000)
-                for projection in projections:
-                    projection.mode = 'clear-reference'
-                clear_logits = model(**fixed_inputs(private_tokens)).logits[0, len(private_tokens) - 1]
-                float_logits = original(**fixed_inputs(private_tokens)).logits[0, len(private_tokens) - 1]
-                logit_errors.append(float((encrypted_logits - clear_logits).abs().max()))
-                quantization_errors.append(float((clear_logits - float_logits).abs().max()))
-                private_tokens.append(int(encrypted_logits.argmax()))
-                quantized_tokens.append(int(clear_logits.argmax()))
-                float_tokens.append(int(float_logits.argmax()))
-                if private_tokens != quantized_tokens or private_tokens != float_tokens or logit_errors[-1] > POLICY['maxLogitError']:
-                    raise ValueError('Encrypted transformer disagrees with fixture reference')
-                progress(len(step_ms))
-        if bridge.calls != POLICY['steps'] * POLICY['projectionCount']:
-            raise ValueError('Incomplete encrypted transformer route')
-        bridge.finish()
-        return dict(schema=POLICY['schema'], qualified=False, productionBackendAvailable=False,
+        public_key_bytes=len(bridge.key_bytes)
+        def execute(step):
+            if cancelled is not None and cancelled.is_set():raise InterruptedError('Encrypted experiment cancelled')
+            history=list(private_tokens);began=time.perf_counter()
+            for projection in projections:projection.mode='execute'
+            actual=model(**fixed_inputs(history)).logits[0,len(history)-1]
+            step_ms.append((time.perf_counter()-began)*1000);private_tokens.append(int(actual.argmax()));progress(step+1)
+            if step+1==POLICY['steps'] and bridge.calls!=POLICY['steps']*POLICY['projectionCount']:
+                raise ValueError('Incomplete encrypted transformer route')
+            return history,actual.detach().clone()
+        def validate(step,captured):
+            history,actual=captured
+            for projection in projections:projection.mode='clear-reference'
+            clear_logits=model(**fixed_inputs(history)).logits[0,len(history)-1]
+            float_logits=original(**fixed_inputs(history)).logits[0,len(history)-1]
+            logit_errors.append(float((actual-clear_logits).abs().max()))
+            quantization_errors.append(float((clear_logits-float_logits).abs().max()))
+            quantized_tokens.append(int(clear_logits.argmax()));float_tokens.append(int(float_logits.argmax()))
+            if private_tokens[:step+2]!=quantized_tokens or private_tokens[:step+2]!=float_tokens or logit_errors[-1]>POLICY['maxLogitError']:
+                raise ValueError('Encrypted transformer disagrees with fixture reference')
+        with torch.no_grad():complete_verified_route(bridge,POLICY['steps'],execute,validate)
+        return dict(schema=POLICY['schema'], qualified=False, productionBackendAvailable=False,validationBoundary=VALIDATION_BOUNDARY,
                     modelId=model_id, keyContextId=bridge.key_id, evaluationBackend=POLICY['evaluationBackend'], sourceDigests=source_digests, source=POLICY['source'], environment=dict(system=platform.system(), machine=platform.machine(), python=platform.python_version(), dependencies=POLICY['dependencies']),
                     clientLocalOutputTokenIds=private_tokens[1:], matchesQuantizedReference=True, matchesFloatGreedyReference=True,
                     steps=POLICY['steps'], encryptedProjectionCalls=bridge.calls, privateKeySent=False,
                     withKeyMs=with_key_ms, setupMs=setup_ms, stepMs=step_ms, elapsedMs=(time.perf_counter() - started) * 1000,
                     encryptedReplayMs=bridge.replay_seconds * 1000, evaluatorRoundTripMs=bridge.remote_seconds * 1000,
-                    sentBytes=bridge.sent_bytes, receivedBytes=bridge.received_bytes, publicEvaluationKeyBytes=len(bridge.key_bytes),
+                    sentBytes=bridge.sent_bytes, receivedBytes=bridge.received_bytes, publicEvaluationKeyBytes=public_key_bytes,
                     maxLogitErrors=logit_errors, quantizationLogitErrors=quantization_errors, paddingMaxError=padding_error,
                     clientPeakRssBytes=resource.getrusage(resource.RUSAGE_SELF).ru_maxrss * (1 if platform.system() == 'Darwin' else 1024),
                     providerPeakRssBytes=resource.getrusage(resource.RUSAGE_CHILDREN).ru_maxrss * (1 if platform.system() == 'Darwin' else 1024),

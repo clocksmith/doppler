@@ -11,6 +11,7 @@ import concrete_ml_extensions as ext
 from concrete.ml.quantization.linear_op_glwe_backend import GLWELinearLayerExecutor
 from full_model import FullLinear
 from full_bridge import FullBridge
+from verified_execution import complete_verified_route,VALIDATION_BOUNDARY
 from flash_component_plan import write_component
 from flash_moe_plan import CONFIG,PROGRAM,SOURCE_ID,WEIGHTS,lowered_operations
 from flash_weights import FlashSource
@@ -107,11 +108,12 @@ def run(source_dir,cache_dir,execution,backend_profile=CONFIG['profile']):
     try:
         bridge=FullBridge(cache_dir,plan,key,backend_profile=backend_profile,
                           observe=lambda event,value:print(json.dumps(dict(event=event,**value)),file=sys.stderr,flush=True))
-        started=time.perf_counter();actual=model.evaluate(hidden,'execute',plan,bridge,secret)
-        if not torch.allclose(actual,quantized,rtol=config['maxRelativeError'],atol=config['maxAbsoluteError']):
-            raise ExecutionRejected('component-reference-mismatch')
-        bridge.finish()
-        return dict(report,encryptedExecutionCompleted=True,encryptedTiles=bridge.sequence-1,
+        def validate(step,actual):
+            if not torch.allclose(actual,quantized,rtol=config['maxRelativeError'],atol=config['maxAbsoluteError']):
+                raise ExecutionRejected('component-reference-mismatch')
+        started=time.perf_counter()
+        actual=complete_verified_route(bridge,1,lambda step:model.evaluate(hidden,'execute',plan,bridge,secret),validate)[0]
+        return dict(report,encryptedExecutionCompleted=True,validationBoundary=VALIDATION_BOUNDARY,encryptedTiles=bridge.sequence-1,
                     maxEncryptedVsQuantizedError=float((actual-quantized).abs().max()),
                     quantizedReferenceCheckPassed=True,executeMs=(time.perf_counter()-started)*1000,
                     elapsedMs=(time.perf_counter()-began)*1000,evaluationKeyBytes=bridge.key_bytes,

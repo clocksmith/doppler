@@ -23,13 +23,16 @@ class FullEvidenceTests(unittest.TestCase):
                        matchesFullQuantizedGreedyReference=True,clientLocalOutputText='public fixture output',
                        clientLocalOutputTokens=[1,2,3,4],executionRouteId='c'*64,transport='ssh-ed25519-pinned',descriptor={'secretKey':'private-canary'},
                        implementationVersions={'torch':'2.3.1+cpu','private':'private-canary'},integrity='private-canary')
+            from verified_execution import VALIDATION_BOUNDARY
+            value['validationBoundary']=VALIDATION_BOUNDARY
             report.write_text(json.dumps(value))
             result=collect(report,progress,'public-revision')
             self.assertTrue(result['completed'])
+            self.assertEqual(result['report']['validationBoundary'],VALIDATION_BOUNDARY)
             self.assertEqual(result['report']['executionRouteId'],'c'*64)
             self.assertEqual(result['report']['transport'],'ssh-ed25519-pinned')
             self.assertNotIn('private-canary',json.dumps(result))
-            for change in [dict(clientLocalOutputText={'private':'private-canary'}),dict(clientLocalOutputTokens=[True,2,3,4]),dict(schema='unknown'),dict(planId='unknown')]:
+            for change in [dict(clientLocalOutputText={'private':'private-canary'}),dict(clientLocalOutputTokens=[True,2,3,4]),dict(schema='unknown'),dict(planId='unknown'),dict(validationBoundary='unreviewed-canary')]:
                 report.write_text(json.dumps(dict(value,**change)))
                 rejected=collect(report,progress,'public-revision')
                 self.assertFalse(rejected['completed']);self.assertNotIn('private-canary',json.dumps(rejected))

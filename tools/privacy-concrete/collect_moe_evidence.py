@@ -7,6 +7,7 @@ import re
 from flash_moe_plan import CONFIG,PROGRAM,SOURCE_ID,lowered_operations
 from full_plan import tiles
 from full_status import FAILURE_CODES
+from verified_execution import VALIDATION_BOUNDARY
 from flash_moe_ntt_plan import CONFIG_NTT
 from plan_backends import MOE_PROFILES
 from native_runtime import ntt_source_id
@@ -38,6 +39,8 @@ def collect(report_path,progress_path,revision,backend_profile=CONFIG['profile']
     try:report=json.loads(Path(report_path).read_text())
     except ValueError:return result
     if not isinstance(report,dict):return result
+    boundary=report.get('validationBoundary')
+    if boundary is not None and boundary!=VALIDATION_BOUNDARY:return result
     if report.get('backendProfile',CONFIG['profile'])!=backend_profile:return result
     status=report.get('status')
     if isinstance(status,dict) and status.get('event')=='run-failed' and isinstance(status.get('failureCode'),str) and status['failureCode'] in FAILURE_CODES:
@@ -54,6 +57,7 @@ def collect(report_path,progress_path,revision,backend_profile=CONFIG['profile']
         return result
     safe=dict(exact,**{key:report[key] for key in (*METRICS,'modelId','planId')})
     safe['backendProfile']=backend_profile
+    if boundary==VALIDATION_BOUNDARY:safe['validationBoundary']=boundary
     if backend_profile==CONFIG_NTT['profile']:
         versions=report.get('implementationVersions');keys=['native-source-id','native-binary-sha256']
         if not isinstance(versions,dict) or any(not isinstance(versions.get(key),str) or not HASH.fullmatch(versions[key]) for key in keys) or versions['native-source-id']!=ntt_source_id():return result

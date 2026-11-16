@@ -11,7 +11,7 @@ Flash generation, independent malicious-security review or trusted hardware.
 | Fixed public expert 0 | First-layer gate/up/down | Four encrypted tiles and quantized-reference check passed |
 | First-layer DeltaNet | Five projections, convolution, norm and recurrence | Four cached component steps; 104 encrypted tiles passed |
 | MLP hyperconnection | Three projections and grouped norm | Four identity-block feedback updates; 60 encrypted tiles passed under a separately versioned precision profile |
-| Complete first-layer MoE | Shared/router and all 512 experts | 1,029 encrypted modules / 2,058 tiles implemented; stock reached six-hour limit; distinct native NTT attempt running |
+| Complete first-layer MoE | Shared/router and all 512 experts | 1,029 encrypted modules / 2,058 tiles implemented; stock reached six-hour limit; complete native NTT public fixture passed (2,058 tiles) |
 | Complete first-layer MLP branch | Hyperconnection plus all-expert MoE and residual | 1,032 modules / 2,073 planned tiles composed; actual FP32 sparse-source comparison is separate; full ciphertext composition not yet run |
 | Full attention / QSA | Five actual layer-3 projections and client normalization | Four cached public-input steps; 96 encrypted tiles passed under a distinct NTT profile; no token generation |
 | Ngram / PLE | Small local-table FP32 source fixtures | EOS-aware cached updates, local lookup and history isolation checks passed; actual Flash table unsupported |
@@ -143,9 +143,9 @@ raw vectors, source weights, private caches and raw diagnostics are excluded.
 pinned `--reference-source`. Clear mode cannot report encrypted completion. Its
 actual FP32 sparse-source gate runs before key generation. Full ciphertext MLP
 composition has not been launched; the stock all-expert job exhausted its budget
-and its distinct native NTT candidate remains in progress.
+and its distinct native NTT candidate completed the separate component fixture below.
 
-Remaining gates include the changed native all-expert run; complete Flash weight
+Remaining gates include full composed MLP encrypted execution; complete Flash weight
 provisioning and actual mapped-table qualification; actual-weight all-layer
 assembly and encrypted autoregression; complete-model quantization, quality and
 cost evidence;
@@ -424,3 +424,35 @@ non-cancelling group and a two-hour budget; unmodified stock work is not retried
 Native-kernel fixture speedups do not establish complete MoE latency or correctness.
 This remains one actual model component, not full Flash generation, authenticated
 separate-machine deployment or independently qualified cryptographic privacy.
+
+## Completed native all-expert result
+
+The [retained complete NTT MoE result](evidence/flash/dense-moe-ntt-complete.json)
+passed on one public sine vector: all **512 experts**, shared expert and router,
+**1,029 linear modules / 2,058 verified encrypted tiles**, followed by client-local
+top-10 selection. Elapsed time was **2,357.63 s** (39.29 minutes), including
+**2,227.73 s** encrypted execution. Client encrypted replay took **1,080.96 s** and
+evaluator round trips **1,097.63 s**. Application frames sent/received were
+**155,964,370 / 23,350,368 bytes**, including a **134,217,808-byte** evaluation key.
+Component peak RSS was not retained; native microfixture RSS is not attributed to it.
+
+Maximum encrypted-versus-quantized error was **0.0005921** and maximum
+quantized-versus-floating error **0.0055964**, under the unchanged component bounds.
+The [context](evidence/flash/dense-moe-ntt-context.json) binds revision, run, artifact,
+native source/binary and scope. This is one actual first-layer MoE component on
+process pipes; it is not a full Flash decoder, generated token, network deployment,
+model-wide quality result or cryptographic qualification. Its historical driver
+performed reference acceptance before `finish`; current drivers use the closed-route
+validation boundary below. The result does not establish that newer ordering's
+full-size performance.
+
+## Reference checks after transport closure
+
+All actual component drivers now share `complete_verified_route`: execute the
+fixed admitted route, finish and close it, then apply the same numerical acceptance
+checks. Cached outputs and hyperconnection projection diagnostics remain client-local.
+A numerical mismatch cannot choose an earlier provider stopping point or select
+`finish` versus close, and no partial result is released. Integrity, cancellation
+and runtime failures remain immediate; timing and other failure leakage still
+require review. New reports mark `after-route-close/v1`. See the
+[security boundary](SECURITY-BOUNDARY.md#observable-reference-validation-feedback).

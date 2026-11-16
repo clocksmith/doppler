@@ -5,9 +5,10 @@ from pathlib import Path
 import re
 import math
 from full_status import FAILURE_CODES
+from verified_execution import VALIDATION_BOUNDARY
 
 PUBLIC_FIXTURE='qwen05b-capital'
-REPORT_FIELDS=['backendProfile','protocol','clientLifetimePeakRssBytes','schema','planId','modelId','executionRouteId','transport','linearProjectionCount','encryptedTileCount','encryptedSteps',
+REPORT_FIELDS=['validationBoundary','backendProfile','protocol','clientLifetimePeakRssBytes','schema','planId','modelId','executionRouteId','transport','linearProjectionCount','encryptedTileCount','encryptedSteps',
                'matchesFullQuantizedGreedyReference','floatGreedyMatches','maxLogitErrors','setupMs','stepMs',
                'quantizedReferenceMs','elapsedMs','clientEncryptedReplayMs',
                'evaluatorRoundTripMs','sentBytes','receivedBytes','evaluationKeyBytes','clientPeakRss',
@@ -42,6 +43,8 @@ def collect(report_path,progress_path,revision):
         try:report=json.loads(Path(report_path).read_text())
         except ValueError:return result
         if not isinstance(report,dict):return result
+        boundary=report.get('validationBoundary')
+        if boundary is not None and boundary!=VALIDATION_BOUNDARY:return result
         backend=report.get('backendProfile')
         if backend is not None and (not isinstance(backend,str) or backend not in QWEN_PROTOCOLS or not isinstance(report.get('protocol'),str) or report['protocol'] not in QWEN_PROTOCOLS[backend]):return result
         output=report.get('clientLocalOutputText');tokens=report.get('clientLocalOutputTokens')
@@ -63,6 +66,8 @@ def collect(report_path,progress_path,revision):
                 elif key=='backendProfile' and isinstance(value,str) and value in QWEN_PROTOCOLS:
                     safe[key]=value
                 elif key=='protocol' and isinstance(backend,str) and backend in QWEN_PROTOCOLS and isinstance(value,str) and value in QWEN_PROTOCOLS[backend]:
+                    safe[key]=value
+                elif key=='validationBoundary' and value==VALIDATION_BOUNDARY:
                     safe[key]=value
                 elif key=='transport' and value in ['local-process','ssh-ed25519-pinned']:
                     safe[key]=value

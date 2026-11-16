@@ -1,0 +1,53 @@
+{
+  "schema": "doppler.public-flash-moe-ci-evidence/v1",
+  "revision": "88d19a0a89e30d62e6b77da49b2104caf9885006",
+  "fixtureId": "flash-dense-moe-sine-2560",
+  "completed": true,
+  "productionBackendAvailable": false,
+  "securityQualified": false,
+  "fullFlashModelExecuted": false,
+  "backendProfile": "flash-dense-moe-ntt",
+  "plannedEncryptedTiles": 2058,
+  "verifiedTilesObserved": 2058,
+  "progressValid": true,
+  "lastVerifiedTile": {
+    "sequence": 2058,
+    "projection": "shared/mix"
+  },
+  "report": {
+    "schema": "doppler.actual-flash-dense-moe-execution/v1",
+    "fixtureId": "flash-dense-moe-sine-2560",
+    "productionBackendAvailable": false,
+    "securityQualified": false,
+    "fullFlashModelExecuted": false,
+    "sourceId": "43bd9794175194607fc697a1fd0dc5fbc311d46c6ea0d0ac5355dc25287c72f9",
+    "programId": "995f558005b29c4fed8604746367eea970da4fe6f83b39350449beb6b08cd78c",
+    "protocol": "concrete-glwe-flash-dense-moe-ntt-replay/v1",
+    "expertCount": 512,
+    "topK": 10,
+    "logicalProjections": 1541,
+    "linearModules": 1029,
+    "plannedEncryptedTiles": 2058,
+    "encryptedTiles": 2058,
+    "allExpertsVisited": true,
+    "execution": "encrypted",
+    "encryptedExecutionCompleted": true,
+    "quantizedReferenceCheckPassed": true,
+    "maxQuantizedVsFloatingError": 0.005596427246928215,
+    "maxEncryptedVsQuantizedError": 0.0005920715630054474,
+    "executeMs": 2227729.307508,
+    "elapsedMs": 2357625.738897,
+    "evaluationKeyBytes": 134217808,
+    "sentBytes": 155964370,
+    "receivedBytes": 23350368,
+    "clientEncryptedReplayMs": 1080962.2565020008,
+    "evaluatorRoundTripMs": 1097634.5124060025,
+    "modelId": "b5a1fc4ae17a655c9022e7ab33f1bfce8515c8c72968aa44c236b82e1950d91f",
+    "planId": "3fa2c6c3921d43d6c522e6cee41e8d8a7b300699e2cd8cbafa77efdb86799f1d",
+    "backendProfile": "flash-dense-moe-ntt",
+    "nativeImplementation": {
+      "native-source-id": "8cb2cbd212d05c6646fb3132ebef58624738b0d0dcf7f59daebe3e0766e17bf9",
+      "native-binary-sha256": "f9e7daf5e9f4ccbd94e7c8c5e18b71ecc288c2765519dac51fa45886b4c33887"
+    }
+  }
+}

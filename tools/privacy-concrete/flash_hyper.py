@@ -11,6 +11,7 @@ import concrete_ml_extensions as ext
 from concrete.ml.quantization.linear_op_glwe_backend import GLWELinearLayerExecutor
 from full_model import FullLinear
 from full_bridge import FullBridge
+from verified_execution import complete_verified_route,VALIDATION_BOUNDARY
 from full_status import ExecutionRejected,failure_event
 from flash_component_plan import write_component,component_parameters
 from flash_hyper_ops import TorchHyperConnection
@@ -61,17 +62,10 @@ class FlashHyperModel:
             projection.parameters=self.executor.glwe_crypto_params
         original_project=self.graph.project
         if public_fixture_checks is not None:
-            by_name={projection.name:projection for projection in self.projections}
             def inspected(operation,value):
                 result=original_project(operation,value)
                 if mode=='execute':
-                    projection=by_name[operation['id']];previous=projection.mode
-                    try:
-                        projection.mode='clear-reference';reference=projection(value)
-                    finally:projection.mode=previous
-                    public_fixture_checks.append(dict(projection=operation['id'],
-                        maxAbsoluteError=float((result-reference).abs().max()),
-                        referenceBoundPassed=bool(torch.allclose(result,reference,rtol=CONFIG['maxRelativeError'],atol=CONFIG['maxAbsoluteError']))))
+                    public_fixture_checks.append((operation['id'],value.detach().clone(),result.detach().clone()))
                 return result
             self.graph.project=inspected
         try:
@@ -95,26 +89,34 @@ def run(source_dir,cache_dir):
         bridge=FullBridge(cache_dir,plan,key,backend_profile=CONFIG['profile'],
                           observe=lambda event,value:print(json.dumps(dict(event=event,**value)),file=sys.stderr,flush=True))
         errors=[];quantized_errors=[];step_ms=[]
-        for _step in range(CONFIG['steps']):
-            results={};checks=[]
-            input_error=float((states['execute']-states['clear-reference']).abs().max())
-            for mode in states:
-                started=time.perf_counter();results[mode]=model.evaluate(states[mode],mode,bridge,secret,public_fixture_checks=checks)
-                states[mode]=results[mode][0]
-                if mode=='execute':step_ms.append((time.perf_counter()-started)*1000)
-            trajectory_errors=[float((actual-expected).abs().max()) for actual,expected in zip(results['execute'],results['clear-reference'])]
-            for actual,expected in zip(results['execute'],results['clear-reference']):
-                if not torch.allclose(actual,expected,rtol=CONFIG['maxRelativeError'],atol=CONFIG['maxAbsoluteError']):
-                    raise PublicHyperComparisonMismatch(_step+1,trajectory_errors,input_error,checks)
-            errors.append(max(float((actual-expected).abs().max()) for actual,expected in zip(results['execute'],results['clear-reference'])))
+        def execute(step):
+            before=states['execute'].detach().clone();checks=[];started=time.perf_counter()
+            result=model.evaluate(before,'execute',bridge,secret,public_fixture_checks=checks)
+            states['execute']=result[0];step_ms.append((time.perf_counter()-started)*1000)
+            return before,result,checks
+        def validate(step,captured):
+            before,actual,pending_checks=captured
+            input_error=float((before-states['clear-reference']).abs().max());results={}
+            for mode in ['float-reference','clear-reference']:
+                results[mode]=model.evaluate(states[mode],mode);states[mode]=results[mode][0]
+            checks=[];by_name={projection.name:projection for projection in model.projections}
+            for name,value,result in pending_checks:
+                projection=by_name[name];projection.mode='clear-reference';reference=projection(value)
+                checks.append(dict(projection=name,maxAbsoluteError=float((result-reference).abs().max()),
+                    referenceBoundPassed=bool(torch.allclose(result,reference,rtol=CONFIG['maxRelativeError'],atol=CONFIG['maxAbsoluteError']))))
+            trajectory_errors=[float((value-expected).abs().max()) for value,expected in zip(actual,results['clear-reference'])]
+            for value,expected in zip(actual,results['clear-reference']):
+                if not torch.allclose(value,expected,rtol=CONFIG['maxRelativeError'],atol=CONFIG['maxAbsoluteError']):
+                    raise PublicHyperComparisonMismatch(step+1,trajectory_errors,input_error,checks)
+            errors.append(max(trajectory_errors))
             quantized_errors.append(float((states['clear-reference']-states['float-reference']).abs().max()))
-        bridge.finish()
+        complete_verified_route(bridge,CONFIG['steps'],execute,validate)
         return dict(schema='doppler.actual-flash-hyper-execution/v1',fixtureId='flash-mlp-hyper-identity-feedback',
                     scope='Four public gated-residual identity-block updates; no attention, MoE or Flash token generation',
                     productionBackendAvailable=False,securityQualified=False,fullFlashModelExecuted=False,
                     sourceId=SOURCE_ID,sourceRevision=WEIGHTS['revision'],programId=PROGRAM.identity,
                     modelId=plan.definition()['modelId'],planId=plan.identity,protocol=plan.protocol_id,
-                    parameterProfile=CONFIG['parameterProfile'],componentSteps=CONFIG['steps'],linearModules=len(model.projections),encryptedTiles=bridge.sequence-1,
+                    validationBoundary=VALIDATION_BOUNDARY,parameterProfile=CONFIG['parameterProfile'],componentSteps=CONFIG['steps'],linearModules=len(model.projections),encryptedTiles=bridge.sequence-1,
                     quantizedReferenceCheckPassed=True,maxEncryptedVsQuantizedErrors=errors,
                     maxQuantizedVsFloatingErrors=quantized_errors,stepMs=step_ms,elapsedMs=(time.perf_counter()-began)*1000,
                     evaluationKeyBytes=bridge.key_bytes,sentBytes=bridge.sent,receivedBytes=bridge.received,

@@ -1,0 +1,21 @@
+{
+  "schema": "doppler.flash-dense-moe-ntt-functional-context/v1",
+  "revision": "88d19a0a89e30d62e6b77da49b2104caf9885006",
+  "workflowRun": 43856598568,
+  "artifactId": 14224501921,
+  "artifactZipSha256": "c6fdbcd177431a5495e3e86d2a24e71aa9ea9bedfa3ea249715caabbc593e46e",
+  "evidence": "dense-moe-ntt-complete.json",
+  "checkpoint": "Qwen/Qwen3.8-Flash-Next",
+  "checkpointRevision": "812d96e10a0dd82b69d749e68693698cf6c36daa",
+  "productionBackendAvailable": false,
+  "securityQualified": false,
+  "fullFlashModelExecuted": false,
+  "transport": "local-process",
+  "limitations": [
+    "One fixed public sine hidden vector through actual first-layer shared/router/all512 experts; no complete decoder or Flash token generation",
+    "Only linear products outsourced; client routing/nonlinearities and full encrypted replay remain",
+    "Component peak RSS not retained; native microfixture RSS is not a component memory observation",
+    "Historical driver checks reference acceptance before finish; current closed-route validation ordering was not used in this run",
+    "Same trusted hosted CPU for client/evaluator; no separate-machine qualification or independent cryptographic review"
+  ]
+}

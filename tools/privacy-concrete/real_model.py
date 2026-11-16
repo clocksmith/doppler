@@ -15,6 +15,7 @@ from transformers import AutoModelForCausalLM, AutoTokenizer
 from concrete.ml.quantization.linear_op_glwe_backend import GLWELinearLayerExecutor
 import concrete_ml_extensions as ext
 from bridge import EvaluatorBridge
+from verified_execution import complete_verified_route,VALIDATION_BOUNDARY
 from linear import ClientLinearProjection
 from profiles import load_profile
 from protocol import POLICY, digest
@@ -88,29 +89,30 @@ def run(model_dir, prompt, profile_name='qwen05b-k-projection', cancelled=None, 
         setup_ms = (time.perf_counter() - began) * 1000
         initial_length = len(private_tokens)
         step_ms, float_ms, clear_ms, errors, quantization_errors = [], [], [], [], []
-        with torch.no_grad():
-            for step in range(profile.steps):
-                inputs = fixed_inputs(private_tokens, specification)
-                logits = {}
-                for mode, measurements in [('float-reference', float_ms), ('clear-reference', clear_ms), ('execute', step_ms)]:
-                    selected.mode = mode
-                    started = time.perf_counter()
-                    logits[mode] = model(**inputs).logits[0, len(private_tokens) - 1]
-                    measurements.append((time.perf_counter() - started) * 1000)
-                error = float((logits['execute'] - logits['clear-reference']).abs().max())
-                quantization_error = float((logits['clear-reference'] - logits['float-reference']).abs().max())
-                errors.append(error); quantization_errors.append(quantization_error)
-                next_token = int(logits['execute'].argmax())
-                if (error > specification['maxEncryptedVsQuantizedLogitError']
-                        or next_token != int(logits['clear-reference'].argmax())
-                        or specification['requireFloatGreedyEquality'] and next_token != int(logits['float-reference'].argmax())):
-                    raise ValueError('Encrypted real-model generation disagrees with the pinned correctness contract')
-                private_tokens.append(next_token)
-                progress(step + 1)
-        if bridge.calls != profile.steps * profile.projection_count:
-            raise ValueError('Incomplete encrypted projection route')
-        bridge.finish()
-        return dict(schema='doppler.real-model-encrypted-projection/v1', qualified=False, productionBackendAvailable=False,
+        public_key_bytes=len(bridge.key_bytes)
+        def execute(step):
+            history=list(private_tokens);selected.mode='execute';started=time.perf_counter()
+            actual=model(**fixed_inputs(history,specification)).logits[0,len(history)-1]
+            step_ms.append((time.perf_counter()-started)*1000);private_tokens.append(int(actual.argmax()))
+            progress(step+1)
+            if step+1==profile.steps and bridge.calls!=profile.steps*profile.projection_count:
+                raise ValueError('Incomplete encrypted projection route')
+            return history,actual.detach().clone()
+        def validate(step,captured):
+            history,actual=captured;logits={}
+            for mode,measurements in [('float-reference',float_ms),('clear-reference',clear_ms)]:
+                selected.mode=mode;started=time.perf_counter()
+                logits[mode]=model(**fixed_inputs(history,specification)).logits[0,len(history)-1]
+                measurements.append((time.perf_counter()-started)*1000)
+            error=float((actual-logits['clear-reference']).abs().max())
+            errors.append(error);quantization_errors.append(float((logits['clear-reference']-logits['float-reference']).abs().max()))
+            next_token=int(actual.argmax())
+            if (error>specification['maxEncryptedVsQuantizedLogitError']
+                    or next_token!=int(logits['clear-reference'].argmax())
+                    or specification['requireFloatGreedyEquality'] and next_token!=int(logits['float-reference'].argmax())):
+                raise ValueError('Encrypted real-model generation disagrees with the pinned correctness contract')
+        with torch.no_grad():complete_verified_route(bridge,profile.steps,execute,validate)
+        return dict(schema='doppler.real-model-encrypted-projection/v1', qualified=False, productionBackendAvailable=False,validationBoundary=VALIDATION_BOUNDARY,
                     source=specification['source'], sourceDigests=source_digests, modelId=model_id, policyId=profile.policy_id,
                     keyContextId=bridge.key_id, evaluationBackend='cpu', projection=specification['projection'],
                     clientLocalOutputTokenIds=private_tokens[initial_length:], clientLocalOutputText=tokenizer.decode(private_tokens[initial_length:]),
@@ -119,7 +121,7 @@ def run(model_dir, prompt, profile_name='qwen05b-k-projection', cancelled=None, 
                     setupMs=setup_ms, stepMs=step_ms, floatReferenceMs=float_ms, quantizedReferenceMs=clear_ms,
                     elapsedMs=(time.perf_counter() - began) * 1000, encryptedReplayMs=bridge.replay_seconds * 1000,
                     evaluatorRoundTripMs=bridge.remote_seconds * 1000, sentBytes=bridge.sent_bytes, receivedBytes=bridge.received_bytes,
-                    publicEvaluationKeyBytes=len(bridge.key_bytes), maxEncryptedVsQuantizedLogitErrors=errors,
+                    publicEvaluationKeyBytes=public_key_bytes, maxEncryptedVsQuantizedLogitErrors=errors,
                     quantizationLogitErrors=quantization_errors, integrity=specification['integrity'], leakage=specification['leakage'],
                     clientPeakRssBytes=resource.getrusage(resource.RUSAGE_SELF).ru_maxrss * (1 if platform.system() == 'Darwin' else 1024),
                     providerPeakRssBytes=resource.getrusage(resource.RUSAGE_CHILDREN).ru_maxrss * (1 if platform.system() == 'Darwin' else 1024),
