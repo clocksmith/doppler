@@ -45,10 +45,17 @@ jobs:
             --execution encrypted \
             > "$RUNNER_TEMP/flash-moe-public-result.json" \
             2> "$RUNNER_TEMP/flash-moe-client-diagnostics.txt"
+      - name: Construct bounded public fixture progress even after an incomplete attempt
+        if: always()
+        run: |
+          python tools/privacy-concrete/collect_moe_evidence.py \
+            --report "$RUNNER_TEMP/flash-moe-public-result.json" \
+            --progress "$RUNNER_TEMP/flash-moe-client-diagnostics.txt" \
+            --revision "$GITHUB_SHA" --output "$RUNNER_TEMP/flash-moe-public-evidence.json"
       - uses: actions/upload-artifact@v6
         if: always()
         with:
           name: actual-flash-dense-moe-public-evidence
-          path: ${{ runner.temp }}/flash-moe-public-result.json
+          path: ${{ runner.temp }}/flash-moe-public-evidence.json
           if-no-files-found: warn
           retention-days: 7

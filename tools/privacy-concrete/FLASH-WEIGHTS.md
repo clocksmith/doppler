@@ -273,3 +273,19 @@ cached autoregressive steps against the sparse full-prefix decoder and verifies
 that request closure releases its lease while preserving the shared public table.
 This uses complete small public BF16 files; it does not remove the actual Flash
 checkpoint/table provisioning gate.
+
+## Public evidence after incomplete all-expert attempts
+
+Future dense-MoE workflow attempts construct `flash-moe-public-evidence.json` from
+the fixed public fixture and its client-local progress. The collector derives the
+2,058-tile route from the installed lowering and accepts only contiguous sequence
+numbers with the expected public projection names. It exports observed count and
+last public projection, closed failure codes and narrowly typed success metrics;
+raw diagnostics, private tensor fields and exception text are excluded. Missing
+progress or conflicting/incomplete success claims cannot become a completed result.
+These records distinguish observed verified tiles from total computation performed.
+
+This change does not restart or alter a running older workflow. An older attempt
+that uploads only its final result may still leave no tile-progress artifact if
+killed before returning. Complete MoE evidence remains one model component and
+cannot establish complete Flash execution, model quality or cryptographic security.

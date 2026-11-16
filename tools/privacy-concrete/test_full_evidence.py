@@ -43,6 +43,13 @@ class FullEvidenceTests(unittest.TestCase):
             report.write_text(json.dumps(high));self.assertTrue(collect(report,progress,'public-revision')['completed'])
             wide=dict(fast,backendProfile='qwen-all-linear-ntt12',protocol='concrete-glwe-qwen-all-linear-ntt12-replay/v1')
             report.write_text(json.dumps(wide));self.assertTrue(collect(report,progress,'public-revision')['completed'])
+            for candidate in [dict(value,backendProfile='qwen-all-linear'),fast,high,wide]:
+                remote=dict(candidate,protocol='concrete-glwe-qwen-research-ssh-replay/v2')
+                report.write_text(json.dumps(remote));accepted=collect(report,progress,'public-revision')
+                self.assertTrue(accepted['completed']);self.assertEqual(accepted['report']['protocol'],remote['protocol'])
+                if remote['backendProfile']!='qwen-all-linear':
+                    report.write_text(json.dumps(dict(remote,implementationVersions={})))
+                    self.assertFalse(collect(report,progress,'public-revision')['completed'])
             report.write_text(json.dumps(value));progress.write_text(json.dumps(dict(event='run-failed',failureCode='cancelled'))+'\n')
             self.assertFalse(collect(report,progress,'public-revision')['completed'])
 

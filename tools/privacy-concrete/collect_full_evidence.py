@@ -18,6 +18,8 @@ QWEN_PROTOCOLS={
     'qwen-all-linear-ntt-48':{json.loads(Path(__file__).with_name('full-ntt48-policy.json').read_text())['protocol']},
     'qwen-all-linear-ntt':{json.loads(Path(__file__).with_name('full-ntt-policy.json').read_text())['protocol']}
 }
+SSH_V2_PROTOCOL=json.loads(Path(__file__).with_name('ssh-v2-policy.json').read_text())['protocol']
+for protocols in QWEN_PROTOCOLS.values():protocols.add(SSH_V2_PROTOCOL)
 PROJECTION=re.compile(r'(?:model\.layers\.(?:[0-9]|1[0-9]|2[0-3])\.(?:self_attn\.[qkvo]_proj|mlp\.(?:gate|up|down)_proj)|lm_head)\Z')
 
 
