@@ -28,6 +28,7 @@ class FullBridgeOrderingTests(unittest.TestCase):
         spec=importlib.util.spec_from_file_location('_tested_full_bridge',Path(__file__).with_name('full_bridge.py'))
         module=importlib.util.module_from_spec(spec)
         with patch.dict(sys.modules,{'concrete_ml_extensions':native,'numpy':numpy}):spec.loader.exec_module(module)
+        self.module=module
         self.bridge=module.FullBridge.__new__(module.FullBridge)
         self.bridge.admission=FullRouteAdmission(Plan())
         self.bridge.admission.admit_projection('first',16,16,8)
@@ -42,6 +43,25 @@ class FullBridgeOrderingTests(unittest.TestCase):
         self.encrypted=SimpleNamespace(serialize=lambda:self.serialized.append(True) or b'ciphertext-only')
         self.matrix=SimpleNamespace(shape=(16,16),dtype='u64',view=lambda dtype:'pinned-public-weight')
         self.tile=dict(self.bridge.admission.next_tile())
+
+    def test_unsupported_plan_rejects_before_key_export_or_provider_start(self):
+        key=SimpleNamespace(serialize=lambda:self.fail('evaluation key exported'))
+        with patch.object(self.module,'load_plan',side_effect=ValueError('unsupported model')), patch.object(self.module.subprocess,'Popen') as spawn:
+            with self.assertRaises(ValueError):self.module.FullBridge('unused',SimpleNamespace(identity='expected'),key)
+            spawn.assert_not_called()
+
+    def test_replaced_prepared_plan_rejects_before_key_export_or_provider_start(self):
+        key=SimpleNamespace(serialize=lambda:self.fail('evaluation key exported'))
+        with patch.object(self.module,'load_plan',return_value=SimpleNamespace(identity='replaced')), patch.object(self.module.subprocess,'Popen') as spawn:
+            with self.assertRaises(ValueError):self.module.FullBridge('unused',SimpleNamespace(identity='expected'),key)
+            spawn.assert_not_called()
+
+    def test_cancelled_constructor_does_not_prepare_or_export_key(self):
+        event=threading.Event();event.set()
+        key=SimpleNamespace(serialize=lambda:self.fail('evaluation key exported'))
+        with patch.object(self.module,'load_plan') as load, patch.object(self.module.subprocess,'Popen') as spawn:
+            with self.assertRaises(InterruptedError):self.module.FullBridge('unused',SimpleNamespace(identity='expected'),key,cancelled=event)
+            load.assert_not_called();spawn.assert_not_called()
 
     def test_route_change_is_rejected_before_ciphertext_serialization(self):
         with self.assertRaises(ValueError):self.bridge.evaluate(self.encrypted,self.matrix,dict(self.tile,id='replacement'))
