@@ -4,6 +4,7 @@ import json
 from pathlib import Path
 import struct
 import tempfile
+import threading
 import unittest
 from unittest.mock import patch
 from flash_source_scopes import TEXT,BASE,source_spec,staging_spec
@@ -55,7 +56,7 @@ class FlashStageTests(unittest.TestCase):
         for fail in [False,True]:
             with tempfile.TemporaryDirectory() as parent:
                 sibling=Path(parent)/'unrelated';sibling.write_text('preserve');captured=[]
-                def acquire(directory,unused):
+                def acquire(directory,unused,**kwargs):
                     captured.append(Path(directory))
                     for file,data in files.items():(Path(directory)/file).write_bytes(data)
                 with patch('flash_stage_source.staging_spec',return_value=spec),patch('flash_stage_source.provision_spec',side_effect=acquire):
@@ -73,12 +74,23 @@ class FlashStageTests(unittest.TestCase):
         name,spec,files=fixture()
         with tempfile.TemporaryDirectory() as parent:
             captured=[]
-            def acquire(directory,unused):
+            def acquire(directory,unused,**kwargs):
                 captured.append(Path(directory))
                 for file,data in files.items():(Path(directory)/file).write_bytes(data)
                 (Path(directory)/'public.safetensors').write_bytes(b'corrupt')
             with patch('flash_stage_source.staging_spec',return_value=spec),patch('flash_stage_source.provision_spec',side_effect=acquire),self.assertRaises(ValueError):
                 with staged_source(parent,'decoder',0):self.fail('corrupt public material admitted')
+            self.assertFalse(captured[0].exists())
+
+    def test_cancelled_stage_cleans_owned_directory_without_yielding(self):
+        name,spec,files=fixture();cancelled=threading.Event();captured=[]
+        with tempfile.TemporaryDirectory() as parent:
+            def acquire(directory,unused,**kwargs):
+                self.assertIs(kwargs['cancelled'],cancelled);captured.append(Path(directory))
+                for file,data in files.items():(Path(directory)/file).write_bytes(data)
+                cancelled.set()
+            with patch('flash_stage_source.staging_spec',return_value=spec),patch('flash_stage_source.provision_spec',side_effect=acquire),self.assertRaises(InterruptedError):
+                with staged_source(parent,'decoder',0,cancelled=cancelled):self.fail('cancelled source yielded')
             self.assertFalse(captured[0].exists())
 
     def test_storage_bounds_account_for_persistent_rows_and_distinct_coefficient_widths(self):

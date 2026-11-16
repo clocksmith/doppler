@@ -4,6 +4,7 @@ import io
 import json
 from pathlib import Path
 import tempfile
+import threading
 import unittest
 from unittest.mock import patch
 from flash_weights import fetch_blob,verify_blob
@@ -30,6 +31,43 @@ class WeightAdmissionTests(unittest.TestCase):
             self.assertEqual(list(Path(directory).iterdir()),[path])
             path.write_bytes(b'corrupt')
             with self.assertRaises(ValueError):fetch_blob('https://public.invalid/model',path,record)
+
+    def test_cancelled_acquisition_never_opens_network_or_changes_existing_cache(self):
+        cancelled=threading.Event();cancelled.set()
+        with tempfile.TemporaryDirectory() as directory:
+            path=Path(directory)/'model';path.write_bytes(b'existing')
+            with patch('flash_weights.urllib.request.urlopen') as request,self.assertRaises(InterruptedError):
+                fetch_blob('https://public.invalid/model',path,{},cancelled=cancelled)
+            request.assert_not_called();self.assertEqual(path.read_bytes(),b'existing')
+
+    def test_cancel_during_cached_hash_preserves_public_file(self):
+        data=b'cached';record=dict(bytes=len(data),sha256=hashlib.sha256(data).hexdigest())
+        cancelled=threading.Event()
+        class CancellingFile(io.BytesIO):
+            def read(self,size):
+                value=super().read(size);cancelled.set();return value
+        with tempfile.TemporaryDirectory() as directory:
+            path=Path(directory)/'model';path.write_bytes(data)
+            with patch('flash_weights.Path.open',return_value=CancellingFile(data)),self.assertRaises(InterruptedError):
+                verify_blob(path,record,cancelled=cancelled)
+            self.assertEqual(path.read_bytes(),data)
+
+    def test_cancel_during_read_removes_owned_partial_and_does_not_publish(self):
+        data=b'public';record=dict(bytes=len(data),sha256=hashlib.sha256(data).hexdigest())
+        for on_eof in [False,True]:
+            cancelled=threading.Event()
+            class CancellingResponse(Response):
+                def read(self,size):
+                    chunk=super().read(size)
+                    if (not chunk)==on_eof:cancelled.set()
+                    return chunk
+            with tempfile.TemporaryDirectory() as directory:
+                sibling=Path(directory)/'preserve';sibling.write_bytes(b'other-owner')
+                path=Path(directory)/'model'
+                with patch('flash_weights.urllib.request.urlopen',return_value=CancellingResponse(data)),self.assertRaises(InterruptedError):
+                    fetch_blob('https://public.invalid/model',path,record,cancelled=cancelled)
+                self.assertEqual(list(Path(directory).iterdir()),[sibling])
+                self.assertEqual(sibling.read_bytes(),b'other-owner')
 
     def test_truncated_oversized_corrupt_and_partial_range_objects_never_publish(self):
         expected=b'public-source';record=dict(bytes=len(expected),sha256=hashlib.sha256(expected).hexdigest())

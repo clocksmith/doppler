@@ -44,7 +44,7 @@ class CompleteTextInventoryTests(unittest.TestCase):
             with self.assertRaises(ValueError):assemble(metadata,headers)
         from flash_weights import FlashSource
         visited=[]
-        def verify(path,record):
+        def verify(path,record,**kwargs):
             visited.append(path.name)
             if path.name=='tokenizer.json':raise ValueError('required tokenizer missing')
         with patch('flash_weights.verify_blob',side_effect=verify):
