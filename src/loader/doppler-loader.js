@@ -637,18 +637,20 @@ export class DopplerLoader {
       this._stopMemoryLogging('complete');
     }
 
+    const releasedBuffers = new Set();
     const releaseCandidate = (value) => {
       if (!value) return;
       const gpuBuffer = isWeightBuffer(value)
         ? value.buffer
         : (isGpuBufferInstance(value) ? value : null);
-      if (!gpuBuffer) return;
+      if (!gpuBuffer || releasedBuffers.has(gpuBuffer)) return;
       try {
         if (isBufferActive(gpuBuffer)) {
           releaseBuffer(gpuBuffer);
         } else {
           gpuBuffer.destroy();
         }
+        releasedBuffers.add(gpuBuffer);
       } catch {
         // Ignore already released/destroyed buffers.
       }
