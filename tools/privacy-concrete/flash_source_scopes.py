@@ -8,12 +8,14 @@ HYPER=json.loads(Path(__file__).with_name('flash-hyper-tensors.json').read_text(
 PLE=json.loads(Path(__file__).with_name('flash-ple-weights.json').read_text())
 QSA=json.loads(Path(__file__).with_name('flash-qsa-weights.json').read_text())
 DELTA=json.loads(Path(__file__).with_name('flash-delta-weights.json').read_text())
-EXPERT_TENSORS=frozenset(name for name in BASE['tensors'] if '.experts.' in name)
-SCOPES=('moe','mlp-hyper','mlp-block','linear-attention','full-attention','ple')
+TEXT=json.loads(Path(__file__).with_name('flash-text-weights.json').read_text())
+EXPERT_TENSORS=frozenset(name for specification in [BASE,TEXT] for name in specification['tensors'] if '.mlp.experts.' in name)
+SCOPES=('moe','mlp-hyper','mlp-block','linear-attention','full-attention','ple','text')
 
 
 def source_spec(scope):
     if scope not in SCOPES:raise ValueError('Unsupported installed Flash source scope')
+    if scope=='text':return copy.deepcopy(TEXT)
     result=copy.deepcopy(BASE)
     if scope=='moe':return result
     result['schema']='doppler.flash-component-weights/v1'

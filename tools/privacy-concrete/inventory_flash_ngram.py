@@ -5,60 +5,26 @@ reviewable source metadata, not permission to enable a runtime backend.
 """
 import argparse
 import ast
-from concurrent.futures import ThreadPoolExecutor
-import hashlib
 import json
 from pathlib import Path
-import struct
-import urllib.request
 from flash_source_scopes import BASE
-from protocol import parse_unique_json
+from flash_inventory_metadata import public_bytes,model_metadata,shard_headers
 
 PREFIX='model.language_model.layers.1.ple.ple_embedding.ngram_embedding.'
 CONFIG_KEYS=('vocab_size','ngram_size','heads_per_ngram','ngram_vocab_size_base','seed',
              'eos_token_id','make_ngram_vocab_size_divisible_by','ple_embed_dim','split_ngram_parts')
 
 
-def public_bytes(url,limit,expected=None):
-    with urllib.request.urlopen(url,timeout=60) as response:
-        if response.status!=200:raise ValueError('Complete bounded public metadata required')
-        raw=response.read(limit+1)
-    if len(raw)>limit or (expected is not None and hashlib.sha256(raw).hexdigest()!=expected):
-        raise ValueError('Pinned bounded public metadata required')
-    return raw
-
-
 def build():
-    origin='https://huggingface.co/'+BASE['repository']+'/resolve/'+BASE['revision']+'/'
-    metadata={}
-    for name,record in BASE['files'].items():
-        raw=public_bytes(origin+name,4*1024*1024,record['sha256'])
-        if len(raw)!=record['bytes']:raise ValueError('Pinned metadata length required')
-        metadata[name]=parse_unique_json(raw)
+    metadata=model_metadata(BASE)
     config=metadata['config.json']['text_config'];index=metadata['model.safetensors.index.json']
     names={key:value for key,value in index['weight_map'].items() if key.startswith(PREFIX)}
     count=config['split_ngram_parts']
     if type(count) is not int or count!=128 or set(names)!={PREFIX+f'shard_{i}.weight' for i in range(count)}:
         raise ValueError('Complete installed Flash table partition set required')
     files=sorted(set(names.values()))
-    tree=parse_unique_json(public_bytes('https://huggingface.co/api/models/'+BASE['repository']+'/tree/'+BASE['revision']+'?recursive=false&expand=false',4*1024*1024))
-    records={v['path']:dict(bytes=v['size'],sha256=v['lfs']['oid']) for v in tree if v.get('path') in files}
-    if set(records)!=set(files):raise ValueError('Complete pinned-revision object inventory required')
-    def header(name):
-        record=records[name]
-        def part(begin,end):
-            request=urllib.request.Request(origin+name,headers={'Range':f'bytes={begin}-{end}','Accept-Encoding':'identity'})
-            with urllib.request.urlopen(request,timeout=60) as response:
-                if response.status!=206 or response.headers.get('Content-Range')!=f'bytes {begin}-{end}/{record["bytes"]}':
-                    raise ValueError('Exact bounded header range required; no full-weight fallback')
-                raw=response.read(end-begin+2)
-            if len(raw)!=end-begin+1:raise ValueError('Complete bounded header range required')
-            return raw
-        length=struct.unpack('<Q',part(0,7))[0]
-        if not 0<length<=1024*1024:raise ValueError('Bounded public tensor header required')
-        raw=part(8,7+length)
-        return name,(dict(record,headerBytes=length,headerSha256=hashlib.sha256(raw).hexdigest()),parse_unique_json(raw))
-    with ThreadPoolExecutor(max_workers=4) as pool:headers=dict(pool.map(header,files))
+    headers=shard_headers(BASE,files)
+    records={name:value[0] for name,value in headers.items()}
     parts=[];row=0
     for i in range(count):
         name=PREFIX+f'shard_{i}.weight';file=names[name];value=headers[file][1][name]

@@ -289,3 +289,30 @@ This change does not restart or alter a running older workflow. An older attempt
 that uploads only its final result may still leave no tile-progress artifact if
 killed before returning. Complete MoE evidence remains one model component and
 cannot establish complete Flash execution, model quality or cryptographic security.
+
+## Complete text-weight source scope
+
+`flash-text-weights.json` now inventories every actual text-generation parameter
+from the pinned checkpoint index: **1,294 tensors across all 48 decoder layers**,
+all 96 packed expert banks, input embeddings, the final hyperconnection mixer,
+vocabulary head and the complete PLE table/hash buffers. Vision and MTP tensors
+are excluded from this text tensor map. Because their objects share the selected
+shards, acquisition still requires **all 131 whole files: 360,000,192,888 bytes**.
+The selected text tensor payloads total 353,887,799,320 bytes. These counts describe
+source storage, not client peak memory or encrypted wire traffic.
+
+The bounded generator `inventory_flash_text.py` verifies the pinned configuration
+and index, obtains complete object hashes/sizes and fetches exact safetensors header
+ranges. It downloaded no weight payloads. The PLE generator shares that acquisition
+owner and reproduces its existing inventory exactly. A range header is discovery
+metadata; it never substitutes for the whole-file SHA-256 required by `FlashSource`.
+
+The explicit `flash_weights.py --scope text --destination /authorized/source`
+provisioning path performs disk admission and complete-object verification before
+materialization. Packed expert banks require an explicit expert slice at every
+layer, including layer 47; their selected BF16 data becomes an owned FP32 tensor.
+Legacy component source scopes retain their original contents. The text scope is
+a source/materialization capability, not an installed encrypted full-Flash backend.
+No complete weight set has been provisioned or executed by this inventory step.
+Actual complete-model streaming/assembly, quantization and autoregressive encrypted
+execution remain unverified; production cryptographic admission stays closed.

@@ -8,6 +8,23 @@ from unittest.mock import patch
 
 @unittest.skipUnless(os.environ.get('DOPPLER_CONCRETE_NATIVE')=='1','opt-in pinned native/Torch implementation')
 class StreamedFlashMoETests(unittest.TestCase):
+    def test_last_layer_expert_materialization_requires_slicing_and_owns_the_public_tensor(self):
+        from pathlib import Path
+        import torch
+        from safetensors.torch import save_file
+        import flash_weights
+        name='model.language_model.layers.47.mlp.experts.gate_up_proj'
+        expected=torch.arange(24,dtype=torch.float32).reshape(2,3,4).to(torch.bfloat16)
+        with tempfile.TemporaryDirectory() as directory:
+            path=Path(directory)/'public.safetensors';save_file({name:expected},str(path))
+            source=flash_weights.FlashSource.__new__(flash_weights.FlashSource);source.directory=Path(directory)
+            source.spec=dict(tensors={name:dict(shard=path.name,shape=[2,3,4],dtype='BF16')})
+            source.signatures={path.name:flash_weights.file_signature(path)}
+            with self.assertRaises(ValueError):source.tensor(name)
+            with self.assertRaises(ValueError):source.tensor(name,expert=2)
+            actual=source.tensor(name,expert=1);path.unlink()
+            self.assertEqual(actual.dtype,torch.float32);torch.testing.assert_close(actual,expected[1].float(),rtol=0,atol=0)
+
     def test_full_linear_uses_wide_cache_and_matches_the_clear_twelve_bit_reference(self):
         import numpy as np
         import torch
