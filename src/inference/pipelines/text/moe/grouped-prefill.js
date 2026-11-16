@@ -4,7 +4,7 @@ import { acquireBuffer } from '../../../../memory/buffer-pool.js';
 import { groupedPrefillGeometry, executeGroupedSort, executeGroupedProjection } from '../../../../gpu/kernels/moe-grouped.js';
 import { runSiLURowSplit, recordSiLURowSplit } from '../../../../gpu/kernels/silu.js';
 import { runRouteScatter, recordRouteScatter } from '../../../../gpu/kernels/moe-route.js';
-import { releaseOrTrack } from '../ops.js';
+import { releaseOrTrack } from "../execution/ops.js";
 
 /** @type {typeof import('./grouped-prefill.js').resolveGroupedPrefill} */
 export function resolveGroupedPrefill(options) {
@@ -33,6 +33,10 @@ export function resolveGroupedPrefill(options) {
 /** @type {typeof import('./grouped-prefill.js').executeGroupedPrefill} */
 export async function executeGroupedPrefill(recorder, options) {
   const { weights, inputTensor, numTokens, topK, hiddenSize, intermediateSize, swigluLimit } = options;
+  const activation = options.hiddenActivation;
+  if (activation !== 'silu') {
+    throw new Error(`[MoE grouped prefill] Grouped expert kernels implement SiLU only; got ${String(activation)}.`);
+  }
   if (weights.gateUp || !weights.gate || !weights.up) {
     throw new Error('[MoE grouped prefill] Separate native packed gate/up banks required; no implicit repacking.');
   }
@@ -55,7 +59,7 @@ export async function executeGroupedPrefill(recorder, options) {
       weights.gate, weights.up, groups, indirect, geometry);
     keep(gateUp.buffer);
     const activated = await activate(gateUp, { numTokens: sizes.numRoutes, dim: intermediateSize,
-      activation: options.hiddenActivation, swigluLimit });
+      activation, swigluLimit });
     keep(activated.buffer);
     const down = await executeGroupedProjection(recorder, 'moe_grouped_down', activated,
       weights.down, null, groups, indirect, geometry);
