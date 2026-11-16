@@ -8,6 +8,14 @@ from unittest.mock import patch
 
 @unittest.skipUnless(os.environ.get('DOPPLER_CONCRETE_NATIVE')=='1','opt-in pinned native/Torch implementation')
 class StreamedFlashMoETests(unittest.TestCase):
+    def test_unavailable_requested_native_moe_rejects_before_source_or_key_creation(self):
+        import flash_moe
+        import concrete_ml_extensions as ext
+        def unavailable():raise ValueError('native implementation unavailable')
+        with patch.object(flash_moe,'moe_backend',return_value=({},None,unavailable)),              patch.object(flash_moe,'FlashSource') as source,patch.object(ext,'cpu_create_private_key') as keys:
+            with self.assertRaises(ValueError):flash_moe.StreamedMoE('/unused','/unused','flash-dense-moe-ntt')
+            source.assert_not_called();keys.assert_not_called()
+
     def test_last_layer_expert_materialization_requires_slicing_and_owns_the_public_tensor(self):
         from pathlib import Path
         import torch

@@ -17,11 +17,24 @@ class FlashMoEPlanTests(unittest.TestCase):
         count=sum(len(tiles(dict(row,weightId='a'*64),CONFIG['inputTileWidth'],CONFIG['outputTileWidth'])) for row in operations)
         self.assertEqual(count,2058)
 
+    def test_native_backend_is_explicit_and_cannot_replace_or_mutate_the_stock_policy(self):
+        from plan_backends import moe_backend
+        from research_parameters import component_parameters
+        stock,_,_=moe_backend('flash-dense-moe');native,_,_=moe_backend('flash-dense-moe-ntt')
+        self.assertNotEqual(stock['protocol'],native['protocol']);self.assertEqual(stock['profile'],'flash-dense-moe')
+        self.assertEqual(component_parameters(stock)['parameters'],component_parameters(native)['parameters'])
+        self.assertEqual(component_parameters(native)['evaluationBackend'],'cpu-exact-ntt')
+        self.assertFalse(native['productionBackendAvailable']);self.assertEqual(native['maxAbsoluteError'],stock['maxAbsoluteError'])
+        native['steps']=99;self.assertEqual(moe_backend('flash-dense-moe-ntt')[0]['steps'],1)
+        with self.assertRaises(ValueError):moe_backend('advertised-private-moe')
+        with self.assertRaises(ValueError):moe_backend(None)
+
     def test_component_protocols_cannot_substitute_for_each_other_or_full_generation(self):
         encoded=canonical(dict(modelId='a'*64))
-        plans=[FullPlan(encoded),FlashExpertPlan(encoded),FlashMoEPlan(encoded)]
-        self.assertEqual(len({plan.protocol_id for plan in plans}),3)
-        self.assertEqual(len({canonical(plan.frame('session','key',1,'evaluate','tile')) for plan in plans}),3)
+        from flash_moe_ntt_plan import FlashMoENttPlan
+        plans=[FullPlan(encoded),FlashExpertPlan(encoded),FlashMoEPlan(encoded),FlashMoENttPlan(encoded)]
+        self.assertEqual(len({plan.protocol_id for plan in plans}),4)
+        self.assertEqual(len({canonical(plan.frame('session','key',1,'evaluate','tile')) for plan in plans}),4)
 
 
 if __name__=='__main__':unittest.main()

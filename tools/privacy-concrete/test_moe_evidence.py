@@ -27,6 +27,14 @@ class MoEEvidenceTests(unittest.TestCase):
             report=Path(directory)/'report';progress=Path(directory)/'progress'
             progress.write_text(''.join(json.dumps(dict(event='verified-tile',sequence=i+1,projection=name))+'\n' for i,name in enumerate(SCHEDULE)))
             report.write_text(json.dumps(report_value));value=collect(report,progress,'public-revision');self.assertTrue(value['completed']);self.assertNotIn('private-canary',json.dumps(value))
+            from flash_moe_ntt_plan import CONFIG_NTT
+            from native_runtime import ntt_source_id
+            native=dict(report_value,backendProfile=CONFIG_NTT['profile'],protocol=CONFIG_NTT['protocol'],implementationVersions={'native-source-id':ntt_source_id(),'native-binary-sha256':'c'*64,'private':'private-canary'})
+            report.write_text(json.dumps(native));accepted=collect(report,progress,'public-revision',CONFIG_NTT['profile'])
+            self.assertTrue(accepted['completed']);self.assertNotIn('private-canary',json.dumps(accepted))
+            self.assertFalse(collect(report,progress,'public-revision')['completed'])
+            for change in [dict(implementationVersions={}),dict(protocol=CONFIG['protocol']),dict(backendProfile='flash-dense-moe')]:
+                report.write_text(json.dumps(dict(native,**change)));self.assertFalse(collect(report,progress,'public-revision',CONFIG_NTT['profile'])['completed'])
             for change in [dict(securityQualified=True),dict(fullFlashModelExecuted=True),dict(encryptedTiles=2057),dict(expertCount=True),dict(executeMs=float('nan')),dict(fixtureId='private-canary')]:
                 report.write_text(json.dumps(dict(report_value,**change)));self.assertFalse(collect(report,progress,'public-revision')['completed'])
             report.write_text(json.dumps(report_value));progress.write_text(json.dumps(dict(event='verified-tile',sequence=2,projection=SCHEDULE[0])))

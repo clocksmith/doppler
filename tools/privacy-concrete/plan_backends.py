@@ -1,7 +1,8 @@
 """Installed research plan loaders. Advertisements cannot register or replace executable profiles."""
 DEFAULT_PROFILE='qwen-all-linear'
 QWEN_PROFILES=(DEFAULT_PROFILE,'qwen-all-linear-ntt','qwen-all-linear-ntt-48','qwen-all-linear-ntt12')
-PROFILES=(*QWEN_PROFILES,'flash-expert0','flash-dense-moe','flash-mlp-hyper','flash-mlp-block','flash-first-delta','flash-first-qsa-ntt','flash-first-ple-ntt')
+MOE_PROFILES=('flash-dense-moe','flash-dense-moe-ntt')
+PROFILES=(*QWEN_PROFILES,'flash-expert0',*MOE_PROFILES,'flash-mlp-hyper','flash-mlp-block','flash-first-delta','flash-first-qsa-ntt','flash-first-ple-ntt')
 
 
 def load_backend_plan(directory,profile):
@@ -17,6 +18,8 @@ def load_backend_plan(directory,profile):
         from flash_expert_plan import load_plan
     elif profile=='flash-dense-moe':
         from flash_moe_plan import load_plan
+    elif profile=='flash-dense-moe-ntt':
+        from flash_moe_ntt_plan import load_plan
     elif profile=='flash-mlp-hyper':
         from flash_hyper_plan import load_plan
     elif profile=='flash-mlp-block':
@@ -62,3 +65,13 @@ def qwen_backend(profile):
         import copy
         return copy.deepcopy(POLICY_NTT12),load_plan,ntt_versions,parameters()
     raise ValueError('Unsupported installed full-Qwen research backend')
+
+
+def moe_backend(profile):
+    if profile=='flash-dense-moe':
+        from flash_moe_plan import CONFIG,load_plan,versions
+    elif profile=='flash-dense-moe-ntt':
+        from flash_moe_ntt_plan import CONFIG_NTT as CONFIG,load_plan,versions
+    else:raise ValueError('Unsupported installed all-expert MoE backend')
+    import copy
+    return copy.deepcopy(CONFIG),load_plan,versions

@@ -1,0 +1,21 @@
+{
+  "schema": "doppler.flash-moe-stock-budget-outcome/v1",
+  "revision": "c184196487c3595e1fc7386ff75891738ccca8b0",
+  "workflowRun": 43808325818,
+  "artifactId": 14221171762,
+  "artifactZipSha256": "c4d4613378970ddb2a741022a5d07793389b11bf14fe86a43b7aa5c77c195921",
+  "conclusion": "cancelled",
+  "annotation": "The job has exceeded the maximum execution time of 6h0m0s",
+  "archiveEntries": [
+    {
+      "name": "flash-moe-public-result.json",
+      "bytes": 0
+    }
+  ],
+  "completed": false,
+  "encryptedTilesObserved": null,
+  "fullModelExecuted": false,
+  "productionBackendAvailable": false,
+  "securityQualified": false,
+  "interpretation": "Whole sources and public lowering passed; encrypted route exhausted job budget. Older workflow retained an empty final-report file and no per-tile progress artifact; completed tile count is unavailable, not zero."
+}

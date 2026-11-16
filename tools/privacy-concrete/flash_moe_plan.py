@@ -28,7 +28,10 @@ class FlashMoEPlan(FullPlan):
     def protocol_id(self):return CONFIG['protocol']
 
 
-def load_plan(directory):
+def load_moe_plan(directory,policy,installed,plan_type):
     geometry={row['name']:(row['inputWidth'],row['outputWidth']) for row in lowered_operations()}
-    raw=validate_component(directory,CONFIG,geometry,dict(programId=PROGRAM.identity),versions())
-    return FlashMoEPlan(raw)
+    raw=validate_component(directory,policy,geometry,dict(programId=PROGRAM.identity),installed())
+    return plan_type(raw)
+
+
+def load_plan(directory):return load_moe_plan(directory,CONFIG,versions,FlashMoEPlan)

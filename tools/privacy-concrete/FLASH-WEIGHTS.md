@@ -393,3 +393,28 @@ lease cleanup across requests. The [context](evidence/flash/input-embedding-cont
 separates actual checkpoint rows from small-graph reference evidence and records
 the exact run/artifact identities. Neither result is an encrypted Flash forward
 pass or generated model token.
+
+## Completed stock MoE budget and explicit native candidate
+
+The [original stock all-expert attempt](evidence/flash/dense-moe-stock-six-hour-budget.json)
+reached GitHub's six-hour limit and was cancelled. Its whole-object provisioning
+and lowering tests passed, but its older workflow uploaded an empty final-report
+file without progress. Verified tile count is unavailable, not zero; there is no
+completed encrypted MoE result from that attempt. The exact artifact was inspected
+and retained before scheduling a changed implementation.
+
+`flash-dense-moe-ntt` is a distinct installed research protocol for the same complete
+1,029-linear/2,058-tile, 512-expert route. It changes the actual arithmetic
+implementation to the already measured exact-NTT variant, retaining stock crypto
+parameters, int8 quantization, complete all-expert access, client-local selection,
+full deterministic replay and the original numerical acceptance limits. It cannot
+silently replace the stock profile. Missing native identity rejects before source
+preparation or key creation; safe evidence requires its actual native source and
+binary identities and cannot be relabeled as a stock run.
+
+The new isolated workflow repeats native ciphertext equivalence before the real
+all-expert attempt and retains bounded progress on failure. It has a separate
+non-cancelling group and a two-hour budget; unmodified stock work is not retried.
+Native-kernel fixture speedups do not establish complete MoE latency or correctness.
+This remains one actual model component, not full Flash generation, authenticated
+separate-machine deployment or independently qualified cryptographic privacy.

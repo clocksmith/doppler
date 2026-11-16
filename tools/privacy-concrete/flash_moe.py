@@ -12,17 +12,20 @@ from concrete.ml.quantization.linear_op_glwe_backend import GLWELinearLayerExecu
 from full_model import FullLinear
 from full_bridge import FullBridge
 from flash_component_plan import write_component
-from flash_moe_plan import CONFIG,PROGRAM,SOURCE_ID,WEIGHTS,lowered_operations,load_plan,versions
+from flash_moe_plan import CONFIG,PROGRAM,SOURCE_ID,WEIGHTS,lowered_operations
 from flash_weights import FlashSource
 from full_status import ExecutionRejected,failure_event
 from protocol import POLICY
+from plan_backends import moe_backend,MOE_PROFILES
 
 PREFIX='model.language_model.layers.0.mlp.'
 
 
 class StreamedMoE:
     """Only one public expert's FP32 material is resident at once; private state is attempt-local."""
-    def __init__(self,source_dir,cache_dir):
+    def __init__(self,source_dir,cache_dir,backend_profile=CONFIG['profile']):
+        self.config,self.plan_loader,self.version_check=moe_backend(backend_profile)
+        self.implementation=self.version_check()
         self.source=FlashSource(source_dir)
         self.directory=Path(cache_dir);self.directory.mkdir(parents=True,exist_ok=True)
         self.executor=GLWELinearLayerExecutor(use_dynamic_quantization=True)
@@ -40,7 +43,7 @@ class StreamedMoE:
         return FullLinear(name,source,self.executor,self.directory)
 
     def prepare(self):
-        installed=versions()
+        installed=self.implementation
         if json.loads(ext.default_params())!=POLICY['parameters']:raise ValueError('Pinned native parameters required')
         definitions=[]
         for row in lowered_operations():
@@ -48,8 +51,8 @@ class StreamedMoE:
             if any(projection.definition[key]!=value for key,value in row.items()):raise ValueError('Flash projection lowering changed')
             definitions.append(projection.definition)
             del projection
-        write_component(self.directory,CONFIG,definitions,dict(programId=PROGRAM.identity),installed)
-        return load_plan(self.directory)
+        write_component(self.directory,self.config,definitions,dict(programId=PROGRAM.identity),installed)
+        return self.plan_loader(self.directory)
 
     def evaluate(self,hidden,mode,plan,bridge=None,secret=None,projection_definitions=None):
         definitions=plan.definition()['projections'] if projection_definitions is None else projection_definitions
@@ -81,11 +84,12 @@ class StreamedMoE:
         return torch.tensor(result,dtype=torch.float32)
 
 
-def run(source_dir,cache_dir,execution):
+def run(source_dir,cache_dir,execution,backend_profile=CONFIG['profile']):
     if execution not in ['public-reference','encrypted']:raise ValueError('Explicit Flash execution mode required')
-    if os.environ.get('RAYON_NUM_THREADS')!=str(CONFIG['cpuThreads']):raise ValueError('Explicit component CPU budget required')
-    torch.set_num_threads(CONFIG['cpuThreads']);began=time.perf_counter()
-    model=StreamedMoE(source_dir,cache_dir);plan=model.prepare()
+    config,_,_=moe_backend(backend_profile)
+    if os.environ.get('RAYON_NUM_THREADS')!=str(config['cpuThreads']):raise ValueError('Explicit component CPU budget required')
+    torch.set_num_threads(config['cpuThreads']);began=time.perf_counter()
+    model=StreamedMoE(source_dir,cache_dir,backend_profile);plan=model.prepare()
     # An explicitly public fixture; no private input channel is supported by this experiment.
     hidden=torch.sin(torch.arange(PROGRAM.experts.hidden_width,dtype=torch.float32)*.013).tolist()
     floating=model.evaluate(hidden,'float-reference',plan)
@@ -93,7 +97,7 @@ def run(source_dir,cache_dir,execution):
     report=dict(schema='doppler.actual-flash-dense-moe-execution/v1',fixtureId='flash-dense-moe-sine-2560',
                 productionBackendAvailable=False,securityQualified=False,fullFlashModelExecuted=False,
                 sourceId=SOURCE_ID,sourceRevision=WEIGHTS['revision'],programId=PROGRAM.identity,planId=plan.identity,
-                modelId=plan.definition()['modelId'],protocol=plan.protocol_id,expertCount=PROGRAM.experts.expert_count,
+                modelId=plan.definition()['modelId'],protocol=plan.protocol_id,backendProfile=backend_profile,implementationVersions=model.implementation,expertCount=PROGRAM.experts.expert_count,
                 topK=PROGRAM.experts.top_k,logicalProjections=len(PROGRAM.contract()['operations']),
                 linearModules=len(plan.definition()['projections']),plannedEncryptedTiles=len(plan.schedule()),
                 allExpertsVisited=True,encryptedExecutionCompleted=False,encryptedTiles=0,
@@ -101,10 +105,10 @@ def run(source_dir,cache_dir,execution):
     if execution=='public-reference':return dict(report,elapsedMs=(time.perf_counter()-began)*1000)
     secret,key=ext.cpu_create_private_key(model.executor.glwe_crypto_params);bridge=None
     try:
-        bridge=FullBridge(cache_dir,plan,key,backend_profile=CONFIG['profile'],
+        bridge=FullBridge(cache_dir,plan,key,backend_profile=backend_profile,
                           observe=lambda event,value:print(json.dumps(dict(event=event,**value)),file=sys.stderr,flush=True))
         started=time.perf_counter();actual=model.evaluate(hidden,'execute',plan,bridge,secret)
-        if not torch.allclose(actual,quantized,rtol=CONFIG['maxRelativeError'],atol=CONFIG['maxAbsoluteError']):
+        if not torch.allclose(actual,quantized,rtol=config['maxRelativeError'],atol=config['maxAbsoluteError']):
             raise ExecutionRejected('component-reference-mismatch')
         bridge.finish()
         return dict(report,encryptedExecutionCompleted=True,encryptedTiles=bridge.sequence-1,
@@ -121,8 +125,9 @@ def run(source_dir,cache_dir,execution):
 
 if __name__=='__main__':
     parser=argparse.ArgumentParser();parser.add_argument('--source-dir',required=True);parser.add_argument('--cache-dir',required=True)
-    parser.add_argument('--execution',required=True,choices=['public-reference','encrypted']);args=parser.parse_args();began=time.perf_counter()
-    try:report=run(args.source_dir,args.cache_dir,args.execution)
+    parser.add_argument('--execution',required=True,choices=['public-reference','encrypted'])
+    parser.add_argument('--backend-profile',choices=MOE_PROFILES,default=CONFIG['profile']);args=parser.parse_args();began=time.perf_counter()
+    try:report=run(args.source_dir,args.cache_dir,args.execution,args.backend_profile)
     except BaseException as error:
         print(json.dumps(dict(schema='doppler.actual-flash-dense-moe-execution/v1',productionBackendAvailable=False,
                               securityQualified=False,fullFlashModelExecuted=False,
