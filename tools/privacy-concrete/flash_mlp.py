@@ -10,6 +10,7 @@ import concrete_ml_extensions as ext
 from flash_component_plan import write_component,component_parameters
 from flash_hyper import FlashHyperModel
 from flash_moe import StreamedMoE
+from flash_sparse_reference import source_mlp_reference
 from flash_mlp_plan import CONFIG,WEIGHTS,SOURCE_ID,SEMANTICS,OPERATIONS,load_plan,versions
 from full_bridge import FullBridge
 from full_status import ExecutionRejected,failure_event
@@ -41,20 +42,23 @@ class StreamedFlashMLP:
         return self.hyper.evaluate(value,mode,bridge,secret,block=block)[0]
 
 
-def run(source_dir,cache_dir,execution):
+def run(source_dir,cache_dir,execution,reference_path):
     if execution not in ['public-reference','encrypted']:raise ValueError('Explicit Flash MLP execution mode required')
     if os.environ.get('RAYON_NUM_THREADS')!=str(CONFIG['cpuThreads']):raise ValueError('Explicit MLP CPU budget required')
     torch.set_num_threads(CONFIG['cpuThreads']);began=time.perf_counter()
     model=StreamedFlashMLP(source_dir,cache_dir);plan=model.prepare()
     width=model.hyper.graph.program.streams*model.hyper.graph.program.hidden_width
     value=torch.sin(torch.arange(width,dtype=torch.float32)*.013).reshape(1,-1)*.1
+    official=source_mlp_reference(model.moe.source,model.hyper.source,reference_path)(value)
     floating=model.evaluate(value,'float-reference',plan);quantized=model.evaluate(value,'clear-reference',plan)
+    if not torch.allclose(floating,official,rtol=1e-5,atol=1e-5):raise ExecutionRejected('component-reference-mismatch')
     report=dict(schema='doppler.actual-flash-mlp-block-execution/v1',fixtureId='flash-first-mlp-block-sine',
                 scope='First-layer MLP hyperconnection, shared/router/all-512-expert MoE and residual; excludes attention and Flash generation',
                 productionBackendAvailable=False,securityQualified=False,fullFlashModelExecuted=False,
                 sourceId=SOURCE_ID,sourceRevision=WEIGHTS['revision'],planId=plan.identity,modelId=plan.definition()['modelId'],
                 protocol=plan.protocol_id,linearModules=len(OPERATIONS),plannedEncryptedTiles=len(plan.schedule()),
-                allExpertsVisited=True,encryptedExecutionCompleted=False,encryptedTiles=0,execution=execution,
+                allExpertsVisited=True,officialSparseReferenceCheckPassed=True,maxFloatingVsOfficialSparseReferenceError=float((floating-official).abs().max()),
+                encryptedExecutionCompleted=False,encryptedTiles=0,execution=execution,
                 maxQuantizedVsFloatingError=float((quantized-floating).abs().max()))
     if execution=='public-reference':return dict(report,elapsedMs=(time.perf_counter()-began)*1000)
     secret,key=ext.cpu_create_private_key(model.hyper.executor.glwe_crypto_params);bridge=None
@@ -77,8 +81,9 @@ def run(source_dir,cache_dir,execution):
 
 if __name__=='__main__':
     parser=argparse.ArgumentParser();parser.add_argument('--source-dir',required=True);parser.add_argument('--cache-dir',required=True)
-    parser.add_argument('--execution',required=True,choices=['public-reference','encrypted']);args=parser.parse_args();began=time.perf_counter()
-    try:report=run(args.source_dir,args.cache_dir,args.execution)
+    parser.add_argument('--execution',required=True,choices=['public-reference','encrypted']);parser.add_argument('--reference-source',required=True)
+    args=parser.parse_args();began=time.perf_counter()
+    try:report=run(args.source_dir,args.cache_dir,args.execution,args.reference_source)
     except BaseException as error:
         print(json.dumps(dict(schema='doppler.actual-flash-mlp-block-execution/v1',productionBackendAvailable=False,
                               securityQualified=False,fullFlashModelExecuted=False,
