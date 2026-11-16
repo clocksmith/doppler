@@ -205,6 +205,15 @@ export async function executePartitionLayers(state, input, signal) {
   }
 }
 
+/** @type {import('./partition-execution.js').shouldRecordPartitionLayers} */
+export function shouldRecordPartitionLayers(state, disableCommandBatching, prefill, finalChunk) {
+  if ([disableCommandBatching, prefill, finalChunk].some(value => typeof value !== 'boolean')) {
+    throw new Error('Partition recorder selection requires resolved boolean execution and call policy.');
+  }
+  return !disableCommandBatching && (!prefill || !shouldDisablePrefillCommandBatching(state, {}, null,
+    { startPos: state.currentSeqLen, returnHidden: !finalChunk }));
+}
+
 /** @type {import('./partition-execution.js').ExecutePartitionChunk} */
 async function executePartitionChunk(state, input, signal, prefill, finalChunk) {
   const { config, partition, executionPlan, dtype, numTokens, byteLength, wireByteLength, wireCast, shape } = resolvePartitionInput(state, input, prefill, true);
@@ -213,9 +222,8 @@ async function executePartitionChunk(state, input, signal, prefill, finalChunk) 
     hasGpuSplitPerLayerInputs: false,
     numTokens,
   });
-  const recordLayers = !executionPlan.defaultDisableCommandBatching && (!prefill || !shouldDisablePrefillCommandBatching({ runtimeConfig: state.runtimeConfig,
-    modelConfig: state.modelConfig, kvCache: state.kvCache }, {}, null,
-  { startPos: state.currentSeqLen, returnHidden: !finalChunk }));
+  const recordLayers = shouldRecordPartitionLayers(state,
+    executionPlan.defaultDisableCommandBatching, prefill, finalChunk);
   const createRecorder = () => createCommandRecorder('resident_partition_layers', {
     profile: state.runtimeConfig.shared.debug.profiler.enabled,
   });
