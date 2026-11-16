@@ -8,6 +8,16 @@ import struct
 import time
 
 POLICY = json.loads(Path(__file__).with_name('policy.json').read_text())
+TRANSPORT_POLICY=json.loads(Path(__file__).with_name('transport-policy.json').read_text())
+
+
+def payload_limit(value):
+    if value is None:return POLICY['maxPayloadBytes']
+    if type(value) is not int or not 0<value<=TRANSPORT_POLICY['maximumPayloadBytes']:
+        raise ValueError('Unsupported explicit encrypted frame payload limit')
+    return value
+
+
 POLICY_ID = hashlib.sha256(json.dumps(POLICY, sort_keys=True, separators=(',', ':')).encode()).hexdigest()
 FIELDS = {'schema', 'policyId', 'modelId', 'session', 'keyId', 'sequence', 'kind', 'weightId'}
 
@@ -26,9 +36,10 @@ def require_active(cancelled):
         raise InterruptedError('Encrypted experiment cancelled')
 
 
-def send(stream, header, payload=b'', timeout=None, cancelled=None):
+def send(stream, header, payload=b'', timeout=None, cancelled=None, max_payload_bytes=None):
+    limit=payload_limit(max_payload_bytes)
     encoded = json.dumps(header, separators=(',', ':'), allow_nan=False).encode()
-    if set(header) != FIELDS or len(encoded) > POLICY['maxHeaderBytes'] or len(payload) > POLICY['maxPayloadBytes']:
+    if set(header) != FIELDS or len(encoded) > POLICY['maxHeaderBytes'] or len(payload) > limit:
         raise ValueError('Encrypted protocol frame rejected')
     data = struct.pack('!IQ', len(encoded), len(payload)) + encoded
     deadline = time.monotonic() + (POLICY['timeoutSeconds'] if timeout is None else timeout)
@@ -67,7 +78,8 @@ def send(stream, header, payload=b'', timeout=None, cancelled=None):
             os.set_blocking(descriptor, was_blocking)
 
 
-def receive(stream, timeout=None, cancelled=None):
+def receive(stream, timeout=None, cancelled=None, max_payload_bytes=None):
+    limit=payload_limit(max_payload_bytes)
     deadline = time.monotonic() + (POLICY['timeoutSeconds'] if timeout is None else timeout)
 
     def exact(size):
@@ -87,7 +99,7 @@ def receive(stream, timeout=None, cancelled=None):
         return bytes(data)
 
     header_size, payload_size = struct.unpack('!IQ', exact(12))
-    if header_size > POLICY['maxHeaderBytes'] or payload_size > POLICY['maxPayloadBytes']:
+    if header_size > POLICY['maxHeaderBytes'] or payload_size > limit:
         raise ValueError('Encrypted protocol frame rejected')
 
     header = parse_unique_json(exact(header_size))

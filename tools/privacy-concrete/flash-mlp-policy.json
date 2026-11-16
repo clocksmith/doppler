@@ -1,8 +1,8 @@
 {
-  "schema": "doppler.flash-mlp-block-policy/v1",
+  "schema": "doppler.flash-mlp-block-policy/v2",
   "profile": "flash-mlp-block",
-  "planSchema": "doppler.flash-mlp-block-plan/v1",
-  "protocol": "concrete-glwe-flash-mlp-block-replay/v1",
+  "planSchema": "doppler.flash-mlp-block-plan/v2",
+  "protocol": "concrete-glwe-flash-mlp-block-replay/v2",
   "productionBackendAvailable": false,
   "steps": 1,
   "contextBucket": 1,
@@ -14,5 +14,6 @@
     "safetensors": "0.8.0"
   },
   "maxAbsoluteError": 0.01,
-  "maxRelativeError": 0.01
+  "maxRelativeError": 0.01,
+  "parameterProfile": "glwe-precision-48-level4/v1"
 }

@@ -27,6 +27,7 @@ class FullBridge:
         self.admission=FullRouteAdmission(bound)
         self.public_tile_digests=bind_public_tiles(directory,validated)
         self.plan, self.key, self.cancelled, self.observe = bound, key, cancelled, observe
+        self.payload_limit=self.plan.definition()['parameters'].get('maxPayloadBytes')
         self.check_active()
         self.session, data = uuid.uuid4().hex, key.serialize()
         self.check_active()
@@ -51,8 +52,8 @@ class FullBridge:
 
     def exchange(self, kind, payload, response_kind, tile_id=''):
         header = self.plan.frame(self.session,self.key_id,self.sequence,kind,tile_id)
-        self.sent += send(self.child.stdin,header,payload,timeout=self.plan.definition()['operationTimeoutSeconds'],cancelled=self.cancelled)
-        reply, result, size = receive(self.child.stdout,timeout=self.plan.definition()['operationTimeoutSeconds'],cancelled=self.cancelled)
+        self.sent += send(self.child.stdin,header,payload,timeout=self.plan.definition()['operationTimeoutSeconds'],cancelled=self.cancelled,max_payload_bytes=self.payload_limit)
+        reply, result, size = receive(self.child.stdout,timeout=self.plan.definition()['operationTimeoutSeconds'],cancelled=self.cancelled,max_payload_bytes=self.payload_limit)
         self.received += size
         check(reply,self.plan.frame(self.session,self.key_id,self.sequence,response_kind,tile_id))
         self.sequence += 1
@@ -92,7 +93,7 @@ class FullBridge:
         count = len(self.plan.schedule())*self.plan.definition()['steps']
         if self.sequence != count+1:
             raise ValueError('Incomplete full encrypted route')
-        self.sent += send(self.child.stdin,self.plan.frame(self.session,self.key_id,self.sequence,'finish'),timeout=self.plan.definition()['operationTimeoutSeconds'],cancelled=self.cancelled)
+        self.sent += send(self.child.stdin,self.plan.frame(self.session,self.key_id,self.sequence,'finish'),timeout=self.plan.definition()['operationTimeoutSeconds'],cancelled=self.cancelled,max_payload_bytes=self.payload_limit)
         self.child.stdin.close()
         status=self.child.wait(timeout=180)
         self.check_active()

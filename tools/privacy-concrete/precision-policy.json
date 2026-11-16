@@ -1,0 +1,20 @@
+{
+  "schema": "doppler.glwe-research-precision-profile/v1",
+  "id": "glwe-precision-48-level4/v1",
+  "securityQualified": false,
+  "parameters": {
+    "bits_reserved_for_computation": 27,
+    "glwe_encryption_noise_distribution_stdev": 2.84526747960191e-15,
+    "encryption_glwe_dimension": 1,
+    "polynomial_size": 2048,
+    "ciphertext_modulus_bit_count": 64,
+    "input_storage_ciphertext_modulus": 48,
+    "packing_ks_level": 4,
+    "packing_ks_base_log": 10,
+    "packing_ks_polynomial_size": 2048,
+    "packing_ks_glwe_dimension": 1,
+    "output_storage_ciphertext_modulus": 48,
+    "pks_noise_distrubution_stdev": 2.84526747960191e-15
+  },
+  "maxPayloadBytes": 300000000
+}

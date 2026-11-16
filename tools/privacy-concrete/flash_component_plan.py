@@ -19,12 +19,22 @@ def component_versions(policy):
     return found
 
 
+def component_parameters(policy):
+    result=json.loads(canonical({key:POLICY[key] for key in ['dependencies','parameters','evaluationBackend']}))
+    if 'parameterProfile' in policy:
+        profile_id=policy['parameterProfile']
+        profile=json.loads(Path(__file__).with_name('precision-policy.json').read_text())
+        if profile_id!=profile['id'] or profile['securityQualified'] is not False:raise ValueError('Unsupported research precision profile')
+        result=dict(result,parameters=profile['parameters'],maxPayloadBytes=profile['maxPayloadBytes'])
+    return result
+
+
 def validate_component(directory,policy,geometry,semantics,installed,source=WEIGHTS):
     source_id=digest(canonical(source))
     directory=Path(directory);raw=(directory/'plan.json').read_bytes();value=json.loads(raw)
     required=dict(schema=policy['planSchema'],protocol=policy['protocol'],sourceId=source_id,source=source,
                   productionBackendAvailable=False,implementationVersions=installed,
-                  parameters={key:POLICY[key] for key in ['dependencies','parameters','evaluationBackend']},
+                  parameters=component_parameters(policy),
                   **{key:policy[key] for key in LIMITS},**semantics)
     if (raw!=canonical(value) or set(value)!=set(required)|{'projections','modelId'}
             or any(canonical(value[key])!=canonical(expected) for key,expected in required.items())
@@ -50,7 +60,7 @@ def write_component(directory,policy,definitions,semantics,installed,source=WEIG
     source_id=digest(canonical(source))
     value=dict(schema=policy['planSchema'],protocol=policy['protocol'],sourceId=source_id,source=source,
                productionBackendAvailable=False,implementationVersions=installed,
-               parameters={key:POLICY[key] for key in ['dependencies','parameters','evaluationBackend']},
+               parameters=component_parameters(policy),
                **{key:policy[key] for key in LIMITS},**semantics,projections=definitions,
                modelId=digest(canonical(dict(sourceId=source_id,**semantics,projections=definitions))))
     (Path(directory)/'plan.json').write_bytes(canonical(value))

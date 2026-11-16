@@ -7,7 +7,7 @@ import sys
 import time
 import torch
 import concrete_ml_extensions as ext
-from flash_component_plan import write_component
+from flash_component_plan import write_component,component_parameters
 from flash_hyper import FlashHyperModel
 from flash_moe import StreamedMoE
 from flash_mlp_plan import CONFIG,WEIGHTS,SOURCE_ID,SEMANTICS,OPERATIONS,load_plan,versions
@@ -23,6 +23,8 @@ class StreamedFlashMLP:
 
     def prepare(self):
         moe=self.moe.prepare();hyper=self.hyper.prepare()
+        if component_parameters(CONFIG)!=hyper.definition()['parameters']:raise ValueError('MLP precision profile changed')
+        self.moe.executor.glwe_crypto_params=self.hyper.executor.glwe_crypto_params
         definitions=hyper.definition()['projections']+moe.definition()['projections']
         if [row['name'] for row in definitions]!=[row['name'] for row in OPERATIONS]:raise ValueError('Complete MLP route order changed')
         write_component(self.directory,CONFIG,definitions,SEMANTICS,versions(),source=WEIGHTS)

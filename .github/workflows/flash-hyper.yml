@@ -34,7 +34,9 @@ jobs:
       - name: Check source materialization and streaming compatibility
         env:
           DOPPLER_CONCRETE_NATIVE: '1'
-        run: python -m unittest discover -s tools/privacy-concrete -p test_flash_moe_native.py -v
+        run: |
+          python -m unittest discover -s tools/privacy-concrete -p test_high_precision.py -v
+          python -m unittest discover -s tools/privacy-concrete -p test_flash_moe_native.py -v
       - name: Provision complete immutable public Flash shards
         run: python tools/privacy-concrete/flash_weights.py --scope mlp-hyper --destination "$RUNNER_TEMP/flash-source"
       - name: Execute four gated-residual feedback steps with ciphertext-only provider inputs

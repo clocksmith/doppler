@@ -25,3 +25,21 @@ Production admission must remain closed until the actual deployment establishes:
 The pinned [native CPU implementation](https://github.com/zama-ai/concrete-ml-extensions/blob/6d3fdd1fab324874e3a2fc4a42cb3a708d5a80b4/rust/src/lib_python.rs) computes per-column encrypted dot products and compresses their outputs. Its [correctness tests](https://github.com/zama-ai/concrete-ml-extensions/blob/6d3fdd1fab324874e3a2fc4a42cb3a708d5a80b4/tests/test_matmul.py) compare approximate high-order result bits. Tiling addresses the tested arithmetic-width limit; it does not establish exact full-model arithmetic, useful throughput or a new security level. Flash's unimplemented operators and private sparse/expert access remain separate blockers.
 
 An investigated CPU alternative, TenSEAL 0.3.16, uses fresh encryptions of zero for both its [diagonal evaluator accumulator and worker accumulators](https://github.com/OpenMined/TenSEAL/blob/v0.3.16/tenseal/cpp/tensors/encrypted_vector.h). Its stock matrix multiplication therefore cannot be substituted into this byte-exact replay protocol. Decrypting an unverified response and comparing plaintext would change the active-attack boundary. No TenSEAL backend has been installed, executed or admitted here; a different reviewed verification protocol or a separately validated deterministic adapter would be required.
+
+
+## Separate research precision profile
+
+`glwe-precision-48-level4/v1` raises input/output storage precision to 48 bits
+and uses four packing-key-switch levels with base log 10. The observed default
+hyperconnection run had a same-input projection error of 0.599; it did not pass
+qualification. The new profile targets compression/decomposition rounding while
+retaining the original encryption noise, polynomial size and 27 computation bits.
+It has a larger evaluation key and explicitly bound 300 MB frame limit. Existing
+profiles retain their 150 MB default and original parameters. Hyperconnection and
+composed-MLP protocol versions change; old plans cannot be silently reused.
+
+This parameter variant has no independent cryptographic security analysis. More
+evaluation-key samples and different modulus/decomposition choices require review;
+unchanged encryption noise is not proof of an unchanged security level. Production
+admission remains closed. Native exact-product/replay checks and actual-weight
+numerical validation are required before claiming this research path works.

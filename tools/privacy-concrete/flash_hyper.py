@@ -12,7 +12,7 @@ from concrete.ml.quantization.linear_op_glwe_backend import GLWELinearLayerExecu
 from full_model import FullLinear
 from full_bridge import FullBridge
 from full_status import ExecutionRejected,failure_event
-from flash_component_plan import write_component
+from flash_component_plan import write_component,component_parameters
 from flash_hyper_ops import TorchHyperConnection
 from flash_hyper_program import require_source_config
 from flash_hyper_plan import CONFIG,WEIGHTS,SOURCE_ID,PROGRAM,load_plan,versions
@@ -37,6 +37,7 @@ class FlashHyperModel:
         require_source_config(PROGRAM,self.source.config['text_config'])
         self.directory=Path(cache_dir);self.directory.mkdir(parents=True,exist_ok=True)
         self.executor=GLWELinearLayerExecutor(use_dynamic_quantization=True)
+        self.executor.glwe_crypto_params=ext.MatmulCryptoParameters.deserialize(json.dumps(component_parameters(CONFIG)['parameters']))
         self.projections=[]
         for operation in PROGRAM.contract()['operations']:
             weight=self.source.tensor(PREFIX+PROJECTIONS[operation['id']])
@@ -113,7 +114,7 @@ def run(source_dir,cache_dir):
                     productionBackendAvailable=False,securityQualified=False,fullFlashModelExecuted=False,
                     sourceId=SOURCE_ID,sourceRevision=WEIGHTS['revision'],programId=PROGRAM.identity,
                     modelId=plan.definition()['modelId'],planId=plan.identity,protocol=plan.protocol_id,
-                    componentSteps=CONFIG['steps'],linearModules=len(model.projections),encryptedTiles=bridge.sequence-1,
+                    parameterProfile=CONFIG['parameterProfile'],componentSteps=CONFIG['steps'],linearModules=len(model.projections),encryptedTiles=bridge.sequence-1,
                     quantizedReferenceCheckPassed=True,maxEncryptedVsQuantizedErrors=errors,
                     maxQuantizedVsFloatingErrors=quantized_errors,stepMs=step_ms,elapsedMs=(time.perf_counter()-began)*1000,
                     evaluationKeyBytes=bridge.key_bytes,sentBytes=bridge.sent,receivedBytes=bridge.received,

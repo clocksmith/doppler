@@ -1,0 +1,4 @@
+{
+  "schema": "doppler.encrypted-research-transport-limits/v1",
+  "maximumPayloadBytes": 300000000
+}
