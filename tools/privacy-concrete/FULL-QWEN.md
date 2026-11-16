@@ -379,3 +379,16 @@ replies and cancellation reject before decryption; changed coefficient caches an
 closed sources reject before disclosure. Failed graph state cannot be retried.
 The test directly constructs a synthetic plan and bridge; it does not bypass or
 change installed backend admission, execute native encryption, or qualify Flash.
+
+`PreparedFlashGraph` now owns complete ordered coefficient preparation and fresh
+attempt-local projection bindings instead of requiring each runner to assemble
+those dictionaries and attach private keys manually. Encrypted execution requires
+an actual `FullBridge`, an exact `clientGraphId` and ordered coefficient inventory
+in its plan, and request context matching the graph, key and bridge session.
+Bindings are cleared on every return or failure; any failed attempt terminally
+invalidates the graph state and bridge. The complete-graph adapter test now uses
+this helper, including negative graph-plan and request-session binding cases.
+
+No installed loader yet admits this full-Flash plan shape. The existing Qwen
+loader remains fixed to its pinned 169 projections; this helper does not change
+that policy or convert a synthetic test plan into qualified admission.

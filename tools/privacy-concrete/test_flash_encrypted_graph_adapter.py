@@ -13,6 +13,7 @@ class FlashEncryptedGraphAdapterTests(unittest.TestCase):
         import full_model,full_bridge
         from concrete.ml.quantization.linear_op_glwe_backend import GLWELinearLayerExecutor
         from flash_decoder_source import bind_decoder
+        from flash_prepared_graph import PreparedFlashGraph
         from flash_model_graph import ClientFlashGraph
         from flash_request_state import ClientContext
         from test_flash_decoder_source import DecoderSourceTests
@@ -27,12 +28,13 @@ class FlashEncryptedGraphAdapterTests(unittest.TestCase):
             _,_,parts,_=FlashModelReferenceTests().fixture();parts[1][0]=layer
             graph=ClientFlashGraph(original.reference_path,config,*parts,context_limit=12)
             executor=GLWELinearLayerExecutor(use_dynamic_quantization=True)
-            prepared={name:full_model.FullLinear(name,graph.projections[name].source,executor,cache) for name in graph.order}
-            for projection in prepared.values():projection.release_float_reference()
+            prepared_graph=PreparedFlashGraph(graph,executor,cache)
+            prepared=prepared_graph._prepared
             plan=FullPlan(canonical(dict(steps=2,contextBucket=2,inputTileWidth=16,outputTileWidth=16,
-                parameters=dict(parameters=dict(bits_reserved_for_computation=27)),projections=[prepared[name].definition for name in graph.order])))
+                clientGraphId=graph.identity,parameters=dict(parameters=dict(bits_reserved_for_computation=27)),projections=prepared_graph.definitions())))
             bridge=full_bridge.FullBridge.__new__(full_bridge.FullBridge)
             bridge.plan=plan;bridge.admission=FullRouteAdmission(plan);bridge.cancelled=threading.Event();bridge.key=object();bridge.sequence=1
+            bridge.key_id='key';bridge.session='request'
             bridge.weight_dtype=np.int8;bridge.remote_seconds=bridge.replay_seconds=0.;bridge.observe=lambda *args:None
             bridge.public_tile_digests={};weights={}
             for name,projection in prepared.items():
@@ -61,38 +63,40 @@ class FlashEncryptedGraphAdapterTests(unittest.TestCase):
             bridge.matrix_multiplication=replay;bridge.exchange=exchange
             context=ClientContext('tenant','privacy',graph.identity,'key','request')
             clear_state=graph.new_state(context);encrypted_state=graph.new_state(context)
-            projections={name:projection.prepared_copy() for name,projection in prepared.items()}
-            def project(operation,value):return projections[operation['id']](value)
             tokens=[torch.tensor([[1,2]]),torch.tensor([[3]])]
             try:
-                expected=[graph(value,clear_state,context,execution='verified-projections',verified_client_projection=project) for value in tokens]
-                for projection in projections.values():projection.mode='execute';projection.bridge=bridge;projection.secret=object();projection.parameters=object()
+                expected=[prepared_graph.reference(value,clear_state,context) for value in tokens]
+                if failure=='binding':bridge.session='other-request'
+                if failure=='plan':
+                    definition=plan.definition();definition['clientGraphId']='other-graph';bridge.plan=FullPlan(canonical(definition))
                 if failure=='source':source.closed=True
                 if failure=='cache':
-                    path=projections[graph.order[0]].weight_path;raw=path.read_bytes();path.write_bytes(bytes([raw[0]^1])+raw[1:])
+                    path=prepared[graph.order[0]].weight_path;raw=path.read_bytes();path.write_bytes(bytes([raw[0]^1])+raw[1:])
                 with patch.object(full_model,'ext',native),patch.object(full_bridge,'ext',native):
                     if failure:
                         with self.assertRaises((ValueError,InterruptedError,RuntimeError)):
-                            graph(tokens[0],encrypted_state,context,execution='verified-projections',verified_client_projection=project,cancelled=bridge.cancelled)
+                            prepared_graph.execute(tokens[0],encrypted_state,context,bridge,object(),object())
                         self.assertEqual(calls['decrypt'],0)
-                        with self.assertRaises(ValueError):
-                            graph(tokens[0],encrypted_state,context,execution='verified-projections',verified_client_projection=project)
-                        if failure in ['cache','source']:self.assertEqual(calls['exchange'],0)
+                        with self.assertRaises((ValueError,InterruptedError)):
+                            prepared_graph.execute(tokens[0],encrypted_state,context,bridge,object(),object())
+                        if failure in ['cache','source','binding','plan']:self.assertEqual(calls['exchange'],0)
                         else:self.assertTrue(bridge.admission.failed);self.assertIsNone(bridge._projection_inputs)
                     else:
                         for value,reference in zip(tokens,expected):
-                            actual=graph(value,encrypted_state,context,execution='verified-projections',verified_client_projection=project)
+                            actual=prepared_graph.execute(value,encrypted_state,context,bridge,object(),object())
                             torch.testing.assert_close(actual,reference,rtol=0,atol=0)
                         bridge.admission.complete();self.assertEqual(calls['replay'],len(plan.schedule())*2)
                         self.assertEqual(calls['exchange'],calls['replay']);self.assertEqual(calls['decrypt'],calls['replay'])
                         self.assertIsNone(bridge._projection_inputs)
             finally:
                 clear_state.close();encrypted_state.close()
-                for projection in projections.values():projection.secret=projection.bridge=projection.parameters=None
+                self.assertTrue(all(p.secret is None and p.bridge is None and p.parameters is None for p in prepared.values()))
 
     def test_complete_two_steps_and_every_tile_replayed(self):self.run_case()
     def test_modified_reply_rejects_before_decryption(self):self.run_case('tamper')
     def test_cancelled_reply_rejects_before_decryption(self):self.run_case('cancel')
+    def test_wrong_request_binding_rejects_before_disclosure(self):self.run_case('binding')
+    def test_wrong_graph_plan_rejects_before_disclosure(self):self.run_case('plan')
     def test_closed_source_rejects_before_disclosure(self):self.run_case('source')
     def test_modified_cache_rejects_before_disclosure(self):self.run_case('cache')
 
