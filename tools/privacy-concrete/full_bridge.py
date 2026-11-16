@@ -7,6 +7,7 @@ import time
 import uuid
 import concrete_ml_extensions as ext
 from protocol import check, digest, receive, send
+from full_plan import FULL_POLICY
 
 
 class FullBridge:
@@ -18,7 +19,7 @@ class FullBridge:
         self.remote_seconds = self.replay_seconds = 0.0
         self.child = subprocess.Popen([sys.executable,str(Path(__file__).with_name('full_provider.py')),str(Path(directory).resolve()),plan.identity],
                                       stdin=subprocess.PIPE,stdout=subprocess.PIPE,stderr=subprocess.DEVNULL,bufsize=0,
-                                      env={'RAYON_NUM_THREADS':'2','OMP_NUM_THREADS':'2'})
+                                      env={'RAYON_NUM_THREADS':str(FULL_POLICY['cpuThreads']),'OMP_NUM_THREADS':str(FULL_POLICY['cpuThreads'])})
         try:
             self.exchange('evaluation-key', data, 'ready')
         except BaseException:
@@ -27,8 +28,8 @@ class FullBridge:
 
     def exchange(self, kind, payload, response_kind, tile_id=''):
         header = self.plan.frame(self.session,self.key_id,self.sequence,kind,tile_id)
-        self.sent += send(self.child.stdin,header,payload,cancelled=self.cancelled)
-        reply, result, size = receive(self.child.stdout,cancelled=self.cancelled)
+        self.sent += send(self.child.stdin,header,payload,timeout=self.plan.definition()['operationTimeoutSeconds'],cancelled=self.cancelled)
+        reply, result, size = receive(self.child.stdout,timeout=self.plan.definition()['operationTimeoutSeconds'],cancelled=self.cancelled)
         self.received += size
         check(reply,self.plan.frame(self.session,self.key_id,self.sequence,response_kind,tile_id))
         self.sequence += 1
@@ -50,7 +51,7 @@ class FullBridge:
         count = len(self.plan.schedule())*self.plan.definition()['steps']
         if self.sequence != count+1:
             raise ValueError('Incomplete full encrypted route')
-        self.sent += send(self.child.stdin,self.plan.frame(self.session,self.key_id,self.sequence,'finish'),cancelled=self.cancelled)
+        self.sent += send(self.child.stdin,self.plan.frame(self.session,self.key_id,self.sequence,'finish'),timeout=self.plan.definition()['operationTimeoutSeconds'],cancelled=self.cancelled)
         self.child.stdin.close()
         if self.child.wait(timeout=180) != 0 or self.child.stdout.read(1):
             raise ValueError('Full evaluator failed to finish')

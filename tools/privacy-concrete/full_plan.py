@@ -2,12 +2,13 @@
 from dataclasses import dataclass
 import hashlib
 import json
+from importlib.metadata import version
 from pathlib import Path
 from protocol import POLICY, binding, digest
 from profiles import validate_arithmetic_capacity
 
-SCHEMA = 'doppler.qwen-all-linear-plan/v1'
-PROTOCOL = 'concrete-glwe-qwen-all-linear-tiled-replay/v1'
+FULL_POLICY = json.loads(Path(__file__).with_name('full-policy.json').read_text())
+SCHEMA, PROTOCOL = FULL_POLICY['planSchema'], FULL_POLICY['protocol']
 
 
 def canonical(value):
@@ -60,10 +61,11 @@ def load_plan(directory):
     source = json.loads(Path(__file__).with_name('qwen05b.json').read_text())['source']
     if (raw != canonical(value) or value['schema'] != SCHEMA or value['protocol'] != PROTOCOL
             or value['source'] != source or value['productionBackendAvailable'] is not False
-            or value['steps'] != 4 or value['contextBucket'] != 8
-            or value['inputTileWidth'] != 2048 or value['outputTileWidth'] != 2048
+            or any(value[key] != FULL_POLICY[key] for key in ['steps','contextBucket','inputTileWidth','outputTileWidth','operationTimeoutSeconds','cpuThreads'])
             or len(value['projections']) != 169):
         raise ValueError('Unsupported full-model plan')
+    if value['implementationVersions'] != implementation_versions():
+        raise ValueError('Full-model implementation version mismatch')
     common = {key: POLICY[key] for key in ['dependencies', 'parameters', 'evaluationBackend']}
     if value['parameters'] != common:
         raise ValueError('Unqualified full-model parameters')
@@ -93,3 +95,14 @@ def load_plan(directory):
     if value['modelId'] != model_id:
         raise ValueError('Full-model identity mismatch')
     return FullPlan(raw)
+
+
+def implementation_versions():
+    actual = {}
+    for dependency, expected in POLICY['dependencies'].items():
+        found = version(dependency)
+        allowed = FULL_POLICY['dependencyVariants'].get(dependency, [expected])
+        if found not in allowed:
+            raise ValueError('Pinned full-model dependencies required')
+        actual[dependency] = found
+    return actual

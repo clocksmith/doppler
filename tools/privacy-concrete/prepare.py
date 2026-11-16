@@ -8,9 +8,10 @@ from profiles import load_profile
 
 def prepare(destination, profile_name='tiny'):
     profile = load_profile(profile_name)
-    for dependency in ('torch', 'transformers'):
-        if version(dependency) != POLICY['dependencies'][dependency]:
-            raise ValueError('Pinned preparation dependencies required')
+    if profile_name == 'tiny':
+        for dependency in ('torch', 'transformers'):
+            if version(dependency) != POLICY['dependencies'][dependency]:
+                raise ValueError('Pinned preparation dependencies required')
     destination = Path(destination)
     if destination.exists():
         raise ValueError('Use a new fixture directory')

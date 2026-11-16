@@ -1,5 +1,6 @@
 import json
 import unittest
+from unittest.mock import patch
 from full_plan import FullPlan, canonical, ranges, tiles
 from protocol import check
 
@@ -26,6 +27,16 @@ class FullPlanTests(unittest.TestCase):
         expected=plan.frame('s','k',1,'result','tile-one')
         for changed in [plan.frame('s','k',1,'result','tile-two'),plan.frame('s','other',1,'result','tile-one')]:
             with self.assertRaises(ValueError):check(changed,expected)
+
+    def test_cpu_torch_variant_is_explicit_and_unknown_variants_fail(self):
+        from full_plan import implementation_versions
+        from protocol import POLICY
+        def installed(dependency):
+            return '2.3.1+cpu' if dependency=='torch' else POLICY['dependencies'][dependency]
+        with patch('full_plan.version',side_effect=installed):
+            self.assertEqual(implementation_versions()['torch'],'2.3.1+cpu')
+        with patch('full_plan.version',return_value='2.3.1+unreviewed'):
+            with self.assertRaises(ValueError):implementation_versions()
 
     def test_invalid_geometry_has_no_fallback(self):
         for width in [0,-1,True]:

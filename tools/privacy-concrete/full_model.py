@@ -1,7 +1,7 @@
 """Complete Qwen all-linear hybrid backend. Native GLWE operations; client nonlinearities and replay."""
 import argparse
-from importlib.metadata import version
 import json
+import os
 from pathlib import Path
 import platform
 import resource
@@ -16,7 +16,7 @@ from transformers.cache_utils import DynamicCache
 from concrete.ml.quantization.linear_op_glwe_backend import GLWELinearLayerExecutor
 import concrete_ml_extensions as ext
 from full_bridge import FullBridge
-from full_plan import SCHEMA, PROTOCOL, FullPlan, canonical, load_plan, ranges, tiles
+from full_plan import FULL_POLICY, SCHEMA, PROTOCOL, canonical, implementation_versions, load_plan, ranges, tiles
 from protocol import POLICY, digest
 
 
@@ -85,13 +85,11 @@ def verify_source(directory,source):
 
 def prepare(model_dir,cache_dir):
     specification = json.loads(Path(__file__).with_name('qwen05b.json').read_text())
-    for dependency,expected in POLICY['dependencies'].items():
-        if version(dependency) != expected:
-            raise ValueError('Pinned full-model dependencies required')
+    versions=implementation_versions()
     if json.loads(ext.default_params()) != POLICY['parameters']:
         raise ValueError('Unsupported encrypted parameter change')
     verify_source(model_dir,specification['source'])
-    torch.set_num_threads(2)
+    torch.set_num_threads(FULL_POLICY['cpuThreads'])
     model = AutoModelForCausalLM.from_pretrained(model_dir,local_files_only=True,use_safetensors=True,
                                               trust_remote_code=False,torch_dtype=torch.float32,attn_implementation='eager').eval()
     tokenizer = AutoTokenizer.from_pretrained(model_dir,local_files_only=True,trust_remote_code=False)
@@ -108,7 +106,8 @@ def prepare(model_dir,cache_dir):
     source = specification['source']
     plan = dict(schema=SCHEMA,protocol=PROTOCOL,source=source,
                 modelId=digest(canonical(dict(source=source,projections=definitions))),
-                productionBackendAvailable=False,steps=4,contextBucket=8,inputTileWidth=2048,outputTileWidth=2048,
+                productionBackendAvailable=False,implementationVersions=versions,
+                **{key:FULL_POLICY[key] for key in ['steps','contextBucket','inputTileWidth','outputTileWidth','operationTimeoutSeconds','cpuThreads']},
                 parameters={key:POLICY[key] for key in ['dependencies','parameters','evaluationBackend']},projections=definitions)
     (directory/'plan.json').write_bytes(canonical(plan))
     frozen = load_plan(directory)
@@ -126,6 +125,8 @@ def prepare(model_dir,cache_dir):
 
 
 def run(model_dir,cache_dir,prompt,progress=lambda event:None):
+    if os.environ.get('RAYON_NUM_THREADS') != str(FULL_POLICY['cpuThreads']):
+        raise ValueError('The full-model process must declare the installed CPU thread budget before native initialization')
     started=time.perf_counter()
     model,tokenizer,executor,projections,plan=prepare(model_dir,cache_dir)
     tokens=tokenizer.encode(prompt)
@@ -178,7 +179,7 @@ def run(model_dir,cache_dir,prompt,progress=lambda event:None):
                     encryptedTileCount=bridge.sequence-1,encryptedSteps=4,clientLocalOutputTokens=tokens[original_count:],
                     clientLocalOutputText=tokenizer.decode(tokens[original_count:]),matchesFullQuantizedGreedyReference=True,
                     floatGreedyMatches=float_matches,maxLogitErrors=errors,setupMs=setup_ms,stepMs=step_ms,quantizedReferenceMs=reference_ms,
-                    elapsedMs=(time.perf_counter()-started)*1000,clientEncryptedReplayMs=bridge.replay_seconds*1000,
+                    elapsedMs=(time.perf_counter()-started)*1000,implementationVersions=implementation_versions(),clientEncryptedReplayMs=bridge.replay_seconds*1000,
                     evaluatorRoundTripMs=bridge.remote_seconds*1000,sentBytes=bridge.sent,receivedBytes=bridge.received,
                     evaluationKeyBytes=bridge.key_bytes,clientPeakRss=resource.getrusage(resource.RUSAGE_SELF).ru_maxrss,
                     clientComputation='All nonlinear/attention/embedding/cache/quantization/decoding plus full encrypted replay; not all operations homomorphically evaluated',
@@ -195,12 +196,14 @@ if __name__=='__main__':
     parser=argparse.ArgumentParser()
     parser.add_argument('--model-dir',required=True);parser.add_argument('--cache-dir',required=True)
     parser.add_argument('--prepare-only',action='store_true')
+    parser.add_argument('--public-fixture',choices=['qwen05b-capital'])
     args=parser.parse_args()
     if args.prepare_only:
         _,_,_,_,plan=prepare(args.model_dir,args.cache_dir)
         print(json.dumps(dict(planId=plan.identity,linearProjections=len(plan.definition()['projections']),encryptedTilesPerStep=len(plan.schedule()),available=False)))
     else:
-        prompt=sys.stdin.buffer.read(4097).decode('utf-8')
+        prompt='The capital of France is' if args.public_fixture=='qwen05b-capital' else sys.stdin.buffer.read(4097).decode('utf-8')
         if len(prompt.encode())>4096:raise ValueError('Bounded client prompt required')
         report=run(args.model_dir,args.cache_dir,prompt,progress=lambda event:print(json.dumps(event),file=sys.stderr,flush=True))
+        if args.public_fixture:report['publicFixtureId']=args.public_fixture
         print(json.dumps(report,indent=2))
