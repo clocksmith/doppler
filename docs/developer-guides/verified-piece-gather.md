@@ -69,6 +69,13 @@ still copies intersections. No shared scratch backing buffer is transferred.
 
 The optional explicit `concurrency` declares worker lanes; omission preserves
 one lane. Each lane permits one outstanding read or lease with its own buffer.
+Hosts may also pass `fileIdentities`, a snapshot for every approved canonical
+file, with decimal-string `device`, `inode` and `size` values. This opt-in checks
+the no-follow descriptor and canonical pathname before and after acquisition.
+It rejects replacement even when the new file contains identical bytes; it does
+not replace complete-piece SHA verification. Resolve approved input symlinks
+before taking this snapshot. `rangeLease.fileIdentitiesBound` confirms this
+worker capability, allowing diagnostic adapters to fail closed on older code.
 Compact loading dispatches up to the smaller of this count and `readConcurrency`.
 With explicit `sourceReadMode: "lease-parallel"`, compact decode dispatches
 expert-plane tasks rather than assigning a lane to a whole expert. A small miss

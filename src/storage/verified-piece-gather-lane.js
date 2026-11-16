@@ -22,7 +22,7 @@ export async function createVerifiedPieceGatherLane(options) {
   // Metadata is copied by workerData; authentication completes before admission.
   const { Worker } = await import('node:worker_threads');
   const worker = new Worker(new URL('./verified-piece-gather-worker.js', import.meta.url), {
-    workerData: { files, metadata: { manifestBytes, indexBytes, indexIdentity } },
+    workerData: { files, fileIdentities: options.fileIdentities, metadata: { manifestBytes, indexBytes, indexIdentity } },
   });
   let closed = false;
   let busy = false;

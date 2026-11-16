@@ -1,5 +1,5 @@
 import { parentPort, workerData } from 'node:worker_threads';
-import { openSync, readSync, closeSync, fstatSync, constants } from 'node:fs';
+import { openSync, readSync, closeSync, fstatSync, lstatSync, constants } from 'node:fs';
 import { createHash } from 'node:crypto';
 import { createVerifiedPieceReader } from './verified-piece-reader.js';
 
@@ -9,6 +9,18 @@ import { createVerifiedPieceReader } from './verified-piece-reader.js';
 const handles = new Map();
 if (!parentPort) throw new Error('Gather requires a worker port.');
 const port = parentPort;
+/** @param {string} path @param {number} handle */
+function assertIdentity(path, handle) {
+  const expected = workerData.fileIdentities?.[path];
+  if (!expected) return;
+  /** @param {import('node:fs').BigIntStats} stat */
+  const matches = stat => stat.isFile() && stat.dev.toString() === expected.device
+    && stat.ino.toString() === expected.inode && stat.size.toString() === expected.size;
+  if (!matches(fstatSync(handle, { bigint: true }))
+    || !matches(lstatSync(workerData.files[path], { bigint: true }))) {
+    throw new Error('Gather source identity changed after local approval.');
+  }
+}
 /** @param {Readonly<import('./verified-piece-reader.js').VerifiedPiece>} piece
  * @param {Uint8Array} bytes */
 function readFile(piece, bytes) {
@@ -26,19 +38,21 @@ function readFile(piece, bytes) {
     handle = openSync(filename, constants.O_RDONLY | constants.O_NOFOLLOW | constants.O_NONBLOCK);
     try {
       if (!fstatSync(handle).isFile()) throw new Error('Gather source must be a regular file.');
+      assertIdentity(piece.path, handle);
     } catch (error) {
       try { closeSync(handle); }
       catch (cleanup) { throw new AggregateError([error, cleanup], 'Gather file admission and cleanup failed.'); }
       throw error;
     }
     handles.set(piece.path, handle);
-  }
+  } else assertIdentity(piece.path, handle);
   let read = 0;
   while (read < bytes.length) {
     const count = readSync(handle, bytes, read, bytes.length - read, piece.offset + read);
     if (!count) throw new Error('Incomplete authenticated piece.');
     read += count;
   }
+  assertIdentity(piece.path, handle);
 }
 const reader = await createVerifiedPieceReader({ ...workerData.metadata,
   acquire: async piece => {

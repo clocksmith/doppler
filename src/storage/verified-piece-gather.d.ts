@@ -6,6 +6,9 @@ export interface VerifiedPieceGatherOptions {
   /** Explicit approved regular files, indexed by authenticated piece-index filename.
    * Resolve authorized links before passing their canonical paths; leaf symlinks are rejected. */
   files: Record<string, string>;
+  /** Optional explicit host snapshot. Canonical path and opened descriptor must
+   * retain this device/inode/size; complete-piece authentication still applies. */
+  fileIdentities?: Record<string, { device: string; inode: string; size: string }>;
   maxPartBytes: number;
   /** Explicit worker count; omission preserves one lane. */
   concurrency?: number;
@@ -37,6 +40,8 @@ export function createVerifiedPieceGather(options: VerifiedPieceGatherOptions): 
 }>>;
 
 export interface VerifiedRangeLeasePort {
+  /** True only when the worker enforces the supplied file identity snapshot. */
+  fileIdentitiesBound?: boolean;
   /** Omission denotes a legacy single-lane port. */
   concurrency?: number;
   maxPartBytes: number;

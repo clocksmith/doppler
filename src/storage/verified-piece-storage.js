@@ -9,7 +9,8 @@ export async function createVerifiedPieceStorage(options) {
   const manifestBytes = new Uint8Array(options.manifestBytes instanceof Uint8Array ? options.manifestBytes : new Uint8Array(options.manifestBytes));
   const indexBytes = new Uint8Array(options.indexBytes instanceof Uint8Array ? options.indexBytes : new Uint8Array(options.indexBytes));
   const pinned = { ...options, manifestBytes, indexBytes };
-  const nodeGather = options.nodeGather ? { ...options.nodeGather, files: { ...options.nodeGather.files } } : null;
+  const nodeGather = options.nodeGather ? { ...options.nodeGather, files: { ...options.nodeGather.files },
+    ...(options.nodeGather.fileIdentities ? { fileIdentities: structuredClone(options.nodeGather.fileIdentities) } : {}) } : null;
   const reader = await createVerifiedPieceReader(pinned);
   /** @type {Awaited<ReturnType<import('./verified-piece-gather.js').createVerifiedPieceGather>> | null} */
   let gather = null;

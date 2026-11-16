@@ -6,7 +6,17 @@ export async function createVerifiedPieceGather(options) {
   // Omission preserves the original single-lane contract, not automatic tuning.
   const concurrency = options.concurrency ?? 1;
   const pinned = { ...options, manifestBytes: new Uint8Array(options.manifestBytes),
-    indexBytes: new Uint8Array(options.indexBytes), files: { ...options.files } };
+    indexBytes: new Uint8Array(options.indexBytes), files: { ...options.files },
+    ...(options.fileIdentities ? { fileIdentities: structuredClone(options.fileIdentities) } : {}) };
+  if (pinned.fileIdentities !== undefined && (!pinned.fileIdentities || typeof pinned.fileIdentities !== 'object'
+    || Array.isArray(pinned.fileIdentities) || Object.keys(pinned.fileIdentities).length !== Object.keys(pinned.files).length
+    || Object.keys(pinned.files).some(name => {
+      const identity = pinned.fileIdentities?.[name];
+      const fields = /** @type {const} */ (['device', 'inode', 'size']);
+      return !identity || !fields.every(key => typeof identity[key] === 'string' && /^[0-9]+$/.test(identity[key]));
+    }))) {
+    throw new Error('Gather file identities must bind every approved file device, inode and size.');
+  }
   const pieceBytes = JSON.parse(new TextDecoder().decode(pinned.indexBytes)).maxPieceBytes;
   const laneBytes = pinned.maxPartBytes + 2 * pieceBytes;
   const memoryBytes = concurrency * laneBytes;
@@ -94,6 +104,7 @@ export async function createVerifiedPieceGather(options) {
   const manifest = JSON.parse(new TextDecoder().decode(pinned.manifestBytes));
   /** @type {import('./verified-piece-gather.js').VerifiedRangeLeasePort} */
   const rangeLease = { concurrency, maxPartBytes: pinned.maxPartBytes, memoryBytes,
+    fileIdentitiesBound: pinned.fileIdentities !== undefined,
     read(shard, offset, length, signal) {
       const file = manifest.shards[shard];
       if (!file) return Promise.reject(new Error('Undeclared gather shard.'));
