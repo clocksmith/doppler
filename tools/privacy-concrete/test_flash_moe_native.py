@@ -8,6 +8,53 @@ from unittest.mock import patch
 
 @unittest.skipUnless(os.environ.get('DOPPLER_CONCRETE_NATIVE')=='1','opt-in pinned native/Torch implementation')
 class StreamedFlashMoETests(unittest.TestCase):
+    def test_actual_provider_loop_reads_owned_signed_tiles_and_closes_on_failure(self):
+        import sys
+        from pathlib import Path
+        import numpy as np
+        import full_provider
+        import plan_backends
+        from full_plan import FullPlan,canonical
+        from protocol import digest
+        from public_weights import PublicTileReader
+        for dtype,parameters,suffix in [('int8',{},'.i8'),('<i2',dict(weightEncoding='signed-int12-in-int16',quantizationBits=12),'.i16')]:
+            for reject in [False,True]:
+                with tempfile.TemporaryDirectory() as directory:
+                    values=np.arange(-17,18,dtype=dtype).reshape(5,7)
+                    raw=values.tobytes();identity=digest(raw)
+                    (Path(directory)/(identity+suffix)).write_bytes(raw)
+                    rows=[dict(name=name,weightId=identity,inputWidth=5,outputWidth=7) for name in ['first','last']]
+                    plan=FullPlan(canonical(dict(modelId='a'*64,steps=2,inputTileWidth=2,outputTileWidth=3,
+                                               operationTimeoutSeconds=1,parameters=parameters,projections=rows)))
+                    key_data=b'public-evaluation-key';key_id=digest(key_data);session='s'*32
+                    frames=[(plan.frame(session,key_id,0,'evaluation-key'),key_data,0)]
+                    ordered=list(plan.schedule())*2
+                    frames += [(plan.frame(session,key_id,index+1,'evaluate',tile['id']),b'ciphertext',0) for index,tile in enumerate(ordered)]
+                    frames.append((plan.frame(session,key_id,len(ordered)+1,'finish'),b'',0))
+                    observed=[];readers=[];sent=[]
+                    class Reader(PublicTileReader):
+                        def __init__(self,*args):super().__init__(*args);readers.append(self)
+                    def evaluate(encrypted,matrix,key):
+                        tile=ordered[len(observed)];observed.append(matrix.copy())
+                        expected=values[tile['inputBegin']:tile['inputEnd'],tile['outputBegin']:tile['outputEnd']].astype(np.int64).astype(np.uint64)
+                        np.testing.assert_array_equal(matrix,expected);self.assertTrue(matrix.flags.c_contiguous)
+                        if reject:raise RuntimeError('native evaluation failed')
+                        return SimpleNamespace(serialize=lambda:b'encrypted-result')
+                    args=SimpleNamespace(directory=directory,plan_id=plan.identity,profile='fixture-only',ssh_route=None)
+                    stream=SimpleNamespace(buffer=SimpleNamespace(raw=object()))
+                    with patch.object(sys,'argv',['provider']),patch.object(sys,'stdin',stream),patch.object(sys,'stdout',stream), \
+                         patch.object(plan_backends,'provider_arguments',return_value=args),patch.object(plan_backends,'load_backend_plan',return_value=plan), \
+                         patch.object(full_provider,'matrix_evaluator',return_value=evaluate),patch.object(full_provider,'prepare_evaluator_key'), \
+                         patch.object(full_provider,'ext',SimpleNamespace(CpuCompressionKey=SimpleNamespace(deserialize=lambda data:object()),EncryptedMatrix=SimpleNamespace(deserialize=lambda data:object()))), \
+                         patch.object(full_provider,'receive',side_effect=frames),patch.object(full_provider,'send',side_effect=lambda *args,**kwargs:sent.append(args)), \
+                         patch.object(full_provider,'PublicTileReader',Reader):
+                        if reject:
+                            with self.assertRaises(RuntimeError):full_provider.serve()
+                        else:full_provider.serve()
+                    self.assertEqual(len(observed),1 if reject else len(ordered))
+                    self.assertEqual(len(sent),1 if reject else len(ordered)+1)
+                    self.assertTrue(readers[0].closed);self.assertIsNone(readers[0].handle)
+
     def test_owned_staged_whole_object_materialization_survives_source_cleanup(self):
         import torch
         from pathlib import Path

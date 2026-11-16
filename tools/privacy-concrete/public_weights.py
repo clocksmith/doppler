@@ -8,6 +8,7 @@ import copy
 from contextlib import contextmanager
 from dataclasses import dataclass
 import hashlib
+import os
 from pathlib import Path
 from types import MappingProxyType
 from full_plan import canonical,tiles
@@ -90,3 +91,72 @@ def bind_public_tiles(directory,plan):
         path=Path(directory)/(row['weightId']+encoding['suffix'])
         with path.open('rb') as handle:yield handle
     return PreparedPublicTiles(plan,source).digests_for(plan)
+
+
+class PublicTileReader:
+    """One active public coefficient file, with owned tile bytes and terminal close.
+
+    The installed plan and whole-file cache are validated before this owner is
+    constructed. This reader limits descriptors/mappings; it neither downloads
+    missing files nor evicts files from disk, and is not an integrity verifier.
+    """
+    def __init__(self,directory,plan):
+        definition=plan.definition()
+        self.directory=Path(directory)
+        self.encoding=weight_encoding(definition.get('parameters',{}))
+        self.input_limit,self.output_limit=definition['inputTileWidth'],definition['outputTileWidth']
+        self.rows={}
+        for row in definition['projections']:
+            projection_schedule(row,definition)
+            if row['name'] in self.rows:raise ValueError('Unique public projection required')
+            self.rows[row['name']]=MappingProxyType(dict(row))
+        if not self.rows:raise ValueError('Complete public projection route required')
+        self.handle,self.active_name,self.closed=None,None,False
+
+    def __enter__(self):
+        if self.closed:raise ValueError('Public tile reader is closed')
+        return self
+
+    def __exit__(self,*_args):self.close()
+
+    def close(self):
+        self.closed=True
+        if self.handle is not None:
+            try:self.handle.close()
+            finally:self.handle,self.active_name=None,None
+
+    def read(self,tile):
+        try:
+            if self.closed:raise ValueError('Public tile reader is closed')
+            row=self.rows.get(tile.get('name'))
+            if row is None:raise ValueError('Unknown public projection')
+            begin_in,begin_out=tile.get('inputBegin'),tile.get('outputBegin')
+            if (type(begin_in) is not int or type(begin_out) is not int
+                    or not 0<=begin_in<row['inputWidth'] or begin_in%self.input_limit
+                    or not 0<=begin_out<row['outputWidth'] or begin_out%self.output_limit):
+                raise ValueError('Unadmitted public tile geometry')
+            expected=dict(name=row['name'],weightId=row['weightId'],inputBegin=begin_in,
+                          inputEnd=min(begin_in+self.input_limit,row['inputWidth']),
+                          outputBegin=begin_out,outputEnd=min(begin_out+self.output_limit,row['outputWidth']))
+            expected['id']=digest(canonical(expected))
+            if dict(tile)!=expected:raise ValueError('Public tile identity changed')
+            if self.active_name!=row['name']:
+                if self.handle is not None:self.handle.close()
+                self.handle=None;self.active_name=None
+                self.handle=(self.directory/(row['weightId']+self.encoding['suffix'])).open('rb',buffering=0)
+                if os.fstat(self.handle.fileno()).st_size!=row['inputWidth']*row['outputWidth']*self.encoding['bytes']:
+                    raise ValueError('Public coefficient file geometry changed')
+                self.active_name=row['name']
+            size=self.encoding['bytes'];width=(expected['outputEnd']-begin_out)*size
+            result=bytearray()
+            for index in range(begin_in,expected['inputEnd']):
+                self.handle.seek((index*row['outputWidth']+begin_out)*size)
+                remaining=width
+                while remaining:
+                    chunk=self.handle.read(remaining)
+                    if not chunk:raise ValueError('Public coefficient file was truncated')
+                    result.extend(chunk);remaining-=len(chunk)
+            return bytes(result)
+        except BaseException:
+            self.close()
+            raise

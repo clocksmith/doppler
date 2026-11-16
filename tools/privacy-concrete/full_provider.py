@@ -4,6 +4,7 @@ import numpy as np
 import concrete_ml_extensions as ext
 from protocol import check, digest, receive, send
 from weight_encoding import weight_encoding
+from public_weights import PublicTileReader
 from native_runtime import matrix_evaluator,prepare_evaluator_key
 
 
@@ -31,18 +32,19 @@ def serve():
     prepare_evaluator_key(plan,key)
     send(target, plan.frame(session, key_id, 0, 'ready'),timeout=timeout,max_payload_bytes=payload_limit)
     encoding=weight_encoding(plan.definition()['parameters'])
-    weights = {row['name']: np.memmap(f"{directory}/{row['weightId']}{encoding['suffix']}", dtype=encoding['dtype'], mode='r',
-                                     shape=(row['inputWidth'],row['outputWidth'])) for row in plan.definition()['projections']}
     sequence = 1
-    for _step in range(plan.definition()['steps']):
-        for tile in plan.schedule():
-            header, data, _ = receive(source,timeout=timeout,max_payload_bytes=payload_limit)
-            check(header, plan.frame(session, key_id, sequence, 'evaluate', tile['id']))
-            encrypted = ext.EncryptedMatrix.deserialize(data)
-            matrix = np.ascontiguousarray(weights[tile['name']][tile['inputBegin']:tile['inputEnd'],tile['outputBegin']:tile['outputEnd']], dtype=np.int64).astype(np.uint64)
-            result = evaluate(encrypted, matrix, key)
-            send(target, plan.frame(session, key_id, sequence, 'result', tile['id']), result.serialize(),timeout=timeout,max_payload_bytes=payload_limit)
-            sequence += 1
+    with PublicTileReader(directory,plan) as weights:
+        schedule=plan.schedule()
+        for _step in range(plan.definition()['steps']):
+            for tile in schedule:
+                header, data, _ = receive(source,timeout=timeout,max_payload_bytes=payload_limit)
+                check(header, plan.frame(session, key_id, sequence, 'evaluate', tile['id']))
+                encrypted = ext.EncryptedMatrix.deserialize(data)
+                shape=(tile['inputEnd']-tile['inputBegin'],tile['outputEnd']-tile['outputBegin'])
+                matrix = np.frombuffer(weights.read(tile),dtype=encoding['dtype']).reshape(shape).astype(np.int64).astype(np.uint64)
+                result = evaluate(encrypted, matrix, key)
+                send(target, plan.frame(session, key_id, sequence, 'result', tile['id']), result.serialize(),timeout=timeout,max_payload_bytes=payload_limit)
+                sequence += 1
     header, data, _ = receive(source,timeout=timeout,max_payload_bytes=payload_limit)
     check(header, plan.frame(session, key_id, sequence, 'finish'))
     if data:

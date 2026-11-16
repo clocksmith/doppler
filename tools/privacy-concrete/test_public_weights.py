@@ -7,8 +7,9 @@ import struct
 from types import SimpleNamespace
 import tempfile
 import unittest
+from unittest.mock import patch
 from full_plan import tiles
-from public_weights import bind_public_tiles,PreparedPublicTiles,PUBLIC_TILE_BINDING_INTERFACE
+from public_weights import bind_public_tiles,PreparedPublicTiles,PUBLIC_TILE_BINDING_INTERFACE,PublicTileReader
 from protocol import digest
 
 
@@ -105,6 +106,80 @@ class PublicWeightBindingTests(unittest.TestCase):
                 path,row,plan=self.fixture(directory)
                 temporary=path.with_suffix('.replacement');temporary.write_bytes(content);temporary.replace(path)
                 with self.assertRaises(ValueError):bind_public_tiles(directory,plan)
+
+
+class PublicTileReaderTests(unittest.TestCase):
+    def fixture(self,directory,width=1,count=3):
+        raw=bytes(range(35)) if width==1 else struct.pack('<35h',*range(-17,18))
+        rows=[]
+        for index in range(count):
+            payload=raw if index%2==0 else raw[::-1]
+            row=dict(name=f'projection-{index}',weightId=digest(payload),inputWidth=5,outputWidth=7)
+            (Path(directory)/(row['weightId']+('.i8' if width==1 else '.i16'))).write_bytes(payload)
+            rows.append(row)
+        parameters={} if width==1 else dict(weightEncoding='signed-int12-in-int16',quantizationBits=12)
+        definition=dict(projections=rows,inputTileWidth=2,outputTileWidth=3,parameters=parameters)
+        return SimpleNamespace(definition=lambda:definition),rows,raw
+
+    def test_owned_strided_tiles_and_one_handle_across_repeated_steps(self):
+        for width in [1,2]:
+            with tempfile.TemporaryDirectory() as directory:
+                plan,rows,raw=self.fixture(directory,width);handles=[];opened=Path.open
+                def track(path,*args,**kwargs):
+                    self.assertTrue(all(handle.closed for handle in handles))
+                    handle=opened(path,*args,**kwargs);handles.append(handle);return handle
+                with patch.object(Path,'open',track),PublicTileReader(directory,plan) as reader:
+                    for _step in range(2):
+                        for index,row in enumerate(rows):
+                            payload=raw if index%2==0 else raw[::-1]
+                            for tile in tiles(row,2,3):
+                                expected=b''.join(payload[(r*7+tile['outputBegin'])*width:(r*7+tile['outputEnd'])*width] for r in range(tile['inputBegin'],tile['inputEnd']))
+                                actual=reader.read(tile);self.assertEqual(actual,expected)
+                                self.assertIsInstance(actual,bytes)
+                    self.assertEqual(len(handles),6)
+                self.assertTrue(all(handle.closed for handle in handles))
+                with self.assertRaises(ValueError):reader.read(tiles(rows[0],2,3)[0])
+
+    def test_unknown_or_changed_geometry_rejects_before_open_and_is_terminal(self):
+        with tempfile.TemporaryDirectory() as directory:
+            plan,rows,_raw=self.fixture(directory);tile=tiles(rows[0],2,3)[0]
+            for changed in [dict(tile,name='private-file'),dict(tile,inputBegin=True),dict(tile,inputBegin=1),dict(tile,outputEnd=4),dict(tile,id='replacement'),dict(tile,weightId='../private')]:
+                reader=PublicTileReader(directory,plan)
+                with patch.object(Path,'open',side_effect=AssertionError('tile rejected after I/O')):
+                    with self.assertRaises(ValueError):reader.read(changed)
+                self.assertTrue(reader.closed)
+                with self.assertRaises(ValueError):reader.read(tile)
+
+    def test_truncated_missing_or_resized_sources_close_terminally(self):
+        for operation in ['truncate-active','resize-before-open','missing']:
+            with tempfile.TemporaryDirectory() as directory:
+                plan,rows,_raw=self.fixture(directory);reader=PublicTileReader(directory,plan)
+                path=Path(directory)/(rows[0]['weightId']+'.i8');schedule=tiles(rows[0],2,3)
+                active=None
+                if operation=='truncate-active':
+                    reader.read(schedule[0]);active=reader.handle;path.write_bytes(b'')
+                elif operation=='resize-before-open':path.write_bytes(b'short')
+                else:path.unlink()
+                with self.assertRaises((ValueError,FileNotFoundError)):reader.read(schedule[-1])
+                self.assertTrue(reader.closed);self.assertIsNone(reader.handle)
+                if active is not None:self.assertTrue(active.closed)
+
+    def test_complete_identity_preflight_precedes_any_file_open(self):
+        with tempfile.TemporaryDirectory() as directory:
+            plan,rows,_raw=self.fixture(directory)
+            for bad in [dict(rows[-1],weightId='../../private'),dict(rows[-1],inputWidth=0),dict(rows[-1],name=rows[0]['name'])]:
+                definition=copy.deepcopy(plan.definition());definition['projections'][-1]=bad
+                with patch.object(Path,'open',side_effect=AssertionError('source opened in constructor')):
+                    with self.assertRaises(ValueError):PublicTileReader(directory,SimpleNamespace(definition=lambda:definition))
+
+    def test_exception_cleanup_removes_no_public_coefficient_files(self):
+        with tempfile.TemporaryDirectory() as directory:
+            plan,rows,_raw=self.fixture(directory);paths=set(Path(directory).iterdir());active=None
+            with self.assertRaises(RuntimeError):
+                with PublicTileReader(directory,plan) as reader:
+                    reader.read(tiles(rows[0],2,3)[0]);active=reader.handle
+                    raise RuntimeError('cancelled owner')
+            self.assertTrue(active.closed);self.assertEqual(set(Path(directory).iterdir()),paths)
 
 
 if __name__=='__main__':unittest.main()

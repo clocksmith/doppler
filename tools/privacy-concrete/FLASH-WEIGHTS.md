@@ -556,3 +556,20 @@ Focused tests cover partial input/output tiles, fragmented int8/int16 reads,
 mutation during a read, same-inode mutation after binding, file eviction, immutable
 outputs and rejection before source I/O. Full Flash encrypted cache loading and
 client/evaluator stage transitions remain separate unfinished integration work.
+
+
+## Bounded evaluator coefficient handles
+
+The existing all-linear evaluator now owns one active coefficient file and one
+owned tile buffer, replacing a mapping for every projection. It validates each
+requested tile against a snapshot of the installed plan before opening a file,
+reads only its strided rows, and closes the previous file before advancing.
+Cancellation or read/evaluation failure closes the active handle terminally.
+Signed int8 and little-endian int12 storage retain the same native uint64 matrix
+representation, including partial tiles and repeated autoregressive passes.
+
+This is descriptor/mapping eviction, **not disk cache eviction** or a measured
+full-Flash memory result. Whole-file cache admission and client encrypted replay
+remain required. Missing files reject; no remote acquisition or fallback is added.
+Full Flash still needs assembled weight materialization, per-stage client/provider
+disk-cache transitions and an actual all-layer autoregressive run.
