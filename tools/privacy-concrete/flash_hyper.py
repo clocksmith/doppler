@@ -20,6 +20,13 @@ from flash_weights import FlashSource
 from protocol import POLICY
 
 PREFIX='model.language_model.layers.0.mlp_hyper_connection.'
+class PublicHyperComparisonMismatch(ExecutionRejected):
+    def __init__(self,step,trajectory_errors,input_error,projection_checks):
+        super().__init__('component-reference-mismatch')
+        self.step=step;self.trajectory_errors=tuple(trajectory_errors);self.input_error=input_error
+        self.projection_checks=tuple(dict(row) for row in projection_checks)
+
+
 PROJECTIONS={'hyper/down':'input_mix_weight_down.weight','hyper/up':'input_mix_weight_up.weight',
              'hyper/inject':'block_inject_weight.weight'}
 
@@ -47,16 +54,32 @@ class FlashHyperModel:
         write_component(self.directory,CONFIG,definitions,dict(programId=PROGRAM.identity),installed,source=WEIGHTS)
         return load_plan(self.directory)
 
-    def evaluate(self,value,mode,bridge=None,secret=None,block=None):
+    def evaluate(self,value,mode,bridge=None,secret=None,block=None,public_fixture_checks=None):
         for projection in self.projections:
             projection.mode=mode;projection.bridge=bridge;projection.secret=secret
             projection.parameters=self.executor.glwe_crypto_params
+        original_project=self.graph.project
+        if public_fixture_checks is not None:
+            by_name={projection.name:projection for projection in self.projections}
+            def inspected(operation,value):
+                result=original_project(operation,value)
+                if mode=='execute':
+                    projection=by_name[operation['id']];previous=projection.mode
+                    try:
+                        projection.mode='clear-reference';reference=projection(value)
+                    finally:projection.mode=previous
+                    public_fixture_checks.append(dict(projection=operation['id'],
+                        maxAbsoluteError=float((result-reference).abs().max()),
+                        referenceBoundPassed=bool(torch.allclose(result,reference,rtol=CONFIG['maxRelativeError'],atol=CONFIG['maxAbsoluteError']))))
+                return result
+            self.graph.project=inspected
         try:
             with torch.no_grad():
                 mixed,residual,injection=self.graph(value)
                 output=mixed if block is None else block(mixed)
                 return self.graph.combine(residual,injection,output),mixed,injection
         finally:
+            self.graph.project=original_project
             for projection in self.projections:projection.secret=projection.bridge=projection.parameters=None
 
 
@@ -72,14 +95,16 @@ def run(source_dir,cache_dir):
                           observe=lambda event,value:print(json.dumps(dict(event=event,**value)),file=sys.stderr,flush=True))
         errors=[];quantized_errors=[];step_ms=[]
         for _step in range(CONFIG['steps']):
-            results={}
+            results={};checks=[]
+            input_error=float((states['execute']-states['clear-reference']).abs().max())
             for mode in states:
-                started=time.perf_counter();results[mode]=model.evaluate(states[mode],mode,bridge,secret)
+                started=time.perf_counter();results[mode]=model.evaluate(states[mode],mode,bridge,secret,public_fixture_checks=checks)
                 states[mode]=results[mode][0]
                 if mode=='execute':step_ms.append((time.perf_counter()-started)*1000)
+            trajectory_errors=[float((actual-expected).abs().max()) for actual,expected in zip(results['execute'],results['clear-reference'])]
             for actual,expected in zip(results['execute'],results['clear-reference']):
                 if not torch.allclose(actual,expected,rtol=CONFIG['maxRelativeError'],atol=CONFIG['maxAbsoluteError']):
-                    raise ExecutionRejected('component-reference-mismatch')
+                    raise PublicHyperComparisonMismatch(_step+1,trajectory_errors,input_error,checks)
             errors.append(max(float((actual-expected).abs().max()) for actual,expected in zip(results['execute'],results['clear-reference'])))
             quantized_errors.append(float((states['clear-reference']-states['float-reference']).abs().max()))
         bridge.finish()
@@ -104,8 +129,16 @@ if __name__=='__main__':
     args=parser.parse_args();began=time.perf_counter()
     try:report=run(args.source_dir,args.cache_dir)
     except BaseException as error:
-        print(json.dumps(dict(schema='doppler.actual-flash-hyper-execution/v1',productionBackendAvailable=False,
-                              securityQualified=False,fullFlashModelExecuted=False,
-                              status=failure_event(error,(time.perf_counter()-began)*1000))),flush=True)
+        report=dict(schema='doppler.actual-flash-hyper-execution/v1',fixtureId='flash-mlp-hyper-identity-feedback',
+                    productionBackendAvailable=False,securityQualified=False,fullFlashModelExecuted=False,
+                    status=failure_event(error,(time.perf_counter()-began)*1000))
+        if isinstance(error,PublicHyperComparisonMismatch):
+            # This CLI accepts only the fixed public fixture. No private-input or remote
+            # diagnostics API is added; encrypted responses passed byte verification first.
+            report.update(failedComponentStep=error.step,inputTrajectoryMaxError=error.input_error,
+                          maxStateMixedInjectionErrors=list(error.trajectory_errors),
+                          sameInputProjectionChecks=[dict(projection=row['projection'],maxAbsoluteError=row['maxAbsoluteError'],
+                                                           referenceBoundPassed=row['referenceBoundPassed']) for row in error.projection_checks])
+        print(json.dumps(report),flush=True)
         raise
     print(json.dumps(report,indent=2))

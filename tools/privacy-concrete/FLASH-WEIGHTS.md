@@ -109,3 +109,12 @@ FP32 operator fixtures, not actual Flash attention weights or encrypted DeltaNet
 execution. No DeltaNet backend is registered for production or encrypted research
 admission by this client graph. Full attention/QSA indexing, ngram embedding and
 whole-model autoregressive generation remain unfinished.
+
+
+The first four-step hyperconnection fixture failed its unchanged numerical
+reference bound in run 43809990622; it is not qualified. A targeted public-fixture
+probe now distinguishes same-input encrypted projection error from closed-loop
+state/mixed/injection trajectory drift, stops at the first failed comparison and
+keeps the nonzero exit status. It publishes only bounded aggregate measurements
+from this fixed public fixture. No private-input diagnostics channel or relaxed
+acceptance threshold is introduced.
