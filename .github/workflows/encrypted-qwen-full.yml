@@ -11,14 +11,13 @@ on:
 permissions:
   contents: read
 
-# Keep the named long-running validation independent of ordinary push CI and A1 hardware.
-concurrency:
-  group: encrypted-qwen-full
-  cancel-in-progress: false
-
 jobs:
   qwen-all-linear:
     if: github.event_name == 'workflow_dispatch' || contains(github.event.head_commit.message, '[encrypted-qwen-e2e]')
+    # Skip unrequested jobs before taking the long-running validation lock.
+    concurrency:
+      group: encrypted-qwen-full
+      cancel-in-progress: false
     runs-on: ubuntu-24.04
     timeout-minutes: 360
     env:
