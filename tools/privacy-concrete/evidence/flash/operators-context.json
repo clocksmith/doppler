@@ -38,6 +38,23 @@
       "artifactZipSha256": "edc7b187069b95297d7cfc17a5f2abed38fa51917566d5f2244fdd3b6fdf5e9b",
       "result": "success-source-reference-only",
       "evidence": "mlp-source-reference.json"
+    },
+    {
+      "component": "Actual first full-attention layer 3 with a four-row public prefill and three cached updates",
+      "revision": "e4d79a3cf70841eb128f1e929225fccc1c743600",
+      "workflowRun": 43824579652,
+      "artifactId": 14206218475,
+      "artifactZipSha256": "06b8f01d4fea884746fec8499c44d7bdc623dba26bdf7d7496413a0f43e975b4",
+      "result": "success",
+      "evidence": "qsa-four-step.json",
+      "environment": "Isolated GitHub Ubuntu CPU, exact pinned NTT 0.1.9+ntt.1 source variant, default cryptographic parameters",
+      "limitations": [
+        "Public layer inputs, not generated model tokens",
+        "Client indexing/attention/rotary/nonlinear operations and complete encrypted replay",
+        "Client lifetime peak RSS includes preparation; no isolated provider peak",
+        "Process-pipe application bytes, not separately operated network service",
+        "Quantized agreement does not establish model quality or independent cryptographic review"
+      ]
     }
   ],
   "environment": "Isolated GitHub-hosted Ubuntu CPU, pinned Python 3.12 / Torch 2.3.1+cpu / Concrete ML 1.9.0 / extensions 0.1.9",

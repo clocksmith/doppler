@@ -1,0 +1,54 @@
+{
+  "schema": "doppler.actual-flash-qsa-execution/v1",
+  "fixtureId": "flash-first-qsa-four-public-inputs",
+  "scope": "Actual layer-3 QSA; four cached public-input steps; encrypted linear kernels with client indexing, attention, rotary, nonlinear operations and full replay",
+  "productionBackendAvailable": false,
+  "securityQualified": false,
+  "fullFlashModelExecuted": false,
+  "sourceId": "6434f2ad8f1f9af09ee476b2c60f1184caeeefe59b6c895a5d4db238aec20b30",
+  "sourceRevision": "812d96e10a0dd82b69d749e68693698cf6c36daa",
+  "programId": "709c4aa28810aeb95191e33ece1a84918550cd9f5abf8691d8f413cf64d7f7b7",
+  "modelId": "09baf43b1625f39c9858c753c5c2f05cd50dbd7b0d1630b8192310e2df44a3d7",
+  "planId": "087ffb3d42b71e618e93835634076ccd394534f5cc0f3ce111bb06cb535fe1ee",
+  "protocol": "concrete-glwe-flash-qsa-ntt-replay/v1",
+  "componentSteps": 4,
+  "linearModules": 5,
+  "encryptedTiles": 96,
+  "quantizedReferenceCheckPassed": true,
+  "maxEncryptedVsQuantizedErrors": [
+    0.001261591911315918,
+    0.0005653426051139832,
+    0.0006190100684762001,
+    0.0006322227418422699
+  ],
+  "maxQuantizedVsFloatingErrors": [
+    0.014167975634336472,
+    0.007248611189424992,
+    0.013430826365947723,
+    0.008654918521642685
+  ],
+  "stepMs": [
+    91116.819319,
+    23537.49735500003,
+    23636.218224000004,
+    23630.774051999993
+  ],
+  "elapsedMs": 170576.87524100003,
+  "evaluationKeyBytes": 134217808,
+  "sentBytes": 135958568,
+  "receivedBytes": 1985042,
+  "clientEncryptedReplayMs": 80373.72178599992,
+  "evaluatorRoundTripMs": 80724.31114999995,
+  "clientLifetimePeakRssBytes": 1695096832,
+  "implementationVersions": {
+    "concrete-ml": "1.9.0",
+    "concrete-ml-extensions": "0.1.9+ntt.1",
+    "concrete-python": "2.10.0",
+    "torch": "2.3.1+cpu",
+    "transformers": "4.44.2",
+    "numpy": "1.26.4",
+    "native-binary-sha256": "f9e7daf5e9f4ccbd94e7c8c5e18b71ecc288c2765519dac51fa45886b4c33887",
+    "native-source-id": "8cb2cbd212d05c6646fb3132ebef58624738b0d0dcf7f59daebe3e0766e17bf9",
+    "safetensors": "0.8.0"
+  }
+}

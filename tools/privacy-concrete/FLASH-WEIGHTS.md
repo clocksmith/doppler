@@ -13,11 +13,11 @@ Flash generation, independent malicious-security review or trusted hardware.
 | MLP hyperconnection | Three projections and grouped norm | Four identity-block feedback updates; 60 encrypted tiles passed under a separately versioned precision profile |
 | Complete first-layer MoE | Shared/router and all 512 experts | 1,029 encrypted modules / 2,058 tiles implemented; original encrypted run still pending |
 | Complete first-layer MLP branch | Hyperconnection plus all-expert MoE and residual | 1,032 modules / 2,073 planned tiles composed; actual FP32 sparse-source comparison is separate; full ciphertext composition not yet run |
-| Full attention / QSA | Small public FP32 source fixtures | Prefill, cached decode, fixed projection route and KV/indexer isolation checks passed; actual weights and encrypted execution unqualified |
+| Full attention / QSA | Five actual layer-3 projections and client normalization | Four cached public-input steps; 96 encrypted tiles passed under a distinct NTT profile; no token generation |
 | Ngram / PLE | Small local-table FP32 source fixtures | EOS-aware cached updates, local lookup and history isolation checks passed; actual Flash table unsupported |
 
-The original four-step [dense Qwen candidate](FULL-QWEN.md) remains a separate
-running experiment. Component results cannot substitute for its full-model output.
+The stock and exact-NTT four-step [dense Qwen candidates](FULL-QWEN.md) remain
+separate running experiments. Component results cannot substitute for its full-model output.
 
 ## Actual measured components
 
@@ -72,6 +72,7 @@ hashes, complete LFS SHA-256 values and exact BF16 tensor geometry:
 - `mlp-hyper`: the complete third shard and four hyperconnection tensors.
 - `mlp-block`: the union of MoE and hyperconnection tensors.
 - `linear-attention`: the complete first shard, 1,040,155,944 bytes, with nine tensors.
+- `full-attention`: the complete layer-3 shard, 1,935,433,136 bytes, with nine tensors.
 
 `flash_weights.py` admits whole checksum-verified objects. Range/header metadata
 used during development is never admitted as weight material. Existing corrupt
@@ -85,7 +86,7 @@ circuit. Only the small digest table is retained per request.
 Research profiles are installed code, not provider-advertised flags. Model,
 source, program, dependency, parameter, session, key, sequence and tile identities
 are bound before encrypted inputs are sent. Protocols for expert 0, DeltaNet,
-hyperconnection, all-expert MoE and composed MLP are distinct. Unknown profiles
+hyperconnection, all-expert MoE, composed MLP and QSA are distinct. Unknown profiles
 fail before key export. No retry or plaintext fallback substitutes another path.
 The existing SSH manifest rejects incompatible underlying protocols.
 
@@ -194,9 +195,17 @@ single-row updates. It is not model token generation or full Flash inference.
 The isolated `flash-qsa.yml` workflow builds the retained native lock, verifies
 native ciphertext equivalence and admission before provisioning the complete
 public shard, then runs that component. Trigger only manually or with
-`[flash-qsa-e2e]`; original Qwen/MoE runs remain untouched. The candidate has no
-completed actual-weight encrypted result until its artifact is collected, and
-production admission remains closed.
+`[flash-qsa-e2e]`; original Qwen/MoE runs remain untouched. The [actual result](evidence/flash/qsa-four-step.json) passed at revision
+`e4d79a3cf70841eb128f1e929225fccc1c743600`: 96 encrypted tiles, 170.58 s process
+elapsed, 80.37 s full client replay and 80.72 s evaluator round trip. Prefill took
+91.12 s; the three single-row updates took 23.54, 23.64 and 23.63 s. The evaluation
+key was 134,217,808 bytes; application frames sent/received 135,958,568/1,985,042
+bytes. Largest encrypted-versus-quantized output error was 0.001262, and largest
+quantized-versus-floating error was 0.014168. Client lifetime peak RSS was
+1,695,096,832 bytes, including preparation; no provider peak is claimed. Setup
+installation/download is excluded. This is one public component fixture on process
+pipes, not full-model throughput, separate-machine security or Flash tokens.
+Production admission remains closed.
 
 `python tools/privacy-concrete/inventory_flash_ngram.py --check` reproduces the
 installed storage mapping from pinned config/index, public revision-specific LFS
