@@ -21,10 +21,7 @@ def bind_decoder(source,reference_path,layer_index,*,local_rows=None,max_lookup_
     require_active(cancelled)
     if not isinstance(source,FlashSource) or canonical(source.spec)!=canonical(staging_spec('decoder',layer_index)):
         raise ValueError('Exact verified decoder-stage source required')
-    raw=(Path(source.directory)/'config.json').read_bytes();record=source.spec['files']['config.json']
-    if len(raw)!=record['bytes'] or digest(raw)!=record['sha256']:raise ValueError('Pinned decoder configuration required')
-    config=resolve_text_config(parse_unique_json(raw)['text_config'],
-        Path(reference_path).with_name('configuration_qwen4_exp.py').read_bytes(),attention_implementation='eager')
+    config=source_config(source,reference_path)
     declarations=load_reference(reference_path,'decoder')
     with torch.device('meta'):layer=declarations['Qwen4ExpTextDecoderLayer'](config,layer_index)
     owner=ProjectionSource(source);prefix=f'model.language_model.layers.{layer_index}.'
@@ -59,3 +56,10 @@ def bind_decoder(source,reference_path,layer_index,*,local_rows=None,max_lookup_
     owner.require_source();require_active(cancelled)
     layer.eval().requires_grad_(False)
     return layer,config
+
+
+def source_config(source,reference_path):
+    raw=(Path(source.directory)/'config.json').read_bytes();record=source.spec['files']['config.json']
+    if len(raw)!=record['bytes'] or digest(raw)!=record['sha256']:raise ValueError('Pinned decoder configuration required')
+    return resolve_text_config(parse_unique_json(raw)['text_config'],
+        Path(reference_path).with_name('configuration_qwen4_exp.py').read_bytes(),attention_implementation='eager')

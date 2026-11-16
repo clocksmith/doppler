@@ -406,3 +406,21 @@ integrity without full client replay remain unfinished. Metadata-only tests cove
 the complete installed route; tiny patched cache fixtures cover admission/rejection.
 A tiny reference test separately checks the route builder against actual complete
 graph operation order and geometry. No full model was downloaded or executed.
+
+### Complete source-bound graph assembly
+
+`flash_graph_source.bind_graph` now assembles every decoder, output mixer and
+vocabulary head from caller-owned authenticated stages, with the installed local
+token and PLE row stores. It rejects incomplete stage inventories, mismatched
+configurations or non-installed table identities. All linear weights remain meta
+until borrowed for preparation/reference use; only nonlinear parameters are
+materialized. The resulting graph feeds `PreparedFlashGraph` and the installed
+research plan. Output-stage lifetime is checked like decoder-stage lifetime.
+
+A tiny all-stage BF16 test covers mixed attention, PLE, local token rows, output
+projection and cached decode against the materialized reference. Cancellation
+before assembly reads nothing; failed requests release their leases without
+closing shared stores. Callers still own every source stage and both stores:
+there is no download, implicit eviction or ownership transfer. All stages must
+remain available; actual full-weight provisioning and native execution are still
+unqualified.
