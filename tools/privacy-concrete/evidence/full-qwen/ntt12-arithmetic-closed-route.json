@@ -1,0 +1,81 @@
+{
+  "schema": "doppler.public-full-qwen-ci-evidence/v1",
+  "revision": "18734bc758e6f12e6af1381c12497d5f912f3a07",
+  "fixtureId": "qwen05b-arithmetic",
+  "completed": true,
+  "productionBackendAvailable": false,
+  "securityQualified": false,
+  "verifiedTilesObserved": 1548,
+  "lastVerifiedTile": {
+    "sequence": 1548,
+    "projection": "lm_head"
+  },
+  "report": {
+    "validationBoundary": "after-route-close/v1",
+    "backendProfile": "qwen-all-linear-ntt12",
+    "protocol": "concrete-glwe-qwen-all-linear-ntt12-replay/v1",
+    "clientLifetimePeakRssBytes": 5243269120,
+    "schema": "doppler.full-qwen-hybrid-execution/v1",
+    "planId": "39dee3c63b419dd89bdedbc06361ab7331406c2917dee35d49722a8633d72750",
+    "modelId": "4223289199791c6713ba2c98eb8f9d43a37597b09db0b2c778434dec431a6d24",
+    "executionRouteId": "39dee3c63b419dd89bdedbc06361ab7331406c2917dee35d49722a8633d72750",
+    "transport": "local-process",
+    "linearProjectionCount": 169,
+    "encryptedTileCount": 1548,
+    "encryptedSteps": 4,
+    "matchesFullQuantizedGreedyReference": true,
+    "floatGreedyMatches": [
+      true,
+      true,
+      true,
+      true
+    ],
+    "maxLogitErrors": [
+      0.0894622802734375,
+      0.06681812554597855,
+      0.0894613265991211,
+      0.1225595474243164
+    ],
+    "setupMs": 22018.526071999986,
+    "stepMs": [
+      5960836.052726001,
+      753841.4268200004,
+      753579.2059530003,
+      751135.5754000006
+    ],
+    "quantizedReferenceMs": [
+      1233.810749999975,
+      1073.0175680000684,
+      1058.6381150005764,
+      1053.474651000215
+    ],
+    "elapsedMs": 8246287.157318,
+    "clientEncryptedReplayMs": 4102773.8552810377,
+    "evaluatorRoundTripMs": 4102397.1408860134,
+    "sentBytes": 321932548,
+    "receivedBytes": 86305332,
+    "evaluationKeyBytes": 268435536,
+    "clientPeakRss": 5120380,
+    "clientComputation": "Client nonlinearities, embeddings, caches, quantization, decoding and full encrypted replay",
+    "integrity": "Full deterministic replay; no qualified malicious-security claim",
+    "implementationVersions": {
+      "concrete-ml": "1.9.0",
+      "concrete-ml-extensions": "0.1.9+ntt.1",
+      "concrete-python": "2.10.0",
+      "torch": "2.3.1+cpu",
+      "transformers": "4.44.2",
+      "numpy": "1.26.4"
+    },
+    "nativeImplementation": {
+      "native-source-id": "8cb2cbd212d05c6646fb3132ebef58624738b0d0dcf7f59daebe3e0766e17bf9",
+      "native-binary-sha256": "f9e7daf5e9f4ccbd94e7c8c5e18b71ecc288c2765519dac51fa45886b4c33887"
+    }
+  },
+  "publicFixtureOutputText": " 4\n\\",
+  "publicFixtureOutputTokens": [
+    220,
+    19,
+    198,
+    59
+  ]
+}

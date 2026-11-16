@@ -242,7 +242,35 @@ The eight installed public quality prompts now also own encrypted fixture IDs in
 `quantization-fixtures.json`. CLI prompt selection and safe evidence collection
 share `public_qwen_fixtures.py`; an unknown fixture rejects before artifact reads,
 and the selected identity must match the report before output can be published.
-The legacy capital default is preserved. A separately marked arithmetic attempt
+The legacy capital default is preserved. The separately marked arithmetic run
 uses the same all-layer/twelve-bit route and four steps, testing a second prompt
-and the new closed-route boundary. Scheduling it establishes no numerical result;
-only a completed, inspected artifact can extend encrypted quality coverage.
+and the new closed-route boundary. Its inspected result is recorded below.
+
+
+## Second prompt with completed closed-route validation
+
+The [retained arithmetic result](evidence/full-qwen/ntt12-arithmetic-closed-route.json)
+completed all **24 decoders and output head**, **169 linear modules**, **1,548 verified
+encrypted tiles and four autoregressive steps**. All four greedy tokens matched
+both the quantized and FP32 reference. Maximum encrypted-versus-quantized logit
+error was **0.12256**, so this is not numerical equivalence. For the public prompt
+`2 + 2 =`, the raw continuation tokens were `[220, 19, 198, 59]` (space, `4`, newline,
+backslash). Reference agreement does not turn that continuation into a general
+answer-quality result.
+
+The actual run reports **`after-route-close/v1`**: the complete fixed encrypted
+route finished and closed before the reference acceptance checks. Total elapsed
+time was **137.44 minutes**, including **68.38 minutes** client encrypted replay
+and **68.37 minutes** evaluator round trips. Application frames sent/received were
+**321,932,548 / 86,305,332 bytes**, including the **268,435,536-byte** evaluation key.
+Client lifetime peak RSS was **5,243,269,120 bytes**. These are one hosted CPU
+observation with process-local transport, not separate-machine measurements or a
+matched production overhead benchmark.
+
+The [context](evidence/full-qwen/ntt12-arithmetic-context.json) binds the exact
+revision, artifact checksum and checkpoint, and distinguishes this real execution
+from the later cache-lifecycle changes. This extends fixed-fixture functional
+coverage to two prompts and exercises the closed-route validation boundary.
+Client nonlinearities and full replay remain; timing/failure leakage, arbitrary
+input correctness, independent malicious-security review and full Flash generation
+remain unqualified. Production admission stays closed.

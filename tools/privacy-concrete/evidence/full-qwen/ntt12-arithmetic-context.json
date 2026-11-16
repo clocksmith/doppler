@@ -1,0 +1,27 @@
+{
+  "schema": "doppler.full-qwen-twelve-bit-functional-context/v1",
+  "revision": "18734bc758e6f12e6af1381c12497d5f912f3a07",
+  "workflowRun": 43865231126,
+  "artifactId": 14234054769,
+  "artifactZipSha256": "b4f0de0f5a50906fa6b8bb2bc72e489940bd77c9005bd6747938a04314125df9",
+  "evidence": "ntt12-arithmetic-closed-route.json",
+  "modelRepository": "Qwen/Qwen2.5-0.5B-Instruct",
+  "modelRevision": "7ae557604adf67be50417f59c2c2f167def9a775",
+  "parameterProfile": "glwe-quant12-message35-storage48/v1",
+  "transport": "local-process",
+  "validationBoundary": "after-route-close/v1",
+  "productionBackendAvailable": false,
+  "securityQualified": false,
+  "functionalFixtureComplete": true,
+  "limitations": [
+    "Second fixed public prompt and four greedy steps; not arbitrary-private-input correctness or a corpus-wide accuracy result",
+    "All four greedy choices match the quantized and FP32 reference; maximum encrypted-versus-quantized logit error is 0.1225595474243164, not numerical equivalence",
+    "Raw model continuation is space,4,newline,backslash; greedy reference agreement does not establish answer quality",
+    "Only linear products are outsourced homomorphically; attention, nonlinearities, embeddings, caches, quantization and decoding remain client-side",
+    "Full client encrypted replay plus floating/quantized validation is retained; no client compute-saving or independently qualified malicious-security claim",
+    "Single hosted Ubuntu CPU observation, process-local transport; not separate-machine inference, a production overhead benchmark or a latency distribution",
+    "The actual fixed encrypted route finished and closed before numerical acceptance checks; runtime, integrity-failure, cancellation and timing leakage remain unqualified",
+    "The 35-bit message domain, key/storage parameters and native variant still require independent protocol and side-channel review",
+    "Does not establish full Flash generation or qualify later client mapping/cache lifecycle revisions"
+  ]
+}
