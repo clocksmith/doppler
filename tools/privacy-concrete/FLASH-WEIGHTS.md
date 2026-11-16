@@ -584,3 +584,23 @@ removes model-sized parsing/hashing from each encrypted frame without changing
 frame contents, numerical bounds, recipient binding or failure handling. Focused
 mutation tests and real Torch/NumPy tiled dispatch with explicitly simulated
 crypto cover these ownership changes; no full Flash speedup is measured.
+
+
+## Client mapping scopes and cache replacement
+
+`FullLinear` now retains coefficient path/geometry instead of an open mapping for
+every prepared projection. Both its exact integer reference and encrypted tiled
+execution borrow one read-only matrix for the projection's scope and close it
+explicitly on success, cancellation or arithmetic failure. The clear-only wide
+control, source-precision diagnostic and twelve-bit plan-domain check use that
+same owner. Ordinary file changes during a scope reject after cleanup; complete
+cache identity admission and the bridge's before-disclosure tile check remain
+required. A missing cache file rejects and cannot select floating fallback.
+
+This permits an external public-cache owner to replace or remove a coefficient
+file between uses without leaving the client attached to an old mapping. It does
+not yet regenerate an evicted file, admit a partial Flash cache, release all
+original floating checkpoint weights or implement full Flash generation. Tests
+cover mapping lifetimes and actual int8/int12 Torch quantization; encrypted failure
+and tiled-dispatch controls simulate crypto explicitly. No model-wide memory
+saving or fresh encrypted full-model execution is inferred from these checks.

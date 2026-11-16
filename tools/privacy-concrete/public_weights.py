@@ -14,6 +14,7 @@ from types import MappingProxyType
 from full_plan import canonical,tiles
 from protocol import digest
 from weight_encoding import weight_encoding
+from source_snapshot import file_signature
 
 PUBLIC_TILE_BINDING_INTERFACE='doppler.public-tile-binding/v1'
 
@@ -160,3 +161,28 @@ class PublicTileReader:
         except BaseException:
             self.close()
             raise
+
+
+@contextmanager
+def mapped_public_matrix(path,shape,dtype):
+    """Borrow one read-only matrix for this scope; copies may outlive the mapping.
+
+    Whole-file identity admission and per-tile integrity are owned by the plan
+    loader/bridge. This scope detects ordinary file changes and closes explicitly;
+    it is not a replacement for those checks or malicious-host protection.
+    """
+    import numpy as np
+    if (not isinstance(shape,tuple) or len(shape)!=2
+            or any(type(width) is not int or width<=0 for width in shape)
+            or np.dtype(dtype) not in [np.dtype('int8'),np.dtype('<i2')]):
+        raise ValueError('Explicit signed public matrix geometry/encoding required')
+    path=Path(path);before=file_signature(path)
+    if before[2]!=shape[0]*shape[1]*np.dtype(dtype).itemsize:
+        raise ValueError('Public matrix cache geometry changed')
+    matrix=np.memmap(path,dtype=dtype,mode='r',shape=shape)
+    try:
+        if file_signature(path)!=before:raise ValueError('Public matrix changed while opening')
+        yield matrix
+    finally:
+        matrix._mmap.close()
+        if file_signature(path)!=before:raise ValueError('Public matrix changed while in use')

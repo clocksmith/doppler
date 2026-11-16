@@ -21,7 +21,8 @@ def run(model_dir,cache_dir):
     finally:handle.remove()
     if len(captured)!=1:raise ValueError('Exact first projection diagnostic required')
     q,scale,zero,shape=executor._dynamic_input_quantization(captured[0],first.context,False)
-    weights=np.array(first.weights,dtype=np.int64);expected=integer_dot(q,first.weights)
+    with first.coefficient_matrix() as public:
+        weights=np.array(public,dtype=np.int64);expected=integer_dot(q,public)
     clear=executor._apply_correction_and_dequantize(expected,q,zero,first.zero_point,first.sum_weights,first.definition['inputWidth'],scale,first.scale)
     high=json.loads(Path(__file__).with_name('precision-policy.json').read_text());results=[]
     for name,definition in [('default',POLICY['parameters']),('glwe-precision-48-level4/v1',high['parameters'])]:

@@ -8,6 +8,7 @@ from full_model import prepare
 from full_plan import canonical
 from protocol import digest
 from integer_reference import integer_dot
+from public_weights import mapped_public_matrix
 
 
 class WideReferenceLinear(nn.Module):
@@ -21,14 +22,17 @@ class WideReferenceLinear(nn.Module):
         identity=digest(values.tobytes());path=Path(directory)/(identity+'.i16')
         if not path.exists():path.write_bytes(values.tobytes())
         if path.stat().st_size!=values.nbytes or digest(path.read_bytes())!=identity:raise ValueError('Wide public reference cache corruption')
-        self.weights=np.memmap(path,dtype=np.int16,mode='r',shape=values.shape)
+        self.weight_path=path
         self.definition=dict(name=self.name,inputWidth=self.source.in_features,outputWidth=self.source.out_features,weightId=identity,quantizationBits=bits)
+
+    def coefficient_matrix(self):
+        return mapped_public_matrix(self.weight_path,(self.definition['inputWidth'],self.definition['outputWidth']),'<i2')
 
     def forward(self,value):
         if self.mode=='float-reference':return self.source(value)
         if self.mode!='clear-reference':raise ValueError('Clear-only reference cannot encrypt or silently substitute a backend')
         q,scale,zero,shape=self.executor._dynamic_input_quantization(value,self.context,False)
-        raw=integer_dot(q,self.weights)
+        with self.coefficient_matrix() as weights:raw=integer_dot(q,weights)
         result=self.executor._apply_correction_and_dequantize(raw,q,zero,self.zero,self.sum_weights,self.definition['inputWidth'],scale,self.scale)
         result=result.view(*shape[:-1],self.definition['outputWidth'])
         return result if self.source.bias is None else result+self.source.bias

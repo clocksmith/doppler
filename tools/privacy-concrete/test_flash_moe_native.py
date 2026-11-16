@@ -157,7 +157,8 @@ class StreamedFlashMoETests(unittest.TestCase):
             executor=GLWELinearLayerExecutor(use_dynamic_quantization=True)
             actual=FullLinear('public',layer,executor,directory,12)
             control=WideReferenceLinear(SimpleNamespace(name='public',remote=layer),executor,directory,12)
-            self.assertEqual(actual.weights.dtype,np.dtype('<i2'));self.assertGreater(int(abs(actual.weights).max()),127)
+            with actual.coefficient_matrix() as weights:
+                self.assertEqual(weights.dtype,np.dtype('<i2'));self.assertGreater(int(abs(weights).max()),127)
             value=torch.tensor([[.1,-.2,.3,-.4]],dtype=torch.float32);actual.mode=control.mode='clear-reference'
             torch.testing.assert_close(actual(value),control(value),rtol=0,atol=0)
 
@@ -193,6 +194,64 @@ class StreamedFlashMoETests(unittest.TestCase):
             bridge.admission.complete();self.assertEqual(bridge.sequence,7)
             torch.testing.assert_close(actual,expected,rtol=0,atol=0)
 
+    def test_public_matrix_scope_closes_on_success_failure_and_cache_changes(self):
+        from pathlib import Path
+        import numpy as np
+        from public_weights import mapped_public_matrix
+        for dtype in ['int8','<i2']:
+            with tempfile.TemporaryDirectory() as directory:
+                path=Path(directory)/'public';expected=np.arange(15,dtype=dtype).reshape(5,3);path.write_bytes(expected.tobytes())
+                for fail in [False,True]:
+                    matrix=None
+                    try:
+                        with mapped_public_matrix(path,(5,3),dtype) as matrix:
+                            self.assertFalse(matrix.flags.writeable);owned=np.array(matrix,copy=True)
+                            if fail:raise RuntimeError('cancelled computation')
+                    except RuntimeError:
+                        if not fail:raise
+                    self.assertTrue(matrix._mmap.closed);np.testing.assert_array_equal(owned,expected)
+                with patch.object(np,'memmap',side_effect=AssertionError('mapping before geometry check')):
+                    with self.assertRaises(ValueError):
+                        with mapped_public_matrix(path,(6,3),dtype):self.fail('bad geometry accepted')
+                matrix=None
+                with self.assertRaises(ValueError):
+                    with mapped_public_matrix(path,(5,3),dtype) as matrix:
+                        path.write_bytes((expected+1).tobytes())
+                self.assertTrue(matrix._mmap.closed)
+
+    def test_full_linear_cache_opens_lazily_and_closes_on_encrypted_failure(self):
+        import numpy as np
+        import torch
+        import full_model
+        from full_bridge import FullBridge
+        from full_admission import FullRouteAdmission
+        from full_plan import FullPlan,canonical
+        from concrete.ml.quantization.linear_op_glwe_backend import GLWELinearLayerExecutor
+        for bits,message_bits in [(8,27),(12,35)]:
+            with tempfile.TemporaryDirectory() as directory:
+                mappings=[];open_matrix=np.memmap
+                def record(*args,**kwargs):
+                    result=open_matrix(*args,**kwargs);mappings.append(result._mmap);return result
+                with patch.object(np,'memmap',side_effect=record):
+                    layer=torch.nn.Linear(5,3).eval().requires_grad_(False)
+                    projection=full_model.FullLinear('public',layer,GLWELinearLayerExecutor(use_dynamic_quantization=True),directory,bits)
+                    self.assertEqual(mappings,[])
+                    value=torch.tensor([[.1,-.2,.3,-.4,.5]]);projection.mode='clear-reference';projection(value)
+                    self.assertEqual(len(mappings),1);self.assertTrue(mappings[-1].closed)
+                    bridge=FullBridge.__new__(FullBridge);bridge.cancelled=None
+                    bridge.plan=FullPlan(canonical(dict(steps=1,contextBucket=1,inputTileWidth=2,outputTileWidth=2,
+                        parameters=dict(parameters=dict(bits_reserved_for_computation=message_bits)),projections=[projection.definition])))
+                    bridge.admission=FullRouteAdmission(bridge.plan)
+                    def reject(*args):raise InterruptedError('cancelled encrypted tile')
+                    bridge.evaluate=reject;projection.bridge=bridge;projection.secret=object();projection.parameters=object();projection.mode='execute'
+                    with patch.object(full_model,'ext',SimpleNamespace(encrypt_matrix=lambda **kwargs:kwargs['data'])):
+                        with self.assertRaises(InterruptedError):projection(value)
+                    self.assertEqual(len(mappings),2);self.assertTrue(all(mapping.closed for mapping in mappings))
+                    projection.weight_path.unlink();projection.mode='clear-reference'
+                    with patch.object(layer,'forward',side_effect=AssertionError('cache miss silently fell back')):
+                        with self.assertRaises(FileNotFoundError):projection(value)
+                    self.assertEqual(len(mappings),2)
+
     def test_bounded_integer_reference_matches_full_int64_product_without_float_rounding(self):
         import numpy as np
         import torch
@@ -215,7 +274,7 @@ class StreamedFlashMoETests(unittest.TestCase):
             layer=nn.Linear(4,3,bias=False).eval().requires_grad_(False)
             with torch.no_grad():layer.weight.copy_(torch.arange(12,dtype=torch.float32).reshape(3,4)*.07-.4)
             reference=WideReferenceLinear(SimpleNamespace(name='public',remote=layer),GLWELinearLayerExecutor(use_dynamic_quantization=True),directory,12)
-            self.assertGreater(int(abs(reference.weights).max()),127)
+            with reference.coefficient_matrix() as weights:self.assertGreater(int(abs(weights).max()),127)
             value=torch.tensor([[.1,-.2,.3,-.4]],dtype=torch.float32);reference.mode='clear-reference'
             torch.testing.assert_close(reference(value),layer(value),rtol=.01,atol=.001)
             reference.mode='execute'
@@ -293,7 +352,8 @@ class StreamedFlashMoETests(unittest.TestCase):
         width=4098;values=torch.full((1,width),255,dtype=torch.float32);values[0,0]=0
         projection=FullLinear.__new__(FullLinear);torch.nn.Module.__init__(projection)
         projection.mode='clear-reference';projection.definition=dict(inputWidth=width,outputWidth=1)
-        projection.context=None;projection.weights=np.full((width,1),127,dtype=np.int8)
+        from contextlib import nullcontext
+        projection.context=None;projection.coefficient_matrix=lambda:nullcontext(np.full((width,1),127,dtype=np.int8))
         projection.scale=projection.zero_point=projection.sum_weights=None;projection.remote=SimpleNamespace(bias=None)
         projection.executor=SimpleNamespace(_dynamic_input_quantization=lambda *args:(values,1,0,values.shape),
                                             _apply_correction_and_dequantize=lambda raw,*args:raw)

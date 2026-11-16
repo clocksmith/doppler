@@ -110,10 +110,10 @@ def load_qwen_plan(directory,policy,versions,common,plan_type):
         for begin,end in ranges(projection['inputWidth'],value['inputTileWidth']):
             validate_declared_arithmetic_capacity(end-begin,encoding['quantizationBits'],common['parameters']['bits_reserved_for_computation'])
         if encoding['bytes']>1:
-            import numpy as np
-            coefficients=np.memmap(path,dtype=encoding['dtype'],mode='r')
-            bound=2**(encoding['quantizationBits']-1)
-            if coefficients.min() < -bound or coefficients.max() >= bound:raise ValueError('Public coefficient exceeds its declared precision')
+            from public_weights import mapped_public_matrix
+            with mapped_public_matrix(path,(projection['inputWidth'],projection['outputWidth']),encoding['dtype']) as coefficients:
+                bound=2**(encoding['quantizationBits']-1)
+                if coefficients.min() < -bound or coefficients.max() >= bound:raise ValueError('Public coefficient exceeds its declared precision')
         tiles(projection, value['inputTileWidth'], value['outputTileWidth'])
     model_id = digest(canonical(dict(source=source, projections=value['projections'])))
     if value['modelId'] != model_id:
