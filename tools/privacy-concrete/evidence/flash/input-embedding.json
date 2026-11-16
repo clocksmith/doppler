@@ -1,0 +1,31 @@
+{
+  "schema": "doppler.public-flash-input-embedding/v1",
+  "fixtureId": "flash-public-capital-text",
+  "sourceId": "24c86f40c68c4a4bb2ad85ecadc77e4b39aad9281dc544a39dc01cc5a85066e7",
+  "tokenizerSourceId": "7c09da34a38e3639c4121c2d147c89263caae199c1be68e61595f79965ad73b2",
+  "productionBackendAvailable": false,
+  "securityQualified": false,
+  "fullModelExecuted": false,
+  "encryptedExecution": false,
+  "promptTokens": [
+    760,
+    6511,
+    314,
+    9338,
+    369
+  ],
+  "hiddenShape": [
+    1,
+    5,
+    2560
+  ],
+  "hiddenDtype": "torch.float32",
+  "hiddenSha256": "24969523102d34cb1fd79ad4e5a83d8b8b4691fba3b170bf948e8e2ec0478a7e",
+  "independentReferenceEqual": true,
+  "wholeShardBytes": 2974788136,
+  "selectedBF16Bytes": 25600,
+  "fullFP32EmbeddingBytes": 2542796800,
+  "elapsedMs": 2617.4340519999932,
+  "clientLifetimePeakRssBytes": 465014784,
+  "interpretation": "Actual checkpoint input embeddings only; complete-file verification and client text I/O included; no decoder/model output, crypto or latency-distribution qualification"
+}

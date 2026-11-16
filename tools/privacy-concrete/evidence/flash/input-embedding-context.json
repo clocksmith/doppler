@@ -1,0 +1,21 @@
+{
+  "schema": "doppler.actual-flash-input-embedding-context/v1",
+  "revision": "b03c5441f3eb55c2451fcb1f19a505571c3c634e",
+  "workflowRun": 43851893056,
+  "artifactId": 14218051458,
+  "artifactZipSha256": "07a9ea01308d19b117d5a501bfa358ea19a3091b360862c9416a2654a36a943b",
+  "evidence": "input-embedding.json",
+  "productionBackendAvailable": false,
+  "securityQualified": false,
+  "fullModelExecuted": false,
+  "encryptedExecution": false,
+  "sourceReferenceWorkflow": 43851893136,
+  "sourceReferenceTests": 38,
+  "limitations": [
+    "Actual pinned tokenizer and embedding rows only, not decoder/model output",
+    "Complete 2974788136-byte public object was verified before indices; no selected-row acquisition fallback",
+    "One 2617ms hosted CPU observation includes whole-file hash and client text I/O; excludes source download",
+    "465014784-byte client lifetime RSS includes libraries and tokenizer; no full-model memory/latency claim",
+    "Four-step complete mixed-layer graph tests use small fixture weights, not actual 48-layer Flash inference"
+  ]
+}

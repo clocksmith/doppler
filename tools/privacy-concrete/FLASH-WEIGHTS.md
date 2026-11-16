@@ -377,3 +377,19 @@ the complete mixed-layer small graph with mapped input embeddings and isolated
 request leases. Actual full Flash decoder/model execution, cryptographic routing
 and security qualification are separate uncompleted gates. An input activation or
 reference-fixture pass must not be reported as a generated model token.
+
+The [actual input-embedding observation](evidence/flash/input-embedding.json)
+produced a `[1, 5, 2560]` FP32 tensor exactly equal to independent safetensors row
+reads for the pinned public prompt. Whole-file verification plus client text I/O
+and lookup took **2,617 ms**, excluding acquisition; client lifetime peak RSS was
+**465,014,784 bytes**. The adapter read 25,600 BF16 row bytes from the already
+verified 2,974,788,136-byte public object. These are one-observation prefix costs,
+not complete-model inference or latency distributions.
+
+All **38** source-reference checks passed on the same revision, including four
+autoregressive updates through the complete small mixed-layer graph with mapped
+input rows, configuration-change rejection before lookup/disclosure, and owned
+lease cleanup across requests. The [context](evidence/flash/input-embedding-context.json)
+separates actual checkpoint rows from small-graph reference evidence and records
+the exact run/artifact identities. Neither result is an encrypted Flash forward
+pass or generated model token.

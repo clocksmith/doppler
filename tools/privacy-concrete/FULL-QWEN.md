@@ -187,3 +187,13 @@ dots were -17,175,674,880 and 17,167,288,320; maximum measured integer error was
 Complete repeated ciphertext bytes matched. This is one disposable-key numerical
 observation, not a cryptographic noise-failure bound or full-model result. The
 complete four-step twelve-bit Qwen run remains a separate acceptance gate.
+
+The [higher-storage full-model attempt](evidence/full-qwen/ntt48-numerical-failure.json)
+also stopped at **1,161 verified tiles**, with `token-reference-mismatch` on its
+third step. Its native replay checks passed. Reducing the same-input first-Q error
+from 73 to 1 integer units did not establish complete-model parity; stored precision
+alone was insufficient in this attempt. The artifact and exact revision are in
+the [attempt context](evidence/full-qwen/attempts-context.json). This unchanged
+candidate has not been retried. The independently declared twelve-bit candidate
+retains its own full-model gate; no plaintext correction or relaxed greedy
+acceptance substitutes for an encrypted result.

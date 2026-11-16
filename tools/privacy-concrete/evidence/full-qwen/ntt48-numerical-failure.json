@@ -1,0 +1,14 @@
+{
+  "schema": "doppler.public-full-qwen-ci-evidence/v1",
+  "revision": "e5afd2ff3cc8dda319f57107cf8c4af095ab8714",
+  "fixtureId": "qwen05b-capital",
+  "completed": false,
+  "productionBackendAvailable": false,
+  "securityQualified": false,
+  "verifiedTilesObserved": 1161,
+  "lastVerifiedTile": {
+    "sequence": 1161,
+    "projection": "lm_head"
+  },
+  "failureCode": "token-reference-mismatch"
+}

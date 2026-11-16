@@ -22,6 +22,16 @@
       "verifiedTiles": 1161,
       "evidence": "ntt-default-numerical-failure.json",
       "interpretation": "Three 387-tile model passes replay-verified; third-step greedy check failed after two accepted steps; no partial output published"
+    },
+    {
+      "revision": "e5afd2ff3cc8dda319f57107cf8c4af095ab8714",
+      "workflowRun": 43836083105,
+      "artifactId": 14217192323,
+      "artifactZipSha256": "aceab049364fc987729bf48582c9d7b70c29300fc3da6fdd226ad62815ddc8fe",
+      "result": "token-reference-mismatch",
+      "verifiedTiles": 1161,
+      "evidence": "ntt48-numerical-failure.json",
+      "interpretation": "The separate higher-storage int8 candidate also completed three replay-verified model passes and failed its third greedy-token check; no partial output published. The paired first-Q improvement was insufficient to establish full-model parity. No retry of this unchanged candidate was launched."
     }
   ]
 }
