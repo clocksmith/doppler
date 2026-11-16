@@ -1,9 +1,11 @@
 import { ExpertFrequencyIndex } from './expert-frequency-index.js';
 import { getRuntimeConfig } from '../../config/runtime.js';
-import { CompactExpertCache } from './compact-expert-cache.js';
+import { CompactExpertCache, compactExpertCapacity } from './compact-expert-cache.js';
 import { createWeightBuffer } from '../../gpu/weight-buffer.js';
 import { validateQwen35RoutedConfig } from "../../config/schema/runtime/loading.schema.js";
-import { createRoutedExpertCounters, readRoutedExpertRange } from './routed-expert-source.js';
+import { createRoutedExpertCounters, readRoutedExpertRange, assertExpertReadShape, readRoutedExpertPayload } from './routed-expert-source.js';
+
+import { writeRoutedPrefillExpert, selectPrefillSeedExperts } from './routed-expert-prefill.js';
 
 // The cache owns individual expert payloads. One reusable logical bank preserves
 // the existing kernels' expert IDs, source-format byte offsets and accumulation order.
@@ -54,6 +56,14 @@ export class RoutedExpertCache {
   constructor(options) {
     validateQwen35RoutedConfig(options.policy);
     this.#options = options;
+    const lease = options.rangeLease;
+    if (lease && (!Number.isSafeInteger(lease.concurrency ?? 1) || (lease.concurrency ?? 1) < 1
+      || !Number.isSafeInteger(lease.maxPartBytes) || lease.maxPartBytes < 4
+      || !Number.isSafeInteger(lease.memoryBytes) || lease.memoryBytes < lease.maxPartBytes * (lease.concurrency ?? 1)
+      || lease.memoryBytes > options.policy.stagingBytes - 8 * options.policy.readConcurrency)) {
+      throw new Error('Owned expert ranges must fit the aggregate staging budget with fallback scratch.');
+    }
+    this.#staging = lease?.memoryBytes ?? 0;
     if (options.policy.evictionPolicy === 'lfu') {
       if (typeof options.numLayers !== 'number' || typeof options.numExperts !== 'number'
         || !Number.isSafeInteger(options.numLayers) || options.numLayers < 1
@@ -225,8 +235,9 @@ export class RoutedExpertCache {
   async #prepareWorking(plan, signal) {
     const signature = JSON.stringify(plan.planes.map(p => [p.role, p.dtype, p.location.shape, p.bytes]));
     const { policy } = this.#options;
+    const payloadBytes = policy.prefillUploadMode === 'direct-bank' ? 0 : plan.expertBytes * policy.readConcurrency;
     let spareCapacity = Math.max(0, policy.gpuBudgetBytes - policy.reserveBytes
-      - this.#options.otherGpuBytes() - plan.bankBytes - plan.expertBytes * policy.readConcurrency);
+      - this.#options.otherGpuBytes() - plan.bankBytes - payloadBytes);
     if (this.#working.size && (signature !== this.#signature
       || this.#workingBytes - plan.bankBytes > spareCapacity)) {
       await this.#waitForSubmitted();
@@ -300,7 +311,7 @@ export class RoutedExpertCache {
     });
     // Keep read granularity unchanged; direct fill owns only the assembled output.
     const readRangeInto = this.#options.readRangeInto;
-    const chunkBytes = Math.floor(this.#options.policy.stagingBytes / (2 * this.#options.policy.readConcurrency * 4)) * 4;
+    const chunkBytes = Math.floor((this.#options.policy.stagingBytes - (this.#options.rangeLease?.memoryBytes ?? 0)) / (2 * this.#options.policy.readConcurrency * 4)) * 4;
     let targetOffset = 0;
     let hostReservation = 0;
     try {
@@ -335,31 +346,43 @@ export class RoutedExpertCache {
           chunks = [];
         } else this.#stats.hostAdmissionSkips++;
       }
-      for (const plane of plan.planes) {
-        for (let offset = 0; offset < plane.expertBytes;) {
+      if (this.#options.policy.sourceReadMode === 'expert-parallel') {
+        const destination = this.#getReaderStaging(reader, plan.expertBytes);
+        this.#sampleProfileMemory();
+        this.#stats.peakStagingBytes = Math.max(this.#stats.peakStagingBytes, this.#staging);
+        const started = performance.now();
+        try {
+          await readRoutedExpertPayload(this.#options, this.#stats, plan, expert, signal, destination, null);
           signal.throwIfAborted();
-          const length = Math.min(chunkBytes, plane.expertBytes - offset);
-          // Each reader owns its destination until writeBuffer has copied it.
-          // Retained host chunks must keep independent immutable backing storage.
-          const destination = readRangeInto && chunks === null && plane.location.sourceTransform == null
-            ? this.#getReaderStaging(reader, length) : null;
-          const ownedStagingBytes = destination ? 0 : (readRangeInto ? 1 : 2) * length;
-          this.#staging += ownedStagingBytes;
-          this.#sampleProfileMemory();
-          this.#stats.peakStagingBytes = Math.max(this.#stats.peakStagingBytes, this.#staging);
-          const started = performance.now();
-          try {
-            const bytes = await readRoutedExpertRange(this.#options, this.#stats, plane, expert, offset, length, signal, destination);
+          this.#upload(entry, 0, destination, beforeSubmit);
+        } finally { this.#stats.ioWaitMs += performance.now() - started; }
+      } else {
+        for (const plane of plan.planes) {
+          for (let offset = 0; offset < plane.expertBytes;) {
             signal.throwIfAborted();
-            this.#upload(entry, targetOffset + offset, bytes, beforeSubmit);
-            chunks?.push({ offset: targetOffset + offset, data: bytes });
-          } finally {
-            this.#stats.ioWaitMs += performance.now() - started;
-            this.#staging -= ownedStagingBytes;
+            const length = Math.min(chunkBytes, plane.expertBytes - offset);
+            // Each reader owns its destination until writeBuffer has copied it.
+            // Retained host chunks must keep independent immutable backing storage.
+            const destination = readRangeInto && chunks === null && plane.location.sourceTransform == null
+              ? this.#getReaderStaging(reader, length) : null;
+            const ownedStagingBytes = destination ? 0 : (readRangeInto ? 1 : 2) * length;
+            this.#staging += ownedStagingBytes;
+            this.#sampleProfileMemory();
+            this.#stats.peakStagingBytes = Math.max(this.#stats.peakStagingBytes, this.#staging);
+            const started = performance.now();
+            try {
+              const bytes = await readRoutedExpertRange(this.#options, this.#stats, plane, expert, offset, length, signal, destination);
+              signal.throwIfAborted();
+              this.#upload(entry, targetOffset + offset, bytes, beforeSubmit);
+              chunks?.push({ offset: targetOffset + offset, data: bytes });
+            } finally {
+              this.#stats.ioWaitMs += performance.now() - started;
+              this.#staging -= ownedStagingBytes;
+            }
+            offset += length;
           }
-          offset += length;
+          targetOffset += plane.expertBytes;
         }
-        targetOffset += plane.expertBytes;
       }
       if (chunks) {
         signal.throwIfAborted();
@@ -380,6 +403,28 @@ export class RoutedExpertCache {
     } finally {
       this.#hostReserved -= hostReservation;
     }
+  }
+
+  /** @param {import('./routed-expert-plan.js').RoutedExpertBankPlan} plan
+   * @param {number} expert @param {AbortSignal} signal
+   * @param {() => void} beforeSubmit @param {number} reader */
+  async #writeWorking(plan, expert, signal, beforeSubmit, reader) {
+    const allLeased = this.#options.rangeLease && plan.planes.every(plane =>
+      plane.location.sourceTransform == null && (!plane.location.spans || plane.location.spans.length <= 1));
+    if (plan.planes.some(plane => plane.location.sourceTransform != null)
+      || (!allLeased && !this.#options.readRangeInto)) {
+      throw new Error('Direct prefill requires unchanged planes and an owned lease or direct range reader.');
+    }
+    const chunkBytes = Math.floor((this.#options.policy.stagingBytes - (this.#options.rangeLease?.memoryBytes ?? 0))
+      / (2 * this.#options.policy.readConcurrency * 4)) * 4;
+    const length = this.#options.policy.sourceReadMode === 'expert-parallel' ? plan.expertBytes : chunkBytes;
+    const scratch = allLeased ? null : this.#getReaderStaging(reader, length);
+    this.#stats.peakStagingBytes = Math.max(this.#stats.peakStagingBytes, this.#staging);
+    this.#sampleProfileMemory();
+    this.#stats.cacheMisses++;
+    await writeRoutedPrefillExpert(this.#options, this.#stats, plan, expert, signal, this.#working, scratch,
+      () => { beforeSubmit(); ++this.#submittedSerial; });
+    this.#loaded.add(expert);
   }
 
   /** @param {string} key @param {import('./routed-expert-cache.js').RoutedExpertEntry} entry */
@@ -527,14 +572,16 @@ export class RoutedExpertCache {
         && plan.expertBytes * this.#options.policy.readConcurrency > this.#options.policy.hostCacheBytes) {
       throw new Error('Routed host cache must hold one payload per concurrent reader.');
     }
+    assertExpertReadShape(this.#options, plan);
     // Policy changes cannot leave old scratch charged alongside a different path.
-    const scratchLimit = Math.floor(this.#options.policy.stagingBytes / (2 * this.#options.policy.readConcurrency * 4)) * 4;
+    const scratchLimit = Math.floor((this.#options.policy.stagingBytes - (this.#options.rangeLease?.memoryBytes ?? 0)) / (2 * this.#options.policy.readConcurrency * 4)) * 4;
     if (!this.#options.readRangeInto
       || this.#readerStaging.length > this.#options.policy.readConcurrency
       || this.#readerStaging.some(bytes => bytes.byteLength > scratchLimit)) this.#clearReaderStaging();
     if (this.#options.policy.storageMode === 'compact-decode') {
       if (phase !== 'prefill' && phase !== 'decode') throw new Error('Compact experts require an explicit execution phase.');
       if (phase === 'decode') {
+        this.#clearReaderStaging();
         await this.#waitForSubmitted();
         signal.throwIfAborted();
         if (this.#owned.size) {
@@ -551,8 +598,10 @@ export class RoutedExpertCache {
         this.#sampleProfileMemory();
         return weights;
       }
+      this.#compact?.clearStaging();
       if (this.#options.policy.compactPrefillBytes > 0) {
-        if (plan.bankBytes + plan.expertBytes * this.#options.policy.readConcurrency > this.#options.policy.compactPrefillBytes) {
+        const payloadBytes = this.#options.policy.prefillUploadMode === 'direct-bank' ? 0 : plan.expertBytes * this.#options.policy.readConcurrency;
+        if (plan.bankBytes + payloadBytes > this.#options.policy.compactPrefillBytes) {
           throw new Error('Compact prefill reservation cannot hold the working bank and concurrent expert payloads.');
         }
       } else if (this.#compact) { await this.#compact.destroy(); this.#compact = null; }
@@ -581,6 +630,10 @@ export class RoutedExpertCache {
           this.#stats.workingHits++;
           continue;
         }
+        if (phase === 'prefill' && this.#options.policy.prefillUploadMode === 'direct-bank') {
+          await this.#writeWorking(plan, expert, signal, beforeSubmit, reader);
+          continue;
+        }
         const entry = await this.#get(plan, expert, signal, beforeSubmit, phase, reader);
         try {
           signal.throwIfAborted();
@@ -594,7 +647,9 @@ export class RoutedExpertCache {
         } finally { entry.users--; }
       }
     };
-    const outcomes = await Promise.allSettled(Array.from({ length: this.#options.policy.readConcurrency }, async (_, reader) => {
+    const laneCount = this.#options.rangeLease && phase === 'prefill' && this.#options.policy.prefillUploadMode === 'direct-bank'
+      ? Math.min(this.#options.policy.readConcurrency, this.#options.rangeLease.concurrency ?? 1) : this.#options.policy.readConcurrency;
+    const outcomes = await Promise.allSettled(Array.from({ length: laneCount }, async (_, reader) => {
       try { await work(reader); } catch (error) { controller.abort(error); throw error; }
     }));
     const errors = [...new Set(outcomes.filter(r => r.status === 'rejected').map(r => r.reason))];
@@ -612,6 +667,17 @@ export class RoutedExpertCache {
       return [plane.role, createWeightBuffer(buffer, plane.dtype, 'row', plane.location.shape, plane.name)];
     }));
     if (!weights.down) throw new Error('Routed working bank has no down projection.');
+    if (phase === 'prefill' && this.#options.policy.prefillCompactAdmission === 'selected-frequency-first'
+      && !this.#compact?.hasLayer(plan.layer)) {
+      const compactLayerCount = this.#options.compactLayerCount;
+      if (!Number.isSafeInteger(compactLayerCount) || !compactLayerCount) throw new Error('Prefill seed requires assigned layer count.');
+      const options = { ...this.#options, compactLayerCount };
+      if (!this.#compact) this.#compact = new CompactExpertCache(options, this.#stats);
+      const selected = selectPrefillSeedExperts(expertIds, compactExpertCapacity(plan, options));
+      // GPU copies use already authenticated bytes and preserve original expert IDs.
+      this.#clearReaderStaging();
+      await this.#compact.prepare(plan, selected, signal, this.#working);
+    }
     return { expertIdx: 0, expertFormat: 'qwen3_5', numExperts: plan.numExperts,
       expertIntermediateSize: plan.intermediateSize, ...weights, down: weights.down };
   }
@@ -619,15 +685,18 @@ export class RoutedExpertCache {
   getStats() {
     this.#stats.peakAccountedGpuBytes = Math.max(this.#stats.peakAccountedGpuBytes,
       this.#options.otherGpuBytes() + this.#stats.residentBytes);
+    const compact = this.#compact?.getStats();
     return { ...this.#stats,
       evictionPolicy: this.#options.policy.evictionPolicy,
       frequencyHistoryEntries: this.#frequency?.historySize ?? 0,
       frequencyResidentEntries: this.#frequency?.residentSize ?? 0,
       phaseProfiles: Object.fromEntries(Object.entries(this.#phaseProfiles).map(([phase, profile]) =>
         [phase, { ...profile, counters: { ...profile.counters } }])),
-      cacheBytes: this.#cacheBytes, workingBytes: this.#workingBytes, experts: this.#entries.size,
+      experts: this.#entries.size,
       hostCacheBytes: this.#hostBytes, hostReservedBytes: this.#hostReserved, hostExperts: this.#hostEntries.size,
-      ...this.#compact?.getStats() };
+      ...compact,
+      cacheBytes: this.#cacheBytes + (compact?.cacheBytes ?? 0),
+      workingBytes: this.#workingBytes };
   }
 
   async destroy() {

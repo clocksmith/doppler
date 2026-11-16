@@ -1273,6 +1273,11 @@
       "id": "src/loader/experts/compact-expert-cache.js#CompactExpertCache.getResidentSlots",
       "category": "gpu-orchestration",
       "reason": "Copies expert-ID to existing GPU-slot metadata into a Map without touching tensor bytes or changing compact LRU order. GPU-to-GPU copies preserve the packed bytes at their original logical expert offsets."
+    },
+    {
+      "id": "src/loader/experts/routed-expert-prefill.js#selectPrefillSeedExperts",
+      "category": "gpu-orchestration",
+      "reason": "Ranks already selected expert-ID metadata for bounded GPU cache admission using observed counts and last occurrence. Map.set records scalar cache history; it neither changes routing IDs used by execution nor reads, computes or transforms tensor values."
     }
   ]
 }

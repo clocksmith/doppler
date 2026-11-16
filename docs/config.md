@@ -130,6 +130,33 @@ selection that cannot fit its layer's slots fails before dispatch. LFU remains
 available with `payload-copy`; combining LFU with compact decode is rejected
 rather than silently running LRU.
 
+Three opt-in controls preserve the loading work across prefill and decode.
+`sourceReadMode: "plane-serial"` keeps the existing generic read order;
+`"expert-parallel"` reads each expert's unchanged planes into disjoint views of
+one bounded scratch payload, settling every read before reuse. It requires a
+direct range-into reader, compact decode and no host payload cache. A worker
+`rangeLease` port owns its own bounded scheduling and requires `"plane-serial"`;
+combining both concurrency mechanisms fails explicitly.
+
+`prefillUploadMode: "direct-bank"` writes authenticated ranges directly at their
+original logical expert offsets, avoiding temporary expert GPU buffers and their
+subsequent bank copies. The default remains `"expert-copy"`. Direct-bank mode
+requires compact decode, no host payload cache, unchanged source planes and a
+lease port or direct range-into reader. Worker leases are released after each
+synchronous upload copy; a failure drains queued writes before retry.
+
+`prefillCompactAdmission: "selected-frequency-first"` seeds the first successful
+prefill selection for a layer into compact GPU slots from its authenticated
+working bank. It ranks the supplied selected IDs by observed frequency and then
+last occurrence, limited by the declared compact capacity. It never substitutes
+experts during execution or changes routing. It requires a positive
+`compactPrefillBytes` reservation; the default is `"none"`. Existing resident
+layers retain their decode LRU order. `prefillSeedBytes` and
+`prefillSeedSubmissions` expose the additional GPU copies. Worker buffers and
+retained generic scratch share `stagingBytes`; phase transitions release generic
+scratch before the other cache can retain its own. These controls are component
+support, not model or performance qualification.
+
 An explicit `compactLayerBytes` object maps every assigned routed layer's original
 index to a positive 4-byte-aligned quota (including its source map). Its sum must
 not exceed `cacheBytes`; missing assigned layers fail before allocation. This

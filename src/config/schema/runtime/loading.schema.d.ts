@@ -185,6 +185,12 @@ export interface Qwen35RoutedConfig {
   compactPrefillBytes: number;
   /** Copy resident compact slots into full prefill banks; preserves decode retention. */
   compactPrefillReuse: 'none' | 'resident-gpu';
+  /** Seed the first complete prefill selection into compact slots by observed frequency, then recency. */
+  prefillCompactAdmission: 'none' | 'selected-frequency-first';
+  /** Generic direct readers may gather unchanged planes concurrently; lease ports own their bounded scheduling. */
+  sourceReadMode: 'plane-serial' | 'expert-parallel';
+  /** Write authenticated source ranges to their logical working-bank offsets without temporary expert buffers. */
+  prefillUploadMode: 'expert-copy' | 'direct-bank';
   /** LFU retains causal lifetime counts until unload; LRU remains the default. */
   evictionPolicy: 'lru' | 'lfu';
   cacheBytes: number;

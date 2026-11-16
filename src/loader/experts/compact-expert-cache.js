@@ -1,6 +1,6 @@
 import { validateQwen35RoutedConfig } from "../../config/schema/runtime/loading.schema.js";
 import { createWeightBuffer } from '../../gpu/weight-buffer.js';
-import { readRoutedExpertRange } from './routed-expert-source.js';
+import { readRoutedExpertRange, readRoutedExpertPayload, assertExpertReadShape } from './routed-expert-source.js';
 
 /** @type {typeof import('./compact-expert-cache.js').compactExpertCapacity} */
 export function compactExpertCapacity(plan, options) {
@@ -116,6 +116,35 @@ export class CompactExpertCache {
    * @param {{ bytes: Uint8Array | null }} reader */
   async #fill(plan, pool, expert, slot, signal, reader) {
     const chunkBytes = this.#chunkBytes();
+    if (this.#options.policy.sourceReadMode === 'expert-parallel') {
+      if (!reader.bytes) {
+        reader.bytes = new Uint8Array(chunkBytes);
+        this.#staging += chunkBytes;
+        this.#stats.stagingAllocations++;
+      } else this.#stats.stagingReuses++;
+      this.#stats.peakStagingBytes = Math.max(this.#stats.peakStagingBytes, this.#staging);
+      const destination = reader.bytes.subarray(0, plan.expertBytes);
+      const started = performance.now();
+      try {
+        await readRoutedExpertPayload(this.#options, this.#stats, plan, expert, signal, destination, pool.stats);
+        signal.throwIfAborted();
+        let offset = 0;
+        for (const plane of plan.planes) {
+          const buffer = pool.planes.get(plane.role);
+          if (!buffer) throw new Error('Compact expert plane is missing.');
+          const uploadStart = performance.now();
+          this.#options.device.queue.writeBuffer(buffer, slot * plane.expertBytes,
+            destination.subarray(offset, offset + plane.expertBytes));
+          const uploadMs = performance.now() - uploadStart;
+          this.#stats.uploadEnqueueMs += uploadMs;
+          pool.stats.uploadEnqueueMs += uploadMs;
+          pool.stats.uploadBytes += plane.expertBytes;
+          this.#stats.uploadBytes += plane.expertBytes;
+          offset += plane.expertBytes;
+        }
+      } finally { this.#stats.ioWaitMs += performance.now() - started; }
+      return;
+    }
     for (const plane of plan.planes) {
       for (let offset = 0; offset < plane.expertBytes;) {
         signal.throwIfAborted();
@@ -179,7 +208,8 @@ export class CompactExpertCache {
   }
 
   /** @type {import('./compact-expert-cache.js').CompactExpertCache['prepare']} */
-  async prepare(plan, ids, signal) {
+  async prepare(plan, ids, signal, residentPlanes = null) {
+    assertExpertReadShape(this.#options, plan);
     const chunkBytes = this.#chunkBytes();
     if (!this.#options.readRangeInto || this.#readers.length > this.#options.policy.readConcurrency
       || this.#readers.some(reader => (reader.bytes?.byteLength ?? 0) > chunkBytes)) {
@@ -219,16 +249,41 @@ export class CompactExpertCache {
     signal.addEventListener('abort', abort, { once: true });
     if (signal.aborted) abort();
     try {
-      const outcomes = await Promise.allSettled(Array.from({ length: this.#options.rangeLease ? Math.min(this.#options.policy.readConcurrency, this.#options.rangeLease.concurrency ?? 1) : this.#options.policy.readConcurrency }, async (_, index) => {
-        const reader = this.#readers[index] ??= { bytes: null };
-        while (cursor < misses.length) {
-          const { expert, slot } = misses[cursor++];
-          try { await this.#fill(plan, pool, expert, slot, controller.signal, reader); }
-          catch (error) { controller.abort(error); throw error; }
+      if (residentPlanes !== null) {
+        signal.throwIfAborted();
+        const encoder = this.#options.device.createCommandEncoder({ label: 'prefill_selected_expert_seed' });
+        let bytes = 0;
+        for (const { expert, slot } of misses) {
+          for (const plane of plan.planes) {
+            const source = residentPlanes.get(plane.role);
+            const target = pool.planes.get(plane.role);
+            if (!source || !target || source.size < plan.numExperts * plane.expertBytes
+              || !(source.usage & GPUBufferUsage.COPY_SRC) || !(target.usage & GPUBufferUsage.COPY_DST)) {
+              throw new Error('Prefill seed requires complete owned planes with declared copy usage.');
+            }
+            encoder.copyBufferToBuffer(source, expert * plane.expertBytes,
+              target, slot * plane.expertBytes, plane.expertBytes);
+            bytes += plane.expertBytes;
+          }
         }
-      }));
-      const failed = outcomes.find(result => result.status === 'rejected');
-      if (failed) throw failed.reason;
+        signal.throwIfAborted();
+        if (misses.length) {
+          this.#options.device.queue.submit([encoder.finish()]);
+          this.#stats.prefillSeedBytes += bytes;
+          this.#stats.prefillSeedSubmissions++;
+        }
+      } else {
+        const outcomes = await Promise.allSettled(Array.from({ length: this.#options.rangeLease ? Math.min(this.#options.policy.readConcurrency, this.#options.rangeLease.concurrency ?? 1) : this.#options.policy.readConcurrency }, async (_, index) => {
+          const reader = this.#readers[index] ??= { bytes: null };
+          while (cursor < misses.length) {
+            const { expert, slot } = misses[cursor++];
+            try { await this.#fill(plan, pool, expert, slot, controller.signal, reader); }
+            catch (error) { controller.abort(error); throw error; }
+          }
+        }));
+        const failed = outcomes.find(result => result.status === 'rejected');
+        if (failed) throw failed.reason;
+      }
       signal.throwIfAborted();
       for (const { expert, slot } of misses) pool.entries.set(expert, slot);
       const sourceMap = new Uint32Array(plan.numExperts).fill(0xffffffff);
@@ -287,6 +342,12 @@ export class CompactExpertCache {
       }
     }
   }
+
+  /** Release generic fallback scratch before the owning cache changes execution phase. */
+  clearStaging() { this.#clearReaderStaging(); }
+
+  /** @param {number} layer */
+  hasLayer(layer) { return (this.#pools.get(layer)?.entries.size ?? 0) > 0; }
 
   get residentBytes() { return this.#bytes; }
 

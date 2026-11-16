@@ -98,6 +98,9 @@ export const DEFAULT_EXPERT_CACHE_CONFIG = {
     compactLayerBytes: null,
     compactPrefillBytes: 0,
     compactPrefillReuse: 'none',
+    prefillCompactAdmission: 'none',
+    sourceReadMode: 'plane-serial',
+    prefillUploadMode: 'expert-copy',
     evictionPolicy: 'lru',
     cacheBytes: 2 * GB,
     hostCacheBytes: 0,
@@ -133,6 +136,21 @@ export function validateQwen35RoutedConfig(config) {
     || (config.compactPrefillReuse === 'resident-gpu'
       && (config.storageMode !== 'compact-decode' || config.compactPrefillBytes === 0))) {
     throw new Error('compactPrefillReuse requires none or resident-gpu with a compact-decode prefill reservation.');
+  }
+  if (!['none', 'selected-frequency-first'].includes(config.prefillCompactAdmission)
+    || (config.prefillCompactAdmission !== 'none'
+      && (config.storageMode !== 'compact-decode' || config.compactPrefillBytes === 0))) {
+    throw new Error('prefillCompactAdmission requires none or selected-frequency-first with a compact-decode reservation.');
+  }
+  if (!['plane-serial', 'expert-parallel'].includes(config.sourceReadMode)
+    || (config.sourceReadMode === 'expert-parallel'
+      && (config.storageMode !== 'compact-decode' || config.hostCacheBytes !== 0))) {
+    throw new Error('sourceReadMode requires plane-serial or expert-parallel with compact decode and no host cache.');
+  }
+  if (!['expert-copy', 'direct-bank'].includes(config.prefillUploadMode)
+    || (config.prefillUploadMode === 'direct-bank'
+      && (config.storageMode !== 'compact-decode' || config.hostCacheBytes !== 0))) {
+    throw new Error('prefillUploadMode requires expert-copy or direct-bank with compact decode and no host cache.');
   }
   if (config.compactLayerBytes !== null) {
     const entries = Object.entries(config.compactLayerBytes ?? {});

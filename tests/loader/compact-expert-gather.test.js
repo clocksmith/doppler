@@ -38,7 +38,7 @@ try {
       buffer.data.set(new Uint8Array(data.buffer, data.byteOffset, data.byteLength), offset);
     } } };
   const policy = { enabled: true, storageMode: 'compact-decode', evictionPolicy: 'lru', compactLayerBytes: null,
-    compactPrefillBytes: 0, compactPrefillReuse: 'none', cacheBytes: 24, hostCacheBytes: 0,
+    compactPrefillBytes: 0, compactPrefillReuse: 'none', prefillCompactAdmission: 'none', sourceReadMode: 'plane-serial', prefillUploadMode: 'expert-copy', cacheBytes: 24, hostCacheBytes: 0,
     hostCacheAdmission: 'all', hostCacheAdmissionPhase: 'all', stagingBytes: 48, readConcurrency: 2,
     routeChunkTokens: 2, gpuBudgetBytes: 4096, reserveBytes: 16 };
   const plan = { layer: 0, numLayers: 1, numExperts: 2, expertBytes: 8, intermediateSize: 2,

@@ -244,6 +244,7 @@
     "src/loader/experts/compact-expert-cache.js",
     "src/loader/experts/expert-dequant-cache.js",
     "src/loader/experts/routed-expert-source.js",
+    "src/loader/experts/routed-expert-prefill.js",
     "src/gpu/kernels/channel-rotation.js",
     "src/inference/pipelines/text/generator/activation/final-layer-replay.js",
     "src/inference/execution-backend-contract.js",

@@ -44,6 +44,8 @@ export interface CompactLayerStats {
   uploadBytes: number; sourceReadWaitMs: number; uploadEnqueueMs: number;
 }
 export interface RoutedExpertCacheStats {
+  prefillSeedBytes: number;
+  prefillSeedSubmissions: number;
   prefillGpuReuseBytes: number;
   prefillGpuReuseExperts: number;
   prefillGpuReuseSubmissions: number;
