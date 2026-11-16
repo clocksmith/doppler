@@ -1,4 +1,5 @@
 import { BaseTokenizer } from './base.js';
+import { mergeBpeTokens } from './bundled/merge.js';
 import { createBundledIncrementalDecoder } from './bundled/incremental-decoder.js';
 import { log } from '../../debug/index.js';
 import { getRuntimeConfig } from '../../config/runtime.js';
@@ -855,42 +856,7 @@ export class BundledTokenizer extends BaseTokenizer {
   }
 
   #bpeTokenize(text) {
-    if (text.length === 0) return [];
-
-    let tokens = text.split('');
-    if (tokens.length === 1) return tokens;
-
-    while (tokens.length > 1) {
-      let minRank = Infinity;
-      let minPair = null;
-
-      for (let i = 0; i < tokens.length - 1; i++) {
-        const pair = `${tokens[i]} ${tokens[i + 1]}`;
-        const rank = this.#mergeRanks.get(pair);
-        if (rank !== undefined && rank < minRank) {
-          minRank = rank;
-          minPair = pair;
-        }
-      }
-
-      if (!minPair) break;
-
-      const [first, second] = minPair.split(' ');
-      const newTokens = [];
-      let i = 0;
-      while (i < tokens.length) {
-        if (i < tokens.length - 1 && tokens[i] === first && tokens[i + 1] === second) {
-          newTokens.push(first + second);
-          i += 2;
-        } else {
-          newTokens.push(tokens[i]);
-          i += 1;
-        }
-      }
-      tokens = newTokens;
-    }
-
-    return tokens;
+    return mergeBpeTokens(text, this.#mergeRanks);
   }
 
   createRawIncrementalDecoder() {

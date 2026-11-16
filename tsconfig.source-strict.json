@@ -23,6 +23,7 @@
     "src/gpu/kernels/channel-gain.js",
     "src/inference/pipelines/text/generator/activation/channel-gain.js",
     "src/inference/tokenizers/bundled/normalizer.js",
+    "src/inference/tokenizers/bundled/merge.js",
     "demo/ui/precision-replay/live.js",
     "demo/ui/activation-grid/data.js",
     "demo/ui/activation-grid/index.js",
