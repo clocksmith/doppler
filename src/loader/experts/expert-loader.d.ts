@@ -33,6 +33,7 @@ export type ShardLoader = (
 
 /** Shard cache interface */
 export interface ShardCacheInterface {
+  readonly hasCustomRangeLoader?: boolean;
   has(shardIndex: number): boolean;
 }
 

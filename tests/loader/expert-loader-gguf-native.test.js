@@ -21,3 +21,18 @@ const broken = { ...ctx, experts: new Map(), async loadTensor(name) { return nam
 await assert.rejects(loadExpert(broken, 0, 0), /geometry/);
 assert.equal(broken.experts.size, 0);
 console.log('expert-loader-gguf-native.test: ok');
+
+// Packed tensors can be materialized from a bounded authenticated range source
+// without asking that source to acquire an entire enclosing storage shard.
+const ranged = { ...ctx, experts: new Map(),
+  shardCache: { has: () => false, hasCustomRangeLoader: true },
+  async loadShard() { assert.fail('Range-backed packed loading must not preload whole shards'); },
+};
+const rangedWeights = await loadExpert(ranged, 0, 1);
+assert.equal(rangedWeights.gate, gate);
+assert.equal(rangedWeights.up, up);
+assert.equal(rangedWeights.down, down);
+const rangeFailure = new Error('Authenticated tensor range unavailable');
+const failedRange = { ...ranged, experts: new Map(), async loadTensor() { throw rangeFailure; } };
+await assert.rejects(loadExpert(failedRange, 0, 0), error => error === rangeFailure);
+assert.equal(failedRange.experts.size, 0, 'failed range materialization publishes no packed bank');

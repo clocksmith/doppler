@@ -23,7 +23,10 @@ export async function preloadShardsForExpert(ctx, layerIdx, expertIdx, options) 
   // bounded raw-shard cache. Selecting another row must not reload evicted
   // shards while that same bank remains resident.
   const packedKey = getExpertFormat(ctx.manifest?.moeConfig?.expertFormat)?.packedCacheKey?.(layerIdx);
-  if (packedKey && ctx.experts.has(packedKey)) return;
+  // A bounded source may expose only the assigned tensor ranges. Its tensor
+  // loader authenticates those ranges; preloading the enclosing storage shard
+  // would request unrelated bytes that this owner need not possess.
+  if (packedKey && (ctx.experts.has(packedKey) || ctx.shardCache.hasCustomRangeLoader === true)) return;
   const packedShardIndices = getPackedExpertShardIndices(ctx, layerIdx);
   if (packedShardIndices.length > 0) {
     for (const shardIndex of packedShardIndices) {
