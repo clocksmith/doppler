@@ -7,6 +7,8 @@ export interface VerifiedPieceGatherOptions {
   maxPartBytes: number;
   /** Explicit worker count; omission preserves one lane. */
   concurrency?: number;
+  /** Cancels asynchronous worker admission; does not replace read signals or close ownership. */
+  startupSignal?: AbortSignal;
   /** All concurrent outputs plus two complete-piece buffers per worker; excludes metadata and native digest internals. */
   memoryBudgetBytes: number;
 }

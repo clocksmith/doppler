@@ -2,6 +2,7 @@ import { createVerifiedPieceGatherLane } from './verified-piece-gather-lane.js';
 
 /** @type {import('./verified-piece-gather.js').createVerifiedPieceGather} */
 export async function createVerifiedPieceGather(options) {
+  options.startupSignal?.throwIfAborted();
   // Omission preserves the original single-lane contract, not automatic tuning.
   const concurrency = options.concurrency ?? 1;
   const pinned = { ...options, manifestBytes: new Uint8Array(options.manifestBytes),
@@ -18,10 +19,14 @@ export async function createVerifiedPieceGather(options) {
   const lanes = [];
   try {
     for (let index = 0; index < concurrency; index++) {
+      pinned.startupSignal?.throwIfAborted();
       lanes.push({ reader: await createVerifiedPieceGatherLane({ ...pinned, memoryBudgetBytes: laneBytes }), busy: false });
+      pinned.startupSignal?.throwIfAborted();
     }
   } catch (error) {
-    await Promise.allSettled(lanes.map(lane => lane.reader.close()));
+    const outcomes = await Promise.allSettled(lanes.map(lane => lane.reader.close()));
+    const failures = outcomes.flatMap(outcome => outcome.status === 'rejected' ? [outcome.reason] : []);
+    if (failures.length) throw new AggregateError([error, ...failures], 'Gather startup and cleanup failed.');
     throw error;
   }
   let closed = false, collecting = false;

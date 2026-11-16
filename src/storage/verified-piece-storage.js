@@ -5,6 +5,7 @@ import { getSourceRuntimeMetadata } from '../formats/source-runtime.js';
 /** Artifact host adapter over the shared authenticated piece reader.
  * @type {import('./verified-piece-storage.js').createVerifiedPieceStorage} */
 export async function createVerifiedPieceStorage(options) {
+  options.signal?.throwIfAborted();
   const manifestBytes = new Uint8Array(options.manifestBytes instanceof Uint8Array ? options.manifestBytes : new Uint8Array(options.manifestBytes));
   const indexBytes = new Uint8Array(options.indexBytes instanceof Uint8Array ? options.indexBytes : new Uint8Array(options.indexBytes));
   const pinned = { ...options, manifestBytes, indexBytes };
@@ -14,10 +15,13 @@ export async function createVerifiedPieceStorage(options) {
   let gather = null;
   const { manifest, readRange, readInto, readBinary } = reader;
   try {
+    pinned.signal?.throwIfAborted();
     if (nodeGather) {
       const { createVerifiedPieceGather } = await import('./verified-piece-gather.js');
-      gather = await createVerifiedPieceGather({ ...nodeGather, manifestBytes, indexBytes, indexIdentity: pinned.indexIdentity });
+      gather = await createVerifiedPieceGather({ ...nodeGather, manifestBytes, indexBytes,
+        indexIdentity: pinned.indexIdentity, startupSignal: pinned.signal });
     }
+    pinned.signal?.throwIfAborted();
     const close = async () => {
       const results = await Promise.allSettled([reader.close(), gather?.close()]);
       const failed = results.find(result => result.status === 'rejected');
@@ -65,7 +69,9 @@ export async function createVerifiedPieceStorage(options) {
     }
     return { manifest, storage, getReceipt: reader.getReceipt, getGatherReceipt: gather ? gather.getReceipt : null };
   } catch (error) {
-    await Promise.allSettled([reader.close(), gather?.close()]);
+    const outcomes = await Promise.allSettled([reader.close(), gather?.close()]);
+    const failures = outcomes.flatMap(outcome => outcome.status === 'rejected' ? [outcome.reason] : []);
+    if (failures.length) throw new AggregateError([error, ...failures], 'Verified source opening and cleanup failed.');
     throw error;
   }
 }
