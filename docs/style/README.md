@@ -2,13 +2,15 @@
 
 Coding conventions for the DOPPLER codebase.
 
-## Read-First Matrix
+## Guide lookup
 
-Pick by what your change touches; read the listed guides (linked under Guides below) before the first non-trivial edit in that area.
+Look up the guides relevant to an implementation question or invariant. This is
+a reference map, not a prerequisite reading sequence. Inspect the code and run
+the changed system early; update an outdated guide when the design changes.
 
-| Change area | Mandatory reads | Also read when |
+| Change area | Relevant guides | Additional reference when |
 |---|---|---|
-| Any non-trivial edit | General + JavaScript (the Invariants section at the top of each is the quick-ref) | — |
+| Cross-cutting behavior | General + JavaScript (the Invariants section at the top of each is the quick-ref) | — |
 | Runtime tunables or config schema | Config | changing merge order or category rules |
 | New kernel or WGSL changes | General, JavaScript, WGSL | rule selection / dtype policy: Config |
 | Bench / debug / verify command behavior | General, JavaScript, Config, Command Interface, Harness | benchmark methodology: Benchmark |

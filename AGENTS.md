@@ -2,6 +2,10 @@
 
 Repository: https://github.com/clocksmith/doppler
 
+When this repository is checked out under Deco, `../AGENTS.md` supplies the
+shared operating rules. This file covers Doppler-specific commands and contracts;
+a standalone checkout does not require the Deco workspace.
+
 **Prime Directive:** Build Doppler as a dependable JavaScript library for local
 WebGPU inference: easy to embed, fast to start and execute, and safe to reuse.
 Rig is the supporting model compiler/preparation system producing source-truth,
@@ -23,48 +27,15 @@ simple, portable execution.
 
 **See also:** [REPLOID](https://github.com/clocksmith/reploid) for browser-native AI agent orchestration.
 
-## Build boldly
-
-Understand → inspect → build → run → diagnose → improve → deliver.
-
-- Start from the requested outcome and the existing implementation. Read the
-  relevant code, and compare with working alternatives, before guessing.
-- Make the most direct substantive change. Large refactors, replacement
-  implementations, aggressive prototypes and speculative ideas are allowed when
-  they serve the goal.
-- Run the changed system early. Fix the failures you cause; don't stop at a
-  plan, scaffold or failing test.
-- If the result misses the goal, find the reason in the code and behavior,
-  change it and repeat. Sweep parameters only to answer a real question. When a
-  strategy is clearly failing, try a materially different one.
-- Make routine design and implementation choices yourself. Ask only for a
-  consequential product choice, access you lack, or a blocker you can't
-  resolve safely.
-- Commit coherent, tested progress often, and keep going while the requested
-  outcome is unfinished.
-- Done means the requested behavior works and was exercised against a
-  real-world or competitive baseline. A passing unit test, receipt, report,
-  scaffold or milestone is not completion.
-- GOALS, INTENT, CATSCAN and charters are references to look up, not reading
-  required before editing.
-- Report results: what changed, the evidence, what remains, and blockers only
-  when they need the owner or unavailable access. No completion percentages.
-
-## Git workflow: direct to main
-
-- Commit on the owning repo's `main` and push to `origin/main`. No feature
-  branches, branch-backed worktrees, or PRs unless the user asks for them.
-- On another branch, preserve its work and move the task to `main` safely;
-  never discard changes to switch. Never force-push `main`.
-- Stage only task-related changes; integrate remote updates without
-  overwriting unrelated work.
-- Report the pushed commit or the concrete blocker. A local commit is not a push.
-
 ### Style guides
 
-Run `npm run check:fast` for edits; `npm run style:guides:check` checks every
-tracked/nonignored new JS/JSON/WGSL file, and affected tests prove behavior.
-The [read-first matrix](docs/style/README.md#read-first-matrix),
+Choose checks for the changed behavior. `npm run check:fast` covers source style,
+architecture, changed-file style rules and artifact retention;
+`npm run typecheck:source` checks source declarations. Use existing focused tests
+for the affected loader, pipeline or kernel. Full model/GPU qualification remains
+separate from these development checks.
+
+The [guide lookup](docs/style/README.md#guide-lookup),
 [rule coverage](tools/policies/style-guide-rules.json) and
 [engineering checklist](docs/style/general-style-guide.md#invariants-quick-reference)
 are references: open the sections that bear on the change. Deep kernel,
@@ -73,9 +44,9 @@ full guides below.
 
 Owner documents are lookups for the change at hand; there is no reading list.
 
-| Change | Read at the owner |
+| Change | Relevant owner reference |
 | --- | --- |
-| Any non-trivial code edit | [Engineering checklist](docs/style/general-style-guide.md#invariants-quick-reference), then the invariant sections it links for the changed behavior |
+| Cross-cutting runtime behavior | [Engineering checklist](docs/style/general-style-guide.md#invariants-quick-reference) and the relevant invariant sections |
 | Config merge, manifest-first resolution, execution-v1, kernel-path selection, runtime fallback | General guide: `Explicit over Implicit`, `No Runtime Defaults in Code`, `Nullable Required Fields`; JavaScript guide: `Manifest-First Contract`, `Runtime Configuration (Performance Invariants)`; [config guide](docs/style/config-style-guide.md) |
 | Kernels or shaders | [WGSL guide](docs/style/wgsl-style-guide.md), [JavaScript guide](docs/style/javascript-style-guide.md); `doppler-kernel-reviewer` adds the config guide when review touches rule selection, dtype policy or kernel-path metadata |
 | Debugging inference output | [Debug protocol](docs/agents/debug-protocol.md), [hardware notes](docs/agents/hardware-notes.md), [harness guide](docs/style/harness-style-guide.md), [command-interface guide](docs/style/command-interface-design-guide.md) |
@@ -89,11 +60,8 @@ stay in `docs/style/*.md`, `docs/config.md`, `docs/conversion-runtime-contract.m
 and the other core contract docs. Protocol documents under `docs/agents/` load on
 demand through skills (index: `docs/agents/README.md`), not for every task.
 
-Re-open the checklist and the affected invariant sections before the first
-non-trivial code edit in each turn, and again when resuming from a summary,
-handoff or context compaction. A change that could silently rewrite
-manifest/runtime behavior must fail fast with an actionable error or add a
-regression test proving it cannot. Keep component support, artifact preparation
+A change that could silently rewrite manifest/runtime behavior must fail fast
+with an actionable error or add a regression test proving it cannot. Keep component support, artifact preparation
 and full-model qualification distinct in status reports; a profile copied from a
 smaller model is a candidate, not evidence that its kernels admit the new model's
 geometry or precisions.
@@ -202,8 +170,8 @@ fast instead of adding a silent fallback.
 
 Follow the [benchmark protocol](docs/agents/benchmark-protocol.md): prefill and
 decode are separate phases, parity and throughput lanes stay separate, and the
-wall is classified (GPU compute versus submit/readback/orchestration) before any
-kernel edit.
+wall is classified (GPU compute versus submit/readback/orchestration) to target
+the cause of a slowdown. Measure the changed path early and iterate.
 
 ### Intent-First Operations
 
@@ -219,9 +187,10 @@ kernel edit.
 
 When a code change (kernel swap, transform, dtype policy, materialization path)
 produces incorrect model output (garbled text, numerical divergence, repeated
-tokens, silent quality loss), auto-trigger `doppler-debug` before any manual
-investigation and follow its
-[regression steps](docs/agents/debug-protocol.md#8-regression-after-a-code-change).
+tokens, silent quality loss), trace the changed path to its first broken
+boundary, repair it, and rerun the affected workload. The `doppler-debug` skill
+and its [regression steps](docs/agents/debug-protocol.md#8-regression-after-a-code-change)
+are available when they help the investigation.
 Workarounds are not fixes: label a disabled broken path as a workaround, track
 the underlying bug, and add a comment or test stating what it avoids and why.
 
@@ -292,43 +261,3 @@ Index: `skills/README.md`.
 - `doppler-kernel-reviewer`: review WGSL/JS kernel implementations against style rules.
 
 See `docs/config.md` for kernel overrides and runtime modes.
-
-## Development verification
-
-- During development, choose checks for the changed behavior: syntax/type checks,
-  existing focused tests, or a local visual check. A command list is not a requirement
-  to run every suite before each commit, push, or ordinary application deployment.
-- Do not automatically run full repository suites, broad browser/device matrices,
-  GPU/model campaigns, benchmarks, or full release qualification. Run them when
-  explicitly requested or when a named correctness question cannot be answered by
-  focused checks; state that reason before starting.
-- Config-contract, mirror, drift, and freshness checks run only when the change
-  edits what they check. Don't add tests that just restate another file or pin
-  config literals. Time-box long processes.
-- Once relevant checks pass, continue. Repeat or broaden verification only after
-  another relevant change, a failure, or a concrete unresolved concern.
-- For documentation-only edits, inspect the diff and changed links. Do not run
-  application, GPU, browser, or benchmark suites for prose changes.
-- For ordinary deployments, build the changed artifact where needed and check the
-  affected route after deployment. Deployment alone does not require a new release
-  qualification campaign.
-- Keep existing acceptance thresholds and release-qualification requirements.
-  Report exactly what was checked; focused development checks do not establish
-  numerical qualification, performance, multi-device support, or full acceptance.
-
-## No speculative engineering timelines
-
-- Never predict how long engineering work will take ("1-2 weeks", "a quick
-  fix"). Describe concrete deltas, dependencies, risks, and validation instead.
-- For an already-running process, report measured elapsed time, progress, or a
-  grounded ETA only when the process exposes one; otherwise report its phase,
-  latest output, and whether it is still progressing.
-
-## Pick the real fix
-
-- Fix correctness bugs; don't relabel them. Effort or scope framing
-  ("non-trivial", "worth its own thread", "later") is no reason for a lesser fix.
-- "Mark experimental", "add a TODO", or "reword the misleading comment" does not
-  substitute for fixing wrong behavior.
-- Take the stronger path and do it. Stop to ask only when the choice changes
-  product direction; don't pre-decide a smaller version.

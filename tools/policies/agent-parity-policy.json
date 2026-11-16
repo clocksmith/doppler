@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "updated": "2026-09-04",
+  "updated": "2026-11-16",
   "instructionCanonicalPath": "AGENTS.md",
   "instructionAliases": [
     {
@@ -38,7 +38,7 @@
     "doppler-kernel-reviewer"
   ],
   "requiredAgentsMarkers": [
-    "### MANDATORY: Read Style Guides First",
+    "### Style guides",
     "### Command Surfaces (1:1 Contract)",
     "### Config System",
     "### Guardrails",

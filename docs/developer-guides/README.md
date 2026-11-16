@@ -5,10 +5,14 @@ Task-oriented guide map for extending Doppler.
 Use this directory when the question is not "how does Doppler work?" but
 "how do I add X without missing the contract checks?"
 
-Prerequisite:
-- Read `docs/style/general-style-guide.md` and `docs/style/javascript-style-guide.md` before any non-trivial edit.
-- For WGSL work, also read `docs/style/wgsl-style-guide.md`.
-- For command-surface work, also read `docs/style/command-interface-design-guide.md`.
+Reference lookup:
+- General and JavaScript invariants: `docs/style/general-style-guide.md` and
+  `docs/style/javascript-style-guide.md`.
+- Shader contracts: `docs/style/wgsl-style-guide.md`.
+- Command surfaces: `docs/style/command-interface-design-guide.md`.
+
+Use the sections relevant to the question at hand. These guides are references,
+not a reading gate before implementation.
 
 Normative references still live elsewhere:
 - `docs/style/*.md` define coding and contract rules
@@ -19,7 +23,8 @@ Normative references still live elsewhere:
 ## How To Use This Directory
 
 1. Start with the smallest guide that matches your change.
-2. Follow its required touch points and verification steps.
+2. Identify the contracts and verification relevant to the changed behavior.
+   Choose the implementation order from the actual code and observed failures.
 3. If your change spans multiple areas, use a composite guide and then open the referenced atomic guides.
 
 Every guide in this directory should answer the same four questions:
