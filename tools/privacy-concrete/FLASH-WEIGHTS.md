@@ -1,179 +1,146 @@
-# Actual Flash weight integration
+# Flash encrypted execution and client operator integration
 
-`flash-weights.json` pins the official Qwen3.8-Flash-Next revision, config/index digests and complete LFS SHA-256 values for two first-layer shards: 5,187,961,632 weight bytes. The provisioner verifies entire objects and admits no partial/range-only object. A corrupted existing cache is rejected rather than overwritten. Tensor use rechecks admitted file identity and exact BF16 geometry; experts are streamed individually into FP32 instead of materializing the entire expert bank.
+Production cryptographic admission remains closed. The paths below are source-pinned
+research implementations with scoped functional evidence; none establishes full
+Flash generation, independent malicious-security review or trusted hardware.
 
-`flash_expert.py` composes the complete fixed public expert 0 SwiGLU component from actual weights. Its combined gate/up projection is 2,560 → 1,280; its down projection is 640 → 2,560. It reuses `FullLinear` quantization, admitted tiling, framed evaluator and exact pre-decryption replay. The admitted component program has two linear modules, three logical projections and four encrypted products, with client SiLU and encrypted feedback into the down projection. No plaintext activation is sent to the evaluator.
+## Current execution evidence
 
-This is a component integration, **not full Flash execution or private expert selection**. Expert 0 is fixed/public. The all-expert client program has separate source-reference evidence and the research integration described below; it has not completed encrypted qualification or been admitted for production. The component entry point accepts only a fixed public sine-vector fixture; there is no private-input or prompt option. Production cryptographic admission remains closed.
+| Path | Actual checkpoint weights | Verified outcome |
+| --- | --- | --- |
+| Fixed public expert 0 | First-layer gate/up/down | Four encrypted tiles and quantized-reference check passed |
+| First-layer DeltaNet | Five projections, convolution, norm and recurrence | Four cached component steps; 104 encrypted tiles passed |
+| MLP hyperconnection | Three projections and grouped norm | Four identity-block feedback updates; 60 encrypted tiles passed under a separately versioned precision profile |
+| Complete first-layer MoE | Shared/router and all 512 experts | 1,029 encrypted modules / 2,058 tiles implemented; original encrypted run still pending |
+| Complete first-layer MLP branch | Hyperconnection plus all-expert MoE and residual | 1,032 modules / 2,073 planned tiles composed; actual FP32 sparse-source comparison is separate; full ciphertext composition not yet run |
+| Full attention / QSA | Small public FP32 source fixtures | Prefill, cached decode, fixed projection route and KV/indexer isolation checks passed; actual weights and encrypted execution unqualified |
+| Ngram / PLE | Small local-table FP32 source fixtures | EOS-aware cached updates, local lookup and history isolation checks passed; actual Flash table unsupported |
 
-The installed research profile `flash-expert0` has its own protocol/model identity and exact source/parameter/dependency admission. Unknown profile advertisements fail before key export. It cannot masquerade as the full dense-Qwen protocol, and the current SSH manifest contract rejects this different underlying protocol rather than silently substituting it.
+The original four-step [dense Qwen candidate](FULL-QWEN.md) remains a separate
+running experiment. Component results cannot substitute for its full-model output.
 
-`.github/workflows/flash-weights.yml` runs the hash-verified acquisition and one bounded encrypted component execution on an isolated GitHub CPU runner. Trigger it manually or with `[flash-expert-e2e]` in a scoped commit; other pushes skip the large download. Only a source-constructed public-fixture result is uploaded. Source shards, quantized caches, raw diagnostics and keys are excluded.
+## Actual measured components
 
-A successful result must verify all four encrypted responses before decryption and satisfy the declared quantized-reference error bounds. It records actual output-error, wire/key sizes, execution/replay time and process-lifetime memory high-water. This does not establish full-model tokens, useful service throughput, BF16 parity, hardware appraisal or independently reviewed malicious security. No success is claimed until the actual workflow result exists.
+[Recorded runs and artifact digests](evidence/flash/operators-context.json) bind
+these measurements to their exact revisions and public fixtures.
 
-The [retained result](evidence/flash/expert0-sine-2560.json) and [measurement context](evidence/flash/context.json) record a successful actual-weight run on [revision d83f3697](https://github.com/clocksmith/doppler/actions/runs/43803495772). All four encrypted products passed exact replay and the output passed its quantized-reference check. Encrypted-versus-quantized maximum error was 0.0003564; quantized-versus-floating error was 0.003536. Execution took 42.04 seconds, including 21.44 seconds of client replay; process elapsed was 48.75 seconds, excluding dependency installation and the earlier 5.19 GB public source acquisition. The fresh evaluation key was 134,217,808 bytes; the component sent 134,260,838 bytes and received 45,796 bytes. Client lifetime peak RSS was about 1.08 GB. These are scoped functional measurements, not full-model throughput or production security qualification.
+| Measurement | [DeltaNet four-step result](evidence/flash/delta-four-step.json) | [Hyperconnection four-step result](evidence/flash/hyper-four-step.json) |
+| --- | --- | --- |
+| Encrypted tiles | 104 | 60 |
+| Process elapsed | 1,304.25 s | 783.96 s |
+| Client encrypted replay | 649.45 s | 387.07 s |
+| Evaluator round trip | 648.00 s | 388.91 s |
+| Fresh evaluation key | 134,217,808 bytes | 268,435,536 bytes |
+| Application bytes sent | 135,317,134 | 269,208,200 |
+| Application bytes received | 1,276,835 | 1,054,392 |
+| Largest encrypted-versus-quantized output error | 0.000328 | 0.007858 |
+| Largest quantized-versus-floating output error | 0.001394 | 0.593400 |
 
+Elapsed excludes dependency installation and the earlier public source download.
+These runs used process pipes on a trusted test-client host, not a separately
+operated network service. They did not retain RSS measurements. The hyperconnection
+fixture uses identity-block feedback, so its four updates are not Flash token
+generation. Its substantial quantization drift remains a quality limitation;
+passing the encrypted-versus-quantized bound does not establish floating-point or
+BF16 model parity. No full-model throughput is derived from these numbers.
 
-## Complete first-layer MoE integration
+[Expert-0 evidence](evidence/flash/expert0-sine-2560.json) records 42.04 s execution,
+including 21.44 s replay, and maximum encrypted-versus-quantized error 0.0003564.
+The [cache-integrity regression](evidence/flash/expert0-cache-binding.json) passed
+a second four-tile run in 41.62 s, including 20.95 s replay, with error 0.000676.
+Its [measurement context](evidence/flash/cache-binding-context.json) states memory
+and transport limits. Expert 0 is fixed/public; this result tests no private expert
+selection.
 
-`flash_moe.py --execution encrypted` streams every first-layer expert and the
-shared/router weights through one fixed source-bound route. It lowers 1,541
-logical projections to 1,029 encrypted linear modules and 2,058 width-safe tiles,
-combining each expert's gate/up projection. The client performs the SiLU,
-softmax/top-k, shared sigmoid and weighted combination. Every expert is computed
-and replay-verified before selection affects the client result. Only one public
-expert's floating-point material is resident at a time; public int8 files remain
-reusable across attempts. Secret state and the pending up-vector are local to
-one attempt. No private prompt/input CLI is exposed.
+The [default-precision negative probe](evidence/flash/hyper-default-precision-failure.json)
+failed the unchanged numerical bound, with a same-input down-projection error of
+0.599. The explicit `glwe-precision-48-level4/v1` profile raises input/output storage
+precision and changes packing decomposition while retaining encryption noise and
+computation width. Hyperconnection/MLP protocol versions change and the larger
+key requires a bound 300 MB frame allowance; legacy paths retain 150 MB and their
+original parameters. Native tests cover exact public products and byte replay;
+they do not prove exactness for every circuit or an unchanged security level.
+See the [security boundary](SECURITY-BOUNDARY.md).
 
-The separately named `flash-dense-moe` research protocol cannot substitute for
-fixed expert 0, full Qwen generation or production crypto admission. The hosted
-`Actual Flash dense MoE encrypted integration` workflow tests the actual
-Torch/quantizer lowering, then attempts this complete fixed public fixture with
-six-hour cancellation. Its implementation and a running job do not establish a
-completed encrypted MoE execution. `--execution public-reference` is explicitly
-a clear computation and reports `encryptedExecutionCompleted: false`.
+## Source and weight ownership
 
-This remains one first-layer MoE block. Hyperconnections, attention, recurrent
-state, ngram embedding, other layers and autoregressive Flash generation are not
-implemented by this component. Timing/padding, remote deployment, parameter and
-implementation review and malicious-security qualification remain open. Full
-client encrypted replay is still required.
+All actual components use official `Qwen/Qwen3.8-Flash-Next` revision
+`812d96e10a0dd82b69d749e68693698cf6c36daa`. Installed scopes bind config/index
+hashes, complete LFS SHA-256 values and exact BF16 tensor geometry:
 
+- `moe`: two complete first-layer shards, 5,187,961,632 weight bytes.
+- `mlp-hyper`: the complete third shard and four hyperconnection tensors.
+- `mlp-block`: the union of MoE and hyperconnection tensors.
+- `linear-attention`: the complete first shard, 1,040,155,944 bytes, with nine tensors.
 
-The [cache-integrity regression result](evidence/flash/expert0-cache-binding.json)
-and [exact revision context](evidence/flash/cache-binding-context.json) record a
-second successful actual-weight encrypted run after replacing mutable read-only
-weight mappings with immutable public tile digests. All four encrypted products
-passed replay; maximum encrypted-versus-quantized error was 0.000676, with
-41.62 seconds of encrypted execution including 20.95 seconds of client replay.
-The full model is not copied per request: the client retains a digest table,
-derived from one verified public projection snapshot at a time.
+`flash_weights.py` admits whole checksum-verified objects. Range/header metadata
+used during development is never admitted as weight material. Existing corrupt
+caches reject. Tensor reads check file identity before and after the copy; experts
+are sliced locally rather than loading the whole bank. Client replay binds public
+tile digests from owned verified snapshots, so a mutable mmap cannot redefine its
+circuit. Only the small digest table is retained per request.
 
+## Complete route and request state
 
-## Hyperconnection and complete MLP residual composition
+Research profiles are installed code, not provider-advertised flags. Model,
+source, program, dependency, parameter, session, key, sequence and tile identities
+are bound before encrypted inputs are sent. Protocols for expert 0, DeltaNet,
+hyperconnection, all-expert MoE and composed MLP are distinct. Unknown profiles
+fail before key export. No retry or plaintext fallback substitutes another path.
+The existing SSH manifest rejects incompatible underlying protocols.
 
-`flash_hyper_ops.py` implements the source's grouped `(1 + weight)` RMSNorm,
-low-rank gated input mixing, injection weights and residual combination. Its
-trusted client projection callback composes directly with the complete all-expert
-MoE graph. Source-reference checks cover four successive full hyperconnection /
-MoE / residual updates, including exact operation order and fail-before-MoE
-behavior after invalid input or a rejected projection.
+The complete MoE route visits and replay-verifies every expert before private
+selection affects the client result. Combined gate/up lowering preserves a fixed
+route. Shared/router composition, normalization and selection stay on the client.
+The sparse official-source implementation is used only as a trusted-client clear
+reference with verified local expert slices, never as a selected-only provider path.
 
-The separately installed `flash-mlp-hyper` research protocol admits the actual
-first-layer MLP hyperconnection weights from the whole pinned third shard.
-`flash_hyper.py` attempts four encrypted gated-residual updates with a public
-identity block: 3 linear modules and 15 tiles per update, 60 total. The client
-retains normalization, sigmoid, SiLU and residual operations; the evaluator only
-receives encrypted linear inputs. The identity block is an explicitly named test
-fixture, not Flash attention, MoE or autoregressive token generation. No result
-or security qualification is claimed before its workflow completes. Its source
-scope does not change the existing MoE/fixed-expert identities.
+`flash_request_state.py` owns tenant/privacy/model/key/request/mode binding and
+terminal cancellation. DeltaNet, QSA and PLE own their private state stores;
+shared public weights hold no request cache. Immutable projection metadata and
+owned input/output copies cross the trusted-client adapter boundary. A missing
+adapter in `verified-projections` mode cannot fall back to clear execution. The
+callback is trusted local code, not an encryption or remote-integrity appraisal.
 
+## Inspected client graphs
 
-`flash_mlp.py` composes the actual MLP hyperconnection and complete streamed
-all-expert block under one route, then applies the source residual update. Its
-`flash-mlp-block` research profile binds both program identities, all eleven
-source tensors, 1,032 linear modules and 2,073 planned encrypted tiles. It uses
-one client key/session for the full route and has no selected-only expert calls.
-Its CLI requires an explicit `public-reference` or `encrypted` mode; the clear
-mode cannot report encrypted success. The composed actual-weight encrypted run
-has not been launched while the existing full MoE run is pending, to avoid
-repeating that expensive execution. Small actual Torch/quantizer adapter tests
-check full operator order and rejection before any projection after a changed
-hyperconnection plan. No full MLP ciphertext completion or Flash generation is
-claimed from those tests.
+`flash_reference.py` loads only enumerated declarations from the hash-pinned
+official Transformers source. It executes no downloaded imports, model loader,
+fused-kernel hub or network dispatch. Client graphs cover grouped hyperconnection
+normalization/residuals, shared/routed MoE, gated-delta recurrence/convolution,
+eager full-attention/QSA, and EOS-aware ngram/PLE gating and convolution.
 
+The pinned Torch 2.3 lane declares two compatibility transforms: one QSA scatter
+index is promoted to int64, and three `nn.Buffer` assignments become equivalent
+registered buffers. The loader requires exactly the inspected sites and each
+affected program binds its transform identifiers. Integer/hash values, weights
+and projection order are unchanged. Comparisons use pinned source with these
+declared transforms, not an unmodified upstream runtime claim.
 
-## Client linear-attention prefill and decode
+QSA currently admits only bounded FP32 eager execution with an explicit rotary
+width. Boolean, noncausal and fully masked query rows fail before projection.
+PLE currently admits only a complete locally materialized embedding under an
+explicit pre-allocation budget. It has no remote row-fetch/cache-miss fallback.
+The actual huge table and checkpoint shard-to-logical-row mapping remain
+unqualified; a mapped-table implementation must verify complete local shards and
+row mapping before accepting private tokens.
 
-`flash_delta.py` loads only inspected, hash-pinned official pure-Torch DeltaNet,
-normalization, convolution and gated-delta declarations. The source loader removes
-only enumerated acceleration/deprecation decorators and executes no downloaded
-imports, model loader or network dispatch. It retains the eager non-export
-triangular-solver path. The same loader owns existing MoE reference extraction.
+## Running and remaining qualification
 
-The client graph has explicit projection callbacks and one request-owned cache
-for convolution/recurrent state, bound to tenant, privacy, model, key, request and
-execution mode. Shared model weights hold no private request cache. The callback
-is trusted local code; its name does not appraise encryption or remote integrity.
-A missing callback in `verified-projections` mode fails without clear fallback.
-Context changes, incorrect projection order and cancellation are terminal; later
-projections cannot continue after the cancellation boundary.
+Workflows isolate CPU/model activity from local/fleet performance work. Large
+encrypted runs require an explicit marker or manual dispatch; ordinary pushes
+skip them. Only source-constructed public-fixture results are uploaded. Keys,
+raw vectors, source weights, private caches and raw diagnostics are excluded.
 
-Source-reference tests compare a three-token prefill plus three single-token
-cached decode steps with full-prefix official evaluation, check two concurrent
-request states, and exercise context changes/cancellation. These are small public
-FP32 operator fixtures, not actual Flash attention weights or encrypted DeltaNet
-execution. No DeltaNet backend is registered for production or encrypted research
-admission by this client graph. Full attention/QSA indexing, ngram embedding and
-whole-model autoregressive generation remain unfinished.
+`flash_mlp.py` requires an explicit `public-reference` or `encrypted` mode and a
+pinned `--reference-source`. Clear mode cannot report encrypted completion. Its
+actual FP32 sparse-source gate runs before key generation. Full ciphertext MLP
+composition has not been launched while the original all-expert job is pending.
 
-
-The first four-step hyperconnection fixture failed its unchanged numerical
-reference bound in run 43809990622; it is not qualified. A targeted public-fixture
-probe now distinguishes same-input encrypted projection error from closed-loop
-state/mixed/injection trajectory drift, stops at the first failed comparison and
-keeps the nonzero exit status. It publishes only bounded aggregate measurements
-from this fixed public fixture. No private-input diagnostics channel or relaxed
-acceptance threshold is introduced.
-
-
-`flash_delta_model.py` integrates the actual first-layer attention weights from
-the complete pinned first shard (1,040,155,944 bytes). The separately named
-`flash-first-delta` research route has five encrypted linear modules and 26
-tiles per cached step, 104 over four fixed public layer inputs. Actual source
-configuration selects sigmoid output gating; both SiLU and sigmoid are explicit
-inspected reference functions. Depthwise convolution, gated-delta recurrence,
-normalization and activations remain on the trusted client. No plaintext layer
-input or cache state is passed to the evaluator. The new bounded workflow
-attempts this component; a running job is not a successful result. This is not
-full Flash token generation or complete-model encrypted inference.
-
-
-## Client full attention and QSA indexing
-
-`flash_attention.py` adds the inspected eager full-attention/QSA graph with
-client-owned KV and compressed-indexer buffers. It shares the request transaction
-and immutable projection boundary with DeltaNet. Query/key/value/indexer/output
-projections follow one fixed order; sparse token selection and mask processing
-stay on the client. Only explicit FP32 eager execution, declared rotary width
-and a bounded context are admitted. Boolean, noncausal and fully masked query
-rows are currently unsupported and fail before projection dispatch.
-
-Source checks compare prefill plus three cached decode steps with full-prefix
-attention, keep the projection route fixed across input/selection changes, and
-verify independent KV/indexer buffers. This graph has no actual Flash weight or
-encrypted-execution qualification and is not registered as an encrypted backend.
-Ngram/PLE and complete-model generation remain unfinished.
-
-
-The pinned upstream QSA scatter uses int32 indices, which the pinned Torch 2.3
-runtime rejects. The explicit inspected transform `qsa-scatter-index64/v1`
-promotes that one named scatter argument to int64; its integer values and token
-selection are unchanged. The loader requires exactly one known source site and
-the attention program binds the transform identifier. It changes no weights,
-mask arithmetic or projection route and is not a runtime fallback. Reference
-comparisons for this lane use the pinned source with this declared compatibility
-transform, rather than claiming an unmodified Torch 2.3 upstream execution.
-
-
-## Client ngram/PLE graph
-
-`flash_ple.py` adds the source ngram hashing, EOS-aware private token history,
-local embedding lookup, projected key/value gating and dilated convolution.
-Only a complete locally materialized embedding is supported under an explicit
-pre-allocation budget. There is no remote row-fetch or cache-miss fallback.
-The actual Flash table and its checkpoint shard-to-logical-row mapping are not
-qualified by this implementation; the large table fails the materialization
-budget before private token processing. A future mapped-table adapter must verify
-complete local public shards and row mapping before accepting private inputs.
-
-The explicit `ngram-register-buffer/v1` transform replaces the three inspected
-`nn.Buffer` assignments with equivalent registered buffers for pinned Torch 2.3.
-Hashing arithmetic, table values and EOS behavior are unchanged. Small public
-source checks cover prefill plus four cached updates across EOS, local-only
-lookup, budget rejection and independent private histories. This is not actual
-Flash ngram-weight or full-model execution, and no encrypted PLE backend is
-registered from these operator tests.
+Remaining gates include the two original complete runs; whole-model weights and
+ngram mapping; all-layer/cache/tokenizer/rotary and autoregressive integration;
+actual-weight full attention/PLE qualification; model-quality and cost evidence;
+authenticated separate-machine execution; and independent cryptographic,
+malformed-input, side-channel and active-adversary review. Full client encrypted
+replay still gives no client compute saving. No attestation or production security
+claim follows from these functional results.

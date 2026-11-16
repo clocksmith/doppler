@@ -1,0 +1,42 @@
+{
+  "schema": "doppler.actual-flash-delta-execution/v1",
+  "fixtureId": "flash-first-delta-four-public-inputs",
+  "scope": "Four actual-weight cached first-layer DeltaNet steps, encrypted linear projections; client convolution, recurrence and nonlinear operations",
+  "productionBackendAvailable": false,
+  "securityQualified": false,
+  "fullFlashModelExecuted": false,
+  "sourceId": "8fe3f468443bd19b90435ae28f853dbe7c2800b82c3318edd2cd8a1684dce63e",
+  "sourceRevision": "812d96e10a0dd82b69d749e68693698cf6c36daa",
+  "programId": "eb478625aa4e6b57c0df3eb0de7c235459b7546136bb7d7a775b902a36fc042d",
+  "modelId": "6749c6731fb029d0e223f00071e82d32d51ea5ec3c0afd7af4f6dc4f55437e04",
+  "planId": "8a11e229645e485eb333bd3afdf07efc38adfa2dead3dc07c5caa573e92be489",
+  "protocol": "concrete-glwe-flash-first-delta-replay/v1",
+  "componentSteps": 4,
+  "linearModules": 5,
+  "encryptedTiles": 104,
+  "quantizedReferenceCheckPassed": true,
+  "maxEncryptedVsQuantizedErrors": [
+    0.0003276676870882511,
+    9.662192314863205e-05,
+    0.00022820488084107637,
+    0.0002409068401902914
+  ],
+  "maxQuantizedVsFloatingErrors": [
+    0.0011096834205091,
+    0.0005635712295770645,
+    0.0013447933597490191,
+    0.001393585349433124
+  ],
+  "stepMs": [
+    329795.35473499994,
+    319022.040915,
+    320174.15746899985,
+    329614.094646
+  ],
+  "elapsedMs": 1304245.990639,
+  "evaluationKeyBytes": 134217808,
+  "sentBytes": 135317134,
+  "receivedBytes": 1276835,
+  "clientEncryptedReplayMs": 649448.9503279987,
+  "evaluatorRoundTripMs": 647997.3577820003
+}

@@ -1,0 +1,44 @@
+{
+  "schema": "doppler.flash-operator-measurement-context/v1",
+  "productionBackendAvailable": false,
+  "securityQualified": false,
+  "runs": [
+    {
+      "component": "First-layer MLP gated residual with identity-block feedback",
+      "revision": "62a2d9ce5081cf8e2ab22f642070019a727c119d",
+      "workflowRun": 43812995473,
+      "artifactId": 14202415540,
+      "artifactZipSha256": "dea332cf7d9f891543468efba51010df84b9302224b96a2a3b5645b490b221f1",
+      "result": "success",
+      "evidence": "hyper-four-step.json"
+    },
+    {
+      "component": "First-layer DeltaNet with four public layer inputs and owned recurrent cache",
+      "revision": "08c2a9cd8dbf9e6df8e82d68d1cd740f361a13bc",
+      "workflowRun": 43812143760,
+      "artifactId": 14201952706,
+      "artifactZipSha256": "b68fbd7acd096765ea88cba826b1b5ea804583d338ec1a2b80b518af8c27d8c9",
+      "result": "success",
+      "evidence": "delta-four-step.json"
+    },
+    {
+      "component": "Default-precision hyperconnection negative boundary probe",
+      "revision": "020dea75bf9eafbbecadca99995b7af32bfa2743",
+      "workflowRun": 43811438204,
+      "artifactId": 14200922049,
+      "artifactZipSha256": "5b840d6eedb53d5724dc8ee37ed16023fa6aabd83d8ee7f4a8080443180a4dfd",
+      "result": "failed-quantized-reference-bound",
+      "evidence": "hyper-default-precision-failure.json"
+    }
+  ],
+  "environment": "Isolated GitHub-hosted Ubuntu CPU, pinned Python 3.12 / Torch 2.3.1+cpu / Concrete ML 1.9.0 / extensions 0.1.9",
+  "limitations": [
+    "Fixed public component fixtures, no full-model tokens",
+    "Client attention/convolution/nonlinear/normalization and full encrypted replay",
+    "Application frames on process pipes, not physical separate-machine network bytes",
+    "Dependency installation and prior public source download excluded from elapsedMs",
+    "Process RSS not retained for these two successful component runs",
+    "Parameter variant has no independent cryptographic security review",
+    "Quantized-reference agreement does not establish floating-point model quality"
+  ]
+}

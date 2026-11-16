@@ -1,0 +1,43 @@
+{
+  "schema": "doppler.actual-flash-hyper-execution/v1",
+  "fixtureId": "flash-mlp-hyper-identity-feedback",
+  "scope": "Four public gated-residual identity-block updates; no attention, MoE or Flash token generation",
+  "productionBackendAvailable": false,
+  "securityQualified": false,
+  "fullFlashModelExecuted": false,
+  "sourceId": "28f1266c11d6fdc810df3caa0122149b2b53a0332da11a93b029aaf536e96929",
+  "sourceRevision": "812d96e10a0dd82b69d749e68693698cf6c36daa",
+  "programId": "f20e82a6f633b03744ceea3f58e78c43ec9900ec6f5f10e0f07d879a0741de35",
+  "modelId": "aba48270a73e54ed857076bac9f5e690c7dc0dbc680f32d27b45c9c01135f33b",
+  "planId": "5a98bb126eb9ab82954f66b33a32600be6603e6e84042e43637471b512d05248",
+  "protocol": "concrete-glwe-flash-mlp-hyper-replay/v2",
+  "parameterProfile": "glwe-precision-48-level4/v1",
+  "componentSteps": 4,
+  "linearModules": 3,
+  "encryptedTiles": 60,
+  "quantizedReferenceCheckPassed": true,
+  "maxEncryptedVsQuantizedErrors": [
+    0.0001036524772644043,
+    0.0002155303955078125,
+    0.0005884170532226562,
+    0.007857322692871094
+  ],
+  "maxQuantizedVsFloatingErrors": [
+    0.06774371862411499,
+    0.2733912467956543,
+    0.4214928150177002,
+    0.5934000015258789
+  ],
+  "stepMs": [
+    198284.70403299996,
+    195247.34347600004,
+    190705.214221,
+    192019.33047599994
+  ],
+  "elapsedMs": 783956.820956,
+  "evaluationKeyBytes": 268435536,
+  "sentBytes": 269208200,
+  "receivedBytes": 1054392,
+  "clientEncryptedReplayMs": 387069.83261000045,
+  "evaluatorRoundTripMs": 388911.27978100034
+}

@@ -1,6 +1,8 @@
 # Encrypted transformer process experiments
 
-The [all-linear Qwen candidate](FULL-QWEN.md) implements the complete dense linear route; its full encrypted qualification is running on an isolated GitHub-hosted CPU and remains unfinished.
+The [all-linear Qwen candidate](FULL-QWEN.md) implements the complete dense linear route; its original four-step encrypted run remains unfinished. The [Flash guide](FLASH-WEIGHTS.md) records actual-weight encrypted expert, cached linear-attention and gated-residual results, plus source-backed client graphs for the remaining operators. These component results do not establish full Flash generation or production security.
+
+The [security boundary](SECURITY-BOUNDARY.md) owns cryptographic claims and remaining qualification gates. [Pinned SSH transport](SSH-DEPLOYMENT.md) has loopback authentication evidence; separately deployed model execution remains unqualified. Production cryptographic admission stays closed.
 
 The [small-Qwen guide](QWEN.md) covers real Qwen2.5-0.5B-Instruct generation with one encrypted key-projection matrix product and its explicit limits. Immutable installed profiles, transport/lifecycle and trusted client projection preparation are shared; the protocols and model/weight identities remain distinct. No remote advertisement can add a profile.
 

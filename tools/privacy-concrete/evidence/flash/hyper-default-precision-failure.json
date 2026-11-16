@@ -1,0 +1,36 @@
+{
+  "schema": "doppler.actual-flash-hyper-execution/v1",
+  "fixtureId": "flash-mlp-hyper-identity-feedback",
+  "productionBackendAvailable": false,
+  "securityQualified": false,
+  "fullFlashModelExecuted": false,
+  "status": {
+    "event": "run-failed",
+    "failureCode": "component-reference-mismatch",
+    "elapsedMs": 87534.2365439999
+  },
+  "failedComponentStep": 1,
+  "inputTrajectoryMaxError": 0.0,
+  "maxStateMixedInjectionErrors": [
+    0.01991117000579834,
+    0.018034636974334717,
+    0.0013376325368881226
+  ],
+  "sameInputProjectionChecks": [
+    {
+      "projection": "hyper/down",
+      "maxAbsoluteError": 0.5989456176757812,
+      "referenceBoundPassed": false
+    },
+    {
+      "projection": "hyper/up",
+      "maxAbsoluteError": 0.08181571960449219,
+      "referenceBoundPassed": false
+    },
+    {
+      "projection": "hyper/inject",
+      "maxAbsoluteError": 0.040554046630859375,
+      "referenceBoundPassed": true
+    }
+  ]
+}
