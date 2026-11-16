@@ -1067,8 +1067,6 @@ storage/shards/index.d.ts
 storage/shards/integrity.d.ts
 storage/shards/lifecycle.d.ts
 storage/verified-piece-gather-worker.d.ts
-storage/verified-piece-gather-worker.js
-storage/verified-piece-gather.js
 sw.d.ts
 sw.js
 tooling-exports.browser.d.ts
