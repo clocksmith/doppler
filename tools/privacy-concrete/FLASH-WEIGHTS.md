@@ -16,8 +16,10 @@ Flash generation, independent malicious-security review or trusted hardware.
 | Full attention / QSA | Five actual layer-3 projections and client normalization | Four cached public-input steps; 96 encrypted tiles passed under a distinct NTT profile; no token generation |
 | Ngram / PLE | Small local-table FP32 source fixtures | EOS-aware cached updates, local lookup and history isolation checks passed; actual Flash table unsupported |
 
-The stock and exact-NTT four-step [dense Qwen candidates](FULL-QWEN.md) remain
-separate running experiments. Component results cannot substitute for its full-model output.
+The [dense Qwen attempts](FULL-QWEN.md) remain separate: stock exhausted its
+six-hour budget, and default NTT failed the third-step numerical gate after 1,161
+verified tiles. A separately bound high-precision correction is being qualified.
+Component results cannot substitute for complete full-model output.
 
 ## Actual measured components
 

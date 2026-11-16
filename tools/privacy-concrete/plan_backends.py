@@ -1,12 +1,14 @@
 """Installed research plan loaders. Advertisements cannot register or replace executable profiles."""
 DEFAULT_PROFILE='qwen-all-linear'
-QWEN_PROFILES=(DEFAULT_PROFILE,'qwen-all-linear-ntt')
+QWEN_PROFILES=(DEFAULT_PROFILE,'qwen-all-linear-ntt','qwen-all-linear-ntt-48')
 PROFILES=(*QWEN_PROFILES,'flash-expert0','flash-dense-moe','flash-mlp-hyper','flash-mlp-block','flash-first-delta','flash-first-qsa-ntt','flash-first-ple-ntt')
 
 
 def load_backend_plan(directory,profile):
     if profile=='qwen-all-linear':
         from full_plan import load_plan
+    elif profile=='qwen-all-linear-ntt-48':
+        from full_ntt48_plan import load_plan
     elif profile=='qwen-all-linear-ntt':
         from full_ntt_plan import load_plan
     elif profile=='flash-expert0':
@@ -47,4 +49,9 @@ def qwen_backend(profile):
         from native_runtime import ntt_parameters,ntt_versions
         import copy
         return copy.deepcopy(POLICY_NTT),load_plan,ntt_versions,ntt_parameters()
+    if profile=='qwen-all-linear-ntt-48':
+        from full_ntt48_plan import POLICY_NTT48,load_plan,parameters
+        from native_runtime import ntt_versions
+        import copy
+        return copy.deepcopy(POLICY_NTT48),load_plan,ntt_versions,parameters()
     raise ValueError('Unsupported installed full-Qwen research backend')

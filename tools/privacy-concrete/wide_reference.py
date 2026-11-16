@@ -7,6 +7,7 @@ from torch import nn
 from full_model import prepare
 from full_plan import canonical
 from protocol import digest
+from integer_reference import integer_dot
 
 
 class WideReferenceLinear(nn.Module):
@@ -27,7 +28,7 @@ class WideReferenceLinear(nn.Module):
         if self.mode=='float-reference':return self.source(value)
         if self.mode!='clear-reference':raise ValueError('Clear-only reference cannot encrypt or silently substitute a backend')
         q,scale,zero,shape=self.executor._dynamic_input_quantization(value,self.context,False)
-        raw=torch.matmul(q.to(torch.int64),torch.from_numpy(np.array(self.weights,dtype=np.int64)))
+        raw=integer_dot(q,self.weights)
         result=self.executor._apply_correction_and_dequantize(raw,q,zero,self.zero,self.sum_weights,self.definition['inputWidth'],scale,self.scale)
         result=result.view(*shape[:-1],self.definition['outputWidth'])
         return result if self.source.bias is None else result+self.source.bias

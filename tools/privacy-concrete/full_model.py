@@ -21,6 +21,7 @@ from full_plan import canonical,ranges,tiles
 from protocol import POLICY, digest, require_active
 from plan_backends import DEFAULT_PROFILE,QWEN_PROFILES,qwen_backend
 from source_snapshot import pinned_source
+from integer_reference import integer_dot
 
 
 class FullLinear(nn.Module):
@@ -47,7 +48,7 @@ class FullLinear(nn.Module):
             raise ValueError('Unsupported full-model projection execution')
         q_input, scale, zero, original_shape = self.executor._dynamic_input_quantization(value,self.context,False)
         if self.mode == 'clear-reference':
-            raw = torch.matmul(q_input.to(torch.int64),torch.from_numpy(np.array(self.weights,dtype=np.int64)))
+            raw = integer_dot(q_input,self.weights)
         else:
             if self.bridge is None or self.secret is None:
                 raise ValueError('No bound encrypted evaluator')
@@ -90,6 +91,8 @@ def prepare(model_dir,cache_dir,backend_profile=DEFAULT_PROFILE):
                                                   trust_remote_code=False,torch_dtype=torch.float32,attn_implementation='eager').eval()
         tokenizer = AutoTokenizer.from_pretrained(model_dir,local_files_only=True,trust_remote_code=False)
         executor = GLWELinearLayerExecutor(use_dynamic_quantization=True)
+        if parameters['parameters']!=POLICY['parameters']:
+            executor.glwe_crypto_params=ext.MatmulCryptoParameters.deserialize(json.dumps(parameters['parameters']))
         directory = Path(cache_dir);directory.mkdir(parents=True,exist_ok=True)
         projections = []
         for name,module in list(model.named_modules()):
@@ -181,7 +184,7 @@ def run(model_dir,cache_dir,prompt,progress=lambda event:None,cancelled=None,dep
                 progress(dict(event='step-complete',step=step+1,encryptedTiles=bridge.sequence-1))
         bridge.finish()
         return dict(schema='doppler.full-qwen-hybrid-execution/v1',qualified=False,productionBackendAvailable=False,
-                    descriptor=dict(schema='doppler.execution-backend/v1',id='concrete-qwen-all-linear-tiled' if backend_profile==DEFAULT_PROFILE else 'concrete-qwen-all-linear-ntt',version=1,kind='cryptographic',
+                    descriptor=dict(schema='doppler.execution-backend/v1',id='concrete-qwen-all-linear-tiled' if backend_profile==DEFAULT_PROFILE else ('concrete-qwen-all-linear-ntt-48' if backend_profile=='qwen-all-linear-ntt-48' else 'concrete-qwen-all-linear-ntt'),version=1,kind='cryptographic',
                                     modelIdentities=['sha256:'+plan.definition()['modelId']],operations=['generate'],protocol=bridge.plan.protocol_id,
                                     inputRepresentation='opaque',outputRepresentation='opaque'),
                     backendProfile=backend_profile,protocol=bridge.plan.protocol_id,executionRouteId=bridge.plan.identity,transport='local-process' if deployment is None else 'ssh-ed25519-pinned',

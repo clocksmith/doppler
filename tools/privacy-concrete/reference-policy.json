@@ -1,0 +1,6 @@
+{
+  "schema": "doppler.clear-integer-reference-policy/v1",
+  "arithmetic": "torch-int64-blocked/v1",
+  "inputTileWidth": 2048,
+  "outputTileWidth": 2048
+}

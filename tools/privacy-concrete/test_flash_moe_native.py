@@ -8,6 +8,19 @@ from unittest.mock import patch
 
 @unittest.skipUnless(os.environ.get('DOPPLER_CONCRETE_NATIVE')=='1','opt-in pinned native/Torch implementation')
 class StreamedFlashMoETests(unittest.TestCase):
+    def test_bounded_integer_reference_matches_full_int64_product_without_float_rounding(self):
+        import numpy as np
+        import torch
+        from integer_reference import integer_dot,POLICY
+        values=torch.arange(2*4098,dtype=torch.int64).reshape(2,4098)%251
+        weights=(np.arange(4098*7,dtype=np.int64).reshape(4098,7)%255-128).astype(np.int16)
+        expected=torch.matmul(values,torch.from_numpy(weights.astype(np.int64)))
+        sizes=[];original=np.array
+        def bounded(value,*args,**kwargs):sizes.append(value.shape);return original(value,*args,**kwargs)
+        with patch('integer_reference.np.array',side_effect=bounded):actual=integer_dot(values,weights)
+        torch.testing.assert_close(actual,expected,rtol=0,atol=0)
+        self.assertTrue(all(shape[0]<=POLICY['inputTileWidth'] and shape[1]<=POLICY['outputTileWidth'] for shape in sizes))
+
     def test_wide_reference_preserves_coefficients_and_cannot_enter_encrypted_mode(self):
         import torch
         from torch import nn

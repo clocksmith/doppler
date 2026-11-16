@@ -4,7 +4,8 @@ import json
 from pathlib import Path
 from importlib.metadata import version
 from full_plan import canonical,tiles,implementation_versions
-from protocol import POLICY,digest
+from protocol import digest
+from research_parameters import component_parameters
 
 WEIGHTS=json.loads(Path(__file__).with_name('flash-weights.json').read_text())
 SOURCE_ID=digest(canonical(WEIGHTS))
@@ -22,21 +23,6 @@ def component_versions(policy):
         found[dependency]=version(dependency)
         if found[dependency]!=expected:raise ValueError('Pinned Flash component dependencies required')
     return found
-
-
-def component_parameters(policy):
-    variant=policy.get('nativeVariant')
-    if variant is None:result=json.loads(canonical({key:POLICY[key] for key in ['dependencies','parameters','evaluationBackend']}))
-    elif variant=='cpu-exact-ntt/v1':
-        from native_runtime import ntt_parameters
-        result=ntt_parameters()
-    else:raise ValueError('Unsupported installed component arithmetic variant')
-    if 'parameterProfile' in policy:
-        profile_id=policy['parameterProfile']
-        profile=json.loads(Path(__file__).with_name('precision-policy.json').read_text())
-        if profile_id!=profile['id'] or profile['securityQualified'] is not False:raise ValueError('Unsupported research precision profile')
-        result=dict(result,parameters=profile['parameters'],maxPayloadBytes=profile['maxPayloadBytes'])
-    return result
 
 
 def validate_component(directory,policy,geometry,semantics,installed,source=WEIGHTS):

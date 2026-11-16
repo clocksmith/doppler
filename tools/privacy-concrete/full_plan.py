@@ -67,7 +67,8 @@ def load_qwen_plan(directory,policy,versions,common,plan_type):
     raw = (directory / 'plan.json').read_bytes()
     value = json.loads(raw)
     source = json.loads(Path(__file__).with_name('qwen05b.json').read_text())['source']
-    if (raw != canonical(value) or value['schema'] != policy['planSchema'] or value['protocol'] != policy['protocol']
+    required={'schema','protocol','source','modelId','productionBackendAvailable','implementationVersions','steps','contextBucket','inputTileWidth','outputTileWidth','operationTimeoutSeconds','cpuThreads','parameters','projections'}
+    if (not isinstance(value,dict) or set(value)!=required or raw != canonical(value) or value['schema'] != policy['planSchema'] or value['protocol'] != policy['protocol']
             or value['source'] != source or value['productionBackendAvailable'] is not False
             or any(value[key] != policy[key] for key in ['steps','contextBucket','inputTileWidth','outputTileWidth','operationTimeoutSeconds','cpuThreads'])
             or len(value['projections']) != 169):
@@ -86,6 +87,7 @@ def load_qwen_plan(directory,policy,versions,common,plan_type):
     shapes={'q_proj':(896,896),'k_proj':(896,128),'v_proj':(896,128),'o_proj':(896,896),
             'gate_proj':(896,4864),'up_proj':(896,4864),'down_proj':(4864,896),'lm_head':(896,151936)}
     for projection in value['projections']:
+        if set(projection)!={'name','inputWidth','outputWidth','weightId'}:raise ValueError('Exact versioned projection fields required')
         expected=shapes[projection['name'].rsplit('.',1)[-1]]
         if (projection['inputWidth'],projection['outputWidth']) != expected:
             raise ValueError('Unsupported full-model geometry')

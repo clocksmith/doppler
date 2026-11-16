@@ -1,0 +1,27 @@
+{
+  "schema": "doppler.full-qwen-attempt-context/v1",
+  "productionBackendAvailable": false,
+  "securityQualified": false,
+  "attempts": [
+    {
+      "revision": "4991a987945486c311dc97c0b6b7f6821d96eff9",
+      "workflowRun": 43793675926,
+      "artifactId": 14210320024,
+      "artifactZipSha256": "2a6829ab18b2f362b5f646679fbdf25e4d72fa5a07e5a0d18421ee96b465fe70",
+      "result": "six-hour-job-cancelled",
+      "verifiedTiles": 322,
+      "evidence": "stock-six-hour-budget.json",
+      "interpretation": "First 387-tile prefill incomplete; no completed token result; not retried"
+    },
+    {
+      "revision": "df769a598934423a7422f9fff6338b79ccfc02ba",
+      "workflowRun": 43822668258,
+      "artifactId": 14209019606,
+      "artifactZipSha256": "4a8063653d8ae231bf453cb36c1c40fc200f32dbede83171fbe1d6fe689c1a9f",
+      "result": "token-reference-mismatch",
+      "verifiedTiles": 1161,
+      "evidence": "ntt-default-numerical-failure.json",
+      "interpretation": "Three 387-tile model passes replay-verified; third-step greedy check failed after two accepted steps; no partial output published"
+    }
+  ]
+}

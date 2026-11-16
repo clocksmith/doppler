@@ -8,7 +8,7 @@ Input products wider than the conservative single-dot range are split into at mo
 
 The client owns embeddings, all nonlinearities/attention, quantization/dequantization, bias, KV caches, sampling and **full encrypted replay**. Only matrix products are outsourced homomorphically. The driver uses a fixed eight-position prefill bucket, then one encrypted row per decode step; three independent client KV caches support floating-point, full-quantized and encrypted reference comparisons. Private prompt input uses client stdin, never provider arguments. Public int8 weight caches contain no request state or secret keys.
 
-The [pause record](evidence/full-qwen/paused-status.json) is the source of current evidence: the real public route trace covered 169 modules; four pure plan checks and one native wide-dot regression passed. The encrypted attempt was stopped at an owned computation/wait boundary when A1 was explicitly prioritized. No generated token result is claimed. CPU client/evaluator processes were stopped, preparation/cache writes were complete, GPU was unused and Jupiter's public provider was not changed.
+The [pause record](evidence/full-qwen/paused-status.json) retains an earlier local attempt: the real public route trace covered 169 modules; four pure plan checks and one native wide-dot regression passed. The encrypted attempt was stopped at an owned computation/wait boundary when A1 was explicitly prioritized. No generated token result is claimed. CPU client/evaluator processes were stopped, preparation/cache writes were complete, GPU was unused and Jupiter's public provider was not changed.
 
 The v2 plan records the actual implementation versions, admits the explicitly pinned CPU-only Torch distribution, declares four CPU threads and a bounded 900-second operator deadline. Other dependency variants fail before private payload. The dedicated process must declare the thread budget before native initialization.
 
@@ -106,3 +106,32 @@ full-model control. Records include bounded public slices, full tensor digests,
 statistics and an explicit tolerance-policy ID. `wide_reference.py` stores wide
 coefficients as int16 and accumulates products in int64; it rejects encrypted mode.
 No 12-bit encrypted backend or production path is installed by this control.
+
+## Completed attempt outcomes and explicit precision correction
+
+The [retained attempt records](evidence/full-qwen/attempts-context.json) distinguish
+arithmetic verification from model numerical correctness. The stock run exhausted
+its six-hour job budget after 322 verified tiles; its first 387-tile prefill did
+not finish. It was not restarted. The default-precision NTT run replay-verified
+**1,161 tiles**, completing all 169 linear modules on each of three model passes.
+Its third greedy-token comparison failed after two accepted steps. No partial
+output was published. Exact replay passed; the model numerical acceptance gate
+failed. This is not a completed four-token encrypted result.
+
+`qwen-all-linear-ntt-48` is a distinct candidate protocol, using the already declared
+48-bit/four-level research precision profile and explicit 300 MB frame limit.
+The original stock/default-NTT profiles retain their identities and parameters.
+A paired public first-Q probe compares the same actual inputs and weights under
+both parameter sets before one complete four-step high-precision attempt. The
+greedy-reference requirement is unchanged. A successful paired probe alone does
+not establish why the third-step model check failed or qualify the complete model.
+The new full workflow has a separate concurrency group and a four-hour budget.
+
+The clear integer reference now accumulates bounded blocks into int64 and applies
+one global correction/dequantization. This preserves the exact integer arithmetic
+while avoiding a full vocabulary-head int64 temporary; geometry limits come from
+`reference-policy.json`. Source-precision and encrypted profiles remain distinct.
+
+Increasing stored precision and evaluation-key samples has no independent security
+review. Unchanged encryption noise does not establish unchanged security. Production
+admission remains closed even if the numerical variant completes successfully.

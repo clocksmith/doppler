@@ -31,6 +31,27 @@ class NativeSelectionTests(unittest.TestCase):
         self.assertEqual(stock['parameters'],fast['parameters'])
         with self.assertRaises(ValueError):component_parameters({'nativeVariant':'advertised-unknown'})
 
+    def test_high_precision_is_an_explicit_protocol_and_frame_budget_without_changing_defaults(self):
+        high,_,_,parameters=qwen_backend('qwen-all-linear-ntt-48')
+        low,_,_,unchanged=qwen_backend('qwen-all-linear-ntt')
+        self.assertNotEqual(high['protocol'],low['protocol'])
+        self.assertEqual(parameters['parameters']['output_storage_ciphertext_modulus'],48)
+        self.assertEqual(parameters['parameters']['packing_ks_level'],4)
+        self.assertEqual(parameters['maxPayloadBytes'],300000000)
+        self.assertEqual(unchanged['parameters']['output_storage_ciphertext_modulus'],26)
+        self.assertNotIn('maxPayloadBytes',unchanged)
+        self.assertEqual(parameters['parameters']['glwe_encryption_noise_distribution_stdev'],unchanged['parameters']['glwe_encryption_noise_distribution_stdev'])
+
+    def test_unknown_full_plan_fields_reject_before_library_or_file_materialization(self):
+        import json
+        import tempfile
+        from pathlib import Path
+        from full_plan import load_plan
+        with tempfile.TemporaryDirectory() as directory:
+            (Path(directory)/'plan.json').write_text(json.dumps({'advertisedAttestation':True},sort_keys=True,separators=(',',':')))
+            with patch('full_plan.implementation_versions',side_effect=AssertionError('unknown plan entered implementation admission')):
+                with self.assertRaises(ValueError):load_plan(directory)
+
     def test_unknown_evaluator_does_not_import_or_invoke_a_native_module(self):
         plan=SimpleNamespace(definition=lambda:dict(parameters=dict(evaluationBackend='advertised-unknown')))
         with patch('native_runtime.importlib.import_module',side_effect=AssertionError('native module imported')):

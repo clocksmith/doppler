@@ -1,0 +1,13 @@
+{
+  "schema": "doppler.public-full-qwen-ci-evidence/v1",
+  "revision": "4991a987945486c311dc97c0b6b7f6821d96eff9",
+  "fixtureId": "qwen05b-capital",
+  "completed": false,
+  "productionBackendAvailable": false,
+  "securityQualified": false,
+  "verifiedTilesObserved": 322,
+  "lastVerifiedTile": {
+    "sequence": 322,
+    "projection": "lm_head"
+  }
+}
