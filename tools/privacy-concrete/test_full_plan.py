@@ -28,6 +28,20 @@ class FullPlanTests(unittest.TestCase):
         for changed in [plan.frame('s','k',1,'result','tile-two'),plan.frame('s','other',1,'result','tile-one')]:
             with self.assertRaises(ValueError):check(changed,expected)
 
+    def test_many_frames_keep_the_exact_binding_without_reparsing_the_full_model(self):
+        original=dict(modelId='c'*64,projections=[dict(name=str(index)) for index in range(2000)])
+        plan=FullPlan(canonical(original));expected_id=plan.identity
+        with patch.object(FullPlan,'definition',autospec=True,side_effect=lambda self:json.loads(self.encoded)) as definition:
+            first=plan.frame('s','k',1,'evaluate','tile')
+            for index in range(2,1002):
+                frame=plan.frame('s','k',index,'evaluate','tile')
+                self.assertEqual(frame,dict(first,sequence=index))
+            self.assertEqual(definition.call_count,1)
+        changed=plan.definition();changed['modelId']='d'*64;changed['projections'].clear()
+        original['modelId']='e'*64
+        self.assertEqual(plan.frame('s','k',1,'evaluate','tile'),first)
+        self.assertEqual(plan.identity,expected_id);self.assertEqual(len(plan.definition()['projections']),2000)
+
     def test_cpu_torch_variant_is_explicit_and_unknown_variants_fail(self):
         from full_plan import implementation_versions
         from protocol import POLICY

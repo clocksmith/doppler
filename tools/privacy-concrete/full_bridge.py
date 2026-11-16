@@ -1,5 +1,7 @@
 """One immutable all-layer route; verify each exact encrypted tile before client decryption."""
 import hmac
+from functools import cached_property
+from types import MappingProxyType
 from pathlib import Path
 import subprocess
 import sys
@@ -49,6 +51,15 @@ class FullBridge:
             self.close()
             raise
 
+    @cached_property
+    def operation_timeout(self):return self.plan.definition()['operationTimeoutSeconds']
+
+    @cached_property
+    def execution_geometry(self):
+        definition=self.plan.definition()
+        return MappingProxyType(dict(inputTileWidth=definition['inputTileWidth'],outputTileWidth=definition['outputTileWidth'],
+            arithmeticBits=definition['parameters']['parameters']['bits_reserved_for_computation']))
+
     def check_active(self):
         try:
             require_active(self.cancelled)
@@ -58,8 +69,8 @@ class FullBridge:
 
     def exchange(self, kind, payload, response_kind, tile_id=''):
         header = self.plan.frame(self.session,self.key_id,self.sequence,kind,tile_id)
-        self.sent += send(self.child.stdin,header,payload,timeout=self.plan.definition()['operationTimeoutSeconds'],cancelled=self.cancelled,max_payload_bytes=self.payload_limit)
-        reply, result, size = receive(self.child.stdout,timeout=self.plan.definition()['operationTimeoutSeconds'],cancelled=self.cancelled,max_payload_bytes=self.payload_limit)
+        self.sent += send(self.child.stdin,header,payload,timeout=self.operation_timeout,cancelled=self.cancelled,max_payload_bytes=self.payload_limit)
+        reply, result, size = receive(self.child.stdout,timeout=self.operation_timeout,cancelled=self.cancelled,max_payload_bytes=self.payload_limit)
         self.received += size
         check(reply,self.plan.frame(self.session,self.key_id,self.sequence,response_kind,tile_id))
         self.sequence += 1
@@ -99,7 +110,7 @@ class FullBridge:
         count = len(self.plan.schedule())*self.plan.definition()['steps']
         if self.sequence != count+1:
             raise ValueError('Incomplete full encrypted route')
-        self.sent += send(self.child.stdin,self.plan.frame(self.session,self.key_id,self.sequence,'finish'),timeout=self.plan.definition()['operationTimeoutSeconds'],cancelled=self.cancelled,max_payload_bytes=self.payload_limit)
+        self.sent += send(self.child.stdin,self.plan.frame(self.session,self.key_id,self.sequence,'finish'),timeout=self.operation_timeout,cancelled=self.cancelled,max_payload_bytes=self.payload_limit)
         self.child.stdin.close()
         status=self.child.wait(timeout=180)
         self.check_active()

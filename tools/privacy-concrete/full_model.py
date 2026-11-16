@@ -63,10 +63,10 @@ class FullLinear(nn.Module):
             integer_input = np.ascontiguousarray(q_input.long().numpy(),dtype=np.uint64)
             if integer_input.ndim != 2 or not np.all(integer_input<2**self.encoding['quantizationBits']):
                 raise ValueError('Only one private request per key context is admitted')
-            geometry=self.bridge.plan.definition()
+            geometry=self.bridge.execution_geometry
             encrypted = {}
             for begin,end in ranges(self.definition['inputWidth'],geometry['inputTileWidth']):
-                validate_declared_arithmetic_capacity(end-begin,self.encoding['quantizationBits'],geometry['parameters']['parameters']['bits_reserved_for_computation'])
+                validate_declared_arithmetic_capacity(end-begin,self.encoding['quantizationBits'],geometry['arithmeticBits'])
                 encrypted[begin] = ext.encrypt_matrix(pkey=self.secret,crypto_params=self.parameters,
                                                      data=np.ascontiguousarray(integer_input[:,begin:end]))
             result = np.zeros((integer_input.shape[0],self.definition['outputWidth']),dtype=np.int64)

@@ -41,6 +41,24 @@ class FullAdmissionTests(unittest.TestCase):
         with self.assertRaises(ValueError):gate.admit_tile(dict(gate.next_tile()),(16,16),1)
         self.assertTrue(gate.failed)
 
+    def test_repeated_names_or_tile_identities_reject_before_an_attempt(self):
+        first,last=Plan().schedule()
+        for schedule in [(first,first),(first,last,first)]:
+            class Invalid(Plan):
+                def schedule(self):return schedule
+            with self.assertRaises(ValueError):FullRouteAdmission(Invalid())
+
+    def test_geometry_and_route_are_owned_after_source_mutation(self):
+        schedule=list(Plan().schedule())
+        class Mutable(Plan):
+            def schedule(self):return schedule
+        gate=FullRouteAdmission(Mutable());schedule[0]['inputEnd']=1000
+        self.assertEqual(gate.geometries['first'],(16,16))
+        self.assertEqual(gate.next_tile()['inputEnd'],16)
+        with self.assertRaises(TypeError):gate.geometries['first']=(1000,16)
+        with self.assertRaises(ValueError):gate.admit_projection('first',1000,16,8)
+        with self.assertRaises(ValueError):gate.admit_projection('first',16,16,8)
+
     def test_incomplete_or_failed_routes_cannot_finalize(self):
         gate=FullRouteAdmission(Plan())
         with self.assertRaises(ValueError):gate.complete()

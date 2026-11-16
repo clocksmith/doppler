@@ -11,6 +11,16 @@ class FullRouteAdmission:
         self.projection=None
         if not self.schedule or type(self.steps) is not int or self.steps<=0:
             raise ValueError('Complete encrypted route required')
+        geometries={};previous=None;identifiers=set()
+        for tile in self.schedule:
+            name=tile['name']
+            if tile['id'] in identifiers or (name!=previous and name in geometries):
+                raise ValueError('Duplicate or noncontiguous encrypted projection route')
+            identifiers.add(tile['id'])
+            width,height=geometries.get(name,(0,0))
+            geometries[name]=(max(width,tile['inputEnd']),max(height,tile['outputEnd']))
+            previous=name
+        self.geometries=MappingProxyType(geometries)
 
     def fail(self):
         self.failed=True
@@ -31,9 +41,7 @@ class FullRouteAdmission:
                       and expected['inputBegin']==0 and expected['outputBegin']==0
                       and type(rows) is int and rows==expected_rows,
                       'projection, retry or row schedule changed')
-        projection=[tile for tile in self.schedule if tile['name']==name]
-        self._require(input_width==max(tile['inputEnd'] for tile in projection)
-                      and output_width==max(tile['outputEnd'] for tile in projection),
+        self._require((input_width,output_width)==self.geometries[name],
                       'projection geometry changed')
         self.projection=name
 

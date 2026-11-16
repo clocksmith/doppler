@@ -161,6 +161,38 @@ class StreamedFlashMoETests(unittest.TestCase):
             value=torch.tensor([[.1,-.2,.3,-.4]],dtype=torch.float32);actual.mode=control.mode='clear-reference'
             torch.testing.assert_close(actual(value),control(value),rtol=0,atol=0)
 
+    def test_full_linear_tiled_dispatch_uses_owned_bridge_geometry(self):
+        import numpy as np
+        import torch
+        import full_model
+        from full_plan import FullPlan,canonical
+        from full_bridge import FullBridge
+        from full_admission import FullRouteAdmission
+        from concrete.ml.quantization.linear_op_glwe_backend import GLWELinearLayerExecutor
+        with tempfile.TemporaryDirectory() as directory:
+            layer=torch.nn.Linear(5,3,bias=True).eval().requires_grad_(False)
+            with torch.no_grad():
+                layer.weight.copy_(torch.arange(15,dtype=torch.float32).reshape(3,5)*.07-.4)
+                layer.bias.copy_(torch.tensor([.1,-.1,.3]))
+            projection=full_model.FullLinear('public',layer,GLWELinearLayerExecutor(use_dynamic_quantization=True),directory,12)
+            value=torch.tensor([[.1,-.2,.3,-.4,.5]]);projection.mode='clear-reference';expected=projection(value)
+            bridge=FullBridge.__new__(FullBridge)
+            bridge.plan=FullPlan(canonical(dict(steps=1,contextBucket=1,inputTileWidth=2,outputTileWidth=2,
+                parameters=dict(parameters=dict(bits_reserved_for_computation=35)),projections=[projection.definition])))
+            bridge.admission=FullRouteAdmission(bridge.plan);bridge.cancelled=None;bridge.sequence=1
+            def evaluate(encrypted,matrix,tile):
+                bridge.admission.admit_tile(tile,matrix.shape,bridge.sequence)
+                result=encrypted.astype(np.int64)@matrix.view(np.int64)
+                bridge.admission.verified();bridge.sequence+=1;return result
+            bridge.evaluate=evaluate;projection.bridge=bridge;projection.secret=object();projection.parameters=object()
+            projection.mode='execute'
+            # Exercise actual Torch/NumPy quantization, route admission, tile
+            # accumulation and dequantization; crypto is explicitly simulated.
+            native=SimpleNamespace(encrypt_matrix=lambda **kwargs:kwargs['data'].copy(),decrypt_matrix=lambda result,*args:result)
+            with patch.object(full_model,'ext',native):actual=projection(value)
+            bridge.admission.complete();self.assertEqual(bridge.sequence,7)
+            torch.testing.assert_close(actual,expected,rtol=0,atol=0)
+
     def test_bounded_integer_reference_matches_full_int64_product_without_float_rounding(self):
         import numpy as np
         import torch

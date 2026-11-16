@@ -83,6 +83,20 @@ class FullBridgeOrderingTests(unittest.TestCase):
         self.assertEqual(transcripts[0],['evaluation-key']+['evaluate']*4+['finish'])
         self.assertTrue(all(trace==transcripts[0] for trace in transcripts))
 
+    def test_execution_metadata_is_immutable_and_not_reparsed_for_each_tile(self):
+        from full_plan import FullPlan,canonical
+        plan=FullPlan(canonical(dict(operationTimeoutSeconds=5,inputTileWidth=16,outputTileWidth=32,
+            parameters=dict(parameters=dict(bits_reserved_for_computation=35)))))
+        self.bridge.plan=plan
+        with patch.object(FullPlan,'definition',autospec=True,side_effect=lambda self:__import__('json').loads(self.encoded)) as definition:
+            for _index in range(100):
+                self.assertEqual(self.bridge.operation_timeout,5)
+                self.assertEqual(self.bridge.execution_geometry['arithmeticBits'],35)
+            self.assertEqual(definition.call_count,2)
+        with self.assertRaises(TypeError):self.bridge.execution_geometry['arithmeticBits']=64
+        changed=plan.definition();changed['parameters']['parameters']['bits_reserved_for_computation']=64
+        self.assertEqual(self.bridge.execution_geometry['arithmeticBits'],35)
+
     def test_close_is_terminal_before_payload_serialization_and_releases_evaluation_key(self):
         import io
         self.bridge.child=SimpleNamespace(poll=lambda:0,wait=lambda:0,stdin=io.BytesIO(),stdout=io.BytesIO())

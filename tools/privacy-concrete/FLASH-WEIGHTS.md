@@ -573,3 +573,14 @@ full-Flash memory result. Whole-file cache admission and client encrypted replay
 remain required. Missing files reject; no remote acquisition or fallback is added.
 Full Flash still needs assembled weight materialization, per-stage client/provider
 disk-cache transitions and an actual all-layer autoregressive run.
+
+
+The complete-route cursor also indexes projection geometry once, rather than
+scanning every tile for every projection. Duplicate tile identities and disjoint
+repeated projection names reject before an attempt. Per-frame model/plan identity,
+transport timeout and per-projection tile/arithmetic geometry are cached as
+immutable facts; public plan definitions still return fresh owned copies. This
+removes model-sized parsing/hashing from each encrypted frame without changing
+frame contents, numerical bounds, recipient binding or failure handling. Focused
+mutation tests and real Torch/NumPy tiled dispatch with explicitly simulated
+crypto cover these ownership changes; no full Flash speedup is measured.

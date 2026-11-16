@@ -1,5 +1,6 @@
 """Immutable, source-pinned all-linear Qwen execution plan with width-safe tiles."""
 from dataclasses import dataclass
+from functools import cached_property
 import hashlib
 import json
 from importlib.metadata import version
@@ -40,15 +41,19 @@ class FullPlan:
     @property
     def protocol_id(self):return PROTOCOL
 
-    @property
+    @cached_property
     def identity(self):
         return digest(self.encoded)
+
+    @cached_property
+    def _frame_model_id(self):
+        return self.definition()['modelId']
 
     def definition(self):
         return json.loads(self.encoded)
 
     def frame(self, session, key_id, sequence, kind, tile_id=''):
-        value = binding(self.definition()['modelId'], session, key_id, sequence, kind, tile_id)
+        value = binding(self._frame_model_id, session, key_id, sequence, kind, tile_id)
         value.update(schema=self.protocol_id, policyId=self.identity)
         return value
 
