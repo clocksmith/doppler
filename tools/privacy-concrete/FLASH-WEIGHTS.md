@@ -197,3 +197,10 @@ public shard, then runs that component. Trigger only manually or with
 `[flash-qsa-e2e]`; original Qwen/MoE runs remain untouched. The candidate has no
 completed actual-weight encrypted result until its artifact is collected, and
 production admission remains closed.
+
+`python tools/privacy-concrete/inventory_flash_ngram.py --check` reproduces the
+installed storage mapping from pinned config/index, public revision-specific LFS
+metadata and bounded headers. `--output <path>` writes a reviewable candidate;
+neither command downloads table weights or enables a backend. The generator also
+verifies the pinned conversion sources and resolves the absent seed from the
+exact configuration declaration rather than introducing a runtime default.
