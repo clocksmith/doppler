@@ -46,7 +46,8 @@ export declare function resolveLargeWeightOverrides(
 ): string[] | null;
 
 /**
- * Estimate GPU memory required for a matmul weight after dequantization.
+ * Estimate GPU memory required for a matmul weight in its materialized dtype.
+ * Retained GGUF block formats use their declared packed geometry.
  *
  * @param location - Tensor location info
  * @param gpuCapabilities - GPU capabilities

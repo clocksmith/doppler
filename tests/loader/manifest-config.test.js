@@ -1,6 +1,25 @@
 import assert from 'node:assert/strict';
 
-const { needsNormWeightOffset, isMoEModel } = await import('../../src/loader/manifest-config.js');
+const { needsNormWeightOffset, isMoEModel, estimateMatmulWeightBytes } = await import('../../src/loader/manifest-config.js');
+
+// Packed heads retain block storage rather than entering float-only byte rules.
+for (const [dtype, bytes, materialized] of [
+  ['Q4_0', 144, 'q4_0'],
+  ['Q4_1', 160, 'q4_1'],
+  ['Q5_0', 176, 'q5_0'],
+  ['Q8_0', 272, 'q8_0'],
+  ['F16', 512, 'f16'],
+  ['F32', 1024, 'f32'],
+]) {
+  assert.deepEqual(
+    estimateMatmulWeightBytes({ shape: [2, 128], dtype, role: 'lm_head' }, { hasF16: true }, true),
+    { bytes, dtype: materialized }
+  );
+}
+assert.throws(
+  () => estimateMatmulWeightBytes({ shape: [2, 33], dtype: 'Q8_0', role: 'lm_head' }, { hasF16: true }, true),
+  /complete quantization blocks/
+);
 
 // === needsNormWeightOffset ===
 

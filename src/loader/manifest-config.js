@@ -6,6 +6,7 @@ import { shouldDequantizeToF16 } from './dtype-utils.js';
 import { formatBytes } from '../storage/quota.js';
 import { log, trace as debugTrace } from '../debug/index.js';
 import { selectRuleValue } from '../rules/rule-registry.js';
+import { ggufBlockBytes, isGgufBlockDtype } from '../formats/gguf/block-storage.js';
 
 const STREAMABLE_DTYPES = new Set(['F16', 'F32', 'BF16']);
 
@@ -68,6 +69,9 @@ export function estimateMatmulWeightBytes(location, gpuCapabilities, keepF32Weig
   if (!Number.isFinite(numElements) || numElements <= 0) return null;
 
   const dtype = resolveMatmulWeightDtype(location, gpuCapabilities, keepF32Weights);
+  if (isGgufBlockDtype(dtype)) {
+    return { bytes: ggufBlockBytes(location.shape, dtype), dtype };
+  }
   const bytesPerElement = DTYPE_SIZES[selectRuleValue('shared', 'dtype', 'f16OrF32FromDtype', { dtype })];
   return { bytes: numElements * bytesPerElement, dtype };
 }
