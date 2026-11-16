@@ -1,0 +1,18 @@
+{
+  "schema": "doppler.flash-qsa-closed-route-context/v1",
+  "revision": "271505d2bfaf17b93aeb04d3d0bef9a129b278b0",
+  "workflowRun": 43864513404,
+  "artifactId": 14225257161,
+  "artifactZipSha256": "c6b16de1e23547c64bdfa2492d1eb853569209711468b904beca5e6a6a835655",
+  "evidence": "qsa-four-step-closed-route.json",
+  "validationBoundary": "after-route-close/v1",
+  "productionBackendAvailable": false,
+  "securityQualified": false,
+  "fullFlashModelExecuted": false,
+  "limitations": [
+    "Four actual layer3 public-input QSA cache steps, not full-model token generation",
+    "All numerical acceptance checks occur after complete route finish and transport closure; exact replay remains before deserialization/decryption",
+    "Client attention/indexing/nonlinear operations plus full encrypted replay remain; no compute-saving or malicious-security qualification",
+    "Timing and integrity/cancellation/runtime failure leakage remain unqualified; one trusted host/process transport observation"
+  ]
+}

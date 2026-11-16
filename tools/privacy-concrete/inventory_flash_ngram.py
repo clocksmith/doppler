@@ -4,10 +4,10 @@ Never downloads table weights or accepts private token/row indices. Output is
 reviewable source metadata, not permission to enable a runtime backend.
 """
 import argparse
-import ast
 import json
 from pathlib import Path
 from flash_source_scopes import BASE
+from flash_text_config import configuration_declarations
 from flash_inventory_metadata import public_bytes,model_metadata,shard_headers
 
 PREFIX='model.language_model.layers.1.ple.ple_embedding.ngram_embedding.'
@@ -35,9 +35,7 @@ def build():
     installed=json.loads(Path(__file__).with_name('flash-ngram-storage.json').read_text())
     reference=installed['conversionReference'];raw_sources={}
     for name,record in reference['files'].items():raw_sources[name]=public_bytes(record['url'],1024*1024,record['sha256'])
-    defaults={n.target.id:ast.literal_eval(n.value) for node in ast.parse(raw_sources['configuration_qwen4_exp.py']).body
-              if isinstance(node,ast.ClassDef) and node.name=='Qwen4ExpTextConfig' for n in node.body
-              if isinstance(n,ast.AnnAssign) and isinstance(n.target,ast.Name) and isinstance(n.value,ast.Constant)}
+    defaults,_,_=configuration_declarations(raw_sources['configuration_qwen4_exp.py'])
     return dict(schema='doppler.flash-local-ngram-storage-inventory/v1',repository=BASE['repository'],revision=BASE['revision'],
                 sourceConfigSha256=BASE['configSha256'],sourceIndexSha256=BASE['files']['model.safetensors.index.json']['sha256'],
                 logicalShape=[row,160],logicalBytes=row*160*2,shards={name:headers[name][0] for name in files},parts=parts,

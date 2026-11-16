@@ -21,6 +21,9 @@ on:
       - 'tools/privacy-concrete/flash_request_state.py'
       - 'tools/privacy-concrete/flash_model_state.py'
       - 'tools/privacy-concrete/flash_model_graph.py'
+      - 'tools/privacy-concrete/flash_text_config.py'
+      - 'tools/privacy-concrete/flash_model_assembly.py'
+      - 'tools/privacy-concrete/test_flash_text_config.py'
       - 'tools/privacy-concrete/test_flash_model_reference.py'
       - 'tools/privacy-concrete/test_flash_attention_reference.py'
       - 'tools/privacy-concrete/flash_delta_state.py'
@@ -73,6 +76,11 @@ jobs:
                   with urllib.request.urlopen(item['url'],timeout=30) as response:data=response.read(1024*1024+1)
               if hashlib.sha256(data).hexdigest()!=item['sha256']:raise ValueError('Pinned conversion source mismatch')
               if not path.exists():path.write_bytes(data)
+          text=json.loads(Path('tools/privacy-concrete/flash-text-weights.json').read_text())
+          url=f"https://huggingface.co/{text['repository']}/resolve/{text['revision']}/config.json"
+          with urllib.request.urlopen(url,timeout=30) as response:data=response.read(1024*1024+1)
+          if hashlib.sha256(data).hexdigest()!=text['configSha256']:raise ValueError('Pinned full-model configuration mismatch')
+          (target/'checkpoint-config.json').write_bytes(data)
           PY
       - name: Compare MoE and four-step hyperconnection branch against official FP32 reference
         env:
@@ -90,3 +98,17 @@ jobs:
           python -m unittest discover -s tools/privacy-concrete -p test_flash_rotary_reference.py -v
           python -m unittest discover -s tools/privacy-concrete -p test_flash_model_reference.py -v
           python -m unittest discover -s tools/privacy-concrete -p test_local_token_embedding_reference.py -v
+          python -m unittest discover -s tools/privacy-concrete -p test_flash_text_config.py -v
+      - name: Retain source-bound complete-model geometry without weight or inference claims
+        env:
+          OMP_NUM_THREADS: '2'
+        run: |
+          python tools/privacy-concrete/flash_model_assembly.py \
+            --config "$RUNNER_TEMP/flash-reference/checkpoint-config.json" \
+            --reference-source "$RUNNER_TEMP/flash-reference/modeling_qwen4_exp.py" > "$RUNNER_TEMP/flash-client-geometry.json"
+      - uses: actions/upload-artifact@v6
+        with:
+          name: flash-complete-client-geometry
+          path: ${{ runner.temp }}/flash-client-geometry.json
+          if-no-files-found: error
+          retention-days: 7

@@ -456,3 +456,38 @@ A numerical mismatch cannot choose an earlier provider stopping point or select
 and runtime failures remain immediate; timing and other failure leakage still
 require review. New reports mark `after-route-close/v1`. See the
 [security boundary](SECURITY-BOUNDARY.md#observable-reference-validation-feedback).
+
+
+## Complete checkpoint configuration and geometry assembly
+
+The raw checkpoint calls its indexed-attention layers `full_attention`. The pinned
+configuration class normalizes those names to `indexed_attention` and supplies
+missing declared defaults, including the n-gram seed. Passing the raw JSON directly
+as a namespace therefore cannot correctly assemble the complete client graph.
+`flash_text_config.py` now executes only that hash-pinned class's literal defaults
+and its two inspected local normalization/architecture methods, with an explicit
+eager reference implementation. Downloaded imports, decorators and the upstream
+configuration base implementation are excluded; this is a bounded client-reference
+contract, not a general Transformers configuration loader. Raw input is copied.
+
+`flash_model_assembly.py` builds every actual decoder, embedding, mixer and head on
+Torch's meta device and checks every destination against the complete text-weight
+inventory. It also checks the logical PLE table against the source-backed split-row
+mapping. This is a pre-materialization geometry check; no checkpoint weights are
+loaded, forward operations executed or model tokens generated. Its reports state
+`geometryOnly: true`, `weightsMaterialized: false` and `forwardExecuted: false`.
+The isolated source-reference workflow checks it alongside the existing small-graph
+autoregression/ownership regressions and retains bounded public geometry evidence.
+Actual out-of-core weight materialization and full Flash autoregression remain gates.
+
+
+The [actual four-step closed-route QSA run](evidence/flash/qsa-four-step-closed-route.json)
+passed **96 encrypted tiles** with the new validation boundary. Elapsed time was
+**191.59 s**, client replay **90.69 s** and evaluator round trips **91.58 s**;
+maximum encrypted-versus-quantized error was **0.0008691**. Client lifetime peak RSS
+was **1,684,160,512 bytes**. The [context](evidence/flash/qsa-closed-route-context.json)
+binds revision, artifact and scope. This is one genuine component integration of
+the phase-ordering fix, with unchanged numerical limits. The driver control tests
+also exercise reference rejection at multiple Qwen steps after all four encrypted
+steps complete; those use real Torch with mocked model/transport and are not
+additional full-Qwen encrypted executions or constant-time/security qualification.
