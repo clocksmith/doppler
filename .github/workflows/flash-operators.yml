@@ -26,6 +26,8 @@ on:
       - 'tools/privacy-concrete/flash-readiness.json'
       - 'tools/privacy-concrete/flash-ngram-storage.json'
       - 'tools/privacy-concrete/local_ngram_rows.py'
+      - 'tools/privacy-concrete/local_ngram_embedding.py'
+      - 'tools/privacy-concrete/test_flash_ple_local_reference.py'
       - 'tools/privacy-concrete/test_local_ngram_rows.py'
       - 'tools/privacy-concrete/test_ngram_mapping_reference.py'
       - 'tools/privacy-concrete/flash_rotary.py'
@@ -75,6 +77,7 @@ jobs:
           python -m unittest discover -s tools/privacy-concrete -p test_flash_delta_reference.py -v
           python -m unittest discover -s tools/privacy-concrete -p test_flash_attention_reference.py -v
           python -m unittest discover -s tools/privacy-concrete -p test_flash_ple_reference.py -v
+          python -m unittest discover -s tools/privacy-concrete -p test_flash_ple_local_reference.py -v
           python -m unittest discover -s tools/privacy-concrete -p test_local_ngram_rows.py -v
           python -m unittest discover -s tools/privacy-concrete -p test_ngram_mapping_reference.py -v
           python -m unittest discover -s tools/privacy-concrete -p test_flash_rotary_reference.py -v

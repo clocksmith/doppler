@@ -16,6 +16,13 @@ class ProjectionExecution:
     callback:object
 
 
+def current_client_state():
+    execution=_CURRENT.get()
+    if execution is None:raise ValueError('No bound Flash client execution')
+    execution.state.require(execution.state.active)
+    return execution.state
+
+
 class ClientProjection(nn.Module):
     def __init__(self,name,source):
         super().__init__();self.source=source

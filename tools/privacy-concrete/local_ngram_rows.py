@@ -78,23 +78,29 @@ class LocalNgramRows:
         for name,identity in self.signatures.items():
             if file_signature(self.directory/name)!=identity:raise ValueError('Verified local ngram storage changed')
 
+    def _read_rows(self,indices,*,max_output_bytes,cancelled=None):
+        require_active(cancelled);self._unchanged()
+        if (not isinstance(indices,(list,tuple)) or not indices or type(max_output_bytes) is not int
+                or max_output_bytes<=0 or len(indices)*self.columns*2>max_output_bytes
+                or any(type(index) is not int or not 0<=index<self.rows for index in indices)):
+            raise ValueError('Bounded local row indices required')
+        result=bytearray()
+        for index in indices:
+            require_active(cancelled)
+            part=self.parts[bisect_right(self.starts,index)-1];record=self.spec['shards'][part['shard']]
+            offset=8+record['headerBytes']+part['dataOffsets'][0]+(index-part['firstRow'])*self.columns*2
+            result.extend(self.maps[part['shard']][offset:offset+self.columns*2])
+        require_active(cancelled);self._unchanged();return bytes(result)
+
     def read_rows(self,indices,*,max_output_bytes,cancelled=None):
-        """Return owned little-endian BF16 bytes; do not retain indices or results."""
-        try:
-            require_active(cancelled);self._unchanged()
-            if (not isinstance(indices,(list,tuple)) or not indices or type(max_output_bytes) is not int
-                    or max_output_bytes<=0 or len(indices)*self.columns*2>max_output_bytes
-                    or any(type(index) is not int or not 0<=index<self.rows for index in indices)):
-                raise ValueError('Bounded local row indices required')
-            result=bytearray()
-            for index in indices:
-                require_active(cancelled)
-                part=self.parts[bisect_right(self.starts,index)-1];record=self.spec['shards'][part['shard']]
-                offset=8+record['headerBytes']+part['dataOffsets'][0]+(index-part['firstRow'])*self.columns*2
-                result.extend(self.maps[part['shard']][offset:offset+self.columns*2])
-            require_active(cancelled);self._unchanged();return bytes(result)
+        """Exclusive-owner interface: a failed operation closes this owner's mappings."""
+        try:return self._read_rows(indices,max_output_bytes=max_output_bytes,cancelled=cancelled)
         except BaseException:
             self.close();raise
+
+    def lease(self,context):
+        self._unchanged()
+        return LocalRowsLease(self,context)
 
     def close(self):
         self.closed=True
@@ -104,3 +110,20 @@ class LocalNgramRows:
 
     def __enter__(self):self._unchanged();return self
     def __exit__(self,*args):self.close()
+
+
+class LocalRowsLease:
+    """Request-owned terminal state over shared public mappings; no selected-row cache."""
+    def __init__(self,storage,context):
+        from flash_request_state import ClientContext
+        if not isinstance(context,ClientContext):raise ValueError('Explicit local row request context required')
+        self.storage=storage;self.context=context;self.closed=False
+
+    def read_rows(self,indices,context,*,max_output_bytes,cancelled=None):
+        try:
+            if self.closed or context!=self.context:raise ValueError('Local row request context changed')
+            return self.storage._read_rows(indices,max_output_bytes=max_output_bytes,cancelled=cancelled)
+        except BaseException:
+            self.close();raise
+
+    def close(self):self.closed=True

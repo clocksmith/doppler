@@ -177,8 +177,13 @@ indices, maps only local files, checks source mutation before/after reads, owns
 its handles and rejects missing material, cancellation or budget failure without
 network fallback. It caches neither selected indices nor private outputs. Local
 filesystem access patterns remain visible to the trusted client host; this is not
-PIR or protection from that host. This storage interface is not yet wired into
-the PLE model adapter or production admission. Actual PLE projections/weights,
+PIR or protection from that host. The PLE client adapter can now bind a verified local row store through
+`ClientPLE.from_local_rows`, loading only the small explicitly supplied public
+parameters and no contiguous full-table tensor. Request-owned leases bind lookup
+to the active tenant/privacy/model/key/request context; cancelling one lease
+cannot close another request's shared public mappings. Source comparisons use
+complete tiny BF16 files and remain separate from actual Flash table qualification.
+Actual PLE projections/weights,
 all-layer composition and full Flash autoregression remain unavailable.
 
 ## Actual cached QSA candidate

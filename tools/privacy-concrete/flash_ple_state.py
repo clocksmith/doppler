@@ -6,9 +6,12 @@ from flash_request_state import ClientRequestState
 
 class PLERequestState(ClientRequestState):
     def __init__(self,context,layer_index=1):
-        super().__init__(context,layer_index);self.conv={}
+        super().__init__(context,layer_index);self.conv={};self.local_rows_lease=None
 
-    def clear_private_state(self):self.conv.clear()
+    def clear_private_state(self):
+        self.conv.clear()
+        if self.local_rows_lease is not None:self.local_rows_lease.close()
+        self.local_rows_lease=None
 
     def _slot(self,layer_idx,state_idx=0):
         self.require(self.active and type(layer_idx) is int and layer_idx==self.layer_index

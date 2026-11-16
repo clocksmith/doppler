@@ -31,6 +31,21 @@ class LocalRowsTests(unittest.TestCase):
                 self.assertEqual(set(storage.__dict__) & {'indices','results','request_cache'},set())
             self.assertTrue(storage.closed);self.assertEqual(storage.maps,{})
 
+    def test_cancelled_or_wrong_namespace_lease_cannot_close_other_requests_public_storage(self):
+        from dataclasses import replace
+        from flash_request_state import ClientContext
+        with tempfile.TemporaryDirectory() as directory:
+            spec,all_rows=self.fixture(directory)
+            context=ClientContext('tenant','privacy','model','key','request')
+            with LocalNgramRows(directory,spec,local_storage_limit_bytes=4096) as storage:
+                first=storage.lease(context);other_context=replace(context,tenant_id='other',key_id='other',request_id='other')
+                other=storage.lease(other_context);event=threading.Event();event.set()
+                with self.assertRaises(InterruptedError):first.read_rows([0],context,max_output_bytes=4,cancelled=event)
+                self.assertTrue(first.closed);self.assertFalse(storage.closed)
+                self.assertEqual(other.read_rows([5],other_context,max_output_bytes=4),all_rows[20:24])
+                with self.assertRaises(ValueError):other.read_rows([0],context,max_output_bytes=4)
+                self.assertTrue(other.closed);self.assertFalse(storage.closed)
+
     def test_missing_corrupt_or_oversized_material_rejects_before_lookup(self):
         with tempfile.TemporaryDirectory() as directory:
             spec,_=self.fixture(directory)
