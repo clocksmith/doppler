@@ -332,3 +332,50 @@ Full Flash execution and production cryptographic admission remain unavailable.
 The [route preparation command](SSH-DEPLOYMENT.md#prepare-an-exact-route-from-an-installed-cache)
 now derives a private manifest from an installed cache; it does not provision,
 connect to or appraise an endpoint.
+
+Preparation cancellation is cooperative: whole-source verification checks the
+signal around each 1 MiB read, and model/tokenizer loading and projection
+conversion check it at their boundaries. An in-flight native load or conversion
+must return before cancellation takes effect. Complete source hashes and mutation
+checks remain mandatory; cancellation does not delete shared public source or
+coefficient cache files, admit a partial route, or bypass client integrity replay.
+
+### Source-bound complete Flash decoder preparation
+
+`flash_decoder_source.bind_decoder` constructs the inspected decoder on meta,
+then binds every attention, hyper-connection, PLE and expert matrix to the exact
+public decoder stage. Linear matrices stream; normalization, convolution and
+recurrent parameters remain local. PLE requires the installed complete local row
+store, owned by the caller. Every stage tensor must be accounted for. The helper
+returns a layer for `ClientFlashGraph`; it does not create an encrypted plan or
+claim an actual-checkpoint run. Small BF16-file tests exercise linear attention
+and indexed attention with PLE inside the complete client graph, including local
+row-lease ownership. Full Flash weights and encrypted route integration remain
+unqualified.
+
+### Streamed decoder coefficient preparation
+
+`FullLinear` now accepts a source-bound `SourceLinear` whose public weight is meta.
+It borrows one authenticated FP32 projection through `materialized_weight`, runs
+its existing quantizer, checks source validity and cancellation again, then stores
+the same coefficient format used by encrypted execution. Expert/row slices remain
+bound to the source; FP32 matrices are not installed on the module or retained
+between preparations. Released projections retain the existing hashed coefficient
+cache and request-copy lifecycle. Full encrypted replay is unchanged.
+
+The focused adapter test compares the stored coefficients against a materialized
+projection using a simulated quantizer and real small BF16 source files. It also
+checks cancellation, source closure before publication, and released matrix
+lifetime. This does not establish native quantizer/cryptography parity, a full
+Flash plan, actual-checkpoint execution, throughput or production qualification.
+
+The complete-graph adapter test now connects an authenticated tiny BF16 decoder
+stage to a mixed-attention Flash graph, prepares every linear projection with the
+real GLWE quantizer, and runs prefill plus cached decode through `FullLinear` and
+`FullBridge.evaluate`. Simulated ciphertext and transport exercise real route
+admission, exact per-tile replay comparison and dequantization. Outputs must
+exactly match the quantized reference; every dispatched tile must replay. Altered
+replies and cancellation reject before decryption; changed coefficient caches and
+closed sources reject before disclosure. Failed graph state cannot be retried.
+The test directly constructs a synthetic plan and bridge; it does not bypass or
+change installed backend admission, execute native encryption, or qualify Flash.

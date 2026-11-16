@@ -3,6 +3,7 @@
 No downloads, private routing to a provider, encrypted admission or full-model
 qualification. The caller owns the already verified public decoder-stage lease.
 """
+from contextlib import contextmanager
 from pathlib import Path
 from types import SimpleNamespace,MappingProxyType
 import torch
@@ -11,7 +12,7 @@ from flash_dense_moe import DenseClientMoE
 from flash_source_scopes import staging_spec
 from flash_weights import FlashSource
 from full_plan import canonical
-from protocol import digest
+from protocol import digest,require_active
 from source_snapshot import file_signature
 
 
@@ -73,16 +74,23 @@ class SourceLinear(nn.Linear):
 
     def require_source(self):self.source_owner.require_tensor(self._name)
 
-    def forward(self,value):
-        self.require_source()
+    @contextmanager
+    def materialized_weight(self,*,cancelled=None):
+        """Borrow one authenticated FP32 matrix; never install it on the module."""
+        require_active(cancelled);self.require_source()
         weight=self._source.tensor(self._name,expert=self._expert)
         if self._rows is not None:weight=weight[self._rows[0]:self._rows[1]]
         if (weight.device.type!='cpu' or weight.dtype!=torch.float32 or weight.shape!=(self.out_features,self.in_features)
                 or not torch.isfinite(weight).all()):raise ValueError('Bound public projection materialization changed')
-        # No autograd graph may retain this public matrix between projections.
-        with torch.no_grad():result=torch.nn.functional.linear(value,weight)
-        self.require_source()
-        return result
+        require_active(cancelled);self.require_source()
+        try:yield weight
+        finally:
+            self.require_source();require_active(cancelled)
+
+    def forward(self,value):
+        with self.materialized_weight() as weight:
+            # No autograd graph may retain this public matrix between projections.
+            with torch.no_grad():return torch.nn.functional.linear(value,weight)
 
 
 class SourceDenseClientMoE(DenseClientMoE):

@@ -3,6 +3,8 @@ import hashlib
 from pathlib import Path
 import tempfile
 import unittest
+import threading
+from unittest.mock import patch
 from source_snapshot import pinned_source
 
 
@@ -27,6 +29,29 @@ class SourceSnapshotTests(unittest.TestCase):
                             if mutation=='restore':path.write_bytes(b'original')
                     reached.append('private-key-generation')
                 self.assertEqual(reached,[])
+
+    def test_cancelled_hash_stops_before_yield_and_preserves_source(self):
+        with tempfile.TemporaryDirectory() as directory:
+            path=Path(directory)/'public-model';payload=b'x'*(2*1024*1024);path.write_bytes(payload)
+            event=threading.Event();original=Path.open;reads=[]
+            class Reader:
+                def __enter__(self):self.handle=original(path,'rb');return self
+                def __exit__(self,*args):self.handle.close()
+                def read(self,size):
+                    reads.append(size);result=self.handle.read(size);event.set();return result
+            with patch.object(Path,'open',return_value=Reader()):
+                with self.assertRaises(InterruptedError):
+                    with pinned_source(directory,{'public-model':hashlib.sha256(payload).hexdigest()},cancelled=event):
+                        self.fail('cancelled materialization entered')
+            self.assertEqual(reads,[1024*1024]);self.assertEqual(path.read_bytes(),payload)
+
+    def test_pre_cancelled_and_cancelled_body_never_complete(self):
+        event=threading.Event();event.set()
+        with self.assertRaises(InterruptedError):
+            with pinned_source('/does-not-exist',{},cancelled=event):self.fail('entered')
+        event.clear()
+        with self.assertRaises(InterruptedError):
+            with pinned_source('/does-not-exist',{},cancelled=event):event.set()
 
     def test_initial_corruption_or_missing_file_never_enters_materialization(self):
         with tempfile.TemporaryDirectory() as directory:

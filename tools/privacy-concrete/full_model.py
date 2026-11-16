@@ -1,7 +1,7 @@
 """Complete Qwen all-linear hybrid backend. Native GLWE operations; client nonlinearities and replay."""
 import argparse
 import copy
-from contextlib import contextmanager
+from contextlib import contextmanager,nullcontext
 import hashlib
 import json
 import os
@@ -19,6 +19,7 @@ from transformers.cache_utils import DynamicCache
 from concrete.ml.quantization.linear_op_glwe_backend import GLWELinearLayerExecutor
 import concrete_ml_extensions as ext
 from full_bridge import FullBridge
+from flash_streamed_moe import SourceLinear
 from public_weights import mapped_public_matrix,store_public_matrix
 from full_status import ExecutionRejected, failure_event
 from verified_execution import complete_verified_route,VALIDATION_BOUNDARY
@@ -34,14 +35,18 @@ from profiles import validate_declared_arithmetic_capacity
 
 class FullLinear(nn.Module):
     """Quantize the entire input/weight once; tile only integer encrypted products, never scales."""
-    def __init__(self, name, source, executor, directory, quantization_bits=POLICY['quantizationBits']):
+    def __init__(self, name, source, executor, directory, quantization_bits=POLICY['quantizationBits'],*,cancelled=None):
         super().__init__()
         self.name, self.remote, self.executor = name, source, executor
         self.encoding=encoding_for_bits(quantization_bits)
         self.mode, self.bridge, self.secret, self.parameters = 'float-reference', None, None, None
         self.context = SimpleNamespace(input_quantizers=[SimpleNamespace(quant_options=SimpleNamespace(n_bits=quantization_bits))])
-        weight = source.weight.detach().numpy().T
-        quantized, self.scale, self.zero_point, self.sum_weights = executor._per_channel_weight_quantization(weight,self.context,torch.device('cpu'))
+        require_active(cancelled)
+        lease=source.materialized_weight(cancelled=cancelled) if isinstance(source,SourceLinear) else nullcontext(source.weight)
+        with lease as weight:
+            quantized, self.scale, self.zero_point, self.sum_weights = executor._per_channel_weight_quantization(
+                weight.detach().numpy().T,self.context,torch.device('cpu'))
+        require_active(cancelled)
         data = np.ascontiguousarray(quantized.numpy(),dtype=self.encoding['dtype'])
         if not np.array_equal(data,quantized.numpy()):raise ValueError('Quantized public coefficient truncation')
         self.weight_path,self.definition=store_public_matrix(directory,name,source.in_features,source.out_features,
@@ -125,23 +130,27 @@ class FullLinear(nn.Module):
         return output
 
 
-def prepare(model_dir,cache_dir,backend_profile=DEFAULT_PROFILE):
+def prepare(model_dir,cache_dir,backend_profile=DEFAULT_PROFILE,*,cancelled=None):
+    require_active(cancelled)
     settings,plan_loader,installed_versions,parameters=qwen_backend(backend_profile)
     specification = json.loads(Path(__file__).with_name('qwen05b.json').read_text())
     versions=installed_versions()
     if json.loads(ext.default_params()) != POLICY['parameters']:
         raise ValueError('Unsupported encrypted parameter change')
-    with pinned_source(model_dir,specification['source']['files']):
+    with pinned_source(model_dir,specification['source']['files'],cancelled=cancelled):
         torch.set_num_threads(settings['cpuThreads'])
         model = AutoModelForCausalLM.from_pretrained(model_dir,local_files_only=True,use_safetensors=True,
                                                   trust_remote_code=False,torch_dtype=torch.float32,attn_implementation='eager').eval()
+        require_active(cancelled)
         tokenizer = AutoTokenizer.from_pretrained(model_dir,local_files_only=True,trust_remote_code=False)
+        require_active(cancelled)
         executor = GLWELinearLayerExecutor(use_dynamic_quantization=True)
         if parameters['parameters']!=POLICY['parameters']:
             executor.glwe_crypto_params=ext.MatmulCryptoParameters.deserialize(json.dumps(parameters['parameters']))
         directory = Path(cache_dir);directory.mkdir(parents=True,exist_ok=True)
         projections = []
         for name,module in list(model.named_modules()):
+            require_active(cancelled)
             if isinstance(module,nn.Linear):
                 replacement = FullLinear(name,module,executor,directory,settings['quantizationBits'])
                 parent,separator,leaf = name.rpartition('.')
@@ -154,8 +163,10 @@ def prepare(model_dir,cache_dir,backend_profile=DEFAULT_PROFILE):
                     productionBackendAvailable=False,implementationVersions=versions,
                     **{key:settings[key] for key in ['steps','contextBucket','inputTileWidth','outputTileWidth','operationTimeoutSeconds','cpuThreads']},
                     parameters=parameters,projections=definitions)
+        require_active(cancelled)
         (directory/'plan.json').write_bytes(canonical(plan))
         frozen = plan_loader(directory)
+        require_active(cancelled)
         # Trace every real linear operator under public input, before keys/private input.
         visited=[]
         handles=[projection.register_forward_pre_hook(lambda module,args:visited.append(module.name)) for projection in projections]
@@ -196,7 +207,7 @@ def run(model_dir,cache_dir,prompt,progress=lambda event:None,cancelled=None,dep
     if os.environ.get('RAYON_NUM_THREADS') != str(settings['cpuThreads']):
         raise ValueError('The full-model process must declare the installed CPU thread budget before native initialization')
     started=time.perf_counter()
-    model,tokenizer,executor,projections,plan=prepare(model_dir,cache_dir,backend_profile)
+    model,tokenizer,executor,projections,plan=prepare(model_dir,cache_dir,backend_profile,cancelled=cancelled)
     require_active(cancelled)
     if deployment is not None:deployment.bind(plan)
     tokens=tokenizer.encode(prompt)
