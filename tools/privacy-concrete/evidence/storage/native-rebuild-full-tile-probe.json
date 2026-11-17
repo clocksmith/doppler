@@ -1,0 +1,83 @@
+{
+  "schema": "doppler.native-stream-storage-probe/v1",
+  "steps": 4,
+  "promptRows": 5,
+  "greedyFeedbackMatches": true,
+  "inputWidth": 2048,
+  "outputWidth": 2048,
+  "coefficientId": "22892d806712fbcb3fb30f4024628e1da25c40f257edcd0eda838391ebd3bcc7",
+  "syntheticInputSeed": 73,
+  "nativeEncryptionSimulated": false,
+  "actualFlashCheckpointExecuted": false,
+  "separateMachine": false,
+  "elapsedSeconds": 28.170479521000004,
+  "stepSeconds": [
+    11.652189139999962,
+    2.3151799480000363,
+    1.2298969369999782,
+    1.225229942999988
+  ],
+  "maximumIntegerErrorByStep": [
+    498,
+    402,
+    431,
+    440
+  ],
+  "keyGenerationSeconds": 7.2204128530000276,
+  "evaluatorRoundTripSeconds": 9.55391597900001,
+  "clientSampledReplaySeconds": 6.4870478599999615,
+  "clientCheckSeconds": 0.051885192999975516,
+  "publicCoefficientBytesSent": 0,
+  "totalFrameBytesSent": 268537440,
+  "totalFrameBytesReceived": 199535,
+  "evaluationKeyBytes": 268435536,
+  "clientCoefficientDiskBytes": 0,
+  "providerCoefficientDiskBytes": 0,
+  "maxFramePayloadBytes": 300000000,
+  "processPeakRssBytes": 3111198720,
+  "implementationVersions": {
+    "concrete-ml": "1.9.0",
+    "concrete-ml-extensions": "0.1.9+ntt.1",
+    "concrete-python": "2.10.0",
+    "torch": "2.3.1+cpu",
+    "transformers": "4.44.2",
+    "numpy": "1.26.4",
+    "native-binary-sha256": "f9e7daf5e9f4ccbd94e7c8c5e18b71ecc288c2765519dac51fa45886b4c33887",
+    "native-source-id": "8cb2cbd212d05c6646fb3132ebef58624738b0d0dcf7f59daebe3e0766e17bf9",
+    "safetensors": "0.8.0"
+  },
+  "integrity": {
+    "integrity": "secret-linear-check-sampled-replay/v1",
+    "integrityPolicyId": "5a9580d367be8974e092a9d1c160e0cfdc22f32fe5a20f65bbdfac6203bb4327",
+    "linearChecksPassed": 4,
+    "sampledExactReplays": 2,
+    "substitutedTiles": 0,
+    "clientCheckMs": 51.885192999975516,
+    "checkVectors": 16,
+    "replaySample": {
+      "numerator": 1,
+      "denominator": 16
+    },
+    "toleranceByOutputWidth": {
+      "2048": 3241210837
+    },
+    "rejection": "deferred-until-route-close/v1",
+    "independentCryptographicReview": false,
+    "securityQualified": false
+  },
+  "productionBackendAvailable": false,
+  "securityQualified": false,
+  "runtimeThreads": {
+    "torch": 2,
+    "RAYON_NUM_THREADS": "4",
+    "OMP_NUM_THREADS": "4",
+    "OPENBLAS_NUM_THREADS": "4",
+    "MKL_NUM_THREADS": "4"
+  },
+  "providerMaterializations": 1,
+  "providerPeakCoefficientDiskBytes": 8388608,
+  "providerSourceBytesVerified": 8388798,
+  "providerSourceVerificationSeconds": 0.006179395999993176,
+  "providerMaterializationSeconds": 0.10507687200004057,
+  "publicCoefficientStorage": "doppler.provider-verified-public-checkpoint/v1"
+}

@@ -1,0 +1,36 @@
+{
+  "schema": "doppler.native-full-tile-storage-context/v1",
+  "sourceRevision": "03cbb3fded5d69c9e6290e92cb97024e95edc9d3",
+  "ciRunId": 44032233471,
+  "ciUrl": "https://github.com/clocksmith/doppler/actions/runs/44032233471",
+  "record": {
+    "path": "native-rebuild-full-tile-probe.json",
+    "sha256": "2be1912b1f994a239ea0ed1b8458067189706b575a7f0ad3a77ca4f562a51f7b"
+  },
+  "scope": {
+    "inputWidth": 2048,
+    "outputWidth": 2048,
+    "prefillRows": 5,
+    "decodeRows": 1,
+    "steps": 4,
+    "freshProcess": true,
+    "transport": "framed pipes between threads in one process",
+    "source": "synthetic BF16 public matrix",
+    "runtimeThreads": {
+      "torch": 2,
+      "RAYON_NUM_THREADS": "4",
+      "OMP_NUM_THREADS": "4",
+      "OPENBLAS_NUM_THREADS": "4",
+      "MKL_NUM_THREADS": "4"
+    }
+  },
+  "limitations": [
+    "not actual Flash checkpoint or complete model",
+    "not separate processes or machines",
+    "not combined end-to-end model memory",
+    "one observation; not a comparative performance result or full-model latency estimate",
+    "no independent cryptographic review"
+  ],
+  "productionBackendAvailable": false,
+  "securityQualified": false
+}

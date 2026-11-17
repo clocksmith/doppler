@@ -361,3 +361,19 @@ actual key/wire/RSS/time and separates evaluator round trips from client sampled
 replay/check costs. The ordinary small probes are not run in that mode. This
 checks the installed maximum tile shape before full-model deployment; it still
 cannot qualify complete Flash output, two-process/host peak memory or security.
+
+The retained [maximum-tile probe](evidence/storage/native-rebuild-full-tile-probe.json)
+and [context](evidence/storage/native-rebuild-full-tile-context.json) record
+successful run 44032233471 at `03cbb3fded5d69c9e6290e92cb97024e95edc9d3`.
+Four native steps took 28.17 seconds including 7.22 seconds of key generation;
+evaluator round trips totaled 9.55 seconds, client sampled replay 6.49 seconds and
+client checks 0.052 seconds. Process peak RSS was 3,111,198,720 bytes. One
+8,388,608-byte coefficient file was materialized and removed; public coefficient
+traffic was zero, total sent 268,537,440 bytes and received 199,535 bytes. Every
+input row's argmax matched its clear integer control; maximum raw integer errors
+were 498, 402, 431 and 440. These are noisy decoded integers, not exact plaintext
+products. Native Rayon used four threads; the public Torch fixture used two,
+as recorded in the artifact. This is a fresh-process operator observation, with
+no actual model weights, independent-host memory claim or full-Flash latency
+extrapolation. It does not open production admission or qualify the integrity
+mechanism against malicious providers.
