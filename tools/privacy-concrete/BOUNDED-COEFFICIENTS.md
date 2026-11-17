@@ -390,3 +390,11 @@ separately: a context bound belongs to the actual plan, and a different context
 does not change the public coefficients. The pin compares coefficient identities,
 without asserting equality between graphs with different context bounds.
 Post-close numerical generation checks remain required.
+
+Append `--prepare-only` to the same resource-gated runner to measure complete
+source admission, graph construction, bounded quantization and plan publication
+without generating a key or starting an evaluator. Its report distinguishes
+planned tiles from zero executed tiles and asserts neither model execution nor
+cryptographic qualification. Temporary projections and the plan remain owned by
+the attempt and are removed before exit, including on failure or cancellation.
+This is a memory/correctness gate before the longer encrypted generation run.

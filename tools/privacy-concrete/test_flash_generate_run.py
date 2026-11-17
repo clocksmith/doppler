@@ -68,7 +68,10 @@ class RunnerLifecycleTests(unittest.TestCase):
     def test_reference_mismatch_releases_sources_without_creating_keys_or_provider(self):
         self._lifecycle(True)
 
-    def _lifecycle(self,blocked_reference):
+    def test_preparation_only_returns_a_plan_without_creating_keys_or_provider(self):
+        self._lifecycle(False,prepare_only=True)
+
+    def _lifecycle(self,blocked_reference,prepare_only=False):
         from contextlib import ExitStack
         import concrete_ml_extensions as ext
         import flash_text_rebuild5_plan as backend
@@ -87,7 +90,7 @@ class RunnerLifecycleTests(unittest.TestCase):
             reference=Path(os.environ['DOPPLER_FLASH_SOURCE_DIR'])/'modeling_qwen4_exp.py'
             stack.enter_context(patch.dict(os.environ,{'OMP_NUM_THREADS':'4','RAYON_NUM_THREADS':'4'}))
             stack.enter_context(patch.object(backend,'versions',return_value={'fixture':'mocked lifecycle'}))
-            stack.enter_context(patch.object(backend,'write_plan',return_value=(object(),object())))
+            stack.enter_context(patch.object(backend,'write_plan',return_value=(SimpleNamespace(identity='plan',schedule=lambda:['tile']),object())))
             stack.enter_context(patch('flash_generate_run.shutil.disk_usage',return_value=SimpleNamespace(free=10*1024**3)))
             stack.enter_context(patch('flash_generate_run.require_private_resource_scope',return_value={'memoryMaxBytes':8*1024**3}))
             stack.enter_context(patch('flash_generate_run.tempfile.TemporaryDirectory',Temporary))
@@ -106,11 +109,16 @@ class RunnerLifecycleTests(unittest.TestCase):
             stack.enter_context(patch('concrete.ml.quantization.linear_op_glwe_backend.GLWELinearLayerExecutor',return_value=SimpleNamespace()))
             provider=stack.enter_context(patch('checked_bridge.CheckedBridge',return_value=bridge))
             stack.enter_context(patch('flash_generation.generate',side_effect=RuntimeError('mocked generation failure')))
-            with self.assertRaisesRegex(ValueError if blocked_reference else RuntimeError,
-                    'reference mismatch' if blocked_reference else 'mocked generation failure'):
-                run(source,reference,scratch,'public fixture',backend_profile=REBUILD_PREFILL5_PROFILE,tenant_id='tenant',privacy_id='restricted',
-                    lock_path=lock,pause_path=pause,resource_wait_seconds=1)
-            if blocked_reference:keygen.assert_not_called();provider.assert_not_called()
+            def invoke():return run(source,reference,scratch,'public fixture',backend_profile=REBUILD_PREFILL5_PROFILE,tenant_id='tenant',privacy_id='restricted',
+                lock_path=lock,pause_path=pause,resource_wait_seconds=1,prepare_only=prepare_only)
+            if prepare_only:
+                result=invoke();self.assertFalse(result['encryptedExecution']);self.assertEqual(result['encryptedTileCount'],0)
+                self.assertEqual(result['plannedEncryptedTileCount'],4)
+                self.assertFalse(result['productionBackendAvailable']);self.assertFalse(result['securityQualified'])
+            else:
+                with self.assertRaisesRegex(ValueError if blocked_reference else RuntimeError,
+                        'reference mismatch' if blocked_reference else 'mocked generation failure'):invoke()
+            if blocked_reference or prepare_only:keygen.assert_not_called();provider.assert_not_called()
             else:self.assertLess(events.index('provider-close'),events.index('source-close'))
             self.assertLess(events.index('source-close'),events.index('scratch-close'))
             self.assertEqual(list(scratch.iterdir()),[sibling]);self.assertEqual(sibling.read_text(),'keep')

@@ -75,8 +75,9 @@ def resource_turn(lock_path,pause_path,wait_seconds,*,cancelled=None):
 
 
 def run(source_directory,reference_path,scratch_directory,prompt,*,backend_profile,tenant_id,privacy_id,
-        lock_path,pause_path,resource_wait_seconds,cancelled=None):
+        lock_path,pause_path,resource_wait_seconds,cancelled=None,prepare_only=False):
     require_active(cancelled)
+    if type(prepare_only) is not bool:raise ValueError('Explicit boolean preparation mode required')
     from flash_request_state import ClientContext
     if any(not isinstance(value,str) or not 0<len(value)<=256 for value in (tenant_id,privacy_id)):
         raise ValueError('Explicit bounded tenant and privacy namespace required')
@@ -140,6 +141,18 @@ def run(source_directory,reference_path,scratch_directory,prompt,*,backend_profi
                 prepared=PreparedFlashGraph(graph,executor,temporary,quantization_bits=12,storage=EPHEMERAL_STORAGE,cancelled=active)
                 checkpoint_reference=require_checkpoint_reference(prepared,cancelled=active)
                 plan,binding=backend.write_plan(temporary,prepared,cancelled=active)
+                if prepare_only:
+                    require_active(active)
+                    return dict(schema='doppler.actual-flash-bounded-preparation/v1',backendProfile=backend_profile,
+                        sourceId=hashlib.sha256(canonical(TEXT)).hexdigest(),sourceRevision=TEXT['revision'],
+                        clientGraphId=graph.identity,planId=plan.identity,linearProjectionCount=len(prepared.order),
+                        plannedEncryptedTileCount=len(plan.schedule())*settings['steps'],encryptedTileCount=0,
+                        clearCoefficientReference=checkpoint_reference,implementationVersions=versions,
+                        sha256VerifiedBytesIncludingRepeats=verified,resourceLimits=resource_limits,
+                        preparationSeconds=prepared.preparation_seconds,elapsedSeconds=time.perf_counter()-began,
+                        clientLifetimePeakRssBytes=resource.getrusage(resource.RUSAGE_SELF).ru_maxrss*(1 if platform.system()=='Darwin' else 1024),
+                        driverSha256=hashlib.sha256(Path(__file__).read_bytes()).hexdigest(),
+                        actualFlashCheckpointExecuted=False,encryptedExecution=False,productionBackendAvailable=False,securityQualified=False)
                 floating=BoundedFloatingReference(graph,cancelled=active);owned.callback(floating.close)
                 require_active(active);secret,key=ext.cpu_create_private_key(parameters);require_active(active)
                 bridge=CheckedBridge(temporary,plan,key,cancelled=active,backend_profile=backend_profile,prepared_public_tiles=binding,
@@ -172,11 +185,12 @@ def main(arguments=None):
     parser.add_argument('--tenant-id',required=True);parser.add_argument('--privacy-id',required=True)
     parser.add_argument('--lock',required=True);parser.add_argument('--pause-file',required=True);parser.add_argument('--resource-wait-seconds',required=True,type=int)
     parser.add_argument('--public-fixture',choices=[SOURCE['publicFixture']['id']])
+    parser.add_argument('--prepare-only',action='store_true',help='Authenticate and prepare the complete graph; no keys, evaluator or inference')
     args=parser.parse_args(arguments);began=time.perf_counter()
     try:
         prompt=SOURCE['publicFixture']['text'] if args.public_fixture else sys.stdin.buffer.read(SOURCE['maxPromptBytes']+1).decode('utf-8')
         result=run(args.source,args.reference,args.scratch,prompt,backend_profile=args.backend_profile,tenant_id=args.tenant_id,privacy_id=args.privacy_id,
-            lock_path=args.lock,pause_path=args.pause_file,resource_wait_seconds=args.resource_wait_seconds)
+            lock_path=args.lock,pause_path=args.pause_file,resource_wait_seconds=args.resource_wait_seconds,prepare_only=args.prepare_only)
         if args.public_fixture:result['publicFixtureId']=args.public_fixture
         print(json.dumps(result,indent=2));return 0
     except BaseException as error:
