@@ -333,11 +333,17 @@ export class CompactExpertCache {
         // the explicit leased mode; slots stay unpublished until every plane settles.
         const parallelPlanes = this.#options.policy.sourceReadMode === 'lease-parallel';
         const tasksPerExpert = parallelPlanes ? plan.planes.length : 1;
+        const lanes = this.#options.rangeLease
+          ? Math.min(this.#options.policy.readConcurrency, this.#options.rangeLease.concurrency ?? 1)
+          : this.#options.policy.readConcurrency;
         const requestedBatch = this.#options.policy.expertBatchSize ?? DEFAULT_EXPERT_CACHE_CONFIG.qwen35Routed.expertBatchSize;
+        // Keep admitted lanes busy before amortizing several experts in one job.
+        // A fixed maximum-sized group serializes small miss sets on one worker.
         const batchSize = this.#options.policy.sourceReadMode === 'expert-lease-batch'
-          ? Math.min(requestedBatch, Math.floor(Number(this.#options.rangeLease?.maxPartBytes) / plan.expertBytes)) : 1;
+          ? Math.max(1, Math.min(requestedBatch, Math.ceil(misses.length / lanes),
+            Math.floor(Number(this.#options.rangeLease?.maxPartBytes) / plan.expertBytes))) : 1;
         const taskCount = batchSize > 1 ? Math.ceil(misses.length / batchSize) : misses.length * tasksPerExpert;
-        const outcomes = await Promise.allSettled(Array.from({ length: this.#options.rangeLease ? Math.min(this.#options.policy.readConcurrency, this.#options.rangeLease.concurrency ?? 1) : this.#options.policy.readConcurrency }, async (_, index) => {
+        const outcomes = await Promise.allSettled(Array.from({ length: lanes }, async (_, index) => {
           const reader = this.#readers[index] ??= { bytes: null };
           while (cursor < taskCount) {
             const task = cursor++;
