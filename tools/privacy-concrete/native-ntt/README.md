@@ -37,6 +37,19 @@ the separate-process resource/feedback probe, this is an unqualified performance
 candidate. No speedup, full-model latency or security claim follows from the
 parallel source change alone.
 
+The separately versioned `0.1.9+ntt.3` candidate additionally uses the
+checksum-pinned crate's `prime32::Plan::mul_accumulate` and `normalize` operations.
+Within each original bounded CRT group it sums unnormalized NTT products, then
+applies the same inverse-size factor once before the inverse transform. Linearity
+over each prime gives the same residues as normalizing every product first.
+This removes per-term product clones and scalar remainder accumulation without
+changing the CRT group bound or any cryptographic parameter. The serial baseline
+and `cpu_matrix_multiplication_ntt_parallel_reference` retain the old unfused
+arithmetic for same-process comparisons; neither is an advertised fallback.
+The benchmark alternates fused/unfused-parallel order and requires every complete
+serialized result to match the original arithmetic. Native qualification and
+new all-shape resource measurements are required before claiming improvement.
+
 The [retained native run](../evidence/native-ntt/context.json) at revision
 `04ed459671632b23bcf0bee1cb8e555f6282feed` passed eight complete serialized-result
 comparisons against the original arithmetic and a second fast replay, covering

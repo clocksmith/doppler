@@ -44,21 +44,22 @@ def run(lock_path,public_state):
             values=generator.integers(0,2**bits,size=(rows,width),dtype=np.uint64)
             weights=generator.integers(-2**(bits-1),2**(bits-1),size=(width,columns),dtype=np.int64).astype(np.uint64)
             encrypted=ext.encrypt_matrix(pkey=secret,crypto_params=parameters,data=values)
-            measured=[];results=[]
-            operations=[ext.cpu_matrix_multiplication,ext.cpu_matrix_multiplication_ntt_serial,
-                ext.cpu_matrix_multiplication_ntt,ext.cpu_matrix_multiplication_ntt]
-            # Alternate the serial/parallel timing order across public cases.
-            if len(cases)%2:operations[1],operations[2]=operations[2],operations[1]
-            for operation in operations:
+            measured={};results=[]
+            operations=[('original',ext.cpu_matrix_multiplication),('serial',ext.cpu_matrix_multiplication_ntt_serial),
+                ('parallel-reference',ext.cpu_matrix_multiplication_ntt_parallel_reference),
+                ('parallel-fused',ext.cpu_matrix_multiplication_ntt),('parallel-fused-replay',ext.cpu_matrix_multiplication_ntt)]
+            # Alternate fused/reference order across public cases on the same key.
+            if len(cases)%2:operations[2],operations[3]=operations[3],operations[2]
+            for label,operation in operations:
                 began=time.perf_counter();result=operation(encrypted,weights,key);serialized=result.serialize()
-                measured.append((time.perf_counter()-began)*1000);results.append(serialized)
+                measured[label]=(time.perf_counter()-began)*1000;results.append(serialized)
             public_state.update(phase='byte-equivalence')
-            if not results[0]==results[1]==results[2]==results[3]:raise ValueError('Native result bytes differ from the pinned original arithmetic')
+            if any(value!=results[0] for value in results[1:]):raise ValueError('Native result bytes differ from the pinned original arithmetic')
             if hashlib.sha256(key.serialize()).hexdigest()!=key_digest:raise ValueError('Public cache changed serialized key material')
-            serial,parallel=(2,1) if len(cases)%2 else (1,2)
             cases.append(dict(profile=profile,rows=rows,inputWidth=width,outputWidth=columns,byteIdenticalToOriginal=True,
-                              originalMs=measured[0],serialNttMs=measured[serial],nttMs=measured[parallel],nttReplayMs=measured[3],
-                              timingOrder=['original','parallel','serial','parallel-replay'] if len(cases)%2 else ['original','serial','parallel','parallel-replay'],resultBytes=len(results[0])))
+                              originalMs=measured['original'],serialNttMs=measured['serial'],parallelReferenceNttMs=measured['parallel-reference'],
+                              nttMs=measured['parallel-fused'],nttReplayMs=measured['parallel-fused-replay'],
+                              timingOrder=[label for label,_ in operations],resultBytes=len(results[0])))
         # Deserializing public evaluation material must create a fresh cache without wire changes.
         restored=ext.CpuCompressionKey.deserialize(key_bytes)
         if restored.serialize()!=key_bytes:raise ValueError('Evaluation-key wire compatibility changed')

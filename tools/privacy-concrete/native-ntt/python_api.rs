@@ -7,7 +7,7 @@ fn matrix_multiplication_ntt(
     encrypted_matrix: &EncryptedMatrix,
     data: PyReadonlyArray<Scalar, Ix2>,
     compression_key: &CpuCompressionKey,
-    parallel: bool,
+    mode: crate::ntt_cpu::PackingMode,
 ) -> PyResult<CompressedResultEncryptedMatrix> {
     let array=data.as_array();
     assert_eq!(encrypted_matrix.shape.1,array.nrows());
@@ -23,7 +23,7 @@ fn matrix_multiplication_ntt(
         columns.par_iter().zip(raw.par_iter_mut()).for_each(|(column,mut output)| {
             output.as_mut().copy_from_slice(prepared.dot(column.as_slice().unwrap()).as_ref());
         });
-        result.push(CompressedResultCipherText { inner:plan.compress(compression_key,&raw,parallel) });
+        result.push(CompressedResultCipherText { inner:plan.compress(compression_key,&raw,mode) });
     }
     Ok(CompressedResultEncryptedMatrix { inner:result })
 }
@@ -34,7 +34,7 @@ fn cpu_matrix_multiplication_ntt(
     data: PyReadonlyArray<Scalar, Ix2>,
     compression_key: &CpuCompressionKey,
 ) -> PyResult<CompressedResultEncryptedMatrix> {
-    matrix_multiplication_ntt(encrypted_matrix,data,compression_key,true)
+    matrix_multiplication_ntt(encrypted_matrix,data,compression_key,crate::ntt_cpu::PackingMode::ParallelFused)
 }
 
 // Diagnostic arithmetic baseline only; no backend advertisement/registration.
@@ -44,5 +44,14 @@ fn cpu_matrix_multiplication_ntt_serial(
     data: PyReadonlyArray<Scalar, Ix2>,
     compression_key: &CpuCompressionKey,
 ) -> PyResult<CompressedResultEncryptedMatrix> {
-    matrix_multiplication_ntt(encrypted_matrix,data,compression_key,false)
+    matrix_multiplication_ntt(encrypted_matrix,data,compression_key,crate::ntt_cpu::PackingMode::SerialReference)
+}
+
+#[pyfunction]
+fn cpu_matrix_multiplication_ntt_parallel_reference(
+    encrypted_matrix: &EncryptedMatrix,
+    data: PyReadonlyArray<Scalar, Ix2>,
+    compression_key: &CpuCompressionKey,
+) -> PyResult<CompressedResultEncryptedMatrix> {
+    matrix_multiplication_ntt(encrypted_matrix,data,compression_key,crate::ntt_cpu::PackingMode::ParallelReference)
 }

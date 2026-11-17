@@ -567,6 +567,10 @@ the current 12-bit/35-bit signed-message bound already constrains the tile to
 2,048 inputs. Batching projections or changing packing boundaries would require
 a separately bound plan, coefficient mapping, integrity/noise checks and full
 numerical revalidation; none is silently applied to the pinned request.
+The next native candidate also uses the pinned library's fused modular
+multiply-accumulate and one normalization per unchanged CRT group, retaining
+serial and unfused-parallel diagnostic baselines. It has a separate native
+version/build identity and requires the same complete byte/feedback qualification.
 
 Append `--readiness-only` to the resource-gated runner above for the next bounded
 physical memory gate. This mutually exclusive alternative to `--prepare-only`

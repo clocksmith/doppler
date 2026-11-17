@@ -60,7 +60,26 @@ impl Ring {
         self.plan.ntt_4().mul_assign_normalize(&mut result.0[4],&rhs.0[4]);
         result
     }
+    fn accumulate_product(&self, sum: &mut Rns, lhs: &Rns, rhs: &Rns) {
+        // The pinned library supplies SIMD modular multiply/accumulate. Keep
+        // products unnormalized only within this same bounded CRT group.
+        self.plan.ntt_0().mul_accumulate(&mut sum.0[0],&lhs.0[0],&rhs.0[0]);
+        self.plan.ntt_1().mul_accumulate(&mut sum.0[1],&lhs.0[1],&rhs.0[1]);
+        self.plan.ntt_2().mul_accumulate(&mut sum.0[2],&lhs.0[2],&rhs.0[2]);
+        self.plan.ntt_3().mul_accumulate(&mut sum.0[3],&lhs.0[3],&rhs.0[3]);
+        self.plan.ntt_4().mul_accumulate(&mut sum.0[4],&lhs.0[4],&rhs.0[4]);
+    }
+    fn normalize(&self, value: &mut Rns) {
+        self.plan.ntt_0().normalize(&mut value.0[0]);
+        self.plan.ntt_1().normalize(&mut value.0[1]);
+        self.plan.ntt_2().normalize(&mut value.0[2]);
+        self.plan.ntt_3().normalize(&mut value.0[3]);
+        self.plan.ntt_4().normalize(&mut value.0[4]);
+    }
 }
+
+#[derive(Clone, Copy)]
+pub(crate) enum PackingMode { SerialReference, ParallelReference, ParallelFused }
 
 pub(crate) struct PackingPlan {
     ring: Ring,
@@ -84,7 +103,7 @@ impl PackingPlan {
         assert_eq!(transformed.len(), N*levels*2);
         Self { ring, key: transformed, levels, base_log, glwe_size: key.output_glwe_size(), modulus: key.ciphertext_modulus() }
     }
-    fn pack<C: Container<Element=u64>>(&self, list: &LweCiphertextList<C>, parallel: bool) -> GlweCiphertextOwned<u64> {
+    fn pack<C: Container<Element=u64>>(&self, list: &LweCiphertextList<C>, mode: PackingMode) -> GlweCiphertextOwned<u64> {
         let count = list.lwe_ciphertext_count().0;
         assert!(count>0 && count<=N);
         assert_eq!(list.lwe_size().0, N+1);
@@ -112,17 +131,24 @@ impl PackingPlan {
             for term in start..end {
                 let value=self.ring.forward(&digits[term*N..(term+1)*N]);
                 for (poly,sum) in sums.iter_mut().enumerate() {
-                    sum.add(&self.ring.product(&value,&self.key[term*2+poly]),&self.ring.primes);
+                    if matches!(mode,PackingMode::ParallelFused) {
+                        self.ring.accumulate_product(sum,&value,&self.key[term*2+poly]);
+                    } else {
+                        sum.add(&self.ring.product(&value,&self.key[term*2+poly]),&self.ring.primes);
+                    }
                 }
             }
             let mut values = vec![0u64; 2*N];
             for (poly,sum) in sums.iter_mut().enumerate() {
+                // Linearity over each prime moves the same inverse-N factor
+                // after accumulation; the CRT inverse receives identical residues.
+                if matches!(mode,PackingMode::ParallelFused) { self.ring.normalize(sum); }
                 let reconstructed=self.ring.inverse(sum);
                 values[poly*N..(poly+1)*N].copy_from_slice(&reconstructed);
             }
             values
         };
-        let reconstructed: Vec<_> = if parallel {
+        let reconstructed: Vec<_> = if !matches!(mode,PackingMode::SerialReference) {
             groups.par_iter().map(reconstruct).collect()
         } else {
             groups.iter().map(reconstruct).collect()
@@ -134,10 +160,10 @@ impl PackingPlan {
         }
         out
     }
-    pub(crate) fn compress<C: Container<Element=u64>>(&self, key: &CpuCompressionKey, values: &LweCiphertextList<C>, parallel: bool) -> Vec<CompressedModulusSwitchedGlweCiphertext<u64>> {
+    pub(crate) fn compress<C: Container<Element=u64>>(&self, key: &CpuCompressionKey, values: &LweCiphertextList<C>, mode: PackingMode) -> Vec<CompressedModulusSwitchedGlweCiphertext<u64>> {
         assert_eq!(key.inner.lwe_per_glwe.0,N);
         values.chunks(N).map(|list| {
-            let out=self.pack(&list,parallel);
+            let out=self.pack(&list,mode);
             CompressedModulusSwitchedGlweCiphertext::compress(&out,key.inner.storage_log_modulus,list.lwe_ciphertext_count())
         }).collect()
     }
