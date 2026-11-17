@@ -95,7 +95,10 @@ class RunnerLifecycleTests(unittest.TestCase):
     def test_readiness_revocation_during_provider_close_returns_no_receipt(self):
         self._lifecycle(False,readiness_only=True,revoke_on_close=True)
 
-    def _lifecycle(self,blocked_reference,prepare_only=False,log=False,readiness_only=False,consumed_route=False,revoke_on_close=False):
+    def test_prefix_returns_its_own_scope_after_close_and_preserves_generation(self):
+        self._lifecycle(False,attention_prefix_only=True)
+
+    def _lifecycle(self,blocked_reference,prepare_only=False,log=False,readiness_only=False,consumed_route=False,revoke_on_close=False,attention_prefix_only=False):
         from contextlib import ExitStack
         import concrete_ml_extensions as ext
         import flash_text_rebuild5_plan as backend
@@ -135,7 +138,7 @@ class RunnerLifecycleTests(unittest.TestCase):
             stack.enter_context(patch('flash_prepared_graph.PreparedFlashGraph',return_value=prepared))
             stack.enter_context(patch('flash_checkpoint_reference.require_checkpoint_reference',return_value={'fixture':'mocked lifecycle'},
                 side_effect=ValueError('reference mismatch') if blocked_reference else None))
-            stack.enter_context(patch('flash_float_reference.BoundedFloatingReference',return_value=SimpleNamespace(close=lambda:None)))
+            stack.enter_context(patch('flash_float_reference.BoundedFloatingReference',return_value=SimpleNamespace(close=lambda:None,peak_fp32_weight_bytes=1)))
             memory=stack.enter_context(patch('resource_memory.ResourceMeter',return_value=SimpleNamespace(
                 close=lambda:events.append('meter-close'),mark=lambda phase:None,start=lambda:None,report=lambda:{'fixture':'mocked lifecycle'})))
             stack.enter_context(patch('research_parameters.component_parameters',return_value={'parameters':{}}))
@@ -144,12 +147,26 @@ class RunnerLifecycleTests(unittest.TestCase):
             stack.enter_context(patch('concrete.ml.quantization.linear_op_glwe_backend.GLWELinearLayerExecutor',return_value=SimpleNamespace()))
             provider=stack.enter_context(patch('checked_bridge.CheckedBridge',return_value=bridge))
             generate=stack.enter_context(patch('flash_generation.generate',side_effect=RuntimeError('mocked generation failure')))
-            def invoke():return run(source,reference,scratch,'public fixture',backend_profile=REBUILD_PREFILL5_PROFILE,tenant_id='tenant',privacy_id='restricted',
-                lock_path=lock,pause_path=pause,resource_wait_seconds=1,prepare_only=prepare_only,readiness_only=readiness_only,progress=progress)
+            stack.enter_context(patch('flash_attention_prefix_probe.require_prefix',return_value=41))
+            def prefix(*args,**kwargs):
+                bridge.close()
+                return dict(schema='doppler.actual-flash-attention-prefix-execution/v1',encryptedTileCount=41,
+                    fullFlashModelExecuted=False,fullRouteCompleted=False,productionBackendAvailable=False,securityQualified=False)
+            stack.enter_context(patch('flash_attention_prefix_probe.execute_attention_prefix',side_effect=prefix))
+            from flash_tokenizer import SOURCE as TOKENIZER
+            prompt=TOKENIZER['publicFixture']['text'] if attention_prefix_only else 'public fixture'
+            def invoke():return run(source,reference,scratch,prompt,backend_profile=REBUILD_PREFILL5_PROFILE,tenant_id='tenant',privacy_id='restricted',
+                lock_path=lock,pause_path=pause,resource_wait_seconds=1,prepare_only=prepare_only,readiness_only=readiness_only,
+                attention_prefix_only=attention_prefix_only,progress=progress)
             if prepare_only:
                 result=invoke();self.assertFalse(result['encryptedExecution']);self.assertEqual(result['encryptedTileCount'],0)
                 self.assertEqual(result['plannedEncryptedTileCount'],4)
                 self.assertFalse(result['productionBackendAvailable']);self.assertFalse(result['securityQualified'])
+            elif attention_prefix_only:
+                result=invoke();self.assertEqual(result['encryptedTileCount'],41)
+                self.assertTrue(result['actualFlashAttentionPrefixExecuted']);self.assertTrue(result['encryptedExecution'])
+                self.assertFalse(result['actualFlashCheckpointExecuted']);self.assertFalse(result['fullFlashModelExecuted'])
+                self.assertFalse(result['fullRouteCompleted']);generate.assert_not_called()
             elif readiness_only and not blocked_reference and not consumed_route and not revoke_on_close:
                 result=invoke();self.assertEqual(result['schema'],'doppler.actual-flash-provider-readiness/v1')
                 self.assertEqual(result['encryptedTileCount'],0);self.assertEqual(result['plannedEncryptedTileCount'],4)

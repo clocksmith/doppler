@@ -79,12 +79,18 @@ def resource_turn(lock_path,pause_path,wait_seconds,*,cancelled=None):
 
 
 def run(source_directory,reference_path,scratch_directory,prompt,*,backend_profile,tenant_id,privacy_id,
-        lock_path,pause_path,resource_wait_seconds,cancelled=None,prepare_only=False,readiness_only=False,progress=None):
+        lock_path,pause_path,resource_wait_seconds,cancelled=None,prepare_only=False,readiness_only=False,attention_prefix_only=False,progress=None):
     require_active(cancelled)
     from client_progress import ClientProgress
     if progress is not None and type(progress) is not ClientProgress:raise ValueError('Explicit client-local progress writer required')
-    if type(prepare_only) is not bool or type(readiness_only) is not bool or prepare_only and readiness_only:
-        raise ValueError('Exclusive explicit boolean preparation/readiness modes required')
+    modes=(prepare_only,readiness_only,attention_prefix_only)
+    if any(type(mode) is not bool for mode in modes) or sum(modes)>1:
+        raise ValueError('Exclusive explicit boolean preparation/readiness/prefix modes required')
+    if attention_prefix_only:
+        from flash_tokenizer import SOURCE as TOKENIZER
+        if prompt!=TOKENIZER['publicFixture']['text']:
+            raise ValueError('Attention-prefix measurement accepts only the installed public fixture')
+        from flash_attention_prefix_probe import POLICY_ID as prefix_policy_id
     from flash_request_state import ClientContext
     if any(not isinstance(value,str) or not 0<len(value)<=256 for value in (tenant_id,privacy_id)):
         raise ValueError('Explicit bounded tenant and privacy namespace required')
@@ -148,6 +154,9 @@ def run(source_directory,reference_path,scratch_directory,prompt,*,backend_profi
                 prepared=PreparedFlashGraph(graph,executor,temporary,quantization_bits=12,storage=EPHEMERAL_STORAGE,cancelled=active)
                 checkpoint_reference=require_checkpoint_reference(prepared,cancelled=active)
                 plan,binding=backend.write_plan(temporary,prepared,cancelled=active)
+                if attention_prefix_only:
+                    from flash_attention_prefix_probe import require_prefix
+                    require_prefix(plan,list(tokens),expected_policy_id=prefix_policy_id) # Before keys/provider disclosure.
                 if progress is not None:progress.bind(plan.identity,len(plan.schedule())*settings['steps'])
                 if prepare_only:
                     require_active(active)
@@ -193,6 +202,21 @@ def run(source_directory,reference_path,scratch_directory,prompt,*,backend_profi
                         driverSha256=hashlib.sha256(Path(__file__).read_bytes()).hexdigest(),
                         actualFlashCheckpointExecuted=False,encryptedExecution=False,productionBackendAvailable=False,securityQualified=False)
                 context=ClientContext(tenant_id,privacy_id,graph.identity,bridge.key_id,bridge.session)
+                if attention_prefix_only:
+                    from flash_attention_prefix_probe import execute_attention_prefix
+                    result=execute_attention_prefix(prepared,list(tokens),bridge,secret,parameters,context,
+                        floating_reference=floating,expected_policy_id=prefix_policy_id)
+                    memory.mark('after-provider-close');memory.close();require_active(active)
+                    result.update(backendProfile=backend_profile,transport='local-process',sourceId=hashlib.sha256(canonical(TEXT)).hexdigest(),
+                        sourceRevision=TEXT['revision'],clientGraphId=graph.identity,planId=plan.identity,
+                        admittedLinearProjectionCount=len(prepared.order),plannedEncryptedTileCount=len(plan.schedule())*settings['steps'],
+                        clearCoefficientReference=checkpoint_reference,implementationVersions=versions,
+                        sha256VerifiedBytesIncludingRepeats=verified,resourceLimits=resource_limits,resourceObservation=memory.report(),
+                        evaluationKeyBytes=bridge.key_bytes,floatingPeakFp32WeightChunkBytes=floating.peak_fp32_weight_bytes,
+                        preparationSeconds=prepared.preparation_seconds,rematerializationSeconds=prepared.rematerialization_seconds,
+                        elapsedSeconds=time.perf_counter()-began,driverSha256=hashlib.sha256(Path(__file__).read_bytes()).hexdigest(),
+                        actualFlashCheckpointExecuted=False,actualFlashAttentionPrefixExecuted=True,encryptedExecution=True)
+                    return result
                 result=generate(prepared,list(tokens),bridge,secret,parameters,context,floating_reference=floating)
                 memory.mark('after-generation-validation');memory.close()
                 if result['publicCoefficientBytesSent']!=0:raise ValueError('Reconstruction route unexpectedly sent public coefficients')
@@ -224,9 +248,12 @@ def main(arguments=None):
     modes=parser.add_mutually_exclusive_group()
     modes.add_argument('--prepare-only',action='store_true',help='Authenticate and prepare the complete graph; no keys, evaluator or inference')
     modes.add_argument('--readiness-only',action='store_true',help='Authenticate the complete graph and verify key/provider readiness; no inference ciphertext or generation')
+    modes.add_argument('--attention-prefix-only',action='store_true',help='Public fixture only: execute the complete first attention prefix, close its incomplete route and compare references; no token generation')
     parser.add_argument('--status-file',help='New mode-0600 file directly inside scratch; sparse client-local counts, no private data or pre-close acceptance')
     args=parser.parse_args(arguments);began=time.perf_counter()
     try:
+        if args.attention_prefix_only and args.public_fixture is None:
+            raise ValueError('Attention-prefix measurement requires the installed public fixture')
         prompt=SOURCE['publicFixture']['text'] if args.public_fixture else sys.stdin.buffer.read(SOURCE['maxPromptBytes']+1).decode('utf-8')
         from client_progress import ClientProgress
         if args.status_file is not None:
@@ -235,8 +262,10 @@ def main(arguments=None):
         with (nullcontext(None) if args.status_file is None else ClientProgress(args.status_file)) as progress:
             result=run(args.source,args.reference,args.scratch,prompt,backend_profile=args.backend_profile,tenant_id=args.tenant_id,privacy_id=args.privacy_id,
                 lock_path=args.lock,pause_path=args.pause_file,resource_wait_seconds=args.resource_wait_seconds,
-                prepare_only=args.prepare_only,readiness_only=args.readiness_only,progress=progress)
-            if progress is not None:progress.finish(prepare_only=args.prepare_only,readiness_only=args.readiness_only)
+                prepare_only=args.prepare_only,readiness_only=args.readiness_only,attention_prefix_only=args.attention_prefix_only,progress=progress)
+            # A prefix deliberately leaves the full route incomplete. Never mark
+            # its progress as completed generation or full-route validation.
+            if progress is not None and not args.attention_prefix_only:progress.finish(prepare_only=args.prepare_only,readiness_only=args.readiness_only)
         if args.public_fixture:result['publicFixtureId']=args.public_fixture
         print(json.dumps(result,indent=2));return 0
     except BaseException as error:

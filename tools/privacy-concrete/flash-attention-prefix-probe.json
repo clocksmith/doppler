@@ -1,0 +1,23 @@
+{
+  "schema": "doppler.flash-attention-prefix-probe-policy/v1",
+  "publicFixtureId": "flash-public-capital-text",
+  "promptTokens": [760, 6511, 314, 9338, 369],
+  "backendProfile": "flash-text-all-linear-ntt12-rebuild-prefill5-check",
+  "boundary": "layers.0.mlp_hyper_connection/input/v1",
+  "outputShape": [1, 5, 10240],
+  "projections": [
+    "layers.0.attn_hyper_connection.input_mix_weight_down",
+    "layers.0.attn_hyper_connection.input_mix_weight_up",
+    "layers.0.attn_hyper_connection.block_inject_weight",
+    "layers.0.linear_attn.in_proj_qkv",
+    "layers.0.linear_attn.in_proj_z",
+    "layers.0.linear_attn.in_proj_b",
+    "layers.0.linear_attn.in_proj_a",
+    "layers.0.linear_attn.out_proj"
+  ],
+  "encryptedTiles": 41,
+  "maxAbsoluteError": 0.001,
+  "maxRelativeError": 0.001,
+  "productionBackendAvailable": false,
+  "securityQualified": false
+}
