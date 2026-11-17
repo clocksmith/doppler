@@ -1,6 +1,6 @@
 import copy
 import unittest
-from flash_compute_budget import workload,project_native_cost
+from flash_compute_budget import workload,project_native_cost,explain_native_cost
 
 
 class FlashComputeBudgetTests(unittest.TestCase):
@@ -28,6 +28,20 @@ class FlashComputeBudgetTests(unittest.TestCase):
                 if failure=='nonfinite':rows[0]['nativeEvaluateSeconds']=float('nan')
                 if failure=='negative':rows[0]['nativeEvaluateSeconds']=-1
                 with self.assertRaises(ValueError):project_native_cost(rows)
+
+    def test_scope_is_four_outputs_with_five_row_prefill_and_three_decode_steps(self):
+        cases=self.cases()
+        for row in cases:row['nativeEvaluateSeconds']=5. if row['step']==0 else 1.
+        result=explain_native_cost(cases)
+        self.assertEqual(result['requestScope'],dict(outputTokens=4,prefillInputRows=5,singleRowDecodeSteps=3,totalTiles=603472))
+        self.assertEqual([row['inputRows'] for row in result['steps']],[5,1,1,1])
+        self.assertEqual([row['weightedSyntheticNativeEvaluatorSeconds'] for row in result['steps']],[754340.,150868.,150868.,150868.])
+        self.assertEqual(sum(row['weightedSyntheticNativeEvaluatorSeconds'] for row in result['steps']),result['projection']['weightedSyntheticNativeEvaluatorSeconds'])
+        self.assertEqual(sum(row['tilesPerStep'] for row in result['projectionFamilies']),150868)
+        self.assertEqual(sum(row['weightedSyntheticNativeEvaluatorSeconds'] for row in result['projectionFamilies']),result['projection']['weightedSyntheticNativeEvaluatorSeconds'])
+        experts=next(row for row in result['projectionFamilies'] if row['family']=='all-private-routed-experts')
+        self.assertEqual(experts['tilesPerStep'],147456);self.assertFalse(result['measuredFullModelLatency'])
+        with self.assertRaises(ValueError):explain_native_cost(cases[:-1])
 
 
 if __name__=='__main__':unittest.main()

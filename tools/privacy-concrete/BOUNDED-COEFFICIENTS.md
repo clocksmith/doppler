@@ -538,6 +538,24 @@ skipping experts, disclosing routing or weakening integrity. A practical full
 Flash path still needs substantial compute reduction, actual checkpoint output
 and combined-model resource validation, in addition to security qualification.
 
+The 13.13 days covers the **whole pinned four-output request**, not one token.
+There are 150,868 tiles in each step. Five-row prefill produces the first output;
+three further one-row decode steps produce the remaining outputs. The weighted
+prefill evaluator work is 709,158.07 seconds (196.99 hours); the three decode
+steps are 142,028.44, 141,707.49 and 141,925.90 seconds (about 39.4 hours each).
+The separate derived record `native-separate-process-cost-scope.json` binds the
+unchanged input artifact digest and exposes per-step and projection-family sums.
+All-expert operations account for 147,456 of the 150,868 tiles per step and
+1,108,097.73 of the projected 1,134,819.90 seconds. This cost cannot be removed by
+silently skipping unselected experts or revealing the private routing decision.
+
+This projection reuses one seeded synthetic matrix and one timing observation
+for each of 15 shapes and four steps. It assumes sequential calls with no inferred
+tile-level parallel speedup or repeated-trial confidence interval. Trained
+coefficients, private activations, client nonlinearities/checks/replay, keys,
+admission, cache materialization and network time are not included. In particular,
+it is neither a measured per-token latency nor an average request latency.
+
 Append `--readiness-only` to the resource-gated runner above for the next bounded
 physical memory gate. This mutually exclusive alternative to `--prepare-only`
 authenticates the complete model, compiles and verifies every coefficient against

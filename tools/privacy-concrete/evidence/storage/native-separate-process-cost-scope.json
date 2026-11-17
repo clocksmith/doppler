@@ -1,0 +1,87 @@
+{
+  "schema": "doppler.synthetic-flash-request-cost-scope/v1",
+  "projection": {
+    "schema": "doppler.synthetic-flash-kernel-work-projection/v1",
+    "installedWorkloadId": "02f6b18eadc5e4271a55e8cce02db0078671d041376169c12cdd52d362f2e6df",
+    "installedTiles": 603472,
+    "weightedSyntheticNativeEvaluatorSeconds": 1134819.9005745086,
+    "measuredFullModelLatency": false,
+    "productionBackendAvailable": false,
+    "securityQualified": false,
+    "exclusions": [
+      "actual trained coefficients and activations",
+      "client encryption, decryption, checks and replay",
+      "client nonlinear/model/reference execution",
+      "real model source verification, quantization and cache I/O",
+      "transport, scheduling, different hardware and concurrency"
+    ]
+  },
+  "requestScope": {
+    "outputTokens": 4,
+    "prefillInputRows": 5,
+    "singleRowDecodeSteps": 3,
+    "totalTiles": 603472
+  },
+  "steps": [
+    {
+      "step": 0,
+      "phase": "prefill-and-first-output",
+      "inputRows": 5,
+      "outputTokens": 1,
+      "tiles": 150868,
+      "weightedSyntheticNativeEvaluatorSeconds": 709158.0728636758
+    },
+    {
+      "step": 1,
+      "phase": "single-row-decode",
+      "inputRows": 1,
+      "outputTokens": 1,
+      "tiles": 150868,
+      "weightedSyntheticNativeEvaluatorSeconds": 142028.43665657955
+    },
+    {
+      "step": 2,
+      "phase": "single-row-decode",
+      "inputRows": 1,
+      "outputTokens": 1,
+      "tiles": 150868,
+      "weightedSyntheticNativeEvaluatorSeconds": 141707.49089872223
+    },
+    {
+      "step": 3,
+      "phase": "single-row-decode",
+      "inputRows": 1,
+      "outputTokens": 1,
+      "tiles": 150868,
+      "weightedSyntheticNativeEvaluatorSeconds": 141925.90015553116
+    }
+  ],
+  "projectionFamilies": [
+    {
+      "family": "all-private-routed-experts",
+      "tilesPerStep": 147456,
+      "weightedSyntheticNativeEvaluatorSeconds": 1108097.7305763848
+    },
+    {
+      "family": "other-model-projections",
+      "tilesPerStep": 3412,
+      "weightedSyntheticNativeEvaluatorSeconds": 26722.16999812387
+    }
+  ],
+  "assumptions": [
+    "one seeded synthetic matrix per installed tile shape",
+    "one evaluator timing observation per shape and step; no repeated-trial confidence interval",
+    "same-shape timing reused across every trained projection of that shape",
+    "sequential sum of timed calls; no inferred parallel speedup between tiles",
+    "five-row prefill yields first output; three one-row feedback steps yield remaining outputs"
+  ],
+  "measuredFullModelLatency": false,
+  "productionBackendAvailable": false,
+  "securityQualified": false,
+  "inputRecord": {
+    "path": "native-separate-process-probe.json",
+    "sha256": "cd65f02c271e21ed4c01a0a8bd484d749fa119cf4ac506ed75e2343b896d4082",
+    "sourceRevision": "1a23a619591de3270532a895b3ed60636fe57d69",
+    "ciRunId": 44058653705
+  }
+}
