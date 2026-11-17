@@ -1,8 +1,8 @@
 {
   "schema": "doppler.two-server-shares-policy/v1",
-  "mechanism": "additive-shares-z2e64-hidden-probe/v1",
-  "ringBits": 64,
-  "checkRounds": 2,
+  "mechanism": "additive-shares-m61-hidden-probe/v1",
+  "fieldBits": 61,
+  "checkRounds": 1,
   "rejection": "deferred-until-route-close/v1",
   "maximumRows": 64,
   "maximumChunkElements": 8388608,

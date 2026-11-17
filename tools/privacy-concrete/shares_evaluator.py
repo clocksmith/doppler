@@ -1,7 +1,7 @@
 """One evaluator for the two-server shares route. Needs only NumPy and the public coefficient files.
 
-It multiplies whatever rows it is sent by the named public matrix modulo 2**64. The rows are uniformly random
-numbers, so this process handles no private data and needs no key.
+It multiplies whatever rows it is sent by the named public matrix modulo the prime 2**61 - 1. The rows are
+uniformly random numbers, so this process handles no private data and needs no key.
 """
 import argparse
 import hashlib
@@ -11,7 +11,7 @@ import sys
 
 import numpy as np
 
-from shares import CLOSE,POLICY,REQUEST,REQUEST_HEAD,RESPONSE,RESPONSE_HEAD,ring_product
+from shares import CLOSE,POLICY,REQUEST,REQUEST_HEAD,RESPONSE,RESPONSE_HEAD,field_product
 
 
 def serve(directory,source,sink):
@@ -26,7 +26,8 @@ def serve(directory,source,sink):
             path=Path(directory)/row['file']
             if path.is_symlink() or not path.is_file():raise ValueError('Regular public coefficient file required')
             mapped=np.memmap(path,dtype=row['dtype'],mode='r',shape=(row['inputWidth'],row['outputWidth']))
-            # Identity is taken over the mapped bytes that will be multiplied, not a second read of the file.
+            # Identity is taken once over the mapped bytes. A later change to the file is the provider's own doing
+            # and is caught by the requester's check, not here.
             if hashlib.sha256(mapped).hexdigest()!=row['weightId']:raise ValueError('Public coefficient identity changed')
             opened[name]=mapped
         return opened[name]
@@ -44,7 +45,7 @@ def serve(directory,source,sink):
                 or not 1<=rows<=(1+2*POLICY['checkRounds'])*POLICY['maximumRows']):
             sink.write(RESPONSE_HEAD.pack(RESPONSE,sequence,1,0,0));sink.flush();return
         shares=np.frombuffer(read(8*rows*width),dtype='<u8').reshape(rows,width)
-        answer=ring_product(shares,matrix(name))
+        answer=field_product(shares,matrix(name))
         sink.write(RESPONSE_HEAD.pack(RESPONSE,sequence,0,answer.shape[0],answer.shape[1]))
         sink.write(answer.astype('<u8',copy=False).tobytes());sink.flush()
 

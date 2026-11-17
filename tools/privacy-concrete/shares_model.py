@@ -1,4 +1,4 @@
-"""Small-Qwen generation with every linear layer delegated to two evaluators on additive shares.
+"""Small-Qwen generation with every linear layer delegated to two evaluators on additive shares modulo a prime.
 
 The client keeps the prompt, the embedding table and the cheap non-linear steps. It reads no linear-layer
 coefficient while executing. The same process still loads the reference model so the result can be compared
