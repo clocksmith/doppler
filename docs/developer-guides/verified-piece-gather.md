@@ -105,6 +105,15 @@ it is not an RSS limit. Compact staging admission reserves that bound plus its
 fallback scratch. Do not share the adapter between concurrently preparing caches. Multiple lanes
 remove an enforced serialization point; they do not establish a measured speedup.
 
+For explicit boundary attribution, `model.advanced.getExpertLoadingStats()` and
+the optional resident `getExpertLoadingStats()` return detached CPU snapshots of
+the owning loader's cache and routing-readback counters. Ordinary `getStats()` and
+generation evidence do not capture these snapshots automatically. Call at an idle
+loaded-model boundary, outside a stopped request clock. Existing profiler-enabled
+phase buckets distinguish prefill and decode; wait sums may overlap and never
+represent GPU execution time. A profiled diagnostic needs its own source/config
+identity and does not inherit qualification from an unprofiled timing run.
+
 Cancellation prevents publication and is checked after the bounded worker read;
 it does not interrupt a synchronous disk read or native hash. `gather.close()`
 terminates the worker and rejects outstanding reads. The host owns closing it,

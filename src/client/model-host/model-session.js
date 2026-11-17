@@ -210,6 +210,7 @@ function assertActiveAdapterUnchanged(pipeline, expected) {
 
 export function createModelHandle(pipeline, resolved) {
   pipeline = scopePipelineShaders(pipeline);
+  let expertStatsClosed = false;
   const resolutionPolicy = resolveResolutionPolicy(resolved.resolutionPolicy);
   assertArtifactVariantAllowed(resolutionPolicy, resolved.manifestHash);
   const assertRaw = (apiName) => assertUnreceiptedExecutionAllowed(
@@ -466,6 +467,7 @@ export function createModelHandle(pipeline, resolved) {
       throw new Error('Loaded Doppler pipeline does not expose generation-state reset');
     },
     async unload() {
+      expertStatsClosed = true;
       await pipeline.unload();
     },
     get activeLoRAIdentity() { return getActiveLoRAIdentityForPipeline(pipeline); },
@@ -544,6 +546,11 @@ export function createModelHandle(pipeline, resolved) {
       },
       getStats() {
         return pipeline.getStats?.() ?? null;
+      },
+      getExpertLoadingStats() {
+        if (expertStatsClosed || pipeline.isLoaded !== true) throw new Error('Expert loading statistics require an open loaded model.');
+        if (typeof pipeline.getExpertLoadingStats !== 'function') throw new Error('Loaded model does not support expert loading statistics.');
+        return pipeline.getExpertLoadingStats();
       },
       getResolvedRuntimeSession() {
         const resolvedSession = pipeline.resolvedRuntimeSession;
