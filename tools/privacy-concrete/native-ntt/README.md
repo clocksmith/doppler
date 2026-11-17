@@ -170,6 +170,23 @@ v1 receipts stay unchanged. This is an unqualified performance candidate until
 its exact native byte, cancellation/tamper and bounded process checks pass;
 no cryptographic or model qualification follows from the source change.
 
+The first scratch implementation at `3e020bf22` passed exact CI
+[44089615441](https://github.com/clocksmith/doppler/actions/runs/44089615441),
+including all exhaustive encoding/transform checks, 24 ciphertext comparisons,
+native tamper/cancellation and 60 encrypted feedback calls. Its paired medians
+were mixed: about 2 to 3 percent slower for the full-width single-row fixtures,
+and about 3 percent faster for prefill. It is not a general performance win.
+Unmodified evidence and that disposition are retained as
+`../evidence/storage/native-bounded-scratch-initial-{arithmetic,process,context}.json`.
+
+The `.7` refinement separates the residue writes into one loop per prime after
+validating the complete digit input. This permits vectorization with fixed
+prime/correction values and fewer live streams; it changes no arithmetic.
+Paired checks also cover the four most frequent installed Flash geometries,
+derived from the pinned workload rather than selected from timing results,
+alongside the prior full-width and prefill guards. New exact-build evidence is
+required before making a performance claim or choosing this path as a default.
+
 The [retained native run](../evidence/native-ntt/context.json) at revision
 `04ed459671632b23bcf0bee1cb8e555f6282feed` passed eight complete serialized-result
 comparisons against the original arithmetic and a second fast replay, covering

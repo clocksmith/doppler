@@ -51,10 +51,11 @@ impl Ring {
     fn forward_digits_into(&self, value: &[u64], result: &mut Rns, limit: i64) {
         assert_eq!(value.len(),N);
         assert!(matches!(limit,512|8192));
-        for (index,&value) in value.iter().enumerate() {
-            let signed=checked_digit(value,limit).expect("Packing digit outside the pinned signed decomposition domain");
-            for (p,buffer) in result.0.iter_mut().enumerate() {
-                buffer[index]=digit_residue(signed,self.primes[p],self.two64_mod[p]);
+        assert!(value.iter().all(|&v|checked_digit(v,limit).is_some()),"Packing digit outside the pinned signed decomposition domain");
+        for (p,buffer) in result.0.iter_mut().enumerate() {
+            let prime=self.primes[p];let correction=self.two64_mod[p];
+            for (target,&value) in buffer.iter_mut().zip(value) {
+                *target=digit_residue(value as i64,prime,correction);
             }
         }
         // The pinned general fwd overwrites these same five residue arrays

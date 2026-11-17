@@ -58,7 +58,10 @@ def run(lock_path,public_state):
     high=json.loads((ROOT.parent/'precision-policy.json').read_text())['parameters']
     quant12=json.loads((ROOT.parent/'precision12-policy.json').read_text())['parameters']
     from flash_compute_budget import workload
-    flash_shapes=[(1,row['inputWidth'],row['outputWidth']) for row in workload()['shapes']]+[(5,2048,640)]
+    installed=workload()
+    frequent=sorted(installed['shapes'],key=lambda row:-row['tilesPerStep'])[:4]
+    paired_shapes={(row['inputWidth'],row['outputWidth']) for row in frequent}
+    flash_shapes=[(1,row['inputWidth'],row['outputWidth']) for row in installed['shapes']]+[(5,2048,640)]
     generator=np.random.default_rng(23);cases=[];preparation=[];scratch_comparisons=[]
     for profile,definition,geometries in [('upstream-default',base,[(1,16,2),(1,896,128),(1,2048,2048),(1,2048,2051),(2,16,2),(1,4098,3)]),
                                           ('declared-high-precision',high,[(1,2048,2),(1,2048,513)]),
@@ -95,7 +98,7 @@ def run(lock_path,public_state):
                               bodyReferenceNttMs=measured['body-reference'],digitsReferenceNttMs=measured['digits-reference'],
                               nttMs=measured['extracted-body'],nttReplayMs=measured['extracted-body-replay'],
                               timingOrder=[label for label,_ in operations],resultBytes=len(results[0])))
-            if (rows,width,columns)==(1,2048,2048) or (rows,width,columns)==(5,2048,640):
+            if (rows==1 and (width,columns) in paired_shapes) or (rows,width,columns) in ((1,2048,2048),(5,2048,640)):
                 public_state.update(phase='paired-scratch-comparison')
                 scratch_comparisons.append(compare_scratch(encrypted,weights,key,results[0],
                     dict(profile=profile,rows=rows,inputWidth=width,outputWidth=columns)))
@@ -111,6 +114,8 @@ def run(lock_path,public_state):
                 cargoLockSha256=hashlib.sha256(Path(lock_path).read_bytes()).hexdigest(),
                 nttCrate=POLICY['nttCrate'],keyPreparations=preparation,cases=cases,
                 packingScratchComparisons=scratch_comparisons,digitEncodingValidation=digit_validation,
+                packingScratchSelection=dict(frequentInstalledShapes=frequent,frequentInstalledTilesPerStep=sum(row['tilesPerStep'] for row in frequent),
+                    allInstalledTilesPerStep=installed['tilesPerStep'],additionalGuards='Full-width default/35-bit single row and five-row prefill'),
                 clientLifetimePeakRssBytes=resource.getrusage(resource.RUSAGE_SELF).ru_maxrss*(1 if platform.system()=='Darwin' else 1024),
                 interpretation='Fixed public native arithmetic fixtures, including full packing/multi-block/multi-row; one timing observation, no model throughput or independent security review')
 
