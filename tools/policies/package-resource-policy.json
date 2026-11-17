@@ -13,6 +13,7 @@
     "src/config/runtime/profiles/default.json",
     "src/config/runtime/profiles/demo-f16-comparison.json",
     "src/config/runtime/profiles/flash-next-gguf-control-gemv.json",
+    "src/config/runtime/profiles/flash-next-gguf-hc-inject-gemv.json",
     "src/config/runtime/profiles/flash-next-node-host-cache-qualification.json",
     "src/config/runtime/profiles/flash-next-paged-qualification.json",
     "src/config/runtime/profiles/flash-next-routed-f32kv-qualification.json",

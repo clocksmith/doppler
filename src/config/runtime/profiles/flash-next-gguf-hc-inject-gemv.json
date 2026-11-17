@@ -1,0 +1,47 @@
+{
+  "id": "profiles/flash-next-gguf-hc-inject-gemv",
+  "name": "Flash GGUF decode-only HC injection GEMV",
+  "description": "Opt-in decode-only F32 subgroup GEMV for attention and MLP hyper-connection injection. Requires subgroups and WGSL subgroup_id. Preserves prefill, all other operations, source representation, cache and sampling; experimental, not a cross-device default.",
+  "intent": "investigate",
+  "compatibleIntents": [
+    "investigate",
+    "verify",
+    "calibrate"
+  ],
+  "stability": "experimental",
+  "owner": "doppler-core",
+  "createdAtUtc": "2026-11-17T00:00:00Z",
+  "extends": "profiles/default",
+  "runtime": {
+    "inference": {
+      "executionPatch": {
+        "addKernels": [
+          {
+            "key": "flash_control_gemv_candidate",
+            "kernel": {
+              "kernel": "matmul_gemv_f32_subgroup.wgsl",
+              "entry": "main",
+              "digest": "sha256:c5920603ff819e8687cb423bfcf19e3082671162beba59516d7d22180e6b756f",
+              "constants": {
+                "WORKGROUP_SIZE": 128,
+                "COLS_PER_WG": 4
+              }
+            }
+          }
+        ],
+        "set": [
+          {
+            "section": "decode",
+            "op": "attn_hc_inject",
+            "kernelKey": "flash_control_gemv_candidate"
+          },
+          {
+            "section": "decode",
+            "op": "mlp_hc_inject",
+            "kernelKey": "flash_control_gemv_candidate"
+          }
+        ]
+      }
+    }
+  }
+}

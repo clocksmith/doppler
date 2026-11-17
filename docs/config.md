@@ -617,3 +617,13 @@ Source reads fell 150.094 to 122.767 GB with unchanged peak accounted GPU memory
 fell 11.6% with near-zero physical disk reads. First-use A was about 0.5% slower;
 B/C physical reads varied. These are workload-specific results, not an isolated
 compute gain or default-policy promotion.
+
+The experimental `profiles/flash-next-gguf-hc-inject-gemv` profile replaces only
+`attn_hc_inject` and `mlp_hc_inject` in decode with the registered F32 subgroup
+GEMV. It requires subgroups and WGSL `subgroup_id`. The execution patch preserves
+prefill, other operations, tensor representations, cache policy and sampling.
+Select it explicitly through `request.runtimeProfile`; it is separate from the
+seven-role `profiles/flash-next-gguf-control-gemv` experiment. It is not a portable
+performance default or evidence of a complete-request win on another model or
+backend. An explicit inline kernel path must independently declare the intended
+kernel choices; this profile does not rewrite that separate configuration.

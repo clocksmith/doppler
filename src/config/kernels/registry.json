@@ -8245,6 +8245,7 @@
       "status": "pinned",
       "inlineConfigs": [
        "runtime/profiles/flash-next-gguf-control-gemv",
+       "runtime/profiles/flash-next-gguf-hc-inject-gemv",
        "runtime/profiles/qwen3-6-35b-a3b-q4_0-candidate"
       ],
       "ruleChains": ["matmul.rules.json#denseDecodeCandidate"],
