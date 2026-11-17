@@ -11,6 +11,11 @@ profile and binding receipt before execution. The helper preserves shader bytes
 and learned weights, rejects unsupported programs, and checks all declared
 weight consumers through that source's representation planner. Templates are
 never changed in place; these metadata checks do not qualify model outputs.
+An optional `requiredKernelPath` from the selected source's manifest execution
+compiler supplies missing model operation declarations at each layer/phase and
+at the root. Existing candidate declarations stay selected. The caller pins both
+inputs and the additions; an older architecture's profile alone cannot establish
+coverage of hyper-connection, indexer or n-gram mechanisms.
 
 1. `export-canonical.js <config.json>` verifies the pinned source manifest and
    every shard, then reconstructs selected learned tensors into F32 Safetensors.

@@ -4,7 +4,7 @@ import assert from 'node:assert/strict';
 import { pathToFileURL } from 'node:url';
 import path from 'node:path';
 
-export async function bindLinearOutputProfile({ profile, manifest, dopplerRoot }) {
+export async function bindLinearOutputProfile({ profile, manifest, dopplerRoot, requiredKernelPath = null }) {
   assert(path.isAbsolute(dopplerRoot), 'Explicit selected Doppler source root required');
   const module = relative => import(pathToFileURL(path.join(dopplerRoot, 'src', relative)));
   const [{ getLayerSteps, getKernelPathStepConfig }, { ggufBlockFormat }, aliases, { compileWeightRepresentationPlan }] = await Promise.all([
@@ -13,7 +13,16 @@ export async function bindLinearOutputProfile({ profile, manifest, dopplerRoot }
   ]);
   const original = profile.runtime?.inference?.kernelPath;
   assert(original && Number.isSafeInteger(manifest.architecture?.numLayers), 'Explicit profile and model geometry required');
-  const result = structuredClone(profile), bindings = [], groups = new Map();
+  const result = structuredClone(profile), bindings = [], declarations = [], groups = new Map();
+  function includeMissing(selected, required, location) {
+    const steps = structuredClone(selected), present = new Set(steps.map(step => step.op));
+    for (const step of required) {
+      if (present.has(step.op)) continue;
+      steps.push(structuredClone(step)); present.add(step.op);
+      declarations.push({ ...location, op: step.op, kernel: step.kernel });
+    }
+    return steps;
+  }
   for (let layer = 0; layer < manifest.architecture.numLayers; layer++) {
     let name;
     for (const prefix of aliases.LAYER_PREFIXES(layer)) {
@@ -22,7 +31,8 @@ export async function bindLinearOutputProfile({ profile, manifest, dopplerRoot }
     }
     const programs = {};
     for (const phase of ['prefill', 'decode']) {
-      const steps = structuredClone(getLayerSteps(original, layer, phase));
+      const steps = includeMissing(getLayerSteps(original, layer, phase),
+        requiredKernelPath ? getLayerSteps(requiredKernelPath, layer, phase) : [], { layer, phase });
       if (name) {
         const format = ggufBlockFormat(manifest.tensors[name].dtype);
         assert(['q4_0', 'q4_1', 'q8_0'].includes(format.variant), 'Unsupported linear output encoding');
@@ -45,10 +55,14 @@ export async function bindLinearOutputProfile({ profile, manifest, dopplerRoot }
     groups.get(key).layers.push(layer);
   }
   result.runtime.inference.kernelPath.layerOverrides = [...groups.values()];
+  if (requiredKernelPath) for (const section of ['preLayer', 'postLayer']) {
+    result.runtime.inference.kernelPath[section] = includeMissing(original[section] ?? [],
+      requiredKernelPath[section] ?? [], { section });
+  }
   const locations = new Map(Object.entries(manifest.tensors).map(([name, tensor]) => [name,
     { ...tensor, shardIndex: tensor.shardIndex ?? tensor.shard }]));
   const plan = compileWeightRepresentationPlan(locations, manifest, [result.runtime.inference.kernelPath],
     { useFusedQ4K: false, q4kLayout: 'row', keepF32Weights: true });
-  return { profile: result, bindings, representationTensorsChecked: Object.keys(plan).length,
+  return { profile: result, bindings, declarations, representationTensorsChecked: Object.keys(plan).length,
     scope: 'Explicit offline linear-output encoding binding; unchanged weights/shaders; no model or performance qualification' };
 }
