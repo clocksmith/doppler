@@ -145,6 +145,8 @@ export type ResidentStageResult = (ResidentPartitionAResult | ResidentPartitionB
   identity: ResidentOrderedPartitionIdentity; partitionIndex: number; step: number; tokenPosition: number;
 };
 export interface ResidentPartitionSession {
+  /** Detached CPU-only counters at an idle open resident boundary. */
+  getExpertLoadingStats?(): import('../expert-loading-stats.js').ExpertLoadingStats;
   getDescriptor(): ResidentPartitionDescriptor;
   /** Live continuation is not portable recovery. This implementation reports all flags false. */
   getRecoveryCapabilities(): ResidentRecoveryCapabilities;

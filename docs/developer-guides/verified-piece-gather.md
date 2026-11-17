@@ -87,11 +87,32 @@ Saturation rejects another read rather than allocating beyond the admitted bound
 views are detached. Repeated release is harmless. Each lane buffer is reused, not
 reallocated for each range. Direct callers must release a lane before exceeding the declared count.
 
+`rangeLease.readMany(ranges, signal)` optionally gathers one to three positive
+`{ shard, offset, length }` ranges into one concatenated owned result, in the
+caller's order without padding. Their **combined** length must fit `maxPartBytes`;
+it is not a separate allowance per range. Whole pieces are read and hashed into
+disjoint output views in the worker. A later failure zeroes the entire result
+before rejection. Release detaches all sibling views together, after every
+consumer has copied its bytes. The same startup/lifetime signals and approved
+file-identity checks apply to each range. Missing capability fails explicit
+`sourceReadMode: "expert-lease-batch"` admission rather than changing execution.
+Batch receipt counters distinguish requests, constituent ranges and payload
+bytes, so an actual workload can verify the intended reduction in transfers.
+
 The admitted byte bound is `concurrency * (maxPartBytes + 2 * maxPieceBytes)`:
 every worker's maximum output and two complete-piece buffers are reserved. It excludes immutable metadata, native digest internals and VM overhead;
 it is not an RSS limit. Compact staging admission reserves that bound plus its
 fallback scratch. Do not share the adapter between concurrently preparing caches. Multiple lanes
 remove an enforced serialization point; they do not establish a measured speedup.
+
+For explicit boundary attribution, `model.advanced.getExpertLoadingStats()` and
+the optional resident `getExpertLoadingStats()` return detached CPU snapshots of
+the owning loader's cache and routing-readback counters. Ordinary `getStats()` and
+generation evidence do not capture these snapshots automatically. Call at an idle
+loaded-model boundary, outside a stopped request clock. Existing profiler-enabled
+phase buckets distinguish prefill and decode; wait sums may overlap and never
+represent GPU execution time. A profiled diagnostic needs its own source/config
+identity and does not inherit qualification from an unprofiled timing run.
 
 Cancellation prevents publication and is checked after the bounded worker read;
 it does not interrupt a synchronous disk read or native hash. `gather.close()`

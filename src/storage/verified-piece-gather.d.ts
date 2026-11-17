@@ -26,11 +26,17 @@ export interface VerifiedPieceGatherReceipt extends VerifiedPieceReceipt {
   /** Successful full-piece reads directly into the worker-owned output, authenticated before transfer. */
   directPieceReads: number;
   directPieceBytes: number;
+  /** Successfully published multi-range requests, ranges and payload bytes. */
+  batchReads: number;
+  batchRanges: number;
+  batchBytes: number;
 }
 export function createVerifiedPieceGather(options: VerifiedPieceGatherOptions): Promise<Readonly<{
   /** At most concurrency in-flight reads or outstanding leases. Cancellation is checked before
    * publishing; close terminates the worker and rejects any pending read immediately. */
   readLease(path: string, offset: number, length: number, signal?: AbortSignal): Promise<VerifiedRangeLease>;
+  /** One concatenated owned output; one to three positive ranges share maxPartBytes. */
+  readManyLease(ranges: ReadonlyArray<{ path: string; offset: number; length: number }>, signal?: AbortSignal): Promise<VerifiedRangeLease>;
   /** Snapshot of worker verification evidence; requires no outstanding lease. */
   getReceipt(): Promise<VerifiedPieceGatherReceipt>;
   /** Stops admission permanently; failed worker retirement remains retryable.
@@ -47,4 +53,6 @@ export interface VerifiedRangeLeasePort {
   maxPartBytes: number;
   memoryBytes: number;
   read(shard: number, offset: number, length: number, signal: AbortSignal): Promise<VerifiedRangeLease>;
+  /** Optional batch capability. One output contains ranges in caller order, without padding. */
+  readMany?(ranges: ReadonlyArray<{ shard: number; offset: number; length: number }>, signal: AbortSignal): Promise<VerifiedRangeLease>;
 }

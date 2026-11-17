@@ -139,9 +139,9 @@ export async function moeFeedForwardGPU(
   const segmentedRoute = requestedRecorder && expertLoader.getRoutedExpertPolicy?.()?.enabled;
   if (segmentedRoute) {
     if (config.phase !== 'decode' || numTokens !== 1 || config.activationDtype !== 'f32'
-        || config.groupedPrefill || config.sharedSlot || activeExpertSelection !== 'topk-route'
+        || config.groupedPrefill || config.sharedSlot?.residual || config.normRouter || activeExpertSelection !== 'topk-route'
         || moeProfile.topkRouteExecutor !== 'qwen35-route') {
-      throw new Error('Recorded paged experts require single-token ordinary F32 Qwen decode.');
+      throw new Error('Recorded paged experts require single-token F32 Qwen decode without outer-residual or norm fusion.');
     }
     // Routed loading's preparation hook is admission-only. The supported recorded
     // path flushes routing and prepares actual banks at its dependency boundary.
