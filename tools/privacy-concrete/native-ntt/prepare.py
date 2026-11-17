@@ -35,7 +35,7 @@ def prepare(directory):
         'CpuCompressionKey {\n            inner: compression_key,',
         'CpuCompressionKey {\n            inner: compression_key,\n            ntt_cache: std::sync::OnceLock::new(),')
     text=replace_one(text,'m.add_function(wrap_pyfunction!(cpu_matrix_multiplication, m)?)?;',
-        'm.add_function(wrap_pyfunction!(cpu_matrix_multiplication, m)?)?;\n    m.add_function(wrap_pyfunction!(cpu_prepare_ntt_key, m)?)?;\n    m.add_function(wrap_pyfunction!(cpu_matrix_multiplication_ntt, m)?)?;\n    m.add_function(wrap_pyfunction!(cpu_matrix_multiplication_ntt_serial, m)?)?;\n    m.add_function(wrap_pyfunction!(cpu_matrix_multiplication_ntt_parallel_reference, m)?)?;')
+        'm.add_function(wrap_pyfunction!(cpu_matrix_multiplication, m)?)?;\n    m.add_function(wrap_pyfunction!(cpu_prepare_ntt_key, m)?)?;\n    m.add_function(wrap_pyfunction!(cpu_matrix_multiplication_ntt, m)?)?;\n    m.add_function(wrap_pyfunction!(cpu_matrix_multiplication_ntt_serial, m)?)?;\n    m.add_function(wrap_pyfunction!(cpu_matrix_multiplication_ntt_parallel_reference, m)?)?;\n    m.add_function(wrap_pyfunction!(cpu_matrix_multiplication_ntt_fused_reference, m)?)?;')
     text+='\n'+(ROOT/'python_api.rs').read_text();p.write_text(text)
     (directory/'rust/src/ntt_cpu.rs').write_bytes((ROOT/'ntt_cpu.rs').read_bytes())
     lock=(ROOT/'Cargo.lock').read_bytes()

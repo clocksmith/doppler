@@ -8,6 +8,7 @@ fn matrix_multiplication_ntt(
     data: PyReadonlyArray<Scalar, Ix2>,
     compression_key: &CpuCompressionKey,
     mode: crate::ntt_cpu::PackingMode,
+    dot_mode: crate::ntt_cpu::DotMode,
 ) -> PyResult<CompressedResultEncryptedMatrix> {
     let array=data.as_array();
     assert_eq!(encrypted_matrix.shape.1,array.nrows());
@@ -19,7 +20,7 @@ fn matrix_multiplication_ntt(
     let mut result=Vec::new();
     for row in &encrypted_matrix.inner {
         let row=row.decompress();
-        let prepared=crate::ntt_cpu::PreparedVector::new(&row,plan);
+        let prepared=crate::ntt_cpu::PreparedVector::new(&row,plan,dot_mode);
         columns.par_iter().zip(raw.par_iter_mut()).for_each(|(column,mut output)| {
             output.as_mut().copy_from_slice(prepared.dot(column.as_slice().unwrap()).as_ref());
         });
@@ -34,7 +35,7 @@ fn cpu_matrix_multiplication_ntt(
     data: PyReadonlyArray<Scalar, Ix2>,
     compression_key: &CpuCompressionKey,
 ) -> PyResult<CompressedResultEncryptedMatrix> {
-    matrix_multiplication_ntt(encrypted_matrix,data,compression_key,crate::ntt_cpu::PackingMode::ParallelFused)
+    matrix_multiplication_ntt(encrypted_matrix,data,compression_key,crate::ntt_cpu::PackingMode::ParallelFused,crate::ntt_cpu::DotMode::ExtractedBody)
 }
 
 // Diagnostic arithmetic baseline only; no backend advertisement/registration.
@@ -44,7 +45,7 @@ fn cpu_matrix_multiplication_ntt_serial(
     data: PyReadonlyArray<Scalar, Ix2>,
     compression_key: &CpuCompressionKey,
 ) -> PyResult<CompressedResultEncryptedMatrix> {
-    matrix_multiplication_ntt(encrypted_matrix,data,compression_key,crate::ntt_cpu::PackingMode::SerialReference)
+    matrix_multiplication_ntt(encrypted_matrix,data,compression_key,crate::ntt_cpu::PackingMode::SerialReference,crate::ntt_cpu::DotMode::FullGlweReference)
 }
 
 #[pyfunction]
@@ -53,5 +54,14 @@ fn cpu_matrix_multiplication_ntt_parallel_reference(
     data: PyReadonlyArray<Scalar, Ix2>,
     compression_key: &CpuCompressionKey,
 ) -> PyResult<CompressedResultEncryptedMatrix> {
-    matrix_multiplication_ntt(encrypted_matrix,data,compression_key,crate::ntt_cpu::PackingMode::ParallelReference)
+    matrix_multiplication_ntt(encrypted_matrix,data,compression_key,crate::ntt_cpu::PackingMode::ParallelReference,crate::ntt_cpu::DotMode::FullGlweReference)
+}
+
+#[pyfunction]
+fn cpu_matrix_multiplication_ntt_fused_reference(
+    encrypted_matrix: &EncryptedMatrix,
+    data: PyReadonlyArray<Scalar, Ix2>,
+    compression_key: &CpuCompressionKey,
+) -> PyResult<CompressedResultEncryptedMatrix> {
+    matrix_multiplication_ntt(encrypted_matrix,data,compression_key,crate::ntt_cpu::PackingMode::ParallelFused,crate::ntt_cpu::DotMode::FullGlweReference)
 }

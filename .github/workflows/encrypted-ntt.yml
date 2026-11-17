@@ -84,7 +84,7 @@ jobs:
           import concrete_ml_extensions as ext
           import concrete_ml_extensions.concrete_ml_extensions as binary
           from importlib.metadata import version
-          assert version('concrete-ml-extensions') == '0.1.9+ntt.3'
+          assert version('concrete-ml-extensions') == '0.1.9+ntt.4'
           assert callable(ext.cpu_prepare_ntt_key) and callable(ext.cpu_matrix_multiplication_ntt)
           assert not ext.is_cuda_enabled()
           print(version('concrete-ml-extensions'))

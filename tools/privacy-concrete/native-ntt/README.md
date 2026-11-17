@@ -77,6 +77,21 @@ under the hard eight-GiB cap. Unchanged artifacts and provenance are retained in
 This validates the observed arithmetic/resource component scope, not actual
 Flash output, full-model memory, practical outsourced integrity or production.
 
+The `0.1.9+ntt.4` candidate keeps the mask convolution and packing but computes
+only the ciphertext-body coefficient used by the pinned
+[upstream extractor](https://github.com/zama-ai/concrete-ml-extensions/blob/6d3fdd1fab324874e3a2fc4a42cb3a708d5a80b4/rust/src/computations.rs).
+For each input block, reversing the zero-padded clear polynomial makes its
+product coefficient `N-1` equal the wrapping dot product of the original body
+and clear coefficients; no negacyclic wrap contributes to that coefficient.
+The other body coefficients are never extracted. The candidate therefore avoids
+the body forward/inverse NTT without changing the returned LWE mask or body.
+Ciphertext bodies remain request-local owned buffers, with no secret-key cache
+or new protocol message. A full-GLWE fused diagnostic baseline and all older
+baselines remain for complete serialized-result comparisons, including partial
+input blocks, multiple blocks, rows and output packing blocks. Version/source
+identity changes require a new build; this candidate is unqualified until its
+exact native and resource checks complete.
+
 The [retained native run](../evidence/native-ntt/context.json) at revision
 `04ed459671632b23bcf0bee1cb8e555f6282feed` passed eight complete serialized-result
 comparisons against the original arithmetic and a second fast replay, covering

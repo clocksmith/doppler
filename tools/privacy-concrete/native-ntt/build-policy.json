@@ -2,7 +2,7 @@
   "schema": "doppler.exact-ntt-research-build/v1",
   "repository": "https://github.com/zama-ai/concrete-ml-extensions.git",
   "revision": "6d3fdd1fab324874e3a2fc4a42cb3a708d5a80b4",
-  "nativeVersion": "0.1.9+ntt.3",
+  "nativeVersion": "0.1.9+ntt.4",
   "rustToolchain": "1.91.1",
   "nttCrate": {
     "name": "tfhe-ntt",
@@ -16,9 +16,10 @@
     "rust/src/lib_python.rs": "99d4b56f836d7898147684f63e8fe226fd8cf4382bed3ddca28567fc20411d5a",
     "rust/src/lib_switcher.rs": "07f05ca6c1b6317b72b570cabb9aebc3ec20672be7231a514bf503dcba3a9f11",
     "pyproject.toml": "f39aff7eff63aed2d8694355206c7247556321e18213c20c6e56ad964f6e8b10",
-    "src/concrete_ml_extensions/__init__.py": "991ad2faca9d8aefc0f6ae43efe2de3f3e4afe9245b32c2dc64ea8c6b33bc662"
+    "src/concrete_ml_extensions/__init__.py": "991ad2faca9d8aefc0f6ae43efe2de3f3e4afe9245b32c2dc64ea8c6b33bc662",
+    "rust/src/computations.rs": "586c840edb31b2b0ef3011187ac3293e84d25beef28c9cb2bbb0e710a3dac21c"
   },
   "productionBackendAvailable": false,
   "securityQualified": false,
-  "cargoLockSha256": "5ba80174ab96581005fc569b74581120e69c8b9c7d77041ed11dd47d6256ac08"
+  "cargoLockSha256": "04df7a091adb084ecb1bc1d9d273c2876592936c0d74172dcd5358b8568f2f53"
 }

@@ -47,9 +47,10 @@ def run(lock_path,public_state):
             measured={};results=[]
             operations=[('original',ext.cpu_matrix_multiplication),('serial',ext.cpu_matrix_multiplication_ntt_serial),
                 ('parallel-reference',ext.cpu_matrix_multiplication_ntt_parallel_reference),
-                ('parallel-fused',ext.cpu_matrix_multiplication_ntt),('parallel-fused-replay',ext.cpu_matrix_multiplication_ntt)]
-            # Alternate fused/reference order across public cases on the same key.
-            if len(cases)%2:operations[2],operations[3]=operations[3],operations[2]
+                ('fused-reference',ext.cpu_matrix_multiplication_ntt_fused_reference),
+                ('extracted-body',ext.cpu_matrix_multiplication_ntt),('extracted-body-replay',ext.cpu_matrix_multiplication_ntt)]
+            # Alternate candidate/fused-reference order on the same key.
+            if len(cases)%2:operations[3],operations[4]=operations[4],operations[3]
             for label,operation in operations:
                 began=time.perf_counter();result=operation(encrypted,weights,key);serialized=result.serialize()
                 measured[label]=(time.perf_counter()-began)*1000;results.append(serialized)
@@ -58,7 +59,8 @@ def run(lock_path,public_state):
             if hashlib.sha256(key.serialize()).hexdigest()!=key_digest:raise ValueError('Public cache changed serialized key material')
             cases.append(dict(profile=profile,rows=rows,inputWidth=width,outputWidth=columns,byteIdenticalToOriginal=True,
                               originalMs=measured['original'],serialNttMs=measured['serial'],parallelReferenceNttMs=measured['parallel-reference'],
-                              nttMs=measured['parallel-fused'],nttReplayMs=measured['parallel-fused-replay'],
+                              fusedReferenceNttMs=measured['fused-reference'],
+                              nttMs=measured['extracted-body'],nttReplayMs=measured['extracted-body-replay'],
                               timingOrder=[label for label,_ in operations],resultBytes=len(results[0])))
         # Deserializing public evaluation material must create a fresh cache without wire changes.
         restored=ext.CpuCompressionKey.deserialize(key_bytes)

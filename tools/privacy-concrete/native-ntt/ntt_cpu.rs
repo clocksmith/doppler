@@ -80,6 +80,8 @@ impl Ring {
 
 #[derive(Clone, Copy)]
 pub(crate) enum PackingMode { SerialReference, ParallelReference, ParallelFused }
+#[derive(Clone, Copy)]
+pub(crate) enum DotMode { FullGlweReference, ExtractedBody }
 
 pub(crate) struct PackingPlan {
     ring: Ring,
@@ -177,22 +179,27 @@ pub(crate) struct PreparedVector<'a> {
     plan: &'a PackingPlan,
     data: Vec<Vec<Rns>>,
     actual_len: usize,
+    bodies: Option<Vec<Vec<u64>>>,
 }
 impl<'a> PreparedVector<'a> {
-    pub(crate) fn new(value: &crate::ml::EncryptedVector<u64>, plan: &'a PackingPlan) -> Self {
+    pub(crate) fn new(value: &crate::ml::EncryptedVector<u64>, plan: &'a PackingPlan, mode: DotMode) -> Self {
         let (parts,actual_len)=value.ntt_parts();
+        assert_eq!(parts.len(),actual_len.div_ceil(N));
+        let extracted_body=matches!(mode,DotMode::ExtractedBody);
         let data=parts.iter().map(|part| {
             assert_eq!(part.polynomial_size().0,N);
             assert_eq!(part.glwe_size().0,2);
             assert_eq!(part.ciphertext_modulus(),plan.modulus);
-            part.as_ref().chunks_exact(N).map(|p| plan.ring.forward(p)).collect()
+            part.as_ref().chunks_exact(N).take(if extracted_body { 1 } else { 2 }).map(|p| plan.ring.forward(p)).collect()
         }).collect();
-        Self { plan,data,actual_len }
+        let bodies=if extracted_body { Some(parts.iter().map(|part|part.as_ref()[N..].to_vec()).collect()) } else { None };
+        Self { plan,data,actual_len,bodies }
     }
     pub(crate) fn dot(&self, clear: &[u64]) -> LweCiphertextOwned<u64> {
         assert_eq!(self.actual_len,clear.len());
         let mut out=GlweCiphertext::new(0u64,GlweSize(2),PolynomialSize(N),self.plan.modulus);
-        for (encrypted,chunk) in self.data.iter().zip(clear.chunks(N)) {
+        let mut body=0u64;
+        for (block,(encrypted,chunk)) in self.data.iter().zip(clear.chunks(N)).enumerate() {
             let mut padded=vec![0u64;N];padded[..chunk.len()].copy_from_slice(chunk);padded.reverse();
             let rhs=self.plan.ring.forward(&padded);
             for (poly,lhs) in encrypted.iter().enumerate() {
@@ -202,7 +209,16 @@ impl<'a> PreparedVector<'a> {
                     *target=target.wrapping_add(value);
                 }
             }
+            if let Some(bodies)=&self.bodies {
+                // With reversed clear coefficients, product coefficient N-1
+                // is this dot product. No negacyclic wrap contributes there.
+                // The pinned extractor ignores every other body coefficient.
+                for (&value,&weight) in bodies[block].iter().zip(chunk) {
+                    body=body.wrapping_add(value.wrapping_mul(weight));
+                }
+            }
         }
+        if self.bodies.is_some() { out.as_mut()[2*N-1]=body; }
         crate::computations::extract_dot_product_as_lwe_ciphertext(&out)
     }
 }
