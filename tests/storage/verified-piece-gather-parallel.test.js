@@ -249,6 +249,39 @@ test('batch identity capability requires actual complete pinned file bindings, n
   } finally { await fs.rm(f.root, { recursive: true, force: true }); }
 });
 
+test('single leases reject matching-content path swaps after authentication and recover without publishing bytes', { timeout: 5000 }, async () => {
+  for (const length of [4, 2]) for (const replacement of ['file', 'symlink']) {
+    const f = await fixture(), h = await publicHarness(f), S = f.state;
+    const filename = f.files['gate.bin'], saved = filename + '.saved', offset = length === 4 ? 0 : 1;
+    try {
+      const empty = await h.gather.readLease('gate.bin', 4, 0);
+      assert.equal(empty.bytes.byteLength, 0); empty.release();
+      assert.equal(S[I.openedFDs], 0, 'An empty read needs no admitted descriptor');
+      h.outputs.length = 0;
+      Atomics.store(S, I.syncPauseAt, 1);
+      const pending = h.gather.readLease('gate.bin', offset, length);
+      const outcome = pending.then(value => ({ value }), error => ({ error }));
+      await until(() => S[I.syncPaused] === 1);
+      assert.equal(h.outputs.length, 0, 'Authenticated bytes remain worker-owned before publication');
+      await fs.rename(filename, saved);
+      if (replacement === 'file') await fs.writeFile(filename, f.payloads[0]);
+      else await fs.symlink(saved, filename);
+      Atomics.store(S, I.releaseSync, 1); Atomics.notify(S, I.releaseSync);
+      const result = await outcome;
+      result.value?.release();
+      assert.match(result.error?.message ?? '', /identity changed/, 'A different approved-path binding must fail after hashing');
+      assert.equal(h.outputs.length, 1);
+      assert.ok(new Uint8Array(h.outputs[0].buffer).every(byte => byte === 0), 'Failed output is cleared before return to its lane');
+      await fs.unlink(filename); await fs.rename(saved, filename);
+      const recovered = await h.gather.readLease('gate.bin', offset, length);
+      assert.deepEqual([...recovered.bytes], [...f.payloads[0].slice(offset, offset + length)]);
+      recovered.release();
+      await h.gather.close();
+      assert.equal(S[I.closedFDs], S[I.openedFDs], 'Restored request and close settle every owned descriptor');
+    } finally { await h.cleanup(); }
+  }
+});
+
 test('partial batches revalidate earlier file bindings after the last hash before any publication', { timeout: 5000 }, async () => {
   for (const replacement of ['file', 'symlink']) {
     const f = await fixture(), h = await direct(f), S = f.state, filename = f.files['gate.bin'];

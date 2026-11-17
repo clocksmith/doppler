@@ -7,7 +7,8 @@ export interface VerifiedPieceGatherOptions {
    * Resolve authorized links before passing their canonical paths; leaf symlinks are rejected. */
   files: Record<string, string>;
   /** Optional explicit host snapshot. Canonical path and opened descriptor must
-   * retain this device/inode/size; complete-piece authentication still applies. */
+   * retain this device/inode/size through post-authentication publication checks
+   * for nonempty single and batched leases; complete-piece SHA still applies. */
   fileIdentities?: Record<string, { device: string; inode: string; size: string }>;
   maxPartBytes: number;
   /** Explicit range-count bound per output, 1..32; omission preserves three. */

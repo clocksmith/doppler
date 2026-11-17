@@ -245,15 +245,13 @@ async function gather({ ranges, length, buffer, batch }) {
           destination += rangeLength;
         }
       } finally { scratch = null; activeGenericScratchBytes = 0; }
-      if (batch) {
-        // Partial ranges authenticate complete pieces into scratch. Recheck every
-        // requested binding after all hashes/copies, including earlier ranges.
-        // Single reads retain their existing per-piece identity contract.
-        for (const path of new Set(ranges.map(range => range.path))) {
-          const handle = handles.get(path);
-          if (handle === undefined) throw new Error('Gather batch source descriptor missing.');
-          assertIdentity(path, handle);
-        }
+      // Full and partial single leases also retain their admitted binding until
+      // publication. A matching-content path replacement during hashing must not
+      // relabel the old descriptor as the approved source. Empty reads own no FD.
+      for (const path of new Set(ranges.filter(range => range.length > 0).map(range => range.path))) {
+        const handle = handles.get(path);
+        if (handle === undefined) throw new Error('Gather source descriptor missing.');
+        assertIdentity(path, handle);
       }
     }
     if (closing) throw new Error('Gather worker closed.');
