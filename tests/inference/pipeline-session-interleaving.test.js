@@ -115,7 +115,12 @@ for (const sharedDevice of [true, false]) {
       let loadedB;
       try {
         const openingA = createInitializedPipeline(LifecyclePipeline, a, a.contexts);
-        const rejectedA = assert.rejects(openingA, error => error === reason);
+        const rejectedA = assert.rejects(
+          openingA,
+          (error) => error instanceof AggregateError
+            && error.errors[0] === reason
+            && error.errors[1] === a.unloadFailure
+        );
         assert.deepEqual(await a.started.promise, a.expected);
         const openingB = createInitializedPipeline(LifecyclePipeline, b, b.contexts);
         b.resume.resolve();

@@ -10,6 +10,8 @@
         "tests/config/training-telemetry-alerts.test.js",
         "tests/config/ul-stage1-determinism.test.js",
         "tests/inference/bf16-weight-kernels-gpu-regression.test.js",
+        "tests/gpu/native-port-software-compile.test.js",
+        "tests/gpu/native-port-software-reference.test.js",
         "tests/inference/fused-ffn-gelu-gpu-regression.test.js",
         "tests/inference/fused-ffn-q4-metal-simd16-gpu-regression.test.js",
         "tests/inference/fused-matmul-q4-metal-simd16-gpu-regression.test.js",
@@ -24,8 +26,12 @@
         "tests/inference/logits-output-ownership.test.js",
         "tests/inference/logits-paired-physical.test.js",
         "tests/inference/paired-ffn-physical.test.js",
+        "tests/inference/qwen35-moe-recorder-gpu.test.js",
+        "tests/inference/qwen35-q4_0-moe-gpu.test.js",
+        "tests/inference/qwen35-route-gpu.test.js",
         "tests/inference/qwen35-shared-expert-gpu.test.js",
         "tests/inference/rope-source-frequencies-gpu.test.js",
+        "tests/integration/generation-context-physical.test.js",
         "tests/integration/training-force-resume-lineage.test.js",
         "tests/integration/training-intent-split.test.js",
         "tests/integration/training-report-lineage.test.js",
@@ -40,7 +46,11 @@
     "unit-browser": {
       "roots": [
         "tests/client/document-search-ui.test.js",
-        "tests/inference/gemma3-nan-regression.test.js"
+        "tests/inference/gemma3-nan-regression.test.js",
+        "tests/integration/q4_0-browser.test.js",
+        "tests/integration/qwen35-moe-recorder-browser.test.js",
+        "tests/integration/qwen35-route-browser.test.js",
+        "tests/integration/repeat-channels-browser.test.js"
       ],
       "excludeRoots": []
     },

@@ -563,7 +563,7 @@ export function createIdbStore(config) {
   }
 
   async function cleanup() {
-    db?.close();
+    db?.close?.();
     db = null;
     currentModelId = null;
   }

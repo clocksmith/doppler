@@ -14,7 +14,7 @@ function readJson(filePath) {
 }
 
 const configs = readdirSync(CONFIG_DIR)
-  .filter((name) => name.endsWith('.json'))
+  .filter((name) => name.endsWith('.json') && !name.endsWith('-source-policy.json'))
   .map((name) => ({ name, config: readJson(path.join(CONFIG_DIR, name)) }));
 assert.ok(configs.length > 0, `${CONFIG_DIR} must contain conversion configs`);
 

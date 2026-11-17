@@ -412,6 +412,10 @@ This is a reference inventory, not the behavior guide. Manual API guides live on
 - Implementation: [src/tooling-exports/evidence.js](../../../src/tooling-exports/evidence.js)
 - Notes: No manual classification recorded for this export path.
 - Exported symbols:
+  - `ActivationFrame`
+  - `ActivationGeometry`
+  - `ActivationTraceLimits`
+  - `ActivationTraceReceipt`
   - `assertComparableFingerprints`
   - `BOUNDARY_COMPARISON_RECEIPT_SCHEMA`
   - `BOUNDARY_PROVIDER_CAPTURE_SCHEMA`
@@ -429,6 +433,7 @@ This is a reference inventory, not the behavior guide. Manual API guides live on
   - `DEMO_HARDWARE_RECEIPT_SCHEMA`
   - `DETERMINISTIC_TOKEN_EVIDENCE_SCHEMA`
   - `digestRegisteredVariantDescriptor`
+  - `DopplerModelHandle`
   - `isExecutionObservationRequested`
   - `listObservationPolicies`
   - `REGISTERED_VARIANT_CALIBRATION_JOB_SCHEMA`
@@ -606,6 +611,7 @@ This is a reference inventory, not the behavior guide. Manual API guides live on
   - `inspectDeviceMemory`
   - `metadataDigest`
   - `PartitionTiming`
+  - `proposeHardwarePartitionPlan`
   - `ResidentCanonicalARequest`
   - `ResidentCanonicalBRequest`
   - `ResidentCanonicalBResult`

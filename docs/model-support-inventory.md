@@ -20,7 +20,7 @@ Size tiers group recorded artifact bytes, not parameter classes or implementatio
 
 - Catalog models: 31
 - Source checkpoints: 23
-- Conversion-only configs: 19
+- Conversion-only configs: 20
 - HF-published catalog models: 21
 - Runtime-verified catalog models: 28
 - Benchmark-selected source architectures: 1
@@ -127,6 +127,7 @@ These entries have checked-in conversion configs but are not catalog-supported r
 | src/config/conversion/qwen3/qwen-3-reranker-0-6b-f16-true-logit-af32.json | qwen-3-reranker-0-6b-f16-true-logit-af32 | qwen3 | RDRR, f16 weights, f16 embeddings, f16 LM head, f32 compute |
 | src/config/conversion/qwen3/qwen3.8-27b-q4_0-passthrough.json | qwen3-8-27b-text-source-q4_0-af32 | qwen3 | RDRR, q4_0 weights, q4_0 embeddings, q6k LM head, f32 compute, row Q4K layout |
 | src/config/conversion/qwen3/qwen3.8-27b-text-q4k-ehaf16.json | qwen3.8-27b-text-q4k-ehaf16 | qwen3 | RDRR, q4k weights, f16 embeddings, f16 LM head, f32 compute, row Q4K layout |
+| src/config/conversion/qwen3/qwen4exp-gguf-source-policy.json | qwen4exp-gguf-source-policy | qwen3 | RDRR |
 
 ## Source Files
 

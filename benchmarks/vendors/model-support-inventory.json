@@ -110,7 +110,7 @@
   "summary": {
     "catalogModelCount": 31,
     "sourceCheckpointCount": 23,
-    "conversionOnlyConfigCount": 19,
+    "conversionOnlyConfigCount": 20,
     "hfPublishedModelCount": 21,
     "verifiedModelCount": 28,
     "benchmarkSelectedSourceCount": 1,
@@ -2100,7 +2100,7 @@
           "compare": {
             "profile": {
               "kind": "generation",
-              "dopplerSource": "local",
+              "dopplerSource": "quickstart-registry",
               "dopplerFormat": "rdrr",
               "tjsModelId": "onnx-community/Qwen3.5-2B-ONNX-OPT",
               "tjsDtype": null,
@@ -4198,6 +4198,24 @@
       },
       "status": "conversion-ready",
       "nextAction": "Catalog, verify, and publish qwen3.8-27b-text-q4k-ehaf16 before claiming runtime support.",
+      "nextCommand": null
+    },
+    {
+      "modelBaseId": "qwen4exp-gguf-source-policy",
+      "family": "qwen3",
+      "conversionConfig": "src/config/conversion/qwen3/qwen4exp-gguf-source-policy.json",
+      "sourceCheckpointId": null,
+      "architecture": {
+        "artifactFormat": "rdrr",
+        "weights": null,
+        "embeddings": null,
+        "lmHead": null,
+        "computePrecision": null,
+        "q4kLayout": null,
+        "label": "RDRR"
+      },
+      "status": "conversion-ready",
+      "nextAction": "Catalog, verify, and publish qwen4exp-gguf-source-policy before claiming runtime support.",
       "nextCommand": null
     }
   ]

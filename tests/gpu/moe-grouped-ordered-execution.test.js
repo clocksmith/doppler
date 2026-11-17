@@ -70,7 +70,7 @@ try {
   const geometry = { numTokens: 33, numExperts: 256, topK: 8, hiddenSize: 96, intermediateSize: 32 };
   const weight = (shape, dtype) => ({ dtype, layout: 'row', shape,
     buffer: buffer(Math.ceil(ggufBlockBytes(shape, dtype) / 4) * 4, GPUBufferUsage.STORAGE, 'borrowed-weight') });
-  const options = { ...geometry, swigluLimit: null,
+  const options = { ...geometry, hiddenActivation: 'silu', swigluLimit: null,
     inputTensor: { dtype: 'f32', shape: [33, 96], buffer: buffer(33 * 96 * 4, GPUBufferUsage.STORAGE, 'borrowed-input') },
     indicesBuffer: buffer(33 * 8 * 4, GPUBufferUsage.STORAGE, 'borrowed-indices'),
     weightsBuffer: buffer(33 * 8 * 4, GPUBufferUsage.STORAGE, 'borrowed-routing-weights'),

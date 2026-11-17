@@ -162,6 +162,7 @@ function createFakeIndexedDb() {
               };
               return txState.tx;
             },
+            close() {},
           };
           request.result = db;
           request.onupgradeneeded?.({ target: request });

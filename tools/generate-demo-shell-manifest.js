@@ -66,8 +66,13 @@ const WORKER_SHELL_END = '// END GENERATED DEMO SHELL';
 // Remove an allowance when its module leaves the shell. Byte limit unchanged.
 // e8b8edd2 has 833 reachable modules (the prior 809 budget was stale).
 // The reviewed concern extraction adds 21; generated manifests enumerate all 854.
-// This changes file boundaries, not model support; retain the existing byte limit.
-const MAX_MODULES = 854;
+// Subsequent runtime owners add 15 reachable modules (869 total): GPT-OSS per-loader
+// dequant cache, BPE indexed adjacent merges, execution-graph transform split +
+// capability resolver, authenticated piece gather/lanes/timings/range loaders,
+// routed-expert prefill + tiered/mapped expert residency + expert-loading stats,
+// buffer-pool readback, and fused hyper-connection up projection.
+// This changes file boundaries and runtime owners; retain the existing byte limit.
+const MAX_MODULES = 869;
 const MAX_TOTAL_BYTES = 10_000_000;
 // The worker answers only requests under these folders (isDemoAsset in demo/sw.js).
 // A file anywhere else would be downloaded at install and never served from the

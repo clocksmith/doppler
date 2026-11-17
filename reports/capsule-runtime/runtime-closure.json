@@ -3,7 +3,7 @@
   "entrypoint": "src/capsule-runtime.js",
   "scope": "injected-capsule-core; excludes host-supplied program executors",
   "fileCount": 88,
-  "sourceBytes": 1254370,
+  "sourceBytes": 1256077,
   "forbiddenPatterns": [
     "/src/converter/",
     "/src/training/",
@@ -269,8 +269,8 @@
     },
     {
       "path": "src/config/kernels/registry.json",
-      "sizeBytes": 797470,
-      "hash": "sha256:7ae68e3e65628b923610f00874271ff7f3ce9b91b4f7ce31af33af9404698bc4"
+      "sizeBytes": 797366,
+      "hash": "sha256:7c50d825b8ff771cb303ae3c8baa14da51a3368f761ec6ff952b5d07d06bde79"
     },
     {
       "path": "src/config/layer-partition-plan.js",
@@ -309,8 +309,8 @@
     },
     {
       "path": "src/config/revocation-registry.json",
-      "sizeBytes": 270,
-      "hash": "sha256:55923af9620bd85335672067f55fa87b42ce2bd718bda2e33ac64a79734b569f"
+      "sizeBytes": 278,
+      "hash": "sha256:d7d4556b2e4feb0f89870d6de68eb3a853ab7ca960cff1fb6a649aadc9e6f070"
     },
     {
       "path": "src/config/rope-frequencies.js",
@@ -464,8 +464,8 @@
     },
     {
       "path": "src/storage/verified-piece-reader.js",
-      "sizeBytes": 8643,
-      "hash": "sha256:b8f801d69be856c6fac9daea06d31616ecc1f9ebe06501572baac50fd767e4eb"
+      "sizeBytes": 10446,
+      "hash": "sha256:d38ca45b45ca58c9bf412d9cf40f2a9d0fd00909ba1b7d14167812920df7c90d"
     },
     {
       "path": "src/version.js",

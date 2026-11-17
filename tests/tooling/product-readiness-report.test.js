@@ -9,10 +9,15 @@ import {
   formatProductReadinessMarkdown,
 } from '../../tools/render-product-readiness-report.js';
 
-const report = await buildProductReadinessReport();
+const QUALIFICATION_WINDOW_NOW = new Date('2026-08-15T12:00:00.000Z');
+const report = await buildProductReadinessReport({ now: QUALIFICATION_WINDOW_NOW });
 const revocations = report.contracts.revocations;
 
 assert.equal(report.ok, true);
+const expiredWindowReport = await buildProductReadinessReport({
+  now: new Date('2026-11-17T00:00:00.000Z'),
+});
+assert.equal(expiredWindowReport.ok, false, 'expired application integration window must fail closed');
 assert.equal(report.readiness.contractValid, true);
 assert.equal(report.schema, 'doppler.product-readiness/v2');
 assert.equal(report.readiness.portfolioGatesSatisfied, false);
@@ -192,7 +197,10 @@ assert.equal(report.contracts.bunQualification.releaseTargetStatus, 'experimenta
 const bunFixture = await buildBunProductQualificationReport();
 bunFixture.qualifications[2] = { ...bunFixture.qualifications[2], qualified: true, claimAllowed: true, reasons: [], blockers: [], missingEvidence: [] };
 bunFixture.qualifiedWorkloads = 1;
-const partialBun = await buildProductReadinessReport({ bunQualificationBuilder: async () => bunFixture });
+const partialBun = await buildProductReadinessReport({
+  now: QUALIFICATION_WINDOW_NOW,
+  bunQualificationBuilder: async () => bunFixture,
+});
 assert.equal(partialBun.contracts.bunQualification.qualifiedDetails[0].workload, 'reranking');
 assert.equal(partialBun.contracts.bunQualification.portfolioQualified, false);
 assert.equal(partialBun.contracts.bunQualification.subsystemTier, 'experimental');

@@ -327,6 +327,7 @@ export async function buildProductReadinessReport({
   productPortfolioCoherenceBuilder = buildProductPortfolioCoherenceReport,
   acceptanceRecord,
   packageSha256,
+  now,
 } = {}) {
   const reports = {
     goals: await buildGoalCompletionReport(),
@@ -336,7 +337,7 @@ export async function buildProductReadinessReport({
     modelArtifact: await buildModelArtifactContractReport(),
     policySchemas: await buildPolicySchemaRegistryReport(),
     productPortfolioCoherence: await productPortfolioCoherenceBuilder(),
-    productIntegrations: await buildProductIntegrationQualificationReport(),
+    productIntegrations: await buildProductIntegrationQualificationReport(now ? { now } : {}),
     providerConformance: await buildProviderConformanceReport(),
     runtimeOwnership: await buildRuntimeOwnershipDecisionReport(),
     bunQualification: await bunQualificationBuilder(),

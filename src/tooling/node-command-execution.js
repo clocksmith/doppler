@@ -8,6 +8,7 @@ import {
 } from './command-envelope.js';
 import { assertCommandRequestIsObject, normalizeCommandOptions } from './command-validation.js';
 import { convertSafetensorsDirectory } from './node-converter.js';
+import { installNodeFileFetchShim } from './node-file-fetch.js';
 import { bootstrapNodeWebGPU } from './node-webgpu.js';
 import { runDiagnoseCommand } from './diagnose-runner.js';
 import {

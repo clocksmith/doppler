@@ -25,7 +25,8 @@ const mocks = {
   './pipeline-cache.js': 'export const getCachedPipeline=()=>({}); export const getPipelineFast=async()=>({}); export const getPipelineBindGroupLayout=()=>({});',
   '../device.js': 'export const getDevice=()=>completionControl.device;',
   './dispatch.js': 'const submit=()=>{completionControl.dispatches++;if(completionControl.submitError)throw completionControl.submitError;};export const dispatchKernel=submit,dispatchIndirect=submit,recordDispatchIndirect=submit;',
-  './uniform-utils.js': 'export const createKernelUniformBuffer=(_a,_b,_c,recorder)=>{const b={destroy:()=>completionControl.destroyed++};if(recorder)completionControl.recorderOwned.push(b);return b;};',
+  '../uniform-cache.js': 'export const getCompletedUniformCache=()=>({getOrCreate:()=>({release:()=>completionControl.destroyed++})}),releaseUniformBuffer=b=>b.release();',
+  './uniform-utils.js': 'export const getUniformByteLength=()=>16,writeUniformsFromObject=()=>{},createKernelUniformBuffer=(_a,_b,_c,recorder)=>{const b={destroy:()=>completionControl.destroyed++};if(recorder)completionControl.recorderOwned.push(b);return b;};',
   '../../memory/buffer-pool.js': 'export const acquireBuffer=()=>{throw Error("unexpected allocation")};export const releaseBuffer=()=>{};',
 };
 const hooks = registerHooks({ resolve(specifier, parent, next) {
@@ -67,8 +68,9 @@ try {
     assert.equal(context.destroyed,1);
   }
   {
-    reset('settled');context.submitError=Error('submit rejected');
-    await assert.rejects(run(),/submit rejected/);assert.equal(context.waits,0);assert.equal(context.destroyed,1);
+    const gate=reset('settled');context.submitError=Error('submit rejected');
+    await assert.rejects(run(),/submit rejected/);assert.equal(context.waits,1);assert.equal(context.destroyed,0);
+    gate.resolve();await Promise.resolve();assert.equal(context.destroyed,1);
   }
   {
     const gate=reset('submitted');assert.equal(await run(),true);assert.equal(context.destroyed,0);

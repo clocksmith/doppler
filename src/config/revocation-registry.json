@@ -1,5 +1,5 @@
 {
-  "$schema": "schema/revocation-registry.schema.json",
+  "$schema": "schema/runtime/revocation-registry.schema.json",
   "schemaVersion": 1,
   "source": "doppler",
   "updatedAtUtc": "2026-08-15T00:00:00.000Z",

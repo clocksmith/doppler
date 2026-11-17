@@ -18,6 +18,11 @@ function readJson(filePath) {
 }
 
 const compareConfig = readJson('benchmarks/vendors/compare-engines.config.json');
+const frozenCompareConfig = readJson(FROZEN_COMPARE_CONFIG);
+const frozenCompareSha = crypto.createHash('sha256').update(fs.readFileSync(FROZEN_COMPARE_CONFIG)).digest('hex');
+const frozenProfilesById = new Map(
+  (frozenCompareConfig.modelProfiles ?? []).map((entry) => [entry.dopplerModelId, entry])
+);
 const claimMatrix = readJson('benchmarks/vendors/local-inference-claim-matrix.json');
 const runContract = claimMatrix.sharedRunContract;
 
@@ -28,12 +33,15 @@ const fixtures = fs.readdirSync(FIXTURE_DIR)
 function promotionViolations(profile, evidence) {
   const problems = [];
   const id = profile.dopplerModelId;
+  const measuredConfigProfile = evidence.compareConfig?.sourceSha256 === frozenCompareSha
+    ? (frozenProfilesById.get(id) ?? profile)
+    : profile;
   if (evidence.dopplerModelId !== id) problems.push('model id mismatch');
   if (evidence.compareLane?.declared !== profile.compareLane) problems.push('declared lane differs from profile');
   if ((evidence.compareLane?.reason ?? null) !== (profile.compareLaneReason ?? null)) problems.push('lane reason differs from profile');
   if (evidence.decodeProfile !== 'parity') problems.push('promotion evidence must use the parity decode profile');
-  if (evidence.dopplerSurface !== profile.defaultDopplerSurface) problems.push('surface differs from profile default');
-  if (evidence.dopplerModelSource?.source !== profile.defaultDopplerSource) problems.push('model source differs from profile default');
+  if (evidence.dopplerSurface !== measuredConfigProfile.defaultDopplerSurface) problems.push('surface differs from profile default');
+  if (evidence.dopplerModelSource?.source !== measuredConfigProfile.defaultDopplerSource) problems.push('model source differs from profile default');
   if (!runContract.workloads.includes(evidence.workload?.id)) problems.push('workload not in claim-matrix run contract');
   const correctness = evidence.correctness ?? {};
   if (correctness.status !== 'match' || correctness.exactMatch !== true || correctness.normalizedMatch !== true

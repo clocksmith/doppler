@@ -95,7 +95,7 @@ async function runOperation(owner, key, action, explicit = false, signal) {
 }
 
 function streamOperation(owner, key, action, signal) {
-  let iterator, ended = false;
+  let iterator, ended = false, cleanupObserved = false;
   function start() {
     if (!iterator) {
       const release = beginOperation(owner);
@@ -104,7 +104,9 @@ function streamOperation(owner, key, action, signal) {
         return action();
       }), signal);
       owner.streams.add(iterator);
-      iterator.closed.catch(error => { owner.cleanupFailures.add(error); }).finally(() => {
+      iterator.closed.catch(error => {
+        if (!cleanupObserved) owner.cleanupFailures.add(error);
+      }).finally(() => {
         owner.streams.delete(iterator);
         release();
       });
@@ -115,9 +117,10 @@ function streamOperation(owner, key, action, signal) {
     [Symbol.asyncIterator]() { return this; },
     async next(value) { return ended ? { done: true, value: undefined } : start().next(value); },
     async return(value) {
-      if (!iterator) { ended = true; return { done: true, value }; }
+      if (ended || !iterator) { ended = true; return { done: true, value }; }
+      ended = true;
       try { return await iterator.return(value); }
-      catch (error) { owner.cleanupFailures.delete(error); throw error; }
+      catch (error) { cleanupObserved = true; owner.cleanupFailures.delete(error); throw error; }
     },
     async throw(error) { ended = true; if (iterator) return iterator.throw(error); throw error; },
   };

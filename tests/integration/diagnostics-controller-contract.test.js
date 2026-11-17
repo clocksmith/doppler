@@ -9,7 +9,14 @@ import {
 const policies = listObservationPolicies();
 assert.deepEqual(
   policies.map((policy) => policy.id),
-  ['demo/always-on', 'demo/guided-quality', 'demo/deep-xray']
+  [
+    'demo/always-on',
+    'demo/guided-quality',
+    'demo/deep-xray',
+    'demo/activation-grid',
+    'demo/model-activity',
+    'demo/model-activity-timing',
+  ]
 );
 assert.equal(
   policies.find((policy) => policy.id === 'demo/always-on').gpuTimestampQueries,

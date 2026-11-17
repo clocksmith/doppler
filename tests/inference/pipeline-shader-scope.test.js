@@ -24,6 +24,11 @@ assert.equal(closed, 2);
 class CleanupFailure extends Pipeline {
   async unload() { throw new Error('cleanup failure'); }
 }
-await assert.rejects(createInitializedPipeline(CleanupFailure, { fail: true }, { storage }), /load failure/);
+await assert.rejects(
+  createInitializedPipeline(CleanupFailure, { fail: true }, { storage }),
+  (error) => error instanceof AggregateError
+    && /load failure/.test(error.errors[0]?.message ?? '')
+    && /cleanup failure/.test(error.errors[1]?.message ?? '')
+);
 assert.equal(getScopedShaderSource('declared.wgsl'), null);
 console.log('pipeline-shader-scope.test: ok (contract doubles)');

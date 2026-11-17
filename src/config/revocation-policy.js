@@ -165,7 +165,10 @@ export function validateRevocationRegistry(value) {
     'trust',
     'revocations',
   ], REGISTRY);
-  if (value.$schema !== 'schema/revocation-registry.schema.json') {
+  if (
+    value.$schema !== 'schema/runtime/revocation-registry.schema.json'
+    && value.$schema !== 'schema/revocation-registry.schema.json'
+  ) {
     throw new Error(`${REGISTRY} $schema is not recognized.`);
   }
   if (value.schemaVersion !== 1) throw new Error(`${REGISTRY} schemaVersion must be 1.`);

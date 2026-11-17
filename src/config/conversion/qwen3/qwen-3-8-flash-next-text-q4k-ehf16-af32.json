@@ -51,7 +51,7 @@
       "outputGateType": null
     },
     "normalization": {
-      "rmsNormEps": 0.000001,
+      "rmsNormEps": 1e-06,
       "rmsNormWeightOffset": true,
       "postAttentionNorm": false,
       "preFeedforwardNorm": false,
@@ -111,19 +111,19 @@
         0.0003162277862429619,
         0.00019109529966954142,
         0.00011547819303814322,
-        0.00006978305464144796,
-        0.00004216965317027643,
-        0.000025482966520939954,
-        0.000015399264157167636,
-        0.000009305720595875755,
-        0.00000562341347176698,
-        0.000003398208264115965,
-        0.0000020535248950181995,
-        0.0000012409377632138785,
-        7.498942409256415e-7,
-        4.531583783773385e-7,
-        2.7384197665014653e-7,
-        1.6548170833630138e-7
+        6.978305464144796e-05,
+        4.216965317027643e-05,
+        2.5482966520939954e-05,
+        1.5399264157167636e-05,
+        9.305720595875755e-06,
+        5.62341347176698e-06,
+        3.398208264115965e-06,
+        2.0535248950181995e-06,
+        1.2409377632138785e-06,
+        7.498942409256415e-07,
+        4.531583783773385e-07,
+        2.7384197665014653e-07,
+        1.6548170833630138e-07
       ]
     },
     "output": {
@@ -202,7 +202,7 @@
       "streamCount": 4,
       "streamWidth": 2560,
       "projectionRank": 320,
-      "normEps": 0.000001
+      "normEps": 1e-06
     },
     "indexedAttention": {
       "semantics": "qwen4_exp_qsa",
@@ -228,7 +228,7 @@
       "compressRatio": 4,
       "blockTopK": 512,
       "denseVisibleLimit": 2051,
-      "normEps": 0.000001,
+      "normEps": 1e-06,
       "tieOrder": "lower_block_index",
       "forceSelfToken": false
     },
@@ -247,7 +247,7 @@
       "convKernelSize": 4,
       "convDilation": 3,
       "convStateLength": 9,
-      "normEps": 0.000001,
+      "normEps": 1e-06,
       "tableDtype": "bf16",
       "layers": [
         {
@@ -583,7 +583,10 @@
       "attn_indexed": {
         "kernel": "attention_indexed_f16kv.wgsl",
         "entry": "main",
-        "digest": "sha256:30d1f6cb9f4acbdc5830259827c5a683a66d5c1ec0edc5edde0237506e793ee2"
+        "digest": "sha256:30d1f6cb9f4acbdc5830259827c5a683a66d5c1ec0edc5edde0237506e793ee2",
+        "precision": {
+          "kvDtype": "f16"
+        }
       },
       "ple_row_decode": {
         "kernel": "bf16_to_f32.wgsl",

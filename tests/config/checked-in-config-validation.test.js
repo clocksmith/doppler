@@ -33,7 +33,8 @@ function collectJsonFiles(dir) {
   });
 }
 
-const conversionFiles = collectJsonFiles('src/config/conversion');
+const conversionFiles = collectJsonFiles('src/config/conversion')
+  .filter((filePath) => !filePath.endsWith('-source-policy.json'));
 assert.ok(conversionFiles.length > 0, 'conversion config discovery must find checked-in configs');
 for (const filePath of conversionFiles) {
   const config = JSON.parse(readFileSync(filePath, 'utf8'));

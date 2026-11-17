@@ -66,7 +66,7 @@ assert.deepEqual(await probeWebGpu({ requestAdapter: async () => ({ limits: { ma
 // A failed load says only what was observed about model files.
 const fixtureModel = { modelId: 'fixture', label: 'Fixture' };
 assert.match(loadFailureNote(fixtureModel, new Error('Failed to get WebGPU adapter'), {}),
-  /^This browser couldn’t start WebGPU, so live inference isn’t available\. You can still explore the recorded run\..* No model weights were downloaded\.$/);
+  /^This browser can’t run models here: WebGPU isn’t available\. The recorded answer below still works\..* No model weights were downloaded\.$/);
 assert.equal(loadFailureNote(fixtureModel, new Error('Embedding needs 3.13 GiB but maxStorageBufferBindingSize is 128 MiB.'), { sawModelFiles: false }),
   'Fixture needs a single GPU buffer larger than this device allows. That is a per-buffer GPU limit, separate from how much memory the device has. Embedding needs 3.13 GiB but maxStorageBufferBindingSize is 128 MiB. No model weights were downloaded.');
 assert.match(loadFailureNote(fixtureModel, new Error('network lost'), { sawModelFiles: true }), /^Fixture could not load: network lost\. Some of its files may have been downloaded/);
