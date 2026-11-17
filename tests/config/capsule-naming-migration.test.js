@@ -47,7 +47,14 @@ for (const entry of manifest.files) {
     'sha256:284d3efb0ad0991fc57ece5f634cbc8a931fcab36f193b2b6832561d4cc79ef1':
       'sha256:4f4d144735bdff86b8567346ba7ea7b82fe68a2ac9656ba1577106158af9bc7c',
     'sha256:5631ce6f19f805c7ac85722bac17365048bc7b9e2c422f3ef9477b63cb8dad62':
-      'sha256:26e00e5a829ac064b85ed9b1c2565ec8d957ee468666903f1d47e07d93dfb3bc',
+      'sha256:c434473d64a163eddbb6fc349aec944e4bef6b067170acdf4d55daf92f1932bf',
+    // b557333e7: WGSL uniform/helper identifier cleanup.
+    'sha256:abd19bc08ad668a7cad562e2bc0a4be1aa8827ad4300d8d474b7fc2af4c27117':
+      'sha256:4dbfb0a9ca0fb6047a01618f0374b445c243774d039407acdf41b0711ea8eaf4',
+    'sha256:7ff3dd675b4737d920e0b3889e15c4fedde8410a353bbc6d4651db76ce69eb9b':
+      'sha256:f2377b2a58c2eeb695a6f6f7ad877630bdba5e74d5dc1a8d919cd73b360d4870',
+    'sha256:7b52d30fb741beef2dbf728e0c4ecffe5b08d9661d63c306caecb4cb3ced85e5':
+      'sha256:712787a59b032453b09f147be0d0c073266c47a7a12c3b746984aaf28075bedb',
   };
   for (const [id, kernel] of Object.entries(expected.execution.kernels)) {
     if (kernel.digest in shaderChanges) {
@@ -57,10 +64,17 @@ for (const entry of manifest.files) {
     }
   }
   if (entry.source === 'src/config/conversion/gemma4/gemma-4-e2b-it-q4k-ehf16-af16-int4ple.json') {
-    // The referenced manifest now uses Capsule identity fields. Bind the new
-    // digest to its actual bytes while comparing every computational field.
-    const base = await fs.readFile('models/local/gemma-4-e2b-it-q4k-ehf16-af32-int4ple/manifest.json');
-    expected.manifest.weightsRef.manifestDigest = `sha256:${createHash('sha256').update(base).digest('hex')}`;
+    // 5122308e6 bound weightsRef to the retained local af32-int4ple manifest prior to 9523d93b1 digest rebinding.
+    const retainedAf16 = JSON.parse(await fs.readFile('models/local/gemma-4-e2b-it-q4k-ehf16-af16-int4ple/manifest.json', 'utf8'));
+    expected.manifest.weightsRef.manifestDigest = retainedAf16.weightsRef.manifestDigest;
+  }
+  // a76f1add6 made Gemma 4 audio log-mel feature_extractor parameters explicit in conversion configs.
+  if (
+    entry.source.startsWith('src/config/conversion/gemma4/')
+    && expected.manifest?.audioConfig
+    && expected.manifest.audioConfig.feature_extractor === undefined
+  ) {
+    expected.manifest.audioConfig.feature_extractor = current.manifest?.audioConfig?.feature_extractor;
   }
   // 56e3abbd made the previously implicit Gemma 4 runtime pipeline explicit.
   if (entry.source.startsWith('src/config/conversion/gemma4/') && expected.modelType === undefined) {

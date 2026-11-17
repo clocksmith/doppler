@@ -3,7 +3,7 @@ import path from 'node:path';
 import { portableSourcePath } from '../../src/tooling/portable-source-path.js';
 
 const base = path.resolve('/work/doppler');
-const home = path.resolve('/home/someone');
+const home = path.resolve('/home/user');
 
 assert.equal(portableSourcePath(path.join(base, 'downloads', 'qwen'), { baseDir: base, homeDir: home }), 'downloads/qwen');
 assert.equal(portableSourcePath(path.join(home, 'models', 'q.gguf'), { baseDir: base, homeDir: home }), '~/models/q.gguf');
@@ -12,7 +12,7 @@ assert.equal(portableSourcePath(base, { baseDir: base, homeDir: home }), base.sp
 assert.equal(portableSourcePath('', { baseDir: base, homeDir: home }), null);
 assert.equal(
   portableSourcePath(path.join(base, 'downloads', 'qwen'), { baseDir: base, homeDir: home }),
-  portableSourcePath(path.join(base, 'downloads', 'qwen'), { baseDir: base, homeDir: path.resolve('/Users/other') }),
+  portableSourcePath(path.join(base, 'downloads', 'qwen'), { baseDir: base, homeDir: path.resolve('/Users/runner') }),
   'the same input names the same source on machines with different home directories'
 );
 console.log('portable-source-path.test: ok');

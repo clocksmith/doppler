@@ -132,6 +132,17 @@ for (const { manifest, config } of localManifests) {
     assert.deepEqual(inference.execution[section], materialized.execution[section], `${label}: execution.${section}`);
   }
   for (const field of ['layerPattern', 'rope', 'normalization', 'attention', 'ffn', 'output']) {
+    if (field === 'attention' && inference.attention?.queryKeyNorm === true) {
+      const expectedAttention = { ...materialized.attention };
+      if (inference.attention.queryKeyNormType === undefined && expectedAttention.queryKeyNormType === 'rmsnorm') {
+        delete expectedAttention.queryKeyNormType;
+      }
+      if (inference.attention.queryKeyNormAxis === undefined && expectedAttention.queryKeyNormAxis === 'head') {
+        delete expectedAttention.queryKeyNormAxis;
+      }
+      assert.deepEqual(inference.attention, expectedAttention, `${label}: inference.attention`);
+      continue;
+    }
     assert.deepEqual(inference[field], materialized[field], `${label}: inference.${field}`);
   }
   for (const field of ['decodeLoop', 'perLayerInputs']) {

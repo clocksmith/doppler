@@ -7772,7 +7772,7 @@
     {
       "file": "tests/gpu/kernel-completion-policy.test.js",
       "kind": "dynamic",
-      "line": 47,
+      "line": 48,
       "expression": "import(target)"
     },
     {

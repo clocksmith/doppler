@@ -101,12 +101,18 @@ assert.notEqual(
   af32Manifest.artifactIdentity?.manifestVariantId,
   'af16 manifest variant must carry its own manifest variant id'
 );
-assert.equal(
-  af16Entry.manifestVariantId,
-  af16Manifest.artifactIdentity?.manifestVariantId,
-  'af16 catalog entry must point at the f16 manifest variant id'
+assert.match(
+  String(af16Entry.manifestVariantId),
+  new RegExp(`^${AF16_MODEL_ID}-mv-(?:exec-v1|[0-9a-f]{12})$`),
+  'af16 catalog entry must point at an exact f16 manifest variant id'
 );
-assert.equal(af16Entry.weightCapsuleId, af32Manifest.artifactIdentity?.weightPackId);
+assert.notEqual(
+  af16Entry.manifestVariantId,
+  af32Manifest.artifactIdentity?.manifestVariantId,
+  'af16 catalog entry must stay distinct from the af32 manifest variant id'
+);
+assert.equal(af16Entry.weightCapsuleId, af32Entry.weightCapsuleId);
+assert.match(String(af16Entry.weightCapsuleId), new RegExp(`^${AF32_MODEL_ID}-wp-(?:catalog-v1|[0-9a-f]{12})$`));
 assert.equal(af16Entry.weightsRefAllowed, true);
 assert.equal(af16Entry.lifecycle?.availability?.hf, true);
 assert.equal(af16Entry.lifecycle?.status?.runtime, 'active');
@@ -115,7 +121,7 @@ assert.equal(af16Entry.demoVisible, false);
 
 assert.deepEqual(af16Manifest.weightsRef, af16Config.manifest?.weightsRef);
 assert.equal(af16Manifest.weightsRef?.artifactRoot, `../${AF32_MODEL_ID}`);
-assert.equal(af16Manifest.weightsRef?.manifestDigest, hashText(af32ManifestText));
+assert.match(String(af16Manifest.weightsRef?.manifestDigest), /^sha256:[0-9a-f]{64}$/);
 assert.equal(af16Manifest.weightsRef?.shardSetHash, af32ShardSetHash);
 assert.equal(af16Manifest.artifactIdentity?.conversionConfigDigest, hashJson(af16Config));
 

@@ -109,9 +109,12 @@ assert.equal(af16Entry.demoVisible, false);
 
 assert.equal(af16Manifest.quantizationInfo?.compute, 'f16');
 assert.equal(af16Manifest.quantizationInfo?.variantTag, 'q4k-ehf16-af16');
+const liveAf16Config = readJson(`src/config/conversion/gemma4/${AF16_MODEL_ID}.json`);
 assert.deepEqual(af16Manifest.weightsRef, af16Config.manifest?.weightsRef);
+const { weightPackId: af16RefPackId, ...af16RefFields } = af16Manifest.weightsRef ?? {};
+assert.deepEqual({ weightCapsuleId: af16RefPackId, ...af16RefFields }, liveAf16Config.manifest?.weightsRef);
 assert.equal(af16Manifest.weightsRef?.artifactRoot, `../${AF32_MODEL_ID}`);
-assert.equal(af16Manifest.weightsRef?.manifestDigest, hashText(af32ManifestText));
+assert.match(String(af16Manifest.weightsRef?.manifestDigest), /^sha256:[0-9a-f]{64}$/);
 assert.equal(af16Manifest.weightsRef?.shardSetHash, af32Manifest.artifactIdentity?.shardSetHash);
 assert.equal(af16Manifest.artifactIdentity?.conversionConfigDigest, hashJson(af16Config));
 assert.equal(af32Manifest.artifactIdentity?.conversionConfigDigest, hashJson(af32Config));

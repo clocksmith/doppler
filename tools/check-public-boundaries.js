@@ -84,7 +84,10 @@ const PACKAGE_CONTENT_LIMITS = Object.freeze({
   // Concern extraction and a refreshed closure add 25 entries; the candidate
   // packs to 3,788,822 bytes / 16,107,174 unpacked bytes. Retain the
   // existing 2,158-byte cross-npm allowance; no model payloads or extra references ship.
-  maxEntryCount: 2020,
+  // Prime-field partition shares, MoE pre-staging/loader owners and Qwen 3.8
+  // conversion profiles add 24 reachable entries on main: measured 2044 entries,
+  // 3,828,152 packed / 16,112,946 unpacked bytes on Node 22.20.0/npm 10.9.3.
+  maxEntryCount: 2044,
   // add14e4b: npm 9.2.0 produces 2,104,958 bytes; CI Node 22.23.2/npm 10.9.8
   // produces 2,107,073. Keep the measured cross-toolchain compression allowance.
   // Evidence: reports/capsule-baseline/20260907-release/remote-package-budget-failure.log.
@@ -202,7 +205,8 @@ const PACKAGE_CONTENT_LIMITS = Object.freeze({
   // partition transport/planning and registry digests: 1963 entries, 3,762,667
   // packed / 16,038,629 unpacked. Preserve the existing 2,158-byte npm allowance.
   // Exact inventory: reports/package-release-0.7.4/package-audit.json.
-  maxPackedSize: 3_790_977,
+  // Refreshed main closure (2044 entries): 3,828,152 measured plus 2,158-byte allowance.
+  maxPackedSize: 3_830_310,
   // Capsule naming changes identifiers and declarations, not the shipped file count.
   // Measured 0.6.0 payload: 2,097,039 packed / 10,835,420 unpacked bytes.
   // The remaining GPU diagnostic label adds three uncompressed bytes.
@@ -292,7 +296,8 @@ const PACKAGE_CONTENT_LIMITS = Object.freeze({
   // to the physically tested archive. See the 0.7.2 package audit.
   // 0.7.3: doppler and doppler-serve compare real paths (bin-link start fix,
   // 2e4ecb2e) plus its changelog section; measured below, no new entries.
-  maxUnpackedSize: 16_107_174,
+  // Refreshed main closure (2044 entries): 16,112,946 unpacked bytes on Node 22.20.0/npm 10.9.3.
+  maxUnpackedSize: 16_112_946,
 });
 const REQUIRED_PACKAGE_FILES = Object.freeze([
   'README.md',

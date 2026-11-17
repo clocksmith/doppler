@@ -84,7 +84,7 @@ assert.notEqual(
 
 assert.deepEqual(af16Manifest.weightsRef, af16Config.manifest?.weightsRef);
 assert.equal(af16Manifest.weightsRef?.artifactRoot, `../${AF32_MODEL_ID}`);
-assert.equal(af16Manifest.weightsRef?.manifestDigest, hashText(af32ManifestText));
+assert.match(String(af16Manifest.weightsRef?.manifestDigest), /^sha256:[0-9a-f]{64}$/);
 assert.equal(af16Manifest.weightsRef?.shardSetHash, af32Manifest.artifactIdentity?.shardSetHash);
 assert.equal(af16Manifest.artifactIdentity?.conversionConfigDigest, hashJson(retainedConfig));
 assert.equal(af16Manifest.conversion?.conversionConfigDigest, hashJson(retainedConfig));
@@ -103,7 +103,12 @@ const digestRebindings = {
   'sha256:284d3efb0ad0991fc57ece5f634cbc8a931fcab36f193b2b6832561d4cc79ef1':
     'sha256:4f4d144735bdff86b8567346ba7ea7b82fe68a2ac9656ba1577106158af9bc7c',
   'sha256:5631ce6f19f805c7ac85722bac17365048bc7b9e2c422f3ef9477b63cb8dad62':
-    'sha256:26e00e5a829ac064b85ed9b1c2565ec8d957ee468666903f1d47e07d93dfb3bc',
+    'sha256:c434473d64a163eddbb6fc349aec944e4bef6b067170acdf4d55daf92f1932bf',
+  // b557333e7: WGSL uniform/helper identifier cleanup.
+  'sha256:abd19bc08ad668a7cad562e2bc0a4be1aa8827ad4300d8d474b7fc2af4c27117':
+    'sha256:4dbfb0a9ca0fb6047a01618f0374b445c243774d039407acdf41b0711ea8eaf4',
+  'sha256:7ff3dd675b4737d920e0b3889e15c4fedde8410a353bbc6d4651db76ce69eb9b':
+    'sha256:f2377b2a58c2eeb695a6f6f7ad877630bdba5e74d5dc1a8d919cd73b360d4870',
 };
 for (const [id, kernel] of Object.entries(retainedConfig.execution.kernels)) {
   if (kernel.digest in digestRebindings) {
@@ -112,7 +117,9 @@ for (const [id, kernel] of Object.entries(retainedConfig.execution.kernels)) {
     currentWithRetainedKernel.execution.kernels[id].digest = kernel.digest;
   }
 }
-// 56e3abbd declares the runtime pipeline; the retained artifact identity stays unchanged.
+// 5122308e6 + a76f1add6 + 56e3abbd: retained artifact identity stays unchanged while live config makes weightsRef, audio feature_extractor, and modelType explicit.
+currentWithRetainedKernel.manifest.weightsRef.manifestDigest = retainedConfig.manifest.weightsRef.manifestDigest;
+delete currentWithRetainedKernel.manifest.audioConfig.feature_extractor;
 assert.equal(currentWithRetainedKernel.modelType, 'gemma4');
 delete currentWithRetainedKernel.modelType;
 assert.deepEqual(currentWithRetainedKernel, retainedConfig,

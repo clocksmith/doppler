@@ -3,7 +3,7 @@
   "entrypoint": "src/capsule-runtime.js",
   "scope": "injected-capsule-core; excludes host-supplied program executors",
   "fileCount": 88,
-  "sourceBytes": 1256077,
+  "sourceBytes": 1256159,
   "forbiddenPatterns": [
     "/src/converter/",
     "/src/training/",
@@ -304,8 +304,8 @@
     },
     {
       "path": "src/config/revocation-policy.js",
-      "sizeBytes": 10794,
-      "hash": "sha256:07ec981c81e767bf641f46f95aac98c188a2c200a14461d1d97638fdf6c60218"
+      "sizeBytes": 10876,
+      "hash": "sha256:389ba34b15204c24d3a59becc4cd5d04b2e52a9317b1bb8a6ddfd86f375a9e52"
     },
     {
       "path": "src/config/revocation-registry.json",
