@@ -5,6 +5,26 @@ It has **not run encrypted Flash computation on a physical host**. Dispatch in
 the unit tests is mocked. It is not a generation backend or a security-qualified
 execution path; production cryptographic admission remains closed.
 
+The path uses software cryptography on the pinned Linux CPU implementation. It
+does not require SEV-SNP, a particular GPU or hardware attestation. This does not
+qualify every mesh platform. A hardware-backed experiment remains a separately
+evidenced route, rather than a prerequisite or substitute for cryptographic
+input privacy.
+
+This local-process gate has no persistent peer-signing or remote-operator
+authentication result. Persistent signing identity establishes continuity;
+fresh session/request and encryption-key bindings establish a distinct attempt.
+Neither a signing identity nor a GPU description authenticates hardware, and
+neither establishes which model actually executed or hides its input. Remote
+mesh qualification must bind those separately. This GLWE probe is not MPC and
+makes no honest-majority or multi-operator collusion guarantee. Malicious
+evaluator behavior, decryption-feedback leakage and the protocol/parameter
+assumptions remain subject to independent qualification.
+Measurements assume an honest pinned evaluator. They do not qualify privacy
+against malicious or colluding operators. Any future MPC route must declare its
+corruption threshold and participants; distinct signers do not prove
+non-collusion.
+
 The fixed public fixture is `The capital of France is`, five pinned token IDs.
 The existing complete checkpoint, coefficient-reference admission and checked
 reconstruction backend run before private inference. The probe then follows the
