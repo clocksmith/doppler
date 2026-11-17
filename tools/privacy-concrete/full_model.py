@@ -117,7 +117,9 @@ class FullLinear(nn.Module):
                         matrix = np.ascontiguousarray(weights[tile['inputBegin']:tile['inputEnd'],tile['outputBegin']:tile['outputEnd']],dtype=np.int64).astype(np.uint64)
                         answer = self.bridge.evaluate(encrypted[tile['inputBegin']],matrix,tile)
                         self.bridge.check_active()
-                        decoded = ext.decrypt_matrix(answer,self.secret,self.parameters,tile['outputEnd']-tile['outputBegin']).astype(np.int64)
+                        width=tile['outputEnd']-tile['outputBegin']
+                        decoded = self.bridge.decode(answer,tile,integer_input[:,tile['inputBegin']:tile['inputEnd']],
+                            lambda value:ext.decrypt_matrix(value,self.secret,self.parameters,width).astype(np.int64))
                         # Exact signed integer accumulation precedes one global correction/dequantization.
                         result[:,tile['outputBegin']:tile['outputEnd']] += decoded
                     raw = torch.from_numpy(result)
@@ -218,7 +220,12 @@ def run(model_dir,cache_dir,prompt,progress=lambda event:None,cancelled=None,dep
     secret,key=ext.cpu_create_private_key(parameters)
     bridge=None
     try:
-        bridge=FullBridge(cache_dir,plan,key,cancelled=cancelled,deployment=deployment,backend_profile=None if backend_profile==DEFAULT_PROFILE else backend_profile,observe=lambda kind,value:progress(dict(event=kind,**value)))
+        bridge_options=dict(cancelled=cancelled,deployment=deployment,backend_profile=None if backend_profile==DEFAULT_PROFILE else backend_profile,observe=lambda kind,value:progress(dict(event=kind,**value)))
+        if settings.get('integrity') is None:bridge=FullBridge(cache_dir,plan,key,**bridge_options)
+        else:
+            from checked_bridge import CheckedBridge,INTEGRITY_ID
+            if settings['integrity']!=INTEGRITY_ID:raise ValueError('Unsupported installed integrity mechanism')
+            bridge=CheckedBridge(cache_dir,plan,key,parameter_profile=settings['parameterProfile'],**bridge_options)
         for projection in projections:
             projection.bridge,projection.secret,projection.parameters=bridge,secret,parameters
         caches={mode:DynamicCache() for mode in ['float-reference','clear-reference','execute']}
@@ -243,7 +250,8 @@ def run(model_dir,cache_dir,prompt,progress=lambda event:None,cancelled=None,dep
             if next_token!=int(logits['clear-reference'].argmax()):raise ExecutionRejected('token-reference-mismatch')
             float_matches.append(next_token==int(logits['float-reference'].argmax()))
         with torch.no_grad():complete_verified_route(bridge,settings['steps'],execute,validate)
-        return dict(schema='doppler.full-qwen-hybrid-execution/v1',qualified=False,productionBackendAvailable=False,validationBoundary=VALIDATION_BOUNDARY,
+        checked=settings.get('integrity') is not None
+        return dict(**(bridge.integrity_report() if checked else {}),schema='doppler.full-qwen-hybrid-execution/v1',qualified=False,productionBackendAvailable=False,validationBoundary=VALIDATION_BOUNDARY,
                     descriptor=dict(schema='doppler.execution-backend/v1',id=settings['backendId'],version=1,kind='cryptographic',
                                     modelIdentities=['sha256:'+plan.definition()['modelId']],operations=['generate'],protocol=bridge.plan.protocol_id,
                                     inputRepresentation='opaque',outputRepresentation='opaque'),
@@ -256,8 +264,8 @@ def run(model_dir,cache_dir,prompt,progress=lambda event:None,cancelled=None,dep
                     evaluatorRoundTripMs=bridge.remote_seconds*1000,timingSemantics='round-trip-includes-client-replay/v1',sentBytes=bridge.sent,receivedBytes=bridge.received,
                     evaluationKeyBytes=bridge.key_bytes,clientPeakRss=resource.getrusage(resource.RUSAGE_SELF).ru_maxrss,
                     clientLifetimePeakRssBytes=resource.getrusage(resource.RUSAGE_SELF).ru_maxrss*(1 if platform.system()=='Darwin' else 1024),
-                    clientComputation='All nonlinear/attention/embedding/cache/quantization/decoding plus full encrypted replay; not all operations homomorphically evaluated',
-                    integrity='Full deterministic replay; no client compute saving or independently reviewed malicious security')
+                    clientComputation='All nonlinear/attention/embedding/cache/quantization/decoding plus '+('secret linear checks and sampled encrypted replay' if checked else 'full encrypted replay')+'; not all operations homomorphically evaluated',
+                    **({} if checked else dict(integrity='Full deterministic replay; no client compute saving or independently reviewed malicious security')))
     finally:
         try:
             if bridge is not None:bridge.close()

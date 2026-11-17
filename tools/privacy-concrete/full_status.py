@@ -2,7 +2,7 @@
 import math
 
 FAILURE_CODES=frozenset({'cancelled','deadline-exceeded','resource-exhausted','contract-rejected',
-                         'ciphertext-verification-failed','token-reference-mismatch','component-reference-mismatch','execution-failed'})
+                         'ciphertext-verification-failed','integrity-check-failed','token-reference-mismatch','component-reference-mismatch','execution-failed'})
 
 
 class ExecutionRejected(ValueError):

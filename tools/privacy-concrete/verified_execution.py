@@ -18,5 +18,9 @@ def complete_verified_route(bridge,steps,execute,validate):
     finally:
         # Closure must succeed before any comparison, including on remote SSH.
         bridge.close()
+    # A checked route records integrity failures client-locally and reports them
+    # only here, after the fixed transcript is complete and the transport closed.
+    require=getattr(bridge,'require_integrity',None)
+    if require is not None:require()
     for step,result in enumerate(results):validate(step,result)
     return results

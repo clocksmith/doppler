@@ -1,0 +1,25 @@
+{
+  "schema": "doppler.linear-check-policy/v1",
+  "id": "secret-linear-check-sampled-replay/v1",
+  "securityQualified": false,
+  "independentCryptographicReview": false,
+  "productionBackendAvailable": false,
+  "checkVectors": 16,
+  "weightBits": 16,
+  "falseRejectLog2": 40,
+  "replaySample": {
+    "numerator": 1,
+    "denominator": 16
+  },
+  "expectationCacheBytes": 1073741824,
+  "rejection": "deferred-until-route-close/v1",
+  "rejectedResponseSubstitute": "zero",
+  "noise": {
+    "glwe-quant12-message35-storage48/v1": {
+      "varianceBase": 80.0,
+      "variancePerOutput": 7.5,
+      "margin": 2.0,
+      "evidence": "evidence/integrity/honest-noise-ntt12.json"
+    }
+  }
+}

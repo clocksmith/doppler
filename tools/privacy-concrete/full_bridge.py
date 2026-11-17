@@ -166,6 +166,13 @@ class FullBridge:
             self._release_projection_inputs()
             raise
 
+    def decode(self,answer,tile,inputs,decrypt):
+        """Every response reaching this bridge's caller was byte-verified by replay."""
+        return decrypt(answer)
+
+    def require_integrity(self):
+        """Replay rejects immediately; there is no deferred integrity outcome."""
+
     def finish(self):
         self.check_active()
         self.admission.complete()
