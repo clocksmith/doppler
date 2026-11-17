@@ -22,12 +22,18 @@ QWEN_PROTOCOLS={
 }
 SSH_V2_PROTOCOL=json.loads(Path(__file__).with_name('ssh-v2-policy.json').read_text())['protocol']
 for protocols in QWEN_PROTOCOLS.values():protocols.add(SSH_V2_PROTOCOL)
+# Checked-integrity backends never publish under a replay protocol name, local or SSH.
+CHECKED_PROFILES={'qwen-all-linear-ntt12-check'}
+QWEN_PROTOCOLS['qwen-all-linear-ntt12-check']={json.loads(Path(__file__).with_name('full-ntt12-check-policy.json').read_text())['protocol'],
+    json.loads(Path(__file__).with_name('ssh-check-policy.json').read_text())['protocol']}
+CHECK_POLICY=json.loads(Path(__file__).with_name('linear-check-policy.json').read_text())
+CHECK_COUNTERS=('linearChecksPassed','sampledExactReplays','substitutedTiles','clientCheckMs','checkVectors')
 PROJECTION=re.compile(r'(?:model\.layers\.(?:[0-9]|1[0-9]|2[0-3])\.(?:self_attn\.[qkvo]_proj|mlp\.(?:gate|up|down)_proj)|lm_head)\Z')
 
 
 def collect(report_path,progress_path,revision,fixture_id=PUBLIC_FIXTURE):
     if not isinstance(fixture_id,str) or fixture_id not in PUBLIC_FIXTURES:raise ValueError('Installed public Qwen fixture identity required')
-    progress=[];failure=None
+    progress=[];failure=None;events=set()
     if Path(progress_path).is_file():
         for line in Path(progress_path).read_text(errors='replace').splitlines():
             try:value=json.loads(line)
@@ -35,11 +41,13 @@ def collect(report_path,progress_path,revision,fixture_id=PUBLIC_FIXTURE):
             if not isinstance(value,dict):continue
             if value.get('event')=='run-failed' and isinstance(value.get('failureCode'),str) and value['failureCode'] in FAILURE_CODES:
                 failure=value['failureCode']
-            if value.get('event')=='verified-tile' and type(value.get('sequence')) is int and PROJECTION.fullmatch(str(value.get('projection',''))):
-                progress.append(dict(sequence=value['sequence'],projection=value['projection']))
+            if value.get('event') in ('verified-tile','received-tile') and type(value.get('sequence')) is int and PROJECTION.fullmatch(str(value.get('projection',''))):
+                progress.append(dict(sequence=value['sequence'],projection=value['projection']));events.add(value['event'])
+    # A checked route reports tiles as received: most were not byte-verified.
     result=dict(schema='doppler.public-full-qwen-ci-evidence/v1',revision=revision,fixtureId=fixture_id,
-                completed=False,productionBackendAvailable=False,securityQualified=False,
-                verifiedTilesObserved=len(progress),lastVerifiedTile=progress[-1] if progress else None)
+                completed=False,productionBackendAvailable=False,securityQualified=False)
+    if events=={'received-tile'}:result.update(receivedTilesObserved=len(progress),lastReceivedTile=progress[-1])
+    else:result.update(verifiedTilesObserved=len(progress),lastVerifiedTile=progress[-1] if progress else None)
     if failure is not None:result['failureCode']=failure
     if Path(report_path).is_file():
         try:report=json.loads(Path(report_path).read_text())
@@ -49,6 +57,12 @@ def collect(report_path,progress_path,revision,fixture_id=PUBLIC_FIXTURE):
         if boundary is not None and boundary!=VALIDATION_BOUNDARY:return result
         backend=report.get('backendProfile')
         if backend is not None and (not isinstance(backend,str) or backend not in QWEN_PROTOCOLS or not isinstance(report.get('protocol'),str) or report['protocol'] not in QWEN_PROTOCOLS[backend]):return result
+        checked=backend in CHECKED_PROFILES
+        # Progress kind, integrity mechanism and backend must agree before anything is published.
+        if events and (events=={'received-tile'})!=checked:return result
+        if checked and (report.get('integrity')!=CHECK_POLICY['id'] or report.get('substitutedTiles')!=0 or report.get('securityQualified') is not False
+                or not isinstance(report.get('integrityPolicyId'),str) or not re.fullmatch(r'[0-9a-f]{64}',report['integrityPolicyId'])
+                or report.get('linearChecksPassed')!=1548 or type(report.get('sampledExactReplays')) is not int or not 0<report['sampledExactReplays']<=1548):return result
         output=report.get('clientLocalOutputText');tokens=report.get('clientLocalOutputTokens')
         if (failure is None and report.get('schema')=='doppler.full-qwen-hybrid-execution/v1'
                 and all(isinstance(report.get(key),str) and re.fullmatch(r'[0-9a-f]{64}',report[key]) for key in ['planId','modelId'])
@@ -71,8 +85,10 @@ def collect(report_path,progress_path,revision,fixture_id=PUBLIC_FIXTURE):
                     safe[key]=value
                 elif key=='validationBoundary' and value==VALIDATION_BOUNDARY:
                     safe[key]=value
-                elif key=='timingSemantics' and value=='round-trip-includes-client-replay/v1':
+                elif key=='timingSemantics' and value==('round-trip-excludes-sampled-replay/v1' if checked else 'round-trip-includes-client-replay/v1'):
                     safe[key]=value
+                elif key in ('timingSemantics','integrity','clientComputation'):
+                    continue
                 elif key=='transport' and value in ['local-process','ssh-ed25519-pinned']:
                     safe[key]=value
                 elif key in numeric_arrays and isinstance(value,list) and len(value)<=4 and all(isinstance(item,(int,float)) and math.isfinite(item) for item in value):
@@ -81,14 +97,21 @@ def collect(report_path,progress_path,revision,fixture_id=PUBLIC_FIXTURE):
                     safe[key]=value
                 elif key=='matchesFullQuantizedGreedyReference' and value is True:
                     safe[key]=True
-            safe['clientComputation']='Client nonlinearities, embeddings, caches, quantization, decoding and full encrypted replay'
-            safe['integrity']='Full deterministic replay; no qualified malicious-security claim'
+            if checked:
+                safe['clientComputation']='Client nonlinearities, embeddings, caches, quantization, decoding, secret linear checks and sampled encrypted replay'
+                safe['integrity']=CHECK_POLICY['id'];safe['integrityPolicyId']=report['integrityPolicyId']
+                safe['integrityClaim']='Bounded-deviation checks with sampled exact replay; weaker than full replay; no qualified malicious-security claim'
+                for counter in CHECK_COUNTERS:
+                    if type(report.get(counter)) in (int,float) and math.isfinite(report[counter]):safe[counter]=report[counter]
+            else:
+                safe['clientComputation']='Client nonlinearities, embeddings, caches, quantization, decoding and full encrypted replay'
+                safe['integrity']='Full deterministic replay; no qualified malicious-security claim'
             versions=report.get('implementationVersions',{})
             if not isinstance(versions,dict):versions={}
             dependencies=['concrete-ml','concrete-ml-extensions','concrete-python','torch','transformers','numpy']
             safe['implementationVersions']={key:versions[key] for key in dependencies if isinstance(versions.get(key),str) and re.fullmatch(r'[0-9][0-9A-Za-z.+_-]{0,63}',versions[key])}
             native_ids={key:versions[key] for key in ['native-source-id','native-binary-sha256'] if isinstance(versions.get(key),str) and re.fullmatch(r'[0-9a-f]{64}',versions[key])}
-            if backend in ['qwen-all-linear-ntt','qwen-all-linear-ntt-48','qwen-all-linear-ntt12']:
+            if backend in ['qwen-all-linear-ntt','qwen-all-linear-ntt-48','qwen-all-linear-ntt12','qwen-all-linear-ntt12-check']:
                 if len(native_ids)!=2:return result
                 safe['nativeImplementation']=native_ids
             result.update(completed=True,report=safe,
