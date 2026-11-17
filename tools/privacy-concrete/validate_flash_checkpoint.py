@@ -35,12 +35,18 @@ def publish(path,value):
 
 class Turn:
     """Cooperative host lock, held only while this process does heavy CPU or disk work."""
-    def __init__(self,path):
+    def __init__(self,path,pause=None):
         self.handle=open(path,'a') if path else None;self.depth=0;self.waited=0.0
+        self.pause=Path(pause) if pause else None
 
     def acquire(self):
-        if self.handle is not None and self.depth==0:
-            began=time.perf_counter();fcntl.flock(self.handle,fcntl.LOCK_EX);self.waited+=time.perf_counter()-began
+        if self.depth==0:
+            began=time.perf_counter()
+            # Another job on this host can create the pause file to make this
+            # process stop before its next unit, then take the lock without a race.
+            while self.pause is not None and self.pause.exists():time.sleep(5)
+            if self.handle is not None:fcntl.flock(self.handle,fcntl.LOCK_EX)
+            self.waited+=time.perf_counter()-began
         self.depth+=1
 
     def release(self):
@@ -119,7 +125,7 @@ def run(args):
     from local_token_rows import LocalTokenRows
     from protocol import digest
     work=Path(args.work);work.mkdir(parents=True,exist_ok=True);report_path=work/'report.json'
-    torch.set_num_threads(args.threads);turn=Turn(args.lock);started=time.perf_counter()
+    torch.set_num_threads(args.threads);turn=Turn(args.lock,args.pause_file);started=time.perf_counter()
     report=dict(schema=SCHEMA,repository=TEXT['repository'],revision=TEXT['revision'],sourceId=digest(canonical(TEXT)),completed=False,
                 encryptedExecution=False,productionBackendAvailable=False,securityQualified=False,cpuThreads=args.threads,steps=args.steps)
     report['metadata']=metadata(args.source);publish(report_path,report);log('metadata-verified',**report['metadata'])
@@ -194,7 +200,7 @@ if __name__=='__main__':
     parser.add_argument('--source',required=True);parser.add_argument('--reference');parser.add_argument('--work')
     parser.add_argument('--mode',choices=['metadata','floating','quantized'],default='metadata')
     parser.add_argument('--steps',type=int,default=4);parser.add_argument('--context-limit',type=int,default=64)
-    parser.add_argument('--threads',type=int,default=8);parser.add_argument('--lock')
+    parser.add_argument('--threads',type=int,default=8);parser.add_argument('--lock');parser.add_argument('--pause-file')
     args=parser.parse_args()
     if args.mode=='metadata':print(json.dumps(dict(schema=SCHEMA,metadataOnly=True,**metadata(args.source))))
     else:
