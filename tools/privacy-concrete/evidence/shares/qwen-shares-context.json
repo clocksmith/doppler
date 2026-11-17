@@ -1,6 +1,6 @@
 {
  "schema": "doppler.operator-observed-shares-qwen-context/v1",
- "experimentRevision": "c0cbdf666c38aaaaa3234b81d7279b50114b8b8c",
+ "experimentRevision": "0595f8415",
  "evidence": [
   {
    "file": "qwen-shares-local.json",
@@ -73,6 +73,6 @@
   "All three machines had one operator, so the assumption that the two providers do not collude was not exercised.",
   "Three independent automated reviews examined earlier versions; the fixes for the third have not been independently reviewed. No cryptographer has reviewed any version."
  ],
- "revisionNote": "Both runs used source files byte-identical to this revision, deployed after the commit.",
+ "revisionNote": "Both runs used source files byte-identical to this revision (deployed from the same tree before it was rebased onto main).",
  "supersededReceipts": "Earlier receipts are in repository history: modulo 2^64 at commit 9975f02c5 (137.3 s on one host) and the first prime-field version at 8b73b5991 (42.1 s on one host, 63.1 s with one provider on a second machine). Tokens and zero difference were the same in all of them."
 }
