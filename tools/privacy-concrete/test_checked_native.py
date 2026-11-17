@@ -9,13 +9,14 @@ import os
 from pathlib import Path
 from types import SimpleNamespace
 import unittest
-import numpy as np
+try:import numpy as np
+except ImportError:np=None # Only the opt-in native environment has NumPy.
 
 NATIVE=os.environ.get('DOPPLER_CONCRETE_NATIVE')=='1'
 PROFILE='glwe-quant12-message35-storage48/v1'
 
 
-@unittest.skipUnless(NATIVE,'opt-in native NTT ciphertext test')
+@unittest.skipUnless(NATIVE and np is not None,'opt-in native NTT ciphertext test')
 class CheckedNativeTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls):

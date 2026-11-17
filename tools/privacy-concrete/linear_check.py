@@ -12,7 +12,8 @@ import hmac
 import json
 import math
 from pathlib import Path
-import numpy as np
+try:import numpy as np
+except ImportError:np=None # Policy identity and tolerances stay importable without NumPy; CheckKey requires it.
 
 POLICY=json.loads(Path(__file__).with_name('linear-check-policy.json').read_text())
 POLICY_ID=hashlib.sha256(json.dumps(POLICY,sort_keys=True,separators=(',',':')).encode()).hexdigest()
@@ -76,6 +77,7 @@ def detection_threshold(outputs,noise,policy=POLICY,log2_bound=40):
 class CheckKey:
     """Attempt-local secret. Never serialized into a frame, plan, report or cache name."""
     def __init__(self,seed,parameter_profile,computation_bits,quantization_bits,policy=POLICY):
+        if np is None:raise ValueError('NumPy is required for linear-check arithmetic')
         if not isinstance(seed,bytes) or len(seed)!=32:raise ValueError('Fresh 256-bit attempt-local check secret required')
         self._seed=seed;self.policy=validate_policy(policy);self.noise=noise_model(parameter_profile,policy)
         self.count=policy['checkVectors'];self.weight=2**(policy['weightBits']-1)
