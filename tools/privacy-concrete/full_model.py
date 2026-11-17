@@ -100,9 +100,10 @@ class FullLinear(nn.Module):
             # Two-server shares: the client reads no coefficient here, only its own quantized activation.
             route=getattr(self,'shares',None)
             if route is None:raise ValueError('No bound share route')
-            integer_input = np.ascontiguousarray(q_input.long().numpy(),dtype=np.uint64)
-            if integer_input.ndim != 2 or not np.all(integer_input<2**self.encoding['quantizationBits']):
-                raise ValueError('Only one private request per share route is admitted')
+            signed_input = q_input.long().numpy()
+            if signed_input.ndim != 2 or (signed_input<0).any() or (signed_input>=2**self.encoding['quantizationBits']).any():
+                raise ValueError('Quantized activation is outside the declared unsigned range for the share route')
+            integer_input = np.ascontiguousarray(signed_input,dtype=np.uint64)
             raw = torch.from_numpy(route.linear(self.name,integer_input,self.definition['outputWidth'],self.encoding['quantizationBits']))
         else:
           with self.coefficient_matrix() as weights:

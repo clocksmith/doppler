@@ -12,6 +12,7 @@ import hashlib
 import json
 import os
 from pathlib import Path
+import signal
 import struct
 import subprocess
 import threading
@@ -34,7 +35,8 @@ def validate_policy(policy):
             or policy.get('rejection')!='deferred-until-route-close/v1'
             or type(policy.get('maximumRows')) is not int or not 1<=policy['maximumRows']<=4096
             or type(policy.get('maximumChunkElements')) is not int or policy['maximumChunkElements']<=0
-            or type(policy.get('operationTimeoutSeconds')) is not int or not 1<=policy['operationTimeoutSeconds']<=3600):
+            or type(policy.get('operationTimeoutSeconds')) is not int or not 1<=policy['operationTimeoutSeconds']<=3600
+            or type(policy.get('attemptTimeoutSeconds')) is not int or not 1<=policy['attemptTimeoutSeconds']<=86400):
         raise ValueError('Unsupported two-server shares policy')
     return policy
 
@@ -73,12 +75,14 @@ def _shift(values,bits):
 
 
 def add(left,right):
+    """Sum of two residues below the prime."""
     return _reduce(left+right)
 
 
 def subtract(left,right):
+    """Difference of two residues; the subtrahend is reduced first so an unreduced value cannot underflow."""
     import numpy as np
-    return _reduce(left+(np.uint64(PRIME)-right))
+    return _reduce(left+(np.uint64(PRIME)-_reduce(right)))
 
 
 def multiply(left,right):
@@ -91,22 +95,33 @@ def multiply(left,right):
 
 
 def _field(data,shape):
-    """Bytes to field elements. The top residue folds onto zero, a bias of 2**-61."""
+    """Bytes to candidate field elements: 61 bits each. The one value equal to the prime is not a residue."""
     import numpy as np
-    values=np.frombuffer(data,dtype='<u8').reshape(shape)&np.uint64(PRIME)
-    return np.where(values==np.uint64(PRIME),np.uint64(0),values)
+    return np.frombuffer(data,dtype='<u8').reshape(shape)&np.uint64(PRIME)
 
 
 def _random(shape,rng,nonzero=False):
+    """Exactly uniform field elements: a draw equal to the prime (or zero, when excluded) is drawn again."""
     import numpy as np
-    values=_field(rng(8*int(np.prod(shape))),shape)
-    return np.where(values==0,np.uint64(1),values) if nonzero else values
+    values=_field(rng(8*int(np.prod(shape))),shape).copy()
+    while True:
+        bad=(values==np.uint64(PRIME))|((values==0) if nonzero else False)
+        count=int(bad.sum())
+        if not count:return values
+        values[bad]=_field(rng(8*count),(count,))
 
 
 def probe(seed,name,width):
     """The requester's secret probe row for a projection. Providers never see it or anything that reveals it."""
-    if not isinstance(seed,bytes) or len(seed)<32:raise ValueError('Secret probe seed of at least 32 bytes required')
-    return _field(hashlib.shake_256(b'doppler-shares-probe/v2\0'+seed+b'\0'+name.encode()).digest(8*width),(width,))
+    import numpy as np
+    if not isinstance(seed,bytes) or len(seed)!=32 or type(width) is not int or not 0<width<1<<21:
+        raise ValueError('A 32-byte secret probe seed and an explicit width are required')
+    encoded=name.encode()
+    stream=hashlib.shake_256(b'doppler-shares-probe/v3\0'+seed+width.to_bytes(4,'little')+len(encoded).to_bytes(4,'little')+encoded).digest(8*(width+16))
+    values=_field(stream,(width+16,))
+    values=values[values!=np.uint64(PRIME)][:width]
+    if values.shape[0]!=width:raise ValueError('Probe derivation failed')
+    return values.copy()
 
 
 def field_product(rows,weights,chunk_elements=POLICY['maximumChunkElements']):
@@ -185,12 +200,17 @@ def combine(answer_a,answer_b,secrets,anchor,bound):
 class ProcessEvaluator:
     """One evaluator reached through a child process's pipes; the command may be local or an SSH invocation."""
     def __init__(self,command,label,timeout=POLICY['operationTimeoutSeconds']):
-        self.label,self.sequence,self.sent,self.received,self.timeout=label,0,0,0,timeout
-        self.process=subprocess.Popen(command,stdin=subprocess.PIPE,stdout=subprocess.PIPE,stderr=subprocess.DEVNULL)
+        self.label,self.sequence,self.sent,self.received,self.timeout,self.failed=label,0,0,0,timeout,False
+        # Its own process group, so a deadline also ends any helper that inherited the pipes.
+        self.process=subprocess.Popen(command,stdin=subprocess.PIPE,stdout=subprocess.PIPE,stderr=subprocess.DEVNULL,start_new_session=True)
 
-    def _deadline(self):
+    def _kill(self):
+        try:os.killpg(self.process.pid,signal.SIGKILL)
+        except (ProcessLookupError,PermissionError):pass
+
+    def _deadline(self,seconds=None):
         # A provider that stops reading or answering is cut off; the blocked call then ends as a closed stream.
-        timer=threading.Timer(self.timeout,self.process.kill);timer.daemon=True;timer.start()
+        timer=threading.Timer(self.timeout if seconds is None else seconds,self._kill);timer.daemon=True;timer.start()
         return timer
 
     def send(self,name,rows):
@@ -201,6 +221,8 @@ class ProcessEvaluator:
         try:
             self.process.stdin.write(REQUEST_HEAD.pack(REQUEST,self.sequence,len(encoded),rows.shape[0],rows.shape[1])+encoded)
             self.process.stdin.write(payload);self.process.stdin.flush()
+        except BaseException:
+            self.failed=True;raise
         finally:
             timer.cancel()
         self.sent+=REQUEST_HEAD.size+len(encoded)+len(payload)
@@ -219,29 +241,44 @@ class ProcessEvaluator:
             if magic!=RESPONSE or sequence!=self.sequence or status!=0 or got_rows!=rows or got_width!=width:
                 raise ConnectionError('Evaluator answered out of contract')
             return np.frombuffer(self._read(8*rows*width),dtype='<u8').reshape(rows,width)
+        except BaseException:
+            self.failed=True;raise
         finally:
             timer.cancel()
 
     def close(self):
+        # After any failed exchange the provider is not asked to stop: it is ended. A polite close is itself bounded.
+        if self.failed:self._kill()
+        timer=self._deadline(5)
         try:
             if self.process.poll() is None:
                 self.process.stdin.write(CLOSE);self.process.stdin.flush();self.process.stdin.close()
                 self.process.wait(timeout=5)
         except (OSError,ValueError,subprocess.TimeoutExpired):
-            self.process.kill();self.process.wait()
+            self._kill()
         finally:
+            timer.cancel()
+            self._kill()
+            try:self.process.wait(timeout=5)
+            except subprocess.TimeoutExpired:pass
             for stream in (self.process.stdin,self.process.stdout):
                 try:stream.close()
                 except OSError:pass
 
 
 class ShareRoute:
-    """Client side of one attempt. Holds no weight matrix: its secret probe seed, one anchor row per projection and its own randomness."""
-    def __init__(self,evaluators,probe_seed,anchors,*,policy=POLICY,cancelled=None,rng=os.urandom,observe=lambda kind,value:None):
+    """Client side of one attempt, under the installed policy.
+
+    Holds no weight matrix: its secret probe seed, one anchor row per projection and its own randomness. A failed
+    check is recorded and answered with zeros; the caller must call require_integrity() after close() and release
+    nothing if it raises. `geometry`, when given, fixes each projection's input and output width.
+    """
+    def __init__(self,evaluators,probe_seed,anchors,*,geometry=None,cancelled=None,rng=os.urandom,observe=lambda kind,value:None):
         if len(evaluators)!=2:raise ValueError('Exactly two evaluators required')
-        self.policy=validate_policy(policy)
+        self.policy=POLICY
         self.a,self.b=evaluators
-        self.probe_seed,self.anchors,self.cancelled,self.rng,self.observe=probe_seed,anchors,cancelled,rng,observe
+        self.probe_seed,self.anchors,self.geometry,self.cancelled,self.rng,self.observe=probe_seed,anchors,geometry,cancelled,rng,observe
+        self.began=None
         self.calls=self.rows=0
         self.failure=None
         self.closed=False
@@ -250,6 +287,8 @@ class ShareRoute:
     def check_active(self):
         if self.closed:raise ExecutionRejected('contract-rejected')
         if self.cancelled is not None and self.cancelled.is_set():raise ExecutionRejected('cancelled')
+        if self.began is not None and time.monotonic()-self.began>self.policy['attemptTimeoutSeconds']:
+            self.closed=True;raise ExecutionRejected('integrity-check-failed' if self.failure is not None else 'deadline-exceeded')
 
     def linear(self,name,inputs,output_width,quantization_bits):
         """Exact inputs @ W for the named projection, or zeros after a recorded failure."""
@@ -257,8 +296,10 @@ class ShareRoute:
         self.check_active()
         if (inputs.dtype!=np.uint64 or inputs.ndim!=2 or not 1<=inputs.shape[0]<=self.policy['maximumRows']
                 or name not in self.anchors or self.anchors[name].shape!=(output_width,)
+                or (self.geometry is not None and self.geometry.get(name)!=(inputs.shape[1],output_width))
                 or bool((inputs>=np.uint64(1<<quantization_bits)).any())):
             raise ValueError('Projection is outside the admitted share route')
+        if self.began is None:self.began=time.monotonic()
         rounds=self.policy['checkRounds']
         bound=product_bound(inputs.shape[1],quantization_bits)
         began=time.perf_counter()

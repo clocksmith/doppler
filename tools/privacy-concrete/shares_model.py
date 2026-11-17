@@ -60,7 +60,8 @@ def run(model_dir,cache_dir,prompt,commands=None,progress=lambda event:None,canc
     original_count=len(tokens)
     local=[sys.executable,str(Path(__file__).with_name('shares_evaluator.py')),'--cache-dir',str(cache_dir)]
     commands=commands or [local,local]
-    route=ShareRoute(tuple(ProcessEvaluator(command,label) for command,label in zip(commands,'ab')),probe_seed,anchors,cancelled=cancelled,
+    geometry={projection.name:(projection.definition['inputWidth'],projection.definition['outputWidth']) for projection in projections}
+    route=ShareRoute(tuple(ProcessEvaluator(command,label) for command,label in zip(commands,'ab')),probe_seed,anchors,geometry=geometry,cancelled=cancelled,
                      observe=lambda kind,value:None)
     try:
         for projection in projections:projection.shares=route

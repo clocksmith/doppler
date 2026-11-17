@@ -6,5 +6,6 @@
   "rejection": "deferred-until-route-close/v1",
   "maximumRows": 64,
   "maximumChunkElements": 8388608,
-  "operationTimeoutSeconds": 900
+  "operationTimeoutSeconds": 900,
+  "attemptTimeoutSeconds": 3600
 }

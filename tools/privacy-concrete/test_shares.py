@@ -141,7 +141,7 @@ class SharesTest(unittest.TestCase):
         def assumes_multiplier_three(answer,view):
             answer[:rows,2]=shares.add(answer[:rows,2],np.uint64(5));answer[rows:2*rows,2]=shares.add(answer[rows:2*rows,2],np.uint64(15));return answer
         def other_matrix(answer,view):
-            return shares.add(answer,view[:,:1]*np.uint64(0)+np.uint64(1))
+            return shares.add(answer,view[:,:1])
         def out_of_field(answer,view):
             answer[0,0]=np.uint64(P);return answer
         for alter in (doubled,assumes_multiplier_three,other_matrix,out_of_field):
@@ -178,7 +178,6 @@ class SharesTest(unittest.TestCase):
         even=self.inputs&~np.uint64(1);odd=self.inputs|np.uint64(1)
         for inputs in (self.inputs,even,odd,np.zeros_like(self.inputs)):
             for alter in (zeros,lazy_checks,lazy_real):
-                if alter is lazy_real and not inputs.any():continue
                 self.assertTrue(self.rejected(inputs=inputs,alter_a=alter,alter_b=alter),alter.__name__)
             for wrong in (dense,single,kernel):
                 self.assertTrue(self.rejected(inputs=inputs,weights_a=wrong,weights_b=wrong))
@@ -200,7 +199,16 @@ class SharesTest(unittest.TestCase):
         stale={'p':shares.build_anchor(bytes(32),'p',self.weights['p'])}
         self.assertFalse(np.array_equal(stale['p'],self.anchors['p']))
         self.assertTrue(self.rejected(anchors=stale))
-        with self.assertRaises(ValueError):shares.probe(b'short','p',48)
+        for seed in (b'short',bytes(33)):
+            with self.assertRaises(ValueError):shares.probe(seed,'p',48)
+        # The width and the name are bound separately, so neither a prefix nor a shifted boundary collides.
+        self.assertFalse(np.array_equal(shares.probe(SEED,'p',8),shares.probe(SEED,'p',16)[:8]))
+        self.assertFalse(np.array_equal(shares.probe(SEED,'ab',16),shares.probe(SEED,'a',16)))
+        self.assertTrue(bool((shares.probe(SEED,'p',4096)<np.uint64(P)).all()))
+        feeds=[np.array([P,0,5,P],dtype='<u8').tobytes(),np.array([7,9,11],dtype='<u8').tobytes()]
+        drawn=shares._random((4,),lambda count:feeds.pop(0),nonzero=True)
+        self.assertEqual(drawn.tolist(),[7,9,5,11])
+        self.assertEqual(int(shares.subtract(np.uint64(0),np.uint64(P+1))),P-1)
 
     def test_a_caught_evaluator_that_then_leaves_is_still_reported_as_caught(self):
         class Leaves(Local):
@@ -224,6 +232,12 @@ class SharesTest(unittest.TestCase):
         with self.assertRaises(ValueError):route.linear('p',np.full((1,48),4096,dtype=np.uint64),20,12)
         with self.assertRaises(ValueError):route.linear('p',np.zeros((shares.POLICY['maximumRows']+1,48),dtype=np.uint64),20,12)
         with self.assertRaises(ValueError):shares.product_bound(1<<21,12)
+        bound,_,_=self.route(geometry={'p':(48,20)});bound.linear('p',self.inputs,20,12)
+        wrong_width,_,_=self.route(geometry={'p':(64,20)})
+        with self.assertRaises(ValueError):wrong_width.linear('p',self.inputs,20,12)
+        late,_,_=self.route();late.linear('p',self.inputs,20,12);late.began-=shares.POLICY['attemptTimeoutSeconds']+1
+        with self.assertRaises(ExecutionRejected) as caught:late.linear('p',self.inputs,20,12)
+        self.assertEqual(caught.exception.code,'deadline-exceeded')
         with self.assertRaises(ValueError):shares.field_product(self.inputs,self.weights['p'].astype(np.int64))
         self.assertEqual(shares.detection_log2(2),120)
         for change in (dict(checkRounds=0),dict(fieldBits=64),dict(rejection='immediate'),dict(operationTimeoutSeconds=0)):
@@ -279,6 +293,36 @@ class SharesTest(unittest.TestCase):
                 finally:
                     route.close()
             self.provider_directory(inner)
+
+    def test_a_caught_provider_process_that_then_exits_is_still_reported_as_caught(self):
+        here=str(Path(shares.__file__).parent)
+        # Answers the first request with zeros of the right shape, then exits.
+        script=('import sys\nsys.path.insert(0,%r)\nimport shares\nr=sys.stdin.buffer;w=sys.stdout.buffer\n'
+                'h=r.read(shares.REQUEST_HEAD.size);_,seq,n,rows,width=shares.REQUEST_HEAD.unpack(h);r.read(n);r.read(8*rows*width)\n'
+                'w.write(shares.RESPONSE_HEAD.pack(shares.RESPONSE,seq,0,rows,20)+bytes(8*rows*20));w.flush()\n')%here
+        route=self.process_route([sys.executable,'-c',script])
+        try:
+            self.assertFalse(route.linear('p',self.inputs,20,12).any())
+            self.assertTrue(route.integrity_failed())
+            with self.assertRaises(ExecutionRejected) as caught:route.linear('p',self.inputs,20,12)
+            self.assertEqual(caught.exception.code,'integrity-check-failed')
+        finally:
+            route.close()
+
+    def test_closing_and_deadlines_are_bounded_even_when_a_helper_keeps_the_pipes(self):
+        wide=np.zeros((64,4096),dtype=np.uint64);anchors={'w':np.zeros(4,dtype=np.uint64)}
+        # Reads most of the request so the pipe stays full, closes its output and sleeps.
+        fills_then_sleeps=[sys.executable,'-c','import os,sys,time\nsys.stdin.buffer.read(6000000)\nos.close(1)\nwhile True:time.sleep(60)']
+        # Leaves a helper process holding the pipes after it exits itself.
+        leaves_helper=[sys.executable,'-c','import subprocess,sys\nsubprocess.Popen([sys.executable,"-c","import time\\nwhile True:time.sleep(60)"])\nsys.exit(0)']
+        for command in (fills_then_sleeps,leaves_helper):
+            route=self.process_route(command,anchors=anchors,timeout=1)
+            began=time.monotonic()
+            try:
+                with self.assertRaises(ExecutionRejected):route.linear('w',wide,4,12)
+            finally:
+                route.close()
+            self.assertLess(time.monotonic()-began,9,command[2][:40])
 
     def test_a_provider_that_stops_reading_or_never_answers_is_cut_off_at_the_deadline(self):
         wide=np.zeros((64,4096),dtype=np.uint64);anchors={'w':np.zeros(4,dtype=np.uint64)}

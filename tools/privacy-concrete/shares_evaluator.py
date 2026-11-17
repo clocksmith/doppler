@@ -39,9 +39,12 @@ def serve(directory,source,sink):
         try:magic=read(4)
         except EOFError:return
         if magic==CLOSE:return
+        if magic!=REQUEST:
+            sink.write(RESPONSE_HEAD.pack(RESPONSE,0,1,0,0));sink.flush();return
         _,sequence,name_bytes,rows,width=REQUEST_HEAD.unpack(magic+read(REQUEST_HEAD.size-4))
-        name=read(name_bytes).decode()
-        if (magic!=REQUEST or name not in projections or width!=projections[name]['inputWidth']
+        try:name=read(name_bytes).decode() if name_bytes<=1024 else None
+        except UnicodeDecodeError:name=None
+        if (name not in projections or width!=projections[name]['inputWidth']
                 or not 1<=rows<=(1+2*POLICY['checkRounds'])*POLICY['maximumRows']):
             sink.write(RESPONSE_HEAD.pack(RESPONSE,sequence,1,0,0));sink.flush();return
         shares=np.frombuffer(read(8*rows*width),dtype='<u8').reshape(rows,width)
