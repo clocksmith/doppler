@@ -136,7 +136,8 @@ export declare class BufferPool {
    * Read a byte range from GPU buffer.
    * offset must be 4-byte aligned.
    */
-  readBufferSlice(buffer: GPUBuffer, offset: number, size: number): Promise<ArrayBuffer>;
+  readBufferSlice(buffer: GPUBuffer, offset: number, size: number,
+    recorder?: Pick<import('../gpu/command-recorder.js').CommandRecorder, 'device' | 'getEncoder' | 'submitPartial'> | null): Promise<ArrayBuffer>;
 
   /**
    * Clear all pooled buffers
@@ -214,5 +215,7 @@ export declare class PersistentBufferSet extends Set<GPUBuffer> {}
 export declare const getBufferRequestedSize: (buffer: GPUBuffer) => number;
 export declare const uploadData: (buffer: GPUBuffer, data: ArrayBuffer | ArrayBufferView, offset?: number) => void;
 export declare const readBuffer: (buffer: GPUBuffer, size?: number) => Promise<ArrayBuffer>;
-export declare const readBufferSlice: (buffer: GPUBuffer, offset: number, size: number) => Promise<ArrayBuffer>;
+/** An owning recorder appends the copy before its partial submission; mapping still waits for completion. */
+export declare const readBufferSlice: (buffer: GPUBuffer, offset: number, size: number,
+  recorder?: Pick<import('../gpu/command-recorder.js').CommandRecorder, 'device' | 'getEncoder' | 'submitPartial'> | null) => Promise<ArrayBuffer>;
 export declare const forceBufferPoolReclaim: (targetRatio?: number | null) => void;

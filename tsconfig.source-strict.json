@@ -16,6 +16,7 @@
   },
   "include": [],
   "files": [
+    "src/memory/buffer-pool/readback.js",
     "src/inference/pipelines/text/expert-loading-stats.js",
     "src/inference/pipelines/text/partitions/partition-wire.js",
     "src/config/hardware-partition-plan.js",

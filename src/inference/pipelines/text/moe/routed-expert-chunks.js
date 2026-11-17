@@ -41,10 +41,10 @@ export async function executeRoutedExpertChunks(options, loader, policy, signal,
     const count = Math.min(chunkTokens, numTokens - start);
     const profile = getRuntimeConfig().shared.debug.profiler.enabled;
     const started = profile ? performance.now() : 0;
-    // Submit routing and all earlier bank consumers before CPU selections or
-    // cache reuse. The outer owner keeps temporaries until its final submission.
-    recorder?.submitPartial();
-    const data = await readBufferSlice(indicesBuffer, start * topK * 4, count * topK * 4);
+    // Append the selection copy to routing's encoder and submit that prefix once.
+    // Mapping still settles all earlier bank consumers before cache reuse. The
+    // outer owner keeps temporaries until its final submission.
+    const data = await readBufferSlice(indicesBuffer, start * topK * 4, count * topK * 4, recorder);
     if (profile) loader.recordRoutedReadback?.(options.phase, performance.now() - started, count * topK * 4);
     signal?.throwIfAborted();
     return [...new Set(new Uint32Array(data))];

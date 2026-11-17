@@ -1,7 +1,8 @@
+import { readPooledBufferSlice } from './buffer-pool/readback.js';
 import { log, trace, isTraceEnabled } from '../debug/index.js';
 import { getRuntimeConfig } from '../config/runtime.js';
 import { getBufferDevice, isDeviceLost, observeDeviceLoss, registerBufferDevice } from './device-residency.js';
-import { allowReadback, trackAllocation } from '../debug/perf-guards.js';
+import { trackAllocation } from '../debug/perf-guards.js';
 
 // Pools take devices as arguments. Only the ambient convenience API needs the
 // current device; gpu/device.js installs that resolver when loaded (before it
@@ -33,15 +34,6 @@ const RESOLVED_GPU_BUFFER_USAGE = (
     QUERY_RESOLVE: 0x0200,
   };
 
-const RESOLVED_GPU_MAP_MODE = (
-  typeof GPUMapMode === 'object'
-  && GPUMapMode
-)
-  ? GPUMapMode
-  : {
-    READ: 1 << 0,
-    WRITE: 1 << 1,
-  };
 
 export const BufferUsage =  ({
   STORAGE: RESOLVED_GPU_BUFFER_USAGE.STORAGE
@@ -589,66 +581,13 @@ export class BufferPool {
     return this.readBufferSlice(buffer, 0, size);
   }
 
-  async readBufferSlice(buffer, offset = 0, size = buffer.size - offset) {
-    if (!allowReadback('BufferPool.readBuffer')) {
-      return new ArrayBuffer(0);
-    }
-
-    const device = this.#getBoundDevice();
-    if (!device) {
-      throw new Error('Device not initialized');
-    }
-
-    if (!Number.isInteger(offset) || offset < 0) {
-      throw new Error(`Invalid read offset: ${offset}`);
-    }
-    if (!Number.isInteger(size) || size < 0) {
-      throw new Error(`Invalid read size: ${size}`);
-    }
-    if (offset > buffer.size) {
-      throw new Error(`Read offset ${offset} exceeds buffer size ${buffer.size}`);
-    }
-    if (offset + size > buffer.size) {
-      throw new Error(
-        `Read range [${offset}, ${offset + size}) exceeds buffer size ${buffer.size}`
-      );
-    }
-    if (offset % 4 !== 0) {
-      throw new Error(`Read offset must be 4-byte aligned, got ${offset}`);
-    }
-    if (size === 0) {
-      return new ArrayBuffer(0);
-    }
-
-    const alignedSize = Math.ceil(size / 4) * 4;
-    const staging = this.createStagingBuffer(alignedSize);
-    let mapped = false;
-
-    try {
-      const encoder = device.createCommandEncoder({ label: 'readback_encoder' });
-      encoder.copyBufferToBuffer(buffer, offset, staging, 0, alignedSize);
-      device.queue.submit([encoder.finish()]);
-
-      // Map and read
-      await staging.mapAsync(RESOLVED_GPU_MAP_MODE.READ);
-      mapped = true;
-      return staging.getMappedRange(0, alignedSize).slice(0, size);
-    } catch (error) {
-      if (this.#activeBuffers.has(staging)) {
-        this.#releaseTrackedBuffer(staging, false);
-      }
-      throw error;
-    } finally {
-      if (mapped && this.#activeBuffers.has(staging)) {
-        try {
-          staging.unmap();
-        } catch (error) {
-          this.#releaseTrackedBuffer(staging, false);
-          throw error;
-        }
-        this.#releaseTrackedBuffer(staging, true);
-      }
-    }
+  async readBufferSlice(buffer, offset = 0, size = buffer.size - offset, recorder = null) {
+    return readPooledBufferSlice(buffer, offset, size, recorder, {
+      device: this.#getBoundDevice(),
+      createStagingBuffer: bytes => this.createStagingBuffer(bytes),
+      isActive: staging => this.#activeBuffers.has(staging),
+      release: (staging, reusable) => this.#releaseTrackedBuffer(staging, reusable),
+    });
   }
 
   clearPool() {
@@ -841,8 +780,8 @@ export const uploadData = (buffer, data, offset) =>
 export const readBuffer = (buffer, size) =>
   poolForBuffer(buffer).readBuffer(buffer, size);
 
-export const readBufferSlice = (buffer, offset, size) =>
-  poolForBuffer(buffer).readBufferSlice(buffer, offset, size);
+export const readBufferSlice = (buffer, offset, size, recorder = null) =>
+  poolForBuffer(buffer).readBufferSlice(buffer, offset, size, recorder);
 
 export const forceBufferPoolReclaim = (targetRatio) =>
   devicePools.get(currentDevice())?.forceReclaim(targetRatio);
