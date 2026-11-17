@@ -2,6 +2,7 @@ import { getRuntimeConfig } from '../../config/runtime.js';
 import { getDevice } from '../../gpu/device.js';
 import { getBufferPool } from '../../memory/buffer-pool.js';
 import { compactExpertCapacity } from './compact-expert-cache.js';
+import { TieredExpertCache } from './tiered-expert-cache.js';
 import { RoutedExpertCache } from './routed-expert-cache.js';
 import { planRoutedExpertBank } from './routed-expert-plan.js';
 import { prepareQwenExpertLayer } from './qwen-paging.js';
@@ -25,15 +26,83 @@ export function getRoutedExpertLayerCount(loader, layer, numLayers) {
   return count;
 }
 
+/** @type {WeakMap<TieredExpertCache, Map<number, import('./routed-expert-plan.js').RoutedExpertBankPlan>>} */
+const tieredPlans = new WeakMap();
+
+/** @param {import('../doppler-loader.js').DopplerLoader} loader
+ * @param {import('./routed-expert-plan.js').RoutedExpertBankPlan} plan */
+function ensureRoutedCache(loader, plan) {
+  if (loader.routedExpertCache) return loader.routedExpertCache;
+  const policy = loader.getRoutedExpertPolicy();
+  const device = getDevice();
+  if (!device) throw new Error('Routed experts require the owning GPU device.');
+  /** @type {import('./routed-expert-cache.js').RoutedExpertCacheOptions} */
+  const options = { device, policy, compactLayerCount: getRoutedExpertLayerCount(loader, plan.layer, plan.numLayers),
+    numLayers: plan.numLayers, numExperts: plan.numExperts,
+    rangeLease: loader.shardCache.rangeLease ?? undefined,
+    readRangeInto: loader.shardCache.hasCustomRangeIntoLoader ? async (shard, offset, destination, activeSignal) => {
+      activeSignal.throwIfAborted();
+      const count = await loader.shardCache.loadRangeInto(shard, offset, destination, { requireRange: true });
+      activeSignal.throwIfAborted();
+      return count;
+    } : undefined,
+    otherGpuBytes: () => getBufferPool(device).getCurrentBytesAllocated(),
+    readRange: async (shard, offset, length, activeSignal) => {
+      activeSignal.throwIfAborted();
+      const bytes = await loader.shardCache.loadRange(shard, offset, length, { requireRange: true });
+      activeSignal.throwIfAborted();
+      return bytes;
+    } };
+  if (policy.storageMode === 'tiered-compact') {
+    if (!loader.manifest) throw new Error('Tiered experts require a loaded manifest.');
+    const manifest = loader.manifest;
+    const minimumSlots = manifest.moeConfig?.numExpertsPerToken;
+    if (!Number.isSafeInteger(minimumSlots) || typeof minimumSlots !== 'number' || minimumSlots < 1) {
+      throw new Error('Tiered experts require the manifest numExpertsPerToken.');
+    }
+    const plans = new Map([...loader.layers.keys()].sort((a, b) => a - b).map(layer =>
+      [layer, planRoutedExpertBank(manifest, loader.tensorLocations, layer)]));
+    const cache = new TieredExpertCache(options, [...plans.values()], minimumSlots);
+    tieredPlans.set(cache, plans);
+    loader.routedExpertCache = cache;
+  } else loader.routedExpertCache = new RoutedExpertCache(options);
+  return loader.routedExpertCache;
+}
+
 /** @type {typeof import('./loader-bindings.js').getRoutedExpertCapacity} */
 export function getRoutedExpertCapacity(loader, layer, phase) {
   if (!loader.manifest) throw new Error('Routed experts require the loaded manifest.');
   const plan = planRoutedExpertBank(loader.manifest, loader.tensorLocations, layer);
   const policy = loader.getRoutedExpertPolicy();
+  if (policy.storageMode === 'tiered-compact') {
+    const cache = ensureRoutedCache(loader, plan);
+    if (!(cache instanceof TieredExpertCache)) throw new Error('Tiered expert policy does not match the owning cache.');
+    const capacity = cache.capacity(layer);
+    if (capacity === null) throw new Error('Tiered expert capacity requires an assigned original layer.');
+    return capacity;
+  }
   if (policy.storageMode !== 'compact-decode' || phase !== 'decode') return plan.numExperts;
   const device = getDevice();
   if (!device) throw new Error('Compact experts require the owning device.');
   return compactExpertCapacity(plan, { device, policy, compactLayerCount: getRoutedExpertLayerCount(loader, layer, plan.numLayers) });
+}
+
+/** @type {typeof import('./loader-bindings.js').prepareRoutedExpertResidency} */
+export async function prepareRoutedExpertResidency(loader, signal) {
+  const policy = loader.getRoutedExpertPolicy();
+  if (!policy.enabled || policy.storageMode !== 'tiered-compact') return;
+  if (!loader.manifest) throw new Error('Tiered experts require a loaded manifest.');
+  const layer = loader.layers.keys().next().value;
+  if (typeof layer !== 'number') throw new Error('Tiered experts require assigned loaded layers.');
+  const cache = ensureRoutedCache(loader, planRoutedExpertBank(loader.manifest, loader.tensorLocations, layer));
+  if (!(cache instanceof TieredExpertCache)) throw new Error('Tiered residency requires the owning tiered cache.');
+  await cache.preload(signal);
+}
+
+/** @type {typeof import('./loader-bindings.js').getResidentRoutedExpertWeights} */
+export function getResidentRoutedExpertWeights(loader, layer) {
+  if (loader.getRoutedExpertPolicy().storageMode !== 'tiered-compact') return null;
+  return loader.routedExpertCache instanceof TieredExpertCache ? loader.routedExpertCache.getResidentWeights(layer) : null;
 }
 
 /** @type {typeof import('./loader-bindings.js').prepareRoutedExperts} */
@@ -42,29 +111,13 @@ export async function prepareRoutedExperts(loader, layer, expertIds, signal, pha
   if (!policy.enabled) throw new Error('Routed experts are not enabled.');
   if (!loader.manifest) throw new Error('Routed experts require the loaded manifest.');
   const plan = planRoutedExpertBank(loader.manifest, loader.tensorLocations, layer);
-  if (!loader.routedExpertCache) {
-    const device = getDevice();
-    if (!device) throw new Error('Routed experts require the owning GPU device.');
-    loader.routedExpertCache = new RoutedExpertCache({ device, policy, compactLayerCount: getRoutedExpertLayerCount(loader, layer, plan.numLayers),
-      numLayers: typeof loader.manifest.architecture === 'object'
-        && typeof loader.manifest.architecture?.numLayers === 'number'
-        ? loader.manifest.architecture.numLayers : undefined, numExperts: plan.numExperts,
-      rangeLease: loader.shardCache.rangeLease ?? undefined,
-      readRangeInto: loader.shardCache.hasCustomRangeIntoLoader ? async (shard, offset, destination, activeSignal) => {
-        activeSignal.throwIfAborted();
-        const count = await loader.shardCache.loadRangeInto(shard, offset, destination, { requireRange: true });
-        activeSignal.throwIfAborted();
-        return count;
-      } : undefined,
-      otherGpuBytes: () => getBufferPool(device).getCurrentBytesAllocated(),
-      readRange: async (shard, offset, length, activeSignal) => {
-        activeSignal.throwIfAborted();
-        const bytes = await loader.shardCache.loadRange(shard, offset, length, { requireRange: true });
-        activeSignal.throwIfAborted();
-        return bytes;
-      } });
+  const cache = ensureRoutedCache(loader, plan);
+  if (cache instanceof TieredExpertCache) {
+    const admitted = tieredPlans.get(cache)?.get(layer);
+    if (!admitted) throw new Error('Tiered expert request lacks the admitted original layer plan.');
+    return cache.prepare(admitted, expertIds, signal, phase);
   }
-  return loader.routedExpertCache.prepare(plan, expertIds, signal, phase);
+  return cache.prepare(plan, expertIds, signal, phase);
 }
 
 /** @type {typeof import('./loader-bindings.js').disposeRoutedExperts} */

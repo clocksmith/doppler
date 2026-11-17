@@ -56,9 +56,10 @@ import {
 import { assembleShardData } from './tensors/tensor-reader.js';
 import { ExpertDequantCache } from './experts/expert-dequant-cache.js';
 import { hasSourceTransform } from './tensors/source-transform.js';
-import { getRoutedExpertCapacity, prepareExpertLayer, prepareRoutedExperts, disposeRoutedExperts, createExpertLoaderContext, recordRoutedReadback, getRoutedReadbackStats } from './experts/loader-bindings.js';
+import { getRoutedExpertCapacity, prepareRoutedExpertResidency, getResidentRoutedExpertWeights, prepareExpertLayer, prepareRoutedExperts, disposeRoutedExperts, createExpertLoaderContext, recordRoutedReadback, getRoutedReadbackStats } from './experts/loader-bindings.js';
 import {
   load as loadImpl,
+  getLoaderStats,
   _loadTensor as _loadTensorImpl,
   _getDescriptorShardFiles as _getDescriptorShardFilesImpl,
   _loadDescriptorShardFile as _loadDescriptorShardFileImpl,
@@ -573,6 +574,8 @@ export class DopplerLoader {
   }
 
   getRoutedExpertCapacity(layer, phase) { return getRoutedExpertCapacity(this, layer, phase); }
+  prepareRoutedExpertResidency(signal) { return prepareRoutedExpertResidency(this, signal); }
+  getResidentRoutedExpertWeights(layer) { return getResidentRoutedExpertWeights(this, layer); }
   getRoutedExpertPolicy() { return this._loadingConfig.expertCache.qwen35Routed; }
   prepareRoutedExperts(layer, expertIds, signal, phase) { return prepareRoutedExperts(this, layer, expertIds, signal, phase); }
   recordRoutedReadback(phase, elapsedMs, bytes) { recordRoutedReadback(this, phase, elapsedMs, bytes); }
@@ -607,17 +610,7 @@ export class DopplerLoader {
   }
 
   getStats() {
-    const expertCacheCount = this.expertCache?.getStats().expertCount || 0;
-    return {
-      modelId: this.modelId,
-      isLoaded: this.isLoaded,
-      isMoE: this.isMoE,
-      isUnifiedMemory: this.isUnifiedMemory,
-      layersLoaded: this.layers.size,
-      expertsLoaded: this.experts.size + expertCacheCount,
-      gpuBuffers: this.gpuBuffers.size,
-      loadTiming: this.getLoadTiming(),
-    };
+    return getLoaderStats(this);
   }
 
   getLoadTiming() {

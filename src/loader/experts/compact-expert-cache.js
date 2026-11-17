@@ -1,5 +1,6 @@
 import { validateQwen35RoutedConfig } from "../../config/schema/runtime/loading.schema.js";
 import { createWeightBuffer } from '../../gpu/weight-buffer.js';
+import { isDeviceLost } from '../../memory/device-residency.js';
 import { readRoutedExpertRange, readRoutedExpertPayload, readRoutedExpertLease, assertExpertReadShape } from './routed-expert-source.js';
 
 /** @type {typeof import('./compact-expert-cache.js').compactExpertCapacity} */
@@ -116,10 +117,13 @@ export class CompactExpertCache {
    * @param {{ bytes: Uint8Array | null }} reader
    * @param {import('./routed-expert-plan.js').RoutedExpertPlane | null} selectedPlane */
   async #fill(plan, pool, expert, slot, signal, reader, selectedPlane) {
+    if (this.#copyCached(plan, pool, expert, slot, signal)) return;
     if (this.#options.policy.sourceReadMode === 'expert-lease-batch') {
       const start = performance.now();
       const lease = await readRoutedExpertLease(this.#options, this.#stats, plan, expert, signal, pool.stats);
       try {
+        await this.#options.rememberExpert?.(plan, expert, lease.bytes, signal);
+        if (this.#copyCached(plan, pool, expert, slot, signal)) return;
         let offset = 0;
         for (const plane of plan.planes) {
           signal.throwIfAborted();
@@ -231,6 +235,20 @@ export class CompactExpertCache {
         offset += length;
       }
     }
+  }
+
+  /** @param {import('./routed-expert-plan.js').RoutedExpertBankPlan} plan
+   * @param {import('./compact-expert-cache.js').CompactExpertPool} pool
+   * @param {number} expert @param {number} slot @param {AbortSignal} signal */
+  #copyCached(plan, pool, expert, slot, signal) {
+    if (!this.#options.copyCachedExpert) return false;
+    const start = performance.now();
+    if (!this.#options.copyCachedExpert(plan, expert, pool.planes, slot, signal)) return false;
+    const elapsed = performance.now() - start;
+    pool.stats.uploadBytes += plan.expertBytes;
+    pool.stats.uploadEnqueueMs += elapsed;
+    this.#stats.uploadEnqueueMs += elapsed;
+    return true;
   }
 
   /** @type {import('./compact-expert-cache.js').CompactExpertCache['prepare']} */
@@ -392,7 +410,8 @@ export class CompactExpertCache {
 
   async destroy() {
     const errors = [];
-    try { await this.#options.device.queue.onSubmittedWorkDone(); } catch (error) { errors.push(error); }
+    try { await this.#options.device.queue.onSubmittedWorkDone(); }
+    catch (error) { if (!isDeviceLost(this.#options.device)) errors.push(error); }
     this.#clearReaderStaging();
     for (const buffer of this.#owned) {
       try { this.#retire(buffer); } catch (error) { errors.push(error); }

@@ -1278,6 +1278,11 @@
       "id": "src/loader/experts/routed-expert-prefill.js#selectPrefillSeedExperts",
       "category": "gpu-orchestration",
       "reason": "Ranks already selected expert-ID metadata for bounded GPU cache admission using observed counts and last occurrence. Map.set records scalar cache history; it neither changes routing IDs used by execution nor reads, computes or transforms tensor values."
+    },
+    {
+      "id": "src/loader/experts/tiered-expert-cache.js#TieredExpertCache.#preload",
+      "category": "gpu-orchestration",
+      "reason": "Populates Map entries for declared source planes and their owned GPU buffers; uploads unchanged authenticated packed bytes at original expert offsets. Map.set records ownership, and no tensor arithmetic or byte reordering occurs."
     }
   ]
 }

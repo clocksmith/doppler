@@ -75,11 +75,13 @@ export declare class DopplerLoader {
   embeddings: GPUBuffer | WeightBuffer | CpuWeightBuffer | Float32Array | null;
   layers: Map<number, LayerWeights>;
   experts: Map<string, ExpertWeights>;
-  routedExpertCache: import('./experts/routed-expert-cache.js').RoutedExpertCache | null;
+  routedExpertCache: import('./experts/routed-expert-cache.js').RoutedExpertCache | import('./experts/tiered-expert-cache.js').TieredExpertCache | null;
   prepareExpertLayer(layerIdx: number, consumerExperts: Map<string, unknown>,
     recorder?: import('../gpu/command-recorder.js').CommandRecorder | null, signal?: AbortSignal, activeSelection?: string
   ): Promise<import('./experts/qwen-paging.js').QwenPagingReceipt | null>;
   getRoutedExpertCapacity(layer: number, phase?: 'prefill' | 'decode'): number;
+  prepareRoutedExpertResidency(signal?: AbortSignal): Promise<void>;
+  getResidentRoutedExpertWeights(layer: number): import('./experts/routed-expert-cache.js').RoutedExpertWeights | null;
   getRoutedExpertPolicy(): import("../config/schema/runtime/loading.schema.js").Qwen35RoutedConfig;
   prepareRoutedExperts(layer: number, expertIds: number[], signal?: AbortSignal, phase?: 'prefill' | 'decode'): Promise<import('./experts/routed-expert-cache.js').RoutedExpertWeights>;
   routedReadbackStats: Partial<Record<'prefill' | 'decode' | 'unspecified', { calls: number; bytes: number; wallMs: number }>>;

@@ -16,6 +16,7 @@
   },
   "include": [],
   "files": [
+    "src/loader/experts/tiered-expert-plan.js",
     "src/memory/buffer-pool/readback.js",
     "src/inference/pipelines/text/expert-loading-stats.js",
     "src/inference/pipelines/text/partitions/partition-wire.js",
@@ -246,6 +247,7 @@
     "src/loader/q4k-reference-weight.js",
     "src/converter/qwen4-exp-source-execution.js",
     "src/loader/experts/compact-expert-cache.js",
+    "src/loader/experts/mapped-expert-upload-cache.js",
     "src/loader/experts/expert-dequant-cache.js",
     "src/loader/experts/routed-expert-source.js",
     "src/loader/experts/routed-expert-prefill.js",
@@ -268,6 +270,7 @@
     "src/converter/capability-transform-resolver.js",
     "src/storage/verified-piece-gather-lane.js",
     "src/errors/doppler-error.js",
-    "src/config/capsule/capsule.js"
+    "src/config/capsule/capsule.js",
+    "src/loader/experts/tiered-expert-cache.js"
   ]
 }

@@ -192,6 +192,21 @@ export async function loadWeights(manifest, modelConfig, options = {}) {
     throw rewriteWeightLoadError(error, { modelId });
   }
 
+  const routedPolicy = typeof dopplerLoader.getRoutedExpertPolicy === 'function'
+    ? dopplerLoader.getRoutedExpertPolicy() : loadingConfig?.expertCache?.qwen35Routed;
+  if (routedPolicy?.enabled && routedPolicy.storageMode === 'tiered-compact') {
+    try {
+      if (typeof dopplerLoader.prepareRoutedExpertResidency !== 'function') {
+        throw new Error('Tiered expert loading requires the residency preparation port.');
+      }
+      await dopplerLoader.prepareRoutedExpertResidency(options.signal);
+    } catch (error) {
+      try { await dopplerLoader.unload(); }
+      catch (cleanup) { throw new AggregateError([error, cleanup], 'Tiered expert preload and loader retirement failed.'); }
+      throw rewriteWeightLoadError(error, { modelId });
+    }
+  }
+
   // Map layer weights
   
   const layerWeights = new Map();

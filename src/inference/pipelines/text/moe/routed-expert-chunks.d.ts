@@ -5,7 +5,7 @@ import type { DopplerLoader } from '../../../../loader/doppler-loader.js';
 import type { Qwen35RoutedConfig } from "../../../../config/schema/runtime/loading.schema.js";
 export declare function executeRoutedExpertChunks(
   options: Omit<QwenRouteExpertOptions, 'weights'>,
-  loader: Pick<DopplerLoader, 'prepareRoutedExperts'> & Partial<Pick<DopplerLoader, 'recordRoutedReadback' | 'getRoutedExpertCapacity'>>,
+  loader: Pick<DopplerLoader, 'prepareRoutedExperts'> & Partial<Pick<DopplerLoader, 'recordRoutedReadback' | 'getRoutedExpertCapacity' | 'getResidentRoutedExpertWeights'>>,
   policy: Qwen35RoutedConfig,
   signal?: AbortSignal,
   recorder?: CommandRecorder | null

@@ -1,7 +1,13 @@
 import type { CompactLayerStats, RoutedExpertCacheOptions, RoutedExpertWeights } from './routed-expert-cache.js';
 import type { RoutedExpertBankPlan } from './routed-expert-plan.js';
 import type { RoutedExpertCounters } from './routed-expert-source.js';
-export interface CompactExpertCacheOptions extends RoutedExpertCacheOptions { compactLayerCount: number }
+export interface CompactExpertCacheOptions extends RoutedExpertCacheOptions {
+  compactLayerCount: number;
+  /** Queue-ordered owned copy; true means all expert planes have been enqueued. */
+  copyCachedExpert?: (plan: RoutedExpertBankPlan, expert: number, planes: ReadonlyMap<string, GPUBuffer>, slot: number, signal: AbortSignal) => boolean;
+  /** Authenticated borrowed bytes are valid only through this awaited callback. */
+  rememberExpert?: (plan: RoutedExpertBankPlan, expert: number, bytes: Uint8Array, signal: AbortSignal) => Promise<void>;
+}
 export declare function compactExpertCapacity(plan: RoutedExpertBankPlan, options: Pick<CompactExpertCacheOptions, 'device' | 'policy' | 'compactLayerCount'>): number;
 export declare class CompactExpertCache {
   constructor(options: CompactExpertCacheOptions, stats: RoutedExpertCounters);

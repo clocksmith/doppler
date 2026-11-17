@@ -5,6 +5,22 @@ import { createTensor } from '../../../../gpu/tensor.js';
 import { runRouteRemap } from '../../../../gpu/kernels/moe-route.js';
 import { runQwenRouteExperts, recordQwenRouteExperts } from './qwen-route-executor.js';
 
+/** @param {import('../../../../loader/experts/routed-expert-cache.js').RoutedExpertWeights} weights
+ * @param {GPUBuffer} indices @param {number} numTokens @param {number} topK
+ * @param {number[]} ids @param {boolean} allowPrefill @param {string | undefined} phase
+ * @param {import('../../../../gpu/command-recorder.js').CommandRecorder | null} recorder */
+async function remapCompactIndices(weights, indices, numTokens, topK, ids, allowPrefill, phase, recorder) {
+  if (!weights.sourceExpertToSlot) return null;
+  const sourceNumExperts = weights.sourceNumExperts;
+  if (!((phase === 'decode' && numTokens === 1) || (allowPrefill && phase === 'prefill'))
+    || !Number.isSafeInteger(sourceNumExperts) || !sourceNumExperts
+    || ids.some(id => id >= sourceNumExperts)) {
+    throw new Error('Compact expert slots require valid source IDs and an admitted decode or tiered-prefill chunk.');
+  }
+  return runRouteRemap(indices, weights.sourceExpertToSlot, numTokens * topK,
+    sourceNumExperts, weights.numExperts, recorder);
+}
+
 // Actual GPU selections, not predictions. The next metadata read precedes the
 // current chunk's dispatch, so known-route I/O can overlap that dispatch.
 /** @type {typeof import('./routed-expert-chunks.js').executeRoutedExpertChunks} */
@@ -28,8 +44,17 @@ export async function executeRoutedExpertChunks(options, loader, policy, signal,
   if (typeof layerIdx !== 'number' || !Number.isSafeInteger(layerIdx)) throw new Error('Routed expert loading requires an explicit layer.');
   const device = getDevice();
   if (!device) throw new Error('Routed expert loading requires the owning GPU device.');
-  const capacity = policy.storageMode === 'compact-decode' && options.phase === 'decode'
+  const tiered = policy.storageMode === 'tiered-compact';
+  signal?.throwIfAborted();
+  const resident = tiered ? loader.getResidentRoutedExpertWeights?.(layerIdx) : null;
+  if (resident) {
+    if (resident.sourceExpertToSlot) throw new Error('Resident routed experts require a complete direct-index bank.');
+    return recorder ? recordQwenRouteExperts(recorder, { ...options, weights: resident })
+      : runQwenRouteExperts({ ...options, weights: resident });
+  }
+  const capacity = tiered || (policy.storageMode === 'compact-decode' && options.phase === 'decode')
     ? loader.getRoutedExpertCapacity?.(layerIdx, options.phase) : undefined;
+  if (tiered && capacity === undefined) throw new Error('Tiered routed experts require an explicit admitted capacity.');
   if (capacity !== undefined && (!Number.isSafeInteger(capacity) || capacity < topK)) {
     throw new Error('Routed expert capacity cannot fit one complete top-K selection.');
   }
@@ -56,13 +81,8 @@ export async function executeRoutedExpertChunks(options, loader, policy, signal,
     if (!weights.sourceExpertToSlot) return recorder
       ? recordQwenRouteExperts(recorder, { ...options, weights })
       : runQwenRouteExperts({ ...options, weights });
-    const sourceNumExperts = weights.sourceNumExperts;
-    if (options.phase !== 'decode' || numTokens !== 1 || !sourceNumExperts
-        || ids.some(id => id >= sourceNumExperts)) {
-      throw new Error('Compact expert slots require valid single-token decode source IDs.');
-    }
-    const remapped = await runRouteRemap(indicesBuffer, weights.sourceExpertToSlot,
-      numTokens * topK, sourceNumExperts, weights.numExperts, recorder);
+    const remapped = await remapCompactIndices(weights, indicesBuffer, numTokens, topK, ids, tiered, options.phase, recorder);
+    if (!remapped) throw new Error('Compact expert remap was not produced.');
     if (recorder) {
       recorder.trackTemporaryBuffer(remapped);
       return recordQwenRouteExperts(recorder, { ...options, weights, indicesBuffer: remapped });
@@ -87,10 +107,11 @@ export async function executeRoutedExpertChunks(options, loader, policy, signal,
       const next = start + count < numTokens ? selections(start + count) : null;
       // A rejection is observed immediately even if weight preparation fails.
       next?.catch(() => undefined);
-      const preparing = loader.prepareRoutedExperts(layerIdx, ids, signal, options.phase);
+      const selectedIds = ids;
+      const preparing = loader.prepareRoutedExperts(layerIdx, selectedIds, signal, options.phase);
       preparing.catch(() => undefined);
       /** @type {GPUBuffer | null} */
-      let input = null, indices = null, routes = null;
+      let input = null, indices = null, routes = null, remapped = null;
       let chunkOutput = null;
       let chunkComplete = false;
       let chunkFailure;
@@ -106,9 +127,10 @@ export async function executeRoutedExpertChunks(options, loader, policy, signal,
         const weights = await preparing;
         ids = next ? await next : [];
         signal?.throwIfAborted();
+        remapped = await remapCompactIndices(weights, indices, count, topK, selectedIds, tiered, options.phase, null);
         chunkOutput = await runQwenRouteExperts({ ...options, numTokens: count, weights,
           inputTensor: createTensor(input, 'f32', [count, hiddenSize], 'routed_chunk'),
-          indicesBuffer: indices, weightsBuffer: routes });
+          indicesBuffer: remapped ?? indices, weightsBuffer: routes });
         const combine = device.createCommandEncoder({ label: 'routed_chunk_output' });
         combine.copyBufferToBuffer(chunkOutput.buffer, 0, output, start * hiddenSize * 4, count * hiddenSize * 4);
         device.queue.submit([combine.finish()]);
@@ -122,7 +144,7 @@ export async function executeRoutedExpertChunks(options, loader, policy, signal,
         if (!chunkComplete) {
           try { await device.queue.onSubmittedWorkDone(); } catch (error) { cleanup.push(error); }
         }
-        for (const buffer of [chunkOutput?.buffer, input, indices, routes]) {
+        for (const buffer of [chunkOutput?.buffer, remapped, input, indices, routes]) {
           if (buffer) { try { releaseBuffer(buffer); } catch (error) { cleanup.push(error); } }
         }
         if (cleanup.length) throw new AggregateError([chunkFailure, ...cleanup].filter(Boolean), 'Routed chunk cleanup failed.');

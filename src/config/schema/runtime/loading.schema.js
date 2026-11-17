@@ -95,6 +95,7 @@ export const DEFAULT_EXPERT_CACHE_CONFIG = {
   qwen35Routed: {
     enabled: false,
     storageMode: 'payload-copy',
+    tiered: null,
     compactLayerBytes: null,
     compactPrefillBytes: 0,
     compactPrefillReuse: 'none',
@@ -118,13 +119,30 @@ export function validateQwen35RoutedConfig(config) {
   if (!config || typeof config !== 'object' || typeof config.enabled !== 'boolean') {
     throw new Error('runtime.loading.expertCache.qwen35Routed requires resolved configuration.');
   }
-  if (!['payload-copy', 'compact-decode'].includes(config.storageMode)) {
-    throw new Error('Qwen routed storageMode must be payload-copy or compact-decode.');
+  if (!['payload-copy', 'compact-decode', 'tiered-compact'].includes(config.storageMode)) {
+    throw new Error('Qwen routed storageMode must be payload-copy, compact-decode or tiered-compact.');
   }
-  if (config.storageMode === 'compact-decode' && config.evictionPolicy !== 'lru') {
+  const compact = config.storageMode === 'compact-decode' || config.storageMode === 'tiered-compact';
+  if (config.storageMode === 'tiered-compact') {
+    const tiered = config.tiered;
+    if (!tiered || typeof tiered !== 'object' || Array.isArray(tiered)
+      || Object.keys(tiered).some(key => !['residentLayers', 'parkedLayers', 'mappedCacheBytes'].includes(key))
+      || !['residentLayers', 'parkedLayers'].every(key => Array.isArray(tiered[key])
+        && tiered[key].every(layer => Number.isSafeInteger(layer) && layer >= 0))
+      || new Set([...tiered.residentLayers, ...tiered.parkedLayers]).size !== tiered.residentLayers.length + tiered.parkedLayers.length
+      || !Number.isSafeInteger(tiered.mappedCacheBytes) || tiered.mappedCacheBytes < 0 || tiered.mappedCacheBytes % 4
+      || config.compactPrefillBytes !== 0 || config.compactPrefillReuse !== 'none'
+      || config.prefillCompactAdmission !== 'none' || config.sourceReadMode !== 'expert-lease-batch'
+      || config.prefillUploadMode !== 'expert-copy') {
+      throw new Error('Tiered experts require distinct explicit resident/parked layers, an aligned mapped-cache budget and batched streaming without full prefill banks.');
+    }
+  } else if (config.tiered != null) {
+    throw new Error('Tiered placement requires storageMode=tiered-compact.');
+  }
+  if (compact && config.evictionPolicy !== 'lru') {
     throw new Error('Compact decode currently requires evictionPolicy=lru; LFU remains available with payload-copy.');
   }
-  if (config.storageMode === 'compact-decode' && config.hostCacheBytes !== 0) {
+  if (compact && config.hostCacheBytes !== 0) {
     throw new Error('Compact decode currently requires hostCacheBytes=0.');
   }
   if (!Number.isSafeInteger(config.compactPrefillBytes) || config.compactPrefillBytes < 0
@@ -144,7 +162,7 @@ export function validateQwen35RoutedConfig(config) {
   }
   if (!['plane-serial', 'expert-parallel', 'lease-parallel', 'expert-lease-batch'].includes(config.sourceReadMode)
     || (config.sourceReadMode !== 'plane-serial'
-      && (config.storageMode !== 'compact-decode' || config.hostCacheBytes !== 0))) {
+      && (!compact || config.hostCacheBytes !== 0))) {
     throw new Error('sourceReadMode requires plane-serial, expert-parallel, lease-parallel or expert-lease-batch; parallel modes require compact decode and no host cache.');
   }
   if (!['expert-copy', 'direct-bank'].includes(config.prefillUploadMode)
@@ -154,7 +172,7 @@ export function validateQwen35RoutedConfig(config) {
   }
   if (config.compactLayerBytes !== null) {
     const entries = Object.entries(config.compactLayerBytes ?? {});
-    if (config.storageMode !== 'compact-decode' || Array.isArray(config.compactLayerBytes) || !entries.length
+    if (!compact || Array.isArray(config.compactLayerBytes) || !entries.length
       || entries.some(([layer, bytes]) => !/^(0|[1-9][0-9]*)$/.test(layer)
         || !Number.isSafeInteger(Number(layer)) || !Number.isSafeInteger(bytes) || bytes < 4 || bytes % 4)) {
       throw new Error('compactLayerBytes requires null or explicit aligned byte quotas keyed by original layer index in compact-decode mode.');

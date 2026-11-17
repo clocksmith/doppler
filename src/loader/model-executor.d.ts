@@ -10,3 +10,7 @@ export declare const _assembleShardDataToGpuBuffer: any;
 export declare const _loadEmbeddings: any;
 export declare const _loadLayer: any;
 export declare const _loadFinalWeights: any;
+
+export declare function getLoaderStats(loader: Pick<import('./doppler-loader.js').DopplerLoader,
+  'expertCache' | 'modelId' | 'isLoaded' | 'isMoE' | 'isUnifiedMemory' | 'layers' | 'experts' | 'gpuBuffers' | 'getLoadTiming'
+>): import('./doppler-loader.js').LoaderStats;

@@ -479,3 +479,19 @@ export async function _loadFinalWeights(_onProgress) {
     this.diffusionGemmaSelfConditioning = result.diffusionGemmaSelfConditioning;
     this._normOffsetDebugLogged = result.normOffsetDebugLogged;
   }
+
+// The loader facade's model/expert state receipt; keep counting independent of
+// public caller wiring so new loader ports do not grow the facade's owner.
+export function getLoaderStats(loader) {
+  const expertCacheCount = loader.expertCache?.getStats().expertCount || 0;
+  return {
+    modelId: loader.modelId,
+    isLoaded: loader.isLoaded,
+    isMoE: loader.isMoE,
+    isUnifiedMemory: loader.isUnifiedMemory,
+    layersLoaded: loader.layers.size,
+    expertsLoaded: loader.experts.size + expertCacheCount,
+    gpuBuffers: loader.gpuBuffers.size,
+    loadTiming: loader.getLoadTiming(),
+  };
+}

@@ -24,3 +24,8 @@ export declare function getRoutedReadbackStats(loader: DopplerLoader): ReturnTyp
 export declare function getRoutedExpertCapacity(loader: DopplerLoader, layer: number, phase?: 'prefill' | 'decode'): number;
 
 export declare function getRoutedExpertLayerCount(loader: Pick<DopplerLoader, "layers">, layer: number, numLayers: number): number;
+
+/** Public weight initialization owns eager tiered residency before inference begins. */
+export declare function prepareRoutedExpertResidency(loader: DopplerLoader, signal?: AbortSignal): Promise<void>;
+/** Complete direct-index banks only; null until tiered preload fully succeeds. */
+export declare function getResidentRoutedExpertWeights(loader: DopplerLoader, layer: number): RoutedExpertWeights | null;
