@@ -697,3 +697,46 @@ owner; each projection still checks its exact tensor record, directory, file
 signature and lease before use. Source bindings and model identity inputs are
 unchanged. This removes repeated full-manifest copies from individual expert
 projections; no full-model memory or latency measurement is claimed.
+
+## Actual checkpoint admission and full-route sizing
+
+`validate_flash_checkpoint.py` runs the installed loaders against a complete
+local checkpoint: `--mode metadata` checks sizes, the small pinned files and
+every safetensors header without reading weight bytes; `--mode floating` and
+`--mode quantized` additionally hash every shard through the stage and row-store
+owners, bind the complete graph and run clear cached generation on the public
+fixture. Clear execution is client-local validation of the loader and graph. It
+is not encrypted execution.
+
+The metadata gate was run against the checkpoint already provisioned on the
+Linux research host. That copy is upstream revision
+`de4b8e4d43b917e7706784d8bb445c9af86a3540`; the installed inventory pins
+`812d96e10a0dd82b69d749e68693698cf6c36daa`. All 131 shards (360,000,192,888
+bytes), `config.json`, the index and `tokenizer.json` have the pinned sizes and
+declared hashes, and all 1,294 tensors have the pinned dtype, shape and offsets.
+`tokenizer_config.json` differs: the provisioned revision embeds
+`chat_template` (17,928 bytes), the pinned revision carries `response_template`
+instead (9,984 bytes). Both list the same 33 added tokens and the same
+tokenizer class. The loader therefore rejects the provisioned directory as it
+stands. Validation uses a view directory that links the shards and holds the
+pinned `tokenizer_config.json`; the pin is unchanged. Weight content hashes are
+only established by the hashing modes, not by this gate.
+
+The complete text route has 74,501 projections and 125,105,397,760
+coefficients. With 2048-wide tiles one token row is 150,868 encrypted tiles:
+147,456 expert tiles, 3,168 for attention, hyper-connections, PLE, routers and
+shared experts, and 244 for the vocabulary head. Twelve-bit coefficients in
+int16 occupy 250.2 GB, on the client and again on the evaluator.
+
+`flash-text-all-linear-research` binds the stock arithmetic and eight-bit
+coefficients: its policy declares no native variant or precision profile. The
+eight-bit small-Qwen routes failed their numerical gate and the stock evaluator
+measured about fifteen times slower than the exact-NTT variant on a full tile.
+`flash-text-all-linear-ntt12-check` is a separate installed profile on the
+exact-NTT variant, the twelve-bit 35-bit-domain parameters and the
+[checked integrity mechanism](INTEGRITY.md). Component admission now binds the
+coefficient suffix, size, range and message-domain capacity from the declared
+encoding; eight-bit components are unchanged. Only metadata and tiny-cache
+admission tests cover the new profile. No coefficient cache has been prepared
+and no encrypted Flash generation has run.
+

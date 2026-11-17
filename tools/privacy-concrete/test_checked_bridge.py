@@ -20,6 +20,11 @@ PROFILE='glwe-quant12-message35-storage48/v1'
 SEED=bytes(range(32))
 
 
+class CheckedPlan(FullPlan):
+    @property
+    def protocol_id(self):return 'test-linear-check/v1'
+
+
 class Cipher:
     def __init__(self,data):self.data=np.array(data,dtype=np.int64)
     def serialize(self):return self.data.tobytes()
@@ -39,7 +44,7 @@ class CheckedBridgeTests(unittest.TestCase):
         generator=np.random.default_rng(11)
         self.weights={'first':generator.integers(-2**11,2**11,size=(64,48),dtype=np.int64),'second':generator.integers(-2**11,2**11,size=(48,64),dtype=np.int64)}
         rows=[dict(name=name,weightId=digest(matrix.astype('<i2').tobytes()),inputWidth=matrix.shape[0],outputWidth=matrix.shape[1]) for name,matrix in self.weights.items()]
-        self.plan=FullPlan(canonical(dict(modelId='a'*64,steps=3,contextBucket=2,inputTileWidth=32,outputTileWidth=32,
+        self.plan=CheckedPlan(canonical(dict(modelId='a'*64,steps=3,contextBucket=2,inputTileWidth=32,outputTileWidth=32,
             parameters=dict(parameters=dict(bits_reserved_for_computation=35),quantizationBits=12,weightEncoding='signed-int12-in-int16'),projections=rows)))
         self.generator=generator
 
@@ -200,6 +205,15 @@ class CheckedBridgeTests(unittest.TestCase):
                 bridge.evaluate(Cipher(values),matrix,tiles[0])
                 bridge.decode(None,tiles[1],values,lambda raw:raw)
         self.assertTrue(bridge.admission.failed)
+
+    def test_replay_protocol_plan_cannot_be_executed_with_the_checked_bridge(self):
+        bridge=self.module.CheckedBridge.__new__(self.module.CheckedBridge)
+        bridge.plan=FullPlan(self.plan.encoded)
+        with self.assertRaises(ValueError):bridge.begin_checks(PROFILE,SEED)
+        from full_ntt12_check_plan import POLICY_NTT12_CHECK
+        from full_ntt12_plan import POLICY_NTT12
+        self.assertTrue(POLICY_NTT12_CHECK['protocol'].endswith(self.module.CHECKED_PROTOCOL_SUFFIX))
+        self.assertFalse(POLICY_NTT12['protocol'].endswith(self.module.CHECKED_PROTOCOL_SUFFIX))
 
     def test_check_secret_never_appears_on_the_wire_and_is_retired_at_close(self):
         payloads=[]

@@ -1,11 +1,13 @@
 """Trusted-client Flash coefficient preparation and attempt binding.
 
 This is not an installed backend or plan loader. A caller must supply an admitted
-FullBridge whose plan explicitly binds this graph and these exact coefficients.
-Mandatory per-tile replay remains inside FullBridge.
+bridge whose plan explicitly binds this graph and these exact coefficients.
+FullBridge replays every tile. CheckedBridge is accepted only for a plan whose
+protocol declares the checked integrity mechanism, and never for a replay plan.
 """
 from full_model import FullLinear
 from full_bridge import FullBridge
+from checked_bridge import CheckedBridge,CHECKED_PROTOCOL_SUFFIX
 from full_plan import canonical
 from flash_model_graph import ClientFlashGraph
 from protocol import require_active
@@ -44,7 +46,9 @@ class PreparedFlashGraph:
         projections={}
         try:
             self.require_graph()
-            if type(bridge) is not FullBridge:raise ValueError('Admitted replay-verifying Flash bridge required')
+            if type(bridge) not in (FullBridge,CheckedBridge):raise ValueError('Admitted integrity-verifying Flash bridge required')
+            if (type(bridge) is CheckedBridge)!=bridge.plan.protocol_id.endswith(CHECKED_PROTOCOL_SUFFIX):
+                raise ValueError('Bridge integrity mechanism differs from the admitted plan protocol')
             bridge.check_active();definition=bridge.plan.definition()
             if (definition.get('clientGraphId')!=self.identity
                     or canonical(definition.get('projections'))!=self._definitions
@@ -63,7 +67,7 @@ class PreparedFlashGraph:
             return self.graph(tokens,state,context,execution='verified-projections',verified_client_projection=project,cancelled=bridge.cancelled)
         except BaseException:
             state.fail()
-            if type(bridge) is FullBridge:
+            if type(bridge) in (FullBridge,CheckedBridge):
                 bridge.admission.fail();bridge._release_projection_inputs()
             raise
         finally:

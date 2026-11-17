@@ -10,6 +10,13 @@ A future remote deployment must tolerate every remote operator colluding without
 
 The client also performs every encrypted multiplication again. Only an exact serialized result from that trusted deterministic replay reaches the native result deserializer/decryptor. This rejects response substitutions tested by the harness, but gives no client compute saving, succinct proof or independently reviewed malicious-security guarantee. A malformed, missing, reordered or rejected response terminates the attempt. No token/activation values, numerical error magnitude or noise-budget diagnostic is sent to the evaluator. Older research drivers let reference-validation outcomes affect observable protocol termination. The current fixed-phase owner removes those two comparison-controlled paths, with the remaining limits described below.
 
+The separate `qwen-all-linear-ntt12-check` and `flash-text-all-linear-ntt12-check`
+profiles do not replay every tile. Their client decrypts responses that passed
+only a length gate, checks secret integer projections of the result, replays a
+secret sample exactly and defers rejection until the route is closed. The
+[malicious-evaluator model and argument](INTEGRITY.md) state what that gives up
+relative to the paragraph above. Everything in this file still applies to them.
+
 ## Leakage and state
 
 The evaluator sees public model/projection/parameter identities, the complete fixed operator/tile order, eight prefill rows followed by three single-row decode steps, public evaluation keys, frame/ciphertext lengths, session/sequence identifiers and timing. Host, process and transport metadata are also visible. Timing is not padded; it can depend on client preparation, attention and execution. The client model and its weights are public; model confidentiality is not a goal.

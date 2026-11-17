@@ -48,8 +48,11 @@ class CheckedNativeTests(unittest.TestCase):
         from full_admission import FullRouteAdmission
         from full_plan import FullPlan,canonical
         from protocol import digest
+        class CheckedPlan(FullPlan):
+            @property
+            def protocol_id(self):return 'test-linear-check/v1'
         row=dict(name='public-test',weightId=digest(self.weights.astype('<i2').tobytes()),inputWidth=896,outputWidth=640)
-        plan=FullPlan(canonical(dict(modelId='a'*64,steps=2,contextBucket=1,inputTileWidth=2048,outputTileWidth=2048,
+        plan=CheckedPlan(canonical(dict(modelId='a'*64,steps=2,contextBucket=1,inputTileWidth=2048,outputTileWidth=2048,
             parameters=dict(parameters=dict(bits_reserved_for_computation=35),quantizationBits=12,weightEncoding='signed-int12-in-int16'),projections=[row])))
         bridge=checked_bridge.CheckedBridge.__new__(checked_bridge.CheckedBridge)
         bridge.plan=plan;bridge.key=self.key;bridge.cancelled=None;bridge.sequence=1;bridge.weight_dtype='<i2'

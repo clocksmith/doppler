@@ -17,6 +17,7 @@ from linear_check import CheckKey,POLICY,POLICY_ID,tolerance
 from protocol import digest
 
 INTEGRITY_ID=POLICY['id']
+CHECKED_PROTOCOL_SUFFIX='-linear-check/v1'
 PASS_THROUGH=(KeyboardInterrupt,SystemExit,InterruptedError,MemoryError,TimeoutError)
 
 
@@ -29,6 +30,8 @@ class CheckedBridge(FullBridge):
             raise
 
     def begin_checks(self,parameter_profile,seed=None):
+        # A replay-protocol plan must never be executed with the weaker check.
+        if not self.plan.protocol_id.endswith(CHECKED_PROTOCOL_SUFFIX):raise ValueError('Plan protocol does not declare checked integrity')
         definition=self.plan.definition()
         self.check=CheckKey(os.urandom(32) if seed is None else seed,parameter_profile,
             definition['parameters']['parameters']['bits_reserved_for_computation'],definition['parameters']['quantizationBits'])
