@@ -1,0 +1,123 @@
+{
+  "schema": "doppler.research-integrity-policy-resolution/v1",
+  "status": "regression-validated",
+  "sourceRevision": "7279f8afba1a7fa5027e080a561d2a55325d5c0e",
+  "originalFinding": {
+    "path": "evidence/integrity/check-policy-immutability-gap.json",
+    "sha256": "96868b3ea9326b432aa7018e5f43a9b1edef37a037d4f804f948cb9b4c526446"
+  },
+  "sourceFiles": [
+    {
+      "path": "check_policy.py",
+      "sha256": "cfecf019f3a92864874b2eff5dc79ab460375df16cdbf8b703376b2d7896851e"
+    },
+    {
+      "path": "checked_bridge.py",
+      "sha256": "a1dbfcbdc81836b5bfba1befd601304c8d312898d66750f947abc9e9a888a291"
+    },
+    {
+      "path": "linear_check.py",
+      "sha256": "951c63cccb931949a5c69a55c871b82edea6a39e1ca04319c15d634b773cf2ba"
+    },
+    {
+      "path": "research_parameters.py",
+      "sha256": "b55761f2cd78ba8bbbbcc6105c65bd5e2b67a1da1aadb1f66b338c32ae91c3a7"
+    },
+    {
+      "path": "flash_text_ntt12_check_plan.py",
+      "sha256": "d12be54811aa59535cfcb9cd540ecd20403edcb31cfb91f28400424c720852a3"
+    }
+  ],
+  "reproductionAfterFix": {
+    "boundPolicyId": "5a9580d367be8974e092a9d1c160e0cfdc22f32fe5a20f65bbdfac6203bb4327",
+    "boundFlashProgramId": "8a3f1554ea2eadc924c2218d3acfc2c8f5360a26ff97bc740d07e3a20da58c5b",
+    "parameterPolicyId": "5a9580d367be8974e092a9d1c160e0cfdc22f32fe5a20f65bbdfac6203bb4327",
+    "moduleSampleDenominatorAfterMutation": 64,
+    "attemptSampleDenominatorAfterMutation": 16,
+    "attemptSnapshotDeeplyImmutable": true,
+    "changedLivePolicyAdmissionRejection": "Installed check policy changed; a new compiled policy and plan are required",
+    "fheKeysOrCiphertextsCreated": false,
+    "checkKeyIsDisposablePublicFixture": true,
+    "checkSecretRetired": true
+  },
+  "localValidation": {
+    "focused": {
+      "run": 29,
+      "passed": 29,
+      "skipped": 0
+    },
+    "dependencyFree": {
+      "run": 411,
+      "passed": 252,
+      "skipped": 159
+    },
+    "storageAndRouteFixtures": {
+      "run": 47,
+      "passed": 42,
+      "skipped": 5,
+      "skips": "Opt-in real SSH daemon tests"
+    }
+  },
+  "existingSmallQwenReceipt": {
+    "path": "evidence/full-qwen/ntt12-two-machine-ssh.json",
+    "sha256": "67d7dc79daacb363dc79bc74acff3a526008c3d9f115e012fc213a76a20464ab",
+    "unchanged": true
+  },
+  "limitations": [
+    "Trusted-client configuration/immutability correction; no demonstrated remote exploit",
+    "Configuration changes require a fresh source load and newly compiled checked plan; live mutation cannot register a policy",
+    "No check mathematics, noise calibration or native encrypted primitive changed",
+    "This record does not establish malicious security, independent review or full Flash encrypted generation"
+  ],
+  "productionBackendAvailable": false,
+  "securityQualified": false,
+  "independentCryptographicReview": false,
+  "freshSourceConfigurationReload": {
+    "changedSampleDenominator": 64,
+    "policyId": "fdd66854eff24ac49444665032770d571139508e81730183ac417b028f9b809b",
+    "parameterPolicyId": "fdd66854eff24ac49444665032770d571139508e81730183ac417b028f9b809b",
+    "flashProgramId": "343eda4cbd7133b2d957b3a5266dfaed4f586a5ecfcaaf0fe7f8413d5e825597",
+    "programIdentityChanged": true
+  },
+  "continuousIntegration": [
+    {
+      "name": "Smoke",
+      "runId": 44081642479,
+      "headSha": "7279f8afba1a7fa5027e080a561d2a55325d5c0e",
+      "conclusion": "success",
+      "url": "https://github.com/clocksmith/doppler/actions/runs/44081642479"
+    },
+    {
+      "name": "Flash streaming adapter integration",
+      "runId": 44081647090,
+      "headSha": "7279f8afba1a7fa5027e080a561d2a55325d5c0e",
+      "conclusion": "success",
+      "url": "https://github.com/clocksmith/doppler/actions/runs/44081647090"
+    },
+    {
+      "name": "Exact encrypted CPU arithmetic experiment",
+      "runId": 44081650870,
+      "headSha": "7279f8afba1a7fa5027e080a561d2a55325d5c0e",
+      "conclusion": "success",
+      "url": "https://github.com/clocksmith/doppler/actions/runs/44081650870"
+    }
+  ],
+  "nativeProcessValidation": {
+    "path": "evidence/integrity/check-policy-native-process.json",
+    "sha256": "a863da3426160994900cbae6d7733434f2dade285a2f9f842a34d39a724d93fc",
+    "encryptedTileCalls": 60,
+    "feedbackSteps": 4,
+    "syntheticGeometries": 15,
+    "allGreedyControlsMatch": true,
+    "linearChecksPassed": 60,
+    "sampledExactReplays": 16,
+    "integrityPolicyId": "5a9580d367be8974e092a9d1c160e0cfdc22f32fe5a20f65bbdfac6203bb4327",
+    "nativeEncryptionSimulated": false,
+    "separateProcesses": true,
+    "separateMachine": false,
+    "actualFlashCheckpointExecuted": false,
+    "publicCoefficientBytesSent": 0,
+    "cgroupMemoryPeakBytes": 4558774272,
+    "scope": "Synthetic matrices plus the logical quantizer metadata reservation; excludes real Flash graph/model state and mappings"
+  }
+}

@@ -645,3 +645,9 @@ stale/missing digests, original receipt identity and unchanged cancellation.
 The original evidence and small-Qwen receipts remain unchanged. This fix does
 not qualify the check's mathematical assumptions or malicious security;
 production cryptographic admission remains closed.
+
+The [resolution record](evidence/integrity/check-policy-immutability-resolution.json)
+pins the fix revision, configuration-reload reproduction and exact successful CI.
+Its retained native report covers 60 encrypted synthetic tile calls over four
+feedback steps in separate processes; it does not execute the Flash checkpoint
+or replace the outstanding physical readiness and full-model qualification.
