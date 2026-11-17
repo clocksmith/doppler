@@ -26,23 +26,30 @@ export async function createVerifiedPieceGather(options) {
   const laneBytes = pinned.maxPartBytes + 2 * pieceBytes;
   const memoryBytes = concurrency * laneBytes;
   if (!Number.isSafeInteger(concurrency) || concurrency < 1
+    || !Number.isSafeInteger(pinned.maxPartBytes) || pinned.maxPartBytes < 1
+    || !Number.isSafeInteger(pieceBytes) || pieceBytes < 1
     || !Number.isSafeInteger(memoryBytes) || !Number.isSafeInteger(pinned.memoryBudgetBytes)
     || pinned.memoryBudgetBytes < memoryBytes) {
     throw new Error('Gather budget must cover every concurrent output and complete-piece buffer.');
   }
   /** @type {Array<{ reader: Awaited<ReturnType<typeof createVerifiedPieceGatherLane>>, busy: boolean }>} */
   const lanes = [];
-  try {
-    for (let index = 0; index < concurrency; index++) {
-      pinned.startupSignal?.throwIfAborted();
-      lanes.push({ reader: await createVerifiedPieceGatherLane({ ...pinned, memoryBudgetBytes: laneBytes }), busy: false });
-      pinned.startupSignal?.throwIfAborted();
-    }
-  } catch (error) {
+  // Start only the already budgeted owners, preserving admission order while
+  // joining every factory before either publication or failure cleanup.
+  const admissions = await Promise.allSettled(Array.from({ length: concurrency }, async () => {
+    pinned.startupSignal?.throwIfAborted();
+    return { reader: await createVerifiedPieceGatherLane({ ...pinned, memoryBudgetBytes: laneBytes }), busy: false };
+  }));
+  const failures = admissions.flatMap(outcome => outcome.status === 'rejected' ? [outcome.reason] : []);
+  for (const outcome of admissions) if (outcome.status === 'fulfilled') lanes.push(outcome.value);
+  if (pinned.startupSignal?.aborted && !failures.includes(pinned.startupSignal.reason)) {
+    failures.push(pinned.startupSignal.reason);
+  }
+  if (failures.length) {
     const outcomes = await Promise.allSettled(lanes.map(async lane => lane.reader.close()));
-    const failures = outcomes.flatMap(outcome => outcome.status === 'rejected' ? [outcome.reason] : []);
-    if (failures.length) throw new AggregateError([error, ...failures], 'Gather startup and cleanup failed.');
-    throw error;
+    failures.push(...outcomes.flatMap(outcome => outcome.status === 'rejected' ? [outcome.reason] : []));
+    if (failures.length > 1) throw new AggregateError(failures, 'Gather startup and cleanup failed.');
+    throw failures[0];
   }
   let closed = false, collecting = false;
   /** @type {Promise<void> | null} */
