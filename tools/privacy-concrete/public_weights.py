@@ -13,7 +13,7 @@ import tempfile
 from pathlib import Path
 from types import MappingProxyType
 from full_plan import canonical,tiles
-from protocol import digest
+from protocol import digest,require_active
 from weight_encoding import weight_encoding
 from source_snapshot import file_signature
 
@@ -236,4 +236,57 @@ def store_public_matrix(directory,name,input_width,output_width,parameters,paylo
         except FileExistsError:verify_existing()
         return path,row
     finally:
+        if temporary is not None:temporary.unlink(missing_ok=True)
+
+
+def store_public_matrix_columns(directory,name,input_width,output_width,parameters,columns,*,cancelled=None):
+    """Publish consecutive output-channel chunks without a whole-matrix copy.
+
+    ``columns`` is trusted client quantization output, never provider input. Its
+    signed integer arrays have shape (input_width, channel_count). The owned
+    temporary mapping is closed before create-only publication; failures remove
+    only that temporary file. Existing content-addressed entries are verified.
+    """
+    import numpy as np
+    encoding=weight_encoding(parameters)
+    validate_public_projection(dict(name=name,inputWidth=input_width,outputWidth=output_width,weightId='0'*64))
+    require_active(cancelled);temporary=None;matrix=None
+    expected_bytes=input_width*output_width*encoding['bytes']
+    try:
+        with tempfile.NamedTemporaryFile(dir=directory,prefix='.public-columns-',suffix='.partial',delete=False) as handle:
+            temporary=Path(handle.name);handle.truncate(expected_bytes)
+        matrix=np.memmap(temporary,dtype=encoding['dtype'],mode='r+',shape=(input_width,output_width))
+        end=0
+        for chunk in columns:
+            require_active(cancelled)
+            if (not isinstance(chunk,np.ndarray) or chunk.ndim!=2 or chunk.shape[0]!=input_width
+                    or not 0<chunk.shape[1]<=output_width-end or chunk.dtype!=np.dtype(encoding['dtype'])):
+                raise ValueError('Complete consecutive signed public coefficient columns required')
+            following=end+chunk.shape[1];matrix[:,end:following]=chunk;end=following
+        if end!=output_width:raise ValueError('Incomplete public coefficient columns')
+        require_active(cancelled);matrix.flush();matrix._mmap.close();matrix=None
+        def file_digest(path):
+            hasher=hashlib.sha256()
+            with path.open('rb') as handle:
+                while True:
+                    require_active(cancelled);chunk=handle.read(1024*1024)
+                    if not chunk:break
+                    hasher.update(chunk)
+            return hasher.hexdigest()
+        identity=file_digest(temporary)
+        row=dict(name=name,inputWidth=input_width,outputWidth=output_width,weightId=identity)
+        path=Path(directory)/(identity+encoding['suffix'])
+        require_active(cancelled)
+        try:os.link(temporary,path)
+        except FileExistsError:
+            if path.is_symlink() or not path.is_file():raise ValueError('Regular public coefficient cache required')
+            before=coefficient_signature(path)
+            if before[2]!=expected_bytes or file_digest(path)!=identity or coefficient_signature(path)!=before:
+                raise ValueError('Public coefficient cache corruption')
+        # Publication contains only public bytes. Cancellation here rejects the
+        # preparation but leaves a complete shared cache entry intact.
+        require_active(cancelled)
+        return path,row
+    finally:
+        if matrix is not None:matrix._mmap.close()
         if temporary is not None:temporary.unlink(missing_ok=True)

@@ -51,8 +51,8 @@ class FlashStreamedMoETests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as directory:
             torch,streamed,reference,source,_=self.fixture(directory)
             calls=[];leases=[];read=source.tensor
-            def tensor(name,expert=None):
-                value=read(name,expert=expert);calls.append((name,expert));leases.append(weakref.ref(value));return value
+            def tensor(name,expert=None,**kwargs):
+                value=read(name,expert=expert,**kwargs);calls.append((name,expert));leases.append(weakref.ref(value));return value
             with patch.object(source,'tensor',side_effect=tensor):
                 for step in range(4):
                     value=torch.linspace(-.4,.7,8 if step==0 else 4).reshape(1,-1,4)

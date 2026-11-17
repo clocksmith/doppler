@@ -75,12 +75,23 @@ class SourceLinear(nn.Linear):
     def require_source(self):self.source_owner.require_tensor(self._name)
 
     @contextmanager
-    def materialized_weight(self,*,cancelled=None):
+    def materialized_weight(self,*,cancelled=None,output_rows=None):
         """Borrow one authenticated FP32 matrix; never install it on the module."""
         require_active(cancelled);self.require_source()
-        weight=self._source.tensor(self._name,expert=self._expert)
-        if self._rows is not None:weight=weight[self._rows[0]:self._rows[1]]
-        if (weight.device.type!='cpu' or weight.dtype!=torch.float32 or weight.shape!=(self.out_features,self.in_features)
+        if output_rows is not None and (type(output_rows) is not tuple or len(output_rows)!=2
+                or any(type(index) is not int for index in output_rows)
+                or not 0<=output_rows[0]<output_rows[1]<=self.out_features):
+            raise ValueError('Bound public projection output rows required')
+        rows=self._rows
+        if output_rows is not None:
+            offset=0 if rows is None else rows[0]
+            rows=(offset+output_rows[0],offset+output_rows[1])
+        # Slice the authenticated BF16 source before FP32 conversion. In
+        # particular, never load the complete vocabulary head for one chunk.
+        options={} if rows is None else dict(rows=rows)
+        weight=self._source.tensor(self._name,expert=self._expert,**options)
+        height=self.out_features if output_rows is None else output_rows[1]-output_rows[0]
+        if (weight.device.type!='cpu' or weight.dtype!=torch.float32 or weight.shape!=(height,self.in_features)
                 or not torch.isfinite(weight).all()):raise ValueError('Bound public projection materialization changed')
         require_active(cancelled);self.require_source()
         try:yield weight

@@ -353,6 +353,52 @@ and indexed attention with PLE inside the complete client graph, including local
 row-lease ownership. Full Flash weights and encrypted route integration remain
 unqualified.
 
+### Bounded output-channel preparation
+
+`PreparedFlashGraph` prepares each matrix in output-channel chunks (2,048 by
+default). `FullLinear(..., output_chunk_rows=N)` is the explicit opt-in for other
+callers; its existing whole-matrix path is unchanged. Each chunk retains every
+input channel and invokes the installed Concrete ML 1.9.0 per-output-channel
+quantizer. Channel scales, zero points and integer sums are retained exactly;
+private-input dynamic quantization and encrypted tile geometry are unchanged.
+For authenticated Flash sources, BF16 output-row slicing happens before FP32
+conversion, including composed expert gate/up slices. Preparation writes an
+owned temporary integer mapping and publishes it atomically without constructing
+a complete matrix `bytes` copy. Cancellation and failed writes remove only that
+temporary file. Existing shared coefficients must match their content hash.
+
+Clear and encrypted graph execution now borrow a fresh projection copy only for
+the current operation, clearing its private bindings in `finally`. They no longer
+clone quantizer metadata for all 74,501 projections at the start of every attempt.
+The complete prepared graph still retains one public metadata set per projection.
+
+Focused tests use real BF16 files and the installed quantizer at 8 and 12 bits,
+including constant channels, one-channel chunks, non-divisible final chunks and
+the vocabulary-head layout. Coefficient bytes, all correction metadata and clear
+outputs exactly match whole-matrix preparation. A tiny complete graph executes
+prefill/decode with real quantization, simulated encrypted transport and replay;
+it checks one live attempt copy, cancellation, corruption and binding failures.
+These tests are not full Flash numerical output or native encryption evidence.
+
+The installed geometry has exactly 125,105,397,760 linear coefficients. Its
+12-bit profile stores signed int16, requiring **250,210,795,520 bytes per complete
+endpoint cache**; the older 8-bit profile requires 125,105,397,760 bytes. These are
+exact linear totals, separate from the conservative whole-part upper bounds in
+`flash_storage_plan.py`. The largest individual coefficient matrix (the head)
+requires 1,271,398,400 bytes at 12 bits. Output chunks reduce transient preparation
+memory; they do **not** evict coefficient files or remove whole-cache admission.
+
+The pinned physical Flash gap remains: authenticate the complete checkpoint
+contents, produce full-model floating and quantized reference output, then bind
+and exercise full encrypted autoregression. A bounded coefficient lease must
+reconstruct and verify each projection against trusted client preparation and
+complete tile proofs; both the client loader and evaluator must support that
+versioned storage contract before the 250 GB caches can be omitted. Metadata-only
+manifests, a provider's hash assertion or disk estimates cannot replace those
+checks. The current bridge remains closed when complete caches are missing. No
+new host allocation, model transfer or physical run is part of this change; the
+existing small-Qwen receipt and production admission are unchanged.
+
 ### Streamed decoder coefficient preparation
 
 `FullLinear` now accepts a source-bound `SourceLinear` whose public weight is meta.

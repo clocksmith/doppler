@@ -11,6 +11,7 @@ from pathlib import Path
 from flash_source_scopes import TEXT,staging_spec
 from local_token_rows import installed_inventory
 from weight_encoding import encoding_for_bits
+from flash_text_plan import GEOMETRY
 
 TABLE=json.loads(Path(__file__).with_name('flash-ngram-storage.json').read_text())
 
@@ -36,6 +37,8 @@ def storage_plan(quantization_bits):
                            residentRawAndPartCacheBytesUpperBound=raw_bytes+cache_upper))
     return dict(schema='doppler.flash-public-storage-plan/v1',sourceRevision=TEXT['revision'],quantizationBits=quantization_bits,
                 coefficientBytes=coefficient_bytes,completeSourceBytes=TEXT['wholeSourceBytes'],
+                exactLinearCoefficientBytes=sum(width*height*coefficient_bytes for width,height in GEOMETRY.values()),
+                largestLinearCoefficientBytes=max(width*height*coefficient_bytes for width,height in GEOMETRY.values()),
                 persistentLocalRowStoreWholeBytes=sum(row['bytes'] for row in resident.values()),
                 allPartCoefficientCacheBytesUpperBound=sum(row['coefficientCacheBytesUpperBound'] for row in stages),
                 fullyResidentSourceAndCachesBytesUpperBound=TEXT['wholeSourceBytes']+sum(row['coefficientCacheBytesUpperBound'] for row in stages),

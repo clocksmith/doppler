@@ -20,7 +20,7 @@ from concrete.ml.quantization.linear_op_glwe_backend import GLWELinearLayerExecu
 import concrete_ml_extensions as ext
 from full_bridge import FullBridge
 from flash_streamed_moe import SourceLinear
-from public_weights import mapped_public_matrix,store_public_matrix
+from public_weights import mapped_public_matrix,store_public_matrix,store_public_matrix_columns
 from full_status import ExecutionRejected, failure_event
 from verified_execution import complete_verified_route,VALIDATION_BOUNDARY
 from public_qwen_fixtures import PUBLIC_FIXTURES
@@ -35,13 +35,17 @@ from profiles import validate_declared_arithmetic_capacity
 
 class FullLinear(nn.Module):
     """Quantize the entire input/weight once; tile only integer encrypted products, never scales."""
-    def __init__(self, name, source, executor, directory, quantization_bits=POLICY['quantizationBits'],*,cancelled=None):
+    def __init__(self, name, source, executor, directory, quantization_bits=POLICY['quantizationBits'],*,cancelled=None,output_chunk_rows=None):
         super().__init__()
         self.name, self.remote, self.executor = name, source, executor
         self.encoding=encoding_for_bits(quantization_bits)
         self.mode, self.bridge, self.secret, self.parameters = 'float-reference', None, None, None
         self.context = SimpleNamespace(input_quantizers=[SimpleNamespace(quant_options=SimpleNamespace(n_bits=quantization_bits))])
         require_active(cancelled)
+        if output_chunk_rows is not None:
+            if type(output_chunk_rows) is not int or output_chunk_rows<=0:raise ValueError('Positive output channel preparation bound required')
+            self._prepare_columns(source,directory,output_chunk_rows,cancelled)
+            return
         lease=source.materialized_weight(cancelled=cancelled) if isinstance(source,SourceLinear) else nullcontext(source.weight)
         with lease as weight:
             quantized, self.scale, self.zero_point, self.sum_weights = executor._per_channel_weight_quantization(
@@ -51,6 +55,33 @@ class FullLinear(nn.Module):
         if not np.array_equal(data,quantized.numpy()):raise ValueError('Quantized public coefficient truncation')
         self.weight_path,self.definition=store_public_matrix(directory,name,source.in_features,source.out_features,
             dict(weightEncoding=self.encoding['id'],quantizationBits=quantization_bits),data.tobytes())
+
+    def _prepare_columns(self,source,directory,width,cancelled):
+        # The installed quantizer reduces only over input rows, independently
+        # for each output channel. Keep every input row in each call; never
+        # approximate the input quantizer or split its dynamic private scale.
+        scales=[];zeros=[];sums=[]
+        def columns():
+            for begin,end in ranges(source.out_features,width):
+                require_active(cancelled)
+                lease=(source.materialized_weight(output_rows=(begin,end),cancelled=cancelled)
+                    if isinstance(source,SourceLinear) else nullcontext(source.weight[begin:end]))
+                with lease as weight:
+                    quantized,scale,zero,total=self.executor._per_channel_weight_quantization(
+                        weight.detach().numpy().T,self.context,torch.device('cpu'))
+                    require_active(cancelled)
+                    if any(value.numel()!=end-begin for value in (scale,zero,total)):
+                        raise ValueError('Independent per-output quantizer metadata required')
+                    data=np.ascontiguousarray(quantized.numpy(),dtype=self.encoding['dtype'])
+                    if not np.array_equal(data,quantized.numpy()):raise ValueError('Quantized public coefficient truncation')
+                    scales.append(scale.reshape(1,-1).clone());zeros.append(zero.reshape(1,-1).clone());sums.append(total.reshape(-1).clone())
+                del weight,quantized,scale,zero,total
+                require_active(cancelled)
+                yield data
+        self.weight_path,self.definition=store_public_matrix_columns(directory,self.name,source.in_features,source.out_features,
+            dict(weightEncoding=self.encoding['id'],quantizationBits=self.encoding['quantizationBits']),columns(),cancelled=cancelled)
+        self.scale=torch.cat(scales,dim=-1).squeeze(-1)
+        self.zero_point=torch.cat(zeros,dim=-1);self.sum_weights=torch.cat(sums,dim=0)
 
     def release_float_reference(self):
         """Drop owned FP32 weights after preparation; no implicit source reload."""

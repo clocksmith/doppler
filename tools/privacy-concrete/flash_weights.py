@@ -103,20 +103,24 @@ class FlashSource:
             if (not isinstance(actual,dict) or actual.get('shape')!=expected['shape'] or actual.get('dtype')!=expected['dtype']):
                 raise ValueError('Pinned public tensor geometry/dtype required')
 
-    def tensor(self,name,expert=None):
+    def tensor(self,name,expert=None,*,rows=None):
         import torch
         from safetensors import safe_open
         expected=self.spec['tensors'][name];path=self.directory/expected['shard']
         if file_signature(path)!=self.signatures[expected['shard']]:raise ValueError('Verified model source changed')
         if name in EXPERT_TENSORS and expert is None:raise ValueError('Explicit streamed expert required')
         if expert is not None and name not in EXPERT_TENSORS:raise ValueError('Expert slicing is unavailable for this tensor')
+        shape=expected['shape'][1:] if expert is not None else expected['shape']
+        if rows is not None and (len(shape)!=2 or type(rows) is not tuple or len(rows)!=2
+                or any(type(index) is not int for index in rows) or not 0<=rows[0]<rows[1]<=shape[0]):
+            raise ValueError('Explicit public matrix output rows required')
         with safe_open(path,framework='pt',device='cpu') as source:
             value=source.get_slice(name)
             if value.get_shape()!=expected['shape']:raise ValueError('Pinned tensor geometry required')
             if expert is not None:
                 if type(expert) is not int or not 0<=expert<expected['shape'][0]:raise ValueError('Invalid public expert component')
-                result=value[expert]
-            else:result=source.get_tensor(name)
+                result=value[expert] if rows is None else value[expert,rows[0]:rows[1],:]
+            else:result=source.get_tensor(name) if rows is None else value[rows[0]:rows[1],:]
             expected_dtype={'BF16':torch.bfloat16,'I64':torch.int64}.get(expected['dtype'])
             if expected_dtype is None or result.dtype!=expected_dtype:raise ValueError('Pinned BF16 or int64 tensor required')
             result=result.to(dtype=torch.float32) if expected_dtype==torch.bfloat16 else result.clone()

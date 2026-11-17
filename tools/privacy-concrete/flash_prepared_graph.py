@@ -14,14 +14,15 @@ from protocol import require_active
 
 
 class PreparedFlashGraph:
-    def __init__(self,graph,executor,directory,*,quantization_bits=8,cancelled=None):
+    def __init__(self,graph,executor,directory,*,quantization_bits=8,cancelled=None,output_chunk_rows=2048):
         require_active(cancelled)
         if type(graph) is not ClientFlashGraph:raise ValueError('Complete client Flash graph required')
         self.graph=graph;self.identity=graph.identity;self.order=tuple(graph.order)
         self._prepared={}
         for name in self.order:
             require_active(cancelled)
-            projection=FullLinear(name,graph.projections[name].source,executor,directory,quantization_bits,cancelled=cancelled)
+            projection=FullLinear(name,graph.projections[name].source,executor,directory,quantization_bits,
+                cancelled=cancelled,output_chunk_rows=output_chunk_rows)
             projection.release_float_reference();self._prepared[name]=projection
         self._definitions=canonical([self._prepared[name].definition for name in self.order])
         self.require_graph();require_active(cancelled)
@@ -38,12 +39,14 @@ class PreparedFlashGraph:
 
     def reference(self,tokens,state,context,*,cancelled=None):
         self.require_graph();require_active(cancelled)
-        projections={name:projection.prepared_copy() for name,projection in self._prepared.items()}
+        def project(operation,value):
+            require_active(cancelled)
+            projection=self._prepared[operation['id']].prepared_copy()
+            return projection(value)
         return self.graph(tokens,state,context,execution='verified-projections',
-            verified_client_projection=lambda operation,value:projections[operation['id']](value),cancelled=cancelled)
+            verified_client_projection=project,cancelled=cancelled)
 
     def execute(self,tokens,state,context,bridge,secret,parameters):
-        projections={}
         try:
             self.require_graph()
             if type(bridge) not in (FullBridge,CheckedBridge):raise ValueError('Admitted integrity-verifying Flash bridge required')
@@ -55,20 +58,18 @@ class PreparedFlashGraph:
                     or context.model_id!=self.identity or context.key_id!=bridge.key_id
                     or context.request_id!=bridge.session or secret is None or parameters is None):
                 raise ValueError('Exact Flash graph, coefficients and attempt context required')
-            for name,prepared in self._prepared.items():
-                projection=prepared.prepared_copy();projection.mode='execute'
-                projection.bridge=bridge;projection.secret=secret;projection.parameters=parameters
-                projections[name]=projection
             def project(operation,value):
-                projection=projections[operation['id']]
-                if (operation['inputWidth'],operation['outputWidth'])!=(projection.definition['inputWidth'],projection.definition['outputWidth']):
-                    raise ValueError('Prepared Flash projection geometry changed')
-                return projection(value)
+                bridge.check_active()
+                projection=self._prepared[operation['id']].prepared_copy()
+                try:
+                    if (operation['inputWidth'],operation['outputWidth'])!=(projection.definition['inputWidth'],projection.definition['outputWidth']):
+                        raise ValueError('Prepared Flash projection geometry changed')
+                    projection.mode='execute';projection.bridge=bridge;projection.secret=secret;projection.parameters=parameters
+                    return projection(value)
+                finally:projection.secret=projection.bridge=projection.parameters=None
             return self.graph(tokens,state,context,execution='verified-projections',verified_client_projection=project,cancelled=bridge.cancelled)
         except BaseException:
             state.fail()
             if type(bridge) in (FullBridge,CheckedBridge):
                 bridge.admission.fail();bridge._release_projection_inputs()
             raise
-        finally:
-            for projection in projections.values():projection.secret=projection.bridge=projection.parameters=None

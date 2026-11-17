@@ -19,9 +19,9 @@ class FlashStageSource(FlashSource):
         self.closed=False
         self._open(directory,staging_spec(part,layer_index),cancelled=cancelled)
 
-    def tensor(self,name,expert=None):
+    def tensor(self,name,expert=None,*,rows=None):
         if self.closed:raise ValueError('Public model-part stage is closed')
-        return super().tensor(name,expert)
+        return super().tensor(name,expert,rows=rows)
 
     def close(self):self.closed=True
 

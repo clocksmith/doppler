@@ -1,7 +1,7 @@
 """Tiny complete graph, real quantization and replay, simulated crypto/transport.
 Synthetic plan only: no installed full Flash plan, native or model qualification.
 """
-import os,tempfile,threading,unittest
+import os,tempfile,threading,unittest,weakref
 from types import SimpleNamespace
 from unittest.mock import patch
 
@@ -30,6 +30,12 @@ class FlashEncryptedGraphAdapterTests(unittest.TestCase):
             executor=GLWELinearLayerExecutor(use_dynamic_quantization=True)
             prepared_graph=PreparedFlashGraph(graph,executor,cache)
             prepared=prepared_graph._prepared
+            copies=[];copy_projection=full_model.FullLinear.prepared_copy
+            def owned_copy(projection):
+                # Previously every projection was cloned before execution,
+                # multiplying complete-Flash quantizer metadata per attempt.
+                self.assertFalse(any(ref() is not None for ref in copies))
+                result=copy_projection(projection);copies.append(weakref.ref(result));return result
             plan=FullPlan(canonical(dict(steps=2,contextBucket=2,inputTileWidth=16,outputTileWidth=16,
                 clientGraphId=graph.identity,parameters=dict(parameters=dict(bits_reserved_for_computation=27)),projections=prepared_graph.definitions())))
             bridge=full_bridge.FullBridge.__new__(full_bridge.FullBridge)
@@ -65,14 +71,15 @@ class FlashEncryptedGraphAdapterTests(unittest.TestCase):
             clear_state=graph.new_state(context);encrypted_state=graph.new_state(context)
             tokens=[torch.tensor([[1,2]]),torch.tensor([[3]])]
             try:
-                expected=[prepared_graph.reference(value,clear_state,context) for value in tokens]
+                with patch.object(full_model.FullLinear,'prepared_copy',owned_copy):
+                    expected=[prepared_graph.reference(value,clear_state,context) for value in tokens]
                 if failure=='binding':bridge.session='other-request'
                 if failure=='plan':
                     definition=plan.definition();definition['clientGraphId']='other-graph';bridge.plan=FullPlan(canonical(definition))
                 if failure=='source':source.closed=True
                 if failure=='cache':
                     path=prepared[graph.order[0]].weight_path;raw=path.read_bytes();path.write_bytes(bytes([raw[0]^1])+raw[1:])
-                with patch.object(full_model,'ext',native),patch.object(full_bridge,'ext',native):
+                with patch.object(full_model,'ext',native),patch.object(full_bridge,'ext',native),patch.object(full_model.FullLinear,'prepared_copy',owned_copy):
                     if failure:
                         with self.assertRaises((ValueError,InterruptedError,RuntimeError)):
                             prepared_graph.execute(tokens[0],encrypted_state,context,bridge,object(),object())
