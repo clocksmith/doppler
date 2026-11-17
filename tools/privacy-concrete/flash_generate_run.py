@@ -115,6 +115,7 @@ def run(source_directory,reference_path,scratch_directory,prompt,*,backend_profi
         from flash_prepared_graph import PreparedFlashGraph,EPHEMERAL_STORAGE
         from flash_generation import generate
         from flash_float_reference import BoundedFloatingReference
+        from flash_checkpoint_reference import require_checkpoint_reference
         from checked_bridge import CheckedBridge
         from research_parameters import component_parameters
         previous_threads=torch.get_num_threads();torch.set_num_threads(settings['cpuThreads'])
@@ -137,6 +138,7 @@ def run(source_directory,reference_path,scratch_directory,prompt,*,backend_profi
                 parameters=ext.MatmulCryptoParameters.deserialize(json.dumps(component_parameters(settings)['parameters']))
                 executor=GLWELinearLayerExecutor(use_dynamic_quantization=True);executor.glwe_crypto_params=parameters
                 prepared=PreparedFlashGraph(graph,executor,temporary,quantization_bits=12,storage=EPHEMERAL_STORAGE,cancelled=active)
+                checkpoint_reference=require_checkpoint_reference(prepared,cancelled=active)
                 plan,binding=backend.write_plan(temporary,prepared,cancelled=active)
                 floating=BoundedFloatingReference(graph,cancelled=active);owned.callback(floating.close)
                 require_active(active);secret,key=ext.cpu_create_private_key(parameters);require_active(active)
@@ -152,6 +154,7 @@ def run(source_directory,reference_path,scratch_directory,prompt,*,backend_profi
                     linearProjectionCount=len(prepared.order),encryptedTileCount=len(plan.schedule())*settings['steps'],
                     clientLocalOutputText=decode(source,result['clientLocalOutputTokens'],settings['steps'],cancelled=active),
                     implementationVersions=versions,sha256VerifiedBytesIncludingRepeats=verified,
+                    clearCoefficientReference=checkpoint_reference,
                     resourceLimits=resource_limits,floatingPeakFp32WeightChunkBytes=floating.peak_fp32_weight_bytes,
                     preparationSeconds=prepared.preparation_seconds,rematerializationSeconds=prepared.rematerialization_seconds,
                     elapsedSeconds=time.perf_counter()-began,clientLifetimePeakRssBytes=resource.getrusage(resource.RUSAGE_SELF).ru_maxrss*(1 if platform.system()=='Darwin' else 1024),

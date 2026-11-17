@@ -63,6 +63,12 @@ class ResourceTurnTests(unittest.TestCase):
 @unittest.skipUnless(os.environ.get('DOPPLER_FLASH_REFERENCE')=='1','opt-in installed Torch/source interfaces')
 class RunnerLifecycleTests(unittest.TestCase):
     def test_provider_stops_before_public_leases_and_owned_scratch_are_released(self):
+        self._lifecycle(False)
+
+    def test_reference_mismatch_releases_sources_without_creating_keys_or_provider(self):
+        self._lifecycle(True)
+
+    def _lifecycle(self,blocked_reference):
         from contextlib import ExitStack
         import concrete_ml_extensions as ext
         import flash_text_rebuild5_plan as backend
@@ -91,17 +97,21 @@ class RunnerLifecycleTests(unittest.TestCase):
             stack.enter_context(patch('local_ngram_rows.LocalNgramRows.flash',side_effect=stage))
             stack.enter_context(patch('flash_graph_source.bind_graph',return_value=graph))
             stack.enter_context(patch('flash_prepared_graph.PreparedFlashGraph',return_value=prepared))
+            stack.enter_context(patch('flash_checkpoint_reference.require_checkpoint_reference',return_value={'fixture':'mocked lifecycle'},
+                side_effect=ValueError('reference mismatch') if blocked_reference else None))
             stack.enter_context(patch('flash_float_reference.BoundedFloatingReference',return_value=SimpleNamespace(close=lambda:None)))
             stack.enter_context(patch('research_parameters.component_parameters',return_value={'parameters':{}}))
             stack.enter_context(patch.object(ext,'MatmulCryptoParameters',SimpleNamespace(deserialize=lambda value:object())))
-            stack.enter_context(patch.object(ext,'cpu_create_private_key',return_value=(object(),object()),create=True))
+            keygen=stack.enter_context(patch.object(ext,'cpu_create_private_key',return_value=(object(),object()),create=True))
             stack.enter_context(patch('concrete.ml.quantization.linear_op_glwe_backend.GLWELinearLayerExecutor',return_value=SimpleNamespace()))
-            stack.enter_context(patch('checked_bridge.CheckedBridge',return_value=bridge))
+            provider=stack.enter_context(patch('checked_bridge.CheckedBridge',return_value=bridge))
             stack.enter_context(patch('flash_generation.generate',side_effect=RuntimeError('mocked generation failure')))
-            with self.assertRaisesRegex(RuntimeError,'mocked generation failure'):
+            with self.assertRaisesRegex(ValueError if blocked_reference else RuntimeError,
+                    'reference mismatch' if blocked_reference else 'mocked generation failure'):
                 run(source,reference,scratch,'public fixture',backend_profile=REBUILD_PREFILL5_PROFILE,tenant_id='tenant',privacy_id='restricted',
                     lock_path=lock,pause_path=pause,resource_wait_seconds=1)
-            self.assertLess(events.index('provider-close'),events.index('source-close'))
+            if blocked_reference:keygen.assert_not_called();provider.assert_not_called()
+            else:self.assertLess(events.index('provider-close'),events.index('source-close'))
             self.assertLess(events.index('source-close'),events.index('scratch-close'))
             self.assertEqual(list(scratch.iterdir()),[sibling]);self.assertEqual(sibling.read_text(),'keep')
         self.assertEqual(torch.get_num_threads(),original_threads)

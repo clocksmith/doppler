@@ -377,3 +377,16 @@ as recorded in the artifact. This is a fresh-process operator observation, with
 no actual model weights, independent-host memory claim or full-Flash latency
 extrapolation. It does not open production admission or qualify the integrity
 mechanism against malicious providers.
+
+`flash-checkpoint-reference.json` pins the public clear reference receipt at
+`f55c321830d364730bb539ec6becb349cec66efc`. The runner compares all 74,501
+ordered prepared coefficient identities against that whole-projection
+quantizer's digest before generating keys or starting an evaluator. Missing,
+reordered, changed or differently quantized projections reject the attempt.
+This checks bounded preparation against a measured clear reference; it does not
+turn the clear receipt into an encrypted execution or an independent model
+implementation. The reference and admitted execution graph IDs are reported
+separately: a context bound belongs to the actual plan, and a different context
+does not change the public coefficients. The pin compares coefficient identities,
+without asserting equality between graphs with different context bounds.
+Post-close numerical generation checks remain required.
