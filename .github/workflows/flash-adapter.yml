@@ -15,6 +15,13 @@ on:
       - 'tools/privacy-concrete/flash_ple_model.py'
       - 'tools/privacy-concrete/flash_ple_plan.py'
       - 'tools/privacy-concrete/flash_weights.py'
+      - 'tools/privacy-concrete/public_weights.py'
+      - 'tools/privacy-concrete/flash_stage_source.py'
+      - 'tools/privacy-concrete/flash_streamed_moe.py'
+      - 'tools/privacy-concrete/flash_prepared_graph.py'
+      - 'tools/privacy-concrete/test_chunked_preparation.py'
+      - 'tools/privacy-concrete/test_public_columns.py'
+      - 'tools/privacy-concrete/test_streamed_preparation.py'
       - 'tools/privacy-concrete/test_flash_moe_native.py'
       - 'tools/privacy-concrete/flash*tokenizer*'
       - 'tools/privacy-concrete/prepare_flash_tokenizer.py'
@@ -45,6 +52,12 @@ jobs:
           python -m unittest discover -s tools/privacy-concrete -p test_flash_moe_native.py -v
           python -m unittest discover -s tools/privacy-concrete -p test_full_bridge.py -v
           python -m unittest discover -s tools/privacy-concrete -p test_flash_moe_cancellation.py -v
+      - name: Check bounded coefficient preparation against the installed quantizer
+        env:
+          DOPPLER_FLASH_REFERENCE: '1'
+        run: |
+          cd tools/privacy-concrete
+          python -m unittest test_chunked_preparation test_public_columns test_streamed_preparation -v
       - name: Provision only the exact public Flash tokenizer
         run: python tools/privacy-concrete/prepare_flash_tokenizer.py --destination "$RUNNER_TEMP/flash-tokenizer"
       - name: Check real Flash text input and output using local pinned files
