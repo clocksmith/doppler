@@ -19,6 +19,7 @@ from flash_model_graph import ClientFlashGraph
 from protocol import require_active
 from public_weights import PreparedPublicProjection,PreparedPublicTiles
 from flash_streamed_moe import SourceLinear
+from projection_identity import ProjectionIdentity
 
 EPHEMERAL_STORAGE='doppler.ephemeral-public-projection/v1'
 
@@ -48,7 +49,8 @@ class PreparedFlashGraph:
                     with projection.weight_path.open('rb') as handle:
                         self._proofs.append(PreparedPublicProjection(projection.definition,definition,handle,cancelled=cancelled))
             self.preparation_seconds+=time.perf_counter()-began
-            projection.release_float_reference();self._prepared[name]=projection
+            projection.release_float_reference()
+            self._prepared[name]=ProjectionIdentity.from_projection(projection) if storage==EPHEMERAL_STORAGE else projection
         self._definitions=canonical([self._prepared[name].definition for name in self.order])
         self.require_graph();require_active(cancelled)
 
@@ -93,11 +95,7 @@ class PreparedFlashGraph:
             finally:self.rematerialization_seconds+=time.perf_counter()-began
             self.rematerializations+=1
             actual.release_float_reference()
-            if (canonical(actual.definition)!=canonical(prepared.definition) or actual.encoding!=prepared.encoding
-                    or any(not torch.equal(getattr(actual,key),getattr(prepared,key)) for key in ('scale','zero_point','sum_weights'))
-                    or (actual.prepared_bias is None)!=(prepared.prepared_bias is None)
-                    or actual.prepared_bias is not None and not torch.equal(actual.prepared_bias,prepared.prepared_bias)):
-                raise ValueError('Rematerialized public projection differs from trusted client preparation')
+            prepared.require_projection(actual)
             actual.mode='clear-reference'
             try:yield actual
             finally:actual.secret=actual.bridge=actual.parameters=None

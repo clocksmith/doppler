@@ -25,8 +25,14 @@ plan, binding = write_plan(cache_directory, prepared, cancelled=cancelled)
 
 Preparation owns one temporary coefficient directory at a time. It quantizes
 public source rows, verifies the complete integer matrix and derives its tile
-digests from that same byte stream before evicting the file. Only public
-quantizer metadata and immutable byte-derived proof objects survive. Publication
+digests from that same byte stream before evicting the file. Only tensor-free
+public projection identities and immutable byte-derived proof objects survive.
+An identity binds the exact coefficient definition, encoding and finite CPU
+scale/zero/sum/bias metadata, including each tensor's shape, dtype and bytes.
+Every freshly quantized lease must match before use. This removes retained
+per-projection Torch arrays from the evictable path; ordinary retained storage
+still owns its prepared projections. Identities are derived locally from actual
+preparation and cannot replace byte proofs or authorize imported plans. Publication
 of `plan.json` is atomic and create-only; a matching existing manifest is reused,
 and a different file or symlink is preserved and rejected.
 
@@ -479,7 +485,9 @@ workflow's explicit `process_resources` option runs those shapes in separate
 client/evaluator processes, using real native encryption and synthetic public
 matrices, with five-row prefill followed by three independent feedback steps per
 shape. A physically touched 1,161,002,304-byte client allocation represents the
-logical size of all Flash scale/zero/sum quantizer arrays. It does not instantiate
+logical size of all Flash scale/zero/sum quantizer arrays before tensor-free
+identity retention. It remains an explicit additional pressure scenario, rather
+than a requirement of the current evictable representation. It does not instantiate
 the actual graph, request state, proof catalogue or full-model mappings. Both
 processes inherit one fresh enforced 8 GiB/no-swap/eight-core cgroup; existing
 storage probes are excluded from this mode.
@@ -494,3 +502,12 @@ test-only fixture executable substitutes synthetic source geometry; normal
 backend loaders remain unchanged and reject that scope. No secret key or
 plaintext feedback is passed to the evaluator process. Production and security
 qualification stay false, including when all synthetic controls match.
+
+The tensor-free identity regression checks use the real installed quantizer and
+complete tiny graph. Weak references show that preparation retains no scale,
+zero or sum tensors after each ephemeral projection. Value, shape, dtype, bias,
+device and nonfinite metadata changes reject before the lease escapes. The same
+canonical metadata digest protects the bounded quantized oracle. Existing
+four-step storage, source identity, corruption, cancellation and cleanup checks
+continue to pass. This establishes reference release, not measured full-model
+RSS savings; a new physical run is still needed for the latter.

@@ -17,6 +17,23 @@ from unittest.mock import patch,Mock
 
 @unittest.skipUnless(os.environ.get('DOPPLER_FLASH_REFERENCE')=='1','opt-in real Torch quantizer')
 class FlashStreamStorageTests(unittest.TestCase):
+    def test_ephemeral_preparation_keeps_no_quantizer_tensor_references(self):
+        import gc,weakref
+        from full_model import FullLinear
+        from projection_identity import ProjectionIdentity
+        references=[]
+        def prepare(*args,**kwargs):
+            result=FullLinear(*args,**kwargs)
+            references.extend(weakref.ref(getattr(result,name)) for name in ('scale','zero_point','sum_weights'))
+            return result
+        with ExitStack() as stack:
+            with patch('flash_prepared_graph.FullLinear',side_effect=prepare):_,_,prepared,_,_,_=self.fixture(stack)
+            gc.collect();self.assertTrue(references);self.assertTrue(all(value() is None for value in references))
+            self.assertTrue(all(type(value) is ProjectionIdentity for value in prepared._prepared.values()))
+            first=prepared._prepared[prepared.order[0]];definition=first.definition;definition['weightId']='f'*64
+            self.assertNotEqual(first.definition,definition)
+            with self.assertRaises(AttributeError):first.metadata_digest='f'*64
+
     def test_client_projection_capacity_rejects_reentrant_and_concurrent_allocation(self):
         with ExitStack() as stack:
             _,_,prepared,root,_,_=self.fixture(stack)
@@ -356,7 +373,11 @@ class FlashStreamStorageTests(unittest.TestCase):
                 with self.assertRaises(InterruptedError):
                     with prepared.projection_lease(name,cancelled=event):self.fail('cancelled coefficient lease escaped')
             self.assertEqual({path.name for path in root.iterdir()},{'plan.json','keep'})
-            prepared._prepared[name].scale+=1
+            quantize=prepared.executor._per_channel_weight_quantization
+            def change(*args):
+                coefficients,scale,zero,total=quantize(*args)
+                return coefficients,scale+1,zero,total
+            stack.enter_context(patch.object(prepared.executor,'_per_channel_weight_quantization',side_effect=change))
             with self.assertRaises(ValueError):
                 with prepared.projection_lease(name):self.fail('changed quantizer metadata escaped')
             self.assertEqual(sibling.read_text(),'keep');self.assertFalse(list(root.glob('flash-public-projection-*')))

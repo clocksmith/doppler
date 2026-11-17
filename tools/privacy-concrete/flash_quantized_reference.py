@@ -5,7 +5,6 @@ integer product as encrypted execution. It never holds a whole FP32 source
 projection or a complete coefficient cache. This is full client computation,
 not an encrypted backend or a security qualification.
 """
-import hashlib
 from pathlib import Path
 import shutil
 import tempfile
@@ -14,6 +13,7 @@ import time
 from full_plan import canonical
 from protocol import digest,require_active
 from flash_text_rebuild_plan import CACHE_BUDGET_BYTES
+from projection_identity import public_metadata_digest
 
 OUTPUT_CHUNK_ROWS=2048
 
@@ -38,17 +38,6 @@ class BoundedQuantizedReference:
         if self.closed or self.failed or self.graph.identity!=self.identity or tuple(self.graph.order)!=self.order:
             raise ValueError('Reference graph or lifetime changed')
 
-    @staticmethod
-    def _metadata_id(projection):
-        import torch
-        result=hashlib.sha256(canonical(projection.definition))
-        for key in ('scale','zero_point','sum_weights','prepared_bias'):
-            value=getattr(projection,key)
-            if value is None:result.update(canonical(dict(name=key,value=None)));continue
-            result.update(canonical(dict(name=key,shape=list(value.shape),dtype=str(value.dtype))))
-            with memoryview(value.detach().cpu().contiguous().reshape(-1).view(torch.uint8).numpy()) as raw:result.update(raw)
-        return result.hexdigest()
-
     def __call__(self,operation,value):
         from full_model import FullLinear
         if not self._lock.acquire(blocking=False):raise ValueError('Reference projection lease is already active')
@@ -63,7 +52,7 @@ class BoundedQuantizedReference:
             with tempfile.TemporaryDirectory(dir=self.directory,prefix='flash-reference-projection-') as temporary:
                 projection=FullLinear(name,module.source,self.executor,temporary,12,cancelled=self.cancelled,
                     output_chunk_rows=self.output_chunk_rows)
-                projection.release_float_reference();self._active();metadata_id=self._metadata_id(projection)
+                projection.release_float_reference();self._active();metadata_id=public_metadata_digest(projection)
                 if (self.identities.get(name,projection.definition['weightId'])!=projection.definition['weightId']
                         or self.metadata_ids.get(name,metadata_id)!=metadata_id):
                     raise ValueError('Reference coefficient or quantizer metadata changed')

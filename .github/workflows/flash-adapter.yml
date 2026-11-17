@@ -41,6 +41,8 @@ on:
       - 'tools/privacy-concrete/local_token_rows.py'
       - 'tools/privacy-concrete/local_ngram_rows.py'
       - 'tools/privacy-concrete/flash_quantized_reference.py'
+      - 'tools/privacy-concrete/projection_identity.py'
+      - 'tools/privacy-concrete/test_projection_identity.py'
       - 'tools/privacy-concrete/test_flash_quantized_reference.py'
       - 'tools/privacy-concrete/flash_text_stream_plan.py'
       - 'tools/privacy-concrete/flash_text_rebuild_plan.py'
@@ -103,7 +105,7 @@ jobs:
           DOPPLER_FLASH_SOURCE_DIR: ${{ runner.temp }}/flash-stream-reference
         run: |
           cd tools/privacy-concrete
-          python -m unittest test_public_tile_stream test_flash_stream_storage test_flash_encrypted_graph_adapter test_provider_checkpoint test_flash_quantized_reference test_flash_float_reference test_flash_graph_source test_flash_generate_run test_flash_checkpoint_reference test_client_progress test_resource_memory test_native_process_fixture test_flash_compute_budget -v
+          python -m unittest test_public_tile_stream test_flash_stream_storage test_flash_encrypted_graph_adapter test_provider_checkpoint test_flash_quantized_reference test_projection_identity test_flash_float_reference test_flash_graph_source test_flash_generate_run test_flash_checkpoint_reference test_client_progress test_resource_memory test_native_process_fixture test_flash_compute_budget -v
       - name: Provision only the exact public Flash tokenizer
         run: python tools/privacy-concrete/prepare_flash_tokenizer.py --destination "$RUNNER_TEMP/flash-tokenizer"
       - name: Check real Flash text input and output using local pinned files
