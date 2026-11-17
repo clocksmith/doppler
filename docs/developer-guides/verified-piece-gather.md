@@ -127,7 +127,10 @@ cancellation settles all reads and releases every acquired lease before failure.
 Larger miss sets keep bounded whole-expert groups; retained mapped-cache hooks
 keep their whole-expert admission and copy behavior.
 When every constituent range is a complete piece, positioned reads run
-concurrently into disjoint views of that one output. Each completed read is
+concurrently into disjoint views of that one output. A single-piece job reads
+directly on its owning worker, avoiding a thread-pool handoff when there is no
+sibling read to overlap. Cancellation and close still settle that read before
+retirement; they do not promise an immediate interruption. Each completed read is
 hashed synchronously on the owning worker, without a WebCrypto input snapshot
 or a shared thread-pool digest job. Other admitted workers remain independent.
 Any partial range retains the serialized generic path.

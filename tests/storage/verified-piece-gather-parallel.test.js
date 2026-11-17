@@ -15,7 +15,8 @@ const encode = value => new TextEncoder().encode(JSON.stringify(value));
 const I = { reads: 0, readDone: 1, activeReads: 2, maxReads: 3, readError: 4, releaseReads: 5,
   closedFDs: 6, openedFDs: 7, syncReads: 8, hashes: 9, hashDone: 10, activeHashes: 11,
   maxHashes: 12, syncHashes: 13, enabled: 14, releaseHashes: 15, terminate: 16, failClose: 17, fstats: 18, lstats: 19,
-  syncPauseAt: 20, syncPaused: 21, releaseSync: 22, readGate: 32, hashGate: 80 };
+  syncPauseAt: 20, syncPaused: 21, releaseSync: 22,
+  syncReadPauseAt: 23, syncReadPaused: 24, releaseSyncRead: 25, readGate: 32, hashGate: 80 };
 
 // Test-only preload: production workers receive no instrumentation options or modes.
 // Native reads/digests still execute; only their issue/completion order is controlled.
@@ -51,7 +52,15 @@ fs.lstatSync = (...args) => {
   if (approved.has(args[0]) && Atomics.load(S, I.enabled)) Atomics.add(S, I.lstats, 1);
   return lstat(...args);
 };
-fs.readSync = (...args) => { Atomics.add(S, I.syncReads, 1); return readSync(...args); };
+fs.readSync = (...args) => {
+  if (!owned.has(args[0]) || !Atomics.load(S, I.enabled)) return readSync(...args);
+  const index = Atomics.add(S, I.syncReads, 1) + 1;
+  if (index === Atomics.load(S, I.syncReadPauseAt)) {
+    Atomics.store(S, I.syncReadPaused, 1);
+    if (Atomics.wait(S, I.releaseSyncRead, 0, 2000) === 'timed-out') throw new Error('Bounded synchronous read observation deadline');
+  }
+  return readSync(...args);
+};
 fs.read = (fd, bytes, offset, length, position, callback) => {
   const index = Atomics.add(S, I.reads, 1); increment(I.activeReads, I.maxReads);
   const done = (error, count, buffer) => {
@@ -151,6 +160,7 @@ async function publicHarness(f) {
   const cleanup = async () => {
     Atomics.store(S, I.releaseReads, 1); Atomics.store(S, I.releaseHashes, 1);
     Atomics.store(S, I.releaseSync, 1); Atomics.notify(S, I.releaseSync);
+    Atomics.store(S, I.releaseSyncRead, 1); Atomics.notify(S, I.releaseSyncRead);
     await gather?.close().catch(() => {});
     threads.Worker = OriginalWorker; syncBuiltinESMExports();
     await Promise.allSettled(workers.map(worker => OriginalWorker.prototype.terminate.call(worker)));
@@ -177,6 +187,105 @@ async function sameFileFixture() {
   f.ranges = [0, 4, 8].map(offset => ({ path: name, offset, length: 4 }));
   return f;
 }
+
+test('one exact-piece batch uses positioned sync I/O while multi-piece batches retain actual async overlap', { timeout: 5000 }, async () => {
+  const f = await fixture(), h = await direct(f), S = f.state;
+  try {
+    h.send([f.ranges[0]]);
+    const single = await h.take(value => value.buffer);
+    assert.equal(single.error, undefined);
+    assert.deepEqual([...new Uint8Array(single.buffer, 0, 4)], [...f.payloads[0]]);
+    assert.equal(S[I.syncReads], 1); assert.equal(S[I.reads], 0);
+    assert.equal(S[I.syncHashes], 1, 'The synchronous read still authenticates its complete piece');
+    assert.equal(S[I.lstats], 2); assert.equal(S[I.fstats], 3,
+      'One before/after identity pair and the cold regular-file check, without redundant read guards');
+    h.send(f.ranges, single.buffer);
+    await until(() => S[I.reads] === 3);
+    assert.equal(S[I.activeReads], 3); assert.equal(S[I.maxReads], 3);
+    assert.equal(S[I.syncReads], 1, 'Multi-piece work must not regress to serialized synchronous I/O');
+    Atomics.store(S, I.releaseReads, 1);
+    const multi = await h.take(value => value.buffer);
+    assert.equal(multi.error, undefined);
+    assert.deepEqual([...new Uint8Array(multi.buffer)], f.payloads.flatMap(bytes => [...bytes]));
+    assert.equal(S[I.syncHashes], 4);
+    const receipt = await h.receipt();
+    assert.equal(receipt.directPieceReads, 4); assert.equal(receipt.directPieceBytes, 16);
+    assert.equal(receipt.peakDigestCopyBytes, 0); assert.equal(receipt.peakGenericScratchBytes, 0);
+  } finally { await h.cleanup(); }
+});
+
+test('single exact-piece sync batches retain complete SHA, EOF rejection and post-hash file or symlink identity guards', { timeout: 5000 }, async () => {
+  for (const change of ['corrupt', 'file', 'symlink', 'eof']) {
+    const f = await fixture(), h = await direct(f), S = f.state;
+    const filename = f.files['gate.bin'], saved = filename + '.saved';
+    try {
+      if (change === 'corrupt') await fs.writeFile(filename, new Uint8Array(4));
+      else if (change === 'eof') Atomics.store(S, I.syncReadPauseAt, 1);
+      else Atomics.store(S, I.syncPauseAt, 1);
+      h.send([f.ranges[0]]);
+      if (change === 'eof') {
+        await until(() => S[I.syncReadPaused] === 1);
+        await fs.truncate(filename, 1);
+        Atomics.store(S, I.releaseSyncRead, 1); Atomics.notify(S, I.releaseSyncRead);
+      } else if (change !== 'corrupt') {
+        await until(() => S[I.syncPaused] === 1);
+        assert.equal(h.publications.length, 0);
+        await fs.rename(filename, saved);
+        if (change === 'file') await fs.writeFile(filename, f.payloads[0]);
+        else await fs.symlink(saved, filename);
+        Atomics.store(S, I.releaseSync, 1); Atomics.notify(S, I.releaseSync);
+      }
+      const failed = await h.take(value => value.buffer);
+      assert.match(failed.error, change === 'corrupt' ? /integrity/ : change === 'eof' ? /Incomplete authenticated piece/ : /identity changed/);
+      assert(new Uint8Array(failed.buffer).every(byte => byte === 0));
+      assert.equal(S[I.reads], 0, 'A single complete-piece job never enters the shared async pool');
+      if (change === 'file' || change === 'symlink') {
+        await fs.unlink(filename); await fs.rename(saved, filename);
+      } else await fs.writeFile(filename, f.payloads[0]);
+      h.send([f.ranges[0]], failed.buffer);
+      const recovered = await h.take(value => value.buffer);
+      assert.equal(recovered.error, undefined);
+      assert.deepEqual([...new Uint8Array(recovered.buffer, 0, 4)], [...f.payloads[0]]);
+    } finally {
+      Atomics.store(S, I.releaseSync, 1); Atomics.notify(S, I.releaseSync);
+      Atomics.store(S, I.releaseSyncRead, 1); Atomics.notify(S, I.releaseSyncRead);
+      await h.cleanup();
+    }
+  }
+});
+
+test('cancel and close wait for single-piece positioned sync I/O to relinquish its own worker and descriptor', { timeout: 5000 }, async () => {
+  for (const action of ['cancel', 'close']) {
+    const f = await fixture(), S = f.state, h = await publicHarness(f);
+    try {
+      Atomics.store(S, I.syncReadPauseAt, 1);
+      const controller = new AbortController();
+      const pending = h.gather.rangeLease.readMany([h.ranges[0]], controller.signal);
+      let settled = false;
+      const result = pending.then(value => { settled = true; return { value }; }, error => { settled = true; return { error }; });
+      await until(() => S[I.syncReadPaused] === 1);
+      let closed = false, closing;
+      if (action === 'cancel') controller.abort(Error('cancel single synchronous piece'));
+      else closing = h.gather.close().then(() => { closed = true; });
+      await Promise.resolve();
+      assert.equal(S[I.closedFDs], 0); assert.equal(S[I.terminate], 0); assert.equal(h.acks.length, 0);
+      if (action === 'cancel') assert.equal(settled, false, 'Cancellation cannot interrupt a native synchronous read');
+      else assert.equal(closed, false, 'Retirement acknowledgement must wait for the worker event loop');
+      Atomics.store(S, I.releaseSyncRead, 1); Atomics.notify(S, I.releaseSyncRead);
+      const outcome = await result;
+      outcome.value?.release();
+      assert.match(outcome.error?.message ?? '', action === 'cancel' ? /cancel single synchronous piece/ : /Gather reader closed/);
+      if (action === 'cancel') {
+        const recovered = await h.gather.rangeLease.readMany([h.ranges[0]], new AbortController().signal);
+        assert.deepEqual([...recovered.bytes], [...f.payloads[0]]); recovered.release();
+        await h.gather.close();
+      } else await closing;
+      assert.equal(S[I.openedFDs], S[I.closedFDs]);
+      assert.equal(S[I.reads], 0); assert.equal(S[I.terminate], 1);
+      assert.equal(h.acks.length, 1, 'Close acknowledges settled work before termination');
+    } finally { await h.cleanup(); }
+  }
+});
 
 test('whole-expert identity guards run once per distinct file at both request boundaries, never across jobs', { timeout: 5000 }, async () => {
   const f = await sameFileFixture(), h = await direct(f), S = f.state;

@@ -56,16 +56,16 @@ function admitFile(piece, bytes) {
   return handle;
 }
 /** @param {Readonly<import('./verified-piece-reader.js').VerifiedPiece>} piece
- * @param {Uint8Array} bytes */
-function readFile(piece, bytes) {
-  const handle = admitFile(piece, bytes);
+ * @param {Uint8Array} bytes @param {number | null} admittedHandle */
+function readFile(piece, bytes, admittedHandle = null) {
+  const handle = admittedHandle ?? admitFile(piece, bytes);
   let read = 0;
   while (read < bytes.length) {
     const count = readSync(handle, bytes, read, bytes.length - read, piece.offset + read);
     if (!count) throw new Error('Incomplete authenticated piece.');
     read += count;
   }
-  assertIdentity(piece.path, handle);
+  if (admittedHandle === null) assertIdentity(piece.path, handle);
 }
 /** Whole-piece batch outputs are disjoint owned views, so parallel reads need no
  * extra complete-piece scratch. Partial/generic acquisitions remain serialized.
@@ -192,7 +192,13 @@ async function gather({ ranges, length, buffer, batch }) {
         const output = outputs[index];
         return (async () => {
           const readStart = performance.now();
-          try { await readFileParallel(piece, output, admitted.get(piece.path)); }
+          try {
+            // One whole piece has no intra-job I/O to overlap. Read directly on
+            // its owning worker; multi-piece jobs retain their concurrent reads.
+            // The job's final guard still runs after authentication below.
+            if (pieces.length === 1) readFile(piece, output, admitted.get(piece.path));
+            else await readFileParallel(piece, output, admitted.get(piece.path));
+          }
           finally { acquisitionMs += performance.now() - readStart; }
           if (closing) throw new Error('Gather worker closed.');
           // This worker exclusively owns the output until transfer. Hash that

@@ -54,11 +54,17 @@ try {
 
   calls = 0; failures = 1;
   const prior = workers.length;
+  const attempted = [];
+  let faultedWorker;
   threads.Worker = class extends OriginalWorker {
     constructor(...args) { super(...args); workers.push(this); }
     terminate() {
       calls++;
-      if (failures-- > 0) throw new Error('Injected synchronous termination failure');
+      attempted.push(this);
+      if (failures-- > 0) {
+        faultedWorker = this;
+        throw new Error('Injected synchronous termination failure');
+      }
       return super.terminate();
     }
   };
@@ -68,10 +74,18 @@ try {
   concurrent.forEach(lease => lease.release());
   assert.equal(countSourceHandles(), 2);
   await assert.rejects(reader.close(), /synchronous termination failure/);
-  assert.equal(workers[prior + 1].threadId, -1, 'A synchronous close failure cannot skip another owned lane');
+  const currentOwners = workers.slice(prior);
+  assert.equal(calls, 2, 'Both owned lanes attempt retirement even if one throws synchronously');
+  assert.equal(new Set(attempted).size, 2);
+  assert(currentOwners.includes(faultedWorker), 'The injected failure belongs to a current owner');
+  assert(faultedWorker.threadId > 0, 'The actual faulted owner remains available for retirement retry');
+  assert(currentOwners.filter(worker => worker !== faultedWorker).every(worker => worker.threadId === -1),
+    'A synchronous close failure cannot skip the other owned lane');
   assert.equal(countSourceHandles(), 0, 'Settled descriptor retirement precedes thread termination, including a failed termination attempt');
   await reader.close();
   assert.equal(calls, 3);
+  assert.equal(attempted.filter(worker => worker === faultedWorker).length, 2, 'Retry targets the actual failed owner');
+  assert(workers.every(worker => worker.threadId === -1), 'Successful retry leaves no owned worker alive');
   assert.equal(countSourceHandles(), 0);
 
   threads.Worker = OriginalWorker; syncBuiltinESMExports();
