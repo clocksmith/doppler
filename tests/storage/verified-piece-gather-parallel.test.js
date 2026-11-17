@@ -14,7 +14,7 @@ const encode = value => new TextEncoder().encode(JSON.stringify(value));
 const I = { reads: 0, readDone: 1, activeReads: 2, maxReads: 3, readError: 4, releaseReads: 5,
   closedFDs: 6, openedFDs: 7, syncReads: 8, hashes: 9, hashDone: 10, activeHashes: 11,
   maxHashes: 12, syncHashes: 13, enabled: 14, releaseHashes: 15, terminate: 16, failClose: 17, fstats: 18, lstats: 19,
-  readGate: 32, hashGate: 80 };
+  syncPauseAt: 20, syncPaused: 21, releaseSync: 22, readGate: 32, hashGate: 80 };
 
 // Test-only preload: production workers receive no instrumentation options or modes.
 // Native reads/digests still execute; only their issue/completion order is controlled.
@@ -59,7 +59,20 @@ fs.read = (fd, bytes, offset, length, position, callback) => {
   if (index === Atomics.load(S, I.readError)) { setImmediate(() => done(new Error('Injected positioned read failure'), 0, bytes)); return; }
   gated(I.releaseReads, I.readGate, index, () => read(fd, bytes, offset, length, position, done));
 };
-crypto.createHash = (...args) => { if (Atomics.load(S, I.enabled)) Atomics.add(S, I.syncHashes, 1); return hash(...args); };
+crypto.createHash = (...args) => {
+  const current = hash(...args);
+  if (!Atomics.load(S, I.enabled)) return current;
+  const index = Atomics.add(S, I.syncHashes, 1) + 1, finish = current.digest.bind(current);
+  current.digest = (...options) => {
+    const result = finish(...options);
+    if (index === Atomics.load(S, I.syncPauseAt)) {
+      Atomics.store(S, I.syncPaused, 1);
+      if (Atomics.wait(S, I.releaseSync, 0, 2000) === 'timed-out') throw new Error('Bounded synchronous hash observation deadline');
+    }
+    return result;
+  };
+  return current;
+};
 crypto.webcrypto.subtle.digest = (algorithm, bytes) => {
   if (!Atomics.load(S, I.enabled)) return digest(algorithm, bytes);
   const index = Atomics.add(S, I.hashes, 1); increment(I.activeHashes, I.maxHashes);
@@ -135,6 +148,7 @@ async function publicHarness(f) {
   let gather;
   const cleanup = async () => {
     Atomics.store(S, I.releaseReads, 1); Atomics.store(S, I.releaseHashes, 1);
+    Atomics.store(S, I.releaseSync, 1); Atomics.notify(S, I.releaseSync);
     await gather?.close().catch(() => {});
     threads.Worker = OriginalWorker; syncBuiltinESMExports();
     await Promise.allSettled(workers.map(worker => OriginalWorker.prototype.terminate.call(worker)));
@@ -206,6 +220,54 @@ test('same-file batches reject mutation during reads and path replacement during
       h.send(f.ranges, failed.buffer); const recovered = await h.take(value => value.buffer);
       assert.equal(recovered.error, undefined);
     } finally { await h.cleanup(); }
+  }
+});
+
+test('batch identity capability requires actual complete pinned file bindings, never copied assertions', { timeout: 5000 }, async () => {
+  for (const bound of [true, false]) {
+    const f = await fixture();
+    if (!bound) f.options = { ...f.options, fileIdentities: undefined,
+      fileIdentitiesBound: true, batchFileIdentityChecks: 'before-read-after-auth/v1' };
+    const h = await publicHarness(f);
+    try {
+      assert.equal(h.gather.rangeLease.fileIdentitiesBound, bound);
+      assert.equal(h.gather.rangeLease.batchFileIdentityChecks, bound ? 'before-read-after-auth/v1' : undefined);
+      const lease = await h.gather.rangeLease.readMany([{ shard: 0, offset: 1, length: 2 }], new AbortController().signal);
+      assert.deepEqual([...lease.bytes], [2, 3]); lease.release();
+    } finally { await h.cleanup(); }
+  }
+  const f = await fixture();
+  try {
+    await assert.rejects(createVerifiedPieceGather({ ...f.options,
+      fileIdentities: { 'gate.bin': f.identities['gate.bin'] } }), /identit|bind/i);
+  } finally { await fs.rm(f.root, { recursive: true, force: true }); }
+});
+
+test('partial batches revalidate earlier file bindings after the last hash before any publication', { timeout: 5000 }, async () => {
+  for (const replacement of ['file', 'symlink']) {
+    const f = await fixture(), h = await direct(f), S = f.state, filename = f.files['gate.bin'];
+    try {
+      Atomics.store(S, I.syncPauseAt, 3);
+      h.send(f.ranges.map(range => ({ ...range, offset: 1, length: 2 })));
+      await until(() => S[I.syncPaused] === 1);
+      assert.equal(h.publications.length, 0, 'Even authenticated outputs remain worker-owned');
+      await fs.rename(filename, filename + '.saved');
+      if (replacement === 'file') await fs.writeFile(filename, f.payloads[0]);
+      else await fs.symlink(filename + '.saved', filename);
+      Atomics.store(S, I.releaseSync, 1); Atomics.notify(S, I.releaseSync);
+      const failed = await h.take(value => value.buffer);
+      assert.match(failed.error, /identity changed/);
+      assert(new Uint8Array(failed.buffer).every(byte => byte === 0));
+      assert.equal(S[I.syncHashes], 3, 'Each complete intersecting piece was authenticated');
+      await fs.unlink(filename); await fs.rename(filename + '.saved', filename);
+      h.send(f.ranges.map(range => ({ ...range, offset: 1, length: 2 })), failed.buffer);
+      const recovered = await h.take(value => value.buffer);
+      assert.equal(recovered.error, undefined);
+      assert.deepEqual([...new Uint8Array(recovered.buffer, 0, 6)], [2, 3, 6, 7, 10, 11]);
+    } finally {
+      Atomics.store(S, I.releaseSync, 1); Atomics.notify(S, I.releaseSync);
+      await h.cleanup();
+    }
   }
 });
 

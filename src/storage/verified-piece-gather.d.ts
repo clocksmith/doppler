@@ -58,6 +58,8 @@ export function createVerifiedPieceGather(options: VerifiedPieceGatherOptions): 
 export interface VerifiedRangeLeasePort {
   /** True only when the worker enforces the supplied file identity snapshot. */
   fileIdentitiesBound?: boolean;
+  /** readMany validates every requested path and open descriptor before reads and after authentication, before publication. */
+  batchFileIdentityChecks?: 'before-read-after-auth/v1';
   /** Omission denotes a legacy single-lane port. */
   concurrency?: number;
   maxPartBytes: number;

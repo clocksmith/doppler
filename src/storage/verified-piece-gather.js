@@ -109,6 +109,7 @@ export async function createVerifiedPieceGather(options) {
   /** @type {import('./verified-piece-gather.js').VerifiedRangeLeasePort} */
   const rangeLease = { concurrency, maxPartBytes: pinned.maxPartBytes, memoryBytes,
     fileIdentitiesBound: pinned.fileIdentities !== undefined,
+    ...(pinned.fileIdentities !== undefined ? { batchFileIdentityChecks: /** @type {const} */ ('before-read-after-auth/v1') } : {}),
     read(shard, offset, length, signal) {
       const file = manifest.shards[shard];
       if (!file) return Promise.reject(new Error('Undeclared gather shard.'));

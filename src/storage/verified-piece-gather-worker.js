@@ -260,6 +260,16 @@ async function gather({ ranges, length, buffer, batch }) {
           destination += rangeLength;
         }
       } finally { scratch = null; activeGenericScratchBytes = 0; }
+      if (batch) {
+        // Partial ranges authenticate complete pieces into scratch. Recheck every
+        // requested binding after all hashes/copies, including earlier ranges.
+        // Single reads retain their existing per-piece identity contract.
+        for (const path of new Set(ranges.map(range => range.path))) {
+          const handle = handles.get(path);
+          if (handle === undefined) throw new Error('Gather batch source descriptor missing.');
+          assertIdentity(path, handle);
+        }
+      }
     }
     if (closing) throw new Error('Gather worker closed.');
     if (batch) { batchReads++; batchRanges += ranges.length; batchBytes += length; }
