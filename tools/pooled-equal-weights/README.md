@@ -21,6 +21,11 @@ FFN inputs are fabricated. These changes and selected-source shader digests are
 recorded in `semanticBindings`. The caller pins both inputs and the additions;
 an older architecture's profile alone cannot establish
 coverage of hyper-connection, indexer or n-gram mechanisms.
+When the model's declared expert count exceeds the registered grouped sort's
+extent, preparation explicitly removes its three grouped operations and records
+ordinary routing in that receipt. Increasing the sort override alone is unsafe:
+the current shader assigns one expert to each invocation. Earlier grouped timings
+do not qualify this graph.
 
 1. `export-canonical.js <config.json>` verifies the pinned source manifest and
    every shard, then reconstructs selected learned tensors into F32 Safetensors.

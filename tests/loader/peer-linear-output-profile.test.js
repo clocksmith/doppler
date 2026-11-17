@@ -11,7 +11,7 @@ const dopplerRoot = fileURLToPath(new URL('../../', import.meta.url));
 test('binds opposite Q4/Q8 layer encodings from actual tensor metadata without changing the template', async () => {
   const profile = JSON.parse(await readFile(new URL('../../tools/pooled-equal-weights/profiles/qwen3-6-35b-a3b-q4_0-pooled-q8-common-diagnostic.json', import.meta.url)));
   const snapshot = structuredClone(profile);
-  const manifest = { architecture: { numLayers: 7 }, inference: {}, tensors: {
+  const manifest = { architecture: { numLayers: 7 }, moeConfig: { numExperts: 256 }, inference: {}, tensors: {
     'blk.4.ssm_out.weight': { dtype: 'Q8_0', shape: [32, 32], shard: 0, offset: 0, size: 1088 },
     'blk.6.ssm_out.weight': { dtype: 'Q4_0', shape: [32, 32], shard: 0, offset: 1088, size: 576 },
   } };
@@ -24,6 +24,18 @@ test('binds opposite Q4/Q8 layer encodings from actual tensor metadata without c
   assert.deepEqual(repeated.profile, bound.profile);
   manifest.tensors['blk.4.ssm_out.weight'].dtype = 'F32';
   await assert.rejects(bindLinearOutputProfile({ profile, manifest, dopplerRoot }), /Unsupported packed GGUF/);
+});
+
+test('declares ordinary prefill when the selected grouped sort cannot cover every model expert', async () => {
+  const profile = JSON.parse(await readFile(new URL('../../tools/pooled-equal-weights/profiles/qwen3-6-35b-a3b-q4_0-pooled-q8-common-diagnostic.json', import.meta.url)));
+  const manifest = { architecture: { numLayers: 7 }, moeConfig: { numExperts: 512 }, tensors: {} };
+  const result = await bindLinearOutputProfile({ profile, manifest, dopplerRoot });
+  const grouped = steps => steps.filter(step => step.op.startsWith('moe_grouped_'));
+  assert.equal(grouped(getLayerSteps(profile.runtime.inference.kernelPath, 4, 'prefill')).length, 3);
+  assert.equal(grouped(getLayerSteps(result.profile.runtime.inference.kernelPath, 4, 'prefill')).length, 0);
+  assert(result.semanticBindings.some(binding => binding.reason.includes('512 experts')));
+  const admitted = await bindLinearOutputProfile({ profile, manifest: { ...manifest, moeConfig: { numExperts: 256 } }, dopplerRoot });
+  assert.equal(grouped(getLayerSteps(admitted.profile.runtime.inference.kernelPath, 4, 'prefill')).length, 3);
 });
 
 test('does not turn an incompatible shader into a supported program', async () => {
@@ -55,7 +67,8 @@ test('retains optimized declarations and adds every missing model projection in 
 test('binds classic MoE fusions to the HC caller without inventing pending norm or residual inputs', async () => {
   const profile = JSON.parse(await readFile(new URL('../../tools/pooled-equal-weights/profiles/qwen3-6-35b-a3b-q4_0-pooled-q8-common-diagnostic.json', import.meta.url)));
   const snapshot = structuredClone(profile);
-  const manifest = { architecture: { numLayers: 1 }, inference: { hyperConnections: { streamCount: 4 } }, tensors: {} };
+  const manifest = { architecture: { numLayers: 1 }, moeConfig: { numExperts: 256 },
+    inference: { hyperConnections: { streamCount: 4 } }, tensors: {} };
   const result = await bindLinearOutputProfile({ profile, manifest, dopplerRoot });
   const kernelPath = result.profile.runtime.inference.kernelPath;
   assert.equal(result.semanticBindings.length, 2);

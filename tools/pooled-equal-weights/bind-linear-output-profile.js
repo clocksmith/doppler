@@ -16,6 +16,26 @@ export async function bindLinearOutputProfile({ profile, manifest, dopplerRoot, 
   const original = profile.runtime?.inference?.kernelPath;
   assert(original && Number.isSafeInteger(manifest.architecture?.numLayers), 'Explicit profile and model geometry required');
   const result = structuredClone(profile), bindings = [], declarations = [], semanticBindings = [], groups = new Map();
+  function bindGroupedExpertExtent(steps, location) {
+    const grouped = steps.filter(step => step.op === 'moe_grouped_sort');
+    if (!grouped.length) return steps;
+    assert.equal(grouped.length, 1, 'One grouped sort required');
+    const config = getKernelPathStepConfig('moe_grouped_sort', grouped[0], location.phase);
+    const maxExperts = config?.wgslOverrides?.MAX_EXPERTS;
+    const numExperts = manifest.moeConfig?.numExperts;
+    assert(Number.isSafeInteger(maxExperts) && Number.isSafeInteger(numExperts),
+      'Grouped profile binding requires declared model and registered expert extents');
+    if (numExperts <= maxExperts) return steps;
+    // The registered sort has one lane per expert. Selecting ordinary routing
+    // here is an explicit offline graph change, never a hidden runtime fallback.
+    const operations = ['moe_grouped_sort', 'moe_grouped_gu', 'moe_grouped_down'];
+    return steps.filter(step => {
+      if (!operations.includes(step.op)) return true;
+      semanticBindings.push({ ...location, op: step.op, before: structuredClone(step), after: null,
+        reason: `Model has ${numExperts} experts; selected grouped sort admits ${maxExperts}` });
+      return false;
+    });
+  }
   function bindHyperConnectionSteps(steps, location) {
     if (manifest.inference?.hyperConnections == null) return steps;
     // HC owns its gated residual and norm. Its MoE caller supplies neither of
@@ -60,8 +80,8 @@ export async function bindLinearOutputProfile({ profile, manifest, dopplerRoot, 
     const programs = {};
     for (const phase of ['prefill', 'decode']) {
       const location = { layer, phase };
-      const steps = bindHyperConnectionSteps(includeMissing(getLayerSteps(original, layer, phase),
-        requiredKernelPath ? getLayerSteps(requiredKernelPath, layer, phase) : [], location), location);
+      const steps = bindGroupedExpertExtent(bindHyperConnectionSteps(includeMissing(getLayerSteps(original, layer, phase),
+        requiredKernelPath ? getLayerSteps(requiredKernelPath, layer, phase) : [], location), location), location);
       if (name) {
         const format = ggufBlockFormat(manifest.tensors[name].dtype);
         assert(['q4_0', 'q4_1', 'q8_0'].includes(format.variant), 'Unsupported linear output encoding');
