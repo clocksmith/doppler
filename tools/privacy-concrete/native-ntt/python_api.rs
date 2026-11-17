@@ -10,6 +10,7 @@ fn matrix_multiplication_ntt(
     mode: crate::ntt_cpu::PackingMode,
     dot_mode: crate::ntt_cpu::DotMode,
     digit_mode: crate::ntt_cpu::DigitMode,
+    forward_mode: crate::ntt_cpu::ForwardMode,
     mut timings: Option<&mut crate::ntt_cpu::PackingTimings>,
 ) -> PyResult<CompressedResultEncryptedMatrix> {
     let array=data.as_array();
@@ -28,7 +29,7 @@ fn matrix_multiplication_ntt(
             output.as_mut().copy_from_slice(prepared.dot(column.as_slice().unwrap()).as_ref());
         });
         if let Some(value)=timings.as_deref_mut() { value.dot_seconds+=started.unwrap().elapsed().as_secs_f64(); }
-        result.push(CompressedResultCipherText { inner:plan.compress(compression_key,&raw,mode,digit_mode,timings.as_deref_mut()) });
+        result.push(CompressedResultCipherText { inner:plan.compress(compression_key,&raw,mode,digit_mode,forward_mode,timings.as_deref_mut()) });
     }
     Ok(CompressedResultEncryptedMatrix { inner:result })
 }
@@ -39,7 +40,7 @@ fn cpu_matrix_multiplication_ntt(
     data: PyReadonlyArray<Scalar, Ix2>,
     compression_key: &CpuCompressionKey,
 ) -> PyResult<CompressedResultEncryptedMatrix> {
-    matrix_multiplication_ntt(encrypted_matrix,data,compression_key,crate::ntt_cpu::PackingMode::ParallelFused,crate::ntt_cpu::DotMode::ExtractedBody,crate::ntt_cpu::DigitMode::ParallelBlocks,None)
+    matrix_multiplication_ntt(encrypted_matrix,data,compression_key,crate::ntt_cpu::PackingMode::ParallelFused,crate::ntt_cpu::DotMode::ExtractedBody,crate::ntt_cpu::DigitMode::ParallelBlocks,crate::ntt_cpu::ForwardMode::BoundedScratch,None)
 }
 
 // Diagnostic arithmetic baseline only; no backend advertisement/registration.
@@ -49,7 +50,7 @@ fn cpu_matrix_multiplication_ntt_serial(
     data: PyReadonlyArray<Scalar, Ix2>,
     compression_key: &CpuCompressionKey,
 ) -> PyResult<CompressedResultEncryptedMatrix> {
-    matrix_multiplication_ntt(encrypted_matrix,data,compression_key,crate::ntt_cpu::PackingMode::SerialReference,crate::ntt_cpu::DotMode::FullGlweReference,crate::ntt_cpu::DigitMode::SerialReference,None)
+    matrix_multiplication_ntt(encrypted_matrix,data,compression_key,crate::ntt_cpu::PackingMode::SerialReference,crate::ntt_cpu::DotMode::FullGlweReference,crate::ntt_cpu::DigitMode::SerialReference,crate::ntt_cpu::ForwardMode::AllocatingReference,None)
 }
 
 #[pyfunction]
@@ -58,7 +59,7 @@ fn cpu_matrix_multiplication_ntt_parallel_reference(
     data: PyReadonlyArray<Scalar, Ix2>,
     compression_key: &CpuCompressionKey,
 ) -> PyResult<CompressedResultEncryptedMatrix> {
-    matrix_multiplication_ntt(encrypted_matrix,data,compression_key,crate::ntt_cpu::PackingMode::ParallelReference,crate::ntt_cpu::DotMode::FullGlweReference,crate::ntt_cpu::DigitMode::SerialReference,None)
+    matrix_multiplication_ntt(encrypted_matrix,data,compression_key,crate::ntt_cpu::PackingMode::ParallelReference,crate::ntt_cpu::DotMode::FullGlweReference,crate::ntt_cpu::DigitMode::SerialReference,crate::ntt_cpu::ForwardMode::AllocatingReference,None)
 }
 
 #[pyfunction]
@@ -67,7 +68,7 @@ fn cpu_matrix_multiplication_ntt_fused_reference(
     data: PyReadonlyArray<Scalar, Ix2>,
     compression_key: &CpuCompressionKey,
 ) -> PyResult<CompressedResultEncryptedMatrix> {
-    matrix_multiplication_ntt(encrypted_matrix,data,compression_key,crate::ntt_cpu::PackingMode::ParallelFused,crate::ntt_cpu::DotMode::FullGlweReference,crate::ntt_cpu::DigitMode::SerialReference,None)
+    matrix_multiplication_ntt(encrypted_matrix,data,compression_key,crate::ntt_cpu::PackingMode::ParallelFused,crate::ntt_cpu::DotMode::FullGlweReference,crate::ntt_cpu::DigitMode::SerialReference,crate::ntt_cpu::ForwardMode::AllocatingReference,None)
 }
 
 // Exact .4 arithmetic with the old serial digit layout; diagnostics only.
@@ -77,10 +78,35 @@ fn cpu_matrix_multiplication_ntt_body_reference(
     data: PyReadonlyArray<Scalar, Ix2>,
     compression_key: &CpuCompressionKey,
 ) -> PyResult<CompressedResultEncryptedMatrix> {
-    matrix_multiplication_ntt(encrypted_matrix,data,compression_key,crate::ntt_cpu::PackingMode::ParallelFused,crate::ntt_cpu::DotMode::ExtractedBody,crate::ntt_cpu::DigitMode::SerialReference,None)
+    matrix_multiplication_ntt(encrypted_matrix,data,compression_key,crate::ntt_cpu::PackingMode::ParallelFused,crate::ntt_cpu::DotMode::ExtractedBody,crate::ntt_cpu::DigitMode::SerialReference,crate::ntt_cpu::ForwardMode::AllocatingReference,None)
 }
 
 // Public-fixture secondary instrumentation; never called by the backend.
+fn profile_ntt_packing(
+    encrypted_matrix: &EncryptedMatrix,
+    data: PyReadonlyArray<Scalar, Ix2>,
+    compression_key: &CpuCompressionKey,
+    parallel_digits: bool,
+    forward: crate::ntt_cpu::ForwardMode,
+) -> PyResult<(CompressedResultEncryptedMatrix,String)> {
+    let mut timings=crate::ntt_cpu::PackingTimings::default();
+    let digits=if parallel_digits { crate::ntt_cpu::DigitMode::ParallelBlocks } else { crate::ntt_cpu::DigitMode::SerialReference };
+    let result=matrix_multiplication_ntt(encrypted_matrix,data,compression_key,crate::ntt_cpu::PackingMode::ParallelFused,crate::ntt_cpu::DotMode::ExtractedBody,digits,forward,Some(&mut timings))?;
+    let report=format!("{{\"dotSeconds\":{},\"digitsSeconds\":{},\"groupsSeconds\":{},\"compressionSeconds\":{}}}",
+        timings.dot_seconds,timings.digits_seconds,timings.groups_seconds,timings.compression_seconds);
+    Ok((result,report))
+}
+
+// Exact .5 arithmetic with generic, per-term allocated digit transforms.
+#[pyfunction]
+fn cpu_matrix_multiplication_ntt_digits_reference(
+    encrypted_matrix: &EncryptedMatrix,
+    data: PyReadonlyArray<Scalar, Ix2>,
+    compression_key: &CpuCompressionKey,
+) -> PyResult<CompressedResultEncryptedMatrix> {
+    matrix_multiplication_ntt(encrypted_matrix,data,compression_key,crate::ntt_cpu::PackingMode::ParallelFused,crate::ntt_cpu::DotMode::ExtractedBody,crate::ntt_cpu::DigitMode::ParallelBlocks,crate::ntt_cpu::ForwardMode::AllocatingReference,None)
+}
+
 #[pyfunction]
 fn cpu_profile_ntt_packing(
     encrypted_matrix: &EncryptedMatrix,
@@ -88,10 +114,20 @@ fn cpu_profile_ntt_packing(
     compression_key: &CpuCompressionKey,
     parallel_digits: bool,
 ) -> PyResult<(CompressedResultEncryptedMatrix,String)> {
-    let mut timings=crate::ntt_cpu::PackingTimings::default();
-    let digits=if parallel_digits { crate::ntt_cpu::DigitMode::ParallelBlocks } else { crate::ntt_cpu::DigitMode::SerialReference };
-    let result=matrix_multiplication_ntt(encrypted_matrix,data,compression_key,crate::ntt_cpu::PackingMode::ParallelFused,crate::ntt_cpu::DotMode::ExtractedBody,digits,Some(&mut timings))?;
-    let report=format!("{{\"dotSeconds\":{},\"digitsSeconds\":{},\"groupsSeconds\":{},\"compressionSeconds\":{}}}",
-        timings.dot_seconds,timings.digits_seconds,timings.groups_seconds,timings.compression_seconds);
-    Ok((result,report))
+    profile_ntt_packing(encrypted_matrix,data,compression_key,parallel_digits,crate::ntt_cpu::ForwardMode::AllocatingReference)
+}
+
+#[pyfunction]
+fn cpu_profile_ntt_bounded_packing(
+    encrypted_matrix: &EncryptedMatrix,
+    data: PyReadonlyArray<Scalar, Ix2>,
+    compression_key: &CpuCompressionKey,
+) -> PyResult<(CompressedResultEncryptedMatrix,String)> {
+    profile_ntt_packing(encrypted_matrix,data,compression_key,true,crate::ntt_cpu::ForwardMode::BoundedScratch)
+}
+
+#[pyfunction]
+fn cpu_validate_ntt_digit_encoding() -> String {
+    let (digits,residues,polynomials,rejected)=crate::ntt_cpu::validate_digit_encoding();
+    format!("{{\"admissibleDigitsChecked\":{},\"residueComparisons\":{},\"fullTransformComparisons\":{},\"outOfDomainValuesRejected\":{}}}",digits,residues,polynomials,rejected)
 }

@@ -148,6 +148,28 @@ Unmodified process evidence and provenance are retained as
 `../evidence/storage/native-packing-digits-{process,context}.json`. The candidate
 is undeployed, and full Flash execution and security qualification remain open.
 
+The `0.1.9+ntt.6` candidate reuses one transform scratch inside each bounded CRT
+group, instead of allocating five residue buffers for every term. Scratch stays
+request-local; all five arrays are overwritten before every transform. It also
+specializes the initial residue conversion for the pinned decomposition digits,
+including both half-base endpoints documented by
+[TFHE at the locked revision](https://github.com/zama-ai/tfhe-rs/blob/1ec21a5e0b7c12165aa7e556c01e730c3117765a/tfhe/src/core_crypto/commons/math/decomposition/decomposer.rs).
+For nonnegative `d`, the residue is `d`; for negative `d`, its unsigned u64 value
+is `2^64+d`, so the residue is `(2^64 mod p)+d`, adding `p` if negative. The
+checked bounds `|d|<=8192<p` make one correction sufficient. Values outside the
+installed 10/14-bit signed domains reject. This preserves the unsigned residues,
+the existing five-prime CRT bound, all transforms, rounding and compression.
+
+Before keys, the native benchmark exhaustively compares all 17,410 admissible
+signed digits against ordinary u64 modulo across all five primes, checks eight
+out-of-domain values, and compares eight complete transforms while reusing
+scratch across profiles, nonzero patterns and zeros. Its report schema v2 names
+the new same-key `.5` allocating reference and bounded-scratch candidate
+explicitly, with five paired observations and separate phase passes. Earlier
+v1 receipts stay unchanged. This is an unqualified performance candidate until
+its exact native byte, cancellation/tamper and bounded process checks pass;
+no cryptographic or model qualification follows from the source change.
+
 The [retained native run](../evidence/native-ntt/context.json) at revision
 `04ed459671632b23bcf0bee1cb8e555f6282feed` passed eight complete serialized-result
 comparisons against the original arithmetic and a second fast replay, covering

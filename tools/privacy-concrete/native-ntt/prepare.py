@@ -34,8 +34,12 @@ def prepare(directory):
     p=directory/'rust/src/lib_python.rs';text=replace_one(p.read_text(),
         'CpuCompressionKey {\n            inner: compression_key,',
         'CpuCompressionKey {\n            inner: compression_key,\n            ntt_cache: std::sync::OnceLock::new(),')
-    text=replace_one(text,'m.add_function(wrap_pyfunction!(cpu_matrix_multiplication, m)?)?;',
-        'm.add_function(wrap_pyfunction!(cpu_matrix_multiplication, m)?)?;\n    m.add_function(wrap_pyfunction!(cpu_prepare_ntt_key, m)?)?;\n    m.add_function(wrap_pyfunction!(cpu_matrix_multiplication_ntt, m)?)?;\n    m.add_function(wrap_pyfunction!(cpu_matrix_multiplication_ntt_serial, m)?)?;\n    m.add_function(wrap_pyfunction!(cpu_matrix_multiplication_ntt_parallel_reference, m)?)?;\n    m.add_function(wrap_pyfunction!(cpu_matrix_multiplication_ntt_fused_reference, m)?)?;\n    m.add_function(wrap_pyfunction!(cpu_matrix_multiplication_ntt_body_reference, m)?)?;\n    m.add_function(wrap_pyfunction!(cpu_profile_ntt_packing, m)?)?;')
+    functions=('cpu_prepare_ntt_key','cpu_matrix_multiplication_ntt','cpu_matrix_multiplication_ntt_serial',
+        'cpu_matrix_multiplication_ntt_parallel_reference','cpu_matrix_multiplication_ntt_fused_reference',
+        'cpu_matrix_multiplication_ntt_body_reference','cpu_profile_ntt_packing',
+        'cpu_matrix_multiplication_ntt_digits_reference','cpu_profile_ntt_bounded_packing','cpu_validate_ntt_digit_encoding')
+    anchor='m.add_function(wrap_pyfunction!(cpu_matrix_multiplication, m)?)?;'
+    text=replace_one(text,anchor,anchor+'\n'+'\n'.join('    m.add_function(wrap_pyfunction!('+name+', m)?)?;' for name in functions))
     text+='\n'+(ROOT/'python_api.rs').read_text();p.write_text(text)
     (directory/'rust/src/ntt_cpu.rs').write_bytes((ROOT/'ntt_cpu.rs').read_bytes())
     lock=(ROOT/'Cargo.lock').read_bytes()

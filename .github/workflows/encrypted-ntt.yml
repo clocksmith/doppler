@@ -59,6 +59,9 @@ jobs:
           python tools/privacy-concrete/native-ntt/prepare.py --destination "$RUNNER_TEMP/concrete-ntt-source"
           python tools/privacy-concrete/native-ntt/check_lock.py "$RUNNER_TEMP/concrete-ntt-source/rust/Cargo.lock"
           cp "$RUNNER_TEMP/concrete-ntt-source/rust/Cargo.lock" "$RUNNER_TEMP/ntt-Cargo.lock"
+      - name: Build separate CPU-only native variant
+        working-directory: ${{ runner.temp }}/concrete-ntt-source
+        run: maturin build --manifest-path rust/Cargo.toml --no-default-features --features python_bindings --profile release_lto_off --locked --out "$RUNNER_TEMP/ntt-wheels" --interpreter python
       - name: Install pinned client dependencies for the optional storage probe
         if: inputs.stream_storage
         env:
@@ -66,9 +69,6 @@ jobs:
         run: |
           python -m pip install --no-cache-dir 'torch==2.3.1' --index-url https://download.pytorch.org/whl/cpu
           python -m pip install --no-cache-dir -r tools/privacy-concrete/requirements.txt 'safetensors==0.8.0'
-      - name: Build separate CPU-only native variant
-        working-directory: ${{ runner.temp }}/concrete-ntt-source
-        run: maturin build --manifest-path rust/Cargo.toml --no-default-features --features python_bindings --profile release_lto_off --locked --out "$RUNNER_TEMP/ntt-wheels" --interpreter python
       - name: Check independent public process fixtures before generating keys
         if: inputs.process_resources
         env:
@@ -84,7 +84,7 @@ jobs:
           import concrete_ml_extensions as ext
           import concrete_ml_extensions.concrete_ml_extensions as binary
           from importlib.metadata import version
-          assert version('concrete-ml-extensions') == '0.1.9+ntt.5'
+          assert version('concrete-ml-extensions') == '0.1.9+ntt.6'
           assert callable(ext.cpu_prepare_ntt_key) and callable(ext.cpu_matrix_multiplication_ntt)
           assert not ext.is_cuda_enabled()
           print(version('concrete-ml-extensions'))

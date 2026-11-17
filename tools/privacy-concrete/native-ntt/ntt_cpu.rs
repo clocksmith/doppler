@@ -25,6 +25,7 @@ struct Ring {
     plan: Plan32,
     primes: [u32; 5],
     group: usize,
+    two64_mod: [i64; 5],
 }
 impl Ring {
     fn new() -> Self {
@@ -37,7 +38,8 @@ impl Ring {
         let available = lower.checked_sub(128 + N.ilog2() + 2).expect("Insufficient CRT headroom");
         let group = 1usize << available.min(7);
         assert!(128 + N.ilog2() + group.ilog2() + 1 < lower);
-        Self { plan, primes, group }
+        let two64_mod=primes.map(|p|((1u128<<64)%p as u128) as i64);
+        Self { plan, primes, group, two64_mod }
     }
     fn forward(&self, value: &[u64]) -> Rns {
         assert_eq!(value.len(), N);
@@ -45,6 +47,23 @@ impl Ring {
         let [a,b,c,d,e] = &mut result.0;
         self.plan.fwd(value,a,b,c,d,e);
         result
+    }
+    fn forward_digits_into(&self, value: &[u64], result: &mut Rns, limit: i64) {
+        assert_eq!(value.len(),N);
+        assert!(matches!(limit,512|8192));
+        for (index,&value) in value.iter().enumerate() {
+            let signed=checked_digit(value,limit).expect("Packing digit outside the pinned signed decomposition domain");
+            for (p,buffer) in result.0.iter_mut().enumerate() {
+                buffer[index]=digit_residue(signed,self.primes[p],self.two64_mod[p]);
+            }
+        }
+        // The pinned general fwd overwrites these same five residue arrays
+        // before invoking these exact prime transforms. No old scratch survives.
+        self.plan.ntt_0().fwd(&mut result.0[0]);
+        self.plan.ntt_1().fwd(&mut result.0[1]);
+        self.plan.ntt_2().fwd(&mut result.0[2]);
+        self.plan.ntt_3().fwd(&mut result.0[3]);
+        self.plan.ntt_4().fwd(&mut result.0[4]);
     }
     fn inverse(&self, value: &mut Rns) -> Vec<u64> {
         let mut result = vec![0; N];
@@ -79,12 +98,62 @@ impl Ring {
     }
 }
 
+fn checked_digit(value: u64, limit: i64) -> Option<i64> {
+    let signed=value as i64;
+    if signed>=-limit && signed<=limit { Some(signed) } else { None }
+}
+
+#[inline]
+fn digit_residue(value: i64, prime: u32, two64_mod: i64) -> u32 {
+    // Preserve the UNSIGNED u64 interpretation used by the existing CRT bound.
+    // For a negative digit d, u64(d)=2^64+d. The one correction below is exact
+    // because |d|<=8192<prime and 0<=two64_mod<prime.
+    let reduced=value+if value<0 { two64_mod } else { 0 };
+    (reduced+if reduced<0 { prime as i64 } else { 0 }) as u32
+}
+
+pub(crate) fn validate_digit_encoding() -> (usize,usize,usize,usize) {
+    let ring=Ring::new();let mut scratch=Rns::zero();
+    let (mut digits,mut residues,mut polynomials,mut rejected)=(0,0,0,0);
+    for bits in [10,14] {
+        let limit=1i64<<(bits-1);
+        for signed in -limit..=limit {
+            assert_eq!(checked_digit(signed as u64,limit),Some(signed));
+            for p in 0..5 {
+                assert_eq!(digit_residue(signed,ring.primes[p],ring.two64_mod[p]),((signed as u64)%ring.primes[p] as u64) as u32);
+                residues+=1;
+            }
+            digits+=1;
+        }
+        for value in [limit+1,-limit-1,i64::MIN,i64::MAX] {
+            assert_eq!(checked_digit(value as u64,limit),None);rejected+=1;
+        }
+        for pattern in 0..4 {
+            let values: Vec<u64>=(0..N).map(|index| {
+                let signed=match pattern {
+                    0=>[limit,-limit,limit-1,1-limit,0,1,-1][index%7],
+                    1=>(index as i64*391+17)%(2*limit+1)-limit,
+                    2=>0,
+                    _=>if index%2==0 { -limit } else { limit },
+                };
+                signed as u64
+            }).collect();
+            let expected=ring.forward(&values);
+            ring.forward_digits_into(&values,&mut scratch,limit);
+            assert_eq!(&expected.0,&scratch.0);polynomials+=1;
+        }
+    }
+    (digits,residues,polynomials,rejected)
+}
+
 #[derive(Clone, Copy)]
 pub(crate) enum PackingMode { SerialReference, ParallelReference, ParallelFused }
 #[derive(Clone, Copy)]
 pub(crate) enum DotMode { FullGlweReference, ExtractedBody }
 #[derive(Clone, Copy)]
 pub(crate) enum DigitMode { SerialReference, ParallelBlocks }
+#[derive(Clone, Copy)]
+pub(crate) enum ForwardMode { AllocatingReference, BoundedScratch }
 
 #[derive(Default)]
 pub(crate) struct PackingTimings {
@@ -116,7 +185,7 @@ impl PackingPlan {
         assert_eq!(transformed.len(), N*levels*2);
         Self { ring, key: transformed, levels, base_log, glwe_size: key.output_glwe_size(), modulus: key.ciphertext_modulus() }
     }
-    fn pack<C: Container<Element=u64>>(&self, list: &LweCiphertextList<C>, mode: PackingMode, digit_mode: DigitMode, mut timings: Option<&mut PackingTimings>) -> GlweCiphertextOwned<u64> {
+    fn pack<C: Container<Element=u64>>(&self, list: &LweCiphertextList<C>, mode: PackingMode, digit_mode: DigitMode, forward_mode: ForwardMode, mut timings: Option<&mut PackingTimings>) -> GlweCiphertextOwned<u64> {
         let count = list.lwe_ciphertext_count().0;
         assert!(count>0 && count<=N);
         assert_eq!(list.lwe_size().0, N+1);
@@ -163,13 +232,18 @@ impl PackingPlan {
         let reconstruct = |&start: &usize| {
             let end=(start+self.ring.group).min(terms);
             let mut sums: [Rns; 2] = std::array::from_fn(|_| Rns::zero());
+            let mut scratch=if matches!(forward_mode,ForwardMode::BoundedScratch) { Some(Rns::zero()) } else { None };
             for term in start..end {
-                let value=self.ring.forward(&digits[term*N..(term+1)*N]);
+                let allocated=if scratch.is_none() { Some(self.ring.forward(&digits[term*N..(term+1)*N])) } else { None };
+                let value=if let Some(value)=scratch.as_mut() {
+                    self.ring.forward_digits_into(&digits[term*N..(term+1)*N],value,1i64<<(self.base_log.0-1));
+                    &*value
+                } else { allocated.as_ref().unwrap() };
                 for (poly,sum) in sums.iter_mut().enumerate() {
                     if matches!(mode,PackingMode::ParallelFused) {
-                        self.ring.accumulate_product(sum,&value,&self.key[term*2+poly]);
+                        self.ring.accumulate_product(sum,value,&self.key[term*2+poly]);
                     } else {
-                        sum.add(&self.ring.product(&value,&self.key[term*2+poly]),&self.ring.primes);
+                        sum.add(&self.ring.product(value,&self.key[term*2+poly]),&self.ring.primes);
                     }
                 }
             }
@@ -196,10 +270,10 @@ impl PackingPlan {
         if let Some(value)=timings { value.groups_seconds+=started.unwrap().elapsed().as_secs_f64(); }
         out
     }
-    pub(crate) fn compress<C: Container<Element=u64>>(&self, key: &CpuCompressionKey, values: &LweCiphertextList<C>, mode: PackingMode, digit_mode: DigitMode, mut timings: Option<&mut PackingTimings>) -> Vec<CompressedModulusSwitchedGlweCiphertext<u64>> {
+    pub(crate) fn compress<C: Container<Element=u64>>(&self, key: &CpuCompressionKey, values: &LweCiphertextList<C>, mode: PackingMode, digit_mode: DigitMode, forward_mode: ForwardMode, mut timings: Option<&mut PackingTimings>) -> Vec<CompressedModulusSwitchedGlweCiphertext<u64>> {
         assert_eq!(key.inner.lwe_per_glwe.0,N);
         values.chunks(N).map(|list| {
-            let out=self.pack(&list,mode,digit_mode,timings.as_deref_mut());
+            let out=self.pack(&list,mode,digit_mode,forward_mode,timings.as_deref_mut());
             let started=timings.as_ref().map(|_|Instant::now());
             let result=CompressedModulusSwitchedGlweCiphertext::compress(&out,key.inner.storage_log_modulus,list.lwe_ciphertext_count());
             if let Some(value)=timings.as_deref_mut() { value.compression_seconds+=started.unwrap().elapsed().as_secs_f64(); }
