@@ -461,3 +461,14 @@ malicious-provider integrity or production privacy. Later optional progress
 logging and concurrent cache-lease enforcement were tested separately and were
 not deployed over the running pin. The resource owner holds the following window;
 encrypted generation requires a subsequent coordinated attempt.
+
+The encrypted runner now records client-local resource phases after public
+preparation, key creation, provider readiness and generation validation. A
+background observer samples only the initially exclusive, kernel-enforced
+cgroup, including its evaluator child. It reports a sampled sum of process RSS
+separately from the kernel cgroup peak, which includes file cache. RSS sums count
+shared mappings twice and sampling may miss short peaks; missing processes and
+observer failures remain explicit, rather than becoming zero-memory claims.
+These observations contain no process IDs, private tensors, outputs, exceptions
+or integrity outcomes, and never confer hardware or security qualification. The
+observer stops after the provider and before owned model sources are released.

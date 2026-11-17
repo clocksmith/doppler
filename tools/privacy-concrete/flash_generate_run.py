@@ -35,13 +35,10 @@ def require_scratch_outside_source(source,scratch):
 def require_private_resource_scope():
     """Kernel evidence, never a caller-supplied 'budget enforced' flag."""
     try:
+        from resource_memory import private_cgroup_path
         if RESOURCE_POLICY['requireExclusiveLeaf'] is not True or RESOURCE_POLICY['requireGroupOomKill'] is not True:
             raise ValueError()
-        rows=[line[3:] for line in Path('/proc/self/cgroup').read_text().splitlines() if line.startswith('0::')]
-        if len(rows)!=1:raise ValueError()
-        path=Path(rows[0])
-        if not path.is_absolute() or len(path.parts)<2 or '..' in path.parts:raise ValueError()
-        leaf=Path('/sys/fs/cgroup').joinpath(*path.parts[1:])
+        leaf=private_cgroup_path()
         if (leaf/'cgroup.procs').read_text().split()!=[str(os.getpid())]:raise ValueError()
         memory=int((leaf/'memory.max').read_text());swap=int((leaf/'memory.swap.max').read_text())
         oom=int((leaf/'memory.oom.group').read_text());quota,period=map(int,(leaf/'cpu.max').read_text().split())
@@ -164,13 +161,19 @@ def run(source_directory,reference_path,scratch_directory,prompt,*,backend_profi
                         driverSha256=hashlib.sha256(Path(__file__).read_bytes()).hexdigest(),
                         actualFlashCheckpointExecuted=False,encryptedExecution=False,productionBackendAvailable=False,securityQualified=False)
                 floating=BoundedFloatingReference(graph,cancelled=active);owned.callback(floating.close)
+                from resource_memory import ResourceMeter
+                memory=ResourceMeter();owned.callback(memory.close)
+                memory.mark('after-public-preparation');memory.start()
                 require_active(active);secret,key=ext.cpu_create_private_key(parameters);require_active(active)
+                memory.mark('after-key-generation')
                 bridge=CheckedBridge(temporary,plan,key,cancelled=active,backend_profile=backend_profile,prepared_public_tiles=binding,
                     parameter_profile=settings['parameterProfile'],provider_source_directory=source,
                     **({} if progress is None else dict(observe=progress.observe)))
                 owned.callback(bridge.close) # Stop/wait provider before source or scratch cleanup.
+                memory.mark('after-provider-readiness')
                 context=ClientContext(tenant_id,privacy_id,graph.identity,bridge.key_id,bridge.session)
                 result=generate(prepared,list(tokens),bridge,secret,parameters,context,floating_reference=floating)
+                memory.mark('after-generation-validation');memory.close()
                 if result['publicCoefficientBytesSent']!=0:raise ValueError('Reconstruction route unexpectedly sent public coefficients')
                 result.update(schema='doppler.actual-flash-hybrid-research-execution/v1',backendProfile=backend_profile,
                     transport='local-process',actualFlashCheckpointExecuted=True,encryptedExecution=True,
@@ -179,6 +182,7 @@ def run(source_directory,reference_path,scratch_directory,prompt,*,backend_profi
                     clientLocalOutputText=decode(source,result['clientLocalOutputTokens'],settings['steps'],cancelled=active),
                     implementationVersions=versions,sha256VerifiedBytesIncludingRepeats=verified,
                     clearCoefficientReference=checkpoint_reference,
+                    resourceObservation=memory.report(),
                     resourceLimits=resource_limits,floatingPeakFp32WeightChunkBytes=floating.peak_fp32_weight_bytes,
                     preparationSeconds=prepared.preparation_seconds,rematerializationSeconds=prepared.rematerialization_seconds,
                     elapsedSeconds=time.perf_counter()-began,clientLifetimePeakRssBytes=resource.getrusage(resource.RUSAGE_SELF).ru_maxrss*(1 if platform.system()=='Darwin' else 1024),

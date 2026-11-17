@@ -110,6 +110,8 @@ class RunnerLifecycleTests(unittest.TestCase):
             stack.enter_context(patch('flash_checkpoint_reference.require_checkpoint_reference',return_value={'fixture':'mocked lifecycle'},
                 side_effect=ValueError('reference mismatch') if blocked_reference else None))
             stack.enter_context(patch('flash_float_reference.BoundedFloatingReference',return_value=SimpleNamespace(close=lambda:None)))
+            memory=stack.enter_context(patch('resource_memory.ResourceMeter',return_value=SimpleNamespace(
+                close=lambda:events.append('meter-close'),mark=lambda phase:None,start=lambda:None)))
             stack.enter_context(patch('research_parameters.component_parameters',return_value={'parameters':{}}))
             stack.enter_context(patch.object(ext,'MatmulCryptoParameters',SimpleNamespace(deserialize=lambda value:object())))
             keygen=stack.enter_context(patch.object(ext,'cpu_create_private_key',return_value=(object(),object()),create=True))
@@ -125,8 +127,11 @@ class RunnerLifecycleTests(unittest.TestCase):
             else:
                 with self.assertRaisesRegex(ValueError if blocked_reference else RuntimeError,
                         'reference mismatch' if blocked_reference else 'mocked generation failure'):invoke()
-            if blocked_reference or prepare_only:keygen.assert_not_called();provider.assert_not_called()
-            else:self.assertLess(events.index('provider-close'),events.index('source-close'))
+            if blocked_reference or prepare_only:
+                keygen.assert_not_called();provider.assert_not_called();memory.assert_not_called()
+            else:
+                self.assertLess(events.index('provider-close'),events.index('meter-close'))
+                self.assertLess(events.index('meter-close'),events.index('source-close'))
             self.assertLess(events.index('source-close'),events.index('scratch-close'))
             self.assertEqual(set(scratch.iterdir()),{sibling}|({scratch/'status'} if log else set()));self.assertEqual(sibling.read_text(),'keep')
             if log:self.assertEqual((scratch/'status').read_bytes(),b'')
