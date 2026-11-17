@@ -1,0 +1,42 @@
+{
+  "schema": "doppler.native-checkpoint-traffic-comparison/v1",
+  "sourceRevision": "d1846f11c1082ef18796885381419484eab08350",
+  "ciRunId": 44016012728,
+  "ciUrl": "https://github.com/clocksmith/doppler/actions/runs/44016012728",
+  "records": {
+    "streamed": {
+      "path": "native-rebuild-control.json",
+      "sha256": "70712102a3ebd9d2e0eb77d53a2e566b94568dc2cef9fb10363d68454f871b8a"
+    },
+    "reconstructed": {
+      "path": "native-rebuild-probe.json",
+      "sha256": "9a4294101d1f6e60f89ea971898555359aed6ad350ce8a783d19fbb85f084e4a"
+    }
+  },
+  "scope": {
+    "inputWidth": 32,
+    "outputWidth": 16,
+    "projections": 1,
+    "steps": 4,
+    "coefficientId": "bfac506992a2bc4d831e6a5380363b8d80f62bac52e9ce1be9452dbcb8b0b5f2",
+    "sameQuantizedWeights": true,
+    "inputSeed": 73,
+    "transport": "framed pipes between threads in one process",
+    "rawSource": "synthetic BF16 fixture, 1206 verified bytes",
+    "processPeakRss": "cumulative high-water mark in sequential tests; not independent memory trials",
+    "timing": "one observation per mode; warm imports and different keys preclude latency attribution"
+  },
+  "publicCoefficientBytes": {
+    "streamed": 4096,
+    "reconstructed": 0
+  },
+  "totalFrameBytesSaved": 4126,
+  "limitations": [
+    "actual Flash checkpoint not used",
+    "not separate machines",
+    "no independent cryptographic review",
+    "reconstruction requires pre-existing authenticated public source and client compilation; full-model CPU/IO remains unmeasured"
+  ],
+  "productionBackendAvailable": false,
+  "securityQualified": false
+}

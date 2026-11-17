@@ -9,6 +9,7 @@ from pathlib import Path
 import shutil
 import tempfile
 import time
+import threading
 from flash_source_scopes import TEXT
 from flash_text_plan import projection_bindings
 from full_plan import canonical
@@ -55,6 +56,7 @@ class ProviderCheckpointSource:
             raise ValueError('Provider scratch must be outside the immutable public source tree')
         self.cancelled=cancelled;self.closed=False;self.materializations=0;self.live_cache_bytes=0;self.peak_cache_bytes=0
         self.materialization_seconds=0.;self.coefficient_bytes_materialized=0
+        self._lease_lock=threading.Lock()
         self.plan_id=plan.identity
         self.source=FlashSource.__new__(FlashSource);self.source.closed=False
         began=time.perf_counter()
@@ -73,6 +75,15 @@ class ProviderCheckpointSource:
 
     @contextmanager
     def open_projection(self,row,encoding):
+        # Reserve the one-projection budget before source reads/quantization,
+        # rather than only after a finished coefficient file exists.
+        if not self._lease_lock.acquire(blocking=False):raise ValueError('Provider projection lease is already active')
+        try:
+            with self._projection(row,encoding) as handle:yield handle
+        finally:self._lease_lock.release()
+
+    @contextmanager
+    def _projection(self,row,encoding):
         from full_model import FullLinear
         from flash_streamed_moe import SourceLinear
         require_active(self.cancelled)

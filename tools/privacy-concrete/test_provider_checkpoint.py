@@ -38,6 +38,20 @@ class ProviderCheckpointTests(unittest.TestCase):
                 self.assertNotEqual(digest(reader.read(second)),plan.definition()['publicTileDigests'][second['id']])
             self.assertEqual(list(scratch.iterdir()),[sibling]);self.assertEqual(source.live_cache_bytes,0)
 
+    def test_projection_budget_is_reserved_during_preparation_not_only_after_publication(self):
+        from public_weights import PublicTileReader
+        with ExitStack() as stack:
+            _,_,_,plan,_,scratch,source=self.fixture(stack);tile=plan.schedule()[0]
+            row=plan.definition()['projections'][0];quantize=source.executor._per_channel_weight_quantization
+            def reenter(*args):
+                with self.assertRaisesRegex(ValueError,'already active'):
+                    with source.open_projection(row,source.encoding):self.fail('Second cache preparation escaped its budget')
+                self.assertEqual(len(list(scratch.glob('provider-public-projection-*'))),1)
+                return quantize(*args)
+            with patch.object(source.executor,'_per_channel_weight_quantization',side_effect=reenter):
+                with PublicTileReader(scratch,plan,open_projection=source.open_projection,check_active=source.require_tile_source) as reader:reader.read(tile)
+            self.assertFalse(list(scratch.iterdir()));self.assertEqual(source.live_cache_bytes,0)
+
     def test_cancel_bad_source_or_quantizer_mismatch_cannot_leave_owned_cache(self):
         from public_weights import PublicTileReader
         for failure in ('cancel','source','quantizer','space'):

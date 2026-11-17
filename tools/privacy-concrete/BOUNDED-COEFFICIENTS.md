@@ -184,3 +184,15 @@ most 20 GiB on each later pass. Reconstruction avoids transfer because the publi
 source is already present, while repeated full-model projection preparation still
 costs CPU and IO. It is unavailable on hosts without that source and establishes
 no full-model latency, accuracy or cryptographic-security guarantee.
+
+The retained [native same-coefficient comparison](evidence/storage/native-rebuild-context.json)
+records successful run 44016012728 at `d1846f11c1082ef18796885381419484eab08350`.
+Across four native feedback steps, coefficient traffic fell from 4,096 bytes to
+zero for the same quantized 32-by-16 matrix. Total sent bytes were 268,491,944
+versus 268,487,818; a 268,435,536-byte evaluation key dominates this small fixture.
+The provider verified 1,206 raw-source bytes, materialized a 1,024-byte coefficient
+file once, reused it across four steps and removed it at completion. Both modes'
+four argmax choices matched their clear controls. This is synthetic native
+storage/traffic evidence, not a Flash run. Sequential tests have warm-import/key
+variation and cumulative RSS high-water marks, so their timings/RSS do not
+establish a comparative performance or memory result.

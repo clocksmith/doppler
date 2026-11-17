@@ -1,0 +1,69 @@
+{
+  "schema": "doppler.native-stream-storage-probe/v1",
+  "steps": 4,
+  "greedyFeedbackMatches": true,
+  "coefficientId": "bfac506992a2bc4d831e6a5380363b8d80f62bac52e9ce1be9452dbcb8b0b5f2",
+  "syntheticInputSeed": 73,
+  "nativeEncryptionSimulated": false,
+  "actualFlashCheckpointExecuted": false,
+  "separateMachine": false,
+  "elapsedSeconds": 14.033745326999963,
+  "stepSeconds": [
+    2.2177803330000074,
+    0.7986245879999956,
+    0.8005678099999614,
+    0.8013613609999766
+  ],
+  "maximumIntegerErrorByStep": [
+    27,
+    16,
+    27,
+    27
+  ],
+  "publicCoefficientBytesSent": 0,
+  "totalFrameBytesSent": 268487818,
+  "totalFrameBytesReceived": 52098,
+  "evaluationKeyBytes": 268435536,
+  "clientCoefficientDiskBytes": 0,
+  "providerCoefficientDiskBytes": 0,
+  "maxFramePayloadBytes": 300000000,
+  "processPeakRssBytes": 3971350528,
+  "implementationVersions": {
+    "concrete-ml": "1.9.0",
+    "concrete-ml-extensions": "0.1.9+ntt.1",
+    "concrete-python": "2.10.0",
+    "torch": "2.3.1+cpu",
+    "transformers": "4.44.2",
+    "numpy": "1.26.4",
+    "native-binary-sha256": "f9e7daf5e9f4ccbd94e7c8c5e18b71ecc288c2765519dac51fa45886b4c33887",
+    "native-source-id": "8cb2cbd212d05c6646fb3132ebef58624738b0d0dcf7f59daebe3e0766e17bf9",
+    "safetensors": "0.8.0"
+  },
+  "integrity": {
+    "integrity": "secret-linear-check-sampled-replay/v1",
+    "integrityPolicyId": "5a9580d367be8974e092a9d1c160e0cfdc22f32fe5a20f65bbdfac6203bb4327",
+    "linearChecksPassed": 4,
+    "sampledExactReplays": 1,
+    "substitutedTiles": 0,
+    "clientCheckMs": 2.889202000005753,
+    "checkVectors": 16,
+    "replaySample": {
+      "numerator": 1,
+      "denominator": 16
+    },
+    "toleranceByOutputWidth": {
+      "16": 80628137
+    },
+    "rejection": "deferred-until-route-close/v1",
+    "independentCryptographicReview": false,
+    "securityQualified": false
+  },
+  "productionBackendAvailable": false,
+  "securityQualified": false,
+  "providerMaterializations": 1,
+  "providerPeakCoefficientDiskBytes": 1024,
+  "providerSourceBytesVerified": 1206,
+  "providerSourceVerificationSeconds": 0.00021046499995236445,
+  "providerMaterializationSeconds": 0.005048686999998608,
+  "publicCoefficientStorage": "doppler.provider-verified-public-checkpoint/v1"
+}

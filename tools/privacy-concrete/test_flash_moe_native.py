@@ -33,14 +33,14 @@ class StreamedFlashMoETests(unittest.TestCase):
                     frames.append((plan.frame(session,key_id,len(ordered)+1,'finish'),b'',0))
                     observed=[];readers=[];sent=[]
                     class Reader(PublicTileReader):
-                        def __init__(self,*args):super().__init__(*args);readers.append(self)
+                        def __init__(self,*args,**kwargs):super().__init__(*args,**kwargs);readers.append(self)
                     def evaluate(encrypted,matrix,key):
                         tile=ordered[len(observed)];observed.append(matrix.copy())
                         expected=values[tile['inputBegin']:tile['inputEnd'],tile['outputBegin']:tile['outputEnd']].astype(np.int64).astype(np.uint64)
                         np.testing.assert_array_equal(matrix,expected);self.assertTrue(matrix.flags.c_contiguous)
                         if reject:raise RuntimeError('native evaluation failed')
                         return SimpleNamespace(serialize=lambda:b'encrypted-result')
-                    args=SimpleNamespace(directory=directory,plan_id=plan.identity,profile='fixture-only',ssh_route=None)
+                    args=SimpleNamespace(directory=directory,plan_id=plan.identity,profile='fixture-only',ssh_route=None,public_source_dir=None)
                     stream=SimpleNamespace(buffer=SimpleNamespace(raw=object()))
                     with patch.object(sys,'argv',['provider']),patch.object(sys,'stdin',stream),patch.object(sys,'stdout',stream), \
                          patch.object(plan_backends,'provider_arguments',return_value=args),patch.object(plan_backends,'load_backend_plan',return_value=plan), \
