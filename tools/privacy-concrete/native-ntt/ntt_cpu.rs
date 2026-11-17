@@ -2,6 +2,7 @@
 //! Cache only public evaluation material inside its owning compression key.
 use rayon::prelude::*;
 use std::sync::Arc;
+use std::time::Instant;
 use tfhe::core_crypto::prelude::*;
 use tfhe::core_crypto::entities::compressed_modulus_switched_glwe_ciphertext::CompressedModulusSwitchedGlweCiphertext;
 use tfhe_ntt::native64::Plan32;
@@ -82,6 +83,16 @@ impl Ring {
 pub(crate) enum PackingMode { SerialReference, ParallelReference, ParallelFused }
 #[derive(Clone, Copy)]
 pub(crate) enum DotMode { FullGlweReference, ExtractedBody }
+#[derive(Clone, Copy)]
+pub(crate) enum DigitMode { SerialReference, ParallelBlocks }
+
+#[derive(Default)]
+pub(crate) struct PackingTimings {
+    pub dot_seconds: f64,
+    pub digits_seconds: f64,
+    pub groups_seconds: f64,
+    pub compression_seconds: f64,
+}
 
 pub(crate) struct PackingPlan {
     ring: Ring,
@@ -105,23 +116,45 @@ impl PackingPlan {
         assert_eq!(transformed.len(), N*levels*2);
         Self { ring, key: transformed, levels, base_log, glwe_size: key.output_glwe_size(), modulus: key.ciphertext_modulus() }
     }
-    fn pack<C: Container<Element=u64>>(&self, list: &LweCiphertextList<C>, mode: PackingMode) -> GlweCiphertextOwned<u64> {
+    fn pack<C: Container<Element=u64>>(&self, list: &LweCiphertextList<C>, mode: PackingMode, digit_mode: DigitMode, mut timings: Option<&mut PackingTimings>) -> GlweCiphertextOwned<u64> {
         let count = list.lwe_ciphertext_count().0;
         assert!(count>0 && count<=N);
         assert_eq!(list.lwe_size().0, N+1);
         assert_eq!(list.ciphertext_modulus(), self.modulus);
         let terms = N*self.levels;
+        let started=timings.as_ref().map(|_|Instant::now());
         let mut digits = vec![0u64; terms*N];
         let mut out = GlweCiphertext::new(0u64,self.glwe_size,PolynomialSize(N),self.modulus);
         let decomposer = SignedDecomposer::new(self.base_log,DecompositionLevelCount(self.levels));
         for (column, lwe) in list.iter().enumerate() {
             out.as_mut()[N+column] = *lwe.get_body().data;
-            for (input, &mask) in lwe.get_mask().as_ref().iter().enumerate() {
-                for (level, digit) in decomposer.decompose(decomposer.closest_representable(mask)).enumerate() {
-                    digits[(input*self.levels+level)*N+column] = digit.value();
+            if matches!(digit_mode,DigitMode::SerialReference) {
+                for (input, &mask) in lwe.get_mask().as_ref().iter().enumerate() {
+                    for (level, digit) in decomposer.decompose(decomposer.closest_representable(mask)).enumerate() {
+                        digits[(input*self.levels+level)*N+column] = digit.value();
+                    }
                 }
             }
         }
+        if matches!(digit_mode,DigitMode::ParallelBlocks) {
+            // Each worker owns every level/column for eight input masks. The
+            // maximum block is 512 KiB, while total storage stays terms*N u64s.
+            // Read masks in short contiguous runs; never share mutable digits.
+            const INPUTS: usize=8;
+            let raw=list.as_ref();
+            digits.par_chunks_mut(INPUTS*self.levels*N).enumerate().for_each(|(block,owned)| {
+                let first=block*INPUTS;
+                for (column,lwe) in raw.chunks_exact(N+1).enumerate() {
+                    for (input,&mask) in lwe[first..first+INPUTS].iter().enumerate() {
+                        for (level,digit) in decomposer.decompose(decomposer.closest_representable(mask)).enumerate() {
+                            owned[(input*self.levels+level)*N+column]=digit.value();
+                        }
+                    }
+                }
+            });
+        }
+        if let Some(value)=timings.as_deref_mut() { value.digits_seconds+=started.unwrap().elapsed().as_secs_f64(); }
+        let started=timings.as_ref().map(|_|Instant::now());
         // Each CRT group already has its own strict magnitude bound. Compute
         // those independent groups on the existing pool, then subtract their
         // reconstructions in the original order. No regrouping or parameter,
@@ -160,13 +193,17 @@ impl PackingPlan {
                 *target=target.wrapping_sub(value);
             }
         }
+        if let Some(value)=timings { value.groups_seconds+=started.unwrap().elapsed().as_secs_f64(); }
         out
     }
-    pub(crate) fn compress<C: Container<Element=u64>>(&self, key: &CpuCompressionKey, values: &LweCiphertextList<C>, mode: PackingMode) -> Vec<CompressedModulusSwitchedGlweCiphertext<u64>> {
+    pub(crate) fn compress<C: Container<Element=u64>>(&self, key: &CpuCompressionKey, values: &LweCiphertextList<C>, mode: PackingMode, digit_mode: DigitMode, mut timings: Option<&mut PackingTimings>) -> Vec<CompressedModulusSwitchedGlweCiphertext<u64>> {
         assert_eq!(key.inner.lwe_per_glwe.0,N);
         values.chunks(N).map(|list| {
-            let out=self.pack(&list,mode);
-            CompressedModulusSwitchedGlweCiphertext::compress(&out,key.inner.storage_log_modulus,list.lwe_ciphertext_count())
+            let out=self.pack(&list,mode,digit_mode,timings.as_deref_mut());
+            let started=timings.as_ref().map(|_|Instant::now());
+            let result=CompressedModulusSwitchedGlweCiphertext::compress(&out,key.inner.storage_log_modulus,list.lwe_ciphertext_count());
+            if let Some(value)=timings.as_deref_mut() { value.compression_seconds+=started.unwrap().elapsed().as_secs_f64(); }
+            result
         }).collect()
     }
 }

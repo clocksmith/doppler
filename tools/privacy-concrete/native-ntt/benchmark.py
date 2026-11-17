@@ -6,6 +6,7 @@ import json
 from pathlib import Path
 import platform
 import resource
+from statistics import median
 import sys
 import time
 import numpy as np
@@ -15,6 +16,33 @@ import concrete_ml_extensions.concrete_ml_extensions as binary
 ROOT=Path(__file__).resolve().parent
 POLICY=json.loads((ROOT/'build-policy.json').read_text())
 sys.path.insert(0,str(ROOT.parent))
+
+
+def compare_digits(encrypted,weights,key,expected,case):
+    """Same-key paired observations; instrumented passes stay separate."""
+    operations={'body-reference':ext.cpu_matrix_multiplication_ntt_body_reference,
+        'parallel-digits':ext.cpu_matrix_multiplication_ntt}
+    for operation in operations.values():
+        if operation(encrypted,weights,key).serialize()!=expected:raise ValueError('Digit comparison warmup changed ciphertext bytes')
+    samples=[]
+    for repeat in range(5):
+        order=list(operations)
+        if repeat%2:order.reverse()
+        sample=dict(repeat=repeat,order=order)
+        for label in order:
+            began=time.perf_counter();serialized=operations[label](encrypted,weights,key).serialize()
+            sample[label+'Ms']=(time.perf_counter()-began)*1000
+            if serialized!=expected:raise ValueError('Digit comparison changed complete ciphertext bytes')
+        samples.append(sample)
+    phases={}
+    for parallel,label in ((False,'body-reference'),(True,'parallel-digits')):
+        result,raw=ext.cpu_profile_ntt_packing(encrypted,weights,key,parallel)
+        if result.serialize()!=expected:raise ValueError('Instrumented packing changed ciphertext bytes')
+        phases[label]=json.loads(raw)
+    ratios=[row['body-referenceMs']/row['parallel-digitsMs'] for row in samples]
+    return dict(case,warmupsPerPath=1,pairedSamples=samples,medianPairedRatio=median(ratios),
+        minimumPairedRatio=min(ratios),maximumPairedRatio=max(ratios),secondaryInstrumentedPhases=phases,
+        byteIdenticalToOriginal=True,interpretation='Five paired public-fixture observations, one secondary phase pass; phase sums exclude column/raw allocation and serialization; no full-model throughput or cross-host claim')
 
 
 def run(lock_path,public_state):
@@ -28,7 +56,7 @@ def run(lock_path,public_state):
     quant12=json.loads((ROOT.parent/'precision12-policy.json').read_text())['parameters']
     from flash_compute_budget import workload
     flash_shapes=[(1,row['inputWidth'],row['outputWidth']) for row in workload()['shapes']]+[(5,2048,640)]
-    generator=np.random.default_rng(23);cases=[];preparation=[]
+    generator=np.random.default_rng(23);cases=[];preparation=[];digit_comparisons=[]
     for profile,definition,geometries in [('upstream-default',base,[(1,16,2),(1,896,128),(1,2048,2048),(1,2048,2051),(2,16,2),(1,4098,3)]),
                                           ('declared-high-precision',high,[(1,2048,2),(1,2048,513)]),
                                           ('declared-quant12-message35',quant12,flash_shapes)]:
@@ -48,20 +76,26 @@ def run(lock_path,public_state):
             operations=[('original',ext.cpu_matrix_multiplication),('serial',ext.cpu_matrix_multiplication_ntt_serial),
                 ('parallel-reference',ext.cpu_matrix_multiplication_ntt_parallel_reference),
                 ('fused-reference',ext.cpu_matrix_multiplication_ntt_fused_reference),
+                ('body-reference',ext.cpu_matrix_multiplication_ntt_body_reference),
                 ('extracted-body',ext.cpu_matrix_multiplication_ntt),('extracted-body-replay',ext.cpu_matrix_multiplication_ntt)]
-            # Alternate candidate/fused-reference order on the same key.
-            if len(cases)%2:operations[3],operations[4]=operations[4],operations[3]
+            # Alternate candidate/body-reference order on the same key.
+            if len(cases)%2:operations[4],operations[5]=operations[5],operations[4]
             for label,operation in operations:
                 began=time.perf_counter();result=operation(encrypted,weights,key);serialized=result.serialize()
                 measured[label]=(time.perf_counter()-began)*1000;results.append(serialized)
             public_state.update(phase='byte-equivalence')
             if any(value!=results[0] for value in results[1:]):raise ValueError('Native result bytes differ from the pinned original arithmetic')
-            if hashlib.sha256(key.serialize()).hexdigest()!=key_digest:raise ValueError('Public cache changed serialized key material')
             cases.append(dict(profile=profile,rows=rows,inputWidth=width,outputWidth=columns,byteIdenticalToOriginal=True,
                               originalMs=measured['original'],serialNttMs=measured['serial'],parallelReferenceNttMs=measured['parallel-reference'],
                               fusedReferenceNttMs=measured['fused-reference'],
+                              bodyReferenceNttMs=measured['body-reference'],
                               nttMs=measured['extracted-body'],nttReplayMs=measured['extracted-body-replay'],
                               timingOrder=[label for label,_ in operations],resultBytes=len(results[0])))
+            if (rows,width,columns)==(1,2048,2048) or (rows,width,columns)==(5,2048,640):
+                public_state.update(phase='paired-digit-comparison')
+                digit_comparisons.append(compare_digits(encrypted,weights,key,results[0],
+                    dict(profile=profile,rows=rows,inputWidth=width,outputWidth=columns)))
+            if hashlib.sha256(key.serialize()).hexdigest()!=key_digest:raise ValueError('Public cache changed serialized key material')
         # Deserializing public evaluation material must create a fresh cache without wire changes.
         restored=ext.CpuCompressionKey.deserialize(key_bytes)
         if restored.serialize()!=key_bytes:raise ValueError('Evaluation-key wire compatibility changed')
@@ -72,6 +106,7 @@ def run(lock_path,public_state):
                 binarySha256=hashlib.sha256(binary_path.read_bytes()).hexdigest(),
                 cargoLockSha256=hashlib.sha256(Path(lock_path).read_bytes()).hexdigest(),
                 nttCrate=POLICY['nttCrate'],keyPreparations=preparation,cases=cases,
+                packingDigitComparisons=digit_comparisons,
                 clientLifetimePeakRssBytes=resource.getrusage(resource.RUSAGE_SELF).ru_maxrss*(1 if platform.system()=='Darwin' else 1024),
                 interpretation='Fixed public native arithmetic fixtures, including full packing/multi-block/multi-row; one timing observation, no model throughput or independent security review')
 

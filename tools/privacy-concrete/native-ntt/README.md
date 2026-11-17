@@ -107,6 +107,24 @@ uncontrolled hardware differences prevent comparing that total as a regression
 against the prior 4.15-day observation. This remains an undeployed research
 version with no production, full-model or security qualification.
 
+The `0.1.9+ntt.5` candidate changes only packing digit materialization. Each
+Rayon task owns every decomposition level and output column for eight adjacent
+input masks, at most 512 KiB per block. The complete digit buffer has the same
+size and layout as before. Rounding, decomposition digits, CRT groups, ordered
+wrapping subtraction, compression and encrypted-row lifetime remain unchanged.
+`cpu_matrix_multiplication_ntt_body_reference` retains the exact `.4` path with
+serial digit materialization for same-key comparison. Both paths must match all
+complete original ciphertext bytes, including partial output blocks and rows.
+
+For three public fixtures the benchmark adds one warmup and five alternating
+paired observations per path. Separate diagnostic passes report dot, digit,
+packing-group and compression times; those partial sums exclude column/raw
+allocation and serialization. Instrumentation is never called by the backend
+and is separate from primary timings. This candidate has no measured speedup
+until its exact native comparison and bounded process tests complete. The new
+source/version identity requires a matching isolated build; earlier physical
+receipts and any active pinned source remain unchanged.
+
 The [retained native run](../evidence/native-ntt/context.json) at revision
 `04ed459671632b23bcf0bee1cb8e555f6282feed` passed eight complete serialized-result
 comparisons against the original arithmetic and a second fast replay, covering
