@@ -18,6 +18,7 @@ from weight_encoding import weight_encoding
 from source_snapshot import file_signature
 
 PUBLIC_TILE_BINDING_INTERFACE='doppler.public-tile-binding/v1'
+PUBLIC_PROJECTION_BINDING_INTERFACE='doppler.public-projection-binding/v1'
 
 
 def validate_public_projection(row):
@@ -35,7 +36,7 @@ def projection_schedule(row,definition):
     return tiles(row,definition['inputTileWidth'],definition['outputTileWidth'])
 
 
-def projection_tile_digests(handle,row,schedule,encoding):
+def projection_tile_digests(handle,row,schedule,encoding,*,cancelled=None):
     identity=row['weightId']
     by_input={}
     for tile in schedule:by_input.setdefault(tile['inputBegin'],[]).append(tile)
@@ -46,6 +47,7 @@ def projection_tile_digests(handle,row,schedule,encoding):
             for tile in group:
                 remaining=(tile['outputEnd']-tile['outputBegin'])*size
                 while remaining:
+                    require_active(cancelled)
                     chunk=handle.read(remaining)
                     if not isinstance(chunk,bytes) or not chunk or len(chunk)>remaining:
                         raise ValueError('Complete bounded public coefficient stream required')
@@ -54,10 +56,31 @@ def projection_tile_digests(handle,row,schedule,encoding):
     # Tile and whole-file digests consume exactly the same owned chunks, in row
     # order. A later rewrite cannot change this binding, and a mixed read fails
     # the admitted whole-file digest. No reread or mutable mmap defines truth.
-    tail=handle.read(1)
+    require_active(cancelled);tail=handle.read(1)
     if not isinstance(tail,bytes) or tail or whole.hexdigest()!=identity:
         raise ValueError('Public model cache changed before tile binding')
     return result
+
+
+@dataclass(frozen=True,init=False)
+class PreparedPublicProjection:
+    """Client-created proof from one complete coefficient byte stream, not JSON."""
+    encoded_scope:bytes
+    entries:tuple
+
+    def __init__(self,row,definition,handle,*,cancelled=None):
+        encoding=weight_encoding(definition.get('parameters',{}))
+        schedule=projection_schedule(row,definition)
+        entries=projection_tile_digests(handle,row,schedule,encoding,cancelled=cancelled)
+        object.__setattr__(self,'encoded_scope',canonical(dict(projection=dict(row),encoding=encoding,
+            inputTileWidth=definition['inputTileWidth'],outputTileWidth=definition['outputTileWidth'])))
+        object.__setattr__(self,'entries',tuple(entries.items()))
+
+    def digests_for(self,row,definition):
+        expected=canonical(dict(projection=dict(row),encoding=weight_encoding(definition.get('parameters',{})),
+            inputTileWidth=definition['inputTileWidth'],outputTileWidth=definition['outputTileWidth']))
+        if self.encoded_scope!=expected:raise ValueError('Compiled public projection scope changed')
+        return dict(self.entries)
 
 
 @dataclass(frozen=True,init=False)
@@ -79,6 +102,26 @@ class PreparedPublicTiles:
         if not result:raise ValueError('Complete public tile binding required')
         object.__setattr__(self,'encoded_definition',canonical(definition))
         object.__setattr__(self,'entries',tuple(result.items()))
+
+    @classmethod
+    def from_projections(cls,plan,projections):
+        """Combine byte-derived records after their owned coefficient files evict.
+
+        Only actual compiler objects are accepted. Wire dictionaries, advertised
+        hashes and serialized manifests cannot instantiate this client admission.
+        """
+        definition=plan.definition();rows=definition['projections'];proofs=tuple(projections)
+        if len(rows)!=len(proofs) or not rows:raise ValueError('Complete compiled public projection route required')
+        result={}
+        for row,proof in zip(rows,proofs):
+            if type(proof) is not PreparedPublicProjection:raise ValueError('Byte-derived client projection proof required')
+            current=proof.digests_for(row,definition)
+            if result.keys()&current.keys():raise ValueError('Duplicate compiled public tile')
+            result.update(current)
+        binding=object.__new__(cls)
+        object.__setattr__(binding,'encoded_definition',canonical(definition))
+        object.__setattr__(binding,'entries',tuple(result.items()))
+        return binding
 
     @property
     def interface(self):return PUBLIC_TILE_BINDING_INTERFACE

@@ -146,6 +146,7 @@ class FullLinear(nn.Module):
                     result = np.zeros((integer_input.shape[0],self.definition['outputWidth']),dtype=np.int64)
                     for tile in tiles(self.definition,geometry['inputTileWidth'],geometry['outputTileWidth']):
                         matrix = np.ascontiguousarray(weights[tile['inputBegin']:tile['inputEnd'],tile['outputBegin']:tile['outputEnd']],dtype=np.int64).astype(np.uint64)
+                        if getattr(self.bridge,'streams_public_coefficients',False):self.bridge.stage_public_tile(matrix,tile)
                         answer = self.bridge.evaluate(encrypted[tile['inputBegin']],matrix,tile)
                         self.bridge.check_active()
                         width=tile['outputEnd']-tile['outputBegin']

@@ -19,6 +19,12 @@ on:
       - 'tools/privacy-concrete/flash_stage_source.py'
       - 'tools/privacy-concrete/flash_streamed_moe.py'
       - 'tools/privacy-concrete/flash_prepared_graph.py'
+      - 'tools/privacy-concrete/flash_text_stream_plan.py'
+      - 'tools/privacy-concrete/public_tile_stream.py'
+      - 'tools/privacy-concrete/full_provider.py'
+      - 'tools/privacy-concrete/test_public_tile_stream.py'
+      - 'tools/privacy-concrete/test_flash_stream_storage.py'
+      - 'tools/privacy-concrete/test_stream_transport.py'
       - 'tools/privacy-concrete/test_chunked_preparation.py'
       - 'tools/privacy-concrete/test_public_columns.py'
       - 'tools/privacy-concrete/test_streamed_preparation.py'
@@ -58,6 +64,17 @@ jobs:
         run: |
           cd tools/privacy-concrete
           python -m unittest test_chunked_preparation test_public_columns test_streamed_preparation -v
+      - name: Provision only the inspected public operator source for tiny storage fixtures
+        env:
+          PYTHONPATH: tools/privacy-concrete
+        run: python -c 'import os; from flash_reference import provision_reference; provision_reference(os.path.join(os.environ["RUNNER_TEMP"],"flash-stream-reference"))'
+      - name: Check evictable client storage and framed evaluator with no coefficient cache
+        env:
+          DOPPLER_FLASH_REFERENCE: '1'
+          DOPPLER_FLASH_SOURCE_DIR: ${{ runner.temp }}/flash-stream-reference
+        run: |
+          cd tools/privacy-concrete
+          python -m unittest test_public_tile_stream test_flash_stream_storage test_flash_encrypted_graph_adapter -v
       - name: Provision only the exact public Flash tokenizer
         run: python tools/privacy-concrete/prepare_flash_tokenizer.py --destination "$RUNNER_TEMP/flash-tokenizer"
       - name: Check real Flash text input and output using local pinned files

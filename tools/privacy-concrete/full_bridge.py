@@ -20,9 +20,18 @@ from native_runtime import matrix_evaluator,prepare_evaluator_key
 
 
 class FullBridge:
-    def __init__(self, directory, plan, key, cancelled=None, observe=lambda kind, value: None, deployment=None, backend_profile=None):
+    def __init__(self, directory, plan, key, cancelled=None, observe=lambda kind, value: None, deployment=None, backend_profile=None,prepared_public_tiles=None):
         require_active(cancelled)
-        if backend_profile is None:validated=load_plan(directory)
+        from plan_backends import STREAMED_PROFILE
+        self.streams_public_coefficients=backend_profile==STREAMED_PROFILE
+        self.public_coefficient_bytes_sent=0
+        if self.streams_public_coefficients:
+            from checked_bridge import CheckedBridge
+            if type(self) is not CheckedBridge:raise ValueError('Streamed profile requires its declared checked-integrity bridge')
+            from flash_text_stream_plan import load_client_plan
+            validated=load_client_plan(directory,prepared_public_tiles)
+        elif prepared_public_tiles is not None:raise ValueError('Compiled tile binding requires an explicit streamed backend')
+        elif backend_profile is None:validated=load_plan(directory)
         else:
             from plan_backends import load_backend_plan
             validated=load_backend_plan(directory,backend_profile)
@@ -30,9 +39,10 @@ class FullBridge:
             raise ValueError('Client full-model admission differs from the prepared plan')
         bound=validated if deployment is None else deployment.bind(validated)
         self.admission=FullRouteAdmission(bound)
-        self.public_tile_digests=bind_public_tiles(directory,validated)
+        self.public_tile_digests=(prepared_public_tiles.digests_for(validated) if self.streams_public_coefficients else bind_public_tiles(directory,validated))
         self.plan, self.key, self.cancelled, self.observe = bound, key, cancelled, observe
-        self.weight_dtype=weight_encoding(self.plan.definition()['parameters'])['dtype']
+        self.weight_encoding=weight_encoding(self.plan.definition()['parameters'])
+        self.weight_dtype=self.weight_encoding['dtype']
         self.payload_limit=self.plan.definition()['parameters'].get('maxPayloadBytes')
         self.check_active()
         self.matrix_multiplication=matrix_evaluator(self.plan)
@@ -74,6 +84,23 @@ class FullBridge:
         inputs=getattr(self,'_projection_inputs',None)
         if inputs is not None:inputs.clear()
         self._projection_inputs=None
+        self._public_tile_payload=None
+
+    def stage_public_tile(self,matrix,tile):
+        """Own only the current public tile; identical bytes reach checks and wire."""
+        try:
+            self.check_active()
+            if not self.streams_public_coefficients:raise ValueError('Public coefficient streaming is not admitted')
+            expected=self.admission.next_tile()
+            if dict(tile)!=dict(expected) or matrix.dtype!=np.uint64:raise ValueError('Unadmitted streamed public tile')
+            signed=matrix.view(np.int64);owned=np.ascontiguousarray(signed,dtype=self.weight_dtype)
+            payload=owned.tobytes()
+            if (tuple(matrix.shape)!=(tile['inputEnd']-tile['inputBegin'],tile['outputEnd']-tile['outputBegin'])
+                    or not np.array_equal(signed,owned) or digest(payload)!=self.public_tile_digests[tile['id']]):
+                raise ValueError('Streamed public matrix differs from client preparation')
+            self._public_tile_payload=(tile['id'],payload)
+        except BaseException:
+            self.admission.fail();self._release_projection_inputs();raise
 
     @contextmanager
     def projection(self,name,input_width,output_width,rows):
@@ -93,7 +120,7 @@ class FullBridge:
         finally:
             self._release_projection_inputs()
 
-    def _serialize_input(self,encrypted,tile):
+    def _serialize_ciphertext(self,encrypted,tile):
         inputs=getattr(self,'_projection_inputs',None)
         geometry=(tile['inputBegin'],tile['inputEnd'])
         if inputs and inputs[0][0]==geometry and inputs[0][1] is encrypted and inputs[0][2] is self.key:
@@ -106,6 +133,14 @@ class FullBridge:
         if inputs is not None:inputs.append((geometry,encrypted,self.key,payload))
         return payload
 
+    def _serialize_input(self,encrypted,tile):
+        payload=self._serialize_ciphertext(encrypted,tile)
+        if not getattr(self,'streams_public_coefficients',False):return payload
+        public=getattr(self,'_public_tile_payload',None)
+        if public is None or public[0]!=tile['id']:raise ValueError('Current admitted public coefficient tile is unavailable')
+        from public_tile_stream import encode
+        return encode(public[1],payload,tile,self.weight_encoding,self.public_tile_digests[tile['id']])
+
     def exchange(self, kind, payload, response_kind, tile_id='', while_pending=None):
         # Sending first lets the evaluator compute while the client performs its
         # mandatory deterministic replay. There is still only one admitted tile.
@@ -117,6 +152,8 @@ class FullBridge:
             return value
         header = self.plan.frame(self.session,self.key_id,self.sequence,kind,tile_id)
         self.sent += send(self.child.stdin,header,payload,timeout=remaining(),cancelled=self.cancelled,max_payload_bytes=self.payload_limit)
+        if kind=='evaluate' and getattr(self,'streams_public_coefficients',False):
+            self.public_coefficient_bytes_sent+=len(self._public_tile_payload[1])
         if while_pending is not None:
             remaining()
             while_pending()

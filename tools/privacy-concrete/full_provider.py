@@ -1,5 +1,6 @@
 """All-linear evaluator. Receives only evaluation material and ciphertexts; reads the admitted public coefficient encoding."""
 import sys
+from contextlib import nullcontext
 import numpy as np
 import concrete_ml_extensions as ext
 from protocol import check, digest, receive, send
@@ -9,20 +10,24 @@ from native_runtime import matrix_evaluator,prepare_evaluator_key
 
 
 def serve():
-    from plan_backends import load_backend_plan, provider_arguments
+    from plan_backends import load_provider_plan, provider_arguments
     args=provider_arguments(sys.argv[1:])
     directory,plan_id=args.directory,args.plan_id
-    plan=load_backend_plan(directory,args.profile)
+    plan=load_provider_plan(directory,args.profile)
     if plan.identity!=plan_id:raise ValueError('Installed plan mismatch')
     if args.ssh_route:
         from ssh_route import SSHRoute
         route=SSHRoute.from_file(args.ssh_route[0])
         if route.identity!=args.ssh_route[1]:raise ValueError('SSH route identity changed')
         plan=route.bind(plan,(route.definition()['operatorId'],))
+    evaluate_route(plan,directory,sys.stdin.buffer.raw,sys.stdout.buffer.raw)
+
+
+def evaluate_route(plan,directory,source,target):
+    """Serve one fixed admitted route on owned streams, including bounded storage."""
     evaluate=matrix_evaluator(plan)
     timeout=plan.definition()['operationTimeoutSeconds']
     payload_limit=plan.definition()['parameters'].get('maxPayloadBytes')
-    source, target = sys.stdin.buffer.raw, sys.stdout.buffer.raw
     header, data, _ = receive(source,timeout=timeout,max_payload_bytes=payload_limit)
     session, key_id = header['session'], header['keyId']
     check(header, plan.frame(session, key_id, 0, 'evaluation-key'))
@@ -33,15 +38,24 @@ def serve():
     send(target, plan.frame(session, key_id, 0, 'ready'),timeout=timeout,max_payload_bytes=payload_limit)
     encoding=weight_encoding(plan.definition()['parameters'])
     sequence = 1
-    with PublicTileReader(directory,plan) as weights:
+    from public_tile_stream import CONTRACT,decode
+    streamed=plan.definition().get('publicCoefficientStorage')==CONTRACT
+    digests=plan.definition().get('publicTileDigests') if streamed else None
+    with (nullcontext(None) if streamed else PublicTileReader(directory,plan)) as weights:
         schedule=plan.schedule()
         for _step in range(plan.definition()['steps']):
             for tile in schedule:
                 header, data, _ = receive(source,timeout=timeout,max_payload_bytes=payload_limit)
                 check(header, plan.frame(session, key_id, sequence, 'evaluate', tile['id']))
-                encrypted = ext.EncryptedMatrix.deserialize(data)
                 shape=(tile['inputEnd']-tile['inputBegin'],tile['outputEnd']-tile['outputBegin'])
-                matrix = np.frombuffer(weights.read(tile),dtype=encoding['dtype']).reshape(shape).astype(np.int64).astype(np.uint64)
+                if streamed:public,data=decode(data,tile,encoding,digests[tile['id']])
+                else:public=weights.read(tile)
+                coefficients=np.frombuffer(public,dtype=encoding['dtype']).reshape(shape)
+                if streamed:
+                    bound=2**(encoding['quantizationBits']-1)
+                    if coefficients.min() < -bound or coefficients.max()>=bound:raise ValueError('Public coefficient exceeds declared precision')
+                matrix=coefficients.astype(np.int64).astype(np.uint64)
+                encrypted = ext.EncryptedMatrix.deserialize(data)
                 result = evaluate(encrypted, matrix, key)
                 send(target, plan.frame(session, key_id, sequence, 'result', tile['id']), result.serialize(),timeout=timeout,max_payload_bytes=payload_limit)
                 sequence += 1

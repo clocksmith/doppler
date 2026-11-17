@@ -1,11 +1,14 @@
 """Installed research plan loaders. Advertisements cannot register or replace executable profiles."""
 DEFAULT_PROFILE='qwen-all-linear'
+STREAMED_PROFILE='flash-text-all-linear-ntt12-stream-check'
 QWEN_PROFILES=(DEFAULT_PROFILE,'qwen-all-linear-ntt','qwen-all-linear-ntt-48','qwen-all-linear-ntt12','qwen-all-linear-ntt12-check')
 MOE_PROFILES=('flash-dense-moe','flash-dense-moe-ntt')
-PROFILES=(*QWEN_PROFILES,'flash-expert0',*MOE_PROFILES,'flash-mlp-hyper','flash-mlp-block','flash-first-delta','flash-first-qsa-ntt','flash-first-ple-ntt','flash-text-all-linear-research','flash-text-all-linear-ntt12-check')
+PROFILES=(*QWEN_PROFILES,'flash-expert0',*MOE_PROFILES,'flash-mlp-hyper','flash-mlp-block','flash-first-delta','flash-first-qsa-ntt','flash-first-ple-ntt','flash-text-all-linear-research','flash-text-all-linear-ntt12-check',STREAMED_PROFILE)
 
 
 def load_backend_plan(directory,profile):
+    if profile==STREAMED_PROFILE:
+        raise ValueError('Streamed client admission requires its actual byte-derived compiler binding')
     if profile=='flash-text-all-linear-research':
         from flash_text_plan import load_plan
     elif profile=='flash-text-all-linear-ntt12-check':
@@ -38,6 +41,14 @@ def load_backend_plan(directory,profile):
         from flash_delta_plan import load_plan
     else:raise ValueError('Unsupported installed encrypted plan backend')
     return load_plan(directory)
+
+
+def load_provider_plan(directory,profile):
+    """Public evaluator parsing never substitutes for client byte admission."""
+    if profile==STREAMED_PROFILE:
+        from flash_text_stream_plan import load_provider_plan as load
+        return load(directory)
+    return load_backend_plan(directory,profile)
 
 
 def provider_arguments(arguments):

@@ -20,6 +20,7 @@ POLICY_V2=json.loads(Path(__file__).with_name('ssh-v2-policy.json').read_text())
 # Checked-integrity backends get their own route schema and frame protocol, so
 # an SSH frame never names replay for a route that does not replay every tile.
 POLICY_CHECK=json.loads(Path(__file__).with_name('ssh-check-policy.json').read_text())
+POLICY_STREAM_CHECK=json.loads(Path(__file__).with_name('ssh-stream-check-policy.json').read_text())
 ENDPOINT_FIELDS=frozenset({'operatorId','host','port','user','hostKey','remotePython','remoteProvider','remoteCache','remoteManifest'})
 FIELDS=ENDPOINT_FIELDS|{'schema','basePlanId','modelId','backendProtocol'}
 SHA=re.compile(r'[0-9a-f]{64}\Z')
@@ -45,6 +46,7 @@ def route_policy(value):
     if schema==POLICY['routeSchema']:return POLICY
     if schema==POLICY_V2['routeSchema']:return POLICY_V2
     if schema==POLICY_CHECK['routeSchema']:return POLICY_CHECK
+    if schema==POLICY_STREAM_CHECK['routeSchema']:return POLICY_STREAM_CHECK
     raise ValueError('Unsupported versioned encrypted SSH route')
 
 
@@ -52,6 +54,10 @@ def route_backend(value):
     policy=route_policy(value)
     if policy is POLICY:return DEFAULT_PROFILE,FULL_POLICY
     profile=value.get('backendProfile')
+    if policy is POLICY_STREAM_CHECK:
+        from flash_text_stream_plan import CONFIG
+        if profile!=CONFIG['profile']:raise ValueError('Streamed SSH route requires its explicit installed storage backend')
+        return profile,CONFIG
     settings,_,_,_=qwen_backend(profile)
     if settings['productionBackendAvailable'] is not False:raise ValueError('Research-only SSH backend required')
     if (policy is POLICY_CHECK)!=(settings.get('integrity') is not None):
@@ -120,6 +126,18 @@ class SSHRoute:
         plan=load(directory)
         value=dict(endpoint,schema=(POLICY_V2 if settings.get('integrity') is None else POLICY_CHECK)['routeSchema'],backendProfile=profile,backendProtocol=settings['protocol'],
                    basePlanId=plan.identity,modelId=plan.definition()['modelId'])
+        route=cls(validate(value));route.bind(plan,allowed_operators)
+        return route
+
+    @classmethod
+    def for_compiled_stream(cls,directory,prepared_public_tiles,endpoint,allowed_operators):
+        """Bind a streamed route only after complete byte-derived client admission."""
+        if not isinstance(endpoint,dict) or set(endpoint)!=ENDPOINT_FIELDS:raise ValueError('Exact explicit SSH endpoint fields required')
+        validate_endpoint(endpoint);require_operator(endpoint['operatorId'],allowed_operators)
+        from flash_text_stream_plan import load_client_plan,CONFIG
+        plan=load_client_plan(directory,prepared_public_tiles)
+        value=dict(endpoint,schema=POLICY_STREAM_CHECK['routeSchema'],backendProfile=CONFIG['profile'],
+            backendProtocol=CONFIG['protocol'],basePlanId=plan.identity,modelId=plan.definition()['modelId'])
         route=cls(validate(value));route.bind(plan,allowed_operators)
         return route
 

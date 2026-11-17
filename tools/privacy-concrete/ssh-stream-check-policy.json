@@ -1,0 +1,8 @@
+{
+  "schema": "doppler.encrypted-ssh-stream-check-policy/v1",
+  "routeSchema": "doppler.encrypted-ssh-stream-check-route/v1",
+  "protocol": "concrete-glwe-flash-research-ssh-stream-linear-check/v1",
+  "productionBackendAvailable": false,
+  "hostKeyAlgorithm": "ssh-ed25519",
+  "connectTimeoutSeconds": 15
+}

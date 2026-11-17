@@ -27,8 +27,25 @@ def component_versions(policy):
 
 
 def validate_component(directory,policy,geometry,semantics,installed,source=WEIGHTS):
-    source_id=digest(canonical(source))
-    directory=Path(directory);raw=(directory/'plan.json').read_bytes();value=json.loads(raw)
+    directory=Path(directory);raw=(directory/'plan.json').read_bytes()
+    value=validate_component_manifest(raw,policy,geometry,semantics,installed,source)
+    encoding=weight_encoding(value['parameters'])
+    for row in value['projections']:
+        identity=row['weightId'];path=directory/(identity+encoding['suffix'])
+        if path.stat().st_size!=row['inputWidth']*row['outputWidth']*encoding['bytes']:raise ValueError('Public component weight geometry changed')
+        with path.open('rb') as handle:
+            if hashlib.file_digest(handle,'sha256').hexdigest()!=identity:raise ValueError('Public component weight corruption')
+        if encoding['bytes']>1:
+            from public_weights import mapped_public_matrix
+            with mapped_public_matrix(path,(row['inputWidth'],row['outputWidth']),encoding['dtype']) as coefficients:
+                bound=2**(encoding['quantizationBits']-1)
+                if coefficients.min()< -bound or coefficients.max()>=bound:raise ValueError('Public coefficient exceeds its declared precision')
+    return raw
+
+
+def validate_component_manifest(raw,policy,geometry,semantics,installed,source=WEIGHTS):
+    """Validate installed structure only; this never admits client public bytes."""
+    source_id=digest(canonical(source));value=json.loads(raw)
     required=dict(schema=policy['planSchema'],protocol=policy['protocol'],sourceId=source_id,source=source,
                   productionBackendAvailable=False,implementationVersions=installed,
                   parameters=component_parameters(policy),
@@ -40,28 +57,22 @@ def validate_component(directory,policy,geometry,semantics,installed,source=WEIG
     # Legacy components keep one signed byte per coefficient; a declared wider
     # encoding binds its own suffix, size, range and message-domain capacity.
     encoding=weight_encoding(required['parameters'])
+    from public_weights import validate_public_projection
     for row in value['projections']:
+        validate_public_projection(row)
         if (row['inputWidth'],row['outputWidth'])!=geometry[row['name']]:raise ValueError('Unsupported Flash component geometry')
         identity=row['weightId']
         if not isinstance(identity,str) or len(identity)!=64 or any(char not in '0123456789abcdef' for char in identity):
             raise ValueError('Public component weight identity required')
-        path=directory/(identity+encoding['suffix'])
-        if path.stat().st_size!=row['inputWidth']*row['outputWidth']*encoding['bytes']:raise ValueError('Public component weight geometry changed')
-        with path.open('rb') as handle:
-            if hashlib.file_digest(handle,'sha256').hexdigest()!=identity:raise ValueError('Public component weight corruption')
         if encoding['bytes']>1:
             from profiles import validate_declared_arithmetic_capacity
-            from public_weights import mapped_public_matrix
             from full_plan import ranges
             for begin,end in ranges(row['inputWidth'],value['inputTileWidth']):
                 validate_declared_arithmetic_capacity(end-begin,encoding['quantizationBits'],required['parameters']['parameters']['bits_reserved_for_computation'])
-            with mapped_public_matrix(path,(row['inputWidth'],row['outputWidth']),encoding['dtype']) as coefficients:
-                bound=2**(encoding['quantizationBits']-1)
-                if coefficients.min()< -bound or coefficients.max()>=bound:raise ValueError('Public coefficient exceeds its declared precision')
         tiles(row,value['inputTileWidth'],value['outputTileWidth'])
     model_id=digest(canonical(dict(sourceId=source_id,**semantics,projections=value['projections'])))
     if value['modelId']!=model_id:raise ValueError('Public component model identity changed')
-    return raw
+    return value
 
 
 def write_component(directory,policy,definitions,semantics,installed,source=WEIGHTS):
