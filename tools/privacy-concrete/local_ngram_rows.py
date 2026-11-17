@@ -5,11 +5,11 @@ from local_bf16_rows import LocalBF16Rows,LocalRowsLease
 
 
 class LocalNgramRows(LocalBF16Rows):
-    def __init__(self,directory,inventory,*,local_storage_limit_bytes):
+    def __init__(self,directory,inventory,*,local_storage_limit_bytes,cancelled=None):
         super().__init__(directory,inventory,local_storage_limit_bytes=local_storage_limit_bytes,
-                         layout_schema='doppler.flash-local-ngram-storage-inventory/v1')
+                         layout_schema='doppler.flash-local-ngram-storage-inventory/v1',cancelled=cancelled)
 
     @classmethod
-    def flash(cls,directory,*,local_storage_limit_bytes):
+    def flash(cls,directory,*,local_storage_limit_bytes,cancelled=None):
         inventory=json.loads(Path(__file__).with_name('flash-ngram-storage.json').read_text())
-        return cls(directory,inventory,local_storage_limit_bytes=local_storage_limit_bytes)
+        return cls(directory,inventory,local_storage_limit_bytes=local_storage_limit_bytes,cancelled=cancelled)

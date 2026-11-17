@@ -14,17 +14,21 @@ from protocol import parse_unique_json,require_active
 
 
 class LocalBF16Rows:
-    def __init__(self,directory,inventory,*,local_storage_limit_bytes,layout_schema):
+    def __init__(self,directory,inventory,*,local_storage_limit_bytes,layout_schema,cancelled=None):
         self.handles={};self.maps={};self.signatures={};self.closed=False
         try:
+            require_active(cancelled)
             self._layout_schema=layout_schema;self._spec=copy.deepcopy(inventory);self.directory=Path(directory).resolve()
             self._validate(local_storage_limit_bytes)
             # Preflight the complete set before hashing large files or accepting private indices.
             for name,record in self._spec['shards'].items():
+                require_active(cancelled)
                 if (self.directory/name).stat().st_size!=record['bytes']:raise ValueError('Complete local BF16 row file set required')
             # Verify all public material before accepting indices; never acquire on cache miss.
             for name,record in self._spec['shards'].items():
-                path=self.directory/name;before=file_signature(path);verify_blob(path,record)
+                require_active(cancelled)
+                path=self.directory/name;before=file_signature(path);verify_blob(path,record,cancelled=cancelled)
+                require_active(cancelled)
                 handle=path.open('rb');self.handles[name]=handle
                 raw=handle.read(8)
                 if len(raw)!=8 or int.from_bytes(raw,'little')!=record['headerBytes']:raise ValueError('Pinned local table header required')
@@ -37,6 +41,7 @@ class LocalBF16Rows:
                         raise ValueError('Pinned local table offsets required')
                 if file_signature(path)!=before:raise ValueError('Local table changed during verification')
                 self.maps[name]=mmap.mmap(handle.fileno(),0,access=mmap.ACCESS_READ);self.signatures[name]=before
+            require_active(cancelled)
             self._unchanged()
         except BaseException:
             self.close();raise

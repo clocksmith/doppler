@@ -20,10 +20,10 @@ def installed_inventory():
 
 
 class LocalTokenRows(LocalBF16Rows):
-    def __init__(self,directory,inventory,*,local_storage_limit_bytes):
-        super().__init__(directory,inventory,local_storage_limit_bytes=local_storage_limit_bytes,layout_schema=POLICY['storageSchema'])
+    def __init__(self,directory,inventory,*,local_storage_limit_bytes,cancelled=None):
+        super().__init__(directory,inventory,local_storage_limit_bytes=local_storage_limit_bytes,layout_schema=POLICY['storageSchema'],cancelled=cancelled)
 
     @classmethod
-    def flash(cls,directory,*,local_storage_limit_bytes):return cls(directory,installed_inventory(),local_storage_limit_bytes=local_storage_limit_bytes)
+    def flash(cls,directory,*,local_storage_limit_bytes,cancelled=None):return cls(directory,installed_inventory(),local_storage_limit_bytes=local_storage_limit_bytes,cancelled=cancelled)
 
 

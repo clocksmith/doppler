@@ -1,0 +1,28 @@
+{
+  "schema": "doppler.native-prefill5-storage-context/v1",
+  "sourceRevision": "b86904cdbd6a1c891a9a44b363adafc0a0bcacf1",
+  "ciRunId": 44022072271,
+  "ciUrl": "https://github.com/clocksmith/doppler/actions/runs/44022072271",
+  "record": {
+    "path": "native-rebuild-prefill5-probe.json",
+    "sha256": "6f2dd7a5a345afe09f9c6bcade663d2e5d2e66715f7f81cbe277483457c95406"
+  },
+  "scope": {
+    "inputWidth": 32,
+    "outputWidth": 16,
+    "prefillRows": 5,
+    "decodeRows": 1,
+    "steps": 4,
+    "transport": "framed pipes between threads in one process",
+    "source": "synthetic BF16 fixture",
+    "processPeakRss": "process-lifetime high-water mark; not combined client/provider full-model memory"
+  },
+  "limitations": [
+    "not actual Flash weights or full-model execution",
+    "not separate machines",
+    "no full-sized Flash tile memory qualification",
+    "no independent cryptographic review"
+  ],
+  "productionBackendAvailable": false,
+  "securityQualified": false
+}

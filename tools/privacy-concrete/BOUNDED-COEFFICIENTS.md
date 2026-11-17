@@ -273,3 +273,54 @@ memory; these calculated bounds are not an eight-GiB RSS qualification. Tiny
 five-row prefill plus three decode steps match the whole quantizer's complete
 output and ordered inventory exactly. Actual Flash memory and output remain to
 be measured. This callback has not replaced code in the paused physical run.
+
+## Existing-checkpoint local runner
+
+`flash_generate_run.py` connects complete authenticated decoder/output/token/PLE
+loading, bounded coefficient preparation, explicit reconstruction profile,
+client-held key creation, local checked evaluator and fixed generation. It reads
+only existing checkpoint and inspected operator files; it downloads, installs
+and provisions nothing. Native source/dependency checks and exact prompt/profile
+matching precede model preparation and key creation. Scratch must be outside
+both the pinned source view and resolved shard locations. The plan stays owned
+until the provider has stopped; provider shutdown precedes source/scratch cleanup.
+
+Run only after agreeing an uncontested CPU/IO window and applying the external
+memory/disk limits. The client and local provider each use four CPU threads. An
+existing shared lock and pause path are mandatory. While paused, the runner
+neither initializes native code nor reads checkpoint headers. A new pause request
+after admission cancels and closes the attempt at the next cancellation boundary;
+it never removes the pause, resumes a partial route or retries with a weaker
+profile. Large token/PLE table admission now checks cancellation during each
+whole-file hash and cleans previously opened maps on failure.
+
+```sh
+OMP_NUM_THREADS=4 RAYON_NUM_THREADS=4 python flash_generate_run.py \
+  --source /existing/pinned-flash-812d96e1 \
+  --reference /existing/inspected-reference/modeling_qwen4_exp.py \
+  --scratch /existing/isolated-research-scratch \
+  --backend-profile flash-text-all-linear-ntt12-rebuild-prefill5-check \
+  --tenant-id public-validation --privacy-id local-research \
+  --lock /tmp/flash-attribution-exclusive.lock \
+  --pause-file /tmp/a2-flash-validate.pause --resource-wait-seconds 1 \
+  --public-fixture flash-public-capital-text
+```
+
+This is a prepared execution command, not a recorded successful physical run.
+The complete route contains 74,501 projections and 603,472 encrypted tiles across
+four steps, plus integrity sampling and full client floating/quantized references.
+No practical full-model latency or eight-GiB RSS claim follows from the cache
+bound or runnable code. The runner has been lifecycle-tested with mocked compute;
+the tiny complete graph/framing and native arithmetic evidence are separate.
+Actual Flash execution remains blocked on the coordinated resource window and
+completed numerical references. The previous generation-owner pin has not been
+located; this runner is a new source-controlled entry point.
+
+The retained [five-row native probe](evidence/storage/native-rebuild-prefill5-probe.json)
+and [source context](evidence/storage/native-rebuild-prefill5-context.json) record
+run 44022072271 at `b86904cdbd6a1c891a9a44b363adafc0a0bcacf1`. Five input rows
+followed by three single-row feedback steps took 29.86 seconds on one synthetic
+32-by-16 matrix. Every input row's argmax matched its clear control. Coefficient
+traffic was zero, with one 1,024-byte provider materialization, 268,537,440 bytes
+sent and 101,999 received. This is neither actual Flash nor full-sized-tile,
+separate-machine, production or reviewed-security qualification.

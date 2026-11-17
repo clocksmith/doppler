@@ -6,6 +6,7 @@ from pathlib import Path
 import tempfile
 import threading
 import unittest
+from unittest.mock import patch
 from local_ngram_rows import LocalNgramRows
 
 
@@ -30,6 +31,24 @@ class LocalRowsTests(unittest.TestCase):
                 self.assertEqual(storage.read_rows(indices,max_output_bytes=24),b''.join(all_rows[i*4:(i+1)*4] for i in indices))
                 self.assertEqual(set(storage.__dict__) & {'indices','results','request_cache'},set())
             self.assertTrue(storage.closed);self.assertEqual(storage.maps,{})
+
+    def test_cancellation_during_admission_closes_prior_mappings_and_stops_hashing(self):
+        from flash_weights import verify_blob
+        with tempfile.TemporaryDirectory() as directory:
+            spec,_=self.fixture(directory);event=threading.Event();calls=[]
+            owner=LocalNgramRows.__new__(LocalNgramRows)
+            def verify(*args,**kwargs):
+                verify_blob(*args,**kwargs);calls.append(args[0])
+                if len(calls)==2:event.set()
+            before={name:(Path(directory)/name).read_bytes() for name in spec['shards']}
+            with patch('local_bf16_rows.verify_blob',side_effect=verify):
+                with self.assertRaises(InterruptedError):owner.__init__(directory,spec,local_storage_limit_bytes=4096,cancelled=event)
+            self.assertEqual(len(calls),2);self.assertTrue(owner.closed)
+            self.assertEqual(owner.maps,{});self.assertEqual(owner.handles,{})
+            self.assertEqual({name:(Path(directory)/name).read_bytes() for name in spec['shards']},before)
+            with patch('local_bf16_rows.verify_blob') as verify:
+                with self.assertRaises(InterruptedError):LocalNgramRows(directory,spec,local_storage_limit_bytes=4096,cancelled=event)
+                verify.assert_not_called()
 
     def test_cancelled_or_wrong_namespace_lease_cannot_close_other_requests_public_storage(self):
         from dataclasses import replace
