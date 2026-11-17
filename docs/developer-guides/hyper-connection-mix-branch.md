@@ -34,22 +34,28 @@ through its former output-store boundary. Tail lanes participate in all three
 barriers and never read beyond the input.
 
 For recorded single-token calls with an existing prepared decode workspace,
-only the fused branch output is borrowed from `hc:<layer>:<role>:branch`.
-Attention, MLP and root roles have separate slots; other temporaries retain
-existing ownership. Queue order protects reuse by serial decode calls. The
-session owns the slot until all submitted work settles and the workspace is
+the fused branch output is borrowed from `hc:<layer>:<role>:branch`.
+Attention and MLP sites also borrow their normalized streams, low-rank SiLU and
+injection gate from separate `normed`, `low_rank_silu` and `inject_gate` slots
+under the same layer/role prefix, independently of mix fusion. This keeps the
+inputs to existing projection binding caches stable without changing arithmetic.
+The root mixer gains no intermediate slots; final residual injection stays
+pooled. Attention, MLP and root roles never alias. Queue order protects reuse by
+serial decode calls. The session owns the slot until all submitted work settles and the workspace is
 released. Immediate and multi-token calls use ordinary pooled outputs.
 
 CPU checks:
 
 ```sh
 node tools/run-node-tests.js tests/kernels/hyper-connection-mix-branch-contract.test.js tests/inference/hyper-connection-mix-branch-wiring.test.js tests/inference/hyper-connection-layer-wiring.test.js tests/inference/hyper-connection-sequence.test.js
+node tests/inference/hyper-connection-workspace.test.js
 ```
 
 After acquiring a clean GPU window, run the short synthetic component test:
 
 ```sh
 node tests/kernels/hyper-connection-mix-branch-gpu.test.js
+node tests/kernels/hyper-connection-workspace-gpu.test.js
 ```
 
 It rejects software adapters and checks exact output bits against the actual
