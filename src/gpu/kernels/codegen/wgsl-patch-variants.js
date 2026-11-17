@@ -63,6 +63,12 @@ export const WGSL_PATCH_VARIANTS = Object.freeze([
     patch: 'src/gpu/kernels/codegen/patches/fused_matmul_q4_widetile_direct.from.fused_matmul_q4_widetile.diff',
   },
   {
+    id: 'fused-matmul-q4-widetile-f32',
+    source: 'src/gpu/kernels/fused_matmul_q4_widetile.wgsl',
+    target: 'src/gpu/kernels/fused_matmul_q4_widetile_f32.wgsl',
+    patch: 'src/gpu/kernels/codegen/patches/fused_matmul_q4_widetile_f32.from.fused_matmul_q4_widetile.diff',
+  },
+  {
     id: 'attention-decode-f16',
     source: 'src/gpu/kernels/attention_decode.wgsl',
     target: 'src/gpu/kernels/attention_decode_f16.wgsl',

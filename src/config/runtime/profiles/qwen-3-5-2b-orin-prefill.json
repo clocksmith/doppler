@@ -1,0 +1,46 @@
+{
+  "id": "profiles/qwen-3-5-2b-orin-prefill",
+  "name": "qwen-3-5-2b-orin-prefill",
+  "description": "Opt-in Qwen 3.5 2B profile for Jetson AGX Orin. Uses the f32 WideTile kernel for prefill gate, up and down projections.",
+  "intent": "calibrate",
+  "compatibleIntents": [
+    "calibrate"
+  ],
+  "stability": "experimental",
+  "owner": "doppler-core",
+  "createdAtUtc": "2026-11-17T00:00:00Z",
+  "model": "qwen-3-5-2b-q4k-ehaf16",
+  "runtime": {
+    "inference": {
+      "executionPatch": {
+        "addKernels": [
+          {
+            "key": "q4_widetile_f32",
+            "kernel": {
+              "kernel": "fused_matmul_q4_widetile_f32.wgsl",
+              "entry": "main",
+              "digest": "sha256:0baee846cbb5d1f82678b1183927485efa08052feaf5d2608bf7f5cf5b69928d"
+            }
+          }
+        ],
+        "set": [
+          {
+            "section": "prefill",
+            "op": "gate_proj",
+            "kernelKey": "q4_widetile_f32"
+          },
+          {
+            "section": "prefill",
+            "op": "up_proj",
+            "kernelKey": "q4_widetile_f32"
+          },
+          {
+            "section": "prefill",
+            "op": "down_proj",
+            "kernelKey": "q4_widetile_f32"
+          }
+        ]
+      }
+    }
+  }
+}

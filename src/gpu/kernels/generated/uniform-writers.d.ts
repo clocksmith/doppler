@@ -101,6 +101,7 @@ export interface KernelUniformValues {
   "matmul/q4_fused_widetile_f16": Parameters<typeof writers0.write_matmul_q4_fused_f16a>[1];
   "matmul/q4_fused_widetile_f16a": Parameters<typeof writers0.write_matmul_q4_fused_f16a>[1];
   "matmul/q4_fused_widetile_direct": Parameters<typeof writers0.write_matmul_q4_fused_f16a>[1];
+  "matmul/q4_fused_widetile_f32": Parameters<typeof writers0.write_matmul_q4_fused_f16a>[1];
   "matmul/q4_fused_widetile": Parameters<typeof writers0.write_matmul_q4_fused_f16a>[1];
   "matmul/q4_fused_rmsnorm_widetile": Parameters<typeof writers0.write_matmul_q4_fused_rmsnorm_widetile>[1];
   "matmul/q4_fused_widetile_residual": Parameters<typeof writers0.write_matmul_q4_fused_f16a>[1];

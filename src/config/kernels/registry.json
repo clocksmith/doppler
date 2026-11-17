@@ -8006,6 +8006,52 @@
       "wgslOnDisk": true
      }
     },
+    "q4_fused_widetile_f32": {
+     "wgsl": "fused_matmul_q4_widetile_f32.wgsl",
+     "entryPoint": "main",
+     "workgroup": [256,1,1],
+     "requires": [],
+     "outputDtype": "f32",
+     "weightDtype": "q4k",
+     "variantMetadata": {
+      "tileM": 4,
+      "colsPerWg": 256,
+      "dispatchGeometry": "row-column-tile"
+     },
+     "description": "Q4_K WideTile prefill with f32 activations and output on devices without shader-f16.",
+     "bindings": [
+      {
+       "index": 0,
+       "name": "uniforms",
+       "type": "uniform",
+       "wgslName": "u"
+      },
+      {
+       "index": 1,
+       "name": "input",
+       "type": "read-only-storage",
+       "wgslName": "A"
+      },
+      {
+       "index": 2,
+       "name": "weights",
+       "type": "read-only-storage",
+       "wgslName": "B_q4k"
+      },
+      {
+       "index": 3,
+       "name": "output",
+       "type": "storage",
+       "wgslName": "C"
+      }
+     ],
+     "reachability": {
+      "status": "pinned",
+      "inlineConfigs": ["runtime/profiles/qwen-3-5-2b-orin-prefill"],
+      "ruleChains": [],
+      "wgslOnDisk": true
+     }
+    },
     "q4_fused_widetile": {
      "wgsl": "fused_matmul_q4_widetile.wgsl",
      "entryPoint": "main",

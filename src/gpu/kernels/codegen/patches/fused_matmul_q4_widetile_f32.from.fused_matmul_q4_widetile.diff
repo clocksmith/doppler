@@ -1,0 +1,8 @@
+--- src/gpu/kernels/fused_matmul_q4_widetile.wgsl
++++ src/gpu/kernels/fused_matmul_q4_widetile_f32.wgsl
+@@ -11,5 +11,3 @@
+-enable f16;
+-
+ const QK_K: u32 = 256u;
+ const SUBBLOCK_SIZE: u32 = 32u;
+ const NUM_SUBBLOCK_PAIRS: u32 = 4u;

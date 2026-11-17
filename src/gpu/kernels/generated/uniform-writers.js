@@ -101,6 +101,7 @@ export const UNIFORM_WRITERS = Object.freeze({
   "matmul/q4_fused_widetile_f16": { size: 32, write: writers0.write_matmul_q4_fused_f16a },
   "matmul/q4_fused_widetile_f16a": { size: 32, write: writers0.write_matmul_q4_fused_f16a },
   "matmul/q4_fused_widetile_direct": { size: 32, write: writers0.write_matmul_q4_fused_f16a },
+  "matmul/q4_fused_widetile_f32": { size: 32, write: writers0.write_matmul_q4_fused_f16a },
   "matmul/q4_fused_widetile": { size: 32, write: writers0.write_matmul_q4_fused_f16a },
   "matmul/q4_fused_rmsnorm_widetile": { size: 32, write: writers0.write_matmul_q4_fused_rmsnorm_widetile },
   "matmul/q4_fused_widetile_residual": { size: 32, write: writers0.write_matmul_q4_fused_f16a },
