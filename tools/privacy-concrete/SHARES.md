@@ -106,7 +106,9 @@ and probe seed are unpredictable and stay secret. **S3** the requester's anchors
   sizes and timing.
 - **Model confidentiality.** Weights are public by design.
 - **Availability.** Either provider can stop the attempt. A provider that stops reading or answering is cut off at a
-  per-message deadline that ends its whole process group, closing is bounded, and an attempt has a one-hour limit.
+  per-message deadline that ends its whole process group, closing is bounded, and an attempt has a one-hour limit. Each in-flight send or receive uses the remaining absolute attempt budget,
+  capped by the per-message timeout; cancellation also ends blocked provider I/O. Failed attempts kill both provider
+  process groups before bounded cleanup.
   None of that makes a slow provider fast.
 - **Transport and identity.** This prototype talks to providers over process pipes or SSH. Provider identity, grants
   and receipts belong to Reploid and are not built.
@@ -179,7 +181,7 @@ receipts are in this repository's history at commits `9975f02c5` and `8b73b5991`
 
 ## Review record
 
-- 2026-11-17, automated tests: 16 pass ([test_shares.py](test_shares.py)).
+- 2026-11-17, automated tests: 18 pass ([test_shares.py](test_shares.py)).
 - 2026-11-17, first independent automated review, of a version with a public probe in a separate row and arithmetic
   modulo 2^64. It demonstrated that two providers who both returned zeros, or both used the same other matrix except
   on the recognisable anchor row, were accepted 300 times out of 300, and that the range check accepted the most

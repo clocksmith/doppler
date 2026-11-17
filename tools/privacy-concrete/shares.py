@@ -201,6 +201,8 @@ class ProcessEvaluator:
     """One evaluator reached through a child process's pipes; the command may be local or an SSH invocation."""
     def __init__(self,command,label,timeout=POLICY['operationTimeoutSeconds']):
         self.label,self.sequence,self.sent,self.received,self.timeout,self.failed=label,0,0,0,timeout,False
+        self.attempt_deadline=self.cancelled=None
+        self.interruption=None
         # Its own process group, so a deadline also ends any helper that inherited the pipes.
         self.process=subprocess.Popen(command,stdin=subprocess.PIPE,stdout=subprocess.PIPE,stderr=subprocess.DEVNULL,start_new_session=True)
 
@@ -208,10 +210,38 @@ class ProcessEvaluator:
         try:os.killpg(self.process.pid,signal.SIGKILL)
         except (ProcessLookupError,PermissionError):pass
 
+    def bind_attempt(self,deadline,cancelled):
+        self.attempt_deadline,self.cancelled=deadline,cancelled
+
     def _deadline(self,seconds=None):
-        # A provider that stops reading or answering is cut off; the blocked call then ends as a closed stream.
-        timer=threading.Timer(self.timeout if seconds is None else seconds,self._kill);timer.daemon=True;timer.start()
-        return timer
+        # One absolute attempt deadline spans all operations, including a blocked pipe.
+        # Cleanup uses its own bounded grace period and ignores the cancelled attempt.
+        stop=threading.Event();lock=threading.Lock()
+        end=time.monotonic()+(self.timeout if seconds is None else seconds)
+        if seconds is None and self.attempt_deadline is not None:end=min(end,self.attempt_deadline)
+        def expire():
+            now=time.monotonic()
+            cancelled=seconds is None and self.cancelled is not None and self.cancelled.is_set()
+            if cancelled or now>=end:
+                self.interruption=('cancelled' if cancelled else
+                    'deadline-exceeded' if seconds is None and self.attempt_deadline is not None and now>=self.attempt_deadline else 'execution-failed')
+                self.failed=True;self._kill();return True
+            return False
+        def watch():
+            while True:
+                with lock:
+                    if stop.is_set() or expire():return
+                stop.wait(max(0,min(0.02,end-time.monotonic())))
+        worker=threading.Thread(target=watch,daemon=True);worker.start()
+        def finish():
+            # Serialize completion with expiry: no watchdog can kill a later exchange.
+            with lock:
+                if not stop.is_set() and self.interruption is None:expire()
+                stop.set()
+            worker.join()
+            if seconds is None and self.interruption is not None:
+                raise ExecutionRejected(self.interruption)
+        return finish
 
     def send(self,name,rows):
         encoded=name.encode()
@@ -224,7 +254,7 @@ class ProcessEvaluator:
         except BaseException:
             self.failed=True;raise
         finally:
-            timer.cancel()
+            timer()
         self.sent+=REQUEST_HEAD.size+len(encoded)+len(payload)
 
     def _read(self,count):
@@ -244,7 +274,7 @@ class ProcessEvaluator:
         except BaseException:
             self.failed=True;raise
         finally:
-            timer.cancel()
+            timer()
 
     def close(self):
         # After any failed exchange the provider is not asked to stop: it is ended. A polite close is itself bounded.
@@ -257,7 +287,7 @@ class ProcessEvaluator:
         except (OSError,ValueError,subprocess.TimeoutExpired):
             self._kill()
         finally:
-            timer.cancel()
+            timer()
             self._kill()
             try:self.process.wait(timeout=5)
             except subprocess.TimeoutExpired:pass
@@ -300,19 +330,30 @@ class ShareRoute:
                 or bool((inputs>=np.uint64(1<<quantization_bits)).any())):
             raise ValueError('Projection is outside the admitted share route')
         if self.began is None:self.began=time.monotonic()
+        deadline=self.began+self.policy['attemptTimeoutSeconds']
+        for evaluator in (self.a,self.b):
+            if isinstance(evaluator,ProcessEvaluator):evaluator.bind_attempt(deadline,self.cancelled)
         rounds=self.policy['checkRounds']
         bound=product_bound(inputs.shape[1],quantization_bits)
         began=time.perf_counter()
         query_a,query_b,secrets=build_queries(inputs,probe(self.probe_seed,name,inputs.shape[1]),rounds,self.rng)
         built=time.perf_counter()
         try:
-            self.a.send(name,query_a);self.b.send(name,query_b)
-            answer_a=self.a.receive(query_a.shape[0],output_width)
-            answer_b=self.b.receive(query_b.shape[0],output_width)
-        except (ConnectionError,OSError):
+            self.check_active();self.a.send(name,query_a)
+            self.check_active();self.b.send(name,query_b)
+            self.check_active();answer_a=self.a.receive(query_a.shape[0],output_width)
+            self.check_active();answer_b=self.b.receive(query_b.shape[0],output_width)
+            self.check_active()
+        except (ConnectionError,OSError,ExecutionRejected) as error:
             # An evaluator that was already caught cannot turn that into a transport error by leaving.
-            self.closed=True
-            raise ExecutionRejected('integrity-check-failed' if self.failure is not None else 'execution-failed') from None
+            reason='execution-failed'
+            if isinstance(error,ExecutionRejected):reason=error.code
+            elif self.cancelled is not None and self.cancelled.is_set():reason='cancelled'
+            elif time.monotonic()>=deadline:reason='deadline-exceeded'
+            for evaluator in (self.a,self.b):
+                if isinstance(evaluator,ProcessEvaluator):evaluator.failed=True
+            self.close()
+            raise ExecutionRejected('integrity-check-failed' if self.failure is not None else reason) from None
         answered=time.perf_counter()
         product,passed=combine(answer_a,answer_b,secrets,self.anchors[name],bound)
         finished=time.perf_counter()

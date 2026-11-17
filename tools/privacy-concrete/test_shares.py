@@ -5,6 +5,7 @@ from pathlib import Path
 import sys
 import tempfile
 import time
+import threading
 import unittest
 
 try:
@@ -308,6 +309,55 @@ class SharesTest(unittest.TestCase):
             self.assertEqual(caught.exception.code,'integrity-check-failed')
         finally:
             route.close()
+
+    def test_watchdog_completion_serializes_with_expiry(self):
+        evaluator=shares.ProcessEvaluator.__new__(shares.ProcessEvaluator)
+        evaluator.timeout=30;evaluator.attempt_deadline=time.monotonic()-1
+        evaluator.cancelled=None;evaluator.interruption=None;evaluator.failed=False
+        entered=threading.Event();release=threading.Event();done=threading.Event();errors=[]
+        def kill():entered.set();release.wait(2)
+        evaluator._kill=kill
+        finish=evaluator._deadline()
+        self.assertTrue(entered.wait(1))
+        def complete():
+            try:finish()
+            except ExecutionRejected as error:errors.append(error.code)
+            finally:done.set()
+        completion=threading.Thread(target=complete);completion.start()
+        self.assertFalse(done.wait(0.05))
+        release.set();completion.join(2)
+        self.assertTrue(done.is_set())
+        self.assertEqual(errors,['deadline-exceeded'])
+        # Completing before expiry joins/disarms the worker, so later exchanges cannot be killed.
+        evaluator.attempt_deadline=time.monotonic()+0.1;evaluator.interruption=None
+        kills=[];evaluator._kill=lambda:kills.append(True)
+        evaluator._deadline()()
+        time.sleep(0.15)
+        self.assertEqual(kills,[])
+
+    def test_attempt_deadline_and_cancel_interrupt_inflight_send_and_read(self):
+        commands=[
+            [sys.executable,'-c','import time; time.sleep(60)'],
+            [sys.executable,'-c','import sys; sys.stdin.buffer.read()'],
+        ]
+        for command in commands:
+            for cancel in (False,True):
+                # Wide data blocks send; a small request fits the pipe and blocks receive.
+                inputs=np.zeros((64,4096) if command is commands[0] else (1,48),dtype=np.uint64)
+                route=self.process_route(command,anchors={'w':np.zeros(4,dtype=np.uint64)},timeout=30)
+                route.began=time.monotonic()-shares.POLICY['attemptTimeoutSeconds']+0.3 if not cancel else time.monotonic()
+                event=threading.Event();route.cancelled=event
+                timer=threading.Timer(0.3,event.set) if cancel else None
+                if timer:timer.start()
+                began=time.monotonic()
+                try:
+                    with self.assertRaises(ExecutionRejected) as caught:route.linear('w',inputs,4,12)
+                    self.assertEqual(caught.exception.code,'cancelled' if cancel else 'deadline-exceeded')
+                    self.assertLess(time.monotonic()-began,3)
+                    self.assertTrue(all(e.process.poll() is not None for e in (route.a,route.b)))
+                finally:
+                    if timer:timer.cancel()
+                    route.close()
 
     def test_closing_and_deadlines_are_bounded_even_when_a_helper_keeps_the_pipes(self):
         wide=np.zeros((64,4096),dtype=np.uint64);anchors={'w':np.zeros(4,dtype=np.uint64)}
