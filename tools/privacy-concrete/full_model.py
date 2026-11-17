@@ -93,10 +93,19 @@ class FullLinear(nn.Module):
         if self.mode == 'float-reference':
             if self.remote is None:raise ValueError('Floating reference weights were explicitly released')
             return self.remote(value)
-        if self.mode not in ['clear-reference','execute'] or not torch.isfinite(value).all() or value.shape[-1] != self.definition['inputWidth']:
+        if self.mode not in ['clear-reference','execute','shared'] or not torch.isfinite(value).all() or value.shape[-1] != self.definition['inputWidth']:
             raise ValueError('Unsupported full-model projection execution')
         q_input, scale, zero, original_shape = self.executor._dynamic_input_quantization(value,self.context,False)
-        with self.coefficient_matrix() as weights:
+        if self.mode == 'shared':
+            # Two-server shares: the client reads no coefficient here, only its own quantized activation.
+            route=getattr(self,'shares',None)
+            if route is None:raise ValueError('No bound share route')
+            integer_input = np.ascontiguousarray(q_input.long().numpy(),dtype=np.uint64)
+            if integer_input.ndim != 2 or not np.all(integer_input<2**self.encoding['quantizationBits']):
+                raise ValueError('Only one private request per share route is admitted')
+            raw = torch.from_numpy(route.linear(self.name,integer_input,self.definition['outputWidth'],self.encoding['quantizationBits']))
+        else:
+          with self.coefficient_matrix() as weights:
             if self.mode == 'clear-reference':
                 raw = integer_dot(q_input,weights)
             else:
@@ -184,7 +193,7 @@ def prepare(model_dir,cache_dir,backend_profile=DEFAULT_PROFILE,*,cancelled=None
 
 def model_step(model,projections,cache,tokens,original_count,step,mode,context_bucket,pad_token_id):
     """One shared prefill/decode contract for encrypted execution and clear quality checks."""
-    if (mode not in ['float-reference','clear-reference','execute'] or type(step) is not int or step<0
+    if (mode not in ['float-reference','clear-reference','execute','shared'] or type(step) is not int or step<0
             or not 1<=original_count<=context_bucket or len(tokens)!=original_count+step):
         raise ValueError('Exact model step and token history required')
     for projection in projections:projection.mode=mode
