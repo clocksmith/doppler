@@ -14,7 +14,7 @@ never changed in place; these metadata checks do not qualify model outputs.
 An optional `requiredKernelPath` from the selected source's manifest execution
 compiler supplies missing model operation declarations at each layer/phase and
 at the root. Existing candidate declarations stay selected except for explicit
-hyper-connection compatibility: ordinary FFN norm/router fusion is removed and
+hyper-connection compatibility: ordinary FFN norm/router and linear norm/AB fusions are removed and
 the outer-residual shared-slot down uses its registered non-residual counterpart.
 The HC executor owns its normalization and gated residual; no pending classic
 FFN inputs are fabricated. These changes and selected-source shader digests are
@@ -26,6 +26,9 @@ extent, preparation explicitly removes its three grouped operations and records
 ordinary routing in that receipt. Increasing the sort override alone is unsafe:
 the current shader assigns one expert to each invocation. Earlier grouped timings
 do not qualify this graph.
+An out-of-extent top-K selection must be replaced by the model's explicit
+manifest-compiled program whose registered limits cover both experts and top-K.
+Missing or insufficient replacement declarations fail preparation.
 
 1. `export-canonical.js <config.json>` verifies the pinned source manifest and
    every shard, then reconstructs selected learned tensors into F32 Safetensors.

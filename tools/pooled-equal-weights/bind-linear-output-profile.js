@@ -16,6 +16,26 @@ export async function bindLinearOutputProfile({ profile, manifest, dopplerRoot, 
   const original = profile.runtime?.inference?.kernelPath;
   assert(original && Number.isSafeInteger(manifest.architecture?.numLayers), 'Explicit profile and model geometry required');
   const result = structuredClone(profile), bindings = [], declarations = [], semanticBindings = [], groups = new Map();
+  function bindTopKGeometry(steps, required, location) {
+    return steps.map(step => {
+      if (step.op !== 'moe_topk') return step;
+      const config = getKernelPathStepConfig('topk', step, location.phase);
+      const numExperts = manifest.moeConfig?.numExperts;
+      const topK = manifest.moeConfig?.numExpertsPerToken;
+      assert(config?.variantMetadata, 'Top-K must have registered geometry limits');
+      if (numExperts <= config.variantMetadata.maxExperts && topK <= config.variantMetadata.maxTopK) return step;
+      const replacements = required.filter(value => value.op === step.op);
+      assert.equal(replacements.length, 1, 'Out-of-extent top-K requires one manifest-compiled replacement');
+      const after = structuredClone(replacements[0]);
+      const replacement = getKernelPathStepConfig('topk', after, location.phase);
+      assert(Number.isSafeInteger(numExperts) && Number.isSafeInteger(topK)
+        && numExperts <= replacement?.variantMetadata?.maxExperts && topK <= replacement?.variantMetadata?.maxTopK,
+      'Manifest-compiled top-K does not cover the actual model');
+      semanticBindings.push({ ...location, op: step.op, before: structuredClone(step), after: structuredClone(after),
+        reason: `Selected top-K cannot cover ${numExperts} experts/top-${topK}; use the explicit manifest program` });
+      return after;
+    });
+  }
   function bindGroupedExpertExtent(steps, location) {
     const grouped = steps.filter(step => step.op === 'moe_grouped_sort');
     if (!grouped.length) return steps;
@@ -41,7 +61,7 @@ export async function bindLinearOutputProfile({ profile, manifest, dopplerRoot, 
     // HC owns its gated residual and norm. Its MoE caller supplies neither of
     // processFFNStandard's pending inputs; adding them would change model math.
     return steps.filter(step => {
-      if (step.op !== 'moe_norm_router') return true;
+      if (!['moe_norm_router', 'linear_norm_ab'].includes(step.op)) return true;
       semanticBindings.push({ ...location, op: step.op, before: structuredClone(step), after: null,
         reason: 'Hyper-connection caller supplies its own normalized branch input' });
       return false;
@@ -80,8 +100,9 @@ export async function bindLinearOutputProfile({ profile, manifest, dopplerRoot, 
     const programs = {};
     for (const phase of ['prefill', 'decode']) {
       const location = { layer, phase };
-      const steps = bindGroupedExpertExtent(bindHyperConnectionSteps(includeMissing(getLayerSteps(original, layer, phase),
-        requiredKernelPath ? getLayerSteps(requiredKernelPath, layer, phase) : [], location), location), location);
+      const required = requiredKernelPath ? getLayerSteps(requiredKernelPath, layer, phase) : [];
+      const steps = bindTopKGeometry(bindGroupedExpertExtent(bindHyperConnectionSteps(
+        includeMissing(getLayerSteps(original, layer, phase), required, location), location), location), required, location);
       if (name) {
         const format = ggufBlockFormat(manifest.tensors[name].dtype);
         assert(['q4_0', 'q4_1', 'q8_0'].includes(format.variant), 'Unsupported linear output encoding');
