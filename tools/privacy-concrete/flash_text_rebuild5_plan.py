@@ -14,8 +14,8 @@ from flash_provider_source import linear_source_spec
 from plan_backends import REBUILD_PREFILL5_PROFILE
 
 PROFILE=REBUILD_PREFILL5_PROFILE
-CONFIG=dict(BASE_CONFIG,profile=PROFILE,contextBucket=5,schema='doppler.flash-text-rebuild-prefill5-check-policy/v1',
-    planSchema='doppler.flash-text-rebuild-prefill5-check-plan/v1',protocol='concrete-glwe-flash-text-rebuild-prefill5-linear-check/v1')
+CONFIG=dict(BASE_CONFIG,profile=PROFILE,contextBucket=5,schema='doppler.flash-text-rebuild-prefill5-check-policy/v2',
+    planSchema='doppler.flash-text-rebuild-prefill5-check-plan/v2',protocol='concrete-glwe-flash-text-rebuild-prefill5-linear-check/v1')
 PROGRAM=dict(BASE_PROGRAM,prefillRows=5)
 PROGRAM_ID=digest(canonical(PROGRAM))
 

@@ -1,6 +1,6 @@
 {
-  "schema": "doppler.qwen-all-linear-ntt12-check-policy/v1",
-  "planSchema": "doppler.qwen-all-linear-ntt12-check-plan/v1",
+  "schema": "doppler.qwen-all-linear-ntt12-check-policy/v2",
+  "planSchema": "doppler.qwen-all-linear-ntt12-check-plan/v2",
   "protocol": "concrete-glwe-qwen-all-linear-ntt12-linear-check/v1",
   "productionBackendAvailable": false,
   "steps": 4,

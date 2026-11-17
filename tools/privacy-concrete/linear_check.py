@@ -9,33 +9,14 @@ review has occurred and no production backend is admitted.
 """
 import hashlib
 import hmac
-import json
 import math
-from pathlib import Path
+from check_policy import POLICY,POLICY_ID,validate_policy,freeze_policy
 try:import numpy as np
 except ImportError:np=None # Policy identity and tolerances stay importable without NumPy; CheckKey requires it.
 
-POLICY=json.loads(Path(__file__).with_name('linear-check-policy.json').read_text())
-POLICY_ID=hashlib.sha256(json.dumps(POLICY,sort_keys=True,separators=(',',':')).encode()).hexdigest()
-
-
-def validate_policy(policy):
-    sample=policy.get('replaySample',{})
-    if (policy.get('schema')!='doppler.linear-check-policy/v1' or policy.get('securityQualified') is not False
-            or policy.get('productionBackendAvailable') is not False
-            or type(policy.get('checkVectors')) is not int or not 16<=policy['checkVectors']<=64
-            or policy.get('weightBits')!=16 or type(policy.get('falseRejectLog2')) is not int or not 20<=policy['falseRejectLog2']<=80
-            or type(sample.get('numerator')) is not int or type(sample.get('denominator')) is not int
-            or not 1<=sample['numerator']<=sample['denominator']<=64 or policy.get('vectorScope')!='tile-step-row/v1'
-            or policy.get('rejection')!='deferred-until-route-close/v1' or policy.get('rejectedResponseSubstitute')!='zero'):
-        raise ValueError('Unsupported installed linear-check policy')
-    return policy
-
-
 def noise_model(parameter_profile,policy=POLICY):
     value=validate_policy(policy)['noise'].get(parameter_profile)
-    if (not isinstance(value,dict) or any(type(value.get(key)) not in (int,float) or not math.isfinite(value[key]) for key in ['varianceBase','variancePerOutput','margin'])
-            or value['varianceBase']<0 or value['variancePerOutput']<=0 or not 1<=value['margin']<=4):
+    if value is None:
         raise ValueError('No measured honest-noise model is installed for this parameter profile')
     return dict(value)
 
@@ -79,12 +60,33 @@ class CheckKey:
     def __init__(self,seed,parameter_profile,computation_bits,quantization_bits,policy=POLICY):
         if np is None:raise ValueError('NumPy is required for linear-check arithmetic')
         if not isinstance(seed,bytes) or len(seed)!=32:raise ValueError('Fresh 256-bit attempt-local check secret required')
-        self._seed=seed;self.policy=validate_policy(policy);self.noise=noise_model(parameter_profile,policy)
-        self.count=policy['checkVectors'];self.weight=2**(policy['weightBits']-1)
+        self._seed=seed;self._policy,self._policy_id=freeze_policy(policy)
+        noise_model(parameter_profile,self._policy);self._noise=self._policy['noise'][parameter_profile]
         if type(computation_bits) is not int or type(quantization_bits) is not int or not 2<=quantization_bits<computation_bits<=40:
             raise ValueError('Declared integer domains required')
-        self.computation_bits,self.quantization_bits=computation_bits,quantization_bits
+        self._computation_bits,self._quantization_bits=computation_bits,quantization_bits
         self.retired=False
+
+    @property
+    def policy(self):return self._policy
+
+    @property
+    def policy_id(self):return self._policy_id
+
+    @property
+    def noise(self):return self._noise
+
+    @property
+    def count(self):return self.policy['checkVectors']
+
+    @property
+    def weight(self):return 2**(self.policy['weightBits']-1)
+
+    @property
+    def computation_bits(self):return self._computation_bits
+
+    @property
+    def quantization_bits(self):return self._quantization_bits
 
     def retire(self):
         self.retired=True;self._seed=None

@@ -75,7 +75,7 @@ jobs:
           PYTHONPATH: tools/privacy-concrete
           DOPPLER_FLASH_REFERENCE: '1'
           HF_HOME: ${{ runner.temp }}/native-process-fixture-hf
-        run: python -m unittest test_native_process_fixture test_flash_compute_budget test_resource_memory -v
+        run: python -m unittest test_native_process_fixture test_flash_compute_budget test_resource_memory test_check_policy test_checked_bridge -v
       - name: Install this exact variant in the isolated runner
         run: python -m pip install --no-deps "$RUNNER_TEMP"/ntt-wheels/*.whl
       - name: Check native imports before generating keys

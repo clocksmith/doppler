@@ -16,6 +16,7 @@ from full_admission import FullRouteAdmission
 from full_plan import FullPlan,canonical
 from full_status import ExecutionRejected
 from protocol import digest
+from check_policy import POLICY_ID
 
 PROFILE='glwe-quant12-message35-storage48/v1'
 SEED=bytes(range(32))
@@ -33,6 +34,42 @@ class Cipher:
 
 @unittest.skipIf(np is None,'NumPy is required for the checked-bridge arithmetic')
 class CheckedBridgeTests(unittest.TestCase):
+    def test_unbound_or_mismatched_policy_rejects_before_base_key_or_provider_work(self):
+        for binding in (None,'f'*64):
+            definition=self.plan.definition()
+            if binding is None:definition['parameters'].pop('integrityPolicyId')
+            else:definition['parameters']['integrityPolicyId']=binding
+            plan=CheckedPlan(canonical(definition))
+            with self.subTest(binding=binding),patch.object(self.module.FullBridge,'__init__') as base:
+                with self.assertRaisesRegex(ValueError,'policy digest'):
+                    self.module.CheckedBridge('unused',plan,object(),parameter_profile=PROFILE)
+                base.assert_not_called()
+
+    def test_policy_change_during_base_preparation_closes_before_check_secret_or_payload(self):
+        from check_policy import POLICY
+        import copy
+        original=copy.deepcopy(POLICY)
+        def prepare(bridge,directory,plan,key,**kwargs):
+            bridge.plan=plan;POLICY['replaySample']['denominator']=64
+        try:
+            with patch.object(self.module.FullBridge,'__init__',prepare),patch.object(self.module.CheckedBridge,'close') as close,patch.object(self.module.os,'urandom') as secret:
+                with self.assertRaisesRegex(ValueError,'new compiled policy'):
+                    self.module.CheckedBridge('unused',self.plan,object(),parameter_profile=PROFILE)
+                close.assert_called_once();secret.assert_not_called()
+        finally:POLICY.clear();POLICY.update(original)
+
+    def test_attempt_cannot_replace_check_policy_and_reports_original_digest_after_global_change(self):
+        from check_policy import POLICY
+        import copy
+        bridge,_,_=self.bridge();original=copy.deepcopy(POLICY);identity=bridge.check.policy_id
+        try:
+            POLICY['replaySample']['denominator']=64
+            report=bridge.integrity_report()
+            self.assertEqual(report['integrityPolicyId'],identity);self.assertEqual(report['replaySample']['denominator'],16)
+            self.assertEqual(bridge.check.policy['replaySample']['denominator'],16)
+            with self.assertRaises(ValueError):bridge.begin_checks(PROFILE,SEED)
+        finally:POLICY.clear();POLICY.update(original)
+
     def setUp(self):
         self.parsed=[]
         def deserialize(raw):
@@ -47,7 +84,7 @@ class CheckedBridgeTests(unittest.TestCase):
         self.weights={'first':generator.integers(-2**11,2**11,size=(64,48),dtype=np.int64),'second':generator.integers(-2**11,2**11,size=(48,64),dtype=np.int64)}
         rows=[dict(name=name,weightId=digest(matrix.astype('<i2').tobytes()),inputWidth=matrix.shape[0],outputWidth=matrix.shape[1]) for name,matrix in self.weights.items()]
         self.plan=CheckedPlan(canonical(dict(modelId='a'*64,steps=3,contextBucket=2,inputTileWidth=32,outputTileWidth=32,
-            parameters=dict(parameters=dict(bits_reserved_for_computation=35),quantizationBits=12,weightEncoding='signed-int12-in-int16'),projections=rows)))
+            parameters=dict(parameters=dict(bits_reserved_for_computation=35),quantizationBits=12,weightEncoding='signed-int12-in-int16',integrityPolicyId=POLICY_ID),projections=rows)))
         self.generator=generator
 
     def bridge(self,tamper=None,event=None):

@@ -29,6 +29,19 @@ def honest_error(generator,shape,outputs):
 
 @unittest.skipIf(np is None,'NumPy is required for the linear-check arithmetic')
 class LinearCheckTests(unittest.TestCase):
+    def test_attempt_policy_and_reported_identity_are_immutable_snapshots(self):
+        from check_policy import policy_identity
+        original=copy.deepcopy(POLICY);check=key(policy=original)
+        samples=[check.sampled(TILE,step) for step in range(64)]
+        original['replaySample']['denominator']=64;original['noise'][PROFILE]['margin']=4
+        self.assertEqual(check.policy['replaySample']['denominator'],16);self.assertEqual(check.noise['margin'],2)
+        self.assertEqual(check.policy_id,linear_check.POLICY_ID);self.assertEqual(policy_identity(check.policy),check.policy_id)
+        self.assertEqual([check.sampled(TILE,step) for step in range(64)],samples)
+        for name,value in (('policy',original),('policy_id','f'*64),('noise',{}),('count',1),('weight',1),('computation_bits',40),('quantization_bits',8)):
+            with self.subTest(name=name),self.assertRaises(AttributeError):setattr(check,name,value)
+        with self.assertRaises(TypeError):check.policy['replaySample']['denominator']=64
+        with self.assertRaises(TypeError):check.noise['margin']=4
+
     def test_vectors_are_deterministic_bounded_and_separated_by_secret_and_tile(self):
         first=key().vectors(TILE,640,0,2)
         self.assertEqual(first.shape,(2,640,POLICY['checkVectors']));self.assertTrue(np.array_equal(first,key().vectors(TILE,640,0,2)))

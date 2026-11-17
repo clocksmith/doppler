@@ -9,6 +9,16 @@ on:
       - 'tools/privacy-concrete/full_model.py'
       - 'tools/privacy-concrete/integer_reference.py'
       - 'tools/privacy-concrete/full_bridge.py'
+      - 'tools/privacy-concrete/check_policy.py'
+      - 'tools/privacy-concrete/linear-check-policy.json'
+      - 'tools/privacy-concrete/linear_check.py'
+      - 'tools/privacy-concrete/checked_bridge.py'
+      - 'tools/privacy-concrete/test_check_policy.py'
+      - 'tools/privacy-concrete/test_checked_bridge.py'
+      - 'tools/privacy-concrete/test_linear_check.py'
+      - 'tools/privacy-concrete/research_parameters.py'
+      - 'tools/privacy-concrete/flash_text_ntt12_check_plan.py'
+      - 'tools/privacy-concrete/test_flash_text_ntt12_check_plan.py'
       - 'tools/privacy-concrete/test_full_bridge.py'
       - 'tools/privacy-concrete/test_flash_moe_cancellation.py'
       - 'tools/privacy-concrete/flash_moe.py'
@@ -95,6 +105,13 @@ jobs:
         run: |
           cd tools/privacy-concrete
           python -m unittest test_chunked_preparation test_public_columns test_streamed_preparation -v
+      - name: Check immutable policy admission and attempt isolation before provider disclosure
+        working-directory: tools/privacy-concrete
+        run: |
+          python -m unittest test_check_policy test_checked_bridge test_flash_text_ntt12_check_plan \
+            test_linear_check.LinearCheckTests.test_attempt_policy_and_reported_identity_are_immutable_snapshots \
+            test_linear_check.LinearCheckTests.test_policy_identity_and_validation \
+            test_linear_check.LinearCheckTests.test_retired_secret_and_unsupported_domains_reject -v
       - name: Provision only the inspected public operator source for tiny storage fixtures
         env:
           PYTHONPATH: tools/privacy-concrete

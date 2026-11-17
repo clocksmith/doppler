@@ -115,8 +115,20 @@ variance is about `7.4 m` on uniform inputs, and one extreme-input case showed a
 data-dependent bias that raised the largest row norm to 8,791 at `m = 2048`,
 against `B(2048) = 13,120`. The installed policy must keep at least 16 vectors,
 a sample numerator of at least one, a denominator of at most 64 and a margin of
-at most 4. The policy digest is reported with each run; it is not part of the
-plan identity.
+at most 4. Checked plan schema v2 binds the complete canonical policy digest in
+`parameters.integrityPolicyId`; Flash client program schema v2 binds the same
+digest. Policy changes therefore change plan and program identities, including
+the base plan identity pinned by an SSH route. Unbound legacy checked plans fail
+admission before provider startup or evaluation-key disclosure. Wire framing,
+the check mathematics and full-replay routes are unchanged.
+
+Each check key owns a deeply immutable snapshot of that exact admitted policy;
+reports derive their digest and settings from the attempt snapshot. A mutable
+module configuration cannot alter an existing attempt or register a new policy:
+a live configuration change rejects new admission and requires a fresh source
+configuration load and compiled plan. Admission checks the binding before base
+bridge preparation and again before creating the attempt check secret.
+Historical receipts retain their original identities and scope.
 
 ## Claims
 
@@ -345,6 +357,6 @@ behaviour, A1 on real activations, A2 or A4.
 | The protocol guard rejected every SSH-bound plan, and SSH frames named replay | Checked routes have their own SSH route schema and protocol |
 | The domain guard missed the most negative int64 | Fixed: extremes compared directly |
 | Claim 2 constant and per-attempt false-reject rate unstated | Stated |
-| The linear-check policy could be weakened without changing any identity | Floors enforced; the digest is reported, not bound into the plan |
+| The linear-check policy could be weakened without changing any identity | Fixed in checked plan/program schema v2: exact policy digest bound before disclosure, immutable attempt snapshots, legacy unbound plans rejected; policy/math values and production gating unchanged |
 | Not every parse or decrypt failure is deferred | Stated |
 | The cost link pointed at a missing section; one profile was named, two exist | Corrected |

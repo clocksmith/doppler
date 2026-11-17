@@ -6,6 +6,7 @@ from protocol import POLICY
 
 
 def component_parameters(policy):
+    if 'integrityPolicyId' in policy and 'integrity' not in policy:raise ValueError('Check-policy digest requires its installed integrity mechanism')
     variant=policy.get('nativeVariant')
     if variant is None:result=json.loads(canonical({key:POLICY[key] for key in ['dependencies','parameters','evaluationBackend']}))
     elif variant=='cpu-exact-ntt/v1':
@@ -21,5 +22,11 @@ def component_parameters(policy):
         result=dict(result,parameters=profile['parameters'],maxPayloadBytes=profile['maxPayloadBytes'])
         for key in ['quantizationBits','weightEncoding']:
             if key in profile:result[key]=profile[key]
+    if 'integrity' in policy:
+        from check_policy import installed_binding
+        binding=installed_binding()
+        if policy['integrity']!=binding['integrity'] or policy.get('integrityPolicyId',binding['integrityPolicyId'])!=binding['integrityPolicyId']:
+            raise ValueError('Unsupported installed checked-integrity policy binding')
+        result=dict(result,integrityPolicyId=binding['integrityPolicyId'])
     return result
 

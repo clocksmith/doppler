@@ -15,8 +15,8 @@ from public_tile_stream import CONTRACT
 from plan_backends import STREAMED_PROFILE
 
 PROFILE=STREAMED_PROFILE
-CONFIG=dict(CHECK_CONFIG,profile=PROFILE,schema='doppler.flash-text-stream-check-policy/v1',
-    planSchema='doppler.flash-text-stream-check-plan/v1',protocol='concrete-glwe-flash-text-stream-linear-check/v1')
+CONFIG=dict(CHECK_CONFIG,profile=PROFILE,schema='doppler.flash-text-stream-check-policy/v2',
+    planSchema='doppler.flash-text-stream-check-plan/v2',protocol='concrete-glwe-flash-text-stream-linear-check/v1')
 PROGRAM=dict(CHECK_PROGRAM,publicCoefficientStorage=CONTRACT)
 PROGRAM_ID=digest(canonical(PROGRAM))
 

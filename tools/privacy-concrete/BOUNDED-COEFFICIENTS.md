@@ -630,14 +630,18 @@ receipt. This is an implemented lifecycle-tested gate awaiting its coordinated
 physical run, not evidence that actual combined Flash memory already fits.
 
 The local qualification audit in
-`evidence/integrity/check-policy-immutability-gap.json` records an open policy
-binding issue in the research checked route. An isolated interpreter reproduced
+`evidence/integrity/check-policy-immutability-gap.json` retains the historical
+policy binding issue in the research checked route. An isolated interpreter reproduced
 an attempt retaining the installed mutable policy by reference: changing its
 sampling denominator from 16 to 64 changed the attempt while leaving the
 module-reported digest, Flash check program identity and declared arithmetic
-parameters unchanged. The exact check-policy digest is reported but is not
-bound into these plans. This is a trusted-client policy/immutability finding;
+parameters unchanged. The original plans did not bind the exact check-policy
+digest. This is a trusted-client policy/immutability finding;
 no remote-evaluator exploit or production vulnerability was demonstrated.
-Freezing the attempt policy, binding its digest into admission and rejecting
-unbound legacy checked plans require coordinated integrity-owner changes. Those
-files remain unchanged, and production cryptographic admission remains closed.
+Checked plan/program schema v2 now binds the complete policy digest, rejects
+unbound legacy checked plans before provider/key disclosure, and freezes each
+attempt's policy. Tests cover configuration reload, changes during preparation,
+stale/missing digests, original receipt identity and unchanged cancellation.
+The original evidence and small-Qwen receipts remain unchanged. This fix does
+not qualify the check's mathematical assumptions or malicious security;
+production cryptographic admission remains closed.

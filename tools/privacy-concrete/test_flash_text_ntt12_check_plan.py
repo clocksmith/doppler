@@ -9,8 +9,9 @@ import flash_text_ntt12_check_plan as plan
 from flash_component_plan import write_component
 from full_plan import canonical
 from protocol import digest
+from check_policy import POLICY_ID
 
-PARAMETERS=dict(parameters=dict(bits_reserved_for_computation=35),quantizationBits=12,weightEncoding='signed-int12-in-int16')
+PARAMETERS=dict(parameters=dict(bits_reserved_for_computation=35),quantizationBits=12,weightEncoding='signed-int12-in-int16',integrityPolicyId=POLICY_ID)
 
 
 class FlashTextNtt12CheckPlanTests(unittest.TestCase):
@@ -22,6 +23,7 @@ class FlashTextNtt12CheckPlanTests(unittest.TestCase):
         self.assertNotEqual(plan.CONFIG['protocol'],replay.CONFIG['protocol']);self.assertNotEqual(plan.CONFIG['planSchema'],replay.CONFIG['planSchema'])
         self.assertNotEqual(plan.CONFIG['profile'],replay.CONFIG['profile']);self.assertNotEqual(plan.PROGRAM_ID,replay.PROGRAM_ID)
         self.assertEqual(plan.PROGRAM['integrity'],'secret-linear-check-sampled-replay/v1');self.assertEqual(replay.PROGRAM['integrity'],'full-encrypted-tile-replay')
+        self.assertEqual(plan.PROGRAM['integrityPolicyId'],POLICY_ID);self.assertNotIn('integrityPolicyId',replay.PROGRAM)
         self.assertFalse(plan.PROGRAM['productionBackendAvailable']);self.assertFalse(plan.PROGRAM['securityQualified'])
         self.assertEqual(plan.CONFIG['quantizationBits'],12);self.assertEqual(plan.CONFIG['nativeVariant'],'cpu-exact-ntt/v1')
 
@@ -51,12 +53,15 @@ class FlashTextNtt12CheckPlanTests(unittest.TestCase):
             self.assertEqual(admitted.definition()['parameters']['quantizationBits'],12)
 
     def test_replay_profile_plan_and_changed_content_reject(self):
-        for changed in ['protocol','schema','security','production','cache','symlink','graph']:
+        for changed in ['protocol','schema','legacy-schema','missing-policy','changed-policy','security','production','cache','symlink','graph']:
             with self.subTest(changed=changed),tempfile.TemporaryDirectory() as directory:
                 root=Path(directory);source,geometry,versions,cache=self.fixture(root)
                 value=json.loads((root/'plan.json').read_bytes())
                 if changed=='protocol':value['protocol']=replay.CONFIG['protocol']
                 elif changed=='schema':value['schema']=replay.CONFIG['planSchema']
+                elif changed=='legacy-schema':value['schema']='doppler.flash-text-ntt12-check-plan/v1'
+                elif changed=='missing-policy':value['parameters'].pop('integrityPolicyId')
+                elif changed=='changed-policy':value['parameters']['integrityPolicyId']='f'*64
                 elif changed=='security':value['securityQualified']=True
                 elif changed=='production':value['productionBackendAvailable']=True
                 elif changed=='graph':value['clientGraphId']='a'*63

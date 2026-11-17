@@ -13,7 +13,8 @@ import numpy as np
 import concrete_ml_extensions as ext
 from full_bridge import FullBridge
 from full_status import ExecutionRejected
-from linear_check import CheckKey,POLICY,POLICY_ID,tolerance
+from linear_check import CheckKey,POLICY,tolerance
+from check_policy import require_bound_policy
 from protocol import digest
 
 INTEGRITY_ID=POLICY['id']
@@ -23,6 +24,11 @@ PASS_THROUGH=(KeyboardInterrupt,SystemExit,InterruptedError,MemoryError,TimeoutE
 
 class CheckedBridge(FullBridge):
     def __init__(self,*args,parameter_profile,**kwargs):
+        plan=kwargs.get('plan') if 'plan' in kwargs else args[1] if len(args)>1 else None
+        if plan is None or not plan.protocol_id.endswith(CHECKED_PROTOCOL_SUFFIX):
+            raise ValueError('Plan protocol does not declare checked integrity')
+        # Pure admission before the base class can spawn or disclose a key.
+        require_bound_policy(plan,parameter_profile)
         super().__init__(*args,**kwargs)
         try:self.begin_checks(parameter_profile)
         except BaseException:
@@ -32,9 +38,11 @@ class CheckedBridge(FullBridge):
     def begin_checks(self,parameter_profile,seed=None):
         # A replay-protocol plan must never be executed with the weaker check.
         if not self.plan.protocol_id.endswith(CHECKED_PROTOCOL_SUFFIX):raise ValueError('Plan protocol does not declare checked integrity')
+        if getattr(self,'check',None) is not None:raise ValueError('Attempt check policy and secret cannot be replaced')
+        snapshot=require_bound_policy(self.plan,parameter_profile)
         definition=self.plan.definition()
         self.check=CheckKey(os.urandom(32) if seed is None else seed,parameter_profile,
-            definition['parameters']['parameters']['bits_reserved_for_computation'],definition['parameters']['quantizationBits'])
+            definition['parameters']['parameters']['bits_reserved_for_computation'],definition['parameters']['quantizationBits'],policy=snapshot)
         self.failures=[];self.result_lengths={};self._pending=None
         self.linear_checks=self.sampled_replays=self.substituted_tiles=0
         self.check_seconds=0.0
@@ -146,7 +154,7 @@ class CheckedBridge(FullBridge):
 
     def integrity_report(self):
         widths=sorted({width for _,width in self.result_lengths})
-        return dict(integrity=INTEGRITY_ID,integrityPolicyId=POLICY_ID,linearChecksPassed=self.linear_checks,sampledExactReplays=self.sampled_replays,
+        return dict(integrity=self.check.policy['id'],integrityPolicyId=self.check.policy_id,linearChecksPassed=self.linear_checks,sampledExactReplays=self.sampled_replays,
             substitutedTiles=self.substituted_tiles,clientCheckMs=self.check_seconds*1000,checkVectors=self.check.count,
             replaySample=dict(self.check.policy['replaySample']),toleranceByOutputWidth={str(width):tolerance(width,self.check.noise,self.check.policy) for width in widths},
             rejection=self.check.policy['rejection'],independentCryptographicReview=False,securityQualified=False)

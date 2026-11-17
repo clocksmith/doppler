@@ -13,20 +13,20 @@ from full_plan import FullPlan,canonical
 from flash_source_scopes import TEXT
 from flash_text_plan import GEOMETRY,PROGRAM as REPLAY_PROGRAM
 from flash_component_plan import component_versions,validate_component,write_component
-from linear_check import POLICY as CHECK_POLICY
+from check_policy import installed_binding
 from protocol import digest
 from public_weights import validate_public_projection
 from research_parameters import component_parameters
 from source_snapshot import file_signature
 from weight_encoding import weight_encoding
 
-CONFIG=dict(schema='doppler.flash-text-ntt12-check-policy/v1',profile='flash-text-all-linear-ntt12-check',
-    planSchema='doppler.flash-text-ntt12-check-plan/v1',protocol='concrete-glwe-flash-text-ntt12-linear-check/v1',
+CONFIG=dict(schema='doppler.flash-text-ntt12-check-policy/v2',profile='flash-text-all-linear-ntt12-check',
+    planSchema='doppler.flash-text-ntt12-check-plan/v2',protocol='concrete-glwe-flash-text-ntt12-linear-check/v1',
     productionBackendAvailable=False,steps=4,contextBucket=1,inputTileWidth=2048,outputTileWidth=2048,
     cpuThreads=4,operationTimeoutSeconds=900,additionalDependencies={'safetensors':'0.8.0'},
     nativeVariant='cpu-exact-ntt/v1',parameterProfile='glwe-quant12-message35-storage48/v1',quantizationBits=12,
-    integrity=CHECK_POLICY['id'])
-PROGRAM=dict(REPLAY_PROGRAM,schema='doppler.flash-text-client-program/v1',integrity=CHECK_POLICY['id'],
+    **installed_binding())
+PROGRAM=dict(REPLAY_PROGRAM,schema='doppler.flash-text-client-program/v2',**installed_binding(),
     arithmetic='cpu-exact-ntt/v1+glwe-quant12-message35-storage48/v1')
 PROGRAM_ID=digest(canonical(PROGRAM))
 
