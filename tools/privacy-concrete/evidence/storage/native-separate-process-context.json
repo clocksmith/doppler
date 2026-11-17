@@ -1,0 +1,46 @@
+{
+  "schema": "doppler.native-separate-process-probe-context/v1",
+  "sourceRevision": "1a23a619591de3270532a895b3ed60636fe57d69",
+  "ciRunId": 44058653705,
+  "ciUrl": "https://github.com/clocksmith/doppler/actions/runs/44058653705",
+  "record": {
+    "path": "native-separate-process-probe.json",
+    "sha256": "cd65f02c271e21ed4c01a0a8bd484d749fa119cf4ac506ed75e2343b896d4082"
+  },
+  "scope": {
+    "source": "Seeded synthetic BF16 public matrices with installed Flash tile geometry",
+    "uniqueShapes": 15,
+    "encryptedCalls": 60,
+    "steps": 4,
+    "prefillRows": 5,
+    "decodeRows": 1,
+    "transport": "framed pipes between separate client and evaluator processes on one GitHub runner",
+    "resourceLimits": {
+      "memoryMaxBytes": 8589934592,
+      "swapMaxBytes": 0,
+      "cpuQuotaMicros": 800000,
+      "cpuPeriodMicros": 100000,
+      "groupOomKill": true,
+      "policyId": "a8b512d045763e0fbaa77711327d417559b7f121d73e18a849ed8928bbba343a"
+    },
+    "committedLegacyQuantizerMetadataReservationBytes": 1161002304
+  },
+  "observation": {
+    "completedUtc": "2026-11-17T09:57:35Z",
+    "elapsedSeconds": 182.63236251300003,
+    "sampledPeakSummedProcessRssBytes": 5172228096,
+    "cgroupMemoryPeakBytes": 4558774272,
+    "weightedSyntheticKernelWorkDays": 13.134489589982739
+  },
+  "limitations": [
+    "Synthetic geometry coverage, not actual Flash checkpoint or full-model encrypted generation",
+    "One runner and one observation per shape and step; hardware equivalence and separate-machine deployment not established",
+    "Logical legacy metadata reservation is a pressure scenario; real graph/proofs, request state and full-model mappings are absent",
+    "Weighted synthetic evaluator work is not measured Flash latency; trained values, client checks/replay/nonlinear work, source/cache I/O and transport are excluded",
+    "Sampled RSS sums double-count shared mappings and may miss brief peaks; cgroup memory includes file cache",
+    "Secret linear checks and sampled replay remain an unreviewed research integrity mechanism, not a malicious-security qualification",
+    "Production admission remains closed"
+  ],
+  "productionBackendAvailable": false,
+  "securityQualified": false
+}

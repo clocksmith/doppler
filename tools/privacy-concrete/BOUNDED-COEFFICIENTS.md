@@ -511,3 +511,26 @@ canonical metadata digest protects the bounded quantized oracle. Existing
 four-step storage, source identity, corruption, cancellation and cleanup checks
 continue to pass. This establishes reference release, not measured full-model
 RSS savings; a new physical run is still needed for the latter.
+
+The exact native run at `1a23a6195` completed successfully in CI
+[44058653705](https://github.com/clocksmith/doppler/actions/runs/44058653705).
+Its unchanged public artifact and provenance are retained as
+`evidence/storage/native-separate-process-probe.json` and
+`native-separate-process-context.json`. All 60 native encrypted calls and greedy
+integer controls passed in 182.63 seconds. The two processes' sampled RSS sum
+peaked at 5,172,228,096 bytes (shared mappings count twice); kernel cgroup memory
+peaked at 4,558,774,272 bytes. The evaluation key was 268,435,536 bytes, total
+framed traffic was 269,952,836 bytes sent and 2,061,602 received, and no public
+coefficient bytes were transmitted. These numbers include the explicit legacy
+metadata pressure allocation and do not qualify combined full-model memory.
+
+Weighting the measured synthetic evaluator calls by the current 603,472-tile
+four-step schedule gives 1,134,819.90 seconds, or about 13.13 days of evaluator
+kernel work on this runner. This is a planning projection with all the exclusions
+above, not measured Flash generation latency, a hardware-independent bound or a
+performance claim. It exposes a practical compute obstacle before committing a
+shared machine to a full route. The installed all-expert schedule, its private
+routing and validation requirements remain intact; this result does not justify
+skipping experts, disclosing routing or weakening integrity. A practical full
+Flash path still needs substantial compute reduction, actual checkpoint output
+and combined-model resource validation, in addition to security qualification.
