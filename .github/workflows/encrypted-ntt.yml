@@ -14,6 +14,10 @@ on:
         description: 'With stream_storage, use separate native processes for all installed Flash tile shapes plus partial metadata pressure'
         type: boolean
         default: false
+      packing_benchmark:
+        description: 'Also compare original, serial NTT and parallel packing before the separate-process resource probe'
+        type: boolean
+        default: false
   push:
     branches: [main]
     paths:
@@ -80,18 +84,18 @@ jobs:
           import concrete_ml_extensions as ext
           import concrete_ml_extensions.concrete_ml_extensions as binary
           from importlib.metadata import version
-          assert version('concrete-ml-extensions') == '0.1.9+ntt.1'
+          assert version('concrete-ml-extensions') == '0.1.9+ntt.2'
           assert callable(ext.cpu_prepare_ntt_key) and callable(ext.cpu_matrix_multiplication_ntt)
           assert not ext.is_cuda_enabled()
           print(version('concrete-ml-extensions'))
           PY
       - name: Compare exact ciphertext bytes and measure the two CPU paths
-        if: ${{ !inputs.stream_storage }}
+        if: ${{ !inputs.stream_storage || inputs.packing_benchmark }}
         run: |
           python tools/privacy-concrete/native-ntt/benchmark.py --lock "$RUNNER_TEMP/concrete-ntt-source/rust/Cargo.lock" \
             > "$RUNNER_TEMP/ntt-public-result.json" 2> "$RUNNER_TEMP/ntt-client-diagnostics.txt"
       - name: Reject native ciphertext corruption and replay cancellation before parser entry
-        if: ${{ !inputs.stream_storage }}
+        if: ${{ !inputs.stream_storage || inputs.packing_benchmark }}
         env:
           PYTHONPATH: tools/privacy-concrete
         run: python tools/privacy-concrete/native-ntt/test_integrity.py -v

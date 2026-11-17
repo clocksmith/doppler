@@ -6,6 +6,7 @@ import json
 from pathlib import Path
 import platform
 import resource
+import sys
 import time
 import numpy as np
 import concrete_ml_extensions as ext
@@ -13,6 +14,7 @@ import concrete_ml_extensions.concrete_ml_extensions as binary
 
 ROOT=Path(__file__).resolve().parent
 POLICY=json.loads((ROOT/'build-policy.json').read_text())
+sys.path.insert(0,str(ROOT.parent))
 
 
 def run(lock_path,public_state):
@@ -23,9 +25,13 @@ def run(lock_path,public_state):
     base=json.loads((ROOT.parent/'policy.json').read_text())['parameters']
     if json.loads(ext.default_params())!=base:raise ValueError('Upstream cryptographic parameters changed')
     high=json.loads((ROOT.parent/'precision-policy.json').read_text())['parameters']
+    quant12=json.loads((ROOT.parent/'precision12-policy.json').read_text())['parameters']
+    from flash_compute_budget import workload
+    flash_shapes=[(1,row['inputWidth'],row['outputWidth']) for row in workload()['shapes']]+[(5,2048,640)]
     generator=np.random.default_rng(23);cases=[];preparation=[]
     for profile,definition,geometries in [('upstream-default',base,[(1,16,2),(1,896,128),(1,2048,2048),(1,2048,2051),(2,16,2),(1,4098,3)]),
-                                          ('declared-high-precision',high,[(1,2048,2),(1,2048,513)])]:
+                                          ('declared-high-precision',high,[(1,2048,2),(1,2048,513)]),
+                                          ('declared-quant12-message35',quant12,flash_shapes)]:
         public_state.update(phase='key-generation',profile=profile)
         parameters=ext.MatmulCryptoParameters.deserialize(json.dumps(definition));secret,key=ext.cpu_create_private_key(parameters)
         key_bytes=key.serialize();key_digest=hashlib.sha256(key_bytes).hexdigest()
@@ -34,21 +40,29 @@ def run(lock_path,public_state):
         preparation.append(dict(profile=profile,keyPrecomputeMs=(time.perf_counter()-began)*1000,evaluationKeyBytes=len(key_bytes)))
         for rows,width,columns in geometries:
             public_state.update(phase='matrix-evaluation',case=dict(rows=rows,inputWidth=width,outputWidth=columns))
-            values=generator.integers(0,256,size=(rows,width),dtype=np.uint64)
-            weights=generator.integers(-128,128,size=(width,columns),dtype=np.int64).astype(np.uint64)
+            bits=12 if profile=='declared-quant12-message35' else 8
+            values=generator.integers(0,2**bits,size=(rows,width),dtype=np.uint64)
+            weights=generator.integers(-2**(bits-1),2**(bits-1),size=(width,columns),dtype=np.int64).astype(np.uint64)
             encrypted=ext.encrypt_matrix(pkey=secret,crypto_params=parameters,data=values)
             measured=[];results=[]
-            for operation in [ext.cpu_matrix_multiplication,ext.cpu_matrix_multiplication_ntt,ext.cpu_matrix_multiplication_ntt]:
+            operations=[ext.cpu_matrix_multiplication,ext.cpu_matrix_multiplication_ntt_serial,
+                ext.cpu_matrix_multiplication_ntt,ext.cpu_matrix_multiplication_ntt]
+            # Alternate the serial/parallel timing order across public cases.
+            if len(cases)%2:operations[1],operations[2]=operations[2],operations[1]
+            for operation in operations:
                 began=time.perf_counter();result=operation(encrypted,weights,key);serialized=result.serialize()
                 measured.append((time.perf_counter()-began)*1000);results.append(serialized)
             public_state.update(phase='byte-equivalence')
-            if not results[0]==results[1]==results[2]:raise ValueError('Native result bytes differ from the pinned original arithmetic')
+            if not results[0]==results[1]==results[2]==results[3]:raise ValueError('Native result bytes differ from the pinned original arithmetic')
             if hashlib.sha256(key.serialize()).hexdigest()!=key_digest:raise ValueError('Public cache changed serialized key material')
+            serial,parallel=(2,1) if len(cases)%2 else (1,2)
             cases.append(dict(profile=profile,rows=rows,inputWidth=width,outputWidth=columns,byteIdenticalToOriginal=True,
-                              originalMs=measured[0],nttMs=measured[1],nttReplayMs=measured[2],resultBytes=len(results[0])))
+                              originalMs=measured[0],serialNttMs=measured[serial],nttMs=measured[parallel],nttReplayMs=measured[3],
+                              timingOrder=['original','parallel','serial','parallel-replay'] if len(cases)%2 else ['original','serial','parallel','parallel-replay'],resultBytes=len(results[0])))
         # Deserializing public evaluation material must create a fresh cache without wire changes.
         restored=ext.CpuCompressionKey.deserialize(key_bytes)
         if restored.serialize()!=key_bytes:raise ValueError('Evaluation-key wire compatibility changed')
+        del restored,key,secret
     binary_path=Path(binary.__file__)
     return dict(schema='doppler.native-exact-ntt-experiment/v1',productionBackendAvailable=False,securityQualified=False,
                 upstreamRevision=POLICY['revision'],nativeVersion=version('concrete-ml-extensions'),nativeBuildId=expected_build,

@@ -556,6 +556,18 @@ coefficients, private activations, client nonlinearities/checks/replay, keys,
 admission, cache materialization and network time are not included. In particular,
 it is neither a measured per-token latency nor an average request latency.
 
+The concrete cost-reduction candidate first targets serial CRT packing work in
+the exact native arithmetic, preserving the existing tile route and checking
+complete serialized-byte equality against both the previous serial algorithm
+and original arithmetic. Packing-group parallelism uses the existing bounded
+thread pool and public geometry; it does not skip experts or expose routing.
+The candidate has a distinct native source/build version and must be measured
+before projecting any reduction. Enlarging input tiles is not a free alternative:
+the current 12-bit/35-bit signed-message bound already constrains the tile to
+2,048 inputs. Batching projections or changing packing boundaries would require
+a separately bound plan, coefficient mapping, integrity/noise checks and full
+numerical revalidation; none is silently applied to the pinned request.
+
 Append `--readiness-only` to the resource-gated runner above for the next bounded
 physical memory gate. This mutually exclusive alternative to `--prepare-only`
 authenticates the complete model, compiles and verifies every coefficient against

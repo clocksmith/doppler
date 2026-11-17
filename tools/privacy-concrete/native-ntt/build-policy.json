@@ -2,7 +2,7 @@
   "schema": "doppler.exact-ntt-research-build/v1",
   "repository": "https://github.com/zama-ai/concrete-ml-extensions.git",
   "revision": "6d3fdd1fab324874e3a2fc4a42cb3a708d5a80b4",
-  "nativeVersion": "0.1.9+ntt.1",
+  "nativeVersion": "0.1.9+ntt.2",
   "rustToolchain": "1.91.1",
   "nttCrate": {
     "name": "tfhe-ntt",
@@ -20,5 +20,5 @@
   },
   "productionBackendAvailable": false,
   "securityQualified": false,
-  "cargoLockSha256": "0fcf2b53be36418f5ed0a9ae16c0927b37a5c460516a94d46a934a9bcd04f60c"
+  "cargoLockSha256": "7f282690259c908d000fa3d6537c6c3af4c221df31e17703f0f9e6af49f8a0eb"
 }

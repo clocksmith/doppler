@@ -3,11 +3,11 @@ fn cpu_prepare_ntt_key(compression_key: &CpuCompressionKey) {
     crate::ntt_cpu::prepare_key(compression_key);
 }
 
-#[pyfunction]
-fn cpu_matrix_multiplication_ntt(
+fn matrix_multiplication_ntt(
     encrypted_matrix: &EncryptedMatrix,
     data: PyReadonlyArray<Scalar, Ix2>,
     compression_key: &CpuCompressionKey,
+    parallel: bool,
 ) -> PyResult<CompressedResultEncryptedMatrix> {
     let array=data.as_array();
     assert_eq!(encrypted_matrix.shape.1,array.nrows());
@@ -23,7 +23,26 @@ fn cpu_matrix_multiplication_ntt(
         columns.par_iter().zip(raw.par_iter_mut()).for_each(|(column,mut output)| {
             output.as_mut().copy_from_slice(prepared.dot(column.as_slice().unwrap()).as_ref());
         });
-        result.push(CompressedResultCipherText { inner:plan.compress(compression_key,&raw) });
+        result.push(CompressedResultCipherText { inner:plan.compress(compression_key,&raw,parallel) });
     }
     Ok(CompressedResultEncryptedMatrix { inner:result })
+}
+
+#[pyfunction]
+fn cpu_matrix_multiplication_ntt(
+    encrypted_matrix: &EncryptedMatrix,
+    data: PyReadonlyArray<Scalar, Ix2>,
+    compression_key: &CpuCompressionKey,
+) -> PyResult<CompressedResultEncryptedMatrix> {
+    matrix_multiplication_ntt(encrypted_matrix,data,compression_key,true)
+}
+
+// Diagnostic arithmetic baseline only; no backend advertisement/registration.
+#[pyfunction]
+fn cpu_matrix_multiplication_ntt_serial(
+    encrypted_matrix: &EncryptedMatrix,
+    data: PyReadonlyArray<Scalar, Ix2>,
+    compression_key: &CpuCompressionKey,
+) -> PyResult<CompressedResultEncryptedMatrix> {
+    matrix_multiplication_ntt(encrypted_matrix,data,compression_key,false)
 }

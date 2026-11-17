@@ -84,7 +84,7 @@ impl PackingPlan {
         assert_eq!(transformed.len(), N*levels*2);
         Self { ring, key: transformed, levels, base_log, glwe_size: key.output_glwe_size(), modulus: key.ciphertext_modulus() }
     }
-    fn pack<C: Container<Element=u64>>(&self, list: &LweCiphertextList<C>) -> GlweCiphertextOwned<u64> {
+    fn pack<C: Container<Element=u64>>(&self, list: &LweCiphertextList<C>, parallel: bool) -> GlweCiphertextOwned<u64> {
         let count = list.lwe_ciphertext_count().0;
         assert!(count>0 && count<=N);
         assert_eq!(list.lwe_size().0, N+1);
@@ -101,7 +101,12 @@ impl PackingPlan {
                 }
             }
         }
-        for start in (0..terms).step_by(self.ring.group) {
+        // Each CRT group already has its own strict magnitude bound. Compute
+        // those independent groups on the existing pool, then subtract their
+        // reconstructions in the original order. No regrouping or parameter,
+        // decomposition, rounding, key or compression change is involved.
+        let groups: Vec<_> = (0..terms).step_by(self.ring.group).collect();
+        let reconstruct = |&start: &usize| {
             let end=(start+self.ring.group).min(terms);
             let mut sums: [Rns; 2] = std::array::from_fn(|_| Rns::zero());
             for term in start..end {
@@ -110,19 +115,29 @@ impl PackingPlan {
                     sum.add(&self.ring.product(&value,&self.key[term*2+poly]),&self.ring.primes);
                 }
             }
+            let mut values = vec![0u64; 2*N];
             for (poly,sum) in sums.iter_mut().enumerate() {
                 let reconstructed=self.ring.inverse(sum);
-                for (target,value) in out.as_mut()[poly*N..(poly+1)*N].iter_mut().zip(reconstructed) {
-                    *target=target.wrapping_sub(value);
-                }
+                values[poly*N..(poly+1)*N].copy_from_slice(&reconstructed);
+            }
+            values
+        };
+        let reconstructed: Vec<_> = if parallel {
+            groups.par_iter().map(reconstruct).collect()
+        } else {
+            groups.iter().map(reconstruct).collect()
+        };
+        for values in reconstructed {
+            for (target,value) in out.as_mut().iter_mut().zip(values) {
+                *target=target.wrapping_sub(value);
             }
         }
         out
     }
-    pub(crate) fn compress<C: Container<Element=u64>>(&self, key: &CpuCompressionKey, values: &LweCiphertextList<C>) -> Vec<CompressedModulusSwitchedGlweCiphertext<u64>> {
+    pub(crate) fn compress<C: Container<Element=u64>>(&self, key: &CpuCompressionKey, values: &LweCiphertextList<C>, parallel: bool) -> Vec<CompressedModulusSwitchedGlweCiphertext<u64>> {
         assert_eq!(key.inner.lwe_per_glwe.0,N);
         values.chunks(N).map(|list| {
-            let out=self.pack(&list);
+            let out=self.pack(&list,parallel);
             CompressedModulusSwitchedGlweCiphertext::compress(&out,key.inner.storage_log_modulus,list.lwe_ciphertext_count())
         }).collect()
     }

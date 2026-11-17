@@ -18,6 +18,25 @@ excluded from serialization. Encrypted row transforms are request-local.
 Unsupported geometry or parameter layouts reject. No global request or secret-key
 cache is introduced.
 
+The `0.1.9+ntt.2` candidate evaluates independent CRT packing groups on the
+existing Rayon pool, then performs the same wrapping subtraction in the original
+group order. Group boundaries and magnitude bounds, decomposition, moduli,
+noise, key material and final compression are unchanged. Reconstructed group
+buffers are request-local and bounded by the existing fixed key geometry. A
+separate `cpu_matrix_multiplication_ntt_serial` diagnostic entry point provides
+same-key serial/parallel byte and cost comparisons; it is not an advertised
+backend or a fallback. The build identity and dependency version change, so an
+old installed wheel rejects before disclosure against this source. Existing
+physical readiness work must keep its explicit earlier source/build pin.
+
+The native benchmark compares original arithmetic, serial NTT, parallel NTT and
+parallel replay, including every installed Flash tile shape in the actual
+35-bit/12-bit domain and a five-row representative. Serial/parallel order
+alternates across public cases. Until the exact build completes those checks and
+the separate-process resource/feedback probe, this is an unqualified performance
+candidate. No speedup, full-model latency or security claim follows from the
+parallel source change alone.
+
 The [retained native run](../evidence/native-ntt/context.json) at revision
 `04ed459671632b23bcf0bee1cb8e555f6282feed` passed eight complete serialized-result
 comparisons against the original arithmetic and a second fast replay, covering
