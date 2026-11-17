@@ -472,3 +472,25 @@ observer failures remain explicit, rather than becoming zero-memory claims.
 These observations contain no process IDs, private tensors, outputs, exceptions
 or integrity outcomes, and never confer hardware or security qualification. The
 observer stops after the provider and before owned model sources are released.
+
+`flash_compute_budget.py` inventories the installed four-step schedule: 15 unique
+tile shapes, 150,868 tiles per step and 603,472 over the route. The native
+workflow's explicit `process_resources` option runs those shapes in separate
+client/evaluator processes, using real native encryption and synthetic public
+matrices, with five-row prefill followed by three independent feedback steps per
+shape. A physically touched 1,161,002,304-byte client allocation represents the
+logical size of all Flash scale/zero/sum quantizer arrays. It does not instantiate
+the actual graph, request state, proof catalogue or full-model mappings. Both
+processes inherit one fresh enforced 8 GiB/no-swap/eight-core cgroup; existing
+storage probes are excluded from this mode.
+
+The report separates actual evaluator-call times, key/wire costs, client replay
+and checks, sampled RSS sums and kernel cgroup memory. It weights the synthetic
+evaluator calls by the installed geometry counts only as a kernel-work planning
+estimate. Actual trained data, client computation, model/cache I/O, transport and
+hardware differences are excluded, so this is neither measured full-model
+latency nor complete Flash combined-memory qualification. Only the fixed
+test-only fixture executable substitutes synthetic source geometry; normal
+backend loaders remain unchanged and reject that scope. No secret key or
+plaintext feedback is passed to the evaluator process. Production and security
+qualification stay false, including when all synthetic controls match.
