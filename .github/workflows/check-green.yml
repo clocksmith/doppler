@@ -58,4 +58,5 @@ jobs:
           node-version: '22'
       - run: npm ci --prefix tools/privacy-demo --ignore-scripts --no-audit --no-fund
       - run: npm test --prefix tools/privacy-demo
+      - run: node --test tools/privacy-attested/attested.test.js
       - run: python3 -m unittest discover -s tools/privacy-concrete -p 'test_*.py' -v

@@ -6,6 +6,13 @@ and its findings are applied or stated below; see the [review record](#review-re
 The full-replay routes and their retained receipts are unchanged and remain the
 reference integrity mechanism.
 
+Direction, 2026-11-17: the owner stopped further execution on the hybrid route this
+check belongs to, because the requester still holds the weights and does more work
+than running the model itself. The mechanism and its small-Qwen evidence are
+retained. The protected tier continues in the
+[attested route](../privacy-attested/DESIGN.md), where the requester does no model
+work.
+
 This document owns the adversary model for a malicious evaluator and the
 argument for `secret-linear-check-sampled-replay/v1`. Two separate installed
 profiles use it instead of replaying every encrypted tile on the client:

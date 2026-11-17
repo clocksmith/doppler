@@ -4,6 +4,12 @@ Production cryptographic admission remains closed. The paths below are source-pi
 research implementations with scoped functional evidence; none establishes full
 Flash generation, independent malicious-security review or trusted hardware.
 
+**Stopped, 2026-11-17.** By owner decision no encrypted Flash generation will be run
+on this design. The requester would hold 250 GB of coefficients and run every
+non-linear step itself. The checkpoint admission and clear-generation results below
+stay as evidence; the protected tier continues in the
+[attested route](../privacy-attested/README.md).
+
 ## Current execution evidence
 
 | Path | Actual checkpoint weights | Verified outcome |
