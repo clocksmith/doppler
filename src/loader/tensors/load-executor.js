@@ -149,10 +149,18 @@ export function getWeightLayout(location, config) {
   });
 }
 
+let float16DecodeTable = null;
+
 export function convertF16ToF32CPU(f16Data) {
+  if (float16DecodeTable === null) {
+    float16DecodeTable = new Float32Array(65536);
+    for (let i = 0; i < float16DecodeTable.length; i++) {
+      float16DecodeTable[i] = f16ToF32(i);
+    }
+  }
   const f32 = new Float32Array(f16Data.length);
   for (let i = 0; i < f16Data.length; i++) {
-    f32[i] = f16ToF32(f16Data[i]);
+    f32[i] = float16DecodeTable[f16Data[i]];
   }
   return f32;
 }
