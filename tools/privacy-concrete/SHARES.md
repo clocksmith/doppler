@@ -45,7 +45,8 @@ theirs in detail; only their abstract and secondary summaries were read.
   coefficient files. Each may be dishonest. They must not pool what they see.
 - **Model owner.** Publishes the weights and the manifest.
 
-The requester keeps a secret 32-byte seed. From it, each projection gets a secret probe row `p`, and the requester
+The requester keeps a secret 32-byte seed. From it, the projection's name and its width, each projection gets a
+secret probe row `p`, and the requester
 holds that projection's anchor `p W`: one number per output column. Computing the anchors takes one pass over the
 public weights by the requester or by someone it trusts. The seed may be kept for as long as the anchors are; the
 retained runs drew a fresh one per run and computed the anchors in the same process, standing in for that pass.
@@ -75,7 +76,7 @@ and probe seed are unpredictable and stay secret. **S3** the requester's anchors
 
 - **Claim 1, privacy.** Each provider's rows are jointly uniform over the field and independent of the input, the
   probe and the multipliers, so one provider alone learns nothing about the activations, whatever it computes. This
-  needs no hardness assumption (the random draw has a bias of 2^-61). Argument: `x1` is uniform; `x2 = x - x1` is
+  needs no hardness assumption; field elements are drawn exactly uniformly, redrawing the one out-of-range value. Argument: `x1` is uniform; `x2 = x - x1` is
   uniform because `x1` is; every other row carries its own fresh uniform mask. [test_shares.py](test_shares.py) shows
   that A's rows are identical for a different input, that B's rows are identical for a different input under an
   equally likely first share, and that A's rows are identical for a different probe under equally likely masks.
@@ -105,7 +106,8 @@ and probe seed are unpredictable and stay secret. **S3** the requester's anchors
   sizes and timing.
 - **Model confidentiality.** Weights are public by design.
 - **Availability.** Either provider can stop the attempt. A provider that stops reading or answering is cut off at a
-  per-message deadline; there is no deadline for a whole attempt.
+  per-message deadline that ends its whole process group, closing is bounded, and an attempt has a one-hour limit.
+  None of that makes a slow provider fast.
 - **Transport and identity.** This prototype talks to providers over process pipes or SSH. Provider identity, grants
   and receipts belong to Reploid and are not built.
 - **Flash.** Evaluating only the routed experts would show the providers which experts a token chose. Flash's large
@@ -121,14 +123,15 @@ and probe seed are unpredictable and stay secret. **S3** the requester's anchors
 Two retained runs of the pinned small-Qwen fixture (four output tokens, eight prefill rows, 169 linear layers per
 step), with their [context](evidence/shares/qwen-shares-context.json):
 
-| | [One host](evidence/shares/qwen-shares-local.json) | [Provider A on a second machine](evidence/shares/qwen-shares-two-machine.json) |
+| | [One host](evidence/shares/qwen-shares-local.json) | [Three machines](evidence/shares/qwen-shares-three-machine.json) |
 | --- | --- | --- |
+| Placement | Requester and both providers on one Linux host | Requester on the Linux host, provider A on a Mac, provider B on a second Linux machine |
 | Output tokens | 12095, 13, 1084, 374 (" Paris. It is") | the same |
 | Largest logit difference from the quantized reference | 0 at every step | 0 at every step |
-| Execution | 42.1 s | 63.1 s (not a clean timing, see context) |
-| Waiting for providers | 26.9 s | 52.2 s |
-| Requester share arithmetic | 5.3 s | 3.9 s |
-| Requester non-linear steps and orchestration | 9.9 s | 7.1 s |
+| Execution | 42.4 s | 163.9 s |
+| Waiting for providers | 26.7 s | 153.5 s |
+| Requester share arithmetic | 5.6 s | 3.1 s |
+| Requester non-linear steps and orchestration | 10.1 s | 7.4 s |
 | Sent to each provider | 65.2 MB | 65.2 MB |
 | Received from each provider | 120.4 MB | 120.4 MB |
 
@@ -137,19 +140,20 @@ The tokens and the plan and model identities are the same as in the retained hom
 a 268 MB evaluation key; that is a different mechanism with a different guarantee, so the two are shown side by side
 and not as a matched benchmark.
 
-The requester stored 544.5 MB of embedding table, 5.6 MB of per-projection quantization vectors and biases, 3.6 MB of
-anchors and 0.2 MB of normalisation parameters. Its one-time anchor pass over the public weights took 1.9 s. The
-providers held the 169 weight matrices (1.98 GB at 32-bit).
+The three-machine run is the first with the requester and each provider on different computers. Its time is
+dominated by moving about 370 MB through two SSH pipes and by each provider hashing its coefficient files on first
+use; it is not a tuned figure. The requester stored 544.5 MB of embedding table, 5.6 MB of per-projection
+quantization vectors and biases, 3.6 MB of anchors and 0.2 MB of normalisation parameters. Its one-time anchor pass
+over the public weights took 1.8 s. The providers held the 169 weight matrices (1.98 GB at 32-bit).
 
-Each decode step took 6 to 7.5 s on one two-core laptop processor shared by the requester and both providers. The
-first version of this route, on integers modulo 2^64 with generic integer products, took 137 s for the same run; its
-receipts are in this repository's history at commit `9975f02c5`. Both retained runs had one operator and no
-misbehaving provider, so they show that the route is exact and what it costs, not that it is private in deployment or
-that it detects cheating; the tests cover detection.
+On one host each decode step took 6.4 to 7.0 s on a two-core laptop processor shared by the requester and both
+providers. All runs had one operator and no misbehaving provider, so they show that the route is exact and what it
+costs, not that it is private in deployment or that it detects cheating; the tests cover detection. Earlier versions'
+receipts are in this repository's history at commits `9975f02c5` and `8b73b5991`.
 
 ## Review record
 
-- 2026-11-17, automated tests: 14 pass ([test_shares.py](test_shares.py)).
+- 2026-11-17, automated tests: 16 pass ([test_shares.py](test_shares.py)).
 - 2026-11-17, first independent automated review, of a version with a public probe in a separate row and arithmetic
   modulo 2^64. It demonstrated that two providers who both returned zeros, or both used the same other matrix except
   on the recognisable anchor row, were accepted 300 times out of 300, and that the range check accepted the most
@@ -161,5 +165,15 @@ that it detects cheating; the tests cover detection.
   provider that stops reading, and listed mutations the tests did not notice. This version answers those: arithmetic
   is in a prime field, the deadline covers sending, and the tests cover the demonstrated strategies and the listed
   mutations for seed dependence, mask structure, multiplier width, and a caught provider that then leaves.
-- The prime-field version has not been independently reviewed.
+- 2026-11-17, third independent review, by a different model family (an Antigravity session), of the prime-field
+  version. It attacked Claims 2 and 3 in the field and found them sound under S1 to S3, and confirmed the float64 limb
+  product and the modular helpers exact at the admitted bounds. It demonstrated six robustness defects, none letting a
+  wrong result through: closing could hang on a provider that filled the pipe and slept; the deadline killed only the
+  direct child, so a helper holding the pipes defeated it; the evaluator's row limit did not follow an overridden
+  policy; the probe derivation did not bind the width or separate seed from name, and the field draw had a small
+  bias; the route did not bind input widths or bound an attempt; and four tests asserted less than their names said.
+  All are fixed here: providers run in their own process group and closing is bounded, the route always uses the
+  installed policy and has an attempt limit, the probe binds seed, width and name, draws are exactly uniform, input
+  widths are checked, and the tests were tightened and extended.
+- The fixes for the third review have not been independently reviewed.
 - Cryptographer review: none.

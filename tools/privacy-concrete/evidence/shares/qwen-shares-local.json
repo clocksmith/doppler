@@ -1,13 +1,13 @@
 {
   "integrity": "additive-shares-m61-hidden-probe/v1",
-  "integrityPolicyId": "cd90c26cffc7de806ce79726fcb1b934ffcba66b109d63f66e210c784d2306f6",
+  "integrityPolicyId": "10584fc741ccc506088f4eff524b3b3b1e714217da1df0437838019ac37abe4e",
   "checkRounds": 1,
   "sharedProjectionCalls": 676,
   "sharedRows": 1859,
   "singleEvaluatorDetectionLog2": 60,
   "commonDeviationDetectionLog2": 60,
-  "clientShareMs": 5334.065445233136,
-  "evaluatorRoundTripMs": 26885.859520174563,
+  "clientShareMs": 5633.493423461914,
+  "evaluatorRoundTripMs": 26711.125215515494,
   "sentBytes": [
     65152252,
     65152252
@@ -52,15 +52,15 @@
     0.0
   ],
   "stepMs": [
-    21518.100815825164,
-    6243.310745805502,
-    6883.6879171431065,
-    7498.835342004895
+    22266.37917617336,
+    6424.473318737,
+    7045.552810188383,
+    6684.067306108773
   ],
-  "executionWallMs": 42143.93482077867,
-  "clientNonLinearAndOrchestrationMs": 9924.009855370969,
-  "clientCpuSeconds": 32.614917999999996,
-  "localEvaluatorCpuSeconds": 105.602246,
+  "executionWallMs": 42420.472611207515,
+  "clientNonLinearAndOrchestrationMs": 10075.853972230107,
+  "clientCpuSeconds": 32.29514100000001,
+  "localEvaluatorCpuSeconds": 107.252293,
   "clientStoredBytes": {
     "embeddingTable": 544538624,
     "normsAndOtherParameters": 175616,
@@ -70,9 +70,9 @@
   "linearWeightBytesHeldByEvaluatorsFp32": 1975844864,
   "clientReadsLinearCoefficientsDuringExecution": false,
   "referenceWeightsInThisProcess": "Loaded for the post-close comparison only; the route itself never reads them.",
-  "preparationMs": 20636.031091213226,
-  "ownerPublicationMs": 9.656957816332579,
-  "requesterAnchorPassMs": 1934.8182422108948,
-  "clientPeakRssBytes": 4047552512,
+  "preparationMs": 20994.15315594524,
+  "ownerPublicationMs": 4.093593917787075,
+  "requesterAnchorPassMs": 1769.1931701265275,
+  "clientPeakRssBytes": 4049100800,
   "publicFixtureId": "qwen05b-capital"
 }

@@ -1,13 +1,13 @@
 {
   "integrity": "additive-shares-m61-hidden-probe/v1",
-  "integrityPolicyId": "cd90c26cffc7de806ce79726fcb1b934ffcba66b109d63f66e210c784d2306f6",
+  "integrityPolicyId": "10584fc741ccc506088f4eff524b3b3b1e714217da1df0437838019ac37abe4e",
   "checkRounds": 1,
   "sharedProjectionCalls": 676,
   "sharedRows": 1859,
   "singleEvaluatorDetectionLog2": 60,
   "commonDeviationDetectionLog2": 60,
-  "clientShareMs": 3861.664548050612,
-  "evaluatorRoundTripMs": 52162.170538678765,
+  "clientShareMs": 3064.929238986224,
+  "evaluatorRoundTripMs": 153456.5614494495,
   "sentBytes": [
     65152252,
     65152252
@@ -29,7 +29,7 @@
   "steps": 4,
   "evaluatorTransports": [
     "ssh",
-    "local-process"
+    "ssh"
   ],
   "clientLocalOutputTokens": [
     12095,
@@ -52,15 +52,15 @@
     0.0
   ],
   "stepMs": [
-    37243.85387590155,
-    8810.807837639004,
-    8507.034146226943,
-    8522.76534307748
+    108786.83562390506,
+    20141.252452973276,
+    18919.41115958616,
+    16077.840420883149
   ],
-  "executionWallMs": 63084.46120284498,
-  "clientNonLinearAndOrchestrationMs": 7060.6261161156,
-  "clientCpuSeconds": 31.99475299999999,
-  "localEvaluatorCpuSeconds": 112.22730800000001,
+  "executionWallMs": 163925.33965734765,
+  "clientNonLinearAndOrchestrationMs": 7403.848968911916,
+  "clientCpuSeconds": 34.068873999999994,
+  "localEvaluatorCpuSeconds": 1.504402,
   "clientStoredBytes": {
     "embeddingTable": 544538624,
     "normsAndOtherParameters": 175616,
@@ -70,9 +70,9 @@
   "linearWeightBytesHeldByEvaluatorsFp32": 1975844864,
   "clientReadsLinearCoefficientsDuringExecution": false,
   "referenceWeightsInThisProcess": "Loaded for the post-close comparison only; the route itself never reads them.",
-  "preparationMs": 16188.126724213362,
-  "ownerPublicationMs": 10.941540822386742,
-  "requesterAnchorPassMs": 1996.4109468273818,
-  "clientPeakRssBytes": 4050591744,
+  "preparationMs": 16955.687560141087,
+  "ownerPublicationMs": 0.9181187488138676,
+  "requesterAnchorPassMs": 1876.5421430580318,
+  "clientPeakRssBytes": 4050325504,
   "publicFixtureId": "qwen05b-capital"
 }
