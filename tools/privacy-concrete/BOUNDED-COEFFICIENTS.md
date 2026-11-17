@@ -432,3 +432,11 @@ received tiles. Every record keeps production/security qualification false.
 The optional log is caller-owned and remains after exit; temporary projections
 are still removed. It is not provider evidence, attestation, a reviewed leakage
 guarantee or a replacement for the final execution receipt.
+
+The client ephemeral cache owner enforces one active projection materialization
+per prepared graph, including reentrant and concurrent callers. A contended
+caller rejects before source quantization or temporary allocation. The slot
+remains held through owned-file cleanup and is released on allocation failure,
+exception or cancellation, so later attempts can reuse the public preparation.
+Retained public-weight readers keep their existing behavior. This resource bound
+does not merge request state or change privacy/integrity admission.

@@ -8,6 +8,7 @@ protocol declares the checked integrity mechanism, and never for a replay plan.
 from contextlib import contextmanager
 from pathlib import Path
 import tempfile
+import threading
 import time
 import torch
 from full_model import FullLinear
@@ -29,6 +30,7 @@ class PreparedFlashGraph:
         if storage not in ('retained',EPHEMERAL_STORAGE):raise ValueError('Unsupported public coefficient storage contract')
         self.graph=graph;self.identity=graph.identity;self.order=tuple(graph.order)
         self.storage=storage;self.directory=Path(directory);self.executor=executor
+        self._cache_lease=threading.Lock()
         self.quantization_bits=quantization_bits;self.output_chunk_rows=output_chunk_rows
         self.preparation_seconds=0.;self.rematerialization_seconds=0.;self.rematerializations=0
         self._prepared={};self._proofs=[];self._source_snapshots={}
@@ -63,7 +65,10 @@ class PreparedFlashGraph:
     def _cache_scope(self):
         if self.storage=='retained':yield self.directory
         else:
-            with tempfile.TemporaryDirectory(dir=self.directory,prefix='flash-public-projection-') as temporary:yield Path(temporary)
+            if not self._cache_lease.acquire(blocking=False):raise ValueError('Client public projection lease is already active')
+            try:
+                with tempfile.TemporaryDirectory(dir=self.directory,prefix='flash-public-projection-') as temporary:yield Path(temporary)
+            finally:self._cache_lease.release()
 
     def public_tile_digests(self):
         if self.storage!=EPHEMERAL_STORAGE:raise ValueError('Compiled evictable public projection proofs required')

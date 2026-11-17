@@ -17,6 +17,41 @@ from unittest.mock import patch,Mock
 
 @unittest.skipUnless(os.environ.get('DOPPLER_FLASH_REFERENCE')=='1','opt-in real Torch quantizer')
 class FlashStreamStorageTests(unittest.TestCase):
+    def test_client_projection_capacity_rejects_reentrant_and_concurrent_allocation(self):
+        with ExitStack() as stack:
+            _,_,prepared,root,_,_=self.fixture(stack)
+            baseline=set(root.iterdir());name=prepared.order[0]
+            with prepared.projection_lease(name) as first:
+                live=set(root.iterdir());self.assertTrue(first.weight_path.exists())
+                with patch('flash_prepared_graph.tempfile.TemporaryDirectory',side_effect=AssertionError('contended lease allocated another cache')):
+                    with self.assertRaisesRegex(ValueError,'lease is already active'):
+                        with prepared.projection_lease(name):self.fail('reentrant projection escaped')
+                    errors=[]
+                    def contend():
+                        try:
+                            with prepared.projection_lease(name):errors.append(AssertionError('concurrent projection escaped'))
+                        except BaseException as error:errors.append(error)
+                    thread=threading.Thread(target=contend);thread.start();thread.join(timeout=2)
+                    self.assertFalse(thread.is_alive());self.assertEqual(len(errors),1)
+                    self.assertIsInstance(errors[0],ValueError)
+                self.assertEqual(set(root.iterdir()),live);self.assertTrue(first.weight_path.exists())
+            self.assertEqual(set(root.iterdir()),baseline)
+            with prepared.projection_lease(name) as next_attempt:self.assertTrue(next_attempt.weight_path.exists())
+            self.assertEqual(set(root.iterdir()),baseline)
+
+    def test_failed_allocation_or_cancelled_projection_releases_only_its_owned_slot(self):
+        with ExitStack() as stack:
+            _,_,prepared,root,_,_=self.fixture(stack)
+            baseline=set(root.iterdir());name=prepared.order[0]
+            with patch('flash_prepared_graph.tempfile.TemporaryDirectory',side_effect=OSError('fixture disk full')):
+                with self.assertRaises(OSError):
+                    with prepared.projection_lease(name):self.fail('failed allocation escaped')
+            with self.assertRaises(InterruptedError):
+                with prepared.projection_lease(name):raise InterruptedError('fixture cancellation')
+            self.assertEqual(set(root.iterdir()),baseline)
+            with prepared.projection_lease(name) as next_attempt:self.assertTrue(next_attempt.weight_path.exists())
+            self.assertEqual(set(root.iterdir()),baseline)
+
     def fixture(self,stack,*,rebuild=False,bf16_control=False,prefill5=False):
         from test_flash_model_reference import FlashModelReferenceTests
         from flash_prepared_graph import PreparedFlashGraph,EPHEMERAL_STORAGE
