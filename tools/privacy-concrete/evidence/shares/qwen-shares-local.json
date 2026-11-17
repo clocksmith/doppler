@@ -1,0 +1,77 @@
+{
+  "integrity": "additive-shares-z2e64-hidden-probe/v1",
+  "integrityPolicyId": "eaca66f49cc786b04aee2c5f061eac58a7e35ff99b2a27ab161849026979b239",
+  "checkRounds": 2,
+  "sharedProjectionCalls": 676,
+  "sharedRows": 1859,
+  "minimumDetectionLog2": 54,
+  "clientShareMs": 749.20738581568,
+  "evaluatorRoundTripMs": 130884.30123357102,
+  "sentBytes": [
+    108563708,
+    108563708
+  ],
+  "receivedBytes": [
+    200682356,
+    200682356
+  ],
+  "schema": "doppler.two-server-shares-execution/v1",
+  "qualified": false,
+  "productionBackendAvailable": false,
+  "securityQualified": false,
+  "nonCollusionEstablished": false,
+  "validationBoundary": "after-route-close/v1",
+  "mechanism": "additive-shares-z2e64-hidden-probe/v1",
+  "planId": "95c1f06bcbc08954a29696412115c0e5794e4fdf4fa930deaabdee905c1677cd",
+  "modelId": "4223289199791c6713ba2c98eb8f9d43a37597b09db0b2c778434dec431a6d24",
+  "linearProjectionCount": 169,
+  "steps": 4,
+  "evaluatorTransports": [
+    "local-process",
+    "local-process"
+  ],
+  "clientLocalOutputTokens": [
+    12095,
+    13,
+    1084,
+    374
+  ],
+  "clientLocalOutputText": " Paris. It is",
+  "matchesFullQuantizedGreedyReference": true,
+  "floatGreedyMatches": [
+    true,
+    true,
+    true,
+    true
+  ],
+  "maxLogitErrors": [
+    0.0,
+    0.0,
+    0.0,
+    0.0
+  ],
+  "stepMs": [
+    98822.78036139905,
+    12789.939443580806,
+    12829.239279963076,
+    12808.936440385878
+  ],
+  "executionWallMs": 137250.89552532881,
+  "clientNonLinearAndOrchestrationMs": 5617.386905942112,
+  "clientCpuSeconds": 29.346024999999997,
+  "localEvaluatorCpuSeconds": 245.010852,
+  "clientStoredBytes": {
+    "embeddingTable": 544538624,
+    "normsAndOtherParameters": 175616,
+    "quantizationVectorsAndBiases": 5583360,
+    "anchors": 3648512
+  },
+  "linearWeightBytesHeldByEvaluatorsFp32": 1975844864,
+  "clientReadsLinearCoefficientsDuringExecution": false,
+  "referenceWeightsInThisProcess": "Loaded for the post-close comparison only; the route itself never reads them.",
+  "preparationMs": 15978.05950185284,
+  "ownerPublicationMs": 0.8875662460923195,
+  "requesterAnchorPassMs": 2366.111840121448,
+  "clientPeakRssBytes": 4050571264,
+  "publicFixtureId": "qwen05b-capital"
+}

@@ -112,8 +112,33 @@ and probe seed are unpredictable and stay secret. **S3** the requester's anchors
 
 ## Measured
 
-See [the receipt](evidence/shares/qwen-shares-local.json) for the exact run. Results are filled in below once
-retained.
+Two retained runs of the pinned small-Qwen fixture (four output tokens, eight prefill rows, 169 linear layers per
+step), with their [context](evidence/shares/qwen-shares-context.json):
+
+| | [One host](evidence/shares/qwen-shares-local.json) | [Provider A on a second machine](evidence/shares/qwen-shares-two-machine.json) |
+| --- | --- | --- |
+| Output tokens | 12095, 13, 1084, 374 (" Paris. It is") | the same |
+| Largest logit difference from the quantized reference | 0 at every step | 0 at every step |
+| Execution | 137.3 s | 167.4 s (not a clean timing, see context) |
+| Waiting for providers | 130.9 s | 160.4 s |
+| Requester share arithmetic | 0.75 s | 0.71 s |
+| Requester non-linear steps and orchestration | 5.6 s | 6.3 s |
+| Sent to each provider | 108.6 MB | 108.6 MB |
+| Received from each provider | 200.7 MB | 200.7 MB |
+
+The tokens and the plan and model identities are the same as in the retained homomorphic receipts. The
+[checked homomorphic run](evidence/integrity/qwen-ntt12-check-local.json) took 89.1 minutes for the same fixture, with
+a 268 MB evaluation key; that is a different mechanism with a different guarantee, so the two are shown side by side
+and not as a matched benchmark.
+
+The requester stored 544.5 MB of embedding table, 5.6 MB of per-projection quantization vectors and biases, 3.6 MB of
+anchors and 0.2 MB of normalisation parameters. Its one-time anchor pass over the public weights took 2.4 s. The
+providers held the 169 weight matrices (1.98 GB at 32-bit).
+
+Each decode step took about 13 s. Almost all of it is the providers: five rows of unoptimised 64-bit NumPy arithmetic
+per real row, on a two-core laptop processor, with the 151,936-wide vocabulary head the largest single product. Both
+runs had one operator and no misbehaving provider, so they show that the route is exact and what it costs, not that
+it is private in deployment or that it detects cheating; the tests cover detection.
 
 ## Review record
 

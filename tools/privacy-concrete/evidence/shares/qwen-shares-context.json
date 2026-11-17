@@ -1,0 +1,77 @@
+{
+ "schema": "doppler.operator-observed-shares-qwen-context/v1",
+ "experimentRevision": "dede0774ecf9737093d9ac0c804d544a66940943",
+ "evidence": [
+  {
+   "file": "qwen-shares-local.json",
+   "sha256": "73ceb9fe321a933f23191a69a78db398abffd08c982838b5d049c63ee609f1cf"
+  },
+  {
+   "file": "qwen-shares-two-machine.json",
+   "sha256": "a0cc638f19507c7b15cb4bc7a3e1d859a7e0238ac2315f8170ac7a9ecd11f385"
+  }
+ ],
+ "fixtureId": "qwen05b-capital",
+ "mechanism": "additive-shares-z2e64-hidden-probe/v1",
+ "integrityPolicyId": "eaca66f49cc786b04aee2c5f061eac58a7e35ff99b2a27ab161849026979b239",
+ "planId": "95c1f06bcbc08954a29696412115c0e5794e4fdf4fa930deaabdee905c1677cd",
+ "modelId": "4223289199791c6713ba2c98eb8f9d43a37597b09db0b2c778434dec431a6d24",
+ "model": {
+  "repository": "Qwen/Qwen2.5-0.5B-Instruct",
+  "decoderLayers": 24,
+  "linearOperations": 169,
+  "plannedSteps": 4,
+  "prefillRows": 8
+ },
+ "sourceFilesMatchedRevision": [
+  "shares.py",
+  "shares_evaluator.py",
+  "shares_model.py",
+  "shares-policy.json",
+  "full_model.py"
+ ],
+ "runs": {
+  "qwen-shares-local.json": {
+   "startedUtc": "2026-11-17T18:49:12Z",
+   "finishedUtc": "2026-11-17T18:52:06Z",
+   "placement": "Requester and both providers were three processes on one trusted Linux x86-64 test host with two cores and four hardware threads.",
+   "transport": "local-process pipes",
+   "unitCpuSeconds": 348,
+   "memoryMaxBytes": 10737418240
+  },
+  "qwen-shares-two-machine.json": {
+   "startedUtc": "2026-11-17T18:52:06Z",
+   "finishedUtc": "2026-11-17T18:55:30Z",
+   "placement": "Requester and provider B on the same Linux test host; provider A on a separate Apple Silicon machine reached over SSH on the local network.",
+   "transport": "one SSH pipe and one local-process pipe; the SSH host was not pinned by this route",
+   "unitCpuSeconds": 198,
+   "memoryMaxBytes": 10737418240,
+   "timingCaveat": "The Apple machine was also running an unrelated repository check during this run, so its elapsed time is not a clean measurement."
+  }
+ },
+ "comparisonWithRetainedReceipts": {
+  "checkedHomomorphicEvidence": "../integrity/qwen-ntt12-check-local.json",
+  "sameOutputTokens": true,
+  "outputTokens": [
+   12095,
+   13,
+   1084,
+   374
+  ],
+  "samePlanAndModelIdentity": true,
+  "notMatched": "Different mechanism and guarantee. The homomorphic receipts hide the input from one evaluator under a cryptographic assumption; this route hides it from each of two providers only if they do not collude. Elapsed times are shown side by side, not as a matched benchmark."
+ },
+ "productionBackendAvailable": false,
+ "securityQualified": false,
+ "nonCollusionEstablished": false,
+ "independentCryptographicReview": false,
+ "fullFlashModelExecuted": false,
+ "limitations": [
+  "One public four-token fixture, one run per placement; not a latency distribution or a quality result.",
+  "Both providers were operated by the same person, and in one run shared a host with each other and the requester, so the non-collusion assumption was not exercised.",
+  "No provider misbehaved in these runs, so they show completeness and cost, not detection. Detection is exercised by test_shares.py.",
+  "The requester process also loaded the reference model to compare results after the route closed, and computed its own anchors from the public weights; its peak memory therefore says nothing about a requester that holds no weights.",
+  "The independent review covered the first version of the check; the fixed version that produced these receipts has not been reviewed again.",
+  "Providers ran NumPy integer arithmetic on CPU. No GPU kernel exists for this ring."
+ ]
+}
