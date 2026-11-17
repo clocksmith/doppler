@@ -115,8 +115,23 @@ and probe seed are unpredictable and stay secret. **S3** the requester's anchors
 - **What the requester still stores.** The embedding table (545 MB at 32-bit for small Qwen), normalisation
   parameters, and per projection a few weight-derived vectors (quantization scales, zero points, column sums, bias)
   and the anchor row. These come from the model owner and are trusted like the weights. It stores no weight matrix.
-- **GPU execution.** The evaluator is NumPy on CPU: a float64 matrix product on 16-bit limbs, exact, then reduced
-  modulo the prime. Doppler's WebGPU kernels do not have this operation.
+- **GPU tuning.** A GPU evaluator exists (below) and is exact, but it is a first version: every call creates and
+  destroys its buffers, which costs a few milliseconds and dominates on small matrices.
+
+## GPU evaluator
+
+[shares_evaluator_gpu.js](shares_evaluator_gpu.js) is a drop-in provider that speaks the same pipe protocol as the
+CPU one and runs the product in [shares_field_matmul.wgsl](shares_field_matmul.wgsl) through a Node WebGPU binding.
+WGSL has no 64-bit integers, so each field element is uploaded as four 16-bit limbs and each weight as an unsigned
+16-bit value (the signed weight plus 32768). A limb times a weight fits exactly in 32 bits; the sum over the input
+width carries into a second word; the four limb sums are rotated into place modulo the prime (multiplying by 2^16k
+is a 61-bit rotation), added, and corrected for the weight offset. The answer is the same eight bytes per value the
+CPU provider returns.
+
+[test_shares_gpu.py](test_shares_gpu.py) compares it with the CPU reference bit for bit on four shapes, including an
+input width above 4096, weights at both 16-bit extremes and inputs of zero, the prime minus one, the prime and
+2^64 - 1, and runs a complete checked route on two GPU providers and on one GPU provider beside one CPU provider. It
+needs a WebGPU binding and is skipped without one. Breaking one rotation in the kernel makes two of its tests fail.
 
 ## Measured
 
@@ -145,6 +160,17 @@ dominated by moving about 370 MB through two SSH pipes and by each provider hash
 use; it is not a tuned figure. The requester stored 544.5 MB of embedding table, 5.6 MB of per-projection
 quantization vectors and biases, 3.6 MB of anchors and 0.2 MB of normalisation parameters. Its one-time anchor pass
 over the public weights took 1.8 s. The providers held the 169 weight matrices (1.98 GB at 32-bit).
+
+**With GPU providers.** On a second, faster Linux host with an integrated AMD GPU, the complete fixture with the
+requester and two GPU provider processes on that one host gave the same four tokens with zero difference in 7.7 s
+([receipt](evidence/shares/qwen-shares-gpu-one-host.json)): 4.6 s for the first step, which includes each provider
+verifying, transposing and uploading all 169 matrices, then about 1.03 s per decode step. The same host with two CPU
+provider processes took 5.3 s and about 0.90 s per decode step
+([receipt](evidence/shares/qwen-shares-cpu-fast-host.json)). On single products of that model the GPU provider is
+faster on repeat calls: 0.060 s against 0.376 s for three rows through the 896 by 151,936 vocabulary head, 0.017 s
+against 0.104 s for 24 rows through a 4,864 by 896 projection, and 0.003 s against 0.020 s for 24 rows through an
+896 by 896 projection. It is not yet faster end to end on this small model because a decode step makes 169 small
+calls and each GPU call pays a fixed cost. Both GPU processes also shared one GPU.
 
 On one host each decode step took 6.4 to 7.0 s on a two-core laptop processor shared by the requester and both
 providers. All runs had one operator and no misbehaving provider, so they show that the route is exact and what it
@@ -176,4 +202,5 @@ receipts are in this repository's history at commits `9975f02c5` and `8b73b5991`
   installed policy and has an attempt limit, the probe binds seed, width and name, draws are exactly uniform, input
   widths are checked, and the tests were tightened and extended.
 - The fixes for the third review have not been independently reviewed.
+- The GPU evaluator and its kernel have not been independently reviewed.
 - Cryptographer review: none.

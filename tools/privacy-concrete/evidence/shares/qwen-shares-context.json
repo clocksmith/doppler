@@ -9,6 +9,14 @@
   {
    "file": "qwen-shares-three-machine.json",
    "sha256": "baf5a7190fed5d65c9ce9d4a9500b932e2ddc2ae8428a036378be6229191be2e"
+  },
+  {
+   "file": "qwen-shares-gpu-one-host.json",
+   "sha256": "229267d4cbc9c06542de02866b6e1efe98a3cde1bf14b63540a9c7cfc4a7f096"
+  },
+  {
+   "file": "qwen-shares-cpu-fast-host.json",
+   "sha256": "c0f8b079aec1c9b5fde19e8006afa7d07924cf1b711f028df1f7a1001955b8a2"
   }
  ],
  "fixtureId": "qwen05b-capital",
@@ -45,6 +53,22 @@
    "transport": "two SSH pipes with the requester's ordinary host keys; hosts were not pinned by this route",
    "memoryMaxBytes": 10737418240,
    "timingCaveat": "About 370 MB crossed SSH and each provider hashed its coefficient files on first use, which dominates the first step. The providers' code copies are not attested. Not a tuned or clean timing."
+  },
+  "qwen-shares-gpu-one-host.json": {
+   "startedUtc": "2026-11-17T22:11:40Z",
+   "finishedUtc": "2026-11-17T22:12:00Z",
+   "placement": "Requester (CPU) and two GPU provider processes on one AMD Linux host with an integrated GPU, which a separate public inference service was also using.",
+   "transport": "local-process pipes",
+   "providers": "shares_evaluator_gpu.js through a Node WebGPU binding (Vulkan)",
+   "memoryMaxBytes": 17179869184,
+   "note": "The report's evaluatorTransports field says local-process for both. Source files matched revision 373ba5d57."
+  },
+  "qwen-shares-cpu-fast-host.json": {
+   "startedUtc": "2026-11-17T22:12:00Z",
+   "finishedUtc": "2026-11-17T22:12:17Z",
+   "placement": "Same host, requester and two CPU provider processes (shares_evaluator.py), run immediately after the GPU run so its file cache was warm.",
+   "transport": "local-process pipes",
+   "memoryMaxBytes": 17179869184
   }
  },
  "comparisonWithRetainedReceipts": {
@@ -71,8 +95,10 @@
   "Providers ran NumPy on CPU. No GPU kernel exists for this field arithmetic.",
   "The providers' coefficient files were hashed against the plan's weight identities by the providers themselves; the requester relies on its anchors, which in these runs it computed from the same public weights.",
   "All three machines had one operator, so the assumption that the two providers do not collude was not exercised.",
-  "Three independent automated reviews examined earlier versions; the fixes for the third have not been independently reviewed. No cryptographer has reviewed any version."
+  "Three independent automated reviews examined earlier versions; the fixes for the third have not been independently reviewed. No cryptographer has reviewed any version.",
+  "The GPU evaluator and its kernel are unreviewed. The two fast-host runs are single runs back to back on a shared host; the second had a warmer file cache, so their difference is indicative only."
  ],
  "revisionNote": "Both runs used source files byte-identical to this revision (deployed from the same tree before it was rebased onto main).",
- "supersededReceipts": "Earlier receipts are in repository history: modulo 2^64 at commit 9975f02c5 (137.3 s on one host) and the first prime-field version at 8b73b5991 (42.1 s on one host, 63.1 s with one provider on a second machine). Tokens and zero difference were the same in all of them."
+ "supersededReceipts": "Earlier receipts are in repository history: modulo 2^64 at commit 9975f02c5 (137.3 s on one host) and the first prime-field version at 8b73b5991 (42.1 s on one host, 63.1 s with one provider on a second machine). Tokens and zero difference were the same in all of them.",
+ "gpuRevision": "373ba5d57"
 }
