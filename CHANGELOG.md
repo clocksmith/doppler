@@ -4,6 +4,14 @@ Historical package notes are preserved outside the runtime archive in
 `docs/status/archive/package-changelog-through-0.6.1.md` and the earlier
 `package-changelog-through-0.4.15.md` snapshot in that directory.
 
+## [0.7.5] - 2026-11-17
+
+### Performance
+
+- Reduce CPU startup cost when expanding FP16 weights to FP32.
+- Add an experimental FP32 WideTile prefill profile for Qwen 3.5 2B on
+  Jetson AGX Orin. The profile is available for calibration.
+
 ## [0.7.4] - 2026-11-14
 
 ### Added
