@@ -116,6 +116,18 @@ bounded report records key/wire/RSS/timing/error and integrity metrics. The
 without downloading Flash weights or running the unrelated arithmetic benchmark.
 The probe is not a language model, full Flash run or separate-machine evidence.
 
+The retained [native probe](evidence/storage/native-tile-stream-probe.json) and
+[source/CI context](evidence/storage/native-tile-stream-context.json) come from
+revision `e939163a28264630cff2b4e57875d28c11de4556`, successful run 44009726904.
+Four native encrypted feedback steps on a synthetic 32-by-16 public integer matrix
+took 13.13 seconds including setup, with a 268,435,536-byte evaluation key,
+268,491,944 bytes sent, 52,093 received and 2,510,716,928 bytes process peak RSS.
+Public coefficient traffic was 4,096 bytes; neither endpoint wrote coefficient
+files. Integer errors ranged from 19 to 24 units per step and all four argmax
+feedback choices matched the clear integer control. Four secret linear checks
+passed with one sampled exact replay. These are one synthetic native run's
+observations, not full-model precision, security or throughput guarantees.
+
 Actual checkpoint hashes, floating/quantized full Flash outputs, native full-model
 execution, separate-machine qualification, measured resource limits, the exact
 generation integration and independent cryptographic/leakage review remain open.

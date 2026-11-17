@@ -1,0 +1,61 @@
+{
+  "schema": "doppler.native-stream-storage-probe/v1",
+  "steps": 4,
+  "greedyFeedbackMatches": true,
+  "nativeEncryptionSimulated": false,
+  "actualFlashCheckpointExecuted": false,
+  "separateMachine": false,
+  "elapsedSeconds": 13.12687562299999,
+  "stepSeconds": [
+    1.5649810009999783,
+    0.7740472629999999,
+    0.7745484870000041,
+    0.7759819680000533
+  ],
+  "maximumIntegerErrorByStep": [
+    19,
+    22,
+    24,
+    23
+  ],
+  "publicCoefficientBytesSent": 4096,
+  "totalFrameBytesSent": 268491944,
+  "totalFrameBytesReceived": 52093,
+  "evaluationKeyBytes": 268435536,
+  "clientCoefficientDiskBytes": 0,
+  "providerCoefficientDiskBytes": 0,
+  "maxFramePayloadBytes": 300000000,
+  "processPeakRssBytes": 2510716928,
+  "implementationVersions": {
+    "concrete-ml": "1.9.0",
+    "concrete-ml-extensions": "0.1.9+ntt.1",
+    "concrete-python": "2.10.0",
+    "torch": "2.3.1+cpu",
+    "transformers": "4.44.2",
+    "numpy": "1.26.4",
+    "native-binary-sha256": "f9e7daf5e9f4ccbd94e7c8c5e18b71ecc288c2765519dac51fa45886b4c33887",
+    "native-source-id": "8cb2cbd212d05c6646fb3132ebef58624738b0d0dcf7f59daebe3e0766e17bf9",
+    "safetensors": "0.8.0"
+  },
+  "integrity": {
+    "integrity": "secret-linear-check-sampled-replay/v1",
+    "integrityPolicyId": "5a9580d367be8974e092a9d1c160e0cfdc22f32fe5a20f65bbdfac6203bb4327",
+    "linearChecksPassed": 4,
+    "sampledExactReplays": 1,
+    "substitutedTiles": 0,
+    "clientCheckMs": 2.8241170000455895,
+    "checkVectors": 16,
+    "replaySample": {
+      "numerator": 1,
+      "denominator": 16
+    },
+    "toleranceByOutputWidth": {
+      "16": 80628137
+    },
+    "rejection": "deferred-until-route-close/v1",
+    "independentCryptographicReview": false,
+    "securityQualified": false
+  },
+  "productionBackendAvailable": false,
+  "securityQualified": false
+}

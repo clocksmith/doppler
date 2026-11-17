@@ -1,0 +1,31 @@
+{
+  "schema": "doppler.native-stream-storage-probe-context/v1",
+  "sourceRevision": "e939163a28264630cff2b4e57875d28c11de4556",
+  "ciRunId": 44009726904,
+  "ciUrl": "https://github.com/clocksmith/doppler/actions/runs/44009726904",
+  "evidenceSha256": "3d905c02ac9dd1b5aaa5766cbac84c1191793ff154718959e820e68bbec88dba",
+  "cargoLockSha256": "0fcf2b53be36418f5ed0a9ae16c0927b37a5c460516a94d46a934a9bcd04f60c",
+  "scope": {
+    "source": "deterministic synthetic integer matrix",
+    "inputWidth": 32,
+    "outputWidth": 16,
+    "projections": 1,
+    "steps": 4,
+    "transport": "real framed pipes between threads in one process",
+    "keyCustody": "native client secret key, evaluator receives compression key and ciphertext",
+    "feedback": "client argmax updates the next encrypted input",
+    "flashWeightsDownloaded": false
+  },
+  "previousRun": {
+    "id": 44009168262,
+    "sourceRevision": "2d75137dfd4361cb0ed70623e957a095eaffb44a",
+    "result": "failed before native build or key generation: redundant generate-lockfile --locked attempted resolution update",
+    "correction": "removed redundant regeneration; exact retained lock hash and maturin --locked remain enforced"
+  },
+  "actualFlashCheckpointExecuted": false,
+  "fullLanguageModelExecuted": false,
+  "separateMachine": false,
+  "independentCryptographicReview": false,
+  "productionBackendAvailable": false,
+  "securityQualified": false
+}
