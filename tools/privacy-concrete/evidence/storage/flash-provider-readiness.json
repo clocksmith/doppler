@@ -1,0 +1,99 @@
+{
+  "schema": "doppler.actual-flash-provider-readiness/v1",
+  "backendProfile": "flash-text-all-linear-ntt12-rebuild-prefill5-check",
+  "sourceId": "1165149f49bfbe8e6bab1f9ea30669e1468c5dfc5833f6498a44050f7807a067",
+  "sourceRevision": "812d96e10a0dd82b69d749e68693698cf6c36daa",
+  "clientGraphId": "049371a9e7e8563923413cd56b935502de80cd50bcd9e76d24644884ebae3253",
+  "planId": "7ced0b6bceb8f002a0ca43784ac547a8f30b53b0153b653c9e7a3d3ed9459b9d",
+  "linearProjectionCount": 74501,
+  "plannedEncryptedTileCount": 603472,
+  "encryptedTileCount": 0,
+  "clearCoefficientReference": {
+    "pinId": "15e40f1f61197f0f74050022f253ffdb61a7ea00bf15bf2d0b7ce23bf84c9a64",
+    "receiptRevision": "f55c321830d364730bb539ec6becb349cec66efc",
+    "receiptSha256": "ed8d28c54b9b4e194a1b565c31896c1ad4b1e87ddf9406341d2d690f08dfad99",
+    "orderedCoefficientDigest": "466aebb95c1b631665c8ddba6eb0f5e6d786ef0e12420af7a606b1de06dc4d45",
+    "projections": 74501,
+    "referenceClientGraphId": "5bfcf553c2b22e4829b4a818bdd34ecb69da40c8e1f1f669305297706ddfef9f",
+    "admittedClientGraphId": "049371a9e7e8563923413cd56b935502de80cd50bcd9e76d24644884ebae3253"
+  },
+  "implementationVersions": {
+    "concrete-ml": "1.9.0",
+    "concrete-ml-extensions": "0.1.9+ntt.8",
+    "concrete-python": "2.10.0",
+    "torch": "2.3.1+cpu",
+    "transformers": "4.44.2",
+    "numpy": "1.26.4",
+    "native-binary-sha256": "b4ccd01a08708dd6977840cae6f16b4c41c48561b796a84a3c06dbe7d1905a1b",
+    "native-source-id": "d56f35a47dbd88815e7edfb7908367444a6a9e820f77cb725cdfa80ac896b5e1",
+    "safetensors": "0.8.0"
+  },
+  "sha256VerifiedBytesIncludingRepeats": 456738193872,
+  "resourceLimits": {
+    "memoryMaxBytes": 8589934592,
+    "swapMaxBytes": 0,
+    "cpuQuotaMicros": 800000,
+    "cpuPeriodMicros": 100000,
+    "groupOomKill": true,
+    "policyId": "a8b512d045763e0fbaa77711327d417559b7f121d73e18a849ed8928bbba343a"
+  },
+  "resourceObservation": {
+    "schema": "doppler.client-resource-observation/v1",
+    "audience": "client-local",
+    "sampleIntervalSeconds": 0.02,
+    "samples": 21024,
+    "incompleteProcessSamples": 1,
+    "observationFailed": false,
+    "sampledPeakSummedProcessRssBytes": 4585771008,
+    "peakObservedProcessCount": 2,
+    "cgroupMemoryPeakBytes": 8589934592,
+    "phases": [
+      {
+        "phase": "after-public-preparation",
+        "processCount": 1,
+        "summedProcessRssBytes": 1456508928,
+        "cgroupMemoryCurrentBytes": 7489822720,
+        "cgroupMemoryPeakBytes": 8589934592
+      },
+      {
+        "phase": "after-key-generation",
+        "processCount": 1,
+        "summedProcessRssBytes": 1725030400,
+        "cgroupMemoryCurrentBytes": 7758835712,
+        "cgroupMemoryPeakBytes": 8589934592
+      },
+      {
+        "phase": "after-provider-readiness",
+        "processCount": 2,
+        "summedProcessRssBytes": 4489818112,
+        "cgroupMemoryCurrentBytes": 8386244608,
+        "cgroupMemoryPeakBytes": 8589934592
+      },
+      {
+        "phase": "after-provider-close",
+        "processCount": 1,
+        "summedProcessRssBytes": 2506989568,
+        "cgroupMemoryCurrentBytes": 6574104576,
+        "cgroupMemoryPeakBytes": 8589934592
+      }
+    ],
+    "rssSumDoubleCountsSharedMappings": true,
+    "sampledRssPeakMayMissAllocations": true,
+    "cgroupMemoryIncludesFileCache": true,
+    "productionBackendAvailable": false,
+    "securityQualified": false
+  },
+  "evaluationKeyBytes": 268435536,
+  "keysGenerated": true,
+  "providerReady": true,
+  "providerClosedBeforeReturn": true,
+  "preparationSeconds": 2219.503315968206,
+  "elapsedSeconds": 3412.674531805038,
+  "clientLifetimePeakRssBytes": 3031105536,
+  "driverSha256": "1bc06c35a2bdc91368a4d44ea49fe3eb007c33263b16c71f38f68b730f29fb93",
+  "actualFlashCheckpointExecuted": false,
+  "encryptedExecution": false,
+  "productionBackendAvailable": false,
+  "securityQualified": false,
+  "publicFixtureId": "flash-public-capital-text"
+}

@@ -310,14 +310,14 @@ umask 077
 set -C
 test "${A2_REMAINING_SECONDS:?Set the remaining confirmed window seconds}" -gt 0 &&
 test "$A2_REMAINING_SECONDS" -le 4500 &&
-systemd-run --user --wait --pipe --collect --unit=a2-flash-readiness-c3872f7c3 \
+systemd-run --user --wait --pipe --collect --unit=a2-flash-readiness-61db10a72 \
   -p Type=exec -p MemoryMax=8G -p MemorySwapMax=0 \
   -p CPUQuota=800% -p OOMPolicy=kill -p KillMode=control-group \
   -p RuntimeMaxSec="${A2_REMAINING_SECONDS:?Set the remaining confirmed window seconds}" \
   -p TimeoutStopSec=30 \
   env OMP_NUM_THREADS=4 RAYON_NUM_THREADS=4 OPENBLAS_NUM_THREADS=4 MKL_NUM_THREADS=4 \
   /existing/research-venv/bin/python \
-  /existing/pinned-c3872f7c3/tools/privacy-concrete/flash_generate_run.py \
+  /existing/pinned-61db10a72/tools/privacy-concrete/flash_generate_run.py \
   --source /existing/pinned-flash-812d96e1 \
   --reference /existing/inspected-reference/modeling_qwen4_exp.py \
   --scratch /existing/isolated-research-scratch \
@@ -331,7 +331,7 @@ systemd-run --user --wait --pipe --collect --unit=a2-flash-readiness-c3872f7c3 \
   2> /existing/isolated-research-scratch/readiness-diagnostics.txt
 ```
 
-This is a prepared execution command, not a recorded successful physical run.
+These paths are templates for the pinned readiness run recorded below.
 The transient job properties follow the official
 [resource-control](https://www.freedesktop.org/software/systemd/man/latest/systemd.resource-control.html)
 and [OOM policy](https://www.freedesktop.org/software/systemd/man/latest/systemd.service.html#OOMPolicy=)
@@ -638,10 +638,41 @@ Cancellation, rejected identities and cleanup failures return no successful
 receipt. This is an implemented lifecycle-tested gate awaiting its coordinated
 physical run, not evidence that actual combined Flash memory already fits.
 
-### Next coordinated physical readiness gate
+### Measured full-model readiness
+
+The [physical receipt](evidence/storage/flash-provider-readiness.json) and
+[operator context](evidence/storage/flash-provider-readiness-context.json) record
+a successful five-row readiness gate on 2026-11-17 at executable revision
+`61db10a720a59f17f6713586ed12f00f55bde774`. All 74,501 coefficient identities
+matched the clear checkpoint reference before fresh key creation. The local
+provider verified its public source, became ready and stopped before return.
+The untouched route has 603,472 **planned** tiles and zero executed tiles.
+
+The unit completed in 3,415.410 seconds (56.92 minutes), before the original
+setup-plus-run deadline. It enforced eight GiB combined memory, zero swap, group
+OOM kill and eight CPU cores. Sampled combined RSS peaked at 4,585,771,008 bytes;
+shared mappings can be counted twice and sampling can miss allocations. The
+kernel cgroup peak was eight GiB including file cache. One incomplete process
+sample is retained; the observer reported no failure. The evaluation key was
+268,435,536 bytes. Cleanup checks found no provider/job process, no temporary
+coefficient directories and a free resource lock. The original native binary
+and baseline Node process start times were unchanged; the resource window was
+released. This establishes one-host admission/key/provider readiness. Encrypted
+Flash output, inference peak memory, practical latency, separate-machine Flash
+and security qualification remain open.
+
+The first isolated attempt exposed Skorch's `distutils` import on Python 3.12.
+The fixed requirements pin `setuptools==75.3.0`. When reusing dependencies through
+a read-only path overlay, install that exact package in the new environment
+(`--ignore-installed --no-deps`) so its startup compatibility hook executes.
+No handwritten shim or system-Python modification is needed. The same revision
+adds the installed `after-provider-close` meter phase and a real-meter regression
+covering child removal, retained peaks and rejection of arbitrary/private phases.
+
+### Reproducing the pinned readiness gate
 
 Use the following exact executable pin; later documentation-only commits do not
-change it. This gate remains unexecuted. The current physical reservation must
+change it. A new physical reservation must
 be handed off explicitly by the resource owner, with parent coordination, before
 any host setup, source reads or allocation. An unlocked host or an earlier
 release message is insufficient to assume a new 60–75 minute CPU/IO window.
@@ -654,10 +685,10 @@ Setup must also respect the agreed pause/lock and resource limits.
 
 | Contract | Required pin or value |
 | --- | --- |
-| Executable source | `c3872f7c319d48c71775e930ad399dbd71947fd3` |
-| Exact-source verification | Native [44095135802](https://github.com/clocksmith/doppler/actions/runs/44095135802), Smoke [44095140562](https://github.com/clocksmith/doppler/actions/runs/44095140562), both successful |
-| Prepared public source archive | `a2-flash-readiness-c3872f7c3.tar`, 2,775,040 bytes, 360 entries; SHA-256 `0b8c9fbbffd90f3c45b2fe316b8c929aa3cdfedbeb5f68bb8aedd814f15f72da` |
-| Archive contents | Tracked `tools/privacy-concrete/` only, prefix `a2-readiness-c3872f7c3/`; no credentials, weights, native wheels, raw arrays or symlinks |
+| Executable source | `61db10a720a59f17f6713586ed12f00f55bde774` |
+| Verification | Smoke [44130619134](https://github.com/clocksmith/doppler/actions/runs/44130619134) at this revision; native equivalence [44095135802](https://github.com/clocksmith/doppler/actions/runs/44095135802) at `c3872f7c3` with unchanged native inputs; both successful |
+| Public source archive | `a2-flash-readiness-61db10a72.tar`, 2,785,280 bytes, 360 entries; SHA-256 `746cbb606418e87ab8fb34685e8ff8b06cc804b8500fc34e1743cf021a4637fa` |
+| Archive contents | Tracked `tools/privacy-concrete/` only, prefix `a2-readiness-61db10a72/`; no credentials, weights, native wheels, raw arrays or symlinks |
 | CPU native build | `0.1.9+ntt.8`, source ID `d56f35a47dbd88815e7edfb7908367444a6a9e820f77cb725cdfa80ac896b5e1` |
 | Native dependency lock | SHA-256 `ac7a7b238ab576fb04ee12d7ac82d673375df7d4c98bd0d71a2d25f2441af18c`; Rust `1.91.1` |
 | Installed check-policy digest | `5a9580d367be8974e092a9d1c160e0cfdc22f32fe5a20f65bbdfac6203bb4327`, bound into the v2 checked plan |
@@ -666,8 +697,8 @@ Setup must also respect the agreed pause/lock and resource limits.
 | Complete public inventory | 74,501 projections; ordered coefficient digest `466aebb95c1b631665c8ddba6eb0f5e6d786ef0e12420af7a606b1de06dc4d45` |
 | Host budget | Eight-GiB combined cgroup memory, zero swap, group OOM kill, at most eight CPU cores, 20-GiB isolated setup/storage budget, 75-minute runtime ceiling |
 
-The archive is prepared locally and has not been transferred or installed on
-the physical host. Confirm its hash at both ends before extraction into a fresh
+The recorded archive was verified at both ends and installed in an isolated
+research directory. For a new run, confirm its hash before extraction into a fresh
 owned directory. The runtime and inspected reference paths in the command are
 templates: resolve them through the owner after handoff, rather than guessing
 private paths or reusing a different model view. Use the existing authenticated
@@ -713,7 +744,7 @@ Preserve unrelated files and another owner's pause request. A deadline, OOM,
 cancellation, consumed cursor, identity mismatch or cleanup failure produces no
 successful receipt; reclaim only owned leftovers after all job processes stop.
 
-This result would establish bounded full-model admission/key/provider readiness
+This result establishes bounded full-model admission/key/provider readiness
 on one machine. Peak inference/materialization memory, actual encrypted Flash
 reference output, separate-machine deployment, practical latency, useful
 outsourced integrity and security qualification remain subsequent gates. A

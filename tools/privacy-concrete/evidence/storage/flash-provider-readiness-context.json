@@ -1,0 +1,85 @@
+{
+  "schema": "doppler.operator-observed-bounded-flash-readiness-context/v1",
+  "record": {
+    "path": "flash-provider-readiness.json",
+    "sha256": "8a0f3819939b7abb5efe5c550180bdce05aa5370a21fe6f1a6a532aea03c3b50"
+  },
+  "runtimeRevision": "61db10a720a59f17f6713586ed12f00f55bde774",
+  "runtimeArchive": {
+    "bytes": 2785280,
+    "sha256": "746cbb606418e87ab8fb34685e8ff8b06cc804b8500fc34e1743cf021a4637fa"
+  },
+  "verification": {
+    "focusedTests": 26,
+    "smokeRunId": 44130619134,
+    "smokeConclusion": "success",
+    "smokeRevision": "61db10a720a59f17f6713586ed12f00f55bde774",
+    "nativeEquivalenceRunId": 44095135802,
+    "nativeEquivalenceRevision": "c3872f7c319d48c71775e930ad399dbd71947fd3",
+    "nativeInputsUnchanged": true,
+    "driverSha256": "1bc06c35a2bdc91368a4d44ea49fe3eb007c33263b16c71f38f68b730f29fb93",
+    "meterSha256": "ea4483838184bc49aa6dad6cf9ca2ab851a6983320a77960925dc61e3a43ae14"
+  },
+  "observation": {
+    "host": "One existing Linux CPU-only research host",
+    "firstHostCheckUtc": "2026-11-17T16:33:08+00:00",
+    "hardWindowDeadlineUtc": "2026-11-17T17:48:08+00:00",
+    "launchRecordedUtc": "2026-11-17T16:50:51.390874+00:00",
+    "unitRuntimeSeconds": 3415.41,
+    "unitCpuSeconds": 4007.784,
+    "unitExitCode": 0,
+    "unitStoppedBeforeDeadline": true,
+    "collectedAtUtc": "2026-11-17T17:48:36.859138+00:00",
+    "mainProcessGone": true,
+    "unitInactive": true,
+    "ownedTemporaryCoefficientDirectoriesRemaining": 0,
+    "resourceLockAvailable": true,
+    "pauseAbsent": true,
+    "resourceWindowReleased": true,
+    "baselineNodeProcessStartTimesPreserved": true,
+    "priorNative": {
+      "version": "0.1.9+ntt.1",
+      "binarySha256": "c9ef1fd9327c9a416d91ec52b10d3968b52ade6ab458027f287ca046e1958f55"
+    },
+    "sourceWritesPerformed": false,
+    "providerConfigurationWritesPerformed": false,
+    "gpuUsed": false
+  },
+  "storage": {
+    "maximumNewOwnedBytes": 21474836480,
+    "ownedAllocatedBytesAfterCleanup": 1250394112,
+    "sampledPeakOwnedAllocatedBytes": 1282654208,
+    "watchdogIntervalSeconds": 30,
+    "watchdogSamples": 107,
+    "watchdogOomKillsObserved": false,
+    "aggregateFilesystemQuotaEstablished": false,
+    "samplingMayMissTemporaryPeaks": true,
+    "existingCheckpointReadInPlace": true,
+    "dependenciesReusedReadOnly": true
+  },
+  "scope": {
+    "completeSourceAdmission": true,
+    "completeBoundedPublicCoefficientPreparation": true,
+    "wholeProjectionReferenceCoefficientIdentitiesMatch": true,
+    "prefillRows": 5,
+    "plannedSteps": 4,
+    "admittedContextLimit": 8,
+    "plannedEncryptedTiles": 603472,
+    "encryptedTilesExecuted": 0,
+    "keysGenerated": true,
+    "evaluatorReady": true,
+    "evaluatorClosedBeforeReturn": true,
+    "evaluationKeyBytes": 268435536,
+    "coefficientStorage": "one temporary public projection, removed after each proof"
+  },
+  "limitations": [
+    "One-host, two-process readiness only; no encrypted Flash inference, full-model encrypted reference output or separate-machine qualification",
+    "Largest inference projection materialization and generation peak memory were not exercised",
+    "Summed RSS double-counts shared mappings and sampling can miss peaks; one incomplete process sample is retained; the enforced 8 GiB cgroup includes file cache",
+    "Disk usage was sampled by an owned-unit watchdog, not enforced with an aggregate filesystem quota; existing checkpoint storage was not copied or included in new setup usage",
+    "The clear reference binds coefficient identities, not independent encrypted full-model numerical correctness or cryptographic security",
+    "No practical end-to-end encrypted Flash latency, useful outsourced integrity or independent cryptographic review was established; production admission remains closed"
+  ],
+  "productionBackendAvailable": false,
+  "securityQualified": false
+}
