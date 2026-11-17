@@ -13,8 +13,13 @@ weight consumers through that source's representation planner. Templates are
 never changed in place; these metadata checks do not qualify model outputs.
 An optional `requiredKernelPath` from the selected source's manifest execution
 compiler supplies missing model operation declarations at each layer/phase and
-at the root. Existing candidate declarations stay selected. The caller pins both
-inputs and the additions; an older architecture's profile alone cannot establish
+at the root. Existing candidate declarations stay selected except for explicit
+hyper-connection compatibility: ordinary FFN norm/router fusion is removed and
+the outer-residual shared-slot down uses its registered non-residual counterpart.
+The HC executor owns its normalization and gated residual; no pending classic
+FFN inputs are fabricated. These changes and selected-source shader digests are
+recorded in `semanticBindings`. The caller pins both inputs and the additions;
+an older architecture's profile alone cannot establish
 coverage of hyper-connection, indexer or n-gram mechanisms.
 
 1. `export-canonical.js <config.json>` verifies the pinned source manifest and

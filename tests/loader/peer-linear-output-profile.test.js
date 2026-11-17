@@ -3,6 +3,9 @@ import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
 import { bindLinearOutputProfile } from '../../tools/pooled-equal-weights/bind-linear-output-profile.js';
+import { getLayerSteps } from '../../src/config/kernel-path-loader.js';
+import { resolveQwenNormRouter, resolveQwenSharedSlotVariants } from '../../src/inference/pipelines/text/ffn/qwen-shared-expert.js';
+import { runMoEFFNGPU } from '../../src/inference/pipelines/text/ffn/moe.js';
 
 const dopplerRoot = fileURLToPath(new URL('../../', import.meta.url));
 test('binds opposite Q4/Q8 layer encodings from actual tensor metadata without changing the template', async () => {
@@ -47,4 +50,30 @@ test('retains optimized declarations and adds every missing model projection in 
   assert.deepEqual(result.profile.runtime.inference.kernelPath.layerOverrides[0].prefill.steps[0], retained);
   assert.deepEqual(result.profile.runtime.inference.kernelPath.postLayer, [root]);
   assert.equal(profile.runtime.inference.kernelPath.postLayer.length, 0);
+});
+
+test('binds classic MoE fusions to the HC caller without inventing pending norm or residual inputs', async () => {
+  const profile = JSON.parse(await readFile(new URL('../../tools/pooled-equal-weights/profiles/qwen3-6-35b-a3b-q4_0-pooled-q8-common-diagnostic.json', import.meta.url)));
+  const snapshot = structuredClone(profile);
+  const manifest = { architecture: { numLayers: 1 }, inference: { hyperConnections: { streamCount: 4 } }, tensors: {} };
+  const result = await bindLinearOutputProfile({ profile, manifest, dopplerRoot });
+  const kernelPath = result.profile.runtime.inference.kernelPath;
+  assert.equal(result.semanticBindings.length, 2);
+  assert.deepEqual(profile, snapshot);
+  assert.equal(resolveQwenNormRouter({ kernelPath, phase: 'decode', layerIdx: 0 }), false);
+  assert.equal(resolveQwenSharedSlotVariants({ kernelPath, phase: 'decode', layerIdx: 0 }).down, 'pair_combine_f32');
+  const step = getLayerSteps(kernelPath, 0, 'decode').find(step => step.op === 'moe_shared_slot_down');
+  assert.equal(step.digest, 'sha256:6b89485190d4b253374f705a5ff20d6111edb8d239597d0e66e44ca8cc72378d');
+  // No GPU: reaching component validation proves the unchanged runtime guards
+  // accept this HC caller without processFFNStandard's pending inputs.
+  await assert.rejects(runMoEFFNGPU(0, null, 1, { kernelPath, phase: 'decode',
+    config: { expertFormat: 'qwen3_5' }, runtimeMoERoutingConfig: { activeExpertSelection: 'topk-route' } }),
+  /MoE components not initialized/);
+  const repeated = await bindLinearOutputProfile({ profile: result.profile, manifest, dopplerRoot });
+  assert.equal(repeated.semanticBindings.length, 0);
+  assert.deepEqual(repeated.profile, result.profile);
+  const classic = await bindLinearOutputProfile({ profile, manifest: { ...manifest, inference: {} }, dopplerRoot });
+  assert.equal(classic.semanticBindings.length, 0);
+  assert.deepEqual(getLayerSteps(classic.profile.runtime.inference.kernelPath, 0, 'decode'),
+    getLayerSteps(snapshot.runtime.inference.kernelPath, 0, 'decode'));
 });
