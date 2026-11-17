@@ -353,3 +353,11 @@ tolerance, and source-backed tests prove actual BF16 tensor reads use row slices
 No actual full-model RSS result is inferred from those tests. The older physical
 validator was observed at a 9,071,364-KiB RSS high-water mark; it was not modified
 or restarted by this worker, and its current resource budget remains with its owner.
+
+The native workflow's separate `prefill5_full_tile` input (requires
+`stream_storage`) selects one fresh-process synthetic 2048-by-2048 matrix probe,
+with five encrypted prefill rows and three single-row feedback steps. It records
+actual key/wire/RSS/time and separates evaluator round trips from client sampled
+replay/check costs. The ordinary small probes are not run in that mode. This
+checks the installed maximum tile shape before full-model deployment; it still
+cannot qualify complete Flash output, two-process/host peak memory or security.

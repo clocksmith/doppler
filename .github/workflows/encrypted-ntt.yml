@@ -6,6 +6,10 @@ on:
         description: 'Run the bounded public-tile storage probe instead of the arithmetic benchmark'
         type: boolean
         default: false
+      prefill5_full_tile:
+        description: 'With stream_storage, run only the full 2048-by-2048 five-row native profile tile'
+        type: boolean
+        default: false
   push:
     branches: [main]
     paths:
@@ -25,7 +29,15 @@ jobs:
       CARGO_BUILD_JOBS: '2'
       RUSTUP_TOOLCHAIN: '1.91.1'
       RAYON_NUM_THREADS: '4'
+      OMP_NUM_THREADS: '4'
+      OPENBLAS_NUM_THREADS: '4'
+      MKL_NUM_THREADS: '4'
     steps:
+      - name: Validate explicit optional probe selection
+        if: inputs.prefill5_full_tile && !inputs.stream_storage
+        run: |
+          echo 'prefill5_full_tile requires stream_storage'
+          exit 1
       - uses: actions/checkout@v7
       - uses: actions/setup-python@v6
         with:
@@ -76,9 +88,15 @@ jobs:
         if: inputs.stream_storage
         env:
           DOPPLER_STREAM_NATIVE: '1'
+          DOPPLER_STREAM_NATIVE_FULL_TILE: ${{ inputs.prefill5_full_tile && '1' || '0' }}
           DOPPLER_STREAM_NATIVE_REPORT: ${{ runner.temp }}/stream-storage-native.json
           PYTHONPATH: tools/privacy-concrete
-        run: python -m unittest test_stream_native -v
+        run: |
+          if [ "$DOPPLER_STREAM_NATIVE_FULL_TILE" = '1' ]; then
+            python -m unittest test_stream_native.StreamNativeTests.test_full_sized_five_row_profile_tile_then_single_row_feedback -v
+          else
+            python -m unittest test_stream_native -v
+          fi
       - uses: actions/upload-artifact@v6
         if: always()
         with:
@@ -89,5 +107,6 @@ jobs:
             ${{ runner.temp }}/stream-storage-native.json
             ${{ runner.temp }}/checkpoint-rebuild-native.json
             ${{ runner.temp }}/checkpoint-rebuild-prefill5-native.json
+            ${{ runner.temp }}/checkpoint-rebuild-prefill5-full-tile-native.json
           if-no-files-found: warn
           retention-days: 7
