@@ -1,0 +1,51 @@
+{
+  "schema": "doppler.native-bounded-scratch-initial-context/v1",
+  "sourceRevision": "3e020bf2208fd66c8a7850f89ce34f2cc43ac51a",
+  "nativeVersion": "0.1.9+ntt.6",
+  "nativeSourceId": "8d6bb6963dbe033be9635fe05c39e860830ec14c8bb06e748ec677ce71740be8",
+  "status": "arithmetic-passed-performance-mixed-not-a-general-speedup",
+  "continuousIntegration": [
+    {
+      "runId": 44089615441,
+      "headSha": "3e020bf2208fd66c8a7850f89ce34f2cc43ac51a",
+      "conclusion": "success",
+      "url": "https://github.com/clocksmith/doppler/actions/runs/44089615441"
+    },
+    {
+      "runId": 44089620789,
+      "headSha": "3e020bf2208fd66c8a7850f89ce34f2cc43ac51a",
+      "conclusion": "success",
+      "url": "https://github.com/clocksmith/doppler/actions/runs/44089620789"
+    }
+  ],
+  "artifacts": [
+    {
+      "path": "evidence/storage/native-bounded-scratch-initial-arithmetic.json",
+      "sha256": "3b814ed383d1f0e2dad2271442a5c357b756ef4da7b8b4a6abc8abcd5a5e2ffb"
+    },
+    {
+      "path": "evidence/storage/native-bounded-scratch-initial-process.json",
+      "sha256": "5b681f3fbe3275b3fe1f05c71f0128ad0b4bc835f018ef4e88516fcef4238605"
+    }
+  ],
+  "digitEncodingValidation": {
+    "admissibleDigitsChecked": 17410,
+    "residueComparisons": 87050,
+    "fullTransformComparisons": 8,
+    "outOfDomainValuesRejected": 8
+  },
+  "completeOriginalCiphertextCases": 24,
+  "encryptedFeedbackCalls": 60,
+  "medianReferenceOverCandidateRatios": [
+    0.9747007729080952,
+    0.9787620694904621,
+    1.0267403558660944
+  ],
+  "cgroupPeakBytes": 4558290944,
+  "assessment": "Single-row full-width paired medians regress about 2 to 3 percent; five-row prefill improves about 3 percent. Single observations of frequent narrower shapes suggest a separate paired check, not a general promotion.",
+  "nextStep": "Evaluate separate per-prime vectorizable loops and pair the four dominant public geometries; retain this artifact unchanged before the replacement run.",
+  "actualFlashCheckpointExecuted": false,
+  "productionBackendAvailable": false,
+  "securityQualified": false,
+  "independentCryptographicReview": false
+}
