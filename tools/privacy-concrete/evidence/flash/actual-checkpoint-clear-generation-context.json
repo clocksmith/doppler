@@ -1,0 +1,57 @@
+{
+ "schema": "doppler.operator-observed-flash-clear-validation-context/v1",
+ "evidence": "actual-checkpoint-clear-generation.json",
+ "evidenceSha256": "ed8d28c54b9b4e194a1b565c31896c1ad4b1e87ddf9406341d2d690f08dfad99",
+ "validatorRevision": "dfa631e89",
+ "loaderFilesIdenticalTo": "2305f9afb",
+ "loaderFiles": [
+  "flash_graph_source.py",
+  "flash_decoder_source.py",
+  "flash_weights.py",
+  "flash_stage_source.py"
+ ],
+ "checkpoint": {
+  "repository": "Qwen/Qwen3.8-Flash-Next",
+  "pinnedRevision": "812d96e10a0dd82b69d749e68693698cf6c36daa",
+  "provisionedRevision": "de4b8e4d43b917e7706784d8bb445c9af86a3540",
+  "view": "Directory of links to the provisioned shards, config, index and tokenizer.json, plus the pinned-revision tokenizer_config.json. The provisioned directory itself fails the pin on tokenizer_config.json only.",
+  "shards": 131,
+  "shardBytes": 360000192888,
+  "sha256VerifiedBytesIncludingRepeats": 456738193872,
+  "everyShardMatchedPinnedSha256": true
+ },
+ "execution": {
+  "startedUtc": "2026-11-17T03:32:29Z",
+  "finishedUtc": "2026-11-17T07:17:34Z",
+  "host": "One Linux x86-64 research host, CPU only, eight threads; checkpoint on an external drive",
+  "mode": "Clear client-local execution; no keys, ciphertexts or evaluator",
+  "elapsedSeconds": 13501.7,
+  "waitingForOtherHostWorkSeconds": 6180.2,
+  "unitCpuSeconds": 27831,
+  "peakRssBytes": 9397637120,
+  "unitMemoryPeakIncludingPageCacheBytes": 25769803776,
+  "uncontendedCachedFloatingStepSeconds": [
+   423.8,
+   426.9
+  ],
+  "timingNote": "Step and elapsed times include time paused for other work on the host; only the two cached floating steps listed ran without a pause."
+ },
+ "coefficientInventory": {
+  "projections": 74501,
+  "quantizationBits": 12,
+  "orderedDigestSha256": "466aebb95c1b631665c8ddba6eb0f5e6d786ef0e12420af7a606b1de06dc4d45",
+  "fileSha256": "7cc85d870449be326fa4bdb45c5f939a9bc9fa169ad912bc640e8cd6e851b0bc",
+  "fileBytes": 9384387,
+  "retained": "Not committed: one name and coefficient SHA-256 per projection, 9.4 MB. No coefficient cache was written."
+ },
+ "encryptedExecution": false,
+ "productionBackendAvailable": false,
+ "securityQualified": false,
+ "fullFlashEncryptedGenerationExecuted": false,
+ "limitations": [
+  "One public five-token prompt and four greedy steps; not a quality or throughput result.",
+  "The floating reference is this graph itself over FP32-converted BF16 weights with the two declared source transforms; no second independent implementation was compared.",
+  "The twelve-bit pass was teacher-forced with the floating tokens. Largest logit difference grew to 1.24 by the fourth step.",
+  "Nothing here exercises encryption, an evaluator or the integrity mechanism."
+ ]
+}

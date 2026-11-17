@@ -1,0 +1,356 @@
+{
+ "schema": "doppler.actual-flash-source-bound-validation/v1",
+ "repository": "Qwen/Qwen3.8-Flash-Next",
+ "revision": "812d96e10a0dd82b69d749e68693698cf6c36daa",
+ "sourceId": "1165149f49bfbe8e6bab1f9ea30669e1468c5dfc5833f6498a44050f7807a067",
+ "completed": true,
+ "encryptedExecution": false,
+ "productionBackendAvailable": false,
+ "securityQualified": false,
+ "cpuThreads": 8,
+ "steps": 4,
+ "metadata": {
+  "shards": 131,
+  "tensors": 1294,
+  "shardBytes": 360000192888,
+  "localTableShards": 33,
+  "declaredShardBytes": 360000192888,
+  "weightBytesRead": 0
+ },
+ "admission": {
+  "decoderStages": 48,
+  "outputStage": true,
+  "localTokenRows": true,
+  "localTableRows": true,
+  "sha256VerifiedBytesIncludingRepeats": 456738193872,
+  "seconds": 3585.1
+ },
+ "clientGraphId": "5bfcf553c2b22e4829b4a818bdd34ecb69da40c8e1f1f669305297706ddfef9f",
+ "projections": 74501,
+ "layerTypes": [
+  "linear_attention",
+  "linear_attention",
+  "linear_attention",
+  "indexed_attention",
+  "linear_attention",
+  "linear_attention",
+  "linear_attention",
+  "indexed_attention",
+  "linear_attention",
+  "linear_attention",
+  "linear_attention",
+  "indexed_attention",
+  "linear_attention",
+  "linear_attention",
+  "linear_attention",
+  "indexed_attention",
+  "linear_attention",
+  "linear_attention",
+  "linear_attention",
+  "indexed_attention",
+  "linear_attention",
+  "linear_attention",
+  "linear_attention",
+  "indexed_attention",
+  "linear_attention",
+  "linear_attention",
+  "linear_attention",
+  "indexed_attention",
+  "linear_attention",
+  "linear_attention",
+  "linear_attention",
+  "indexed_attention",
+  "linear_attention",
+  "linear_attention",
+  "linear_attention",
+  "indexed_attention",
+  "linear_attention",
+  "linear_attention",
+  "linear_attention",
+  "indexed_attention",
+  "linear_attention",
+  "linear_attention",
+  "linear_attention",
+  "indexed_attention",
+  "linear_attention",
+  "linear_attention",
+  "linear_attention",
+  "indexed_attention"
+ ],
+ "publicFixtureId": "flash-public-capital-text",
+ "promptTokens": [
+  760,
+  6511,
+  314,
+  9338,
+  369
+ ],
+ "floating": {
+  "steps": [
+   {
+    "step": 0,
+    "inputRows": 5,
+    "seconds": 1101.3,
+    "greedyToken": 11751,
+    "top5": [
+     [
+      11751,
+      16.291154861450195
+     ],
+     [
+      271,
+      14.607402801513672
+     ],
+     [
+      198,
+      13.85440444946289
+     ],
+     [
+      264,
+      13.817115783691406
+     ],
+     [
+      303,
+      12.916982650756836
+     ]
+    ],
+    "logitsSha256": "857ba6528bc97a569d974d3346afca84ff13079b6374f7f760c2da410403f722"
+   },
+   {
+    "step": 1,
+    "inputRows": 1,
+    "seconds": 423.8,
+    "greedyToken": 13,
+    "top5": [
+     [
+      13,
+      17.540285110473633
+     ],
+     [
+      11,
+      17.077945709228516
+     ],
+     [
+      271,
+      14.705326080322266
+     ],
+     [
+      198,
+      13.943807601928711
+     ],
+     [
+      321,
+      13.705900192260742
+     ]
+    ],
+    "logitsSha256": "9b6ed7dd7c846bae505076d9017d902ebc0b460db7778af28c74ab8d4c21c5ee"
+   },
+   {
+    "step": 2,
+    "inputRows": 1,
+    "seconds": 1661.6,
+    "greedyToken": 561,
+    "top5": [
+     [
+      561,
+      16.11703109741211
+     ],
+     [
+      11751,
+      15.515315055847168
+     ],
+     [
+      1049,
+      14.302213668823242
+     ],
+     [
+      271,
+      14.224466323852539
+     ],
+     [
+      198,
+      13.820444107055664
+     ]
+    ],
+    "logitsSha256": "f9db917dbb546899ebf56be9006e2c734637e9c12279ddf3251798f330796105"
+   },
+   {
+    "step": 3,
+    "inputRows": 1,
+    "seconds": 426.9,
+    "greedyToken": 6511,
+    "top5": [
+     [
+      6511,
+      20.000041961669922
+     ],
+     [
+      7526,
+      14.482460021972656
+     ],
+     [
+      3177,
+      14.361726760864258
+     ],
+     [
+      1379,
+      13.392547607421875
+     ],
+     [
+      1994,
+      12.667932510375977
+     ]
+    ],
+    "logitsSha256": "19e337d9a6cdadaa3c2bca770d51799deebff45e5ed978b23fe0532f558c9b6f"
+   }
+  ],
+  "outputTokens": [
+   11751,
+   13,
+   561,
+   6511
+  ],
+  "outputText": " Paris. The capital"
+ },
+ "quantized": {
+  "steps": [
+   {
+    "step": 0,
+    "inputRows": 5,
+    "seconds": 1271.8,
+    "greedyToken": 11751,
+    "top5": [
+     [
+      11751,
+      16.29160499572754
+     ],
+     [
+      271,
+      14.596423149108887
+     ],
+     [
+      198,
+      13.853089332580566
+     ],
+     [
+      264,
+      13.826360702514648
+     ],
+     [
+      303,
+      12.923052787780762
+     ]
+    ],
+    "logitsSha256": "220da29e141422eba6f371fab766b8d7015ca15b28028ea1bbf2c691f189aab1"
+   },
+   {
+    "step": 1,
+    "inputRows": 1,
+    "seconds": 1299.3,
+    "greedyToken": 13,
+    "top5": [
+     [
+      13,
+      17.50564193725586
+     ],
+     [
+      11,
+      17.06550407409668
+     ],
+     [
+      271,
+      14.647429466247559
+     ],
+     [
+      198,
+      13.806742668151855
+     ],
+     [
+      321,
+      13.561033248901367
+     ]
+    ],
+    "logitsSha256": "8bff9e533dc1e6d63a35b8b6f0079dc17a6f380e99a0645bd63585059531ae0b"
+   },
+   {
+    "step": 2,
+    "inputRows": 1,
+    "seconds": 2241.8,
+    "greedyToken": 561,
+    "top5": [
+     [
+      561,
+      16.226825714111328
+     ],
+     [
+      11751,
+      15.542202949523926
+     ],
+     [
+      1049,
+      14.347332954406738
+     ],
+     [
+      271,
+      14.130173683166504
+     ],
+     [
+      248046,
+      13.843021392822266
+     ]
+    ],
+    "logitsSha256": "6a086af2284eff1739c8874af33c38565424a028319dd4941e45ea971d50d9b7"
+   },
+   {
+    "step": 3,
+    "inputRows": 1,
+    "seconds": 1487.8,
+    "greedyToken": 6511,
+    "top5": [
+     [
+      6511,
+      20.3118839263916
+     ],
+     [
+      3177,
+      14.809102058410645
+     ],
+     [
+      7526,
+      14.33640193939209
+     ],
+     [
+      1379,
+      13.3685302734375
+     ],
+     [
+      8323,
+      12.73518180847168
+     ]
+    ],
+    "logitsSha256": "202d8ba211db553e4dad9826200d7a36a21970316b038ee3dd73746bef4a39bd"
+   }
+  ],
+  "quantizationBits": 12,
+  "teacherForcedFromFloating": true,
+  "greedyMatchesFloating": [
+   true,
+   true,
+   true,
+   true
+  ],
+  "maxAbsLogitErrorVersusFloating": [
+   0.05472970008850098,
+   0.6904577016830444,
+   0.7841780185699463,
+   1.237630844116211
+  ],
+  "coefficientInventorySha256": "466aebb95c1b631665c8ddba6eb0f5e6d786ef0e12420af7a606b1de06dc4d45",
+  "coefficientProjections": 74501,
+  "coefficientCacheWritten": false
+ },
+ "fullFlashTextModelExecutedInClear": true,
+ "elapsedSeconds": 13501.7,
+ "cooperativeLockWaitSeconds": 6180.2,
+ "peakRssBytes": 9397637120
+}

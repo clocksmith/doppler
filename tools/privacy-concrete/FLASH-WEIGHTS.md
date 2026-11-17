@@ -719,8 +719,36 @@ declared hashes, and all 1,294 tensors have the pinned dtype, shape and offsets.
 instead (9,984 bytes). Both list the same 33 added tokens and the same
 tokenizer class. The loader therefore rejects the provisioned directory as it
 stands. Validation uses a view directory that links the shards and holds the
-pinned `tokenizer_config.json`; the pin is unchanged. Weight content hashes are
-only established by the hashing modes, not by this gate.
+pinned `tokenizer_config.json`; the pin is unchanged.
+
+The [hashing and clear-generation run](evidence/flash/actual-checkpoint-clear-generation.json)
+then admitted that view through the installed owners. Every shard matched its
+pinned SHA-256: 48 decoder stages, the output stage, the token row store and the
+33-shard local table, 456,738,193,872 bytes hashed counting shards that more
+than one owner verifies. `bind_graph` returned the complete graph with 74,501
+source-bound projections. The provisioned weights are therefore byte-identical
+to the pinned inventory; the two upstream revisions differ only in
+`tokenizer_config.json`.
+
+Clear floating execution of that graph on the public fixture
+`The capital of France is` produced ` Paris. The capital` over four greedy
+steps: a five-row prefill and three cached single-row steps. The first token led
+by 1.68 logits. A cached step took about 425 seconds on eight CPU threads when
+nothing else used the host. The twelve-bit integer reference, teacher-forced
+with those tokens and quantizing each projection as it was borrowed from
+source, chose the same four tokens. Its largest logit difference from floating
+point over the whole vocabulary was 0.055, 0.690, 0.784 and 1.238 across the
+four steps, so the difference grows with cached state and the second token's
+0.46-logit lead was smaller than that step's largest difference. Greedy
+agreement on this prompt is not token stability in general. The run also bound
+the ordered twelve-bit coefficient identity of all 74,501 projections without
+writing a cache; the [context](evidence/flash/actual-checkpoint-clear-generation-context.json)
+records its digest, the revisions and the timing limits. Peak resident memory
+was 9.4 GB.
+
+This establishes that the source-bound loader and client graph run the actual
+checkpoint end to end in the clear. It is not encrypted execution, and there is
+no second independent floating implementation in the comparison.
 
 The complete text route has 74,501 projections and 125,105,397,760
 coefficients. With 2048-wide tiles one token row is 150,868 encrypted tiles:
@@ -738,5 +766,8 @@ exact-NTT variant, the twelve-bit 35-bit-domain parameters and the
 coefficient suffix, size, range and message-domain capacity from the declared
 encoding; eight-bit components are unchanged. Only metadata and tiny-cache
 admission tests cover the new profile. No coefficient cache has been prepared
-and no encrypted Flash generation has run.
+and no encrypted Flash generation has run. At the measured 1.3 to 1.5 seconds
+per full tile row on a two-core host, or 0.55 seconds on the retained native
+fixture, one token row of 150,868 tiles is between about one and two and a half
+days of evaluator time on four threads before any client work.
 
