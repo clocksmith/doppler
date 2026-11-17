@@ -1,0 +1,64 @@
+{
+  "schema": "doppler.attested-local-run/v1",
+  "protocol": "doppler-attested-session/v1",
+  "sessionPolicyId": "sha256:c126b3d65d0159a39508d65e4bbe7c73bd118e8bfbcbae5687fa6c6f918b678d",
+  "completed": true,
+  "evidenceFormat": "software-test/v1",
+  "providerIsolationEstablished": false,
+  "hardwareEvidence": false,
+  "modelExecuted": false,
+  "securityQualified": false,
+  "productionBackendAvailable": false,
+  "host": "mac-host",
+  "node": "v22.20.0",
+  "request": {
+    "promptCharacters": 2000,
+    "outputPieces": 256,
+    "outputCharacters": 1868
+  },
+  "clientPhases": {
+    "openChannelAndHello": {
+      "clientCpuMs": 2.388,
+      "wallMs": 2.4276669999999996
+    },
+    "waitForEvidence": {
+      "clientCpuMs": 0.982,
+      "wallMs": 31.887084
+    },
+    "verifyEvidence": {
+      "clientCpuMs": 1.044,
+      "wallMs": 1.0452080000000024
+    },
+    "sealRequest": {
+      "clientCpuMs": 0.78,
+      "wallMs": 0.7822910000000007
+    },
+    "waitForResponse": {
+      "clientCpuMs": 5.307,
+      "wallMs": 7.597417000000007
+    },
+    "openResponse": {
+      "clientCpuMs": 2.849,
+      "wallMs": 2.4821249999999964
+    },
+    "total": {
+      "clientCpuMs": 14.387,
+      "wallMs": 46.272917
+    },
+    "responseFrames": 257
+  },
+  "wireBytes": {
+    "clientToProvider": 5965,
+    "providerToClient": 102503
+  },
+  "clientPeakRssBytes": 58703872,
+  "clientHoldsWeights": false,
+  "clientModelOperations": 0,
+  "genuineEvidenceCheck": {
+    "fixture": "fixtures/milan.report.bin",
+    "samples": 51,
+    "medianClientCpuMs": 0.549,
+    "maximumClientCpuMs": 2.295
+  },
+  "scope": "One local run, client and stand-in provider as two processes on one host. Software test evidence and a fixed text generator: this measures client work and wire overhead only."
+}

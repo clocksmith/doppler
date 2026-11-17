@@ -1,0 +1,10 @@
+{
+  "schema": "doppler.attested.session-policy/v1",
+  "protocol": "doppler-attested-session/v1",
+  "requestPaddingBytes": 4096,
+  "responsePaddingBytes": 256,
+  "maximumRequestBytes": 1048576,
+  "maximumResponseChunkBytes": 1020,
+  "maximumResponseFrameBytes": 2048,
+  "maximumResponseFrames": 65536
+}
