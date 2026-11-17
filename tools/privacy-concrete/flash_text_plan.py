@@ -25,7 +25,7 @@ QSA=tuple(json.loads(Path(__file__).with_name('flash-attention-program.json').re
 PLE=tuple(json.loads(Path(__file__).with_name('flash-ple-program.json').read_text())['projectionOrder'])
 
 
-def geometry(source=TEXT):
+def projection_bindings(source=TEXT):
     result={};tensors=source['tensors']
     def add(operation,tensor,expert=None,half=None):
         row=tensors[tensor];shape=row['shape']
@@ -34,12 +34,13 @@ def geometry(source=TEXT):
             if len(shape)!=3 or shape[0]!=source['expertsPerLayer'] or not 0<=expert<shape[0]:raise ValueError('Installed expert geometry required')
             shape=shape[1:]
         if len(shape)!=2:raise ValueError('Installed Flash matrix required')
-        height,width=shape
+        height,width=shape;rows=None
         if half is not None:
-            if height%2:raise ValueError('Packed expert gate/up geometry required')
+            if half not in (0,1) or height%2:raise ValueError('Packed expert gate/up geometry required')
             height//=2
+            rows=(half*height,(half+1)*height)
         if operation in result:raise ValueError('Duplicate installed Flash operation')
-        result[operation]=(width,height)
+        result[operation]=dict(tensor=tensor,expert=expert,rows=rows,inputWidth=width,outputWidth=height)
     for i in range(source['layerCount']):
         local=f'layers.{i}.';prefix='model.language_model.'+local
         if prefix+'ple.key_proj.weight' in tensors:
@@ -58,6 +59,10 @@ def geometry(source=TEXT):
     for name in HYPER[:2]:add('final_mixer.'+name,'model.language_model.hyper_connection_mixer.'+name+'.weight')
     add('head','lm_head.weight')
     return result
+
+
+def geometry(source=TEXT):
+    return {name:(row['inputWidth'],row['outputWidth']) for name,row in projection_bindings(source).items()}
 
 GEOMETRY=geometry()
 PROGRAM=dict(schema='doppler.flash-text-client-program/v1',sourceId=digest(canonical(TEXT)),

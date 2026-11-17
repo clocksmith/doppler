@@ -20,15 +20,23 @@ from native_runtime import matrix_evaluator,prepare_evaluator_key
 
 
 class FullBridge:
-    def __init__(self, directory, plan, key, cancelled=None, observe=lambda kind, value: None, deployment=None, backend_profile=None,prepared_public_tiles=None):
+    def __init__(self, directory, plan, key, cancelled=None, observe=lambda kind, value: None, deployment=None, backend_profile=None,prepared_public_tiles=None,provider_source_directory=None):
         require_active(cancelled)
-        from plan_backends import STREAMED_PROFILE
+        from plan_backends import STREAMED_PROFILE,REBUILD_PROFILE
         self.streams_public_coefficients=backend_profile==STREAMED_PROFILE
+        self.rebuilds_public_coefficients=backend_profile==REBUILD_PROFILE
+        compiled=self.streams_public_coefficients or self.rebuilds_public_coefficients
         self.public_coefficient_bytes_sent=0
-        if self.streams_public_coefficients:
+        if provider_source_directory is not None and (not self.rebuilds_public_coefficients or deployment is not None):
+            raise ValueError('Explicit local public checkpoint applies only to the local rebuild backend')
+        if self.rebuilds_public_coefficients and deployment is None:
+            if provider_source_directory is None or not Path(provider_source_directory).is_dir():
+                raise ValueError('Existing local provider checkpoint required; no source download or fallback')
+        if compiled:
             from checked_bridge import CheckedBridge
-            if type(self) is not CheckedBridge:raise ValueError('Streamed profile requires its declared checked-integrity bridge')
-            from flash_text_stream_plan import load_client_plan
+            if type(self) is not CheckedBridge:raise ValueError('Compiled public profile requires its declared checked-integrity bridge')
+            if self.streams_public_coefficients:from flash_text_stream_plan import load_client_plan
+            else:from flash_text_rebuild_plan import load_client_plan
             validated=load_client_plan(directory,prepared_public_tiles)
         elif prepared_public_tiles is not None:raise ValueError('Compiled tile binding requires an explicit streamed backend')
         elif backend_profile is None:validated=load_plan(directory)
@@ -39,7 +47,7 @@ class FullBridge:
             raise ValueError('Client full-model admission differs from the prepared plan')
         bound=validated if deployment is None else deployment.bind(validated)
         self.admission=FullRouteAdmission(bound)
-        self.public_tile_digests=(prepared_public_tiles.digests_for(validated) if self.streams_public_coefficients else bind_public_tiles(directory,validated))
+        self.public_tile_digests=(prepared_public_tiles.digests_for(validated) if compiled else bind_public_tiles(directory,validated))
         self.plan, self.key, self.cancelled, self.observe = bound, key, cancelled, observe
         self.weight_encoding=weight_encoding(self.plan.definition()['parameters'])
         self.weight_dtype=self.weight_encoding['dtype']
@@ -53,7 +61,7 @@ class FullBridge:
         self.key_id, self.key_bytes = digest(data), len(data)
         self.sequence, self.sent, self.received = 0, 0, 0
         self.remote_seconds = self.replay_seconds = 0.0
-        self.child = deployment.spawn(validated) if deployment is not None else subprocess.Popen([sys.executable,str(Path(__file__).with_name('full_provider.py')),str(Path(directory).resolve()),plan.identity,*(['--profile',backend_profile] if backend_profile is not None else [])],
+        self.child = deployment.spawn(validated) if deployment is not None else subprocess.Popen([sys.executable,str(Path(__file__).with_name('full_provider.py')),str(Path(directory).resolve()),plan.identity,*(['--profile',backend_profile] if backend_profile is not None else []),*(['--public-source-dir',str(Path(provider_source_directory).resolve())] if self.rebuilds_public_coefficients else [])],
                                       stdin=subprocess.PIPE,stdout=subprocess.PIPE,stderr=subprocess.DEVNULL,bufsize=0,
                                       env={'RAYON_NUM_THREADS':str(self.plan.definition()['cpuThreads']),'OMP_NUM_THREADS':str(self.plan.definition()['cpuThreads'])})
         try:
@@ -144,7 +152,10 @@ class FullBridge:
     def exchange(self, kind, payload, response_kind, tile_id='', while_pending=None):
         # Sending first lets the evaluator compute while the client performs its
         # mandatory deterministic replay. There is still only one admitted tile.
-        deadline=time.monotonic()+self.operation_timeout
+        timeout=self.operation_timeout
+        if kind=='evaluation-key' and getattr(self,'rebuilds_public_coefficients',False):
+            timeout=self.plan.definition()['sourceVerificationTimeoutSeconds']
+        deadline=time.monotonic()+timeout
         def remaining():
             self.check_active()
             value=deadline-time.monotonic()

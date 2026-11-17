@@ -21,7 +21,9 @@ POLICY_V2=json.loads(Path(__file__).with_name('ssh-v2-policy.json').read_text())
 # an SSH frame never names replay for a route that does not replay every tile.
 POLICY_CHECK=json.loads(Path(__file__).with_name('ssh-check-policy.json').read_text())
 POLICY_STREAM_CHECK=json.loads(Path(__file__).with_name('ssh-stream-check-policy.json').read_text())
+POLICY_REBUILD_CHECK=json.loads(Path(__file__).with_name('ssh-rebuild-check-policy.json').read_text())
 ENDPOINT_FIELDS=frozenset({'operatorId','host','port','user','hostKey','remotePython','remoteProvider','remoteCache','remoteManifest'})
+REBUILD_ENDPOINT_FIELDS=ENDPOINT_FIELDS|{'remotePublicSource'}
 FIELDS=ENDPOINT_FIELDS|{'schema','basePlanId','modelId','backendProtocol'}
 SHA=re.compile(r'[0-9a-f]{64}\Z')
 
@@ -47,6 +49,7 @@ def route_policy(value):
     if schema==POLICY_V2['routeSchema']:return POLICY_V2
     if schema==POLICY_CHECK['routeSchema']:return POLICY_CHECK
     if schema==POLICY_STREAM_CHECK['routeSchema']:return POLICY_STREAM_CHECK
+    if schema==POLICY_REBUILD_CHECK['routeSchema']:return POLICY_REBUILD_CHECK
     raise ValueError('Unsupported versioned encrypted SSH route')
 
 
@@ -57,6 +60,10 @@ def route_backend(value):
     if policy is POLICY_STREAM_CHECK:
         from flash_text_stream_plan import CONFIG
         if profile!=CONFIG['profile']:raise ValueError('Streamed SSH route requires its explicit installed storage backend')
+        return profile,CONFIG
+    if policy is POLICY_REBUILD_CHECK:
+        from flash_text_rebuild_plan import CONFIG
+        if profile!=CONFIG['profile']:raise ValueError('Checkpoint SSH route requires its explicit installed reconstruction backend')
         return profile,CONFIG
     settings,_,_,_=qwen_backend(profile)
     if settings['productionBackendAvailable'] is not False:raise ValueError('Research-only SSH backend required')
@@ -82,17 +89,22 @@ def validate_endpoint(value):
         raise ValueError('Bounded explicit SSH endpoint and operator required')
     public_key(value['hostKey'])
     for key in ['remotePython','remoteProvider','remoteCache','remoteManifest']:
-        path=value[key]
-        if (not isinstance(path,str) or len(path)>1024 or not re.fullmatch(r'/[A-Za-z0-9_./-]+',path)
+        validate_remote_path(value[key])
+
+
+def validate_remote_path(path):
+    if (not isinstance(path,str) or len(path)>1024 or not re.fullmatch(r'/[A-Za-z0-9_./-]+',path)
                 or path=='/' or str(PurePosixPath(path))!=path or '..' in PurePosixPath(path).parts):
-            raise ValueError('Canonical pre-provisioned remote paths required')
+        raise ValueError('Canonical pre-provisioned remote paths required')
 
 
 def validate(value):
     policy=route_policy(value)
     fields=FIELDS if policy is POLICY else FIELDS|{'backendProfile'}
+    if policy is POLICY_REBUILD_CHECK:fields=fields|{'remotePublicSource'}
     if set(value)!=fields:raise ValueError('Exact versioned encrypted SSH route required')
     validate_endpoint(value)
+    if policy is POLICY_REBUILD_CHECK:validate_remote_path(value['remotePublicSource'])
     for key in ['basePlanId','modelId']:
         if not isinstance(value[key],str) or not SHA.fullmatch(value[key]):
             raise ValueError('Exact SSH model and plan identities required')
@@ -137,6 +149,17 @@ class SSHRoute:
         from flash_text_stream_plan import load_client_plan,CONFIG
         plan=load_client_plan(directory,prepared_public_tiles)
         value=dict(endpoint,schema=POLICY_STREAM_CHECK['routeSchema'],backendProfile=CONFIG['profile'],
+            backendProtocol=CONFIG['protocol'],basePlanId=plan.identity,modelId=plan.definition()['modelId'])
+        route=cls(validate(value));route.bind(plan,allowed_operators)
+        return route
+
+    @classmethod
+    def for_compiled_checkpoint(cls,directory,prepared_public_tiles,endpoint,allowed_operators):
+        if not isinstance(endpoint,dict) or set(endpoint)!=REBUILD_ENDPOINT_FIELDS:raise ValueError('Exact explicit checkpoint SSH endpoint required')
+        validate_endpoint(endpoint);validate_remote_path(endpoint['remotePublicSource']);require_operator(endpoint['operatorId'],allowed_operators)
+        from flash_text_rebuild_plan import load_client_plan,CONFIG
+        plan=load_client_plan(directory,prepared_public_tiles)
+        value=dict(endpoint,schema=POLICY_REBUILD_CHECK['routeSchema'],backendProfile=CONFIG['profile'],
             backendProtocol=CONFIG['protocol'],basePlanId=plan.identity,modelId=plan.definition()['modelId'])
         route=cls(validate(value));route.bind(plan,allowed_operators)
         return route
@@ -226,6 +249,7 @@ class SSHDeployment:
                 'OMP_NUM_THREADS='+str(settings['cpuThreads']),value['remotePython'],value['remoteProvider'],
                 value['remoteCache'],value['basePlanId']]
         if route_policy(value) is not POLICY:remote+=['--profile',profile]
+        if route_policy(value) is POLICY_REBUILD_CHECK:remote+=['--public-source-dir',value['remotePublicSource']]
         remote+=['--ssh-route',value['remoteManifest'],self.route.identity]
         options=['HostKeyAlgorithms=ssh-ed25519','PreferredAuthentications=publickey','GSSAPIAuthentication=no','HostbasedAuthentication=no','BatchMode=yes','StrictHostKeyChecking=yes','UserKnownHostsFile='+str(known_hosts),
                  'GlobalKnownHostsFile=/dev/null','IdentitiesOnly=yes','IdentityAgent=none','ForwardAgent=no',

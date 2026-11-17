@@ -1,13 +1,14 @@
 """Installed research plan loaders. Advertisements cannot register or replace executable profiles."""
 DEFAULT_PROFILE='qwen-all-linear'
 STREAMED_PROFILE='flash-text-all-linear-ntt12-stream-check'
+REBUILD_PROFILE='flash-text-all-linear-ntt12-rebuild-check'
 QWEN_PROFILES=(DEFAULT_PROFILE,'qwen-all-linear-ntt','qwen-all-linear-ntt-48','qwen-all-linear-ntt12','qwen-all-linear-ntt12-check')
 MOE_PROFILES=('flash-dense-moe','flash-dense-moe-ntt')
-PROFILES=(*QWEN_PROFILES,'flash-expert0',*MOE_PROFILES,'flash-mlp-hyper','flash-mlp-block','flash-first-delta','flash-first-qsa-ntt','flash-first-ple-ntt','flash-text-all-linear-research','flash-text-all-linear-ntt12-check',STREAMED_PROFILE)
+PROFILES=(*QWEN_PROFILES,'flash-expert0',*MOE_PROFILES,'flash-mlp-hyper','flash-mlp-block','flash-first-delta','flash-first-qsa-ntt','flash-first-ple-ntt','flash-text-all-linear-research','flash-text-all-linear-ntt12-check',STREAMED_PROFILE,REBUILD_PROFILE)
 
 
 def load_backend_plan(directory,profile):
-    if profile==STREAMED_PROFILE:
+    if profile in (STREAMED_PROFILE,REBUILD_PROFILE):
         raise ValueError('Streamed client admission requires its actual byte-derived compiler binding')
     if profile=='flash-text-all-linear-research':
         from flash_text_plan import load_plan
@@ -48,6 +49,9 @@ def load_provider_plan(directory,profile):
     if profile==STREAMED_PROFILE:
         from flash_text_stream_plan import load_provider_plan as load
         return load(directory)
+    if profile==REBUILD_PROFILE:
+        from flash_text_rebuild_plan import load_provider_plan as load
+        return load(directory)
     return load_backend_plan(directory,profile)
 
 
@@ -57,6 +61,7 @@ def provider_arguments(arguments):
     parser.add_argument('directory');parser.add_argument('plan_id')
     parser.add_argument('--profile',choices=PROFILES,default=DEFAULT_PROFILE)
     parser.add_argument('--ssh-route',nargs=2)
+    parser.add_argument('--public-source-dir')
     return parser.parse_args(arguments)
 
 

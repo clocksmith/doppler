@@ -18,10 +18,11 @@ from unittest.mock import patch
 
 @unittest.skipUnless(os.environ.get('DOPPLER_STREAM_NATIVE')=='1','opt-in exact native storage probe')
 class StreamNativeTests(unittest.TestCase):
-    def test_four_encrypted_feedback_steps_without_endpoint_coefficient_files(self):
+    def run_case(self,*,rebuild=False):
         import numpy as np
         import concrete_ml_extensions as ext
-        import flash_text_stream_plan as stream
+        if rebuild:import flash_text_rebuild_plan as stream
+        else:import flash_text_stream_plan as stream
         import full_bridge
         from checked_bridge import CheckedBridge
         from flash_component_plan import write_component
@@ -32,12 +33,28 @@ class StreamNativeTests(unittest.TestCase):
         from test_stream_transport import PipeProvider
         began=time.perf_counter();generator=np.random.default_rng(73)
         matrix=generator.integers(-11,12,size=(32,16),dtype=np.int64)
-        public=matrix.astype('<i2').tobytes()
-        row=dict(name='public-native-storage-probe',weightId=digest(public),inputWidth=32,outputWidth=16)
-        geometry={row['name']:(32,16)};source={'schema':'synthetic-native-storage-probe/v1'}
-        tile=tiles(row,2048,2048)[0];digests={tile['id']:digest(public)}
         with ExitStack() as stack:
             root=Path(stack.enter_context(tempfile.TemporaryDirectory()))
+            name='public-native-storage-probe';source_directory=None
+            if rebuild:
+                import torch
+                from types import SimpleNamespace
+                from concrete.ml.quantization.linear_op_glwe_backend import GLWELinearLayerExecutor
+                from test_checkpoint_fixture import checkpoint_fixture
+                source_directory=Path(stack.enter_context(tempfile.TemporaryDirectory()))
+                weight=torch.from_numpy(matrix.T.copy()).float()
+                specification,bindings=checkpoint_fixture(source_directory,{name:weight})
+                context=SimpleNamespace(input_quantizers=[SimpleNamespace(quant_options=SimpleNamespace(n_bits=12))])
+                quantized,*_=GLWELinearLayerExecutor(use_dynamic_quantization=True)._per_channel_weight_quantization(
+                    weight.to(torch.bfloat16).float().numpy().T,context,torch.device('cpu'))
+                matrix=quantized.numpy().astype(np.int64)
+                stack.enter_context(patch('flash_provider_source.linear_source_spec',return_value=specification))
+                stack.enter_context(patch('flash_provider_source.projection_bindings',return_value=bindings))
+                stack.enter_context(patch.object(stream,'linear_source_spec',return_value=specification))
+            public=matrix.astype('<i2').tobytes()
+            row=dict(name=name,weightId=digest(public),inputWidth=32,outputWidth=16)
+            geometry={name:(32,16)};source={'schema':'synthetic-native-storage-probe/v1'}
+            tile=tiles(row,2048,2048)[0];digests={tile['id']:digest(public)}
             stack.enter_context(patch.object(stream,'GEOMETRY',geometry));stack.enter_context(patch.object(stream,'TEXT',source))
             versions=stream.versions() # Real native source/binary/dependency validation.
             write_component(root,stream.CONFIG,[row],stream.semantics('d'*64,digests),versions,source=source)
@@ -49,17 +66,24 @@ class StreamNativeTests(unittest.TestCase):
             secret,key=ext.cpu_create_private_key(parameters)
             children=[]
             def child(*args,**kwargs):
-                result=PipeProvider(plan,str(root/'absent-provider-cache'));children.append(result);return result
+                if rebuild:
+                    from flash_provider_source import ProviderCheckpointSource
+                    scratch=Path(stack.enter_context(tempfile.TemporaryDirectory()))
+                    checkpoint=ProviderCheckpointSource(source_directory,scratch,plan);stack.callback(checkpoint.close)
+                    result=PipeProvider(plan,scratch,checkpoint_source=checkpoint);result.checkpoint=checkpoint;result.scratch=scratch
+                else:result=PipeProvider(plan,str(root/'absent-provider-cache'))
+                children.append(result);return result
             stack.enter_context(patch.object(full_bridge.subprocess,'Popen',side_effect=child))
             bridge=CheckedBridge(root,plan,key,backend_profile=stream.PROFILE,prepared_public_tiles=binding,
-                parameter_profile=stream.CONFIG['parameterProfile'])
+                parameter_profile=stream.CONFIG['parameterProfile'],
+                **(dict(provider_source_directory=source_directory) if rebuild else {}))
             stack.callback(bridge.close)
             values=generator.integers(0,2**12,size=(1,32),dtype=np.uint64);errors=[];greedy=[];durations=[]
             for step in range(4):
                 started=time.perf_counter()
                 with bridge.projection(row['name'],32,16,1):
                     encrypted=ext.encrypt_matrix(pkey=secret,crypto_params=parameters,data=values)
-                    bridge.stage_public_tile(matrix.astype(np.uint64),tile)
+                    if not rebuild:bridge.stage_public_tile(matrix.astype(np.uint64),tile)
                     answer=bridge.evaluate(encrypted,matrix.astype(np.uint64),tile)
                     decoded=bridge.decode(answer,tile,values,lambda reply:ext.decrypt_matrix(reply,secret,parameters,16).astype(np.int64))
                 expected=values.astype(np.int64)@matrix;deviation=decoded-expected
@@ -70,7 +94,7 @@ class StreamNativeTests(unittest.TestCase):
                 values=np.roll(values,1,axis=1).copy();values[0,token]=(values[0,token]+1)%4096
                 durations.append(time.perf_counter()-started)
             bridge.finish();bridge.close();bridge.require_integrity()
-            self.assertEqual(bridge.public_coefficient_bytes_sent,len(public)*4)
+            self.assertEqual(bridge.public_coefficient_bytes_sent,0 if rebuild else len(public)*4)
             self.assertEqual(list(root.iterdir()),[root/'plan.json']);self.assertIsNone(children[0].error)
             report=dict(schema='doppler.native-stream-storage-probe/v1',steps=4,greedyFeedbackMatches=True,
                 nativeEncryptionSimulated=False,actualFlashCheckpointExecuted=False,separateMachine=False,
@@ -80,7 +104,23 @@ class StreamNativeTests(unittest.TestCase):
                 clientCoefficientDiskBytes=0,providerCoefficientDiskBytes=0,maxFramePayloadBytes=bridge.payload_limit,
                 processPeakRssBytes=resource.getrusage(resource.RUSAGE_SELF).ru_maxrss*(1 if platform.system()=='Darwin' else 1024),
                 implementationVersions=versions,integrity=bridge.integrity_report(),productionBackendAvailable=False,securityQualified=False)
+            if rebuild:
+                self.assertEqual(children[0].checkpoint.materializations,1)
+                self.assertEqual(children[0].checkpoint.live_cache_bytes,0);self.assertEqual(list(children[0].scratch.iterdir()),[])
+                report.update(providerMaterializations=children[0].checkpoint.materializations,
+                    providerPeakCoefficientDiskBytes=children[0].checkpoint.peak_cache_bytes,
+                    providerSourceBytesVerified=children[0].checkpoint.source_bytes_verified,
+                    providerSourceVerificationSeconds=children[0].checkpoint.source_verification_seconds,
+                    providerMaterializationSeconds=children[0].checkpoint.materialization_seconds,
+                    publicCoefficientStorage=plan.definition()['publicCoefficientStorage'])
             output=os.environ.get('DOPPLER_STREAM_NATIVE_REPORT')
-            if output:Path(output).write_text(json.dumps(report,indent=2)+'\n')
+            if output:
+                path=Path(output)
+                if rebuild:path=path.with_name('checkpoint-rebuild-native.json')
+                path.write_text(json.dumps(report,indent=2)+'\n')
+            return report
+
+    def test_four_encrypted_feedback_steps_without_endpoint_coefficient_files(self):self.run_case()
+    def test_verified_checkpoint_cache_sends_zero_coefficients_over_four_native_steps(self):self.run_case(rebuild=True)
 
 if __name__=='__main__':unittest.main()

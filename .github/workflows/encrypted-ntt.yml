@@ -87,5 +87,6 @@ jobs:
             ${{ runner.temp }}/ntt-public-result.json
             ${{ runner.temp }}/ntt-Cargo.lock
             ${{ runner.temp }}/stream-storage-native.json
+            ${{ runner.temp }}/checkpoint-rebuild-native.json
           if-no-files-found: warn
           retention-days: 7

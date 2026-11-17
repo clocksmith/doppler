@@ -5,7 +5,7 @@ can outlive evicted coefficient files; it is not provider evidence, a serialized
 import format or permission to admit a new execution backend.
 """
 import copy
-from contextlib import contextmanager
+from contextlib import contextmanager,ExitStack
 from dataclasses import dataclass
 import hashlib
 import os
@@ -151,9 +151,13 @@ class PublicTileReader:
     constructed. This reader limits descriptors/mappings; it neither downloads
     missing files nor evicts files from disk, and is not an integrity verifier.
     """
-    def __init__(self,directory,plan):
+    def __init__(self,directory,plan,*,open_projection=None,check_active=None):
         definition=plan.definition()
         self.directory=Path(directory)
+        if open_projection is not None and not callable(open_projection):raise ValueError('Trusted public projection lease callback required')
+        if check_active is not None and not callable(check_active):raise ValueError('Explicit public source lifetime check required')
+        self.open_projection=open_projection;self.handle_scope=ExitStack()
+        self.check_active=check_active
         self.encoding=weight_encoding(definition.get('parameters',{}))
         self.input_limit,self.output_limit=definition['inputTileWidth'],definition['outputTileWidth']
         self.rows={}
@@ -172,9 +176,8 @@ class PublicTileReader:
 
     def close(self):
         self.closed=True
-        if self.handle is not None:
-            try:self.handle.close()
-            finally:self.handle,self.active_name=None,None
+        try:self.handle_scope.close()
+        finally:self.handle,self.active_name=None,None
 
     def read(self,tile):
         try:
@@ -191,10 +194,13 @@ class PublicTileReader:
                           outputBegin=begin_out,outputEnd=min(begin_out+self.output_limit,row['outputWidth']))
             expected['id']=digest(canonical(expected))
             if dict(tile)!=expected:raise ValueError('Public tile identity changed')
+            if self.check_active is not None:self.check_active(tile)
             if self.active_name!=row['name']:
-                if self.handle is not None:self.handle.close()
+                self.handle_scope.close();self.handle_scope=ExitStack()
                 self.handle=None;self.active_name=None
-                self.handle=(self.directory/(row['weightId']+self.encoding['suffix'])).open('rb',buffering=0)
+                lease=((self.directory/(row['weightId']+self.encoding['suffix'])).open('rb',buffering=0)
+                    if self.open_projection is None else self.open_projection(row,MappingProxyType(dict(self.encoding))))
+                self.handle=self.handle_scope.enter_context(lease)
                 if os.fstat(self.handle.fileno()).st_size!=row['inputWidth']*row['outputWidth']*self.encoding['bytes']:
                     raise ValueError('Public coefficient file geometry changed')
                 self.active_name=row['name']

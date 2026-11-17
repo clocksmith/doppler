@@ -7,6 +7,7 @@ import struct
 from protocol import digest
 
 CONTRACT='doppler.client-compiled-public-tile-stream/v1'
+REBUILD_CONTRACT='doppler.provider-verified-public-checkpoint/v1'
 MAGIC=b'DPCT\x01'
 
 

@@ -129,7 +129,7 @@ class PreparedFlashGraph:
                     or context.model_id!=self.identity or context.key_id!=bridge.key_id
                     or context.request_id!=bridge.session or secret is None or parameters is None):
                 raise ValueError('Exact Flash graph, coefficients and attempt context required')
-            if getattr(bridge,'streams_public_coefficients',False):
+            if getattr(bridge,'streams_public_coefficients',False) or getattr(bridge,'rebuilds_public_coefficients',False):
                 import json
                 if (not callable(getattr(parameters,'serialize',None))
                         or canonical(json.loads(parameters.serialize()))!=canonical(definition['parameters']['parameters'])):

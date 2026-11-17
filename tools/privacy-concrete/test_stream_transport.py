@@ -4,7 +4,7 @@ import threading
 
 
 class PipeProvider:
-    def __init__(self,plan,directory):
+    def __init__(self,plan,directory,*,checkpoint_source=None):
         from full_provider import evaluate_route
         incoming,writer=os.pipe();reader,outgoing=os.pipe()
         self.stdin=os.fdopen(writer,'wb',buffering=0);self.stdout=os.fdopen(reader,'rb',buffering=0)
@@ -12,7 +12,7 @@ class PipeProvider:
         def serve():
             try:
                 with os.fdopen(incoming,'rb',buffering=0) as source,os.fdopen(outgoing,'wb',buffering=0) as target:
-                    evaluate_route(plan,directory,source,target)
+                    evaluate_route(plan,directory,source,target,checkpoint_source=checkpoint_source)
             except BaseException as error:self.error=error
         self.thread=threading.Thread(target=serve,daemon=True);self.thread.start()
 

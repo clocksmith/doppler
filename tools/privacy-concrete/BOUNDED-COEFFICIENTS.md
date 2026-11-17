@@ -133,3 +133,54 @@ execution, separate-machine qualification, measured resource limits, the exact
 generation integration and independent cryptographic/leakage review remain open.
 The prior small-Qwen receipt is unchanged. Neither this profile nor its storage
 proof is a production cryptographic capability advertisement.
+
+## Already-present checkpoint reconstruction
+
+`flash-text-all-linear-ntt12-rebuild-check` is a separate explicit profile for an
+evaluator that already holds the pinned public checkpoint. It sends **zero public
+coefficient bytes per step**. It never switches to streaming, downloads missing
+source, or accepts a serialized "verified" flag when the checkpoint is absent.
+The client still compiles its own complete byte binding and supplies the actual
+matrix to the existing checked bridge; client-side work and integrity limitations
+are unchanged.
+
+The provider first verifies the installed linear source subset: 100 whole shards,
+869 tensors and 260,799,695,848 whole-shard bytes, including complete shard hashes
+and pinned auxiliary/index files. The client still needs its complete model and
+local tables. The provider source subset is a linear-operator role, not evidence
+of complete Flash output. Source identity, public tensor/expert/row bindings,
+precision, storage contract and budget are bound to the immutable plan.
+
+The evaluator quantizes one projection in bounded output-channel chunks, atomically
+publishes it in an owned temporary directory and compares the whole coefficient
+hash against client preparation. Every tile is independently hash/range checked
+before ciphertext parsing. The active projection is reused across its tiles (and
+successive steps when the projection is unchanged), then evicted on projection
+change, finish or failure. Its cache budget is 2 GiB; the largest installed matrix
+is 1,271,398,400 bytes. Scratch space must be outside the immutable raw source tree.
+Cancellation, closed/changed source, insufficient space or hash mismatch terminally
+reject and remove only owned cache files. Shared raw weights remain untouched.
+
+Use `flash_text_rebuild_plan.write_plan` and pass its actual binding to
+`CheckedBridge(..., backend_profile=REBUILD_PROFILE, prepared_public_tiles=binding,
+provider_source_directory=existing_source_directory, ...)` for a local evaluator.
+For an explicit remote evaluator use `SSHRoute.for_compiled_checkpoint`; its
+endpoint additionally binds `remotePublicSource`, and its separate
+`doppler.encrypted-ssh-rebuild-check-route/v1` schema cannot expand an existing
+stream/replay route. The provider CLI requires `--public-source-dir` only for this
+profile. No source transfer or provisioning is implicit.
+
+Whole-source appraisal happens before provider readiness and native key parsing.
+The plan explicitly allows 7,200 seconds for public-source bootstrap; per-operation
+deadlines remain unchanged. On Jupiter, the pinned revision view and coordinated
+exclusive CPU/IO window are mandatory operational prerequisites. Starting this
+mode during another owner's timing run is not authorized by installing the code.
+This worker performs no physical checkpoint read as part of these changes.
+
+This trades network transfer for source residency and local hashing/quantization/
+disk work. A complete sequential 250 GB working set will not obtain useful
+cross-step LRU hits from a 2 GiB cache; a fixed 20 GiB cache alone could save at
+most 20 GiB on each later pass. Reconstruction avoids transfer because the public
+source is already present, while repeated full-model projection preparation still
+costs CPU and IO. It is unavailable on hosts without that source and establishes
+no full-model latency, accuracy or cryptographic-security guarantee.
