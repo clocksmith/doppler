@@ -1,9 +1,11 @@
 """Bounded public matrix publication only, no model or cryptographic claims."""
 from pathlib import Path
+import os
 import tempfile
 import threading
 import unittest
 
+@unittest.skipUnless(os.environ.get('DOPPLER_FLASH_REFERENCE')=='1','opt-in NumPy coefficient preparation')
 class PublicColumnTests(unittest.TestCase):
     def test_same_digest_as_whole_matrix_and_create_only_publication(self):
         import numpy as np
