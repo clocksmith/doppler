@@ -585,6 +585,23 @@ totals are not a controlled model-speedup result. Neither experiment executed
 the actual Flash checkpoint. The fused candidate remains a separate build and
 must pass its own gate; production admission stays closed.
 
+The subsequent fused build `6d0b37504` passed native CI
+[44067892517](https://github.com/clocksmith/doppler/actions/runs/44067892517),
+including all 24 original/serial/unfused-parallel/fused/replay serialized
+comparisons, tamper/cancellation checks and 60 separate-process feedback calls.
+The retained `native-packing-fused-*.json` records expose the complete scope. In
+the same-run 35-bit cases the median serial/fused ratio was 3.36 and the median
+unfused-parallel/fused ratio was 1.33. Five-row 2048-by-640 measured 4,335.09,
+1,745.11 and 1,331.26 ms respectively. The all-shape probe took 66.50 seconds
+and stayed below the eight-GiB cap with a 4,558,839,808-byte cgroup peak.
+
+Its new weighted synthetic evaluator projection is 358,867.73 seconds, or
+**4.15 days for the complete four-output request**. The same exclusions and
+cross-run hardware limitations apply. This is still a substantial compute
+obstacle, with no actual full-Flash generation or combined-model memory result.
+No existing provider or installed host build was changed. The model pin, tile
+width, expert route, noise bound and production admission remain unchanged.
+
 Append `--readiness-only` to the resource-gated runner above for the next bounded
 physical memory gate. This mutually exclusive alternative to `--prepare-only`
 authenticates the complete model, compiles and verifies every coefficient against

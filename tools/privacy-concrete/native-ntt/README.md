@@ -63,6 +63,20 @@ unchanged artifacts and explicit scope are retained in
 `../evidence/storage/native-packing-parallel-{arithmetic,process,context}.json`.
 The fused candidate is separate and is not qualified by this earlier result.
 
+The fused `0.1.9+ntt.3` build at `6d0b37504` subsequently passed CI
+[44067892517](https://github.com/clocksmith/doppler/actions/runs/44067892517):
+all 24 original/serial/unfused-parallel/fused/replay serialized comparisons,
+native tamper/cancellation checks, and 60 separate-process encrypted feedback
+calls. The 16 same-key 35-bit cases measured a median 3.36 serial/fused time
+ratio and 1.33 unfused-parallel/fused ratio. Five-row 2048-by-640 measured
+4,335.09 ms serial, 1,745.11 ms unfused-parallel and 1,331.26 ms fused. These
+remain individual synthetic observations with no confidence interval. The
+separate-process probe took 66.50 seconds with a 4,558,839,808-byte cgroup peak
+under the hard eight-GiB cap. Unchanged artifacts and provenance are retained in
+`../evidence/storage/native-packing-fused-{arithmetic,process,context}.json`.
+This validates the observed arithmetic/resource component scope, not actual
+Flash output, full-model memory, practical outsourced integrity or production.
+
 The [retained native run](../evidence/native-ntt/context.json) at revision
 `04ed459671632b23bcf0bee1cb8e555f6282feed` passed eight complete serialized-result
 comparisons against the original arithmetic and a second fast replay, covering
