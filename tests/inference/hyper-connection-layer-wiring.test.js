@@ -54,7 +54,7 @@ try {
   };
   const context = { config, hyperConnectionSession: session, activationDtype: 'f32', weights: new Map([['layer_0', weights], ['layer_1', { ...weights, ple: {} }], ['layer_3', weights]]),
     phase: 'prefill', currentSeqLen: 3000, currentTokenIds: [7], kvCache: {},
-    kernelPath: { id: 'wiring' }, ropeFreqsCos: buffer('cos'), ropeFreqsSin: buffer('sin'),
+    kernelPath: { id: 'wiring', decode: { steps: [] } }, ropeFreqsCos: buffer('cos'), ropeFreqsSin: buffer('sin'),
     resolvedRuntimeSession: { runtime: { session: {} } }, weightConfig: {} };
   await processHyperConnectionLayer(3, buffer('existing streams'), 1, true, context);
   assert.deepEqual(events, ['indexer', 'attention', 'release selection', 'moe']);

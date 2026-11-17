@@ -35,6 +35,9 @@ export interface KernelStepSchema {
    */
   entry?: string;
 
+  /** Optional compiled source/entry content identity, in sha256:<hex> form. */
+  digest?: string;
+
   /**
    * Override constants for pipeline creation.
    * These are compile-time constants that affect code generation.

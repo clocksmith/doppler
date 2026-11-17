@@ -132,7 +132,7 @@ async function executeActivation(target, input, options) {
  * @param {import('../tensor.js').Tensor} normed
  * @param {import('./hyper-connection.js').HyperConnectionStreamOptions} options
  */
-async function executeBranch(target, mix, normed, options) {
+async function executeBranch(target, mix, normed, options, operation = 'hyper_connection_branch') {
   const { numTokens, streamCount, streamWidth, outputBuffer = null } = options;
   validateHyperConnectionGeometry({ numTokens, streamCount, streamWidth });
   assertF32Tensor(mix, [numTokens, streamCount * streamWidth], 'branch mix');
@@ -141,7 +141,7 @@ async function executeBranch(target, mix, normed, options) {
   assertOutputBuffer(outputBuffer, size * 4, [mix, normed]);
   const { columns: stride, grid } = dispatchGrid(target, size, WORKGROUP_SIZE);
   return withKernelOutput(target, outputBuffer, size * 4, 'hyper_connection_branch_output', async (output) => {
-    await unifiedKernelWrapper('hyper_connection_branch', target, 'f32', [mix, normed, output],
+    await unifiedKernelWrapper(operation, target, 'f32', [mix, normed, output],
       { size, dispatch_stride: stride * WORKGROUP_SIZE, _pad0: 0, _pad1: 0 }, grid,
       { WORKGROUP_SIZE, STREAM_COUNT: streamCount, STREAM_WIDTH: streamWidth });
     return createTensor(output, 'f32', [numTokens, streamWidth], 'hyper_connection_branch_output');
@@ -238,4 +238,14 @@ export function runHyperConnectionInject(streams, branch, gate, options) {
 /** @type {typeof import('./hyper-connection.js').recordHyperConnectionInject} */
 export function recordHyperConnectionInject(recorder, streams, branch, gate, options) {
   return executeInject(recorder, streams, branch, gate, options);
+}
+
+/** @type {typeof import('./hyper-connection.js').runHyperConnectionMixBranch} */
+export function runHyperConnectionMixBranch(logits, normed, options) {
+  return executeBranch(null, logits, normed, options, 'hyper_connection_mix_branch');
+}
+
+/** @type {typeof import('./hyper-connection.js').recordHyperConnectionMixBranch} */
+export function recordHyperConnectionMixBranch(recorder, logits, normed, options) {
+  return executeBranch(recorder, logits, normed, options, 'hyper_connection_mix_branch');
 }

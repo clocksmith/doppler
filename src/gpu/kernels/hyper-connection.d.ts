@@ -61,3 +61,9 @@ export declare function runHyperConnectionReplicate(embeds: Tensor, options: Hyp
 export declare function recordHyperConnectionReplicate(
   recorder: CommandRecorder, embeds: Tensor, options: HyperConnectionStreamOptions
 ): Promise<Tensor>;
+
+/** Fused refined sigmoid(logits) and stream-ordered branch reduction; same F32 materialization boundaries. */
+export declare function runHyperConnectionMixBranch(logits: Tensor, normed: Tensor, options: HyperConnectionStreamOptions): Promise<Tensor>;
+export declare function recordHyperConnectionMixBranch(
+  recorder: CommandRecorder, logits: Tensor, normed: Tensor, options: HyperConnectionStreamOptions
+): Promise<Tensor>;

@@ -1,7 +1,7 @@
 import { createTensor } from '../../../../gpu/tensor.js';
 import { isGpuBufferInstance } from '../../../../gpu/weight-buffer.js';
 import { runRootMixer } from './decoder-layer.js';
-import { createHyperConnectionProjection } from './projection.js';
+import { createHyperConnectionProjection, resolveHyperConnectionMixBranch } from './projection.js';
 
 /** @type {typeof import('./logits-input.js').mixHyperConnectionLogitsInput} */
 export async function mixHyperConnectionLogitsInput(recorder, hidden, numTokens, weights, config) {
@@ -17,5 +17,6 @@ export async function mixHyperConnectionLogitsInput(recorder, hidden, numTokens,
   const project = createHyperConnectionProjection({ recorder, kernelPath: config.kernelPath,
     phase: config.executionPhase, layerIdx: 0 });
   return runRootMixer(recorder, { streams: createTensor(hidden, 'f32', [numTokens, width], 'hc_logits_input'),
-    weights: mixer, hyper, numTokens, project });
+    weights: mixer, hyper, numTokens, project, layerIdx: 0,
+    mixBranch: resolveHyperConnectionMixBranch({ kernelPath: config.kernelPath, phase: config.executionPhase, layerIdx: 0 }) });
 }

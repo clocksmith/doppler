@@ -8,3 +8,10 @@ export declare function createHyperConnectionProjection(options: {
   phase: 'prefill' | 'decode' | null | undefined;
   layerIdx: number;
 }): HyperConnectionProjection;
+
+/** Explicit hc_mix_branch declaration; absent leaves the separate operators active. */
+export declare function resolveHyperConnectionMixBranch(options: {
+  kernelPath: KernelPathSchema | null | undefined;
+  phase: 'prefill' | 'decode' | null | undefined;
+  layerIdx: number;
+}): boolean;

@@ -28,6 +28,10 @@ export interface GatedResidualInput {
   hyper: RuntimeHyperConnections;
   numTokens: number;
   project: HyperConnectionProjection;
+  /** Resolved explicit hc_mix_branch declaration. */
+  mixBranch?: boolean;
+  /** Required for prepared single-token output reuse; root mixer uses layer 0. */
+  layerIdx?: number;
   role: string;
 }
 
@@ -50,6 +54,10 @@ export interface HyperConnectionDecoderLayerInput {
   /** MoE on the branch input [numTokens, streamWidth]. */
   mlpBranch: (branchInput: Tensor) => Promise<Tensor>;
   project: HyperConnectionProjection;
+  /** Resolved explicit hc_mix_branch declaration. */
+  mixBranch?: boolean;
+  /** Required for prepared single-token output reuse; root mixer uses layer 0. */
+  layerIdx?: number;
 }
 
 export declare function replicateEmbeddings(
