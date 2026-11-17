@@ -6,6 +6,10 @@
 /** @type {import('./verified-piece-gather.js').createVerifiedPieceGather} */
 export async function createVerifiedPieceGatherLane(options) {
   const { maxPartBytes, memoryBudgetBytes, indexIdentity } = options;
+  const maxRanges = options.maxRanges === undefined ? 3 : options.maxRanges;
+  if (!Number.isSafeInteger(maxRanges) || maxRanges < 1 || maxRanges > 32) {
+    throw new Error('Gather maxRanges must be a positive safe integer no greater than 32.');
+  }
   const manifestBytes = new Uint8Array(options.manifestBytes);
   const indexBytes = new Uint8Array(options.indexBytes);
   const files = { ...options.files };
@@ -22,7 +26,7 @@ export async function createVerifiedPieceGatherLane(options) {
   // Metadata is copied by workerData; authentication completes before admission.
   const { Worker } = await import('node:worker_threads');
   const worker = new Worker(new URL('./verified-piece-gather-worker.js', import.meta.url), {
-    workerData: { files, maxPartBytes, fileIdentities: options.fileIdentities, metadata: { manifestBytes, indexBytes, indexIdentity } },
+    workerData: { files, maxPartBytes, maxRanges, fileIdentities: options.fileIdentities, metadata: { manifestBytes, indexBytes, indexIdentity } },
   });
   /** A transferred/detached output is still worker-owned; only clear attached
    * buffers that have actually returned to this lane. @param {unknown} candidate */
@@ -87,8 +91,8 @@ export async function createVerifiedPieceGatherLane(options) {
       signal?.throwIfAborted();
       if (closed) throw new Error('Gather reader closed.');
       if (busy) throw new Error('Release the current gather lease before another read.');
-      if (!Array.isArray(ranges) || ranges.length < 1 || ranges.length > 3) {
-        throw new Error('Gather batch requires one to three ranges.');
+      if (!Array.isArray(ranges) || ranges.length < 1 || ranges.length > maxRanges) {
+        throw new Error('Gather batch exceeds its admitted ranges bound.');
       }
       const selected = ranges.map(range => ({ path: range.path, offset: range.offset, length: range.length }));
       const length = selected.reduce((sum, range) => sum + range.length, 0);
@@ -163,7 +167,7 @@ export async function createVerifiedPieceGatherLane(options) {
   };
   const manifest = JSON.parse(new TextDecoder().decode(manifestBytes));
 /** @type {import('./verified-piece-gather.js').VerifiedRangeLeasePort} */
-  const rangeLease = { maxPartBytes, memoryBytes: maxPartBytes + 2 * pieceBytes,
+  const rangeLease = { maxPartBytes, maxRanges, memoryBytes: maxPartBytes + 2 * pieceBytes,
     read: (shard, offset, length, signal) => {
       const file = manifest.shards[shard];
       if (!file) return Promise.reject(new Error('Undeclared gather shard.'));

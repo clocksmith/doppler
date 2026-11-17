@@ -101,6 +101,7 @@ export const DEFAULT_EXPERT_CACHE_CONFIG = {
     compactPrefillReuse: 'none',
     prefillCompactAdmission: 'none',
     sourceReadMode: 'plane-serial',
+    expertBatchSize: 1,
     prefillUploadMode: 'expert-copy',
     evictionPolicy: 'lru',
     cacheBytes: 2 * GB,
@@ -166,6 +167,12 @@ export function validateQwen35RoutedConfig(config) {
     || (config.sourceReadMode !== 'plane-serial'
       && (!compact || config.hostCacheBytes !== 0))) {
     throw new Error('sourceReadMode requires plane-serial, expert-parallel, lease-parallel or expert-lease-batch; parallel modes require compact decode and no host cache.');
+  }
+  const expertBatchSize = config.expertBatchSize === undefined
+    ? DEFAULT_EXPERT_CACHE_CONFIG.qwen35Routed.expertBatchSize : config.expertBatchSize;
+  if (!Number.isSafeInteger(expertBatchSize) || expertBatchSize < 1 || expertBatchSize > 32
+    || (expertBatchSize > 1 && (!compact || config.sourceReadMode !== 'expert-lease-batch'))) {
+    throw new Error('expertBatchSize requires 1..32 and batched compact source leases for multiple experts.');
   }
   if (!['expert-copy', 'direct-bank'].includes(config.prefillUploadMode)
     || (config.prefillUploadMode === 'direct-bank'

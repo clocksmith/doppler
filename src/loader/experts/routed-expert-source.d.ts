@@ -11,6 +11,9 @@ export declare function assertExpertReadShape(options: RoutedExpertCacheOptions,
 export declare function readRoutedExpertLease(options: RoutedExpertCacheOptions, stats: RoutedExpertCounters,
   plan: RoutedExpertBankPlan, expert: number, signal: AbortSignal,
   layerStats: import('./routed-expert-cache.js').CompactLayerStats | null): Promise<import('../../storage/verified-piece-gather.js').VerifiedRangeLease>;
+export declare function readRoutedExpertsLease(options: RoutedExpertCacheOptions, stats: RoutedExpertCounters,
+  plan: RoutedExpertBankPlan, experts: number[], signal: AbortSignal,
+  layerStats: import('./routed-expert-cache.js').CompactLayerStats | null): Promise<import('../../storage/verified-piece-gather.js').VerifiedRangeLease>;
 export declare function readRoutedExpertPayload(options: RoutedExpertCacheOptions, stats: RoutedExpertCounters,
   plan: RoutedExpertBankPlan, expert: number, signal: AbortSignal, destination: Uint8Array,
   layerStats: import('./routed-expert-cache.js').CompactLayerStats | null): Promise<Uint8Array>;

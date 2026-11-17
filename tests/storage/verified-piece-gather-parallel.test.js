@@ -6,6 +6,7 @@ import fs from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { createVerifiedPieceGather } from '../../src/storage/verified-piece-gather.js';
+import { createVerifiedPieceGatherLane } from '../../src/storage/verified-piece-gather-lane.js';
 
 const threads = createRequire(import.meta.url)('node:worker_threads'), OriginalWorker = threads.Worker;
 const workerURL = new URL('../../src/storage/verified-piece-gather-worker.js', import.meta.url);
@@ -115,7 +116,8 @@ async function fixture(maxPieceBytes = 8, wide = false) {
 }
 async function direct(f) {
   const worker = new OriginalWorker(workerURL, { execArgv: ['--import', preload.href], workerData: {
-    files: f.files, fileIdentities: f.identities, maxPartBytes: 12, ioControls: f.state.buffer,
+    files: f.files, fileIdentities: f.identities, maxPartBytes: f.options.maxPartBytes,
+    maxRanges: f.options.maxRanges, ioControls: f.state.buffer,
     metadata: { manifestBytes: f.options.manifestBytes, indexBytes: f.options.indexBytes, indexIdentity: f.options.indexIdentity },
   } });
   const messages = [], publications = []; let failure;
@@ -127,7 +129,7 @@ async function direct(f) {
   };
   await take(message => message.ready); f.state[I.enabled] = 1;
   return { worker, publications, take,
-    send(ranges = f.ranges, buffer = new ArrayBuffer(12)) {
+    send(ranges = f.ranges, buffer = new ArrayBuffer(f.options.maxPartBytes)) {
       worker.postMessage({ ranges, length: ranges.reduce((n, range) => n + range.length, 0), buffer, batch: true }, [buffer]);
     },
     async receipt() { worker.postMessage({ receipt: true }); return (await take(message => message.receipt && !message.closed)).receipt; },
@@ -269,6 +271,90 @@ test('partial batches revalidate earlier file bindings after the last hash befor
       await h.cleanup();
     }
   }
+});
+
+async function multiExpertFixture() {
+  const f = await fixture();
+  f.options = { ...f.options, maxRanges: 9, maxPartBytes: 36, memoryBudgetBytes: 52 };
+  f.ranges = [0, 1, 0, 2, 1, 2, 0, 0, 2].map(index => ({ path: f.names[index], offset: 0, length: 4 }));
+  return f;
+}
+
+test('larger batches require an explicit bounded maxRanges before any worker admission', { timeout: 5000 }, async () => {
+  const f = await fixture(); let started = 0;
+  threads.Worker = class extends OriginalWorker { constructor(...args) { started++; super(...args); } };
+  syncBuiltinESMExports();
+  try {
+    for (const maxRanges of [0, -1, 1.5, 33, Infinity, NaN, Number.MAX_SAFE_INTEGER + 1, '9', null, true]) {
+      for (const create of [createVerifiedPieceGather, createVerifiedPieceGatherLane]) {
+        await assert.rejects(create({ ...f.options, maxRanges }), /maxRanges/);
+      }
+    }
+    assert.equal(started, 0);
+    const reader = await createVerifiedPieceGather(f.options);
+    try {
+      assert.equal(reader.rangeLease.maxRanges, 3);
+      await assert.rejects(reader.rangeLease.readMany(Array(4).fill({ shard: 0, offset: 0, length: 1 }),
+        new AbortController().signal), /ranges bound/);
+    } finally { await reader.close(); }
+  } finally {
+    threads.Worker = OriginalWorker; syncBuiltinESMExports();
+    await fs.rm(f.root, { recursive: true, force: true });
+  }
+});
+
+test('nine-range batches retain output and full-piece SHA bounds across repeated and distinct files', { timeout: 5000 }, async () => {
+  const f = await multiExpertFixture(), h = await publicHarness(f), S = f.state;
+  try {
+    assert.equal(h.gather.rangeLease.maxRanges, 9); assert.equal(h.gather.rangeLease.memoryBytes, 52);
+    assert.equal(h.gather.rangeLease.batchFileIdentityChecks, 'before-read-after-auth/v1');
+    Atomics.store(S, I.releaseReads, 1);
+    const ranges = f.ranges.map(range => ({ shard: f.names.indexOf(range.path), offset: range.offset, length: range.length }));
+    const lease = await h.gather.rangeLease.readMany(ranges, new AbortController().signal);
+    assert.deepEqual([...lease.bytes], ranges.flatMap(range => [...f.payloads[range.shard]]));
+    assert.equal(S[I.reads], 9); assert.equal(S[I.syncHashes], 9); assert.equal(S[I.hashes], 0);
+    assert.equal(S[I.lstats], 6, 'One pair of identity guards for each of three files');
+    lease.release();
+    const receipt = await h.gather.getReceipt();
+    assert.equal(receipt.batchRanges, 9); assert.equal(receipt.directPieceReads, 9);
+    assert.equal(receipt.peakDigestCopyBytes, 0, 'Outputs exceeding two pieces retain synchronous SHA');
+    for (const invalid of [Array(10).fill(ranges[0]), ranges.map(range => ({ ...range, length: 5 })),
+      [{ ...ranges[0], length: 37 }]]) {
+      await assert.rejects(h.gather.rangeLease.readMany(invalid, new AbortController().signal), /bound/);
+    }
+    const partial = ranges.map(range => ({ ...range, offset: 1, length: 2 }));
+    const partialLease = await h.gather.rangeLease.readMany(partial, new AbortController().signal);
+    assert.deepEqual([...partialLease.bytes], partial.flatMap(range => [...f.payloads[range.shard].subarray(1, 3)]));
+    partialLease.release();
+    const corrupt = f.payloads[0].slice(); corrupt[0] ^= 255;
+    await fs.writeFile(f.files[f.names[0]], corrupt);
+    await assert.rejects(h.gather.rangeLease.readMany(partial, new AbortController().signal), /integrity/);
+    assert(new Uint8Array(h.outputs.at(-1).buffer).every(byte => byte === 0));
+    await fs.writeFile(f.files[f.names[0]], f.payloads[0]);
+    const recovered = await h.gather.rangeLease.readMany(partial, new AbortController().signal); recovered.release();
+  } finally { await h.cleanup(); }
+});
+
+test('cancelled nine-range jobs drain every sibling native read before recycling or recovery', { timeout: 5000 }, async () => {
+  const f = await multiExpertFixture(), h = await publicHarness(f), S = f.state;
+  try {
+    Atomics.store(S, I.releaseHashes, 1);
+    const controller = new AbortController();
+    let settled = false;
+    const pending = h.gather.rangeLease.readMany(f.ranges.map(range => ({ shard: f.names.indexOf(range.path),
+      offset: range.offset, length: range.length })), controller.signal);
+    const rejected = assert.rejects(pending, /cancel nine/).finally(() => { settled = true; });
+    await until(() => S[I.reads] === 9); controller.abort(new Error('cancel nine'));
+    for (let index = 0; index < 8; index++) Atomics.store(S, I.readGate + index, 1);
+    await until(() => S[I.readDone] === 8);
+    assert.equal(settled, false); assert.equal(h.outputs.length, 0);
+    assert.equal(S[I.activeReads], 1);
+    Atomics.store(S, I.releaseReads, 1); await rejected;
+    assert.equal(S[I.activeReads], 0); assert.equal(S[I.syncHashes], 9);
+    assert(new Uint8Array(h.outputs.at(-1).buffer).every(byte => byte === 0));
+    const recovered = await h.gather.rangeLease.readMany([{ shard: 1, offset: 0, length: 4 }], new AbortController().signal);
+    assert.deepEqual([...recovered.bytes], [...f.payloads[1]]); recovered.release();
+  } finally { await h.cleanup(); }
 });
 
 test('three direct reads and bounded digests overlap, publishing one ordered authenticated output', { timeout: 5000 }, async () => {

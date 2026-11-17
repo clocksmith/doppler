@@ -192,6 +192,8 @@ export interface Qwen35RoutedConfig {
   prefillCompactAdmission: 'none' | 'selected-frequency-first';
   /** Generic expert-parallel uses scratch; lease-parallel schedules planes;
    * expert-lease-batch requires one bounded owned batch for all expert planes. */
+  /** Maximum experts per owned acquisition; legacy omission retains one. */
+  expertBatchSize?: number;
   sourceReadMode: 'plane-serial' | 'expert-parallel' | 'lease-parallel' | 'expert-lease-batch';
   /** Write authenticated source ranges to their logical working-bank offsets without temporary expert buffers. */
   prefillUploadMode: 'expert-copy' | 'direct-bank';
@@ -221,7 +223,9 @@ export interface Qwen35PagerConfig {
 export declare function validateQwen35PagerConfig(config: unknown): Qwen35PagerConfig;
 
 /** Default expert cache configuration */
-export declare const DEFAULT_EXPERT_CACHE_CONFIG: ExpertCacheConfigSchema;
+export declare const DEFAULT_EXPERT_CACHE_CONFIG: ExpertCacheConfigSchema & {
+  qwen35Routed: Qwen35RoutedConfig & { expertBatchSize: number };
+};
 
 export interface ExpertPreparationConfigSchema {
   /** On-demand preserves deferred loading; eager-resident prepares supported packed banks before readiness. */

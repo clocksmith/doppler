@@ -10,6 +10,8 @@ export interface VerifiedPieceGatherOptions {
    * retain this device/inode/size; complete-piece authentication still applies. */
   fileIdentities?: Record<string, { device: string; inode: string; size: string }>;
   maxPartBytes: number;
+  /** Explicit range-count bound per output, 1..32; omission preserves three. */
+  maxRanges?: number;
   /** Explicit worker count; omission preserves one lane. */
   concurrency?: number;
   /** Cancels asynchronous worker admission; does not replace read signals or close ownership. */
@@ -44,7 +46,7 @@ export function createVerifiedPieceGather(options: VerifiedPieceGatherOptions): 
   /** At most concurrency in-flight reads or outstanding leases. Cancellation is checked before
    * publishing; close rejects pending reads immediately and waits for settled worker ownership. */
   readLease(path: string, offset: number, length: number, signal?: AbortSignal): Promise<VerifiedRangeLease>;
-  /** One concatenated owned output; one to three positive ranges share maxPartBytes. */
+  /** One concatenated owned output; positive ranges share maxPartBytes and the explicit maxRanges bound. */
   readManyLease(ranges: ReadonlyArray<{ path: string; offset: number; length: number }>, signal?: AbortSignal): Promise<VerifiedRangeLease>;
   /** Snapshot of worker verification evidence; requires no outstanding lease. */
   getReceipt(): Promise<VerifiedPieceGatherReceipt>;
@@ -63,6 +65,8 @@ export interface VerifiedRangeLeasePort {
   /** Omission denotes a legacy single-lane port. */
   concurrency?: number;
   maxPartBytes: number;
+  /** Omission denotes the legacy three-range batch bound. */
+  maxRanges?: number;
   memoryBytes: number;
   read(shard: number, offset: number, length: number, signal: AbortSignal): Promise<VerifiedRangeLease>;
   /** Optional batch capability. One output contains ranges in caller order, without padding. */

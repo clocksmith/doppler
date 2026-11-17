@@ -5,7 +5,12 @@ export async function createVerifiedPieceGather(options) {
   options.startupSignal?.throwIfAborted();
   // Omission preserves the original single-lane contract, not automatic tuning.
   const concurrency = options.concurrency ?? 1;
+  const maxRanges = options.maxRanges === undefined ? 3 : options.maxRanges;
+  if (!Number.isSafeInteger(maxRanges) || maxRanges < 1 || maxRanges > 32) {
+    throw new Error('Gather maxRanges must be a positive safe integer no greater than 32.');
+  }
   const pinned = { ...options, manifestBytes: new Uint8Array(options.manifestBytes),
+    maxRanges,
     indexBytes: new Uint8Array(options.indexBytes), files: { ...options.files },
     ...(options.fileIdentities ? { fileIdentities: structuredClone(options.fileIdentities) } : {}) };
   if (pinned.fileIdentities !== undefined && (!pinned.fileIdentities || typeof pinned.fileIdentities !== 'object'
@@ -107,7 +112,7 @@ export async function createVerifiedPieceGather(options) {
   };
   const manifest = JSON.parse(new TextDecoder().decode(pinned.manifestBytes));
   /** @type {import('./verified-piece-gather.js').VerifiedRangeLeasePort} */
-  const rangeLease = { concurrency, maxPartBytes: pinned.maxPartBytes, memoryBytes,
+  const rangeLease = { concurrency, maxRanges, maxPartBytes: pinned.maxPartBytes, memoryBytes,
     fileIdentitiesBound: pinned.fileIdentities !== undefined,
     ...(pinned.fileIdentities !== undefined ? { batchFileIdentityChecks: /** @type {const} */ ('before-read-after-auth/v1') } : {}),
     read(shard, offset, length, signal) {
@@ -116,7 +121,7 @@ export async function createVerifiedPieceGather(options) {
       return result.readLease(file.filename, offset, length, signal);
     },
     readMany(ranges, signal) {
-      if (!Array.isArray(ranges) || ranges.length < 1 || ranges.length > 3) return Promise.reject(new Error('Gather batch requires one to three ranges.'));
+      if (!Array.isArray(ranges) || ranges.length < 1 || ranges.length > maxRanges) return Promise.reject(new Error('Gather batch exceeds its admitted ranges bound.'));
       const selected = [];
       for (const range of ranges) {
         const file = Number.isSafeInteger(range?.shard) && range.shard >= 0 ? manifest.shards[range.shard] : null;

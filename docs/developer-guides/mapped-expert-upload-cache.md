@@ -142,3 +142,27 @@ and unmap. Close waits pending maps; mapping, cancellation or disposal failures
 cannot silently publish or release ownership. Statistics expose allocation,
 reuse, pending-map, admission-skip and bounded ghost/protected counts. Hot cache
 lookup, replacement ordering and statistics avoid scanning pinned model banks.
+
+## Bounded groups of selected experts
+
+`qwen35Routed.expertBatchSize` declares a maximum number of selected misses per
+owned acquisition (default and legacy omission: one). Multiple experts require
+`sourceReadMode: "expert-lease-batch"` and a worker port that explicitly admits
+all their ranges. The effective group also fits `maxPartBytes`; larger packed
+experts can therefore form smaller groups. Cache hits do not trigger reads.
+
+Node gather's optional `maxRanges` defaults to three and accepts explicit
+integers from 1 through 32. Every range still authenticates each intersecting
+complete piece, and all reads/digests settle before output publication or
+failure zeroing. One concatenated expert-major output remains owned until every
+expert/plane upload and optional mapped-cache fill has copied its bytes. Abort
+or partial upload failure releases that lease once and leaves slots unpublished.
+
+For example, four workers with an 8 MiB output and a two-piece allowance of
+4 MiB each reserve 48 MiB from the existing 64 MiB staging ceiling. An explicit
+nine-range port can acquire three three-plane experts when their total fits
+8 MiB; larger experts form two-expert groups. The worker's existing digest-copy
+admission still applies: batches exceeding its two-piece copy allowance use
+synchronous whole-piece SHA in that worker instead of allocating extra copies.
+This changes orchestration only; packed representations and inference arithmetic
+remain unchanged. Complete-request qualification is required for speed claims.

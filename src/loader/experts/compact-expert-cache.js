@@ -1,7 +1,7 @@
-import { validateQwen35RoutedConfig } from "../../config/schema/runtime/loading.schema.js";
+import { DEFAULT_EXPERT_CACHE_CONFIG, validateQwen35RoutedConfig } from "../../config/schema/runtime/loading.schema.js";
 import { createWeightBuffer } from '../../gpu/weight-buffer.js';
 import { isDeviceLost } from '../../memory/device-residency.js';
-import { readRoutedExpertRange, readRoutedExpertPayload, readRoutedExpertLease, assertExpertReadShape } from './routed-expert-source.js';
+import { readRoutedExpertRange, readRoutedExpertPayload, readRoutedExpertsLease, assertExpertReadShape } from './routed-expert-source.js';
 
 /** @type {typeof import('./compact-expert-cache.js').compactExpertCapacity} */
 export function compactExpertCapacity(plan, options) {
@@ -49,6 +49,7 @@ export class CompactExpertCache {
       throw new Error('Owned expert ranges must fit the aggregate staging budget with fallback scratch.');
     }
     this.#staging = lease?.memoryBytes ?? 0;
+    this.#stats.peakStagingBytes = Math.max(this.#stats.peakStagingBytes, this.#staging);
   }
 
   #chunkBytes() {
@@ -117,34 +118,10 @@ export class CompactExpertCache {
    * @param {{ bytes: Uint8Array | null }} reader
    * @param {import('./routed-expert-plan.js').RoutedExpertPlane | null} selectedPlane */
   async #fill(plan, pool, expert, slot, signal, reader, selectedPlane) {
-    if (this.#copyCached(plan, pool, expert, slot, signal)) return;
     if (this.#options.policy.sourceReadMode === 'expert-lease-batch') {
-      const start = performance.now();
-      const lease = await readRoutedExpertLease(this.#options, this.#stats, plan, expert, signal, pool.stats);
-      try {
-        await this.#options.rememberExpert?.(plan, expert, lease.bytes, signal);
-        if (this.#copyCached(plan, pool, expert, slot, signal)) return;
-        let offset = 0;
-        for (const plane of plan.planes) {
-          signal.throwIfAborted();
-          const buffer = pool.planes.get(plane.role);
-          if (!buffer) throw new Error('Compact expert plane is missing.');
-          const uploadStart = performance.now();
-          this.#options.device.queue.writeBuffer(buffer, slot * plane.expertBytes,
-            lease.bytes.subarray(offset, offset + plane.expertBytes));
-          const elapsed = performance.now() - uploadStart;
-          this.#stats.uploadEnqueueMs += elapsed;
-          pool.stats.uploadEnqueueMs += elapsed;
-          this.#stats.uploadBytes += plane.expertBytes;
-          pool.stats.uploadBytes += plane.expertBytes;
-          offset += plane.expertBytes;
-        }
-      } finally {
-        lease.release();
-        this.#stats.ioWaitMs += performance.now() - start;
-      }
-      return;
+      return this.#fillBatch(plan, pool, [{ expert, slot }], signal);
     }
+    if (this.#copyCached(plan, pool, expert, slot, signal)) return;
     const chunkBytes = this.#chunkBytes();
     if (this.#options.policy.sourceReadMode === 'expert-parallel') {
       if (!reader.bytes) {
@@ -239,6 +216,41 @@ export class CompactExpertCache {
 
   /** @param {import('./routed-expert-plan.js').RoutedExpertBankPlan} plan
    * @param {import('./compact-expert-cache.js').CompactExpertPool} pool
+   * @param {Array<{expert: number, slot: number}>} misses @param {AbortSignal} signal */
+  async #fillBatch(plan, pool, misses, signal) {
+    const pending = misses.filter(({ expert, slot }) => !this.#copyCached(plan, pool, expert, slot, signal));
+    if (!pending.length) return;
+    const started = performance.now();
+    const lease = await readRoutedExpertsLease(this.#options, this.#stats, plan, pending.map(row => row.expert), signal, pool.stats);
+    try {
+      for (const [index, { expert, slot }] of pending.entries()) {
+        const bytes = lease.bytes.subarray(index * plan.expertBytes, (index + 1) * plan.expertBytes);
+        await this.#options.rememberExpert?.(plan, expert, bytes, signal);
+        if (this.#copyCached(plan, pool, expert, slot, signal)) continue;
+        let offset = 0;
+        for (const plane of plan.planes) {
+          signal.throwIfAborted();
+          const buffer = pool.planes.get(plane.role);
+          if (!buffer) throw new Error('Compact expert plane is missing.');
+          const uploadStart = performance.now();
+          this.#options.device.queue.writeBuffer(buffer, slot * plane.expertBytes,
+            bytes.subarray(offset, offset + plane.expertBytes));
+          const elapsed = performance.now() - uploadStart;
+          this.#stats.uploadEnqueueMs += elapsed;
+          pool.stats.uploadEnqueueMs += elapsed;
+          this.#stats.uploadBytes += plane.expertBytes;
+          pool.stats.uploadBytes += plane.expertBytes;
+          offset += plane.expertBytes;
+        }
+      }
+    } finally {
+      lease.release();
+      this.#stats.ioWaitMs += performance.now() - started;
+    }
+  }
+
+  /** @param {import('./routed-expert-plan.js').RoutedExpertBankPlan} plan
+   * @param {import('./compact-expert-cache.js').CompactExpertPool} pool
    * @param {number} expert @param {number} slot @param {AbortSignal} signal */
   #copyCached(plan, pool, expert, slot, signal) {
     if (!this.#options.copyCachedExpert) return false;
@@ -321,14 +333,22 @@ export class CompactExpertCache {
         // the explicit leased mode; slots stay unpublished until every plane settles.
         const parallelPlanes = this.#options.policy.sourceReadMode === 'lease-parallel';
         const tasksPerExpert = parallelPlanes ? plan.planes.length : 1;
-        const taskCount = misses.length * tasksPerExpert;
+        const requestedBatch = this.#options.policy.expertBatchSize ?? DEFAULT_EXPERT_CACHE_CONFIG.qwen35Routed.expertBatchSize;
+        const batchSize = this.#options.policy.sourceReadMode === 'expert-lease-batch'
+          ? Math.min(requestedBatch, Math.floor(Number(this.#options.rangeLease?.maxPartBytes) / plan.expertBytes)) : 1;
+        const taskCount = batchSize > 1 ? Math.ceil(misses.length / batchSize) : misses.length * tasksPerExpert;
         const outcomes = await Promise.allSettled(Array.from({ length: this.#options.rangeLease ? Math.min(this.#options.policy.readConcurrency, this.#options.rangeLease.concurrency ?? 1) : this.#options.policy.readConcurrency }, async (_, index) => {
           const reader = this.#readers[index] ??= { bytes: null };
           while (cursor < taskCount) {
             const task = cursor++;
-            const { expert, slot } = misses[Math.floor(task / tasksPerExpert)];
-            const plane = parallelPlanes ? plan.planes[task % tasksPerExpert] : null;
-            try { await this.#fill(plan, pool, expert, slot, controller.signal, reader, plane); }
+            try {
+              if (batchSize > 1) await this.#fillBatch(plan, pool, misses.slice(task * batchSize, (task + 1) * batchSize), controller.signal);
+              else {
+                const { expert, slot } = misses[Math.floor(task / tasksPerExpert)];
+                const plane = parallelPlanes ? plan.planes[task % tasksPerExpert] : null;
+                await this.#fill(plan, pool, expert, slot, controller.signal, reader, plane);
+              }
+            }
             catch (error) { controller.abort(error); throw error; }
           }
         }));

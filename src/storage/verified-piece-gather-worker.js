@@ -9,6 +9,10 @@ import { createVerifiedPieceReader } from './verified-piece-reader.js';
 const handles = new Map();
 if (!parentPort) throw new Error('Gather requires a worker port.');
 const port = parentPort;
+const maxRanges = workerData.maxRanges === undefined ? 3 : workerData.maxRanges;
+if (!Number.isSafeInteger(maxRanges) || maxRanges < 1 || maxRanges > 32) {
+  throw new Error('Gather maxRanges must be a positive safe integer no greater than 32.');
+}
 let closing = false;
 /** @param {string} path @param {number} handle */
 function assertIdentity(path, handle) {
@@ -179,7 +183,7 @@ async function gather({ ranges, length, buffer, batch }) {
     if (closing) throw new Error('Gather worker closed.');
     if (operations.size) throw new Error('Gather worker already owns a request.');
     if (!(buffer instanceof ArrayBuffer) || buffer.byteLength !== workerData.maxPartBytes
-      || !Array.isArray(ranges) || ranges.length < 1 || ranges.length > 3
+      || !Array.isArray(ranges) || ranges.length < 1 || ranges.length > maxRanges
       || !Number.isSafeInteger(length) || length < 0 || length > buffer.byteLength
       || ranges.some(range => typeof range.path !== 'string' || !Number.isSafeInteger(range.offset) || range.offset < 0
         || !Number.isSafeInteger(range.length) || range.length < (batch ? 1 : 0)
