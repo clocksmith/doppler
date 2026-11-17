@@ -48,6 +48,8 @@ class GraphSourceTests(unittest.TestCase):
                     context_limit=12,max_lookup_rows=12,max_ple_lookup_bytes=65536)
             self.assertTrue(all(module.weight.is_meta for module in graph.modules() if isinstance(module,SourceLinear)))
             context=ClientContext('tenant','privacy',graph.identity,'key','request');state=graph.new_state(context)
+            from flash_float_reference import BoundedFloatingReference
+            callback=BoundedFloatingReference(graph,output_chunk_rows=2);bounded=graph.new_state(context)
             try:
                 prefix=torch.tensor([[1,2]])
                 for value in [prefix,torch.tensor([[3]])]:
@@ -55,10 +57,15 @@ class GraphSourceTests(unittest.TestCase):
                     actual=graph(value,state,context,execution='public-reference')
                     expected=FlashModelReferenceTests().full_prefix(torch,graph,parts,prefix)
                     torch.testing.assert_close(actual,expected[:,-value.shape[1]:],rtol=3e-4,atol=3e-5)
+                    with ExitStack() as reads:
+                        spies=[reads.enter_context(patch.object(source,'tensor',wraps=source.tensor)) for source in [*decoders,output]]
+                        result=graph(value,bounded,context,execution='verified-projections',verified_client_projection=callback)
+                        self.assertTrue(all(call.kwargs.get('rows') is not None for spy in spies for call in spy.call_args_list))
+                    torch.testing.assert_close(result,actual,rtol=3e-4,atol=3e-5)
                 output.closed=True
                 with self.assertRaises(ValueError):graph(torch.tensor([[4]]),state,context,execution='public-reference')
                 self.assertTrue(state.failed)
-            finally:state.close()
+            finally:state.close();bounded.close();callback.close()
             self.assertFalse(token_rows.closed);self.assertFalse(ple_rows.closed)
 
     def test_precancelled_factory_does_not_touch_sources(self):

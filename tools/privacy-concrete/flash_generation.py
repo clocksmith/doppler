@@ -15,7 +15,7 @@ from protocol import require_active
 from verified_execution import complete_verified_route,VALIDATION_BOUNDARY
 
 
-def generate(prepared,prompt_tokens,bridge,secret,parameters,context):
+def generate(prepared,prompt_tokens,bridge,secret,parameters,context,*,floating_reference=None):
     """Return client-local tokens only after a complete, validated fixed route.
 
     This graph has no padding-mask contract: the prompt length must equal the
@@ -30,11 +30,15 @@ def generate(prepared,prompt_tokens,bridge,secret,parameters,context):
     from full_bridge import FullBridge
     from flash_prepared_graph import PreparedFlashGraph
     from flash_request_state import ClientContext
+    from flash_float_reference import BoundedFloatingReference,REFERENCE_ID
     states=[];route_started=False
     owned_bridge=type(bridge) in (FullBridge,CheckedBridge)
     try:
         if not owned_bridge or type(prepared) is not PreparedFlashGraph or type(context) is not ClientContext:
             raise ValueError('Exact prepared Flash graph, admitted bridge and client context required')
+        if floating_reference is not None and (type(floating_reference) is not BoundedFloatingReference
+                or floating_reference.graph is not prepared.graph or floating_reference.cancelled is not bridge.cancelled):
+            raise ValueError('Exact graph-owned bounded floating oracle and cancellation required')
         bridge.check_active();prepared.require_graph();definition=bridge.plan.definition()
         steps=definition.get('steps');rows=definition.get('contextBucket');graph=prepared.graph
         if (type(steps) is not int or not 0<steps<=16 or type(rows) is not int or rows<=0
@@ -70,7 +74,9 @@ def generate(prepared,prompt_tokens,bridge,secret,parameters,context):
 
         def validate(step,actual):
             require_active(bridge.cancelled);began=time.perf_counter();value=inputs(step)
-            floating=graph(value,reference_states['floating'],references['floating'],execution='public-reference',cancelled=bridge.cancelled)[0,-1]
+            floating=graph(value,reference_states['floating'],references['floating'],
+                execution='public-reference' if floating_reference is None else 'verified-projections',
+                verified_client_projection=floating_reference,cancelled=bridge.cancelled)[0,-1]
             quantized=prepared.reference(value,reference_states['quantized'],references['quantized'],cancelled=bridge.cancelled)[0,-1]
             reference_seconds.append(time.perf_counter()-began)
             errors.append(float((actual-quantized).abs().max()))
@@ -84,6 +90,7 @@ def generate(prepared,prompt_tokens,bridge,secret,parameters,context):
             matchesTeacherForcedQuantizedGreedyReference=True,floatTeacherForcedGreedyMatches=floating_matches,
             maxLogitErrors=errors,stepSeconds=execution_seconds,clientReferenceSeconds=reference_seconds,
             validationBoundary=VALIDATION_BOUNDARY,publicCoefficientBytesSent=bridge.public_coefficient_bytes_sent,
+            floatingReference='source-full-projection-fp32/v1' if floating_reference is None else REFERENCE_ID,
             sentBytes=bridge.sent,receivedBytes=bridge.received,productionBackendAvailable=False,securityQualified=False,
             clientComputation='All nonlinear, attention, embedding, cache, quantization and decoding operations; full floating and quantized reference generation after route closure')
     finally:

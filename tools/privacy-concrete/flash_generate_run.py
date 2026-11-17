@@ -22,6 +22,28 @@ from full_plan import canonical
 from full_status import failure_event
 from plan_backends import REBUILD_PROFILES,compiled_backend
 
+RESOURCE_POLICY=json.loads(Path(__file__).with_name('flash-resource-policy.json').read_text())
+
+
+def require_private_resource_scope():
+    """Kernel evidence, never a caller-supplied 'budget enforced' flag."""
+    try:
+        if RESOURCE_POLICY['requireExclusiveLeaf'] is not True or RESOURCE_POLICY['requireGroupOomKill'] is not True:
+            raise ValueError()
+        rows=[line[3:] for line in Path('/proc/self/cgroup').read_text().splitlines() if line.startswith('0::')]
+        if len(rows)!=1:raise ValueError()
+        path=Path(rows[0])
+        if not path.is_absolute() or len(path.parts)<2 or '..' in path.parts:raise ValueError()
+        leaf=Path('/sys/fs/cgroup').joinpath(*path.parts[1:])
+        if (leaf/'cgroup.procs').read_text().split()!=[str(os.getpid())]:raise ValueError()
+        memory=int((leaf/'memory.max').read_text());swap=int((leaf/'memory.swap.max').read_text())
+        oom=int((leaf/'memory.oom.group').read_text());quota,period=map(int,(leaf/'cpu.max').read_text().split())
+        if (not 0<memory<=RESOURCE_POLICY['maximumMemoryBytes'] or swap!=RESOURCE_POLICY['maximumSwapBytes'] or oom!=1
+                or quota<=0 or period<=0 or quota>period*RESOURCE_POLICY['maximumCpuCores']):raise ValueError()
+    except (OSError,ValueError):
+        raise ValueError('Dedicated enforced CPU/memory/no-swap/group-OOM cgroup required; no resource fallback') from None
+    return dict(memoryMaxBytes=memory,swapMaxBytes=swap,cpuQuotaMicros=quota,cpuPeriodMicros=period,groupOomKill=True,
+        policyId=hashlib.sha256(canonical(RESOURCE_POLICY)).hexdigest())
 
 class PauseCancellation:
     def __init__(self,pause,cancelled):self.pause,self.cancelled=pause,cancelled
@@ -69,6 +91,7 @@ def run(source_directory,reference_path,scratch_directory,prompt,*,backend_profi
     largest=max(width*height*2 for width,height in GEOMETRY.values())
     began=time.perf_counter()
     with resource_turn(lock_path,pause_path,resource_wait_seconds,cancelled=cancelled) as active:
+        resource_limits=require_private_resource_scope()
         if not source.is_dir() or not scratch.is_dir() or not reference.is_file():raise ValueError('Existing checkpoint, inspected operator source and scratch required')
         immutable={source.resolve(),*((source/name).resolve().parent for name in TEXT['shards'])}
         if any(scratch.resolve().is_relative_to(root) for root in immutable):raise ValueError('Scratch must be outside immutable checkpoint locations')
@@ -91,6 +114,7 @@ def run(source_directory,reference_path,scratch_directory,prompt,*,backend_profi
         from local_ngram_rows import LocalNgramRows
         from flash_prepared_graph import PreparedFlashGraph,EPHEMERAL_STORAGE
         from flash_generation import generate
+        from flash_float_reference import BoundedFloatingReference
         from checked_bridge import CheckedBridge
         from research_parameters import component_parameters
         previous_threads=torch.get_num_threads();torch.set_num_threads(settings['cpuThreads'])
@@ -114,12 +138,13 @@ def run(source_directory,reference_path,scratch_directory,prompt,*,backend_profi
                 executor=GLWELinearLayerExecutor(use_dynamic_quantization=True);executor.glwe_crypto_params=parameters
                 prepared=PreparedFlashGraph(graph,executor,temporary,quantization_bits=12,storage=EPHEMERAL_STORAGE,cancelled=active)
                 plan,binding=backend.write_plan(temporary,prepared,cancelled=active)
+                floating=BoundedFloatingReference(graph,cancelled=active);owned.callback(floating.close)
                 require_active(active);secret,key=ext.cpu_create_private_key(parameters);require_active(active)
                 bridge=CheckedBridge(temporary,plan,key,cancelled=active,backend_profile=backend_profile,prepared_public_tiles=binding,
                     parameter_profile=settings['parameterProfile'],provider_source_directory=source)
                 owned.callback(bridge.close) # Stop/wait provider before source or scratch cleanup.
                 context=ClientContext(tenant_id,privacy_id,graph.identity,bridge.key_id,bridge.session)
-                result=generate(prepared,list(tokens),bridge,secret,parameters,context)
+                result=generate(prepared,list(tokens),bridge,secret,parameters,context,floating_reference=floating)
                 if result['publicCoefficientBytesSent']!=0:raise ValueError('Reconstruction route unexpectedly sent public coefficients')
                 result.update(schema='doppler.actual-flash-hybrid-research-execution/v1',backendProfile=backend_profile,
                     transport='local-process',actualFlashCheckpointExecuted=True,encryptedExecution=True,
@@ -127,6 +152,7 @@ def run(source_directory,reference_path,scratch_directory,prompt,*,backend_profi
                     linearProjectionCount=len(prepared.order),encryptedTileCount=len(plan.schedule())*settings['steps'],
                     clientLocalOutputText=decode(source,result['clientLocalOutputTokens'],settings['steps'],cancelled=active),
                     implementationVersions=versions,sha256VerifiedBytesIncludingRepeats=verified,
+                    resourceLimits=resource_limits,floatingPeakFp32WeightChunkBytes=floating.peak_fp32_weight_bytes,
                     preparationSeconds=prepared.preparation_seconds,rematerializationSeconds=prepared.rematerialization_seconds,
                     elapsedSeconds=time.perf_counter()-began,clientLifetimePeakRssBytes=resource.getrusage(resource.RUSAGE_SELF).ru_maxrss*(1 if platform.system()=='Darwin' else 1024),
                     integrity=bridge.integrity_report(),driverSha256=hashlib.sha256(Path(__file__).read_bytes()).hexdigest())

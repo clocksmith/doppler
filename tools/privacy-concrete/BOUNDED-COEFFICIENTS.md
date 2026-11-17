@@ -286,7 +286,12 @@ both the pinned source view and resolved shard locations. The plan stays owned
 until the provider has stopped; provider shutdown precedes source/scratch cleanup.
 
 Run only after agreeing an uncontested CPU/IO window and applying the external
-memory/disk limits. The client and local provider each use four CPU threads. An
+memory/disk limits. Before source access, the runner requires a dedicated cgroup-v2
+leaf containing only itself, kernel memory maximum at most eight GiB, zero swap,
+group OOM kill and CPU quota at most eight cores. The child inherits that group.
+Limits are read from kernel files; an advertised or caller-supplied enforcement
+flag is not accepted. Missing isolation/controllers reject without a fallback.
+The client and local provider each use four CPU threads. An
 existing shared lock and pause path are mandatory. While paused, the runner
 neither initializes native code nor reads checkpoint headers. A new pause request
 after admission cancels and closes the attempt at the next cancellation boundary;
@@ -295,7 +300,12 @@ profile. Large token/PLE table admission now checks cancellation during each
 whole-file hash and cleans previously opened maps on failure.
 
 ```sh
-OMP_NUM_THREADS=4 RAYON_NUM_THREADS=4 python flash_generate_run.py \
+systemd-run --user --wait --pipe --collect --unit=a2-flash-research \
+  -p Type=exec -p MemoryMax=8G -p MemorySwapMax=0 \
+  -p CPUQuota=800% -p OOMPolicy=kill \
+  env OMP_NUM_THREADS=4 RAYON_NUM_THREADS=4 \
+  /existing/research-venv/bin/python \
+  /existing/pinned-code/tools/privacy-concrete/flash_generate_run.py \
   --source /existing/pinned-flash-812d96e1 \
   --reference /existing/inspected-reference/modeling_qwen4_exp.py \
   --scratch /existing/isolated-research-scratch \
@@ -307,6 +317,13 @@ OMP_NUM_THREADS=4 RAYON_NUM_THREADS=4 python flash_generate_run.py \
 ```
 
 This is a prepared execution command, not a recorded successful physical run.
+The transient job properties follow the official
+[resource-control](https://www.freedesktop.org/software/systemd/man/latest/systemd.resource-control.html)
+and [OOM policy](https://www.freedesktop.org/software/systemd/man/latest/systemd.service.html#OOMPolicy=)
+contracts. They apply only to the new isolated job; no existing provider unit or
+running reference process is reconfigured. Forced kernel termination cannot run
+Python cleanup; any remaining owned public scratch directory must be reclaimed
+after its job has stopped. Private outputs are released only after validation.
 The complete route contains 74,501 projections and 603,472 encrypted tiles across
 four steps, plus integrity sampling and full client floating/quantized references.
 No practical full-model latency or eight-GiB RSS claim follows from the cache
@@ -324,3 +341,15 @@ followed by three single-row feedback steps took 29.86 seconds on one synthetic
 traffic was zero, with one 1,024-byte provider materialization, 268,537,440 bytes
 sent and 101,999 received. This is neither actual Flash nor full-sized-tile,
 separate-machine, production or reviewed-security qualification.
+
+The runner also selects `BoundedFloatingReference` for its post-close floating
+quality observation. It slices source output channels before FP32 conversion,
+retains every input channel in each product and brackets chunks with cancellation.
+The reported oracle is `bounded-output-columns-fp32/v1`; BLAS column blocking can
+change rounding, so this does not silently replace the prior whole-projection
+floating receipt. Quantized greedy equality remains the acceptance gate. Tiny
+complete-model tests compare both floating paths within the existing reference
+tolerance, and source-backed tests prove actual BF16 tensor reads use row slices.
+No actual full-model RSS result is inferred from those tests. The older physical
+validator was observed at a 9,071,364-KiB RSS high-water mark; it was not modified
+or restarted by this worker, and its current resource budget remains with its owner.

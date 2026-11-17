@@ -5,12 +5,32 @@ import tempfile
 from types import SimpleNamespace
 import unittest
 from unittest.mock import patch
-from flash_generate_run import resource_turn,run
+from flash_generate_run import resource_turn,run,require_private_resource_scope
 from plan_backends import REBUILD_PREFILL5_PROFILE
 from protocol import require_active
 
 
 class ResourceTurnTests(unittest.TestCase):
+    def test_kernel_scope_rejects_shared_unbounded_swappable_or_non_group_kill_jobs(self):
+        import flash_generate_run
+        for change in (None,'shared','memory','swap','oom','cpu'):
+            with self.subTest(change=change):
+                values={'/proc/self/cgroup':'0::/a2-fixture.scope\n',
+                    '/sys/fs/cgroup/a2-fixture.scope/cgroup.procs':str(os.getpid())+'\n',
+                    '/sys/fs/cgroup/a2-fixture.scope/memory.max':str(8*1024**3),
+                    '/sys/fs/cgroup/a2-fixture.scope/memory.swap.max':'0',
+                    '/sys/fs/cgroup/a2-fixture.scope/memory.oom.group':'1',
+                    '/sys/fs/cgroup/a2-fixture.scope/cpu.max':'800000 100000'}
+                if change=='shared':values['/sys/fs/cgroup/a2-fixture.scope/cgroup.procs']+='999999\n'
+                if change=='memory':values['/sys/fs/cgroup/a2-fixture.scope/memory.max']='max'
+                if change=='swap':values['/sys/fs/cgroup/a2-fixture.scope/memory.swap.max']='1000'
+                if change=='oom':values['/sys/fs/cgroup/a2-fixture.scope/memory.oom.group']='0'
+                if change=='cpu':values['/sys/fs/cgroup/a2-fixture.scope/cpu.max']='900000 100000'
+                with patch.object(flash_generate_run.Path,'read_text',lambda path:values[str(path)]):
+                    if change is not None:
+                        with self.assertRaises(ValueError):require_private_resource_scope()
+                    else:self.assertEqual(require_private_resource_scope()['memoryMaxBytes'],8*1024**3)
+
     def test_existing_pause_prevents_any_checkpoint_or_native_access_and_is_preserved(self):
         import flash_text_rebuild5_plan as backend
         with tempfile.TemporaryDirectory() as root:
@@ -63,6 +83,7 @@ class RunnerLifecycleTests(unittest.TestCase):
             stack.enter_context(patch.object(backend,'versions',return_value={'fixture':'mocked lifecycle'}))
             stack.enter_context(patch.object(backend,'write_plan',return_value=(object(),object())))
             stack.enter_context(patch('flash_generate_run.shutil.disk_usage',return_value=SimpleNamespace(free=10*1024**3)))
+            stack.enter_context(patch('flash_generate_run.require_private_resource_scope',return_value={'memoryMaxBytes':8*1024**3}))
             stack.enter_context(patch('flash_generate_run.tempfile.TemporaryDirectory',Temporary))
             stack.enter_context(patch('flash_tokenizer.encode',return_value=(1,2,3,4,5)))
             stack.enter_context(patch('flash_stage_source.FlashStageSource',side_effect=stage))
@@ -70,6 +91,7 @@ class RunnerLifecycleTests(unittest.TestCase):
             stack.enter_context(patch('local_ngram_rows.LocalNgramRows.flash',side_effect=stage))
             stack.enter_context(patch('flash_graph_source.bind_graph',return_value=graph))
             stack.enter_context(patch('flash_prepared_graph.PreparedFlashGraph',return_value=prepared))
+            stack.enter_context(patch('flash_float_reference.BoundedFloatingReference',return_value=SimpleNamespace(close=lambda:None)))
             stack.enter_context(patch('research_parameters.component_parameters',return_value={'parameters':{}}))
             stack.enter_context(patch.object(ext,'MatmulCryptoParameters',SimpleNamespace(deserialize=lambda value:object())))
             stack.enter_context(patch.object(ext,'cpu_create_private_key',return_value=(object(),object()),create=True))

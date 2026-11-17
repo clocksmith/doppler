@@ -51,7 +51,7 @@ class FlashStreamStorageTests(unittest.TestCase):
         self.assertEqual(list(root.iterdir()),[root/'plan.json'])
         return torch,graph,prepared,root,plan,binding
 
-    def run_case(self,failure=None,*,rebuild=False,bf16_control=False,generation=False,prefill5=False):
+    def run_case(self,failure=None,*,rebuild=False,bf16_control=False,generation=False,prefill5=False,bounded_float=False):
         import numpy as np
         import full_model,full_bridge,full_provider,checked_bridge
         from flash_request_state import ClientContext
@@ -133,6 +133,9 @@ class FlashStreamStorageTests(unittest.TestCase):
             if generation:
                 from flash_generation import generate
                 from dataclasses import replace
+                from flash_float_reference import BoundedFloatingReference,REFERENCE_ID
+                floating=None if not bounded_float else BoundedFloatingReference(graph,cancelled=bridge.cancelled,output_chunk_rows=2)
+                if floating is not None:stack.callback(floating.close)
                 observed_states=[];original_new_state=graph.new_state;reference_calls=[]
                 def new_state(request):
                     result=original_new_state(request);observed_states.append(result);return result
@@ -154,12 +157,13 @@ class FlashStreamStorageTests(unittest.TestCase):
                         with self.assertRaises(error):
                             generate(prepared,[1,2] if failure=='prefill' else prompt,bridge,object(),parameters,request)
                     else:
-                        result=generate(prepared,prompt,bridge,object(),parameters,context)
+                        result=generate(prepared,prompt,bridge,object(),parameters,context,floating_reference=floating)
                         self.assertEqual(len(result['clientLocalOutputTokens']),4)
                         self.assertEqual(result['promptRows'],len(prompt))
                         self.assertTrue(result['matchesTeacherForcedQuantizedGreedyReference'])
                         self.assertEqual(result['maxLogitErrors'],[0.]*4)
                         self.assertFalse(result['productionBackendAvailable']);self.assertFalse(result['securityQualified'])
+                        if bounded_float:self.assertEqual(result['floatingReference'],REFERENCE_ID)
                 self.assertIsNotNone(children[0].poll());self.assertTrue(all(state.failed for state in observed_states))
                 self.assertEqual(len({state.context for state in observed_states}),len(observed_states))
                 self.assertEqual(counts['evaluated'],0 if failure in ('prefill','context','cancel','used') else len(plan.schedule())*4)
@@ -220,6 +224,7 @@ class FlashStreamStorageTests(unittest.TestCase):
     def test_fixed_generation_cannot_restart_a_partly_consumed_route(self):self.run_case('used',rebuild=True,generation=True)
     def test_five_row_profile_completes_fixed_generation_without_prompt_truncation(self):self.run_case(rebuild=True,generation=True,prefill5=True)
     def test_five_row_profile_rejects_a_shorter_prompt_before_ciphertext(self):self.run_case('prefill',rebuild=True,generation=True,prefill5=True)
+    def test_five_row_generation_validates_with_bounded_floating_oracle_after_close(self):self.run_case(rebuild=True,generation=True,prefill5=True,bounded_float=True)
 
     def test_one_and_five_row_profiles_cannot_substitute_manifests_or_ssh_routes(self):
         from plan_backends import REBUILD_PROFILE,REBUILD_PREFILL5_PROFILE,compiled_backend

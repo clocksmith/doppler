@@ -22,6 +22,10 @@ on:
       - 'tools/privacy-concrete/flash_prepared_graph.py'
       - 'tools/privacy-concrete/flash_generation.py'
       - 'tools/privacy-concrete/flash_generate_run.py'
+      - 'tools/privacy-concrete/flash-resource-policy.json'
+      - 'tools/privacy-concrete/flash_float_reference.py'
+      - 'tools/privacy-concrete/test_flash_float_reference.py'
+      - 'tools/privacy-concrete/test_flash_graph_source.py'
       - 'tools/privacy-concrete/test_flash_generate_run.py'
       - 'tools/privacy-concrete/local_bf16_rows.py'
       - 'tools/privacy-concrete/local_token_rows.py'
@@ -89,7 +93,7 @@ jobs:
           DOPPLER_FLASH_SOURCE_DIR: ${{ runner.temp }}/flash-stream-reference
         run: |
           cd tools/privacy-concrete
-          python -m unittest test_public_tile_stream test_flash_stream_storage test_flash_encrypted_graph_adapter test_provider_checkpoint test_flash_quantized_reference test_flash_generate_run -v
+          python -m unittest test_public_tile_stream test_flash_stream_storage test_flash_encrypted_graph_adapter test_provider_checkpoint test_flash_quantized_reference test_flash_float_reference test_flash_graph_source test_flash_generate_run -v
       - name: Provision only the exact public Flash tokenizer
         run: python tools/privacy-concrete/prepare_flash_tokenizer.py --destination "$RUNNER_TEMP/flash-tokenizer"
       - name: Check real Flash text input and output using local pinned files

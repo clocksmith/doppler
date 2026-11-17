@@ -1,0 +1,9 @@
+{
+  "schema": "doppler.flash-research-resource-policy/v1",
+  "maximumMemoryBytes": 8589934592,
+  "maximumCpuCores": 8,
+  "maximumSwapBytes": 0,
+  "requireExclusiveLeaf": true,
+  "requireGroupOomKill": true,
+  "productionBackendAvailable": false
+}
