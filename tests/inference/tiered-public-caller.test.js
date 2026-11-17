@@ -6,12 +6,14 @@ import { DEFAULT_EXPERT_CACHE_CONFIG } from '../../src/config/schema/runtime/loa
 // packed-bank planner, TieredExpertCache, mapped cache, compact cache and routed
 // chunk adapter. Synthetic source/device; kernel arithmetic alone is substituted.
 globalThis.GPUBufferUsage = { STORAGE: 128, COPY_SRC: 4, COPY_DST: 8, MAP_WRITE: 2 };
+globalThis.GPUMapMode = { WRITE: 2 };
 const state = globalThis.tieredPublicCaller = { live: 0, reads: 0, readbacks: 0, releases: 0, device: null };
 const device = state.device = { limits: { maxBufferSize: 1 << 20, maxStorageBufferBindingSize: 1 << 20 }, lost: new Promise(() => {}),
   createBuffer(descriptor) {
     state.live += descriptor.size;
     return { ...descriptor, data: new Uint8Array(descriptor.size), mapped: descriptor.mappedAtCreation === true, destroyed: false,
       getMappedRange() { assert(this.mapped); return this.data.buffer; },
+      async mapAsync(mode) { assert.equal(mode, GPUMapMode.WRITE); assert(!this.destroyed && !this.mapped); this.mapped = true; },
       unmap() { this.data = new Uint8Array(structuredClone(this.data.buffer, { transfer: [this.data.buffer] })); this.mapped = false; },
       destroy() { if (!this.destroyed) state.live -= this.size; this.destroyed = true; } };
   },
@@ -65,7 +67,7 @@ const hook = registerHooks({ resolve(specifier, context, next) {
 try {
   const api = await import(bindingTarget), { loadWeights } = await import(initTarget), { executeRoutedExpertChunks } = await import(chunkTarget);
   const policy = { ...structuredClone(DEFAULT_EXPERT_CACHE_CONFIG.qwen35Routed), enabled: true, storageMode: 'tiered-compact',
-    tiered: { residentLayers: [0], parkedLayers: [1], mappedCacheBytes: 6912 }, compactLayerBytes: { 1: 6944, 2: 6944 },
+    tiered: { residentLayers: [0], parkedLayers: [1], mappedCacheBytes: 6912, mappedProtectedShare: 0 }, compactLayerBytes: { 1: 6944, 2: 6944 },
     sourceReadMode: 'expert-lease-batch', cacheBytes: 48448, stagingBytes: 65536, readConcurrency: 2, gpuBudgetBytes: 1 << 20, reserveBytes: 4096 };
   const manifest = { modelId: 'synthetic', shards: [], architecture: { numLayers: 3, hiddenSize: 32 },
     moeConfig: { expertFormat: 'qwen3_5', numExperts: 8, numExpertsPerToken: 2, expertIntermediateSize: 32 } };

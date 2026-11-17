@@ -71,8 +71,7 @@ or complete-request correctness/performance qualification.
 
 `runtime.loading.expertCache.qwen35Routed.storageMode: "tiered-compact"`
 selects `TieredExpertCache`. It requires an explicit `tiered` object containing
-`residentLayers`, `parkedLayers` (disjoint original model layer indices), and
-`mappedCacheBytes`. No model or placement defaults are inferred.
+`residentLayers`, `parkedLayers` (disjoint original model layer indices), `mappedCacheBytes`, and explicit `mappedProtectedShare` (0 through 1). No model or placement defaults are inferred.
 
 The planner admits complete packed source extents, device buffer/binding limits,
 minimum top-K capacity and all assigned partition layers before allocating.
@@ -119,3 +118,27 @@ the backend's upload allocation has retired. Setup must not accumulate a
 model-sized outstanding upload queue. Staging observations include these bounded
 outstanding payload bytes in addition to the complete range-port reservation and
 active mappings; backend allocator overhead remains outside that byte metric.
+
+
+Tiered mapped storage follows the declared `hostCacheAdmission` and
+`hostCacheAdmissionPhase` policy; parked setup is always complete and pinned.
+`mappedProtectedShare` reserves the declared fraction of evictable entries for
+reused experts rather than letting a stream of one-off prompt experts displace
+them. Metadata-only admission history is bounded by the number of complete
+streamed experts the mapped-cache byte allowance can hold. These are explicit
+candidate policy choices, never token predictions or source-authentication skips.
+
+Mapped-cache options can explicitly select `admission: "repeat-read"`,
+`protectedShare` and `maxGhostEntries`. While unused capacity remains, new experts
+can be admitted. Once full, a first miss records only bounded key metadata;
+a repeated miss can replace an idle entry. Pinned entries are excluded from
+replacement. An entry's first GPU consumption after fill does not count as reuse
+or promote it to the protected segment. `reuseHits` reports later consumptions.
+
+An idle same-size victim is remapped and refilled without destroying/reallocating
+its GPUBuffer. Pending `mapAsync(WRITE)` calls reserve the same mapped-writer
+allowance before awaiting. Publication still requires complete authenticated fill
+and unmap. Close waits pending maps; mapping, cancellation or disposal failures
+cannot silently publish or release ownership. Statistics expose allocation,
+reuse, pending-map, admission-skip and bounded ghost/protected counts. Hot cache
+lookup, replacement ordering and statistics avoid scanning pinned model banks.

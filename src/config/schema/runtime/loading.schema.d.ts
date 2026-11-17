@@ -181,7 +181,7 @@ export interface Qwen35RoutedConfig {
   storageMode: 'payload-copy' | 'compact-decode' | 'tiered-compact';
   /** Persistent mapped model bytes count against cacheBytes and the device API ceiling.
    * Active mapped writers additionally count against stagingBytes. */
-  tiered: { residentLayers: number[]; parkedLayers: number[]; mappedCacheBytes: number } | null;
+  tiered: { residentLayers: number[]; parkedLayers: number[]; mappedCacheBytes: number; mappedProtectedShare: number } | null;
   /** Null uses equal quotas; explicit original-layer byte quotas include source maps and sum to at most cacheBytes. */
   compactLayerBytes: Record<string, number> | null;
   /** Zero retires pools on prefill; positive reserves transient bytes inside cacheBytes and preserves compact pools. */

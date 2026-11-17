@@ -3,7 +3,7 @@ import { DEFAULT_EXPERT_CACHE_CONFIG, validateQwen35RoutedConfig } from '../../s
 import { planTieredExpertPlacement } from '../../src/loader/experts/tiered-expert-plan.js';
 
 const policy = { ...structuredClone(DEFAULT_EXPERT_CACHE_CONFIG.qwen35Routed), enabled: true,
-  storageMode: 'tiered-compact', tiered: { residentLayers: [0], parkedLayers: [1], mappedCacheBytes: 32 },
+  storageMode: 'tiered-compact', tiered: { residentLayers: [0], parkedLayers: [1], mappedCacheBytes: 32, mappedProtectedShare: 0 },
   sourceReadMode: 'expert-lease-batch', cacheBytes: 256, gpuBudgetBytes: 1024, reserveBytes: 128 };
 const plans = Array.from({ length: 3 }, (_, layer) => ({ layer, numLayers: 3, numExperts: 4,
   hiddenSize: 2, intermediateSize: 1, expertBytes: 12, bankBytes: 48,
@@ -26,7 +26,7 @@ assert.equal(partition.residentBytes, 0);
 assert.equal(partition.parkedBytes, 0);
 assert.equal(partition.cacheUpperBytes, 96);
 assert.throws(() => plan({ cacheBytes: 128 }), /top-K/);
-assert.throws(() => plan({ tiered: { ...policy.tiered, mappedCacheBytes: 256 } }), /cache or device/);
+assert.throws(() => plan({ tiered: { ...policy.tiered, mappedCacheBytes: 256, mappedProtectedShare: 0 } }), /cache or device/);
 assert.throws(() => plan({ compactLayerBytes: { 1: 96, 2: 160 } }), /remaining model cache/);
 assert.throws(() => plan({ compactLayerBytes: { 0: 64, 2: 64 } }), /exactly the assigned nonresident/);
 assert.throws(() => plan({}, plans, { ...limits, maxStorageBufferBindingSize: 8 }), /cache or device/);
@@ -35,7 +35,9 @@ assert.throws(() => plan({}, [{ ...plans[0], expertBytes: 20 }]), /geometry/);
 assert.throws(() => plan({}, plans, limits, 5), /geometry/);
 for (const tiered of [null, {}, { ...policy.tiered, parkedLayers: [0] },
   { ...policy.tiered, mappedCacheBytes: -4 }, { ...policy.tiered, residentLayers: [0, 0] },
-  { ...policy.tiered, extra: true }]) {
+  { ...policy.tiered, extra: true }, { ...policy.tiered, mappedProtectedShare: undefined },
+  { ...policy.tiered, mappedProtectedShare: -0.1 }, { ...policy.tiered, mappedProtectedShare: 1.1 },
+  { ...policy.tiered, mappedProtectedShare: NaN }]) {
   assert.throws(() => validateQwen35RoutedConfig({ ...policy, tiered }), /Tiered experts/);
 }
 assert.throws(() => plan({ tiered: { ...policy.tiered, residentLayers: [3] } }), /geometry/);

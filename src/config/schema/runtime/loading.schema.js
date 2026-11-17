@@ -126,15 +126,17 @@ export function validateQwen35RoutedConfig(config) {
   if (config.storageMode === 'tiered-compact') {
     const tiered = config.tiered;
     if (!tiered || typeof tiered !== 'object' || Array.isArray(tiered)
-      || Object.keys(tiered).some(key => !['residentLayers', 'parkedLayers', 'mappedCacheBytes'].includes(key))
+      || Object.keys(tiered).some(key => !['residentLayers', 'parkedLayers', 'mappedCacheBytes', 'mappedProtectedShare'].includes(key))
       || !['residentLayers', 'parkedLayers'].every(key => Array.isArray(tiered[key])
         && tiered[key].every(layer => Number.isSafeInteger(layer) && layer >= 0))
       || new Set([...tiered.residentLayers, ...tiered.parkedLayers]).size !== tiered.residentLayers.length + tiered.parkedLayers.length
+      || typeof tiered.mappedProtectedShare !== 'number' || !Number.isFinite(tiered.mappedProtectedShare)
+      || tiered.mappedProtectedShare < 0 || tiered.mappedProtectedShare > 1
       || !Number.isSafeInteger(tiered.mappedCacheBytes) || tiered.mappedCacheBytes < 0 || tiered.mappedCacheBytes % 4
       || config.compactPrefillBytes !== 0 || config.compactPrefillReuse !== 'none'
       || config.prefillCompactAdmission !== 'none' || config.sourceReadMode !== 'expert-lease-batch'
       || config.prefillUploadMode !== 'expert-copy') {
-      throw new Error('Tiered experts require distinct explicit resident/parked layers, an aligned mapped-cache budget and batched streaming without full prefill banks.');
+      throw new Error('Tiered experts require distinct resident/parked layers, aligned mappedCacheBytes, mappedProtectedShare in [0,1] and batched streaming without full prefill banks.');
     }
   } else if (config.tiered != null) {
     throw new Error('Tiered placement requires storageMode=tiered-compact.');

@@ -6,6 +6,12 @@ export interface MappedExpertUploadCacheOptions {
   /** Caller-reserved share of the existing aggregate transient staging allowance. */
   maxMappedBytes: number;
   maxEntries: number;
+  /** Defaults retain ordinary admission and LRU behavior. */
+  admission?: 'all' | 'repeat-read';
+  /** Protected byte share of the remaining non-pinned cache budget, in [0, 1]. */
+  protectedShare?: number;
+  /** Bounded first-miss metadata; defaults to maxEntries. */
+  maxGhostEntries?: number;
   /** Synchronous ports must retain outer charges on failure and include every allocation. */
   allocate?: (descriptor: GPUBufferDescriptor) => GPUBuffer;
   dispose?: (buffer: GPUBuffer) => void;
@@ -19,17 +25,25 @@ export interface MappedExpertCopy {
   bytes: number;
 }
 export interface MappedExpertEntry {
-  key: string; bytes: number; buffer: GPUBuffer; mapped: boolean; pinned: boolean; users: number;
+  key: string; bytes: number; buffer: GPUBuffer; mapped: boolean; mapping: boolean; pinned: boolean; protected: boolean; firstConsumption: boolean; users: number;
 }
 export interface MappedExpertUse {
   entry: MappedExpertEntry; attempt: Promise<void> | null; failure: unknown;
 }
 export interface MappedExpertUploadStats {
+  admission: 'all' | 'repeat-read'; protectedShare: number; maxGhostEntries: number;
+  probationEntries: number; protectedEntries: number; protectedBytes: number; protectedBudgetBytes: number; ghostEntries: number;
+  allocations: number; reuseAttempts: number;
+  /** Completed native remaps, including ones cancelled before publication. */
+  reuses: number;
+  admissionSkips: number;
+  /** Copy reuse excludes the first consumption after each publication, including remapped publication. */
+  reuseHits: number;
   maxBytes: number; maxMappedBytes: number; maxEntries: number;
   allocatedBytes: number; mappedBytes: number; peakBytes: number; peakMappedBytes: number;
   publishedBytes: number; pinnedBytes: number; evictableBytes: number; unpublishedBytes: number;
   entries: number; pinnedEntries: number; evictableEntries: number; activeWriters: number;
-  pendingCopies: number; ownedAllocations: number;
+  pendingMaps: number; pendingCopies: number; ownedAllocations: number;
   hits: number; misses: number; admissions: number; evictions: number; rejections: number;
   copySubmissions: number; copyBytes: number;
 }

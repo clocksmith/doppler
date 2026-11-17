@@ -22,7 +22,7 @@ const plans = Array.from({ length: 3 }, (_, layer) => ({ layer, numLayers: 3, nu
   planes: ['gate', 'up', 'down'].map((role, i) => ({ role, dtype: 'f32', name: `${layer}_${role}`,
     expertBytes: 8, bytes: 32, location: { shardIndex: 0, offset: layer * 96 + i * 32, size: 32, shape: [4, 2, 1] } })) }));
 const policy = { ...structuredClone(DEFAULT_EXPERT_CACHE_CONFIG.qwen35Routed), enabled: true,
-  storageMode: 'tiered-compact', tiered: { residentLayers: [0], parkedLayers: [1], mappedCacheBytes: 48 },
+  storageMode: 'tiered-compact', tiered: { residentLayers: [0], parkedLayers: [1], mappedCacheBytes: 48, mappedProtectedShare: 0 },
   sourceReadMode: 'expert-lease-batch', cacheBytes: 368, compactLayerBytes: { 1: 64, 2: 64 },
   stagingBytes: 256, readConcurrency: 2, gpuBudgetBytes: capBytes, reserveBytes: 1024 };
 let reads = 0, leases = 0, beforeClose;
@@ -60,6 +60,7 @@ try {
   await assert.rejects(cache.prepare(plans[2], [0], abort.signal, 'decode'), /abort/i);
   await verify(await cache.prepare(plans[2], [0, 1], undefined, 'decode'), 2, [0, 1]);
   beforeClose = cache.getStats();
+  assert.ok(beforeClose.tiered.mapped.reuses > 0, 'streamed refill reuses idle mapped allocations');
   assert.ok(beforeClose.peakResidentBytes <= policy.cacheBytes);
   assert.ok(beforeClose.peakStagingBytes <= policy.stagingBytes);
   assert.equal(leases, 0);

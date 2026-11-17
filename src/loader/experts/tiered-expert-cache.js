@@ -25,6 +25,8 @@ export class TieredExpertCache {
   #closed = false;
   #ready = false;
   #uploadingBytes = 0;
+  /** @type {'prefill' | 'decode' | null} */
+  #phase = null;
   /** @type {Promise<unknown> | null} */
   #active = null;
 
@@ -53,6 +55,9 @@ export class TieredExpertCache {
     if (mappedBytes) this.#mapped = new MappedExpertUploadCache({ device: options.device,
       maxBytes: mappedBytes, maxMappedBytes: Math.min(mappedLimit, mappedBytes),
       maxEntries: plans.reduce((sum, plan) => sum + plan.numExperts, 0),
+      admission: options.policy.hostCacheAdmission,
+      protectedShare: options.policy.tiered?.mappedProtectedShare,
+      maxGhostEntries: Math.max(1, Math.floor(this.#placement.mappedCacheBytes / Math.min(...plans.map(plan => plan.expertBytes)))),
       allocate: descriptor => this.#allocate(descriptor), dispose: buffer => this.#retire(buffer) });
     const compactLayerCount = [...this.#placement.layers.values()].filter(row => row.mode !== 'resident').length;
     if (compactLayerCount) {
@@ -113,6 +118,7 @@ export class TieredExpertCache {
   async #remember(plan, expert, bytes, signal) {
     if (!this.#mapped) return;
     const pinned = this.#placement.layers.get(plan.layer)?.mode === 'parked';
+    if (!pinned && this.#options.policy.hostCacheAdmissionPhase === 'decode' && this.#phase !== 'decode') return;
     const accepted = await this.#mapped.admit(this.#key(plan, expert), plan.expertBytes, destination => {
       signal.throwIfAborted();
       this.#sampleStaging();
@@ -243,7 +249,9 @@ export class TieredExpertCache {
       const resident = this.#resident.get(plan.layer);
       if (resident) return resident;
       if (!this.#compact) throw new Error('Tiered compact storage is absent.');
-      return this.#compact.prepare(plan, [...new Set(ids)], signal);
+      this.#phase = phase;
+      try { return await this.#compact.prepare(plan, [...new Set(ids)], signal); }
+      finally { this.#phase = null; }
     });
   }
 

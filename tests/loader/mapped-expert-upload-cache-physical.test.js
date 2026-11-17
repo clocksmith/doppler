@@ -46,6 +46,7 @@ try {
   assert.equal(cache.getStats().allocatedBytes, 0);
   assert.equal(cache.getStats().mappedBytes, 0);
   assert.equal(beforeClose.peakBytes, 8192);
+  assert.equal(beforeClose.reuses, 1, 'idle same-size upload buffer is remapped and refilled');
   assert.ok(beforeClose.peakMappedBytes <= 4096);
 } finally {
   try {

@@ -5,12 +5,13 @@ import { DEFAULT_EXPERT_CACHE_CONFIG } from '../../src/config/schema/runtime/loa
 import { markDeviceLost } from '../../src/memory/device-residency.js';
 
 globalThis.GPUBufferUsage = { STORAGE: 128, COPY_SRC: 4, COPY_DST: 8, MAP_WRITE: 2 };
+globalThis.GPUMapMode = { WRITE: 2 };
 const turn = () => new Promise(resolve => setImmediate(resolve));
-function fixture() {
+function fixture(change = {}) {
   const policy = { ...structuredClone(DEFAULT_EXPERT_CACHE_CONFIG.qwen35Routed), enabled: true,
-    storageMode: 'tiered-compact', tiered: { residentLayers: [0], parkedLayers: [1], mappedCacheBytes: 96 },
+    storageMode: 'tiered-compact', tiered: { residentLayers: [0], parkedLayers: [1], mappedCacheBytes: 96, mappedProtectedShare: 0 },
     sourceReadMode: 'expert-lease-batch', cacheBytes: 416, compactLayerBytes: { 1: 64, 2: 64 },
-    stagingBytes: 256, readConcurrency: 2, gpuBudgetBytes: 1024, reserveBytes: 128 };
+    stagingBytes: 256, readConcurrency: 2, gpuBudgetBytes: 1024, reserveBytes: 128, ...change };
   const source = Uint8Array.from({ length: 288 }, (_, i) => i % 251);
   const plans = Array.from({ length: 3 }, (_, layer) => ({ layer, numLayers: 3, numExperts: 4,
     hiddenSize: 1, intermediateSize: 2, expertBytes: 24, bankBytes: 96,
@@ -25,7 +26,8 @@ function fixture() {
       return { ...descriptor, data: new Uint8Array(descriptor.size), destroyed: false,
         mapped: descriptor.mappedAtCreation === true,
         getMappedRange() { assert(this.mapped); return this.data.buffer; },
-        unmap() { this.data = new Uint8Array(structuredClone(this.data.buffer, { transfer: [this.data.buffer] })); this.mapped = false; },
+        async mapAsync(mode) { assert.equal(mode, GPUMapMode.WRITE); assert(!this.destroyed && !this.mapped); this.mapped = true; },
+      unmap() { this.data = new Uint8Array(structuredClone(this.data.buffer, { transfer: [this.data.buffer] })); this.mapped = false; },
         destroy() {
           if (state.failDispose) throw Error('dispose failed');
           if (!this.destroyed) state.live -= this.size;
@@ -145,7 +147,7 @@ test('close cancels setup and waits cancellation-ignoring source reads before re
 test('all-resident placement rejects invalid lease lanes before allocating or publishing empty banks', async () => {
   const { cache, state, plans, options } = fixture();
   const policy = { ...options.policy, compactLayerBytes: null,
-    tiered: { residentLayers: [0, 1, 2], parkedLayers: [], mappedCacheBytes: 0 } };
+    tiered: { residentLayers: [0, 1, 2], parkedLayers: [], mappedCacheBytes: 0, mappedProtectedShare: 0 } };
   for (const change of [{ concurrency: 0 }, { concurrency: 1.5 }, { maxPartBytes: Infinity },
     { maxPartBytes: 25 }, { memoryBytes: 4 }]) {
     assert.throws(() => new TieredExpertCache({ ...options, policy,
@@ -184,4 +186,16 @@ test('resident setup bounds queued upload payloads by retaining every lane until
   assert.equal(state.leases, 0);
   await cache.destroy();
   assert.equal(state.live, 0);
+});
+
+
+test('mapped admission phase is explicit while parked setup remains complete', async () => {
+  const { cache, plans } = fixture({ hostCacheAdmissionPhase: 'decode' });
+  await cache.preload();
+  await cache.prepare(plans[2], [0, 1], undefined, 'prefill');
+  assert.equal(cache.getStats().tiered.mapped.evictableBytes, 0);
+  assert.equal(cache.getStats().tiered.mapped.pinnedBytes, 96);
+  await cache.prepare(plans[2], [2, 3], undefined, 'decode');
+  assert.equal(cache.getStats().tiered.mapped.evictableBytes, 48);
+  await cache.destroy();
 });
