@@ -1,0 +1,468 @@
+{
+  "schema": "doppler.native-exact-ntt-experiment/v1",
+  "productionBackendAvailable": false,
+  "securityQualified": false,
+  "upstreamRevision": "6d3fdd1fab324874e3a2fc4a42cb3a708d5a80b4",
+  "nativeVersion": "0.1.9+ntt.2",
+  "nativeBuildId": "0f19ffb77117e4f33ccb3b6549843a7df9a67fc1719b453f8498fb7d1ebf98d4",
+  "binarySha256": "68ae1c5bf21fe22158258c327763afdd6e0dc17e3f954e92c206cb1d4a6622fe",
+  "cargoLockSha256": "7f282690259c908d000fa3d6537c6c3af4c221df31e17703f0f9e6af49f8a0eb",
+  "nttCrate": {
+    "name": "tfhe-ntt",
+    "version": "0.7.1",
+    "sha256": "10650c743ade46b166c698c8349902ed5986784a7db418c51f810bea25f09e3d"
+  },
+  "keyPreparations": [
+    {
+      "profile": "upstream-default",
+      "keyPrecomputeMs": 147.4989330000085,
+      "evaluationKeyBytes": 134217808
+    },
+    {
+      "profile": "declared-high-precision",
+      "keyPrecomputeMs": 277.9823829999941,
+      "evaluationKeyBytes": 268435536
+    },
+    {
+      "profile": "declared-quant12-message35",
+      "keyPrecomputeMs": 259.53229200001715,
+      "evaluationKeyBytes": 268435536
+    }
+  ],
+  "cases": [
+    {
+      "profile": "upstream-default",
+      "rows": 1,
+      "inputWidth": 16,
+      "outputWidth": 2,
+      "byteIdenticalToOriginal": true,
+      "originalMs": 15.263468000000557,
+      "serialNttMs": 399.95110500001374,
+      "nttMs": 137.79342800000904,
+      "nttReplayMs": 136.42845700002226,
+      "timingOrder": [
+        "original",
+        "serial",
+        "parallel",
+        "parallel-replay"
+      ],
+      "resultBytes": 6752
+    },
+    {
+      "profile": "upstream-default",
+      "rows": 1,
+      "inputWidth": 896,
+      "outputWidth": 128,
+      "byteIdenticalToOriginal": true,
+      "originalMs": 461.2873599999716,
+      "serialNttMs": 416.58436599999504,
+      "nttMs": 150.69702199997437,
+      "nttReplayMs": 149.76107999996202,
+      "timingOrder": [
+        "original",
+        "parallel",
+        "serial",
+        "parallel-replay"
+      ],
+      "resultBytes": 7160
+    },
+    {
+      "profile": "upstream-default",
+      "rows": 1,
+      "inputWidth": 2048,
+      "outputWidth": 2048,
+      "byteIdenticalToOriginal": true,
+      "originalMs": 8845.466147000025,
+      "serialNttMs": 664.3645450000122,
+      "nttMs": 409.3018120000238,
+      "nttReplayMs": 401.3391899999874,
+      "timingOrder": [
+        "original",
+        "serial",
+        "parallel",
+        "parallel-replay"
+      ],
+      "resultBytes": 13400
+    },
+    {
+      "profile": "upstream-default",
+      "rows": 1,
+      "inputWidth": 2048,
+      "outputWidth": 2051,
+      "byteIdenticalToOriginal": true,
+      "originalMs": 8485.107371000027,
+      "serialNttMs": 1078.4058390000268,
+      "nttMs": 519.2934159999822,
+      "nttReplayMs": 527.9030379999767,
+      "timingOrder": [
+        "original",
+        "parallel",
+        "serial",
+        "parallel-replay"
+      ],
+      "resultBytes": 20144
+    },
+    {
+      "profile": "upstream-default",
+      "rows": 2,
+      "inputWidth": 16,
+      "outputWidth": 2,
+      "byteIdenticalToOriginal": true,
+      "originalMs": 30.97314199999346,
+      "serialNttMs": 802.4755769999956,
+      "nttMs": 271.9848109999816,
+      "nttReplayMs": 272.2427010000388,
+      "timingOrder": [
+        "original",
+        "serial",
+        "parallel",
+        "parallel-replay"
+      ],
+      "resultBytes": 13496
+    },
+    {
+      "profile": "upstream-default",
+      "rows": 1,
+      "inputWidth": 4098,
+      "outputWidth": 3,
+      "byteIdenticalToOriginal": true,
+      "originalMs": 18.726910999987467,
+      "serialNttMs": 398.4008449999692,
+      "nttMs": 135.7361850000416,
+      "nttReplayMs": 135.39904799995384,
+      "timingOrder": [
+        "original",
+        "parallel",
+        "serial",
+        "parallel-replay"
+      ],
+      "resultBytes": 6760
+    },
+    {
+      "profile": "declared-high-precision",
+      "rows": 1,
+      "inputWidth": 2048,
+      "outputWidth": 2,
+      "byteIdenticalToOriginal": true,
+      "originalMs": 25.197697000010066,
+      "serialNttMs": 797.3838739999906,
+      "nttMs": 279.03929200004995,
+      "nttReplayMs": 267.96817500002135,
+      "timingOrder": [
+        "original",
+        "serial",
+        "parallel",
+        "parallel-replay"
+      ],
+      "resultBytes": 12392
+    },
+    {
+      "profile": "declared-high-precision",
+      "rows": 1,
+      "inputWidth": 2048,
+      "outputWidth": 513,
+      "byteIdenticalToOriginal": true,
+      "originalMs": 3896.6174859999683,
+      "serialNttMs": 895.1799400000482,
+      "nttMs": 364.0091949999942,
+      "nttReplayMs": 359.642459999975,
+      "timingOrder": [
+        "original",
+        "parallel",
+        "serial",
+        "parallel-replay"
+      ],
+      "resultBytes": 15456
+    },
+    {
+      "profile": "declared-quant12-message35",
+      "rows": 1,
+      "inputWidth": 320,
+      "outputWidth": 2048,
+      "byteIdenticalToOriginal": true,
+      "originalMs": 15811.331878999965,
+      "serialNttMs": 1133.6316269999998,
+      "nttMs": 632.1395300000177,
+      "nttReplayMs": 614.9669959999073,
+      "timingOrder": [
+        "original",
+        "serial",
+        "parallel",
+        "parallel-replay"
+      ],
+      "resultBytes": 24664
+    },
+    {
+      "profile": "declared-quant12-message35",
+      "rows": 1,
+      "inputWidth": 512,
+      "outputWidth": 1,
+      "byteIdenticalToOriginal": true,
+      "originalMs": 21.393246000002364,
+      "serialNttMs": 792.9476020000266,
+      "nttMs": 266.9213140000011,
+      "nttReplayMs": 266.09979599993494,
+      "timingOrder": [
+        "original",
+        "parallel",
+        "serial",
+        "parallel-replay"
+      ],
+      "resultBytes": 12384
+    },
+    {
+      "profile": "declared-quant12-message35",
+      "rows": 1,
+      "inputWidth": 512,
+      "outputWidth": 48,
+      "byteIdenticalToOriginal": true,
+      "originalMs": 305.1569549999158,
+      "serialNttMs": 800.4590889999008,
+      "nttMs": 274.63318000002346,
+      "nttReplayMs": 280.6712469999866,
+      "timingOrder": [
+        "original",
+        "serial",
+        "parallel",
+        "parallel-replay"
+      ],
+      "resultBytes": 12664
+    },
+    {
+      "profile": "declared-quant12-message35",
+      "rows": 1,
+      "inputWidth": 512,
+      "outputWidth": 512,
+      "byteIdenticalToOriginal": true,
+      "originalMs": 3984.751263000021,
+      "serialNttMs": 893.0399529999704,
+      "nttMs": 355.8314070000961,
+      "nttReplayMs": 357.531033999976,
+      "timingOrder": [
+        "original",
+        "parallel",
+        "serial",
+        "parallel-replay"
+      ],
+      "resultBytes": 15448
+    },
+    {
+      "profile": "declared-quant12-message35",
+      "rows": 1,
+      "inputWidth": 512,
+      "outputWidth": 640,
+      "byteIdenticalToOriginal": true,
+      "originalMs": 4998.849227999926,
+      "serialNttMs": 909.0143060000173,
+      "nttMs": 384.41443499993966,
+      "nttReplayMs": 387.37394099996436,
+      "timingOrder": [
+        "original",
+        "serial",
+        "parallel",
+        "parallel-replay"
+      ],
+      "resultBytes": 16216
+    },
+    {
+      "profile": "declared-quant12-message35",
+      "rows": 1,
+      "inputWidth": 512,
+      "outputWidth": 2048,
+      "byteIdenticalToOriginal": true,
+      "originalMs": 16247.307311999975,
+      "serialNttMs": 1169.1057279999768,
+      "nttMs": 616.2934879999966,
+      "nttReplayMs": 615.348547999929,
+      "timingOrder": [
+        "original",
+        "parallel",
+        "serial",
+        "parallel-replay"
+      ],
+      "resultBytes": 24664
+    },
+    {
+      "profile": "declared-quant12-message35",
+      "rows": 1,
+      "inputWidth": 640,
+      "outputWidth": 512,
+      "byteIdenticalToOriginal": true,
+      "originalMs": 3930.9999890000427,
+      "serialNttMs": 873.2702070000187,
+      "nttMs": 366.55385400001705,
+      "nttReplayMs": 356.61794299994654,
+      "timingOrder": [
+        "original",
+        "serial",
+        "parallel",
+        "parallel-replay"
+      ],
+      "resultBytes": 15448
+    },
+    {
+      "profile": "declared-quant12-message35",
+      "rows": 1,
+      "inputWidth": 640,
+      "outputWidth": 2048,
+      "byteIdenticalToOriginal": true,
+      "originalMs": 15516.136226999948,
+      "serialNttMs": 1133.2558519999338,
+      "nttMs": 626.9831229999454,
+      "nttReplayMs": 649.5249869999498,
+      "timingOrder": [
+        "original",
+        "parallel",
+        "serial",
+        "parallel-replay"
+      ],
+      "resultBytes": 24664
+    },
+    {
+      "profile": "declared-quant12-message35",
+      "rows": 1,
+      "inputWidth": 2048,
+      "outputWidth": 1,
+      "byteIdenticalToOriginal": true,
+      "originalMs": 21.189801999980773,
+      "serialNttMs": 795.4037590000098,
+      "nttMs": 268.3199519999562,
+      "nttReplayMs": 281.7474849999826,
+      "timingOrder": [
+        "original",
+        "serial",
+        "parallel",
+        "parallel-replay"
+      ],
+      "resultBytes": 12384
+    },
+    {
+      "profile": "declared-quant12-message35",
+      "rows": 1,
+      "inputWidth": 2048,
+      "outputWidth": 4,
+      "byteIdenticalToOriginal": true,
+      "originalMs": 26.62384700010989,
+      "serialNttMs": 793.41215799991,
+      "nttMs": 268.1222680000701,
+      "nttReplayMs": 269.4860689999814,
+      "timingOrder": [
+        "original",
+        "parallel",
+        "serial",
+        "parallel-replay"
+      ],
+      "resultBytes": 12400
+    },
+    {
+      "profile": "declared-quant12-message35",
+      "rows": 1,
+      "inputWidth": 2048,
+      "outputWidth": 48,
+      "byteIdenticalToOriginal": true,
+      "originalMs": 307.2229530000641,
+      "serialNttMs": 803.8554340000701,
+      "nttMs": 273.8709259999723,
+      "nttReplayMs": 281.410606999998,
+      "timingOrder": [
+        "original",
+        "serial",
+        "parallel",
+        "parallel-replay"
+      ],
+      "resultBytes": 12664
+    },
+    {
+      "profile": "declared-quant12-message35",
+      "rows": 1,
+      "inputWidth": 2048,
+      "outputWidth": 320,
+      "byteIdenticalToOriginal": true,
+      "originalMs": 2508.465294999951,
+      "serialNttMs": 860.9208919999674,
+      "nttMs": 338.7717649999331,
+      "nttReplayMs": 327.4582340000052,
+      "timingOrder": [
+        "original",
+        "parallel",
+        "serial",
+        "parallel-replay"
+      ],
+      "resultBytes": 14296
+    },
+    {
+      "profile": "declared-quant12-message35",
+      "rows": 1,
+      "inputWidth": 2048,
+      "outputWidth": 512,
+      "byteIdenticalToOriginal": true,
+      "originalMs": 4022.8228700000273,
+      "serialNttMs": 896.9771719999926,
+      "nttMs": 370.2991360000851,
+      "nttReplayMs": 365.0944510000045,
+      "timingOrder": [
+        "original",
+        "serial",
+        "parallel",
+        "parallel-replay"
+      ],
+      "resultBytes": 15448
+    },
+    {
+      "profile": "declared-quant12-message35",
+      "rows": 1,
+      "inputWidth": 2048,
+      "outputWidth": 640,
+      "byteIdenticalToOriginal": true,
+      "originalMs": 4902.215189000003,
+      "serialNttMs": 908.1012100000407,
+      "nttMs": 389.8798870000064,
+      "nttReplayMs": 391.1200029999691,
+      "timingOrder": [
+        "original",
+        "parallel",
+        "serial",
+        "parallel-replay"
+      ],
+      "resultBytes": 16216
+    },
+    {
+      "profile": "declared-quant12-message35",
+      "rows": 1,
+      "inputWidth": 2048,
+      "outputWidth": 2048,
+      "byteIdenticalToOriginal": true,
+      "originalMs": 15991.497926999955,
+      "serialNttMs": 1154.7648229999368,
+      "nttMs": 660.6642360000023,
+      "nttReplayMs": 655.3771060000599,
+      "timingOrder": [
+        "original",
+        "serial",
+        "parallel",
+        "parallel-replay"
+      ],
+      "resultBytes": 24664
+    },
+    {
+      "profile": "declared-quant12-message35",
+      "rows": 5,
+      "inputWidth": 2048,
+      "outputWidth": 640,
+      "byteIdenticalToOriginal": true,
+      "originalMs": 24757.64609700002,
+      "serialNttMs": 4521.440424999923,
+      "nttMs": 1912.7120919999925,
+      "nttReplayMs": 1901.892068000052,
+      "timingOrder": [
+        "original",
+        "parallel",
+        "serial",
+        "parallel-replay"
+      ],
+      "resultBytes": 81048
+    }
+  ],
+  "clientLifetimePeakRssBytes": 2161553408,
+  "interpretation": "Fixed public native arithmetic fixtures, including full packing/multi-block/multi-row; one timing observation, no model throughput or independent security review"
+}

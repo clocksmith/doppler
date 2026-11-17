@@ -50,6 +50,19 @@ The benchmark alternates fused/unfused-parallel order and requires every complet
 serialized result to match the original arithmetic. Native qualification and
 new all-shape resource measurements are required before claiming improvement.
 
+The parallel-only `0.1.9+ntt.2` build at `59471aed0` passed CI
+[44065844984](https://github.com/clocksmith/doppler/actions/runs/44065844984):
+all 24 original/serial/parallel/replay serialized comparisons, native tamper and
+cancellation checks, and 60 separate-process encrypted feedback calls. In the
+16 same-key 35-bit cases, serial/parallel time ratios ranged from 1.75 to 2.97
+(median 2.40); the five-row 2048-by-640 fixture measured 4,521.44 versus 1,912.71
+ms. These are individual synthetic observations, not a repeated-trial or
+full-model speedup claim. The separate-process probe completed in 87.83 seconds
+with a 4,558,827,520-byte cgroup peak under the hard eight-GiB limit. Its
+unchanged artifacts and explicit scope are retained in
+`../evidence/storage/native-packing-parallel-{arithmetic,process,context}.json`.
+The fused candidate is separate and is not qualified by this earlier result.
+
 The [retained native run](../evidence/native-ntt/context.json) at revision
 `04ed459671632b23bcf0bee1cb8e555f6282feed` passed eight complete serialized-result
 comparisons against the original arithmetic and a second fast replay, covering

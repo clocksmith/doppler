@@ -572,6 +572,19 @@ multiply-accumulate and one normalization per unchanged CRT group, retaining
 serial and unfused-parallel diagnostic baselines. It has a separate native
 version/build identity and requires the same complete byte/feedback qualification.
 
+The parallel-only candidate `59471aed0` passed native CI
+[44065844984](https://github.com/clocksmith/doppler/actions/runs/44065844984),
+including all 24 original/serial/parallel serialized comparisons, tamper and
+cancellation checks, and 60 encrypted feedback calls in separate processes.
+The directly retained `native-packing-parallel-*.json` records report a new
+531,319.10-second (6.15-day) synthetic projection for the **same complete
+four-output request**. The same-run five-row 2048-by-640 native comparison was
+4,521.44 ms serial versus 1,912.71 ms parallel. Cross-run hardware equivalence
+with the earlier 13.13-day observation is not established, so the two projected
+totals are not a controlled model-speedup result. Neither experiment executed
+the actual Flash checkpoint. The fused candidate remains a separate build and
+must pass its own gate; production admission stays closed.
+
 Append `--readiness-only` to the resource-gated runner above for the next bounded
 physical memory gate. This mutually exclusive alternative to `--prepare-only`
 authenticates the complete model, compiles and verifies every coefficient against
