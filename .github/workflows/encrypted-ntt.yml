@@ -37,7 +37,6 @@ jobs:
       - name: Prepare and verify the exact public source variant
         run: |
           python tools/privacy-concrete/native-ntt/prepare.py --destination "$RUNNER_TEMP/concrete-ntt-source"
-          cargo generate-lockfile --locked --manifest-path "$RUNNER_TEMP/concrete-ntt-source/rust/Cargo.toml"
           python tools/privacy-concrete/native-ntt/check_lock.py "$RUNNER_TEMP/concrete-ntt-source/rust/Cargo.lock"
           cp "$RUNNER_TEMP/concrete-ntt-source/rust/Cargo.lock" "$RUNNER_TEMP/ntt-Cargo.lock"
       - name: Install pinned client dependencies for the optional storage probe
