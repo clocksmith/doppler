@@ -56,7 +56,7 @@ class ResourceMeter:
         return record
 
     def mark(self,phase):
-        if phase not in ('after-public-preparation','after-key-generation','after-provider-readiness','after-generation-validation','probe-start','probe-complete'):
+        if phase not in ('after-public-preparation','after-key-generation','after-provider-readiness','after-provider-close','after-generation-validation','probe-start','probe-complete'):
             raise ValueError('Installed public resource phase required')
         record=self._sample()
         with self.lock:self.phases.append(dict(phase=phase,**record))
