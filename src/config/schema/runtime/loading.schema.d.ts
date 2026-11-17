@@ -187,8 +187,9 @@ export interface Qwen35RoutedConfig {
   compactPrefillReuse: 'none' | 'resident-gpu';
   /** Seed the first complete prefill selection into compact slots by observed frequency, then recency. */
   prefillCompactAdmission: 'none' | 'selected-frequency-first';
-  /** Generic expert-parallel uses scratch; lease-parallel schedules compact plane tasks through bounded owned leases. */
-  sourceReadMode: 'plane-serial' | 'expert-parallel' | 'lease-parallel';
+  /** Generic expert-parallel uses scratch; lease-parallel schedules planes;
+   * expert-lease-batch requires one bounded owned batch for all expert planes. */
+  sourceReadMode: 'plane-serial' | 'expert-parallel' | 'lease-parallel' | 'expert-lease-batch';
   /** Write authenticated source ranges to their logical working-bank offsets without temporary expert buffers. */
   prefillUploadMode: 'expert-copy' | 'direct-bank';
   /** LFU retains causal lifetime counts until unload; LRU remains the default. */

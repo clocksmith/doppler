@@ -37,10 +37,15 @@ export async function readRoutedExpertRange(options, stats, plane, expert, offse
 /** @param {import('./routed-expert-cache.js').RoutedExpertCacheOptions} options
  * @param {import('./routed-expert-plan.js').RoutedExpertBankPlan} plan */
 export function assertExpertReadShape(options, plan) {
-  if (options.policy.sourceReadMode === 'lease-parallel') {
+  if (options.policy.sourceReadMode === 'lease-parallel' || options.policy.sourceReadMode === 'expert-lease-batch') {
     if (!options.rangeLease || plan.planes.some(plane => plane.location.sourceTransform != null
       || (plane.location.spans && plane.location.spans.length !== 1))) {
       throw new Error('Parallel leased planes require an owned range port and unchanged single-span planes.');
+    }
+    if (options.policy.sourceReadMode === 'expert-lease-batch'
+      && (typeof options.rangeLease.readMany !== 'function' || plan.planes.length < 1 || plan.planes.length > 3
+        || plan.expertBytes > options.rangeLease.maxPartBytes)) {
+      throw new Error('Batched expert leases require one admitted output covering all unchanged expert planes.');
     }
     return;
   }
@@ -50,6 +55,47 @@ export function assertExpertReadShape(options, plan) {
     || plan.planes.some(plane => plane.location.sourceTransform != null)) {
     throw new Error('Parallel expert reads require direct ranges, no lease port, unchanged packed planes and one complete bounded scratch payload.');
   }
+}
+
+/** @type {typeof import('./routed-expert-source.js').readRoutedExpertLease} */
+export async function readRoutedExpertLease(options, stats, plan, expert, signal, layerStats) {
+  assertExpertReadShape(options, plan);
+  const port = options.rangeLease;
+  if (options.policy.sourceReadMode !== 'expert-lease-batch' || !port?.readMany
+    || !Number.isSafeInteger(expert) || expert < 0 || expert >= plan.numExperts
+    || plan.planes.reduce((sum, plane) => sum + plane.expertBytes, 0) !== plan.expertBytes) {
+    throw new Error('Batched expert lease requires an exact declared expert extent.');
+  }
+  const parts = plan.planes.map(plane => {
+    const physical = plane.location.spans?.[0] ?? plane.location;
+    const offset = Number(physical.offset) + expert * plane.expertBytes;
+    if (!Number.isSafeInteger(physical.shardIndex) || Number(physical.shardIndex) < 0
+      || !Number.isSafeInteger(physical.offset) || Number(physical.offset) < 0
+      || !Number.isSafeInteger(physical.size) || Number(physical.size) < 0
+      || !Number.isSafeInteger(Number(physical.offset) + Number(physical.size))
+      || !Number.isSafeInteger(plane.expertBytes) || plane.expertBytes <= 0 || plane.expertBytes % 4
+      || !Number.isSafeInteger(offset) || offset % 4 || !Number.isSafeInteger(offset + plane.expertBytes)
+      || offset + plane.expertBytes > Number(physical.offset) + Number(physical.size)) {
+      throw new Error('Batched expert range exceeds its declared physical plane.');
+    }
+    return { shard: Number(physical.shardIndex), offset, length: plane.expertBytes };
+  });
+  signal.throwIfAborted();
+  const started = performance.now();
+  const lease = await port.readMany(parts, signal);
+  try {
+    signal.throwIfAborted();
+    if (lease.bytes.byteLength !== plan.expertBytes) throw new Error('Batched expert range length mismatch.');
+    const elapsed = performance.now() - started;
+    stats.sourceReads += parts.length;
+    stats.sourceReadBytes += plan.expertBytes;
+    stats.sourceReadWaitMs += elapsed;
+    if (layerStats) {
+      layerStats.sourceReadBytes += plan.expertBytes;
+      layerStats.sourceReadWaitMs += elapsed;
+    }
+    return lease;
+  } catch (error) { lease.release(); throw error; }
 }
 
 /** @param {import('./routed-expert-cache.js').RoutedExpertCacheOptions} options

@@ -23,8 +23,13 @@ export async function createVerifiedPieceStorage(options) {
         indexIdentity: pinned.indexIdentity, startupSignal: pinned.signal });
     }
     pinned.signal?.throwIfAborted();
+    let closed = false;
+    /** @type {Set<Promise<import('./verified-piece-gather.js').VerifiedRangeLease>>} */
+    const operations = new Set();
     const close = async () => {
+      closed = true;
       const results = await Promise.allSettled([reader.close(), gather?.close()]);
+      await Promise.allSettled([...operations]);
       const failed = results.find(result => result.status === 'rejected');
       if (failed) throw failed.reason;
     };
@@ -61,11 +66,33 @@ export async function createVerifiedPieceStorage(options) {
     storage.preflight = reader.preflight;
     if (gather) {
       const port = gather.rangeLease;
+      /** @param {(signal: AbortSignal) => Promise<import('./verified-piece-gather.js').VerifiedRangeLease>} open
+       * @param {AbortSignal} signal */
+      const readScoped = (open, signal) => {
+        const activeSignal = pinned.signal && signal ? AbortSignal.any([pinned.signal, signal]) : pinned.signal ?? signal;
+        const operation = (async () => {
+          activeSignal?.throwIfAborted();
+          if (closed) throw new Error('Verified source storage closed.');
+          const lease = await open(activeSignal);
+          try {
+            activeSignal?.throwIfAborted();
+            if (closed) throw new Error('Verified source storage closed.');
+            return lease;
+          } catch (error) { lease.release(); throw error; }
+        })();
+        operations.add(operation);
+        operation.finally(() => operations.delete(operation)).catch(() => {});
+        return operation;
+      };
+      const { readMany, ...basePort } = port;
+      /** @type {import('./verified-piece-gather.js').VerifiedRangeLeasePort['readMany']} */
+      const scopedReadMany = typeof readMany === 'function'
+        ? (ranges, signal) => readScoped(active => readMany.call(port, ranges, active), signal) : undefined;
       /** @type {import('./verified-piece-gather.js').VerifiedRangeLeasePort} */
-      const scopedPort = { ...port, read: (shard, offset, length, signal) => {
-        const activeSignal = pinned.signal ? AbortSignal.any([pinned.signal, signal]) : signal;
-        return port.read(shard, offset, length, activeSignal);
-      } };
+      const scopedPort = { ...basePort,
+        read: (shard, offset, length, signal) => readScoped(active => port.read(shard, offset, length, active), signal),
+        ...(scopedReadMany ? { readMany: scopedReadMany } : {}),
+      };
       storage.rangeLease = Object.freeze(scopedPort);
     }
     return { manifest, storage, getReceipt: reader.getReceipt, getGatherReceipt: gather ? gather.getReceipt : null };

@@ -3,6 +3,33 @@
 This directory prepares an explicit F32 comparison of Qwen3.5-0.8B text inference.
 It does not establish a speed win or equivalent native quantized products.
 
+For packed-source diagnostics, `bindLinearOutputProfile` from
+`bind-linear-output-profile.js` creates a separate profile whose linear-output
+programs use each manifest tensor's declared block encoding. The caller supplies
+the selected Doppler source root, profile and manifest, then pins the resulting
+profile and binding receipt before execution. The helper preserves shader bytes
+and learned weights, rejects unsupported programs, and checks all declared
+weight consumers through that source's representation planner. Templates are
+never changed in place; these metadata checks do not qualify model outputs.
+An optional `requiredKernelPath` from the selected source's manifest execution
+compiler supplies missing model operation declarations at each layer/phase and
+at the root. Existing candidate declarations stay selected except for explicit
+hyper-connection compatibility: ordinary FFN norm/router and linear norm/AB fusions are removed and
+the outer-residual shared-slot down uses its registered non-residual counterpart.
+The HC executor owns its normalization and gated residual; no pending classic
+FFN inputs are fabricated. These changes and selected-source shader digests are
+recorded in `semanticBindings`. The caller pins both inputs and the additions;
+an older architecture's profile alone cannot establish
+coverage of hyper-connection, indexer or n-gram mechanisms.
+When the model's declared expert count exceeds the registered grouped sort's
+extent, preparation explicitly removes its three grouped operations and records
+ordinary routing in that receipt. Increasing the sort override alone is unsafe:
+the current shader assigns one expert to each invocation. Earlier grouped timings
+do not qualify this graph.
+An out-of-extent top-K selection must be replaced by the model's explicit
+manifest-compiled program whose registered limits cover both experts and top-K.
+Missing or insufficient replacement declarations fail preparation.
+
 1. `export-canonical.js <config.json>` verifies the pinned source manifest and
    every shard, then reconstructs selected learned tensors into F32 Safetensors.
    The output must be new. No source weights are rewritten or requantized.

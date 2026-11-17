@@ -1,0 +1,88 @@
+{
+  "schema": "doppler.public-full-qwen-ci-evidence/v1",
+  "revision": "907901a684b2ae04bd482f1666a63403decd59e1",
+  "fixtureId": "qwen05b-capital",
+  "completed": true,
+  "productionBackendAvailable": false,
+  "securityQualified": false,
+  "receivedTilesObserved": 1548,
+  "lastReceivedTile": {
+    "sequence": 1548,
+    "projection": "lm_head"
+  },
+  "report": {
+    "validationBoundary": "after-route-close/v1",
+    "backendProfile": "qwen-all-linear-ntt12-check",
+    "protocol": "concrete-glwe-qwen-all-linear-ntt12-linear-check/v1",
+    "clientLifetimePeakRssBytes": 4445151232,
+    "schema": "doppler.full-qwen-hybrid-execution/v1",
+    "planId": "95c1f06bcbc08954a29696412115c0e5794e4fdf4fa930deaabdee905c1677cd",
+    "modelId": "4223289199791c6713ba2c98eb8f9d43a37597b09db0b2c778434dec431a6d24",
+    "executionRouteId": "95c1f06bcbc08954a29696412115c0e5794e4fdf4fa930deaabdee905c1677cd",
+    "transport": "local-process",
+    "linearProjectionCount": 169,
+    "encryptedTileCount": 1548,
+    "encryptedSteps": 4,
+    "matchesFullQuantizedGreedyReference": true,
+    "floatGreedyMatches": [
+      true,
+      true,
+      true,
+      true
+    ],
+    "maxLogitErrors": [
+      0.1342306137084961,
+      0.1423051357269287,
+      0.11329019069671631,
+      0.0813608169555664
+    ],
+    "setupMs": 37202.257541939616,
+    "stepMs": [
+      3815062.536274083,
+      494978.69220469147,
+      485830.98694635555,
+      491086.0050902702
+    ],
+    "quantizedReferenceMs": [
+      8608.160650823265,
+      2138.289309106767,
+      2433.5243101231754,
+      2429.136225953698
+    ],
+    "elapsedMs": 5344914.408148732,
+    "clientEncryptedReplayMs": 353667.06028720364,
+    "evaluatorRoundTripMs": 4893216.979648452,
+    "sentBytes": 321941848,
+    "receivedBytes": 86314626,
+    "evaluationKeyBytes": 268435536,
+    "clientPeakRss": 4340968,
+    "clientComputation": "Client nonlinearities, embeddings, caches, quantization, decoding, secret linear checks and sampled encrypted replay",
+    "integrity": "secret-linear-check-sampled-replay/v1",
+    "integrityPolicyId": "5a9580d367be8974e092a9d1c160e0cfdc22f32fe5a20f65bbdfac6203bb4327",
+    "integrityClaim": "Bounded-deviation checks with sampled exact replay; weaker than full replay; no qualified malicious-security claim",
+    "linearChecksPassed": 1548,
+    "sampledExactReplays": 93,
+    "substitutedTiles": 0,
+    "clientCheckMs": 14825.849256012589,
+    "checkVectors": 16,
+    "implementationVersions": {
+      "concrete-ml": "1.9.0",
+      "concrete-ml-extensions": "0.1.9+ntt.1",
+      "concrete-python": "2.10.0",
+      "torch": "2.3.1+cpu",
+      "transformers": "4.44.2",
+      "numpy": "1.26.4"
+    },
+    "nativeImplementation": {
+      "native-source-id": "8cb2cbd212d05c6646fb3132ebef58624738b0d0dcf7f59daebe3e0766e17bf9",
+      "native-binary-sha256": "c9ef1fd9327c9a416d91ec52b10d3968b52ade6ab458027f287ca046e1958f55"
+    }
+  },
+  "publicFixtureOutputText": " Paris. It is",
+  "publicFixtureOutputTokens": [
+    12095,
+    13,
+    1084,
+    374
+  ]
+}

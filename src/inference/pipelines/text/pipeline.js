@@ -9,6 +9,7 @@ import { DecodeBufferManager } from '../../decode-buffers.js';
 import { DecodeRing } from '../../decode-ring.js';
 import { applyPipelineContexts, restorePipelineContexts } from '../context.js';
 import { createInitializedPipeline } from '../factory.js';
+import { snapshotExpertLoadingStats } from './expert-loading-stats.js';
 
 import { computeLogits } from './logits/index.js';
 import { getLogitsConfig, getLogitsWeights } from "./logits/logits-config.js";
@@ -402,6 +403,10 @@ export class InferencePipeline extends PipelineState {
   // ==========================================================================
   // Utility Methods
   // ==========================================================================
+
+  getExpertLoadingStats() {
+    return snapshotExpertLoadingStats(this);
+  }
 
   getStats() {
     const stats = { ...this.stats };

@@ -5,6 +5,7 @@ import { markDeviceLost } from '../../src/memory/device-residency.js';
 import { computeCanonicalSha256 } from '../../src/formats/canonical-hash.js';
 import { resolveGenerationOptions } from '../../src/config/generation-contract.js';
 import { createLayerPartitionPlan } from '../../src/config/layer-partition-plan.js';
+import { snapshotExpertLoadingStats } from '../../src/inference/pipelines/text/expert-loading-stats.js';
 
 const plan = createLayerPartitionPlan({ modelId: 'model', numLayers: 2, hiddenSize: 4,
   vocabSize: 8, splitLayer: 1, activationDtype: 'f32' });
@@ -46,6 +47,7 @@ const active = await sessionWith(() => { enteredTokenization(); return delayed; 
 const signal = new AbortController().signal;
 const tokenization = active.session.tokenize({ identity: identity('pending'), messages: 'prompt', signal });
 await entered;
+assert.throws(() => active.session.getExpertLoadingStats(), /idle resident boundary/);
 const settled = active.session.closeAttempt({ identity: identity('pending') });
 let closeSettled = false;
 settled.then(() => { closeSettled = true; });
@@ -59,11 +61,13 @@ await assert.rejects(active.session.tokenize({ identity: identity('pending'), me
 await active.session.close();
 assert.equal(active.closes, 1);
 assert.equal(active.session.getDescriptor().ready, false);
+assert.throws(() => active.session.getExpertLoadingStats(), /closed/);
 assert.equal(active.session.getRecoveryCapabilities().inputReplay, false);
 for (const id of ['unseen-a', 'unseen-b']) await active.session.closeAttempt({ identity: identity(id) });
 await active.session.closeAttempt({ identity: identity('pending') });
 
 const failed = await sessionWith(async () => { throw new Error('tokenizer failed'); });
+assert.throws(() => failed.session.getExpertLoadingStats(), /does not support/);
 await assert.rejects(failed.session.tokenize({ identity: identity('failure'), messages: 'prompt', signal }), /tokenizer failed/);
 await failed.session.closeAttempt({ identity: identity('failure') });
 await failed.session.close();
@@ -73,6 +77,7 @@ const lost = await sessionWith(() => [1]);
 lost.pipeline.gpuContext = { device: lost.device };
 markDeviceLost(lost.device);
 assert.equal(lost.session.getDescriptor().ready, false);
+assert.throws(() => lost.session.getExpertLoadingStats(), /device was lost/);
 assert.equal(lost.session.getRecoveryCapabilities().checkpointImport, false);
 await assert.rejects(lost.session.tokenize({ identity: identity('lost'), messages: 'prompt', signal }), /device was lost/);
 await lost.session.closeAttempt({ identity: identity('lost') });
@@ -80,6 +85,15 @@ await lost.session.close();
 assert.equal(lost.closes, 1);
 
 const textOnly = await sessionWith(() => [1]);
+textOnly.pipeline.isLoaded = true;
+const loaderCounters = { phaseProfiles: {}, compactLayers: { 0: { cacheHits: 2 } } };
+textOnly.pipeline.dopplerLoader.getRoutedExpertCacheStats = () => loaderCounters;
+textOnly.pipeline.dopplerLoader.getRoutedReadbackStats = () => ({ scope: 'Readback wait, not compute', phases: {} });
+textOnly.pipeline.getExpertLoadingStats = function() { return snapshotExpertLoadingStats(this); };
+const loadingSnapshot = textOnly.session.getExpertLoadingStats();
+assert.equal(loadingSnapshot.routedExpertCache.compactLayers[0].cacheHits, 2);
+loadingSnapshot.routedExpertCache.compactLayers[0].cacheHits = 9;
+assert.equal(loaderCounters.compactLayers[0].cacheHits, 2, 'Resident snapshots detach from the retained loader owner');
 for (const messages of [[null], [{ role: 'user', content: 'text', images: ['image'] }]]) {
   await assert.rejects(textOnly.session.tokenize({ identity: identity('invalid'), messages, signal }), /text-only/);
 }

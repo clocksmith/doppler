@@ -128,7 +128,11 @@ def run(args):
     torch.set_num_threads(args.threads);turn=Turn(args.lock,args.pause_file);started=time.perf_counter()
     report=dict(schema=SCHEMA,repository=TEXT['repository'],revision=TEXT['revision'],sourceId=digest(canonical(TEXT)),completed=False,
                 encryptedExecution=False,productionBackendAvailable=False,securityQualified=False,cpuThreads=args.threads,steps=args.steps)
-    report['metadata']=metadata(args.source);publish(report_path,report);log('metadata-verified',**report['metadata'])
+    # Wait for the host turn before touching the checkpoint at all, headers included.
+    turn.acquire()
+    try:report['metadata']=metadata(args.source)
+    finally:turn.release()
+    publish(report_path,report);log('metadata-verified',**report['metadata'])
     provision_reference(args.reference);reference=Path(args.reference)/'modeling_qwen4_exp.py'
     with ExitStack() as stack:
         decoders=[];began=time.perf_counter();verified=0

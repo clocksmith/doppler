@@ -293,7 +293,7 @@ def run(model_dir,cache_dir,prompt,progress=lambda event:None,cancelled=None,dep
                     clientLocalOutputText=tokenizer.decode(tokens[original_count:]),matchesFullQuantizedGreedyReference=True,
                     floatGreedyMatches=float_matches,maxLogitErrors=errors,setupMs=setup_ms,stepMs=step_ms,quantizedReferenceMs=reference_ms,
                     elapsedMs=(time.perf_counter()-started)*1000,implementationVersions=installed_versions(),clientEncryptedReplayMs=bridge.replay_seconds*1000,
-                    evaluatorRoundTripMs=bridge.remote_seconds*1000,timingSemantics='round-trip-includes-client-replay/v1',sentBytes=bridge.sent,receivedBytes=bridge.received,
+                    evaluatorRoundTripMs=bridge.remote_seconds*1000,timingSemantics='round-trip-excludes-sampled-replay/v1' if checked else 'round-trip-includes-client-replay/v1',sentBytes=bridge.sent,receivedBytes=bridge.received,
                     evaluationKeyBytes=bridge.key_bytes,clientPeakRss=resource.getrusage(resource.RUSAGE_SELF).ru_maxrss,
                     clientLifetimePeakRssBytes=resource.getrusage(resource.RUSAGE_SELF).ru_maxrss*(1 if platform.system()=='Darwin' else 1024),
                     clientComputation='All nonlinear/attention/embedding/cache/quantization/decoding plus '+('secret linear checks and sampled encrypted replay' if checked else 'full encrypted replay')+'; not all operations homomorphically evaluated',

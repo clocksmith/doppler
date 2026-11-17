@@ -99,6 +99,29 @@ for (const corrupt of ['capacity', 'shape']) {
   await assert.rejects(loadHyperConnectionLayerWeights(ctx, 1), /projection representation/);
 }
 {
+  // Actual GGUF small BF16 inject projections have role=other. The BF16
+  // loader expands them into an owned, tagged F32 buffer, without a wrapper.
+  const { ctx, loaded } = fixture();
+  const name = `${root}.layers.1.attn_hyper_connection.block_inject_weight.weight`;
+  const shape = ctx.tensorLocations.get(name).shape;
+  const buffer = { __dopplerFakeGPUBuffer: true, size: shape.reduce((a, b) => a * b, 1) * 4, destroy() {} };
+  tagBufferDtype(buffer, 'f32');
+  ctx.tensorLocations.set(name, { ...ctx.tensorLocations.get(name), dtype: 'BF16', role: 'other' });
+  loaded.set(name, buffer); ctx.gpuBuffers = new Set([buffer]);
+  const weights = await loadHyperConnectionLayerWeights(ctx, 1);
+  assert.equal(weights.hyperConnections.attention.inject.buffer, buffer);
+  assert.equal(weights.hyperConnections.attention.inject.dtype, 'f32');
+  assert.deepEqual(weights.hyperConnections.attention.inject.shape, shape);
+  assert.equal(ctx.gpuBuffers.size, 1, 'wrapping must not allocate or duplicate GPU ownership');
+  ctx.gpuBuffers.clear();
+  await assert.rejects(loadHyperConnectionLayerWeights(ctx, 1), /GPU projection owner/);
+  ctx.gpuBuffers.add(buffer); buffer.size = 4;
+  await assert.rejects(loadHyperConnectionLayerWeights(ctx, 1), /projection representation/);
+  buffer.size = shape.reduce((a, b) => a * b, 1) * 4;
+  ctx.tensorLocations.get(name).layout = 'col';
+  await assert.rejects(loadHyperConnectionLayerWeights(ctx, 1), /supported floating/);
+}
+{
   const { ctx, loaded } = fixture();
   const name = `${root}.layers.1.attn_hyper_connection.hc_norm.weight`;
   tagBufferDtype(loaded.get(name), 'f16');

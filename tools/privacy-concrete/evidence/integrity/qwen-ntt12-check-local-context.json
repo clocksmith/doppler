@@ -1,0 +1,74 @@
+{
+ "schema": "doppler.operator-observed-checked-qwen-context/v1",
+ "experimentRevision": "907901a684b2ae04bd482f1666a63403decd59e1",
+ "evidence": "qwen-ntt12-check-local.json",
+ "evidenceSha256": "2e6bf0d8f133f20fa4b552f62885154eaa77aa7bba81b8b826c2bef8695346d2",
+ "clientLocalReportSha256": "b27f2a63a2b7d9646450ee6fa806d628ed5b5dd3e7deefc8a60459fadb3ea508",
+ "fixtureId": "qwen05b-capital",
+ "backendProfile": "qwen-all-linear-ntt12-check",
+ "protocol": "concrete-glwe-qwen-all-linear-ntt12-linear-check/v1",
+ "planId": "95c1f06bcbc08954a29696412115c0e5794e4fdf4fa930deaabdee905c1677cd",
+ "modelId": "4223289199791c6713ba2c98eb8f9d43a37597b09db0b2c778434dec431a6d24",
+ "parameterProfile": "glwe-quant12-message35-storage48/v1",
+ "integrity": "secret-linear-check-sampled-replay/v1",
+ "integrityPolicyId": "5a9580d367be8974e092a9d1c160e0cfdc22f32fe5a20f65bbdfac6203bb4327",
+ "model": {
+  "repository": "Qwen/Qwen2.5-0.5B-Instruct",
+  "decoderLayers": 24,
+  "linearOperations": 169,
+  "tilesPerStep": 387,
+  "plannedSteps": 4
+ },
+ "sourceFilesMatchedRevision": [
+  "checked_bridge.py",
+  "linear_check.py",
+  "linear-check-policy.json",
+  "full_model.py",
+  "verified_execution.py"
+ ],
+ "execution": {
+  "startedUtc": "2026-11-17T02:13:29Z",
+  "finishedUtc": "2026-11-17T03:42:38Z",
+  "host": "One trusted Linux x86-64 test host with two cores and four hardware threads; client and evaluator were separate processes on it",
+  "transport": "local-process pipes; not a separate machine and not SSH",
+  "clientExitCode": 0,
+  "unitCpuSeconds": 6670,
+  "resourceControls": {
+   "memoryMaxBytes": 9663676416,
+   "memorySwapMaxBytes": 0,
+   "nice": 10,
+   "cpuWeight": 20,
+   "nativeThreadsPerProcess": 4
+  },
+  "unitMemoryPeak": "not retained for this run"
+ },
+ "comparisonWithRetainedReplayReceipt": {
+  "replayEvidence": "../full-qwen/ntt12-two-machine-ssh.json",
+  "sameOutputTokens": true,
+  "outputTokens": [
+   12095,
+   13,
+   1084,
+   374
+  ],
+  "clientEncryptedReplayMs": {
+   "replay": 5382318.347130436,
+   "checked": 353667.06028720364,
+   "ratio": 15.22
+  },
+  "clientCheckMs": 14825.849256012589,
+  "notMatched": "The replay receipt ran its evaluator on a different, faster machine over SSH and replayed sequentially. Elapsed time, evaluator time and step time are not comparable between the two; only client replay time on the same client host class is."
+ },
+ "timingLabelNote": "The client report from this revision carried the replay route's timing label. On the checked route the sampled replay runs after the round trip and is not inside evaluatorRoundTripMs; the label is omitted from the evidence and corrected in the following revision.",
+ "productionBackendAvailable": false,
+ "securityQualified": false,
+ "independentCryptographicReview": false,
+ "fullFlashModelExecuted": false,
+ "limitations": [
+  "One public four-token fixture on one host; not a latency distribution, a quality result or a separate-machine run.",
+  "The integrity mechanism bounds deviation and samples exact replay; it is weaker than full replay. See INTEGRITY.md.",
+  "No evaluator misbehaved in this run, so it shows completeness and cost, not detection. Detection is exercised by the tests.",
+  "The client host operator is trusted with plaintext and the secret key.",
+  "The retained full-replay receipts are unchanged."
+ ]
+}

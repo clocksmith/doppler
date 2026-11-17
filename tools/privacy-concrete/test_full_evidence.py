@@ -5,6 +5,10 @@ import unittest
 from collect_full_evidence import collect
 
 
+def collect_with(report,progress,value):
+    report.write_text(json.dumps(value));return collect(report,progress,'public-revision')
+
+
 class FullEvidenceTests(unittest.TestCase):
     def test_incomplete_logs_are_projected_without_private_or_unstructured_data(self):
         with tempfile.TemporaryDirectory() as directory:
@@ -58,6 +62,26 @@ class FullEvidenceTests(unittest.TestCase):
                 if remote['backendProfile']!='qwen-all-linear':
                     report.write_text(json.dumps(dict(remote,implementationVersions={})))
                     self.assertFalse(collect(report,progress,'public-revision')['completed'])
+            # Checked route: its own protocol, received-tile progress and integrity counters, never a replay label.
+            checked=dict(wide,backendProfile='qwen-all-linear-ntt12-check',protocol='concrete-glwe-qwen-all-linear-ntt12-linear-check/v1',
+                integrity='secret-linear-check-sampled-replay/v1',integrityPolicyId='f'*64,linearChecksPassed=1548,sampledExactReplays=93,substitutedTiles=0,
+                clientCheckMs=14825.8,checkVectors=16,securityQualified=False,timingSemantics='round-trip-excludes-sampled-replay/v1')
+            tile=dict(sequence=1548,projection='lm_head')
+            progress.write_text(json.dumps(dict(event='verified-tile',**tile))+'\n')
+            report.write_text(json.dumps(checked));self.assertFalse(collect(report,progress,'public-revision')['completed'])
+            progress.write_text(json.dumps(dict(event='received-tile',**tile))+'\n')
+            accepted=collect(report,progress,'public-revision');self.assertTrue(accepted['completed'])
+            self.assertEqual(accepted['report']['integrity'],'secret-linear-check-sampled-replay/v1');self.assertEqual(accepted['report']['sampledExactReplays'],93)
+            self.assertNotIn('verifiedTilesObserved',accepted);self.assertNotIn('Full deterministic replay',json.dumps(accepted))
+            self.assertEqual(accepted['report']['timingSemantics'],'round-trip-excludes-sampled-replay/v1')
+            stale=collect_with(report,progress,dict(checked,timingSemantics='round-trip-includes-client-replay/v1'))
+            self.assertTrue(stale['completed']);self.assertNotIn('timingSemantics',stale['report'])
+            for change in [dict(protocol='concrete-glwe-qwen-all-linear-ntt12-replay/v1'),dict(protocol='concrete-glwe-qwen-research-ssh-replay/v2'),dict(substitutedTiles=1),
+                           dict(integrity='Full deterministic replay'),dict(linearChecksPassed=1547),dict(sampledExactReplays=0),dict(securityQualified=True),dict(integrityPolicyId='x')]:
+                self.assertFalse(collect_with(report,progress,dict(checked,**change))['completed'])
+            self.assertTrue(collect_with(report,progress,dict(checked,protocol='concrete-glwe-qwen-research-ssh-linear-check/v1'))['completed'])
+            report.write_text(json.dumps(wide));self.assertFalse(collect(report,progress,'public-revision')['completed'])
+            progress.unlink()
             report.write_text(json.dumps(value));progress.write_text(json.dumps(dict(event='run-failed',failureCode='cancelled'))+'\n')
             self.assertFalse(collect(report,progress,'public-revision')['completed'])
 
