@@ -2,7 +2,8 @@
 import json,tempfile,unittest
 from pathlib import Path
 from unittest.mock import patch
-import numpy as np
+try:import numpy as np
+except ImportError:np=None # The dependency-free smoke job has no NumPy; int16 admission maps coefficients with it.
 import flash_text_plan as replay
 import flash_text_ntt12_check_plan as plan
 from flash_component_plan import write_component
@@ -13,6 +14,9 @@ PARAMETERS=dict(parameters=dict(bits_reserved_for_computation=35),quantizationBi
 
 
 class FlashTextNtt12CheckPlanTests(unittest.TestCase):
+    def setUp(self):
+        if np is None and self._testMethodName!='test_route_is_complete_and_cannot_be_confused_with_the_replay_profile':self.skipTest('NumPy is required for int16 coefficient admission')
+
     def test_route_is_complete_and_cannot_be_confused_with_the_replay_profile(self):
         self.assertIs(plan.GEOMETRY,replay.GEOMETRY);self.assertEqual(len(plan.GEOMETRY),74501)
         self.assertNotEqual(plan.CONFIG['protocol'],replay.CONFIG['protocol']);self.assertNotEqual(plan.CONFIG['planSchema'],replay.CONFIG['planSchema'])

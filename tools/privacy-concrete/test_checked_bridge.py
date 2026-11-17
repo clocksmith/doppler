@@ -10,7 +10,8 @@ import threading
 from types import SimpleNamespace
 import unittest
 from unittest.mock import patch
-import numpy as np
+try:import numpy as np
+except ImportError:np=None # The dependency-free smoke job has no NumPy.
 from full_admission import FullRouteAdmission
 from full_plan import FullPlan,canonical
 from full_status import ExecutionRejected
@@ -30,6 +31,7 @@ class Cipher:
     def serialize(self):return self.data.tobytes()
 
 
+@unittest.skipIf(np is None,'NumPy is required for the checked-bridge arithmetic')
 class CheckedBridgeTests(unittest.TestCase):
     def setUp(self):
         self.parsed=[]

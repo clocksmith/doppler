@@ -1,15 +1,18 @@
 """Secret linear-check arithmetic and its stated acceptance bound; numpy only, no native crypto."""
 import copy
 import unittest
-import numpy as np
-import linear_check
-from linear_check import CheckKey,POLICY,acceptance_bound,detection_threshold,honest_norm_bound,noise_model,tolerance
+try:
+    import numpy as np
+    import linear_check
+    from linear_check import CheckKey,POLICY,acceptance_bound,detection_threshold,honest_norm_bound,noise_model,tolerance
+except ImportError: # The dependency-free smoke job has no NumPy; these tests need it.
+    np=None
 
 PROFILE='glwe-quant12-message35-storage48/v1'
 TILE='a'*64
 
 
-def key(seed=1,policy=POLICY):return CheckKey(bytes([seed])*32,PROFILE,35,12,policy)
+def key(seed=1,policy=None):return CheckKey(bytes([seed])*32,PROFILE,35,12,POLICY if policy is None else policy)
 
 
 def fixture(generator,inputs=2048,outputs=2048,rows=1):
@@ -24,6 +27,7 @@ def honest_error(generator,shape,outputs):
     return np.rint(generator.normal(0,sigma,size=shape)).astype(np.int64)
 
 
+@unittest.skipIf(np is None,'NumPy is required for the linear-check arithmetic')
 class LinearCheckTests(unittest.TestCase):
     def test_vectors_are_deterministic_bounded_and_separated_by_secret_and_tile(self):
         first=key().vectors(TILE,640,0,2)
