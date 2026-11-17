@@ -5,7 +5,7 @@ native build. A new cooperative pause request cancels this attempt; it cannot
 resume or downgrade a partly evaluated route. Production admission stays closed.
 """
 import argparse
-from contextlib import contextmanager,ExitStack
+from contextlib import contextmanager,ExitStack,nullcontext
 import fcntl
 import hashlib
 import json
@@ -23,6 +23,13 @@ from full_status import failure_event
 from plan_backends import REBUILD_PROFILES,compiled_backend
 
 RESOURCE_POLICY=json.loads(Path(__file__).with_name('flash-resource-policy.json').read_text())
+
+
+def require_scratch_outside_source(source,scratch):
+    from flash_source_scopes import TEXT
+    immutable={source.resolve(),*((source/name).resolve().parent for name in TEXT['shards'])}
+    if not scratch.is_dir() or any(scratch.resolve().is_relative_to(root) for root in immutable):
+        raise ValueError('Existing scratch outside immutable checkpoint locations required')
 
 
 def require_private_resource_scope():
@@ -75,8 +82,10 @@ def resource_turn(lock_path,pause_path,wait_seconds,*,cancelled=None):
 
 
 def run(source_directory,reference_path,scratch_directory,prompt,*,backend_profile,tenant_id,privacy_id,
-        lock_path,pause_path,resource_wait_seconds,cancelled=None,prepare_only=False):
+        lock_path,pause_path,resource_wait_seconds,cancelled=None,prepare_only=False,progress=None):
     require_active(cancelled)
+    from client_progress import ClientProgress
+    if progress is not None and type(progress) is not ClientProgress:raise ValueError('Explicit client-local progress writer required')
     if type(prepare_only) is not bool:raise ValueError('Explicit boolean preparation mode required')
     from flash_request_state import ClientContext
     if any(not isinstance(value,str) or not 0<len(value)<=256 for value in (tenant_id,privacy_id)):
@@ -94,8 +103,8 @@ def run(source_directory,reference_path,scratch_directory,prompt,*,backend_profi
     with resource_turn(lock_path,pause_path,resource_wait_seconds,cancelled=cancelled) as active:
         resource_limits=require_private_resource_scope()
         if not source.is_dir() or not scratch.is_dir() or not reference.is_file():raise ValueError('Existing checkpoint, inspected operator source and scratch required')
-        immutable={source.resolve(),*((source/name).resolve().parent for name in TEXT['shards'])}
-        if any(scratch.resolve().is_relative_to(root) for root in immutable):raise ValueError('Scratch must be outside immutable checkpoint locations')
+        require_scratch_outside_source(source,scratch)
+        if progress is not None and progress.path.parent.resolve()!=scratch.resolve():raise ValueError('Client progress must stay inside owned scratch')
         if shutil.disk_usage(scratch).free<2*largest+64*1024**2:raise ValueError('Insufficient client and provider temporary coefficient capacity')
         versions=backend.versions() # Exact native/dependencies before source reads or keys.
         from flash_reference import SOURCE as REFERENCE
@@ -141,6 +150,7 @@ def run(source_directory,reference_path,scratch_directory,prompt,*,backend_profi
                 prepared=PreparedFlashGraph(graph,executor,temporary,quantization_bits=12,storage=EPHEMERAL_STORAGE,cancelled=active)
                 checkpoint_reference=require_checkpoint_reference(prepared,cancelled=active)
                 plan,binding=backend.write_plan(temporary,prepared,cancelled=active)
+                if progress is not None:progress.bind(plan.identity,len(plan.schedule())*settings['steps'])
                 if prepare_only:
                     require_active(active)
                     return dict(schema='doppler.actual-flash-bounded-preparation/v1',backendProfile=backend_profile,
@@ -156,7 +166,8 @@ def run(source_directory,reference_path,scratch_directory,prompt,*,backend_profi
                 floating=BoundedFloatingReference(graph,cancelled=active);owned.callback(floating.close)
                 require_active(active);secret,key=ext.cpu_create_private_key(parameters);require_active(active)
                 bridge=CheckedBridge(temporary,plan,key,cancelled=active,backend_profile=backend_profile,prepared_public_tiles=binding,
-                    parameter_profile=settings['parameterProfile'],provider_source_directory=source)
+                    parameter_profile=settings['parameterProfile'],provider_source_directory=source,
+                    **({} if progress is None else dict(observe=progress.observe)))
                 owned.callback(bridge.close) # Stop/wait provider before source or scratch cleanup.
                 context=ClientContext(tenant_id,privacy_id,graph.identity,bridge.key_id,bridge.session)
                 result=generate(prepared,list(tokens),bridge,secret,parameters,context,floating_reference=floating)
@@ -186,11 +197,18 @@ def main(arguments=None):
     parser.add_argument('--lock',required=True);parser.add_argument('--pause-file',required=True);parser.add_argument('--resource-wait-seconds',required=True,type=int)
     parser.add_argument('--public-fixture',choices=[SOURCE['publicFixture']['id']])
     parser.add_argument('--prepare-only',action='store_true',help='Authenticate and prepare the complete graph; no keys, evaluator or inference')
+    parser.add_argument('--status-file',help='New mode-0600 file directly inside scratch; sparse client-local counts, no private data or pre-close acceptance')
     args=parser.parse_args(arguments);began=time.perf_counter()
     try:
         prompt=SOURCE['publicFixture']['text'] if args.public_fixture else sys.stdin.buffer.read(SOURCE['maxPromptBytes']+1).decode('utf-8')
-        result=run(args.source,args.reference,args.scratch,prompt,backend_profile=args.backend_profile,tenant_id=args.tenant_id,privacy_id=args.privacy_id,
-            lock_path=args.lock,pause_path=args.pause_file,resource_wait_seconds=args.resource_wait_seconds,prepare_only=args.prepare_only)
+        from client_progress import ClientProgress
+        if args.status_file is not None:
+            scratch=Path(args.scratch);require_scratch_outside_source(Path(args.source),scratch)
+            if Path(args.status_file).absolute().parent.resolve()!=scratch.resolve():raise ValueError('Client progress must stay inside owned scratch')
+        with (nullcontext(None) if args.status_file is None else ClientProgress(args.status_file)) as progress:
+            result=run(args.source,args.reference,args.scratch,prompt,backend_profile=args.backend_profile,tenant_id=args.tenant_id,privacy_id=args.privacy_id,
+                lock_path=args.lock,pause_path=args.pause_file,resource_wait_seconds=args.resource_wait_seconds,prepare_only=args.prepare_only,progress=progress)
+            if progress is not None:progress.finish(prepare_only=args.prepare_only)
         if args.public_fixture:result['publicFixtureId']=args.public_fixture
         print(json.dumps(result,indent=2));return 0
     except BaseException as error:

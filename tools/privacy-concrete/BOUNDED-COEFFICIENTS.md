@@ -417,3 +417,18 @@ corruption, truncation or trailing bytes still reject the proof. For a
 from 2,049 to four, without changing identities. This is a read-count observation,
 not a measured full-model speedup; the cancelled physical attempt used the earlier
 implementation and was not patched or restarted.
+
+For an observable long route, `--status-file <scratch>/progress.jsonl` opts into
+a new exclusive mode-0600 client-local log. The file must be directly inside the
+existing scratch directory, outside immutable source locations; existing files
+and symlinks reject before execution. It constructs only plan identity and
+sparse received/planned tile counts from the admitted bridge's event sequence.
+Observer dictionaries, prompts, outputs, keys, ciphertexts, exceptions and
+integrity/check outcomes never enter these records. Reaching the total tile count
+means transport progress, not acceptance. The CLI writes `validated` only after
+the complete run returns successfully through closure, numerical validation and
+cleanup; preparation-only completion is separately labeled `prepared` with zero
+received tiles. Every record keeps production/security qualification false.
+The optional log is caller-owned and remains after exit; temporary projections
+are still removed. It is not provider evidence, attestation, a reviewed leakage
+guarantee or a replacement for the final execution receipt.
