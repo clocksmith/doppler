@@ -1,0 +1,49 @@
+{
+  "schema": "doppler.actual-flash-bounded-preparation/v1",
+  "backendProfile": "flash-text-all-linear-ntt12-rebuild-prefill5-check",
+  "sourceId": "1165149f49bfbe8e6bab1f9ea30669e1468c5dfc5833f6498a44050f7807a067",
+  "sourceRevision": "812d96e10a0dd82b69d749e68693698cf6c36daa",
+  "clientGraphId": "049371a9e7e8563923413cd56b935502de80cd50bcd9e76d24644884ebae3253",
+  "planId": "bbb45168bf40ad41ebd57a6fd880d13e77dfc402a37f825acc71bf2db6014114",
+  "linearProjectionCount": 74501,
+  "plannedEncryptedTileCount": 603472,
+  "encryptedTileCount": 0,
+  "clearCoefficientReference": {
+    "pinId": "15e40f1f61197f0f74050022f253ffdb61a7ea00bf15bf2d0b7ce23bf84c9a64",
+    "receiptRevision": "f55c321830d364730bb539ec6becb349cec66efc",
+    "receiptSha256": "ed8d28c54b9b4e194a1b565c31896c1ad4b1e87ddf9406341d2d690f08dfad99",
+    "orderedCoefficientDigest": "466aebb95c1b631665c8ddba6eb0f5e6d786ef0e12420af7a606b1de06dc4d45",
+    "projections": 74501,
+    "referenceClientGraphId": "5bfcf553c2b22e4829b4a818bdd34ecb69da40c8e1f1f669305297706ddfef9f",
+    "admittedClientGraphId": "049371a9e7e8563923413cd56b935502de80cd50bcd9e76d24644884ebae3253"
+  },
+  "implementationVersions": {
+    "concrete-ml": "1.9.0",
+    "concrete-ml-extensions": "0.1.9+ntt.1",
+    "concrete-python": "2.10.0",
+    "torch": "2.3.1+cpu",
+    "transformers": "4.44.2",
+    "numpy": "1.26.4",
+    "native-binary-sha256": "c9ef1fd9327c9a416d91ec52b10d3968b52ade6ab458027f287ca046e1958f55",
+    "native-source-id": "8cb2cbd212d05c6646fb3132ebef58624738b0d0dcf7f59daebe3e0766e17bf9",
+    "safetensors": "0.8.0"
+  },
+  "sha256VerifiedBytesIncludingRepeats": 456738193872,
+  "resourceLimits": {
+    "memoryMaxBytes": 8589934592,
+    "swapMaxBytes": 0,
+    "cpuQuotaMicros": 800000,
+    "cpuPeriodMicros": 100000,
+    "groupOomKill": true,
+    "policyId": "a8b512d045763e0fbaa77711327d417559b7f121d73e18a849ed8928bbba343a"
+  },
+  "preparationSeconds": 2224.47428169247,
+  "elapsedSeconds": 2837.108719923999,
+  "clientLifetimePeakRssBytes": 4261105664,
+  "driverSha256": "50fe642380e891efd47519c2e070c5bfb16fe9d953e62900113c03af99672d1a",
+  "actualFlashCheckpointExecuted": false,
+  "encryptedExecution": false,
+  "productionBackendAvailable": false,
+  "securityQualified": false,
+  "publicFixtureId": "flash-public-capital-text"
+}

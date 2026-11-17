@@ -1,0 +1,52 @@
+{
+  "schema": "doppler.operator-observed-bounded-flash-preparation-context/v1",
+  "record": {
+    "path": "flash-bounded-complete-preparation.json",
+    "sha256": "9d3a078ae859d52d5bcdc6d638f01ed5ae7e452638ac109c32f5ab1ae79d7c52"
+  },
+  "runtimeRevision": "131c7dd25a6db801210f4e28a6536fc661a45e92",
+  "runtimeArchive": {
+    "bytes": 2191360,
+    "sha256": "1a3465d1d45c1528f3e19e777236a2c834deda6ff584bd5766ca72eb8f3a42f9"
+  },
+  "observation": {
+    "host": "One existing Linux CPU-only research host",
+    "observedCompletedUtc": "2026-11-17T09:11:09.720035+00:00",
+    "journalStartedUtc": "2026-11-17T08:23:28+00:00",
+    "journalFinishedUtc": "2026-11-17T09:10:51+00:00",
+    "journalUnitWallClockSeconds": 2842.831,
+    "journalUnitCpuSeconds": 3770.424,
+    "journalUnitMemoryPeakBytes": 8589934592,
+    "mainProcessGone": true,
+    "unitInactive": true,
+    "ownedScratchEmpty": true,
+    "resourceWindowReleased": true,
+    "publicProviderChanged": false,
+    "sourceWritesPerformed": false
+  },
+  "scope": {
+    "completeSourceAdmission": true,
+    "completeBoundedPublicCoefficientPreparation": true,
+    "wholeProjectionReferenceCoefficientIdentitiesMatch": true,
+    "planPublished": true,
+    "prefillRows": 5,
+    "steps": 4,
+    "admittedContextLimit": 8,
+    "plannedEncryptedTiles": 603472,
+    "encryptedTilesExecuted": 0,
+    "keysGenerated": false,
+    "evaluatorStarted": false,
+    "largestDeclaredCoefficientBytes": 1271398400,
+    "coefficientStorage": "one temporary public projection, removed after each proof"
+  },
+  "limitations": [
+    "Public preparation only; no inference, encrypted model output, private request state or evaluation key was exercised",
+    "RSS is the preparation process lifetime peak; no combined client/evaluator memory qualification",
+    "The 8 GiB cgroup budget includes file cache and is kernel resource enforcement, not hardware attestation",
+    "The reference receipt uses a different context-bound graph ID; this gate compares ordered coefficient identities, not independent full-model numerical equivalence",
+    "Runtime remains the pinned revision; later feature progress logging and concurrent lease enforcement were tested separately and not hot-deployed",
+    "No full-Flash encrypted latency estimate or independent cryptographic review"
+  ],
+  "productionBackendAvailable": false,
+  "securityQualified": false
+}

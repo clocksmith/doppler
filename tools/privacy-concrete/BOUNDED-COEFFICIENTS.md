@@ -440,3 +440,24 @@ remains held through owned-file cleanup and is released on allocation failure,
 exception or cancellation, so later attempts can reuse the public preparation.
 Retained public-weight readers keep their existing behavior. This resource bound
 does not merge request state or change privacy/integrity admission.
+
+The [complete physical preparation](evidence/storage/flash-bounded-complete-preparation.json)
+and [operator context](evidence/storage/flash-bounded-complete-preparation-context.json)
+at `131c7dd25` passed under the enforced 8 GiB/no-swap/eight-core cap. All 74,501
+ordered coefficient identities, including the output head prepared in bounded
+columns, exactly matched the observed whole-projection reference. The complete
+plan schedules 603,472 encrypted tiles over five-row prefill and three decode
+steps. Source admission hashed 456,738,193,872 bytes including repeated shards;
+public quantization/proof preparation took 2,224.47 seconds, with 2,837.11 seconds
+reported through plan completion. Process lifetime peak RSS was 4,261,105,664
+bytes. The unit journal reports 2,842.83 seconds wall time and an 8 GiB cgroup
+peak including page cache. All temporary projections and the plan were removed
+on exit, and the shared resource window was released.
+
+This qualifies the complete bounded public preparation path for that pinned
+attempt. It created no keys or evaluator, executed no encrypted tiles or model
+generation, and does not qualify combined client/provider memory, latency,
+malicious-provider integrity or production privacy. Later optional progress
+logging and concurrent cache-lease enforcement were tested separately and were
+not deployed over the running pin. The resource owner holds the following window;
+encrypted generation requires a subsequent coordinated attempt.
