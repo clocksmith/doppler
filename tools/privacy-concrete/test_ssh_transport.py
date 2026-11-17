@@ -80,10 +80,14 @@ class SSHTransportTests(unittest.TestCase):
             with self.subTest(profile=profile):
                 settings,_,_,_=qwen_backend(profile)
                 plan=SimpleNamespace(identity=self.plan.identity,protocol_id=settings['protocol'],definition=self.plan.definition,frame=self.plan.frame,schedule=self.plan.schedule)
-                value=dict(self.value,schema='doppler.encrypted-ssh-route/v2',backendProfile=profile,backendProtocol=settings['protocol'])
+                checked=settings.get('integrity') is not None
+                schema='doppler.encrypted-ssh-check-route/v1' if checked else 'doppler.encrypted-ssh-route/v2'
+                value=dict(self.value,schema=schema,backendProfile=profile,backendProtocol=settings['protocol'])
                 deployment=self.deployment(value);bound=deployment.bind(plan);child=deployment.spawn(plan)
                 try:
                     header=bound.frame('public-session','public-key-context',1,'evaluate','public-tile')
+                    # A checked backend's frames never carry the replay protocol name.
+                    self.assertEqual(header['schema'].endswith('-linear-check/v1'),checked)
                     payload=b'opaque-public-v2-ciphertext-fixture'
                     send(child.stdin,header,payload,timeout=10);echoed,data,_=receive(child.stdout,timeout=10)
                     self.assertEqual(echoed,header);self.assertEqual(data,payload)
