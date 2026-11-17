@@ -14,7 +14,7 @@ class NativeSelectionTests(unittest.TestCase):
         fast,_,_,accelerated=qwen_backend('qwen-all-linear-ntt')
         self.assertNotEqual(legacy['protocol'],fast['protocol'])
         self.assertEqual(parameters['dependencies']['concrete-ml-extensions'],'0.1.9')
-        self.assertEqual(accelerated['dependencies']['concrete-ml-extensions'],'0.1.9+ntt.7')
+        self.assertEqual(accelerated['dependencies']['concrete-ml-extensions'],'0.1.9+ntt.8')
         legacy['steps']=1;parameters['parameters']['bits_reserved_for_computation']=1
         again,_,_,fresh=qwen_backend('qwen-all-linear')
         self.assertEqual(again['steps'],4);self.assertEqual(fresh['parameters']['bits_reserved_for_computation'],27)

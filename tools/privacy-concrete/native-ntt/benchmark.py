@@ -20,7 +20,7 @@ sys.path.insert(0,str(ROOT.parent))
 
 def compare_scratch(encrypted,weights,key,expected,case):
     """Compare the exact .5 path with checked conversion and group-local scratch."""
-    operations={'reference':ext.cpu_matrix_multiplication_ntt_digits_reference,'candidate':ext.cpu_matrix_multiplication_ntt}
+    operations={'reference':ext.cpu_matrix_multiplication_ntt_digits_reference,'candidate':ext.cpu_matrix_multiplication_ntt_bounded_diagnostic}
     for operation in operations.values():
         if operation(encrypted,weights,key).serialize()!=expected:raise ValueError('Scratch comparison warmup changed ciphertext bytes')
     samples=[]
@@ -84,8 +84,9 @@ def run(lock_path,public_state):
                 ('fused-reference',ext.cpu_matrix_multiplication_ntt_fused_reference),
                 ('body-reference',ext.cpu_matrix_multiplication_ntt_body_reference),
                 ('digits-reference',ext.cpu_matrix_multiplication_ntt_digits_reference),
+                ('bounded-diagnostic',ext.cpu_matrix_multiplication_ntt_bounded_diagnostic),
                 ('extracted-body',ext.cpu_matrix_multiplication_ntt),('extracted-body-replay',ext.cpu_matrix_multiplication_ntt)]
-            # Alternate candidate/.5-reference order on the same key.
+            # Alternate diagnostic/.5-reference order on the same key.
             if len(cases)%2:operations[5],operations[6]=operations[6],operations[5]
             for label,operation in operations:
                 began=time.perf_counter();result=operation(encrypted,weights,key);serialized=result.serialize()
@@ -96,6 +97,7 @@ def run(lock_path,public_state):
                               originalMs=measured['original'],serialNttMs=measured['serial'],parallelReferenceNttMs=measured['parallel-reference'],
                               fusedReferenceNttMs=measured['fused-reference'],
                               bodyReferenceNttMs=measured['body-reference'],digitsReferenceNttMs=measured['digits-reference'],
+                              boundedScratchDiagnosticMs=measured['bounded-diagnostic'],
                               nttMs=measured['extracted-body'],nttReplayMs=measured['extracted-body-replay'],
                               timingOrder=[label for label,_ in operations],resultBytes=len(results[0])))
             if (rows==1 and (width,columns) in paired_shapes) or (rows,width,columns) in ((1,2048,2048),(5,2048,640)):

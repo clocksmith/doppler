@@ -40,6 +40,17 @@ fn cpu_matrix_multiplication_ntt(
     data: PyReadonlyArray<Scalar, Ix2>,
     compression_key: &CpuCompressionKey,
 ) -> PyResult<CompressedResultEncryptedMatrix> {
+    // Preserve the measured .5 default; scratch conversion was not a clear win.
+    matrix_multiplication_ntt(encrypted_matrix,data,compression_key,crate::ntt_cpu::PackingMode::ParallelFused,crate::ntt_cpu::DotMode::ExtractedBody,crate::ntt_cpu::DigitMode::ParallelBlocks,crate::ntt_cpu::ForwardMode::AllocatingReference,None)
+}
+
+// Rejected performance candidate, retained only for explicit reproduction.
+#[pyfunction]
+fn cpu_matrix_multiplication_ntt_bounded_diagnostic(
+    encrypted_matrix: &EncryptedMatrix,
+    data: PyReadonlyArray<Scalar, Ix2>,
+    compression_key: &CpuCompressionKey,
+) -> PyResult<CompressedResultEncryptedMatrix> {
     matrix_multiplication_ntt(encrypted_matrix,data,compression_key,crate::ntt_cpu::PackingMode::ParallelFused,crate::ntt_cpu::DotMode::ExtractedBody,crate::ntt_cpu::DigitMode::ParallelBlocks,crate::ntt_cpu::ForwardMode::BoundedScratch,None)
 }
 

@@ -1,0 +1,149 @@
+{
+  "schema": "doppler.native-bounded-stream-context/v1",
+  "sourceRevision": "b48dcac705342b5d55f9fab40b9f611a5de6aab4",
+  "nativeVersion": "0.1.9+ntt.7",
+  "nativeSourceId": "ff1b4f873b577f18d02b41d453fc208a50e1e8d083a4fbda4a5db940df921600",
+  "status": "arithmetic-passed-no-convincing-performance-gain-do-not-promote",
+  "continuousIntegration": [
+    {
+      "runId": 44091977449,
+      "headSha": "b48dcac705342b5d55f9fab40b9f611a5de6aab4",
+      "conclusion": "success",
+      "url": "https://github.com/clocksmith/doppler/actions/runs/44091977449"
+    },
+    {
+      "runId": 44091982196,
+      "headSha": "b48dcac705342b5d55f9fab40b9f611a5de6aab4",
+      "conclusion": "success",
+      "url": "https://github.com/clocksmith/doppler/actions/runs/44091982196"
+    }
+  ],
+  "artifacts": [
+    {
+      "path": "evidence/storage/native-bounded-stream-arithmetic.json",
+      "sha256": "4e5118b7b401ec8022f9d5e61680de9de667fd961ddb672453efc914da0c7c47"
+    },
+    {
+      "path": "evidence/storage/native-bounded-stream-process.json",
+      "sha256": "123e0229e3a3b04d5ae332e5f4a7ee691c3611ebc177087e5224b96f06b753a2"
+    }
+  ],
+  "digitEncodingValidation": {
+    "admissibleDigitsChecked": 17410,
+    "residueComparisons": 87050,
+    "fullTransformComparisons": 8,
+    "outOfDomainValuesRejected": 8
+  },
+  "completeOriginalCiphertextCases": 24,
+  "encryptedFeedbackCalls": 60,
+  "geometrySelection": {
+    "frequentInstalledShapes": [
+      {
+        "inputWidth": 512,
+        "outputWidth": 640,
+        "tilesPerStep": 49260
+      },
+      {
+        "inputWidth": 2048,
+        "outputWidth": 640,
+        "tilesPerStep": 49260
+      },
+      {
+        "inputWidth": 640,
+        "outputWidth": 512,
+        "tilesPerStep": 24624
+      },
+      {
+        "inputWidth": 640,
+        "outputWidth": 2048,
+        "tilesPerStep": 24624
+      }
+    ],
+    "frequentInstalledTilesPerStep": 147768,
+    "allInstalledTilesPerStep": 150868,
+    "additionalGuards": "Full-width default/35-bit single row and five-row prefill"
+  },
+  "pairedObservations": [
+    {
+      "profile": "upstream-default",
+      "rows": 1,
+      "inputWidth": 2048,
+      "outputWidth": 2048,
+      "pairedSamples": 5,
+      "medianReferenceOverCandidate": 0.998682151522455,
+      "minimumPairedRatio": 0.9910434313695212,
+      "maximumPairedRatio": 1.0437954415951356
+    },
+    {
+      "profile": "declared-quant12-message35",
+      "rows": 1,
+      "inputWidth": 512,
+      "outputWidth": 640,
+      "pairedSamples": 5,
+      "medianReferenceOverCandidate": 1.004277303219582,
+      "minimumPairedRatio": 0.9683975208422356,
+      "maximumPairedRatio": 1.0413583651343223
+    },
+    {
+      "profile": "declared-quant12-message35",
+      "rows": 1,
+      "inputWidth": 640,
+      "outputWidth": 512,
+      "pairedSamples": 5,
+      "medianReferenceOverCandidate": 0.9984680896438544,
+      "minimumPairedRatio": 0.9398734014781082,
+      "maximumPairedRatio": 1.0064135562643615
+    },
+    {
+      "profile": "declared-quant12-message35",
+      "rows": 1,
+      "inputWidth": 640,
+      "outputWidth": 2048,
+      "pairedSamples": 5,
+      "medianReferenceOverCandidate": 0.9981020024498004,
+      "minimumPairedRatio": 0.9622793742464194,
+      "maximumPairedRatio": 1.0346728971680927
+    },
+    {
+      "profile": "declared-quant12-message35",
+      "rows": 1,
+      "inputWidth": 2048,
+      "outputWidth": 640,
+      "pairedSamples": 5,
+      "medianReferenceOverCandidate": 0.9983876075433344,
+      "minimumPairedRatio": 0.950140510933009,
+      "maximumPairedRatio": 1.004909297851828
+    },
+    {
+      "profile": "declared-quant12-message35",
+      "rows": 1,
+      "inputWidth": 2048,
+      "outputWidth": 2048,
+      "pairedSamples": 5,
+      "medianReferenceOverCandidate": 0.9981464303779509,
+      "minimumPairedRatio": 0.9737834819062015,
+      "maximumPairedRatio": 1.0303790025473523
+    },
+    {
+      "profile": "declared-quant12-message35",
+      "rows": 5,
+      "inputWidth": 2048,
+      "outputWidth": 640,
+      "pairedSamples": 5,
+      "medianReferenceOverCandidate": 1.0027688114990123,
+      "minimumPairedRatio": 1.0023049638266122,
+      "maximumPairedRatio": 1.0056963234499776
+    }
+  ],
+  "cgroupPeakBytes": 4558659584,
+  "disposition": "Restore the .5 allocating-transform implementation as default. Keep bounded scratch and exhaustive checks as explicit diagnostics. No further timing sweep or full-model run follows from this result.",
+  "limitations": [
+    "One hosted runner and five paired observations per shape; no stable or whole-model performance improvement demonstrated",
+    "No actual Flash checkpoint, separate-machine qualification or independent cryptographic review",
+    "No Jupiter access, deployment, lease, denied-action retry or production admission change"
+  ],
+  "actualFlashCheckpointExecuted": false,
+  "productionBackendAvailable": false,
+  "securityQualified": false,
+  "independentCryptographicReview": false
+}

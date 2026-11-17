@@ -14,6 +14,20 @@ from protocol import digest
 
 
 class NativeNttIntegrityTests(unittest.TestCase):
+    def test_rejected_scratch_candidate_is_an_explicit_exact_diagnostic(self):
+        import json
+        from pathlib import Path
+        proof=json.loads(ext.cpu_validate_ntt_digit_encoding())
+        self.assertEqual(proof,dict(admissibleDigitsChecked=17410,residueComparisons=87050,fullTransformComparisons=8,outOfDomainValuesRejected=8))
+        self.assertEqual(ext.cpu_matrix_multiplication_ntt_bounded_diagnostic(self.cipher,self.weights,self.key).serialize(),self.good)
+        # Also exercise the explicit diagnostic under the installed 35-bit domain.
+        raw=json.loads(Path(__file__).resolve().parent.parent.joinpath('precision12-policy.json').read_bytes())['parameters']
+        parameters=ext.MatmulCryptoParameters.deserialize(json.dumps(raw));secret,key=ext.cpu_create_private_key(parameters)
+        encrypted=ext.encrypt_matrix(pkey=secret,crypto_params=parameters,data=np.arange(1,17,dtype=np.uint64).reshape(1,16))
+        expected=ext.cpu_matrix_multiplication_ntt_digits_reference(encrypted,self.weights,key).serialize()
+        self.assertEqual(ext.cpu_matrix_multiplication_ntt(encrypted,self.weights,key).serialize(),expected)
+        self.assertEqual(ext.cpu_matrix_multiplication_ntt_bounded_diagnostic(encrypted,self.weights,key).serialize(),expected)
+
     @classmethod
     def setUpClass(cls):
         if ext.is_cuda_enabled() or ext.__doppler_ntt_build_id__!=ntt_source_id():raise ValueError('Exact installed CPU NTT source required')

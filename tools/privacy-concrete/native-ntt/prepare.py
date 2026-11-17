@@ -37,7 +37,8 @@ def prepare(directory):
     functions=('cpu_prepare_ntt_key','cpu_matrix_multiplication_ntt','cpu_matrix_multiplication_ntt_serial',
         'cpu_matrix_multiplication_ntt_parallel_reference','cpu_matrix_multiplication_ntt_fused_reference',
         'cpu_matrix_multiplication_ntt_body_reference','cpu_profile_ntt_packing',
-        'cpu_matrix_multiplication_ntt_digits_reference','cpu_profile_ntt_bounded_packing','cpu_validate_ntt_digit_encoding')
+        'cpu_matrix_multiplication_ntt_digits_reference','cpu_profile_ntt_bounded_packing','cpu_validate_ntt_digit_encoding',
+        'cpu_matrix_multiplication_ntt_bounded_diagnostic')
     anchor='m.add_function(wrap_pyfunction!(cpu_matrix_multiplication, m)?)?;'
     text=replace_one(text,anchor,anchor+'\n'+'\n'.join('    m.add_function(wrap_pyfunction!('+name+', m)?)?;' for name in functions))
     text+='\n'+(ROOT/'python_api.rs').read_text();p.write_text(text)

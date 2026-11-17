@@ -187,6 +187,25 @@ derived from the pinned workload rather than selected from timing results,
 alongside the prior full-width and prefill guards. New exact-build evidence is
 required before making a performance claim or choosing this path as a default.
 
+The `.7` refinement `b48dcac70` passed exact CI
+[44091977449](https://github.com/clocksmith/doppler/actions/runs/44091977449),
+including exhaustive digit checks, 24 complete ciphertext cases and 60 feedback
+calls. It did not establish a useful speedup: the seven paired median
+reference/candidate ratios ranged from 0.9981 to 1.0043. The four dominant
+geometries cover 147,768 of 150,868 installed tiles per step; their paired results
+were also effectively flat. Unmodified results and the rejection are retained
+as `../evidence/storage/native-bounded-stream-{arithmetic,process,context}.json`.
+
+Version `.8` therefore restores the measured `.5` allocating-transform path as
+the default API. Bounded scratch remains available only through the explicitly
+named `cpu_matrix_multiplication_ntt_bounded_diagnostic` and profiling APIs for
+reproduction. Native checks require both the default and diagnostic to match
+under the default and 35-bit domains, retain exhaustive encoding validation,
+and keep tamper/cancellation tests enabled even when timing sweeps are skipped.
+No new performance claim or deployed source change follows from these rejected
+candidates. Security and full-model qualification remain unsatisfied;
+production admission stays closed.
+
 The [retained native run](../evidence/native-ntt/context.json) at revision
 `04ed459671632b23bcf0bee1cb8e555f6282feed` passed eight complete serialized-result
 comparisons against the original arithmetic and a second fast replay, covering
