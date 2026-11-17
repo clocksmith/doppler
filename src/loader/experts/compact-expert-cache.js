@@ -1,7 +1,7 @@
 import { DEFAULT_EXPERT_CACHE_CONFIG, validateQwen35RoutedConfig } from "../../config/schema/runtime/loading.schema.js";
 import { createWeightBuffer } from '../../gpu/weight-buffer.js';
 import { isDeviceLost } from '../../memory/device-residency.js';
-import { readRoutedExpertRange, readRoutedExpertPayload, readRoutedExpertsLease, assertExpertReadShape } from './routed-expert-source.js';
+import { readRoutedExpertRange, readRoutedExpertPayload, readRoutedExpertsLease, readRoutedExpertPlaneLeases, assertExpertReadShape } from './routed-expert-source.js';
 
 /** @type {typeof import('./compact-expert-cache.js').compactExpertCapacity} */
 export function compactExpertCapacity(plan, options) {
@@ -109,6 +109,40 @@ export class CompactExpertCache {
     if (this.#owned.delete(buffer)) {
       this.#bytes -= buffer.size;
       this.#stats.residentBytes -= buffer.size;
+    }
+  }
+
+  /** Authenticate every plane before any upload, while hashing on separate workers.
+   * @param {import('./routed-expert-plan.js').RoutedExpertBankPlan} plan
+   * @param {import('./compact-expert-cache.js').CompactExpertPool} pool
+   * @param {{expert: number, slot: number}} miss @param {AbortSignal} signal */
+  async #fillSinglePlanes(plan, pool, { expert, slot }, signal) {
+    const started = performance.now();
+    const leases = await readRoutedExpertPlaneLeases(this.#options, this.#stats, plan, expert, signal, pool.stats);
+    let failure;
+    try {
+      signal.throwIfAborted();
+      for (const [index, plane] of plan.planes.entries()) {
+        signal.throwIfAborted();
+        const buffer = pool.planes.get(plane.role);
+        if (!buffer) throw new Error('Compact expert plane is missing.');
+        const uploadStart = performance.now();
+        this.#options.device.queue.writeBuffer(buffer, slot * plane.expertBytes, leases[index].bytes);
+        const elapsed = performance.now() - uploadStart;
+        this.#stats.uploadEnqueueMs += elapsed;
+        pool.stats.uploadEnqueueMs += elapsed;
+        this.#stats.uploadBytes += plane.expertBytes;
+        pool.stats.uploadBytes += plane.expertBytes;
+      }
+    } catch (error) { failure = error; throw error; }
+    finally {
+      const errors = [];
+      for (const lease of leases) {
+        try { lease.release(); } catch (error) { errors.push(error); }
+      }
+      this.#stats.ioWaitMs += performance.now() - started;
+      if (errors.length) throw new AggregateError(failure ? [failure, ...errors] : errors,
+        'Parallel expert upload and lease release failed.');
     }
   }
 
@@ -328,14 +362,18 @@ export class CompactExpertCache {
           this.#stats.prefillSeedBytes += bytes;
           this.#stats.prefillSeedSubmissions++;
         }
+      } else if (this.#options.policy.sourceReadMode === 'expert-lease-batch' && misses.length === 1
+        && Math.min(this.#options.policy.readConcurrency, this.#options.rangeLease?.concurrency ?? 1) >= plan.planes.length
+        && !this.#options.copyCachedExpert && !this.#options.rememberExpert) {
+        await this.#fillSinglePlanes(plan, pool, misses[0], controller.signal);
       } else {
         // A small miss set must still use the admitted lease lanes. Flatten only
         // the explicit leased mode; slots stay unpublished until every plane settles.
-        const parallelPlanes = this.#options.policy.sourceReadMode === 'lease-parallel';
-        const tasksPerExpert = parallelPlanes ? plan.planes.length : 1;
         const lanes = this.#options.rangeLease
           ? Math.min(this.#options.policy.readConcurrency, this.#options.rangeLease.concurrency ?? 1)
           : this.#options.policy.readConcurrency;
+        const parallelPlanes = this.#options.policy.sourceReadMode === 'lease-parallel';
+        const tasksPerExpert = parallelPlanes ? plan.planes.length : 1;
         const requestedBatch = this.#options.policy.expertBatchSize ?? DEFAULT_EXPERT_CACHE_CONFIG.qwen35Routed.expertBatchSize;
         // Keep admitted lanes busy before amortizing several experts in one job.
         // A fixed maximum-sized group serializes small miss sets on one worker.

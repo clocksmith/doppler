@@ -187,41 +187,45 @@ test('whole-expert identity guards run once per distinct file at both request bo
     assert.equal(S[I.openedFDs], 1);
     assert.equal(S[I.lstats], 2, 'One path guard before all reads and one after all digests');
     assert.equal(S[I.fstats], 3, 'Two identity guards plus the first descriptor regular-file check');
-    assert.equal(S[I.hashes], 3, 'Every complete piece retains its own SHA');
+    assert.equal(S[I.syncHashes], 3, 'Every complete piece retains its own SHA');
     Atomics.store(S, I.lstats, 0); Atomics.store(S, I.fstats, 0);
     h.send(f.ranges, first.buffer); const second = await h.take(value => value.buffer);
     assert.equal(second.error, undefined);
     assert.equal(S[I.lstats], 2); assert.equal(S[I.fstats], 2, 'No cross-job identity cache');
-    assert.equal(S[I.hashes], 6);
+    assert.equal(S[I.syncHashes], 6); assert.equal(S[I.hashes], 0);
     assert.deepEqual([...new Uint8Array(second.buffer)], f.payloads.flatMap(bytes => [...bytes]));
   } finally { await h.cleanup(); }
 });
 
-test('same-file batches reject mutation during reads and path replacement during digests before publication', { timeout: 5000 }, async () => {
-  for (const phase of ['read', 'digest']) {
+test('same-file batches reject mutation during reads and path replacement after hashing before publication', { timeout: 5000 }, async () => {
+  for (const phase of ['read', 'hash']) {
     const f = await sameFileFixture(), h = await direct(f), S = f.state, filename = f.files['gate.bin'];
     try {
+      if (phase === 'hash') Atomics.store(S, I.syncPauseAt, 1);
       h.send(); await until(() => S[I.reads] === 3);
       assert.equal(h.publications.length, 0);
       assert.equal(S[I.lstats], 1, 'All same-file reads share one job admission guard');
       assert.equal(S[I.fstats], 2, 'Admission includes the cold regular-file descriptor check');
       if (phase === 'read') await fs.writeFile(filename, new Uint8Array(12));
-      Atomics.store(S, I.releaseReads, 1); await until(() => S[I.hashes] === 3);
-      if (phase === 'digest') { await fs.rename(filename, filename + '.saved'); await fs.writeFile(filename, new Uint8Array(12)); }
-      Atomics.store(S, I.hashGate, 1); await until(() => S[I.hashDone] === 1);
-      assert.equal(h.publications.length, 0, 'One digest never releases the remaining job owners');
-      assert.equal(S[I.lstats], 1, 'The publication identity guard waits for every digest owner');
-      Atomics.store(S, I.releaseHashes, 1);
+      if (phase === 'hash') {
+        Atomics.store(S, I.readGate + 2, 1); await until(() => S[I.syncPaused] === 1);
+        await fs.rename(filename, filename + '.saved'); await fs.writeFile(filename, new Uint8Array(12));
+        assert.equal(S[I.syncHashes], 1);
+        assert.equal(h.publications.length, 0, 'One authenticated piece never releases remaining native read owners');
+        assert.equal(S[I.lstats], 1, 'The final identity guard waits for all native reads and hashes');
+        Atomics.store(S, I.releaseSync, 1); Atomics.notify(S, I.releaseSync);
+      }
+      Atomics.store(S, I.releaseReads, 1);
       const failed = await h.take(value => value.buffer);
       assert.match(failed.error, phase === 'read' ? /integrity/ : /identity changed/);
       assert(new Uint8Array(failed.buffer).every(byte => byte === 0));
       assert.equal(S[I.lstats], 2, 'Even rejected jobs complete their final identity guard after all siblings');
       assert.equal(S[I.activeReads], 0); assert.equal(S[I.activeHashes], 0);
-      if (phase === 'digest') { await fs.unlink(filename); await fs.rename(filename + '.saved', filename); }
+      if (phase === 'hash') { await fs.unlink(filename); await fs.rename(filename + '.saved', filename); }
       else await fs.writeFile(filename, Uint8Array.from(f.payloads.flatMap(bytes => [...bytes])));
       h.send(f.ranges, failed.buffer); const recovered = await h.take(value => value.buffer);
       assert.equal(recovered.error, undefined);
-    } finally { await h.cleanup(); }
+    } finally { Atomics.store(S, I.releaseSync, 1); Atomics.notify(S, I.releaseSync); await h.cleanup(); }
   }
 });
 
@@ -357,55 +361,61 @@ test('cancelled nine-range jobs drain every sibling native read before recycling
   } finally { await h.cleanup(); }
 });
 
-test('three direct reads and bounded digests overlap, publishing one ordered authenticated output', { timeout: 5000 }, async () => {
+test('three direct reads overlap and hash their owned outputs without snapshots before one ordered transfer', { timeout: 5000 }, async () => {
   const f = await fixture(), h = await direct(f), S = f.state;
   try {
     h.send(); await until(() => S[I.reads] === 3);
     assert.equal(S[I.readDone], 0); assert.equal(S[I.maxReads], 3);
-    Atomics.store(S, I.readGate + 2, 1); await until(() => S[I.hashes] === 1);
+    Atomics.store(S, I.readGate + 2, 1); await until(() => S[I.syncHashes] === 1);
     assert.equal(S[I.readDone], 1); assert.equal(h.publications.length, 0);
-    Atomics.store(S, I.releaseReads, 1); await until(() => S[I.hashes] === 3);
-    assert.equal(S[I.hashDone], 0); assert.equal(S[I.maxHashes], 3);
     const active = await h.receipt();
-    assert.equal(active.activeDigestCopyBytes, 12); assert.equal(active.peakDigestCopyBytes, 12);
-    assert(active.activeDigestCopyBytes <= 2 * f.maxPieceBytes);
-    Atomics.store(S, I.hashGate, 1); await until(() => S[I.hashDone] === 1);
-    assert.equal(h.publications.length, 0, 'A fast digest cannot publish a partial batch');
-    Atomics.store(S, I.releaseHashes, 1);
+    assert.equal(active.activeDigestCopyBytes, 0); assert.equal(active.peakDigestCopyBytes, 0);
+    assert.equal(S[I.activeReads], 2, 'Authenticated first output remains owned until both native siblings settle');
+    Atomics.store(S, I.releaseReads, 1);
     const message = await h.take(value => value.buffer);
     assert.equal(message.error, undefined); assert.deepEqual([...new Uint8Array(message.buffer)], f.payloads.flatMap(bytes => [...bytes]));
     const receipt = await h.receipt();
     assert.equal(receipt.activeDigestCopyBytes, 0); assert.equal(receipt.directPieceReads, 3);
+    assert.equal(receipt.peakDigestCopyBytes, 0); assert.equal(S[I.syncHashes], 3); assert.equal(S[I.hashes], 0);
   } finally { await h.cleanup(); }
 });
 
 test('one rejected read waits for late sibling writes and hashes before zero, then recovers', { timeout: 5000 }, async () => {
   const f = await fixture(), h = await direct(f), S = f.state;
   try {
-    Atomics.store(S, I.readError, 1); h.send();
+    Atomics.store(S, I.readError, 1); Atomics.store(S, I.syncPauseAt, 1); h.send();
     await until(() => S[I.reads] === 3 && S[I.readDone] === 1);
     assert.equal(h.publications.length, 0);
-    Atomics.store(S, I.releaseReads, 1); await until(() => S[I.hashes] === 2);
-    assert.equal(h.publications.length, 0, 'Read rejection must await outstanding hash owners');
-    Atomics.store(S, I.releaseHashes, 1);
+    Atomics.store(S, I.readGate, 1); await until(() => S[I.syncPaused] === 1);
+    assert.equal(h.publications.length, 0, 'Read rejection cannot zero or transfer while a synchronous hash still owns the output');
+    Atomics.store(S, I.releaseSync, 1); Atomics.notify(S, I.releaseSync);
+    assert.equal(h.publications.length, 0, 'Read rejection must await the late native sibling even after another piece hashes');
+    assert.equal(S[I.activeReads], 1);
+    Atomics.store(S, I.releaseReads, 1);
     const failed = await h.take(value => value.buffer);
     assert.match(failed.error, /positioned read failure/); assert(new Uint8Array(failed.buffer).every(byte => byte === 0));
     assert.equal(S[I.activeReads], 0); assert.equal(S[I.activeHashes], 0);
+    assert.equal(S[I.syncHashes], 2); assert.equal(S[I.hashes], 0);
     assert.equal((await h.receipt()).activeDigestCopyBytes, 0);
     Atomics.store(S, I.readError, -1); h.send(f.ranges, failed.buffer);
     const recovered = await h.take(value => value.buffer);
     assert.deepEqual([...new Uint8Array(recovered.buffer)], f.payloads.flatMap(bytes => [...bytes]));
-  } finally { await h.cleanup(); }
+  } finally { Atomics.store(S, I.releaseSync, 1); Atomics.notify(S, I.releaseSync); await h.cleanup(); }
 });
 
-test('async SHA detects corrupt content and post-read inode swaps without publishing a prefix', { timeout: 5000 }, async () => {
+test('owned-output SHA detects corrupt content and post-hash inode swaps without publishing a prefix', { timeout: 5000 }, async () => {
   for (const change of ['corrupt', 'swap']) {
     const f = await fixture(), h = await direct(f), S = f.state, filename = f.files['down.bin'];
     try {
       if (change === 'corrupt') await fs.writeFile(filename, Uint8Array.of(0, 0, 0, 0));
-      Atomics.store(S, I.releaseReads, 1); h.send(); await until(() => S[I.hashes] === 3);
-      if (change === 'swap') { await fs.rename(filename, filename + '.saved'); await fs.writeFile(filename, f.payloads[2]); }
-      Atomics.store(S, I.releaseHashes, 1);
+      if (change === 'swap') Atomics.store(S, I.syncPauseAt, 3);
+      Atomics.store(S, I.releaseReads, 1); h.send();
+      if (change === 'swap') {
+        await until(() => S[I.syncPaused] === 1);
+        assert.equal(h.publications.length, 0);
+        await fs.rename(filename, filename + '.saved'); await fs.writeFile(filename, f.payloads[2]);
+        Atomics.store(S, I.releaseSync, 1); Atomics.notify(S, I.releaseSync);
+      }
       const failed = await h.take(value => value.buffer);
       assert.match(failed.error, change === 'corrupt' ? /integrity/ : /identity changed/);
       assert(new Uint8Array(failed.buffer).every(byte => byte === 0));
@@ -415,18 +425,16 @@ test('async SHA detects corrupt content and post-read inode swaps without publis
       h.send(f.ranges, failed.buffer); const recovered = await h.take(value => value.buffer);
       assert.equal(recovered.error, undefined);
       assert.deepEqual([...new Uint8Array(recovered.buffer)], f.payloads.flatMap(bytes => [...bytes]));
-    } finally { await h.cleanup(); }
+    } finally { Atomics.store(S, I.releaseSync, 1); Atomics.notify(S, I.releaseSync); await h.cleanup(); }
   }
 });
 
-test('digest copy threshold keeps synchronous SHA and any partial range keeps serialized acquisition', { timeout: 5000 }, async () => {
+test('larger whole-piece batches hash owned outputs and partial ranges retain serialized authenticated scratch', { timeout: 5000 }, async () => {
   for (const partial of [false, true]) {
     const f = await fixture(4), h = await direct(f), S = f.state;
     try {
       if (partial) h.send([f.ranges[0], { ...f.ranges[1], offset: 1, length: 2 }]);
       else { Atomics.store(S, I.releaseReads, 1); h.send(); }
-      // Generic authentication can use WebCrypto; allow it to finish normally.
-      Atomics.store(S, I.releaseHashes, 1);
       const output = await h.take(value => value.buffer);
       assert.equal(output.error, undefined);
       assert.equal(S[I.reads], partial ? 0 : 3);
@@ -462,28 +470,36 @@ test('serialized partial ranges authenticate every complete piece with one owned
   } finally { await h.cleanup(); }
 });
 
-test('lane close rejects immediately but awaits slowest native/crypto job and closed descriptors before termination', { timeout: 10000 }, async () => {
+test('lane close rejects immediately but awaits owned native reads or synchronous hash and closed descriptors before termination', { timeout: 10000 }, async () => {
   for (const phase of ['read', 'hash']) {
     const f = await fixture(), S = f.state, h = await publicHarness(f), { gather, acks, outputs } = h;
     try {
-      if (phase === 'hash') Atomics.store(S, I.releaseReads, 1);
+      if (phase === 'hash') {
+        Atomics.store(S, I.syncPauseAt, 1); Atomics.store(S, I.releaseReads, 1);
+      }
       const pending = gather.rangeLease.readMany(h.ranges, new AbortController().signal);
-      await until(() => S[phase === 'read' ? I.reads : I.hashes] === 3);
+      await until(() => phase === 'read' ? S[I.reads] === 3 : S[I.syncPaused] === 1);
       const rejected = assert.rejects(pending, error => {
         assert.equal(error.message, 'Gather reader closed.'); return true;
       });
       let settled = false; const closing = gather.close().then(() => { settled = true; });
       await rejected;
       assert.equal(settled, false); assert.equal(S[I.terminate], 0); assert.equal(acks.length, 0);
-      const base = phase === 'read' ? I.readGate : I.hashGate;
-      Atomics.store(S, base + 2, 1);
-      await until(() => S[phase === 'read' ? I.readDone : I.hashDone] === 1);
+      if (phase === 'read') {
+        Atomics.store(S, I.readGate + 2, 1);
+        await until(() => S[I.readDone] === 1);
+      } else {
+        assert.equal(S[I.syncHashes], 1, 'Close cannot retire the worker while its completed digest still owns publication');
+        assert.equal(S[I.closedFDs], 0);
+      }
       assert.equal(settled, false); assert.equal(acks.length, 0);
       Atomics.store(S, I.releaseReads, 1); Atomics.store(S, I.releaseHashes, 1);
+      Atomics.store(S, I.releaseSync, 1); Atomics.notify(S, I.releaseSync);
       await closing;
       assert.equal(S[I.readDone], 3); assert.equal(S[I.activeReads], 0); assert.equal(S[I.activeHashes], 0);
       assert.equal(S[I.openedFDs], 3); assert.equal(S[I.closedFDs], 3);
       assert.equal(acks.length, 1); assert.equal(acks[0].receipt.activeDigestCopyBytes, 0);
+      assert.equal(acks[0].receipt.peakDigestCopyBytes, 0); assert.equal(S[I.hashes], 0);
       assert.equal(S[I.terminate], 1);
       assert(outputs.every(message => new Uint8Array(message.buffer).every(byte => byte === 0)));
     } finally { await h.cleanup(); }
@@ -494,13 +510,17 @@ test('cancellation awaits owned jobs without publication and the same lane recov
   const f = await fixture(), S = f.state, h = await publicHarness(f);
   try {
     Atomics.store(S, I.releaseReads, 1);
+    Atomics.store(S, I.syncPauseAt, 1);
     const controller = new AbortController();
     const pending = h.gather.rangeLease.readMany(h.ranges, controller.signal);
-    await until(() => S[I.hashes] === 3);
+    await until(() => S[I.syncPaused] === 1);
     controller.abort(new Error('Cancelled parallel batch'));
     const rejected = assert.rejects(pending, /Cancelled parallel batch/);
-    Atomics.store(S, I.releaseHashes, 1); await rejected;
+    assert.equal(h.outputs.length, 0);
+    Atomics.store(S, I.releaseSync, 1); Atomics.notify(S, I.releaseSync); await rejected;
     assert.equal((await h.gather.getReceipt()).activeDigestCopyBytes, 0);
+    assert.equal(S[I.activeReads], 0); assert.equal(S[I.syncHashes], 3); assert.equal(S[I.hashes], 0);
+    assert(new Uint8Array(h.outputs.at(-1).buffer).every(byte => byte === 0));
     const recovered = await h.gather.rangeLease.readMany(h.ranges, new AbortController().signal);
     assert.deepEqual([...recovered.bytes], f.payloads.flatMap(bytes => [...bytes])); recovered.release();
   } finally { await h.cleanup(); }
@@ -552,19 +572,20 @@ test('missing worker retirement acknowledgement rejects without hanging or claim
   } finally { await h.cleanup(); }
 });
 
-test('merged async copy evidence stays within the unchanged four-lane allowance', { timeout: 5000 }, async () => {
+test('four concurrent lanes authenticate all owned outputs with zero digest snapshots inside the unchanged reservation', { timeout: 5000 }, async () => {
   const f = await fixture(), S = f.state;
   f.options.concurrency = 4; f.options.memoryBudgetBytes *= 4;
   const h = await publicHarness(f);
   try {
-    Atomics.store(S, I.releaseReads, 1);
     const reads = Array.from({ length: 4 }, () => h.gather.rangeLease.readMany(h.ranges, new AbortController().signal));
-    await until(() => S[I.hashes] === 12);
-    Atomics.store(S, I.releaseHashes, 1);
+    await until(() => S[I.reads] === 12);
+    assert.equal(S[I.activeReads], 12); assert.equal(S[I.maxReads], 12);
+    Atomics.store(S, I.releaseReads, 1);
     for (const lease of await Promise.all(reads)) lease.release();
     const receipt = await h.gather.getReceipt();
-    assert.equal(receipt.activeDigestCopyBytes, 0); assert.equal(receipt.peakDigestCopyBytes, 48);
-    assert(receipt.peakDigestCopyBytes <= 4 * 2 * f.maxPieceBytes);
+    assert.equal(receipt.activeDigestCopyBytes, 0); assert.equal(receipt.peakDigestCopyBytes, 0);
+    assert.equal(S[I.syncHashes], 12); assert.equal(S[I.hashes], 0);
+    assert.equal(receipt.directPieceReads, 12); assert.equal(receipt.directPieceBytes, 48);
     assert.equal(h.gather.rangeLease.memoryBytes, f.options.memoryBudgetBytes);
   } finally { await h.cleanup(); }
 });

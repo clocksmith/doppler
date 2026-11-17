@@ -90,7 +90,8 @@ Saturation rejects another read rather than allocating beyond the admitted bound
 views are detached. Repeated release is harmless. Each lane buffer is reused, not
 reallocated for each range. Direct callers must release a lane before exceeding the declared count.
 
-`rangeLease.readMany(ranges, signal)` optionally gathers one to three positive
+`rangeLease.readMany(ranges, signal)` optionally gathers positive ranges up to the
+explicit `maxRanges` bound (three by default, at most 32)
 `{ shard, offset, length }` ranges into one concatenated owned result, in the
 caller's order without padding. Their **combined** length must fit `maxPartBytes`;
 it is not a separate allowance per range. Whole pieces are read and hashed into
@@ -101,10 +102,17 @@ file-identity checks apply to each range. Missing capability fails explicit
 `sourceReadMode: "expert-lease-batch"` admission rather than changing execution.
 Batch receipt counters distinguish requests, constituent ranges and payload
 bytes, so an actual workload can verify the intended reduction in transfers.
-When every constituent range is a complete piece, up to three positioned reads
-run concurrently into disjoint views of that one output. Async SHA also overlaps
-when the aggregate input fits the reserved two-piece allowance; otherwise hashing
-stays synchronous. Any partial range retains the serialized generic path.
+For one compact-cache miss, when all planes fit in the admitted worker count,
+the loader can acquire one plane per worker. It retains every successful lease
+until all planes authenticate before any upload. Corruption or cancellation
+settles all reads and releases every acquired lease without publishing a slot.
+Larger miss sets keep bounded whole-expert groups; retained mapped-cache hooks
+keep their whole-expert admission and copy behavior.
+When every constituent range is a complete piece, positioned reads run
+concurrently into disjoint views of that one output. Each completed read is
+hashed synchronously on the owning worker, without a WebCrypto input snapshot
+or a shared thread-pool digest job. Other admitted workers remain independent.
+Any partial range retains the serialized generic path.
 All I/O and hash jobs settle before error zeroing or transfer. Close rejects host
 admission immediately, then waits for the worker to settle those jobs, zero any
 unpublished output and close its descriptors before acknowledging retirement.
@@ -112,15 +120,15 @@ Thread termination follows that acknowledgement; a missing acknowledgement fails
 retirement rather than proving settled I/O. Published leases remain caller-owned.
 
 The admitted byte bound is `concurrency * (maxPartBytes + 2 * maxPieceBytes)`:
-every worker's maximum output and a two-piece allowance are reserved. That allowance
-holds either generic complete-piece buffers or native async digest input copies;
-these uses are mutually exclusive per request. Digest input copies ARE included.
+every worker's maximum output and a conservative two-piece allowance are reserved.
+The generic path owns one complete-piece scratch; direct whole-piece hashing
+creates no additional input copies. The existing reservation remains unchanged.
 Only fixed native crypto state, immutable metadata and VM overhead are excluded;
 it is not an RSS limit. Compact staging admission reserves that bound plus its
 fallback scratch. Do not share the adapter between concurrently preparing caches. Multiple lanes
 remove an enforced serialization point; they do not establish a measured speedup.
-`activeDigestCopyBytes` returns to zero before publication/error/close acknowledgement;
-`peakDigestCopyBytes` exposes admitted copy demand. Merged peaks sum the worker
+`activeDigestCopyBytes` and `peakDigestCopyBytes` remain in receipts for compatibility
+and are zero for worker-owned synchronous hashing. Other merged peaks sum the worker
 peaks as a conservative upper bound, rather than asserting simultaneous residency.
 `activeGenericScratchBytes`/`peakGenericScratchBytes` expose the fallback's one-piece
 scratch ownership; active ownership returns to zero before output publication or

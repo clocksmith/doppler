@@ -70,8 +70,10 @@ export async function readRoutedExpertLease(options, stats, plan, expert, signal
   return readRoutedExpertsLease(options, stats, plan, [expert], signal, layerStats);
 }
 
-/** @type {typeof import('./routed-expert-source.js').readRoutedExpertsLease} */
-export async function readRoutedExpertsLease(options, stats, plan, experts, signal, layerStats) {
+/** @param {import('./routed-expert-cache.js').RoutedExpertCacheOptions} options
+ * @param {import('./routed-expert-plan.js').RoutedExpertBankPlan} plan
+ * @param {number[]} experts */
+function prepareExpertLeaseParts(options, plan, experts) {
   assertExpertReadShape(options, plan);
   const port = options.rangeLease;
   if (options.policy.sourceReadMode !== 'expert-lease-batch' || !port?.readMany
@@ -97,9 +99,15 @@ export async function readRoutedExpertsLease(options, stats, plan, experts, sign
     }
     return { shard: Number(physical.shardIndex), offset, length: plane.expertBytes };
   }));
+  return { port, parts, readMany: port.readMany.bind(port) };
+}
+
+/** @type {typeof import('./routed-expert-source.js').readRoutedExpertsLease} */
+export async function readRoutedExpertsLease(options, stats, plan, experts, signal, layerStats) {
+  const { parts, readMany } = prepareExpertLeaseParts(options, plan, experts);
   signal.throwIfAborted();
   const started = performance.now();
-  const lease = await port.readMany(parts, signal);
+  const lease = await readMany(parts, signal);
   try {
     signal.throwIfAborted();
     if (lease.bytes.byteLength !== plan.expertBytes * experts.length) throw new Error('Batched expert range length mismatch.');
@@ -113,6 +121,44 @@ export async function readRoutedExpertsLease(options, stats, plan, experts, sign
     }
     return lease;
   } catch (error) { lease.release(); throw error; }
+}
+
+/** @type {typeof import('./routed-expert-source.js').readRoutedExpertPlaneLeases} */
+export async function readRoutedExpertPlaneLeases(options, stats, plan, expert, signal, layerStats) {
+  const { port, parts, readMany } = prepareExpertLeaseParts(options, plan, [expert]);
+  if (!Number.isSafeInteger(port.concurrency) || Number(port.concurrency) < parts.length) {
+    throw new Error('Parallel plane leases require one admitted worker lane per expert plane.');
+  }
+  signal.throwIfAborted();
+  const started = performance.now();
+  // Each owned plane goes to a separate lane. Do not return any successful
+  // prefix until all native reads, authentication and failures have settled.
+  const outcomes = await Promise.allSettled(parts.map(async part => readMany([part], signal)));
+  const leases = outcomes.flatMap(outcome => outcome.status === 'fulfilled' ? [outcome.value] : []);
+  try {
+    signal.throwIfAborted();
+    const failed = outcomes.find(outcome => outcome.status === 'rejected');
+    if (failed) throw failed.reason;
+    if (leases.some((lease, index) => lease.bytes.byteLength !== parts[index].length)) {
+      throw new Error('Parallel expert plane range length mismatch.');
+    }
+    const elapsed = performance.now() - started;
+    stats.sourceReads += parts.length;
+    stats.sourceReadBytes += plan.expertBytes;
+    stats.sourceReadWaitMs += elapsed;
+    if (layerStats) {
+      layerStats.sourceReadBytes += plan.expertBytes;
+      layerStats.sourceReadWaitMs += elapsed;
+    }
+    return leases;
+  } catch (error) {
+    const failures = [];
+    for (const lease of leases) {
+      try { lease.release(); } catch (failure) { failures.push(failure); }
+    }
+    if (failures.length) throw new AggregateError([error, ...failures], 'Parallel plane acquisition and lease cleanup failed.');
+    throw error;
+  }
 }
 
 /** @param {import('./routed-expert-cache.js').RoutedExpertCacheOptions} options

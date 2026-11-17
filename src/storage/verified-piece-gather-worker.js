@@ -1,6 +1,6 @@
 import { parentPort, workerData } from 'node:worker_threads';
 import { openSync, readSync, read as readAsync, closeSync, fstatSync, lstatSync, constants } from 'node:fs';
-import { createHash, webcrypto } from 'node:crypto';
+import { createHash } from 'node:crypto';
 import { createVerifiedPieceReader } from './verified-piece-reader.js';
 
 // This worker owns acquisition, complete-piece authentication and range gathering.
@@ -92,7 +92,6 @@ const reader = await createVerifiedPieceReader({ ...workerData.metadata,
 // can mutate the bytes between full-piece SHA and publication.
 let directPieceReads = 0, directPieceBytes = 0, acquisitionMs = 0, verificationMs = 0;
 let batchReads = 0, batchRanges = 0, batchBytes = 0;
-let activeDigestCopyBytes = 0, peakDigestCopyBytes = 0;
 let activeGenericScratchBytes = 0, peakGenericScratchBytes = 0, genericRequestedBytes = 0, genericCopyMs = 0;
 /** @type {Map<string, Readonly<import('./verified-piece-reader.js').VerifiedPiece>>} */
 const verifiedRanges = new Map();
@@ -117,28 +116,6 @@ function authenticateDirect(piece, output) {
   verificationMs += performance.now() - started;
   recordDirect(piece, identity);
 }
-/** WebCrypto snapshots only each disjoint view. The caller admits their aggregate
- * copy bytes within the already reserved two-piece allowance, otherwise SHA stays synchronous.
- * @param {Readonly<import('./verified-piece-reader.js').VerifiedPiece>} piece
- * @param {Uint8Array<ArrayBuffer>} output @param {boolean} parallelHash @param {boolean} batchIdentity */
-async function authenticateParallel(piece, output, parallelHash, batchIdentity = false) {
-  if (closing) throw new Error('Gather worker closed.');
-  if (!parallelHash) { authenticateDirect(piece, output); return; }
-  if (activeDigestCopyBytes + output.byteLength > 2 * maxPieceBytes) throw new Error('Gather digest input copy exceeds its admitted allowance.');
-  activeDigestCopyBytes += output.byteLength;
-  peakDigestCopyBytes = Math.max(peakDigestCopyBytes, activeDigestCopyBytes);
-  const started = performance.now();
-  let hash;
-  try { hash = await webcrypto.subtle.digest('SHA-256', output); }
-  finally { activeDigestCopyBytes -= output.byteLength; verificationMs += performance.now() - started; }
-  if (!batchIdentity) {
-    const handle = handles.get(piece.path);
-    if (handle === undefined) throw new Error('Gather descriptor lost before verification.');
-    assertIdentity(piece.path, handle);
-  }
-  if (closing) throw new Error('Gather worker closed.');
-  recordDirect(piece, 'sha256:' + Buffer.from(hash).toString('hex'));
-}
 /** @returns {import('./verified-piece-gather.js').VerifiedPieceGatherReceipt} */
 function getReceipt() {
   const generic = reader.getReceipt();
@@ -150,7 +127,8 @@ function getReceipt() {
     requestedBytes: generic.requestedBytes + directPieceBytes + genericRequestedBytes,
     copyMs: generic.copyMs + genericCopyMs,
     acquisitionMs: generic.acquisitionMs + acquisitionMs, verificationMs: generic.verificationMs + verificationMs,
-    directPieceReads, directPieceBytes, batchReads, batchRanges, batchBytes, activeDigestCopyBytes, peakDigestCopyBytes,
+    directPieceReads, directPieceBytes, batchReads, batchRanges, batchBytes,
+    activeDigestCopyBytes: 0, peakDigestCopyBytes: 0,
     activeGenericScratchBytes, peakGenericScratchBytes };
 }
 port.postMessage({ ready: true });
@@ -193,7 +171,6 @@ async function gather({ ranges, length, buffer, batch }) {
     }
     const pieces = ranges.map(({ path, offset, length: rangeLength }) => reader.resolveCompletePiece(path, offset, rangeLength));
     if (batch && pieces.every(piece => piece !== null)) {
-      const parallelHash = Number.isSafeInteger(2 * maxPieceBytes) && length <= 2 * maxPieceBytes;
       let destination = 0;
       const outputs = pieces.map(piece => {
         const output = new Uint8Array(buffer, destination, piece.size);
@@ -214,7 +191,11 @@ async function gather({ ranges, length, buffer, batch }) {
           const readStart = performance.now();
           try { await readFileParallel(piece, output, admitted.get(piece.path)); }
           finally { acquisitionMs += performance.now() - readStart; }
-          await authenticateParallel(piece, output, parallelHash, true);
+          if (closing) throw new Error('Gather worker closed.');
+          // This worker exclusively owns the output until transfer. Hash that
+          // storage directly, without WebCrypto's input snapshot and another
+          // shared thread-pool handoff. Other worker lanes still run in parallel.
+          authenticateDirect(piece, output);
         })();
       });
       // A rejected read must not zero or transfer a buffer while a sibling native

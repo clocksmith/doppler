@@ -79,6 +79,47 @@ test('bounded multi-expert acquisition keeps exact expert/plane order, upload li
     assert.equal(state.calls.length, callsBeforeHit, 'a fully resident selection issues no zero-sized group');
     await cache.destroy();
     state.calls.length = 0;
+    const planeWorker = await createVerifiedPieceGather({ manifestBytes, indexBytes, indexIdentity: hash(indexBytes),
+      files: { 'weights.bin': join(root, 'weights.bin') }, maxPartBytes: 72, maxRanges: 9, concurrency: 3, memoryBudgetBytes: 312 });
+    let planeCache, releasePlanes, abortPlane;
+    const planesStarted = new Promise(resolve => { releasePlanes = resolve; });
+    const partReads = [], partLeases = [];
+    const planeLease = { ...planeWorker.rangeLease, async readMany(ranges, signal) {
+      partReads.push(ranges.length);
+      if (partReads.length === 3) releasePlanes();
+      await planesStarted;
+      const lease = await planeWorker.rangeLease.readMany(ranges, signal);
+      partLeases.push(lease); abortPlane?.(); return lease;
+    } };
+    const planeOptions = { ...options, policy: { ...policy, readConcurrency: 3, stagingBytes: 528 }, rangeLease: planeLease };
+    try {
+      planeCache = new CompactExpertCache(planeOptions, createRoutedExpertCounters());
+      verify(await planeCache.prepare(plan, [7], new AbortController().signal), [7]);
+      assert.deepEqual(partReads, [1, 1, 1], 'one miss starts all authenticated planes before any completes');
+      assert(partLeases.every(lease => lease.bytes.byteLength === 0));
+      await planeCache.destroy(); planeCache = new CompactExpertCache(planeOptions, createRoutedExpertCounters());
+      const corrupted = source.slice(); corrupted[184] ^= 128;
+      await writeFile(join(root, 'weights.bin'), corrupted);
+      const beforeCorrupt = state.writes;
+      await assert.rejects(planeCache.prepare(plan, [7], new AbortController().signal), /integrity/);
+      assert.equal(state.writes, beforeCorrupt, 'every plane authenticates before ANY plane upload or map publication');
+      assert(partLeases.every(lease => lease.bytes.byteLength === 0));
+      await writeFile(join(root, 'weights.bin'), source);
+      verify(await planeCache.prepare(plan, [7], new AbortController().signal), [7]);
+      await planeCache.destroy(); planeCache = new CompactExpertCache(planeOptions, createRoutedExpertCounters());
+      state.failAt = state.writes + 2;
+      await assert.rejects(planeCache.prepare(plan, [7], new AbortController().signal), /grouped upload/);
+      state.failAt = null; assert(partLeases.every(lease => lease.bytes.byteLength === 0));
+      verify(await planeCache.prepare(plan, [7], new AbortController().signal), [7]);
+      await planeCache.destroy(); planeCache = new CompactExpertCache(planeOptions, createRoutedExpertCounters());
+      const abort = new AbortController(); abortPlane = () => abort.abort(Error('cancel authenticated planes'));
+      const beforeAbort = state.writes;
+      await assert.rejects(planeCache.prepare(plan, [7], abort.signal), /cancel authenticated planes/);
+      assert.equal(state.writes, beforeAbort); assert(partLeases.every(lease => lease.bytes.byteLength === 0));
+      abortPlane = null;
+      verify(await planeCache.prepare(plan, [7], new AbortController().signal), [7]);
+    } finally { state.failAt = null; await planeCache?.destroy(); await planeWorker.close(); }
+    state.calls.length = 0;
     cache = new CompactExpertCache(options, createRoutedExpertCounters());
     const larger = [7, 2, 5, 0, 1, 3, 6];
     verify(await cache.prepare(plan, larger, new AbortController().signal), larger);

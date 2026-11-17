@@ -16,8 +16,8 @@ export interface VerifiedPieceGatherOptions {
   concurrency?: number;
   /** Cancels asynchronous worker admission; does not replace read signals or close ownership. */
   startupSignal?: AbortSignal;
-  /** All outputs plus two-piece allowance per worker, used either for generic
-   * piece buffers or async digest input copies. Excludes fixed native digest state, metadata and VM overhead. */
+  /** All outputs plus a conservative two-piece allowance per worker for generic
+   * piece buffers. Excludes fixed native digest state, metadata and VM overhead. */
   memoryBudgetBytes: number;
 }
 export interface VerifiedRangeLease {
@@ -33,11 +33,11 @@ export interface VerifiedPieceGatherReceipt extends VerifiedPieceReceipt {
   batchReads: number;
   batchRanges: number;
   batchBytes: number;
-  /** Admitted native async SHA input copies, included in the two-piece allowance. */
+  /** Retained receipt field; direct worker-owned SHA creates no input snapshots. */
   activeDigestCopyBytes: number;
-  /** Per-worker peaks are summed as a conservative aggregate upper bound. */
+  /** Retained receipt field; zero for direct worker-owned SHA. */
   peakDigestCopyBytes: number;
-  /** Reusable owned generic piece scratch. Never overlaps direct async digest input copies. */
+  /** Reusable owned generic piece scratch. Whole-piece reads need none. */
   activeGenericScratchBytes: number;
   /** Per-worker peaks are summed as a conservative aggregate upper bound. */
   peakGenericScratchBytes: number;
