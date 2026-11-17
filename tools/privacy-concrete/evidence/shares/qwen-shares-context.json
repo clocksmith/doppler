@@ -61,7 +61,7 @@
    "transport": "local-process pipes",
    "providers": "shares_evaluator_gpu.js through a Node WebGPU binding (Vulkan)",
    "memoryMaxBytes": 17179869184,
-   "note": "The report's evaluatorTransports field says local-process for both. Source files matched revision 373ba5d57."
+   "note": "The report's evaluatorTransports field says local-process for both. Source files matched revision d896b678d (deployed from the same tree before it was rebased onto main)."
   },
   "qwen-shares-cpu-fast-host.json": {
    "startedUtc": "2026-11-17T22:12:00Z",
@@ -100,5 +100,5 @@
  ],
  "revisionNote": "Both runs used source files byte-identical to this revision (deployed from the same tree before it was rebased onto main).",
  "supersededReceipts": "Earlier receipts are in repository history: modulo 2^64 at commit 9975f02c5 (137.3 s on one host) and the first prime-field version at 8b73b5991 (42.1 s on one host, 63.1 s with one provider on a second machine). Tokens and zero difference were the same in all of them.",
- "gpuRevision": "373ba5d57"
+ "gpuRevision": "d896b678d"
 }
