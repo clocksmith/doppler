@@ -24,6 +24,7 @@ function isRecorder(target) {
 /** @param {import('../../../../gpu/command-recorder.js').CommandRecorder | null} target @param {import('../../../../gpu/tensor.js').Tensor | null} tensor */
 function release(target, tensor) {
   if (!tensor) return;
+  if (isRecorder(target) && target.decodeWorkspace?.ownsBuffer?.(tensor.buffer)) return;
   if (isRecorder(target)) target.trackTemporaryBuffer(tensor.buffer);
   else releaseBuffer(tensor.buffer);
 }
@@ -61,19 +62,26 @@ export async function runGatedResidual(target, { streams, weights, hyper, numTok
   const { streamCount, streamWidth, projectionRank, normEps } = hyper;
   const width = streamCount * streamWidth;
   const geometry = { numTokens, streamCount, streamWidth };
+  const workspace = numTokens === 1 && isRecorder(target) ? target.decodeWorkspace : null;
+  const prepared = role === 'attn_hc' || role === 'mlp_hc' ? workspace : null;
+  const branchWorkspace = mixBranch || upMixBranch ? workspace : null;
+  if ((prepared || branchWorkspace) && (!Number.isSafeInteger(layerIdx) || /** @type {number} */ (layerIdx) < 0)) {
+    throw new Error('[HyperConnection] Prepared HC outputs require an explicit layer index.');
+  }
+  /** @param {string} stage @param {number} bytes */
+  const preparedOutput = (stage, bytes) => prepared
+    ? { outputBuffer: prepared.getBuffer(`hc:${layerIdx}:${role}:${stage}`, bytes) } : {};
   /** @type {import('../../../../gpu/tensor.js').Tensor[]} */
   const temporaries = [];
   const keep = (/** @type {import('../../../../gpu/tensor.js').Tensor} */ tensor) => { temporaries.push(tensor); return tensor; };
   try {
-    const normed = keep(await ops.norm(streams, weights.norm, { ...geometry, eps: normEps, normWeightOffset: hyper.normWeightOffset }));
+    const normed = keep(await ops.norm(streams, weights.norm, { ...geometry, eps: normEps, normWeightOffset: hyper.normWeightOffset,
+      ...preparedOutput('normed', width * 4) }));
     const down = keep(await project(`${role}_down`, normed, weights.down, projectionRank, width));
-    const lowRank = keep(await ops.activate(down, { mode: 'low_rank_silu', rows: numTokens, columns: projectionRank, streamCount }));
-    const workspace = (mixBranch || upMixBranch) && numTokens === 1 && isRecorder(target) ? target.decodeWorkspace : null;
-    if (workspace && (!Number.isSafeInteger(layerIdx) || /** @type {number} */ (layerIdx) < 0)) {
-      throw new Error('[HyperConnection] Prepared mix-branch output requires an explicit layer index.');
-    }
-    const branchOptions = workspace
-      ? { ...geometry, outputBuffer: workspace.getBuffer(`hc:${layerIdx}:${role}:branch`, streamWidth * 4) }
+    const lowRank = keep(await ops.activate(down, { mode: 'low_rank_silu', rows: numTokens, columns: projectionRank, streamCount,
+      ...preparedOutput('low_rank_silu', projectionRank * 4) }));
+    const branchOptions = branchWorkspace
+      ? { ...geometry, outputBuffer: branchWorkspace.getBuffer(`hc:${layerIdx}:${role}:branch`, streamWidth * 4) }
       : geometry;
     let branchInput;
     if (upMixBranch) {
@@ -91,7 +99,8 @@ export async function runGatedResidual(target, { streams, weights, hyper, numTok
     if (!weights.inject) return { branchInput, gate: null };
     try {
       const logits = keep(await project(`${role}_inject`, normed, weights.inject, streamCount, width));
-      const gate = await ops.activate(logits, { mode: 'inject_gate', rows: numTokens, columns: streamCount, streamCount });
+      const gate = await ops.activate(logits, { mode: 'inject_gate', rows: numTokens, columns: streamCount, streamCount,
+        ...preparedOutput('inject_gate', streamCount * 4) });
       return { branchInput, gate };
     } catch (error) {
       release(target, branchInput);

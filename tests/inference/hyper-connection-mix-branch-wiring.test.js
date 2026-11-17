@@ -41,7 +41,7 @@ try {
     numTokens: 1, layerIdx: 3, role: 'attn_hc', project: async role => { state.events.push(`project:${role}`); return tensor(role); } };
   const original = await runGatedResidual(recorder, input);
   assert.ok(state.events.includes('mix_sigmoid') && state.events.includes('separate'));
-  assert.equal(state.outputs.size, 0, 'default execution does not allocate a candidate slot');
+  assert.equal(state.outputs.size, 3, 'prepared decode owns three intermediate slots independently of mix fusion');
   assert.ok(original.branchInput);
   state.events.length = 0;
   const first = await runGatedResidual(recorder, { ...input, mixBranch: true });
