@@ -36,18 +36,18 @@ class StreamNativeTests(unittest.TestCase):
         with ExitStack() as stack:
             root=Path(stack.enter_context(tempfile.TemporaryDirectory()))
             name='public-native-storage-probe';source_directory=None
+            import torch
+            from types import SimpleNamespace
+            from concrete.ml.quantization.linear_op_glwe_backend import GLWELinearLayerExecutor
+            weight=torch.from_numpy(matrix.T.copy()).float().to(torch.bfloat16).float()
+            context=SimpleNamespace(input_quantizers=[SimpleNamespace(quant_options=SimpleNamespace(n_bits=12))])
+            quantized,*_=GLWELinearLayerExecutor(use_dynamic_quantization=True)._per_channel_weight_quantization(
+                weight.numpy().T,context,torch.device('cpu'))
+            matrix=quantized.numpy().astype(np.int64)
             if rebuild:
-                import torch
-                from types import SimpleNamespace
-                from concrete.ml.quantization.linear_op_glwe_backend import GLWELinearLayerExecutor
                 from test_checkpoint_fixture import checkpoint_fixture
                 source_directory=Path(stack.enter_context(tempfile.TemporaryDirectory()))
-                weight=torch.from_numpy(matrix.T.copy()).float()
                 specification,bindings=checkpoint_fixture(source_directory,{name:weight})
-                context=SimpleNamespace(input_quantizers=[SimpleNamespace(quant_options=SimpleNamespace(n_bits=12))])
-                quantized,*_=GLWELinearLayerExecutor(use_dynamic_quantization=True)._per_channel_weight_quantization(
-                    weight.to(torch.bfloat16).float().numpy().T,context,torch.device('cpu'))
-                matrix=quantized.numpy().astype(np.int64)
                 stack.enter_context(patch('flash_provider_source.linear_source_spec',return_value=specification))
                 stack.enter_context(patch('flash_provider_source.projection_bindings',return_value=bindings))
                 stack.enter_context(patch.object(stream,'linear_source_spec',return_value=specification))
@@ -97,6 +97,7 @@ class StreamNativeTests(unittest.TestCase):
             self.assertEqual(bridge.public_coefficient_bytes_sent,0 if rebuild else len(public)*4)
             self.assertEqual(list(root.iterdir()),[root/'plan.json']);self.assertIsNone(children[0].error)
             report=dict(schema='doppler.native-stream-storage-probe/v1',steps=4,greedyFeedbackMatches=True,
+                coefficientId=digest(public),syntheticInputSeed=73,
                 nativeEncryptionSimulated=False,actualFlashCheckpointExecuted=False,separateMachine=False,
                 elapsedSeconds=time.perf_counter()-began,stepSeconds=durations,maximumIntegerErrorByStep=errors,
                 publicCoefficientBytesSent=bridge.public_coefficient_bytes_sent,totalFrameBytesSent=bridge.sent,

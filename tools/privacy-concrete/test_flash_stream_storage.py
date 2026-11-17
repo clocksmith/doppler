@@ -17,20 +17,21 @@ from unittest.mock import patch,Mock
 
 @unittest.skipUnless(os.environ.get('DOPPLER_FLASH_REFERENCE')=='1','opt-in real Torch quantizer')
 class FlashStreamStorageTests(unittest.TestCase):
-    def fixture(self,stack,*,rebuild=False):
+    def fixture(self,stack,*,rebuild=False,bf16_control=False):
         from test_flash_model_reference import FlashModelReferenceTests
         from flash_prepared_graph import PreparedFlashGraph,EPHEMERAL_STORAGE
         from concrete.ml.quantization.linear_op_glwe_backend import GLWELinearLayerExecutor
         if rebuild:import flash_text_rebuild_plan as stream
         else:import flash_text_stream_plan as stream
         torch,graph,parts,_=FlashModelReferenceTests().fixture()
-        if rebuild:
+        if rebuild or bf16_control:
             import copy
             from flash_model_graph import ClientFlashGraph
-            from test_checkpoint_fixture import checkpoint_fixture
             with torch.no_grad():
                 for parameter in torch.nn.ModuleList(list(parts)).parameters():parameter.copy_(parameter.to(torch.bfloat16).float())
             graph=ClientFlashGraph(graph.reference_path,copy.deepcopy(graph.config),*parts,context_limit=12)
+        if rebuild:
+            from test_checkpoint_fixture import checkpoint_fixture
             raw=Path(stack.enter_context(tempfile.TemporaryDirectory()))
             spec,bindings=checkpoint_fixture(raw,{name:graph.projections[name].source.weight for name in graph.order})
             self.provider_source_directory=raw
@@ -49,16 +50,18 @@ class FlashStreamStorageTests(unittest.TestCase):
         self.assertEqual(list(root.iterdir()),[root/'plan.json'])
         return torch,graph,prepared,root,plan,binding
 
-    def run_case(self,failure=None,*,rebuild=False):
+    def run_case(self,failure=None,*,rebuild=False,bf16_control=False):
         import numpy as np
         import full_model,full_bridge,full_provider,checked_bridge
         from flash_request_state import ClientContext
         from plan_backends import STREAMED_PROFILE,REBUILD_PROFILE
         PROFILE=REBUILD_PROFILE if rebuild else STREAMED_PROFILE
         from full_status import ExecutionRejected
+        from full_plan import canonical
+        from protocol import digest
         import struct
         with ExitStack() as stack:
-            torch,graph,prepared,root,plan,binding=self.fixture(stack,rebuild=rebuild)
+            torch,graph,prepared,root,plan,binding=self.fixture(stack,rebuild=rebuild,bf16_control=bf16_control)
             counts=dict(parsed=0,decrypted=0,evaluated=0)
             class Cipher:
                 def __init__(self,data):self.data=np.ascontiguousarray(data,dtype=np.uint64)
@@ -145,6 +148,7 @@ class FlashStreamStorageTests(unittest.TestCase):
             self.assertEqual(len(rematerialization_seconds),4);self.assertTrue(all(value>0 for value in rematerialization_seconds))
             self.assertFalse((root/'no-provider-cache').exists());self.assertIsNone(children[0].error)
             report=dict(schema='doppler.tiny-flash-stream-storage-test/v1',projectionCount=len(prepared.order),
+                clientGraphId=graph.identity,coefficientInventoryId=digest(canonical(prepared.definitions())),
                 encryptedTiles=len(plan.schedule())*4,steps=4,publicCoefficientBytesSent=bridge.public_coefficient_bytes_sent,
                 totalFrameBytesSent=bridge.sent,totalFrameBytesReceived=bridge.received,
                 clientInitialPreparationSeconds=prepared.preparation_seconds,
@@ -156,7 +160,9 @@ class FlashStreamStorageTests(unittest.TestCase):
                 self.assertEqual(children[0].checkpoint.live_cache_bytes,0);self.assertEqual(list(children[0].scratch.iterdir()),[])
                 report.update(providerMaterializations=children[0].checkpoint.materializations,
                     providerPeakCoefficientDiskBytes=children[0].checkpoint.peak_cache_bytes,
-                    providerSourceBytesVerified=children[0].checkpoint.source_bytes_verified)
+                    providerSourceBytesVerified=children[0].checkpoint.source_bytes_verified,
+                    providerMaterializationSeconds=children[0].checkpoint.materialization_seconds,
+                    providerSourceVerificationSeconds=children[0].checkpoint.source_verification_seconds)
             return report
 
     def test_ephemeral_reference_and_complete_checked_pipe_route_match_four_tokens(self):self.run_case()
@@ -165,6 +171,13 @@ class FlashStreamStorageTests(unittest.TestCase):
     def test_wrong_actual_parameters_reject_before_private_payload(self):self.run_case('parameters')
     def test_corrupt_result_defers_rejection_until_complete_route_closed(self):self.run_case('reply')
     def test_verified_checkpoint_reconstruction_sends_zero_coefficients_across_four_steps(self):self.run_case(rebuild=True)
+
+    def test_same_bf16_model_measures_coefficient_traffic_reduction_across_four_steps(self):
+        streamed=self.run_case(bf16_control=True);rebuilt=self.run_case(rebuild=True)
+        self.assertEqual(streamed['clientGraphId'],rebuilt['clientGraphId'])
+        self.assertEqual(streamed['coefficientInventoryId'],rebuilt['coefficientInventoryId'])
+        self.assertGreater(streamed['publicCoefficientBytesSent'],0);self.assertEqual(rebuilt['publicCoefficientBytesSent'],0)
+        self.assertLess(rebuilt['totalFrameBytesSent'],streamed['totalFrameBytesSent'])
 
     def test_manifest_alone_cannot_admit_client_or_expand_legacy_route(self):
         from flash_text_stream_plan import load_client_plan,load_provider_plan,PROFILE
