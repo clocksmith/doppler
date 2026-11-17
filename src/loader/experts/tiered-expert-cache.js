@@ -24,6 +24,7 @@ export class TieredExpertCache {
   #shutdown = new AbortController();
   #closed = false;
   #ready = false;
+  #uploadingBytes = 0;
   /** @type {Promise<unknown> | null} */
   #active = null;
 
@@ -114,6 +115,7 @@ export class TieredExpertCache {
     const pinned = this.#placement.layers.get(plan.layer)?.mode === 'parked';
     const accepted = await this.#mapped.admit(this.#key(plan, expert), plan.expertBytes, destination => {
       signal.throwIfAborted();
+      this.#sampleStaging();
       destination.set(bytes);
       return bytes.byteLength;
     }, { pinned, signal });
@@ -143,7 +145,7 @@ export class TieredExpertCache {
 
   #sampleStaging() {
     this.#stats.peakStagingBytes = Math.max(this.#stats.peakStagingBytes,
-      (this.#options.rangeLease?.memoryBytes ?? 0) + (this.#mapped?.getStats().peakMappedBytes ?? 0));
+      (this.#options.rangeLease?.memoryBytes ?? 0) + (this.#mapped?.getStats().mappedBytes ?? 0) + this.#uploadingBytes);
   }
 
   /** @type {import('./tiered-expert-cache.js').TieredExpertCache['preload']} */
@@ -181,15 +183,25 @@ export class TieredExpertCache {
                 controller.signal.throwIfAborted();
                 if (mode === 'parked') await this.#remember(plan, expert, lease.bytes, controller.signal);
                 else {
-                  let offset = 0;
-                  for (const plane of plan.planes) {
-                    const buffer = planes.get(plane.role);
-                    if (!buffer) throw new Error('Tiered resident plane is missing.');
-                    this.#options.device.queue.writeBuffer(buffer, expert * plane.expertBytes,
-                      lease.bytes.subarray(offset, offset + plane.expertBytes));
-                    this.#stats.uploadBytes += plane.expertBytes;
-                    offset += plane.expertBytes;
-                  }
+                  this.#uploadingBytes += plan.expertBytes;
+                  this.#sampleStaging();
+                  try {
+                    let offset = 0;
+                    for (const plane of plan.planes) {
+                      const buffer = planes.get(plane.role);
+                      if (!buffer) throw new Error('Tiered resident plane is missing.');
+                      this.#options.device.queue.writeBuffer(buffer, expert * plane.expertBytes,
+                        lease.bytes.subarray(offset, offset + plane.expertBytes));
+                      this.#stats.uploadBytes += plane.expertBytes;
+                      offset += plane.expertBytes;
+                    }
+                    // writeBuffer copies its source immediately, but its native
+                    // upload allocation may survive until queue completion. Keep
+                    // this lane charged and stop further reads until that upload
+                    // settles; model-sized setup must not queue model-sized staging.
+                    await this.#options.device.queue.onSubmittedWorkDone();
+                    controller.signal.throwIfAborted();
+                  } finally { this.#uploadingBytes -= plan.expertBytes; }
                 }
               } finally { lease.release(); }
             } catch (error) { controller.abort(error); throw error; }

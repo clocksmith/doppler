@@ -111,3 +111,11 @@ Component checks do not qualify model tokens, physical device budgets, complete
 request speed or transport performance. Enable this opt-in mode in a pinned
 comparison profile only after those gates pass; old storage modes remain the
 default and retain their existing behavior.
+
+Resident setup also bounds native `queue.writeBuffer` upload payloads: each
+reader lane retains its lease and awaits actual queue completion before reading
+another expert. Immediate source copying by `writeBuffer` does not imply that
+the backend's upload allocation has retired. Setup must not accumulate a
+model-sized outstanding upload queue. Staging observations include these bounded
+outstanding payload bytes in addition to the complete range-port reservation and
+active mappings; backend allocator overhead remains outside that byte metric.

@@ -169,3 +169,19 @@ test('ordinary failed fences retain ownership, while confirmed device loss permi
   assert.equal(cache.getStats().residentBytes, 0);
   assert.equal(cache.getResidentWeights(0), null);
 });
+
+test('resident setup bounds queued upload payloads by retaining every lane until its actual fence', async () => {
+  const { cache, state } = fixture();
+  let complete;
+  state.fence = new Promise(resolve => { complete = resolve; });
+  const loading = cache.preload();
+  await turn();
+  assert.equal(state.reads, 2, 'no lane reads another expert while its native upload is outstanding');
+  assert.equal(state.leases, 2, 'leases stay charged through the bounded upload drain');
+  assert.equal(cache.getStats().peakStagingBytes, 128, '80-byte reader reservation plus two24-byte upload payloads');
+  assert.equal(cache.getResidentWeights(0), null);
+  complete(); await loading;
+  assert.equal(state.leases, 0);
+  await cache.destroy();
+  assert.equal(state.live, 0);
+});
