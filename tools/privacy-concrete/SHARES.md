@@ -14,17 +14,20 @@ stopped; its small-Qwen receipts are kept unchanged as research.
 Almost all of a transformer's weights and arithmetic sit in its linear layers. Everything else (embedding lookup,
 normalisation, attention mixing, activation functions, sampling) is cheap and needs no large matrix.
 
-For each linear layer the requester holds a row `x` of twelve-bit integers. It draws `x1` uniformly at random from the
-integers modulo 2^64 and sets `x2 = x - x1`. Provider A receives `x1`, provider B receives `x2`. Each multiplies its
-row by the public integer matrix `W` modulo 2^64, which is an ordinary matrix product. The requester adds the two
-answers: `x1 W + x2 W = x W`, exactly. Each provider only ever sees uniformly random numbers.
+For each linear layer the requester holds a row `x` of twelve-bit integers. All arithmetic is modulo the prime
+`P = 2^61 - 1`. The requester draws `x1` uniformly at random and sets `x2 = x - x1`. Provider A receives `x1`, provider
+B receives `x2`. Each multiplies its row by the public integer matrix `W`. The requester adds the two answers:
+`x1 W + x2 W = x W`, exactly. Each provider only ever sees uniformly random numbers.
+
+A prime modulus is used instead of 2^64 because a prime has no zero divisors: a provider cannot make a deviation
+vanish by multiplying it by a power of two.
 
 | | Homomorphic route | Two-server shares |
 | --- | --- | --- |
 | What hides the input | GLWE encryption | Splitting it between two providers who do not collude |
 | Requester holds linear weights | Yes | No |
-| Requester cryptography | Encrypt, decrypt and re-check every tile | Random numbers, additions and one multiply per row |
-| Provider arithmetic | Homomorphic, on CPU | Ordinary integer matrix product |
+| Requester cryptography | Encrypt, decrypt and re-check every tile | Random numbers, additions and a few modular multiplies per row |
+| Provider arithmetic | Homomorphic, on CPU | Ordinary matrix product, reduced modulo the prime |
 | Result | Approximate, decode noise | Exact |
 | Keys | 268 MB evaluation key | None |
 | Special hardware | None | None |
@@ -44,62 +47,65 @@ theirs in detail; only their abstract and secondary summaries were read.
 
 The requester keeps a secret 32-byte seed. From it, each projection gets a secret probe row `p`, and the requester
 holds that projection's anchor `p W`: one number per output column. Computing the anchors takes one pass over the
-public weights, once per model, by the requester or by someone it trusts. In the retained runs the same process
-computed them, standing in for that one-time pass.
+public weights by the requester or by someone it trusts. The seed may be kept for as long as the anchors are; the
+retained runs drew a fresh one per run and computed the anchors in the same process, standing in for that pass.
 
 ## Protocol for one projection
 
-With `R` input rows and `c` check rounds (installed: 2):
+With `R` input rows and `c` check rounds (installed: 1):
 
 1. The requester draws uniform masks `t_k` and `u_k` (one `R`-row block per round) and, per row and round, secret
-   multipliers `alpha_k`, `beta_k` and odd multipliers `delta_k`, `epsilon_k`.
+   multipliers `alpha_k`, `beta_k` and non-zero multipliers `delta_k`, `epsilon_k`.
 2. A receives `x1`, then `alpha_k x1 + delta_k p + t_k`, then `u_k`.
    B receives `x2`, then `beta_k x2 + epsilon_k p + u_k`, then `t_k`.
-3. Each provider returns its rows times `W` modulo 2^64.
+3. Each provider returns its rows times `W` modulo `P`.
 4. The requester accepts only if, for every round, A's check block minus `alpha_k` times A's real block minus B's
-   answer on `t_k` equals `delta_k` times the anchor; the mirror holds for B; and the sum of the two real blocks lies
-   strictly inside the range an honest product can reach.
+   answer on `t_k` equals `delta_k` times the anchor, and the mirror holds for B. It also checks that the sum of the
+   two real blocks lies inside the range an honest product can reach; that is a sanity bound, not the mechanism.
 5. A failed check is recorded locally. The requester substitutes zeros and carries on, closes both connections at the
-   end and only then reports `integrity-check-failed`, releasing nothing. If a later client step cannot proceed, the
-   route closes early with the same outcome.
+   end and only then reports `integrity-check-failed`, releasing nothing.
 
-No row is recognisable: every row a provider receives is masked by fresh uniform randomness, and the probe never
-travels alone.
+Blocks can be told apart by their position in a message, but every row is masked by fresh uniform randomness, and the
+probe never travels alone.
 
 ## Claims
 
 Assumptions: **S1** the two providers do not share their views or coordinate. **S2** the requester's random numbers
 and probe seed are unpredictable and stay secret. **S3** the requester's anchors were computed from the true weights.
 
-- **Claim 1, privacy.** Each provider's rows are jointly uniform over the ring and independent of the input, so one
-  provider alone learns nothing about the activations, whatever it computes. This needs no hardness assumption.
-  Argument: `x1` is uniform; `x2 = x - x1` is uniform because `x1` is; every other row carries its own fresh uniform
-  mask. [test_shares.py](test_shares.py) checks that A's rows are bit-identical for two different inputs under the
-  same randomness, and that for B an equally likely choice of randomness gives identical rows for a different input.
+- **Claim 1, privacy.** Each provider's rows are jointly uniform over the field and independent of the input, the
+  probe and the multipliers, so one provider alone learns nothing about the activations, whatever it computes. This
+  needs no hardness assumption (the random draw has a bias of 2^-61). Argument: `x1` is uniform; `x2 = x - x1` is
+  uniform because `x1` is; every other row carries its own fresh uniform mask. [test_shares.py](test_shares.py) shows
+  that A's rows are identical for a different input, that B's rows are identical for a different input under an
+  equally likely first share, and that A's rows are identical for a different probe under equally likely masks.
 - **Claim 2, one dishonest provider is caught.** If one provider changes any value in its real block while the other
-  is honest, the attempt is rejected except with probability at most 2^-54 per altered row for the widest small-Qwen
-  projection (the run reports the figure as `minimumDetectionLog2`). Argument: to pass, its change to each check block
-  must equal `alpha_k` times its change to the real block, and it has never seen `alpha_k`. A change that is a
-  multiple of a high power of two is easier to match, but a change that large pushes the result outside the honest
-  range, which is checked separately.
-- **Claim 3, the same deviation by both providers is caught.** If both providers return zeros, skip rows, or multiply
-  by the same other matrix `W + D`, each check is off by `delta_k` times `p D`, which is non-zero unless `D` happens
-  to cancel on a probe neither provider has seen. This covers providers that deviate in the same way without
-  communicating, for example both skipping the work. Providers that pool their views are outside S1; over repeated
-  calls they could also recover the probe.
+  is honest, the attempt is rejected except with probability about 2^-61 per altered row and round (reported
+  conservatively as `singleEvaluatorDetectionLog2`, 60). Argument: to pass, its change to the check block must equal
+  `alpha_k` times its change to the real block in the field, and it has never seen `alpha_k`.
+- **Claim 3, the same deviation by both providers is caught.** If both providers return zeros, skip blocks, or
+  multiply by the same other matrix `W + D`, each check is off by `delta_k` times `p D`. In a field that is zero only
+  if `p D` is zero, which for a `D` chosen without knowing the probe happens with probability about 2^-61 per column
+  (`commonDeviationDetectionLog2`, 60). More rounds do not improve this figure, because every round uses the same
+  probe. This covers providers that deviate in the same way without communicating, for example both skipping the
+  work. Providers that pool their views are outside S1.
 - **Claim 4, a caught provider learns nothing from being caught.** Rejection is deferred, and whether a check fails
-  depends on the providers' own changes and the requester's secrets, not on the input, except through the range
-  check with the probability bounded in Claim 2.
+  depends on the providers' own changes and the requester's secrets, not on the input. Two exceptions. The sanity
+  bound depends on the input, but a wrong value reaches it only after passing the field checks, with the
+  probabilities above. And after a failure the requester computes on substituted zeros; if a later client step then
+  cannot proceed, the route closes early, and the number of calls made before that could depend on the input. That
+  second exception is not measured.
 
 ## What is not defended
 
 - **Collusion.** If A and B combine their rows they recover every activation, and from those the prompt. Choosing two
   providers under different operators is a placement decision for Reploid and an assumption here, not something the
-  protocol can verify.
+  protocol can verify. Separate signing keys do not prove separate operators.
 - **Shape and timing.** Providers see the projection order, the number of rows (the prompt-length bucket), message
   sizes and timing.
 - **Model confidentiality.** Weights are public by design.
-- **Availability.** Either provider can stop the attempt.
+- **Availability.** Either provider can stop the attempt. A provider that stops reading or answering is cut off at a
+  per-message deadline; there is no deadline for a whole attempt.
 - **Transport and identity.** This prototype talks to providers over process pipes or SSH. Provider identity, grants
   and receipts belong to Reploid and are not built.
 - **Flash.** Evaluating only the routed experts would show the providers which experts a token chose. Flash's large
@@ -107,8 +113,8 @@ and probe seed are unpredictable and stay secret. **S3** the requester's anchors
 - **What the requester still stores.** The embedding table (545 MB at 32-bit for small Qwen), normalisation
   parameters, and per projection a few weight-derived vectors (quantization scales, zero points, column sums, bias)
   and the anchor row. These come from the model owner and are trusted like the weights. It stores no weight matrix.
-- **GPU execution.** The evaluator is NumPy integer arithmetic on CPU. Doppler's WebGPU kernels are floating point; a
-  64-bit ring kernel does not exist yet.
+- **GPU execution.** The evaluator is NumPy on CPU: a float64 matrix product on 16-bit limbs, exact, then reduced
+  modulo the prime. Doppler's WebGPU kernels do not have this operation.
 
 ## Measured
 
@@ -119,12 +125,12 @@ step), with their [context](evidence/shares/qwen-shares-context.json):
 | --- | --- | --- |
 | Output tokens | 12095, 13, 1084, 374 (" Paris. It is") | the same |
 | Largest logit difference from the quantized reference | 0 at every step | 0 at every step |
-| Execution | 137.3 s | 167.4 s (not a clean timing, see context) |
-| Waiting for providers | 130.9 s | 160.4 s |
-| Requester share arithmetic | 0.75 s | 0.71 s |
-| Requester non-linear steps and orchestration | 5.6 s | 6.3 s |
-| Sent to each provider | 108.6 MB | 108.6 MB |
-| Received from each provider | 200.7 MB | 200.7 MB |
+| Execution | 42.1 s | 63.1 s (not a clean timing, see context) |
+| Waiting for providers | 26.9 s | 52.2 s |
+| Requester share arithmetic | 5.3 s | 3.9 s |
+| Requester non-linear steps and orchestration | 9.9 s | 7.1 s |
+| Sent to each provider | 65.2 MB | 65.2 MB |
+| Received from each provider | 120.4 MB | 120.4 MB |
 
 The tokens and the plan and model identities are the same as in the retained homomorphic receipts. The
 [checked homomorphic run](evidence/integrity/qwen-ntt12-check-local.json) took 89.1 minutes for the same fixture, with
@@ -132,23 +138,28 @@ a 268 MB evaluation key; that is a different mechanism with a different guarante
 and not as a matched benchmark.
 
 The requester stored 544.5 MB of embedding table, 5.6 MB of per-projection quantization vectors and biases, 3.6 MB of
-anchors and 0.2 MB of normalisation parameters. Its one-time anchor pass over the public weights took 2.4 s. The
+anchors and 0.2 MB of normalisation parameters. Its one-time anchor pass over the public weights took 1.9 s. The
 providers held the 169 weight matrices (1.98 GB at 32-bit).
 
-Each decode step took about 13 s. Almost all of it is the providers: five rows of unoptimised 64-bit NumPy arithmetic
-per real row, on a two-core laptop processor, with the 151,936-wide vocabulary head the largest single product. Both
-runs had one operator and no misbehaving provider, so they show that the route is exact and what it costs, not that
-it is private in deployment or that it detects cheating; the tests cover detection.
+Each decode step took 6 to 7.5 s on one two-core laptop processor shared by the requester and both providers. The
+first version of this route, on integers modulo 2^64 with generic integer products, took 137 s for the same run; its
+receipts are in this repository's history at commit `9975f02c5`. Both retained runs had one operator and no
+misbehaving provider, so they show that the route is exact and what it costs, not that it is private in deployment or
+that it detects cheating; the tests cover detection.
 
 ## Review record
 
-- 2026-11-17, automated tests: 10 pass ([test_shares.py](test_shares.py)).
-- 2026-11-17, independent automated review of the first version. It demonstrated that two providers who both
-  returned zeros, or both used the same other matrix on every row except a recognisable anchor row, were accepted
-  300 times out of 300; that the range check accepted the most negative 64-bit value, letting one provider change a
-  zero product about a quarter of the time; that the privacy test never examined B; and that the evaluator would
-  open files outside its directory. All are fixed in this version: the probe is now secret and hidden inside every
-  check row, the range comparison is strict on both sides, the tests cover each demonstrated strategy, the evaluator
-  serves only files inside its directory and hashes the bytes it maps, and a stalled provider is cut off at a
-  deadline. The fixed version has not been reviewed again.
+- 2026-11-17, automated tests: 14 pass ([test_shares.py](test_shares.py)).
+- 2026-11-17, first independent automated review, of a version with a public probe in a separate row and arithmetic
+  modulo 2^64. It demonstrated that two providers who both returned zeros, or both used the same other matrix except
+  on the recognisable anchor row, were accepted 300 times out of 300, and that the range check accepted the most
+  negative 64-bit value. Fixed by making the probe secret and hiding it inside every check row.
+- 2026-11-17, second independent automated review, of that fix. It found no accepted wrong result. It demonstrated
+  that with a power-of-two modulus two providers using the same matrix with one entry changed by 2^63 made acceptance
+  depend on the parity of an input value for half of all probes, and that the detection figure for a common
+  deviation was about 2^-29 at best and did not improve with rounds. It also showed that the deadline did not cover a
+  provider that stops reading, and listed mutations the tests did not notice. This version answers those: arithmetic
+  is in a prime field, the deadline covers sending, and the tests cover the demonstrated strategies and the listed
+  mutations for seed dependence, mask structure, multiplier width, and a caught provider that then leaves.
+- The prime-field version has not been independently reviewed.
 - Cryptographer review: none.

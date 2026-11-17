@@ -1,19 +1,19 @@
 {
  "schema": "doppler.operator-observed-shares-qwen-context/v1",
- "experimentRevision": "dede0774ecf9737093d9ac0c804d544a66940943",
+ "experimentRevision": "aa76caebd8b54cc67df23a71a0b6d7dab5c4e693",
  "evidence": [
   {
    "file": "qwen-shares-local.json",
-   "sha256": "73ceb9fe321a933f23191a69a78db398abffd08c982838b5d049c63ee609f1cf"
+   "sha256": "11665be67eb56618052ef90183f9be93f110f845812f871a7b32d53c0fb0f361"
   },
   {
    "file": "qwen-shares-two-machine.json",
-   "sha256": "a0cc638f19507c7b15cb4bc7a3e1d859a7e0238ac2315f8170ac7a9ecd11f385"
+   "sha256": "0e6961416d19067b14ee185c22a4ea7266fe281c7061f02a4181a63a1404e5aa"
   }
  ],
  "fixtureId": "qwen05b-capital",
- "mechanism": "additive-shares-z2e64-hidden-probe/v1",
- "integrityPolicyId": "eaca66f49cc786b04aee2c5f061eac58a7e35ff99b2a27ab161849026979b239",
+ "mechanism": "additive-shares-m61-hidden-probe/v1",
+ "integrityPolicyId": "cd90c26cffc7de806ce79726fcb1b934ffcba66b109d63f66e210c784d2306f6",
  "planId": "95c1f06bcbc08954a29696412115c0e5794e4fdf4fa930deaabdee905c1677cd",
  "modelId": "4223289199791c6713ba2c98eb8f9d43a37597b09db0b2c778434dec431a6d24",
  "model": {
@@ -32,21 +32,21 @@
  ],
  "runs": {
   "qwen-shares-local.json": {
-   "startedUtc": "2026-11-17T18:49:12Z",
-   "finishedUtc": "2026-11-17T18:52:06Z",
+   "startedUtc": "2026-11-17T19:41:04Z",
+   "finishedUtc": "2026-11-17T19:42:28Z",
    "placement": "Requester and both providers were three processes on one trusted Linux x86-64 test host with two cores and four hardware threads.",
    "transport": "local-process pipes",
-   "unitCpuSeconds": 348,
+   "unitCpuSeconds": 225,
    "memoryMaxBytes": 10737418240
   },
   "qwen-shares-two-machine.json": {
-   "startedUtc": "2026-11-17T18:52:06Z",
-   "finishedUtc": "2026-11-17T18:55:30Z",
+   "startedUtc": "2026-11-17T19:42:32Z",
+   "finishedUtc": "2026-11-17T19:44:12Z",
    "placement": "Requester and provider B on the same Linux test host; provider A on a separate Apple Silicon machine reached over SSH on the local network.",
    "transport": "one SSH pipe and one local-process pipe; the SSH host was not pinned by this route",
-   "unitCpuSeconds": 198,
+   "unitCpuSeconds": 224,
    "memoryMaxBytes": 10737418240,
-   "timingCaveat": "The Apple machine was also running an unrelated repository check during this run, so its elapsed time is not a clean measurement."
+   "timingCaveat": "The Apple machine was running other sessions' test suites and browser rehearsals during this run, and its copy of the provider code is not attested; its elapsed time is not a clean measurement."
   }
  },
  "comparisonWithRetainedReceipts": {
@@ -71,7 +71,10 @@
   "Both providers were operated by the same person, and in one run shared a host with each other and the requester, so the non-collusion assumption was not exercised.",
   "No provider misbehaved in these runs, so they show completeness and cost, not detection. Detection is exercised by test_shares.py.",
   "The requester process also loaded the reference model to compare results after the route closed, and computed its own anchors from the public weights; its peak memory therefore says nothing about a requester that holds no weights.",
-  "The independent review covered the first version of the check; the fixed version that produced these receipts has not been reviewed again.",
-  "Providers ran NumPy integer arithmetic on CPU. No GPU kernel exists for this ring."
- ]
+  "Providers ran NumPy on CPU. No GPU kernel exists for this field arithmetic.",
+  "Two independent automated reviews examined earlier versions; this prime-field version has not been independently reviewed.",
+  "The providers' coefficient files were hashed against the plan's weight identities by the providers themselves; the requester relies on its anchors, which in these runs it computed from the same public weights."
+ ],
+ "revisionNote": "The runs used a working tree whose listed source files are byte-identical to this revision; the commit was made a few minutes after the runs.",
+ "supersededReceipts": "Receipts for the first version (integers modulo 2^64) are in repository history at commit 9975f02c5: same tokens and zero difference, 137.3 s and 167.4 s."
 }
