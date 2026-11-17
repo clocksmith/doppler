@@ -1,0 +1,54 @@
+{
+  "schema": "doppler.research-integrity-policy-gap/v1",
+  "status": "open",
+  "scope": "trusted-client research checked-integrity route",
+  "sourceRevision": "466b4f77fd195ff1b34d5ecf10ae2b162f0c6bf9",
+  "sourceFiles": [
+    {
+      "path": "linear_check.py",
+      "sha256": "dded3f2dafefd03a27f1518e21f074635e3c9796245d35ce9dce43434be93044"
+    },
+    {
+      "path": "checked_bridge.py",
+      "sha256": "f168b4eb20a5a9f97c47556a28d3cf26a2e3d223a6339e311eea1ba04f8bed52"
+    },
+    {
+      "path": "flash_text_ntt12_check_plan.py",
+      "sha256": "270acef8743ab348e2be92787364508d9aba85e6530768dda1cf3269f298d768"
+    },
+    {
+      "path": "INTEGRITY.md",
+      "sha256": "d2681bebe45aaf0ba72825aca50695053a61373ed6a25fff56b544bdfd87030b"
+    }
+  ],
+  "reproduction": {
+    "freshIsolatedInterpreter": true,
+    "attemptSharesInstalledPolicyObject": true,
+    "sampleDenominatorBefore": 16,
+    "sampleDenominatorAfter": 64,
+    "reportedModulePolicyId": "5a9580d367be8974e092a9d1c160e0cfdc22f32fe5a20f65bbdfac6203bb4327",
+    "actualAttemptPolicyIdAfterMutation": "fdd66854eff24ac49444665032770d571139508e81730183ac417b028f9b809b",
+    "checkProgramIdUnchanged": true,
+    "declaredArithmeticParametersUnchanged": true,
+    "fheKeysOrCiphertextsCreated": false,
+    "checkKeyIsDisposablePublicFixture": true
+  },
+  "codeInspection": {
+    "checkPolicyDigestInPlan": false,
+    "mechanismNameInPlan": true,
+    "policyDigestReported": true
+  },
+  "expectedDisposition": [
+    "Copy and freeze exact installed check policy per attempt",
+    "Bind the exact policy digest into admission and reject changed or unbound legacy checked plans",
+    "Report the actual bound attempt policy, preserving full-replay and production-unavailable behavior"
+  ],
+  "limitations": [
+    "This is a local policy/immutability reproduction; no malicious remote evaluator exploit is demonstrated",
+    "The stated threat model trusts client memory; this record does not claim a production vulnerability",
+    "No actual model plan was admitted or private payload transmitted",
+    "Reserved integrity files are unchanged pending owner coordination"
+  ],
+  "productionBackendAvailable": false,
+  "securityQualified": false
+}

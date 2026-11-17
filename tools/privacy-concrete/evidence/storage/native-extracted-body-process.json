@@ -1,0 +1,1261 @@
+{
+  "schema": "doppler.native-separate-process-resource-probe/v1",
+  "installedWorkload": {
+    "schema": "doppler.installed-flash-workload/v1",
+    "sourceId": "1165149f49bfbe8e6bab1f9ea30669e1468c5dfc5833f6498a44050f7807a067",
+    "backendProfile": "flash-text-all-linear-ntt12-rebuild-prefill5-check",
+    "projections": 74501,
+    "steps": 4,
+    "prefillRows": 5,
+    "tilesPerStep": 150868,
+    "shapes": [
+      {
+        "inputWidth": 320,
+        "outputWidth": 2048,
+        "tilesPerStep": 485
+      },
+      {
+        "inputWidth": 512,
+        "outputWidth": 1,
+        "tilesPerStep": 48
+      },
+      {
+        "inputWidth": 512,
+        "outputWidth": 48,
+        "tilesPerStep": 72
+      },
+      {
+        "inputWidth": 512,
+        "outputWidth": 512,
+        "tilesPerStep": 74
+      },
+      {
+        "inputWidth": 512,
+        "outputWidth": 640,
+        "tilesPerStep": 49260
+      },
+      {
+        "inputWidth": 512,
+        "outputWidth": 2048,
+        "tilesPerStep": 487
+      },
+      {
+        "inputWidth": 640,
+        "outputWidth": 512,
+        "tilesPerStep": 24624
+      },
+      {
+        "inputWidth": 640,
+        "outputWidth": 2048,
+        "tilesPerStep": 24624
+      },
+      {
+        "inputWidth": 2048,
+        "outputWidth": 1,
+        "tilesPerStep": 48
+      },
+      {
+        "inputWidth": 2048,
+        "outputWidth": 4,
+        "tilesPerStep": 480
+      },
+      {
+        "inputWidth": 2048,
+        "outputWidth": 48,
+        "tilesPerStep": 72
+      },
+      {
+        "inputWidth": 2048,
+        "outputWidth": 320,
+        "tilesPerStep": 485
+      },
+      {
+        "inputWidth": 2048,
+        "outputWidth": 512,
+        "tilesPerStep": 218
+      },
+      {
+        "inputWidth": 2048,
+        "outputWidth": 640,
+        "tilesPerStep": 49260
+      },
+      {
+        "inputWidth": 2048,
+        "outputWidth": 2048,
+        "tilesPerStep": 631
+      }
+    ],
+    "logicalCoefficientBytesPerStep": 250210795520,
+    "largestCoefficientBytes": 1271398400,
+    "logicalQuantizerMetadataBytes": 1161002304,
+    "quantizerMetadataAssumption": "three float32 values per output channel; excludes graph, proofs, caches, keys and allocator overhead",
+    "productionBackendAvailable": false,
+    "securityQualified": false
+  },
+  "committedQuantizerMetadataReservationBytes": 1161002304,
+  "resourceScenario": "Synthetic matrices plus the full logical Flash quantizer metadata size; excludes actual graph objects, model state and full-model mappings",
+  "resourceLimits": {
+    "memoryMaxBytes": 8589934592,
+    "swapMaxBytes": 0,
+    "cpuQuotaMicros": 800000,
+    "cpuPeriodMicros": 100000,
+    "groupOomKill": true,
+    "policyId": "a8b512d045763e0fbaa77711327d417559b7f121d73e18a849ed8928bbba343a"
+  },
+  "resourceObservation": {
+    "schema": "doppler.client-resource-observation/v1",
+    "audience": "client-local",
+    "sampleIntervalSeconds": 0.02,
+    "samples": 2584,
+    "incompleteProcessSamples": 0,
+    "observationFailed": false,
+    "sampledPeakSummedProcessRssBytes": 5153697792,
+    "peakObservedProcessCount": 2,
+    "cgroupMemoryPeakBytes": 4559040512,
+    "phases": [
+      {
+        "phase": "probe-start",
+        "processCount": 1,
+        "summedProcessRssBytes": 1942888448,
+        "cgroupMemoryCurrentBytes": 1635033088,
+        "cgroupMemoryPeakBytes": 1635033088
+      },
+      {
+        "phase": "after-key-generation",
+        "processCount": 1,
+        "summedProcessRssBytes": 2212470784,
+        "cgroupMemoryCurrentBytes": 1903763456,
+        "cgroupMemoryPeakBytes": 1903763456
+      },
+      {
+        "phase": "after-provider-readiness",
+        "processCount": 2,
+        "summedProcessRssBytes": 4906037248,
+        "cgroupMemoryCurrentBytes": 4290600960,
+        "cgroupMemoryPeakBytes": 4559040512
+      },
+      {
+        "phase": "probe-complete",
+        "processCount": 1,
+        "summedProcessRssBytes": 2924830720,
+        "cgroupMemoryCurrentBytes": 2640453632,
+        "cgroupMemoryPeakBytes": 4559040512
+      }
+    ],
+    "rssSumDoubleCountsSharedMappings": true,
+    "sampledRssPeakMayMissAllocations": true,
+    "cgroupMemoryIncludesFileCache": true,
+    "productionBackendAvailable": false,
+    "securityQualified": false
+  },
+  "provider": {
+    "schema": "doppler.native-process-provider-observation/v1",
+    "cases": [
+      {
+        "step": 0,
+        "rows": 5,
+        "inputWidth": 320,
+        "outputWidth": 2048,
+        "nativeEvaluateSeconds": 2.649130656000011
+      },
+      {
+        "step": 0,
+        "rows": 5,
+        "inputWidth": 512,
+        "outputWidth": 1,
+        "nativeEvaluateSeconds": 1.1259815129999424
+      },
+      {
+        "step": 0,
+        "rows": 5,
+        "inputWidth": 512,
+        "outputWidth": 48,
+        "nativeEvaluateSeconds": 1.17366881800001
+      },
+      {
+        "step": 0,
+        "rows": 5,
+        "inputWidth": 512,
+        "outputWidth": 512,
+        "nativeEvaluateSeconds": 1.518847777000019
+      },
+      {
+        "step": 0,
+        "rows": 5,
+        "inputWidth": 512,
+        "outputWidth": 640,
+        "nativeEvaluateSeconds": 1.5958641389999002
+      },
+      {
+        "step": 0,
+        "rows": 5,
+        "inputWidth": 512,
+        "outputWidth": 2048,
+        "nativeEvaluateSeconds": 2.66927474299996
+      },
+      {
+        "step": 0,
+        "rows": 5,
+        "inputWidth": 640,
+        "outputWidth": 512,
+        "nativeEvaluateSeconds": 1.5410399129999632
+      },
+      {
+        "step": 0,
+        "rows": 5,
+        "inputWidth": 640,
+        "outputWidth": 2048,
+        "nativeEvaluateSeconds": 2.6849879520000286
+      },
+      {
+        "step": 0,
+        "rows": 5,
+        "inputWidth": 2048,
+        "outputWidth": 1,
+        "nativeEvaluateSeconds": 1.10728163400006
+      },
+      {
+        "step": 0,
+        "rows": 5,
+        "inputWidth": 2048,
+        "outputWidth": 4,
+        "nativeEvaluateSeconds": 1.1403325799999493
+      },
+      {
+        "step": 0,
+        "rows": 5,
+        "inputWidth": 2048,
+        "outputWidth": 48,
+        "nativeEvaluateSeconds": 1.1481917449999628
+      },
+      {
+        "step": 0,
+        "rows": 5,
+        "inputWidth": 2048,
+        "outputWidth": 320,
+        "nativeEvaluateSeconds": 1.3243143939999982
+      },
+      {
+        "step": 0,
+        "rows": 5,
+        "inputWidth": 2048,
+        "outputWidth": 512,
+        "nativeEvaluateSeconds": 1.545207827000013
+      },
+      {
+        "step": 0,
+        "rows": 5,
+        "inputWidth": 2048,
+        "outputWidth": 640,
+        "nativeEvaluateSeconds": 1.6061357879999605
+      },
+      {
+        "step": 0,
+        "rows": 5,
+        "inputWidth": 2048,
+        "outputWidth": 2048,
+        "nativeEvaluateSeconds": 2.713064738000071
+      },
+      {
+        "step": 1,
+        "rows": 1,
+        "inputWidth": 320,
+        "outputWidth": 2048,
+        "nativeEvaluateSeconds": 0.578046994000033
+      },
+      {
+        "step": 1,
+        "rows": 1,
+        "inputWidth": 512,
+        "outputWidth": 1,
+        "nativeEvaluateSeconds": 0.21773645199994007
+      },
+      {
+        "step": 1,
+        "rows": 1,
+        "inputWidth": 512,
+        "outputWidth": 48,
+        "nativeEvaluateSeconds": 0.24864817499997116
+      },
+      {
+        "step": 1,
+        "rows": 1,
+        "inputWidth": 512,
+        "outputWidth": 512,
+        "nativeEvaluateSeconds": 0.29920738399994207
+      },
+      {
+        "step": 1,
+        "rows": 1,
+        "inputWidth": 512,
+        "outputWidth": 640,
+        "nativeEvaluateSeconds": 0.318501347999927
+      },
+      {
+        "step": 1,
+        "rows": 1,
+        "inputWidth": 512,
+        "outputWidth": 2048,
+        "nativeEvaluateSeconds": 0.5577015970000048
+      },
+      {
+        "step": 1,
+        "rows": 1,
+        "inputWidth": 640,
+        "outputWidth": 512,
+        "nativeEvaluateSeconds": 0.3028223420000131
+      },
+      {
+        "step": 1,
+        "rows": 1,
+        "inputWidth": 640,
+        "outputWidth": 2048,
+        "nativeEvaluateSeconds": 0.5619846380000126
+      },
+      {
+        "step": 1,
+        "rows": 1,
+        "inputWidth": 2048,
+        "outputWidth": 1,
+        "nativeEvaluateSeconds": 0.21661141300000963
+      },
+      {
+        "step": 1,
+        "rows": 1,
+        "inputWidth": 2048,
+        "outputWidth": 4,
+        "nativeEvaluateSeconds": 0.21837202899996555
+      },
+      {
+        "step": 1,
+        "rows": 1,
+        "inputWidth": 2048,
+        "outputWidth": 48,
+        "nativeEvaluateSeconds": 0.22545122599990464
+      },
+      {
+        "step": 1,
+        "rows": 1,
+        "inputWidth": 2048,
+        "outputWidth": 320,
+        "nativeEvaluateSeconds": 0.26464731799990204
+      },
+      {
+        "step": 1,
+        "rows": 1,
+        "inputWidth": 2048,
+        "outputWidth": 512,
+        "nativeEvaluateSeconds": 0.30922648099999606
+      },
+      {
+        "step": 1,
+        "rows": 1,
+        "inputWidth": 2048,
+        "outputWidth": 640,
+        "nativeEvaluateSeconds": 0.31741797199993016
+      },
+      {
+        "step": 1,
+        "rows": 1,
+        "inputWidth": 2048,
+        "outputWidth": 2048,
+        "nativeEvaluateSeconds": 0.5820359770000323
+      },
+      {
+        "step": 2,
+        "rows": 1,
+        "inputWidth": 320,
+        "outputWidth": 2048,
+        "nativeEvaluateSeconds": 0.5608718230000704
+      },
+      {
+        "step": 2,
+        "rows": 1,
+        "inputWidth": 512,
+        "outputWidth": 1,
+        "nativeEvaluateSeconds": 0.21696607100000165
+      },
+      {
+        "step": 2,
+        "rows": 1,
+        "inputWidth": 512,
+        "outputWidth": 48,
+        "nativeEvaluateSeconds": 0.23484263900002134
+      },
+      {
+        "step": 2,
+        "rows": 1,
+        "inputWidth": 512,
+        "outputWidth": 512,
+        "nativeEvaluateSeconds": 0.3115703500000109
+      },
+      {
+        "step": 2,
+        "rows": 1,
+        "inputWidth": 512,
+        "outputWidth": 640,
+        "nativeEvaluateSeconds": 0.34717904799992994
+      },
+      {
+        "step": 2,
+        "rows": 1,
+        "inputWidth": 512,
+        "outputWidth": 2048,
+        "nativeEvaluateSeconds": 0.5341885419999244
+      },
+      {
+        "step": 2,
+        "rows": 1,
+        "inputWidth": 640,
+        "outputWidth": 512,
+        "nativeEvaluateSeconds": 0.32176619500000925
+      },
+      {
+        "step": 2,
+        "rows": 1,
+        "inputWidth": 640,
+        "outputWidth": 2048,
+        "nativeEvaluateSeconds": 0.541335279000009
+      },
+      {
+        "step": 2,
+        "rows": 1,
+        "inputWidth": 2048,
+        "outputWidth": 1,
+        "nativeEvaluateSeconds": 0.21531521099996098
+      },
+      {
+        "step": 2,
+        "rows": 1,
+        "inputWidth": 2048,
+        "outputWidth": 4,
+        "nativeEvaluateSeconds": 0.24393240300003072
+      },
+      {
+        "step": 2,
+        "rows": 1,
+        "inputWidth": 2048,
+        "outputWidth": 48,
+        "nativeEvaluateSeconds": 0.2402434840000751
+      },
+      {
+        "step": 2,
+        "rows": 1,
+        "inputWidth": 2048,
+        "outputWidth": 320,
+        "nativeEvaluateSeconds": 0.2577410600000576
+      },
+      {
+        "step": 2,
+        "rows": 1,
+        "inputWidth": 2048,
+        "outputWidth": 512,
+        "nativeEvaluateSeconds": 0.30836608100003104
+      },
+      {
+        "step": 2,
+        "rows": 1,
+        "inputWidth": 2048,
+        "outputWidth": 640,
+        "nativeEvaluateSeconds": 0.3206996500000514
+      },
+      {
+        "step": 2,
+        "rows": 1,
+        "inputWidth": 2048,
+        "outputWidth": 2048,
+        "nativeEvaluateSeconds": 0.5661040560000856
+      },
+      {
+        "step": 3,
+        "rows": 1,
+        "inputWidth": 320,
+        "outputWidth": 2048,
+        "nativeEvaluateSeconds": 0.5740889809999317
+      },
+      {
+        "step": 3,
+        "rows": 1,
+        "inputWidth": 512,
+        "outputWidth": 1,
+        "nativeEvaluateSeconds": 0.21618737000005694
+      },
+      {
+        "step": 3,
+        "rows": 1,
+        "inputWidth": 512,
+        "outputWidth": 48,
+        "nativeEvaluateSeconds": 0.2442633419999538
+      },
+      {
+        "step": 3,
+        "rows": 1,
+        "inputWidth": 512,
+        "outputWidth": 512,
+        "nativeEvaluateSeconds": 0.3017881150000221
+      },
+      {
+        "step": 3,
+        "rows": 1,
+        "inputWidth": 512,
+        "outputWidth": 640,
+        "nativeEvaluateSeconds": 0.33609875599995576
+      },
+      {
+        "step": 3,
+        "rows": 1,
+        "inputWidth": 512,
+        "outputWidth": 2048,
+        "nativeEvaluateSeconds": 0.5288687739999887
+      },
+      {
+        "step": 3,
+        "rows": 1,
+        "inputWidth": 640,
+        "outputWidth": 512,
+        "nativeEvaluateSeconds": 0.30315173899998626
+      },
+      {
+        "step": 3,
+        "rows": 1,
+        "inputWidth": 640,
+        "outputWidth": 2048,
+        "nativeEvaluateSeconds": 0.5507433840000431
+      },
+      {
+        "step": 3,
+        "rows": 1,
+        "inputWidth": 2048,
+        "outputWidth": 1,
+        "nativeEvaluateSeconds": 0.239350241000011
+      },
+      {
+        "step": 3,
+        "rows": 1,
+        "inputWidth": 2048,
+        "outputWidth": 4,
+        "nativeEvaluateSeconds": 0.21841587400001572
+      },
+      {
+        "step": 3,
+        "rows": 1,
+        "inputWidth": 2048,
+        "outputWidth": 48,
+        "nativeEvaluateSeconds": 0.22648794899998848
+      },
+      {
+        "step": 3,
+        "rows": 1,
+        "inputWidth": 2048,
+        "outputWidth": 320,
+        "nativeEvaluateSeconds": 0.26069828900006087
+      },
+      {
+        "step": 3,
+        "rows": 1,
+        "inputWidth": 2048,
+        "outputWidth": 512,
+        "nativeEvaluateSeconds": 0.30436085400003776
+      },
+      {
+        "step": 3,
+        "rows": 1,
+        "inputWidth": 2048,
+        "outputWidth": 640,
+        "nativeEvaluateSeconds": 0.3174072179999712
+      },
+      {
+        "step": 3,
+        "rows": 1,
+        "inputWidth": 2048,
+        "outputWidth": 2048,
+        "nativeEvaluateSeconds": 0.5723794379999845
+      }
+    ],
+    "elapsedSeconds": 67.92532222499995,
+    "processPeakRssBytes": 3421523968,
+    "materializations": 60,
+    "peakCoefficientDiskBytes": 8388608,
+    "sourceBytesVerified": 22551816,
+    "sourceVerificationSeconds": 0.0181594949999635,
+    "materializationSeconds": 4.15835110099988,
+    "coefficientBytesMaterialized": 90198016,
+    "actualFlashCheckpointExecuted": false,
+    "productionBackendAvailable": false,
+    "securityQualified": false
+  },
+  "clientCases": [
+    {
+      "step": 0,
+      "inputWidth": 320,
+      "outputWidth": 2048,
+      "rows": 5,
+      "roundTripAndClientSeconds": 6.044519702999992,
+      "sentFrameBytes": 62450,
+      "receivedFrameBytes": 123752
+    },
+    {
+      "step": 0,
+      "inputWidth": 512,
+      "outputWidth": 1,
+      "rows": 5,
+      "roundTripAndClientSeconds": 2.2519862210000383,
+      "sentFrameBytes": 62450,
+      "receivedFrameBytes": 62352
+    },
+    {
+      "step": 0,
+      "inputWidth": 512,
+      "outputWidth": 48,
+      "rows": 5,
+      "roundTripAndClientSeconds": 2.341556631000003,
+      "sentFrameBytes": 62450,
+      "receivedFrameBytes": 63752
+    },
+    {
+      "step": 0,
+      "inputWidth": 512,
+      "outputWidth": 512,
+      "rows": 5,
+      "roundTripAndClientSeconds": 3.163635869000018,
+      "sentFrameBytes": 62450,
+      "receivedFrameBytes": 77672
+    },
+    {
+      "step": 0,
+      "inputWidth": 512,
+      "outputWidth": 640,
+      "rows": 5,
+      "roundTripAndClientSeconds": 3.3217557710000847,
+      "sentFrameBytes": 62450,
+      "receivedFrameBytes": 81512
+    },
+    {
+      "step": 0,
+      "inputWidth": 512,
+      "outputWidth": 2048,
+      "rows": 5,
+      "roundTripAndClientSeconds": 2.839853489999996,
+      "sentFrameBytes": 62450,
+      "receivedFrameBytes": 123752
+    },
+    {
+      "step": 0,
+      "inputWidth": 640,
+      "outputWidth": 512,
+      "rows": 5,
+      "roundTripAndClientSeconds": 1.576591113999939,
+      "sentFrameBytes": 62450,
+      "receivedFrameBytes": 77672
+    },
+    {
+      "step": 0,
+      "inputWidth": 640,
+      "outputWidth": 2048,
+      "rows": 5,
+      "roundTripAndClientSeconds": 5.533224282999981,
+      "sentFrameBytes": 62450,
+      "receivedFrameBytes": 123752
+    },
+    {
+      "step": 0,
+      "inputWidth": 2048,
+      "outputWidth": 1,
+      "rows": 5,
+      "roundTripAndClientSeconds": 1.1356507519999468,
+      "sentFrameBytes": 62450,
+      "receivedFrameBytes": 62352
+    },
+    {
+      "step": 0,
+      "inputWidth": 2048,
+      "outputWidth": 4,
+      "rows": 5,
+      "roundTripAndClientSeconds": 2.310665849999964,
+      "sentFrameBytes": 62451,
+      "receivedFrameBytes": 62433
+    },
+    {
+      "step": 0,
+      "inputWidth": 2048,
+      "outputWidth": 48,
+      "rows": 5,
+      "roundTripAndClientSeconds": 1.2737883720000127,
+      "sentFrameBytes": 62451,
+      "receivedFrameBytes": 63753
+    },
+    {
+      "step": 0,
+      "inputWidth": 2048,
+      "outputWidth": 320,
+      "rows": 5,
+      "roundTripAndClientSeconds": 2.7968805539999266,
+      "sentFrameBytes": 62451,
+      "receivedFrameBytes": 71913
+    },
+    {
+      "step": 0,
+      "inputWidth": 2048,
+      "outputWidth": 512,
+      "rows": 5,
+      "roundTripAndClientSeconds": 1.716756789000101,
+      "sentFrameBytes": 62451,
+      "receivedFrameBytes": 77673
+    },
+    {
+      "step": 0,
+      "inputWidth": 2048,
+      "outputWidth": 640,
+      "rows": 5,
+      "roundTripAndClientSeconds": 1.6831673509999519,
+      "sentFrameBytes": 62451,
+      "receivedFrameBytes": 81513
+    },
+    {
+      "step": 0,
+      "inputWidth": 2048,
+      "outputWidth": 2048,
+      "rows": 5,
+      "roundTripAndClientSeconds": 3.050781528000016,
+      "sentFrameBytes": 62451,
+      "receivedFrameBytes": 123753
+    },
+    {
+      "step": 1,
+      "inputWidth": 320,
+      "outputWidth": 2048,
+      "rows": 1,
+      "roundTripAndClientSeconds": 1.1305219340000576,
+      "sentFrameBytes": 12883,
+      "receivedFrameBytes": 25129
+    },
+    {
+      "step": 1,
+      "inputWidth": 512,
+      "outputWidth": 1,
+      "rows": 1,
+      "roundTripAndClientSeconds": 0.4609881950000272,
+      "sentFrameBytes": 12883,
+      "receivedFrameBytes": 12849
+    },
+    {
+      "step": 1,
+      "inputWidth": 512,
+      "outputWidth": 48,
+      "rows": 1,
+      "roundTripAndClientSeconds": 0.5131409550000399,
+      "sentFrameBytes": 12883,
+      "receivedFrameBytes": 13129
+    },
+    {
+      "step": 1,
+      "inputWidth": 512,
+      "outputWidth": 512,
+      "rows": 1,
+      "roundTripAndClientSeconds": 0.7327064869999731,
+      "sentFrameBytes": 12883,
+      "receivedFrameBytes": 15913
+    },
+    {
+      "step": 1,
+      "inputWidth": 512,
+      "outputWidth": 640,
+      "rows": 1,
+      "roundTripAndClientSeconds": 0.738716525999962,
+      "sentFrameBytes": 12883,
+      "receivedFrameBytes": 16681
+    },
+    {
+      "step": 1,
+      "inputWidth": 512,
+      "outputWidth": 2048,
+      "rows": 1,
+      "roundTripAndClientSeconds": 0.7063124449999805,
+      "sentFrameBytes": 12883,
+      "receivedFrameBytes": 25129
+    },
+    {
+      "step": 1,
+      "inputWidth": 640,
+      "outputWidth": 512,
+      "rows": 1,
+      "roundTripAndClientSeconds": 0.4203289050000194,
+      "sentFrameBytes": 12883,
+      "receivedFrameBytes": 15913
+    },
+    {
+      "step": 1,
+      "inputWidth": 640,
+      "outputWidth": 2048,
+      "rows": 1,
+      "roundTripAndClientSeconds": 0.6983944139999494,
+      "sentFrameBytes": 12883,
+      "receivedFrameBytes": 25129
+    },
+    {
+      "step": 1,
+      "inputWidth": 2048,
+      "outputWidth": 1,
+      "rows": 1,
+      "roundTripAndClientSeconds": 0.22794419599995308,
+      "sentFrameBytes": 12883,
+      "receivedFrameBytes": 12849
+    },
+    {
+      "step": 1,
+      "inputWidth": 2048,
+      "outputWidth": 4,
+      "rows": 1,
+      "roundTripAndClientSeconds": 0.4731846409999889,
+      "sentFrameBytes": 12883,
+      "receivedFrameBytes": 12865
+    },
+    {
+      "step": 1,
+      "inputWidth": 2048,
+      "outputWidth": 48,
+      "rows": 1,
+      "roundTripAndClientSeconds": 0.34649834100002863,
+      "sentFrameBytes": 12883,
+      "receivedFrameBytes": 13129
+    },
+    {
+      "step": 1,
+      "inputWidth": 2048,
+      "outputWidth": 320,
+      "rows": 1,
+      "roundTripAndClientSeconds": 0.6106373579999627,
+      "sentFrameBytes": 12883,
+      "receivedFrameBytes": 14761
+    },
+    {
+      "step": 1,
+      "inputWidth": 2048,
+      "outputWidth": 512,
+      "rows": 1,
+      "roundTripAndClientSeconds": 0.40179030000001603,
+      "sentFrameBytes": 12883,
+      "receivedFrameBytes": 15913
+    },
+    {
+      "step": 1,
+      "inputWidth": 2048,
+      "outputWidth": 640,
+      "rows": 1,
+      "roundTripAndClientSeconds": 0.4745821519999254,
+      "sentFrameBytes": 12883,
+      "receivedFrameBytes": 16681
+    },
+    {
+      "step": 1,
+      "inputWidth": 2048,
+      "outputWidth": 2048,
+      "rows": 1,
+      "roundTripAndClientSeconds": 0.8157661919999555,
+      "sentFrameBytes": 12883,
+      "receivedFrameBytes": 25129
+    },
+    {
+      "step": 2,
+      "inputWidth": 320,
+      "outputWidth": 2048,
+      "rows": 1,
+      "roundTripAndClientSeconds": 0.6829541470000322,
+      "sentFrameBytes": 12883,
+      "receivedFrameBytes": 25129
+    },
+    {
+      "step": 2,
+      "inputWidth": 512,
+      "outputWidth": 1,
+      "rows": 1,
+      "roundTripAndClientSeconds": 0.22463836500003254,
+      "sentFrameBytes": 12883,
+      "receivedFrameBytes": 12849
+    },
+    {
+      "step": 2,
+      "inputWidth": 512,
+      "outputWidth": 48,
+      "rows": 1,
+      "roundTripAndClientSeconds": 0.2465217719999373,
+      "sentFrameBytes": 12883,
+      "receivedFrameBytes": 13129
+    },
+    {
+      "step": 2,
+      "inputWidth": 512,
+      "outputWidth": 512,
+      "rows": 1,
+      "roundTripAndClientSeconds": 0.3279190150000204,
+      "sentFrameBytes": 12883,
+      "receivedFrameBytes": 15913
+    },
+    {
+      "step": 2,
+      "inputWidth": 512,
+      "outputWidth": 640,
+      "rows": 1,
+      "roundTripAndClientSeconds": 0.3660542110000051,
+      "sentFrameBytes": 12883,
+      "receivedFrameBytes": 16681
+    },
+    {
+      "step": 2,
+      "inputWidth": 512,
+      "outputWidth": 2048,
+      "rows": 1,
+      "roundTripAndClientSeconds": 0.6792662930000688,
+      "sentFrameBytes": 12883,
+      "receivedFrameBytes": 25129
+    },
+    {
+      "step": 2,
+      "inputWidth": 640,
+      "outputWidth": 512,
+      "rows": 1,
+      "roundTripAndClientSeconds": 0.43695388300000104,
+      "sentFrameBytes": 12883,
+      "receivedFrameBytes": 15913
+    },
+    {
+      "step": 2,
+      "inputWidth": 640,
+      "outputWidth": 2048,
+      "rows": 1,
+      "roundTripAndClientSeconds": 0.5816106920000266,
+      "sentFrameBytes": 12883,
+      "receivedFrameBytes": 25129
+    },
+    {
+      "step": 2,
+      "inputWidth": 2048,
+      "outputWidth": 1,
+      "rows": 1,
+      "roundTripAndClientSeconds": 0.22648787499997525,
+      "sentFrameBytes": 12883,
+      "receivedFrameBytes": 12849
+    },
+    {
+      "step": 2,
+      "inputWidth": 2048,
+      "outputWidth": 4,
+      "rows": 1,
+      "roundTripAndClientSeconds": 0.2579829380000547,
+      "sentFrameBytes": 12883,
+      "receivedFrameBytes": 12865
+    },
+    {
+      "step": 2,
+      "inputWidth": 2048,
+      "outputWidth": 48,
+      "rows": 1,
+      "roundTripAndClientSeconds": 0.25657291400000304,
+      "sentFrameBytes": 12883,
+      "receivedFrameBytes": 13129
+    },
+    {
+      "step": 2,
+      "inputWidth": 2048,
+      "outputWidth": 320,
+      "rows": 1,
+      "roundTripAndClientSeconds": 0.6370353569999452,
+      "sentFrameBytes": 12883,
+      "receivedFrameBytes": 14761
+    },
+    {
+      "step": 2,
+      "inputWidth": 2048,
+      "outputWidth": 512,
+      "rows": 1,
+      "roundTripAndClientSeconds": 0.5020147470000893,
+      "sentFrameBytes": 12883,
+      "receivedFrameBytes": 15913
+    },
+    {
+      "step": 2,
+      "inputWidth": 2048,
+      "outputWidth": 640,
+      "rows": 1,
+      "roundTripAndClientSeconds": 0.4731889280000132,
+      "sentFrameBytes": 12883,
+      "receivedFrameBytes": 16681
+    },
+    {
+      "step": 2,
+      "inputWidth": 2048,
+      "outputWidth": 2048,
+      "rows": 1,
+      "roundTripAndClientSeconds": 0.808744651999973,
+      "sentFrameBytes": 12883,
+      "receivedFrameBytes": 25129
+    },
+    {
+      "step": 3,
+      "inputWidth": 320,
+      "outputWidth": 2048,
+      "rows": 1,
+      "roundTripAndClientSeconds": 0.6010930099999996,
+      "sentFrameBytes": 12883,
+      "receivedFrameBytes": 25129
+    },
+    {
+      "step": 3,
+      "inputWidth": 512,
+      "outputWidth": 1,
+      "rows": 1,
+      "roundTripAndClientSeconds": 0.22388381899997967,
+      "sentFrameBytes": 12883,
+      "receivedFrameBytes": 12849
+    },
+    {
+      "step": 3,
+      "inputWidth": 512,
+      "outputWidth": 48,
+      "rows": 1,
+      "roundTripAndClientSeconds": 0.2698534319999908,
+      "sentFrameBytes": 12883,
+      "receivedFrameBytes": 13129
+    },
+    {
+      "step": 3,
+      "inputWidth": 512,
+      "outputWidth": 512,
+      "rows": 1,
+      "roundTripAndClientSeconds": 0.40771982000001117,
+      "sentFrameBytes": 12883,
+      "receivedFrameBytes": 15913
+    },
+    {
+      "step": 3,
+      "inputWidth": 512,
+      "outputWidth": 640,
+      "rows": 1,
+      "roundTripAndClientSeconds": 0.4534844259999318,
+      "sentFrameBytes": 12883,
+      "receivedFrameBytes": 16681
+    },
+    {
+      "step": 3,
+      "inputWidth": 512,
+      "outputWidth": 2048,
+      "rows": 1,
+      "roundTripAndClientSeconds": 0.6773464069999591,
+      "sentFrameBytes": 12883,
+      "receivedFrameBytes": 25129
+    },
+    {
+      "step": 3,
+      "inputWidth": 640,
+      "outputWidth": 512,
+      "rows": 1,
+      "roundTripAndClientSeconds": 0.4358615659999714,
+      "sentFrameBytes": 12883,
+      "receivedFrameBytes": 15913
+    },
+    {
+      "step": 3,
+      "inputWidth": 640,
+      "outputWidth": 2048,
+      "rows": 1,
+      "roundTripAndClientSeconds": 0.5952479270000595,
+      "sentFrameBytes": 12883,
+      "receivedFrameBytes": 25129
+    },
+    {
+      "step": 3,
+      "inputWidth": 2048,
+      "outputWidth": 1,
+      "rows": 1,
+      "roundTripAndClientSeconds": 0.2506397490000154,
+      "sentFrameBytes": 12883,
+      "receivedFrameBytes": 12849
+    },
+    {
+      "step": 3,
+      "inputWidth": 2048,
+      "outputWidth": 4,
+      "rows": 1,
+      "roundTripAndClientSeconds": 0.23120505800000046,
+      "sentFrameBytes": 12883,
+      "receivedFrameBytes": 12865
+    },
+    {
+      "step": 3,
+      "inputWidth": 2048,
+      "outputWidth": 48,
+      "rows": 1,
+      "roundTripAndClientSeconds": 0.34549969499994404,
+      "sentFrameBytes": 12883,
+      "receivedFrameBytes": 13129
+    },
+    {
+      "step": 3,
+      "inputWidth": 2048,
+      "outputWidth": 320,
+      "rows": 1,
+      "roundTripAndClientSeconds": 0.39724878599997737,
+      "sentFrameBytes": 12883,
+      "receivedFrameBytes": 14761
+    },
+    {
+      "step": 3,
+      "inputWidth": 2048,
+      "outputWidth": 512,
+      "rows": 1,
+      "roundTripAndClientSeconds": 0.4837527059999047,
+      "sentFrameBytes": 12883,
+      "receivedFrameBytes": 15913
+    },
+    {
+      "step": 3,
+      "inputWidth": 2048,
+      "outputWidth": 640,
+      "rows": 1,
+      "roundTripAndClientSeconds": 0.4684619769999472,
+      "sentFrameBytes": 12883,
+      "receivedFrameBytes": 16681
+    },
+    {
+      "step": 3,
+      "inputWidth": 2048,
+      "outputWidth": 2048,
+      "rows": 1,
+      "roundTripAndClientSeconds": 0.9149384080000118,
+      "sentFrameBytes": 12883,
+      "receivedFrameBytes": 25129
+    }
+  ],
+  "weightedSyntheticKernelWork": {
+    "schema": "doppler.synthetic-flash-kernel-work-projection/v1",
+    "installedWorkloadId": "02f6b18eadc5e4271a55e8cce02db0078671d041376169c12cdd52d362f2e6df",
+    "installedTiles": 603472,
+    "weightedSyntheticNativeEvaluatorSeconds": 431839.8583600913,
+    "measuredFullModelLatency": false,
+    "productionBackendAvailable": false,
+    "securityQualified": false,
+    "exclusions": [
+      "actual trained coefficients and activations",
+      "client encryption, decryption, checks and replay",
+      "client nonlinear/model/reference execution",
+      "real model source verification, quantization and cache I/O",
+      "transport, scheduling, different hardware and concurrency"
+    ]
+  },
+  "keyGenerationSeconds": 11.050617791000036,
+  "evaluationKeyBytes": 268435536,
+  "elapsedSeconds": 84.22226790499997,
+  "processPeakRssBytes": 3421523968,
+  "maxIntegerErrors": [
+    452,
+    6,
+    53,
+    210,
+    279,
+    497,
+    212,
+    466,
+    8,
+    10,
+    43,
+    163,
+    220,
+    226,
+    433,
+    418,
+    3,
+    42,
+    186,
+    223,
+    477,
+    182,
+    500,
+    5,
+    7,
+    46,
+    162,
+    185,
+    225,
+    400,
+    383,
+    7,
+    47,
+    207,
+    190,
+    408,
+    181,
+    400,
+    12,
+    21,
+    42,
+    135,
+    178,
+    203,
+    485,
+    403,
+    7,
+    50,
+    189,
+    212,
+    410,
+    183,
+    386,
+    7,
+    15,
+    37,
+    129,
+    191,
+    214,
+    418
+  ],
+  "allGreedyControlsMatch": true,
+  "totalFrameBytesSent": 269952836,
+  "totalFrameBytesReceived": 2061602,
+  "publicCoefficientBytesSent": 0,
+  "clientSampledReplaySeconds": 15.5115599909999,
+  "clientCheckSeconds": 0.2859545680003066,
+  "integrity": {
+    "integrity": "secret-linear-check-sampled-replay/v1",
+    "integrityPolicyId": "5a9580d367be8974e092a9d1c160e0cfdc22f32fe5a20f65bbdfac6203bb4327",
+    "linearChecksPassed": 60,
+    "sampledExactReplays": 16,
+    "substitutedTiles": 0,
+    "clientCheckMs": 285.9545680003066,
+    "checkVectors": 16,
+    "replaySample": {
+      "numerator": 1,
+      "denominator": 16
+    },
+    "toleranceByOutputWidth": {
+      "1": 39465340,
+      "4": 49431462,
+      "48": 149938648,
+      "320": 625650207,
+      "512": 933185171,
+      "640": 1133384465,
+      "2048": 3241210837
+    },
+    "rejection": "deferred-until-route-close/v1",
+    "independentCryptographicReview": false,
+    "securityQualified": false
+  },
+  "implementationVersions": {
+    "concrete-ml": "1.9.0",
+    "concrete-ml-extensions": "0.1.9+ntt.4",
+    "concrete-python": "2.10.0",
+    "torch": "2.3.1+cpu",
+    "transformers": "4.44.2",
+    "numpy": "1.26.4",
+    "native-binary-sha256": "5c2dd26b0c1324ed3ccd1f88ba155247c7236d66498417cb81938d2cfe567371",
+    "native-source-id": "7adbd58a4a16dc459eef58f1cd10d8886d91ee2d4082c3929b86f49d3ad7ba95",
+    "safetensors": "0.8.0"
+  },
+  "separateProcesses": true,
+  "separateMachine": false,
+  "nativeEncryptionSimulated": false,
+  "syntheticGeometryFixture": true,
+  "actualFlashCheckpointExecuted": false,
+  "fullModelLatencyMeasured": false,
+  "productionBackendAvailable": false,
+  "securityQualified": false
+}

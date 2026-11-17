@@ -92,6 +92,21 @@ input blocks, multiple blocks, rows and output packing blocks. Version/source
 identity changes require a new build; this candidate is unqualified until its
 exact native and resource checks complete.
 
+The body-coefficient build `466b4f77f` passed CI
+[44072535212](https://github.com/clocksmith/doppler/actions/runs/44072535212):
+all 24 original/serial/parallel/fused/body/replay serialized comparisons, native
+tamper/cancellation checks and 60 separate-process feedback calls. The same-key
+35-bit fused-reference/body ratios ranged from 0.986 to 1.114, median 1.041;
+five-row 2048-by-640 measured 1,628.30 versus 1,531.92 ms. This small mixed
+single-observation effect does not establish a stable incremental speedup. The
+probe took 84.22 seconds with a 4,559,040,512-byte cgroup peak. Its unchanged
+artifacts and scope are retained as
+`../evidence/storage/native-extracted-body-{arithmetic,process,context}.json`.
+The weighted complete-request synthetic projection is 5.00 days on this runner;
+uncontrolled hardware differences prevent comparing that total as a regression
+against the prior 4.15-day observation. This remains an undeployed research
+version with no production, full-model or security qualification.
+
 The [retained native run](../evidence/native-ntt/context.json) at revision
 `04ed459671632b23bcf0bee1cb8e555f6282feed` passed eight complete serialized-result
 comparisons against the original arithmetic and a second fast replay, covering

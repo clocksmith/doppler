@@ -602,6 +602,20 @@ obstacle, with no actual full-Flash generation or combined-model memory result.
 No existing provider or installed host build was changed. The model pin, tile
 width, expert route, noise bound and production admission remain unchanged.
 
+The extracted-body candidate `466b4f77f` also passed native CI
+[44072535212](https://github.com/clocksmith/doppler/actions/runs/44072535212):
+24 complete original/serial/parallel/fused/body/replay byte comparisons, native
+tamper/cancellation checks and 60 separate-process encrypted feedback calls.
+`native-extracted-body-*.json` retains the unchanged reports and scope. The
+same-key 35-bit fused-reference/body timing ratios ranged from 0.986 to 1.114,
+median 1.041. This small mixed effect has no repeated-trial confidence interval
+and does not establish a stable incremental speedup. Its new weighted synthetic
+four-output projection is 431,839.86 seconds (5.00 days) on this runner; different
+CI hardware is uncontrolled, so this is not a demonstrated regression against
+the earlier 4.15-day observation. The observed 4,559,040,512-byte cgroup peak
+still covers only the synthetic partial-memory scenario. No existing host was
+updated; actual Flash generation, combined-model memory and security remain open.
+
 Append `--readiness-only` to the resource-gated runner above for the next bounded
 physical memory gate. This mutually exclusive alternative to `--prepare-only`
 authenticates the complete model, compiles and verifies every coefficient against
@@ -614,3 +628,16 @@ label say `provider-ready`, never `validated`; production admission stays closed
 Cancellation, rejected identities and cleanup failures return no successful
 receipt. This is an implemented lifecycle-tested gate awaiting its coordinated
 physical run, not evidence that actual combined Flash memory already fits.
+
+The local qualification audit in
+`evidence/integrity/check-policy-immutability-gap.json` records an open policy
+binding issue in the research checked route. An isolated interpreter reproduced
+an attempt retaining the installed mutable policy by reference: changing its
+sampling denominator from 16 to 64 changed the attempt while leaving the
+module-reported digest, Flash check program identity and declared arithmetic
+parameters unchanged. The exact check-policy digest is reported but is not
+bound into these plans. This is a trusted-client policy/immutability finding;
+no remote-evaluator exploit or production vulnerability was demonstrated.
+Freezing the attempt policy, binding its digest into admission and rejecting
+unbound legacy checked plans require coordinated integrity-owner changes. Those
+files remain unchanged, and production cryptographic admission remains closed.

@@ -1,0 +1,147 @@
+{
+  "schema": "doppler.native-extracted-body-evidence-context/v1",
+  "sourceRevision": "466b4f77fd195ff1b34d5ecf10ae2b162f0c6bf9",
+  "ciRunId": 44072535212,
+  "ciUrl": "https://github.com/clocksmith/doppler/actions/runs/44072535212",
+  "records": [
+    {
+      "path": "native-extracted-body-arithmetic.json",
+      "sha256": "8dc8932ca301081352060d8c765ad5fcaf5e36e8848dbc004ba03e66c8ba886e"
+    },
+    {
+      "path": "native-extracted-body-process.json",
+      "sha256": "e1e8e17ee380927392d373d2fad8eeb5c6dc1d1550a0772883d6816e36634435"
+    }
+  ],
+  "nativeVersion": "0.1.9+ntt.4",
+  "nativeBuildId": "7adbd58a4a16dc459eef58f1cd10d8886d91ee2d4082c3929b86f49d3ad7ba95",
+  "nativeBinarySha256": "5c2dd26b0c1324ed3ccd1f88ba155247c7236d66498417cb81938d2cfe567371",
+  "cargoLockSha256": "04df7a091adb084ecb1bc1d9d273c2876592936c0d74172dcd5358b8568f2f53",
+  "scope": {
+    "serializedComparisons": 24,
+    "serializedOriginalSerialParallelFusedExtractedBodyAndReplayMatch": true,
+    "tamperAndCancellationCiStepPassed": true,
+    "encryptedFeedbackCalls": 60,
+    "uniqueTileShapes": 15,
+    "steps": 4,
+    "prefillRows": 5,
+    "decodeRows": 1,
+    "separateProcesses": true,
+    "separateMachines": false,
+    "actualFlashCheckpointExecuted": false
+  },
+  "sameProcessTimingObservation": {
+    "profile": "declared-quant12-message35",
+    "cases": 16,
+    "comparisons": {
+      "serialOverExtractedBody": {
+        "minimum": 2.2912257133651837,
+        "median": 3.2906349510203663,
+        "maximum": 4.204995986007467
+      },
+      "unfusedParallelOverExtractedBody": {
+        "minimum": 1.266168086396468,
+        "median": 1.3670852350968075,
+        "maximum": 1.510630091081867
+      },
+      "fusedReferenceOverExtractedBody": {
+        "minimum": 0.9855549458457649,
+        "median": 1.0412787547907114,
+        "maximum": 1.1138738159765447
+      }
+    },
+    "repeatedTrialConfidenceInterval": false,
+    "incrementalPerformanceQualified": false
+  },
+  "requestCostScope": {
+    "schema": "doppler.synthetic-flash-request-cost-scope/v1",
+    "projection": {
+      "schema": "doppler.synthetic-flash-kernel-work-projection/v1",
+      "installedWorkloadId": "02f6b18eadc5e4271a55e8cce02db0078671d041376169c12cdd52d362f2e6df",
+      "installedTiles": 603472,
+      "weightedSyntheticNativeEvaluatorSeconds": 431839.8583600913,
+      "measuredFullModelLatency": false,
+      "productionBackendAvailable": false,
+      "securityQualified": false,
+      "exclusions": [
+        "actual trained coefficients and activations",
+        "client encryption, decryption, checks and replay",
+        "client nonlinear/model/reference execution",
+        "real model source verification, quantization and cache I/O",
+        "transport, scheduling, different hardware and concurrency"
+      ]
+    },
+    "requestScope": {
+      "outputTokens": 4,
+      "prefillInputRows": 5,
+      "singleRowDecodeSteps": 3,
+      "totalTiles": 603472
+    },
+    "steps": [
+      {
+        "step": 0,
+        "phase": "prefill-and-first-output",
+        "inputRows": 5,
+        "outputTokens": 1,
+        "tiles": 150868,
+        "weightedSyntheticNativeEvaluatorSeconds": 268002.208322318
+      },
+      {
+        "step": 1,
+        "phase": "single-row-decode",
+        "inputRows": 1,
+        "outputTokens": 1,
+        "tiles": 150868,
+        "weightedSyntheticNativeEvaluatorSeconds": 53917.32004684556
+      },
+      {
+        "step": 2,
+        "phase": "single-row-decode",
+        "inputRows": 1,
+        "outputTokens": 1,
+        "tiles": 150868,
+        "weightedSyntheticNativeEvaluatorSeconds": 55429.42735419064
+      },
+      {
+        "step": 3,
+        "phase": "single-row-decode",
+        "inputRows": 1,
+        "outputTokens": 1,
+        "tiles": 150868,
+        "weightedSyntheticNativeEvaluatorSeconds": 54490.90263673712
+      }
+    ],
+    "projectionFamilies": [
+      {
+        "family": "all-private-routed-experts",
+        "tilesPerStep": 147456,
+        "weightedSyntheticNativeEvaluatorSeconds": 420899.3717452632
+      },
+      {
+        "family": "other-model-projections",
+        "tilesPerStep": 3412,
+        "weightedSyntheticNativeEvaluatorSeconds": 10940.486614828033
+      }
+    ],
+    "assumptions": [
+      "one seeded synthetic matrix per installed tile shape",
+      "one evaluator timing observation per shape and step; no repeated-trial confidence interval",
+      "same-shape timing reused across every trained projection of that shape",
+      "sequential sum of timed calls; no inferred parallel speedup between tiles",
+      "five-row prefill yields first output; three one-row feedback steps yield remaining outputs"
+    ],
+    "measuredFullModelLatency": false,
+    "productionBackendAvailable": false,
+    "securityQualified": false
+  },
+  "limitations": [
+    "Seeded synthetic public matrices only; no actual Flash weights or model generation",
+    "The incremental same-run fused-reference/body timing effect is small and includes mixed observations; no stable or statistically qualified speedup is established",
+    "The new five-day weighted projection is not measured Flash latency; separate CI hardware equivalence is not established and it does not demonstrate regression against the earlier four-day projection",
+    "The weighted estimate covers the complete four-output/five-row-prefill request, excluding client/model/key/I/O costs",
+    "Partial resource pressure excludes real graph/model objects and full execution mappings",
+    "No existing host deployment, independent cryptographic review, malicious-security, attestation or production qualification"
+  ],
+  "productionBackendAvailable": false,
+  "securityQualified": false
+}
