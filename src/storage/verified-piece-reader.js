@@ -82,6 +82,25 @@ export async function createVerifiedPieceReader({ manifestBytes, indexBytes, ind
     const piece = file.pieces[firstPiece(file.pieces, offset)];
     return piece?.offset === offset && piece.size === length ? Object.freeze({ ...piece, path }) : null;
   }
+  /** Expected complete pieces intersecting a bounded range, without acquisition.
+   * @param {string} path @param {number} offset @param {number} length */
+  function resolveRangePieces(path, offset, length) {
+    signal?.throwIfAborted();
+    const file = files.get(path);
+    if (closed || !file || !Number.isSafeInteger(offset) || offset < 0 || !Number.isSafeInteger(length)
+      || length < 0 || !Number.isSafeInteger(offset + length) || offset + length > file.size) {
+      throw new Error('Piece range outside its declared file or storage closed.');
+    }
+    const selected = [];
+    if (length > 0) {
+      for (let index = firstPiece(file.pieces, offset); index < file.pieces.length; index++) {
+        const piece = file.pieces[index];
+        if (piece.offset >= offset + length) break;
+        selected.push(Object.freeze({ ...piece, path }));
+      }
+    }
+    return Object.freeze(selected);
+  }
   /** @param {string} path @param {number} offset @param {number | null} length
    * @param {Uint8Array | null} destination */
   async function readOwnedRange(path, offset, length, destination) {
@@ -152,7 +171,7 @@ export async function createVerifiedPieceReader({ manifestBytes, indexBytes, ind
     if (!file) throw new Error('Undeclared auxiliary artifact: ' + path);
     return readRange(path, 0, file.size);
   };
-  return Object.freeze({ manifest, readRange, readInto, readBinary, resolveCompletePiece,
+  return Object.freeze({ manifest, readRange, readInto, readBinary, resolveCompletePiece, resolveRangePieces,
     getReceipt: () => structuredClone(receipt),
     async preflight() {
       signal?.throwIfAborted();

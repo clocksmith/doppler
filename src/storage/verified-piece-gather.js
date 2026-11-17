@@ -77,7 +77,7 @@ export async function createVerifiedPieceGather(options) {
         if (closed) throw new Error('Gather reader closed.');
         const receipts = outcomes.flatMap(outcome => outcome.status === 'fulfilled' ? [outcome.value] : []);
         const merged = { ...receipts[0] };
-        const fields = /** @type {const} */ (['requestedBytes', 'acquisitionMs', 'verificationMs', 'copyMs', 'activeReadBytes', 'peakReadBytes', 'directPieceReads', 'directPieceBytes', 'batchReads', 'batchRanges', 'batchBytes']);
+        const fields = /** @type {const} */ (['requestedBytes', 'acquisitionMs', 'verificationMs', 'copyMs', 'activeReadBytes', 'peakReadBytes', 'directPieceReads', 'directPieceBytes', 'batchReads', 'batchRanges', 'batchBytes', 'activeDigestCopyBytes', 'peakDigestCopyBytes', 'activeGenericScratchBytes', 'peakGenericScratchBytes']);
         for (const field of fields) {
           merged[field] = receipts.reduce((total, receipt) => total + receipt[field], 0);
         }

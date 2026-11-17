@@ -69,7 +69,7 @@ try {
   assert.equal(countSourceHandles(), 2);
   await assert.rejects(reader.close(), /synchronous termination failure/);
   assert.equal(workers[prior + 1].threadId, -1, 'A synchronous close failure cannot skip another owned lane');
-  assert.equal(countSourceHandles(), 1);
+  assert.equal(countSourceHandles(), 0, 'Settled descriptor retirement precedes thread termination, including a failed termination attempt');
   await reader.close();
   assert.equal(calls, 3);
   assert.equal(countSourceHandles(), 0);

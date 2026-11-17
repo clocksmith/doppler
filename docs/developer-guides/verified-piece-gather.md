@@ -43,9 +43,12 @@ When a requested range exactly covers one complete authenticated piece, the
 worker reads that piece directly into its reusable owned output and hashes the
 full output with Node SHA-256 before transferring it. It resolves the range
 against the common reader's validated index; lookup alone is not authentication
-evidence. This avoids the generic acquisition allocation, verification clone and
-intersection copy for that case. Partial and multi-piece requests retain generic
-complete-piece verification and gathering. Neither path skips authentication.
+evidence. This avoids the generic piece scratch and intersection copy for that
+case. Partial and multi-piece requests resolve pinned complete descriptors through
+the common index, then serialize reads into one owned piece scratch, verify with
+synchronous Node SHA-256 and copy only authenticated intersections. The worker
+does not route that fallback through the browser reader's clone/WebCrypto path.
+Neither path skips complete-piece authentication.
 `directPieceReads` and `directPieceBytes` count successful exact-piece worker
 reads, including work whose publication is later prevented by cancellation.
 `copyMs` measures explicit generic gathering only, not native digest or I/O
@@ -98,12 +101,31 @@ file-identity checks apply to each range. Missing capability fails explicit
 `sourceReadMode: "expert-lease-batch"` admission rather than changing execution.
 Batch receipt counters distinguish requests, constituent ranges and payload
 bytes, so an actual workload can verify the intended reduction in transfers.
+When every constituent range is a complete piece, up to three positioned reads
+run concurrently into disjoint views of that one output. Async SHA also overlaps
+when the aggregate input fits the reserved two-piece allowance; otherwise hashing
+stays synchronous. Any partial range retains the serialized generic path.
+All I/O and hash jobs settle before error zeroing or transfer. Close rejects host
+admission immediately, then waits for the worker to settle those jobs, zero any
+unpublished output and close its descriptors before acknowledging retirement.
+Thread termination follows that acknowledgement; a missing acknowledgement fails
+retirement rather than proving settled I/O. Published leases remain caller-owned.
 
 The admitted byte bound is `concurrency * (maxPartBytes + 2 * maxPieceBytes)`:
-every worker's maximum output and two complete-piece buffers are reserved. It excludes immutable metadata, native digest internals and VM overhead;
+every worker's maximum output and a two-piece allowance are reserved. That allowance
+holds either generic complete-piece buffers or native async digest input copies;
+these uses are mutually exclusive per request. Digest input copies ARE included.
+Only fixed native crypto state, immutable metadata and VM overhead are excluded;
 it is not an RSS limit. Compact staging admission reserves that bound plus its
 fallback scratch. Do not share the adapter between concurrently preparing caches. Multiple lanes
 remove an enforced serialization point; they do not establish a measured speedup.
+`activeDigestCopyBytes` returns to zero before publication/error/close acknowledgement;
+`peakDigestCopyBytes` exposes admitted copy demand. Merged peaks sum the worker
+peaks as a conservative upper bound, rather than asserting simultaneous residency.
+`activeGenericScratchBytes`/`peakGenericScratchBytes` expose the fallback's one-piece
+scratch ownership; active ownership returns to zero before output publication or
+rejection. Scratch becomes unreachable at the request boundary; this remains an
+ownership bound rather than a promise of immediate VM/RSS reclamation.
 
 For explicit boundary attribution, `model.advanced.getExpertLoadingStats()` and
 the optional resident `getExpertLoadingStats()` return detached CPU snapshots of

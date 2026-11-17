@@ -24,7 +24,13 @@ export async function createVerifiedPieceGatherLane(options) {
   const worker = new Worker(new URL('./verified-piece-gather-worker.js', import.meta.url), {
     workerData: { files, maxPartBytes, fileIdentities: options.fileIdentities, metadata: { manifestBytes, indexBytes, indexIdentity } },
   });
+  /** A transferred/detached output is still worker-owned; only clear attached
+   * buffers that have actually returned to this lane. @param {unknown} candidate */
+  const clearOwned = candidate => {
+    if (candidate instanceof ArrayBuffer && candidate.byteLength > 0) new Uint8Array(candidate).fill(0);
+  };
   let closed = false;
+  let workerExited = false, acknowledgedClose = false;
   let busy = false;
   /** @type {((error: Error) => void) | null} */
   let failPending = null;
@@ -35,7 +41,10 @@ export async function createVerifiedPieceGatherLane(options) {
     failPending = reject;
     receive = message => { if (message.ready) { failPending = null; resolve(); } };
   });
-  worker.on('message', message => receive?.(message));
+  worker.on('message', message => {
+    if (closed && message.buffer instanceof ArrayBuffer) { clearOwned(message.buffer); return; }
+    receive?.(message);
+  });
   /** @param {Error} error */
   const fail = error => {
     closed = true;
@@ -47,10 +56,31 @@ export async function createVerifiedPieceGatherLane(options) {
     receive = null;
   };
   worker.on('error', fail);
-  worker.on('exit', () => fail(new Error('Gather worker closed.')));
+  worker.on('exit', () => { workerExited = true; fail(new Error('Gather worker closed.')); });
   try { await ready; } catch (error) { await worker.terminate(); throw error; }
   /** @type {Promise<void> | null} */
   let closing = null;
+  const acknowledgeRetirement = () => new Promise((resolve, reject) => {
+    /** @param {Error | null} error */
+    const finish = error => {
+      worker.off('message', onMessage); worker.off('error', onError); worker.off('exit', onExit);
+      if (error) reject(error);
+      else { acknowledgedClose = true; resolve(undefined); }
+    };
+    /** @param {{closed?: boolean, error?: string}} message */
+    const onMessage = message => {
+      if (message.closed === true) finish(message.error ? new Error(message.error) : null);
+    };
+    /** @param {Error} error */
+    const onError = error => finish(error);
+    const onExit = () => finish(new Error('Gather worker exited before acknowledging settled reads.'));
+    worker.on('message', onMessage); worker.once('error', onError); worker.once('exit', onExit);
+    if (workerExited) onExit();
+    else {
+      try { worker.postMessage({ close: true }); }
+      catch (error) { finish(error); }
+    }
+  });
   /** @param {ReadonlyArray<{path: string, offset: number, length: number}>} ranges
    * @param {AbortSignal | undefined} signal @param {boolean} batch */
   const read = async (ranges, signal, batch) => {
@@ -76,7 +106,8 @@ export async function createVerifiedPieceGatherLane(options) {
           receive = result => { failPending = null; receive = null; resolve(result); };
           worker.postMessage({ ranges: selected, length, buffer, batch }, [buffer]);
         });
-        if (closed) throw new Error('Gather reader closed.');
+        if (closed) { clearOwned(message.buffer); throw new Error('Gather reader closed.'); }
+        if (!(message.buffer instanceof ArrayBuffer) || message.buffer.byteLength !== maxPartBytes) throw new Error('Invalid gathered output ownership.');
         buffer = message.buffer;
         if (message.error) throw new Error(message.error);
         signal?.throwIfAborted();
@@ -92,6 +123,7 @@ export async function createVerifiedPieceGatherLane(options) {
           busy = false;
         } });
       } catch (error) {
+        clearOwned(buffer);
         busy = false;
         throw error;
       }
@@ -119,7 +151,10 @@ export async function createVerifiedPieceGatherLane(options) {
     close() {
       if (!closing) {
         fail(new Error('Gather reader closed.'));
-        const operation = worker.terminate().then(() => {});
+        const operation = (async () => {
+          if (!acknowledgedClose) await acknowledgeRetirement();
+          await worker.terminate();
+        })();
         closing = operation;
         operation.catch(() => { if (closing === operation) closing = null; });
       }

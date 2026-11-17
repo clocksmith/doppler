@@ -36,6 +36,16 @@ await assert.rejects(source.storage.loadShardRangeInto(0, 0, new Uint8Array(1)),
 let corrupt = true;
 const reader = await createVerifiedPieceReader(fixture(async piece =>
   corrupt && piece.offset === 4 ? new Uint8Array(4) : pieces[piece.offset / 4]));
+const resolved = reader.resolveRangePieces('weights.bin', 2, 5);
+assert.deepEqual(resolved, pieces.map((bytes, index) => ({ path: 'weights.bin', offset: index * 4, size: 4, identity: sha(bytes) })));
+assert.ok(Object.isFrozen(resolved) && resolved.every(Object.isFrozen));
+assert.throws(() => { resolved[0].identity = 'sha256:' + '0'.repeat(64); }, TypeError);
+assert.deepEqual(reader.resolveRangePieces('weights.bin', 8, 0), []);
+assert.equal(reader.getReceipt().verifiedBytes, 0, 'Metadata lookup never authenticates source bytes');
+for (const [path, offset, length] of [['missing.bin', 0, 1], ['weights.bin', -1, 1],
+  ['weights.bin', 7, 2], ['weights.bin', 0, 0.5], ['weights.bin', Number.MAX_SAFE_INTEGER, 1]]) {
+  assert.throws(() => reader.resolveRangePieces(path, offset, length), /outside/);
+}
 const retry = new Uint8Array(8).fill(99);
 await assert.rejects(reader.readInto('weights.bin', 0, retry), /integrity/);
 assert.deepEqual([...retry], [1, 2, 3, 4, 99, 99, 99, 99]);
@@ -45,6 +55,7 @@ assert.deepEqual([...retry], [1, 2, 3, 4, 5, 6, 7, 8]);
 await assert.rejects(reader.readInto('weights.bin', 0, new Uint16Array(2)), /byte destination/);
 await assert.rejects(reader.readInto('weights.bin', -1, retry), /outside/);
 await reader.close();
+assert.throws(() => reader.resolveRangePieces('weights.bin', 0, 1), /closed/);
 
 // Close settles a borrowed destination before its caller can reuse it, even if
 // the host ignores abort and supplies its payload later.

@@ -14,7 +14,8 @@ export interface VerifiedPieceGatherOptions {
   concurrency?: number;
   /** Cancels asynchronous worker admission; does not replace read signals or close ownership. */
   startupSignal?: AbortSignal;
-  /** All concurrent outputs plus two complete-piece buffers per worker; excludes metadata and native digest internals. */
+  /** All outputs plus two-piece allowance per worker, used either for generic
+   * piece buffers or async digest input copies. Excludes fixed native digest state, metadata and VM overhead. */
   memoryBudgetBytes: number;
 }
 export interface VerifiedRangeLease {
@@ -30,16 +31,25 @@ export interface VerifiedPieceGatherReceipt extends VerifiedPieceReceipt {
   batchReads: number;
   batchRanges: number;
   batchBytes: number;
+  /** Admitted native async SHA input copies, included in the two-piece allowance. */
+  activeDigestCopyBytes: number;
+  /** Per-worker peaks are summed as a conservative aggregate upper bound. */
+  peakDigestCopyBytes: number;
+  /** Reusable owned generic piece scratch. Never overlaps direct async digest input copies. */
+  activeGenericScratchBytes: number;
+  /** Per-worker peaks are summed as a conservative aggregate upper bound. */
+  peakGenericScratchBytes: number;
 }
 export function createVerifiedPieceGather(options: VerifiedPieceGatherOptions): Promise<Readonly<{
   /** At most concurrency in-flight reads or outstanding leases. Cancellation is checked before
-   * publishing; close terminates the worker and rejects any pending read immediately. */
+   * publishing; close rejects pending reads immediately and waits for settled worker ownership. */
   readLease(path: string, offset: number, length: number, signal?: AbortSignal): Promise<VerifiedRangeLease>;
   /** One concatenated owned output; one to three positive ranges share maxPartBytes. */
   readManyLease(ranges: ReadonlyArray<{ path: string; offset: number; length: number }>, signal?: AbortSignal): Promise<VerifiedRangeLease>;
   /** Snapshot of worker verification evidence; requires no outstanding lease. */
   getReceipt(): Promise<VerifiedPieceGatherReceipt>;
-  /** Stops admission permanently; failed worker retirement remains retryable.
+  /** Stops admission permanently and awaits all I/O/hash jobs and closed descriptors
+   * before terminating workers. Failed retirement remains retryable.
    * Published leases remain caller-owned until release, even after close. */
   close(): Promise<void>;
   rangeLease: VerifiedRangeLeasePort;

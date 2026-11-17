@@ -22,6 +22,8 @@ export function createVerifiedPieceReader(options: VerifiedPieceReaderOptions): 
   readBinary(path: string): Promise<ArrayBuffer>;
   /** Expected metadata from the authenticated index; never a claim that source bytes were read or verified. */
   resolveCompletePiece(path: string, offset: number, length: number): Readonly<VerifiedPiece> | null;
+  /** Frozen expected full-piece descriptors intersecting a validated range; does not acquire or authenticate source bytes. */
+  resolveRangePieces(path: string, offset: number, length: number): ReadonlyArray<Readonly<VerifiedPiece>>;
   getReceipt(): VerifiedPieceReceipt;
   preflight(): Promise<void>;
   close(): Promise<void>;
