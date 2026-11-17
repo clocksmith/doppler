@@ -3,6 +3,15 @@
 This directory prepares an explicit F32 comparison of Qwen3.5-0.8B text inference.
 It does not establish a speed win or equivalent native quantized products.
 
+For packed-source diagnostics, `bindLinearOutputProfile` from
+`bind-linear-output-profile.js` creates a separate profile whose linear-output
+programs use each manifest tensor's declared block encoding. The caller supplies
+the selected Doppler source root, profile and manifest, then pins the resulting
+profile and binding receipt before execution. The helper preserves shader bytes
+and learned weights, rejects unsupported programs, and checks all declared
+weight consumers through that source's representation planner. Templates are
+never changed in place; these metadata checks do not qualify model outputs.
+
 1. `export-canonical.js <config.json>` verifies the pinned source manifest and
    every shard, then reconstructs selected learned tensors into F32 Safetensors.
    The output must be new. No source weights are rewritten or requantized.
