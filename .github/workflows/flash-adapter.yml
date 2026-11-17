@@ -19,6 +19,7 @@ on:
       - 'tools/privacy-concrete/flash_stage_source.py'
       - 'tools/privacy-concrete/flash_streamed_moe.py'
       - 'tools/privacy-concrete/flash_prepared_graph.py'
+      - 'tools/privacy-concrete/flash_generation.py'
       - 'tools/privacy-concrete/flash_text_stream_plan.py'
       - 'tools/privacy-concrete/flash_text_rebuild_plan.py'
       - 'tools/privacy-concrete/flash_provider_source.py'

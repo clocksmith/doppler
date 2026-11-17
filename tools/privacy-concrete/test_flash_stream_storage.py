@@ -50,7 +50,7 @@ class FlashStreamStorageTests(unittest.TestCase):
         self.assertEqual(list(root.iterdir()),[root/'plan.json'])
         return torch,graph,prepared,root,plan,binding
 
-    def run_case(self,failure=None,*,rebuild=False,bf16_control=False):
+    def run_case(self,failure=None,*,rebuild=False,bf16_control=False,generation=False):
         import numpy as np
         import full_model,full_bridge,full_provider,checked_bridge
         from flash_request_state import ClientContext
@@ -106,7 +106,7 @@ class FlashStreamStorageTests(unittest.TestCase):
                 children.append(result);return result
             stack.enter_context(patch.object(full_bridge.subprocess,'Popen',side_effect=child))
             bridge=checked_bridge.CheckedBridge(root,plan,Key(),backend_profile=PROFILE,prepared_public_tiles=binding,
-                parameter_profile='glwe-quant12-message35-storage48/v1',
+                parameter_profile='glwe-quant12-message35-storage48/v1',cancelled=threading.Event(),
                 **(dict(provider_source_directory=self.provider_source_directory) if rebuild else {}))
             stack.callback(bridge.close)
             if failure=='public':
@@ -127,6 +127,40 @@ class FlashStreamStorageTests(unittest.TestCase):
                 self.assertTrue(state.failed);self.assertTrue(bridge.admission.failed)
                 self.assertEqual(counts['parsed'],0);self.assertEqual(counts['decrypted'],0)
                 self.assertEqual(list(root.iterdir()),[root/'plan.json'])
+                return
+            if generation:
+                from flash_generation import generate
+                from dataclasses import replace
+                observed_states=[];original_new_state=graph.new_state;reference_calls=[]
+                def new_state(request):
+                    result=original_new_state(request);observed_states.append(result);return result
+                original_reference=prepared.reference
+                def reference(*args,**kwargs):
+                    self.assertIsNotNone(children[0].poll(),'reference acceptance leaked before provider exit')
+                    reference_calls.append(args[2])
+                    result=original_reference(*args,**kwargs)
+                    if failure=='numerical':
+                        result=result.clone();result[...,int(result[0,-1].argmax())]=-1e10
+                    return result
+                with patch.object(graph,'new_state',side_effect=new_state),patch.object(prepared,'reference',side_effect=reference):
+                    if failure in ('reply','numerical','prefill','context','cancel'):
+                        if failure=='cancel':bridge.cancelled.set()
+                        request=replace(context,request_id='other-request') if failure=='context' else context
+                        error=InterruptedError if failure=='cancel' else ValueError if failure in ('prefill','context') else ExecutionRejected
+                        with self.assertRaises(error):
+                            generate(prepared,[1,2] if failure=='prefill' else [1],bridge,object(),parameters,request)
+                    else:
+                        result=generate(prepared,[1],bridge,object(),parameters,context)
+                        self.assertEqual(len(result['clientLocalOutputTokens']),4)
+                        self.assertTrue(result['matchesTeacherForcedQuantizedGreedyReference'])
+                        self.assertEqual(result['maxLogitErrors'],[0.]*4)
+                        self.assertFalse(result['productionBackendAvailable']);self.assertFalse(result['securityQualified'])
+                self.assertIsNotNone(children[0].poll());self.assertTrue(all(state.failed for state in observed_states))
+                self.assertEqual(len({state.context for state in observed_states}),len(observed_states))
+                self.assertEqual(counts['evaluated'],0 if failure in ('prefill','context','cancel') else len(plan.schedule())*4)
+                self.assertEqual(len(reference_calls),0 if failure in ('reply','prefill','context','cancel') else 1 if failure=='numerical' else 4)
+                self.assertEqual(list(root.iterdir()),[root/'plan.json'])
+                self.assertEqual(list(children[0].scratch.iterdir()),[])
                 return
             rematerialization_seconds=[]
             for step in range(4):
@@ -171,6 +205,13 @@ class FlashStreamStorageTests(unittest.TestCase):
     def test_wrong_actual_parameters_reject_before_private_payload(self):self.run_case('parameters')
     def test_corrupt_result_defers_rejection_until_complete_route_closed(self):self.run_case('reply')
     def test_verified_checkpoint_reconstruction_sends_zero_coefficients_across_four_steps(self):self.run_case(rebuild=True)
+
+    def test_fixed_generation_validates_after_close_and_cleans_separate_request_states(self):self.run_case(rebuild=True,generation=True)
+    def test_fixed_generation_integrity_failure_returns_no_output_or_reference_feedback(self):self.run_case('reply',rebuild=True,generation=True)
+    def test_fixed_generation_numerical_rejection_follows_all_four_remote_steps(self):self.run_case('numerical',rebuild=True,generation=True)
+    def test_fixed_generation_prefill_mismatch_closes_before_any_ciphertext(self):self.run_case('prefill',rebuild=True,generation=True)
+    def test_fixed_generation_wrong_request_closes_before_any_ciphertext(self):self.run_case('context',rebuild=True,generation=True)
+    def test_fixed_generation_cancelled_before_start_closes_without_ciphertext(self):self.run_case('cancel',rebuild=True,generation=True)
 
     def test_same_bf16_model_measures_coefficient_traffic_reduction_across_four_steps(self):
         streamed=self.run_case(bf16_control=True);rebuilt=self.run_case(rebuild=True)

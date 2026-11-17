@@ -196,3 +196,31 @@ four argmax choices matched their clear controls. This is synthetic native
 storage/traffic evidence, not a Flash run. Sequential tests have warm-import/key
 variation and cumulative RSS high-water marks, so their timings/RSS do not
 establish a comparative performance or memory result.
+
+## Fixed generation over an admitted graph
+
+`flash_generation.generate(prepared, prompt_tokens, bridge, secret, parameters,
+context)` composes the supplied authenticated graph and admitted bridge into the
+plan's fixed autoregressive route. It consumes the bridge on every exit and owns
+fresh, separate encrypted, floating-reference and quantized-reference request
+states. It releases candidate tokens only after every encrypted step, provider
+finish, transport closure, integrity outcome and teacher-forced quantized greedy
+comparison pass. Floating comparisons are reported observations. Both references
+are full client computation; this is a research correctness oracle.
+
+The graph has no prompt-padding mask contract. The prompt must contain exactly
+`contextBucket` rows, and the entire route must fit the graph's context budget.
+The currently installed Flash profiles bind one prefill row; the multi-token
+public capital prompt used by `validate_flash_checkpoint.py` cannot be passed to
+these profiles. The function rejects that mismatch before any ciphertext
+evaluation, rather than truncating the prompt or changing the admitted route.
+EOS does not shorten execution. No source acquisition, route selection, plaintext
+feedback, output callbacks or production admission are added.
+
+Tiny mixed-attention graph tests run the actual quantizer, client state owners,
+checked bridge and provider framing with explicitly simulated encryption. They
+cover complete four-step generation, integrity and numerical rejection after
+closure, cancellation, wrong request binding and prefill mismatch. This component
+does not locate the previously mentioned generation pin, provide actual Flash
+reference outputs or establish full Flash encrypted execution. Those physical
+and integration gates remain open with the checkpoint/generation owners.
