@@ -364,10 +364,19 @@ export class CompactExpertCache {
           this.#stats.prefillSeedBytes += bytes;
           this.#stats.prefillSeedSubmissions++;
         }
-      } else if (this.#options.policy.sourceReadMode === 'expert-lease-batch' && misses.length === 1
-        && Math.min(this.#options.policy.readConcurrency, this.#options.rangeLease?.concurrency ?? 1) >= plan.planes.length
+      } else if (this.#options.policy.sourceReadMode === 'expert-lease-batch' && misses.length > 0
+        && misses.length * plan.planes.length <= Math.min(this.#options.policy.readConcurrency,
+          this.#options.rangeLease?.concurrency ?? 1)
         && !this.#options.copyCachedExpert && !this.#options.rememberExpert) {
-        await this.#fillSinglePlanes(plan, pool, misses[0], controller.signal);
+        // Give each plane its own admitted lane only when the entire miss set
+        // fits. Each expert authenticates all planes before uploading; no slot
+        // or source map is published until every sibling has settled.
+        const outcomes = await Promise.allSettled(misses.map(async miss => {
+          try { await this.#fillSinglePlanes(plan, pool, miss, controller.signal); }
+          catch (error) { controller.abort(error); throw error; }
+        }));
+        const failed = outcomes.find(result => result.status === 'rejected');
+        if (failed) throw failed.reason;
       } else {
         // A small miss set must still use the admitted lease lanes. Flatten only
         // the explicit leased mode; slots stay unpublished until every plane settles.

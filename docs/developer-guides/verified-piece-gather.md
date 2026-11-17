@@ -119,10 +119,11 @@ file-identity checks apply to each range. Missing capability fails explicit
 `sourceReadMode: "expert-lease-batch"` admission rather than changing execution.
 Batch receipt counters distinguish requests, constituent ranges and payload
 bytes, so an actual workload can verify the intended reduction in transfers.
-For one compact-cache miss, when all planes fit in the admitted worker count,
-the loader can acquire one plane per worker. It retains every successful lease
-until all planes authenticate before any upload. Corruption or cancellation
-settles all reads and releases every acquired lease without publishing a slot.
+For a compact-cache miss set whose entire plane count fits in the admitted
+worker count, the loader can acquire one plane per worker. Each expert retains
+its successful leases until all its planes authenticate before upload. Slots
+and the source map publish only after every expert settles. Corruption or
+cancellation settles all reads and releases every acquired lease before failure.
 Larger miss sets keep bounded whole-expert groups; retained mapped-cache hooks
 keep their whole-expert admission and copy behavior.
 When every constituent range is a complete piece, positioned reads run
