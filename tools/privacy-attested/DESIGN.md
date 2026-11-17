@@ -1,6 +1,6 @@
 # Attested light-client route: design and threat model
 
-Status: research. Production admission remains closed. The protocol has run only against a software stand-in for the
+Status: parked research branch, not on `main`. The owner ruled out hardware attestation as the direction on 2026-11-17, and an independent review found defects that are not fixed ([REVIEW.md](REVIEW.md)). Production admission remains closed. The protocol has run only against a software stand-in for the
 hardware; no confidential guest has been provisioned and no cryptographer has reviewed it. The
 [review record](#review-record) lists what has been checked and by whom.
 
@@ -155,5 +155,5 @@ itself inside the protected boundary. Choosing that hardware is an owner decisio
 ## Review record
 
 - 2026-11-17, automated tests: 17 pass, including two genuine AMD reports verified through AMD's chain.
-- 2026-11-17, independent automated review: pending at the time of writing; findings are recorded below when applied.
+- 2026-11-17, independent automated review: one high-severity and three medium findings, **not applied**; see [REVIEW.md](REVIEW.md). This branch is parked.
 - Cryptographer review: none.
