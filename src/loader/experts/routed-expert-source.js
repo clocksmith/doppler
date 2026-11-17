@@ -1,12 +1,35 @@
 import { DEFAULT_EXPERT_CACHE_CONFIG } from '../../config/schema/runtime/loading.schema.js';
 import { loadTensorRange } from '../tensors/tensor-reader.js';
+import { snapshotVerifiedRangeLeaseTimings } from '../../storage/verified-piece-timings.js';
 
 export function createRoutedExpertCounters() {
   return { prefillSeedBytes: 0, prefillSeedSubmissions: 0, prefillGpuReuseBytes: 0, prefillGpuReuseExperts: 0, prefillGpuReuseSubmissions: 0, sourceReadIntoBytes: 0, stagingAllocations: 0, stagingReuses: 0, sourceReadBytes: 0, sourceReads: 0, uploadBytes: 0,
     cacheHits: 0, cacheMisses: 0, workingHits: 0, workingBufferAllocations: 0, workingBufferAllocatedBytes: 0, workingBufferReuses: 0, workingBufferReusedBytes: 0, evictions: 0, evictionFenceWaits: 0, evictionFenceSkips: 0, bufferReuses: 0, expertCopySubmissions: 0, hitBatchSubmissions: 0, batchedHitExperts: 0,
     residentBytes: 0, peakResidentBytes: 0, peakAccountedGpuBytes: 0, peakStagingBytes: 0,
     ioWaitMs: 0, sourceReadWaitMs: 0, uploadEnqueueMs: 0, initialQueueIdleForWeightsMs: 0,
+    sourceTimingJobs: 0, sourceUntimedJobs: 0, sourceJobWallMs: 0, sourceJobReadWaitMs: 0,
+    sourceJobVerificationMs: 0, sourceJobCopyMs: 0, sourceJobRoundTripMs: 0,
     hostPrefillAdmissionSkips: 0, hostPrefillAdmissions: 0, hostDecodeAdmissions: 0, hostCacheHits: 0, hostCacheMisses: 0, hostEvictions: 0, hostAdmissionSkips: 0, peakHostOwnedOrReservedBytes: 0 };
+}
+
+/** @type {typeof import('./routed-expert-source.js').recordRoutedExpertSourceTimings} */
+export function recordRoutedExpertSourceTimings(stats, leases) {
+  // Validate the entire successful acquisition before changing coverage or sums.
+  // Missing metadata is unsupported, never a fabricated zero-duration job.
+  const timings = leases.map(lease => snapshotVerifiedRangeLeaseTimings(lease?.timings));
+  let jobs = 0, untimed = 0, wall = 0, read = 0, verification = 0, copy = 0, roundTrip = 0;
+  for (const timing of timings) {
+    if (!timing) { untimed++; continue; }
+    jobs++; wall += timing.workerWallMs; read += timing.readWaitMs;
+    verification += timing.verificationMs; copy += timing.copyMs; roundTrip += timing.roundTripMs;
+  }
+  stats.sourceTimingJobs += jobs;
+  stats.sourceUntimedJobs += untimed;
+  stats.sourceJobWallMs += wall;
+  stats.sourceJobReadWaitMs += read;
+  stats.sourceJobVerificationMs += verification;
+  stats.sourceJobCopyMs += copy;
+  stats.sourceJobRoundTripMs += roundTrip;
 }
 
 /** @type {typeof import('./routed-expert-source.js').readRoutedExpertRange} */
@@ -19,6 +42,8 @@ export async function readRoutedExpertRange(options, stats, plane, expert, offse
     const data = await options.readRange(shard, start, size, signal);
     stats.sourceReadWaitMs += performance.now() - readStarted;
     if (data.byteLength !== size) throw new Error('Routed expert source must return exactly the requested byte range.');
+    signal.throwIfAborted();
+    recordRoutedExpertSourceTimings(stats, [null]);
     stats.sourceReads++;
     stats.sourceReadBytes += data.byteLength;
     return data;
@@ -28,6 +53,8 @@ export async function readRoutedExpertRange(options, stats, plane, expert, offse
     const count = await readRangeInto(shard, start, destination, signal);
     stats.sourceReadWaitMs += performance.now() - readStarted;
     if (count !== destination.byteLength) throw new Error('Routed expert source must fill exactly the requested destination.');
+    signal.throwIfAborted();
+    recordRoutedExpertSourceTimings(stats, [null]);
     stats.sourceReads++;
     stats.sourceReadBytes += count;
     stats.sourceReadIntoBytes += count;
@@ -111,6 +138,7 @@ export async function readRoutedExpertsLease(options, stats, plan, experts, sign
   try {
     signal.throwIfAborted();
     if (lease.bytes.byteLength !== plan.expertBytes * experts.length) throw new Error('Batched expert range length mismatch.');
+    recordRoutedExpertSourceTimings(stats, [lease]);
     const elapsed = performance.now() - started;
     stats.sourceReads += parts.length;
     stats.sourceReadBytes += plan.expertBytes * experts.length;
@@ -142,6 +170,7 @@ export async function readRoutedExpertPlaneLeases(options, stats, plan, expert, 
     if (leases.some((lease, index) => lease.bytes.byteLength !== parts[index].length)) {
       throw new Error('Parallel expert plane range length mismatch.');
     }
+    recordRoutedExpertSourceTimings(stats, leases);
     const elapsed = performance.now() - started;
     stats.sourceReads += parts.length;
     stats.sourceReadBytes += plan.expertBytes;

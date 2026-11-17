@@ -21,8 +21,23 @@ export interface VerifiedPieceGatherOptions {
    * piece buffers. Excludes fixed native digest state, metadata and VM overhead. */
   memoryBudgetBytes: number;
 }
+/** Per-job worker observations. Async read waits and different worker jobs can overlap. */
+export interface VerifiedPieceJobTimings {
+  workerWallMs: number;
+  /** Includes native I/O and callback/scheduling wait; not isolated disk time. */
+  readWaitMs: number;
+  verificationMs: number;
+  copyMs: number;
+}
+export interface VerifiedRangeLeaseTimings extends VerifiedPieceJobTimings {
+  /** Lane-local elapsed time from posting the owned job until its reply, not a cross-clock subtraction. */
+  roundTripMs: number;
+}
 export interface VerifiedRangeLease {
   bytes: Uint8Array<ArrayBuffer>;
+  /** Frozen bounded scalar observations, piggybacked on the existing successful reply.
+   * Omission means unsupported; zero-valued fields alone do not establish coverage. */
+  timings?: Readonly<VerifiedRangeLeaseTimings>;
   /** Idempotent. Detaches bytes; call only after the consumer has copied them. */
   release(): void;
 }

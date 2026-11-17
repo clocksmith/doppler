@@ -59,6 +59,15 @@ export interface RoutedExpertCacheStats {
   phaseProfiles: Record<string, RoutedExpertPhaseProfile>;
   sourceReadBytes: number;
   sourceReads: number;
+  /** Coverage is required when interpreting the following per-job timing sums. */
+  sourceTimingJobs: number;
+  sourceUntimedJobs: number;
+  /** Worker/read/verification/round-trip sums overlap; not a phase wall-time decomposition. */
+  sourceJobWallMs: number;
+  sourceJobReadWaitMs: number;
+  sourceJobVerificationMs: number;
+  sourceJobCopyMs: number;
+  sourceJobRoundTripMs: number;
   uploadBytes: number;
   cacheHits: number;
   cacheMisses: number;

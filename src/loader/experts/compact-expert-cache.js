@@ -1,7 +1,7 @@
 import { DEFAULT_EXPERT_CACHE_CONFIG, validateQwen35RoutedConfig } from "../../config/schema/runtime/loading.schema.js";
 import { createWeightBuffer } from '../../gpu/weight-buffer.js';
 import { isDeviceLost } from '../../memory/device-residency.js';
-import { readRoutedExpertRange, readRoutedExpertPayload, readRoutedExpertsLease, readRoutedExpertPlaneLeases, assertExpertReadShape } from './routed-expert-source.js';
+import { readRoutedExpertRange, readRoutedExpertPayload, readRoutedExpertsLease, readRoutedExpertPlaneLeases, recordRoutedExpertSourceTimings, assertExpertReadShape } from './routed-expert-source.js';
 
 /** @type {typeof import('./compact-expert-cache.js').compactExpertCapacity} */
 export function compactExpertCapacity(plan, options) {
@@ -220,6 +220,8 @@ export class CompactExpertCache {
             }
             lease = await port.read(shard, physical.offset + expert * plane.expertBytes + offset, length, signal);
             if (lease.bytes.byteLength !== length) throw new Error('Owned expert range length mismatch.');
+            signal.throwIfAborted();
+            recordRoutedExpertSourceTimings(this.#stats, [lease]);
             this.#stats.sourceReads++;
             this.#stats.sourceReadBytes += length;
             this.#stats.sourceReadWaitMs += performance.now() - start;

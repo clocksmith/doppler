@@ -59,7 +59,7 @@ export async function createVerifiedPieceGather(options) {
       const owned = await open(lane.reader);
       if (closed) { owned.release(); throw new Error('Gather reader closed.'); }
       let released = false;
-      return Object.freeze({ bytes: owned.bytes, release() {
+      return Object.freeze({ bytes: owned.bytes, ...(owned.timings === undefined ? {} : { timings: owned.timings }), release() {
         if (released) return;
         released = true;
         try { owned.release(); } finally { lane.busy = false; }

@@ -187,6 +187,17 @@ reads are not physical disk reads; summed concurrent read durations are not wall
 time or GPU upload-completion time. No speed improvement is established by these
 counters or by fewer cache misses alone.
 
+Owned worker leases also carry bounded per-job timing metadata in their existing
+reply. `sourceTimingJobs` counts successfully measured jobs; `sourceUntimedJobs`
+counts successful generic or legacy acquisitions without that capability. A zero
+timing sum with no measured jobs does not establish zero acquisition cost.
+`sourceJobWallMs`, `sourceJobReadWaitMs`, `sourceJobVerificationMs`,
+`sourceJobCopyMs` and `sourceJobRoundTripMs` accumulate into the existing phase
+profiles. Read waits include callback scheduling and can overlap hashing; sums
+across workers are not a disjoint wall-time breakdown. Round trips cover the
+owning lane's post through reply, including worker execution and message
+scheduling. `prepareWallMs` remains the elapsed preparation measure.
+
 `compactPrefillBytes: 0` keeps the original phase transition behavior: drain and
 retire the outgoing strategy before allocating the incoming one. A positive
 aligned reservation opts into persistent compact pools. This reservation is

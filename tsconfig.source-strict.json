@@ -269,6 +269,7 @@
     "src/converter/execution-graph-transforms.js",
     "src/converter/capability-transform-resolver.js",
     "src/storage/verified-piece-gather-lane.js",
+    "src/storage/verified-piece-timings.js",
     "src/errors/doppler-error.js",
     "src/config/capsule/capsule.js",
     "src/loader/experts/tiered-expert-cache.js"

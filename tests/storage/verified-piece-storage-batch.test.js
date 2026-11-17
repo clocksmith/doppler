@@ -33,6 +33,8 @@ test('storage batch port preserves order, ownership and close admission', { time
     const port = f.source.storage.rangeLease, signal = new AbortController().signal;
     assert.equal(typeof port.readMany, 'function');
     const lease = await port.readMany([{ shard: 1, offset: 1, length: 2 }, { shard: 0, offset: 0, length: 3 }], signal);
+    assert(Object.isFrozen(lease.timings), 'Storage wrapper preserves the owned scalar timing snapshot');
+    assert(Object.values(lease.timings).every(value => Number.isFinite(value) && value >= 0));
     assert.deepEqual([...lease.bytes], [6, 7, 1, 2, 3]);
     lease.release(); assert.equal(lease.bytes.byteLength, 0);
     assert.equal((await f.source.getGatherReceipt()).batchReads, 1);

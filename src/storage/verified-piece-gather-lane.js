@@ -3,6 +3,7 @@
  * maps authenticated filenames to approved local files. A lease remains owned by
  * the caller until release; release is safe after queue.writeBuffer returns.
  */
+import { snapshotVerifiedPieceJobTimings, snapshotVerifiedRangeLeaseTimings } from './verified-piece-timings.js';
 /** @type {import('./verified-piece-gather.js').createVerifiedPieceGather} */
 export async function createVerifiedPieceGatherLane(options) {
   const { maxPartBytes, memoryBudgetBytes, indexIdentity } = options;
@@ -38,7 +39,7 @@ export async function createVerifiedPieceGatherLane(options) {
   let busy = false;
   /** @type {((error: Error) => void) | null} */
   let failPending = null;
-  /** @type {((message: { ready?: boolean, buffer: ArrayBuffer, error?: string, receipt?: import('./verified-piece-gather.js').VerifiedPieceGatherReceipt }) => void) | null} */
+  /** @type {((message: { ready?: boolean, buffer: ArrayBuffer, error?: string, timings?: unknown, receipt?: import('./verified-piece-gather.js').VerifiedPieceGatherReceipt }) => void) | null} */
   let receive = null;
   /** @type {Promise<void>} */
   const ready = new Promise((resolve, reject) => {
@@ -104,10 +105,13 @@ export async function createVerifiedPieceGatherLane(options) {
       }
       busy = true;
       try {
-        /** @type {{ buffer: ArrayBuffer, error?: string }} */
+        let roundTripMs = 0;
+        /** @type {{ buffer: ArrayBuffer, error?: string, timings?: unknown }} */
         const message = await new Promise((resolve, reject) => {
           failPending = reject;
-          receive = result => { failPending = null; receive = null; resolve(result); };
+          let posted = 0;
+          receive = result => { roundTripMs = performance.now() - posted; failPending = null; receive = null; resolve(result); };
+          posted = performance.now();
           worker.postMessage({ ranges: selected, length, buffer, batch }, [buffer]);
         });
         if (closed) { clearOwned(message.buffer); throw new Error('Gather reader closed.'); }
@@ -116,9 +120,12 @@ export async function createVerifiedPieceGatherLane(options) {
         if (message.error) throw new Error(message.error);
         signal?.throwIfAborted();
         if (closed) throw new Error('Gather reader closed.');
+        const workerTimings = snapshotVerifiedPieceJobTimings(message.timings);
+        const timings = workerTimings === undefined ? undefined
+          : snapshotVerifiedRangeLeaseTimings({ ...workerTimings, roundTripMs });
         const owned = buffer;
         let released = false;
-        return Object.freeze({ bytes: new Uint8Array(owned, 0, length), release() {
+        return Object.freeze({ bytes: new Uint8Array(owned, 0, length), ...(timings === undefined ? {} : { timings }), release() {
           if (released) return;
           released = true;
           // Detach the old views immediately so stale leases cannot mutate the pool.

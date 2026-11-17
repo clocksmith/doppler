@@ -6,6 +6,23 @@ supplies the pinned index identity and approved local filenames; the worker
 validates the index-to-manifest binding and hashes every complete piece before
 publishing a gathered range. Runtime metadata is snapshotted before admission.
 
+Successful owned leases include frozen optional `timings` scalars on their existing
+worker reply: `workerWallMs`, `readWaitMs`, `verificationMs`, `copyMs`, and lane-local
+`roundTripMs`. This adds two worker clock samples and two lane clock samples per
+job, validation, and fixed-size scalar metadata; it adds no IPC messages, payload
+copies, or scratch buffers. Failed jobs publish no successful timing metadata.
+Legacy ports may omit it; malformed present metadata rejects before publication.
+
+Routed source counters expose `sourceTimingJobs`, `sourceUntimedJobs`, and sums
+named `sourceJobWallMs`, `sourceJobReadWaitMs`, `sourceJobVerificationMs`,
+`sourceJobCopyMs`, and `sourceJobRoundTripMs`. Existing profiler phase snapshots
+separate prefill and decode without per-token observation calls or full receipts.
+Interpret timings only with their coverage counts: unsupported jobs are not
+measured zeros. Async read wait includes native I/O and callback/scheduling delay;
+read waits overlap within a job, and different worker jobs overlap across lanes.
+These sums are not additive components of phase wall time. Round trip is measured
+entirely on the lane clock, without subtracting timestamps from different workers.
+
 Create the adapter with `createVerifiedPieceGather({ manifestBytes, indexBytes,
 indexIdentity, files, maxPartBytes, memoryBudgetBytes, concurrency })`. `files` maps authenticated
 index filenames to approved local paths. Set `maxPartBytes` to cover a plane

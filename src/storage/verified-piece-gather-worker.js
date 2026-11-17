@@ -2,6 +2,7 @@ import { parentPort, workerData } from 'node:worker_threads';
 import { openSync, readSync, read as readAsync, closeSync, fstatSync, lstatSync, constants } from 'node:fs';
 import { createHash } from 'node:crypto';
 import { createVerifiedPieceReader } from './verified-piece-reader.js';
+import { snapshotVerifiedPieceJobTimings } from './verified-piece-timings.js';
 
 // This worker owns acquisition, complete-piece authentication and range gathering.
 // Only the finished range crosses the thread boundary. No caller scratch is detached.
@@ -157,6 +158,8 @@ function closeWorker() {
 /** @param {{ ranges: ReadonlyArray<{path: string, offset: number, length: number}>, length: number,
  * buffer: ArrayBuffer, batch?: boolean }} request */
 async function gather({ ranges, length, buffer, batch }) {
+  const started = performance.now();
+  const before = { acquisitionMs, verificationMs, genericCopyMs };
   try {
     if (closing) throw new Error('Gather worker closed.');
     if (operations.size) throw new Error('Gather worker already owns a request.');
@@ -256,7 +259,10 @@ async function gather({ ranges, length, buffer, batch }) {
     }
     if (closing) throw new Error('Gather worker closed.');
     if (batch) { batchReads++; batchRanges += ranges.length; batchBytes += length; }
-    port.postMessage({ buffer, length }, [buffer]);
+    const timings = snapshotVerifiedPieceJobTimings({ workerWallMs: performance.now() - started,
+      readWaitMs: acquisitionMs - before.acquisitionMs, verificationMs: verificationMs - before.verificationMs,
+      copyMs: genericCopyMs - before.genericCopyMs });
+    port.postMessage({ buffer, length, timings }, [buffer]);
   } catch (error) {
     // Never publish a verified prefix after a later piece fails verification.
     new Uint8Array(buffer).fill(0);

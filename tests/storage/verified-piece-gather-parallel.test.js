@@ -614,7 +614,12 @@ test('four concurrent lanes authenticate all owned outputs with zero digest snap
     await until(() => S[I.reads] === 12);
     assert.equal(S[I.activeReads], 12); assert.equal(S[I.maxReads], 12);
     Atomics.store(S, I.releaseReads, 1);
-    for (const lease of await Promise.all(reads)) lease.release();
+    for (const lease of await Promise.all(reads)) {
+      assert(Object.isFrozen(lease.timings), 'Worker timings survive the lane and pool as frozen scalars');
+      assert.deepEqual(Object.keys(lease.timings).sort(), ['copyMs', 'readWaitMs', 'roundTripMs', 'verificationMs', 'workerWallMs']);
+      assert(Object.values(lease.timings).every(value => Number.isFinite(value) && value >= 0));
+      lease.release();
+    }
     const receipt = await h.gather.getReceipt();
     assert.equal(receipt.activeDigestCopyBytes, 0); assert.equal(receipt.peakDigestCopyBytes, 0);
     assert.equal(S[I.syncHashes], 12); assert.equal(S[I.hashes], 0);

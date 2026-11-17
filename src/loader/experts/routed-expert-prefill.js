@@ -1,4 +1,4 @@
-import { readRoutedExpertPayload, readRoutedExpertRange } from './routed-expert-source.js';
+import { readRoutedExpertPayload, readRoutedExpertRange, recordRoutedExpertSourceTimings } from './routed-expert-source.js';
 
 /** @type {import('./routed-expert-prefill.js').writeRoutedPrefillExpert} */
 export async function writeRoutedPrefillExpert(options, stats, plan, expert, signal, working, scratch, beforeUpload) {
@@ -49,6 +49,8 @@ export async function writeRoutedPrefillExpert(options, stats, plan, expert, sig
             if (typeof physical.shardIndex !== 'number' || typeof physical.offset !== 'number') throw new Error('Missing prefill physical range.');
             lease = await port.read(physical.shardIndex, physical.offset + expert * plane.expertBytes + offset, length, signal);
             if (lease.bytes.byteLength !== length) throw new Error('Owned prefill range length mismatch.');
+            signal.throwIfAborted();
+            recordRoutedExpertSourceTimings(stats, [lease]);
             bytes = lease.bytes;
             stats.sourceReads++;
             stats.sourceReadBytes += length;
