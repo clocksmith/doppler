@@ -306,12 +306,18 @@ profile. Large token/PLE table admission now checks cancellation during each
 whole-file hash and cleans previously opened maps on failure.
 
 ```sh
-systemd-run --user --wait --pipe --collect --unit=a2-flash-research \
+umask 077
+set -C
+test "${A2_REMAINING_SECONDS:?Set the remaining confirmed window seconds}" -gt 0 &&
+test "$A2_REMAINING_SECONDS" -le 4500 &&
+systemd-run --user --wait --pipe --collect --unit=a2-flash-readiness-c3872f7c3 \
   -p Type=exec -p MemoryMax=8G -p MemorySwapMax=0 \
-  -p CPUQuota=800% -p OOMPolicy=kill \
-  env OMP_NUM_THREADS=4 RAYON_NUM_THREADS=4 \
+  -p CPUQuota=800% -p OOMPolicy=kill -p KillMode=control-group \
+  -p RuntimeMaxSec="${A2_REMAINING_SECONDS:?Set the remaining confirmed window seconds}" \
+  -p TimeoutStopSec=30 \
+  env OMP_NUM_THREADS=4 RAYON_NUM_THREADS=4 OPENBLAS_NUM_THREADS=4 MKL_NUM_THREADS=4 \
   /existing/research-venv/bin/python \
-  /existing/pinned-code/tools/privacy-concrete/flash_generate_run.py \
+  /existing/pinned-c3872f7c3/tools/privacy-concrete/flash_generate_run.py \
   --source /existing/pinned-flash-812d96e1 \
   --reference /existing/inspected-reference/modeling_qwen4_exp.py \
   --scratch /existing/isolated-research-scratch \
@@ -319,7 +325,10 @@ systemd-run --user --wait --pipe --collect --unit=a2-flash-research \
   --tenant-id public-validation --privacy-id local-research \
   --lock /tmp/flash-attribution-exclusive.lock \
   --pause-file /tmp/a2-flash-validate.pause --resource-wait-seconds 1 \
-  --public-fixture flash-public-capital-text
+  --public-fixture flash-public-capital-text --readiness-only \
+  --status-file /existing/isolated-research-scratch/readiness-status.json \
+  > /existing/isolated-research-scratch/readiness-receipt.json \
+  2> /existing/isolated-research-scratch/readiness-diagnostics.txt
 ```
 
 This is a prepared execution command, not a recorded successful physical run.
@@ -616,8 +625,8 @@ the earlier 4.15-day observation. The observed 4,559,040,512-byte cgroup peak
 still covers only the synthetic partial-memory scenario. No existing host was
 updated; actual Flash generation, combined-model memory and security remain open.
 
-Append `--readiness-only` to the resource-gated runner above for the next bounded
-physical memory gate. This mutually exclusive alternative to `--prepare-only`
+The resource-gated command above selects the next bounded physical memory gate
+with `--readiness-only`. This mutually exclusive alternative to `--prepare-only`
 authenticates the complete model, compiles and verifies every coefficient against
 the pinned clear inventory, creates the client key and completes the local
 provider's source-verified readiness handshake. It then verifies that the route
@@ -628,6 +637,87 @@ label say `provider-ready`, never `validated`; production admission stays closed
 Cancellation, rejected identities and cleanup failures return no successful
 receipt. This is an implemented lifecycle-tested gate awaiting its coordinated
 physical run, not evidence that actual combined Flash memory already fits.
+
+### Next coordinated physical readiness gate
+
+Use the following exact executable pin; later documentation-only commits do not
+change it. This gate remains unexecuted. The current physical reservation must
+be handed off explicitly by the resource owner, with parent coordination, before
+any host setup, source reads or allocation. An unlocked host or an earlier
+release message is insufficient to assume a new 60–75 minute CPU/IO window.
+Report the actual unit, PID and start time when taking the window, and release
+it explicitly after confirming cleanup. No GPU use is required.
+The agreed deadline covers setup and the runner together. Before launch, set
+`A2_REMAINING_SECONDS` to the positive remaining duration, at most 4,500 seconds;
+do not restart a new 75-minute clock after setup or extend an expired window.
+Setup must also respect the agreed pause/lock and resource limits.
+
+| Contract | Required pin or value |
+| --- | --- |
+| Executable source | `c3872f7c319d48c71775e930ad399dbd71947fd3` |
+| Exact-source verification | Native [44095135802](https://github.com/clocksmith/doppler/actions/runs/44095135802), Smoke [44095140562](https://github.com/clocksmith/doppler/actions/runs/44095140562), both successful |
+| Prepared public source archive | `a2-flash-readiness-c3872f7c3.tar`, 2,775,040 bytes, 360 entries; SHA-256 `0b8c9fbbffd90f3c45b2fe316b8c929aa3cdfedbeb5f68bb8aedd814f15f72da` |
+| Archive contents | Tracked `tools/privacy-concrete/` only, prefix `a2-readiness-c3872f7c3/`; no credentials, weights, native wheels, raw arrays or symlinks |
+| CPU native build | `0.1.9+ntt.8`, source ID `d56f35a47dbd88815e7edfb7908367444a6a9e820f77cb725cdfa80ac896b5e1` |
+| Native dependency lock | SHA-256 `ac7a7b238ab576fb04ee12d7ac82d673375df7d4c98bd0d71a2d25f2441af18c`; Rust `1.91.1` |
+| Installed check-policy digest | `5a9580d367be8974e092a9d1c160e0cfdc22f32fe5a20f65bbdfac6203bb4327`, bound into the v2 checked plan |
+| Existing model | Revision `812d96e10a0dd82b69d749e68693698cf6c36daa`; source ID `1165149f49bfbe8e6bab1f9ea30669e1468c5dfc5833f6498a44050f7807a067` |
+| Route | `flash-text-all-linear-ntt12-rebuild-prefill5-check`; five-row public fixture, four planned outputs, fixed all-expert route |
+| Complete public inventory | 74,501 projections; ordered coefficient digest `466aebb95c1b631665c8ddba6eb0f5e6d786ef0e12420af7a606b1de06dc4d45` |
+| Host budget | Eight-GiB combined cgroup memory, zero swap, group OOM kill, at most eight CPU cores, 20-GiB isolated setup/storage budget, 75-minute runtime ceiling |
+
+The archive is prepared locally and has not been transferred or installed on
+the physical host. Confirm its hash at both ends before extraction into a fresh
+owned directory. The runtime and inspected reference paths in the command are
+templates: resolve them through the owner after handoff, rather than guessing
+private paths or reusing a different model view. Use the existing authenticated
+checkpoint; this gate does not download or relocate full Flash weights.
+
+Prepare a separate Python 3.12 CPU environment using the pinned dependency and
+`--locked` native build steps in
+[the exact-source workflow](../../.github/workflows/encrypted-ntt.yml). Match the
+version and native **source ID** above, and record the actual host binary hash;
+an independently built binary need not have the CI runner's binary hash. Never
+upgrade an existing provider/reference environment or edit its configuration.
+Authenticate both inspected operator files against `flash_reference.SOURCE`.
+Include code, environment, Cargo/build outputs, receipts and temporary files in
+the 20-GiB budget. The runner checks free space but does not establish an
+aggregate disk quota; record the host's budget enforcement and usage separately.
+If the required resource isolation cannot be established, stop before model
+reads or keys, without a fallback. Existing source/checkpoint storage is read
+in place and remains outside the new owned setup.
+
+The complete sequence is: verify runtime and isolation; authenticate the model,
+tables and operator source; prepare the entire bounded graph; compare all
+coefficient identities against the pinned clear reference; create the fresh
+client key; verify the local provider's source-bound readiness handshake;
+confirm the inference cursor is untouched; close the provider and all owned
+source/scratch handles; then return the receipt. Record new graph/plan identities
+for this context. The clear reference's older context is not a replacement for
+the newly admitted graph identity. There is no generation or encrypted inference
+tile in this sequence.
+
+Accept the gate only with a successful unit exit and a complete
+`doppler.actual-flash-provider-readiness/v1` receipt: matching source, runtime,
+clear inventory, 74,501 projections and 603,472 **planned** encrypted tiles;
+`keysGenerated`, `providerReady` and `providerClosedBeforeReturn` true;
+`encryptedTileCount` zero; `actualFlashCheckpointExecuted`, `encryptedExecution`,
+`productionBackendAvailable` and `securityQualified` false. Require complete
+resource observations within the enforced limits, with `observationFailed` false
+and cgroup measurements present. Retain missed-sample counts and the report's
+RSS/file-cache caveats rather than treating sampled RSS as a complete peak.
+Confirm that the provider
+child and job have stopped, owned temporary coefficient directories are gone,
+the shared lock is released, and the protected provider remains unchanged.
+Preserve unrelated files and another owner's pause request. A deadline, OOM,
+cancellation, consumed cursor, identity mismatch or cleanup failure produces no
+successful receipt; reclaim only owned leftovers after all job processes stop.
+
+This result would establish bounded full-model admission/key/provider readiness
+on one machine. Peak inference/materialization memory, actual encrypted Flash
+reference output, separate-machine deployment, practical latency, useful
+outsourced integrity and security qualification remain subsequent gates. A
+successful readiness result does not authorize starting the days-long full run.
 
 The local qualification audit in
 `evidence/integrity/check-policy-immutability-gap.json` retains the historical
