@@ -470,3 +470,37 @@ closing shared stores. Callers still own every source stage and both stores:
 there is no download, implicit eviction or ownership transfer. All stages must
 remain available; actual full-weight provisioning and native execution are still
 unqualified.
+
+## Checked-integrity route
+
+The [retained checked-route result](evidence/integrity/qwen-ntt12-check-local.json)
+ran the same twelve-bit all-linear route under the separate
+`qwen-all-linear-ntt12-check` profile, whose client integrity is the
+[secret linear check with sampled exact replay](INTEGRITY.md) instead of a
+replay of every tile. It completed all **24 decoders and output head**,
+**169 linear operations**, **1,548 encrypted tiles and four autoregressive
+steps**. The fixed public capital fixture produced ` Paris. It is`, the same
+four tokens as the two-machine replay receipt. All four greedy choices matched
+the quantized and FP32 references; maximum encrypted-versus-quantized logit
+error was **0.1423**. Every tile passed its linear checks, 93 tiles were also
+replayed exactly, and none was rejected.
+
+The client spent **5.89 minutes** in encrypted replay and **14.8 seconds** in
+linear checks. The replay receipt spent **89.71 minutes** in client replay on
+the same class of client host, so the checked route did about fifteen times
+less client encrypted work for this fixture. Elapsed time was **89.08 minutes**,
+of which **81.55 minutes** were evaluator round trips. Application frames
+sent/received were **321,941,848 / 86,314,626 bytes**, including the
+**268,435,536-byte** evaluation key. Client lifetime peak RSS was
+**4,445,151,232 bytes**.
+
+Client and evaluator were separate processes on one two-core test host with
+pipe transport. Elapsed, evaluator and step times are therefore not comparable
+with the two-machine receipt, whose evaluator ran on a different machine. The
+[context](evidence/integrity/qwen-ntt12-check-local-context.json) binds the
+revision, the source files that matched it and these limits. No evaluator
+misbehaved in this run: it shows that honest execution completes and what it
+costs, not that tampering is detected. Detection is exercised by the tests
+listed in INTEGRITY.md. The mechanism is weaker than full replay, has had no
+cryptographer's review, and changes no admission gate.
+

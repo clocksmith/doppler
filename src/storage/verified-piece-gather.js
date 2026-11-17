@@ -42,25 +42,29 @@ export async function createVerifiedPieceGather(options) {
   let closed = false, collecting = false;
   /** @type {Promise<void> | null} */
   let closing = null;
-  /** @type {Pick<Awaited<ReturnType<import('./verified-piece-gather.js').createVerifiedPieceGather>>, 'readLease' | 'getReceipt' | 'close'>} */
+  /** @param {(reader: Awaited<ReturnType<typeof createVerifiedPieceGatherLane>>) => Promise<import('./verified-piece-gather.js').VerifiedRangeLease>} open
+   * @param {AbortSignal | undefined} signal */
+  const read = async (open, signal) => {
+    signal?.throwIfAborted();
+    if (closed) throw new Error('Gather reader closed.');
+    const lane = collecting ? null : lanes.find(candidate => !candidate.busy);
+    if (!lane) throw new Error('Release a current gather lease before another read.');
+    lane.busy = true;
+    try {
+      const owned = await open(lane.reader);
+      if (closed) { owned.release(); throw new Error('Gather reader closed.'); }
+      let released = false;
+      return Object.freeze({ bytes: owned.bytes, release() {
+        if (released) return;
+        released = true;
+        try { owned.release(); } finally { lane.busy = false; }
+      } });
+    } catch (error) { lane.busy = false; throw error; }
+  };
+  /** @type {Pick<Awaited<ReturnType<import('./verified-piece-gather.js').createVerifiedPieceGather>>, 'readLease' | 'readManyLease' | 'getReceipt' | 'close'>} */
   const result = {
-    async readLease(path, offset, length, signal) {
-      signal?.throwIfAborted();
-      if (closed) throw new Error('Gather reader closed.');
-      const lane = collecting ? null : lanes.find(candidate => !candidate.busy);
-      if (!lane) throw new Error('Release a current gather lease before another read.');
-      lane.busy = true;
-      try {
-        const owned = await lane.reader.readLease(path, offset, length, signal);
-        if (closed) { owned.release(); throw new Error('Gather reader closed.'); }
-        let released = false;
-        return Object.freeze({ bytes: owned.bytes, release() {
-          if (released) return;
-          released = true;
-          try { owned.release(); } finally { lane.busy = false; }
-        } });
-      } catch (error) { lane.busy = false; throw error; }
-    },
+    readLease: (path, offset, length, signal) => read(reader => reader.readLease(path, offset, length, signal), signal),
+    readManyLease: (ranges, signal) => read(reader => reader.readManyLease(ranges, signal), signal),
     async getReceipt() {
       if (closed) throw new Error('Gather reader closed.');
       if (collecting || lanes.some(lane => lane.busy)) throw new Error('Release all current gather leases before reading receipts.');
@@ -73,7 +77,7 @@ export async function createVerifiedPieceGather(options) {
         if (closed) throw new Error('Gather reader closed.');
         const receipts = outcomes.flatMap(outcome => outcome.status === 'fulfilled' ? [outcome.value] : []);
         const merged = { ...receipts[0] };
-        const fields = /** @type {const} */ (['requestedBytes', 'acquisitionMs', 'verificationMs', 'copyMs', 'activeReadBytes', 'peakReadBytes', 'directPieceReads', 'directPieceBytes']);
+        const fields = /** @type {const} */ (['requestedBytes', 'acquisitionMs', 'verificationMs', 'copyMs', 'activeReadBytes', 'peakReadBytes', 'directPieceReads', 'directPieceBytes', 'batchReads', 'batchRanges', 'batchBytes']);
         for (const field of fields) {
           merged[field] = receipts.reduce((total, receipt) => total + receipt[field], 0);
         }
@@ -109,6 +113,16 @@ export async function createVerifiedPieceGather(options) {
       const file = manifest.shards[shard];
       if (!file) return Promise.reject(new Error('Undeclared gather shard.'));
       return result.readLease(file.filename, offset, length, signal);
+    },
+    readMany(ranges, signal) {
+      if (!Array.isArray(ranges) || ranges.length < 1 || ranges.length > 3) return Promise.reject(new Error('Gather batch requires one to three ranges.'));
+      const selected = [];
+      for (const range of ranges) {
+        const file = Number.isSafeInteger(range?.shard) && range.shard >= 0 ? manifest.shards[range.shard] : null;
+        if (!file) return Promise.reject(new Error('Undeclared gather shard.'));
+        selected.push({ path: file.filename, offset: range.offset, length: range.length });
+      }
+      return result.readManyLease(selected, signal);
     } };
   return Object.freeze({ ...result, rangeLease: Object.freeze(rangeLease) });
 }

@@ -2,7 +2,7 @@ import { acquireBuffer, releaseBuffer } from '../memory/buffer-pool.js';
 import { ggufBlockBytes, isGgufBlockDtype } from '../formats/gguf/block-storage.js';
 import { getDevice } from '../gpu/device.js';
 import { createTensor } from '../gpu/tensor.js';
-import { createWeightBuffer, getWeightDtype, isWeightBuffer } from '../gpu/weight-buffer.js';
+import { createWeightBuffer, getWeightDtype, isGpuBufferInstance, isWeightBuffer } from '../gpu/weight-buffer.js';
 import { castF16ToF32 } from '../gpu/kernels/cast.js';
 import {
   GATED_RESIDUAL_SUFFIXES, HYPER_CONNECTION_MIXER_PREFIXES, HYPER_CONNECTION_SUFFIXES,
@@ -61,14 +61,25 @@ async function materialize(ctx, bindings) {
         result[key] = converted;
       } else result[key] = vector;
     } else {
-      if (!isWeightBuffer(loaded) || (dtype !== 'f16' && dtype !== 'f32' && !isGgufBlockDtype(dtype))) {
+      let projection = loaded;
+      // Small GGUF projections can carry role=other. Their float loader returns
+      // a tagged GPU buffer after BF16 expansion, rather than a WeightBuffer.
+      // Bind that already-owned materialization; never infer dtype or layout.
+      if (!isWeightBuffer(projection) && isGpuBufferInstance(projection)
+        && (dtype === 'f16' || dtype === 'f32') && spec.location.layout === 'row') {
+        if (!(ctx.gpuBuffers instanceof Set) || !ctx.gpuBuffers.has(projection)) {
+          fail(`${spec.name} requires its loaded GPU projection owner.`);
+        }
+        projection = createWeightBuffer(projection, dtype, spec.location.layout, [...spec.shape], spec.name);
+      }
+      if (!isWeightBuffer(projection) || (dtype !== 'f16' && dtype !== 'f32' && !isGgufBlockDtype(dtype))) {
         fail(`${spec.name} requires a WeightBuffer with supported floating or GGUF block projection storage and layout.`);
       }
-      if (loaded.shape.length !== spec.shape.length || loaded.shape.some((value, index) => value !== spec.shape[index])
-        || buffer.size < projectionBytes(loaded) || (isGgufBlockDtype(dtype) && loaded.layout !== 'row')) {
+      if (projection.shape.length !== spec.shape.length || projection.shape.some((value, index) => value !== spec.shape[index])
+        || buffer.size < projectionBytes(projection) || (isGgufBlockDtype(dtype) && projection.layout !== 'row')) {
         fail(`${spec.name} has an incomplete or mismatched projection representation.`);
       }
-      result[key] = loaded;
+      result[key] = projection;
     }
   }
   return result;

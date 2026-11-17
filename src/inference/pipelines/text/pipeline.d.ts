@@ -187,6 +187,8 @@ export declare class InferencePipeline extends PipelineState {
   // Utility Methods
   // ==========================================================================
 
+  /** Explicit CPU-only loader counters; not GPU timing or an automatic generation capture. */
+  getExpertLoadingStats(): import('./expert-loading-stats.js').ExpertLoadingStats;
   getStats(): PipelineStats;
 
   getBatchingStats(): BatchingStats;

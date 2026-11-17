@@ -4,6 +4,7 @@ import type { AnyLayerPartitionPlan } from "../execution/layer-partition-contrac
 import type { GpuLogitsResult } from "../generator/sampling/token-selection.js";
 import type { PartitionTiming } from './resident-partition-contract.js';
 export type PartitionExecutionState = PipelineState & {
+  getExpertLoadingStats?: () => import('../expert-loading-stats.js').ExpertLoadingStats;
   visionCapable?: boolean; audioCapable?: boolean; operatorDiagnostics?: unknown;
   modelPartition?: { plan: AnyLayerPartitionPlan; index: number } | null;
 };

@@ -65,6 +65,7 @@ const reader = await createVerifiedPieceReader({ ...workerData.metadata,
 // This worker owns the FD and transferred output; no external acquisition callback
 // can mutate the bytes between synchronous full-piece SHA and publication.
 let directPieceReads = 0, directPieceBytes = 0, acquisitionMs = 0, verificationMs = 0;
+let batchReads = 0, batchRanges = 0, batchBytes = 0;
 /** @type {Map<string, Readonly<import('./verified-piece-reader.js').VerifiedPiece>>} */
 const directRanges = new Map();
 /** @returns {import('./verified-piece-gather.js').VerifiedPieceGatherReceipt} */
@@ -77,25 +78,39 @@ function getReceipt() {
     verifiedBytes: [...pieces.values()].reduce((sum, size) => sum + size, 0),
     requestedBytes: generic.requestedBytes + directPieceBytes,
     acquisitionMs: generic.acquisitionMs + acquisitionMs, verificationMs: generic.verificationMs + verificationMs,
-    directPieceReads, directPieceBytes };
+    directPieceReads, directPieceBytes, batchReads, batchRanges, batchBytes };
 }
 port.postMessage({ ready: true });
-port.on('message', async ({ path, offset, length, buffer, receipt }) => {
+port.on('message', async ({ ranges, length, buffer, receipt, batch }) => {
   if (receipt === true) { port.postMessage({ receipt: getReceipt() }); return; }
   try {
-    const output = new Uint8Array(buffer, 0, length);
-    const piece = reader.resolveCompletePiece(path, offset, length);
-    if (piece) {
-      const readStart = performance.now();
-      try { readFile(piece, output); }
-      finally { acquisitionMs += performance.now() - readStart; }
-      const hashStart = performance.now();
-      const identity = 'sha256:' + createHash('sha256').update(output).digest('hex');
-      verificationMs += performance.now() - hashStart;
-      if (identity !== piece.identity) throw new Error('Acquired piece integrity mismatch.');
-      directRanges.set(`${path}:${offset}`, piece);
-      directPieceReads++; directPieceBytes += length;
-    } else await reader.readInto(path, offset, output);
+    if (!(buffer instanceof ArrayBuffer) || buffer.byteLength !== workerData.maxPartBytes
+      || !Array.isArray(ranges) || ranges.length < 1 || ranges.length > 3
+      || !Number.isSafeInteger(length) || length < 0 || length > buffer.byteLength
+      || ranges.some(range => typeof range.path !== 'string' || !Number.isSafeInteger(range.offset) || range.offset < 0
+        || !Number.isSafeInteger(range.length) || range.length < (batch ? 1 : 0)
+        || !Number.isSafeInteger(range.offset + range.length))
+      || ranges.reduce((sum, range) => sum + range.length, 0) !== length) {
+      throw new Error('Invalid bounded gather request.');
+    }
+    let destination = 0;
+    for (const { path, offset, length: rangeLength } of ranges) {
+      const output = new Uint8Array(buffer, destination, rangeLength);
+      const piece = reader.resolveCompletePiece(path, offset, rangeLength);
+      if (piece) {
+        const readStart = performance.now();
+        try { readFile(piece, output); }
+        finally { acquisitionMs += performance.now() - readStart; }
+        const hashStart = performance.now();
+        const identity = 'sha256:' + createHash('sha256').update(output).digest('hex');
+        verificationMs += performance.now() - hashStart;
+        if (identity !== piece.identity) throw new Error('Acquired piece integrity mismatch.');
+        directRanges.set(`${path}:${offset}`, piece);
+        directPieceReads++; directPieceBytes += rangeLength;
+      } else await reader.readInto(path, offset, output);
+      destination += rangeLength;
+    }
+    if (batch) { batchReads++; batchRanges += ranges.length; batchBytes += length; }
     port.postMessage({ buffer, length }, [buffer]);
   } catch (error) {
     // Never publish a verified prefix after a later piece fails verification.

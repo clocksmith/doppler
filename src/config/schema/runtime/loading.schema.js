@@ -142,10 +142,10 @@ export function validateQwen35RoutedConfig(config) {
       && (config.storageMode !== 'compact-decode' || config.compactPrefillBytes === 0))) {
     throw new Error('prefillCompactAdmission requires none or selected-frequency-first with a compact-decode reservation.');
   }
-  if (!['plane-serial', 'expert-parallel', 'lease-parallel'].includes(config.sourceReadMode)
+  if (!['plane-serial', 'expert-parallel', 'lease-parallel', 'expert-lease-batch'].includes(config.sourceReadMode)
     || (config.sourceReadMode !== 'plane-serial'
       && (config.storageMode !== 'compact-decode' || config.hostCacheBytes !== 0))) {
-    throw new Error('sourceReadMode requires plane-serial, expert-parallel or lease-parallel; parallel modes require compact decode and no host cache.');
+    throw new Error('sourceReadMode requires plane-serial, expert-parallel, lease-parallel or expert-lease-batch; parallel modes require compact decode and no host cache.');
   }
   if (!['expert-copy', 'direct-bank'].includes(config.prefillUploadMode)
     || (config.prefillUploadMode === 'direct-bank'

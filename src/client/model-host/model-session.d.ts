@@ -286,6 +286,8 @@ export interface DopplerModelHandle {
     getSpecialTokens(): Record<string, number | undefined>;
     getStopTokenIds(): number[];
     getStats(): Record<string, unknown> | null;
+    /** Detached loader counters; sample outside request clocks. Throws when closed or unsupported. */
+    getExpertLoadingStats(): import('../../inference/pipelines/text/expert-loading-stats.js').ExpertLoadingStats;
     getResolvedRuntimeSession(): Readonly<Record<string, unknown>>;
     prefillKV(prompt: string, options?: DopplerGenerateOptions): Promise<KVCacheSnapshot>;
     resetToSeqLen(seqLen: number): void;

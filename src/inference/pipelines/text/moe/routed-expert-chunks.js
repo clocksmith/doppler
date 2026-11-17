@@ -9,8 +9,17 @@ import { runQwenRouteExperts, recordQwenRouteExperts } from './qwen-route-execut
 // current chunk's dispatch, so known-route I/O can overlap that dispatch.
 /** @type {typeof import('./routed-expert-chunks.js').executeRoutedExpertChunks} */
 export async function executeRoutedExpertChunks(options, loader, policy, signal, recorder = null) {
-  if (options.sharedSlot || options.groupedPrefill || options.activationDtype !== 'f32') {
-    throw new Error('Routed expert loading requires the ordinary immediate F32 route executor.');
+  if (options.activationDtype !== 'f32') {
+    throw new Error('Routed expert loading requires an F32 route executor.');
+  }
+  if (options.groupedPrefill && (options.phase !== 'prefill' || options.sharedSlot || recorder)) {
+    throw new Error('Grouped routed experts require immediate prefill without shared-slot execution.');
+  }
+  // Shared slots keep their layer-owned shared bank. Only the routed banks and
+  // expert IDs are compacted. Multi-token auxiliary gate/residual slicing is
+  // deliberately excluded; this path hands over the complete single token.
+  if (options.sharedSlot && (options.phase !== 'decode' || options.numTokens !== 1 || options.sharedSlot.residual)) {
+    throw new Error('Paged shared slots require single-token decode without an outer residual.');
   }
   if (recorder && (options.phase !== 'decode' || options.numTokens !== 1)) {
     throw new Error('Recorded routed experts require single-token decode.');

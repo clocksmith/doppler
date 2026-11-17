@@ -162,8 +162,9 @@ tiles (`down_proj` sums three) has `k` times the budget per output.
 
 For scale, on uniform twelve-bit data the exact products have standard deviation
 about `1.25e8`, so `tau / R` at `m = 2048` is about 0.08% of that and the `2^-40`
-threshold about 0.45%. Real activations are smaller, so the relative figures are
-larger.
+threshold about 0.45%. On the small-Qwen fixture the sampled tiles had root mean
+square products between `1.1e8` and `9.8e8`, so the relative figures there are
+similar or smaller.
 
 **Claim 2 (honest responses are not rejected).** If an honest tile row's decode
 error satisfies `||e|| <= B(m)` (A1), a single check rejects with probability at
@@ -176,7 +177,9 @@ have mean `-1/2`, not zero, which costs the factor 1.004 at `m = 2048`. ∎
 
 A1 is an empirical assumption about this native build and parameter profile,
 not a theorem. If it fails, honest attempts are rejected; soundness is
-unaffected.
+unaffected. On real small-Qwen activations for the public capital fixture, 129
+sampled tiles over the prefill and one decode step had row error norms of at
+most 43% of `B(m)` ([calibration](evidence/integrity/qwen-ntt12-check-calibration.json)).
 
 **Claim 3 (sampled replay).** If the evaluator returns anything other than the
 exact honest bytes for `k` tile-steps, at least one is recorded as a failure
@@ -281,7 +284,10 @@ no longer replays the remaining tiles.
 The check needs the client to hold `W`. A client that holds `x` and `W` could
 also compute `xW` itself with no evaluator. The checked route makes the client's
 integrity work much cheaper than replay; it does not make the hybrid route
-cheaper than local clear execution.
+cheaper than local clear execution. One complete small-Qwen generation through
+the checked route is [retained](FULL-QWEN.md#checked-integrity-route): client
+encrypted replay fell from 89.71 to 5.89 minutes against the replay receipt,
+with 14.8 seconds of linear checks.
 
 ## Tests
 
@@ -298,8 +304,8 @@ accepted flip decoded within the Claim 1 threshold; the rest were rejected.
 ## Assumptions
 
 - **A1.** Honest decode error of a tile row has Euclidean norm at most `B(m)`.
-  Measured on synthetic tiles; `calibrate_linear_check.py` measures it on a
-  model's real activations.
+  Measured on synthetic tiles and, with `calibrate_linear_check.py`, on one
+  small-Qwen fixture. Not measured on Flash.
 - **A2.** The GLWE encryption hides plaintexts from the evaluator under the
   installed parameters. Unreviewed; see the security boundary.
 - **A3.** HMAC-SHA256 and SHAKE-256 keyed with the check secret are

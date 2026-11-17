@@ -266,6 +266,12 @@ export async function createResidentPartitionSession(pipeline, allocation, token
     return attempt.settlement;
   }
   return {
+    getExpertLoadingStats() {
+      assertOpen();
+      if ([...attempts.values()].some(attempt => attempt.pending)) throw new Error('Expert loading statistics require an idle resident boundary.');
+      if (typeof pipeline.getExpertLoadingStats !== 'function') throw new Error('Resident pipeline does not support expert loading statistics.');
+      return pipeline.getExpertLoadingStats();
+    },
     getDescriptor: () => ({ ...structuredClone(descriptor), ready: !closed && !isDeviceLost(pipeline.gpuContext?.device) }),
     getRecoveryCapabilities: () => Object.freeze({ schema: /** @type {const} */ ('doppler.resident-recovery/v1'),
       inputReplay: false, checkpointExport: false, checkpointImport: false }),

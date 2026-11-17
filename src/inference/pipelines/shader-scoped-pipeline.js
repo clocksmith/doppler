@@ -43,7 +43,7 @@ export const PIPELINE_OPERATIONS = Object.freeze({
   createGenerationContext: 'mutation',
   reset: 'reset', resetForBatch: 'reset', resetGenerationState: 'reset', resetToSeqLen: 'reset',
   releaseGPUResources: 'mutation', unload: 'shutdown',
-  getStats: 'inspection', getBatchingStats: 'inspection', getMemoryStats: 'inspection',
+  getStats: 'inspection', getExpertLoadingStats: 'inspection', getBatchingStats: 'inspection', getMemoryStats: 'inspection',
   getKVCacheStats: 'inspection', getBufferPool: 'inspection', getActiveLoRA: 'inspection',
   getKernelCapabilities: 'inspection',
   inferJSON: 'execution', infer: 'execution', scoreRows: 'execution',
