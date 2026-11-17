@@ -43,7 +43,7 @@ class ClientProgress:
         self.count=sequence
         if sequence%256==0 or sequence==self.total:self._emit('receiving')
 
-    def finish(self,*,prepare_only):
-        self._require(self.plan_id is not None and type(prepare_only) is bool
-            and self.count==(0 if prepare_only else self.total))
-        self._emit('prepared' if prepare_only else 'validated');self.finished=True
+    def finish(self,*,prepare_only,readiness_only=False):
+        self._require(self.plan_id is not None and type(prepare_only) is bool and type(readiness_only) is bool
+            and not (prepare_only and readiness_only) and self.count==(0 if prepare_only or readiness_only else self.total))
+        self._emit('prepared' if prepare_only else 'provider-ready' if readiness_only else 'validated');self.finished=True

@@ -79,11 +79,12 @@ def resource_turn(lock_path,pause_path,wait_seconds,*,cancelled=None):
 
 
 def run(source_directory,reference_path,scratch_directory,prompt,*,backend_profile,tenant_id,privacy_id,
-        lock_path,pause_path,resource_wait_seconds,cancelled=None,prepare_only=False,progress=None):
+        lock_path,pause_path,resource_wait_seconds,cancelled=None,prepare_only=False,readiness_only=False,progress=None):
     require_active(cancelled)
     from client_progress import ClientProgress
     if progress is not None and type(progress) is not ClientProgress:raise ValueError('Explicit client-local progress writer required')
-    if type(prepare_only) is not bool:raise ValueError('Explicit boolean preparation mode required')
+    if type(prepare_only) is not bool or type(readiness_only) is not bool or prepare_only and readiness_only:
+        raise ValueError('Exclusive explicit boolean preparation/readiness modes required')
     from flash_request_state import ClientContext
     if any(not isinstance(value,str) or not 0<len(value)<=256 for value in (tenant_id,privacy_id)):
         raise ValueError('Explicit bounded tenant and privacy namespace required')
@@ -171,6 +172,26 @@ def run(source_directory,reference_path,scratch_directory,prompt,*,backend_profi
                     **({} if progress is None else dict(observe=progress.observe)))
                 owned.callback(bridge.close) # Stop/wait provider before source or scratch cleanup.
                 memory.mark('after-provider-readiness')
+                if readiness_only:
+                    # The complete model, public proofs, key and source-verified
+                    # evaluator coexist, but no private inference is attempted.
+                    bridge.check_active()
+                    if (bridge.admission.position!=0 or bridge.admission.in_flight or bridge.admission.projection is not None
+                            or bridge.sequence!=1 or bridge.public_coefficient_bytes_sent!=0):
+                        raise ValueError('Readiness probe unexpectedly consumed an inference route')
+                    bridge.close();memory.mark('after-provider-close');memory.close();require_active(active)
+                    return dict(schema='doppler.actual-flash-provider-readiness/v1',backendProfile=backend_profile,
+                        sourceId=hashlib.sha256(canonical(TEXT)).hexdigest(),sourceRevision=TEXT['revision'],
+                        clientGraphId=graph.identity,planId=plan.identity,linearProjectionCount=len(prepared.order),
+                        plannedEncryptedTileCount=len(plan.schedule())*settings['steps'],encryptedTileCount=0,
+                        clearCoefficientReference=checkpoint_reference,implementationVersions=versions,
+                        sha256VerifiedBytesIncludingRepeats=verified,resourceLimits=resource_limits,
+                        resourceObservation=memory.report(),evaluationKeyBytes=bridge.key_bytes,
+                        keysGenerated=True,providerReady=True,providerClosedBeforeReturn=True,
+                        preparationSeconds=prepared.preparation_seconds,elapsedSeconds=time.perf_counter()-began,
+                        clientLifetimePeakRssBytes=resource.getrusage(resource.RUSAGE_SELF).ru_maxrss*(1 if platform.system()=='Darwin' else 1024),
+                        driverSha256=hashlib.sha256(Path(__file__).read_bytes()).hexdigest(),
+                        actualFlashCheckpointExecuted=False,encryptedExecution=False,productionBackendAvailable=False,securityQualified=False)
                 context=ClientContext(tenant_id,privacy_id,graph.identity,bridge.key_id,bridge.session)
                 result=generate(prepared,list(tokens),bridge,secret,parameters,context,floating_reference=floating)
                 memory.mark('after-generation-validation');memory.close()
@@ -200,7 +221,9 @@ def main(arguments=None):
     parser.add_argument('--tenant-id',required=True);parser.add_argument('--privacy-id',required=True)
     parser.add_argument('--lock',required=True);parser.add_argument('--pause-file',required=True);parser.add_argument('--resource-wait-seconds',required=True,type=int)
     parser.add_argument('--public-fixture',choices=[SOURCE['publicFixture']['id']])
-    parser.add_argument('--prepare-only',action='store_true',help='Authenticate and prepare the complete graph; no keys, evaluator or inference')
+    modes=parser.add_mutually_exclusive_group()
+    modes.add_argument('--prepare-only',action='store_true',help='Authenticate and prepare the complete graph; no keys, evaluator or inference')
+    modes.add_argument('--readiness-only',action='store_true',help='Authenticate the complete graph and verify key/provider readiness; no inference ciphertext or generation')
     parser.add_argument('--status-file',help='New mode-0600 file directly inside scratch; sparse client-local counts, no private data or pre-close acceptance')
     args=parser.parse_args(arguments);began=time.perf_counter()
     try:
@@ -211,8 +234,9 @@ def main(arguments=None):
             if Path(args.status_file).absolute().parent.resolve()!=scratch.resolve():raise ValueError('Client progress must stay inside owned scratch')
         with (nullcontext(None) if args.status_file is None else ClientProgress(args.status_file)) as progress:
             result=run(args.source,args.reference,args.scratch,prompt,backend_profile=args.backend_profile,tenant_id=args.tenant_id,privacy_id=args.privacy_id,
-                lock_path=args.lock,pause_path=args.pause_file,resource_wait_seconds=args.resource_wait_seconds,prepare_only=args.prepare_only,progress=progress)
-            if progress is not None:progress.finish(prepare_only=args.prepare_only)
+                lock_path=args.lock,pause_path=args.pause_file,resource_wait_seconds=args.resource_wait_seconds,
+                prepare_only=args.prepare_only,readiness_only=args.readiness_only,progress=progress)
+            if progress is not None:progress.finish(prepare_only=args.prepare_only,readiness_only=args.readiness_only)
         if args.public_fixture:result['publicFixtureId']=args.public_fixture
         print(json.dumps(result,indent=2));return 0
     except BaseException as error:

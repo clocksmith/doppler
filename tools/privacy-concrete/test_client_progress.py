@@ -44,6 +44,39 @@ class ClientProgressTests(unittest.TestCase):
             record=json.loads(path.read_text().splitlines()[-1]);self.assertEqual(record['phase'],'prepared')
             self.assertEqual(record['receivedTiles'],0);self.assertNotIn('validated',path.read_text())
 
+    def test_readiness_has_no_inference_tiles_and_never_records_validation(self):
+        with tempfile.TemporaryDirectory() as root:
+            path=Path(root)/'status'
+            with ClientProgress(path) as progress:
+                progress.bind('c'*64,603472)
+                with self.assertRaises(ValueError):progress.finish(prepare_only=True,readiness_only=True)
+                with self.assertRaises(ValueError):progress.finish(prepare_only=False,readiness_only=1)
+                progress.finish(prepare_only=False,readiness_only=True)
+            record=json.loads(path.read_text().splitlines()[-1]);self.assertEqual(record['phase'],'provider-ready')
+            self.assertEqual(record['receivedTiles'],0);self.assertNotIn('validated',path.read_text())
+            path=Path(root)/'consumed'
+            with ClientProgress(path) as progress:
+                progress.bind('d'*64,1);progress.observe('received-tile',dict(sequence=1))
+                with self.assertRaises(ValueError):progress.finish(prepare_only=False,readiness_only=True)
+
+    def test_cli_readiness_records_only_provider_ready_after_return_and_cleanup(self):
+        import flash_generate_run as runner
+        with tempfile.TemporaryDirectory() as root:
+            root=Path(root);source=root/'source';source.mkdir();scratch=root/'scratch';scratch.mkdir();status=scratch/'status'
+            args=['--source',str(source),'--reference',str(root/'unused.py'),'--scratch',str(scratch),
+                '--backend-profile','flash-text-all-linear-ntt12-rebuild-prefill5-check','--tenant-id','fixture',
+                '--privacy-id','local','--lock',str(root/'lock'),'--pause-file',str(root/'pause'),
+                '--resource-wait-seconds','1','--public-fixture','flash-public-capital-text','--status-file',str(status),'--readiness-only']
+            def attempt(*args,**kwargs):
+                self.assertTrue(kwargs['readiness_only']);self.assertFalse(kwargs['prepare_only'])
+                kwargs['progress'].bind('c'*64,603472)
+                self.assertNotIn('provider-ready',status.read_text())
+                return dict(productionBackendAvailable=False,securityQualified=False)
+            with patch.object(runner,'run',side_effect=attempt),patch('sys.stdout',io.StringIO()),patch('sys.stderr',io.StringIO()):
+                self.assertEqual(runner.main(args),0)
+            self.assertEqual(json.loads(status.read_text().splitlines()[-1])['phase'],'provider-ready')
+            self.assertNotIn('validated',status.read_text())
+
     def test_existing_files_and_symlinks_are_never_overwritten(self):
         with tempfile.TemporaryDirectory() as root:
             existing=Path(root)/'keep';existing.write_text('keep');link=Path(root)/'link';link.symlink_to(existing)

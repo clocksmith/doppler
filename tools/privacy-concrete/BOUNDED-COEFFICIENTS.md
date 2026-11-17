@@ -335,9 +335,12 @@ four steps, plus integrity sampling and full client floating/quantized reference
 No practical full-model latency or eight-GiB RSS claim follows from the cache
 bound or runnable code. The runner has been lifecycle-tested with mocked compute;
 the tiny complete graph/framing and native arithmetic evidence are separate.
-Actual Flash execution remains blocked on the coordinated resource window and
-completed numerical references. The previous generation-owner pin has not been
-located; this runner is a new source-controlled entry point.
+The later preparation receipt below verifies complete public materialization,
+and the checkpoint owner's four-token clear reference is now available. Actual
+encrypted Flash output and combined-model memory remain unverified. The measured
+synthetic kernel-work projection below exposes a substantial compute obstacle;
+any physical attempt still requires a coordinated resource window. This runner
+is a source-controlled entry point, separate from older owner-specific runs.
 
 The retained [five-row native probe](evidence/storage/native-rebuild-prefill5-probe.json)
 and [source context](evidence/storage/native-rebuild-prefill5-context.json) record
@@ -534,3 +537,16 @@ routing and validation requirements remain intact; this result does not justify
 skipping experts, disclosing routing or weakening integrity. A practical full
 Flash path still needs substantial compute reduction, actual checkpoint output
 and combined-model resource validation, in addition to security qualification.
+
+Append `--readiness-only` to the resource-gated runner above for the next bounded
+physical memory gate. This mutually exclusive alternative to `--prepare-only`
+authenticates the complete model, compiles and verifies every coefficient against
+the pinned clear inventory, creates the client key and completes the local
+provider's source-verified readiness handshake. It then verifies that the route
+cursor is untouched, closes the owned provider and observes combined resources.
+It sends the public evaluation key but no inference ciphertext, executes zero
+model tiles and returns no generated output. The receipt and optional progress
+label say `provider-ready`, never `validated`; production admission stays closed.
+Cancellation, rejected identities and cleanup failures return no successful
+receipt. This is an implemented lifecycle-tested gate awaiting its coordinated
+physical run, not evidence that actual combined Flash memory already fits.

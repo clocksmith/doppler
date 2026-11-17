@@ -11,6 +11,15 @@ from protocol import require_active
 
 
 class ResourceTurnTests(unittest.TestCase):
+    def test_probe_modes_are_explicit_exclusive_and_reject_before_backend_or_source(self):
+        for preparation,readiness in ((True,True),(1,False),(False,1)):
+            with self.subTest(preparation=preparation,readiness=readiness),patch('flash_generate_run.compiled_backend') as backend:
+                with self.assertRaises(ValueError):run('/unread/source','/unread/reference','/unread/scratch','public',
+                    backend_profile=REBUILD_PREFILL5_PROFILE,tenant_id='tenant',privacy_id='restricted',
+                    lock_path='/unread/lock',pause_path='/unread/pause',resource_wait_seconds=1,
+                    prepare_only=preparation,readiness_only=readiness)
+                backend.assert_not_called()
+
     def test_kernel_scope_rejects_shared_unbounded_swappable_or_non_group_kill_jobs(self):
         import flash_generate_run
         for change in (None,'shared','memory','swap','oom','cpu'):
@@ -74,7 +83,19 @@ class RunnerLifecycleTests(unittest.TestCase):
     def test_rejected_reference_cannot_bind_a_client_progress_route(self):
         self._lifecycle(True,log=True)
 
-    def _lifecycle(self,blocked_reference,prepare_only=False,log=False):
+    def test_readiness_closes_provider_and_never_generates_or_claims_encrypted_output(self):
+        self._lifecycle(False,readiness_only=True)
+
+    def test_readiness_rejects_reference_before_key_or_provider(self):
+        self._lifecycle(True,readiness_only=True)
+
+    def test_readiness_rejects_consumed_route_and_releases_resources(self):
+        self._lifecycle(False,readiness_only=True,consumed_route=True)
+
+    def test_readiness_revocation_during_provider_close_returns_no_receipt(self):
+        self._lifecycle(False,readiness_only=True,revoke_on_close=True)
+
+    def _lifecycle(self,blocked_reference,prepare_only=False,log=False,readiness_only=False,consumed_route=False,revoke_on_close=False):
         from contextlib import ExitStack
         import concrete_ml_extensions as ext
         import flash_text_rebuild5_plan as backend
@@ -86,10 +107,15 @@ class RunnerLifecycleTests(unittest.TestCase):
             return SimpleNamespace(spec={'wholeShardBytes':1},close=lambda:events.append('source-close'))
         prepared=SimpleNamespace(order=['projection'],preparation_seconds=0.,rematerialization_seconds=0.)
         graph=SimpleNamespace(identity='f'*64)
-        bridge=SimpleNamespace(key_id='key',session='request',close=lambda:events.append('provider-close'))
+        bridge=SimpleNamespace(key_id='key',session='request',key_bytes=123,sequence=1,public_coefficient_bytes_sent=0,
+            admission=SimpleNamespace(position=int(consumed_route),in_flight=False,projection=None),check_active=lambda:None)
         with temporary_type() as root,ExitStack() as stack:
             root=Path(root);source=root/'source';source.mkdir();scratch=root/'scratch';scratch.mkdir()
             sibling=scratch/'keep';sibling.write_text('keep');lock=root/'lock';lock.touch();pause=root/'pause'
+            def provider_close():
+                events.append('provider-close')
+                if revoke_on_close:pause.write_text('other-owner')
+            bridge.close=provider_close
             progress=None
             if log:
                 from client_progress import ClientProgress
@@ -111,25 +137,36 @@ class RunnerLifecycleTests(unittest.TestCase):
                 side_effect=ValueError('reference mismatch') if blocked_reference else None))
             stack.enter_context(patch('flash_float_reference.BoundedFloatingReference',return_value=SimpleNamespace(close=lambda:None)))
             memory=stack.enter_context(patch('resource_memory.ResourceMeter',return_value=SimpleNamespace(
-                close=lambda:events.append('meter-close'),mark=lambda phase:None,start=lambda:None)))
+                close=lambda:events.append('meter-close'),mark=lambda phase:None,start=lambda:None,report=lambda:{'fixture':'mocked lifecycle'})))
             stack.enter_context(patch('research_parameters.component_parameters',return_value={'parameters':{}}))
             stack.enter_context(patch.object(ext,'MatmulCryptoParameters',SimpleNamespace(deserialize=lambda value:object())))
             keygen=stack.enter_context(patch.object(ext,'cpu_create_private_key',return_value=(object(),object()),create=True))
             stack.enter_context(patch('concrete.ml.quantization.linear_op_glwe_backend.GLWELinearLayerExecutor',return_value=SimpleNamespace()))
             provider=stack.enter_context(patch('checked_bridge.CheckedBridge',return_value=bridge))
-            stack.enter_context(patch('flash_generation.generate',side_effect=RuntimeError('mocked generation failure')))
+            generate=stack.enter_context(patch('flash_generation.generate',side_effect=RuntimeError('mocked generation failure')))
             def invoke():return run(source,reference,scratch,'public fixture',backend_profile=REBUILD_PREFILL5_PROFILE,tenant_id='tenant',privacy_id='restricted',
-                lock_path=lock,pause_path=pause,resource_wait_seconds=1,prepare_only=prepare_only,progress=progress)
+                lock_path=lock,pause_path=pause,resource_wait_seconds=1,prepare_only=prepare_only,readiness_only=readiness_only,progress=progress)
             if prepare_only:
                 result=invoke();self.assertFalse(result['encryptedExecution']);self.assertEqual(result['encryptedTileCount'],0)
                 self.assertEqual(result['plannedEncryptedTileCount'],4)
                 self.assertFalse(result['productionBackendAvailable']);self.assertFalse(result['securityQualified'])
+            elif readiness_only and not blocked_reference and not consumed_route and not revoke_on_close:
+                result=invoke();self.assertEqual(result['schema'],'doppler.actual-flash-provider-readiness/v1')
+                self.assertEqual(result['encryptedTileCount'],0);self.assertEqual(result['plannedEncryptedTileCount'],4)
+                self.assertTrue(result['keysGenerated']);self.assertTrue(result['providerReady']);self.assertTrue(result['providerClosedBeforeReturn'])
+                self.assertFalse(result['actualFlashCheckpointExecuted']);self.assertFalse(result['encryptedExecution'])
+                self.assertFalse(result['productionBackendAvailable']);self.assertFalse(result['securityQualified'])
+                self.assertFalse(any('Output' in name for name in result));generate.assert_not_called()
+            elif readiness_only and not blocked_reference:
+                with self.assertRaises(InterruptedError if revoke_on_close else ValueError):invoke()
+                generate.assert_not_called()
             else:
                 with self.assertRaisesRegex(ValueError if blocked_reference else RuntimeError,
                         'reference mismatch' if blocked_reference else 'mocked generation failure'):invoke()
             if blocked_reference or prepare_only:
                 keygen.assert_not_called();provider.assert_not_called();memory.assert_not_called()
             else:
+                keygen.assert_called_once();provider.assert_called_once()
                 self.assertLess(events.index('provider-close'),events.index('meter-close'))
                 self.assertLess(events.index('meter-close'),events.index('source-close'))
             self.assertLess(events.index('source-close'),events.index('scratch-close'))
