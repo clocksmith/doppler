@@ -22,9 +22,9 @@ from native_runtime import matrix_evaluator,prepare_evaluator_key
 class FullBridge:
     def __init__(self, directory, plan, key, cancelled=None, observe=lambda kind, value: None, deployment=None, backend_profile=None,prepared_public_tiles=None,provider_source_directory=None):
         require_active(cancelled)
-        from plan_backends import STREAMED_PROFILE,REBUILD_PROFILE
+        from plan_backends import STREAMED_PROFILE,REBUILD_PROFILES,compiled_backend
         self.streams_public_coefficients=backend_profile==STREAMED_PROFILE
-        self.rebuilds_public_coefficients=backend_profile==REBUILD_PROFILE
+        self.rebuilds_public_coefficients=backend_profile in REBUILD_PROFILES
         compiled=self.streams_public_coefficients or self.rebuilds_public_coefficients
         self.public_coefficient_bytes_sent=0
         if provider_source_directory is not None and (not self.rebuilds_public_coefficients or deployment is not None):
@@ -35,9 +35,7 @@ class FullBridge:
         if compiled:
             from checked_bridge import CheckedBridge
             if type(self) is not CheckedBridge:raise ValueError('Compiled public profile requires its declared checked-integrity bridge')
-            if self.streams_public_coefficients:from flash_text_stream_plan import load_client_plan
-            else:from flash_text_rebuild_plan import load_client_plan
-            validated=load_client_plan(directory,prepared_public_tiles)
+            validated=compiled_backend(backend_profile).load_client_plan(directory,prepared_public_tiles)
         elif prepared_public_tiles is not None:raise ValueError('Compiled tile binding requires an explicit streamed backend')
         elif backend_profile is None:validated=load_plan(directory)
         else:

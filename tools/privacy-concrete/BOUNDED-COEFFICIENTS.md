@@ -212,9 +212,9 @@ already partly evaluated route cannot restart with fresh model state.
 
 The graph has no prompt-padding mask contract. The prompt must contain exactly
 `contextBucket` rows, and the entire route must fit the graph's context budget.
-The currently installed Flash profiles bind one prefill row; the multi-token
-public capital prompt used by `validate_flash_checkpoint.py` cannot be passed to
-these profiles. The function rejects that mismatch before any ciphertext
+The original Flash profiles bind one prefill row; the multi-token public capital
+prompt used by `validate_flash_checkpoint.py` cannot be passed to those profiles.
+The function rejects that mismatch before any ciphertext
 evaluation, rather than truncating the prompt or changing the admitted route.
 EOS does not shorten execution. No source acquisition, route selection, plaintext
 feedback, output callbacks or production admission are added.
@@ -226,3 +226,17 @@ closure, cancellation, wrong request binding and prefill mismatch. This componen
 does not locate the previously mentioned generation pin, provide actual Flash
 reference outputs or establish full Flash encrypted execution. Those physical
 and integration gates remain open with the checkpoint/generation owners.
+
+`flash-text-all-linear-ntt12-rebuild-prefill5-check`, implemented by
+`flash_text_rebuild5_plan`, is a separate installed research profile that binds
+exactly five prefill rows, followed by three single-row autoregressive steps. Its
+policy, client program, manifest, plan identity and backend protocol are distinct
+from the one-row reconstruction profile. The public capital fixture's tokenizer
+produces five rows; no truncation or padding is performed. Preparation and the
+SSH route must explicitly select this profile (`backend_profile` on
+`SSHRoute.for_compiled_checkpoint`), with the actual byte-derived compiler proof.
+Old manifests/routes cannot authorize it, and it cannot authorize old manifests.
+The source, precision, cache budget, integrity mechanism and production closure
+are unchanged. Five-row tiny graph/framed execution is separate from actual
+Flash output qualification. A native storage fixture additionally checks five
+encrypted input rows followed by single-row feedback, without Flash weights.

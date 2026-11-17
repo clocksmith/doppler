@@ -22,6 +22,7 @@ on:
       - 'tools/privacy-concrete/flash_generation.py'
       - 'tools/privacy-concrete/flash_text_stream_plan.py'
       - 'tools/privacy-concrete/flash_text_rebuild_plan.py'
+      - 'tools/privacy-concrete/flash_text_rebuild5_plan.py'
       - 'tools/privacy-concrete/flash_provider_source.py'
       - 'tools/privacy-concrete/coefficient_plan.py'
       - 'tools/privacy-concrete/public_tile_stream.py'

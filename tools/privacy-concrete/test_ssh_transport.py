@@ -107,20 +107,22 @@ class SSHTransportTests(unittest.TestCase):
         from types import SimpleNamespace
         from flash_text_stream_plan import CONFIG as STREAM
         from flash_text_rebuild_plan import CONFIG as REBUILD
+        from flash_text_rebuild5_plan import CONFIG as REBUILD5
         for settings,schema in ((STREAM,'doppler.encrypted-ssh-stream-check-route/v1'),
-                (REBUILD,'doppler.encrypted-ssh-rebuild-check-route/v1')):
+                (REBUILD,'doppler.encrypted-ssh-rebuild-check-route/v1'),
+                (REBUILD5,'doppler.encrypted-ssh-rebuild-check-route/v1')):
             with self.subTest(profile=settings['profile']):
                 plan=SimpleNamespace(identity=self.plan.identity,protocol_id=settings['protocol'],definition=self.plan.definition,
                     frame=self.plan.frame,schedule=self.plan.schedule)
                 value=dict(self.value,schema=schema,backendProfile=settings['profile'],backendProtocol=settings['protocol'])
-                if settings is REBUILD:value['remotePublicSource']='/srv/already-present-public-source'
+                if settings is not STREAM:value['remotePublicSource']='/srv/already-present-public-source'
                 deployment=self.deployment(value);bound=deployment.bind(plan);child=deployment.spawn(plan)
                 try:
                     header=bound.frame('public-session','public-key-context',1,'evaluate','public-tile')
                     payload=b'opaque-public-storage-transport-fixture'
                     send(child.stdin,header,payload,timeout=10);echoed,data,_=receive(child.stdout,timeout=10)
                     self.assertEqual(echoed,header);self.assertEqual(data,payload)
-                    if settings is REBUILD:self.assertIn('--public-source-dir /srv/already-present-public-source',deployment.command('/explicit/pin')[-1])
+                    if settings is not STREAM:self.assertIn('--public-source-dir /srv/already-present-public-source',deployment.command('/explicit/pin')[-1])
                     child.stdin.close();self.assertEqual(child.wait(timeout=5),0)
                 finally:
                     if child.poll() is None:child.kill()

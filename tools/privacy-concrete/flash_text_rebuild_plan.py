@@ -26,12 +26,15 @@ SOURCE_VERIFICATION_TIMEOUT_SECONDS=7200
 def versions():return component_versions(CONFIG)
 
 
-def semantics(graph_id,digests):
-    source=linear_source_spec()
-    return dict(public_semantics(graph_id,digests,GEOMETRY,PROGRAM_ID,REBUILD_CONTRACT,CONFIG['steps'],wire_bytes=0),
-        logicalCoefficientBytesPerStep=sum(width*height*2 for width,height in GEOMETRY.values()),
+def source_semantics(graph_id,digests,geometry,program_id,steps,source):
+    return dict(public_semantics(graph_id,digests,geometry,program_id,REBUILD_CONTRACT,steps,wire_bytes=0),
+        logicalCoefficientBytesPerStep=sum(width*height*2 for width,height in geometry.values()),
         providerSourceId=digest(canonical(source)),providerSourceShardBytes=source['wholeShardBytes'],
         providerCoefficientCacheBudgetBytes=CACHE_BUDGET_BYTES,sourceVerificationTimeoutSeconds=SOURCE_VERIFICATION_TIMEOUT_SECONDS)
+
+
+def semantics(graph_id,digests):
+    return source_semantics(graph_id,digests,GEOMETRY,PROGRAM_ID,CONFIG['steps'],linear_source_spec())
 
 
 class FlashTextRebuildPlan(FullPlan):

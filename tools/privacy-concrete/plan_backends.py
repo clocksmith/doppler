@@ -2,13 +2,25 @@
 DEFAULT_PROFILE='qwen-all-linear'
 STREAMED_PROFILE='flash-text-all-linear-ntt12-stream-check'
 REBUILD_PROFILE='flash-text-all-linear-ntt12-rebuild-check'
+REBUILD_PREFILL5_PROFILE='flash-text-all-linear-ntt12-rebuild-prefill5-check'
+REBUILD_PROFILES=(REBUILD_PROFILE,REBUILD_PREFILL5_PROFILE)
+COMPILED_PROFILES=(STREAMED_PROFILE,*REBUILD_PROFILES)
 QWEN_PROFILES=(DEFAULT_PROFILE,'qwen-all-linear-ntt','qwen-all-linear-ntt-48','qwen-all-linear-ntt12','qwen-all-linear-ntt12-check')
 MOE_PROFILES=('flash-dense-moe','flash-dense-moe-ntt')
-PROFILES=(*QWEN_PROFILES,'flash-expert0',*MOE_PROFILES,'flash-mlp-hyper','flash-mlp-block','flash-first-delta','flash-first-qsa-ntt','flash-first-ple-ntt','flash-text-all-linear-research','flash-text-all-linear-ntt12-check',STREAMED_PROFILE,REBUILD_PROFILE)
+PROFILES=(*QWEN_PROFILES,'flash-expert0',*MOE_PROFILES,'flash-mlp-hyper','flash-mlp-block','flash-first-delta','flash-first-qsa-ntt','flash-first-ple-ntt','flash-text-all-linear-research','flash-text-all-linear-ntt12-check',*COMPILED_PROFILES)
+
+
+def compiled_backend(profile):
+    """Only installed code can select compiled client/provider admission owners."""
+    if profile==STREAMED_PROFILE:import flash_text_stream_plan as backend
+    elif profile==REBUILD_PROFILE:import flash_text_rebuild_plan as backend
+    elif profile==REBUILD_PREFILL5_PROFILE:import flash_text_rebuild5_plan as backend
+    else:raise ValueError('Unsupported installed compiled coefficient backend')
+    return backend
 
 
 def load_backend_plan(directory,profile):
-    if profile in (STREAMED_PROFILE,REBUILD_PROFILE):
+    if profile in COMPILED_PROFILES:
         raise ValueError('Streamed client admission requires its actual byte-derived compiler binding')
     if profile=='flash-text-all-linear-research':
         from flash_text_plan import load_plan
@@ -46,12 +58,7 @@ def load_backend_plan(directory,profile):
 
 def load_provider_plan(directory,profile):
     """Public evaluator parsing never substitutes for client byte admission."""
-    if profile==STREAMED_PROFILE:
-        from flash_text_stream_plan import load_provider_plan as load
-        return load(directory)
-    if profile==REBUILD_PROFILE:
-        from flash_text_rebuild_plan import load_provider_plan as load
-        return load(directory)
+    if profile in COMPILED_PROFILES:return compiled_backend(profile).load_provider_plan(directory)
     return load_backend_plan(directory,profile)
 
 

@@ -17,11 +17,12 @@ from unittest.mock import patch,Mock
 
 @unittest.skipUnless(os.environ.get('DOPPLER_FLASH_REFERENCE')=='1','opt-in real Torch quantizer')
 class FlashStreamStorageTests(unittest.TestCase):
-    def fixture(self,stack,*,rebuild=False,bf16_control=False):
+    def fixture(self,stack,*,rebuild=False,bf16_control=False,prefill5=False):
         from test_flash_model_reference import FlashModelReferenceTests
         from flash_prepared_graph import PreparedFlashGraph,EPHEMERAL_STORAGE
         from concrete.ml.quantization.linear_op_glwe_backend import GLWELinearLayerExecutor
-        if rebuild:import flash_text_rebuild_plan as stream
+        if prefill5:import flash_text_rebuild5_plan as stream
+        elif rebuild:import flash_text_rebuild_plan as stream
         else:import flash_text_stream_plan as stream
         torch,graph,parts,_=FlashModelReferenceTests().fixture()
         if rebuild or bf16_control:
@@ -50,18 +51,18 @@ class FlashStreamStorageTests(unittest.TestCase):
         self.assertEqual(list(root.iterdir()),[root/'plan.json'])
         return torch,graph,prepared,root,plan,binding
 
-    def run_case(self,failure=None,*,rebuild=False,bf16_control=False,generation=False):
+    def run_case(self,failure=None,*,rebuild=False,bf16_control=False,generation=False,prefill5=False):
         import numpy as np
         import full_model,full_bridge,full_provider,checked_bridge
         from flash_request_state import ClientContext
-        from plan_backends import STREAMED_PROFILE,REBUILD_PROFILE
-        PROFILE=REBUILD_PROFILE if rebuild else STREAMED_PROFILE
+        from plan_backends import STREAMED_PROFILE,REBUILD_PROFILE,REBUILD_PREFILL5_PROFILE
+        PROFILE=REBUILD_PREFILL5_PROFILE if prefill5 else REBUILD_PROFILE if rebuild else STREAMED_PROFILE
         from full_status import ExecutionRejected
         from full_plan import canonical
         from protocol import digest
         import struct
         with ExitStack() as stack:
-            torch,graph,prepared,root,plan,binding=self.fixture(stack,rebuild=rebuild,bf16_control=bf16_control)
+            torch,graph,prepared,root,plan,binding=self.fixture(stack,rebuild=rebuild,bf16_control=bf16_control,prefill5=prefill5)
             counts=dict(parsed=0,decrypted=0,evaluated=0)
             class Cipher:
                 def __init__(self,data):self.data=np.ascontiguousarray(data,dtype=np.uint64)
@@ -119,7 +120,8 @@ class FlashStreamStorageTests(unittest.TestCase):
             context=ClientContext('tenant','restricted',graph.identity,bridge.key_id,bridge.session)
             clear_context=ClientContext('tenant','restricted',graph.identity,'reference-key','reference-request')
             state=graph.new_state(context);clear=graph.new_state(clear_context);stack.callback(state.close);stack.callback(clear.close)
-            tokens=torch.tensor([[1]]);generated=[]
+            prompt=[1,2,3,4,5] if prefill5 else [1]
+            tokens=torch.tensor([prompt]);generated=[]
             parameters=SimpleNamespace(serialize=lambda:json.dumps(plan.definition()['parameters']['parameters']))
             if failure=='parameters':parameters=SimpleNamespace(serialize=lambda:'{}')
             if failure in ('public','source','parameters'):
@@ -150,10 +152,11 @@ class FlashStreamStorageTests(unittest.TestCase):
                         request=replace(context,request_id='other-request') if failure=='context' else context
                         error=InterruptedError if failure=='cancel' else ValueError if failure in ('prefill','context','used') else ExecutionRejected
                         with self.assertRaises(error):
-                            generate(prepared,[1,2] if failure=='prefill' else [1],bridge,object(),parameters,request)
+                            generate(prepared,[1,2] if failure=='prefill' else prompt,bridge,object(),parameters,request)
                     else:
-                        result=generate(prepared,[1],bridge,object(),parameters,context)
+                        result=generate(prepared,prompt,bridge,object(),parameters,context)
                         self.assertEqual(len(result['clientLocalOutputTokens']),4)
+                        self.assertEqual(result['promptRows'],len(prompt))
                         self.assertTrue(result['matchesTeacherForcedQuantizedGreedyReference'])
                         self.assertEqual(result['maxLogitErrors'],[0.]*4)
                         self.assertFalse(result['productionBackendAvailable']);self.assertFalse(result['securityQualified'])
@@ -215,6 +218,28 @@ class FlashStreamStorageTests(unittest.TestCase):
     def test_fixed_generation_wrong_request_closes_before_any_ciphertext(self):self.run_case('context',rebuild=True,generation=True)
     def test_fixed_generation_cancelled_before_start_closes_without_ciphertext(self):self.run_case('cancel',rebuild=True,generation=True)
     def test_fixed_generation_cannot_restart_a_partly_consumed_route(self):self.run_case('used',rebuild=True,generation=True)
+    def test_five_row_profile_completes_fixed_generation_without_prompt_truncation(self):self.run_case(rebuild=True,generation=True,prefill5=True)
+    def test_five_row_profile_rejects_a_shorter_prompt_before_ciphertext(self):self.run_case('prefill',rebuild=True,generation=True,prefill5=True)
+
+    def test_one_and_five_row_profiles_cannot_substitute_manifests_or_ssh_routes(self):
+        from plan_backends import REBUILD_PROFILE,REBUILD_PREFILL5_PROFILE,compiled_backend
+        from ssh_route import SSHRoute,ENDPOINT_FIELDS
+        from test_ssh_route import fixture
+        with ExitStack() as stack:
+            _,graph1,_,root1,plan1,binding1=self.fixture(stack,rebuild=True)
+            _,graph5,_,root5,plan5,binding5=self.fixture(stack,rebuild=True,prefill5=True)
+            self.assertEqual(graph1.identity,graph5.identity)
+            self.assertEqual(plan1.definition()['contextBucket'],1);self.assertEqual(plan5.definition()['contextBucket'],5)
+            self.assertNotEqual(plan1.identity,plan5.identity);self.assertNotEqual(plan1.protocol_id,plan5.protocol_id)
+            for profile,root,binding in ((REBUILD_PROFILE,root5,binding5),(REBUILD_PREFILL5_PROFILE,root1,binding1)):
+                with self.assertRaises(ValueError):compiled_backend(profile).load_client_plan(root,binding)
+            _,value=fixture();endpoint={key:value[key] for key in ENDPOINT_FIELDS};endpoint['remotePublicSource']='/srv/pinned-public-source'
+            route=SSHRoute.for_compiled_checkpoint(root5,binding5,endpoint,('research-provider',),backend_profile=REBUILD_PREFILL5_PROFILE)
+            self.assertEqual(route.definition()['backendProfile'],REBUILD_PREFILL5_PROFILE)
+            self.assertEqual(route.bind(plan5,('research-provider',)).definition(),plan5.definition())
+            with self.assertRaises(ValueError):route.bind(plan1,('research-provider',))
+            with self.assertRaises(ValueError):SSHRoute.for_compiled_checkpoint(root5,binding5,endpoint,(),backend_profile=REBUILD_PREFILL5_PROFILE)
+            with self.assertRaises(ValueError):SSHRoute.for_compiled_checkpoint(root5,binding5,endpoint,('research-provider',))
 
     def test_same_bf16_model_measures_coefficient_traffic_reduction_across_four_steps(self):
         streamed=self.run_case(bf16_control=True);rebuilt=self.run_case(rebuild=True)

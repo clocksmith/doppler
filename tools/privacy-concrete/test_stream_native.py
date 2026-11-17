@@ -18,10 +18,11 @@ from unittest.mock import patch
 
 @unittest.skipUnless(os.environ.get('DOPPLER_STREAM_NATIVE')=='1','opt-in exact native storage probe')
 class StreamNativeTests(unittest.TestCase):
-    def run_case(self,*,rebuild=False):
+    def run_case(self,*,rebuild=False,prefill5=False):
         import numpy as np
         import concrete_ml_extensions as ext
-        if rebuild:import flash_text_rebuild_plan as stream
+        if prefill5:import flash_text_rebuild5_plan as stream
+        elif rebuild:import flash_text_rebuild_plan as stream
         else:import flash_text_stream_plan as stream
         import full_bridge
         from checked_bridge import CheckedBridge
@@ -78,25 +79,26 @@ class StreamNativeTests(unittest.TestCase):
                 parameter_profile=stream.CONFIG['parameterProfile'],
                 **(dict(provider_source_directory=source_directory) if rebuild else {}))
             stack.callback(bridge.close)
-            values=generator.integers(0,2**12,size=(1,32),dtype=np.uint64);errors=[];greedy=[];durations=[]
+            rows=5 if prefill5 else 1
+            values=generator.integers(0,2**12,size=(rows,32),dtype=np.uint64);errors=[];greedy=[];durations=[]
             for step in range(4):
                 started=time.perf_counter()
-                with bridge.projection(row['name'],32,16,1):
+                with bridge.projection(row['name'],32,16,values.shape[0]):
                     encrypted=ext.encrypt_matrix(pkey=secret,crypto_params=parameters,data=values)
                     if not rebuild:bridge.stage_public_tile(matrix.astype(np.uint64),tile)
                     answer=bridge.evaluate(encrypted,matrix.astype(np.uint64),tile)
                     decoded=bridge.decode(answer,tile,values,lambda reply:ext.decrypt_matrix(reply,secret,parameters,16).astype(np.int64))
                 expected=values.astype(np.int64)@matrix;deviation=decoded-expected
                 self.assertLessEqual(np.linalg.norm(deviation),honest_norm_bound(16,bridge.check.noise,bridge.check.policy))
-                self.assertEqual(int(decoded.argmax()),int(expected.argmax()))
-                errors.append(int(np.abs(deviation).max()));token=int(decoded.argmax());greedy.append(token)
+                np.testing.assert_array_equal(decoded.argmax(axis=1),expected.argmax(axis=1))
+                errors.append(int(np.abs(deviation).max()));token=int(decoded[-1].argmax());greedy.append(token)
                 # Private feedback stays client-side and is encrypted afresh.
-                values=np.roll(values,1,axis=1).copy();values[0,token]=(values[0,token]+1)%4096
+                values=np.roll(values[-1:],1,axis=1).copy();values[0,token]=(values[0,token]+1)%4096
                 durations.append(time.perf_counter()-started)
             bridge.finish();bridge.close();bridge.require_integrity()
             self.assertEqual(bridge.public_coefficient_bytes_sent,0 if rebuild else len(public)*4)
             self.assertEqual(list(root.iterdir()),[root/'plan.json']);self.assertIsNone(children[0].error)
-            report=dict(schema='doppler.native-stream-storage-probe/v1',steps=4,greedyFeedbackMatches=True,
+            report=dict(schema='doppler.native-stream-storage-probe/v1',steps=4,promptRows=rows,greedyFeedbackMatches=True,
                 coefficientId=digest(public),syntheticInputSeed=73,
                 nativeEncryptionSimulated=False,actualFlashCheckpointExecuted=False,separateMachine=False,
                 elapsedSeconds=time.perf_counter()-began,stepSeconds=durations,maximumIntegerErrorByStep=errors,
@@ -117,11 +119,13 @@ class StreamNativeTests(unittest.TestCase):
             output=os.environ.get('DOPPLER_STREAM_NATIVE_REPORT')
             if output:
                 path=Path(output)
-                if rebuild:path=path.with_name('checkpoint-rebuild-native.json')
+                if prefill5:path=path.with_name('checkpoint-rebuild-prefill5-native.json')
+                elif rebuild:path=path.with_name('checkpoint-rebuild-native.json')
                 path.write_text(json.dumps(report,indent=2)+'\n')
             return report
 
     def test_four_encrypted_feedback_steps_without_endpoint_coefficient_files(self):self.run_case()
     def test_verified_checkpoint_cache_sends_zero_coefficients_over_four_native_steps(self):self.run_case(rebuild=True)
+    def test_five_row_prefill_then_single_row_feedback_on_explicit_native_profile(self):self.run_case(rebuild=True,prefill5=True)
 
 if __name__=='__main__':unittest.main()

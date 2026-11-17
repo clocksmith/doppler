@@ -12,7 +12,7 @@ import struct
 import subprocess
 import tempfile
 from full_plan import FULL_POLICY, canonical
-from plan_backends import DEFAULT_PROFILE,QWEN_PROFILES,qwen_backend
+from plan_backends import DEFAULT_PROFILE,QWEN_PROFILES,qwen_backend,REBUILD_PROFILE,REBUILD_PROFILES,compiled_backend
 from protocol import digest, parse_unique_json
 
 POLICY=json.loads(Path(__file__).with_name('ssh-policy.json').read_text())
@@ -62,9 +62,8 @@ def route_backend(value):
         if profile!=CONFIG['profile']:raise ValueError('Streamed SSH route requires its explicit installed storage backend')
         return profile,CONFIG
     if policy is POLICY_REBUILD_CHECK:
-        from flash_text_rebuild_plan import CONFIG
-        if profile!=CONFIG['profile']:raise ValueError('Checkpoint SSH route requires its explicit installed reconstruction backend')
-        return profile,CONFIG
+        if profile not in REBUILD_PROFILES:raise ValueError('Checkpoint SSH route requires its explicit installed reconstruction backend')
+        return profile,compiled_backend(profile).CONFIG
     settings,_,_,_=qwen_backend(profile)
     if settings['productionBackendAvailable'] is not False:raise ValueError('Research-only SSH backend required')
     if (policy is POLICY_CHECK)!=(settings.get('integrity') is not None):
@@ -154,11 +153,12 @@ class SSHRoute:
         return route
 
     @classmethod
-    def for_compiled_checkpoint(cls,directory,prepared_public_tiles,endpoint,allowed_operators):
+    def for_compiled_checkpoint(cls,directory,prepared_public_tiles,endpoint,allowed_operators,*,backend_profile=REBUILD_PROFILE):
         if not isinstance(endpoint,dict) or set(endpoint)!=REBUILD_ENDPOINT_FIELDS:raise ValueError('Exact explicit checkpoint SSH endpoint required')
         validate_endpoint(endpoint);validate_remote_path(endpoint['remotePublicSource']);require_operator(endpoint['operatorId'],allowed_operators)
-        from flash_text_rebuild_plan import load_client_plan,CONFIG
-        plan=load_client_plan(directory,prepared_public_tiles)
+        if backend_profile not in REBUILD_PROFILES:raise ValueError('Explicit installed checkpoint reconstruction profile required')
+        backend=compiled_backend(backend_profile);CONFIG=backend.CONFIG
+        plan=backend.load_client_plan(directory,prepared_public_tiles)
         value=dict(endpoint,schema=POLICY_REBUILD_CHECK['routeSchema'],backendProfile=CONFIG['profile'],
             backendProtocol=CONFIG['protocol'],basePlanId=plan.identity,modelId=plan.definition()['modelId'])
         route=cls(validate(value));route.bind(plan,allowed_operators)
