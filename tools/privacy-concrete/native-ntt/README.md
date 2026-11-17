@@ -125,6 +125,29 @@ until its exact native comparison and bounded process tests complete. The new
 source/version identity requires a matching isolated build; earlier physical
 receipts and any active pinned source remain unchanged.
 
+The digit-block build `01ccabd7e` passed CI
+[44085093887](https://github.com/clocksmith/doppler/actions/runs/44085093887):
+all 24 complete original/baseline/candidate ciphertext comparisons, native
+tamper/cancellation checks and 60 separate-process encrypted feedback calls.
+Five paired observations per fixture measured median reference/candidate ratios
+of 1.292 for the default 2048-by-2048 tile, 1.346 for its 35-bit/12-bit variant,
+and 1.218 for five-row 2048-by-640 prefill. Every observed paired ratio exceeded
+one. The separate secondary digit-materialization phases measured 76.17 versus
+23.16 ms, 119.27 versus 39.10 ms, and 238.48 versus 73.36 ms, respectively.
+These are public-fixture observations on one hosted runner, with raw samples
+retained in `../evidence/storage/native-packing-digits-arithmetic.json`.
+
+The bounded process probe completed in 44.14 seconds, with a 4,558,569,472-byte
+cgroup peak under the eight-GiB/no-swap limit. Its logical quantizer-metadata
+reservation does not include real Flash graph/model state or mappings. The
+weighted native evaluator proxy remains 201,338.51 seconds (2.33 days) for the
+complete four-output, 603,472-tile request, excluding client work, source/cache
+I/O and transport; this is not measured full-model latency. Uncontrolled runner
+differences prevent comparing that proxy against earlier totals as a speedup.
+Unmodified process evidence and provenance are retained as
+`../evidence/storage/native-packing-digits-{process,context}.json`. The candidate
+is undeployed, and full Flash execution and security qualification remain open.
+
 The [retained native run](../evidence/native-ntt/context.json) at revision
 `04ed459671632b23bcf0bee1cb8e555f6282feed` passed eight complete serialized-result
 comparisons against the original arithmetic and a second fast replay, covering
@@ -148,7 +171,9 @@ Full-model execution and its results are documented in [FULL-QWEN.md](../FULL-QW
 
 This experiment is not independent cryptographic review and does not establish
 malicious security, side-channel safety, memory erasure, a qualified network
-backend or full Flash inference. Full client replay remains required.
+backend or full Flash inference. Full encrypted replay remains the reference
+integrity mechanism; these arithmetic checks do not qualify the separate
+checked-integrity research route.
 
 Sources: pinned [Concrete ML extensions](https://github.com/zama-ai/concrete-ml-extensions/tree/6d3fdd1fab324874e3a2fc4a42cb3a708d5a80b4)
 and [tfhe-ntt 0.7.1](https://crates.io/crates/tfhe-ntt/0.7.1), with exact source-file,

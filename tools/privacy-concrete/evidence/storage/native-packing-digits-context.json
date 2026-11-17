@@ -1,0 +1,131 @@
+{
+  "schema": "doppler.native-packing-digits-context/v1",
+  "sourceRevision": "01ccabd7ee91b59cbd71be4c6ba572860e5ae91d",
+  "branch": "a2-bounded-flash-20261117",
+  "implementation": {
+    "nativeVersion": "0.1.9+ntt.5",
+    "nativeSourceId": "4f2bc40f5d5ea4a6de6add462095819520f67ad937b91b780b03ff979e9973bf",
+    "binarySha256": "cc8ab66bf8cbbf2426bf9ef3d4f8aa47668ea434247df025bca800bae7c3ca1f",
+    "cargoLockSha256": "3f7aff9c695846cf05e7fbef8e9b8237ad9738e3663224a8ff2d2e4e26e843fb",
+    "inputMasksPerOwnedBlock": 8,
+    "maximumOwnedDigitBlockBytes": 524288,
+    "maximumTotalDigitBufferBytes": 134217728,
+    "newKeyOrRequestCache": false
+  },
+  "continuousIntegration": [
+    {
+      "runId": 44085093887,
+      "headSha": "01ccabd7ee91b59cbd71be4c6ba572860e5ae91d",
+      "conclusion": "success",
+      "url": "https://github.com/clocksmith/doppler/actions/runs/44085093887"
+    },
+    {
+      "runId": 44085101550,
+      "headSha": "01ccabd7ee91b59cbd71be4c6ba572860e5ae91d",
+      "conclusion": "success",
+      "url": "https://github.com/clocksmith/doppler/actions/runs/44085101550"
+    }
+  ],
+  "artifacts": [
+    {
+      "path": "evidence/storage/native-packing-digits-arithmetic.json",
+      "sha256": "7245515283b2f2679eafe1843fc3008a39670966b4f111dff0cb94508bbbae77"
+    },
+    {
+      "path": "evidence/storage/native-packing-digits-process.json",
+      "sha256": "355e3066f26b31effd494baddd3fe32d8952a6df3b55d0a7838c1d65a815d5da"
+    }
+  ],
+  "correctness": {
+    "completeOriginalCiphertextComparisons": 24,
+    "allByteIdentical": true,
+    "nativeTamperAndCancellationPassed": true,
+    "encryptedFeedbackTileCalls": 60,
+    "feedbackSteps": 4,
+    "allGreedyControlsMatch": true
+  },
+  "pairedObservations": [
+    {
+      "profile": "upstream-default",
+      "rows": 1,
+      "inputWidth": 2048,
+      "outputWidth": 2048,
+      "pairedSamples": 5,
+      "medianPairedReferenceOverCandidate": 1.2915238577851675,
+      "minimumPairedRatio": 1.2781500987774197,
+      "maximumPairedRatio": 1.3181782706890262,
+      "referenceMedianMs": 202.91550300004246,
+      "candidateMedianMs": 157.11324400001558,
+      "secondaryReferenceDigitsSeconds": 0.076166336,
+      "secondaryCandidateDigitsSeconds": 0.023162008
+    },
+    {
+      "profile": "declared-quant12-message35",
+      "rows": 1,
+      "inputWidth": 2048,
+      "outputWidth": 2048,
+      "pairedSamples": 5,
+      "medianPairedReferenceOverCandidate": 1.3459389904615064,
+      "minimumPairedRatio": 1.3132480072110306,
+      "maximumPairedRatio": 1.4086017454771138,
+      "referenceMedianMs": 317.49569199996586,
+      "candidateMedianMs": 236.41773700001067,
+      "secondaryReferenceDigitsSeconds": 0.119274638,
+      "secondaryCandidateDigitsSeconds": 0.03910109
+    },
+    {
+      "profile": "declared-quant12-message35",
+      "rows": 5,
+      "inputWidth": 2048,
+      "outputWidth": 640,
+      "pairedSamples": 5,
+      "medianPairedReferenceOverCandidate": 1.2178020920928168,
+      "minimumPairedRatio": 1.1918124477272485,
+      "maximumPairedRatio": 1.270554401137542,
+      "referenceMedianMs": 921.5040029999955,
+      "candidateMedianMs": 751.4124929999753,
+      "secondaryReferenceDigitsSeconds": 0.238480926,
+      "secondaryCandidateDigitsSeconds": 0.073356244
+    }
+  ],
+  "processScope": {
+    "elapsedSeconds": 44.13938500400002,
+    "cgroupMemoryPeakBytes": 4558569472,
+    "resourceLimits": {
+      "memoryMaxBytes": 8589934592,
+      "swapMaxBytes": 0,
+      "cpuQuotaMicros": 800000,
+      "cpuPeriodMicros": 100000,
+      "groupOomKill": true,
+      "policyId": "a8b512d045763e0fbaa77711327d417559b7f121d73e18a849ed8928bbba343a"
+    },
+    "scenario": "Synthetic matrices plus the full logical Flash quantizer metadata size; excludes actual graph objects, model state and full-model mappings",
+    "actualFlashCheckpointExecuted": false,
+    "separateProcesses": true,
+    "separateMachine": false
+  },
+  "completePinnedRequestProxy": {
+    "steps": 4,
+    "plannedEncryptedTiles": 603472,
+    "weightedSyntheticNativeEvaluatorSeconds": 201338.50584156078,
+    "fullModelLatencyMeasured": false,
+    "exclusions": [
+      "actual trained coefficients and activations",
+      "client encryption, decryption, checks and replay",
+      "client nonlinear/model/reference execution",
+      "real model source verification, quantization and cache I/O",
+      "transport, scheduling, different hardware and concurrency"
+    ]
+  },
+  "limitations": [
+    "Same-key reference and candidate share this build; the reference retains .4 arithmetic, not a separately timed prior binary",
+    "Five paired observations per public fixture and one secondary phase pass, not a cross-host or model throughput claim",
+    "Do not compare the weighted proxy against earlier runners as a measured speedup; hardware and sample populations differ",
+    "No Jupiter access, deployment or physical full-Flash readiness run was performed",
+    "No cryptographic parameter, check-policy value, route disclosure, cancellation or production admission change",
+    "Actual full Flash encrypted output, useful outsourced integrity and security qualification remain outstanding"
+  ],
+  "productionBackendAvailable": false,
+  "securityQualified": false,
+  "independentCryptographicReview": false
+}
