@@ -240,3 +240,36 @@ The source, precision, cache budget, integrity mechanism and production closure
 are unchanged. Five-row tiny graph/framed execution is separate from actual
 Flash output qualification. A native storage fixture additionally checks five
 encrypted input rows followed by single-row feedback, without Flash weights.
+
+## Bounded clear reference before physical qualification
+
+`flash_quantized_reference.BoundedQuantizedReference(graph, scratch_directory)`
+is an explicit trusted-client callback for source-bound clear validation. Supply
+it as `verified_client_projection` to the complete graph in
+`execution='verified-projections'` mode. It reuses the encrypted route's global
+input quantization, per-channel quantizer and exact tiled integer reference.
+Unlike the older validator callback, it reads source weights in output-channel
+chunks and evicts each temporary coefficient projection before the next one.
+The scratch directory must already exist outside immutable source directories.
+The two-GiB projection budget and available disk are checked before source reads;
+the lease is reserved before quantization. Cancellation, insufficient space or
+changed coefficient/quantizer metadata terminally reject and clean owned files.
+Integer-reference cancellation is checked between bounded product tiles, so a
+large output projection does not finish all remaining tiles after cancellation.
+The caller retains graph/source ownership and must close request states.
+
+`inventory(graph.order)` returns the complete ordered coefficient identities and
+the same canonical inventory digest as whole-projection quantization. It cannot
+publish an incomplete inventory. Only public identities survive each operation;
+no activation/key/response caches are retained by the callback. Reusing this
+callback still recomputes the entire clear model and reads/quantizes source on
+each step. It does not remove the client correctness-oracle cost.
+
+Installed geometry gives a largest FP32 source chunk of 50,331,648 bytes, versus
+2,542,796,800 bytes for the largest complete FP32 projection, and a largest
+temporary coefficient file of 1,271,398,400 bytes. Quantizer intermediates, mapped
+file pages, model/client state, imports and native allocations add to resident
+memory; these calculated bounds are not an eight-GiB RSS qualification. Tiny
+five-row prefill plus three decode steps match the whole quantizer's complete
+output and ordered inventory exactly. Actual Flash memory and output remain to
+be measured. This callback has not replaced code in the paused physical run.

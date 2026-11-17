@@ -120,7 +120,8 @@ class FullLinear(nn.Module):
                 if hasher.hexdigest()!=self.definition['weightId']:raise ValueError('Prepared public coefficient identity changed')
             yield matrix
 
-    def forward(self,value):
+    def forward(self,value,*,cancelled=None):
+        require_active(cancelled)
         if self.mode == 'float-reference':
             if self.remote is None:raise ValueError('Floating reference weights were explicitly released')
             return self.remote(value)
@@ -129,7 +130,7 @@ class FullLinear(nn.Module):
         q_input, scale, zero, original_shape = self.executor._dynamic_input_quantization(value,self.context,False)
         with self.coefficient_matrix() as weights:
             if self.mode == 'clear-reference':
-                raw = integer_dot(q_input,weights)
+                raw = integer_dot(q_input,weights,cancelled=cancelled)
             else:
                 if self.bridge is None or self.secret is None:
                     raise ValueError('No bound encrypted evaluator')
@@ -161,6 +162,7 @@ class FullLinear(nn.Module):
         bias=self.remote.bias if self.remote is not None else self.prepared_bias
         if bias is not None:
             output = output+bias
+        require_active(cancelled)
         return output
 
 

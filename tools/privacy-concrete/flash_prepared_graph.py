@@ -113,7 +113,7 @@ class PreparedFlashGraph:
         self.require_graph();require_active(cancelled)
         def project(operation,value):
             require_active(cancelled)
-            with self.projection_lease(operation['id'],cancelled=cancelled) as projection:return projection(value)
+            with self.projection_lease(operation['id'],cancelled=cancelled) as projection:return projection(value,cancelled=cancelled)
         return self.graph(tokens,state,context,execution='verified-projections',
             verified_client_projection=project,cancelled=cancelled)
 
