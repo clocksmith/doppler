@@ -60,3 +60,56 @@ destruction can clear allocation accounting. This is a component
 parity check, not model correctness, complete-request performance or physical
 multi-model retirement qualification. Freeze a new source/profile identity and
 rerun the required exact-token and complete-request gates before any promotion.
+
+## Q4_0 up projection candidate
+
+A separate opt-in single-token program also absorbs the up projection for the
+attention and MLP HC sites. Declare each intended role independently in its
+actual decode layer steps, alongside its existing `attn_hc_up` or `mlp_hc_up`
+step. For example:
+
+```json
+{
+  "op": "attn_hc_up_mix_branch",
+  "kernel": "hyper_connection_up_mix_branch_q4_0.wgsl",
+  "entry": "main",
+  "digest": "sha256:8d5cfc4c6ac02fe00f8f1dd97feb07de7e713c4bf343cf0eabf46afa4b26273b"
+}
+```
+
+Use `mlp_hc_up_mix_branch` for the other site. The original up role must resolve
+to `matmul/q4_0_gemv` (`matmul_q4_0.wgsl`, entry `gemv`, workgroup 128,
+four rows, 32 lanes per row). Cooperative, pair, other dtype programs and
+prefill declarations are rejected. Original norm/down/SiLU and injection
+remain unchanged. The root mixer has BF16 source projections materialized for
+its declared F32 program and stays on that independently admitted path; it is
+never silently routed through this Q4_0 specialization.
+
+The fused program groups four rows from the same output column across the
+four residual streams. Each row retains the original Q4_0 byte decoding,
+32-lane strided FMA sequence and shared reduction tree (16, 8, 4, 2, 1).
+Projection outputs, refined sigmoid results and products each cross an
+invocation boundary through workgroup memory before their next consumer.
+Products sum in stream order and use the same refined division. No projection
+precision or representation changes. It removes the up-projection output and
+one dispatch compared with the prior fused-mix candidate. Performance remains
+unproved until a matched complete request passes.
+
+CPU checks:
+
+```sh
+node tools/run-node-tests.js tests/kernels/hyper-connection-up-contract.test.js tests/kernels/hyper-connection-up-boundary.test.js tests/inference/hyper-connection-mix-branch-wiring.test.js tests/inference/hyper-connection-layer-wiring.test.js
+```
+
+In a coordinated clean physical GPU window only:
+
+```sh
+node tests/kernels/hyper-connection-up-gpu.test.js
+```
+
+This bounded synthetic test requires exact output bits against both the original
+three-dispatch chain and `q4_0_gemv` plus the prior fused-mix kernel. Twelve cases
+cover immediate, recorded, prepared and repeated prepared output at ranks
+32/352/320 and widths 65/257/2560. It admits at most 8 MiB of observed GPUBuffer
+allocations and requires explicit zero-byte retirement before device destruction.
+It is not learned-model parity or performance qualification.

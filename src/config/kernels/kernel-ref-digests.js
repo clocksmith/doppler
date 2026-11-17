@@ -254,6 +254,7 @@ export const KERNEL_REF_CONTENT_DIGESTS = Object.freeze({
   "hyper_connection_inject.wgsl#main": "c242ee8bf5ea180ab3535357481a87495fb9f9973ae737427a7dfb4d95c7acef",
   "hyper_connection_mix_branch.wgsl#main": "c51798006b3d886c90f24cb76f70e6779f3a731cf23360571171cf18415382ab",
   "hyper_connection_norm.wgsl#main": "dbfe58075401793602e14163cce1649191c802890c02324e489b66f63b9dfeb1",
+  "hyper_connection_up_mix_branch_q4_0.wgsl#main": "8d5cfc4c6ac02fe00f8f1dd97feb07de7e713c4bf343cf0eabf46afa4b26273b",
   "instance_stats.wgsl#main": "380014885ab50311e7f4852aef828640c642df859e435a0435e3df75c74f7636",
   "kv_cache_write_f32_to_f16.wgsl#main": "d2e5459501320a767a33b12c6c088dda8527895e978338694463f2a4f286df8e",
   "kv_quantize_int4.wgsl#main": "e52cd0d70512e8e7a308259326c2e912b35643242f2ae6ea6cfc8580a8915c0b",

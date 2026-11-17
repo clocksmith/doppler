@@ -496,6 +496,13 @@ export function write_hyper_connection_activation_low_rank_silu(view, values, ke
   view.setUint32(12, 0, true);
 }
 
+export function write_hyper_connection_up_mix_branch_q4_0_gemv32_f32(view, values, kernel) {
+  writeU32(view, 0, values["stream_width"], kernel, "stream_width");
+  writeU32(view, 4, values["rank"], kernel, "rank");
+  writeU32(view, 8, values["blocks"], kernel, "blocks");
+  view.setUint32(12, 0, true);
+}
+
 export function write_qsa_prepare_f32(view, values, kernel) {
   writeU32(view, 0, values["num_tokens"], kernel, "num_tokens");
   writeU32(view, 4, values["start_pos"], kernel, "start_pos");

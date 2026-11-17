@@ -51,6 +51,7 @@ export declare function write_moe_grouped_gu_native_f32(view: DataView, values: 
 export declare function write_speculative_accept_greedy(view: DataView, values: { "draft_count": number; "output_limit": number; "vocab_size": number; "_pad": number }, kernel: string): void;
 export declare function write_hyper_connection_norm_f32(view: DataView, values: { "group_count": number; "group_stride": number; "eps": number; "weight_offset": number }, kernel: string): void;
 export declare function write_hyper_connection_activation_low_rank_silu(view: DataView, values: { "size": number; "dispatch_stride": number }, kernel: string): void;
+export declare function write_hyper_connection_up_mix_branch_q4_0_gemv32_f32(view: DataView, values: { "stream_width": number; "rank": number; "blocks": number }, kernel: string): void;
 export declare function write_qsa_prepare_f32(view: DataView, values: { "num_tokens": number; "start_pos": number; "group_stride": number; "eps": number }, kernel: string): void;
 export declare function write_qsa_block_keys_f32(view: DataView, values: { "first_block": number; "block_count": number; "group_stride": number; "eps": number }, kernel: string): void;
 export declare function write_qsa_block_scores_f32(view: DataView, values: { "num_tokens": number; "start_pos": number; "block_stride": number; "dense_visible_limit": number; "score_divisor": number }, kernel: string): void;

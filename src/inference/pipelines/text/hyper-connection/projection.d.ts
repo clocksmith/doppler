@@ -15,3 +15,11 @@ export declare function resolveHyperConnectionMixBranch(options: {
   phase: 'prefill' | 'decode' | null | undefined;
   layerIdx: number;
 }): boolean;
+
+/** Role-scoped decode fusion; original up role must remain explicitly Q4_0 gemv32. */
+export declare function resolveHyperConnectionUpMixBranch(options: {
+  kernelPath: KernelPathSchema | null | undefined;
+  phase: 'prefill' | 'decode' | null | undefined;
+  layerIdx: number;
+  role: 'attn_hc' | 'mlp_hc';
+}): boolean;

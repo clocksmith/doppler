@@ -9,6 +9,12 @@ const state = { events: [], outputs: new Map(), failInjection: false };
 const tensor = (label, buffer = { size: 256, label }) => ({ dtype: 'f32', shape: [1, 16], buffer });
 globalThis.hcMixBranchWiring = { state, tensor };
 const hooks = registerHooks({ resolve(specifier, context, next) {
+  if (context.parentURL === target && specifier.endsWith('/hyper-connection-up.js')) {
+    const source = `const {state:s,tensor:t}=globalThis.hcMixBranchWiring;
+      export const recordHyperConnectionUpMixBranch=async(_r,_x,_w,_n,o)=>{s.events.push('up-fused'); return t('up-branch',o.outputBuffer);};
+      export const runHyperConnectionUpMixBranch=(x,w,n,o)=>recordHyperConnectionUpMixBranch(null,x,w,n,o);`;
+    return { url: `data:text/javascript,${encodeURIComponent(source)}`, shortCircuit: true };
+  }
   if (context.parentURL !== target || !specifier.endsWith('/hyper-connection.js')) return next(specifier, context);
   const source = `const {state:s,tensor:t}=globalThis.hcMixBranchWiring;
     const norm=async()=>t('norm');
@@ -24,7 +30,7 @@ const hooks = registerHooks({ resolve(specifier, context, next) {
   return { url: `data:text/javascript,${encodeURIComponent(source)}`, shortCircuit: true };
 } });
 try {
-  const { runGatedResidual } = await import(target);
+  const { runGatedResidual, runRootMixer } = await import(target);
   const recorder = { beginComputePass() {}, trackTemporaryBuffer(buffer) { state.events.push(`release:${buffer.label}`); },
     decodeWorkspace: { getBuffer(slot, bytes) {
       if (!state.outputs.has(slot)) state.outputs.set(slot, { label: slot, size: bytes });
@@ -32,7 +38,7 @@ try {
     } } };
   const input = { streams: tensor('streams'), weights: { norm: tensor('norm-weight'), down: {}, up: {}, inject: {} },
     hyper: { streamCount: 4, streamWidth: 4, projectionRank: 2, normEps: 1e-6, normWeightOffset: false },
-    numTokens: 1, layerIdx: 3, role: 'attn_hc', project: async role => tensor(role) };
+    numTokens: 1, layerIdx: 3, role: 'attn_hc', project: async role => { state.events.push(`project:${role}`); return tensor(role); } };
   const original = await runGatedResidual(recorder, input);
   assert.ok(state.events.includes('mix_sigmoid') && state.events.includes('separate'));
   assert.equal(state.outputs.size, 0, 'default execution does not allocate a candidate slot');
@@ -50,6 +56,20 @@ try {
   assert.ok(state.events.includes('release:hc:3:attn_hc:branch'), 'failure returns the borrowed output to recorder lifetime handling');
   assert.ok(state.events.includes('release:attn_hc_up'), 'up projection remains retained after a later failure');
   state.failInjection = false;
+  state.events.length = 0;
+  const up = await runGatedResidual(recorder, { ...input, mixBranch: true, upMixBranch: true });
+  assert.ok(state.events.includes('up-fused'));
+  assert.ok(!state.events.includes('project:attn_hc_up') && !state.events.includes('fused') && !state.events.includes('mix_sigmoid'));
+  assert.equal(up.branchInput.buffer, first.branchInput.buffer, 'new producer borrows the same site-scoped branch slot');
+  state.failInjection = true;
+  await assert.rejects(runGatedResidual(recorder, { ...input, upMixBranch: true }), /injection failed/);
+  assert.ok(state.events.includes('release:hc:3:attn_hc:branch'));
+  state.failInjection = false;
+  state.events.length = 0;
+  await runRootMixer(recorder, { ...input, weights: { ...input.weights, inject: null }, mixBranch: true });
+  assert.ok(state.events.includes('project:hc_mixer_up') && state.events.includes('fused'));
+  assert.ok(!state.events.includes('up-fused'), 'root retains its independently admitted projection/mix path');
+  await assert.rejects(runRootMixer(recorder, { ...input, upMixBranch: true }), /root mixer program/);
   await assert.rejects(runGatedResidual(recorder, { ...input, layerIdx: undefined, mixBranch: true }), /explicit layer index/);
 } finally { hooks.deregister(); delete globalThis.hcMixBranchWiring; }
 // Real ownership classes, no shader/GPU: an error after a submitted prefix

@@ -37356,6 +37356,87 @@
     }
    }
   },
+  "hyper_connection_up_mix_branch": {
+   "description": "Four-stream Q4_0 HC up projection with scalar gemv32 reduction, refined sigmoid and stream-ordered branch",
+   "baseBindings": [
+    {
+     "index": 0,
+     "name": "uniforms",
+     "type": "uniform"
+    },
+    {
+     "index": 1,
+     "name": "input",
+     "type": "read-only-storage"
+    },
+    {
+     "index": 2,
+     "name": "weights",
+     "type": "read-only-storage"
+    },
+    {
+     "index": 3,
+     "name": "normed",
+     "type": "read-only-storage"
+    },
+    {
+     "index": 4,
+     "name": "output",
+     "type": "storage"
+    }
+   ],
+   "baseUniforms": {
+    "size": 16,
+    "fields": [
+     {
+      "name": "stream_width",
+      "type": "u32",
+      "offset": 0
+     },
+     {
+      "name": "rank",
+      "type": "u32",
+      "offset": 4
+     },
+     {
+      "name": "blocks",
+      "type": "u32",
+      "offset": 8
+     },
+     {
+      "name": "_pad0",
+      "type": "u32",
+      "offset": 12,
+      "padding": true
+     }
+    ]
+   },
+   "variants": {
+    "q4_0_gemv32_f32": {
+     "wgsl": "hyper_connection_up_mix_branch_q4_0.wgsl",
+     "entryPoint": "main",
+     "workgroup": [128,1,1],
+     "requires": [],
+     "weightDtype": "q4_0",
+     "outputDtype": "f32",
+     "sharedMemory": 560,
+     "wgslOverrides": {
+      "WORKGROUP_SIZE": 128,
+      "STREAM_COUNT": 4,
+      "THREADS_PER_COL_GEMV": 32,
+      "BLOCK_VALUES": 32,
+      "BLOCK_BYTES": 18,
+      "QUANT_FORMAT": 0
+     },
+     "reachability": {
+      "status": "code-dispatched",
+      "inlineConfigs": [],
+      "ruleChains": [],
+      "wgslOnDisk": true
+     }
+    }
+   }
+  },
   "hyper_connection_inject": {
    "description": "qwen4_exp hyper-connection injection: streams plus branch output times per-stream gate",
    "baseBindings": [

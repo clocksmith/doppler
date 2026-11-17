@@ -30,6 +30,8 @@ export interface GatedResidualInput {
   project: HyperConnectionProjection;
   /** Resolved explicit hc_mix_branch declaration. */
   mixBranch?: boolean;
+  /** Explicit Q4_0 up+mix+branch declaration for this attention/MLP site. */
+  upMixBranch?: boolean;
   /** Required for prepared single-token output reuse; root mixer uses layer 0. */
   layerIdx?: number;
   role: string;
@@ -56,6 +58,7 @@ export interface HyperConnectionDecoderLayerInput {
   project: HyperConnectionProjection;
   /** Resolved explicit hc_mix_branch declaration. */
   mixBranch?: boolean;
+  upMixBranch?: { attention: boolean; mlp: boolean };
   /** Required for prepared single-token output reuse; root mixer uses layer 0. */
   layerIdx?: number;
 }

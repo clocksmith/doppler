@@ -7,7 +7,7 @@ import { runMoEFFNGPU } from '../ffn/moe.js';
 import { validateAttnConfig } from '../attention/attn-config.js';
 import { runProbes } from "../observation/probes.js";
 import { replicateEmbeddings, runHyperConnectionDecoderLayer } from './decoder-layer.js';
-import { createHyperConnectionProjection, resolveHyperConnectionMixBranch } from './projection.js';
+import { createHyperConnectionProjection, resolveHyperConnectionMixBranch, resolveHyperConnectionUpMixBranch } from './projection.js';
 
 /** @type {typeof import('./layer-executor.js').processHyperConnectionLayer} */
 export async function processHyperConnectionLayer(layerIdx, inputBuffer, numTokens, isPrefill, context) {
@@ -33,6 +33,10 @@ export async function processHyperConnectionLayer(layerIdx, inputBuffer, numToke
     const result = await runHyperConnectionDecoderLayer(recorder ?? null, {
       streams, numTokens, hyper, weights: weights.hyperConnections, project, layerIdx,
       mixBranch: resolveHyperConnectionMixBranch({ kernelPath: context.kernelPath, phase: context.phase, layerIdx }),
+      upMixBranch: {
+        attention: resolveHyperConnectionUpMixBranch({ kernelPath: context.kernelPath, phase: context.phase, layerIdx, role: 'attn_hc' }),
+        mlp: resolveHyperConnectionUpMixBranch({ kernelPath: context.kernelPath, phase: context.phase, layerIdx, role: 'mlp_hc' }),
+      },
       ple: weights.ple ? input => session.runPle(layerIdx, input, weights.ple, context, project) : null,
       attentionBranch: async input => {
         if (config.layerTypes?.[layerIdx] === 'linear_attention') {

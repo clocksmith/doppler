@@ -1,3 +1,4 @@
+import { recordHyperConnectionUpMixBranch, runHyperConnectionUpMixBranch } from '../../../../gpu/kernels/hyper-connection-up.js';
 import { releaseBuffer } from '../../../../memory/buffer-pool.js';
 import {
   recordHyperConnectionActivation, recordHyperConnectionBranch, recordHyperConnectionInject, recordHyperConnectionNorm, recordHyperConnectionMixBranch,
@@ -52,7 +53,10 @@ export function replicateEmbeddings(target, embeds, { hyper, numTokens }) {
 }
 
 /** @type {typeof import('./decoder-layer.js').runGatedResidual} */
-export async function runGatedResidual(target, { streams, weights, hyper, numTokens, project, role, mixBranch = false, layerIdx }) {
+export async function runGatedResidual(target, { streams, weights, hyper, numTokens, project, role, mixBranch = false, upMixBranch = false, layerIdx }) {
+  if (upMixBranch && (role !== 'attn_hc' && role !== 'mlp_hc')) {
+    throw new Error('[HyperConnection] Up-mix fusion is limited to declared attention/MLP sites, never the root mixer.');
+  }
   const ops = operators(target);
   const { streamCount, streamWidth, projectionRank, normEps } = hyper;
   const width = streamCount * streamWidth;
@@ -64,18 +68,26 @@ export async function runGatedResidual(target, { streams, weights, hyper, numTok
     const normed = keep(await ops.norm(streams, weights.norm, { ...geometry, eps: normEps, normWeightOffset: hyper.normWeightOffset }));
     const down = keep(await project(`${role}_down`, normed, weights.down, projectionRank, width));
     const lowRank = keep(await ops.activate(down, { mode: 'low_rank_silu', rows: numTokens, columns: projectionRank, streamCount }));
-    const up = keep(await project(`${role}_up`, lowRank, weights.up, width, projectionRank));
-    const workspace = mixBranch && numTokens === 1 && isRecorder(target) ? target.decodeWorkspace : null;
+    const workspace = (mixBranch || upMixBranch) && numTokens === 1 && isRecorder(target) ? target.decodeWorkspace : null;
     if (workspace && (!Number.isSafeInteger(layerIdx) || /** @type {number} */ (layerIdx) < 0)) {
       throw new Error('[HyperConnection] Prepared mix-branch output requires an explicit layer index.');
     }
     const branchOptions = workspace
       ? { ...geometry, outputBuffer: workspace.getBuffer(`hc:${layerIdx}:${role}:branch`, streamWidth * 4) }
       : geometry;
-    const branchInput = mixBranch
-      ? await ops.mixBranch(up, normed, branchOptions)
-      : await ops.branch(keep(await ops.activate(up,
-        { mode: 'mix_sigmoid', rows: numTokens, columns: width, streamCount })), normed, branchOptions);
+    let branchInput;
+    if (upMixBranch) {
+      const upBranch = isRecorder(target)
+        ? recordHyperConnectionUpMixBranch.bind(null, target) : runHyperConnectionUpMixBranch;
+      branchInput = await upBranch(lowRank, weights.up, normed, { ...branchOptions, projectionRank });
+    } else {
+      const up = keep(await project(`${role}_up`, lowRank, weights.up, width, projectionRank));
+      if (mixBranch) branchInput = await ops.mixBranch(up, normed, branchOptions);
+      else {
+        const mix = keep(await ops.activate(up, { mode: 'mix_sigmoid', rows: numTokens, columns: width, streamCount }));
+        branchInput = await ops.branch(mix, normed, branchOptions);
+      }
+    }
     if (!weights.inject) return { branchInput, gate: null };
     try {
       const logits = keep(await project(`${role}_inject`, normed, weights.inject, streamCount, width));
@@ -96,8 +108,8 @@ export async function runGatedResidual(target, { streams, weights, hyper, numTok
  * @param {import('../../../../gpu/command-recorder.js').CommandRecorder | null} target
  * @param {import('./decoder-layer.js').HyperConnectionBranchStep} step
  */
-async function runBranchStep(target, { streams, ownsStreams, weights, hyper, numTokens, project, role, branch, mixBranch, layerIdx }) {
-  const { branchInput, gate } = await runGatedResidual(target, { streams, weights, hyper, numTokens, project, role, mixBranch, layerIdx });
+async function runBranchStep(target, { streams, ownsStreams, weights, hyper, numTokens, project, role, branch, mixBranch, upMixBranch, layerIdx }) {
+  const { branchInput, gate } = await runGatedResidual(target, { streams, weights, hyper, numTokens, project, role, mixBranch, upMixBranch, layerIdx });
   /** @type {import('../../../../gpu/tensor.js').Tensor | null} */
   let output = null;
   try {
@@ -116,7 +128,7 @@ async function runBranchStep(target, { streams, ownsStreams, weights, hyper, num
 
 /** @type {typeof import('./decoder-layer.js').runHyperConnectionDecoderLayer} */
 export async function runHyperConnectionDecoderLayer(target, input) {
-  const { streams, numTokens, hyper, weights, ple = null, attentionBranch, mlpBranch, project, mixBranch = false, layerIdx } = input;
+  const { streams, numTokens, hyper, weights, ple = null, attentionBranch, mlpBranch, project, mixBranch = false, upMixBranch, layerIdx } = input;
   let current = streams;
   let owns = false;
   try {
@@ -125,10 +137,10 @@ export async function runHyperConnectionDecoderLayer(target, input) {
       owns = true;
     }
     current = await runBranchStep(target, { streams: current, ownsStreams: owns, weights: weights.attention, hyper, numTokens,
-      project, mixBranch, layerIdx, role: 'attn_hc', branch: attentionBranch });
+      project, mixBranch, upMixBranch: upMixBranch?.attention, layerIdx, role: 'attn_hc', branch: attentionBranch });
     owns = true;
     return await runBranchStep(target, { streams: current, ownsStreams: true, weights: weights.mlp, hyper, numTokens,
-      project, mixBranch, layerIdx, role: 'mlp_hc', branch: mlpBranch });
+      project, mixBranch, upMixBranch: upMixBranch?.mlp, layerIdx, role: 'mlp_hc', branch: mlpBranch });
   } catch (error) {
     if (owns && current !== streams) release(target, current);
     throw error;
@@ -136,7 +148,8 @@ export async function runHyperConnectionDecoderLayer(target, input) {
 }
 
 /** @type {typeof import('./decoder-layer.js').runRootMixer} */
-export async function runRootMixer(target, { streams, weights, hyper, numTokens, project, mixBranch = false, layerIdx }) {
+export async function runRootMixer(target, { streams, weights, hyper, numTokens, project, mixBranch = false, upMixBranch = false, layerIdx }) {
+  if (upMixBranch) throw new Error('[HyperConnection] Q4_0 up-mix fusion cannot replace the root mixer program.');
   if (weights.inject) throw new Error('[HyperConnection] the root mixer has no injection weights.');
   const { branchInput } = await runGatedResidual(target, { streams, weights, hyper, numTokens, project, mixBranch, layerIdx, role: 'hc_mixer' });
   return branchInput;
