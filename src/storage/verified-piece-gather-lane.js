@@ -22,7 +22,7 @@ export async function createVerifiedPieceGatherLane(options) {
   // Metadata is copied by workerData; authentication completes before admission.
   const { Worker } = await import('node:worker_threads');
   const worker = new Worker(new URL('./verified-piece-gather-worker.js', import.meta.url), {
-    workerData: { files, fileIdentities: options.fileIdentities, metadata: { manifestBytes, indexBytes, indexIdentity } },
+    workerData: { files, maxPartBytes, fileIdentities: options.fileIdentities, metadata: { manifestBytes, indexBytes, indexIdentity } },
   });
   let closed = false;
   let busy = false;
@@ -51,13 +51,21 @@ export async function createVerifiedPieceGatherLane(options) {
   try { await ready; } catch (error) { await worker.terminate(); throw error; }
   /** @type {Promise<void> | null} */
   let closing = null;
-/** @type {Pick<Awaited<ReturnType<import('./verified-piece-gather.js').createVerifiedPieceGather>>, 'readLease' | 'close' | 'getReceipt'>} */
-  const result = {
-    async readLease(path, offset, length, signal) {
+  /** @param {ReadonlyArray<{path: string, offset: number, length: number}>} ranges
+   * @param {AbortSignal | undefined} signal @param {boolean} batch */
+  const read = async (ranges, signal, batch) => {
       signal?.throwIfAborted();
       if (closed) throw new Error('Gather reader closed.');
       if (busy) throw new Error('Release the current gather lease before another read.');
-      if (!Number.isSafeInteger(length) || length < 0 || length > maxPartBytes) {
+      if (!Array.isArray(ranges) || ranges.length < 1 || ranges.length > 3) {
+        throw new Error('Gather batch requires one to three ranges.');
+      }
+      const selected = ranges.map(range => ({ path: range.path, offset: range.offset, length: range.length }));
+      const length = selected.reduce((sum, range) => sum + range.length, 0);
+      if (selected.some(range => typeof range.path !== 'string' || !Number.isSafeInteger(range.offset) || range.offset < 0
+          || !Number.isSafeInteger(range.length) || range.length < (batch ? 1 : 0)
+          || !Number.isSafeInteger(range.offset + range.length))
+          || !Number.isSafeInteger(length) || length > maxPartBytes) {
         throw new Error('Gather part exceeds its admitted output bound.');
       }
       busy = true;
@@ -66,7 +74,7 @@ export async function createVerifiedPieceGatherLane(options) {
         const message = await new Promise((resolve, reject) => {
           failPending = reject;
           receive = result => { failPending = null; receive = null; resolve(result); };
-          worker.postMessage({ path, offset, length, buffer }, [buffer]);
+          worker.postMessage({ ranges: selected, length, buffer, batch }, [buffer]);
         });
         if (closed) throw new Error('Gather reader closed.');
         buffer = message.buffer;
@@ -87,7 +95,11 @@ export async function createVerifiedPieceGatherLane(options) {
         busy = false;
         throw error;
       }
-    },
+    };
+/** @type {Pick<Awaited<ReturnType<import('./verified-piece-gather.js').createVerifiedPieceGather>>, 'readLease' | 'readManyLease' | 'close' | 'getReceipt'>} */
+  const result = {
+    readLease: (path, offset, length, signal) => read([{ path, offset, length }], signal, false),
+    readManyLease: (ranges, signal) => read(ranges, signal, true),
     async getReceipt() {
       if (closed) throw new Error('Gather reader closed.');
       if (busy) throw new Error('Release the current gather lease before reading its receipt.');

@@ -145,6 +145,14 @@ source layouts fail before allocation. Partial plane chunks remain sequential
 within each task, and no expert slot or source map publishes until all its
 sibling work settles. Generic `"expert-parallel"` cannot be combined with a lease
 port. Prefill scheduling and resident-GPU seeding retain their existing behavior.
+The explicit `"expert-lease-batch"` mode acquires all unchanged expert planes in
+one owned `rangeLease.readMany` result. It requires that capability and a single
+admitted output large enough for the entire expert; no generic fallback is
+selected. Up to three single-span planes share the existing aggregate staging
+budget. Every plane authenticates before any upload, and the one lease remains
+owned until all uploads finish. Prefill scheduling and hot resident reuse remain
+unchanged. This reduces worker request/response traffic; it does not remove SHA
+verification, GPU upload copies, or establish a speed qualification.
 
 `prefillUploadMode: "direct-bank"` writes authenticated ranges directly at their
 original logical expert offsets, avoiding temporary expert GPU buffers and their

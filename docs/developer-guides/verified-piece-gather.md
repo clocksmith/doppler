@@ -87,6 +87,18 @@ Saturation rejects another read rather than allocating beyond the admitted bound
 views are detached. Repeated release is harmless. Each lane buffer is reused, not
 reallocated for each range. Direct callers must release a lane before exceeding the declared count.
 
+`rangeLease.readMany(ranges, signal)` optionally gathers one to three positive
+`{ shard, offset, length }` ranges into one concatenated owned result, in the
+caller's order without padding. Their **combined** length must fit `maxPartBytes`;
+it is not a separate allowance per range. Whole pieces are read and hashed into
+disjoint output views in the worker. A later failure zeroes the entire result
+before rejection. Release detaches all sibling views together, after every
+consumer has copied its bytes. The same startup/lifetime signals and approved
+file-identity checks apply to each range. Missing capability fails explicit
+`sourceReadMode: "expert-lease-batch"` admission rather than changing execution.
+Batch receipt counters distinguish requests, constituent ranges and payload
+bytes, so an actual workload can verify the intended reduction in transfers.
+
 The admitted byte bound is `concurrency * (maxPartBytes + 2 * maxPieceBytes)`:
 every worker's maximum output and two complete-piece buffers are reserved. It excludes immutable metadata, native digest internals and VM overhead;
 it is not an RSS limit. Compact staging admission reserves that bound plus its

@@ -1,6 +1,6 @@
 import { validateQwen35RoutedConfig } from "../../config/schema/runtime/loading.schema.js";
 import { createWeightBuffer } from '../../gpu/weight-buffer.js';
-import { readRoutedExpertRange, readRoutedExpertPayload, assertExpertReadShape } from './routed-expert-source.js';
+import { readRoutedExpertRange, readRoutedExpertPayload, readRoutedExpertLease, assertExpertReadShape } from './routed-expert-source.js';
 
 /** @type {typeof import('./compact-expert-cache.js').compactExpertCapacity} */
 export function compactExpertCapacity(plan, options) {
@@ -116,6 +116,31 @@ export class CompactExpertCache {
    * @param {{ bytes: Uint8Array | null }} reader
    * @param {import('./routed-expert-plan.js').RoutedExpertPlane | null} selectedPlane */
   async #fill(plan, pool, expert, slot, signal, reader, selectedPlane) {
+    if (this.#options.policy.sourceReadMode === 'expert-lease-batch') {
+      const start = performance.now();
+      const lease = await readRoutedExpertLease(this.#options, this.#stats, plan, expert, signal, pool.stats);
+      try {
+        let offset = 0;
+        for (const plane of plan.planes) {
+          signal.throwIfAborted();
+          const buffer = pool.planes.get(plane.role);
+          if (!buffer) throw new Error('Compact expert plane is missing.');
+          const uploadStart = performance.now();
+          this.#options.device.queue.writeBuffer(buffer, slot * plane.expertBytes,
+            lease.bytes.subarray(offset, offset + plane.expertBytes));
+          const elapsed = performance.now() - uploadStart;
+          this.#stats.uploadEnqueueMs += elapsed;
+          pool.stats.uploadEnqueueMs += elapsed;
+          this.#stats.uploadBytes += plane.expertBytes;
+          pool.stats.uploadBytes += plane.expertBytes;
+          offset += plane.expertBytes;
+        }
+      } finally {
+        lease.release();
+        this.#stats.ioWaitMs += performance.now() - start;
+      }
+      return;
+    }
     const chunkBytes = this.#chunkBytes();
     if (this.#options.policy.sourceReadMode === 'expert-parallel') {
       if (!reader.bytes) {
