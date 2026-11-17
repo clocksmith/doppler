@@ -1,0 +1,58 @@
+{
+  "schema": "doppler.operator-observed-bounded-flash-preparation/v1",
+  "sourceRevision": "eeb6880381ad100c5e8b55f5334c8eb90436212d",
+  "checkpointRevision": "812d96e10a0dd82b69d749e68693698cf6c36daa",
+  "checkpointSourceId": "1165149f49bfbe8e6bab1f9ea30669e1468c5dfc5833f6498a44050f7807a067",
+  "sourceArchiveSha256": "bec9465800fbb13b390cfa62eec0292afdf5a6d9f25a35e4c300eccca78e3120",
+  "mode": "prepare-only",
+  "host": "One existing Linux CPU-only research host",
+  "stageEntered": "bounded-coefficient-preparation",
+  "completeSourceAdmission": true,
+  "completeModelPrepared": false,
+  "orderedCoefficientReferencePassed": false,
+  "encryptedExecution": false,
+  "encryptedTileCount": 0,
+  "keysGenerated": false,
+  "providerStarted": false,
+  "productionBackendAvailable": false,
+  "securityQualified": false,
+  "elapsedSeconds": 952.3047467059805,
+  "cpuSeconds": 687.144819,
+  "resources": {
+    "memoryMaxBytes": 8589934592,
+    "swapMaxBytes": 0,
+    "cpuQuotaCores": 8,
+    "groupOomKill": true,
+    "runtimeLimitSeconds": 7200,
+    "cgroupMemoryPeakBytes": 8589934592,
+    "cgroupMemoryIncludesFileCache": true,
+    "observedProcessRssHighWaterBytes": 1213161472,
+    "processRssObservationUtc": "2026-11-17T08:10:32.806283+00:00",
+    "processRssFinalPeakMeasured": false
+  },
+  "lastObservedIo": {
+    "processReadChars": 506754761300,
+    "processStorageReadBytes": 486646526464,
+    "processStorageWriteBytes": 24613310464,
+    "note": "Process counters include libraries, source admission and temporary coefficient/proof work; not a completed coefficient-volume measurement"
+  },
+  "interruption": {
+    "reason": "Existing shared-resource pause appeared",
+    "failureCode": "cancelled",
+    "processExited": true,
+    "unitResult": "exit-code",
+    "exitStatus": 1
+  },
+  "cleanup": {
+    "ownedScratchEntriesAfterExit": 0,
+    "sharedPausePreserved": true,
+    "sourceWritesPerformed": false,
+    "publicProviderChanged": false
+  },
+  "limitations": [
+    "Operator-observed aggregate counters, not attestation",
+    "Cancelled before complete coefficient inventory validation and plan publication",
+    "Not full-model memory qualification or encrypted generation",
+    "No throughput extrapolation or independent cryptographic review"
+  ]
+}

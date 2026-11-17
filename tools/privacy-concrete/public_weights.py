@@ -19,6 +19,7 @@ from source_snapshot import file_signature
 
 PUBLIC_TILE_BINDING_INTERFACE='doppler.public-tile-binding/v1'
 PUBLIC_PROJECTION_BINDING_INTERFACE='doppler.public-projection-binding/v1'
+MAX_PROJECTION_READ_BYTES=1024*1024
 
 
 def validate_public_projection(row):
@@ -43,15 +44,21 @@ def projection_tile_digests(handle,row,schedule,encoding,*,cancelled=None):
     whole=hashlib.sha256();result={};size=encoding['bytes']
     for begin,group in sorted(by_input.items()):
         hashers={tile['id']:hashlib.sha256() for tile in group}
-        for _index in range(begin,group[0]['inputEnd']):
-            for tile in group:
-                remaining=(tile['outputEnd']-tile['outputBegin'])*size
-                while remaining:
-                    require_active(cancelled)
-                    chunk=handle.read(remaining)
-                    if not isinstance(chunk,bytes) or not chunk or len(chunk)>remaining:
-                        raise ValueError('Complete bounded public coefficient stream required')
-                    whole.update(chunk);hashers[tile['id']].update(chunk);remaining-=len(chunk)
+        if len(group)==1 and group[0]['outputBegin']==0 and group[0]['outputEnd']==row['outputWidth']:
+            # One output tile covers consecutive complete rows. Consume the
+            # same owned stream in bounded blocks instead of one syscall and
+            # cancellation-path stat per row. No coefficient bytes are skipped.
+            spans=((group[0],(group[0]['inputEnd']-begin)*row['outputWidth']*size),)
+        else:
+            spans=((tile,(tile['outputEnd']-tile['outputBegin'])*size)
+                   for _index in range(begin,group[0]['inputEnd']) for tile in group)
+        for tile,remaining in spans:
+            while remaining:
+                require_active(cancelled);requested=min(remaining,MAX_PROJECTION_READ_BYTES)
+                chunk=handle.read(requested)
+                if not isinstance(chunk,bytes) or not chunk or len(chunk)>requested:
+                    raise ValueError('Complete bounded public coefficient stream required')
+                whole.update(chunk);hashers[tile['id']].update(chunk);remaining-=len(chunk)
         result.update({tile_id:hasher.hexdigest() for tile_id,hasher in hashers.items()})
     # Tile and whole-file digests consume exactly the same owned chunks, in row
     # order. A later rewrite cannot change this binding, and a mixed read fails

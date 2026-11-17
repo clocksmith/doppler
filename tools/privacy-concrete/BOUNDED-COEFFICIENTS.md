@@ -398,3 +398,22 @@ planned tiles from zero executed tiles and asserts neither model execution nor
 cryptographic qualification. Temporary projections and the plan remain owned by
 the attempt and are removed before exit, including on failure or cancellation.
 This is a memory/correctness gate before the longer encrypted generation run.
+
+The [first physical bounded preparation](evidence/storage/flash-bounded-preparation-cancelled.json)
+at `eeb688038` completed source admission and entered real coefficient
+preparation. A shared-resource pause cancelled it after 952.30 seconds; it
+released its lock and removed its temporary projections. The enforced cgroup
+memory limit was 8 GiB with zero swap, including page cache. The last observed
+process RSS high-water mark was 1,213,161,472 bytes, not a final peak or a complete
+model-memory result. The complete coefficient reference did not pass, and no
+keys, evaluator or encrypted tiles were created. The existing pause was preserved.
+
+Single-output-tile public proofs now consume the same contiguous coefficient
+stream in blocks of at most 1 MiB; strided output tiles retain row-order hashing.
+Whole-file and every tile digest still derive from exactly the same owned bytes,
+including with fragmented reads. Cancellation brackets each bounded read, and
+corruption, truncation or trailing bytes still reject the proof. For a
+2,049-by-640 int16 fixture with 2,048-row tiles this reduces nonempty read requests
+from 2,049 to four, without changing identities. This is a read-count observation,
+not a measured full-model speedup; the cancelled physical attempt used the earlier
+implementation and was not patched or restarted.

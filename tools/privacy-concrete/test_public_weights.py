@@ -6,6 +6,7 @@ from pathlib import Path
 import struct
 from types import SimpleNamespace
 import tempfile
+import threading
 import unittest
 from unittest.mock import patch
 from full_plan import tiles
@@ -14,6 +15,56 @@ from protocol import digest
 
 
 class PublicWeightBindingTests(unittest.TestCase):
+    def test_contiguous_tiles_use_bounded_blocks_without_changing_any_digest(self):
+        from public_weights import MAX_PROJECTION_READ_BYTES
+        for width,parameters in [(1,{}),(2,dict(weightEncoding='signed-int12-in-int16',quantizationBits=12))]:
+            with self.subTest(width=width):
+                raw=bytes(range(256))*(2049*640*width//256)+bytes(range(2049*640*width%256))
+                row=dict(name='projection',weightId=digest(raw),inputWidth=2049,outputWidth=640)
+                definition=dict(projections=[row],inputTileWidth=2048,outputTileWidth=2048,parameters=parameters)
+                reads=[]
+                class Tracked(io.BytesIO):
+                    def read(self,size=-1):
+                        self.assert_bounded(size);reads.append(size);return super().read(size)
+                    def assert_bounded(self,size):
+                        if not 0<size<=MAX_PROJECTION_READ_BYTES:raise AssertionError('unbounded proof read')
+                @contextmanager
+                def source(*args):
+                    with Tracked(raw) as handle:yield handle
+                plan=SimpleNamespace(definition=lambda:definition);binding=PreparedPublicTiles(plan,source).digests_for(plan)
+                for tile in tiles(row,2048,2048):
+                    self.assertEqual(binding[tile['id']],digest(raw[tile['inputBegin']*640*width:tile['inputEnd']*640*width]))
+                self.assertEqual(len(reads),(2048*640*width+MAX_PROJECTION_READ_BYTES-1)//MAX_PROJECTION_READ_BYTES+2)
+                self.assertLess(len(reads),10)
+
+    def test_contiguous_proof_cancellation_corruption_and_incomplete_stream_reject(self):
+        from public_weights import PreparedPublicProjection
+        raw=bytes(range(256))*8192;row=dict(name='projection',weightId=digest(raw),inputWidth=2048,outputWidth=1024)
+        plan=SimpleNamespace(definition=lambda:dict(projections=[row],inputTileWidth=2048,outputTileWidth=2048))
+        for failure in ('cancel','changed','short','extra','fragmented'):
+            with self.subTest(failure=failure):
+                event=threading.Event();handles=[]
+                class Changed(io.BytesIO):
+                    calls=0
+                    def read(self,size=-1):
+                        self.calls+=1;value=super().read(min(size,997) if failure=='fragmented' else size)
+                        if failure=='cancel':event.set()
+                        if failure=='changed' and self.calls==2:value=bytes([9])*len(value)
+                        return value
+                @contextmanager
+                def source(*args):
+                    with Changed(raw[:-1] if failure=='short' else raw+b'x' if failure=='extra' else raw) as handle:
+                        handles.append(handle);yield handle
+                if failure=='fragmented':
+                    with source() as handle:
+                        binding=PreparedPublicProjection(row,plan.definition(),handle,cancelled=event).digests_for(row,plan.definition())
+                    self.assertEqual(binding[tiles(row,2048,2048)[0]['id']],digest(raw))
+                else:
+                    with self.assertRaises(InterruptedError if failure=='cancel' else ValueError):
+                        with source() as handle:PreparedPublicProjection(row,plan.definition(),handle,cancelled=event)
+                self.assertTrue(handles[0].closed)
+                if failure=='cancel':self.assertEqual(handles[0].calls,1)
+
     def fixture(self,directory):
         data=bytes(range(24));identity=digest(data)
         path=Path(directory)/(identity+'.i8');path.write_bytes(data)
