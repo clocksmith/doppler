@@ -207,6 +207,8 @@ states. It releases candidate tokens only after every encrypted step, provider
 finish, transport closure, integrity outcome and teacher-forced quantized greedy
 comparison pass. Floating comparisons are reported observations. Both references
 are full client computation; this is a research correctness oracle.
+Generation requires a fresh route cursor and consumes it on every exit; an
+already partly evaluated route cannot restart with fresh model state.
 
 The graph has no prompt-padding mask contract. The prompt must contain exactly
 `contextBucket` rows, and the entire route must fit the graph's context budget.

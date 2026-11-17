@@ -143,10 +143,12 @@ class FlashStreamStorageTests(unittest.TestCase):
                         result=result.clone();result[...,int(result[0,-1].argmax())]=-1e10
                     return result
                 with patch.object(graph,'new_state',side_effect=new_state),patch.object(prepared,'reference',side_effect=reference):
-                    if failure in ('reply','numerical','prefill','context','cancel'):
+                    if failure in ('reply','numerical','prefill','context','cancel','used'):
                         if failure=='cancel':bridge.cancelled.set()
+                        if failure=='used':
+                            bridge.admission.position=len(plan.schedule());bridge.sequence+=len(plan.schedule())
                         request=replace(context,request_id='other-request') if failure=='context' else context
-                        error=InterruptedError if failure=='cancel' else ValueError if failure in ('prefill','context') else ExecutionRejected
+                        error=InterruptedError if failure=='cancel' else ValueError if failure in ('prefill','context','used') else ExecutionRejected
                         with self.assertRaises(error):
                             generate(prepared,[1,2] if failure=='prefill' else [1],bridge,object(),parameters,request)
                     else:
@@ -157,8 +159,8 @@ class FlashStreamStorageTests(unittest.TestCase):
                         self.assertFalse(result['productionBackendAvailable']);self.assertFalse(result['securityQualified'])
                 self.assertIsNotNone(children[0].poll());self.assertTrue(all(state.failed for state in observed_states))
                 self.assertEqual(len({state.context for state in observed_states}),len(observed_states))
-                self.assertEqual(counts['evaluated'],0 if failure in ('prefill','context','cancel') else len(plan.schedule())*4)
-                self.assertEqual(len(reference_calls),0 if failure in ('reply','prefill','context','cancel') else 1 if failure=='numerical' else 4)
+                self.assertEqual(counts['evaluated'],0 if failure in ('prefill','context','cancel','used') else len(plan.schedule())*4)
+                self.assertEqual(len(reference_calls),0 if failure in ('reply','prefill','context','cancel','used') else 1 if failure=='numerical' else 4)
                 self.assertEqual(list(root.iterdir()),[root/'plan.json'])
                 self.assertEqual(list(children[0].scratch.iterdir()),[])
                 return
@@ -212,6 +214,7 @@ class FlashStreamStorageTests(unittest.TestCase):
     def test_fixed_generation_prefill_mismatch_closes_before_any_ciphertext(self):self.run_case('prefill',rebuild=True,generation=True)
     def test_fixed_generation_wrong_request_closes_before_any_ciphertext(self):self.run_case('context',rebuild=True,generation=True)
     def test_fixed_generation_cancelled_before_start_closes_without_ciphertext(self):self.run_case('cancel',rebuild=True,generation=True)
+    def test_fixed_generation_cannot_restart_a_partly_consumed_route(self):self.run_case('used',rebuild=True,generation=True)
 
     def test_same_bf16_model_measures_coefficient_traffic_reduction_across_four_steps(self):
         streamed=self.run_case(bf16_control=True);rebuilt=self.run_case(rebuild=True)

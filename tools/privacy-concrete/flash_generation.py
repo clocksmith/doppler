@@ -38,6 +38,8 @@ def generate(prepared,prompt_tokens,bridge,secret,parameters,context):
         bridge.check_active();prepared.require_graph();definition=bridge.plan.definition()
         steps=definition.get('steps');rows=definition.get('contextBucket');graph=prepared.graph
         if (type(steps) is not int or not 0<steps<=16 or type(rows) is not int or rows<=0
+                or bridge.sequence!=1 or bridge.admission.position!=0 or bridge.admission.in_flight
+                or bridge.admission.projection is not None
                 or type(prompt_tokens) not in (tuple,list) or len(prompt_tokens)!=rows
                 or any(type(token) is not int or not 0<=token<graph.config.vocab_size for token in prompt_tokens)
                 or rows+steps-1>graph.context_limit or secret is None or parameters is None
