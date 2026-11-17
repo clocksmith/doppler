@@ -11,7 +11,6 @@
     "numerator": 1,
     "denominator": 16
   },
-  "expectationCacheBytes": 1073741824,
   "rejection": "deferred-until-route-close/v1",
   "rejectedResponseSubstitute": "zero",
   "noise": {
@@ -21,5 +20,6 @@
       "margin": 2.0,
       "evidence": "evidence/integrity/honest-noise-ntt12.json"
     }
-  }
+  },
+  "vectorScope": "tile-step-row/v1"
 }

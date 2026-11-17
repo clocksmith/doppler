@@ -36,7 +36,7 @@ class SSHRouteTests(unittest.TestCase):
             actual=route.definition()
             self.assertEqual(actual['basePlanId'],base.identity);self.assertEqual(actual['modelId'],'b'*64)
             self.assertEqual(actual['backendProfile'],profile);self.assertEqual(actual['backendProtocol'],settings['protocol'])
-            self.assertEqual(actual['schema'],'doppler.encrypted-ssh-route/v2')
+            self.assertEqual(actual['schema'],'doppler.encrypted-ssh-check-route/v1' if settings.get('integrity') is not None else 'doppler.encrypted-ssh-route/v2')
             original_key=endpoint['hostKey']['base64'];endpoint['host']='different.invalid';endpoint['hostKey']['base64']='changed'
             self.assertEqual(route.definition()['host'],'provider.invalid')
             self.assertEqual(route.definition()['hostKey']['base64'],original_key)
@@ -107,12 +107,18 @@ class SSHRouteTests(unittest.TestCase):
             with self.subTest(profile=profile),tempfile.TemporaryDirectory() as directory:
                 base,value=fixture();settings,_,_,_=qwen_backend(profile)
                 plan=SimpleNamespace(identity=base.identity,protocol_id=settings['protocol'],definition=base.definition,frame=base.frame,schedule=base.schedule)
-                value.update(schema='doppler.encrypted-ssh-route/v2',backendProfile=profile,backendProtocol=settings['protocol'])
+                checked=settings.get('integrity') is not None
+                schema='doppler.encrypted-ssh-check-route/v1' if checked else 'doppler.encrypted-ssh-route/v2'
+                value.update(schema=schema,backendProfile=profile,backendProtocol=settings['protocol'])
+                # A checked backend cannot ride the replay-named route, nor the reverse.
+                other='doppler.encrypted-ssh-route/v2' if checked else 'doppler.encrypted-ssh-check-route/v1'
+                with self.assertRaises(ValueError):validate(dict(value,schema=other))
                 route=SSHRoute(validate(value));bound=route.bind(plan,('research-provider',))
                 identity=Path(directory)/'identity';identity.touch(mode=0o600)
                 command=SSHDeployment(route,str(identity),('research-provider',)).command('/explicit/known_hosts')
                 self.assertIn('--profile '+profile,command[-1]);self.assertIn(bound.identity,command[-1])
-                self.assertEqual(bound.protocol_id,'concrete-glwe-qwen-research-ssh-replay/v2')
+                self.assertEqual(bound.protocol_id,'concrete-glwe-qwen-research-ssh-linear-check/v1' if checked else 'concrete-glwe-qwen-research-ssh-replay/v2')
+                self.assertEqual(bound.protocol_id.endswith('-linear-check/v1'),checked)
                 self.assertEqual(bound.frame('s','k',1,'evaluate','t')['schema'],bound.protocol_id)
                 with self.assertRaises(ValueError):route.bind(plan,())
                 if profile!='qwen-all-linear':

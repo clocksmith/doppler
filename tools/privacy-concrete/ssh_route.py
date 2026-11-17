@@ -17,6 +17,9 @@ from protocol import digest, parse_unique_json
 
 POLICY=json.loads(Path(__file__).with_name('ssh-policy.json').read_text())
 POLICY_V2=json.loads(Path(__file__).with_name('ssh-v2-policy.json').read_text())
+# Checked-integrity backends get their own route schema and frame protocol, so
+# an SSH frame never names replay for a route that does not replay every tile.
+POLICY_CHECK=json.loads(Path(__file__).with_name('ssh-check-policy.json').read_text())
 ENDPOINT_FIELDS=frozenset({'operatorId','host','port','user','hostKey','remotePython','remoteProvider','remoteCache','remoteManifest'})
 FIELDS=ENDPOINT_FIELDS|{'schema','basePlanId','modelId','backendProtocol'}
 SHA=re.compile(r'[0-9a-f]{64}\Z')
@@ -41,6 +44,7 @@ def route_policy(value):
     schema=value.get('schema')
     if schema==POLICY['routeSchema']:return POLICY
     if schema==POLICY_V2['routeSchema']:return POLICY_V2
+    if schema==POLICY_CHECK['routeSchema']:return POLICY_CHECK
     raise ValueError('Unsupported versioned encrypted SSH route')
 
 
@@ -50,6 +54,8 @@ def route_backend(value):
     profile=value.get('backendProfile')
     settings,_,_,_=qwen_backend(profile)
     if settings['productionBackendAvailable'] is not False:raise ValueError('Research-only SSH backend required')
+    if (policy is POLICY_CHECK)!=(settings.get('integrity') is not None):
+        raise ValueError('SSH route schema differs from the backend integrity mechanism')
     return profile,settings
 
 
@@ -112,7 +118,7 @@ class SSHRoute:
         require_operator(endpoint['operatorId'],allowed_operators)
         settings,load,_,_=qwen_backend(profile)
         plan=load(directory)
-        value=dict(endpoint,schema=POLICY_V2['routeSchema'],backendProfile=profile,backendProtocol=settings['protocol'],
+        value=dict(endpoint,schema=(POLICY_V2 if settings.get('integrity') is None else POLICY_CHECK)['routeSchema'],backendProfile=profile,backendProtocol=settings['protocol'],
                    basePlanId=plan.identity,modelId=plan.definition()['modelId'])
         route=cls(validate(value));route.bind(plan,allowed_operators)
         return route
@@ -201,7 +207,7 @@ class SSHDeployment:
         remote=['env','RAYON_NUM_THREADS='+str(settings['cpuThreads']),
                 'OMP_NUM_THREADS='+str(settings['cpuThreads']),value['remotePython'],value['remoteProvider'],
                 value['remoteCache'],value['basePlanId']]
-        if route_policy(value) is POLICY_V2:remote+=['--profile',profile]
+        if route_policy(value) is not POLICY:remote+=['--profile',profile]
         remote+=['--ssh-route',value['remoteManifest'],self.route.identity]
         options=['HostKeyAlgorithms=ssh-ed25519','PreferredAuthentications=publickey','GSSAPIAuthentication=no','HostbasedAuthentication=no','BatchMode=yes','StrictHostKeyChecking=yes','UserKnownHostsFile='+str(known_hosts),
                  'GlobalKnownHostsFile=/dev/null','IdentitiesOnly=yes','IdentityAgent=none','ForwardAgent=no',

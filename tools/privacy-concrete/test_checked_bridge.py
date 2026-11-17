@@ -58,14 +58,14 @@ class CheckedBridgeTests(unittest.TestCase):
         honest=lambda encrypted,matrix:(encrypted.data@matrix.view(np.int64)+self.noise(encrypted.data.shape[0],matrix.shape[1])).tobytes()
         self.noise_cache={}
         def evaluate(encrypted,matrix,key):
-            replays.append(bridge.sequence);return SimpleNamespace(serialize=lambda:honest(encrypted,matrix))
+            replays.append(bridge.sequence-1);return SimpleNamespace(serialize=lambda:honest(encrypted,matrix))
         def exchange(kind,payload,response,tile_id,while_pending=None):
             tile=bridge.admission.schedule[(bridge.sequence-1)%len(bridge.admission.schedule)]
             wire.append((kind,len(payload),tile_id))
             matrix=np.ascontiguousarray(self.weights[tile['name']][tile['inputBegin']:tile['inputEnd'],tile['outputBegin']:tile['outputEnd']]).astype(np.uint64)
             encrypted=Cipher(np.frombuffer(payload,dtype=np.int64).reshape(-1,matrix.shape[0]))
             answer=honest(encrypted,matrix);history.setdefault(tile_id,[]).append(answer)
-            if while_pending is not None:while_pending()
+            if while_pending is not None:self.fail('checked bridge must not replay while a response is pending')
             index=bridge.sequence;bridge.sequence+=1
             return answer if tamper is None else tamper(index,tile,answer,history)
         bridge.matrix_multiplication=evaluate;bridge.exchange=exchange
@@ -126,19 +126,46 @@ class CheckedBridgeTests(unittest.TestCase):
         with self.assertRaises(ExecutionRejected) as failure:bridge.require_integrity()
         self.assertEqual(failure.exception.code,'integrity-check-failed');self.assertTrue(bridge.admission.failed)
 
-    def test_rejected_response_contributes_zeros_not_its_content(self):
-        target=self.plan.schedule()[0]
-        def tamper(index,tile,answer,history):
-            if index!=1:return answer
+    def test_rejected_response_contributes_exactly_zero(self):
+        honest,honest_wire,replayed=self.bridge();expected=self.run_route(honest)
+        schedule=self.plan.schedule()
+        # An unsampled prefill tile of the first projection, rejected by the linear check alone.
+        target=next(index for index in range(1,len(schedule)+1) if index not in replayed and schedule[index-1]['name']=='first')
+        tile=schedule[target-1]
+        def tamper(index,tile_,answer,history):
+            if index!=target:return answer
             return (np.frombuffer(answer,dtype=np.int64)+10**8).tobytes()
-        honest,_,_=self.bridge();expected=self.run_route(honest)[0][1]
-        bridge,_,_=self.bridge(tamper);actual=self.run_route(bridge)[0][1]
-        columns=slice(target['outputBegin'],target['outputEnd'])
-        later=[tile for tile in self.plan.schedule() if tile['name']=='first' and tile['outputBegin']==target['outputBegin'] and tile['inputBegin']!=target['inputBegin']]
-        self.assertFalse(np.array_equal(actual[:,columns],expected[:,columns]))
-        # Index 1 is a first-geometry replay: the mismatch is caught bytewise.
-        self.assertEqual(bridge.failures[0]['kind'],'sampled-replay-mismatch')
-        self.assertTrue(later)
+        bridge,_,_=self.bridge(tamper);actual=self.run_route(bridge)
+        self.assertEqual([row['kind'] for row in bridge.failures],['linear-check'])
+        values=expected[0][0];matrix=self.weights['first'][tile['inputBegin']:tile['inputEnd'],tile['outputBegin']:tile['outputEnd']]
+        contribution=values[:,tile['inputBegin']:tile['inputEnd']]@matrix+self.noise(2,matrix.shape[1])
+        without=expected[0][1].copy();without[:,tile['outputBegin']:tile['outputEnd']]-=contribution
+        self.assertTrue(np.array_equal(actual[0][1],without))
+        self.assertFalse(np.array_equal(actual[0][1],expected[0][1]))
+
+    def test_recorded_failure_outranks_an_evaluator_chosen_transport_or_runtime_failure(self):
+        from verified_execution import complete_verified_route
+        for ending in ['finish','execute','cancel']:
+            with self.subTest(ending=ending):
+                honest,honest_wire,replayed=self.bridge();self.run_route(honest)
+                target=next(index for index in range(5,len(honest_wire)) if index not in replayed)
+                def tamper(index,tile,answer,history,target=target):
+                    return answer if index!=target else (np.frombuffer(answer,dtype=np.int64)+10**8).tobytes()
+                bridge,_,_=self.bridge(tamper)
+                def finish():raise ValueError('Full evaluator failed to finish')
+                def execute(step):
+                    self.run_route(bridge,close=False)
+                    if ending=='execute':raise ConnectionError('evaluator dropped the connection')
+                    if ending=='cancel':raise InterruptedError('cancelled')
+                bridge.finish=finish;bridge.close=lambda:self.close(bridge)
+                with self.assertRaises(ExecutionRejected) as failure:complete_verified_route(bridge,1,execute,lambda step,result:None)
+                self.assertEqual(failure.exception.code,'integrity-check-failed')
+        # Without a recorded failure the original error is preserved.
+        bridge,_,_=self.bridge();bridge.close=lambda:self.close(bridge)
+        def finish():raise ValueError('Full evaluator failed to finish')
+        bridge.finish=finish
+        with self.assertRaises(ValueError) as failure:complete_verified_route(bridge,1,lambda step:self.run_route(bridge,close=False),lambda step,result:None)
+        self.assertNotIsInstance(failure.exception,ExecutionRejected)
 
     def test_wrong_length_and_unparseable_responses_never_reach_decryption(self):
         decrypted=[]

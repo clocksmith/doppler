@@ -22,12 +22,11 @@ def validate_policy(policy):
     sample=policy.get('replaySample',{})
     if (policy.get('schema')!='doppler.linear-check-policy/v1' or policy.get('securityQualified') is not False
             or policy.get('productionBackendAvailable') is not False
-            or type(policy.get('checkVectors')) is not int or not 1<=policy['checkVectors']<=64
+            or type(policy.get('checkVectors')) is not int or not 16<=policy['checkVectors']<=64
             or policy.get('weightBits')!=16 or type(policy.get('falseRejectLog2')) is not int or not 20<=policy['falseRejectLog2']<=80
             or type(sample.get('numerator')) is not int or type(sample.get('denominator')) is not int
-            or not 0<=sample['numerator']<=sample['denominator'] or sample['denominator']<=0
-            or policy.get('rejection')!='deferred-until-route-close/v1' or policy.get('rejectedResponseSubstitute')!='zero'
-            or type(policy.get('expectationCacheBytes')) is not int or policy['expectationCacheBytes']<0):
+            or not 1<=sample['numerator']<=sample['denominator']<=64 or policy.get('vectorScope')!='tile-step-row/v1'
+            or policy.get('rejection')!='deferred-until-route-close/v1' or policy.get('rejectedResponseSubstitute')!='zero'):
         raise ValueError('Unsupported installed linear-check policy')
     return policy
 
@@ -35,7 +34,7 @@ def validate_policy(policy):
 def noise_model(parameter_profile,policy=POLICY):
     value=validate_policy(policy)['noise'].get(parameter_profile)
     if (not isinstance(value,dict) or any(type(value.get(key)) not in (int,float) or not math.isfinite(value[key]) for key in ['varianceBase','variancePerOutput','margin'])
-            or value['varianceBase']<0 or value['variancePerOutput']<=0 or value['margin']<1):
+            or value['varianceBase']<0 or value['variancePerOutput']<=0 or not 1<=value['margin']<=4):
         raise ValueError('No measured honest-noise model is installed for this parameter profile')
     return dict(value)
 
@@ -91,11 +90,13 @@ class CheckKey:
     def _require(self):
         if self.retired or self._seed is None:raise ValueError('Check secret is retired')
 
-    def vectors(self,tile_id,outputs):
+    def vectors(self,tile_id,outputs,step,rows):
+        """Independent vectors for every tile, route step and input row: (rows, outputs, count)."""
         self._require()
-        if not isinstance(tile_id,str) or type(outputs) is not int or outputs<=0:raise ValueError('Explicit tile identity and width required')
-        raw=hashlib.shake_256(b'doppler.linear-check.vectors/v1\0'+self._seed+tile_id.encode()).digest(outputs*self.count*2)
-        return (np.frombuffer(raw,dtype='<u2').astype(np.int64)-self.weight).reshape(outputs,self.count)
+        if (not isinstance(tile_id,str) or type(outputs) is not int or outputs<=0 or type(step) is not int or step<0
+                or type(rows) is not int or rows<=0):raise ValueError('Explicit tile identity, width, step and row count required')
+        raw=hashlib.shake_256(b'doppler.linear-check.vectors/v2\0'+self._seed+tile_id.encode()+step.to_bytes(8,'big')+rows.to_bytes(8,'big')).digest(rows*outputs*self.count*2)
+        return (np.frombuffer(raw,dtype='<u2').astype(np.int64)-self.weight).reshape(rows,outputs,self.count)
 
     def sampled(self,tile_id,step):
         self._require()
@@ -104,8 +105,8 @@ class CheckKey:
         raw=hmac.new(self._seed,b'doppler.linear-check.replay/v1\0'+tile_id.encode()+step.to_bytes(8,'big'),hashlib.sha256).digest()
         return int.from_bytes(raw[:8],'big')%sample['denominator']<sample['numerator']
 
-    def expectation(self,tile_id,matrix):
-        """matrix @ vectors, exact. matrix is the signed public tile (inputs x outputs)."""
+    def expectation(self,tile_id,matrix,step,rows):
+        """matrix @ vectors for each row, exact: (rows, inputs, count). matrix is the signed public tile."""
         signed=np.asarray(matrix)
         if signed.ndim!=2 or signed.dtype.kind!='i':raise ValueError('Signed public coefficient tile required')
         inputs,outputs=signed.shape
@@ -115,23 +116,28 @@ class CheckKey:
         # and the later int64 input product inside 62 bits.
         if limit*self.weight*outputs>=2**52 or 2**self.quantization_bits*limit*self.weight*outputs*inputs>=2**62:
             raise ValueError('Linear check would exceed exact integer arithmetic')
-        product=signed.astype(np.float64)@self.vectors(tile_id,outputs).astype(np.float64)
+        vectors=self.vectors(tile_id,outputs,step,rows).transpose(1,0,2).reshape(outputs,rows*self.count)
+        product=signed.astype(np.float64)@vectors.astype(np.float64)
         result=product.astype(np.int64)
         if not np.array_equal(result.astype(np.float64),product):raise ValueError('Inexact linear-check expectation')
-        return result
+        return np.ascontiguousarray(result.reshape(inputs,rows,self.count).transpose(1,0,2))
 
-    def deviations(self,tile_id,inputs,decoded,expectation):
-        """Integer |<r_k,decoded_row> - <input_row,expectation_k>| for every row and check."""
+    def deviations(self,tile_id,inputs,decoded,expectation,step):
+        """Signed integer <r, decoded_row> - <input_row, expectation> per row and check, or None outside the domain."""
         inputs=np.asarray(inputs);decoded=np.asarray(decoded)
         if (inputs.ndim!=2 or decoded.ndim!=2 or inputs.dtype!=np.int64 or decoded.dtype!=np.int64 or inputs.shape[0]!=decoded.shape[0]
-                or expectation.shape!=(inputs.shape[1],self.count)):
+                or decoded.size==0 or expectation.shape!=(inputs.shape[0],inputs.shape[1],self.count) or expectation.dtype!=np.int64):
             raise ValueError('Exact check geometry required')
-        if inputs.size and (int(inputs.min())<0 or int(inputs.max())>=2**self.quantization_bits):raise ValueError('Client input exceeds its declared domain')
-        outputs=decoded.shape[1]
-        if 2**(self.computation_bits-1)*self.weight*outputs>=2**62:raise ValueError('Linear check would exceed exact integer arithmetic')
-        if decoded.size==0 or int(np.abs(decoded).max())>=2**(self.computation_bits-1):return None
-        return np.abs(decoded@self.vectors(tile_id,outputs)-inputs@expectation)
+        if int(inputs.min())<0 or int(inputs.max())>=2**self.quantization_bits:raise ValueError('Client input exceeds its declared domain')
+        rows,outputs=decoded.shape;domain=2**(self.computation_bits-1)
+        if domain*self.weight*outputs>=2**62:raise ValueError('Linear check would exceed exact integer arithmetic')
+        # Compare the extremes directly: abs() of the most negative int64 is negative.
+        if int(decoded.min())<-domain or int(decoded.max())>=domain:return None
+        vectors=self.vectors(tile_id,outputs,step,rows)
+        return np.einsum('ro,rok->rk',decoded,vectors)-np.einsum('ri,rik->rk',inputs,expectation)
 
-    def passes(self,tile_id,inputs,decoded,expectation):
-        value=self.deviations(tile_id,inputs,decoded,expectation)
-        return value is not None and int(value.max())<=tolerance(decoded.shape[1],self.noise,self.policy)
+    def passes(self,tile_id,inputs,decoded,expectation,step):
+        value=self.deviations(tile_id,inputs,decoded,expectation,step)
+        if value is None:return False
+        limit=tolerance(decoded.shape[1],self.noise,self.policy)
+        return int(value.max())<=limit and int(value.min())>=-limit

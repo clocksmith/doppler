@@ -170,6 +170,10 @@ class FullBridge:
         """Every response reaching this bridge's caller was byte-verified by replay."""
         return decrypt(answer)
 
+    def integrity_failed(self):
+        """Replay rejects immediately; there is no deferred integrity outcome."""
+        return False
+
     def require_integrity(self):
         """Replay rejects immediately; there is no deferred integrity outcome."""
 
