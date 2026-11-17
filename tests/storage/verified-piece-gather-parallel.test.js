@@ -13,7 +13,7 @@ const sha = bytes => 'sha256:' + createHash('sha256').update(bytes).digest('hex'
 const encode = value => new TextEncoder().encode(JSON.stringify(value));
 const I = { reads: 0, readDone: 1, activeReads: 2, maxReads: 3, readError: 4, releaseReads: 5,
   closedFDs: 6, openedFDs: 7, syncReads: 8, hashes: 9, hashDone: 10, activeHashes: 11,
-  maxHashes: 12, syncHashes: 13, enabled: 14, releaseHashes: 15, terminate: 16, failClose: 17,
+  maxHashes: 12, syncHashes: 13, enabled: 14, releaseHashes: 15, terminate: 16, failClose: 17, fstats: 18, lstats: 19,
   readGate: 32, hashGate: 80 };
 
 // Test-only preload: production workers receive no instrumentation options or modes.
@@ -25,6 +25,7 @@ import { workerData } from 'node:worker_threads';
 import { syncBuiltinESMExports } from 'node:module';
 const S = new Int32Array(workerData.ioControls), I = ${JSON.stringify(I)};
 const read = fs.read, readSync = fs.readSync, open = fs.openSync, close = fs.closeSync;
+const fstat = fs.fstatSync, lstat = fs.lstatSync;
 const owned = new Set(), approved = new Set(Object.values(workerData.files));
 const hash = crypto.createHash, digest = crypto.webcrypto.subtle.digest.bind(crypto.webcrypto.subtle);
 const increment = (active, peak) => { const n = Atomics.add(S, active, 1) + 1; Atomics.store(S, peak, Math.max(n, Atomics.load(S, peak))); };
@@ -40,6 +41,14 @@ fs.openSync = (...args) => {
 fs.closeSync = fd => {
   if (owned.has(fd) && Atomics.compareExchange(S, I.failClose, 1, 0) === 1) throw new Error('Injected descriptor close failure');
   close(fd); if (owned.delete(fd)) Atomics.add(S, I.closedFDs, 1);
+};
+fs.fstatSync = (...args) => {
+  if (owned.has(args[0]) && Atomics.load(S, I.enabled)) Atomics.add(S, I.fstats, 1);
+  return fstat(...args);
+};
+fs.lstatSync = (...args) => {
+  if (approved.has(args[0]) && Atomics.load(S, I.enabled)) Atomics.add(S, I.lstats, 1);
+  return lstat(...args);
 };
 fs.readSync = (...args) => { Atomics.add(S, I.syncReads, 1); return readSync(...args); };
 fs.read = (fd, bytes, offset, length, position, callback) => {
@@ -134,8 +143,71 @@ async function publicHarness(f) {
   try { gather = await createVerifiedPieceGather(f.options); S[I.enabled] = 1; }
   catch (error) { await cleanup(); throw error; }
   return { gather, workers, acks, outputs, cleanup,
-    ranges: f.ranges.map((range, shard) => ({ shard, offset: range.offset, length: range.length })) };
+    ranges: f.ranges.map(range => ({ shard: f.names.indexOf(range.path), offset: range.offset, length: range.length })) };
 }
+
+async function sameFileFixture() {
+  const f = await fixture(), name = 'gate.bin', filename = f.files[name];
+  const payload = Uint8Array.from(f.payloads.flatMap(bytes => [...bytes]));
+  await fs.writeFile(filename, payload);
+  const stat = await fs.stat(filename, { bigint: true });
+  const manifestBytes = encode({ shards: [{ filename: name, size: payload.length }] });
+  const indexBytes = encode({ schema: 'doppler.verified-pieces/v1', manifestIdentity: sha(manifestBytes), maxPieceBytes: f.maxPieceBytes,
+    files: [{ path: name, size: payload.length, pieces: [0, 4, 8].map(offset => ({ offset, size: 4,
+      identity: sha(payload.subarray(offset, offset + 4)) })) }] });
+  f.files = { [name]: filename }; f.names = [name];
+  f.identities = { [name]: { device: String(stat.dev), inode: String(stat.ino), size: String(stat.size) } };
+  f.options = { ...f.options, manifestBytes, indexBytes, indexIdentity: sha(indexBytes), files: f.files, fileIdentities: f.identities };
+  f.ranges = [0, 4, 8].map(offset => ({ path: name, offset, length: 4 }));
+  return f;
+}
+
+test('whole-expert identity guards run once per distinct file at both request boundaries, never across jobs', { timeout: 5000 }, async () => {
+  const f = await sameFileFixture(), h = await direct(f), S = f.state;
+  try {
+    Atomics.store(S, I.releaseReads, 1); Atomics.store(S, I.releaseHashes, 1);
+    h.send(); const first = await h.take(value => value.buffer);
+    assert.equal(first.error, undefined);
+    assert.equal(S[I.openedFDs], 1);
+    assert.equal(S[I.lstats], 2, 'One path guard before all reads and one after all digests');
+    assert.equal(S[I.fstats], 3, 'Two identity guards plus the first descriptor regular-file check');
+    assert.equal(S[I.hashes], 3, 'Every complete piece retains its own SHA');
+    Atomics.store(S, I.lstats, 0); Atomics.store(S, I.fstats, 0);
+    h.send(f.ranges, first.buffer); const second = await h.take(value => value.buffer);
+    assert.equal(second.error, undefined);
+    assert.equal(S[I.lstats], 2); assert.equal(S[I.fstats], 2, 'No cross-job identity cache');
+    assert.equal(S[I.hashes], 6);
+    assert.deepEqual([...new Uint8Array(second.buffer)], f.payloads.flatMap(bytes => [...bytes]));
+  } finally { await h.cleanup(); }
+});
+
+test('same-file batches reject mutation during reads and path replacement during digests before publication', { timeout: 5000 }, async () => {
+  for (const phase of ['read', 'digest']) {
+    const f = await sameFileFixture(), h = await direct(f), S = f.state, filename = f.files['gate.bin'];
+    try {
+      h.send(); await until(() => S[I.reads] === 3);
+      assert.equal(h.publications.length, 0);
+      assert.equal(S[I.lstats], 1, 'All same-file reads share one job admission guard');
+      assert.equal(S[I.fstats], 2, 'Admission includes the cold regular-file descriptor check');
+      if (phase === 'read') await fs.writeFile(filename, new Uint8Array(12));
+      Atomics.store(S, I.releaseReads, 1); await until(() => S[I.hashes] === 3);
+      if (phase === 'digest') { await fs.rename(filename, filename + '.saved'); await fs.writeFile(filename, new Uint8Array(12)); }
+      Atomics.store(S, I.hashGate, 1); await until(() => S[I.hashDone] === 1);
+      assert.equal(h.publications.length, 0, 'One digest never releases the remaining job owners');
+      assert.equal(S[I.lstats], 1, 'The publication identity guard waits for every digest owner');
+      Atomics.store(S, I.releaseHashes, 1);
+      const failed = await h.take(value => value.buffer);
+      assert.match(failed.error, phase === 'read' ? /integrity/ : /identity changed/);
+      assert(new Uint8Array(failed.buffer).every(byte => byte === 0));
+      assert.equal(S[I.lstats], 2, 'Even rejected jobs complete their final identity guard after all siblings');
+      assert.equal(S[I.activeReads], 0); assert.equal(S[I.activeHashes], 0);
+      if (phase === 'digest') { await fs.unlink(filename); await fs.rename(filename + '.saved', filename); }
+      else await fs.writeFile(filename, Uint8Array.from(f.payloads.flatMap(bytes => [...bytes])));
+      h.send(f.ranges, failed.buffer); const recovered = await h.take(value => value.buffer);
+      assert.equal(recovered.error, undefined);
+    } finally { await h.cleanup(); }
+  }
+});
 
 test('three direct reads and bounded digests overlap, publishing one ordered authenticated output', { timeout: 5000 }, async () => {
   const f = await fixture(), h = await direct(f), S = f.state;

@@ -25,26 +25,28 @@ const policy = { ...structuredClone(DEFAULT_EXPERT_CACHE_CONFIG.qwen35Routed), e
   storageMode: 'tiered-compact', tiered: { residentLayers: [0], parkedLayers: [1], mappedCacheBytes: 48, mappedProtectedShare: 0 },
   sourceReadMode: 'expert-lease-batch', cacheBytes: 368, compactLayerBytes: { 1: 64, 2: 64 },
   stagingBytes: 256, readConcurrency: 2, gpuBudgetBytes: capBytes, reserveBytes: 1024 };
-let reads = 0, leases = 0, beforeClose;
-const cache = new TieredExpertCache({ device, policy, otherGpuBytes: () => getBufferPool(device).getCurrentBytesAllocated(),
+let reads = 0, leases = 0, beforeClose, other = null, otherAfterFirstClose;
+function acquire(data, parts) {
+  reads++;
+  const bytes = new Uint8Array(24);
+  let offset = 0;
+  for (const part of parts) { bytes.set(data.subarray(part.offset, part.offset + part.length), offset); offset += part.length; }
+  leases++;
+  return { bytes, release() { leases--; structuredClone(bytes.buffer, { transfer: [bytes.buffer] }); } };
+}
+const options = { device, policy, otherGpuBytes: () => getBufferPool(device).getCurrentBytesAllocated(),
   readRange: async () => { throw Error('Unowned source fallback'); },
   rangeLease: { maxPartBytes: 24, memoryBytes: 80, concurrency: 2,
     read: async () => { throw Error('Whole expert batch required'); },
-    async readMany(parts) {
-      reads++;
-      const bytes = new Uint8Array(24);
-      let offset = 0;
-      for (const part of parts) { bytes.set(source.subarray(part.offset, part.offset + part.length), offset); offset += part.length; }
-      leases++;
-      return { bytes, release() { leases--; structuredClone(bytes.buffer, { transfer: [bytes.buffer] }); } };
-    } } }, plans, 2);
-async function verify(weights, layer, ids) {
+    async readMany(parts) { return acquire(source, parts); } } };
+const cache = new TieredExpertCache(options, plans, 2);
+async function verify(weights, layer, ids, expectedSource = source) {
   const map = weights.sourceExpertToSlot ? new Uint32Array(await readBuffer(weights.sourceExpertToSlot, 16)) : null;
   for (const [i, role] of ['gate', 'up', 'down'].entries()) {
     const bytes = new Uint8Array(await readBuffer(weights[role].buffer, weights[role].buffer.size));
     for (const expert of ids) {
       const slot = map ? map[expert] : expert;
-      assert.deepEqual(bytes.slice(slot * 8, slot * 8 + 8), source.slice(layer * 96 + i * 32 + expert * 8, layer * 96 + i * 32 + expert * 8 + 8));
+      assert.deepEqual(bytes.slice(slot * 8, slot * 8 + 8), expectedSource.slice(layer * 96 + i * 32 + expert * 8, layer * 96 + i * 32 + expert * 8 + 8));
     }
   }
 }
@@ -64,16 +66,29 @@ try {
   assert.ok(beforeClose.peakResidentBytes <= policy.cacheBytes);
   assert.ok(beforeClose.peakStagingBytes <= policy.stagingBytes);
   assert.equal(leases, 0);
+  const otherSource = source.map(value => (value + 7) & 255);
+  other = new TieredExpertCache({ ...options,
+    rangeLease: { ...options.rangeLease, async readMany(parts) { return acquire(otherSource, parts); } } }, plans, 2);
+  await other.preload();
+  assert.notEqual(other.getResidentWeights(0).down.buffer, cache.getResidentWeights(0).down.buffer);
+  await verify(await other.prepare(plans[2], [0, 3], undefined, 'prefill'), 2, [0, 3], otherSource);
+  await cache.destroy();
+  assert.equal(cache.getStats().residentBytes, 0);
+  await verify(other.getResidentWeights(0), 0, [0, 3], otherSource);
+  await verify(await other.prepare(plans[1], [1, 2], undefined, 'decode'), 1, [1, 2], otherSource);
+  otherAfterFirstClose = other.getStats();
+  assert.ok(otherAfterFirstClose.residentBytes > 0);
 } finally {
   try {
     await cache.destroy();
+    await other?.destroy();
     const pool = getBufferPool(device); pool.destroy(); await pool.settleDeferredDestruction();
     const retired = getDeviceMemorySnapshot(device);
     assert.equal(retired.liveBytes, 0);
     assert.ok(retired.peakBytes <= capBytes);
     assert.deepEqual(errors, []);
-    console.log(JSON.stringify({ test: 'tiered-expert-cache-physical', beforeClose, reads, leases,
+    console.log(JSON.stringify({ test: 'tiered-expert-cache-physical', beforeClose, otherAfterFirstClose, reads, leases,
       apiCapBytes: capBytes, peakApiBytes: retired.peakBytes, retiredLiveBytes: retired.liveBytes,
-      scope: 'synthetic resident/parked/streamed copies, cancel/reuse and retirement; no model/authentication claim' }));
+      scope: 'two synthetic expert-cache owners: exact copies, cancel/reuse, independent retirement; no full-model/authentication claim' }));
   } finally { destroyDevice(); await releaseNodeWebGPU(); }
 }

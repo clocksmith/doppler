@@ -65,9 +65,9 @@ function readFile(piece, bytes) {
 /** Whole-piece batch outputs are disjoint owned views, so parallel reads need no
  * extra complete-piece scratch. Partial/generic acquisitions remain serialized.
  * @param {Readonly<import('./verified-piece-reader.js').VerifiedPiece>} piece
- * @param {Uint8Array} bytes */
-async function readFileParallel(piece, bytes) {
-  const handle = admitFile(piece, bytes);
+ * @param {Uint8Array} bytes @param {number | null} admittedHandle */
+async function readFileParallel(piece, bytes, admittedHandle = null) {
+  const handle = admittedHandle ?? admitFile(piece, bytes);
   let read = 0;
   while (read < bytes.length) {
     if (closing) throw new Error('Gather worker closed.');
@@ -78,7 +78,7 @@ async function readFileParallel(piece, bytes) {
     if (!count) throw new Error('Incomplete authenticated piece.');
     read += count;
   }
-  assertIdentity(piece.path, handle);
+  if (admittedHandle === null) assertIdentity(piece.path, handle);
 }
 const reader = await createVerifiedPieceReader({ ...workerData.metadata,
   acquire: async () => { throw new Error('Gather worker uses owned piece verification.'); },
@@ -116,8 +116,8 @@ function authenticateDirect(piece, output) {
 /** WebCrypto snapshots only each disjoint view. The caller admits their aggregate
  * copy bytes within the already reserved two-piece allowance, otherwise SHA stays synchronous.
  * @param {Readonly<import('./verified-piece-reader.js').VerifiedPiece>} piece
- * @param {Uint8Array<ArrayBuffer>} output @param {boolean} parallelHash */
-async function authenticateParallel(piece, output, parallelHash) {
+ * @param {Uint8Array<ArrayBuffer>} output @param {boolean} parallelHash @param {boolean} batchIdentity */
+async function authenticateParallel(piece, output, parallelHash, batchIdentity = false) {
   if (closing) throw new Error('Gather worker closed.');
   if (!parallelHash) { authenticateDirect(piece, output); return; }
   if (activeDigestCopyBytes + output.byteLength > 2 * maxPieceBytes) throw new Error('Gather digest input copy exceeds its admitted allowance.');
@@ -127,9 +127,11 @@ async function authenticateParallel(piece, output, parallelHash) {
   let hash;
   try { hash = await webcrypto.subtle.digest('SHA-256', output); }
   finally { activeDigestCopyBytes -= output.byteLength; verificationMs += performance.now() - started; }
-  const handle = handles.get(piece.path);
-  if (handle === undefined) throw new Error('Gather descriptor lost before verification.');
-  assertIdentity(piece.path, handle);
+  if (!batchIdentity) {
+    const handle = handles.get(piece.path);
+    if (handle === undefined) throw new Error('Gather descriptor lost before verification.');
+    assertIdentity(piece.path, handle);
+  }
   if (closing) throw new Error('Gather worker closed.');
   recordDirect(piece, 'sha256:' + Buffer.from(hash).toString('hex'));
 }
@@ -189,21 +191,38 @@ async function gather({ ranges, length, buffer, batch }) {
     if (batch && pieces.every(piece => piece !== null)) {
       const parallelHash = Number.isSafeInteger(2 * maxPieceBytes) && length <= 2 * maxPieceBytes;
       let destination = 0;
-      const reads = pieces.map(piece => {
+      const outputs = pieces.map(piece => {
         const output = new Uint8Array(buffer, destination, piece.size);
         destination += piece.size;
+        return output;
+      });
+      // One job owns these exact descriptor bindings. Admission checks each
+      // distinct path before any read; publication checks them again only after
+      // every native read and digest settles. Never reuse guards across jobs.
+      /** @type {Map<string, number>} */
+      const admitted = new Map();
+      for (const [index, piece] of pieces.entries()) {
+        if (!admitted.has(piece.path)) admitted.set(piece.path, admitFile(piece, outputs[index]));
+      }
+      const reads = pieces.map((piece, index) => {
+        const output = outputs[index];
         return (async () => {
           const readStart = performance.now();
-          try { await readFileParallel(piece, output); }
+          try { await readFileParallel(piece, output, admitted.get(piece.path)); }
           finally { acquisitionMs += performance.now() - readStart; }
-          await authenticateParallel(piece, output, parallelHash);
+          await authenticateParallel(piece, output, parallelHash, true);
         })();
       });
       // A rejected read must not zero or transfer a buffer while a sibling native
       // read can still write it. Settle every admitted read before either outcome.
       const outcomes = await Promise.allSettled(reads);
       const failed = outcomes.find(outcome => outcome.status === 'rejected');
+      const identityFailures = [];
+      for (const [path, handle] of admitted) {
+        try { assertIdentity(path, handle); } catch (error) { identityFailures.push(error); }
+      }
       if (failed) throw failed.reason;
+      if (identityFailures.length) throw identityFailures[0];
     } else {
       let destination = 0;
       /** @type {Uint8Array<ArrayBuffer> | null} */
