@@ -4,6 +4,12 @@ Production cryptographic admission remains closed. The paths below are source-pi
 research implementations with scoped functional evidence; none establishes full
 Flash generation, independent malicious-security review or trusted hardware.
 
+**Stopped, 2026-11-17.** By owner decision no encrypted Flash generation will be run
+on the homomorphic design. The requester would hold 250 GB of coefficients and
+pay for the cryptography. The checkpoint admission and clear-generation results
+below stay as evidence. The protected tier continues in the
+[two-server shares route](SHARES.md), which has not been extended to Flash.
+
 ## Current execution evidence
 
 | Path | Actual checkpoint weights | Verified outcome |

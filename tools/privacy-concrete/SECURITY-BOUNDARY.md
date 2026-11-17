@@ -2,6 +2,8 @@
 
 This directory is an internal research client/evaluator, not an available Doppler or Reploid cryptographic backend. `assertExecutionBackendAvailable()` rejects cryptographic descriptors. Completing a functional fixture does not change that gate.
 
+Direction, 2026-11-17: no further model execution is planned on the homomorphic design. The owner re-scoped the protected tier to a light requester on ordinary mesh computers; see the [two-server shares route](SHARES.md), which has its own parties, assumptions and leakage. This boundary still describes the retained homomorphic code and receipts.
+
 ## Parties and computation
 
 The trusted client holds secret keys, prompt/output tokens, embeddings, attention and nonlinear operations, quantization metadata, KV caches and sampling. The evaluator receives public model weights, public evaluation material and encrypted linear inputs. Subsequent autoregressive inputs are encrypted again on the client; there is no plaintext-token feedback message to the evaluator. The complete Qwen candidate covers all 169 linear modules, including its vocabulary head.

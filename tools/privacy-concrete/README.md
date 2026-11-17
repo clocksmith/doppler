@@ -1,5 +1,12 @@
 # Encrypted transformer process experiments
 
+> **Direction, 2026-11-17.** The owner stopped the encrypted Flash run on the homomorphic design below. It makes the
+> requester hold the weights and pay for heavy cryptography. The protected tier must leave the requester light and
+> run on ordinary mesh computers, so it now continues in the [two-server shares route](SHARES.md): the requester
+> splits each activation row into two random shares, two providers that do not collude each run an ordinary matrix
+> product, and the requester adds the answers. The homomorphic experiments are retained as research evidence: the
+> small-Qwen receipts are unchanged, the code still runs, and no new Flash execution is planned on it.
+
 [Run the demonstrated full small-Qwen prototype](QWEN-QUICKSTART.md): the explicit twelve-bit route completed all 169 linear modules and four autoregressive steps. The [complete Qwen guide](FULL-QWEN.md) separates that result from failed older profiles and remaining qualification. The [Flash guide](FLASH-WEIGHTS.md) records actual-weight encrypted expert, cached linear-attention and gated-residual results, plus source-backed client graphs for the remaining operators. These component results do not establish full Flash generation or production security.
 
 The [security boundary](SECURITY-BOUNDARY.md) owns cryptographic claims and remaining qualification gates. The [malicious-evaluator model](INTEGRITY.md) owns the checked-integrity route that replaces full client replay in two separate research profiles. [Pinned SSH transport](SSH-DEPLOYMENT.md) has loopback authentication evidence; separately deployed model execution remains unqualified. Production cryptographic admission stays closed.
