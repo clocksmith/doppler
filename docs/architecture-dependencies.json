@@ -722,6 +722,7 @@
         "src/loader/experts/routed-expert-plan.js",
         "src/loader/experts/routed-expert-prefill.js",
         "src/loader/experts/routed-expert-source.js",
+        "src/loader/experts/routed-expert-trace.js",
         "src/loader/experts/tiered-expert-cache.js",
         "src/loader/experts/tiered-expert-plan.js",
         "src/loader/final-weights-loader.js",
@@ -1190,14 +1191,12 @@
         "tools/pooled-equal-weights/verify-rdrr.js",
         "tools/prepare-adapter-evaluation-source.js",
         "tools/prepare-normalization-control.js",
+        "tools/privacy-concrete/shares_evaluator_gpu.js",
+        "tools/privacy-concrete/shares_network.js",
         "tools/privacy-demo/evaluation.js",
         "tools/privacy-demo/experiment.js",
         "tools/privacy-demo/experiment.test.js",
         "tools/privacy-demo/model.js",
-        "tools/privacy-demo/node_modules/node-seal/dist/index_allows.js",
-        "tools/privacy-demo/node_modules/node-seal/dist/index_throws.js",
-        "tools/privacy-demo/node_modules/node-seal/dist/seal_allows.js",
-        "tools/privacy-demo/node_modules/node-seal/dist/seal_throws.js",
         "tools/privacy-demo/provider.js",
         "tools/privacy-demo/seal-context.js",
         "tools/privacy-demo/wire.js",
@@ -2125,6 +2124,7 @@
         "src/loader/experts/routed-expert-plan.js",
         "src/loader/experts/routed-expert-prefill.js",
         "src/loader/experts/routed-expert-source.js",
+        "src/loader/experts/routed-expert-trace.js",
         "src/loader/experts/tiered-expert-cache.js",
         "src/loader/experts/tiered-expert-plan.js",
         "src/loader/final-weights-loader.js",
@@ -3364,6 +3364,7 @@
         "src/loader/experts/routed-expert-plan.js",
         "src/loader/experts/routed-expert-prefill.js",
         "src/loader/experts/routed-expert-source.js",
+        "src/loader/experts/routed-expert-trace.js",
         "src/loader/experts/tiered-expert-cache.js",
         "src/loader/experts/tiered-expert-plan.js",
         "src/loader/final-weights-loader.js",
@@ -4349,6 +4350,7 @@
         "src/loader/experts/routed-expert-plan.js",
         "src/loader/experts/routed-expert-prefill.js",
         "src/loader/experts/routed-expert-source.js",
+        "src/loader/experts/routed-expert-trace.js",
         "src/loader/experts/tiered-expert-cache.js",
         "src/loader/experts/tiered-expert-plan.js",
         "src/loader/final-weights-loader.js",
@@ -4712,6 +4714,8 @@
         "demo/ui/dom.js",
         "demo/ui/precision-replay/index.js",
         "demo/ui/precision-replay/live.js",
+        "demo/ui/recording-import-worker.js",
+        "demo/ui/recording-import.js",
         "demo/ui/state.js",
         "demo/ui/token-inspector/index.js",
         "demo/ui/xray/gpu-timings.js",
@@ -4874,6 +4878,9 @@
         "tests/config/quickstart-registry-models.test.js",
         "tests/config/quickstart-registry-sync.test.js",
         "tests/config/qwen-compare-lane-promotion-contract.test.js",
+        "tests/config/qwen3-8-27b-orin-decode.test.js",
+        "tests/config/qwen3-8-27b-orin-prefill.test.js",
+        "tests/config/qwen3-8-27b-orin-projections.test.js",
         "tests/config/qwen3-embedding-onboarding-contract.test.js",
         "tests/config/qwen35-9b-conversion-config-contract.test.js",
         "tests/config/qwen35-chat-template-contract.test.js",
@@ -5055,6 +5062,7 @@
         "tests/gpu/gated-delta-conv-grid-gpu.test.js",
         "tests/gpu/gather-contract.test.js",
         "tests/gpu/gather-dispatch.test.js",
+        "tests/gpu/gather-packed-f16.test.js",
         "tests/gpu/gguf-column-wave-fold-gpu.test.js",
         "tests/gpu/gguf-linear-attention-gpu.test.js",
         "tests/gpu/gguf-linear-attention-register-decode-gpu.test.js",
@@ -5467,6 +5475,7 @@
         "tests/inference/rope-frequency-cache-contract.test.js",
         "tests/inference/rope-source-frequencies-gpu.test.js",
         "tests/inference/routed-expert-adapters.test.js",
+        "tests/inference/routed-expert-trace-wiring.test.js",
         "tests/inference/routed-prefill-recording-policy.test.js",
         "tests/inference/runtime-contract-regressions.test.js",
         "tests/inference/sampling-config.test.js",
@@ -5738,6 +5747,7 @@
         "tests/kernels/gated-delta-norm-gate.test.js",
         "tests/kernels/gated-delta-softplus-physical.test.js",
         "tests/kernels/gather-large-dispatch-physical.test.js",
+        "tests/kernels/gather-packed-f16-physical.test.js",
         "tests/kernels/gather-split4-f32-physical.test.js",
         "tests/kernels/gdn-gguf-prefill-reference.test.js",
         "tests/kernels/gdn-gguf-prefill-selection.test.js",
@@ -5862,6 +5872,7 @@
         "tests/loader/expert-loader-gguf-native.test.js",
         "tests/loader/expert-loader-qwen35.test.js",
         "tests/loader/expert-preparation.test.js",
+        "tests/loader/f16-cpu-conversion-exhaustive.test.js",
         "tests/loader/final-norm-selection.test.js",
         "tests/loader/fp8-loader.test.js",
         "tests/loader/functional-descriptor-loader.test.js",
@@ -5883,6 +5894,7 @@
         "tests/loader/model-executor-shared-expert-context.test.js",
         "tests/loader/ngram-table-bindings.test.js",
         "tests/loader/packed-expert-unload-lifetime.test.js",
+        "tests/loader/packed-f16-split-embedding.test.js",
         "tests/loader/parallel-weight-load-cleanup.test.js",
         "tests/loader/peer-linear-output-profile.test.js",
         "tests/loader/per-layer-input-loader.test.js",
@@ -5893,6 +5905,7 @@
         "tests/loader/routed-expert-cache.test.js",
         "tests/loader/routed-expert-plane-leases.test.js",
         "tests/loader/routed-expert-timings.test.js",
+        "tests/loader/routed-expert-trace.test.js",
         "tests/loader/routed-prefill-source.test.js",
         "tests/loader/routed-readback-stats.test.js",
         "tests/loader/runtime-cleanup.test.js",
@@ -5970,6 +5983,7 @@
         "tests/storage/verified-piece-gather-ownership.test.js",
         "tests/storage/verified-piece-gather-parallel.test.js",
         "tests/storage/verified-piece-gather-pipeline.test.js",
+        "tests/storage/verified-piece-gather-protected-cache.test.js",
         "tests/storage/verified-piece-gather-startup.test.js",
         "tests/storage/verified-piece-gather.test.js",
         "tests/storage/verified-piece-read-into.test.js",
@@ -6317,6 +6331,9 @@
         "src/config/runtime/profiles/flash-next-gguf-hc-inject-gemv.json",
         "src/config/runtime/profiles/qwen-3-reranker-0-6b-metal-stability.json",
         "src/config/runtime/profiles/qwen-3-reranker-0-6b-metal-throughput.json",
+        "src/config/runtime/profiles/qwen3-8-27b-orin-decode.json",
+        "src/config/runtime/profiles/qwen3-8-27b-orin-prefill.json",
+        "src/config/runtime/profiles/qwen3-8-27b-orin-projections.json",
         "src/config/schema/capsule/index.js",
         "src/config/schema/capsule/program-bundle.schema.js",
         "src/config/schema/execution/diffusion.schema.js",
@@ -6717,6 +6734,7 @@
         "src/gpu/kernels/gated_delta_recurrent_paired.wgsl",
         "src/gpu/kernels/gated_rmsnorm.js",
         "src/gpu/kernels/gather.js",
+        "src/gpu/kernels/gather_split4_packed_f16_vec4_f32_out.wgsl",
         "src/gpu/kernels/gelu.js",
         "src/gpu/kernels/gemma4-route-expert.js",
         "src/gpu/kernels/generated/uniform-writers-0.js",
@@ -7148,6 +7166,7 @@
         "src/loader/experts/routed-expert-plan.js",
         "src/loader/experts/routed-expert-prefill.js",
         "src/loader/experts/routed-expert-source.js",
+        "src/loader/experts/routed-expert-trace.js",
         "src/loader/experts/tiered-expert-cache.js",
         "src/loader/experts/tiered-expert-plan.js",
         "src/loader/final-weights-loader.js",
@@ -7412,6 +7431,9 @@
     "src/config/runtime/profiles/flash-next-gguf-hc-inject-gemv.json",
     "src/config/runtime/profiles/qwen-3-reranker-0-6b-metal-stability.json",
     "src/config/runtime/profiles/qwen-3-reranker-0-6b-metal-throughput.json",
+    "src/config/runtime/profiles/qwen3-8-27b-orin-decode.json",
+    "src/config/runtime/profiles/qwen3-8-27b-orin-prefill.json",
+    "src/config/runtime/profiles/qwen3-8-27b-orin-projections.json",
     "src/converter/capability-transform-resolver.js",
     "src/converter/execution-graph-transforms.js",
     "src/gpu/greedy-speculative-frame.js",
@@ -7434,6 +7456,7 @@
     "src/gpu/kernels/gated_delta_fused_decode.wgsl",
     "src/gpu/kernels/gated_delta_recurrent.wgsl",
     "src/gpu/kernels/gated_delta_recurrent_paired.wgsl",
+    "src/gpu/kernels/gather_split4_packed_f16_vec4_f32_out.wgsl",
     "src/gpu/kernels/logit-merge.js",
     "src/gpu/kernels/matmul_f16w_f32a_tiled.wgsl",
     "src/gpu/kernels/matmul_gemv_f32_subgroup.wgsl",
@@ -7622,79 +7645,73 @@
     {
       "file": "tests/demo/browser-activation.js",
       "kind": "dynamic",
-      "line": 121,
+      "line": 126,
       "expression": "import(new URL('ui/activation-grid/index.js', document.querySelector('script[src$=\"/demo.js\"]').src))"
     },
     {
       "file": "tests/demo/browser-activation.js",
       "kind": "dynamic",
-      "line": 122,
+      "line": 127,
       "expression": "import(new URL('report.js', document.querySelector('script[src$=\"/demo.js\"]').src))"
     },
     {
       "file": "tests/demo/browser-activation.js",
       "kind": "dynamic",
-      "line": 129,
+      "line": 134,
       "expression": "import(new URL('output.js', entry))"
     },
     {
       "file": "tests/demo/browser-activation.js",
       "kind": "dynamic",
-      "line": 155,
+      "line": 160,
       "expression": "import(new URL('output.js', entry))"
     },
     {
       "file": "tests/demo/browser-activation.js",
       "kind": "dynamic",
-      "line": 156,
+      "line": 161,
       "expression": "import(new URL('ui/state.js', entry))"
     },
     {
       "file": "tests/demo/browser-activation.js",
       "kind": "dynamic",
-      "line": 164,
+      "line": 169,
       "expression": "import(new URL('data/sample-inspection.js', document.querySelector('script[src$=\"/demo.js\"]').src))"
     },
     {
       "file": "tests/demo/browser-activation.js",
       "kind": "dynamic",
-      "line": 295,
+      "line": 312,
       "expression": "import(new URL('core.js', entry))"
     },
     {
       "file": "tests/demo/browser-activation.js",
       "kind": "dynamic",
-      "line": 296,
+      "line": 313,
       "expression": "import(new URL('data/sample-inspection.js', entry))"
     },
     {
       "file": "tests/demo/browser-activation.js",
       "kind": "dynamic",
-      "line": 309,
+      "line": 326,
       "expression": "import(new URL('ui/activation-grid/index.js', entry))"
     },
     {
       "file": "tests/demo/browser-activation.js",
       "kind": "dynamic",
-      "line": 391,
-      "expression": "import(new URL('ui/activation-grid/index.js', entry))"
-    },
-    {
-      "file": "tests/demo/browser-controls.js",
-      "kind": "dynamic",
-      "line": 296,
+      "line": 408,
       "expression": "import(new URL('ui/activation-grid/index.js', entry))"
     },
     {
       "file": "tests/demo/browser-run-coherence.js",
       "kind": "dynamic",
-      "line": 6,
+      "line": 14,
       "expression": "import(new URL('data/sample-inspection.js', document.querySelector('script[src$=\"/demo.js\"]').src))"
     },
     {
       "file": "tests/demo/browser-run-coherence.js",
       "kind": "dynamic",
-      "line": 93,
+      "line": 104,
       "expression": "import(new URL('boot.js', entry))"
     },
     {
@@ -7767,6 +7784,12 @@
       "file": "tests/gpu/gather-dispatch.test.js",
       "kind": "dynamic",
       "line": 20,
+      "expression": "import(target)"
+    },
+    {
+      "file": "tests/gpu/gather-packed-f16.test.js",
+      "kind": "dynamic",
+      "line": 24,
       "expression": "import(target)"
     },
     {
@@ -8133,6 +8156,12 @@
       "file": "tests/inference/routed-expert-adapters.test.js",
       "kind": "dynamic",
       "line": 50,
+      "expression": "import(target)"
+    },
+    {
+      "file": "tests/inference/routed-expert-trace-wiring.test.js",
+      "kind": "dynamic",
+      "line": 35,
       "expression": "import(target)"
     },
     {
@@ -8510,7 +8539,13 @@
     {
       "file": "tools/demo-contract-smoke.js",
       "kind": "dynamic",
-      "line": 284,
+      "line": 214,
+      "expression": "import(new URL('ui/recording-import.js', document.querySelector('script[src$=\"/demo.js\"]').src))"
+    },
+    {
+      "file": "tools/demo-contract-smoke.js",
+      "kind": "dynamic",
+      "line": 327,
       "expression": "import(url)"
     },
     {
@@ -8686,18 +8721,6 @@
       "kind": "asset",
       "line": 9,
       "expression": "new URL(`profiles/${name}.json`, import.meta.url)"
-    },
-    {
-      "file": "tools/privacy-demo/node_modules/node-seal/dist/index_allows.js",
-      "kind": "asset",
-      "line": 4,
-      "expression": "new URL(path, import.meta.url)"
-    },
-    {
-      "file": "tools/privacy-demo/node_modules/node-seal/dist/index_throws.js",
-      "kind": "asset",
-      "line": 4,
-      "expression": "new URL(path, import.meta.url)"
     },
     {
       "file": "tools/profile-installed-capsule.js",
