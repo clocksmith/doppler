@@ -12,7 +12,7 @@ export function withActivity(root,run,selection,render) {
   try {
     const activity=activityOf(run);
     if(!activity){root.replaceChildren(gap({what:'This run did not retain detailed activity. Open a run saved with grids, or record detailed activity.'}));return;}
-    if(position===null){root.replaceChildren(h('p',{className:'demo-note'},'Choose a word above to inspect its recorded activity.'));return;}
+    if(position===null){root.replaceChildren(h('p',{className:'demo-note'},'Choose a token above to inspect its recorded activity.'));return;}
     render(activity,position,layer);
   } catch(error){root.replaceChildren(gap({what:`Cannot display this capture: ${error.message}`}));}
 }
@@ -26,7 +26,7 @@ export function layerPicker(activity,role,selected,selection) {
 export function nearestOffer(run,selection,target,what) {
   if(!target) return h('p',{className:'demo-note'},`No token in this run recorded ${what}.`);
   const prompt=run.inputTokenIds?.length??0, index=target.position-prompt, token=index>=0?run.tokens?.[index]??null:null;
-  const label=token?`word ${index+1}, "${token.text??''}"`:`prompt position ${target.position}`;
+  const label=token?`token ${index+1}, "${token.text??''}"`:`prompt position ${target.position}`;
   return h('p',{},h('button',{type:'button',className:'btn btn-small',on:{click:()=>selection.select(target)}},`Go to the nearest recorded token: ${label}${target.layer!==undefined?`, layer ${target.layer+1}`:''}`));
 }
 export const sequenceLength=(run)=>(run.inputTokenIds?.length??0)+(run.tokens?.length??0);

@@ -18,7 +18,7 @@ from an allowlist that does not include this folder.
   sparse; saved-run open and save; and two-run comparison (first different
   token, first numerical difference by layer). Everything follows one shared
   selection (`public/selection.js`). Without WebGPU it opens the demo's
-  recorded answer, and its 23 MB activity recording on request.
+  recorded answer, and its 23 MB activity recording on request. Newly recorded answers live in the tab until exported. Full exports include the prompt and answer. Redacted summaries contain timing and token count. JSON and gzip imports run in a cancellable worker, limited to 128 MiB on disk and after expansion. A workspace holds up to 64 recordings with a 256 MiB estimated retention budget. Remove or clear recordings to make room.
 - **Benchmark** (`/benchmark.html`): runs one fixed workload (protocol in
   `config/protocols/device-benchmark.json`) without inspection, and compares
   benchmark results from several devices or runtimes (`public/compare-results.js`).

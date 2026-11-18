@@ -1,6 +1,7 @@
 // The benchmark page: shows the protocol, this device and the switches, runs
 // the benchmark on request, and renders the evidence it returns.
 
+import { downloadFile, redactedSummary } from './run-files.js';
 import { loadFlags } from './flags.js';
 import { validateProtocol } from './protocol.js';
 import { describeDevice, runDeviceBenchmark } from './run.js';
@@ -160,12 +161,8 @@ function showResult(evidence) {
 }
 
 function download(evidence) {
-  const blob = new Blob([JSON.stringify(evidence, null, 2)], { type: 'application/json' });
-  const link = document.createElement('a');
-  link.href = URL.createObjectURL(blob);
-  link.download = `doppler-result-${evidence.run?.id.slice(4, 10) ?? 'failed'}-${evidence.startedAt.slice(0, 19).replace(/[:T]/g, '-')}.json`;
-  link.click();
-  setTimeout(() => URL.revokeObjectURL(link.href), 1000);
+  const name = `doppler-result-${evidence.run?.id.slice(4, 10) ?? 'failed'}-${evidence.startedAt.slice(0, 19).replace(/[:T]/g, '-')}.json`;
+  downloadFile(name, JSON.stringify(evidence, null, 2));
 }
 
 async function boot() {
@@ -208,11 +205,30 @@ async function boot() {
   button.disabled = false;
 
   let latest = null;
-  $('download-button').addEventListener('click', () => { if (latest) download(latest); });
+  let unsaved = false;
+  const warn = event => { event.preventDefault(); event.returnValue = ''; };
+  $('download-button').addEventListener('click', () => {
+    if (!latest) return;
+    download(latest);
+    if (unsaved) {
+      $('mark-result-saved').hidden = false;
+      $('save-state').textContent = 'When the download finishes, choose Mark saved.';
+    }
+  });
+  $('redacted-result').addEventListener('click', () => {
+    if (latest?.run) downloadFile('doppler-redacted-summary.json', JSON.stringify(redactedSummary(latest.run), null, 2));
+  });
+  $('mark-result-saved').addEventListener('click', () => {
+    unsaved = false;
+    window.removeEventListener('beforeunload', warn);
+    $('mark-result-saved').hidden = true;
+    $('save-state').textContent = 'Saved';
+  });
   // The result and its answer travel to the other pages in this tab only.
   $('to-compare').addEventListener('click', () => { if (latest) { comparison.add(latest); $('compare').scrollIntoView({ behavior: 'smooth' }); } });
   $('to-explore').addEventListener('click', () => { if (latest?.run) give('run', latest.run); location.href = pageHref('explore', flags); });
   button.addEventListener('click', async () => {
+    if (unsaved && !confirm('Replace the unsaved benchmark result?')) return;
     button.disabled = true;
     $('result').hidden = true;
     note.textContent = 'Running. Keep this tab in front: a background tab is slowed down by the browser.';
@@ -220,6 +236,11 @@ async function boot() {
     latest = await runDeviceBenchmark({ protocol, flags, runtime, onStage: showStage });
     globalThis.__DOPPLER_BENCHMARK_EVIDENCE__ = latest;
     showResult(latest);
+    unsaved = true;
+    window.addEventListener('beforeunload', warn);
+    $('save-state').textContent = 'Unsaved';
+    $('mark-result-saved').hidden = true;
+    $('redacted-result').hidden = !latest.run;
     $('to-explore').hidden = !latest.run;
     $('identity').textContent = latest.run ? `This answer is run ${latest.run.id.slice(4, 10)}. The same identity names it in Explore and in the downloaded file.` : '';
     note.textContent = '';

@@ -59,7 +59,7 @@ export function renderActivity({ run, selection }) {
   const chosen = selection.get();
   const p = chosen.position === null ? -1 : positions.indexOf(chosen.position);
   const prompt = run.inputTokenIds?.length ?? 0;
-  const label = (position) => { const k = position - prompt; return k >= 0 && run.tokens[k] ? `word ${k + 1} "${run.tokens[k].text ?? ''}"` : `prompt position ${position}`; };
+  const label = (position) => { const k = position - prompt; return k >= 0 && run.tokens[k] ? `token ${k + 1} "${run.tokens[k].text ?? ''}"` : `prompt position ${position}`; };
 
   // Overview: one cell per (position, layer), the RMS of the tile it opens.
   const cells = positions.map((_, i) => Array.from({ length: layers }, (_, layer) => rms(vectorFor(run, positions, i, layer, mode))));
@@ -87,7 +87,7 @@ export function renderActivity({ run, selection }) {
   const marker = p >= 0 ? h('div', { className: 'ws-act-marker', style: `left: ${((p + 0.5) / positions.length) * 100}%` }) : null;
 
   // Tiles: every layer at the selected position.
-  let tiles = h('p', { className: 'demo-note' }, 'Select a word, or a column in the map above, to see its layers as tiles.');
+  let tiles = h('p', { className: 'demo-note' }, 'Select a token, or a column in the map above, to see its layers as tiles.');
   let scaleNote = '';
   if (p >= 0) {
     const vectors = Array.from({ length: layers }, (_, layer) => vectorFor(run, positions, p, layer, mode));

@@ -22,7 +22,7 @@ await fs.mkdir(out, { recursive: true });
 const local = given ? null : await startServer();
 const url = given ?? local.url;
 const problems = [];
-const context = await chromium.launchPersistentContext(path.join(root, '.build', 'chromium-profile'), { headless: true, args: useGpu ? gpuArgs : [], viewport: { width: 1440, height: 1000 } });
+const context = await chromium.launchPersistentContext(path.join(root, '.build', 'chromium-profile'), { channel: process.env.OBSERVATORY_CHROMIUM_CHANNEL, headless: true, args: useGpu ? gpuArgs : [], viewport: { width: 1440, height: 1000 } });
 const ws = (page) => page.evaluate(() => { const s = globalThis.__DOPPLER_WORKSPACE__; return { busy: s.busy, runs: s.runs.map((run) => ({ id: run.id, kind: run.kind, tokens: run.tokens.length, parent: run.parent?.runId ?? null, layers: Boolean(run.layerOutputs) })), status: document.getElementById('ws-status').textContent }; });
 try {
   const page = context.pages()[0] ?? await context.newPage();
@@ -40,15 +40,21 @@ try {
   assert.equal(await page.locator('.ws-bar').count(), columns * 3, 'Three signal rows, one column per token');
   assert.match(await page.textContent('#ws-perplexity'), /perplexity over (all \d+|the \d+ of \d+) answer tokens/);
   await page.locator('.ws-bar').nth(3).click();
-  assert.match(await page.textContent('#ws-selection'), /^Word 4:/, 'A signal column selects its word everywhere');
+  assert.match(await page.textContent('#ws-selection'), /^Token 4:/, 'A signal column selects its word everywhere');
   assert.match(await page.textContent('#token-title'), /answer token 4/);
   assert.equal(await page.locator('#ws-tokens .token-chip').nth(3).getAttribute('aria-pressed'), 'true');
 
   // The recorded activity and every inside-the-model view.
+  assert.equal(await page.locator('#ws-tab-time').count(), 0, 'Unrecorded expert views are collapsed');
+  await page.click('#ws-tab-activity');
+  await page.locator('#ws-tab-activity').press('ArrowRight');
+  assert.equal(await page.locator('[role=tab][aria-selected=true]').getAttribute('id'), 'ws-tab-atlas');
+  await page.locator('#ws-tab-atlas').press('Home');
+  await page.setChecked('#ws-more-views', true);
   await page.click('#ws-tab-journey');
   await page.click('.ws-load-activity button');
   await page.waitForFunction(() => !document.querySelector('.ws-load-activity') && globalThis.__DOPPLER_WORKSPACE__.runs.some((run) => run.layerOutputs), null, { timeout: 120_000 });
-  assert.match(await page.textContent('#ws-selection'), /^Word 4:/, 'Opening the activity keeps the selected word');
+  assert.match(await page.textContent('#ws-selection'), /^Token 4:/, 'Opening the activity keeps the selected word');
   await page.selectOption('#ws-layer', '7');
   for (const id of ['activity', 'journey', 'attention', 'memory', 'gearbox', 'forest', 'atlas', 'time']) {
     await page.click(`#ws-tab-${id}`);
@@ -81,7 +87,7 @@ try {
   await (await download).saveAs(saved);
   const savedId = JSON.parse(await fs.readFile(saved, 'utf8')).id;
   await page.setInputFiles('#ws-open', [saved, path.join(root, 'package.json')]);
-  await page.waitForFunction(() => /package\.json/.test(document.getElementById('ws-status').textContent));
+  await page.waitForFunction(() => !globalThis.__DOPPLER_WORKSPACE__.importing && /package\.json/.test(document.getElementById('ws-status').textContent));
   assert.match(await page.textContent('#ws-status'), /package\.json: .*not a run this page can open/);
   assert.ok((await ws(page)).runs.some((run) => run.id === savedId), 'The saved run opens again');
 
@@ -127,6 +133,7 @@ try {
     await page.fill('#ws-length', '48');
 
     // Fork from a recorded alternative of the live answer.
+    page.once('dialog', dialog => dialog.accept());
     await page.locator('#ws-runs li button.ws-run').filter({ hasText: 'why the sky is blue' }).first().click();
     const answerRun = (await ws(page)).runs.find((run) => run.kind === 'answer');
     await page.locator('#ws-runs li', { hasText: answerRun.id.slice(4, 10) }).locator('button.ws-run').click();
@@ -190,16 +197,17 @@ try {
   assert.ok((await page.textContent('#ws-inside-model')).includes(recordedModel));
   // Word selection is available inside the inspector, without scrolling to the answer.
   assert.equal(await page.locator('#ws-word option').count(), (await page.locator('#ws-tokens .token-chip').count()) + 1);
+  await page.locator('#ws-more-views').check();
   await page.selectOption('#ws-view-picker', 'gearbox');
   assert.match(await page.textContent('#ws-view-gearbox'), /did not retain detailed activity/);
   await page.click('.ws-load-activity button');
   await page.waitForFunction(() => !document.querySelector('.ws-load-activity') && globalThis.__DOPPLER_WORKSPACE__.runs.some((run) => run.layerOutputs), null, { timeout: 120_000 });
   await page.selectOption('#ws-word', '');
-  assert.match(await page.textContent('#ws-view-gearbox'), /Choose a word above/);
+  assert.match(await page.textContent('#ws-view-gearbox'), /Choose a token above/);
   await page.locator('.ws-inside').screenshot({ path: path.join(out, 'mobile-choose-word.png') });
   const wordValue = await page.locator('#ws-word option').nth(4).getAttribute('value');
   await page.selectOption('#ws-word', wordValue);
-  assert.match(await page.textContent('#ws-selection'), /^Word 4:/);
+  assert.match(await page.textContent('#ws-selection'), /^Token 4:/);
   assert.equal(await page.locator('#ws-tokens .token-chip').nth(3).getAttribute('aria-pressed'), 'true');
   for (const id of ['activity', 'journey', 'attention', 'memory', 'gearbox', 'forest', 'atlas', 'time']) {
     await page.selectOption('#ws-view-picker', id);
@@ -218,6 +226,48 @@ try {
   assert.doesNotMatch(await page.textContent('#activity'), /null/, 'No null child is rendered in Activity');
   await page.locator('.ws-inside').screenshot({ path: path.join(out, 'mobile-activity.png') });
   assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), true);
+  await page.setViewportSize({ width: 320, height: 740 });
+  assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), 'No horizontal overflow at 320px');
+  // The fixture holds the loader open until the test releases its cancellation cleanup.
+  if (local) {
+    await page.evaluate(() => {
+      const entry = { modelId: 'fixture-model', sizeBytes: 420000000 };
+      globalThis.__loaderStarted = false;
+      const load = (_model, { signal }) => new Promise((_resolve, reject) => {
+        globalThis.__loaderStarted = true;
+        signal.addEventListener('abort', () => { globalThis.__releaseLoader = () => reject(signal.reason); }, { once: true });
+      });
+      globalThis.__DOPPLER_WORKSPACE__.runtime = {
+        dr: { load }, details: [entry], stored: new Set(), policies: [{ id: 'demo/activation-grid' }],
+      };
+      const model = document.getElementById('ws-model');
+      model.replaceChildren(new Option('Fixture', entry.modelId));
+      model.dispatchEvent(new Event('change'));
+      document.getElementById('ws-menu').open = true;
+    });
+    assert.equal(await page.textContent('#ws-send'), 'Download 420 MB & answer');
+    await page.fill('#ws-prompt', 'Keep my draft.');
+    await page.setChecked('#ws-layers', true);
+    await page.setChecked('#ws-timing', true);
+    await page.click('#ws-menu summary');
+    await page.click('#ws-send');
+    assert.match(await page.textContent('#ws-status'), /choose one in the menu/);
+    assert.equal(await page.evaluate(() => globalThis.__loaderStarted), false, 'Incompatible capture never starts a download');
+    await page.click('#ws-menu summary');
+    await page.setChecked('#ws-timing', false);
+    await page.click('#ws-menu summary');
+    await page.click('#ws-send');
+    await page.waitForFunction(() => globalThis.__loaderStarted);
+    await page.click('#ws-send');
+    assert.ok(await page.isDisabled('#ws-send'));
+    assert.equal(await page.textContent('#ws-send'), 'Stopping…');
+    await page.evaluate(() => globalThis.__releaseLoader());
+    await page.waitForFunction(() => !globalThis.__DOPPLER_WORKSPACE__.busy);
+    assert.match(await page.textContent('#ws-status'), /Stopped after 0 tokens/);
+    assert.equal(await page.inputValue('#ws-prompt'), 'Keep my draft.');
+    assert.equal(await page.textContent('#ws-send'), 'Download 420 MB & answer');
+    console.log('  loader fixture: preflight, cancellation, cleanup and draft preservation passed');
+  }
   // Old addresses still lead here, keeping the visitor's query.
   for (const [from, to] of [['explore.html?preview=views.experimental', /\/\?preview=views\.experimental$/], ['workspace.html', /\/$/], ['index-preview.html', /\/\?preview=runtime\.preview&runtime=preview$/], ['compare.html', /benchmark\.html#compare$/]]) {
     await page.goto(new URL(from, url).href);

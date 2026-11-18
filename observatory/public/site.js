@@ -103,14 +103,7 @@ export function bar(share) {
   return track;
 }
 
-// A saved run may be compressed (the kind that carries its grids is tens of
-// megabytes otherwise). Reads either kind as text, by the file's first bytes.
-export async function readSavedText(file) {
-  const head = new Uint8Array(await file.slice(0, 2).arrayBuffer());
-  if (head[0] !== 0x1f || head[1] !== 0x8b) return file.text();
-  if (typeof DecompressionStream !== 'function') throw new Error('This browser cannot open a compressed run file.');
-  return new Response(file.stream().pipeThrough(new DecompressionStream('gzip'))).text();
-}
+
 
 // Compresses text in pieces. The whole text is never handed to the browser as
 // one stream: that failed intermittently for files of tens of megabytes.

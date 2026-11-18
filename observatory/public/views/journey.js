@@ -117,7 +117,7 @@ function spatialJourney(run, position, selected, inspect) {
 export function renderJourney({ run, selection, projections = null, actions = null }) {
   const { position, layer: chosen } = selection.get();
   const root = $('journey');
-  if (position === null) { root.replaceChildren(h('p', { className: 'demo-note' }, 'Choose a word above to follow it through the layers.')); return; }
+  if (position === null) { root.replaceChildren(h('p', { className: 'demo-note' }, 'Choose a token above to follow it through the layers.')); return; }
   const index = answerIndex(run, position);
   const name = index === null ? `input token ${position + 1}` : `answer token ${index + 1}, "${visible(run.tokens[index].text)}"`;
   const changes = layerChanges(run, position);

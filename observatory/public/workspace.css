@@ -151,3 +151,18 @@
   .ws-mobile-view { display: flex; align-items: center; gap: 8px; margin: 12px 0; }
   .ws-mobile-view select { min-width: 0; flex: 1; }
 }
+
+.ws-runs-list li { flex-wrap: wrap; }
+.ws-run { min-width: min(14rem, 100%); }
+.ws-head .demo-controls { flex-wrap: wrap; }
+.ws-inside[hidden], .ws-compare[hidden] { display: none; }
+@media (max-width: 540px) {
+  .ws-input { grid-template-columns: 1fr; }
+  .ws-input .btn { justify-self: end; min-height: 42px; }
+}
+
+.ws-signals[hidden] { display: none; }
+
+@media (max-width: 640px) {
+  .ws-menu-body { left: 0; right: auto; }
+}

@@ -2,12 +2,14 @@
 // Benchmark page; every element id is prefixed "cmp-".
 
 import { compareResults, readResult } from './results.js';
+import { readRecordingJson } from '/doppler/demo/ui/recording-import.js';
+import { retain } from './run-files.js';
 import { give } from './handoff.js';
 import { bar, cardTable, pageHref } from './site.js';
 import { h } from './viz/dom.js';
 
 const $ = (id) => document.getElementById(id);
-const state = { protocol: null, flags: null, results: [] };
+const state = { protocol: null, flags: null, results: [], sizes: new Map(), importing: null };
 
 const rate = (value) => (Number.isFinite(value) ? `${value.toFixed(1)} tokens/s` : 'not measured');
 const seconds = (value) => (Number.isFinite(value) ? `${(value / 1000).toFixed(2)} s` : 'not measured');
@@ -20,19 +22,31 @@ function add(value) {
   const result = readResult(value);
   // The same result opened twice is one result.
   const key = `${result.startedAt}|${result.run?.id ?? ''}`;
-  if (!state.results.some((existing) => `${existing.startedAt}|${existing.run?.id ?? ''}` === key)) state.results.push(result);
+  if (!state.sizes.has(key)) { retain(state.sizes, key, result); state.results.push(result); }
 }
 
 async function openFiles(files) {
+  if (state.importing || !files.length) return;
+  state.importing = new AbortController();
+  const signal = state.importing.signal;
   const problems = [];
   let opened = 0;
-  for (const file of files) {
-    try { add(JSON.parse(await file.text())); opened++; }
-    catch (error) { problems.push(`${file.name}: ${error instanceof SyntaxError ? 'This file is not JSON.' : error.message}`); }
+  $('cmp-open-button').disabled = true;
+  $('cmp-cancel').hidden = false;
+  try {
+    for (const file of files) {
+      $('cmp-open-status').textContent = `Opening ${file.name}…`;
+      try { const { value } = await readRecordingJson(file, { signal }); signal.throwIfAborted(); add(value); opened++; }
+      catch (error) { if (signal.aborted) break; problems.push(`${file.name}: ${error.message}`); }
+    }
+    $('cmp-open-status').textContent = [signal.aborted ? 'Opening cancelled.' : '', opened ? `Opened ${opened}.` : '', ...problems].filter(Boolean).join(' ');
+  } finally {
+    state.importing = null;
+    $('cmp-open-button').disabled = false;
+    $('cmp-cancel').hidden = true;
+    $('cmp-open').value = '';
+    render();
   }
-  $('cmp-open-status').textContent = [opened ? `Opened ${opened} file${opened === 1 ? '' : 's'}.` : '', ...problems].filter(Boolean).join(' ');
-  $('cmp-open').value = '';
-  render();
 }
 
 function render() {
@@ -78,7 +92,8 @@ export function mountComparison({ protocol, flags }) {
   state.flags = flags;
   $('cmp-open-button').addEventListener('click', () => $('cmp-open').click());
   $('cmp-open').addEventListener('change', (event) => openFiles([...event.target.files]));
-  $('cmp-clear').addEventListener('click', () => { state.results = []; $('cmp-open-status').textContent = ''; render(); });
+  $('cmp-cancel').addEventListener('click', () => state.importing?.abort());
+  $('cmp-clear').addEventListener('click', () => { state.importing?.abort(); state.sizes.clear(); state.results = []; $('cmp-open-status').textContent = ''; render(); });
   globalThis.__DOPPLER_COMPARE__ = state;
   render();
   return { add(result) { add(result); render(); } };

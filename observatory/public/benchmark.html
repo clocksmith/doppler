@@ -69,6 +69,10 @@
         <p id="deviation" class="demo-note"></p>
         <p id="answer" class="site-quote" hidden></p>
         <div class="demo-controls">
+          <p class="demo-note">Full results include the prompt, answer and device details. A redacted summary contains only token count and timing.</p>
+          <span class="demo-note" id="save-state" role="status">Unsaved</span>
+          <button id="redacted-result" class="btn btn-ghost" type="button">Export redacted summary</button>
+          <button id="mark-result-saved" class="btn btn-ghost" type="button" hidden>Mark saved</button>
           <button id="download-button" class="btn" type="button">Download result (JSON)</button>
           <button id="to-compare" class="btn" type="button">Add to the comparison below</button>
           <button id="to-explore" class="btn" type="button" hidden>Open this answer in Explore</button>
@@ -113,7 +117,8 @@
 
         <div class="demo-controls">
           <button id="cmp-open-button" class="btn" type="button">Open result files</button>
-          <input id="cmp-open" type="file" accept="application/json,.json" multiple hidden>
+          <button id="cmp-cancel" class="btn btn-small" type="button" hidden>Cancel opening</button>
+          <input id="cmp-open" type="file" accept="application/json,.json,application/gzip,.gz" multiple hidden>
           <button id="cmp-clear" class="btn btn-ghost" type="button" hidden>Clear</button>
           <span id="cmp-open-status" class="demo-note" role="status"></span>
         </div>

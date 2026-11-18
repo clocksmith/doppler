@@ -62,6 +62,8 @@
         <h2 id="ws-answer-title" class="sr-only">Answer</h2>
         <p id="ws-prompt-echo" class="ws-prompt-echo"></p>
         <div id="ws-tokens" class="token-stream-container ws-tokens"></div>
+        <button id="ws-save-partial" type="button" class="btn btn-small" hidden>Save partial answer as text</button>
+        <button id="ws-mark-partial" type="button" class="btn btn-small btn-ghost" hidden>Mark saved</button>
         <p id="ws-answer-note" class="demo-note"></p>
       </section>
 
@@ -82,7 +84,7 @@
           <div class="site-scroll"><table id="candidates"><thead><tr><th>Candidate</th><th class="site-num">Probability</th><th><span class="sr-only">Action</span></th></tr></thead><tbody></tbody></table></div>
           <p id="token-note" class="demo-note"></p>
         </div>
-        <p id="ws-token-empty" class="demo-note">Select a word in the answer or a column in the signals.</p>
+        <p id="ws-token-empty" class="demo-note">Select a token in the answer or a column in the signals.</p>
       </section>
 
       <!-- 4. Inside the model: one view at a time, all following the same token -->
@@ -90,13 +92,14 @@
         <div class="ws-head">
           <h2 id="ws-inside-title">Inside the model</h2>
           <div class="ws-head-end">
-            <label class="ws-word">Word <select id="ws-word" aria-label="Word to inspect"></select></label>
+            <label class="ws-word">Token <select id="ws-word" aria-label="Token to inspect"></select></label>
             <label class="ws-layer">Layer <select id="ws-layer" aria-label="Layer"></select></label>
             <p id="ws-selection" class="demo-note" role="status"></p>
           </div>
         </div>
         <p id="ws-inside-model" class="demo-note"></p>
         <label class="ws-mobile-view">View <select id="ws-view-picker" aria-label="Inside the model view"></select></label>
+        <label class="checkbox-label"><input id="ws-more-views" type="checkbox"> Include views with no recording</label>
         <div id="ws-tabs" class="ws-tabs" role="tablist" aria-label="Views"></div>
         <div id="ws-view-activity" class="ws-view" role="tabpanel"><div id="activity"></div></div>
         <div id="ws-view-journey" class="ws-view" role="tabpanel" hidden><div id="journey"></div></div>
@@ -124,9 +127,14 @@
           <h2 id="ws-runs-title">Runs</h2>
           <div class="demo-controls">
             <button id="ws-open-button" class="btn btn-small" type="button">Open saved runs</button>
+            <button id="ws-cancel-import" type="button" class="btn btn-small" hidden>Cancel opening</button>
+            <button id="ws-clear" type="button" class="btn btn-small" hidden>Clear runs</button>
             <input id="ws-open" type="file" accept="application/json,.json,application/gzip,.gz" multiple hidden>
           </div>
         </div>
+        <p class="demo-note">Runs stay in this tab until saved. A full file includes the prompt, answer and recorded model activity.</p>
+        <button id="ws-summary" type="button" class="btn btn-small" hidden>Export redacted timing and token counts</button>
+        <p id="ws-budget" class="demo-note"></p>
         <ul id="ws-runs" class="ws-runs-list"></ul>
       </section>
 
@@ -160,7 +168,7 @@
     </main>
 
     <footer class="site-foot">
-      <p class="demo-note">Prototype. Nothing is uploaded: runs are files on this device.</p>
+      <p class="demo-note">Model runs and recordings stay on this device.</p>
     </footer>
   </div>
   <script type="module" src="./workspace.js"></script>

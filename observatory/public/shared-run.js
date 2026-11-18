@@ -1,3 +1,4 @@
+import { estimateRecordingBytes } from './run-files.js';
 // One run: its answer, the settings and hardware that produced it, its timing
 // and whatever internals were recorded, under one identity. Everything here is
 // a pure function over that object. There is no page, no GPU and no Doppler
@@ -293,6 +294,7 @@ export function validateRun(run) {
   if (run.schema !== RUN_SCHEMA) fail(`its format is "${run.schema.slice(0, 60)}", not ${RUN_SCHEMA}`);
   if (typeof run.id !== 'string' || !/^run-[0-9a-f]{16}$/.test(run.id)) fail('it has no run identity');
   if (!run.model || !run.environment || !run.observation || !run.timing) fail('it is missing its model, environment, observation or timing');
+  if (run.prompt != null && typeof run.prompt !== 'string') fail('its prompt is malformed');
   if (!(run.inputTokenIds === null || isTokenList(run.inputTokenIds))) fail('its input tokens are malformed');
   if (!Array.isArray(run.tokens) || run.tokens.length > MAX_RUN_TOKENS) fail('its answer tokens are malformed');
   run.tokens.forEach((token, index) => {
@@ -308,7 +310,7 @@ export function validateRun(run) {
   if (run.parent !== null && (typeof run.parent?.runId !== 'string' || !isCount(run.parent.index) || !isCount(run.parent.tokenId))) fail('its branch point is malformed');
   const saved = run.layerOutputs;
   if (saved !== null) {
-    if (!saved || !isCount(saved.layers) || !isCount(saved.width) || !isTokenList(saved.positions) || !Array.isArray(saved.missing)
+    if (!saved || !isCount(saved.layers) || saved.layers > 1024 || !isCount(saved.width) || saved.width > 131072 || !isTokenList(saved.positions) || !Array.isArray(saved.missing)
       || saved.encoding !== 'f32-le-base64' || typeof saved.data !== 'string') fail('its layer outputs are malformed');
     const values = saved.positions.length * saved.layers * saved.width;
     if (values > MAX_LAYER_VALUES || Math.ceil(values * 4 / 3) * 4 !== saved.data.length) fail('its layer outputs do not match their declared size');
@@ -321,9 +323,15 @@ export function validateRun(run) {
     fail('its activity recording is malformed');
   }
   const trace = run.activityTrace;
-  if (trace !== undefined && trace !== null && (typeof trace !== 'object' || !trace.geometry
-    || !Array.isArray(trace.frames) || JSON.stringify(trace).length > 64 * 1024 * 1024)) {
-    fail('its detailed activity trace is malformed or exceeds 64 MiB');
+  if (trace !== undefined && trace !== null) {
+    if (typeof trace !== 'object' || !trace.geometry || !isCount(trace.geometry.layers) || trace.geometry.layers > 1024
+      || !Array.isArray(trace.frames)) fail('its detailed activity trace is malformed');
+    estimateRecordingBytes(trace);
+  }
+  for (const evidence of [trace, recording?.trace]) {
+    const activity = evidence?.activity;
+    if (activity && (!Array.isArray(activity.frames) || activity.frames.length > 65536 ||
+      !Array.isArray(activity.weights) || activity.weights.length > 65536)) fail('its activity inventory is malformed');
   }
   const gpu = run.timing.gpu;
   if (gpu !== null && (!Array.isArray(gpu?.steps) || gpu.steps.length > MAX_RUN_TOKENS || gpu.steps.some((s) => !Number.isFinite(s?.totalMs) || !s.kernels || typeof s.kernels !== 'object'))) {

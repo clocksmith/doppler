@@ -4,7 +4,7 @@
 
 import { loadFlags } from './flags.js';
 import { describeDevice } from './run.js';
-import { mountNav, readSavedText } from './site.js';
+import { mountNav } from './site.js';
 import { take } from './handoff.js';
 import { describeRuntime, loadRuntimeChoice } from './runtimes.js';
 import { answerIndex, choiceVectors, createRun, forkRequest, sequencePosition, serializeRun, validateRun } from './shared-run.js';
@@ -20,6 +20,8 @@ import { renderGearbox } from './views/gearbox.js';
 import { renderAtlas } from './views/atlas.js';
 import { renderConcertina } from './views/concertina.js';
 import { renderFaultline } from './views/faultline.js';
+import { readRecordingBlob, readRecordingJson } from '/doppler/demo/ui/recording-import.js';
+import { retain, redactedSummary, downloadFile, retainedBytes, retainedLimit } from './run-files.js';
 import { assertRunModel, validateProjection } from './projection-contract.js';
 
 const DEMO = '/doppler/demo';
@@ -40,12 +42,19 @@ const state = {
   runs: [],
   live: null, // { prompt, tokens } while an answer streams in
   view: 'activity',
+  allViews: false,
   device: null,
   choice: null,
   runtime: null, // { dr, version, commit, channel, selection }
   model: null,
   busy: false,
   abort: null, // stops the answer being generated
+  saved: new Set(),
+  downloads: new Set(),
+  retained: new Map(),
+  partialSaved: false,
+  partialDownload: false,
+  importing: null,
   projections: new Map(),
   exampleRun: null,
 };
@@ -77,14 +86,24 @@ function pickedIndex(run, display) {
   return k >= 0 && k < display.tokens.length ? k : null;
 }
 // A stopped answer stays on screen only until another run is chosen.
-const showRun = (runId) => { if (state.live?.stopped) state.live = null; selection.select({ runId }); render(); };
+const showRun = (runId) => { if (!leavePartial()) return; selection.select({ runId }); render(); };
 const status = (text) => { $('ws-status').textContent = text; };
 
 // ------------------------------------------------------------------ runtime
 
+function leavePartial() {
+  if (!state.live?.stopped) return true;
+  if (state.live.tokens.length && !state.partialSaved && !confirm('Discard the unsaved partial answer?')) return false;
+  state.live = null;
+  return true;
+}
+
 async function loadRuntime() {
   const module = await import(state.choice.moduleUrl);
   const dr = module.dr ?? module.doppler;
+  // Read the policy registry from this runtime before starting any model download.
+  const policyModule = new URL('./client/inspection.js', new URL(state.choice.moduleUrl, location.href));
+  const policies = (await import(policyModule.href)).listObservationPolicies();
   const details = (await dr.listModelDetails()).filter((entry) => entry?.modes?.includes('text') && entry?.classification?.tasks?.includes('generation'));
   let stored = new Set();
   try { stored = new Set((await dr.listPersistentModels()).map((entry) => entry.modelId)); } catch { /* shown as not saved */ }
@@ -93,20 +112,25 @@ async function loadRuntime() {
   const saved = details.find((entry) => stored.has(entry.modelId));
   if (saved) $('ws-model').value = saved.modelId;
   $('ws-model').disabled = false;
-  state.runtime = { dr, version: module.DOPPLER_VERSION ?? null, commit: state.choice.release?.sourceCommit ?? null, channel: state.choice.id, selection: false };
+  state.runtime = { dr, version: module.DOPPLER_VERSION ?? null, commit: state.choice.release?.sourceCommit ?? null, channel: state.choice.id, details, stored, policies };
   syncMenuLabel();
 }
 
 function syncMenuLabel() {
+  updateSend();
   const option = $('ws-model').selectedOptions[0];
   $('ws-menu-label').textContent = state.runtime && option ? `Next answer: ${option.textContent.split(' · ')[0]}` : 'Next answer model';
 }
 
-async function ensureModel(modelId) {
+async function ensureModel(modelId, signal) {
+  signal?.throwIfAborted();
   if (state.model?.modelId === modelId) return state.model.handle;
   if (state.model) { await state.model.handle.unload?.().catch(() => {}); state.model = null; }
-  const handle = await state.runtime.dr.load(modelId, { cache: 'opfs', onProgress: (event) => status(event?.message ?? 'Loading the model…') });
-  try { state.runtime.selection = handle.inspect.listPolicies().some((policy) => policy.activationTrace?.activitySelection !== undefined); } catch { state.runtime.selection = false; }
+  signal?.throwIfAborted();
+  const handle = await state.runtime.dr.load(modelId, { cache: 'opfs', signal,
+    onProgress: (event) => { if (!signal?.aborted) status(event?.message ?? 'Loading the model…'); } });
+  state.runtime.stored.add(modelId);
+  if (signal?.aborted) { await handle.unload(); signal.throwIfAborted(); }
   state.model = { modelId, handle };
   return handle;
 }
@@ -114,11 +138,11 @@ async function ensureModel(modelId) {
 // Which observation tier records what the menu asks for.
 function observationFor({ layers, timing, witnesses }) {
   if (witnesses) {
-    if (!state.runtime.selection) throw new Error('this runtime cannot record attention, memory and weights');
+    if (!state.runtime.policies.some((policy) => policy.id === 'demo/model-activity-timing' && policy.activationTrace?.activitySelection !== undefined)) throw new Error('this runtime cannot record attention, memory and weights');
     return { policyId: 'demo/model-activity-timing' };
   }
   if (layers && timing) {
-    if (!state.runtime.selection) throw new Error('this runtime cannot record layer outputs and GPU time in one run; choose one in the menu');
+    if (!state.runtime.policies.some((policy) => policy.id === 'demo/model-activity-timing' && policy.activationTrace?.activitySelection !== undefined)) throw new Error('this runtime cannot record layer outputs and GPU time in one run; choose one in the menu');
     return { policyId: 'demo/model-activity-timing', capture: { roles: [] } };
   }
   if (layers) return { policyId: 'demo/activation-grid' };
@@ -131,41 +155,53 @@ const environment = () => ({ runtimeVersion: state.runtime.version, runtimeCommi
 // ------------------------------------------------------------------ asking
 
 async function ask(prompt, captures = menuCaptures()) {
-  if (!prompt || state.busy) return;
+  if (!prompt || state.busy || state.importing || !state.runtime) return;
   const maxTokens = Number($('ws-length').value);
   if (!Number.isInteger(maxTokens) || maxTokens < 2 || maxTokens > 256) { status('Answer length must be between 2 and 256 tokens.'); return; }
+  let observation;
+  try {
+    observation = observationFor(captures);
+    if (!state.runtime?.policies.some(policy => policy.id === observation.policyId)) throw new Error('The selected capture is unavailable in this runtime.');
+  } catch (error) { status(error.message); return; }
+  if (!leavePartial()) return;
+  state.partialSaved = false;
+  state.partialDownload = false;
   state.abort = new AbortController();
   state.live = { prompt, tokens: [], stopped: false };
   setBusy(true);
   selection.select({ runId: null, position: null });
   render();
   try {
-    const handle = await ensureModel($('ws-model').value);
+    const handle = await ensureModel($('ws-model').value, state.abort.signal);
+    state.abort.signal.throwIfAborted();
     status('Thinking…');
     const receipt = await handle.inspect.generate(prompt, {
-      ...observationFor(captures),
+      ...observation,
       topKSize: 8,
       // Deterministic, so the same prompt gives the same run and two runs compare.
       generation: { temperature: 0, topK: 1, topP: 1, repetitionPenalty: 1, presencePenalty: 0, maxTokens, useChatTemplate: true, signal: state.abort.signal },
       onEvent(event) {
-        if (event.type !== 'token' || !state.live) return;
+        if (event.type !== 'token' || !state.live || state.abort?.signal.aborted) return;
         const record = event.token ?? null;
         state.live.tokens.push({ index: event.index, tokenId: event.tokenId, text: record?.text ?? null, probability: record?.probability ?? null, entropy: record?.entropy ?? null,
           candidates: record?.topCandidates?.map((c) => ({ tokenId: c.tokenId, text: c.text, probability: c.probability })) ?? null });
         scheduleRender();
       },
     });
+    state.abort.signal.throwIfAborted();
     const run = await createRun({ receipt, prompt, environment: environment() });
-    state.live = null;
+    state.abort.signal.throwIfAborted();
     addRun(run);
+    state.live = null;
     status('');
   } catch (error) {
     if (state.abort?.signal.aborted && state.live) {
       // What streamed stays on screen; without the finished receipt it is not a run.
       state.live.stopped = true;
-      status(`Stopped after ${state.live.tokens.length} tokens. A stopped answer is not kept as a run.`);
+      status(`Stopped after ${state.live.tokens.length} tokens.`);
     } else {
-      state.live = null;
+      if (state.live?.tokens.length) state.live.stopped = true;
+      else state.live = null;
       status(`Could not answer: ${error.message}`);
     }
   }
@@ -173,18 +209,30 @@ async function ask(prompt, captures = menuCaptures()) {
   setBusy(false);
 }
 
-function stop() { state.abort?.abort(); }
+function stop() {
+  state.abort?.abort();
+  status('Stopping…');
+  updateSend();
+}
 
 const menuCaptures = () => ({ layers: $('ws-layers').checked, timing: $('ws-timing').checked, witnesses: $('ws-witnesses').checked });
 
 // Every control that can start work reads state.busy while rendering, so a change re-renders.
+function updateSend() {
+  const button = $('ws-send');
+  const id = $('ws-model').value;
+  const selected = state.runtime?.details.find(model => model.modelId === id);
+  const ready = state.model?.modelId === id;
+  const download = selected?.sizeBytes ? `Download ${Math.ceil(selected.sizeBytes / 1e6)} MB & answer` : 'Download model & answer';
+  const idle = !selected || ready ? 'Send' : state.runtime.stored.has(id) ? 'Load & answer' : download;
+  button.textContent = state.abort?.signal.aborted ? 'Stopping…' : state.abort ? 'Stop' : state.busy ? 'Working…' : idle;
+  button.disabled = state.importing ? true : state.busy ? !state.abort || state.abort.signal.aborted : !selected;
+  button.classList.toggle('ws-stop', Boolean(state.abort));
+}
+
 function setBusy(busy) {
   state.busy = busy;
-  // While an answer streams, Send becomes Stop; other work (a fork, a projection) cannot be stopped midway.
-  const stoppable = busy && Boolean(state.abort);
-  $('ws-send').disabled = !state.runtime || (busy && !stoppable);
-  $('ws-send').textContent = stoppable ? 'Stop' : busy ? 'Working…' : 'Send';
-  $('ws-send').classList.toggle('ws-stop', stoppable);
+  updateSend();
   render();
 }
 
@@ -196,9 +244,12 @@ function scheduleRender() {
 }
 
 // Opens on the answer's least likely token: a moment worth looking at.
-function addRun(run, { select = true } = {}) {
-  if (state.live?.stopped) state.live = null;
-  if (!state.runs.some((existing) => existing.id === run.id)) state.runs.unshift(run);
+function addRun(run, { select = true, saved = false, replaces = null } = {}) {
+  if (!state.runs.some(existing => existing.id === run.id)) {
+    retain(state.retained, run.id, run, replaces);
+    state.runs = [run, ...state.runs.filter(item => item.id !== replaces)];
+  }
+  if (saved) state.saved.add(run.id);
   if (select) {
     const known = run.tokens.filter((token) => Number.isFinite(token.probability));
     const least = known.length ? known.reduce((low, token) => (token.probability < low.probability ? token : low)) : null;
@@ -209,13 +260,16 @@ function addRun(run, { select = true } = {}) {
 
 async function branch(run, index, tokenId) {
   // One model operation at a time: a second fork would start a second model load.
-  if (state.busy) return;
+  if (state.busy || state.importing) return;
   let request;
   try { request = forkRequest(run, index, tokenId); } catch (error) { $('token-note').textContent = error.message; return; }
+  state.abort = new AbortController();
+  const signal = state.abort.signal;
   setBusy(true);
   status('Continuing from the chosen token…');
   try {
-    const handle = await ensureModel(run.model.modelId);
+    const handle = await ensureModel(run.model.modelId, signal);
+    signal.throwIfAborted();
     assertRunModel(run, handle.manifestHash);
     const chosen = run.observation.captureSelection;
     const receipt = await handle.inspect.generate(run.prompt, {
@@ -223,16 +277,18 @@ async function branch(run, index, tokenId) {
       ...(chosen ? { capture: { roles: chosen.roles, layers: chosen.layers, tokens: chosen.tokens } } : {}),
       topKSize: 8,
       inputTokenIds: request.inputTokenIds,
-      generation: request.generation,
+      generation: { ...request.generation, signal },
     });
     const child = await createRun({ receipt, prompt: run.prompt, parent: request.parent, environment: environment() });
+    signal.throwIfAborted();
     if (child.model.manifestHash !== run.model.manifestHash) throw new Error('the model files loaded now are not the ones this run used');
     addRun(child, { select: false });
     state.view = 'forest';
     status(`Branch ${child.id.slice(4, 10)}: ${child.tokens.length} tokens. It is under Branches.`);
   } catch (error) {
-    status(`Could not continue: ${error.message}`);
+    status(signal.aborted ? 'Branch stopped.' : `Could not continue: ${error.message}`);
   }
+  state.abort = null;
   setBusy(false);
   render();
 }
@@ -254,23 +310,28 @@ function projectUnavailable(run) {
 }
 
 async function project(run, index) {
-  if (state.busy) return;
+  if (state.busy || state.importing) return;
   const key = `${run.id}:${index}`;
   const chosen = choiceVectors(run, index);
   if (!chosen) return;
   state.projections.set(key, { state: 'running' });
+  state.abort = new AbortController();
+  const signal = state.abort.signal;
   setBusy(true);
   render();
   try {
-    const handle = await ensureModel(run.model.modelId);
+    const handle = await ensureModel(run.model.modelId, signal);
+    signal.throwIfAborted();
     assertRunModel(run, handle.manifestHash);
     if (typeof handle.inspect.projectLayerOutputs !== 'function') throw new Error('this Doppler runtime cannot project layer outputs');
     const result = await handle.inspect.projectLayerOutputs({ vectors: chosen.vectors.map((vector) => Float32Array.from(vector)), topK: 3 });
+    signal.throwIfAborted();
     validateProjection(result, chosen.vectors.length);
     state.projections.set(key, { state: 'done', rows: result.rows });
   } catch (error) {
-    state.projections.set(key, { state: 'failed', reason: `Could not project: ${error.message}.` });
+    state.projections.set(key, { state: 'failed', reason: signal.aborted ? 'Projection stopped.' : `Could not project: ${error.message}.` });
   }
+  state.abort = null;
   setBusy(false);
   render();
 }
@@ -282,38 +343,47 @@ async function openExample() {
   const { SAMPLE_INSPECTION_RECEIPT: receipt } = await import(`${DEMO}/data/sample-inspection.js`);
   const run = await createRun({ receipt, prompt: receipt.recording?.prompt ?? receipt.prompt ?? '', kind: 'recorded-example',
     environment: { runtimeVersion: receipt.fingerprint?.identity?.runtime?.version ?? null, runtimeChannel: 'recording', userAgent: null } });
+  addRun(run, { saved: true });
   state.exampleRun = run.id;
-  addRun(run);
   return receipt;
 }
 
 // The same answer with its recorded activity: layer outputs, attention queries and keys, memory.
 async function openExampleActivity() {
-  if (state.busy) return;
+  if (state.busy || state.importing) return;
   setBusy(true);
+  state.abort = new AbortController();
+  const signal = state.abort.signal;
+  updateSend();
   status('Opening the recorded activity · 23 MB…');
   try {
     const { SAMPLE_INSPECTION_RECEIPT: receipt } = await import(`${DEMO}/data/sample-inspection.js`);
-    const metadata = await (await fetch(`${DEMO}/assets/activity-example.json`)).json();
-    const bytes = await (await fetch(`${DEMO}/assets/activity-example.json.gz`)).arrayBuffer();
+    const metadata = await (await fetch(`${DEMO}/assets/activity-example.json`, { signal })).json();
+    const response = await fetch(`${DEMO}/assets/activity-example.json.gz`, { signal });
+    if (!response.ok) throw new Error(`Activity file returned HTTP ${response.status}.`);
+    const blob = await readRecordingBlob(response, metadata.compressedBytes);
+    const bytes = await blob.arrayBuffer();
     const hash = [...new Uint8Array(await crypto.subtle.digest('SHA-256', bytes))].map((n) => n.toString(16).padStart(2, '0')).join('');
     if (hash !== metadata.sha256) throw new Error('the recording failed its integrity check');
-    const text = await new Response(new Blob([bytes]).stream().pipeThrough(new DecompressionStream('gzip'))).text();
+    const { value, byteLength } = await readRecordingJson(blob, { signal });
+    if (byteLength !== metadata.decodedBytes) throw new Error('Incorrect expanded activity size.');
     const { decodeRecording } = await import(`${DEMO}/ui/activation-grid/recording-codec.js`);
-    const recording = decodeRecording(JSON.parse(text));
+    const recording = decodeRecording(value);
     const same = recording.generatedTokenIds?.length === receipt.generatedTokenIds.length && recording.generatedTokenIds.every((id, i) => id === receipt.generatedTokenIds[i]);
     if (!same) throw new Error('the recorded activity belongs to a different answer');
     const run = await createRun({ receipt: { ...receipt, activationTrace: recording.trace }, prompt: metadata.prompt ?? receipt.recording?.prompt ?? '', kind: 'recorded-example',
       environment: { runtimeVersion: receipt.fingerprint?.identity?.runtime?.version ?? null, runtimeChannel: 'recording', userAgent: null } });
-    state.runs = state.runs.filter((item) => item.id !== state.exampleRun);
-    state.exampleRun = run.id;
+    signal.throwIfAborted();
     const position = selection.get().position;
-    addRun(run, { select: false });
+    addRun(run, { select: false, saved: true, replaces: state.exampleRun });
+    state.saved.delete(state.exampleRun);
+    state.exampleRun = run.id;
     selection.select({ runId: run.id, position });
     status('');
   } catch (error) {
-    status(`Could not open the recorded activity: ${error.message}`);
+    status(signal.aborted ? 'Opening cancelled.' : `Could not open the recorded activity: ${error.message}`);
   }
+  state.abort = null;
   setBusy(false);
   render();
 }
@@ -325,7 +395,7 @@ function renderExamples() {
   $('ws-examples').replaceChildren(
     h('button', { type: 'button', className: 'ws-chip', disabled: state.busy, on: { click: () => (state.exampleRun ? showRun(state.exampleRun) : openExample()) } }, 'Recorded: why the sky is blue'),
     ...EXAMPLE_PROMPTS.slice(1).map((prompt) => h('button', { type: 'button', className: 'ws-chip', disabled: !live || state.busy, title: live ? '' : 'Needs WebGPU to answer',
-      on: { click: () => { $('ws-prompt').value = prompt; ask(prompt); } } }, prompt)),
+      on: { click: () => { $('ws-prompt').value = prompt; $('ws-prompt').focus(); } } }, prompt)),
   );
 }
 
@@ -345,18 +415,18 @@ function renderAnswer(run, tokens, display) {
         token.inherited && !token.forked ? 'ws-inherited' : '', token.forked ? 'ws-forked' : ''].filter(Boolean).join(' '),
       ariaPressed: String(i === picked),
       disabled: !run,
-      title: `${token.forked ? 'The word this branch put here' : token.inherited ? 'Inherited from the run this branched from' : `Token ${i + 1}`}${p === null ? '' : ` · ${percent(p)} likely`}`,
+      title: `${token.forked ? 'The token this branch put here' : token.inherited ? 'Inherited from the run this branched from' : `Token ${i + 1}`}${p === null ? '' : ` · ${percent(p)} likely`}`,
       style: `--token-surprisal: ${p === null ? 0.5 : 1 - p}; --token-gradient-start: ${1 - (near(-1) + (p ?? 0.5)) / 2}; --token-gradient-end: ${1 - (near(1) + (p ?? 0.5)) / 2}`,
       data: { index: i },
       on: { click: () => run && selection.select({ position: display.base === null ? sequencePosition(run, i) : display.base + i }), mouseenter: () => highlight(i), mouseleave: () => highlight(null) },
     }, space && text.includes('\n') ? `↵${text}` : text);
   }));
   const recorded = run?.kind === 'recorded-example';
-  if (state.live?.stopped) { $('ws-answer-note').textContent = 'Stopped. This partial answer is not saved as a run.'; return; }
+  if (state.live?.stopped) { $('ws-answer-note').textContent = 'Stopped. You can save the partial answer as a transcript.'; return; }
   $('ws-answer-note').textContent = !tokens.length ? ''
-    : display?.parent ? `Branch of run ${display.parent.id.slice(4, 10)}: ${display.inherited === 2 ? 'word 1 is' : `words 1–${display.inherited - 1} are`} inherited from it (lighter), word ${display.inherited} is the one this branch put there (outlined), and the rest it generated. Underline: blue where the model was sure, red where it was surprised.`
+    : display?.parent ? `Branch of run ${display.parent.id.slice(4, 10)}: ${display.inherited === 2 ? 'token 1 is' : `tokens 1–${display.inherited - 1} are`} inherited from it (lighter), token ${display.inherited} is the one this branch put there (outlined), and the rest it generated. Underline: blue where the model was sure, red where it was surprised.`
     : recorded ? `Recorded answer from ${run.model.modelId ?? 'a model'}. Underline: blue where the model was sure, red where it was surprised.`
-      : 'Underline: blue where the model was sure, red where it was surprised. Select a word to look inside.';
+      : 'Underline: blue where the model was sure, red where it was surprised. Select a token to look inside.';
 }
 
 function highlight(index) {
@@ -407,13 +477,32 @@ function renderSignals(run, tokens, display) {
 }
 
 function renderTabs(run, display) {
-  $('ws-tabs').replaceChildren(...VIEWS.map((view) => h('button', {
+  const recorded = new Set();
+  if (run.tokens.some(token => token.candidates?.length)) recorded.add('atlas');
+  if (run.parent || state.runs.some(child => child.parent?.runId === run.id)) recorded.add('forest');
+  if (run.layerOutputs) { recorded.add('activity'); recorded.add('journey'); }
+  // A bundled example can load its additional activity only on request.
+  if (run.kind === 'recorded-example') recorded.add('activity');
+  const activity = (run.activityRecording?.trace ?? run.activityTrace)?.activity;
+  const roles = new Set(activity?.frames?.filter(frame => frame?.status === 'captured').map(frame => frame.role));
+  if (roles.has('attention-query') && roles.has('kv-key')) recorded.add('attention');
+  if (['kv-key', 'kv-value', 'recurrent-memory', 'convolution-history'].some(role => roles.has(role))) recorded.add('memory');
+  if (roles.has('ffn-down-input') && activity.weights?.some(weight => weight?.status === 'captured' && ['down', 'ffnDown'].includes(weight.role))) recorded.add('gearbox');
+  if (run.timing.gpu?.steps?.length) recorded.add('time');
+  const views = state.allViews ? VIEWS : VIEWS.filter(view => recorded.has(view.id));
+  if (!views.some(view => view.id === state.view)) state.view = views[0]?.id ?? null;
+  $('ws-more-views').checked = state.allViews;
+  $('ws-tabs').replaceChildren(...views.map((view) => h('button', {
     type: 'button', role: 'tab', className: 'ws-tab', id: `ws-tab-${view.id}`,
-    ariaSelected: String(view.id === state.view), attrs: { 'aria-controls': `ws-view-${view.id}` },
+    tabIndex: view.id === state.view ? 0 : -1, ariaSelected: String(view.id === state.view), attrs: { 'aria-controls': `ws-view-${view.id}` },
     on: { click: () => { state.view = view.id; render(); } },
   }, view.label)));
-  for (const view of VIEWS) $(`ws-view-${view.id}`).hidden = view.id !== state.view;
-  $('ws-view-picker').replaceChildren(...VIEWS.map(view => h('option', { value: view.id }, view.label)));
+  for (const view of VIEWS) {
+    const panel = $(`ws-view-${view.id}`);
+    panel.hidden = view.id !== state.view;
+    panel.setAttribute('aria-label', view.label);
+  }
+  $('ws-view-picker').replaceChildren(...views.map(view => h('option', { value: view.id }, view.label)));
   $('ws-view-picker').value = state.view;
   const chosen = selection.get();
   $('ws-inside-model').textContent = run ? `${run.kind === 'recorded-example' ? 'Recorded example' : 'Inspecting answer'} · ${run.model.modelId ?? 'unknown model'}` : '';
@@ -421,7 +510,7 @@ function renderTabs(run, display) {
   // Selection is available beside the views, including on a narrow screen.
   const words = run && display.base !== null ? display.tokens : [];
   const promptSelected = chosen.position !== null && index === null;
-  $('ws-word').replaceChildren(h('option', { value: '' }, promptSelected ? `Prompt position ${chosen.position}` : 'Choose a word'),
+  $('ws-word').replaceChildren(h('option', { value: '' }, promptSelected ? `Prompt position ${chosen.position}` : 'Choose a token'),
     ...words.map((token, i) => h('option', { value: String(display.base + i) }, `${i + 1}: ${visible(token.text)}`)));
   $('ws-word').value = index === null ? '' : String(chosen.position);
   $('ws-word').disabled = words.length === 0;
@@ -430,13 +519,16 @@ function renderTabs(run, display) {
   $('ws-layer').replaceChildren(h('option', { value: '' }, 'All'), ...Array.from({ length: layers }, (_, i) => h('option', { value: String(i) }, String(i + 1))));
   $('ws-layer').value = chosen.layer === null || chosen.layer >= layers ? '' : String(chosen.layer);
   $('ws-layer').disabled = !layers;
-  $('ws-selection').textContent = run ? `${index === null ? 'No word selected' : `Word ${index + 1}: "${visible(display.tokens[index].text)}"`} · ${chosen.layer === null ? 'all layers' : `layer ${chosen.layer + 1}`}` : '';
+  $('ws-selection').textContent = run ? `${index === null ? 'No token selected' : `Token ${index + 1}: "${visible(display.tokens[index].text)}"`} · ${chosen.layer === null ? 'all layers' : `layer ${chosen.layer + 1}`}` : '';
 }
 
 function renderInside(run, display) {
+  document.querySelector('.ws-inside').hidden = !run;
+  if (!run) return;
+  const focusOnTab = document.activeElement?.getAttribute('role') === 'tab';
   renderTabs(run, display);
-  const holder = $(`ws-view-${state.view}`);
-  if (!run) { return; }
+  if (focusOnTab) $(`ws-tab-${state.view}`)?.focus({ preventScroll: true });
+  const holder = state.view ? $(`ws-view-${state.view}`) : null;
   const canRun = Boolean(state.runtime) && !state.busy;
   const why = state.runtime ? '' : 'Running the model needs WebGPU, which this browser does not provide.';
   const context = { run, runs: state.runs, selection, canRun, why, projections: state.projections, actions: { showRun, branch, recordAgain, project, projectUnavailable } };
@@ -452,7 +544,7 @@ function renderInside(run, display) {
   }
   renderForestTree(context);
   const view = VIEWS.find((item) => item.id === state.view);
-  view.render?.(context);
+  view?.render?.(context);
   // A recorded example without its activity offers to open it here.
   // Only the visible view carries the offer; a hidden one would keep a stale copy.
   for (const stale of document.querySelectorAll('.ws-load-activity')) stale.remove();
@@ -462,30 +554,80 @@ function renderInside(run, display) {
   }
 }
 
+function unsaved(run) { return !state.saved.has(run.id); }
+function warnBeforeUnload(event) { event.preventDefault(); event.returnValue = ''; }
+function updateUnloadWarning() {
+  const pending = state.runs.some(unsaved) || (state.live?.tokens.length && !state.partialSaved);
+  if (pending) window.addEventListener('beforeunload', warnBeforeUnload);
+  else window.removeEventListener('beforeunload', warnBeforeUnload);
+}
+
 function renderRuns() {
   const current = selection.get().runId;
+  $('ws-clear').hidden = !state.runs.length;
+  $('ws-clear').disabled = state.busy || Boolean(state.importing);
+  $('ws-budget').textContent = state.runs.length ? `Estimated memory: ${Math.ceil(retainedBytes(state.retained) / 1048576)} of ${retainedLimit / 1048576} MiB` : '';
+  $('ws-save-partial').hidden = !state.live?.stopped || !state.live.tokens.length;
+  $('ws-mark-partial').hidden = !state.live?.stopped || !state.partialDownload || state.partialSaved;
+  $('ws-cancel-import').hidden = !state.importing;
+  updateSend();
+  $('ws-open-button').disabled = state.busy || Boolean(state.importing);
   $('ws-runs').replaceChildren(...state.runs.map((run) => h('li', { className: run.id === current ? 'is-current' : '' },
-    h('button', { type: 'button', className: 'ws-run', ariaPressed: String(run.id === current), on: { click: () => showRun(run.id) } },
+    h('button', { type: 'button', className: 'ws-run', ariaPressed: String(run.id === current), disabled: state.busy, on: { click: () => showRun(run.id) } },
       h('code', {}, run.id.slice(4, 10)), ' ',
       h('span', {}, (run.prompt || '(no prompt)').slice(0, 70)),
-      h('span', { className: 'demo-note' }, ` · ${run.tokens.length} tokens${run.parent ? ` · branch at word ${run.parent.index + 1}` : ''}${run.layerOutputs ? ' · layers' : ''}${run.activityTrace ? ' · activity' : ''}`)),
-    h('button', { type: 'button', className: 'btn btn-small btn-ghost', on: { click: () => save(run) } }, 'Save'))));
+      h('span', { className: 'demo-note' }, ` · ${run.tokens.length} tokens${unsaved(run) ? ' · Unsaved' : ''}${run.parent ? ` · branch at token ${run.parent.index + 1}` : ''}${run.layerOutputs ? ' · layers' : ''}${run.activityTrace ? ' · activity' : ''}`)),
+    h('button', { type: 'button', className: 'btn btn-small btn-ghost', on: { click: () => save(run) } }, 'Save'),
+    state.downloads.has(run.id) && unsaved(run) ? h('button', { type: 'button', className: 'btn btn-small btn-ghost', on: { click: () => { state.saved.add(run.id); renderRuns(); } } }, 'Mark saved') : null,
+    h('button', { type: 'button', className: 'btn btn-small btn-ghost', disabled: state.busy || Boolean(state.importing), on: { click: () => removeRuns([run]) } }, 'Remove'))));
+  $('ws-summary').hidden = !shown();
+  updateUnloadWarning();
+}
+
+function removeRuns(list) {
+  if (list.some(unsaved) && !confirm('Discard unsaved recordings?')) return;
+  const removed = new Set(list.map(run => run.id));
+  state.runs = state.runs.filter(run => !removed.has(run.id));
+  for (const id of removed) { state.saved.delete(id); state.downloads.delete(id); state.retained.delete(id); }
+  for (const key of state.projections.keys()) if (removed.has(key.split(':')[0])) state.projections.delete(key);
+  if (removed.has(state.exampleRun)) state.exampleRun = null;
+  const current = selection.get();
+  selection.select({ runId: removed.has(current.runId) ? state.runs[0]?.id ?? null : current.runId,
+    compareRunId: removed.has(current.compareRunId) ? null : current.compareRunId });
+  render();
 }
 
 function save(run) {
-  const link = h('a', { href: URL.createObjectURL(new Blob([serializeRun(run)], { type: 'application/json' })), download: `doppler-${run.id}.json` });
-  link.click();
-  setTimeout(() => URL.revokeObjectURL(link.href), 1000);
+  downloadFile(`doppler-${run.id}.json`, serializeRun(run));
+  state.downloads.add(run.id);
+  if (unsaved(run)) status('When your download finishes, choose Mark saved.');
+  renderRuns();
 }
 
 async function openFiles(files) {
+  if (state.importing || state.busy || !files.length || !leavePartial()) return;
+  state.importing = new AbortController();
+  const signal = state.importing.signal;
   const problems = [];
-  for (const file of files) {
-    try { addRun(validateRun(JSON.parse(await readSavedText(file)))); }
-    catch (error) { problems.push(`${file.name}: ${error instanceof SyntaxError ? 'not JSON' : error.message}`); }
+  render();
+  try {
+    for (const file of files) {
+      status(`Opening ${file.name}…`);
+      try {
+        const { value } = await readRecordingJson(file, { signal });
+        signal.throwIfAborted();
+        addRun(validateRun(value), { saved: true });
+      } catch (error) {
+        if (signal.aborted) break;
+        problems.push(`${file.name}: ${error.message}`);
+      }
+    }
+    status([signal.aborted ? 'Opening cancelled.' : '', ...problems].filter(Boolean).join(' '));
+  } finally {
+    state.importing = null;
+    $('ws-open').value = '';
+    render();
   }
-  status(problems.join(' '));
-  $('ws-open').value = '';
 }
 
 // The run picked to compare with the shown one; the faultline view does the comparing.
@@ -497,6 +639,7 @@ function renderCompare(run) {
   $('ws-compare-with').value = others.some((item) => item.id === chosen) ? chosen : '';
   $('ws-compare-with').disabled = !others.length;
   const other = others.find((item) => item.id === chosen) ?? null;
+  document.querySelector('.ws-compare').hidden = !others.length;
   $('ws-compare-empty').hidden = Boolean(other);
   renderFaultline({ run: other ? run : null, other, selection });
 }
@@ -508,7 +651,8 @@ function render() {
   renderExamples();
   renderAnswer(run, tokens, display);
   renderSignals(run, tokens, display);
-  $('ws-token-empty').hidden = Boolean(run && pickedIndex(run, display) !== null);
+  $('ws-token-empty').hidden = !run || pickedIndex(run, display) !== null;
+  document.querySelector('.ws-signals').hidden = !tokens.length;
   if (!run) $('token-panel').hidden = true;
   renderInside(run, display);
   renderRuns();
@@ -527,6 +671,29 @@ async function boot() {
     if (event.key === 'Enter' && !event.shiftKey) { event.preventDefault(); if (!state.busy) ask($('ws-prompt').value.trim()); }
   });
   $('ws-model').addEventListener('change', syncMenuLabel);
+  $('ws-more-views').addEventListener('change', event => { state.allViews = event.target.checked; render(); });
+  $('ws-tabs').addEventListener('keydown', event => {
+    const tabs = [...$('ws-tabs').querySelectorAll('[role=tab]')];
+    const i = tabs.indexOf(event.target);
+    if (i < 0) return;
+    const next = { ArrowLeft: (i - 1 + tabs.length) % tabs.length, ArrowRight: (i + 1) % tabs.length, Home: 0, End: tabs.length - 1 }[event.key];
+    if (next === undefined) return;
+    event.preventDefault();
+    state.view = tabs[next].id.slice('ws-tab-'.length); render(); $(`ws-tab-${state.view}`).focus();
+  });
+  $('ws-clear').addEventListener('click', () => removeRuns(state.runs));
+  $('ws-cancel-import').addEventListener('click', () => state.importing?.abort());
+  $('ws-summary').addEventListener('click', () => {
+    if (shown()) downloadFile('doppler-redacted-summary.json', JSON.stringify(redactedSummary(shown()), null, 2));
+  });
+  $('ws-save-partial').addEventListener('click', () => {
+    if (!state.live?.stopped) return;
+    downloadFile('doppler-partial-answer.txt', state.live.tokens.map(token => token.text ?? '').join(''), 'text/plain');
+    state.partialDownload = true; renderRuns(); status('When your text download finishes, choose Mark saved.');
+  });
+  $('ws-mark-partial').addEventListener('click', () => {
+    state.partialSaved = true; renderRuns(); status('Partial answer marked saved.');
+  });
   $('ws-view-picker').addEventListener('change', (event) => { state.view = event.target.value; render(); });
   $('ws-word').addEventListener('change', (event) => selection.select({ position: event.target.value === '' ? null : Number(event.target.value) }));
   $('ws-layer').addEventListener('change', (event) => selection.select({ layer: event.target.value === '' ? null : Number(event.target.value) }));
