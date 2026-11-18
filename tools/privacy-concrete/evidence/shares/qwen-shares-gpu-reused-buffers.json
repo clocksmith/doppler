@@ -1,0 +1,78 @@
+{
+  "integrity": "additive-shares-m61-hidden-probe/v1",
+  "integrityPolicyId": "10584fc741ccc506088f4eff524b3b3b1e714217da1df0437838019ac37abe4e",
+  "checkRounds": 1,
+  "sharedProjectionCalls": 676,
+  "sharedRows": 1859,
+  "singleEvaluatorDetectionLog2": 60,
+  "commonDeviationDetectionLog2": 60,
+  "clientShareMs": 973.5704268678091,
+  "evaluatorRoundTripMs": 6308.9959504432045,
+  "sentBytes": [
+    65152252,
+    65152252
+  ],
+  "receivedBytes": [
+    120415092,
+    120415092
+  ],
+  "schema": "doppler.two-server-shares-execution/v1",
+  "qualified": false,
+  "productionBackendAvailable": false,
+  "securityQualified": false,
+  "nonCollusionEstablished": false,
+  "validationBoundary": "after-route-close/v1",
+  "mechanism": "additive-shares-m61-hidden-probe/v1",
+  "planId": "95c1f06bcbc08954a29696412115c0e5794e4fdf4fa930deaabdee905c1677cd",
+  "modelId": "4223289199791c6713ba2c98eb8f9d43a37597b09db0b2c778434dec431a6d24",
+  "linearProjectionCount": 169,
+  "steps": 4,
+  "evaluatorTransports": [
+    "local-process",
+    "local-process"
+  ],
+  "clientLocalOutputTokens": [
+    12095,
+    13,
+    1084,
+    374
+  ],
+  "clientLocalOutputText": " Paris. It is",
+  "matchesFullQuantizedGreedyReference": true,
+  "floatGreedyMatches": [
+    true,
+    true,
+    true,
+    true
+  ],
+  "maxLogitErrors": [
+    0.0,
+    0.0,
+    0.0,
+    0.0
+  ],
+  "stepMs": [
+    4527.354068006389,
+    979.0238969726488,
+    991.3944239960983,
+    1003.0591730028391
+  ],
+  "executionWallMs": 7500.831561977975,
+  "clientNonLinearAndOrchestrationMs": 218.26518466696143,
+  "clientCpuSeconds": 6.248735,
+  "localEvaluatorCpuSeconds": 12.008951000000001,
+  "clientStoredBytes": {
+    "embeddingTable": 544538624,
+    "normsAndOtherParameters": 175616,
+    "quantizationVectorsAndBiases": 5583360,
+    "anchors": 3648512
+  },
+  "linearWeightBytesHeldByEvaluatorsFp32": 1975844864,
+  "clientReadsLinearCoefficientsDuringExecution": false,
+  "referenceWeightsInThisProcess": "Loaded for the post-close comparison only; the route itself never reads them.",
+  "preparationMs": 5434.927754977252,
+  "ownerPublicationMs": 0.632481009233743,
+  "requesterAnchorPassMs": 380.7162460288964,
+  "clientPeakRssBytes": 4038803456,
+  "publicFixtureId": "qwen05b-capital"
+}

@@ -117,8 +117,9 @@ and probe seed are unpredictable and stay secret. **S3** the requester's anchors
 - **What the requester still stores.** The embedding table (545 MB at 32-bit for small Qwen), normalisation
   parameters, and per projection a few weight-derived vectors (quantization scales, zero points, column sums, bias)
   and the anchor row. These come from the model owner and are trusted like the weights. It stores no weight matrix.
-- **GPU tuning.** A GPU evaluator exists (below) and is exact, but it is a first version: every call creates and
-  destroys its buffers, which costs a few milliseconds and dominates on small matrices.
+- **GPU tuning.** The GPU evaluator (below) is exact and reuses its workspace buffers, uniform slots and bind groups
+  across calls, but each linear layer still executes as a synchronous GPU submit and readback fence (`169` calls per
+  decode step), which dominates on small matrices.
 
 ## GPU evaluator
 
@@ -127,13 +128,16 @@ CPU one and runs the product in [shares_field_matmul.wgsl](shares_field_matmul.w
 WGSL has no 64-bit integers, so each field element is uploaded as four 16-bit limbs and each weight as an unsigned
 16-bit value (the signed weight plus 32768). A limb times a weight fits exactly in 32 bits; the sum over the input
 width carries into a second word; the four limb sums are rotated into place modulo the prime (multiplying by 2^16k
-is a 61-bit rotation), added, and corrected for the weight offset. The answer is the same eight bytes per value the
-CPU provider returns.
+is a 61-bit rotation), added, and corrected for the weight offset. Workspace storage, staging and uniform buffers grow
+to the process high-water mark and are reused across calls. The answer is the same eight bytes per value the CPU
+provider returns.
 
 [test_shares_gpu.py](test_shares_gpu.py) compares it with the CPU reference bit for bit on four shapes, including an
-input width above 4096, weights at both 16-bit extremes and inputs of zero, the prime minus one, the prime and
-2^64 - 1, and runs a complete checked route on two GPU providers and on one GPU provider beside one CPU provider. It
-needs a WebGPU binding and is skipped without one. Breaking one rotation in the kernel makes two of its tests fail.
+input width above 4096, weights at both 16-bit and 8-bit extremes, multi-chunk column dispatches, workspace reuse
+across growing and shrinking batches, symlink and invalid-geometry rejection, mid-frame stream truncation, and inputs
+of zero, the prime minus one, the prime and 2^64 - 1, and runs a complete checked route on two GPU providers and on one
+GPU provider beside one CPU provider. It needs a WebGPU binding and is skipped without one. Breaking one rotation in
+the kernel makes two of its tests fail.
 
 ## Measured
 
@@ -165,14 +169,15 @@ over the public weights took 1.8 s. The providers held the 169 weight matrices (
 
 **With GPU providers.** On a second, faster Linux host with an integrated AMD GPU, the complete fixture with the
 requester and two GPU provider processes on that one host gave the same four tokens with zero difference in 7.7 s
-([receipt](evidence/shares/qwen-shares-gpu-one-host.json)): 4.6 s for the first step, which includes each provider
-verifying, transposing and uploading all 169 matrices, then about 1.03 s per decode step. The same host with two CPU
-provider processes took 5.3 s and about 0.90 s per decode step
+before buffer reuse ([receipt](evidence/shares/qwen-shares-gpu-one-host.json)) and 7.5 s with persistent workspace
+buffers ([receipt](evidence/shares/qwen-shares-gpu-reused-buffers.json)): 4.5 s for the first step, which includes each
+provider verifying, transposing and uploading all 169 matrices, then 0.98 to 1.00 s per decode step (down from 1.03 to
+1.05 s before buffer reuse). The same host with two CPU provider processes took 5.3 s and about 0.90 s per decode step
 ([receipt](evidence/shares/qwen-shares-cpu-fast-host.json)). On single products of that model the GPU provider is
 faster on repeat calls: 0.060 s against 0.376 s for three rows through the 896 by 151,936 vocabulary head, 0.017 s
 against 0.104 s for 24 rows through a 4,864 by 896 projection, and 0.003 s against 0.020 s for 24 rows through an
-896 by 896 projection. It is not yet faster end to end on this small model because a decode step makes 169 small
-calls and each GPU call pays a fixed cost. Both GPU processes also shared one GPU.
+896 by 896 projection. It is not yet faster end to end on this small model because a decode step makes 169 synchronous
+GPU submit and readback round-trips across two processes sharing one GPU.
 
 On one host each decode step took 6.4 to 7.0 s on a two-core laptop processor shared by the requester and both
 providers. All runs had one operator and no misbehaving provider, so they show that the route is exact and what it
@@ -181,7 +186,8 @@ receipts are in this repository's history at commits `9975f02c5` and `8b73b5991`
 
 ## Review record
 
-- 2026-11-17, automated tests: 18 pass ([test_shares.py](test_shares.py)).
+- 2026-11-17, automated tests: 18 CPU pass ([test_shares.py](test_shares.py)) and 5 GPU pass
+  ([test_shares_gpu.py](test_shares_gpu.py), run on both Metal and Vulkan WebGPU bindings).
 - 2026-11-17, first independent automated review, of a version with a public probe in a separate row and arithmetic
   modulo 2^64. It demonstrated that two providers who both returned zeros, or both used the same other matrix except
   on the recognisable anchor row, were accepted 300 times out of 300, and that the range check accepted the most
@@ -203,6 +209,17 @@ receipts are in this repository's history at commits `9975f02c5` and `8b73b5991`
   All are fixed here: providers run in their own process group and closing is bounded, the route always uses the
   installed policy and has an attempt limit, the probe binds seed, width and name, draws are exactly uniform, input
   widths are checked, and the tests were tightened and extended.
-- The fixes for the third review have not been independently reviewed.
-- The GPU evaluator and its kernel have not been independently reviewed.
+- 2026-11-18, independent re-review of the third-review fixes (`0595f8415`) and the in-flight deadline and cancellation
+  fix (`d39b135ba`). Verified that watchdog expiry and normal completion serialize under one lock without racing later
+  exchanges, that blocked sends, blocked reads and helper processes holding inherited pipes are terminated by process
+  group within the bounded deadline, that a previously recorded integrity failure cannot be masked by a subsequent
+  disconnect or timeout, that polite close uses an independent five-second grace period, and that probe derivation and
+  rejection-sampled field draws match their contracts.
+- 2026-11-18, independent review of [shares_field_matmul.wgsl](shares_field_matmul.wgsl) and
+  [shares_evaluator_gpu.js](shares_evaluator_gpu.js). Verified the four-limb unsigned-offset field product, 61-bit
+  rotations (`rotate16`, `rotate32`, `rotate48`), `reduce61` fold bound (`< 2^63`), and borrow-free Mersenne offset
+  negation exact for all admitted widths (`inputs < 2^21`). Found and fixed (`7566d2142`) missing manifest geometry and
+  32-bit index bounds, `maxComputeWorkgroupsPerDimension` column-chunk capping, odd-offset `Int16Array` buffer
+  alignment, `int8` (`|i1`) weight support, per-call GPU buffer and per-element `BigInt` allocations, and uncaught
+  `end of stream` rejections when stdin closes mid-frame.
 - Cryptographer review: none.

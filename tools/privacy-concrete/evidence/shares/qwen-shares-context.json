@@ -17,6 +17,10 @@
   {
    "file": "qwen-shares-cpu-fast-host.json",
    "sha256": "c0f8b079aec1c9b5fde19e8006afa7d07924cf1b711f028df1f7a1001955b8a2"
+  },
+  {
+   "file": "qwen-shares-gpu-reused-buffers.json",
+   "sha256": "4e8e9fe19e5aab7c67e54568bff40b5ce0540844752e1b40111382ef1e5fecc6"
   }
  ],
  "fixtureId": "qwen05b-capital",
@@ -69,6 +73,15 @@
    "placement": "Same host, requester and two CPU provider processes (shares_evaluator.py), run immediately after the GPU run so its file cache was warm.",
    "transport": "local-process pipes",
    "memoryMaxBytes": 17179869184
+  },
+  "qwen-shares-gpu-reused-buffers.json": {
+   "startedUtc": "2026-11-18T00:45:41Z",
+   "finishedUtc": "2026-11-18T00:46:00Z",
+   "placement": "Same AMD Linux host with an integrated GPU (shared with a separate public inference service), requester on CPU and two GPU provider processes reusing persistent workspace buffers.",
+   "transport": "local-process pipes",
+   "providers": "shares_evaluator_gpu.js through a Node WebGPU binding (Vulkan) with persistent workspace buffers",
+   "memoryMaxBytes": 17179869184,
+   "note": "Source files matched revision 7566d2142."
   }
  },
  "comparisonWithRetainedReceipts": {
@@ -95,10 +108,11 @@
   "Providers ran NumPy on CPU. No GPU kernel exists for this field arithmetic.",
   "The providers' coefficient files were hashed against the plan's weight identities by the providers themselves; the requester relies on its anchors, which in these runs it computed from the same public weights.",
   "All three machines had one operator, so the assumption that the two providers do not collude was not exercised.",
-  "Three independent automated reviews examined earlier versions; the fixes for the third have not been independently reviewed. No cryptographer has reviewed any version.",
-  "The GPU evaluator and its kernel are unreviewed. The two fast-host runs are single runs back to back on a shared host; the second had a warmer file cache, so their difference is indicative only."
+  "Earlier revisions and their fixes (0595f8415, d39b135ba) plus the GPU evaluator and kernel (7566d2142) received independent automated reviews, but no cryptographer has reviewed any version.",
+  "The fast-host GPU and CPU runs are single runs on a shared host, so small wall-time differences are indicative only."
  ],
  "revisionNote": "Both runs used source files byte-identical to this revision (deployed from the same tree before it was rebased onto main).",
  "supersededReceipts": "Earlier receipts are in repository history: modulo 2^64 at commit 9975f02c5 (137.3 s on one host) and the first prime-field version at 8b73b5991 (42.1 s on one host, 63.1 s with one provider on a second machine). Tokens and zero difference were the same in all of them.",
- "gpuRevision": "d896b678d"
+ "gpuRevision": "d896b678d",
+ "gpuBufferReuseRevision": "7566d2142"
 }
