@@ -2,6 +2,23 @@
   "splitConfig": [
     {
       "match": {
+        "packing": "packed-f16-u32",
+        "outputDtype": "f32",
+        "sectionCount": {
+          "lte": 4
+        }
+      },
+      "value": {
+        "op": "gather_split4",
+        "label": "gather_split4_packed_f16",
+        "sectionCount": 4,
+        "variants": {
+          "f32": "packed_f16_vec4_f32_out"
+        }
+      }
+    },
+    {
+      "match": {
         "forcedSectionCount": 4
       },
       "value": {

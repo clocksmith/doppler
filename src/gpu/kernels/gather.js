@@ -148,8 +148,13 @@ function selectSplitGatherConfig(splitEmbedding, outputDtype, forcedSectionCount
       `gather_split8 supports at most ${SPLIT8_GATHER_SECTION_COUNT}.`
     );
   }
+  if (splitEmbedding?.metadata?.packing === 'packed-f16-u32'
+    && (outputDtype !== 'f32' || sectionCount > 4 || (forcedSectionCount != null && forcedSectionCount !== 4))) {
+    throw new Error('[Gather] packed F16 split storage requires split4 and F32 output.');
+  }
   const config = selectKernelRuleValue('gather', 'splitConfig', {
     forcedSectionCount,
+    packing: splitEmbedding?.metadata?.packing ?? null,
     outputDtype,
     sectionCount,
   });
@@ -225,7 +230,7 @@ async function _gatherSplit(
   }
 
   const caps = getKernelCapabilities();
-  if (!caps.hasF16) {
+  if (!caps.hasF16 && splitEmbedding?.metadata?.packing !== 'packed-f16-u32') {
     throw new Error(`[Gather] ${config.label} requires shader-f16 support.`);
   }
   if (splitEmbedding?.dtype !== 'f16' || embeddingDtype !== 'f16') {
@@ -242,6 +247,16 @@ async function _gatherSplit(
   }
   if (!Number.isFinite(hiddenOffset) || hiddenOffset < 0 || (hiddenOffset + hiddenSize) > inputHiddenSize) {
     throw new Error('[Gather] hiddenOffset must select a valid hidden slice inside inputHiddenSize.');
+  }
+  if (splitEmbedding?.metadata?.packing === 'packed-f16-u32') {
+    const limits = getDevice()?.limits;
+    const limit = Math.min(limits?.maxStorageBufferBindingSize, limits?.maxBufferSize);
+    if (!Number.isSafeInteger(inputHiddenSize) || inputHiddenSize % 4 !== 0
+      || !Number.isSafeInteger(hiddenOffset) || !Number.isFinite(limit) || limit <= 0
+      || sections.some(section => !Number.isSafeInteger(section.rowCount * inputHiddenSize * 2)
+        || section.buffer.size < section.rowCount * inputHiddenSize * 2 || section.buffer.size > limit)) {
+      throw new Error('[Gather] Packed F16 split buffers must fit their declared rows and device limits.');
+    }
   }
   assertSplitGatherBindingLimit(config);
 

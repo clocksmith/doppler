@@ -1,0 +1,89 @@
+{
+  "id": "profiles/qwen3-8-27b-orin-prefill",
+  "name": "qwen3-8-27b-orin-prefill",
+  "description": "Opt-in Qwen 3.8 27B Orin investigation profile: packed F16 embedding reads and F32 WideTile Q4K prefill. Decode and artifact identity are unchanged. Short-prompt qualification only.",
+  "intent": "calibrate",
+  "compatibleIntents": [
+    "calibrate"
+  ],
+  "stability": "experimental",
+  "owner": "doppler-core",
+  "createdAtUtc": "2026-11-18T00:00:00Z",
+  "model": "qwen3-8-27b-text-q4k-ehaf16",
+  "runtime": {
+    "inference": {
+      "kernelPathPolicy": {
+        "mode": "capability-aware",
+        "sourceScope": [
+          "manifest"
+        ],
+        "allowSources": [
+          "manifest"
+        ],
+        "onIncompatible": "remap"
+      },
+      "executionPatch": {
+        "addKernels": [
+          {
+            "key": "embed_packed_f16",
+            "kernel": {
+              "kernel": "gather_split4_packed_f16_vec4_f32_out.wgsl",
+              "entry": "gather_vec4_f32_out",
+              "digest": "sha256:86031677d0b64e33fc6166b595ad09aa99a4d2f4d3123bd399ea0cccec45fb6a"
+            }
+          },
+          {
+            "key": "q4_prefill_orin_f32",
+            "kernel": {
+              "kernel": "fused_matmul_q4_widetile_f32.wgsl",
+              "entry": "main",
+              "digest": "sha256:0baee846cbb5d1f82678b1183927485efa08052feaf5d2608bf7f5cf5b69928d"
+            }
+          }
+        ],
+        "set": [
+          {
+            "section": "preLayer",
+            "op": "embed",
+            "kernelKey": "embed_packed_f16"
+          },
+          {
+            "section": "prefill",
+            "op": "q_proj",
+            "kernelKey": "q4_prefill_orin_f32"
+          },
+          {
+            "section": "prefill",
+            "op": "k_proj",
+            "kernelKey": "q4_prefill_orin_f32"
+          },
+          {
+            "section": "prefill",
+            "op": "v_proj",
+            "kernelKey": "q4_prefill_orin_f32"
+          },
+          {
+            "section": "prefill",
+            "op": "o_proj",
+            "kernelKey": "q4_prefill_orin_f32"
+          },
+          {
+            "section": "prefill",
+            "op": "gate_proj",
+            "kernelKey": "q4_prefill_orin_f32"
+          },
+          {
+            "section": "prefill",
+            "op": "up_proj",
+            "kernelKey": "q4_prefill_orin_f32"
+          },
+          {
+            "section": "prefill",
+            "op": "down_proj",
+            "kernelKey": "q4_prefill_orin_f32"
+          }
+        ]
+      }
+    }
+  }
+}

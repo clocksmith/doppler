@@ -24802,6 +24802,20 @@
     ]
    },
    "variants": {
+    "packed_f16_vec4_f32_out": {
+     "wgsl": "gather_split4_packed_f16_vec4_f32_out.wgsl",
+     "entryPoint": "gather_vec4_f32_out",
+     "workgroup": [64,1,1],
+     "requires": [],
+     "outputDtype": "f32",
+     "description": "Packed F16 bits in u32 split buffers -> F32 output without shader-f16",
+     "reachability": {
+      "status": "code-dispatched",
+      "inlineConfigs": [],
+      "ruleChains": [],
+      "wgslOnDisk": true
+     }
+    },
     "f16_vec4_f32_out": {
      "wgsl": "gather_split4_f16_vec4_f32_out.wgsl",
      "entryPoint": "gather_vec4_f32_out",

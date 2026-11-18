@@ -35,6 +35,7 @@ import {
 } from './tensors/tensor-loader.js';
 import { annotateTensorLoadError } from './tensor-load-error.js';
 import { loadEmbeddings } from './embedding-loader.js';
+import { resolveEmbeddingKernel } from './embedding-limit-preflight.js';
 import { loadPerLayerInputWeights } from './per-layer-input-loader.js';
 import { loadLayer } from './layer-loader.js';
 import { loadFinalWeights } from './final-weights-loader.js';
@@ -383,7 +384,7 @@ export async function _loadEmbeddings(_onProgress) {
       // gather.wgsl reads embeddings as f32; downcasting here corrupts reads.
       preserveF32Embeddings: String(this.manifest?.quantizationInfo?.embeddings ?? '').toLowerCase() === 'f32',
       hostHasShaderF16: this.gpuCapabilities?.hasF16 ?? null,
-      embeddingKernel: this.manifest?.inference?.execution?.kernels?.embed ?? null,
+      embeddingKernel: resolveEmbeddingKernel(this.manifest, this.representationPaths ?? []),
     };
 
     this.embeddings = await loadEmbeddings(ctx);

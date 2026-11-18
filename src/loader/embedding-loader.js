@@ -26,6 +26,7 @@ import {
   canAutoSplitGpuEmbedding,
   createGpuResidentEmbeddingLimitError,
   expectsSplitGpuEmbeddingKernel,
+  expectsPackedF16SplitGpuEmbeddingKernel,
   getEmbeddingFloatDtype,
   getSplitGpuEmbeddingKernelSectionCount,
   getSplitGpuEmbeddingRequiredStorageBuffers,
@@ -152,7 +153,16 @@ function expectsSplitGpuEmbedding(ctx) {
 }
 
 async function createSplitGpuEmbeddingWeightBuffer(ctx, name, location) {
+  const packedF16 = expectsPackedF16SplitGpuEmbeddingKernel(ctx.embeddingKernel);
   const explicitSplitKernel = expectsSplitGpuEmbedding(ctx);
+  if (packedF16 && (String(location.dtype).toUpperCase() !== 'F16'
+    || !Array.isArray(location.shape) || location.shape.length !== 2
+    || !location.shape.every(value => Number.isSafeInteger(value) && value > 0)
+    || location.shape[1] % 4 !== 0 || hasSourceTransform(location)
+    || ctx.resolveWeightLayout(location) !== 'row' || typeof ctx.loadShardRange !== 'function')) {
+    throw new Error('[Loader] Packed F16 split gather requires row-major F16 rows, aligned width and range loading.');
+  }
+
   const autoSplitEligible = !explicitSplitKernel && canAutoSplitGpuEmbedding({
     location,
     embeddingKernel: ctx.embeddingKernel,
@@ -162,7 +172,7 @@ async function createSplitGpuEmbeddingWeightBuffer(ctx, name, location) {
   if (!explicitSplitKernel && !autoSplitEligible) {
     return null;
   }
-  if (ctx.hostHasShaderF16 === false) {
+  if (ctx.hostHasShaderF16 === false && !packedF16) {
     return null;
   }
   if (!location?.shape || location.shape.length !== 2) {
@@ -181,7 +191,7 @@ async function createSplitGpuEmbeddingWeightBuffer(ctx, name, location) {
   }
 
   const dtype = getEmbeddingFloatDtype(location);
-  if (dtype !== 'f16') {
+  if (dtype !== 'f16' || (packedF16 && location.shape[1] % 4 !== 0)) {
     return null;
   }
 
@@ -199,7 +209,7 @@ async function createSplitGpuEmbeddingWeightBuffer(ctx, name, location) {
   }
 
   const totalBytes = rows * rowBytes;
-  if (totalBytes <= maxBytes) {
+  if (totalBytes <= maxBytes && !packedF16) {
     return null;
   }
 
@@ -229,7 +239,7 @@ async function createSplitGpuEmbeddingWeightBuffer(ctx, name, location) {
       'Loader',
       `Embedding "${name}" needs ${sectionCount} GPU sections; active split kernel supports ` +
       `at most ${maxSplitSections}. ` +
-      'Using CPU-backed streaming.'
+      'The split GPU embedding cannot be loaded.'
     );
     return null;
   }
@@ -266,6 +276,7 @@ async function createSplitGpuEmbeddingWeightBuffer(ctx, name, location) {
     return createSplitWeightBuffer(sections, dtype, layout, location.shape, name, {
       splitGatherSectionCount: explicitSplitSections > 0 ? explicitSplitSections : null,
       sourceKernel: ctx.embeddingKernel,
+      ...(packedF16 ? { packing: 'packed-f16-u32' } : {}),
     });
   } catch (error) {
     for (const buffer of createdBuffers) {
@@ -303,6 +314,9 @@ export async function loadEmbeddings(ctx) {
     const loc = ctx.tensorLocations.get(name);
     const packedLiteRTTensor = await createLiteRTInt4GpuEmbeddingWeightBuffer(ctx, name, loc);
     const splitGpuTensor = packedLiteRTTensor ? null : await createSplitGpuEmbeddingWeightBuffer(ctx, name, loc);
+    if (expectsPackedF16SplitGpuEmbeddingKernel(ctx.embeddingKernel) && !splitGpuTensor) {
+      throw new Error('[Loader] Packed F16 split embedding does not fit device limits; no materialization fallback.');
+    }
     if (!packedLiteRTTensor && !splitGpuTensor) {
       const limitError = createGpuResidentEmbeddingLimitError({
         name,

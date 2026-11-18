@@ -16,7 +16,7 @@ export type WeightStorageEncoding = 'signed' | 'offset_binary';
 export type WeightScaleDtype = 'f16' | 'bf16' | 'f32';
 
 export interface WeightMetadata {
-  readonly packing?: 'w8a8-row-v1' | 'fp8-block-v1';
+  readonly packing?: 'w8a8-row-v1' | 'fp8-block-v1' | 'packed-f16-u32';
   readonly encoding?: 'e4m3fn' | 'e5m2';
   readonly blockShape?: [number, number];
   readonly blockBytes?: number;

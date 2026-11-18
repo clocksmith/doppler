@@ -28,6 +28,7 @@ import {
 } from '../../storage/registry.js';
 import { isNodeRuntime } from '../../storage/runtime-env.js';
 import { resolveManifestGpuResidentEmbeddingLimitError } from '../../loader/embedding-limit-preflight.js';
+import { compileExecutionV1 } from '../../inference/pipelines/text/execution/execution-v1.js';
 import { createDopplerLoader } from '../../loader/doppler-loader.js';
 import { getKernelCapabilities, getPlatformConfig, initDevice } from '../../gpu/device.js';
 import { runWithShaderSourceScope } from '../../gpu/kernels/shader-source-scope.js';
@@ -280,10 +281,24 @@ export function createDopplerRuntimeService({
       }
       : await resolveManifestArtifactSource(resolved, manifestPayload);
     const gpu = deviceBinding ?? await acquireHostDeviceBinding(options.signal);
+    // Early validation uses the same compiler as pipeline initialization. Never interpret a raw patch as a kernel authority.
+    const embeddingExecution = options.runtimeConfig?.inference?.executionPatch == null ? null : compileExecutionV1({
+      manifestInference: resolvedArtifactSource.manifest.inference,
+      modelId: resolvedArtifactSource.manifest.modelId,
+      numLayers: resolvedArtifactSource.manifest.architecture?.numLayers,
+      headDim: resolvedArtifactSource.manifest.architecture?.headDim,
+      weightDtype: resolvedArtifactSource.manifest.quantizationInfo?.weights ?? null,
+      capabilities: getKernelCapabilities(), platform: getPlatformConfig(),
+      runtimeSession: options.runtimeConfig.inference.session,
+      runtimeCompute: options.runtimeConfig.inference.compute,
+      kernelPathPolicy: options.runtimeConfig.inference.kernelPathPolicy,
+      executionPatch: options.runtimeConfig.inference.executionPatch,
+    });
     const embeddingLimitError = resolveManifestGpuResidentEmbeddingLimitError(
       resolvedArtifactSource.manifest,
       {
         storageManifest: resolvedArtifactSource.storageManifest,
+        resolvedKernelPaths: embeddingExecution ? [embeddingExecution.runtimeInferencePatch.kernelPath] : [],
         runtimeConfig: options.runtimeConfig,
       }
     );

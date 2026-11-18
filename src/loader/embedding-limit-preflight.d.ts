@@ -3,7 +3,11 @@ export const MAX_SPLIT8_EMBEDDING_SECTIONS: 8;
 export const MAX_SPLIT_EMBEDDING_SECTIONS: 8;
 export const SPLIT_EMBEDDING_STORAGE_BUFFER_OVERHEAD: 2;
 
+export function resolveEmbeddingKernel(manifest: unknown, resolvedKernelPaths?: unknown[]): { kernel: string; entry: string } | null;
+
 export function getEmbeddingFloatDtype(location: unknown, embeddingKernel?: unknown): string;
+
+export function expectsPackedF16SplitGpuEmbeddingKernel(embeddingKernel: unknown): boolean;
 
 export function expectsSplitGpuEmbeddingKernel(embeddingKernel: unknown): boolean;
 
@@ -40,6 +44,7 @@ export function resolveManifestGpuResidentEmbeddingLimitError(
   manifest: unknown,
   options?: {
     storageManifest?: unknown;
+    resolvedKernelPaths?: unknown[];
     runtimeConfig?: unknown;
   }
 ): Error | null;

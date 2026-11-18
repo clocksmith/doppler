@@ -231,6 +231,7 @@ export const KERNEL_REF_CONTENT_DIGESTS = Object.freeze({
   "gather_q4_0.wgsl#main": "5385c421ac8423132406168faeac5e2ede51ea1b3df6f6f19baa567e0dc9d0b5",
   "gather_split4_f16_vec4_f16_out.wgsl#gather_vec4_f16_out": "09f630e6f04531c4abd7379d38c60859931fde981e9edc4f0ef7aa17eab08c00",
   "gather_split4_f16_vec4_f32_out.wgsl#gather_vec4_f32_out": "70e292d154a15c32ce54416d3999cfd9c24292b133c593f653b955e534541a50",
+  "gather_split4_packed_f16_vec4_f32_out.wgsl#gather_vec4_f32_out": "86031677d0b64e33fc6166b595ad09aa99a4d2f4d3123bd399ea0cccec45fb6a",
   "gather_split8_f16_vec4_f16_out.wgsl#gather_vec4_f16_out": "5a6922136dad0cf05059533f24ea0989875c3659b464dfc7528518d57ce1e0c1",
   "gather_split8_f16_vec4_f32_out.wgsl#gather_vec4_f32_out": "bc88d2106f80121ccb1f91f1ee0980173fe88bec5fe04cc941bdbc59b28e8ae1",
   "gather_vec4_f16_out.wgsl#gather_vec4_f16_out": "9e3025b0a7d36eeebaa14034b7b19ec7bea13f7d82563b4850da985fd9776c61",

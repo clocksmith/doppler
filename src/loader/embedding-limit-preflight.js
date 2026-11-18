@@ -24,11 +24,39 @@ export function getEmbeddingFloatDtype(location, embeddingKernel = null) {
   });
 }
 
+// Materialization follows the selected execution graph, never an uncompiled patch.
+export function resolveEmbeddingKernel(manifest, resolvedKernelPaths = []) {
+  const declared = manifest?.inference?.execution?.kernels?.embed ?? null;
+  if (!Array.isArray(resolvedKernelPaths)) throw new Error('[Loader] Resolved kernel paths must be an array.');
+  if (resolvedKernelPaths.length === 0) return declared;
+  // Legacy matmul-only paths do not own embedding selection.
+  if (resolvedKernelPaths.every(path => path?.preLayer == null)) return declared;
+  const selected = resolvedKernelPaths.map(path => {
+    const steps = path?.preLayer?.filter(step => step.op === 'embed') ?? [];
+    if (steps.length !== 1) throw new Error('[Loader] Each resolved path requires exactly one embedding step.');
+    const step = steps[0];
+    if (typeof step.kernel !== 'string' || typeof step.entry !== 'string') {
+      throw new Error('[Loader] Resolved embedding kernel and entry are required.');
+    }
+    return { kernel: step.kernel, entry: step.entry };
+  });
+  if (selected.some(step => step.kernel !== selected[0].kernel || step.entry !== selected[0].entry)) {
+    throw new Error('[Loader] Reachable execution paths disagree on embedding materialization.');
+  }
+  return selected[0];
+}
+
+export function expectsPackedF16SplitGpuEmbeddingKernel(kernel) {
+  return kernel?.kernel === 'gather_split4_packed_f16_vec4_f32_out.wgsl'
+    && kernel?.entry === 'gather_vec4_f32_out';
+}
+
 export function expectsSplitGpuEmbeddingKernel(embeddingKernel) {
   return getSplitGpuEmbeddingKernelSectionCount(embeddingKernel) > 0;
 }
 
 export function getSplitGpuEmbeddingKernelSectionCount(embeddingKernel) {
+  if (expectsPackedF16SplitGpuEmbeddingKernel(embeddingKernel)) return MAX_SPLIT4_EMBEDDING_SECTIONS;
   const kernel = embeddingKernel?.kernel;
   const entry = embeddingKernel?.entry;
   if (kernel === 'gather_split4_f16_vec4_f32_out.wgsl' && entry === 'gather_vec4_f32_out') {
@@ -273,7 +301,7 @@ export function resolveManifestGpuResidentEmbeddingLimitError(manifest, options 
   if (!Array.isArray(overrides) || overrides.length === 0) {
     return null;
   }
-  const embeddingKernel = manifest?.inference?.execution?.kernels?.embed ?? null;
+  const embeddingKernel = resolveEmbeddingKernel(manifest, options.resolvedKernelPaths ?? []);
   for (const name of overrides) {
     const location = tensorLocations[name];
     if (location?.role !== 'embedding') {
