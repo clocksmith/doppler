@@ -4,6 +4,13 @@ Historical package notes are preserved outside the runtime archive in
 `docs/status/archive/package-changelog-through-0.6.1.md` and the earlier
 `package-changelog-through-0.4.15.md` snapshot in that directory.
 
+## [0.7.6] - 2026-11-18
+
+### Correctness
+
+- Apply the caller’s logit mask before sampling each decode token, including on
+  linear-attention models used for constrained tool calls.
+
 ## [0.7.5] - 2026-11-17
 
 ### Performance
