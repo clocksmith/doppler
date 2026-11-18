@@ -23,7 +23,7 @@ export declare function getTokenInspectorTokenCount(): number;
 export declare function setTokenInspectorActive(active: boolean): void;
 export declare function setTokenInspectorOptions(options?: TokenInspectorOptions): void;
 export declare function getTokenInspectorSelection(): number;
-export declare function selectToken(index: number, options?: { focus?: boolean }): void;
+export declare function selectToken(index: number, options?: { focus?: boolean; notify?: boolean }): void;
 export declare function appendTokenInspectorToken(token: InspectedToken, streamContainer?: HTMLElement | null, cardContainer?: HTMLElement | null): void;
 export declare function renderTokenInspector(tokens: InspectedToken[], streamContainer: HTMLElement, cardContainer: HTMLElement): void;
 export declare function updateTokenInspector(tokens: InspectedToken[]): void;

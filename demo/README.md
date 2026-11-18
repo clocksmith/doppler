@@ -64,7 +64,7 @@ updates both its alternatives and its layer chart. All bars use one scale.
 The preview works without WebGPU or model weights.
 
 **Load full replay · 23 MB** fetches the full activity recording on demand.
-Replay answer starts the synchronized answer and layer player from the beginning.
+The token inspector keeps the complete answer available. Selecting a token seeks its activity. Replay answer follows the recorded token and layer timing from the beginning.
 A visitor can keep typing or cancel a pending download by changing the model.
 The recorded answer stays outside live chat history. Run on this device names
 the model for live answers. Another prompt fills an empty composer or changes an
@@ -77,8 +77,8 @@ buffered and decoded together at most once per animation frame, preserving split
 Unicode characters and tokenizer spacing. The existing answer text node receives
 only the changed suffix; token updates never rebuild the conversation or reload
 the page. Auto-scroll follows the answer only while the reader stays at the bottom.
-Stop flushes pending text and retains the partial answer without publishing a
-completed receipt. Completion reconciles the text with the receipt, then displays
+Stop cancels model loading or generation. During generation it flushes pending text and retains the partial answer without publishing a
+completed receipt. Live runs stay in memory until saved. Full run and grid files can contain prompts, answers and token IDs. Save summary exports only numerical timing and token counts. Opening a JSON or gzip recording checks both file size and expanded size and can be cancelled during parsing. Completion reconciles the text with the receipt, then displays
 token probabilities, X-Ray evidence, and final timing. Image attachment and live token-rate
 controls are not offered.
 Every live answer records each generated token's exact ID and a bounded set of

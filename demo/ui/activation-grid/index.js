@@ -1,3 +1,4 @@
+import { readRecordingJson, readRecordingBlob } from '../recording-import.js';
 import config from './config.json' with { type: 'json' };
 import previews from './previews.json' with { type: 'json' };
 import previewData from '../../assets/activity-previews.json' with { type: 'json' };
@@ -28,6 +29,8 @@ let revision = 0;
 let exampleLoading = false;
 let exampleError = '';
 /** @type {AbortController | null} */
+let compareRequest = null;
+/** @type {AbortController | null} */
 let exampleRequest = null;
 let source = 'Saved recording';
 let currentPrompt = '';
@@ -53,10 +56,22 @@ export function openAnswerPreview(fingerprint) {
 
 /** @type {typeof import('./index.js').selectPreviewWord} */
 export function selectPreviewWord(index, text) {
-  if (previewIndex === null) return;
+  if (previewIndex === null) {
+    // The inspector calls here only for the current receipt; a live run has its own clock.
+    if (source === 'Current run' || !recording?.inputTokenIds?.length) return;
+    const position = recording.inputTokenIds.length - 1 + index;
+    const timeline = points();
+    if (!timeline.length) return;
+    stopPlayback();
+    follow = false;
+    cursor = nearestIndex(timeline, position);
+    $('activation-position').value = String(position);
+    queuePaint();
+    return;
+  }
   previewIndex = index;
   const values = previewData.answer.layerRms[index] ?? [];
-  $('preview-word').textContent = `“${text.trim()}”`;
+  $('preview-word').textContent = text.trim() ? `“${text.trim()}”` : text ? 'whitespace' : 'empty token';
   const bars = $('preview-bars');
   const present = values.some(value => typeof value === 'number');
   bars.setAttribute('aria-label', present
@@ -412,6 +427,7 @@ function paint() {
 function queuePaint() { if (scheduled === null) scheduled = requestAnimationFrame(paint); }
 
 export function clearActivationRecording() {
+  compareRequest?.abort();
   revision++; exampleError = ''; previewIndex = null; openingHint = false;
   exampleRequest?.abort(); exampleRequest = null; exampleLoading = false;
   $('activity-example').disabled = false;
@@ -591,16 +607,29 @@ export function initActivationGrid(options = {}) {
     $(/** @type {'activity-mode'} */ (id)).addEventListener('change', () => { stopPlayback(); $('activity-page').value = '0'; queuePaint(); });
   }
   $('activity-page').addEventListener('input', queuePaint);
-  $('activity-compare').addEventListener('click', () => $('activity-compare-file').click());
+  $('activity-compare').addEventListener('click', () => compareRequest ? compareRequest.abort() : $('activity-compare-file').click());
   $('activity-adjacent').addEventListener('click', () => { baseline = null; queuePaint(); });
   $('activity-compare-file').addEventListener('change', async () => {
+    const file = $('activity-compare-file').files?.[0], selected = recording;
+    if (!file || !selected) return;
+    compareRequest?.abort();
+    const request = new AbortController();
+    compareRequest = request;
+    $('activity-compare').textContent = 'Cancel opening comparison';
     try {
-      const file = $('activity-compare-file').files?.[0];
-      if (!file || !recording) return;
-      if (file.size > config.maxImportBytes) throw new Error('Comparison file exceeds the import limit.');
-      const next = validateRecording(JSON.parse(await file.text()));
-      assertMatchedRuns(recording, next); baseline = next; queuePaint();
-    } catch (error) { $('activity-availability').hidden = false; $('activity-availability').textContent = String(error); }
+      const { value } = await readRecordingJson(file, { signal: request.signal });
+      if (recording !== selected || request.signal.aborted) return;
+      const next = validateRecording(value);
+      assertMatchedRuns(selected, next); baseline = next; queuePaint();
+    } catch (error) {
+      if (!request.signal.aborted) { $('activity-availability').hidden = false; $('activity-availability').textContent = String(error); }
+    } finally {
+      if (compareRequest === request) {
+        compareRequest = null;
+        $('activity-compare-file').value = '';
+        $('activity-compare').textContent = 'Compare saved run';
+      }
+    }
   });
   const narrow = matchMedia('(max-width: 1099px)');
   const placePreview = () => {
@@ -667,19 +696,19 @@ export async function loadActivityExample(mode = config.defaultMode) {
     const metadata = await metadataResponse.json();
     const response = await fetch(new URL('../../assets/activity-example.json.gz', import.meta.url), { signal: request.signal });
     if (!response.ok) throw new Error('Example recording is unavailable.');
-    const bytes = await response.arrayBuffer();
+    const file = await readRecordingBlob(response, metadata.compressedBytes);
+    const bytes = await file.arrayBuffer();
     const hash = [...new Uint8Array(await crypto.subtle.digest('SHA-256', bytes))].map(n => n.toString(16).padStart(2, '0')).join('');
     if (hash !== metadata.sha256 || bytes.byteLength !== metadata.compressedBytes) throw new Error('Example recording integrity check failed.');
-    const stream = new Blob([bytes]).stream().pipeThrough(new DecompressionStream('gzip'));
-    const text = await new Response(stream).text();
-    if (text.length !== metadata.decodedBytes) throw new Error('Example recording length differs.');
+    const { value, byteLength } = await readRecordingJson(file, { signal: request.signal, maxBytes: metadata.decodedBytes });
+    if (byteLength !== metadata.decodedBytes || !value || typeof value !== 'object') throw new Error('Example recording differs from its description.');
     if (revision !== expectedRevision || active) return;
     $('activity-playback').value = mode === 'model-paths' ? 'captures' : 'tokens';
     $('activity-layer').value = '-1';
     $('activity-detail').value = 'overview';
     $('activity-weight').value = '';
     $('activity-page').value = '0';
-    openActivationRecording({ ...JSON.parse(text), prompt: metadata.prompt }, text.length, { preserveDraft: true });
+    openActivationRecording({ ...value, prompt: metadata.prompt }, byteLength, { preserveDraft: true });
     // The list now holds this recording's views; only then can the requested one be chosen.
     syncViewList(activityModes(recording));
     if ([...$('activity-mode').options].some(option => option.value === mode && !option.disabled)) $('activity-mode').value = mode;

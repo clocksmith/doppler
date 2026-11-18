@@ -1,6 +1,6 @@
 export const SHELL_MANIFEST_SCHEMA = 'doppler.demo-shell-manifest/v1';
-export const SHELL_MANIFEST_DIGEST = 'sha256:46c3fe5bcd929d55f35c749e142e09107c2c20360e44fb2eb67ea6fa4512a099';
-export const CACHE_NAME = 'doppler-demo-shell-46c3fe5bcd929d55';
+export const SHELL_MANIFEST_DIGEST = 'sha256:fc8098ad46682911896243d285c1063e8b3453cf448c37bd584141ff991b60ba';
+export const CACHE_NAME = 'doppler-demo-shell-fc8098ad46682911';
 export const APP_SHELL = Object.freeze([
   "/demo/assets/activity-preview-attention-prefill.png",
   "/demo/assets/activity-preview-contributions.png",
@@ -51,6 +51,8 @@ export const APP_SHELL = Object.freeze([
   "/demo/ui/dom.js",
   "/demo/ui/precision-replay/index.js",
   "/demo/ui/precision-replay/live.js",
+  "/demo/ui/recording-import-worker.js",
+  "/demo/ui/recording-import.js",
   "/demo/ui/state.js",
   "/demo/ui/styles/app.css",
   "/demo/ui/styles/demo-components.css",
@@ -792,6 +794,7 @@ export const APP_SHELL = Object.freeze([
   "/src/loader/experts/routed-expert-plan.js",
   "/src/loader/experts/routed-expert-prefill.js",
   "/src/loader/experts/routed-expert-source.js",
+  "/src/loader/experts/routed-expert-trace.js",
   "/src/loader/experts/tiered-expert-cache.js",
   "/src/loader/experts/tiered-expert-plan.js",
   "/src/loader/final-weights-loader.js",

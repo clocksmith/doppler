@@ -181,6 +181,8 @@ async function loadSelectedModel({ entry = selectedEntry(), runtimeProfile = sta
   // Phases after the manifest read or fetch model files; seeing none means no weights moved.
   let sawModelFiles = false;
   state.modelLoadNote = null;
+  const controller = new AbortController();
+  state.abortController = controller;
   state.modelBusy = true;
   state.modelStatus[entry.modelId] = 'loading';
   syncModelControls();
@@ -189,14 +191,23 @@ async function loadSelectedModel({ entry = selectedEntry(), runtimeProfile = sta
   try {
     const model = await dr.load(entry.modelId, {
       cache: 'opfs',
+      signal: controller.signal,
       runtimeProfile,
       onProgress: (event) => {
+        if (controller.signal.aborted) return;
         if (event?.phase && !['resolve', 'manifest'].includes(event.phase)) sawModelFiles = true;
         setProgress(event);
       },
     });
-    if (state.model && state.model !== model) {
+    if (state.model && state.model !== model && !controller.signal.aborted) {
       await state.model.unload().catch(() => {});
+      state.modelStatus[state.modelId] = 'stored';
+      state.model = null;
+      state.modelId = null;
+    }
+    if (controller.signal.aborted) {
+      if (state.model !== model) await model.unload();
+      controller.signal.throwIfAborted();
     }
     for (const modelId of Object.keys(state.modelStatus)) {
       if (state.modelStatus[modelId] === 'loaded') state.modelStatus[modelId] = 'stored';
@@ -215,11 +226,16 @@ async function loadSelectedModel({ entry = selectedEntry(), runtimeProfile = sta
     let storedNow = wasStored;
     try { storedNow = (await dr.listPersistentModels()).some((item) => item.modelId === entry.modelId); } catch { /* keep what was known */ }
     if (storedNow) state.modelStatus[entry.modelId] = 'stored';
+    if (controller.signal.aborted) {
+      setPhase('Stopped');
+      throw controller.signal.reason;
+    }
     state.modelLoadNote = { modelId: entry.modelId, text: loadFailureNote(entry, error, { sawModelFiles, wasStored, storedNow }) };
     if (isNoAdapterError(error)) state.webgpuAvailable = false;
     setPhase('Load failed');
     throw error;
   } finally {
+    state.abortController = null;
     state.modelBusy = false;
     setProgress(null);
     renderModelOptions();
@@ -295,7 +311,7 @@ function bindModelControls() {
   if (action && action.dataset.bound !== 'true') {
     action.dataset.bound = 'true';
     action.addEventListener('click', () => {
-      loadSelectedModel().catch((error) => setPhase(`Load failed: ${error.message}`));
+      loadSelectedModel().catch((error) => setPhase(error.name === 'AbortError' ? 'Stopped' : `Load failed: ${error.message}`));
     });
   }
   const retry = $('webgpu-retry');

@@ -155,8 +155,8 @@ function renderBroadFlips() {
     <article class="precision-replay-mini-card">
       <div class="precision-replay-mini-id">${escapeHtml(flip.id)}</div>
       <div class="precision-replay-mini-text">${escapeHtml(flip.text)}</div>
-      <div class="precision-replay-mini-line">32-bit picked: <code>${escapeHtml(flip.modes.f32_forward.winnerText)}</code></div>
-      <div class="precision-replay-mini-line">16-bit picked: <code>${escapeHtml(flip.modes.f16_forward.winnerText)}</code></div>
+      <div class="precision-replay-mini-line">32-bit picked: <code>${escapeHtml(visibleToken(flip.modes.f32_forward.winnerText))}</code></div>
+      <div class="precision-replay-mini-line">16-bit picked: <code>${escapeHtml(visibleToken(flip.modes.f16_forward.winnerText))}</code></div>
     </article>
   `).join('');
 }
@@ -221,10 +221,10 @@ function renderWatchPairs(prompt) {
   watchEl.innerHTML = presentPairs.map((pair) => `
     <article class="precision-replay-card">
       <div class="type-label">Hand-picked pair</div>
-      <div class="precision-replay-watch-title"><code>${escapeHtml(pair.left.decodedText)}</code> vs <code>${escapeHtml(pair.right.decodedText)}</code></div>
-      <div class="precision-replay-watch-line">Exact: <code>${escapeHtml(pair.modes.exact.winnerText)}</code> (${escapeHtml(formatFixed(pair.modes.exact.gap))})</div>
-      <div class="precision-replay-watch-line">32-bit: <code>${escapeHtml(pair.modes.f32_forward.winnerText)}</code> (${escapeHtml(formatFixed(pair.modes.f32_forward.gap))})</div>
-      <div class="precision-replay-watch-line">16-bit: <code>${escapeHtml(pair.modes.f16_forward.winnerText)}</code> (${escapeHtml(formatFixed(pair.modes.f16_forward.gap))})</div>
+      <div class="precision-replay-watch-title"><code>${escapeHtml(visibleToken(pair.left.decodedText))}</code> vs <code>${escapeHtml(visibleToken(pair.right.decodedText))}</code></div>
+      <div class="precision-replay-watch-line">Exact: <code>${escapeHtml(visibleToken(pair.modes.exact.winnerText))}</code> (${escapeHtml(formatFixed(pair.modes.exact.gap))})</div>
+      <div class="precision-replay-watch-line">32-bit: <code>${escapeHtml(visibleToken(pair.modes.f32_forward.winnerText))}</code> (${escapeHtml(formatFixed(pair.modes.f32_forward.gap))})</div>
+      <div class="precision-replay-watch-line">16-bit: <code>${escapeHtml(visibleToken(pair.modes.f16_forward.winnerText))}</code> (${escapeHtml(formatFixed(pair.modes.f16_forward.gap))})</div>
     </article>
   `).join('');
 }
@@ -282,7 +282,7 @@ function renderCandidateTable(prompt, slice) {
     return `
       <tr class="${rowClasses}">
         <td>${index + 1}</td>
-        <td><code>${escapeHtml(decode(tokenId))}</code></td>
+        <td><code>${escapeHtml(visibleToken(decode(tokenId)))}</code></td>
         <td>${escapeHtml(formatFixed(scores.exact.get(tokenId)))}</td>
         <td>${escapeHtml(formatFixed(scores.f32_forward.get(tokenId)))}</td>
         <td>${escapeHtml(formatFixed(scores.f16_forward.get(tokenId)))}</td>

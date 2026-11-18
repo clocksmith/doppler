@@ -20,7 +20,7 @@ export async function checkLayerMap(page) {
   await page.locator('.activity-history canvas').focus();
   await page.keyboard.press('ArrowLeft');
   await page.waitForFunction(()=>document.querySelector('.activity-history canvas').getAttribute('aria-valuenow')==='22');
-  assert.equal(await page.locator('#output-text').textContent(),'The','History navigation also rewinds the matching answer');
+  assert.equal(await page.locator('.token-chip.is-selected').textContent(), 'The', 'History navigation selects the matching answer token');
   await page.locator('.activity-layer-tile').nth(3).click();
   await page.locator('.activity-layer-detail').waitFor({state:'visible'});
   assert.match(await page.locator('.activity-layer-detail').textContent(),/Full attention/);
@@ -69,7 +69,12 @@ export async function checkFirstLoadLayout(page, empty = false) {
       assert.equal(await page.locator('#activity-mode').isVisible(), true, 'The replay exposes its view selector');
       assert.equal(await page.locator('#activation-player').isVisible(), true);
       const example = await page.locator('#shuffle-btn').boundingBox();
-      assert(example && example.height <= 44, 'The example action fits one line beside Send');
+      assert(example && example.height <= 44, 'The example action fits a single line');
+      assert(await page.locator('#shuffle-btn').evaluate(button => {
+        const range = document.createRange(); range.selectNodeContents(button);
+        const text = range.getBoundingClientRect(), box = button.getBoundingClientRect();
+        return text.left >= box.left && text.right <= Math.min(box.right, innerWidth);
+      }), 'Another prompt remains fully visible');
       await page.locator('#inspection-workspace').screenshot({ path: `.cache/demo-first-load/activity-${width}.png` });
     }
   }
@@ -172,6 +177,9 @@ export async function checkRealActivityPlayback(page) {
   assert.equal(await page.locator('#activation-record').isChecked(), false, 'Recording opt-out survives reload');
   await page.locator('#activity-example').click();
   await page.locator('#activation-player').waitFor();
+  assert.equal(await page.locator('.token-chip').count(), sample.tokens.length);
+  await page.getByRole('button', { name: 'Next token →' }).click();
+  assert.equal(await page.inputValue('#activation-position'), String(Number(promptPosition) + 3));
   assert.equal(await page.locator('#chat-thread .chat-message-text').first().textContent(), sample.prompt);
   assert.match(await page.locator('#recorded-run-note').textContent(), /recorded/i);
   assert.equal(await page.locator('#activity-explanation').isVisible(), false);
@@ -290,8 +298,10 @@ export async function checkRealActivityPlayback(page) {
   assert.match(await page.locator('#activation-status').textContent(), /0 missing captures/);
   assert.match(await page.locator('#activity-legend').textContent(), /stored keys and values/);
   assert.equal(await page.inputValue('#prompt-input'), 'Explain why the sky is blue in one sentence.', 'Offline activity exports retain their prompt');
-  // KV captures end early. The layer-output timeline spans the whole exported answer.
+  // Wait for the newly selected view's timeline before reading its final position.
+  const lastKvPoint = Number(await page.locator('#activation-scrub').getAttribute('max'));
   await page.selectOption('#activity-mode', 'layer-output');
+  await page.waitForFunction(previous => Number(document.querySelector('#activation-scrub').max) > previous, lastKvPoint);
   await page.locator('#activation-scrub').fill(await page.locator('#activation-scrub').getAttribute('max'));
   await page.waitForFunction(text => document.querySelector('#output-text').textContent === text, sample.outputText);
   await page.unroute('**/*');

@@ -1,3 +1,4 @@
+import { readRecordingJson } from './ui/recording-import.js';
 import { state } from './ui/state.js';
 import { getActivationRecording, importActivationRecording, isActivationRecordingFile,
   openActivationRecording, clearActivationRecording } from './ui/activation-grid/index.js';
@@ -126,11 +127,12 @@ export function importReportData(value) {
 }
 
 // One Open control takes either a run file or a standalone layer grid recording.
-async function openFile(file) {
+async function openFile(file, signal) {
   if (!file) return;
-  const value = JSON.parse(await file.text());
+  const { value, byteLength } = await readRecordingJson(file, { signal });
+  signal.throwIfAborted();
   if (isActivationRecordingFile(value)) {
-    openActivationRecording(value, file.size);
+    openActivationRecording(value, byteLength);
     setPhase('Opened layer grid recording', { quiet: true });
     return;
   }
@@ -152,25 +154,55 @@ export function exportReport() {
   if (!report) return;
   const name = `doppler-${report.modelId || 'run'}-${Date.now()}.json`;
   downloadJSON(report, name);
+  markRunUnsaved(false);
+}
+
+function warnOnUnload(event) { event.preventDefault(); event.returnValue = ''; }
+
+export function markRunUnsaved(unsaved) {
+  const notice = $('run-unsaved');
+  if (notice) notice.hidden = !unsaved;
+  if (unsaved) globalThis.addEventListener?.('beforeunload', warnOnUnload);
+  else globalThis.removeEventListener?.('beforeunload', warnOnUnload);
 }
 
 export function setExportEnabled(enabled) {
+  markRunUnsaved(false);
+  if ($('export-summary')) $('export-summary').disabled = !enabled;
   const btn = $('export-btn');
   if (btn) btn.disabled = !enabled;
 }
 
 export function initReport() {
   $('export-btn')?.addEventListener('click', exportReport);
+  $('export-summary')?.addEventListener('click', () => {
+    const report = buildReport();
+    if (!report) return;
+    // Numeric allowlist: imported reports can contain arbitrary nested text or token IDs.
+    const summary = { schema: 'doppler.demo-report/v1' };
+    for (const key of ['totalTokens', 'prefillMs', 'decodeMs', 'tokPerSec']) {
+      if (Number.isFinite(report[key])) summary[key] = report[key];
+    }
+    downloadJSON(summary, 'doppler-run-summary.json');
+  });
+  let request = null;
   const importButton = $('import-btn');
   const importFile = $('import-file');
-  importButton?.addEventListener('click', () => importFile?.click());
+  importButton?.addEventListener('click', () => request ? request.abort() : importFile?.click());
   importFile?.addEventListener('change', async () => {
+    request?.abort();
+    const operation = new AbortController(); request = operation;
+    importButton.textContent = 'Cancel opening file';
     try {
-      await openFile(importFile.files?.[0]);
+      await openFile(importFile.files?.[0], operation.signal);
     } catch (error) {
-      setPhase(`Could not open file: ${error.message}`);
+      setPhase(operation.signal.aborted ? 'Opening cancelled.' : `Could not open file: ${error.message}`);
     } finally {
-      importFile.value = '';
+      if (request === operation) {
+        request = null;
+        importButton.textContent = 'Open file';
+        importFile.value = '';
+      }
     }
   });
 }

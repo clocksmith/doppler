@@ -222,6 +222,14 @@ export function syncSendButton(options = {}) {
     if (hint.textContent !== message) hint.textContent = message;
     hint.hidden = !hint.textContent;
   }
+  const stoppable = Boolean(state.abortController) && (state.modelBusy || generating || prefilling);
+  const stop = $('stop-btn');
+  if (stop) {
+    stop.hidden = !stoppable;
+    stop.disabled = state.abortController?.signal.aborted === true;
+    stop.textContent = stop.disabled ? 'Stopping…' : 'Stop';
+  }
+  btn.hidden = stoppable;
   btn.disabled = !ready && !canLoadModel;
   btn.textContent = sendLabel();
   if (!state.webgpuAvailable) {
@@ -253,7 +261,7 @@ async function submitIfReady() {
     }
     if (syncSendButton() && onRun) await onRun();
   } catch (error) {
-    setPhase(`Could not load model: ${error.message}`);
+    setPhase(error.name === 'AbortError' ? 'Stopped' : `Could not load model: ${error.message}`);
     syncSendButton();
   }
 }

@@ -42,7 +42,9 @@ function tokenButton(token, index, text) {
   element.tabIndex = -1;
   element.setAttribute('aria-pressed', 'false');
   const whitespace = !text.trim();
-  element.classList.toggle('token-chip--space', whitespace);
+  element.classList.toggle('token-chip--space', whitespace && text.length > 0);
+  element.classList.toggle('token-chip--empty', !text.length);
+  if (!text.length) element.setAttribute('aria-label', `Empty token ${index + 1}`);
   element.textContent = whitespace && text.includes('\n') ? `↵${text}` : text;
   const probability = Number.isFinite(token?.probability) && token.probability >= 0 && token.probability <= 1 ? token.probability : null;
   element.style.setProperty('--token-surprisal', String(probability === null ? .5 : 1 - probability));
@@ -110,7 +112,6 @@ function renderStream() {
   for (const group of groups) {
     const fork = forksByGroup.get(group.start);
     if (fork) nodes.push(forkSwitcher(fork));
-    if (!group.text) continue;
     chipIndices.push(group.start);
     nodes.push(tokenButton(currentTokens[group.start], group.start, group.text));
   }
@@ -152,12 +153,12 @@ export function getTokenInspectorSelection() {
   return selectedIndex;
 }
 
-export function selectToken(index, { focus = false } = {}) {
+export function selectToken(index, { focus = false, notify = true } = {}) {
   if (!currentTokens.length || !Number.isFinite(index)) return;
   const target = chipIndices.includes(index) ? index : chipIndices.find((entry) => entry >= index) ?? chipIndices.at(-1);
   if (target === undefined) return;
   selectedIndex = target;
-  options.onSelect?.(target, currentTokens[target].text);
+  if (notify) options.onSelect?.(target, currentTokens[target].text);
   syncSelection();
   renderTokenCard();
   setTokenInspectorActive(inspectorActive);
@@ -187,7 +188,7 @@ function renderTokenCard() {
   identity.className = 'token-inspector-primary';
   const badge = document.createElement('code');
   badge.className = 'token-inspector-badge';
-  badge.textContent = JSON.stringify(token.text ?? '');
+  badge.textContent = token.text ? JSON.stringify(token.text) : 'Empty token';
   const id = document.createElement('span');
   id.className = 'token-inspector-id';
   id.textContent = `token ${selectedIndex + 1} / ${currentTokens.length}`;
@@ -246,8 +247,8 @@ function renderTokenCard() {
   const nav = document.createElement('div');
   nav.className = 'token-inspector-nav';
   nav.append(
-    button('← Previous word', () => stepSelection(-1), { disabled: position <= 0 }),
-    button('Next word →', () => stepSelection(1), { disabled: position < 0 || position >= chipIndices.length - 1 })
+    button('← Previous token', () => stepSelection(-1), { disabled: position <= 0 }),
+    button('Next token →', () => stepSelection(1), { disabled: position < 0 || position >= chipIndices.length - 1 })
   );
   card.append(nav);
   boundCardContainer.replaceChildren(card);

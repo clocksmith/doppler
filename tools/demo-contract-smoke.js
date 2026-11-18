@@ -115,6 +115,10 @@ export const dr = {
   async load(modelId, options) {
     controls.loads.push({ modelId, ...options });
     if (controls.failLoad) throw new Error('Contract load failure');
+    if (controls.blockLoad) {
+      controls.blockLoad = false;
+      await new Promise(resolve => { controls.finishLoad = resolve; });
+    }
     return { ...model, modelId };
   },
   async removePersistentModel() { controls.removals++; return true; },
@@ -206,6 +210,23 @@ async function main() {
     assert.equal(await page.locator('#xray-shell').isVisible(), false);
     await checkPreviewAndReplay(page, pageReplayRequests);
     await checkLayerMap(page);
+    const imported = await page.evaluate(async () => {
+      const { readRecordingJson } = await import(new URL('ui/recording-import.js', document.querySelector('script[src$="/demo.js"]').src));
+      const file = new Blob([JSON.stringify({ answer: 'x'.repeat(4096) })]);
+      const compressed = await new Response(file.stream().pipeThrough(new CompressionStream('gzip'))).blob();
+      const opened = await readRecordingJson(compressed);
+      const errors = [];
+      for (const source of [compressed, file]) {
+        try { await readRecordingJson(source, { maxBytes: 256 }); }
+        catch (error) { errors.push(error.message); }
+      }
+      const controller = new AbortController();
+      const pending = readRecordingJson(compressed, { signal: controller.signal });
+      controller.abort();
+      try { await pending; } catch (error) { errors.push(error.name); }
+      return { length: opened.value.answer.length, bytes: opened.byteLength === file.size, errors };
+    });
+    assert.deepEqual(imported, { length: 4096, bytes: true, errors: ['Expanded recording exceeds the import limit.', 'Recording file exceeds the import limit.', 'AbortError'] });
     assert.equal(await page.locator('#run-btn').isEnabled(), false, 'The first prompt has already been submitted in replay');
     assert.equal(await page.locator('#model-select option[value="embedding-only"]').count(), 0);
     await checkFirstLoadLayout(page);
@@ -227,6 +248,15 @@ async function main() {
       '#model-select',
       (element) => element.value === 'contract-model'
     );
+    await page.evaluate(() => { __demoContract.blockLoad = true; });
+    await page.click('#run-btn');
+    await page.locator('#stop-btn').click();
+    assert.equal(await page.locator('#stop-btn').textContent(), 'Stopping…');
+    assert.equal(await page.evaluate(() => __demoContract.loads.at(-1).signal.aborted), true);
+    await page.evaluate(() => __demoContract.finishLoad());
+    await page.waitForFunction(() => document.querySelector('#output-phase').textContent === 'Stopped');
+    assert.equal(await page.evaluate(() => __demoContract.calls.length), 0, 'Stopping a download never submits the draft');
+    assert.equal(await page.inputValue('#prompt-input'), 'A local question');
     await page.click('#model-select-action');
     await page.waitForFunction(() => document.querySelector('#output-phase')?.textContent === 'Ready');
     journey.modelLoaded = await page.$eval(

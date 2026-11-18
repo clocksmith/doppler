@@ -8,5 +8,6 @@ export declare function getReportOutput(report: unknown): string;
 export declare function validateImportedReport(value: unknown): DemoReport;
 export declare function importReportData(value: unknown): DemoReport;
 export declare function exportReport(): void;
+export declare function markRunUnsaved(unsaved: boolean): void;
 export declare function setExportEnabled(enabled: boolean): void;
 export declare function initReport(): void;

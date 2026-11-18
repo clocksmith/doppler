@@ -27,6 +27,8 @@
     "src/inference/pipelines/text/generator/activation/channel-gain.js",
     "src/inference/tokenizers/bundled/normalizer.js",
     "src/inference/tokenizers/bundled/merge.js",
+    "demo/ui/recording-import.js",
+    "demo/ui/recording-import-worker.js",
     "demo/ui/precision-replay/live.js",
     "demo/ui/activation-grid/data.js",
     "demo/ui/activation-grid/index.js",

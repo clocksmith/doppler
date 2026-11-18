@@ -259,7 +259,7 @@
               </div>
               <p id="token-inspection-hint" class="demo-note" hidden>This answer has no saved alternatives.</p>
               <div id="token-inspector-view" class="token-inspector-view" hidden>
-                <p id="branch-help" class="demo-note">Select an underlined word to see what else the model might have written.</p>
+                <p id="branch-help" class="demo-note">Select an underlined token to see what else the model might have written.</p>
                 <div id="token-stream-container" class="token-stream-container"></div>
                 <div id="token-inspector-card-container" class="token-inspector-card-container"></div>
               </div>
@@ -429,10 +429,10 @@
               <label class="sr-only" for="activation-scrub">Capture</label>
               <input id="activation-scrub" type="range" min="0" max="0" value="0" disabled>
             </div>
-            <p id="activity-hint" class="demo-note" hidden>Replay to watch the answer appear alongside its layer activity.</p>
+            <p id="activity-hint" class="demo-note" hidden>Replay to follow each token and its layer activity.</p>
             <div id="activity-unsure" class="demo-controls" hidden>
-              <button id="activity-unsure-prev" class="btn btn-ghost btn-small" type="button">Previous unsure word</button>
-              <button id="activity-unsure-next" class="btn btn-ghost btn-small" type="button">Next unsure word</button>
+              <button id="activity-unsure-prev" class="btn btn-ghost btn-small" type="button">Previous low-probability token</button>
+              <button id="activity-unsure-next" class="btn btn-ghost btn-small" type="button">Next low-probability token</button>
             </div>
             <div id="activity-maps" class="activity-maps">
               <figure class="activity-map">
@@ -467,14 +467,17 @@
             <div id="activity-compare-controls" class="demo-controls" hidden>
               <button id="activity-compare" class="btn btn-ghost" type="button">Compare saved run</button>
               <button id="activity-adjacent" class="btn btn-ghost" type="button">Use previous token</button>
-              <input id="activity-compare-file" type="file" accept="application/json,.json" hidden>
+              <input id="activity-compare-file" type="file" accept="application/json,application/gzip,.json,.gz" hidden>
             </div>
             <div id="activity-files">
+              <p class="demo-note" id="run-unsaved" hidden>Unsaved run in this tab.</p>
+              <p class="demo-note">Full run and grid files can include your prompt, answer and token IDs. A summary shares timing and token counts only.</p>
               <div class="demo-controls">
                 <button id="export-btn" class="btn btn-ghost" type="button" disabled>Save run</button>
+                <button id="export-summary" class="btn btn-ghost" type="button" disabled>Save summary</button>
                 <button id="activation-export" class="btn btn-ghost" type="button" disabled>Save grid</button>
                 <button id="import-btn" class="btn btn-ghost" type="button">Open file</button>
-                <input id="import-file" type="file" accept="application/json,.json" hidden>
+                <input id="import-file" type="file" accept="application/json,application/gzip,.json,.gz" hidden>
               </div>
             </div>
             <div id="activity-previews">
@@ -570,7 +573,8 @@
                 </div>
                 <div class="precision-replay-table-shell">
                   <div class="type-label">Top candidates</div>
-                  <div class="precision-replay-table-wrap">
+                  <p class="demo-note precision-table-hint" id="precision-table-hint">Scroll across for 16-bit scores and differences.</p>
+                  <div class="precision-replay-table-wrap" tabindex="0" role="region" aria-label="Candidate score comparison" aria-describedby="precision-table-hint">
                     <table class="precision-replay-table">
                       <thead>
                         <tr>

@@ -29,7 +29,7 @@ import {
   showTokenInspectorView,
   showWordQuality,
 } from './output.js';
-import { setExportEnabled } from './report.js';
+import { setExportEnabled, markRunUnsaved } from './report.js';
 import {
   activeBranch,
   appendBranchToken,
@@ -41,7 +41,7 @@ import {
   settleBranch,
   startBranch,
 } from './branches.js';
-import { selectToken, setTokenInspectorOptions, updateTokenInspector } from './ui/token-inspector/index.js';
+import { getTokenInspectorSelection, selectToken, setTokenInspectorOptions, updateTokenInspector } from './ui/token-inspector/index.js';
 import {
   isXrayEnabled,
   resetXray,
@@ -83,6 +83,7 @@ function recordInspectionRun(receipt, { prompt, promptInput, config, qualityEnab
   updateXrayPanels(receipt);
   setFinalStats(state.lastRun);
   setExportEnabled(true);
+  markRunUnsaved(true);
 }
 
 // Every live answer records probabilities and alternatives for branching.
@@ -123,10 +124,10 @@ export async function runGeneration() {
   state.lastRun = null;
   state.lastInspection = null;
   delete globalThis.__DOPPLER_DEMO_EVIDENCE__;
-  setGenerating(true);
-  syncModelControls();
   state.abortController = new AbortController();
   const signal = state.abortController.signal;
+  setGenerating(true);
+  syncModelControls();
   const stream = createOutputStream((ids) => model.advanced.decodeTokenIds(ids), signal);
   let receiving = true;
   resetXray();
@@ -200,7 +201,10 @@ export async function runGeneration() {
 }
 
 export function stopGeneration() {
-  state.abortController?.abort();
+  if (!state.abortController || state.abortController.signal.aborted) return;
+  state.abortController.abort();
+  setPhase('Stopping…', { busy: true });
+  syncSendButton();
 }
 
 // ---------------------------------------------------------------------------
@@ -532,22 +536,20 @@ function matchesSample(recording) {
     && JSON.stringify(recording.generatedTokenIds) === JSON.stringify(SAMPLE_INSPECTION_RECEIPT.generatedTokenIds);
 }
 
-// The grid owns the clock. Each completed layer stack identifies a prediction;
-// scrubbing backwards removes later words as well as later numerical activity.
+// The inspector retains the entire recorded answer. Playback moves the selection.
 export function updateRecordedActivity(recording, point) {
-  if (!matchesSample(recording) || state.lastInspection !== SAMPLE_INSPECTION_RECEIPT) return;
-  const firstPrediction = SAMPLE_INSPECTION_RECEIPT.inputTokenIds.length - 1;
-  const boundaries = recording.trace.frames.filter(frame => frame.status === 'captured'
-    && frame.layer === recording.trace.geometry.layers - 1);
-  const count = boundaries.filter(frame => {
+  if (state.lastInspection !== SAMPLE_INSPECTION_RECEIPT || !matchesSample(recording)) return;
+  const receipt = SAMPLE_INSPECTION_RECEIPT;
+  const firstPrediction = receipt.inputTokenIds.length - 1;
+  const count = recording.trace.frames.filter(frame => {
+    if (frame.status !== 'captured' || frame.layer !== recording.trace.geometry.layers - 1) return false;
     const position = frame.tokenStart + frame.tokenIds.length - 1;
     return position >= firstPrediction && position <= point.position && frame.atMs <= point.atMs;
   }).length;
-  const tokens = SAMPLE_INSPECTION_RECEIPT.tokens.slice(0, count);
-  const text = tokens.map(token => token.text).join('');
-  if ($('output-text')?.textContent === text) return;
-  setAssistantText(text);
-  renderWordQuality(count === SAMPLE_INSPECTION_RECEIPT.tokens.length ? SAMPLE_INSPECTION_RECEIPT.quality : null, text);
-  renderTokenInspection(tokens);
-  showTokenInspectorView(tokens.length > 0);
+  const text = receipt.tokens.slice(0, count).map(token => token.text).join('');
+  if ($('output-text')?.textContent !== text) {
+    setAssistantText(text);
+    renderWordQuality(count === receipt.tokens.length ? receipt.quality : null, text);
+  }
+  if (count > 0 && getTokenInspectorSelection() !== count - 1) selectToken(count - 1, { notify: false });
 }

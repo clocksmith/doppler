@@ -563,3 +563,15 @@
 #app .recorded-toolbar { display: flex; align-items: center; gap: .75rem; flex-wrap: wrap; }
 #app .recorded-toolbar:has(#recorded-run-note[hidden]), #app #activity-replay-controls:empty { display: none; }
 #app #recorded-run-note { color: var(--fg); font-weight: 600; }
+
+#app .precision-table-hint { display: none; }
+
+@media (max-width: 600px) {
+  #app .precision-table-hint { display: block; }
+  #app #input-area { display: flex; flex-wrap: wrap; align-items: center; }
+  #app #input-area > :is(.model-picker, .input-row, #send-hint) { flex: 1 1 100%; min-width: 0; }
+  #app #prompt-suggestions { width: auto; }
+  #app #input-area .input-actions { margin-inline-start: auto; }
+  #app .model-select-row { flex-wrap: wrap; }
+  #app .model-select-row #model-select { flex-basis: 100%; width: 100%; }
+}

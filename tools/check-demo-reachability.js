@@ -13,6 +13,7 @@ const ALLOWED_BARE = new Set([
   'doppler-gpu/tooling/evidence',
 ]);
 const PATTERNS = [
+  /\bnew\s+Worker\(new URL\(\s*['"]([^'"]+)['"]\s*,\s*import\.meta\.url\s*\)/g,
   /\b(?:import|export)\s+(?:[^'"]*?\sfrom\s*)?['"]([^'"]+)['"]/g,
   /\bimport\s*\(\s*['"]([^'"]+)['"]\s*\)/g,
 ];

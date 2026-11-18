@@ -72,7 +72,8 @@ const WORKER_SHELL_END = '// END GENERATED DEMO SHELL';
 // routed-expert prefill + tiered/mapped expert residency + expert-loading stats,
 // buffer-pool readback, and fused hyper-connection up projection.
 // This changes file boundaries and runtime owners; retain the existing byte limit.
-const MAX_MODULES = 869;
+// The bounded recording reader, its offline worker and cancellable model host add three modules.
+const MAX_MODULES = 872;
 const MAX_TOTAL_BYTES = 10_000_000;
 // The worker answers only requests under these folders (isDemoAsset in demo/sw.js).
 // A file anywhere else would be downloaded at install and never served from the
@@ -81,6 +82,7 @@ const MAX_TOTAL_BYTES = 10_000_000;
 const SERVED_PREFIXES = ['demo/', 'src/'];
 const MODULE_ROOTS = [
   'demo/demo.js',
+  'demo/ui/recording-import-worker.js',
   'demo/sw.js',
 ];
 const DECLARED_ASSETS = [

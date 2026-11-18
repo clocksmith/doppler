@@ -48,6 +48,11 @@
   box-decoration-break: clone;
   cursor: pointer;
 }
+.token-chip--empty::after {
+  content: '∅';
+  font-size: .75em;
+  margin-inline: .2em;
+}
 .token-chip--unavailable {
   background-image: none;
   text-decoration-line: underline;
