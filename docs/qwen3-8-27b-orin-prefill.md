@@ -65,3 +65,35 @@ This is one short-prompt comparison, not broad quality, concurrency, long-contex
 or cross-device qualification. The original prefill-only profile and global
 fallback remain unchanged. The live 35B provider was restored separately; public
 27B admission remains closed.
+
+## Separate projection candidate
+
+`profiles/qwen3-8-27b-orin-projections` extends the decode candidate with the
+existing subgroup8 Q4K kernel for decode q/k/v/o/down projections only. Runtime
+arrays replace rather than concatenate, so this profile explicitly repeats the
+inherited embedding/prefill patches; the regression protects their retention.
+Fused gate/up and the LM head remain unchanged. It requires subgroups, remains
+calibration-only, and does not change public 27B admission or serving defaults.
+
+A fresh sequential baseline/candidate run on Orin passed identical Hello/count
+outputs (70 generated tokens for counting). Count decode fell from 40.545 s to
+36.784 s; complete request time fell from 43.831 s to 40.068 s. Model opening
+was 40.001 s versus 40.345 s, not a loading improvement. The profiled decode
+step fell from 413.133 ms to 364.759 ms GPU time; fused gate/up remained about
+99 ms. The projection changes account for the measured reduction.
+
+Before that run, 38 numerical cases passed against CPU and baseline results,
+including partial blocks and no-shader-f16 hardware. Six actual projection
+shapes with synthetic repeated rows passed full-output CPU parity below
+0.000067 absolute error. Eight interleaved measurements per arm (after two
+warmups) reduced median submission/readback wall time by 6.5–19.8%. These
+synthetic vectors are not captured model activations. Neither that probe nor
+the short sequential model run establishes broad quality, long-context,
+concurrency, cross-device or statistically robust superiority.
+
+The public 35B provider is restored and checked independently after testing.
+Run the configuration regression with:
+
+```sh
+node tests/config/qwen3-8-27b-orin-projections.test.js
+```

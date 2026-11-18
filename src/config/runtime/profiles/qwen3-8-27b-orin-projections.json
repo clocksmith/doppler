@@ -1,0 +1,119 @@
+{
+  "intent": "calibrate",
+  "compatibleIntents": [
+    "calibrate"
+  ],
+  "stability": "experimental",
+  "owner": "doppler-core",
+  "createdAtUtc": "2026-11-18T00:00:00Z",
+  "model": "qwen3-8-27b-text-q4k-ehaf16",
+  "id": "profiles/qwen3-8-27b-orin-projections",
+  "name": "qwen3-8-27b-orin-projections",
+  "description": "Opt-in Orin Qwen27B calibration: subgroup8 decode projections on top of packed embeddings, F32 prefill and fused gate/up. Short-prompt qualification only; not a serving default.",
+  "extends": "profiles/qwen3-8-27b-orin-decode",
+  "runtime": {
+    "inference": {
+      "executionPatch": {
+        "addKernels": [
+          {
+            "key": "embed_packed_f16",
+            "kernel": {
+              "kernel": "gather_split4_packed_f16_vec4_f32_out.wgsl",
+              "entry": "gather_vec4_f32_out",
+              "digest": "sha256:86031677d0b64e33fc6166b595ad09aa99a4d2f4d3123bd399ea0cccec45fb6a"
+            }
+          },
+          {
+            "key": "q4_prefill_orin_f32",
+            "kernel": {
+              "kernel": "fused_matmul_q4_widetile_f32.wgsl",
+              "entry": "main",
+              "digest": "sha256:0baee846cbb5d1f82678b1183927485efa08052feaf5d2608bf7f5cf5b69928d"
+            }
+          },
+          {
+            "key": "q4_projection_orin_sg8",
+            "kernel": {
+              "kernel": "fused_matmul_q4_subgroup.wgsl",
+              "entry": "main",
+              "digest": "sha256:d0aa5474d8b82b918f6f214f85eb35d39513feb1ab4ff52e7e3cfb8eefc4049e",
+              "constants": {
+                "WORKGROUP_SIZE": 256,
+                "COLS_PER_WG": 32,
+                "THREADS_PER_COL_GEMV": 8,
+                "USE_FULL_BLOCK_FAST_PATH": true
+              }
+            }
+          }
+        ],
+        "set": [
+          {
+            "section": "preLayer",
+            "op": "embed",
+            "kernelKey": "embed_packed_f16"
+          },
+          {
+            "section": "prefill",
+            "op": "q_proj",
+            "kernelKey": "q4_prefill_orin_f32"
+          },
+          {
+            "section": "prefill",
+            "op": "k_proj",
+            "kernelKey": "q4_prefill_orin_f32"
+          },
+          {
+            "section": "prefill",
+            "op": "v_proj",
+            "kernelKey": "q4_prefill_orin_f32"
+          },
+          {
+            "section": "prefill",
+            "op": "o_proj",
+            "kernelKey": "q4_prefill_orin_f32"
+          },
+          {
+            "section": "prefill",
+            "op": "gate_proj",
+            "kernelKey": "q4_prefill_orin_f32"
+          },
+          {
+            "section": "prefill",
+            "op": "up_proj",
+            "kernelKey": "q4_prefill_orin_f32"
+          },
+          {
+            "section": "prefill",
+            "op": "down_proj",
+            "kernelKey": "q4_prefill_orin_f32"
+          },
+          {
+            "section": "decode",
+            "op": "q_proj",
+            "kernelKey": "q4_projection_orin_sg8"
+          },
+          {
+            "section": "decode",
+            "op": "k_proj",
+            "kernelKey": "q4_projection_orin_sg8"
+          },
+          {
+            "section": "decode",
+            "op": "v_proj",
+            "kernelKey": "q4_projection_orin_sg8"
+          },
+          {
+            "section": "decode",
+            "op": "o_proj",
+            "kernelKey": "q4_projection_orin_sg8"
+          },
+          {
+            "section": "decode",
+            "op": "down_proj",
+            "kernelKey": "q4_projection_orin_sg8"
+          }
+        ]
+      }
+    }
+  }
+}
