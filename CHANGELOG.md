@@ -4,6 +4,12 @@ Historical package notes are preserved outside the runtime archive in
 `docs/status/archive/package-changelog-through-0.6.1.md` and the earlier
 `package-changelog-through-0.4.15.md` snapshot in that directory.
 
+## [0.7.7] - 2026-11-18
+
+### Packaging
+
+- Refresh the runtime inventory and exclude unused profiles and declarations from the package.
+
 ## [0.7.6] - 2026-11-18
 
 ### Correctness
