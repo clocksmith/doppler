@@ -1,11 +1,18 @@
 """CPU-only baseline reporting regressions; no model files or provider required."""
+import importlib.util
 import unittest
 from unittest.mock import patch
 
-import torch
-import shares_model
+# The protocol smoke job deliberately has no native model dependencies. Keep
+# discovery usable there, while exercising these tests in the pinned CPU venv.
+BASELINE_DEPENDENCIES = ('numpy', 'torch', 'transformers', 'concrete', 'concrete_ml_extensions')
+HAS_BASELINE_DEPENDENCIES = all(importlib.util.find_spec(name) is not None for name in BASELINE_DEPENDENCIES)
+if HAS_BASELINE_DEPENDENCIES:
+    import torch
+    import shares_model
 
 
+@unittest.skipUnless(HAS_BASELINE_DEPENDENCIES, 'requires the pinned privacy-concrete CPU dependencies')
 class PlainBaselineTest(unittest.TestCase):
     def report(self, quant_tokens, float_tokens):
         class Tokenizer:

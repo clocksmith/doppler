@@ -1,6 +1,7 @@
 """Tests for authenticated encrypted network transport and distinct-owner identity verification in shares_network.js."""
 import base64
 import hashlib
+import importlib.util
 import json
 import os
 from pathlib import Path
@@ -11,7 +12,10 @@ import sys
 import tempfile
 import unittest
 
-import numpy as np
+if importlib.util.find_spec('numpy') is not None:
+    import numpy as np
+else:
+    np = None
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from full_status import ExecutionRejected
@@ -215,6 +219,7 @@ class SharesNetworkIdentityTests(unittest.TestCase):
             )
             self.assertTrue(json.loads(res_att.stdout)['nonCollusionEstablished'])
 
+    @unittest.skipIf(np is None, 'NumPy is required for the numerical network fixture')
     def test_authenticated_encrypted_route_survives_port_scan_and_produces_exact_product(self):
         with tempfile.TemporaryDirectory() as raw:
             tmp = Path(raw)
@@ -271,6 +276,7 @@ class SharesNetworkIdentityTests(unittest.TestCase):
                 stop_provider_server(srv_a)
                 stop_provider_server(srv_b)
 
+    @unittest.skipIf(np is None, 'NumPy is required for the numerical network fixture')
     def test_forged_key_swapped_endpoint_owner_mismatch_and_manifest_mismatch_rejected(self):
         with tempfile.TemporaryDirectory() as raw:
             tmp = Path(raw)
@@ -352,6 +358,7 @@ class SharesNetworkIdentityTests(unittest.TestCase):
                 stop_provider_server(srv_b2)
                 stop_provider_server(srv_wo)
 
+    @unittest.skipIf(np is None, 'NumPy is required for the numerical network fixture')
     def test_post_handshake_truncation_tamper_and_malformed_stream_survival(self):
         with tempfile.TemporaryDirectory() as raw:
             tmp = Path(raw)
