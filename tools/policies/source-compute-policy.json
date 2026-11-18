@@ -55,6 +55,26 @@
   ],
   "reviews": [
     {
+      "id": "src/storage/verified-piece-reader.js#createVerifiedPieceReader",
+      "category": "artifact-codec-materialization",
+      "reason": "Authenticates complete declared artifact pieces against a pinned SHA-256 index and copies unchanged intersecting byte slices into the caller destination without interpreting or transforming model tensor values."
+    },
+    {
+      "id": "src/storage/verified-piece-reader.js#readOwnedRange",
+      "category": "artifact-codec-materialization",
+      "reason": "Copies unchanged authenticated piece byte ranges into the owned output buffer after SHA-256 or immutable file-state verification; performs no tensor arithmetic or layout transformation."
+    },
+    {
+      "id": "src/storage/verified-piece-state-cache.js#prepareVerifiedPieceStateCache",
+      "category": "non-tensor-data",
+      "reason": "Loads and snapshots compact per-file-state verification bitsets and SHA-256 checksums across SharedArrayBuffer words; manipulates only cryptographic verification metadata, never model tensors."
+    },
+    {
+      "id": "src/storage/verified-piece-state-cache.js#openPieceDirectoryStateCache",
+      "category": "non-tensor-data",
+      "reason": "Restores SHA-256-authenticated per-piece filesystem stat tables into an internal metadata buffer; touches only inode/timestamp verification metadata, never model tensor values."
+    },
+    {
       "id": "src/storage/verified-piece-gather-worker.js#gather",
       "category": "artifact-codec-materialization",
       "reason": "Reads and SHA-authenticates complete declared artifact pieces, then copies only unchanged intersecting bytes into an owned output. The typed-array set performs byte gathering before GPU upload; it never interprets tensor values, changes their layout, or performs tensor arithmetic."

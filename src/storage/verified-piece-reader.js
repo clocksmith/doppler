@@ -7,7 +7,7 @@ const digest = async bytes => 'sha256:' + [...new Uint8Array(await crypto.subtle
  * This reader authenticates bytes; it does not establish signed Capsule qualification.
  * @type {import('./verified-piece-reader.js').createVerifiedPieceReader}
  */
-export async function createVerifiedPieceReader({ manifestBytes, indexBytes, indexIdentity, acquire, signal }) {
+export async function createVerifiedPieceReader({ manifestBytes, indexBytes, indexIdentity, acquire, signal, allowStateVerifiedAcquire = false }) {
   for (const bytes of [manifestBytes, indexBytes]) {
     if (!(bytes instanceof Uint8Array) && !(bytes instanceof ArrayBuffer)) throw new Error('Piece metadata requires bytes.');
   }
@@ -121,13 +121,26 @@ export async function createVerifiedPieceReader({ manifestBytes, indexBytes, ind
         if (piece.offset >= offset + length) break;
         signal?.throwIfAborted();
         const acquisitionStarted = performance.now();
-        const received = await waitActive(acquire(Object.freeze({ ...piece, path }), { signal }));
+        const rawAcquired = await waitActive(acquire(Object.freeze({ ...piece, path }), { signal }));
         receipt.acquisitionMs += performance.now() - acquisitionStarted;
         const verificationStarted = performance.now();
+        const structured = allowStateVerifiedAcquire === true
+          && rawAcquired !== null && typeof rawAcquired === 'object'
+          && !(rawAcquired instanceof Uint8Array) && !(rawAcquired instanceof ArrayBuffer);
+        const received = structured ? rawAcquired.bytes : rawAcquired;
         if (!(received instanceof Uint8Array) && !(received instanceof ArrayBuffer)
           || received.byteLength !== piece.size) throw new Error('Acquired piece integrity mismatch.');
         const bytes = new Uint8Array(received instanceof Uint8Array ? received : new Uint8Array(received));
-        if (await waitActive(digest(bytes)) !== piece.identity) throw new Error('Acquired piece integrity mismatch.');
+        if (structured && rawAcquired.stateVerified === true) {
+          receipt.stateCacheHits = (receipt.stateCacheHits ?? 0) + 1;
+          receipt.stateCacheHitBytes = (receipt.stateCacheHitBytes ?? 0) + bytes.byteLength;
+        } else {
+          if (await waitActive(digest(bytes)) !== piece.identity) throw new Error('Acquired piece integrity mismatch.');
+          if (structured) {
+            receipt.stateCacheMisses = (receipt.stateCacheMisses ?? 0) + 1;
+            rawAcquired.onAuthenticated?.();
+          }
+        }
         receipt.verificationMs += performance.now() - verificationStarted;
         signal?.throwIfAborted();
         if (closed) throw new Error('Piece storage closed.');

@@ -50,25 +50,33 @@ try {
         const indices = upload(routes);
         const weights = createWeightBuffer(upload(gate), 'q4_0', 'row', [E, I, K]);
         const upWeights = createWeightBuffer(upload(up), 'q4_0', 'row', [E, I, K]);
-        for (const recorded of [false, true]) {
-          const recorder = recorded ? createCommandRecorder('q4_0-block-oracle') : null;
-          let output;
-          try {
-            const options = { numRoutes: M, numExperts: E, topK, N, K, inputMode, alpha, upWeights };
-            output = recorder ? await recordRouteQ4Matmul(recorder, input, indices, weights, options)
-              : await runRouteQ4Matmul(input, indices, weights, options);
-            if (recorder) await recorder.submitAndWait();
-            const actual = new Float32Array(await readBuffer(output.buffer, expected.byteLength));
-            let maxAbs = 0;
-            for (let i = 0; i < actual.length; i++) {
-              maxAbs = Math.max(maxAbs, Math.abs(actual[i] - expected[i]));
-              assert.ok(Number.isFinite(actual[i]) && Math.abs(actual[i] - expected[i]) <= 2e-5 + 2e-5 * Math.abs(expected[i]),
-                `K=${K}, ${inputMode}, recorded=${recorded}, i=${i}: ${actual[i]} != ${expected[i]}`);
+        for (const split of [true, false]) {
+          const singleExpected = split ? expected : Float32Array.from({ length: M * I }, (_, idx) => {
+            const m = Math.floor(idx / I);
+            const n = idx % I;
+            return expected[m * N + n];
+          });
+          for (const recorded of [false, true]) {
+            const recorder = recorded ? createCommandRecorder('q4_0-block-oracle') : null;
+            let output;
+            try {
+              const options = { numRoutes: M, numExperts: E, topK, N: split ? N : I, K, inputMode, alpha,
+                ...(split ? { upWeights } : {}) };
+              output = recorder ? await recordRouteQ4Matmul(recorder, input, indices, weights, options)
+                : await runRouteQ4Matmul(input, indices, weights, options);
+              if (recorder) await recorder.submitAndWait();
+              const actual = new Float32Array(await readBuffer(output.buffer, singleExpected.byteLength));
+              let maxAbs = 0;
+              for (let i = 0; i < actual.length; i++) {
+                maxAbs = Math.max(maxAbs, Math.abs(actual[i] - singleExpected[i]));
+                assert.ok(Number.isFinite(actual[i]) && Math.abs(actual[i] - singleExpected[i]) <= 2e-5 + 2e-5 * Math.abs(singleExpected[i]),
+                  `K=${K}, split=${split}, ${inputMode}, recorded=${recorded}, i=${i}: ${actual[i]} != ${singleExpected[i]}`);
+              }
+              console.log(JSON.stringify({ K, split, inputMode, recorded, values: actual.length, maxAbs }));
+            } finally {
+              if (output) releaseBuffer(output.buffer);
+              if (recorder) await recorder.abort();
             }
-            console.log(JSON.stringify({ K, inputMode, recorded, values: actual.length, maxAbs }));
-          } finally {
-            if (output) releaseBuffer(output.buffer);
-            if (recorder) await recorder.abort();
           }
         }
       } finally {

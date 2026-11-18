@@ -6,6 +6,7 @@ import {
 import { createHash } from 'node:crypto';
 import { join } from 'node:path';
 import { createVerifiedPieceReader } from './verified-piece-reader.js';
+import { matchesFileStateSnapshot } from './verified-piece-state-cache.js';
 import { snapshotVerifiedPieceJobTimings } from './verified-piece-timings.js';
 
 // This worker owns acquisition, complete-piece authentication and range gathering.
@@ -101,7 +102,84 @@ let activeGenericScratchBytes = 0, peakGenericScratchBytes = 0, genericRequested
 let protectedCacheHits = 0, protectedCacheHitBytes = 0, protectedCacheMisses = 0;
 let protectedCacheAdmissions = 0, protectedCacheAdmittedBytes = 0;
 let protectedCacheEvictions = 0, protectedCacheEvictedBytes = 0, protectedCacheSkips = 0;
+let stateCacheHits = 0, stateCacheHitBytes = 0, stateCacheMisses = 0;
+let stateCacheAdmissions = 0, stateCacheAdmittedBytes = 0;
+let backgroundVerifiedPieces = 0, backgroundVerificationMs = 0;
+let pendingDirtyState = false;
 const protectedCache = workerData.protectedCache ?? null;
+const stateCacheConfig = workerData.stateCache ?? null;
+const parsedIndex = JSON.parse(new TextDecoder().decode(workerData.metadata.indexBytes));
+/** @type {Map<string, { canonicalPath: string, snapshot: import('./verified-piece-state-cache.js').FileStateSnapshot, wordCount: number, words: Int32Array, pieces: Array<{ offset: number, size: number, identity: string }> }>} */
+const stateFiles = new Map();
+if (stateCacheConfig?.files) {
+  for (const file of parsedIndex.files) {
+    const desc = stateCacheConfig.files[file.path];
+    if (!desc) continue;
+    stateFiles.set(file.path, {
+      canonicalPath: desc.canonicalPath,
+      snapshot: desc.snapshot,
+      wordCount: desc.wordCount,
+      words: new Int32Array(desc.sharedBuffer),
+      pieces: file.pieces,
+    });
+  }
+}
+
+/** @param {Array<{ offset: number, size: number }>} pieces @param {number} offset */
+function findStatePieceIndex(pieces, offset) {
+  let low = 0, high = pieces.length;
+  while (low < high) {
+    const mid = (low + high) >>> 1;
+    const p = pieces[mid];
+    if (p.offset + p.size <= offset) low = mid + 1;
+    else high = mid;
+  }
+  return low < pieces.length && pieces[low].offset === offset ? low : -1;
+}
+
+/** @param {string} path @param {number} handle */
+function checkStateStat(path, handle) {
+  const entry = stateFiles.get(path);
+  if (!entry || Atomics.load(entry.words, entry.wordCount + 1) !== 0) return false;
+  try {
+    const fst = fstatSync(handle, { bigint: true });
+    const lst = lstatSync(entry.canonicalPath, { bigint: true });
+    if (!matchesFileStateSnapshot(fst, entry.snapshot) || !matchesFileStateSnapshot(lst, entry.snapshot)) {
+      Atomics.store(entry.words, entry.wordCount + 1, 1);
+      return false;
+    }
+    return true;
+  } catch {
+    Atomics.store(entry.words, entry.wordCount + 1, 1);
+    return false;
+  }
+}
+
+/** @param {Readonly<import('./verified-piece-reader.js').VerifiedPiece>} piece */
+function isStateVerified(piece) {
+  const entry = stateFiles.get(piece.path);
+  if (!entry || Atomics.load(entry.words, entry.wordCount + 1) !== 0) return false;
+  const idx = findStatePieceIndex(entry.pieces, piece.offset);
+  return idx >= 0 && (Atomics.load(entry.words, idx >>> 5) & (1 << (idx & 31))) !== 0;
+}
+
+/** @param {Readonly<import('./verified-piece-reader.js').VerifiedPiece>} piece */
+function markStateVerified(piece) {
+  const entry = stateFiles.get(piece.path);
+  if (!entry || Atomics.load(entry.words, entry.wordCount + 1) !== 0) return false;
+  const idx = findStatePieceIndex(entry.pieces, piece.offset);
+  if (idx < 0) return false;
+  const mask = 1 << (idx & 31);
+  const prev = Atomics.or(entry.words, idx >>> 5, mask);
+  if ((prev & mask) === 0) {
+    Atomics.add(entry.words, entry.wordCount, 1);
+    stateCacheAdmissions++;
+    stateCacheAdmittedBytes += piece.size;
+    pendingDirtyState = true;
+    return true;
+  }
+  return false;
+}
 const bucketBytesView = protectedCache ? new BigInt64Array(protectedCache.sharedBucketBytes) : null;
 const expectedUid = typeof process.geteuid === 'function' ? process.geteuid() : null;
 let tmpSeq = 0, lastMemCheckAt = 0, lastMemAvailableBytes = Infinity;
@@ -309,7 +387,7 @@ function admitProtectedPiece(piece, output) {
 }
 /** @type {Map<string, Readonly<import('./verified-piece-reader.js').VerifiedPiece>>} */
 const verifiedRanges = new Map();
-const maxPieceBytes = JSON.parse(new TextDecoder().decode(workerData.metadata.indexBytes)).maxPieceBytes;
+const maxPieceBytes = parsedIndex.maxPieceBytes;
 /** @param {Readonly<import('./verified-piece-reader.js').VerifiedPiece>} piece
  * @param {string} identity */
 function recordPiece(piece, identity) {
@@ -348,17 +426,85 @@ function getReceipt() {
     activeGenericScratchBytes, peakGenericScratchBytes,
     protectedCacheHits, protectedCacheHitBytes, protectedCacheMisses,
     protectedCacheAdmissions, protectedCacheAdmittedBytes,
-    protectedCacheEvictions, protectedCacheEvictedBytes, protectedCacheSkips };
+    protectedCacheEvictions, protectedCacheEvictedBytes, protectedCacheSkips,
+    stateCacheHits, stateCacheHitBytes, stateCacheMisses,
+    stateCacheAdmissions, stateCacheAdmittedBytes,
+    backgroundVerifiedPieces, backgroundVerificationMs };
 }
 port.postMessage({ ready: true });
 /** @type {Set<Promise<void>>} */
 const operations = new Set();
+/** @type {ReturnType<typeof setTimeout> | null} */
+let bgTimer = null;
+/** @type {Promise<void> | null} */
+let bgActive = null;
+/** @type {Array<Readonly<import('./verified-piece-reader.js').VerifiedPiece>>} */
+const bgQueue = [];
+let bgCursor = 0;
+/** @type {Uint8Array | null} */
+let bgScratch = null;
+if (stateCacheConfig?.backgroundVerify === true && stateFiles.size > 0) {
+  const workerIndex = workerData.workerIndex ?? 0;
+  const workerCount = Math.max(1, workerData.workerCount ?? 1);
+  let seq = 0;
+  for (const [piecePath, entry] of stateFiles) {
+    for (const piece of entry.pieces) {
+      if (seq % workerCount === workerIndex) {
+        bgQueue.push(Object.freeze({ ...piece, path: piecePath }));
+      }
+      seq++;
+    }
+  }
+}
+
+function scheduleBackgroundVerify() {
+  if (closing || !bgQueue.length || bgCursor >= bgQueue.length || bgTimer !== null || bgActive !== null) return;
+  bgTimer = setTimeout(() => {
+    bgTimer = null;
+    if (closing || operations.size > 0 || bgActive !== null) return;
+    while (bgCursor < bgQueue.length && isStateVerified(bgQueue[bgCursor])) bgCursor++;
+    if (bgCursor >= bgQueue.length) { bgScratch = null; return; }
+    const piece = bgQueue[bgCursor++];
+    const task = (async () => {
+      bgScratch ??= new Uint8Array(maxPieceBytes);
+      const view = bgScratch.subarray(0, piece.size);
+      const handle = admitFile(piece, view);
+      if (!checkStateStat(piece.path, handle) || isStateVerified(piece)) return;
+      await readFileParallel(piece, view, handle);
+      if (closing || operations.size > 0 || !checkStateStat(piece.path, handle)) return;
+      const hashStart = performance.now();
+      const digest = 'sha256:' + createHash('sha256').update(view).digest('hex');
+      backgroundVerificationMs += performance.now() - hashStart;
+      if (digest === piece.identity && checkStateStat(piece.path, handle)) {
+        markStateVerified(piece);
+        backgroundVerifiedPieces++;
+        if (pendingDirtyState) {
+          pendingDirtyState = false;
+          port.postMessage({ dirtyState: true });
+        }
+      }
+    })().catch(() => {}).finally(() => {
+      bgActive = null;
+      if (!closing && operations.size === 0 && bgCursor < bgQueue.length) scheduleBackgroundVerify();
+    });
+    bgActive = task;
+  }, stateCacheConfig?.backgroundIdleDelayMs ?? 50);
+  bgTimer.unref?.();
+}
+if (bgQueue.length > 0) scheduleBackgroundVerify();
+
 /** @type {Promise<void> | null} */
 let retirement = null;
 function closeWorker() {
   closing = true;
+  if (bgTimer !== null) {
+    clearTimeout(bgTimer);
+    bgTimer = null;
+  }
   if (!retirement) {
     const operation = (async () => {
+      if (bgActive) await bgActive;
+      bgScratch = null;
       await Promise.allSettled([...operations]);
       await reader.close();
       const errors = [];
@@ -408,23 +554,42 @@ async function gather({ ranges, length, buffer, batch }) {
       }
       const reads = pieces.map((piece, index) => {
         const output = outputs[index];
+        const handle = /** @type {number} */ (admitted.get(piece.path));
         return (async () => {
+          const stateOkBefore = checkStateStat(piece.path, handle);
+          if (stateOkBefore && isStateVerified(piece)) {
+            const readStart = performance.now();
+            try {
+              if (pieces.length === 1) readFile(piece, output, handle);
+              else await readFileParallel(piece, output, handle);
+            } finally { acquisitionMs += performance.now() - readStart; }
+            if (closing) throw new Error('Gather worker closed.');
+            if (checkStateStat(piece.path, handle)) {
+              recordDirect(piece, piece.identity);
+              stateCacheHits++;
+              stateCacheHitBytes += piece.size;
+              return;
+            }
+          }
+          if (stateFiles.has(piece.path)) stateCacheMisses++;
           if (tryReadProtectedPiece(piece, output, true)) {
             if (closing) throw new Error('Gather worker closed.');
+            if (stateOkBefore && checkStateStat(piece.path, handle)) markStateVerified(piece);
             return;
           }
           if (protectedCache) protectedCacheMisses++;
           const readStart = performance.now();
           try {
-            if (pieces.length === 1) readFile(piece, output, admitted.get(piece.path));
-            else await readFileParallel(piece, output, admitted.get(piece.path));
+            if (pieces.length === 1) readFile(piece, output, handle);
+            else await readFileParallel(piece, output, handle);
           } finally { acquisitionMs += performance.now() - readStart; }
           if (closing) throw new Error('Gather worker closed.');
           // This worker exclusively owns the output until transfer. Hash that
           // storage directly, without WebCrypto's input snapshot and another
           // shared thread-pool handoff. Other worker lanes still run in parallel.
           authenticateDirect(piece, output);
-          admitProtectedPiece(piece, output);
+          if (stateOkBefore && checkStateStat(piece.path, handle)) markStateVerified(piece);
+          else admitProtectedPiece(piece, output);
         })();
       });
       // A rejected read must not zero or transfer a buffer while a sibling native
@@ -447,13 +612,36 @@ async function gather({ ranges, length, buffer, batch }) {
           const piece = pieces[index];
           if (piece) {
             const admittedHandle = admitFile(piece, output);
-            if (!tryReadProtectedPiece(piece, output, true)) {
-              if (protectedCache) protectedCacheMisses++;
+            const stateOkBefore = checkStateStat(piece.path, admittedHandle);
+            let satisfied = false;
+            if (stateOkBefore && isStateVerified(piece)) {
               const readStart = performance.now();
               try { readFile(piece, output, admittedHandle); }
               finally { acquisitionMs += performance.now() - readStart; }
-              authenticateDirect(piece, output);
-              admitProtectedPiece(piece, output);
+              if (checkStateStat(piece.path, admittedHandle)) {
+                recordDirect(piece, piece.identity);
+                stateCacheHits++;
+                stateCacheHitBytes += piece.size;
+                satisfied = true;
+              } else {
+                authenticateDirect(piece, output);
+                admitProtectedPiece(piece, output);
+                satisfied = true;
+              }
+            }
+            if (!satisfied) {
+              if (stateFiles.has(piece.path)) stateCacheMisses++;
+              if (!tryReadProtectedPiece(piece, output, true)) {
+                if (protectedCache) protectedCacheMisses++;
+                const readStart = performance.now();
+                try { readFile(piece, output, admittedHandle); }
+                finally { acquisitionMs += performance.now() - readStart; }
+                authenticateDirect(piece, output);
+                if (stateOkBefore && checkStateStat(piece.path, admittedHandle)) markStateVerified(piece);
+                else admitProtectedPiece(piece, output);
+              } else if (stateOkBefore && checkStateStat(piece.path, admittedHandle)) {
+                markStateVerified(piece);
+              }
             }
           } else {
             const selected = reader.resolveRangePieces(path, offset, rangeLength);
@@ -466,15 +654,41 @@ async function gather({ ranges, length, buffer, batch }) {
             for (const current of selected) {
               const bytes = scratch.subarray(0, current.size);
               const admittedHandle = admitFile(current, bytes);
-              if (!tryReadProtectedPiece(current, bytes, false)) {
-                if (protectedCache) protectedCacheMisses++;
+              const stateOkBefore = checkStateStat(current.path, admittedHandle);
+              let satisfied = false;
+              if (stateOkBefore && isStateVerified(current)) {
                 const readStart = performance.now();
                 try { readFile(current, bytes, admittedHandle); }
                 finally { acquisitionMs += performance.now() - readStart; }
-                const hashStart = performance.now();
-                const identity = 'sha256:' + createHash('sha256').update(bytes).digest('hex');
-                verificationMs += performance.now() - hashStart; recordPiece(current, identity);
-                admitProtectedPiece(current, bytes);
+                if (checkStateStat(current.path, admittedHandle)) {
+                  recordPiece(current, current.identity);
+                  stateCacheHits++;
+                  stateCacheHitBytes += current.size;
+                  satisfied = true;
+                } else {
+                  const hashStart = performance.now();
+                  const identity = 'sha256:' + createHash('sha256').update(bytes).digest('hex');
+                  verificationMs += performance.now() - hashStart;
+                  recordPiece(current, identity);
+                  admitProtectedPiece(current, bytes);
+                  satisfied = true;
+                }
+              }
+              if (!satisfied) {
+                if (stateFiles.has(current.path)) stateCacheMisses++;
+                if (!tryReadProtectedPiece(current, bytes, false)) {
+                  if (protectedCache) protectedCacheMisses++;
+                  const readStart = performance.now();
+                  try { readFile(current, bytes, admittedHandle); }
+                  finally { acquisitionMs += performance.now() - readStart; }
+                  const hashStart = performance.now();
+                  const identity = 'sha256:' + createHash('sha256').update(bytes).digest('hex');
+                  verificationMs += performance.now() - hashStart; recordPiece(current, identity);
+                  if (stateOkBefore && checkStateStat(current.path, admittedHandle)) markStateVerified(current);
+                  else admitProtectedPiece(current, bytes);
+                } else if (stateOkBefore && checkStateStat(current.path, admittedHandle)) {
+                  markStateVerified(current);
+                }
               }
               const start = Math.max(offset, current.offset), end = Math.min(offset + rangeLength, current.offset + current.size);
               const copyStart = performance.now();
@@ -496,17 +710,25 @@ async function gather({ ranges, length, buffer, batch }) {
     }
     if (closing) throw new Error('Gather worker closed.');
     if (batch) { batchReads++; batchRanges += ranges.length; batchBytes += length; }
+    const dirtyState = pendingDirtyState;
+    pendingDirtyState = false;
     const timings = snapshotVerifiedPieceJobTimings({ workerWallMs: performance.now() - started,
       readWaitMs: acquisitionMs - before.acquisitionMs, verificationMs: verificationMs - before.verificationMs,
       copyMs: genericCopyMs - before.genericCopyMs });
-    port.postMessage({ buffer, length, timings }, [buffer]);
+    port.postMessage({ buffer, length, timings, ...(dirtyState ? { dirtyState: true } : {}) }, [buffer]);
   } catch (error) {
     // Never publish a verified prefix after a later piece fails verification.
     new Uint8Array(buffer).fill(0);
     port.postMessage({ buffer, error: String(error.message ?? error) }, [buffer]);
+  } finally {
+    if (!closing && bgQueue.length > 0 && bgCursor < bgQueue.length) scheduleBackgroundVerify();
   }
 }
 port.on('message', message => {
+  if (bgTimer !== null) {
+    clearTimeout(bgTimer);
+    bgTimer = null;
+  }
   if (message.close === true) {
     closeWorker().then(() => port.postMessage({ closed: true, receipt: getReceipt() }),
       error => port.postMessage({ closed: true, error: String(error.message ?? error) }));

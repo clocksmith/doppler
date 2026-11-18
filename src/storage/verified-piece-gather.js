@@ -1,4 +1,5 @@
 import { createVerifiedPieceGatherLane } from './verified-piece-gather-lane.js';
+import { prepareVerifiedPieceStateCache } from './verified-piece-state-cache.js';
 
 /**
  * @param {import('./verified-piece-gather.js').VerifiedPieceProtectedCacheOptions | undefined} rawPolicy
@@ -86,7 +87,8 @@ export async function createVerifiedPieceGather(options) {
     }))) {
     throw new Error('Gather file identities must bind every approved file device, inode and size.');
   }
-  const pieceBytes = JSON.parse(new TextDecoder().decode(pinned.indexBytes)).maxPieceBytes;
+  const index = JSON.parse(new TextDecoder().decode(pinned.indexBytes));
+  const pieceBytes = index.maxPieceBytes;
   const laneBytes = pinned.maxPartBytes + 2 * pieceBytes;
   const memoryBytes = concurrency * laneBytes;
   if (!Number.isSafeInteger(concurrency) || concurrency < 1
@@ -97,16 +99,37 @@ export async function createVerifiedPieceGather(options) {
     throw new Error('Gather budget must cover every concurrent output and complete-piece buffer.');
   }
   const protectedCache = await prepareProtectedCache(options.protectedCache, pieceBytes);
+  const ownedStateCache = options.sharedStateCache === undefined
+    ? await prepareVerifiedPieceStateCache({
+      rawPolicy: options.verificationCache,
+      manifestIdentity: index.manifestIdentity,
+      indexIdentity: pinned.indexIdentity,
+      index,
+      files: pinned.files,
+    })
+    : undefined;
+  const stateCache = options.sharedStateCache ?? ownedStateCache;
   /** @type {Array<{ reader: Awaited<ReturnType<typeof createVerifiedPieceGatherLane>>, busy: boolean }>} */
   const lanes = [];
   try {
     for (let index = 0; index < concurrency; index++) {
       pinned.startupSignal?.throwIfAborted();
-      lanes.push({ reader: await createVerifiedPieceGatherLane({ ...pinned, memoryBudgetBytes: laneBytes, protectedCache }), busy: false });
+      lanes.push({ reader: await createVerifiedPieceGatherLane({
+        ...pinned,
+        memoryBudgetBytes: laneBytes,
+        protectedCache,
+        stateCache: stateCache?.workerPayload,
+        workerIndex: index,
+        workerCount: concurrency,
+        onStateDirty: stateCache ? () => stateCache.scheduleFlush() : undefined,
+      }), busy: false });
       pinned.startupSignal?.throwIfAborted();
     }
   } catch (error) {
-    const outcomes = await Promise.allSettled(lanes.map(async lane => lane.reader.close()));
+    const outcomes = await Promise.allSettled([
+      ...lanes.map(async lane => lane.reader.close()),
+      ...(ownedStateCache ? [ownedStateCache.close()] : []),
+    ]);
     const failures = outcomes.flatMap(outcome => outcome.status === 'rejected' ? [outcome.reason] : []);
     if (failures.length) throw new AggregateError([error, ...failures], 'Gather startup and cleanup failed.');
     throw error;
@@ -149,8 +172,8 @@ export async function createVerifiedPieceGather(options) {
         if (closed) throw new Error('Gather reader closed.');
         const receipts = outcomes.flatMap(outcome => outcome.status === 'fulfilled' ? [outcome.value] : []);
         const merged = { ...receipts[0] };
-        const fields = /** @type {const} */ (['requestedBytes', 'acquisitionMs', 'verificationMs', 'copyMs', 'activeReadBytes', 'peakReadBytes', 'directPieceReads', 'directPieceBytes', 'batchReads', 'batchRanges', 'batchBytes', 'activeDigestCopyBytes', 'peakDigestCopyBytes', 'activeGenericScratchBytes', 'peakGenericScratchBytes', 'protectedCacheHits', 'protectedCacheHitBytes', 'protectedCacheMisses', 'protectedCacheAdmissions', 'protectedCacheAdmittedBytes', 'protectedCacheEvictions', 'protectedCacheEvictedBytes', 'protectedCacheSkips']);
-        Object.assign(merged, Object.fromEntries(fields.map(field => [field, receipts.reduce((total, receipt) => total + receipt[field], 0)])));
+        const fields = /** @type {const} */ (['requestedBytes', 'acquisitionMs', 'verificationMs', 'copyMs', 'activeReadBytes', 'peakReadBytes', 'directPieceReads', 'directPieceBytes', 'batchReads', 'batchRanges', 'batchBytes', 'activeDigestCopyBytes', 'peakDigestCopyBytes', 'activeGenericScratchBytes', 'peakGenericScratchBytes', 'protectedCacheHits', 'protectedCacheHitBytes', 'protectedCacheMisses', 'protectedCacheAdmissions', 'protectedCacheAdmittedBytes', 'protectedCacheEvictions', 'protectedCacheEvictedBytes', 'protectedCacheSkips', 'stateCacheHits', 'stateCacheHitBytes', 'stateCacheMisses', 'stateCacheAdmissions', 'stateCacheAdmittedBytes', 'backgroundVerifiedPieces', 'backgroundVerificationMs']);
+        Object.assign(merged, Object.fromEntries(fields.map(field => [field, receipts.reduce((total, receipt) => total + (receipt[field] ?? 0), 0)])));
         /** @type {Map<string, import('./verified-piece-reader.js').VerifiedPiece>} */
         const ranges = new Map(receipts.flatMap(receipt => receipt.ranges.map(range => [`${range.path}:${range.offset}`, range])));
         merged.ranges = [...ranges.values()];
@@ -165,6 +188,7 @@ export async function createVerifiedPieceGather(options) {
         closed = true;
         const operation = (async () => {
           const outcomes = await Promise.allSettled(lanes.map(async lane => lane.reader.close()));
+          if (ownedStateCache) await ownedStateCache.close();
           const failed = outcomes.find(outcome => outcome.status === 'rejected');
           if (failed) throw failed.reason;
         })();
@@ -179,6 +203,7 @@ export async function createVerifiedPieceGather(options) {
   const rangeLease = { concurrency, maxRanges, maxPartBytes: pinned.maxPartBytes, memoryBytes,
     fileIdentitiesBound: pinned.fileIdentities !== undefined,
     ...(protectedCache ? { protectedCacheBound: true } : {}),
+    ...(stateCache ? { verificationCacheBound: true } : {}),
     ...(pinned.fileIdentities !== undefined ? { batchFileIdentityChecks: /** @type {const} */ ('before-read-after-auth/v1') } : {}),
     read(shard, offset, length, signal) {
       const file = manifest.shards[shard];

@@ -1,4 +1,6 @@
 import type { VerifiedPieceReceipt } from './verified-piece-reader.js';
+import type { VerifiedPieceStateCacheOptions, WorkerStateCachePayload, prepareVerifiedPieceStateCache } from './verified-piece-state-cache.js';
+export type { VerifiedPieceStateCacheOptions, WorkerStateCachePayload } from './verified-piece-state-cache.js';
 export interface VerifiedPieceProtectedCacheOptions {
   /** Explicit absolute directory (for example on tmpfs /dev/shm) owned by the current user; symlinks are rejected. */
   directory: string;
@@ -32,6 +34,10 @@ export interface VerifiedPieceGatherOptions {
   memoryBudgetBytes: number;
   /** Optional bounded host-protected cache of authenticated pieces; every cache hit is still SHA-256 verified. */
   protectedCache?: VerifiedPieceProtectedCacheOptions;
+  /** Optional per-file-state verification record cache (`(dev, ino, size, mtimeNs, ctimeNs)`) with off-critical-path persistence. */
+  verificationCache?: VerifiedPieceStateCacheOptions;
+  /** Internal shared state cache coordinator owned by verified-piece-storage. */
+  sharedStateCache?: Awaited<ReturnType<typeof prepareVerifiedPieceStateCache>>;
 }
 /** Per-job worker observations. Async read waits and different worker jobs can overlap. */
 export interface VerifiedPieceJobTimings {
@@ -78,6 +84,14 @@ export interface VerifiedPieceGatherReceipt extends VerifiedPieceReceipt {
   protectedCacheEvictions: number;
   protectedCacheEvictedBytes: number;
   protectedCacheSkips: number;
+  /** Per-file-state verification cache counters; zero when verificationCache is omitted. */
+  stateCacheHits: number;
+  stateCacheHitBytes: number;
+  stateCacheMisses: number;
+  stateCacheAdmissions: number;
+  stateCacheAdmittedBytes: number;
+  backgroundVerifiedPieces: number;
+  backgroundVerificationMs: number;
 }
 export function createVerifiedPieceGather(options: VerifiedPieceGatherOptions): Promise<Readonly<{
   /** At most concurrency in-flight reads or outstanding leases. Cancellation is checked before
@@ -99,6 +113,8 @@ export interface VerifiedRangeLeasePort {
   fileIdentitiesBound?: boolean;
   /** True when workers read/admit through an explicit bounded protected piece cache. */
   protectedCacheBound?: boolean;
+  /** True when workers record and reuse piece verification per immutable file state. */
+  verificationCacheBound?: boolean;
   /** readMany validates every requested path and open descriptor before reads and after authentication, before publication. */
   batchFileIdentityChecks?: 'before-read-after-auth/v1';
   /** Omission denotes a legacy single-lane port. */

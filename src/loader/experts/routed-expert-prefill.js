@@ -1,4 +1,73 @@
-import { readRoutedExpertPayload, readRoutedExpertRange, recordRoutedExpertSourceTimings } from './routed-expert-source.js';
+import { DEFAULT_EXPERT_CACHE_CONFIG } from '../../config/schema/runtime/loading.schema.js';
+import { readRoutedExpertPayload, readRoutedExpertRange, readRoutedExpertsLease, recordRoutedExpertSourceTimings } from './routed-expert-source.js';
+
+/** @type {import('./routed-expert-prefill.js').createBatchedDirectPrefillState} */
+export function createBatchedDirectPrefillState(options, stats, plan, ids, copiedHits, loaded, laneCount, onWorkingHit) {
+  if (options.policy.prefillUploadMode !== 'direct-bank' || options.policy.sourceReadMode !== 'expert-lease-batch'
+    || typeof options.rangeLease?.readMany !== 'function' || plan.expertBytes > Number(options.rangeLease.maxPartBytes)
+    || plan.planes.some(plane => plane.location.sourceTransform != null || (plane.location.spans && plane.location.spans.length > 1))) {
+    return null;
+  }
+  /** @type {number[]} */
+  const misses = [];
+  for (const expert of ids) {
+    if (copiedHits.has(expert)) continue;
+    if (loaded.has(expert)) {
+      onWorkingHit(expert);
+      stats.workingHits++;
+      continue;
+    }
+    misses.push(expert);
+  }
+  const requestedBatch = options.policy.expertBatchSize ?? DEFAULT_EXPERT_CACHE_CONFIG.qwen35Routed.expertBatchSize;
+  const batchSize = Math.max(1, Math.min(requestedBatch, Math.ceil(misses.length / Math.max(1, laneCount)),
+    Math.floor(Number(options.rangeLease?.maxPartBytes) / plan.expertBytes)));
+  let cursor = 0;
+  return { misses, batchSize, taskCount: Math.ceil(misses.length / batchSize), nextTask: () => cursor++ };
+}
+
+/** @type {import('./routed-expert-prefill.js').runBatchedDirectPrefillLane} */
+export async function runBatchedDirectPrefillLane(state, options, stats, plan, signal, working, loaded, beforeBatch, beforeUpload) {
+  while (true) {
+    const task = state.nextTask();
+    if (task >= state.taskCount) return;
+    signal.throwIfAborted();
+    const batch = state.misses.slice(task * state.batchSize, (task + 1) * state.batchSize);
+    if (!batch.length) continue;
+    beforeBatch();
+    stats.cacheMisses += batch.length;
+    await writeRoutedPrefillExpertsBatch(options, stats, plan, batch, signal, working, beforeUpload);
+    for (const expert of batch) loaded.add(expert);
+  }
+}
+
+/** @type {import('./routed-expert-prefill.js').writeRoutedPrefillExpertsBatch} */
+export async function writeRoutedPrefillExpertsBatch(options, stats, plan, experts, signal, working, beforeUpload) {
+  if (!experts.length) return;
+  const start = performance.now();
+  const lease = await readRoutedExpertsLease(options, stats, plan, experts, signal, null);
+  try {
+    for (const [index, expert] of experts.entries()) {
+      const payload = lease.bytes.subarray(index * plan.expertBytes, (index + 1) * plan.expertBytes);
+      let offset = 0;
+      for (const plane of plan.planes) {
+        signal.throwIfAborted();
+        const target = working.get(plane.role);
+        if (!target) throw new Error('Direct prefill requires a complete working bank.');
+        beforeUpload();
+        const uploadStart = performance.now();
+        options.device.queue.writeBuffer(target, expert * plane.expertBytes, payload.subarray(offset, offset + plane.expertBytes));
+        stats.uploadEnqueueMs += performance.now() - uploadStart;
+        stats.uploadBytes += plane.expertBytes;
+        offset += plane.expertBytes;
+      }
+    }
+  } finally {
+    // writeBuffer copied the view synchronously; no queued command borrows it.
+    lease.release();
+    stats.ioWaitMs += performance.now() - start;
+  }
+}
 
 /** @type {import('./routed-expert-prefill.js').writeRoutedPrefillExpert} */
 export async function writeRoutedPrefillExpert(options, stats, plan, expert, signal, working, scratch, beforeUpload) {

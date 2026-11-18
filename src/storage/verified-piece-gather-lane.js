@@ -4,7 +4,16 @@
  * the caller until release; release is safe after queue.writeBuffer returns.
  */
 import { snapshotVerifiedPieceJobTimings, snapshotVerifiedRangeLeaseTimings } from './verified-piece-timings.js';
-/** @type {import('./verified-piece-gather.js').createVerifiedPieceGather} */
+/**
+ * @param {import('./verified-piece-gather.js').VerifiedPieceGatherOptions & {
+ *   protectedCache?: unknown,
+ *   stateCache?: Readonly<import('./verified-piece-gather.js').WorkerStateCachePayload>,
+ *   workerIndex?: number,
+ *   workerCount?: number,
+ *   onStateDirty?: () => void,
+ * }} options
+ * @returns {ReturnType<import('./verified-piece-gather.js').createVerifiedPieceGather>}
+ */
 export async function createVerifiedPieceGatherLane(options) {
   const { maxPartBytes, memoryBudgetBytes, indexIdentity } = options;
   const maxRanges = options.maxRanges === undefined ? 3 : options.maxRanges;
@@ -33,6 +42,9 @@ export async function createVerifiedPieceGatherLane(options) {
       maxRanges,
       fileIdentities: options.fileIdentities,
       protectedCache: options.protectedCache,
+      stateCache: options.stateCache,
+      workerIndex: options.workerIndex ?? 0,
+      workerCount: options.workerCount ?? 1,
       metadata: { manifestBytes, indexBytes, indexIdentity },
     },
   });
@@ -54,6 +66,10 @@ export async function createVerifiedPieceGatherLane(options) {
     receive = message => { if (message.ready) { failPending = null; resolve(); } };
   });
   worker.on('message', message => {
+    if (message?.dirtyState === true) {
+      options.onStateDirty?.();
+      if (!('buffer' in message) && !('ready' in message) && !('receipt' in message) && !('closed' in message)) return;
+    }
     if (closed && message.buffer instanceof ArrayBuffer) { clearOwned(message.buffer); return; }
     receive?.(message);
   });

@@ -137,6 +137,7 @@ export async function createResidentPartitionSession(pipeline, allocation, token
     }
     const combined = AbortSignal.any([signal, attempt.controller.signal]);
     const operation = runPipelineOperation(pipeline, async owner => {
+      let queueSettled = false;
       try {
         assertOpen(); combined.throwIfAborted();
         const ids = 'tokenIds' in request ? request.tokenIds : request.inputTokenIds;
@@ -178,6 +179,7 @@ export async function createResidentPartitionSession(pipeline, allocation, token
           if (ordered && partition.hasLmHead) throw new Error('Final ordered stage must produce logits.');
           if (canonicalMode) attempt.canonicalAwaiting = true;
           if (result.activationBytes.byteLength > allocation.limits.maxActivationBytes) throw new Error('Resident activation exceeds its byte allocation.');
+          queueSettled = true;
           return { activationTensor: { shape: [1, request.inputTokenCount, getPartitionActivationContract(allocation.plan).hiddenSize],
             dtype: allocation.plan.activationDtype,
             ...(allocation.plan.activationPrecision === 'two-f32' ? { precision: allocation.plan.activationPrecision,
@@ -188,7 +190,7 @@ export async function createResidentPartitionSession(pipeline, allocation, token
         if (!result.logits) throw new Error('Resident final stage did not produce logits.');
         let logits;
         const readbackStarted = performance.now();
-        try { logits = new Float32Array(await readBuffer(result.logits.logitsBuffer, result.logits.vocabSize * Float32Array.BYTES_PER_ELEMENT)); }
+        try { logits = new Float32Array(await readBuffer(result.logits.logitsBuffer, result.logits.vocabSize * Float32Array.BYTES_PER_ELEMENT)); queueSettled = true; }
         finally { releaseBuffer(result.logits.logitsBuffer); }
         metrics.logitsReadbackMs = performance.now() - readbackStarted;
         combined.throwIfAborted();
@@ -236,7 +238,7 @@ export async function createResidentPartitionSession(pipeline, allocation, token
       } finally {
         // Attempt caches cannot be destroyed until submitted work has settled,
         // including cancellation or a failure after recording started.
-        await owner.gpuContext?.device?.queue.onSubmittedWorkDone();
+        if (!queueSettled) await owner.gpuContext?.device?.queue.onSubmittedWorkDone();
       }
     }, combined);
     attempt.pending = operation;

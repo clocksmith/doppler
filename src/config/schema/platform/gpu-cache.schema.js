@@ -3,6 +3,6 @@
 // =============================================================================
 
 export const DEFAULT_GPU_CACHE_CONFIG = {
-  uniformCacheMaxEntries: 256,
+  uniformCacheMaxEntries: 4096,
   uniformCacheMaxAgeMs: 60000, // 60 seconds
 };

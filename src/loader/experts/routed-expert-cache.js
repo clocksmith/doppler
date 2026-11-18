@@ -4,8 +4,7 @@ import { CompactExpertCache, compactExpertCapacity } from './compact-expert-cach
 import { createWeightBuffer } from '../../gpu/weight-buffer.js';
 import { validateQwen35RoutedConfig } from "../../config/schema/runtime/loading.schema.js";
 import { createRoutedExpertCounters, readRoutedExpertRange, assertExpertReadShape, readRoutedExpertPayload } from './routed-expert-source.js';
-
-import { writeRoutedPrefillExpert, selectPrefillSeedExperts } from './routed-expert-prefill.js';
+import { createBatchedDirectPrefillState, runBatchedDirectPrefillLane, writeRoutedPrefillExpert, selectPrefillSeedExperts } from './routed-expert-prefill.js';
 
 // The cache owns individual expert payloads. One reusable logical bank preserves
 // the existing kernels' expert IDs, source-format byte offsets and accumulation order.
@@ -618,21 +617,23 @@ export class RoutedExpertCache {
       submitted = true;
     };
     const hitBatch = this.#copyCachedHits(plan, ids, signal, beforeSubmit);
+    const laneCount = this.#options.rangeLease && phase === 'prefill' && this.#options.policy.prefillUploadMode === 'direct-bank'
+      ? Math.min(this.#options.policy.readConcurrency, this.#options.rangeLease.concurrency ?? 1) : this.#options.policy.readConcurrency;
+    const batchedPlan = phase === 'prefill' ? hitBatch.then(copied => createBatchedDirectPrefillState(
+      this.#options, this.#stats, plan, ids, copied, this.#loaded, laneCount, expert => this.#frequency?.observe(`${plan.layer}:${expert}`))) : null;
     /** @param {number} reader */
     const work = async (reader) => {
+      const batched = batchedPlan ? await batchedPlan : null;
+      if (batched) return runBatchedDirectPrefillLane(batched, this.#options, this.#stats, plan, signal, this.#working,
+        this.#loaded, () => this.#sampleProfileMemory(), () => { beforeSubmit(); ++this.#submittedSerial; });
       const copiedHits = await hitBatch;
       while (cursor < ids.length) {
         signal.throwIfAborted();
         const expert = ids[cursor++];
         if (copiedHits.has(expert)) continue;
-        if (this.#loaded.has(expert)) {
-          this.#frequency?.observe(`${plan.layer}:${expert}`);
-          this.#stats.workingHits++;
-          continue;
-        }
+        if (this.#loaded.has(expert)) { this.#frequency?.observe(`${plan.layer}:${expert}`); this.#stats.workingHits++; continue; }
         if (phase === 'prefill' && this.#options.policy.prefillUploadMode === 'direct-bank') {
-          await this.#writeWorking(plan, expert, signal, beforeSubmit, reader);
-          continue;
+          await this.#writeWorking(plan, expert, signal, beforeSubmit, reader); continue;
         }
         const entry = await this.#get(plan, expert, signal, beforeSubmit, phase, reader);
         try {
@@ -647,8 +648,6 @@ export class RoutedExpertCache {
         } finally { entry.users--; }
       }
     };
-    const laneCount = this.#options.rangeLease && phase === 'prefill' && this.#options.policy.prefillUploadMode === 'direct-bank'
-      ? Math.min(this.#options.policy.readConcurrency, this.#options.rangeLease.concurrency ?? 1) : this.#options.policy.readConcurrency;
     const outcomes = await Promise.allSettled(Array.from({ length: laneCount }, async (_, reader) => {
       try { await work(reader); } catch (error) { controller.abort(error); throw error; }
     }));

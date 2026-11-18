@@ -3,7 +3,7 @@ import { isDeviceLost, observeDeviceLoss } from '../../memory/device-residency.j
 import { CompactExpertCache } from './compact-expert-cache.js';
 import { MappedExpertUploadCache } from './mapped-expert-upload-cache.js';
 import { planTieredExpertPlacement } from './tiered-expert-plan.js';
-import { assertExpertReadShape, createRoutedExpertCounters, readRoutedExpertLease } from './routed-expert-source.js';
+import { assertExpertReadShape, createRoutedExpertCounters, readRoutedExpertLease, readRoutedExpertPayload } from './routed-expert-source.js';
 
 // Placement is explicit and model-bound. Setup owns resident banks; streamed
 // layers keep compact slots in both phases, never a second full prefill bank.
@@ -38,16 +38,24 @@ export class TieredExpertCache {
     this.#placement = planTieredExpertPlacement(plans, options.policy, options.device.limits, minimumSlots);
     for (const plan of plans) assertExpertReadShape(options, plan);
     const lease = options.rangeLease;
-    const mappedLimit = options.policy.stagingBytes - (lease?.memoryBytes ?? 0);
-    const lanes = Math.min(options.policy.readConcurrency, lease?.concurrency ?? 1);
-    const leaseLanes = lease?.concurrency ?? 1;
-    if (!lease || !Number.isSafeInteger(leaseLanes) || leaseLanes < 1
-      || !Number.isSafeInteger(lease.maxPartBytes) || lease.maxPartBytes < 4 || lease.maxPartBytes % 4
-      || !Number.isSafeInteger(lease.memoryBytes) || !Number.isSafeInteger(lease.maxPartBytes * leaseLanes)
-      || lease.memoryBytes < lease.maxPartBytes * leaseLanes
-      || mappedLimit < Math.max(...plans.map(plan => plan.expertBytes)) * lanes) {
-      throw new Error('Tiered expert leases and concurrent mapped writers must fit aggregate stagingBytes.');
+    if (options.policy.sourceReadMode === 'expert-parallel') {
+      if (lease || !options.readRangeInto
+        || options.policy.stagingBytes < Math.max(...plans.map(plan => plan.expertBytes)) * 2 * options.policy.readConcurrency) {
+        throw new Error('Tiered parallel expert reads require bounded direct scratch within stagingBytes.');
+      }
+    } else {
+      const mappedLimit = options.policy.stagingBytes - (lease?.memoryBytes ?? 0);
+      const lanes = Math.min(options.policy.readConcurrency, lease?.concurrency ?? 1);
+      const leaseLanes = lease?.concurrency ?? 1;
+      if (!lease || !Number.isSafeInteger(leaseLanes) || leaseLanes < 1
+        || !Number.isSafeInteger(lease.maxPartBytes) || lease.maxPartBytes < 4 || lease.maxPartBytes % 4
+        || !Number.isSafeInteger(lease.memoryBytes) || !Number.isSafeInteger(lease.maxPartBytes * leaseLanes)
+        || lease.memoryBytes < lease.maxPartBytes * leaseLanes
+        || mappedLimit < Math.max(...plans.map(plan => plan.expertBytes)) * lanes) {
+        throw new Error('Tiered expert leases and concurrent mapped writers must fit aggregate stagingBytes.');
+      }
     }
+    const mappedLimit = options.policy.stagingBytes - (lease?.memoryBytes ?? 0);
     if (options.otherGpuBytes() + this.#placement.cacheUpperBytes > options.policy.gpuBudgetBytes - options.policy.reserveBytes) {
       throw new Error('Tiered expert placement and existing weights exceed the GPU reserve.');
     }
@@ -179,16 +187,23 @@ export class TieredExpertCache {
       signal.addEventListener('abort', abort, { once: true });
       if (signal.aborted) abort();
       try {
-        const results = await Promise.allSettled(Array.from({ length: Math.min(this.#options.policy.readConcurrency,
-          this.#options.rangeLease?.concurrency ?? 1) }, async () => {
-          while (cursor < plan.numExperts) {
-            const expert = cursor++;
-            try {
-              const lease = await readRoutedExpertLease(this.#options, this.#stats, plan, expert, controller.signal, null);
+        const directParallel = this.#options.policy.sourceReadMode === 'expert-parallel';
+        const concurrency = directParallel
+          ? this.#options.policy.readConcurrency
+          : Math.min(this.#options.policy.readConcurrency, this.#options.rangeLease?.concurrency ?? 1);
+        const results = await Promise.allSettled(Array.from({ length: concurrency }, async () => {
+          const directScratch = directParallel ? new Uint8Array(plan.expertBytes) : null;
+          if (directScratch) {
+            this.#uploadingBytes += directScratch.byteLength;
+            this.#sampleStaging();
+          }
+          try {
+            while (cursor < plan.numExperts) {
+              const expert = cursor++;
               try {
-                controller.signal.throwIfAborted();
-                if (mode === 'parked') await this.#remember(plan, expert, lease.bytes, controller.signal);
-                else {
+                if (directScratch) {
+                  await readRoutedExpertPayload(this.#options, this.#stats, plan, expert, controller.signal, directScratch, null);
+                  controller.signal.throwIfAborted();
                   this.#uploadingBytes += plan.expertBytes;
                   this.#sampleStaging();
                   try {
@@ -197,20 +212,45 @@ export class TieredExpertCache {
                       const buffer = planes.get(plane.role);
                       if (!buffer) throw new Error('Tiered resident plane is missing.');
                       this.#options.device.queue.writeBuffer(buffer, expert * plane.expertBytes,
-                        lease.bytes.subarray(offset, offset + plane.expertBytes));
+                        directScratch.subarray(offset, offset + plane.expertBytes));
                       this.#stats.uploadBytes += plane.expertBytes;
                       offset += plane.expertBytes;
                     }
-                    // writeBuffer copies its source immediately, but its native
-                    // upload allocation may survive until queue completion. Keep
-                    // this lane charged and stop further reads until that upload
-                    // settles; model-sized setup must not queue model-sized staging.
                     await this.#options.device.queue.onSubmittedWorkDone();
                     controller.signal.throwIfAborted();
                   } finally { this.#uploadingBytes -= plan.expertBytes; }
+                } else {
+                  const lease = await readRoutedExpertLease(this.#options, this.#stats, plan, expert, controller.signal, null);
+                  try {
+                    controller.signal.throwIfAborted();
+                    if (mode === 'parked') await this.#remember(plan, expert, lease.bytes, controller.signal);
+                    else {
+                      this.#uploadingBytes += plan.expertBytes;
+                      this.#sampleStaging();
+                      try {
+                        let offset = 0;
+                        for (const plane of plan.planes) {
+                          const buffer = planes.get(plane.role);
+                          if (!buffer) throw new Error('Tiered resident plane is missing.');
+                          this.#options.device.queue.writeBuffer(buffer, expert * plane.expertBytes,
+                            lease.bytes.subarray(offset, offset + plane.expertBytes));
+                          this.#stats.uploadBytes += plane.expertBytes;
+                          offset += plane.expertBytes;
+                        }
+                        // writeBuffer copies its source immediately, but its native
+                        // upload allocation may survive until queue completion. Keep
+                        // this lane charged and stop further reads until that upload
+                        // settles; model-sized setup must not queue model-sized staging.
+                        await this.#options.device.queue.onSubmittedWorkDone();
+                        controller.signal.throwIfAborted();
+                      } finally { this.#uploadingBytes -= plan.expertBytes; }
+                    }
+                  } finally { lease.release(); }
                 }
-              } finally { lease.release(); }
-            } catch (error) { controller.abort(error); throw error; }
+              } catch (error) { controller.abort(error); throw error; }
+            }
+          } finally {
+            if (directScratch) this.#uploadingBytes -= directScratch.byteLength;
           }
         }));
         const failure = results.find(result => result.status === 'rejected');

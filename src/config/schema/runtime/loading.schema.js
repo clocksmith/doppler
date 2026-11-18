@@ -135,9 +135,11 @@ export function validateQwen35RoutedConfig(config) {
       || tiered.mappedProtectedShare < 0 || tiered.mappedProtectedShare > 1
       || !Number.isSafeInteger(tiered.mappedCacheBytes) || tiered.mappedCacheBytes < 0 || tiered.mappedCacheBytes % 4
       || config.compactPrefillBytes !== 0 || config.compactPrefillReuse !== 'none'
-      || config.prefillCompactAdmission !== 'none' || config.sourceReadMode !== 'expert-lease-batch'
+      || config.prefillCompactAdmission !== 'none'
+      || !['expert-lease-batch', 'expert-parallel'].includes(config.sourceReadMode)
+      || (config.sourceReadMode === 'expert-parallel' && (tiered.parkedLayers.length > 0 || tiered.mappedCacheBytes > 0))
       || config.prefillUploadMode !== 'expert-copy') {
-      throw new Error('Tiered experts require distinct resident/parked layers, aligned mappedCacheBytes, mappedProtectedShare in [0,1] and batched streaming without full prefill banks.');
+      throw new Error('Tiered experts require distinct resident/parked layers, aligned mappedCacheBytes, mappedProtectedShare in [0,1] and batched or parallel streaming without full prefill banks.');
     }
   } else if (config.tiered != null) {
     throw new Error('Tiered placement requires storageMode=tiered-compact.');

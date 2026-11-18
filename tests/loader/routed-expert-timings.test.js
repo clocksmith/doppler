@@ -88,11 +88,11 @@ test('real worker timings reach separate prefill/decode phase counters without r
       otherGpuBytes: () => 0, readRange: async () => { throw new Error('Generic fallback must not execute'); } });
     await cache.prepare(selected, [0, 1, 2, 3], undefined, 'prefill');
     const prefill = cache.getStats().phaseProfiles.prefill.counters;
-    assert.equal(prefill.sourceTimingJobs, 12); assert.equal(prefill.sourceUntimedJobs, 0);
+    assert.equal(prefill.sourceTimingJobs, 4); assert.equal(prefill.sourceUntimedJobs, 0);
     await cache.prepare(selected, [0, 1], undefined, 'decode');
     const stats = cache.getStats(), decode = stats.phaseProfiles.decode.counters;
     assert.equal(decode.sourceTimingJobs, 2); assert.equal(decode.sourceUntimedJobs, 0);
-    assert.equal(stats.sourceTimingJobs, 14); assert.equal(stats.sourceUntimedJobs, 0);
+    assert.equal(stats.sourceTimingJobs, 6); assert.equal(stats.sourceUntimedJobs, 0);
     for (const counter of ['sourceJobWallMs', 'sourceJobReadWaitMs', 'sourceJobVerificationMs', 'sourceJobCopyMs', 'sourceJobRoundTripMs']) {
       assert(Number.isFinite(prefill[counter]) && prefill[counter] >= 0);
       assert(Number.isFinite(decode[counter]) && decode[counter] >= 0);

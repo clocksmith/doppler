@@ -7298,7 +7298,10 @@
      "description": "Q4_K GEMV with 1 contiguous subgroup lanes per row.",
      "reachability": {
       "status": "pinned",
-      "inlineConfigs": ["runtime/profiles/qwen-3-5-0-8b-vulkan-subgroup8"],
+      "inlineConfigs": [
+       "runtime/profiles/qwen-3-5-0-8b-vulkan-subgroup8",
+       "runtime/profiles/qwen3-8-27b-orin-projections"
+      ],
       "ruleChains": [],
       "wgslOnDisk": true
      },
@@ -7349,7 +7352,10 @@
      "description": "Q4_K GEMV with 2 contiguous subgroup lanes per row.",
      "reachability": {
       "status": "pinned",
-      "inlineConfigs": ["runtime/profiles/qwen-3-5-0-8b-vulkan-subgroup8"],
+      "inlineConfigs": [
+       "runtime/profiles/qwen-3-5-0-8b-vulkan-subgroup8",
+       "runtime/profiles/qwen3-8-27b-orin-projections"
+      ],
       "ruleChains": [],
       "wgslOnDisk": true
      },
@@ -7400,7 +7406,10 @@
      "description": "Q4_K GEMV with 4 contiguous subgroup lanes per row.",
      "reachability": {
       "status": "pinned",
-      "inlineConfigs": ["runtime/profiles/qwen-3-5-0-8b-vulkan-subgroup8"],
+      "inlineConfigs": [
+       "runtime/profiles/qwen-3-5-0-8b-vulkan-subgroup8",
+       "runtime/profiles/qwen3-8-27b-orin-projections"
+      ],
       "ruleChains": [],
       "wgslOnDisk": true
      },
@@ -7451,7 +7460,10 @@
      "description": "Q4_K GEMV with 8 contiguous subgroup lanes per row.",
      "reachability": {
       "status": "pinned",
-      "inlineConfigs": ["runtime/profiles/qwen-3-5-0-8b-vulkan-subgroup8"],
+      "inlineConfigs": [
+       "runtime/profiles/qwen-3-5-0-8b-vulkan-subgroup8",
+       "runtime/profiles/qwen3-8-27b-orin-projections"
+      ],
       "ruleChains": [],
       "wgslOnDisk": true
      },
@@ -7502,7 +7514,10 @@
      "description": "Q4_K GEMV with 16 contiguous subgroup lanes per row.",
      "reachability": {
       "status": "pinned",
-      "inlineConfigs": ["runtime/profiles/qwen-3-5-0-8b-vulkan-subgroup8"],
+      "inlineConfigs": [
+       "runtime/profiles/qwen-3-5-0-8b-vulkan-subgroup8",
+       "runtime/profiles/qwen3-8-27b-orin-projections"
+      ],
       "ruleChains": [],
       "wgslOnDisk": true
      },
@@ -7553,7 +7568,10 @@
      "description": "Q4_K GEMV with 32 contiguous subgroup lanes per row.",
      "reachability": {
       "status": "pinned",
-      "inlineConfigs": ["runtime/profiles/qwen-3-5-0-8b-vulkan-subgroup8"],
+      "inlineConfigs": [
+       "runtime/profiles/qwen-3-5-0-8b-vulkan-subgroup8",
+       "runtime/profiles/qwen3-8-27b-orin-projections"
+      ],
       "ruleChains": [],
       "wgslOnDisk": true
      },
@@ -8047,7 +8065,11 @@
      ],
      "reachability": {
       "status": "pinned",
-      "inlineConfigs": ["runtime/profiles/qwen-3-5-2b-orin-prefill"],
+      "inlineConfigs": [
+       "runtime/profiles/qwen-3-5-2b-orin-prefill",
+       "runtime/profiles/qwen3-8-27b-orin-prefill",
+       "runtime/profiles/qwen3-8-27b-orin-projections"
+      ],
       "ruleChains": [],
       "wgslOnDisk": true
      }
@@ -14750,7 +14772,10 @@
      "description": "Q4_K fused gate/up GEMV with one eight-lane subgroup partition per output row.",
      "reachability": {
       "status": "pinned",
-      "inlineConfigs": ["runtime/profiles/qwen-3-5-0-8b-vulkan-subgroup8"],
+      "inlineConfigs": [
+       "runtime/profiles/qwen-3-5-0-8b-vulkan-subgroup8",
+       "runtime/profiles/qwen3-8-27b-orin-decode"
+      ],
       "ruleChains": [],
       "wgslOnDisk": true
      },
@@ -24810,8 +24835,11 @@
      "outputDtype": "f32",
      "description": "Packed F16 bits in u32 split buffers -> F32 output without shader-f16",
      "reachability": {
-      "status": "code-dispatched",
-      "inlineConfigs": [],
+      "status": "pinned",
+      "inlineConfigs": [
+       "runtime/profiles/qwen3-8-27b-orin-prefill",
+       "runtime/profiles/qwen3-8-27b-orin-projections"
+      ],
       "ruleChains": [],
       "wgslOnDisk": true
      }
@@ -35723,9 +35751,9 @@
      }
     },
     "q4_0_f32": {
-     "wgsl": "moe_route_q4_0_f32.wgsl",
+     "wgsl": "moe_route_q4_0_block_f32.wgsl",
      "entryPoint": "main",
-     "workgroup": [128,1,1],
+     "workgroup": [256,1,1],
      "requires": [],
      "bindings": [
       {
@@ -35802,15 +35830,15 @@
      "weightDtype": "q4_0",
      "outputDtype": "f32",
      "wgslOverrides": {
-      "WORKGROUP_SIZE": 128,
-      "COLS_PER_WG": 4,
+      "WORKGROUP_SIZE": 256,
+      "COLS_PER_WG": 8,
       "THREADS_PER_COL_GEMV": 32,
       "TILE_SIZE": 16,
       "BLOCK_VALUES": 32,
       "BLOCK_BYTES": 18,
       "QUANT_FORMAT": 0
      },
-     "sharedMemory": 512,
+     "sharedMemory": 1024,
      "variantMetadata": {
       "workgroupConstants": ["WORKGROUP_SIZE",null,null]
      },
@@ -36121,7 +36149,7 @@
     "q4_0_split_f32": {
      "wgsl": "moe_route_q4_0_split_block_f32.wgsl",
      "entryPoint": "main",
-     "workgroup": [128,1,1],
+     "workgroup": [256,1,1],
      "requires": [],
      "bindings": [
       {
@@ -36203,15 +36231,15 @@
      "weightDtype": "q4_0",
      "outputDtype": "f32",
      "wgslOverrides": {
-      "WORKGROUP_SIZE": 128,
-      "COLS_PER_WG": 4,
+      "WORKGROUP_SIZE": 256,
+      "COLS_PER_WG": 8,
       "THREADS_PER_COL_GEMV": 32,
       "TILE_SIZE": 16,
       "BLOCK_VALUES": 32,
       "BLOCK_BYTES": 18,
       "QUANT_FORMAT": 0
      },
-     "sharedMemory": 512,
+     "sharedMemory": 1024,
      "variantMetadata": {
       "workgroupConstants": ["WORKGROUP_SIZE",null,null]
      },

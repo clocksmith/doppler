@@ -15,8 +15,8 @@ export const DEFAULT_BUFFER_POOL_BUCKET_CONFIG = {
 // =============================================================================
 
 export const DEFAULT_BUFFER_POOL_LIMITS_CONFIG = {
-  maxBuffersPerBucket: 8,
-  maxTotalPooledBuffers: 64,
+  maxBuffersPerBucket: 1024,
+  maxTotalPooledBuffers: 4096,
 };
 
 // =============================================================================

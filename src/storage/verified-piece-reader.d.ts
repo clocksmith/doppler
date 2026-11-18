@@ -7,11 +7,18 @@ export interface VerifiedPieceReceipt {
   acquisitionMs: number; verificationMs: number; copyMs: number;
   /** Range output buffers owned by active reads, before transfer to the loader; not process RSS. */
   activeReadBytes: number; peakReadBytes: number;
+  stateCacheHits?: number; stateCacheHitBytes?: number; stateCacheMisses?: number;
+}
+export interface StateVerifiedAcquisition {
+  bytes: Uint8Array | ArrayBuffer;
+  stateVerified?: boolean;
+  onAuthenticated?: () => void;
 }
 export interface VerifiedPieceReaderOptions {
   manifestBytes: ArrayBuffer | Uint8Array<ArrayBuffer>; indexBytes: ArrayBuffer | Uint8Array<ArrayBuffer>; indexIdentity: string;
-  acquire: (piece: Readonly<VerifiedPiece>, options: { signal?: AbortSignal }) => Promise<Uint8Array | ArrayBuffer>;
+  acquire: (piece: Readonly<VerifiedPiece>, options: { signal?: AbortSignal }) => Promise<Uint8Array | ArrayBuffer | StateVerifiedAcquisition>;
   signal?: AbortSignal;
+  allowStateVerifiedAcquire?: boolean;
 }
 export function createVerifiedPieceReader(options: VerifiedPieceReaderOptions): Promise<Readonly<{
   manifest: import('../formats/rdrr/index.js').RDRRManifest;

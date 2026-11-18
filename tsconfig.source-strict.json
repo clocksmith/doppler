@@ -275,6 +275,7 @@
     "src/storage/verified-piece-timings.js",
     "src/errors/doppler-error.js",
     "src/config/capsule/capsule.js",
-    "src/loader/experts/tiered-expert-cache.js"
+    "src/loader/experts/tiered-expert-cache.js",
+    "src/storage/verified-piece-state-cache.js"
   ]
 }

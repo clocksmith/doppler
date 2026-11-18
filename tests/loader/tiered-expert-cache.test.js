@@ -199,3 +199,38 @@ test('mapped admission phase is explicit while parked setup remains complete', a
   assert.equal(cache.getStats().tiered.mapped.evictableBytes, 48);
   await cache.destroy();
 });
+
+test('all-resident expert-parallel setup preloads direct slab banks without rangeLease', async () => {
+  const { cache: unused, plans, options, verify } = fixture();
+  await unused.destroy();
+  const source = Uint8Array.from({ length: 288 }, (_, i) => i % 251);
+  let directReads = 0;
+  const parallelPolicy = {
+    ...options.policy,
+    sourceReadMode: 'expert-parallel',
+    cacheBytes: 288,
+    compactLayerBytes: null,
+    stagingBytes: 192,
+    readConcurrency: 2,
+    tiered: { residentLayers: [0, 1, 2], parkedLayers: [], mappedCacheBytes: 0, mappedProtectedShare: 0 },
+  };
+  const parallelCache = new TieredExpertCache({
+    ...options,
+    policy: parallelPolicy,
+    rangeLease: null,
+    async readRangeInto(_shard, start, destination) {
+      directReads++;
+      destination.set(source.subarray(start, start + destination.byteLength));
+      return destination.byteLength;
+    },
+  }, plans, 2);
+  await parallelCache.preload();
+  assert.equal(directReads, 36);
+  for (const layer of [0, 1, 2]) {
+    const res = parallelCache.getResidentWeights(layer);
+    assert.ok(res);
+    for (const expert of [0, 1, 2, 3]) verify(res, layer, expert);
+  }
+  assert(parallelCache.getStats().peakStagingBytes <= 192);
+  await parallelCache.destroy();
+});
