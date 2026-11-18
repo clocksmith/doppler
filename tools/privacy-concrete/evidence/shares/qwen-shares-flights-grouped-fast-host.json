@@ -1,0 +1,96 @@
+{
+  "integrity": "additive-shares-m61-hidden-probe/v1",
+  "integrityPolicyId": "10584fc741ccc506088f4eff524b3b3b1e714217da1df0437838019ac37abe4e",
+  "checkRounds": 1,
+  "sharedProjectionCalls": 676,
+  "sharedRows": 1859,
+  "sharedFlights": 388,
+  "singleEvaluatorDetectionLog2": 60,
+  "commonDeviationDetectionLog2": 60,
+  "clientShareMs": 1291.2835769930098,
+  "evaluatorRoundTripMs": 3625.978590000159,
+  "sentBytes": [
+    65152252,
+    65152252
+  ],
+  "receivedBytes": [
+    120415092,
+    120415092
+  ],
+  "schema": "doppler.two-server-shares-execution/v1",
+  "qualified": false,
+  "productionBackendAvailable": false,
+  "securityQualified": false,
+  "nonCollusionEstablished": false,
+  "validationBoundary": "after-route-close/v1",
+  "mechanism": "additive-shares-m61-hidden-probe/v1",
+  "planId": "95c1f06bcbc08954a29696412115c0e5794e4fdf4fa930deaabdee905c1677cd",
+  "modelId": "4223289199791c6713ba2c98eb8f9d43a37597b09db0b2c778434dec431a6d24",
+  "linearProjectionCount": 169,
+  "steps": 4,
+  "groupedFlights": true,
+  "evaluatorTransports": [
+    "local-process",
+    "local-process"
+  ],
+  "clientLocalOutputTokens": [
+    12095,
+    13,
+    1084,
+    374
+  ],
+  "clientLocalOutputText": " Paris. It is",
+  "matchesFullQuantizedGreedyReference": true,
+  "floatGreedyMatches": [
+    true,
+    true,
+    true,
+    true
+  ],
+  "maxLogitErrors": [
+    0.0,
+    0.0,
+    0.0,
+    0.0
+  ],
+  "stepMs": [
+    2498.374228999637,
+    952.770234000127,
+    925.3427670000747,
+    858.4897350001484
+  ],
+  "executionWallMs": 5234.976964999987,
+  "floatReferenceStepMs": [
+    79.92070700038312,
+    100.59475499929249,
+    98.89041899987205,
+    96.86404300009599
+  ],
+  "floatReferenceWallMs": 376.26992399964365,
+  "clearQuantizedReferenceStepMs": [
+    681.021125999905,
+    608.5711539999465,
+    611.9938250003543,
+    603.3167770001455
+  ],
+  "clearQuantizedReferenceWallMs": 2504.9028820003514,
+  "privacyOverheadVsFloat": 13.912823298109112,
+  "privacyOverheadVsClearQuantized": 2.0898921880833434,
+  "clientNonLinearAndOrchestrationMs": 317.71479800681846,
+  "clientCpuSeconds": 6.258248000000004,
+  "localEvaluatorCpuSeconds": 77.87232,
+  "clientStoredBytes": {
+    "embeddingTable": 544538624,
+    "normsAndOtherParameters": 175616,
+    "quantizationVectorsAndBiases": 5583360,
+    "anchors": 3648512
+  },
+  "linearWeightBytesHeldByEvaluatorsFp32": 1975844864,
+  "clientReadsLinearCoefficientsDuringExecution": false,
+  "referenceWeightsInThisProcess": "Loaded for the post-close comparison only; the route itself never reads them.",
+  "preparationMs": 5450.261855999997,
+  "ownerPublicationMs": 0.6899190002513933,
+  "requesterAnchorPassMs": 358.9680530003534,
+  "clientPeakRssBytes": 4038832128,
+  "publicFixtureId": "qwen05b-capital"
+}
