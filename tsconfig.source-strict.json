@@ -234,6 +234,7 @@
     "src/loader/experts/expert-frequency-index.js",
     "src/inference/pipelines/text/moe/routed-expert-chunks.js",
     "src/loader/experts/loader-bindings.js",
+    "src/loader/experts/routed-expert-trace.js",
     "src/config/transforms/execution-graph/kv-storage.js",
     "src/debug/activity-trace.js",
     "src/inference/pipelines/text/generator/activation/activity-weights.js",

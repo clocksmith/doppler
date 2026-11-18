@@ -1,0 +1,53 @@
+import assert from 'node:assert/strict';
+import { beginRoutedExpertTrace, finishRoutedExpertTrace, cancelRoutedExpertTrace,
+  isRoutedExpertTraceActive, readRoutedExpertSelection } from '../../src/loader/experts/routed-expert-trace.js';
+
+const loader = {};
+const meta = { layer: 4, phase: 'prefill', tokenOffset: 0, numTokens: 2, topK: 2, source: 'paging' };
+const indices = new Uint32Array([7, 3, 7, 2]);
+let reads = 0;
+const read = async () => { reads++; return indices.buffer; };
+assert.equal(await readRoutedExpertSelection(loader, meta, read, false), null);
+assert.equal(reads, 0, 'Disabled resident capture never adds a readback');
+assert.equal(await readRoutedExpertSelection(loader, meta, read, true), indices.buffer);
+assert.equal(reads, 1, 'Mandatory paging read remains unchanged');
+assert.throws(() => beginRoutedExpertTrace(loader, { requestId: '', maxRecords: 1, maxIndices: 4 }), /request ID/);
+beginRoutedExpertTrace(loader, { requestId: 'first', maxRecords: 2, maxIndices: 4 });
+assert.throws(() => beginRoutedExpertTrace(loader, { requestId: 'second', maxRecords: 2, maxIndices: 4 }), /already active/);
+await readRoutedExpertSelection(loader, meta, read, true);
+await readRoutedExpertSelection(loader, { ...meta, source: 'resident' }, read, false);
+assert.equal(reads, 2, 'Exhausted diagnostic capture never adds resident reads');
+assert.throws(() => finishRoutedExpertTrace(loader, 'wrong'), /request ID/);
+const first = finishRoutedExpertTrace(loader, 'first');
+assert.deepEqual(first.records[0].indices, [7, 3, 7, 2], 'Preserves order and duplicate source IDs');
+assert.equal(first.capturedIndices, 4);
+assert.equal(first.omittedRecords, 1);
+assert.equal(first.omittedIndices, 4);
+indices[0] = 99;
+assert.equal(first.records[0].indices[0], 7, 'Does not retain mutable readback backing memory');
+assert.equal(isRoutedExpertTraceActive(loader), false);
+
+beginRoutedExpertTrace(loader, { requestId: 'concurrent', maxRecords: 1, maxIndices: 8 });
+let resolve;
+const blocked = readRoutedExpertSelection(loader, meta, () => new Promise(done => { resolve = done; }), true);
+assert.throws(() => finishRoutedExpertTrace(loader, 'concurrent'), /in-flight/);
+await readRoutedExpertSelection(loader, meta, read, true);
+resolve(indices.buffer);
+await blocked;
+const concurrent = finishRoutedExpertTrace(loader, 'concurrent');
+assert.equal(concurrent.records.length, 1, 'In-flight reservations enforce record limits');
+assert.equal(concurrent.omittedRecords, 1);
+
+beginRoutedExpertTrace(loader, { requestId: 'old', maxRecords: 2, maxIndices: 8 });
+const old = readRoutedExpertSelection(loader, meta, () => new Promise(done => { resolve = done; }), true);
+cancelRoutedExpertTrace(loader);
+beginRoutedExpertTrace(loader, { requestId: 'new', maxRecords: 2, maxIndices: 8 });
+resolve(indices.buffer);
+await old;
+await assert.rejects(readRoutedExpertSelection(loader, meta, async () => new ArrayBuffer(0), true), /geometry/);
+await readRoutedExpertSelection(loader, { ...meta, source: 'resident' }, read, false);
+const fresh = finishRoutedExpertTrace(loader, 'new');
+assert.equal(fresh.records.length, 1, 'Old in-flight request never contaminates new capture');
+assert.equal(fresh.records[0].source, 'resident');
+assert.equal(fresh.omittedRecords, 1, 'Failed readback is marked incomplete');
+console.log('Bounded expert traces: opt-in, limits, source IDs, request isolation, failures, resident and paging reads passed');

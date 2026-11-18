@@ -1,3 +1,4 @@
+import { isRoutedExpertTraceActive, readRoutedExpertSelection } from '../../../../loader/experts/routed-expert-trace.js';
 import { getRuntimeConfig } from '../../../../config/runtime.js';
 import { acquireBuffer, readBufferSlice, releaseBuffer } from '../../../../memory/buffer-pool.js';
 import { getDevice } from '../../../../gpu/device.js';
@@ -49,6 +50,14 @@ export async function executeRoutedExpertChunks(options, loader, policy, signal,
   const resident = tiered ? loader.getResidentRoutedExpertWeights?.(layerIdx) : null;
   if (resident) {
     if (resident.sourceExpertToSlot) throw new Error('Resident routed experts require a complete direct-index bank.');
+    if (isRoutedExpertTraceActive(loader)) for (let start = 0; start < numTokens; start += policy.routeChunkTokens) {
+      const count = Math.min(policy.routeChunkTokens, numTokens - start);
+      await readRoutedExpertSelection(loader, { layer: layerIdx, phase: options.phase ?? 'unspecified',
+        tokenOffset: start, numTokens: count, topK, source: 'resident' },
+      () => readBufferSlice(indicesBuffer, start * topK * 4, count * topK * 4, recorder), false);
+      signal?.throwIfAborted();
+    }
+
     return recorder ? recordQwenRouteExperts(recorder, { ...options, weights: resident })
       : runQwenRouteExperts({ ...options, weights: resident });
   }
@@ -69,7 +78,11 @@ export async function executeRoutedExpertChunks(options, loader, policy, signal,
     // Append the selection copy to routing's encoder and submit that prefix once.
     // Mapping still settles all earlier bank consumers before cache reuse. The
     // outer owner keeps temporaries until its final submission.
-    const data = await readBufferSlice(indicesBuffer, start * topK * 4, count * topK * 4, recorder);
+    const data = isRoutedExpertTraceActive(loader) ? await readRoutedExpertSelection(loader, { layer: layerIdx, phase: options.phase ?? 'unspecified',
+      tokenOffset: start, numTokens: count, topK, source: 'paging' },
+    () => readBufferSlice(indicesBuffer, start * topK * 4, count * topK * 4, recorder), true)
+      : await readBufferSlice(indicesBuffer, start * topK * 4, count * topK * 4, recorder);
+    if (!data) throw new Error('Routed paging requires selection readback.');
     if (profile) loader.recordRoutedReadback?.(options.phase, performance.now() - started, count * topK * 4);
     signal?.throwIfAborted();
     return [...new Set(new Uint32Array(data))];

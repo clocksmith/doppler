@@ -202,6 +202,7 @@
     "src/loader/experts/expert-frequency-index.js",
     "src/loader/experts/expert-preparation.js",
     "src/loader/experts/loader-bindings.js",
+    "src/loader/experts/routed-expert-trace.js",
     "src/loader/experts/qwen-paging.js",
     "src/loader/experts/routed-expert-cache.js",
     "src/loader/experts/routed-expert-plan.js",

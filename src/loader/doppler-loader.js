@@ -1,3 +1,4 @@
+import { cancelRoutedExpertTrace } from './experts/routed-expert-trace.js';
 import { getMemoryCapabilities } from '../memory/capability.js';
 import { detectUnifiedMemory } from '../memory/unified-detect.js';
 import { getHeapManager } from '../memory/heap-manager.js';
@@ -622,6 +623,7 @@ export class DopplerLoader {
   }
 
   async unload() {
+    cancelRoutedExpertTrace(this);
     this.routedReadbackStats = {};
     debugTrace.loader(' Unloading model...');
     const routedCleanupErrors = await disposeRoutedExperts(this);
