@@ -1,5 +1,5 @@
 export function getPrompt(): any;
-export function setPromptValue(value: any): void;
+export function setPromptValue(value: any, options?: { suggestion?: boolean }): void;
 export function clearPrompt(): void;
 export function buildConversationRequest(prompt: any, options?: {}): import("./conversation.js").ConversationRequest;
 export function recordConversationTurn(request: any, output: any, options?: {
@@ -20,8 +20,4 @@ export function isSendReady({ model, pipeline, prompt, generating, prefilling }:
 }): boolean;
 export function syncSendButton(options?: {}): boolean;
 export function initInput(): Promise<void>;
-/** The first-visit example answer and its prompt, or null without a valid bank. */
-export function getIllustrativeExample(): { prompt: string; answer: string } | null;
-/** Fills an empty composer without taking focus. */
-export function preloadPrompt(value: string): void;
 export function setGenerating(active: any): void;

@@ -5,12 +5,13 @@ import {
   normalizeConversationHistory,
 } from './conversation.js';
 import { clearOutput, renderChatMessages, setPhase } from './output.js';
-import { ensurePromptModel, sendBlocked, sendGuidance, syncModelControls } from './models.js';
+import { ensurePromptModel, selectedModelReady, sendBlocked, sendGuidance, sendLabel, syncModelControls } from './models.js';
 import { clearActivationRecording } from './ui/activation-grid/index.js';
 
 let examples = null;
 // One deck deals every alternative once before it is reshuffled.
 let promptDeck = [];
+let suggestedDraft = null;
 let onRun = null;
 
 function $(id) { return document.getElementById(id); }
@@ -85,30 +86,17 @@ function allPrompts() {
   return [...new Set(examples.prompts)];
 }
 
-// The first-visit example answer and its prompt, or null without a valid bank.
-export function getIllustrativeExample() {
-  return examples?.illustrative ?? null;
-}
-
-// Preloads the composer without taking focus, so it never replaces typed or
-// launched text and does not raise a mobile keyboard on load.
-export function preloadPrompt(value) {
-  const promptEl = $('prompt-input');
-  if (!promptEl || promptEl.value.trim() || typeof value !== 'string') return;
-  promptEl.value = value;
-  syncSendButton();
-}
-
 export function getPrompt() {
   return ($('prompt-input')?.value ?? '').trim();
 }
 
-export function setPromptValue(value) {
+export function setPromptValue(value, { suggestion = false } = {}) {
   const promptEl = $('prompt-input');
   if (!promptEl) {
     return;
   }
   promptEl.value = typeof value === 'string' ? value : String(value ?? '');
+  suggestedDraft = suggestion ? promptEl.value : null;
   promptEl.focus();
   syncSendButton();
 }
@@ -116,6 +104,7 @@ export function setPromptValue(value) {
 export function clearPrompt() {
   const promptEl = $('prompt-input');
   if (promptEl) {
+    suggestedDraft = null;
     promptEl.value = '';
     syncSendButton();
   }
@@ -213,28 +202,31 @@ export function isSendReady({ model, pipeline, prompt, generating = false, prefi
 export function syncSendButton(options = {}) {
   const btn = $('run-btn');
   const prompt = getPrompt();
+  const suggestions = $('prompt-suggestions');
+  if (suggestions) suggestions.hidden = !canSuggestPrompt();
   const generating = options.generating ?? state.generating;
   const prefilling = options.prefilling ?? state.prefilling;
   const ready = !state.modelBusy && !state.settingsBusy && isSendReady({
-    model: state.model,
+    model: selectedModelReady() ? state.model : null,
     prompt,
     generating,
     prefilling,
   });
   if (!btn) return ready;
 
-  const canLoadModel = !state.model && !sendBlocked() && Boolean(prompt) && !state.modelBusy && !state.settingsBusy && !generating && !prefilling;
+  const canLoadModel = !selectedModelReady() && !sendBlocked() && Boolean(prompt) && !state.modelBusy && !state.settingsBusy && !generating && !prefilling;
   // A disabled Send says why in words, and a Send that will download says so first.
   const hint = $('send-hint');
   if (hint) {
-    hint.textContent = generating || prefilling ? '' : sendGuidance({ hasPrompt: Boolean(prompt) });
+    const message = generating || prefilling ? '' : sendGuidance();
+    if (hint.textContent !== message) hint.textContent = message;
     hint.hidden = !hint.textContent;
   }
   btn.disabled = !ready && !canLoadModel;
-  btn.textContent = 'Send';
+  btn.textContent = sendLabel();
   if (!state.webgpuAvailable) {
     btn.title = 'This browser has no WebGPU, so it cannot run a model. The recorded example still works.';
-  } else if (state.model == null) {
+  } else if (!selectedModelReady()) {
     btn.title = 'Load the model and send this prompt locally';
   } else if (!prompt) {
     btn.title = 'Enter a message to send';
@@ -248,9 +240,9 @@ export function syncSendButton(options = {}) {
 
 async function submitIfReady() {
   const prompt = getPrompt();
-  if (!prompt || state.modelBusy || state.settingsBusy || state.generating || state.prefilling) return;
+  if (!prompt || sendBlocked() || state.modelBusy || state.settingsBusy || state.generating || state.prefilling) return;
   try {
-    if (!state.model) {
+    if (!selectedModelReady()) {
       setPhase('Loading model…', { busy: true, quiet: true });
       await ensurePromptModel();
       // Keep edits made during loading; never send a different prompt implicitly.
@@ -266,13 +258,16 @@ async function submitIfReady() {
   }
 }
 
+function canSuggestPrompt() {
+  const value = $('prompt-input')?.value;
+  return Boolean(examples && (value === '' || value === suggestedDraft));
+}
+
 export async function initInput() {
   await loadExamples();
-  const suggestions = $('prompt-suggestions');
-  if (suggestions) suggestions.hidden = !examples;
 
   $('shuffle-btn')?.addEventListener('click', () => {
-    if (examples) setPromptValue(dealPrompt(allPrompts()));
+    if (canSuggestPrompt()) setPromptValue(dealPrompt(allPrompts()), { suggestion: true });
   });
 
   $('run-btn')?.addEventListener('click', submitIfReady);
@@ -283,7 +278,10 @@ export async function initInput() {
       submitIfReady();
     }
   });
-  $('prompt-input')?.addEventListener('input', () => syncSendButton());
+  $('prompt-input')?.addEventListener('input', () => {
+    suggestedDraft = null;
+    syncSendButton();
+  });
 
   setupConversationActions();
   syncSendButton();

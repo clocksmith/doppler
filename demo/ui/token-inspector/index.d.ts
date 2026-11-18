@@ -13,6 +13,7 @@ export interface TokenInspectorOptions {
   forks?: Map<number, { members: number[]; active: number }>;
   branchable?: boolean;
   unavailableReason?: string;
+  onSelect?: ((index: number, text: string) => void) | null;
   onBranch?: ((index: number, tokenId: number) => void) | null;
   onSwitch?: ((branchId: number) => void) | null;
 }

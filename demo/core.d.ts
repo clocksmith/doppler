@@ -3,6 +3,7 @@ export declare function runGeneration(): Promise<void>;
 export declare function stopGeneration(): void;
 export declare function unsureWords(): { position: number; probability: number }[];
 export declare function showWordAt(position: number): void;
+export declare function showAnswerPreview(): void;
 export declare function recordedRunNote(model: string): string;
 export declare function showRecordedActivity(recording: import('./ui/activation-grid/data.js').ActivationRecording, options?: { preserveDraft?: boolean }): void;
 export declare function loadSampleInspection(receipt: typeof import('./data/sample-inspection.js').SAMPLE_INSPECTION_RECEIPT, options?: { preserveDraft?: boolean }): void;

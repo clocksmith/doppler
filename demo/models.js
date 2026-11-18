@@ -29,7 +29,7 @@ function downloadSize(entry) {
 }
 
 // Shown beside Load when the browser cannot start WebGPU at all.
-export const NO_WEBGPU_NOTE = 'This browser can’t run models here: WebGPU isn’t available. The recorded answer below still works. '
+export const NO_WEBGPU_NOTE = 'This browser can’t run models here: WebGPU isn’t available. You can explore the recorded answer. '
   + 'Reloading, updating the browser or turning on hardware acceleration sometimes helps.';
 
 // Asks for an adapter only. Its limits are per-buffer GPU limits, not memory.
@@ -76,26 +76,33 @@ export function loadFailureNote(entry, error, facts = {}) {
   return `${modelLabel(entry)} could not load: ${message}.${files}`;
 }
 
-// In words, what Send would do about the model, or why it cannot.
-export function sendGuidance({ hasPrompt = false } = {}) {
-  if (!state.webgpuAvailable) return 'Live inference is not available in this browser. The recorded run still works.';
-  if (state.model) return hasPrompt ? '' : 'Type a message to send.';
-  const entry = selectedEntry();
-  if (!entry) return 'Choose a model above first.';
-  const status = state.modelStatus[entry.modelId] ?? 'available';
-  if (status === 'loading' || state.modelBusy) return '';
-  if (modelFit(entry) === 'too-large') {
-    return `Send is off for ${modelLabel(entry)}: it needs more memory than this device reports. Choose a smaller model, or press Load anyway.`;
-  }
-  const size = downloadSize(entry);
-  const first = status === 'stored' ? `load ${modelLabel(entry)} from the copy saved in this browser`
-    : `download${size ? ` about ${size}` : ''} and load ${modelLabel(entry)}`;
-  return hasPrompt ? `Send will first ${first}.` : `Type a message. Sending it will first ${first}.`;
+export function selectedModelReady() {
+  return Boolean(state.model && state.modelId === selectedModelId);
 }
 
-// No WebGPU, or the chosen model looks too large to load unasked.
+export function sendLabel() {
+  const entry = selectedEntry();
+  if (!entry || !state.webgpuAvailable || selectedModelReady()) return 'Send';
+  const status = state.modelStatus[entry.modelId];
+  if (status === 'loading') return 'Loading model…';
+  if (status === 'stored') return 'Load & send';
+  const size = downloadSize(entry);
+  return size ? `Download ${size} & send` : 'Download & send';
+}
+
+export function sendGuidance() {
+  if (!state.webgpuAvailable) return 'Live inference is not available in this browser.';
+  if (selectedModelReady()) return '';
+  const entry = selectedEntry();
+  if (!entry) return 'Choose a model to send a message.';
+  if (state.modelStatus[entry.modelId] === 'loading') return state.downloadProgress?.message?.trim() || '';
+  if (modelFit(entry) === 'too-large') return 'Choose a smaller model or use Load anyway.';
+  return '';
+}
+
 export function sendBlocked() {
-  return !state.webgpuAvailable || (!state.model && modelFit(selectedEntry()) === 'too-large');
+  const entry = selectedEntry();
+  return !state.webgpuAvailable || !entry || (!selectedModelReady() && modelFit(entry) === 'too-large');
 }
 
 const GIB = 2 ** 30;
@@ -127,6 +134,7 @@ export function isChatModel(entry) {
 function setProgress(event) {
   state.downloadProgress = event ?? null;
   if (event) setPhase(event.message?.trim() || 'Loading model…', { busy: true, quiet: true });
+  if (event) syncSendButton();
   onProgress?.(event);
 }
 
@@ -144,7 +152,7 @@ export function syncModelControls() {
   if (action) {
     action.hidden = status === 'loaded';
     action.disabled = !entry || busy || status === 'loaded' || !state.webgpuAvailable;
-    action.textContent = status === 'loaded' ? 'Loaded' : modelFit(entry) === 'too-large' ? 'Load anyway' : 'Load';
+    action.textContent = status === 'loaded' ? 'Loaded' : modelFit(entry) === 'too-large' ? 'Load anyway' : 'Load model';
   }
   if (remove) {
     remove.hidden = status !== 'stored' && status !== 'loaded';
@@ -219,7 +227,7 @@ async function loadSelectedModel({ entry = selectedEntry(), runtimeProfile = sta
 }
 
 export async function ensurePromptModel() {
-  if (state.model) return state.model;
+  if (selectedModelReady()) return state.model;
   if (!state.webgpuAvailable) throw new Error('This browser has no WebGPU, so it cannot run a model.');
   const entry = selectedEntry();
   if (!entry) throw new Error('The default model is unavailable. Choose a model above.');
@@ -228,7 +236,7 @@ export async function ensurePromptModel() {
     throw new Error(`${modelLabel(entry)} needs more memory than this device reports. Choose a smaller model, or press Load anyway.`);
   }
   await loadSelectedModel({ entry });
-  if (!state.model) throw new Error('Model loading is already in progress. Try again when ready.');
+  if (!selectedModelReady()) throw new Error('Model loading is already in progress. Try again when ready.');
   return state.model;
 }
 
@@ -312,14 +320,12 @@ export function canRemoveModelStatus(status) {
 export function buildModelDetail(entry, status = 'available', reportedBytes = reportedMemoryBytes()) {
   if (!entry || status === 'loaded' || status === 'loading') return '';
   const required = entry.quickstartRequirements?.vramRequiredBytes;
-  const size = downloadSize(entry);
   if (modelFit(entry, reportedBytes) === 'too-large') {
-    return `Needs about ${memorySize(required)} of GPU memory, and this browser reports ${memorySize(reportedBytes)} of system memory, so it will probably fail to load.`
-      + (status === 'stored' || !size ? '' : ` Loading it downloads about ${size} first.`);
+    return `Needs about ${memorySize(required)} of GPU memory. This browser reports ${memorySize(reportedBytes)} of system memory.`;
   }
-  const need = Number.isFinite(required) && required > 0 ? ` Needs about ${memorySize(required)} of GPU memory.` : '';
-  if (status === 'stored') return `Saved in this browser, so it loads without downloading.${need}`;
-  return size ? `First use downloads about ${size}. Your browser keeps a copy if it can.${need}` : need.trim();
+  const details = status === 'stored' ? ['Saved in this browser.'] : [];
+  if (Number.isFinite(required) && required > 0) details.push(`Needs about ${memorySize(required)} of GPU memory.`);
+  return details.join(' ');
 }
 
 export function setModelCallbacks(callbacks = {}) {

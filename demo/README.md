@@ -8,7 +8,7 @@ imports private `src/` paths.
 The page has three sections with consistent spacing and disclosures. Section names are accessible landmarks, not visible headings. Model labels stay exactly as
 published in the catalog, configuration included:
 
-1. **Dialogue**: the model selector with a compact Load button and, before any download, each model's stated GPU memory need compared with the memory the browser reports (a model the device reports too little for is marked, its button reads Load anyway, and Send does not start its download). A line under Send says in words what Send will do, including any download it would start first, or why it is unavailable. A failed load leaves a note beside Load with the reason and only what was observed about model files (none, some, or saved); a per-buffer GPU limit is named as such, separately from system memory, one animated loading/generation indicator, the conversation with clickable words and alternatives, the message box
+1. **Dialogue**: the model selector with a compact Load button and, before any download, each model's stated GPU memory need compared with the memory the browser reports (a model the device reports too little for is marked, its button reads Load anyway, and Send does not start its download). The primary button shows the download size, Load & send, or Send as appropriate. A secondary Load model action prepares a model independently. A failed load leaves a note beside Load with the reason and only what was observed about model files (none, some, or saved); a per-buffer GPU limit is named as such, separately from system memory, one animated loading/generation indicator, the conversation with clickable words and alternatives, the message box
    with Send and Stop, and answer and engine settings under **Options**.
 2. **Model activity**: what to record during the next answer (activity grids,
    GPU timing, or both), selectable grids with one player and timeline, recorded timing and device details for the latest answer, Save run, Save grid and one Open file
@@ -48,8 +48,7 @@ and longer explanations live under Details, along with timing, coverage, capture
 follow, and Follow latest layer appears only after pinning a diagram layer.
 Routine phase names remain accessible without visible repeated status text. Errors and stopped runs stay readable; reduced motion makes the indicator static. Secondary actions use quiet text controls. Loaded models show status rather than
 a redundant disabled Load button.
-An empty composer receives the example prompt on both fresh and cached-model
-visits, without replacing entered text. Starting a recorded run leaves static
+Starting a recorded run leaves static
 snapshots for live Activation changes, comparing the current and previous token.
 Model paths remains selectable and includes a layer-by-dimension activation
 heatmap from the captured layer outputs, with a fixed signed color scale. Rows
@@ -57,28 +56,20 @@ fill at their capture boundaries; this is not a simultaneous hardware snapshot.
 Wide screens place activity beside the conversation. Narrow screens bring the
 activity into view on Send and keep Stop reachable while generation runs.
 
-Fresh and returning visits open the first exchange: the real Qwen
-0.8B recording of “Explain why the sky is blue in one sentence.” It opens paused, not
-playing, on the word the model was least sure of, with that word's alternatives shown and
-a one-line note that leaves once the reader plays, scrubs or changes view. Play shows the
-answer from the start. Its answer and activity use one player; words appear with their
-corresponding completed layer stack and scrubbing rewinds both. A note names the
-model from the saved run itself, never from the model selector: “Recorded <model> run. No
-model is running on this device.”, and adds that the selected model is used only when a
-message is sent; publication date and timing semantics live under Details. It requires no
-model download or inference, and no WebGPU. At startup the page asks the browser for a
-WebGPU adapter without creating a device. With no WebGPU, or no adapter, the page still
-opens and shows this example; a note beside Load says live inference is not available,
-what sometimes helps and that another browser or device may not work either, with a
-Check again control; Load and Send stay disabled rather than startup failing. Typing,
-changing models, clearing or sending cancels a pending opening or playback.
-Once the first exchange opens, its submitted prompt is cleared from the composer.
-Typed or launched drafts cancel automatic opening and are preserved. The sample never
-creates live model state or enters its conversation history. Send produces the new
-answer and its activity together. A single
-“Try another example” button deals the other prompts from
-`examples.json` in shuffled order, without repeats until the bank is used up.
-There are no category buttons. Live generation and
+A ready visit with an empty draft opens an interactive preview of Qwen 3.5
+0.8B answering “Explain why the sky is blue in one sentence.” The saved token
+probabilities and per-layer output magnitudes come from the same run. The
+preview selects “appears” in “The sky appears blue.” Selecting another token
+updates both its alternatives and its layer chart. All bars use one scale.
+The preview works without WebGPU or model weights.
+
+**Load full replay · 23 MB** fetches the full activity recording on demand.
+Replay answer starts the synchronized answer and layer player from the beginning.
+A visitor can keep typing or cancel a pending download by changing the model.
+The recorded answer stays outside live chat history. Run on this device names
+the model for live answers. Another prompt fills an empty composer or changes an
+untouched suggestion and disappears when the visitor edits a draft.
+Live generation and
 recorded examples share the existing inspection view and execution owners.
 
 The composer streams text through inspection token events. Incoming IDs are
@@ -285,12 +276,11 @@ Views are separated in the selector and primary labels:
 
 ## Model activity recording and playback
 
-**Model activity** follows the displayed run. No example downloads automatically,
-including for visitors with the old automatic-example preference. Details can
-open a real Qwen 0.8B capture (about 23 MB compressed) together with its recorded
-“Say hello in one word.” prompt and “Hello!” answer. The compressed bytes are
-SHA-256 checked before import, outside the application-shell cache. An example
-fetch cannot replace a newer live run, cleared conversation or imported recording.
+**Model activity** follows the displayed run. The compact preview opens immediately.
+Explicitly loading the full replay fetches the compressed Qwen recording, verifies
+its SHA-256 and opens it in the player. The full recording stays outside the
+application-shell cache. A pending fetch yields to a newer live run, cleared
+conversation or imported recording.
 Starting any run, including with recording off, clears the previous activity.
 Model changes and branch switching also clear or replace the activity with the
 matching capture. New recording files retain prompt and answer text; legacy files

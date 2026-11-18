@@ -1,14 +1,14 @@
 import { installDebugGlobal } from 'doppler-gpu/tooling/runtime';
 import { boot, setBootStatus, stopBootProgress, updateBootModelProgress } from './boot.js';
 import { reloadActiveModel, setModelCallbacks } from './models.js';
-import { getIllustrativeExample, initInput, preloadPrompt, setRunHandler } from './input.js';
+import { initInput, setRunHandler } from './input.js';
 import { initSettings } from './settings.js';
 import { initReport } from './report.js';
-import { onModelLoaded, runGeneration, stopGeneration, showRecordedActivity, showWordAt, unsureWords, updateRecordedActivity } from './core.js';
+import { onModelLoaded, runGeneration, stopGeneration, showAnswerPreview, showRecordedActivity, showWordAt, unsureWords, updateRecordedActivity } from './core.js';
 import { state } from './ui/state.js';
 import { initPrecisionReplay } from './ui/precision-replay/index.js';
 import { initLivePrecision } from './ui/precision-replay/live.js';
-import { initActivationGrid, isActivationRecordingEnabled, loadActivityExample, cancelActivityExample } from './ui/activation-grid/index.js';
+import { initActivationGrid, isActivationRecordingEnabled, cancelActivityExample } from './ui/activation-grid/index.js';
 import { initXray, getXrayRuntimeNoticeText, isXrayProfilingNeeded } from './ui/xray/index.js';
 import { flushPwaLaunchState, initPwa } from './pwa.js';
 
@@ -117,13 +117,7 @@ async function init() {
 
   // Boot sequence
   await boot();
-  // A cached model must not suppress the ready-to-run prompt on a return visit.
-  const example = getIllustrativeExample();
-  if (state.phase === 'ready' && !state.bootError && !$('prompt-input').value.trim()) {
-    if (example) preloadPrompt(example.prompt);
-    // Recorded examples do not change the model selected for the user's next live run.
-    void loadActivityExample(undefined, { opening: true });
-  }
+  if (state.phase === 'ready' && !state.bootError && !$('prompt-input').value.trim()) showAnswerPreview();
 }
 
 function showInitError(message) {

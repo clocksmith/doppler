@@ -230,23 +230,6 @@
           <h2 id="dialogue-heading">Dialogue</h2>
         </header>
 
-        <div id="model-picker" class="model-picker">
-          <div class="model-picker-heading">
-            <label id="model-picker-label" for="model-select">Model</label>
-            <span id="model-select-status" class="model-select-status" role="status" aria-live="polite">Loading the model list…</span>
-          </div>
-          <div class="model-select-row">
-            <select id="model-select" disabled>
-              <option value="">Loading models…</option>
-            </select>
-            <button id="model-select-action" class="btn" type="button" disabled>Load</button>
-            <button id="model-select-remove" class="btn btn-ghost" type="button" hidden>Remove</button>
-          </div>
-          <p id="model-select-detail" class="demo-note model-select-detail"></p>
-          <button id="webgpu-retry" class="btn btn-ghost btn-small" type="button" hidden>Check again</button>
-
-        </div>
-
         <div class="chat-toolbar">
           <div class="chat-run-status" role="status" aria-live="polite">
             <span id="run-indicator" class="run-indicator" aria-hidden="true" hidden></span>
@@ -263,7 +246,10 @@
             </div>
             <article id="live-assistant-message" class="chat-message chat-message--assistant" aria-live="polite" aria-atomic="false" hidden>
               <div class="chat-role">Doppler</div>
-              <p id="recorded-run-note" class="demo-note" hidden></p>
+              <div class="recorded-toolbar">
+                <p id="recorded-run-note" class="demo-note" hidden></p>
+                <div id="answer-replay-controls"><button id="answer-play" class="btn btn-small" type="button" hidden>Replay answer</button></div>
+              </div>
               <div id="output-text" class="output-text"></div>
               <div id="word-quality-output" hidden></div>
               <div id="word-quality-legend" class="word-quality-legend" hidden>
@@ -273,20 +259,37 @@
               </div>
               <p id="token-inspection-hint" class="demo-note" hidden>This answer has no saved alternatives.</p>
               <div id="token-inspector-view" class="token-inspector-view" hidden>
-                <p id="branch-help" class="demo-note">Blue: likely · Red: unlikely. Likelihood is not correctness.</p>
+                <p id="branch-help" class="demo-note">Select an underlined word to see what else the model might have written.</p>
                 <div id="token-stream-container" class="token-stream-container"></div>
                 <div id="token-inspector-card-container" class="token-inspector-card-container"></div>
               </div>
+              <div id="preview-mobile"></div>
             </article>
           </div>
         </section>
 
         <section id="input-area" class="input-area" aria-label="Message">
+          <div id="model-picker" class="model-picker">
+            <div class="model-picker-heading">
+              <label id="model-picker-label" for="model-select">Run on this device</label>
+              <span id="model-select-status" class="model-select-status" role="status" aria-live="polite">Loading the model list…</span>
+            </div>
+            <div class="model-select-row">
+              <select id="model-select" disabled>
+                <option value="">Loading models…</option>
+              </select>
+              <button id="model-select-action" class="btn" type="button" disabled>Load model</button>
+              <button id="model-select-remove" class="btn btn-ghost" type="button" hidden>Remove</button>
+            </div>
+            <p id="model-select-detail" class="demo-note model-select-detail"></p>
+            <button id="webgpu-retry" class="btn btn-ghost btn-small" type="button" hidden>Check again</button>
+
+          </div>
           <div class="input-row">
             <textarea id="prompt-input" aria-label="Message Doppler" placeholder="Message Doppler…" rows="3"></textarea>
           </div>
           <div id="prompt-suggestions" class="prompt-suggestions" aria-label="Suggested prompts">
-            <button id="shuffle-btn" class="btn btn-ghost btn-small" type="button">Try another example</button>
+            <button id="shuffle-btn" class="btn btn-ghost btn-small" type="button">Another prompt</button>
           </div>
           <div class="input-actions">
             <button id="run-btn" class="btn btn-primary run-btn" type="button" disabled title="Send this message to the model">Send</button>
@@ -396,11 +399,19 @@
 
         <fieldset class="activity-record">
           <legend class="sr-only">Record during the next answer</legend>
-          <label class="checkbox-label" title="Recording adds measurement overhead. Details shows capture limits and timing."><input id="activation-record" type="checkbox" checked> Record activity</label>
+          <label class="checkbox-label" title="Recording adds measurement overhead. Details shows capture limits and timing."><input id="activation-record" type="checkbox" checked> Record my next answer’s activity</label>
           <label id="activation-record-view-label" class="checkbox-label" title="Saves only what the open view needs, so it reaches further into a long answer before the size limit. Other views will have nothing for that answer." hidden><input id="activation-record-view" type="checkbox"> Only the view I have open</label>
         </fieldset>
 
         <div id="activation-view" class="activation-view">
+          <div id="preview-desktop"></div>
+          <figure id="answer-preview" class="answer-preview" hidden>
+            <figcaption>Layer activity for <strong id="preview-word"></strong></figcaption>
+            <div id="preview-bars" class="preview-bars" role="img"></div>
+            <div class="preview-axis" aria-hidden="true"><span>Layer 1</span><span id="preview-last-layer"></span></div>
+            <p class="demo-note">Bar height shows the size of each layer’s output.</p>
+          </figure>
+          <div id="activity-replay-controls"><button id="activity-example" class="btn btn-small" type="button">Load full replay · 23 MB</button></div>
           <p id="activity-intro" class="demo-note">Activity will appear as your answer is generated.</p>
           <p id="activity-source" class="demo-note" role="status" hidden></p>
           <p id="activation-caption" class="demo-note activation-caption" aria-live="polite" hidden></p>
@@ -418,7 +429,7 @@
               <label class="sr-only" for="activation-scrub">Capture</label>
               <input id="activation-scrub" type="range" min="0" max="0" value="0" disabled>
             </div>
-            <p id="activity-hint" class="demo-note" hidden>Paused at the word the model was least sure of. Play shows the answer from the start.</p>
+            <p id="activity-hint" class="demo-note" hidden>Replay to watch the answer appear alongside its layer activity.</p>
             <div id="activity-unsure" class="demo-controls" hidden>
               <button id="activity-unsure-prev" class="btn btn-ghost btn-small" type="button">Previous unsure word</button>
               <button id="activity-unsure-next" class="btn btn-ghost btn-small" type="button">Next unsure word</button>
@@ -460,7 +471,6 @@
             </div>
             <div id="activity-files">
               <div class="demo-controls">
-                <button id="activity-example" class="btn btn-ghost" type="button">Open example · 23 MB</button>
                 <button id="export-btn" class="btn btn-ghost" type="button" disabled>Save run</button>
                 <button id="activation-export" class="btn btn-ghost" type="button" disabled>Save grid</button>
                 <button id="import-btn" class="btn btn-ghost" type="button">Open file</button>

@@ -20,7 +20,9 @@ export declare const NO_WEBGPU_NOTE: string;
 export declare function probeWebGpu(gpu?: unknown): Promise<{ available: boolean; limits: { maxBufferSize: number | null; maxStorageBufferBindingSize: number | null } | null }>;
 export declare function checkWebGpu(): Promise<boolean>;
 export declare function loadFailureNote(entry: DemoCatalogEntry | null, error: unknown, facts?: { sawModelFiles?: boolean; wasStored?: boolean; storedNow?: boolean }): string;
-export declare function sendGuidance(options?: { hasPrompt?: boolean }): string;
+export declare function selectedModelReady(): boolean;
+export declare function sendLabel(): string;
+export declare function sendGuidance(): string;
 export declare function sendBlocked(): boolean;
 
 export declare function modelFit(

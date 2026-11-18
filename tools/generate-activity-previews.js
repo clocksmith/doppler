@@ -4,7 +4,7 @@ import { gunzipSync } from 'node:zlib';
 import { createHash } from 'node:crypto';
 import sharp from 'sharp';
 import previews from '../demo/ui/activation-grid/previews.json' with { type: 'json' };
-import { validateRecording, colorGrid, initialColorScale } from '../demo/ui/activation-grid/data.js';
+import { validateRecording, colorGrid, initialColorScale, layerHistory } from '../demo/ui/activation-grid/data.js';
 import { activityView, playbackPoints } from '../demo/ui/activation-grid/views.js';
 
 // The first-load images are exact pixels from the public recorded run, not art.
@@ -28,6 +28,24 @@ for (const preview of previews) {
   else await fs.writeFile(file, png);
   receipt.previews.push({ mode: preview.mode, side, scale, range: view.range, representation: view.representation, underlyingValues: view.underlyingValues, sha256: createHash('sha256').update(png).digest('hex') });
 }
+// Reuse the full player's RMS calculation at each completed prediction boundary.
+const timeline = playbackPoints(recording, 'tokens');
+const firstPrediction = recording.inputTokenIds.length - 1;
+const layerRms = recording.generatedTokenIds.map((_, index) => {
+  const position = firstPrediction + index;
+  const end = timeline.find(p => p.position === position);
+  if (!end) return null;
+  const history = layerHistory(recording, end.atMs, position, false);
+  const col = history.positions.indexOf(position);
+  return Array.from({ length: history.layers }, (_, layer) => {
+    const rms = history.values[layer * history.positions.length + col];
+    return typeof rms === 'number' ? Number(rms.toPrecision(4)) : null;
+  });
+});
+// “The sky appears…” has recognizable alternatives and recorded data at every layer.
+const openingIndex = 2;
+if (layerRms[openingIndex]?.some(value => value == null) !== false) throw new Error('Opening token lacks layer data.');
+receipt.answer = { fingerprint: recording.fingerprint.fullDigest, openingIndex, layerRms };
 // Shipped in the demo shell, which has a byte budget: one preview per line.
 const { previews: items, ...head } = receipt;
 const manifest = `{\n${Object.entries(head).map(([key, value]) => `  ${JSON.stringify(key)}: ${JSON.stringify(value)},\n`).join('')}  "previews": [\n${items.map(item => `    ${JSON.stringify(item)}`).join(',\n')}\n  ]\n}\n`;

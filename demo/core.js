@@ -1,7 +1,7 @@
 import { SAMPLE_INSPECTION_RECEIPT } from './data/sample-inspection.js';
 import { state } from './ui/state.js';
 import { isActivationRecordingEnabled, activityCaptureRequest, setCaptureSelectionSupport, beginActivationRecording, acceptActivationFrame,
-  finishActivationRecording, clearActivationRecording, getActivationRecording, importActivationRecording } from './ui/activation-grid/index.js';
+  finishActivationRecording, clearActivationRecording, getActivationRecording, importActivationRecording, openAnswerPreview, selectPreviewWord } from './ui/activation-grid/index.js';
 import { SHELL_MANIFEST_DIGEST } from './generated-shell-manifest.js';
 import activityConfig from './ui/activation-grid/config.json' with { type: 'json' };
 import { syncModelControls } from './models.js';
@@ -232,7 +232,7 @@ function startBranchTree(run) {
 }
 
 function branchUnavailableReason() {
-  if (!state.branchTree) return 'Only a live answer can branch. Recorded and illustrative examples cannot.';
+  if (!state.branchTree) return 'Only a live answer can branch.';
   if (state.generating || state.modelBusy || state.settingsBusy) return 'Wait for the current run to finish.';
   return 'Load the model that wrote this answer to branch from it.';
 }
@@ -247,6 +247,7 @@ export function syncBranchView() {
     forks: tree ? forkGroups(tree) : new Map(),
     branchable,
     unavailableReason: branchUnavailableReason(),
+    onSelect: selectPreviewWord,
     onBranch: (index, tokenId) => { void runBranch(index, tokenId); },
     onSwitch: (id) => switchBranch(id),
   });
@@ -400,8 +401,12 @@ export async function runBranch(forkIndex, tokenId) {
 // without prompt text remain inspectable, but never borrow the current draft.
 // Names the saved run's own model; the picker above only matters once a message is sent.
 export function recordedRunNote(model) {
-  return `Recorded answer from ${model}. Nothing is running on this device.`
-    + (state.webgpuAvailable ? ' Send runs the model picked above.' : '');
+  return `Recorded · ${model}`;
+}
+
+export function showAnswerPreview() {
+  loadSampleInspection(SAMPLE_INSPECTION_RECEIPT, { preserveDraft: true });
+  selectToken(openAnswerPreview(SAMPLE_INSPECTION_RECEIPT.fingerprint.fullDigest));
 }
 
 export function showRecordedActivity(recording, { preserveDraft = false } = {}) {
@@ -429,7 +434,6 @@ export function loadSampleInspection(receipt, { preserveDraft = false } = {}) {
   if (state.generating || state.modelBusy || state.settingsBusy) return;
   clearConversationHistory();
   if (!preserveDraft) setPromptValue(receipt.prompt);
-  else if (getPrompt() === receipt.prompt) clearPrompt();
   beginChatTurn([{ role: 'user', content: receipt.prompt }]);
   syncBranchView();
   const promptLabel = document.querySelector('#chat-thread .chat-role');

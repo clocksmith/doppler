@@ -39,6 +39,37 @@ let unsureWords = null;
 let onUnsureWord = null;
 // True while a first-visit example sits paused where it opened.
 let openingHint = false;
+/** @type {number | null} */
+let previewIndex = null;
+const previewPeak = Math.max(...previewData.answer.layerRms.flat().filter(value => typeof value === 'number'));
+
+/** @type {typeof import('./index.js').openAnswerPreview} */
+export function openAnswerPreview(fingerprint) {
+  if (fingerprint !== previewData.answer.fingerprint) throw new Error('The preview belongs to another recording.');
+  previewIndex = previewData.answer.openingIndex;
+  queuePaint();
+  return previewIndex;
+}
+
+/** @type {typeof import('./index.js').selectPreviewWord} */
+export function selectPreviewWord(index, text) {
+  if (previewIndex === null) return;
+  previewIndex = index;
+  const values = previewData.answer.layerRms[index] ?? [];
+  $('preview-word').textContent = `“${text.trim()}”`;
+  const bars = $('preview-bars');
+  const present = values.some(value => typeof value === 'number');
+  bars.setAttribute('aria-label', present
+    ? `Recorded output magnitude across ${values.length} layers for ${text.trim()}`
+    : 'Layer activity was unavailable for this token.');
+  bars.replaceChildren(...values.map((value, layer) => {
+    const bar = document.createElement('span');
+    if (typeof value === 'number') bar.style.height = `${100 * value / previewPeak}%`;
+    bar.title = `Layer ${layer + 1} · ${value ?? 'unavailable'}`;
+    return bar;
+  }));
+  $('preview-last-layer').textContent = present ? `Layer ${values.length}` : 'Unavailable';
+}
 /** @type {((recording: import('./data.js').ActivationRecording, point: import('./views.js').PlaybackPoint) => void) | null} */
 let onPlayback = null;
 
@@ -65,7 +96,7 @@ export function activityCaptureRequest() {
 function stopPlayback() {
   if (timer !== null) clearTimeout(timer);
   timer = null;
-  if ($('activation-play')) $('activation-play').textContent = 'Play';
+  if ($('activation-play')) $('activation-play').textContent = source === 'Recorded replay' ? 'Replay answer' : 'Play';
 }
 
 function scaleKey() { return `${$('activity-mode').value}:${$('activity-detail').value}`; }
@@ -151,7 +182,14 @@ function paint() {
   $('activation-live').hidden = !active || follow;
   $('activation-play').hidden = active && follow;
   $('activity-gallery').classList.toggle('activity-gallery--compact', timeline.length > 0 || active);
-  $('activity-intro').hidden = timeline.length > 0 || active;
+  $('answer-preview').hidden = previewIndex === null;
+  const slot = previewIndex !== null ? $('answer-replay-controls') : $('activity-replay-controls');
+  if ($('activity-example').parentElement !== slot) slot.append($('activity-example'));
+  $('activity-example').textContent = exampleLoading ? 'Loading full replay…' : 'Load full replay · 23 MB';
+  $('answer-play').hidden = source !== 'Recorded replay' || !timeline.length;
+  $('activity-example').hidden = active || source === 'Recorded replay' && Boolean(recording);
+  $('activity-gallery').hidden = !recording;
+  $('activity-intro').hidden = previewIndex !== null || timeline.length > 0 || active;
   $('activity-intro').textContent = isActivationRecordingEnabled()
     ? 'Activity will appear as your answer is generated.'
     : 'Activity recording is off.';
@@ -374,7 +412,7 @@ function paint() {
 function queuePaint() { if (scheduled === null) scheduled = requestAnimationFrame(paint); }
 
 export function clearActivationRecording() {
-  revision++; exampleError = '';
+  revision++; exampleError = ''; previewIndex = null; openingHint = false;
   exampleRequest?.abort(); exampleRequest = null; exampleLoading = false;
   $('activity-example').disabled = false;
   stopPlayback(); baseline = null; recording = null; cursor = 0; follow = true; active = false;
@@ -433,7 +471,7 @@ export function importActivationRecording(value) {
   const modes = activityModes(next);
   if (modes.find(m => m.id === $('activity-mode').value)?.reason) $('activity-mode').value = modes.find(m => !m.reason)?.id ?? 'layer-output';
   next.display = { ...next.display, layout: config.layout, palette: config.palette };
-  revision++; source = 'Saved recording';
+  revision++; previewIndex = null; openingHint = false; source = 'Saved recording';
   stopPlayback(); active = false; follow = false; recording = next; cursor = Math.max(0, points().length - 1);
   document.getElementById('app')?.removeAttribute('data-live-activity');
   $('activation-position').max = String(Math.max(...next.trace.frames.map(f => f.tokenStart + f.tokenIds.length - 1)));
@@ -501,8 +539,9 @@ export function initActivationGrid(options = {}) {
   $('activation-play').addEventListener('click', () => {
     if (!recording) return;
     if (timer !== null) { stopPlayback(); return; }
-    follow = false; openingHint = false;
-    if (cursor >= points().length - 1) cursor = firstPlayable();
+    follow = false;
+    if (openingHint || cursor >= points().length - 1) cursor = firstPlayable();
+    openingHint = false;
     $('activation-play').textContent = 'Pause';
     const step = () => {
       if (!recording) return;
@@ -563,6 +602,19 @@ export function initActivationGrid(options = {}) {
       assertMatchedRuns(recording, next); baseline = next; queuePaint();
     } catch (error) { $('activity-availability').hidden = false; $('activity-availability').textContent = String(error); }
   });
+  const narrow = matchMedia('(max-width: 1099px)');
+  const placePreview = () => {
+    const slot = narrow.matches ? $('preview-mobile') : $('preview-desktop');
+    slot.append($('answer-preview'));
+  };
+  placePreview();
+  narrow.addEventListener('change', placePreview);
+  $('answer-play').addEventListener('click', () => {
+    stopPlayback(); openingHint = true;
+    $('activation-play').click();
+    $('activation-player').scrollIntoView({ block: 'nearest' });
+    $('activation-play').focus({ preventScroll: true });
+  });
   $('activity-example').addEventListener('click', () => { void loadActivityExample(config.defaultMode); });
   for (const preview of previews) {
     const card = document.createElement('button');
@@ -585,7 +637,7 @@ export function initActivationGrid(options = {}) {
       card.append(key);
     }
     card.addEventListener('click', () => {
-      if (!recording) { void loadActivityExample(preview.mode); return; }
+      if (!recording) return;
       $('activity-mode').value = preview.mode; $('activity-detail').value = 'overview';
       $('activity-layer').value = '-1'; $('activity-weight').value = ''; selectMode();
     });
@@ -598,8 +650,9 @@ export function initActivationGrid(options = {}) {
 }
 
 /** @type {typeof import('./index.js').loadActivityExample} */
-export async function loadActivityExample(mode = config.defaultMode, { opening = false } = {}) {
+export async function loadActivityExample(mode = config.defaultMode) {
   if (exampleLoading || active) return;
+  const selectedIndex = previewIndex ?? previewData.answer.openingIndex;
   const expectedRevision = revision;
   const request = new AbortController(); exampleRequest = request;
   exampleLoading = true; exampleError = '';
@@ -607,6 +660,7 @@ export async function loadActivityExample(mode = config.defaultMode, { opening =
   $('activity-source').textContent = 'Opening the recorded Qwen 0.8B example…';
   for (const card of $('activity-gallery').querySelectorAll('button')) card.disabled = true;
   $('activity-example').disabled = true;
+  $('activity-example').textContent = 'Loading full replay…';
   try {
     const metadataResponse = await fetch(new URL('../../assets/activity-example.json', import.meta.url), { signal: request.signal });
     if (!metadataResponse.ok) throw new Error('Example description is unavailable.');
@@ -625,21 +679,19 @@ export async function loadActivityExample(mode = config.defaultMode, { opening =
     $('activity-detail').value = 'overview';
     $('activity-weight').value = '';
     $('activity-page').value = '0';
-    openActivationRecording({ ...JSON.parse(text), prompt: metadata.prompt }, text.length, { preserveDraft: opening });
+    openActivationRecording({ ...JSON.parse(text), prompt: metadata.prompt }, text.length, { preserveDraft: true });
     // The list now holds this recording's views; only then can the requested one be chosen.
     syncViewList(activityModes(recording));
     if ([...$('activity-mode').options].some(option => option.value === mode && !option.disabled)) $('activity-mode').value = mode;
     source = 'Recorded replay';
     cursor = 0; const examplePoints = points();
-    // A first visit opens paused on the word the model was least sure of, so the
-    // picture is of a moment worth looking at. Play shows the answer from the start.
-    const leastSure = opening ? [...(unsureWords?.() ?? [])].sort((a, b) => a.probability - b.probability)
-      .map(word => examplePoints.findIndex(point => point.position === word.position)).find(index => index >= 0) : undefined;
-    if (leastSure !== undefined) { cursor = leastSure; openingHint = true; }
-    else for (let i = 0; i < examplePoints.length; i++) if (examplePoints[i].position === metadata.promptPosition) cursor = i;
-    $('activation-position').value = String(examplePoints[cursor]?.position ?? 0);
+    const target = metadata.promptPosition + selectedIndex;
+    cursor = nearestIndex(examplePoints, target);
+    openingHint = true;
+    $('activation-position').value = String(examplePoints[cursor].position);
+    stopPlayback();
     paint();
-    if (leastSure !== undefined) onUnsureWord?.(examplePoints[cursor].position);
+    onUnsureWord?.(examplePoints[cursor].position);
   } catch (error) {
     if (!request.signal.aborted) { exampleError = String(error); queuePaint(); }
   }

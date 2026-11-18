@@ -368,7 +368,8 @@
   background: var(--doppler-inset-surface);
   box-shadow: var(--doppler-inset);
 }
-#app #input-area .input-row { grid-column: 1 / -1; }
+#app #input-area :is(.model-picker, .input-row, #send-hint) { grid-column: 1 / -1; }
+#app #input-area .input-actions { grid-column: 2; }
 #app #prompt-input { border: 0; border-radius: 0; padding: 0; min-height: 80px; background: transparent; }
 #app #prompt-input:focus-visible { outline: 0; }
 #app #input-area:focus-within { outline: 2px solid var(--fg); outline-offset: -3px; }
@@ -551,3 +552,14 @@
 #app .chat-run-status { display: flex; align-items: center; gap: 8px; min-height: 16px; }
 #app .run-indicator { flex: 0 0 8px; width: 8px; height: 8px; border-radius: 50%; background: var(--fg); animation: pulse 1.6s ease-in-out infinite; }
 @media (prefers-reduced-motion: reduce) { #app .run-indicator { animation: none; } }
+
+#app .answer-preview { margin: 0 0 1rem; }
+#app .answer-preview figcaption { font-size: 1.1rem; margin-bottom: .75rem; }
+#app .preview-bars { height: clamp(5rem, 12vw, 9rem); display: flex; align-items: flex-end; gap: 3px; border-bottom: 1px solid currentColor; }
+#app .preview-bars > span { flex: 1; background: var(--fg); opacity: .75; }
+#app .preview-axis { display: flex; justify-content: space-between; font-size: .75rem; margin: .35rem 0; }
+#app .token-chip.is-selected { outline: 1px solid currentColor; outline-offset: 1px; border-radius: 3px; }
+
+#app .recorded-toolbar { display: flex; align-items: center; gap: .75rem; flex-wrap: wrap; }
+#app .recorded-toolbar:has(#recorded-run-note[hidden]), #app #activity-replay-controls:empty { display: none; }
+#app #recorded-run-note { color: var(--fg); font-weight: 600; }

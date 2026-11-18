@@ -14,6 +14,7 @@ let options = {
   forks: new Map(),
   branchable: false,
   unavailableReason: 'Only a live answer can branch. Recorded and illustrative examples cannot.',
+  onSelect: null,
   onBranch: null,
   onSwitch: null,
 };
@@ -58,7 +59,7 @@ function tokenButton(token, index, text) {
   const description = [
     `Branch point · token ${index + 1}`,
     `The model gave this token ${pct(probability)}`,
-    'Click to see alternatives and branch. Likelihood, not factual accuracy.',
+    options.branchable ? 'Select to see alternatives and branch.' : 'Select to see recorded alternatives.',
   ].join('\n');
   element.title = description;
   element.setAttribute('aria-label', `${description}: ${JSON.stringify(text)}`);
@@ -156,6 +157,7 @@ export function selectToken(index, { focus = false } = {}) {
   const target = chipIndices.includes(index) ? index : chipIndices.find((entry) => entry >= index) ?? chipIndices.at(-1);
   if (target === undefined) return;
   selectedIndex = target;
+  options.onSelect?.(target, currentTokens[target].text);
   syncSelection();
   renderTokenCard();
   setTokenInspectorActive(inspectorActive);
