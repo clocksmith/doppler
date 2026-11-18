@@ -5,6 +5,7 @@ import json
 import os
 from pathlib import Path
 import shutil
+import subprocess
 import sys
 import tempfile
 import unittest
@@ -107,6 +108,74 @@ class GpuSharesTest(unittest.TestCase):
             with self.assertRaises(ConnectionError):evaluator.receive(1,20)
         finally:
             evaluator.close()
+
+    def test_gpu_workspace_reuses_buffers_across_growing_shrinking_and_multi_chunk_calls(self):
+        generator=np.random.default_rng(21)
+        with tempfile.TemporaryDirectory() as directory:
+            weights_wide=generator.integers(-32768,32768,size=(5000,1400),dtype=np.int16)
+            weights_small=generator.integers(-128,128,size=(31,13),dtype=np.int8)
+            weights_small[0,0],weights_small[-1,-1]=-128,127
+            wide_bytes=weights_wide.astype('<i2').tobytes();wide_id=hashlib.sha256(wide_bytes).hexdigest()
+            small_bytes=weights_small.tobytes();small_id=hashlib.sha256(small_bytes).hexdigest()
+            (Path(directory)/(wide_id+'.i16')).write_bytes(wide_bytes)
+            (Path(directory)/(small_id+'.i8')).write_bytes(small_bytes)
+            manifest=dict(schema='doppler.two-server-shares-manifest/v1',projections=[
+                dict(name='chunked',inputWidth=5000,outputWidth=1400,weightId=wide_id,file=wide_id+'.i16',dtype='<i2'),
+                dict(name='tiny_i8',inputWidth=31,outputWidth=13,weightId=small_id,file=small_id+'.i8',dtype='|i1'),
+            ])
+            (Path(directory)/'shares-manifest.json').write_text(json.dumps(manifest))
+            command=[*self.gpu[:3],directory,*self.gpu[4:]]
+            evaluator=shares.ProcessEvaluator(command,'gpu',timeout=120)
+            try:
+                # 120 * 5000 = 600,000 inner ops/col -> 640 cols/chunk -> 3 column chunks; followed by tiny 1-row i8 call.
+                schedule=[('tiny_i8',weights_small,1),('chunked',weights_wide,120),('tiny_i8',weights_small,1),
+                          ('chunked',weights_wide,3),('tiny_i8',weights_small,7)]
+                for name,matrix,count in schedule:
+                    inputs= matrix.shape[0]
+                    rows=shares._field(generator.bytes(8*count*inputs),(count,inputs)).copy()
+                    rows[0,:]=P-1
+                    evaluator.send(name,rows)
+                    got=evaluator.receive(count,matrix.shape[1])
+                    np.testing.assert_array_equal(got,shares.field_product(rows,matrix),(name,count))
+            finally:
+                evaluator.close()
+
+    def test_gpu_evaluator_rejects_symlinks_invalid_geometry_and_exits_cleanly_on_truncated_frames(self):
+        with tempfile.TemporaryDirectory() as directory:
+            data=self.weights['small'].astype('<i2').tobytes()
+            identity=hashlib.sha256(data).hexdigest()
+            real=Path(directory)/(identity+'.i16');real.write_bytes(data)
+            (Path(directory)/'link.i16').symlink_to(real)
+            manifest=dict(schema='doppler.two-server-shares-manifest/v1',projections=[
+                dict(name='linked',inputWidth=48,outputWidth=20,weightId=identity,file='link.i16',dtype='<i2'),
+                dict(name='too_wide',inputWidth=1<<21,outputWidth=4,weightId=identity,file=identity+'.i16',dtype='<i2'),
+                dict(name='zero_out',inputWidth=48,outputWidth=0,weightId=identity,file=identity+'.i16',dtype='<i2'),
+            ])
+            (Path(directory)/'shares-manifest.json').write_text(json.dumps(manifest))
+            command=[*self.gpu[:3],directory,*self.gpu[4:]]
+            for bad_name,width in (('linked',48),('too_wide',1<<21),('zero_out',48)):
+                evaluator=shares.ProcessEvaluator(command,'gpu',timeout=60)
+                try:
+                    # Send header + minimal or zero payload; invalid geometry must fail before accepting work.
+                    encoded=bad_name.encode()
+                    evaluator.sequence+=1
+                    head=shares.REQUEST_HEAD.pack(shares.REQUEST,evaluator.sequence,len(encoded),1,width)+encoded
+                    evaluator.process.stdin.write(head)
+                    if bad_name=='linked':evaluator.process.stdin.write(bytes(8*48))
+                    evaluator.process.stdin.flush()
+                    with self.assertRaises(ConnectionError):evaluator.receive(1,20)
+                finally:
+                    evaluator.close()
+
+        # Truncated stdin frames at every boundary must exit 0 without an unhandled rejection.
+        full_name=b'small'
+        full_head=shares.REQUEST_HEAD.pack(shares.REQUEST,1,len(full_name),2,48)
+        for partial in (b'SH',full_head[:10],full_head+b'sm',full_head+full_name+bytes(16)):
+            completed=subprocess.run(self.gpu,input=partial,capture_output=True,timeout=60,check=False)
+            stderr=completed.stderr.decode(errors='replace')
+            self.assertEqual(completed.returncode,0,stderr)
+            self.assertNotIn('end of stream',stderr)
+            self.assertNotIn('shares evaluator:',stderr)
 
 
 if __name__=='__main__':
