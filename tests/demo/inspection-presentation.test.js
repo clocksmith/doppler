@@ -7,7 +7,7 @@ import { fieldText } from '../../demo/settings.js';
 const rows = await listQuickstartModels();
 const displayed = rows.find((entry) => entry.label && Number.isFinite(entry.sizeBytes) && entry.quickstartRequirements);
 assert.ok(displayed, 'The public registry must retain human labels, byte sizes and model requirements');
-assert.ok(buildModelDetail(displayed).includes('Your browser keeps a copy if it can.'));
+assert.match(buildModelDetail(displayed), /GPU memory/);
 displayed.quickstartRequirements.paramCount = 'mutated by consumer';
 assert.notEqual((await listQuickstartModels()).find((entry) => entry.modelId === displayed.modelId).quickstartRequirements.paramCount, 'mutated by consumer');
 
@@ -17,9 +17,9 @@ assert.equal(isChatModel({ modes: ['text'], classification: { tasks: ['embedding
 assert.equal(isChatModel({ modes: ['image'], classification: { tasks: ['generation'] } }), false);
 assert.equal(isChatModel({}), false, 'An unknown capability cannot be offered as a chat model');
 assert.equal(buildModelDetail({ modelId: 'fixture', label: 'Fixture', sizeBytes: 418518521 }),
-  'First use downloads about 419 MB. Your browser keeps a copy if it can.');
+  '');
 assert.equal(buildModelDetail({ modelId: 'fixture', sizeBytes: 418518521 }, 'stored'),
-  'Saved in this browser, so it loads without downloading.');
+  'Saved in this browser.');
 assert.equal(buildModelDetail({ modelId: 'fixture', sizeBytes: 418518521 }, 'loaded'), '', 'The status chip alone reports a loaded model');
 
 const receipt = { generationEvidence: { stats: {
@@ -52,9 +52,9 @@ assert.equal(modelFit(large, null), 'unknown', 'A browser that reports nothing g
 assert.equal(modelFit({ modelId: 'small', quickstartRequirements: { vramRequiredBytes: GIB } }, 4 * GIB), 'fits');
 assert.equal(modelFit({ modelId: 'unstated' }, 4 * GIB), 'unknown');
 assert.equal(buildModelDetail(large, 'available', 4 * GIB),
-  'Needs about 12 GB of GPU memory, and this browser reports 4 GB of system memory, so it will probably fail to load. Loading it downloads about 7.1 GB first.');
+  'Needs about 12 GB of GPU memory. This browser reports 4 GB of system memory.');
 assert.equal(buildModelDetail(large, 'available', null),
-  'First use downloads about 7.1 GB. Your browser keeps a copy if it can. Needs about 12 GB of GPU memory.');
+  'Needs about 12 GB of GPU memory.');
 
 // Asking for an adapter decides whether live inference is offered; its limits are per-buffer, not memory.
 assert.deepEqual(await probeWebGpu(undefined), { available: false, limits: null });
@@ -66,7 +66,7 @@ assert.deepEqual(await probeWebGpu({ requestAdapter: async () => ({ limits: { ma
 // A failed load says only what was observed about model files.
 const fixtureModel = { modelId: 'fixture', label: 'Fixture' };
 assert.match(loadFailureNote(fixtureModel, new Error('Failed to get WebGPU adapter'), {}),
-  /^This browser can’t run models here: WebGPU isn’t available\. The recorded answer below still works\..* No model weights were downloaded\.$/);
+  /^This browser can’t run models here: WebGPU isn’t available\. You can explore the recorded answer\..* No model weights were downloaded\.$/);
 assert.equal(loadFailureNote(fixtureModel, new Error('Embedding needs 3.13 GiB but maxStorageBufferBindingSize is 128 MiB.'), { sawModelFiles: false }),
   'Fixture needs a single GPU buffer larger than this device allows. That is a per-buffer GPU limit, separate from how much memory the device has. Embedding needs 3.13 GiB but maxStorageBufferBindingSize is 128 MiB. No model weights were downloaded.');
 assert.match(loadFailureNote(fixtureModel, new Error('network lost'), { sawModelFiles: true }), /^Fixture could not load: network lost\. Some of its files may have been downloaded/);

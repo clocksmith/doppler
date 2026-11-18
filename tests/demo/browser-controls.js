@@ -232,7 +232,11 @@ export async function checkDemoControls(page) {
     return (await fetch(new URL('examples.json', entrypoint))).json();
   });
   assert.equal(await page.locator('#prompt-suggestions button').count(), 1);
-  assert.equal(await page.locator('#shuffle-btn').textContent(), 'Try another example');
+  assert.equal(await page.locator('#shuffle-btn').textContent(), 'Another prompt');
+  await page.fill('#prompt-input', 'Keep this hand-written question');
+  assert.equal(await page.locator('#shuffle-btn').isVisible(), false);
+  await page.fill('#prompt-input', '');
+  assert.equal(await page.locator('#shuffle-btn').isVisible(), true);
   for (let round = 0; round < 2; round++) {
     const dealt = new Set();
     for (let draw = 0; draw < prompts.length; draw++) {
@@ -291,11 +295,8 @@ export async function checkDemoControls(page) {
   assert.equal(await page.locator('#clear-history-btn').isEnabled(), true, 'Loaded model remains resettable');
 
   await checkFirstLoadLayout(page, true);
-  await page.evaluate(async () => {
-    const entry = document.querySelector('script[src$="/demo.js"]').src;
-    await (await import(new URL('ui/activation-grid/index.js', entry))).loadActivityExample(undefined, { opening: true });
-  });
-  await page.waitForFunction(() => document.querySelector('#output-text').textContent.startsWith('The sky appears blue') && document.querySelector('#activation-play').textContent === 'Play');
+  await page.locator('#activity-example').click();
+  await page.locator('#activation-player').waitFor();
   const sampleSettingsOpen = await page.locator('#settings-panel').isVisible();
   if (!sampleSettingsOpen) await page.click('#settings-toggle');
   assert.equal(await page.locator('#output-text').isVisible(), false, 'The underlined view replaces the duplicate formatted answer');
@@ -395,7 +396,7 @@ export async function checkDemoControls(page) {
   await page.click('#model-select-remove');
   await page.click('#remove-model-confirm-btn');
   await page.waitForFunction(() => __demoContract.removals === 1);
-  assert.equal(await page.locator('#run-btn').textContent(), 'Send');
+  assert.equal(await page.locator('#run-btn').textContent(), 'Download & send');
   assert.equal(await page.locator('#run-btn').isEnabled(), true);
   assert.equal(await page.locator('#model-select-remove').isVisible(), false);
   assert.equal(await page.locator('#output-phase').textContent(), 'No model loaded');

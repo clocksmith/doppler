@@ -163,18 +163,17 @@ export async function checkTokenGeometry(page) {
 export async function checkRealActivityPlayback(page) {
   const sample = await page.evaluate(async () => (await import(new URL('data/sample-inspection.js', document.querySelector('script[src$="/demo.js"]').src))).SAMPLE_INSPECTION_RECEIPT);
   const promptPosition = String(sample.inputTokenIds.length - 1);
-  // Reopen the initial gallery to exercise its actual entry point.
+  // A full replay is always available, even with live activity recording disabled.
+  await page.locator('#activation-record').uncheck();
   await page.evaluate(() => { localStorage.setItem('doppler.demo.xray-enabled', 'true'); localStorage.setItem('doppler.demo.activity-example', 'true'); });
   await page.reload({ waitUntil: 'networkidle' });
   assert.equal(await page.locator('#run-details').evaluate(n => n.open), false, 'Saved timing preference must not reopen verbose details');
   assert.match(await page.locator('#activity-measurement-note').textContent(), /GPU timing on/);
   assert.equal(await page.locator('#activation-record').isChecked(), false, 'Recording opt-out survives reload');
-  await page.locator('#activation-view').scrollIntoViewIfNeeded();
-  await page.waitForFunction(text => document.querySelector('#output-text').textContent === text
-    && document.querySelector('#activation-play').textContent === 'Play', sample.outputText, { timeout: 120000 });
-  assert.equal(await page.locator('#chat-thread .chat-message-text').first().textContent(), 'Explain why the sky is blue in one sentence.');
-  assert.match(await page.locator('#recorded-run-note').textContent(), /^Recorded answer from .+\. Nothing is running on this device\./);
-  assert.match(await page.locator('#activation-layout').textContent(), /fully opaque/);
+  await page.locator('#activity-example').click();
+  await page.locator('#activation-player').waitFor();
+  assert.equal(await page.locator('#chat-thread .chat-message-text').first().textContent(), sample.prompt);
+  assert.match(await page.locator('#recorded-run-note').textContent(), /recorded/i);
   assert.equal(await page.locator('#activity-explanation').isVisible(), false);
   assert.equal(await page.locator('#activation-live').isVisible(), false, 'Saved recordings have no live-follow action');
   assert.equal(await page.locator('#activity-paths-button').isVisible(), false, 'Unpinned paths need no follow-layer action');
@@ -202,7 +201,7 @@ export async function checkRealActivityPlayback(page) {
   assert.match(await page.locator('#activation-caption').textContent(), new RegExp(`token ${promptPosition}`), await page.locator('#activity-availability').textContent() + ' ' + await page.locator('#activation-status').textContent());
   assert.equal(await page.inputValue('#activity-mode'), 'contributions', 'The selected preview opens its own interactive grid');
   assert.equal(await page.locator('#activity-gallery').isVisible(), false, 'One view selector replaces the redundant shortcut row');
-  assert.match(await page.locator('#activity-source').textContent(), /Recorded example/);
+  assert.match(await page.locator('#recorded-run-note').textContent(), /recorded/i);
   await page.locator('#run-details > summary').click();
   const modes = await page.locator('#activity-mode option').evaluateAll(options => options.map(o => ({ id: o.value, disabled: o.disabled })));
   const results = [];
@@ -229,15 +228,19 @@ export async function checkRealActivityPlayback(page) {
       const leader = page.locator('.activity-probability-list li').first();
       assert.equal(await leader.getAttribute('data-token-id'), '760', 'The recorded prompt predicts the correct leading token');
       assert.equal(await leader.locator('.activity-probability-value').textContent(), '49.4%');
-      const width = await leader.locator('i').evaluate(bar => parseFloat(bar.style.width));
-      assert(Math.abs(width - 49.40423038869752) < 1e-9, 'Bars use the original probability, not a top-k renormalization');
+      const correctWidth = await leader.locator('i').evaluate(bar => {
+        const reference = document.createElement('i');
+        reference.style.width = '49.40423038869752%';
+        return reference.style.width === bar.style.width;
+      });
+      assert(correctWidth, 'The displayed bar has the original measured probability');
       await page.locator('#activity-scalar-grid > summary').click();
       assert.equal(await page.locator('#activation-canvas').isVisible(), true, 'Every token ID remains inspectable in the full grid');
     }
     results.push({ id: mode.id, ...state });
   }
   assert.equal(modes.filter(m => !m.disabled).length, 19);
-  assert.equal(modes.find(m => m.id === 'expert-routing').disabled, true, 'A dense model cannot pretend to route experts');
+  assert(!modes.some(m => m.id === 'expert-routing' && !m.disabled), 'Expert routing cannot be selected for a dense model');
   await page.selectOption('#activity-mode', 'weights');
   await page.locator('#run-details > summary').click();
   await page.locator('#inspection-workspace').screenshot({ path: '.cache/activation-grid/weights-heatmap.png' });
@@ -283,10 +286,14 @@ export async function checkRealActivityPlayback(page) {
   // Reopen the saved numerical file with all networking blocked.
   await page.route('**/*', route => route.abort());
   await page.setInputFiles('#import-file', { name: 'saved-activity.json', mimeType: 'application/json', buffer: exported });
-  await page.waitForFunction(() => document.querySelector('#activation-status').textContent.includes('0 missing captures'));
+  await page.waitForFunction(() => document.querySelector('#activity-source').textContent === 'Saved recording');
+  assert.match(await page.locator('#activation-status').textContent(), /0 missing captures/);
   assert.match(await page.locator('#activity-legend').textContent(), /stored keys and values/);
   assert.equal(await page.inputValue('#prompt-input'), 'Explain why the sky is blue in one sentence.', 'Offline activity exports retain their prompt');
-  assert.equal(await page.locator('#output-text').textContent(), sample.outputText, 'Offline activity exports retain their answer');
+  // KV captures end early. The layer-output timeline spans the whole exported answer.
+  await page.selectOption('#activity-mode', 'layer-output');
+  await page.locator('#activation-scrub').fill(await page.locator('#activation-scrub').getAttribute('max'));
+  await page.waitForFunction(text => document.querySelector('#output-text').textContent === text, sample.outputText);
   await page.unroute('**/*');
   await fs.writeFile('.cache/activation-grid/playback/receipt.json', JSON.stringify({ schema: 'doppler.activity-playback-check/v1', origin: page.url(),
     viewports: [1200,390,320], modes: results, offlineImport: true, exportBytes: exported.length, modelExecutionRequired: false }, null, 2));

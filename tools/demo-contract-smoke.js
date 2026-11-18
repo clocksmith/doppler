@@ -8,7 +8,7 @@ import { fileURLToPath } from 'node:url';
 import { chromium } from 'playwright';
 import { checkLiveActivity, checkActivationPlayback, checkTokenGeometry, checkRealActivityPlayback, checkFirstLoadLayout, checkLayerMap } from '../tests/demo/browser-activation.js';
 import { checkDemoControls } from '../tests/demo/browser-controls.js';
-import { checkBootLayout, checkAutomaticReplay, checkPendingExample, checkPendingInitialReplay, checkWithoutWebGpu } from '../tests/demo/browser-run-coherence.js';
+import { checkBootLayout, watchFullReplay, checkPreviewAndReplay, checkPendingExample, checkReplayDownloadFailure, checkWithoutWebGpu } from '../tests/demo/browser-run-coherence.js';
 import {
   SHELL_MANIFEST_DIGEST,
 } from '../demo/generated-shell-manifest.js';
@@ -193,6 +193,7 @@ async function main() {
   let testedShellDigest = SHELL_MANIFEST_DIGEST;
   try {
     await page.addInitScript(() => { localStorage.setItem('doppler.demo.activity-example', 'true'); });
+    const pageReplayRequests = watchFullReplay(page);
     await page.goto(`${origin}${entrypoint}`, { waitUntil: 'networkidle' });
     await page.waitForFunction(() => {
       const select = document.querySelector('#model-select');
@@ -203,7 +204,7 @@ async function main() {
     assert.deepEqual(await page.evaluate(() => [__demoContract.loads.length, __demoContract.calls.length]), [0, 0], 'Opening the example does not download or execute a model');
     assert.equal(await page.locator('#model-select').isVisible(), true, 'Model selection is visible by the composer');
     assert.equal(await page.locator('#xray-shell').isVisible(), false);
-    await checkAutomaticReplay(page);
+    await checkPreviewAndReplay(page, pageReplayRequests);
     await checkLayerMap(page);
     assert.equal(await page.locator('#run-btn').isEnabled(), false, 'The first prompt has already been submitted in replay');
     assert.equal(await page.locator('#model-select option[value="embedding-only"]').count(), 0);
@@ -218,7 +219,9 @@ async function main() {
       await page.locator('#settings-toggle').click();
     }
     await page.selectOption('#model-select', 'contract-model');
-    assert.match(await page.locator('#model-select-detail').textContent(), /First use downloads about 419 MB\. Your browser keeps a copy if it can\./);
+    await page.fill('#prompt-input', 'A local question');
+    assert.equal(await page.locator('#run-btn').textContent(), 'Download 419 MB & send');
+    assert.equal(await page.locator('#model-select-action').textContent(), 'Load model');
 
     journey.modelSelected = await page.$eval(
       '#model-select',
@@ -231,6 +234,7 @@ async function main() {
       (element) => element.textContent === 'Loaded'
     );
     if (await page.locator('#settings-panel').isVisible()) await page.locator('#settings-toggle').click();
+    assert.equal(await page.locator('#run-btn').textContent(), 'Send', 'A loaded model can answer without downloading');
     await page.fill('#prompt-input', 'Run the demo contract.');
     await page.click('#run-btn');
     await page.waitForFunction(
@@ -251,14 +255,21 @@ async function main() {
     });
     await cachedPage.route(`${origin}${modulePath}`, route => route.fulfill({ status: 200, contentType: 'text/javascript',
       body: STUB_MODULE.replaceAll("'contract-model'", "'gemma-3-270m-it-q4k-ehf16-af32'")
-        .replace('async listPersistentModels() { return []; }', "async listPersistentModels() { return [{modelId:'gemma-3-270m-it-q4k-ehf16-af32'}]; }") }));
+        .replace('async listPersistentModels() { return []; }', "async listPersistentModels() { return [{modelId:'gemma-3-270m-it-q4k-ehf16-af32'}, {modelId:'second-model'}]; }") }));
+    const cachedPageReplayRequests = watchFullReplay(cachedPage);
     await cachedPage.goto(`${origin}${entrypoint}`, { waitUntil: 'networkidle' });
     await cachedPage.waitForFunction(() => document.querySelector('#boot-overlay').hidden);
     assert.equal(await cachedPage.evaluate(() => __demoContract.loads.length), 1, 'The cached model loads during boot');
-    await checkAutomaticReplay(cachedPage);
+    await checkPreviewAndReplay(cachedPage, cachedPageReplayRequests);
     await checkBootLayout(cachedPage);
     await checkPendingExample(cachedPage);
-    await checkPendingInitialReplay(cachedPage);
+    await checkReplayDownloadFailure(cachedPage);
+    await cachedPage.selectOption('#model-select', 'second-model');
+    assert.equal(await cachedPage.locator('#run-btn').textContent(), 'Load & send');
+    await cachedPage.click('#run-btn');
+    await cachedPage.waitForFunction(() => document.querySelector('#output-phase').textContent === 'Complete');
+    assert.equal(await cachedPage.evaluate(() => __demoContract.loads.at(-1).modelId), 'second-model',
+      'Send loads the selected cached model even when a different model was already in memory');
     await cachedPage.close();
     // A browser without WebGPU, whatever this Chromium build provides.
     const plainPage = await browser.newPage({ serviceWorkers: 'block' });
@@ -267,8 +278,9 @@ async function main() {
       Object.defineProperty(Navigator.prototype, 'gpu', { configurable: true, get: () => undefined });
     });
     await plainPage.route(`${origin}${modulePath}`, route => route.fulfill({ status: 200, contentType: 'text/javascript', body: STUB_MODULE }));
+    const plainPageReplayRequests = watchFullReplay(plainPage);
     await plainPage.goto(`${origin}${entrypoint}`, { waitUntil: 'networkidle' });
-    await checkWithoutWebGpu(plainPage);
+    await checkWithoutWebGpu(plainPage, plainPageReplayRequests);
     await plainPage.screenshot({ path: '.cache/demo-first-replay/no-webgpu-1280.png', fullPage: true });
     await plainPage.close();
     // WebGPU is present but gives no adapter, as in a browser without a usable GPU.
@@ -278,8 +290,9 @@ async function main() {
       Object.defineProperty(Navigator.prototype, 'gpu', { configurable: true, get: () => ({ requestAdapter: async () => null }) });
     });
     await noAdapterPage.route(`${origin}${modulePath}`, route => route.fulfill({ status: 200, contentType: 'text/javascript', body: STUB_MODULE }));
+    const noAdapterPageReplayRequests = watchFullReplay(noAdapterPage);
     await noAdapterPage.goto(`${origin}${entrypoint}`, { waitUntil: 'networkidle' });
-    await checkWithoutWebGpu(noAdapterPage, { hasApi: true });
+    await checkWithoutWebGpu(noAdapterPage, noAdapterPageReplayRequests, { hasApi: true });
     await noAdapterPage.close();
     testedShellDigest = await page.evaluate(async (url) => (await import(url)).SHELL_MANIFEST_DIGEST,
       `${origin}${modulePath.replace('/src/index-browser.js', '/demo/generated-shell-manifest.js')}`);

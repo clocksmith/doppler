@@ -41,7 +41,7 @@ try {
   state.model = null;
   assert.equal(syncSendButton(), false);
   assert.equal(sendButton.title, 'Load the model and send this prompt locally');
-  assert.equal(sendButton.disabled, false);
+  assert.equal(sendButton.disabled, true, 'Sending requires a selected model');
   assert.equal(sendButton.textContent, 'Send');
 } finally {
   state.model = originalModel;

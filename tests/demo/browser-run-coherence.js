@@ -1,43 +1,49 @@
 import assert from 'node:assert/strict';
 import fs from 'node:fs/promises';
 
-// Run presentation only: no model inference or GPU qualification.
-export async function checkAutomaticReplay(page) {
+// Count attempted downloads as well as completed requests, including cached responses.
+export function watchFullReplay(page) {
+  let count = 0;
+  page.on('request', request => {
+    if (new URL(request.url()).pathname.endsWith('/assets/activity-example.json.gz')) count++;
+  });
+  return () => count;
+}
+
+export async function checkPreviewAndReplay(page, fullReplayRequests) {
   const sample = await page.evaluate(async () => (await import(new URL('data/sample-inspection.js', document.querySelector('script[src$="/demo.js"]').src))).SAMPLE_INSPECTION_RECEIPT);
   const firstPosition = String(sample.inputTokenIds.length - 1);
-  await page.waitForFunction(text => document.querySelector('#output-text').textContent === text
-    && document.querySelector('#activation-play').textContent === 'Play', sample.outputText, { timeout: 120000 });
-  const finalPosition = await page.locator('#activation-scrub').getAttribute('max');
-  assert.equal(await page.locator('#sample-run-btn').count(), 0);
-  assert.equal(await page.locator('#inspect-recorded-run').count(), 0);
-  assert.equal(await page.locator('#chat-thread .chat-message-text').first().textContent(), 'Explain why the sky is blue in one sentence.');
-  // The label names the model of the saved run itself and says nothing is running here.
-  const recordedModel = await page.evaluate(id => [...document.querySelectorAll('#model-select option')]
-    .find(option => option.value === id)?.textContent.split(' · ')[0] ?? id, sample.recording.modelId);
-  assert.equal(await page.locator('#recorded-run-note').textContent(),
-    `Recorded answer from ${recordedModel}. Nothing is running on this device. Send runs the model picked above.`);
-  // A first visit is a still picture of the answer's least likely word, not a moving one.
-  const leastSure = sample.tokens.reduce((low, token, index) => token.probability < sample.tokens[low].probability ? index : low, 0);
-  assert.equal(await page.inputValue('#activation-position'), String(sample.inputTokenIds.length - 1 + leastSure), 'Opens paused on the least likely word');
-  assert.equal(await page.locator('#activity-hint').isVisible(), true, 'The pause is explained');
-  assert.match(await page.locator('#token-inspector-card-container').textContent(), /likely/, 'The paused word shows what else the model considered');
-  assert.equal(await page.locator('#activity-unsure-prev').isEnabled(), true);
-  await page.locator('#activity-unsure-prev').click();
-  const previousUnsure = sample.tokens.findLastIndex((token, index) => index < leastSure && token.probability < 0.5);
-  await page.waitForFunction(position => document.querySelector('#activation-position').value === position, String(sample.inputTokenIds.length - 1 + previousUnsure));
-  assert.equal(await page.locator('#activity-hint').isVisible(), false, 'The opening note leaves once the reader moves');
-  await page.locator('#activity-unsure-next').click();
-  await page.waitForFunction(text => document.querySelector('#output-text').textContent === text, sample.outputText);
-  assert.equal(await page.locator('#recording-details').isVisible(), false);
-  assert.equal(await page.locator('#activation-player').isVisible(), true);
+  await page.locator('.token-chip[aria-pressed="true"]').waitFor();
+  const selected = page.locator('.token-chip[aria-pressed="true"]');
+  const selectedWord = (await selected.textContent()).trim();
+  assert.match(selectedWord, /[a-z]+/i, 'Opens on a word with recorded alternatives');
+  assert.equal(await page.locator('#preview-word').textContent(), `“${selectedWord}”`);
+  assert.equal(await page.locator('#preview-bars span[style]').count(), 24, 'All layers have a measured value for the opening word');
+  assert(await page.locator('.token-candidates-list').isVisible());
+  assert.equal(await page.inputValue('#prompt-input'), '', 'The example prompt appears once in the conversation');
+  assert.equal(await page.locator('#chat-thread .chat-message-text').first().textContent(), sample.prompt);
+  assert.match(await page.locator('#recorded-run-note').textContent(), /recorded/i);
+  await page.locator('.token-chip').first().click();
+  assert.equal(await page.locator('.token-inspector-badge').textContent(), '"The"');
+  assert.equal(await page.locator('#preview-word').textContent(), '“The”', 'The visualization follows the chosen token');
+  assert.equal(fullReplayRequests(), 0, 'Opening the preview and exploring tokens both avoid the full recording download');
+  assert.equal(await page.locator('#activation-player').isVisible(), false);
+  assert.match(await page.locator('#activity-example').textContent(), /23 MB/);
+
   await fs.mkdir('.cache/demo-first-replay', { recursive: true });
-  for (const width of [1280, 390]) {
+  for (const width of [1280, 390, 320]) {
     await page.setViewportSize({ width, height: 900 });
-    await page.screenshot({ path: `.cache/demo-first-replay/replay-${width}.png`, fullPage: true });
+    assert(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth));
+    await page.screenshot({ path: `.cache/demo-first-replay/preview-${width}.png`, fullPage: true });
   }
   await page.setViewportSize({ width: 1280, height: 1000 });
+  await page.locator('#activity-example').click();
+  await page.locator('#activation-player').waitFor({state:'visible'});
+  assert.equal(fullReplayRequests(), 1, 'The full recording loads on explicit request');
+  assert.equal(await page.inputValue('#activation-position'), firstPosition, 'The full replay opens at the token selected in the preview');
   assert.equal(await page.evaluate(() => __demoContract.calls.length), 0, 'Replay never runs inference');
-  assert.equal(await page.inputValue('#prompt-input'), '', 'The submitted first prompt is not duplicated in the composer');
+  assert.equal(await page.inputValue('#prompt-input'), '', 'Opening a replay leaves the composer free for a new question');
+  const finalPosition = await page.locator('#activation-scrub').getAttribute('max');
   await page.locator('#activation-scrub').fill('0');
   await page.waitForFunction(() => document.querySelector('#output-text').textContent === '');
   await page.locator('#activation-scrub').fill(firstPosition);
@@ -55,26 +61,31 @@ export async function checkAutomaticReplay(page) {
   await page.emulateMedia({ colorScheme: 'light' });
   await page.waitForFunction(before => document.querySelector('#activation-canvas').toDataURL() === before, before);
 
-  await page.locator('#activation-play').click();
+  await page.locator('#answer-play').click();
+  await page.waitForFunction(() => document.querySelector('#activation-play').textContent === 'Pause');
   await page.fill('#prompt-input', 'My next question');
-  assert.equal(await page.locator('#activation-play').textContent(), 'Play', 'Typing pauses automatic playback');
+  assert.equal(await page.locator('#activation-play').textContent(), 'Replay answer', 'Typing pauses automatic playback');
   await page.fill('#prompt-input', '');
   await page.locator('#activation-scrub').fill(finalPosition);
   await page.waitForFunction(text => document.querySelector('#output-text').textContent === text, sample.outputText);
 }
 
 // A browser without WebGPU cannot run a model, but the recorded example needs none.
-export async function checkWithoutWebGpu(page, { hasApi = false } = {}) {
+export async function checkWithoutWebGpu(page, fullReplayRequests, { hasApi = false } = {}) {
   await page.waitForFunction(() => document.querySelector('#boot-overlay').hidden, null, { timeout: 60000 });
   assert.equal(await page.evaluate(() => 'gpu' in navigator && Boolean(navigator.gpu)), hasApi, 'The page has the WebGPU state under test');
   assert.equal(await page.locator('#boot-error').isVisible(), false, 'Missing WebGPU is not a startup failure');
-  assert.match(await page.locator('#model-select-detail').textContent(), /can’t run models here: WebGPU isn’t available\. The recorded answer below still works\./);
+  assert.match(await page.locator('#model-select-detail').textContent(), /can’t run models here: WebGPU isn’t available\. You can explore the recorded answer\./);
   assert.equal(await page.locator('#model-select').isVisible(), false, 'No picker names a model that cannot run');
   assert.equal(await page.locator('#model-select-action').isDisabled(), true);
   assert.equal(await page.locator('#webgpu-retry').isVisible(), true, 'The reader can ask the browser again');
   await page.waitForFunction(() => document.querySelector('#output-text').textContent.startsWith('The sky appears blue'), null, { timeout: 120000 });
-  assert.match(await page.locator('#recorded-run-note').textContent(), /^Recorded answer from .+\. Nothing is running on this device\.$/);
-  assert.equal(await page.locator('#activation-player').isVisible(), true, 'The recorded activity opens without WebGPU');
+  assert.match(await page.locator('#recorded-run-note').textContent(), /recorded/i);
+  assert.equal(fullReplayRequests(), 0);
+  assert(await page.locator('.token-candidates-list').isVisible(), 'The preview works without WebGPU');
+  await page.locator('#activity-example').click();
+  await page.locator('#activation-player').waitFor();
+  assert.equal(fullReplayRequests(), 1, 'Full playback also works without WebGPU');
   await page.fill('#prompt-input', 'Can this browser answer?');
   assert.equal(await page.locator('#run-btn').isDisabled(), true, 'Send cannot start a model here');
   assert.match(await page.locator('#send-hint').textContent(), /Live inference is not available in this browser/, 'A disabled Send says why in words');
@@ -130,7 +141,7 @@ export async function checkPendingExample(page) {
     await held;
     await route.fulfill({ status: 200, contentType: 'application/json', body: '{}' }).catch(() => {});
   });
-  await page.locator('#run-details > summary').click();
+  await page.reload({ waitUntil: 'networkidle' });
   await page.click('#activity-example');
   await requested;
   await page.locator('#activation-record').uncheck();
@@ -146,32 +157,19 @@ export async function checkPendingExample(page) {
   await page.unroute('**/assets/activity-example.json');
 }
 
-// A delayed first-visit download must never steal the next user action.
-export async function checkPendingInitialReplay(page) {
-  let release, arrived;
-  const held = new Promise(resolve => { release = resolve; });
-  const requested = new Promise(resolve => { arrived = resolve; });
-  await page.route('**/assets/activity-example.json', async route => {
-    arrived(); await held;
-    await route.fulfill({ status: 404, body: 'unavailable' }).catch(() => {});
-  });
-  await page.reload({ waitUntil: 'domcontentloaded' });
-  await requested;
-  await page.waitForFunction(() => document.querySelector('#boot-overlay').hidden);
-  await page.fill('#prompt-input', 'Keep my question');
-  release();
-  await page.waitForLoadState('networkidle');
-  assert.equal(await page.inputValue('#prompt-input'), 'Keep my question');
-  assert.equal(await page.locator('#output-text').textContent(), '');
-  assert.equal(await page.locator('#activation-player').isVisible(), false);
-  assert.equal(await page.locator('#activity-source').isVisible(), false);
-  assert.equal(await page.evaluate(() => __demoContract.calls.length), 0);
-  await page.unroute('**/assets/activity-example.json');
-  await page.route('**/assets/activity-example.json', route => route.fulfill({ status: 404, body: 'unavailable' }));
+// A failed download preserves the working preview and a question the visitor drafted.
+export async function checkReplayDownloadFailure(page) {
   await page.reload({ waitUntil: 'networkidle' });
+  await page.locator('.token-chip[aria-pressed="true"]').waitFor();
+  const preview = await page.locator('#output-text').textContent();
+  await page.fill('#prompt-input', 'Keep my question');
+  await page.route('**/assets/activity-example.json', route => route.fulfill({ status: 404, body: 'unavailable' }));
+  await page.click('#activity-example');
   await page.waitForFunction(() => document.querySelector('#activity-availability').textContent.includes('unavailable'));
-  assert.equal(await page.locator('#activity-availability').isVisible(), true, 'Failed replay opening stays actionable');
-  assert.equal(await page.locator('#output-text').textContent(), '', 'Missing evidence never becomes an invented answer');
-  assert.equal(await page.locator('#run-btn').isEnabled(), true, 'Live use remains available after replay download failure');
+  assert.equal(await page.locator('#activity-availability').isVisible(), true);
+  assert.equal(await page.locator('#output-text').textContent(), preview);
+  assert.equal(await page.inputValue('#prompt-input'), 'Keep my question');
+  assert.equal(await page.locator('#run-btn').isEnabled(), true);
+  assert.equal(await page.locator('#activity-example').isEnabled(), true);
   await page.unroute('**/assets/activity-example.json');
 }
