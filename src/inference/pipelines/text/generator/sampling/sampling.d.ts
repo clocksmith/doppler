@@ -40,6 +40,21 @@ export function applyPresencePenalty(
   windowSize?: number
 ): void;
 
+/**
+ * Applies the caller's optional pre-sample logit mask (`opts.logitMaskFn`) to post-penalty
+ * logits, in place. A no-op without a mask. The hook must be synchronous and sees the tokens
+ * generated so far, excluding the prompt; `opts.promptTokenCount` must mark that boundary.
+ */
+export function applyLogitMask(
+  logits: Float32Array,
+  currentIds: number[],
+  opts: {
+    promptTokenCount?: number;
+    logitMaskFn?: ((logits: Float32Array, context: { generatedIds: number[]; tokenizer: unknown; vocabSize: number }) => void) | null;
+  },
+  state: { tokenizer?: unknown; modelConfig?: { vocabSize?: number } | null } | null
+): void;
+
 export function softmax(logits: Float32Array): Float32Array;
 
 export function sample(logits: Float32Array, opts: SamplingOptions): number;
