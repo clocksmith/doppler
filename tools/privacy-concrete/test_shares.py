@@ -448,6 +448,41 @@ class SharesTest(unittest.TestCase):
                 route.close()
             with self.assertRaises(ExecutionRejected):route.require_integrity()
 
+    def test_the_dishonest_test_provider_is_wrong_exactly_once_and_the_probe_verdict_reads_transcripts(self):
+        import shares_failure_probe
+        with tempfile.TemporaryDirectory() as directory:
+            weights,anchors,command=self.flight_directory(directory)
+            calls,expected=self.flight_calls(weights)
+            faulty=lambda mode:[sys.executable,str(Path(shares.__file__).with_name('shares_faulty_evaluator.py')),'--cache-dir',str(directory),'--fail-call','2','--mode',mode]
+            reports={}
+            for mode in (None,'flip','zeros'):
+                route=shares.ShareRoute((shares.ProcessEvaluator(command,'a'),shares.ProcessEvaluator(command if mode is None else faulty(mode),'b')),SEED,anchors)
+                try:
+                    got=[route.linear(*call) for call in calls[:3]]
+                finally:
+                    route.close()
+                np.testing.assert_array_equal(got[0],expected[0]);np.testing.assert_array_equal(got[2],expected[2])
+                if mode is None:np.testing.assert_array_equal(got[1],expected[1])
+                else:self.assertFalse(got[1].any())
+                self.assertEqual(route.integrity_failed(),mode is not None)
+                reports[mode]=route.report()
+            # Being caught changes nothing a provider can count: the same calls and bytes as an honest attempt.
+            for mode in ('flip','zeros'):
+                for key in ('sharedProjectionCalls','sharedFlights','sentBytes','receivedBytes'):self.assertEqual(reports[mode][key],reports[None][key])
+        row=lambda fixture,fail,calls=676,outcome=None,recorded=None:dict(fixture=fixture,failCall=fail,mode=None if fail is None else 'flip',
+            outcome=outcome or ('completed' if fail is None else 'integrity-check-failed'),integrityFailureRecorded=(fail is not None) if recorded is None else recorded,
+            projectionCalls=calls,flights=calls,rows=1859,sentBytes=[9,9],receivedBytes=[7,7],callsAfterEachStep=[169,338,507,calls])
+        clean=[row('x',None),row('y',None),row('x',5),row('y',400)]
+        self.assertTrue(shares_failure_probe.verdict(clean)['transcriptIndependentOfInputAndFailurePosition'])
+        early=shares_failure_probe.verdict(clean+[row('y',9,calls=300)])
+        self.assertFalse(early['transcriptIndependentOfInputAndFailurePosition'])
+        self.assertEqual(early['attemptsWhoseTranscriptDiffersFromHonest'],[dict(fixture='y',failCall=9,mode='flip')])
+        self.assertFalse(shares_failure_probe.verdict([row('x',None),row('y',None,calls=500),row('x',5)])['transcriptIndependentOfInputAndFailurePosition'])
+        self.assertFalse(shares_failure_probe.verdict(clean+[row('x',7,outcome='execution-failed')])['transcriptIndependentOfInputAndFailurePosition'])
+        self.assertFalse(shares_failure_probe.verdict(clean+[row('x',7,recorded=False)])['transcriptIndependentOfInputAndFailurePosition'])
+        self.assertFalse(shares_failure_probe.verdict([row('x',None,outcome='execution-failed'),row('x',5)])['transcriptIndependentOfInputAndFailurePosition'])
+        with self.assertRaises(ValueError):shares_failure_probe.verdict([row('x',None)])
+
     def test_flight_partners_are_same_block_projections_that_read_one_tensor(self):
         block=lambda index:[f'model.layers.{index}.self_attn.{leaf}' for leaf in ('q_proj','k_proj','v_proj','o_proj')]+[
             f'model.layers.{index}.mlp.{leaf}' for leaf in ('gate_proj','up_proj','down_proj')]

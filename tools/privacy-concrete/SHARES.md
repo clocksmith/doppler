@@ -95,7 +95,10 @@ and probe seed are unpredictable and stay secret. **S3** the requester's anchors
   bound depends on the input, but a wrong value reaches it only after passing the field checks, with the
   probabilities above. And after a failure the requester computes on substituted zeros; if a later client step then
   cannot proceed, the route closes early, and the number of calls made before that could depend on the input. That
-  second exception is not measured.
+  second exception is not measured yet. [shares_failure_probe.py](shares_failure_probe.py) is built to measure it: it
+  makes one provider answer one chosen request wrongly ([shares_faulty_evaluator.py](shares_faulty_evaluator.py)),
+  across several request positions and public prompts, and compares each provider's calls, flights and bytes with an
+  honest attempt's. It has not been run on the model, and it does not measure timing.
 
 ## What is not defended
 
