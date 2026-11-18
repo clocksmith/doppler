@@ -54,11 +54,15 @@ try {
 
   calls = 0; failures = 1;
   const prior = workers.length;
+  let failedWorker;
   threads.Worker = class extends OriginalWorker {
     constructor(...args) { super(...args); workers.push(this); }
     terminate() {
       calls++;
-      if (failures-- > 0) throw new Error('Injected synchronous termination failure');
+      if (failures-- > 0) {
+        failedWorker = this;
+        throw new Error('Injected synchronous termination failure');
+      }
       return super.terminate();
     }
   };
@@ -68,10 +72,15 @@ try {
   concurrent.forEach(lease => lease.release());
   assert.equal(countSourceHandles(), 2);
   await assert.rejects(reader.close(), /synchronous termination failure/);
-  assert.equal(workers[prior + 1].threadId, -1, 'A synchronous close failure cannot skip another owned lane');
+  const ownedWorkers = workers.slice(prior);
+  assert.equal(ownedWorkers.length, 2);
+  assert(ownedWorkers.includes(failedWorker) && failedWorker.threadId > 0);
+  const retiredWorker = ownedWorkers.find(worker => worker !== failedWorker);
+  assert.equal(retiredWorker.threadId, -1, 'A synchronous close failure cannot skip another owned lane');
   assert.equal(countSourceHandles(), 0, 'Settled descriptor retirement precedes thread termination, including a failed termination attempt');
   await reader.close();
   assert.equal(calls, 3);
+  assert.equal(failedWorker.threadId, -1);
   assert.equal(countSourceHandles(), 0);
 
   threads.Worker = OriginalWorker; syncBuiltinESMExports();
