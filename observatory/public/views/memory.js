@@ -6,7 +6,15 @@ import { withActivity } from './witness-ui.js';
 export function renderMemory({run,selection}) {
   const root=$('memory');
   withActivity(root,run,selection,(activity,position,layer)=>{
-    const rows=memoryLandscape(activity,position,layer);
+    let rows;
+    try { rows=memoryLandscape(activity,position,layer); }
+    catch(error) {
+      if(layer!==null || !error.message.includes('select a layer')) throw error;
+      const first=activity.frames.find(f=>['kv-key','kv-value','recurrent-memory','convolution-history'].includes(f.role)&&Number.isInteger(f.layer))?.layer;
+      root.replaceChildren(h('p',{className:'demo-note'},'This recording is too large to show every memory layer at once. Choose a layer above.'),
+        ...(first===undefined?[]:[h('button',{type:'button',className:'btn btn-small',on:{click:()=>selection.select({layer:first})}},`Show layer ${first+1}`)]));
+      return;
+    }
     if(!rows.length){root.replaceChildren(gap({what:'No KV writes, recurrent state or convolution history were captured for this layer. No memory values are inferred from token probabilities.'}));return;}
     const max=Math.max(0,...rows.map(r=>r.value??0));
     const groups=new Map();

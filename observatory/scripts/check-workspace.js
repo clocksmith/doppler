@@ -55,6 +55,8 @@ try {
     const text = (await page.locator(`#ws-view-${id}`).innerText()).trim();
     console.log(`  view ${id}: ${text.slice(0, 90).replace(/\s+/g, ' ')}`);
     assert.ok(text.length > 0, `${id} shows something, if only what was not recorded`);
+    if (id === 'atlas') assert.equal(await page.locator('#atlas button[aria-pressed="true"]').first().evaluate(el => el.style.background), '', 'Selected candidate keeps its contrasting selected fill');
+    await page.locator('.ws-inside').screenshot({ path: path.join(out, `desktop-${id}.png`) });
     assert.doesNotMatch(text, /different model files/, `${id} accepts the activity recorded with this answer`);
   }
   // A sparse capture offers the nearest recorded token, and following it shows the view.
@@ -182,9 +184,13 @@ try {
   await page.goto(url, { waitUntil: 'domcontentloaded' });
   await page.waitForFunction(() => document.querySelectorAll('#ws-tokens .token-chip').length > 0, null, { timeout: 60_000 });
   assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), true, 'No sideways scroll at phone width');
+  assert.equal(await page.locator('#ws-tabs').isVisible(), false, 'Mobile uses one compact view selector');
+  assert.match(await page.textContent('#ws-menu-label'), /^Next answer/);
+  const recordedModel = await page.evaluate(() => globalThis.__DOPPLER_WORKSPACE__.runs.find(r => r.kind === 'recorded-example').model.modelId);
+  assert.ok((await page.textContent('#ws-inside-model')).includes(recordedModel));
   // Word selection is available inside the inspector, without scrolling to the answer.
   assert.equal(await page.locator('#ws-word option').count(), (await page.locator('#ws-tokens .token-chip').count()) + 1);
-  await page.click('#ws-tab-gearbox');
+  await page.selectOption('#ws-view-picker', 'gearbox');
   assert.match(await page.textContent('#ws-view-gearbox'), /did not retain detailed activity/);
   await page.click('.ws-load-activity button');
   await page.waitForFunction(() => !document.querySelector('.ws-load-activity') && globalThis.__DOPPLER_WORKSPACE__.runs.some((run) => run.layerOutputs), null, { timeout: 120_000 });
@@ -195,7 +201,18 @@ try {
   await page.selectOption('#ws-word', wordValue);
   assert.match(await page.textContent('#ws-selection'), /^Word 4:/);
   assert.equal(await page.locator('#ws-tokens .token-chip').nth(3).getAttribute('aria-pressed'), 'true');
-  await page.click('#ws-tab-activity');
+  for (const id of ['activity', 'journey', 'attention', 'memory', 'gearbox', 'forest', 'atlas', 'time']) {
+    await page.selectOption('#ws-view-picker', id);
+    const text = (await page.locator(`#ws-view-${id}`).innerText()).trim();
+    assert.ok(text.length > 0, `${id} has a mobile result or an explicit recording gap`);
+    assert.equal(await page.locator('#ws-word').inputValue(), wordValue, `${id} preserves word selection`);
+    assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), true, `${id} avoids sideways page scroll`);
+    await page.locator('.ws-inside').screenshot({ path: path.join(out, `mobile-${id}-selected.png`) });
+  }
+  await page.selectOption('#ws-view-picker', 'memory');
+  await page.locator('#memory button', { hasText: 'Show layer' }).click();
+  assert.doesNotMatch(await page.textContent('#memory'), /exceeds the view budget|too large/);
+  await page.selectOption('#ws-view-picker', 'activity');
   assert.equal(await page.locator('#ws-word').inputValue(), wordValue, 'Tabs keep the shared word selection');
   await page.selectOption('#ws-word', '');
   assert.doesNotMatch(await page.textContent('#activity'), /null/, 'No null child is rendered in Activity');

@@ -27,7 +27,7 @@
       </div>
       <div class="app-header-end">
         <details id="ws-menu" class="ws-menu">
-          <summary id="ws-menu-label">Model</summary>
+          <summary id="ws-menu-label">Next answer model</summary>
           <div class="ws-menu-body">
             <label class="ws-field">Model <select id="ws-model" disabled><option>Checking this browser…</option></select></label>
             <label class="ws-field">Answer length <input id="ws-length" type="number" min="2" max="256" value="48"> tokens</label>
@@ -95,6 +95,8 @@
             <p id="ws-selection" class="demo-note" role="status"></p>
           </div>
         </div>
+        <p id="ws-inside-model" class="demo-note"></p>
+        <label class="ws-mobile-view">View <select id="ws-view-picker" aria-label="Inside the model view"></select></label>
         <div id="ws-tabs" class="ws-tabs" role="tablist" aria-label="Views"></div>
         <div id="ws-view-activity" class="ws-view" role="tabpanel"><div id="activity"></div></div>
         <div id="ws-view-journey" class="ws-view" role="tabpanel" hidden><div id="journey"></div></div>

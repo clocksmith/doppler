@@ -24,7 +24,7 @@ export function renderAtlas({ run, selection }) {
           className: `btn btn-small${selected === atlas.start + i ? ' is-selected' : ''}`,
           type: 'button', ariaPressed: String(selected === atlas.start + i),
           title: `Answer decision ${atlas.start + i + 1}: token ${row.tokenId}, ${percent(probability)}${run.tokens[atlas.start + i].tokenId === row.tokenId ? ', chosen' : ''}`,
-          style: `background: color-mix(in srgb, currentColor ${Math.round(probability * 22)}%, transparent)`,
+          style: selected === atlas.start + i ? '' : `background: color-mix(in srgb, currentColor ${Math.round(probability * 22)}%, transparent)`,
           on: { click: () => selection.select({ position: sequencePosition(run, atlas.start + i) }) },
         }, `${percent(probability)}${run.tokens[atlas.start + i].tokenId === row.tokenId ? ' ✓' : ''}`))),
       ))))),

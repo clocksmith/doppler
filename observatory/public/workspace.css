@@ -142,6 +142,12 @@
 @media (max-width: 600px) {
   .ws-inside .ws-head-end { width: 100%; align-items: center; }
   .ws-inside #ws-selection { flex-basis: 100%; }
-  .ws-tabs { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); }
-  .ws-tab { min-height: 40px; }
+}
+
+.ws-mobile-view { display: none; }
+#ws-inside-model { overflow-wrap: anywhere; }
+@media (max-width: 600px) {
+  .ws-tabs { display: none; }
+  .ws-mobile-view { display: flex; align-items: center; gap: 8px; margin: 12px 0; }
+  .ws-mobile-view select { min-width: 0; flex: 1; }
 }

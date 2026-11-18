@@ -99,7 +99,7 @@ async function loadRuntime() {
 
 function syncMenuLabel() {
   const option = $('ws-model').selectedOptions[0];
-  $('ws-menu-label').textContent = state.runtime && option ? option.textContent.split(' · ')[0] : 'Model';
+  $('ws-menu-label').textContent = state.runtime && option ? `Next answer: ${option.textContent.split(' · ')[0]}` : 'Next answer model';
 }
 
 async function ensureModel(modelId) {
@@ -413,7 +413,10 @@ function renderTabs(run, display) {
     on: { click: () => { state.view = view.id; render(); } },
   }, view.label)));
   for (const view of VIEWS) $(`ws-view-${view.id}`).hidden = view.id !== state.view;
+  $('ws-view-picker').replaceChildren(...VIEWS.map(view => h('option', { value: view.id }, view.label)));
+  $('ws-view-picker').value = state.view;
   const chosen = selection.get();
+  $('ws-inside-model').textContent = run ? `${run.kind === 'recorded-example' ? 'Recorded example' : 'Inspecting answer'} · ${run.model.modelId ?? 'unknown model'}` : '';
   const index = run ? pickedIndex(run, display) : null;
   // Selection is available beside the views, including on a narrow screen.
   const words = run && display.base !== null ? display.tokens : [];
@@ -524,6 +527,7 @@ async function boot() {
     if (event.key === 'Enter' && !event.shiftKey) { event.preventDefault(); if (!state.busy) ask($('ws-prompt').value.trim()); }
   });
   $('ws-model').addEventListener('change', syncMenuLabel);
+  $('ws-view-picker').addEventListener('change', (event) => { state.view = event.target.value; render(); });
   $('ws-word').addEventListener('change', (event) => selection.select({ position: event.target.value === '' ? null : Number(event.target.value) }));
   $('ws-layer').addEventListener('change', (event) => selection.select({ layer: event.target.value === '' ? null : Number(event.target.value) }));
   $('ws-open-button').addEventListener('click', () => $('ws-open').click());
