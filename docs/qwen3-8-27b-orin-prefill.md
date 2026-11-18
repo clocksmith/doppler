@@ -46,3 +46,22 @@ node tests/loader/packed-f16-split-embedding.test.js
 
 The physical packed-gather test additionally requires a real GPU. A CPU unit
 pass is not a replacement for physical model qualification.
+
+## Separate decode candidate
+
+`profiles/qwen3-8-27b-orin-decode` extends this profile, explicitly selecting the
+existing eight-lane subgroup fused Q4K gate/up kernel during decode only. It
+requires subgroups and remains calibration-only; it is not a serving default.
+
+A same-build, sequential Orin comparison using the same Hello/count prompts
+passed exact outputs. Counting decode fell from 44.887 s to 40.746 s; complete
+request time fell from 48.165 s to 44.026 s. A fully covered 806-pass diagnostic
+decode step measured gate/up at 99.122 ms versus 160.540 ms, and total GPU time
+at 413.091 ms versus 472.092 ms. Fifteen numerical cases, including hidden width
+5120, preceded the run. A synthetic repeated-row full-shape probe supported the
+choice but is not a substitute for the model measurement.
+
+This is one short-prompt comparison, not broad quality, concurrency, long-context
+or cross-device qualification. The original prefill-only profile and global
+fallback remain unchanged. The live 35B provider was restored separately; public
+27B admission remains closed.

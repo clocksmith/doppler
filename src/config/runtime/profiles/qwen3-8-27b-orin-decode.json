@@ -1,0 +1,31 @@
+{
+  "intent": "calibrate",
+  "compatibleIntents": [
+    "calibrate"
+  ],
+  "stability": "experimental",
+  "owner": "doppler-core",
+  "createdAtUtc": "2026-11-18T00:00:00Z",
+  "model": "qwen3-8-27b-text-q4k-ehaf16",
+  "id": "profiles/qwen3-8-27b-orin-decode",
+  "name": "qwen3-8-27b-orin-decode",
+  "description": "Opt-in Orin Qwen27B calibration candidate: extends packed embedding/F32 prefill with subgroup8 fused gate/up decode. Short-prompt qualification only; not a serving default.",
+  "extends": "profiles/qwen3-8-27b-orin-prefill",
+  "runtime": {
+    "inference": {
+      "session": {
+        "fusedFfnQ4K": {
+          "decode": {
+            "variant": "q4k_subgroup8",
+            "pipelineConstants": {
+              "WORKGROUP_SIZE": 256,
+              "COLS_PER_WG": 32,
+              "THREADS_PER_COL": 8,
+              "USE_FULL_BLOCK_FAST_PATH": true
+            }
+          }
+        }
+      }
+    }
+  }
+}
