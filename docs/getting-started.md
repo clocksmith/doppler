@@ -6,7 +6,7 @@ qualification, and benchmarking are separate engineering workflows.
 
 ## Published first run
 
-The npm registry advertises `doppler-gpu@0.7.0`. Its quickstart includes the
+This guide pins the published `doppler-gpu@0.7.0` release. Its quickstart includes the
 `gemma3-270m` alias for the hosted Gemma 3 270M Q4K model:
 
 ```sh

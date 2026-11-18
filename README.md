@@ -1,13 +1,12 @@
 # Doppler
 
-<a href="assets/readme/doppler-demo-hero.mp4"><img src="assets/readme/doppler-demo-hero.gif" width="100%" alt="Doppler demo: a recorded Qwen 3.5 0.8B answer appears token by token beside per-layer activation changes, then one word's next-token alternatives open with their probabilities." /></a>
+Run open models locally with WebGPU from JavaScript. Doppler generates text, computes embeddings, reranks results, and scores choices on supported models and devices.
 
-<sub>Recorded replay from the <a href="https://d4da.com/doppler/">demo</a>, not a live run. <a href="assets/readme/doppler-demo-hero.mp4">Full-quality video</a>.</sub>
+**[Try the token demo](https://d4da.com/doppler/demo/index.html)** · [Open Observatory](https://d4da.com/observatory/) · [Run locally](#get-started)
 
-A JavaScript library for local model execution through WebGPU: generation,
-embeddings, reranking, and choice scoring, qualified per model and host.
+<a href="assets/readme/doppler-demo-hero.mp4"><img src="assets/readme/doppler-demo-hero.gif" width="100%" alt="A recorded Qwen answer appears token by token. Selecting a token reveals its alternatives and their probabilities." /></a>
 
-**[Try the demo](https://d4da.com/doppler/)** · [Get started](docs/getting-started.md) · [Documentation](docs/INDEX.md)
+The demo opens with a recorded answer. Select a token to inspect its alternatives, or load a compatible model to generate on your device. [Watch the full-quality recording](assets/readme/doppler-demo-hero.mp4)
 
 <picture>
   <source media="(max-width: 640px)" srcset="assets/readme/application-mobile.svg" />
@@ -16,18 +15,15 @@ embeddings, reranking, and choice scoring, qualified per model and host.
 
 ## Get started
 
-Run the pinned published quickstart with Node 20+ and a working WebGPU provider:
+Use Node 20+ and a working WebGPU provider. This command pins the published CLI and model alias used in the installation guide.
 
 ```sh
 npx --package doppler-gpu@0.7.0 doppler-gpu --model gemma3-270m --prompt "Describe WebGPU briefly"
 ```
 
-First execution downloads model assets. Browser and Node support are qualified
-separately. The [installation guide](docs/getting-started.md) covers provider
-requirements and embedding the published compatibility API.
+The first run downloads about 400 MB of weights plus the tokenizer and manifest. See [installation and embedding](docs/getting-started.md) for host requirements.
 
-The [signed Run API](docs/api/root.md) and resident partition exports ship in
-0.7.0 with separate release requirements; qualification stays per model and host.
+[Published versions](https://www.npmjs.com/package/doppler-gpu) · [Source changelog](CHANGELOG.md) · [Signed Run API](docs/api/root.md)
 
 ## Benchmarks
 
@@ -44,11 +40,7 @@ The [signed Run API](docs/api/root.md) and resident partition exports ship in
 
 ![Purple session boundaries distinguish signed Capsule opening, persistent model resources, and successive operations through a model program, binder, and executor. The application and WebGPU provider remain external.](assets/readme/technical-architecture.svg)
 
-Rig prepares signed Capsules with declared TargetPlans. Run verifies artifacts
-and selects an accepted plan; session operations reuse resident resources through
-the model program, binder, and command executor. Applications supply trust and
-host ports. JSON declares execution, JavaScript orchestrates, and WGSL computes.
-Doe and Reploid remain optional integrations.
+Rig prepares a signed Capsule and its execution plans. Run verifies the artifacts and selects a plan. A session reuses the loaded weights and GPU programs across requests. The application supplies trust and host access.
 
 [Architecture and source owners](docs/architecture.md) · [Resident partition lifetimes](docs/architecture.md#resident-partitions-and-resource-lifetime)
 
@@ -65,7 +57,7 @@ from verified execution and links the lifecycle evidence for each model.
 The [comparison scoreboard](docs/model-competition-scoreboard.md) reports
 throughput and loading separately against declared controls. Runtime correctness,
 task quality, memory, and lifecycle acceptance remain separate checks.
-W8A8 remains experimental; it does not qualify distributed chat.
+W8A8 remains experimental.
 
 Choice scores are uncalibrated. Unsupported paths fail closed. The retained
 [search starter](examples/document-search/README.md) needs renewed signed
