@@ -16,7 +16,7 @@
       "release": "./runtime-preview/release.json",
       "preview": true,
       "flag": "runtime.preview",
-      "notice": "A newer Doppler build than the runtime this site hosts. It is not qualified: it passed this site's own checks on one Mac, which says nothing about other devices. Results made with it are marked as preview results."
+      "notice": "This runtime is not qualified across devices. Its results carry a preview label."
     }
   }
 }
