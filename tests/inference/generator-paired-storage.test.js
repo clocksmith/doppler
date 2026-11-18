@@ -50,7 +50,7 @@ const shared = {
     export const createProfilingRecorder=createCommandRecorder; export class CommandRecorder {}`,
   "../../../../../gpu/kernels/sample.js": `export const isGPUSamplingAvailable=()=>generatorStorageProbe.gpuSampling; export const recordArgmax=(r,b,n,o)=>generatorStorageProbe.sample(o); export const recordGPUSample=recordArgmax;`,
   "../../../../../gpu/kernels/rep-penalty.js": `export const recordHistoryPenalties=async()=>{if(generatorStorageProbe.failure==='penalty')throw Error('injected penalty');};`,
-  "../sampling/sampling.js": `export const sample=()=>{if(generatorStorageProbe.failure==='sampling')throw Error('injected sampling');return 2;}; export const applyRepetitionPenalty=()=>{}; export const applyPresencePenalty=()=>{}; export const logitsSanity=()=>{};`,
+  "../sampling/sampling.js": `export const sample=()=>{if(generatorStorageProbe.failure==='sampling')throw Error('injected sampling');return 2;}; export const applyRepetitionPenalty=()=>{}; export const applyLogitMask=()=>{}; export const applyPresencePenalty=()=>{}; export const logitsSanity=()=>{};`,
   "../../logits/index.js": `export const computeLogits=async()=>{if(generatorStorageProbe.failure==='logits')throw Error('injected logits');return new Float32Array(8);};
     export const computeLogitsGPU=async()=>({logitsBuffer:generatorStorageProbe.allocate(32),vocabSize:8,logitsDtype:'f32'}); export const recordLogitsGPU=computeLogitsGPU; export const extractLastPositionLogits=v=>v;`,
   "../../embedding/embed.js": 'export const embed=(...a)=>generatorStorageProbe.embed(...a);',
