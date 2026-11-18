@@ -13,7 +13,7 @@ import { allowReadback } from "../../../../../debug/perf-guards.js";
 import { log } from "../../../../../debug/index.js";
 import { selectRuleValue } from "../../../../../rules/rule-registry.js";
 import { attachPreparedDecodeWorkspace } from "../../execution/execution-plan.js";
-import { sample, applyRepetitionPenalty, applyPresencePenalty, logitsSanity } from "../sampling/sampling.js";
+import { sample, applyRepetitionPenalty, applyPresencePenalty, applyLogitMask, logitsSanity } from "../sampling/sampling.js";
 import { embed } from "../../embedding/embed.js";
 import { processLayer } from "../../execution/layer.js";
 import { computeLogits, computeLogitsGPU, recordLogitsGPU, extractLastPositionLogits } from "../../logits/index.js";
@@ -396,6 +396,7 @@ async function decodeStepBody(state, currentIds, opts, helpers, makeRecorder, dr
         if (opts.presencePenalty) {
           applyPresencePenalty(fallbackLogits, currentIds, opts.presencePenalty, opts.repetitionPenaltyWindow);
         }
+        applyLogitMask(fallbackLogits, currentIds, opts, state);
         const fallbackToken = sample(fallbackLogits, {
           temperature: opts.temperature,
           topP: opts.topP,
@@ -473,6 +474,7 @@ async function decodeStepBody(state, currentIds, opts, helpers, makeRecorder, dr
         if (opts.presencePenalty) {
           applyPresencePenalty(sampledLogits, currentIds, opts.presencePenalty, opts.repetitionPenaltyWindow);
         }
+        applyLogitMask(sampledLogits, currentIds, opts, state);
         const observedLogits = typeof opts.onLogits === 'function' ? sampledLogits.slice() : sampledLogits;
         const nextToken = sample(sampledLogits, {
           temperature: opts.temperature,
@@ -526,6 +528,7 @@ async function decodeStepBody(state, currentIds, opts, helpers, makeRecorder, dr
     if (opts.presencePenalty) {
       applyPresencePenalty(logits, currentIds, opts.presencePenalty, opts.repetitionPenaltyWindow);
     }
+    applyLogitMask(logits, currentIds, opts, state);
     const nextToken = sample(logits, {
       temperature: opts.temperature,
       topP: opts.topP,

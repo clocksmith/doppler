@@ -16,6 +16,25 @@ export function applyPresencePenalty(logits, previousTokens, penalty, windowSize
   applyScalarPresencePenalty(logits, previousTokens, penalty, windowSize);
 }
 
+// Applies the caller's optional pre-sample logit mask (`opts.logitMaskFn`) to post-penalty logits.
+// Every sampler on every decode path calls this immediately before sampling, so a constraint
+// visits each sampled token, including on the decode step used with linear-attention layers.
+export function applyLogitMask(logits, currentIds, opts, state) {
+  if (typeof opts?.logitMaskFn !== 'function') return;
+  if (!Number.isSafeInteger(opts.promptTokenCount) || opts.promptTokenCount < 0 || opts.promptTokenCount > currentIds.length) {
+    throw new Error('[Pipeline] logitMaskFn requires an explicit prompt token boundary.');
+  }
+  const result = opts.logitMaskFn(logits, {
+    generatedIds: currentIds.slice(opts.promptTokenCount),
+    tokenizer: state?.tokenizer ?? null,
+    vocabSize: state?.modelConfig?.vocabSize ?? logits.length,
+  });
+  if (result && typeof result.then === 'function') {
+    Promise.resolve(result).catch(() => {});
+    throw new Error('[Pipeline] logitMaskFn must be synchronous.');
+  }
+}
+
 export function sample(logits, opts) {
   return sampleTokens(logits, {
     ...opts,

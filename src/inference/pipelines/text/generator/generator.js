@@ -9,7 +9,7 @@ import { prefillWithToken, decodeStepWithToken } from "./adapters/capsule-genera
 import { releaseBuffer } from "../../../../memory/buffer-pool.js";
 
 // Pipeline sub-modules
-import { sample, applyRepetitionPenalty, applyPresencePenalty } from "./sampling/sampling.js";
+import { sample, applyRepetitionPenalty, applyPresencePenalty, applyLogitMask } from "./sampling/sampling.js";
 import { isStopToken } from "../init.js";
 import { decodeStepLogits } from './generator-steps.js';
 import { projectHiddenStates as projectHiddenStatesImpl } from "../logits/hidden-projection.js";
@@ -379,24 +379,8 @@ export class PipelineGenerator {
     if (opts.presencePenalty) {
       applyPresencePenalty(sampledLogits, generatedIds, opts.presencePenalty, opts.repetitionPenaltyWindow);
     }
-    // Optional pre-sample logit mask. Callers pass `opts.logitMaskFn` to
-    // implement grammar/schema-constrained decoding. The hook receives the
-    // mutable logit buffer (after repetition penalty) plus the running token
-    // sequence so it can track parse state across decode steps.
-    if (typeof opts?.logitMaskFn === "function") {
-      if (!Number.isSafeInteger(opts.promptTokenCount) || opts.promptTokenCount < 0 || opts.promptTokenCount > generatedIds.length) {
-        throw new Error('[Pipeline] logitMaskFn requires an explicit prompt token boundary.');
-      }
-      const result = opts.logitMaskFn(sampledLogits, {
-        generatedIds: generatedIds.slice(opts.promptTokenCount),
-        tokenizer: this._state.tokenizer ?? null,
-        vocabSize: this._state.modelConfig?.vocabSize ?? sampledLogits.length,
-      });
-      if (result && typeof result.then === 'function') {
-        Promise.resolve(result).catch(() => {});
-        throw new Error('[Pipeline] logitMaskFn must be synchronous.');
-      }
-    }
+    // Optional pre-sample logit mask for grammar/schema-constrained decoding; shared with the decode step.
+    applyLogitMask(sampledLogits, generatedIds, opts, this._state);
     const padTokenId = this._state.tokenizer?.getSpecialTokens?.()?.pad;
     // Sampling masks pad/suppressed entries in place. Observers retain the
     // post-penalty/user-mask vector, matching the decode observation boundary.

@@ -67,3 +67,35 @@ try {
   assert.equal(decodeState.stats.stopReason, 'stop-token');
 } finally { setDevice(null); }
 console.log('generation-constraints decode dispatch: ok');
+
+// The decode step used by models with linear-attention layers samples in three places of its own.
+// Each must apply the caller's mask, or a constraint only reaches the first (prefill) token.
+const { applyLogitMask } = await import("../../src/inference/pipelines/text/generator/sampling/sampling.js");
+{
+  const seen = [];
+  const logits = new Float32Array([1, 9, 2]);
+  applyLogitMask(logits, [7, 7, 1, 2], { promptTokenCount: 2,
+    logitMaskFn(values, context) { seen.push(context); values[1] = -Infinity; } }, { tokenizer: 'tokenizer', modelConfig: { vocabSize: 3 } });
+  assert.deepEqual(seen, [{ generatedIds: [1, 2], tokenizer: 'tokenizer', vocabSize: 3 }]);
+  assert.equal(logits[1], -Infinity);
+  const untouched = new Float32Array([1, 9, 2]);
+  applyLogitMask(untouched, [7], {}, {});
+  assert.deepEqual([...untouched], [1, 9, 2]);
+  assert.throws(() => applyLogitMask(logits, [7], { promptTokenCount: 2, logitMaskFn() {} }, {}), /prompt token boundary/);
+  assert.throws(() => applyLogitMask(logits, [7], { logitMaskFn() {} }, {}), /prompt token boundary/);
+  assert.throws(() => applyLogitMask(logits, [7], { promptTokenCount: 1, logitMaskFn: async () => {} }, {}), /synchronous/);
+}
+{
+  const { readFile } = await import('node:fs/promises');
+  const source = await readFile(new URL('../../src/inference/pipelines/text/generator/decode/decode-step.js', import.meta.url), 'utf8');
+  const lines = source.split('\n');
+  const samplingSites = lines.map((line, index) => (/=\s*sample\(/.test(line) ? index : -1)).filter(index => index >= 0);
+  assert.equal(samplingSites.length, 3, 'decode-step.js sampling sites changed: each must apply the logit mask first');
+  for (const index of samplingSites) {
+    // The mask runs after the penalties and before any observer copy, within the two lines above.
+    assert.ok([lines[index - 1], lines[index - 2]].some(line => /^\s*applyLogitMask\(\w+, currentIds, opts, state\);$/.test(line)),
+      `decode-step.js line ${index + 1} samples without applying the logit mask first`);
+  }
+}
+console.log('generation-constraints decode-step masking: ok');
+
