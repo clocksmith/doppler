@@ -100,7 +100,8 @@ export async function resolvePersistentBrowserLoadSource(
   loadSource,
   cache,
   onProgress = null,
-  cacheSource = ensureModelCachedSource
+  cacheSource = ensureModelCachedSource,
+  signal = undefined
 ) {
   assertPersistentCacheMode(cache);
   if (cache !== 'opfs') {
@@ -124,7 +125,7 @@ export async function resolvePersistentBrowserLoadSource(
     storageModelId,
     storageBaseUrl,
     (event) => emitPersistentCacheProgress(onProgress, event),
-    { expectedManifestHash }
+    { expectedManifestHash, signal }
   );
   return {
     ...loadSource,
@@ -222,6 +223,7 @@ export function createDopplerRuntimeService({
   }
 
   async function loadProgram(model, options = {}, partition = null, deviceBinding = null) {
+    options.signal?.throwIfAborted();
     assertPersistentCacheMode(options.cache);
     const resolutionPolicy = resolveResolutionPolicy(options.resolutionPolicy);
     const { userProgress, pipelineProgress } = resolveLoadProgressHandlers(options, defaultLoadProgressLogger);
@@ -234,7 +236,8 @@ export function createDopplerRuntimeService({
     const persistentSource = options.cache === 'opfs' && !isNodeRuntime()
       ? await loadPersistentModelSource(
         resolved.modelId,
-        (event) => emitPersistentCacheProgress(userProgress, event)
+        (event) => emitPersistentCacheProgress(userProgress, event),
+        options.signal
       )
       : null;
     const manifestPayload = persistentSource
@@ -254,7 +257,7 @@ export function createDopplerRuntimeService({
         }
         return { text, manifest: resolved.manifest, manifestHash };
       })()
-      : await fetchManifestPayloadFromBaseUrl(resolved.baseUrl);
+      : await fetchManifestPayloadFromBaseUrl(resolved.baseUrl, options.signal);
     const revocationIdentity = Object.freeze({
       logicalModelId: resolved.logicalModelId,
       modelId: manifestPayload.manifest?.modelId ?? resolved.modelId,
@@ -279,7 +282,7 @@ export function createDopplerRuntimeService({
           totalBytes: persistentSource.totalBytes,
         },
       }
-      : await resolveManifestArtifactSource(resolved, manifestPayload);
+      : await resolveManifestArtifactSource(resolved, manifestPayload, options.signal);
     const gpu = deviceBinding ?? await acquireHostDeviceBinding(options.signal);
     // Early validation uses the same compiler as pipeline initialization. Never interpret a raw patch as a kernel authority.
     const embeddingExecution = options.runtimeConfig?.inference?.executionPatch == null ? null : compileExecutionV1({
@@ -315,7 +318,9 @@ export function createDopplerRuntimeService({
     const loadSource = await resolvePersistentBrowserLoadSource(
       cachedResolved ?? resolvedArtifactSource,
       persistentSource ? false : options.cache,
-      userProgress
+      userProgress,
+      ensureModelCachedSource,
+      options.signal
     );
     if (options.cache === 'opfs' && !isNodeRuntime()) {
       await registerModel({

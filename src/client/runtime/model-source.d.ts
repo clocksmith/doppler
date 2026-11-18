@@ -78,14 +78,16 @@ export declare function resolveLoadProgressHandlers(
 };
 
 export declare function fetchManifestPayloadFromBaseUrl(
-  baseUrl: string
+  baseUrl: string,
+  signal?: AbortSignal
 ): Promise<{ text: string; manifest: RDRRManifest; manifestHash: string }>;
 
 export declare function sha256ManifestText(value: string): Promise<string>;
 
 export declare function resolveManifestArtifactSource(
   resolved: DopplerModelSourceResolution,
-  manifestPayload: { text: string; manifest: RDRRManifest; manifestHash?: string }
+  manifestPayload: { text: string; manifest: RDRRManifest; manifestHash?: string },
+  signal?: AbortSignal
 ): Promise<DopplerModelSourceResolution>;
 
 export declare function resolveModelSource(model: DopplerModelSource): Promise<DopplerModelSourceResolution>;

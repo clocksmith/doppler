@@ -282,6 +282,7 @@ export async function verifyStoredSourceArtifact(manifest, options = {}) {
   const store = options.store ?? await openModelReadSession(options.modelId);
   try {
   for (const entry of files) {
+    options.signal?.throwIfAborted();
     if (!checkHashes) {
       const storedSize = await store.getFileSize(entry.path);
       if (storedSize == null) {
