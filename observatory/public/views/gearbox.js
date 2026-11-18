@@ -17,7 +17,7 @@ export function renderGearbox(context) {
       const recorded=(p)=>pool.some(w=>{try{return Boolean(gearboxProducts(activity,w,p)?.products.length);}catch{return false;}});
       const near=activity.identity?.adapters?.length?null:nearestRecorded(position,sequenceLength(run),recorded);
       root.replaceChildren(...(candidates.length ? [h('label',{},'Tensor ',picker)] : []),gap({what:activity.identity?.adapters?.length?'Effective adapter weights were not captured; base-only products would be incomplete.':'No matched saved weight window and FFN-down projection input at this token and layer. A weight inventory alone cannot establish connection products.'}),
-        activity.identity?.adapters?.length?null:nearestOffer(run,selection,near===null?null:{position:near},`connection products${layer===null?'':` at layer ${layer+1}`}`));return;}
+        ...(activity.identity?.adapters?.length?[]:[nearestOffer(run,selection,near===null?null:{position:near},`connection products${layer===null?'':` at layer ${layer+1}`}`)]));return;}
 
     const largest=Math.max(0,...result.products.map(p=>Math.abs(p.product))),chart=svg('svg',{viewBox:'0 0 800 180',role:'img','aria-label':'Signed weight times input products in the saved tensor window',style:'width:100%;max-height:230px'});
     chart.append(svg('line',{x1:0,y1:90,x2:800,y2:90,stroke:'currentColor'}));

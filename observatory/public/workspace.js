@@ -415,6 +415,13 @@ function renderTabs(run, display) {
   for (const view of VIEWS) $(`ws-view-${view.id}`).hidden = view.id !== state.view;
   const chosen = selection.get();
   const index = run ? pickedIndex(run, display) : null;
+  // Selection is available beside the views, including on a narrow screen.
+  const words = run && display.base !== null ? display.tokens : [];
+  const promptSelected = chosen.position !== null && index === null;
+  $('ws-word').replaceChildren(h('option', { value: '' }, promptSelected ? `Prompt position ${chosen.position}` : 'Choose a word'),
+    ...words.map((token, i) => h('option', { value: String(display.base + i) }, `${i + 1}: ${visible(token.text)}`)));
+  $('ws-word').value = index === null ? '' : String(chosen.position);
+  $('ws-word').disabled = words.length === 0;
   // One layer picker for every view; the journey and attention views can also set it.
   const layers = run ? (run.layerOutputs?.layers ?? run.activityTrace?.geometry?.layers ?? 0) : 0;
   $('ws-layer').replaceChildren(h('option', { value: '' }, 'All'), ...Array.from({ length: layers }, (_, i) => h('option', { value: String(i) }, String(i + 1))));
@@ -517,6 +524,7 @@ async function boot() {
     if (event.key === 'Enter' && !event.shiftKey) { event.preventDefault(); if (!state.busy) ask($('ws-prompt').value.trim()); }
   });
   $('ws-model').addEventListener('change', syncMenuLabel);
+  $('ws-word').addEventListener('change', (event) => selection.select({ position: event.target.value === '' ? null : Number(event.target.value) }));
   $('ws-layer').addEventListener('change', (event) => selection.select({ layer: event.target.value === '' ? null : Number(event.target.value) }));
   $('ws-open-button').addEventListener('click', () => $('ws-open').click());
   $('ws-open').addEventListener('change', (event) => openFiles([...event.target.files]));

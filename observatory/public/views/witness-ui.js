@@ -9,10 +9,10 @@ export function svg(tag,attrs={},...children) {
 export function withActivity(root,run,selection,render) {
   if(!root)return;
   const {position,layer}=selection.get();
-  if(position===null){root.replaceChildren(h('p',{className:'demo-note'},'Select a token to inspect its recorded activity.'));return;}
   try {
     const activity=activityOf(run);
     if(!activity){root.replaceChildren(gap({what:'This run did not retain detailed activity. Open a run saved with grids, or record detailed activity.'}));return;}
+    if(position===null){root.replaceChildren(h('p',{className:'demo-note'},'Choose a word above to inspect its recorded activity.'));return;}
     render(activity,position,layer);
   } catch(error){root.replaceChildren(gap({what:`Cannot display this capture: ${error.message}`}));}
 }

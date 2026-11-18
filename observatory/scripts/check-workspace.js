@@ -177,10 +177,30 @@ try {
   }
 
   // Phone width: no sideways scroll.
+  await page.emulateMedia({ colorScheme: 'dark' });
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto(url, { waitUntil: 'domcontentloaded' });
   await page.waitForFunction(() => document.querySelectorAll('#ws-tokens .token-chip').length > 0, null, { timeout: 60_000 });
   assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), true, 'No sideways scroll at phone width');
+  // Word selection is available inside the inspector, without scrolling to the answer.
+  assert.equal(await page.locator('#ws-word option').count(), (await page.locator('#ws-tokens .token-chip').count()) + 1);
+  await page.click('#ws-tab-gearbox');
+  assert.match(await page.textContent('#ws-view-gearbox'), /did not retain detailed activity/);
+  await page.click('.ws-load-activity button');
+  await page.waitForFunction(() => !document.querySelector('.ws-load-activity') && globalThis.__DOPPLER_WORKSPACE__.runs.some((run) => run.layerOutputs), null, { timeout: 120_000 });
+  await page.selectOption('#ws-word', '');
+  assert.match(await page.textContent('#ws-view-gearbox'), /Choose a word above/);
+  await page.locator('.ws-inside').screenshot({ path: path.join(out, 'mobile-choose-word.png') });
+  const wordValue = await page.locator('#ws-word option').nth(4).getAttribute('value');
+  await page.selectOption('#ws-word', wordValue);
+  assert.match(await page.textContent('#ws-selection'), /^Word 4:/);
+  assert.equal(await page.locator('#ws-tokens .token-chip').nth(3).getAttribute('aria-pressed'), 'true');
+  await page.click('#ws-tab-activity');
+  assert.equal(await page.locator('#ws-word').inputValue(), wordValue, 'Tabs keep the shared word selection');
+  await page.selectOption('#ws-word', '');
+  assert.doesNotMatch(await page.textContent('#activity'), /null/, 'No null child is rendered in Activity');
+  await page.locator('.ws-inside').screenshot({ path: path.join(out, 'mobile-activity.png') });
+  assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), true);
   // Old addresses still lead here, keeping the visitor's query.
   for (const [from, to] of [['explore.html?preview=views.experimental', /\/\?preview=views\.experimental$/], ['workspace.html', /\/$/], ['index-preview.html', /\/\?preview=runtime\.preview&runtime=preview$/], ['compare.html', /benchmark\.html#compare$/]]) {
     await page.goto(new URL(from, url).href);

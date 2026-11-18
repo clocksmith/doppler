@@ -124,6 +124,6 @@ export function renderActivity({ run, selection }) {
     h('p', { className: 'demo-note' }, `Positions ${positions[0]}–${positions.at(-1)} → (prompt and answer). Each layer's row on its own scale: darker is less, yellow is more for that layer; grey was not recorded. Select a cell for that position and layer.`),
     h('h3', { className: 'ws-act-title' }, p >= 0 ? `${label(positions[p])}: ${layers} layers, ${width} values each` : 'Layers'),
     tiles,
-    scaleNote ? h('p', { className: 'demo-note' }, `${scaleNote} Blue below zero, red above. One pixel per value, ${tileSide(width)}×${tileSide(width)} per layer.`) : null,
+    ...(scaleNote ? [h('p', { className: 'demo-note' }, `${scaleNote} Blue below zero, red above. One pixel per value, ${tileSide(width)}×${tileSide(width)} per layer.`)] : []),
   );
 }

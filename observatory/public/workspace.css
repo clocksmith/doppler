@@ -98,7 +98,7 @@
 }
 .ws-tab:hover { color: var(--fg); }
 .ws-tab[aria-selected="true"] { border-color: var(--fg); color: var(--fg); }
-.ws-view { min-height: 120px; }
+.ws-view { min-width: 0; }
 .ws-load-activity { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 16px; }
 
 /* 5. Runs */
@@ -108,8 +108,8 @@
 .ws-run { flex: 1 1 auto; min-width: 0; padding: 0; border: 0; background: none; text-align: left; font: 400 14px/1.5 var(--font-sans); color: var(--fg); cursor: pointer; overflow-wrap: anywhere; }
 
 .ws-head-end { display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px 16px; }
-.ws-layer { display: inline-flex; align-items: center; gap: 6px; font: 500 13px/1.4 var(--font-sans); }
-.ws-layer select { width: auto; min-height: 32px; padding: 2px 8px; }
+.ws-word, .ws-layer { display: inline-flex; align-items: center; gap: 6px; font: 500 13px/1.4 var(--font-sans); }
+.ws-word select, .ws-layer select { width: auto; min-height: 32px; padding: 2px 30px 2px 10px; }
 
 .ws-input .btn.ws-stop { background: transparent; color: var(--fg); border-color: var(--fg); }
 .ws-compare #compare-view { display: grid; gap: 12px; }
@@ -134,3 +134,14 @@
 .ws-act-tile.is-selected { border-color: var(--fg); }
 .ws-act-missing { background: repeating-linear-gradient(135deg, transparent 0 4px, var(--doppler-line) 4px 5px); }
 .ws-act-label { font: 500 11px/1.2 var(--font-sans); color: var(--doppler-muted); }
+
+/* Keep the shared selection reachable without scrolling back to the answer. */
+.ws-word { min-width: 0; max-width: 100%; }
+.ws-word select { min-width: 0; max-width: min(26ch, 60vw); }
+#ws-selection { overflow-wrap: anywhere; }
+@media (max-width: 600px) {
+  .ws-inside .ws-head-end { width: 100%; align-items: center; }
+  .ws-inside #ws-selection { flex-basis: 100%; }
+  .ws-tabs { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .ws-tab { min-height: 40px; }
+}
