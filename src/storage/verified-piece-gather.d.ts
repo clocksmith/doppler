@@ -1,4 +1,14 @@
 import type { VerifiedPieceReceipt } from './verified-piece-reader.js';
+export interface VerifiedPieceProtectedCacheOptions {
+  /** Explicit absolute directory (for example on tmpfs /dev/shm) owned by the current user; symlinks are rejected. */
+  directory: string;
+  /** Maximum bytes retained across all content-addressed piece buckets. */
+  maxBytes: number;
+  /** Optional host MemAvailable floor in bytes; admissions pause when freeable reserve would dip below this floor. */
+  minHostAvailableBytes?: number;
+  /** Optional staleness horizon in milliseconds before unhit entries yield to new workloads (default 90000). */
+  staleAfterMs?: number;
+}
 export interface VerifiedPieceGatherOptions {
   manifestBytes: Uint8Array<ArrayBuffer>;
   indexBytes: Uint8Array<ArrayBuffer>;
@@ -20,6 +30,8 @@ export interface VerifiedPieceGatherOptions {
   /** All outputs plus a conservative two-piece allowance per worker for generic
    * piece buffers. Excludes fixed native digest state, metadata and VM overhead. */
   memoryBudgetBytes: number;
+  /** Optional bounded host-protected cache of authenticated pieces; every cache hit is still SHA-256 verified. */
+  protectedCache?: VerifiedPieceProtectedCacheOptions;
 }
 /** Per-job worker observations. Async read waits and different worker jobs can overlap. */
 export interface VerifiedPieceJobTimings {
@@ -57,6 +69,15 @@ export interface VerifiedPieceGatherReceipt extends VerifiedPieceReceipt {
   activeGenericScratchBytes: number;
   /** Per-worker peaks are summed as a conservative aggregate upper bound. */
   peakGenericScratchBytes: number;
+  /** Protected cache counters; zero when protectedCache is omitted. */
+  protectedCacheHits: number;
+  protectedCacheHitBytes: number;
+  protectedCacheMisses: number;
+  protectedCacheAdmissions: number;
+  protectedCacheAdmittedBytes: number;
+  protectedCacheEvictions: number;
+  protectedCacheEvictedBytes: number;
+  protectedCacheSkips: number;
 }
 export function createVerifiedPieceGather(options: VerifiedPieceGatherOptions): Promise<Readonly<{
   /** At most concurrency in-flight reads or outstanding leases. Cancellation is checked before
@@ -76,6 +97,8 @@ export function createVerifiedPieceGather(options: VerifiedPieceGatherOptions): 
 export interface VerifiedRangeLeasePort {
   /** True only when the worker enforces the supplied file identity snapshot. */
   fileIdentitiesBound?: boolean;
+  /** True when workers read/admit through an explicit bounded protected piece cache. */
+  protectedCacheBound?: boolean;
   /** readMany validates every requested path and open descriptor before reads and after authentication, before publication. */
   batchFileIdentityChecks?: 'before-read-after-auth/v1';
   /** Omission denotes a legacy single-lane port. */

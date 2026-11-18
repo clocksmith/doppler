@@ -1,6 +1,10 @@
-import { parentPort, workerData } from 'node:worker_threads';
-import { openSync, readSync, read as readAsync, closeSync, fstatSync, lstatSync, constants } from 'node:fs';
+import { parentPort, threadId, workerData } from 'node:worker_threads';
+import {
+  openSync, readSync, read as readAsync, writeSync, closeSync, fstatSync, lstatSync,
+  futimesSync, readdirSync, readFileSync, renameSync, unlinkSync, constants,
+} from 'node:fs';
 import { createHash } from 'node:crypto';
+import { join } from 'node:path';
 import { createVerifiedPieceReader } from './verified-piece-reader.js';
 import { snapshotVerifiedPieceJobTimings } from './verified-piece-timings.js';
 
@@ -56,16 +60,16 @@ function admitFile(piece, bytes) {
   return handle;
 }
 /** @param {Readonly<import('./verified-piece-reader.js').VerifiedPiece>} piece
- * @param {Uint8Array} bytes */
-function readFile(piece, bytes) {
-  const handle = admitFile(piece, bytes);
+ * @param {Uint8Array} bytes @param {number | null} [admittedHandle] */
+function readFile(piece, bytes, admittedHandle = null) {
+  const handle = admittedHandle ?? admitFile(piece, bytes);
   let read = 0;
   while (read < bytes.length) {
     const count = readSync(handle, bytes, read, bytes.length - read, piece.offset + read);
     if (!count) throw new Error('Incomplete authenticated piece.');
     read += count;
   }
-  assertIdentity(piece.path, handle);
+  if (admittedHandle === null) assertIdentity(piece.path, handle);
 }
 /** Whole-piece batch outputs are disjoint owned views, so parallel reads need no
  * extra complete-piece scratch. Partial/generic acquisitions remain serialized.
@@ -94,6 +98,215 @@ const reader = await createVerifiedPieceReader({ ...workerData.metadata,
 let directPieceReads = 0, directPieceBytes = 0, acquisitionMs = 0, verificationMs = 0;
 let batchReads = 0, batchRanges = 0, batchBytes = 0;
 let activeGenericScratchBytes = 0, peakGenericScratchBytes = 0, genericRequestedBytes = 0, genericCopyMs = 0;
+let protectedCacheHits = 0, protectedCacheHitBytes = 0, protectedCacheMisses = 0;
+let protectedCacheAdmissions = 0, protectedCacheAdmittedBytes = 0;
+let protectedCacheEvictions = 0, protectedCacheEvictedBytes = 0, protectedCacheSkips = 0;
+const protectedCache = workerData.protectedCache ?? null;
+const bucketBytesView = protectedCache ? new BigInt64Array(protectedCache.sharedBucketBytes) : null;
+const expectedUid = typeof process.geteuid === 'function' ? process.geteuid() : null;
+let tmpSeq = 0, lastMemCheckAt = 0, lastMemAvailableBytes = Infinity;
+
+/** @param {number} extraBytes */
+function hasHostMemoryReserve(extraBytes) {
+  if (!protectedCache || protectedCache.minHostAvailableBytes <= 0 || process.platform !== 'linux') return true;
+  const now = performance.now();
+  if (now - lastMemCheckAt >= 50) {
+    lastMemCheckAt = now;
+    try {
+      const text = readFileSync('/proc/meminfo', 'utf8');
+      const match = /^MemAvailable:\s+(\d+)/mu.exec(text);
+      lastMemAvailableBytes = match ? Number(match[1]) * 1024 : 0;
+    } catch {
+      lastMemAvailableBytes = 0;
+    }
+  }
+  return lastMemAvailableBytes - extraBytes >= protectedCache.minHostAvailableBytes;
+}
+
+/** @param {Readonly<import('./verified-piece-reader.js').VerifiedPiece>} piece */
+function protectedLocation(piece) {
+  if (!protectedCache || typeof piece.identity !== 'string' || !piece.identity.startsWith('sha256:')) return null;
+  const hex = piece.identity.slice(7);
+  if (!/^[a-f0-9]{64}$/u.test(hex)) return null;
+  const bucketIndex = parseInt(hex.slice(0, 2), 16) & (protectedCache.bucketCount - 1);
+  const bucketDir = join(protectedCache.directory, bucketIndex.toString(16).padStart(2, '0'));
+  return { hex, bucketIndex, bucketDir, cachePath: join(bucketDir, `${hex}.piece`) };
+}
+
+/**
+ * Attempt to read a complete piece from the protected cache, authenticating its
+ * full SHA-256 digest before accepting. Corrupted cache entries are unlinked and
+ * fall back transparently to the admitted underlying source file.
+ * @param {Readonly<import('./verified-piece-reader.js').VerifiedPiece>} piece
+ * @param {Uint8Array} output
+ * @param {boolean} isDirect
+ */
+function tryReadProtectedPiece(piece, output, isDirect) {
+  const loc = protectedLocation(piece);
+  if (!loc || output.byteLength !== piece.size) return false;
+  let fd = -1;
+  const readStart = performance.now();
+  try {
+    fd = openSync(loc.cachePath, constants.O_RDONLY | constants.O_NOFOLLOW | constants.O_NONBLOCK);
+    const st = fstatSync(fd);
+    if (!st.isFile() || st.size !== piece.size || (expectedUid !== null && st.uid !== expectedUid)) {
+      try { unlinkSync(loc.cachePath); } catch {}
+      return false;
+    }
+    let read = 0;
+    while (read < output.length) {
+      const count = readSync(fd, output, read, output.length - read, read);
+      if (!count) {
+        try { unlinkSync(loc.cachePath); } catch {}
+        return false;
+      }
+      read += count;
+    }
+    if (Date.now() - st.mtimeMs >= 5000) {
+      const nowSec = Date.now() / 1000;
+      try { futimesSync(fd, nowSec, nowSec); } catch {}
+    }
+  } catch {
+    return false;
+  } finally {
+    if (fd !== -1) {
+      try { closeSync(fd); } catch {}
+    }
+    acquisitionMs += performance.now() - readStart;
+  }
+  const hashStart = performance.now();
+  const digest = 'sha256:' + createHash('sha256').update(output).digest('hex');
+  verificationMs += performance.now() - hashStart;
+  if (digest !== piece.identity) {
+    output.fill(0);
+    try {
+      unlinkSync(loc.cachePath);
+      if (bucketBytesView) Atomics.sub(bucketBytesView, loc.bucketIndex, BigInt(piece.size));
+    } catch {}
+    return false;
+  }
+  if (isDirect) recordDirect(piece, digest);
+  else recordPiece(piece, digest);
+  protectedCacheHits++;
+  protectedCacheHitBytes += piece.size;
+  return true;
+}
+
+/**
+ * Admit an already SHA-256-authenticated piece into the bounded protected cache.
+ * Uses scan-resistant hash-priority retention among fresh entries and evicts
+ * stale entries across workload transitions without exceeding bucketMaxBytes.
+ * @param {Readonly<import('./verified-piece-reader.js').VerifiedPiece>} piece
+ * @param {Uint8Array} output
+ */
+function admitProtectedPiece(piece, output) {
+  const loc = protectedLocation(piece);
+  if (!loc || !protectedCache || !bucketBytesView || closing
+    || output.byteLength !== piece.size || piece.size > protectedCache.bucketMaxBytes) {
+    return;
+  }
+  if (!hasHostMemoryReserve(piece.size)) {
+    protectedCacheSkips++;
+    return;
+  }
+  const sizeBig = BigInt(piece.size);
+  const maxBig = BigInt(protectedCache.bucketMaxBytes);
+  if (Atomics.load(bucketBytesView, loc.bucketIndex) + sizeBig > maxBig) {
+    const nowMs = Date.now();
+    let actualBytes = 0;
+    /** @type {Array<{ hex: string, path: string, size: number, mtimeMs: number }>} */
+    const stale = [];
+    /** @type {Array<{ hex: string, path: string, size: number, mtimeMs: number }>} */
+    const lowerPriorityFresh = [];
+    try {
+      for (const name of readdirSync(loc.bucketDir)) {
+        const entryPath = join(loc.bucketDir, name);
+        if (name.includes('.tmp.')) {
+          try {
+            const st = lstatSync(entryPath);
+            if (nowMs - st.mtimeMs > 30_000) unlinkSync(entryPath);
+          } catch {}
+          continue;
+        }
+        if (!name.endsWith('.piece')) continue;
+        try {
+          const st = lstatSync(entryPath);
+          if (!st.isFile()) continue;
+          const entryHex = name.slice(0, -6);
+          if (entryHex === loc.hex && st.size === piece.size) return;
+          actualBytes += st.size;
+          if (nowMs - st.mtimeMs > protectedCache.staleAfterMs) {
+            stale.push({ hex: entryHex, path: entryPath, size: st.size, mtimeMs: st.mtimeMs });
+          } else if (entryHex > loc.hex) {
+            lowerPriorityFresh.push({ hex: entryHex, path: entryPath, size: st.size, mtimeMs: st.mtimeMs });
+          }
+        } catch {}
+      }
+    } catch {
+      protectedCacheSkips++;
+      return;
+    }
+    Atomics.store(bucketBytesView, loc.bucketIndex, BigInt(actualBytes));
+    if (actualBytes + piece.size > protectedCache.bucketMaxBytes) {
+      stale.sort((a, b) => a.mtimeMs - b.mtimeMs);
+      lowerPriorityFresh.sort((a, b) => (a.hex < b.hex ? 1 : a.hex > b.hex ? -1 : 0));
+      const candidates = [...stale, ...lowerPriorityFresh];
+      const reclaimable = candidates.reduce((sum, item) => sum + item.size, 0);
+      if (actualBytes - reclaimable + piece.size > protectedCache.bucketMaxBytes) {
+        protectedCacheSkips++;
+        return;
+      }
+      for (const victim of candidates) {
+        if (actualBytes + piece.size <= protectedCache.bucketMaxBytes) break;
+        try {
+          unlinkSync(victim.path);
+          actualBytes -= victim.size;
+          Atomics.sub(bucketBytesView, loc.bucketIndex, BigInt(victim.size));
+          protectedCacheEvictions++;
+          protectedCacheEvictedBytes += victim.size;
+        } catch {}
+      }
+      if (actualBytes + piece.size > protectedCache.bucketMaxBytes) {
+        protectedCacheSkips++;
+        return;
+      }
+    }
+  }
+  const reservedAfter = Atomics.add(bucketBytesView, loc.bucketIndex, sizeBig) + sizeBig;
+  if (reservedAfter > maxBig) {
+    Atomics.sub(bucketBytesView, loc.bucketIndex, sizeBig);
+    protectedCacheSkips++;
+    return;
+  }
+  const tmpPath = join(loc.bucketDir, `${loc.hex}.tmp.${process.pid}.${threadId}.${++tmpSeq}`);
+  let fd = -1;
+  try {
+    try {
+      const existing = lstatSync(loc.cachePath);
+      if (existing.isFile() && existing.size === piece.size) {
+        Atomics.sub(bucketBytesView, loc.bucketIndex, sizeBig);
+        return;
+      }
+    } catch {}
+    fd = openSync(tmpPath, constants.O_CREAT | constants.O_EXCL | constants.O_WRONLY | constants.O_NOFOLLOW, 0o600);
+    let written = 0;
+    while (written < output.length) {
+      written += writeSync(fd, output, written, output.length - written, written);
+    }
+    closeSync(fd);
+    fd = -1;
+    renameSync(tmpPath, loc.cachePath);
+    protectedCacheAdmissions++;
+    protectedCacheAdmittedBytes += piece.size;
+  } catch {
+    if (fd !== -1) {
+      try { closeSync(fd); } catch {}
+    }
+    try { unlinkSync(tmpPath); } catch {}
+    Atomics.sub(bucketBytesView, loc.bucketIndex, sizeBig);
+    protectedCacheSkips++;
+  }
+}
 /** @type {Map<string, Readonly<import('./verified-piece-reader.js').VerifiedPiece>>} */
 const verifiedRanges = new Map();
 const maxPieceBytes = JSON.parse(new TextDecoder().decode(workerData.metadata.indexBytes)).maxPieceBytes;
@@ -120,8 +333,10 @@ function authenticateDirect(piece, output) {
 /** @returns {import('./verified-piece-gather.js').VerifiedPieceGatherReceipt} */
 function getReceipt() {
   const generic = reader.getReceipt();
-  const ranges = new Map(generic.ranges.map(range => [`${range.path}:${range.offset}`, range]));
-  for (const [key, range] of verifiedRanges) ranges.set(key, range);
+  const ranges = new Map([
+    ...generic.ranges.map(range => /** @type {const} */ ([`${range.path}:${range.offset}`, range])),
+    ...verifiedRanges,
+  ]);
   const pieces = new Map([...ranges.values()].map(range => [range.identity, range.size]));
   return { ...generic, ranges: [...ranges.values()], pieces: [...pieces.keys()],
     verifiedBytes: [...pieces.values()].reduce((sum, size) => sum + size, 0),
@@ -130,7 +345,10 @@ function getReceipt() {
     acquisitionMs: generic.acquisitionMs + acquisitionMs, verificationMs: generic.verificationMs + verificationMs,
     directPieceReads, directPieceBytes, batchReads, batchRanges, batchBytes,
     activeDigestCopyBytes: 0, peakDigestCopyBytes: 0,
-    activeGenericScratchBytes, peakGenericScratchBytes };
+    activeGenericScratchBytes, peakGenericScratchBytes,
+    protectedCacheHits, protectedCacheHitBytes, protectedCacheMisses,
+    protectedCacheAdmissions, protectedCacheAdmittedBytes,
+    protectedCacheEvictions, protectedCacheEvictedBytes, protectedCacheSkips };
 }
 port.postMessage({ ready: true });
 /** @type {Set<Promise<void>>} */
@@ -191,14 +409,22 @@ async function gather({ ranges, length, buffer, batch }) {
       const reads = pieces.map((piece, index) => {
         const output = outputs[index];
         return (async () => {
+          if (tryReadProtectedPiece(piece, output, true)) {
+            if (closing) throw new Error('Gather worker closed.');
+            return;
+          }
+          if (protectedCache) protectedCacheMisses++;
           const readStart = performance.now();
-          try { await readFileParallel(piece, output, admitted.get(piece.path)); }
-          finally { acquisitionMs += performance.now() - readStart; }
+          try {
+            if (pieces.length === 1) readFile(piece, output, admitted.get(piece.path));
+            else await readFileParallel(piece, output, admitted.get(piece.path));
+          } finally { acquisitionMs += performance.now() - readStart; }
           if (closing) throw new Error('Gather worker closed.');
           // This worker exclusively owns the output until transfer. Hash that
           // storage directly, without WebCrypto's input snapshot and another
           // shared thread-pool handoff. Other worker lanes still run in parallel.
           authenticateDirect(piece, output);
+          admitProtectedPiece(piece, output);
         })();
       });
       // A rejected read must not zero or transfer a buffer while a sibling native
@@ -220,10 +446,15 @@ async function gather({ ranges, length, buffer, batch }) {
           const output = new Uint8Array(buffer, destination, rangeLength);
           const piece = pieces[index];
           if (piece) {
-            const readStart = performance.now();
-            try { readFile(piece, output); }
-            finally { acquisitionMs += performance.now() - readStart; }
-            authenticateDirect(piece, output);
+            const admittedHandle = admitFile(piece, output);
+            if (!tryReadProtectedPiece(piece, output, true)) {
+              if (protectedCache) protectedCacheMisses++;
+              const readStart = performance.now();
+              try { readFile(piece, output, admittedHandle); }
+              finally { acquisitionMs += performance.now() - readStart; }
+              authenticateDirect(piece, output);
+              admitProtectedPiece(piece, output);
+            }
           } else {
             const selected = reader.resolveRangePieces(path, offset, rangeLength);
             if (!selected.length) { destination += rangeLength; continue; }
@@ -233,12 +464,18 @@ async function gather({ ranges, length, buffer, batch }) {
               peakGenericScratchBytes = Math.max(peakGenericScratchBytes, activeGenericScratchBytes);
             }
             for (const current of selected) {
-              const bytes = scratch.subarray(0, current.size), readStart = performance.now();
-              try { readFile(current, bytes); }
-              finally { acquisitionMs += performance.now() - readStart; }
-              const hashStart = performance.now();
-              const identity = 'sha256:' + createHash('sha256').update(bytes).digest('hex');
-              verificationMs += performance.now() - hashStart; recordPiece(current, identity);
+              const bytes = scratch.subarray(0, current.size);
+              const admittedHandle = admitFile(current, bytes);
+              if (!tryReadProtectedPiece(current, bytes, false)) {
+                if (protectedCache) protectedCacheMisses++;
+                const readStart = performance.now();
+                try { readFile(current, bytes, admittedHandle); }
+                finally { acquisitionMs += performance.now() - readStart; }
+                const hashStart = performance.now();
+                const identity = 'sha256:' + createHash('sha256').update(bytes).digest('hex');
+                verificationMs += performance.now() - hashStart; recordPiece(current, identity);
+                admitProtectedPiece(current, bytes);
+              }
               const start = Math.max(offset, current.offset), end = Math.min(offset + rangeLength, current.offset + current.size);
               const copyStart = performance.now();
               output.set(bytes.subarray(start - current.offset, end - current.offset), start - offset);

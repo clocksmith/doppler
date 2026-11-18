@@ -1,5 +1,69 @@
 import { createVerifiedPieceGatherLane } from './verified-piece-gather-lane.js';
 
+/**
+ * @param {import('./verified-piece-gather.js').VerifiedPieceProtectedCacheOptions | undefined} rawPolicy
+ * @param {number} pieceBytes
+ */
+async function prepareProtectedCache(rawPolicy, pieceBytes) {
+  if (rawPolicy === undefined) return undefined;
+  if (!rawPolicy || typeof rawPolicy !== 'object' || Array.isArray(rawPolicy)) {
+    throw new Error('Protected piece cache policy must be an explicit object.');
+  }
+  const { directory, maxBytes } = rawPolicy;
+  const minHostAvailableBytes = rawPolicy.minHostAvailableBytes ?? 0;
+  const staleAfterMs = rawPolicy.staleAfterMs ?? 90_000;
+  const { isAbsolute, join } = await import('node:path');
+  const { lstatSync, mkdirSync, readdirSync } = await import('node:fs');
+  if (typeof directory !== 'string' || !directory.trim() || !isAbsolute(directory)
+    || !Number.isSafeInteger(maxBytes) || maxBytes < pieceBytes
+    || !Number.isSafeInteger(minHostAvailableBytes) || minHostAvailableBytes < 0
+    || !Number.isSafeInteger(staleAfterMs) || staleAfterMs < 1000) {
+    throw new Error('Protected piece cache requires an absolute directory, maxBytes >= maxPieceBytes, and valid bounds.');
+  }
+  mkdirSync(directory, { recursive: true, mode: 0o700 });
+  const rootStat = lstatSync(directory);
+  const expectedUid = typeof process.geteuid === 'function' ? process.geteuid() : null;
+  if (!rootStat.isDirectory() || (expectedUid !== null && rootStat.uid !== expectedUid)) {
+    throw new Error('Protected piece cache directory must be an owned non-symlink directory.');
+  }
+  const rawBuckets = Math.max(1, Math.floor(maxBytes / Math.max(1, 4 * pieceBytes)));
+  const bucketCount = Math.max(1, Math.min(256, 1 << Math.floor(Math.log2(rawBuckets))));
+  const bucketMaxBytes = Math.floor(maxBytes / bucketCount);
+  if (bucketMaxBytes < pieceBytes) {
+    throw new Error('Protected piece cache bucket budget must cover at least one complete piece.');
+  }
+  const sharedBucketBytes = new SharedArrayBuffer(bucketCount * 8);
+  const bucketView = new BigInt64Array(sharedBucketBytes);
+  for (let index = 0; index < bucketCount; index++) {
+    const sub = join(directory, index.toString(16).padStart(2, '0'));
+    mkdirSync(sub, { mode: 0o700, recursive: true });
+    const subStat = lstatSync(sub);
+    if (!subStat.isDirectory() || (expectedUid !== null && subStat.uid !== expectedUid)) {
+      throw new Error('Protected piece cache bucket must be an owned non-symlink directory.');
+    }
+    let bytes = 0n;
+    for (const name of readdirSync(sub)) {
+      if (!name.endsWith('.piece')) continue;
+      try {
+        const st = lstatSync(join(sub, name));
+        if (st.isFile()) bytes += BigInt(st.size);
+      } catch {
+        // Concurrent worker cleanup is benign.
+      }
+    }
+    Atomics.store(bucketView, index, bytes);
+  }
+  return {
+    directory,
+    maxBytes,
+    bucketCount,
+    bucketMaxBytes,
+    minHostAvailableBytes,
+    staleAfterMs,
+    sharedBucketBytes,
+  };
+}
+
 /** @type {import('./verified-piece-gather.js').createVerifiedPieceGather} */
 export async function createVerifiedPieceGather(options) {
   options.startupSignal?.throwIfAborted();
@@ -26,16 +90,19 @@ export async function createVerifiedPieceGather(options) {
   const laneBytes = pinned.maxPartBytes + 2 * pieceBytes;
   const memoryBytes = concurrency * laneBytes;
   if (!Number.isSafeInteger(concurrency) || concurrency < 1
+    || !Number.isSafeInteger(pinned.maxPartBytes) || pinned.maxPartBytes < 1
+    || !Number.isSafeInteger(pieceBytes) || pieceBytes < 1
     || !Number.isSafeInteger(memoryBytes) || !Number.isSafeInteger(pinned.memoryBudgetBytes)
     || pinned.memoryBudgetBytes < memoryBytes) {
     throw new Error('Gather budget must cover every concurrent output and complete-piece buffer.');
   }
+  const protectedCache = await prepareProtectedCache(options.protectedCache, pieceBytes);
   /** @type {Array<{ reader: Awaited<ReturnType<typeof createVerifiedPieceGatherLane>>, busy: boolean }>} */
   const lanes = [];
   try {
     for (let index = 0; index < concurrency; index++) {
       pinned.startupSignal?.throwIfAborted();
-      lanes.push({ reader: await createVerifiedPieceGatherLane({ ...pinned, memoryBudgetBytes: laneBytes }), busy: false });
+      lanes.push({ reader: await createVerifiedPieceGatherLane({ ...pinned, memoryBudgetBytes: laneBytes, protectedCache }), busy: false });
       pinned.startupSignal?.throwIfAborted();
     }
   } catch (error) {
@@ -82,13 +149,10 @@ export async function createVerifiedPieceGather(options) {
         if (closed) throw new Error('Gather reader closed.');
         const receipts = outcomes.flatMap(outcome => outcome.status === 'fulfilled' ? [outcome.value] : []);
         const merged = { ...receipts[0] };
-        const fields = /** @type {const} */ (['requestedBytes', 'acquisitionMs', 'verificationMs', 'copyMs', 'activeReadBytes', 'peakReadBytes', 'directPieceReads', 'directPieceBytes', 'batchReads', 'batchRanges', 'batchBytes', 'activeDigestCopyBytes', 'peakDigestCopyBytes', 'activeGenericScratchBytes', 'peakGenericScratchBytes']);
-        for (const field of fields) {
-          merged[field] = receipts.reduce((total, receipt) => total + receipt[field], 0);
-        }
+        const fields = /** @type {const} */ (['requestedBytes', 'acquisitionMs', 'verificationMs', 'copyMs', 'activeReadBytes', 'peakReadBytes', 'directPieceReads', 'directPieceBytes', 'batchReads', 'batchRanges', 'batchBytes', 'activeDigestCopyBytes', 'peakDigestCopyBytes', 'activeGenericScratchBytes', 'peakGenericScratchBytes', 'protectedCacheHits', 'protectedCacheHitBytes', 'protectedCacheMisses', 'protectedCacheAdmissions', 'protectedCacheAdmittedBytes', 'protectedCacheEvictions', 'protectedCacheEvictedBytes', 'protectedCacheSkips']);
+        Object.assign(merged, Object.fromEntries(fields.map(field => [field, receipts.reduce((total, receipt) => total + receipt[field], 0)])));
         /** @type {Map<string, import('./verified-piece-reader.js').VerifiedPiece>} */
-        const ranges = new Map();
-        for (const receipt of receipts) for (const range of receipt.ranges) ranges.set(`${range.path}:${range.offset}`, range);
+        const ranges = new Map(receipts.flatMap(receipt => receipt.ranges.map(range => [`${range.path}:${range.offset}`, range])));
         merged.ranges = [...ranges.values()];
         const pieces = new Map(merged.ranges.map(range => [range.identity, range.size]));
         merged.pieces = [...pieces.keys()];
@@ -114,6 +178,7 @@ export async function createVerifiedPieceGather(options) {
   /** @type {import('./verified-piece-gather.js').VerifiedRangeLeasePort} */
   const rangeLease = { concurrency, maxRanges, maxPartBytes: pinned.maxPartBytes, memoryBytes,
     fileIdentitiesBound: pinned.fileIdentities !== undefined,
+    ...(protectedCache ? { protectedCacheBound: true } : {}),
     ...(pinned.fileIdentities !== undefined ? { batchFileIdentityChecks: /** @type {const} */ ('before-read-after-auth/v1') } : {}),
     read(shard, offset, length, signal) {
       const file = manifest.shards[shard];
