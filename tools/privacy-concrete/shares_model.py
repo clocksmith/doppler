@@ -25,7 +25,7 @@ from plan_backends import qwen_backend
 from protocol import require_active
 from public_qwen_fixtures import PUBLIC_FIXTURES
 from shares import (MECHANISM,POLICY_ID,ProcessEvaluator,ShareRoute,build_anchor,
-                    build_network_commands,parse_evaluator_commands,transport_label)
+                    build_network_commands,flight_partners,parse_evaluator_commands,transport_label)
 from verified_execution import complete_verified_route,VALIDATION_BOUNDARY
 
 PREPARATION_PROFILE='qwen-all-linear-ntt12-check'
@@ -107,7 +107,7 @@ def requester_anchors(seed,projections):
 
 
 def run(model_dir,cache_dir,prompt,commands=None,progress=lambda event:None,cancelled=None,
-        enrollment_file=None,provider_endpoints=None,requester_owner=None,node_binary='node'):
+        enrollment_file=None,provider_endpoints=None,requester_owner=None,node_binary='node',group_flights=False):
     if commands is not None and provider_endpoints is not None:
         raise ValueError('Choose either --evaluator-command or --provider-endpoint, not both')
     if provider_endpoints is None and (enrollment_file is not None or requester_owner is not None):
@@ -138,6 +138,10 @@ def run(model_dir,cache_dir,prompt,commands=None,progress=lambda event:None,canc
                      observe=lambda kind,value:None)
     try:
         for projection in projections:projection.shares=route
+        if group_flights:
+            # Query, key and value share one round trip, and so do the two MLP gate inputs: 4 flights a block, not 7.
+            by_name={projection.name:projection for projection in projections}
+            for lead,partners in flight_partners(list(by_name)).items():by_name[lead].flight_partners=[by_name[name] for name in partners]
         caches={mode:DynamicCache() for mode in ['float-reference','clear-reference','shared']}
         step_ms=[];errors=[];float_matches=[]
         ref_step_ms={'float-reference':[],'clear-reference':[]}
@@ -184,6 +188,7 @@ def run(model_dir,cache_dir,prompt,commands=None,progress=lambda event:None,canc
         return dict(**details,schema='doppler.two-server-shares-execution/v1',qualified=False,productionBackendAvailable=False,
                     securityQualified=False,nonCollusionEstablished=non_collusion,validationBoundary=VALIDATION_BOUNDARY,mechanism=MECHANISM,
                     planId=plan.identity,modelId=plan.definition()['modelId'],linearProjectionCount=len(projections),steps=settings['steps'],
+                    groupedFlights=bool(group_flights),
                     evaluatorTransports=[transport_label(command,verified_network=identity_verification is not None) for command in commands],
                     clientLocalOutputTokens=tokens[original_count:],clientLocalOutputText=tokenizer.decode(tokens[original_count:]),
                     matchesFullQuantizedGreedyReference=True,floatGreedyMatches=float_matches,maxLogitErrors=errors,
@@ -203,7 +208,7 @@ def run(model_dir,cache_dir,prompt,commands=None,progress=lambda event:None,canc
                     **extra)
     finally:
         route.close()
-        for projection in projections:projection.shares=None
+        for projection in projections:projection.shares=None;projection.flight_partners=None;projection.flight_answer=None
 
 
 if __name__=='__main__':
@@ -216,6 +221,8 @@ if __name__=='__main__':
     parser.add_argument('--provider-endpoint',action='append',help='<computerId>@<host>:<port>; give twice for authenticated network providers')
     parser.add_argument('--requester-owner',help='Optional requester ownerId excluded from provider selection')
     parser.add_argument('--node-binary',default='node')
+    parser.add_argument('--group-flights',action='store_true',
+                        help='Send query/key/value and the two MLP gate inputs of a block in one round trip each (opt-in)')
     args=parser.parse_args()
     began=time.perf_counter()
     try:
@@ -228,7 +235,7 @@ if __name__=='__main__':
             report=run(args.model_dir,args.cache_dir,PUBLIC_FIXTURES[args.public_fixture],commands,
                        progress=lambda event:print(json.dumps(event),file=sys.stderr,flush=True),
                        enrollment_file=args.enrollment_file,provider_endpoints=args.provider_endpoint,
-                       requester_owner=args.requester_owner,node_binary=args.node_binary)
+                       requester_owner=args.requester_owner,node_binary=args.node_binary,group_flights=args.group_flights)
     except BaseException as error:
         print(json.dumps(failure_event(error,(time.perf_counter()-began)*1000)),file=sys.stderr,flush=True)
         raise

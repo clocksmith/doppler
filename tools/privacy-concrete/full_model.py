@@ -89,22 +89,45 @@ class FullLinear(nn.Module):
                 if hasher.hexdigest()!=self.definition['weightId']:raise ValueError('Prepared public coefficient identity changed')
             yield matrix
 
+    def share_input(self,q_input):
+        signed_input = q_input.long().numpy()
+        if signed_input.ndim != 2 or (signed_input<0).any() or (signed_input>=2**self.encoding['quantizationBits']).any():
+            raise ValueError('Quantized activation is outside the declared unsigned range for the share route')
+        return np.ascontiguousarray(signed_input,dtype=np.uint64)
+
+    def shared_product(self,value,q_input):
+        # Two-server shares: the client reads no coefficient here, only its own quantized activation.
+        route=getattr(self,'shares',None)
+        if route is None:raise ValueError('No bound share route')
+        call=lambda projection,quantized:(projection.name,projection.share_input(quantized),projection.definition['outputWidth'],projection.encoding['quantizationBits'])
+        # Partners read this same tensor and do not depend on this projection's output (query, key and value;
+        # the two inputs of an MLP gate), so their requests travel in one flight. Off unless a runner binds them.
+        partners=[partner for partner in (getattr(self,'flight_partners',None) or ())
+                  if partner.mode=='shared' and getattr(partner,'shares',None) is route and partner.definition['inputWidth']==self.definition['inputWidth']]
+        if not partners:
+            return torch.from_numpy(route.linear(*call(self,q_input)))
+        prepared=[(partner,)+tuple(partner.executor._dynamic_input_quantization(value,partner.context,False)) for partner in partners]
+        answers=route.linear_many([call(self,q_input)]+[call(row[0],row[1]) for row in prepared])
+        for (partner,quantized,scale,zero,shape),answer in zip(prepared,answers[1:]):
+            partner.flight_answer=(value,quantized,scale,zero,shape,torch.from_numpy(answer))
+        return torch.from_numpy(answers[0])
+
     def forward(self,value):
         if self.mode == 'float-reference':
             if self.remote is None:raise ValueError('Floating reference weights were explicitly released')
             return self.remote(value)
         if self.mode not in ['clear-reference','execute','shared'] or not torch.isfinite(value).all() or value.shape[-1] != self.definition['inputWidth']:
             raise ValueError('Unsupported full-model projection execution')
-        q_input, scale, zero, original_shape = self.executor._dynamic_input_quantization(value,self.context,False)
+        held=getattr(self,'flight_answer',None);self.flight_answer=None
+        if self.mode == 'shared' and held is not None and held[0] is value:
+            # A partner already sent this projection in its flight for this very tensor: use that answer with
+            # the quantization it was built from, so the input is quantized exactly once either way.
+            _, q_input, scale, zero, original_shape, raw = held
+        else:
+            held=None
+            q_input, scale, zero, original_shape = self.executor._dynamic_input_quantization(value,self.context,False)
         if self.mode == 'shared':
-            # Two-server shares: the client reads no coefficient here, only its own quantized activation.
-            route=getattr(self,'shares',None)
-            if route is None:raise ValueError('No bound share route')
-            signed_input = q_input.long().numpy()
-            if signed_input.ndim != 2 or (signed_input<0).any() or (signed_input>=2**self.encoding['quantizationBits']).any():
-                raise ValueError('Quantized activation is outside the declared unsigned range for the share route')
-            integer_input = np.ascontiguousarray(signed_input,dtype=np.uint64)
-            raw = torch.from_numpy(route.linear(self.name,integer_input,self.definition['outputWidth'],self.encoding['quantizationBits']))
+            if held is None:raw = self.shared_product(value,q_input)
         else:
           with self.coefficient_matrix() as weights:
             if self.mode == 'clear-reference':

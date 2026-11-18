@@ -280,6 +280,131 @@ class SharesTest(unittest.TestCase):
             finally:
                 route.close()
 
+    def flight_directory(self,directory,changed=None):
+        """Four projections, one large enough that a flight's requests and answers overflow any pipe buffer."""
+        generator=np.random.default_rng(11)
+        shapes={'q':(48,20),'k':(48,12),'v':(48,20),'big':(512,4096)}
+        weights={name:generator.integers(-2048,2048,size=shape,dtype=np.int16) for name,shape in shapes.items()}
+        served={name:matrix.copy() for name,matrix in weights.items()}
+        if changed:served[changed][3,5]+=1
+        rows=[]
+        for name,matrix in served.items():
+            data=matrix.astype('<i2').tobytes();identity=hashlib.sha256(data).hexdigest()
+            (Path(directory)/(identity+'.i16')).write_bytes(data)
+            rows.append(dict(name=name,inputWidth=matrix.shape[0],outputWidth=matrix.shape[1],weightId=identity,file=identity+'.i16',dtype='<i2'))
+        (Path(directory)/'shares-manifest.json').write_text(json.dumps(dict(schema='doppler.two-server-shares-manifest/v1',projections=rows)))
+        anchors={name:shares.build_anchor(SEED,name,matrix) for name,matrix in weights.items()}
+        command=[sys.executable,str(Path(shares.__file__).with_name('shares_evaluator.py')),'--cache-dir',str(directory)]
+        return weights,anchors,command
+
+    def flight_calls(self,weights,rows=3):
+        generator=np.random.default_rng(13)
+        calls=[(name,generator.integers(0,4096,size=(rows if name!='big' else 24,matrix.shape[0]),dtype=np.uint64),matrix.shape[1],12)
+               for name,matrix in weights.items()]
+        return calls,[call[1].astype(np.int64)@weights[call[0]].astype(np.int64) for call in calls]
+
+    def test_a_flight_returns_what_separate_calls_return_and_large_payloads_do_not_stall_it(self):
+        with tempfile.TemporaryDirectory() as directory:
+            weights,anchors,command=self.flight_directory(directory)
+            calls,expected=self.flight_calls(weights)
+            route=self.process_route(command,anchors)
+            try:
+                began=time.monotonic()
+                for got,want in zip(route.linear_many(calls),expected):np.testing.assert_array_equal(got,want)
+                self.assertLess(time.monotonic()-began,30)
+                # The stream stays in step: a later single call and a second flight still line up.
+                np.testing.assert_array_equal(route.linear(*calls[0]),expected[0])
+                for got,want in zip(route.linear_many(calls[:3]),expected[:3]):np.testing.assert_array_equal(got,want)
+                route.finish()
+            finally:
+                route.close()
+            route.require_integrity()
+            report=route.report()
+            self.assertEqual((report['sharedProjectionCalls'],report['sharedFlights']),(8,3))
+            self.assertEqual(report['sentBytes'][0],report['sentBytes'][1])
+            # The same rows cross the wire whether or not they share a flight.
+            separate=self.process_route(command,anchors)
+            try:
+                for call in calls+[calls[0]]+calls[:3]:separate.linear(*call)
+            finally:
+                separate.close()
+            self.assertEqual(separate.report()['sentBytes'],report['sentBytes'])
+            self.assertEqual(separate.report()['receivedBytes'],report['receivedBytes'])
+            self.assertEqual(separate.report()['sharedFlights'],8)
+
+    def test_a_flight_without_process_evaluators_and_an_empty_flight(self):
+        route,a,_=self.route()
+        got=route.linear_many([('p',self.inputs,20,12),('p',self.inputs[:1],20,12)])
+        np.testing.assert_array_equal(got[0],self.expected);np.testing.assert_array_equal(got[1],self.expected[:1])
+        self.assertEqual(len(a.views),2)
+        with self.assertRaises(ValueError):route.linear_many([])
+        with self.assertRaises(ValueError):route.linear_many([('p',self.inputs,20,12),('q',self.inputs,20,12)])
+
+    def test_one_member_of_a_flight_failing_its_check_is_zeroed_and_the_rest_stand(self):
+        with tempfile.TemporaryDirectory() as honest,tempfile.TemporaryDirectory() as dishonest:
+            weights,anchors,command=self.flight_directory(honest)
+            _,_,other=self.flight_directory(dishonest,changed='k')
+            calls,expected=self.flight_calls(weights)
+            route=shares.ShareRoute((shares.ProcessEvaluator(command,'a'),shares.ProcessEvaluator(other,'b')),SEED,anchors)
+            try:
+                got=route.linear_many(calls)
+            finally:
+                route.close()
+            for (name,_,_,_),result,want in zip(calls,got,expected):
+                if name=='k':self.assertFalse(result.any())
+                else:np.testing.assert_array_equal(result,want)
+            self.assertTrue(route.integrity_failed())
+            with self.assertRaises(ExecutionRejected) as caught:route.require_integrity()
+            self.assertEqual(caught.exception.code,'integrity-check-failed')
+
+    def flight_quitter(self,zeros):
+        """Answers the first request (honestly from the cache, or with zeros) and then exits mid-flight."""
+        here=str(Path(shares.__file__).parent)
+        return ('import sys,json,numpy as np\nsys.path.insert(0,%r)\nimport shares\nfrom pathlib import Path\n'
+                'd=Path(sys.argv[1]);m={r["name"]:r for r in json.loads((d/"shares-manifest.json").read_text())["projections"]}\n'
+                'r=sys.stdin.buffer;w=sys.stdout.buffer\n'
+                'h=r.read(shares.REQUEST_HEAD.size);_,seq,n,rows,width=shares.REQUEST_HEAD.unpack(h);name=r.read(n).decode()\n'
+                'x=np.frombuffer(r.read(8*rows*width),dtype="<u8").reshape(rows,width);p=m[name]\n'
+                'W=np.memmap(d/p["file"],dtype=p["dtype"],mode="r",shape=(p["inputWidth"],p["outputWidth"]))\n'
+                'a=shares.field_product(x,W)\n'
+                'if %r:a=np.zeros_like(a)\n'
+                'w.write(shares.RESPONSE_HEAD.pack(shares.RESPONSE,seq,0,a.shape[0],a.shape[1])+a.astype("<u8").tobytes());w.flush()\n')%(here,zeros)
+
+    def test_a_provider_that_leaves_mid_flight_ends_the_attempt_and_one_already_caught_stays_caught(self):
+        with tempfile.TemporaryDirectory() as directory:
+            weights,anchors,command=self.flight_directory(directory)
+            calls,_=self.flight_calls(weights)
+            for zeros,code in ((False,'execution-failed'),(True,'integrity-check-failed')):
+                quitter=[sys.executable,'-c',self.flight_quitter(zeros),str(directory)]
+                route=shares.ShareRoute((shares.ProcessEvaluator(command,'a'),shares.ProcessEvaluator(quitter,'b')),SEED,anchors)
+                try:
+                    began=time.monotonic()
+                    with self.assertRaises(ExecutionRejected) as caught:route.linear_many(calls[:3])
+                    self.assertEqual(caught.exception.code,code)
+                    self.assertLess(time.monotonic()-began,30)
+                    self.assertEqual(route.integrity_failed(),zeros)
+                    with self.assertRaises(ExecutionRejected):route.linear(*calls[0])
+                finally:
+                    route.close()
+
+    def test_flight_partners_are_same_block_projections_that_read_one_tensor(self):
+        block=lambda index:[f'model.layers.{index}.self_attn.{leaf}' for leaf in ('q_proj','k_proj','v_proj','o_proj')]+[
+            f'model.layers.{index}.mlp.{leaf}' for leaf in ('gate_proj','up_proj','down_proj')]
+        names=block(0)+block(1)+['lm_head']
+        partners=shares.flight_partners(names)
+        self.assertEqual(partners,{
+            'model.layers.0.self_attn.q_proj':['model.layers.0.self_attn.k_proj','model.layers.0.self_attn.v_proj'],
+            'model.layers.0.mlp.gate_proj':['model.layers.0.mlp.up_proj'],
+            'model.layers.1.self_attn.q_proj':['model.layers.1.self_attn.k_proj','model.layers.1.self_attn.v_proj'],
+            'model.layers.1.mlp.gate_proj':['model.layers.1.mlp.up_proj']})
+        # 7 projections a block become 4 flights; the head stays alone. Nothing that consumes another's output is grouped.
+        grouped={name for found in partners.values() for name in found}
+        self.assertEqual(len(names)-len(grouped),2*4+1)
+        self.assertFalse(any(name.endswith(('o_proj','down_proj','lm_head')) for name in list(partners)+list(grouped)))
+        # A missing partner or a different parent is not grouped.
+        self.assertEqual(shares.flight_partners(['a.q_proj','b.k_proj','a.v_proj']),{'a.q_proj':['a.v_proj']})
+        self.assertEqual(shares.flight_partners(['q_proj','k_proj']),{'q_proj':['k_proj']})
+
     def test_evaluator_serves_only_regular_files_inside_its_directory(self):
         with tempfile.TemporaryDirectory() as outer:
             inner=Path(outer)/'cache';inner.mkdir()
