@@ -44,7 +44,6 @@ function tokenButton(token, index, text) {
   const whitespace = !text.trim();
   element.classList.toggle('token-chip--space', whitespace && text.length > 0);
   element.classList.toggle('token-chip--empty', !text.length);
-  if (!text.length) element.setAttribute('aria-label', `Empty token ${index + 1}`);
   element.textContent = whitespace && text.includes('\n') ? `↵${text}` : text;
   const probability = Number.isFinite(token?.probability) && token.probability >= 0 && token.probability <= 1 ? token.probability : null;
   element.style.setProperty('--token-surprisal', String(probability === null ? .5 : 1 - probability));
@@ -64,7 +63,7 @@ function tokenButton(token, index, text) {
     options.branchable ? 'Select to see alternatives and branch.' : 'Select to see recorded alternatives.',
   ].join('\n');
   element.title = description;
-  element.setAttribute('aria-label', `${description}: ${JSON.stringify(text)}`);
+  element.setAttribute('aria-label', `${description}: ${text ? JSON.stringify(text) : 'Empty token'}`);
   element.addEventListener('focus', () => {
     if (selectedIndex !== index) selectToken(index);
   });

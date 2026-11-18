@@ -59,12 +59,12 @@ async function checkBranching(page) {
   assert.equal(await page.locator('#export-btn').isDisabled(), false, 'The original answer republishes its receipt');
 }
 
-async function exportedReport(page) {
+async function exportedReport(page, button = '#export-btn') {
   if (!await page.locator('#export-btn').isVisible()) {
     await page.locator('#run-details > summary').click();
   }
   const download = page.waitForEvent('download');
-  await page.click('#export-btn');
+  await page.click(button);
   return JSON.parse(await readFile(await (await download).path(), 'utf8'));
 }
 
@@ -255,7 +255,12 @@ export async function checkDemoControls(page) {
   await page.locator('#prompt-input').press('Enter');
   await page.waitForFunction(() => document.querySelector('#output-phase').textContent === 'Complete');
 
+  const summary = await exportedReport(page, '#export-summary');
+  assert.equal(summary.totalTokens, 3);
+  assert.deepEqual(Object.keys(summary).sort(), ['decodeMs', 'prefillMs', 'schema', 'tokPerSec', 'totalTokens']);
+  assert.equal(await page.locator('#run-unsaved').isVisible(), true, 'A numerical summary leaves the full run unsaved');
   const report = await exportedReport(page);
+  assert.equal(await page.locator('#run-unsaved').isVisible(), false, 'Saving the full run clears its unsaved state');
   assert.equal(report.output, 'Contract generation passed.');
   await importReport(page, { schema: 'invalid', output: 'reject' });
   await page.waitForFunction(() => document.querySelector('#output-phase').textContent.startsWith('Could not open file:'));
