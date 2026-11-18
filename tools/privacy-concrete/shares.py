@@ -256,6 +256,7 @@ class ProcessEvaluator:
         finally:
             timer()
         self.sent+=REQUEST_HEAD.size+len(encoded)+len(payload)
+        return self.sequence
 
     def _read(self,count):
         data=self.process.stdout.read(count)
@@ -263,12 +264,14 @@ class ProcessEvaluator:
         self.received+=count
         return data
 
-    def receive(self,rows,width):
+    def receive(self,rows,width,expected=None):
+        # `expected` names the request this answer must belong to when several requests are in flight;
+        # without it the answer must belong to the request sent last.
         import numpy as np
         timer=self._deadline()
         try:
             magic,sequence,status,got_rows,got_width=RESPONSE_HEAD.unpack(self._read(RESPONSE_HEAD.size))
-            if magic!=RESPONSE or sequence!=self.sequence or status!=0 or got_rows!=rows or got_width!=width:
+            if magic!=RESPONSE or sequence!=(self.sequence if expected is None else expected) or status!=0 or got_rows!=rows or got_width!=width:
                 raise ConnectionError('Evaluator answered out of contract')
             return np.frombuffer(self._read(8*rows*width),dtype='<u8').reshape(rows,width)
         except BaseException:
@@ -309,7 +312,7 @@ class ShareRoute:
         self.a,self.b=evaluators
         self.probe_seed,self.anchors,self.geometry,self.cancelled,self.rng,self.observe=probe_seed,anchors,geometry,cancelled,rng,observe
         self.began=None
-        self.calls=self.rows=0
+        self.calls=self.rows=self.flights=0
         self.failure=None
         self.closed=False
         self.client_seconds=self.remote_seconds=0.0
@@ -357,13 +360,96 @@ class ShareRoute:
         answered=time.perf_counter()
         product,passed=combine(answer_a,answer_b,secrets,self.anchors[name],bound)
         finished=time.perf_counter()
-        self.calls+=1;self.rows+=inputs.shape[0]
+        self.calls+=1;self.rows+=inputs.shape[0];self.flights+=1
         self.client_seconds+=(built-began)+(finished-answered);self.remote_seconds+=answered-built
         self.observe('shared-projection',dict(name=name,rows=int(inputs.shape[0])))
         if not passed:
             self.failure=self.failure or 'check'
             return np.zeros((inputs.shape[0],output_width),dtype=np.int64)
         return product
+
+    def linear_many(self,calls):
+        """Several independent projections in one flight: [(name, inputs, output_width, quantization_bits), ...].
+
+        Returns one result per call, in order, each exactly what linear() would have returned. Every query is
+        built and checked as in linear(); the only difference is that all of a flight's queries are sent before
+        any answer is awaited, so a flight costs one network round trip per provider and not one per projection.
+        The providers see the same rows in the same order. Only projections whose inputs do not depend on one
+        another's outputs may share a flight (query, key and value; the two inputs of an MLP gate).
+        """
+        import numpy as np
+        calls=list(calls)
+        if not calls:raise ValueError('A flight needs at least one projection')
+        if len(calls)==1 or not all(isinstance(evaluator,ProcessEvaluator) for evaluator in (self.a,self.b)):
+            return [self.linear(*call) for call in calls]
+        self.check_active()
+        for name,inputs,output_width,quantization_bits in calls:
+            if (inputs.dtype!=np.uint64 or inputs.ndim!=2 or not 1<=inputs.shape[0]<=self.policy['maximumRows']
+                    or name not in self.anchors or self.anchors[name].shape!=(output_width,)
+                    or (self.geometry is not None and self.geometry.get(name)!=(inputs.shape[1],output_width))
+                    or bool((inputs>=np.uint64(1<<quantization_bits)).any())):
+                raise ValueError('Projection is outside the admitted share route')
+        if self.began is None:self.began=time.monotonic()
+        deadline=self.began+self.policy['attemptTimeoutSeconds']
+        for evaluator in (self.a,self.b):evaluator.bind_attempt(deadline,self.cancelled)
+        rounds=self.policy['checkRounds']
+        began=time.perf_counter()
+        built=[build_queries(inputs,probe(self.probe_seed,name,inputs.shape[1]),rounds,self.rng) for name,inputs,_,_ in calls]
+        ready=time.perf_counter()
+
+        def flight(evaluator,side,answers,errors):
+            # A writer thread sends while this thread reads, so neither pipe can fill and stall the other.
+            queries=[(call[0],pair[side],call[2]) for call,pair in zip(calls,built)]
+            first=evaluator.sequence+1
+            def write():
+                try:
+                    for name,rows,_ in queries:
+                        self.check_active();evaluator.send(name,rows)
+                except BaseException as error:errors.append(error)
+            writer=threading.Thread(target=write,daemon=True);writer.start()
+            try:
+                for index,(_,rows,width) in enumerate(queries):
+                    self.check_active();answers.append(evaluator.receive(rows.shape[0],width,first+index))
+            except BaseException as error:
+                errors.append(error);evaluator.failed=True;evaluator._kill()
+            finally:
+                writer.join()
+
+        answers_a,answers_b,errors=[],[],[]
+        other=threading.Thread(target=flight,args=(self.b,1,answers_b,errors),daemon=True);other.start()
+        flight(self.a,0,answers_a,errors);other.join()
+        def judge(index):
+            name,inputs,output_width,quantization_bits=calls[index]
+            return combine(answers_a[index],answers_b[index],built[index][2],self.anchors[name],product_bound(inputs.shape[1],quantization_bits))
+        if errors:
+            error=errors[0]
+            if not isinstance(error,(ConnectionError,OSError,ExecutionRejected)):raise error
+            # An evaluator that was already caught cannot turn that into a transport error by leaving: every
+            # projection both providers did answer is still checked before the attempt is reported.
+            for index in range(min(len(answers_a),len(answers_b))):
+                if not judge(index)[1]:self.failure=self.failure or 'check'
+            reason='execution-failed'
+            rejected=[item for item in errors if isinstance(item,ExecutionRejected)]
+            if rejected:reason=rejected[0].code
+            elif self.cancelled is not None and self.cancelled.is_set():reason='cancelled'
+            elif time.monotonic()>=deadline:reason='deadline-exceeded'
+            for evaluator in (self.a,self.b):evaluator.failed=True
+            self.close()
+            raise ExecutionRejected('integrity-check-failed' if self.failure is not None else reason) from None
+        answered=time.perf_counter()
+        results=[]
+        for index,(name,inputs,output_width,quantization_bits) in enumerate(calls):
+            product,passed=judge(index)
+            self.calls+=1;self.rows+=inputs.shape[0]
+            self.observe('shared-projection',dict(name=name,rows=int(inputs.shape[0])))
+            if not passed:
+                self.failure=self.failure or 'check'
+                product=np.zeros((inputs.shape[0],output_width),dtype=np.int64)
+            results.append(product)
+        finished=time.perf_counter()
+        self.flights+=1
+        self.client_seconds+=(ready-began)+(finished-answered);self.remote_seconds+=answered-ready
+        return results
 
     def integrity_failed(self):return self.failure is not None
 
@@ -378,10 +464,31 @@ class ShareRoute:
 
     def report(self):
         return dict(integrity=MECHANISM,integrityPolicyId=POLICY_ID,checkRounds=self.policy['checkRounds'],
-                    sharedProjectionCalls=self.calls,sharedRows=self.rows,
+                    sharedProjectionCalls=self.calls,sharedRows=self.rows,sharedFlights=self.flights,
                     singleEvaluatorDetectionLog2=detection_log2(self.policy['checkRounds']),commonDeviationDetectionLog2=COMMON_DEVIATION_LOG2,
                     clientShareMs=self.client_seconds*1000,evaluatorRoundTripMs=self.remote_seconds*1000,
                     sentBytes=[self.a.sent,self.b.sent],receivedBytes=[self.a.received,self.b.received])
+
+
+# Projections of one block that read the same tensor and do not feed one another, so they may share a flight.
+FLIGHT_GROUPS=(('q_proj','k_proj','v_proj'),('gate_proj','up_proj'))
+
+
+def flight_partners(names):
+    """Map each flight's first projection to the partners that travel with it: {lead name: [partner names]}.
+
+    Names are dotted module paths. Two projections are partners only when they sit under the same parent module
+    and their leaf names belong to one FLIGHT_GROUPS entry; the lead is the entry's first leaf, which is the one
+    the model calls first.
+    """
+    present=set(names);partners={}
+    for name in names:
+        parent,_,leaf=name.rpartition('.')
+        for group in FLIGHT_GROUPS:
+            if leaf==group[0]:
+                found=[(parent+'.' if parent else '')+other for other in group[1:] if (parent+'.' if parent else '')+other in present]
+                if found:partners[name]=found
+    return partners
 
 
 def transport_label(command,verified_network=False):
