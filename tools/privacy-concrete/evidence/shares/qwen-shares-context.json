@@ -37,6 +37,14 @@
     {
       "file": "qwen-shares-flights-grouped-fast-host.json",
       "sha256": "b77baa0169ce5a8902f4ed72775838674f78fcdb1c538e6389c71cd3384f2646"
+    },
+    {
+      "file": "qwen-shares-failure-probe-separate.json",
+      "sha256": "9171a1d4e4e4d4b41fd8f6c6fa217e050f8c879b4494bfeed52a5aeede435afb"
+    },
+    {
+      "file": "qwen-shares-failure-probe-grouped.json",
+      "sha256": "4e39cffe26ec6bad907932fc4c6299ffa31ace624b0e3d277aaddeef0944fef0"
     }
   ],
   "fixtureId": "qwen05b-capital",
@@ -130,6 +138,20 @@
       "placement": "Same host and processes, run immediately after the control, with --group-flights (388 flights for 676 projection calls).",
       "transport": "local-process pipes",
       "codeRevision": "858652abf"
+    },
+    "qwen-shares-failure-probe-separate.json": {
+      "startedUtc": "2026-11-18T17:42:25Z",
+      "finishedUtc": "2026-11-18T17:47:29Z",
+      "placement": "Failure probe on the fast AMD Linux host, CPU only: 4 public prompts x (1 honest + 4 attempts with one wrong answer from provider B at request 1, 85, 170 or 676, one value changed). Separate calls.",
+      "transport": "local-process pipes",
+      "codeRevision": "0cc98db40"
+    },
+    "qwen-shares-failure-probe-grouped.json": {
+      "startedUtc": "2026-11-18T17:42:25Z",
+      "finishedUtc": "2026-11-18T17:47:29Z",
+      "placement": "Failure probe, same host: 2 public prompts x (1 honest + 3 attempts with one all-zero answer at request 2, 170 or 400), with --group-flights.",
+      "transport": "local-process pipes",
+      "codeRevision": "0cc98db40"
     }
   },
   "comparisonWithRetainedReceipts": {
@@ -158,7 +180,8 @@
     "All lab machines had one human operator, so even when distinct enrolled owner identities and Ed25519 keys were enforced (qwen-shares-network-two-gpu.json), operatorIndependenceAttested remained false and the assumption that the two providers do not collude was not exercised.",
     "Earlier revisions and their fixes (0595f8415, d39b135ba), the GPU evaluator and kernel (7566d2142), and the authenticated encrypted network transport (shares_network.js) received independent automated reviews, but no cryptographer has reviewed any version.",
     "The fast-host GPU and CPU runs are single runs on a shared host, so small wall-time differences are indicative only.",
-    "Grouped flights were measured on one host only, where a round trip costs almost nothing; a second pair run straight after gave 5.24 s separate and 5.13 s grouped. No network measurement of grouped flights exists yet."
+    "Grouped flights were measured on one host only, where a round trip costs almost nothing; a second pair run straight after gave 5.24 s separate and 5.13 s grouped. No network measurement of grouped flights exists yet.",
+    "The failure probe covers 22 dishonest attempts on 5 short public prompts with one wrong answer each. It compares counts and bytes, not timing, and does not cover a provider that is wrong more than once, both providers being wrong, or longer prompts."
   ],
   "revisionNote": "Initial CPU local and SSH runs used source files byte-identical to 0595f8415.",
   "supersededReceipts": "Earlier receipts are in repository history: modulo 2^64 at commit 9975f02c5 (137.3 s on one host) and the first prime-field version at 8b73b5991 (42.1 s on one host, 63.1 s with one provider on a second machine). Tokens and zero difference were the same in all of them.",

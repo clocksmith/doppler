@@ -95,10 +95,16 @@ and probe seed are unpredictable and stay secret. **S3** the requester's anchors
   bound depends on the input, but a wrong value reaches it only after passing the field checks, with the
   probabilities above. And after a failure the requester computes on substituted zeros; if a later client step then
   cannot proceed, the route closes early, and the number of calls made before that could depend on the input. That
-  second exception is not measured yet. [shares_failure_probe.py](shares_failure_probe.py) is built to measure it: it
-  makes one provider answer one chosen request wrongly ([shares_faulty_evaluator.py](shares_faulty_evaluator.py)),
-  across several request positions and public prompts, and compares each provider's calls, flights and bytes with an
-  honest attempt's. It has not been run on the model, and it does not measure timing.
+  second exception was measured on 2026-11-18 with [shares_failure_probe.py](shares_failure_probe.py), which makes one
+  provider answer one chosen request wrongly ([shares_faulty_evaluator.py](shares_faulty_evaluator.py)) and compares
+  what each provider was sent with an honest attempt. In 22 dishonest attempts (5 public prompts; the wrong answer at
+  request 1, 2, 85, 170, 400 or 676; one value changed or the whole answer zeroed; with and without grouped flights)
+  the requester never stopped early: every attempt made the same 676 projection calls, sent the same 65,152,252 bytes
+  and received the same 120,415,092 bytes per provider as the honest attempts, and every one was reported as
+  `integrity-check-failed` after the route closed
+  ([separate](evidence/shares/qwen-shares-failure-probe-separate.json),
+  [grouped](evidence/shares/qwen-shares-failure-probe-grouped.json)). That is evidence for these cases, not a proof:
+  it covers one wrong answer per attempt on short prompts, and it measures counts and bytes, not timing.
 
 ## What is not defended
 

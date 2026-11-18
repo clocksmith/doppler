@@ -1,0 +1,234 @@
+{
+  "schema": "doppler.two-server-shares-failure-probe/v1",
+  "fixtures": [
+    "qwen05b-capital",
+    "qwen05b-opposite"
+  ],
+  "failCalls": [
+    2,
+    170,
+    400
+  ],
+  "mode": "zeros",
+  "groupedFlights": true,
+  "verdict": {
+    "honestAttempts": 2,
+    "dishonestAttempts": 6,
+    "honestTranscriptShapes": 1,
+    "attemptsWhoseTranscriptDiffersFromHonest": [],
+    "dishonestAttemptsNotReportedAsIntegrityFailure": [],
+    "honestAttemptsThatDidNotComplete": [],
+    "transcriptIndependentOfInputAndFailurePosition": true,
+    "measures": "projection calls, flights, rows, bytes sent and received per provider, and calls after each step; not timing"
+  },
+  "attempts": [
+    {
+      "fixture": "qwen05b-capital",
+      "failCall": null,
+      "mode": null,
+      "groupedFlights": true,
+      "outcome": "completed",
+      "integrityFailureRecorded": false,
+      "projectionCalls": 676,
+      "flights": 388,
+      "rows": 1859,
+      "sentBytes": [
+        65152252,
+        65152252
+      ],
+      "receivedBytes": [
+        120415092,
+        120415092
+      ],
+      "callsAfterEachStep": [
+        169,
+        338,
+        507,
+        676
+      ],
+      "wallMs": 13381.597724997846
+    },
+    {
+      "fixture": "qwen05b-capital",
+      "failCall": 2,
+      "mode": "zeros",
+      "groupedFlights": true,
+      "outcome": "integrity-check-failed",
+      "integrityFailureRecorded": true,
+      "projectionCalls": 676,
+      "flights": 388,
+      "rows": 1859,
+      "sentBytes": [
+        65152252,
+        65152252
+      ],
+      "receivedBytes": [
+        120415092,
+        120415092
+      ],
+      "callsAfterEachStep": [
+        169,
+        338,
+        507,
+        676
+      ],
+      "wallMs": 9902.226430000155
+    },
+    {
+      "fixture": "qwen05b-capital",
+      "failCall": 170,
+      "mode": "zeros",
+      "groupedFlights": true,
+      "outcome": "integrity-check-failed",
+      "integrityFailureRecorded": true,
+      "projectionCalls": 676,
+      "flights": 388,
+      "rows": 1859,
+      "sentBytes": [
+        65152252,
+        65152252
+      ],
+      "receivedBytes": [
+        120415092,
+        120415092
+      ],
+      "callsAfterEachStep": [
+        169,
+        338,
+        507,
+        676
+      ],
+      "wallMs": 9898.676019998675
+    },
+    {
+      "fixture": "qwen05b-capital",
+      "failCall": 400,
+      "mode": "zeros",
+      "groupedFlights": true,
+      "outcome": "integrity-check-failed",
+      "integrityFailureRecorded": true,
+      "projectionCalls": 676,
+      "flights": 388,
+      "rows": 1859,
+      "sentBytes": [
+        65152252,
+        65152252
+      ],
+      "receivedBytes": [
+        120415092,
+        120415092
+      ],
+      "callsAfterEachStep": [
+        169,
+        338,
+        507,
+        676
+      ],
+      "wallMs": 9821.064348998334
+    },
+    {
+      "fixture": "qwen05b-opposite",
+      "failCall": null,
+      "mode": null,
+      "groupedFlights": true,
+      "outcome": "completed",
+      "integrityFailureRecorded": false,
+      "projectionCalls": 676,
+      "flights": 388,
+      "rows": 1859,
+      "sentBytes": [
+        65152252,
+        65152252
+      ],
+      "receivedBytes": [
+        120415092,
+        120415092
+      ],
+      "callsAfterEachStep": [
+        169,
+        338,
+        507,
+        676
+      ],
+      "wallMs": 12886.129386999528
+    },
+    {
+      "fixture": "qwen05b-opposite",
+      "failCall": 2,
+      "mode": "zeros",
+      "groupedFlights": true,
+      "outcome": "integrity-check-failed",
+      "integrityFailureRecorded": true,
+      "projectionCalls": 676,
+      "flights": 388,
+      "rows": 1859,
+      "sentBytes": [
+        65152252,
+        65152252
+      ],
+      "receivedBytes": [
+        120415092,
+        120415092
+      ],
+      "callsAfterEachStep": [
+        169,
+        338,
+        507,
+        676
+      ],
+      "wallMs": 9792.849221001234
+    },
+    {
+      "fixture": "qwen05b-opposite",
+      "failCall": 170,
+      "mode": "zeros",
+      "groupedFlights": true,
+      "outcome": "integrity-check-failed",
+      "integrityFailureRecorded": true,
+      "projectionCalls": 676,
+      "flights": 388,
+      "rows": 1859,
+      "sentBytes": [
+        65152252,
+        65152252
+      ],
+      "receivedBytes": [
+        120415092,
+        120415092
+      ],
+      "callsAfterEachStep": [
+        169,
+        338,
+        507,
+        676
+      ],
+      "wallMs": 9837.172953000845
+    },
+    {
+      "fixture": "qwen05b-opposite",
+      "failCall": 400,
+      "mode": "zeros",
+      "groupedFlights": true,
+      "outcome": "integrity-check-failed",
+      "integrityFailureRecorded": true,
+      "projectionCalls": 676,
+      "flights": 388,
+      "rows": 1859,
+      "sentBytes": [
+        65152252,
+        65152252
+      ],
+      "receivedBytes": [
+        120415092,
+        120415092
+      ],
+      "callsAfterEachStep": [
+        169,
+        338,
+        507,
+        676
+      ],
+      "wallMs": 9811.686289998761
+    }
+  ]
+}
