@@ -34,7 +34,7 @@ export function resolveLoadProgressHandlers(options = {}, defaultLoadProgressLog
   };
 }
 
-export async function fetchManifestPayloadFromBaseUrl(baseUrl) {
+export async function fetchManifestPayloadFromBaseUrl(baseUrl, signal) {
   const manifestUrl = getManifestUrl(baseUrl);
   if (/^file:\/\//i.test(manifestUrl)) {
     let text;
@@ -43,7 +43,7 @@ export async function fetchManifestPayloadFromBaseUrl(baseUrl) {
         import('node:fs/promises'),
         import('node:url'),
       ]);
-      text = await readFile(fileURLToPath(manifestUrl), 'utf8');
+      text = await readFile(fileURLToPath(manifestUrl), { encoding: 'utf8', signal });
     } catch (error) {
       throw new Error(
         `Failed to read manifest from ${baseUrl}: ${error?.message || String(error)}`
@@ -55,7 +55,7 @@ export async function fetchManifestPayloadFromBaseUrl(baseUrl) {
       manifestHash: await sha256ManifestText(text),
     };
   }
-  const response = await fetch(manifestUrl);
+  const response = await fetch(manifestUrl, { signal });
   if (!response.ok) {
     throw new Error(`Failed to fetch manifest from ${baseUrl}: ${response.status}`);
   }
@@ -142,7 +142,7 @@ function assertWeightsRefIdentity(variantManifest, weightsManifest, weightsRef, 
   }
 }
 
-export async function resolveManifestArtifactSource(resolved, manifestPayload) {
+export async function resolveManifestArtifactSource(resolved, manifestPayload, signal) {
   const manifest = manifestPayload?.manifest;
   if (!manifest || typeof manifest !== 'object') {
     throw new Error('Manifest payload is required before artifact source resolution.');
@@ -162,7 +162,7 @@ export async function resolveManifestArtifactSource(resolved, manifestPayload) {
   }
 
   const storageBaseUrl = resolveWeightsRefBaseUrl(resolved?.baseUrl, weightsRef.artifactRoot);
-  const storageManifestPayload = await fetchManifestPayloadFromBaseUrl(storageBaseUrl);
+  const storageManifestPayload = await fetchManifestPayloadFromBaseUrl(storageBaseUrl, signal);
   const expectedManifestDigest = normalizeDigest(weightsRef.manifestDigest);
   if (expectedManifestDigest) {
     const actualManifestDigest = await sha256ManifestText(storageManifestPayload.text);

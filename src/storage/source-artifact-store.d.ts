@@ -50,7 +50,7 @@ export declare function synthesizeStoredSourceArtifactManifest(
 
 export declare function verifyStoredSourceArtifact(
   manifest: RDRRManifest,
-  options?: { checkHashes?: boolean; modelId?: string; store?: import('./model-read-session.js').ModelReadSession }
+  options?: { checkHashes?: boolean; signal?: AbortSignal; modelId?: string; store?: import('./model-read-session.js').ModelReadSession }
 ): Promise<StoredSourceArtifactIntegrity>;
 
 export declare function createStoredSourceArtifactContext(

@@ -104,7 +104,7 @@ export declare function resolvePersistentBrowserLoadSource(
     modelId: string,
     modelBaseUrl: string,
     onProgress: ((event: Record<string, unknown>) => void) | null,
-    options: { expectedManifestHash: string }
+    options: { expectedManifestHash: string; signal?: AbortSignal }
   ) => Promise<{
     storageContext: Record<string, unknown>;
     storageBackend: 'opfs';
@@ -112,7 +112,8 @@ export declare function resolvePersistentBrowserLoadSource(
     fromCache: boolean;
     manifestHash: string;
     totalBytes: number;
-  }>
+  }>,
+  signal?: AbortSignal
 ): Promise<DopplerModelSourceResolution & {
   persistentCache?: DopplerPersistentCacheReceipt;
 }>;

@@ -234,9 +234,10 @@ async function loadCachedManifest(modelId) {
   }
 }
 
-async function verifyCachedArtifact(manifest) {
+async function verifyCachedArtifact(manifest, signal) {
+  throwIfAborted(signal);
   if (resolveSourceArtifact(manifest)) {
-    return verifyStoredSourceArtifact(manifest, { checkHashes: true });
+    return verifyStoredSourceArtifact(manifest, { checkHashes: true, signal });
   }
   // A persistent cache hit is security-relevant: a matching filename and
   // length do not establish that the bytes still match the immutable model
@@ -248,6 +249,7 @@ async function verifyCachedArtifact(manifest) {
   const missingShards = [];
   const corruptShards = [];
   for (let i = 0; i < manifest.shards.length; i += 1) {
+    throwIfAborted(signal);
     const shard = manifest.shards[i];
     const storedSize = await getFileStoredSize(shard.filename);
     if (storedSize == null) {
@@ -286,7 +288,7 @@ async function resolvePinnedCacheHit(modelId, expectedManifestHash, onProgress, 
     if (!cachedManifest.text || !cachedManifest.manifest) return null;
     if (await sha256Text(cachedManifest.text) !== expectedManifestHash) return null;
     throwIfAborted(signal);
-    const integrity = await verifyCachedArtifact(cachedManifest.manifest);
+    const integrity = await verifyCachedArtifact(cachedManifest.manifest, signal);
     if (!integrity.valid) return null;
     throwIfAborted(signal);
     const totalBytes = manifestTotalBytes(cachedManifest.manifest);
@@ -404,7 +406,7 @@ async function ensureModelCachedUnlocked(modelId, modelBaseUrl, onProgress = nul
         } else {
           const cachedSourceArtifact = resolveSourceArtifact(cachedManifest);
           const sourceIntegrity = cachedSourceArtifact
-            ? await verifyStoredSourceArtifact(cachedManifest, { checkHashes: true })
+            ? await verifyStoredSourceArtifact(cachedManifest, { checkHashes: true, signal })
             : null;
           const sourceIntegrityValid = !sourceIntegrity || sourceIntegrity.valid;
           if (sourceIntegrity && !sourceIntegrity.valid) {
@@ -419,7 +421,7 @@ async function ensureModelCachedUnlocked(modelId, modelBaseUrl, onProgress = nul
           if (cachedPayload.manifest && sourceIntegrityValid && manifestTextMatches && cachedFingerprint === remoteFingerprint) {
             const shardIntegrity = cachedSourceArtifact
               ? sourceIntegrity
-              : await verifyCachedArtifact(cachedManifest);
+              : await verifyCachedArtifact(cachedManifest, signal);
             if (shardIntegrity.valid) {
               log.info(MODULE, `Cache hit: "${modelId}"`);
               onProgress?.({ stage: 'cache-hit', modelId, message: `OPFS cache hit: ${modelId}`, percent: 100 });
@@ -453,7 +455,7 @@ async function ensureModelCachedUnlocked(modelId, modelBaseUrl, onProgress = nul
               const refreshManifest = preservedManifest.changed
                 ? parseManifest(manifestTextToSave)
                 : remoteManifest;
-              const integrity = await verifyCachedArtifact(refreshManifest);
+              const integrity = await verifyCachedArtifact(refreshManifest, signal);
               throwIfAborted(signal);
               if (integrity.valid) {
                 await openModelStore(modelId);
@@ -628,8 +630,9 @@ export function ensureModelCachedSource(modelId, modelBaseUrl, onProgress = null
   });
 }
 
-export function loadPersistentModelSource(modelId, onProgress = null) {
+export function loadPersistentModelSource(modelId, onProgress = null, signal = null) {
   return runCacheOperation(modelId, onProgress, async () => {
+    throwIfAborted(signal);
     if (!isOPFSAvailable() || !await modelExists(modelId)) {
       return null;
     }
@@ -637,7 +640,8 @@ export function loadPersistentModelSource(modelId, onProgress = null) {
     if (!cachedManifest.text || !cachedManifest.manifest) {
       return null;
     }
-    const integrity = await verifyCachedArtifact(cachedManifest.manifest);
+    const integrity = await verifyCachedArtifact(cachedManifest.manifest, signal);
+    throwIfAborted(signal);
     if (!integrity.valid) {
       return null;
     }

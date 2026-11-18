@@ -47,6 +47,7 @@ try {
     configurable: true,
     writable: true,
   });
+  const controller = new AbortController();
   const resolved = await resolvePersistentBrowserLoadSource(
     loadSource,
     'opfs',
@@ -66,9 +67,11 @@ try {
         manifestHash: options.expectedManifestHash,
         totalBytes: 4096,
       };
-    }
+    },
+    controller.signal
   );
 
+  assert.equal(request.options.signal, controller.signal);
   assert.equal(request.modelId, manifest.modelId);
   assert.equal(request.modelBaseUrl, loadSource.storageBaseUrl);
   assert.match(request.options.expectedManifestHash, /^[a-f0-9]{64}$/);
