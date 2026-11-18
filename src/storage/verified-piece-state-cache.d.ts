@@ -1,4 +1,11 @@
-import type { BigIntStats } from 'node:fs';
+interface VerifiedFileStat {
+  isFile(): boolean;
+  dev: bigint;
+  ino: bigint;
+  size: bigint;
+  mtimeNs: bigint;
+  ctimeNs: bigint;
+}
 
 export interface FileStateSnapshot {
   device: string;
@@ -33,7 +40,7 @@ export interface WorkerStateCachePayload {
   files: Record<string, WorkerFileStateDescriptor>;
 }
 
-export function matchesFileStateSnapshot(stat: BigIntStats, snapshot: FileStateSnapshot): boolean;
+export function matchesFileStateSnapshot(stat: VerifiedFileStat, snapshot: FileStateSnapshot): boolean;
 
 export function prepareVerifiedPieceStateCache(options: {
   rawPolicy: VerifiedPieceStateCacheOptions | undefined;
@@ -46,7 +53,7 @@ export function prepareVerifiedPieceStateCache(options: {
   backgroundVerify: boolean;
   backgroundIdleDelayMs: number;
   workerPayload: Readonly<WorkerStateCachePayload>;
-  checkFileStat(piecePath: string, stat: BigIntStats): boolean;
+  checkFileStat(piecePath: string, stat: VerifiedFileStat): boolean;
   isPieceVerified(piecePath: string, offset: number): boolean;
   markPieceVerified(piecePath: string, offset: number): boolean;
   scheduleFlush(): void;
@@ -62,7 +69,7 @@ export function openPieceDirectoryStateCache(options: {
   index: { files: ReadonlyArray<{ path: string; size: number; pieces: Array<{ offset: number; size: number; identity: string }> }> };
 }): Promise<Readonly<{
   directory: string;
-  isVerified(piecePath: string, offset: number, stat: BigIntStats): boolean;
-  markVerified(piecePath: string, offset: number, stat: BigIntStats): void;
+  isVerified(piecePath: string, offset: number, stat: VerifiedFileStat): boolean;
+  markVerified(piecePath: string, offset: number, stat: VerifiedFileStat): void;
   close(): Promise<void>;
 }>>;
