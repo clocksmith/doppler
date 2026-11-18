@@ -123,7 +123,7 @@ function semanticReceipt(evidenceClass, receiptDigest, overrides = {}) {
     laneId: 'browser-webgpu',
     workload: 'generation',
     logicalModelId: 'qwen-3-5-0-8b-q4k-ehaf16',
-    manifestVariantId: 'qwen-3-5-0-8b-q4k-ehaf16-mv-exec-v1',
+    manifestVariantId: 'qwen-3-5-0-8b-q4k-ehaf16-mv-48ade0e66f84',
     resolvedArtifactVariantId: ARTIFACT_ID,
     resolvedExecutionId: EXECUTION_ID,
     implementationId: 'chromium-webgpu',

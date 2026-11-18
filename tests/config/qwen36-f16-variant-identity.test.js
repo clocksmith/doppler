@@ -4,6 +4,7 @@ import assert from 'node:assert/strict';
 import crypto from 'node:crypto';
 import fs from 'node:fs';
 import path from 'node:path';
+import { KERNEL_REF_CONTENT_DIGESTS } from '../../src/config/kernels/kernel-ref-digests.js';
 
 const AF32_MODEL_ID = 'qwen-3-6-27b-q4k-ehaf16';
 const AF16_MODEL_ID = 'qwen-3-6-27b-q4k-eaf16';
@@ -101,10 +102,14 @@ assert.notEqual(
   af32Manifest.artifactIdentity?.manifestVariantId,
   'af16 manifest variant must carry its own manifest variant id'
 );
-assert.match(
-  String(af16Entry.manifestVariantId),
-  new RegExp(`^${AF16_MODEL_ID}-mv-(?:exec-v1|[0-9a-f]{12})$`),
-  'af16 catalog entry must point at an exact f16 manifest variant id'
+const publication27b = readJson('reports/qwen-installed-20261107/publication-27b.json');
+const publishedAf32Receipt = publication27b.receipts.find((entry) => entry.modelId === AF32_MODEL_ID);
+const publishedAf16Receipt = publication27b.receipts.find((entry) => entry.modelId === AF16_MODEL_ID);
+assert.ok(publishedAf32Receipt && publishedAf16Receipt, '27B publication receipt must cover both F32 and F16 variants');
+assert.equal(
+  af16Entry.manifestVariantId,
+  publishedAf16Receipt.artifactIdentity?.manifestVariantId,
+  'af16 catalog entry must point at the exact published f16 manifest variant id'
 );
 assert.notEqual(
   af16Entry.manifestVariantId,
@@ -112,7 +117,7 @@ assert.notEqual(
   'af16 catalog entry must stay distinct from the af32 manifest variant id'
 );
 assert.equal(af16Entry.weightCapsuleId, af32Entry.weightCapsuleId);
-assert.match(String(af16Entry.weightCapsuleId), new RegExp(`^${AF32_MODEL_ID}-wp-(?:catalog-v1|[0-9a-f]{12})$`));
+assert.equal(af16Entry.weightCapsuleId, publishedAf16Receipt.artifactIdentity?.weightCapsuleId);
 assert.equal(af16Entry.weightsRefAllowed, true);
 assert.equal(af16Entry.lifecycle?.availability?.hf, true);
 assert.equal(af16Entry.lifecycle?.status?.runtime, 'active');
@@ -121,7 +126,20 @@ assert.equal(af16Entry.demoVisible, false);
 
 assert.deepEqual(af16Manifest.weightsRef, af16Config.manifest?.weightsRef);
 assert.equal(af16Manifest.weightsRef?.artifactRoot, `../${AF32_MODEL_ID}`);
-assert.match(String(af16Manifest.weightsRef?.manifestDigest), /^sha256:[0-9a-f]{64}$/);
+const preB557SiluDigest = 'sha256:c6e28a7e6b2a7cfa805db03c9079fbc90fc2717c621e388bfa55b75ce1737ac0';
+let preRebindAf32ManifestText = af32ManifestText;
+for (const [id, kernel] of Object.entries(af32Config.execution.kernels)) {
+  const liveDigest = af32Manifest.inference?.execution?.kernels?.[id]?.digest;
+  if (liveDigest !== kernel.digest) {
+    const currentShaderDigest = `sha256:${KERNEL_REF_CONTENT_DIGESTS[`${kernel.kernel}#${kernel.entry}`]}`;
+    assert.ok(
+      liveDigest === currentShaderDigest || (id === 'silu' && liveDigest === preB557SiluDigest),
+      `${AF32_MODEL_ID}.${id}: unexpected manifest kernel digest ${liveDigest}`
+    );
+    preRebindAf32ManifestText = preRebindAf32ManifestText.replaceAll(liveDigest, kernel.digest);
+  }
+}
+assert.equal(af16Manifest.weightsRef?.manifestDigest, hashText(preRebindAf32ManifestText));
 assert.equal(af16Manifest.weightsRef?.shardSetHash, af32ShardSetHash);
 assert.equal(af16Manifest.artifactIdentity?.conversionConfigDigest, hashJson(af16Config));
 

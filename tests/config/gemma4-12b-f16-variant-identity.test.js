@@ -4,6 +4,7 @@ import assert from 'node:assert/strict';
 import crypto from 'node:crypto';
 import fs from 'node:fs';
 import path from 'node:path';
+import { KERNEL_REF_CONTENT_DIGESTS } from '../../src/config/kernels/kernel-ref-digests.js';
 
 const AF32_MODEL_ID = 'gemma-4-12b-it-text-q4k-ehf16-af32';
 const AF16_MODEL_ID = 'gemma-4-12b-it-text-q4k-ehf16-af16';
@@ -89,7 +90,16 @@ assert.deepEqual(af16Manifest.weightsRef, af16Config.manifest?.weightsRef);
 const { weightPackId: af16RefPackId, ...af16RefFields } = af16Manifest.weightsRef ?? {};
 assert.deepEqual({ weightCapsuleId: af16RefPackId, ...af16RefFields }, liveAf16Config.manifest?.weightsRef);
 assert.equal(af16Manifest.weightsRef?.artifactRoot, `../${AF32_MODEL_ID}`);
-assert.match(String(af16Manifest.weightsRef?.manifestDigest), /^sha256:[0-9a-f]{64}$/);
+// 9523d93b1 rebound shader digests in models/local af32; projecting them back to af32Config reproduces the exact pinned target manifest digest.
+let preRebindAf32ManifestText = af32ManifestText;
+for (const [id, kernel] of Object.entries(af32Config.execution.kernels)) {
+  const liveDigest = af32Manifest.inference?.execution?.kernels?.[id]?.digest;
+  if (liveDigest !== kernel.digest) {
+    assert.equal(liveDigest, `sha256:${KERNEL_REF_CONTENT_DIGESTS[`${kernel.kernel}#${kernel.entry}`]}`);
+    preRebindAf32ManifestText = preRebindAf32ManifestText.replaceAll(liveDigest, kernel.digest);
+  }
+}
+assert.equal(af16Manifest.weightsRef?.manifestDigest, hashText(preRebindAf32ManifestText));
 assert.equal(af16Manifest.weightsRef?.shardSetHash, af32Manifest.artifactIdentity?.shardSetHash);
 assert.equal(af32Manifest.artifactIdentity?.conversionConfigDigest, hashJson(af32Config));
 assert.equal(af16Manifest.artifactIdentity?.conversionConfigDigest, hashJson(af16Config));

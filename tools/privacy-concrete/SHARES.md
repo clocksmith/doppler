@@ -110,8 +110,13 @@ and probe seed are unpredictable and stay secret. **S3** the requester's anchors
   capped by the per-message timeout; cancellation also ends blocked provider I/O. Failed attempts kill both provider
   process groups before bounded cleanup.
   None of that makes a slow provider fast.
-- **Transport and identity.** This prototype talks to providers over process pipes or SSH. Provider identity, grants
-  and receipts belong to Reploid and are not built.
+- **Transport and identity.** [shares_network.js](shares_network.js) (`shares-net-ed25519-chacha20poly1305/v1`)
+  authenticates two enrolled providers with distinct `ownerId`s and prime-order Ed25519 public keys, binds the session
+  role (`a` or `b`), policy, plan, model and per-session `shares-manifest.json` digest into a domain-separated signed
+  transcript, and encrypts every stream frame and EOF marker with ChaCha20-Poly1305 under directional HKDF-SHA256 keys
+  derived from ephemeral X25519 key agreement. Separate enrolled keys still do not prove separate human operators:
+  receipts keep `nonCollusionEstablished: false` unless independent operator attestation is explicitly supplied, and
+  product-level provider discovery, grants and settlement receipts remain in Reploid.
 - **Flash.** Evaluating only the routed experts would show the providers which experts a token chose. Flash's large
   lookup tables would need a two-server private lookup. Neither is designed.
 - **What the requester still stores.** The embedding table (545 MB at 32-bit for small Qwen), normalisation
@@ -141,17 +146,29 @@ the kernel makes two of its tests fail.
 
 ## Measured
 
-Five retained runs of the pinned small-Qwen fixture (`qwen05b-capital`, four output tokens, eight prefill rows, 169
-linear layers per step, 676 projection calls), indexed with SHA-256 digests in
-[qwen-shares-context.json](evidence/shares/qwen-shares-context.json):
+Six retained shares runs plus one standalone plain-inference baseline of the pinned small-Qwen fixture
+(`qwen05b-capital`, four output tokens, eight prefill rows, 169 linear layers per step, 676 projection calls), indexed
+with SHA-256 digests in [qwen-shares-context.json](evidence/shares/qwen-shares-context.json):
 
 | Receipt | Placement and provider runtime | Total wall | Step 1 / decode steps 2-4 | Provider round-trip | Client share math | Max logit error |
 | --- | --- | --- | --- | --- | --- | --- |
+| [qwen-plain-reference-local.json](evidence/shares/qwen-plain-reference-local.json) | Standalone unshared baseline on the two-core Linux requester host (FP32 PyTorch / 12-bit clear quantized) | 2.84 s (FP32) / 14.63 s (12-bit) | 1.03 s / 0.38-0.89 s (FP32); 7.71 s / 2.14-2.40 s (12-bit) | n/a | n/a | 0.0 vs 12-bit |
 | [qwen-shares-local.json](evidence/shares/qwen-shares-local.json) | One two-core Linux host, 2 CPU providers | 42.42 s | 22.27 s / 6.42-7.05 s | 26.71 s | 5.63 s | 0.0 |
 | [qwen-shares-three-machine.json](evidence/shares/qwen-shares-three-machine.json) | Three machines over SSH pipes, 2 CPU providers | 163.93 s | 108.79 s / 16.08-20.14 s | 153.46 s | 3.06 s | 0.0 |
+| [qwen-shares-network-two-gpu.json](evidence/shares/qwen-shares-network-two-gpu.json) | Three separate machines over authenticated encrypted TCP (`shares-net-ed25519-chacha20poly1305/v1`), 2 WebGPU providers (Metal + AMD Radeon) | 56.19 s | 36.18 s / 6.42-6.91 s | 47.77 s | 2.40 s | 0.0 |
 | [qwen-shares-cpu-fast-host.json](evidence/shares/qwen-shares-cpu-fast-host.json) | Fast AMD Linux host, 2 CPU providers (warm file cache) | 5.28 s | 2.56 s / 0.89-0.91 s | 3.61 s | 1.31 s | 0.0 |
 | [qwen-shares-gpu-one-host.json](evidence/shares/qwen-shares-gpu-one-host.json) | Same AMD Linux host, 2 WebGPU (Vulkan) providers, per-call buffers | 7.67 s | 4.55 s / 1.03-1.05 s | 6.36 s | 1.04 s | 0.0 |
 | [qwen-shares-gpu-reused-buffers.json](evidence/shares/qwen-shares-gpu-reused-buffers.json) | Same AMD Linux host, 2 WebGPU (Vulkan) providers, persistent workspace buffers | 7.50 s | 4.53 s / 0.98-1.00 s | 6.31 s | 0.97 s | 0.0 |
+
+**Plain-inference baseline and privacy overhead.** On the same two-core Linux requester host
+([receipt](evidence/shares/qwen-plain-reference-local.json)), running the four-token fixture in the clear without
+secret sharing takes 2.84 s in FP32 PyTorch (`floatReferenceExecutionWallMs`) and 14.63 s in the 12-bit integer
+reference (`clearQuantizedExecutionWallMs`). Against those baselines on that requester host, the local CPU shares run
+(`42.42 s`) is 14.9x FP32 and 2.9x clear 12-bit quantized; the three-machine authenticated encrypted two-GPU network
+run (`56.19 s`, with in-run post-close references `3.15 s` FP32 and `14.88 s` clear 12-bit) records
+`privacyOverheadVsFloat = 17.85` and `privacyOverheadVsClearQuantized = 3.78`, while cutting the three-machine wall
+time from `163.93 s` (unpinned SSH + CPU providers) to `56.19 s` (`6.42-6.91 s` per decode step across Linux, macOS
+Metal and Windows AMD WebGPU).
 
 Detailed breakdown of the first two placements:
 
@@ -197,8 +214,11 @@ receipts are in this repository's history at commits `9975f02c5` and `8b73b5991`
 
 ## Review record
 
-- 2026-11-17, automated tests: 18 CPU pass ([test_shares.py](test_shares.py)) and 5 GPU pass
-  ([test_shares_gpu.py](test_shares_gpu.py), run on both Metal and Vulkan WebGPU bindings).
+- 2026-11-17, automated tests: 18 CPU pass ([test_shares.py](test_shares.py)), 5 GPU pass
+  ([test_shares_gpu.py](test_shares_gpu.py), run on both Metal and Vulkan WebGPU bindings), and 4 network/enrollment
+  pass ([test_shares_network.py](test_shares_network.py), covering prime-order Ed25519 subgroup validation, distinct-owner
+  and requester-owner exclusion, unauthenticated and tampered-ciphertext rejection, and >390 KB pipelined prefill
+  batches).
 - 2026-11-17, first independent automated review, of a version with a public probe in a separate row and arithmetic
   modulo 2^64. It demonstrated that two providers who both returned zeros, or both used the same other matrix except
   on the recognisable anchor row, were accepted 300 times out of 300, and that the range check accepted the most
@@ -233,4 +253,11 @@ receipts are in this repository's history at commits `9975f02c5` and `8b73b5991`
   32-bit index bounds, `maxComputeWorkgroupsPerDimension` column-chunk capping, odd-offset `Int16Array` buffer
   alignment, `int8` (`|i1`) weight support, per-call GPU buffer and per-element `BigInt` allocations, and uncaught
   `end of stream` rejections when stdin closes mid-frame.
+- 2026-11-18, three-pass independent security review of [shares_network.js](shares_network.js),
+  [shares_model.py](shares_model.py), and [test_shares_network.py](test_shares_network.py). Closed all 15 findings
+  (10 initial, 2 follow-up, 3 polish): exact RFC 8032 prime-order Ed25519 point validation (`[L]A == O && A != O`) and
+  strict `s < L` signature enforcement, `ownerId` and per-session `shares-manifest.json` SHA-256 transcript binding,
+  pinned `--enrollment-sha256` and `--peer-computer-id` checks between Python and Node, directional ChaCha20-Poly1305
+  record framing with explicit authenticated EOF and socket flush, backpressure-aware pre-auth/post-auth frame caps,
+  post-`REC_READY` session admission accounting, and process-group teardown on Unix and Windows.
 - Cryptographer review: none.

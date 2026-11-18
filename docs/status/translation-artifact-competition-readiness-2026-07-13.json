@@ -8,7 +8,7 @@
     "artifactRole": "diagnostic_baseline",
     "checkpointSha256": "c567331d8eb9d3da65205b83f4e0af06568c47ba81a7927005c1c2e72444bc87",
     "selectionReceipt": null,
-    "handoffSha256": "ec2cbe774c4e4ecbc87f220b6a0ec1e8a139bf50fa3fb723978ae07ba68ef1fd",
+    "handoffSha256": "120b4cffc1843419368f4134c8e7bc5afc785712e1318d5a643927d6aab7c07d",
     "identityVerificationReceiptHash": "aed8853ab206d73de8470940319f5fee12647f770b0816a20b53c3d7eac10e80"
   },
   "lanes": [
@@ -47,5 +47,5 @@
     "selected_source_identity_role_mismatch",
     "selected_source_identity_verification_absent"
   ],
-  "receiptHash": "96b875d999035eff63fe42f7bac7a99ff473dc1c1af7457d8e344fe11c120ce2"
+  "receiptHash": "2fcf80cf48bcd4acbc3456b8101fcfdc200431903c60108254f8188155fa54fd"
 }

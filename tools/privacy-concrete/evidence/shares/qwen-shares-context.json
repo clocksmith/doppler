@@ -1,118 +1,144 @@
 {
- "schema": "doppler.operator-observed-shares-qwen-context/v1",
- "experimentRevision": "0595f8415",
- "evidence": [
-  {
-   "file": "qwen-shares-local.json",
-   "sha256": "5c16f23f9cb5649391f5faf58e8c1d60850bdb18ba4d8eeb66d2596ff1e17b8a"
-  },
-  {
-   "file": "qwen-shares-three-machine.json",
-   "sha256": "baf5a7190fed5d65c9ce9d4a9500b932e2ddc2ae8428a036378be6229191be2e"
-  },
-  {
-   "file": "qwen-shares-gpu-one-host.json",
-   "sha256": "229267d4cbc9c06542de02866b6e1efe98a3cde1bf14b63540a9c7cfc4a7f096"
-  },
-  {
-   "file": "qwen-shares-cpu-fast-host.json",
-   "sha256": "c0f8b079aec1c9b5fde19e8006afa7d07924cf1b711f028df1f7a1001955b8a2"
-  },
-  {
-   "file": "qwen-shares-gpu-reused-buffers.json",
-   "sha256": "4e8e9fe19e5aab7c67e54568bff40b5ce0540844752e1b40111382ef1e5fecc6"
-  }
- ],
- "fixtureId": "qwen05b-capital",
- "mechanism": "additive-shares-m61-hidden-probe/v1",
- "integrityPolicyId": "10584fc741ccc506088f4eff524b3b3b1e714217da1df0437838019ac37abe4e",
- "planId": "95c1f06bcbc08954a29696412115c0e5794e4fdf4fa930deaabdee905c1677cd",
- "modelId": "4223289199791c6713ba2c98eb8f9d43a37597b09db0b2c778434dec431a6d24",
- "model": {
-  "repository": "Qwen/Qwen2.5-0.5B-Instruct",
-  "decoderLayers": 24,
-  "linearOperations": 169,
-  "plannedSteps": 4,
-  "prefillRows": 8
- },
- "sourceFilesMatchedRevision": [
-  "shares.py",
-  "shares_evaluator.py",
-  "shares_model.py",
-  "shares-policy.json",
-  "full_model.py"
- ],
- "runs": {
-  "qwen-shares-local.json": {
-   "startedUtc": "2026-11-17T21:37:01Z",
-   "finishedUtc": "2026-11-17T21:38:25Z",
-   "placement": "Requester and both providers were three processes on one trusted Linux x86-64 test host with two cores and four hardware threads.",
-   "transport": "local-process pipes",
-   "memoryMaxBytes": 10737418240
-  },
-  "qwen-shares-three-machine.json": {
-   "startedUtc": "2026-11-17T21:46:13Z",
-   "finishedUtc": "2026-11-17T21:49:34Z",
-   "placement": "Requester on the Linux test host; provider A on an Apple Silicon machine and provider B on an AMD Linux machine, three different computers on one local network.",
-   "transport": "two SSH pipes with the requester's ordinary host keys; hosts were not pinned by this route",
-   "memoryMaxBytes": 10737418240,
-   "timingCaveat": "About 370 MB crossed SSH and each provider hashed its coefficient files on first use, which dominates the first step. The providers' code copies are not attested. Not a tuned or clean timing."
-  },
-  "qwen-shares-gpu-one-host.json": {
-   "startedUtc": "2026-11-17T22:11:40Z",
-   "finishedUtc": "2026-11-17T22:12:00Z",
-   "placement": "Requester (CPU) and two GPU provider processes on one AMD Linux host with an integrated GPU, which a separate public inference service was also using.",
-   "transport": "local-process pipes",
-   "providers": "shares_evaluator_gpu.js through a Node WebGPU binding (Vulkan)",
-   "memoryMaxBytes": 17179869184,
-   "note": "The report's evaluatorTransports field says local-process for both. Source files matched revision d896b678d (deployed from the same tree before it was rebased onto main)."
-  },
-  "qwen-shares-cpu-fast-host.json": {
-   "startedUtc": "2026-11-17T22:12:00Z",
-   "finishedUtc": "2026-11-17T22:12:17Z",
-   "placement": "Same host, requester and two CPU provider processes (shares_evaluator.py), run immediately after the GPU run so its file cache was warm.",
-   "transport": "local-process pipes",
-   "memoryMaxBytes": 17179869184
-  },
-  "qwen-shares-gpu-reused-buffers.json": {
-   "startedUtc": "2026-11-18T00:45:41Z",
-   "finishedUtc": "2026-11-18T00:46:00Z",
-   "placement": "Same AMD Linux host with an integrated GPU (shared with a separate public inference service), requester on CPU and two GPU provider processes reusing persistent workspace buffers.",
-   "transport": "local-process pipes",
-   "providers": "shares_evaluator_gpu.js through a Node WebGPU binding (Vulkan) with persistent workspace buffers",
-   "memoryMaxBytes": 17179869184,
-   "note": "Source files matched revision 7566d2142."
-  }
- },
- "comparisonWithRetainedReceipts": {
-  "checkedHomomorphicEvidence": "../integrity/qwen-ntt12-check-local.json",
-  "sameOutputTokens": true,
-  "outputTokens": [
-   12095,
-   13,
-   1084,
-   374
+  "schema": "doppler.operator-observed-shares-qwen-context/v1",
+  "experimentRevision": "0595f8415",
+  "evidence": [
+    {
+      "file": "qwen-shares-local.json",
+      "sha256": "5c16f23f9cb5649391f5faf58e8c1d60850bdb18ba4d8eeb66d2596ff1e17b8a"
+    },
+    {
+      "file": "qwen-shares-three-machine.json",
+      "sha256": "baf5a7190fed5d65c9ce9d4a9500b932e2ddc2ae8428a036378be6229191be2e"
+    },
+    {
+      "file": "qwen-shares-gpu-one-host.json",
+      "sha256": "229267d4cbc9c06542de02866b6e1efe98a3cde1bf14b63540a9c7cfc4a7f096"
+    },
+    {
+      "file": "qwen-shares-cpu-fast-host.json",
+      "sha256": "c0f8b079aec1c9b5fde19e8006afa7d07924cf1b711f028df1f7a1001955b8a2"
+    },
+    {
+      "file": "qwen-shares-gpu-reused-buffers.json",
+      "sha256": "4e8e9fe19e5aab7c67e54568bff40b5ce0540844752e1b40111382ef1e5fecc6"
+    },
+    {
+      "file": "qwen-plain-reference-local.json",
+      "sha256": "405c72b84484ffe750e42ecf3b7b83ffc26d1b328b638a3629960f1cc3574069"
+    },
+    {
+      "file": "qwen-shares-network-two-gpu.json",
+      "sha256": "a993acdfcbf28da7838fe5e7acd15073cc12b9f17557575e96d00b0c92d61d28"
+    }
   ],
-  "samePlanAndModelIdentity": true,
-  "notMatched": "Different mechanism and guarantee. The homomorphic receipts hide the input from one evaluator under a cryptographic assumption; this route hides it from each of two providers only if they do not collude. Elapsed times are shown side by side, not as a matched benchmark."
- },
- "productionBackendAvailable": false,
- "securityQualified": false,
- "nonCollusionEstablished": false,
- "independentCryptographicReview": false,
- "fullFlashModelExecuted": false,
- "limitations": [
-  "One public four-token fixture, one run per placement; not a latency distribution or a quality result.",
-  "No provider misbehaved in these runs, so they show completeness and cost, not detection. Detection is exercised by test_shares.py.",
-  "The requester process also loaded the reference model to compare results after the route closed, and computed its own anchors from the public weights; its peak memory therefore says nothing about a requester that holds no weights.",
-  "Providers ran NumPy on CPU. No GPU kernel exists for this field arithmetic.",
-  "The providers' coefficient files were hashed against the plan's weight identities by the providers themselves; the requester relies on its anchors, which in these runs it computed from the same public weights.",
-  "All three machines had one operator, so the assumption that the two providers do not collude was not exercised.",
-  "Earlier revisions and their fixes (0595f8415, d39b135ba) plus the GPU evaluator and kernel (7566d2142) received independent automated reviews, but no cryptographer has reviewed any version.",
-  "The fast-host GPU and CPU runs are single runs on a shared host, so small wall-time differences are indicative only."
- ],
- "revisionNote": "Both runs used source files byte-identical to this revision (deployed from the same tree before it was rebased onto main).",
- "supersededReceipts": "Earlier receipts are in repository history: modulo 2^64 at commit 9975f02c5 (137.3 s on one host) and the first prime-field version at 8b73b5991 (42.1 s on one host, 63.1 s with one provider on a second machine). Tokens and zero difference were the same in all of them.",
- "gpuRevision": "d896b678d",
- "gpuBufferReuseRevision": "7566d2142"
+  "fixtureId": "qwen05b-capital",
+  "mechanism": "additive-shares-m61-hidden-probe/v1",
+  "integrityPolicyId": "10584fc741ccc506088f4eff524b3b3b1e714217da1df0437838019ac37abe4e",
+  "planId": "95c1f06bcbc08954a29696412115c0e5794e4fdf4fa930deaabdee905c1677cd",
+  "modelId": "4223289199791c6713ba2c98eb8f9d43a37597b09db0b2c778434dec431a6d24",
+  "model": {
+    "repository": "Qwen/Qwen2.5-0.5B-Instruct",
+    "decoderLayers": 24,
+    "linearOperations": 169,
+    "plannedSteps": 4,
+    "prefillRows": 8
+  },
+  "sourceFilesMatchedRevision": [
+    "shares.py",
+    "shares_evaluator.py",
+    "shares_evaluator_gpu.js",
+    "shares_field_matmul.wgsl",
+    "shares_network.js",
+    "shares_model.py",
+    "shares-policy.json",
+    "full_model.py"
+  ],
+  "runs": {
+    "qwen-shares-local.json": {
+      "startedUtc": "2026-11-17T21:37:01Z",
+      "finishedUtc": "2026-11-17T21:38:25Z",
+      "placement": "Requester and both providers were three processes on one trusted Linux x86-64 test host with two cores and four hardware threads.",
+      "transport": "local-process pipes",
+      "memoryMaxBytes": 10737418240
+    },
+    "qwen-shares-three-machine.json": {
+      "startedUtc": "2026-11-17T21:46:13Z",
+      "finishedUtc": "2026-11-17T21:49:34Z",
+      "placement": "Requester on the Linux test host; provider A on an Apple Silicon machine and provider B on an AMD Linux machine, three different computers on one local network.",
+      "transport": "two SSH pipes with the requester's ordinary host keys; hosts were not pinned by this route",
+      "memoryMaxBytes": 10737418240,
+      "timingCaveat": "About 370 MB crossed SSH and each provider hashed its coefficient files on first use, which dominates the first step. The providers' code copies are not attested. Not a tuned or clean timing."
+    },
+    "qwen-shares-gpu-one-host.json": {
+      "startedUtc": "2026-11-17T22:11:40Z",
+      "finishedUtc": "2026-11-17T22:12:00Z",
+      "placement": "Requester (CPU) and two GPU provider processes on one AMD Linux host with an integrated GPU, which a separate public inference service was also using.",
+      "transport": "local-process pipes",
+      "providers": "shares_evaluator_gpu.js through a Node WebGPU binding (Vulkan)",
+      "memoryMaxBytes": 17179869184,
+      "note": "The report's evaluatorTransports field says local-process for both. Source files matched revision d896b678d (deployed from the same tree before it was rebased onto main)."
+    },
+    "qwen-shares-cpu-fast-host.json": {
+      "startedUtc": "2026-11-17T22:12:00Z",
+      "finishedUtc": "2026-11-17T22:12:17Z",
+      "placement": "Same host, requester and two CPU provider processes (shares_evaluator.py), run immediately after the GPU run so its file cache was warm.",
+      "transport": "local-process pipes",
+      "memoryMaxBytes": 17179869184
+    },
+    "qwen-shares-gpu-reused-buffers.json": {
+      "startedUtc": "2026-11-18T00:45:41Z",
+      "finishedUtc": "2026-11-18T00:46:00Z",
+      "placement": "Same AMD Linux host with an integrated GPU (shared with a separate public inference service), requester on CPU and two GPU provider processes reusing persistent workspace buffers.",
+      "transport": "local-process pipes",
+      "providers": "shares_evaluator_gpu.js through a Node WebGPU binding (Vulkan) with persistent workspace buffers",
+      "memoryMaxBytes": 17179869184,
+      "note": "Source files matched revision 7566d2142."
+    },
+    "qwen-plain-reference-local.json": {
+      "startedUtc": "2026-11-18T03:55:20Z",
+      "finishedUtc": "2026-11-18T03:56:01Z",
+      "placement": "Standalone unshared baseline on the same two-core Linux x86-64 test host used as the requester in qwen-shares-local.json and qwen-shares-network-two-gpu.json.",
+      "transport": "none (in-process FP32 PyTorch and 12-bit quantized integer reference)",
+      "note": "Measures floatReferenceExecutionWallMs (2838.06 ms) and clearQuantizedExecutionWallMs (14632.19 ms) with no secret sharing or provider round-trips, establishing the privacy overhead denominator on that requester host."
+    },
+    "qwen-shares-network-two-gpu.json": {
+      "startedUtc": "2026-11-18T03:57:23Z",
+      "finishedUtc": "2026-11-18T03:59:02Z",
+      "placement": "Three separate physical computers over the mesh network: requester on the two-core Linux x86-64 host, provider A on an Apple Silicon macOS machine (Metal WebGPU), and provider B on an AMD Radeon Windows machine (WebGPU).",
+      "transport": "shares-net-ed25519-chacha20poly1305/v1 (Ed25519 provider authentication over pinned distinct-owner enrollment + ephemeral X25519 + HKDF-SHA256 + ChaCha20-Poly1305 encrypted TCP streams)",
+      "providers": "shares_evaluator_gpu.js through Node WebGPU bindings on both remote GPU hosts",
+      "note": "Distinct enrolled ownerIds (owner-lab-a, owner-lab-b, excluding requester owner-lab-req) and matching shares-manifest.json digests were cryptographically verified per session, while operatorIndependenceAttested was set to false because one human operator controlled all three lab computers."
+    }
+  },
+  "comparisonWithRetainedReceipts": {
+    "checkedHomomorphicEvidence": "../integrity/qwen-ntt12-check-local.json",
+    "sameOutputTokens": true,
+    "outputTokens": [
+      12095,
+      13,
+      1084,
+      374
+    ],
+    "samePlanAndModelIdentity": true,
+    "notMatched": "Different mechanism and guarantee. The homomorphic receipts hide the input from one evaluator under a cryptographic assumption; this route hides it from each of two providers only if they do not collude. Elapsed times are shown side by side, not as a matched benchmark."
+  },
+  "productionBackendAvailable": false,
+  "securityQualified": false,
+  "nonCollusionEstablished": false,
+  "independentCryptographicReview": false,
+  "fullFlashModelExecuted": false,
+  "limitations": [
+    "One public four-token fixture, one run per placement; not a latency distribution or a quality result.",
+    "No provider misbehaved in these runs, so they show completeness and cost, not detection. Detection is exercised by test_shares.py.",
+    "The requester process also loaded the reference model to compare results after the route closed, and computed its own anchors from the public weights; its peak memory therefore says nothing about a requester that holds no weights.",
+    "CPU runs used NumPy (shares_evaluator.py) and GPU runs used WebGPU (shares_evaluator_gpu.js); each linear projection is still one synchronous round-trip (169 per decode step).",
+    "The providers' coefficient files were hashed against the plan's weight identities by the providers themselves (and shares-manifest.json was bound into the signed network transcript in qwen-shares-network-two-gpu.json); the requester relies on its hidden-probe anchors, which in these runs it computed from the same public weights.",
+    "All lab machines had one human operator, so even when distinct enrolled owner identities and Ed25519 keys were enforced (qwen-shares-network-two-gpu.json), operatorIndependenceAttested remained false and the assumption that the two providers do not collude was not exercised.",
+    "Earlier revisions and their fixes (0595f8415, d39b135ba), the GPU evaluator and kernel (7566d2142), and the authenticated encrypted network transport (shares_network.js) received independent automated reviews, but no cryptographer has reviewed any version.",
+    "The fast-host GPU and CPU runs are single runs on a shared host, so small wall-time differences are indicative only."
+  ],
+  "revisionNote": "Initial CPU local and SSH runs used source files byte-identical to 0595f8415.",
+  "supersededReceipts": "Earlier receipts are in repository history: modulo 2^64 at commit 9975f02c5 (137.3 s on one host) and the first prime-field version at 8b73b5991 (42.1 s on one host, 63.1 s with one provider on a second machine). Tokens and zero difference were the same in all of them.",
+  "gpuRevision": "d896b678d",
+  "gpuBufferReuseRevision": "7566d2142"
 }

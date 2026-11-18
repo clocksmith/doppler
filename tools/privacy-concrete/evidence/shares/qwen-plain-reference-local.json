@@ -1,0 +1,55 @@
+{
+  "schema": "doppler.plain-qwen-reference-baseline/v1",
+  "qualified": false,
+  "productionBackendAvailable": false,
+  "encryptedExecution": false,
+  "sharedExecution": false,
+  "planId": "95c1f06bcbc08954a29696412115c0e5794e4fdf4fa930deaabdee905c1677cd",
+  "modelId": "4223289199791c6713ba2c98eb8f9d43a37597b09db0b2c778434dec431a6d24",
+  "linearProjectionCount": 169,
+  "steps": 4,
+  "outputTokens": [
+    12095,
+    13,
+    1084,
+    374
+  ],
+  "outputText": " Paris. It is",
+  "floatOutputTokens": [
+    12095,
+    13,
+    1084,
+    374
+  ],
+  "floatGreedyMatches": [
+    true,
+    true,
+    true,
+    true
+  ],
+  "quantizedVsFloatMaxLogitErrors": [
+    0.29310131072998047,
+    0.37156248092651367,
+    0.2937779426574707,
+    0.13759422302246094
+  ],
+  "floatReferenceStepMs": [
+    1033.6881279945374,
+    378.3289073035121,
+    894.7319169528782,
+    531.3125220127404
+  ],
+  "floatReferenceExecutionWallMs": 2838.061474263668,
+  "floatReferenceCpuSeconds": 8.460749,
+  "clearQuantizedStepMs": [
+    7714.02376703918,
+    2142.654584720731,
+    2379.273624625057,
+    2396.235072053969
+  ],
+  "clearQuantizedExecutionWallMs": 14632.187048438936,
+  "clearQuantizedCpuSeconds": 36.67516000000001,
+  "preparationMs": 19254.216933157295,
+  "peakRssBytes": 4050558976,
+  "publicFixtureId": "qwen05b-capital"
+}

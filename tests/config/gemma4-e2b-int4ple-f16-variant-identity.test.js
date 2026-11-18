@@ -84,7 +84,24 @@ assert.notEqual(
 
 assert.deepEqual(af16Manifest.weightsRef, af16Config.manifest?.weightsRef);
 assert.equal(af16Manifest.weightsRef?.artifactRoot, `../${AF32_MODEL_ID}`);
-assert.match(String(af16Manifest.weightsRef?.manifestDigest), /^sha256:[0-9a-f]{64}$/);
+const af32Pre9523KernelDigests = {
+  embed: 'sha256:18dce4731aa3c3cbde6a969cc54d63de4e545e7dce43204774323b6bfffc5c41',
+  rmsnorm: 'sha256:284d3efb0ad0991fc57ece5f634cbc8a931fcab36f193b2b6832561d4cc79ef1',
+  final_norm_stable: 'sha256:284d3efb0ad0991fc57ece5f634cbc8a931fcab36f193b2b6832561d4cc79ef1',
+  rope: 'sha256:b2da9d396668981dab9794c2973b668279f768994466b083d2105730555e1a5b',
+  attn_decode: 'sha256:91808be35895e921c0fa43fc47bfe8cab69c437c388ab561f595d9dc983f66e1',
+  gelu: 'sha256:7f8900b69de5107e4cf424cac0d4de1539591ece34e977ff30f6f7364460ab34',
+  attn_head256: 'sha256:4ecdc079e322a770350414244cb383d72ae7ffa47ed620c64ff425c93413e97a',
+  sample: 'sha256:7ff3dd675b4737d920e0b3889e15c4fedde8410a353bbc6d4651db76ce69eb9b',
+};
+let preRebindAf32ManifestText = af32ManifestText;
+for (const [id, priorDigest] of Object.entries(af32Pre9523KernelDigests)) {
+  const kernel = af32Manifest.inference?.execution?.kernels?.[id];
+  const expectedCurrent = `sha256:${KERNEL_REF_CONTENT_DIGESTS[`${kernel.kernel}#${kernel.entry}`]}`;
+  assert.equal(kernel?.digest, expectedCurrent);
+  preRebindAf32ManifestText = preRebindAf32ManifestText.replaceAll(kernel.digest, priorDigest);
+}
+assert.equal(af16Manifest.weightsRef?.manifestDigest, hashText(preRebindAf32ManifestText));
 assert.equal(af16Manifest.weightsRef?.shardSetHash, af32Manifest.artifactIdentity?.shardSetHash);
 assert.equal(af16Manifest.artifactIdentity?.conversionConfigDigest, hashJson(retainedConfig));
 assert.equal(af16Manifest.conversion?.conversionConfigDigest, hashJson(retainedConfig));

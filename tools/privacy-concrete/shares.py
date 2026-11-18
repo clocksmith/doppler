@@ -382,3 +382,61 @@ class ShareRoute:
                     singleEvaluatorDetectionLog2=detection_log2(self.policy['checkRounds']),commonDeviationDetectionLog2=COMMON_DEVIATION_LOG2,
                     clientShareMs=self.client_seconds*1000,evaluatorRoundTripMs=self.remote_seconds*1000,
                     sentBytes=[self.a.sent,self.b.sent],receivedBytes=[self.a.received,self.b.received])
+
+
+def transport_label(command,verified_network=False):
+    exe=Path(command[0]).name
+    if exe=='ssh':return 'ssh'
+    if verified_network and any(Path(part).name=='shares_network.js' for part in command[1:3]) and 'connect' in command:
+        return 'shares-net-ed25519-chacha20poly1305/v1'
+    return 'local-process'
+
+
+def parse_evaluator_commands(raw_items):
+    if raw_items is None:return None
+    commands=[json.loads(item) for item in raw_items]
+    if len(commands)!=2 or not all(isinstance(cmd,list) and cmd and all(isinstance(part,str) and part for part in cmd) for cmd in commands):
+        raise ValueError('Exactly two non-empty string-list evaluator commands required')
+    return commands
+
+
+def build_network_commands(enrollment_file,provider_endpoints,plan_id,model_id,manifest_sha256,requester_owner=None,node_binary='node'):
+    if len(provider_endpoints)!=2:raise ValueError('Exactly two --provider-endpoint entries (<computerId>@<host>:<port>) required')
+    enrollment_path=Path(enrollment_file)
+    if enrollment_path.is_symlink() or not enrollment_path.is_file():
+        raise ValueError('Regular non-symlink enrollment file required')
+    enrollment_sha256=hashlib.sha256(enrollment_path.read_bytes()).hexdigest()
+    parsed=[]
+    seen_computers=set()
+    seen_endpoints=set()
+    for item in provider_endpoints:
+        if '@' not in item:raise ValueError(f'Expected <computerId>@<host>:<port>, got {item}')
+        computer_id,endpoint=item.split('@',1)
+        if not computer_id or computer_id.startswith('--') or ':' not in endpoint or endpoint.startswith('--'):
+            raise ValueError(f'Invalid provider endpoint {item}')
+        norm_endpoint=endpoint.strip().lower()
+        if computer_id in seen_computers:raise ValueError(f'Duplicate provider computerId: {computer_id}')
+        if norm_endpoint in seen_endpoints:raise ValueError(f'Duplicate provider endpoint: {endpoint}')
+        seen_computers.add(computer_id);seen_endpoints.add(norm_endpoint)
+        parsed.append((computer_id,endpoint.strip()))
+    if requester_owner is not None and (not requester_owner.strip() or requester_owner.startswith('--')):
+        raise ValueError('Invalid --requester-owner')
+    script=str(Path(__file__).with_name('shares_network.js'))
+    verify_cmd=[node_binary,script,'verify-enrollment','--enrollment',str(enrollment_path),
+                '--enrollment-sha256',enrollment_sha256,
+                '--provider-a',parsed[0][0],'--provider-b',parsed[1][0]]
+    if requester_owner is not None:verify_cmd.extend(['--requester-owner',requester_owner])
+    checked=subprocess.run(verify_cmd,capture_output=True,text=True,timeout=15,check=False)
+    if checked.returncode!=0:
+        raise ValueError(checked.stderr.strip() or 'Provider enrollment verification failed')
+    verification=json.loads(checked.stdout)
+    peer_ids=[parsed[1][0],parsed[0][0]]
+    commands=[]
+    for (computer_id,endpoint),peer_id,role in zip(parsed,peer_ids,'ab'):
+        cmd=[node_binary,script,'connect','--endpoint',endpoint,'--enrollment',str(enrollment_path),
+             '--enrollment-sha256',enrollment_sha256,'--computer-id',computer_id,'--peer-computer-id',peer_id,
+             '--role',role,'--plan-id',plan_id,'--model-id',model_id,
+             '--policy-id',POLICY_ID,'--manifest-sha256',manifest_sha256]
+        if requester_owner is not None:cmd.extend(['--requester-owner',requester_owner])
+        commands.append(cmd)
+    return commands,verification
