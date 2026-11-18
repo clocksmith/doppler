@@ -44,7 +44,12 @@ def publish(directory,projections):
 
 
 def run_plain_baseline(model_dir,cache_dir,prompt,cancelled=None):
-    """Standalone unshared reference execution on the same fixture: both FP32 PyTorch and 12-bit quantized integer."""
+    """Standalone unshared FP32 and 12-bit quantized execution on the same fixture.
+
+    Per-step error and greedy-match entries are null once prior-token histories
+    differ. Null means incomparable inputs, not failed inference; independently
+    generated tokens and timings remain available for both runs.
+    """
     settings,_,_,_=qwen_backend(PREPARATION_PROFILE)
     started=time.perf_counter()
     model,tokenizer,_,projections,plan=prepare(model_dir,cache_dir,PREPARATION_PROFILE,cancelled=cancelled)
@@ -68,14 +73,21 @@ def run_plain_baseline(model_dir,cache_dir,prompt,cancelled=None):
                 logits_list.append(logits.detach().clone())
             results[mode]=dict(stepMs=step_ms,executionWallMs=sum(step_ms),cpuSeconds=cpu_seconds(resource.RUSAGE_SELF)-cpu_before,
                                outputTokens=seq[original_count:],outputText=tokenizer.decode(seq[original_count:]),logits=logits_list)
-    quant_vs_float_errors=[float((q-f).abs().max()) for q,f in zip(results['clear-reference']['logits'],results['float-reference']['logits'])]
-    float_matches=[int(q.argmax())==int(f.argmax()) for q,f in zip(results['clear-reference']['logits'],results['float-reference']['logits'])]
+    # Independent greedy runs measure standalone latency. Their logits are only
+    # comparable while the entire input histories match, not merely the latest token.
+    quant_tokens=results['clear-reference']['outputTokens']
+    float_tokens=results['float-reference']['outputTokens']
+    comparable=[quant_tokens[:step]==float_tokens[:step] for step in range(settings['steps'])]
+    pairs=zip(results['clear-reference']['logits'],results['float-reference']['logits'])
+    quant_vs_float_errors=[float((q-f).abs().max()) if same else None for same,(q,f) in zip(comparable,pairs)]
+    float_matches=[q==f if same else None for same,q,f in zip(comparable,quant_tokens,float_tokens)]
     return dict(schema='doppler.plain-qwen-reference-baseline/v1',qualified=False,productionBackendAvailable=False,
                 encryptedExecution=False,sharedExecution=False,planId=plan.identity,modelId=plan.definition()['modelId'],
                 linearProjectionCount=len(projections),steps=settings['steps'],
                 outputTokens=results['clear-reference']['outputTokens'],outputText=results['clear-reference']['outputText'],
                 floatOutputTokens=results['float-reference']['outputTokens'],floatGreedyMatches=float_matches,
                 quantizedVsFloatMaxLogitErrors=quant_vs_float_errors,
+                referenceInputHistoriesMatch=comparable,
                 floatReferenceStepMs=results['float-reference']['stepMs'],
                 floatReferenceExecutionWallMs=results['float-reference']['executionWallMs'],
                 floatReferenceCpuSeconds=results['float-reference']['cpuSeconds'],
