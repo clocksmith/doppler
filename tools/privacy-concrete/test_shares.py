@@ -374,9 +374,13 @@ class SharesTest(unittest.TestCase):
         with tempfile.TemporaryDirectory() as directory:
             weights,anchors,command=self.flight_directory(directory)
             calls,_=self.flight_calls(weights)
-            for zeros,code in ((False,'execution-failed'),(True,'integrity-check-failed')):
+            # The honest provider is also tried slow to start, so its first answer arrives well after the other has
+            # answered wrongly and left; the wrong answer must still be judged.
+            evaluator=str(Path(shares.__file__).with_name('shares_evaluator.py'))
+            slow=[sys.executable,'-c','import runpy,sys,time\ntime.sleep(1.5)\nsys.argv=[%r,"--cache-dir",%r]\nrunpy.run_path(%r,run_name="__main__")\n'%(evaluator,str(directory),evaluator)]
+            for honest,zeros,code in ((command,False,'execution-failed'),(command,True,'integrity-check-failed'),(slow,True,'integrity-check-failed')):
                 quitter=[sys.executable,'-c',self.flight_quitter(zeros),str(directory)]
-                route=shares.ShareRoute((shares.ProcessEvaluator(command,'a'),shares.ProcessEvaluator(quitter,'b')),SEED,anchors)
+                route=shares.ShareRoute((shares.ProcessEvaluator(honest,'a'),shares.ProcessEvaluator(quitter,'b')),SEED,anchors)
                 try:
                     began=time.monotonic()
                     with self.assertRaises(ExecutionRejected) as caught:route.linear_many(calls[:3])
@@ -386,6 +390,63 @@ class SharesTest(unittest.TestCase):
                     with self.assertRaises(ExecutionRejected):route.linear(*calls[0])
                 finally:
                     route.close()
+
+    STALLED=[sys.executable,'-c','import sys\nsys.stdin.buffer.read()\n']
+
+    def test_a_flight_ends_at_once_when_one_provider_leaves_and_the_other_stalls(self):
+        with tempfile.TemporaryDirectory() as directory:
+            weights,anchors,_=self.flight_directory(directory)
+            calls,_=self.flight_calls(weights)
+            for zeros,code in ((False,'execution-failed'),(True,'execution-failed')):
+                quitter=[sys.executable,'-c',self.flight_quitter(zeros),str(directory)]
+                # The operation watchdog is set far beyond the assertion, so only an immediate abort can pass.
+                route=shares.ShareRoute((shares.ProcessEvaluator(self.STALLED,'a',timeout=120),shares.ProcessEvaluator(quitter,'b',timeout=120)),SEED,anchors)
+                try:
+                    began=time.monotonic()
+                    with self.assertRaises(ExecutionRejected) as caught:route.linear_many(calls[:3])
+                    self.assertEqual(caught.exception.code,code)
+                    self.assertLess(time.monotonic()-began,15)
+                finally:
+                    route.close()
+
+    def test_cancelling_or_timing_out_a_stalled_flight_is_prompt_and_keeps_an_earlier_caught_failure(self):
+        with tempfile.TemporaryDirectory() as honest,tempfile.TemporaryDirectory() as dishonest:
+            weights,anchors,command=self.flight_directory(honest)
+            _,_,other=self.flight_directory(dishonest,changed='k')
+            calls,_=self.flight_calls(weights)
+            # Cancelled while both providers stall.
+            cancelled=threading.Event()
+            route=shares.ShareRoute((shares.ProcessEvaluator(self.STALLED,'a',timeout=120),shares.ProcessEvaluator(self.STALLED,'b',timeout=120)),SEED,anchors,cancelled=cancelled)
+            threading.Timer(0.5,cancelled.set).start()
+            try:
+                began=time.monotonic()
+                with self.assertRaises(ExecutionRejected) as caught:route.linear_many(calls[:3])
+                self.assertEqual(caught.exception.code,'cancelled')
+                self.assertLess(time.monotonic()-began,15)
+            finally:
+                route.close()
+            # The attempt deadline passes while both providers stall.
+            route=shares.ShareRoute((shares.ProcessEvaluator(self.STALLED,'a',timeout=120),shares.ProcessEvaluator(self.STALLED,'b',timeout=120)),SEED,anchors)
+            route.began=time.monotonic()-shares.POLICY['attemptTimeoutSeconds']+1
+            try:
+                began=time.monotonic()
+                with self.assertRaises(ExecutionRejected) as caught:route.linear_many(calls[:3])
+                self.assertEqual(caught.exception.code,'deadline-exceeded')
+                self.assertLess(time.monotonic()-began,15)
+            finally:
+                route.close()
+            # A failure caught in a completed flight is what gets reported, even if the next flight is cancelled.
+            cancelled=threading.Event()
+            route=shares.ShareRoute((shares.ProcessEvaluator(command,'a',timeout=120),shares.ProcessEvaluator(other,'b',timeout=120)),SEED,anchors,cancelled=cancelled)
+            try:
+                route.linear_many(calls[:3])
+                self.assertTrue(route.integrity_failed())
+                cancelled.set()
+                with self.assertRaises(ExecutionRejected) as caught:route.linear_many(calls[:3])
+                self.assertEqual(caught.exception.code,'integrity-check-failed')
+            finally:
+                route.close()
+            with self.assertRaises(ExecutionRejected):route.require_integrity()
 
     def test_flight_partners_are_same_block_projections_that_read_one_tensor(self):
         block=lambda index:[f'model.layers.{index}.self_attn.{leaf}' for leaf in ('q_proj','k_proj','v_proj','o_proj')]+[

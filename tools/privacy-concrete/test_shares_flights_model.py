@@ -24,8 +24,11 @@ def load_full_model():
     sys.modules['concrete.ml.quantization.linear_op_glwe_backend'].GLWELinearLayerExecutor=object
     try:
         return importlib.import_module('full_model')
-    except Exception as error:
-        raise unittest.SkipTest(f'full_model needs more than the stand-in provides: {error}')
+    except ModuleNotFoundError as error:
+        # Only a missing optional package is a reason to skip; any other import failure is a defect and must fail.
+        if error.name and error.name.split('.')[0] in ('transformers','torch','numpy'):
+            raise unittest.SkipTest(f'full_model needs the optional package {error.name}')
+        raise
     finally:
         for name in added:sys.modules.pop(name,None)
 
@@ -98,6 +101,20 @@ class GroupedFlightProjectionTest(unittest.TestCase):
         self.assertTrue(torch.equal(got,want))
         self.assertEqual(self.route.singles,[k.name])
         self.assertIsNone(k.flight_answer)
+
+    def test_an_answer_is_not_used_after_the_tensor_changed_in_place_or_the_route_was_rebound(self):
+        for change in ('mutate','rebind'):
+            self.route.singles.clear();self.route.flights.clear()
+            q,k,v,_=(self.projection(name) for name in self.names)
+            q.flight_partners=[k,v]
+            value=self.value.clone()
+            q(value)
+            if change=='mutate':value.add_(1)
+            else:k.shares=Route(self.weights)
+            got=k(value)
+            want=torch.from_numpy(value.reshape(-1,6).numpy().astype(np.int64)@self.weights[k.name]).to(torch.float64).view(1,3,4)
+            self.assertTrue(torch.equal(got,want),change)
+            self.assertEqual((k.shares.singles if change=='rebind' else self.route.singles),[k.name],change)
 
     def test_a_partner_outside_the_route_or_with_another_input_width_is_left_out(self):
         q,k,v,_=(self.projection(name) for name in self.names)

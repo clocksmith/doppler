@@ -109,7 +109,7 @@ class FullLinear(nn.Module):
         prepared=[(partner,)+tuple(partner.executor._dynamic_input_quantization(value,partner.context,False)) for partner in partners]
         answers=route.linear_many([call(self,q_input)]+[call(row[0],row[1]) for row in prepared])
         for (partner,quantized,scale,zero,shape),answer in zip(prepared,answers[1:]):
-            partner.flight_answer=(value,quantized,scale,zero,shape,torch.from_numpy(answer))
+            partner.flight_answer=(value,value._version,route,quantized,scale,zero,shape,torch.from_numpy(answer))
         return torch.from_numpy(answers[0])
 
     def forward(self,value):
@@ -119,10 +119,12 @@ class FullLinear(nn.Module):
         if self.mode not in ['clear-reference','execute','shared'] or not torch.isfinite(value).all() or value.shape[-1] != self.definition['inputWidth']:
             raise ValueError('Unsupported full-model projection execution')
         held=getattr(self,'flight_answer',None);self.flight_answer=None
-        if self.mode == 'shared' and held is not None and held[0] is value:
-            # A partner already sent this projection in its flight for this very tensor: use that answer with
-            # the quantization it was built from, so the input is quantized exactly once either way.
-            _, q_input, scale, zero, original_shape, raw = held
+        if (self.mode == 'shared' and held is not None and held[0] is value and held[1] == value._version
+                and held[2] is getattr(self,'shares',None)):
+            # A partner already sent this projection in its flight for this very tensor, unmodified since, on
+            # this same route: use that answer with the quantization it was built from, so the input is
+            # quantized exactly once either way.
+            _, _, _, q_input, scale, zero, original_shape, raw = held
         else:
             held=None
             q_input, scale, zero, original_shape = self.executor._dynamic_input_quantization(value,self.context,False)

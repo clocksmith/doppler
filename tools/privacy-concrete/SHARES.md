@@ -137,7 +137,11 @@ such a group in one flight, so a block costs 4 round trips and not 7, and a step
   byte counts are identical with and without grouping. What changes for them is timing: a group arrives together.
 - A member that fails its check is replaced by zeros and the others stand. If a provider leaves in the middle of a
   flight, every projection both providers did answer is still checked first, so a provider that was caught cannot
-  turn that into a transport error.
+  turn that into a transport error. To make that hold, the surviving provider is not ended at once: it gets up to
+  five seconds to deliver the answers the failed one had already delivered, and is then ended. A stalled survivor
+  therefore delays the report by at most five seconds, not by the 900-second operation limit.
+- A failure that was already caught is what the attempt reports even if the requester then cancels. This also changed
+  the single-call path, which used to report `cancelled` in that case.
 - A writer thread sends while the caller reads, so a flight larger than the pipe buffers cannot stall.
 - It is off by default. `shares_model.py --group-flights` turns it on and the receipt records `groupedFlights` and
   `sharedFlights`. The run compares its logits with the clear reference after closing, as every run does.
@@ -241,6 +245,14 @@ receipts are in this repository's history at commits `9975f02c5` and `8b73b5991`
 
 ## Review record
 
+- 2026-11-18, independent automated review of grouped flights at `858652abf` (a Codex session). No wrong result
+  accepted. Three findings, all addressed: a one-sided disconnect beside a stalled provider waited for the watchdog
+  (now a five-second bounded grace, see above); the held answer in the projection module was keyed on tensor identity
+  alone (now also on the tensor's version and the route); and the stand-in test skipped on any import failure (now
+  only on a missing optional package). Writing the tests the review asked for exposed two more: a caught failure was
+  reported as `cancelled` after a later cancellation, and ending the surviving provider immediately could discard a
+  wrong answer before it was judged, which showed up as a one-in-thirty test failure on Linux. Both are fixed and
+  tested. The fixes have not themselves been re-reviewed.
 - 2026-11-18, grouped flights added behind `--group-flights`: 23 CPU route tests and 3 projection-module tests
   pass on macOS and on the AMD Linux host; the Qwen fixture matches the clear reference exactly with grouping on.
   No independent review yet and no network run.

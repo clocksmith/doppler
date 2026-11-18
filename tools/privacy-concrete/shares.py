@@ -319,7 +319,9 @@ class ShareRoute:
 
     def check_active(self):
         if self.closed:raise ExecutionRejected('contract-rejected')
-        if self.cancelled is not None and self.cancelled.is_set():raise ExecutionRejected('cancelled')
+        # A failure that was already caught is what the attempt reports, whatever ends it afterwards.
+        if self.cancelled is not None and self.cancelled.is_set():
+            raise ExecutionRejected('integrity-check-failed' if self.failure is not None else 'cancelled')
         if self.began is not None and time.monotonic()-self.began>self.policy['attemptTimeoutSeconds']:
             self.closed=True;raise ExecutionRejected('integrity-check-failed' if self.failure is not None else 'deadline-exceeded')
 
@@ -397,7 +399,32 @@ class ShareRoute:
         built=[build_queries(inputs,probe(self.probe_seed,name,inputs.shape[1]),rounds,self.rng) for name,inputs,_,_ in calls]
         ready=time.perf_counter()
 
-        def flight(evaluator,side,answers,errors):
+        answers_a,answers_b,errors=[],[],[]
+        sides=((self.a,answers_a),(self.b,answers_b))
+        reaping=threading.Event()
+
+        def abort(side,error):
+            # A failure on one side ends that provider now and the other one shortly after. The other side is
+            # first given a bounded grace to deliver the answers this side already delivered, so that every
+            # projection both providers answered can still be checked: a provider that answered wrongly and then
+            # left is reported as caught, not as a transport error. Without the bound, a stalled other side would
+            # hold the attempt until its own watchdog deadline.
+            errors.append(error)
+            failed,delivered=sides[side]
+            failed.failed=True;failed._kill()
+            if reaping.is_set():return
+            reaping.set()
+            other,received=sides[1-side]
+            def reap():
+                end=min(time.monotonic()+FLIGHT_GRACE_SECONDS,deadline)
+                while (len(received)<len(delivered) and time.monotonic()<end
+                       and not (self.cancelled is not None and self.cancelled.is_set())):
+                    time.sleep(0.01)
+                other.failed=True;other._kill()
+            threading.Thread(target=reap,daemon=True).start()
+
+        def flight(side):
+            evaluator,answers=sides[side]
             # A writer thread sends while this thread reads, so neither pipe can fill and stall the other.
             queries=[(call[0],pair[side],call[2]) for call,pair in zip(calls,built)]
             first=evaluator.sequence+1
@@ -405,19 +432,18 @@ class ShareRoute:
                 try:
                     for name,rows,_ in queries:
                         self.check_active();evaluator.send(name,rows)
-                except BaseException as error:errors.append(error)
+                except BaseException as error:abort(side,error)
             writer=threading.Thread(target=write,daemon=True);writer.start()
             try:
                 for index,(_,rows,width) in enumerate(queries):
                     self.check_active();answers.append(evaluator.receive(rows.shape[0],width,first+index))
             except BaseException as error:
-                errors.append(error);evaluator.failed=True;evaluator._kill()
+                abort(side,error)
             finally:
                 writer.join()
 
-        answers_a,answers_b,errors=[],[],[]
-        other=threading.Thread(target=flight,args=(self.b,1,answers_b,errors),daemon=True);other.start()
-        flight(self.a,0,answers_a,errors);other.join()
+        other=threading.Thread(target=flight,args=(1,),daemon=True);other.start()
+        flight(0);other.join()
         def judge(index):
             name,inputs,output_width,quantization_bits=calls[index]
             return combine(answers_a[index],answers_b[index],built[index][2],self.anchors[name],product_bound(inputs.shape[1],quantization_bits))
@@ -428,9 +454,9 @@ class ShareRoute:
             # projection both providers did answer is still checked before the attempt is reported.
             for index in range(min(len(answers_a),len(answers_b))):
                 if not judge(index)[1]:self.failure=self.failure or 'check'
+            # The first error is the cause; later ones are the other side being ended because of it.
             reason='execution-failed'
-            rejected=[item for item in errors if isinstance(item,ExecutionRejected)]
-            if rejected:reason=rejected[0].code
+            if isinstance(error,ExecutionRejected):reason=error.code
             elif self.cancelled is not None and self.cancelled.is_set():reason='cancelled'
             elif time.monotonic()>=deadline:reason='deadline-exceeded'
             for evaluator in (self.a,self.b):evaluator.failed=True
@@ -469,6 +495,10 @@ class ShareRoute:
                     clientShareMs=self.client_seconds*1000,evaluatorRoundTripMs=self.remote_seconds*1000,
                     sentBytes=[self.a.sent,self.b.sent],receivedBytes=[self.a.received,self.b.received])
 
+
+# After one provider fails inside a flight, how long the other may take to deliver the answers the first already
+# delivered before it is ended too.
+FLIGHT_GRACE_SECONDS=5
 
 # Projections of one block that read the same tensor and do not feed one another, so they may share a flight.
 FLIGHT_GROUPS=(('q_proj','k_proj','v_proj'),('gate_proj','up_proj'))
