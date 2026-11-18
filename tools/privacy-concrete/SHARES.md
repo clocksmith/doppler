@@ -126,7 +126,7 @@ and probe seed are unpredictable and stay secret. **S3** the requester's anchors
   across calls, but each linear layer still executes as a synchronous GPU submit and readback fence (`169` calls per
   decode step), which dominates on small matrices.
 
-## Grouped flights (opt-in, not yet measured on the model)
+## Grouped flights (opt-in; correct on the model, no network timing yet)
 
 A decode step makes 169 projection calls, and each is one network round trip per provider. Across three machines
 that is where the 6.4 to 6.9 s per step goes. Some of those calls do not depend on one another: a block's query, key
@@ -143,8 +143,15 @@ such a group in one flight, so a block costs 4 round trips and not 7, and a step
   `sharedFlights`. The run compares its logits with the clear reference after closing, as every run does.
 - Tested: the route against real provider processes ([test_shares.py](test_shares.py)) and the projection module's
   control flow with a stand-in for the quantizer ([test_shares_flights_model.py](test_shares_flights_model.py)).
-  Not yet run on the Qwen fixture, on GPU providers, or over the network transport, so there is no timing for it.
-  It has not had the independent review the rest of the route has had.
+- Measured on the Qwen fixture, one host, two CPU providers, 2026-11-18: the grouped run gives the same four tokens
+  with zero logit difference and byte-for-byte the same traffic (65,152,252 bytes sent and 120,415,092 received per
+  provider) in 388 flights instead of 676. It is not faster there: 5.15 s separate
+  ([receipt](evidence/shares/qwen-shares-flights-separate-fast-host.json)) against 5.23 s grouped
+  ([receipt](evidence/shares/qwen-shares-flights-grouped-fast-host.json)), and 5.24 s against 5.13 s on a second
+  pair. On one host a round trip costs almost nothing, so this shows correctness and no regression, not a gain.
+- Not yet run over the network transport or on GPU providers, which is where the round trips cost time. Until that
+  run exists there is no evidence that grouping makes a step faster. It has not had the independent review the rest
+  of the route has had.
 
 ## GPU evaluator
 
@@ -235,7 +242,8 @@ receipts are in this repository's history at commits `9975f02c5` and `8b73b5991`
 ## Review record
 
 - 2026-11-18, grouped flights added behind `--group-flights`: 23 CPU route tests and 3 projection-module tests
-  pass on macOS. No independent review yet and no model run.
+  pass on macOS and on the AMD Linux host; the Qwen fixture matches the clear reference exactly with grouping on.
+  No independent review yet and no network run.
 - 2026-11-17, automated tests: 18 CPU pass ([test_shares.py](test_shares.py)), 5 GPU pass
   ([test_shares_gpu.py](test_shares_gpu.py), run on both Metal and Vulkan WebGPU bindings), and 4 network/enrollment
   pass ([test_shares_network.py](test_shares_network.py), covering prime-order Ed25519 subgroup validation, distinct-owner

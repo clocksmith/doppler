@@ -29,6 +29,14 @@
     {
       "file": "qwen-shares-network-two-gpu.json",
       "sha256": "a993acdfcbf28da7838fe5e7acd15073cc12b9f17557575e96d00b0c92d61d28"
+    },
+    {
+      "file": "qwen-shares-flights-separate-fast-host.json",
+      "sha256": "01219be689ff0a3ab1f8bb14569482fb1c8fc7485f5f628eceafa16a69a10ffa"
+    },
+    {
+      "file": "qwen-shares-flights-grouped-fast-host.json",
+      "sha256": "b77baa0169ce5a8902f4ed72775838674f78fcdb1c538e6389c71cd3384f2646"
     }
   ],
   "fixtureId": "qwen05b-capital",
@@ -108,6 +116,20 @@
       "transport": "shares-net-ed25519-chacha20poly1305/v1 (Ed25519 provider authentication over pinned distinct-owner enrollment + ephemeral X25519 + HKDF-SHA256 + ChaCha20-Poly1305 encrypted TCP streams)",
       "providers": "shares_evaluator_gpu.js through Node WebGPU bindings on both remote GPU hosts",
       "note": "Distinct enrolled ownerIds (owner-lab-a, owner-lab-b, excluding requester owner-lab-req) and matching shares-manifest.json digests were cryptographically verified per session, while operatorIndependenceAttested was set to false because one human operator controlled all three lab computers."
+    },
+    "qwen-shares-flights-separate-fast-host.json": {
+      "startedUtc": "2026-11-18T13:46:00Z",
+      "finishedUtc": "2026-11-18T13:48:00Z",
+      "placement": "Fast AMD Linux host, requester and two CPU provider processes, grouped flights off (control for the grouped run, same code revision).",
+      "transport": "local-process pipes",
+      "codeRevision": "858652abf"
+    },
+    "qwen-shares-flights-grouped-fast-host.json": {
+      "startedUtc": "2026-11-18T13:46:00Z",
+      "finishedUtc": "2026-11-18T13:48:00Z",
+      "placement": "Same host and processes, run immediately after the control, with --group-flights (388 flights for 676 projection calls).",
+      "transport": "local-process pipes",
+      "codeRevision": "858652abf"
     }
   },
   "comparisonWithRetainedReceipts": {
@@ -135,10 +157,12 @@
     "The providers' coefficient files were hashed against the plan's weight identities by the providers themselves (and shares-manifest.json was bound into the signed network transcript in qwen-shares-network-two-gpu.json); the requester relies on its hidden-probe anchors, which in these runs it computed from the same public weights.",
     "All lab machines had one human operator, so even when distinct enrolled owner identities and Ed25519 keys were enforced (qwen-shares-network-two-gpu.json), operatorIndependenceAttested remained false and the assumption that the two providers do not collude was not exercised.",
     "Earlier revisions and their fixes (0595f8415, d39b135ba), the GPU evaluator and kernel (7566d2142), and the authenticated encrypted network transport (shares_network.js) received independent automated reviews, but no cryptographer has reviewed any version.",
-    "The fast-host GPU and CPU runs are single runs on a shared host, so small wall-time differences are indicative only."
+    "The fast-host GPU and CPU runs are single runs on a shared host, so small wall-time differences are indicative only.",
+    "Grouped flights were measured on one host only, where a round trip costs almost nothing; a second pair run straight after gave 5.24 s separate and 5.13 s grouped. No network measurement of grouped flights exists yet."
   ],
   "revisionNote": "Initial CPU local and SSH runs used source files byte-identical to 0595f8415.",
   "supersededReceipts": "Earlier receipts are in repository history: modulo 2^64 at commit 9975f02c5 (137.3 s on one host) and the first prime-field version at 8b73b5991 (42.1 s on one host, 63.1 s with one provider on a second machine). Tokens and zero difference were the same in all of them.",
   "gpuRevision": "d896b678d",
-  "gpuBufferReuseRevision": "7566d2142"
+  "gpuBufferReuseRevision": "7566d2142",
+  "groupedFlightsRevision": "858652abf"
 }
