@@ -141,8 +141,19 @@ the kernel makes two of its tests fail.
 
 ## Measured
 
-Two retained runs of the pinned small-Qwen fixture (four output tokens, eight prefill rows, 169 linear layers per
-step), with their [context](evidence/shares/qwen-shares-context.json):
+Five retained runs of the pinned small-Qwen fixture (`qwen05b-capital`, four output tokens, eight prefill rows, 169
+linear layers per step, 676 projection calls), indexed with SHA-256 digests in
+[qwen-shares-context.json](evidence/shares/qwen-shares-context.json):
+
+| Receipt | Placement and provider runtime | Total wall | Step 1 / decode steps 2-4 | Provider round-trip | Client share math | Max logit error |
+| --- | --- | --- | --- | --- | --- | --- |
+| [qwen-shares-local.json](evidence/shares/qwen-shares-local.json) | One two-core Linux host, 2 CPU providers | 42.42 s | 22.27 s / 6.42-7.05 s | 26.71 s | 5.63 s | 0.0 |
+| [qwen-shares-three-machine.json](evidence/shares/qwen-shares-three-machine.json) | Three machines over SSH pipes, 2 CPU providers | 163.93 s | 108.79 s / 16.08-20.14 s | 153.46 s | 3.06 s | 0.0 |
+| [qwen-shares-cpu-fast-host.json](evidence/shares/qwen-shares-cpu-fast-host.json) | Fast AMD Linux host, 2 CPU providers (warm file cache) | 5.28 s | 2.56 s / 0.89-0.91 s | 3.61 s | 1.31 s | 0.0 |
+| [qwen-shares-gpu-one-host.json](evidence/shares/qwen-shares-gpu-one-host.json) | Same AMD Linux host, 2 WebGPU (Vulkan) providers, per-call buffers | 7.67 s | 4.55 s / 1.03-1.05 s | 6.36 s | 1.04 s | 0.0 |
+| [qwen-shares-gpu-reused-buffers.json](evidence/shares/qwen-shares-gpu-reused-buffers.json) | Same AMD Linux host, 2 WebGPU (Vulkan) providers, persistent workspace buffers | 7.50 s | 4.53 s / 0.98-1.00 s | 6.31 s | 0.97 s | 0.0 |
+
+Detailed breakdown of the first two placements:
 
 | | [One host](evidence/shares/qwen-shares-local.json) | [Three machines](evidence/shares/qwen-shares-three-machine.json) |
 | --- | --- | --- |

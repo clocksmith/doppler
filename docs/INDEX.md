@@ -32,6 +32,7 @@ Primary documentation index.
 - [ModelIR v2 and source-truth Rig](model-ir-v2-source-truth-forge.md) — semantics and provenance.
 - [Model promotion](model-promotion-playbook.md) and [registry workflow](registry-workflow.md) — artifact/catalog/hosting synchronization.
 - [Direct-source proof lanes](direct-source-proof-lanes.md) — additional source-format promotion requirements.
+- [Node verified-piece gathering](developer-guides/verified-piece-gather.md) — bounded worker range leases, timing attribution, and optional host-protected piece caching.
 
 ## Integration
 
@@ -97,4 +98,4 @@ Primary documentation index.
 - [Inference Guide](../src/inference/GUIDE.md)
 - [Kernel Tests](../tests/kernels/GUIDE.md)
 
-[Execution backend privacy boundary](execution-privacy-contract.md).
+[Execution backend privacy boundary](execution-privacy-contract.md) and [two-server shares research route](../tools/privacy-concrete/SHARES.md) (research only; production cryptographic admission closed).

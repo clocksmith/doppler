@@ -152,6 +152,26 @@ scratch ownership; active ownership returns to zero before output publication or
 rejection. Scratch becomes unreachable at the request boundary; this remains an
 ownership bound rather than a promise of immediate VM/RSS reclamation.
 
+Hosts on platforms whose GPU page allocator evicts clean filesystem page-cache
+pages during model open can pass an optional explicit `protectedCache` object
+(`{ directory, maxBytes, minHostAvailableBytes, staleAfterMs }`) in `nodeGather`
+or `createVerifiedPieceGather`. `directory` must be an absolute non-symlink path
+owned by the current UID (for example on `tmpfs` `/dev/shm`); `maxBytes` caps
+retained bytes across power-of-two (up to 256) SHA-256 prefix buckets coordinated
+through an atomic `SharedArrayBuffer` ledger. Every read still admits and
+verifies the underlying approved source file descriptor and `(device, inode, size)`
+snapshot before and after acquisition, and every protected-cache hit is still
+hashed with full `SHA-256` against the pinned `pieces.json` digest before
+publication; corrupted cache entries are unlinked and healed from the approved
+source file. Admissions use scan-resistant hash-priority retention among fresh
+entries so sequential layer scans larger than `maxBytes` do not thrash, age out
+untouched entries after `staleAfterMs` (default 90 s), and pause when Linux
+`/proc/meminfo` `MemAvailable` would dip below `minHostAvailableBytes`.
+`rangeLease.protectedCacheBound` reports active binding, and `getGatherReceipt()`
+exposes `protectedCacheHits`, `protectedCacheHitBytes`, `protectedCacheMisses`,
+`protectedCacheAdmissions`, `protectedCacheAdmittedBytes`, `protectedCacheEvictions`,
+`protectedCacheEvictedBytes` and `protectedCacheSkips`.
+
 For explicit boundary attribution, `model.advanced.getExpertLoadingStats()` and
 the optional resident `getExpertLoadingStats()` return detached CPU snapshots of
 the owning loader's cache and routing-readback counters. Ordinary `getStats()` and
