@@ -152,24 +152,60 @@ export async function createVerifiedPieceGather(options) {
   let closed = false, collecting = false;
   /** @type {Promise<void> | null} */
   let closing = null;
+  // Background verification waits for a lane instead of failing. A foreground read keeps its contract
+  // (more concurrent reads than lanes is the caller's error) and waits only when a lane is held by a
+  // background job, which it is served ahead of.
+  /** @typedef {{ reader: Awaited<ReturnType<typeof createVerifiedPieceGatherLane>>, busy: boolean, background?: boolean }} Lane */
+  /** @type {Array<{ resolve: (lane: Lane) => void, reject: (error: unknown) => void, background: boolean }>} */
+  const waiters = [];
+  /** @param {Lane} lane */
+  const releaseLane = lane => {
+    let next = collecting ? -1 : waiters.findIndex(waiter => !waiter.background);
+    if (next < 0 && !collecting && waiters.length) next = 0;
+    if (next < 0) { lane.busy = false; lane.background = false; return; }
+    const [waiter] = waiters.splice(next, 1);
+    lane.background = waiter.background;
+    waiter.resolve(lane);
+  };
+  /** @param {AbortSignal | undefined} signal @param {boolean} background @returns {Lane | Promise<Lane>} */
+  const acquireLane = (signal, background) => {
+    /** @type {Lane | undefined} */
+    const lane = collecting ? undefined : lanes.find(candidate => !candidate.busy);
+    if (lane) { lane.busy = true; lane.background = background; return lane; }
+    if (!background && !lanes.some(/** @param {Lane} candidate */ candidate => candidate.background === true)) {
+      throw new Error('Release a current gather lease before another read.');
+    }
+    return new Promise((resolve, reject) => {
+      /** @param {Lane} acquired */
+      const settle = acquired => { signal?.removeEventListener('abort', abort); resolve(acquired); };
+      const waiter = { background, reject, resolve: settle };
+      const abort = () => {
+        const at = waiters.indexOf(waiter);
+        if (at >= 0) { waiters.splice(at, 1); reject(signal?.reason); }
+      };
+      signal?.addEventListener('abort', abort, { once: true });
+      waiters.push(waiter);
+    });
+  };
   /** @param {(reader: Awaited<ReturnType<typeof createVerifiedPieceGatherLane>>) => Promise<import('./verified-piece-gather.js').VerifiedRangeLease>} open
-   * @param {AbortSignal | undefined} signal */
-  const read = async (open, signal) => {
+   * @param {AbortSignal | undefined} signal @param {boolean} [background] */
+  const read = async (open, signal, background = false) => {
     signal?.throwIfAborted();
     if (closed) throw new Error('Gather reader closed.');
-    const lane = collecting ? null : lanes.find(candidate => !candidate.busy);
-    if (!lane) throw new Error('Release a current gather lease before another read.');
-    lane.busy = true;
+    // A free lane is taken without yielding, so the job is posted in the caller's own turn as before.
+    const acquired = acquireLane(signal, background);
+    const lane = acquired instanceof Promise ? await acquired : acquired;
     try {
+      if (closed) throw new Error('Gather reader closed.');
       const owned = await open(lane.reader);
       if (closed) { owned.release(); throw new Error('Gather reader closed.'); }
       let released = false;
       return Object.freeze({ bytes: owned.bytes, ...(owned.timings === undefined ? {} : { timings: owned.timings }), release() {
         if (released) return;
         released = true;
-        try { owned.release(); } finally { lane.busy = false; }
+        try { owned.release(); } finally { releaseLane(lane); }
       } });
-    } catch (error) { lane.busy = false; throw error; }
+    } catch (error) { releaseLane(lane); throw error; }
   };
   /** @type {Pick<Awaited<ReturnType<import('./verified-piece-gather.js').createVerifiedPieceGather>>, 'readLease' | 'readManyLease' | 'getReceipt' | 'close'>} */
   const result = {
@@ -198,14 +234,20 @@ export async function createVerifiedPieceGather(options) {
         if (direct) {
           // Bytes served from already verified pieces without a lane; not part of ranges or verifiedBytes.
           const served = direct.getStats();
-          Object.assign(merged, { directVerifiedReads: served.reads, directVerifiedBytes: served.bytes, directDeclinedReads: served.declined });
+          Object.assign(merged, { directVerifiedReads: served.reads, directVerifiedBytes: served.bytes, directDeclinedReads: served.declined,
+            directAheadReads: served.aheadReads, directAheadBytes: served.aheadBytes, directAheadConfirmed: served.aheadConfirmed });
         }
         return merged;
-      } finally { collecting = false; }
+      } finally {
+        collecting = false;
+        // Background jobs that arrived meanwhile take the lanes that are free now.
+        for (const lane of lanes) if (!lane.busy && waiters.length) { lane.busy = true; releaseLane(lane); }
+      }
     },
     close() {
       if (!closing) {
         closed = true;
+        for (const waiter of waiters.splice(0)) waiter.reject(new Error('Gather reader closed.'));
         const operation = (async () => {
           const outcomes = await Promise.allSettled([...lanes.map(async lane => lane.reader.close()),
             ...(direct ? [direct.close()] : [])]);
@@ -236,6 +278,14 @@ export async function createVerifiedPieceGather(options) {
       if (!file) return Promise.reject(new Error('Undeclared gather shard.'));
       if (closed) return Promise.reject(new Error('Gather reader closed.'));
       return direct.readInto(file.filename, offset, destination, signal);
+    }, readAheadInto(shard, offset, destination, signal) {
+      const file = manifest.shards[shard];
+      if (!file) return Promise.reject(new Error('Undeclared gather shard.'));
+      if (closed) return Promise.reject(new Error('Gather reader closed.'));
+      return direct.readAheadInto(file.filename, offset, destination, signal);
+    }, hasVerified(shard, offset, length) {
+      const file = manifest.shards[shard];
+      return !!file && !closed && direct.isVerified(file.filename, offset, length);
     } } : {}),
     readMany(ranges, signal) {
       if (!Array.isArray(ranges) || ranges.length < 1 || ranges.length > maxRanges) return Promise.reject(new Error('Gather batch exceeds its admitted ranges bound.'));
@@ -246,6 +296,20 @@ export async function createVerifiedPieceGather(options) {
         selected.push({ path: file.filename, offset: range.offset, length: range.length });
       }
       return result.readManyLease(selected, signal);
+    },
+    async verifyMany(ranges, signal) {
+      if (!Array.isArray(ranges) || ranges.length < 1 || ranges.length > maxRanges) throw new Error('Gather batch exceeds its admitted ranges bound.');
+      /** @type {Array<{ path: string, offset: number, length: number }>} */
+      const selected = [];
+      for (const range of ranges) {
+        const file = Number.isSafeInteger(range?.shard) && range.shard >= 0 ? manifest.shards[range.shard] : null;
+        if (!file) throw new Error('Undeclared gather shard.');
+        selected.push({ path: file.filename, offset: range.offset, length: range.length });
+      }
+      const lease = await read(reader => reader.readManyLease(selected, signal), signal, true);
+      const timings = lease.timings ?? null;
+      lease.release();
+      return timings;
     } };
   return Object.freeze({ ...result, rangeLease: Object.freeze(rangeLease) });
 }

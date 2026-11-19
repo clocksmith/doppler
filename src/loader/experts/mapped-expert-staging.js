@@ -1,4 +1,5 @@
 import { recordRoutedExpertSourceTimings } from './routed-expert-source.js';
+import { trace, isTraceEnabled } from '../../debug/index.js';
 
 /*
  * Staged expert uploads for policy.uploadStaging === 'mapped'.
@@ -9,21 +10,60 @@ import { recordRoutedExpertSourceTimings } from './routed-expert-source.js';
  * is unmapped, and one submitted command buffer copies each plane to its place. The submit happens
  * where the writeBuffer calls happened, so queue order relative to the caller's kernels is the same.
  *
- * The port declines a range it cannot serve from verified state (first-time verification, or a
- * changed file). The ring then asks a lane to read the same ranges once: the lane hashes their
- * pieces and records them verified, its copy of the bytes is dropped, and the direct read is tried
- * again. If it is still declined nothing has reached a GPU-visible buffer, and the caller uses its
- * lease path.
+ * A range whose pieces are not verified yet (first-time verification) is read into the slot at the
+ * same time as a lane hashes those pieces. The slot is unmapped and its copy submitted only after the
+ * lane has finished and the port confirms that every piece is verified for the file state the read
+ * saw. Until then the bytes exist only in the mapped slot, which no model buffer and no kernel can
+ * see. If the confirmation fails, or the port cannot read ahead, nothing is submitted and the caller
+ * uses its lease path. The lane's own copy of the bytes is not used: copying it into the slot would
+ * put the copy back on the JavaScript thread.
+ *
+ * policy.uploadVerification === 'before-release' moves that wait. Inside a release gate (a resident
+ * partition step opens one and settles it before its output leaves the stage) first-time bytes are
+ * submitted as soon as they are read, the kernels compute with them, and the lanes hash in the
+ * background. Settling the gate waits for every hash and confirmation. If one fails, the step fails,
+ * its output is never released, and the gate stays failed: no later step may begin until the stage is
+ * reopened, because unverified bytes are resident in model buffers. Outside a gate nothing is deferred.
  */
 
 const MAX_SLOTS = 16;
 /** @type {WeakMap<object, MappedExpertStaging | null>} */
 const stagings = new WeakMap();
+/** One release gate per storage port.
+ * @type {WeakMap<object, { depth: number, tasks: Set<Promise<void>>, failure: Error | null, stats: import('./routed-expert-source.js').RoutedExpertCounters | null }>} */
+const gates = new WeakMap();
+
+/** @type {import('./mapped-expert-staging.js').beginStagedRelease} */
+export function beginStagedRelease(port) {
+  let gate = gates.get(port);
+  if (!gate) { gate = { depth: 0, tasks: new Set(), failure: null, stats: null }; gates.set(port, gate); }
+  if (gate.failure) throw gate.failure;
+  gate.depth++;
+}
+
+/** @type {import('./mapped-expert-staging.js').settleStagedRelease} */
+export async function settleStagedRelease(port, { release = true } = {}) {
+  const gate = gates.get(port);
+  if (!gate || gate.depth < 1) throw new Error('Staged release gate is not open.');
+  const started = performance.now();
+  try {
+    // A task may start another only through a new upload, which the caller has stopped making.
+    while (gate.tasks.size) await Promise.allSettled([...gate.tasks]);
+  } finally { gate.depth--; }
+  if (gate.stats) gate.stats.stagedReleaseWaitMs += performance.now() - started;
+  if (release && gate.failure) throw gate.failure;
+}
 
 class MappedExpertStaging {
   /** @type {GPUDevice} */ #device;
   /** @type {NonNullable<import('../../storage/verified-piece-gather.js').VerifiedRangeLeasePort['readVerifiedInto']>} */ #read;
   /** @type {((ranges: Array<{ shard: number, offset: number, length: number }>, signal: AbortSignal) => Promise<import('../../storage/verified-piece-gather.js').VerifiedRangeLease>) | null} */ #verify;
+  /** @type {import('../../storage/verified-piece-gather.js').VerifiedRangeLeasePort['readAheadInto'] | null} */ #readAhead;
+  /** @type {import('../../storage/verified-piece-gather.js').VerifiedRangeLeasePort['hasVerified'] | null} */ #hasVerified;
+  /** @type {object} */ #port;
+  /** @type {import('../../storage/verified-piece-gather.js').VerifiedRangeLeasePort['verifyMany'] | null} */ #verifyQueued;
+  /** @type {import('../../storage/verified-piece-gather.js').VerifiedRangeLeasePort['verifyMany'] | null} */ #verifyWaiting;
+  #lanes = 1; #active = 0;
   #maxRanges; #maxPartBytes;
   /** @type {Array<{ buffer: GPUBuffer, view: Uint8Array | null }>} */ #slots = [];
   /** @type {Array<{ buffer: GPUBuffer, view: Uint8Array | null }>} */ #free = [];
@@ -31,11 +71,18 @@ class MappedExpertStaging {
   /** @type {Set<Promise<void>>} */ #remapping = new Set();
   #closed = false;
 
-  /** @param {{ device: GPUDevice, port: import('../../storage/verified-piece-gather.js').VerifiedRangeLeasePort, slotBytes: number, slotCount: number }} options */
-  constructor({ device, port, slotBytes, slotCount }) {
+  /** @param {{ device: GPUDevice, port: import('../../storage/verified-piece-gather.js').VerifiedRangeLeasePort, slotBytes: number, slotCount: number, deferVerification: boolean }} options */
+  constructor({ device, port, slotBytes, slotCount, deferVerification }) {
     if (typeof port.readVerifiedInto !== 'function') throw new Error('Mapped expert staging requires direct verified reads.');
     this.#device = device; this.#read = port.readVerifiedInto.bind(port);
     this.#verify = typeof port.readMany === 'function' ? port.readMany.bind(port) : null;
+    const ahead = typeof port.readAheadInto === 'function' && typeof port.hasVerified === 'function';
+    this.#readAhead = ahead ? /** @type {NonNullable<typeof port.readAheadInto>} */ (port.readAheadInto).bind(port) : null;
+    this.#hasVerified = ahead ? /** @type {NonNullable<typeof port.hasVerified>} */ (port.hasVerified).bind(port) : null;
+    this.#port = port;
+    this.#verifyWaiting = typeof port.verifyMany === 'function' ? port.verifyMany.bind(port) : null;
+    this.#verifyQueued = deferVerification ? this.#verifyWaiting : null;
+    this.#lanes = Number.isSafeInteger(port.concurrency) && Number(port.concurrency) > 0 ? Number(port.concurrency) : 1;
     this.#maxRanges = port.maxRanges ?? 3; this.#maxPartBytes = port.maxPartBytes;
     this.slotBytes = slotBytes; this.slotCount = slotCount;
   }
@@ -84,25 +131,88 @@ class MappedExpertStaging {
    * @param {ReadonlyArray<{ shard: number, offset: number, length: number, at: number }>} parts
    * @param {ReadonlyArray<{ at: number, length: number, target: GPUBuffer, targetOffset: number }>} copies
    * @param {AbortSignal} signal @param {(() => void) | null} beforeSubmit
-   * @returns {Promise<boolean>} false when nothing was staged and nothing was submitted
+   * @param {import('./routed-expert-source.js').RoutedExpertCounters | null} [stats] receives the timings of background verification
+   * @param {number | null} [layer] names the upload in the loader trace
+   * @returns {Promise<false | import('./mapped-expert-staging.js').StagedUpload>} false when nothing was staged and nothing was submitted
    */
-  async upload(parts, copies, signal, beforeSubmit) {
+  async upload(parts, copies, signal, beforeSubmit, stats = null, layer = null) {
+    const gate = gates.get(this.#port) ?? null;
+    if (gate?.failure) throw gate.failure;
     const slot = await this.#take();
     if (!slot) return false;
     let unmapped = false;
+    this.#active++;
     try {
       const view = slot.view;
       if (!view) throw new Error('Staged upload slot is not mapped.');
-      // Every read settles before the slot is unmapped or handed on, including after a failure.
-      const fill = async () => {
-        const outcomes = await Promise.allSettled(parts.map(part =>
-          this.#read(part.shard, part.offset, view.subarray(part.at, part.at + part.length), signal)));
-        const failed = outcomes.find(outcome => outcome.status === 'rejected');
-        if (failed) throw /** @type {PromiseRejectedResult} */ (failed).reason;
-        return outcomes.every(outcome => outcome.status === 'fulfilled' && outcome.value === true);
-      };
-      if (!await fill()) {
-        if (!this.#verify || !await this.#verifyRanges(parts, signal) || !await fill()) return false;
+      const started = performance.now();
+      const hasVerified = this.#hasVerified, readAhead = this.#readAhead;
+      const pending = hasVerified ? parts.filter(part => !hasVerified(part.shard, part.offset, part.length)) : [];
+      if (pending.length && (!this.#verify || !readAhead || pending.some(part => part.length > this.#maxPartBytes))) return false;
+      const ahead = new Set(pending);
+      const verifyQueued = this.#verifyQueued;
+      if (pending.length && verifyQueued && gate && gate.depth > 0) {
+        // Verification before release: submit once the bytes are read, and let the gate hold the output.
+        const read = await Promise.allSettled(parts.map(part => {
+          const target = view.subarray(part.at, part.at + part.length);
+          return ahead.has(part) && readAhead ? readAhead(part.shard, part.offset, target, signal)
+            : this.#read(part.shard, part.offset, target, signal);
+        }));
+        const broken = read.find(outcome => outcome.status === 'rejected');
+        if (broken) throw /** @type {PromiseRejectedResult} */ (broken).reason;
+        const values = read.map(outcome => /** @type {PromiseFulfilledResult<boolean | (() => boolean)>} */ (outcome).value);
+        if (values.some(value => value === false)) return false;
+        const readWait = performance.now() - started;
+        signal.throwIfAborted();
+        if (this.#closed || gate.failure) return false;
+        slot.view = null; slot.buffer.unmap(); unmapped = true;
+        beforeSubmit?.();
+        const encoder = this.#device.createCommandEncoder({ label: 'expert_staged_upload' });
+        for (const copy of copies) encoder.copyBufferToBuffer(slot.buffer, copy.at, copy.target, copy.targetOffset, copy.length);
+        this.#device.queue.submit([encoder.finish()]);
+        if (stats) gate.stats = stats;
+        const submittedAt = performance.now();
+        const bytes = pending.reduce((sum, part) => sum + part.length, 0);
+        if (isTraceEnabled('loader')) traceUpload({ layer, bytes, firstTime: bytes, deferred: true, startedAt: started, readDoneAt: started + readWait, submittedAt });
+        const confirms = values.filter(value => typeof value === 'function');
+        const groups = this.#groups(pending);
+        const task = (async () => {
+          const timings = await Promise.all(groups.map(group => verifyQueued(group)));
+          for (const confirm of confirms) {
+            if (!(/** @type {() => boolean} */ (confirm))()) throw new Error('Expert bytes already in use could not be confirmed verified.');
+          }
+          if (stats) recordRoutedExpertSourceTimings(stats, timings.map(timing => timing ? { timings: timing } : null));
+          if (isTraceEnabled('loader')) traceUpload({ layer, bytes, verifiedAfterSubmit: true, startedAt: started, verifyDoneAt: performance.now(), lanes: timings });
+        })().catch(error => {
+          gate.failure ??= new Error(`Staged expert verification failed after upload: ${error?.message ?? error}`, { cause: error });
+        });
+        gate.tasks.add(task);
+        task.finally(() => gate.tasks.delete(task));
+        return { laneTimings: [], readAheadBytes: pending.reduce((sum, part) => sum + part.length, 0), readWaitMs: readWait, verifyWaitMs: 0, deferred: true };
+      }
+      // The reads and the lanes run together. Every read settles before the slot is unmapped or handed
+      // on, including after a failure, because a native read may still be writing into the slot.
+      let readWaitMs = 0, verifyWaitMs = 0;
+      const reads = Promise.allSettled(parts.map(part => {
+        const target = view.subarray(part.at, part.at + part.length);
+        return ahead.has(part) && readAhead ? readAhead(part.shard, part.offset, target, signal)
+          : this.#read(part.shard, part.offset, target, signal);
+      })).then(outcomes => { readWaitMs = performance.now() - started; return outcomes; });
+      /** @type {Promise<{ timings: import('./mapped-expert-staging.js').StagedUpload['laneTimings'], error?: unknown }>} */
+      // Lanes that no other upload is using hash this upload's ranges side by side. During decode a layer
+      // asks for one or two experts at a time, so most lanes would otherwise sit idle behind one job.
+      const verification = pending.length
+        ? this.#verifyRanges(pending, signal, Math.floor(this.#lanes / this.#active)).then(timings => { verifyWaitMs = performance.now() - started; return { timings }; },
+          error => ({ timings: [], error }))
+        : Promise.resolve({ timings: [] });
+      const [outcomes, verified] = await Promise.all([reads, verification]);
+      const failed = outcomes.find(outcome => outcome.status === 'rejected');
+      if (failed) throw /** @type {PromiseRejectedResult} */ (failed).reason;
+      if ('error' in verified) throw verified.error;
+      // A range read ahead counts only once the port confirms its pieces are now verified.
+      for (const outcome of outcomes) {
+        const value = /** @type {PromiseFulfilledResult<boolean | (() => boolean)>} */ (outcome).value;
+        if (value !== true && (typeof value !== 'function' || !value())) return false;
       }
       signal.throwIfAborted();
       if (this.#closed) return false;
@@ -111,40 +221,87 @@ class MappedExpertStaging {
       const encoder = this.#device.createCommandEncoder({ label: 'expert_staged_upload' });
       for (const copy of copies) encoder.copyBufferToBuffer(slot.buffer, copy.at, copy.target, copy.targetOffset, copy.length);
       this.#device.queue.submit([encoder.finish()]);
-      return true;
+      const firstTime = pending.reduce((sum, part) => sum + part.length, 0);
+      if (isTraceEnabled('loader')) {
+        traceUpload({ layer, bytes: parts.reduce((sum, part) => sum + part.length, 0), firstTime, deferred: false, startedAt: started,
+          readDoneAt: started + readWaitMs, ...(firstTime ? { verifyDoneAt: started + verifyWaitMs, lanes: verified.timings } : {}), submittedAt: performance.now() });
+      }
+      return { laneTimings: verified.timings, readAheadBytes: firstTime, readWaitMs, verifyWaitMs, deferred: false };
     } finally {
+      this.#active--;
       if (unmapped) this.#remap(slot);
       else this.#give(slot);
     }
   }
 
-  /** Have the lanes authenticate these ranges; their copy of the bytes is not used.
-   * @param {ReadonlyArray<{ shard: number, offset: number, length: number }>} parts @param {AbortSignal} signal */
-  async #verifyRanges(parts, signal) {
-    if (!this.#verify) return false;
+  /** Have lanes authenticate these ranges; their copies of the bytes are not used. Resolves each job's timings.
+   * With `spread` above one and a port that queues verification, the ranges go to up to that many lanes at once.
+   * @param {ReadonlyArray<{ shard: number, offset: number, length: number }>} parts @param {AbortSignal} signal
+   * @param {number} [spread]
+   * @returns {Promise<import('./mapped-expert-staging.js').StagedUpload['laneTimings']>} */
+  async #verifyRanges(parts, signal, spread = 1) {
+    if (!this.#verify) throw new Error('Staged upload has no lane to verify with.');
+    const waiting = this.#verifyWaiting;
+    if (waiting && spread > 1 && parts.length > 1) {
+      const jobs = Math.min(spread, parts.length), size = Math.min(this.#maxRanges, Math.ceil(parts.length / jobs));
+      /** @type {Array<Array<{ shard: number, offset: number, length: number }>>} */ const chunks = [];
+      for (let at = 0; at < parts.length; at += size) chunks.push(parts.slice(at, at + size).map(({ shard, offset, length }) => ({ shard, offset, length })));
+      // Every job settles before a failure is reported, so no lane is still reading when the caller moves on.
+      const outcomes = await Promise.allSettled(chunks.flatMap(chunk => this.#groups(chunk)).map(group => waiting(group, signal)));
+      const failed = outcomes.find(outcome => outcome.status === 'rejected');
+      if (failed) throw /** @type {PromiseRejectedResult} */ (failed).reason;
+      return outcomes.map(outcome => /** @type {PromiseFulfilledResult<import('./mapped-expert-staging.js').StagedUpload['laneTimings'][number]>} */ (outcome).value ?? null);
+    }
+    /** @type {import('./mapped-expert-staging.js').StagedUpload['laneTimings']} */ const timings = [];
+    for (const group of this.#groups(parts)) {
+      signal.throwIfAborted();
+      const lease = await this.#verify(group, signal);
+      timings.push(lease.timings ?? null);
+      lease.release();
+    }
+    return timings;
+  }
+
+  /** Split ranges into lane jobs within the port's range and byte bounds.
+   * @param {ReadonlyArray<{ shard: number, offset: number, length: number }>} parts */
+  #groups(parts) {
     /** @type {Array<Array<{ shard: number, offset: number, length: number }>>} */ const groups = [];
     let bytes = 0;
     for (const { shard, offset, length } of parts) {
-      if (length > this.#maxPartBytes) return false;
       const group = groups.at(-1);
       if (!group || group.length >= this.#maxRanges || bytes + length > this.#maxPartBytes) { groups.push([{ shard, offset, length }]); bytes = length; }
       else { group.push({ shard, offset, length }); bytes += length; }
     }
-    for (const group of groups) {
-      signal.throwIfAborted();
-      (await this.#verify(group, signal)).release();
-    }
-    return true;
+    return groups;
   }
 
   async destroy() {
     this.#closed = true;
+    const gate = gates.get(this.#port);
+    if (gate) await Promise.allSettled([...gate.tasks]);
     for (const waiter of this.#waiters.splice(0)) waiter(null);
     await Promise.allSettled([...this.#remapping]);
     await this.#device.queue.onSubmittedWorkDone();
     for (const slot of this.#slots.splice(0)) slot.buffer.destroy();
     this.#free.length = 0;
   }
+}
+
+/**
+ * One loader-trace line per staged upload, in milliseconds on the process clock: when it started, when its
+ * reads into the slot had settled, when its lanes had hashed any first-time pieces (with each lane job's own
+ * read, hash and wall time), and when its copy was submitted.
+ * @param {{ layer: number | null, bytes: number, firstTime?: number, deferred?: boolean, verifiedAfterSubmit?: boolean, startedAt: number,
+ *   readDoneAt?: number, verifyDoneAt?: number, submittedAt?: number, lanes?: ReadonlyArray<unknown> }} event */
+function traceUpload(event) {
+  const round = /** @param {number | undefined} value */ value => value === undefined ? undefined : Number(value.toFixed(2));
+  const lanes = (event.lanes ?? []).filter(Boolean).map(job => {
+    const timing = /** @type {{ workerWallMs: number, readWaitMs: number, verificationMs: number, roundTripMs: number }} */ (job);
+    return [round(timing.workerWallMs), round(timing.readWaitMs), round(timing.verificationMs), round(timing.roundTripMs)];
+  });
+  trace.loader(`staged-upload ${JSON.stringify({ layer: event.layer, bytes: event.bytes, firstTime: event.firstTime, deferred: event.deferred,
+    verifiedAfterSubmit: event.verifiedAfterSubmit, start: round(event.startedAt), readDone: round(event.readDoneAt),
+    verifyDone: round(event.verifyDoneAt), submitted: round(event.submittedAt), ...(lanes.length ? { laneWallReadHashRoundTrip: lanes } : {}) })}`);
 }
 
 /** One ring per storage port: prefill and decode share it.
@@ -157,7 +314,8 @@ export function getMappedExpertStaging(options, plan) {
   if (staging === undefined) {
     const slotBytes = Math.ceil(plan.expertBytes / 4) * 4;
     const slotCount = Math.min(MAX_SLOTS, Math.floor(options.policy.stagingBytes / slotBytes));
-    staging = slotCount >= 1 ? new MappedExpertStaging({ device: options.device, port, slotBytes, slotCount }) : null;
+    staging = slotCount >= 1 ? new MappedExpertStaging({ device: options.device, port, slotBytes, slotCount,
+      deferVerification: options.policy.uploadVerification === 'before-release' }) : null;
     stagings.set(port, staging);
   }
   return staging;
@@ -196,10 +354,14 @@ export async function stageRoutedExperts(staging, stats, plan, experts, targetOf
     }
   }
   const started = performance.now();
-  if (!await staging.upload(parts, copies, signal, beforeSubmit)) return false;
+  const staged = await staging.upload(parts, copies, signal, beforeSubmit, stats, plan.layer);
+  if (!staged) return false;
   const elapsed = performance.now() - started;
-  // No lane ran, so there is no lane timing to report; the job is counted as untimed.
-  recordRoutedExpertSourceTimings(stats, [null]);
+  // Lanes ran only for ranges verified for the first time. With none, the job is counted as untimed. A
+  // deferred upload's lane jobs are recorded when they finish.
+  if (staged.deferred) stats.stagedDeferredBytes += staged.readAheadBytes;
+  else recordRoutedExpertSourceTimings(stats, staged.laneTimings.length ? staged.laneTimings.map(timings => timings ? { timings } : null) : [null]);
+  stats.stagedReadAheadBytes += staged.readAheadBytes; stats.stagedReadWaitMs += staged.readWaitMs; stats.stagedVerifyWaitMs += staged.verifyWaitMs;
   stats.sourceReads += parts.length; stats.sourceReadBytes += at; stats.sourceReadIntoBytes += at;
   stats.uploadBytes += at; stats.sourceReadWaitMs += elapsed; stats.ioWaitMs += elapsed;
   stats.peakStagingBytes = Math.max(stats.peakStagingBytes, staging.bytes);

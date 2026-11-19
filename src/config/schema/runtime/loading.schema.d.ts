@@ -199,6 +199,9 @@ export interface Qwen35RoutedConfig {
   prefillUploadMode: 'expert-copy' | 'direct-bank';
   /** 'mapped' stages already verified expert ranges in mapped upload buffers instead of queue.writeBuffer. Omission means 'queue'. */
   uploadStaging?: 'queue' | 'mapped';
+  /** When first-time expert bytes are verified: before they reach a model buffer (default), or, with mapped
+   * staging in a resident partition step, before that step's output is released. */
+  uploadVerification?: 'before-upload' | 'before-release';
   /** LFU retains causal lifetime counts until unload; LRU remains the default. */
   evictionPolicy: 'lru' | 'lfu';
   cacheBytes: number;

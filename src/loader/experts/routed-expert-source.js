@@ -9,6 +9,7 @@ export function createRoutedExpertCounters() {
     ioWaitMs: 0, sourceReadWaitMs: 0, uploadEnqueueMs: 0, initialQueueIdleForWeightsMs: 0,
     sourceTimingJobs: 0, sourceUntimedJobs: 0, sourceJobWallMs: 0, sourceJobReadWaitMs: 0,
     sourceJobVerificationMs: 0, sourceJobCopyMs: 0, sourceJobRoundTripMs: 0,
+    stagedReadAheadBytes: 0, stagedReadWaitMs: 0, stagedVerifyWaitMs: 0, stagedDeferredBytes: 0, stagedReleaseWaitMs: 0,
     hostPrefillAdmissionSkips: 0, hostPrefillAdmissions: 0, hostDecodeAdmissions: 0, hostCacheHits: 0, hostCacheMisses: 0, hostEvictions: 0, hostAdmissionSkips: 0, peakHostOwnedOrReservedBytes: 0 };
 }
 

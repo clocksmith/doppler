@@ -107,6 +107,11 @@ export const DEFAULT_EXPERT_CACHE_CONFIG = {
     // straight into mapped upload buffers when the storage port can serve them, and otherwise does
     // what 'queue' does.
     uploadStaging: 'queue',
+    // 'before-upload': expert bytes are verified before they are copied into a model buffer.
+    // 'before-release': with mapped staging inside a resident partition step, first-time bytes are
+    // copied and computed with while lanes hash them, and the step's output is withheld until every
+    // hash has passed. A failed hash fails the step and refuses all further steps until reopened.
+    uploadVerification: 'before-upload',
     evictionPolicy: 'lru',
     cacheBytes: 2 * GB,
     hostCacheBytes: 0,
@@ -185,6 +190,12 @@ export function validateQwen35RoutedConfig(config) {
   if (!['queue', 'mapped'].includes(uploadStaging)
     || (uploadStaging === 'mapped' && (!compact || config.sourceReadMode !== 'expert-lease-batch' || config.hostCacheBytes !== 0))) {
     throw new Error('uploadStaging requires queue, or mapped with batched compact source leases and no host cache.');
+  }
+  const uploadVerification = config.uploadVerification === undefined
+    ? DEFAULT_EXPERT_CACHE_CONFIG.qwen35Routed.uploadVerification : config.uploadVerification;
+  if (!['before-upload', 'before-release'].includes(uploadVerification)
+    || (uploadVerification === 'before-release' && uploadStaging !== 'mapped')) {
+    throw new Error('uploadVerification requires before-upload, or before-release with mapped upload staging.');
   }
   if (!['expert-copy', 'direct-bank'].includes(config.prefillUploadMode)
     || (config.prefillUploadMode === 'direct-bank'

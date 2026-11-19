@@ -97,3 +97,117 @@ test('a file replaced after its pieces were verified is declined, not served', a
     assert.equal(await f.port.readVerifiedInto(0, 0, target, signal()), false);
   } finally { await f?.opened.storage.close().catch(() => {}); await rm(root, { recursive: true, force: true }); }
 });
+
+test('a read ahead of verification is usable only after a lane verifies its pieces for the same file state', async () => {
+  const root = await mkdtemp(join(tmpdir(), 'direct-verified-'));
+  let f;
+  try {
+    f = await open(root);
+    assert.equal(f.port.hasVerified(0, 70, 100), false);
+    const target = new Uint8Array(100).fill(0xee);
+    const confirm = await f.port.readAheadInto(0, 70, target, signal());
+    assert.equal(typeof confirm, 'function');
+    // The bytes are there, and they are not yet authentic.
+    assert.deepEqual([...target], [...f.data.subarray(70, 170)]);
+    assert.equal(confirm(), false);
+    // Only one of the two covering pieces is verified: still not usable.
+    await verify(f.port, 64, PIECE);
+    assert.equal(confirm(), false);
+    await verify(f.port, 128, PIECE);
+    assert.equal(f.port.hasVerified(0, 70, 100), true);
+    assert.equal(confirm(), true);
+    // Already verified pieces resolve true directly, as readVerifiedInto does.
+    assert.equal(await f.port.readAheadInto(0, 70, new Uint8Array(100), signal()), true);
+    const receipt = await f.opened.getGatherReceipt();
+    assert.deepEqual([receipt.directAheadReads, receipt.directAheadBytes, receipt.directAheadConfirmed], [1, 100, 1]);
+    await assert.rejects(f.port.readAheadInto(7, 64, new Uint8Array(8), signal()), /Undeclared gather shard/);
+    assert.equal(f.port.hasVerified(7, 64, 8), false);
+  } finally { await f?.opened.storage.close().catch(() => {}); await rm(root, { recursive: true, force: true }); }
+});
+
+test('a read ahead is never confirmed when the file changes before its pieces are verified', async () => {
+  // The file's state changes between the read and the verification (same bytes, new mtime).
+  let root = await mkdtemp(join(tmpdir(), 'direct-verified-')), f;
+  try {
+    f = await open(root);
+    const confirm = await f.port.readAheadInto(0, 0, new Uint8Array(PIECE), signal());
+    const later = new Date(Date.now() + 5000);
+    await utimes(f.file, later, later);
+    await verify(f.port, 0, PIECE);
+    assert.equal(confirm(), false);
+    assert.equal(f.port.hasVerified(0, 0, PIECE), false);
+  } finally { await f?.opened.storage.close().catch(() => {}); await rm(root, { recursive: true, force: true }); }
+
+  // The file is replaced with forged bytes at the approved pathname after the read.
+  root = await mkdtemp(join(tmpdir(), 'direct-verified-')); f = undefined;
+  try {
+    f = await open(root);
+    const confirm = await f.port.readAheadInto(0, 0, new Uint8Array(PIECE), signal());
+    const forged = f.data.slice(); forged[3] ^= 0xff;
+    await rm(f.file); await writeFile(f.file, forged);
+    await verify(f.port, 0, PIECE).catch(() => {});
+    assert.equal(confirm(), false);
+    // A file that is already not the admitted one is not read at all.
+    assert.equal(await f.port.readAheadInto(0, PIECE, new Uint8Array(PIECE), signal()), false);
+  } finally { await f?.opened.storage.close().catch(() => {}); await rm(root, { recursive: true, force: true }); }
+
+  // Forged bytes under the admitted file state: the lane's hash fails, so nothing is marked and nothing is confirmed.
+  root = await mkdtemp(join(tmpdir(), 'direct-verified-')); f = undefined;
+  try {
+    const m = model(), file = join(root, 'experts.bin');
+    const forged = m.data.slice(); forged[3] ^= 0xff;
+    await writeFile(file, forged);
+    const st = await lstat(file, { bigint: true });
+    const opened = await createVerifiedPieceStorage({ manifestBytes: m.manifestBytes, indexBytes: m.indexBytes, indexIdentity: m.indexIdentity,
+      acquire: async piece => m.data.subarray(piece.offset, piece.offset + piece.size),
+      nodeGather: { files: { 'experts.bin': file }, maxPartBytes: 4 * PIECE, maxRanges: 3, memoryBudgetBytes: 2 * (4 * PIECE + 2 * PIECE), concurrency: 2,
+        fileIdentities: { 'experts.bin': { device: st.dev.toString(), inode: st.ino.toString(), size: st.size.toString() } },
+        verificationCache: { directory: join(root, 'state') } } });
+    f = { opened };
+    const port = opened.storage.rangeLease, target = new Uint8Array(PIECE);
+    const confirm = await port.readAheadInto(0, 0, target, signal());
+    assert.equal(target[3], forged[3], 'the forged byte was read into caller memory');
+    await assert.rejects(verify(port, 0, PIECE));
+    assert.equal(confirm(), false);
+    assert.equal(port.hasVerified(0, 0, PIECE), false);
+  } finally { await f?.opened.storage.close().catch(() => {}); await rm(root, { recursive: true, force: true }); }
+});
+
+test('background verification waits for a lane; foreground reads keep their bound and go first', async () => {
+  const root = await mkdtemp(join(tmpdir(), 'direct-verified-'));
+  let f;
+  try {
+    f = await open(root);   // two lanes
+    const range = index => [{ shard: 0, offset: index * PIECE, length: PIECE }];
+    // Two foreground leases hold both lanes. A third foreground read is still the caller's error.
+    const first = await f.port.readMany(range(0), signal()), second = await f.port.readMany(range(1), signal());
+    await assert.rejects(f.port.readMany(range(2), signal()), /Release a current gather lease/);
+    // Background jobs queue instead, and run as lanes come free.
+    const order = [];
+    const queued = [2, 3, 4].map(index => f.port.verifyMany(range(index)).then(timings => { order.push(index); return timings; }));
+    await new Promise(resolve => setTimeout(resolve, 10));
+    assert.deepEqual(order, []);
+    assert.equal(f.port.hasVerified(0, 2 * PIECE, PIECE), false);
+    first.release(); second.release();
+    const timings = await Promise.all(queued);
+    assert.deepEqual(order.slice().sort(), [2, 3, 4]);
+    assert(timings.every(timing => timing === null || typeof timing.verificationMs === 'number'));
+    assert.equal(f.port.hasVerified(0, 2 * PIECE, 3 * PIECE), true);
+    // A queued background job can be abandoned, and bad arguments are refused.
+    const held = [await f.port.readMany(range(5), signal()), await f.port.readMany(range(6), signal())];
+    const abandon = new AbortController();
+    const waiting = f.port.verifyMany(range(7), abandon.signal);
+    abandon.abort(new Error('stop'));
+    await assert.rejects(waiting, /stop/);
+    for (const lease of held) lease.release();
+    await assert.rejects(f.port.verifyMany([]), /admitted ranges bound/);
+    await assert.rejects(f.port.verifyMany([{ shard: 9, offset: 0, length: PIECE }]), /Undeclared gather shard/);
+    // Jobs still queued when the pool closes are rejected.
+    const last = [await f.port.readMany(range(0), signal()), await f.port.readMany(range(1), signal())];
+    const stranded = f.port.verifyMany(range(7));
+    const rejected = assert.rejects(stranded, /closed/);
+    for (const lease of last) lease.release();
+    await f.opened.storage.close();
+    await rejected.catch(() => {});
+  } finally { await f?.opened.storage.close().catch(() => {}); await rm(root, { recursive: true, force: true }); }
+});

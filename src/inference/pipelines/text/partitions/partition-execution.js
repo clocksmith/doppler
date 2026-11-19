@@ -20,6 +20,7 @@ import { getLogitsWeights, getLogitsConfig } from "../logits/logits-config.js";
 import { resolveLayerPartition, getPartitionActivationContract, validateActivationTensorShape } from "../execution/layer-partition-contract.js";
 import { createHyperConnectionSession } from "../hyper-connection/session.js";
 import { resolvePrefillTokenChunkSize, shouldDisablePrefillCommandBatching } from "../generator/prefill/prefill-policy.js";
+import { beginStagedRelease, settleStagedRelease } from "../../../../loader/experts/mapped-expert-staging.js";
 
 /** @type {import('./partition-execution.js').assertPartitionExecutionSupported} */
 export function assertPartitionExecutionSupported(state, plan, requireAdapter = true) {
@@ -214,8 +215,34 @@ export function shouldRecordPartitionLayers(state, disableCommandBatching, prefi
     { startPos: state.currentSeqLen, returnHidden: !finalChunk }));
 }
 
-/** @type {import('./partition-execution.js').ExecutePartitionChunk} */
+/**
+ * With uploadVerification 'before-release', expert bytes loaded for the first time during a chunk are
+ * computed with while they are still being hashed. The chunk's activation or logits are handed on only
+ * after every one of those hashes has passed; a failure fails the chunk and every later one.
+ * @type {import('./partition-execution.js').ExecutePartitionChunk} */
 async function executePartitionChunk(state, input, signal, prefill, finalChunk) {
+  const loader = state.dopplerLoader;
+  const port = loader?.manifest?.moeConfig && loader.getRoutedExpertPolicy().uploadVerification === 'before-release'
+    ? loader.shardCache.rangeLease ?? null : null;
+  if (!port) return runPartitionChunk(state, input, signal, prefill, finalChunk);
+  beginStagedRelease(port);
+  let result;
+  try { result = await runPartitionChunk(state, input, signal, prefill, finalChunk); }
+  catch (error) {
+    await settleStagedRelease(port, { release: false });
+    throw error;
+  }
+  try { await settleStagedRelease(port); }
+  catch (error) {
+    // The output was computed with bytes that failed verification. It never leaves this function.
+    if (result.logits) releaseBuffer(result.logits.logitsBuffer);
+    throw error;
+  }
+  return result;
+}
+
+/** @type {import('./partition-execution.js').ExecutePartitionChunk} */
+async function runPartitionChunk(state, input, signal, prefill, finalChunk) {
   const { config, partition, executionPlan, dtype, numTokens, byteLength, wireByteLength, wireCast, shape } = resolvePartitionInput(state, input, prefill, true);
   const chunkLayers = resolvePrefillRecorderChunkLayers({
     configuredPrefillChunkLayers: state.runtimeConfig.inference.session.prefillChunkLayers,

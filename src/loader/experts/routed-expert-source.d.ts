@@ -7,7 +7,7 @@ export declare function createRoutedExpertCounters(): RoutedExpertCounters;
 /** Observe only validated successful acquisitions. Null or absent lease.timings counts as unsupported.
  * Sums overlap within/across workers and must not be added to phase wall time. */
 export declare function recordRoutedExpertSourceTimings(stats: RoutedExpertCounters,
-  leases: ReadonlyArray<import('../../storage/verified-piece-gather.js').VerifiedRangeLease | null>): void;
+  leases: ReadonlyArray<Pick<import('../../storage/verified-piece-gather.js').VerifiedRangeLease, 'timings'> | null>): void;
 export declare function readRoutedExpertRange(options: RoutedExpertCacheOptions, stats: RoutedExpertCounters,
   plane: RoutedExpertPlane, expert: number, offset: number, length: number, signal: AbortSignal, destination?: Uint8Array | null): Promise<Uint8Array>;
 

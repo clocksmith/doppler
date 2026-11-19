@@ -6,6 +6,7 @@ import { TieredExpertCache } from './tiered-expert-cache.js';
 import { RoutedExpertCache } from './routed-expert-cache.js';
 import { planRoutedExpertBank } from './routed-expert-plan.js';
 import { prepareQwenExpertLayer } from './qwen-paging.js';
+import { trace, isTraceEnabled } from '../../debug/index.js';
 
 /** @type {typeof import('./loader-bindings.js').prepareExpertLayer} */
 export async function prepareExpertLayer(loader, policy, layer, consumers, recorder, signal, activeSelection) {
@@ -112,12 +113,18 @@ export async function prepareRoutedExperts(loader, layer, expertIds, signal, pha
   if (!loader.manifest) throw new Error('Routed experts require the loaded manifest.');
   const plan = planRoutedExpertBank(loader.manifest, loader.tensorLocations, layer);
   const cache = ensureRoutedCache(loader, plan);
+  // With the loader trace on, one line when a layer asks for its experts and one when they are ready for
+  // its kernels. Together with the staged-upload lines these put read, hash, upload and use on one clock.
+  const traced = isTraceEnabled('loader');
+  if (traced) trace.loader(`routed-experts request ${JSON.stringify({ layer, phase, experts: expertIds.length, at: Number(performance.now().toFixed(2)) })}`);
+  let weights;
   if (cache instanceof TieredExpertCache) {
     const admitted = tieredPlans.get(cache)?.get(layer);
     if (!admitted) throw new Error('Tiered expert request lacks the admitted original layer plan.');
-    return cache.prepare(admitted, expertIds, signal, phase);
-  }
-  return cache.prepare(plan, expertIds, signal, phase);
+    weights = await cache.prepare(admitted, expertIds, signal, phase);
+  } else weights = await cache.prepare(plan, expertIds, signal, phase);
+  if (traced) trace.loader(`routed-experts ready ${JSON.stringify({ layer, phase, at: Number(performance.now().toFixed(2)) })}`);
+  return weights;
 }
 
 /** @type {typeof import('./loader-bindings.js').disposeRoutedExperts} */

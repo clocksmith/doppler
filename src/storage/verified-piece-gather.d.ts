@@ -97,6 +97,10 @@ export interface VerifiedPieceGatherReceipt extends VerifiedPieceReceipt {
   directVerifiedBytes?: number;
   /** Direct reads declined because a piece was unverified or its file no longer matched. */
   directDeclinedReads?: number;
+  /** Reads made ahead of verification, their bytes, and how many were later confirmed verified. */
+  directAheadReads?: number;
+  directAheadBytes?: number;
+  directAheadConfirmed?: number;
 }
 export function createVerifiedPieceGather(options: VerifiedPieceGatherOptions): Promise<Readonly<{
   /** At most concurrency in-flight reads or outstanding leases. Cancellation is checked before
@@ -138,4 +142,19 @@ export interface VerifiedRangeLeasePort {
    * rejects if the file changes during the read.
    */
   readVerifiedInto?(shard: number, offset: number, destination: Uint8Array, signal?: AbortSignal): Promise<boolean>;
+  /**
+   * Optional, with `readVerifiedInto`. Fills caller memory before the range's pieces are verified, so the
+   * read can run while a lane hashes them. Resolves true when the pieces were already verified, false when
+   * the file is not the admitted one, and otherwise a check: the bytes are unauthenticated until it
+   * returns true (every covering piece verified, file state unchanged), and must not be used before that.
+   */
+  readAheadInto?(shard: number, offset: number, destination: Uint8Array, signal?: AbortSignal): Promise<boolean | (() => boolean)>;
+  /**
+   * Optional: have a lane read and hash the pieces covering these ranges, waiting for a free lane instead of
+   * failing when all are busy. The lane's copy of the bytes is dropped. Resolves the job's timings, and
+   * rejects if a piece does not match its identity. Foreground reads are served ahead of these jobs.
+   */
+  verifyMany?(ranges: ReadonlyArray<{ shard: number; offset: number; length: number }>, signal?: AbortSignal): Promise<VerifiedRangeLease['timings'] | null>;
+  /** Optional, with `readAheadInto`: whether every piece covering the range is already verified. No I/O. */
+  hasVerified?(shard: number, offset: number, length: number): boolean;
 }

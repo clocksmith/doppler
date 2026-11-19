@@ -68,6 +68,14 @@ export interface RoutedExpertCacheStats {
   sourceJobVerificationMs: number;
   sourceJobCopyMs: number;
   sourceJobRoundTripMs: number;
+  /** Mapped staging, first-time verification: bytes read into a slot while a lane hashed their pieces. */
+  stagedReadAheadBytes: number;
+  /** Mapped staging: summed per-upload wall time until the slot's reads settled, and until its lanes finished. */
+  stagedReadWaitMs: number;
+  stagedVerifyWaitMs: number;
+  /** Bytes submitted before their verification finished, and the time release gates then waited for it. */
+  stagedDeferredBytes: number;
+  stagedReleaseWaitMs: number;
   uploadBytes: number;
   cacheHits: number;
   cacheMisses: number;
