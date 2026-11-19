@@ -457,7 +457,8 @@ console.log('Routed expert cache: range extents, identity, hot reuse, budgets, c
 {
   const f = fixture();
   let forwarded;
-  const loader = { manifest: f.manifest, tensorLocations: f.locations,
+  // A loader always owns a shard cache; this one has no verified range lease, so no release gate applies.
+  const loader = { manifest: f.manifest, tensorLocations: f.locations, shardCache: {},
     getRoutedExpertPolicy: () => f.policy,
     routedExpertCache: { prepare: async (...args) => { forwarded = args; return {}; } } };
   await prepareRoutedExperts(loader, 0, [1], undefined, 'prefill');
