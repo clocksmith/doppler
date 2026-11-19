@@ -1,10 +1,28 @@
 import type { IncomingMessage, ServerResponse } from 'node:http';
+import type {
+  ServePrefixCache,
+  ServePrefixCachePolicy,
+} from './serve/prefix-cache.js';
+
+export {
+  DEFAULT_PREFIX_CACHE_POLICY,
+  createServePrefixCache,
+  deriveServePrefixKey,
+} from './serve/prefix-cache.js';
+export type {
+  ServePrefixCache,
+  ServePrefixCacheLease,
+  ServePrefixCachePolicy,
+  ServePrefixCacheStats,
+} from './serve/prefix-cache.js';
 
 export interface ServeSettings {
   port: number;
   host: string;
   model: string | null;
   modelUrl: string | null;
+  prefixCache: boolean;
+  prefixCacheBytes: number;
   help: boolean;
 }
 
@@ -76,15 +94,31 @@ export interface ServeFailureReceiptOptions {
 
 export interface ServeDependencies {
   dopplerClient?: {
+    load?(model: unknown): Promise<{
+      supportsGenerationContext?: boolean;
+      createGenerationContext?(options: { maxBytes: number }): unknown;
+      chatText?(messages: unknown[], options: Record<string, unknown>): Promise<{
+        content: string;
+        usage: ServeReceiptOptions['usage'];
+        evidence?: {
+          resolution: ServeResolutionIdentity;
+          stats?: { reusedPrefixTokens?: number };
+        };
+      }>;
+      chat?(messages: unknown[], options: Record<string, unknown>): AsyncGenerator<string, void, void>;
+    }>;
     chatText(messages: unknown[], options: Record<string, unknown>): Promise<{
       content: string;
       usage: ServeReceiptOptions['usage'];
       evidence?: {
         resolution: ServeResolutionIdentity;
+        stats?: { reusedPrefixTokens?: number };
       };
     }>;
     chat(messages: unknown[], options: Record<string, unknown>): AsyncGenerator<string, void, void>;
   };
+  prefixCache?: ServePrefixCache | null;
+  prefixCachePolicy?: boolean | Partial<ServePrefixCachePolicy>;
   listModels?: () => Promise<ServeRegistryEntry[]>;
   resolveModel?: (model: string) => Promise<ServeRegistryEntry>;
   resolveRuntimeModel?: (registryEntry: ServeRegistryEntry, requestedModel: string) => unknown;
@@ -95,6 +129,8 @@ export declare class ServeRequestError extends Error {
   type: string;
   constructor(message: string, statusCode?: number, type?: string);
 }
+
+export declare function isLoopbackHost(host: string): boolean;
 
 export declare function parseServeArgs(argv: string[]): ServeSettings;
 

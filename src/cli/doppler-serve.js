@@ -13,11 +13,30 @@ import {
   buildServeReceipt,
   generateCompletionId,
 } from './serve/receipt.js';
+import {
+  DEFAULT_PREFIX_CACHE_POLICY,
+  createServePrefixCache,
+  deriveServePrefixKey,
+} from './serve/prefix-cache.js';
 
 export { buildServeFailureReceipt, buildServeReceipt } from './serve/receipt.js';
+export {
+  DEFAULT_PREFIX_CACHE_POLICY,
+  createServePrefixCache,
+  deriveServePrefixKey,
+} from './serve/prefix-cache.js';
 
 const DEFAULT_PORT = 8080;
 const DEFAULT_HOST = '127.0.0.1';
+
+export function isLoopbackHost(host) {
+  if (typeof host !== 'string') return false;
+  const normalized = host.trim().toLowerCase();
+  return normalized === '127.0.0.1'
+    || normalized === 'localhost'
+    || normalized === '::1'
+    || normalized === '[::1]';
+}
 
 export class ServeRequestError extends Error {
   constructor(message, statusCode = 400, type = 'invalid_request_error') {
@@ -31,14 +50,17 @@ export class ServeRequestError extends Error {
 function usage() {
   return [
     'Usage:',
-    '  doppler-serve [--model <id>] [--port <n>] [--host <addr>]',
+    '  doppler-serve [--model <id>] [--port <n>] [--host <addr>] [--prefix-cache | --no-prefix-cache] [--prefix-cache-bytes <n>]',
     '',
     'Options:',
-    '  --model <id>     Pre-load a model at startup (optional, lazy-loads on request otherwise)',
-    '  --model-url <url> Explicit local or remote RDRR artifact URL for --model',
-    '  --port <n>       Port to listen on (default: 8080)',
-    '  --host <addr>    Host to bind to (default: 127.0.0.1)',
-    '  --help           Show this help',
+    '  --model <id>              Pre-load a model at startup (optional, lazy-loads on request otherwise)',
+    '  --model-url <url>         Explicit local or remote RDRR artifact URL for --model',
+    '  --port <n>                Port to listen on (default: 8080)',
+    '  --host <addr>             Host to bind to (default: 127.0.0.1)',
+    '  --prefix-cache            Explicitly enable multi-turn KV prefix reuse (default: on for loopback hosts only)',
+    '  --prefix-cache-bytes <n>  Total GPU/host byte budget for multi-turn KV prefix reuse (default: 268435456)',
+    '  --no-prefix-cache         Disable automatic multi-turn KV prefix reuse',
+    '  --help                    Show this help',
     '',
     'Endpoints:',
     '  POST /v1/chat/completions   OpenAI-compatible chat completions',
@@ -57,11 +79,14 @@ function usage() {
 }
 
 export function parseServeArgs(argv) {
+  let explicitPrefixCache = null;
   const flags = {
     port: DEFAULT_PORT,
     host: DEFAULT_HOST,
     model: null,
     modelUrl: null,
+    prefixCache: true,
+    prefixCacheBytes: DEFAULT_PREFIX_CACHE_POLICY.maxBytes,
     help: false,
   };
   for (let i = 0; i < argv.length; i += 1) {
@@ -70,10 +95,24 @@ export function parseServeArgs(argv) {
       flags.help = true;
       continue;
     }
+    if (token === '--prefix-cache') {
+      explicitPrefixCache = true;
+      continue;
+    }
+    if (token === '--no-prefix-cache') {
+      explicitPrefixCache = false;
+      continue;
+    }
     if (!token.startsWith('--')) {
       throw new Error(`Unexpected positional argument: ${token}`);
     }
-    if (token !== '--port' && token !== '--host' && token !== '--model' && token !== '--model-url') {
+    if (
+      token !== '--port'
+      && token !== '--host'
+      && token !== '--model'
+      && token !== '--model-url'
+      && token !== '--prefix-cache-bytes'
+    ) {
       throw new Error(`Unknown flag ${token}.`);
     }
     const nextValue = argv[i + 1];
@@ -104,11 +143,22 @@ export function parseServeArgs(argv) {
       i += 1;
       continue;
     }
+    if (token === '--prefix-cache-bytes') {
+      const parsed = Number(nextValue);
+      if (!Number.isSafeInteger(parsed) || parsed <= 0) {
+        throw new Error('--prefix-cache-bytes must be a positive integer byte budget.');
+      }
+      flags.prefixCacheBytes = parsed;
+      i += 1;
+      continue;
+    }
     throw new Error(`Unknown flag ${token}.`);
   }
   if (flags.modelUrl && !flags.model) {
     throw new Error('--model-url requires --model so the served model identity remains explicit.');
   }
+  // Without an authenticated principal, only enable the prefix cache by default on loopback binds.
+  flags.prefixCache = explicitPrefixCache === null ? isLoopbackHost(flags.host) : explicitPrefixCache;
   return flags;
 }
 
@@ -255,14 +305,38 @@ async function resolveTextModelEntry(modelId, resolveModel) {
 }
 
 function resolveServeDependencies(dependencies = {}) {
+  const dopplerClient = dependencies.dopplerClient ?? doppler;
+  const prefixCache = dependencies.prefixCache !== undefined
+    ? dependencies.prefixCache
+    : createServePrefixCache({
+      policy: dependencies.prefixCachePolicy ?? DEFAULT_PREFIX_CACHE_POLICY,
+    });
   return {
-    dopplerClient: dependencies.dopplerClient ?? doppler,
+    dopplerClient,
+    prefixCache,
     listModels: dependencies.listModels ?? listQuickstartModels,
     resolveModel: dependencies.resolveModel ?? resolveQuickstartModel,
     resolveRuntimeModel: typeof dependencies.resolveRuntimeModel === 'function'
       ? dependencies.resolveRuntimeModel
       : (registryEntry) => registryEntry.modelId,
   };
+}
+
+async function acquireServePrefixLease(dependencies, registryEntry, runtimeModel, messages) {
+  const { dopplerClient, prefixCache } = dependencies;
+  if (!prefixCache || !prefixCache.policy?.enabled || typeof dopplerClient.load !== 'function') {
+    return { modelHandle: null, lease: null };
+  }
+  const modelHandle = await dopplerClient.load(runtimeModel);
+  if (
+    modelHandle?.supportsGenerationContext === true
+    && typeof modelHandle.createGenerationContext === 'function'
+  ) {
+    const key = deriveServePrefixKey(registryEntry.modelId, messages);
+    const lease = prefixCache.acquire(key, (options) => modelHandle.createGenerationContext(options));
+    return { modelHandle, lease };
+  }
+  return { modelHandle, lease: null };
 }
 
 async function handleChatCompletions(req, res, dependencies) {
@@ -323,8 +397,20 @@ async function handleNonStreamingCompletion(
     dependencies.resolveRuntimeModel(registryEntry, requestedModel),
     requestedModel
   );
+  let lease = null;
+  let completed = false;
   try {
-    result = await dependencies.dopplerClient.chatText(messages, { model: runtimeModel, ...generationOptions });
+    const acquired = await acquireServePrefixLease(dependencies, registryEntry, runtimeModel, messages);
+    lease = acquired.lease;
+    if (acquired.modelHandle && typeof acquired.modelHandle.chatText === 'function') {
+      const options = lease
+        ? { ...generationOptions, generationContext: lease.context }
+        : { ...generationOptions };
+      result = await acquired.modelHandle.chatText(messages, options);
+    } else {
+      result = await dependencies.dopplerClient.chatText(messages, { model: runtimeModel, ...generationOptions });
+    }
+    completed = true;
   } catch (error) {
     if (includeReceipt) {
       return jsonError(
@@ -345,6 +431,17 @@ async function handleNonStreamingCompletion(
       );
     }
     throw error;
+  } finally {
+    lease?.release({ discard: !completed });
+  }
+  const cachedTokens = result.evidence?.stats?.reusedPrefixTokens;
+  const usage = {
+    prompt_tokens: result.usage.promptTokens,
+    completion_tokens: result.usage.completionTokens,
+    total_tokens: result.usage.totalTokens,
+  };
+  if (Number.isSafeInteger(cachedTokens) && cachedTokens > 0) {
+    usage.prompt_tokens_details = { cached_tokens: cachedTokens };
   }
   const body = {
     id: completionId,
@@ -361,11 +458,7 @@ async function handleNonStreamingCompletion(
         finish_reason: 'stop',
       },
     ],
-    usage: {
-      prompt_tokens: result.usage.promptTokens,
-      completion_tokens: result.usage.completionTokens,
-      total_tokens: result.usage.totalTokens,
-    },
+    usage,
   };
   if (includeReceipt) {
     body.doppler_receipt = buildServeReceipt({
@@ -421,24 +514,40 @@ async function handleStreamingCompletion(
     ],
   });
 
-  const stream = dependencies.dopplerClient.chat(messages, { model: runtimeModel, ...generationOptions });
-  for await (const token of stream) {
-    if (res.destroyed) {
-      break;
+  let lease = null;
+  let completed = false;
+  try {
+    const acquired = await acquireServePrefixLease(dependencies, registryEntry, runtimeModel, messages);
+    lease = acquired.lease;
+    const stream = acquired.modelHandle && typeof acquired.modelHandle.chat === 'function'
+      ? acquired.modelHandle.chat(
+        messages,
+        lease ? { ...generationOptions, generationContext: lease.context } : { ...generationOptions }
+      )
+      : dependencies.dopplerClient.chat(messages, { model: runtimeModel, ...generationOptions });
+    for await (const token of stream) {
+      if (res.destroyed) {
+        break;
+      }
+      sendChunk({
+        id: completionId,
+        object: 'chat.completion.chunk',
+        created,
+        model: registryEntry.modelId,
+        choices: [
+          {
+            index: 0,
+            delta: { content: token },
+            finish_reason: null,
+          },
+        ],
+      });
     }
-    sendChunk({
-      id: completionId,
-      object: 'chat.completion.chunk',
-      created,
-      model: registryEntry.modelId,
-      choices: [
-        {
-          index: 0,
-          delta: { content: token },
-          finish_reason: null,
-        },
-      ],
-    });
+    if (!res.destroyed) {
+      completed = true;
+    }
+  } finally {
+    lease?.release({ discard: !completed });
   }
 
   sendChunk({
@@ -481,11 +590,15 @@ async function handleListModels(res, dependencies) {
   });
 }
 
-function handleHealth(res) {
-  jsonResponse(res, 200, {
+function handleHealth(res, dependencies) {
+  const payload = {
     status: 'ok',
     version: DOPPLER_VERSION,
-  });
+  };
+  if (dependencies?.prefixCache && typeof dependencies.prefixCache.getStats === 'function') {
+    payload.prefix_cache = dependencies.prefixCache.getStats();
+  }
+  jsonResponse(res, 200, payload);
 }
 
 function handleCors(req, res) {
@@ -516,7 +629,7 @@ export function createServeHandler(dependencies = {}) {
         return await handleListModels(res, resolvedDependencies);
       }
       if ((pathname === '/health' || pathname === '/') && req.method === 'GET') {
-        return handleHealth(res);
+        return handleHealth(res, resolvedDependencies);
       }
       jsonError(res, 404, `Unknown endpoint: ${req.method} ${pathname}`, 'not_found');
     } catch (error) {
@@ -557,8 +670,14 @@ async function startServer(settings) {
     console.error(`[doppler-serve] model ready: ${settings.model}`);
   }
 
-  const handler = createServeHandler({ resolveRuntimeModel });
+  const prefixCache = createServePrefixCache({
+    policy: settings.prefixCache
+      ? { enabled: true, maxBytes: settings.prefixCacheBytes }
+      : { enabled: false },
+  });
+  const handler = createServeHandler({ resolveRuntimeModel, prefixCache });
   const server = http.createServer(handler);
+  server.on('close', () => prefixCache.close());
 
   return new Promise((resolve, reject) => {
     server.on('error', reject);
