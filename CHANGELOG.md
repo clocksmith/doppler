@@ -4,6 +4,24 @@ Historical package notes are preserved outside the runtime archive in
 `docs/status/archive/package-changelog-through-0.6.1.md` and the earlier
 `package-changelog-through-0.4.15.md` snapshot in that directory.
 
+## [0.7.8] - 2026-11-19
+
+### Performance
+
+- Routed expert weights can be staged through mapped upload buffers (`qwen35Routed.uploadStaging: "mapped"`,
+  off by default), with first-time bytes read while worker lanes hash them and one upload's hashing spread
+  over idle lanes.
+- `qwen35Routed.uploadVerification: "before-release"` (off by default, mapped staging only) lets a partition
+  stage compute while hashes run and holds its output until every hash from that step has passed. The default
+  stays `"before-upload"`.
+- Verified gather lanes start together, piece-directory identity checks run synchronously, and a resident
+  stage can run an optional warm prompt pass while it opens.
+
+### Correctness
+
+- A piece served from the protected cache no longer marks the file's own piece as verified.
+- Q4_0 routed-expert kernels, the file-descriptor-bound piece state cache and tiered preload are included.
+
 ## [0.7.7] - 2026-11-18
 
 ### Packaging

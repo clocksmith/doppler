@@ -1,6 +1,6 @@
 export const SHELL_MANIFEST_SCHEMA = 'doppler.demo-shell-manifest/v1';
-export const SHELL_MANIFEST_DIGEST = 'sha256:4973fd508d7ac5085c016557df87c0743a4effc1389518451ca345040cfdf1f5';
-export const CACHE_NAME = 'doppler-demo-shell-4973fd508d7ac508';
+export const SHELL_MANIFEST_DIGEST = 'sha256:d368d811ac29e5848dcae6218be10a56ec8a86765d0f7442069fa1791d9ed742';
+export const CACHE_NAME = 'doppler-demo-shell-d368d811ac29e584';
 export const APP_SHELL = Object.freeze([
   "/demo/assets/activity-preview-attention-prefill.png",
   "/demo/assets/activity-preview-contributions.png",
@@ -725,6 +725,7 @@ export const APP_SHELL = Object.freeze([
   "/src/inference/pipelines/text/partitions/partition-execution.js",
   "/src/inference/pipelines/text/partitions/partition-wire.js",
   "/src/inference/pipelines/text/partitions/resident-partition-contract.js",
+  "/src/inference/pipelines/text/partitions/resident-partition-warmup.js",
   "/src/inference/pipelines/text/partitions/resident-partition.js",
   "/src/inference/pipelines/text/partitions/resident-pipeline-preparation.js",
   "/src/inference/pipelines/text/per-layer/materialize.js",
@@ -788,6 +789,7 @@ export const APP_SHELL = Object.freeze([
   "/src/loader/experts/expert-loader.js",
   "/src/loader/experts/expert-preparation.js",
   "/src/loader/experts/loader-bindings.js",
+  "/src/loader/experts/mapped-expert-staging.js",
   "/src/loader/experts/mapped-expert-upload-cache.js",
   "/src/loader/experts/qwen-paging.js",
   "/src/loader/experts/routed-expert-cache.js",
@@ -884,9 +886,11 @@ export const APP_SHELL = Object.freeze([
   "/src/storage/shards/lifecycle.js",
   "/src/storage/source-artifact-store.js",
   "/src/storage/source-storage-context.js",
+  "/src/storage/verified-piece-direct.js",
   "/src/storage/verified-piece-gather-lane.js",
   "/src/storage/verified-piece-gather.js",
   "/src/storage/verified-piece-reader.js",
+  "/src/storage/verified-piece-state-cache.js",
   "/src/storage/verified-piece-timings.js",
   "/src/tooling-exports/evidence.js",
   "/src/tooling-exports/runtime.js",

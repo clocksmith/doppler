@@ -910,6 +910,7 @@ inference/pipelines/text/partitions/partition-execution.d.ts
 inference/pipelines/text/partitions/partition-replay.d.ts
 inference/pipelines/text/partitions/partition-replay.js
 inference/pipelines/text/partitions/partition-wire.d.ts
+inference/pipelines/text/partitions/resident-partition-warmup.d.ts
 inference/pipelines/text/partitions/resident-partition.d.ts
 inference/pipelines/text/partitions/resident-pipeline-preparation.d.ts
 inference/pipelines/text/per-layer/materialize.d.ts
@@ -960,6 +961,7 @@ loader/embedding-loader.d.ts
 loader/experts/compact-expert-cache.d.ts
 loader/experts/expert-frequency-index.d.ts
 loader/experts/loader-bindings.d.ts
+loader/experts/mapped-expert-staging.d.ts
 loader/experts/routed-expert-prefill.d.ts
 loader/experts/routed-expert-source.d.ts
 loader/experts/routed-expert-trace.d.ts
@@ -1075,6 +1077,7 @@ storage/runtime-env.d.ts
 storage/shards/index.d.ts
 storage/shards/integrity.d.ts
 storage/shards/lifecycle.d.ts
+storage/verified-piece-direct.d.ts
 storage/verified-piece-gather-lane.d.ts
 storage/verified-piece-gather-worker.d.ts
 storage/verified-piece-timings.d.ts
