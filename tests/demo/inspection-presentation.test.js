@@ -17,10 +17,10 @@ assert.equal(isChatModel({ modes: ['text'], classification: { tasks: ['embedding
 assert.equal(isChatModel({ modes: ['image'], classification: { tasks: ['generation'] } }), false);
 assert.equal(isChatModel({}), false, 'An unknown capability cannot be offered as a chat model');
 assert.equal(buildModelDetail({ modelId: 'fixture', label: 'Fixture', sizeBytes: 418518521 }),
-  '');
+  'Fixture · Download size 419 MB.');
 assert.equal(buildModelDetail({ modelId: 'fixture', sizeBytes: 418518521 }, 'stored'),
-  'Saved in this browser.');
-assert.equal(buildModelDetail({ modelId: 'fixture', sizeBytes: 418518521 }, 'loaded'), '', 'The status chip alone reports a loaded model');
+  'fixture · Download size 419 MB. Saved in this browser.');
+assert.equal(buildModelDetail({ modelId: 'fixture', sizeBytes: 418518521 }, 'loaded'), 'fixture · Download size 419 MB.', 'Loaded models retain their artifact summary');
 
 const receipt = { generationEvidence: { stats: {
   prefillTimeMs: 50, gpuTimeDecodeMs: 4,
@@ -52,9 +52,9 @@ assert.equal(modelFit(large, null), 'unknown', 'A browser that reports nothing g
 assert.equal(modelFit({ modelId: 'small', quickstartRequirements: { vramRequiredBytes: GIB } }, 4 * GIB), 'fits');
 assert.equal(modelFit({ modelId: 'unstated' }, 4 * GIB), 'unknown');
 assert.equal(buildModelDetail(large, 'available', 4 * GIB),
-  'Needs about 12 GB of GPU memory. This browser reports 4 GB of system memory.');
+  'large · Download size 7.1 GB. Needs about 12 GB of GPU memory. This browser reports 4 GB of system memory.');
 assert.equal(buildModelDetail(large, 'available', null),
-  'Needs about 12 GB of GPU memory.');
+  'large · Download size 7.1 GB. Needs about 12 GB of GPU memory.');
 
 // Asking for an adapter decides whether live inference is offered; its limits are per-buffer, not memory.
 assert.deepEqual(await probeWebGpu(undefined), { available: false, limits: null });

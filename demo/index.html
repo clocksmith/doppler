@@ -248,7 +248,7 @@
               <div class="chat-role">Doppler</div>
               <div class="recorded-toolbar">
                 <p id="recorded-run-note" class="demo-note" hidden></p>
-                <div id="answer-replay-controls"><button id="answer-play" class="btn btn-small" type="button" hidden>Replay answer</button></div>
+                <div id="answer-replay-controls"><a id="replay-link" href="#activation-player" hidden>View replay controls</a></div>
               </div>
               <div id="output-text" class="output-text"></div>
               <div id="word-quality-output" hidden></div>
@@ -260,10 +260,9 @@
               <p id="token-inspection-hint" class="demo-note" hidden>This answer has no saved alternatives.</p>
               <div id="token-inspector-view" class="token-inspector-view" hidden>
                 <p id="branch-help" class="demo-note">Select an underlined token to see what else the model might have written.</p>
-                <div id="token-stream-container" class="token-stream-container"></div>
+                <div id="token-stream-container" class="token-stream-container" role="group" aria-label="Answer tokens" aria-describedby="branch-help"></div>
                 <div id="token-inspector-card-container" class="token-inspector-card-container"></div>
               </div>
-              <div id="preview-mobile"></div>
             </article>
           </div>
         </section>
@@ -275,7 +274,7 @@
               <span id="model-select-status" class="model-select-status" role="status" aria-live="polite">Loading the model list…</span>
             </div>
             <div class="model-select-row">
-              <select id="model-select" disabled>
+              <select id="model-select" aria-describedby="model-select-detail" disabled>
                 <option value="">Loading models…</option>
               </select>
               <button id="model-select-action" class="btn" type="button" disabled>Load model</button>
@@ -294,6 +293,11 @@
           <div class="input-actions">
             <button id="run-btn" class="btn btn-primary run-btn" type="button" disabled title="Send this message to the model">Send</button>
             <button id="stop-btn" class="btn" type="button" hidden>Stop</button>
+          </div>
+          <div id="suggestion-preview" hidden>
+            <p id="suggested-prompt" aria-live="polite"></p>
+            <button id="replace-draft" class="btn btn-small" type="button">Replace draft</button>
+            <button id="keep-draft" class="btn btn-ghost btn-small" type="button">Keep draft</button>
           </div>
           <p id="send-hint" class="demo-note" role="status" hidden></p>
         </section>
@@ -404,7 +408,6 @@
         </fieldset>
 
         <div id="activation-view" class="activation-view">
-          <div id="preview-desktop"></div>
           <figure id="answer-preview" class="answer-preview" hidden>
             <figcaption>Layer activity for <strong id="preview-word"></strong></figcaption>
             <div id="preview-bars" class="preview-bars" role="img"></div>
@@ -418,7 +421,7 @@
           <p id="activity-availability" class="demo-note" role="status"></p>
           <button id="activity-go" class="btn btn-ghost btn-small" type="button" hidden></button>
 
-          <div id="activation-player" class="activation-player" hidden>
+          <div id="activation-player" class="activation-player" tabindex="-1" hidden>
             <div class="activity-view-toolbar">
               <label class="activity-view-choice"><span class="sr-only">View</span><select id="activity-mode" aria-label="Activity grid"></select></label>
               <button id="activity-paths-button" class="btn btn-ghost btn-small" type="button" hidden>Follow latest layer</button>
@@ -426,7 +429,7 @@
             <div id="activation-timeline" class="activation-timeline">
               <button id="activation-live" class="btn btn-small" type="button" aria-pressed="true" hidden>Follow live</button>
               <button id="activation-play" class="btn" type="button" disabled>Play</button>
-              <label class="sr-only" for="activation-scrub">Capture</label>
+              <label class="sr-only" for="activation-scrub">Activity capture</label>
               <input id="activation-scrub" type="range" min="0" max="0" value="0" disabled>
             </div>
             <p id="activity-hint" class="demo-note" hidden>Replay to follow each token and its layer activity.</p>

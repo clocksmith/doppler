@@ -59,16 +59,16 @@ activity into view on Send and keep Stop reachable while generation runs.
 A ready visit with an empty draft opens an interactive preview of Qwen 3.5
 0.8B answering “Explain why the sky is blue in one sentence.” The saved token
 probabilities and per-layer output magnitudes come from the same run. The
-preview selects “appears” in “The sky appears blue.” Selecting another token
-updates both its alternatives and its layer chart. All bars use one scale.
+layer chart opens on “appears” in “The sky appears blue.” The composer follows
+the answer. Selecting a token opens its alternatives and updates the layer chart. All bars use one scale.
 The preview works without WebGPU or model weights.
 
 **Load full replay · 23 MB** fetches the full activity recording on demand.
-The token inspector keeps the complete answer available. Selecting a token seeks its activity. Replay answer follows the recorded token and layer timing from the beginning.
+The token inspector keeps the complete answer available. Selecting a token seeks its activity. View replay controls leads to the player. Replay answer advances through the saved activity and shows the answer token and activity capture together.
 A visitor can keep typing or cancel a pending download by changing the model.
 The recorded answer stays outside live chat history. Run on this device names
 the model for live answers. Another prompt fills an empty composer or changes an
-untouched suggestion and disappears when the visitor edits a draft.
+untouched suggestion. For a custom draft, the suggestion appears separately until the visitor chooses Replace draft or Keep draft.
 Live generation and
 recorded examples share the existing inspection view and execution owners.
 

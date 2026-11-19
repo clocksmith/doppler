@@ -13,19 +13,23 @@ export function watchFullReplay(page) {
 export async function checkPreviewAndReplay(page, fullReplayRequests) {
   const sample = await page.evaluate(async () => (await import(new URL('data/sample-inspection.js', document.querySelector('script[src$="/demo.js"]').src))).SAMPLE_INSPECTION_RECEIPT);
   const firstPosition = String(sample.inputTokenIds.length - 1);
-  await page.locator('.token-chip[aria-pressed="true"]').waitFor();
-  const selected = page.locator('.token-chip[aria-pressed="true"]');
-  const selectedWord = (await selected.textContent()).trim();
-  assert.match(selectedWord, /[a-z]+/i, 'Opens on a word with recorded alternatives');
-  assert.equal(await page.locator('#preview-word').textContent(), `“${selectedWord}”`);
-  assert.equal(await page.locator('#preview-bars span[style]').count(), 24, 'All layers have a measured value for the opening word');
-  assert(await page.locator('.token-candidates-list').isVisible());
+  await page.locator('.token-chip').first().waitFor();
+  assert.equal(await page.locator('.token-chip[aria-pressed="true"]').count(), 0);
+  assert.equal(await page.locator('#preview-word').textContent(), '“appears”');
+  assert.equal(await page.locator('#preview-bars span[style]').count(), 24);
+  assert.equal(await page.locator('#token-inspector-card-container').isVisible(), false);
   assert.equal(await page.inputValue('#prompt-input'), '', 'The example prompt appears once in the conversation');
   assert.equal(await page.locator('#chat-thread .chat-message-text').first().textContent(), sample.prompt);
   assert.match(await page.locator('#recorded-run-note').textContent(), /recorded/i);
   await page.locator('.token-chip').first().click();
   assert.equal(await page.locator('.token-inspector-badge').textContent(), '"The"');
   assert.equal(await page.locator('#preview-word').textContent(), '“The”', 'The visualization follows the chosen token');
+  const firstToken = page.locator('.token-chip').first();
+  assert.equal(await firstToken.getAttribute('title'), null);
+  await page.getByRole('button', { name: 'Close alternatives' }).click();
+  assert.equal(await firstToken.getAttribute('aria-expanded'), 'false');
+  await firstToken.press('Enter');
+  assert.equal(await firstToken.getAttribute('aria-expanded'), 'true');
   assert.equal(fullReplayRequests(), 0, 'Opening the preview and exploring tokens both avoid the full recording download');
   assert.equal(await page.locator('#activation-player').isVisible(), false);
   assert.match(await page.locator('#activity-example').textContent(), /23 MB/);
@@ -61,7 +65,10 @@ export async function checkPreviewAndReplay(page, fullReplayRequests) {
   await page.emulateMedia({ colorScheme: 'light' });
   await page.waitForFunction(before => document.querySelector('#activation-canvas').toDataURL() === before, before);
 
-  await page.locator('#answer-play').click();
+  assert.equal(await page.getByRole('button', { name: 'Replay answer', exact: true }).count(), 1);
+  assert.match(await page.locator('#activation-caption').textContent(), /Answer token \d+ \/ \d+ · Activity capture \d+ \/ \d+/);
+  await page.locator('#replay-link').click();
+  await page.locator('#activation-play').click();
   await page.waitForFunction(() => document.querySelector('#activation-play').textContent === 'Pause');
   await page.fill('#prompt-input', 'My next question');
   assert.equal(await page.locator('#activation-play').textContent(), 'Replay answer', 'Typing pauses automatic playback');
@@ -82,6 +89,7 @@ export async function checkWithoutWebGpu(page, fullReplayRequests, { hasApi = fa
   await page.waitForFunction(() => document.querySelector('#output-text').textContent.startsWith('The sky appears blue'), null, { timeout: 120000 });
   assert.match(await page.locator('#recorded-run-note').textContent(), /recorded/i);
   assert.equal(fullReplayRequests(), 0);
+  await page.locator('.token-chip').first().click();
   assert(await page.locator('.token-candidates-list').isVisible(), 'The preview works without WebGPU');
   await page.locator('#activity-example').click();
   await page.locator('#activation-player').waitFor();
@@ -160,7 +168,7 @@ export async function checkPendingExample(page) {
 // A failed download preserves the working preview and a question the visitor drafted.
 export async function checkReplayDownloadFailure(page) {
   await page.reload({ waitUntil: 'networkidle' });
-  await page.locator('.token-chip[aria-pressed="true"]').waitFor();
+  await page.locator('.token-chip').first().waitFor();
   const preview = await page.locator('#output-text').textContent();
   await page.fill('#prompt-input', 'Keep my question');
   await page.route('**/assets/activity-example.json', route => route.fulfill({ status: 404, body: 'unavailable' }));

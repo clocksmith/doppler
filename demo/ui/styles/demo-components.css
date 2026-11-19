@@ -368,9 +368,9 @@
   background: var(--doppler-inset-surface);
   box-shadow: var(--doppler-inset);
 }
-#app #input-area :is(.model-picker, .input-row, #send-hint) { grid-column: 1 / -1; }
+#app #input-area :is(.model-picker, .input-row, #suggestion-preview, #send-hint) { grid-column: 1 / -1; }
 #app #input-area .input-actions { grid-column: 2; }
-#app #prompt-input { border: 0; border-radius: 0; padding: 0; min-height: 80px; background: transparent; }
+#app #prompt-input { width: 100%; min-width: 0; border: 0; border-radius: 0; padding: 0; min-height: 80px; background: transparent; }
 #app #prompt-input:focus-visible { outline: 0; }
 #app #input-area:focus-within { outline: 2px solid var(--fg); outline-offset: -3px; }
 #app #input-area .input-actions .btn { min-width: 8ch; }
@@ -483,7 +483,7 @@
 #app #model-picker-label { font: 600 var(--demo-label-size)/1.5 var(--font-sans); }
 #app .status-chip { font: 400 13px/1.5 var(--font-sans); letter-spacing: normal; text-transform: none; color: var(--fg); }
 #app .model-select-row { display: flex; align-items: stretch; gap: var(--demo-space-1); }
-#app .model-select-row select { flex: 1 1 auto; width: auto; min-width: 0; min-height: var(--demo-control-height); font-weight: 500; }
+#app .model-select-row select { text-overflow: ellipsis; padding-inline-end: 36px; flex: 1 1 auto; width: auto; min-width: 0; min-height: var(--demo-control-height); font-weight: 500; }
 #app .model-select-row .btn { min-height: var(--demo-control-height); }
 /* No WebGPU: no model can load, so the picker would name a model that is not running. Only the notice and its retry stay. */
 #app .model-picker--unavailable :is(.model-picker-heading, .model-select-row) { display: none; }
@@ -564,14 +564,14 @@
 #app .recorded-toolbar:has(#recorded-run-note[hidden]), #app #activity-replay-controls:empty { display: none; }
 #app #recorded-run-note { color: var(--fg); font-weight: 600; }
 
+#app #suggested-prompt { margin: 0 0 var(--demo-space-1); overflow-wrap: anywhere; }
 #app .precision-table-hint { display: none; }
 
 @media (max-width: 600px) {
   #app .precision-table-hint { display: block; }
-  #app #input-area { display: flex; flex-wrap: wrap; align-items: center; }
-  #app #input-area > :is(.model-picker, .input-row, #send-hint) { flex: 1 1 100%; min-width: 0; }
-  #app #prompt-suggestions { width: auto; }
-  #app #input-area .input-actions { margin-inline-start: auto; }
+  #app #input-area { grid-template-columns: minmax(0, 1fr); }
+  #app #input-area > * { min-width: 0; }
+  #app #input-area .input-actions { grid-column: 1; }
   #app .model-select-row { flex-wrap: wrap; }
   #app .model-select-row #model-select { flex-basis: 100%; width: 100%; }
 }

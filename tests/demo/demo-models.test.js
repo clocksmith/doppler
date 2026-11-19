@@ -11,7 +11,7 @@ assert.equal(canRemoveModelStatus('stored'), true);
 assert.equal(canRemoveModelStatus('loaded'), true);
 assert.equal(canRemoveModelStatus('available'), false);
 
-assert.equal(buildModelDetail({ modelId: 'model-a', label: 'Model A' }), '', 'No size, no download line');
+assert.equal(buildModelDetail({ modelId: 'model-a', label: 'Model A' }), 'Model A.', 'An unknown download size is omitted');
 assert.equal(buildModelDetail(null), '');
 
 // The picker shows the published catalog label, configuration included.

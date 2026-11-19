@@ -234,9 +234,18 @@ export async function checkDemoControls(page) {
   assert.equal(await page.locator('#prompt-suggestions button').count(), 1);
   assert.equal(await page.locator('#shuffle-btn').textContent(), 'Another prompt');
   await page.fill('#prompt-input', 'Keep this hand-written question');
-  assert.equal(await page.locator('#shuffle-btn').isVisible(), false);
+  await page.locator('#shuffle-btn').click();
+  assert.ok(prompts.includes(await page.locator('#suggested-prompt').textContent()));
+  assert.equal(await page.inputValue('#prompt-input'), 'Keep this hand-written question');
+  await page.locator('#keep-draft').click();
+  assert.equal(await page.inputValue('#prompt-input'), 'Keep this hand-written question');
+  await page.locator('#shuffle-btn').click();
+  const replacement = await page.locator('#suggested-prompt').textContent();
+  await page.locator('#replace-draft').click();
+  assert.equal(await page.inputValue('#prompt-input'), replacement);
   await page.fill('#prompt-input', '');
   assert.equal(await page.locator('#shuffle-btn').isVisible(), true);
+  for (let draw = 2; draw < prompts.length; draw++) await page.click('#shuffle-btn');
   for (let round = 0; round < 2; round++) {
     const dealt = new Set();
     for (let draw = 0; draw < prompts.length; draw++) {

@@ -410,7 +410,8 @@ export function recordedRunNote(model) {
 
 export function showAnswerPreview() {
   loadSampleInspection(SAMPLE_INSPECTION_RECEIPT, { preserveDraft: true });
-  selectToken(openAnswerPreview(SAMPLE_INSPECTION_RECEIPT.fingerprint.fullDigest));
+  const opening = openAnswerPreview(SAMPLE_INSPECTION_RECEIPT.fingerprint.fullDigest);
+  selectPreviewWord(opening, SAMPLE_INSPECTION_RECEIPT.tokens[opening].text);
 }
 
 export function showRecordedActivity(recording, { preserveDraft = false } = {}) {
@@ -551,5 +552,6 @@ export function updateRecordedActivity(recording, point) {
     setAssistantText(text);
     renderWordQuality(count === receipt.tokens.length ? receipt.quality : null, text);
   }
-  if (count > 0 && getTokenInspectorSelection() !== count - 1) selectToken(count - 1, { notify: false });
+  if (count > 0 && getTokenInspectorSelection() !== count - 1) selectToken(count - 1, { notify: false, inspect: false });
+  return count;
 }

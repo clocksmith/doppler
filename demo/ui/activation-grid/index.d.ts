@@ -2,8 +2,7 @@ import type { ActivationFrame, ActivationTraceReceipt } from '../../../src/debug
 import type { ActivationRecording } from './data.js';
 import type { DopplerModelInspectionReceipt } from '../../../src/client/model-host/model-session.js';
 export interface GridElements {
-  'preview-mobile': HTMLElement; 'preview-desktop': HTMLElement;
-  'answer-replay-controls': HTMLElement; 'activity-replay-controls': HTMLElement; 'answer-play': HTMLButtonElement;
+  'answer-replay-controls': HTMLElement; 'activity-replay-controls': HTMLElement; 'replay-link': HTMLAnchorElement;
   'answer-preview': HTMLElement; 'preview-bars': HTMLElement; 'preview-word': HTMLElement; 'preview-last-layer': HTMLElement;
   'activity-previews': HTMLElement; 'activity-gallery': HTMLElement; 'activity-selectors': HTMLElement;
   'activity-source': HTMLElement; 'activation-view': HTMLElement;
@@ -46,7 +45,7 @@ export declare function importActivationRecording(value: unknown): void;
 export declare function isActivationRecordingFile(value: unknown): boolean;
 export declare function openActivationRecording(value: unknown, byteLength: number, options?: { preserveDraft?: boolean }): void;
 export declare function getActivationRecording(): ActivationRecording | null;
-export declare function initActivationGrid(options?: { onOpenRecording?: (recording: ActivationRecording, options?: { preserveDraft?: boolean }) => void; onPlayback?: (recording: ActivationRecording, point: import('./views.js').PlaybackPoint) => void; unsureWords?: () => { position: number; probability: number }[]; onUnsureWord?: (position: number) => void }): void;
+export declare function initActivationGrid(options?: { onOpenRecording?: (recording: ActivationRecording, options?: { preserveDraft?: boolean }) => void; onPlayback?: (recording: ActivationRecording, point: import('./views.js').PlaybackPoint) => number | undefined; unsureWords?: () => { position: number; probability: number }[]; onUnsureWord?: (position: number) => void }): void;
 
 export declare function openAnswerPreview(fingerprint: string): number;
 export declare function selectPreviewWord(index: number, text: string): void;

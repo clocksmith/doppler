@@ -85,7 +85,7 @@ export function selectPreviewWord(index, text) {
   }));
   $('preview-last-layer').textContent = present ? `Layer ${values.length}` : 'Unavailable';
 }
-/** @type {((recording: import('./data.js').ActivationRecording, point: import('./views.js').PlaybackPoint) => void) | null} */
+/** @type {((recording: import('./data.js').ActivationRecording, point: import('./views.js').PlaybackPoint) => number | undefined) | null} */
 let onPlayback = null;
 
 export function isActivationRecordingEnabled() { return $('activation-record')?.checked === true; }
@@ -201,7 +201,7 @@ function paint() {
   const slot = previewIndex !== null ? $('answer-replay-controls') : $('activity-replay-controls');
   if ($('activity-example').parentElement !== slot) slot.append($('activity-example'));
   $('activity-example').textContent = exampleLoading ? 'Loading full replay…' : 'Load full replay · 23 MB';
-  $('answer-play').hidden = source !== 'Recorded replay' || !timeline.length;
+  $('replay-link').hidden = source !== 'Recorded replay' || !timeline.length;
   $('activity-example').hidden = active || source === 'Recorded replay' && Boolean(recording);
   $('activity-gallery').hidden = !recording;
   $('activity-intro').hidden = previewIndex !== null || timeline.length > 0 || active;
@@ -267,7 +267,7 @@ function paint() {
   token.min = '0'; token.max = String(Math.max(...trace.frames.map(f => f.tokenStart + f.tokenIds.length - 1)));
   if (follow || Number(token.value) > Number(token.max)) token.value = String(point.position);
   const position = Number(token.value);
-  if (!active && !snapshot) onPlayback?.(recording, { ...point, position });
+  const answerToken = !active && !snapshot ? onPlayback?.(recording, { ...point, position }) : undefined;
   const graph = select.value === 'model-paths' ? modelPathView(recording, point.atMs, position, Number(layerSelect.value)) : null;
   const tiled = select.value === 'difference' || select.value === 'layer-output';
   const view = graph ? { values: graph.nodes.map(n => n.magnitude ?? undefined), range: /** @type {const} */ ('positive'),
@@ -360,7 +360,10 @@ function paint() {
     : $('activity-playback').value === 'time' ? 'Play follows recorded capture timestamps, including diagnostic overhead.'
       : 'Play advances operator captures at 12 captures/second at 1×.';
   $('activation-caption').dataset.live = String(active && follow);
-  $('activation-caption').textContent = `${snapshot ? chosen.clockLabel : `${point.phase === 'prefill' ? 'Prefill' : 'Decode'} · token ${position}`}${graph ? ` · layer ${graph.layer + 1}` : ''}`;
+  const phase = point.phase === 'prefill' ? 'Prefill' : 'Decode';
+  const answer = typeof answerToken === 'number' && recording.generatedTokenIds ? `Answer token ${answerToken} / ${recording.generatedTokenIds.length} · ` : '';
+  const capture = snapshot ? chosen.clockLabel : `${answer}Activity capture ${cursor + 1} / ${timeline.length} · ${phase} · token ${position}`;
+  $('activation-caption').textContent = capture + (graph ? ` · layer ${graph.layer + 1}` : '');
   $('activity-title').textContent = chosen?.label ?? view.quantity;
   $('activity-update').textContent = chosen?.clockLabel ?? '';
   $('activity-method').textContent = graph ? 'Stage summaries' : view.representation === 'aggregated' ? 'Block summary' : view.representation === 'raw' ? 'Captured values' : 'Reconstructed';
@@ -631,19 +634,6 @@ export function initActivationGrid(options = {}) {
       }
     }
   });
-  const narrow = matchMedia('(max-width: 1099px)');
-  const placePreview = () => {
-    const slot = narrow.matches ? $('preview-mobile') : $('preview-desktop');
-    slot.append($('answer-preview'));
-  };
-  placePreview();
-  narrow.addEventListener('change', placePreview);
-  $('answer-play').addEventListener('click', () => {
-    stopPlayback(); openingHint = true;
-    $('activation-play').click();
-    $('activation-player').scrollIntoView({ block: 'nearest' });
-    $('activation-play').focus({ preventScroll: true });
-  });
   $('activity-example').addEventListener('click', () => { void loadActivityExample(config.defaultMode); });
   for (const preview of previews) {
     const card = document.createElement('button');
@@ -720,7 +710,6 @@ export async function loadActivityExample(mode = config.defaultMode) {
     $('activation-position').value = String(examplePoints[cursor].position);
     stopPlayback();
     paint();
-    onUnsureWord?.(examplePoints[cursor].position);
   } catch (error) {
     if (!request.signal.aborted) { exampleError = String(error); queuePaint(); }
   }

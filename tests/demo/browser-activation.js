@@ -55,6 +55,11 @@ export async function checkFirstLoadLayout(page, empty = false) {
     await page.setViewportSize({ width, height: 900 });
     await page.evaluate(() => new Promise(requestAnimationFrame));
     assert(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), `No overflow at ${width}px`);
+    if (width <= 390) {
+      const picker = await page.locator('#model-select').boundingBox();
+      const field = await page.locator('#prompt-input').boundingBox();
+      assert.equal(field.width, picker.width, `The message field uses the full picker width at ${width}px`);
+    }
     if (empty) {
       const surface = await page.locator('.chat-surface').boundingBox();
       const composer = await page.locator('#input-area').boundingBox();
@@ -178,6 +183,7 @@ export async function checkRealActivityPlayback(page) {
   await page.locator('#activity-example').click();
   await page.locator('#activation-player').waitFor();
   assert.equal(await page.locator('.token-chip').count(), sample.tokens.length);
+  await page.locator('.token-chip').nth(2).click();
   await page.getByRole('button', { name: 'Next token →' }).click();
   assert.equal(await page.inputValue('#activation-position'), String(Number(promptPosition) + 3));
   assert.equal(await page.locator('#chat-thread .chat-message-text').first().textContent(), sample.prompt);
@@ -361,7 +367,7 @@ export async function checkLiveActivity(page) {
     assert.equal(await page.locator('#activity-source').isVisible(), false);
     assert.equal(await page.locator('#activity-coverage').isVisible(), false);
     assert.equal(await page.locator('#activity-legend').isVisible(), true);
-    assert.equal(await page.locator('#activation-caption').textContent(), 'Decode · token 1');
+    assert.match(await page.locator('#activation-caption').textContent(), /Activity capture \d+ \/ \d+ · Decode · token 1$/);
     for (const heading of ['dialogue-heading', 'activity-heading']) {
       assert.equal(await page.locator('#' + heading).evaluate(node => getComputedStyle(node.parentElement).clipPath), 'inset(50%)');
     }

@@ -160,7 +160,7 @@ export function syncModelControls() {
   }
   if (detail) {
     const failed = entry && state.modelLoadNote?.modelId === entry.modelId ? state.modelLoadNote.text : '';
-    detail.textContent = !state.webgpuAvailable ? NO_WEBGPU_NOTE : failed || (entry ? buildModelDetail(entry, status) : '');
+    detail.textContent = !state.webgpuAvailable ? NO_WEBGPU_NOTE : [buildModelDetail(entry, status), failed].filter(Boolean).join(' ');
     detail.hidden = !detail.textContent;
   }
   const retry = $('webgpu-retry');
@@ -334,13 +334,16 @@ export function canRemoveModelStatus(status) {
 
 // Explain download cost and memory need before loading; the selected model and enabled Send show readiness.
 export function buildModelDetail(entry, status = 'available', reportedBytes = reportedMemoryBytes()) {
-  if (!entry || status === 'loaded' || status === 'loading') return '';
+  if (!entry) return '';
+  const size = downloadSize(entry);
+  const details = [modelLabel(entry) + (size ? ` · Download size ${size}.` : '.')];
+  if (status === 'stored') details.push('Saved in this browser.');
   const required = entry.quickstartRequirements?.vramRequiredBytes;
   if (modelFit(entry, reportedBytes) === 'too-large') {
-    return `Needs about ${memorySize(required)} of GPU memory. This browser reports ${memorySize(reportedBytes)} of system memory.`;
+    details.push(`Needs about ${memorySize(required)} of GPU memory. This browser reports ${memorySize(reportedBytes)} of system memory.`);
+  } else if (Number.isFinite(required) && required > 0) {
+    details.push(`Needs about ${memorySize(required)} of GPU memory.`);
   }
-  const details = status === 'stored' ? ['Saved in this browser.'] : [];
-  if (Number.isFinite(required) && required > 0) details.push(`Needs about ${memorySize(required)} of GPU memory.`);
   return details.join(' ');
 }
 

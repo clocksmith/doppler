@@ -7,7 +7,7 @@ export declare function showAnswerPreview(): void;
 export declare function recordedRunNote(model: string): string;
 export declare function showRecordedActivity(recording: import('./ui/activation-grid/data.js').ActivationRecording, options?: { preserveDraft?: boolean }): void;
 export declare function loadSampleInspection(receipt: typeof import('./data/sample-inspection.js').SAMPLE_INSPECTION_RECEIPT, options?: { preserveDraft?: boolean }): void;
-export declare function updateRecordedActivity(recording: import('./ui/activation-grid/data.js').ActivationRecording, point: import('./ui/activation-grid/views.js').PlaybackPoint): void;
+export declare function updateRecordedActivity(recording: import('./ui/activation-grid/data.js').ActivationRecording, point: import('./ui/activation-grid/views.js').PlaybackPoint): number | undefined;
 
 /** Re-applies fork switchers and branching availability to the token view. */
 export declare function syncBranchView(): void;

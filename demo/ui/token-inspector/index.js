@@ -4,6 +4,7 @@ import { groupTokenFragments } from '../../branches.js';
 // picking an alternative continues a live answer from that exact token.
 let currentTokens = [];
 let selectedIndex = -1;
+let cardOpen = false;
 let inspectorActive = false;
 let boundContainer = null;
 let boundCardContainer = null;
@@ -57,16 +58,8 @@ function tokenButton(token, index, text) {
   element.style.setProperty('--token-gradient-end', String(1 - (neighbor(1) + (probability ?? .5)) / 2));
   element.classList.toggle('token-chip--unavailable', probability === null);
   element.classList.toggle('token-chip--chosen', token?.chosen === true);
-  const description = [
-    `Branch point · token ${index + 1}`,
-    `The model gave this token ${pct(probability)}`,
-    options.branchable ? 'Select to see alternatives and branch.' : 'Select to see recorded alternatives.',
-  ].join('\n');
-  element.title = description;
-  element.setAttribute('aria-label', `${description}: ${text ? JSON.stringify(text) : 'Empty token'}`);
-  element.addEventListener('focus', () => {
-    if (selectedIndex !== index) selectToken(index);
-  });
+  element.setAttribute('aria-label', `${text ? JSON.stringify(text) : 'Empty token'}, answer token ${index + 1}, ${pct(probability)} likely`);
+  element.setAttribute('aria-controls', 'token-inspector-card-container');
   element.addEventListener('click', () => selectToken(index, { focus: true }));
   return element;
 }
@@ -93,6 +86,7 @@ function syncSelection() {
     const selected = Number(element.dataset.tokenIndex) === selectedIndex;
     element.classList.toggle('is-selected', selected);
     element.setAttribute('aria-pressed', String(selected));
+    element.setAttribute('aria-expanded', String(selected && cardOpen));
     element.tabIndex = selected || (selectedIndex < 0 && Number(element.dataset.tokenIndex) === chipIndices[0]) ? 0 : -1;
   });
 }
@@ -138,7 +132,7 @@ export function setTokenInspectorActive(active) {
   inspectorActive = Boolean(active);
   if (boundContainer) boundContainer.hidden = !inspectorActive || currentTokens.length === 0;
   if (boundCardContainer) {
-    boundCardContainer.hidden = !inspectorActive || selectedIndex < 0 || currentTokens.length === 0;
+    boundCardContainer.hidden = !inspectorActive || !cardOpen || selectedIndex < 0 || currentTokens.length === 0;
   }
 }
 
@@ -152,11 +146,12 @@ export function getTokenInspectorSelection() {
   return selectedIndex;
 }
 
-export function selectToken(index, { focus = false, notify = true } = {}) {
+export function selectToken(index, { focus = false, notify = true, inspect = true } = {}) {
   if (!currentTokens.length || !Number.isFinite(index)) return;
   const target = chipIndices.includes(index) ? index : chipIndices.find((entry) => entry >= index) ?? chipIndices.at(-1);
   if (target === undefined) return;
   selectedIndex = target;
+  if (inspect) cardOpen = true;
   if (notify) options.onSelect?.(target, currentTokens[target].text);
   syncSelection();
   renderTokenCard();
@@ -173,7 +168,7 @@ function stepSelection(offset) {
 function renderTokenCard() {
   if (!boundCardContainer) return;
   const token = currentTokens[selectedIndex];
-  if (!token) {
+  if (!token || !cardOpen) {
     boundCardContainer.replaceChildren();
     return;
   }
@@ -190,7 +185,7 @@ function renderTokenCard() {
   badge.textContent = token.text ? JSON.stringify(token.text) : 'Empty token';
   const id = document.createElement('span');
   id.className = 'token-inspector-id';
-  id.textContent = `token ${selectedIndex + 1} / ${currentTokens.length}`;
+  id.textContent = `Answer token ${selectedIndex + 1} / ${currentTokens.length}`;
   id.title = `Token ID ${token.tokenId ?? 'unavailable'}`;
   identity.append(badge, id);
   const metrics = document.createElement('span');
@@ -247,7 +242,14 @@ function renderTokenCard() {
   nav.className = 'token-inspector-nav';
   nav.append(
     button('← Previous token', () => stepSelection(-1), { disabled: position <= 0 }),
-    button('Next token →', () => stepSelection(1), { disabled: position < 0 || position >= chipIndices.length - 1 })
+    button('Next token →', () => stepSelection(1), { disabled: position < 0 || position >= chipIndices.length - 1 }),
+    button('Close alternatives', () => {
+      cardOpen = false;
+      syncSelection();
+      boundContainer?.querySelector('[aria-pressed="true"]')?.focus({ preventScroll: true });
+      renderTokenCard();
+      setTokenInspectorActive(inspectorActive);
+    })
   );
   card.append(nav);
   boundCardContainer.replaceChildren(card);
@@ -262,6 +264,7 @@ function bindContainers(streamContainer, cardContainer) {
     const steps = { ArrowLeft: -1, ArrowRight: 1, Home: -Infinity, End: Infinity };
     if (!(event.key in steps)) return;
     event.preventDefault();
+    selectedIndex = Number(event.target.closest('.token-chip').dataset.tokenIndex);
     stepSelection(steps[event.key]);
   };
 }
@@ -277,6 +280,7 @@ export function renderTokenInspector(tokens, streamContainer, cardContainer) {
   bindContainers(streamContainer, cardContainer);
   currentTokens = Array.isArray(tokens) ? [...tokens] : [];
   selectedIndex = -1;
+  cardOpen = false;
   if (renderFrame !== null && typeof cancelAnimationFrame === 'function') cancelAnimationFrame(renderFrame);
   renderStream();
 }

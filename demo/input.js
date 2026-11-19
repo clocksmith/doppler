@@ -96,6 +96,7 @@ export function setPromptValue(value, { suggestion = false } = {}) {
     return;
   }
   promptEl.value = typeof value === 'string' ? value : String(value ?? '');
+  closeSuggestionPreview();
   suggestedDraft = suggestion ? promptEl.value : null;
   promptEl.focus();
   syncSendButton();
@@ -104,6 +105,7 @@ export function setPromptValue(value, { suggestion = false } = {}) {
 export function clearPrompt() {
   const promptEl = $('prompt-input');
   if (promptEl) {
+    closeSuggestionPreview();
     suggestedDraft = null;
     promptEl.value = '';
     syncSendButton();
@@ -203,7 +205,7 @@ export function syncSendButton(options = {}) {
   const btn = $('run-btn');
   const prompt = getPrompt();
   const suggestions = $('prompt-suggestions');
-  if (suggestions) suggestions.hidden = !canSuggestPrompt();
+  if (suggestions) suggestions.hidden = !examples;
   const generating = options.generating ?? state.generating;
   const prefilling = options.prefilling ?? state.prefilling;
   const ready = !state.modelBusy && !state.settingsBusy && isSendReady({
@@ -266,16 +268,32 @@ async function submitIfReady() {
   }
 }
 
-function canSuggestPrompt() {
-  const value = $('prompt-input')?.value;
-  return Boolean(examples && (value === '' || value === suggestedDraft));
+function closeSuggestionPreview() {
+  const preview = $('suggestion-preview');
+  if (preview) preview.hidden = true;
 }
 
 export async function initInput() {
   await loadExamples();
 
   $('shuffle-btn')?.addEventListener('click', () => {
-    if (canSuggestPrompt()) setPromptValue(dealPrompt(allPrompts()), { suggestion: true });
+    if (!examples) return;
+    const next = dealPrompt(allPrompts());
+    const draft = $('prompt-input').value;
+    if (!draft || draft === suggestedDraft) {
+      setPromptValue(next, { suggestion: true });
+      return;
+    }
+    $('suggestion-preview').hidden = false;
+    $('suggested-prompt').textContent = next;
+    $('replace-draft').focus();
+  });
+  $('replace-draft')?.addEventListener('click', () => {
+    setPromptValue($('suggested-prompt').textContent, { suggestion: true });
+  });
+  $('keep-draft')?.addEventListener('click', () => {
+    closeSuggestionPreview();
+    $('prompt-input').focus();
   });
 
   $('run-btn')?.addEventListener('click', submitIfReady);
@@ -287,6 +305,7 @@ export async function initInput() {
     }
   });
   $('prompt-input')?.addEventListener('input', () => {
+    closeSuggestionPreview();
     suggestedDraft = null;
     syncSendButton();
   });
@@ -301,7 +320,7 @@ export function setGenerating(active) {
   if (runBtn) runBtn.hidden = active;
   if (stopBtn) stopBtn.hidden = !active;
   for (const control of document.querySelectorAll(
-'#set-profile, #set-max-tokens, #settings-panel input:not(:disabled), #xray-toggle-all, #activation-record, #set-word-quality, #import-btn, #shuffle-btn, #prompt-suggestions button'
+'#set-profile, #set-max-tokens, #settings-panel input:not(:disabled), #xray-toggle-all, #activation-record, #set-word-quality, #import-btn, #shuffle-btn, #suggestion-preview button'
   )) {
     if (active) control.dataset.runLocked = 'true';
     control.disabled = active;
