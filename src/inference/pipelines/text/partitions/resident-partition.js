@@ -15,6 +15,7 @@ import { createResidentOutputState } from "../../../resident-output-state.js";
 import { ORDERED_LAYER_PARTITION_SCHEMA, hashLayerPartitionPlan, getPartitionActivationContract, resolveActivationTensorLayout, validateActivationTensorShape } from "../execution/layer-partition-contract.js";
 import { markDeviceWeights, getDeviceMemorySnapshot } from "../../../../memory/device-budget.js";
 import { prepareResidentPartitionPipelines } from './resident-pipeline-preparation.js';
+import { runResidentPartitionWarmup } from './resident-partition-warmup.js';
 
 /** @type {import('./resident-partition.js').createResidentPartitionSession} */
 export async function createResidentPartitionSession(pipeline, allocation, tokens, closeProgram, signal, onLoadProgress) {
@@ -35,6 +36,9 @@ export async function createResidentPartitionSession(pipeline, allocation, token
     // Every pipeline the stage can request is created before readiness, so a
     // provider compile failure or crash happens at opening, not mid-answer.
     const pipelinePreparation = await prepareResidentPartitionPipelines(owner, allocation, signal, onLoadProgress);
+    signal?.throwIfAborted();
+    // Optional and counted as opening time: a private prompt pass that leaves no sequence state.
+    await runResidentPartitionWarmup(owner, allocation, signal);
     signal?.throwIfAborted();
     // Resident execution creates one cache per attempt. The opening pipeline's
     // empty cache is never used by those attempts and must not reserve a second

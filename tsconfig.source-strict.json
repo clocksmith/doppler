@@ -123,6 +123,7 @@
     "src/inference/pipelines/text/execution/layer-partition-contract.js",
     "src/inference/generation-step.js",
     "src/inference/pipelines/text/partitions/partition-attempt.js",
+    "src/inference/pipelines/text/partitions/resident-partition-warmup.js",
     "src/inference/pipelines/text/partitions/resident-partition.js",
     "src/inference/pipelines/text/partitions/resident-pipeline-preparation.js",
     "src/inference/pipelines/text/partitions/resident-partition-contract.js",

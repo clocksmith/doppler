@@ -19,6 +19,20 @@ export interface KernelWarmupConfigSchema {
    * null runs none.
    */
   warmGeneration: KernelWarmupGenerationSchema | null;
+  /**
+   * One prompt pass through a resident partition's own layers while the partition opens: its
+   * pipelines are compiled and, on a routed-expert stage, the experts those tokens select are
+   * loaded before the first request. Runs in a private attempt that is closed before readiness.
+   * Counted in opening time. null runs none.
+   */
+  warmPartition: KernelWarmupPartitionSchema | null;
+}
+
+export interface KernelWarmupPartitionSchema {
+  /** Token ids of the warm prompt. A stage that starts from a boundary activation runs zeros of this length. */
+  tokenIds: number[];
+  /** Single-token steps after the prompt pass (0 to 8). */
+  decodeSteps: number;
 }
 
 export interface KernelWarmupGenerationSchema {

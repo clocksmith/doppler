@@ -310,4 +310,38 @@ for (const [label, execution, headNormShader] of [
     assert.equal(record.created.length, started, 'an undeclared bound starts no creation');
   } finally { record.hold = false; await pipeline.unload(); }
 }
+// 6. A configured warm partition runs one private prompt pass while the stage opens: the stage's
+// pipelines are dispatched before readiness, a first stage runs the configured token ids and a later
+// stage zeros of the declared shape, and invalid settings fail opening instead of being ignored.
+{
+  const record = createRecordingDevice();
+  const warm = settings => ({ ...runtimeConfig, shared: { kernelWarmup: { warmPartition: settings } } });
+  for (const index of [0, 2]) {
+    const pipeline = await createPipeline(manifest, { runtimeConfig: warm({ tokenIds: [1, 2, 3], decodeSteps: 1 }),
+      storage: storage(), partition: { plan, index } });
+    const usedBefore = record.used.length;
+    const resident = await createResidentPartitionSession(pipeline, allocate(index), {}, () => pipeline.unload(), undefined);
+    try {
+      assert(record.used.length > usedBefore, `stage ${index} dispatched its pipelines during opening`);
+      assert.equal(resident.getDescriptor().ready, true);
+      const usedAtReady = record.used.length;
+      await settle();
+      assert.equal(record.used.length, usedAtReady, 'the warm pass is finished before readiness');
+    } finally { await resident.close(); }
+  }
+  {
+    // Without the setting nothing is dispatched during opening.
+    const { pipeline, allocation } = await load(0);
+    const usedBefore = record.used.length;
+    const resident = await createResidentPartitionSession(pipeline, allocation, {}, () => pipeline.unload(), undefined);
+    try { assert.equal(record.used.length, usedBefore); } finally { await resident.close(); }
+  }
+  for (const bad of [{ tokenIds: [], decodeSteps: 0 }, { tokenIds: [VOCAB], decodeSteps: 0 }, { tokenIds: [1], decodeSteps: 9 },
+    { tokenIds: [1], decodeSteps: 0.5 }, { tokenIds: Array.from({ length: limits.maxPromptTokens + 1 }, () => 1), decodeSteps: 0 }]) {
+    const pipeline = await createPipeline(manifest, { runtimeConfig: warm(bad), storage: storage(), partition: { plan, index: 0 } });
+    try {
+      await assert.rejects(createResidentPartitionSession(pipeline, allocate(0), {}, async () => {}, undefined), /warmPartition/);
+    } finally { await pipeline.unload(); }
+  }
+}
 console.log('resident pipeline preparation: prepared set equals execution-bound set per stage on the deployed graphs with and without declared Q/K head-norm steps; progress observable; cancel and bound retain ownership until settlement; failure and timeout name the pipeline');
