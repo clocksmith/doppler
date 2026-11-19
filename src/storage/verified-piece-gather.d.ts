@@ -92,6 +92,11 @@ export interface VerifiedPieceGatherReceipt extends VerifiedPieceReceipt {
   stateCacheAdmittedBytes: number;
   backgroundVerifiedPieces: number;
   backgroundVerificationMs: number;
+  /** Present when direct verified reads are bound: reads served to caller memory from already verified pieces. */
+  directVerifiedReads?: number;
+  directVerifiedBytes?: number;
+  /** Direct reads declined because a piece was unverified or its file no longer matched. */
+  directDeclinedReads?: number;
 }
 export function createVerifiedPieceGather(options: VerifiedPieceGatherOptions): Promise<Readonly<{
   /** At most concurrency in-flight reads or outstanding leases. Cancellation is checked before
@@ -126,4 +131,11 @@ export interface VerifiedRangeLeasePort {
   read(shard: number, offset: number, length: number, signal: AbortSignal): Promise<VerifiedRangeLease>;
   /** Optional batch capability. One output contains ranges in caller order, without padding. */
   readMany?(ranges: ReadonlyArray<{ shard: number; offset: number; length: number }>, signal: AbortSignal): Promise<VerifiedRangeLease>;
+  /**
+   * Optional: present when file identities and a verification cache are both bound. Fills caller memory
+   * with a range whose every piece is already verified for the file's current state and resolves true;
+   * resolves false (destination unusable) when a piece is unverified or the file no longer matches;
+   * rejects if the file changes during the read.
+   */
+  readVerifiedInto?(shard: number, offset: number, destination: Uint8Array, signal?: AbortSignal): Promise<boolean>;
 }

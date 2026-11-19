@@ -103,6 +103,10 @@ export const DEFAULT_EXPERT_CACHE_CONFIG = {
     sourceReadMode: 'plane-serial',
     expertBatchSize: 1,
     prefillUploadMode: 'expert-copy',
+    // 'queue' copies each expert through queue.writeBuffer. 'mapped' reads already verified ranges
+    // straight into mapped upload buffers when the storage port can serve them, and otherwise does
+    // what 'queue' does.
+    uploadStaging: 'queue',
     evictionPolicy: 'lru',
     cacheBytes: 2 * GB,
     hostCacheBytes: 0,
@@ -175,6 +179,12 @@ export function validateQwen35RoutedConfig(config) {
   if (!Number.isSafeInteger(expertBatchSize) || expertBatchSize < 1 || expertBatchSize > 32
     || (expertBatchSize > 1 && (!compact || config.sourceReadMode !== 'expert-lease-batch'))) {
     throw new Error('expertBatchSize requires 1..32 and batched compact source leases for multiple experts.');
+  }
+  const uploadStaging = config.uploadStaging === undefined
+    ? DEFAULT_EXPERT_CACHE_CONFIG.qwen35Routed.uploadStaging : config.uploadStaging;
+  if (!['queue', 'mapped'].includes(uploadStaging)
+    || (uploadStaging === 'mapped' && (!compact || config.sourceReadMode !== 'expert-lease-batch' || config.hostCacheBytes !== 0))) {
+    throw new Error('uploadStaging requires queue, or mapped with batched compact source leases and no host cache.');
   }
   if (!['expert-copy', 'direct-bank'].includes(config.prefillUploadMode)
     || (config.prefillUploadMode === 'direct-bank'

@@ -5,6 +5,7 @@ import { createWeightBuffer } from '../../gpu/weight-buffer.js';
 import { validateQwen35RoutedConfig } from "../../config/schema/runtime/loading.schema.js";
 import { createRoutedExpertCounters, readRoutedExpertRange, assertExpertReadShape, readRoutedExpertPayload } from './routed-expert-source.js';
 import { createBatchedDirectPrefillState, runBatchedDirectPrefillLane, writeRoutedPrefillExpert, selectPrefillSeedExperts } from './routed-expert-prefill.js';
+import { destroyMappedExpertStaging } from './mapped-expert-staging.js';
 
 // The cache owns individual expert payloads. One reusable logical bank preserves
 // the existing kernels' expert IDs, source-format byte offsets and accumulation order.
@@ -705,6 +706,7 @@ export class RoutedExpertCache {
     this.#clearReaderStaging();
     this.#hostEntries.clear(); this.#hostSeen.clear(); this.#hostBytes = 0; this.#hostReserved = 0;
     const errors = [];
+    try { await destroyMappedExpertStaging(this.#options); } catch (error) { errors.push(error); }
     if (this.#compact) {
       try { await this.#compact.destroy(); this.#compact = null; } catch (error) { errors.push(error); }
     }

@@ -197,6 +197,8 @@ export interface Qwen35RoutedConfig {
   sourceReadMode: 'plane-serial' | 'expert-parallel' | 'lease-parallel' | 'expert-lease-batch';
   /** Write authenticated source ranges to their logical working-bank offsets without temporary expert buffers. */
   prefillUploadMode: 'expert-copy' | 'direct-bank';
+  /** 'mapped' stages already verified expert ranges in mapped upload buffers instead of queue.writeBuffer. Omission means 'queue'. */
+  uploadStaging?: 'queue' | 'mapped';
   /** LFU retains causal lifetime counts until unload; LRU remains the default. */
   evictionPolicy: 'lru' | 'lfu';
   cacheBytes: number;

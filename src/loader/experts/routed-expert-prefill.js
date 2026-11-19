@@ -1,5 +1,6 @@
 import { DEFAULT_EXPERT_CACHE_CONFIG } from '../../config/schema/runtime/loading.schema.js';
 import { readRoutedExpertPayload, readRoutedExpertRange, readRoutedExpertsLease, recordRoutedExpertSourceTimings } from './routed-expert-source.js';
+import { getMappedExpertStaging, stageRoutedExperts } from './mapped-expert-staging.js';
 
 /** @type {import('./routed-expert-prefill.js').createBatchedDirectPrefillState} */
 export function createBatchedDirectPrefillState(options, stats, plan, ids, copiedHits, loaded, laneCount, onWorkingHit) {
@@ -44,6 +45,12 @@ export async function runBatchedDirectPrefillLane(state, options, stats, plan, s
 /** @type {import('./routed-expert-prefill.js').writeRoutedPrefillExpertsBatch} */
 export async function writeRoutedPrefillExpertsBatch(options, stats, plan, experts, signal, working, beforeUpload) {
   if (!experts.length) return;
+  const staging = getMappedExpertStaging(options, plan);
+  if (staging && await stageRoutedExperts(staging, stats, plan, experts, (expert, plane) => {
+    const target = working.get(plane.role);
+    if (!target) throw new Error('Direct prefill requires a complete working bank.');
+    return { buffer: target, offset: expert * plane.expertBytes };
+  }, signal, beforeUpload, null)) return;
   const start = performance.now();
   const lease = await readRoutedExpertsLease(options, stats, plan, experts, signal, null);
   try {

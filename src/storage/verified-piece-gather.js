@@ -1,4 +1,5 @@
 import { createVerifiedPieceGatherLane } from './verified-piece-gather-lane.js';
+import { createVerifiedDirectReader } from './verified-piece-direct.js';
 import { prepareVerifiedPieceStateCache } from './verified-piece-state-cache.js';
 
 /**
@@ -143,6 +144,11 @@ export async function createVerifiedPieceGather(options) {
     if (failures.length) throw new AggregateError([error, ...failures], 'Gather startup and cleanup failed.');
     throw error;
   }
+  // Ranges whose pieces are already verified for the current file state need no lane: the caller may
+  // read them straight into its own memory. Bound file identities and a verification cache are both
+  // required, because those are what the direct checks compare against.
+  const direct = stateCache && pinned.fileIdentities !== undefined
+    ? createVerifiedDirectReader({ files: pinned.files, fileIdentities: pinned.fileIdentities, index, stateCache }) : null;
   let closed = false, collecting = false;
   /** @type {Promise<void> | null} */
   let closing = null;
@@ -189,6 +195,11 @@ export async function createVerifiedPieceGather(options) {
         const pieces = new Map(merged.ranges.map(range => [range.identity, range.size]));
         merged.pieces = [...pieces.keys()];
         merged.verifiedBytes = [...pieces.values()].reduce((total, bytes) => total + bytes, 0);
+        if (direct) {
+          // Bytes served from already verified pieces without a lane; not part of ranges or verifiedBytes.
+          const served = direct.getStats();
+          Object.assign(merged, { directVerifiedReads: served.reads, directVerifiedBytes: served.bytes, directDeclinedReads: served.declined });
+        }
         return merged;
       } finally { collecting = false; }
     },
@@ -196,7 +207,8 @@ export async function createVerifiedPieceGather(options) {
       if (!closing) {
         closed = true;
         const operation = (async () => {
-          const outcomes = await Promise.allSettled(lanes.map(async lane => lane.reader.close()));
+          const outcomes = await Promise.allSettled([...lanes.map(async lane => lane.reader.close()),
+            ...(direct ? [direct.close()] : [])]);
           if (ownedStateCache) await ownedStateCache.close();
           const failed = outcomes.find(outcome => outcome.status === 'rejected');
           if (failed) throw failed.reason;
@@ -219,6 +231,12 @@ export async function createVerifiedPieceGather(options) {
       if (!file) return Promise.reject(new Error('Undeclared gather shard.'));
       return result.readLease(file.filename, offset, length, signal);
     },
+    ...(direct ? { readVerifiedInto(shard, offset, destination, signal) {
+      const file = manifest.shards[shard];
+      if (!file) return Promise.reject(new Error('Undeclared gather shard.'));
+      if (closed) return Promise.reject(new Error('Gather reader closed.'));
+      return direct.readInto(file.filename, offset, destination, signal);
+    } } : {}),
     readMany(ranges, signal) {
       if (!Array.isArray(ranges) || ranges.length < 1 || ranges.length > maxRanges) return Promise.reject(new Error('Gather batch exceeds its admitted ranges bound.'));
       const selected = [];

@@ -2,6 +2,7 @@ import { DEFAULT_EXPERT_CACHE_CONFIG, validateQwen35RoutedConfig } from "../../c
 import { createWeightBuffer } from '../../gpu/weight-buffer.js';
 import { isDeviceLost } from '../../memory/device-residency.js';
 import { readRoutedExpertRange, readRoutedExpertPayload, readRoutedExpertsLease, readRoutedExpertPlaneLeases, recordRoutedExpertSourceTimings, assertExpertReadShape } from './routed-expert-source.js';
+import { getMappedExpertStaging, stageRoutedExperts } from './mapped-expert-staging.js';
 
 /** @type {typeof import('./compact-expert-cache.js').compactExpertCapacity} */
 export function compactExpertCapacity(plan, options) {
@@ -117,6 +118,7 @@ export class CompactExpertCache {
    * @param {import('./compact-expert-cache.js').CompactExpertPool} pool
    * @param {{expert: number, slot: number}} miss @param {AbortSignal} signal */
   async #fillSinglePlanes(plan, pool, { expert, slot }, signal) {
+    if (await this.#stage(plan, pool, [{ expert, slot }], signal)) return;
     const started = performance.now();
     const leases = await readRoutedExpertPlaneLeases(this.#options, this.#stats, plan, expert, signal, pool.stats);
     let failure;
@@ -250,10 +252,28 @@ export class CompactExpertCache {
     }
   }
 
+  /** Mapped staging for experts the storage port serves from verified state; false means use the lease path.
+   * @param {import('./routed-expert-plan.js').RoutedExpertBankPlan} plan
+   * @param {import('./compact-expert-cache.js').CompactExpertPool} pool
+   * @param {Array<{expert: number, slot: number}>} misses @param {AbortSignal} signal */
+  async #stage(plan, pool, misses, signal) {
+    // A host cache both supplies and remembers expert bytes; staged bytes never reach JavaScript memory.
+    if (this.#options.copyCachedExpert || this.#options.rememberExpert) return false;
+    const staging = getMappedExpertStaging(this.#options, plan);
+    if (!staging) return false;
+    const slots = new Map(misses.map(({ expert, slot }) => [expert, slot]));
+    return stageRoutedExperts(staging, this.#stats, plan, misses.map(row => row.expert), (expert, plane) => {
+      const buffer = pool.planes.get(plane.role), slot = slots.get(expert);
+      if (!buffer || slot === undefined) throw new Error('Compact expert plane is missing.');
+      return { buffer, offset: slot * plane.expertBytes };
+    }, signal, null, pool.stats);
+  }
+
   /** @param {import('./routed-expert-plan.js').RoutedExpertBankPlan} plan
    * @param {import('./compact-expert-cache.js').CompactExpertPool} pool
    * @param {Array<{expert: number, slot: number}>} misses @param {AbortSignal} signal */
   async #fillBatch(plan, pool, misses, signal) {
+    if (await this.#stage(plan, pool, misses, signal)) return;
     const pending = misses.filter(({ expert, slot }) => !this.#copyCached(plan, pool, expert, slot, signal));
     if (!pending.length) return;
     const started = performance.now();
