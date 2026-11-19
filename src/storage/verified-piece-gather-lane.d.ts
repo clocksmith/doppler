@@ -4,5 +4,7 @@ export function createVerifiedPieceGatherLane(options: Omit<VerifiedPieceGatherO
   stateCache?: Readonly<WorkerStateCachePayload>;
   workerIndex?: number;
   workerCount?: number;
+  /** The pinned index's maxPieceBytes, when the caller has already parsed that index. */
+  indexMaxPieceBytes?: number;
   onStateDirty?: () => void;
 }): ReturnType<typeof createVerifiedPieceGather>;

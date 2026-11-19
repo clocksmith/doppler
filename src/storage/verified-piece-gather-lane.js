@@ -10,6 +10,7 @@ import { snapshotVerifiedPieceJobTimings, snapshotVerifiedRangeLeaseTimings } fr
  *   stateCache?: Readonly<import('./verified-piece-gather.js').WorkerStateCachePayload>,
  *   workerIndex?: number,
  *   workerCount?: number,
+ *   indexMaxPieceBytes?: number,
  *   onStateDirty?: () => void,
  * }} options
  * @returns {ReturnType<import('./verified-piece-gather.js').createVerifiedPieceGather>}
@@ -23,8 +24,9 @@ export async function createVerifiedPieceGatherLane(options) {
   const manifestBytes = new Uint8Array(options.manifestBytes);
   const indexBytes = new Uint8Array(options.indexBytes);
   const files = { ...options.files };
-  const index = JSON.parse(new TextDecoder().decode(indexBytes));
-  const pieceBytes = index.maxPieceBytes;
+  // The pool already parsed the pinned index; a lane started on its own parses it here.
+  const pieceBytes = options.indexMaxPieceBytes === undefined
+    ? JSON.parse(new TextDecoder().decode(indexBytes)).maxPieceBytes : options.indexMaxPieceBytes;
   if (!Number.isSafeInteger(maxPartBytes) || maxPartBytes < 1
     || !Number.isSafeInteger(pieceBytes) || pieceBytes < 1
     || !Number.isSafeInteger(maxPartBytes + 2 * pieceBytes) || !Number.isSafeInteger(memoryBudgetBytes) || memoryBudgetBytes < maxPartBytes + 2 * pieceBytes) {

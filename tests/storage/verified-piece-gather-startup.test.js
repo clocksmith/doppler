@@ -48,7 +48,8 @@ try {
   if (opened) await opened.storage.close();
   assert.equal(opened, undefined, 'A cancelled source is never published');
   assert.match(failure?.message ?? '', /Cancel during worker startup/);
-  assert.equal(workers.length, 2, 'Cancellation prevents the remaining lanes from spawning');
+  // Lanes start together, so a cancellation during startup finds all four spawned; none may survive it.
+  assert.equal(workers.length, 4, 'Lanes start together rather than one after another');
   assert(workers.every(worker => worker.threadId === -1), 'All partial owners exited before factory rejection settled');
   await Promise.all(exits);
   const before = workers.length;

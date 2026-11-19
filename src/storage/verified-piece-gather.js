@@ -112,19 +112,28 @@ export async function createVerifiedPieceGather(options) {
   /** @type {Array<{ reader: Awaited<ReturnType<typeof createVerifiedPieceGatherLane>>, busy: boolean }>} */
   const lanes = [];
   try {
-    for (let index = 0; index < concurrency; index++) {
-      pinned.startupSignal?.throwIfAborted();
-      lanes.push({ reader: await createVerifiedPieceGatherLane({
+    pinned.startupSignal?.throwIfAborted();
+    // Every lane authenticates the same pinned index in its own worker. Start them
+    // together: admitting them one after another made startup cost one index
+    // authentication per lane (about 0.75 s each for a 63 MB index).
+    const started = await Promise.allSettled(Array.from({ length: concurrency }, (_, index) =>
+      createVerifiedPieceGatherLane({
         ...pinned,
         memoryBudgetBytes: laneBytes,
+        indexMaxPieceBytes: pieceBytes,
         protectedCache,
         stateCache: stateCache?.workerPayload,
         workerIndex: index,
         workerCount: concurrency,
         onStateDirty: stateCache ? () => stateCache.scheduleFlush() : undefined,
-      }), busy: false });
-      pinned.startupSignal?.throwIfAborted();
+      })));
+    // Register every lane that did start before reporting a failure, so cleanup owns them all.
+    for (const outcome of started) {
+      if (outcome.status === 'fulfilled') lanes.push({ reader: outcome.value, busy: false });
     }
+    const failed = started.find(outcome => outcome.status === 'rejected');
+    if (failed) throw failed.reason;
+    pinned.startupSignal?.throwIfAborted();
   } catch (error) {
     const outcomes = await Promise.allSettled([
       ...lanes.map(async lane => lane.reader.close()),
