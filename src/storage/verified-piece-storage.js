@@ -47,12 +47,13 @@ export async function createVerifiedPieceStorage(options) {
 
   if (nodePieceDirectory !== null) {
     const parsedIndex = JSON.parse(new TextDecoder().decode(indexBytes));
-    const [{ openPieceDirectoryStateCache }, fsPromises, { constants }, path] = await Promise.all([
+    const [{ openPieceDirectoryStateCache }, fsPromises, fs, path] = await Promise.all([
       import('./verified-piece-state-cache.js'),
       import('node:fs/promises'),
       import('node:fs'),
       import('node:path'),
     ]);
+    const { constants } = fs;
     if (typeof nodePieceDirectory.directory !== 'string' || !path.isAbsolute(nodePieceDirectory.directory)
       || !Number.isSafeInteger(nodePieceDirectory.maxPieceBytes) || nodePieceDirectory.maxPieceBytes < parsedIndex.maxPieceBytes
       || !Number.isSafeInteger(nodePieceDirectory.maxActiveReadBytes) || nodePieceDirectory.maxActiveReadBytes < nodePieceDirectory.maxPieceBytes) {
@@ -82,8 +83,13 @@ export async function createVerifiedPieceStorage(options) {
     const dirLifetime = new AbortController();
     /** @type {Set<Promise<unknown>>} */
     const dirOperations = new Set();
-    /** @type {Set<import('node:fs/promises').FileHandle>} */
+    /** Descriptors whose close failed; retried when the directory closes. @type {Set<number>} */
     const failedHandles = new Set();
+    /** @param {number} fd @param {Uint8Array} target @param {number} offset @param {number} length @param {number} position
+     * @returns {Promise<number>} */
+    const readAt = (fd, target, offset, length, position) => new Promise((resolve, reject) => {
+      fs.read(fd, target, offset, length, position, (error, bytesRead) => error ? reject(error) : resolve(bytesRead));
+    });
     const dirStats = { reads: 0, activeReadBytes: 0, peakReadBytes: 0, missingPieces: 0 };
     let dirClosed = false;
     const stateCacheRef = pieceDirStateCache;
@@ -107,18 +113,21 @@ export async function createVerifiedPieceStorage(options) {
         }
         dirStats.activeReadBytes += piece.size;
         dirStats.peakReadBytes = Math.max(dirStats.peakReadBytes, dirStats.activeReadBytes);
-        /** @type {import('node:fs/promises').FileHandle | undefined} */
+        // The identity checks, open and close are metadata calls on files the OS already holds; they run
+        // synchronously so each piece queues one pool task (its read) instead of seven. Queued behind
+        // the others, first-read hashing was waiting for the pool rather than for the processor.
+        /** @type {number | undefined} */
         let handle;
         try {
-          const currentDirectory = await fsPromises.lstat(canonicalDir, { bigint: true });
+          const currentDirectory = fs.lstatSync(canonicalDir, { bigint: true });
           if (!currentDirectory.isDirectory() || currentDirectory.dev !== directoryStat.dev
             || currentDirectory.ino !== directoryStat.ino) {
             throw new Error('Piece cache directory changed');
           }
           const filename = path.join(canonicalDir, `${piece.path}.${piece.offset}`);
-          handle = await fsPromises.open(filename, constants.O_RDONLY | constants.O_NOFOLLOW | constants.O_NONBLOCK);
-          const before = await handle.stat({ bigint: true });
-          const linkBefore = await fsPromises.lstat(filename, { bigint: true });
+          handle = fs.openSync(filename, constants.O_RDONLY | constants.O_NOFOLLOW | constants.O_NONBLOCK);
+          const before = fs.fstatSync(handle, { bigint: true });
+          const linkBefore = fs.lstatSync(filename, { bigint: true });
           if (!before.isFile() || !linkBefore.isFile() || before.size !== BigInt(piece.size)
             || linkBefore.dev !== before.dev || linkBefore.ino !== before.ino || linkBefore.size !== before.size
             || linkBefore.mtimeNs !== before.mtimeNs || linkBefore.ctimeNs !== before.ctimeNs) {
@@ -128,12 +137,12 @@ export async function createVerifiedPieceStorage(options) {
           let received = 0;
           while (received < bytes.length) {
             active.throwIfAborted();
-            const part = await handle.read(bytes, received, bytes.length - received, received);
-            if (part.bytesRead <= 0) throw new Error('Cached piece read truncated');
-            received += part.bytesRead;
+            const bytesRead = await readAt(handle, bytes, received, bytes.length - received, received);
+            if (bytesRead <= 0) throw new Error('Cached piece read truncated');
+            received += bytesRead;
           }
-          const after = await handle.stat({ bigint: true });
-          const linkAfter = await fsPromises.lstat(filename, { bigint: true });
+          const after = fs.fstatSync(handle, { bigint: true });
+          const linkAfter = fs.lstatSync(filename, { bigint: true });
           const unchanged = after.isFile() && linkAfter.isFile()
             && after.dev === before.dev && after.ino === before.ino && after.size === before.size
             && after.mtimeNs === before.mtimeNs && after.ctimeNs === before.ctimeNs
@@ -153,8 +162,8 @@ export async function createVerifiedPieceStorage(options) {
           throw error;
         } finally {
           try {
-            if (handle) {
-              try { await handle.close(); }
+            if (handle !== undefined) {
+              try { fs.closeSync(handle); }
               catch (error) { failedHandles.add(handle); dirClosed = true; dirLifetime.abort(error); throw error; }
             }
           } finally { dirStats.activeReadBytes -= piece.size; }
@@ -170,7 +179,7 @@ export async function createVerifiedPieceStorage(options) {
       await Promise.allSettled([...dirOperations]);
       const closeFailures = [];
       for (const handle of [...failedHandles]) {
-        try { await handle.close(); failedHandles.delete(handle); }
+        try { fs.closeSync(handle); failedHandles.delete(handle); }
         catch (error) { closeFailures.push(error); }
       }
       if (closeFailures.length) throw new AggregateError(closeFailures, 'Diagnostic piece cache cleanup failed');
