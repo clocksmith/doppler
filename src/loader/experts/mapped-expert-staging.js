@@ -41,6 +41,12 @@ export function beginStagedRelease(port) {
   gate.depth++;
 }
 
+/** @type {import('./mapped-expert-staging.js').assertStagedVerification} */
+export function assertStagedVerification(port) {
+  const failure = gates.get(port)?.failure;
+  if (failure) throw failure;
+}
+
 /** @type {import('./mapped-expert-staging.js').settleStagedRelease} */
 export async function settleStagedRelease(port, { release = true } = {}) {
   const gate = gates.get(port);
@@ -161,34 +167,49 @@ class MappedExpertStaging {
         const broken = read.find(outcome => outcome.status === 'rejected');
         if (broken) throw /** @type {PromiseRejectedResult} */ (broken).reason;
         const values = read.map(outcome => /** @type {PromiseFulfilledResult<boolean | (() => boolean)>} */ (outcome).value);
-        if (values.some(value => value === false)) return false;
+        // Only an already verified range (true) or a read with a confirmation to run later may be submitted.
+        if (values.some(value => value !== true && typeof value !== 'function')) return false;
         const readWait = performance.now() - started;
         signal.throwIfAborted();
-        if (this.#closed || gate.failure) return false;
+        // The gate must still be open: an upload that outlived its step has nothing left to hold its bytes back.
+        if (this.#closed || gate.failure || gate.depth < 1) return false;
+        const confirms = values.filter(value => typeof value === 'function');
+        const groups = this.#groups(pending);
+        const bytes = pending.reduce((sum, part) => sum + part.length, 0);
         slot.view = null; slot.buffer.unmap(); unmapped = true;
         beforeSubmit?.();
         const encoder = this.#device.createCommandEncoder({ label: 'expert_staged_upload' });
         for (const copy of copies) encoder.copyBufferToBuffer(slot.buffer, copy.at, copy.target, copy.targetOffset, copy.length);
         this.#device.queue.submit([encoder.finish()]);
-        if (stats) gate.stats = stats;
-        const submittedAt = performance.now();
-        const bytes = pending.reduce((sum, part) => sum + part.length, 0);
-        if (isTraceEnabled('loader')) traceUpload({ layer, bytes, firstTime: bytes, deferred: true, startedAt: started, readDoneAt: started + readWait, submittedAt });
-        const confirms = values.filter(value => typeof value === 'function');
-        const groups = this.#groups(pending);
+        // From here unverified bytes are in model buffers. The verification task is registered before anything
+        // else can throw. Every lane job settles before the outcome is decided, and only a failed hash or a
+        // failed confirmation fails the gate; counters and trace lines cannot.
         const task = (async () => {
-          const timings = await Promise.all(groups.map(group => verifyQueued(group)));
-          for (const confirm of confirms) {
-            if (!(/** @type {() => boolean} */ (confirm))()) throw new Error('Expert bytes already in use could not be confirmed verified.');
+          const outcomes = await Promise.allSettled(groups.map(group => verifyQueued(group)));
+          const failed = outcomes.find(outcome => outcome.status === 'rejected');
+          let failure = failed ? /** @type {PromiseRejectedResult} */ (failed).reason : null;
+          if (!failure) {
+            try {
+              for (const confirm of confirms) {
+                if (!(/** @type {() => boolean} */ (confirm))()) throw new Error('Expert bytes already in use could not be confirmed verified.');
+              }
+            } catch (error) { failure = error; }
           }
-          if (stats) recordRoutedExpertSourceTimings(stats, timings.map(timing => timing ? { timings: timing } : null));
-          if (isTraceEnabled('loader')) traceUpload({ layer, bytes, verifiedAfterSubmit: true, startedAt: started, verifyDoneAt: performance.now(), lanes: timings });
-        })().catch(error => {
-          gate.failure ??= new Error(`Staged expert verification failed after upload: ${error?.message ?? error}`, { cause: error });
-        });
+          if (failure) {
+            gate.failure ??= new Error(`Staged expert verification failed after upload: ${failure?.message ?? failure}`, { cause: failure });
+            return;
+          }
+          try {
+            const timings = outcomes.map(outcome => /** @type {PromiseFulfilledResult<import('./mapped-expert-staging.js').StagedUpload['laneTimings'][number]>} */ (outcome).value ?? null);
+            if (stats) recordRoutedExpertSourceTimings(stats, timings.map(timing => timing ? { timings: timing } : null));
+            if (isTraceEnabled('loader')) traceUpload({ layer, bytes, verifiedAfterSubmit: true, startedAt: started, verifyDoneAt: performance.now(), lanes: timings });
+          } catch { /* Observation only: the bytes are verified. */ }
+        })();
         gate.tasks.add(task);
         task.finally(() => gate.tasks.delete(task));
-        return { laneTimings: [], readAheadBytes: pending.reduce((sum, part) => sum + part.length, 0), readWaitMs: readWait, verifyWaitMs: 0, deferred: true };
+        if (stats) gate.stats = stats;
+        if (isTraceEnabled('loader')) traceUpload({ layer, bytes, firstTime: bytes, deferred: true, startedAt: started, readDoneAt: started + readWait, submittedAt: performance.now() });
+        return { laneTimings: [], readAheadBytes: bytes, readWaitMs: readWait, verifyWaitMs: 0, deferred: true };
       }
       // The reads and the lanes run together. Every read settles before the slot is unmapped or handed
       // on, including after a failure, because a native read may still be writing into the slot.

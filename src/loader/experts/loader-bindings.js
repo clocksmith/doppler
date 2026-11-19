@@ -7,6 +7,7 @@ import { RoutedExpertCache } from './routed-expert-cache.js';
 import { planRoutedExpertBank } from './routed-expert-plan.js';
 import { prepareQwenExpertLayer } from './qwen-paging.js';
 import { trace, isTraceEnabled } from '../../debug/index.js';
+import { assertStagedVerification } from './mapped-expert-staging.js';
 
 /** @type {typeof import('./loader-bindings.js').prepareExpertLayer} */
 export async function prepareExpertLayer(loader, policy, layer, consumers, recorder, signal, activeSelection) {
@@ -113,6 +114,9 @@ export async function prepareRoutedExperts(loader, layer, expertIds, signal, pha
   if (!loader.manifest) throw new Error('Routed experts require the loaded manifest.');
   const plan = planRoutedExpertBank(loader.manifest, loader.tensorLocations, layer);
   const cache = ensureRoutedCache(loader, plan);
+  // After a failed deferred verification, unverified experts are resident in the pools. No caller gets them,
+  // whether or not it opens a release gate, and whether it would upload or only hit the cache.
+  if (loader.shardCache.rangeLease) assertStagedVerification(loader.shardCache.rangeLease);
   // With the loader trace on, one line when a layer asks for its experts and one when they are ready for
   // its kernels. Together with the staged-upload lines these put read, hash, upload and use on one clock.
   const traced = isTraceEnabled('loader');

@@ -27,6 +27,11 @@ export function beginStagedRelease(port: object): void;
  * `release: false` (the step already failed) it only waits and closes.
  */
 export function settleStagedRelease(port: object, options?: { release?: boolean }): Promise<void>;
+/**
+ * Throws when a deferred verification on this storage port has failed. Every request for routed experts checks
+ * it, so experts that are resident but unverified cannot be served from the cache to a caller that opens no gate.
+ */
+export function assertStagedVerification(port: object): void;
 
 /** A ring of mapped upload buffers fed by direct verified reads; one per storage port. */
 export interface MappedExpertStaging {

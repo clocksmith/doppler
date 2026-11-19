@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { createHash } from 'node:crypto';
-import { lstat, mkdtemp, rm, utimes, writeFile } from 'node:fs/promises';
+import { lstat, mkdtemp, open as openFile, rm, utimes, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import test from 'node:test';
@@ -202,12 +202,58 @@ test('background verification waits for a lane; foreground reads keep their boun
     for (const lease of held) lease.release();
     await assert.rejects(f.port.verifyMany([]), /admitted ranges bound/);
     await assert.rejects(f.port.verifyMany([{ shard: 9, offset: 0, length: PIECE }]), /Undeclared gather shard/);
-    // Jobs still queued when the pool closes are rejected.
+    // A foreground read that arrives while background jobs hold every lane waits, and is served before
+    // background jobs that were queued ahead of it.
+    const gate = [await f.port.readMany(range(0), signal()), await f.port.readMany(range(1), signal())];
+    const served = [];
+    const background = [5, 6, 7].map(index => f.port.verifyMany(range(index)).then(() => served.push('background-' + index)));
+    for (const lease of gate) lease.release();   // the first two background jobs now hold both lanes
+    const foreground = f.port.readMany(range(2), signal()).then(lease => { served.push('foreground'); lease.release(); });
+    await Promise.all([...background, foreground]);
+    assert(served.indexOf('foreground') < served.indexOf('background-7'), `foreground before the queued background job: ${served}`);
+    // Jobs still queued when the pool closes are rejected. Both lanes stay held, so the job cannot start.
     const last = [await f.port.readMany(range(0), signal()), await f.port.readMany(range(1), signal())];
-    const stranded = f.port.verifyMany(range(7));
-    const rejected = assert.rejects(stranded, /closed/);
-    for (const lease of last) lease.release();
+    const stranded = assert.rejects(f.port.verifyMany(range(7)), /closed/);
     await f.opened.storage.close();
-    await rejected.catch(() => {});
+    await stranded;
+    for (const lease of last) lease.release();
   } finally { await f?.opened.storage.close().catch(() => {}); await rm(root, { recursive: true, force: true }); }
+});
+
+test('authenticated bytes from the protected cache do not make the file itself verified', async () => {
+  const root = await mkdtemp(join(tmpdir(), 'direct-verified-'));
+  let session;
+  try {
+    const m = model(), file = join(root, 'experts.bin'), cache = join(root, 'protected');
+    await writeFile(file, m.data);
+    const st = await lstat(file, { bigint: true });
+    const start = extra => createVerifiedPieceStorage({ manifestBytes: m.manifestBytes, indexBytes: m.indexBytes, indexIdentity: m.indexIdentity,
+      acquire: async piece => m.data.subarray(piece.offset, piece.offset + piece.size),
+      nodeGather: { files: { 'experts.bin': file }, maxPartBytes: 4 * PIECE, maxRanges: 3, memoryBudgetBytes: 2 * (4 * PIECE + 2 * PIECE), concurrency: 2,
+        fileIdentities: { 'experts.bin': { device: st.dev.toString(), inode: st.ino.toString(), size: st.size.toString() } },
+        protectedCache: { directory: cache, maxBytes: 6 * PIECE, staleAfterMs: 60_000 }, ...extra } });
+    // First session, protected cache only: piece 0 is hashed from the file and kept as a protected copy.
+    session = await start({});
+    await verify(session.storage.rangeLease, 0, PIECE);
+    assert.equal((await session.getGatherReceipt()).protectedCacheAdmissions, 1);
+    await session.storage.close();
+    // The file is altered in place at piece 0: same inode and size, new contents.
+    const handle = await openFile(file, 'r+');
+    await handle.write(Uint8Array.of(m.data[3] ^ 0xff), 0, 1, 3);
+    await handle.close();
+    // Second session, with a verification cache as well. The lane serves piece 0 from the protected copy.
+    session = await start({ verificationCache: { directory: join(root, 'state') } });
+    const port = session.storage.rangeLease;
+    const lease = await port.read(0, 0, PIECE, signal());
+    assert.deepEqual([...lease.bytes], [...m.data.subarray(0, PIECE)], 'the lease holds the genuine bytes');
+    lease.release();
+    assert.equal((await session.getGatherReceipt()).protectedCacheHits, 1);
+    // The file's own bytes at piece 0 were never hashed, so nothing may read them directly.
+    assert.equal(port.hasVerified(0, 0, PIECE), false);
+    const target = new Uint8Array(PIECE);
+    assert.equal(await port.readVerifiedInto(0, 0, target, signal()), false);
+    const ahead = await port.readAheadInto(0, 0, target, signal());
+    assert.equal(typeof ahead, 'function');
+    assert.equal(ahead(), false);
+  } finally { await session?.storage.close().catch(() => {}); await rm(root, { recursive: true, force: true }); }
 });

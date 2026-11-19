@@ -574,7 +574,8 @@ async function gather({ ranges, length, buffer, batch }) {
           if (stateFiles.has(piece.path)) stateCacheMisses++;
           if (tryReadProtectedPiece(piece, output, true)) {
             if (closing) throw new Error('Gather worker closed.');
-            if (stateOkBefore && checkStateStat(piece.path, handle)) markStateVerified(piece);
+            // The authenticated bytes came from the protected copy. The file's own bytes at this piece were
+            // not read, so the file is not marked verified: a direct read of the file must still be refused.
             return;
           }
           if (protectedCache) protectedCacheMisses++;
@@ -639,8 +640,6 @@ async function gather({ ranges, length, buffer, batch }) {
                 authenticateDirect(piece, output);
                 if (stateOkBefore && checkStateStat(piece.path, admittedHandle)) markStateVerified(piece);
                 else admitProtectedPiece(piece, output);
-              } else if (stateOkBefore && checkStateStat(piece.path, admittedHandle)) {
-                markStateVerified(piece);
               }
             }
           } else {
@@ -686,8 +685,6 @@ async function gather({ ranges, length, buffer, batch }) {
                   verificationMs += performance.now() - hashStart; recordPiece(current, identity);
                   if (stateOkBefore && checkStateStat(current.path, admittedHandle)) markStateVerified(current);
                   else admitProtectedPiece(current, bytes);
-                } else if (stateOkBefore && checkStateStat(current.path, admittedHandle)) {
-                  markStateVerified(current);
                 }
               }
               const start = Math.max(offset, current.offset), end = Math.min(offset + rangeLength, current.offset + current.size);

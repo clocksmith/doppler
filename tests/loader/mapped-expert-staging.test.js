@@ -3,7 +3,7 @@ import test from 'node:test';
 
 globalThis.GPUBufferUsage ??= { MAP_READ: 1, MAP_WRITE: 2, COPY_SRC: 4, COPY_DST: 8, STORAGE: 128 };
 globalThis.GPUMapMode ??= { READ: 1, WRITE: 2 };
-const { getMappedExpertStaging, destroyMappedExpertStaging, stageRoutedExperts, beginStagedRelease, settleStagedRelease } = await import('../../src/loader/experts/mapped-expert-staging.js');
+const { getMappedExpertStaging, destroyMappedExpertStaging, stageRoutedExperts, beginStagedRelease, settleStagedRelease, assertStagedVerification } = await import('../../src/loader/experts/mapped-expert-staging.js');
 const { createRoutedExpertCounters } = await import('../../src/loader/experts/routed-expert-source.js');
 
 // A recording device: copies move real bytes between fake buffers at submit, mapping follows WebGPU's states.
@@ -248,4 +248,80 @@ test('an upload that has the lanes to itself spreads its hashing across them; a 
   await assert.rejects(stageRoutedExperts(two, broken.stats, plan, [1], broken.targetOf, broken.signal, null, null), /identity mismatch/);
   assert.equal(broken.dev.log.submits, 0);
   assert(broken.targets.gate.data.every(byte => byte === 0));
+});
+
+test('each range needs its own confirmation: one unconfirmed range among several keeps the whole upload out', async () => {
+  // Per-range state: the gate plane becomes verified, the down plane never does.
+  const f = fixture({ verified: false });
+  const done = new Set();
+  f.port.hasVerified = shard => done.has(shard);
+  f.port.readAheadInto = async (shard, offset, destination) => {
+    destination.set(source[shard].subarray(offset, offset + destination.byteLength));
+    return done.has(shard) ? true : () => done.has(shard);
+  };
+  f.port.readVerifiedInto = async (shard, offset, destination) => {
+    if (!done.has(shard)) return false;
+    destination.set(source[shard].subarray(offset, offset + destination.byteLength)); return true;
+  };
+  // The staging ring binds the port's methods when it is created, so the lane's behaviour is switched by a flag.
+  let lanesVerifyEverything = false;
+  f.port.readMany = async ranges => {
+    for (const range of ranges) if (lanesVerifyEverything || range.shard === 0) done.add(range.shard);
+    return { bytes: new Uint8Array(1), release() {} };
+  };
+  const staging = getMappedExpertStaging(f.options, plan);
+  assert.equal(await stageRoutedExperts(staging, f.stats, plan, [1], f.targetOf, f.signal, null, null), false);
+  assert.equal(f.dev.log.submits, 0);
+  assert(f.targets.gate.data.every(byte => byte === 0) && f.targets.down.data.every(byte => byte === 0));
+  // Mixed: the gate plane is now verified and read directly, the down plane is read ahead and then confirmed.
+  lanesVerifyEverything = true;
+  assert.equal(await stageRoutedExperts(staging, f.stats, plan, [1], f.targetOf, f.signal, null, null), true);
+  assert.deepEqual([...f.targets.gate.data.subarray(8, 16)], [...source[0].subarray(8, 16)]);
+  assert.deepEqual([...f.targets.down.data.subarray(4, 8)], [...source[1].subarray(4, 8)]);
+});
+
+test('deferral needs an open gate at submit time, a usable read result, and survives a broken counter', async () => {
+  // The gate closes while the bytes are being read: nothing is submitted.
+  const closing = fixture({ verified: false, policy: deferring });
+  const reading = Promise.withResolvers(), readAhead = closing.port.readAheadInto;
+  closing.port.readAheadInto = async (...args) => { await reading.promise; return readAhead(...args); };
+  const a = getMappedExpertStaging(closing.options, plan);
+  beginStagedRelease(closing.port);
+  const late = stageRoutedExperts(a, closing.stats, plan, [1], closing.targetOf, closing.signal, null, null);
+  await new Promise(resolve => setTimeout(resolve, 5));   // the upload has chosen to defer and is reading
+  await settleStagedRelease(closing.port);
+  reading.resolve();
+  assert.equal(await late, false);
+  assert.equal(closing.dev.log.submits, 0);
+
+  // A read that reports neither "verified" nor a confirmation to run is not submitted.
+  const vague = fixture({ verified: false, policy: deferring });
+  vague.port.readAheadInto = async (shard, offset, destination) => { destination.fill(7); return undefined; };
+  const b = getMappedExpertStaging(vague.options, plan);
+  beginStagedRelease(vague.port);
+  assert.equal(await stageRoutedExperts(b, vague.stats, plan, [1], vague.targetOf, vague.signal, null, null), false);
+  await settleStagedRelease(vague.port);
+  assert.equal(vague.dev.log.submits, 0);
+
+  // A lane job whose timings cannot be recorded has still verified its bytes: the gate does not fail.
+  const odd = fixture({ verified: false, policy: deferring });
+  odd.port.verifyMany = async () => { odd.state.verified = true; return { workerWallMs: 'not a number' }; };
+  const c = getMappedExpertStaging(odd.options, plan);
+  beginStagedRelease(odd.port);
+  assert.equal(await stageRoutedExperts(c, odd.stats, plan, [1], odd.targetOf, odd.signal, null, null), true);
+  await settleStagedRelease(odd.port);
+  assertStagedVerification(odd.port);
+  beginStagedRelease(odd.port); await settleStagedRelease(odd.port);
+});
+
+test('after a failed deferred verification every request for experts on that port is refused', async () => {
+  const f = fixture({ verified: false, policy: deferring }), staging = getMappedExpertStaging(f.options, plan);
+  assertStagedVerification(f.port);
+  f.state.reject = new Error('Piece identity mismatch.');
+  beginStagedRelease(f.port);
+  assert.equal(await stageRoutedExperts(staging, f.stats, plan, [1], f.targetOf, f.signal, null, null), true);
+  await assert.rejects(settleStagedRelease(f.port), /verification failed after upload/);
+  assert.throws(() => assertStagedVerification(f.port), /verification failed after upload/);
+  // A port that never deferred anything is unaffected.
+  assertStagedVerification({});
 });
