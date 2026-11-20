@@ -4,6 +4,11 @@ Historical package notes are preserved outside the runtime archive in
 `docs/status/archive/package-changelog-through-0.6.1.md` and the earlier
 `package-changelog-through-0.4.15.md` snapshot in that directory.
 
+## [0.7.9] - 2026-11-20
+
+- Preserve explicit F16 transform selection for the reissued Qwen 0.8B and 2B model IDs.
+- Validate model name suffixes during conversion and support manifest-only renaming.
+
 ## [0.7.8] - 2026-11-19
 
 ### Performance
