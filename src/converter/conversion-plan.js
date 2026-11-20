@@ -8,6 +8,7 @@ import {
   normalizeQuantTag,
   resolveManifestQuantization,
   resolveModelId,
+  assertCanonicalModelId,
 } from './quantization-info.js';
 import { cloneJsonValue } from '../formats/clone-json.js';
 import { resolveManifestMoEConfig, sanitizeModelId } from './core.js';
@@ -309,5 +310,8 @@ export function resolveConvertedModelId(options) {
         ? baseModelId
         : resolveModelId(baseModelId, detectedModelId ?? baseModelId, quantizationInfo?.variantTag)
     );
-  return sanitizeModelId(resolved);
+  const modelId = sanitizeModelId(resolved);
+  // Names are lowercase letters, digits and hyphens. A new ID that breaks the rule is refused here, before
+  // it is written into a manifest and becomes part of an identity.
+  return modelId === null ? null : assertCanonicalModelId(modelId, 'Converted model ID');
 }

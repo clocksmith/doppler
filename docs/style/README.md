@@ -29,6 +29,7 @@ the changed system early; update an outdated guide when the design changes.
 | [Command Interface Design Guide](./command-interface-design-guide.md) | Shared command schema, intent mapping, parity contract |
 | [Harness Interface Style Guide](./harness-style-guide.md) | Browser + CLI execution rules and config-only controls |
 | [Benchmark Style Guide](./benchmark-style-guide.md) | Benchmark harnesses, output schema, baselines |
+| [Model Naming](./model-naming.md) | Model ID characters, shape, the generated format suffix, and why a rename is a new identity |
 | [Emoji Policy](./emoji.md) | Strict no-emoji rule and the approved Unicode symbol set for status/log/doc output |
 
 Machine-owned source architecture, dependency exceptions, facade declarations,

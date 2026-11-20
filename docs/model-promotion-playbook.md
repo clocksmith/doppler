@@ -51,7 +51,7 @@ Before converting or promoting, settle the canonical model ID. The ID must agree
 
 The publish tool (`tools/publish-hf-registry-model.js`) uploads from the external-volume artifact path by default. Always pass `--local-dir /media/$USER/models/rdrr/<model-id>` explicitly to ensure the correct artifact is uploaded.
 
-Naming schemes differ between old artifacts (e.g. `wq4k-ef16-hf16` suffix) and canonical conversion configs (e.g. `q4k-ehf16-af32` suffix). Do not promote a non-canonical artifact by renaming it. Re-convert with the canonical config so the artifact and the ID agree from the start.
+Naming schemes differ between old artifacts (e.g. `wq4k-ef16-hf16` suffix) and canonical conversion configs (e.g. `q4k-ehf16-af32` suffix). The canonical scheme is written down in [Model Naming](style/model-naming.md). Do not promote a non-canonical artifact by renaming it. Re-convert with the canonical config so the artifact and the ID agree from the start.
 
 ## Promotion Gate
 

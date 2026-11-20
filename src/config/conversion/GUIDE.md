@@ -9,6 +9,8 @@ Notes:
 - Canonical conversion-vs-runtime ownership matrix:
   [`docs/conversion-runtime-contract.md`](../../../docs/conversion-runtime-contract.md)
 - `output.modelBaseId` is authoritative for emitted model IDs: when set, it is used as the final resolved `modelId`.
+- Model IDs follow [`docs/style/model-naming.md`](../../../docs/style/model-naming.md): lowercase letters, digits and
+  single hyphens, with a format suffix that describes the manifest. The converter refuses a new ID that breaks the rule.
 - If `output.modelBaseId` is omitted, converter config resolution can still append the inferred `variantTag`
   to avoid collisions (same as legacy behavior for non-explicit IDs).
 - All configs use `output.baseDir` (no implicit `--output-dir` requirement).

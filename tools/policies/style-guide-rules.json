@@ -9,7 +9,8 @@
     "docs/style/command-interface-design-guide.md",
     "docs/style/harness-style-guide.md",
     "docs/style/benchmark-style-guide.md",
-    "docs/style/emoji.md"
+    "docs/style/emoji.md",
+    "docs/style/model-naming.md"
   ],
   "rules": [
     {
@@ -191,6 +192,24 @@
       "checker": "tools/check-javascript-style.js",
       "fixture": "tests/tooling/style-guide-check.test.js",
       "limits": "src/demo JavaScript only; separate re-exports remain allowed. Retained artifacts are unchanged."
+    },
+    {
+      "id": "MODEL-001",
+      "guide": "docs/style/model-naming.md",
+      "rule": "Model ID characters",
+      "coverage": "scoped",
+      "checker": "src/converter/conversion-plan.js",
+      "fixture": "tests/converter/model-id-naming.test.js",
+      "limits": "The converter refuses a new nonconforming ID; the test checks models/catalog.json and the ID each conversion config emits. Identities issued earlier are listed and exempt. Catalogs in other repositories are not checked here."
+    },
+    {
+      "id": "MODEL-002",
+      "guide": "docs/style/model-naming.md",
+      "rule": "Shape and a suffix that describes the manifest",
+      "coverage": "review",
+      "checker": null,
+      "fixture": null,
+      "limits": "Family, version, size and descriptors are reviewed by a person. Nothing checks that an explicit modelBaseId's suffix agrees with the manifest's quantizationInfo."
     }
   ],
   "legacyMjs": [

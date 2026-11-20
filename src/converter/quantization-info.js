@@ -19,8 +19,13 @@ const QUANT_TAG_ALIASES = {
   // Q4_0 variants
   'q4_0': 'q4_0',
   'q4-0': 'q4_0',
+  'q40': 'q4_0',
   'gguf-q4_0': 'q4_0',
   'gguf_q4_0': 'q4_0',
+  // The other plain GGUF block formats, by their name tokens.
+  'q41': 'q4_1',
+  'q50': 'q5_0',
+  'q80': 'q8_0',
   // Native Q5_K source storage (no new quantization encoder).
   'q5_k': 'q5k',
   'q5k': 'q5k',
@@ -128,6 +133,48 @@ export function normalizeQuantTag(value) {
   if (!value) return DEFAULT_QUANT_TAG;
   const lower = String(value).trim().toLowerCase();
   return QUANT_TAG_ALIASES[lower] ?? lower;
+}
+
+// Names (model IDs and their variant tags) use lowercase letters, digits and hyphens only; see
+// docs/style/model-naming.md. Manifest fields keep the GGUF spelling of a quantization, which for the plain
+// block formats carries an underscore, so those have a name token without it.
+const QUANT_NAME_TOKENS = Object.freeze({
+  'q4_0': 'q40',
+  'q4_1': 'q41',
+  'q5_0': 'q50',
+  'q8_0': 'q80',
+});
+
+export function quantNameToken(value) {
+  const normalized = normalizeQuantTag(value);
+  return QUANT_NAME_TOKENS[normalized] ?? normalized.replace(/_/g, '');
+}
+
+// The suffix of a model ID, from the variant tag a manifest stores. The stored tag is manifest data: it keeps
+// its spelling, because rewriting it would change the identity of every model converted again.
+export function variantNameSuffix(variantTag) {
+  if (!variantTag) return '';
+  return String(variantTag).toLowerCase()
+    .replace(/q(\d)_(\d)/g, 'q$1$2')
+    .replace(/[^a-z0-9-]/g, '-').replace(/-+/g, '-').replace(/^-|-$/g, '');
+}
+
+export const MODEL_ID_PATTERN = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
+
+// Identities issued before the naming rule. A manifest carries its model ID, so renaming one of these is a
+// new conversion with a new identity, not an edit. Remove an entry when its model is reissued.
+export const LEGACY_NONCANONICAL_MODEL_IDS = Object.freeze([
+  'qwen-3-6-35b-a3b-text-source-q4_0-af32',
+  'qwen3-8-27b-text-source-q4_0-af32',
+]);
+
+export function isCanonicalModelId(modelId) {
+  return typeof modelId === 'string' && MODEL_ID_PATTERN.test(modelId);
+}
+
+export function assertCanonicalModelId(modelId, source = 'model ID') {
+  if (isCanonicalModelId(modelId) || LEGACY_NONCANONICAL_MODEL_IDS.includes(modelId)) return modelId;
+  throw new Error(`${source} "${modelId}" is not a valid model name: use lowercase letters, digits and single hyphens only (docs/style/model-naming.md).`);
 }
 
 function validateQuantType(value, source) {
@@ -281,7 +328,7 @@ export function resolveManifestQuantization(quantize, fallback) {
 }
 
 
-function buildVariantTag(info) {
+export function buildVariantTag(info) {
   const weights = info.weights;
   const embeddings = info.embeddings ?? weights;
   const lmHead = info.lmHead ?? embeddings;
@@ -569,7 +616,8 @@ export function resolveModelId(modelId, baseName, variantTag) {
 
   const base = modelId ? sanitize(modelId) : sanitize(baseName);
   if (!variantTag) return base;
-  return base.endsWith(variantTag) ? base : `${base}-${variantTag}`;
+  const tag = variantNameSuffix(variantTag);
+  return base.endsWith(tag) ? base : `${base}-${tag}`;
 }
 
 
