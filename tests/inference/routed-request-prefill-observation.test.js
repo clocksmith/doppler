@@ -48,7 +48,7 @@ try {
     assert.equal(inputMs, result.phase.inputMs);
     assert.equal(prefillMs, result.phase.prefillMs);
     assert.deepEqual(observation, { promptTokens: 9, computedTokens: 9, reusedTokens: 0,
-      tokenChunkLimit: 4, routeChunkLimit: 8, preparations: 3, prepareWallMs: 75,
+      tokenChunkLimit: 4, routeChunkLimit: 8, selectionAwaitMs: 0, preparationAwaitMs: 0, preparations: 3, prepareWallMs: 75,
       routeReadbacks: 3, routeReadbackWallMs: 27, sourceReads: 3, sourceReadBytes: 300, sourceReadWaitMs: 36,
       uploadBytes: 180, cacheHits: 6, cacheMisses: 3, initialQueueIdleForWeightsMs: 3 });
   }

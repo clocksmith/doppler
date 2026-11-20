@@ -285,7 +285,10 @@ selection readbacks, cache activity, logical source reads and uploads. These
 are differences across that request's prefill, before decoding. An unchanged
 cache hit counter is meaningful only for the selected cache policy.
 `prepareWallMs`, `routeReadbackWallMs` and `sourceReadWaitMs` can overlap,
-particularly when the next selection is already in flight. Readback may wait
+particularly when the next selection is already in flight. The separate
+`selectionAwaitMs` and `preparationAwaitMs` count time the caller actually
+waited at these two sequential points, excluding preparation already hidden
+by chunk input copies or selection already hidden by preparation. Readback may wait
 for prior GPU work. Do not subtract these sums from prefill to infer kernel time.
 For a latency comparison, use identical prompts, model, and cache conditions;
 measure first nonempty output at the requester and keep a profiler-off control.
