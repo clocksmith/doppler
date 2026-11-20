@@ -16,6 +16,7 @@ const {
 const {
   assertCanonicalModelId,
   assertModelIdDescribesFormat,
+  formatRecordProblems,
   isCanonicalModelId,
   isLegacyModelId,
   LEGACY_HANDWRITTEN_SUFFIX_MODEL_IDS,
@@ -113,24 +114,46 @@ assert.deepEqual(offenders, [], 'model names that break docs/style/model-naming.
 for (const legacy of LEGACY_NONCANONICAL_MODEL_IDS) assert.ok(names.has(legacy), `${legacy} is listed as an earlier identity but nothing names it; remove it from the list`);
 
 // The suffix of every conversion config's name is the one its own quantization settings generate, apart from
-// the listed names written by hand before the rule. This reads the config alone; the converter repeats the
-// check against the tensors it actually converts.
+// the listed names written by hand before the rule. This reads the config alone; the converter and the refresh
+// tool repeat the check exactly, against the tensors.
 const disagreeing = [];
 for (const file of walk(path.join(root, 'src', 'config', 'conversion'))) {
   const config = JSON.parse(fs.readFileSync(file, 'utf8'));
   const quantization = config?.quantization ?? {};
   if (typeof config?.output?.modelBaseId !== 'string' || !config.output.modelBaseId || !quantization.weights) continue;
   const modelId = resolveConvertedModelId({ converterConfig: config });
-  const multimodal = config.output.textOnly !== true;
-  const info = buildQuantizationInfo(config, quantization.weights, quantization.embeddings ?? null, quantization.lmHead ?? null,
-    multimodal && Boolean(quantization.vision), multimodal && Boolean(quantization.audio), multimodal && Boolean(quantization.projector));
-  const problem = modelIdSuffixProblem(modelId, info.variantTag);
-  if (problem !== null && !isLegacyModelId(modelId)) disagreeing.push(`${modelId}: ${problem}`);
+  // Whether a vision, audio or projector part is named depends on the tensors, which a config does not list.
+  // So this reads the text part, and accepts further parts after it.
+  const info = buildQuantizationInfo(config, quantization.weights, quantization.embeddings ?? null, quantization.lmHead ?? null);
+  const text = variantNameSuffix(info.variantTag);
+  const index = modelId.indexOf(`-${text}`);
+  const describes = index > 0 && /^(-[a-z0-9]+)*$/.test(modelId.slice(index + text.length + 1));
+  if (!describes && !isLegacyModelId(modelId)) disagreeing.push(`${modelId}: its suffix must begin with "-${text}"`);
 }
 assert.deepEqual(disagreeing, [], 'conversion configs whose name does not describe their format');
 for (const legacy of LEGACY_HANDWRITTEN_SUFFIX_MODEL_IDS) {
   assert.ok(isCanonicalModelId(legacy), `${legacy} belongs in LEGACY_NONCANONICAL_MODEL_IDS`);
   assert.ok(names.has(legacy), `${legacy} is listed as an earlier identity but nothing names it; remove it from the list`);
+}
+
+// quantizationInfo has to be true for the suffix to be: a config that claims an F16 head over a Q4_K_M tensor
+// is refused when its manifest is refreshed.
+const tensors = { embed: { role: 'embedding', dtype: 'F16' }, head: { role: 'lm_head', dtype: 'Q4_K_M' }, other: { role: 'matmul', dtype: 'Q4_K_M' } };
+assert.deepEqual(formatRecordProblems({ weights: 'q4k', embeddings: 'f16', lmHead: 'q4k' }, tensors), []);
+assert.deepEqual(formatRecordProblems({ weights: 'q4k', embeddings: 'f16' }, { embed: tensors.embed }), []);
+assert.match(formatRecordProblems({ weights: 'q4k', embeddings: 'f16', lmHead: 'f16' }, tensors)[0], /lmHead says f16 but the lm_head tensor is stored as q4k/);
+assert.deepEqual(formatRecordProblems({ weights: 'q4_0', embeddings: 'q4_0', lmHead: 'q6k' }, [{ role: 'embedding', dtype: 'Q4_0' }, { role: 'lm_head', dtype: 'Q6_K' }]), []);
+
+// A reissued model keeps every rule its earlier identity had: the rules are keyed by name.
+const { resolveCapabilityTransforms } = await import('../../src/rules/capability-transform-resolver.js');
+const lanes = id => [true, false].flatMap(hasSubgroups => [true, false].flatMap(hasF16 => ['f16', 'f32', null].map(requested => {
+  const resolved = resolveCapabilityTransforms({ hasSubgroups, hasF16 }, { id: 'test', vendor: 'test', architecture: 'test' },
+    { modelId: id, requestedActivationDtype: requested, activationDtype: requested ?? 'f32', mathDtype: 'f32', accumDtype: 'f32', kvDtype: 'f16', headDim: 128 });
+  return `${hasSubgroups}/${hasF16}/${requested}: ${resolved.kind} ${resolved.names.join(',')}`;
+})));
+for (const [earlier, reissued] of [['qwen-3-5-2b-q4k-ehaf16', 'qwen-3-5-2b-q4k-ef16-af32'], ['qwen-3-5-0-8b-q4k-ehaf16', 'qwen-3-5-0-8b-q4k-ef16-af32-vf16']]) {
+  assert.deepEqual(lanes(reissued), lanes(earlier), `${reissued} resolves different transforms from ${earlier}`);
+  assert.ok(lanes(reissued).some(line => line.includes('useQwenF16PrimaryMatmuls')), `${reissued} lost the F16 lane`);
 }
 
 console.log('model-id-naming.test: ok');

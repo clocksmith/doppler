@@ -133,7 +133,37 @@ hand and is not the one the generator produces:
 | `f32-af32`, activations named though they match the weights | ESM-2, ESM-C, Nucleotide Transformer | `f32` |
 | a descriptor inside the suffix, or parts left out | Gemma 4 E2B, Gemma 4 12B `w4a16-ct` and `hq4k`, the Qwen 3 reranker, GPT-OSS 20B | see the generator |
 
-They are corrected the same way as any rename: a new conversion config under the new
-name, `tools/refresh-converted-manifest.js <model directory> --config <new config>
---model-id <new name>` over the existing weights, and a new identity. A codename with
-no family at all is corrected the same way.
+## Renaming a model
+
+A rename is a reissue: the same weights under a new manifest, with a new identity.
+
+1. **Start from the config the manifest records.** `artifactIdentity.conversionConfigDigest`
+   names the version of the conversion config that produced the model; find it in the
+   history of the file at `conversionConfigPath`. Copy that version to a new file named
+   after the new model ID and change `output.modelBaseId`. Do not start from the config
+   as it stands today. Four of the first four models reissued had configs edited since
+   their conversion, and one of those edits would have run an F16 head kernel over a
+   head stored as Q4_K_M.
+2. **Reissue the manifest.** With the weights at hand:
+   `node tools/refresh-converted-manifest.js <model directory> --config <new config> --model-id <new name>`.
+   Without them, add `--rename-only` and point the tool at a directory that holds only
+   `manifest.json`. Rename-only carries over everything the manifest says about how
+   the model is stored and run, changes the name, the provenance and a source recorded
+   as a local path, and refuses a config that generates a different format or a
+   different execution graph from the manifest's own.
+3. **Carry the rules.** Rules select behaviour by model ID
+   (`src/rules/inference/capability-transforms.rules.json`,
+   `src/rules/inference/execution.rules.json`, `src/config/runtime/model-sessions.json`).
+   Add the new name wherever the earlier one appears, in the same change, and keep the
+   earlier one while its identity is still served.
+   `tests/converter/model-id-naming.test.js` compares the transforms the two names
+   resolve.
+4. **Keep the earlier config and its entry in the lists above** until nothing serves
+   the earlier identity.
+
+The weight pack keeps its `weightCapsuleId`, which was formed from the earlier name:
+the weights are the same weights.
+
+A direct-source manifest (`metadata.sourceRuntime`) has no conversion config to
+refresh from. Its name is the `modelId` field alone, and that is the only field a
+rename changes.

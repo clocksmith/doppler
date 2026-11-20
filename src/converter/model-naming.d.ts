@@ -26,3 +26,9 @@ export declare function assertModelIdDescribesFormat(modelId: string, variantTag
 
 /** A conforming label for a model run straight from a file, from the file's name; null when nothing usable remains. */
 export declare function modelLabelFromFileName(name: unknown): string | null;
+
+/** Where a manifest's quantizationInfo disagrees with the stored type of its embedding and head tensors. */
+export declare function formatRecordProblems(
+  quantizationInfo: { weights?: string | null; embeddings?: string | null; lmHead?: string | null } | null | undefined,
+  tensors: Record<string, { role?: string; dtype?: string }> | Array<{ role?: string; dtype?: string }> | null | undefined
+): string[];

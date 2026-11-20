@@ -67,7 +67,9 @@
         "modelId": {
           "in": [
             "qwen-3-5-0-8b-q4k-ehaf16",
-            "qwen-3-5-2b-q4k-ehaf16"
+            "qwen-3-5-2b-q4k-ehaf16",
+            "qwen-3-5-0-8b-q4k-ef16-af32-vf16",
+            "qwen-3-5-2b-q4k-ef16-af32"
           ]
         },
         "requestedActivationDtype": "f16",

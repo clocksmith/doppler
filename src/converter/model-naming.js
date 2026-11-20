@@ -90,3 +90,27 @@ export function modelLabelFromFileName(name) {
   const label = String(name ?? '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 64).replace(/-$/, '');
   return label || null;
 }
+
+const TENSOR_FORMAT_TOKENS = Object.freeze({ q4_k_m: 'q4k', q4_k: 'q4k', q5_k: 'q5k', q5_k_m: 'q5k', q6_k: 'q6k' });
+/** @param {unknown} dtype */
+const tensorFormatToken = dtype => {
+  const lower = String(dtype ?? '').toLowerCase();
+  return TENSOR_FORMAT_TOKENS[/** @type {keyof typeof TENSOR_FORMAT_TOKENS} */ (lower)] ?? lower;
+};
+
+// The suffix is generated from quantizationInfo, so quantizationInfo has to be true. This compares what it says
+// about the embeddings and the output head with the stored type of the tensors that have those roles. A role
+// whose tensors do not share one type is not judged.
+/** @type {typeof import('./model-naming.js').formatRecordProblems} */
+export function formatRecordProblems(quantizationInfo, tensors) {
+  const problems = [];
+  const entries = Array.isArray(tensors) ? tensors : Object.values(tensors ?? {});
+  for (const [role, field] of /** @type {const} */ ([['embedding', 'embeddings'], ['lm_head', 'lmHead']])) {
+    const stored = new Set(entries.filter(tensor => tensor?.role === role).map(tensor => tensorFormatToken(tensor.dtype)));
+    if (stored.size !== 1) continue;
+    const [actual] = stored;
+    const declared = tensorFormatToken(quantizationInfo?.[field] ?? (field === 'lmHead' ? quantizationInfo?.embeddings : null) ?? quantizationInfo?.weights);
+    if (declared !== actual) problems.push(`quantizationInfo.${field} says ${declared} but the ${role} tensor is stored as ${actual}`);
+  }
+  return problems;
+}

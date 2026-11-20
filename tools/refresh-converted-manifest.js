@@ -9,7 +9,7 @@ import { parseManifest, parseTensorMap } from '../src/formats/rdrr/parsing.js';
 import { createConverterConfig } from '../src/config/schema/index.js';
 import { resolveConversionPlan } from '../src/converter/conversion-plan.js';
 import { buildArtifactIdentity, extractArchitecture } from '../src/converter/artifact-identity.js';
-import { assertCanonicalModelId, assertModelIdDescribesFormat } from '../src/converter/model-naming.js';
+import { assertCanonicalModelId, assertModelIdDescribesFormat, formatRecordProblems } from '../src/converter/model-naming.js';
 import { inferBundledTokenizerBehaviorFlags } from '../src/inference/tokenizers/behavior-flags.js';
 import { buildManifestIntegrityFromModelDir } from '../src/tooling/rdrr-integrity-refresh.js';
 
@@ -28,6 +28,7 @@ function parseArgs(argv) {
     blockSize: null,
     loweringEntryPaths: [],
     skipShardCheck: false,
+    renameOnly: false,
     dryRun: false,
   };
 
@@ -68,6 +69,10 @@ function parseArgs(argv) {
       args.skipShardCheck = true;
       continue;
     }
+    if (arg === '--rename-only') {
+      args.renameOnly = true;
+      continue;
+    }
     if (arg === '--dry-run') {
       args.dryRun = true;
       continue;
@@ -83,7 +88,7 @@ function parseArgs(argv) {
   }
 
   if (!args.modelDir || !args.conversionConfigPath) {
-    fail('Usage: node tools/refresh-converted-manifest.js <model-dir> --config <conversion-config.json> [--source-config <source-config.json>] [--manifest <manifest.json>] [--model-id <id>] [--block-size <bytes>] [--lowering-entry <entry.json>]... [--skip-shard-check] [--dry-run]');
+    fail('Usage: node tools/refresh-converted-manifest.js <model-dir> --config <conversion-config.json> [--source-config <source-config.json>] [--manifest <manifest.json>] [--model-id <id>] [--block-size <bytes>] [--lowering-entry <entry.json>]... [--skip-shard-check] [--rename-only] [--dry-run]');
   }
 
   if (typeof args.conversionConfigPath !== 'string' || !args.conversionConfigPath.trim()) {
@@ -250,7 +255,9 @@ async function verifyShards(modelDir, manifest) {
   }
 }
 
-function mergeMetadata(manifest, conversionConfigPath) {
+// A manifest is published. Where the conversion config names the source checkpoint, a source recorded as a
+// path on the converting machine is replaced by that name.
+function mergeMetadata(manifest, conversionConfigPath, sourceCheckpointId = null) {
   const metadata = manifest.metadata && typeof manifest.metadata === 'object'
     ? { ...manifest.metadata }
     : {};
@@ -262,6 +269,9 @@ function mergeMetadata(manifest, conversionConfigPath) {
     at: new Date().toISOString(),
     config: path.basename(conversionConfigPath),
   };
+  if (toSafeString(sourceCheckpointId) && /^(file:|~|\/|[A-Za-z]:[\\/])/.test(String(metadata.source ?? ''))) {
+    metadata.source = sourceCheckpointId;
+  }
 
   return metadata;
 }
@@ -446,7 +456,7 @@ async function main() {
     headDim: resolveHeadDim(architecture),
   });
 
-  if (!args.skipShardCheck) {
+  if (!args.skipShardCheck && !args.renameOnly) {
     await verifyShards(modelDir, manifest);
   }
 
@@ -455,20 +465,44 @@ async function main() {
     fail('Manifest is missing modelId and --model-id was not provided.');
   }
 
+  // --rename-only reissues a manifest under a new name without the weights at hand. What the manifest says
+  // about how the model is stored and run is carried over, not derived again: a config edited since the
+  // conversion would otherwise rewrite the execution graph of an artifact it no longer describes. The config
+  // must still describe the manifest, or the provenance the new manifest records would be false.
+  const derived = args.renameOnly
+    ? { ...plan, modelType: manifest.modelType, manifestQuantization: manifest.quantization,
+      quantizationInfo: manifest.quantizationInfo, moeConfig: manifest.moeConfig, manifestInference: manifest.inference }
+    : plan;
+  if (args.renameOnly) {
+    if (!manifest.integrityExtensions) fail('--rename-only needs a manifest that already carries integrityExtensions.');
+    const steps = execution => JSON.stringify(execution ?? null, (key, value) => (key === 'digest' ? undefined : value));
+    const drift = [];
+    if (plan.quantizationInfo?.variantTag !== manifest.quantizationInfo?.variantTag) {
+      drift.push(`it generates the format ${plan.quantizationInfo?.variantTag}, the manifest records ${manifest.quantizationInfo?.variantTag}`);
+    }
+    if (steps(plan.manifestInference?.execution) !== steps(manifest.inference?.execution)) {
+      drift.push('it generates a different execution graph');
+    }
+    if (drift.length > 0) {
+      fail(`--rename-only: the conversion config does not describe this manifest: ${drift.join('; ')}. ` +
+        `Start from the config the manifest records (${manifest.artifactIdentity?.conversionConfigDigest ?? 'no digest recorded'}).`);
+    }
+  }
+
   const refreshed = {
     ...manifest,
-    ...(converterConfig?.output?.textOnly === true ? { config: undefined } : {}),
+    ...(converterConfig?.output?.textOnly === true && !args.renameOnly ? { config: undefined } : {}),
     modelId: nextModelId,
-    modelType: plan.modelType || manifest.modelType,
-    quantization: plan.manifestQuantization || manifest.quantization,
-    quantizationInfo: plan.quantizationInfo || manifest.quantizationInfo || null,
+    modelType: derived.modelType || manifest.modelType,
+    quantization: derived.manifestQuantization || manifest.quantization,
+    quantizationInfo: derived.quantizationInfo || manifest.quantizationInfo || null,
     artifactIdentity: await rebuildArtifactIdentityForRefresh(
-      { ...manifest, modelId: nextModelId }, rawConversionConfig, converterConfig, plan, conversionConfigPath),
-    moeConfig: plan.moeConfig ?? manifest.moeConfig ?? null,
-    inference: plan.manifestInference || manifest.inference,
-    metadata: mergeMetadata(manifest, conversionConfigPath),
+      { ...manifest, modelId: nextModelId }, rawConversionConfig, converterConfig, derived, conversionConfigPath),
+    moeConfig: derived.moeConfig ?? manifest.moeConfig ?? null,
+    inference: derived.manifestInference || manifest.inference,
+    metadata: mergeMetadata(manifest, conversionConfigPath, rawConversionConfig?.manifest?.artifactIdentity?.sourceCheckpointId),
   };
-  const tokenizerPatch = await resolveBundledTokenizerRefreshPatch(modelDir, manifest);
+  const tokenizerPatch = args.renameOnly ? null : await resolveBundledTokenizerRefreshPatch(modelDir, manifest);
   if (tokenizerPatch) {
     refreshed.tokenizer = {
       ...(manifest.tokenizer ?? {}),
@@ -477,11 +511,14 @@ async function main() {
   }
   // Reject unsupported graph/metadata contracts before rereading large tensors.
   parseManifest(JSON.stringify(refreshed));
-  const builtIntegrity = await buildManifestIntegrityFromModelDir(refreshed, {
-    modelDir,
-    blockSize: resolveOptionalBlockSize(args.blockSize),
-    loweringEntryPaths: args.loweringEntryPaths,
-  });
+  // The integrity record is computed from the weight bytes alone, so a rename carries it over.
+  const builtIntegrity = args.renameOnly
+    ? { integrityExtensions: manifest.integrityExtensions, integrityExtensionsHash: '(carried over)' }
+    : await buildManifestIntegrityFromModelDir(refreshed, {
+      modelDir,
+      blockSize: resolveOptionalBlockSize(args.blockSize),
+      loweringEntryPaths: args.loweringEntryPaths,
+    });
   refreshed.integrityExtensions = builtIntegrity.integrityExtensions;
 
   // Validate and normalize before writing to avoid writing partial/invalid files.
@@ -489,6 +526,14 @@ async function main() {
   // docs/style/model-naming.md: a refreshed manifest is an identity, so its name is checked like a conversion's.
   assertCanonicalModelId(validated.modelId, 'Refreshed model ID');
   assertModelIdDescribesFormat(validated.modelId, validated.quantizationInfo?.variantTag, 'Refreshed model ID');
+  const formatProblems = formatRecordProblems(validated.quantizationInfo, validated.tensors ?? tensorEntries);
+  if (formatProblems.length > 0) {
+    fail(`The conversion config does not describe this model: ${formatProblems.join('; ')}.`);
+  }
+  if (args.renameOnly && (canonicalJson(validated.shards) !== canonicalJson(manifest.shards)
+    || canonicalJson(validated.tensors) !== canonicalJson(manifest.tensors))) {
+    fail('--rename-only changed the shard or tensor list; refresh from the weights instead.');
+  }
 
   if (args.dryRun) {
     console.log('[refresh-manifest] dry-run successful');
