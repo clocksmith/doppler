@@ -66,7 +66,7 @@ function usage() {
     'Endpoints:',
     '  POST /v1/chat/completions   OpenAI-compatible chat completions',
     '  GET  /v1/models             List available models',
-    '  GET  /health                Health check',
+    '  GET  /health                Readiness, retained prefix tokens, and reasons checkpoints were dropped',
     '',
     'Examples:',
     '  node src/cli/doppler-serve.js --model qwen3-0.8b',

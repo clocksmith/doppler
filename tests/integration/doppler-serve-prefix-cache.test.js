@@ -336,7 +336,10 @@ function parseBody(res) {
   const cache = createServePrefixCache();
   const owners = [{}, {}];
   let closed = 0;
-  const make = () => ({ close() { closed++; }, getStats() { return { allocatedBytes: 1 }; } });
+  const make = () => ({
+    close() { closed++; },
+    getStats() { return { allocatedBytes: 8, cachedTokens: 1, reusedTokens: 0, status: 'cached' }; },
+  });
   const first = cache.acquire('root', make, owners[0]);
   first.release();
   const second = cache.acquire('root', make, owners[1]);
@@ -344,6 +347,33 @@ function parseBody(res) {
   assert.notEqual(first.context, second.context);
   assert.equal(closed, 1);
   second.release();
+  cache.close();
+}
+
+// A successful answer can still exceed the KV budget or finish without a checkpoint.
+// Looking up that conversation again must be a miss, even on the same model handle.
+{
+  const cache = createServePrefixCache();
+  let closed = 0;
+  const owner = {};
+  const initial = cache.getStats();
+  for (const status of ['budget', 'discarded', 'empty']) {
+    const lease = cache.acquire('same-turn', () => ({
+      getStats: () => ({ allocatedBytes: 0, cachedTokens: 0, reusedTokens: 0, status }),
+      close() { closed++; },
+    }), owner);
+    assert.equal(lease.hit, false);
+    lease.release();
+    lease.release();
+    assert.equal(cache.getStats().entries, 0);
+  }
+  assert.deepEqual(initial.unretained, { budget: 0, discarded: 0, empty: 0 });
+  const stats = cache.getStats();
+  assert.deepEqual(stats.unretained, { budget: 1, discarded: 1, empty: 1 });
+  assert.equal(stats.hits, 0);
+  assert.equal(stats.misses, 3);
+  assert.equal(stats.evictions, 0);
+  assert.equal(closed, 3);
   cache.close();
 }
 

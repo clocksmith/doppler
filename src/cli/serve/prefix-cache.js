@@ -99,6 +99,7 @@ export function createServePrefixCache({ policy = DEFAULT_PREFIX_CACHE_POLICY, n
   let misses = 0;
   let evictions = 0;
   let busySkips = 0;
+  const unretained = { budget: 0, discarded: 0, empty: 0 };
 
   /**
    * @param {string} key
@@ -212,6 +213,14 @@ export function createServePrefixCache({ policy = DEFAULT_PREFIX_CACHE_POLICY, n
             remove(key);
             return;
           }
+          const stats = activeEntry.context.getStats();
+          if (!Number.isSafeInteger(stats.cachedTokens) || stats.cachedTokens <= 0) {
+            if (stats.status === 'budget') unretained.budget += 1;
+            else if (stats.status === 'discarded') unretained.discarded += 1;
+            else unretained.empty += 1;
+            remove(key);
+            return;
+          }
           // Refresh LRU order.
           entries.delete(key);
           entries.set(key, activeEntry);
@@ -254,6 +263,7 @@ export function createServePrefixCache({ policy = DEFAULT_PREFIX_CACHE_POLICY, n
         misses,
         evictions,
         busySkips,
+        unretained: Object.freeze({ ...unretained }),
       });
     },
     close() {

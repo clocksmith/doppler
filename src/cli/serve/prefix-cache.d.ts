@@ -18,10 +18,13 @@ export interface ServePrefixCacheStats {
   maxEntries: number;
   maxBytes: number;
   maxEntryBytes: number;
+  /** Acquisitions of a retained context. Per-request cached_tokens measures actual reuse. */
   hits: number;
   misses: number;
   evictions: number;
   busySkips: number;
+  /** Successful requests whose runtime retained no prefix, by checkpoint outcome. */
+  unretained: Readonly<{ budget: number; discarded: number; empty: number }>;
 }
 
 export interface ServePrefixCacheLease {
