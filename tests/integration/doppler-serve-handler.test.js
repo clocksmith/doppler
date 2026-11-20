@@ -44,7 +44,7 @@ const mockResolution = {
   resolvedExecutionId: `sha256:${'b'.repeat(64)}`,
 };
 
-function createMockHandler(overrides = {}) {
+function createMockHandler(overrides = {}, loadedArtifact = null) {
   const calls = [];
   const mockHandler = createServeHandler({
     listModels: async () => [mockTextModel, mockEmbeddingModel],
@@ -69,6 +69,7 @@ function createMockHandler(overrides = {}) {
           },
           evidence: {
             resolution: mockResolution,
+            loadedArtifact,
           },
         };
       },
@@ -363,14 +364,21 @@ function createLoadFailure() {
 
 // Chat completions - explicit runtime model source keeps response identity canonical
 {
-  const runtimeModel = { url: 'file:///models/local/gemma-4-e2b-it-q4k-ehf16-af32-int4ple/' };
+  const runtimeModel = { registryId: mockTextModel.modelId, url: 'file:///models/local/gemma-4-e2b-it-q4k-ehf16-af32-int4ple/' };
+  const artifact = {
+    modelId: 'gemma-4-e2b-it-q4k-ehf16-af32-int4ple',
+    artifactVariantId: mockResolution.resolvedArtifactVariantId,
+    sourceCheckpointId: 'local-checkpoint',
+    weightCapsuleId: 'local-weights',
+    manifestVariantId: 'local-variant',
+  };
   const runtimeCalls = [];
   const mock = createMockHandler({
     resolveRuntimeModel(registryEntry, requestedModel) {
       runtimeCalls.push({ registryEntry, requestedModel });
       return runtimeModel;
     },
-  });
+  }, artifact);
   const req = createMockReq('POST', '/v1/chat/completions', {
     model: 'gemma3-270m',
     messages: [{ role: 'user', content: 'hi' }],
@@ -390,12 +398,15 @@ function createLoadFailure() {
   const body = parseBody(res);
   assert.equal(body.model, mockTextModel.modelId);
   assert.equal(body.doppler_receipt.requestedModel, 'gemma3-270m');
-  assert.equal(body.doppler_receipt.resolvedModel, mockTextModel.modelId);
+  assert.equal(body.doppler_receipt.resolvedModel, artifact.modelId);
   assert.deepEqual(body.doppler_receipt.runtimeModelSource, {
     kind: 'url',
     url: runtimeModel.url,
   });
-  assert.equal(body.doppler_receipt.artifact.source, 'quickstart-registry');
+  assert.equal(body.doppler_receipt.catalogModelId, mockTextModel.modelId);
+  assert.equal(body.doppler_receipt.artifact.source, 'loaded-manifest');
+  assert.equal(body.doppler_receipt.artifact.manifestVariantId, artifact.manifestVariantId);
+  assert.equal(body.doppler_receipt.artifact.hf, null);
 }
 
 // Chat completions - streaming uses explicit runtime model source too

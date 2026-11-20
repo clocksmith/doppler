@@ -254,6 +254,10 @@ export function createModelHandle(pipeline, resolved) {
         stats,
         resolutionPolicy,
       });
+      const artifact = pipeline.revocationIdentity;
+      if (artifact?.artifactVariantId === evidence.resolution.resolvedArtifactVariantId) {
+        evidence.loadedArtifact = artifact;
+      }
       return { evidence, inputTokenIds };
     }, executionOptions.signal);
   }

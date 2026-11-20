@@ -71,6 +71,7 @@ export interface ServeReceiptOptions {
   };
   runtimeModel?: unknown;
   generationEvidence?: {
+    loadedArtifact?: import('../client/model-host/model-session.js').DopplerGenerationEvidence['loadedArtifact'];
     resolution: ServeResolutionIdentity;
   } | null;
 }
@@ -135,8 +136,8 @@ export declare function isLoopbackHost(host: string): boolean;
 export declare function parseServeArgs(argv: string[]): ServeSettings;
 
 export interface ServeReceiptBase {
-  receiptVersion: 'doppler_serve_receipt_v1';
-  schemaVersion: 1;
+  receiptVersion: 'doppler_serve_receipt_v2';
+  schemaVersion: 2;
   surface: 'serve';
   endpoint: '/v1/chat/completions';
   runtime: 'doppler-gpu';
@@ -156,21 +157,22 @@ export interface ServeReceiptBase {
       modelId: string;
       baseUrl: string | null;
     };
-  modelId: string;
+  catalogModelId: string;
+  modelId: string | null;
   requestedModel: string;
-  resolvedModel: string;
+  resolvedModel: string | null;
   resolutionStatus: 'resolved' | 'unavailable';
   resolution: ServeResolutionIdentity | null;
   resolutionUnavailableReason: string | null;
   artifact: {
     format: 'rdrr';
-    source: 'quickstart-registry';
-    sourceCheckpointId: string;
-    weightCapsuleId: string;
-    manifestVariantId: string;
-    artifactCompleteness: string;
-    runtimePromotionState: string;
-    weightsRefAllowed: boolean;
+    source: 'quickstart-registry' | 'url' | 'inline-manifest' | 'loaded-manifest';
+    sourceCheckpointId: string | null;
+    weightCapsuleId: string | null;
+    manifestVariantId: string | null;
+    artifactCompleteness: string | null;
+    runtimePromotionState: string | null;
+    weightsRefAllowed: boolean | null;
     hf: ServeRegistryEntry['hf'];
   };
   request: {

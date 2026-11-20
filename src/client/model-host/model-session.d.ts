@@ -66,6 +66,8 @@ export interface DopplerResolvedExecutionIdentity {
 }
 
 export interface DopplerGenerationEvidence {
+  /** Manifest fields from the same artifact digest used to resolve execution. */
+  loadedArtifact?: NonNullable<import('../../inference/pipelines/text/state.js').PipelineState['revocationIdentity']>;
   schema: 'doppler_generation_evidence/v1';
   outputText: string;
   tokenIds: number[];

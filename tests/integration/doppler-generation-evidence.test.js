@@ -64,6 +64,11 @@ const stats = {
 };
 
 const pipeline = {
+  revocationIdentity: Object.freeze({
+    modelId: 'qwen-test',
+    manifestVariantId: 'observed-test-variant',
+    artifactVariantId: `sha256:${'a'.repeat(64)}`,
+  }),
   modelConfig: {
     chatTemplateEnabled: true,
   },
@@ -200,6 +205,9 @@ assert.equal(
   evidence.executionIdentity.resolvedRuntimeSessionId,
   `sha256:${'b'.repeat(64)}`
 );
+assert.equal(evidence.loadedArtifact.modelId, 'qwen-test');
+assert.equal(evidence.loadedArtifact.manifestVariantId, 'observed-test-variant');
+assert.equal(evidence.loadedArtifact.artifactVariantId, evidence.resolution.resolvedArtifactVariantId);
 assert.equal(evidence.runtimeProfile.model.modelId, 'qwen-test');
 assert.equal(evidence.runtimeProfile.model.manifestHash, `sha256:${'a'.repeat(64)}`);
 assert.equal(
