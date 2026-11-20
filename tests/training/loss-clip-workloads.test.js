@@ -28,6 +28,7 @@ const {
 } = await import('../../src/memory/buffer-pool.js');
 const { createTensor } = await import('../../src/gpu/tensor.js');
 const { AutogradTape } = await import('../../src/experimental/training/autograd.js');
+const { detectOverflow } = await import('../../src/experimental/training/loss-scaling.js');
 const { clipGradients } = await import('../../src/experimental/training/clip.js');
 const { normalizeTrainingWorkloadCapsule } = await import('../../src/experimental/training/workloads.js');
 
@@ -209,7 +210,8 @@ try {
     setDevice(device, { platformConfig: null });
     getBufferPool().configure({ enablePooling: false });
 
-    const original = makeF32Tensor([3, 4], [2], 'clipped_grad');
+    // A pooled allocation can have leftover data beyond the logical tensor.
+    const original = makeF32Tensor([3, 4, NaN, 200], [2], 'clipped_grad');
     const grads = new Map([['weight', original]]);
     const result = await clipGradients(grads, {
       training: {
@@ -217,11 +219,15 @@ try {
       },
     });
 
+    assert.equal(result.total_param_count, 2);
+    assert.equal(await detectOverflow(grads), false);
     const clipped = result.clippedGrads.get('weight');
     assert.equal(result.clipped_event_count, 1);
     assert.equal(result.gradient_norm_unclipped, 5);
     assert.equal(result.gradient_norm_clipped, 1);
     assert.notEqual(clipped.buffer, original.buffer);
+    uploadData(original.buffer, new Float32Array([NaN, 4]));
+    assert.equal(await detectOverflow(grads), true);
     releaseBuffer(clipped.buffer);
     releaseBuffer(original.buffer);
     destroyBufferPool();
