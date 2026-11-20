@@ -25,6 +25,9 @@ export declare function quantNameToken(value: string | null | undefined): string
  */
 export declare function buildVariantTag(info: QuantizationInfoSchema): string;
 
+/** The model ID suffix from the format record. A known activation dtype always has its own part. */
+export declare function buildModelNameSuffix(info: Partial<QuantizationInfoSchema> | null | undefined): string;
+
 export declare function resolveManifestQuantization(quantize: string | null, fallback: string): string;
 
 export declare function normalizeQ4KLayout(value: string | null | undefined): string | null;
@@ -43,7 +46,8 @@ export declare function buildQuantizationInfo(
 export declare function resolveModelId(
   modelId: string | null,
   baseName: string,
-  variantTag: string | undefined
+  variantTag: string | null | undefined,
+  nameSuffix?: string
 ): string;
 
 export declare function toWebGPUDtype(dtype: string): string;

@@ -7,6 +7,7 @@ import { pathToFileURL } from 'node:url';
 
 import { parseManifest, parseTensorMap } from '../src/formats/rdrr/parsing.js';
 import { createConverterConfig } from '../src/config/schema/index.js';
+import { buildModelNameSuffix } from '../src/converter/quantization-info.js';
 import { resolveConversionPlan } from '../src/converter/conversion-plan.js';
 import { buildArtifactIdentity, extractArchitecture } from '../src/converter/artifact-identity.js';
 import { assertCanonicalModelId, assertModelIdDescribesFormat, formatRecordProblems } from '../src/converter/model-naming.js';
@@ -525,7 +526,7 @@ async function main() {
   const validated = parseManifest(JSON.stringify(refreshed));
   // docs/style/model-naming.md: a refreshed manifest is an identity, so its name is checked like a conversion's.
   assertCanonicalModelId(validated.modelId, 'Refreshed model ID');
-  assertModelIdDescribesFormat(validated.modelId, validated.quantizationInfo?.variantTag, 'Refreshed model ID');
+  assertModelIdDescribesFormat(validated.modelId, buildModelNameSuffix(validated.quantizationInfo), 'Refreshed model ID');
   const formatProblems = formatRecordProblems(validated.quantizationInfo, validated.tensors ?? tensorEntries);
   if (formatProblems.length > 0) {
     fail(`The conversion config does not describe this model: ${formatProblems.join('; ')}.`);

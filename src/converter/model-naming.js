@@ -2,14 +2,35 @@
 // suffix the model's format generates. A manifest carries its model ID and a model's identity is the hash of
 // its manifest, so a name is checked before it is written.
 
-// The suffix of a model ID, from the variant tag a manifest stores. The stored tag is manifest data: it keeps
-// its spelling, because rewriting it would change the identity of every model converted again.
+// Keep storage roles grouped and place activation after them, before the modality suffixes. A stored tag
+// omits activation when it equals the weights; the format record supplies that precision when known.
 /** @type {typeof import('./model-naming.js').variantNameSuffix} */
-export function variantNameSuffix(variantTag) {
+export function variantNameSuffix(variantTag, activationDtype = null) {
   if (!variantTag) return '';
-  return String(variantTag).toLowerCase()
+  const normalized = String(variantTag).toLowerCase()
     .replace(/q(\d)_(\d)/g, 'q$1$2')
     .replace(/[^a-z0-9-]/g, '-').replace(/-+/g, '-').replace(/^-|-$/g, '');
+  if (!normalized) return '';
+  const tokens = normalized.split('-');
+  let index = tokens[1] === 'col' ? 2 : 1;
+  const parts = tokens.slice(0, index);
+  let activation = activationDtype;
+  for (; index < tokens.length; index++) {
+    const token = tokens[index];
+    if (token.startsWith('audio')) break;
+    const role = /^(e?h?a|eh|e|h)(.+)$/.exec(token);
+    if (!role) break;
+    const [, roles, dtype] = role;
+    if (!roles.endsWith('a')) {
+      parts.push(token);
+      continue;
+    }
+    if (activation && activation !== dtype) throw new Error(`Activation type ${activation} disagrees with variant tag ${variantTag}`);
+    activation = dtype;
+    if (roles.length > 1) parts.push(roles.slice(0, -1) + dtype);
+  }
+  if (activation) parts.push('a' + activation);
+  return parts.concat(tokens.slice(index)).join('-');
 }
 
 export const MODEL_ID_PATTERN = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
@@ -22,11 +43,14 @@ export const LEGACY_NONCANONICAL_MODEL_IDS = Object.freeze([
   'qwen3-8-27b-text-source-q4_0-af32',
 ]);
 
-// Identities issued before the naming rule whose suffix was written by hand and does not match the tag
-// their own settings generate (for example "ehaf16" over F32 activations). Same rule as the list above:
-// nothing new may be added, and an entry is removed when its model is reissued.
+// Exact previously issued names, including handwritten suffixes and names from the grouped activation rule.
+// An explicit conversion for these identities keeps its name; new model IDs must describe the measured format.
 /** @type {readonly string[]} */
 export const LEGACY_HANDWRITTEN_SUFFIX_MODEL_IDS = Object.freeze([
+  // Issued while comparing names against the storage tag, which grouped or omitted activation precision.
+  'janus-pro-1b-text-q4k-ehaf16',
+  'qwen-3-5-0-8b-canonical-f32',
+  'qwen-3-6-27b-q4k-eaf16',
   'diffusiongemma-26b-a4b-it-q4k-ehf16-af16',
   'esm2-t12-35m-ur50d-f32-af32',
   'esmc-300m-f32-af32',

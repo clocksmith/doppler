@@ -45,24 +45,26 @@ is not a name: `flash-peer-effective-q8-v2` says nothing a catalog can sort by.
 ## Format suffix
 
 The suffix says how the model is stored and computed. It is generated from the
-manifest's `quantizationInfo`, not written by hand: `buildVariantTag` in
-`src/converter/quantization-info.js` produces the tag the manifest stores, and
-`variantNameSuffix` writes that tag in name form. The stored tag is manifest data
-and keeps the format's own spelling, so that converting an existing model again
-reproduces its identity.
+manifest's `quantizationInfo`. The converter uses `buildModelNameSuffix` for
+the name and `buildVariantTag` for the stored tag. Existing manifests retain
+their original tag spelling, including grouped roles and GGUF underscores.
 
-1. The weight format comes first.
-2. Then one group for each type that differs from the weights: the letters of the
-   parts that use it, then the type. `e` is the embeddings, `h` the output head,
-   `a` the activations. Parts stored like the weights are not named.
-3. Then, where they differ from the weights: `x` experts, `v` vision, `audio`,
-   `tts`, `p` projector, and any per-layer embedding tag.
+1. Write the weight format and any layout first.
+2. Group embeddings (`e`) and the output head (`h`) by storage type when it
+   differs from the weights.
+3. Write the declared activation precision in its own part, such as `af16` or
+   `af32`, even when it matches the weights or embeddings. If the source
+   declares no activation precision, the converter leaves that part absent.
+4. Append experts (`x`), vision (`v`), audio, TTS, projector (`p`) and the
+   per-layer embedding tag where the format record calls for them.
 
 | Suffix | Reads as |
 | --- | --- |
 | `q4k-ehf16-af32` | Q4_K_M weights; embeddings and head in F16; F32 activations |
 | `q4k-ef16-af32` | Q4_K_M weights and head; embeddings in F16; F32 activations |
 | `f16-af32` | everything stored in F16; F32 activations |
+| `f32-af32` | F32 weights and F32 activations |
+| `q4k-ehf16-af16` | Q4_K_M weights, F16 embeddings and head, F16 activations |
 | `q40-hq6k-af32` | Q4_0 weights and embeddings; Q6_K head; F32 activations |
 
 ### Format tokens
@@ -122,16 +124,31 @@ to either list, and the test fails when a listed name is no longer used.
 | `qwen-3-6-35b-a3b-text-source-q4_0-af32` | underscore; the suffix omits its Q6_K head |
 | `qwen3-8-27b-text-source-q4_0-af32` | underscore; family and version run together |
 
-`LEGACY_HANDWRITTEN_SUFFIX_MODEL_IDS`, nineteen names whose suffix was written by
-hand and is not the one the generator produces:
+`LEGACY_HANDWRITTEN_SUFFIX_MODEL_IDS` identifies exact older IDs that callers may
+still request explicitly. This includes Janus 1B, the Qwen 0.8B canonical F32
+config and the Qwen 3.6 27B F16 variant, which were issued under the earlier
+grouping rule. An explicit request for an existing ID retains its identity.
 
-| Pattern | Names | Generated suffix |
-| --- | --- | --- |
-| `ehaf16` over a Q4_K_M head and F32 activations | Qwen 3.5 0.8B, 2B and 9B; Qwen 3.6 27B | `q4k-ef16-af32` |
-| `ehaf16` over F32 activations, family written `qwen3-8` | Qwen 3.8 27B text | `q4k-ehf16-af32` |
-| `ehf16-af16`, the same type written as two groups | Gemma 3 270M, Gemma 4 12B and 31B, DiffusionGemma | `q4k-ehaf16` |
-| `f32-af32`, activations named though they match the weights | ESM-2, ESM-C, Nucleotide Transformer | `f32` |
-| a descriptor inside the suffix, or parts left out | Gemma 4 E2B, Gemma 4 12B `w4a16-ct` and `hq4k`, the Qwen 3 reranker, GPT-OSS 20B | see the generator |
+### Catalog audit (2026-11-20)
+
+Across 31 Doppler catalog entries, 23 already end in the suffix their format
+records generate. This includes the F16 Gemma variants with matching F16 heads
+and the three F32 protein/nucleotide models. Eight have a suffix or descriptor
+placement that would change under a reissue.
+
+| Issued models | What a reissue must express |
+| --- | --- |
+| Qwen 3.5 0.8B and 2B | Reploid already carries `q4k-ef16-af32-vf16` and `q4k-ef16-af32` respectively. The Doppler entries resolve older manifests. |
+| Both Qwen 3.6 27B variants | Their heads use Q4K and their embeddings use F16. The two suffixes are `q4k-ef16-af32` and `q4k-ef16-af16`. |
+| Three Gemma 4 E2B variants | After the text suffix, include `vf16-audiof16-pf16`. Preserve `int4ple` for the two variants that declare per-row embeddings. |
+| Gemma 4 12B compressed-tensors W4A16 | Place the `ct` descriptor before the generated `w4a16-ehf16-af16` suffix. |
+
+Doppler’s 0.8B and 2B origin revisions serve the expected weight shard hashes,
+but their manifest hashes differ both from the new Reploid identities and from
+the older Reploid identities they supersede. The inference records differ as
+well. Keep the current Doppler entries and aliases bound to their actual
+manifests. Switching them requires an origin that serves the exact reissued
+manifest and its weight files.
 
 ## Renaming a model
 

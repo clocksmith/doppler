@@ -210,7 +210,7 @@ const minimalV1Inference = {
         inputDir: fixtureDir,
         converterConfig: {
           output: {
-            modelBaseId: 'gemma2-atomicity-f16',
+            modelBaseId: 'gemma2-atomicity-f16-af16',
             dir: outputDir,
           },
           quantization: {
