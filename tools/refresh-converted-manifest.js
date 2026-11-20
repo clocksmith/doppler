@@ -9,6 +9,7 @@ import { parseManifest, parseTensorMap } from '../src/formats/rdrr/parsing.js';
 import { createConverterConfig } from '../src/config/schema/index.js';
 import { resolveConversionPlan } from '../src/converter/conversion-plan.js';
 import { buildArtifactIdentity, extractArchitecture } from '../src/converter/artifact-identity.js';
+import { assertCanonicalModelId, assertModelIdDescribesFormat } from '../src/converter/model-naming.js';
 import { inferBundledTokenizerBehaviorFlags } from '../src/inference/tokenizers/behavior-flags.js';
 import { buildManifestIntegrityFromModelDir } from '../src/tooling/rdrr-integrity-refresh.js';
 
@@ -485,6 +486,9 @@ async function main() {
 
   // Validate and normalize before writing to avoid writing partial/invalid files.
   const validated = parseManifest(JSON.stringify(refreshed));
+  // docs/style/model-naming.md: a refreshed manifest is an identity, so its name is checked like a conversion's.
+  assertCanonicalModelId(validated.modelId, 'Refreshed model ID');
+  assertModelIdDescribesFormat(validated.modelId, validated.quantizationInfo?.variantTag, 'Refreshed model ID');
 
   if (args.dryRun) {
     console.log('[refresh-manifest] dry-run successful');

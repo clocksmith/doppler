@@ -458,7 +458,7 @@ await assert.rejects(
         inputDir: fixtureDir,
         converterConfig: {
           output: {
-            modelBaseId: 'gemma2-missing-output-dir',
+            modelBaseId: 'gemma2-missing-output-dir-f16',
           },
           modelType: 'transformer',
           inference: minimalV1Inference,
@@ -467,6 +467,87 @@ await assert.rejects(
         },
       }),
       /outputDir is required/
+    );
+  } finally {
+    rmSync(fixtureDir, { recursive: true, force: true });
+  }
+}
+
+// docs/style/model-naming.md: the converter refuses a name with an underscore. The configured name reaches
+// resolveConvertedModelId as the explicit ID, which once returned before any check.
+{
+  const fixtureDir = createTempDir('doppler-converter-missing-output-dir-');
+  writeFileSync(path.join(fixtureDir, 'config.json'), JSON.stringify({
+    architectures: ['Gemma2ForCausalLM'],
+    model_type: 'gemma2',
+    num_hidden_layers: 1,
+    hidden_size: 1,
+    num_attention_heads: 1,
+    num_key_value_heads: 1,
+    head_dim: 1,
+    intermediate_size: 1,
+    vocab_size: 10,
+    max_position_embeddings: 8,
+    bos_token_id: 1,
+    eos_token_id: 2,
+    rms_norm_eps: 1e-6,
+  }), 'utf8');
+  writeMinimalGemma2Safetensors(path.join(fixtureDir, 'model.safetensors'));
+  try {
+    await assert.rejects(
+      () => convertSafetensorsDirectory({
+        inputDir: fixtureDir,
+        converterConfig: {
+          output: {
+            modelBaseId: 'new_model',
+          },
+          modelType: 'transformer',
+          inference: minimalV1Inference,
+          session: minimalV1SessionDefaults,
+          execution: minimalV1Execution,
+        },
+      }),
+      /Converted model ID "new_model" is not a valid model name/
+    );
+  } finally {
+    rmSync(fixtureDir, { recursive: true, force: true });
+  }
+}
+
+// A name that passes the character rule must still end with the suffix its format generates.
+{
+  const fixtureDir = createTempDir('doppler-converter-missing-output-dir-');
+  writeFileSync(path.join(fixtureDir, 'config.json'), JSON.stringify({
+    architectures: ['Gemma2ForCausalLM'],
+    model_type: 'gemma2',
+    num_hidden_layers: 1,
+    hidden_size: 1,
+    num_attention_heads: 1,
+    num_key_value_heads: 1,
+    head_dim: 1,
+    intermediate_size: 1,
+    vocab_size: 10,
+    max_position_embeddings: 8,
+    bos_token_id: 1,
+    eos_token_id: 2,
+    rms_norm_eps: 1e-6,
+  }), 'utf8');
+  writeMinimalGemma2Safetensors(path.join(fixtureDir, 'model.safetensors'));
+  try {
+    await assert.rejects(
+      () => convertSafetensorsDirectory({
+        inputDir: fixtureDir,
+        converterConfig: {
+          output: {
+            modelBaseId: 'a1',
+          },
+          modelType: 'transformer',
+          inference: minimalV1Inference,
+          session: minimalV1SessionDefaults,
+          execution: minimalV1Execution,
+        },
+      }),
+      /Converted model ID "a1" does not describe its model: it must end with "-f16"/
     );
   } finally {
     rmSync(fixtureDir, { recursive: true, force: true });
@@ -588,7 +669,7 @@ await assert.rejects(
       },
       converterConfig: {
         output: {
-          modelBaseId: 'gemma2-sharded-index',
+          modelBaseId: 'gemma2-sharded-index-f16',
           dir: path.join(fixtureDir, 'out'),
         },
         modelType: 'transformer',
@@ -643,7 +724,7 @@ await assert.rejects(
         },
         converterConfig: {
           output: {
-            modelBaseId: 'gemma2-gpu-cast',
+            modelBaseId: 'gemma2-gpu-cast-f16',
             dir: path.join(fixtureDir, 'out'),
           },
           modelType: 'transformer',

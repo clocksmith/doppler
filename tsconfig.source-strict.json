@@ -80,6 +80,7 @@
     "src/gpu/kernels/paired-linear-attention.js",
     "src/gpu/kernels/gated-delta-norm-gate.js",
     "src/converter/linear-norm-gate.js",
+    "src/converter/model-naming.js",
     "src/inference/pipelines/text/configuration/config-components.js",
     "src/gpu/kernels/paired-cast.js",
     "src/gpu/kernels/paired-rmsnorm.js",

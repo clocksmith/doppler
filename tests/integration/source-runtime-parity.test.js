@@ -14,7 +14,7 @@ const { destroyDevice, initDevice } = await import('../../src/gpu/device.js');
 const { createExecutionContractSession } = await import('../helpers/execution-v1-fixtures.js');
 
 const PROMPT = 'doppler';
-const MODEL_ID = 'llama-3-source-parity-fixture';
+const MODEL_ID = 'llama-3-source-parity-fixture-f32';
 const LOGITS_TOLERANCE = 1e-3;
 
 const executionSessionDefaults = createExecutionContractSession({

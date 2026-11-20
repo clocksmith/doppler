@@ -4,6 +4,7 @@ import {
   inferSourceWeightQuantization,
   resolveConvertedModelId,
 } from '../converter/conversion-plan.js';
+import { modelLabelFromFileName } from '../converter/model-naming.js';
 import {
   normalizeQuantTag,
   resolveEffectiveQuantizationInfo,
@@ -302,7 +303,7 @@ function resolveSourceRuntimeModelIdHint(options = {}) {
       explicitModelId: requestedModelId,
       converterConfig: null,
       detectedModelId: requestedModelId,
-      quantizationInfo: plan.quantizationInfo,
+      runtimeLabel: true,
     }) || requestedModelId;
   }
   const detectedModelId = resolvePathBasename(
@@ -310,10 +311,10 @@ function resolveSourceRuntimeModelIdHint(options = {}) {
     `${sourceKind}-runtime`
   );
   return resolveConvertedModelId({
-    explicitModelId: detectedModelId,
+    explicitModelId: modelLabelFromFileName(detectedModelId),
     converterConfig: null,
     detectedModelId,
-    quantizationInfo: plan.quantizationInfo,
+    runtimeLabel: true,
   }) || detectedModelId;
 }
 

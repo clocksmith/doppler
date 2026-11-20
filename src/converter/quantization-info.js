@@ -3,6 +3,7 @@ import { validateW8A8Policy } from "../config/schema/manifest/w8a8.schema.js";
 
 import { DEFAULT_QUANTIZATION_DEFAULTS, DEFAULT_Q4K_LAYOUT } from '../config/schema/index.js';
 import { classifyTensorRole } from '../formats/rdrr/index.js';
+import { variantNameSuffix } from './model-naming.js';
 
 // Default quantization tag when no explicit dtype is provided.
 // F16 is the canonical unquantized storage format for WebGPU inference.
@@ -150,32 +151,6 @@ export function quantNameToken(value) {
   return QUANT_NAME_TOKENS[normalized] ?? normalized.replace(/_/g, '');
 }
 
-// The suffix of a model ID, from the variant tag a manifest stores. The stored tag is manifest data: it keeps
-// its spelling, because rewriting it would change the identity of every model converted again.
-export function variantNameSuffix(variantTag) {
-  if (!variantTag) return '';
-  return String(variantTag).toLowerCase()
-    .replace(/q(\d)_(\d)/g, 'q$1$2')
-    .replace(/[^a-z0-9-]/g, '-').replace(/-+/g, '-').replace(/^-|-$/g, '');
-}
-
-export const MODEL_ID_PATTERN = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
-
-// Identities issued before the naming rule. A manifest carries its model ID, so renaming one of these is a
-// new conversion with a new identity, not an edit. Remove an entry when its model is reissued.
-export const LEGACY_NONCANONICAL_MODEL_IDS = Object.freeze([
-  'qwen-3-6-35b-a3b-text-source-q4_0-af32',
-  'qwen3-8-27b-text-source-q4_0-af32',
-]);
-
-export function isCanonicalModelId(modelId) {
-  return typeof modelId === 'string' && MODEL_ID_PATTERN.test(modelId);
-}
-
-export function assertCanonicalModelId(modelId, source = 'model ID') {
-  if (isCanonicalModelId(modelId) || LEGACY_NONCANONICAL_MODEL_IDS.includes(modelId)) return modelId;
-  throw new Error(`${source} "${modelId}" is not a valid model name: use lowercase letters, digits and single hyphens only (docs/style/model-naming.md).`);
-}
 
 function validateQuantType(value, source) {
   if (!value) return;

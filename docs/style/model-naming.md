@@ -22,19 +22,25 @@ spells with an underscore has a name token without it; see the table below.
 ## Shape
 
 ```
-<family>-<version>-<size>[-<descriptor>...]-<format suffix>
+<family>-<version>[-<release>]-<size>[-<descriptor>...]-<format suffix>
 ```
 
 | Part | Rule | Examples |
 | --- | --- | --- |
 | family | the model family, one word | `qwen`, `gemma`, `lfm` |
 | version | digits, hyphen for the dot | `3-5`, `3-8`, `2-5` |
-| size | parameter count; a mixture-of-experts model adds its active count | `2b`, `0-8b`, `270m`, `35b-a3b` |
-| descriptor | what distinguishes this release, in the publisher's words | `it`, `instruct`, `text`, `flash-next` |
+| release | the publisher's name for this release, where it has one | `flash-next` |
+| size | parameter count; a mixture-of-experts model adds its active count | `2b`, `0-8b`, `270m`, `35b-a3b`, `177b` |
+| descriptor | what distinguishes this variant, in the publisher's words | `it`, `instruct`, `text` |
 | `source` | the model runs from the original file's tensors, unchanged | `text-source` |
 | format suffix | generated from the manifest; see below | `q4k-ehf16-af32` |
 
 The family and the version are separate parts: `qwen-3-8-27b`, not `qwen3-8-27b`.
+
+Every name has a size. Where the publisher's name carries none, it is the parameter
+count of the tensors in the manifest, rounded to the nearest billion or million
+(`Qwen3.8-Flash-Next` has 176.9 billion, so `qwen-3-8-flash-next-177b`). A codename
+is not a name: `flash-peer-effective-q8-v2` says nothing a catalog can sort by.
 
 ## Format suffix
 
@@ -90,22 +96,44 @@ manifest. So:
 
 ## Enforcement
 
-- The converter refuses a new model ID that breaks the character rule
-  (`assertCanonicalModelId`).
-- `tests/converter/model-id-naming.test.js` checks every name in
-  `models/catalog.json` and every name a conversion config would emit.
+- **Characters.** `resolveConvertedModelId` refuses a new model ID that breaks the
+  character rule on every path, including a name given explicitly, which is how the
+  command-line converter passes `output.modelBaseId` (`assertCanonicalModelId`).
+- **Suffix.** A conversion, in Node or in the browser, refuses a name that does not
+  end with the suffix its tensors generate, after at least one other part
+  (`assertModelIdDescribesFormat`). `tools/refresh-converted-manifest.js`, the tool
+  that reissues a manifest, applies both checks to what it writes.
+- **Before conversion.** `tests/converter/model-id-naming.test.js` checks every name
+  in `models/catalog.json`, and for every conversion config the characters and the
+  suffix its own `quantization` block generates. A converter integration test sends
+  `new_model` and `a1` through the production path and expects both refused.
+- **Not checked by code.** Family, version, release, size and descriptors are read by
+  a person. A direct-source runtime label is checked for characters only.
 
 ## Identities issued before this guide
 
-These exist and stay valid until their model is reissued. Each is listed in
-`LEGACY_NONCANONICAL_MODEL_IDS` and nothing new may be added to it.
+These exist and stay valid until their model is reissued. Nothing new may be added
+to either list, and the test fails when a listed name is no longer used.
+
+`LEGACY_NONCANONICAL_MODEL_IDS`, names with a character that is not allowed:
 
 | Model ID | What breaks the rule |
 | --- | --- |
 | `qwen-3-6-35b-a3b-text-source-q4_0-af32` | underscore; the suffix omits its Q6_K head |
 | `qwen3-8-27b-text-source-q4_0-af32` | underscore; family and version run together |
 
-Other earlier names use only allowed characters but do not follow the shape or
-describe their manifest, for example a family written `qwen3-8`, a suffix written
-by hand, or a codename with no family at all. They are corrected the same way: at
-the model's next conversion, under a new identity.
+`LEGACY_HANDWRITTEN_SUFFIX_MODEL_IDS`, nineteen names whose suffix was written by
+hand and is not the one the generator produces:
+
+| Pattern | Names | Generated suffix |
+| --- | --- | --- |
+| `ehaf16` over a Q4_K_M head and F32 activations | Qwen 3.5 0.8B, 2B and 9B; Qwen 3.6 27B | `q4k-ef16-af32` |
+| `ehaf16` over F32 activations, family written `qwen3-8` | Qwen 3.8 27B text | `q4k-ehf16-af32` |
+| `ehf16-af16`, the same type written as two groups | Gemma 3 270M, Gemma 4 12B and 31B, DiffusionGemma | `q4k-ehaf16` |
+| `f32-af32`, activations named though they match the weights | ESM-2, ESM-C, Nucleotide Transformer | `f32` |
+| a descriptor inside the suffix, or parts left out | Gemma 4 E2B, Gemma 4 12B `w4a16-ct` and `hq4k`, the Qwen 3 reranker, GPT-OSS 20B | see the generator |
+
+They are corrected the same way as any rename: a new conversion config under the new
+name, `tools/refresh-converted-manifest.js <model directory> --config <new config>
+--model-id <new name>` over the existing weights, and a new identity. A codename with
+no family at all is corrected the same way.

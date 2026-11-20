@@ -18,26 +18,12 @@ export declare function normalizeQuantTag(value: string | null | undefined): str
  */
 export declare function quantNameToken(value: string | null | undefined): string;
 
-/** Lowercase letters, digits and single hyphens. See docs/style/model-naming.md. */
-export declare const MODEL_ID_PATTERN: RegExp;
-
-/** Model IDs issued before the naming rule; each stays valid until its model is reissued under a new identity. */
-export declare const LEGACY_NONCANONICAL_MODEL_IDS: readonly string[];
-
-export declare function isCanonicalModelId(modelId: unknown): boolean;
-
 /**
  * The variant tag a manifest stores: the weight format, then one group per type that differs from it, with `e`
  * for embeddings, `h` for the output head and `a` for activations. It is manifest data and keeps the GGUF
  * spelling of each format, so that converting an existing model again reproduces its identity.
  */
 export declare function buildVariantTag(info: QuantizationInfoSchema): string;
-
-/** The same tag as it appears in a model ID: lowercase letters, digits and hyphens (`q4_0-af32` becomes `q40-af32`). */
-export declare function variantNameSuffix(variantTag: string | null | undefined): string;
-
-/** Returns the ID, or throws naming the rule, unless the ID is canonical or a listed legacy identity. */
-export declare function assertCanonicalModelId(modelId: string, source?: string): string;
 
 export declare function resolveManifestQuantization(quantize: string | null, fallback: string): string;
 

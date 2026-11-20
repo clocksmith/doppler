@@ -48,6 +48,8 @@ export interface ResolveConvertedModelIdOptions {
   fallbackModelId?: string | null;
   quantizationInfo?: { variantTag?: string | null } | null;
   sanitizeOnly?: boolean;
+  /** A direct-source runtime label, not a published identity: characters are checked, the format suffix is not. */
+  runtimeLabel?: boolean;
 }
 
 export declare function inferSourceWeightQuantization(
