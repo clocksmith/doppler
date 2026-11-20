@@ -53,6 +53,17 @@ try {
   await assert.rejects(resolveNodeModelUrl({ modelId: entry.modelId, modelUrl: localUrl }), /Manifest identity mismatch/);
   assert.deepEqual(calls, []);
 
+  // Concurrent convenience calls to distinct overrides each inspect their own
+  // manifest even though they share a catalog ID and model weights.
+  const missingUrl = pathToFileURL(path.join(tmp, 'absent-directory')).href;
+  const attempts = await Promise.allSettled([
+    runtime.getCachedModel({ registryId: entry.modelId, url: localUrl }),
+    runtime.getCachedModel({ registryId: entry.modelId, url: missingUrl }),
+  ]);
+  assert(attempts.every(result => result.status === 'rejected'));
+  assert.match(attempts[0].reason.message, /Manifest identity mismatch/);
+  assert.match(String(attempts[1].reason), /ENOENT|not found|absent-directory/i);
+
   for (const invalid of [
     { ...entry.hostedSource, expectedManifestHash: '' },
     { ...entry.hostedSource, manifestUrl: 'http://example.org/manifest.json' },

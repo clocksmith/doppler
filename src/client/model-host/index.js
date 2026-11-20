@@ -381,9 +381,17 @@ export function createDopplerRuntimeService({
     return { pipeline, modelHandle };
   }
 
+  function convenienceKey(resolved) {
+    // A pinned registry ID may resolve its manifest and payload from separate
+    // origins or from an explicit local directory.
+    return resolved.expectedManifestHash
+      ? JSON.stringify([resolved.modelId, resolved.baseUrl, resolved.manifestUrl ?? null, resolved.expectedManifestHash])
+      : resolved.modelId;
+  }
+
   async function getCachedModel(model, options = {}) {
     const resolved = await resolveModelSource(model);
-    const cacheKey = resolved.modelId;
+    const cacheKey = convenienceKey(resolved);
     const cached = convenienceModelCache.get(cacheKey);
     if (cached?.loaded) {
       return cached;
@@ -568,12 +576,13 @@ export function createDopplerRuntimeService({
   };
   doppler.evict = async function evict(model) {
     const resolved = await resolveModelSource(model);
-    const cached = convenienceModelCache.get(resolved.modelId);
+    const key = convenienceKey(resolved);
+    const cached = convenienceModelCache.get(key);
     if (!cached) {
       return false;
     }
     await cached.unload();
-    convenienceModelCache.delete(resolved.modelId);
+    convenienceModelCache.delete(key);
     return true;
   };
   doppler.evictAll = async function evictAll() {
