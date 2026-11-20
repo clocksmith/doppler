@@ -256,6 +256,7 @@ converter/manifest-conversion-postflight.d.ts
 converter/manifest-conversion-postflight.js
 converter/manifest-conversion-preflight.d.ts
 converter/manifest-conversion-preflight.js
+converter/model-naming.d.ts
 converter/model-support-assessment.d.ts
 converter/model-support-assessment.js
 converter/parsers/diffusion.d.ts
