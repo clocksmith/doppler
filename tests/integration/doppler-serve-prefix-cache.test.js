@@ -212,6 +212,7 @@ function parseBody(res) {
   const chatCalls = [];
   const mockModelHandle = {
     supportsGenerationContext: true,
+    generationContextMinimumBytes: 192 * 1024 * 1024,
     createGenerationContext({ maxBytes }) {
       const ctx = {
         id: createdContexts.length + 1,
@@ -277,6 +278,7 @@ function parseBody(res) {
   assert.equal(res1.state.statusCode, 200);
   const body1 = parseBody(res1);
   assert.equal(body1.usage.prompt_tokens_details, undefined);
+  assert.equal(createdContexts[0].maxBytes, 256 * 1024 * 1024);
 
   const turn2 = [
     ...turn1,
@@ -375,6 +377,46 @@ function parseBody(res) {
   assert.equal(stats.evictions, 0);
   assert.equal(closed, 3);
   cache.close();
+}
+
+// A model with 192 MiB of KV can borrow the 256 MiB pool. Smaller models can
+// still acquire two independent leases, and an explicit per-entry cap wins.
+{
+  const MiB = 1024 * 1024;
+  const limits = [];
+  function make({ maxBytes }) {
+    limits.push(maxBytes / MiB);
+    return {
+      getStats: () => ({ allocatedBytes: 8, cachedTokens: 1, reusedTokens: 0, status: 'cached' }),
+      close() {},
+    };
+  }
+  const cache = createServePrefixCache();
+  const large = cache.acquire('large', make, null, 192 * MiB);
+  assert.equal(cache.acquire('concurrent', make), null);
+  large.release({ discard: true });
+  const small = cache.acquire('small', make, null, 32 * MiB);
+  const second = cache.acquire('second', make, null, 32 * MiB);
+  assert.ok(small && second);
+  assert.equal(cache.acquire('third', make), null);
+  small.release();
+  second.release();
+  const resumed = cache.acquire('large', make, null, 192 * MiB);
+  assert.ok(resumed);
+  assert.equal(cache.getStats().entries, 1);
+  assert.deepEqual(limits, [256, 128, 128, 256]);
+  resumed.release();
+  cache.close();
+
+  const capped = createServePrefixCache({ policy: { maxEntryBytes: 64 * MiB } });
+  const cappedLease = capped.acquire('small', make, null, 32 * MiB);
+  assert.equal(limits.at(-1), 64);
+  cappedLease.release();
+  assert.equal(capped.acquire('large', make, null, 192 * MiB), null);
+  assert.equal(capped.getStats().entries, 1);
+  assert.equal(capped.getStats().budgetSkips, 1);
+  assert.equal(capped.getStats().evictions, 0);
+  capped.close();
 }
 
 console.log('doppler-serve-prefix-cache.test: ok');

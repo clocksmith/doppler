@@ -335,7 +335,8 @@ async function acquireServePrefixLease(dependencies, registryEntry, runtimeModel
     && typeof modelHandle.createGenerationContext === 'function'
   ) {
     const key = deriveServePrefixKey(registryEntry.modelId, messages);
-    const lease = prefixCache.acquire(key, (options) => modelHandle.createGenerationContext(options), modelHandle);
+    const lease = prefixCache.acquire(key, (options) => modelHandle.createGenerationContext(options),
+      modelHandle, modelHandle.generationContextMinimumBytes ?? 0);
     return { modelHandle, lease };
   }
   return { modelHandle, lease: null };

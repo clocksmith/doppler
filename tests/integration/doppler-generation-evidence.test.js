@@ -157,6 +157,10 @@ const handle = createModelHandle(pipeline, {
   modelId: 'qwen-test',
   manifestHash: 'a'.repeat(64),
 });
+assert.equal(handle.generationContextMinimumBytes, null);
+pipeline.kvCache = { getMemoryStats: () => ({ allocated: 201326592 }) };
+assert.equal(handle.generationContextMinimumBytes, 201326592);
+delete pipeline.kvCache;
 const evidence = await handle.generateWithEvidence('hello', {
   maxTokens: 4,
   temperature: 0,

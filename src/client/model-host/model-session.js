@@ -347,6 +347,10 @@ export function createModelHandle(pipeline, resolved) {
       catch { return false; }
       return pipeline.supportsGenerationContext === true;
     },
+    get generationContextMinimumBytes() {
+      const bytes = pipeline.kvCache?.getMemoryStats().allocated;
+      return Number.isSafeInteger(bytes) && bytes >= 0 ? bytes : null;
+    },
     createGenerationContext(options) {
       assertRaw('createGenerationContext');
       return pipeline.createGenerationContext(options);

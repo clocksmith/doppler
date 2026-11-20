@@ -96,6 +96,7 @@ export interface ServeFailureReceiptOptions {
 export interface ServeDependencies {
   getCachedModel?(model: unknown): Promise<{
     supportsGenerationContext?: boolean;
+    generationContextMinimumBytes?: number | null;
     createGenerationContext?(options: { maxBytes: number }): unknown;
     chatText?(messages: unknown[], options: Record<string, unknown>): Promise<{
       content: string;

@@ -23,6 +23,8 @@ export interface ServePrefixCacheStats {
   misses: number;
   evictions: number;
   busySkips: number;
+  /** Requests served without a lease because the KV allocation alone exceeded the cap. */
+  budgetSkips: number;
   /** Successful requests whose runtime retained no prefix, by checkpoint outcome. */
   unretained: Readonly<{ budget: number; discarded: number; empty: number }>;
 }
@@ -39,7 +41,8 @@ export interface ServePrefixCache {
   acquire(
     key: string | null,
     createContext: (options: { maxBytes: number }) => GenerationContext,
-    owner?: object | null
+    owner?: object | null,
+    minimumBytes?: number
   ): ServePrefixCacheLease | null;
   getStats(): Readonly<ServePrefixCacheStats>;
   close(): void;

@@ -5,7 +5,7 @@ export const DEFAULT_PREFIX_CACHE_POLICY = Object.freeze({
   enabled: true,
   maxEntries: 8,
   maxBytes: 256 * 1024 * 1024,
-  maxEntryBytes: 128 * 1024 * 1024,
+  maxEntryBytes: 256 * 1024 * 1024,
   idleMs: 300_000,
 });
 
@@ -36,8 +36,7 @@ export function resolvePrefixCachePolicy(input = {}) {
   const enabled = source.enabled !== false;
   const maxEntries = normalizePositiveInt(source.maxEntries, DEFAULT_PREFIX_CACHE_POLICY.maxEntries, 'prefixCache.maxEntries');
   const maxBytes = normalizePositiveInt(source.maxBytes, DEFAULT_PREFIX_CACHE_POLICY.maxBytes, 'prefixCache.maxBytes');
-  const defaultEntry = Math.min(DEFAULT_PREFIX_CACHE_POLICY.maxEntryBytes, maxBytes);
-  const maxEntryBytes = normalizePositiveInt(source.maxEntryBytes, defaultEntry, 'prefixCache.maxEntryBytes');
+  const maxEntryBytes = normalizePositiveInt(source.maxEntryBytes, maxBytes, 'prefixCache.maxEntryBytes');
   if (maxEntryBytes > maxBytes) {
     throw new Error('prefixCache.maxEntryBytes must not exceed prefixCache.maxBytes.');
   }
@@ -82,6 +81,7 @@ export function deriveServePrefixKey(modelId, messages) {
  *   context: import('../../inference/pipelines/text/generator/session/sequence-state.js').GenerationContext;
  *   used: number;
  *   active: boolean;
+ *   reservation: number;
  *   timer: ReturnType<typeof setTimeout> | null;
  * }} PrefixCacheEntry
  */
@@ -90,8 +90,11 @@ export function deriveServePrefixKey(modelId, messages) {
  * @param {{ policy?: boolean | Partial<import('./prefix-cache.js').ServePrefixCachePolicy>; now?: () => number }} [options]
  * @returns {import('./prefix-cache.js').ServePrefixCache}
  */
-export function createServePrefixCache({ policy = DEFAULT_PREFIX_CACHE_POLICY, now = Date.now } = {}) {
+export function createServePrefixCache({ policy = {}, now = Date.now } = {}) {
   const resolved = resolvePrefixCachePolicy(policy);
+  // Leave room for a second conversation when the loaded model fits half the pool.
+  const preferredBytes = typeof policy === 'object' && policy?.maxEntryBytes !== undefined
+    ? resolved.maxEntryBytes : Math.ceil(resolved.maxBytes / 2);
   /** @type {Map<string, PrefixCacheEntry>} */
   const entries = new Map();
   let closed = false;
@@ -99,6 +102,7 @@ export function createServePrefixCache({ policy = DEFAULT_PREFIX_CACHE_POLICY, n
   let misses = 0;
   let evictions = 0;
   let busySkips = 0;
+  let budgetSkips = 0;
   const unretained = { budget: 0, discarded: 0, empty: 0 };
 
   /**
@@ -136,7 +140,7 @@ export function createServePrefixCache({ policy = DEFAULT_PREFIX_CACHE_POLICY, n
   const chargedBytes = (entry) => {
     const bytes = entry.context.getStats?.()?.allocatedBytes;
     return entry.active || typeof bytes !== 'number' || !Number.isSafeInteger(bytes) || bytes < 0
-      ? resolved.maxEntryBytes
+      ? entry.reservation
       : bytes;
   };
 
@@ -146,13 +150,18 @@ export function createServePrefixCache({ policy = DEFAULT_PREFIX_CACHE_POLICY, n
      * @param {string | null} key
      * @param {(options: { maxBytes: number }) => import('../../inference/pipelines/text/generator/session/sequence-state.js').GenerationContext} createContext
      * @param {object | null} [owner] Loaded pipeline handle that owns the context.
+     * @param {number} [minimumBytes] KV bytes already allocated by the loaded model.
      * @returns {import('./prefix-cache.js').ServePrefixCacheLease | null}
      */
-    acquire(key, createContext, owner = null) {
+    acquire(key, createContext, owner = null, minimumBytes = 0) {
       if (closed || !resolved.enabled || !key || typeof createContext !== 'function') {
         return null;
       }
       sweep();
+      if (minimumBytes > resolved.maxEntryBytes) {
+        budgetSkips += 1;
+        return null;
+      }
       let entry = entries.get(key);
       if (entry?.active) {
         // Concurrent request on the same conversation falls back cleanly to uncached prefill.
@@ -163,6 +172,9 @@ export function createServePrefixCache({ policy = DEFAULT_PREFIX_CACHE_POLICY, n
         remove(key, { evicted: true });
         entry = undefined;
       }
+      // A checkpoint also includes token history and any recurrent state.
+      const reservation = entry?.reservation
+        ?? (minimumBytes >= preferredBytes ? resolved.maxEntryBytes : preferredBytes);
       const otherBytes = () => {
         let total = 0;
         for (const [id, item] of entries) {
@@ -170,7 +182,7 @@ export function createServePrefixCache({ policy = DEFAULT_PREFIX_CACHE_POLICY, n
         }
         return total;
       };
-      while ((!entry && entries.size >= resolved.maxEntries) || otherBytes() + resolved.maxEntryBytes > resolved.maxBytes) {
+      while ((!entry && entries.size >= resolved.maxEntries) || otherBytes() + reservation > resolved.maxBytes) {
         const victim = [...entries].find(([id, candidate]) => id !== key && !candidate.active);
         if (!victim) {
           return null;
@@ -186,7 +198,8 @@ export function createServePrefixCache({ policy = DEFAULT_PREFIX_CACHE_POLICY, n
         misses += 1;
         entry = {
           owner,
-          context: createContext({ maxBytes: resolved.maxEntryBytes }),
+          context: createContext({ maxBytes: reservation }),
+          reservation,
           used: now(),
           active: false,
           timer: null,
@@ -263,6 +276,7 @@ export function createServePrefixCache({ policy = DEFAULT_PREFIX_CACHE_POLICY, n
         misses,
         evictions,
         busySkips,
+        budgetSkips,
         unretained: Object.freeze({ ...unretained }),
       });
     },

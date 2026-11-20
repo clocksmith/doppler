@@ -159,6 +159,8 @@ export interface DopplerChatResponse {
 
 export interface DopplerModelHandle {
   readonly supportsGenerationContext: boolean;
+  /** Current KV allocation. Recurrent state and token history can require additional bytes. */
+  readonly generationContextMinimumBytes: number | null;
   createGenerationContext(options: { maxBytes: number }): import("../../inference/pipelines/text/generator/session/sequence-state.js").GenerationContext;
   scoreChoices(request: import('../../config/choice-scoring.js').ChoiceScoringRequest,
     control?: { signal?: AbortSignal }): Promise<import('../../config/choice-scoring.js').ChoiceScoringResult>;
