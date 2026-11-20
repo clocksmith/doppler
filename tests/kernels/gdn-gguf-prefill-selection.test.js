@@ -46,13 +46,15 @@ try {
     { numKHeads: 0 }, { numKHeads: 3 }, { qSize: 128 }, { kSize: 128 }, { convDim: 1023 }, { valueDim: 511 }]) {
     await assert.rejects(() => run({ ...state, ...patch }), /registered head width|storage layout|scalar F32|declared Q\/K\/V geometry/);
   }
-  await assert.rejects(() => run(state, { ...options, numTokens: 2.5 }), /integral token\/head counts/);
+  await assert.rejects(() => run(state, { ...options, numTokens: 2.5 }), /numTokens to be a positive safe integer/);
   await assert.rejects(() => run(state, options, { ...tensor, dtype: 'f16' }), /scalar F32/);
   await assert.rejects(() => run(state, options, { ...tensor, precision: 'two-f32' }), /scalar F32/);
-  await assert.rejects(() => run(state, { ...options, normGateActivation: 'sigmoid' }), /scalar F32/);
+  await assert.rejects(() => run(state, { ...options, normGateActivation: 'relu' }), /requires the resolved linear-attention norm-gate activation/);
   await assert.rejects(() => run(state, { ...options, numTokens: 1, runtimeSession: { ...session, useLinearAttentionFusedDecodeCore: true } }),
     /no fused decode core/);
   assert.equal(modulesSeen.length, 0, 'all invalid requests rejected before shader preparation');
+  await assert.rejects(() => run(state, { ...options, normGateActivation: 'sigmoid' }), /selected recurrent pipeline/);
+  assert(modulesSeen.includes('gated_delta_recurrent_gguf_register_prefill_sigmoid_gate.wgsl'));
   // Register decode runs the GGUF register program at one token; register prefill alone does not.
   for (const [enabled, numTokens, decode, expected] of [[true, 3, false, 'gguf_register_prefill'], [false, 3, false, 'gguf_f32'],
     [true, 1, false, 'gguf_f32'], [false, 1, true, 'gguf_register_prefill']]) {
