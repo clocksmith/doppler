@@ -1575,7 +1575,7 @@
       "demoLabel": "Qwen 3.5 0.8B",
       "demoRole": "Compact general text",
       "demoSortOrder": 20,
-      "sizeBytes": 1155348912,
+      "sizeBytes": 1155351431,
       "quickstartRequirements": {
         "vramRequiredBytes": 1610612736,
         "paramCount": "0.8B",
@@ -1682,7 +1682,7 @@
       "demoLabel": "Qwen 3.5 2B",
       "demoRole": "Higher-capacity text",
       "demoSortOrder": 30,
-      "sizeBytes": 2496068973,
+      "sizeBytes": 2087407391,
       "quickstartRequirements": {
         "vramRequiredBytes": 2684354560,
         "paramCount": "2B",

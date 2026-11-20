@@ -59,6 +59,7 @@ for (const entry of models) {
   assert.equal(entry.modelId, 'qwen-3-5-0-8b-q4k-ehaf16');
   assert.ok(entry.modes.includes('text'));
   assert.ok(entry.hf.path.includes('qwen-3-5-0-8b'));
+  assert.equal(entry.sizeBytes, 1_146_048_704 + 214_247 + 9_088_480); // shards, manifest, tokenizer
 }
 
 {
@@ -66,6 +67,7 @@ for (const entry of models) {
   assert.equal(entry.modelId, 'qwen-3-5-2b-q4k-ehaf16');
   assert.ok(entry.modes.includes('text'));
   assert.ok(entry.hf.path.includes('qwen-3-5-2b'));
+  assert.equal(entry.sizeBytes, 2_078_134_976 + 183_935 + 9_088_480); // shards, manifest, tokenizer
 }
 
 // Unknown model throws

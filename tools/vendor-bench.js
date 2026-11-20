@@ -2173,7 +2173,13 @@ async function assertClaimMatrixArtifact(lane, catalogEntry, label) {
   const readBoundArtifact = async (repoPath, field) => {
     if (!manifestGitRevision) return fs.readFile(repoPathToAbsolute(repoPath, field));
     if (!/^[a-f0-9]{40}$/u.test(manifestGitRevision)) throw new Error(`${label}.artifact.manifestGitRevision is invalid`);
-    const result = spawnSync('git', ['show', `${manifestGitRevision}:${repoPath}`], {
+    // Resolve tracked symlinks inside the frozen tree, including shared tokenizer files.
+    const lookup = spawnSync('git', ['cat-file', '--batch-check=%(objectname) %(objecttype)', '--follow-symlinks'], {
+      cwd: ROOT_DIR, encoding: 'utf8', input: `${manifestGitRevision}:${repoPath}\n`,
+    });
+    const match = /^([a-f0-9]{40}) blob$/u.exec(lookup.stdout?.trim());
+    if (lookup.status !== 0 || !match) throw new Error(`${field} is not a blob in Git revision ${manifestGitRevision}`);
+    const result = spawnSync('git', ['cat-file', 'blob', match[1]], {
       cwd: ROOT_DIR,
       encoding: null,
       maxBuffer: 32 * 1024 * 1024,
@@ -2235,7 +2241,13 @@ async function assertClaimMatrixArtifact(lane, catalogEntry, label) {
     throw new Error(`${label}.artifact.shardSetHash must match manifest shard identity`);
   }
 
-  const catalogSizeBytes = Number(catalogEntry?.sizeBytes);
+  let artifactCatalogEntry = catalogEntry;
+  if (manifestGitRevision) {
+    const historicalCatalog = JSON.parse(await readBoundArtifact('models/catalog.json', 'artifact catalog'));
+    artifactCatalogEntry = historicalCatalog.models.find((entry) => entry.modelId === manifestModelId);
+    if (!artifactCatalogEntry) throw new Error(`${label}.artifact is absent from its pinned catalog`);
+  }
+  const catalogSizeBytes = Number(artifactCatalogEntry?.sizeBytes);
   if (Number.isFinite(catalogSizeBytes) && lane.artifact.sizeBytes !== catalogSizeBytes) {
     throw new Error(`${label}.artifact.sizeBytes must match models/catalog.json sizeBytes`);
   }

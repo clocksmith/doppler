@@ -116,8 +116,8 @@
     "benchmarkSelectedSourceCount": 1,
     "benchmarkPendingSourceCount": 22,
     "tierCounts": {
-      "small": 13,
-      "medium": 4,
+      "small": 14,
+      "medium": 3,
       "large": 6,
       "unknown": 0
     },
@@ -1632,7 +1632,7 @@
         "label": "Text generators"
       },
       "tier": "small",
-      "minSizeBytes": 1155348912,
+      "minSizeBytes": 1155351431,
       "minSizeLabel": "1.08 GiB",
       "status": "benchmark-receipts-incomplete",
       "preferredArchitecture": {
@@ -1670,7 +1670,7 @@
           "modes": [
             "text"
           ],
-          "sizeBytes": 1155348912,
+          "sizeBytes": 1155351431,
           "sizeLabel": "1.08 GiB",
           "tier": "small",
           "sourceCheckpointId": "Qwen/Qwen3.5-0.8B",
@@ -2022,9 +2022,9 @@
         "id": "text-generators",
         "label": "Text generators"
       },
-      "tier": "medium",
-      "minSizeBytes": 2496068973,
-      "minSizeLabel": "2.32 GiB",
+      "tier": "small",
+      "minSizeBytes": 2087407391,
+      "minSizeLabel": "1.94 GiB",
       "status": "benchmark-receipts-incomplete",
       "preferredArchitecture": {
         "status": "pending-benchmark-comparison",
@@ -2061,9 +2061,9 @@
           "modes": [
             "text"
           ],
-          "sizeBytes": 2496068973,
-          "sizeLabel": "2.32 GiB",
-          "tier": "medium",
+          "sizeBytes": 2087407391,
+          "sizeLabel": "1.94 GiB",
+          "tier": "small",
           "sourceCheckpointId": "Qwen/Qwen3.5-2B",
           "weightCapsuleId": "qwen-3-5-2b-q4k-ehaf16-wp-deed4c707f46",
           "manifestVariantId": "qwen-3-5-2b-q4k-ehaf16-mv-4af4cf72a939",

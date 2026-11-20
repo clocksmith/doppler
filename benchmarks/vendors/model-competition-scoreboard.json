@@ -1826,7 +1826,7 @@
       "artifact": {
         "format": "rdrr",
         "architecture": "RDRR, q4k weights, f16 embeddings, q4k LM head, f32 compute, row Q4K layout",
-        "sizeBytes": 1155348912,
+        "sizeBytes": 1155351431,
         "sizeLabel": "1.08 GiB",
         "hf": {
           "published": true,
@@ -1900,7 +1900,7 @@
       "artifact": {
         "format": "rdrr",
         "architecture": "RDRR, q4k weights, f16 embeddings, q4k LM head, f32 compute, row Q4K layout",
-        "sizeBytes": 1155348912,
+        "sizeBytes": 1155351431,
         "sizeLabel": "1.08 GiB",
         "hf": {
           "published": true,
@@ -1974,8 +1974,8 @@
       "artifact": {
         "format": "rdrr",
         "architecture": "RDRR, q4k weights, f16 embeddings, q4k LM head, f32 compute, row Q4K layout",
-        "sizeBytes": 2496068973,
-        "sizeLabel": "2.32 GiB",
+        "sizeBytes": 2087407391,
+        "sizeLabel": "1.94 GiB",
         "hf": {
           "published": true,
           "repoId": "clocksmith/rdrr",
@@ -2048,8 +2048,8 @@
       "artifact": {
         "format": "rdrr",
         "architecture": "RDRR, q4k weights, f16 embeddings, q4k LM head, f32 compute, row Q4K layout",
-        "sizeBytes": 2496068973,
-        "sizeLabel": "2.32 GiB",
+        "sizeBytes": 2087407391,
+        "sizeLabel": "1.94 GiB",
         "hf": {
           "published": true,
           "repoId": "clocksmith/rdrr",
@@ -2122,8 +2122,8 @@
       "artifact": {
         "format": "rdrr",
         "architecture": "RDRR, q4k weights, f16 embeddings, q4k LM head, f32 compute, row Q4K layout",
-        "sizeBytes": 2496068973,
-        "sizeLabel": "2.32 GiB",
+        "sizeBytes": 2087407391,
+        "sizeLabel": "1.94 GiB",
         "hf": {
           "published": true,
           "repoId": "clocksmith/rdrr",
