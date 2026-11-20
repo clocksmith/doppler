@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import { packedFixture, decodePacked, projectReference } from './q4_0-fixture.js';
-import { getDevice } from '../../src/gpu/device.js';
+import { getDevice, getKernelCapabilities } from '../../src/gpu/device.js';
+import { getKernelConfig } from '../../src/gpu/kernels/kernel-configs.js';
 import { acquireBuffer, uploadData, readBuffer, releaseBuffer } from '../../src/memory/buffer-pool.js';
 import { createTensor } from '../../src/gpu/tensor.js';
 import { createWeightBuffer } from '../../src/gpu/weight-buffer.js';
@@ -10,7 +11,7 @@ import { executeSharedSlotGateUp, executeSharedSlotDown } from '../../src/gpu/ke
 import { runResidualAdd, recordResidualAdd } from '../../src/gpu/kernels/residual.js';
 
 
-export async function runNativePortFixtures() {
+export async function runNativePortFixtures({ softwareReference = false } = {}) {
 const device = getDevice();
 const allocated = new Set(), recorders = [];
 const upload = data => {
@@ -129,16 +130,35 @@ try {
     const indices=upload(Uint32Array.from({length:T*topK},(_,i)=>i%E));
     const routeWeights=upload(new Float32Array(T*topK)),gate=tensor(Float32Array.from(gatesIso),[T,1]);
     const zero=gatesIso.indexOf(0);
-    for (const [guVariant, downVariant] of [['native_f32','native_f32'],['pair_f32','pair_f32'],
+    const subgroupWidth = device.features.has('subgroups') ? getKernelCapabilities().adapterInfo.subgroupMinSize : 0;
+    const acceptsRows = (operation, variant) => !softwareReference || variant === 'native_f32'
+      || subgroupWidth >= getKernelConfig(operation, variant).wgslOverrides.THREADS_PER_ROW;
+    for (const [requestedGu, downVariant] of [['native_f32','native_f32'],['pair_f32','pair_f32'],
       ['pair_f32','pair_combine_f32'],['pair_f32','pair_combine_residual_f32']]) {
       for (const mode of ['immediate','recorded']) {
         const recorder=mode==='recorded'?createCommandRecorder('shared_slot_gate_isolation'):null;if(recorder)recorders.push(recorder);
         const base={numTokens:T,numExperts:E,topK,hiddenSize:H,intermediateSize:I,sharedSize,swigluLimit:null,indices};
-        const activated=retain(await executeSharedSlotGateUp(recorder,input,{gate:g.weight,up:u.weight,sharedGate:sg.weight,sharedUp:su.weight},{...base,variant:guVariant}));
+        const gateUp = variant => executeSharedSlotGateUp(recorder, input,
+          { gate:g.weight, up:u.weight, sharedGate:sg.weight, sharedUp:su.weight }, { ...base, variant });
+        let guVariant = requestedGu;
+        if (!acceptsRows('moe_shared_slot_gu', requestedGu)) {
+          await assert.rejects(gateUp(requestedGu), /Pair geometry requires subgroups no narrower/);
+          // Both gate/up kernels produce the same slot layout. Keep testing each
+          // down kernel numerically even on a software adapter with narrower subgroups.
+          guVariant = 'native_f32';
+        }
+        const activated=retain(await gateUp(guVariant));
         const output=upload(new Float32Array(T*H));
         const zeroResidual=downVariant==='pair_combine_residual_f32'?tensor(new Float32Array(T*H),[T,H]):null;
-        await executeSharedSlotDown(recorder,activated,{down:d.weight,sharedDown:sd.weight},gate,
+        const down = () => executeSharedSlotDown(recorder,activated,{down:d.weight,sharedDown:sd.weight},gate,
           {...base,variant:downVariant,routeWeights,outputBuffer:output,...(zeroResidual?{residual:zeroResidual}:{})});
+        if (!acceptsRows('moe_shared_slot_down', downVariant)) {
+          await assert.rejects(down(), /Pair geometry requires subgroups no narrower/);
+          if (recorder) await recorder.abort();
+          console.log(JSON.stringify({check:'software subgroup refusal', requestedGu, downVariant, mode, subgroupWidth}));
+          continue;
+        }
+        await down();
         if(recorder)await recorder.submitAndWait();
         const actual=new Float32Array(await readBuffer(output,T*H*4));
         let rows=0,maxRel=0;
@@ -154,7 +174,7 @@ try {
           }
         }
         assert.ok(rows>=H/2,`${guVariant}/${downVariant}: too few rows with a measurable shared sum (${rows})`);
-        console.log(JSON.stringify({check:'shared-slot gate isolation',guVariant,downVariant,mode,gates:gatesIso,rows,maxRel,allowance:16*2**-23}));
+        console.log(JSON.stringify({check:'shared-slot gate isolation',requestedGu,guVariant,downVariant,mode,gates:gatesIso,rows,maxRel,allowance:16*2**-23}));
       }
     }
   }

@@ -9,5 +9,5 @@ try {
   assert.match(JSON.stringify(adapter), /software|swiftshader|llvmpipe|lavapipe/i);
   console.log(JSON.stringify({ adapter, providerReceipt: probe.providerReceipt,
     scope: 'Software-only numerical smoke; no physical GPU, full-model, or performance qualification' }));
-  await runNativePortFixtures();
+  await runNativePortFixtures({ softwareReference: true });
 } finally { destroyDevice(); }
