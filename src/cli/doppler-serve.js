@@ -6,6 +6,7 @@ import path from 'node:path';
 import process from 'node:process';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { DOPPLER_VERSION, doppler } from '../index.js';
+import { getCachedModel } from '../client/doppler-api.js';
 import { listQuickstartModels, resolveQuickstartModel } from '../client/doppler-registry.js';
 import {
   bindLogicalRuntimeModel,
@@ -309,10 +310,11 @@ function resolveServeDependencies(dependencies = {}) {
   const prefixCache = dependencies.prefixCache !== undefined
     ? dependencies.prefixCache
     : createServePrefixCache({
-      policy: dependencies.prefixCachePolicy ?? DEFAULT_PREFIX_CACHE_POLICY,
+      policy: dependencies.prefixCachePolicy ?? false,
     });
   return {
     dopplerClient,
+    getCachedModel: dependencies.getCachedModel ?? (dopplerClient === doppler ? getCachedModel : null),
     prefixCache,
     listModels: dependencies.listModels ?? listQuickstartModels,
     resolveModel: dependencies.resolveModel ?? resolveQuickstartModel,
@@ -323,17 +325,17 @@ function resolveServeDependencies(dependencies = {}) {
 }
 
 async function acquireServePrefixLease(dependencies, registryEntry, runtimeModel, messages) {
-  const { dopplerClient, prefixCache } = dependencies;
-  if (!prefixCache || !prefixCache.policy?.enabled || typeof dopplerClient.load !== 'function') {
+  const { prefixCache } = dependencies;
+  if (!prefixCache || !prefixCache.policy?.enabled || typeof dependencies.getCachedModel !== 'function') {
     return { modelHandle: null, lease: null };
   }
-  const modelHandle = await dopplerClient.load(runtimeModel);
+  const modelHandle = await dependencies.getCachedModel(runtimeModel);
   if (
     modelHandle?.supportsGenerationContext === true
     && typeof modelHandle.createGenerationContext === 'function'
   ) {
     const key = deriveServePrefixKey(registryEntry.modelId, messages);
-    const lease = prefixCache.acquire(key, (options) => modelHandle.createGenerationContext(options));
+    const lease = prefixCache.acquire(key, (options) => modelHandle.createGenerationContext(options), modelHandle);
     return { modelHandle, lease };
   }
   return { modelHandle, lease: null };
@@ -666,7 +668,7 @@ async function startServer(settings) {
   if (settings.model) {
     console.error(`[doppler-serve] pre-loading model: ${settings.model}`);
     const registryEntry = await resolveQuickstartModel(settings.model);
-    await doppler.load(resolveRuntimeModel(registryEntry));
+    await getCachedModel(bindLogicalRuntimeModel(resolveRuntimeModel(registryEntry), settings.model));
     console.error(`[doppler-serve] model ready: ${settings.model}`);
   }
 

@@ -66,6 +66,7 @@ export interface DopplerCallOptions extends DopplerGenerateOptions {
 }
 
 export interface DopplerRuntimeService {
+  getCachedModel(model: DopplerModelSource, options?: DopplerLoadOptions): Promise<DopplerModelHandle>;
   doppler: DopplerNamespace;
   load(model: DopplerModelSource, options?: DopplerLoadOptions): Promise<DopplerModelHandle>;
   open(model: DopplerModelSource, options?: DopplerLoadOptions): Promise<DopplerScopedModelSession>;

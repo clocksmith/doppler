@@ -257,10 +257,8 @@ function parseBody(res) {
     prefixCache,
     listModels: async () => [mockTextModel],
     resolveModel: async () => mockTextModel,
+    getCachedModel: async () => mockModelHandle,
     dopplerClient: {
-      async load() {
-        return mockModelHandle;
-      },
       async chatText() {
         throw new Error('Should call loaded model handle when prefix cache is enabled');
       },
@@ -322,6 +320,31 @@ function parseBody(res) {
   assert.equal(prefixCache.getStats().entries, 0);
 
   prefixCache.close();
+}
+
+
+
+// An embedded handler has no knowledge of the socket it will listen on.
+{
+  const health = createMockRes();
+  await createServeHandler()(createMockReq('GET', '/health'), health);
+  assert.equal(parseBody(health).prefix_cache.enabled, false);
+}
+
+// Reloading the same model creates a different owner even with identical prompt tokens.
+{
+  const cache = createServePrefixCache();
+  const owners = [{}, {}];
+  let closed = 0;
+  const make = () => ({ close() { closed++; }, getStats() { return { allocatedBytes: 1 }; } });
+  const first = cache.acquire('root', make, owners[0]);
+  first.release();
+  const second = cache.acquire('root', make, owners[1]);
+  assert.equal(second.hit, false);
+  assert.notEqual(first.context, second.context);
+  assert.equal(closed, 1);
+  second.release();
+  cache.close();
 }
 
 console.log('doppler-serve-prefix-cache.test: ok');

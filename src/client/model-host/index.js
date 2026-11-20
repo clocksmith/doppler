@@ -610,6 +610,7 @@ export function createDopplerRuntimeService({
 
   return {
     doppler,
+    getCachedModel,
     load,
     open,
     openCapsule,

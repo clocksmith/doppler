@@ -78,6 +78,7 @@ export function deriveServePrefixKey(modelId, messages) {
 
 /**
  * @typedef {{
+ *   owner: object | null;
  *   context: import('../../inference/pipelines/text/generator/session/sequence-state.js').GenerationContext;
  *   used: number;
  *   active: boolean;
@@ -143,9 +144,10 @@ export function createServePrefixCache({ policy = DEFAULT_PREFIX_CACHE_POLICY, n
     /**
      * @param {string | null} key
      * @param {(options: { maxBytes: number }) => import('../../inference/pipelines/text/generator/session/sequence-state.js').GenerationContext} createContext
+     * @param {object | null} [owner] Loaded pipeline handle that owns the context.
      * @returns {import('./prefix-cache.js').ServePrefixCacheLease | null}
      */
-    acquire(key, createContext) {
+    acquire(key, createContext, owner = null) {
       if (closed || !resolved.enabled || !key || typeof createContext !== 'function') {
         return null;
       }
@@ -155,6 +157,10 @@ export function createServePrefixCache({ policy = DEFAULT_PREFIX_CACHE_POLICY, n
         // Concurrent request on the same conversation falls back cleanly to uncached prefill.
         busySkips += 1;
         return null;
+      }
+      if (entry && entry.owner !== owner) {
+        remove(key, { evicted: true });
+        entry = undefined;
       }
       const otherBytes = () => {
         let total = 0;
@@ -178,6 +184,7 @@ export function createServePrefixCache({ policy = DEFAULT_PREFIX_CACHE_POLICY, n
       } else {
         misses += 1;
         entry = {
+          owner,
           context: createContext({ maxBytes: resolved.maxEntryBytes }),
           used: now(),
           active: false,

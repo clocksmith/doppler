@@ -35,7 +35,8 @@ export interface ServePrefixCache {
   readonly policy: Readonly<ServePrefixCachePolicy>;
   acquire(
     key: string | null,
-    createContext: (options: { maxBytes: number }) => GenerationContext
+    createContext: (options: { maxBytes: number }) => GenerationContext,
+    owner?: object | null
   ): ServePrefixCacheLease | null;
   getStats(): Readonly<ServePrefixCacheStats>;
   close(): void;

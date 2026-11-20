@@ -93,20 +93,20 @@ export interface ServeFailureReceiptOptions {
 }
 
 export interface ServeDependencies {
-  dopplerClient?: {
-    load?(model: unknown): Promise<{
-      supportsGenerationContext?: boolean;
-      createGenerationContext?(options: { maxBytes: number }): unknown;
-      chatText?(messages: unknown[], options: Record<string, unknown>): Promise<{
-        content: string;
-        usage: ServeReceiptOptions['usage'];
-        evidence?: {
-          resolution: ServeResolutionIdentity;
-          stats?: { reusedPrefixTokens?: number };
-        };
-      }>;
-      chat?(messages: unknown[], options: Record<string, unknown>): AsyncGenerator<string, void, void>;
+  getCachedModel?(model: unknown): Promise<{
+    supportsGenerationContext?: boolean;
+    createGenerationContext?(options: { maxBytes: number }): unknown;
+    chatText?(messages: unknown[], options: Record<string, unknown>): Promise<{
+      content: string;
+      usage: ServeReceiptOptions['usage'];
+      evidence?: {
+        resolution: ServeResolutionIdentity;
+        stats?: { reusedPrefixTokens?: number };
+      };
     }>;
+    chat?(messages: unknown[], options: Record<string, unknown>): AsyncGenerator<string, void, void>;
+  }>;
+  dopplerClient?: {
     chatText(messages: unknown[], options: Record<string, unknown>): Promise<{
       content: string;
       usage: ServeReceiptOptions['usage'];

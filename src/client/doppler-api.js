@@ -60,6 +60,7 @@ const runtime = createDopplerRuntimeService({
 });
 
 export const doppler = runtime.doppler;
+export const getCachedModel = runtime.getCachedModel;
 export const load = runtime.load;
 export const open = runtime.open;
 export const openCapsule = runtime.openCapsule;
