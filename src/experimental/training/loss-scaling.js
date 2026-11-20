@@ -1,5 +1,6 @@
 
 import { readBuffer } from '../../memory/buffer-pool.js';
+import { tensorBytes } from '../../gpu/tensor.js';
 import { runScale } from '../../gpu/kernels/scale.js';
 import { f16ToF32Array } from '../../inference/kv-cache/types.js';
 
@@ -12,7 +13,8 @@ function toFloat32(buffer, dtype) {
 
 export async function detectOverflow(grads) {
   for (const grad of grads.values()) {
-    const data = toFloat32(await readBuffer(grad.buffer), grad.dtype);
+    const bytes = tensorBytes(grad.shape, grad.dtype);
+    const data = toFloat32(await readBuffer(grad.buffer, bytes), grad.dtype);
     for (let i = 0; i < data.length; i += 1) {
       const value = data[i];
       if (!Number.isFinite(value)) {
