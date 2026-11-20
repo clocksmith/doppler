@@ -2,6 +2,8 @@ import { getDevice } from "../../../../../gpu/device.js";
 import { generationContextInput, prepareGenerationContextPrefill, finishGenerationContext } from "../session/sequence-state.js";
 import { releaseBuffer } from "../../../../../memory/buffer-pool.js";
 import { log } from "../../../../../debug/index.js";
+import { readPrefillExpertCounters } from "../../expert-loading-stats.js";
+import { resolveEffectivePrefillTokenChunkSize } from "./prefill-policy.js";
 import { snapshotPrefillPhase } from "./prefill-observation.js";
 import { recordPrefillRecorderStats } from "../session/text.js";
 
@@ -60,6 +62,10 @@ export async function _prefillPromptToLogits(prompt, opts, contextLabel) {
     if (opts.debug) {
       log.debug('Pipeline', `${contextLabel}: ${inputIds.length} tokens`);
     }
+    const loader = this._state.dopplerLoader;
+    const routed = this._state.runtimeConfig?.shared?.debug?.profiler?.enabled === true
+      ? loader?.getRoutedExpertPolicy?.() : null;
+    const before = routed?.enabled ? readPrefillExpertCounters(loader) : null;
     let logits;
     const prefillStart = performance.now();
     const runPrefill = async () => {
@@ -83,15 +89,23 @@ export async function _prefillPromptToLogits(prompt, opts, contextLabel) {
         opts.generationContext ? 0 : prefillStartSeqLen
       );
     }
-    return {
-      inputIds,
-      logits,
-      phase: snapshotPrefillPhase(this._state.stats, {
-        inputMs,
-        prefillMs: performance.now() - prefillStart,
-        tokens: inputIds.length,
-      }),
-    };
+    const prefillMs = performance.now() - prefillStart;
+    if (before) {
+      const after = readPrefillExpertCounters(loader);
+      const deltas = Object.fromEntries(Object.entries(after).map(([key, value]) =>
+        [key, value === null ? null : value - (before[key] ?? 0)]));
+      log.info('Perf', 'Routed prefill', {
+        inputMs, prefillMs, promptTokens: inputIds.length,
+        computedTokens: this._state.stats.prefillComputedTokens,
+        reusedTokens: this._state.stats.reusedPrefixTokens,
+        tokenChunkLimit: resolveEffectivePrefillTokenChunkSize(this._state) ?? null,
+        routeChunkLimit: routed.routeChunkTokens,
+        ...deltas,
+      });
+    }
+    return { inputIds, logits, phase: snapshotPrefillPhase(this._state.stats, {
+      inputMs, prefillMs, tokens: inputIds.length,
+    }) };
   }
 
 export async function _prefillToHidden(inputIds, opts) {

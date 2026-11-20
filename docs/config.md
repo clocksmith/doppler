@@ -275,6 +275,21 @@ latency. `uploadEnqueueMs` measures CPU enqueue time, not completed transfer.
 preparation on this client queue; it is a lower bound, not global GPU idle time.
 Physical disk I/O and end-to-end latency require separate host measurements.
 
+With `shared.debug.profiler.enabled` set to `true`, an ordinary generation on
+a routed model emits one provider-side `[Perf] Routed prefill` record after
+prompt processing succeeds. `inputMs` covers tokenization or input resolution;
+`prefillMs` runs from resolved input through final logits, including any prefix
+checkpoint and finiteness retry. The record gives prompt, computed and reused
+token counts, configured token and route chunk limits, expert preparations,
+selection readbacks, cache activity, logical source reads and uploads. These
+are differences across that request's prefill, before decoding. An unchanged
+cache hit counter is meaningful only for the selected cache policy.
+`prepareWallMs`, `routeReadbackWallMs` and `sourceReadWaitMs` can overlap,
+particularly when the next selection is already in flight. Readback may wait
+for prior GPU work. Do not subtract these sums from prefill to infer kernel time.
+For a latency comparison, use identical prompts, model, and cache conditions;
+measure first nonempty output at the requester and keep a profiler-off control.
+
 ## Multimodal config contract
 
 Multimodal encoder behavior is config-owned, not runtime-inferred.
