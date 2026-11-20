@@ -36,7 +36,9 @@ class RetainedWeights:
         self.dtype = dtype
 
     def __getitem__(self, name):
-        source = name if name == 'lm_head.weight' else 'model.language_model.' + name
+        source = 'model.language_model.' + name
+        if name == 'lm_head.weight' and name in self.manifest['tensors']:
+            source = name
         entry = self.manifest['tensors'][source]
         frozen = self.entries[source]
         data = b''.join(tensor_chunks(self.root, self.manifest, entry))

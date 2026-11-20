@@ -25,8 +25,10 @@ class StoredHalfCache(implementation.DynamicCache):
         return keys.float(), values.float()
 
 
-def run(contract_path, model_root, output, linear_attention='native'):
-    torch.set_num_threads(4)
+def run(contract_path, model_root, output, linear_attention='native', threads=4):
+    if threads < 1:
+        raise ValueError('threads must be positive')
+    torch.set_num_threads(threads)
     contract = json.loads(Path(contract_path).read_text())
     for entry in contract['inputs'].values():
         assert stream_reference.file_hash(entry['path']) == entry['sha256']
@@ -100,7 +102,7 @@ def run(contract_path, model_root, output, linear_attention='native'):
                   versions={name: importlib.metadata.version(name) for name in ['torch', 'transformers', 'gguf', 'numpy']},
                   contractSha256=stream_reference.file_hash(contract_path), toolSha256=stream_reference.file_hash(__file__),
                   manifestSha256=inventory['manifestSha256'], cases=rows, states=states,
-                  linearAttentionAlgorithm=linear_attention,
+                  linearAttentionAlgorithm=linear_attention, threads=torch.get_num_threads(),
                   maxRssBytes=resource.getrusage(resource.RUSAGE_SELF).ru_maxrss * 1024)
     (output / 'reference.json').write_text(json.dumps(result, indent=2) + '\n')
 
@@ -111,5 +113,6 @@ if __name__ == '__main__':
     parser.add_argument('--model', required=True)
     parser.add_argument('--out', required=True)
     parser.add_argument('--linear-attention', choices=['native', 'recurrent'], default='native')
+    parser.add_argument('--threads', type=int, default=4)
     args = parser.parse_args()
-    run(args.contract, args.model, args.out, args.linear_attention)
+    run(args.contract, args.model, args.out, args.linear_attention, args.threads)
