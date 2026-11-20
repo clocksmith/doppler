@@ -28,7 +28,8 @@ try {
   setRuntimeConfig({ inference: { moe: { routing: { activeExpertSelection: 'topk-route' } } } });
   const source = buffer(values(T * H, 0.13)), pending = buffer(new Float32Array(T * H));
   const router = new MoERouter({ numExperts: E, topK: 2, hiddenSize: H, normalizeWeights: true });
-  router.loadWeights(matrix(values(E * H, 0.07), [E, H]));
+  const routerWeight = matrix(values(E * H, 0.07), [E, H]);
+  router.loadWeights(routerWeight);
   const expertWeights = new Map([['layer_0_expert_0', { numExperts: E, expertFormat: 'qwen3_5',
     gateUp: bank(values(E * 2 * I * H, 0.03), [E, 2 * I, H]), down: bank(values(E * H * I, 0.09), [E, H, I]) }]]);
   const packed = expertWeights.get('layer_0_expert_0');
@@ -41,6 +42,7 @@ try {
   const context = { config: { modelType: 'transformer', hiddenSize: H, intermediateSize: I,
     moeExpertIntermediateSize: I, moeSharedExpertIntermediateSize: S, numExperts: E, moeTopK: 2,
     expertFormat: 'qwen3_5', hiddenActivation: 'silu', swigluLimit: null, rmsNormEps: 1e-6 },
+    layerRouterWeights: new Map([[0, { weight: routerWeight }]]),
     moeRouter: router, expertWeights, expertLoader: { isExpertResident: () => true, loadExpert() { throw Error('Resident banks must not reload'); } },
     weights: new Map([['layer_0', shared]]), kernelPath: null, executionPolicies: null };
   context.runtimeMoERoutingConfig = { ...getRuntimeConfig().inference.moe.routing, activeExpertSelection: 'topk-route' };
