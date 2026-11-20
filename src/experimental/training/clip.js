@@ -1,10 +1,11 @@
 
 import { readBuffer } from '../../memory/buffer-pool.js';
+import { tensorBytes } from '../../gpu/tensor.js';
 import { runScale } from '../../gpu/kernels/scale.js';
 import { f16ToF32Array } from '../../inference/kv-cache/types.js';
 
 async function readGradData(grad) {
-  const buffer = await readBuffer(grad.buffer);
+  const buffer = await readBuffer(grad.buffer, tensorBytes(grad.shape, grad.dtype));
   if (grad.dtype === 'f16') {
     return f16ToF32Array(new Uint16Array(buffer));
   }
