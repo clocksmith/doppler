@@ -5,6 +5,7 @@ import path from 'node:path';
 import process from 'node:process';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 
+import { isPinnedHostedSource } from '../src/storage/hf-resolve-url.js';
 import { isPlainObject } from '../src/formats/plain-object.js';
 
 const REPO_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
@@ -186,17 +187,17 @@ function validateRegistry(registry, errors) {
 }
 
 function modelMatchesSelection(model, selection) {
-  return model?.quickstart === selection.quickstart
+  const available = model?.hf == null && isPinnedHostedSource(model?.hostedSource)
+    || model?.lifecycle?.availability?.hf === selection.hfAvailability && isPlainObject(model?.hf);
+  return available && model?.quickstart === selection.quickstart
     && normalizeText(model?.artifact?.format) === selection.artifactFormat
     && normalizeText(model?.artifactCompleteness) === selection.artifactCompleteness
     && normalizeText(model?.runtimePromotionState) === selection.runtimePromotionState
     && model?.weightsRefAllowed === selection.weightsRefAllowed
-    && model?.lifecycle?.availability?.hf === selection.hfAvailability
     && normalizeText(model?.lifecycle?.status?.runtime) === selection.runtimeStatus
     && normalizeText(model?.lifecycle?.status?.tested) === selection.testedStatus
     && normalizeText(model?.lifecycle?.tested?.result) === selection.testedResult
-    && model?.lifecycle?.tested?.contracts?.executionContractOk === selection.executionContractOk
-    && isPlainObject(model?.hf);
+    && model?.lifecycle?.tested?.contracts?.executionContractOk === selection.executionContractOk;
 }
 
 function validateRegistryAgainstCatalog(policy, modelById, registryModels, errors) {

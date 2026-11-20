@@ -27,6 +27,7 @@
     "aliases",
     "modes",
     "hf",
+    "hostedSource",
     "label",
     "sizeBytes",
     "quickstartRequirements"

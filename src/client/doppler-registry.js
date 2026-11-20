@@ -57,6 +57,7 @@ function normalizeEntry(entry) {
       : [],
     ...(classification ? { classification } : {}),
     ...(typeCluster ? { typeCluster } : {}),
+    ...(entry.hostedSource ? { hostedSource: cloneOptionalObject(entry.hostedSource) } : {}),
     hf: entry.hf && typeof entry.hf === 'object'
       ? {
         repoId: typeof entry.hf.repoId === 'string' ? entry.hf.repoId.trim() : '',
@@ -135,11 +136,12 @@ export async function resolveQuickstartModel(model) {
 }
 
 export function buildQuickstartModelBaseUrl(entry, options = {}) {
-  if (!entry?.hf?.repoId || !entry?.hf?.path) {
+  const weights = entry?.hostedSource?.weights ?? entry?.hf;
+  if (!weights?.repoId || !weights?.path) {
     throw new Error(`Quickstart model "${entry?.modelId ?? 'unknown'}" does not have a hosted Hugging Face source.`);
   }
   const cdnBasePath = typeof options.cdnBasePath === 'string' && options.cdnBasePath.length > 0
     ? options.cdnBasePath
     : getCdnBasePath();
-  return buildHfResolveBaseUrl(entry.hf, { cdnBasePath });
+  return buildHfResolveBaseUrl(weights, { cdnBasePath });
 }

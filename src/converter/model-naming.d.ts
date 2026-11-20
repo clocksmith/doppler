@@ -1,5 +1,5 @@
-/** The same tag as it appears in a model ID: lowercase letters, digits and hyphens (`q4_0-af32` becomes `q40-af32`). */
-export declare function variantNameSuffix(variantTag: string | null | undefined): string;
+/** Name spelling of a stored format tag. The explicit dtype restores activations omitted when they equal storage. */
+export declare function variantNameSuffix(variantTag: string | null | undefined, activationDtype?: string | null): string;
 
 /** Lowercase letters, digits and single hyphens. See docs/style/model-naming.md. */
 export declare const MODEL_ID_PATTERN: RegExp;
@@ -7,7 +7,7 @@ export declare const MODEL_ID_PATTERN: RegExp;
 /** Model IDs issued before the naming rule; each stays valid until its model is reissued under a new identity. */
 export declare const LEGACY_NONCANONICAL_MODEL_IDS: readonly string[];
 
-/** Names written by hand before the naming rule whose suffix does not match their format. Nothing new may be added. */
+/** Exact IDs that retain compatibility with earlier handwritten or grouped activation suffixes. */
 export declare const LEGACY_HANDWRITTEN_SUFFIX_MODEL_IDS: readonly string[];
 
 export declare function isCanonicalModelId(modelId: unknown): boolean;

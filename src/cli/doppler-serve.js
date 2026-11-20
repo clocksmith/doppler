@@ -658,7 +658,10 @@ async function resolveLocalModelSourceMap(settings) {
     return localModelSourceByModelId;
   }
   const registryEntry = await resolveQuickstartModel(settings.model);
-  localModelSourceByModelId.set(registryEntry.modelId, { url: settings.modelUrl });
+  localModelSourceByModelId.set(registryEntry.modelId, {
+    ...(registryEntry.hostedSource ? { registryId: registryEntry.modelId } : {}),
+    url: settings.modelUrl,
+  });
   return localModelSourceByModelId;
 }
 

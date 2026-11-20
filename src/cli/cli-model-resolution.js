@@ -1,4 +1,5 @@
 import fs from 'node:fs/promises';
+import { createHash } from 'node:crypto';
 import path from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { buildHfResolveBaseUrl } from '../storage/hf-resolve-url.js';
@@ -133,7 +134,31 @@ async function resolveCatalogEntry(modelId) {
   )) || null;
 }
 
+async function assertPinnedLocalManifest(entry, manifestPath) {
+  if (!entry?.hostedSource) return;
+  const bytes = await fs.readFile(manifestPath);
+  const actual = createHash('sha256').update(bytes).digest('hex');
+  if (actual !== entry.hostedSource.expectedManifestHash || JSON.parse(bytes).modelId !== entry.modelId) {
+    throw new Error(`Manifest identity mismatch for "${entry.modelId}" at ${manifestPath}. Expected SHA-256 ${entry.hostedSource.expectedManifestHash}, got ${actual}.`);
+  }
+}
+
+async function checkExplicitDirectory(request) {
+  if (!request.modelId || !request.modelUrl) return request;
+  const entry = await resolveCatalogEntry(request.modelId);
+  if (!entry?.hostedSource) return request;
+  if (String(request.modelUrl).startsWith('file://')) {
+    await assertPinnedLocalManifest(entry, path.join(fileURLToPath(request.modelUrl), 'manifest.json'));
+  } else {
+    throw new Error(`The verification harness needs a local file:// directory for "${entry.modelId}". Use the quickstart CLI for its separate, pinned public sources.`);
+  }
+  return request;
+}
+
 function buildCatalogModelUrl(entry) {
+  if (entry?.hostedSource) {
+    throw new Error(`The verification harness needs a directory containing the pinned manifest and shards for "${entry.modelId}". Use the quickstart CLI for its separate, pinned public sources.`);
+  }
   if (!entry?.hf?.repoId || !entry?.hf?.path) {
     return null;
   }
@@ -142,13 +167,17 @@ function buildCatalogModelUrl(entry) {
 
 export async function resolveBrowserModelUrl(request, browserOptions = {}) {
   if (request.modelUrl || !request.modelId) {
-    return request;
+    return checkExplicitDirectory(request);
   }
 
   const modelId = String(request.modelId);
   const encodedModelId = encodeURIComponent(modelId);
 
   if (asStringOrNull(browserOptions.baseUrl)) {
+    const entry = await resolveCatalogEntry(modelId);
+    if (entry?.hostedSource) {
+      throw new Error(`The verification harness needs a local file:// directory for "${modelId}" to verify its pinned manifest.`);
+    }
     return {
       ...request,
       modelUrl: `/models/${encodedModelId}`,
@@ -174,6 +203,7 @@ export async function resolveBrowserModelUrl(request, browserOptions = {}) {
 
   const { candidate, discoveredManifestCandidates } = await findResolvableModelCandidate(candidates);
   if (candidate) {
+    await assertPinnedLocalManifest(await resolveCatalogEntry(modelId), candidate.manifestPath);
     return {
       ...request,
       modelUrl: candidate.modelUrl,
@@ -209,7 +239,7 @@ export async function resolveBrowserModelUrl(request, browserOptions = {}) {
 
 export async function resolveNodeModelUrl(request, options = {}) {
   if (request.modelUrl || !request.modelId) {
-    return request;
+    return checkExplicitDirectory(request);
   }
 
   const modelId = String(request.modelId);
@@ -237,6 +267,7 @@ export async function resolveNodeModelUrl(request, options = {}) {
     await findResolvableModelCandidate(candidates);
 
   if (candidate) {
+    await assertPinnedLocalManifest(await resolveCatalogEntry(modelId), candidate.manifestPath);
     return {
       ...request,
       modelUrl: pathToFileURL(candidate.modelDir).href.replace(/\/$/, ''),

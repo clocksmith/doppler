@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 
 import fs from 'node:fs/promises';
+import { isPinnedHostedSource } from '../src/storage/hf-resolve-url.js';
 import path from 'node:path';
 import process from 'node:process';
 import { fileURLToPath } from 'node:url';
@@ -55,7 +56,7 @@ function normalizeLifecycle(entry) {
 
 function assertQuickstartLifecycle(entry, modelId) {
   const lifecycle = normalizeLifecycle(entry);
-  if (lifecycle.availability.hf !== true) {
+  if (lifecycle.availability.hf !== true && !entry.hostedSource) {
     throw new Error(`${modelId}: quickstart catalog entries require lifecycle.availability.hf=true`);
   }
   if (lifecycle.runtime !== 'active') {
@@ -178,7 +179,11 @@ function toQuickstartEntry(entry) {
   if (!modes.includes('text') && !modes.includes('embedding')) {
     throw new Error(`${modelId}: quickstart catalog entries require a text or embedding mode`);
   }
-  const hf = isPlainObject(entry?.hf) ? entry.hf : null;
+  const hostedSource = entry.hostedSource;
+  if (hostedSource && (entry.hf != null || !isPinnedHostedSource(hostedSource))) {
+    throw new Error(`${modelId}: separate manifest and weight sources require an HTTPS manifest, SHA-256, and pinned HF weight revision.`);
+  }
+  const hf = hostedSource?.weights ?? entry.hf;
   const repoId = normalizeText(hf?.repoId);
   const revision = normalizeText(hf?.revision);
   const repoPath = normalizeText(hf?.path).replace(/^\/+/, '');
@@ -213,11 +218,11 @@ function toQuickstartEntry(entry) {
       id: typeCluster.id,
       label: typeCluster.label,
     },
-    hf: {
-      repoId,
-      revision,
-      path: repoPath,
-    },
+    ...(hostedSource ? { hostedSource: {
+      manifestUrl: hostedSource.manifestUrl,
+      expectedManifestHash: hostedSource.expectedManifestHash,
+      weights: { repoId, revision, path: repoPath },
+    }, hf: null } : { hf: { repoId, revision, path: repoPath } }),
     sizeBytes,
     quickstartRequirements,
     ...(vendorBenchmark ? { vendorBenchmark } : {}),

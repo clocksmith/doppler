@@ -299,12 +299,11 @@ export async function resolveNodeQuickstartCachedSource(resolved, manifestPayloa
     return null;
   }
   const baseUrl = normalizeText(resolved?.baseUrl);
-  if (!baseUrl) {
+  if (!baseUrl || baseUrl.startsWith('file://')) {
     return null;
   }
   const manifest = manifestPayload?.manifest;
-  const manifestText = normalizeText(manifestPayload?.text)
-    || JSON.stringify(manifest);
+  const manifestText = manifestPayload?.text ?? JSON.stringify(manifest);
   if (!manifest || typeof manifest !== 'object') {
     return null;
   }

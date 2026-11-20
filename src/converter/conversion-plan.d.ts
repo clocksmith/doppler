@@ -1,6 +1,6 @@
 import type { LinearNormGateActivation } from "../config/schema/execution/inference.schema.js";
 import type { ConverterConfigSchema } from "../config/schema/manifest/converter.schema.js";
-import type { MoEConfigSchema } from "../config/schema/manifest/manifest.schema.js";
+import type { MoEConfigSchema, QuantizationInfoSchema } from "../config/schema/manifest/manifest.schema.js";
 
 export interface ConversionPlanInputTensor {
   name: string;
@@ -46,7 +46,7 @@ export interface ResolveConvertedModelIdOptions {
   converterConfig?: ConverterConfigSchema | null;
   detectedModelId?: string | null;
   fallbackModelId?: string | null;
-  quantizationInfo?: { variantTag?: string | null } | null;
+  quantizationInfo?: Partial<QuantizationInfoSchema> | { variantTag?: string | null } | null;
   sanitizeOnly?: boolean;
   /** A direct-source runtime label, not a published identity: characters are checked, the format suffix is not. */
   runtimeLabel?: boolean;
