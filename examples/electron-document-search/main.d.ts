@@ -1,4 +1,4 @@
-import type { ElectronReleaseStateCoordinator, ElectronReleaseStateStore, ElectronRevocationSnapshot } from 'doppler-gpu/host/electron';
+import type { ElectronReleaseStateCoordinator, ElectronReleaseStateStore, ElectronRevocationSnapshot } from 'dopplerx/host/electron';
 
 export declare function registerDocumentSearchReleaseMain(options: {
   stateStore: ElectronReleaseStateStore;

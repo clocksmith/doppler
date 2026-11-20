@@ -14,15 +14,15 @@ const JSON_SCHEMA_VERSION = 1;
 function usage() {
   return [
     'Usage:',
-    '  npx doppler-gpu [prompt] [--model <id>] [--max-tokens <n>] [--temperature <n>] [--json]',
-    '  npx doppler-gpu --list-models',
-    '  npx doppler-gpu --help',
+    '  npx dopplerx [prompt] [--model <id>] [--max-tokens <n>] [--temperature <n>] [--json]',
+    '  npx dopplerx --list-models',
+    '  npx dopplerx --help',
     '',
     'Examples:',
-    '  npx doppler-gpu',
-    '  npx doppler-gpu "Summarize WebGPU in one sentence"',
-    '  npx doppler-gpu --model qwen3-0.8b --prompt "Write a haiku about GPUs"',
-    '  npx doppler-gpu --list-models',
+    '  npx dopplerx',
+    '  npx dopplerx "Summarize WebGPU in one sentence"',
+    '  npx dopplerx --model qwen3-0.8b --prompt "Write a haiku about GPUs"',
+    '  npx dopplerx --list-models',
     '',
     'Notes:',
     '  - First run downloads model files from the quickstart registry.',
@@ -120,10 +120,10 @@ export async function readQuickstartConfig() {
   const raw = await fs.readFile(QUICKSTART_CONFIG_PATH, 'utf8');
   const parsed = JSON.parse(raw);
   if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) {
-    throw new Error('doppler-gpu quickstart config must be a JSON object.');
+    throw new Error('dopplerx quickstart config must be a JSON object.');
   }
   if (!parsed.defaults || typeof parsed.defaults !== 'object' || Array.isArray(parsed.defaults)) {
-    throw new Error('doppler-gpu quickstart config must define a defaults object.');
+    throw new Error('dopplerx quickstart config must define a defaults object.');
   }
   return parsed;
 }
@@ -161,19 +161,19 @@ export async function resolveQuickstartSettings(argv = process.argv.slice(2)) {
   const topK = parseNumberFlag(defaults.topK, 'quickstart.defaults.topK');
 
   if (model === null) {
-    throw new Error('doppler-gpu quickstart requires a default or explicit model id.');
+    throw new Error('dopplerx quickstart requires a default or explicit model id.');
   }
   if (prompt === null) {
-    throw new Error('doppler-gpu quickstart requires a default or explicit prompt.');
+    throw new Error('dopplerx quickstart requires a default or explicit prompt.');
   }
   if (maxTokens === null) {
-    throw new Error('doppler-gpu quickstart requires a default or explicit max token count.');
+    throw new Error('dopplerx quickstart requires a default or explicit max token count.');
   }
   if (temperature === null) {
-    throw new Error('doppler-gpu quickstart requires a default or explicit temperature.');
+    throw new Error('dopplerx quickstart requires a default or explicit temperature.');
   }
   if (topK === null) {
-    throw new Error('doppler-gpu quickstart requires a default topK.');
+    throw new Error('dopplerx quickstart requires a default topK.');
   }
 
   return {
@@ -273,7 +273,7 @@ function printQuickstartResult(result) {
   const content = requireQuickstartContent(result);
   console.log(content);
   console.error(
-    `[doppler-gpu] model=${result.modelId} elapsed=${result.elapsedMs}ms device=${formatDeviceSummary(result.deviceInfo)}`
+    `[dopplerx] model=${result.modelId} elapsed=${result.elapsedMs}ms device=${formatDeviceSummary(result.deviceInfo)}`
   );
 }
 
@@ -293,7 +293,7 @@ export async function main(argv = process.argv.slice(2)) {
     console.log(JSON.stringify(result, null, 2));
     return;
   }
-  console.error(`[doppler-gpu] requestedModel=${settings.model} prompt=${formatOneLine(settings.prompt)}`);
+  console.error(`[dopplerx] requestedModel=${settings.model} prompt=${formatOneLine(settings.prompt)}`);
   printQuickstartResult(result);
 }
 
@@ -309,7 +309,7 @@ if (isMainModule(import.meta.url)) {
   main().then(() => {
     process.exit(0);
   }).catch((error) => {
-    console.error(`[doppler-gpu] ${error?.message || String(error)}`);
+    console.error(`[dopplerx] ${error?.message || String(error)}`);
     process.exit(1);
   });
 }

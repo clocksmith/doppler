@@ -1,6 +1,6 @@
-import type { ElectronReleaseStateCoordinator, ElectronRendererRuntime } from 'doppler-gpu/host/electron';
-import type { RuntimePorts } from 'doppler-gpu';
-import type { DopplerCapsuleOpenOptions } from 'doppler-gpu/host';
+import type { ElectronReleaseStateCoordinator, ElectronRendererRuntime } from 'dopplerx/host/electron';
+import type { RuntimePorts } from 'dopplerx';
+import type { DopplerCapsuleOpenOptions } from 'dopplerx/host';
 
 export declare function createDocumentSearchHostRenderer(
   releaseState: Pick<ElectronReleaseStateCoordinator, 'resolveCurrent'>,

@@ -1,4 +1,4 @@
-import { applyRuntimeProfile, getRuntimeConfig, setRuntimeConfig } from 'doppler-gpu/tooling/runtime';
+import { applyRuntimeProfile, getRuntimeConfig, setRuntimeConfig } from 'dopplerx/tooling/runtime';
 import { state } from './ui/state.js';
 import { syncModelControls } from './models.js';
 

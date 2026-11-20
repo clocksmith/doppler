@@ -1,7 +1,7 @@
 import {
   buildModeScoreMaps,
   sortTokenIdsByScore,
-} from 'doppler-gpu/tooling/evidence';
+} from 'dopplerx/tooling/evidence';
 import { setPromptValue } from '../../input.js';
 
 const DATA_ROOT = new URL('../../data/f16-precision-collapse/', import.meta.url);

@@ -3,7 +3,7 @@ description: Qualify an exact Electron target or emit a signed non-promoting rel
 
 inputs:
   doppler-version:
-    description: Exact doppler-gpu package version used for the decision.
+    description: Exact dopplerx package version used for the decision.
     required: true
   action:
     description: Release phase, either qualify or decide.
@@ -104,7 +104,7 @@ runs:
         mkdir -p "$RELEASE_OUTPUT"
         result_path="$RELEASE_OUTPUT/command-result.json"
         set +e
-        npx --yes --package "doppler-gpu@$DOPPLER_VERSION" doppler "${args[@]}" > "$result_path"
+        npx --yes --package "dopplerx@$DOPPLER_VERSION" doppler "${args[@]}" > "$result_path"
         command_status=$?
         set -e
         if [[ ! -s "$result_path" ]]; then

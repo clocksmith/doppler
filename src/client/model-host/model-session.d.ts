@@ -54,7 +54,7 @@ export interface DopplerResolutionIdentity {
 export interface DopplerResolvedExecutionIdentity {
   schema: 'doppler.resolved-execution-identity/v1';
   runtime: {
-    package: 'doppler-gpu';
+    package: 'dopplerx';
     version: string;
     surface: 'node' | 'browser';
   };
@@ -82,7 +82,7 @@ export interface DopplerGenerationEvidence {
   runtimeProfile: {
     schema: 'doppler_runtime_profile/v1';
     runtime: {
-      package: 'doppler-gpu';
+      package: 'dopplerx';
       version: string;
       surface: 'node' | 'browser';
     };

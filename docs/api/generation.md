@@ -7,7 +7,7 @@ Lower-level text pipeline construction and utilities for consumers who need dire
 ## Import Path
 
 ```js
-import { createPipeline, InferencePipeline } from 'doppler-gpu/generation';
+import { createPipeline, InferencePipeline } from 'dopplerx/generation';
 ```
 
 ## Audience
@@ -149,7 +149,7 @@ multi-head (`medusa`) generation are not wired into this pipeline.
 ## Minimal Example
 
 ```js
-import { createPipeline } from 'doppler-gpu/generation';
+import { createPipeline } from 'dopplerx/generation';
 
 const pipeline = await createPipeline(manifest, contexts);
 const text = await pipeline.generateText('Hello');

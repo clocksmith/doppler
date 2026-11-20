@@ -65,7 +65,7 @@ export function projectFrame(trace, index, position) {
   const { layers, width } = trace.geometry;
   /** @type {Array<number | string | undefined>} */
   const values = new Array(layers * width);
-  /** @type {Array<import('doppler-gpu/tooling/evidence').ActivationFrame | undefined>} */
+  /** @type {Array<import('dopplerx/tooling/evidence').ActivationFrame | undefined>} */
   const sources = new Array(layers);
   const selected = trace.frames[index];
   for (let i = index; i >= 0 && trace.frames[i]?.forward === selected.forward; i--) {
@@ -157,7 +157,7 @@ export function layerHistory(recording, atMs, position, difference, baseline = n
   const { layers, width } = recording.trace.geometry;
   /** @param {import('./data.js').ActivationRecording} r @param {number} time */
   const collect = (r, time) => {
-    /** @type {Map<number, { forward: number, frames: Map<number, import('doppler-gpu/tooling/evidence').ActivationFrame> }>} */
+    /** @type {Map<number, { forward: number, frames: Map<number, import('dopplerx/tooling/evidence').ActivationFrame> }>} */
     const rows = new Map();
     for (const f of r.trace.frames) {
       if (f.atMs > time) continue;

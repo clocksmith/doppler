@@ -1,6 +1,6 @@
 # Doppler
 
-Run open models locally with WebGPU from JavaScript. Doppler generates text, computes embeddings, reranks results, and scores choices on supported models and devices.
+Install Doppler from npm as `dopplerx`. Run open models locally with WebGPU from JavaScript. Doppler generates text, computes embeddings, reranks results, and scores choices on supported models and devices.
 
 **[Try the token demo](https://d4da.com/doppler/demo/index.html)** · [Open Observatory](https://d4da.com/observatory/) · [Run locally](#get-started)
 
@@ -18,12 +18,12 @@ The demo opens with a recorded answer. Select a token to inspect its alternative
 Use Node 20+ and a working WebGPU provider. This command pins the published CLI and model alias used in the installation guide.
 
 ```sh
-npx --package doppler-gpu@0.7.0 doppler-gpu --model gemma3-270m --prompt "Describe WebGPU briefly"
+npx --package dopplerx@0.1.5 dopplerx --model gemma3-270m --prompt "Describe WebGPU briefly"
 ```
 
-The first run downloads about 400 MB of weights plus the tokenizer and manifest. See [installation and embedding](docs/getting-started.md) for host requirements.
+The first run downloads the selected model’s weights, tokenizer, and manifest. See [installation and embedding](docs/getting-started.md) for host requirements.
 
-[Published versions](https://www.npmjs.com/package/doppler-gpu) · [Source changelog](CHANGELOG.md) · [Signed Run API](docs/api/root.md)
+[Published versions](https://www.npmjs.com/package/dopplerx) · [Source changelog](CHANGELOG.md) · [Signed Run API](docs/api/root.md)
 
 ## Benchmarks
 

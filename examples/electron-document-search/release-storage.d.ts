@@ -1,5 +1,5 @@
-import type { ElectronReleaseStateStore } from 'doppler-gpu/host/electron';
-import type { DopplerCapsuleV3, CapsuleReleaseEvent, CapsuleReleasePolicy, ReleaseCheckpoint } from 'doppler-gpu/host';
+import type { ElectronReleaseStateStore } from 'dopplerx/host/electron';
+import type { DopplerCapsuleV3, CapsuleReleaseEvent, CapsuleReleasePolicy, ReleaseCheckpoint } from 'dopplerx/host';
 
 export interface DocumentSearchCheckpointStore {
   load(): Promise<ReleaseCheckpoint | null>;

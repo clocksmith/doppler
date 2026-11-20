@@ -12,20 +12,20 @@ import {
   ensureCommandSupportedOnSurface,
   runBrowserCommand,
   runNodeCommand,
-} from 'doppler-gpu/tooling';
+} from 'dopplerx/tooling';
 ```
 
 Prefer narrow job-owned imports in browser applications:
 
 ```js
-import { loadRuntimeProfile } from 'doppler-gpu/tooling/runtime';
+import { loadRuntimeProfile } from 'dopplerx/tooling/runtime';
 import {
   assertComparableFingerprints,
   validateDemoContractReceipt,
-} from 'doppler-gpu/tooling/evidence';
-import { ensureModelCachedSource } from 'doppler-gpu/tooling/storage';
-import { parseManifest } from 'doppler-gpu/tooling/manifest';
-import { getKernelCapabilities } from 'doppler-gpu/tooling/device';
+} from 'dopplerx/tooling/evidence';
+import { ensureModelCachedSource } from 'dopplerx/tooling/storage';
+import { parseManifest } from 'dopplerx/tooling/manifest';
+import { getKernelCapabilities } from 'dopplerx/tooling/device';
 ```
 
 The umbrella tooling path remains a compatibility facade. New demo imports are
@@ -65,7 +65,7 @@ Public and tooling-oriented rather than app-facing.
 This subpath is mixed-tier: the command/storage/registry core is `tier1`, while
 Node operator flows on the same export surface remain `experimental`.
 Browser import helpers and P2P helpers are not package exports (the former
-`doppler-gpu/tooling-experimental` subpath was removed in 0.7.0). See [Subsystem Support Matrix](../subsystem-support-matrix.md).
+`dopplerx/tooling-experimental` subpath was removed in 0.7.0). See [Subsystem Support Matrix](../subsystem-support-matrix.md).
 
 ## Primary Exports
 
@@ -89,7 +89,7 @@ The generated export inventory summarizes entrypoint declarations, with `*` mark
 
 ## Reference transcript helpers
 
-Both browser and Node `doppler-gpu/tooling` exports include:
+Both browser and Node `dopplerx/tooling` exports include:
 
 - `buildReferenceTranscriptSeed(run, context?)`: accepts `Record<string, unknown>`
   inputs and returns a `Record<string, unknown>` seed for
@@ -152,7 +152,7 @@ Important surface rules:
 - `runNodeCommand(...)` is the canonical operator execution path for `diagnose`, `lora`, and `distill`
 - current Node operator surfaces reject `runtimeProfile`, `runtimeConfigUrl`, and `runtimeConfig` because those runtime inputs are not consumed by `lora`/`distill`
 - `configChain` is a harness/browser-URL runtime input, not part of the normalized tooling command request contract
-- browser-conditioned imports of `doppler-gpu/tooling` resolve the browser-safe shared tooling entry and do not expose `runNodeCommand(...)` or `runBrowserCommandInNode(...)`
+- browser-conditioned imports of `dopplerx/tooling` resolve the browser-safe shared tooling entry and do not expose `runNodeCommand(...)` or `runBrowserCommandInNode(...)`
 - browser-conditioned imports can validate a Program Bundle but cannot export one because exporting reads local files
 
 ## Command Contract Summary
@@ -245,20 +245,20 @@ CLI notes:
 
 - `getRuntimeConfig()`
 - `setRuntimeConfig(...)`
-- `initializeInference(modelUrl, options)` (`doppler-gpu/tooling/runtime`)
+- `initializeInference(modelUrl, options)` (`dopplerx/tooling/runtime`)
 
 ### Harness helpers
 
-- `runRerank(...)` (`doppler-gpu/tooling`)
+- `runRerank(...)` (`dopplerx/tooling`)
 
 ### Storage and manifest helpers
 
 - shard-manager exports, including `modelExists()` and `verifyIntegrity()`
 - `loadPersistentModelSource()`, `verifyStoredSourceArtifact()`, and
-  `createBlake3Hasher()` (`doppler-gpu/tooling/storage`)
+  `createBlake3Hasher()` (`dopplerx/tooling/storage`)
 - storage-registry exports
 - manifest parsing helpers and `DEFAULT_MANIFEST_INFERENCE` /
-  `DEFAULT_KVCACHE_CONFIG` (`doppler-gpu/tooling/manifest`)
+  `DEFAULT_KVCACHE_CONFIG` (`dopplerx/tooling/manifest`)
 
 ### Device and diagnostics helpers
 
@@ -271,7 +271,7 @@ CLI notes:
 ## Minimal Example
 
 ```js
-import { normalizeToolingCommandRequest, runBrowserCommand } from 'doppler-gpu/tooling';
+import { normalizeToolingCommandRequest, runBrowserCommand } from 'dopplerx/tooling';
 
 const request = normalizeToolingCommandRequest({
   command: 'verify',
@@ -322,7 +322,7 @@ const imageVerify = normalizeToolingCommandRequest({
 ## Advanced Example
 
 ```js
-import { normalizeToolingCommandRequest, runNodeCommand } from 'doppler-gpu/tooling';
+import { normalizeToolingCommandRequest, runNodeCommand } from 'dopplerx/tooling';
 
 const request = normalizeToolingCommandRequest({
   command: 'distill',
@@ -340,7 +340,7 @@ console.log(result.result?.subset?.subsetManifestPath);
 - `watch`, `compare`, and `quality-gate` are run-root-driven actions
 - `eval` and `export` can operate from an explicit checkpoint path or from finalized checkpoints already present in the run root
 - behavior-changing training/eval policy belongs in workload JSON, not in ad hoc command flags
-- browser conversion/file-picker helpers and P2P helpers are repository-internal; `doppler-gpu/tooling-experimental` was removed in 0.7.0
+- browser conversion/file-picker helpers and P2P helpers are repository-internal; `dopplerx/tooling-experimental` was removed in 0.7.0
 
 ## Code Pointers
 

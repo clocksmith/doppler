@@ -260,27 +260,24 @@ prepareDocumentSearchReleaseOptions({ ...releaseOptions, checkpointStore }).then
   console.log(`package type smoke passed (${specifiers.length} public export declarations)`);
 }
 
-async function runElectronCapsuleSmoke(consumerDir) {
+async function stageConsumerFile(source, target, packageName) {
+  const content = await fs.readFile(source, 'utf8');
+  const installedContent = content.replaceAll('dopplerx', packageName);
+  await fs.writeFile(target, installedContent);
+}
+
+async function runElectronCapsuleSmoke(consumerDir, packageName) {
   const applicationFiles = {};
   for (const name of ['main', 'preload', 'renderer', 'release-storage']) {
     for (const extension of ['js', 'd.ts']) {
       const filename = `${name}.${extension}`;
-      await fs.copyFile(
-        path.join(ROOT_DIR, 'examples/electron-document-search', filename),
-        path.join(consumerDir, filename),
-      );
+      await stageConsumerFile(path.join(ROOT_DIR, 'examples/electron-document-search', filename), path.join(consumerDir, filename), packageName);
       const bytes = await fs.readFile(path.join(consumerDir, filename));
       applicationFiles[filename] = { sha256: createHash('sha256').update(bytes).digest('hex'), sizeBytes: bytes.length };
     }
   }
-  await fs.copyFile(
-    path.join(ROOT_DIR, 'tests/helpers/electron-capsule-contract.js'),
-    path.join(consumerDir, 'electron-capsule-contract.js'),
-  );
-  await fs.copyFile(
-    path.join(ROOT_DIR, 'tests/fixtures/packed-electron-consumer.js'),
-    path.join(consumerDir, 'electron-smoke.js'),
-  );
+  await stageConsumerFile(path.join(ROOT_DIR, 'tests/helpers/electron-capsule-contract.js'), path.join(consumerDir, 'electron-capsule-contract.js'), packageName);
+  await stageConsumerFile(path.join(ROOT_DIR, 'tests/fixtures/packed-electron-consumer.js'), path.join(consumerDir, 'electron-smoke.js'), packageName);
   const fixture = await createSignedCapsuleFixture({ operation: 'rerank' });
   await fs.writeFile(path.join(consumerDir, 'capsule-fixture.json'), JSON.stringify({
     capsule: fixture.capsule,
@@ -313,11 +310,9 @@ async function assertInstalledFiles(consumerDir, packageJson) {
   }
 }
 
-async function runEmbeddingCapsuleSmoke(consumerDir) {
-  await fs.copyFile(path.join(ROOT_DIR, 'tests/fixtures/consumer-evidence.js'),
-    path.join(consumerDir, 'consumer-evidence.js'));
-  await fs.copyFile(path.join(ROOT_DIR, 'tests/fixtures/packed-embedding-consumer.js'),
-    path.join(consumerDir, 'embedding-smoke.js'));
+async function runEmbeddingCapsuleSmoke(consumerDir, packageName) {
+  await stageConsumerFile(path.join(ROOT_DIR, 'tests/fixtures/consumer-evidence.js'), path.join(consumerDir, 'consumer-evidence.js'), packageName);
+  await stageConsumerFile(path.join(ROOT_DIR, 'tests/fixtures/packed-embedding-consumer.js'), path.join(consumerDir, 'embedding-smoke.js'), packageName);
   const fixture = await createSignedCapsuleFixture({ operation: 'embed', manifest: {
     modelId: 'capsule-test-model', modelType: 'embedding', architecture: { hiddenSize: 4 },
     inference: { output: { embeddingPostprocessor: {
@@ -331,27 +326,25 @@ async function runEmbeddingCapsuleSmoke(consumerDir) {
   process.stdout.write(run(process.execPath, ['embedding-smoke.js'], { cwd: consumerDir }));
 }
 
-async function runGenerationCapsuleSmoke(consumerDir) {
+async function runGenerationCapsuleSmoke(consumerDir, packageName) {
   const fixture = await createSignedCapsuleFixture();
   await fs.writeFile(path.join(consumerDir, 'generation-fixture.json'), JSON.stringify({
     capsule: fixture.capsule, trustedSigners: { [TEST_CAPSULE_AUTHORITY]: TEST_CAPSULE_PUBLIC_KEY },
     artifacts: [...fixture.artifactBytes].map(([id, bytes]) => [id, [...bytes]]),
   }));
-  await fs.copyFile(path.join(ROOT_DIR, 'tests/fixtures/packed-generation-consumer.js'),
-    path.join(consumerDir, 'generation-smoke.js'));
+  await stageConsumerFile(path.join(ROOT_DIR, 'tests/fixtures/packed-generation-consumer.js'), path.join(consumerDir, 'generation-smoke.js'), packageName);
   process.stdout.write(run(process.execPath, ['generation-smoke.js'], { cwd: consumerDir }));
-  await fs.copyFile(path.join(ROOT_DIR, 'tests/fixtures/packed-browser-host-consumer.js'),
-    path.join(consumerDir, 'browser-host-smoke.js'));
+  await stageConsumerFile(path.join(ROOT_DIR, 'tests/fixtures/packed-browser-host-consumer.js'), path.join(consumerDir, 'browser-host-smoke.js'), packageName);
   process.stdout.write(run(process.execPath, ['--conditions=browser', 'browser-host-smoke.js'], { cwd: consumerDir }));
   await fs.writeFile(path.join(consumerDir, 'adapter-fixture.json'), JSON.stringify(await createInstalledAdapterFixture()));
   await fs.writeFile(path.join(consumerDir, 'gpu-generation-fixture.json'), JSON.stringify(await createInstalledTokenSelectionFixture()));
-  await fs.copyFile(path.join(ROOT_DIR, 'tests/fixtures/packed-token-selection-consumer.js'), path.join(consumerDir, 'token-selection-smoke.js'));
+  await stageConsumerFile(path.join(ROOT_DIR, 'tests/fixtures/packed-token-selection-consumer.js'), path.join(consumerDir, 'token-selection-smoke.js'), packageName);
   process.stdout.write(run(process.execPath, ['token-selection-smoke.js'], { cwd: consumerDir }));
 }
 
 
 async function runPartitionApiSmoke(consumerDir, packageJson) {
-  await fs.copyFile(path.join(ROOT_DIR, 'tests/fixtures/packed-partition-consumer.js'), path.join(consumerDir, 'partition-smoke.js'));
+  await stageConsumerFile(path.join(ROOT_DIR, 'tests/fixtures/packed-partition-consumer.js'), path.join(consumerDir, 'partition-smoke.js'), packageJson.name);
   process.stdout.write(run(process.execPath, ['partition-smoke.js'], { cwd: consumerDir }));
   const installedRoot = path.join(consumerDir, 'node_modules', packageJson.name);
   const policy = JSON.parse(await fs.readFile(path.join(ROOT_DIR, 'tools/policies/runtime-closure-policy.json')));
@@ -371,28 +364,28 @@ async function runPartitionApiSmoke(consumerDir, packageJson) {
   for (const relative of ['runtime/resident-piece-acquisition.test.js', 'helpers/capsule-v2-fixture.js']) {
     const target = path.join(consumerDir, 'contracts', relative);
     await fs.mkdir(path.dirname(target), { recursive: true });
-    const source = installedContractSource(await fs.readFile(path.join(ROOT_DIR, 'tests', relative), 'utf8'));
+    const source = installedContractSource(await fs.readFile(path.join(ROOT_DIR, 'tests', relative), 'utf8'), packageJson.name);
     await fs.writeFile(target, source);
   }
   process.stdout.write(run(process.execPath, ['contracts/runtime/resident-piece-acquisition.test.js'], { cwd: consumerDir }));
   console.log('installed minimal runtime closure and explicit partition entry checks passed');
 }
 
-function installedContractSource(source) {
+function installedContractSource(source, packageName) {
   return source.replace(/(['"])\.\.\/\.\.\/src\/([^'"]+)\1/gu, (_match, _quote, relative) => {
-    const publicEntry = { 'capsule-runtime.js': 'doppler-gpu', 'partitions.js': 'doppler-gpu/partitions' }[relative];
-    return JSON.stringify(publicEntry ?? `../../node_modules/doppler-gpu/src/${relative}`);
+    const publicEntry = { 'capsule-runtime.js': packageName, 'partitions.js': `${packageName}/partitions` }[relative];
+    return JSON.stringify(publicEntry ?? `../../node_modules/${packageName}/src/${relative}`);
   });
 }
 
-async function runInstalledGenerationImplementationChecks(consumerDir) {
+async function runInstalledGenerationImplementationChecks(consumerDir, packageName) {
   // These reuse implementation fixtures against installed bytes, separately
   // from the public Capsule entrypoint and declaration checks above.
   for (const relative of ['integration/doppler-scoped-session.test.js',
     'inference/generation-output.test.js', 'inference/resident-reasoning-output.test.js']) {
     const target = path.join(consumerDir, 'contracts', relative);
     await fs.mkdir(path.dirname(target), { recursive: true });
-    const source = installedContractSource(await fs.readFile(path.join(ROOT_DIR, 'tests', relative), 'utf8'));
+    const source = installedContractSource(await fs.readFile(path.join(ROOT_DIR, 'tests', relative), 'utf8'), packageName);
     await fs.writeFile(target, source);
     process.stdout.write(run(process.execPath, [target], { cwd: consumerDir }));
   }
@@ -425,7 +418,9 @@ async function main() {
   const packageJson = options.archive
     ? JSON.parse(run('tar', ['-xOf', options.archive, 'package/package.json']))
     : JSON.parse(await fs.readFile(path.join(ROOT_DIR, 'package.json'), 'utf8'));
-  if (packageJson.name !== 'doppler-gpu') throw new Error('Candidate archive must contain doppler-gpu.');
+  if (!['dopplerx', 'doppler-gpu'].includes(packageJson.name)) {
+    throw new Error('Candidate archive must contain a Doppler package.');
+  }
   const tempRoot = options.retain ?? await fs.mkdtemp(path.join(tmpdir(), 'doppler-package-smoke-'));
   if (options.retain) {
     await fs.mkdir(path.dirname(tempRoot), { recursive: true });
@@ -507,19 +502,17 @@ async function main() {
       '--check', '--package-root', path.join(consumerDir, 'node_modules', packageJson.name),
     ]));
     await writeImportSmoke(consumerDir, packageJson);
-    await fs.copyFile(path.join(ROOT_DIR, 'tests/fixtures/packed-program-bundle-consumer.js'),
-      path.join(consumerDir, 'program-bundle-smoke.js'));
+    await stageConsumerFile(path.join(ROOT_DIR, 'tests/fixtures/packed-program-bundle-consumer.js'), path.join(consumerDir, 'program-bundle-smoke.js'), packageJson.name);
     process.stdout.write(run(process.execPath, ['program-bundle-smoke.js'], { cwd: consumerDir }));
-    await fs.copyFile(path.join(ROOT_DIR, 'tests/fixtures/packed-node-provider-consumer.js'),
-      path.join(consumerDir, 'node-provider-smoke.js'));
+    await stageConsumerFile(path.join(ROOT_DIR, 'tests/fixtures/packed-node-provider-consumer.js'), path.join(consumerDir, 'node-provider-smoke.js'), packageJson.name);
     process.stdout.write(run(process.execPath, ['node-provider-smoke.js'], { cwd: consumerDir }));
     await runTrainingApiSmoke(consumerDir, packageJson);
     await runPartitionApiSmoke(consumerDir, packageJson);
     await runCliSmokes(consumerDir, packageJson);
-    receipt.applicationFiles = await runElectronCapsuleSmoke(consumerDir);
-    await runEmbeddingCapsuleSmoke(consumerDir);
-    await runGenerationCapsuleSmoke(consumerDir);
-    await runInstalledGenerationImplementationChecks(consumerDir);
+    receipt.applicationFiles = await runElectronCapsuleSmoke(consumerDir, packageJson.name);
+    await runEmbeddingCapsuleSmoke(consumerDir, packageJson.name);
+    await runGenerationCapsuleSmoke(consumerDir, packageJson.name);
+    await runInstalledGenerationImplementationChecks(consumerDir, packageJson.name);
     await writeTypeSmoke(consumerDir, packageJson);
     receipt.passed = true;
     console.log(

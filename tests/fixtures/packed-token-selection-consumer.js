@@ -1,7 +1,7 @@
 // Installed public contracts with injected selected tokens. No physical GPU claim.
 import assert from 'node:assert/strict';
 import fs from 'node:fs/promises';
-import * as runtime from 'doppler-gpu';
+import * as runtime from 'dopplerx';
 import { computeCanonicalSha256 } from './consumer-evidence.js';
 
 const fixture = JSON.parse(await fs.readFile(new URL('./gpu-generation-fixture.json', import.meta.url)));

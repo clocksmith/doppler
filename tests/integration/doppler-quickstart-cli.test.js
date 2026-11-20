@@ -59,7 +59,7 @@ const {
     encoding: 'utf8',
   });
   assert.equal(result.status, 0);
-  assert.match(result.stdout, /npx doppler-gpu/);
+  assert.match(result.stdout, /npx dopplerx/);
   assert.match(result.stdout, /--list-models/);
 }
 
@@ -73,7 +73,7 @@ const {
       encoding: 'utf8',
     });
     assert.equal(result.status, 0);
-    assert.match(result.stdout, /npx doppler-gpu/);
+    assert.match(result.stdout, /npx dopplerx/);
   } finally {
     rmSync(tempDir, { recursive: true, force: true });
   }
@@ -82,6 +82,7 @@ const {
 {
   const pkg = JSON.parse(readFileSync(PACKAGE_JSON_PATH, 'utf8'));
   assert.equal(pkg.bin.doppler, 'src/cli/doppler-cli.js');
+  assert.equal(pkg.bin.dopplerx, 'src/cli/doppler-quickstart.js');
   assert.equal(pkg.bin['doppler-gpu'], 'src/cli/doppler-quickstart.js');
 }
 

@@ -1,12 +1,13 @@
 {
-  "name": "doppler-gpu",
-  "version": "0.7.9",
+  "name": "dopplerx",
+  "version": "0.1.5",
   "description": "Doppler Rig prepares signed model Capsules; Doppler Run executes them locally through WebGPU for JavaScript",
   "main": "src/capsule-runtime.js",
   "types": "src/capsule-runtime.d.ts",
   "type": "module",
   "bin": {
     "doppler": "src/cli/doppler-cli.js",
+    "dopplerx": "src/cli/doppler-quickstart.js",
     "doppler-gpu": "src/cli/doppler-quickstart.js",
     "doppler-serve": "src/cli/doppler-serve.js"
   },
@@ -309,6 +310,7 @@
     "README.md",
     "CHANGELOG.md",
     "LICENSE",
+    "NOTICE",
     "tools/convert-safetensors-node.js"
   ],
   "devDependencies": {

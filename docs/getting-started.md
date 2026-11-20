@@ -6,13 +6,13 @@ qualification, and benchmarking are separate engineering workflows.
 
 ## Published first run
 
-This guide pins the published `doppler-gpu@0.7.0` release. Its quickstart includes the
+This guide pins the published `dopplerx@0.1.5` release. Its quickstart includes the
 `gemma3-270m` alias for the hosted Gemma 3 270M Q4K model:
 
 ```sh
-npx --yes --package doppler-gpu@0.7.0 doppler-gpu --help
-npx --yes --package doppler-gpu@0.7.0 doppler-gpu --list-models
-npx --yes --package doppler-gpu@0.7.0 doppler-gpu --model gemma3-270m --prompt "Describe WebGPU briefly"
+npx --yes --package dopplerx@0.1.5 dopplerx --help
+npx --yes --package dopplerx@0.1.5 dopplerx --list-models
+npx --yes --package dopplerx@0.1.5 dopplerx --model gemma3-270m --prompt "Describe WebGPU briefly"
 ```
 
 Use Node 20 or newer and a working WebGPU provider. The published package has
@@ -35,11 +35,11 @@ expecting offline operation.
 Install the exact release:
 
 ```sh
-npm install --save-exact doppler-gpu@0.7.0
+npm install --save-exact dopplerx@0.1.5
 ```
 
 ```js
-import { dr } from 'doppler-gpu/compat';
+import { dr } from 'dopplerx/compat';
 
 const session = await dr.open('gemma3-270m');
 try {

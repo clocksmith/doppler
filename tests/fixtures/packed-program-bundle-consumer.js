@@ -4,10 +4,10 @@ import fs from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { createHash } from 'node:crypto';
-import { writeProgramBundle, verifyClosedProgramBundle } from 'doppler-gpu/tooling';
+import { writeProgramBundle, verifyClosedProgramBundle } from 'dopplerx/tooling';
 
-const packageRoot = path.dirname(path.dirname(fileURLToPath(import.meta.resolve('doppler-gpu'))));
-assert(packageRoot.endsWith(path.join('node_modules', 'doppler-gpu')));
+const packageRoot = path.dirname(path.dirname(fileURLToPath(import.meta.resolve('dopplerx'))));
+assert(packageRoot.endsWith(path.join('node_modules', 'dopplerx')));
 const gatherSource = (await fs.readFile(path.join(packageRoot, 'src/gpu/kernels/gather.wgsl'), 'utf8'))
   .replace(/\r\n/g, '\n');
 const directory = path.resolve('program-bundle-fixture');

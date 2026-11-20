@@ -4,7 +4,7 @@ on:
   workflow_call:
     inputs:
       doppler-version:
-        description: Exact doppler-gpu version.
+        description: Exact dopplerx version.
         required: true
         type: string
       manifest:

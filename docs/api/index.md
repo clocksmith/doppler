@@ -1,6 +1,6 @@
 # API Docs
 
-Canonical public API documentation for `doppler-gpu`.
+Canonical public API documentation for `dopplerx`.
 
 Use this section for package surfaces that are intentionally exported and meant to be consumed directly.
 The generated export inventory lives under [reference/exports.md](reference/exports.md).
@@ -9,16 +9,16 @@ The generated export inventory lives under [reference/exports.md](reference/expo
 
 ### Primary app-facing surface
 
-- [Doppler Run API](root.md) - start with `doppler-gpu/host`; use `doppler-gpu`
+- [Doppler Run API](root.md) - start with `dopplerx/host`; use `dopplerx`
   when supplying explicit execution ports
-- [Compatibility API](compat.md) - `doppler-gpu/compat`
+- [Compatibility API](compat.md) - `dopplerx/compat`
 - [Choice scoring](choice-scoring.md) - typed, contextual answer scores and operation qualification
 
 ### Exported advanced surfaces
 
 - [Advanced Export Map](advanced-root-exports.md) - migration map from the old broad root surface to dedicated advanced subpaths
-- [Generation API](generation.md) - `doppler-gpu/generation`
-- [Tooling API](tooling.md) - `doppler-gpu/tooling`, with a tier1 command/storage core plus experimental operator flows
+- [Generation API](generation.md) - `dopplerx/generation`
+- [Tooling API](tooling.md) - `dopplerx/tooling`, with a tier1 command/storage core plus experimental operator flows
 
 ## Documentation Form
 
@@ -52,16 +52,16 @@ Deprecated subpaths are listed with their removal release in the
 
 ### Stable and preferred
 
-- `doppler-gpu/host` composes existing host ports; model/host qualification is separate
-- `doppler-gpu`
-- `doppler-gpu/runtime` (compatibility alias of `doppler-gpu`; `createDopplerRuntime` aliases `createDopplerRun`)
+- `dopplerx/host` composes existing host ports; model/host qualification is separate
+- `dopplerx`
+- `dopplerx/runtime` (compatibility alias of `dopplerx`; `createDopplerRuntime` aliases `createDopplerRun`)
 
 ### Tier1 advanced
 
-- `doppler-gpu/generation`
-- tier1 portions of `doppler-gpu/tooling`
+- `dopplerx/generation`
+- tier1 portions of `dopplerx/tooling`
 
 ### Exported but experimental
 
-- `doppler-gpu/compat`
-- experimental operator portions of `doppler-gpu/tooling`
+- `dopplerx/compat`
+- experimental operator portions of `dopplerx/tooling`

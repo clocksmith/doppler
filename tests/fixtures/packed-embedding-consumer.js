@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import fs from 'node:fs/promises';
-import { createDopplerRun, createCapsuleStreamAccumulator, resolveEmbeddingBatchSemantics } from 'doppler-gpu';
+import { createDopplerRun, createCapsuleStreamAccumulator, resolveEmbeddingBatchSemantics } from 'dopplerx';
 import { computeCanonicalSha256 } from './consumer-evidence.js';
 
 // Installed public API contract, with synthetic device and execution components.

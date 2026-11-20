@@ -117,10 +117,10 @@ const DECLARED_ASSETS = [
   'src/config/runtime/profiles/trace-layers.json',
 ];
 const BARE_SPECIFIERS = new Map([
-  ['doppler-gpu', 'src/index-browser.js'],
-  ['doppler-gpu/compat', 'src/index-browser.js'],
-  ['doppler-gpu/tooling/runtime', 'src/tooling-exports/runtime.js'],
-  ['doppler-gpu/tooling/evidence', 'src/tooling-exports/evidence.js'],
+  ['dopplerx', 'src/index-browser.js'],
+  ['dopplerx/compat', 'src/index-browser.js'],
+  ['dopplerx/tooling/runtime', 'src/tooling-exports/runtime.js'],
+  ['dopplerx/tooling/evidence', 'src/tooling-exports/evidence.js'],
 ]);
 const SPECIFIER_PATTERNS = [
   /\b(?:import|export)\s+(?:[^'"]*?\sfrom\s*)?['"]([^'"]+)['"]/g,

@@ -117,10 +117,10 @@ import/export, and confirmed cache removal keep their controls synchronized.
 ## Public boundaries
 
 The model picker, verified OPFS cache, model lifetime, and generation path use
-the root `dr` API from `doppler-gpu`. Runtime-profile controls use
-`doppler-gpu/tooling/runtime`. Evidence views use
-`doppler-gpu/tooling/evidence` and the public `model.inspect` handle. Live demo
-code may not import the compatibility `doppler-gpu/tooling` barrel.
+the root `dr` API from `dopplerx`. Runtime-profile controls use
+`dopplerx/tooling/runtime`. Evidence views use
+`dopplerx/tooling/evidence` and the public `model.inspect` handle. Live demo
+code may not import the compatibility `dopplerx/tooling` barrel.
 
 The demo passes `{ messages }`, including retained prior turns, to inspection.
 Branch replay uses the exact templated prefix returned in `inputTokenIds`.

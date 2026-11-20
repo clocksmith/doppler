@@ -2,7 +2,7 @@ import {
   ELECTRON_RELEASE_IPC_CHANNEL,
   createElectronReleaseIpcHandler,
   createElectronReleaseStateCoordinator,
-} from 'doppler-gpu/host/electron';
+} from 'dopplerx/host/electron';
 
 export function registerDocumentSearchReleaseMain(options) {
   const coordinator = createElectronReleaseStateCoordinator({

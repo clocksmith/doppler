@@ -100,7 +100,7 @@ export async function buildResolutionIdentity({
     'resolvedRuntimeSessionId'
   );
   const runtimeIdentity = {
-    package: 'doppler-gpu',
+    package: 'dopplerx',
     version: DOPPLER_VERSION,
     surface: isNodeRuntime() ? 'node' : 'browser',
   };

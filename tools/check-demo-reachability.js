@@ -7,10 +7,10 @@ import { fileURLToPath } from 'node:url';
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const ROOTS = ['demo/demo.js', 'demo/sw.js'];
 const ALLOWED_BARE = new Set([
-  'doppler-gpu',
-  'doppler-gpu/compat',
-  'doppler-gpu/tooling/runtime',
-  'doppler-gpu/tooling/evidence',
+  'dopplerx',
+  'dopplerx/compat',
+  'dopplerx/tooling/runtime',
+  'dopplerx/tooling/evidence',
 ]);
 const PATTERNS = [
   /\bnew\s+Worker\(new URL\(\s*['"]([^'"]+)['"]\s*,\s*import\.meta\.url\s*\)/g,

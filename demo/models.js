@@ -1,4 +1,4 @@
-import { dr } from 'doppler-gpu/compat';
+import { dr } from 'dopplerx/compat';
 import { state } from './ui/state.js';
 import { clearConversationHistory, syncSendButton } from './input.js';
 import { setExportEnabled } from './report.js';

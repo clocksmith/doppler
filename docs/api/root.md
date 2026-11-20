@@ -2,7 +2,7 @@
 
 ## Purpose
 
-Start with `doppler-gpu/host` when using Doppler's existing browser or Node host
+Start with `dopplerx/host` when using Doppler's existing browser or Node host
 composition. It accepts a Capsule URL/path, explicit trusted signers and accepted
 TargetPlan digests, and supplies the existing device, artifact-store, and program
 ports. For Capsule objects, supply an artifact store. It does not choose trust or
@@ -10,19 +10,19 @@ accept upgrades. See the [application example](#host-application-example)
 and [Electron renderer](../../examples/electron-document-search/README.md).
 An exported host path is not proof that every model works on that host.
 
-`doppler-gpu` is the Capsule-native production entrypoint. It validates a signed
+`dopplerx` is the Capsule-native production entrypoint. It validates a signed
 Doppler Capsule, selects one already-qualified TargetPlan for the observed device,
 then verifies every artifact and reachable WGSL module, binds resources, and
 executes the declared commands. It does not load unsigned manifests, infer a
 model family, choose kernels, or supply a development signing key.
 
-`doppler-gpu` is the Doppler Run entrypoint. `doppler-gpu/runtime` remains a
-compatibility alias; the former `doppler-gpu/run` alias was removed.
+`dopplerx` is the Doppler Run entrypoint. `dopplerx/runtime` remains a
+compatibility alias; the former `dopplerx/run` alias was removed.
 `createDopplerRuntime` and `RUNTIME_CORE_VERSION` remain aliases of
 `createDopplerRun` and `RUN_CORE_VERSION`; types have corresponding
 `DopplerRun`, `DopplerRunSession`, and `RunPorts` names.
 
-Capsule v2 remains readable. `doppler-gpu/host` also supplies v3 migration,
+Capsule v2 remains readable. `dopplerx/host` also supplies v3 migration,
 identity, and signed release-event APIs. See [Capsule identity migration](../capsule-identity-migration.md)
 for explicit trust/checkpoint policy, artifact-source ownership, and sequence
 execution receipts. New source APIs do not imply a published or qualified release.
@@ -30,7 +30,7 @@ execution receipts. New source APIs do not imply a published or qualified releas
 ## Partition-helper import correction
 
 The corrected runtime candidate removes the accidental, undeclared partition
-helper exports from `doppler-gpu` and `doppler-gpu/runtime`. These repository
+helper exports from `dopplerx` and `dopplerx/runtime`. These repository
 helpers do not execute or qualify distributed inference and remain internal;
 there is no supported public replacement operation. The minimal injected runtime
 and its published declarations agree again. The immutable search starter's
@@ -46,12 +46,12 @@ import {
   createDopplerRun,
   createFetchCapsuleArtifactStore,
   openCapsule,
-} from 'doppler-gpu';
+} from 'dopplerx';
 ```
 
 ## Explicit-port authority
 
-When using `doppler-gpu` or `doppler-gpu/runtime`, the application injects:
+When using `dopplerx` or `dopplerx/runtime`, the application injects:
 
 - `device`: the concrete WebGPU resource and capability adapter.
 - `artifactStore`: reads and hashes Capsule artifacts.
@@ -69,7 +69,7 @@ qualification in the exact package you install; npm 0.6.1 does not contain newer
 choice-scoring or partition exports.
 
 ```js
-import { openCapsule } from 'doppler-gpu/host';
+import { openCapsule } from 'dopplerx/host';
 import { reviewedRelease } from './reviewed-release.js';
 
 const session = await openCapsule(reviewedRelease.capsuleUrl, {
@@ -96,13 +96,13 @@ the existing device, artifact-store, and program ports; trust and upgrades remai
 explicit. See the [Electron integration](../../examples/electron-document-search/README.md)
 and [retained evaluation](../integration/reranker-evaluation.md).
 
-Advanced applications can still inject every port through `doppler-gpu`. Both
+Advanced applications can still inject every port through `dopplerx`. Both
 routes verify the same Capsule and initial execution identity. The host facade does not add model operations or broaden qualification.
 
 ## Minimal example
 
 ```js
-import { createFetchCapsuleArtifactStore, openCapsule } from 'doppler-gpu';
+import { createFetchCapsuleArtifactStore, openCapsule } from 'dopplerx';
 
 const capsuleUrl = new URL('./model.capsule.json', import.meta.url).href;
 const capsule = await (await fetch(capsuleUrl)).json();
@@ -130,7 +130,7 @@ erase them. Metadata-only verification is not permission to execute: the full
 artifact closure must pass byte verification before constructing a program.
 
 Session opening accepts `signal`, `loadTimeoutMs`, `maxMetadataBytes`, `maxRetainedArtifactBytes`, `maxVerifiedBackingBytes`, `artifactHashBackend`, and
-`onLoadProgress`. Pass these directly to `doppler-gpu/host` or
+`onLoadProgress`. Pass these directly to `dopplerx/host` or
 `runtime.openCapsule()`, and under `options.session` for the explicit-port root
 `openCapsule()` facade. The JSON loading policy
 defaults the deadline to `null` (no deadline) and HTTP metadata to a 16 MiB byte
@@ -278,7 +278,7 @@ Request v2 carries incremental partials and a complete final result; v1 retains
 its cumulative event contract. The public reconstruction helper avoids cumulative
 copying during partial consumption.
 
-`doppler-gpu/generation-contract` exports the validation-only public contract:
+`dopplerx/generation-contract` exports the validation-only public contract:
 `GENERATION_CONTRACT`, `validateGenerationInput`, `resolveGenerationOptions`,
 and `GenerationError`. Its JSON definition owns accepted fields, ranges,
 defaults, stopping reasons and error codes; declarations are generated from it.

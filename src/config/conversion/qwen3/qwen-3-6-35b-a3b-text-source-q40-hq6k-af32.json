@@ -41,7 +41,7 @@
       "outputGateType": "swish"
     },
     "normalization": {
-      "rmsNormEps": 1e-06,
+      "rmsNormEps": 0.000001,
       "rmsNormWeightOffset": false,
       "postAttentionNorm": true,
       "preFeedforwardNorm": false,
@@ -256,7 +256,7 @@
       "q4_decode": {
         "kernel": "matmul_q4_0.wgsl",
         "entry": "gemv",
-        "digest": "sha256:ddf446aad68571e70b6af151c394475b274cae9d8d30d966628b0be89e2942ce",
+        "digest": "sha256:96a3c0229daa90ade6496b3403a294dfd5944af671719c7be19fde680a0af789",
         "constants": {
           "WORKGROUP_SIZE": 128,
           "COLS_PER_WG": 4,
@@ -270,7 +270,7 @@
       "q4_decode_gemv": {
         "kernel": "matmul_q4_0.wgsl",
         "entry": "gemv",
-        "digest": "sha256:ddf446aad68571e70b6af151c394475b274cae9d8d30d966628b0be89e2942ce",
+        "digest": "sha256:96a3c0229daa90ade6496b3403a294dfd5944af671719c7be19fde680a0af789",
         "constants": {
           "WORKGROUP_SIZE": 128,
           "COLS_PER_WG": 4,
@@ -297,12 +297,12 @@
       "residual": {
         "kernel": "residual.wgsl",
         "entry": "main",
-        "digest": "sha256:abd19bc08ad668a7cad562e2bc0a4be1aa8827ad4300d8d474b7fc2af4c27117"
+        "digest": "sha256:4dbfb0a9ca0fb6047a01618f0374b445c243774d039407acdf41b0711ea8eaf4"
       },
       "silu": {
         "kernel": "silu.wgsl",
         "entry": "main",
-        "digest": "sha256:c6e28a7e6b2a7cfa805db03c9079fbc90fc2717c621e388bfa55b75ce1737ac0",
+        "digest": "sha256:712787a59b032453b09f147be0d0c073266c47a7a12c3b746984aaf28075bedb",
         "constants": {
           "HAS_GATE": true
         }
@@ -310,7 +310,7 @@
       "q4_prefill": {
         "kernel": "matmul_q4_0.wgsl",
         "entry": "prefill",
-        "digest": "sha256:3e496b406ca040e4dd43b43f52d3f6818198b8461338675abd81891f2e665dde",
+        "digest": "sha256:a2d4f69339562fb2d78efac15837a94059ef0dea97993974d4c48a144586c8bc",
         "constants": {
           "WORKGROUP_SIZE": 128,
           "COLS_PER_WG": 4,
@@ -324,7 +324,7 @@
       "q4_widetile": {
         "kernel": "matmul_q4_0.wgsl",
         "entry": "prefill",
-        "digest": "sha256:3e496b406ca040e4dd43b43f52d3f6818198b8461338675abd81891f2e665dde",
+        "digest": "sha256:a2d4f69339562fb2d78efac15837a94059ef0dea97993974d4c48a144586c8bc",
         "constants": {
           "WORKGROUP_SIZE": 128,
           "COLS_PER_WG": 4,
@@ -338,7 +338,7 @@
       "tiled": {
         "kernel": "matmul_q4_0.wgsl",
         "entry": "gemv",
-        "digest": "sha256:ddf446aad68571e70b6af151c394475b274cae9d8d30d966628b0be89e2942ce",
+        "digest": "sha256:96a3c0229daa90ade6496b3403a294dfd5944af671719c7be19fde680a0af789",
         "constants": {
           "WORKGROUP_SIZE": 128,
           "COLS_PER_WG": 4,
@@ -368,7 +368,7 @@
       "lm_head_gemv": {
         "kernel": "matmul_q4_0.wgsl",
         "entry": "gemv",
-        "digest": "sha256:ddf446aad68571e70b6af151c394475b274cae9d8d30d966628b0be89e2942ce",
+        "digest": "sha256:96a3c0229daa90ade6496b3403a294dfd5944af671719c7be19fde680a0af789",
         "constants": {
           "WORKGROUP_SIZE": 128,
           "COLS_PER_WG": 4,
@@ -382,7 +382,7 @@
       "lm_head_q4": {
         "kernel": "matmul_q4_0.wgsl",
         "entry": "gemv",
-        "digest": "sha256:ddf446aad68571e70b6af151c394475b274cae9d8d30d966628b0be89e2942ce",
+        "digest": "sha256:96a3c0229daa90ade6496b3403a294dfd5944af671719c7be19fde680a0af789",
         "constants": {
           "WORKGROUP_SIZE": 128,
           "COLS_PER_WG": 4,
@@ -406,22 +406,22 @@
       "gated_delta_recurrent": {
         "kernel": "gated_delta_recurrent_gguf.wgsl",
         "entry": "main",
-        "digest": "sha256:45868ff96095bf40ec4c76610aa40ded1d9f345743bc3c819669e2250b005ff5"
+        "digest": "sha256:5acdcaf797994c495b07ebf5b5b3676a74b0bb128529ef2b1dcdc5bd448fd362"
       },
       "gated_delta_fused_decode": {
         "kernel": "gated_delta_fused_decode.wgsl",
         "entry": "main",
-        "digest": "sha256:87dbb137e1495ebb0821ef5a8a90e7a6460883e1bd4eafb1c13ae9b1a1052cfb"
+        "digest": "sha256:2db6a08bc3f43fd922001702316f2566a0b0f06154981e5cae9024bbeb03b29f"
       },
       "source_control_f32": {
         "kernel": "matmul_f32.wgsl",
         "entry": "main",
-        "digest": "sha256:b5bb8e3d8014136e33de7935dd2a1f074c988044fe05cf5b559718c6f061eaa8"
+        "digest": "sha256:b665cf1ef18ebf1d6fe490b84e9d1e962c130ccd34bdfac5616ba0e2ddb783b8"
       },
       "q8_0_decode": {
         "kernel": "matmul_q4_0.wgsl",
         "entry": "gemv",
-        "digest": "sha256:ddf446aad68571e70b6af151c394475b274cae9d8d30d966628b0be89e2942ce",
+        "digest": "sha256:96a3c0229daa90ade6496b3403a294dfd5944af671719c7be19fde680a0af789",
         "constants": {
           "WORKGROUP_SIZE": 128,
           "COLS_PER_WG": 4,
@@ -435,7 +435,7 @@
       "q8_0_prefill": {
         "kernel": "matmul_q4_0.wgsl",
         "entry": "prefill",
-        "digest": "sha256:3e496b406ca040e4dd43b43f52d3f6818198b8461338675abd81891f2e665dde",
+        "digest": "sha256:a2d4f69339562fb2d78efac15837a94059ef0dea97993974d4c48a144586c8bc",
         "constants": {
           "WORKGROUP_SIZE": 128,
           "COLS_PER_WG": 4,
@@ -449,7 +449,7 @@
       "q6k_decode": {
         "kernel": "matmul_q4_0.wgsl",
         "entry": "gemv",
-        "digest": "sha256:ddf446aad68571e70b6af151c394475b274cae9d8d30d966628b0be89e2942ce",
+        "digest": "sha256:96a3c0229daa90ade6496b3403a294dfd5944af671719c7be19fde680a0af789",
         "constants": {
           "WORKGROUP_SIZE": 128,
           "COLS_PER_WG": 4,
@@ -463,7 +463,7 @@
       "q6k_prefill": {
         "kernel": "matmul_q4_0.wgsl",
         "entry": "prefill",
-        "digest": "sha256:3e496b406ca040e4dd43b43f52d3f6818198b8461338675abd81891f2e665dde",
+        "digest": "sha256:a2d4f69339562fb2d78efac15837a94059ef0dea97993974d4c48a144586c8bc",
         "constants": {
           "WORKGROUP_SIZE": 128,
           "COLS_PER_WG": 4,
@@ -477,7 +477,7 @@
       "q5_0_decode": {
         "kernel": "matmul_q4_0.wgsl",
         "entry": "gemv",
-        "digest": "sha256:ddf446aad68571e70b6af151c394475b274cae9d8d30d966628b0be89e2942ce",
+        "digest": "sha256:96a3c0229daa90ade6496b3403a294dfd5944af671719c7be19fde680a0af789",
         "constants": {
           "WORKGROUP_SIZE": 128,
           "COLS_PER_WG": 4,
@@ -491,7 +491,7 @@
       "q5_0_prefill": {
         "kernel": "matmul_q4_0.wgsl",
         "entry": "prefill",
-        "digest": "sha256:3e496b406ca040e4dd43b43f52d3f6818198b8461338675abd81891f2e665dde",
+        "digest": "sha256:a2d4f69339562fb2d78efac15837a94059ef0dea97993974d4c48a144586c8bc",
         "constants": {
           "WORKGROUP_SIZE": 128,
           "COLS_PER_WG": 4,

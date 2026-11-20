@@ -1,7 +1,7 @@
 // Installed API acceptance with injected logits; not physical model qualification.
 import assert from 'node:assert/strict';
 import fs from 'node:fs/promises';
-import { openCapsule, DOPPLER_VERSION, createCapsuleStreamAccumulator } from 'doppler-gpu';
+import { openCapsule, DOPPLER_VERSION, createCapsuleStreamAccumulator } from 'dopplerx';
 import { computeCanonicalSha256 } from './consumer-evidence.js';
 
 const fixture = JSON.parse(await fs.readFile(new URL('./generation-fixture.json', import.meta.url)));

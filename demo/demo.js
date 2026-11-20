@@ -1,4 +1,4 @@
-import { installDebugGlobal } from 'doppler-gpu/tooling/runtime';
+import { installDebugGlobal } from 'dopplerx/tooling/runtime';
 import { boot, setBootStatus, stopBootProgress, updateBootModelProgress } from './boot.js';
 import { reloadActiveModel, setModelCallbacks } from './models.js';
 import { initInput, setRunHandler } from './input.js';

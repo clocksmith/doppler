@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { createRequire } from 'node:module';
-import { bootstrapNodeWebGPUProvider, releaseNodeWebGPU } from './node_modules/doppler-gpu/src/tooling/node-webgpu.js';
+import { bootstrapNodeWebGPUProvider, releaseNodeWebGPU } from './node_modules/dopplerx/src/tooling/node-webgpu.js';
 
 // Installed host adapter with no optional dependencies; synthetic GPU only.
 assert.throws(() => createRequire(import.meta.url).resolve('doe-gpu/node-webgpu'), /Cannot find/);

@@ -1,7 +1,7 @@
-import * as browserRuntime from 'doppler-gpu';
+import * as browserRuntime from 'dopplerx';
 // The demo's browser import map resolves the supported host API; Node's root types expose the minimal Capsule API.
-const { dr } = /** @type {typeof import('doppler-gpu/compat')} */ (/** @type {unknown} */ (browserRuntime));
-import { loadRuntimeProfile } from 'doppler-gpu/tooling/runtime';
+const { dr } = /** @type {typeof import('dopplerx/compat')} */ (/** @type {unknown} */ (browserRuntime));
+import { loadRuntimeProfile } from 'dopplerx/tooling/runtime';
 import { state } from '../state.js';
 import { getPrompt, setGenerating } from '../../input.js';
 import { setPhase } from '../../output.js';
@@ -42,7 +42,7 @@ export async function runLivePrecision() {
   if (!state.model || !state.modelId || !prompt) { status.textContent = 'Load a model and write a prompt first.'; return; }
   if (state.generating || state.modelBusy || state.settingsBusy) return;
   if (state.settings.runtimeProfile !== 'profiles/default') { status.textContent = 'Set Options → Engine profile to Default first, so both runs start from the same settings.'; return; }
-  const model = /** @type {import('doppler-gpu/tooling/evidence').DopplerModelHandle} */ (state.model);
+  const model = /** @type {import('dopplerx/tooling/evidence').DopplerModelHandle} */ (state.model);
   const generation = { temperature: 0, topK: 1, topP: 1, repetitionPenalty: 1, seed: 0, maxTokens: 16, useChatTemplate: true };
   state.generating = true;
   state.abortController = new AbortController();
@@ -52,7 +52,7 @@ export async function runLivePrecision() {
   results.replaceChildren();
   comparison = { schema: 'doppler.live-precision-comparison/v1', prompt, modelId: state.modelId,
     candidateProfile: 'profiles/demo-f16-comparison', generation, completed: false, lanes: [] };
-  /** @type {import('doppler-gpu/tooling/evidence').DopplerModelHandle | null} */
+  /** @type {import('dopplerx/tooling/evidence').DopplerModelHandle | null} */
   let candidate = null;
   const lanes = [];
   try {
