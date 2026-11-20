@@ -128,7 +128,8 @@ step('all registry models have HF coordinates', async () => {
   const models = await listQuickstartModels();
   for (const model of models) {
     const entry = await resolveQuickstartModel(model.modelId);
-    if (entry.hf?.repoId && entry.hf?.revision && entry.hf?.path) {
+    const weights = entry.hostedSource?.weights ?? entry.hf;
+    if (weights?.repoId && weights?.revision && weights?.path) {
       pass(`${model.modelId}: HF coordinates complete`);
     } else {
       fail(`${model.modelId}: missing HF repoId, revision, or path`);
@@ -180,7 +181,7 @@ step('HF manifest reachability (network probe)', async () => {
   for (const model of models) {
     const entry = await resolveQuickstartModel(model.modelId);
     const baseUrl = buildQuickstartModelBaseUrl(entry);
-    const manifestUrl = getManifestUrl(baseUrl);
+    const manifestUrl = entry.hostedSource?.manifestUrl ?? getManifestUrl(baseUrl);
     try {
       const response = await fetch(manifestUrl, { method: 'HEAD', redirect: 'follow' });
       if (response.ok || response.status === 302 || response.status === 307) {
@@ -196,7 +197,15 @@ step('HF manifest reachability (network probe)', async () => {
           fail(`${model.modelId}: manifest GET HTTP ${manifestResponse.status} at ${manifestUrl}`);
           continue;
         }
-        const manifest = await manifestResponse.json();
+        const text = await manifestResponse.text();
+        const manifest = JSON.parse(text);
+        if (entry.hostedSource) {
+          const { createHash } = await import('node:crypto');
+          if (manifest.modelId !== entry.modelId || createHash('sha256').update(text).digest('hex') !== entry.hostedSource.expectedManifestHash) {
+            fail(`${model.modelId}: remote manifest identity mismatch`);
+            continue;
+          }
+        }
         const session = manifest?.inference?.session;
         const kvcache_layout = session?.kvcache?.layout;
         const decode_loop = session?.decodeLoop;

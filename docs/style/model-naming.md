@@ -143,12 +143,17 @@ placement that would change under a reissue.
 | Three Gemma 4 E2B variants | After the text suffix, include `vf16-audiof16-pf16`. Preserve `int4ple` for the two variants that declare per-row embeddings. |
 | Gemma 4 12B compressed-tensors W4A16 | Place the `ct` descriptor before the generated `w4a16-ehf16-af16` suffix. |
 
-Doppler’s 0.8B and 2B origin revisions serve the expected weight shard hashes,
-but their manifest hashes differ both from the new Reploid identities and from
-the older Reploid identities they supersede. The inference records differ as
-well. Keep the current Doppler entries and aliases bound to their actual
-manifests. Switching them requires an origin that serves the exact reissued
-manifest and its weight files.
+Doppler’s existing 0.8B and 2B IDs and short aliases keep their original
+Hugging Face manifests. The reissued IDs have separate catalog records. Their
+`hostedSource` pins the exact manifest URL and SHA-256 and gives the Hugging
+Face revision and directory for the payload files. The quickstart loader reads
+the manifest from the first source and the tokenizer and shards from the
+second. The legacy data directory also contains a different manifest.
+
+Quickstart promotion requires an inference receipt for the reissued identity.
+For a local verification run, give the harness a `file://` RDRR directory
+containing the reissued manifest and matching payload files. A manifest hash
+mismatch fails before model loading.
 
 ## Renaming a model
 

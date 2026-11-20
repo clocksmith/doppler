@@ -82,12 +82,13 @@ const models = Array.isArray(catalog.models) ? catalog.models : [];
     if (entry.quickstart !== true) {
       continue;
     }
+    const weights = entry.hostedSource?.weights ?? entry.hf;
     assert.ok(
-      entry?.hf?.repoId && entry?.hf?.revision && entry?.hf?.path,
+      weights?.repoId && weights?.revision && weights?.path,
       `Quickstart entry ${entry.modelId} requires hf.repoId, hf.revision, and hf.path`
     );
     assert.notEqual(
-      entry.hf.revision,
+      weights.revision,
       'unknown-local-snapshot',
       `Quickstart entry ${entry.modelId} must not use placeholder hf.revision`
     );

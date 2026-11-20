@@ -104,7 +104,7 @@ export declare function resolvePersistentBrowserLoadSource(
     modelId: string,
     modelBaseUrl: string,
     onProgress: ((event: Record<string, unknown>) => void) | null,
-    options: { expectedManifestHash: string; signal?: AbortSignal }
+    options: { expectedManifestHash: string; manifestUrl?: string; signal?: AbortSignal }
   ) => Promise<{
     storageContext: Record<string, unknown>;
     storageBackend: 'opfs';

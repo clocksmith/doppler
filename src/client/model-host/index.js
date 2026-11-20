@@ -6,6 +6,7 @@ import { listQuickstartModels } from '../doppler-registry.js';
 import {
   createDefaultNodeLoadProgressLogger,
   fetchManifestPayloadFromBaseUrl,
+  assertRegistryManifest,
   resolveManifestArtifactSource,
   resolveLoadProgressHandlers,
   resolveModelSource,
@@ -125,7 +126,7 @@ export async function resolvePersistentBrowserLoadSource(
     storageModelId,
     storageBaseUrl,
     (event) => emitPersistentCacheProgress(onProgress, event),
-    { expectedManifestHash, signal }
+    { expectedManifestHash, signal, ...(loadSource.manifestUrl ? { manifestUrl: loadSource.manifestUrl } : {}) }
   );
   return {
     ...loadSource,
@@ -257,7 +258,8 @@ export function createDopplerRuntimeService({
         }
         return { text, manifest: resolved.manifest, manifestHash };
       })()
-      : await fetchManifestPayloadFromBaseUrl(resolved.baseUrl, options.signal);
+      : await fetchManifestPayloadFromBaseUrl(resolved.baseUrl, options.signal, resolved.manifestUrl);
+    assertRegistryManifest(resolved, manifestPayload);
     const revocationIdentity = Object.freeze({
       logicalModelId: resolved.logicalModelId,
       modelId: manifestPayload.manifest?.modelId ?? resolved.modelId,
