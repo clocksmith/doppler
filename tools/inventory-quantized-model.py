@@ -40,24 +40,27 @@ def tensor_chunks(root, manifest, entry, start=0, size=None):
     assert remaining == 0, 'Incomplete tensor span mapping'
 
 
-def inventory(root, source_revision):
+def inventory(root, source_revision, checkpoint_id='Qwen/Qwen3.8-27B'):
     import numpy as np
     from gguf import GGMLQuantizationType, dequantize
 
     root = Path(root).resolve()
     manifest = json.loads((root / 'manifest.json').read_text())
     assert manifest['artifactIdentity']['sourceRevision'] == source_revision
-    assert manifest['artifactIdentity']['sourceCheckpointId'] == 'Qwen/Qwen3.8-27B'
+    assert manifest['artifactIdentity']['sourceCheckpointId'] == checkpoint_id
     files = []
     for shard in manifest['shards']:
         path = (root / shard['filename']).resolve()
         assert path.parent == root and path.stat().st_size == shard['size']
-        files.append(dict(path=shard['filename'], bytes=shard['size'], sha256=sha_file(path),
+        digest = sha_file(path)
+        if manifest['hashAlgorithm'] == 'sha256':
+            assert digest == shard['hash'], shard['filename']
+        files.append(dict(path=shard['filename'], bytes=shard['size'], sha256=digest,
                           declaredHash=shard['hash']))
     assets = [dict(path=p.name, bytes=p.stat().st_size, sha256=sha_file(p))
               for p in sorted(root.iterdir()) if p.is_file() and p.suffix in ('.json', '.txt')]
     tensors, samples, totals = [], [], {}
-    sample_names = {'lm_head.weight', 'model.language_model.layers.0.mlp.gate_proj.weight',
+    sample_names = {'lm_head.weight', 'model.language_model.lm_head.weight', 'model.language_model.layers.0.mlp.gate_proj.weight',
                     'model.language_model.layers.0.linear_attn.in_proj_qkv.weight'}
     for name, entry in manifest['tensors'].items():
         count = math.prod(entry['shape'])
@@ -99,12 +102,13 @@ def inventory(root, source_revision):
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--model', required=True)
+    parser.add_argument('--checkpoint-id', default='Qwen/Qwen3.8-27B')
     parser.add_argument('--revision', required=True)
     parser.add_argument('--out', required=True)
     args = parser.parse_args()
     output = Path(args.out)
     assert not output.exists(), 'Refusing to replace retained evidence'
-    result = inventory(args.model, args.revision)
+    result = inventory(args.model, args.revision, args.checkpoint_id)
     output.parent.mkdir(parents=True, exist_ok=True)
     with output.open('x') as stream:
         json.dump(result, stream, indent=2)
