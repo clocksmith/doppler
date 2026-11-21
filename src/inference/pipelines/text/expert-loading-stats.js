@@ -13,3 +13,39 @@ export function snapshotExpertLoadingStats(owner) {
     profilerEnabled: owner.runtimeConfig?.shared?.debug?.profiler?.enabled === true,
     routedExpertCache: loader.getRoutedExpertCacheStats(), routedReadback: loader.getRoutedReadbackStats() });
 }
+
+/** @type {WeakMap<object, { selectionAwaitMs: number, preparationAwaitMs: number }>} */
+const exposedWaits = new WeakMap();
+
+/** @type {typeof import('./expert-loading-stats.js').routedPrefillWaits} */
+export function routedPrefillWaits(loader) {
+  let counters = exposedWaits.get(loader);
+  if (!counters) {
+    counters = { selectionAwaitMs: 0, preparationAwaitMs: 0 };
+    exposedWaits.set(loader, counters);
+  }
+  return counters;
+}
+
+/** Selected additive counters only. GPU work and asynchronous source operations can overlap.
+ * @type {typeof import('./expert-loading-stats.js').readPrefillExpertCounters} */
+export function readPrefillExpertCounters(loader) {
+  const cache = loader.getRoutedExpertCacheStats();
+  // The normal loader creates the routed cache lazily, often during the first prompt.
+  const prepare = cache?.phaseProfiles.prefill;
+  const readback = loader.getRoutedReadbackStats().phases.prefill;
+  return {
+    ...routedPrefillWaits(loader),
+    preparations: prepare?.preparations ?? null,
+    prepareWallMs: prepare?.prepareWallMs ?? null,
+    routeReadbacks: readback?.calls ?? 0,
+    routeReadbackWallMs: readback?.wallMs ?? 0,
+    sourceReads: cache?.sourceReads ?? 0,
+    sourceReadBytes: cache?.sourceReadBytes ?? 0,
+    sourceReadWaitMs: cache?.sourceReadWaitMs ?? 0,
+    uploadBytes: cache?.uploadBytes ?? 0,
+    cacheHits: cache?.cacheHits ?? 0,
+    cacheMisses: cache?.cacheMisses ?? 0,
+    initialQueueIdleForWeightsMs: cache?.initialQueueIdleForWeightsMs ?? 0,
+  };
+}

@@ -14,3 +14,8 @@ export interface ExpertLoadingStatsOwner {
 }
 /** Detached CPU-only snapshot. Requires a loaded, supported owner. */
 export function snapshotExpertLoadingStats(owner: ExpertLoadingStatsOwner): ExpertLoadingStats;
+
+export function routedPrefillWaits(loader: object): { selectionAwaitMs: number; preparationAwaitMs: number };
+export function readPrefillExpertCounters(
+  loader: Pick<DopplerLoader, 'getRoutedExpertCacheStats' | 'getRoutedReadbackStats'>
+): Record<string, number | null>;

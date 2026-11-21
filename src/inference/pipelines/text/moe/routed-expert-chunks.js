@@ -1,3 +1,4 @@
+import { routedPrefillWaits } from '../expert-loading-stats.js';
 import { isRoutedExpertTraceActive, readRoutedExpertSelection } from '../../../../loader/experts/routed-expert-trace.js';
 import { getRuntimeConfig } from '../../../../config/runtime.js';
 import { acquireBuffer, readBufferSlice, releaseBuffer } from '../../../../memory/buffer-pool.js';
@@ -69,11 +70,12 @@ export async function executeRoutedExpertChunks(options, loader, policy, signal,
   }
   const chunkTokens = capacity === undefined ? policy.routeChunkTokens
     : Math.min(policy.routeChunkTokens, Math.floor(capacity / topK));
+  const profile = getRuntimeConfig().shared.debug.profiler.enabled;
+  const waits = profile && options.phase === 'prefill' ? routedPrefillWaits(loader) : null;
   /** @param {number} start */
   const selections = async start => {
     signal?.throwIfAborted();
     const count = Math.min(chunkTokens, numTokens - start);
-    const profile = getRuntimeConfig().shared.debug.profiler.enabled;
     const started = profile ? performance.now() : 0;
     // Append the selection copy to routing's encoder and submit that prefix once.
     // Mapping still settles all earlier bank consumers before cache reuse. The
@@ -87,9 +89,13 @@ export async function executeRoutedExpertChunks(options, loader, policy, signal,
     signal?.throwIfAborted();
     return [...new Set(new Uint32Array(data))];
   };
+  let waitStart = waits ? performance.now() : 0;
   let ids = await selections(0);
+  if (waits) waits.selectionAwaitMs += performance.now() - waitStart;
   if (numTokens <= chunkTokens) {
+    if (waits) waitStart = performance.now();
     const weights = await loader.prepareRoutedExperts(layerIdx, ids, signal, options.phase);
+    if (waits) waits.preparationAwaitMs += performance.now() - waitStart;
     signal?.throwIfAborted();
     if (!weights.sourceExpertToSlot) return recorder
       ? recordQwenRouteExperts(recorder, { ...options, weights })
@@ -137,8 +143,16 @@ export async function executeRoutedExpertChunks(options, loader, policy, signal,
         copy.copyBufferToBuffer(indicesBuffer, start * topK * 4, indices, 0, count * topK * 4);
         copy.copyBufferToBuffer(weightsBuffer, start * topK * 4, routes, 0, count * topK * 4);
         device.queue.submit([copy.finish()]);
+        // Measure the caller's outstanding wait, after scheduling the parallel selection and input copies.
+        if (waits) waitStart = performance.now();
         const weights = await preparing;
+        if (waits) {
+          const now = performance.now();
+          waits.preparationAwaitMs += now - waitStart;
+          waitStart = now;
+        }
         ids = next ? await next : [];
+        if (waits && next) waits.selectionAwaitMs += performance.now() - waitStart;
         signal?.throwIfAborted();
         remapped = await remapCompactIndices(weights, indices, count, topK, selectedIds, tiered, options.phase, null);
         chunkOutput = await runQwenRouteExperts({ ...options, numTokens: count, weights,

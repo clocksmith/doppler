@@ -1,5 +1,7 @@
 import assert from 'node:assert/strict';
 import { registerHooks } from 'node:module';
+import { mock } from 'node:test';
+import { routedPrefillWaits } from '../../src/inference/pipelines/text/expert-loading-stats.js';
 import { beginRoutedExpertTrace, finishRoutedExpertTrace } from '../../src/loader/experts/routed-expert-trace.js';
 
 const target = new URL('../../src/inference/pipelines/text/moe/routed-expert-chunks.js', import.meta.url).href;
@@ -20,7 +22,7 @@ globalThis.routedTraceFixture = {
   },
 };
 const substitutions = {
-  '../../../../config/runtime.js': 'export const getRuntimeConfig = () => ({shared:{debug:{profiler:{enabled:false}}}});',
+  '../../../../config/runtime.js': 'export const getRuntimeConfig = () => ({shared:{debug:{profiler:{enabled:routedTraceFixture.profile === true}}}});',
   '../../../../memory/buffer-pool.js': 'export const acquireBuffer = n => ({data:new ArrayBuffer(n)}); export const releaseBuffer = () => {}; export const readBufferSlice = (...a) => routedTraceFixture.read(...a);',
   '../../../../gpu/device.js': 'export const getDevice = () => routedTraceFixture.device;',
   '../../../../gpu/tensor.js': 'export const createTensor = buffer => ({buffer});',
@@ -60,6 +62,64 @@ try {
   assert.deepEqual(trace.records.map(r => r.tokenOffset), [0, 2]);
   assert.deepEqual(trace.records.map(r => r.layer), [5, 5]);
   assert.deepEqual(state.prepares.map(r => r.ids), [[9, 2, 4], [7, 4]], 'Trace retains duplicates before loader deduplication');
+  assert.deepEqual(routedPrefillWaits(loader), { selectionAwaitMs: 0, preparationAwaitMs: 0 });
+  // A virtual clock and explicit gates distinguish a hidden read from time actually blocking the next chunk.
+  let now = 0;
+  const clock = mock.method(performance, 'now', () => now);
+  const fixture = globalThis.routedTraceFixture;
+  const originalRead = fixture.read, originalSubmit = fixture.device.queue.submit;
+  try {
+    fixture.profile = true;
+    for (const selectionLast of [false, true]) {
+      now = 0;
+      const selects = Promise.withResolvers();
+      const prep = [Promise.withResolvers(), Promise.withResolvers()];
+      const started = [Promise.withResolvers(), Promise.withResolvers()];
+      let reads = 0, prepares = 0, submits = 0, readbackWall = 0;
+      fixture.read = async (buffer, offset, length) => {
+        if (++reads === 1) now = 5;
+        else await selects.promise;
+        return buffer.data.slice(offset, offset + length);
+      };
+      fixture.device.queue.submit = () => { if (++submits === 1) now = 10; };
+      const measured = { ...loader, recordRoutedReadback: (_phase, elapsed) => { readbackWall += elapsed; },
+        async prepareRoutedExperts() {
+          const i = prepares++;
+          started[i].resolve();
+          await prep[i].promise;
+          return {};
+        } };
+      const running = executeRoutedExpertChunks(paged, measured, { storageMode: 'sparse', routeChunkTokens: 2 });
+      await started[0].promise;
+      if (!selectionLast) {
+        now = 15; selects.resolve();
+        await new Promise(resolve => setImmediate(resolve));
+      }
+      now = 20; prep[0].resolve();
+      if (selectionLast) {
+        await new Promise(resolve => setImmediate(resolve));
+        now = 29; selects.resolve();
+      }
+      await started[1].promise;
+      now += 5; prep[1].resolve();
+      await running;
+      assert.deepEqual(routedPrefillWaits(measured), { selectionAwaitMs: selectionLast ? 14 : 5, preparationAwaitMs: 15 });
+      assert.equal(readbackWall, selectionLast ? 29 : 15, 'Readback wall includes overlap with preparation and input copies');
+    }
+    now = 0;
+    fixture.device.queue.submit = originalSubmit;
+    fixture.read = async (buffer, offset, length) => {
+      now += 4;
+      return buffer.data.slice(offset, offset + length);
+    };
+    const direct = { ...loader, async prepareRoutedExperts() { now += 7; return {}; } };
+    await executeRoutedExpertChunks(paged, direct, { storageMode: 'sparse', routeChunkTokens: paged.numTokens });
+    assert.deepEqual(routedPrefillWaits(direct), { selectionAwaitMs: 4, preparationAwaitMs: 7 });
+  } finally {
+    clock.mock.restore();
+    fixture.read = originalRead;
+    fixture.device.queue.submit = originalSubmit;
+  }
 } finally {
   hooks.deregister();
   delete globalThis.routedTraceFixture;
