@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import test from 'node:test';
 import { execFile } from 'node:child_process';
 import { promisify } from 'node:util';
 import path from 'node:path';
@@ -115,11 +116,6 @@ function parseJsonFromStdout(stdout, label) {
 
 // E2E NaN Regression Test for Gemma 3 F16a/F32a Stability
 async function runTest() {
-  if (!fs.existsSync(manifestPath)) {
-    console.log(`[NaN Regression] skipped: local fixture missing at ${manifestPath}`);
-    return;
-  }
-
   await assertManifestArtifactIntegrity(manifestPath);
   const { server, origin } = await startLocalFixtureServer();
   const modelUrl = `${origin}/${modelId}`;
@@ -186,10 +182,12 @@ async function runTest() {
     console.error('[NaN Regression] Test failed:', error.message);
     if (error.stdout) console.error('STDOUT:', error.stdout);
     if (error.stderr) console.error('STDERR:', error.stderr);
-    process.exit(1);
+    throw error;
   } finally {
     await new Promise((resolve) => server.close(resolve));
   }
 }
 
-runTest();
+test('Gemma F16 model generates nonempty text without NaNs', {
+  skip: fs.existsSync(manifestPath) ? false : `Local model fixture missing: ${manifestPath}`,
+}, runTest);

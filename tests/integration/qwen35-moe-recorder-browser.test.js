@@ -43,14 +43,21 @@ try {
       const { T, H, I, E, S } = f;
       const source = upload(new Float32Array(f.input)), pending = upload(new Float32Array(T * H));
       const router = new MoERouter({ numExperts: E, topK: 2, hiddenSize: H, normalizeWeights: true });
-      router.loadWeights(matrix(f.router, [E, H]));
+      const routerWeight = matrix(f.router, [E, H]);
+      router.loadWeights(routerWeight);
       const packed = { numExperts: E, expertFormat: 'qwen3_5',
         gateUp: createWeightBuffer(upload(new Uint8Array(f.gateUp)), 'q4k', 'row', [E, 2 * I, H]),
         down: createWeightBuffer(upload(new Uint8Array(f.down)), 'q4k', 'row', [E, H, I]) };
+      const expertWeights = new Map();
+      for (let expertIdx = 0; expertIdx < E; expertIdx++) {
+        expertWeights.set(`layer_0_expert_${expertIdx}`, { ...packed, expertIdx });
+      }
       const context = { config: { modelType: 'transformer', hiddenSize: H, intermediateSize: I,
         moeExpertIntermediateSize: I, moeSharedExpertIntermediateSize: S, numExperts: E, moeTopK: 2,
         expertFormat: 'qwen3_5', hiddenActivation: 'silu', swigluLimit: null, rmsNormEps: 1e-6 },
-        moeRouter: router, expertWeights: new Map([['layer_0_expert_0', packed]]),
+        layerRouterWeights: new Map([[0, { weight: routerWeight }]]),
+        runtimeMoERoutingConfig: { ...getRuntimeConfig().inference.moe.routing, activeExpertSelection: 'topk-route' },
+        moeRouter: router, expertWeights,
         expertLoader: { isExpertResident: () => true, loadExpert() { throw Error('Resident bank must not reload'); } },
         weights: new Map([['layer_0', { sharedExpertGate: matrix(f.sharedGate, [S, H]),
           sharedExpertUp: matrix(f.sharedUp, [S, H]), sharedExpertDown: matrix(f.sharedDown, [H, S]),
@@ -68,6 +75,18 @@ try {
         maxAbs = Math.max(maxAbs, Math.abs(observed[i] - expected[i]));
         if (!Number.isFinite(observed[i]) || Math.abs(observed[i] - expected[i]) > 0.00001) throw Error(`Recorded MoE mismatch at ${i}`);
       }
+      const readback = await runMoEFFNGPU(0, createTensor(source, 'f32', [T, H]), T, {
+        ...context, runtimeMoERoutingConfig: { ...context.runtimeMoERoutingConfig, activeExpertSelection: 'topk-readback' }
+      });
+      owned.push(readback.buffer);
+      const readbackRows = new Float32Array(await readBuffer(readback.buffer, T * H * 4));
+      let readbackMaxAbs = 0;
+      for (let i = 0; i < expected.length; i++) {
+        const difference = Math.abs(readbackRows[i] - expected[i]);
+        if (!Number.isFinite(difference) || difference > 0.00001) throw Error(`Expert readback mismatch at ${i}`);
+        readbackMaxAbs = Math.max(readbackMaxAbs, difference);
+      }
+
       workspace = new PreparedDecodeWorkspace(device);
       const workspaceCases = [];
       const createBuffer = device.createBuffer.bind(device), createBindGroup = device.createBindGroup.bind(device);
@@ -89,7 +108,7 @@ try {
           } finally { await current.abort(); }
         }
       } finally { device.createBuffer = createBuffer; device.createBindGroup = createBindGroup; }
-      return { maxAbs, workspaceCases, gpuErrors, adapter: getKernelCapabilities().adapterInfo, recorder: recorder.getStats() };
+      return { maxAbs, readbackMaxAbs, workspaceCases, gpuErrors, adapter: getKernelCapabilities().adapterInfo, recorder: recorder.getStats() };
     } finally {
       await recorder?.abort();
       for (const buffer of owned) releaseBuffer(buffer);

@@ -117,7 +117,9 @@ try {
     const coreInput = upload(input), logits = new Float32Array([
       Math.log(0.75), -20, Math.log(0.25), -20, Math.log(0.6), Math.log(0.4),
     ]);
-    const router = { gateWeight: {}, normalizeWeights: true, topK, lastLogitsDtype: 'f32',
+    const routerWeight = new Float32Array(E * H);
+    const router = { gateWeight: routerWeight, normalizeWeights: true, topK, lastLogitsDtype: 'f32',
+      loadWeights(weight) { assert.equal(weight, routerWeight, 'Fixed logits belong to the selected layer'); },
       async computeRouterLogitsGPU() {
         const buffer = acquireBuffer(logits.byteLength);
         uploadData(buffer, logits);
@@ -128,7 +130,8 @@ try {
     const result = await moeFeedForwardGPU(coreInput, T, { modelType: 'transformer', hiddenSize: H,
       intermediateSize: I, expertIntermediateSize: I, numExperts: E, moeTopK: topK,
       expertFormat: 'qwen3_5', hiddenActivation: 'silu', swigluLimit: null, activationDtype: 'f32', kernelPath: null },
-    router, expertWeights, { isExpertResident: () => true, loadExpert() { throw new Error('Resident bank must not reload individual experts'); } }, 0, null);
+    router, expertWeights, { isExpertResident: () => true, loadExpert() { throw new Error('Resident bank must not reload individual experts'); } },
+    0, new Map([[0, { weight: routerWeight }]]));
     try { receipts.push({ coreWithFixtureRouter: true,
       maxAbs: check(new Float32Array(await readBuffer(result, expected.length * 4)), expected, 'moe core') }); }
     finally { releaseBuffer(result); }
