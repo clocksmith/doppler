@@ -1,8 +1,10 @@
 {
-  "schema": "dopplerx.physical-f16-qualification/v1",
+  "schema": "dopplerx.physical-f16-qualification/v2",
   "package": {
     "name": "dopplerx",
-    "version": "0.1.5"
+    "version": "0.1.5",
+    "archiveSha256": "ecb2a13e0823ea46fec3cccbf4aaae962ce412cd640eab4b56b69ac8499fde9a",
+    "unpackedFileCount": 2059
   },
   "device": {
     "vendor": "amd",
@@ -18,6 +20,50 @@
     "subgroups",
     "timestamp-query"
   ],
+  "gradientClippingAndOverflow": {
+    "f32LogicalExtentCheck": {
+      "physicalElements": 4,
+      "logicalShape": [
+        2
+      ],
+      "paddedInputWithTrailingNaNAnd200": [
+        3,
+        4,
+        "NaN",
+        200
+      ],
+      "overflowWithDirtyPadding": false,
+      "totalParamCount": 2,
+      "unclippedNorm": 5,
+      "clippedNorm": 1,
+      "clippedGpuValues": [
+        0.6,
+        0.8
+      ],
+      "overflowWhenLogicalElementNaN": true
+    },
+    "f16LogicalExtentCheck": {
+      "physicalElements": 8,
+      "logicalShape": [
+        2
+      ],
+      "paddedInputF16Hex": [
+        "0x4200",
+        "0x4400",
+        "0x7e00",
+        "0x7c00"
+      ],
+      "overflowWithDirtyPadding": false,
+      "totalParamCount": 2,
+      "unclippedNorm": 5,
+      "clippedNorm": 1,
+      "clippedGpuF16Bits": [
+        14541,
+        14950
+      ],
+      "overflowWhenLogicalElementNaN": true
+    }
+  },
   "models": [
     {
       "modelId": "qwen-3-5-0-8b-q4k-ehaf16",
@@ -90,5 +136,5 @@
       "errorMessage": "[ExecutionV1] capability transforms required for \"qwen-3-5-2b-q4k-ef16-af32\" (GPU lacks shader-f16.) but runtime.inference.kernelPathPolicy is {\"mode\":\"capability-aware\",\"sourceScope\":[\"manifest\"],\"allowSources\":[\"manifest\"],\"onIncompatible\":\"error\"}. Use capability-aware remap for manifest-owned execution graphs or choose a compatible runtime."
     }
   ],
-  "checkedUtc": "2026-11-21T15:44:30.180Z"
+  "checkedUtc": "2026-11-21T19:38:45.005Z"
 }

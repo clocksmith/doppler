@@ -1,15 +1,32 @@
 #!/usr/bin/env node
 import assert from 'node:assert/strict';
 import { createHash } from 'node:crypto';
-import { readFileSync, writeFileSync } from 'node:fs';
+import { readdirSync, readFileSync, statSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
 import { pathToFileURL } from 'node:url';
 
-const [runtimeRoot, manifestDir, outputFile, expectedVendor] = process.argv.slice(2);
+const [runtimeRoot, manifestDir, outputFile, expectedVendor, tarballPath] = process.argv.slice(2);
 if (!runtimeRoot || !manifestDir || !outputFile || !expectedVendor) {
-  console.error('Usage: node verify-packed-f16-precision.js <unpacked-dopplerx-dir> <manifest-dir> <output.json> <vendor-regex>');
+  console.error('Usage: node verify-packed-f16-precision.js <unpacked-dopplerx-dir> <manifest-dir> <output.json> <vendor-regex> [tarball-path]');
   process.exit(2);
 }
+
+function countFiles(dir) {
+  let count = 0;
+  for (const entry of readdirSync(dir, { withFileTypes: true })) {
+    if (entry.name === 'node_modules') continue;
+    const full = path.join(dir, entry.name);
+    if (entry.isSymbolicLink()) continue;
+    if (entry.isDirectory()) count += countFiles(full);
+    else if (statSync(full).isFile()) count += 1;
+  }
+  return count;
+}
+
+const archiveSha256 = tarballPath
+  ? createHash('sha256').update(readFileSync(tarballPath)).digest('hex')
+  : null;
+const unpackedFileCount = countFiles(runtimeRoot);
 
 const load = (relPath) => import(pathToFileURL(path.resolve(runtimeRoot, relPath)).href);
 const pkg = JSON.parse(readFileSync(path.resolve(runtimeRoot, 'package.json'), 'utf8'));
@@ -17,6 +34,10 @@ assert.equal(pkg.name, 'dopplerx', `Expected package name dopplerx, got ${pkg.na
 
 const { bootstrapNodeWebGPU } = await load('src/tooling/node-webgpu.js');
 const gpuModule = await load('src/gpu/device.js');
+const { acquireBuffer, releaseBuffer, readBuffer, uploadData, getBufferPool } = await load('src/memory/buffer-pool.js');
+const { createTensor } = await load('src/gpu/tensor.js');
+const { clipGradients } = await load('src/experimental/training/clip.js');
+const { detectOverflow } = await load('src/experimental/training/loss-scaling.js');
 const { applyExecutionV1RuntimeConfig } = await load('src/inference/pipelines/text/execution/execution-v1.js');
 const { resolveKernelPathState } = await load('src/inference/pipelines/text/loading/model-load.js');
 const { getLayerSteps } = await load('src/config/kernel-path-loader.js');
@@ -37,8 +58,10 @@ device.addEventListener('uncapturederror', (e) => errors.push(e.error.message));
 const B = GPUBufferUsage;
 const models = [];
 const failClosedChecks = [];
+let gradientClippingAndOverflow = null;
 
 try {
+  // 1. Verify packed F16 Qwen kernel dispatches and fail-closed precision rejection across all four manifests.
   for (const file of ['0-8b-old.json', '0-8b.json', '2b-old.json', '2b.json']) {
     const manifestPath = path.join(manifestDir, file);
     const manifestBytes = readFileSync(manifestPath);
@@ -172,18 +195,114 @@ try {
     });
   }
 
+  // 2. Physical GPU gradient clipping & overflow check with leftover NaN/Inf/200 data beyond logical tensor extents.
+  getBufferPool().configure({ enablePooling: true });
+  {
+    // F32 pooled buffer: 16 bytes physical ([3, 4, NaN, 200]), logical shape [2] (8 bytes).
+    const f32Backing = new Float32Array([3, 4, Number.NaN, 200]);
+    const f32Buf = acquireBuffer(f32Backing.byteLength, B.STORAGE | B.COPY_DST | B.COPY_SRC, 'grad_f32_padded');
+    uploadData(f32Buf, f32Backing);
+    const f32Grad = createTensor(f32Buf, 'f32', [2], 'grad_f32_padded');
+    const f32Map = new Map([['weight', f32Grad]]);
+
+    const f32OverflowClean = await detectOverflow(f32Map);
+    assert.equal(f32OverflowClean, false, 'detectOverflow(f32) must ignore trailing NaN in pooled buffer padding');
+
+    const f32ClipRes = await clipGradients(f32Map, { training: { gradientClipping: { maxNorm: 1 } } });
+    assert.equal(f32ClipRes.total_param_count, 2);
+    assert.equal(f32ClipRes.clipped_event_count, 1);
+    assert.equal(f32ClipRes.gradient_norm_unclipped, 5);
+    assert.equal(f32ClipRes.gradient_norm_clipped, 1);
+    const f32ClippedTensor = f32ClipRes.clippedGrads.get('weight');
+    const f32ClippedValues = Array.from(new Float32Array(await readBuffer(f32ClippedTensor.buffer, 8))).map((v) => Number(v.toFixed(6)));
+    assert.deepEqual(f32ClippedValues, [0.6, 0.8], `Expected physical GPU scaled gradients [0.6, 0.8], got ${JSON.stringify(f32ClippedValues)}`);
+
+    // Inject NaN inside logical extent [0..1] -> detectOverflow must return true.
+    uploadData(f32Buf, new Float32Array([Number.NaN, 4, 0, 0]));
+    const f32OverflowDetected = await detectOverflow(f32Map);
+    assert.equal(f32OverflowDetected, true, 'detectOverflow(f32) must detect NaN within logical extent');
+    releaseBuffer(f32ClippedTensor.buffer);
+    releaseBuffer(f32Buf);
+
+    // F16 pooled buffer: 16 bytes physical ([3.0, 4.0, NaN, +Inf, 200.0, ...]), logical shape [2] (4 bytes).
+    // IEEE-754 F16: 3.0 = 0x4200, 4.0 = 0x4400, NaN = 0x7e00, +Inf = 0x7c00
+    const f16Backing = new Uint16Array([0x4200, 0x4400, 0x7e00, 0x7c00, 0x7e00, 0x7c00, 0x7e00, 0x7c00]);
+    const f16Buf = acquireBuffer(f16Backing.byteLength, B.STORAGE | B.COPY_DST | B.COPY_SRC, 'grad_f16_padded');
+    uploadData(f16Buf, f16Backing);
+    const f16Grad = createTensor(f16Buf, 'f16', [2], 'grad_f16_padded');
+    const f16Map = new Map([['weight_f16', f16Grad]]);
+
+    const f16OverflowClean = await detectOverflow(f16Map);
+    assert.equal(f16OverflowClean, false, 'detectOverflow(f16) must ignore trailing NaN/+Inf in pooled buffer padding');
+
+    const f16ClipRes = await clipGradients(f16Map, { training: { gradientClipping: { maxNorm: 1 } } });
+    assert.equal(f16ClipRes.total_param_count, 2);
+    assert.equal(f16ClipRes.clipped_event_count, 1);
+    assert.equal(f16ClipRes.gradient_norm_unclipped, 5);
+    assert.equal(f16ClipRes.gradient_norm_clipped, 1);
+    const f16ClippedTensor = f16ClipRes.clippedGrads.get('weight_f16');
+    const f16ClippedBits = Array.from(new Uint16Array(await readBuffer(f16ClippedTensor.buffer, 4)));
+    // 0.6 in F16 is 0x38cd (0.60009765625), 0.8 in F16 is 0x3a66 (0.7998046875)
+    assert.deepEqual(f16ClippedBits, [0x38cd, 0x3a66], `Expected F16 clipped bits [0x38cd, 0x3a66], got ${JSON.stringify(f16ClippedBits)}`);
+
+    uploadData(f16Buf, new Uint16Array([0x7e00, 0x4400, 0, 0, 0, 0, 0, 0]));
+    const f16OverflowDetected = await detectOverflow(f16Map);
+    assert.equal(f16OverflowDetected, true, 'detectOverflow(f16) must detect NaN within logical extent');
+    releaseBuffer(f16ClippedTensor.buffer);
+    releaseBuffer(f16Buf);
+
+    gradientClippingAndOverflow = {
+      f32LogicalExtentCheck: {
+        physicalElements: 4,
+        logicalShape: [2],
+        paddedInputWithTrailingNaNAnd200: [3, 4, 'NaN', 200],
+        overflowWithDirtyPadding: f32OverflowClean,
+        totalParamCount: f32ClipRes.total_param_count,
+        unclippedNorm: f32ClipRes.gradient_norm_unclipped,
+        clippedNorm: f32ClipRes.gradient_norm_clipped,
+        clippedGpuValues: f32ClippedValues,
+        overflowWhenLogicalElementNaN: f32OverflowDetected,
+      },
+      f16LogicalExtentCheck: {
+        physicalElements: 8,
+        logicalShape: [2],
+        paddedInputF16Hex: ['0x4200', '0x4400', '0x7e00', '0x7c00'],
+        overflowWithDirtyPadding: f16OverflowClean,
+        totalParamCount: f16ClipRes.total_param_count,
+        unclippedNorm: f16ClipRes.gradient_norm_unclipped,
+        clippedNorm: f16ClipRes.gradient_norm_clipped,
+        clippedGpuF16Bits: f16ClippedBits,
+        overflowWhenLogicalElementNaN: f16OverflowDetected,
+      },
+    };
+  }
+
   assert.deepEqual(errors, []);
   const receipt = {
-    schema: 'dopplerx.physical-f16-qualification/v1',
-    package: { name: pkg.name, version: pkg.version },
+    schema: 'dopplerx.physical-f16-qualification/v2',
+    package: {
+      name: pkg.name,
+      version: pkg.version,
+      archiveSha256,
+      unpackedFileCount,
+    },
     device: hw,
     features: [...device.features].sort(),
+    gradientClippingAndOverflow,
     models,
     failClosedChecks,
     checkedUtc: new Date().toISOString(),
   };
   writeFileSync(outputFile, JSON.stringify(receipt, null, 2) + '\n');
-  console.log(`Physical F16 & fail-closed check passed on ${hw.vendor} (${hw.device || hw.architecture || 'gpu'}) for ${models.length} manifests.`);
+  console.log(JSON.stringify({
+    archiveSha256,
+    unpackedFileCount,
+    vendor: hw.vendor,
+    f32Clipped: gradientClippingAndOverflow.f32LogicalExtentCheck.clippedGpuValues,
+    f16ClippedBits: gradientClippingAndOverflow.f16LogicalExtentCheck.clippedGpuF16Bits,
+    modelsVerified: models.length,
+  }));
 } finally {
-  await gpuModule.destroyDevice();
+  device.destroy();
 }
+process.exit(0);

@@ -675,9 +675,9 @@
     },
     "reports/dopplerx-0.1.5-qualification": {
       "retentionClass": "frozen-evidence",
-      "files": 6,
-      "bytes": 35257,
-      "inventoryHash": "sha256:e1414250e28177b7415721c116ce4806eba45d4330c87e80d75167ae1b094d84"
+      "files": 7,
+      "bytes": 42396,
+      "inventoryHash": "sha256:9471ba110d6971590040a88b7593d99bf7a2e86b26a9ad0f1baa4aa7a0d2a133"
     },
     "reports/embedding-generation-repair": {
       "retentionClass": "frozen-evidence",
